@@ -108,9 +108,8 @@ implementation
       begin
          t:=cshortstringtype;
          consume(_STRING);
-         if token=_LECKKLAMMER then
+         if try_to_consume(_LECKKLAMMER) then
            begin
-              consume(_LECKKLAMMER);
               p:=comp_expr(true);
               if not is_constintnode(p) then
                 begin
@@ -262,30 +261,24 @@ implementation
          inc(parsing_para_level);
          allow_array_constructor:=true;
          p2:=nil;
-         while true do
-           begin
-              p1:=comp_expr(true);
-              p2:=ccallparanode.create(p1,p2);
-              { it's for the str(l:5,s); }
-              if __colon and (token=_COLON) then
-                begin
-                   consume(_COLON);
+         repeat
+           p1:=comp_expr(true);
+           p2:=ccallparanode.create(p1,p2);
+           { it's for the str(l:5,s); }
+           if __colon and (token=_COLON) then
+             begin
+               consume(_COLON);
+               p1:=comp_expr(true);
+               p2:=ccallparanode.create(p1,p2);
+               include(tcallparanode(p2).callparaflags,cpf_is_colon_para);
+               if try_to_consume(_COLON) then
+                 begin
                    p1:=comp_expr(true);
                    p2:=ccallparanode.create(p1,p2);
                    include(tcallparanode(p2).callparaflags,cpf_is_colon_para);
-                   if token=_COLON then
-                     begin
-                        consume(_COLON);
-                        p1:=comp_expr(true);
-                        p2:=ccallparanode.create(p1,p2);
-                        include(tcallparanode(p2).callparaflags,cpf_is_colon_para);
-                     end
-                end;
-              if token=_COMMA then
-                consume(_COMMA)
-              else
-                break;
-           end;
+                 end
+             end;
+         until not try_to_consume(_COMMA);
          allow_array_constructor:=old_allow_array_constructor;
          dec(parsing_para_level);
          in_args:=prev_in_args;
@@ -585,13 +578,10 @@ implementation
               consume(_LKLAMMER);
               in_args:=true;
               p1:=comp_expr(true);
-              if token=_COMMA then
-               begin
-                 consume(_COMMA);
-                 p2:=ccallparanode.create(comp_expr(true),nil);
-               end
+              if try_to_consume(_COMMA) then
+                p2:=ccallparanode.create(comp_expr(true),nil)
               else
-               p2:=nil;
+                p2:=nil;
               p2:=ccallparanode.create(p1,p2);
               statement_syssym:=geninlinenode(l,false,p2);
               consume(_RKLAMMER);
@@ -617,23 +607,18 @@ implementation
               consume(_LKLAMMER);
               in_args:=true;
               p2:=nil;
-              while true do
-               begin
-                 p1:=comp_expr(true);
-                 set_varstate(p1,vs_used,true);
-                 if not((p1.resulttype.def.deftype=stringdef) or
-                        ((p1.resulttype.def.deftype=orddef) and
-                         (torddef(p1.resulttype.def).typ=uchar))) then
-                   Message(parser_e_illegal_parameter_list);
-                 if p2<>nil then
+              repeat
+                p1:=comp_expr(true);
+                set_varstate(p1,vs_used,true);
+                if not((p1.resulttype.def.deftype=stringdef) or
+                       ((p1.resulttype.def.deftype=orddef) and
+                        (torddef(p1.resulttype.def).typ=uchar))) then
+                  Message(parser_e_illegal_parameter_list);
+                if p2<>nil then
                   p2:=caddnode.create(addn,p2,p1)
-                 else
+                else
                   p2:=p1;
-                 if token=_COMMA then
-                  consume(_COMMA)
-                 else
-                  break;
-               end;
+              until not try_to_consume(_COMMA);
               consume(_RKLAMMER);
               statement_syssym:=p2;
             end;
@@ -641,9 +626,8 @@ implementation
           in_read_x,
           in_readln_x :
             begin
-              if token=_LKLAMMER then
+              if try_to_consume(_LKLAMMER) then
                begin
-                 consume(_LKLAMMER);
                  paras:=parse_paras(false,false);
                  consume(_RKLAMMER);
                end
@@ -671,9 +655,8 @@ implementation
           in_write_x,
           in_writeln_x :
             begin
-              if token=_LKLAMMER then
+              if try_to_consume(_LKLAMMER) then
                begin
-                 consume(_LKLAMMER);
                  paras:=parse_paras(true,false);
                  consume(_RKLAMMER);
                end
@@ -699,11 +682,8 @@ implementation
               p1:= ccallparanode.create(comp_expr(true), nil);
               consume(_COMMA);
               p2 := ccallparanode.create(comp_expr(true),p1);
-              if (token = _COMMA) then
-                Begin
-                  consume(_COMMA);
-                  p2 := ccallparanode.create(comp_expr(true),p2)
-                End;
+              if try_to_consume(_COMMA) then
+                p2 := ccallparanode.create(comp_expr(true),p2);
               consume(_RKLAMMER);
               p2 := geninlinenode(l,false,p2);
               statement_syssym := p2;
@@ -726,11 +706,8 @@ implementation
               consume(_LKLAMMER);
               in_args:=true;
               p1:=comp_expr(true);
-              if token=_COMMA then
-               begin
-                 consume(_COMMA);
-                 p2:=comp_expr(true);
-               end
+              if try_to_consume(_COMMA) then
+                 p2:=comp_expr(true)
               else
                begin
                  { then insert an empty string }
@@ -926,9 +903,8 @@ implementation
          { has parameters                                             }
          if (ppo_hasparameters in tpropertysym(sym).propoptions) then
            begin
-              if token=_LECKKLAMMER then
+              if try_to_consume(_LECKKLAMMER) then
                 begin
-                   consume(_LECKKLAMMER);
                    paras:=parse_paras(false,true);
                    consume(_RECKKLAMMER);
                 end;
@@ -1294,9 +1270,8 @@ implementation
                      end
                     else
                      begin
-                       if token=_LKLAMMER then
+                       if try_to_consume(_LKLAMMER) then
                         begin
-                          consume(_LKLAMMER);
                           p1:=comp_expr(true);
                           consume(_RKLAMMER);
                           p1:=ctypeconvnode.create_explicit(p1,htype);
@@ -1485,9 +1460,8 @@ implementation
                 errorsym :
                   begin
                     p1:=cerrornode.create;
-                    if token=_LKLAMMER then
+                    if try_to_consume(_LKLAMMER) then
                      begin
-                       consume(_LKLAMMER);
                        parse_paras(false,false);
                        consume(_RKLAMMER);
                      end;
@@ -1517,36 +1491,28 @@ implementation
          { be sure that a least one arrayconstructn is used, also for an
            empty [] }
            if token=_RECKKLAMMER then
-            buildp:=carrayconstructornode.create(nil,buildp)
+             buildp:=carrayconstructornode.create(nil,buildp)
            else
-            begin
-              while true do
-               begin
-                 p1:=comp_expr(true);
-                 if token=_POINTPOINT then
-                  begin
-                    consume(_POINTPOINT);
-                    p2:=comp_expr(true);
-                    p1:=carrayconstructorrangenode.create(p1,p2);
-                  end;
+            repeat
+              p1:=comp_expr(true);
+              if try_to_consume(_POINTPOINT) then
+                begin
+                  p2:=comp_expr(true);
+                  p1:=carrayconstructorrangenode.create(p1,p2);
+                end;
                { insert at the end of the tree, to get the correct order }
-                 if not assigned(buildp) then
-                  begin
-                    buildp:=carrayconstructornode.create(p1,nil);
-                    lastp:=buildp;
-                  end
-                 else
-                  begin
-                    lastp.right:=carrayconstructornode.create(p1,nil);
-                    lastp:=tarrayconstructornode(lastp.right);
-                  end;
-               { there could be more elements }
-                 if token=_COMMA then
-                   consume(_COMMA)
-                 else
-                   break;
+             if not assigned(buildp) then
+               begin
+                 buildp:=carrayconstructornode.create(p1,nil);
+                 lastp:=buildp;
+               end
+             else
+               begin
+                 lastp.right:=carrayconstructornode.create(p1,nil);
+                 lastp:=tarrayconstructornode(lastp.right);
                end;
-            end;
+           { there could be more elements }
+           until not try_to_consume(_COMMA);
            factor_read_set:=buildp;
          end;
 
@@ -1560,35 +1526,22 @@ implementation
         { tries to avoid syntax errors after invalid qualifiers }
         procedure recoverconsume_postfixops;
 
-          begin
-             while true do
-               begin
-                  case token of
-                     _CARET:
-                        consume(_CARET);
-                     _POINT:
-                        begin
-                           consume(_POINT);
-                           if token=_ID then
-                             consume(_ID);
-                        end;
-                     _LECKKLAMMER:
-                        begin
-                           consume(_LECKKLAMMER);
-                           repeat
-                             comp_expr(true);
-                             if token=_COMMA then
-                               consume(_COMMA)
-                             else
-                               break;
-                           until false;
-                           consume(_RECKKLAMMER);
-                        end
-                     else
-                        break;
-                  end;
-               end;
-          end;
+        begin
+          repeat
+            if not try_to_consume(_CARET) then
+              if try_to_consume(_POINT) then
+                try_to_consume(_ID)
+              else if try_to_consume(_LECKKLAMMER) then
+                begin
+                  repeat
+                    comp_expr(true);
+                  until not try_to_consume(_COMMA);
+                  consume(_RECKKLAMMER);
+                end
+              else
+                break;
+          until false;
+        end;
 
         var
            store_static : boolean;
@@ -1681,9 +1634,8 @@ implementation
                                     (tloadnode(p1).symtableentry.name='MEMW') or
                                     (tloadnode(p1).symtableentry.name='MEML')) then
                                   begin
-                                    if (token=_COLON) then
+                                    if try_to_consume(_COLON) then
                                      begin
-                                       consume(_COLON);
                                        p3:=caddnode.create(muln,cordconstnode.create($10,s32inttype,false),p2);
                                        p2:=comp_expr(true);
                                        p2:=caddnode.create(addn,p2,p3);
@@ -1710,11 +1662,7 @@ implementation
                               end;
                           end;
                           do_resulttypepass(p1);
-                          if token=_COMMA then
-                            consume(_COMMA)
-                          else
-                            break;
-                        until false;
+                        until not try_to_consume(_COMMA);;
                         consume(_RECKKLAMMER);
                       end;
                   end;
@@ -2077,9 +2025,8 @@ implementation
              begin
                string_dec(htype);
                { STRING can be also a type cast }
-               if token=_LKLAMMER then
+               if try_to_consume(_LKLAMMER) then
                 begin
-                  consume(_LKLAMMER);
                   p1:=comp_expr(true);
                   consume(_RKLAMMER);
                   p1:=ctypeconvnode.create_explicit(p1,htype);
@@ -2096,9 +2043,8 @@ implementation
                htype:=cfiletype;
                consume(_FILE);
                { FILE can be also a type cast }
-               if token=_LKLAMMER then
+               if try_to_consume(_LKLAMMER) then
                 begin
-                  consume(_LKLAMMER);
                   p1:=comp_expr(true);
                   consume(_RKLAMMER);
                   p1:=ctypeconvnode.create_explicit(p1,htype);
@@ -2525,7 +2471,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.147  2004-02-17 15:57:49  peter
+  Revision 1.148  2004-02-17 23:36:40  daniel
+    * Make better use of try_to_consume
+
+  Revision 1.147  2004/02/17 15:57:49  peter
   - fix rtti generation for properties containing sl_vec
   - fix crash when overloaded operator is not available
   - fix record alignment for C style variant records
