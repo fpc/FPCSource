@@ -565,6 +565,7 @@ implementation
          pd : tprocdef;
          i : cardinal;
          is_visible,
+         hasoverloads,
          pdoverload : boolean;
       begin
          { put only sub routines into the VMT, and routines
@@ -591,6 +592,7 @@ implementation
                  if (_speed=symcoll^.speedvalue) and
                     (_name=symcoll^.name^) then
                   begin
+                    hasoverloads:=(Tprocsym(sym).procdef_count>1);
                     { walk through all defs of the symbol }
                     for i:=1 to Tprocsym(sym).procdef_count do
                       begin
@@ -612,12 +614,12 @@ implementation
                                    begin
                                      { if the current definition has no virtual then hide the
                                        old virtual if the new definition has the same arguments or
-                                       has no overload directive }
+                                       when it has no overload directive and no overloads }
                                      if not(po_virtualmethod in pd.procoptions) then
                                       begin
-                                        if (not pdoverload or
-                                            equal_paras(procdefcoll^.data.para,pd.para,cp_value_equal_const,false)) and
-                                           (tstoredsym(procdefcoll^.data.procsym).is_visible_for_object(pd._class)) then
+                                        if tstoredsym(procdefcoll^.data.procsym).is_visible_for_object(pd._class) and
+                                           (not(pdoverload or hasoverloads) or
+                                            equal_paras(procdefcoll^.data.para,pd.para,cp_value_equal_const,false)) then
                                          begin
                                            if is_visible then
                                              procdefcoll^.hidden:=true;
@@ -634,7 +636,7 @@ implementation
                                            not(po_overridingmethod in pd.procoptions) then
                                          begin
                                            { we start a new virtual tree, hide the old }
-                                           if (not pdoverload or
+                                           if (not(pdoverload or hasoverloads) or
                                                equal_paras(procdefcoll^.data.para,pd.para,cp_value_equal_const,false)) and
                                               (tstoredsym(procdefcoll^.data.procsym).is_visible_for_object(pd._class)) then
                                             begin
@@ -704,7 +706,7 @@ implementation
                                         { the new definition is virtual and the old static, we hide the old one
                                           if the new defintion has not the overload directive }
                                         if is_visible and
-                                           ((not pdoverload) or
+                                           ((not(pdoverload or hasoverloads)) or
                                             equal_paras(procdefcoll^.data.para,pd.para,cp_value_equal_const,false)) then
                                           procdefcoll^.hidden:=true;
                                       end;
@@ -1317,7 +1319,13 @@ initialization
 end.
 {
   $Log$
-  Revision 1.32  2002-10-19 15:09:24  peter
+  Revision 1.33  2002-10-20 15:33:36  peter
+    * having overloads is the same as overload directive for hiding of
+      parent methods. This is required becuase it can be possible that a
+      method will then hide a method in the parent that an overloaded
+      method requires. See webbug tw2185
+
+  Revision 1.32  2002/10/19 15:09:24  peter
     + tobjectdef.members_need_inittable that is used to generate only the
       inittable when it is really used. This saves a lot of useless calls
       to fpc_finalize when destroying classes
