@@ -102,7 +102,7 @@ Begin
  DoDirSeparators(S);
  {$ENDIF}
 {$ifdef HasUnix}
-  Result:=Unix.fexpand(S);
+  Result:=fexpand(S);
 {$else}
   Result:=Dos.Fexpand(S);
 {$endif}
@@ -249,7 +249,10 @@ end;
 
 {
   $Log$
-  Revision 1.3  2004-05-01 11:56:25  marco
+  Revision 1.4  2004-10-30 20:49:32  marco
+   * Removed a "unix." prefix
+
+  Revision 1.3  2004/05/01 11:56:25  marco
    * fileno -> getfilehandle
 
   Revision 1.2  2004/05/01 11:04:34  marco
