@@ -37,7 +37,8 @@ procedure TDataBase.Loaded;
 
 begin
   inherited;
-  if FOpenAfterRead then SetConnected(true);
+  if FOpenAfterRead then
+    SetConnected(true);
 end;
 
 procedure TDataBase.SetConnected (Value : boolean);
@@ -53,7 +54,12 @@ begin
         exit;
         end
       else
-        DoInternalConnect;
+//        try
+          DoInternalConnect;
+//        except
+//          on e: EDatabaseError do DoInternalDisconnect;
+      //    raise;
+//        end; {try}
       end
     else
       begin
@@ -438,7 +444,10 @@ end;
 
 {
   $Log$
-  Revision 1.8  2004-11-05 08:32:02  michael
+  Revision 1.9  2004-12-05 00:05:38  michael
+  patch to enable RecNo and DisplayFormat
+
+  Revision 1.8  2004/11/05 08:32:02  michael
   TBufDataset.inc:
     - replaced Freemem by Reallocmem, Free by FreeAndNil
 

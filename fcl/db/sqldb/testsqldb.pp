@@ -24,7 +24,7 @@ program testsqldb;
 {$mode objfpc}{$H+}
 
 {$define pqconnection}
-{$define MySQLConnection}
+{ define MySQLConnection}
 {$define IBConnection}
 
 uses

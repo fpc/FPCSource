@@ -833,7 +833,7 @@ type
     FOnFilterRecord: TFilterRecordEvent;
     FOnNewRecord: TDataSetNotifyEvent;
     FOnPostError: TDataSetErrorEvent;
-    FRecNo: Longint;
+//    FRecNo: Longint;
     FRecordCount: Longint;
 //    FRecordSize: Word;
     FIsUniDirectional: Boolean;
@@ -1025,7 +1025,7 @@ type
     property Modified: Boolean read FModified write SetModified;
     property IsUniDirectional: Boolean read FIsUniDirectional write FIsUniDirectional default False;
     property RecordCount: Longint read GetRecordCount;
-    property RecNo: Longint read FRecNo write FRecNo;
+    property RecNo: Longint read GetRecNo write SetRecNo;
     property RecordSize: Word read GetRecordSize;
     property State: TDataSetState read FState;
     property Fields : TFields read FFieldList;
@@ -1610,7 +1610,10 @@ end.
 
 {
   $Log$
-  Revision 1.29  2004-12-04 22:44:24  michael
+  Revision 1.30  2004-12-05 00:05:38  michael
+  patch to enable RecNo and DisplayFormat
+
+  Revision 1.29  2004/12/04 22:44:24  michael
     * Patch from Joost van der Sluis
     - implemented TBCDFields
     - adapted for the changes in TBuffDataset

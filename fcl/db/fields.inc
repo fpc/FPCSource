@@ -860,11 +860,9 @@ begin
     fmt:=FDisplayFormat
   else
     fmt:=FEditFormat;
-{  // no formatFloat yet
   If length(fmt)<>0 then
     AText:=FormatFloat(fmt,L)
   else
-}
     Str(L,AText);
 end;
 
@@ -1054,11 +1052,10 @@ begin
     Fmt:=FDisplayFormat
   else
     Fmt:=FEditFormat;
-{  // No formatfloat yet
+
   If fmt<>'' then
     TheText:=FormatFloat(fmt,E)
   else
-}
     TheText:=FloatToStrF(E,ffgeneral,FPrecision,0);
 end;
 
@@ -1930,7 +1927,10 @@ end;
 
 {
   $Log$
-  Revision 1.17  2004-12-04 22:43:56  michael
+  Revision 1.18  2004-12-05 00:05:38  michael
+  patch to enable RecNo and DisplayFormat
+
+  Revision 1.17  2004/12/04 22:43:56  michael
     - implemented TBCDFields
 
   Revision 1.16  2004/11/30 21:18:34  michael
