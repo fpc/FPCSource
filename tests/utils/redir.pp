@@ -42,6 +42,7 @@ Interface
 {$endif}
 {$ifdef BSD}
 {$define implemented}
+{$endif}
 
 { be sure msdos is not set for FPC compiler }
 {$ifdef FPC}
@@ -789,7 +790,10 @@ finalization
 End.
 {
   $Log$
-  Revision 1.8  2002-06-01 19:08:52  marco
+  Revision 1.9  2002-06-03 19:07:55  pierre
+   * fix compilation failure
+
+  Revision 1.8  2002/06/01 19:08:52  marco
    * Renamefest
 
   Revision 1.7  2002/02/24 20:07:23  hajny
