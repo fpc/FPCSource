@@ -29,7 +29,9 @@ interface
 
 {$ifdef SYSTEMDEBUG}
   {$define SYSTEMEXCEPTIONDEBUG}
-  {$define IODEBUG}
+  {.$define IODEBUG}
+  {.$define DEBUGENVIRONMENT}
+  {$define DEBUGARGUMENTS}
 {$endif SYSTEMDEBUG}
 
 { $DEFINE OS2EXCEPTIONS}
@@ -118,10 +120,10 @@ const   UnusedHandle=-1;
 
 var
 { C-compatible arguments and environment }
-  argc  : longint;external name '_argc';
-  argv  : ppchar;external name '_argv';
-  envp  : ppchar;external name '_environ';
-  EnvC: cardinal; external name '_envc';
+  argc  : longint; //external name '_argc';
+  argv  : ppchar; //external name '_argv';
+  envp  : ppchar; //external name '_environ';
+  EnvC: cardinal; //external name '_envc';
 
 (* Pointer to the block of environment variables - used e.g. in unit Dos. *)
   Environment: PChar;
@@ -1067,6 +1069,267 @@ begin
 *)
 end;
 
+function strcopy(dest,source : pchar) : pchar;assembler;
+asm
+        pushl %esi
+        pushl %edi
+        cld
+        movl 12(%ebp),%edi
+        movl $0xffffffff,%ecx
+        xorb %al,%al
+        repne
+        scasb
+        not %ecx
+        movl 8(%ebp),%edi
+        movl 12(%ebp),%esi
+        movl %ecx,%eax
+        shrl $2,%ecx
+        rep
+        movsl
+        movl %eax,%ecx
+        andl $3,%ecx
+        rep
+        movsb
+        movl 8(%ebp),%eax
+        popl %edi
+        popl %esi
+end;
+
+
+procedure InitEnvironment;
+var env_count : longint;
+    dos_env,cp : pchar;
+begin
+  env_count:=0;
+  cp:=environment;
+  while cp ^ <> #0 do
+    begin
+    inc(env_count);
+    while (cp^ <> #0) do inc(longint(cp)); { skip to NUL }
+    inc(longint(cp)); { skip to next character }
+    end;
+  envp := getmem((env_count+1) * sizeof(pchar));
+  envc := env_count;
+  if (envp = nil) then exit;
+  cp:=environment;
+  env_count:=0;
+  while cp^ <> #0 do
+  begin
+    envp[env_count] := getmem(strlen(cp)+1);
+    strcopy(envp[env_count], cp);
+{$IfDef DEBUGENVIRONMENT}
+    Writeln(stderr,'env ',env_count,' = "',envp[env_count],'"');
+{$EndIf}
+    inc(env_count);
+    while (cp^ <> #0) do
+      inc(longint(cp)); { skip to NUL }
+    inc(longint(cp)); { skip to next character }
+  end;
+  envp[env_count]:=nil;
+//  longint(cp):=longint(cp)+3;
+//  dos_argv0 := sysgetmem(strlen(cp)+1);
+//  if (dos_argv0 = nil) then halt;
+//  strcopy(dos_argv0, cp);
+  { update ___dos_argv0 also }
+//  ___dos_argv0:=dos_argv0
+end;
+
+procedure InitArguments;
+var
+  arglen,
+  count   : longint;
+  argstart,
+  pc,arg  : pchar;
+  quote   : char;
+  argvlen : longint;
+
+  procedure allocarg(idx,len:longint);
+  begin
+    if idx>=argvlen then
+     begin
+       argvlen:=(idx+8) and (not 7);
+       sysreallocmem(argv,argvlen*sizeof(pointer));
+     end;
+    { use realloc to reuse already existing memory }
+    { always allocate, even if length is zero, since }
+    { the arg. is still present!                     }
+    sysreallocmem(argv[idx],len+1);
+  end;
+
+begin
+  count:=0;
+  argv:=nil;
+  argvlen:=0;
+
+  // Get argv[0]
+  pc:=cmdline;
+  Arglen:=0;
+  repeat
+    Inc(Arglen);
+  until (pc[Arglen]=#0);
+  allocarg(count,arglen);
+  move(pc^,argv[count]^,arglen);
+
+  { ReSetup cmdline variable }
+  repeat
+    Inc(Arglen);
+  until (pc[Arglen]=#0);
+  pc:=GetMem(ArgLen);
+  move(cmdline^, pc^, arglen);
+  Arglen:=0;
+  repeat
+    Inc(Arglen);
+  until (pc[Arglen]=#0);
+  pc[Arglen]:=' '; // combine argv[0] and command line
+  CmdLine:=pc;
+
+  { process arguments }
+  pc:=cmdline;
+{$IfDef DEBUGARGUMENTS}
+  Writeln(stderr,'GetCommandLine is #',pc,'#');
+{$EndIf }
+  while pc^<>#0 do
+   begin
+     { skip leading spaces }
+     while pc^ in [#1..#32] do
+      inc(pc);
+     if pc^=#0 then
+      break;
+     { calc argument length }
+     quote:=' ';
+     argstart:=pc;
+     arglen:=0;
+     while (pc^<>#0) do
+      begin
+        case pc^ of
+          #1..#32 :
+            begin
+              if quote<>' ' then
+               inc(arglen)
+              else
+               break;
+            end;
+          '"' :
+            begin
+              if quote<>'''' then
+               begin
+                 if pchar(pc+1)^<>'"' then
+                  begin
+                    if quote='"' then
+                     quote:=' '
+                    else
+                     quote:='"';
+                  end
+                 else
+                  inc(pc);
+               end
+              else
+               inc(arglen);
+            end;
+          '''' :
+            begin
+              if quote<>'"' then
+               begin
+                 if pchar(pc+1)^<>'''' then
+                  begin
+                    if quote=''''  then
+                     quote:=' '
+                    else
+                     quote:='''';
+                  end
+                 else
+                  inc(pc);
+               end
+              else
+               inc(arglen);
+            end;
+          else
+            inc(arglen);
+        end;
+        inc(pc);
+      end;
+     { copy argument }
+     { Don't copy the first one, it is already there.}
+     If Count<>0 then
+      begin
+        allocarg(count,arglen);
+        quote:=' ';
+        pc:=argstart;
+        arg:=argv[count];
+        while (pc^<>#0) do
+         begin
+           case pc^ of
+             #1..#32 :
+               begin
+                 if quote<>' ' then
+                  begin
+                    arg^:=pc^;
+                    inc(arg);
+                  end
+                 else
+                  break;
+               end;
+             '"' :
+               begin
+                 if quote<>'''' then
+                  begin
+                    if pchar(pc+1)^<>'"' then
+                     begin
+                       if quote='"' then
+                        quote:=' '
+                       else
+                        quote:='"';
+                     end
+                    else
+                     inc(pc);
+                  end
+                 else
+                  begin
+                    arg^:=pc^;
+                    inc(arg);
+                  end;
+               end;
+             '''' :
+               begin
+                 if quote<>'"' then
+                  begin
+                    if pchar(pc+1)^<>'''' then
+                     begin
+                       if quote=''''  then
+                        quote:=' '
+                       else
+                        quote:='''';
+                     end
+                    else
+                     inc(pc);
+                  end
+                 else
+                  begin
+                    arg^:=pc^;
+                    inc(arg);
+                  end;
+               end;
+             else
+               begin
+                 arg^:=pc^;
+                 inc(arg);
+               end;
+           end;
+           inc(pc);
+         end;
+        arg^:=#0;
+      end;
+ {$IfDef DEBUGARGUMENTS}
+     Writeln(stderr,'dos arg ',count,' #',arglen,'#',argv[count],'#');
+ {$EndIf}
+     inc(count);
+   end;
+  { get argc and create an nil entry }
+  argc:=count;
+  allocarg(argc,0);
+  { free unused memory }
+  sysreallocmem(argv,(argc+1)*sizeof(pointer));
+end;
 
 function GetFileHandleCount: longint;
 var L1: longint;
@@ -1116,13 +1379,15 @@ begin
     FileHandleCount := GetFileHandleCount;
     DosGetInfoBlocks (@TIB, @PIB);
     StackBottom := TIB^.Stack;
-    Environment := pointer (PIB^.Env);
+
+    {Set type of application}
     ApplicationType := PIB^.ProcType;
     IsConsole := ApplicationType <> 3;
+
     exitproc:=nil;
 
     {Initialize the heap.}
-    initheap;
+    InitHeap;
 
     { ... and exceptions }
     SysInitExceptions;
@@ -1132,6 +1397,13 @@ begin
 
     { no I/O-Error }
     inoutres:=0;
+
+    {Initialize environment (must be after InitHeap because allocates memory)}
+    Environment := pointer (PIB^.Env);
+    InitEnvironment;
+
+    CmdLine := pointer (PIB^.Cmd);
+    InitArguments;
 
 {$ifdef HASVARIANT}
     initvariantmanager;
@@ -1146,7 +1418,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.57  2003-11-06 17:20:44  yuri
+  Revision 1.58  2003-11-19 16:50:21  yuri
+  * Environment and arguments initialization now native
+
+  Revision 1.57  2003/11/06 17:20:44  yuri
   * Unused constants removed
 
   Revision 1.56  2003/11/03 09:42:28  marco

@@ -1,16 +1,17 @@
 / prt1.s (emx+fpk) -- Made from crt2.s and dos.s,
-/                                         Copyright (c) 1990-1999-2000 by Eberhard Mattes.
+/                     Copyright (c) 1990-1999-2000 by Eberhard Mattes.
 /                     Changed for Free Pascal in 1997 Daniel Mantione.
-/                                         This code is _not_ under the Library GNU Public
-/                                         License, because the original is not. See copying.emx
-/                                         for details. You should have received it with this
-/                                         product, write the author if you haven't.
+/                     This code is _not_ under the Library GNU Public
+/                     License, because the original is not. See copying.emx
+/                     for details. You should have received it with this
+/                     product, write the author if you haven't.
 
                 .globl  __entry1
-                .globl  _environ
-                .globl  _envc
-                .globl  _argv
-                .globl  _argc
+/ Heh. Not needed anymore.
+/                .globl  _environ
+/                .globl  _envc
+/                .globl  _argv
+/                .globl  _argc
 
                 .text
 
