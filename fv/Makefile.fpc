@@ -11,7 +11,7 @@ units=buildfv
 implicitunits=app colortxt dialogs drivers editors \
               fvcommon fvconsts gadgets histlist inplong memory \
               menus msgbox resource statuses stddlg tabs time validate \
-              views sysmsg
+              views sysmsg asciitab
 exampledirs=test
 
 [libs]
