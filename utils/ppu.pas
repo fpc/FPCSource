@@ -38,9 +38,17 @@ type
 
 const
 {$ifdef newcg}
+{$ifdef ORDERSOURCES}
+  CurrentPPUVersion=101;
+{$else ORDERSOURCES}
   CurrentPPUVersion=100;
+{$endif ORDERSOURCES}
 {$else newcg}
+{$ifdef ORDERSOURCES}
+  CurrentPPUVersion=18;
+{$else ORDERSOURCES}
   CurrentPPUVersion=17;
+{$endif ORDERSOURCES}
 {$endif newcg}
 
 { buffer sizes }
@@ -348,7 +356,8 @@ end;
 destructor tppufile.done;
 begin
   close;
-  freemem(buf,ppubufsize);
+  if assigned(buf) then
+    freemem(buf,ppubufsize);
 end;
 
 
@@ -397,16 +406,21 @@ end;
 
 
 procedure tppufile.NewHeader;
+var
+  s : string;
 begin
   fillchar(header,sizeof(tppuheader),0);
+  str(currentppuversion,s);
+  while length(s)<3 do
+   s:='0'+s;
   with header do
    begin
      Id[1]:='P';
      Id[2]:='P';
      Id[3]:='U';
-     Ver[1]:='0';
-     Ver[2]:='1';
-     Ver[3]:='7';
+     Ver[1]:=s[1];
+     Ver[2]:=s[2];
+     Ver[3]:=s[3];
    end;
 end;
 
@@ -977,7 +991,7 @@ end;
          exit;
         closed:=false;
         tempclosed:=false;
-        
+
       { restore state }
         seek(f,closepos);
         tempopen:=true;
@@ -986,11 +1000,24 @@ end;
 end.
 {
   $Log$
-  Revision 1.5  1999-08-31 16:06:47  pierre
-   updated to v1.42 of compiler unit
+  Revision 1.6  1999-09-17 09:20:26  peter
+    * updated
+
+  Revision 1.45  1999/09/16 13:27:08  pierre
+    + error if PPU modulename is different from what is searched
+      (8+3 limitations!)
+    + cond ORDERSOURCES to allow recompilation of FP
+      if symppu.inc is changed (need PPUversion change!)
+
+  Revision 1.44  1999/09/16 11:34:58  pierre
+   * typo correction
+
+  Revision 1.43  1999/09/10 18:48:09  florian
+    * some bug fixes (e.g. must_be_valid and procinfo.funcret_is_valid)
+    * most things for stored properties fixed
 
   Revision 1.42  1999/08/31 15:47:56  pierre
-   + startup conditionnals stored in PPU file for debug info
+   + startup conditionals stored in PPU file for debug info
 
   Revision 1.41  1999/08/30 16:21:40  pierre
    * tempclosing of ppufiles under dos was wrong
@@ -1005,9 +1032,6 @@ end.
 
   Revision 1.38  1999/08/15 10:47:48  peter
     + normalset,smallset writing
-
-  Revision 1.4  1999/08/15 10:47:12  peter
-    * updates for new options
 
   Revision 1.37  1999/08/02 23:13:20  florian
     * more changes to compile for the Alpha
