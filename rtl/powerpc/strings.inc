@@ -27,7 +27,7 @@ asm
         {  load the begin of the source string in the data cache }
         dcbt    0,r4
         {  get # of misaligned bytes  }
-        rlwinm. r10,r4,0,31-2,31
+        rlwinm. r10,r4,0,31-2+1,31
         subfic  r10,r10,4
         mtctr   r10
         {  since we have to return dest intact, use another register for  }
@@ -89,7 +89,7 @@ asm
         {  load the begin of the source string in the data cache }
         dcbt    0,r4
         {  get # of misaligned bytes  }
-        rlwinm. r10,r4,0,31-2,31
+        rlwinm. r10,r4,0,31-2+1,31
         subfic  r10,r10,4
         mtctr   r10
         subi    r3,r3,1
@@ -453,7 +453,11 @@ end ['r0','r9','r10','cr0','cr1'];
 
 {
   $Log$
-  Revision 1.9  2001-09-27 15:30:29  jonas
+  Revision 1.10  2001-09-28 13:25:04  jonas
+    * fixed wrong alignment code (sometimes we aligned to multiple of 8
+      instead of the desired multiple of 4)
+
+  Revision 1.9  2001/09/27 15:30:29  jonas
     * conversion to compilerproc and to structure used by i386 rtl
     * some bugfixes
     * powerpc.inc is almost complete (only fillchar/word/dword, get_frame etc
