@@ -31,9 +31,12 @@ unit typinfo;
 // temporary types:
 
     type
-       ShortString=String;
-       PByte      =^Byte;
-       PBoolean   =^Boolean;
+       PShortString =^ShortString;
+       PByte        =^Byte;
+       PLongint     =^Longint;
+       PBoolean     =^Boolean;
+       Variant      = Pointer;
+       TMethod      = Pointer;
 
 {$MINENUMSIZE 1   this saves a lot of memory }
        // if you change one of the following enumeration types
@@ -165,9 +168,9 @@ unit typinfo;
     procedure SetOrdProp(Instance : TObject;PropInfo : PPropInfo;
       Value : Longint);
 
-    function GetStrProp(Instance : TObject;PropInfo : PPropInfo) : string;
+    function GetStrProp(Instance : TObject;PropInfo : PPropInfo) : Ansistring;
     procedure SetStrProp(Instance : TObject;PropInfo : PPropInfo;
-      const Value : string);
+      const Value : Ansistring);
 
     function GetFloatProp(Instance : TObject;PropInfo : PPropInfo) : Extended;
     procedure SetFloatProp(Instance : TObject;PropInfo : PPropInfo;
@@ -187,24 +190,107 @@ unit typinfo;
 
   implementation
 
-{$ASMMODE INTEL}
+{$ASMMODE ATT}
 
-    function CallMethod_Integer(s : Pointer;Address : Pointer) : Integer;assembler;
+    function CallIntegerFunc(s : Pointer;Address : Pointer; INdex,IValue : Longint) : Integer;assembler;
+    
+      Label LINoPush;
 
       asm
-         mov ESI,s
-         mov EDI,Address
-         call [EDI]
+         movl S,%esi
+         movl Address,%edi
+         // ? Indexed function
+         movl Index,%eax
+         xorl %eax,%eax
+         jnz LINoPush
+         movl IValue,%eax
+         pushl %eax
+      LINoPush:
+         call (%edi)
          // now the result should be in EAX, untested yet (FK)
       end;
 
-    function CallMethod_Boolean(s : Pointer;Address : Pointer) : Boolean;assembler;
+    function CallIntegerProc(s : Pointer;Address : Pointer;Value : Integer; INdex,IVAlue : Longint) : Integer;assembler;
+
+      label LIPNoPush;
 
       asm
-         mov ESI,s
-         mov EDI,Address
-         call [EDI]
+         movl S,%esi
+         movl Address,%edi
+         // Push value to set
+         movl Value,%eax
+         pushl %eax 
+         // ? Indexed procedure
+         movl Index,%eax
+         xorl %eax,%eax
+         jnz LIPNoPush
+         movl IValue,%eax
+         pushl %eax
+      LIPNoPush:
+         call (%edi)
          // now the result should be in EAX, untested yet (FK)
+      end;
+
+    function CallBooleanFunc(s : Pointer;Address : Pointer; Index,IValue : Longint) : Boolean;assembler;
+
+      Label LBNoPush;
+      
+      asm
+         movl S,%edi
+         movl Address,%edi
+         // ? Indexed function
+         movl Index,%eax
+         xorl %eax,%eax
+         jnz LBNoPush
+         movl IValue,%eax
+         pushl %eax
+      LBNoPush:
+         call (%edi)
+         // now the result should be in EAX, untested yet (FK)
+      end;
+
+    //!! Assembler functions can't have short stringreturn values.
+    //!! So we make a procedure with var parameter.
+
+    Procedure CallSStringFunc(s : Pointer;Address : Pointer; INdex,IValue : Longint;
+                            Var Res: Shortstring);assembler;
+    
+      Label LSSNoPush;
+
+      asm
+         movl S,%esi
+         movl Address,%edi
+         // ? Indexed function
+         movl Index,%eax
+         xorl %eax,%eax
+         jnz LSSNoPush
+         movl IValue,%eax
+         pushl %eax
+      LSSNoPush:
+         call (%edi)
+         //!! now what ?? MVC
+      end;
+
+    function CallSStringProc(s : Pointer;Address : Pointer;Value : ShortString; INdex,IVAlue : Longint);assembler;
+
+      label LSSPNoPush;
+
+      asm
+         movl S,%esi
+         movl Address,%edi
+         // Push value to set
+         //!! Is this correct for short strings ????
+         movl Value,%eax
+         pushl %eax 
+         // ? Indexed procedure
+         movl Index,%eax
+         xorl %eax,%eax
+         jnz LSSPNoPush
+         movl IValue,%eax
+         pushl %eax
+      LSSPNoPush:
+         call (%edi)
+         //!! now what ? MVC
       end;
 
     function GetTypeData(TypeInfo : PTypeInfo) : PTypeData;
@@ -247,43 +333,119 @@ unit typinfo;
 
       begin
          case (PropInfo^.PropProcs shr 4) and 3 of
-            0:
+            ptfield:
               IsStoredProp:=PBoolean(Pointer(Instance)+Longint(PropInfo^.StoredProc))^;
-            1:
-              IsStoredProp:=CallMethod(Instance,PropInfo^.StoredProc);
-            2:
-              IsStoredProp:=CallMethod(Instance,(PPointer(Instance.ClassType)+Longint(PropInfo^.StoredProc)^);
-            3:
+            ptstatic:
+              IsStoredProp:=CallBooleanFunc(Instance,PropInfo^.StoredProc,0,0);
+            ptvirtual:
+              IsStoredProp:=CallBooleanFunc(Instance,(PPointer(Instance.ClassType)+Longint(PropInfo^.StoredProc)),0,0);
+            ptconst:
               IsStoredProp:=LongBool(PropInfo^.StoredProc);
          end;
       end;
 
     procedure GetPropInfos(TypeInfo : PTypeInfo;PropList : PPropList);
+      {
+        Store Pointers to property information in the list pointed
+        to by proplist. PRopList must contain enough space to hold ALL
+        properties.
+      }
 
+      Var TD : PTypeData;
+          TP : PPropInfo;
+          Count : Longint;
+          
       begin
-         {!!!!!!!!!!!}
+      TD:=GetTypeData(TypeInfo);
+      Count:=TD^.PropCount;
+      TP:=PPropInfo(@TD^.UnitName+Length(TD^.UnitName)+1);
+      While Count>0 do
+        begin
+        PropList^[0]:=TP;
+        Inc(PropList);
+        // Point to TP next propinfo record. 
+        // Located at Name[Length(Name)+1] !
+        TP:=PPropInfo((@TP^.Name)+PByte(@TP^.Name)^+1);
+        Dec(Count);
+        end;
+      // recursive call for parent info.
+      If TD^.Parentinfo<>Nil then
+        GetPropInfos (TD^.ParentInfo,PropList);
       end;
+      
+    Procedure InsertProp (PL : PProplist;PI : PPropInfo; Count : longint);   
+    
+    VAr I : Longint;
+    
+    begin
+     I:=0;
+     While (I<Count) and (PI^.Name>PL^[I]^.Name) do Inc(I);
+     If I<Count then
+       Move(PL^[I],PL[I+1],Count-I*SizeOf(Pointer));
+     PL^[I]:=PI; 
+    end;
 
     function GetPropList(TypeInfo : PTypeInfo;TypeKinds : TTypeKinds;
       PropList : PPropList) : Integer;
 
+      {
+        Store Pointers to property information OF A CERTAIN KIND in the list pointed
+        to by proplist. PRopList must contain enough space to hold ALL
+        properties.
+      }
+      Var TempList : PPropList;
+          PropInfo : PPropinfo;
+          I,Count : longint;
+      
       begin
-         {!!!!!!!!!!!}
+        Result:=0;
+        Count:=GetTypeData(TypeInfo)^.Propcount;
+        If Count>0 then
+          begin
+          GetMem(TempList,Count*SizeOf(Pointer));
+          Try
+            GetPropInfos(TypeInfo,TempList);
+            For I:=0 to COunt-1 do
+              begin
+              PropInfo:=TempList^[i];
+              If PropInfo^.PropType^.Kind in TypeKinds then
+                begin
+                InsertProp(PropList,PropInfo,Result);
+                Inc(Result);
+                end;
+              end;
+          finally
+            FreeMem(TempList,Count*SizeOf(Pointer));    
+          end;
+          end;
       end;
+
+    Procedure SetIndexValues (P: PPRopInfo; Var Index,IValue : Longint);
+    
+    begin
+    Index:=((P^.PropProcs shr 6) and 1);
+    If Index=0 then
+      IValue:=P^.Index
+    else
+      IValue:=0;
+    end;
 
     function GetOrdProp(Instance : TObject;PropInfo : PPropInfo) : Longint;
 
       var
-         value : longint;
+         value,Index,Ivalue : longint;
 
       begin
+         SetIndexValues(PropInfo,Index,Ivalue);
          case (PropInfo^.PropProcs) and 3 of
-            0:
+            ptfield:
               Value:=PLongint(Pointer(Instance)+Longint(PropInfo^.GetProc))^;
-            1:
-              Value:=CallMethod(Instance,PropInfo^.GetProc);
-            2:
-              Value:=CallMethod(Instance,(PPointer(Instance.ClassType)+Longint(PropInfo^.GetProc)^);
+            ptstatic:
+              Value:=CallIntegerFunc(Instance,PropInfo^.GetProc,Index,IValue);
+            ptvirtual:
+              Value:=CallIntegerFunc(Instance,
+                                     (PPointer(Instance.ClassType)+Longint(PropInfo^.GetProc)),
+                                     Index,IValue);
          end;
          { cut off unnecessary stuff }
          case GetTypeData(PropInfo^.PropType)^.OrdType of
@@ -298,21 +460,108 @@ unit typinfo;
     procedure SetOrdProp(Instance : TObject;PropInfo : PPropInfo;
       Value : Longint);
 
-      begin
-         {!!!!!!!!!!!}
-      end;
-
-    function GetStrProp(Instance : TObject;PropInfo : PPropInfo) : string;
+      Var Index,IValue : Longint;
 
       begin
-         {!!!!!!!!!!!}
+         { cut off unnecessary stuff }
+         case GetTypeData(PropInfo^.PropType)^.OrdType of
+            otSWord,otUWord:
+              Value:=Value and $ffff;
+            otSByte,otUByte:
+              Value:=Value and $ff;
+         end;
+         SetIndexValues(PropInfo,Index,Ivalue);
+         case (PropInfo^.PropProcs) and 3 of
+            ptfield:
+              PLongint(Pointer(Instance)+Longint(PropInfo^.GetProc))^:=Value;
+            ptstatic:
+              CallIntegerProc(Instance,PropInfo^.GetProc,Value,Index,IValue);
+            ptvirtual:
+              CallIntegerProc(Instance,
+                              (PPointer(Instance.ClassType)+Longint(PropInfo^.GetProc)),
+                              Value,Index,IValue);
+         end;
       end;
 
+    Function GetAStrProp(Instance : TObject;PropInfo : PPropInfo):Pointer;
+    
+      {
+      Dirty trick based on fact that AnsiString is just a pointer,
+      hence can be treated like an integer type.
+      }
+    
+      var
+         value : Pointer;
+         Index,Ivalue : Longint;
+           
+      begin
+         SetIndexValues(PropInfo,Index,IValue);
+         case (PropInfo^.PropProcs) and 3 of
+            ptfield:
+              Value:=Pointer(PLongint(Pointer(Instance)+Longint(PropInfo^.GetProc))^);
+            ptstatic:
+              Value:=Pointer(CallIntegerFunc(Instance,PropInfo^.GetProc,Index,IValue));
+            ptvirtual:
+              Value:=Pointer(CallIntegerFunc(Instance,
+                                     (PPointer(Instance.ClassType)+Longint(PropInfo^.GetProc)),
+                                     Index,IValue));
+         end;
+         GetAstrProp:=Value;
+      end;
+
+    Function GetSStrProp(Instance : TObject;PropInfo : PPropInfo):ShortString;
+    
+      var
+         value : ShortString;
+         Index,IValue : Longint;
+         
+      begin
+         SetIndexValues(PropInfo,Index,IValue);
+         case (PropInfo^.PropProcs) and 3 of
+            ptfield:
+              Value:=PShortString(Pointer(Instance)+Longint(PropInfo^.GetProc))^;
+            ptstatic:
+             CallSStringFunc(Instance,PropInfo^.GetProc,Index,IValue,Value);
+            ptvirtual:
+             CallSSTringFunc(Instance,
+                                     (PPointer(Instance.ClassType)+Longint(PropInfo^.GetProc)),
+                                     Index,Ivalue,Value);
+         end;
+         GetSStrProp:=Value;
+      end;
+
+    function GetStrProp(Instance : TObject;PropInfo : PPropInfo) : Ansistring;
+
+      begin
+      Case Propinfo^.PropType^.Kind of
+        tkSString : Result:=GetSStrProp(Instance,PropInfo);
+        tkAString : Pointer(Result):=GetAStrProp(Instance,Propinfo);
+      else
+        Result:='';
+      end;
+      end;
+
+
+    procedure SetAStrProp(Instance : TObject;PropInfo : PPropInfo;
+      const Value : AnsiString);
+
+    begin
+    end;
+    
+    procedure SetSStrProp(Instance : TObject;PropInfo : PPropInfo;
+      const Value : AnsiString);
+
+    begin
+    end;
+    
     procedure SetStrProp(Instance : TObject;PropInfo : PPropInfo;
-      const Value : string);
+      const Value : AnsiString);
 
       begin
-         {!!!!!!!!!!!}
+      Case Propinfo^.PropType^.Kind of
+        tkSString : SetSStrProp(Instance,PropInfo,Value);
+        tkAString : SetAStrProp(Instance,Propinfo,Value);
+      end;
       end;
 
     function GetFloatProp(Instance : TObject;PropInfo : PPropInfo) : Extended;
@@ -356,21 +605,50 @@ unit typinfo;
 
     function GetEnumName(TypeInfo : PTypeInfo;Value : Integer) : string;
 
+      Var PS : PShortString;
+          PT : PTypeData;           
+
       begin
-         {!!!!!!!!!!!}
+       PT:=GetTypeData(GetTypeData(TypeInfo)^.BaseType);
+       If PT^.MinValue<0 then Value:=Ord(Value<>0); {map to 0/1}
+       PS:=@PT^.NameList;
+       While Value>0 Do
+         begin
+         PS:=PS+PByte(PS)^+1;
+         Dec(Value);
+         end;
+       Result:=PS^;
       end;
 
     function GetEnumValue(TypeInfo : PTypeInfo;const Name : string) : Integer;
-
+    
+      Var PS : PShortString;
+          PT : PTypeData;
+          Count : longint;
+          
       begin
-         {!!!!!!!!!!!}
+        If Length(Name)=0 then exit(-1);
+        PT:=GetTypeData(GetTypeData(TypeInfo)^.BaseType);
+        Count:=0;
+        Result:=-1;
+        PS:=@PT^.NameList;
+        While (Result=-1) and (PByte(PS)^<>0) do 
+          begin
+          If PS^=Name then 
+            Result:=Count;
+          PS:=PS+PByte(PS)^;
+          Inc(Count);
+          end;
       end;
 
 end.
 
 {
   $Log$
-  Revision 1.11  1998-09-24 23:45:28  peter
+  Revision 1.12  1998-11-24 15:03:32  michael
+  Implemented most important methods.
+
+  Revision 1.11  1998/09/24 23:45:28  peter
     * updated for auto objpas loading
 
   Revision 1.10  1998/09/20 08:25:34  florian
