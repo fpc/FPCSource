@@ -100,7 +100,7 @@ end;
 
 procedure TIDEApp.DoRun;
 begin
-  if (not ExistsFile(ExeFile)) or (CompilationPhase<>cpDone) then
+  if (not ExistsFile(ExeFile)) or (CompilationPhase<>cpDone) or NeedRecompile then
    DoCompile(cRun);
   if CompilationPhase<>cpDone then
      Exit;
@@ -238,7 +238,25 @@ end;
 
 {
   $Log$
-  Revision 1.17  1999-07-28 23:11:20  peter
+  Revision 1.18  1999-08-16 18:25:23  peter
+    * Adjusting the selection when the editor didn't contain any line.
+    * Reserved word recognition redesigned, but this didn't affect the overall
+      syntax highlight speed remarkably (at least not on my Amd-K6/350).
+      The syntax scanner loop is a bit slow but the main problem is the
+      recognition of special symbols. Switching off symbol processing boosts
+      the performance up to ca. 200%...
+    * The editor didn't allow copying (for ex to clipboard) of a single character
+    * 'File|Save as' caused permanently run-time error 3. Not any more now...
+    * Compiler Messages window (actually the whole desktop) did not act on any
+      keypress when compilation failed and thus the window remained visible
+    + Message windows are now closed upon pressing Esc
+    + At 'Run' the IDE checks whether any sources are modified, and recompiles
+      only when neccessary
+    + BlockRead and BlockWrite (Ctrl+K+R/W) implemented in TCodeEditor
+    + LineSelect (Ctrl+K+L) implemented
+    * The IDE had problems closing help windows before saving the desktop
+
+  Revision 1.17  1999/07/28 23:11:20  peter
     * fixes from gabor
 
   Revision 1.16  1999/07/12 13:14:19  pierre

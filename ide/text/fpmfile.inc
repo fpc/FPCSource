@@ -62,7 +62,7 @@ begin
     if TE<>nil then
     begin
       StartTemplate(LB^.Focused,TE^.Editor);
-      TE^.Editor^.Modified:=false; { if nothing changes, we don't need to save it }
+      TE^.Editor^.SetModified(false); { if nothing changes, we don't need to save it }
       TE^.Hide; { we need this trick to get the editor updated }
       TE^.Show;
     end;
@@ -179,7 +179,25 @@ end;
 
 {
   $Log$
-  Revision 1.12  1999-08-03 20:22:34  peter
+  Revision 1.13  1999-08-16 18:25:20  peter
+    * Adjusting the selection when the editor didn't contain any line.
+    * Reserved word recognition redesigned, but this didn't affect the overall
+      syntax highlight speed remarkably (at least not on my Amd-K6/350).
+      The syntax scanner loop is a bit slow but the main problem is the
+      recognition of special symbols. Switching off symbol processing boosts
+      the performance up to ca. 200%...
+    * The editor didn't allow copying (for ex to clipboard) of a single character
+    * 'File|Save as' caused permanently run-time error 3. Not any more now...
+    * Compiler Messages window (actually the whole desktop) did not act on any
+      keypress when compilation failed and thus the window remained visible
+    + Message windows are now closed upon pressing Esc
+    + At 'Run' the IDE checks whether any sources are modified, and recompiles
+      only when neccessary
+    + BlockRead and BlockWrite (Ctrl+K+R/W) implemented in TCodeEditor
+    + LineSelect (Ctrl+K+L) implemented
+    * The IDE had problems closing help windows before saving the desktop
+
+  Revision 1.12  1999/08/03 20:22:34  peter
     + TTab acts now on Ctrl+Tab and Ctrl+Shift+Tab...
     + Desktop saving should work now
        - History saved

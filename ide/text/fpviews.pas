@@ -111,6 +111,7 @@ type
       function    GetLocalMenu: PMenu; virtual;
       function    GetCommandTarget: PView; virtual;
       function    CreateLocalMenuView(var Bounds: TRect; M: PMenu): PMenuPopup; virtual;
+      procedure   ModifiedChanged; virtual;
     end;
 
     PSourceWindow = ^TSourceWindow;
@@ -415,7 +416,8 @@ const
 
 const
   NoNameCount    : integer = 0;
-  ReservedWords  : PUnsortedStringCollection = nil;
+var
+  ReservedWords  : array[1..ReservedWordMaxLen] of PStringCollection;
 
 {****************************************************************************
                                 TStoreCollection
@@ -600,38 +602,39 @@ begin
 end;
 
 procedure InitReservedWords;
-var S,WordS: string;
+var WordS: string;
     Idx,I: integer;
 begin
-  New(ReservedWords, Init(50,10));
+  for I:=Low(ReservedWords) to High(ReservedWords) do
+    New(ReservedWords[I], Init(50,10));
   for I:=1 to GetReservedWordCount do
     begin
       WordS:=GetReservedWord(I-1); Idx:=length(WordS);
-      while ReservedWords^.Count<Idx do
-        ReservedWords^.Insert(NewStr(#0));
-      S:=ReservedWords^.At(Idx-1)^;
-      ReservedWords^.AtFree(Idx-1);
-      ReservedWords^.AtInsert(Idx-1,NewStr(S+WordS+#0));
+      ReservedWords[Idx]^.Insert(NewStr(WordS));
     end;
 end;
 
 procedure DoneReservedWords;
+var I: integer;
 begin
-  if assigned(ReservedWords) then
-    dispose(ReservedWords,done);
+  for I:=Low(ReservedWords) to High(ReservedWords) do
+    if assigned(ReservedWords[I]) then
+      begin
+        dispose(ReservedWords[I],done);
+        ReservedWords[I]:=nil;
+      end;
 end;
 
 function IsFPReservedWord(S: string): boolean;
 var _Is: boolean;
-    Idx: integer;
-    P: PString;
+    Idx,Item: sw_integer;
 begin
   Idx:=length(S); _Is:=false;
-  if (Idx>0) and (ReservedWords<>nil) and (ReservedWords^.Count>=Idx) then
+  if (Low(ReservedWords)<=Idx) and (Idx<=High(ReservedWords)) and
+     (ReservedWords[Idx]<>nil) and (ReservedWords[Idx]^.Count<>0) then
     begin
       S:=UpcaseStr(S);
-      P:=ReservedWords^.At(Idx-1);
-      _Is:=Pos(#0+S+#0,P^)>0;
+      _Is:=ReservedWords[Idx]^.Search(@S,Item);
     end;
   IsFPReservedWord:=_Is;
 end;
@@ -740,6 +743,13 @@ begin
   IsReservedWord:=IsFPReservedWord(S);
 end;
 {$endif EDITORS}
+
+procedure TSourceEditor.ModifiedChanged;
+begin
+  inherited ModifiedChanged;
+  if (@Self<>Clipboard) and Modified then
+    EditorModified:=true;
+end;
 
 function TSourceEditor.GetLocalMenu: PMenu;
 var M: PMenu;
@@ -1304,7 +1314,7 @@ end;
 constructor TMessageListBox.Init(var Bounds: TRect; AHScrollBar, AVScrollBar: PScrollBar);
 begin
   inherited Init(Bounds,1,AHScrollBar, AVScrollBar);
-  GrowMode:=gfGrowLoX+gfGrowHiX+gfGrowHiY;
+  GrowMode:=gfGrowHiX+gfGrowHiY;
   New(ModuleNames, Init(50,100));
   NoSelection:=true;
 end;
@@ -2700,7 +2710,25 @@ end;
 END.
 {
   $Log$
-  Revision 1.36  1999-08-03 20:22:39  peter
+  Revision 1.37  1999-08-16 18:25:26  peter
+    * Adjusting the selection when the editor didn't contain any line.
+    * Reserved word recognition redesigned, but this didn't affect the overall
+      syntax highlight speed remarkably (at least not on my Amd-K6/350).
+      The syntax scanner loop is a bit slow but the main problem is the
+      recognition of special symbols. Switching off symbol processing boosts
+      the performance up to ca. 200%...
+    * The editor didn't allow copying (for ex to clipboard) of a single character
+    * 'File|Save as' caused permanently run-time error 3. Not any more now...
+    * Compiler Messages window (actually the whole desktop) did not act on any
+      keypress when compilation failed and thus the window remained visible
+    + Message windows are now closed upon pressing Esc
+    + At 'Run' the IDE checks whether any sources are modified, and recompiles
+      only when neccessary
+    + BlockRead and BlockWrite (Ctrl+K+R/W) implemented in TCodeEditor
+    + LineSelect (Ctrl+K+L) implemented
+    * The IDE had problems closing help windows before saving the desktop
+
+  Revision 1.36  1999/08/03 20:22:39  peter
     + TTab acts now on Ctrl+Tab and Ctrl+Shift+Tab...
     + Desktop saving should work now
        - History saved

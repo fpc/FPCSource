@@ -80,6 +80,7 @@ const
     CompilerStatusDialog  : PCompilerStatusDialog = nil;
 
 procedure DoCompile(Mode: TCompileMode);
+function  NeedRecompile: boolean;
 
 procedure RegisterFPCompile;
 
@@ -92,7 +93,7 @@ uses
 {$endif}
   Dos,Video,
   App,Commands,
-  CompHook, systems,
+  CompHook, systems, browcol,
   WUtils,WEditor,
 {$ifdef redircompiler}
   FPRedir,
@@ -210,6 +211,8 @@ begin
   GetExtent(R);
   R.Grow(-1,-1);
   New(MsgLB, Init(R, HSB, VSB));
+
+  MsgLB^.GrowMode:=gfGrowHiX+gfGrowHiY;
   Insert(MsgLB);
   CompilerMessageWindow:=@self;
 end;
@@ -475,6 +478,28 @@ begin
   GetExePath:=CompleteDir(FExpand(Path));
 end;
 
+function GetMainFile: string;
+var FileName: string;
+    P : PSourceWindow;
+begin
+  P:=Message(Desktop,evBroadcast,cmSearchWindow,nil);
+  if (PrimaryFileMain='') and (P=nil) then
+    FileName:='' { nothing to compile }
+  else
+    begin
+      if PrimaryFileMain<>'' then
+        FileName:=PrimaryFileMain
+      else
+        begin
+          if P^.Editor^.Modified and (not P^.Editor^.Save) then
+            FileName:='*' { file not saved }
+          else
+            FileName:=P^.Editor^.FileName;
+        end;
+    end;
+  FileName:=FixFileName(FExpand(FileName));
+  GetMainFile:=FileName;
+end;
 
 procedure DoCompile(Mode: TCompileMode);
 
@@ -486,7 +511,6 @@ procedure DoCompile(Mode: TCompileMode);
   end;
 
 var
-  P : PSourceWindow;
   FileName: string;
   E : TEvent;
 const
@@ -494,27 +518,23 @@ const
 
 begin
 { Get FileName }
-  P:=Message(Desktop,evBroadcast,cmSearchWindow,nil);
-  if (PrimaryFileMain='') and (P=nil) then
+  FileName:=GetMainFile;
+  if FileName='' then
     begin
       ErrorBox('Oooops, nothing to compile.',nil);
       Exit;
-    end;
-  if PrimaryFileMain<>'' then
-    FileName:=PrimaryFileMain
-  else
+    end else
+  if FileName='*' then
     begin
-      if P^.Editor^.Modified and (not P^.Editor^.Save) then
-       begin
-         ErrorBox('Can''t compile unsaved file.',nil);
-         Exit;
-       end;
-      FileName:=P^.Editor^.FileName;
+      ErrorBox('Can''t compile unsaved file.',nil);
+      Exit;
     end;
+  PrevMainFile:=MainFile;
+  MainFile:=FileName;
   WriteSwitches(SwitchesPath);
   { leaving open browsers leads to crashes !! (PM) }
   CloseAllBrowsers;
-  MainFile:=FixFileName(FExpand(FileName));
+{  MainFile:=FixFileName(FExpand(FileName));}
   If GetEXEPath<>'' then
     EXEFile:=FixFileName(GetEXEPath+NameOf(MainFile)+ExeExt)
   else
@@ -599,6 +619,73 @@ begin
   releasetempheap;
   unsplit_heap;
 {$endif TEMPHEAP}
+  if Assigned(CompilerMessageWindow) then
+    with CompilerMessageWindow^ do
+    if GetState(sfVisible) then
+      begin
+        SetState(sfSelected,false);
+        SetState(sfSelected,true);
+      end;
+  { ^^^ we need this trick to reactivate the desktop }
+  EditorModified:=false;
+end;
+
+function GetFileTime(const FileName: string): longint;
+var T: longint;
+    f: file;
+    FM: integer;
+begin
+  if FileName='' then
+    T:=-1
+  else
+    begin
+      FM:=FileMode; FileMode:=0;
+      EatIO; DosError:=0;
+      Assign(f,FileName);
+      {$I-}
+      Reset(f);
+      GetFTime(f,T);
+      Close(f);
+      {$I+}
+      if (EatIO<>0) or (DosError<>0) then T:=-1;
+      FileMode:=FM;
+    end;
+  GetFileTime:=T;
+end;
+
+function NeedRecompile: boolean;
+var Need: boolean;
+    I: sw_integer;
+    SF: PSourceFile;
+    SourceTime,PPUTime,ObjTime: longint;
+begin
+  if Assigned(SourceFiles)=false then
+     Need:={(EditorModified=true)}true
+  else
+    begin
+      Need:=(PrevMainFile<>GetMainFile) and (PrevMainFile<>'');
+      if Need=false then
+        for I:=0 to SourceFiles^.Count-1 do
+          begin
+            SF:=SourceFiles^.At(I);
+            SourceTime:=GetFileTime(SF^.GetSourceFileName);
+            PPUTime:=GetFileTime(SF^.GetPPUFileName);
+            ObjTime:=GetFileTime(SF^.GetObjFileName);
+{            writeln('S: ',SF^.GetSourceFileName,' - ',SourceTime);
+            writeln('P: ',SF^.GetPPUFileName,' - ',PPUTime);
+            writeln('O: ',SF^.GetObjFileName,' - ',ObjTime);
+            writeln('------');}
+            if (SourceTime<>-1) then
+              if (SourceTime>PPUTime) or (SourceTime>ObjTime) then
+                begin
+                  Need:=true;
+                  Break;
+                end;
+          end;
+{      writeln('Need?', Need); system.readln;}
+    end;
+
+  NeedRecompile:=Need;
 end;
 
 procedure RegisterFPCompile;
@@ -613,7 +700,25 @@ end;
 end.
 {
   $Log$
-  Revision 1.33  1999-08-03 20:22:26  peter
+  Revision 1.34  1999-08-16 18:25:13  peter
+    * Adjusting the selection when the editor didn't contain any line.
+    * Reserved word recognition redesigned, but this didn't affect the overall
+      syntax highlight speed remarkably (at least not on my Amd-K6/350).
+      The syntax scanner loop is a bit slow but the main problem is the
+      recognition of special symbols. Switching off symbol processing boosts
+      the performance up to ca. 200%...
+    * The editor didn't allow copying (for ex to clipboard) of a single character
+    * 'File|Save as' caused permanently run-time error 3. Not any more now...
+    * Compiler Messages window (actually the whole desktop) did not act on any
+      keypress when compilation failed and thus the window remained visible
+    + Message windows are now closed upon pressing Esc
+    + At 'Run' the IDE checks whether any sources are modified, and recompiles
+      only when neccessary
+    + BlockRead and BlockWrite (Ctrl+K+R/W) implemented in TCodeEditor
+    + LineSelect (Ctrl+K+L) implemented
+    * The IDE had problems closing help windows before saving the desktop
+
+  Revision 1.33  1999/08/03 20:22:26  peter
     + TTab acts now on Ctrl+Tab and Ctrl+Shift+Tab...
     + Desktop saving should work now
        - History saved

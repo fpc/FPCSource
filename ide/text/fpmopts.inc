@@ -694,12 +694,20 @@ var D: PCenterDialog;
     ExtIL,TabExtIL: PInputLine;
     TabSize: Integer;
     EFlags: Longint;
+    Title: string;
 begin
-  if Editor=nil
-     then begin TabSize:=DefaultTabSize; EFlags:=DefaultCodeEditorFlags; end
-     else begin TabSize:=Editor^.TabSize; EFlags:=Editor^.Flags; end;
+  if Editor=nil then
+    begin
+      TabSize:=DefaultTabSize; EFlags:=DefaultCodeEditorFlags;
+      Title:='Default Editor Options';
+    end
+  else
+    begin
+      TabSize:=Editor^.TabSize; EFlags:=Editor^.Flags;
+      Title:='Editor Options';
+    end;
   R.Assign(0,0,56,18);
-  New(D, Init(R, 'Editor Options'));
+  New(D, Init(R, Title));
   with D^ do
   begin
     GetExtent(R); R.Grow(-2,-2); R.B.Y:=R.A.Y+7;
@@ -1065,7 +1073,25 @@ end;
 
 {
   $Log$
-  Revision 1.24  1999-03-23 16:16:40  peter
+  Revision 1.25  1999-08-16 18:25:21  peter
+    * Adjusting the selection when the editor didn't contain any line.
+    * Reserved word recognition redesigned, but this didn't affect the overall
+      syntax highlight speed remarkably (at least not on my Amd-K6/350).
+      The syntax scanner loop is a bit slow but the main problem is the
+      recognition of special symbols. Switching off symbol processing boosts
+      the performance up to ca. 200%...
+    * The editor didn't allow copying (for ex to clipboard) of a single character
+    * 'File|Save as' caused permanently run-time error 3. Not any more now...
+    * Compiler Messages window (actually the whole desktop) did not act on any
+      keypress when compilation failed and thus the window remained visible
+    + Message windows are now closed upon pressing Esc
+    + At 'Run' the IDE checks whether any sources are modified, and recompiles
+      only when neccessary
+    + BlockRead and BlockWrite (Ctrl+K+R/W) implemented in TCodeEditor
+    + LineSelect (Ctrl+K+L) implemented
+    * The IDE had problems closing help windows before saving the desktop
+
+  Revision 1.24  1999/03/23 16:16:40  peter
     * linux fixes
 
   Revision 1.23  1999/03/23 15:11:33  peter

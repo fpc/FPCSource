@@ -110,14 +110,13 @@ function FormatPath(Path: string): string;
 var P: sw_integer;
     SC: char;
 begin
-  if DirSep='/' then
+  if ord(DirSep)=ord('/') then
     SC:='\'
   else
     SC:='/';
 
   repeat
     P:=Pos(SC,Path);
-    if Path[P]<>SC then P:=0;
     if P>0 then Path[P]:=DirSep;
   until P=0;
   FormatPath:=Path;
@@ -605,7 +604,7 @@ begin
     begin
       if T^.HelpCtx=0 then Name:=FileName else
         begin
-          Link:=TopicLinks^.At(T^.HelpCtx-1)^;
+          Link:=TopicLinks^.At((T^.HelpCtx and $ffff)-1)^;
           Link:=FormatPath(Link);
           P:=Pos('#',Link); if P>0 then Delete(Link,P,255);
 {          if CurFileName='' then Name:=Link else

@@ -74,6 +74,8 @@ const
       edTooManyLines  = 11;
       edGotoLine      = 12;
       edReplaceFile   = 13;
+      edWriteBlock    = 14;
+      edReadBlock     = 15;
 
       ffmOptions      = $0007; ffsOptions     = 0;
       ffmDirection    = $0008; ffsDirection   = 3;
@@ -215,8 +217,10 @@ type
       procedure   LimitsChanged; virtual;
       procedure   SelectionChanged; virtual;
       procedure   HighlightChanged; virtual;
+      procedure   ModifiedChanged; virtual;
       procedure   Update; virtual;
       procedure   ScrollTo(X, Y: sw_Integer);
+      procedure   SetModified(AModified: boolean); virtual;
       procedure   SetInsertMode(InsertMode: boolean); virtual;
       procedure   SetCurPtr(X,Y: sw_integer); virtual;
       procedure   SetSelection(A, B: TPoint); virtual;
@@ -231,6 +235,7 @@ type
       procedure   Store(var S: TStream);
       function    LoadFromStream(Stream: PStream): boolean; virtual;
       function    SaveToStream(Stream: PStream): boolean; virtual;
+      function    SaveAreaToStream(Stream: PStream; StartP,EndP: TPoint): boolean;
       destructor  Done; virtual;
     public
       { Text & info storage abstraction }
@@ -1867,8 +1872,7 @@ begin
   SetCurPtr(CurPos.X+Shift,CurPos.Y);
   UpdateAttrs(CurPos.Y,attrAll);
   DrawLines(CurPos.Y);
-  Modified:=true;
-  UpdateIndicator;
+  SetModified(true);
 end;
 
 procedure TCodeEditor.CharLeft;
@@ -2149,7 +2153,7 @@ begin
     SetCurPtr(Ind,CurPos.Y+1);
   end;
   DrawLines(CurPos.Y);
-  Modified:=true; UpdateIndicator;
+  SetModified(true);
 end;
 
 procedure TCodeEditor.BreakLine;
@@ -2204,8 +2208,7 @@ begin
   UpdateAttrs(CurPos.Y,attrAll);
   AdjustSelection(CurPos.X-SCP.X,CurPos.Y-SCP.Y);
   DrawLines(CurPos.Y);
-  Modified:=true;
-  UpdateIndicator;
+  SetModified(true);
 end;
 
 procedure TCodeEditor.DelChar;
@@ -2234,8 +2237,7 @@ begin
   UpdateAttrs(CurPos.Y,attrAll);
   AdjustSelection(SDX,SDY);
   DrawLines(CurPos.Y);
-  Modified:=true;
-  UpdateIndicator;
+  SetModified(true);
 end;
 
 procedure TCodeEditor.DelWord;
@@ -2244,8 +2246,7 @@ begin
 
   NotImplemented; Exit;
 
-  Modified:=true;
-  UpdateIndicator;
+  SetModified(true);
 end;
 
 procedure TCodeEditor.DelStart;
@@ -2254,8 +2255,7 @@ begin
 
   NotImplemented; Exit;
 
-  Modified:=true;
-  UpdateIndicator;
+  SetModified(true);
 end;
 
 procedure TCodeEditor.DelEnd;
@@ -2269,8 +2269,7 @@ begin
     SetCurPtr(CurPos.X,CurPos.Y);
     UpdateAttrs(CurPos.Y,attrAll);
     DrawLines(CurPos.Y);
-    Modified:=true;
-    UpdateIndicator;
+    SetModified(true);
   end;
 end;
 
@@ -2285,8 +2284,7 @@ begin
     SetCurPtr(0,CurPos.Y);
     UpdateAttrs(Max(0,CurPos.Y-1),attrAll);
     DrawLines(CurPos.Y);
-    Modified:=true;
-    UpdateIndicator;
+    SetModified(true);
   end;
 end;
 
@@ -2352,8 +2350,8 @@ var LineDelta, LineCount, CurLine: Sw_integer;
     StartX,EndX,LastX: Sw_integer;
     S: string;
 begin
-  if IsReadOnly then Exit;
-  if (SelStart.X=SelEnd.X) and (SelStart.Y=SelEnd.Y) then Exit;
+  if IsReadOnly or (ValidBlock=false) then Exit;
+
   Lock;
   LineCount:=(SelEnd.Y-SelStart.Y)+1;
   LineDelta:=0; LastX:=CurPos.X;
@@ -2389,8 +2387,7 @@ begin
   SetCurPtr(LastX,CurLine-1);
   UpdateAttrs(CurPos.Y,attrAll);
   DrawLines(CurPos.Y);
-  Modified:=true;
-  UpdateIndicator;
+  SetModified(true);
   UnLock;
 end;
 
@@ -2404,10 +2401,8 @@ procedure TCodeEditor.CopyBlock;
 var Temp: PCodeEditor;
     R: TRect;
 begin
-  if IsReadOnly then Exit;
-  if (SelStart.X=SelEnd.X) and (SelStart.Y=SelEnd.Y) then
-    Exit;
-  { There must be no exit inside a lock .. UnLock block !! }
+  if IsReadOnly or (ValidBlock=false) then Exit;
+
   Lock;
   GetExtent(R);
   New(Temp, Init(R, nil, nil, nil,0));
@@ -2457,8 +2452,7 @@ begin
   SetCurPtr(CurPos.X,CurPos.Y);
   UpdateAttrsRange(SelStart.Y,SelEnd.Y,attrAll);
   DrawLines(CurPos.Y);
-  Modified:=true;
-  UpdateIndicator;
+  SetModified(true);
   UnLock;
 end;
 
@@ -2483,8 +2477,7 @@ begin
   SetCurPtr(CurPos.X,CurPos.Y);
   UpdateAttrsRange(SelStart.Y,SelEnd.Y,attrAll);
   DrawLines(CurPos.Y);
-  Modified:=true;
-  UpdateIndicator;
+  SetModified(true);
   UnLock;
 end;
 
@@ -2494,19 +2487,68 @@ begin
 end;
 
 procedure TCodeEditor.SelectLine;
+var A,B: TPoint;
 begin
-  NotImplemented; Exit;
+  if CurPos.Y<GetLineCount then
+    begin
+      A.Y:=CurPos.Y; A.X:=0;
+      B.Y:=CurPos.Y+1; B.X:=0;
+      SetSelection(A,B);
+    end;
 end;
 
 procedure TCodeEditor.WriteBlock;
+var FileName: string;
+    S: PBufStream;
 begin
-  NotImplemented; Exit;
+  if ValidBlock=false then Exit;
+
+  FileName:='';
+  if EditorDialog(edWriteBlock, @FileName) <> cmCancel then
+  begin
+    FileName := FExpand(FileName);
+
+    New(S, Init(FileName, stCreate, 4096));
+    if (S=nil) or (S^.Status<>stOK) then
+      EditorDialog(edCreateError,@FileName)
+    else
+      if SaveAreaToStream(S,SelStart,SelEnd)=false then
+        EditorDialog(edWriteError,@FileName);
+    if Assigned(S) then Dispose(S, Done);
+  end;
 end;
 
 procedure TCodeEditor.ReadBlock;
+var FileName: string;
+    S: PBufStream;
+    E: PCodeEditor;
+    R: TRect;
 begin
-  NotImplemented; Exit;
+  FileName:='';
+  if EditorDialog(edReadBlock, @FileName) <> cmCancel then
+  begin
+    FileName := FExpand(FileName);
+
+    New(S, Init(FileName, stOpenRead, 4096));
+    if (S=nil) or (S^.Status<>stOK) then
+      EditorDialog(edReadError,@FileName)
+    else
+      begin
+        R.Assign(0,0,0,0);
+        New(E, Init(R,nil,nil,nil,0));
+        if E^.LoadFromStream(S)=false then
+          EditorDialog(edReadError,@FileName)
+        else
+          begin
+            E^.SelectAll(true);
+            Self.InsertFrom(E);
+          end;
+        Dispose(E, Done);
+      end;
+    if Assigned(S) then Dispose(S, Done);
+  end;
 end;
+
 
 procedure TCodeEditor.PrintBlock;
 begin
@@ -2564,8 +2606,7 @@ begin
   UpdateAttrs(CurPos.Y,attrAll);
   AdjustSelection(CurPos.X-SP.X,CurPos.Y-SP.Y);
   DrawLines(CurPos.Y);
-  Modified:=true;
-  UpdateIndicator;
+  SetModified(true);
   UnLock;
 end;
 
@@ -2589,8 +2630,7 @@ begin
     begin
       if not IsClipBoard then
        DelSelect;
-      Modified:=true;
-      UpdateIndicator;
+      SetModified(true);
     end;
   UnLock;
   DontConsiderShiftState:=false;
@@ -2604,8 +2644,7 @@ begin
   if Clipboard<>nil then
    begin
      InsertFrom(Clipboard);
-     Modified:=true;
-     UpdateIndicator;
+     SetModified(true);
    end;
   UnLock;
   DontConsiderShiftState:=false;
@@ -2914,6 +2953,15 @@ begin
   DrawCursor;
 end;
 
+procedure TCodeEditor.SetModified(AModified: boolean);
+begin
+  if AModified<>Modified then
+  begin
+    Modified:=AModified;
+    ModifiedChanged;
+  end;
+end;
+
 { there is a problem with ShiftDel here
   because GetShitState tells to extend the
   selection which gives wrong results (PM) }
@@ -2951,7 +2999,11 @@ begin
     CheckSels;
     if Extended=false then
      if PointOfs(OldPos)=PointOfs(SelEnd) then
-   begin SetSelection(SelStart,CurPos); Extended:=true; end;
+       begin
+         if ValidBlock=false then
+           SetSelection(CurPos,CurPos);
+         SetSelection(SelStart,CurPos); Extended:=true;
+       end;
     CheckSels;
     if (Extended=false) then
        if PointOfs(OldPos)<=PointOfs(CurPos)
@@ -2976,6 +3028,8 @@ begin
     SetHighlightRow(-1);
   if ((CurPos.X<>OldPos.X) or (CurPos.Y<>OldPos.Y)) then
     AddAction(eaMoveCursor,OldPos,CurPos,'');
+  if ((CurPos.X<>OldPos.X) or (CurPos.Y<>OldPos.Y)) then
+     UpdateIndicator;
   UnLock;
 end;
 
@@ -3353,7 +3407,7 @@ begin
       else
         LineEndX:=255;
 
-      if LineEndX<=LineStartX then
+      if LineEndX<LineStartX then
         S:=''
       else
         S:=RExpand(copy(Editor^.GetLineText(Editor^.SelStart.Y+LineDelta),LineStartX+1,LineEndX-LineStartX+1),
@@ -3381,6 +3435,7 @@ begin
     if OK=false then EditorDialog(edTooManyLines,nil);
     SetCurPtr(CurPos.X,CurPos.Y);
     UpdateAttrs(StartPos.Y,attrAll);
+    SetModified(true);
     LimitsChanged;
     SetSelection(CurPos,SEnd);
     if IsClipboard then
@@ -3416,9 +3471,16 @@ begin
 end;
 
 procedure TCodeEditor.SetSelection(A, B: TPoint);
+var WV: boolean;
+    OS,OE: TPoint;
 begin
+  WV:=ValidBlock;
+  OS:=SelStart; OE:=SelEnd;
   SelStart:=A; SelEnd:=B;
-  SelectionChanged;
+  if (WV=false) and (ValidBlock=false) then { do nothing } else
+    if (OS.X<>SelStart.X) or (OS.Y<>SelStart.Y) or
+       (OE.X<>SelEnd.X) or (OE.Y<>SelEnd.Y) then
+     SelectionChanged;
 end;
 
 procedure TCodeEditor.SetHighlight(A, B: TPoint);
@@ -3439,7 +3501,12 @@ begin
   if (Enable=false) or (GetLineCount=0) then
      begin A:=CurPos; B:=CurPos end
   else
-     begin A.X:=0; A.Y:=0; B.Y:=GetLineCount-1; B.X:=length(GetLineText(B.Y)); end;
+     begin
+       A.X:=0; A.Y:=0;
+{       B.Y:=GetLineCount-1;
+       B.X:=length(GetLineText(B.Y));}
+       B.Y:=GetLineCount; B.X:=0;
+     end;
   SetSelection(A,B);
   DrawView;
 end;
@@ -3447,11 +3514,17 @@ end;
 procedure TCodeEditor.SelectionChanged;
 var Enable,CanPaste: boolean;
 begin
-  if SelEnd.Y>GetLineCount-1 then
+  if GetLineCount=0 then
     begin
-      SelEnd.Y:=GetLineCount-1;
-      SelEnd.X:=length(GetDisplayText(SelEnd.Y));
-    end;
+      SelStart.X:=0; SelStart.Y:=0; SelEnd:=SelStart;
+    end
+  else
+    if SelEnd.Y>GetLineCount-1 then
+     if (SelEnd.Y<>GetLineCount) or (SelEnd.X<>0) then
+      begin
+        SelEnd.Y:=GetLineCount-1;
+        SelEnd.X:=length(GetDisplayText(SelEnd.Y));
+      end;
 
   Enable:=((SelStart.X<>SelEnd.X) or (SelStart.Y<>SelEnd.Y)) and (Clipboard<>nil);
   SetCmdState(ToClipCmds,Enable and (Clipboard<>@Self));
@@ -3460,11 +3533,17 @@ begin
        (Clipboard^.SelStart.Y<>Clipboard^.SelEnd.Y));
   SetCmdState(FromClipCmds,CanPaste  and (Clipboard<>@Self));
   Message(Application,evBroadcast,cmCommandSetChanged,nil);
+  DrawView;
 end;
 
 procedure TCodeEditor.HighlightChanged;
 begin
   DrawView;
+end;
+
+procedure TCodeEditor.ModifiedChanged;
+begin
+  UpdateIndicator;
 end;
 
 procedure TCodeEditor.SetState(AState: Word; Enable: Boolean);
@@ -3551,7 +3630,6 @@ end;
 function TCodeEditor.LoadFromStream(Stream: PStream): boolean;
 var S: string;
     OK: boolean;
-    Line: Sw_integer;
 begin
   DeleteAllLines;
   OK:=(Stream^.Status=stOK);
@@ -3572,18 +3650,47 @@ begin
 end;
 
 function TCodeEditor.SaveToStream(Stream: PStream): boolean;
+var A,B: TPoint;
+begin
+  A.Y:=0; A.X:=0;
+  B.Y:=GetLineCount-1;
+  if GetLineCount>0 then
+    B.X:=length(GetDisplayText(B.Y))
+  else
+    B.X:=0;
+  SaveToStream:=SaveAreaToStream(Stream,A,B);
+end;
+
+function TCodeEditor.SaveAreaToStream(Stream: PStream; StartP,EndP: TPoint): boolean;
 var S: string;
     OK: boolean;
     Line: Sw_integer;
     P: PLine;
     EOL: string[2];
 begin
+  if EndP.X=0 then
+    begin
+      if EndP.Y>0 then
+        begin
+          Dec(EndP.Y);
+          EndP.X:=length(GetDisplayText(EndP.Y));
+        end
+      else
+        EndP.X:=0;
+    end
+  else
+    Dec(EndP.X);
   {$ifdef Linux}EOL:=#10;{$else}EOL:=#13#10;{$endif}
-  OK:=(Stream^.Status=stOK); Line:=0;
-  while OK and (Line<GetLineCount) do
+  OK:=(Stream^.Status=stOK); Line:=StartP.Y;
+  while OK and (Line<=EndP.Y) and (Line<GetLineCount) do
   begin
     P:=Lines^.At(Line);
-    if P^.Text=nil then S:='' else S:=P^.Text^;
+    if P^.Text=nil then S:='' else
+      begin
+        S:=P^.Text^;
+        if Line=EndP.Y then S:=copy(S,1,EndP.Y+1);
+        if Line=StartP.Y then S:=copy(S,StartP.Y+1,255);
+      end;
     if (Flags and efUseTabCharacters)<>0 then
       S:=CompressUsingTabs(S,TabSize);
     Stream^.Write(S[1],length(S));
@@ -3591,7 +3698,7 @@ begin
     Inc(Line);
     OK:=OK and (Stream^.Status=stOK);
   end;
-  SaveToStream:=OK;
+  SaveAreaToStream:=OK;
 end;
 
 destructor TCodeEditor.Done;
@@ -3689,7 +3796,7 @@ begin
   OK:=Assigned(S);
   if OK then OK:=SaveToStream(S);
   if Assigned(S) then Dispose(S, Done);
-  if OK then begin Modified:=false; UpdateIndicator; end;
+  if OK then SetModified(false);
   SaveFile:=OK;
 end;
 
@@ -3796,9 +3903,9 @@ begin
   SetSelection(SSP,SEP);
   SetCurPtr(CP.X,CP.Y);
   ScrollTo(DP.X,DP.Y);
-  Modified:=false;
+  SetModified(false);
 
-  LimitsChanged; UpdateIndicator;
+  LimitsChanged;
 end;
 
 procedure TFileEditor.Store(var S: TStream);
@@ -3980,6 +4087,8 @@ var
   Name: string;
   DriveNumber : byte;
   StoreDir,StoreDir2 : DirStr;
+  Title,DefExt: string;
+  AskOW: boolean;
 begin
   case Dialog of
     edOutOfMemory:
@@ -4000,7 +4109,7 @@ begin
     edSaveUntitled:
       StdEditorDialog := MessageBox('Save untitled file?',
    nil, mfInsertInApp+ mfInformation + mfYesNoCancel);
-    edSaveAs:
+    edSaveAs,edWriteBlock,edReadBlock:
       begin
         Name:=PString(Info)^;
         GetDir(0,StoreDir);
@@ -4015,10 +4124,35 @@ begin
             GetDir(DriveNumber,StoreDir2);
             ChDir(Copy(FileDir,1,2));
           end;
-        ChDir(FileDir);
-        Re:=Application^.ExecuteDialog(New(PFileDialog, Init('*'+DefaultSaveExt,
-          'Save file as', '~N~ame', fdOkButton, 101)), @Name);
-        if (Re<>cmCancel) and (Name<>PString(Info)^) then
+        if FileDir<>'' then
+          ChDir(FileDir);
+        case Dialog of
+          edSaveAs     :
+            begin
+              Title:='Save File As';
+              DefExt:='*'+DefaultSaveExt;
+            end;
+          edWriteBlock :
+            begin
+              Title:='Write Block to File';
+              DefExt:='';
+            end;
+          edReadBlock  :
+            begin
+              Title:='Read Block from File';
+              DefExt:='';
+            end;
+        else begin Title:='???'; DefExt:=''; end;
+        end;
+        Re:=Application^.ExecuteDialog(New(PFileDialog, Init(DefExt,
+          Title, '~N~ame', fdOkButton, 101)), @Name);
+        case Dialog of
+          edSaveAs     : AskOW:=(Name<>PString(Info)^);
+          edWriteBlock : AskOW:=true;
+          edReadBlock  : AskOW:=false;
+        else AskOW:=true;
+        end;
+        if (Re<>cmCancel) and AskOW then
           begin
             FileDir:=DirOf(FExpand(Name));
             if ExistsFile(Name) then
@@ -4027,9 +4161,12 @@ begin
           end;
         if DriveNumber<>0 then
           ChDir(StoreDir2);
+{$ifdef TP}
         if (Length(StoreDir)>1) and (StoreDir[2]=':') then
           ChDir(Copy(StoreDir,1,2));
-        ChDir(StoreDir);
+{$endif}
+        if StoreDir<>'' then
+          ChDir(StoreDir);
 
         if Re<>cmCancel then
           PString(Info)^:=Name;
@@ -4088,7 +4225,25 @@ end;
 END.
 {
   $Log$
-  Revision 1.40  1999-08-03 20:22:42  peter
+  Revision 1.41  1999-08-16 18:25:28  peter
+    * Adjusting the selection when the editor didn't contain any line.
+    * Reserved word recognition redesigned, but this didn't affect the overall
+      syntax highlight speed remarkably (at least not on my Amd-K6/350).
+      The syntax scanner loop is a bit slow but the main problem is the
+      recognition of special symbols. Switching off symbol processing boosts
+      the performance up to ca. 200%...
+    * The editor didn't allow copying (for ex to clipboard) of a single character
+    * 'File|Save as' caused permanently run-time error 3. Not any more now...
+    * Compiler Messages window (actually the whole desktop) did not act on any
+      keypress when compilation failed and thus the window remained visible
+    + Message windows are now closed upon pressing Esc
+    + At 'Run' the IDE checks whether any sources are modified, and recompiles
+      only when neccessary
+    + BlockRead and BlockWrite (Ctrl+K+R/W) implemented in TCodeEditor
+    + LineSelect (Ctrl+K+L) implemented
+    * The IDE had problems closing help windows before saving the desktop
+
+  Revision 1.40  1999/08/03 20:22:42  peter
     + TTab acts now on Ctrl+Tab and Ctrl+Shift+Tab...
     + Desktop saving should work now
        - History saved
