@@ -480,6 +480,7 @@ implementation
                                  1 : opsize:=S_B;
                                  2 : opsize:=S_W;
                                  4 : opsize:=S_L;
+                                 8 : opsize:=S_L;
                               end;
                               { simplified with op_reg_loc         }
                               if loc=LOC_CREGISTER then
@@ -490,6 +491,22 @@ implementation
                                 exprasmlist^.concat(new(pai386,op_reg_ref(A_MOV,opsize,
                                   p^.right^.location.register,
                                   newreference(p^.left^.location.reference))));
+
+                              if is_64bitint(p^.right^.resulttype) then
+                                begin
+                                   { simplified with op_reg_loc         }
+                                   if loc=LOC_CREGISTER then
+                                     exprasmlist^.concat(new(pai386,op_reg_reg(A_MOV,opsize,
+                                       p^.right^.location.registerhigh,
+                                       p^.left^.location.registerhigh)))
+                                   else
+                                     begin
+                                        r:=newreference(p^.left^.location.reference);
+                                        inc(r^.offset,4);
+                                        exprasmlist^.concat(new(pai386,op_reg_ref(A_MOV,opsize,
+                                          p^.right^.location.registerhigh,r)));
+                                     end;
+                                end;
                               {exprasmlist^.concat(new(pai386,op_reg_loc(A_MOV,opsize,
                                   p^.right^.location.register,
                                   p^.left^.location)));             }
@@ -709,7 +726,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.36  1998-12-04 10:18:06  florian
+  Revision 1.37  1998-12-10 09:47:17  florian
+    + basic operations with int64/qord (compiler with -dint64)
+    + rtti of enumerations extended: names are now written
+
+  Revision 1.36  1998/12/04 10:18:06  florian
     * some stuff for procedures of object added
     * bug with overridden virtual constructors fixed (reported by Italo Gomes)
 

@@ -414,7 +414,37 @@ implementation
                   end;
                  calcregisters(p,1,0,0);
                  convdone:=true;
-               end;
+               end
+              else if (porddef(rd)^.typ=s64bitint) or (porddef(ld)^.typ=s64bitint) then
+                begin
+                   if (porddef(ld)^.typ<>s64bitint) then
+                     begin
+                       p^.left:=gentypeconvnode(p^.left,cs64bitintdef);
+                       firstpass(p^.left);
+                     end;
+                   if (porddef(rd)^.typ<>s64bitint) then
+                     begin
+                        p^.right:=gentypeconvnode(p^.right,cs64bitintdef);
+                        firstpass(p^.right);
+                     end;
+                   calcregisters(p,2,0,0);
+                   convdone:=true;
+                end
+              else if (porddef(rd)^.typ=u64bit) or (porddef(ld)^.typ=u64bit) then
+                begin
+                   if (porddef(ld)^.typ<>u64bit) then
+                     begin
+                       p^.left:=gentypeconvnode(p^.left,cu64bitdef);
+                       firstpass(p^.left);
+                     end;
+                   if (porddef(rd)^.typ<>u64bit) then
+                     begin
+                        p^.right:=gentypeconvnode(p^.right,cu64bitdef);
+                        firstpass(p^.right);
+                     end;
+                   calcregisters(p,2,0,0);
+                   convdone:=true;
+                end;
            end
          else
 
@@ -889,7 +919,10 @@ implementation
                  if (not assigned(p^.resulttype)) or
                    (p^.resulttype^.deftype=stringdef) then
                    p^.resulttype:=booldef;
-                 p^.location.loc:=LOC_FLAGS;
+                 if is_64bitint(p^.left^.resulttype) then
+                   p^.location.loc:=LOC_JUMP
+                 else
+                   p^.location.loc:=LOC_FLAGS;
               end;
             xorn:
               begin
@@ -917,7 +950,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.15  1998-11-24 22:59:05  peter
+  Revision 1.16  1998-12-10 09:47:31  florian
+    + basic operations with int64/qord (compiler with -dint64)
+    + rtti of enumerations extended: names are now written
+
+  Revision 1.15  1998/11/24 22:59:05  peter
     * handle array of char the same as strings
 
   Revision 1.14  1998/11/17 00:36:47  peter

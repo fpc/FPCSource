@@ -162,8 +162,6 @@ unit i386;
 
        tlocation = record
           case loc : tloc of
-             { segment in reference at the same place as in loc_register }
-             LOC_REGISTER,LOC_CREGISTER : (register,segment : tregister);
              LOC_MEM,LOC_REFERENCE : (reference : treference);
              LOC_FPU : ();
              LOC_JUMP : ();
@@ -172,6 +170,13 @@ unit i386;
 
              { it's only for better handling }
              LOC_MMXREGISTER : (mmxreg : tregister);
+             { segment in reference at the same place as in loc_register }
+             LOC_REGISTER,LOC_CREGISTER : (
+             case longint of
+               1 : (register,segment,registerhigh : tregister);
+               { overlay a registerlow }
+               2 : (registerlow : tregister);
+             );
        end;
 
        pcsymbol = ^tcsymbol;
@@ -1731,7 +1736,11 @@ unit i386;
 end.
 {
   $Log$
-  Revision 1.18  1998-11-26 21:45:30  jonas
+  Revision 1.19  1998-12-10 09:47:22  florian
+    + basic operations with int64/qord (compiler with -dint64)
+    + rtti of enumerations extended: names are now written
+
+  Revision 1.18  1998/11/26 21:45:30  jonas
     - removed A_CLTD opcode (use A_CDQ instead)
     * changed cbw, cwde and cwd to cbtw, cwtl and cwtd in att_op2str array
     * in daopt386: adapted AsmInstr array to reflect changes + fixed line too long

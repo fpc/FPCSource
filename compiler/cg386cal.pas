@@ -370,7 +370,29 @@ implementation
                         orddef :
                           begin
                             case p^.resulttype^.size of
-                             4 : begin
+                               8 : begin
+                                    inc(pushedparasize,8);
+                                    if inlined then
+                                      begin
+                                         exprasmlist^.concat(new(pai386,op_ref_reg(A_MOV,S_L,
+                                           newreference(tempreference),R_EDI)));
+                                         r:=new_reference(procinfo.framepointer,para_offset-pushedparasize);
+                                         exprasmlist^.concat(new(pai386,op_reg_ref(A_MOV,S_L,R_EDI,r)));
+                                         inc(tempreference.offset,4);
+                                         exprasmlist^.concat(new(pai386,op_ref_reg(A_MOV,S_L,
+                                           newreference(tempreference),R_EDI)));
+                                         r:=new_reference(procinfo.framepointer,para_offset-pushedparasize+4);
+                                         exprasmlist^.concat(new(pai386,op_reg_ref(A_MOV,S_L,R_EDI,r)));
+                                      end
+                                    else
+                                      begin
+                                         inc(tempreference.offset,4);
+                                         emit_push_mem(tempreference);
+                                         dec(tempreference.offset,4);
+                                         emit_push_mem(tempreference);
+                                      end;
+                                 end;
+                               4 : begin
                                     inc(pushedparasize,4);
                                     if inlined then
                                       begin
@@ -715,7 +737,7 @@ implementation
          unusedregisters : tregisterset;
          pushed : tpushed;
          hr,funcretref : treference;
-         hregister : tregister;
+         hregister,hregister2 : tregister;
          oldpushedparasize : longint;
          { true if ESI must be loaded again after the subroutine }
          loadesi : boolean;
@@ -1385,6 +1407,18 @@ implementation
                                     p^.location.register:=reg32toreg16(hregister);
                                  end;
                             end;
+                           s64bitint,u64bit:
+                             begin
+{$ifdef test_dest_loc}
+{$error Don't know what to do here}
+{$endif test_dest_loc}
+                                hregister:=getexplicitregister32(R_EAX);
+                                hregister2:=getexplicitregister32(R_EDX);
+                                emit_reg_reg(A_MOV,S_L,R_EAX,hregister);
+                                emit_reg_reg(A_MOV,S_L,R_EDX,hregister2);
+                                p^.location.registerlow:=hregister;
+                                p^.location.registerhigh:=hregister2;
+                             end;
                         else internalerror(7);
                      end
 
@@ -1592,7 +1626,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.50  1998-12-06 13:12:44  florian
+  Revision 1.51  1998-12-10 09:47:15  florian
+    + basic operations with int64/qord (compiler with -dint64)
+    + rtti of enumerations extended: names are now written
+
+  Revision 1.50  1998/12/06 13:12:44  florian
     * better code generation for classes which are passed as parameters to
       subroutines
 

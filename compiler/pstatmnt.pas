@@ -1117,10 +1117,16 @@ unit pstatmnt;
                      opsym^.address:=-procinfo.retoffset;
                    { eax is modified by a function }
 {$ifdef i386}
-                   usedinproc:=usedinproc or ($80 shr byte(R_EAX))
+                   usedinproc:=usedinproc or ($80 shr byte(R_EAX));
+
+                   if is_64bitint(procinfo.retdef) then
+                     usedinproc:=usedinproc or ($80 shr byte(R_EDX))
 {$endif}
 {$ifdef m68k}
                    usedinproc:=usedinproc or ($800 shr word(R_D0))
+
+                   if is_64bitint(procinfo.retdef) then
+                     usedinproc:=usedinproc or ($800 shr byte(R_D1))
 {$endif}
                 end;
            end;
@@ -1218,7 +1224,11 @@ unit pstatmnt;
 end.
 {
   $Log$
-  Revision 1.50  1998-11-13 15:40:25  pierre
+  Revision 1.51  1998-12-10 09:47:24  florian
+    + basic operations with int64/qord (compiler with -dint64)
+    + rtti of enumerations extended: names are now written
+
+  Revision 1.50  1998/11/13 15:40:25  pierre
     + added -Se in Makefile cvstest target
     + lexlevel cleanup
       normal_function_level main_program_level and unit_init_level defined

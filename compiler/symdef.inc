@@ -785,6 +785,10 @@
 
 
     procedure tenumdef.write_rtti_data;
+
+      var
+         hp : penumsym;
+
       begin
          rttilist^.concat(new(pai_const,init_8bit(tkEnumeration)));
          case savesize of
@@ -801,7 +805,14 @@
            rttilist^.concat(new(pai_const,init_symbol(strpnew(basedef^.get_rtti_label))))
          else
            rttilist^.concat(new(pai_const,init_32bit(0)));
-         {!!!!!!! Name list }
+         hp:=first;
+         while assigned(hp) do
+           begin
+              rttilist^.concat(new(pai_const,init_8bit(length(hp^.name))));
+              rttilist^.concat(new(pai_string,init(hp^.name)));
+              hp:=hp^.next;
+           end;
+         rttilist^.concat(new(pai_const,init_8bit(0)));
       end;
 
 
@@ -878,12 +889,20 @@
          else
            begin
              case typ of
-           u8bit,s8bit,
-        uchar,bool8bit : savesize:=1;
-         u16bit,s16bit,
-             bool16bit : savesize:=2;
-         s32bit,u32bit,
-             bool32bit : savesize:=4;
+                u8bit,s8bit,
+                uchar,bool8bit:
+                  savesize:=1;
+
+                u16bit,s16bit,
+                bool16bit:
+                  savesize:=2;
+
+                s32bit,u32bit,
+                bool32bit:
+                  savesize:=4;
+
+                u64bit,s64bitint:
+                  savesize:=8;
              else
                savesize:=0;
              end;
@@ -3232,7 +3251,11 @@
 
 {
   $Log$
-  Revision 1.79  1998-12-08 10:18:12  peter
+  Revision 1.80  1998-12-10 09:47:26  florian
+    + basic operations with int64/qord (compiler with -dint64)
+    + rtti of enumerations extended: names are now written
+
+  Revision 1.79  1998/12/08 10:18:12  peter
     + -gh for heaptrc unit
 
   Revision 1.78  1998/12/08 09:06:30  pierre

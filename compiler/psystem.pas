@@ -82,6 +82,10 @@ begin
   p^.insert(new(ptypesym,init('ulong',u32bitdef)));
   p^.insert(new(ptypesym,init('void',voiddef)));
   p^.insert(new(ptypesym,init('char',cchardef)));
+{$ifdef INT64}
+  p^.insert(new(ptypesym,init('qword',cu64bitdef)));
+  p^.insert(new(ptypesym,init('int64',cs64bitintdef)));
+{$endif INT64}
 {$ifdef i386}
   p^.insert(new(ptypesym,init('s64real',c64floatdef)));
 {$endif i386}
@@ -135,6 +139,10 @@ begin
   p^.insert(new(ptypesym,init('CARDINAL',u32bitdef)));
   p^.insert(new(ptypesym,init('FIXED',new(pfloatdef,init(f32bit)))));
   p^.insert(new(ptypesym,init('FIXED16',new(pfloatdef,init(f16bit)))));
+{$ifdef INT64}
+  p^.insert(new(ptypesym,init('QWORD',cu64bitdef)));
+  p^.insert(new(ptypesym,init('INT64',cs64bitintdef)));
+{$endif INT64}
   p^.insert(new(ptypesym,init('TYPEDFILE',new(pfiledef,init(ft_typed,voiddef)))));
 {$ifdef GDB}
   { Add a type for virtual method tables in lowercase }
@@ -165,6 +173,10 @@ procedure readconstdefs;
 begin
   s32bitdef:=porddef(globaldef('longint'));
   u32bitdef:=porddef(globaldef('ulong'));
+{$ifdef INT64}
+  cu64bitdef:=porddef(globaldef('qword'));
+  cs64bitintdef:=porddef(globaldef('int64'));
+{$endif INT64}
   cshortstringdef:=pstringdef(globaldef('shortstring'));
   clongstringdef:=pstringdef(globaldef('longstring'));
   cansistringdef:=pstringdef(globaldef('ansistring'));
@@ -204,6 +216,10 @@ begin
   u16bitdef:=new(porddef,init(u16bit,0,65535));
   u32bitdef:=new(porddef,init(u32bit,0,$ffffffff));
   s32bitdef:=new(porddef,init(s32bit,$80000000,$7fffffff));
+{$ifdef INT64}
+  cu64bitdef:=new(porddef,init(u64bit,0,0));
+  cs64bitintdef:=new(porddef,init(s64bitint,0,0));
+{$endif INT64}
   booldef:=new(porddef,init(bool8bit,0,1));
   cchardef:=new(porddef,init(uchar,0,255));
   cshortstringdef:=new(pstringdef,shortinit(255));
@@ -236,7 +252,11 @@ end;
 end.
 {
   $Log$
-  Revision 1.12  1998-11-27 14:50:45  peter
+  Revision 1.13  1998-12-10 09:47:25  florian
+    + basic operations with int64/qord (compiler with -dint64)
+    + rtti of enumerations extended: names are now written
+
+  Revision 1.12  1998/11/27 14:50:45  peter
     + open strings, $P switch support
 
   Revision 1.11  1998/11/16 10:18:09  peter

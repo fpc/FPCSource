@@ -1075,7 +1075,267 @@ implementation
                    ungetregister32(reg8toreg32(p^.location.register));
                 end
               else
+              { 64 bit types }
+              if is_64bitint(p^.left^.resulttype) then
+                begin
+                   mboverflow:=false;
+                   cmpop:=false;
+                   unsigned:=((p^.left^.resulttype^.deftype=orddef) and
+                       (porddef(p^.left^.resulttype)^.typ=u64bit)) or
+                      ((p^.right^.resulttype^.deftype=orddef) and
+                       (porddef(p^.right^.resulttype)^.typ=u64bit));
+                   case p^.treetype of
+                      addn : begin
+                                begin
+                                  op:=A_ADD;
+                                  mboverflow:=true;
+                                end;
+                             end;
+                      muln : begin
+                                begin
+                                  if unsigned then
+                                   op:=A_MUL
+                                  else
+                                   op:=A_IMUL;
+                                  mboverflow:=true;
+                                end;
+                             end;
+                      subn : begin
+                                op:=A_SUB;
+                                mboverflow:=true;
+                             end;
+                  ltn,lten,
+                  gtn,gten,
+           equaln,unequaln : begin
+                               op:=A_CMP;
+                               cmpop:=true;
+                             end;
+                      xorn : op:=A_XOR;
+                       orn : op:=A_OR;
+                      andn : op:=A_AND;
+                   else
+                     CGMessage(type_e_mismatch);
+                   end;
 
+
+                   { left and right no register?  }
+                   { then one must be demanded    }
+                   if (p^.left^.location.loc<>LOC_REGISTER) and
+                      (p^.right^.location.loc<>LOC_REGISTER) then
+                     begin
+                        { register variable ? }
+                        if (p^.left^.location.loc=LOC_CREGISTER) then
+                          begin
+                             { it is OK if this is the destination }
+                             if is_in_dest then
+                               begin
+                                  hregister:=p^.location.register;
+                                  emit_reg_reg(A_MOV,opsize,p^.left^.location.register,
+                                    hregister);
+                               end
+                             else
+                             if cmpop then
+                               begin
+                                  { do not disturb the register }
+                                  hregister:=p^.location.register;
+                               end
+                             else
+                               begin
+                                  case opsize of
+                                     S_L : hregister:=getregister32;
+                                     S_B : hregister:=reg32toreg8(getregister32);
+                                  end;
+                                  emit_reg_reg(A_MOV,opsize,p^.left^.location.register,
+                                    hregister);
+                               end
+                          end
+                        else
+                          begin
+                             ungetiftemp(p^.left^.location.reference);
+                             del_reference(p^.left^.location.reference);
+                             if is_in_dest then
+                               begin
+                                  hregister:=p^.location.register;
+                                  exprasmlist^.concat(new(pai386,op_ref_reg(A_MOV,opsize,
+                                  newreference(p^.left^.location.reference),hregister)));
+                               end
+                             else
+                               begin
+                                  { first give free, then demand new register }
+                                  case opsize of
+                                     S_L : hregister:=getregister32;
+                                     S_W : hregister:=reg32toreg16(getregister32);
+                                     S_B : hregister:=reg32toreg8(getregister32);
+                                  end;
+                                  exprasmlist^.concat(new(pai386,op_ref_reg(A_MOV,opsize,
+                                    newreference(p^.left^.location.reference),hregister)));
+                               end;
+                          end;
+                        clear_location(p^.location);
+                        p^.location.loc:=LOC_REGISTER;
+                        p^.location.register:=hregister;
+                     end
+                   else
+                     { if on the right the register then swap }
+                     if not(noswap) and (p^.right^.location.loc=LOC_REGISTER) then
+                       begin
+                          swap_location(p^.location,p^.right^.location);
+
+                          { newly swapped also set swapped flag }
+                          p^.swaped:=not(p^.swaped);
+                       end;
+                   { at this point, p^.location.loc should be LOC_REGISTER }
+                   { and p^.location.register should be a valid register   }
+                   { containing the left result                            }
+
+                    if p^.right^.location.loc<>LOC_REGISTER then
+                     begin
+                        if (p^.treetype=subn) and p^.swaped then
+                          begin
+                             if p^.right^.location.loc=LOC_CREGISTER then
+                               begin
+                                  if extra_not then
+                                    exprasmlist^.concat(new(pai386,op_reg(A_NOT,opsize,p^.location.register)));
+
+                                  emit_reg_reg(A_MOV,opsize,p^.right^.location.register,R_EDI);
+                                  emit_reg_reg(op,opsize,p^.location.register,R_EDI);
+                                  emit_reg_reg(A_MOV,opsize,R_EDI,p^.location.register);
+                               end
+                             else
+                               begin
+                                  if extra_not then
+                                    exprasmlist^.concat(new(pai386,op_reg(A_NOT,opsize,p^.location.register)));
+
+                                  exprasmlist^.concat(new(pai386,op_ref_reg(A_MOV,opsize,
+                                    newreference(p^.right^.location.reference),R_EDI)));
+                                  exprasmlist^.concat(new(pai386,op_reg_reg(op,opsize,p^.location.register,R_EDI)));
+                                  exprasmlist^.concat(new(pai386,op_reg_reg(A_MOV,opsize,R_EDI,p^.location.register)));
+                                  ungetiftemp(p^.right^.location.reference);
+                                  del_reference(p^.right^.location.reference);
+                               end;
+                          end
+                        else
+                          begin
+                             if (p^.right^.treetype=ordconstn) and
+                                (op=A_CMP) and
+                                (p^.right^.value=0) then
+                               begin
+                                  exprasmlist^.concat(new(pai386,op_reg_reg(A_TEST,opsize,p^.location.register,
+                                    p^.location.register)));
+                               end
+                             else if (p^.right^.treetype=ordconstn) and
+                                (op=A_ADD) and
+                                (p^.right^.value=1) then
+                               begin
+                                  exprasmlist^.concat(new(pai386,op_reg(A_INC,opsize,
+                                    p^.location.register)));
+                               end
+                             else if (p^.right^.treetype=ordconstn) and
+                                (op=A_SUB) and
+                                (p^.right^.value=1) then
+                               begin
+                                  exprasmlist^.concat(new(pai386,op_reg(A_DEC,opsize,
+                                    p^.location.register)));
+                               end
+                             else if (p^.right^.treetype=ordconstn) and
+                                (op=A_IMUL) and
+                                (ispowerof2(p^.right^.value,power)) then
+                               begin
+                                  exprasmlist^.concat(new(pai386,op_const_reg(A_SHL,opsize,power,
+                                    p^.location.register)));
+                               end
+                             else
+                               begin
+                                  if (p^.right^.location.loc=LOC_CREGISTER) then
+                                    begin
+                                       if extra_not then
+                                         begin
+                                            emit_reg_reg(A_MOV,S_L,p^.right^.location.register,R_EDI);
+                                            exprasmlist^.concat(new(pai386,op_reg(A_NOT,S_L,R_EDI)));
+                                            emit_reg_reg(A_AND,S_L,R_EDI,
+                                              p^.location.register);
+                                         end
+                                       else
+                                         begin
+                                            emit_reg_reg(op,opsize,p^.right^.location.register,
+                                              p^.location.register);
+                                         end;
+                                    end
+                                  else
+                                    begin
+                                       if extra_not then
+                                         begin
+                                            exprasmlist^.concat(new(pai386,op_ref_reg(A_MOV,S_L,newreference(
+                                              p^.right^.location.reference),R_EDI)));
+                                            exprasmlist^.concat(new(pai386,op_reg(A_NOT,S_L,R_EDI)));
+                                            emit_reg_reg(A_AND,S_L,R_EDI,
+                                              p^.location.register);
+                                         end
+                                       else
+                                         begin
+                                            exprasmlist^.concat(new(pai386,op_ref_reg(op,opsize,newreference(
+                                              p^.right^.location.reference),p^.location.register)));
+                                         end;
+                                       ungetiftemp(p^.right^.location.reference);
+                                       del_reference(p^.right^.location.reference);
+                                    end;
+                               end;
+                          end;
+                     end
+                   else
+                     begin
+                        { when swapped another result register }
+                        if (p^.treetype=subn) and p^.swaped then
+                          begin
+                             if extra_not then
+                               exprasmlist^.concat(new(pai386,op_reg(A_NOT,S_L,p^.location.register)));
+
+                             exprasmlist^.concat(new(pai386,op_reg_reg(op,opsize,
+                               p^.location.register,p^.right^.location.register)));
+                               swap_location(p^.location,p^.right^.location);
+                               { newly swapped also set swapped flag }
+                               { just to maintain ordering           }
+                               p^.swaped:=not(p^.swaped);
+                          end
+                        else
+                          begin
+                             if extra_not then
+                               exprasmlist^.concat(new(pai386,op_reg(A_NOT,S_L,p^.right^.location.register)));
+                             exprasmlist^.concat(new(pai386,op_reg_reg(op,opsize,
+                               p^.right^.location.register,
+                               p^.location.register)));
+                          end;
+                        case opsize of
+                           S_L : ungetregister32(p^.right^.location.register);
+                           S_B : ungetregister32(reg8toreg32(p^.right^.location.register));
+                        end;
+                     end;
+
+                   if cmpop then
+                     case opsize of
+                        S_L : ungetregister32(p^.location.register);
+                        S_B : ungetregister32(reg8toreg32(p^.location.register));
+                     end;
+
+                   { only in case of overflow operations }
+                   { produce overflow code }
+                   { we must put it here directly, because sign of operation }
+                   { is in unsigned VAR!!                                    }
+                   if mboverflow then
+                    begin
+                      if cs_check_overflow in aktlocalswitches  then
+                       begin
+                         getlabel(hl4);
+                         if unsigned then
+                          emitl(A_JNB,hl4)
+                         else
+                          emitl(A_JNO,hl4);
+                         emitcall('FPC_OVERFLOW',true);
+                         emitl(A_LABEL,hl4);
+                       end;
+                    end;
+                end
+              else
               { Floating point }
                if (p^.left^.resulttype^.deftype=floatdef) and
                   (pfloatdef(p^.left^.resulttype)^.typ<>f32bit) then
@@ -1387,7 +1647,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.31  1998-11-30 09:42:59  pierre
+  Revision 1.32  1998-12-10 09:47:13  florian
+    + basic operations with int64/qord (compiler with -dint64)
+    + rtti of enumerations extended: names are now written
+
+  Revision 1.31  1998/11/30 09:42:59  pierre
     * some range check bugs fixed (still not working !)
     + added DLL writing support for win32 (also accepts variables)
     + TempAnsi for code that could be used for Temporary ansi strings

@@ -724,7 +724,10 @@ implementation
                symtable:=p^.withsymtable;
                for i:=1 to p^.tablecount do
                  begin
+{$ifdef WITHTEST}
+{$else WITHTEST}
                     symtable^.datasize:=ref.offset;
+{$endif WITHTEST}
                     symtable:=symtable^.next;
                  end;
 
@@ -740,7 +743,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.20  1998-11-25 19:12:54  pierre
+  Revision 1.21  1998-12-10 09:47:18  florian
+    + basic operations with int64/qord (compiler with -dint64)
+    + rtti of enumerations extended: names are now written
+
+  Revision 1.20  1998/11/25 19:12:54  pierre
     * var:=new(pointer_type) support added
 
   Revision 1.19  1998/11/20 15:35:55  florian

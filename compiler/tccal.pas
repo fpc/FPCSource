@@ -896,7 +896,10 @@ implementation
                    if ret_in_acc(p^.resulttype) then
                      begin
                         p^.location.loc:=LOC_REGISTER;
-                        p^.registers32:=1;
+                        if is_64bitint(p^.resulttype) then
+                          p^.registers32:=2
+                        else
+                          p^.registers32:=1;
                      end
                    else if (p^.resulttype^.deftype=floatdef) then
                      begin
@@ -980,7 +983,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.14  1998-11-27 14:50:52  peter
+  Revision 1.15  1998-12-10 09:47:32  florian
+    + basic operations with int64/qord (compiler with -dint64)
+    + rtti of enumerations extended: names are now written
+
+  Revision 1.14  1998/11/27 14:50:52  peter
     + open strings, $P switch support
 
   Revision 1.13  1998/11/24 17:03:51  peter

@@ -88,6 +88,9 @@ unit types;
     { true if uses a parameter as return value }
     function ret_in_param(def : pdef) : boolean;
 
+    { true, if def is a 64 bit int type }
+    function is_64bitint(def : pdef) : boolean;
+
 {$ifndef VALUEPARA}
     { true if a const parameter is too large to copy }
     function dont_copy_const_param(def : pdef) : boolean;
@@ -200,7 +203,8 @@ unit types;
          case def^.deftype of
           orddef : begin
                      dt:=porddef(def)^.typ;
-                     is_ordinal:=dt in [uchar,u8bit,u16bit,u32bit,s8bit,s16bit,s32bit,bool8bit,bool16bit,bool32bit];
+                     is_ordinal:=dt in [uchar,u8bit,u16bit,u32bit,u64bit,s8bit,s16bit,s32bit,
+                       s64bitint,bool8bit,bool16bit,bool32bit];
                    end;
          enumdef : is_ordinal:=true;
          else
@@ -358,6 +362,12 @@ unit types;
                      ((def^.deftype=floatdef) and (pfloatdef(def)^.typ=f32bit));
       end;
 
+    { true, if def is a 64 bit int type }
+    function is_64bitint(def : pdef) : boolean;
+
+      begin
+         is_64bitint:=(def^.deftype=orddef) and (porddef(def)^.typ in [u64bit,s64bitint])
+      end;
 
     { true if uses a parameter as return value }
     function ret_in_param(def : pdef) : boolean;
@@ -1037,7 +1047,11 @@ unit types;
 end.
 {
   $Log$
-  Revision 1.40  1998-12-04 10:18:14  florian
+  Revision 1.41  1998-12-10 09:47:33  florian
+    + basic operations with int64/qord (compiler with -dint64)
+    + rtti of enumerations extended: names are now written
+
+  Revision 1.40  1998/12/04 10:18:14  florian
     * some stuff for procedures of object added
     * bug with overridden virtual constructors fixed (reported by Italo Gomes)
 

@@ -268,7 +268,8 @@
        tbasetype = (uauto,uvoid,uchar,
                     u8bit,u16bit,u32bit,
                     s8bit,s16bit,s32bit,
-                    bool8bit,bool16bit,bool32bit { uwchar,bool1bit,bitfield});
+                    bool8bit,bool16bit,bool32bit { uwchar,bool1bit,bitfield},
+                    u64bit,s64bitint);
 
        porddef = ^torddef;
        torddef = object(tdef)
@@ -484,7 +485,11 @@
 
 {
   $Log$
-  Revision 1.11  1998-11-29 21:45:49  florian
+  Revision 1.12  1998-12-10 09:47:28  florian
+    + basic operations with int64/qord (compiler with -dint64)
+    + rtti of enumerations extended: names are now written
+
+  Revision 1.11  1998/11/29 21:45:49  florian
     * problem with arrays with init tables fixed
 
   Revision 1.10  1998/11/20 15:36:00  florian

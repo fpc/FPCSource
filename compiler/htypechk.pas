@@ -68,7 +68,8 @@ implementation
       { Tbasetype:  uauto,uvoid,uchar,
                     u8bit,u16bit,u32bit,
                     s8bit,s16bit,s32,
-                    bool8bit,bool16bit,boot32bit }
+                    bool8bit,bool16bit,bool32bit,
+                    u64bit,s64bitint }
       type
         tbasedef=(bvoid,bchar,bint,bbool);
       const
@@ -76,7 +77,8 @@ implementation
           (bvoid,bvoid,bchar,
            bint,bint,bint,
            bint,bint,bint,
-           bbool,bbool,bbool);
+           bbool,bbool,bbool,bint,bint);
+
         basedefconverts : array[tbasedef,tbasedef] of tconverttype =
          ((tc_not_possible,tc_not_possible,tc_not_possible,tc_not_possible),
           (tc_not_possible,tc_equal,tc_not_possible,tc_not_possible),
@@ -710,7 +712,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.10  1998-11-29 12:40:23  peter
+  Revision 1.11  1998-12-10 09:47:21  florian
+    + basic operations with int64/qord (compiler with -dint64)
+    + rtti of enumerations extended: names are now written
+
+  Revision 1.10  1998/11/29 12:40:23  peter
     * newcnv -> not oldcnv
 
   Revision 1.9  1998/11/26 13:10:42  peter
