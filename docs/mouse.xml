@@ -1,0 +1,527 @@
+<?xml version="1.0" encoding="ISO8859-1"?>
+<fpdoc-descriptions>
+<!--  
+
+   $Id$ 
+   This file is part of the FPC documentation. 
+   Copyright (C) 1997, by Michael Van Canneyt 
+ 
+   The FPC documentation is free text; you can redistribute it and/or 
+   modify it under the terms of the GNU Library General Public License as 
+   published by the Free Software Foundation; either version 2 of the 
+   License, or (at your option) any later version. 
+ 
+   The FPC Documentation is distributed in the hope that it will be useful, 
+   but WITHOUT ANY WARRANTY; without even the implied warranty of 
+   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU 
+   Library General Public License for more details. 
+ 
+   You should have received a copy of the GNU Library General Public 
+   License along with the FPC documentation; see the file COPYING.LIB.  If not, 
+   write to the Free Software Foundation, Inc., 59 Temple Place - Suite 330, 
+   Boston, MA 02111-1307, USA. 
+ -->
+<package name="rtl">
+<module name="mouse">
+<short>Mouse event handling unit</short>
+<!-- \FPCexampledir{mouseex} -->
+<descr>
+The <file>Mouse</file> unit implements a platform independent mouse handling 
+interface. It is implemented identically on all platforms supported by 
+Free Pascal and can be enhanced with custom drivers, should this be needed.
+It is intended to be used only in text-based screens, for instance in 
+conjunction with the keyboard and video unit. No support for graphical
+screens is implemented, and there are (currently) no plans to implement
+this.
+</descr>
+
+<element name="errMouseBase">
+<short>Base for mouse error codes.</short>
+</element>
+
+<element name="errMouseInitError">
+<short>Mouse initialization error</short>
+</element>
+
+<element name="errMouseNotImplemented">
+<short>Mouse driver not implemented.</short>
+</element>
+
+<element name="MouseActionDown">
+<short>Mouse button down event signal.</short>
+</element>
+
+<element name="MouseActionUp">
+<short>Mouse button up event signal.</short>
+</element>
+
+<element name="MouseActionMove">
+<short>Mouse cursor move event signal.</short>
+</element>
+
+<element name="MouseLeftButton">
+<short>Left mouse button event.</short>
+</element>
+
+<element name="MouseRightButton">
+<short>Right mouse button event.</short>
+</element>
+
+<element name="MouseMiddleButton">
+<short>Middle mouse button event.</short>
+</element>
+
+<element name="MouseEventBufSize">
+<short>Mouse event buffer size</short>
+<descr>
+The mouse unit has a mechanism to buffer mouse events. This
+constant defines the size of the event buffer.
+</descr>
+</element> 
+
+<element name="PMouseEvent">
+<short>Pointer to <link id="TMouseEvent"/> record.</short>
+</element>
+
+<element name="TMouseEvent">
+<short>Mouse event reporting record.</short>
+<descr>
+<p>
+The <var>TMouseEvent</var> is the central type of the mouse unit, it is used
+to describe all mouse events.
+</p>
+<p>
+The <var>Buttons</var> field describes which buttons were down when the event
+occurred. The <var>x,y</var> fields describe where the event occurred on the
+screen. The <var>Action</var> describes what action was going on when the event
+occurred. The <var>Buttons</var> and <var>Action</var> field can be examined using the
+constants defined in the unit interface.
+</p>
+</descr>
+<seealso>
+<link id="GetMouseEvent"/>
+<link id="PollMouseEvent"/>
+<link id="PutMouseEvent"/>
+</seealso>
+</element>
+
+<element name="TMouseEvent.X">
+<short>Horizontal position of mouse cursor.</short>
+</element>
+<element name="TMouseEvent.Y">
+<short>Vertical position of mouse cursor.</short>
+</element>
+<element name="TMouseEvent.Buttons">
+<short>Pressed buttons at time of event.
+</short>
+</element>
+<element name="TMouseEvent.Action">
+<short>Type of event.</short>
+</element>
+
+<element name="TMouseDriver">
+<short>Mouse driver structure</short>
+<descr>
+The <var>TMouseDriver</var> record is used to implement a mouse driver in the
+<link id="SetMouseDriver"/> function. Its fields must be filled in before
+calling the <link id="SetMouseDriver"/> function.
+</descr>
+<seealso>
+<link id="SetMouseDriver"/>
+</seealso>
+</element>
+
+<element name="TMouseDriver.UseDefaultQueue">
+<short>Should the default event queue mechanism be used.</short>
+</element>
+<element name="TMouseDriver.InitDriver">
+<short>Called when the driver must be initialized</short>
+</element>
+<element name="TMouseDriver.DoneDriver">
+<short>Called when the driver will be unloaded.</short>
+</element>
+<element name="TMouseDriver.DetectMouse">
+<short>Function called when the mouse must be detected.</short>
+</element>
+<element name="TMouseDriver.ShowMouse">
+<short>Function called when the mouse cursor must be shown.</short>
+</element>
+<element name="TMouseDriver.HideMouse">
+<short>Function called when the mouse cursor must be hidden.</short>
+</element>
+<element name="TMouseDriver.GetMouseX">
+<short>Called to get the mouse cursors horizontal position.</short>
+</element>
+<element name="TMouseDriver.GetMouseY">
+<short>Called to get the mouse cursors vertical position.</short>
+</element>
+<element name="TMouseDriver.GetMouseButtons">
+<short>Called to get the currently pressed mouse buttons.</short>
+</element>
+<element name="TMouseDriver.SetMouseXY">
+<short>Called when the current mouse position must be set.</short>
+</element>
+<element name="TMouseDriver.GetMouseEvent">
+<short>Called to get the next mouse event. Waits if needed.</short>
+</element>
+<element name="TMouseDriver.PollMouseEvent">
+<short>Called to get the next mouse event. Does not wait.</short>
+</element>
+<element name="TMouseDriver.PutMouseEvent">
+<short>Called to put a mouse event back in the queue.</short>
+</element>
+
+<element name="MouseIntFlag">
+<short>Internal mouse flag</short>
+<descr>This variable keeps track of the last known internal mouse state. Do not use.</descr>
+</element>
+
+<element name="MouseButtons">
+<short>Mouse button state</short>
+<descr>This variable keeps track of the last known mouse button state. Do not use.</descr>
+</element>
+
+<element name="MouseWhereX">
+<short>Mouse cursor horizontal position</short>
+<descr>This variable keeps track of the last known cursor position. Do not use.</descr>
+</element>
+
+<element name="MouseWhereY">
+<short>Mouse cursor vertical position</short>
+<descr>This variable keeps track of the last known cursor position. Do not use.</descr>
+</element>
+
+<element name="DetectMouse">
+<short>Detect the presence of a mouse.</short>
+<descr>
+<p>
+<var>DetectMouse</var> detects whether a mouse is attached to the system or not.
+If there is no mouse, then zero is returned. If a mouse is attached, then
+the number of mouse buttons is returnead.
+</p>
+<p>
+This function should be called after the mouse driver was initialized.
+</p>
+</descr>
+<errors>
+None.
+</errors>
+<seealso>
+<link id="InitMouse"/>
+<link id="DoneMouse"/>,
+</seealso>
+<example file="mouseex/ex1"/>
+</element>
+
+<element name="DoneMouse">
+<short>Deinitialize mouse driver.</short>
+<descr>
+<p>
+<var>DoneMouse</var> De-initializes the mouse driver. It cleans up any memory
+allocated when the mouse was initialized, or removes possible mouse hooks
+from memory. The mouse functions will not work after <var>DoneMouse</var> was
+called. If <var>DoneMouse</var> is called a second time, it will exit at once.
+<var>InitMouse</var> should be called before <var>DoneMouse</var> can be called again.
+</p>
+<p>
+For an example, see most other mouse functions.
+</p>
+</descr>
+<errors>
+None.
+</errors>
+<seealso>
+<link id="DetectMouse"/>
+<link id="InitMouse"/>
+</seealso>
+</element>
+
+
+<element name="GetMouseButtons">
+<short>Get the state of the mouse buttons</short>
+<descr>
+<p>
+<var>GetMouseButtons</var> returns the current button state of the mouse, i.e.
+it returns a or-ed combination of the following constants:
+</p>
+<dl>
+<dt>MouseLeftButton</dt>
+<dd> When the left mouse button is held down.
+</dd>
+<dt>MouseRightButton</dt>
+<dd> When the right mouse button is held down.
+</dd>
+<dt>MouseMiddleButton</dt>
+<dd> When the middle mouse button is held down.
+</dd>
+</dl>
+</descr>
+<errors>
+None.
+</errors>
+<seealso>
+<link id="GetMouseEvent"/>
+<link id="GetMouseX"/>
+<link id="GetMouseY"/>
+</seealso>
+<example file="mouseex/ex2"/>
+</element>
+
+<element name="GetMouseDriver">
+<short>Get a copy of the currently active mouse driver.</short>
+<descr>
+<p>
+<var>GetMouseDriver</var> returns the currently set mouse driver. It can be used
+to retrieve the current mouse driver, and override certain callbacks.
+</p>
+<p>
+A more detailed explanation about getting and setting mouse drivers can be found in
+<link id="mousedrv"/>.
+</p>
+<p>
+For an example, see the section on writing a custom mouse driver,
+<link id="mousedrv"/>
+</p>
+</descr>
+<errors>
+None.
+</errors>
+<seealso>
+<link id="SetMouseDriver"/>
+</seealso>
+</element>
+
+
+<element name="GetMouseEvent">
+<short>Get next mouse event from the queue.</short>
+<descr>
+<p>
+<var>GetMouseEvent</var> returns the next mouse event (a movement, button press or
+button release), and waits for one if none is available in the queue.
+</p>
+<p>
+Some mouse drivers can implement a mouse event queue which can hold multiple
+events till they are fetched. Others don't, and in that case, a one-event
+queue is implemented for use with <link id="PollMouseEvent"/>.
+</p>
+</descr>
+<errors>
+None.
+</errors>
+<seealso>
+<link id="GetMouseButtons"/>
+<link id="GetMouseX"/>
+<link id="GetMouseY"/>
+</seealso>
+</element>
+
+<element name="GetMouseX">
+<short>Query the current horizontal position of the mouse cursor.</short>
+<descr>
+<var>GetMouseX</var> returns the current <var>X</var> position of the mouse. <var>X</var> is
+measured in characters, starting at 0 for the left side of the screen.
+</descr>
+<errors>
+None.
+</errors>
+<seealso>
+<link id="GetMouseButtons"/>
+<link id="GetMouseEvent"/>
+<link id="GetMouseY"/>
+</seealso>
+<example file="mouseex/ex4"/>
+</element>
+
+<element name="GetMouseY">
+<short>Query the current vertical position of the mouse cursor.</short>
+<descr>
+<p>
+<var>GetMouseY</var> returns the current <var>Y</var> position of the mouse. <var>Y</var> is
+measured in characters, starting at 0 for the top of the screen.
+</p>
+<p>
+For an example, see <link id="GetMouseX"/>
+</p>
+</descr>
+<errors>
+None.
+</errors>
+<seealso>
+<link id="GetMouseButtons"/>
+<link id="GetMouseEvent"/>
+<link id="GetMouseX"/>
+</seealso>
+</element>
+
+
+<element name="HideMouse">
+<short>Hide the mouse cursor.</short>
+<descr>
+<var>HideMouse</var> hides the mouse cursor. This may or may not be implemented
+on all systems, and depends on the driver.
+</descr>
+<errors>
+None.
+</errors>
+<seealso>
+<link id="ShowMouse"/>
+</seealso>
+<example file="mouseex/ex5"/>
+</element>
+
+
+<element name="InitMouse">
+<short>Initialize the FPC mouse driver.</short>
+<descr>
+<p>
+<var>InitMouse</var> Initializes the mouse driver. This will allocate any data
+structures needed for the mouse to function. All mouse functions can be
+used after a call to <var>InitMouse</var>.
+</p>
+<p>
+A call to <var>InitMouse</var> must always be followed by a call to <link id="DoneMouse"/>
+at program exit. Failing to do so may leave the mouse in an unusable state,
+or may result in memory leaks.
+</p>
+<p>
+For an example, see most other functions.
+</p>
+</descr>
+<errors>
+None.
+</errors>
+<seealso>
+<link id="DoneMouse"/>
+<link id="DetectMouse"/>
+</seealso>
+</element>
+
+
+<element name="PollMouseEvent">
+<short>Query next mouse event. Do not wait if none available.</short>
+<descr>
+<p>
+<var>PollMouseEvent</var> checks whether a mouse event is available, and 
+returns it in <var>MouseEvent</var> if one is found. The function result is
+<var>True</var> in that case. If no mouse event is pending, the function result
+is <var>False</var>, and the contents of <var>MouseEvent</var> is undefined.
+</p>
+<p>
+Note that after a call to <var>PollMouseEvent</var>, the event should still 
+be removed from the mouse event queue with a call to <var>GetMouseEvent</var>.
+</p>
+</descr>
+<errors>
+None.
+</errors>
+<seealso>
+<link id="GetMouseEvent"/>
+<link id="PutMouseEvent"/>
+</seealso>
+</element>
+
+<element name="PutMouseEvent">
+<short>Put a mouse event in the venet queue.</short>
+<descr>
+<p>
+<var>PutMouseEvent</var> adds <var>MouseEvent</var> to the input queue. The next
+call to <link id="GetMouseEvent"/> or <var>PollMouseEvent</var> will then return
+<var>MouseEvent</var>. 
+</p>
+<p>
+Please note that depending on the implementation the mouse event queue
+can hold only one value.
+</p>
+</descr>
+<errors>
+None.
+</errors>
+<seealso>
+<link id="GetMouseEvent"/>
+<link id="PollMouseEvent"/>
+</seealso>
+</element>
+
+<element name="SetMouseDriver">
+<short>Set a new mouse driver.</short>
+<descr>
+<p>
+<var>SetMouseDriver</var> sets the mouse driver to <var>Driver</var>. This function
+should be called before <link id="InitMouse"/> is called, or after <var>DoneMouse</var>
+is called. If it is called after the mouse has been initialized, it does
+nothing.
+</p>
+<p>
+For more information on setting the mouse driver, <link id="mousedrv"/>.
+</p>
+<p>
+For an example, see <link id="mousedrv"/>
+</p>
+</descr>
+<errors>
+</errors>
+<seealso>
+<link id="InitMouse"/>
+<link id="DoneMouse"/>
+<link id="GetMouseDriver"/>
+</seealso>
+</element>
+
+
+<element name="SetMouseXY">
+<short>Set the mouse cursor position.</short>
+<descr>
+<var>SetMouseXY</var> places the mouse cursor on <var>X,Y</var>. X and Y are zero
+based character coordinates: <var>0,0</var> is the top-left corner of the screen,
+and the position is in character cells (i.e. not in pixels).
+</descr>
+<errors>
+None.
+</errors>
+<seealso>
+<link id="GetMouseX"/>
+<link id="GetMouseY"/>
+</seealso>
+<example file="mouseex/ex7"/>
+</element>
+
+
+<element name="ShowMouse">
+<short>Show the mouse cursor.</short>
+<descr>
+<p>
+<var>ShowMouse</var> shows the mouse cursor if it was previously hidden. The
+capability to hide or show the mouse cursor depends on the driver.
+</p>
+<p>
+For an example, see <link id="HideMouse"/>
+</p>
+</descr>
+<errors>
+None.
+</errors>
+<seealso>
+<link id="HideMouse"/>
+</seealso>
+</element>
+
+<topic name="mousedrv">
+<short>Writing a custom mouse driver</short>
+<descr>
+<p>
+The <file>mouse</file> unit has support for adding a custom mouse driver. This can be
+used to add support for mouses not supported by the standard Free Pascal driver,
+but also to enhance an existing driver for instance to log mouse events or
+to implement a record and playback function. 
+</p>
+<p>
+The following unit shows how a mouse driver can be enhanced by adding some
+logging capabilities to the driver.
+</p>
+</descr>
+<example file="mouseex/logmouse"/>
+</topic>
+
+</module>
+</package>
+</fpdoc-descriptions>

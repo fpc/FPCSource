@@ -1,0 +1,1060 @@
+<?xml version="1.0" encoding="ISO8859-1"?>
+<fpdoc-descriptions>
+<!--  
+
+   $Id$ 
+   This file is part of the FPC documentation. 
+   Copyright (C) 1997, by Michael Van Canneyt 
+ 
+   The FPC documentation is free text; you can redistribute it and/or 
+   modify it under the terms of the GNU Library General Public License as 
+   published by the Free Software Foundation; either version 2 of the 
+   License, or (at your option) any later version. 
+ 
+   The FPC Documentation is distributed in the hope that it will be useful, 
+   but WITHOUT ANY WARRANTY; without even the implied warranty of 
+   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU 
+   Library General Public License for more details. 
+ 
+   You should have received a copy of the GNU Library General Public 
+   License along with the FPC documentation; see the file COPYING.LIB.  If not, 
+   write to the Free Software Foundation, Inc., 59 Temple Place - Suite 330, 
+   Boston, MA 02111-1307, USA. 
+ -->
+<package name="rtl">
+<module name="keyboard">
+<short>The KEYBOARD unit</short>
+<!-- \FPCexampledir{kbdex} -->
+<descr>
+<p>
+The <file>KeyBoard</file> unit implements a keyboard access layer which is system
+independent. It can be used to poll the keyboard state and wait for certain
+events. Waiting for a keyboard event can be done with the <link id="GetKeyEvent"/>
+function, which will return a driver-dependent key event. This key event can
+be translated to a interpretable event by the <link id="TranslateKeyEvent"/>
+function. The result of this function can be used in the other event
+examining functions.
+</p>
+<p>
+A custom keyboard driver can be installed using the <link id="SetKeyboardDriver"/>
+function. The current keyboard driver can be retrieved using the
+<link id="GetKeyboardDriver"/> function. The last section of this chapter
+demonstrates how to make a keyboard driver.
+</p>
+</descr>
+
+<element name="errKbdBase">
+<short>Base of keyboard routine error reporting constants.</short>
+</element>
+
+<element name="errKbdInitError">
+<short>Failed to initialize keyboard driver</short>
+</element>
+
+<element name="errKbdNotImplemented">
+<short>Keyboard driver not implemented.</short>
+</element>
+
+<element name="kbdF1">
+<short>F1 function key pressed.</short>
+</element>
+
+<element name="kbdF2">
+<short>F2 function key pressed.</short>
+</element>
+
+<element name="kbdF3">
+<short>F3 function key pressed.</short>
+</element>
+
+<element name="kbdF4">
+<short>F4 function key pressed.</short>
+</element>
+
+<element name="kbdF5">
+<short>F5 function key pressed.</short>
+</element>
+
+<element name="kbdF6">
+<short>F6 function key pressed.</short>
+</element>
+
+<element name="kbdF7">
+<short>F7 function key pressed.</short>
+</element>
+
+<element name="kbdF8">
+<short>F8 function key pressed.</short>
+</element>
+
+<element name="kbdF9">
+<short>F9 function key pressed.</short>
+</element>
+
+<element name="kbdF10">
+<short>F10 function key pressed.</short>
+</element>
+
+<element name="kbdF11">
+<short>F12 function key pressed.</short>
+</element>
+
+<element name="kbdF12">
+<short>F12 function key pressed.</short>
+</element>
+
+<element name="kbdF13">
+<short>F13 function key pressed.</short>
+</element>
+
+<element name="kbdF14">
+<short>F14 function key pressed.</short>
+</element>
+
+<element name="kbdF15">
+<short>F15 function key pressed.</short>
+</element>
+
+<element name="kbdF16">
+<short>F16 function key pressed.</short>
+</element>
+
+<element name="kbdF17">
+<short>F17 function key pressed.</short>
+</element>
+
+<element name="kbdF18">
+<short>F18 function key pressed.</short>
+</element>
+
+<element name="kbdF19">
+<short>F19 function key pressed.</short>
+</element>
+
+<element name="kbdF20">
+<short>F20 function key pressed.</short>
+</element>
+
+<element name="kbFnKey">
+<short>function key pressed.</short>
+</element>
+
+<element name="ShiftPrefix">
+<short>Shift key name index.</short>
+</element>
+
+<element name="AltPrefix">
+<short>Alt key name index.</short>
+</element>
+
+
+<element name="CtrlPrefix">
+<short>Alt key name index.</short>
+</element>
+
+
+
+<element name="ShiftPrefix">
+<short>Shift key name index.</short>
+</element>
+
+
+
+<element name="kbdHome">
+<short>Home key pressed</short>
+</element>
+
+<element name="kbdUp">
+<short>Arrow up key pressed</short>
+</element>
+
+<element name="kbdDown">
+<short>Arrow down key pressed</short>
+</element>
+
+<element name="kbdPgUp">
+<short>Page Up key pressed</short>
+</element>
+
+<element name="kbdLeft">
+<short>Arrow left key pressed</short>
+</element>
+
+<element name="kbdMiddle">
+<short>Middle key pad key pressed (numerical 5)</short>
+</element>
+
+<element name="kbdRight">
+<short>Arrow right key pressed</short>
+</element>
+
+<element name="kbdEnd">
+<short>End key pressed</short>
+</element>
+
+<element name="kbdPgDn">
+<short>Page down key pressed</short>
+</element>
+
+
+<element name="kbdInsert">
+<short>Insert key pressed</short>
+</element>
+
+<element name="kbdDelete">
+<short>Delete key pressed</short>
+</element>
+
+<element name="kbASCII">
+<short>Ascii code key event</short>
+</element>
+
+<element name="kbUniCode">
+<short>Unicode code key event</short>
+</element>
+
+<element name="kbPhys">
+<short>Physical key code event</short>
+</element>
+
+<element name="kbReleased">
+<short>Key release event</short>
+</element>
+
+<element name="kbLeftShift">
+<short>Left shift key modifier</short>
+</element>
+
+<element name="kbRightShift">
+<short>Right shift key modifier</short>
+</element>
+
+<element name="kbShift">
+<short>Shift key modifier</short>
+</element>
+
+<element name="kbCtrl">
+<short>Control key modifier</short>
+</element>
+
+<element name="kbAlt">
+<short>Alt key modifier</short>
+</element>
+
+<element name="SShift">
+<short>Names of modifier keys</short>
+<descr>
+This constant describes the various modifier keys.
+This constant is used by the key event description routines.
+It can be changed to localize the key descriptions when needed.
+</descr>
+<seealso>
+<link id="KeyEventToString"/>
+<link id="FunctionKeyName"/>
+</seealso>
+</element>
+
+<element name="SLeftRight">
+<short>Names for left-right keys</short>
+<descr>
+This constant contains strings to describe left and right keys.
+This constant is used by the key event description routines.
+It can be changed to localize the key descriptions when needed.
+</descr>
+<seealso>
+<link id="KeyEventToString"/>
+<link id="FunctionKeyName"/>
+</seealso>
+</element>
+
+<element name="SUnicodeChar">
+<short>Unicode character string.</short>
+<descr>
+This constant contains a string to denote a unicode key event.
+This constant is used by the key event description routines.
+It can be changed to localize the key descriptions when needed.
+</descr>
+<seealso>
+<link id="KeyEventToString"/>
+<link id="FunctionKeyName"/>
+</seealso>
+</element>
+
+<element name="SScanCode">
+<short>Scancode key</short>
+<descr>
+This constant contains a string to denote a scancode key event.
+This constant is used by the key event description routines.
+It can be changed to localize the key descriptions when needed.
+</descr>
+<seealso>
+<link id="KeyEventToString"/>
+<link id="FunctionKeyName"/>
+</seealso>
+</element>
+
+<element name="SUnknownFunctionKey">
+<short>Unknown function key</short>
+<descr>
+This constant contains a string to denote that an  unknown function key was
+found. This constant is used by the key event description routines.
+It can be changed to localize the key descriptions when needed.
+</descr>
+<seealso>
+<link id="KeyEventToString"/>
+<link id="FunctionKeyName"/>
+</seealso>
+</element>
+
+<element name="SAnd">
+<short>'And' description string</short>
+<descr>
+This constant is used as the 'And' word in key descriptions.
+This constant is used by the key event description routines.
+It can be changed to localize the key descriptions when needed.
+</descr>
+<seealso>
+<link id="KeyEventToString"/>
+<link id="FunctionKeyName"/>
+</seealso>
+</element>
+
+<element name="SKeyPad">
+<short>Names of keypad keys</short>
+<descr>
+This constant describes all keypad keys.
+This constant is used by the key event description routines.
+It can be changed to localize the key descriptions when needed.
+</descr>
+<seealso>
+<link id="KeyEventToString"/>
+<link id="FunctionKeyName"/>
+</seealso>
+</element>
+
+<element name="TKeyEvent">
+<short>Base type to describe all key events.</short>
+<descr>
+<p>
+The <var>TKeyEvent</var> type is the base type for all keyboard events.
+</p>
+<p>
+The key stroke is encoded in the 4 bytes of the <var>TKeyEvent</var> type. 
+The various fields of the key stroke encoding can be obtained by typecasting
+the <var>TKeyEvent</var> type to the <link id="TKeyRecord"/> type.
+</p>
+</descr>
+</element>
+
+<element name="TKeyRecord">
+<short>Key event decoding type.</short>
+<descr>
+<p>
+The structure of a <var>TKeyRecord</var> structure is explained in the
+following table:
+</p>
+<table>
+<caption>Structure of TKeyRecord</caption>
+<th><td>Field</td><td>Meaning</td></th>
+<tr><td>KeyCode</td><td>
+Depending on <var>flags</var> either the physical representation of a key
+(under DOS scancode, ascii code pair), or the translated
+ASCII/unicode character.
+</td></tr>
+<tr>
+<td>ShiftState</td>
+<td>
+Shift-state when this key was pressed (or shortly after) 
+</td></tr>
+<tr><td>Flags</td>
+<td>
+Determine how to interpret <var>KeyCode</var>
+</td></tr>
+</table>
+<p>
+The shift-state can be checked using the various shift-state constants, 
+and the flags in the last byte can be checked using one of the
+kbASCII, kbUniCode, kbFnKey, kbPhys, kbReleased constants.
+</p>
+<p>
+If there are two keys returning the same char-code, there's no way to find
+out which one was pressed (Gray+ and Simple+). If it needs to be known which
+was pressed, the untranslated keycodes must be used, but these are system
+dependent. System dependent constants may be defined to cover those, with
+possibily having the same name (but different value).
+</p>
+</descr>
+<seealso>
+<link id="kbdscancode"/>
+<link id="TKeyEvent"/>
+</seealso>
+</element>
+
+<element name="TKeyboardDriver">
+<short>Keyboard driver structure</short>
+<descr>
+<p>
+The <var>TKeyboardDriver</var> record can be used to install a custom keyboard
+driver with the <link id="SetKeyboardDriver"/> function.
+</p>
+<p>
+The various fields correspond to the different functions of the keyboard unit 
+interface. For more information about this record see <link id="kbddriver"/>
+</p>
+</descr>
+<seealso>
+<link id="SetKeyboardDriver"/>
+<link id="kbddriver"/>
+</seealso>
+</element>
+
+<element name="DoneKeyboard">
+<short>Deactivate keyboard driver.</short>
+<descr>
+<p>
+<var>DoneKeyboard</var> de-initializes the keyboard interface if the keyboard
+driver is active. If the keyboard driver is not active, the function does
+nothing.
+</p>
+<p>
+This will cause the keyboard driver to clear up any allocated memory, 
+or restores the console or terminal the program was running in to its 
+initial state before the call to <link id="InitKeyBoard"/>. This function should 
+be called on program exit. Failing to do so may leave the terminal or
+console window in an unusable state. Its exact action depends on the 
+platform on which the program is running.
+</p>
+<p>
+For an example, see most other functions.
+</p>
+</descr>
+<errors>
+None.
+</errors>
+<seealso>
+<link id="InitKeyBoard"/>
+</seealso>
+</element>
+
+
+<element name="FunctionKeyName">
+<short>Return string representation of a function key code.</short>
+<descr>
+<var>FunctionKeyName</var> returns a string representation of the function key
+with code <var>KeyCode</var>. This can be an actual function key, or one of the
+cursor movement keys.
+</descr>
+<errors>
+In case <var>KeyCode</var> does not contain a function code, the
+<var>SUnknownFunctionKey</var> string is returned, appended with the
+<var>KeyCode</var>.
+</errors>
+<seealso>
+<link id="ShiftStateToString"/>
+<link id="KeyEventToString"/>
+</seealso>
+<example file="kbdex/ex8"/>
+</element>
+
+
+<element name="GetKeyboardDriver">
+<short>Return the current keyboard driver record.</short>
+<descr>
+<p>
+<var>GetKeyBoardDriver</var> returns in <var>Driver</var> the currently active
+keyboard driver. This function can be used to enhance an existing
+keyboarddriver.
+</p>
+<p>
+For more information on getting and setting the keyboard driver
+<link id="kbddriver"/>.
+</p>
+</descr>
+<errors>
+None.
+</errors>
+<seealso>
+<link id="SetKeyboardDriver"/>
+</seealso>
+</element>
+
+<element name="GetKeyEvent">
+<short>Get the next raw key event, wait if needed.</short>
+<descr>
+<p>
+<var>GetKeyEvent</var> returns the last keyevent if one was stored in
+<var>PendingKeyEvent</var>, or waits for one if none is available.
+A non-blocking version is available in <link id="PollKeyEvent"/>.
+</p>
+<p>
+The returned key is encoded as a <var>TKeyEvent</var> type variable, and
+is normally the physical key scan code, (the scan code is driver 
+dependent) which can be translated with one of the translation 
+functions <link id="TranslateKeyEvent"/> or <link id="TranslateKeyEventUniCode"/>. 
+See the types section for a description of how the key is described.
+</p>
+</descr>
+<errors>
+If no key became available, 0 is returned.
+</errors>
+<seealso>
+<link id="PutKeyEvent"/>
+<link id="PollKeyEvent"/>
+<link id="TranslateKeyEvent"/>,
+<link id="TranslateKeyEventUniCode"/>
+</seealso>
+<example file="kbdex/ex1"/>
+</element>
+
+
+<element name="GetKeyEventChar">
+<short>Get the character key part of a key event.</short>
+<descr>
+<p>
+<var>GetKeyEventChar</var> returns the charcode part of the given 
+<var>KeyEvent</var>, if it contains a translated character key 
+keycode. The charcode is simply the ascii code of the 
+character key that was pressed.
+</p>
+<p>
+It returns the null character if the key was not a character key, but e.g. a
+function key.
+</p>
+<p>
+For an example, see <link id="GetKeyEvent"/>
+</p>
+</descr>
+<errors>
+None.
+</errors>
+<seealso>
+<link id="GetKeyEventUniCode"/>,
+<link id="GetKeyEventShiftState"/>, 
+<link id="GetKeyEventFlags"/>,
+<link id="GetKeyEventCode"/>,
+<link id="GetKeyEvent"/>
+</seealso>
+</element>
+
+
+<element name="GetKeyEventCode">
+<short>Translate function key  part of a key event code.</short>
+<descr>
+<p>
+<var>GetKeyEventCode</var> returns the translated function keycode part of 
+the given KeyEvent, if it contains a translated function key.
+</p>
+<p>
+If the key pressed was not a function key, the null character is returned.
+</p>
+</descr>
+<errors>
+None.
+</errors>
+<seealso>
+<link id="GetKeyEventUniCode"/>,
+<link id="GetKeyEventShiftState"/>, 
+<link id="GetKeyEventFlags"/>,
+<link id="GetKeyEventChar"/>,
+<link id="GetKeyEvent"/>
+</seealso>
+<example file="kbdex/ex2"/>
+</element>
+
+<element name="GetKeyEventFlags">
+<short>Extract the flags from a key event.</short>
+<descr>
+<p>
+<var>GetKeyEventFlags</var> returns the flags part of the given 
+<var>KeyEvent</var>. 
+</p>
+<p>
+For an example, see <link id="GetKeyEvent"/>
+</p>
+</descr>
+<errors>
+None.
+</errors>
+<seealso>
+<link id="GetKeyEventUniCode"/>,
+<link id="GetKeyEventShiftState"/>, 
+<link id="GetKeyEventCode"/>,
+<link id="GetKeyEventChar"/>,
+<link id="GetKeyEvent"/>
+</seealso>
+</element>
+
+
+<element name="GetKeyEventShiftState">
+<short>Return the current state of the shift keys.</short>
+<descr>
+<p>
+<var>GetKeyEventShiftState</var> returns the shift-state values of 
+the given <var>KeyEvent</var>. This can be used to detect which of the modifier
+keys <var>Shift</var>, <var>Alt</var> or <var>Ctrl</var> were pressed. If none were
+pressed, zero is returned.
+</p>
+<p>
+Note that this function does not always return expected results;
+In a unix X-Term, the modifier keys do not always work.
+</p>
+</descr>
+<errors>
+None.
+</errors>
+<seealso>
+<link id="GetKeyEventUniCode"/>,
+<link id="GetKeyEventFlags"/>, 
+<link id="GetKeyEventCode"/>,
+<link id="GetKeyEventChar"/>,
+<link id="GetKeyEvent"/>
+</seealso>
+<example file="kbdex/ex3"/>
+</element>
+
+
+<element name="GetKeyEventUniCode">
+<short>Return the unicode key event.</short>
+<descr>
+<var>GetKeyEventUniCode</var> returns the unicode part of the 
+given <var>KeyEvent</var> if it contains a translated unicode 
+character.
+</descr>
+<errors>
+None.
+</errors>
+<seealso>
+<link id="GetKeyEventShiftState"/>,
+<link id="GetKeyEventFlags"/>, 
+<link id="GetKeyEventCode"/>,
+<link id="GetKeyEventChar"/>,
+<link id="GetKeyEvent"/>
+</seealso>
+</element>
+
+<element name="InitKeyBoard">
+<short>Initialize the keyboard driver.</short>
+<descr>
+<p>
+<var>InitKeyboard</var> initializes the keyboard driver. 
+If the driver is already active, it does nothing. When the driver is
+initialized, it will do everything necessary to ensure the functioning of
+the keyboard, including allocating memory, initializing the terminal etc.
+</p>
+<p>
+This function should be called once, before using any of the
+keyboard functions. When it is called, the <link id="DoneKeyboard"/> function
+should also be called before exiting the program or changing the keyboard
+driver with <link id="SetKeyboardDriver"/>.
+</p>
+<p>
+For an example, see most other functions.
+</p>
+</descr>
+<errors>
+None.
+</errors>
+<seealso>
+<link id="DoneKeyboard"/>
+<link id="SetKeyboardDriver"/>
+</seealso>
+</element>
+
+<element name="AddSequence" skip="1"/>
+<element name="FindSequence" skip="1"/>
+<element name="RawReadKey" skip="1"/>
+<element name="RawReadString" skip="1"/>
+<element name="RestoreStartMode" skip="1"/>
+
+
+<element name="IsFunctionKey">
+<short>Check whether a given event is a function key event.</short>
+<descr>
+<var>IsFunctionKey</var> returns <var>True</var> if the given key event
+in <var>KeyEvent</var> was a function key or not.
+</descr>
+<errors>
+None.
+</errors>
+<seealso>
+<link id="GetKeyEvent"/>
+</seealso>
+<example file="kbdex/ex7"/>
+</element>
+
+
+<element name="KeyEventToString">
+<short>Return a string describing the key event.</short>
+<descr>
+<p>
+<var>KeyEventToString</var> translates the key event in <var>KeyEvent</var> to a
+human-readable description of the pressed key. It will use the constants
+described in the constants section to do so.
+</p>
+<p>
+For an example, see most other functions.
+</p>
+</descr>
+<errors>
+If an unknown key is passed, the scancode is returned, prefixed with the 
+<var>SScanCode</var> string.
+</errors>
+<seealso>
+<link id="FunctionKeyName"/>
+<link id="ShiftStateToString"/>
+</seealso>
+</element>
+
+<element name="KeyPressed">
+<short>Check event queue for key press</short>
+<descr>
+<var>KeyPressed</var> checks the keyboard event queue to see whether a key
+event is present, and returns <var>True</var> if a key event is available.
+This function simply calls <link id="PollKeyEvent"/> and checks for a valid
+result.
+</descr>
+<errors>
+None.
+</errors>
+<seealso>
+<link id="PollKeyEvent"/>
+<link id="GetKeyEvent"/>
+</seealso>
+</element>
+
+
+
+<element name="PollKeyEvent">
+<short>Get next key event, but does not wait.</short>
+<descr>
+<p>
+<var>PollKeyEvent</var> checks whether a key event is available, 
+and returns it if one is found. If no event is pending, 
+it returns 0. 
+</p>
+<p>
+Note that this does not remove the key from the pending keys. 
+The key should still be retrieved from the pending key events 
+list with the <link id="GetKeyEvent"/> function.
+</p>
+</descr>
+<errors>
+None.
+</errors>
+<seealso>
+<link id="PutKeyEvent"/>
+<link id="GetKeyEvent"/>
+</seealso>
+<example file="kbdex/ex4"/>
+</element>
+
+
+<element name="PollShiftStateEvent">
+<short>Check current shift state. </short>
+<descr>
+<var>PollShiftStateEvent</var> returns the current shiftstate in a 
+keyevent. This will return 0 if there is no key event pending.
+</descr>
+<errors>
+None.
+</errors>
+<seealso>
+<link id="PollKeyEvent"/>
+<link id="GetKeyEvent"/>
+</seealso>
+<example file="kbdex/ex6"/>
+</element>
+
+
+<element name="PutKeyEvent">
+<short>Put a key event in the event queue.</short>
+<descr>
+<var>PutKeyEvent</var> adds the given <var>KeyEvent</var> to the input 
+queue. Please note that depending on the implementation this 
+can hold only one value, i.e. when calling <var>PutKeyEvent</var>
+multiple times, only the last pushed key will be remembered.
+</descr>
+<errors>
+None
+</errors>
+<seealso>
+<link id="PollKeyEvent"/>
+<link id="GetKeyEvent"/>
+</seealso>
+<example file="kbdex/ex5"/>
+</element>
+
+
+<element name="SetKeyboardDriver">
+<short>Set a new keyboard driver.</short>
+<descr>
+<p>
+<var>SetKeyBoardDriver</var> sets the keyboard driver to <var>Driver</var>, if the
+current keyboard driver is not yet initialized. If the current
+keyboard driver is initialized, then <var>SetKeyboardDriver</var> does 
+nothing. Before setting the driver, the currently active driver should
+be disabled with a call to <link id="DoneKeyboard"/>.
+</p>
+<p>
+The function returns <var>True</var> if the driver was set, <var>False</var> if not.
+</p>
+<p>
+For more information on setting the keyboard driver, see <link id="kbddriver"/>.
+</p>
+</descr>
+<errors>
+None.
+</errors>
+<seealso>
+<link id="GetKeyboardDriver"/>
+<link id="DoneKeyboard"/>.
+</seealso>
+</element>
+
+<element name="ShiftStateToString">
+<short>Return description of key event shift state</short>
+<descr>
+<p>
+<var>ShiftStateToString</var> returns a string description of the shift state
+of the key event <var>KeyEvent</var>. This can be an empty string. 
+</p>
+<p>
+The shift state is described using the strings in the <var>SShift</var> constant.
+</p>
+<p>
+For an example, see <link id="PollShiftStateEvent"/>.
+</p>
+</descr>
+<errors>
+None.
+</errors>
+<seealso>
+<link id="FunctionKeyName"/>
+<link id="KeyEventToString"/>
+</seealso>
+</element>
+
+
+<element name="TranslateKeyEvent">
+<short>Translate raw event to ascii key event</short>
+<descr>
+<p>
+<var>TranslateKeyEvent</var> performs ASCII translation of the <var>KeyEvent</var>.
+It translates a physical key to a function key if the key is a function key,
+and translates the physical key to the ordinal of the ascii character if 
+there is an equivalent character key.
+</p>
+<p>
+For an example, see <link id="GetKeyEvent"/>
+</p>
+</descr>
+<errors>
+None.
+</errors>
+<seealso>
+<link id="TranslateKeyEventUniCode"/>
+</seealso>
+</element>
+
+
+<element name="TranslateKeyEventUniCode">
+<short>Translate raw event to UNICode key event</short>
+<descr>
+<var>TranslateKeyEventUniCode</var> performs Unicode translation of the 
+<var>KeyEvent</var>. It is not yet implemented for all platforms.
+</descr>
+<errors>
+If the function is not yet implemented, then the <var>ErrorCode</var> of the 
+<file>system</file> unit will be set to <var>errKbdNotImplemented</var>
+</errors>
+<seealso>
+<link id="TranslateKeyEvent"/>
+</seealso>
+</element>
+
+<topic name="kbdscancode">
+<short>Keyboard scan codes</short>
+<descr>
+<p>
+Special physical keys are encoded with the DOS scan codes for these keys
+in the second byte of the <link id="TKeyEvent"/> type.
+A complete list of scan codes can be found in the below table. 
+This is the list of keys that is used by the default key event translation mechanism.
+When writing a keyboard driver, either these constants should be returned
+by the various key event functions, or the <var>TranslateKeyEvent</var> hook
+should be implemented by the driver.
+</p>
+<table border="1">
+<caption>Key Scancodes</caption>
+<th><td>Code</td><td>Key</td><td>Code</td><td>Key</td><td>Code</td><td>Key</td></th>
+<tr><td>00 </td><td> NoKey </td><td> 3D </td><td> F3 </td><td> 70 </td><td> ALT-F9 </td></tr>
+<tr><td>01 </td><td> ALT-Esc </td><td> 3E </td><td> F4 </td><td> 71 </td><td> ALT-F10 </td></tr>
+<tr><td>02 </td><td> ALT-Space </td><td> 3F </td><td> F5 </td><td> 72 </td><td> CTRL-PrtSc </td></tr>
+<tr><td>04 </td><td> CTRL-Ins </td><td> 40 </td><td> F6 </td><td> 73 </td><td> CTRL-Left </td></tr>
+<tr><td>05 </td><td> SHIFT-Ins </td><td> 41 </td><td> F7 </td><td> 74 </td><td> CTRL-Right </td></tr>
+<tr><td>06 </td><td> CTRL-Del </td><td> 42 </td><td> F8 </td><td> 75 </td><td> CTRL-end </td></tr>
+<tr><td>07 </td><td> SHIFT-Del </td><td> 43 </td><td> F9 </td><td> 76 </td><td> CTRL-PgDn </td></tr>
+<tr><td>08 </td><td> ALT-Back </td><td> 44 </td><td> F10 </td><td> 77 </td><td> CTRL-Home </td></tr>
+<tr><td>09 </td><td> ALT-SHIFT-Back </td><td> 47 </td><td> Home </td><td> 78 </td><td> ALT-1 </td></tr>
+<tr><td>0F </td><td> SHIFT-Tab </td><td> 48 </td><td> Up </td><td> 79 </td><td> ALT-2 </td></tr>
+<tr><td>10 </td><td> ALT-Q </td><td> 49 </td><td> PgUp </td><td> 7A </td><td> ALT-3 </td></tr>
+<tr><td>11 </td><td> ALT-W </td><td> 4B </td><td> Left </td><td> 7B </td><td> ALT-4 </td></tr>
+<tr><td>12 </td><td> ALT-E </td><td> 4C </td><td> Center </td><td> 7C </td><td> ALT-5 </td></tr>
+<tr><td>13 </td><td> ALT-R </td><td> 4D </td><td> Right </td><td> 7D </td><td> ALT-6 </td></tr>
+<tr><td>14 </td><td> ALT-T </td><td> 4E </td><td> ALT-GrayPlus </td><td> 7E </td><td> ALT-7 </td></tr>
+<tr><td>15 </td><td> ALT-Y </td><td> 4F </td><td> end </td><td> 7F </td><td> ALT-8 </td></tr>
+<tr><td>16 </td><td> ALT-U </td><td> 50 </td><td> Down </td><td> 80 </td><td> ALT-9 </td></tr>
+<tr><td>17 </td><td> ALT-I </td><td> 51 </td><td> PgDn </td><td> 81 </td><td> ALT-0 </td></tr>
+<tr><td>18 </td><td> ALT-O </td><td> 52 </td><td> Ins </td><td> 82 </td><td> ALT-Minus </td></tr>
+<tr><td>19 </td><td> ALT-P </td><td> 53 </td><td> Del </td><td> 83 </td><td> ALT-Equal </td></tr>
+<tr><td>1A </td><td> ALT-LftBrack </td><td> 54 </td><td> SHIFT-F1 </td><td> 84 </td><td> CTRL-PgUp </td></tr>
+<tr><td>1B </td><td> ALT-RgtBrack </td><td> 55 </td><td> SHIFT-F2 </td><td> 85 </td><td> F11 </td></tr>
+<tr><td>1E </td><td> ALT-A </td><td> 56 </td><td> SHIFT-F3 </td><td> 86 </td><td> F12 </td></tr>
+<tr><td>1F </td><td> ALT-S </td><td> 57 </td><td> SHIFT-F4 </td><td> 87 </td><td> SHIFT-F11 </td></tr>
+<tr><td>20 </td><td> ALT-D </td><td> 58 </td><td> SHIFT-F5 </td><td> 88 </td><td> SHIFT-F12 </td></tr>
+<tr><td>21 </td><td> ALT-F </td><td> 59 </td><td> SHIFT-F6 </td><td> 89 </td><td> CTRL-F11 </td></tr>
+<tr><td>22 </td><td> ALT-G </td><td> 5A </td><td> SHIFT-F7 </td><td> 8A </td><td> CTRL-F12 </td></tr>
+<tr><td>23 </td><td> ALT-H </td><td> 5B </td><td> SHIFT-F8 </td><td> 8B </td><td> ALT-F11 </td></tr>
+<tr><td>24 </td><td> ALT-J </td><td> 5C </td><td> SHIFT-F9 </td><td> 8C </td><td> ALT-F12 </td></tr>
+<tr><td>25 </td><td> ALT-K </td><td> 5D </td><td> SHIFT-F10 </td><td> 8D </td><td> CTRL-Up </td></tr>
+<tr><td>26 </td><td> ALT-L </td><td> 5E </td><td> CTRL-F1 </td><td> 8E </td><td> CTRL-Minus </td></tr>
+<tr><td>27 </td><td> ALT-SemiCol </td><td> 5F </td><td> CTRL-F2 </td><td> 8F </td><td> CTRL-Center </td></tr>
+<tr><td>28 </td><td> ALT-Quote </td><td> 60 </td><td> CTRL-F3 </td><td> 90 </td><td> CTRL-GreyPlus </td></tr>
+<tr><td>29 </td><td> ALT-OpQuote </td><td> 61 </td><td> CTRL-F4 </td><td> 91 </td><td> CTRL-Down </td></tr>
+<tr><td>2B </td><td> ALT-BkSlash </td><td> 62 </td><td> CTRL-F5 </td><td> 94 </td><td> CTRL-Tab </td></tr>
+<tr><td>2C </td><td> ALT-Z </td><td> 63 </td><td> CTRL-F6 </td><td> 97 </td><td> ALT-Home </td></tr>
+<tr><td>2D </td><td> ALT-X </td><td> 64 </td><td> CTRL-F7 </td><td> 98 </td><td> ALT-Up </td></tr>
+<tr><td>2E </td><td> ALT-C </td><td> 65 </td><td> CTRL-F8 </td><td> 99 </td><td> ALT-PgUp </td></tr>
+<tr><td>2F </td><td> ALT-V </td><td> 66 </td><td> CTRL-F9 </td><td> 9B </td><td> ALT-Left </td></tr>
+<tr><td>30 </td><td> ALT-B </td><td> 67 </td><td> CTRL-F10 </td><td> 9D </td><td> ALT-Right </td></tr>
+<tr><td>31 </td><td> ALT-N </td><td> 68 </td><td> ALT-F1 </td><td> 9F </td><td> ALT-end </td></tr>
+<tr><td>32 </td><td> ALT-M </td><td> 69 </td><td> ALT-F2 </td><td> A0 </td><td> ALT-Down </td></tr>
+<tr><td>33 </td><td> ALT-Comma </td><td> 6A </td><td> ALT-F3 </td><td> A1 </td><td> ALT-PgDn </td></tr>
+<tr><td>34 </td><td> ALT-Period </td><td> 6B </td><td> ALT-F4 </td><td> A2 </td><td> ALT-Ins </td></tr>
+<tr><td>35 </td><td> ALT-Slash </td><td> 6C </td><td> ALT-F5 </td><td> A3 </td><td> ALT-Del </td></tr>
+<tr><td>37 </td><td> ALT-GreyAst </td><td> 6D </td><td> ALT-F6 </td><td> A5 </td><td> ALT-Tab </td></tr>
+<tr><td>3B </td><td> F1 </td><td> 6E </td><td> ALT-F7 </td><td> </td><td>  </td></tr>
+<tr><td>3C </td><td> F2 </td><td> 6F </td><td> ALT-F8 </td><td> </td><td>  </td></tr> 
+</table>
+<p>
+A list of scan codes for special keys and combinations with the SHIFT, ALT
+and CTRL keys can be found in the following table: They are for quick reference
+only.
+</p>
+<table border="1">
+<caption>Special keys scan codes</caption>
+<th><td>Key  </td><td> Code </td><td> SHIFT-Key </td><td> CTRL-Key </td><td> Alt-Key</td></th>
+<tr><td>NoKey </td><td> 00 </td><td> </td><td> </td><td> </td></tr>
+<tr><td>F1  </td><td> 3B </td><td> 54 </td><td> 5E </td><td> 68 </td></tr>
+<tr><td>F2  </td><td> 3C </td><td> 55 </td><td> 5F </td><td> 69 </td></tr>
+<tr><td>F3  </td><td> 3D </td><td> 56 </td><td> 60 </td><td> 6A </td></tr>
+<tr><td>F4  </td><td> 3E </td><td> 57 </td><td> 61 </td><td> 6B </td></tr>
+<tr><td>F5  </td><td> 3F </td><td> 58 </td><td> 62 </td><td> 6C </td></tr>
+<tr><td>F6  </td><td> 40 </td><td> 59 </td><td> 63 </td><td> 6D </td></tr>
+<tr><td>F7  </td><td> 41 </td><td> 5A </td><td> 64 </td><td> 6E </td></tr>
+<tr><td>F8  </td><td> 42 </td><td> 5A </td><td> 65 </td><td> 6F </td></tr>
+<tr><td>F9  </td><td> 43 </td><td> 5B </td><td> 66 </td><td> 70 </td></tr>
+<tr><td>F10  </td><td> 44 </td><td> 5C </td><td> 67 </td><td> 71 </td></tr>
+<tr><td>F11  </td><td> 85 </td><td> 87 </td><td> 89 </td><td> 8B </td></tr>
+<tr><td>F12  </td><td> 86 </td><td> 88 </td><td> 8A </td><td> 8C </td></tr>
+<tr><td>Home </td><td> 47 </td><td> </td><td> 77 </td><td> 97 </td></tr> 
+<tr><td>Up  </td><td> 48 </td><td> </td><td> 8D </td><td> 98 </td></tr>
+<tr><td>PgUp </td><td> 49 </td><td> </td><td> 84 </td><td> 99 </td></tr>
+<tr><td>Left </td><td> 4B </td><td> </td><td> 73 </td><td> 9B </td></tr>
+<tr><td>Center </td><td> 4C </td><td> </td><td> 8F </td><td> </td></tr>
+<tr><td>Right </td><td> 4D </td><td> </td><td> 74 </td><td> 9D </td></tr>
+<tr><td>end  </td><td> 4F </td><td> </td><td> 75 </td><td> 9F </td></tr>
+<tr><td>Down </td><td> 50 </td><td> </td><td> 91 </td><td> A0 </td></tr>
+<tr><td>PgDn </td><td> 51 </td><td> </td><td> 76 </td><td> A1 </td></tr>
+<tr><td>Ins  </td><td> 52 </td><td> 05 </td><td> 04 </td><td> A2 </td></tr>
+<tr><td>Del  </td><td> 53 </td><td> 07 </td><td> 06 </td><td> A3 </td></tr>
+<tr><td>Tab  </td><td> 8 </td><td> 0F </td><td> 94 </td><td> A5 </td></tr>
+<tr><td>GreyPlus </td><td> </td><td> </td><td> 90 </td><td> 4E </td></tr>
+</table>
+</descr>
+</topic>
+
+<topic name="kbddriver">
+<short>Writing a keyboard driver</short>
+<descr>
+<p>
+Writing a keyboard driver means that hooks must be created for most of the 
+keyboard unit functions. The <var>TKeyBoardDriver</var> record contains a field
+for each of the possible hooks:
+</p>
+<code>
+TKeyboardDriver = Record
+  InitDriver : Procedure;
+  DoneDriver : Procedure;
+  GetKeyEvent : Function : TKeyEvent;
+  PollKeyEvent : Function : TKeyEvent;
+  GetShiftState : Function : Byte;
+  TranslateKeyEvent : Function (KeyEvent: TKeyEvent): TKeyEvent;
+  TranslateKeyEventUniCode: Function (KeyEvent: TKeyEvent): TKeyEvent;
+end;
+</code>
+<p>
+The meaning of these hooks is explained below:
+</p>
+<dl>
+<dt>InitDriver</dt>
+<dd> Called to initialize and enable the driver. 
+Guaranteed to be called only once. This should initialize all needed things
+for the driver.
+</dd>
+<dt>DoneDriver</dt>
+<dd> Called to disable and clean up the driver. Guaranteed to be
+called after a call to <var>initDriver</var>. This should clean up all
+things initialized by <var>InitDriver</var>.
+</dd>
+<dt>GetKeyEvent</dt>
+<dd> Called by <link id="GetKeyEvent"/>. Must wait for and return the
+next key event. It should NOT store keys.
+</dd>
+<dt>PollKeyEvent</dt>
+<dd> Called by <link id="PollKeyEvent"/>. It must return the next key
+event if there is one. Should not store keys. 
+</dd>
+<dt>GetShiftState</dt>
+<dd> Called by <link id="PollShiftStateEvent"/>.  Must return the current
+shift state.
+</dd>
+<dt>TranslateKeyEvent</dt>
+<dd> Should translate a raw key event to a cOrrect
+key event, i.e. should fill in the shiftstate and convert function key
+scancodes to function key keycodes. If the
+<var>TranslateKeyEvent</var> is not filled in, a default translation function
+will be called which converts the known scancodes from the tables in the
+previous section to a correct keyevent.
+</dd>
+<dt>TranslateKeyEventUniCode</dt>
+<dd> Should translate a key event to a unicode key
+representation. 
+</dd>
+</dl>
+<p>
+Strictly speaking, only the <var>GetKeyEvent</var> and <var>PollKeyEvent</var>
+hooks must be implemented for the driver to function correctly. 
+</p>
+<p>
+The example unit demonstrates how a keyboard driver can be installed.
+It takes the installed driver, and hooks into the <var>GetKeyEvent</var>
+function to register and log the key events in a file. This driver
+can work on top of any other driver, as long as it is inserted in the 
+<var>uses</var> clause <em> after</em> the real driver unit, and the real driver unit
+should set the driver record in its initialization section.
+</p>
+<p>
+Note that with a simple extension of this unit could be used to make a
+driver that is capable of recording and storing a set of keyboard strokes,
+and replaying them at a later time, so a 'keyboard macro' capable driver.
+This driver could sit on top of any other driver.
+</p>
+</descr>
+<example file="kbdex/logkeys"/>
+<example file="kbdex/ex9"/>
+</topic>
+
+</module>
+</package>
+</fpdoc-descriptions>

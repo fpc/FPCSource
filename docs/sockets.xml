@@ -1,0 +1,1453 @@
+<?xml version="1.0" encoding="ISO8859-1"?>
+<fpdoc-descriptions>
+<!--  
+
+   $Id$ 
+   This file is part of the FPC documentation. 
+   Copyright (C) 1997, by Michael Van Canneyt 
+ 
+   The FPC documentation is free text; you can redistribute it and/or 
+   modify it under the terms of the GNU Library General Public License as 
+   published by the Free Software Foundation; either version 2 of the 
+   License, or (at your option) any later version. 
+ 
+   The FPC Documentation is distributed in the hope that it will be useful, 
+   but WITHOUT ANY WARRANTY; without even the implied warranty of 
+   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU 
+   Library General Public License for more details. 
+ 
+   You should have received a copy of the GNU Library General Public 
+   License along with the FPC documentation; see the file COPYING.LIB.  If not, 
+   write to the Free Software Foundation, Inc., 59 Temple Place - Suite 330, 
+   Boston, MA 02111-1307, USA. 
+ -->
+<package name="rtl">
+<module name="sockets">
+<!-- \FPCexampledir{sockex/} -->
+<short>TCP/IP Sockets functionality unit</short>
+<descr>
+This document describes the SOCKETS unit for Free Pascal. 
+it was written for linux by Michael Van Canneyt, and ported to Windows
+by Florian Klaempfl.
+</descr>
+
+<element name="SOCK_STREAM">
+<short>Type of socket: stream (connection) type socket (TCP)</short>
+</element>
+<element name="SOCK_DGRAM">
+<short>Type of socket: datagram (conn.less) socket (UDP)</short>
+</element>
+<element name="SOCK_RAW">
+<short>Type of socket:  raw socket</short>
+</element>
+<element name="SOCK_RDM">
+<short>Type of socket: reliably-delivered message</short>
+</element>
+<element name="SOCK_SEQPACKET">
+<short>Type of socket: sequential packet socket</short>
+</element>
+<element name="SOCK_PACKET">
+<short>Type of socket: Packet</short>
+</element>
+
+<element name="AF_UNSPEC">
+<short>Socket domain: Not specified</short>
+</element>
+<element name="AF_UNIX">
+<short>Socket domain: Unix domain sockets</short>
+</element>
+<element name="AF_INET">
+<short>Socket domain: Internet IP Protocol</short>
+</element>
+<element name="AF_AX25">
+<short>Socket domain: Amateur Radio AX.25</short>
+</element>
+<element name="AF_IPX">
+<short>Socket domain: Novell IPX</short>
+</element>
+<element name="AF_APPLETALK">
+<short>Socket domain: Appletalk DDP</short>
+</element>
+<element name="AF_NETROM">
+<short>Socket domain: Amateur radio NetROM</short>
+</element>
+<element name="AF_BRIDGE">
+<short>Socket domain: Multiprotocol bridge</short>
+</element>
+<element name="AF_AAL5">
+<short>Socket domain: Reserved for Werner's ATM</short>
+</element>
+<element name="AF_X25">
+<short>Socket domain: Reserved for X.25 project</short>
+</element>
+<element name="AF_INET6">
+<short>Socket domain: IP version 6</short>
+</element>
+<element name="AF_MAX">
+<short>Socket domain: Maximum value</short>
+</element>
+<element name="PF_UNSPEC">
+<short>Protocol family: Unspecified </short>
+</element>
+<element name="PF_INET">
+<short>Protocol family: Internet IP Protocol</short>
+</element>
+<element name="PF_AX25">
+<short>Protocol family: Amateur Radio AX.25</short>
+</element>
+<element name="PF_IPX">
+<short>Protocol family: Novell IPX</short>
+</element>
+<element name="PF_APPLETALK">
+<short>Protocol family: Appletalk DDP</short>
+</element>
+<element name="PF_UNIX">
+<short>Protocol family: Unix domain sockets</short>
+</element>
+<element name="PF_NETROM">
+<short>Protocol family:Amateur radio NetROM </short>
+</element>
+<element name="PF_BRIDGE">
+<short>Protocol family: Multiprotocol bridge</short>
+</element>
+<element name="PF_AAL5">
+<short>Protocol family: Reserved for Werner's ATM</short>
+</element>
+<element name="PF_X25">
+<short>Protocol family: Reserved for X.25 project</short>
+</element>
+<element name="PF_INET6">
+<short>Protocol family: IP version 6</short>
+</element>
+<element name="PF_MAX">
+<short>Protocol family: Maximum value</short>
+</element>
+
+<element name="TSockAddr">
+<short>General socket adress record</short>
+<descr>
+<var>TUnixSockAddr</var> is used to store a general socket addres for the
+<link id="Bind"/>, <link id="Recv"/> and <link id="Send"/> calls.
+</descr>
+</element>
+<element name="TSockAddr.family">
+<short>Address family</short>
+</element>
+<element name="TSockAddr.data">
+<short>Addres data</short>
+</element>
+
+<element name="TUnixSockAddr">
+<short>Unix socket address record.</short>
+<descr>
+<var>TUnixSockAddr</var> is used to store a UNIX socket addres for the
+<link id="Bind"/>, <link id="Recv"/> and <link id="Send"/> calls.
+</descr>
+</element>
+
+<element name="TUnixSockAddr.family">
+<short>Address family</short>
+</element>
+<element name="TUnixSockAddr.Path">
+<short>File name</short>
+</element>
+
+<element name="TInetSockAddr">
+<short>Internet socket address record</short>
+<descr>
+<var>TUnixSockAddr</var> is used to store a INET socket addres for the
+<link id="Bind"/>, <link id="Recv"/> and <link id="Send"/> calls.
+</descr>
+</element>
+
+<element name="TInetSockAddr.family">
+<short>Address family</short>
+</element>
+<element name="TInetSockAddr.port">
+<short>Port number</short>
+</element>
+<element name="TInetSockAddr.addr">
+<short>IP address</short>
+</element>
+<element name="TInetSockAddr.pad">
+<short>Pad data. Do not use.</short>
+</element>
+
+<element name="TSockArray">
+<short>Type returned by the <link id="SocketPair"/> call.</short>
+</element>
+
+<element name="AF_IMPLINK">
+<short>Address family: ?</short>
+</element>
+
+<!-- constant Visibility: default -->
+<element name="AF_PUP">
+<short>Address family: ?</short>
+</element>
+
+<!-- constant Visibility: default -->
+<element name="AF_CHAOS">
+<short>Address family: ?</short>
+</element>
+
+<!-- constant Visibility: default -->
+<element name="AF_NS">
+<short>Address family: ?</short>
+</element>
+
+<!-- constant Visibility: default -->
+<element name="AF_ISO">
+<short>Address family: ?</short>
+</element>
+
+<!-- constant Visibility: default -->
+<element name="AF_OSI">
+<short>Address family: ?</short>
+</element>
+
+<!-- constant Visibility: default -->
+<element name="AF_ECMA">
+<short>Address family: ?</short>
+</element>
+
+<!-- constant Visibility: default -->
+<element name="AF_DATAKIT">
+<short>Address family: ?</short>
+</element>
+
+<!-- constant Visibility: default -->
+<element name="AF_CCITT">
+<short>Address family: ?</short>
+</element>
+
+<!-- constant Visibility: default -->
+<element name="AF_SNA">
+<short>Addresss family: Linux SNA project</short>
+</element>
+
+<!-- constant Visibility: default -->
+<element name="AF_DECnet">
+<short>Address family: Reserved for DECnet project.</short>
+</element>
+
+<!-- constant Visibility: default -->
+<element name="AF_DLI">
+<short>Address family: ?</short>
+</element>
+
+<!-- constant Visibility: default -->
+<element name="AF_LAT">
+<short>Address family: ?</short>
+</element>
+
+<!-- constant Visibility: default -->
+<element name="AF_HYLINK">
+<short>Address family: ?</short>
+</element>
+
+<!-- constant Visibility: default -->
+<element name="AF_ROUTE">
+<short>Address family: Alias to emulate 4.4BSD.</short>
+</element>
+
+<!-- constant Visibility: default -->
+<element name="AF_LINK">
+<short>Address family: ?</short>
+</element>
+
+<!-- constant Visibility: default -->
+<element name="pseudo_AF_XTP">
+<short>Address family: ?</short>
+</element>
+
+<!-- constant Visibility: default -->
+<element name="AF_COIP">
+<short>Address family: ?</short>
+</element>
+
+<!-- constant Visibility: default -->
+<element name="AF_CNT">
+<short>Address family: ?</short>
+</element>
+
+<!-- constant Visibility: default -->
+<element name="pseudo_AF_RTIP">
+<short>Address family: ?</short>
+</element>
+
+<!-- constant Visibility: default -->
+<element name="AF_SIP">
+<short>Address family: ?</short>
+</element>
+
+<!-- constant Visibility: default -->
+<element name="pseudo_AF_PIP">
+<short>Address family: ?</short>
+</element>
+
+<!-- constant Visibility: default -->
+<element name="AF_ISDN">
+<short>Address family: ?</short>
+</element>
+
+<!-- constant Visibility: default -->
+<element name="AF_E164">
+<short>Address family: ?</short>
+</element>
+
+<!-- constant Visibility: default -->
+<element name="pseudo_AF_KEY">
+<short>Address family: key management API.</short>
+</element>
+
+<!-- constant Visibility: default -->
+<element name="AF_NATM">
+<short>Address family: ?</short>
+</element>
+
+<!-- constant Visibility: default -->
+<element name="AF_ATM">
+<short>Address family: ?</short>
+</element>
+
+<!-- constant Visibility: default -->
+<element name="pseudo_AF_HDRCMPLT">
+<short>Address family: ?</short>
+</element>
+
+<!-- constant Visibility: default -->
+<element name="AF_NETGRAPH">
+<short>Address family: ?</short>
+</element>
+
+<!-- constant Visibility: default -->
+<element name="SOCK_MAXADDRLEN">
+<short>Maximum socket address length for <link id="Bind"/> call.</short>
+<descr>
+</descr>
+<seealso>
+</seealso>
+</element>
+
+<!-- constant Visibility: default -->
+<element name="PF_IMPLINK">
+<short>Protocol Family: ?</short>
+</element>
+
+<!-- constant Visibility: default -->
+<element name="PF_PUP">
+<short>Protocol Family: ?</short>
+</element>
+
+<!-- constant Visibility: default -->
+<element name="PF_CHAOS">
+<short>Protocol Family: ?</short>
+</element>
+
+<!-- constant Visibility: default -->
+<element name="PF_NS">
+<short>Protocol Family: ?</short>
+</element>
+
+<!-- constant Visibility: default -->
+<element name="PF_ISO">
+<short>Protocol Family: ?</short>
+</element>
+
+<!-- constant Visibility: default -->
+<element name="PF_OSI">
+<short>Protocol Family: ?</short>
+</element>
+
+<!-- constant Visibility: default -->
+<element name="PF_ECMA">
+<short>Protocol Family: ?</short>
+</element>
+
+<!-- constant Visibility: default -->
+<element name="PF_DATAKIT">
+<short>Protocol Family: ?</short>
+</element>
+
+<!-- constant Visibility: default -->
+<element name="PF_CCITT">
+<short>Protocol Family: ?</short>
+</element>
+
+<!-- constant Visibility: default -->
+<element name="PF_SNA">
+<short>Protocol Family: Linux SNA project</short>
+</element>
+
+<!-- constant Visibility: default -->
+<element name="PF_DECnet">
+<short>Protocol Family: DECNET project</short>
+</element>
+
+<!-- constant Visibility: default -->
+<element name="PF_DLI">
+<short>Protocol Family: ?</short>
+</element>
+
+<!-- constant Visibility: default -->
+<element name="PF_LAT">
+<short>Protocol Family: ?</short>
+</element>
+
+<!-- constant Visibility: default -->
+<element name="PF_HYLINK">
+<short>Protocol Family: ?</short>
+</element>
+
+<!-- constant Visibility: default -->
+<element name="PF_ROUTE">
+<short>Protocol Family: ?</short>
+</element>
+
+<!-- constant Visibility: default -->
+<element name="PF_LINK">
+<short>Protocol Family: ?</short>
+</element>
+
+<!-- constant Visibility: default -->
+<element name="PF_XTP">
+<short>Protocol Family: ?</short>
+</element>
+
+<!-- constant Visibility: default -->
+<element name="PF_COIP">
+<short>Protocol Family: ?</short>
+</element>
+
+<!-- constant Visibility: default -->
+<element name="PF_CNT">
+<short>Protocol Family: ?</short>
+</element>
+
+<!-- constant Visibility: default -->
+<element name="PF_SIP">
+<short>Protocol Family: ?</short>
+</element>
+
+<!-- constant Visibility: default -->
+<element name="PF_RTIP">
+<short>Protocol Family: ?</short>
+</element>
+
+<!-- constant Visibility: default -->
+<element name="PF_PIP">
+<short>Protocol Family: ?</short>
+</element>
+
+<!-- constant Visibility: default -->
+<element name="PF_ISDN">
+<short>Protocol Family: ?</short>
+</element>
+
+<!-- constant Visibility: default -->
+<element name="PF_KEY">
+<short>Protocol family: Key management API</short>
+</element>
+
+<!-- constant Visibility: default -->
+<element name="PF_NATM">
+<short>Protocol Family: ?</short>
+</element>
+
+<!-- constant Visibility: default -->
+<element name="PF_ATM">
+<short>Protocol Family: ?</short>
+</element>
+
+<!-- constant Visibility: default -->
+<element name="PF_NETGRAPH">
+<short>Protocol Family: ?</short>
+</element>
+
+<!-- constant Visibility: default -->
+<element name="SOL_SOCKET">
+<short>Socket option level: Socket level</short>
+</element>
+
+<!-- constant Visibility: default -->
+<element name="SO_DEBUG">
+<short>Socket option level: debug</short>
+</element>
+
+<!-- constant Visibility: default -->
+<element name="SO_REUSEADDR">
+<short>Socket option: Reuse address</short>
+</element>
+
+<!-- constant Visibility: default -->
+<element name="SO_TYPE">
+<short>Socket option: Type</short>
+</element>
+
+<!-- constant Visibility: default -->
+<element name="SO_ERROR">
+<short>Socket option: Error</short>
+</element>
+
+<!-- constant Visibility: default -->
+<element name="SO_DONTROUTE">
+<short>Socket option: Don't route</short>
+</element>
+
+<!-- constant Visibility: default -->
+<element name="SO_BROADCAST">
+<short>Socket option: Broadcast</short>
+</element>
+
+<!-- constant Visibility: default -->
+<element name="SO_SNDBUF">
+<short>Socket option: Send buffer</short>
+</element>
+
+<!-- constant Visibility: default -->
+<element name="SO_RCVBUF">
+<short>Socket option: receive buffer</short>
+</element>
+
+<!-- constant Visibility: default -->
+<element name="SO_KEEPALIVE">
+<short>Socket option: keep alive</short>
+</element>
+
+<!-- constant Visibility: default -->
+<element name="SO_OOBINLINE">
+<short>Socket option: ?</short>
+</element>
+
+<!-- constant Visibility: default -->
+<element name="SO_NO_CHECK">
+<short>Socket option: ?</short>
+</element>
+
+<!-- constant Visibility: default -->
+<element name="SO_PRIORITY">
+<short>Socket option: ?</short>
+</element>
+
+<!-- constant Visibility: default -->
+<element name="SO_LINGER">
+<short>Socket option: ?</short>
+</element>
+
+<!-- constant Visibility: default -->
+<element name="SO_BSDCOMPAT">
+<short>Socket option: ?</short>
+</element>
+
+<!-- constant Visibility: default -->
+<element name="SO_PASSCRED">
+<short>Socket option: ?</short>
+</element>
+
+<!-- constant Visibility: default -->
+<element name="SO_PEERCRED">
+<short>Socket option: ?</short>
+</element>
+
+<!-- constant Visibility: default -->
+<element name="SO_RCVLOWAT">
+<short>Socket option: ?</short>
+</element>
+
+<!-- constant Visibility: default -->
+<element name="SO_SNDLOWAT">
+<short>Socket option: ?</short>
+</element>
+
+<!-- constant Visibility: default -->
+<element name="SO_RCVTIMEO">
+<short>Socket option: ?</short>
+</element>
+
+<!-- constant Visibility: default -->
+<element name="SO_SNDTIMEO">
+<short>Socket option: ?</short>
+</element>
+
+<!-- constant Visibility: default -->
+<element name="SO_SECURITY_AUTHENTICATION">
+<short>Socket option: ?</short>
+</element>
+
+<!-- constant Visibility: default -->
+<element name="SO_SECURITY_ENCRYPTION_TRANSPORT">
+<short>Socket option: ?</short>
+</element>
+
+<!-- constant Visibility: default -->
+<element name="SO_SECURITY_ENCRYPTION_NETWORK">
+<short>Socket option: ?</short>
+</element>
+
+<!-- constant Visibility: default -->
+<element name="SO_BINDTODEVICE">
+<short>Socket option: ?</short>
+</element>
+
+<!-- constant Visibility: default -->
+<element name="SO_ATTACH_FILTER">
+<short>Socket option: ?</short>
+</element>
+
+<!-- constant Visibility: default -->
+<element name="SO_DETACH_FILTER">
+<short>Socket option: ?</short>
+</element>
+
+<!-- constant Visibility: default -->
+<element name="SO_PEERNAME">
+<short>Socket option: ?</short>
+</element>
+
+<!-- constant Visibility: default -->
+<element name="SO_TIMESTAMP">
+<short>Socket option: ?</short>
+</element>
+
+<!-- constant Visibility: default -->
+<element name="SCM_TIMESTAMP">
+<short>Socket option: ?</short>
+</element>
+
+<!-- constant Visibility: default -->
+<element name="SO_ACCEPTCONN">
+<short>Socket option: ?</short>
+</element>
+
+<!-- constant Visibility: default -->
+<element name="SHUT_RD">
+<short>Shutdown read part of full duplex socket</short>
+</element>
+
+<!-- constant Visibility: default -->
+<element name="SHUT_WR">
+<short>Shutdown write part of full duplex socket</short>
+</element>
+
+<!-- constant Visibility: default -->
+<element name="SHUT_RDWR">
+<short>Shutdown read and write part of full duplex socket</short>
+</element>
+
+<!-- alias type Visibility: default -->
+<element name="sa_family_t">
+<short>Address family type</short>
+</element>
+
+<!-- constant Visibility: default -->
+<element name="PF_LOCAL">
+<short>Protocol family: Unix socket</short>
+</element>
+
+<!-- constant Visibility: default -->
+<element name="PF_FILE">
+<short>Protocol family: Unix socket (alias)</short>
+</element>
+
+<!-- constant Visibility: default -->
+<element name="AF_LOCAL">
+<short>Address family: Unix socket</short>
+</element>
+
+<!-- constant Visibility: default -->
+<element name="AF_FILE">
+<short>Address family: Unix socket (alias)</short>
+</element>
+
+<!-- constant Visibility: default -->
+<element name="MSG_OOB">
+<short>Receive flags: receive out-of-band data.</short>
+</element>
+
+<!-- constant Visibility: default -->
+<element name="MSG_PEEK">
+<short>Receive flags: peek at data, don't remove from buffer.</short>
+</element>
+
+<!-- constant Visibility: default -->
+<element name="MSG_DONTROUTE">
+<short>Send flags: don't use gateway</short>
+</element>
+
+<!-- constant Visibility: default -->
+<element name="MSG_TRYHARD">
+<short>Receive flags: ?</short>
+</element>
+
+<!-- constant Visibility: default -->
+<element name="MSG_CTRUNC">
+<short>Receive flags: Control Data was discarded (buffer too small)</short>
+</element>
+
+<!-- constant Visibility: default -->
+<element name="MSG_PROXY">
+<short>Receive flags: ?</short>
+</element>
+
+<!-- constant Visibility: default -->
+<element name="MSG_TRUNC">
+<short>Receive flags: packet Data was discarded (buffer too small)</short>
+</element>
+
+<!-- constant Visibility: default -->
+<element name="MSG_DONTWAIT">
+<short>Receive flags: Non-blocking operation request.</short>
+</element>
+
+<!-- constant Visibility: default -->
+<element name="MSG_EOR">
+<short>Receive flags: End of record</short>
+</element>
+
+<!-- constant Visibility: default -->
+<element name="MSG_WAITALL">
+<short>Receive flags: Wait till operation completed.</short>
+</element>
+
+<!-- constant Visibility: default -->
+<element name="MSG_FIN">
+<short>Receive flags: ?</short>
+</element>
+
+<!-- constant Visibility: default -->
+<element name="MSG_SYN">
+<short>Receive flags: ?</short>
+</element>
+
+<!-- constant Visibility: default -->
+<element name="MSG_CONFIRM">
+<short>Send flags: Conform connection</short>
+</element>
+
+<!-- constant Visibility: default -->
+<element name="MSG_RST">
+<short>Receive flags: ?</short>
+</element>
+
+<!-- constant Visibility: default -->
+<element name="MSG_ERRQUERE">
+<short>Receive flags: ?</short>
+</element>
+
+<!-- constant Visibility: default -->
+<element name="MSG_NOSIGNAL">
+<short>Receive flags: Suppress SIG_PIPE signal.</short>
+</element>
+
+<!-- constant Visibility: default -->
+<element name="MSG_MORE">
+<short>Receive flags: ?</short>
+</element>
+
+<!-- constant Visibility: default -->
+<element name="S_IN">
+<short>Input socket in socket pair.</short>
+</element>
+
+<!-- constant Visibility: default -->
+<element name="S_OUT">
+<short>Output socket in socket pair</short>
+</element>
+
+<!-- record type Visibility: default -->
+<element name="in_addr">
+<short>General inet socket address.</short>
+</element>
+
+<!-- variable Visibility: default -->
+<element name="in_addr.s_addr">
+<short>Actual address</short>
+</element>
+
+<!-- variable Visibility: default -->
+<element name="TSockAddr.sa_family">
+<short>General socket address: Address family</short>
+</element>
+
+<!-- variable Visibility: default -->
+<element name="TSockAddr.sa_data">
+<short>General socket address: Address data</short>
+</element>
+
+<!-- pointer type Visibility: default -->
+<element name="pSockAddr">
+<short>Pointer to <link id="TSockAddr"/></short>
+</element>
+
+<!-- pointer type Visibility: default -->
+<element name="pInetSockAddr">
+<short>Pointer to <link id="TInetSockAddr"/></short>
+</element>
+
+<!-- record type Visibility: default -->
+<element name="Tin6_addr">
+<short>Alias for <link id="TInetSockAddr6"/></short>
+</element>
+
+<!-- pointer type Visibility: default -->
+<element name="pIn6_Addr">
+<short>Pointer to <link id="Tin6_addr"/></short>
+</element>
+
+<!-- record type Visibility: default -->
+<element name="TInetSockAddr6">
+<short>Record for IPV6 socket address.</short>
+</element>
+
+<!-- variable Visibility: default -->
+<element name="TInetSockAddr6.sin6_family">
+<short>Address family</short>
+</element>
+
+<!-- variable Visibility: default -->
+<element name="TInetSockAddr6.sin6_port">
+<short>Port</short>
+</element>
+
+<!-- variable Visibility: default -->
+<element name="TInetSockAddr6.sin6_flowinfo">
+<short>Flow information.</short>
+</element>
+
+<!-- variable Visibility: default -->
+<element name="TInetSockAddr6.sin6_addr">
+<short>IPV6 address</short>
+</element>
+
+<!-- variable Visibility: default -->
+<element name="TInetSockAddr6.sin6_scope_id">
+<short></short>
+</element>
+
+<!-- alias type Visibility: default -->
+<element name="sockaddr_in6">
+<short>Alias for <link id="TInetSockAddr6"/></short>
+</element>
+
+<!-- pointer type Visibility: default -->
+<element name="psockaddr_in6">
+<short>Pointer to <link id="sockaddr_in6"/></short>
+</element>
+
+<!-- array type Visibility: default -->
+<element name="TSockPairArray">
+<short>Array of sockets, used in <link id="SocketPair"/> call.</short>
+</element>
+
+<!-- variable Visibility: default -->
+<element name="SocketError">
+<short>Contains the error code for the last socket operation.</short>
+<descr>
+<var>SocketError</var> contains the error code for the last socket
+operation. It can be examined to return the last socket error. 
+</descr>
+</element>
+
+<!-- function Visibility: default -->
+<element name="fpsocket">
+<short>Alias for the <link id="socket"/> call</short>
+</element>
+
+<!-- function Visibility: default -->
+<element name="fprecv">
+<short>Alias for the <link id="recv"/> call</short>
+</element>
+
+<!-- function Visibility: default -->
+<element name="fprecvfrom">
+<short>Alias for the <link id="recvfrom"/> call</short>
+</element>
+
+<!-- function Visibility: default -->
+<element name="fpsend">
+<short>Alias for the <link id="send"/> call</short>
+</element>
+
+<!-- function Visibility: default -->
+<element name="fpsendto">
+<short>Alias for the <link id="send"/> call</short>
+</element>
+
+<!-- function Visibility: default -->
+<element name="fpbind">
+<short>Alias for the <link id="bind"/> call</short>
+</element>
+
+<!-- function Visibility: default -->
+<element name="fplisten">
+<short>Alias for the <link id="listen"/> call</short>
+</element>
+
+<!-- function Visibility: default -->
+<element name="fpaccept">
+<short>Alias for the <link id="accept"/> call</short>
+</element>
+
+<!-- function Visibility: default -->
+<element name="fpconnect">
+<short>Alias for the <link id="connect"/> call</short>
+</element>
+
+<!-- function Visibility: default -->
+<element name="fpshutdown">
+<short>Alias for the <link id="shutdown"/> call</short>
+</element>
+
+<!-- function Visibility: default -->
+<element name="fpgetsockname">
+<short>Alias for the <link id="GetSocketName"/> call</short>
+</element>
+
+<!-- function Visibility: default -->
+<element name="fpgetpeername">
+<short>Alias for the <link id="GetPeerName"/> call</short>
+</element>
+
+<!-- function Visibility: default -->
+<element name="fpgetsockopt">
+<short>Alias for the <link id="GetSocketOptions"/> call</short>
+</element>
+
+<!-- function Visibility: default -->
+<element name="fpsetsockopt">
+<short>Alias for the <link id="SetSocketOptions"/> call</short>
+</element>
+
+<!-- function Visibility: default -->
+<element name="fpsocketpair">
+<short>Alias for the <link id="SocketPair"/> call</short>
+</element>
+
+<!-- function Visibility: default -->
+<element name="CloseSocket">
+<short>Closes a socket handle.</short>
+<descr>
+<var>CloseSocket</var> closes a socket handle. It returns 0 if the socket
+was closed succesfully, -1 if it failed.
+</descr>
+<errors>
+On error, -1 is returned.
+</errors>
+<seealso>
+<link id="Socket"/>
+</seealso>
+</element>
+
+<!-- function Visibility: default -->
+<element name="SendTo">
+<short>Send data through an unconnected socket to an address.</short>
+<descr>
+<var>SendTo</var> sends data from buffer <var>Buf</var> with length
+<var>Buflen</var> through socket <var>Sock</var> with options
+<var>Flags</var>. The data is sent to address <var>Addr</var>, which has
+length <var>AddrLen</var>
+</descr>
+<errors>
+On error, -1 is returned.
+</errors>
+<seealso>
+<link id="Socket"/>
+<link id="Send"/>
+<link id="RecvFrom"/>
+</seealso>
+</element>
+
+<!-- function Visibility: default -->
+<element name="RecvFrom">
+<short>Receive data from an unconnected socket</short>
+<descr>
+<var>RecvFrom</var> receives data in buffer <var>Buf</var> with maximum
+length <var>BufLen</var> from socket <var>Sock</var>. 
+Receipt is controlled by options in <var>Flags</var>. <var>Addr</var> will
+be filled with the address from the sender, and will have length
+The function returns the number of bytes received, or -1 on error.
+<var>AddrLen</var>.
+</descr>
+<errors>
+On error, -1 is returned.
+</errors>
+<seealso>
+<link id="Socket"/>
+<link id="recv"/>
+<link id="RecvFrom"/>
+</seealso>
+</element>
+
+<element name="Accept">
+<short>Accept a connection from a socket.</short>
+<descr>
+<p>
+<var>FPAccept</var> accepts a connection from a socket <var>Sock</var>, which was
+listening for a connection. If a connection is accepted, a file descriptor
+is returned. On error <var>-1</var> is returned. The returned socket may NOT 
+be used to accept more connections.  The original socket remains open.
+</p>
+<p>
+The <var>Accept</var> call fills the address of the connecting entity in 
+<var>Addr</var>, and sets its length in <var>Addrlen</var>. <var>Addr</var> should 
+be pointing to enough space, and <var>Addrlen</var> should be set to the 
+amount of space available, prior to the call.
+</p>
+<p>
+The alternate forms of the <link id="Accept"/> command, with the
+<var>Text</var> or <var>File</var> parameters are equivalent
+to subsequently calling the regular <link id="Accept"/> function and the
+<link id="Sock2Text"/> or <link id="Sock2File"/> functions. 
+These functions return <var>True</var> if successful, <var>False</var> otherwise.
+</p>
+</descr>
+<errors>
+<p>
+On error, <var>-1</var> is returned, and errors are reported in 
+<var>SocketError</var>, and include the following:
+</p>
+<dl>
+<dt>SYS_EBADF</dt><dd>The socket descriptor is invalid.</dd>
+<dt>SYS_ENOTSOCK</dt><dd>The descriptor is not a socket.</dd>
+<dt>SYS_EOPNOTSUPP</dt><dd>The socket type doesn't support the <var>Listen</var> operation.</dd>
+<dt>SYS_EFAULT</dt><dd><var>Addr</var> points outside your address space.</dd>
+<dt>SYS_EWOULDBLOCK</dt><dd>The requested operation would block the process.</dd>
+</dl>
+</errors>
+<seealso>
+<link id="Listen"/>
+<link id="Connect"/>
+<link id="Bind"/>
+</seealso>
+<example file="sockex/socksvr"/>
+</element>
+
+<element name="Bind">
+<short>Bind a socket to an address.</short>
+<descr>
+<p>
+<var>Bind</var> binds the socket <var>Sock</var> to address <var>Addr</var>. <var>Addr</var>
+has length <var>Addrlen</var>.
+The function returns <var>True</var> if the call was succesful, <var>False</var> if
+not.
+</p>
+<p>
+The form of the <var>Bind</var> command with the <link id="TUnixSockAddr"/>
+is equivalent to subsequently calling <link id="Str2UnixSockAddr"/> and the 
+regular <var>Bind</var> function.
+The function returns <var>True</var> if successfull, <var>False</var> otherwise.
+</p>
+</descr>
+<errors>
+<p>
+Errors are returned in <var>SocketError</var> and include the following:
+</p>
+<dl>
+<dt>SYS_EBADF</dt><dd> The socket descriptor is invalid.</dd>
+<dt>SYS_EINVAL</dt><dd> The socket is already bound to an address,</dd>
+<dt>SYS_EACCESS</dt><dd> Address is protected and you don't have permission to open it.</dd>
+</dl>
+<p>
+More arrors can be found in the Unix man pages.
+</p>
+</errors>
+<seealso>
+<link id="Socket"/>
+</seealso>
+</element>
+
+<element name="Connect">
+<short>Open a connection to a server socket.</short>
+<descr>
+<p>
+<var>Connect</var> opens a connection to a peer, whose address is described by
+<var>Addr</var>. <var>AddrLen</var> contains the length of the address.
+The type of <var>Addr</var> depends on the kind of connection you're trying to
+make, but is generally one of <var>TSockAddr</var> or <var>TUnixSockAddr</var>.
+</p>
+<p>
+The forms of the <link id="Connect"/> command with the <var>Text</var> or
+<var>File</var> arguments are equivalent to subsequently calling the regular <var>Connect</var> 
+function and the  <link id="Sock2Text"/> or <link id="Sock2File"/> functions.
+These functions return <var>True</var> if successfull, <var>False</var> otherwise.
+</p>
+<p>
+The <var>Connect</var> function returns a file descriptor if the call
+was successfull, <var>-1</var> in case of error.
+</p>
+</descr>
+<errors>
+On error, <var>-1</var> is returned and errors are reported in 
+<var>SocketError</var>.
+</errors>
+<seealso>
+<link id="Listen"/>
+<link id="Bind"/>
+<link id="Accept"/>
+</seealso>
+<example file="sockex/sockcli"/>
+<example file="sockex/pfinger"/>
+</element>
+
+<element name="GetPeerName">
+<short>Return the name (address) of the connected peer.</short>
+<descr>
+<p>
+<var>GetPeerName</var> returns the name of the entity connected to the 
+specified socket <var>Sock</var>. The Socket must be connected for this call to
+work. 
+</p>
+<p>
+<var>Addr</var> should point to enough space to store the name, the
+amount of space pointed to should be set in <var>Addrlen</var>. 
+When the function returns succesfully, <var>Addr</var> will be filled with the 
+name, and <var>Addrlen</var> will be set to the length of <var>Addr</var>.
+</p>
+</descr>
+<errors>
+<p>
+Errors are reported in <var>SocketError</var>, and include the following:
+</p>
+<dl>
+<dt>SYS_EBADF</dt><dd> The socket descriptor is invalid.</dd>
+<dt>SYS_ENOBUFS</dt><dd> The system doesn't have enough buffers to perform the operation.</dd>
+<dt>SYS_ENOTSOCK</dt><dd> The descriptor is not a socket.</dd>
+<dt>SYS_EFAULT</dt><dd> <var>Addr</var> points outside your address space.</dd>
+<dt>SYS_ENOTCONN</dt><dd> The socket isn't connected.</dd>
+</dl>
+</errors>
+<seealso>
+<link id="Connect"/>
+<link id="Socket"/>
+</seealso>
+</element>
+
+<element name="GetSocketName">
+<short>Return name of socket.</short>
+<descr>
+<var>GetSockName</var> returns the current name of the specified socket
+<var>Sock</var>. <var>Addr</var> should point to enough space to store the name, the
+amount of space pointed to should be set in <var>Addrlen</var>. 
+When the function returns succesfully, <var>Addr</var> will be filled with the 
+name, and <var>Addrlen</var> will be set to the length of <var>Addr</var>.
+</descr>
+<errors>
+<p>
+Errors are reported in <var>SocketError</var>, and include the following:
+</p>
+<dl>
+<dt>SYS_EBADF</dt><dd> The socket descriptor is invalid.</dd>
+<dt>SYS_ENOBUFS</dt><dd> The system doesn't have enough buffers to perform the operation.</dd>
+<dt>SYS_ENOTSOCK</dt><dd> The descriptor is not a socket.</dd>
+<dt>SYS_EFAULT</dt><dd> <var>Addr</var> points outside your address space.</dd>
+</dl>
+</errors>
+<seealso>
+<link id="Bind"/>
+</seealso>
+</element>
+
+<element name="GetSocketOptions">
+<short>Get current socket options</short>
+<descr>
+<p>
+<var>GetSocketOptions</var> gets the connection options for socket <var>Sock</var>.
+The socket may be obtained from different levels, indicated by <var>Level</var>,
+which can be one of the following:
+</p>
+<dl>
+<dt>SOL_SOCKET</dt><dd> From the socket itself. </dd>
+<dt>XXX</dt><dd> set <var>Level</var> to <var>XXX</var>, the protocol number of the protocol
+which should interprete the option. </dd>
+</dl>
+<p>
+For more information on this call, refer to the unix manual page \seem{getsockopt}{2}.
+</p>
+</descr>
+<errors>
+<p>
+Errors are reported in <var>SocketError</var>, and include the following:
+</p>
+<dl>
+<dt>SYS_EBADF</dt><dd> The socket descriptor is invalid.</dd>
+<dt>SYS_ENOTSOCK</dt><dd> The descriptor is not a socket.</dd>
+<dt>SYS_EFAULT</dt><dd> <var>OptVal</var> points outside your address space.</dd>
+</dl>
+</errors>
+<seealso>
+<link id="GetSocketOptions"/>
+</seealso>
+</element>
+
+<element name="Listen">
+<short>Listen for connections on socket.</short>
+<descr>
+<p>
+<var>Listen</var> listens for up to <var>MaxConnect</var> connections from socket
+<var>Sock</var>. The socket <var>Sock</var> must be of type <var>SOCK_STREAM</var> or
+<var>Sock_SEQPACKET</var>.
+</p>
+<p>
+The function returns <var>True</var> if a connection was accepted, <var>False</var> 
+if an error occurred.
+</p>
+</descr>
+<errors>
+<p>
+Errors are reported in <var>SocketError</var>, and include the following:
+</p>
+<dl>
+<dt>SYS_EBADF</dt><dd> The socket descriptor is invalid.</dd>
+<dt>SYS_ENOTSOCK</dt><dd> The descriptor is not a socket.</dd>
+<dt>SYS_EOPNOTSUPP</dt><dd> The socket type doesn't support the <var>Listen</var> operation.</dd>
+</dl>
+</errors>
+<seealso>
+<link id="Socket"/>
+<link id="Bind"/>
+<link id="Connect"/>
+</seealso>
+</element>
+
+<element name="Recv">
+<short>Receive data on socket</short>
+<descr>
+<p>
+<var>Recv</var> reads at most <var>Addrlen</var> bytes from socket <var>Sock</var> into
+address <var>Addr</var>. The socket must be in a connected state.
+<var>Flags</var> can be one of the following:
+</p>
+<dl>
+<dt>1</dt><dd>Process out-of band data.</dd>
+<dt>4</dt><dd>Bypass routing, use a direct interface.</dd>
+<dt>??</dt><dd> Wait for full request or report an error.</dd>
+</dl>
+<p>
+The functions returns the number of bytes actually read from the socket, or
+-1 if a detectable error occurred.
+</p>
+</descr>
+<errors>
+<p>
+Errors are reported in <var>SocketError</var>, and include the following:
+</p>
+<dl>
+<dt>SYS_EBADF</dt><dd> The socket descriptor is invalid.</dd>
+<dt>SYS_ENOTCONN</dt><dd> The socket isn't connected.</dd>
+<dt>SYS_ENOTSOCK</dt><dd> The descriptor is not a socket.</dd>
+<dt>SYS_EFAULT</dt><dd> The address is outside your address space.</dd>
+<dt>SYS_EMSGSIZE</dt><dd> The message cannot be sent atomically.</dd>
+<dt>SYS_EWOULDBLOCK</dt><dd> The requested operation would block the process.</dd>
+<dt>SYS_ENOBUFS</dt><dd> The system doesn't have enough free buffers available.</dd>
+</dl>
+</errors>
+<seealso>
+<link id="Send"/>
+</seealso>
+</element>
+
+<element name="Send">
+<short>Send data through socket</short>
+<descr>
+<p>
+<var>Send</var> sends <var>AddrLen</var> bytes starting from address <var>Addr</var>
+to socket <var>Sock</var>. <var>Sock</var> must be in a connected state.
+The function returns the number of bytes sent, or -1 if a detectable 
+error occurred.
+</p>
+<p>
+<var>Flags</var> can be one of the following:
+</p>
+<dl>
+<dt>1</dt><dd>Process out-of band data.</dd>
+<dt>4</dt><dd>Bypass routing, use a direct interface.</dd>
+</dl>
+</descr>
+<errors>
+<p>
+Errors are reported in <var>SocketError</var>, and include the following:
+</p>
+<dl>
+<dt>SYS_EBADF</dt><dd> The socket descriptor is invalid.</dd>
+<dt>SYS_ENOTSOCK</dt><dd> The descriptor is not a socket.</dd>
+<dt>SYS_EFAULT</dt><dd> The address is outside your address space.</dd>
+<dt>SYS_EMSGSIZE</dt><dd> The message cannot be sent atomically.</dd>
+<dt>SYS_EWOULDBLOCK</dt><dd> The requested operation would block the process.</dd>
+<dt>SYS_ENOBUFS</dt><dd> The system doesn't have enough free buffers available.</dd>
+</dl>
+</errors>
+<seealso>
+<link id="Recv"/>
+</seealso>
+</element>
+
+<element name="SetSocketOptions">
+<short>Set socket options.</short>
+<descr>
+<p>
+<var>SetSocketOptions</var> sets the connection options for socket <var>Sock</var>.
+The socket may be manipulated at different levels, indicated by <var>Level</var>,
+which can be one of the following:
+</p>
+<dl>
+<dt>SOL_SOCKET</dt><dd> To manipulate the socket itself. </dd>
+<dt>XXX</dt><dd> set <var>Level</var> to <var>XXX</var>, the protocol number of the protocol
+which should interprete the option. </dd>
+</dl>
+<p>
+For more information on this call, refer to the unix manual page
+<file>setsockopt</file>
+</p>
+</descr>
+<errors>
+<p>
+Errors are reported in <var>SocketError</var>, and include the following:
+</p>
+<dl>
+<dt>SYS_EBADF</dt><dd> The socket descriptor is invalid.</dd>
+<dt>SYS_ENOTSOCK</dt><dd> The descriptor is not a socket.</dd>
+<dt>SYS_EFAULT</dt><dd> <var>OptVal</var> points outside your address space.</dd>
+</dl>
+</errors>
+<seealso>
+<link id="GetSocketOptions"/>
+</seealso>
+</element>
+
+<element name="Shutdown">
+<short>Close one end of full duplex connection.</short>
+<descr>
+<p>
+<var>ShutDown</var> closes one end of a full duplex socket connection, described
+by <var>Sock</var>. The parameter <var>How</var> determines how the connection 
+will be shut down, and can be one of the following:
+</p>
+<dl>
+<dt>0</dt><dd>Further receives are disallowed.</dd>
+<dt>1</dt><dd>Further sends are disallowed.</dd>
+<dt>2</dt><dd>Sending nor receiving are allowed.</dd>
+</dl>
+<p>
+On succes, the function returns 0, on error -1 is returned.
+</p>
+</descr>
+<errors>
+<p>
+<var>SocketError</var> is used to report errors, and includes the following:
+</p>
+<dl>
+<dt>SYS_EBADF</dt><dd> The socket descriptor is invalid.</dd>
+<dt>SYS_ENOTCONN</dt><dd> The socket isn't connected.</dd>
+<dt>SYS_ENOTSOCK</dt><dd> The descriptor is not a socket.</dd>
+</dl>
+</errors>
+<seealso>
+<link id="Socket"/>
+<link id="Connect"/>
+</seealso>
+</element>
+
+<element name="Sock2File">
+<short>Convert socket to untyped file descriptors</short>
+<descr>
+<var>Sock2File</var> transforms a socket <var>Sock</var> into 2 Pascal file
+descriptors of type <var>File</var>, one for reading from the socket
+(<var>SockIn</var>), one for writing to the socket (<var>SockOut</var>).
+</descr>
+<errors>
+None.
+</errors>
+<seealso>
+<link id="Socket"/>
+<link id="Sock2Text"/>
+</seealso>
+</element>
+
+<element name="Sock2Text">
+<short>Convert socket to text file descriptors</short>
+<descr>
+<var>Sock2Text</var> transforms a socket <var>Sock</var> into 2 Pascal file
+descriptors of type <var>Text</var>, one for reading from the socket
+(<var>SockIn</var>), one for writing to the socket (<var>SockOut</var>).
+</descr>
+<errors>
+None.
+</errors>
+<seealso>
+<link id="Socket"/>
+<link id="Sock2File"/>
+</seealso>
+</element>
+
+<element name="Socket">
+<short>Create new socket</short>
+<descr>
+<p>
+<var>Socket</var> creates a new socket in domain <var>Domain</var>, from type
+<var>SocketType</var> using protocol <var>Protocol</var>.
+The Domain, Socket type and Protocol can be specified using predefined
+constants (see the section on constants for available constants)
+If succesfull, the function returns a socket descriptor, which can be passed
+to a subsequent <link id="Bind"/> call. If unsuccesfull, the function returns -1.
+</p>
+<p>
+for an example, see <link id="Accept"/>.
+</p>
+</descr>
+<errors>
+<p>
+Errors are returned in <var>SocketError</var>, and include the follwing:
+</p>
+<dl>
+<dt>SYS_EPROTONOSUPPORT</dt><dd> The protocol type or the specified protocol is not
+supported within this domain.</dd>
+<dt>SYS_EMFILE</dt><dd>The per-process descriptor table is full.</dd>
+<dt>SYS_ENFILE</dt><dd>The system file table is full.</dd>
+<dt>SYS_EACCESS</dt><dd> Permission to create a socket of the specified type 
+and/or protocol is denied.</dd>
+<dt>SYS_ENOBUFS</dt><dd>Insufficient buffer space is available. The socket
+cannot be created until sufficient resources are freed.</dd>
+</dl>
+</errors>
+<seealso>
+<link id="SocketPair"/>, \seem{socket}{2}
+</seealso>
+</element>
+
+
+<element name="SocketPair">
+<short>Create socket pair</short>
+<descr>
+<var>SocketPair</var> creates 2 sockets in domain <var>Domain</var>, from type
+<var>SocketType</var> and using protocol <var>Protocol</var>.
+The pair is returned in <var>Pair</var>, and they are indistinguishable.
+The function returns -1 upon error and 0 upon success.
+</descr>
+<errors>
+Errors are reported in <var>SocketError</var>, and are the same as in <link id="Socket"/>
+</errors>
+<seealso>
+<link id="Str2UnixSockAddr"/>
+</seealso>
+</element>
+
+<element name="Str2UnixSockAddr">
+<short>Convert path to <link id="TUnixSockAddr"/></short>
+<descr>
+<var>Str2UnixSockAddr</var> transforms a Unix socket address in a string to a
+<var>TUnixSockAddr</var> structure which can be passed to the <link id="Bind"/> call.
+</descr>
+<errors>
+None.
+</errors>
+<seealso>
+<link id="Socket"/>
+<link id="Bind"/>
+</seealso>
+</element>
+
+
+</module>
+</package>
+</fpdoc-descriptions>

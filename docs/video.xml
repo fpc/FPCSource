@@ -1,0 +1,1001 @@
+<?xml version="1.0" encoding="ISO8859-1"?>
+<fpdoc-descriptions>
+<!--  
+
+   $Id$ 
+   This file is part of the FPC documentation. 
+   Copyright (C) 1997, by Michael Van Canneyt 
+ 
+   The FPC documentation is free text; you can redistribute it and/or 
+   modify it under the terms of the GNU Library General Public License as 
+   published by the Free Software Foundation; either version 2 of the 
+   License, or (at your option) any later version. 
+ 
+   The FPC Documentation is distributed in the hope that it will be useful, 
+   but WITHOUT ANY WARRANTY; without even the implied warranty of 
+   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU 
+   Library General Public License for more details. 
+ 
+   You should have received a copy of the GNU Library General Public 
+   License along with the FPC documentation; see the file COPYING.LIB.  If not, 
+   write to the Free Software Foundation, Inc., 59 Temple Place - Suite 330, 
+   Boston, MA 02111-1307, USA. 
+ -->
+<package name="rtl">
+<module name="video">
+<short>Screen handling unit</short>
+<!-- \FPCexampledir{videoex} -->
+<descr>
+<p>
+The <file>Video</file> unit implements a screen access layer which is system
+independent. It can be used to write on the screen in a system-independent
+way, which should be optimal on all platforms for which the unit is
+implemented.
+</p>
+<p>
+The working of the <file>Video</file> is simple: After calling <link id="InitVideo"/>,
+the array <var>VideoBuf</var> contains a representation of the video screen of
+size <var>ScreenWidth*ScreenHeight</var>, going from left to right and top to
+bottom when walking the array elements: <var>VideoBuf[0]</var> contains the 
+character and color code of the top-left character on the screen.
+<var>VideoBuf[ScreenWidth]</var> contains the data for the character in the
+first column of the second row on the screen, and so on.
+</p>
+<p>
+To write to the 'screen', the text to be written should be written to the
+<var>VideoBuf</var> array. Calling <link id="UpdateScreen"/> will then cp the text to
+the screen in the most optimal way. (an example can be found further on).
+</p>
+<p>
+The color attribute is a combination of the foreground and background color,
+plus the blink bit. The bits describe the various color combinations:
+</p>
+<dl>
+<dt>bits 0-3</dt>
+<dd> The foreground color. Can be set using all color constants. 
+</dd>
+<dt>bits 4-6</dt>
+<dd> The background color. Can be set using a subset of the
+color constants.
+</dd>
+<dt>bit 7</dt>
+<dd> The blinking bit. If this bit is set, the character will appear
+blinking.
+</dd>
+</dl>
+<p>
+Each possible color has a constant associated with it, see the constants
+section for a list of constants.
+</p>
+<p>
+The foreground and background color can be combined to a color attribute
+with the following code:
+</p>
+<code>
+Attr:=ForeGroundColor + (BackGroundColor shl 4);
+</code>
+<p>
+The color attribute can be logically or-ed with the blink attribute to
+produce a blinking character:
+</p>
+<code>
+  Atrr:=Attr or blink;
+</code>
+<p>
+But not all drivers may support this.
+</p>
+<p>
+The contents of the <var>VideoBuf</var> array may be modified: This is 'writing'
+to the screen. As soon as everything that needs to be written in the array
+is in the <var>VideoBuf</var> array, calling <var>UpdateScreen</var> will copy the
+contents of the array screen to the screen, in a manner that is as efficient
+as possible.
+</p>
+<p>
+The updating of the screen can be prohibited to optimize performance; To
+this end, the <link id="LockScreenUpdate"/> function can be used: This will
+increment an internal counter. As long as the counter differs from zero,
+calling <link id="UpdateScreen"/> will not do anything. The counter can be
+lowered with <link id="UnlockScreenUpdate"/>. When it reaches zero, the next call
+to <link id="UpdateScreen"/> will actually update the screen. This is useful when
+having nested procedures that do a lot of screen writing.
+</p>
+<p>
+The video unit also presents an interface for custom screen drivers, thus
+it is possible to override the default screen driver with a custom screen 
+driver, see the <link id="SetVideoDriver"/> call. The current video driver can
+be retrieved using the <link id="GetVideoDriver"/> call.
+</p>
+<remark>
+The video unit should <em> not</em> be used together with the <file>crt</file> unit.
+Doing so will result in very strange behaviour, possibly program crashes.
+</remark>
+</descr>
+
+<element name="Black">
+<short>Black color attribute</short>
+</element>
+
+<element name="Blue">
+<short>Blue color attribute</short>
+</element>
+
+<element name="Green">
+<short>Green color attribute</short>
+</element>
+
+<element name="Cyan">
+<short>Cyan color attribute</short>
+</element>
+
+<element name="Red">
+<short>Red color attribute</short>
+</element>
+
+<element name="Magenta">
+<short>Magenta color attribute</short>
+</element>
+
+<element name="Brown">
+<short>Brown color attribute</short>
+</element>
+
+<element name="LightGray">
+<short>Light gray color attribute</short>
+</element>
+
+<element name="DarkGray">
+<short>Dark gray color attribute</short>
+</element>
+
+<element name="LightBlue">
+<short>Light Blue color attribute</short>
+</element>
+
+<element name="LightGreen">
+<short>Light green color attribute</short>
+</element>
+
+<element name="LightCyan">
+<short>Light cyan color attribute</short>
+</element>
+
+<element name="LightRed">
+<short>Light red color attribute</short>
+</element>
+
+<element name="LightMagenta">
+<short>Light magenta color attribute</short>
+</element>
+
+<element name="Yellow">
+<short>Yellow color attribute</short>
+</element>
+
+<element name="White">
+<short>White color attribute</short>
+</element>
+
+<element name="Blink">
+<short>Blink attribute</short>
+</element>
+
+<element name="cpUnderLine">
+<short>Video driver supports underline attribute</short>
+</element>
+
+<element name="cpBlink">
+<short>Video driver supports blink attribute</short>
+</element>
+
+<element name="cpColor">
+<short>Video driver supports color</short>
+</element>
+
+<element name="cpChangeFont">
+<short>Video driver supports changing screen font.</short>
+</element>
+
+<element name="cpChangeMode">
+<short>Video driver supports changing mode</short>
+</element>
+
+<element name="cpChangeCursor">
+<short>Video driver supports changing cursor shape.</short>
+</element>
+
+<element name="crHidden">
+<short>Hide cursor</short>
+</element>
+
+<element name="crUnderLine">
+<short>Underline cursor</short>
+</element>
+
+<element name="crBlock">
+<short>Block cursor</short>
+</element>
+
+<element name="crHalfBlock">
+<short>Half block cursor</short>
+</element>
+
+<element name="vioOK">
+<short>No errors occurred</short>
+</element>
+
+<element name="errVioBase">
+<short>Base value for video errors</short>
+</element>
+
+<element name="errOK">
+<short>No error</short>
+</element>
+
+<element name="errVioInit">
+<short>Video driver initialization error.</short>
+</element>
+
+<element name="errVioNotSupported">
+<short>Unsupported video function</short>
+</element>
+
+<element name="errVioNoSuchMode">
+<short>Invalid video mode</short>
+</element>
+
+
+<element name="ScreenWidth">
+<short>Current screen Width</short>
+</element>
+
+
+<element name="ScreenHeight">
+<short>Current screen height</short>
+</element>
+
+<element name="LowAscii">
+<short>Only use low ascii characters</short>
+</element>
+
+<element name="NoExtendedFrame">
+<short>Disable transformation of control characters on unix terminals</short>
+</element>
+
+<element name="FVMaxWidth">
+<short>Maximum screen buffer width.</short>
+</element>
+
+<element name="ErrorCode">
+<short>Error code returned by the last operation.</short>
+</element>
+
+<element name="ErrorInfo">
+<short>Pointer to extended error information.</short>
+</element>
+
+<element name="ErrorHandler">
+<short>Error handler routine</short>
+<descr>
+The <var>ErrorHandler</var> variable can be set to a custom-error handling
+function. It is set by default to the <link id="DefaultErrorHandler"/> function.
+</descr>
+</element>
+
+<element name="TVideoMode">
+<descr>
+The <var>TVideoMode</var> record describes a videomode. Its fields are
+self-explaining: <var>Col,Row</var> describe the number of columns and 
+rows on the screen for this mode. <var>Color</var> is <var>True</var> if this mode
+supports colors, or <var>False</var> if not.
+</descr>
+</element>
+
+<element name="PVideoMode">
+<short>Pointer to <link id="TVideoMode"/> record.</short>
+</element>
+
+<element name="TVideoModeSelector">
+<short>Video mode selection callback prototype.</short>
+</element>
+
+<element name="TVideoCell">
+<short>One cell (=screen position) in the video buffer </short>
+<descr>
+<var>TVideoCell</var> describes one character on the screen. One of the bytes 
+contains the color attribute with which the character is drawn on the screen,
+and the other byte contains the ASCII code of the character to be drawn. The
+exact position of the different bytes in the record is operating system specific.
+On most little-endian systems, the high byte represents the color attribute,
+while the low-byte represents the ASCII code of the character to be drawn.
+</descr>
+</element>
+
+<element name="PVideoCell">
+<short>Pointer type to <link id="TVideoCell"/></short>
+</element>
+
+<element name="TVideoBuf">
+<short>Screen array type</short>
+<descr>
+The <var>TVideoBuf</var> type represents the screen.
+</descr>
+</element>
+
+<element name="PVideoBuf">
+<short>Pointer type to <link id="TVideoBuf"/></short>
+</element>
+
+<element name="TErrorHandlerReturnValue">
+<short>Type used to report and respond to error conditions</short>
+</element>
+
+<element name="TErrorHandlerReturnValue.errRetry">
+<short>retry the operation</short>
+</element>
+
+<element name="TErrorHandlerReturnValue.errAbort">
+<short>abort and return error code</short>
+</element>
+
+<element name="TErrorHandlerReturnValue.errContinue">
+<short>abort without returning an errorcode.</short>
+</element>
+
+<element name="TErrorHandler">
+<short>Error handler prototype</short>
+<descr>
+<p>
+The <var>TErrorHandler</var> function is used to register an own error
+handling function. It should be used when installing a custom error
+handling function, and must return one of the above values.
+</p>
+<p>
+<var>Code</var> should contain the error code for the error condition, 
+and the <var>Info</var> parameter may contain any data type specific to 
+the error code passed to the function.
+</p>
+</descr>
+</element>
+
+<element name="TVideoDriver">
+<short>Video driver record</short>
+<descr>
+<p>
+<var>TVideoDriver</var> record can be used to install a custom video
+driver, with the <link id="SetVideoDriver"/> call.
+</p>
+<p>
+An explanation of all fields can be found there.
+</p>
+</descr>
+</element>
+
+<element name="ScreenColor">
+<short>Indicate whether current screen supports colors</short>
+<descr>
+<var>ScreenColor</var> indicates whether the current screen supports colors.
+</descr>
+</element>
+
+<element name="CursorX">
+<short>Current write cursor X position.</short>
+<descr>
+Current horizontal position in the screen where items will be written.
+</descr>
+</element>
+
+<element name="CursorY">
+<short>Current write cursor Y position.</short>
+<descr>
+Current vertical position in the screen where items will be written.
+</descr>
+</element>
+
+<element name="VideoBuf">
+<short>Current screen image.</short>
+<descr>
+<var>VideoBuf</var> forms the heart of the <file>Video</file> unit: This
+variable represents the physical screen. Writing to this
+array and calling <link id="UpdateScreen"/> will write the actual characters
+to the screen. 
+</descr>
+</element>
+
+<element name="OldVideoBuf">
+<short>Last written screen image.</short>
+<descr>
+<p>
+The <var>OldVideoBuf</var> contains the state of the video screen after the last
+screen update. The <link id="UpdateScreen"/> function uses this array to decide
+which characters on screen should be updated, and which not. 
+</p>
+<p>
+Note that the <var>OldVideoBuf</var> array may be ignored by some drivers, so
+it should not be used. The Array is in the interface section of the video
+unit mainly so drivers that need it can make use of it. 
+</p>
+</descr>
+</element>
+
+<element name="VideoBufSize">
+<short>Size of the screen image.</short>
+<descr>Current size of the video buffer pointed to by <link id="VideoBuf"/></descr>
+</element>
+
+<element name="ClearScreen">
+<short>Clear the video screen.</short>
+<descr>
+<var>ClearScreen</var> clears the entire screen, and calls <link id="UpdateScreen"/>
+after that. This is done by writing spaces to all character cells of the
+video buffer in the default color (lightgray on black, color attribute \$07).
+</descr>
+<errors>
+None.
+</errors>
+<seealso>
+<link id="InitVideo"/>
+<link id="UpdateScreen"/>
+</seealso>
+<example file="videoex/ex3"/>
+</element>
+
+
+<element name="DefaultErrorHandler">
+<short>Default error handling routine.</short>
+<descr>
+<var>DefaultErrorHandler</var> is the default error handler used by the video
+driver. It simply sets the error code <var>AErrorCode</var> and <var>AErrorInfo</var> 
+in the global variables <var>ErrorCode</var> and <var>ErrorInfo</var> and returns 
+<var>errContinue</var>.
+</descr>
+<errors>
+None.
+</errors>
+<seealso>
+</seealso>
+</element>
+
+<element name="DoneVideo">
+<short>Disable video driver.</short>
+<descr>
+<p>
+<var>DoneVideo</var> disables the Video driver if the video driver is active. If
+the videodriver was already disabled or not yet initialized, it does
+nothing. Disabling the driver means it will clean up any allocated
+resources, possibly restore the screen in the state it was before
+<var>InitVideo</var> was called. Particularly, the <var>VideoBuf</var> and
+<var>OldVideoBuf</var> arrays are no longer valid after a call to 
+<var>DoneVideo</var>.
+</p>
+<p>
+The <var>DoneVideo</var> should always be called if <var>InitVideo</var> was called.
+Failing to do so may leave the screen in an unusable state after the program
+exits.
+</p>
+<p>
+For an example, see most other functions.
+</p>
+</descr>
+<errors>
+Normally none. If the driver reports an error, this is done through the
+<var>ErrorCode</var> variable.
+</errors>
+<seealso>
+<link id="InitVideo"/>
+</seealso>
+</element>
+
+<element name="GetCapabilities">
+<short>Get current driver capabilities.</short>
+<descr>
+<p>
+<var>GetCapabilities</var> returns the capabilities of the current driver.
+It is an or-ed combination of the following constants:
+</p>
+<dl>
+<dt>cpUnderLine</dt><dd><printshort id="cpUnderLine"/></dd>
+<dt>cpBlink</dt><dd><printshort id="cpBlink"/></dd>
+<dt>cpColor</dt><dd><printshort id="cpColor"/></dd>
+<dt>cpChangeFont</dt><dd><printshort id="cpChangeFont"/></dd>
+<dt>cpChangeMode</dt><dd><printshort id="cpChangeMode"/></dd>
+<dt>cpChangeCursor</dt><dd><printshort id="cpChangeCursor"/></dd>
+</dl>
+<p>
+Note that the video driver should not yet be initialized to use this
+function. It is a property of the driver.
+</p>
+</descr>
+<errors>
+None.
+</errors>
+<seealso>
+<link id="GetCursorType"/>
+<link id="GetVideoDriver"/>
+</seealso>
+<example file="videoex/ex4"/>
+</element>
+
+
+<element name="GetCursorType">
+<short>Get screen cursor type</short>
+<descr>
+<p>
+<var>GetCursorType</var> returns the current cursor type. It is one of the
+following values: 
+</p>
+<dl>
+<dt>crHidden</dt><dd><printshort id="crHidden"/></dd>
+<dt>crUnderLine</dt><dd><printshort id="crUnderLine"/></dd>
+<dt>crBlock</dt><dd><printshort id="crBlock"/></dd>
+<dt>crHalfBlock</dt><dd><printshort id="crHalfBlock"/></dd>
+</dl>
+<p>
+Note that not all drivers support all types of cursors.
+</p>
+</descr>
+<errors>
+None.
+</errors>
+<seealso>
+<link id="SetCursorType"/>
+<link id="GetCapabilities"/>
+</seealso>
+<example file="videoex/ex5"/>
+</element>
+
+
+<element name="GetLockScreenCount">
+<short>Get the screen lock update count.</short>
+<descr>
+<var>GetLockScreenCount</var> returns the current lock level. When the lock
+level is zero, a call to <link id="UpdateScreen"/> will actually update the
+screen.
+</descr>
+<errors>
+None.
+</errors>
+<seealso>
+<link id="LockScreenUpdate"/>
+<link id="UnlockScreenUpdate"/>
+<link id="UpdateScreen"/>
+</seealso>
+<example file="videoex/ex6"/>
+</element>
+
+<element name="GetVideoMode">
+<short>Return current video mode</short>
+<descr>
+</descr>
+<seealso>
+</seealso>
+</element>
+
+<element name="GetVideoDriver">
+<short>Get a copy of the current video driver.</short>
+<descr>
+<var>GetVideoMode</var> returns the settings of the currently active video mode.
+The <var>row,col</var> fields indicate the dimensions of the current video mode,
+and <var>Color</var> is true if the current video supports colors.
+</descr>
+<errors>
+None.
+</errors>
+<seealso>
+<link id="SetVideoMode"/>
+<link id="GetVideoModeData"/>
+</seealso>
+<example file="videoex/ex7"/>
+</element>
+
+
+<element name="GetVideoModeCount">
+<short>Get the number of video modes supported by the driver.</short>
+<descr>
+<p>
+<var>GetVideoModeCount</var> returns the number of video modes that the current
+driver supports. If the driver does not support switching of modes, then 1
+is returned.
+</p>
+<p>
+This function can be used in conjunction with the <link id="GetVideoModeData"/>
+function to retrieve data for the supported video modes.
+</p>
+</descr>
+<errors>
+None.
+</errors>
+<seealso>
+<link id="GetVideoModeData"/>
+<link id="GetVideoMode"/>
+</seealso>
+<example file="videoex/ex8"/>
+</element>
+
+
+<element name="GetVideoModeData">
+<short>Get the specifications for a video mode</short>
+<descr>
+<p>
+<var>GetVideoModeData</var> returns the characteristics of the <var>Index</var>-th
+video mode in <var>Data</var>. <var>Index</var> is zero based, and has a maximum value of
+<var>GetVideoModeCount-1</var>. If the current driver does not support setting of
+modes (<var>GetVideoModeCount=1</var>) and <var>Index</var> is zero, the current mode 
+is returned.
+</p>
+<p>
+The function returns <var>True</var> if the mode data was retrieved succesfully,
+<var>False</var> otherwise.
+</p>
+<p>
+For an example, see <link id="GetVideoModeCount"/>.
+</p>
+</descr>
+<errors>
+In case <var>Index</var> has a wrong value, <var>False</var> is returned.
+</errors>
+<seealso>
+<link id="GetVideoModeCount"/>
+<link id="SetVideoMode"/>
+<link id="GetVideoMode"/>
+</seealso>
+</element>
+
+
+<element name="InitVideo">
+<short>Initialize video driver.</short>
+<descr>
+<p>
+<var>InitVideo</var> Initializes the video subsystem. If the video system was
+already initialized, it does nothing. 
+After the driver has been initialized, the <var>VideoBuf</var> and <var>OldVideoBuf</var> 
+pointers are initialized, based on the <var>ScreenWidth</var> and
+<var>ScreenHeight</var> variables. When this is done, the screen is cleared.
+</p>
+<p>
+For an example, see most other functions.
+</p>
+</descr>
+<errors>
+if the driver fails to initialize, the <var>ErrorCode</var> variable is set.
+</errors>
+<seealso>
+<link id="DoneVideo"/>
+</seealso>
+</element>
+
+
+<element name="LockScreenUpdate">
+<short>Prevent further screen updates.</short>
+<descr>
+<p>
+<var>LockScreenUpdate</var> increments the screen update lock count with one.
+As long as the screen update lock count is not zero, <link id="UpdateScreen"/>
+will not actually update the screen.
+</p>
+<p>
+This function can be used to optimize screen updating: If a lot of writing
+on the screen needs to be done (by possibly unknown functions), calling
+<var>LockScreenUpdate</var> before the drawing, and <link id="UnlockScreenUpdate"/>
+after the drawing, followed by a <link id="UpdateScreen"/> call, all writing will
+be shown on screen at once.
+</p>
+<p>
+For an example, see <link id="GetLockScreenCount"/>.
+</p>
+</descr>
+<errors>
+None.
+</errors>
+<seealso>
+<link id="UpdateScreen"/>
+<link id="UnlockScreenUpdate"/>
+<link id="GetLockScreenCount"/>
+</seealso>
+</element>
+
+
+<element name="SetCursorPos">
+<short>Set write cursor position.</short>
+<descr>
+<p>
+<var>SetCursorPos</var> positions the cursor on the given position: Column 
+<var>NewCursorX</var> and row <var>NewCursorY</var>. The origin of the screen is the
+upper left corner, and has coordinates <var>(0,0)</var>.
+</p>
+<p>
+The current position is stored in the <var>CursorX</var> and <var>CursorY</var>
+variables.
+</p>
+</descr>
+<errors>
+None.
+</errors>
+<seealso>
+<link id="SetCursorType"/>
+</seealso>
+<example file="videoex/ex2"/>
+</element>
+
+<element name="SetCursorType">
+<short>Set cursor type</short>
+<descr>
+<p>
+<var>SetCursorType</var> sets the cursor to the type specified in <var>NewType</var>.
+</p>
+<dl>
+<dt>crHidden</dt><dd><printshort id="crHidden"/></dd>
+<dt>crUnderLine</dt><dd><printshort id="crUnderLine"/></dd>
+<dt>crBlock</dt><dd><printshort id="crBlock"/></dd>
+<dt>crHalfBlock</dt><dd><printshort id="crHalfBlock"/></dd>
+</dl>
+</descr>
+<errors>
+None.
+</errors>
+<seealso>
+<link id="SetCursorPos"/>
+</seealso>
+</element>
+
+<element name="SetVideoDriver">
+<short>Install a new video driver.</short>
+<descr>
+<p>
+<var>SetVideoDriver</var> sets the videodriver to be used to <var>Driver</var>. If
+the current videodriver is initialized (after a call to <var>InitVideo</var>)
+then it does nothing and returns <var>False</var>.
+</p>
+<p>
+A new driver can only be installed if the previous driver was not yet
+activated (i.e. before a call to <link id="InitVideo"/>) or after it was
+deactivated (i.e after a call to <var>DoneVideo</var>).
+</p>
+<p>
+For more information about installing a videodriver, see <link id="viddriver"/>.
+</p>
+<p>
+For an example, see the section on writing a custom video driver.
+</p>
+</descr>
+<errors>
+If the current driver is initialized, then <var>False</var> is returned.
+</errors>
+<seealso>
+<link id="viddriver"/>
+</seealso>
+</element>
+
+<element name="TVideoMode">
+<short>Record type descrbing a video mode.</short>
+</element>
+
+<element name="TVideoMode.Col">
+<short>Number of columns for display</short>
+</element>
+
+<element name="TVideoMode.Row">
+<short>Number of rows for display</short>
+</element>
+
+<element name="TVideoMode.Color">
+<short>Color support</short>
+</element>
+
+<element name="SetVideoMode">
+<short>Set current video mode.</short>
+<descr>
+<p>
+<var>SetVideoMode</var> sets the video mode to the mode specified in <var>Mode</var>:
+</p>
+<p>
+If the call was succesful, then the screen will have <var>Col</var> columns and
+<var>Row</var> rows, and will be displaying in color if <var>Color</var> is
+<var>True</var>. 
+</p>
+<p>
+The function returns <var>True</var> if the mode was set succesfully, <var>False</var>
+otherwise.
+</p>
+<p>
+Note that the video mode may not always be set. E.g. a console on Linux
+or a telnet session cannot always set the mode. It is important to check
+the error value returned by this function if it was not succesful.
+</p>
+<p>
+The mode can be set when the video driver has not yet been initialized
+(i.e. before <link id="InitVideo"/> was called) In that case, the video mode will
+be stored, and after the driver was initialized, an attempt will be made to
+set the requested mode. Changing the video driver before the call to
+<var>InitVideo</var> will clear the stored video mode.
+</p>
+<p>
+To know which modes are valid, use the <link id="GetVideoModeCount"/> and
+<link id="GetVideoModeData"/> functions. To retrieve the current video mode, 
+use the <link id="GetVideoMode"/> procedure.
+</p>
+</descr>
+<errors>
+If the specified mode cannot be set, then <var>errVioNoSuchMode</var> may be set
+in <var>ErrorCode</var>
+</errors>
+<seealso>
+<link id="GetVideoModeCount"/>
+<link id="GetVideoModeData"/>
+<link id="GetVideoMode"/>
+</seealso>
+</element>
+
+<element name="UnlockScreenUpdate">
+<short>Unlock screen update.</short>
+<descr>
+<p>
+<var>UnlockScreenUpdate</var> decrements the screen update lock count with one if
+it is larger than zero. When the lock count reaches zero, the 
+<link id="UpdateScreen"/> will actually update the screen. No screen update will 
+be performed as long as the screen update lock count is nonzero. This 
+mechanism can be used to increase screen performance in case a lot of 
+writing is done. 
+</p>
+<p>
+It is important to make sure that each call to <link id="LockScreenUpdate"/> is
+matched by exactly one call to <var>UnlockScreenUpdate</var>
+</p>
+<p>
+For an example, see <link id="GetLockScreenCount"/>.
+</p>
+</descr>
+<errors>
+None.
+</errors>
+<seealso>
+<link id="LockScreenUpdate"/>
+<link id="GetLockScreenCount"/>
+<link id="UpdateScreen"/>
+</seealso>
+</element>
+
+
+<element name="UpdateScreen">
+<short>Update physical screen with internal screen image.</short>
+<descr>
+<p>
+<var>UpdateScreen</var> synchronizes the actual screen with the contents
+of the <var>VideoBuf</var> internal buffer. The parameter <var>Force</var>
+specifies whether the whole screen has to be redrawn (<var>Force=True</var>)
+or only parts that have changed since the last update of the screen.
+</p>
+<p>
+The <var>Video</var> unit keeps an internal copy of the screen as it last 
+wrote it to the screen (in the <var>OldVideoBuf</var> array). The current 
+contents of <var>VideoBuf</var> are examined to see what locations on the 
+screen need to be updated. On slow terminals (e.g. a linux telnet 
+session) this mechanism can speed up the screen redraw considerably.
+</p>
+<p>
+For an example, see most other functions.
+</p>
+</descr>
+<errors>
+None.
+</errors>
+<seealso>
+<link id="ClearScreen"/>
+</seealso>
+</element>
+
+
+<topic name="viddriver">
+<short>Writing a custom video driver</short>
+<descr>
+<p>
+Writing a custom video driver is not difficult, and generally means
+implementing a couple of functions, which whould be registered with
+the <link id="SetVideoDriver"/> function. The various functions that can be
+implemented are located in the <link id="TVideoDriver"/> record:
+</p>
+<code>
+TVideoDriver = Record
+  InitDriver        : Procedure;
+  DoneDriver        : Procedure;
+  UpdateScreen      : Procedure(Force : Boolean);
+  ClearScreen       : Procedure;
+  SetVideoMode      : Function (Const Mode : TVideoMode) : Boolean;
+  GetVideoModeCount : Function : Word;
+  GetVideoModeData  : Function(Index : Word; Var Data : TVideoMode) : Boolean;
+  SetCursorPos      : procedure (NewCursorX, NewCursorY: Word);
+  GetCursorType     : function : Word;
+  SetCursorType     : procedure (NewType: Word);
+  GetCapabilities   : Function : Word;
+end;
+</code>
+<p>
+Not all of these functions must be implemented. In fact, the only absolutely
+necessary function to write a functioning driver is the <var>UpdateScreen</var> 
+function. The general calls in the <file>Video</file> unit will check which
+functionality is implemented by the driver.
+</p>
+<p>
+The functionality of these calls is the same as the functionality of the
+calls in the video unit, so the expected behaviour can be found in the
+previous section. Some of the calls, however, need some additional remarks.
+</p>
+<dl>
+<dt>InitDriver</dt>
+<dd> Called by <var>InitVideo</var>, this function should initialize 
+any data structures needed for the functionality of the driver, maybe do some 
+screen initializations. The function is guaranteed to be called only once; It 
+can only be called again after a call to <var>DoneVideo</var>. The variables
+<var>ScreenWidth</var> and <var>ScreenHeight</var> should be initialized correctly
+after a call to this function, as the <var>InitVideo</var> call will initialize
+the <var>VideoBuf</var> and <var>OldVideoBuf</var> arrays based on their values.
+</dd>
+<dt>DoneDriver</dt>
+<dd> This should clean up any structures that have been
+initialized in the <var>InitDriver</var> function. It should possibly also
+restore the screen as it was before the driver was initialized. The VideoBuf
+and <var>OldVideoBuf</var> arrays will be disposed of by the general <var>DoneVideo</var>
+call.
+</dd>
+<dt>UpdateScreen</dt>
+<dd> This is the only required function of the driver. It
+should update the screen based on the <var>VideoBuf</var> array's contents. It
+can optimize this process by comparing the values with values in the
+<var>OldVideoBuf</var> array. After updating the screen, the <var>UpdateScreen</var>
+procedure should update the <var>OldVideoBuf</var> by itself. If the <var>Force</var>
+parameter is <var>True</var>, the whole screen should be updated, not just the
+changed values.
+</dd>
+<dt>ClearScreen</dt>
+<dd> If there is a faster way to clear the screen than to
+write spaces in all character cells, then it can be implemented here. If the
+driver does not implement this function, then the general routines will
+write spaces in all video cells, and will call <var>UpdateScreen(True)</var>.
+</dd>
+<dt>SetVideoMode</dt>
+<dd> Should set the desired video mode, if available. It
+should return <var>True</var> if the mode was set, <var>False</var> if not.
+</dd>
+<dt>GetVideoModeCount</dt>
+<dd> Should return the number of supported video modes.
+If no modes are supported, this function should not be implemented; the
+general routines will return 1. (for the current mode)
+</dd>
+<dt>GetVideoModeData</dt>
+<dd> Should return the data for the <var>Index</var>-th mode;
+<var>Index</var> is zero based. The function should return true if the data was
+returned correctly, false if <var>Index</var> contains an invalid index.
+If this is not implemented, then the general routine will return the current 
+video mode when <var>Index</var> equals 0.
+</dd>
+<dt>GetCapabilities</dt>
+<dd> If this function is not implemented, zero (i.e.
+no capabilities) will be returned by the general function.
+</dd>
+</dl>
+<p>
+The following unit shows how to override a video driver, with a driver
+that writes debug information to a file. The unit can be used in any of
+the demonstration programs, by simply including it in the <var>uses</var>
+clause. Setting <var>DetailedVideoLogging</var> to
+<var>True</var> will create a more detailed log (but will also slow down
+functioning)
+</p>
+</descr>
+<example file="videoex/viddbg"/>
+</topic>
+
+<topic name="vidutil">
+<short>Examples utility unit</short>
+<descr>
+The examples in this section make use of the unit <file>vidutil</file>, which 
+contains the <var>TextOut</var> function. This function writes a text to the
+screen at a given location. It looks as follows:
+</descr>
+<example file="videoex/vidutil"/>
+</topic>
+
+
+</module>
+</package>
+</fpdoc-descriptions>

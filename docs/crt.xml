@@ -1,0 +1,667 @@
+<?xml version="1.0" encoding="ISO8859-1"?>
+<fpdoc-descriptions>
+<!--  
+
+   $Id$ 
+   This file is part of the FPC documentation. 
+   Copyright (C) 1997, by Michael Van Canneyt 
+ 
+   The FPC documentation is free text; you can redistribute it and/or 
+   modify it under the terms of the GNU Library General Public License as 
+   published by the Free Software Foundation; either version 2 of the 
+   License, or (at your option) any later version. 
+ 
+   The FPC Documentation is distributed in the hope that it will be useful, 
+   but WITHOUT ANY WARRANTY; without even the implied warranty of 
+   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU 
+   Library General Public License for more details. 
+ 
+   You should have received a copy of the GNU Library General Public 
+   License along with the FPC documentation; see the file COPYING.LIB.  If not, 
+   write to the Free Software Foundation, Inc., 59 Temple Place - Suite 330, 
+   Boston, MA 02111-1307, USA. 
+ -->
+<package name="rtl">
+<module name="crt">
+<short>CRT - Turbo Pascal screen and keyboard handling unit</short>
+<!-- \FPCexampledir{crtex} -->
+<descr>
+<p>
+This chapter describes the <var>CRT</var> unit for Free Pascal, both under dos
+linux and Windows. The unit was first written for dos by Florian klaempfl. 
+The unit was ported to linux by Mark May and enhanced by Michael Van Canneyt
+and Peter Vreman. It works on the linux console, and in xterm and rxvt windows
+under X-Windows. The functionality for both is the same, except that under
+linux the use of an early implementation (versions 0.9.1 and earlier of the
+compiler) the crt unit automatically cleared the screen at program startup.
+</p>
+<p>
+There are some caveats when using the CRT unit:
+</p>
+<ul>
+<li> Programs using the CRT unit will <em> not</em> be usable when input/output 
+is being redirected on the command-line.
+</li>
+<li> For similar reasons they are not usable as CGI-scripts for use with a 
+webserver. 
+</li>
+<li> The use of the CRT unit and the graph unit may not always be supported. 
+</li>
+<li> On linux or other unix OSes , executing other programs that expect 
+special terminal behaviour (using one of the special functions in the linux
+unit) will not work. The terminal is set in RAW mode, which will destroy
+most terminal emulation settings.
+</li>
+</ul>
+</descr>
+
+<element name="Black">
+<short>Black color attribute</short>
+</element>
+
+<element name="Blue">
+<short>Blue color attribute</short>
+</element>
+
+<element name="Green">
+<short>Green color attribute</short>
+</element>
+
+<element name="Cyan">
+<short>Cyan color attribute</short>
+</element>
+
+<element name="Red">
+<short>Red color attribute</short>
+</element>
+
+<element name="Magenta">
+<short>Magenta color attribute</short>
+</element>
+
+<element name="Brown">
+<short>Brown color attribute</short>
+</element>
+
+<element name="LightGray">
+<short>Light gray color attribute</short>
+</element>
+
+<element name="DarkGray">
+<short>Dark gray color attribute</short>
+</element>
+
+<element name="LightBlue">
+<short>Light Blue color attribute</short>
+</element>
+
+<element name="LightGreen">
+<short>Light green color attribute</short>
+</element>
+
+<element name="LightCyan">
+<short>Light cyan color attribute</short>
+</element>
+
+<element name="LightRed">
+<short>Light red color attribute</short>
+</element>
+
+<element name="LightMagenta">
+<short>Light magenta color attribute</short>
+</element>
+
+<element name="Yellow">
+<short>Yellow color attribute</short>
+</element>
+
+<element name="White">
+<short>White color attribute</short>
+</element>
+
+<element name="Blink">
+<short>Blink attribute</short>
+</element>
+
+<element name="TextAttr">
+<short>Mask to filter text attribute</short>
+<descr>
+The <var>TextAttr</var> variable controls the attributes with which characters
+are written to screen.
+</descr>
+</element>
+
+<element name="TextChar">
+<short>Text character used when filling</short>
+</element>
+
+<element name="CheckBreak">
+<short>Check for CTRL-Break keystroke. Not used.</short>
+</element>
+
+<element name="CheckEOF">
+<short>Check for EOF on standard input. Not used.</short>
+</element>
+
+<element name="CheckSnow">
+<short>Check snow on CGA screens. Not used.</short>
+</element>
+
+<element name="DirectVideo">
+<short>Use direct video access. DOS only</short>
+<descr>
+The <var>DirectVideo</var> variable controls the writing to the screen. If it is
+<var>True</var>, the the cursor is set via direct port access. If <var>False</var>,
+then the BIOS is used. This is defined under dos only.
+</descr>
+</element>
+
+<element name="LastMode">
+<short>Last screen mode.</short>
+<descr>
+The <var>Lastmode</var> variable tells you which mode was last selected for the
+screen. It is defined on DOS only.
+</descr>
+</element>
+
+<element name="WindMin">
+<short>Minimum window dimension</short>
+</element>
+
+<element name="WindMax">
+<short>Maximum window dimension</short>
+</element>
+
+<element name="WindMaxX">
+<short>Maximum window X size</short>
+</element>
+
+<element name="WindMaxY">
+<short>Maximum window Y size</short>
+</element>
+
+<element name="WindMinX">
+<short>Minimum window X size</short>
+</element>
+
+<element name="WindMinY">
+<short>Minimum window Y size</short>
+</element>
+
+<element name="ScreenWidth">
+<short>Current screen width</short>
+</element>
+
+<element name="ScreenHeight">
+<short>Current screen height.</short>
+</element>
+
+<element name="bw40">
+<short>40 columns black and white screen mode.</short>
+</element>
+
+<element name="co40">
+<short>40 columns color screen mode.</short>
+</element>
+
+<element name="c40">
+<short>40 columns color screen mode.</short>
+</element>
+
+<element name="bw80">
+<short>80 columns black and white screen mode.</short>
+</element>
+
+<element name="co80">
+<short>80 columns color screen mode.</short>
+</element>
+
+<element name="c80">
+<short>80 columns color screen mode.</short>
+</element>
+
+<element name="mono">
+<short>Monochrome screen mode (hercules screens)</short>
+</element>
+
+<element name="Font8x8">
+<short>Internal ROM font mode</short>
+</element>
+
+<element name="ConsoleMaxX" skip="1"/>
+<element name="ConsoleMaxY" skip="1"/>
+<element name="Flushing" skip="1"/>
+<element name="PConsoleBuf" skip="1"/>
+<element name="TCharAttr" skip="1"/>
+<element name="TConsoleBuf" skip="1"/>
+<element name="ConsoleBuf" skip="1"/>
+
+
+<element name="AssignCrt">
+<short>Assign file to CRT.</short>
+<descr>
+<var>AssignCrt</var> Assigns a file <var>F</var> to the console. Everything written to 
+the file <var>F</var> goes to the console instead. If the console contains a window, 
+everything is written to the window instead.
+</descr>
+<errors>
+None.
+</errors>
+<seealso>
+<link id="Window"/>
+</seealso>
+<example file="crtex/ex1"/>
+</element>
+
+ 
+<element name="CursorBig">
+<short>Show big cursor</short>
+<descr>
+<var>CursorBig</var> makes the cursor a big rectangle. 
+Not implemented on unixes.
+</descr>
+<errors>
+None.
+</errors>
+<seealso>
+<link id="CursorOn"/>
+<link id="CursorOff"/>
+</seealso>
+</element>
+
+<element name="ClrEol">
+<short>Clear from cursor position till end of line.</short>
+<descr>
+<var>ClrEol</var> clears the current line, starting from the cursor position, to the
+end of the window. The cursor doesn't move
+</descr>
+<errors>
+None.
+</errors>
+<seealso>
+<link id="DelLine"/>
+<link id="InsLine"/>
+<link id="ClrScr"/>
+</seealso>
+<example file="crtex/ex9"/>
+</element>
+
+ 
+<element name="ClrScr">
+<short>Clear current window.</short>
+<descr>
+<var>ClrScr</var> clears the current window (using the current colors), 
+and sets the cursor in the top left
+corner of the current window.
+</descr>
+<errors>
+None.
+</errors>
+<seealso>
+<link id="Window"/> 
+</seealso>
+<example file="crtex/ex8"/>
+</element>
+
+ 
+<element name="CursorOff">
+<short>Hide cursor</short>
+<descr>
+<var>CursorOff</var> switches the cursor off (i.e. the cursor is no
+longer visible).  Not implemented on unixes.
+</descr>
+<errors>
+None.
+</errors>
+<seealso>
+<link id="CursorOn"/>
+<link id="CursorBig"/>
+</seealso>
+</element>
+
+<element name="CursorOn">
+<short>Display cursor</short>
+<descr>
+<var>CursorOn</var> switches the cursor on. Not implemented on unixes.
+</descr>
+<errors>
+None.
+</errors>
+<seealso>
+<link id="CursorBig"/>
+<link id="CursorOff"/>
+</seealso>
+</element>
+
+<element name="Delay">
+<short>Delay program execution.</short>
+<descr>
+<var>Delay</var> waits a specified number of milliseconds. The number of specified
+seconds is an approximation, and may be off a lot, if system load is high.
+</descr>
+<errors>
+None
+</errors>
+<seealso>
+<link id="Sound"/>
+<link id="NoSound"/>
+</seealso>
+<example file="crtex/ex15"/>
+</element>
+
+ 
+<element name="DelLine">
+<short>Delete line at cursor position.</short>
+<descr>
+<var>DelLine</var> removes the current line. Lines following the current line are 
+scrolled 1 line up, and an empty line is inserted at the bottom of the
+current window. The cursor doesn't move.
+</descr>
+<errors>
+None.
+</errors>
+<seealso>
+<link id="ClrEol"/>
+<link id="InsLine"/>
+<link id="ClrScr"/>
+</seealso>
+<example file="crtex/ex11"/>
+</element>
+
+ 
+<element name="GotoXY">
+<short>Set cursor position on screen.</short>
+<descr>
+<var>GotoXY</var> positions the cursor at <var>(X,Y)</var>, <var>X</var> in horizontal, <var>Y</var> in
+vertical direction relative to the origin of the current window. The origin
+is located at <var>(1,1)</var>, the upper-left corner of the window.
+</descr>
+<errors>
+None.
+</errors>
+<seealso>
+<link id="WhereX"/>
+<link id="WhereY"/>
+<link id="Window"/> 
+</seealso>
+<example file="crtex/ex6"/>
+</element>
+
+ 
+<element name="HighVideo">
+<short>Switch to highlighted text mode</short>
+<descr>
+<var>HighVideo</var> switches the output to highlighted text. (It sets the high
+intensity bit of the video attribute)
+</descr>
+<errors>
+None.
+</errors>
+<seealso>
+<link id="TextColor"/>
+<link id="TextBackground"/>
+<link id="LowVideo"/>
+<link id="NormVideo"/>
+</seealso>
+<example file="crtex/ex14"/>
+</element>
+
+ 
+<element name="InsLine">
+<short>Insert an empty line at cursor position</short>
+<descr>
+<var>InsLine</var> inserts an empty line at the current cursor position. 
+Lines following the current line are scrolled 1 line down, 
+causing the last line to disappear from the window. 
+The cursor doesn't move.
+</descr>
+<errors>
+None.
+</errors>
+<seealso>
+<link id="ClrEol"/>
+<link id="DelLine"/>
+<link id="ClrScr"/>
+</seealso>
+<example file="crtex/ex10"/>
+</element>
+
+
+<element name="KeyPressed">
+<short>Check if there is a keypress in the keybuffer</short>
+<descr>
+<var>Keypressed</var> scans the keyboard buffer and sees if a key has
+been pressed. If this is the case, <var>True</var> is returned. If not,
+<var>False</var> is returned. The <var>Shift, Alt, Ctrl</var> keys are not reported.
+The key is not removed from the buffer, and can hence still be read after
+the <var>KeyPressed</var> function has been called.
+</descr>
+<errors>
+None.
+</errors>
+<seealso>
+<link id="ReadKey"/>
+</seealso>
+<example file="crtex/ex2"/>
+</element>
+
+ 
+<element name="LowVideo">
+<short>Switch to low intensity colors.</short>
+<descr>
+<p>
+<var>LowVideo</var> switches the output to non-highlighted text. (It clears the high
+intensity bit of the video attribute)
+</p>
+<p>
+For an example, see <link id="HighVideo"/>
+</p>
+</descr>
+<errors>
+None.
+</errors>
+<seealso>
+<link id="TextColor"/>
+<link id="TextBackground"/>
+<link id="HighVideo"/>
+<link id="NormVideo"/>
+</seealso>
+</element>
+
+<element name="NormVideo">
+<short>Return to normal (startup) modus</short>
+<descr>
+<p>
+<var>NormVideo</var> switches the output to the defaults, read at startup. (The
+defaults are read from the cursor position at startup)
+</p>
+<p>
+For an example, see <link id="HighVideo"/>
+</p>
+</descr>
+<errors>
+None.
+</errors>
+<seealso>
+<link id="TextColor"/>
+<link id="TextBackground"/>
+<link id="LowVideo"/>
+<link id="HighVideo"/>
+</seealso>
+</element>
+
+<element name="NoSound">
+<short>Stop system speaker</short>
+<descr>
+<var>NoSound</var> stops the speaker sound. 
+This call is not supported on all operating systems.
+</descr>
+<errors>
+None.
+</errors>
+<seealso>
+<link id="Sound"/>
+</seealso>
+<example file="crtex/ex16"/>
+</element>
+
+<element name="ReadKey">
+<short>Read key from keybuffer</short>
+<descr>
+<p>
+<var>ReadKey</var> reads 1 key from the keyboard buffer, and returns this.
+If an extended or function key has been pressed, then the zero ASCII code is 
+returned. You can then read the scan code of the key with a second ReadKey
+call.
+</p>
+<p>
+Key mappings under Linux can cause the wrong key to be
+reported by <var>ReadKey</var>, so caution is needed when using
+<var>ReadKey</var>. 
+</p>
+</descr>
+<errors>
+None.
+</errors>
+<seealso>
+<link id="KeyPressed"/>
+</seealso>
+<example file="crtex/ex3"/>
+</element>
+
+
+<element name="Sound">
+<short>Sound system speaker</short>
+<descr>
+<var>Sound</var> sounds the speaker at a frequency of <var>hz</var>. Under Windows,
+a system sound is played and the frequency parameter is ignored.
+On other operating systems, this routine may not be implemented.
+</descr>
+<errors>
+None.
+</errors>
+<seealso>
+<link id="NoSound"/>
+</seealso>
+</element>
+
+<element name="TextBackground">
+<short>Set text background</short>
+<descr>
+<var>TextBackground</var> sets the background color to <var>CL</var>. <var>CL</var> can be one of the
+predefined color constants.
+</descr>
+<errors>
+None.
+</errors>
+<seealso>
+<link id="TextColor"/>
+<link id="HighVideo"/>
+<link id="LowVideo"/>
+<link id="NormVideo"/>
+</seealso>
+<example file="crtex/ex13"/>
+</element>
+
+ 
+<element name="TextColor">
+<short>Set text color</short>
+<descr>
+<var>TextColor</var> sets the foreground color to <var>CL</var>. <var>CL</var> can be one of the
+predefined color constants.
+</descr>
+<errors>
+None.
+</errors>
+<seealso>
+<link id="TextBackground"/>
+<link id="HighVideo"/>
+<link id="LowVideo"/>
+<link id="NormVideo"/>
+</seealso>
+<example file="crtex/ex12"/>
+</element>
+
+<element name="TextMode">
+<short>Set screen mode.</short>
+<descr>
+<p>
+<var>TextMode</var> sets the textmode of the screen (i.e. the number of lines
+and columns of the screen). The lower byte is use to set the VGA text mode.
+</p>
+<p>
+This procedure is only implemented on dos.
+</p>
+</descr>
+<errors>
+None.
+</errors>
+<seealso>
+<link id="Window"/>
+</seealso>
+</element>
+ 
+<element name="WhereX">
+<short>Return X (horizontal) cursor position</short>
+<descr>
+<var>WhereX</var> returns the current X-coordinate of the cursor, relative to the
+current window. The origin is <var>(1,1)</var>, in the upper-left corner of the
+window.
+</descr>
+<errors>
+None.
+</errors>
+<seealso>
+<link id="GotoXY"/>
+<link id="WhereY"/>
+<link id="Window"/> 
+</seealso>
+<example file="crtex/ex7"/>
+</element>
+ 
+<element name="WhereY">
+<short>Return Y (vertical) cursor position</short>
+<descr>
+<var>WhereY</var> returns the current Y-coordinate of the cursor, relative to the
+current window. The origin is <var>(1,1)</var>, in the upper-left corner of the
+window.
+
+</descr>
+<errors>
+None.
+</errors>
+<seealso>
+ <link id="GotoXY"/>
+<link id="WhereX"/>
+<link id="Window"/> 
+</seealso>
+<example file="crtex/ex7"/>
+</element>
+
+ 
+<element name="Window">
+<short>Create new window on screen.</short>
+<descr>
+<var>Window</var> creates a window on the screen, to which output will be sent.
+<var>(X1,Y1)</var> are the coordinates of the upper left corner of the window,
+<var>(X2,Y2)</var> are the coordinates of the bottom right corner of the window.
+These coordinates are relative to the entire screen, with the top left
+corner equal to <var>(1,1)</var>.
+Further coordinate operations, except for the next Window call,
+are relative to the window's top left corner.
+</descr>
+<errors>
+None.
+</errors>
+<seealso>
+<link id="GotoXY"/>
+<link id="WhereX"/>
+<link id="WhereY"/>
+<link id="ClrScr"/>
+</seealso>
+<example file="crtex/ex5"/>
+</element>
+
+</module>
+</package>
+</fpdoc-descriptions>

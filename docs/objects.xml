@@ -1,0 +1,3264 @@
+<?xml version="1.0" encoding="ISO8859-1"?>
+<fpdoc-descriptions>
+<!--
+
+   $Id$
+   This file is part of the FPC documentation.
+   Copyright (C) 1997, by Michael Van Canneyt
+
+   The FPC documentation is free text; you can redistribute it and/or
+   modify it under the terms of the GNU Library General Public License as
+   published by the Free Software Foundation; either version 2 of the
+   License, or (at your option) any later version.
+
+   The FPC Documentation is distributed in the hope that it will be useful,
+   but WITHOUT ANY WARRANTY; without even the implied warranty of
+   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+   Library General Public License for more details.
+
+   You should have received a copy of the GNU Library General Public
+   License along with the FPC documentation; see the file COPYING.LIB.  If not,
+   write to the Free Software Foundation, Inc., 59 Temple Place - Suite 330,
+   Boston, MA 02111-1307, USA.
+ -->
+<package name="rtl">
+<module name="objects">
+<short>The Objects unit.</short>
+<!-- \FPCexampledir{objectex} -->
+<descr>
+<p>
+This document documents the <file>objects</file> unit. The unit was implemented by
+many people, and was mainly taken from the FreeVision sources. It has been
+ported to all supported platforms.
+</p>
+<p>
+The methods and fields that are in a <var>Private</var> part of an object
+declaration have been left out of this documentation.
+</p>
+</descr>
+
+<element name="stOk">
+<short>Stream error codes: No error</short>
+</element>
+
+<element name="stError">
+<short>Stream error codes: Access error</short>
+</element>
+
+<element name="stInitError">
+<short>Stream error codes: Initialize error</short>
+</element>
+
+<element name="stReadError">
+<short>Stream error codes: Stream read error</short>
+</element>
+
+<element name="stWriteError">
+<short>Stream error codes: Stream write error</short>
+</element>
+
+<element name="stGetError">
+<short>Stream error codes: Get object error</short>
+</element>
+
+<element name="stPutError">
+<short>Stream error codes: Put object error</short>
+</element>
+
+<element name="stSeekError">
+<short>Stream error codes: Seek error in stream</short>
+</element>
+
+<element name="stOpenError">
+<short>Stream error codes: Error opening stream</short>
+</element>
+
+<element name="stCreate">
+<short>Stream initialization mode: Create new file</short>
+</element>
+
+<element name="stOpenRead">
+<short>Stream initialization mode: Read access only</short>
+</element>
+
+<element name="stOpenWrite">
+<short>Stream initialization mode: Write access only</short>
+</element>
+
+<element name="stOpen">
+<short>Stream initialization mode: Read/write access</short>
+</element>
+
+<element name="coIndexError">
+<short>Collection list error: Index out of range</short>
+</element>
+
+<element name="coOverflow">
+<short>Collection list error: Overflow</short>
+</element>
+
+<element name="MaxBytes">
+<short>Maximum data size (in bytes)</short>
+</element>
+
+<element name="MaxWords">
+<short>Maximum data size (in words)</short>
+</element>
+
+<element name="MaxPtrs">
+<short>Maximum data size (in pointers)</short>
+</element>
+
+<element name="MaxReadBytes">
+<short>Maximum data that can be read from a stream (not used)</short>
+</element>
+
+<element name="MaxCollectionSize">
+<short>Maximum collection size (in items)</short>
+</element>
+
+<element name="DefaulTPCompatible">
+<short>Is the default stream content TP compatible</short>
+<descr>
+This variable determines whether the default stream is filled or read in a
+TP compatible way. The <var>TPCompatible</var> field can be set on a
+per-stream basis, and is initialized with the <var>DefaulTPCompatible</var>
+value.
+</descr>
+</element>
+
+<element name="RCollection">
+<short>Default stream record for the <link id="TCollection"/> object.</short>
+</element>
+
+<element name="RStrCollection">
+<short>Default stream record for the <link id="TStrCollection"/> object.</short>
+</element>
+
+<element name="RStringCollection">
+<short>Default stream record for the <link id="TStringCollection"/> object.</short>
+</element>
+
+<element name="RStringList">
+<short>Default stream record for the <link id="TStringList"/> object.</short>
+</element>
+
+<element name="RStrListMaker">
+<short>Default stream record for the <link id="TStrListMaker"/> object.</short>
+</element>
+
+<element name="StreamError">
+<short>Pointer to default stream error handler.</short>
+</element>
+
+<element name="vmtHeaderSize">
+<short>Size of the VMT header in an object (not used).</short>
+</element>
+
+
+<element name="MaxTPCompatibleCollectionSize">
+<short>Maximum collection size (in items, same value as in TP)</short>
+</element>
+
+
+<element name="TCharSet">
+<short>Generic set of characters type.</short>
+</element>
+
+<element name="PCharSet">
+<short>Pointer to <link id="TCharSet"/>.</short>
+</element>
+
+<element name="TByteArray">
+<short>Array with maxmimum allowed number of bytes.</short>
+</element>
+
+<element name="PByteArray">
+<short>Pointer to <link id="TByteArray"/></short>
+</element>
+
+<element name="TWordArray">
+<short>Array with maxmimum allowed number of words.</short>
+</element>
+
+<element name="PWordArray">
+<short>Pointer to <link id="TWordArray"/></short>
+</element>
+
+<element name="TPointerArray">
+<short>Array with maxmimum allowed number of pointers</short>
+</element>
+
+<element name="PPointerArray">
+<short>Pointer to <link id="TPointerArray"/></short>
+</element>
+
+<element name="PString">
+<short>Pointer to a shortstring.</short>
+</element>
+
+<element name="AsciiZ">
+<short>Filename - null terminated array of characters.</short>
+</element>
+
+<element name="FNameStr">
+<short>Filename - shortstring version.</short>
+</element>
+
+<element name="Sw_Word">
+<short>Alias for Cardinal</short>
+</element>
+
+<element name="Sw_Integer">
+<short>Alias for longint</short>
+</element>
+
+<element name="WordRec">
+<short>Record describing a Word (in bytes)</short>
+</element>
+
+<element name="WordRec.Hi">
+<short>High byte of a word</short>
+</element>
+
+<element name="WordRec.Lo">
+<short>Low byte of a word</short>
+</element>
+
+<element name="LongRec">
+<short>Record describing a longint (in Words)</short>
+</element>
+
+<element name="LongRec.Lo">
+<short>Lower word of longint</short>
+</element>
+
+<element name="LongRec.Hi">
+<short>High word of longint</short>
+</element>
+
+<element name="PtrRec">
+<short>Record describing a pointer to a memory location.</short>
+</element>
+
+<element name="PtrRec.Ofs">
+<short>Pointer offset</short>
+</element>
+
+<element name="PtrRec.Seg">
+<short>Pointer segment</short>
+</element>
+
+<element name="PStreamRec">
+<short>Pointer to <link id="TStreamRec"/></short>
+</element>
+
+<element name="TStreamRec">
+<short>Record used in streaming mechanism. </short>
+<descr>
+<var>TSreamRec</var> is used by the <file>Objects</file> unit streaming
+mechanism: when an object is registered, a <var>TStreamRec</var> record is
+added to a list of records. This list is used when objects need to be
+streamed from/streamed to a stream. It contains all the information needed
+to stream the object.
+</descr>
+</element>
+
+<element name="TStreamRec.ObjType">
+<short>Unique identifier for this object type.</short>
+</element>
+
+<element name="TStreamRec.VmtLink">
+<short>Pointer to object VMT</short>
+</element>
+
+<element name="TStreamRec.Load">
+<short>Procedure to call when object must be loaded from a stream</short>
+</element>
+
+<element name="TStreamRec.Store">
+<short>Procedure to call when object must be stored in a stream.</short>
+</element>
+
+<element name="TStreamRec.Next">
+<short>Next item in list</short>
+</element>
+
+<element name="PPoint">
+<short>Pointer to <link id="TPoint"/> record.</short>
+</element>
+
+<element name="TPoint">
+<short>Record describing a point in a 2 dimensional plane.</short>
+</element>
+
+<element name="TPoint.X">
+<short>X coordinate</short>
+</element>
+
+<element name="TPoint.Y">
+<short>Y coordinate</short>
+</element>
+
+<element name="TItemList">
+<short>Pointer array type used in a <link id="TCollection"/></short>
+</element>
+
+<element name="TStrIndex">
+<short>Pointer array type used in a <link id="TStringList"/></short>
+</element>
+
+<element name="TStrIndexRec">
+<short>Record type used in a <link id="TStringList"/> to store the strings</short>
+</element>
+
+<element name="TStrIndexRec.Key">
+<short>String key value</short>
+</element>
+
+<element name="TStrIndexRec.Count">
+<short>String character count</short>
+</element>
+
+<element name="TStrIndexRec.Offset">
+<short>String offset in stream</short>
+</element>
+
+<element name="NewStr">
+<short>Allocate a copy of a shortstring on the heap.</short>
+<descr>
+<p>
+<var>NewStr</var> makes a copy of the string <var>S</var> on the heap,
+and returns a pointer to this copy. If the string is empty then
+<var>Nil</var> is returned.
+</p>
+<p>
+The allocated memory is not based on the declared size of the string passed
+to <var>NewStr</var>, but is baed on the actual length of the string.
+</p>
+</descr>
+<errors>
+If not enough memory is available, an 'out of memory' error will occur.
+</errors>
+<seealso>
+<link id="DisposeStr"/>
+<link id="SetStr"/>
+</seealso>
+<example file="objectex/ex40"/>
+</element>
+
+<element name="SetStr">
+<short>Allocate a copy of a shortstring on the heap.</short>
+<descr>
+<p>
+<var>SetStr</var> makes a copy of the string <var>S</var> on the heap and
+returns the pointer to this copy in <var>P</var>. If <var>P</var> pointed to
+another string (i.e. was not <var>Nil</var>, the memory is released first.
+Contrary to <link id="NewStr"/>, if the string is empty then a pointer to 
+an empty string is returned.
+</p>
+<p>
+The allocated memory is not based on the declared size of the string passed
+to <var>NewStr</var>, but is based on the actual length of the string.
+</p>
+</descr>
+<errors>
+If not enough memory is available, an 'out of memory' error will occur.
+</errors>
+<seealso>
+<link id="DisposeStr"/>
+<link id="NewStr"/>
+</seealso>
+</element>
+
+
+
+<element name="DisposeStr">
+<short>Dispose of a shortstring which was allocated on the heap.</short>
+<descr>
+<p>
+<var>DisposeStr</var> removes a dynamically allocated string from the heap.
+</p>
+<p>
+For an example, see <link id="NewStr"/>.
+</p>
+</descr>
+<errors>
+None.
+</errors>
+<seealso>
+<link id="NewStr"/>
+<link id="SetStr"/>
+</seealso>
+</element>
+
+
+<element name="Abstract">
+<short>Abstract error handler.</short>
+<descr>
+<p>
+When implementing abstract methods, do not declare them as <var>abstract</var>.
+Instead, define them simply as <var>virtual</var>. In the implementation of such
+abstract methods, call the <var>Abstract</var> procedure. This allows explicit
+control of what happens when an abstract method is called.
+</p>
+<p>
+The current implementation of <var>Abstract</var> terminates the program with
+a run-time error 211.
+</p>
+</descr>
+<errors>
+None.
+</errors>
+</element>
+
+<element name="RegisterObjects">
+<short>Register standard objects.</short>
+<descr>
+<p>
+<var>RegisterObjects</var> registers the following objects for streaming:
+</p>
+<ol>
+<li> <var>TCollection</var>, see <link id="TCollection"/>.</li>
+<li> <var>TStringCollection</var>, see <link id="TStringCollection"/>.</li>
+<li> <var>TStrCollection</var>, see <link id="TStrCollection"/>.</li>
+</ol>
+</descr>
+<errors>
+None.
+</errors>
+<seealso>
+<link id="RegisterType"/>
+</seealso>
+</element>
+
+<element name="RegisterType">
+<short>Register new object for streaming.</short>
+<descr>
+<p>
+<var>RegisterType</var> registers a new type for streaming. An object cannot
+be streamed unless it has been registered first.
+The stream record <var>S</var> needs to have the following fields set:
+</p>
+<dl>
+<dt>ObjType: Sw_Word</dt>
+<dd> This should be a unique identifier. Each possible
+type should have it's own identifier.
+</dd>
+<dt>VmtLink: pointer</dt>
+<dd>This should contain a pointer to the VMT (Virtual
+Method Table) of the object you try to register.
+</dd>
+<dt>Load : Pointer</dt>
+<dd> is a pointer to a method that initializes an instance
+of that object, and reads the initial values from a stream. This method
+should accept as it's sole argument a <var>PStream</var> type variable.
+</dd>
+<dt>Store: Pointer</dt>
+<dd>is a pointer to a method that stores an instance of the
+object to a stream. This method should accept as it's sole argument
+ a <var>PStream</var> type variable.
+</dd>
+</dl>
+<p>
+The VMT of the object can be retrieved with the
+following expression:
+</p>
+<code>
+  VmtLink: Ofs(TypeOf(MyType)^);
+</code>
+</descr>
+<errors>
+In case of error (if a object with the same <var>ObjType</var>) is already
+registered), run-time error 212 occurs.
+</errors>
+<example file="objectex/myobject"/>
+</element>
+
+
+<element name="LongMul">
+<short>Overflow safe multiply.</short>
+<descr>
+<var>LongMul</var> multiplies <var>X</var> with <var>Y</var>. The result is of
+type <var>Longint</var>. This avoids possible overflow errors you would normally
+get when multiplying <var>X</var> and <var>Y</var> that are too big.
+</descr>
+<errors>
+None.
+</errors>
+<seealso>
+<link id="LongDiv"/>
+</seealso>
+</element>
+
+<element name="LongDiv">
+<short>Overflow safe divide</short>
+<descr>
+<var>LongDiv</var> divides <var>X</var> by <var>Y</var>. The result is of
+type <var>Integer</var> instead of type <var>Longint</var>, as you would get 
+normally. 
+</descr>
+<errors>
+If Y is zero, a run-time error will be generated.
+</errors>
+<seealso>
+<link id="LongMul"/>
+</seealso>
+</element>
+
+<element name="TRect">
+<short>Describes a rectangular region in a plane.</short>
+</element>
+
+<element name="TRect.A">
+<short>Top left corner of rectangle</short>
+</element>
+
+<element name="TRect.B">
+<short>Bottom right corner of rectangle</short>
+</element>
+
+<element name="TRect.Empty">
+<short>Is the surface of the rectangle zero</short>
+<descr>
+<var>Empty</var> returns <var>True</var> if the rectangle defined by the corner points
+<var>A</var>, <var>B</var> has zero or negative surface.
+</descr>
+<errors>
+None.
+</errors>
+<seealso>
+<link id="TRect.Equals"/>
+<link id="TRect.Contains"/>
+</seealso>
+<example file="objectex/ex1"/>
+</element>
+
+
+<element name="TRect.Equals">
+<short>Do the corners of the rectangles match</short>
+<descr>
+<p>
+<var>Equals</var> returns <var>True</var> if the rectangle has the 
+same corner points <var>A,B</var> as the rectangle R, and <var>False</var>
+otherwise.
+</p>
+<p>
+For an example, see <link id="TRect.Empty"/>
+</p>
+</descr>
+<errors>
+None.
+</errors>
+<seealso>
+<link id="TRect.Empty"/>
+<link id="TRect.Contains"/>
+</seealso>
+</element>
+
+
+<element name="TRect.Contains">
+<short>Determine if a point is inside the rectangle</short>
+<descr>
+<var>Contains</var> returns <var>True</var> if the point <var>P</var> is contained
+in the rectangle (including borders), <var>False</var> otherwise.
+</descr>
+<errors>
+None.
+</errors>
+<seealso>
+<link id="TRect.Intersect"/>
+<link id="TRect.Equals"/>
+</seealso>
+</element>
+
+<element name="TRect.Copy">
+<short>Copy cornerpoints from another rectangle.</short>
+<descr>
+Assigns the rectangle R to the object. After the call to <var>Copy</var>, the
+rectangle R has been copied to the object that invoked <var>Copy</var>.
+</descr>
+<errors>
+None.
+</errors>
+<seealso>
+<link id="TRect.Assign"/>
+</seealso>
+<example file="objectex/ex2"/>
+</element>
+
+
+<element name="TRect.Union">
+<short>Enlarges rectangle to encompas another rectangle.</short>
+<descr>
+<var>Union</var> enlarges the current rectangle so that it becomes the union
+of the current rectangle with the rectangle <var>R</var>.
+</descr>
+<errors>
+None.
+</errors>
+<seealso>
+<link id="TRect.Intersect"/>
+</seealso>
+<example file="objectex/ex3"/>
+</element>
+
+
+<element name="TRect.Intersect">
+<short>Reduce rectangle to intersection with another rectangle</short>
+<descr>
+<var>Intersect</var> makes the intersection of the current rectangle with
+<var>R</var>. If the intersection is empty, then the rectangle is set to the empty
+rectangle at coordinate (0,0).
+</descr>
+<errors>
+None.
+</errors>
+<seealso>
+<link id="TRect.Union"/>
+</seealso>
+<example file="objectex/ex4"/>
+</element>
+
+<element name="TRect.Move">
+<short>Move rectangle along a vector.</short>
+<descr>
+<var>Move</var> moves the current rectangle along a vector with components
+<var>(ADX,ADY)</var>. It adds <var>ADX</var> to the X-coordinate of both corner
+points, and <var>ADY</var> to both end points.
+</descr>
+<errors>
+None.
+</errors>
+<seealso>
+<link id="TRect.Grow"/>
+</seealso>
+<example file="objectex/ex5"/>
+</element>
+
+
+<element name="TRect.Grow">
+<short>Expand rectangle with certain size.</short>
+<descr>
+<p>
+<var>Grow</var> expands the rectangle with an amount <var>ADX</var> in the <var>X</var>
+direction (both on the left and right side of the rectangle, thus adding a 
+length 2*ADX to the width of the rectangle), and an amount <var>ADY</var> in 
+the <var>Y</var> direction (both on the top and the bottom side of the rectangle,
+adding a length 2*ADY to the height of the rectangle. 
+</p>
+<p>
+<var>ADX</var> and <var>ADY</var> can be negative. If the resulting rectangle is empty, it is set 
+to the empty rectangle at <var>(0,0)</var>.
+</p>
+</descr>
+<errors>
+None.
+</errors>
+<seealso>
+<link id="TRect.Move"/>
+</seealso>
+<example file="objectex/ex6"/>
+</element>
+
+<element name="TRect.Assign">
+<short>Set rectangle corners.</short>
+<descr>
+<p>
+<var>Assign</var> sets the corner points of the rectangle to <var>(XA,YA)</var> and
+<var>(Xb,Yb)</var>.
+</p>
+<p>
+For an example, see <link id="TRect.Copy"/>.
+</p>
+</descr>
+<errors>
+None.
+</errors>
+<seealso>
+<link id="TRect.Copy"/>
+</seealso>
+</element>
+
+<element name="TObject">
+<short>Basis of all objects</short>
+<descr>
+This type serves as the basic object for all other objects in the
+<file>Objects</file> unit.
+</descr>
+</element>
+
+<element name="TObject.Init">
+<short>Construct (initialize) a new object</short>
+<descr>
+<p>
+Instantiates a new object of type <var>TObject</var>. It fills the instance up
+with Zero bytes.
+</p>
+<p>
+For an example, see <link id="TObject.Free">Free</link>
+</p>
+</descr>
+<errors>
+None.
+</errors>
+<seealso>
+<link id="TObject.Free"/>
+<link id="TObject.Done"/>
+</seealso>
+</element>
+
+
+<element name="TObject.Free">
+<short>Destroy an object and release all memory.</short>
+<descr>
+<var>Free</var> calls the destructor of the object, and releases the memory
+occupied by the instance of the object.
+</descr>
+<errors>
+No checking is performed to see whether <var>self</var> is <var>nil</var> and whether
+the object is indeed allocated on the heap.
+</errors>
+<seealso>
+<link id="TObject.Init"/>
+<link id="TObject.Done"/>
+</seealso>
+<example file="objectex/ex7"/>
+</element>
+
+
+<element name="TObject.Done">
+<short>Destroy an object.</short>
+<descr>
+<p>
+<var>Done</var>, the destructor of <var>TObject</var> does nothing. It is mainly
+intended to be used in the <link id="TObject.Free"/> method.
+</p>
+<p>
+The destructore Done does not free the memory occupied by the object.
+</p>
+</descr>
+<errors>
+None.
+</errors>
+<seealso>
+<link id="TObject.Free"/>
+<link id="TObject.Init"/>
+</seealso>
+<example file="objectex/ex8"/>
+</element>
+
+
+<element name="TStream">
+<short>Base stream class</short>
+<descr>
+<p>
+The <var>TStream</var> object is the ancestor for all streaming objects, i.e.
+objects that have the capability to store and retrieve data.
+</p>
+<p>
+It defines a number of methods that are common to all objects that implement
+streaming, many of them are virtual, and are only implemented in the
+descendent types.
+</p>
+<p>
+Programs should not instantiate objects of type TStream directly, but
+instead instantiate a descendant type, such as <var>TDosStream</var>,
+<var>TMemoryStream</var>.
+</p>
+</descr>
+<seealso>
+<link id="PStream"/>
+<link id="TDosStream"/>
+<link id="TMemoryStream"/>
+</seealso>
+</element>
+
+<element name="PStream">
+<short>Pointer type to <link id="TStream"/></short>
+</element>
+
+<element name="TStream.Status">
+<short>Current stream status</short>
+</element>
+
+<element name="TStream.ErrorInfo">
+<short>Additional error info when there is an error.</short>
+</element>
+
+<element name="TStream.StreamSize">
+<short>Current size of the stream</short>
+</element>
+
+<element name="TStream.Position">
+<short>Current Stream position</short>
+</element>
+
+<element name="TStream.TPCompatible">
+<short>If set to <var>True</var> streamed data is written in a TP compatible format.</short>
+</element>
+
+<element name="TStream.Get">
+<short>Read an object definition from the stream.</short>
+<descr>
+<var>Get</var> reads an object definition  from a stream, and returns
+a pointer to an instance of this object.
+</descr>
+<errors>
+On error, <link id="TStream.Status"/> is set, and <var>NIL</var> is returned.
+</errors>
+<seealso> 
+<link id="TStream.Put"/>
+</seealso>
+<example file="objectex/ex9"/>
+</element>
+
+
+<element name="TStream.StrRead">
+<short>Read a null-terminated string from the stream.</short>
+<descr>
+<var>StrRead</var> reads a string from the stream, allocates memory
+for it, and returns a pointer to a null-terminated copy of the string
+on the heap.
+</descr>
+<errors>
+On error, <var>Nil</var> is returned.
+</errors>
+<seealso>
+<link id="TStream.StrWrite"/>
+<link id="TStream.ReadStr"/>
+</seealso>
+<example file="objectex/ex10"/>
+</element>
+
+
+
+<element name="TStream.GetPos">
+<short>Return current position in the stream</short>
+<descr>
+If the stream's status is <var>stOk</var>, <var>GetPos</var> returns the current 
+position in the stream. Otherwise it returns <var>-1</var>
+</descr>
+<errors>
+<var>-1</var> is returned if the status is an error condition.
+</errors>
+<seealso>
+<link id="TStream.Seek"/>
+<link id="TStream.GetSize"/>
+</seealso>
+<example file="objectex/ex11"/>
+</element>
+
+
+
+<element name="TStream.GetSize">
+<short>Return the size of the stream.</short>
+<descr>
+If the stream's status is <var>stOk</var> then <var>GetSize</var> returns
+the size of the stream, otherwise it returns <var>-1</var>.
+</descr>
+<errors>
+<var>-1</var> is returned if the status is an error condition.
+</errors>
+<seealso>
+<link id="TStream.Seek"/>
+<link id="TStream.GetPos"/>
+</seealso>
+<example file="objectex/ex12"/>
+</element>
+
+<element name="TStream.ReadStr">
+<short>Read a shortstring from the stream.</short>
+<descr>
+<var>ReadStr</var> reads a string from the stream, copies it to the heap
+and returns a pointer to this copy. The string is saved as a pascal
+string, and hence is NOT null terminated.
+</descr>
+<errors>
+On error (e.g. not enough memory), <var>Nil</var> is returned.
+</errors>
+<seealso>
+<link id="TStream.StrRead"/>
+</seealso>
+<example file="objectex/ex13"/>
+</element>
+
+<element name="TStream.Open">
+<short>Open the stream</short>
+<descr>
+<p>
+<var>Open</var> is an abstract method, that should be overridden by descendent
+objects. Since opening a stream depends on the stream's type this is not
+surprising.
+</p>
+<p>
+For an example, see <link id="TDosStream.Open"/>.
+</p>
+</descr>
+<errors>
+None.
+</errors>
+<seealso>
+<link id="TStream.Close"/>
+<link id="TStream.Reset"/>
+</seealso>
+</element>
+
+
+<element name="TStream.Close">
+<short>Close the stream</short>
+<descr>
+<p>
+<var>Close</var> is an abstract method, that should be overridden by descendent
+objects. Since Closing a stream depends on the stream's type this is not
+surprising.
+</p>
+<p>
+for an example, see <link id="TDosStream.Open"/>.
+</p>
+</descr>
+<errors>
+None.
+</errors>
+<seealso>
+<link id="TStream.Open"/>
+<link id="TStream.Reset"/>
+</seealso>
+</element>
+
+<element name="TStream.Reset">
+<short>Reset the stream</short>
+<descr>
+<var>Reset</var> sets the stream's status to <var>0</var>, as well as the ErrorInfo
+</descr>
+<errors>
+None.
+</errors>
+<seealso>
+<link id="TStream.Open"/>
+<link id="TStream.Close"/>
+</seealso>
+</element>
+
+<element name="TStream.Flush">
+<short>Flush the stream data from the buffer, if any.</short>
+<descr>
+<p>
+<var>Flush</var> is an abstract method that should be overridden by descendent
+objects. It serves to enable the programmer to tell streams that implement 
+a buffer to clear the buffer.
+</p>
+<p>
+for an example, see <link id="TBufStream.Flush"/>.
+</p>
+</descr>
+<errors>
+None.
+</errors>
+<seealso>
+<link id="TStream.Truncate"/>
+</seealso>
+</element>
+
+
+<element name="TStream.Truncate">
+<short>Truncate the stream size on current position.</short>
+<descr>
+<p>
+<var>Truncate</var> is an abstract procedure that should be overridden by
+descendent objects. It serves to enable the programmer to truncate the
+size of the stream to the current file position.
+</p>
+<p>
+For an example, see <link id="TDosStream.Truncate"/>.
+</p>
+</descr>
+<errors>
+None.
+</errors>
+<seealso>
+<link id="TStream.Seek"/>
+</seealso>
+</element>
+
+
+<element name="TStream.Put">
+<short>Write an object to the stream.</short>
+<descr>
+<p>
+<var>Put</var> writes the object pointed to by <var>P</var>. <var>P</var> should be
+non-nil. The object type must have been registered with <link id="RegisterType"/>.
+</p>
+<p>
+After the object has been written, it can be read again with <link id="TStream.Get">Get</link>.
+</p>
+<p>
+For an example, see <link id="TStream.Get"/>;
+</p>
+</descr>
+<errors>
+No check is done whether P is <var>Nil</var> or not. Passing <var>Nil</var> will cause
+a run-time error 216 to be generated. If the object has not been registered,
+the status of the stream will be set to <var>stPutError</var>.
+</errors>
+<seealso>
+<link id="TStream.Get"/>
+</seealso>
+</element>
+
+
+<element name="TStream.StrWrite">
+<short>Write a null-terminated string to the stream.</short>
+<descr>
+<p>
+<var>StrWrite</var> writes the null-terminated string <var>P</var> to the stream.
+<var>P</var> can only be 65355 bytes long.
+</p>
+<p>
+For an example, see <link id="TStream.StrRead"/>.
+</p>
+</descr>
+<errors>
+None.
+</errors>
+<seealso>
+<link id="TStream.WriteStr"/>
+<link id="TStream.StrRead"/>
+<link id="TStream.ReadStr"/>
+</seealso>
+</element>
+
+
+<element name="TStream.WriteStr">
+<short>Write a pascal string to the stream.</short>
+<descr>
+<p>
+<var>StrWrite</var> writes the pascal string pointed to by <var>P</var> to the stream.
+</p>
+<p>
+For an example, see <link id="TStream.ReadStr"/>.
+</p>
+</descr>
+<errors>
+None.
+</errors>
+<seealso>
+<link id="TStream.StrWrite"/>
+<link id="TStream.StrRead"/>
+<link id="TStream.ReadStr"/>
+</seealso>
+</element>
+
+<element name="TStream.Seek">
+<short>Set stream position.</short>
+<descr>
+<p>
+Seek sets the position to <var>Pos</var>. This position is counted
+from the beginning, and is zero based. (i.e. seeek(0) sets the position
+pointer on the first byte of the stream)
+</p>
+<p>
+For an example, see <link id="TDosStream.Seek"/>.
+</p>
+</descr>
+<errors>
+If <var>Pos</var> is larger than the stream size, <var>Status</var> is set to
+<var>StSeekError</var>.
+</errors>
+<seealso>
+<link id="TStream.GetPos"/>
+<link id="TStream.GetSize"/>
+</seealso>
+</element>
+
+
+
+<element name="TStream.Error">
+<short>Set stream status</short>
+<descr>
+<p>
+<var>Error</var> sets the stream's status to <var>Code</var> and <var>ErrorInfo</var>
+to <var>Info</var>. If the <var>StreamError</var> procedural variable is set,
+<var>Error</var> executes it, passing <var>Self</var> as an argument.
+</p>
+<p>
+This method should not be called directly from a program. It is intended to
+be used in descendent objects.
+</p>
+</descr>
+<errors>
+None.
+</errors>
+</element>
+
+<element name="TStream.Read">
+<short>Read data from stream to buffer.</short>
+<descr>
+<p>
+<var>Read</var> is an abstract method that should be overridden by descendent
+objects.
+</p>
+<p>
+<var>Read</var> reads <var>Count</var> bytes from the stream into <var>Buf</var>.
+It updates the position pointer, increasing it's value with <var>Count</var>. 
+<var>Buf</var> must be large enough to contain <var>Count</var> bytes.
+</p>
+</descr>
+<errors>
+No checking is done to see if <var>Buf</var> is large enough to contain
+<var>Count</var> bytes. 
+</errors>
+<seealso>
+<link id="TStream.Write"/>
+<link id="TStream.ReadStr"/>
+<link id="TStream.StrRead"/>
+</seealso>
+<example file="objectex/ex18"/>
+</element>
+
+
+
+<element name="TStream.Write">
+<short>Write a number of bytes to the stream.</short>
+<descr>
+<p>
+<var>Write</var> is an abstract method that should be overridden by descendent
+objects.
+</p>
+<p>
+<var>Write</var> writes <var>Count</var> bytes to the stream from <var>Buf</var>.
+It updates the position pointer, increasing it's value with <var>Count</var>.
+</p>
+<p>
+For an example, see <link id="TStream.Read"/>.
+</p>
+</descr>
+<errors>
+No checking is done to see if <var>Buf</var> actually contains <var>Count</var> bytes.
+</errors>
+<seealso>
+<link id="TStream.Read"/>
+<link id="TStream.WriteStr"/>
+<link id="TStream.StrWrite"/>
+</seealso>
+</element>
+
+
+<element name="TStream.CopyFrom">
+<short>Copy data from another stream. </short>
+<descr>
+<var>CopyFrom</var> reads Count bytes from stream <var>S</var> and stores them
+in the current stream. It uses the <link id="TStream.Read">Read</link> method
+to read the data, and the <link id="TStream.Write">Write</link> method to
+write in the current stream.
+</descr>
+<errors>
+None.
+</errors>
+<seealso>
+<link id="TStream.Read">Read</link>
+<link id="TStream.Write">Write</link>
+</seealso>
+<example file="objectex/ex19"/>
+</element>
+
+
+
+<element name="TDosStream">
+<short>DOS file stream</short>
+<descr>
+<p>
+<var>TDosStream</var> is a stream that stores it's contents in a file.
+it overrides a couple of methods of <link id="TStream"/> for this.
+</p>
+<p>
+In addition to the fields inherited from <var>TStream</var> (see <link id="TStream"/>),
+there are some extra fields, that describe the file. (mainly the name and
+the OS file handle)
+</p>
+<p>
+No buffering in memory is done when using <var>TDosStream</var>.
+All data are written directly to the file. For a stream that buffers
+in memory, see <link id="TBufStream"/>.
+</p>
+</descr>
+</element>
+
+<element name="TDosStream.Handle">
+<short>OS file handle for stream</short>
+</element>
+
+<element name="TDosStream.FName">
+<short>File name</short>
+</element>
+
+<element name="TDosStream.Init">
+<short>Instantiate a new instance of TDosStream.</short>
+<descr>
+<p>
+<var>Init</var> instantiates an instance of <var>TDosStream</var>. The name of the
+file that contains (or will contain) the data of the stream is given in
+<var>FileName</var>. The <var>Mode</var> parameter determines whether a new file 
+should be created and what access rights you have on the file. 
+It can be one of the following constants:
+</p>
+<dl>
+<dt>stCreate</dt><dd> Creates a new file.</dd>
+<dt>stOpenRead</dt><dd> Read access only.</dd>
+<dt>stOpenWrite</dt><dd> Write access only.</dd>
+<dt>stOpen</dt><dd> Read and write access.</dd>
+</dl>
+<p>
+For an example, see <link id="TDosStream.Truncate"/>.
+</p>
+</descr>
+<errors>
+On error, <link id="TStream.Status">Status</link> is set to <var>stInitError</var>, and <var>ErrorInfo</var>
+is set to the dos error code.
+</errors>
+<seealso>
+<link id="TDosStream.Done"/>
+</seealso>
+</element>
+
+
+<element name="TDosStream.Done">
+<short>Closes the file and cleans up the instance.</short>
+<descr>
+<p>
+<var>Done</var> closes the file if it was open and cleans up the 
+instance of <var>TDosStream</var>. 
+</p>
+<p>
+for an example, see e.g. <link id="TDosStream.Truncate"/>.
+</p>
+</descr>
+<errors>
+None.
+</errors>
+<seealso>
+<link id="TDosStream.Init"/>
+<link id="TDosStream.Close"/>
+</seealso>
+</element>
+
+
+<element name="TDosStream.Close">
+<short>Close the file.</short>
+<descr>
+<p>
+<var>Close</var> closes the file if it was open, and sets <var>Handle</var> to -1. 
+Contrary to <link id="TDosStream.Done">Done</link> it does not clean up the instance
+of <var>TDosStream</var>
+</p>
+<p>
+For an example, see <link id="TDosStream.Open"/>.
+</p>
+</descr>
+<errors>
+None.
+</errors>
+<seealso>
+<link id="TStream.Close"/>
+<link id="TDosStream.Init"/>
+<link id="TDosStream.Done"/>
+</seealso>
+</element>
+
+
+<element name="TDosStream.Truncate">
+<short>Truncate the file on the current position.</short>
+<descr>
+If the status of the stream is <var>stOK</var>, then <var>Truncate</var> tries to
+truncate the stream size to the current file position.
+</descr>
+<errors>
+If an error occurs, the stream's status is set to <var>stError</var> and
+<var>ErrorInfo</var> is set to the OS error code.
+</errors>
+<seealso>
+<link id="TStream.Truncate"/>
+<link id="TStream.GetSize"/>
+</seealso>
+<example file="objectex/ex16"/>
+</element>
+
+
+
+<element name="TDosStream.Seek">
+<short>Set file position.</short>
+<descr>
+If the stream's status is <var>stOK</var>, then <var>Seek</var> sets the 
+file position to <var>Pos</var>. <var>Pos</var> is a zero-based offset, counted from
+the beginning of the file.
+</descr>
+<errors>
+In case an error occurs, the stream's status is set to <var>stSeekError</var>,
+and the OS error code is stored in <var>ErrorInfo</var>.
+</errors>
+<seealso>
+<link id="TStream.Seek"/>
+<link id="TStream.GetPos"/>
+</seealso>
+<example file="objectex/ex17"/>
+</element>
+
+
+
+<element name="TDosStream.Open">
+<short>Open the file stream</short>
+<descr>
+If the stream's status is <var>stOK</var>, and the stream is closed then
+<var>Open</var> re-opens the file stream with mode <var>OpenMode</var>.
+This call can be used after a <link id="TDosStream.Close">Close</link> call.
+</descr>
+<errors>
+If an error occurs when re-opening the file, then <var>Status</var> is set
+to <var>stOpenError</var>, and the OS error code is stored in <var>ErrorInfo</var>
+</errors>
+<seealso>
+<link id="TStream.Open"/>
+<link id="TDosStream.Close"/>
+</seealso>
+<example file="objectex/ex14"/>
+</element>
+
+<element name="TDosStream.Read">
+<short>Read data from the stream to a buffer.</short>
+<descr>
+<p>
+If the Stream is open and the stream status is <var>stOK</var> then 
+<var>Read</var> will read <var>Count</var> bytes from the stream and place them
+in  <var>Buf</var>.
+</p>
+<p>
+For an example, see <link id="TStream.Read"/>.
+</p>
+</descr>
+<errors>
+In case of an error, <var>Status</var> is set to <var>StReadError</var>, and
+<var>ErrorInfo</var> gets the OS specific error, or 0 when an attempt was
+made to read beyond the end of the stream.
+</errors>
+<seealso>
+<link id="TStream.Read"/>
+<link id="TDosStream.Write"/>
+</seealso>
+</element>
+
+<element name="TDosStream.Write">
+<short>Write data from a buffer to the stream.</short>
+<descr>
+<p>
+If the Stream is open and the stream status is <var>stOK</var> then 
+<var>Write</var> will write <var>Count</var> bytes from <var>Buf</var> and place them
+in the stream.
+</p>
+<p>
+For an example, see <link id="TStream.Read"/>.
+</p>
+</descr>
+<errors>
+In case of an error, <var>Status</var> is set to <var>StWriteError</var>, and
+<var>ErrorInfo</var> gets the OS specific error.
+</errors>
+<seealso>
+<link id="TStream.Write"/>
+<link id="TDosStream.Read"/>
+</seealso>
+</element>
+
+
+<element name="PBufStream">
+<short>Pointer to <link id="TBufStream"/> object.</short>
+</element>
+
+<element name="PDosStream">
+<short>Pointer to <link id="TDosStream"/> object.</short>
+</element>
+
+<element name="PMemoryStream">
+<short>Pointer to <link id="TMemoryStream"/> object.</short>
+</element>
+
+
+<element name="PCollection">
+<short>Pointer to <link id="TCollection"/> object.</short>
+</element>
+
+
+<element name="PItemList">
+<short>Pointer to <link id="TItemList"/> object.</short>
+</element>
+
+
+<element name="PObject">
+<short>Pointer to <link id="TObject"/> object.</short>
+</element>
+
+<element name="PRect">
+<short>Pointer to <link id="TRect"/> object.</short>
+</element>
+
+<element name="PResourceCollection">
+<short>Pointer to <link id="TResourceCollection"/> object.</short>
+</element>
+
+<element name="PSortedCollection">
+<short>Pointer to <link id="TSortedCollection"/> object.</short>
+</element>
+
+<element name="PSTrCollection">
+<short>Pointer to <link id="TStrCollection"/> object.</short>
+</element>
+
+<element name="PSTrListMaker">
+<short>Pointer to <link id="TStrListMaker"/> object.</short>
+</element>
+
+<element name="PStringCollection">
+<short>Pointer to <link id="TStringCollection"/> object.</short>
+</element>
+
+<element name="PStringList">
+<short>Pointer to <link id="TStringList"/> object.</short>
+</element>
+
+<element name="PUnsortedStrCollection">
+<short>Pointer to <link id="TUnsortedStrCollection"/> object.</short>
+</element>
+
+
+<element name="PResourceFile">
+<short>Pointer to <link id="TResourceFile"/> object.</short>
+</element>
+
+
+<element name="PStrIndex">
+<short>Pointer to <link id="TStrIndex"/> array.</short>
+</element>
+
+
+
+<element name="PObject">
+<short>Pointer to <link id="TObject"/> object.</short>
+</element>
+
+
+<element name="TBufStream">
+<short>Buffered file stream</short>
+<descr>
+<p>
+<var>Bufstream</var> implements a buffered file stream. That is, all data written
+to the stream is written to memory first. Only when the buffer is full, or
+on explicit request, the data is written to disk.
+</p>
+<p>
+Also, when reading from the stream, first the buffer is checked if there is
+any unread data in it. If so, this is read first. If not the buffer is
+filled again, and then the data is read from the buffer.
+</p>
+<p>
+The size of the buffer is fixed and is set when constructing the file.
+</p>
+<p>
+This is useful if you need heavy throughput for your stream, because it
+speeds up operations.
+</p>
+</descr>
+<seealso>
+link id
+</seealso>
+</element>
+
+<element name="TBufStream.LastMode">
+<short>Last file open mode</short>
+</element>
+
+<element name="TBufStream.BufSize">
+<short>Size of buffer</short>
+</element>
+
+<element name="TBufStream.BufPtr">
+<short>Pointer to current position in buffer</short>
+</element>
+
+<element name="TBufStream.Bufend">
+<short>End of data in buffer.</short>
+</element>
+
+<element name="TBufStream.Buffer">
+<short>Actual buffer</short>
+</element>
+
+<element name="TBufStream.Init">
+<short>Initialize an instance of <var>TBufStream</var> and open the file.</short>
+<descr>
+<p>
+<var>Init</var> instantiates an instance of <var>TBufStream</var>. The name of the 
+file that contains (or will contain) the data of the stream is given in
+<var>FileName</var>. The <var>Mode</var> parameter determines whether a new file 
+should be created and what access rights you have on the file. 
+It can be one of the following constants:
+</p>
+<dl>
+<dt>stCreate</dt><dd> Creates a new file.</dd>
+<dt>stOpenRead</dt><dd> Read access only.</dd>
+<dt>stOpenWrite</dt><dd> Write access only.</dd>
+<dt>stOpen</dt><dd> Read and write access.</dd>
+</dl>
+<p>
+The <var>Size</var> parameter determines the size of the buffer that will be
+created. It should be different from zero.
+</p>
+<p>
+For an example see <link id="TBufStream.Flush"/>.
+</p>
+</descr>
+<errors>
+On error, <var>Status</var> is set to <var>stInitError</var>, and <var>ErrorInfo</var>
+is set to the dos error code.
+</errors>
+<seealso>
+<link id="TDosStream.Init"/>
+<link id="TBufStream.Done"/>
+</seealso>
+</element>
+
+
+<element name="TBufStream.Done">
+<short>Close the file and cleans up the instance.</short>
+<descr>
+<p>
+<var>Done</var> flushes and closes the file if it was open and cleans up the 
+instance of <var>TBufStream</var>. 
+</p>
+<p>
+For an example see <link id="TBufStream.Flush"/>.
+</p>
+</descr>
+<errors>
+None.
+</errors>
+<seealso>
+<link id="TDosStream.Done"/>
+<link id="TBufStream.Init"/>
+<link id="TBufStream.Close"/>
+</seealso>
+</element>
+
+
+<element name="TBufStream.Close">
+<short>Flush data and Close the file.</short>
+<descr>
+<p>
+<var>Close</var> flushes and closes the file if it was open, and sets <var>Handle</var> to -1. 
+Contrary to <link id="TBufStream.Done">Done</link> it does not clean up the instance
+of <var>TBufStream</var>
+</p>
+<p>
+For an example see <link id="TBufStream.Flush"/>.
+</p>
+</descr>
+<errors>
+None.
+</errors>
+<seealso>
+<link id="TStream.Close"/>
+<link id="TBufStream.Init"/>
+<link id="TBufStream.Done"/>
+</seealso>
+</element>
+
+
+<element name="TBufStream.Flush">
+<short>FLush data from buffer, and write it to stream.</short>
+<descr>
+When the stream is in write mode, the contents of the buffer are written to
+disk, and the buffer position is set to zero.
+
+When the stream is in read mode, the buffer position is set to zero.
+</descr>
+<errors>
+Write errors may occur if the file was in write mode.
+see <link id="TBufStream.Write">Write</link> for more info on the errors.
+</errors>
+<seealso>
+<link id="TStream.Close"/>
+<link id="TBufStream.Init"/>
+<link id="TBufStream.Done"/>
+</seealso>
+<example file="objectex/ex15"/>
+</element>
+
+
+
+<element name="TBufStream.Truncate">
+<short>Flush buffer, and truncate the file at current position.</short>
+<descr>
+<p>
+If the status of the stream is <var>stOK</var>, then <var>Truncate</var> tries to
+flush the buffer, and then truncates the stream size to the current 
+file position.
+</p>
+<p>
+For an example, see <link id="TDosStream.Truncate"/>.
+</p>
+</descr>
+<errors>
+Errors can be those of <link id="TBufStream.Flush">Flush</link> or
+<link id="TDosStream.Truncate"/>.
+</errors>
+<seealso>
+<link id="TStream.Truncate"/>
+<link id="TDosStream.Truncate"/>
+<link id="TStream.GetSize"/>
+</seealso>
+</element>
+
+
+<element name="TBufStream.Seek">
+<short>Set current position in file.</short>
+<descr>
+<p>
+If the stream's status is <var>stOK</var>, then <var>Seek</var> sets the 
+file position to <var>Pos</var>. <var>Pos</var> is a zero-based offset, counted from
+the beginning of the file.
+</p>
+<p>
+For an example, see <link id="TStream.Seek"/>;
+</p>
+</descr>
+<errors>
+In case an error occurs, the stream's status is set to <var>stSeekError</var>,
+and the OS error code is stored in <var>ErrorInfo</var>.
+</errors>
+<seealso>
+<link id="TStream.Seek"/>
+<link id="TStream.GetPos"/>
+</seealso>
+</element>
+
+
+<element name="TBufStream.Open">
+<short>Open the file if it is closed.</short>
+<descr>
+<p>
+If the stream's status is <var>stOK</var>, and the stream is closed then
+<var>Open</var> re-opens the file stream with mode <var>OpenMode</var>.
+This call can be used after a <link id="TBufStream.Close">Close</link> call.
+</p>
+<p>
+For an example, see <link id="TDosStream.Open"/>.
+</p>
+</descr>
+<errors>
+If an error occurs when re-opening the file, then <var>Status</var> is set
+to <var>stOpenError</var>, and the OS error code is stored in <var>ErrorInfo</var>
+</errors>
+<seealso>
+<link id="TStream.Open"/>
+<link id="TBufStream.Close"/>
+</seealso>
+</element>
+
+
+<element name="TBufStream.Read">
+<short>Read data from the file to a buffer in memory.</short>
+<descr>
+<p>
+If the Stream is open and the stream status is <var>stOK</var> then 
+<var>Read</var> will read <var>Count</var> bytes from the stream and place them
+in  <var>Buf</var>.
+</p>
+<p>
+<var>Read</var> will first try to read the data from the stream's internal
+buffer. If insufficient data is available, the buffer will be filled before
+contiunuing to read. This process is repeated until all needed data
+has been read.
+</p>
+<p>
+For an example, see <link id="TStream.Read"/>.
+</p>
+</descr>
+<errors>
+In case of an error, <var>Status</var> is set to <var>StReadError</var>, and
+<var>ErrorInfo</var> gets the OS specific error, or 0 when an attempt was
+made to read beyond the end of the stream.
+</errors>
+<seealso>
+<link id="TStream.Read"/>
+<link id="TBufStream.Write"/>
+</seealso>
+</element>
+
+
+<element name="TBufStream.Write">
+<short>Write data to the file from a buffer in memory.</short>
+<descr>
+<p>
+If the Stream is open and the stream status is <var>stOK</var> then 
+<var>Write</var> will write <var>Count</var> bytes from <var>Buf</var> and place them
+in the stream.
+</p>
+<p>
+<var>Write</var> will first try to write the data to the stream's internal
+buffer. When the internal buffer is full, then the contents will be written
+to disk. This process is repeated until all data has been written.
+</p>
+<p>
+For an example, see <link id="TStream.Read"/>.
+</p>
+</descr>
+<errors>
+In case of an error, <var>Status</var> is set to <var>StWriteError</var>, and
+<var>ErrorInfo</var> gets the OS specific error.
+</errors>
+<seealso>
+<link id="TStream.Write"/>
+<link id="TBufStream.Read"/>
+</seealso>
+</element>
+
+
+<element name="TMemoryStream">
+<short>Stream which keeps data in memory.</short>
+<descr>
+<p>
+The <var>TMemoryStream</var> object implements a stream that stores it's data
+in memory. The data is stored on the heap, with the possibility to specify
+the maximum amout of data, and the the size of the memory blocks being used.
+</p>
+</descr>
+<seealso>
+<link id="TStream"/>
+</seealso>
+</element>
+
+<element name="TMemoryStream.BlkCount">
+<short>Number of allocated memory blocks</short>
+</element>
+
+<element name="TMemoryStream.BlkSize">
+<short>Size of one memory block</short>
+</element>
+
+<element name="TMemoryStream.MemSize">
+<short>Total memory size</short>
+</element>
+
+<element name="TMemoryStream.BlkList">
+<short>Pointer to list of allocated blocks.</short>
+</element>
+
+<element name="TMemoryStream.Init">
+<short>Initialize memory stream, reserves memory for stream data.</short>
+<descr>
+<p>
+<var>Init</var> instantiates a new <var>TMemoryStream</var> object. The
+memorystreamobject will initially allocate at least <var>ALimit</var> bytes memory, 
+divided into memory blocks of size <var>ABlockSize</var>. 
+The number of blocks needed to get to <var>ALimit</var> bytes is rounded up.
+</p>
+<p>
+By default, the number of blocks is 1, and the size of a block is 8192. This
+is selected if you specify 0 as the blocksize.
+</p>
+<p>
+For an example, see e.g <link id="TStream.CopyFrom"/>.
+</p>
+</descr>
+<errors>
+If the stream cannot allocate the initial memory needed for the memory blocks, then
+the stream's status is set to <var>stInitError</var>.
+</errors>
+<seealso>
+<link id="TMemoryStream.Done"/>
+</seealso>
+</element>
+
+
+<element name="TMemoryStream.Done">
+<short>Clean up memory and destroy the object instance.</short>
+<descr>
+<p>
+<var>Done</var> releases the memory blocks used by the stream, and then cleans up
+the memory used by the stream object itself.
+</p>
+<p>
+For an example, see e.g <link id="TStream.CopyFrom"/>.
+</p>
+</descr>
+<errors>
+None.
+</errors>
+<seealso>
+<link id="TMemoryStream.Init"/>
+</seealso>
+</element>
+
+
+<element name="TMemoryStream.Truncate">
+<short>Set the stream size to the current position.</short>
+<descr>
+<var>Truncate</var> sets the size of the memory stream equal to the current
+position. It de-allocates any memory-blocks that are no longer needed, so
+that the new size of the stream is the current position in the stream,
+rounded up to the first multiple of the stream blocksize.
+</descr>
+<errors> 
+If an error occurs during memory de-allocation, the stream's status is set
+to <var>stError</var>
+</errors>
+<seealso>
+<link id="TStream.Truncate"/>
+</seealso>
+<example file="objectex/ex20"/>
+</element>
+
+
+
+<element name="TMemoryStream.Read">
+<short>Read data from the stream to a location in memory.</short>
+<descr>
+<p>
+<var>Read</var> reads <var>Count</var> bytes from the stream to <var>Buf</var>. It updates
+the position of the stream.
+</p>
+<p>
+For an example, see <link id="TStream.Read"/>.
+</p>
+</descr>
+<errors>
+If there is not enough data available, no data is read, and the stream's
+status is set to <var>stReadError</var>.
+</errors>
+<seealso>
+<link id="TStream.Read"/>
+<link id="TMemoryStream.Write"/>
+</seealso>
+</element>
+
+
+<element name="TMemoryStream.Write">
+<short>Write data to the stream.</short>
+<descr>
+<p>
+<var>Write</var> copies <var>Count</var> bytes from <var>Buf</var> to the stream. It
+updates the position of the stream. 
+</p>
+<p>
+If not enough memory is available to hold the extra <var>Count</var> bytes, 
+then the stream will try to expand, by allocating as much blocks with 
+size <var>BlkSize</var> (as specified in the constuctor call
+<link id="TMemoryStream.Init">Init</link>) as needed. 
+</p>
+<p>
+For an example, see <link id="TStream.Read"/>.
+</p>
+</descr>
+<errors>
+If the stream cannot allocate more memory, then the status is set to
+<var>stWriteError</var>
+</errors>
+<seealso>
+<link id="TStream.Write"/>
+<link id="TMemoryStream.Read"/>
+</seealso>
+</element>
+
+
+<element name="TCollection">
+<short>Manage a collection of pointers of objects</short>
+<descr>
+<p>
+The <var>TCollection</var> object manages a collection of pointers or objects.
+It also provides a series of methods to manipulate these pointers or
+objects.
+</p>
+<p>
+Whether or not objects are used depends on the kind of calls you use.
+All kinds come in 2 flavors, one for objects, one for pointers.
+</p>
+</descr>
+</element>
+
+<element name="TCollection.Items">
+<short>Pointer to list of items.</short>
+</element>
+
+<element name="TCollection.Count">
+<short>Current count of items</short>
+</element>
+
+<element name="TCollection.Limit">
+<short>Max number of items</short>
+</element>
+
+<element name="TCollection.Delta">
+<short>Number of pointers to allocate when adding items.</short>
+</element>
+
+<element name="TCollection.Init">
+<short>Instantiate a new collection.</short>
+<descr>
+<p>
+<var>Init</var> initializes a new instance of a collection. It sets the (initial) maximum number
+of items in the collection to <var>ALimit</var>. <var>ADelta</var> is the increase
+size : The number of memory places that will be allocatiod in case <var>ALimit</var> is reached,
+and another element is added to the collection.
+</p>
+<p>
+For an example, see <link id="TCollection.ForEach"/>.
+</p>
+</descr>
+<errors>
+None.
+</errors>
+<seealso>
+<link id="TCollection.Load"/>
+<link id="TCollection.Done"/>
+</seealso>
+</element>
+
+
+<element name="TCollection.Load">
+<short>Initialize a new collection and load collection from a stream.</short>
+<descr>
+<var>Load</var> initializes a new instance of a collection. It reads from stream
+<var>S</var> the item count, the item limit count, and the increase size. After
+that, it reads the specified number of items from the stream. 
+<!--  Do not call this method if you intend to use only pointers in your collection. -->
+</descr>
+<errors>
+Errors returned can be those of <link id="TCollection.GetItem">GetItem</link>.
+</errors>
+<seealso>
+<link id="TCollection.Init"/>
+<link id="TCollection.GetItem"/>
+<link id="TCollection.Done"/>
+</seealso>
+<example file="objectex/ex22"/>
+</element>
+
+
+
+<element name="TCollection.Done">
+<short>Clean up collection, release all memory.</short>
+<descr>
+<p>
+<var>Done</var> frees all objects in the collection, and then releases all memory
+occupied by the instance.
+</p>
+<p>
+For an example, see <link id="TCollection.ForEach"/>.
+</p>
+<!--  Do not call this method if you intend to use only pointers in your collection. -->
+</descr>
+<errors>
+None.
+</errors>
+<seealso>
+<link id="TCollection.Init"/>
+<link id="TCollection.FreeAll"/>
+</seealso>
+</element>
+
+
+<element name="TCollection.At">
+<short>Return the item at a certain index.</short>
+<descr>
+<var>At</var> returns the item at position <var>Index</var>.
+</descr>
+<errors>
+If <var>Index</var> is less than zero or larger than the number of items
+in the collection, seepl{Error}{TCollection.Error} is called with
+<var>coIndexError</var> and <var>Index</var> as arguments, resulting in a run-time
+error.
+</errors>
+<seealso>
+<link id="TCollection.Insert"/>
+</seealso>
+<example file="objectex/ex23"/>
+</element>
+
+
+
+<element name="TCollection.IndexOf">
+<short>Find the position of a certain item.</short>
+<descr>
+<var>IndexOf</var> returns the index of <var>Item</var> in the collection.
+If <var>Item</var> isn't present in the collection, -1 is returned.
+</descr>
+<errors>
+If the item is not present, -1 is returned.
+</errors>
+<seealso>
+<link id="TCollection.At"/>
+<link id="TCollection.GetItem"/>
+<link id="TCollection.Insert"/>
+</seealso>
+<example file="objectex/ex24"/>
+</element>
+
+
+
+<element name="TCollection.GetItem">
+<short>Read one item off the stream.</short>
+<descr>
+<var>GetItem</var> reads a single item off the stream <var>S</var>, and
+returns a pointer to this item. This method is used internally by the Load
+method, and should not be used directly.
+</descr>
+<errors>
+Possible errors are the ones from <link id="TStream.Get"/>.
+</errors>
+<seealso>
+<link id="TStream.Get"/>, 
+<link id="TCollection.Store"/>
+</seealso>
+</element>
+
+<element name="TCollection.LastThat">
+<short>Return last item which matches a test.</short>
+<descr>
+This function returns the last item in the collection for which <var>Test</var>
+returns a non-nil result. <var>Test</var> is a function that accepts 1 argument:
+a pointer to an object, and that returns a pointer as a result.
+</descr>
+<errors>
+None.
+</errors>
+<seealso>
+<link id="TCollection.FirstThat"/>
+</seealso>
+<example file="objectex/ex25"/>
+</element>
+
+
+
+<element name="TCollection.FirstThat">
+<short>Return first item which matches a test.</short>
+<descr>
+This function returns the first item in the collection for which <var>Test</var>
+returns a non-nil result. <var>Test</var> is a function that accepts 1 argument:
+a pointer to an object, and that returns a pointer as a result.
+</descr>
+<errors>
+None.
+</errors>
+<seealso>
+<link id="TCollection.LastThat"/>
+</seealso>
+<example file="objectex/ex26"/>
+</element>
+
+
+
+<element name="TCollection.Pack">
+<short>Remove all <var>>Nil</var> pointers from the collection.</short>
+<descr>
+<var>Pack</var> removes all <var>Nil</var> pointers from the collection, and adjusts
+<var>Count</var> to reflect this change. No memory is freed as a result of this
+call. In order to free any memory, you can call <var>SetLimit</var> with an
+argument of <var>Count</var> after a call to <var>Pack</var>.
+</descr>
+<errors>
+None.
+</errors>
+<seealso>
+<link id="TCollection.SetLimit"/>
+</seealso>
+<example file="objectex/ex26"/>
+</element>
+
+
+
+<element name="TCollection.FreeAll">
+<short>Release all objects from the collection.</short>
+<descr>
+<var>FreeAll</var> calls the destructor of each object in the collection.
+It doesn't release any memory occumpied by the collection itself, but it
+does set <var>Count</var> to zero.
+</descr>
+<errors>
+</errors>
+<seealso>
+<link id="TCollection.DeleteAll"/>
+<link id="TCollection.FreeItem"/>
+</seealso>
+<example file="objectex/ex28"/>
+</element>
+
+<element name="TCollection.DeleteAll">
+<short>Delete all elements from the collection. Objects are not destroyed.</short>
+<descr>
+<var>DeleteAll</var> deletes all elements from the collection. It just sets 
+the <var>Count</var> variable to zero. Contrary to
+<link id="TCollection.FreeAll">FreeAll</link>, <var>DeletAll</var> doesn't call the
+destructor of the objects.
+</descr>
+<errors>
+None.
+</errors>
+<seealso>
+<link id="TCollection.FreeAll"/>
+<link id="TCollection.Delete"/>
+</seealso>
+<example file="objectex/ex29"/>
+</element>
+
+
+
+<element name="TCollection.Free">
+<short>Free item from collection, calling it's destructor.</short>
+<descr>
+<var>Free</var> Deletes <var>Item</var> from the collection, and calls the destructor
+<var>Done</var> of the object.
+</descr>
+<errors>
+If the <var>Item</var> is not in the collection, <var>Error</var> will be called with
+<var>coIndexError</var>.
+</errors>
+<seealso>
+<link id="TCollection.FreeItem"/>
+</seealso>
+<example file="objectex/ex30"/>
+</element>
+
+
+
+<element name="TCollection.Insert">
+<short>Insert a new item in the collection at the end.</short>
+<descr>
+<var>Insert</var> inserts <var>Item</var> in the collection. <var>TCollection</var>
+inserts this item at the end, but descendent objects may insert it at
+another place.
+</descr>
+<errors>
+None.
+</errors>
+<seealso>
+<link id="TCollection.AtInsert"/>
+<link id="TCollection.AtPut"/>
+</seealso>
+</element>
+
+
+<element name="TCollection.Delete">
+<short>Delete an item from the collection, but does not destroy it.</short>
+<descr>
+<var>Delete</var> deletes <var>Item</var> from the collection. It doesn't call the
+item's destructor, though. For this the <link id="TCollection.Free">Free</link>
+call is provided.
+</descr>
+<errors>
+If the <var>Item</var> is not in the collection, <var>Error</var> will be called with
+<var>coIndexError</var>.
+</errors>
+<seealso>
+<link id="TCollection.AtDelete"/>
+<link id="TCollection.Free"/>
+</seealso>
+<example file="objectex/ex31"/>
+</element>
+
+
+
+<element name="TCollection.AtFree">
+<short>Free an item at the indicates position, calling it's destructor.</short>
+<descr>
+<var>AtFree</var> deletes the item at position <var>Index</var> in the collection,
+and calls the item's destructor if it is not <var>Nil</var>. 
+</descr>
+<errors>
+If <var>Index</var> isn't valid then <link id="TCollection.Error">Error</link> is called
+with <var>CoIndexError</var>.
+</errors>
+<seealso>
+<link id="TCollection.Free"/>
+<link id="TCollection.AtDelete"/>
+</seealso>
+<example file="objectex/ex32"/>
+</element>
+
+
+<element name="TCollection.FreeItem">
+<short>Destroy a non-nil item.</short>
+<descr>
+<p>
+<var>FreeItem</var> calls the destructor of <var>Item</var> if it is not
+nil.
+</p>
+<remark>
+This function is used internally by the TCollection object, and should not be
+called directly.
+</remark>
+</descr>
+<errors>
+None.
+</errors>
+<seealso>
+<link id="TCollection.Free"/>
+<link id="TCollection.AtFree"/>
+</seealso>
+</element>
+
+
+<element name="TCollection.AtDelete">
+<short>Delete item at certain position.</short>
+<descr>
+<var>AtDelete</var> deletes the pointer at position <var>Index</var> in the
+collection. It doesn't call the object's destructor.
+</descr>
+<errors>
+If <var>Index</var> isn't valid then <link id="TCollection.Error">Error</link> is called
+with <var>CoIndexError</var>.
+</errors>
+<seealso>
+<link id="TCollection.Delete"/>
+</seealso>
+<example file="objectex/ex33"/>
+</element>
+
+
+<element name="TCollection.ForEach">
+<short>Execute procedure for each item in the list.</short>
+<descr>
+<p>
+<var>ForEach</var> calls <var>Action</var> for each element in the collection,
+and passes the element as an argument to <var>Action</var>.
+</p>
+<p>
+<var>Action</var> is a procedural type variable that accepts a pointer as an 
+argument.
+</p>
+</descr>
+<errors>
+None.
+</errors>
+<seealso>
+<link id="TCollection.FirstThat"/>
+<link id="TCollection.LastThat"/>
+</seealso>
+<example file="objectex/ex21"/>
+</element>
+
+
+
+<element name="TCollection.SetLimit">
+<short>Set maximum number of elements in the collection.</short>
+<descr>
+<p>
+<var>SetLimit</var> sets the maximum number of elements in the collection.
+<var>ALimit</var> must not be less than <var>Count</var>, and should not be larger
+than <var>MaxCollectionSize</var>
+</p>
+<p>
+For an example, see <link id="TCollection.Pack">Pack</link>.
+</p>
+</descr>
+<errors>
+None.
+</errors>
+<seealso>
+<link id="TCollection.Init"/>
+</seealso>
+</element>
+
+
+<element name="TCollection.Error">
+<short>Set error code.</short>
+<descr>
+<p>
+<var>Error</var> is called by the various <var>TCollection</var> methods
+in case of an error condition. The default behaviour is to make
+a call to <var>RunError</var> with an error of <var>212-Code</var>.
+</p>
+<p>
+This method can be overridden by descendent objects to implement
+a different error-handling.
+</p>
+</descr>
+<errors>
+</errors>
+<seealso>
+<link id="Abstract"/>
+</seealso>
+</element>
+
+<element name="TCollection.AtPut">
+<short>Set collection item, overwriting an existing value.</short>
+<descr>
+<p>
+<var>AtPut</var> sets the element at position <var>Index</var> in the collection
+to <var>Item</var>. Any previous value is overwritten.
+</p>
+<p>
+For an example, see <link id="TCollection.Pack">Pack</link>.
+</p>
+</descr>
+<errors>
+If <var>Index</var> isn't valid then <link id="TCollection.Error">Error</link> is called
+with <var>CoIndexError</var>.
+</errors>
+<seealso>
+</seealso>
+</element>
+
+
+<element name="TCollection.AtInsert">
+<short>Insert an element at a certain position in the collection.</short>
+<descr>
+<var>AtInsert</var> inserts <var>Item</var> in the collection at position <var>Index</var>,
+shifting all elements by one position. In case the current limit is reached,
+the collection will try to expand with a call to <var>SetLimit</var>
+</descr>
+<errors>
+If <var>Index</var> isn't valid then <link id="TCollection.Error">Error</link> is called
+with <var>CoIndexError</var>. If the collection fails to expand, then
+<var>coOverFlow</var> is passd to <var>Error</var>.
+</errors>
+<seealso>
+<link id="TCollection.Insert"/>
+</seealso>
+<example file="objectex/ex34"/>
+</element>
+
+
+
+<element name="TCollection.Store">
+<short>Write collection to a stream.</short>
+<descr>
+<p>
+<var>Store</var> writes the collection to the stream <var>S</var>. It does
+this by writeing the current <var>Count</var>, <var>Limit</var> and <var>Delta</var>
+to the stream, and then writing each item to the stream.
+</p>
+<p>
+The contents of the stream are then suitable for instantiating another
+collection with <link id="TCollection.Load">Load</link>.
+</p>
+<p>
+For an example, see <link id="TCollection.Load"/>.
+</p>
+</descr>
+<errors>
+Errors returned are those by <link id="TStream.Put"/>.
+</errors>
+<seealso>
+<link id="TCollection.Load"/>
+<link id="TCollection.PutItem"/>
+</seealso>
+</element>
+
+
+<element name="TCollection.PutItem">
+<short>Put one item on the stream</short>
+<descr>
+<var>PutItem</var> writes <var>Item</var> to stream <var>S</var>. This method is used
+internaly by the <var>TCollection</var> object, and should not be called
+directly.
+</descr>
+<errors>
+Errors are those returned by <link id="TStream.Put"/>.
+</errors>
+<seealso>
+<link id="TCollection.Store">Store</link>
+<link id="TCollection.GetItem">GetItem</link>
+</seealso>
+</element>
+
+<element name="TSortedCollection">
+<short>Abstract sorted collection.</short>
+<descr>
+<p>
+<var>TSortedCollection</var> is an abstract class, implementing a sorted
+collection. You should never use an instance of <var>TSortedCollection</var>
+directly, instead you should declare a descendent type, and override the
+<link id="TSortedCollection.Compare">Compare</link> method.
+</p>
+<p>
+Because the collection is ordered, <var>TSortedCollection</var> overrides some
+<var>TCollection</var> methods, to provide faster routines for lookup.
+</p>
+<p>
+The <link id="TSortedCollection.Compare">Compare</link> method decides how elements
+in the collection should be ordered. Since <var>TCollection</var> has no way
+of knowing how to order pointers, you must override the compare method.
+</p>
+<p>
+Additionally, <var>TCollection</var> provides a means to filter out duplicates.
+if you set <var>Duplicates</var> to <var>False</var> (the default) then duplicates
+will not be allowed.
+</p>
+<p>
+The example below defines a descendent of <var>TSortedCollection</var> which
+is used in the examples.
+</p>
+</descr>
+<example file="objectex/mysortc"/>
+</element>
+
+<element name="TSortedCollection.Duplicates">
+<short>If <var>True</var> duplicate strings are allowed in the collection.</short>
+</element>
+
+<element name="TSortedCollection.Init">
+<short>Instantiates a new instance of a <var>TSortedCollection</var></short>
+<descr>
+<p>
+<var>Init</var> calls the inherited constuctor (see <link id="TCollection.Init"/>) and
+sets the <var>Duplicates</var> flag to false.
+</p>
+<p>
+You should not call this method directly, since <var>TSortedCollection</var> is a
+abstract class. Instead, the descendent classes should call it via the
+<var>inherited</var> keyword.
+</p>
+</descr>
+<errors>
+None.
+</errors>
+<seealso> 
+<link id="TSortedCollection.Load"/>
+<link id="TCollection.Done"/>
+</seealso>
+</element>
+
+<element name="TSortedCollection.Load">
+<short>Instantiates a new instance of a <var>TSortedCollection</var> and
+loads it from stream.</short>
+<descr>
+<p>
+<var>Load</var> calls the inherited constuctor (see <link id="TCollection.Load"/>) and
+reads the <var>Duplicates</var> flag from the stream..
+</p>
+<p>
+You should not call this method directly, since <var>TSortedCollection</var> is a
+abstract class. Instead, the descendent classes should call it via the
+<var>inherited</var> keyword.
+</p>
+<p>
+For an example, see <link id="TCollection.Load"/>.
+</p>
+</descr>
+<errors>
+None.
+</errors>
+<seealso> 
+<link id="TSortedCollection.Init"/>
+<link id="TCollection.Done"/>
+</seealso>
+</element>
+
+
+<element name="TSortedCollection.KeyOf">
+<short>Return the key of an item</short>
+<descr>
+<p>
+<var>KeyOf</var> returns the key associated with <var>Item</var>.
+<var>TSortedCollection</var> returns the item itself as the key, descendent
+objects can override this method to calculate a (unique) key based on the
+item passed (such as hash values).
+</p>
+<p>
+<var>Keys</var> are used to sort the objects, they are used to search and sort
+the items in the collection. If descendent types override this method then
+it allows possibly for faster search/sort methods based on keys rather than
+on the objects themselves.
+</p>
+</descr>
+<errors>
+None.
+</errors>
+<seealso>
+<link id="TSortedCollection.IndexOf"/>
+<link id="TSortedCollection.Compare"/>
+</seealso>
+</element>
+
+<element name="TSortedCollection.IndexOf">
+<short>Return index of an item in the collection.</short>
+<descr>
+<p>
+<var>IndexOf</var> returns the index of <var>Item</var> in the collection. It searches
+for the object based on it's key. If duplicates are allowed, then it returns 
+the index of last object that matches <var>Item</var>.
+</p>
+<p>
+In case <var>Item</var> is not found in the collection, -1 is returned.
+</p>
+<p>
+For an example, see <link id="TCollection.IndexOf"/>
+</p>
+</descr>
+<errors>
+None.
+</errors>
+<seealso>
+<link id="TSortedCollection.Search"/>
+<link id="TSortedCollection.Compare"/>
+</seealso>
+</element>
+
+
+<element name="TSortedCollection.Compare">
+<short>Compare two items in the collection.</short>
+<descr>
+<p>
+<var>Compare</var> is an abstract method that should be overridden by descendent
+objects in order to compare two items in the collection. This method is used
+in the <link id="TSortedCollection.Search">Search</link> method and in the
+<link id="TSortedCollection.Insert">Insert</link> method to determine the ordering of
+the objects.
+</p>
+<p>
+The function should compare the two keys of items and return the following
+function results:
+</p>
+<dl>
+<dt>Result &lt; 0</dt><dd>If <var>Key1</var> is logically before <var>Key2</var> (<var>Key1&lt;Key2</var>)</dd>
+<dt>Result = 0</dt><dd> If <var>Key1</var> and <var>Key2</var> are equal. (<var>Key1=Key2</var>)</dd>
+<dt>Result &gt; 0</dt><dd> If <var>Key1</var> is logically after <var>Key2</var> (<var>Key1&gt;Key2</var>)</dd>
+</dl>
+</descr>
+<errors>
+An 'abstract run-time error' will be generated if you call
+<var>TSortedCollection.Compare</var> directly.
+</errors>
+<seealso>
+<link id="TSortedCollection.IndexOf"/>
+<link id="TSortedCollection.Search"/>
+</seealso>
+<example file="objectex/mysortc"/>
+</element>
+
+
+<element name="TSortedCollection.Search">
+<short>Search for item with given key.</short>
+<descr>
+<p>
+<var>Search</var> looks for the item with key <var>Key</var> and returns the position
+of the item (if present) in the collection in <var>Index</var>.
+</p>
+<p>
+Instead of a linear search as <var>TCollection</var> does, <var>TSortedCollection</var>
+uses a binary search based on the keys of the objects. It uses the
+<link id="TSortedCollection.Compare">Compare</link> function to implement this
+search.
+</p>
+<p>
+If the item is found, <var>Search</var> returns <var>True</var>, otherwise <var>False</var>
+is returned.
+</p>
+</descr>
+<errors>
+None.
+</errors>
+<seealso>
+<link id="TCollection.IndexOf"/>
+</seealso>
+<example file="objectex/ex36"/>
+</element>
+
+
+<element name="TSortedCollection.Insert">
+<short>Insert new item in collection.</short>
+<descr>
+<p>
+<var>Insert</var> inserts an item in the collection at the correct position, such
+that the collection is ordered at all times. You should never use
+<link id="TCollection.AtInsert">Atinsert</link>, since then the collection ordering
+is not guaranteed.
+</p>
+<p>
+If <var>Item</var> is already present in the collection, and <var>Duplicates</var> is
+<var>False</var>, the item will not be inserted.
+</p>
+</descr>
+<errors>
+None.
+</errors>
+<seealso>
+<link id="TCollection.AtInsert"/>
+</seealso>
+<example file="objectex/ex35"/>
+</element>
+
+
+
+<element name="TSortedCollection.Store">
+<short>Write the collection to the stream.</short>
+<descr>
+<p>
+<var>Store</var> writes the collection to the stream <var>S</var>. It does this by
+calling the inherited <link id="TCollection.Store"/>, and then writing the
+<var>Duplicates</var> flag to the stream.
+</p>
+<p>
+After a <var>Store</var>, the collection can be loaded from the stream with the
+constructor <link id="TSortedCollection.Load">Load</link>
+</p>
+<p>
+For an example, see <link id="TCollection.Load"/>.
+</p>
+</descr>
+<errors>
+Errors can be those of <link id="TStream.Put"/>.
+</errors>
+<seealso>
+<link id="TSortedCollection.Load"/>
+</seealso>
+</element>
+
+
+<element name="TStringCollection">
+<short>Collection of pascal strings.</short>
+<descr>
+<p>
+The <var>TStringCollection</var> object manages a sorted collection of pascal
+strings.
+To this end, it overrides the <link id="TSortedCollection.Compare">Compare</link>
+method of <var>TSortedCollection</var>, and it introduces methods to read/write
+strings from a stream.
+</p>
+</descr>
+</element>
+
+<element name="TStringCollection.GetItem">
+<short>Get string from the stream.</short>
+<descr>
+<p>
+<var>GetItem</var> reads a string from the stream <var>S</var> and returns a pointer
+to it. It doesn't insert the string in the collection.
+</p>
+<p>
+This method is primarily introduced to be able to load and store the
+collection from and to a stream.
+</p>
+</descr>
+<errors>
+The errors returned are those of <link id="TStream.ReadStr"/>.
+</errors>
+<seealso>
+<link id="TStringCollection.PutItem"/>
+</seealso>
+</element>
+
+<element name="TStringCollection.Compare">
+<short>Compare two strings in the collection.</short>
+<descr>
+<p>
+<var>TStringCollection</var> overrides the <var>Compare</var> function so it compares
+the two keys as if they were pointers to strings. The compare is done case
+sensitive. It returns the following results:
+</p>
+<dl>
+<dt>-1</dt><dd> if the first string is alphabetically earlier  than the second string.</dd>
+<dt>0</dt><dd> if the two strings are equal.</dd>
+<dt>1</dt><dd> if the first string is alphabetically later than the second string.</dd>
+</dl>
+</descr>
+<errors>
+None.
+</errors>
+<seealso>
+<link id="TSortedCollection.Compare"/>
+</seealso>
+<example file="objectex/ex37"/>
+</element>
+
+
+
+<element name="TStringCollection.FreeItem">
+<short>Dispose a string in the collection from memory.</short>
+<descr>
+<var>TStringCollection</var> overrides <var>FreeItem</var> so that the string pointed
+to by <var>Item</var> is disposed from memory.
+</descr>
+<errors>
+None.
+</errors>
+<seealso>
+<link id="TCollection.FreeItem"/>
+</seealso>
+</element>
+
+<element name="TStringCollection.PutItem">
+<short>Write a string to the stream.</short>
+<descr>
+<p>
+<var>PutItem</var> writes the string pointed to by <var>Item</var> to the stream
+<var>S</var>.
+</p>
+<p>
+This method is primarily used in the <var>Load</var> and <var>Store</var> methods,
+and should not be used directly.
+</p>
+</descr>
+<errors>
+Errors are those of <link id="TStream.WriteStr"/>.
+</errors>
+<seealso>
+<link id="TStringCollection.GetItem"/>
+</seealso>
+</element>
+
+
+<element name="TStrCollection">
+<short>Collection of null-terminated strings</short>
+<descr>
+<p>
+The <var>TStrCollection</var> object manages a sorted collection
+of null-terminated strings (pchar strings).
+To this end, it overrides the <link id="TSortedCollection.Compare">Compare</link>
+method of <var>TSortedCollection</var>, and it introduces methods to read/write
+strings from a stream.
+</p>
+</descr>
+</element>
+
+<element name="TStrCollection.GetItem">
+<short>Read a null-terminated string from the stream.</short>
+<descr>
+<p>
+<var>GetItem</var> reads a null-terminated string from the stream <var>S</var>
+and returns a pointer  to it. It doesn't insert the string in the
+collection.
+</p>
+<p>
+This method is primarily introduced to be able to load and store the
+collection from and to a stream.
+</p>
+</descr>
+<errors>
+The errors returned are those of <link id="TStream.StrRead"/>.
+</errors>
+<seealso>
+<link id="TStrCollection.PutItem"/>
+</seealso>
+</element>
+
+<element name="TStrCollection.Compare">
+<short>Compare two strings in the collection.</short>
+<descr>
+<p>
+<var>TStrCollection</var> overrides the <var>Compare</var> function so it compares
+the two keys as if they were pointers to strings. The compare is done case
+sensitive. It returns
+</p>
+<dl>
+<dt>-1</dt><dd> if the first string is alphabetically earlier  than the second string. </dd>
+<dt>0</dt><dd> if the two strings are equal. </dd>
+<dt>1</dt><dd> if the first string is alphabetically later than the second string.</dd>
+</dl>
+</descr>
+<errors>
+None.
+</errors>
+<seealso>
+<link id="TSortedCollection.Compare"/>
+</seealso>
+<example file="objectex/ex38"/>
+</element>
+
+<element name="TStrCollection.FreeItem">
+<short>Free null-terminated string from the collection.</short>
+<descr>
+<var>TStrCollection</var> overrides <var>FreeItem</var> so that the string pointed
+to by <var>Item</var> is disposed from memory.
+</descr>
+<errors>
+None.
+</errors>
+<seealso>
+<link id="TCollection.FreeItem"/>
+</seealso>
+</element>
+
+<element name="TStrCollection.PutItem">
+<short>Write a null-terminated string to the stream.</short>
+<descr>
+<p>
+<var>PutItem</var> writes the string pointed to by <var>Item</var> to the stream
+<var>S</var>.
+</p>
+<p>
+This method is primarily used in the <var>Load</var> and <var>Store</var> methods,
+and should not be used directly.
+</p>
+</descr>
+<errors>
+Errors are those of <link id="TStream.StrWrite"/>.
+</errors>
+<seealso>
+<link id="TStrCollection.GetItem"/>
+</seealso>
+</element>
+
+<element name="TUnSortedStrCollection">
+<short>Unsorted string collection</short>
+<descr>
+<p>
+The <var>TUnSortedStrCollection</var> object manages an unsorted list of strings.
+To this end, it overrides the <link id="TStringCollection.Insert"/> method to add
+strings at the end of the collection, rather than in the alphabetically
+correct position.
+</p>
+<p>
+Take care, the <link id="TSortedCollection.Search">Search</link> and
+<link id="TCollection.IndexOf">IndexOf</link> methods will not work on an unsorted
+string collection.
+</p>
+</descr>
+</element>
+
+<element name="TUnSortedStrCollection.Insert">
+<short>Insert a new string in the collection.</short>
+<descr>
+<var>Insert</var> inserts a string at the end of the collection, instead
+of on it's alphabetical place, resulting in an unsorted collection of
+strings.
+</descr>
+<errors>
+None.
+</errors>
+<seealso>
+<link id="TCollection.Insert"/>
+</seealso>
+<example file="objectex/ex39"/>
+</element>
+
+
+
+<element name="TResourceCollection">
+<short>Collection of resource names</short>
+<descr>
+<p>
+A <var>TResourceCollection</var> manages a collection of resource names.
+It stores the position and the size of a resource, as well as the name of
+the resource. It stores these items in records that look like this:
+</p>
+<code>
+TYPE
+   TResourceItem = packed RECORD
+      Posn: LongInt;
+      Size: LongInt;
+      Key : String;
+   End;
+   PResourceItem = ^TResourceItem;
+</code>
+<p>
+It overrides some methods of <var>TStringCollection</var> in order to accomplish
+this.
+</p>
+<remark>
+Remark that the <var>TResourceCollection</var> manages the names of the
+resources and their assiciated positions and sizes, it doesn't manage
+the resources themselves.
+</remark>
+</descr>
+</element>
+
+<element name="TResourceCollection.KeyOf">
+<short>Return the key of an item in the collection.</short>
+<descr>
+<var>KeyOf</var> returns the key of an item in the collection. For resources, the
+key is a pointer to the string with the resource name.
+</descr>
+<errors>
+None.
+</errors>
+<seealso>
+<link id="TStringCollection.Compare"/>
+</seealso>
+</element>
+
+<element name="TResourceCollection.GetItem">
+<short>Read an item from the stream.</short>
+<descr>
+<p>
+<var>GetItem</var> reads a resource item from the stream <var>S</var>. It reads the
+position, size and name from the stream, in that order. It DOES NOT read the
+resource itself from the stream.
+</p>
+<p>
+The resulting item is not inserted in the collection. This call is manly for
+internal use by the <link id="TCollection.Load"/> method.
+</p>
+</descr>
+<errors>
+Errors returned are those by <link id="TStream.Read"/>
+</errors>
+<seealso>
+<link id="TCollection.Load"/>
+<link id="TStream.Read"/>
+</seealso>
+</element>
+
+<element name="TResourceCollection.FreeItem">
+<short>Release memory occupied by item.</short>
+<descr>
+<p>
+<var>FreeItem</var> releases the memory occupied by <var>Item</var>. It de-allocates
+the name, and then the resourceitem record.
+</p>
+<p>
+It does NOT remove the item from the collection.
+</p>
+</descr>
+<errors>
+None.
+</errors>
+<seealso>
+<link id="TCollection.FreeItem"/>
+</seealso>
+</element>
+
+<element name="TResourceCollection.PutItem">
+<short>Write an item to the stream.</short>
+<descr>
+<p>
+<var>PutItem</var> writes <var>Item</var> to the stream <var>S</var>. It does this by
+writing the position and size and name of the resource item to the stream.
+</p>
+<p>
+This method is used primarily by the <link id="TCollection.Store">Store</link>
+method.
+</p>
+</descr>
+<errors>
+Errors returned are those by <link id="TStream.Write"/>.
+</errors>
+<seealso>
+<link id="TCollection.Store"/>
+</seealso>
+</element>
+
+
+<element name="TResourceFile">
+<short>Resource file</short>
+<descr>
+<link id="TResourceFile"/> represents the resources in a binary file image.
+</descr>
+</element>
+
+<element name="TResourceFile.Stream">
+<short>Actual file stream</short>
+<descr>
+contains the (file) stream that has the executable image and
+the resources. It can be initialized by the <link id="TResourceFile.Init">Init</link>
+constructor call.
+</descr>
+</element>
+
+<element name="TResourceFile.Modified">
+<short>Have resources changed ?</short>
+<descr>
+<var>Modified</var> is set to <var>True</var> if one of the resources has been changed.
+It is set by the <link id="TResourceFile.Init">SwitchTo</link>,
+<link id="TResourceFile.Delete">Delete</link> and <link id="TResourceFile.Put">Put</link>
+methods. Calling <link id="TResourceFile.Flush">Flush</link> will clear the
+<var>Modified</var> flag.
+</descr>
+</element>
+
+<element name="TResourceFile.Init">
+<short>Instantiate a new instance.</short>
+<descr>
+<p>
+<var>Init</var> instantiates a new instance of a <var>TResourceFile</var> object.
+If <var>AStream</var> is not nil then it is considered as a stream describing an
+executable image on disk.
+</p>
+<p>
+<var>Init</var> will try to position the stream on the start of the resources section,
+and read all resources from the stream.
+</p>
+</descr>
+<errors>
+None.
+</errors>
+<seealso>
+<link id="TResourceFile.Done"/>
+</seealso>
+</element>
+
+<element name="TResourceFile.Done">
+<short>Destroy the instance and remove it from memory.</short>
+<descr>
+<var>Done</var> cleans up the instance of the <var>TResourceFile</var> Object.
+If <var>Stream</var> was specified at initialization, then <var>Stream</var> is
+disposed of too.
+</descr>
+<errors>
+None.
+</errors>
+<seealso>
+<link id="TResourceFile.Init"/>
+</seealso>
+</element>
+
+<element name="TResourceFile.Count">
+<short>Number of resources in the file</short>
+<descr>
+<var>Count</var> returns the number of resources. If no resources were
+read, zero is returned.
+</descr>
+<errors>
+None.
+</errors>
+<seealso>
+<link id="TResourceFile.Init"/>
+</seealso>
+</element>
+
+<element name="TResourceFile.KeyAt">
+<short>Return the key of the item at a certain position.</short>
+<descr>
+<var>KeyAt</var> returns the key (the name) of the <var>I</var>-th resource.
+</descr>
+<errors>
+In case <var>I</var> is invalid, <var>TCollection.Error</var> will be executed.
+</errors>
+<seealso>
+<link id="TResourceFile.Get"/>
+</seealso>
+</element>
+
+<element name="TResourceFile.Get">
+<short>Return a resource by key name.</short>
+<descr>
+<var>Get</var> returns a pointer to a instance of a resource identified by
+<var>Key</var>. If <var>Key</var> cannot be found in the list of resources, then
+<var>Nil</var> is returned.
+</descr>
+<errors>
+Errors returned may be those by <var>TStream.Get</var>
+</errors>
+<seealso>
+</seealso>
+</element>
+
+<element name="TResourceFile.SwitchTo">
+<short>Write resources to a new stream.</short>
+<descr>
+<p>
+<var>SwitchTo</var> switches to a new stream to hold the resources in.
+<var>AStream</var> will be the new stream after the call to <var>SwitchTo</var>.
+</p>
+<p>
+If <var>Pack</var> is true, then all the known resources will be copied from
+the current stream to the new stream (<var>AStream</var>). If <var>Pack</var> is
+<var>False</var>, then only the current resource is copied.
+</p>
+<p>
+The return value is the value of the original stream: <var>Stream</var>.
+</p>
+<p>
+The <var>Modified</var> flag is set as a consequence of this call.
+</p>
+</descr>
+<errors>
+Errors returned can be those of <link id="TStream.Read"/> and
+<link id="TStream.Write"/>.
+</errors>
+<seealso>
+<link id="TResourceFile.Flush"/>
+</seealso>
+</element>
+
+<element name="TResourceFile.Flush">
+<short>Writes the resources to the stream.</short>
+<descr>
+If the <var>Modified</var> flag is set to <var>True</var>, then <var>Flush</var>
+writes the resources to the stream <var>Stream</var>. It sets the <var>Modified</var>
+flag to true after that.
+</descr>
+<errors>
+Errors can be those by <link id="TStream.Seek"/> and <link id="TStream.Write"/>.
+</errors>
+<seealso>
+<link id="TResourceFile.SwitchTo"/>
+</seealso>
+</element>
+
+<element name="TResourceFile.Delete">
+<short>Delete a resource from the file</short>
+<descr>
+<var>Delete</var> deletes the resource identified by <var>Key</var> from the
+collection. It sets the <var>Modified</var> flag to true.
+</descr>
+<errors>
+None.
+</errors>
+<seealso>
+<link id="TResourceFile.Flush"/>
+</seealso>
+</element>
+
+<element name="TResourceFile.Put">
+<short>Set a resource by key name.</short>
+<descr>
+<var>Put</var> sets the resource identified by <var>Key</var> to <var>Item</var>.
+If no such resource exists, a new one is created. The item is written
+to the stream.
+</descr>
+<errors>
+Errors returned may be those by <link id="TStream.Put"/> and <var>TStream.Seek</var>
+</errors>
+<seealso>
+<link id="TResourceFile.Get">Get</link>
+</seealso>
+</element>
+
+<element name="TStringList">
+<short>Collection of strings</short>
+<descr>
+<p>
+A <var>TStringList</var> object can be used to read a collection of strings
+stored in a stream. If you register this object with the <link id="RegisterType"/>
+function, you cannot register the <var>TStrListMaker</var> object.
+</p>
+</descr>
+</element>
+
+<element name="TStringList.Load">
+<short>Load stringlist from stream.</short>
+<descr>
+The <var>Load</var> constructor reads the <var>TStringList</var> object from the
+stream <var>S</var>. It also reads the descriptions of the strings from the
+stream. The string descriptions are stored as an array of
+<var>TstrIndexrec</var> records, where each record describes a string on the
+stream. These records are kept in memory.
+</descr>
+<errors>
+If an error occurs, a stream error is triggered.
+</errors>
+<seealso>
+<link id="TStringList.Done"/>
+</seealso>
+</element>
+
+<element name="TStringList.Done">
+<short>Clean up the instance</short>
+<descr>
+The <var>Done</var> destructor frees the memory occupied by the string
+descriptions, and destroys the object.
+</descr>
+<errors>
+None.
+</errors>
+<seealso>
+<link id="TStringList.Load">Load</link>
+<link id="TObject.Done"/>
+</seealso>
+</element>
+
+<element name="TStringList.Get">
+<short>Return a string by key name</short>
+<descr>
+<var>Get</var> reads the string with key <var>Key</var> from the list of strings on the
+stream, and returns this string. If there is no string with such a key, an
+empty string is returned.
+</descr>
+<errors>
+If no string with key <var>Key</var> is found, an empty string is returned.
+A stream error may result if the stream doesn't contain the needed strings.
+</errors>
+<seealso>
+<link id="TStrListMaker.Put"/>
+</seealso>
+</element>
+
+<element name="TStrListMaker">
+<short>Generate a stream with strings, readable by <link id="TStringList"/></short>
+<descr>
+<p>
+The <var>TStrListMaker</var> object can be used to generate a stream with
+strings, which can be read with the <var>TStringList</var> object.
+If you register this object with the <link id="RegisterType"/>
+function, you cannot register the <var>TStringList</var> object.
+</p>
+</descr>
+</element>
+
+<element name="TStrListMaker.Init">
+<short>Instantiate a new instance of <var>TStrListMaker</var></short>
+<descr>
+<p>
+The <var>Init</var> constructor creates a new instance of the <var>TstrListMaker</var>
+object. It allocates <var>AStrSize</var> bytes on the heap to hold all the
+strings you wish to store. It also allocates enough room for
+<var>AIndexSize</var> key description entries (of the type <var>TStrIndexrec</var>).
+</p>
+<p>
+<var>AStrSize</var> must be large enough to contain all the strings you wish to
+store. If not enough memory is allocated, other memory will be overwritten.
+The same is true for <var>AIndexSize</var> : maximally <var>AIndexSize</var> strings
+can be written to the stream.
+</p>
+</descr>
+<errors>
+None.
+</errors>
+<seealso>
+<link id="TObject.Init"/>
+<link id="TStrListMaker.Done"/>
+</seealso>
+</element>
+
+<element name="TStrListMaker.Done">
+<short>Clean up the instance and free all related memory.</short>
+<descr>
+The <var>Done</var> destructor de-allocates the memory for the index description
+records and the string data, and then destroys the object.
+</descr>
+<errors>
+None.
+</errors>
+<seealso>
+<link id="TObject.Done"/>
+<link id="TStrListMaker.Init"/>
+</seealso>
+</element>
+
+<element name="TStrListMaker.Put">
+<short>Add a new string to the list with associated key.</short>
+<descr>
+<var>Put</var> adds they string <var>S</var> with key <var>Key</var> to the collection of
+strings. This action doesn't write the string to a stream. To write the
+strings to the stream, see the <link id="TStrListMaker.Store">Store</link> method.
+</descr>
+<errors>
+None.
+</errors>
+<seealso>
+<link id="TStrListMaker.Store"/>
+</seealso>
+</element>
+
+<element name="TStrListMaker.Store">
+<short>Write the strings to the stream.</short>
+<descr>
+<var>Store</var> writes the collection of strings to the stream <var>S</var>.
+The collection can then be read with the <var>TStringList</var> object.
+</descr>
+<errors>
+A stream error may occur when writing the strings to the stream.
+</errors>
+<seealso>
+<link id="TStringList.Load"/>
+<link id="TStrListMaker.Put"/>
+</seealso>
+</element>
+
+<element name="InvalidHandle">
+<short>Value for invalid handle. Initial value for file stream handles or when the stream is closed.</short>
+</element>
+
+
+</module>
+</package>
+</fpdoc-descriptions>

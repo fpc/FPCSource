@@ -1,0 +1,1418 @@
+<?xml version="1.0" encoding="ISO8859-1"?>
+<fpdoc-descriptions>
+<!--  
+
+   $Id$ 
+   This file is part of the FPC documentation. 
+   Copyright (C) 1997, by Michael Van Canneyt 
+ 
+   The FPC documentation is free text; you can redistribute it and/or 
+   modify it under the terms of the GNU Library General Public License as 
+   published by the Free Software Foundation; either version 2 of the 
+   License, or (at your option) any later version. 
+ 
+   The FPC Documentation is distributed in the hope that it will be useful, 
+   but WITHOUT ANY WARRANTY; without even the implied warranty of 
+   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU 
+   Library General Public License for more details. 
+ 
+   You should have received a copy of the GNU Library General Public 
+   License along with the FPC documentation; see the file COPYING.LIB.  If not, 
+   write to the Free Software Foundation, Inc., 59 Temple Place - Suite 330, 
+   Boston, MA 02111-1307, USA. 
+ -->
+<package name="rtl">
+<module name="DOS">
+<short>DOS - Turbo Pascal MS-DOS interface</short>
+<!-- \FPCexampledir{dosex} -->
+<descr>
+<p>
+The <file>DOS</file> unit gives access to some operating system calls 
+related to files, the file system, date and time. Except for the 
+PalmOS target, this unit is available to all supported platforms.
+</p>
+<p>
+The unit was first written for dos by Florian Klaempfl. It was ported to 
+linux by Mark May and enhanced by Michael Van Canneyt. 
+The Amiga version was ported by Nils Sjoholm.
+</p>
+<p>
+Under non-DOS systems, some of the functionality is lost, as it is either impossible 
+or meaningless to implement it. Other than that, the functionality for all 
+operating systems is the same.
+</p>
+</descr>
+
+<topic name="fileattributes">
+<short>File attributes</short>
+<descr>
+<p>
+The File Attribute constants are used in <link id="FindFirst"/>,
+<link id="FindNext"/> to
+determine what type of special file to search for in addition to normal files. 
+These flags are also used in the <link id="SetFAttr"/> and <link id="GetFAttr"/> routines to 
+set and retrieve attributes of files. For their definitions consult 
+<link id="fileattributes"/>.
+</p>
+<table>
+<caption>Possible file attributes</caption>
+<th><td>Constant</td><td>Description</td><td>Value</td></th>
+<tr><td><var>readonly</var></td><td><printshort id="readonly"/></td><td> $01</td></tr>
+<tr><td><var>hidden</var> </td><td> <printshort id="hidden"/> </td><td> $02 </td></tr>
+<tr><td><var>sysfile</var> </td><td> <printshort id="sysfile"/> </td><td> $04</td></tr>
+<tr><td><var>volumeid</var> </td><td>  <printshort id="volumeid"/> </td><td> $08</td></tr>
+<tr><td><var>directory</var> </td><td> <printshort id="directory"/> </td><td> $10</td></tr>
+<tr><td><var>archive</var> </td><td> <printshort id="archive"/> </td><td> $20</td></tr> 
+<tr><td><var>anyfile</var> </td><td> <printshort id="anyfile"/> </td><td> $3F</td></tr>
+</table>
+</descr>
+</topic>
+
+<topic name="filemodes">
+<short>File open mode constants.</short>
+<descr>
+<p>
+These constants are used in the <var>Mode</var> field of the <var>TextRec</var>
+record. Gives information on the filemode of the text I/O. For their
+definitions consult the following table:
+</p>
+<table>
+<caption>Possible mode constants</caption>
+<th><td>Constant</td><td>Description</td><td>Value</td></th> 
+<tr><td><var>fmclosed</var></td><td><printshort id="fmclosed"/></td><td>$D7B0</td></tr>
+<tr><td><var>fminput</var></td><td><printshort id="fminput"/></td><td>$D7B1 </td></tr>
+<tr><td><var>fmoutput</var></td><td><printshort id="fmoutput"/></td><td>$D7B2</td></tr>
+<tr><td><var>fminout</var></td><td><printshort id="fminout"/></td><td>$D7B3</td></tr>
+</table>
+</descr>
+</topic>
+
+<topic name="filehandling">
+<short>File handling</short>
+<descr>
+<p>
+Routines to handle files on disk.
+</p>
+<table>
+<th><td>Name</td><td>Description</td></th>
+<tr><td><link id="FExpand"/></td><td>Expand filename to full path</td></tr>
+<tr><td><link id="FindClose"/></td><td>Close finfirst/findnext session</td></tr>
+<tr><td><link id="FindFirst"/></td><td>Start find of file</td></tr>
+<tr><td><link id="FindNext"/></td><td>Find next file</td></tr>
+<tr><td><link id="FSearch"/></td><td>Search for file in a path</td></tr>
+<tr><td><link id="FSplit"/></td><td>Split filename in parts</td></tr>
+<tr><td><link id="GetFAttr"/></td><td>Return file attributes</td></tr>
+<tr><td><link id="GetFTime"/></td><td>Return file time</td></tr>
+<tr><td><link id="GetLongName"/></td><td>Convert short filename to long filename (DOS only)</td></tr>
+<tr><td><link id="GetShortName"/></td><td>Convert long filename to short filename (DOS only)</td></tr>
+<tr><td><link id="SetFAttr"/></td><td>Set file attributes</td></tr>
+<tr><td><link id="SetFTime"/></td><td>Set file time</td></tr>
+</table>
+</descr>
+</topic>
+
+<topic name="diskhandling">
+<short>Directory and disk handling</short>
+<descr>
+<p>
+Routines to handle disk information.
+</p>
+<table>
+<th><td>Name</td><td>Description</td></th>
+<tr><td><link id="AddDisk"/></td><td>Add disk to list of disks (UNIX only)</td></tr>
+<tr><td><link id="DiskFree"/></td><td>Return size of free disk space</td></tr>
+<tr><td><link id="DiskSize"/></td><td>Return total disk size</td></tr>
+</table>
+</descr>
+</topic>
+
+<topic name="process">
+<short>Process handling</short>
+<descr>
+<p>
+Functions to handle process information and starting new processes.
+</p>
+<table>
+<th><td>Name</td><td>Description</td></th>
+<tr><td><link id="DosExitCode"/></td><td>Exit code of last executed program</td></tr>
+<tr><td><link id="EnvCount"/></td><td>Return number of environment variables</td></tr>
+<tr><td><link id="EnvStr"/></td><td>Return environment string pair</td></tr>
+<tr><td><link id="Exec"/></td><td>Execute program</td></tr>
+<tr><td><link id="GetEnv"/></td><td>Return specified environment string</td></tr>
+</table>
+</descr>
+</topic>
+
+<topic name="sysinfo">
+<short>System information</short>
+<descr>
+<p>
+Functions for retrieving and setting general system information such as date
+and time.
+</p>
+<table>
+<th><td>Name</td><td>Description</td></th>
+<tr><td><link id="DosVersion"/></td><td>Get OS version</td></tr>
+<tr><td><link id="GetCBreak"/></td><td>Get setting of control-break handling flag</td></tr>
+<tr><td><link id="GetDate"/></td><td>Get system date</td></tr>
+<tr><td><link id="GetIntVec"/></td><td>Get interrupt vector status</td></tr>
+<tr><td><link id="GetTime"/></td><td>Get system time</td></tr>
+<tr><td><link id="GetVerify"/></td><td>Get verify flag</td></tr>
+<tr><td><link id="Intr"/></td><td>Execute an interrupt</td></tr>
+<tr><td><link id="Keep"/></td><td>Keep process in memory and exit</td></tr>
+<tr><td><link id="MSDos"/></td><td>Execute MS-dos function call</td></tr>
+<tr><td><link id="PackTime"/></td><td>Pack time for file time</td></tr>
+<tr><td><link id="SetCBreak"/></td><td>Set control-break handling flag</td></tr>
+<tr><td><link id="SetDate"/></td><td>Set system date</td></tr>
+<tr><td><link id="SetIntVec"/></td><td>Set interrupt vectors</td></tr>
+<tr><td><link id="SetTime"/></td><td>Set system time</td></tr>
+<tr><td><link id="SetVerify"/></td><td>Set verify flag</td></tr>
+<tr><td><link id="SwapVectors"/></td><td>Swap interrupt vectors</td></tr>
+<tr><td><link id="UnPackTime"/></td><td>Unpack file time</td></tr>
+</table>
+</descr>
+</topic>
+
+
+<element name="fmclosed">
+<short>File is closed</short>
+</element>
+
+<element name="fminput">
+<short>File is read only</short>
+</element>
+
+<element name="fmoutput">
+<short>File is write only</short>
+</element>
+
+<element name="fminout">
+<short>File is read and write</short>
+</element>
+
+<element name="fcarry">
+<short>CPU carry flag. Not used.</short>
+</element>
+
+<element name="fparity">
+<short>CPU parity flag. Not used.</short>
+</element>
+
+<element name="fauxiliary">
+<short>CPU auxiliary flag. Not used.</short>
+</element>
+
+<element name="fzero">
+<short>CPU zero flag. Not used.</short>
+</element>
+
+<element name="fsign">
+<short>CPU sign flag. Not used.</short>
+</element>
+
+<element name="foverflow">
+<short>CPU overflow flag. Not used.</short>
+</element>
+
+<element name="readonly">
+<short>Read-Only file attribute</short>
+</element>
+
+<element name="hidden">
+<short>Hidden file attribute</short>
+</element>
+
+<element name="sysfile">
+<short>System file attribute</short>
+</element>
+
+<element name="volumeid">
+<short>Volumd ID file attribute</short>
+</element>
+
+<element name="directory">
+<short>Directory file attribute</short>
+</element>
+
+<element name="archive">
+<short>Archive file attribute</short>
+</element>
+
+<element name="FileNameLen">
+<short>Maximum length of a filename</short>
+</element>
+
+<element name="anyfile">
+<short>Match any file attribute</short>
+</element>
+
+<element name="ComStr">
+<short>Command-line string type</short>  
+</element>
+
+<element name="PathStr">
+<short>Full File path string type.</short>  
+</element>
+
+<element name="DirStr">
+<short>Full directory string type.</short>  
+</element>
+
+<element name="NameStr">
+<short>Fill filename string type.</short>  
+</element>
+
+<element name="ExtStr">
+<short>Filename extension string type.</short>  
+</element>
+
+<element name="SearchRec">
+<short>File Search Results record</short>
+<descr>
+<p>
+<var>SearchRec</var> is filled by the <link id="FindFirst"/> call and can be
+used in subsequent <link id="FindNext"/> calls to search for files. The
+structure of this record depends on the platform. Only the following
+fields are present on all platforms: 
+</p>
+<dl>
+<dt>Attr</dt><dd>File attributes.</dd>
+<dt>Time</dt><dd>File modification time.</dd>
+<dt>Size</dt><dd>File size</dd>
+<dt>Name</dt><dd>File name (name part only, no path)</dd>
+</dl>
+</descr>
+</element>
+
+<element name="filerecnamelength">
+<short>Maximum length of FileName part in <link id="FileRec"/></short>
+</element>
+
+<element name="FileRec">
+<short>Record describing an untyped file</short>
+<descr>
+<var>FileRec</var> is used for internal representation of typed and untyped files.
+</descr>
+</element>
+
+<element name="FileRec.Handle">
+<short>OS file handle</short>
+</element>
+
+<element name="FileRec.Mode">
+<short>File open mode</short>
+</element>
+
+<element name="FileRec.RecSize">
+<short>Size of a record (in bytes)</short>
+</element>
+
+<element name="FileRec._Private">
+<short>Private data, do not use</short>
+</element>
+
+<element name="FileRec.UserData">
+<short>User data, for implementing a user driver.</short>
+</element>
+
+<element name="FileRec.Name">
+<short>File name</short>
+</element>
+
+<element name="TextRecNameLength">
+<short>Maximum length of filename in <link id="TextRec"/></short>
+</element>
+
+<element name="TextRecBufSize">
+<short>Size of default buffer in <link id="TextRec"/></short>
+</element>
+
+<element name="TextBuf">
+<short>Type for default buffer in <link id="TextRec"/></short>
+</element>
+
+<element name="TextRec">
+<short>Record describing Text files</short>
+<descr>
+<p>
+<var>TextRec</var> describes the internal working of a <var>Text</var> file.
+</p>
+<p>
+Remark that this is not binary compatible with the Turbo Pascal definition
+of <var>TextRec</var>, since the sizes of the different fields are different.
+</p>
+</descr>
+</element>
+
+<element name="Handle">
+<short>OS file handle for this record</short>
+</element>
+
+<element name="Mode">
+<short>File open mode</short>
+</element>
+
+<element name="bufsize">
+<short>Current buffer size.</short>
+</element>
+
+<element name="bufpos">
+<short>Current buffer position.</short>
+</element>
+
+<element name="bufend">
+<short>Current length of data in buffer</short>
+</element>
+
+<element name="bufptr">
+<short>Pointer tuo buffer.</short>
+</element>
+
+<element name="openfunc">
+<short>Called when file needs to be opened.</short>
+</element>
+
+<element name="inoutfunc">
+<short>Called when an I/O operation needs to be performed.</short>
+</element>
+
+<element name="flushfunc">
+<short>Called when buffer must be flushed.</short>
+</element>
+
+<element name="closefunc">
+<short>Called when file must be closed.</short>
+</element>
+
+<element name="UserData">
+<short>Room for user data when implementing custom text file.</short>
+</element>
+
+<element name="name">
+<short>File name.</short>
+</element>
+
+<element name="buffer">
+<short>Default buffer.</short>
+</element>
+
+<element name="Registers">
+<short>Record to keep CPU registers for <link id="MSDos"/> call. Unused.</short>
+</element>
+<element name="DateTime">
+<short>Record containing a date/time description</short>
+<descr>
+The <var>DateTime</var> type is used in <link id="PackTime"/> and <link id="UnPackTime"/> for
+setting/reading file times with <link id="GetFTime"/> and <link id="SetFTime"/>.
+</descr>
+</element>
+
+<element name="DateTime.Year">
+<short>Year part</short>
+</element>
+<element name="DateTime.Month">
+<short>Month of the year</short>
+</element>
+<element name="DateTime.Day">
+<short>Day of the month</short>
+</element>
+<element name="DateTime.Hour">
+<short>Hour of the day</short>
+</element>
+<element name="DateTime.Min">
+<short>Minute of the hour</short>
+</element>
+<element name="DateTime.Sec">
+<short>Second in the minute</short>
+</element>
+
+<element name="DosError">
+<short>Last OS (MS-DOS) error</short>
+<descr>
+<p>
+The <var>DosError</var> variable is used by the procedures in the dos unit to 
+report errors. It can have the following values :
+</p>
+<table>
+<caption>Dos error codes</caption>
+<th><td>Value</td><td>Meaning</td></th>
+<tr><td>2 </td><td> File not found. </td></tr>
+<tr><td>3 </td><td> path not found. </td></tr>
+<tr><td>5 </td><td> Access denied. </td></tr>
+<tr><td>6 </td><td> Invalid handle. </td></tr>
+<tr><td>8 </td><td> Not enough memory. </td></tr>
+<tr><td>10 </td><td> Invalid environment. </td></tr>
+<tr><td>11 </td><td> Invalid format. </td></tr>
+<tr><td>18 </td><td> No more files.</td></tr>
+</table>
+<p>
+Other values are possible, but are not documented.
+</p>
+</descr>
+</element>
+
+<element name="drivestr">
+<short>Pathnames representing drives.</short>
+<descr>
+This variable is defined in the linux version of the dos unit. It is used
+in the <link id="DiskFree"/> and <link id="DiskSize"/> calls.
+</descr>
+</element>
+
+<element name="AddDisk">
+<short>Add disk definition to list if drives (Unix only)</short>
+<descr>
+<p>
+<var>AddDisk</var> adds a filename <var>S</var> to the internal list of disks. It is
+implemented for systems which do not use DOS type drive letters.
+ This list is used to determine which disks to use in the <link id="DiskFree"/>
+and <link id="DiskSize"/> calls. 
+The <link id="DiskFree"/> and <link id="DiskSize"/> functions need a file on the 
+specified drive, since this is required for the <var>statfs</var> system call.
+The names are added sequentially. The dos
+initialization code presets the first three disks to:
+</p>
+<ul>
+<li> <var>'.'</var> for the current drive, </li>
+<li> <var>'/fd0/.'</var> for the first floppy-drive (linux only).</li>
+<li> <var>'/fd1/.'</var> for the second floppy-drive (linux only).</li>
+<li> <var>'/'</var> for the first hard disk.</li>
+</ul>
+<p>
+The first call to <var>AddDisk</var> will therefore add a name for the second
+harddisk, The second call for the third drive, and so on until 23 drives
+have been added (corresponding to drives <var>'D:'</var> to <var>'Z:'</var>)
+</p>
+</descr>
+<errors>
+None
+</errors>
+<seealso>
+<link id="DiskFree"/>
+<link id="DiskSize"/> 
+</seealso>
+</element>
+
+
+<element name="DiskFree">
+<short>Get free size on Disk.</short>
+<descr>
+<p>
+<var>DiskFree</var> returns the number of free bytes on a disk. The parameter
+<var>Drive</var> indicates which disk should be checked. This parameter is 1 for
+floppy <var>a:</var>, 2 for floppy <var>b:</var>, etc. A value of 0 returns the free
+space on the current drive. 
+</p>
+<remark>
+For Unices:
+The <var>diskfree</var> and <var>disksize</var> functions need a file on the 
+specified drive, since this is required for the <var>statfs</var> system call.
+These filenames are set in the initialization of the dos unit, and have 
+been preset to :
+</remark>
+<ul>
+<li> <var>'.'</var> for the current drive, </li>
+<li> <var>'/fd0/.'</var> for the first floppy-drive (linux only).</li>
+<li> <var>'/fd1/.'</var> for the second floppy-drive (linux only).</li>
+<li> <var>'/'</var> for the first hard disk.</li>
+</ul>
+<p>
+There is room for 1-26 drives. You can add a drive with the
+<link id="AddDisk"/> procedure.
+These settings can be coded in <var>dos.pp</var>, in the initialization part.
+</p>
+</descr>
+<errors>
+-1 when a failure occurs, or an invalid drive number is given.
+</errors>
+<seealso>
+<link id="DiskSize"/>
+<link id="AddDisk"/>
+</seealso>
+<example file="dosex/ex6"/>
+</element>
+
+
+<element name="DiskSize">
+<short>Get total size of disk.</short>
+<descr>
+<p>
+<var>DiskSize</var> returns the total size (in bytes) of a disk. The parameter
+<var>Drive</var> indicates which disk should be checked. This parameter is 1 for
+floppy <var>a:</var>, 2 for floppy <var>b:</var>, etc. A value of 0 returns the size
+of the current drive. 
+</p>
+<remark>
+For unix only:
+The <var>diskfree</var> and <var>disksize</var> functions need a file on the specified drive, since this
+is required for the <var>statfs</var> system call.
+These filenames are set in the initialization of the dos unit, and have 
+been preset to :
+</remark>
+<ul>
+<li> <var>'.'</var> for the current drive, </li>
+<li> <var>'/fd0/.'</var> for the first floppy-drive (linux only).</li>
+<li> <var>'/fd1/.'</var> for the second floppy-drive (linux only).</li>
+<li> <var>'/'</var> for the first hard disk.</li>
+</ul>
+<p>
+There is room for 1-26 drives. You can add a drive with the
+<link id="AddDisk"/> procedure.
+These settings can be coded in <var>dos.pp</var>, in the initialization part.
+</p>
+<p>
+For an example, see <link id="DiskFree"/>.
+</p>
+</descr>
+<errors>
+-1 when a failure occurs, or an invalid drive number is given.
+</errors>
+<seealso>
+<link id="DiskFree"/>
+<link id="AddDisk"/>
+</seealso>
+</element>
+
+<element name="DosExitCode">
+<short>Exit code of last executed program.</short>
+<descr>
+<var>DosExitCode</var> contains (in the low byte) the exit-code of a program 
+executed with the <var>Exec</var> call.
+</descr>
+<errors>
+None.
+</errors>
+<seealso>
+<link id="Exec"/>
+</seealso>
+<example file="dosex/ex5"/>
+</element>
+
+<element name="DosVersion">
+<short>Current OS version</short>
+<descr>
+<p>
+<var>DosVersion</var> returns the operating system or kernel version. The
+low byte contains the major version number, while the high byte 
+contains the minor version number.
+</p>
+<remark>
+On systems where versions consists of more then two numbers, 
+only the first two numbers will be returned. For example Linux version 2.1.76 
+will give you DosVersion 2.1. Some operating systems, such as FreeBSD, do not
+have system calls to return the kernel version, in that case a value of 0 will
+be returned.
+</remark>
+</descr>
+<errors>
+None.
+</errors>
+<seealso>
+</seealso>
+<example file="dosex/ex1"/>
+</element>
+
+<element name="EnvCount">
+<short>Return the number of environment variables</short>
+<descr>
+<var>EnvCount</var> returns the number of environment variables.
+</descr>
+<errors>
+None.
+</errors>
+<seealso>
+<link id="EnvStr"/>
+<link id="GetEnv"/>
+</seealso>
+</element>
+
+<element name="EnvStr">
+<short>Return environment variable by index</short>
+<descr>
+
+<var>EnvStr</var> returns the <var>Index</var>-th <var>Name=Value</var> pair from the list
+of environment variables. 
+The index of the first pair is zero.
+</descr>
+<errors>
+The length is limited to 255 characters. 
+</errors>
+<seealso>
+<link id="EnvCount"/>
+<link id="GetEnv"/>
+</seealso>
+<example file="dosex/ex13"/>
+</element>
+
+
+<element name="Exec">
+<short>Execute another program, and wait for it to finish.</short>
+<descr>
+<p>
+<var>Exec</var> executes the program in <var>Path</var>, with the options given by
+<var>ComLine</var>.
+</p>
+<p>
+After the program has terminated, the procedure returns. The Exit value of
+the program can be consulted with the <var>DosExitCode</var> function.
+</p>
+<p>
+For an example, see <link id="DosExitCode"/>
+</p>
+</descr>
+<errors>
+Errors are reported in <var>DosError</var>.
+</errors>
+<seealso>
+<link id="DosExitCode"/>
+</seealso>
+</element>
+
+<element name="FExpand">
+<short>Expand a relative path to an absolute path</short>
+<descr>
+<p>
+<var>FExpand</var> takes its argument and expands it to a complete filename, i.e.
+a filename starting from the root directory of the current drive, prepended
+with the drive-letter or volume name (when supported).
+</p>
+<remark>
+On case sensitive file systems (such as unix and linux), the resulting
+name is left as it is, otherwise it is converted to uppercase.
+</remark>
+</descr>
+<errors>
+<link id="FSplit"/>
+</errors>
+<seealso>
+</seealso>
+<example file="dosex/ex5"/>
+</element>
+
+
+<element name="FindClose">
+<short>Dispose resources allocated by a <link id="FindFirst"/>/<link
+id="FindNext"/> sequence.</short>
+<descr>
+<p>
+<var>FindClose</var> frees any resources associated with the search record
+<var>F</var>.
+</p>
+<p>
+This call is needed to free any internal resources allocated by the 
+<link id="FindFirst"/> or <link id="FindNext"/> calls.
+</p>
+<p>
+The unix implementation of the dos unit therefore keeps a table of open
+directories, and when the table is full, closes one of the directories, and
+reopens another. This system is adequate but slow if you use a lot of
+<var>searchrecs</var>.
+</p>
+<p>
+So, to speed up the findfirst/findnext system, the <var>FindClose</var> call was
+implemented. When you don't need a <var>searchrec</var> any more, you can tell
+this to the dos unit by issuing a <var>FindClose</var> call. The directory
+which is kept open for this <var>searchrec</var> is then closed, and the table slot
+freed.
+</p>
+<remark>
+It is recommended to use the linux call <var>Glob</var> when looking for files 
+on linux.
+</remark>
+</descr>
+<errors>
+Errors are reported in DosError.
+</errors>
+<seealso>
+<link id="FindFirst"/>
+<link id="FindNext"/>
+</seealso>
+</element>
+
+<element name="FindFirst">
+<short>Start search for one or more files.</short>
+<descr>
+<p>
+<var>FindFirst</var> searches the file specified in <var>Path</var>. Normal files,
+as well as all special files which have the attributes specified in
+<var>Attr</var> will be returned.
+</p>
+<p>
+It returns a <var>SearchRec</var> record for further searching in <var>F</var>.
+<var>Path</var> can contain the wildcard characters <var>?</var> (matches any single
+character) and <var>*</var> (matches 0 ore more arbitrary characters). In this
+case <var>FindFirst</var> will return the first file which matches the specified
+criteria.
+If <var>DosError</var> is different from zero, no file(s) matching the criteria 
+was(were) found.
+</p>
+<remark>
+On os/2, you cannot issue two different <var>FindFirst</var> calls. That is,
+you must close any previous search operation with <link id="FindClose"/> before
+starting a new one. Failure to do so will end in a Run-Time Error 6 
+(Invalid file handle)
+</remark>
+</descr>
+<errors>
+Errors are reported in DosError.
+</errors>
+<seealso>
+<link id="FindNext"/>,
+<link id="FindClose"/>
+</seealso>
+<example file="dosex/ex7"/>
+</element>
+
+
+<element name="FindNext">
+<short>Find next matching file after <link id="FindFirst"/></short>
+<descr>
+<p>
+<var>FindNext</var> takes as an argument a <var>SearchRec</var> from a previous
+<var>FindNext</var> call, or a <var>FindFirst</var> call, and tries to find another
+file which matches the criteria, specified in the <var>FindFirst</var> call.
+If <var>DosError</var> is different from zero, no more files matching the
+criteria were found.
+</p>
+<p>
+For an example, see <link id="FindFirst"/>.
+</p>
+</descr>
+<errors>
+<var>DosError</var> is used to report errors.
+</errors>
+<seealso>
+<link id="FindFirst"/>
+<link id="FindClose"/>
+</seealso>
+</element>
+
+<element name="FSearch">
+<short>Search a file in searchpath</short>
+<descr>
+<p>
+<var>FSearch</var> searches the file <var>Path</var> in all directories listed in
+<var>DirList</var>. The full name of the found file is returned.
+<var>DirList</var> must be a list of directories, separated by semi-colons.
+When no file is found, an empty string is returned.
+</p>
+<remark>
+On unix systems, <var>DirList</var> can also be separated by colons, as is
+customary on those environments.
+</remark>
+</descr>
+<errors>
+None.
+</errors>
+<seealso>
+<link id="FExpand">FExpand</link>
+</seealso>
+<example file="dosex/ex10"/>
+</element>
+
+
+ 
+<element name="FSplit">
+<short>Split a full-path filename in parts.</short>
+<descr>
+<var>FSplit</var> splits a full file name into 3 parts : A <var>Path</var>, a
+<var>Name</var> and an extension  (in <var>ext</var>.) 
+The extension is taken to be all letters after the <em> last</em> dot (.). For 
+dos, however, an exception is made when <var>LFNSupport=False</var>, then
+the extension is defined as all characters after the <em> first</em> dot.
+</descr>
+<errors>
+None.
+</errors>
+<seealso>
+<link id="FSearch">FSearch</link>
+</seealso>
+<example file="dosex/ex12"/>
+</element>
+
+
+<element name="GetCBreak">
+<short>Get control-Break flag</short>
+<descr>
+<p>
+<var>GetCBreak</var> gets the status of CTRL-Break checking under dos and Amiga.
+When <var>BreakValue</var> is <var>false</var>, then dos only checks for the 
+CTRL-Break key-press when I/O is performed. When it is set to <var>True</var>,
+then a check is done at every system call.
+</p>
+<remark>
+Under non-dos and non-Amiga operating systems, <var>BreakValue</var> always returns 
+<var>True</var>.
+</remark>
+</descr>
+<errors> 
+None
+</errors>
+<seealso>
+<link id="SetCBreak"/>
+</seealso>
+</element>
+
+<element name="GetDate">
+<short>Get the current date</short>
+<descr>
+<var>GetDate</var> returns the system's date. <var>Year</var> is a number in the range
+1980..2099.<var>mday</var> is the day of the month,
+<var>wday</var> is the day of the week, starting with Sunday as day 0.
+</descr>
+<errors>
+None.
+</errors>
+<seealso>
+<link id="GetTime"/>
+<link id="SetDate"/>
+</seealso>
+<example file="dosex/ex2"/>
+</element>
+
+
+<element name="GetEnv">
+<short>Get environment variable by name.</short>
+<descr>
+<p>
+<var>Getenv</var> returns the value of the environment variable <var>EnvVar</var>.
+When there is no environment variable <var>EnvVar</var> defined, an empty
+string is returned.
+</p>
+<remark>
+Under some operating systems (such as unix), case is important when looking
+for <var>EnvVar</var>.
+</remark>
+</descr>
+<errors>
+None.
+</errors>
+<seealso>
+<link id="EnvCount"/>
+<link id="EnvStr"/>
+</seealso>
+<example file="dosex/ex14"/>
+</element>
+
+<element name="GetFAttr">
+<short>Get file attributes</short>
+<descr>
+<p>
+<var>GetFAttr</var> returns the file attributes of the file-variable <var>f</var>.
+ <var>F</var> can be a untyped or typed file, or of type <var>Text</var>. <var>f</var> must
+have been assigned, but not opened. The attributes can be examined with the
+following constants :
+</p>
+<ul>
+<li> <var>ReadOnly</var></li>
+<li> <var>Hidden</var></li>
+<li> <var>SysFile</var></li>
+<li> <var>VolumeId</var></li>
+<li> <var>Directory</var></li>
+<li> <var>Archive</var></li>
+</ul>
+<p>
+Under linux, supported attributes are:
+</p>
+<ul>
+<li> <var>Directory</var></li>
+<li> <var>ReadOnly</var> if the current process doesn't have access to the file.</li>
+<li> <var>Hidden</var> for files whose name starts with a dot <var>('.')</var>.</li>
+</ul>
+</descr>
+<errors>
+Errors are reported in <var>DosError</var>
+</errors>
+<seealso>
+<link id="SetFAttr"/>
+</seealso>
+<example file="dosex/ex8"/>
+</element>
+
+
+<element name="GetFTime">
+<short>Get file last modification time.</short>
+<descr>
+<var>GetFTime</var> returns the modification time of a file.
+This time is encoded and must be decoded with <var>UnPackTime</var>. 
+<var>F</var> must be a file type, which has been assigned, and
+opened.
+</descr>
+<errors>
+Errors are reported in <var>DosError</var>
+</errors>
+<seealso>
+<link id="SetFTime"/>
+<link id="PackTime"/>
+<link id="UnPackTime"/>
+</seealso>
+<example file="dosex/ex9"/>
+</element>
+
+
+<element name="GetIntVec">
+<short>Get interrupt vector</short>
+<descr>
+<p>
+<var>GetIntVec</var> returns the address of interrupt vector
+<var>IntNo</var>.
+</p>
+<remark>
+This call does nothing, it is present for compatibility only. Modern systems
+do not allow low level access to the hardware.
+</remark>
+</descr>
+<errors>
+None.
+</errors>
+<seealso>
+<link id="SetIntVec"/>
+</seealso>
+</element>
+
+<element name="GetLongName">
+<short>Get the long filename of a DOS 8.3 filename.</short>
+<descr>
+<p>
+This function is only implemented in the GO32V2 version of Free Pascal.
+</p>
+<p>
+<var>GetLongName</var> changes the filename <var>p</var> to a long filename
+if the dos call to do this is successful. The resulting string
+is the long  file name corresponding to the short filename <var>p</var>.
+</p>
+<p>
+The function returns <var>True</var> if the dos call was successful, 
+<var>False</var> otherwise.
+</p>
+<p>
+This function should only be necessary when using the DOS extender
+under Windows 95 and higher.
+</p>
+</descr>
+<errors>
+If the dos call was not succesfull, <var>False</var> is returned.
+</errors>
+<seealso>
+<link id="GetShortName"/>
+</seealso>
+</element>
+
+<element name="GetShortName">
+<short>Get the short (8.3) filename of a long filename.</short>
+<descr>
+<p>
+This function is only implemented in the GO32V2 version of Free Pascal.
+</p>
+<p>
+<var>GetShortName</var> changes the filename <var>p</var> to a short filename
+if the dos call to do this is successful. The resulting string
+is the short file name corresponding to the long filename <var>p</var>.
+</p>
+<p>
+The function returns <var>True</var> if the dos call was successful, 
+<var>False</var> otherwise.
+</p>
+<p>
+This function should only be necessary when using the DOS extender
+under Windows 95 and higher.
+</p>
+</descr>
+<errors>
+If the dos call was not successful, <var>False</var> is returned.
+</errors>
+<seealso>
+<link id="GetLongName"/>
+</seealso>
+</element>
+
+<element name="GetTime">
+<short>Return the current time</short>
+<descr>
+<p>
+<var>GetTime</var> returns the system's time. <var>Hour</var> is a on a 24-hour time
+scale. <var>sec100</var> is in hundredth of a
+second.
+</p>
+<remark>
+Certain operating systems (such as Amiga), always set the <var>sec100</var> field
+to zero.
+</remark>
+</descr>
+<errors>
+None.
+</errors>
+<seealso>
+<link id="GetDate"/>
+<link id="SetTime"/>
+</seealso>
+<example file="dosex/ex3"/>
+</element>
+
+
+<element name="GetVerify">
+<short>Get verify flag</short>
+<descr>
+<p>
+<var>GetVerify</var> returns the status of the verify flag under dos. When
+<var>Verify</var> is <var>True</var>, then dos checks data which are written to disk,
+by reading them after writing. If <var>Verify</var> is <var>False</var>, then data
+written to disk are not verified.
+</p>
+<remark>
+Under non-dos systems (excluding os/2 applications running under vanilla DOS),  
+Verify is always <var>True</var>.
+</remark>
+</descr>
+<errors>
+None.
+</errors>
+<seealso>
+<link id="SetVerify"/>
+</seealso>
+</element>
+
+<element name="Intr">
+<short>Execute interrupt</short>
+<descr>
+<p>
+<var>Intr</var> executes a software interrupt number <var>IntNo</var> (must be between
+0 and 255), with processor registers set to <var>Regs</var>. After the interrupt call
+returned, the processor registers are saved in <var>Regs</var>.
+</p>
+<remark>
+Under non-dos operating systems, this call does nothing.
+</remark>
+</descr>
+<errors>
+None.
+</errors>
+<seealso>
+<link id="MSDos"/>
+</seealso>
+</element>
+
+<element name="Keep">
+<short>Terminate and stay resident.</short>
+<descr>
+<p>
+<var>Keep</var> terminates the program, but stays in memory. This is used for TSR
+(Terminate Stay Resident) programs which catch some interrupt.
+<var>ExitCode</var> is the same parameter as the <var>Halt</var> function takes.
+</p>
+<remark>
+This call does nothing, it is present for compatibility only.
+</remark>
+</descr>
+<errors>
+None.
+</errors>
+<seealso>
+</seealso>
+</element>
+
+<element name="weekday">
+<short>Return the day of the week</short>
+<descr>
+<var>WeekDay</var> returns the day of the week on which the day
+<var>Y/M/D</var> falls. Sunday is represented by 0, Saturday is 6.
+</descr>
+<errors>
+On error, -1 is returned.
+</errors>
+<seealso>
+<link id="PackTime"/>
+<link id="UnpackTime"/>
+<link id="GetTime"/>
+<link id="SetTime"/>
+</seealso>
+</element>
+
+<element name="DTToUnixDate">
+<short>Convert a DateTime to unix timestamp</short>
+<descr>
+<var>DTToUnixDate</var> converts the DateTime value in <var>DT</var> to a
+unix timestamp. It is an internal function, implemented on Unix platforms,
+and should not be used.
+</descr>
+<errors>
+None.
+</errors>
+<seealso>
+<link id="UnixDateToDT"/>
+<link id="PackTime"/>
+<link id="UnpackTime"/>
+<link id="GetTime"/>
+<link id="SetTime"/>
+</seealso>
+</element>
+
+<element name="UnixDateToDT">
+<short>Convert a unix timestamp to a DateTime record </short>
+<descr>
+<var>DTToUnixDate</var> converts the unix timestamp value in <var>SecsPast</var> to a
+DateTime representation in <var>DT</var>. It is an internal function, implemented on Unix platforms,
+and should not be used.
+</descr>
+<errors>
+None.
+</errors>
+<seealso>
+<link id="DTToUnixDate"/>
+<link id="PackTime"/>
+<link id="UnpackTime"/>
+<link id="GetTime"/>
+<link id="SetTime"/>
+</seealso>
+</element>
+
+
+<element name="MSDos">
+<short>Execute MS-DOS system call</short>
+<descr>
+<p>
+<var>MSDos</var> executes an operating system call. This is the same as doing a
+<var>Intr</var> call with the interrupt number for an os call.
+</p>
+<remark>
+Under non-dos operating systems, this call does nothing. On DOS systems,
+this calls interrupt $21.
+</remark>
+</descr>
+<errors>
+None.
+</errors>
+<seealso>
+<link id="Intr"/>
+</seealso>
+</element>
+
+<element name="PackTime">
+<short>Pack DateTime value to a packed-time format.</short>
+<descr>
+<var>UnPackTime</var> converts the date and time specified in <var>T</var>
+to a packed-time format which can be fed to <var>SetFTime</var>.
+</descr>
+<errors>
+None.
+</errors>
+<seealso>
+<link id="SetFTime"/>
+<link id="FindFirst"/>
+<link id="FindNext"/>
+<link id="UnPackTime"/>
+</seealso>
+<example file="dosex/ex4"/>
+</element>
+
+
+<element name="SetCBreak">
+<short>Set Control-Break flag status</short>
+<descr>
+<p>
+<var>SetCBreak</var> sets the status of CTRL-Break checking. When 
+<var>BreakValue</var> is <var>false</var>, then dos only checks for the CTRL-Break 
+key-press when I/O is performed. When it is set to <var>True</var>, then a 
+check is done at every system call.
+</p>
+<remark>
+Under non-dos and non-Amiga operating systems, this call does nothing.
+</remark>
+</descr>
+<errors>
+None.
+</errors>
+<seealso>
+<link id="GetCBreak"/>
+</seealso>
+</element>
+
+<element name="SetDate">
+<short>Set system date</short>
+<descr>
+<p>
+<var>SetDate</var> sets the system's internal date. <var>Year</var> is a number
+between 1980 and 2099.
+</p>
+<remark>
+On a unix machine, there must be root privileges, otherwise this
+routine will do nothing. On other unix systems, this call currently
+does nothing.
+</remark>
+</descr>
+<errors>
+None.
+</errors>
+<seealso>
+<link id="GetDate"/>
+<link id="SetTime"/>
+</seealso>
+</element>
+
+<element name="SetFAttr">
+<short>Set file attributes</short>
+<descr>
+<p>
+<var>SetFAttr</var> sets the file attributes of the file-variable <var>F</var>.
+ <var>F</var> can be a untyped or typed file, or of type <var>Text</var>. <var>F</var> must
+have been assigned, but not opened. The attributes can be a sum of the
+following constants:
+</p>
+<ul>
+<li> <var>ReadOnly</var></li>
+<li> <var>Hidden</var></li>
+<li> <var>SysFile</var></li>
+<li> <var>VolumeId</var></li>
+<li> <var>Directory</var></li>
+<li> <var>Archive</var></li>
+</ul>
+<remark>
+Under unix like systems (such as linux and BeOS) the call exists, but is not implemented, 
+i.e. it does nothing.
+</remark>
+</descr>
+<errors>
+Errors are reported in <var>DosError</var>.
+</errors>
+<seealso>
+<link id="GetFAttr"/>
+</seealso>
+</element>
+
+
+<element name="SetFTime">
+<short>Set file modification time.</short>
+<descr>
+<p>
+<var>SetFTime</var> sets the modification time of a file,
+this time is encoded and must be encoded with <var>PackTime</var>. 
+<var>F</var> must be a file type, which has been assigned, and
+opened.
+</p>
+<remark>
+Under unix like systems (such as linux and BeOS) the call exists, but is not implemented, 
+i.e. it does nothing.
+</remark>
+</descr>
+<errors>
+Errors are reported in <var>DosError</var>
+</errors>
+<seealso>
+<link id="GetFTime"/>
+<link id="PackTime"/>
+<link id="UnPackTime"/>
+</seealso>
+</element>
+
+<element name="SetIntVec">
+<short>Set interrupt vector</short>
+<descr>
+<p>
+<var>SetIntVec</var> sets interrupt vector <var>IntNo</var> to <var>Vector</var>.
+<var>Vector</var> should point to an interrupt procedure.
+</p>
+<remark>
+This call does nothing, it is present for compatibility only.
+</remark>
+</descr>
+<errors>
+None.
+</errors>
+<seealso>
+<link id="GetIntVec"/>
+</seealso>
+</element>
+
+<element name="SetTime">
+<short>Set system time</short>
+<descr>
+<p>
+<var>SetTime</var> sets the system's internal clock. The <var>Hour</var> parameter is
+on a 24-hour time scale.
+</p>
+<remark>
+On a linux machine, there must be root privileges, otherwise this
+routine will do nothing. On other unix systems, this call currently
+does nothing.
+</remark>
+</descr>
+<errors>
+None.
+</errors>
+<seealso>
+<link id="GetTime"/>
+<link id="SetDate"/>
+</seealso>
+</element>
+
+<element name="SetVerify">
+<short>Set verify flag</short>
+<descr>
+<p>
+<var>SetVerify</var> sets the status of the verify flag under dos. When
+<var>Verify</var> is <var>True</var>, then dos checks data which are written to disk,
+by reading them after writing. If <var>Verify</var> is <var>False</var>, then data
+written to disk are not verified.
+</p>
+<remark>
+Under non-dos operating systems (excluding os/2 applications running
+under vanilla dos), Verify is always <var>True</var>.
+</remark>
+</descr>
+<errors>
+None.
+</errors>
+<seealso>
+<link id="SetVerify"/>
+</seealso>
+</element>
+
+<element name="SwapVectors">
+<short>Swap interrupt vectors</short>
+<descr>
+<p>
+<var>SwapVectors</var> swaps the contents of the internal table of interrupt 
+vectors with the current contents of the interrupt vectors.
+This is called typically in before and after an <var>Exec</var> call.
+</p>
+<remark>
+Under certain operating systems, this routine may be implemented
+as an empty stub.
+</remark>
+</descr>
+<errors>
+None.
+</errors>
+<seealso>
+<link id="Exec"/>
+<link id="SetIntVec"/>
+</seealso>
+
+</element>
+<element name="UnPackTime">
+<short>Unpack packed file time to a DateTime value</short>
+<descr>
+<p>
+<var>UnPackTime</var> converts the file-modification time in <var>p</var>
+to a <var>DateTime</var> record. The file-modification time can be 
+returned by <var>GetFTime</var>, <var>FindFirst</var> or <var>FindNext</var> calls.
+</p>
+<p>
+For an example, see <link id="PackTime"/>.
+</p>
+</descr>
+<errors>
+None.
+</errors>
+<seealso>
+<link id="GetFTime"/>
+<link id="FindFirst"/>
+<link id="FindNext"/>
+<link id="PackTime"/>
+</seealso>
+</element>
+
+
+</module>
+</package>
+</fpdoc-descriptions>
