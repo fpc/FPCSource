@@ -126,6 +126,31 @@ implementation
               exit;
            end;
 
+         { Kylix allows enum+ordconstn in an enum declaration (blocktype
+           is bt_type), we need to do the conversion here before the
+           constant folding }
+         if (m_delphi in aktmodeswitches) and
+            (blocktype=bt_type) then
+          begin
+            if (left.resulttype.def.deftype=enumdef) and
+               (right.resulttype.def.deftype=orddef) then
+             begin
+               { insert explicit typecast to s32bit }
+               left:=ctypeconvnode.create(left,s32bittype);
+               include(left.flags,nf_explizit);
+               resulttypepass(left);
+             end
+            else
+             if (left.resulttype.def.deftype=orddef) and
+                (right.resulttype.def.deftype=enumdef) then
+              begin
+                { insert explicit typecast to s32bit }
+                right:=ctypeconvnode.create(right,s32bittype);
+                include(right.flags,nf_explizit);
+                resulttypepass(right);
+              end;
+          end;
+
          { is one a real float, then both need to be floats, this
            need to be done before the constant folding so constant
            operation on a float and int are also handled }
@@ -977,15 +1002,9 @@ implementation
              CGMessage(type_e_mismatch);
           end
 
-         { generic conversion }
+         { generic conversion is not allowed anymore }
          else
-           begin
-{$ifdef EXTDEBUG}
-             Comment(V_Warning,'Generic conversion to s32bit');
-{$endif}
-             inserttypeconv(right,s32bittype);
-             inserttypeconv(left,s32bittype);
-           end;
+           internalerror(200106042);
 
          { set resulttype if not already done }
          if not assigned(resulttype.def) then
@@ -1274,7 +1293,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.28  2001-05-27 14:30:55  florian
+  Revision 1.29  2001-06-04 18:13:53  peter
+    * Support kylix hack of having enum+integer in a enum declaration.
+
+  Revision 1.28  2001/05/27 14:30:55  florian
     + some widestring stuff added
 
   Revision 1.27  2001/05/19 21:11:50  peter
