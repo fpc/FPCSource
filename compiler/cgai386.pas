@@ -3779,7 +3779,15 @@ procedure mov_reg_to_dest(p : ptree; s : topsize; reg : tregister);
 
       if not inlined then
       if (po_interrupt in aktprocsym^.definition^.procoptions) then
-          generate_interrupt_stackframe_exit
+          begin
+             if uses_esi then
+               exprasmlist^.concat(new(paicpu,op_reg_ref(A_MOV,S_L,R_ESI,new_reference(R_ESP,16))));
+             if uses_edx then
+               exprasmlist^.concat(new(paicpu,op_reg_ref(A_MOV,S_L,R_EDX,new_reference(R_ESP,12))));
+             if uses_eax then
+               exprasmlist^.concat(new(paicpu,op_reg_ref(A_MOV,S_L,R_EAX,new_reference(R_ESP,0))));
+             generate_interrupt_stackframe_exit;
+          end
       else
        begin
        {Routines with the poclearstack flag set use only a ret.}
@@ -3938,7 +3946,10 @@ procedure mov_reg_to_dest(p : ptree; s : topsize; reg : tregister);
 end.
 {
   $Log$
-  Revision 1.100  2000-05-04 09:29:31  pierre
+  Revision 1.101  2000-05-09 14:17:33  pierre
+   * handle interrupt function correctly
+
+  Revision 1.100  2000/05/04 09:29:31  pierre
    * saveregisters now does not overwrite registers used as return value for functions
 
   Revision 1.99  2000/04/28 08:53:47  pierre
