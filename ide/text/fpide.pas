@@ -133,6 +133,9 @@ uses
 {$ifdef linux}
   linux,
 {$endif}
+{$ifdef go32v2}
+  WinClip,
+{$endif go32v2}
   Video,Mouse,Keyboard,
   Dos,Memory,Menus,Dialogs,StdDlg,ColorSel,Commands,HelpCtx,
   AsciiTab,
@@ -199,8 +202,17 @@ end;
 
 procedure TIDEApp.InitMenuBar;
 var R: TRect;
+    WinPMI : PMenuItem;
 begin
   GetExtent(R); R.B.Y:=R.A.Y+1;
+  WinPMI:=nil;
+{$ifdef go32v2}
+  if WinClipboardSupported then
+    WinPMI:=NewLine(
+      NewItem('Cop~y~ to Windows','', kbNoKey, cmCopyWin, hcCopyWin,
+      NewItem('Paste from ~W~indows','', kbNoKey, cmPasteWin, hcPasteWin,
+      nil)));
+{$endif go32v2}
   MenuBar:=New(PAdvancedMenuBar, Init(R, NewMenu(
     NewSubMenu('~F~ile',hcFileMenu, NewMenu(
       NewItem('~N~ew','',kbNoKey,cmNew,hcNew,
@@ -224,7 +236,7 @@ begin
       NewItem('C~l~ear','Ctrl+Del', kbCtrlDel, cmClear, hcClear,
       NewLine(
       NewItem('~S~how clipboard','', kbNoKey, cmShowClipboard, hcShowClipboard,
-      nil)))))))))),
+      WinPMI)))))))))),
     NewSubMenu('~S~earch',hcSearchMenu, NewMenu(
       NewItem('~F~ind...','', kbNoKey, cmFind, hcFind,
       NewItem('~R~eplace...','', kbNoKey, cmReplace, hcReplace,
@@ -815,7 +827,10 @@ end;
 END.
 {
   $Log$
-  Revision 1.35  1999-08-16 18:25:19  peter
+  Revision 1.36  1999-09-09 14:15:27  pierre
+   + cmCopyWin,cmPasteWin
+
+  Revision 1.35  1999/08/16 18:25:19  peter
     * Adjusting the selection when the editor didn't contain any line.
     * Reserved word recognition redesigned, but this didn't affect the overall
       syntax highlight speed remarkably (at least not on my Amd-K6/350).

@@ -126,6 +126,9 @@ const
      cmBreakpointList    = 237;
      cmWatches           = 238;
      cmUntilReturn       = 239;
+     { WARNING these two are also defined in weditor.pas PM } 
+     cmCopyWin           = 240;
+     cmPasteWin          = 241;
 
      cmNotImplemented    = 1000;
      cmNewFromTemplate   = 1001;
@@ -253,6 +256,8 @@ const
      hcLastCommand       = 65535;
 
      hcShowClipboard     = hcShift+cmShowClipboard;
+     hcCopyWin           = hcShift+cmCopyWin;
+     hcPasteWin          = hcShift+cmPasteWin;                                                                                                                                                                                                                 
      hcFindProcedure     = hcShift+cmFindProcedure;
      hcObjects           = hcShift+cmObjects;
      hcModules           = hcShift+cmModules;
@@ -343,7 +348,10 @@ implementation
 END.
 {
   $Log$
-  Revision 1.24  1999-08-16 18:25:14  peter
+  Revision 1.25  1999-09-09 14:15:27  pierre
+   + cmCopyWin,cmPasteWin
+
+  Revision 1.24  1999/08/16 18:25:14  peter
     * Adjusting the selection when the editor didn't contain any line.
     * Reserved word recognition redesigned, but this didn't affect the overall
       syntax highlight speed remarkably (at least not on my Amd-K6/350).

@@ -119,6 +119,8 @@ begin
     hcCut           : S:='Remove the selected text and put it in the clipboard';
     hcCopy          : S:='Copy the selected text in the clipboard';
     hcPaste         : S:='Insert selected text from the clipboard at the cursor position';
+    hcCopyWin       : S:='Copy the selected text in windows clipboard';
+    hcPasteWin      : S:='Insert selected text from windows clipboard at the cursor position';
     hcClear         : S:='Delete the selected text';
     hcShowClipboard : S:='Open then clipboard window';
 
@@ -154,7 +156,7 @@ begin
     hcOpenGDBWindow : S:='Open direct window to GDB';
     hcAddWatch      : S:='Add a new expression to watch';
     hcWatches       : S:='Open the Watches Window';
-    hcStack         : S:='Show calling stack';
+    hcStack         : S:='Show call stack';
     hcBreakpointList : S:='Edit breakpoints';
     hcToolsMenu     : S:='User installed tools';
     hcCalculator    : S:='Show calculator';
@@ -403,7 +405,10 @@ end;
 END.
 {
   $Log$
-  Revision 1.21  1999-08-16 18:25:17  peter
+  Revision 1.22  1999-09-09 14:15:27  pierre
+   + cmCopyWin,cmPasteWin
+
+  Revision 1.21  1999/08/16 18:25:17  peter
     * Adjusting the selection when the editor didn't contain any line.
     * Reserved word recognition redesigned, but this didn't affect the overall
       syntax highlight speed remarkably (at least not on my Amd-K6/350).
