@@ -78,6 +78,7 @@ unit pexpr;
     const
       allow_type : boolean = true;
       got_addrn  : boolean = false;
+      auto_inherited : boolean = false;
 
     function parse_paras(__colon,in_prop_paras : boolean) : ptree;
 
@@ -153,7 +154,7 @@ unit pexpr;
       end;
 
 
-    function statement_syssym(l : longint;var pd : pdef) : ptree;
+     function statement_syssym(l : longint;var pd : pdef) : ptree;
       var
         p1,p2,paras  : ptree;
         prev_in_args : boolean;
@@ -527,6 +528,9 @@ unit pexpr;
       var
          prev_in_args : boolean;
          prevafterassn : boolean;
+         hs,hs1 : pvarsym;
+         st : psymtable;
+         p2 : ptree;
       begin
          prev_in_args:=in_args;
          prevafterassn:=afterassignment;
@@ -535,18 +539,48 @@ unit pexpr;
          { a subroutine ?                       }
          if not(getaddr) then
            begin
-              if token=_LKLAMMER then
-                begin
-                   consume(_LKLAMMER);
-                   in_args:=true;
-                   p1^.left:=parse_paras(false,false);
-                   consume(_RKLAMMER);
-                end
-              else p1^.left:=nil;
-              { do firstpass because we need the  }
-              { result type                       }
-              do_firstpass(p1);
-              {set_var_state is handled inside firstcalln }
+             if auto_inherited then
+              begin
+                st:=symtablestack;
+                while assigned(st) and (st^.symtabletype<>parasymtable) do
+                 st:=st^.next;
+                p2:=nil;
+                if assigned(st) then
+                 begin
+                   hs:=pvarsym(st^.symindex^.first);
+                   while assigned(hs) do
+                    begin
+                      if hs^.typ<>varsym then
+                       internalerror(54382953);
+                      { if there is a localcopy then use that }
+                      if assigned(hs^.localvarsym) then
+                       hs1:=hs^.localvarsym
+                      else
+                       hs1:=hs;
+                      p2:=gencallparanode(genloadnode(hs1,hs1^.owner),p2);
+                      hs:=pvarsym(hs^.next);
+                    end;
+                 end
+                else
+                 internalerror(54382954);
+                p1^.left:=p2;
+              end
+             else
+              begin
+                 if token=_LKLAMMER then
+                  begin
+                    consume(_LKLAMMER);
+                    in_args:=true;
+                    p1^.left:=parse_paras(false,false);
+                    consume(_RKLAMMER);
+                  end
+                 else
+                  p1^.left:=nil;
+              end;
+             { do firstpass because we need the  }
+             { result type                       }
+             do_firstpass(p1);
+             {set_var_state is handled inside firstcalln }
            end
         else
            begin
@@ -803,7 +837,7 @@ unit pexpr;
               case sym^.typ of
                  procsym:
                    begin
-                      p1:=genmethodcallnode(pprocsym(sym),srsymtable,p1);
+                      p1:=genmethodcallnode(pprocsym(sym),sym^.owner,p1);
                       do_proc_call(getaddr or
                         (getprocvar and
                          ((block_type=bt_const) or
@@ -870,6 +904,7 @@ unit pexpr;
          sym      : psym;
          classh   : pobjectdef;
          d      : bestreal;
+         hs,
          static_name : string;
          propsym  : ppropertysym;
          filepos  : tfileposinfo;
@@ -1708,11 +1743,24 @@ unit pexpr;
                  consume(_INHERITED);
                  if assigned(procinfo^._class) then
                   begin
+                    { if inherited; only then we need the method with
+                      the same name }
+                    if token=_SEMICOLON then
+                     begin
+                       hs:=aktprocsym^.name;
+                       auto_inherited:=true
+                     end
+                    else
+                     begin
+                       hs:=pattern;
+                       consume(_ID);
+                       auto_inherited:=false;
+                     end;
                     classh:=procinfo^._class^.childof;
                     while assigned(classh) do
                      begin
                        srsymtable:=pobjectdef(classh)^.symtable;
-                       sym:=srsymtable^.search(pattern);
+                       sym:=srsymtable^.search(hs);
                        if assigned(sym) then
                         begin
                           { only for procsyms we need to set the type (PFV) }
@@ -1736,7 +1784,6 @@ unit pexpr;
                             else
                               internalerror(83251763);
                           end;
-                          consume(_ID);
                           do_member_read(false,sym,p1,pd,again);
                           break;
                         end;
@@ -1744,11 +1791,13 @@ unit pexpr;
                      end;
                     if classh=nil then
                      begin
-                       Message1(sym_e_id_no_member,pattern);
+                       Message1(sym_e_id_no_member,hs);
                        again:=false;
                        pd:=generrordef;
                        p1:=genzeronode(errorn);
                      end;
+                    { turn auto inheriting off }
+                    auto_inherited:=false;
                   end
                  else
                    begin
@@ -2121,7 +2170,10 @@ _LECKKLAMMER : begin
 end.
 {
   $Log$
-  Revision 1.175  2000-06-05 20:41:17  pierre
+  Revision 1.176  2000-06-14 16:52:42  peter
+    * support for inherited; only
+
+  Revision 1.175  2000/06/05 20:41:17  pierre
     + support for NOT overloading
     + unsupported overloaded operators generate errors
 
