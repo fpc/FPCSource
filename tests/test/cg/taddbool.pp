@@ -15,7 +15,7 @@ TYPE
 
 procedure fail;
 begin
-  WriteLn('Failure.');
+  WriteLn('Failed!');
   halt(1);
 end;
 
@@ -569,7 +569,10 @@ end.
 
 {
   $Log$
-  Revision 1.3  2002-03-05 21:54:52  carl
+  Revision 1.4  2002-04-13 21:01:55  carl
+  * fixed typo
+
+  Revision 1.3  2002/03/05 21:54:52  carl
   * Adapted for automated testing
 
   Revision 1.2  2001/07/27 02:55:35  carl
