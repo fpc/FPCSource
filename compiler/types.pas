@@ -697,7 +697,7 @@ implementation
          ret_in_acc:=(def^.deftype in [orddef,pointerdef,enumdef,classrefdef]) or
                      ((def^.deftype=stringdef) and (pstringdef(def)^.string_typ in [st_ansistring,st_widestring])) or
                      ((def^.deftype=procvardef) and not(po_methodpointer in pprocvardef(def)^.procoptions)) or
-                     not is_object(def) or
+                     ((def^.deftype=objectdef) and not is_object(def)) or
                      ((def^.deftype=setdef) and (psetdef(def)^.settype=smallset)) or
                      ((def^.deftype=floatdef) and (pfloatdef(def)^.typ=f32bit));
       end;
@@ -716,7 +716,7 @@ implementation
          ret_in_param:=(def^.deftype in [arraydef,recorddef]) or
            ((def^.deftype=stringdef) and (pstringdef(def)^.string_typ in [st_shortstring,st_longstring])) or
            ((def^.deftype=procvardef) and (po_methodpointer in pprocvardef(def)^.procoptions)) or
-           is_object(def) or
+           ((def^.deftype=objectdef) and is_object(def)) or
            ((def^.deftype=setdef) and (psetdef(def)^.settype<>smallset));
       end;
 
@@ -1700,7 +1700,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.18  2000-11-04 14:25:22  florian
+  Revision 1.19  2000-11-06 22:30:30  peter
+    * more fixes
+
+  Revision 1.18  2000/11/04 14:25:22  florian
     + merged Attila's changes for interfaces, not tested yet
 
   Revision 1.17  2000/10/31 22:30:13  peter

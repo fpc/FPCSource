@@ -742,6 +742,7 @@ Begin
        end;
      opr.ref.offset:=procinfo^.return_offset;
      opr.ref.base:= procinfo^.framepointer;
+     opr.ref.options:=ref_parafixup;
      { always assume that the result is valid. }
      procinfo^.funcret_state:=vs_assigned;
      SetupResult:=true;
@@ -775,6 +776,7 @@ Begin
      opr.typ:=OPR_REFERENCE;
      opr.ref.offset:=procinfo^.framepointer_offset;
      opr.ref.base:=procinfo^.framepointer;
+     opr.ref.options:=ref_parafixup;
      SetupOldEBP:=true;
    end
   else
@@ -1552,7 +1554,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.10  2000-11-04 14:25:21  florian
+  Revision 1.11  2000-11-06 22:30:30  peter
+    * more fixes
+
+  Revision 1.10  2000/11/04 14:25:21  florian
     + merged Attila's changes for interfaces, not tested yet
 
   Revision 1.9  2000/10/31 22:30:13  peter
