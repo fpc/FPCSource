@@ -3,7 +3,7 @@
     This file is part of the Free Component Library
 
     HTML writing routines
-    Copyright (c) 2000 by
+    Copyright (c) 2000-2002 by
       Areca Systems GmbH / Sebastian Guenther, sg@freepascal.org
 
     See the file COPYING.FPC, included in this distribution,
@@ -27,18 +27,18 @@ uses Classes, DOM;
 
 procedure WriteHTMLFile(doc: TXMLDocument; const AFileName: String);
 procedure WriteHTMLFile(doc: TXMLDocument; var AFile: Text);
-procedure WriteHTMLFile(doc: TXMLDocument; var AStream: TStream);
+procedure WriteHTMLFile(doc: TXMLDocument; AStream: TStream);
 
 procedure WriteHTML(Element: TDOMElement; const AFileName: String);
 procedure WriteHTML(Element: TDOMElement; var AFile: Text);
-procedure WriteHTML(Element: TDOMElement; var AStream: TStream);
+procedure WriteHTML(Element: TDOMElement; AStream: TStream);
 
 
 // ===================================================================
 
 implementation
 
-uses SysUtils;
+uses SysUtils, HTMLDefs;
 
 // -------------------------------------------------------------------
 //   Writers for the different node types
@@ -181,9 +181,19 @@ procedure WriteElement(node: TDOMNode);
 var
   i: Integer;
   attr, child: TDOMNode;
-  SavedInsideTextNode: Boolean;
   s: String;
+  SavedInsideTextNode: Boolean;
+  ElFlags: THTMLElementFlags;
 begin
+  s := LowerCase(node.NodeName);
+  ElFlags := [efSubelementContent, efPCDATAContent];	// default flags
+  for i := Low(HTMLElProps) to High(HTMLElProps) do
+    if HTMLElProps[i].Name = s then
+    begin
+      ElFlags := HTMLElProps[i].Flags;
+      break;
+    end;
+
   wrt('<' + node.NodeName);
   for i := 0 to node.Attributes.Length - 1 do
   begin
@@ -195,31 +205,27 @@ begin
     ConvWrite(s, AttrSpecialChars, @AttrSpecialCharCallback);
     wrt('"');
   end;
+  wrt('>');
+  if (not InsideTextNode) and not (efPCDATAContent in ElFlags) then
+    wrtln('');
+
   Child := node.FirstChild;
-  if Child = nil then
-    if InsideTextNode then
-      wrt(' />')
-    else
-      wrtln(' />')
-  else
+  if Assigned(Child) then
   begin
     SavedInsideTextNode := InsideTextNode;
-    if InsideTextNode or IsTextNode(Child) then
-      wrt('>')
-    else
-      wrtln('>');
     repeat
-      if IsTextNode(Child) then
-        InsideTextNode := True;
+      InsideTextNode := efPCDATAContent in ElFlags;
       WriteNode(Child);
       Child := Child.NextSibling;
-    until child = nil;
+    until not Assigned(child);
     InsideTextNode := SavedInsideTextNode;
-    s := '</' + node.NodeName + '>';
-    if InsideTextNode then
-      wrt(s)
-    else
-      wrtln(s);
+  end;
+
+  if ElFlags * [efSubelementContent, efPCDATAContent] <> [] then
+  begin
+    wrt('</' + node.NodeName + '>');
+    if not InsideTextNode then
+      wrtln('');
   end;
 end;
 
@@ -332,7 +338,7 @@ begin
   RootWriter(doc);
 end;
 
-procedure WriteHTMLFile(doc: TXMLDocument; var AStream: TStream);
+procedure WriteHTMLFile(doc: TXMLDocument; AStream: TStream);
 begin
   Stream := AStream;
   wrt := @Stream_Write;
@@ -360,7 +366,7 @@ begin
   WriteNode(Element);
 end;
 
-procedure WriteHTML(Element: TDOMElement; var AStream: TStream);
+procedure WriteHTML(Element: TDOMElement; AStream: TStream);
 begin
   stream := AStream;
   wrt := @Stream_Write;
@@ -375,7 +381,11 @@ end.
 
 {
   $Log$
-  Revision 1.4  2002-09-07 15:15:29  peter
+  Revision 1.5  2002-11-29 18:04:25  sg
+  * Improved HTML writing, now uses the HTML definition unit
+    (moved from FPDoc into FCL)
+
+  Revision 1.4  2002/09/07 15:15:29  peter
     * old logs removed and tabs fixed
 
 }

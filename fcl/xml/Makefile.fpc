@@ -6,7 +6,7 @@
 main=fcl
 
 [target]
-units=dom htmldoc xmlcfg xmlread xmlstreaming xmlwrite xhtml htmwrite
+units=dom htmldoc xmlcfg xmlread xmlstreaming xmlwrite xhtml htmldefs htmwrite
 
 [compiler]
 options=-S2
