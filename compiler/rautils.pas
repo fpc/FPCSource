@@ -229,7 +229,7 @@ begin
      RPNStack[RPNTop]:=Num;
    end
   else
-   Message(asmr_e_ev_stack_overflow);
+   Message(asmr_e_expr_illegal);
 end;
 
 
@@ -242,7 +242,7 @@ begin
      Dec(RPNTop);
    end
   else
-   Message(asmr_e_ev_stack_underflow);
+   Message(asmr_e_expr_illegal);
 end;
 
 
@@ -278,7 +278,11 @@ begin
         if Temp <> 0 then
          RPNPush(RPNPop mod Temp)
         else
-         Message(asmr_e_ev_zero_divide);
+         begin
+           Message(asmr_e_expr_zero_divide);
+           { push 1 for error recovery }
+           RPNPush(1);
+         end;
       end;
     '^' : RPNPush(RPNPop XOR RPNPop);
     '/' :
@@ -287,7 +291,11 @@ begin
         if Temp <> 0 then
          RPNPush(RPNPop div Temp)
         else
-         Message(asmr_e_ev_zero_divide);
+         begin
+           Message(asmr_e_expr_zero_divide);
+           { push 1 for error recovery }
+           RPNPush(1);
+         end;
       end;
    end
   else
@@ -303,7 +311,11 @@ begin
      if LocalError = 0 then
       RPNPush(Temp)
      else
-      Message(asmr_e_ev_invalid_number);
+      begin
+        Message(asmr_e_expr_illegal);
+        { push 1 for error recovery }
+        RPNPush(1);
+      end;
    end;
 end;
 
@@ -318,7 +330,7 @@ begin
      OpStack[OpTop].is_prefix:=prefix;
    end
   else
-   Message(asmr_e_ev_stack_overflow);
+   Message(asmr_e_expr_illegal);
 end;
 
 
@@ -331,7 +343,7 @@ begin
      Dec(OpTop);
    end
   else
-   Message(asmr_e_ev_stack_underflow);
+   Message(asmr_e_expr_illegal);
 end;
 
 
@@ -348,8 +360,8 @@ begin
       Priority:=2;
     '|','&','^','~' :
       Priority:=0;
-  else
-    Message(asmr_e_ev_invalid_op);
+    else
+      Message(asmr_e_expr_illegal);
   end;
 end;
 
@@ -430,7 +442,7 @@ begin
          end; { Case }
        end
      else
-      Message(asmr_e_ev_invalid_op);  { Handle bad input error }
+      Message(asmr_e_expr_illegal);  { Handle bad input error }
    end;
 
 { Pop off the remaining operators }
@@ -1528,7 +1540,11 @@ end;
 end.
 {
   $Log$
-  Revision 1.45  2000-05-23 20:36:28  peter
+  Revision 1.46  2000-05-26 18:23:11  peter
+    * fixed % parsing and added modulo support
+    * changed some evaulator errors to more generic illegal expresion
+
+  Revision 1.45  2000/05/23 20:36:28  peter
     + typecasting support for variables, but be carefull as word,byte can't
       be used because they are reserved assembler keywords
 

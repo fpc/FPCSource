@@ -399,34 +399,44 @@ begin
            len:=1;
            actasmpattern[len]:='%';
            c:=current_scanner^.asmgetchar;
-           while c in ['a'..'z','A'..'Z','0'..'9'] do
-            Begin
-              inc(len);
-              actasmpattern[len]:=c;
-              c:=current_scanner^.asmgetchar;
-            end;
-           actasmpattern[0]:=chr(len);
-           uppervar(actasmpattern);
-           if (actasmpattern = '%ST') and (c='(') then
-            Begin
-              actasmpattern:=actasmpattern+c;
-              c:=current_scanner^.asmgetchar;
-              if c in ['0'..'9'] then
-               actasmpattern:=actasmpattern + c
-              else
-               Message(asmr_e_invalid_fpu_register);
-              c:=current_scanner^.asmgetchar;
-              if c <> ')' then
-               Message(asmr_e_invalid_fpu_register)
-              else
+           { to be a register there must be a letter and not a number }
+           if c in ['0'..'9'] then
+            begin
+              actasmtoken:=AS_MOD;
+              {Message(asmr_w_modulo_not_supported);}
+            end
+           else
+            begin
+              while c in ['a'..'z','A'..'Z','0'..'9'] do
                Begin
-                 actasmpattern:=actasmpattern + c;
-                 c:=current_scanner^.asmgetchar; { let us point to next character. }
+                 inc(len);
+                 actasmpattern[len]:=c;
+                 c:=current_scanner^.asmgetchar;
                end;
+              actasmpattern[0]:=chr(len);
+              uppervar(actasmpattern);
+              if (actasmpattern = '%ST') and (c='(') then
+               Begin
+                 actasmpattern:=actasmpattern+c;
+                 c:=current_scanner^.asmgetchar;
+                 if c in ['0'..'9'] then
+                  actasmpattern:=actasmpattern + c
+                 else
+                  Message(asmr_e_invalid_fpu_register);
+                 c:=current_scanner^.asmgetchar;
+                 if c <> ')' then
+                  Message(asmr_e_invalid_fpu_register)
+                 else
+                  Begin
+                    actasmpattern:=actasmpattern + c;
+                    c:=current_scanner^.asmgetchar; { let us point to next character. }
+                  end;
+               end;
+              if is_register(actasmpattern) then
+               exit;
+              Message(asmr_e_invalid_register);
+              actasmtoken:=AS_NONE;
             end;
-           if is_register(actasmpattern) then
-            exit;
-           Message(asmr_w_modulo_not_supported);
          end;
 
        '1'..'9': { integer number }
@@ -507,7 +517,7 @@ begin
                   begin
                     Message1(asmr_e_invalid_float_const,actasmpattern+c);
                     actasmtoken:=AS_NONE;
-                 end;
+                  end;
                end;
              'X': { hexadecimal }
                Begin
@@ -2048,7 +2058,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.80  2000-05-23 20:36:28  peter
+  Revision 1.81  2000-05-26 18:23:11  peter
+    * fixed % parsing and added modulo support
+    * changed some evaulator errors to more generic illegal expresion
+
+  Revision 1.80  2000/05/23 20:36:28  peter
     + typecasting support for variables, but be carefull as word,byte can't
       be used because they are reserved assembler keywords
 

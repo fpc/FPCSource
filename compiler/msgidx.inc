@@ -365,11 +365,8 @@ type tmsgconst=(
   asmr_e_invalid_string_as_opcode_operand,
   asmr_w_CODE_and_DATA_not_supported,
   asmr_e_null_label_ref_not_allowed,
-  asmr_e_ev_zero_divide,
-  asmr_e_ev_stack_overflow,
-  asmr_e_ev_stack_underflow,
-  asmr_e_ev_invalid_number,
-  asmr_e_ev_invalid_op,
+  asmr_e_expr_zero_divide,
+  asmr_e_expr_illegal,
   asmr_e_escape_seq_ignored,
   asmr_e_invalid_symbol_ref,
   asmr_w_fwait_emu_prob,
@@ -406,6 +403,7 @@ type tmsgconst=(
   asmr_e_dup_local_sym,
   asmr_e_unknown_local_sym,
   asmr_e_unknown_label_identifier,
+  asmr_e_invalid_register,
   asmr_e_invalid_fpu_register,
   asmr_e_nor_not_supported,
   asmr_w_modulo_not_supported,
@@ -697,4 +695,4 @@ type tmsgconst=(
 endmsgconst
 );
 const
-  MsgCRCValue : longint = 58101950;
+  MsgCRCValue : longint = -228971753;
