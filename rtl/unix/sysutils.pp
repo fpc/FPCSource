@@ -441,6 +441,16 @@ begin
   Result:=StrError(ErrorCode);
 end;
 
+{****************************************************************************
+                              OS utility functions
+****************************************************************************}
+
+Function GetEnvironmentVariable(Const EnvVar : String) : String;
+
+begin
+  Result:=StrPas(Linux.Getenv(PChar(EnvVar)));
+end;
+
 
 {****************************************************************************
                               Initialization code
@@ -456,7 +466,10 @@ end.
 {
 
   $Log$
-  Revision 1.6  2001-01-21 20:21:40  marco
+  Revision 1.7  2001-02-20 22:14:19  peter
+    * merged getenvironmentvariable
+
+  Revision 1.6  2001/01/21 20:21:40  marco
    * Rename fest II. Rtl OK
 
   Revision 1.5  2000/12/28 20:50:04  peter

@@ -628,6 +628,16 @@ begin
 end;
 
 {****************************************************************************
+                              Os utils
+****************************************************************************}
+
+Function GetEnvironmentVariable(Const EnvVar : String) : String;
+
+begin
+  Result:=getenv(EnvVar);
+end;
+
+{****************************************************************************
                               Initialization code
 ****************************************************************************}
 
@@ -640,7 +650,10 @@ Finalization
 end.
 {
   $Log$
-  Revision 1.3  2000-08-30 06:29:19  michael
+  Revision 1.4  2001-02-20 22:14:19  peter
+    * merged getenvironmentvariable
+
+  Revision 1.3  2000/08/30 06:29:19  michael
   + Merged syserrormsg fix
 
   

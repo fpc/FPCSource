@@ -17,6 +17,8 @@
   { Read date & Time function declarations }
 (* This must be placed before other functions, because TDateTime from DosCalls
    would be used under OS/2 instead of that one from datih.inc otherwise. *)
+  {$i osutilsh.inc}
+
   {$i datih.inc}
 
   { Read String Handling functions declaration }
@@ -134,11 +136,16 @@ Type
   {$i filutilh.inc}
 
   { Read disk function declarations }
+  
+
   {$i diskh.inc}
 
 {
   $Log$
-  Revision 1.7  2001-01-18 22:09:09  michael
+  Revision 1.8  2001-02-20 22:14:19  peter
+    * merged getenvironmentvariable
+
+  Revision 1.7  2001/01/18 22:09:09  michael
   + Merged fixes from fixbranch - file modes
 
   Revision 1.6  2000/12/07 09:15:18  florian

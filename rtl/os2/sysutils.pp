@@ -757,7 +757,10 @@ Finalization
 end.
 {
   $Log$
-  Revision 1.7  2001-01-13 11:10:59  hajny
+  Revision 1.8  2001-02-20 22:14:19  peter
+    * merged getenvironmentvariable
+
+  Revision 1.7  2001/01/13 11:10:59  hajny
     * FileCreate and GetLocalTime fixed
 
   Revision 1.6  2000/10/15 20:44:18  hajny
@@ -785,3 +788,17 @@ end.
     * forgot the add command :(
 
 }
+{****************************************************************************
+                              OS Utils
+****************************************************************************}
+
+Function GetEnvironmentVariable(Const EnvVar : String) : String;
+
+begin
+  Resumt:=Getenv(EnvVar);
+end;
+
+
+    Revision 1.1.2.6  2001/02/20 21:19:28  michael
+    + Added GetEnvironmentVariable function
+

@@ -600,6 +600,35 @@ begin
   FreeMem(MsgBuffer, MaxMsgSize);
 end;
 
+{****************************************************************************
+                              Initialization code
+****************************************************************************}
+
+Function GetEnvironmentVariable(Const EnvVar : String) : String;
+
+var
+   s : string;
+   i : longint;
+   hp,p : pchar;
+begin
+   Result:='';
+   p:=GetEnvironmentStrings;
+   hp:=p;
+   while hp^<>#0 do
+     begin
+        s:=strpas(hp);
+        i:=pos('=',s);
+        if upcase(copy(s,1,i-1))=upcase(envvar) then
+          begin
+             Result:=copy(s,i+1,length(s)-i);
+             break;
+          end;
+        { next string entry}
+        hp:=hp+strlen(hp)+1;
+     end;
+   FreeEnvironmentStrings(p);
+end;
+
 
 {****************************************************************************
                               Initialization code
@@ -643,7 +672,10 @@ Finalization
 end.
 {
   $Log$
-  Revision 1.5  2000-12-18 17:28:58  jonas
+  Revision 1.6  2001-02-20 22:14:19  peter
+    * merged getenvironmentvariable
+
+  Revision 1.5  2000/12/18 17:28:58  jonas
     * fixed range check errors
 
   Revision 1.4  2000/09/19 23:57:57  pierre
