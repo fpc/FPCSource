@@ -24,6 +24,24 @@ type
    Exception = class(TObject);
    EOutOfMemory = class(Exception);
    TRTLCriticalSection = class(TObject);
+   HRSRC = longint;
+   THANDLE = longint;
+   TComponentName = string;
+   IUnKnown = class(TObject);
+   TGUID = longint;
+   HMODULE = longint;
+
+   TPoint = record
+      x,y : integer;
+   end;
+
+   TSmallPoint = record
+      x,y : smallint;
+   end;
+
+   TRect = record
+      Left,Right,Top,Bottom : Integer;
+   end;
 
 const
 
@@ -510,7 +528,7 @@ type
 
 { TStreamAdapter }
 { Implements OLE IStream on VCL TStream }
-
+{ we don't need that yet
   TStreamAdapter = class(TInterfacedObject, IStream)
   private
     FStream: TStream;
@@ -535,7 +553,7 @@ type
       grfStatFlag: Longint): HResult; stdcall;
     function Clone(out stm: IStream): HResult; stdcall;
   end;
-
+}
 { TFiler }
 
   TValueType = (vaNull, vaList, vaInt8, vaInt16, vaInt32, vaExtended,
@@ -626,10 +644,10 @@ type
     destructor Destroy; override;
     procedure BeginReferences;
     procedure DefineProperty(const Name: string;
-      ReadData: TReaderProc; WriteData: TWriterProc;
+      rd : TReaderProc; wd : TWriterProc;
       HasData: Boolean); override;
     procedure DefineBinaryProperty(const Name: string;
-      ReadData, WriteData: TStreamProc;
+      rd, wd: TStreamProc;
       HasData: Boolean); override;
     function EndOfList: Boolean;
     procedure EndReferences;
@@ -683,16 +701,16 @@ type
     procedure WriteProperties(Instance: TPersistent);
     procedure WritePropName(const PropName: string);
   protected
-    procedure WriteBinary(WriteData: TStreamProc);
+    procedure WriteBinary(wd : TStreamProc);
     procedure WritePrefix(Flags: TFilerFlags; AChildPos: Integer);
     procedure WriteValue(Value: TValueType);
   public
     destructor Destroy; override;
     procedure DefineProperty(const Name: string;
-      ReadData: TReaderProc; WriteData: TWriterProc;
+      rd : TReaderProc; wd : TWriterProc;
       HasData: Boolean); override;
     procedure DefineBinaryProperty(const Name: string;
-      ReadData, WriteData: TStreamProc;
+      rd, wd: TStreamProc;
       HasData: Boolean); override;
     procedure FlushBuffer; override;
     procedure Write(const Buf; Count: Longint);
@@ -738,7 +756,9 @@ type
     procedure CheckToken(T: Char);
     procedure CheckTokenSymbol(const S: string);
     procedure Error(const Ident: string);
+    {!!!!!!
     procedure ErrorFmt(const Ident: string; const Args: array of const);
+    }
     procedure ErrorStr(const Message: string);
     procedure HexToBinary(Stream: TStream);
     function NextToken: Char;
@@ -805,6 +825,7 @@ type
   TComponentStyle = set of (csInheritable, csCheckPropAvail);
   TGetChildProc = procedure (Child: TComponent) of object;
 
+  {
   TComponentName = type string;
 
   IVCLComObject = interface
@@ -819,6 +840,7 @@ type
       ExceptAddr: Pointer): Integer;
     procedure FreeOnRelease;
   end;
+  }
 
   TComponent = class(TPersistent)
   private
@@ -869,16 +891,16 @@ type
     procedure ValidateInsert(AComponent: TComponent); dynamic;
     procedure WriteState(Writer: TWriter); virtual;
     { IUnknown }
-    function QueryInterface(const IID: TGUID; out Obj): Integer; stdcall;
-    function _AddRef: Integer; stdcall;
-    function _Release: Integer; stdcall;
+    //!!!!! function QueryInterface(const IID: TGUID; out Obj): Integer; stdcall;
+    //!!!! function _AddRef: Integer; stdcall;
+    //!!!! function _Release: Integer; stdcall;
     { IDispatch }
-    function GetTypeInfoCount(out Count: Integer): Integer; stdcall;
-    function GetTypeInfo(Index, LocaleID: Integer; out TypeInfo): Integer; stdcall;
-    function GetIDsOfNames(const IID: TGUID; Names: Pointer;
-      NameCount, LocaleID: Integer; DispIDs: Pointer): Integer; stdcall;
-    function Invoke(DispID: Integer; const IID: TGUID; LocaleID: Integer;
-      Flags: Word; var Params; VarResult, ExcepInfo, ArgErr: Pointer): Integer; stdcall;
+    //!!!! function GetTypeInfoCount(out Count: Integer): Integer; stdcall;
+    //!!!! function GetTypeInfo(Index, LocaleID: Integer; out TypeInfo): Integer; stdcall;
+    //!!!! function GetIDsOfNames(const IID: TGUID; Names: Pointer;
+    //!!!!   NameCount, LocaleID: Integer; DispIDs: Pointer): Integer; stdcall;
+    //!!!! function Invoke(DispID: Integer; const IID: TGUID; LocaleID: Integer;
+    //!!!!   Flags: Word; var Params; VarResult, ExcepInfo, ArgErr: Pointer): Integer; stdcall;
   public
     constructor Create(AOwner: TComponent); virtual;
     destructor Destroy; override;
@@ -903,8 +925,8 @@ type
     property Owner: TComponent read FOwner;
     property VCLComObject: Pointer read FVCLComObject write FVCLComObject;
   published
-    property Name: TComponentName read FName write SetName stored False;
-    property Tag: Longint read FTag write FTag default 0;
+    //!!!! property Name: TComponentName read FName write SetName stored False;
+    //!!!! property Tag: Longint read FTag write FTag default 0;
   end;
 
 { TComponent class reference type }
@@ -915,6 +937,7 @@ type
 
   TActiveXRegType = (axrComponentOnly, axrIncludeDescendants);
 
+{!!!!!!!
 var
   RegisterComponentsProc: procedure(const Page: string;
     ComponentClasses: array of TComponentClass) = nil;
@@ -923,7 +946,7 @@ var
     AxRegType: TActiveXRegType) = nil;
   CurrentGroup: Integer = -1; { Current design group }
   CreateVCLComObjectProc: procedure(Component: TComponent) = nil;
-
+}
 { Point and rectangle constructors }
 
 function Point(AX, AY: Integer): TPoint;
@@ -1008,11 +1031,13 @@ function LineStart(Buffer, BufPos: PChar): PChar;
 
 implementation
 
-
 end.
 {
   $Log$
-  Revision 1.4  1998-04-28 11:47:00  florian
+  Revision 1.5  1998-05-01 17:53:12  florian
+    * now it compiles with FPC
+
+  Revision 1.4  1998/04/28 11:47:00  florian
     * more adaptions to FPC
 
   Revision 1.3  1998/04/27 12:55:57  florian
