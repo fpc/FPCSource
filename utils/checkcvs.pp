@@ -183,10 +183,14 @@ Begin
   SearchExtension('*.inc');
 End.
 
-{   $Log$
-{   Revision 1.1  2000-01-14 22:05:47  marco
-{    * Some fixes, rename .pas to .pp, ptop'ed
 {
+  $Log$
+  Revision 1.2  2000-01-16 13:24:48  marco
+   * some ugly comments fixed.
+
+  Revision 1.1  2000/01/14 22:05:47  marco
+   * Some fixes, rename .pas to .pp, ptop'ed
+
   Revision 1.1  2000/01/14 12:02:04  marco
    * Initial version
 
