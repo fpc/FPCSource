@@ -103,7 +103,7 @@ Function  FPFStat(var F:Text;Var Info:stat):Boolean;
   Get all information on a text file, and return it in info.
 }
 begin
-  FPFStat:=FPFstat(TextRec(F).Handle,INfo)>0;
+  FPFStat:=FPFstat(TextRec(F).Handle,INfo)=0;
 end;
 
 Function  FPFStat(var F:File;Var Info:stat):Boolean;
@@ -111,7 +111,7 @@ Function  FPFStat(var F:File;Var Info:stat):Boolean;
   Get all information on a untyped file, and return it in info.
 }
 begin
-  FPFStat:=FPFstat(FileRec(F).Handle,Info)>0;
+  FPFStat:=FPFstat(FileRec(F).Handle,Info)=0;
 end;
 
 Function FpSignal(signum:longint;Handler:signalhandler):signalhandler;
@@ -310,7 +310,10 @@ end;
 
 {
  $Log$
- Revision 1.5  2003-10-12 14:37:10  marco
+ Revision 1.6  2003-10-13 11:37:57  marco
+  * more small fixes
+
+ Revision 1.5  2003/10/12 14:37:10  marco
   * small bug fixed in opendir that core dumped the IDE. Now the IDE SIGFPE's in FV.
 
  Revision 1.4  2003/09/16 16:13:56  marco
