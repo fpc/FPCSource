@@ -106,7 +106,12 @@ begin
  Fpclose:=do_syscall(syscall_nr_close,fd);
 end;
 
+{$if powerpc and NetBSD}
+{$i sysofft.inc}			// odd ball calling convention.
+{$else}
+  // generic versions.
 function Fplseek(fd : cint; offset : off_t; whence : cint): off_t; [public, alias : 'FPC_SYSC_LSEEK'];
+
 {
 this one is special for the return value being 64-bit..
 hi/lo offset not yet tested.
@@ -118,6 +123,21 @@ FreeBSD: same implementation as NetBSD.
 begin
   Fplseek:=do_syscall(syscall_nr___syscall,syscall_nr_lseek,0,TSysParam(fd),0,lo(Offset),{0} hi(offset),Whence);
 end;
+
+function Fpftruncate(fd : cint; flength : off_t): cint; [public, alias : 'FPC_SYSC_FTRUNCATE'];
+
+begin
+ Fpftruncate:=Do_syscall(syscall_nr___syscall,syscall_nr_ftruncate,0,fd,0,lo(flength),hi(flength));
+end;
+
+Function Fpmmap(adr,len,prot,flags,fdes,off:longint):longint;  [public, alias : 'FPC_SYSC_MMAP'];
+
+begin
+  Fpmmap:=do_syscall(syscall_nr_mmap,Adr,Len,Prot,Flags,fdes,{$ifdef powerpc} 0,{$endif}off{$ifdef i386},0{$endif});
+end;
+
+{$endif}
+
 
 function Fpread(fd: cint; buf: pchar; nbytes : size_t): ssize_t; [public, alias : 'FPC_SYSC_READ'];
 
@@ -323,13 +343,6 @@ end;
 
 (*=================== MOVED from sysunix.inc ========================*)
 
-function Fpftruncate(fd : cint; flength : off_t): cint; [public, alias : 'FPC_SYSC_FTRUNCATE'];
-{ See notes lseek. This one is completely similar.
-
-}
-begin
- Fpftruncate:=Do_syscall(syscall_nr___syscall,syscall_nr_ftruncate,0,fd,0,lo(flength),hi(flength));
-end;
 
 function Fpfstat(fd : cint; var sb : stat): cint;  [public, alias : 'FPC_SYSC_FSTAT'];
 
@@ -452,10 +465,6 @@ CONST
   MAP_ANONYMOUS =$1000;
 
 
-Function Fpmmap(adr,len,prot,flags,fdes,off:longint):longint;  [public, alias : 'FPC_SYSC_MMAP'];
-begin
-  Fpmmap:=do_syscall(syscall_nr_mmap,Adr,Len,Prot,Flags,fdes,off,0);
-end;
 
 Function Fpmunmap(adr:longint;len:size_t):longint; [public, alias :'FPC_SYSC_MUNMAP'];
 begin
@@ -582,7 +591,11 @@ end;
 
 {
  $Log$
- Revision 1.2  2003-05-26 21:29:16  jonas
+ Revision 1.3  2003-05-29 20:52:55  marco
+  * only moved around the off_t calls, and made an exception (includefile)
+ for NetBSD/powerpc
+
+ Revision 1.2  2003/05/26 21:29:16  jonas
    - disabled nanosleep for darwin for now
    + getcwd for darwin
 
