@@ -954,7 +954,8 @@ uses
       begin;
         labelnr:=nextlabelnr;
         inc(nextlabelnr);
-        if (cs_create_smart in aktmoduleswitches) then
+        if (cs_create_smart in aktmoduleswitches) or
+           target_asm.labelprefix_only_inside_procedure then
           inherited init('_$'+current_module.modulename^+'$_L'+tostr(labelnr),AB_GLOBAL,AT_DATA)
         else
           inherited init(target_asm.labelprefix+tostr(labelnr),AB_LOCAL,AT_DATA);
@@ -1160,7 +1161,10 @@ uses
 end.
 {
   $Log$
-  Revision 1.15  2000-12-25 00:07:25  peter
+  Revision 1.16  2001-02-20 21:36:39  peter
+    * tasm/masm fixes merged
+
+  Revision 1.15  2000/12/25 00:07:25  peter
     + new tlinkedlist class (merge of old tstringqueue,tcontainer and
       tlinkedlist objects)
 

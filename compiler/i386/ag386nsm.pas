@@ -614,9 +614,7 @@ interface
                 AsmWriteLn(':')
              end;
 
-           ait_symbol_end :
-             begin
-             end;
+           ait_symbol_end : ;
 
            ait_instruction :
              begin
@@ -629,7 +627,9 @@ interface
                suffix:='';
                prefix:='';}
                s:='';
-               if (taicpu(hp).opcode=A_FADDP) and (taicpu(hp).ops=0) then
+               if ((taicpu(hp).opcode=A_FADDP) or
+                   (taicpu(hp).opcode=A_FMULP))
+                  and (taicpu(hp).ops=0) then
                  begin
                    taicpu(hp).ops:=2;
                    taicpu(hp).oper[0].typ:=top_reg;
@@ -756,6 +756,12 @@ interface
       WriteTree(rttilist);
       WriteTree(resourcestringlist);
       WriteTree(bsssegment);
+      Writetree(importssection);
+      { exports are written by DLLTOOL
+        if we use it so don't insert it twice (PM) }
+      if not UseDeffileForExport and assigned(exportssection) then
+        Writetree(exportssection);
+      Writetree(resourcesection);
       countlabelref:=true;
 
       AsmLn;
@@ -768,7 +774,10 @@ interface
 end.
 {
   $Log$
-  Revision 1.4  2001-01-13 20:24:24  peter
+  Revision 1.5  2001-02-20 21:36:39  peter
+    * tasm/masm fixes merged
+
+  Revision 1.4  2001/01/13 20:24:24  peter
     * fixed operand order that got mixed up for external writers after
       my previous assembler block valid instruction check
 

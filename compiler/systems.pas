@@ -173,8 +173,9 @@ interface
           supported_target : ttarget;
           allowdirect,
           externals,
-          needar      : boolean;
-          labelprefix : string[2];
+          needar,
+          labelprefix_only_inside_procedure : boolean;
+          labelprefix : string[3];
           comment     : string[2];
           secnames    : array[tsection] of string[20];
        end;
@@ -659,7 +660,7 @@ implementation
             allowdirect : true;
             externals : true;
             needar : true;
-            labelprefix : 'L';
+            labelprefix : '..@';
             comment : '; ';
             secnames : ('',
               '.text','.data','.bss',
@@ -675,7 +676,7 @@ implementation
             allowdirect : true;
             externals : true;
             needar : true;
-            labelprefix : 'L';
+            labelprefix : '..@';
             comment : '; ';
             secnames : ('',
               '.text','.data','.bss',
@@ -691,7 +692,7 @@ implementation
             allowdirect : true;
             externals : true;
             needar : true;
-            labelprefix : 'L';
+            labelprefix : '..@';
             comment : '; ';
             secnames : ('',
               '.text','.data','.bss',
@@ -707,7 +708,7 @@ implementation
             allowdirect : true;
             externals : true;
             needar : true;
-            labelprefix : 'L';
+            labelprefix : '..@';
             comment : '; ';
             secnames : ('',
               '.text','.data','.bss',
@@ -718,11 +719,12 @@ implementation
             id     : as_i386_tasm;
             idtxt  : 'TASM';
             asmbin : 'tasm';
-            asmcmd : '/m2 $ASM $OBJ';
+            asmcmd : '/m2 /ml $ASM $OBJ';
             supported_target : target_any; { what should I write here ?? }
             allowdirect : true;
             externals : true;
             needar : true;
+            labelprefix_only_inside_procedure : true;
             labelprefix : '@@';
             comment : '; ';
             secnames : ('',
@@ -734,12 +736,12 @@ implementation
             id     : as_i386_masm;
             idtxt  : 'MASM';
             asmbin : 'masm';
-            asmcmd : '$ASM $OBJ';
+            asmcmd : '/c $ASM /Fo$OBJ';
             supported_target : target_any; { what should I write here ?? }
             allowdirect : true;
             externals : true;
             needar : true;
-            labelprefix : '.L';
+            labelprefix : '@@';
             comment : '; ';
             secnames : ('',
               'CODE','DATA','BSS',
@@ -1709,7 +1711,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.12  2001-01-06 20:15:43  peter
+  Revision 1.13  2001-02-20 21:36:40  peter
+    * tasm/masm fixes merged
+
+  Revision 1.12  2001/01/06 20:15:43  peter
     * merged libp library prefix
 
   Revision 1.11  2000/10/15 09:08:58  peter

@@ -43,10 +43,7 @@ interface
       sysutils,
 {$endif}
       cutils,globtype,globals,systems,cobjects,
-      verbose,cpubase,cpuasm
-{$ifdef extdebug}
-      ,fmodule
-{$endif extdebug}
+      verbose,cpubase,cpuasm,finput,fmodule
       ;
 
     const
@@ -139,6 +136,8 @@ interface
            s:='[';
          if assigned(symbol) then
           begin
+            if (aktoutputformat = as_i386_tasm) then
+              s:=s+'dword ptr ';
             s:=s+symbol^.name;
             first:=false;
           end;
@@ -233,7 +232,7 @@ interface
       end;
     end;
 
-    function getopstr_jmp(const o:toper) : string;
+    function getopstr_jmp(const o:toper;s : topsize) : string;
     var
       hs : string;
     begin
@@ -253,11 +252,42 @@ interface
             getopstr_jmp:=hs;
           end;
         top_ref :
-          getopstr_jmp:=getreferencestring(o.ref^);
+          { what about lcall or ljmp ??? }
+          begin
+            if (aktoutputformat = as_i386_tasm) then
+              hs:=''
+            else
+              begin
+                if s=S_FAR then
+                  hs:='far ptr '
+                else
+                  hs:='near ptr ';
+              end;
+            getopstr_jmp:=hs+getreferencestring(o.ref^);
+          end;
         else
           internalerror(10001);
       end;
     end;
+
+   function fixline(s:string):string;
+   {
+     return s with all leading and ending spaces and tabs removed
+   }
+     var
+       i,j,k : longint;
+     begin
+       i:=length(s);
+       while (i>0) and (s[i] in [#9,' ']) do
+        dec(i);
+       j:=1;
+       while (j<i) and (s[j] in [#9,' ']) do
+        inc(j);
+       for k:=j to i do
+        if s[k] in [#0..#31,#127..#255] then
+         s[k]:='.';
+       fixline:=Copy(s,j,i-j+1);
+     end;
 
 
 {****************************************************************************
@@ -266,6 +296,9 @@ interface
 
     var
       LastSec : tsection;
+      lastfileinfo : tfileposinfo;
+      infile,
+      lastinfile   : tinputfile;
 
     const
       ait_const2str:array[ait_const_32bit..ait_const_8bit] of string[8]=
@@ -300,17 +333,67 @@ interface
       hp       : tai;
       counter,
       lines,
+      InlineLevel : longint;
       i,j,l    : longint;
       consttyp : tait;
       found,
+      do_line,
       quoted   : boolean;
       sep      : char;
     begin
       if not assigned(p) then
        exit;
+      { lineinfo is only needed for codesegment (PFV) }
+      do_line:=((cs_asm_source in aktglobalswitches) or
+                (cs_lineinfo in aktmoduleswitches))
+                 and (p=codesegment);
+      InlineLevel:=0;
       hp:=tai(p.first);
       while assigned(hp) do
        begin
+         if do_line then
+           begin
+           { load infile }
+             if lastfileinfo.fileindex<>hp.fileinfo.fileindex then
+              begin
+                infile:=current_module.sourcefiles.get_file(hp.fileinfo.fileindex);
+                if assigned(infile) then
+                 begin
+                   { open only if needed !! }
+                   if (cs_asm_source in aktglobalswitches) then
+                    infile.open;
+                 end;
+                { avoid unnecessary reopens of the same file !! }
+                lastfileinfo.fileindex:=hp.fileinfo.fileindex;
+                { be sure to change line !! }
+                lastfileinfo.line:=-1;
+              end;
+           { write source }
+             if (cs_asm_source in aktglobalswitches) and
+                assigned(infile) then
+              begin
+                if (infile<>lastinfile) then
+                  begin
+                    AsmWriteLn(target_asm.comment+'['+infile.name^+']');
+                    if assigned(lastinfile) then
+                      lastinfile.close;
+                  end;
+                if (hp.fileinfo.line<>lastfileinfo.line) and
+                   ((hp.fileinfo.line<infile.maxlinebuf) or (InlineLevel>0)) then
+                  begin
+                    if (hp.fileinfo.line<>0) and
+                       ((infile.linebuf^[hp.fileinfo.line]>=0) or (InlineLevel>0)) then
+                      AsmWriteLn(target_asm.comment+'['+tostr(hp.fileinfo.line)+'] '+
+                        fixline(infile.GetLineStr(hp.fileinfo.line)));
+                    { set it to a negative value !
+                    to make that is has been read already !! PM }
+                    if (infile.linebuf^[hp.fileinfo.line]>=0) then
+                      infile.linebuf^[hp.fileinfo.line]:=-infile.linebuf^[hp.fileinfo.line]-1;
+                  end;
+              end;
+             lastfileinfo:=hp.fileinfo;
+             lastinfile:=infile;
+           end;
          case hp.typ of
        ait_comment : Begin
                        AsmWrite(target_asm.comment);
@@ -514,16 +597,16 @@ interface
                              AsmWriteLn(s);
                              break;
                            end;
-                          { nasm prefers prefix on a line alone }
-                          AsmWriteln(#9#9+prefix);
-                          prefix:='';
+                          { nasm prefers prefix on a line alone
+                          AsmWriteln(#9#9+prefix); but not masm PM
+                          prefix:=''; }
                         end
                        else
                         prefix:= '';
                        if taicpu(hp).ops<>0 then
                         begin
                           if is_calljmp(taicpu(hp).opcode) then
-                           s:=#9+getopstr_jmp(taicpu(hp).oper[0])
+                           s:=#9+getopstr_jmp(taicpu(hp).oper[0],taicpu(hp).opsize)
                           else
                            begin
                              for i:=0to taicpu(hp).ops-1 do
@@ -577,7 +660,13 @@ ait_stab_function_name : ;
                                      target_asm.secnames[lastsec]+'''');
                        AsmStartSize:=AsmSize;
                      end;
-             ait_marker: ;
+           ait_marker :
+             begin
+               if tai_marker(hp).kind=InlineStart then
+                 inc(InlineLevel)
+               else if tai_marker(hp).kind=InlineEnd then
+                 dec(InlineLevel);
+             end;
          else
           internalerror(10000);
          end;
@@ -591,7 +680,13 @@ ait_stab_function_name : ;
     procedure writeexternal(p:pnamedindexobject);
       begin
         if pasmsymbol(p)^.defbind=AB_EXTERNAL then
-         currentasmList^.AsmWriteln(#9'EXTRN'#9+p^.name);
+          begin
+            if (aktoutputformat = as_i386_masm) then
+              currentasmlist^.AsmWriteln(#9'EXTRN'#9+p^.name
+                +': NEAR')
+            else
+              currentasmlist^.AsmWriteln(#9'EXTRN'#9+p^.name);
+          end;
       end;
 
     procedure ti386intasmlist.WriteExternals;
@@ -609,7 +704,11 @@ ait_stab_function_name : ;
 {$endif}
       LastSec:=sec_none;
       AsmWriteLn(#9'.386p');
-      AsmWriteLn(#9'LOCALS '+target_asm.labelprefix);
+      { masm 6.11 does not seem to like LOCALS PM }
+      if (aktoutputformat = as_i386_tasm) then
+        begin
+          AsmWriteLn(#9'LOCALS '+target_asm.labelprefix);
+        end;
       AsmWriteLn('DGROUP'#9'GROUP'#9'_BSS,_DATA');
       AsmWriteLn(#9'ASSUME'#9'CS:_CODE,ES:DGROUP,DS:DGROUP,SS:DGROUP');
       AsmLn;
@@ -641,7 +740,10 @@ ait_stab_function_name : ;
 end.
 {
   $Log$
-  Revision 1.5  2001-01-13 20:24:24  peter
+  Revision 1.6  2001-02-20 21:36:39  peter
+    * tasm/masm fixes merged
+
+  Revision 1.5  2001/01/13 20:24:24  peter
     * fixed operand order that got mixed up for external writers after
       my previous assembler block valid instruction check
 

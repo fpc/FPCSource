@@ -164,9 +164,9 @@ begin
      lastas:=ord(target_asm.id);
      { is an assembler passed ? }
      if utilsdirectory<>'' then
-       LastASBin:=FindFile(UtilExe,utilsdirectory,asfound)+UtilExe;
+       asfound:=FindFile(UtilExe,utilsdirectory,LastASBin);
      if not AsFound then
-       LastASBin:=FindExe(UtilExe,asfound);
+       asfound:=FindExe(UtilExe,LastASBin);
      if (not asfound) and not(cs_asm_extern in aktglobalswitches) then
       begin
         Message1(exec_w_assembler_not_found,LastASBin);
@@ -555,6 +555,7 @@ begin
        a:=new(pi386nasmasmlist,Init(smart));
   {$endif NoAg386Nsm}
   {$ifndef NoAg386Int}
+     as_i386_masm,
      as_i386_tasm :
        a:=new(pi386intasmlist,Init(smart));
   {$endif NoAg386Int}
@@ -602,7 +603,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.12  2001-02-09 23:06:17  peter
+  Revision 1.13  2001-02-20 21:36:39  peter
+    * tasm/masm fixes merged
+
+  Revision 1.12  2001/02/09 23:06:17  peter
     * fixed uninited var
 
   Revision 1.11  2001/02/05 20:46:59  peter
