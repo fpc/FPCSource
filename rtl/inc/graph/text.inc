@@ -297,7 +297,7 @@
                             exit;
                           end;
                         fonts[b].instr:=FontData;
-                        RegisterBGIfont:=grOK;
+                        RegisterBGIfont:=b;
                      end;
                 end;
            end
