@@ -1,7 +1,7 @@
 type
   TwoChar = Array[0..1] of char;
   Empty = Record
-	  End;
+          End;
 const
   asd : TwoChar = ('a','b');
 
