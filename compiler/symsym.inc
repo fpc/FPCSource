@@ -866,7 +866,7 @@
     constructor tvarsym.init_C(const n,mangled : string;p : pdef);
 
       begin
-      { The tarsym is necessary for 0.99.5 (PFV) }
+      { The tvarsym is necessary for 0.99.5 (PFV) }
          tvarsym.init(n,p);
          var_options:=var_options or vo_is_C_var;
          _mangledname:=strpnew(target_os.Cprefix+mangled);
@@ -949,7 +949,7 @@
            begin
               case varspez of
                  vs_value : getsize:=definition^.size;
-                 vs_var : getsize:=sizeof(pointer);
+                   vs_var : getsize:=sizeof(pointer);
                  vs_const : begin
                                if (definition^.deftype in [stringdef,arraydef,
                                      recorddef,objectdef,setdef]) then
@@ -967,142 +967,111 @@
       var
          l,modulo : longint;
       begin
-       if (var_options and vo_is_external)<>0 then
-         exit;
-       { handle static variables of objects especially }
-       if read_member and (owner^.symtabletype=objectsymtable) and
-          ((properties and sp_static)<>0) then
+        if (var_options and vo_is_external)<>0 then
+          exit;
+        { handle static variables of objects especially }
+        if read_member and (owner^.symtabletype=objectsymtable) and
+           ((properties and sp_static)<>0) then
          begin
             { the data filed is generated in parser.pas
               with a tobject_FIELDNAME variable }
             { this symbol can't be loaded to a register }
             var_options:=var_options and not vo_regable;
          end
-       else if not(read_member) then
-         begin
-            { made problems with parameters etc. ! (FK) }
+        else
+         if not(read_member) then
+          begin
+             { made problems with parameters etc. ! (FK) }
+             {  check for instance of an abstract object or class }
+             {
+             if (pvarsym(sym)^.definition^.deftype=objectdef) and
+               ((pobjectdef(pvarsym(sym)^.definition)^.options and oois_abstract)<>0) then
+               Message(sym_e_no_instance_of_abstract_object);
+             }
 
-            {  check for instance of an abstract object or class }
-            {
-            if (pvarsym(sym)^.definition^.deftype=objectdef) and
-              ((pobjectdef(pvarsym(sym)^.definition)^.options and oois_abstract)<>0) then
-              Message(sym_e_no_instance_of_abstract_object);
-            }
-            { bei einer lokalen Symboltabelle erst! erh”hen, da der }
-            { Wert in codegen.secondload dann mit minus verwendet   }
-            { wird                                                  }
-            l:=getsize;
-            if owner^.symtabletype=localsymtable then
-              begin
-                 is_valid := 0;
-                 modulo:=owner^.datasize and 3;
+             l:=getsize;
+             case owner^.symtabletype of
+          localsymtable : begin
+                            is_valid := 0;
+                            modulo:=owner^.datasize and 3;
 {$ifdef m68k}
-                 { word alignment required for motorola }
-                 if (l=1) then
-                  l:=2
-                 else
+                          { word alignment required for motorola }
+                            if (l=1) then
+                             l:=2
+                            else
 {$endif}
-
-                 if (l>=4) and (modulo<>0) then
-                   inc(l,4-modulo)
-                 else if (l>=2) and ((modulo and 1)<>0) then
-                   inc(l,2-(modulo and 1));
-                 inc(owner^.datasize,l);
-
-                 address:=owner^.datasize;
-              end
-            else if owner^.symtabletype=staticsymtable then
-              begin
-                if (cs_smartlink in aktswitches) then
-                  bsssegment^.concat(new(pai_cut,init));
+                            if (l>=4) and (modulo<>0) then
+                             inc(l,4-modulo)
+                            else
+                             if (l>=2) and ((modulo and 1)<>0) then
+                              inc(l,2-(modulo and 1));
+                            inc(owner^.datasize,l);
+                            address:=owner^.datasize;
+                          end;
+         staticsymtable : begin
+                            if (cs_smartlink in aktswitches) then
+                              bsssegment^.concat(new(pai_cut,init));
 {$ifdef GDB}
-                if cs_debuginfo in aktswitches then
-                   concatstabto(bsssegment);
+                            if cs_debuginfo in aktswitches then
+                               concatstabto(bsssegment);
 {$endif GDB}
-                if (cs_smartlink in aktswitches) or
-                   ((var_options and vo_is_c_var)<>0) then
-                  bsssegment^.concat(new(pai_datablock,init_global(mangledname,l)))
-                else
-                  bsssegment^.concat(new(pai_datablock,init(mangledname,l)));
-
-                inc(owner^.datasize,l);
-
-                { this symbol can't be loaded to a register }
-                var_options:=var_options and not vo_regable;
-              end
-            else if owner^.symtabletype=globalsymtable then
-              begin
-                 if (cs_smartlink in aktswitches) then
-                   bsssegment^.concat(new(pai_cut,init));
+                            if (cs_smartlink in aktswitches) or
+                               ((var_options and vo_is_c_var)<>0) then
+                              bsssegment^.concat(new(pai_datablock,init_global(mangledname,l)))
+                            else
+                              bsssegment^.concat(new(pai_datablock,init(mangledname,l)));
+                            { increase datasize }
+                            inc(owner^.datasize,l);
+                            { this symbol can't be loaded to a register }
+                            var_options:=var_options and not vo_regable;
+                          end;
+         globalsymtable : begin
+                            if (cs_smartlink in aktswitches) then
+                              bsssegment^.concat(new(pai_cut,init));
 {$ifdef GDB}
-                 if cs_debuginfo in aktswitches then
-                   begin
-                      concatstabto(bsssegment);
-                      { this has to be added so that the debugger knows where to find
-                        the global variable
-                        Doesn't work !!
-                      bsssegment^.concat(new(pai_symbol,init('_'+name))); }
-                   end;
+                            if cs_debuginfo in aktswitches then
+                              concatstabto(bsssegment);
 {$endif GDB}
-                 bsssegment^.concat(new(pai_datablock,init_global(mangledname,l)));
-                 inc(owner^.datasize,l);
-
-                 { this symbol can't be loaded to a register }
-                 var_options:=var_options and not vo_regable;
-              end
-            else if owner^.symtabletype in [recordsymtable,objectsymtable] then
-              begin
-                 { align record and object fields }
-                 if aktpackrecords=2 then
-                   begin
-                     { align to word }
-                     modulo:=owner^.datasize and 3;
-                     if (l>=2) and ((modulo and 1)<>0) then
-                       inc(owner^.datasize);
-                   end
-                 else if aktpackrecords=4 then
-                   begin
-                      { align to dword }
-                      if (l>=3) and (modulo<>0) then
-                        inc(owner^.datasize,4-modulo)
-                        { or word }
-                      else if (l=2) and ((modulo and 1)<>0) then
-                        inc(owner^.datasize)
-                   end;
-                 address:=owner^.datasize;
-                 inc(owner^.datasize,l);
-
-                 { this symbol can't be loaded to a register }
-                var_options:=var_options and not vo_regable;
-              end
-             else if owner^.symtabletype=parasymtable then
-              begin
-                 address:=owner^.datasize;
-
-                 { intel processors don't know a byte push, }
-                 { so is always a word pushed               }
-                 { so it must allways be even               }
-                 if (l and 1)<>0 then
-                   inc(l);
-                 inc(owner^.datasize,l);
-              end
-            else
-              begin
-                 modulo:=owner^.datasize and 3 ;
-                 if (l>=4) and (modulo<>0) then
-                   inc(owner^.datasize,4-modulo)
-                 else if (l>=2) and ((modulo and 1)<>0) then
-                   { nice piece of code !!
-                   inc(owner^.datasize,2-(datasize and 1));
-                   2 - (datasize and 1) is allways 1 in this case
-                   Florian when will your global stream analyser
-                   find this out ?? }
-                   inc(owner^.datasize);
-                 address:=owner^.datasize;
-                 inc(owner^.datasize,l);
-              end;
-            end
-        end;
+                            bsssegment^.concat(new(pai_datablock,init_global(mangledname,l)));
+                            inc(owner^.datasize,l);
+                            { this symbol can't be loaded to a register }
+                            var_options:=var_options and not vo_regable;
+                          end;
+         recordsymtable,
+         objectsymtable : begin
+                            address:=owner^.datasize;
+                          { align record and object fields }
+                            owner^.datasize:=(owner^.datasize+l+(aktpackrecords-1)) and (not (aktpackrecords-1));
+                          { this symbol can't be loaded to a register }
+                            var_options:=var_options and not vo_regable;
+                          end;
+           parasymtable : begin
+                            address:=owner^.datasize;
+                          { needs word alignment }
+                            if odd(l) then
+                             inc(owner^.datasize,l+1)
+                            else
+                             inc(owner^.datasize,l);
+                          end
+             else
+               begin
+                  modulo:=owner^.datasize and 3 ;
+                  if (l>=4) and (modulo<>0) then
+                    inc(owner^.datasize,4-modulo)
+                  else
+                    if (l>=2) and ((modulo and 1)<>0) then
+                    { nice piece of code !!
+                    inc(owner^.datasize,2-(datasize and 1));
+                    2 - (datasize and 1) is allways 1 in this case
+                    Florian when will your global stream analyser
+                    find this out ?? }
+                      inc(owner^.datasize);
+                  address:=owner^.datasize;
+                  inc(owner^.datasize,l);
+               end;
+             end;
+          end;
+      end;
 
 {$ifdef GDB}
     function tvarsym.stabstring : pchar;
@@ -1656,7 +1625,11 @@
 
 {
   $Log$
-  Revision 1.18  1998-07-07 11:20:15  peter
+  Revision 1.19  1998-07-07 17:40:39  peter
+    * packrecords 4 works
+    * word aligning of parameters
+
+  Revision 1.18  1998/07/07 11:20:15  peter
     + NEWINPUT for a better inputfile and scanner object
 
   Revision 1.17  1998/06/24 14:48:40  peter
