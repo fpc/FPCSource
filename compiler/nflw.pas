@@ -518,7 +518,8 @@ implementation
              ((tloadnode(hp).symtable.symtablelevel<=1) or
               (tloadnode(hp).symtable.symtablelevel=lexlevel))) then
           begin
-            if tloadnode(hp).symtableentry.typ=varsym then
+            if (hp.nodetype=loadn) and
+               (tloadnode(hp).symtableentry.typ=varsym) then
               tvarsym(tloadnode(hp).symtableentry).varstate:=vs_used;
             if (not(is_ordinal(t2.resulttype.def)) or is_64bitint(t2.resulttype.def)) then
               CGMessagePos(hp.fileinfo,type_e_ordinal_expr_expected);
@@ -1168,7 +1169,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.18  2001-04-15 09:48:30  peter
+  Revision 1.19  2001-04-21 15:36:29  peter
+    * fixed crash with for counter
+
+  Revision 1.18  2001/04/15 09:48:30  peter
     * fixed crash in labelnode
     * easier detection of goto and label in try blocks
 
