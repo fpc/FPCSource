@@ -288,38 +288,26 @@ ifndef SNAPSHOT
 ifndef CROSSINSTALL
 # readme & whatsnew and docs
         $(MKDIR) $(INSTALL_DOCDIR)
-        -$(COPY) $(CVSINSTALL)/doc/*.txt $(CVSINSTALL)/doc/copying* $(CVSINSTALL)/doc/faq.* $(INSTALL_DOCDIR)
+        -$(COPY) $(addprefix $(CVSINSTALL)/doc/,*.txt copying* faq.*) $(INSTALL_DOCDIR)
 # bingo32 (cwsdpmi,wmemu387.dxe)
 ifeq ($(OS_TARGET),go32v2)
         $(COPY) $(CVSINSTALL)/bingo32/*.dxe $(INSTALL_BINDIR)
         $(COPY) $(CVSINSTALL)/bingo32/*.exe $(INSTALL_BINDIR)
 endif
-# binw32 (cygwin1.dll,*.ico)
+# binw32 (*.dll,*.exe,*.ico)
 ifeq ($(OS_TARGET),win32)
-        $(COPY) $(CVSINSTALL)/binw32/*.ico $(INSTALL_BINDIR)
-        $(COPY) $(CVSINSTALL)/binw32/*.dll $(INSTALL_BINDIR)
+        $(COPY) $(addprefix $(CVSINSTALL)/binw32/,*.ico *.exe *.dll *.h) $(INSTALL_BINDIR)
 endif
 # binos2 (emx.dll,emxwrap.dll,unzip32.dll,fp2.ico)
 ifeq ($(OS_TARGET),os2)
-        $(COPY) $(CVSINSTALL)/binos2/*.ico $(INSTALL_BINDIR)
-        $(COPY) $(CVSINSTALL)/binos2/*.dll $(INSTALL_BINDIR)
+        $(COPY) $(addprefix $(CVSINSTALL)/binos2/,*.ico *.exe *.dll *.h) $(INSTALL_BINDIR)
 endif
 # binos2 (emx.dll,emxwrap.dll,unzip32.dll,fp2.ico)
 ifeq ($(OS_TARGET),emx)
-        $(COPY) $(CVSINSTALL)/binos2/*.ico $(INSTALL_BINDIR)
-        $(COPY) $(CVSINSTALL)/binos2/*.dll $(INSTALL_BINDIR)
+        $(COPY) $(addprefix $(CVSINSTALL)/binos2/,*.ico *.exe *.dll *.h) $(INSTALL_BINDIR)
 endif
 # manpages for UNIX systems
-ifeq ($(OS_TARGET),linux)
-        $(MAKE) -C $(CVSINSTALL)/man installman
-endif
-ifeq ($(OS_TARGET),freebsd)
-        $(MAKE) -C $(CVSINSTALL)/man installman
-endif
-ifeq ($(OS_TARGET),sunos)
-        $(MAKE) -C $(CVSINSTALL)/man installman
-endif
-ifeq ($(OS_TARGET),qnx)
+ifneq ($(findstring $(OS_TARGET),linux freebsd sunos qnx),)
         $(MAKE) -C $(CVSINSTALL)/man installman
 endif
 endif
@@ -670,3 +658,45 @@ endif   # spec found
 endif   # rpm available
 
 endif   # inUnix
+
+##########################################################################
+# Inno setup
+##########################################################################
+
+ISCCPROG=$(subst $(PATHSEP),/,$(ProgramFiles))/inno setup 5/iscc.exe
+
+ifndef inUnix
+USEINNOWRAPPER=1
+endif
+INNODIR=$(BUILDDIR)/inno
+INNOWRAPPER=$(subst /,$(PATHSEP),$(DIST_DESTDIR)/fpcinno$(SRCBATCHEXT))
+INNOCMD_CDINNO:=cd $(subst /,$(ZIPPATHSEP),$(INNODIR))
+INNOCMD_CDBASE:=cd $(subst /,$(ZIPPATHSEP),$(BASEDIR))
+INNOCMD_ISCC:=$(ISCCPROG) $(INNODIR)/fpc.iss
+FPCISSSUBST=-d BUILDDIR=$(subst /,$(PATHSEP),$(INNODIR))
+ifdef NODOCS
+FPCISSSUBST+=-d DisableDocs=;
+endif
+
+innobuild: build
+ifndef NODOCS
+# Check for docs-pdf.zip
+ifeq ($(wildcard docs-pdf.zip),)
+	@$(ECHO) "No documentation available. Please copy the file docs-pdf.zip to this directory."
+	@exit 1
+endif
+endif
+        $(DELTREE) $(INNODIR)
+        $(MKDIR) $(INNODIR)
+ifndef NODOCS
+        unzip -d $(INNODIR) docs-pdf.zip
+endif
+        $(MAKE) install INSTALL_PREFIX=$(INNODIR)
+	compiler/utils/fpcsubst -i install/fpc.ist -o $(INNODIR)/fpc.iss $(FPCISSSUBST)
+	$(INNOCMD_ISCC)
+      	$(MOVE) $(INNODIR)/Output/setup.exe fpc-$(PACKAGE_VERSION).$(FULL_TARGET).exe
+
+innoclean:
+        $(DELTREE) $(INNODIR)
+
+inno: checkfpcdir innobuild innoclean
