@@ -74,9 +74,6 @@ PPI=../ppi
 # also checks for config file.
 # it expects INC PROCINC to be set !!
 include $(CFG)/makefile.cfg
-override COPY=cp
-override DEL=rm
-
 
 # Get the system independent include file names.
 # This will set the following variables :
@@ -105,12 +102,12 @@ ifndef BUGFIX
 OBJECTS=strings go32 objpas sysutils math\
 	dpmiexcp profile dxeload emu387 \
 	dos crt objects printer \
-	cpu mmx mouse getopts graph 
+	cpu mmx mouse getopts graph
 else
 OBJECTS=strings go32 objpas math\
 	dpmiexcp profile dxeload emu387 \
 	dos crt objects printer \
-	cpu mmx mouse getopts graph 
+	cpu mmx mouse getopts graph
 endif
 
 
@@ -137,6 +134,7 @@ install : all
 
 clean :
 	-$(DEL) *$(OEXT) *$(ASMEXT) *$(PPUEXT) *.PPS log
+	-$(DELTREE) *$(SMARTEXT)
 
 #####################################################################
 # Files
@@ -182,13 +180,13 @@ objpas$(PPUEXT) : $(OBJPASDIR)/objpas.pp $(SYSTEMPPU)
 	$(DEL) objpas.pp
 
 sysutils$(PPUEXT) : $(OBJPASDIR)/sysutils.pp $(SYSTEMPPU) objpas$(PPUEXT) \
-                   dos$(PPUEXT)
+		   dos$(PPUEXT)
 	$(COPY) $(OBJPASDIR)/sysutils.pp .
 	$(PP) $(OPT) -I$(OBJPASDIR) sysutils $(REDIR)
 	$(DEL) sysutils.pp
 
 math$(PPUEXT) : $(OBJPASDIR)/math.pp $(SYSTEMPPU) objpas$(PPUEXT) \
-                   dos$(PPUEXT)
+		   dos$(PPUEXT)
 	$(COPY) $(OBJPASDIR)/math.pp .
 	$(PP) $(OPT) -I$(OBJPASDIR) math $(REDIR)
 	$(DEL) math.pp
@@ -269,17 +267,25 @@ graph$(PPUEXT) : ../graph.pp go32$(PPUEXT) $(SYSTEMPPU) mmx$(PPUEXT) $(PPIFILES)
 # Libs
 #####################################################################
 
-libs: all libfpc$(LIBEXT)
+staticlib:
+	make clean
+	make all SMARTLINK=YES LIBNAME=fpc LIBTYPE=static
 
-libfpc.a:
-	$(PPUMOVE) -s -o fpc *.ppu
+sharedlib:
+	@echo Shared Libraries not supported for Go32v2
+
+staticlibinstall: staticlib
+	$(MKDIR) $(STATIC_LIBINSTALLDIR)
+	$(MKDIR) $(STATIC_UNITINSTALLDIR)
+        $(INSTALLEXE) fpc$(STATICLIBEXT) $(STATIC_LIBINSTALLDIR)
+        $(INSTALL) *$(PPUEXT) *$(OEXT) $(STATIC_UNITINSTALLDIR)
+
+sharedlibinstall: sharedlib
+
+libinstall: staticlibinstall
 
 libsclean : clean
-	-$(DEL) *.$(LIBEXT) *$(PPLEXT)
-
-libinstall: libs
-	$(INSTALL) libfpc$(LIBEXT) $(LIBINSTALLDIR)
-	$(INSTALL) *$(PPLEXT) $(UNITINSTALLDIR)
+        -$(DEL) *$(STATICLIBEXT) *$(SHAREDLIBEXT) *$(PPLEXT)
 
 #####################################################################
 # Default targets
@@ -289,7 +295,10 @@ include $(CFG)/makefile.def
 
 #
 # $Log$
-# Revision 1.12  1998-08-05 10:31:05  pierre
+# Revision 1.13  1998-08-19 10:05:01  peter
+#   * fixed for go32v2 staticlib
+#
+# Revision 1.12  1998/08/05 10:31:05  pierre
 #   + added BUGFIX test to be able to compile bugfix branch
 #
 # Revision 1.11  1998/07/29 15:44:37  michael
@@ -298,12 +307,12 @@ include $(CFG)/makefile.def
 # Revision 1.10  1998/07/22 21:37:03  michael
 # make cycle now works
 #
-# Revision 1.9  1998/05/22 00:39:36  peter
+# Revision 1.9	1998/05/22 00:39:36  peter
 #   * go32v1, go32v2 recompiles with the new objects
 #   * remake3 works again with go32v2
 #   - removed some "optimizes" from daniel which were wrong
 #
-# Revision 1.8  1998/05/06 11:53:40  peter
+# Revision 1.8	1998/05/06 11:53:40  peter
 #   * update
 #
 #
