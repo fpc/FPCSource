@@ -85,7 +85,7 @@ type
   tclass2 = class
     constructor create_none;               { class constructor }
   public
-    b: array[1..20000000] of byte;
+    b: array[1..$66666666] of byte;
   end;
 
 
@@ -125,7 +125,9 @@ type
   constructor tclass2.create_none;
    begin
      Inherited create;
-     globalresult:=GLOBAL_RESULT;
+     { the next line will normally not be reached, else
+       it's a failure }
+     globalresult:=0;
    end;
 
 
@@ -137,9 +139,14 @@ begin
 end;
 
 
-function myheaperror(size : longint): integer;
+function myheaperrornil(size : longint): integer;
   begin
-    myheaperror:=1;
+    myheaperrornil:=1;
+  end;
+
+function myheaperrorexception(size : longint): integer;
+  begin
+    myheaperrorexception:=0;
   end;
 
 var
@@ -155,11 +162,6 @@ Begin
   { reset test variables }
   globalresult := 0;
   failed := false;
-
-{$ifdef fpc}
-  { required to do correct testing...}
-  heaperror := @myheaperror;
-{$endif fpc}
 
   write('class constructor testing...');
   { secondcalln : class constructor success }
@@ -195,8 +197,27 @@ Begin
   if globalresult <> GLOBAL_RESULT then
     failed:= true;
 
+  globalresult := GLOBAL_RESULT;
+  { secondcalln : class constructor failure, when getmem returns 0,
+    that will call class_help_fail and abort class construction }
+{$ifdef fpc}
+  heaperror := @myheaperrornil;
+  try
+    class_none_fail:=tclass2.create_none;
+   except
+   on EOutOfMemory do globalresult:=0;
+   end;
+  if globalresult <> GLOBAL_RESULT then
+    failed:= true;
+{$endif fpc}
+
   globalresult := 0;
-  { secondcalln : class constructor failure }
+  { secondcalln : class constructor failure, getmem gives a runtime error
+    that will be translated to a exception and the exception shall be catched
+    here }
+{$ifdef fpc}
+  heaperror := @myheaperrorexception;
+{$endif fpc}
   try
     class_none_fail:=tclass2.create_none;
    except
@@ -204,6 +225,7 @@ Begin
    end;
   if globalresult <> GLOBAL_RESULT then
     failed:= true;
+
 
   if failed then
     fail
@@ -214,7 +236,10 @@ end.
 
 {
  $Log$
- Revision 1.2  2002-04-02 17:05:17  peter
+ Revision 1.3  2002-08-25 19:27:40  peter
+   * failure test splitted for getmem reporting nil or a runtime error
+
+ Revision 1.2  2002/04/02 17:05:17  peter
    * fix for non-fpc compilers
 
  Revision 1.1  2002/03/30 23:19:16  carl
