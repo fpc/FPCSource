@@ -896,7 +896,8 @@ end;
 
 procedure TIBQuery.FreeRecordBuffer(var Buffer: PChar);
 begin
-  FreeMem(Buffer);
+  if Assigned(@Buffer) then
+    FreeMem(Buffer);
 end;
 
 procedure TIBQuery.GetBookmarkData(Buffer: PChar; Data: Pointer);
