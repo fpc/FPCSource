@@ -23,6 +23,12 @@ interface
 {.$define DebugCommand}
 {$define NotImplemented}
 
+{ GDB has a simulator for powerpc CPU
+  it is integrated into GDB by default }
+{$ifdef powerpc}
+  {$define GDB_HAS_SIM}
+{$endif powerpc}
+
 {$ifdef BSD}                    {v4.x nearly useless for BSD. 5.x is fine}
  {$DEFINE GDB_V502}
 {$endif}
@@ -68,6 +74,9 @@ interface
     {$include gdbobjs.inc}
   {$else USE_GDB_OBJS}
     {$LINKLIB gdb}
+  {$ifdef GDB_HAS_SIM}
+    {$LINKLIB sim}
+  {$endif GDB_HAS_SIM}
     {$ifdef GDB_V5}
       {$LINKLIB bfd}
       {$LINKLIB readline}
@@ -88,6 +97,9 @@ interface
   {$LINKLIB ncurses}
  {$endif not GDB_V5}
   {$LINKLIB gdb}
+ {$ifdef GDB_HAS_SIM}
+  {$LINKLIB sim}
+ {$endif GDB_HAS_SIM}
     {$ifdef GDB_V5}
       {$LINKLIB bfd}
       {$LINKLIB readline}
@@ -110,6 +122,9 @@ interface
   {$LINKLIB ncurses}
  {$endif not GDB_V5}
   {$LINKLIB gdb}
+ {$ifdef GDB_HAS_SIM}
+  {$LINKLIB sim}
+ {$endif GDB_HAS_SIM}
     {$ifdef GDB_V5}
       {$LINKLIB bfd}
       {$LINKLIB readline}
@@ -132,6 +147,9 @@ interface
   {$LINKLIB ncurses}
  {$endif not GDB_V5}
   {$LINKLIB gdb}
+ {$ifdef GDB_HAS_SIM}
+  {$LINKLIB sim}
+ {$endif GDB_HAS_SIM}
     {$ifdef GDB_V5}
       {$LINKLIB bfd}
       {$LINKLIB readline}
@@ -154,6 +172,9 @@ interface
   {$LINKLIB ncurses}
  {$endif not GDB_V5}
   {$LINKLIB gdb}
+ {$ifdef GDB_HAS_SIM}
+  {$LINKLIB sim}
+ {$endif GDB_HAS_SIM}
     {$ifdef GDB_V5}
       {$LINKLIB bfd}
       {$LINKLIB readline}
@@ -175,6 +196,9 @@ interface
 {$ifndef GDB_V5}
   {$LINKLIB cygwin}
   {$LINKLIB gdb}
+  {$ifdef GDB_HAS_SIM}
+    {$LINKLIB sim}
+  {$endif GDB_HAS_SIM}
   {$ifdef USE_TERMCAP}
     {$LINKLIB termcap}
   {$else not USE_TERMCAP}
@@ -190,6 +214,9 @@ interface
   {$LINKLIB user32}
 {$else GDB_V5}
   {$LINKLIB gdb}
+  {$ifdef GDB_HAS_SIM}
+    {$LINKLIB sim}
+  {$endif GDB_HAS_SIM}
   {$LINKLIB bfd}
   {$LINKLIB readline}
   {$LINKLIB opcodes}
@@ -212,6 +239,10 @@ interface
 {$ifdef unix}
   {$define supportexceptions}
 {$endif unix}
+
+{$ifdef CROSSGDB}
+  { do we neeed something special if cross GDB? }
+{$endif CROSSGDB}
 
 {$ifdef NotImplemented}
   {$fatal This OS is not yet supported !!!}
@@ -2625,7 +2656,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.11  2002-11-21 00:42:27  pierre
+  Revision 1.12  2002-12-02 13:59:56  pierre
+   + add sim library for powerpc cpu
+
+  Revision 1.11  2002/11/21 00:42:27  pierre
    * prepare for gdb 5.3
 
   Revision 1.10  2002/09/27 17:49:09  pierre
