@@ -1339,6 +1339,9 @@ asmr_e_escape_seq_ignored=E_escape sequence ignored: $1
 asmr_e_invalid_symbol_ref=E_Invalid symbol reference
 asmr_w_fwait_emu_prob=W_Fwait can cause emulation problems with emu387
 asmr_w_fadd_to_faddp=W_FADD without operand translated into FADDP
+asmr_w_enter_not_supported_by_linux=W_ENTER instruction is not supported by Linux kernel
+% ENTER instruction can generate a stack page fault that is not
+% caught correctly by the i386 Linux page handler.
 asmr_w_calling_overload_func=W_Calling an overload function in assembler
 asmr_e_unsupported_symbol_type=E_Unsupported symbol type for operand
 asmr_e_constant_out_of_bounds=E_Constant value out of bounds

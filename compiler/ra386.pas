@@ -394,6 +394,19 @@ begin
        message(asmr_w_fadd_to_faddp);
      end;
 
+   { I tried to convince Linus Torwald to add
+     code to support ENTER instruction
+     (when raising a stack page fault)
+     but he replied that ENTER is a bad instruction and
+     Linux does not need to support it
+     So I think its at least a good idea to add a warning
+     if someone uses this in assembler code
+     FPC itself does not use it at all PM }
+   if (opcode=A_ENTER) and (target_info.target=target_i386_linux) then
+     begin
+       message(asmr_w_enter_not_supported_by_linux);
+     end;
+
   ai:=new(paicpu,op_none(opcode,siz));
   ai^.Ops:=Ops;
   for i:=1to Ops do
@@ -424,7 +437,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.18  2000-05-15 14:08:49  pierre
+  Revision 1.19  2000-05-17 11:08:27  pierre
+   + add a warning if using ENTER instruction with linux target
+
+  Revision 1.18  2000/05/15 14:08:49  pierre
    * FADD without operand translated into FADDP
 
   Revision 1.17  2000/05/12 21:26:22  pierre

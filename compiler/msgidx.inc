@@ -374,6 +374,7 @@ type tmsgconst=(
   asmr_e_invalid_symbol_ref,
   asmr_w_fwait_emu_prob,
   asmr_w_fadd_to_faddp,
+  asmr_w_enter_not_supported_by_linux,
   asmr_w_calling_overload_func,
   asmr_e_unsupported_symbol_type,
   asmr_e_constant_out_of_bounds,
@@ -694,4 +695,4 @@ type tmsgconst=(
 endmsgconst
 );
 const
-  MsgCRCValue : longint = -710953336;
+  MsgCRCValue : longint = -1828337603;
