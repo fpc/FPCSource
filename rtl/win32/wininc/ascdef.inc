@@ -361,9 +361,13 @@ uses
 
   function GetClassInfo(hInstance:HINST; lpClassName:LPCSTR; lpWndClass:LPWNDCLASS):WINBOOL;
 
+  function GetClassInfo(hInstance:HINST; lpClassName:LPCSTR; var WndClass:WNDCLASS):WINBOOL;
+
   function RegisterClassEx(var _para1:WNDCLASSEX):ATOM;
 
   function GetClassInfoEx(_para1:HINST; _para2:LPCSTR; _para3:LPWNDCLASSEX):WINBOOL;
+
+  function GetClassInfoEx(_para1:HINST; _para2:LPCSTR; var _para3:TWNDCLASSEX):WINBOOL;
 
   function CreateWindowEx(dwExStyle:DWORD; lpClassName:LPCSTR; lpWindowName:LPCSTR; dwStyle:DWORD; X:longint;
              Y:longint; nWidth:longint; nHeight:longint; hWndParent:HWND; hMenu:HMENU;
@@ -586,6 +590,8 @@ uses
 
   function GetTextExtentPoint(_para1:HDC; _para2:LPCSTR; _para3:longint; _para4:LPSIZE):WINBOOL;
 
+  function GetTextExtentPoint(_para1:HDC; _para2:LPCSTR; _para3:longint; var _para4:TSIZE):WINBOOL;
+
   function GetTextExtentPoint32(_para1:HDC; _para2:LPCSTR; _para3:longint; _para4:LPSIZE):WINBOOL;
 
   function GetTextExtentExPoint(_para1:HDC; _para2:LPCSTR; _para3:longint; _para4:longint; _para5:LPINT;
@@ -607,6 +613,8 @@ uses
   function GetEnhMetaFileDescription(_para1:HENHMETAFILE; _para2:UINT; _para3:LPSTR):UINT;
 
   function GetTextMetrics(_para1:HDC; _para2:LPTEXTMETRIC):WINBOOL;
+
+  function GetTextMetrics(_para1:HDC; var _para2:TTEXTMETRIC):WINBOOL;
 
   function StartDoc(_para1:HDC; var _para2:DOCINFO):longint;
 
@@ -1234,9 +1242,13 @@ uses
 
   function GetClassInfo(hInstance:HINST; lpClassName:LPCSTR; lpWndClass:LPWNDCLASS):WINBOOL; external 'user32' name 'GetClassInfoA';
 
+  function GetClassInfo(hInstance:HINST; lpClassName:LPCSTR; var WndClass:TWNDCLASS):WINBOOL; external 'user32' name 'GetClassInfoA';
+
   function RegisterClassEx(var _para1:WNDCLASSEX):ATOM; external 'user32' name 'RegisterClassExA';
 
   function GetClassInfoEx(_para1:HINST; _para2:LPCSTR; _para3:LPWNDCLASSEX):WINBOOL; external 'user32' name 'GetClassInfoExA';
+
+  function GetClassInfoEx(_para1:HINST; _para2:LPCSTR; var _para3:TWNDCLASSEX):WINBOOL; external 'user32' name 'GetClassInfoExA';
 
   function CreateWindowEx(dwExStyle:DWORD; lpClassName:LPCSTR; lpWindowName:LPCSTR; dwStyle:DWORD; X:longint;
              Y:longint; nWidth:longint; nHeight:longint; hWndParent:HWND; hMenu:HMENU;
@@ -1459,6 +1471,8 @@ uses
 
   function GetTextExtentPoint(_para1:HDC; _para2:LPCSTR; _para3:longint; _para4:LPSIZE):WINBOOL; external 'gdi32' name 'GetTextExtentPointA';
 
+  function GetTextExtentPoint(_para1:HDC; _para2:LPCSTR; _para3:longint; var _para4:TSIZE):WINBOOL; external 'gdi32' name 'GetTextExtentPointA';
+
   function GetTextExtentPoint32(_para1:HDC; _para2:LPCSTR; _para3:longint; _para4:LPSIZE):WINBOOL; external 'gdi32' name 'GetTextExtentPoint32A';
 
   function GetTextExtentExPoint(_para1:HDC; _para2:LPCSTR; _para3:longint; _para4:longint; _para5:LPINT;
@@ -1480,6 +1494,8 @@ uses
   function GetEnhMetaFileDescription(_para1:HENHMETAFILE; _para2:UINT; _para3:LPSTR):UINT; external 'gdi32' name 'GetEnhMetaFileDescriptionA';
 
   function GetTextMetrics(_para1:HDC; _para2:LPTEXTMETRIC):WINBOOL; external 'gdi32' name 'GetTextMetricsA';
+
+  function GetTextMetrics(_para1:HDC; var _para2:TTEXTMETRIC):WINBOOL; external 'gdi32' name 'GetTextMetricsA';
 
   function StartDoc(_para1:HDC; var _para2:DOCINFO):longint; external 'gdi32' name 'StartDocA';
 
@@ -1822,7 +1838,10 @@ end.
 {$endif not windows_include_files}
 {
   $Log$
-  Revision 1.2  1999-09-28 22:29:59  peter
+  Revision 1.3  1999-11-05 09:53:02  pierre
+   + some overloaded functions for Delphi compatibility
+
+  Revision 1.2  1999/09/28 22:29:59  peter
     * fixed createdc to be D4 compatible
 
   Revision 1.1  1999/09/16 13:38:22  peter
