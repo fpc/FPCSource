@@ -293,7 +293,7 @@ type tmeminfo = record
    end;
 \end{verbatim}
 Holds information about the memory allocation, etc.
-\begin{tabular}{ll}
+\begin{FPCtable}{ll}{Record description}
 Record entry & Description \\ \hline
 \var{available\_memory} & Largest available free block in bytes. \\
 \var{available\_pages} & Maximum unlocked page allocation in pages \\
@@ -305,7 +305,7 @@ Record entry & Description \\ \hline
 \var{free\_linear\_space} & Free linear address space in pages.\\
 \var{max\_pages\_in\_paging\_file} &  Size of paging file/partition in
 pages. \\
-\end{tabular}
+\end{FPCtable}
 NOTE: The value of a field is -1 (0ffffffffh) if the value is unknown, it's
 only guaranteed, that \var{available\_memory} contains a valid value.
 The size of the pages can be determined by the get\_page\_size() function.
