@@ -49,6 +49,9 @@ rem *** Environment variable VERBOSEOPT may be used to specify level of
 rem *** verbosity used with "verbose" parameter (-va by default, i.e. show
 rem *** everything). Another way would be specifying this in OTHEROPTS
 rem *** variable (see above) and not using "verbose" at all.
+rem *** Environment variable FPCSNAPPATH may be used to specify path, where
+rem *** the compiled files should be placed and possibly the ZIP file
+rem *** created.
 
 if .%FPCERRLOG% == . set FPCERRLOG=CON
 if .%FPCERRLOG% == . echo Error: Not enough environment space!!!
@@ -59,7 +62,7 @@ echo *"Makefile" for OS/2: > %FPCERRLOG%
 echo *Setting up environment ... >> %FPCERRLOG%
 
 rem Check whether FPCDIR exists
-if %FPCDIR%. == . goto ErrorDir
+if .%FPCDIR% == . goto ErrorDir
 if exist %FPCDIR% goto DirOK
 if exist %FPCDIR%\. goto DirOK
 if exist %FPCDIR%\makefile goto DirOK
@@ -76,10 +79,80 @@ if exist %FPCDIR%\SOURCE\. goto SrcExists
 if exist %FPCDIR%\SOURCE\makefile goto SrcExists
 if exist %FPCDIR%\SOURCE\COMPILER\pp.pas goto SrcExists
 set FPCSRC=%FPCDIR%
-goto SetOpts
+goto SnapDir
 
 :SrcExists
 set FPCSRC=%FPCDIR%\SOURCE
+
+:SnapDir
+set FPCSNAP=%FPCSNAPPATH%
+if .%FPCSNAP% == . set FPCSNAP=%FPCSRC%\SNAPSHOT
+if exist %FPCSNAP% goto SnapExists
+echo *Creating directories for the snapshot ... >> %FPCERRLOG%
+mkdir %FPCSNAP% >> %FPCERRLOG%
+if exist %FPCSNAP% goto SnapExists
+echo *Error: Cannot create the directory %FPCSNAP%!!
+goto End
+
+:SnapExists
+if exist %FPCSNAP%\BIN goto BinExists
+echo *Creating directories for the snapshot (binaries) ... >> %FPCERRLOG%
+mkdir %FPCSNAP%\BIN >> %FPCERRLOG%
+if exist %FPCSNAP%\BIN goto BinExists
+echo *Error: Cannot create the directory %FPCSNAP%\BIN!!
+goto End
+
+:BinExists
+set FPCSNAPBIN=%FPCSNAP%\BIN\OS2
+if exist %FPCSNAPBIN% goto BinOS2Exists
+echo *Creating directories for the snapshot (binaries for OS/2) ... >> %FPCERRLOG%
+mkdir %FPCSNAPBIN% >> %FPCERRLOG%
+if exist %FPCSNAPBIN% goto BinOS2Exists
+echo *Error: Cannot create the directory %FPCSNAPBIN%!!
+goto End
+
+:BinOS2Exists
+set FPCSNAPMSG=%FPCSNAP%\MSG
+if exist %FPCSNAPMSG% goto MsgExists
+echo *Creating directories for the snapshot (messages) ... >> %FPCERRLOG%
+mkdir %FPCSNAPMSG% >> %FPCERRLOG%
+if exist %FPCSNAPMSG% goto MsgExists
+echo *Error: Cannot create the directory %FPCSNAPMSG%!!
+goto End
+
+:MsgExists
+if exist %FPCSNAP%\UNITS goto UnitsExists
+echo *Creating directories for the snapshot (units) ... >> %FPCERRLOG%
+mkdir %FPCSNAP%\UNITS >> %FPCERRLOG%
+if exist %FPCSNAP%\UNITS goto UnitsExists
+echo *Error: Cannot create the directory %FPCSNAP%\UNITS!!
+goto End
+
+:UnitsExists
+if exist %FPCSNAP%\UNITS\OS2 goto UnitsOS2Exists
+echo *Creating directories for the snapshot (units for OS/2) ... >> %FPCERRLOG%
+mkdir %FPCSNAP%\UNITS\OS2 >> %FPCERRLOG%
+if exist %FPCSNAP%\UNITS\OS2 goto UnitsOS2Exists
+echo *Error: Cannot create the directory %FPCSNAP%\UNITS\OS2!!
+goto End
+
+:UnitsOS2Exists
+set FPCSNAPRTL=%FPCSNAP%\UNITS\OS2\RTL
+if exist %FPCSNAPRTL% goto OS2RTLExists
+echo *Creating directories for the snapshot (units for OS/2 RTL) ... >> %FPCERRLOG%
+mkdir %FPCSNAPRTL% >> %FPCERRLOG%
+if exist %FPCSNAPRTL% goto OS2RTLExists
+echo *Error: Cannot create the directory %FPCSNAPRTL%!!
+goto End
+
+:OS2RTLExists
+set FPCSNAPDOC=%FPCSNAP%\DOC
+if exist %FPCSNAPDOC% goto SetOpts
+echo *Creating directories for the snapshot (documentation) ... >> %FPCERRLOG%
+mkdir %FPCSNAPDOC% >> %FPCERRLOG%
+if exist %FPCSNAPDOC% goto SetOpts
+echo *Error: Cannot create the directory %FPCSNAPDOC%!!
+goto End
 
 :SetOpts
 
@@ -119,17 +192,17 @@ set STACKOPT=-Cs64500
 rem Path to object files
 set OS2OBJP=-Fo%OS2RTL%
 rem Path to units
-set OS2UNITP=-Fu%OS2RTL%
+set OS2UNITP=-Fu%FPCSNAPRTL%;%OS2RTL%
 rem Path to compiler units
 set COMPUNITP=-Fu%COMPSPATH%
 rem Path to compiler include files
 set COMPINCP=-Fi%COMPSPATH%
 rem Path to compiler object files
 set COMPOBJP=-Fo%COMPSPATH%
-rem Target path for units
-set OS2UNITT=-FU%OS2RTL%
+rem Target path for RTL units
+set OS2UNITT=-FU%FPCSNAPRTL%
 rem Target path for executables
-set OS2EXET=-FE%COMPSPATH%
+set OS2EXET=-FE%FPCSNAPBIN%
 rem Path to include files
 set OS2INCP=-Fi%OS2RTL%;%OS2RTLC%;%OS2RTLO%;%OS2RTLP%
 rem Default compiler for the first compilation
@@ -218,6 +291,11 @@ del %OS2RTL%\*.oo2 >> %FPCERRLOG%
 del %OS2RTL%\ppas.bat >> %FPCERRLOG%
 del %OS2RTL%\ppas.cmd >> %FPCERRLOG%
 del %OS2RTL%\link.res >> %FPCERRLOG%
+del %FPCSNAPRTL%\*.ppo >> %FPCERRLOG%
+del %FPCSNAPRTL%\*.oo2 >> %FPCERRLOG%
+del %FPCSNAPRTL%\ppas.bat >> %FPCERRLOG%
+del %FPCSNAPRTL%\ppas.cmd >> %FPCERRLOG%
+del %FPCSNAPRTL%\link.res >> %FPCERRLOG%
 goto ContCleanRTL
 :JPCleanRTL
 echo *Cleaning up the RTL ... >> %FPCERRLOG%
@@ -227,6 +305,11 @@ del %OS2RTL%\*.oo2 >& nul >> %FPCERRLOG%
 del %OS2RTL%\ppas.bat >& nul >> %FPCERRLOG%
 del %OS2RTL%\ppas.cmd >& nul >> %FPCERRLOG%
 del %OS2RTL%\link.res >& nul >> %FPCERRLOG%
+del %FPCSNAPRTL%\*.ppo >& nul >> %FPCERRLOG%
+del %FPCSNAPRTL%\*.oo2 >& nul >> %FPCERRLOG%
+del %FPCSNAPRTL%\ppas.bat >& nul >> %FPCERRLOG%
+del %FPCSNAPRTL%\ppas.cmd >& nul >> %FPCERRLOG%
+del %FPCSNAPRTL%\link.res >& nul >> %FPCERRLOG%
 :ContCleanRTL
 if %PARAMS% == rtl goto Branches
 :CleanCompiler
@@ -241,6 +324,14 @@ del %COMPSPATH%\ppos2.exe >> %FPCERRLOG%
 del %COMPSPATH%\ppas.bat >> %FPCERRLOG%
 del %COMPSPATH%\ppas.cmd >> %FPCERRLOG%
 del %COMPSPATH%\link.res >> %FPCERRLOG%
+del %FPCSNAPBIN%\*.ppo >> %FPCERRLOG%
+del %FPCSNAPBIN%\*.oo2 >> %FPCERRLOG%
+del %FPCSNAPBIN%\pp >> %FPCERRLOG%
+del %FPCSNAPBIN%\pp.exe >> %FPCERRLOG%
+del %FPCSNAPBIN%\ppos2.exe >> %FPCERRLOG%
+del %FPCSNAPBIN%\ppas.bat >> %FPCERRLOG%
+del %FPCSNAPBIN%\ppas.cmd >> %FPCERRLOG%
+del %FPCSNAPBIN%\link.res >> %FPCERRLOG%
 goto ContCleanComp
 :JPCleanComp
 echo *Cleaning up the compiler ... >> %FPCERRLOG%
@@ -253,17 +344,33 @@ del %COMPSPATH%\ppos2.exe >& nul >> %FPCERRLOG%
 del %COMPSPATH%\ppas.bat >& nul >> %FPCERRLOG%
 del %COMPSPATH%\ppas.cmd >& nul >> %FPCERRLOG%
 del %COMPSPATH%\link.res >& nul >> %FPCERRLOG%
+del %FPCSNAPBIN%\*.ppo >& nul >> %FPCERRLOG%
+del %FPCSNAPBIN%\*.oo2 >& nul >> %FPCERRLOG%
+del %FPCSNAPBIN%\pp >& nul >> %FPCERRLOG%
+del %FPCSNAPBIN%\pp.exe >& nul >> %FPCERRLOG%
+del %FPCSNAPBIN%\ppos2.exe >& nul >> %FPCERRLOG%
+del %FPCSNAPBIN%\ppas.bat >& nul >> %FPCERRLOG%
+del %FPCSNAPBIN%\ppas.cmd >& nul >> %FPCERRLOG%
+del %FPCSNAPBIN%\link.res >& nul >> %FPCERRLOG%
 :ContCleanComp
 if %PARAMS% == compiler goto Branches
 if %PARAMS% == both goto Branches
 :CleanSnapshot
 if %@eval[0] == 0 goto JPCleanSnap
 echo *Deleting the old snapshot (error messages are OK here) ... >> %FPCERRLOG%
-del %FPCSRC%\snap-os2.zip >> %FPCERRLOG%
+del %FPCSNAPDOC%\*.txt >> %FPCERRLOG%
+del %FPCSNAPDOC%\*.htm* >> %FPCERRLOG%
+del %FPCSNAPDOC%\copying.* >> %FPCERRLOG%
+del %FPCSNAPMSG%\*.msg >> %FPCERRLOG%
+del %FPCSNAP%\baseemx.zip >> %FPCERRLOG%
 goto ContCleanSnap
 :JPCleanSnap
 echo *Deleting the old snapshot ... >> %FPCERRLOG%
-del %FPCSRC%\snap-os2.zip >& nul >> %FPCERRLOG%
+del %FPCSNAP%\baseemx.zip >& nul >> %FPCERRLOG%
+del %FPCSNAPDOC%\*.txt >& nul >> %FPCERRLOG%
+del %FPCSNAPDOC%\*.htm* >& nul >> %FPCERRLOG%
+del %FPCSNAPDOC%\copying.* >& nul >> %FPCERRLOG%
+del %FPCSNAPMSG%\*.msg >& nul >> %FPCERRLOG%
 :ContCleanSnap
 if %PARAMS% == clean goto End
 
@@ -298,10 +405,10 @@ type %OS2OPTF% >> %FPCERRLOG%
 echo *End of options used for compilation >> %FPCERRLOG%
 :CompStart1
 echo *Assembling the helpers ... >> %FPCERRLOG%
-%REALTOOLS%\as -o %OS2RTL%\prt0.oo2 %OS2RTL%\prt0.as
-%REALTOOLS%\as -o %OS2RTL%\prt1.oo2 %OS2RTL%\prt1.as
-%REALTOOLS%\as -o %OS2RTL%\code2.oo2 %OS2RTL%\code2.as
-%REALTOOLS%\as -o %OS2RTL%\code3.oo2 %OS2RTL%\code3.as
+%REALTOOLS%\as -o %FPCSNAPRTL%\prt0.oo2 %OS2RTL%\prt0.as
+%REALTOOLS%\as -o %FPCSNAPRTL%\prt1.oo2 %OS2RTL%\prt1.as
+%REALTOOLS%\as -o %FPCSNAPRTL%\code2.oo2 %OS2RTL%\code2.as
+%REALTOOLS%\as -o %FPCSNAPRTL%\code3.oo2 %OS2RTL%\code3.as
 echo *Compiling the system unit ... >> %FPCERRLOG%
 %REALTOOLS%%COMPILER% @%OS2OPTF% -Us %OTHEROPTS% %OS2RTL%\SYSOS2.PAS
 echo *Compiling unit Objects ... >> %FPCERRLOG%
@@ -378,22 +485,22 @@ echo *End of options used for compilation >> %FPCERRLOG%
 echo *Compiling the compiler ... >> %FPCERRLOG%
 %REALTOOLS%%COMPILER% @%OS2OPTF% %OTHEROPTS% %COMPSPATH%\PP.PAS
 :Comp2
-ren %COMPSPATH%\pp.exe ppos2.exe >> %FPCERRLOG%
-if exist %COMPSPATH%\ppos2.exe goto OKCompiler
-if not exist %COMPSPATH%\pp goto C2Cont
-if exist %COMPSPATH%\ppas.bat goto PPasBat
-if exist %COMPSPATH%\ppas.cmd goto PPasCmd
+ren %FPCSNAPBIN%\pp.exe ppos2.exe >> %FPCERRLOG%
+if exist %FPCSNAPBIN%\ppos2.exe goto OKCompiler
+if not exist %FPCSNAPBIN%\pp goto C2Cont
+if exist %FPCSNAPBIN%\ppas.bat goto PPasBat
+if exist %FPCSNAPBIN%\ppas.cmd goto PPasCmd
 :C2Cont
 echo *Error: The compiler wasn't compiled!! >> %FPCERRLOG%
 goto End
 
 :PPasCmd
-ren %COMPSPATH%\ppas.cmd ppas.bat >> %FPCERRLOG%
+ren %FPCSNAPBIN%\ppas.cmd ppas.bat >> %FPCERRLOG%
 
 :PPasBat
 echo *Automatic binding failed, trying again ... >> %FPCERRLOG%
-call %COMPSPATH%\ppas.bat
-del %COMPSPATH%\ppas.bat >> %FPCERRLOG%
+call %FPCSNAPBIN%\ppas.bat
+del %FPCSNAPBIN%\ppas.bat >> %FPCERRLOG%
 goto Comp2
 
 :OKCompiler
@@ -401,16 +508,16 @@ goto Comp2
 if %PARAMS% == compiler goto End
 if %PARAMS% == both goto End
 if %PARAMS% == cycle goto Cycle
-goto CheckEnv
+goto CopyFiles
 
 :Cycle
 
 rem Another loop?
-if %CYCLE% == 2 goto CheckEnv
-echo *Backing up previous compiler version ... >> %FPCERRLOG%
+if %CYCLE% == 2 goto CopyFiles
+echo *Backing up previous compiler version to ppos2.%CYCLE% ... >> %FPCERRLOG%
 copy %REALTOOLS%ppos2.exe %REALTOOLS%ppos2.%CYCLE% >> %FPCERRLOG%
 echo *Copying the newly created compiler to %REALTOOLS% ... >> %FPCERRLOG%
-copy %COMPSPATH%\ppos2.exe %REALTOOLS%. >> %FPCERRLOG%
+copy %FPCSNAPBIN%\ppos2.exe %REALTOOLS%. >> %FPCERRLOG%
 if %CYCLE% == 1 goto Cycle2
 set COMPILER=PPOS2.EXE
 set CYCLE=1
@@ -420,17 +527,34 @@ goto NoPars
 set CYCLE=2
 goto NoPars
 
-:CheckEnv
+:CopyFiles
+set FPCSNAPTXT=%FPCSNAPDOC%\snapshot.txt
+echo *Copying the documentation ... >> %FPCERRLOG%
+copy %FPCSRC%\INSTALL\DOC\*.txt %FPCSNAPDOC% >> %FPCERRLOG%
+copy %FPCSRC%\INSTALL\DOC\*.htm* %FPCSNAPDOC% >> %FPCERRLOG%
+copy %FPCSRC%\INSTALL\DOC\copying.* %FPCSNAPDOC% >> %FPCERRLOG%
+echo *Creating the snapshot readme file ... >> %FPCERRLOG%
+echo This is a FPC snapshot for OS/2. It contains compilation of the most current >> %FPCSNAPTXT%
+echo developers' sources as of time of its creation. It contains the latest fixes >> %FPCSNAPTXT%
+echo but might contain some new bugs as well, since it's less tested than regular >> %FPCSNAPTXT%
+echo releases. Please, send your error reports to fpc-devel@lists.freepascal.org >> %FPCSNAPTXT%
+echo mailing list (and don't forget to mention the fact you're not subscribed to >> %FPCSNAPTXT%
+echo the list in your e-mail, if it's the case). >> %FPCSNAPTXT%
+echo The snapshot has the same structure as the release ZIP files, so it may be >> %FPCSNAPTXT%
+echo installed using the normal installer (INSTALL.EXE and INSTALL.DAT must be >> %FPCSNAPTXT%
+echo in the same directory) or directly unzipped into your FPC tree. >> %FPCSNAPTXT%
+echo *Copying the message files ... >> %FPCERRLOG%
+copy %COMPSPATH%\*.msg %FPCSNAPMSG% >> %FPCERRLOG%
 
 if %@EVAL[0] == 0 goto Pack
 echo *Warning: Packing in this environment might fail. >> %FPCERRLOG%
 echo *You should press Ctrl-Break now if the current drive is different from that >> %FPCERRLOG%
-echo *of %FPCDIR%; otherwise press any key to continue. >> %FPCERRLOG%
+echo *of %FPCSNAP%; otherwise press any key to continue. >> %FPCERRLOG%
 if not %FPCERRLOG% == CON echo *Warning: Packing in this environment might fail.
 if not %FPCERRLOG% == CON echo *You should press Ctrl-Break now if the current drive is different from that
 if not %FPCERRLOG% == CON echo *of %FPCDIR%; otherwise press any key to continue.
 pause>nul
-cd %FPCSRC%
+cd %FPCSNAP%
 
 :Pack
 echo *Packing the snapshot ... >> %FPCERRLOG%
@@ -438,12 +562,12 @@ if %@EVAL[0] == 0 goto SHL2
 goto Cmd2
 :Shl2
 pushd
-cdd %FPCSRC%
+cdd %FPCSNAP%
 :Cmd2
 
 rem ZIP.EXE must be on the PATH
-zip -9 -r snap-os2.zip compiler\ppos2.exe rtl\os2\*.ppo rtl\os2\*.oo2 rtl\os2\*.ao2 >> %FPCERRLOG%
-if exist snap-os2.zip goto ZipOK
+zip -9 -r baseemx.zip bin\os2\ppos2.exe doc\* msg\* units\os2\rtl\*.ppo units\os2\rtl\*.oo2 units\os2\rtl\*.ao2 >> %FPCERRLOG%
+if exist baseemx.zip goto ZipOK
 echo *Error: The ZIP file hasn't been created!! >> %FPCERRLOG%
 :ZipOK
 if %@EVAL[0] == 0 popd
@@ -462,7 +586,10 @@ goto End
 
 
   $Log$
-  Revision 1.8  2000-01-29 16:24:01  hajny
+  Revision 1.9  2000-03-05 19:13:25  hajny
+    * new snapshot structure
+
+  Revision 1.8  2000/01/29 16:24:01  hajny
     * logging enhanced, verbose support, error for non-4dos fixed
 
   Revision 1.7  2000/01/26 22:34:36  hajny
@@ -474,7 +601,7 @@ goto End
   Revision 1.3  1999/10/01 09:00:21  hajny
     + PMGPI and DIVE added
 
-  Revision 1.2  1999/09/15 07:31:47  hajny
+  Revision 1.2  1999/09/15 07:31:49  hajny
     + some units added, OTHEROPTS variable support
 
 
