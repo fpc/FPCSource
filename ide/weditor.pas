@@ -3890,30 +3890,21 @@ begin
       DrawCursorCalled:=true;
       exit;
     end
+{$ifdef FVISION}
+  else inherited ResetCursor;
+{$else not FVISION}
   else if (state and sfV_CV_F) = sfV_CV_F then
    begin
      p:=@Self;
      cur:=cursor;
-{$ifdef FVISION}
-     { origin is relative to screen for fvision }
-     cur.x:=cur.x+p^.origin.x;
-     cur.y:=cur.y+p^.origin.y;
-{$endif FVISION}
      while true do
       begin
-{$ifdef FVISION}
-        if (cur.x<p^.origin.x) or (cur.x>=p^.origin.x+p^.size.x) or
-           (cur.y<p^.origin.y) or (cur.y>=p^.origin.y+p^.size.y) then
-{$else not FVISION}
         if (cur.x<0) or (cur.x>=p^.size.x) or
            (cur.y<0) or (cur.y>=p^.size.y) then
-{$endif FVISION}
           break;
         p2:=p;
-{$ifndef FVISION}
         cur.x:=cur.x+p^.origin.x;
         cur.y:=cur.y+p^.origin.y;
-{$endif not FVISION}
         G:=p^.owner;
         if G=Nil then { top view }
          begin
@@ -3932,6 +3923,7 @@ begin
       end; { while }
    end; { if }
   Video.SetCursorType(crHidden);
+{$endif not FVISION}
 end;
 {$endif USE_FREEVISION}
 
@@ -7109,7 +7101,10 @@ end;
 END.
 {
   $Log$
-  Revision 1.20  2002-05-31 12:33:49  pierre
+  Revision 1.21  2002-06-06 07:04:00  pierre
+   * use inherited ResetCursor for fvision lib
+
+  Revision 1.20  2002/05/31 12:33:49  pierre
    * fix fvision dialog problem due to DataSize differences
 
   Revision 1.19  2002/05/30 22:01:12  pierre
