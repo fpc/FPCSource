@@ -356,6 +356,8 @@ implementation
                                 Consts.concat(Tai_label.Create(l1));
                                 for i:=0 to len-1 do
                                   Consts.concat(Tai_const.Create_16bit(pcompilerwidestring(value_str)^.data[i]));
+                                { terminating zero }
+                                Consts.concat(Tai_const.Create_16bit(0));
                                 { return the offset of the real string }
                                 lab_str:=l2;
                              end;
@@ -531,7 +533,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.24  2002-12-07 14:10:21  carl
+  Revision 1.25  2002-12-29 16:58:11  peter
+    * write terminating 0 for widestring constants
+
+  Revision 1.24  2002/12/07 14:10:21  carl
     * fix warnings by adding explicit typecasts
 
   Revision 1.23  2002/11/25 17:43:17  peter
