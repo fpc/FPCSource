@@ -1628,12 +1628,13 @@ Procedure DestroyRefs(p: pai; Const Ref: TReference; WhichReg: TRegister);
 Var Counter: TRegister;
 Begin
   WhichReg := Reg32(WhichReg);
-  If ((Ref.base = ProcInfo.FramePointer) And
-      (Ref.Index = R_NO)) Or
-     Assigned(Ref.Symbol)
+  If (Ref.Index = R_NO) And
+     ((Ref.base = ProcInfo.FramePointer) Or
+      (Assigned(Ref.Symbol) And
+       (Ref.base = R_NO)))
     Then
 {write something to a parameter, a local or global variable, so
-   * with uncertzain optimizations on:
+   * with uncertain optimizations on:
       - destroy the contents of registers whose contents have somewhere a
         "mov?? (Ref), %reg". WhichReg (this is the register whose contents
         are being written to memory) is not destroyed if it's StartMod is
@@ -2350,7 +2351,10 @@ End.
 
 {
  $Log$
- Revision 1.58  1999-09-05 12:37:50  jonas
+ Revision 1.59  1999-09-21 15:46:58  jonas
+   * fixed bug in destroyrefs (indexes are now handled as pointers)
+
+ Revision 1.58  1999/09/05 12:37:50  jonas
    * fixed typo's in -darithopt
 
  Revision 1.57  1999/08/25 12:00:00  jonas
