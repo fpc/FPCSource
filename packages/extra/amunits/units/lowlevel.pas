@@ -2,7 +2,7 @@
     This file is part of the Free Pascal run time library.
 
     A file in Amiga system run time library.
-    Copyright (c) 1998-2002 by Nils Sjoholm
+    Copyright (c) 1998-2003 by Nils Sjoholm
     member of the Amiga RTL development team.
 
     See the file COPYING.FPC, included in this distribution,
@@ -21,9 +21,16 @@
     For use with fpc 1.0.7. Thay are in systemvartags.
     11 Nov 2002.
 
+    Added the defines use_amiga_smartlink and
+    use_auto_openlib.
+    13 Jan 2003.
     nils.sjoholm@mailbox.swipnet.se
 }
 
+{$I useamigasmartlink.inc}
+{$ifdef use_amiga_smartlink}
+    {$smartlink on}
+{$endif use_amiga_smartlink}
 
 UNIT lowlevel;
 
@@ -458,6 +465,10 @@ BEGIN
   END;
 END;
 
+{$I useautoopenlib.inc}
+{$ifdef use_auto_openlib}
+   {$Info Compiling autoopening of lowlevel.library}
+
 var
     lowlevel_exit : pointer;
 
@@ -489,13 +500,21 @@ begin
        halt(20);
     end;
 
+{$else}
+   {$Warning No autoopening of lowlevel.library compiled}
+   {$Info Make sure you open lowlevel.library yourself}
+{$endif use_auto_openlib}
 
 END. (* UNIT LOWLEVEL *)
 
 
 {
   $Log$
-  Revision 1.2  2002-11-19 18:47:46  nils
+  Revision 1.3  2003-01-13 20:36:00  nils
+  * added the defines use_amiga_smartlink
+  * and use_auto_openlib
+
+  Revision 1.2  2002/11/19 18:47:46  nils
     * update check internal log
 
 }
