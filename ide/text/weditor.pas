@@ -4473,8 +4473,7 @@ begin
 
     while OK and (LineDelta<LineCount) do
     begin
-      if (LineDelta<LineCount-1) and (VerticalBlock=false) then
-      if (LineDelta<>0) or (Editor^.SelEnd.X=0) then
+      if (LineDelta>0) and (VerticalBlock=false) then
         begin
           Lines^.AtInsert(DestPos.Y,NewLine(''));
           BPos.X:=0;BPos.Y:=DestPos.Y;
@@ -5518,7 +5517,10 @@ end;
 END.
 {
   $Log$
-  Revision 1.73  2000-01-10 13:25:46  pierre
+  Revision 1.74  2000-01-10 23:20:04  pierre
+   * problem with Paste solved
+
+  Revision 1.73  2000/01/10 13:25:46  pierre
    + first partial syntax test
 
   Revision 1.72  2000/01/07 00:19:30  pierre
