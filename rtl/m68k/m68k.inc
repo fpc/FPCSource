@@ -377,7 +377,7 @@
          l:=ioresult;
          if l<>0 then
            begin
-              writeln('IO-Error ',l,' at ',addr);
+              writeln('IO-Error ',l,' at 0x',HexStr(addr,8));
               halt(byte(l));
            end;
          asm
@@ -397,7 +397,7 @@
             move.l 4(a6),d0
             move.l d0,addr
          end;
-         writeln('Overflow at ',addr);
+         writeln('Overflow at 0x',HexStr(addr,8));
          RunError(215);
       end;
 
@@ -628,13 +628,6 @@
      end ['d0','d1','a0'];
    end;
 
-{$ifndef ordintern}
-    {!!!!!! not very fast, but easy. }
-    function ord(b : boolean) : byte;
-      begin
-         ord:=byte(b);
-      end;
-{$endif ordintern}
 
     function abs(l : longint) : longint;
 
@@ -664,11 +657,7 @@
          sqr := l*l;
       end;
 
-{$ifndef str_intern }
-    procedure str(l : longint;var s : string);
-{$else str_intern }
     procedure int_str(l : longint;var s : string);
-{$endif str_intern }
 
       var
         value: longint;
@@ -757,7 +746,10 @@ XDEF RE_BOUNDS_CHECK
 
 {
   $Log$
-  Revision 1.6  1998-07-01 14:25:57  carl
+  Revision 1.7  1998-07-02 12:20:58  carl
+    + Io-Error and overflow print erroraddr in hex now
+
+  Revision 1.6  1998/07/01 14:25:57  carl
     * strconcat was copying one byte too much
     * strcopy bugfix was using signed comparison
     + STRCOPY uses register calling conventions
