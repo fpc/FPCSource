@@ -282,67 +282,21 @@ end;
                               Str() Helpers
 *****************************************************************************}
 
-{$ifdef INTERNDOUBLE}
-
 procedure ShortStr_Float(d : ValReal;len,fr,rt : longint;var s : shortstring);[public,alias:'FPC_SHORTSTR_FLOAT'];
 begin
   str_real(len,fr,d,treal_type(rt),s);
 end;
 
-{$else}
 
-
-{$ifdef SUPPORT_SINGLE}
-procedure ShortStr_Single(d : single;len,fr : longint;var s : shortstring);[public,alias:'FPC_'+{$ifdef NOSTRANSI}'SHORT'+{$endif}'STR_'+{$ifdef INTERNDOUBLE}'S32REAL'{$else}'SINGLE'{$endif}];
+procedure int_str_longint(v : longint;len : longint;var s : shortstring);[public,alias:'FPC_SHORTSTR_LONGINT'];
 begin
-   str_real(len,fr,d,rt_s32real,s);
-end;
-{$endif}
-
-
-{$ifdef SUPPORT_DOUBLE}
-procedure ShortStr_Real(d : real;len,fr : longint;var s : shortstring);[public,alias:'FPC_'+{$ifdef NOSTRANSI}'SHORT'+{$endif}'STR_'+{$ifdef INTERNDOUBLE}'S64'+{$endif}'REAL'];
-begin
-   str_real(len,fr,d,rt_s64real,s);
-end;
-{$endif SUPPORT_S64REAL}
-
-
-{$ifdef SUPPORT_EXTENDED}
-procedure ShortStr_Extended(d : extended;len,fr : longint;var s : shortstring);[public,alias:'FPC_'+{$ifdef NOSTRANSI}'SHORT'+{$endif}'STR_'+{$ifdef INTERNDOUBLE}'S80REAL'{$else}'EXTENDED'{$endif}];
-begin
-   str_real(len,fr,d,rt_s80real,s);
-end;
-{$endif SUPPORT_S80REAL}
-
-
-{$ifdef SUPPORT_COMP}
-procedure ShortStr_Comp(d : comp;len,fr : longint;var s : shortstring);[public,alias:'FPC_'+{$ifdef NOSTRANSI}'SHORT'+{$endif}'STR_'+{$ifdef INTERNDOUBLE}'C64BIT'{$else}'COMP'{$endif}];
-begin
-   str_real(len,fr,d,rt_c64bit,s);
-end;
-{$endif SUPPORT_C64BIT}
-
-
-{$ifdef SUPPORT_FIXED}
-procedure ShortStr_Fixed(d : fixed;len,fr : longint;var s : shortstring);[public,alias:'FPC_'+{$ifdef NOSTRANSI}'SHORT'+{$endif}'STR_'+{$ifdef INTERNDOUBLE}'F16BIT'{$else}'FIXED'{$endif}];
-begin
-   str_real(len,fr,d,rt_f32bit,s);
-end;
-{$endif SUPPORT_F16BIT}
-
-{$endif}
-
-
-procedure int_str_longint(v : longint;len : longint;var s : shortstring);[public,alias:'FPC_'+{$ifdef NOSTRANSI}'SHORT'+{$endif}'STR_LONGINT'];
-begin
-   int_str(v,s);
-   if length(s)<len then
-     s:=space(len-length(s))+s;
+  int_str(v,s);
+  if length(s)<len then
+    s:=space(len-length(s))+s;
 end;
 
 
-procedure int_str_cardinal(v : cardinal;len : longint;var s : shortstring);[public,alias:'FPC_'+{$ifdef NOSTRANSI}'SHORT'+{$endif}'STR_CARDINAL'];
+procedure int_str_cardinal(v : cardinal;len : longint;var s : shortstring);[public,alias:'FPC_SHORTSTR_CARDINAL'];
 begin
   int_str(v,s);
   if length(s)<len then
@@ -381,11 +335,6 @@ begin
               repeat
                 inc(code);
               until (code>=length(s)) or (s[code]<>'0');
-{The following isn't correct anymore for 64 bit integers! (JM)}
-{$IfNDef ValInternCompiled}
-              if length(s)-code>7 then
-               code:=code+8;
-{$EndIf ValInternCompiled}
             end;
       '%' : begin
               base:=2;
@@ -396,8 +345,6 @@ begin
   InitVal:=code;
 end;
 
-
-{$IfDef ValInternCompiled}
 
 Function ValSignedInt(DestSize: longint; Const S: ShortString; var Code: ValSInt): ValSInt; [public, alias:'FPC_VAL_SINT_SHORTSTR'];
 var
@@ -465,6 +412,7 @@ begin
     End;
 end;
 
+
 Function ValUnsignedInt(Const S: ShortString; var Code: ValSInt): ValUInt; [public, alias:'FPC_VAL_UINT_SHORTSTR'];
 var
   u: ValUInt;
@@ -505,6 +453,7 @@ begin
    end;
   code := 0;
 end;
+
 
 Function ValFloat(const s : shortstring; var code : ValSInt): ValReal; [public, alias:'FPC_VAL_REAL_SHORTSTR'];
 var
@@ -599,6 +548,7 @@ begin
   code:=0;
 end;
 
+
 {$ifdef SUPPORT_FIXED}
 Function ValFixed(const s : shortstring;var code : ValSInt): Fixed; [public, alias:'FPC_VAL_FIXED_SHORTSTR'];
 begin
@@ -607,592 +557,7 @@ end;
 {$endif SUPPORT_FIXED}
 
 
-{$Else ValInternCompiled}
-
-
-procedure val(const s : shortstring;var l : longint;var code : word);
-var
-  base,u  : byte;
-  negativ : boolean;
-begin
-  l:=0;
-  Code:=InitVal(s,negativ,base);
-  if Code>length(s) then
-   exit;
-  if negativ and (s='-2147483648') then
-   begin
-     Code:=0;
-     l:=$80000000;
-     exit;
-   end;
-  while Code<=Length(s) do
-   begin
-     u:=ord(s[code]);
-     case u of
-       48..57 : u:=u-48;
-       65..70 : u:=u-55;
-      97..104 : u:=u-87;
-     else
-      u:=16;
-     end;
-     l:=l*longint(base);
-     if (u>=base) or ((base=10) and (2147483647-l<longint(u))) then
-      begin
-        l:=0;
-        exit;
-      end;
-     l:=l+u;
-     inc(code);
-   end;
-  code := 0;
-  if negativ then
-   l:=0-l;
-end;
-
-
-procedure val(const s : shortstring;var l : longint;var code : integer);
-begin
-  val(s,l,word(code));
-end;
-
-
-procedure val(const s : shortstring;var l : longint;var code : longint);
-var
-  cw : word;
-begin
-  val (s,l,cw);
-  code:=cw;
-end;
-
-
-procedure val(const s : shortstring;var l : longint);
-var
-  code : word;
-begin
-  val (s,l,code);
-end;
-
-
-procedure val(const s : shortstring;var b : byte);
-var
-  l : longint;
-begin
-  val(s,l);
-  b:=l;
-end;
-
-
-procedure val(const s : shortstring;var b : byte;var code : word);
-var
-  l : longint;
-begin
-  val(s,l,code);
-  b:=l;
-end;
-
-
-procedure val(const s : shortstring;var b : byte;var code : Integer);
-begin
-  val(s,b,word(code));
-end;
-
-
-procedure val(const s : shortstring;var b : byte;var code : longint);
-var
-  l : longint;
-begin
-  val(s,l,code);
-  b:=l;
-end;
-
-
-procedure val(const s : shortstring;var b : shortint);
-var
-  l : longint;
-begin
-  val(s,l);
-  b:=l;
-end;
-
-
-procedure val(const s : shortstring;var b : shortint;var code : word);
-var
-  l : longint;
-begin
-  val(s,l,code);
-  b:=l;
-end;
-
-
-procedure val(const s : shortstring;var b : shortint;var code : Integer);
-begin
-  val(s,b,word(code));
-end;
-
-
-procedure val(const s : shortstring;var b : shortint;var code : longint);
-var
-  l : longint;
-begin
-  val(s,l,code);
-  b:=l;
-end;
-
-
-procedure val(const s : shortstring;var b : word);
-var
-  l : longint;
-begin
-  val(s,l);
-  b:=l;
-end;
-
-
-procedure val(const s : shortstring;var b : word;var code : word);
-var
-  l : longint;
-begin
-  val(s,l,code);
-  b:=l;
-end;
-
-
-procedure val(const s : shortstring;var b : word;var code : Integer);
-begin
-  val(s,b,word(code));
-end;
-
-
-procedure val(const s : shortstring;var b : word;var code : longint);
-var
-  l : longint;
-begin
-  val(s,l,code);
-  b:=l;
-end;
-
-
-procedure val(const s : shortstring;var b : integer);
-var
-  l : longint;
-begin
-   val(s,l);
-   b:=l;
-end;
-
-
-procedure val(const s : shortstring;var b : integer;var code : word);
-var
-  l : longint;
-begin
-   val(s,l,code);
-   b:=l;
-end;
-
-
-procedure val(const s : shortstring;var b : integer;var code : Integer);
-begin
-  val(s,b,word(code));
-end;
-
-
-procedure val(const s : shortstring;var b : integer;var code : longint);
-var
-  l : longint;
-begin
-  val(s,l,code);
-  b:=l;
-end;
-
-
-procedure val(const s : shortstring;var v : cardinal;var code : word);
-var
-  negativ : boolean;
-  base,u  : byte;
-begin
-  v:=0;
-  code:=InitVal(s,negativ,base);
-  if (Code>length(s)) or negativ then
-   exit;
-  while Code<=Length(s) do
-   begin
-     u:=ord(s[code]);
-     case u of
-       48..57 : u:=u-48;
-       65..70 : u:=u-55;
-      97..104 : u:=u-87;
-     else
-      u:=16;
-     end;
-     cardinal(v):=cardinal(v)*cardinal(longint(base));
-     if (u>base) or (cardinal($ffffffff)-cardinal(v)>cardinal(longint(u))) then
-      begin
-        v:=0;
-        exit;
-      end;
-     v:=v+u;
-     inc(code);
-   end;
-  code:=0;
-end;
-
-
-procedure val(const s : shortstring;var v : cardinal);
-var
-  code : word;
-begin
-  val(s,v,code);
-end;
-
-
-procedure val(const s : shortstring;var v : cardinal;var code : integer);
-begin
-  val(s,v,word(code));
-end;
-
-
-procedure val(const s : shortstring;var v : cardinal;var code : longint);
-var
-  cw : word;
-begin
-  val(s,v,cw);
-  code:=cw;
-end;
-
-
-procedure val(const s : shortstring;var d : valreal;var code : word);
-var
-  hd,
-  esign,sign : valreal;
-  exponent,i : longint;
-  flags      : byte;
-const
-  i10 = 10;
-begin
-  d:=0;
-  code:=1;
-  exponent:=0;
-  esign:=1;
-  flags:=0;
-  sign:=1;
-  while (code<=length(s)) and (s[code] in [' ',#9]) do
-   inc(code);
-  case s[code] of
-   '+' : inc(code);
-   '-' : begin
-           sign:=-1;
-           inc(code);
-         end;
-  end;
-  while (Code<=Length(s)) and (s[code] in ['0'..'9']) do
-   begin
-   { Read integer part }
-      flags:=flags or 1;
-      d:=d*i10;
-      d:=d+(ord(s[code])-ord('0'));
-      inc(code);
-   end;
-{ Decimal ? }
-  if (s[code]='.') and (length(s)>=code) then
-   begin
-      hd:=extended(i1)/extended(i10);
-      inc(code);
-      while (s[code] in ['0'..'9']) and (length(s)>=code) do
-        begin
-           { Read fractional part. }
-           flags:=flags or 2;
-           d:=d+hd*(ord(s[code])-ord('0'));
-           hd:=hd/i10;
-           inc(code);
-        end;
-   end;
- { Again, read integer and fractional part}
-  if flags=0 then
-   begin
-      d:=0;
-      exit;
-   end;
- { Exponent ? }
-  if (upcase(s[code])='E') and (length(s)>=code) then
-   begin
-      inc(code);
-      if s[code]='+' then
-        inc(code)
-      else
-        if s[code]='-' then
-         begin
-           esign:=-1;
-           inc(code);
-         end;
-      if not(s[code] in ['0'..'9']) or (length(s)<code) then
-        begin
-           d:=0;
-           exit;
-        end;
-      while (s[code] in ['0'..'9']) and (length(s)>=code) do
-        begin
-           exponent:=exponent*i10;
-           exponent:=exponent+ord(s[code])-ord('0');
-           inc(code);
-        end;
-   end;
-{ Calculate Exponent }
-  if esign>0 then
-    for i:=1 to exponent do
-      d:=d*i10
-    else
-      for i:=1 to exponent do
-        d:=d/i10;
-{ Not all characters are read ? }
-  if length(s)>=code then
-   begin
-     d:=0.0;
-     exit;
-   end;
-{ evalute sign }
-  d:=d*sign;
-{ success ! }
-  code:=0;
-end;
-
-
-procedure val(const s : shortstring;var d : valreal;var code : integer);
-begin
-  val(s,d,word(code));
-end;
-
-
-procedure val(const s : shortstring;var d : valreal;var code : longint);
-var
-  cw : word;
-begin
-  val(s,d,cw);
-  code:=cw;
-end;
-
-
-procedure val(const s : shortstring;var d : valreal);
-var
-  code : word;
-begin
-  val(s,d,code);
-end;
-
-
-{$ifdef SUPPORT_SINGLE}
-procedure val(const s : shortstring;var d : single;var code : word);
-var
-  e : valreal;
-begin
-  val(s,e,code);
-  d:=e;
-end;
-
-
-procedure val(const s : shortstring;var d : single;var code : integer);
-var
-  e : valreal;
-begin
-  val(s,e,word(code));
-  d:=e;
-end;
-
-
-procedure val(const s : shortstring;var d : single;var code : longint);
-var
-  cw : word;
-  e  : valreal;
-begin
-  val(s,e,cw);
-  d:=e;
-  code:=cw;
-end;
-
-
-procedure val(const s : shortstring;var d : single);
-var
-  code : word;
-  e    : valreal;
-begin
-  val(s,e,code);
-  d:=e;
-end;
-{$endif SUPPORT_SINGLE}
-
-
-{$ifdef DEFAULT_EXTENDED}
-
-  { with extended as default the valreal is extended so for real there need
-    to be a new val }
-
-  procedure val(const s : shortstring;var d : real;var code : word);
-  var
-    e : valreal;
-  begin
-    val(s,e,code);
-    d:=e;
-  end;
-
-
-  procedure val(const s : shortstring;var d : real;var code : integer);
-  var
-    e : valreal;
-  begin
-    val(s,e,word(code));
-    d:=e;
-  end;
-
-
-  procedure val(const s : shortstring;var d : real;var code : longint);
-  var
-    cw : word;
-    e  : valreal;
-  begin
-    val(s,e,cw);
-    d:=e;
-    code:=cw;
-  end;
-
-
-  procedure val(const s : shortstring;var d : real);
-  var
-    code : word;
-    e    : valreal;
-  begin
-    val(s,e,code);
-    d:=e;
-  end;
-
-{$else DEFAULT_EXTENDED}
-
-  { when extended is not the default it could still be supported }
-
-  {$ifdef SUPPORT_EXTENDED}
-
-  procedure val(const s : shortstring;var d : extended;var code : word);
-  var
-    e : valreal;
-  begin
-    val(s,e,code);
-    d:=e;
-  end;
-
-  procedure val(const s : shortstring;var d : extended;var code : integer);
-  var
-    e : valreal;
-  begin
-    val(s,e,word(code));
-    d:=e;
-  end;
-
-  procedure val(const s : shortstring;var d : extended;var code : longint);
-  var
-    cw : word;
-    e  : valreal;
-  begin
-    val(s,e,cw);
-    d:=e;
-    code:=cw;
-  end;
-
-  procedure val(const s : shortstring;var d : extended);
-  var
-    code : word;
-    e    : valreal;
-  begin
-    val(s,e,code);
-    d:=e;
-  end;
-
-  {$endif SUPPORT_EXTENDED}
-
-{$endif DEFAULT_EXTENDED}
-
-
-{$ifdef SUPPORT_COMP}
-procedure val(const s : shortstring;var d : comp;var code : word);
-var
-  e : valreal;
-begin
-  val(s,e,code);
-  d:=comp(e);
-end;
-
-
-procedure val(const s : shortstring;var d : comp;var code : integer);
-var
-  e : valreal;
-begin
-  val(s,e,word(code));
-  d:=comp(e);
-end;
-
-
-procedure val(const s : shortstring;var d : comp;var code : longint);
-var
-  cw : word;
-  e  : valreal;
-begin
-  val(s,e,cw);
-  d:=comp(e);
-  code:=cw;
-end;
-
-
-procedure val(const s : shortstring;var d : comp);
-var
-  code : word;
-  e    : valreal;
-begin
-  val(s,e,code);
-  d:=comp(e);
-end;
-{$endif SUPPORT_COMP}
-
-
-{$ifdef SUPPORT_FIXED}
-procedure val(const s : shortstring;var d : fixed;var code : word);
-var
-  e : valreal;
-begin
-  val(s,e,code);
-  d:=fixed(e);
-end;
-
-
-procedure val(const s : shortstring;var d : fixed;var code : integer);
-var
-  e : valreal;
-begin
-  val(s,e,word(code));
-  d:=fixed(e);
-end;
-
-
-procedure val(const s : shortstring;var d : fixed;var code : longint);
-var
-  cw : word;
-  e  : valreal;
-begin
-  val(s,e,cw);
-  d:=fixed(e);
-  code:=cw;
-end;
-
-
-procedure val(const s : shortstring;var d : fixed);
-var
-  code : word;
-  e    : valreal;
-begin
-  val(s,e,code);
-  d:=fixed(e);
-end;
-{$endif SUPPORT_FIXED}
-{$EndIf ValInternCompiled}
-
 Procedure SetString (Var S : Shortstring; Buf : PChar; Len : Longint);
-
 begin
   Move (Buf[0],S[1],Len);
   S[0]:=chr(len);
@@ -1200,7 +565,10 @@ end;
 
 {
   $Log$
-  Revision 1.28  1999-05-06 09:05:13  peter
+  Revision 1.29  1999-07-05 20:04:26  peter
+    * removed temp defines
+
+  Revision 1.28  1999/05/06 09:05:13  peter
     * generic write_float str_float
 
   Revision 1.27  1999/04/08 15:57:54  peter

@@ -15,6 +15,9 @@
 
  **********************************************************************}
 
+{ This will release some functions for special shortstring support }
+{ define EXTRAANSISHORT}
+
 {
   This file contains the implementation of the AnsiString type,
   and all things that are needed for it.
@@ -159,14 +162,11 @@ Procedure AnsiStr_Concat (S1,S2 : Pointer;var S3 : Pointer);[Public, alias: 'FPC
 }
 Var
   Size,Location : Longint;
-
 begin
+{ create new result }
   if S3<>nil then
-    begin
-       AnsiStr_Decr_Ref(S3);
-       S3:=nil;
-    end;
-
+    AnsiStr_Decr_Ref(S3);
+{ only assign if s1 or s2 is empty }
   if (S1=Nil) then
     AnsiStr_Assign(S3,S2)
   else
@@ -183,6 +183,7 @@ begin
 end;
 
 
+{$ifdef EXTRAANSISHORT}
 Procedure AnsiStr_ShortStr_Concat (Var S1: AnsiString; Var S2 : ShortString);
 {
   Concatenates a Ansi with a short string; : S2 + S2
@@ -201,6 +202,7 @@ begin
   Move (S2[1],Pointer(Pointer(S1)+Location)^,Size);
   PByte( Pointer(S1)+length(S1) )^:=0; { Terminating Zero }
 end;
+{$endif EXTRAANSISHORT}
 
 
 Procedure AnsiStr_To_ShortStr (Var S1 : ShortString;S2 : Pointer);[Public, alias: 'FPC_ANSISTR_TO_SHORTSTR'];
@@ -342,6 +344,7 @@ begin
 end;
 
 
+{$ifdef EXTRAANSISHORT}
 Function AnsiStr_ShortStr_Compare (Var S1 : Pointer; Var S2 : ShortString): Longint;
 {
   Compares a AnsiString with a ShortString;
@@ -365,6 +368,7 @@ begin
    end;
   AnsiStr_ShortStr_Compare:=Temp;
 end;
+{$endif EXTRAANSISHORT}
 
 
 {*****************************************************************************
@@ -435,13 +439,13 @@ begin
   If Pointer(S)=Nil then
     exit;
   if PAnsiRec(Pointer(S)-Firstoff)^.Ref<>1 then
-    begin
-    SNew:=NewAnsiString (PAnsiRec(Pointer(S)-FirstOff)^.len);
-    Move (Pointer(S)^,SNew^,PAnsiRec(Pointer(S)-FirstOff)^.len+1);
-    PAnsiRec(SNew-FirstOff)^.len:=PAnsiRec(Pointer(S)-FirstOff)^.len;
-    ansistr_decr_ref (Pointer(S));  { Thread safe }
-    Pointer(S):=SNew;
-    end;
+   begin
+     SNew:=NewAnsiString (PAnsiRec(Pointer(S)-FirstOff)^.len);
+     Move (Pointer(S)^,SNew^,PAnsiRec(Pointer(S)-FirstOff)^.len+1);
+     PAnsiRec(SNew-FirstOff)^.len:=PAnsiRec(Pointer(S)-FirstOff)^.len;
+     ansistr_decr_ref (Pointer(S));  { Thread safe }
+     Pointer(S):=SNew;
+   end;
 end;
 
 
@@ -453,30 +457,29 @@ begin
   dec(index);
   { Check Size. Accounts for Zero-length S }
   if Length(S)<Index+Size then
-    Size:=Length(S)-Index;
+   Size:=Length(S)-Index;
   If Size>0 then
-    begin
-    If Index<0 Then
+   begin
+     If Index<0 Then
       Index:=0;
-    ResultAddress:=Pointer(NewAnsiString (Size));
-    if ResultAddress<>Nil then
+     ResultAddress:=Pointer(NewAnsiString (Size));
+     if ResultAddress<>Nil then
       begin
-      Move (Pointer(Pointer(S)+index)^,ResultAddress^,Size);
-      PAnsiRec(ResultAddress-FirstOff)^.Len:=Size;
-      PByte(ResultAddress+Size)^:=0;
+        Move (Pointer(Pointer(S)+index)^,ResultAddress^,Size);
+        PAnsiRec(ResultAddress-FirstOff)^.Len:=Size;
+        PByte(ResultAddress+Size)^:=0;
       end;
-    end;
+   end;
   Pointer(Copy):=ResultAddress;
 end;
-
 
 
 Function Pos (Const Substr : AnsiString; Const Source : AnsiString) : Longint;
 var
   i,j : longint;
-  e : boolean;
-  S : AnsiString;
-  se : Pointer;
+  e   : boolean;
+  S   : AnsiString;
+  se  : Pointer;
 begin
   i := 0;
   j := 0;
@@ -496,8 +499,6 @@ begin
   pos := j;
 end;
 
-
-{$IfDef ValInternCompiled}
 
 Function ValAnsiFloat(Const S : AnsiString; Var Code : ValSInt): ValReal; [public, alias:'FPC_VAL_REAL_ANSISTR'];
 Var
@@ -537,110 +538,6 @@ end;
 {$EndIf SUPPORT_FIXED}
 
 
-{$Else ValInternCompiled}
-
-Procedure Val (Const S : AnsiString; var R : real; Var Code : Integer);
-Var
-  SS : String;
-begin
- AnsiStr_To_ShortStr (SS,Pointer(S));
- Val(SS,R,Code);
-end;
-
-
-{
-Procedure Val (var S : AnsiString; var D : Double; Var Code : Integer);
-
-Var SS : ShortString;
-
-begin
- AnsiStr_To_ShortStr (SS,S);
- Val(SS,D,Code);
-end;
-}
-
-
-Procedure Val (Const S : AnsiString; var E : Extended; Code : Integer);
-
-Var SS : ShortString;
-
-begin
- AnsiStr_To_ShortStr (SS,Pointer(S));
- Val(SS,E,Code);
-end;
-
-
-
-Procedure Val (Const S : AnsiString; var C : Cardinal; Code : Integer);
-
-Var SS : ShortString;
-
-begin
- AnsiStr_To_ShortStr (SS,Pointer(S));
- Val(SS,C,Code);
-end;
-
-
-
-Procedure Val (Const S : AnsiString; var L : Longint; Var Code : Integer);
-
-Var SS : ShortString;
-
-begin
- AnsiStr_To_ShortStr (SS,Pointer(S));
- Val(SS,L,Code);
-end;
-
-
-
-Procedure Val (Const S : AnsiString; var W : Word; Var Code : Integer);
-
-Var SS : ShortString;
-
-begin
- AnsiStr_To_ShortStr (SS,Pointer(S));
- Val(SS,W,Code);
-end;
-
-
-
-Procedure Val (Const S : AnsiString; var I : Integer; Var Code : Integer);
-
-Var SS : ShortString;
-
-begin
- AnsiStr_To_ShortStr (SS,Pointer(S));
- Val(SS,I,Code);
-end;
-
-
-
-Procedure Val (Const S : AnsiString; var B : Byte; Var Code : Integer);
-
-Var SS : ShortString;
-
-begin
- AnsiStr_To_ShortStr (SS,Pointer(S));
- Val(SS,B,Code);
-end;
-
-
-
-Procedure Val (Const S : AnsiString; var SI : ShortInt; Var Code : Integer);
-
-Var SS : ShortString;
-
-begin
- AnsiStr_To_ShortStr (SS,Pointer(S));
- Val(SS,SI,Code);
-end;
-
-{$EndIf ValInternCompiled}
-
-
-
-{$ifdef INTERNDOUBLE}
-
 procedure AnsiStr_Float(d : ValReal;len,fr,rt : longint;var s : ansistring);[public,alias:'FPC_ANSISTR_FLOAT'];
 var
   ss : shortstring;
@@ -649,73 +546,10 @@ begin
   s:=ss;
 end;
 
-{$else INTERNDOUBLE}
 
-
-Procedure ACoStr (Co : Comp;Len,fr: Longint; Var S : AnsiString);
-  [Public,Alias : 'FPC_'+{$ifdef NOSTRANSI}'ANSISTR'{$else}'STRANSI_'{$endif}+'COMP'];
-
-Var SS : ShortString;
-
-begin
- ShortStr_comp (Co,Len,fr,SS);
- S:=SS;
-end;
-
-
-Procedure ASiStr (Si : Single;Len,fr: Longint; Var S : AnsiString);
-  [Public,Alias : 'FPC_'+{$ifdef NOSTRANSI}'ANSISTR'{$else}'STRANSI'{$endif}+'_SINGLE'];
-
-Var SS : ShortString;
-
-begin
- ShortStr_Single (Si,Len,fr,SS);
- S:=SS;
-end;
-
-{$IfDef Support_Fixed}
-Procedure AFiStr (fi : Comp;Len,fr: Longint; Var S : AnsiString);
-  [Public,Alias : 'FPC_'+{$ifdef NOSTRANSI}'ANSISTR'{$else}'STRANSI'{$endif}+'_FIXED'];
-
-Var SS : ShortString;
-
-begin
- ShortStr_Fixed (fi,Len,fr,SS);
- S:=SS;
-end;
-{$EndIf Support_Fixed}
-
-
-Procedure ARStr (D : Real;Len,fr: Longint; Var S : AnsiString);
-  [Public,Alias : 'FPC_'+{$ifdef NOSTRANSI}'ANSISTR'{$else}'STRANSI'{$endif}+'_REAL'];
-
-Var SS : ShortString;
-
-begin
- ShortStr_real (D,Len,fr,SS);
- S:=SS;
-end;
-
-
-Procedure AEStr (E : Extended;Len,Fr: Longint; Var S : AnsiString);
-  [Public,Alias : 'FPC_'+{$ifdef NOSTRANSI}'ANSISTR'{$else}'STRANSI'{$endif}+'_EXTENDED'];
-
-Var SS : ShortString;
-
-begin
- ShortStr_Extended (E,Len,fr,SS);
- S:=SS;
-end;
-
-
-{$endif INTERNDOUBLE}
-
-
-Procedure ACStr (C : Cardinal;Len : Longint; Var S : AnsiString);
-  [Public,Alias : 'FPC_'+{$ifdef NOSTRANSI}'ANSISTR'{$else}'STRANSI'{$endif}+'_CARDINAL'];
-
-Var SS : ShortString;
-
+Procedure AnsiStr_Cardinal(C : Cardinal;Len : Longint; Var S : AnsiString);[Public,Alias : 'FPC_ANSISTR_CARDINAL'];
+Var
+  SS : ShortString;
 begin
   int_str_cardinal(C,Len,SS);
   S:=SS;
@@ -723,54 +557,54 @@ end;
 
 
 
-Procedure ALStr (L : Longint; Len : Longint; Var S : AnsiString);
-  [Public,Alias : 'FPC_'+{$ifdef NOSTRANSI}'ANSISTR'{$else}'STRANSI'{$endif}+'_LONGINT'];
-
-Var SS : ShortString;
-
+Procedure AnsiStr_Longint(L : Longint; Len : Longint; Var S : AnsiString);[Public,Alias : 'FPC_ANSISTR_LONGINT'];
+Var
+  SS : ShortString;
 begin
- int_Str_Longint (L,Len,SS);
- S:=SS;
+  int_Str_Longint (L,Len,SS);
+  S:=SS;
 end;
 
 
 Procedure Delete (Var S : AnsiString; Index,Size: Longint);
-
-Var LS : Longint;
-
+Var
+  LS : Longint;
 begin
-  If Length(S)=0 then exit;
+  If Length(S)=0 then
+   exit;
   if index<=0 then
-    begin
-    Size:=Size+index-1;
-    index:=1;
-    end;
+   begin
+     inc(Size,index-1);
+     index:=1;
+   end;
   LS:=PAnsiRec(Pointer(S)-FirstOff)^.Len;
   if (Index<=LS) and (Size>0) then
-    begin
-    UniqueAnsiString (S);
-    if Size+Index>LS then
+   begin
+     UniqueAnsiString (S);
+     if Size+Index>LS then
       Size:=LS-Index+1;
-    if Index+Size<=LS then
+     if Index+Size<=LS then
       begin
-      Dec(Index);
-      Move(PByte(Pointer(S))[Index+Size],
-           PByte(Pointer(S))[Index],LS-Index+1);
+        Dec(Index);
+        Move(PByte(Pointer(S))[Index+Size],PByte(Pointer(S))[Index],LS-Index+1);
       end;
-    Setlength(s,LS-Size);
-    end;
+     Setlength(s,LS-Size);
+   end;
 end;
 
+
 Procedure Insert (Const Source : AnsiString; Var S : AnsiString; Index : Longint);
-
-var Temp : AnsiString;
-    LS : Longint;
-
+var
+  Temp : AnsiString;
+  LS : Longint;
 begin
-  If Length(Source)=0 then exit;
-  if index <= 0 then index := 1;
+  If Length(Source)=0 then
+   exit;
+  if index <= 0 then
+   index := 1;
   Ls:=Length(S);
-  if index > LS then index := LS+1;
+  if index > LS then
+   index := LS+1;
   Dec(Index);
   Pointer(Temp) := NewAnsiString(Length(Source)+LS);
   SetLength(Temp,Length(Source)+LS);
@@ -785,7 +619,10 @@ end;
 
 {
   $Log$
-  Revision 1.29  1999-06-14 00:47:33  peter
+  Revision 1.30  1999-07-05 20:04:21  peter
+    * removed temp defines
+
+  Revision 1.29  1999/06/14 00:47:33  peter
     * merged
 
   Revision 1.28.2.1  1999/06/14 00:39:07  peter

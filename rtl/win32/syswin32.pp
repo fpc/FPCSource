@@ -219,7 +219,7 @@ end;
 function paramstr(l : longint) : string;
 
 begin
-  
+
   if (l>0) and (l+1<=argc) then
    paramstr:=strpas(argv[l])
   else
@@ -250,12 +250,9 @@ end;
      external 'kernel32' name 'GlobalSize';
 {$endif}
 
-{$ifdef NEWATT}
-var heap : longint;external name 'HEAP';
-var intern_heapsize : longint;external name 'HEAPSIZE';
-{$else NEWATT}
-{$asmmode direct}
-{$endif def NEWATT}
+var
+  heap : longint;external name 'HEAP';
+  intern_heapsize : longint;external name 'HEAPSIZE';
 
 function getheapstart:pointer;assembler;
 asm
@@ -265,11 +262,7 @@ end ['EAX'];
 
 function getheapsize:longint;assembler;
 asm
-{$ifdef NEWATT}
         movl    intern_HEAPSIZE,%eax
-{$else}
-        movl    HEAPSIZE,%eax
-{$endif}
 end ['EAX'];
 
 
@@ -289,6 +282,7 @@ end;
 
 { include standard heap management }
 {$I heap.inc}
+
 
 {*****************************************************************************
                           Low Level File Routines
@@ -373,14 +367,14 @@ end;
 
 function do_read(h,addr,len : longint) : longint;
 var
-  result:longint;
+  _result:longint;
 begin
-  if readfile(h,pointer(addr),len,result,nil)=0 then
+  if readfile(h,pointer(addr),len,_result,nil)=0 then
     Begin
       errno:=GetLastError;
       Errno2InoutRes;
     end;
-  do_read:=result;
+  do_read:=_result;
 end;
 
 
@@ -757,16 +751,13 @@ end;
 {$endif}
 
   procedure install_exception_handlers;forward;
-{$ifdef NEWATT}
   procedure PascalMain;external name 'PASCALMAIN';
   procedure fpc_do_exit;external name 'FPC_DO_EXIT';
-{$endif def NEWATT}
-
 
 var
-     { value of the stack segment
-       to check if the call stack can be written on exceptions }
-     _SS : longint;
+  { value of the stack segment
+    to check if the call stack can be written on exceptions }
+  _SS : longint;
 
 procedure Exe_entry;[public, alias : '_FPC_EXE_Entry'];
   begin
@@ -782,11 +773,6 @@ procedure Exe_entry;[public, alias : '_FPC_EXE_Entry'];
         movw %ss,%bp
         movl %ebp,_SS
         xorl %ebp,%ebp
-     end;
-{$ifndef NEWATT}
-{$ASMMODE DIRECT}
-{$endif ndef NEWATT}
-     asm
         call PASCALMAIN
         popl %ebp
      end;
@@ -794,7 +780,6 @@ procedure Exe_entry;[public, alias : '_FPC_EXE_Entry'];
      ExitProcess(0);
   end;
 
-{$ASMMODE ATT}
 
 procedure Dll_entry;[public, alias : '_FPC_DLL_Entry'];
   begin
@@ -805,11 +790,6 @@ procedure Dll_entry;[public, alias : '_FPC_DLL_Entry'];
            asm
              xorl %edi,%edi
              movw %ss,%di
-           end;
-{$ifndef NEWATT}
-{$ASMMODE DIRECT}
-{$endif ndef NEWATT}
-           asm
              movl %edi,_SS
              call PASCALMAIN
            end;
@@ -823,7 +803,6 @@ procedure Dll_entry;[public, alias : '_FPC_DLL_Entry'];
      end;
   end;
 
-{$ASMMODE ATT}
 
 {$ifdef Set_i386_Exception_handler}
 
@@ -1022,7 +1001,10 @@ end.
 
 {
   $Log$
-  Revision 1.40  1999-06-11 16:26:40  michael
+  Revision 1.41  1999-07-05 20:04:30  peter
+    * removed temp defines
+
+  Revision 1.40  1999/06/11 16:26:40  michael
   + Fixed paramstr(0)
 
   Revision 1.39  1999/05/17 21:52:47  florian

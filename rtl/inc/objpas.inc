@@ -221,11 +221,7 @@
                              pushl message
                              pushl %esi
                              movl p,%edi
-{$ifdef ver0_99_10}
-                             call %edi
-{$else ver0_99_10}
                              call *%edi
-{$endif ver0_99_10}
                           end;
                           exit;
                        end;
@@ -264,11 +260,7 @@
                              pushl message
                              pushl %esi
                              movl p,%edi
-{$ifdef ver0_99_10}
-                             call %edi
-{$else ver0_99_10}
                              call *%edi
-{$endif ver0_99_10}
                           end;
                           exit;
                        end;
@@ -325,7 +317,10 @@
 
 {
   $Log$
-  Revision 1.4  1999-05-19 13:20:09  peter
+  Revision 1.5  1999-07-05 20:04:24  peter
+    * removed temp defines
+
+  Revision 1.4  1999/05/19 13:20:09  peter
     * fixed dispatchstr
 
   Revision 1.3  1999/05/17 21:52:37  florian

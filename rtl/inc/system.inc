@@ -32,6 +32,9 @@ Procedure HandleErrorFrame (Errno : longint;frame : longint); forward;
 type
   FileFunc = Procedure(var t : TextRec);
 
+  PLongint = ^Longint;
+  PByte = ^Byte;
+
 const
 { Random / Randomize constants }
   OldRandSeed : Cardinal = 0;
@@ -56,11 +59,11 @@ var
 Function  lo(i : Integer) : byte;  [INTERNPROC: In_lo_Word];
 Function  lo(w : Word) : byte;     [INTERNPROC: In_lo_Word];
 Function  lo(l : Longint) : Word;  [INTERNPROC: In_lo_long];
-Function  lo(l : DWord) : Word;  [INTERNPROC: In_lo_long];
+Function  lo(l : DWord) : Word;    [INTERNPROC: In_lo_long];
 Function  hi(i : Integer) : byte;  [INTERNPROC: In_hi_Word];
 Function  hi(w : Word) : byte;     [INTERNPROC: In_hi_Word];
 Function  hi(l : Longint) : Word;  [INTERNPROC: In_hi_long];
-Function  hi(l : DWord) : Word;  [INTERNPROC: In_hi_long];
+Function  hi(l : DWord) : Word;    [INTERNPROC: In_hi_long];
 
 {$ifdef INT64}
 Function  lo(q : QWord) : DWord;  [INTERNPROC: In_lo_qword];
@@ -75,6 +78,7 @@ Function Length(c : char) : byte;   [INTERNPROC: In_Length_string];
 
 Procedure Reset(var f : TypedFile);   [INTERNPROC: In_Reset_TypedFile];
 Procedure Rewrite(var f : TypedFile); [INTERNPROC: In_Rewrite_TypedFile];
+
 
 {****************************************************************************
                     Include processor specific routines
@@ -93,12 +97,14 @@ Procedure Rewrite(var f : TypedFile); [INTERNPROC: In_Rewrite_TypedFile];
   {$ENDIF}
 {$ENDIF}
 
+
 {****************************************************************************
                                 Set Handling
 ****************************************************************************}
 
 { Include set support which is processor specific}
 {$I set.inc}
+
 
 {****************************************************************************
                   Subroutines for String handling
@@ -107,10 +113,6 @@ Procedure Rewrite(var f : TypedFile); [INTERNPROC: In_Rewrite_TypedFile];
 { Needs to be before RTTI handling }
 
 {$i sstrings.inc}
-
-Type
-   PLongint = ^Longint;
-   PByte = ^Byte;
 
 {$i astrings.inc}
 
@@ -266,13 +268,6 @@ Begin
   ptr:=pointer(off);
 End;
 
-{$ifndef INTERNALADDR}
-Function Addr(var x):pointer;
-begin
-  Addr:=@x;
-end;
-{$endif}
-
 Function CSeg : Word;
 Begin
   Cseg:=0;
@@ -336,10 +331,8 @@ end;
 
 
 {*****************************************************************************
-                          Init / Exit / ExitProc
+                        Initialization / Finalization
 *****************************************************************************}
-
-{$ifdef HASFINALIZE}
 
 const
   maxunits=1024; { See also files.pas of the compiler source }
@@ -386,8 +379,10 @@ begin
    end;
 end;
 
-{$endif}
 
+{*****************************************************************************
+                          Error / Exit / ExitProc
+*****************************************************************************}
 
 Procedure HandleErrorFrame (Errno : longint;frame : longint);
 {
@@ -472,10 +467,8 @@ Begin
      exitProc:=nil;
      current_exit();
    End;
-{$ifdef HASFINALIZE}
   { Finalize units }
   FinalizeUnits;
-{$endif}
   { Show runtime error }
   If erroraddr<>nil Then
    Begin
@@ -565,6 +558,7 @@ end;
 
 {$i setjump.inc}
 
+
 {*****************************************************************************
                         Object Pascal support
 *****************************************************************************}
@@ -573,7 +567,10 @@ end;
 
 {
   $Log$
-  Revision 1.63  1999-07-03 01:24:19  peter
+  Revision 1.64  1999-07-05 20:04:27  peter
+    * removed temp defines
+
+  Revision 1.63  1999/07/03 01:24:19  peter
     * $ifdef int64
 
   Revision 1.62  1999/07/02 18:06:42  florian

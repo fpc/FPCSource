@@ -50,10 +50,6 @@ Type
 {$ifdef i386}
   StrLenInt = LongInt;
 
-  {$ifndef INTERNDOUBLE}
-    Double = real;
-  {$endif}
-
   {$define DEFAULT_EXTENDED}
 
   {$define SUPPORT_SINGLE}
@@ -90,12 +86,9 @@ Type
   TProcedure  = Procedure;
 
 const
-{$IfDef ValInternCompiled}
 { Maximum value of the biggest signed and unsigned integer type available}
   MaxSIntValue = High(ValSInt);
   MaxUIntValue = High(ValUInt);
-{$EndIf ValInternCompiled}
-
 
 { max. values for longint and int}
   maxLongint = $7fffffff;
@@ -117,6 +110,7 @@ const
 
 { max level in dumping on error }
   Max_Frame_Dump : Word = 8;
+
 { Exit Procedure handling consts and types  }
   ExitProc : pointer = nil;
   Erroraddr: pointer = nil;
@@ -206,9 +200,6 @@ Function odd(l:Longint):Boolean;
 
 {$ifndef RTLLITE}
 Function  ptr(sel,off:Longint):pointer;
-{$ifndef INTERNALADDR}
-Function Addr(var x):pointer;
-{$endif}
 Function  Cseg:Word;
 Function  Dseg:Word;
 Function  Sseg:Word;
@@ -231,88 +222,30 @@ Function  Pos(C:Char;const s:shortstring):StrLenInt;
 Procedure SetLength(var s:shortstring;len:StrLenInt);
 Procedure SetString (Var S : Shortstring; Buf : PChar; Len : Longint);
 Function  Length(s:string):byte;
+Function  upCase(const s:shortstring):shortstring;
+{$ifndef RTLLITE}
+Function  lowerCase(const s:shortstring):shortstring;
+{$endif}
+Function  Space(b:byte):shortstring;
+{$ifndef RTLLITE}
+Function  hexStr(Val:Longint;cnt:byte):shortstring;
+Function  binStr(Val:Longint;cnt:byte):shortstring;
+{$endif RTLLITE}
 
-{ Char functions to overcome overloading problem with ansistrings }
+{ Char functions }
+Function  Chr(b:byte):Char;
+Function  upCase(c:Char):Char;
+{$ifndef RTLLITE}
+Function  lowerCase(c:Char):Char;
+{$endif RTLLITE}
 function  copy(c:char;index : StrLenInt;count : StrLenInt): shortstring;
 function  pos(const substr : shortstring;c:char): StrLenInt;
 function  length(c:char):byte;
 
-Function  Chr(b:byte):Char;
-Function  upCase(const s:shortstring):shortstring;
-Function  upCase(c:Char):Char;
-{$ifndef RTLLITE}
-Function  lowerCase(c:Char):Char;
-Function  lowerCase(const s:shortstring):shortstring;
-Function  hexStr(Val:Longint;cnt:byte):shortstring;
-Function  binStr(Val:Longint;cnt:byte):shortstring;
-{$endif RTLLITE}
-Function  Space(b:byte):shortstring;
-{$IfNDef ValInternCompiled}
-Procedure Val(const s:shortstring;Var l:Longint;Var code:Word);
-Procedure Val(const s:shortstring;Var l:Longint;Var code:Integer);
-Procedure Val(const s:shortstring;Var l:Longint;Var code:Longint);
-Procedure Val(const s:shortstring;Var l:Longint);
-Procedure Val(const s:shortstring;Var b:byte;Var code:Word);
-Procedure Val(const s:shortstring;Var b:byte;Var code:Integer);
-Procedure Val(const s:shortstring;Var b:byte;Var code:Longint);
-Procedure Val(const s:shortstring;Var b:byte);
-Procedure Val(const s:shortstring;Var b:shortint;Var code:Word);
-Procedure Val(const s:shortstring;Var b:shortint;Var code:Integer);
-Procedure Val(const s:shortstring;Var b:shortint;Var code:Longint);
-Procedure Val(const s:shortstring;Var b:shortint);
-Procedure Val(const s:shortstring;Var b:Word;Var code:Word);
-Procedure Val(const s:shortstring;Var b:Word;Var code:Integer);
-Procedure Val(const s:shortstring;Var b:Word;Var code:Longint);
-Procedure Val(const s:shortstring;Var b:Word);
-Procedure Val(const s:shortstring;Var b:Integer;Var code:Word);
-Procedure Val(const s:shortstring;Var b:Integer;Var code:Integer);
-Procedure Val(const s:shortstring;Var b:Integer;Var code:Longint);
-Procedure Val(const s:shortstring;Var b:Integer);
-Procedure Val(const s:shortstring;Var v:cardinal;Var code:Word);
-Procedure Val(const s:shortstring;Var v:cardinal;Var code:Integer);
-Procedure Val(const s:shortstring;Var v:cardinal;Var code:Longint);
-Procedure Val(const s:shortstring;Var v:cardinal);
-Procedure Val(const s:shortstring;Var d:ValReal;Var code:Word);
-Procedure Val(const s:shortstring;Var d:ValReal;Var code:Integer);
-Procedure Val(const s:shortstring;Var d:ValReal;Var code:Longint);
-Procedure Val(const s:shortstring;Var d:ValReal);
-{$ifdef SUPPORT_SINGLE}
-  Procedure Val(const s:shortstring;Var d:single;Var code:Word);
-  Procedure Val(const s:shortstring;Var d:single;Var code:Integer);
-  Procedure Val(const s:shortstring;Var d:single;Var code:Longint);
-  Procedure Val(const s:shortstring;Var d:single);
-{$endif SUPPORT_SINGLE}
-{$ifdef SUPPORT_COMP}
-  Procedure Val(const s:shortstring;Var d:comp;Var code:Word);
-  Procedure Val(const s:shortstring;Var d:comp;Var code:Integer);
-  Procedure Val(const s:shortstring;Var d:comp;Var code:Longint);
-  Procedure Val(const s:shortstring;Var d:comp);
-{$endif SUPPORT_COMP}
-{$ifdef SUPPORT_FIXED}
-  Procedure Val(const s:shortstring;Var d:fixed;Var code:Word);
-  Procedure Val(const s:shortstring;Var d:fixed;Var code:Integer);
-  Procedure Val(const s:shortstring;Var d:fixed;Var code:Longint);
-  Procedure Val(const s:shortstring;Var d:fixed);
-{$endif SUPPORT_FIXED}
-{$ifdef DEFAULT_EXTENDED}
-  Procedure Val(const s:shortstring;Var d:Real;Var code:Word);
-  Procedure Val(const s:shortstring;Var d:Real;Var code:Integer);
-  Procedure Val(const s:shortstring;Var d:Real;Var code:Longint);
-  Procedure Val(const s:shortstring;Var d:Real);
-{$else DEFAULT_EXTENDED}
-  {$ifdef SUPPORT_EXTENDED}
-    Procedure Val(const s:shortstring;Var d:Extended;Var code:Word);
-    Procedure Val(const s:shortstring;Var d:Extended;Var code:Integer);
-    Procedure Val(const s:shortstring;Var d:Extended;Var code:Longint);
-    Procedure Val(const s:shortstring;Var d:Extended);
-  {$endif}
-{$endif DEFAULT_EXTENDED}
-{$EndIf ValInternCompiled}
 
 {****************************************************************************
                              AnsiString Handling
 ****************************************************************************}
-
 
 Procedure SetLength (Var S : AnsiString; l : Longint);
 Procedure UniqueAnsiString (Var S : AnsiString);
@@ -321,30 +254,6 @@ Function  Copy (Const S : AnsiString; Index,Size : Longint) : AnsiString;
 Function  Pos (Const Substr : AnsiString; Const Source : AnsiString) : Longint;
 Procedure Insert (Const Source : AnsiString; Var S : AnsiString; Index : Longint);
 Procedure Delete (Var S : AnsiString; Index,Size: Longint);
-{$IfNDef ValInternCompiled}
-Procedure Val (Const S : AnsiString; var R : real; Var Code : Integer);
-{
-Procedure Val (Const S : AnsiString; var D : Double; Var Code : Integer);
-}
-Procedure Val (Const S : AnsiString; var E : Extended; Code : Integer);
-Procedure Val (Const S : AnsiString; var C : Cardinal; Code : Integer);
-Procedure Val (Const S : AnsiString; var L : Longint; Var Code : Integer);
-Procedure Val (Const S : AnsiString; var W : Word; Var Code : Integer);
-Procedure Val (Const S : AnsiString; var I : Integer; Var Code : Integer);
-Procedure Val (Const S : AnsiString; var B : Byte; Var Code : Integer);
-Procedure Val (Const S : AnsiString; var SI : ShortInt; Var  Code : Integer);
-{$EndIf ValInternCompiled}
-{
-Procedure Str (Const R : Real;Len, fr : longint; Var S : AnsiString);
-Procedure Str (Const D : Double;Len,fr : longint; Var S : AnsiString);
-Procedure Str (Const E : Extended;Len,fr : longint; Var S : AnsiString);
-Procedure Str (Const C : Cardinal;len : Longint; Var S : AnsiString);
-Procedure Str (Const L : LongInt;len : longint; Var S : AnsiString);
-Procedure Str (Const W : Word;len : longint; Var S : AnsiString);
-Procedure Str (Const I : Integer;len : Longint; Var S : AnsiString);
-Procedure Str (Const B : Byte; Len : longint; Var S : AnsiString);
-Procedure Str (Const SI : ShortInt; Len : longint; Var S : AnsiString);
-}
 
 
 {****************************************************************************
@@ -377,6 +286,7 @@ Procedure Rename(Var f:File;p:pchar);
 Procedure Rename(Var f:File;c:char);
 Procedure Truncate (Var F:File);
 
+
 {****************************************************************************
                            Typed File Management
 ****************************************************************************}
@@ -386,6 +296,7 @@ Procedure Assign(Var f:TypedFile;p:pchar);
 Procedure Assign(Var f:TypedFile;c:char);
 Procedure Rewrite(Var f:TypedFile);
 Procedure Reset(Var f:TypedFile);
+
 
 {****************************************************************************
                             Text File Management
@@ -414,6 +325,7 @@ Function  SeekEOF:Boolean;
 Procedure SetTextBuf(Var f:Text; Var Buf);
 Procedure SetTextBuf(Var f:Text; Var Buf; Size:Word);
 
+
 {****************************************************************************
                             Directory Management
 ****************************************************************************}
@@ -423,6 +335,7 @@ Procedure mkdir(const s:string);
 Procedure rmdir(const s:string);
 Procedure getdir(drivenr:byte;Var dir:shortstring);
 Procedure getdir(drivenr:byte;Var dir:ansistring);
+
 
 {*****************************************************************************
                              Miscelleaous
@@ -435,6 +348,7 @@ function get_caller_frame(framebp:longint):longint;
 
 Function IOResult:Word;
 Function Sptr:Longint;
+
 
 {*****************************************************************************
                           Init / Exit / ExitProc
@@ -452,6 +366,7 @@ Procedure halt(errnum:byte);
 Procedure AddExitProc(Proc:TProcedure);
 {$endif RTLLITE}
 Procedure halt;
+
 
 {*****************************************************************************
                               Abstract/Assert
@@ -471,14 +386,19 @@ const
 
 {$i setjumph.inc}
 
+
 {*****************************************************************************
                        Object Pascal support
 *****************************************************************************}
+
 {$i objpash.inc}
 
 {
   $Log$
-  Revision 1.60  1999-07-03 01:24:21  peter
+  Revision 1.61  1999-07-05 20:04:28  peter
+    * removed temp defines
+
+  Revision 1.60  1999/07/03 01:24:21  peter
     * $ifdef int64
 
   Revision 1.59  1999/07/02 18:06:43  florian

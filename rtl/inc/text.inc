@@ -433,7 +433,7 @@ begin
 end;
 
 
-Procedure Write_Str(Len : Longint;var f : TextRec;const s : String);[Public,Alias:'FPC_WRITE_TEXT_'+{$ifdef NEWREADINT}'SHORTSTR'{$else}'STRING'{$endif}];
+Procedure Write_Str(Len : Longint;var f : TextRec;const s : String);[Public,Alias:'FPC_WRITE_TEXT_SHORTSTR'];
 Begin
   If (InOutRes<>0) then
    exit;
@@ -448,11 +448,7 @@ Begin
 End;
 
 
-{$ifndef NEWWRITEARRAY}
-type
-  array00=array[0..0] of char;
-{$endif}
-Procedure Write_Array(Len : Longint;var f : TextRec;const s : {$ifdef NEWWRITEARRAY} array of char{$else}array00{$endif});[Public,Alias:'FPC_WRITE_TEXT_PCHAR_AS_ARRAY'];
+Procedure Write_Array(Len : Longint;var f : TextRec;const s : array of char);[Public,Alias:'FPC_WRITE_TEXT_PCHAR_AS_ARRAY'];
 var
   ArrayLen : longint;
   p : pchar;
@@ -492,7 +488,7 @@ Begin
 End;
 
 
-Procedure Write_Text_AnsiString (Len : Longint; Var T : TextRec; S : Pointer);[Public,alias:'FPC_WRITE_TEXT_'+{$ifdef NEWREADINT}'ANSISTR'{$else}'ANSISTRING'{$endif}];
+Procedure Write_Text_AnsiString (Len : Longint; Var T : TextRec; S : Pointer);[Public,alias:'FPC_WRITE_TEXT_ANSISTR'];
 {
  Writes a AnsiString to the Text file T
 }
@@ -503,7 +499,7 @@ begin
 end;
 
 
-Procedure Write_SInt(Len : Longint;var t : TextRec;l : ValSInt);[Public,Alias:'FPC_WRITE_TEXT_'+{$ifdef NEWREADINT}'SINT'{$else}'LONGINT'{$endif}];
+Procedure Write_SInt(Len : Longint;var t : TextRec;l : ValSInt);[Public,Alias:'FPC_WRITE_TEXT_SINT'];
 var
   s : String;
 Begin
@@ -514,7 +510,7 @@ Begin
 End;
 
 
-Procedure Write_UInt(Len : Longint;var t : TextRec;l : ValUInt);[Public,Alias:'FPC_WRITE_TEXT_'+{$ifdef NEWREADINT}'UINT'{$else}'CARDINAL'{$endif}];
+Procedure Write_UInt(Len : Longint;var t : TextRec;l : ValUInt);[Public,Alias:'FPC_WRITE_TEXT_UINT'];
 var
   s : String;
 Begin
@@ -524,21 +520,19 @@ Begin
   Write_Str(Len,t,s);
 End;
 
+
 {$ifdef INT64}
-    procedure write_qword(len : longint;var t : textrec;q : qword);[public,alias:'FPC_WRITE_TEXT_QWORD'];
-
-      var
-         s : string;
-
-      begin
-         if (InOutRes<>0) then
-           exit;
-         int_str(q,s);
-         write_str(len,t,s);
-      end;
+procedure write_qword(len : longint;var t : textrec;q : qword);[public,alias:'FPC_WRITE_TEXT_QWORD'];
+var
+  s : string;
+begin
+  if (InOutRes<>0) then
+   exit;
+  int_str(q,s);
+  write_str(len,t,s);
+end;
 {$endif INT64}
 
-{$ifdef INTERNDOUBLE}
 
 Procedure Write_Float(rt,fixkomma,Len : Longint;var t : TextRec;r : ValReal);[Public,Alias:'FPC_WRITE_TEXT_FLOAT'];
 var
@@ -549,75 +543,6 @@ Begin
   Str_real(Len,fixkomma,r,treal_type(rt),s);
   Write_Str(Len,t,s);
 End;
-
-{$else INTERNDOUBLE}
-
-
-{$ifdef SUPPORT_SINGLE}
-Procedure Write_S32Real(fixkomma,Len : Longint;var t : TextRec;r : single);[Public,Alias:'FPC_WRITE_TEXT_'+{$ifdef INTERNDOUBLE}'S32REAL'{$else}'SINGLE'{$endif}];
-var
-  s : String;
-Begin
-  If (InOutRes<>0) then
-   exit;
-  Str_real(Len,fixkomma,r,rt_s32real,s);
-  Write_Str(Len,t,s);
-End;
-{$endif SUPPORT_S32REAL}
-
-
-{$ifdef SUPPORT_DOUBLE}
-Procedure Write_s64Real(fixkomma,Len : Longint;var t : TextRec;r : double);[Public,Alias:'FPC_WRITE_TEXT_'+{$ifdef INTERNDOUBLE}'S64'{$endif}+'REAL'];
-var
-   s : String;
-Begin
-  If (InOutRes<>0) then
-   exit;
-   Str_real(Len,fixkomma,r,rt_s64real,s);
-   Write_Str(Len,t,s);
-End;
-{$endif SUPPORT_S64REAL}
-
-
-{$ifdef SUPPORT_EXTENDED}
-Procedure Write_S80Real(fixkomma,Len : Longint;var t : TextRec;r : extended);[Public,Alias:'FPC_WRITE_TEXT_'+{$ifdef INTERNDOUBLE}'S80REAL'{$else}'EXTENDED'{$endif}];
-var
-  s : String;
-Begin
-  If (InOutRes<>0) then
-   exit;
-  Str_real(Len,fixkomma,r,rt_s80real,s);
-  Write_Str(Len,t,s);
-End;
-{$endif SUPPORT_S80REAL}
-
-
-{$ifdef SUPPORT_COMP}
-Procedure Write_C64Bit(fixkomma,Len : Longint;var t : TextRec;r : comp);[Public,Alias:'FPC_WRITE_TEXT_'+{$ifdef INTERNDOUBLE}'C64BIT'{$else}'COMP'{$endif}];
-var
-  s : String;
-Begin
-  If (InOutRes<>0) then
-   exit;
-  Str_real(Len,fixkomma,r,rt_c64bit,s);
-  Write_Str(Len,t,s);
-End;
-{$endif SUPPORT_C64BIT}
-
-
-{$ifdef SUPPORT_FIXED}
-Procedure Write_Fixed(fixkomma,Len : Longint;var t : TextRec;r : fixed16);[Public,Alias:'FPC_WRITE_TEXT_'+{$ifdef INTERNDOUBLE}'F16BIT'{$else}'FIXED'{$endif}];
-var
-  s : String;
-Begin
-  If (InOutRes<>0) then
-   exit;
-  Str_real(Len,fixkomma,r,rt_f32bit,s);
-  Write_Str(Len,t,s);
-End;
-{$endif SUPPORT_F16BIT}
-
-{$endif INTERNDOUBLE}
 
 
 Procedure Write_Boolean(Len : Longint;var t : TextRec;b : Boolean);[Public,Alias:'FPC_WRITE_TEXT_BOOLEAN'];
@@ -667,7 +592,6 @@ begin
   else
    NextChar:=false;
 end;
-
 
 
 Function IgnoreSpaces(var f:TextRec):Boolean;
@@ -818,7 +742,7 @@ Begin
 End;
 
 
-Procedure Read_String(var f : TextRec;var s : String);[Public,Alias:'FPC_READ_TEXT_'+{$ifdef NEWREADINT}'SHORTSTR'{$else}'STRING'{$endif}];
+Procedure Read_String(var f : TextRec;var s : String);[Public,Alias:'FPC_READ_TEXT_SHORTSTR'];
 Begin
   s[0]:=chr(ReadPCharLen(f,pchar(@s[1]),high(s)));
 End;
@@ -830,13 +754,13 @@ Begin
 End;
 
 
-Procedure Read_Array(var f : TextRec;var s : {$ifdef NEWWRITEARRAY}array of char{$else}array00{$endif});[Public,Alias:'FPC_READ_TEXT_PCHAR_AS_ARRAY'];
+Procedure Read_Array(var f : TextRec;var s : array of char);[Public,Alias:'FPC_READ_TEXT_PCHAR_AS_ARRAY'];
 Begin
-  pchar(pchar(@s)+ReadPCharLen(f,pchar(@s),{$ifdef NEWWRITEARRAY}high(s){$else}$7fffffff{$endif}))^:=#0;
+  pchar(pchar(@s)+ReadPCharLen(f,pchar(@s),high(s)))^:=#0;
 End;
 
 
-Procedure Read_AnsiString(var f : TextRec;var s : AnsiString);[Public,Alias:'FPC_READ_TEXT_'+{$ifdef NEWREADINT}'ANSISTR'{$else}'ANSISTRING'{$endif}];
+Procedure Read_AnsiString(var f : TextRec;var s : AnsiString);[Public,Alias:'FPC_READ_TEXT_ANSISTR'];
 var
   len : longint;
 Begin
@@ -849,8 +773,6 @@ Begin
   PAnsiRec(Pointer(S)-FirstOff)^.Len:=len;
 End;
 
-
-{$ifdef NEWREADINT}
 
 Function Read_Char(var f : TextRec):char;[Public,Alias:'FPC_READ_TEXT_CHAR'];
 Begin
@@ -971,260 +893,13 @@ begin
    InOutRes:=106;
 end;
 
-{$ifdef INT64}
-    procedure read_qword(len : longint;var t : textrec;q : qword);[public,alias:'FPC_READ_TEXT_QWORD'];
-
-      begin
-         {!!!!!!!!!!!!!}
-      end;
-{$endif INT64}
-
-{$else}
-
-Procedure Read_Char(var f : TextRec;var c : Char);[Public,Alias:'FPC_READ_TEXT_CHAR'];
-Begin
-  c:=#0;
-{ Check error and if file is open }
-  If (InOutRes<>0) then
-   exit;
-  if (f.mode<>fmInput) Then
-   begin
-     InOutRes:=104;
-     exit;
-   end;
-{ Read next char or EOF }
-  If f.BufPos>=f.BufEnd Then
-   begin
-     FileFunc(f.InOutFunc)(f);
-     If f.BufPos>=f.BufEnd Then
-      begin
-        c:=#26;
-        exit;
-      end;
-   end;
-  c:=f.Bufptr^[f.BufPos];
-  inc(f.BufPos);
-end;
-
-
-Procedure Read_Longint(var f : TextRec;var l : Longint);[Public,Alias:'FPC_READ_TEXT_LONGINT'];
-var
-  hs   : String;
-  code : Longint;
-  base : longint;
-Begin
-  l:=0;
-{ Leave if error or not open file, else check for empty buf }
-  If (InOutRes<>0) then
-   exit;
-  if (f.mode<>fmInput) Then
-   begin
-     InOutRes:=104;
-     exit;
-   end;
-  If f.BufPos>=f.BufEnd Then
-   FileFunc(f.InOutFunc)(f);
-  hs:='';
-  if IgnoreSpaces(f) and ReadSign(f,hs) and ReadBase(f,hs,Base) then
-   ReadNumeric(f,hs,Base);
-  Val(hs,l,code);
-  If code<>0 Then
-   InOutRes:=106;
-End;
-
-
-Procedure Read_Integer(var f : TextRec;var l : Integer);[Public,Alias:'FPC_READ_TEXT_INTEGER'];
-var
-  ll : Longint;
-Begin
-  l:=0;
-  If InOutRes <> 0 then
-   exit;
-  Read_Longint(f,ll);
-  If (ll<-32768) or (ll>32767) Then
-   InOutRes:=201
-  else
-   l:=ll;
-End;
-
-
-Procedure Read_Word(var f : TextRec;var l : Word);[Public,Alias:'FPC_READ_TEXT_WORD'];
-var
-  ll : Longint;
-Begin
-  l:=0;
-  If InOutRes <> 0 then
-   exit;
-  Read_Longint(f,ll);
-  If (ll<0) or (ll>$ffff) Then
-   InOutRes:=201
-  else
-   l:=ll;
-End;
-
-
-Procedure Read_Byte(var f : TextRec;var l : byte);[Public,Alias:'FPC_READ_TEXT_BYTE'];
-var
-  ll : Longint;
-Begin
-  l:=0;
-  If InOutRes <> 0 then
-   exit;
-  Read_Longint(f,ll);
-  If (ll<0) or (ll>255) Then
-   InOutRes:=201
-  else
-   l:=ll;
-End;
-
-
-Procedure Read_Shortint(var f : TextRec;var l : shortint);[Public,Alias:'FPC_READ_TEXT_SHORTINT'];
-var
-   ll : Longint;
-Begin
-  l:=0;
-  If InOutRes <> 0 then
-   exit;
-  Read_Longint(f,ll);
-  If (ll<-128) or (ll>127) Then
-   InOutRes:=201
-  else
-   l:=ll;
-End;
-
-
-Procedure Read_Cardinal(var f : TextRec;var l : cardinal);[Public,Alias:'FPC_READ_TEXT_CARDINAL'];
-var
-  hs   : String;
-  code : longint;
-  base : longint;
-Begin
-  l:=0;
-{ Leave if error or not open file, else check for empty buf }
-  If (InOutRes<>0) then
-   exit;
-  if (f.mode<>fmInput) Then
-   begin
-     InOutRes:=104;
-     exit;
-   end;
-  If f.BufPos>=f.BufEnd Then
-   FileFunc(f.InOutFunc)(f);
-  hs:='';
-  if IgnoreSpaces(f) and ReadSign(f,hs) and ReadBase(f,hs,Base) then
-   ReadNumeric(f,hs,Base);
-  val(hs,l,code);
-  If code<>0 Then
-   InOutRes:=106;
-End;
 
 {$ifdef INT64}
-    procedure read_qword(len : longint;var t : textrec;q : qword);[public,alias:'FPC_READ_TEXT_QWORD'];
-
-      begin
-         {!!!!!!!!!!!!!}
-      end;
-{$endif INT64}
-
-function ReadRealStr(var f:TextRec):string;
-var
-  hs : string;
+procedure read_qword(len : longint;var t : textrec;q : qword);[public,alias:'FPC_READ_TEXT_QWORD'];
 begin
-  ReadRealStr:='';
-{ Leave if error or not open file, else check for empty buf }
-  If (InOutRes<>0) then
-   exit;
-  if (f.mode<>fmInput) Then
-   begin
-     InOutRes:=104;
-     exit;
-   end;
-  If f.BufPos>=f.BufEnd Then
-   FileFunc(f.InOutFunc)(f);
-  hs:='';
-  if IgnoreSpaces(f) and ReadSign(f,hs) and ReadNumeric(f,hs,10) then
-   begin
-   { First check for a . }
-     if (f.Bufptr^[f.BufPos]='.') and (f.BufPos<f.BufEnd) Then
-      begin
-        hs:=hs+'.';
-        Inc(f.BufPos);
-        If f.BufPos>=f.BufEnd Then
-         FileFunc(f.InOutFunc)(f);
-        ReadNumeric(f,hs,10);
-      end;
-   { Also when a point is found check for a E }
-     if (f.Bufptr^[f.BufPos] in ['e','E']) and (f.BufPos<f.BufEnd) Then
-      begin
-        hs:=hs+'E';
-        Inc(f.BufPos);
-        If f.BufPos>=f.BufEnd Then
-         FileFunc(f.InOutFunc)(f);
-        if ReadSign(f,hs) then
-         ReadNumeric(f,hs,10);
-      end;
-   end;
-  ReadRealStr:=hs;
+  { !!!!!!!!!!!!! }
 end;
-
-
-Procedure Read_Real(var f : TextRec;var d : Real);[Public,Alias:'FPC_READ_TEXT_REAL'];
-var
-  code : Word;
-Begin
-  val(ReadRealStr(f),d,code);
-  If code<>0 Then
-   InOutRes:=106;
-End;
-
-{$ifdef SUPPORT_SINGLE}
-Procedure Read_Single(var f : TextRec;var d : single);[Public,Alias:'FPC_READ_TEXT_SINGLE'];
-var
-  code : Word;
-Begin
-  val(ReadRealStr(f),d,code);
-  If code<>0 Then
-   InOutRes:=106;
-End;
-{$endif SUPPORT_SINGLE}
-
-
-{$ifdef SUPPORT_EXTENDED}
-Procedure Read_Extended(var f : TextRec;var d : extended);[Public,Alias:'FPC_READ_TEXT_EXTENDED'];
-var
-  code : Word;
-Begin
-  val(ReadRealStr(f),d,code);
-  If code<>0 Then
-   InOutRes:=106;
-End;
-{$endif SUPPORT_EXTENDED}
-
-
-{$ifdef SUPPORT_COMP}
-Procedure Read_Comp(var f : TextRec;var d : comp);[Public,Alias:'FPC_READ_TEXT_COMP'];
-var
-  code : Word;
-Begin
-  val(ReadRealStr(f),d,code);
-  If code<>0 Then
-   InOutRes:=106;
-End;
-{$endif SUPPORT_COMP}
-
-
-{$ifdef SUPPORT_FIXED}
-Procedure Read_Fixed(var f : TextRec;var d : fixed);[Public,Alias:'FPC_READ_TEXT_FIXED'];
-var
-  code : Word;
-Begin
-  val(ReadRealStr(f),d,code);
-  If code<>0 Then
-   InOutRes:=106;
-End;
-{$endif SUPPORT_FIXED}
-
-{$endif}
+{$endif INT64}
 
 
 {*****************************************************************************
@@ -1238,11 +913,13 @@ begin
   TextRec(f).Mode:=mode;
   TextRec(f).Closefunc:=@FileCloseFunc;
   case mode of
-  fmInput : TextRec(f).InOutFunc:=@FileReadFunc;
- fmOutput : begin
-              TextRec(f).InOutFunc:=@FileWriteFunc;
-              TextRec(f).FlushFunc:=@FileWriteFunc;
-            end;
+    fmInput :
+      TextRec(f).InOutFunc:=@FileReadFunc;
+    fmOutput :
+      begin
+        TextRec(f).InOutFunc:=@FileWriteFunc;
+        TextRec(f).FlushFunc:=@FileWriteFunc;
+      end;
   else
    HandleError(102);
   end;
@@ -1251,7 +928,10 @@ end;
 
 {
   $Log$
-  Revision 1.48  1999-07-01 15:39:52  florian
+  Revision 1.49  1999-07-05 20:04:29  peter
+    * removed temp defines
+
+  Revision 1.48  1999/07/01 15:39:52  florian
     + qword/int64 type released
 
   Revision 1.47  1999/06/30 22:17:24  florian

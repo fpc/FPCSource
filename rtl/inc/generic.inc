@@ -217,7 +217,6 @@ end;
 
 {$endif ndef FPC_SYSTEM_HAS_FPC_CHECK_OBJECT}
 
-{$ifdef FPC_TESTOBJEXT}
 { checks for a correct vmt pointer }
 { deeper check to see if the current object is }
 { really related to the true }
@@ -245,8 +244,6 @@ begin
 end;
 
 {$endif ndef FPC_SYSTEM_HAS_FPC_CHECK_OBJECT_EXT}
-
-{$endif  FPC_TESTOBJEXT}
 
 
 {****************************************************************************
@@ -396,10 +393,6 @@ end;
 
 function strpas(p:pchar):string;[public,alias:'FPC_PCHAR_TO_SHORTSTR'];
 begin
-{$ifndef NEWATT}
-  { remove warning }
-  strpas:='';
-{$endif}
   asm
         cld
         movl    p,%edi
@@ -415,11 +408,7 @@ begin
         scasb
 .LStrPasNil:
         movl    %ecx,%eax
-{$ifdef NEWATT}
         movl    __RESULT,%edi
-{$else}
-        movl    8(%ebp),%edi
-{$endif}
         notb    %al
         decl    %eax
         stosb
@@ -611,7 +600,10 @@ end;
 
 {
   $Log$
-  Revision 1.1  1999-05-31 21:59:58  pierre
+  Revision 1.2  1999-07-05 20:04:22  peter
+    * removed temp defines
+
+  Revision 1.1  1999/05/31 21:59:58  pierre
    + generic.inc added
 
 }

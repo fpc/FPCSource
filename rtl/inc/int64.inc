@@ -54,7 +54,7 @@
 
       var
          shift,lzz,lzn : longint;
-         one : qword;
+         { one : qword; }
 
       begin
          divqword:=0;
@@ -302,7 +302,10 @@
 
 {
   $Log$
-  Revision 1.12  1999-07-04 16:34:45  florian
+  Revision 1.13  1999-07-05 20:04:23  peter
+    * removed temp defines
+
+  Revision 1.12  1999/07/04 16:34:45  florian
     + str routines added
 
   Revision 1.11  1999/07/02 17:01:29  florian
