@@ -407,7 +407,9 @@ unit files;
          Message1(unit_d_ppu_invalid_version,tostr(ppufile^.GetPPUVersion));
          exit;
        end;
+    { Load values to be access easier }
       flags:=ppufile^.header.flags;
+      crc:=ppufile^.header.checksum;
     { Show Debug info }
       Message1(unit_d_ppu_time,filetimestring(ppufiletime));
       Message1(unit_d_ppu_flags,tostr(flags));
@@ -945,7 +947,10 @@ unit files;
 end.
 {
   $Log$
-  Revision 1.21  1998-06-13 00:10:05  peter
+  Revision 1.22  1998-06-14 18:25:41  peter
+    * small fix with crc in newppu
+
+  Revision 1.21  1998/06/13 00:10:05  peter
     * working browser and newppu
     * some small fixes against crashes which occured in bp7 (but not in
       fpc?!)
