@@ -422,8 +422,7 @@ begin
      end;
      prev := ValUnsignedInt;
      If (u>=base) or
-        (ValUInt(MaxUIntValue-ValUnsignedInt) < u) or
-        (prev > (ValUInt(MaxUIntValue) div ValUInt(Base))) then
+        (ValUInt(MaxUIntValue-u) div ValUInt(Base)<prev) then
       begin
         ValUnsignedInt:=0;
         exit;
@@ -553,7 +552,13 @@ end;
 
 {
   $Log$
-  Revision 1.7  2000-11-23 11:41:56  jonas
+  Revision 1.8  2000-12-09 20:52:41  florian
+    * val for dword and qword didn't handle the max values
+      correctly
+    * val for qword works again
+    + val with int64/qword and ansistring implemented
+
+  Revision 1.7  2000/11/23 11:41:56  jonas
     * fix for web bug 1265 by Peter (merged)
 
   Revision 1.6  2000/11/17 17:01:23  jonas

@@ -464,8 +464,7 @@
        end;
        prev := ValQWord;
        If (u>=base) or
-          (qword(maxqword - prev) < u) or 
-          (prev > maxqword div qword(u)) Then
+         ((QWord(maxqword-u) div QWord(base))<prev) then
          Begin
            ValQWord := 0;
            Exit
@@ -476,10 +475,35 @@
     code := 0;
   end;
 
+Function ValQWord(Const S: AnsiString; var Code: ValSInt): QWord; [public, alias:'FPC_VAL_QWORD_ANSISTR'];
+
+  begin
+     ValQWord:=0;
+     if length(S)>255 then
+       code:=256
+     else
+       ValQWord:=ValQWord(ShortString(S),Code);
+  end;
+
+Function ValInt64(Const S: AnsiString; var Code: ValSInt): Int64; [public, alias:'FPC_VAL_INT64_ANSISTR'];
+
+  begin
+     ValInt64:=0;
+     if length(S)>255 then
+       code:=256
+     else
+       ValInt64:=ValInt64(ShortString(S),Code);
+  end;
 
 {
   $Log$
-  Revision 1.5  2000-12-07 17:19:47  jonas
+  Revision 1.6  2000-12-09 20:52:40  florian
+    * val for dword and qword didn't handle the max values
+      correctly
+    * val for qword works again
+    + val with int64/qword and ansistring implemented
+
+  Revision 1.5  2000/12/07 17:19:47  jonas
     * new constant handling: from now on, hex constants >$7fffffff are
       parsed as unsigned constants (otherwise, $80000000 got sign extended
       and became $ffffffff80000000), all constants in the longint range
@@ -501,5 +525,5 @@
 
   Revision 1.2  2000/07/13 11:33:44  michael
   + removed logs
- 
+
 }
