@@ -81,13 +81,16 @@ Type TGrpArr = Array [0..0] of TGid;            { C style array workarounds}
     Function  FpGetpgrp : TPid;  cdecl;external clib name 'getpgrp';
     Function  FpSetsid  : TPid; cdecl;external clib name 'setsid';
     Function  FpPipe       (var fildes : tfildes):cInt; cdecl;external clib name 'pipe';
-    Function  FpFcntl      (fildes : cInt; cmd : cInt): cInt; cdecl external clib name 'fcntl';   
-    Function  FpFcntl      (fildes : cInt; cmd : cInt; arg :cInt): cInt; cdecl external clib name 'fcntl';
+    Function  FpFcntl      (fildes : cInt; cmd : cInt): cInt; cdecl; external clib name 'fcntl';   
+    Function  FpFcntl      (fildes : cInt; cmd : cInt; arg :cInt): cInt; cdecl; external clib name 'fcntl';
     Function  FpFcntl      (fildes : cInt; cmd : cInt; var arg : flock): cInt; cdecl external clib name 'fcntl';
 
 {
    $Log$
-   Revision 1.6  2004-01-04 21:05:01  jonas
+   Revision 1.7  2004-01-12 23:43:22  marco
+    * some semi colons added
+
+   Revision 1.6  2004/01/04 21:05:01  jonas
      * declare C-library routines as external in libc so we generate proper
        import entries for Darwin
 
