@@ -1,21 +1,35 @@
-Program blackbox;
 {
-  (c) 1998 Michael Van Canneyt
-  
+    $Id$
+    This file is part of the Free Pascal run time library.
+    Copyright (c) 1993-98 by Michael Van Canneyt
+
+    Blackbox Game Example
+
+    See the file COPYING.FPC, included in this distribution,
+    for details about the copyright.
+
+    This program is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+
+ **********************************************************************}
+Program blackbox;
+
+{
   The object of the game is simple : You have a box of 9x9x9 cells.
   you can enter a number of atoms that will be put in the box.
   Then you can start shooting in the box with a laser beam.
   You enter the coordinates where the beam enters the box.
   (this must be on the edges, this means that one of the coordinates
   must be 1 or 9...)
-  The beam will bounce off the atoms (using normal bouncing), and you 
-  will be told where the beam exits. 
+  The beam will bounce off the atoms (using normal bouncing), and you
+  will be told where the beam exits.
   From this you must guess where the atoms are...
 }
 
 Const MaxSize = 9;
       MaxAtom = 10;
-      
+
 Type TRow   = Array [0..MaxSize+1] of byte;
      TPlane = Array [0..MaxSize+1] of TRow;
      TCube  = Array [0..MaxSize+1] of TPlane;
@@ -24,7 +38,7 @@ Var
   Cube                 : TCube;
   Count,Guessed,x,y,z  : Longint;
   ans : string;
-  
+
 Procedure FillCube;
 
 var i,x,y,z : longint;
@@ -38,7 +52,7 @@ begin
   repeat
     Write ('Enter number of atoms (1-',maxatom,') : ');
     readln (count);
-    if (count<1) or (count>MaxAtom) then 
+    if (count<1) or (count>MaxAtom) then
       writeln ('Invalid value entered. Please try again.');
   until (count>0) and (count<=MaxAtom);
   for I:=1 to count do
@@ -49,7 +63,7 @@ begin
        z:=Random(MaxSize)+1;
      until Cube[x,y,z]=0;
      Cube[x,y,z]:=1;
-     end;   
+     end;
 end;
 
 Procedure GetCoords (Var X,y,z : longint);
@@ -68,12 +82,12 @@ Procedure GetStart (Var x,y,z : longint);
 Var OK : boolean;
 
 begin
-  Writeln ('Please enter beam start coordinates : '); 
+  Writeln ('Please enter beam start coordinates : ');
   Repeat
     GetCoords (x,y,z);
     OK:=((X=1) or (X=MaxSize)) or ((y=1) or (Y=MaxSize)) or
         ((Z=1) or (z=maxsize));
-    if Not OK then 
+    if Not OK then
       writeln ('The beam should enter at an edge. Please try again');
   until OK;
 end;
@@ -82,14 +96,14 @@ Function GetGuess : boolean;
 
 Var OK : boolean;
     x,y,z : longint;
-    
+
 begin
-  Writeln ('Please enter atom coordinates : '); 
+  Writeln ('Please enter atom coordinates : ');
   Repeat
     getcoords (x,y,z);
     OK:=((X>=1) or (X<=MaxSize)) or ((y>=1) or (Y<=MaxSize)) or
         ((Z>=1) or (z<=maxsize));
-    if Not OK then 
+    if Not OK then
       writeln ('These are not valid coordinates. Please try again');
   until OK;
   GetGuess:=False;
@@ -100,7 +114,7 @@ begin
     Writeln ('Correct guess !');
     Cube[x,y,z]:=-Cube[x,y,z];
     getguess:=true;
-    end 
+    end
   else
     Writeln ('Wrong guess !');
 end;
@@ -129,8 +143,8 @@ begin
   if dz<>0 then dz:=dz div abs(dz);
   if dy<>0 then dy:=dy div abs(dy);
   x:=x+dx;y:=y+dy;z:=z+dz;
-  until ((x=0) or (x=MaxSize+1)) or ((y=0) or (y=maxsize+1)) or 
-        ((z=0) or (z=maxsize+1)); 
+  until ((x=0) or (x=MaxSize+1)) or ((y=0) or (y=maxsize+1)) or
+        ((z=0) or (z=maxsize+1));
   Writeln ('Beam exited at : (',x-dx,',',y-dy,',',z-dz,')');
 end;
 
@@ -142,7 +156,7 @@ begin
   for x:=1 to MaxSize do
     for y:=1 to maxsize do
       for z:=1 to maxsize do
-        if Cube[x,y,z]<>0 then 
+        if Cube[x,y,z]<>0 then
           writeln ('Atom at (',x,',',y,',',z,')');
 end;
 
@@ -154,7 +168,7 @@ begin
       Write ('Shoot, guess or quit (s/g/q) : ');
       readln (ans);
       ans[1]:=Upcase(ans[1]);
-      if not (ans[1] in ['S','G','Q']) then 
+      if not (ans[1] in ['S','G','Q']) then
         writeln ('Invalid entry. Please try again.');
     until ans[1] in ['S','G','Q'];
     Case ans[1] of
@@ -168,5 +182,12 @@ begin
   If Guessed=count then
     Writeln ('Congratulations! All ',Count,' correct !')
   else
-    Writeln ('Only ',guessed,' out of ',count,' correct...');  
+    Writeln ('Only ',guessed,' out of ',count,' correct...');
 end.
+
+{
+  $Log$
+  Revision 1.2  1998-09-11 10:55:20  peter
+    + header+log
+
+}

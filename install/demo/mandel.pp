@@ -1,256 +1,293 @@
-{ Mandelbrot 2 (C)opyright 1994 by Gernot Tenchio }
-{ dieses Programm kann modifiziert, geloescht, verschenkt, kopiert, validiert, }
-{ bewegt, komprimiert, ausgelacht usw. werden. Allerdings bittscheen immer mit }
-{ meinem (G)obbirait }
+{
+    $Id$
+    This file is part of the Free Pascal run time library.
+    Copyright (c) 1993-98 by Gernot Tenchio
 
-USES GRAPH;
+    Mandelbrot Example using the Graph unit
 
-const shift:byte=12;
+    See the file COPYING.FPC, included in this distribution,
+    for details about the copyright.
 
-VAR SerchPoint,ActualPoint,NextPoint       : PointType ;
-    LastColor                              : longint;
-    Gd,Gm,Max_Color,Max_X_Width,
-    Max_Y_Width,Y_Width                    : INTEGER ;
-    Y1,Y2,X1,X2,Dy,Dx                      : Real ;
-    Zm                                     : Integer ;
-    Flag                                   : BOOLEAN ;
-    LineY                                  : ARRAY [0..600] OF BYTE;
-    LineX                                  : ARRAY [0..100,0..600] OF INTEGER;
-CONST
-    SX : ARRAY [0..7] OF SHORTINT=(-1, 0, 1, 1, 1, 0,-1,-1);
-    SY : ARRAY [0..7] OF SHORTINT=(-1,-1,-1, 0, 1, 1, 1, 0);
-TYPE
-    ArrayType = array[1..50] of integer;
+    This program is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+
+ **********************************************************************}
+program mandel;
+
+{
+  Mandelbrot example using the graph unit.
+
+  Note: For linux you need to run this program as root !!
+}
+
+uses
+  Graph;
+
+const
+  shift:byte=12;
+
+var
+  SerchPoint,ActualPoint,NextPoint       : PointType;
+  LastColor                              : longint;
+  Gd,Gm,
+  Max_Color,Max_X_Width,
+  Max_Y_Width,Y_Width                    : integer;
+  Y1,Y2,X1,X2,Dy,Dx                      : Real;
+  Zm                                     : Integer;
+  Flag                                   : boolean;
+  LineY                                  : array [0..600] OF BYTE;
+  LineX                                  : array [0..100,0..600] OF INTEGER;
+const
+    SX : array [0..7] OF SHORTINT=(-1, 0, 1, 1, 1, 0,-1,-1);
+    SY : array [0..7] OF SHORTINT=(-1,-1,-1, 0, 1, 1, 1, 0);
+type
+    arrayType = array[1..50] of integer;
+
 {------------------------------------------------------------------------------}
+function CalcMandel(Point:PointType; z:integer) : Longint ;
+var
+  x,y,xq,yq,Cx,Cy : real ;
+begin
+  Cy:=y2 + dy*Point.y ;
+  Cx:=x2 + dx*Point.x ;
+  X:=-Cx ; Y:=-Cy ;
+  repeat
+    xq:=x * x;
+    yq:=y * y  ;
+    y :=x * y;
+    y :=y + y - cy;
+    x :=xq - yq - cx ;
+    z :=z -1;
+  until (Z=0) or (Xq + Yq > 4 );
+  if Z=0 Then
+    CalcMandel:=1
+  else
+    CalcMandel:=(z mod Max_Color) + 1 ;
+end;
 
-FUNCTION CalcMandel(Point:PointType; z:integer) : Longint ;
-var x,y,xq,yq,Cx,Cy : real ;
-
-BEGIN
-Cy:=y2 + dy*Point.y ;
-Cx:=x2 + dx*Point.x ;
-X:=-Cx ; Y:=-Cy ;
-REPEAT
-xq:=x * x;
-yq:=y * y  ;
-y :=x * y;
-y :=y + y - cy;
-x :=xq - yq - cx ;
-z :=z -1;
-UNTIL (Z=0) OR (Xq + Yq > 4 );
-IF Z=0 Then CalcMandel:=1 else CalcMandel:=(z mod Max_Color) + 1 ;
-END ;
 {-----------------------------------------------------------------------------}
-PROCEDURE Partition(VAR A : ArrayType; First, Last : Byte);
-{ ist nicht auf meinem Mist gewachsen. Weiss aber auch nicht mehr so richtig 
-  wo es herkommt. Allseits bekannter Sortieralgo }
-VAR
-    Right,Left : BYTE ;
-    V,Temp : integer;
-BEGIN
+procedure Partition(var A : arrayType; First, Last : Byte);
+var
+  Right,Left : byte ;
+  V,Temp     : integer;
+begin
     V := A[(First + Last) SHR 1];
     Right := First;
     Left := Last;
-    REPEAT
-      WHILE (A[Right] < V) DO
-        Right:=Right+1;
-      WHILE (A[Left] > V) DO
-        Left:=Left-1;
-      IF (Right <= Left) THEN
-        BEGIN
+    repeat
+      while (A[Right] < V) do
+        inc(Right);
+      while (A[Left] > V) do
+        Dec(Left);
+      if (Right <= Left) then
+        begin
           Temp:=A[Left];
           A[Left]:=A[Right];
           A[Right]:=Temp;
           Right:=Right+1;
           Left:=Left-1;
-        END;
-    UNTIL Right > Left;
-    IF (First < Left) THEN
+        end;
+    until Right > Left;
+    if (First < Left) then
       Partition(A, First, Left);
-    IF (Right < Last) THEN
+    if (Right < Last) then
       Partition(A, Right, Last)
-END;
-
-FUNCTION BlackScan(var NextPoint:PointType) : BOOLEAN ;
-BEGIN
-BlackScan:=TRUE;
-   REPEAT
-          IF NextPoint.X=Max_X_Width THEN
-             BEGIN
-             IF NextPoint.Y < Y_Width THEN
-                BEGIN
-                NextPoint.X:=0 ;
-                NextPoint.Y:=NextPoint.Y+1;
-                END
-                ELSE
-                BEGIN
-                BlackScan:=FALSE;
-                EXIT;
-             END ; { IF }
-          END ; { IF }
-          NextPoint.X:=NextPoint.X+1;
-   UNTIL GetPixel(NextPoint.X,NextPoint.Y)=0;
-END ;
-{------------------------------------------------------------------------------}
-PROCEDURE Fill(Ymin,Ymax,LastColor:integer);
-VAR P1,P3,P4,P    : INTEGER ;
-    Len,P2        : BYTE ;
-    Darray        : ARRAYTYPE;
-
-BEGIN
-SetColor(LastColor);
-FOR P1:=Ymin+1 TO Ymax-1 DO
-BEGIN
-  Len:=LineY[P1] ;
-  IF Len >= 2 THEN
-  BEGIN
-       FOR P2:=1 TO Len DO
-       BEGIN
-         Darray[P2]:=LineX[P2,P1] ;
-       END; { FOR }
-       IF Len > 2 THEN Partition(Darray,1,len);
-       P2:=1;
-       REPEAT
-          P3:= Darray[P2] ; P4:= Darray[P2 + 1];
-          IF P3 <> P4 THEN
-          BEGIN
-             LINE ( P3 , P1 , P4 , P1) ;
-             IF Flag THEN
-             BEGIN
-               P:=Max_Y_Width-P1;
-               LINE ( P3 , P , P4 , P ) ;
-             END;
-          END; { IF }
-          P2:=P2+2;
-       UNTIL P2 >= Len ;
-  END; { IF }
-END; { FOR }
-END;
+end;
 
 {-----------------------------------------------------------------------------}
+function BlackScan(var NextPoint:PointType) : boolean;
+begin
+  BlackScan:=true;
+  repeat
+    if NextPoint.X=Max_X_Width then
+      begin
+        if NextPoint.Y < Y_Width then
+          begin
+            NextPoint.X:=0 ;
+            NextPoint.Y:=NextPoint.Y+1;
+          end
+        else
+          begin
+            BlackScan:=false;
+            exit;
+          end ; { IF }
+      end ; { IF }
+    NextPoint.X:=NextPoint.X+1;
+  until GetPixel(NextPoint.X,NextPoint.Y)=0;
+end ;
 
+{------------------------------------------------------------------------------}
+procedure Fill(Ymin,Ymax,LastColor:integer);
+var
+ P1,P3,P4,P    : integer ;
+ Len,P2        : byte ;
+ Darray        : arraytype;
+begin
+  SetColor(LastColor);
+  for P1:=Ymin+1 to Ymax-1 do
+   begin
+     Len:=LineY[P1] ;
+     if Len >= 2 then
+      begin
+        for P2:=1 to Len do
+          Darray[P2]:=LineX[P2,P1] ;
+        if Len > 2 then
+          Partition(Darray,1,len);
+        P2:=1;
+        repeat
+          P3:= Darray[P2] ; P4:= Darray[P2 + 1];
+          if P3 <> P4 then
+           begin
+             line ( P3 , P1 , P4 , P1) ;
+             if Flag then
+              begin
+                P:=Max_Y_Width-P1;
+                line ( P3 , P , P4 , P ) ;
+              end;
+           end; { IF }
+          P2:=P2+2;
+        until P2 >= Len ;
+      end; { IF }
+   end; { FOR }
+end;
+
+{-----------------------------------------------------------------------------}
 Function NewPosition(Last:Byte):Byte;
 begin
   newposition:=(((last+1) and 254)+6) and 7;
-END;
+end;
 
 {-----------------------------------------------------------------------------}
+procedure CalcBounds;
+var
+  lastOperation,KK,
+  Position                     : Byte ;
+  foundcolor                   : longint;
+  Start,Found,NotFound         : boolean ;
+  MerkY,Ymax                   : Integer ;
+label
+  L;
+begin
+  repeat
+    FillChar(LineY,SizeOf(LineY),0) ;
+    ActualPoint:=NextPoint;
+    LastColor:=CalcMandel(NextPoint,Zm) ;
+    putpixel (ActualPoint.X,ActualPoint.Y,LastColor);
+    if Flag then
+      putpixel (ActualPoint.X,Max_Y_Width-ActualPoint.Y,LastColor) ;
+    Ymax:=NextPoint.Y ;
+    MerkY:=NextPoint.Y ;
+    NotFound:=false ;
+    Start:=false ;
+    LastOperation:=4 ;
+    repeat
+      Found:=false ;
+      KK:=0 ;
+      Position:=NewPosition(LastOperation);
+      repeat
+        LastOperation:=(Position+KK) and 7 ;
+        SerchPoint.X:=ActualPoint.X+Sx[LastOperation];
+        SerchPoint.Y:=ActualPoint.Y+Sy[LastOperation];
+        if ((SerchPoint.X < 0) or
+            (SerchPoint.X > Max_X_Width) or
+            (SerchPoint.Y < NextPoint.Y) or
+            (SerchPoint.Y > Y_Width)) then
+          goto L;
+        if (SerchPoint.X=NextPoint.X) and (SerchPoint.Y=NextPoint.Y) then
+          begin
+            Start:=true ;
+            Found:=true ;
+          end
+        else
+          begin
+            FoundColor:=GetPixel(SerchPoint.X,SerchPoint.Y) ;
+            if FoundColor = 0 then
+              begin
+                FoundColor:= CalcMandel (SerchPoint,Zm) ;
+                Putpixel (SerchPoint.X,SerchPoint.Y,FoundColor) ;
+                if Flag then
+                  PutPixel (SerchPoint.X,Max_Y_Width-SerchPoint.Y,FoundColor) ;
+              end ;
+            if FoundColor=LastColor then
+              begin
+                if ActualPoint.Y <> SerchPoint.Y then
+                  begin
+                    if SerchPoint.Y = MerkY then
+                      LineY[ActualPoint.Y]:=LineY[ActualPoint.Y]-1;
+                    MerkY:= ActualPoint.Y ;
+                    LineY[SerchPoint.Y]:=LineY[SerchPoint.Y]+1;
+                  end ;
+                LineX[LineY[SerchPoint.Y],SerchPoint.Y]:=SerchPoint.X ;
+                if SerchPoint.Y > Ymax then Ymax:= SerchPoint.Y ;
+                  Found:=true ;
+                ActualPoint:=SerchPoint ;
+              end;
+L:
+            KK:=KK+1;
+            if KK > 8 then
+              begin
+                Start:=true ;
+                NotFound:=true ;
+              end;
+          end;
+      until Found or (KK > 8);
+    until Start ;
+    if not NotFound then
+      Fill(NextPoint.Y,Ymax,LastColor) ;
+  until not BlackScan(NextPoint);
+end ;
 
-PROCEDURE CalcBounds;
-VAR LastOperation,KK,
-    Position                     : Byte ;
-    foundcolor                   : longint;
-    Start,Found,NotFound         : BOOLEAN ;
-    MerkY,Ymax                   : Integer ;
-LABEL L;
-BEGIN
-REPEAT
-   FillChar(LineY,SizeOf(LineY),0) ;
-   ActualPoint:=NextPoint;
-   LastColor:=CalcMandel(NextPoint,Zm) ;
-   PUTPIXEL (ActualPoint.X,ActualPoint.Y,LastColor);
-   IF Flag THEN PUTPIXEL (ActualPoint.X,
-                          Max_Y_Width-ActualPoint.Y,LastColor) ;
-   Ymax:=NextPoint.Y ;
-   MerkY:=NextPoint.Y ;
-   NotFound:=FALSE ;
-   Start:=FALSE ;
-   LastOperation:=4 ;
-REPEAT
-   Found:=FALSE ;
-   KK:=0 ;
-   Position:=NewPosition(LastOperation);
-REPEAT
-  LastOperation:=(Position+KK) AND 7 ;
-  SerchPoint.X:=ActualPoint.X+Sx[LastOperation];
-  SerchPoint.Y:=ActualPoint.Y+Sy[LastOperation];
-  IF ( (SerchPoint.X < 0)
-     OR (SerchPoint.X > Max_X_Width)
-     OR (SerchPoint.Y < NextPoint.Y)
-     OR (SerchPoint.Y > Y_Width) ) THEN GOTO L;
-  IF (SerchPoint.X=NextPoint.X) AND (SerchPoint.Y=NextPoint.Y) THEN 
-  BEGIN
-    Start:=TRUE ;
-    Found:=TRUE ;
-  END
-  ELSE
-  BEGIN
-    FoundColor:=GetPixel(SerchPoint.X,SerchPoint.Y) ;
-    IF FoundColor = 0 THEN
-    BEGIN
-        FoundColor:= CalcMandel (SerchPoint,Zm) ;
-        Putpixel (SerchPoint.X,SerchPoint.Y,FoundColor) ;
-        IF Flag THEN PutPixel (SerchPoint.X,Max_Y_Width-SerchPoint.Y,
-                              FoundColor) ;
-    END ;
-    IF FoundColor=LastColor THEN
-    BEGIN
-        IF ActualPoint.Y <> SerchPoint.Y THEN
-        BEGIN
-        IF SerchPoint.Y = MerkY THEN LineY[ActualPoint.Y]:=LineY[ActualPoint.Y]-1;
-        MerkY:= ActualPoint.Y ;
-        LineY[SerchPoint.Y]:=LineY[SerchPoint.Y]+1;
-        END ;
-        LineX[LineY[SerchPoint.Y],SerchPoint.Y]:=SerchPoint.X ;
-        IF SerchPoint.Y > Ymax THEN Ymax:= SerchPoint.Y ;
-        Found:=TRUE ;
-        ActualPoint:=SerchPoint ;
-    END;
-    L:
-    KK:=KK+1;
-    IF KK > 8 THEN
-    BEGIN
-        Start:=TRUE ;
-        NotFound:=TRUE ;
-    END;
-  END;
-UNTIL Found OR (KK > 8);
-UNTIL Start ;
 
-IF not NotFound THEN Fill(NextPoint.Y,Ymax,LastColor) ;
-UNTIL NOT BlackScan(NextPoint);
-END ;
-{------------------------------------------------------------------------------}
-                {-----------------------}
-                {      MAINROUTINE      }
-                {-----------------------}
+{------------------------------------------------------------------------------
+                              MAINROUTINE
+------------------------------------------------------------------------------}
 
-BEGIN
-{$ifndef linux}
-gm:=$103;
+begin
+{$ifdef Linux}
+  gm:=0;
+  gd:=0;
 {$else}
-gm:=G800x600x256;
+  gm:=$103;
+  gd:=$ff;
+  {$ifDEF TURBO}
+    gd:=detect;
+  {$endif}
 {$endif}
-gd:=$ff;
-{$IFDEF TURBO}
-gd:=detect;
-{$ENDIF}
-InitGraph(gd,gm,'D:\bp\bgi');
-IF GraphResult <> grOk THEN Halt(1);
-Max_X_Width:=GetMaxX;
-Max_y_Width:=GetMaxY;
-Max_Color:=GetMaxColor-1;
-ClearViewPort;
+  InitGraph(gd,gm,'D:\bp\bgi');
+  if GraphResult <> grOk then Halt(1);
+  Max_X_Width:=GetMaxX;
+  Max_y_Width:=GetMaxY;
+  Max_Color:=GetMaxColor-1;
+  ClearViewPort;
 
-x1:=-0.9;
-x2:= 2.2;
-y1:= 1.25;
-y2:=-1.25;
-zm:=90;
-dx:=(x1 - x2) / Max_X_Width ;
-dy:=(y1 - y2) / Max_Y_Width ;
+  x1:=-0.9;
+  x2:= 2.2;
+  y1:= 1.25;
+  y2:=-1.25;
+  zm:=90;
+  dx:=(x1 - x2) / Max_X_Width ;
+  dy:=(y1 - y2) / Max_Y_Width ;
+  if abs(y1) = abs(y2) then
+   begin
+     flag:=true;
+     Y_Width:=Max_Y_Width shr 1
+   end
+  else
+   begin
+     flag:=false;
+     Y_Width:=Max_Y_Width;
+   end;
+  NextPoint.X:=0;
+  NextPoint.Y:=0;
+  LastColor:=CalcMandel(SerchPoint,zm);
+  CalcBounds ;
+  readln;
+  CloseGraph;
+end.
+{
+  $Log$
+  Revision 1.3  1998-09-11 10:55:25  peter
+    + header+log
 
-IF ABS(y1) = ABS(y2) THEN
-BEGIN
-flag:=TRUE ; Y_Width:=Max_Y_Width shr 1;
-END
-ELSE
-BEGIN
-flag:=FALSE ; Y_Width:=Max_Y_Width;
-END;
-NextPoint.X:=0; NextPoint.Y:=0;
-LastColor:=CalcMandel(SerchPoint,zm);
-CalcBounds ;
-readln;
-CloseGraph;
-END.
+}

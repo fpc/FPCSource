@@ -1,17 +1,22 @@
 {
-  LINES.PP
+    $Id$
+    This file is part of the Free Pascal run time library.
+    Copyright (c) 1993-98 by Florian Klaempfl
 
-  Program that counts number of Lines in a file
+    Line Counter Example
 
-  Copyright (c) 1992,95 by FP Kl„mpfl
-  Translated By Eric Molitor (emolitor@freenet.fsu.edu)
+    See the file COPYING.FPC, included in this distribution,
+    for details about the copyright.
 
-  History:
-      29.10.1992       Version 1.0
-      3.3.1995         an FPKPascal angepaát
-}
+    This program is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 
+ **********************************************************************}
 program count_lines;
+{
+  Program that counts number of Lines in a file
+}
 
   uses
      dos,crt;
@@ -26,7 +31,7 @@ program count_lines;
      d : ^td;
 {$ifdef tp}
      count : word;
-     i,z : integer;
+     i,z   : integer;
 {$else}
      count,i,z : longint;
 {$endif}
@@ -36,9 +41,9 @@ program count_lines;
      new(d);
      if paramcount<1 then
        begin
-          writeln('Usage: LINES FILENAME.EXT [FILENAME.EXT] ...');
+          writeln('Usage: ',paramstr(0),' filename.ext [filename.ext] ...');
           writeln('  Multiple File Names and Wild Cards Allowed:');
-          writeln('  z.B  LINES *.CPP STDIO.H *.ASM');
+          writeln('  Example: lines *.cpp stdio.h *.asm');
           halt(1);
        end;
      for i:=1 to paramcount do
@@ -68,3 +73,10 @@ program count_lines;
      gotoxy(1,wherey);
      if lines=1 then writeln('1 Line') else writeln(lines,' Lines');
   end.
+{
+  $Log$
+  Revision 1.2  1998-09-11 10:55:23  peter
+    + header+log
+
+}
+  

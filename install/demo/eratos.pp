@@ -1,14 +1,18 @@
-{****************************************************************************
-  $Id$
+{
+    $Id$
+    This file is part of the Free Pascal run time library.
+    Copyright (c) 1993-98 by Florian Klaempfl
 
-                   Copyright (c) 1993,94 by Florian Kl„mpfl
-                   Translated By Eric Molitor (emolitor@freenet.fsu.edu)
+    Eratos Example, Calculates all Prime Numbers from 1 to max
 
- ****************************************************************************}
+    See the file COPYING.FPC, included in this distribution,
+    for details about the copyright.
 
-{ Demonstration Program in FPKPascal }
-{ Calculates all Prime Numbers from 1 to max }
+    This program is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 
+ **********************************************************************}
 program eratosthenes;
 
   const
@@ -26,13 +30,21 @@ program eratosthenes;
        for i:=1 to max do
          a[i]:=true;
        for i:=2 to max div 2 do
-         if a[i] then 
+         if a[i] then
            for j:=2 to max div i do
              a[i*j]:=false;
        writeln;
+       j:=0;
        for i:=1 to max do
-         if a[i] then
-           write(i:8);
+        begin
+          if a[i] then
+           begin
+             write(i:7);
+             inc(j);
+             if (j mod 10)=0 then
+              writeln;
+           end;
+        end;
        writeln;
     end;
 
@@ -41,14 +53,11 @@ program eratosthenes;
      eratos;
   end.
 
-{ 
+{
   $Log$
-  Revision 1.4  1998-09-04 17:38:15  pierre
+  Revision 1.5  1998-09-11 10:55:21  peter
+    + header+log
+
+  Revision 1.4  1998/09/04 17:38:15  pierre
     * the algorythm was wrong (unnecessary checks were made)
-
-  Revision 1.3  1998/04/06 12:23:21  pierre
-    * log problem
-
-  Revision 1.2  1998/04/06 12:17:00  pierre
-   * made array a global to avoid stack overflow
 }

@@ -1,32 +1,42 @@
-{****************************************************************************
+{
+    $Id$
+    This file is part of the Free Pascal run time library.
+    Copyright (c) 1993-98 by Florian Klaempfl
 
-                   Copyright (c) 1994 by Florian Kl„mpfl
+    Magic Square Example
 
- ****************************************************************************}
- 
-{ Demonstrationsprogramm zu FPKPascal }
-{ berechnet magische Quadrate (Summe alle Spalten, Zeilen und }
-{ Diagonalen ist gleich)				      }
+    See the file COPYING.FPC, included in this distribution,
+    for details about the copyright.
+
+    This program is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+
+ **********************************************************************}
 program magic;
+
+{
+  Calculate a magic square (sum of the row, colums and diagonals is equal
+}
 
   const
      maxsize = 11;
-     
+
   type
-     sqrtype = array[1..maxsize, 1..maxsize] of integer;
-     
+     sqrtype = array[1..maxsize, 1..maxsize] of longint;
+
   var
      square : sqrtype;
-     size, row, sum : integer;
+     size, row, sum : longint;
 
-  procedure makesquare(var sq : sqrtype;limit : integer);
-  
+  procedure makesquare(var sq : sqrtype;limit : longint);
+
     var
-       num,r,c : integer;
+       num,r,c : longint;
 
     begin
        for r:=1 to limit do
-         for c:=1 to limit do 
+         for c:=1 to limit do
            sq[r, c] := 0;
        if (limit and 1)<>0 then
          begin
@@ -37,33 +47,33 @@ program magic;
                  if sq[r,c]<>0 then
                    begin
                       dec(r);
-                      if r<1 then 
-                        r:=r+limit;
-                      c:=c-2; 
-                      if c<1 then 
-                        c:=c+limit;
+                      if r<1 then
+                        inc(r,limit);
+                      dec(c,2);
+                      if c<1 then
+                        inc(c,limit);
                    end;
                  sq[r,c]:=num;
                  inc(r);
-                 if r>limit then 
-                   r:=r-limit;
+                 if r>limit then
+                   dec(r,limit);
                  inc(c);
-                 if c>limit then 
-                   c:=c-limit;
-              end; 
+                 if c>limit then
+                   dec(c,limit);
+              end;
          end;
      end;
 
-  procedure writesquare(var sq : sqrtype;limit : integer);
-  
-    var 
-       row,col : integer;
+  procedure writesquare(var sq : sqrtype;limit : longint);
+
+    var
+       row,col : longint;
 
     begin
        for row:=1 to Limit do
          begin
-   	    for col:=1 to (limit div 2) do
-	      write(sq[row,2*col-1]:4,' ',sq[row,2*col]:4,' ');
+            for col:=1 to (limit div 2) do
+              write(sq[row,2*col-1]:4,' ',sq[row,2*col]:4,' ');
             writeln(sq[row,limit]:4);
          end;
     end;
@@ -72,17 +82,24 @@ begin
   size:=3;
   while (size<=maxsize) do
     begin
-       writeln('Magisches Quadrat mit der Seitenl„nge ',size);
+       writeln('Magic Square with size ',size);
        writeln;
        makesquare(square,size);
        writesquare(square,size);
        writeln;
        sum:=0;
        for row:=1 to size do
-         sum:=sum+square[row,1];
-       writeln('Summe in den Reihen, Spalten und Diagonalen = ', sum);
+         inc(sum,square[row,1]);
+       writeln('Sum of the rows,columns and diagonals = ', sum);
        writeln;
        writeln;
-       size:=size+2;
+       inc(size,2);
     end;
 end.
+{
+  $Log$
+  Revision 1.2  1998-09-11 10:55:24  peter
+    + header+log
+
+}
+  
