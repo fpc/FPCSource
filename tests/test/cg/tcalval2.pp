@@ -192,9 +192,9 @@ var
       gets32bit:=RESULT_S32BIT;
     end;
 
-   function gets64bit: longint;
+   function gets64bit: int64;
     begin
-      gets64bit:=RESULT_S32BIT;
+      gets64bit:=RESULT_S64BIT;
     end;
 
 
