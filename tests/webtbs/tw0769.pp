@@ -1,3 +1,7 @@
+{ %OPT=-Sew }
+{ this should generate no warning }
+
+{$mode tp}
 
 Program test;
 
