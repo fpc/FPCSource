@@ -48,7 +48,8 @@ type
    AS_RPAREN,AS_COLON,AS_DOT,AS_PLUS,AS_MINUS,AS_STAR,
    AS_SEPARATOR,AS_ID,AS_REGISTER,AS_OPCODE,AS_SLASH,AS_DOLLAR,
    {------------------ Assembler directives --------------------}
-   AS_DB,AS_DW,AS_DD,AS_DQ,AS_GLOBAL,AS_ALIGN,AS_ASCII,
+   AS_DB,AS_DW,AS_DD,AS_DQ,AS_GLOBAL,
+   AS_ALIGN,AS_BALIGN,AS_P2ALIGN,AS_ASCII,
    AS_ASCIIZ,AS_LCOMM,AS_COMM,AS_SINGLE,AS_DOUBLE,AS_EXTENDED,
    AS_DATA,AS_TEXT,AS_END,
    {------------------ Assembler Operators  --------------------}
@@ -71,7 +72,8 @@ const
     'float',',','(',
     ')',':','.','+','-','*',
     ';','identifier','register','opcode','/','$',
-    '.byte','.word','.long','.quad','.globl','.align','.ascii',
+    '.byte','.word','.long','.quad','.globl',
+    '.align','.balign','.p2align','.ascii',
     '.asciz','.lcomm','.comm','.single','.double','.tfloat',
     '.data','.text','END',
     '%','<<','>>','!','&','|','^','~');
@@ -1676,6 +1678,7 @@ Var
   hl         : PAsmLabel;
   commname   : string;
   lastsec    : tsection;
+  l1,l2      : longint;
   instr      : T386ATTInstruction;
 Begin
   Message1(asmr_d_start_reading,'AT&T');
@@ -1785,7 +1788,44 @@ Begin
       AS_ALIGN:
         Begin
           Consume(AS_ALIGN);
+          l1:=BuildConstExpression(false,false);
+          if (target_info.target in [target_i386_GO32V1,target_i386_GO32V2]) then
+            begin
+               l2:=1;
+               if (l1>=0) and (l1<=16) then
+                 while (l1>0) do
+                   begin
+                     l2:=2*l2;
+                     dec(l1);
+                   end;
+               l1:=l2;
+            end;
+          ConcatAlign(curlist,l1);
+          if actasmtoken<>AS_SEPARATOR then
+           Consume(AS_SEPARATOR);
+        end;
+
+      AS_BALIGN:
+        Begin
+          Consume(AS_BALIGN);
           ConcatAlign(curlist,BuildConstExpression(false,false));
+          if actasmtoken<>AS_SEPARATOR then
+           Consume(AS_SEPARATOR);
+        end;
+
+      AS_P2ALIGN:
+        Begin
+          Consume(AS_P2ALIGN);
+          l1:=BuildConstExpression(false,false);
+          l2:=1;
+          if (l1>=0) and (l1<=16) then
+            while (l1>0) do
+              begin
+                 l2:=2*l2;
+                 dec(l1);
+              end;
+          l1:=l2;
+          ConcatAlign(curlist,l1);
           if actasmtoken<>AS_SEPARATOR then
            Consume(AS_SEPARATOR);
         end;
@@ -1889,7 +1929,14 @@ begin
 end.
 {
   $Log$
-  Revision 1.50  1999-06-08 11:51:58  peter
+  Revision 1.51  1999-06-11 22:54:12  pierre
+    * .align problem treated :
+      .align is considered as .p2align on go32v1 and go32v2
+      and as .balign on other targets
+    + ra386att supports also .balign and .p2align
+    * ag386att uses .balign allways
+
+  Revision 1.50  1999/06/08 11:51:58  peter
     * fixed some intel bugs with scale parsing
     * end is now also a separator in many more cases
 
