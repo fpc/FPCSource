@@ -33,6 +33,8 @@ Type
   stFailedToRun,
   stKnownRunProblem,
   stSuccessFullyRun,
+  stFailedExecuteCompiler,
+  stFailedExecuteTest,
   stSkippingGraphTest,
   stSkippingInteractiveTest,
   stSkippingKnownBug,
@@ -57,6 +59,8 @@ Const
     False, // stFailedToRun,
     True,  // stKnownRunProblem,
     True,  // stSuccessFullyRun,
+    False, // stFailedExecuteCompiler
+    False, // stFailedExecuteTest
     False, // stSkippingGraphTest,
     False, // stSkippingInteractiveTest,
     False, // stSkippingKnownBug,
@@ -76,6 +80,8 @@ Const
     False,  // stFailedToRun,
     False,  // stKnownRunProblem,
     False,  // stSuccessFullyRun,
+    False,  // stFailedExecuteCompiler
+    False,  // stFailedExecuteTest
     True,   // stSkippingGraphTest,
     True,   // stSkippingInteractiveTest,
     True,   // stSkippingKnownBug,
@@ -95,6 +101,8 @@ Const
     False,  // stFailedToRun,
     False,  // stKnownRunProblem,
     False,  // stSuccessFullyRun,
+    False,  // stFailedExecuteCompiler
+    False,  // stFailedExecuteTest
     False,  // stSkippingGraphTest,
     False,  // stSkippingInteractiveTest,
     False,  // stSkippingKnownBug,
@@ -114,6 +122,8 @@ Const
     failed_to_run ,
     known_problem ,
     successfully_run ,
+    failed_to_execute_compiler,
+    failed_to_execute_test,
     skipping_graph_test ,
     skipping_interactive_test ,
     skipping_known_bug ,
@@ -133,6 +143,8 @@ Const
     'TU_FAILEDTORUN',
     'TU_KNOWNPROBLEM',
     'TU_SUCCESSFULLYRUN',
+    'TU_FAILEDTOCOMPILE',   // Combined with compiler failures
+    'TU_FAILEDTORUN',       // Combined with compiler failures  
     'TU_SKIPPEDGRAPHTEST',
     'TU_SKIPPEDINTERACTIVETEST',
     'TU_KNOWNBUG',
@@ -475,7 +487,10 @@ end.
 
 {
   $Log$
-  Revision 1.11  2003-10-17 08:08:07  florian
+  Revision 1.12  2004-04-29 22:03:18  peter
+    * support new execute errors
+
+  Revision 1.11  2003/10/17 08:08:07  florian
     * cosmetic fix in console output
 
   Revision 1.10  2003/10/15 21:45:50  florian

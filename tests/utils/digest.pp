@@ -54,6 +54,7 @@ begin
   should_be_run:=next_should_be_run;
   if next_should_be_run and
      (pos(failed_to_run,st)<>1) and
+     (pos(failed_to_execute_test,st)<>1) and
      (pos(successfully_run,st)<>1) and
      (pos(skipping_known_bug,st)<>1) and
      (pos(skipping_run_test,st)<>1) and
@@ -62,7 +63,7 @@ begin
       Writeln('No run found for "',prevline,'"');
     end;
   next_should_be_run:=false;
-  if pos(failed_to_compile,st) = 1 then
+  if (pos(failed_to_compile,st)=1) or (pos(failed_to_execute_compiler,st)=1) then
     begin
       inc(failed_to_compile_count);
     end
@@ -79,7 +80,7 @@ begin
       inc(successfully_compiled_count);
       next_should_be_run:=true;
     end
-  else if pos(failed_to_run,st)=1 then
+  else if (pos(failed_to_run,st)=1) or (pos(failed_to_execute_test,st)=1) then
     begin
       inc(failed_to_run_count);
       if not should_be_run then
@@ -240,7 +241,10 @@ end.
 
 {
   $Log$
-  Revision 1.5  2003-10-31 16:51:46  peter
+  Revision 1.6  2004-04-29 22:03:18  peter
+    * support new execute errors
+
+  Revision 1.5  2003/10/31 16:51:46  peter
     * skip known bug for run
 
   Revision 1.4  2003/10/13 14:19:02  peter
