@@ -1,24 +1,18 @@
 {
-  $Id$
+    $Id$
 
-  GTK implementation for shedit
-  Copyright (C) 1999  Sebastian Guenther (sguenther@gmx.de)
+    GTK implementation for SHEdit
+    Copyright (C) 1999  Sebastian Guenther (sg@freepascal.org)
 
-  This program is free software; you can redistribute it and/or modify
-  it under the terms of the GNU General Public License as published by
-  the Free Software Foundation; either version 2 of the License, or
-  (at your option) any later version.
+    See the file COPYING.FPC, included in this distribution,
+    for details about the copyright.
 
-  This program is distributed in the hope that it will be useful,
-  but WITHOUT ANY WARRANTY; without even the implied warranty of
-  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-  GNU General Public License for more details.
-
-  You should have received a copy of the GNU General Public License
-  along with this program; if not, write to the Free Software
-  Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+    This program is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 }
-unit gtkshedit;
+
+unit GtkSHEdit;
 interface
 
 {$MODE objfpc}
@@ -65,9 +59,9 @@ type
   PSHStyleArray = ^TSHStyleArray;
 
 
-  {This class is a kind of widget class which implements the ISHRenderer
+  {This class is a kind of widget class which implements the ISHWidget
    interface for drawing syntax highlighted text}
-  TGtkSHEdit = class(ISHRenderer)
+  TGtkSHWidget = class(ISHWidget)
   protected
     SHStyles: PSHStyleArray;
     SHStyleCount: Integer;              // # of currently registered styles
@@ -76,17 +70,16 @@ type
 
     hadj, vadj: PGtkAdjustment;
     PaintBox: PGtkWidget;
-    Edit: TSHTextEdit;
+    FEdit: TSHTextEdit;
     LeftIndent: Integer;
     CharW, CharH: Integer;
     Font: array[TSHFontStyle] of PGdkFont; // Fonts for content drawing
     gc: PGdkGC;
     GdkWnd: PGdkWindow;
 
-    procedure SetEdit(AEdit: TSHTextEdit);
     procedure SetGCColor(AColor: LongWord);
 
-    // ISHRenderer Implemenation:
+    // ISHWidget Implemenation:
 
     procedure InvalidateRect(x1, y1, x2, y2: Integer); override;
     procedure InvalidateLines(y1, y2: Integer); override;
@@ -118,12 +111,13 @@ type
   public
     Widget: PGtkWidget;  // this is the outer editor widget
 
-    constructor Create;
+    constructor Create(ADoc: TTextDoc; AEditClass: TSHTextEditClass);
 
     procedure SetFocus;
 
     function  AddSHStyle(AName: String; AColor, ABackground: LongWord;
       AStyle: TSHFontStyle): Integer;
+    property Edit: TSHTextEdit read FEdit;
   end;
 
 
@@ -134,32 +128,34 @@ implementation
                               GTK/GDK Callbacks
 *****************************************************************************}
 
-procedure TGtkSHEdit_Expose(GtkWidget: PGtkWidget; event: PGdkEventExpose; edit: TGtkSHEdit); cdecl;
+procedure TGtkSHWidget_Expose(GtkWidget: PGtkWidget; event: PGdkEventExpose;
+  widget: TGtkSHWidget); cdecl;
 var
   x1, y1, x2, y2: Integer;
 begin
   x1 := event^.area.x;
   if x1 > 0 then
-    Dec(x1, edit.LeftIndent);
+    Dec(x1, widget.LeftIndent);
   x2 := x1 + event^.area.width - 1;
-  x1 := x1 div edit.CharW;
-  x2 := (x2 + edit.CharW - 1) div edit.CharW;
-  y1 := event^.area.y div edit.CharH;
-  y2 := (event^.area.y + event^.area.height - 1) div edit.CharH;
-//  WriteLn(Format('Expose(%d/%d - %d/%d) for %s', [x1, y1, x2, y2, edit.ClassName]));
+  x1 := x1 div widget.CharW;
+  x2 := (x2 + widget.CharW - 1) div widget.CharW;
+  y1 := event^.area.y div widget.CharH;
+  y2 := (event^.area.y + event^.area.height - 1) div widget.CharH;
+//  WriteLn(Format('Expose(%d/%d - %d/%d) for %s', [x1, y1, x2, y2, FEdit.ClassName]));
 
-  edit.GdkWnd := edit.PaintBox^.window;
-  edit.GC := gdk_gc_new(edit.GdkWnd);
-  edit.CurGCColor := 0;         // Reset color, because we have a new GC!
-  gdk_gc_copy(edit.GC, PGtkStyle(edit.PaintBox^.thestyle)^.
-    fg_gc[edit.PaintBox^.state]);
+  widget.GdkWnd := widget.PaintBox^.window;
+  widget.GC := gdk_gc_new(widget.GdkWnd);
+  widget.CurGCColor := 0;         // Reset color, because we have a new GC!
+  gdk_gc_copy(widget.GC, PGtkStyle(widget.PaintBox^.thestyle)^.
+    fg_gc[widget.PaintBox^.state]);
 
-  edit.Edit.AdjustCursorToRange;
-  edit.Edit.DrawContent(x1, y1, x2, y2);
+  widget.FEdit.AdjustCursorToRange;
+  widget.FEdit.DrawContent(x1, y1, x2, y2);
 end;
 
 
-function TGtkSHEdit_KeyPressed(GtkWidget: PGtkWidget; Event: PGdkEventKey; edit: TGtkSHEdit): Integer; cdecl;
+function TGtkSHWidget_KeyPressed(GtkWidget: PGtkWidget; Event: PGdkEventKey;
+  widget: TGtkSHWidget): Integer; cdecl;
 var
   KeyState,
   KeyCode: LongWord;
@@ -167,7 +163,7 @@ var
 begin
   Result := 1;
 
-  Case Event^.KeyVal of
+  case Event^.KeyVal of
     GDK_KP_Insert    : KeyCode:=GDK_Insert;
     GDK_KP_Home      : KeyCode:=GDK_Home;
     GDK_KP_Left      : KeyCode:=GDK_Left;
@@ -190,7 +186,7 @@ begin
   end;
   KeyState:=Event^.State;
 
-  WriteLn('KeyCode ', KeyCode,'   keystate ',KeyState);
+  // WriteLn('KeyCode ', KeyCode,'   keystate ',KeyState);
 
   // Calculate the Key modifiers (shiftstate)
   KeyMods := [];
@@ -206,40 +202,42 @@ begin
   if (KeyState and $400) <> 0 then KeyMods := KeyMods + [ssRight];
   if (KeyState and $2000) <> 0 then KeyMods := KeyMods + [ssAltGr];
 
-  edit.Edit.KeyPressed(KeyCode,KeyMods);
+  widget.FEdit.KeyPressed(KeyCode,KeyMods);
 end;
 
 
-function TGtkSHEdit_ButtonPressEvent(GtkWidget: PGtkWidget; event: PGdkEventButton; edit: TGtkSHEdit): Integer; cdecl;
+function TGtkSHWidget_ButtonPressEvent(GtkWidget: PGtkWidget;
+  event: PGdkEventButton; widget: TGtkSHWidget): Integer; cdecl;
 begin
-  edit.Edit.CursorX := Round((event^.x - edit.LeftIndent) / edit.CharW);
-  edit.Edit.CursorY := Trunc(event^.y) div edit.CharH;
-  edit.SetFocus;
+  widget.FEdit.CursorX := Round((event^.x - widget.LeftIndent) / widget.CharW);
+  widget.FEdit.CursorY := Trunc(event^.y) div widget.CharH;
+  widget.SetFocus;
   Result := 1;
 end;
 
 
-function TGtkShEdit_FocusInEvent(GtkWidget: PGtkWidget; event: PGdkEventFocus; edit: TGtkSHEdit): Integer; cdecl;
+function TGtkSHWidget_FocusInEvent(GtkWidget: PGtkWidget;
+  event: PGdkEventFocus; widget: TGtkSHWidget): Integer; cdecl;
 begin
 //  Writeln('focus in');
-  edit.Edit.FocusIn;
+  widget.FEdit.FocusIn;
   result:=1;
 end;
 
 
-function TGtkShEdit_FocusOutEvent(GtkWidget: PGtkWidget; event: PGdkEventFocus; edit: TGtkSHEdit): Integer; cdecl;
+function TGtkSHWidget_FocusOutEvent(GtkWidget: PGtkWidget; event: PGdkEventFocus; widget: TGtkSHWidget): Integer; cdecl;
 begin
 //  Writeln('focus out');
-  edit.Edit.FocusOut;
+  widget.FEdit.FocusOut;
   result:=1;
 end;
 
 
 {*****************************************************************************
-                                 TGtkSHEdit
+                                 TGtkSHWidget
 *****************************************************************************}
 
-constructor TGtkSHEdit.Create;
+constructor TGtkSHWidget.Create(ADoc: TTextDoc; AEditClass: TSHTextEditClass);
 var
   lfd: String;    // Logical font descriptor
   i: Integer;
@@ -260,7 +258,6 @@ begin
 
   CharW := gdk_char_width(Font[fsBold], ' ');
   CharH := 14 {=FontHeight} + 3;   // *** find better way to determine max. cell height
-  Edit := nil;
 
   LeftIndent := CharW;
 
@@ -278,64 +275,61 @@ begin
   gtk_widget_set_flags(PGtkWidget(PaintBox),GTK_CAN_FOCUS);
 
   gtk_signal_connect(PGtkObject(PaintBox), 'expose-event',
-    GTK_SIGNAL_FUNC(@TGtkSHEdit_Expose), self);
+    GTK_SIGNAL_FUNC(@TGtkSHWidget_Expose), self);
   gtk_signal_connect_after(PGtkObject(PaintBox), 'key-press-event',
-    GTK_SIGNAL_FUNC(@TGtkSHEdit_Keypressed), self);
+    GTK_SIGNAL_FUNC(@TGtkSHWidget_Keypressed), self);
   gtk_signal_connect(PGtkObject(PaintBox), 'button-press-event',
-    GTK_SIGNAL_FUNC(@TGtkSHEdit_ButtonPressEvent), self);
+    GTK_SIGNAL_FUNC(@TGtkSHWidget_ButtonPressEvent), self);
   gtk_signal_connect_after(PGtkObject(PaintBox), 'focus-in-event',
-    GTK_SIGNAL_FUNC(@TGtkSHEdit_FocusInEvent), self);
+    GTK_SIGNAL_FUNC(@TGtkSHWidget_FocusInEvent), self);
   gtk_signal_connect_after(PGtkObject(PaintBox), 'focus-out-event',
-    GTK_SIGNAL_FUNC(@TGtkSHEdit_FocusOutEvent), self);
+    GTK_SIGNAL_FUNC(@TGtkSHWidget_FocusOutEvent), self);
 
   gtk_widget_set_events(PGtkWidget(Paintbox),
     GDK_EXPOSURE_MASK or GDK_KEY_PRESS_MASK or GDK_KEY_RELEASE_MASK or
     GDK_BUTTON_PRESS_MASK or GDK_ENTER_NOTIFY_MASK or GDK_LEAVE_NOTIFY_MASK);
 
   gtk_widget_show(Widget);
-end;
 
 
-procedure TGtkSHEdit.SetEdit(AEdit: TSHTextEdit);
-begin
-  Edit := AEdit;
+  FEdit := AEditClass.Create(ADoc, Self);
   shWhitespace      := AddSHStyle('Whitespace', colBlack, colWhite,    fsNormal);
-  Edit.shDefault    := AddSHStyle('Default',    colBlack, colWhite,    fsNormal);
-  Edit.shSelected   := AddSHStyle('Selected',   colWhite, colDarkBlue, fsNormal);
+  FEdit.shDefault    := AddSHStyle('Default',    colBlack, colWhite,    fsNormal);
+  FEdit.shSelected   := AddSHStyle('Selected',   colWhite, colDarkBlue, fsNormal);
 { Install keys }
-  Edit.AddKeyDef(@Edit.CursorUp, selClear, 'Cursor up', GDK_Up, []);
-  Edit.AddKeyDef(@Edit.CursorDown, selClear, 'Cursor down', GDK_Down, []);
-  Edit.AddKeyDef(@Edit.CursorLeft, selClear, 'Cursor left', GDK_Left, []);
-  Edit.AddKeyDef(@Edit.CursorRight, selClear, 'Cursor right', GDK_Right, []);
-  Edit.AddKeyDef(@Edit.CursorHome, selClear, 'Cursor Home', GDK_Home, []);
-  Edit.AddKeyDef(@Edit.CursorEnd, selClear, 'Cursor Home', GDK_End, []);
-  Edit.AddKeyDef(@Edit.CursorPageUp, selClear, 'Cursor PageUp', GDK_Page_Up, []);
-  Edit.AddKeyDef(@Edit.CursorPageDown, selClear, 'Cursor PageDown', GDK_Page_Down, []);
-  Edit.AddKeyDef(@Edit.CursorDocBegin, selClear, 'Cursor Document Start', GDK_Page_Up, [ssCtrl]);
-  Edit.AddKeyDef(@Edit.CursorDocEnd, selClear, 'Cursor Document End', GDK_Page_Down, [ssCtrl]);
+  FEdit.AddKeyDef(@FEdit.CursorUp, selClear, 'Cursor up', GDK_Up, []);
+  FEdit.AddKeyDef(@FEdit.CursorDown, selClear, 'Cursor down', GDK_Down, []);
+  FEdit.AddKeyDef(@FEdit.CursorLeft, selClear, 'Cursor left', GDK_Left, []);
+  FEdit.AddKeyDef(@FEdit.CursorRight, selClear, 'Cursor right', GDK_Right, []);
+  FEdit.AddKeyDef(@FEdit.CursorHome, selClear, 'Cursor Home', GDK_Home, []);
+  FEdit.AddKeyDef(@FEdit.CursorEnd, selClear, 'Cursor Home', GDK_End, []);
+  FEdit.AddKeyDef(@FEdit.CursorPageUp, selClear, 'Cursor PageUp', GDK_Page_Up, []);
+  FEdit.AddKeyDef(@FEdit.CursorPageDown, selClear, 'Cursor PageDown', GDK_Page_Down, []);
+  FEdit.AddKeyDef(@FEdit.CursorDocBegin, selClear, 'Cursor Document Start', GDK_Page_Up, [ssCtrl]);
+  FEdit.AddKeyDef(@FEdit.CursorDocEnd, selClear, 'Cursor Document End', GDK_Page_Down, [ssCtrl]);
 
-  Edit.AddKeyDef(@Edit.CursorUp, selExtend, 'Selection up', GDK_Up, [ssShift]);
-  Edit.AddKeyDef(@Edit.CursorDown, selExtend, 'Selection down', GDK_Down, [ssShift]);
-  Edit.AddKeyDef(@Edit.CursorLeft, selExtend, 'Selection left', GDK_Left, [ssShift]);
-  Edit.AddKeyDef(@Edit.CursorRight, selExtend, 'Selection right', GDK_Right, [ssShift]);
-  Edit.AddKeyDef(@Edit.CursorHome, selExtend, 'Selection Home', GDK_Home, [ssShift]);
-  Edit.AddKeyDef(@Edit.CursorEnd, selExtend, 'Selection Home', GDK_End, [ssShift]);
-  Edit.AddKeyDef(@Edit.CursorPageUp, selExtend, 'Selection PageUp', GDK_Page_Up, [ssShift]);
-  Edit.AddKeyDef(@Edit.CursorPageDown, selExtend, 'Selection PageDown', GDK_Page_Down, [ssShift]);
-  Edit.AddKeyDef(@Edit.CursorDocBegin, selExtend, 'Selection Document Start', GDK_Page_Up, [ssCtrl,ssShift]);
-  Edit.AddKeyDef(@Edit.CursorDocEnd, selExtend, 'Selection Document End', GDK_Page_Down, [ssCtrl,ssShift]);
+  FEdit.AddKeyDef(@FEdit.CursorUp, selExtend, 'Selection up', GDK_Up, [ssShift]);
+  FEdit.AddKeyDef(@FEdit.CursorDown, selExtend, 'Selection down', GDK_Down, [ssShift]);
+  FEdit.AddKeyDef(@FEdit.CursorLeft, selExtend, 'Selection left', GDK_Left, [ssShift]);
+  FEdit.AddKeyDef(@FEdit.CursorRight, selExtend, 'Selection right', GDK_Right, [ssShift]);
+  FEdit.AddKeyDef(@FEdit.CursorHome, selExtend, 'Selection Home', GDK_Home, [ssShift]);
+  FEdit.AddKeyDef(@FEdit.CursorEnd, selExtend, 'Selection Home', GDK_End, [ssShift]);
+  FEdit.AddKeyDef(@FEdit.CursorPageUp, selExtend, 'Selection PageUp', GDK_Page_Up, [ssShift]);
+  FEdit.AddKeyDef(@FEdit.CursorPageDown, selExtend, 'Selection PageDown', GDK_Page_Down, [ssShift]);
+  FEdit.AddKeyDef(@FEdit.CursorDocBegin, selExtend, 'Selection Document Start', GDK_Page_Up, [ssCtrl,ssShift]);
+  FEdit.AddKeyDef(@FEdit.CursorDocEnd, selExtend, 'Selection Document End', GDK_Page_Down, [ssCtrl,ssShift]);
 
-  Edit.AddKeyDef(@Edit.ToggleOverwriteMode, selNothing, 'Toggle overwrite mode', GDK_Insert, []);
-  Edit.AddKeyDef(@Edit.EditDelLeft, selClear, 'Delete char left of cursor', GDK_Backspace, []);
-  Edit.AddKeyDef(@Edit.EditDelRight, selClear, 'Delete char right of cursor', GDK_Delete_Key, []);
-  Edit.AddKeyDef(@Edit.EditDelLine, selClear, 'Delete current line', Ord('Y'), [ssCtrl]);
-  Edit.AddKeyDef(@Edit.EditDelLine, selClear, 'Delete current line', Ord('y'), [ssCtrl]);
-  Edit.AddKeyDef(@Edit.EditUndo, selClear, 'Undo last action', GDK_Backspace, [ssAlt]);
-  Edit.AddKeyDef(@Edit.EditRedo, selClear, 'Redo last undone action', GDK_Backspace, [ssShift, ssAlt]);
+  FEdit.AddKeyDef(@FEdit.ToggleOverwriteMode, selNothing, 'Toggle overwrite mode', GDK_Insert, []);
+  FEdit.AddKeyDef(@FEdit.EditDelLeft, selClear, 'Delete char left of cursor', GDK_Backspace, []);
+  FEdit.AddKeyDef(@FEdit.EditDelRight, selClear, 'Delete char right of cursor', GDK_Delete_Key, []);
+  FEdit.AddKeyDef(@FEdit.EditDelLine, selClear, 'Delete current line', Ord('Y'), [ssCtrl]);
+  FEdit.AddKeyDef(@FEdit.EditDelLine, selClear, 'Delete current line', Ord('y'), [ssCtrl]);
+  FEdit.AddKeyDef(@FEdit.EditUndo, selClear, 'Undo last action', GDK_Backspace, [ssAlt]);
+  FEdit.AddKeyDef(@FEdit.EditRedo, selClear, 'Redo last undone action', GDK_Backspace, [ssShift, ssAlt]);
 end;
 
 
-function TGtkSHEdit.AddSHStyle(AName: String; AColor, ABackground: LongWord; AStyle: TSHFontStyle): Integer;
+function TGtkSHWidget.AddSHStyle(AName: String; AColor, ABackground: LongWord; AStyle: TSHFontStyle): Integer;
 begin
   ReAllocMem(SHStyles, SizeOf(TSHStyle) * (SHStyleCount + 1));
   Inc(SHStyleCount);
@@ -347,7 +341,7 @@ begin
 end;
 
 
-procedure TGtkSHEdit.SetGCColor(AColor: LongWord);
+procedure TGtkSHWidget.SetGCColor(AColor: LongWord);
 var
   c: TGdkColor;
 begin
@@ -363,7 +357,7 @@ begin
 end;
 
 
-procedure TGtkSHEdit.ClearRect(x1, y1, x2, y2: Integer);
+procedure TGtkSHWidget.ClearRect(x1, y1, x2, y2: Integer);
 begin
   SetGCColor(SHStyles^[shWhitespace].Background);
   gdk_draw_rectangle(PGdkDrawable(GdkWnd), GC, 1,
@@ -372,7 +366,7 @@ begin
 end;
 
 
-procedure TGtkSHEdit.InvalidateRect(x1, y1, x2, y2: Integer);
+procedure TGtkSHWidget.InvalidateRect(x1, y1, x2, y2: Integer);
 var
   r : TGdkRectangle;
 begin
@@ -384,7 +378,7 @@ begin
 end;
 
 
-procedure TGtkSHEdit.InvalidateLines(y1, y2: Integer);
+procedure TGtkSHWidget.InvalidateLines(y1, y2: Integer);
 var
   r : TGdkRectangle;
   w,h : integer;
@@ -398,7 +392,7 @@ begin
 end;
 
 
-procedure TGtkSHEdit.DrawTextLine(x1, x2, y: Integer; s: PChar);
+procedure TGtkSHWidget.DrawTextLine(x1, x2, y: Integer; s: PChar);
 var
   CurColor: LongWord;
   CurX1, CurX2: Integer;
@@ -490,13 +484,13 @@ begin
 end;
 
 
-procedure TGtkSHEdit.SetFocus;
+procedure TGtkSHWidget.SetFocus;
 begin
   gtk_window_set_focus(PGtkWindow(gtk_widget_get_toplevel(Paintbox)),Paintbox);
 end;
 
 
-procedure TGtkSHEdit.ShowCursor(x, y: Integer);
+procedure TGtkSHWidget.ShowCursor(x, y: Integer);
 begin
 //  writeln('Showcursor ',x,',',y);
   if assigned(GdkWnd) then
@@ -507,7 +501,7 @@ begin
 end;
 
 
-procedure TGtkSHEdit.HideCursor(x, y: Integer);
+procedure TGtkSHWidget.HideCursor(x, y: Integer);
 var
   r : TGdkRectangle;
 begin
@@ -520,13 +514,13 @@ begin
 end;
 
 
-function TGtkSHEdit.GetLineWidth: Integer;
+function TGtkSHWidget.GetLineWidth: Integer;
 begin
   Result := (Trunc(hadj^.upper)-LeftIndent) div CharW;
 end;
 
 
-procedure TGtkSHEdit.SetLineWidth(count: Integer);
+procedure TGtkSHWidget.SetLineWidth(count: Integer);
 begin
   hadj^.upper := count * CharW + LeftIndent;
   gtk_adjustment_changed(hadj);
@@ -534,13 +528,13 @@ begin
 end;
 
 
-function TGtkSHEdit.GetLineCount: Integer;
+function TGtkSHWidget.GetLineCount: Integer;
 begin
   Result := Trunc(vadj^.upper) div CharH;
 end;
 
 
-procedure TGtkSHEdit.SetLineCount(count: Integer);
+procedure TGtkSHWidget.SetLineCount(count: Integer);
 begin
   vadj^.upper := (count+1) * CharH;
   gtk_adjustment_changed(vadj);
@@ -548,7 +542,7 @@ begin
 end;
 
 
-function TGtkSHEdit.GetHorzPos: Integer;
+function TGtkSHWidget.GetHorzPos: Integer;
 begin
   Result := Trunc(hadj^.value);
   if Result>0 then
@@ -556,7 +550,7 @@ begin
 end;
 
 
-procedure TGtkSHEdit.SetHorzPos(x: Integer);
+procedure TGtkSHWidget.SetHorzPos(x: Integer);
 begin
   if x>0 then
    x:=x*CharW+LeftIndent;
@@ -564,38 +558,35 @@ begin
 end;
 
 
-function TGtkSHEdit.GetVertPos: Integer;
+function TGtkSHWidget.GetVertPos: Integer;
 begin
   Result := (Trunc(vadj^.value)+CharH-1) div CharH;
 end;
 
 
-procedure TGtkSHEdit.SetVertPos(y: Integer);
+procedure TGtkSHWidget.SetVertPos(y: Integer);
 begin
   gtk_adjustment_set_value(vadj, y*CharH);
 end;
 
 
-function TGtkSHEdit.GetPageWidth: Integer;
+function TGtkSHWidget.GetPageWidth: Integer;
 begin
   Result := Trunc(hadj^.page_size) div CharW;
 end;
 
 
-function TGtkSHEdit.GetPageHeight: Integer;
+function TGtkSHWidget.GetPageHeight: Integer;
 begin
   Result := Trunc(vadj^.page_size) div CharH;
 end;
 
 end.
+
 {
   $Log$
-  Revision 1.9  1999-12-23 09:52:42  sg
-  * Fixed cursor placement as reaction on a mouse click:
-    - x value: if the click is within the left half of a character cell, the
-      cursor will be set in front of this char; if the click is in the right
-      halft, the cursor must be set _behind_ this character!
-    - y value: don't subtract "LeftIndent" from the y pixel coordinate...
+  Revision 1.10  1999-12-30 21:05:08  sg
+  * Lot of renamings
 
   Revision 1.8  1999/12/22 22:28:08  peter
     * updates for cursor setting
