@@ -400,7 +400,7 @@ procedure TLinkRes.AddFileName(const s:string);
 begin
   if s<>'' then
    begin
-     if not(s[1] in ['a'..'z','A'..'Z','/','\','.']) then
+     if not(s[1] in ['a'..'z','A'..'Z','/','\','.','"']) then
       begin
         if cs_link_on_target in aktglobalswitches then
           inherited Add('.'+target_info.DirSep+s)
@@ -415,7 +415,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.17  2002-11-15 01:58:54  peter
+  Revision 1.18  2003-01-06 20:16:42  peter
+    * don't prepend ./ to quoted filenames
+
+  Revision 1.17  2002/11/15 01:58:54  peter
     * merged changes from 1.0.7 up to 04-11
       - -V option for generating bug report tracing
       - more tracing for option parsing
