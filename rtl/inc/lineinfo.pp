@@ -320,10 +320,19 @@ begin
   begin
    Seek (F, EmxHeader.AoutOfs);
    BlockRead (F, AoutHeader, SizeOf (TAoutHeader));
-   StabOfs := (Succ (EmxHeader.AoutOfs div StartPageSize)) * StartPageSize
-                               + AoutHeader.TextSize + AoutHeader.DataSize + 4;
+
+   if AOutHeader.Magic=$10B then
+     StabOfs :=   StartPageSize
+   else
+     StabOfs :=EmxHeader.AoutOfs + SizeOf (TAoutHeader);
+   StabOfs :=   StabOfs
+                + AoutHeader.TextSize
+                + AoutHeader.DataSize
+                + AoutHeader.TextRelocSize
+                + AoutHeader.DataRelocSize;
 (* I don't really know, where this "+ 4" comes from, *)
 (* but it seems to be correct. :-) - TH              *)
+(* Maybe not PM                                      *)
    StabCnt := AoutHeader.SymbSize div SizeOf (TStab);
    StabStrOfs := StabOfs + AoutHeader.SymbSize;
    StabsFunctionRelative:=false;
@@ -629,7 +638,10 @@ finalization
 end.
 {
   $Log$
-  Revision 1.10  2000-05-08 13:23:46  peter
+  Revision 1.11  2000-06-05 13:04:11  pierre
+   * StabOfs for OS2 changed, hopefully correct now
+
+  Revision 1.10  2000/05/08 13:23:46  peter
     * export function so ppl can use it in their own programs
 
   Revision 1.9  2000/04/20 13:03:41  pierre
