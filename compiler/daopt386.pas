@@ -296,7 +296,7 @@ Begin
                              If hp2 <> nil Then
                                Begin
                                  hp1 := New(PaiRegAlloc, DeAlloc(PaiRegAlloc(p)^.Reg));
-                                 InsertLLItem(AsmL, Pai(hp2^.previous), hp2, hp1);
+                                 InsertLLItem(AsmL, hp2, hp2^.next, hp1);
                                End;
                             End;
                         End
@@ -362,6 +362,23 @@ Begin
 End;
 
 {************************ Some general functions ************************}
+
+Function TCh2Reg(Ch: TInsChange): TRegister;
+{converts a TChange variable to a TRegister}
+Begin
+  If (Ch <= Ch_REDI) Then
+    TCh2Reg := TRegister(Byte(Ch))
+  Else
+    If (Ch <= Ch_WEDI) Then
+      TCh2Reg := TRegister(Byte(Ch) - Byte(Ch_REDI))
+    Else
+      If (Ch <= Ch_RWEDI) Then
+        TCh2Reg := TRegister(Byte(Ch) - Byte(Ch_WEDI))
+      Else
+        If (Ch <= Ch_MEDI) Then
+          TCh2Reg := TRegister(Byte(Ch) - Byte(Ch_RWEDI))
+        Else InternalError($db)
+End;
 
 Function Reg32(Reg: TRegister): TRegister;
 {Returns the 32 bit component of Reg if it exists, otherwise Reg is returned}
@@ -587,7 +604,7 @@ Begin
                         (Reg = o.ref^.Index);
   End;
 End;}
-
+(*
 Function RegModifiedByInstruction(Reg: TRegister; p1: Pai): Boolean;
 {returns true if Reg is modified by the instruction p1. P1 is assumed to be
  of the type ait_instruction}
@@ -599,6 +616,57 @@ Begin
         PPAiProp(p1^.OptInfo)^.Regs[Reg].WState <>
           PPAiProp(hp^.OptInfo)^.Regs[Reg].WState
     Else RegModifiedByInstruction := True;
+End;
+*)
+
+Function RegModifiedByInstruction(Reg: TRegister; p1: Pai): Boolean;
+Var InstrProp: TInsProp;
+    TmpResult: Boolean;
+    Cnt: Byte;
+Begin
+  TmpResult := False;
+  Reg := Reg32(Reg);
+  If (p1^.typ = ait_instruction) Then
+    Case paicpu(p1)^.opcode of
+      A_IMUL:
+        With paicpu(p1)^ Do
+          TmpResult :=
+            ((ops = 1) and (reg = R_EAX)) or
+            ((ops = 2) and (Reg32(oper[1].reg) = reg)) or
+            ((ops = 3) and (Reg32(oper[2].reg) = reg));
+      A_DIV, A_IDIV, A_MUL:
+        With paicpu(p1)^ Do
+          TmpResult :=
+            (Reg = R_EAX) or
+            (Reg = R_EDX);
+      Else
+        Begin
+          Cnt := 1;
+          InstrProp := InsProp[paicpu(p1)^.OpCode];
+          While (Cnt <= MaxCh) And
+                (InstrProp.Ch[Cnt] <> Ch_None) And
+                Not(TmpResult) Do
+            Begin
+              Case InstrProp.Ch[Cnt] Of
+                Ch_WEAX..Ch_MEDI:
+                  TmpResult := Reg = TCh2Reg(InstrProp.Ch[Cnt]);
+                Ch_RWOp1,Ch_WOp1{$ifdef arithopt},C_Mop1{$endif arithopt}:
+                  TmpResult := (paicpu(p1)^.oper[0].typ = top_reg) and
+                               (Reg32(paicpu(p1)^.oper[0].reg) = reg);
+                Ch_RWOp2,Ch_WOp2{$ifdef arithopt},C_Mop2{$endif arithopt}:
+                  TmpResult := (paicpu(p1)^.oper[1].typ = top_reg) and
+                               (Reg32(paicpu(p1)^.oper[1].reg) = reg);
+                Ch_RWOp3,Ch_WOp3{$ifdef arithopt},C_Mop3{$endif arithopt}:
+                  TmpResult := (paicpu(p1)^.oper[2].typ = top_reg) and
+                               (Reg32(paicpu(p1)^.oper[2].reg) = reg);
+                Ch_FPU: TmpResult := Reg in [R_ST..R_ST7,R_MM0..R_MM7];
+                Ch_ALL: TmpResult := true;
+              End;
+              Inc(Cnt)
+            End
+        End
+    End;
+  RegModifiedByInstruction := TmpResult
 End;
 
 {********************* GetNext and GetLastInstruction *********************}
@@ -754,23 +822,6 @@ Begin
     Then Result := Counter
     Else FindZeroReg := False;
 End;*)
-
-Function TCh2Reg(Ch: TInsChange): TRegister;
-{converts a TChange variable to a TRegister}
-Begin
-  If (Ch <= Ch_REDI) Then
-    TCh2Reg := TRegister(Byte(Ch))
-  Else
-    If (Ch <= Ch_WEDI) Then
-      TCh2Reg := TRegister(Byte(Ch) - Byte(Ch_REDI))
-    Else
-      If (Ch <= Ch_RWEDI) Then
-        TCh2Reg := TRegister(Byte(Ch) - Byte(Ch_WEDI))
-      Else
-        If (Ch <= Ch_MEDI) Then
-          TCh2Reg := TRegister(Byte(Ch) - Byte(Ch_RWEDI))
-        Else InternalError($db)
-End;
 
 Procedure IncState(Var S: Byte);
 {Increases S by 1, wraps around at $ffff to 0 (so we won't get overflow
@@ -1879,7 +1930,10 @@ End.
 
 {
  $Log$
- Revision 1.67  1999-11-06 14:34:20  peter
+ Revision 1.68  1999-11-07 14:57:09  jonas
+   * much more complete/waterproof RegModifiedByInstruction()
+
+ Revision 1.67  1999/11/06 14:34:20  peter
    * truncated log to 20 revs
 
  Revision 1.66  1999/11/05 16:01:46  jonas
