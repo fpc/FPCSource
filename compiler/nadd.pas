@@ -322,69 +322,71 @@ implementation
            { 2 booleans ? }
              if is_boolean(ld) and is_boolean(rd) then
               begin
-                case treetype of
-                  andn,
-                  orn:
-                    begin
-                      make_bool_equal_size(p);
-                      calcregisters(p,0,0,0);
-                      location.loc:=LOC_JUMP;
-                    end;
-                  xorn,ltn,lten,gtn,gten:
-                    begin
-                      make_bool_equal_size(p);
-                      if (left.location.loc in [LOC_JUMP,LOC_FLAGS]) and
-                        (left.location.loc in [LOC_JUMP,LOC_FLAGS]) then
-                        calcregisters(p,2,0,0)
-                      else
-                        calcregisters(p,1,0,0);
-                    end;
-                  unequaln,
-                  equaln:
-                    begin
-                      make_bool_equal_size(p);
-                      { Remove any compares with constants }
-                      if (left.treetype=ordconstn) then
-                       begin
-                         hp:=right;
-                         b:=(left.value<>0);
-                         ot:=treetype;
-                         disposetree(left);
-                         putnode(p);
-                         p:=hp;
-                         if (not(b) and (ot=equaln)) or
-                            (b and (ot=unequaln)) then
-                          begin
-                            p:=gensinglenode(notn,hp);
-                            firstpass(hp);
-                          end;
-                         exit;
-                       end;
-                      if (right.treetype=ordconstn) then
-                       begin
-                         hp:=left;
-                         b:=(right.value<>0);
-                         ot:=treetype;
-                         disposetree(right);
-                         putnode(p);
-                         p:=hp;
-                         if (not(b) and (ot=equaln)) or
-                            (b and (ot=unequaln)) then
-                          begin
-                            p:=gensinglenode(notn,p);
-                            firstpass(p);
-                          end;
-                         exit;
-                       end;
-                      if (left.location.loc in [LOC_JUMP,LOC_FLAGS]) and
-                        (left.location.loc in [LOC_JUMP,LOC_FLAGS]) then
-                        calcregisters(p,2,0,0)
-                      else
-                        calcregisters(p,1,0,0);
-                    end;
+                if (cs_full_boolean_eval in aktlocalswitches) or
+                   (treetype in [xorn,ltn,lten,gtn,gten]) then
+                  begin
+                     make_bool_equal_size(p);
+                     if (left.location.loc in [LOC_JUMP,LOC_FLAGS]) and
+                       (left.location.loc in [LOC_JUMP,LOC_FLAGS]) then
+                       calcregisters(p,2,0,0)
+                     else
+                       calcregisters(p,1,0,0);
+                  end
                 else
-                  CGMessage(type_e_mismatch);
-                end;
+                  case treetype of
+                    andn,
+                    orn:
+                      begin
+                        make_bool_equal_size(p);
+                        calcregisters(p,0,0,0);
+                        location.loc:=LOC_JUMP;
+                      end;
+                    unequaln,
+                    equaln:
+                      begin
+                        make_bool_equal_size(p);
+                        { Remove any compares with constants }
+                        if (left.treetype=ordconstn) then
+                         begin
+                           hp:=right;
+                           b:=(left.value<>0);
+                           ot:=treetype;
+                           disposetree(left);
+                           putnode(p);
+                           p:=hp;
+                           if (not(b) and (ot=equaln)) or
+                              (b and (ot=unequaln)) then
+                            begin
+                              p:=gensinglenode(notn,hp);
+                              firstpass(hp);
+                            end;
+                           exit;
+                         end;
+                        if (right.treetype=ordconstn) then
+                         begin
+                           hp:=left;
+                           b:=(right.value<>0);
+                           ot:=treetype;
+                           disposetree(right);
+                           putnode(p);
+                           p:=hp;
+                           if (not(b) and (ot=equaln)) or
+                              (b and (ot=unequaln)) then
+                            begin
+                              p:=gensinglenode(notn,p);
+                              firstpass(p);
+                            end;
+                           exit;
+                         end;
+                        if (left.location.loc in [LOC_JUMP,LOC_FLAGS]) and
+                          (left.location.loc in [LOC_JUMP,LOC_FLAGS]) then
+                          calcregisters(p,2,0,0)
+                        else
+                          calcregisters(p,1,0,0);
+                      end;
+                  else
+                    CGMessage(type_e_mismatch);
+                  end;
 (*
                 { these one can't be in flags! }
 
@@ -788,12 +790,14 @@ implementation
                 calcregisters(p,0,0,0)
               else
                 calcregisters(p,1,0,0);
+{$ifdef newoptimizations2}
 {$ifdef i386}
               { not always necessary, only if it is not a constant char and }
               { not a regvar, but don't know how to check this here (JM)    }
               if is_char(rd) then
                 inc(registers32);
 {$endif i386}
+{$endif newoptimizations2}
               convdone:=true;
            end
          else
@@ -1224,7 +1228,12 @@ begin
 end.
 {
   $Log$
-  Revision 1.3  2000-09-20 21:50:59  florian
+  Revision 1.4  2000-09-21 12:22:42  jonas
+    * put piece of code between -dnewoptimizations2 since it wasn't
+      necessary otherwise
+    + support for full boolean evaluation (from tcadd)
+
+  Revision 1.3  2000/09/20 21:50:59  florian
     * updated
 
   Revision 1.2  2000/08/29 08:24:45  jonas
