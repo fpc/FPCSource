@@ -39,7 +39,7 @@ compiler version and your short cut.
 - $P
 - range checking for open arrays
 - array of const as subroutine parameter
-- open array with call by value
+      - open array with call by value ............................ 0.99.6 (FK)
 - subrange types of enumerations
 - method pointers (procedure of object)
 - code generation for exceptions
