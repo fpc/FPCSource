@@ -644,6 +644,8 @@ begin
                Delete(more,1,1);
                DefaultReplacements(More);
                case c of
+                 'a' :
+                   autoloadunits:=more;
                  'c' :
                    begin
                      if not(cpavailable(more)) then
@@ -2090,7 +2092,12 @@ finalization
 end.
 {
   $Log$
-  Revision 1.163  2005-02-05 10:24:17  florian
+  Revision 1.164  2005-02-06 21:33:28  peter
+    * -Fa option added, it'll load the units before the uses
+      line is parsed. Can be used to load cthreads from the commandline.
+      Example '-g -Faheaptrc,lineinfo' is the same as '-ghl'
+
+  Revision 1.163  2005/02/05 10:24:17  florian
   *** empty log message ***
 
   Revision 1.162  2005/01/20 17:05:53  peter

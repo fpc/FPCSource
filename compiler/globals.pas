@@ -162,6 +162,7 @@ interface
        unitsearchpath,
        objectsearchpath,
        includesearchpath  : TSearchPathList;
+       autoloadunits      : string;
 
        { linking }
        usewindowapi  : boolean;
@@ -2290,7 +2291,12 @@ end;
 end.
 {
   $Log$
-  Revision 1.168  2005-02-06 19:55:19  peter
+  Revision 1.169  2005-02-06 21:33:28  peter
+    * -Fa option added, it'll load the units before the uses
+      line is parsed. Can be used to load cthreads from the commandline.
+      Example '-g -Faheaptrc,lineinfo' is the same as '-ghl'
+
+  Revision 1.168  2005/02/06 19:55:19  peter
     * oldfpccall fixed
 
   Revision 1.167  2005/02/05 16:17:19  florian

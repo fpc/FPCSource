@@ -2192,6 +2192,7 @@ S*2Aas_assemble using GNU AS
 **1e<x>_set path to executable
 **1E_same as -Cn
 **1F<x>_set file names and paths:
+**2Fa<x>[,y]_for a program load first units <x> and [y] before uses is parsed
 **2Fc<x>_sets input codepage to <x>
 **2FD<x>_sets the directory where to search for compiler utilities
 **2Fe<x>_redirect error output to <x>

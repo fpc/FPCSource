@@ -475,6 +475,20 @@ implementation
       end;
 
 
+    procedure loadautounits;
+      var
+        hs,s : string;
+      begin
+        hs:=autoloadunits;
+        repeat
+          s:=GetToken(hs,',');
+          if s='' then
+            break;
+          AddUnit(s);
+        until false;
+      end;
+
+
     procedure loadunits;
       var
          s,sorg  : stringid;
@@ -1347,10 +1361,10 @@ implementation
               current_module.realmodulename:=stringdup(orgpattern);
               current_module.islibrary:=true;
               exportlib.preparelib(orgpattern);
-              
+
               if tf_library_needs_pic in target_info.flags then
                 include(aktmoduleswitches,cs_create_pic);
-                
+
               consume(_ID);
               consume(_SEMICOLON);
            end
@@ -1403,6 +1417,9 @@ implementation
 
          current_module.localmacrosymtable.next:=macrosymtablestack;
          macrosymtablestack:=current_module.localmacrosymtable;
+
+         { Load units provided on the command line }
+         loadautounits;
 
          {Load the units used by the program we compile.}
          if token=_USES then
@@ -1605,7 +1622,12 @@ implementation
 end.
 {
   $Log$
-  Revision 1.183  2005-02-06 11:15:31  peter
+  Revision 1.184  2005-02-06 21:33:28  peter
+    * -Fa option added, it'll load the units before the uses
+      line is parsed. Can be used to load cthreads from the commandline.
+      Example '-g -Faheaptrc,lineinfo' is the same as '-ghl'
+
+  Revision 1.183  2005/02/06 11:15:31  peter
     * removed $threading
 
   Revision 1.182  2005/02/06 00:05:56  florian
