@@ -28,6 +28,11 @@ interface
 { include heap support headers }
 {$I heaph.inc}
 
+{$ifdef debug}
+{$ifdef i386}
+{$define Set_i386_Exception_handler}
+{$endif i386}
+{$endif debug}
 
 const
 { Default filehandles }
@@ -732,12 +737,28 @@ begin
 end;
 {$endif}
 
+  procedure install_exception_handlers;forward;
+  
 {$ASMMODE DIRECT}
+  var
+     { value of the stack segment
+       to check if the call stack can be written on exceptions }
+     _SS : longint;
+     
 procedure Exe_entry;[public, alias : '_FPC_EXE_Entry'];
   begin
      IsLibrary:=false;
+     { install the handlers for exe only ?
+       or should we install them for DLL also ? (PM) }
+     install_exception_handlers;
      asm
+        pushl %ebp
+        xorl %ebp,%ebp
+        movw %ss,%bp
+        movl %ebp,__SS
+        xorl %ebp,%ebp
         call PASCALMAIN
+        popl %ebp
      end;
      { if we pass here there was no error ! }
      ExitProcess(0);
@@ -748,6 +769,9 @@ procedure Dll_entry;[public, alias : '_FPC_DLL_Entry'];
      IsLibrary:=true;
      case DLLreason of
        1,2 : asm
+                xorl %edi,%edi
+                movw %ss,%di
+                movl %edi,__SS
                 call PASCALMAIN
              end;
        else
@@ -756,6 +780,163 @@ procedure Dll_entry;[public, alias : '_FPC_DLL_Entry'];
           end;
      end;
   end;
+
+{$ifdef Set_i386_Exception_handler}
+
+const
+     EXCEPTION_MAXIMUM_PARAMETERS = 15;
+     EXCEPTION_ACCESS_VIOLATION = $c0000005;
+     EXCEPTION_BREAKPOINT = $80000003;
+     EXCEPTION_DATATYPE_MISALIGNMENT = $80000002;
+     EXCEPTION_SINGLE_STEP = $80000004;
+     EXCEPTION_ARRAY_BOUNDS_EXCEEDED = $c000008c;
+     EXCEPTION_FLT_DENORMAL_OPERAND = $c000008d;
+     EXCEPTION_FLT_DIVIDE_BY_ZERO = $c000008e;
+     EXCEPTION_FLT_INEXACT_RESULT = $c000008f;
+     EXCEPTION_FLT_INVALID_OPERATION = $c0000090;
+     EXCEPTION_FLT_OVERFLOW = $c0000091;
+     EXCEPTION_FLT_STACK_CHECK = $c0000092;
+     EXCEPTION_FLT_UNDERFLOW = $c0000093;
+     EXCEPTION_INT_DIVIDE_BY_ZERO = $c0000094;
+     EXCEPTION_INT_OVERFLOW = $c0000095;
+     EXCEPTION_INVALID_HANDLE = $c0000008;
+     EXCEPTION_PRIV_INSTRUCTION = $c0000096;
+     EXCEPTION_NONCONTINUABLE_EXCEPTION = $c0000025;
+     EXCEPTION_NONCONTINUABLE = $1;
+     EXCEPTION_STACK_OVERFLOW = $c00000fd;
+     EXCEPTION_INVALID_DISPOSITION = $c0000026;
+     ExceptionContinueExecution = 0;
+     ExceptionContinueSearch = 1;
+  type
+
+     FLOATING_SAVE_AREA = record
+          ControlWord : DWORD;
+          StatusWord : DWORD;
+          TagWord : DWORD;
+          ErrorOffset : DWORD;
+          ErrorSelector : DWORD;
+          DataOffset : DWORD;
+          DataSelector : DWORD;
+          RegisterArea : array[0..79] of BYTE;
+          Cr0NpxState : DWORD;
+       end;
+     _FLOATING_SAVE_AREA = FLOATING_SAVE_AREA;
+     TFLOATINGSAVEAREA = FLOATING_SAVE_AREA;
+     PFLOATINGSAVEAREA = ^FLOATING_SAVE_AREA;
+
+     CONTEXT = record
+          ContextFlags : DWORD;
+          Dr0 : DWORD;
+          Dr1 : DWORD;
+          Dr2 : DWORD;
+          Dr3 : DWORD;
+          Dr6 : DWORD;
+          Dr7 : DWORD;
+          FloatSave : FLOATING_SAVE_AREA;
+          SegGs : DWORD;
+          SegFs : DWORD;
+          SegEs : DWORD;
+          SegDs : DWORD;
+          Edi : DWORD;
+          Esi : DWORD;
+          Ebx : DWORD;
+          Edx : DWORD;
+          Ecx : DWORD;
+          Eax : DWORD;
+          Ebp : DWORD;
+          Eip : DWORD;
+          SegCs : DWORD;
+          EFlags : DWORD;
+          Esp : DWORD;
+          SegSs : DWORD;
+       end;
+     LPCONTEXT = ^CONTEXT;
+     _CONTEXT = CONTEXT;
+     TCONTEXT = CONTEXT;
+     PCONTEXT = ^CONTEXT;
+
+     
+type pexception_record = ^exception_record;
+     EXCEPTION_RECORD  = record
+       ExceptionCode   : longint;
+       ExceptionFlags  : longint;
+       ExceptionRecord : pexception_record;
+       ExceptionAddress : pointer;
+       NumberParameters : longint;
+       ExceptionInformation : array[0..EXCEPTION_MAXIMUM_PARAMETERS-1] of pointer;
+     end;
+
+     PEXCEPTION_POINTERS = ^EXCEPTION_POINTERS;
+     EXCEPTION_POINTERS = record
+       ExceptionRecord   : PEXCEPTION_RECORD ;
+       ContextRecord     : PCONTEXT ;
+     end;
+
+     { type of functions that should be used for exception handling }
+     LPTOP_LEVEL_EXCEPTION_FILTER = function(excep :PEXCEPTION_POINTERS) : longint;
+ 
+     function SetUnhandledExceptionFilter(lpTopLevelExceptionFilter : LPTOP_LEVEL_EXCEPTION_FILTER)
+       : LPTOP_LEVEL_EXCEPTION_FILTER;
+       external 'kernel32' name 'SetUnhandledExceptionFilter';
+      
+  function syswin32_i386_exception_handler(excep :PEXCEPTION_POINTERS) : longint;
+    var frame : longint;
+    begin
+       { default : unhandled !}
+       if excep^.ContextRecord^.SegSs=_SS then
+         frame:=excep^.ContextRecord^.Ebp
+       else
+         frame:=0;
+       syswin32_i386_exception_handler:=ExceptionContinueSearch;
+       case excep^.ExceptionRecord^.ExceptionCode of
+         EXCEPTION_ACCESS_VIOLATION :
+           Handleerror(216,frame);
+         { EXCEPTION_BREAKPOINT = $80000003;
+         EXCEPTION_DATATYPE_MISALIGNMENT = $80000002;
+         EXCEPTION_SINGLE_STEP = $80000004; }
+         EXCEPTION_ARRAY_BOUNDS_EXCEEDED :
+           Handleerror(201,frame);
+         { EXCEPTION_FLT_DENORMAL_OPERAND = $c000008d; }
+         EXCEPTION_FLT_DIVIDE_BY_ZERO :
+           Handleerror(200,frame);
+         {EXCEPTION_FLT_INEXACT_RESULT = $c000008f;
+         EXCEPTION_FLT_INVALID_OPERATION = $c0000090;}
+         EXCEPTION_FLT_OVERFLOW :
+           Handleerror(205,frame);
+         EXCEPTION_FLT_STACK_CHECK :
+           Handleerror(207,frame);
+         { EXCEPTION_FLT_UNDERFLOW :
+           Handleerror(206,frame); should be accepted as zero !! }
+         EXCEPTION_INT_DIVIDE_BY_ZERO :
+           Handleerror(200,frame);
+         EXCEPTION_INT_OVERFLOW :
+           Handleerror(215,frame);
+         {EXCEPTION_INVALID_HANDLE = $c0000008;
+         EXCEPTION_PRIV_INSTRUCTION = $c0000096;
+         EXCEPTION_NONCONTINUABLE_EXCEPTION = $c0000025;
+         EXCEPTION_NONCONTINUABLE = $1;}
+         EXCEPTION_STACK_OVERFLOW :
+           Handleerror(202,frame);
+         {EXCEPTION_INVALID_DISPOSITION = $c0000026;}
+         end;
+    end;
+    
+var
+   old_exception : LPTOP_LEVEL_EXCEPTION_FILTER;
+   
+  procedure install_exception_handlers;
+    begin
+       old_exception:=SetUnhandledExceptionFilter(@syswin32_i386_exception_handler);
+    end;
+    
+
+{$else not i386 (Processor specific !!)}
+  procedure install_exception_handlers;
+    begin
+    end;
+    
+
+{$endif Set_i386_Exception_handler}
 
   const
      Exe_entry_code : pointer = @Exe_entry;
@@ -799,7 +980,14 @@ end.
 
 {
   $Log$
-  Revision 1.26  1998-11-30 13:13:41  pierre
+  Revision 1.27  1998-12-01 14:00:08  pierre
+    + added conversion from exceptions into run time error
+      (only if syswin32 compiled with -ddebug for now !)
+    * added HandleError(errno,frame)
+      where you specify the frame
+      needed for win32 exception handling
+
+  Revision 1.26  1998/11/30 13:13:41  pierre
    * needs asw to link correctly wprt0 or wdllprt0 file
 
   Revision 1.25  1998/11/30 09:16:58  pierre

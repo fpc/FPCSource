@@ -306,6 +306,26 @@ end;
                           Init / Exit / ExitProc
 *****************************************************************************}
 
+Procedure HandleError (Errno : longint;frame : longint);
+{
+  Procedure to handle internal errors, i.e. not user-invoked errors
+  Internal function should ALWAYS call HandleError instead of RunError.
+  Can be used for exception handlers to specify the frame
+}
+var
+  addr : longint;
+begin
+  addr:=get_caller_addr(frame);
+  If ErrorProc<>Nil then
+    TErrorProc (ErrorProc)(Errno,pointer(addr));
+  errorcode:=Errno;
+  exitcode:=Errno;
+  erroraddr:=pointer(addr);
+  errorbase:=get_caller_frame(frame);
+  DoError:=true;
+  halt(errorcode);
+end;
+
 Procedure HandleError (Errno : longint);[public,alias : 'FPC_HANDLEERROR'];
 {
   Procedure to handle internal errors, i.e. not user-invoked errors
@@ -314,17 +334,8 @@ Procedure HandleError (Errno : longint);[public,alias : 'FPC_HANDLEERROR'];
 var
   addr : longint;
 begin
-  addr:=get_caller_addr(get_frame);
-  If ErrorProc<>Nil then
-    TErrorProc (ErrorProc)(Errno,pointer(addr));
-  errorcode:=Errno;
-  exitcode:=Errno;
-  erroraddr:=pointer(addr);
-  errorbase:=get_caller_frame(get_frame);
-  DoError:=true;
-  halt(errorcode);
+  HandleError(Errno,get_frame);
 end;
-
 
 procedure runerror(w : word);[alias: 'FPC_RUNERROR'];
 begin
@@ -477,7 +488,14 @@ end;
 
 {
   $Log$
-  Revision 1.44  1998-11-26 23:16:15  jonas
+  Revision 1.45  1998-12-01 14:00:10  pierre
+    + added conversion from exceptions into run time error
+      (only if syswin32 compiled with -ddebug for now !)
+    * added HandleError(errno,frame)
+      where you specify the frame
+      needed for win32 exception handling
+
+  Revision 1.44  1998/11/26 23:16:15  jonas
     * changed RandSeed and OldRandSeed to Cardinal to avoid negative random numbers
 
   Revision 1.43  1998/11/17 10:36:07  michael
