@@ -276,8 +276,9 @@ implementation
            begin
               if (defcoll.paratyp in [vs_var,vs_out]) and
               { allows conversion from word to integer and
-                byte to shortint }
+                byte to shortint, but only for TP7 compatibility }
                 (not(
+                   (m_tp7 in aktmodeswitches) and
                    (left.resulttype.def.deftype=orddef) and
                    (defcoll.paratype.def.deftype=orddef) and
                    (left.resulttype.def.size=defcoll.paratype.def.size)
@@ -1616,7 +1617,12 @@ begin
 end.
 {
   $Log$
-  Revision 1.28  2001-04-13 22:22:59  peter
+  Revision 1.29  2001-04-13 23:52:29  peter
+    * don't allow passing signed-unsigned ords to var parameter, this
+      forbids smallint-word, shortint-byte, longint-cardinal mixtures.
+      It's still allowed in tp7 -So mode.
+
+  Revision 1.28  2001/04/13 22:22:59  peter
     * call set_varstate for procvar calls
 
   Revision 1.27  2001/04/13 01:22:08  peter
