@@ -139,7 +139,7 @@ BASEPACKDIR=$(BASEDIR)/basepack
 
 # Newly created fpcmake
 TEMPMAKENEW=$(BASEDIR)/utils/fpcm/fpcmake$(EXEEXT)
-ifneq ($(CPU_SOURCE),$(PPC_TARGET))
+ifneq ($(CPU_SOURCE),$(CPU_TARGET))
 TEMPMAKENEW=fpcmake
 endif
 ifneq ($(OS_SOURCE),$(OS_TARGET))
