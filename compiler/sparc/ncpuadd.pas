@@ -45,14 +45,14 @@ interface
   implementation
 
     uses
-      globtype,systems,
-      cutils,verbose,globals,
-      symconst,symdef,paramgr,
-      aasmbase,aasmtai,aasmcpu,defutil,htypechk,
-      cgbase,cpuinfo,pass_1,pass_2,regvars,cgcpu,
+      systems,
+      cutils,verbose,
+      paramgr,
+      aasmtai,aasmcpu,defutil,
+      cgbase,cgcpu,
       cpupara,
       ncon,nset,nadd,
-      ncgutil,tgobj,rgobj,rgcpu,cgobj,cg64f32;
+      ncgutil,cgobj;
 
 {*****************************************************************************
                                TSparcAddNode
@@ -257,7 +257,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.20  2003-10-01 20:34:50  peter
+  Revision 1.21  2003-10-24 11:28:35  mazen
+  -unused units removed from uses clause
+
+  Revision 1.20  2003/10/01 20:34:50  peter
     * procinfo unit contains tprocinfo
     * cginfo renamed to cgbase
     * moved cgmessage to verbose
