@@ -324,6 +324,7 @@ implementation
 {$endif powerpc}
 {$ifdef i386}
           target_i386_BeOS,
+          target_i386_SunOS,
           target_i386_GO32V2 :
             begin
               { stacksize can be specified }
@@ -1348,7 +1349,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.49  2001-11-02 23:16:51  peter
+  Revision 1.50  2001-12-09 03:34:58  carl
+  + Stack checking for solaris
+
+  Revision 1.49  2001/11/02 23:16:51  peter
     * removed obsolete chainprocsym and test_procsym code
 
   Revision 1.48  2001/11/02 22:58:05  peter
