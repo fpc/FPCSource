@@ -38,6 +38,12 @@
   {$maxfpuregisters 0}
 {$endif CPUI386}
 
+{ the assembler helpers need this }
+{$ifdef POWERPC}
+  {$goto+}
+{$endif POWERPC}
+
+
 { needed for insert,delete,readln }
 {$P+}
 { stack checking always disabled
@@ -693,7 +699,10 @@ const
 
 {
   $Log$
-  Revision 1.77  2003-11-03 09:42:28  marco
+  Revision 1.78  2003-11-15 19:01:27  florian
+    * fixed rtl to work with the integrated fpc ppc assembler reader
+
+  Revision 1.77  2003/11/03 09:42:28  marco
    * Peter's Cardinal<->Longint fixes patch
 
   Revision 1.76  2003/10/17 20:52:12  olle

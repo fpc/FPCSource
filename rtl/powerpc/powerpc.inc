@@ -27,44 +27,82 @@
   load subroutines
 }
 {$ifndef MACOS}
+label
+  _restfpr_14_x,
+  _restfpr_15_x,
+  _restfpr_16_x,
+  _restfpr_17_x,
+  _restfpr_18_x,
+  _restfpr_19_x,
+  _restfpr_20_x,
+  _restfpr_21_x,
+  _restfpr_22_x,
+  _restfpr_23_x,
+  _restfpr_24_x,
+  _restfpr_25_x,
+  _restfpr_26_x,
+  _restfpr_27_x,
+  _restfpr_28_x,
+  _restfpr_29_x,
+  _restfpr_30_x,
+  _restfpr_31_x,
+  _restfpr_14_l,
+  _restfpr_15_l,
+  _restfpr_16_l,
+  _restfpr_17_l,
+  _restfpr_18_l,
+  _restfpr_19_l,
+  _restfpr_20_l,
+  _restfpr_21_l,
+  _restfpr_22_l,
+  _restfpr_23_l,
+  _restfpr_24_l,
+  _restfpr_25_l,
+  _restfpr_26_l,
+  _restfpr_27_l,
+  _restfpr_28_l,
+  _restfpr_29_l,
+  _restfpr_30_l,
+  _restfpr_31_l;
+
 procedure saverestorereg;assembler;
 asm
 { exit }
-.global _restfpr_14_x
+.globl _restfpr_14_x
 _restfpr_14_x:  lfd     f14, -144(r11)
-.global _restfpr_15_x
+.globl _restfpr_15_x
 _restfpr_15_x:  lfd     f15, -136(r11)
-.global _restfpr_16_x
+.globl _restfpr_16_x
 _restfpr_16_x:  lfd     f16, -128(r11)
-.global _restfpr_17_x
+.globl _restfpr_17_x
 _restfpr_17_x:  lfd     f17, -120(r11)
-.global _restfpr_18_x
+.globl _restfpr_18_x
 _restfpr_18_x:  lfd     f18, -112(r11)
-.global _restfpr_19_x
+.globl _restfpr_19_x
 _restfpr_19_x:  lfd     f19, -104(r11)
-.global _restfpr_20_x
+.globl _restfpr_20_x
 _restfpr_20_x:  lfd     f20, -96(r11)
-.global _restfpr_21_x
+.globl _restfpr_21_x
 _restfpr_21_x:  lfd     f21, -88(r11)
-.global _restfpr_22_x
+.globl _restfpr_22_x
 _restfpr_22_x:  lfd     f22, -80(r11)
-.global _restfpr_23_x
+.globl _restfpr_23_x
 _restfpr_23_x:  lfd     f23, -72(r11)
-.global _restfpr_24_x
+.globl _restfpr_24_x
 _restfpr_24_x:  lfd     f24, -64(r11)
-.global _restfpr_25_x
+.globl _restfpr_25_x
 _restfpr_25_x:  lfd     f25, -56(r11)
-.global _restfpr_26_x
+.globl _restfpr_26_x
 _restfpr_26_x:  lfd     f26, -48(r11)
-.global _restfpr_27_x
+.globl _restfpr_27_x
 _restfpr_27_x:  lfd     f27, -40(r11)
-.global _restfpr_28_x
+.globl _restfpr_28_x
 _restfpr_28_x:  lfd     f28, -32(r11)
-.global _restfpr_29_x
+.globl _restfpr_29_x
 _restfpr_29_x:  lfd     f29, -24(r11)
-.global _restfpr_30_x
+.globl _restfpr_30_x
 _restfpr_30_x:  lfd     f30, -16(r11)
-.global _restfpr_31_x
+.globl _restfpr_31_x
 _restfpr_31_x:  lwz     r0, 4(r11)
                 lfd     f31, -8(r11)
                 mtlr    r0
@@ -72,41 +110,41 @@ _restfpr_31_x:  lwz     r0, 4(r11)
                 blr
 
 { exit with restoring lr }
-.global _restfpr_14_l
+.globl _restfpr_14_l
 _restfpr_14_l:  lfd     f14, -144(r11)
-.global _restfpr_15_l
+.globl _restfpr_15_l
 _restfpr_15_l:  lfd     f15, -136(r11)
-.global _restfpr_16_l
+.globl _restfpr_16_l
 _restfpr_16_l:  lfd     f16, -128(r11)
-.global _restfpr_17_l
+.globl _restfpr_17_l
 _restfpr_17_l:  lfd     f17, -120(r11)
-.global _restfpr_18_l
+.globl _restfpr_18_l
 _restfpr_18_l:  lfd     f18, -112(r11)
-.global _restfpr_19_l
+.globl _restfpr_19_l
 _restfpr_19_l:  lfd     f19, -104(r11)
-.global _restfpr_20_l
+.globl _restfpr_20_l
 _restfpr_20_l:  lfd     f20, -96(r11)
-.global _restfpr_21_l
+.globl _restfpr_21_l
 _restfpr_21_l:  lfd     f21, -88(r11)
-.global _restfpr_22_l
+.globl _restfpr_22_l
 _restfpr_22_l:  lfd     f22, -80(r11)
-.global _restfpr_23_l
+.globl _restfpr_23_l
 _restfpr_23_l:  lfd     f23, -72(r11)
-.global _restfpr_24_l
+.globl _restfpr_24_l
 _restfpr_24_l:  lfd     f24, -64(r11)
-.global _restfpr_25_l
+.globl _restfpr_25_l
 _restfpr_25_l:  lfd     f25, -56(r11)
-.global _restfpr_26_l
+.globl _restfpr_26_l
 _restfpr_26_l:  lfd     f26, -48(r11)
-.global _restfpr_27_l
+.globl _restfpr_27_l
 _restfpr_27_l:  lfd     f27, -40(r11)
-.global _restfpr_28_l
+.globl _restfpr_28_l
 _restfpr_28_l:  lfd     f28, -32(r11)
-.global _restfpr_29_l
+.globl _restfpr_29_l
 _restfpr_29_l:  lfd     f29, -24(r11)
-.global _restfpr_30_l
+.globl _restfpr_30_l
 _restfpr_30_l:  lfd     f30, -16(r11)
-.global _restfpr_31_l
+.globl _restfpr_31_l
 _restfpr_31_l:  lwz     r0, 4(r11)
                 lfd     f31, -8(r11)
                 mtlr    r0
@@ -140,7 +178,7 @@ asm
           cmpwi   cr7,r5,63
 
           {  if count <= 0, stop  }
-          ble     cr0,LMoveDone
+          ble     cr0,.LMoveDone
 
           {  load the begin of the source in the data cache }
           dcbt    0,r3
@@ -160,7 +198,7 @@ asm
           addi    r10,r10,1
 
           {  if count < 15, copy everything byte by byte  }
-          blt     cr1,LMoveBytes
+          blt     cr1,.LMoveBytes
 
           {  if no overlap, then source/dest += -1, otherwise they stay }
           {  After the next instruction, r3/r4 + r10 = next position to }
@@ -169,14 +207,14 @@ asm
           add     r4,r4,r6
 
           {  otherwise, guarantee 4 byte alignment for dest for starters  }
-LMove4ByteAlignLoop:
+.LMove4ByteAlignLoop:
           lbzux   r0,r3,r10
           stbux   r0,r4,r10
           {  is dest now 4 aligned?  }
           andi.   r0,r4,3
           subi    r5,r5,1
           {  while not aligned, continue  }
-          bne     cr0,LMove4ByteAlignLoop
+          bne     cr0,.LMove4ByteAlignLoop
 
 {$ifndef ppc603}
           { check for 32 byte alignment }
@@ -215,17 +253,17 @@ LMove4ByteAlignLoop:
           add     r4,r4,r6
 
 {$ifndef ppc603}
-          beq     cr0,LMove32BytesAligned
-L32BytesAlignMoveLoop:
+          beq     cr0,.LMove32BytesAligned
+.L32BytesAlignMoveLoop:
           {  count >= 39 -> align to 8 byte boundary and then use the FPU  }
           {  since we're already at 4 byte alignment, use dword store      }
           subic.  r7,r7,4
           lwzux   r0,r3,r10
           subi    r5,r5,4
           stwux   r0,r4,r10
-          bne     L32BytesAlignMoveLoop
+          bne     .L32BytesAlignMoveLoop
 
-LMove32BytesAligned:
+.LMove32BytesAligned:
           { count div 32 ( >= 1, since count was >=63 }
           srwi    r0,r5,5
           { remainder }
@@ -268,7 +306,7 @@ LMove32BytesAligned:
           neg     r7,r7
           subi    r7,r7,32
 
-LMove32ByteDcbz:
+.LMove32ByteDcbz:
           lfdux   f0,r3,r10
           lfdux   f1,r3,r10
           lfdux   f2,r3,r10
@@ -280,10 +318,10 @@ LMove32ByteDcbz:
           stfdux  f1,r4,r10
           stfdux  f2,r4,r10
           stfdux  f3,r4,r10
-          bdnz    LMove32ByteDcbz
-LMove32ByteLoopDone:
+          bdnz    .LMove32ByteDcbz
+.LMove32ByteLoopDone:
 {$else not ppc603}
-LMove16ByteLoop:
+.LMove16ByteLoop:
           lwzux   r11,r3,r10
           lwzux   r7,r3,r10
           lwzux   r8,r3,r10
@@ -292,11 +330,11 @@ LMove16ByteLoop:
           stwux   r7,r4,r10
           stwux   r8,r4,r10
           stwux   r9,r4,r10
-          bdnz    LMove16ByteLoop
+          bdnz    .LMove16ByteLoop
 {$endif not ppc603}
 
           { cr0*4+eq is true if "count and 31" = 0 }
-          beq     cr0,LMoveDone
+          beq     cr0,.LMoveDone
 
           {  make r10 again -1 or 1, but first adjust source/dest pointers }
           sub     r3,r3,r6
@@ -310,9 +348,9 @@ LMove16ByteLoop:
 {$endif not ppc603}
 
           { cr1 contains whether count <= 11 }
-          ble     cr1,LMoveBytes
+          ble     cr1,.LMoveBytes
 
-LMoveDWords:
+.LMoveDWords:
           mtctr   r0
           andi.   r5,r5,3
           {  r10 * 4  }
@@ -321,26 +359,26 @@ LMoveDWords:
           add     r3,r3,r6
           add     r4,r4,r6
 
-LMoveDWordsLoop:
+.LMoveDWordsLoop:
           lwzux   r0,r3,r10
           stwux   r0,r4,r10
-          bdnz    LMoveDWordsLoop
+          bdnz    .LMoveDWordsLoop
 
-          beq     cr0,LMoveDone
+          beq     cr0,.LMoveDone
           {  make r10 again -1 or 1  }
           sub     r3,r3,r6
           sub     r4,r4,r6
           srawi   r10,r10,2
           srawi   r6,r6,2
-LMoveBytes:
+.LMoveBytes:
           add     r3,r3,r6
           add     r4,r4,r6
           mtctr   r5
-LMoveBytesLoop:
+.LMoveBytesLoop:
           lbzux   r0,r3,r10
           stbux   r0,r4,r10
-          bdnz    LMoveBytesLoop
-LMoveDone:
+          bdnz    .LMoveBytesLoop
+.LMoveDone:
 end;
 
 
@@ -371,12 +409,12 @@ asm
         { setup for aligning x to multiple of 4}
         rlwinm    r10,r3,0,31-2+1,31
         rlwimi    r5,r5,16,0,15
-        ble       cr6,LFillCharDone
+        ble       cr6,.LFillCharDone
         { get the start of the data in the cache (and mark it as "will be }
         { modified")                                                      }
         dcbtst    0,r3
         subfic    r10,r10,4
-        blt       cr7,LFillCharVerySmall
+        blt       cr7,.LFillCharVerySmall
         { just store 4 bytes instead of using a loop to align (there are }
         { plenty of other instructions now to keep the processor busy    }
         { while it handles the (possibly unaligned) store)               }
@@ -385,7 +423,7 @@ asm
         add       r3,r3,r10
         { decrease count with number of bytes already stored }
         sub       r4,r4,r10
-        blt       cr1,LFillCharSmall
+        blt       cr1,.LFillCharSmall
         { if we have to fill with 0 (which happens a lot), we can simply use }
         { dcbz for the most part, which is very fast, so make a special case }
         { for that                                                           }
@@ -398,16 +436,16 @@ asm
         { get number of bytes to store }
         subfic    r10,r10,32
         { if already 32byte aligned, skip align loop }
-        beq       L32ByteAlignLoopDone
+        beq       .L32ByteAlignLoopDone
         { substract from the total count }
         sub       r4,r4,r10
-L32ByteAlignLoop:
+.L32ByteAlignLoop:
         { we were already aligned to 4 byres, so this will count down to }
         { exactly 0                                                      }
         subic.    r10,r10,4
         stwu      r5,4(r3)
-        bne       L32ByteAlignLoop
-L32ByteAlignLoopDone:
+        bne       .L32ByteAlignLoop
+.L32ByteAlignLoopDone:
         { get the amount of 32 byte blocks }
         srwi      r10,r4,5
         { and keep the rest in r4 (recording whether there is any rest) }
@@ -421,14 +459,14 @@ L32ByteAlignLoopDone:
         bne       cr1, LFillCharNoZero
         { make r3 point again to the actual store position }
         addi      r3,r3,4
-LFillCharDCBZLoop:
+.LFillCharDCBZLoop:
         dcbz      0,r3
         addi      r3,r3,32
-        bdnz      LFillCharDCBZLoop
+        bdnz      .LFillCharDCBZLoop
         { if there was no rest, we're finished }
-        beq       LFillCharDone
-        b         LFillCharVerySmall
-LFillCharNoZero:
+        beq       .LFillCharDone
+        b         .LFillCharVerySmall
+.LFillCharNoZero:
 {$ifdef FPC_ABI_AIX}
         stw       r5,0(r1)
         stw       r5,4(r1)
@@ -443,19 +481,19 @@ LFillCharNoZero:
         subi      r3,r3,4
         { load r10 with 8, so that dcbz uses the correct address }
         li        r10, 8
-LFillChar32ByteLoop:
+.LFillChar32ByteLoop:
         dcbz      r3,r10
         stfdu     f0,8(r3)
         stfdu     f0,8(r3)
         stfdu     f0,8(r3)
         stfdu     f0,8(r3)
-        bdnz      LFillChar32ByteLoop
+        bdnz      .LFillChar32ByteLoop
         { if there was no rest, we're finished }
-        beq       LFillCharDone
+        beq       .LFillCharDone
         { make r3 point again to the actual next byte that must be written }
         addi      r3,r3,8
-        b         LFillCharVerySmall
-LFillCharSmall:
+        b         .LFillCharVerySmall
+.LFillCharSmall:
         { when we arrive here, we're already 4 byte aligned }
         { get count div 4 to store dwords }
         srwi      r10,r4,2
@@ -463,20 +501,20 @@ LFillCharSmall:
         subi      r3,r3,4
         mtctr     r10
         rlwinm.   r4,r4,0,31-2+1,31
-LFillCharSmallLoop:
+.LFillCharSmallLoop:
         stwu      r5,4(r3)
-        bdnz      LFillCharSmallLoop
+        bdnz      .LFillCharSmallLoop
         { if nothing left, stop }
-        beq       LFillCharDone
+        beq       .LFillCharDone
         { get ready to store bytes }
         addi      r3,r3,4
-LFillCharVerySmall:
+.LFillCharVerySmall:
         mtctr     r4
         subi      r3,r3,1
-LFillCharVerySmallLoop:
+.LFillCharVerySmallLoop:
         stbu      r5,1(r3)
-        bdnz      LFillCharVerySmallLoop
-LFillCharDone:
+        bdnz      .LFillCharVerySmallLoop
+.LFillCharDone:
 end;
 
 
@@ -492,11 +530,11 @@ asm
                 cmpwi   cr0,r4,0
                 mtctr   r4
                 subi    r3,r3,4
-                ble    LFillDWordEnd    //if count<=0 Then Exit
-LFillDWordLoop:
+                ble    .LFillDWordEnd    //if count<=0 Then Exit
+.LFillDWordLoop:
                 stwu    r5,4(r3)
-                bdnz    LFillDWordLoop
-LFillDWordEnd:
+                bdnz    .LFillDWordLoop
+.LFillDWordEnd:
 end;
 
 
@@ -513,15 +551,15 @@ asm
                 mr      r0,r3
                 { assume not found }
                 li      r3,-1
-                ble     LIndexByteDone
-LIndexByteLoop:
+                ble     .LIndexByteDone
+.LIndexByteLoop:
                 lbzu    r9,1(r10)
                 cmplw   r9,r5
-                bdnzf   cr0*4+eq,LIndexByteLoop
+                bdnzf   cr0*4+eq,.LIndexByteLoop
                 { r3 still contains -1 here }
-                bne     LIndexByteDone
+                bne     .LIndexByteDone
                 sub     r3,r10,r0
-LIndexByteDone:
+.LIndexByteDone:
 end;
 
 
@@ -538,15 +576,15 @@ asm
                 mr      r0,r3
                 { assume not found }
                 li      r3,-1
-                ble     LIndexWordDone
-LIndexWordLoop:
+                ble     .LIndexWordDone
+.LIndexWordLoop:
                 lhzu    r9,2(r10)
                 cmplw   r9,r5
-                bdnzf   cr0*4+eq,LIndexWordLoop
+                bdnzf   cr0*4+eq,.LIndexWordLoop
                 { r3 still contains -1 here }
-                bne     LIndexWordDone
+                bne     .LIndexWordDone
                 sub     r3,r10,r0
-LIndexWordDone:
+.LIndexWordDone:
 end;
 
 
@@ -563,15 +601,15 @@ asm
                 mr      r0,r3
                 { assume not found }
                 li      r3,-1
-                ble     LIndexDWordDone
-LIndexDWordLoop:
+                ble     .LIndexDWordDone
+.LIndexDWordLoop:
                 lwzu    r9,4(r10)
                 cmplw   r9,r5
-                bdnzf   cr0*4+eq, LIndexDWordLoop
+                bdnzf   cr0*4+eq, .LIndexDWordLoop
                 { r3 still contains -1 here }
-                bne     LIndexDWordDone
+                bne     .LIndexDWordDone
                 sub     r3,r10,r0
-LIndexDWordDone:
+.LIndexDWordDone:
 end;
 
 {$define FPC_SYSTEM_HAS_COMPAREBYTE}
@@ -588,16 +626,16 @@ asm
         subi    r11,r3,1
         subi    r4,r4,1
         li      r3,0
-        ble     LCompByteDone
-LCompByteLoop:
+        ble     .LCompByteDone
+.LCompByteLoop:
         { load next chars }
         lbzu    r9,1(r11)
         lbzu    r10,1(r4)
         { calculate difference }
         sub.    r3,r9,r10
         { if chars not equal or at the end, we're ready }
-        bdnzt   cr0*4+eq, LCompByteLoop
-LCompByteDone:
+        bdnzt   cr0*4+eq, .LCompByteLoop
+.LCompByteDone:
 end;
 
 {$define FPC_SYSTEM_HAS_COMPAREWORD}
@@ -614,16 +652,16 @@ asm
         subi    r11,r3,2
         subi    r4,r4,2
         li      r3,0
-        ble     LCompWordDone
-LCompWordLoop:
+        ble     .LCompWordDone
+.LCompWordLoop:
         { load next chars }
         lhzu    r9,2(r11)
         lhzu    r10,2(r4)
         { calculate difference }
         sub.    r3,r9,r10
         { if chars not equal or at the end, we're ready }
-        bdnzt   cr0*4+eq, LCompWordLoop
-LCompWordDone:
+        bdnzt   cr0*4+eq, .LCompWordLoop
+.LCompWordDone:
 end;
 
 
@@ -641,16 +679,16 @@ asm
         subi    r11,r3,4
         subi    r4,r4,4
         li      r3,0
-        ble     LCompDWordDone
-LCompDWordLoop:
+        ble     .LCompDWordDone
+.LCompDWordLoop:
         { load next chars }
         lwzu    r9,4(r11)
         lwzu    r10,4(r4)
         { calculate difference }
         sub.    r3,r9,r10
         { if chars not equal or at the end, we're ready }
-        bdnzt   cr0*4+eq, LCompDWordLoop
-LCompDWordDone:
+        bdnzt   cr0*4+eq, .LCompDWordLoop
+.LCompDWordDone:
 end;
 
 {$define FPC_SYSTEM_HAS_INDEXCHAR0}
@@ -668,16 +706,16 @@ asm
         { assume not found }
         li      r3,-1
         { if yes, do nothing }
-        ble     LIndexChar0Done
-LIndexChar0Loop:
+        ble     .LIndexChar0Done
+.LIndexChar0Loop:
         lbzu    r10,1(r9)
         cmplwi  cr1,r10,0
         cmplw   r10,r5
-        beq     cr1,LIndexChar0Done
-        bdnzf   cr0*4+eq, LIndexChar0Loop
-        bne     LIndexChar0Done
+        beq     cr1,.LIndexChar0Done
+        bdnzf   cr0*4+eq, .LIndexChar0Loop
+        bne     .LIndexChar0Done
         sub     r3,r9,r0
-LIndexChar0Done:
+.LIndexChar0Done:
 end;
 
 
@@ -705,12 +743,12 @@ asm
         { put length in ctr }
         mtctr   r4
         stb     r4,0(r3)
-        beq     LShortStrCopyDone
-LShortStrCopyLoop:
+        beq     .LShortStrCopyDone
+.LShortStrCopyLoop:
         lbzu    r0,1(r5)
         stbu    r0,1(r3)
-        bdnz    LShortStrCopyLoop
-LShortStrCopyDone:
+        bdnz    .LShortStrCopyLoop
+.LShortStrCopyDone:
 end;
 
 
@@ -738,12 +776,12 @@ asm
         { put length in ctr }
         mtctr   r3
         stb     r3,0(r5)
-        beq     LShortStrCopyDone2
-LShortStrCopyLoop2:
+        beq     .LShortStrCopyDone2
+.LShortStrCopyLoop2:
         lbzu    r0,1(r4)
         stbu    r0,1(r5)
-        bdnz    LShortStrCopyLoop2
-LShortStrCopyDone2:
+        bdnz    .LShortStrCopyLoop2
+.LShortStrCopyDone2:
 end;
 
 
@@ -776,15 +814,15 @@ asm
       stb     r10,0(r3)
       { go to last current character of result }
       add     r3,r6,r3
-      
+
       { if nothing to do, exit }
-      beq     LShortStrAppendDone
+      beq     .LShortStrAppendDone
       { and concatenate }
-LShortStrAppendLoop:
+.LShortStrAppendLoop:
       lbzu    r10,1(r5)
       stbu    r10,1(r3)
-      bdnz    LShortStrAppendLoop
-LShortStrAppendDone:
+      bdnz    .LShortStrAppendLoop
+.LShortStrAppendDone:
 end;
 
 (*
@@ -870,16 +908,16 @@ end;
 function get_caller_addr(framebp:pointer):pointer;assembler;
 asm
    cmplwi  r3,0
-   beq     Lcaller_addr_frame_null
+   beq     .Lcaller_addr_frame_null
    lwz r3,0(r3)
    cmplwi  r3,0
-   beq     Lcaller_addr_frame_null
+   beq     .Lcaller_addr_frame_null
 {$ifdef FPC_ABI_AIX}
    lwz r3,8(r3)
 {$else FPC_ABI_AIX}
    lwz r3,4(r3)
 {$endif FPC_ABI_AIX}
-Lcaller_addr_frame_null:
+.Lcaller_addr_frame_null:
 end;
 
 
@@ -887,9 +925,9 @@ end;
 function get_caller_frame(framebp:pointer):pointer;assembler;
 asm
     cmplwi  r3,0
-    beq     Lcaller_frame_null
+    beq     .Lcaller_frame_null
     lwz  r3,0(r3)
-Lcaller_frame_null:
+.Lcaller_frame_null:
 end;
 
 {$define FPC_SYSTEM_HAS_ABS_LONGINT}
@@ -920,7 +958,7 @@ end;
 
 
 {$define FPC_SYSTEM_HAS_SPTR}
-Function Sptr : Longint;assembler;
+Function Sptr : Pointer;assembler;
 asm
         mr    r3,r1
 end;
@@ -944,11 +982,11 @@ function declocked(var l : longint) : boolean;assembler;
 { input:  address of l in r3                                      }
 { output: boolean indicating whether l is zero after decrementing }
 asm
-LDecLockedLoop:
+.LDecLockedLoop:
     lwarx   r10,0,r3
     subi    r10,r10,1
     stwcx.  r10,0,r3
-    bne-    LDecLockedLoop
+    bne-    .LDecLockedLoop
     cntlzw  r3,r10
     srwi    r3,r3,5
 end;
@@ -956,17 +994,20 @@ end;
 {$define FPC_SYSTEM_HAS_INCLOCKED}
 procedure inclocked(var l : longint);assembler;
 asm
-LIncLockedLoop:
+.LIncLockedLoop:
     lwarx   r10,0,r3
     addi    r10,r10,1
     stwcx.  r10,0,r3
-    bne-    LIncLockedLoop
+    bne-    .LIncLockedLoop
 end;
 
 
 {
   $Log$
-  Revision 1.54  2003-09-14 20:33:28  jonas
+  Revision 1.55  2003-11-15 19:01:27  florian
+    * fixed rtl to work with the integrated fpc ppc assembler reader
+
+  Revision 1.54  2003/09/14 20:33:28  jonas
     * renamed sp to r1, gnu as doesn't understand sp
 
   Revision 1.53  2003/09/06 10:44:41  olle

@@ -153,9 +153,9 @@ asm
   stfd     f1,8(r3)
   stfd     f2,16(r3)
   stfd     f3,24(r3)
-  
+
   cmplw  cr0,r5,r6
-  bgt    cr0,Lset_range_exit
+  bgt    cr0,.Lset_range_exit
   rlwinm r4,r5,31-3+1,3,31-2  // divide by 8 to get starting and ending byte-
   { load the set the data cache }
   dcbtst r3,r4
@@ -171,21 +171,21 @@ asm
   slw    r10,r10,r5           // shift bitmask to clear bits below lo
   lwzux  r5,r3,r4             // go to starting pos in set and load value
                               //  (lo is not necessary anymore)
-  beq    Lset_range_hi        // if bit lo and hi in same longint, keep
+  beq    .Lset_range_hi       // if bit lo and hi in same longint, keep
                               //  current mask and adjust for hi bit
   subic. r9,r9,4              // bit hi in next longint?
   or     r5,r5,r10            // merge and
   stw    r5,0(r3)             // store current mask
   li     r10,-1               // new mask
   lwzu   r5,4(r3)             // load next longint of set
-  beq    Lset_range_hi        // bit hi in this longint -> go to adjust for hi
+  beq    .Lset_range_hi       // bit hi in this longint -> go to adjust for hi
   subi   r3,r3,4
-Lset_range_loop:
+.Lset_range_loop:
   subic. r9,r9,4
-  stwu   r10,4(r3)             // fill longints in between with full mask
-  bne    Lset_range_loop
+  stwu   r10,4(r3)            // fill longints in between with full mask
+  bne    .Lset_range_loop
   lwzu   r5,4(r3)             // load next value from set
-Lset_range_hi:                // in all cases, r3 here contains the address of
+.Lset_range_hi:               // in all cases, r3 here contains the address of
                               //  the longint which contains the hi bit and r4
                               //  contains this longint
   srw    r9,r10,r6            // r9 := bitmask shl (31 - (hi mod 32)) =
@@ -195,7 +195,7 @@ Lset_range_hi:                // in all cases, r3 here contains the address of
   and    r10,r9,r10           // combine lo and hi bitmasks for this longint
   or     r5,r5,r10            // and combine with existing set
   stw    r5,0(r3)             // store to set
-Lset_range_exit:
+.Lset_range_exit:
 end;
 
 
@@ -216,7 +216,7 @@ asm
 
        // r4 := 32 - r4 (no problem if r4 > 32, the rlwnm next does a mod 32)
        subfic   r4,r4,32
-       // r3 := (r3 shr (r4 mod 32)) and 1  
+       // r3 := (r3 shr (r4 mod 32)) and 1
        rlwnm    r3,r3,r4,31,31
 end;
 
@@ -236,12 +236,12 @@ asm
        subi     r5,r5,4
        subi     r4,r4,4
        subi     r3,r3,4
-   LMADDSETS1:
+   .LMADDSETS1:
       lwzu      r0,4(r4)
       lwzu      r10,4(r5)
       or        r0,r0,r10
       stwu      r0,4(r3)
-      bdnz      LMADDSETS1
+      bdnz      .LMADDSETS1
 end;
 
 
@@ -259,12 +259,12 @@ asm
        subi     r5,r5,4
        subi     r4,r4,4
        subi     r3,r3,4
-   LMMULSETS1:
+   .LMMULSETS1:
       lwzu      r0,4(r4)
       lwzu      r10,4(r5)
       and       r0,r0,r10
       stwu      r0,4(r3)
-      bdnz      LMMULSETS1
+      bdnz      .LMMULSETS1
 end;
 
 
@@ -282,12 +282,12 @@ asm
        subi     r5,r5,4
        subi     r4,r4,4
        subi     r3,r3,4
-   LMSUBSETS1:
+   .LMSUBSETS1:
       lwzu      r0,4(r4)
       lwzu      r10,4(r5)
       andc      r0,r0,r10
       stwu      r0,4(r3)
-      bdnz      LMSUBSETS1
+      bdnz      .LMSUBSETS1
 end;
 
 
@@ -305,12 +305,12 @@ asm
        subi     r5,r5,4
        subi     r4,r4,4
        subi     r3,r3,4
-   LMSYMDIFSETS1:
+   .LMSYMDIFSETS1:
       lwzu      r0,4(r4)
       lwzu      r10,4(r5)
       xor       r0,r0,r10
       stwu      r0,4(r3)
-      bdnz      LMSYMDIFSETS1
+      bdnz      .LMSYMDIFSETS1
 end;
 
 
@@ -325,11 +325,11 @@ asm
        mtctr    r0
        subi     r3,r3,4
        subi     r4,r4,4
-    LMCOMPSETS1:
+    .LMCOMPSETS1:
        lwzu     r0,4(r3)
        lwzu     r10,4(r4)
        sub.     r0,r0,r10
-       bdnzt    cr0*4+eq,LMCOMPSETS1
+       bdnzt    cr0*4+eq,.LMCOMPSETS1
        cntlzw   r3,r0
        srwi.    r3,r3,5
 end;
@@ -346,12 +346,12 @@ asm
        mtctr    r0
        subi     r3,r3,4
        subi     r4,r4,4
-    LMCONTAINSSETS1:
+    .LMCONTAINSSETS1:
        lwzu     r0,4(r3)
        lwzu     r10,4(r4)
        { set1 and not(set2) = 0? }
        andc.    r0,r0,r10
-       bdnzt    cr0*4+eq,LMCONTAINSSETS1
+       bdnzt    cr0*4+eq,.LMCONTAINSSETS1
        cntlzw   r3,r0
        srwi.    r3,r3,5
 end;
@@ -407,13 +407,13 @@ asm
       movl set2,%ebx
       movl dest,%edi
       movl size,%ecx
-  LMADDSETSIZES1:
+  .LMADDSETSIZES1:
       lodsl
       orl (%ebx),%eax
       stosl
       addl $4,%ebx
       decl %ecx
-      jnz LMADDSETSIZES1
+      jnz .LMADDSETSIZES1
 end;
 
 
@@ -427,13 +427,13 @@ asm
          movl set2,%ebx
          movl dest,%edi
          movl size,%ecx
-     LMMULSETSIZES1:
+     .LMMULSETSIZES1:
          lodsl
          andl (%ebx),%eax
          stosl
          addl $4,%ebx
          decl %ecx
-         jnz LMMULSETSIZES1
+         jnz .LMMULSETSIZES1
 end;
 
 
@@ -443,7 +443,7 @@ asm
          movl set2,%ebx
          movl dest,%edi
          movl size,%ecx
-     LMSUBSETSIZES1:
+     .LMSUBSETSIZES1:
          lodsl
          movl (%ebx),%edx
          notl %edx
@@ -451,7 +451,7 @@ asm
          stosl
          addl $4,%ebx
          decl %ecx
-         jnz LMSUBSETSIZES1
+         jnz .LMSUBSETSIZES1
 end;
 
 
@@ -464,7 +464,7 @@ asm
       movl set2,%ebx
       movl dest,%edi
       movl size,%ecx
-  LMSYMDIFSETSIZE1:
+  .LMSYMDIFSETSIZE1:
       lodsl
       movl (%ebx),%edx
       xorl %edx,%eax
@@ -523,7 +523,10 @@ end;
 
 {
   $Log$
-  Revision 1.22  2003-06-14 12:41:08  jonas
+  Revision 1.23  2003-11-15 19:01:27  florian
+    * fixed rtl to work with the integrated fpc ppc assembler reader
+
+  Revision 1.22  2003/06/14 12:41:08  jonas
     * fixed compilation problems (removed unnecessary modified registers
       lists from procedures)
 

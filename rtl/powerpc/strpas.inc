@@ -27,16 +27,16 @@ asm
         mtctr   r10
         { at LStrPasDone, we set the length of the result to 255 - r10 - r4 }
         { = 255 - 255 - 0 if the soure = nil -> perfect :)                  }
-        beq     LStrPasDone
+        beq     .LStrPasDone
         { save address for at the end  and use r5 in loop }
         mr      r5,r3
         { no "subi r5,r5,1" because the first byte = length byte }
         subi    r4,r4,1
-LStrPasLoop:
+.LStrPasLoop:
         lbzu    r10,1(r4)
         cmplwi  cr0,r10,0
         stbu    r10,1(r5)
-        bdnzf   cr0*4+eq, LStrPasLoop
+        bdnzf   cr0*4+eq, .LStrPasLoop
 
         { if we stopped because of a terminating #0, decrease the length by 1 }
         cntlzw  r4,r10
@@ -45,7 +45,7 @@ LStrPasLoop:
         { if r10 was zero (-> stopped because of zero byte), then r4 will be 32 }
         { (32 leading zero bits) -> shr 5 = 1, otherwise this will be zero      }
         srwi    r4,r4,5
-LStrPasDone:
+.LStrPasDone:
         subfic  r10,r10,255
         sub     r10,r10,r4
 
@@ -55,7 +55,10 @@ end;
 
 {
   $Log$
-  Revision 1.10  2003-06-14 12:41:09  jonas
+  Revision 1.11  2003-11-15 19:01:27  florian
+    * fixed rtl to work with the integrated fpc ppc assembler reader
+
+  Revision 1.10  2003/06/14 12:41:09  jonas
     * fixed compilation problems (removed unnecessary modified registers
       lists from procedures)
 

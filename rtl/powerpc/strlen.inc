@@ -24,17 +24,20 @@ asm
         { if yes, do nothing }
         beq     LStrLenDone
         subi    r29,r3,1
-LStrLenLoop:
+.LStrLenLoop:
         lbzu    r30,1(r29)
         cmplwi  cr0,r30,0
-        bne     LStrLenLoop
+        bne     .LStrLenLoop
         sub     r3,r29,r3
-LStrLenDone:
+.LStrLenDone:
 end;
 
 {
   $Log$
-  Revision 1.6  2003-06-14 12:41:09  jonas
+  Revision 1.7  2003-11-15 19:01:27  florian
+    * fixed rtl to work with the integrated fpc ppc assembler reader
+
+  Revision 1.6  2003/06/14 12:41:09  jonas
     * fixed compilation problems (removed unnecessary modified registers
       lists from procedures)
 

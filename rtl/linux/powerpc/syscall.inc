@@ -172,9 +172,9 @@ asm
   lwz  r4, 8(r4)
 { Go ! }
   sc
-  bns  Lsyscall_ok
+  bns  .Lsyscall_ok
   neg  r3,r3
-Lsyscall_ok:
+.Lsyscall_ok:
 { Put back the registers... }
   lwz    r8, regs
   stw    r3, 0(r8)
@@ -236,7 +236,10 @@ end;
 
 {
   $Log$
-  Revision 1.7  2003-06-17 16:39:58  jonas
+  Revision 1.8  2003-11-15 19:01:27  florian
+    * fixed rtl to work with the integrated fpc ppc assembler reader
+
+  Revision 1.7  2003/06/17 16:39:58  jonas
     * fixed old syscall handling for ppc
 
   Revision 1.6  2003/05/23 21:58:30  jonas
