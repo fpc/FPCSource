@@ -106,8 +106,10 @@ interface
              system_i386_wdosx,         { 21 }
              system_sparc_sunos,        { 22 }
              system_sparc_linux,        { 23 }
-             system_x86_64_linux,       { 24 }
-             system_powerpc_macosx      { 25 }
+             target_i386_openbsd,       { 24 }
+             target_m68k_openbsd,       { 25 }
+             system_x86_64_linux,       { 26 }
+             system_powerpc_macosx      { 27 }
        );
 
        tasm = (as_none
@@ -673,7 +675,10 @@ finalization
 end.
 {
   $Log$
-  Revision 1.55  2002-09-07 18:05:51  florian
+  Revision 1.56  2002-10-03 21:18:29  carl
+   * correct tsystem enumeration
+
+  Revision 1.55  2002/09/07 18:05:51  florian
     * first part of PowerPC fixes
 
   Revision 1.54  2002/08/20 21:40:44  florian
