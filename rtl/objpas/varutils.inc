@@ -39,7 +39,7 @@ end;
 Procedure CopyAsWideString (Var PDest : PWideChar; PSource : PWideChar);
 
 begin
-  PDest:=PWideChar(WideString(PSource));
+  WideString(Pointer(PDest)):=WideString(Pointer(PSource));
 end;
 
 { ---------------------------------------------------------------------
@@ -710,7 +710,10 @@ end;
 {$endif HASVARIANT}
 {
   $Log$
-  Revision 1.13  2005-01-15 18:47:26  florian
+  Revision 1.14  2005-01-16 16:15:30  florian
+    * olestring copying fixed
+
+  Revision 1.13  2005/01/15 18:47:26  florian
     * several variant init./final. stuff fixed
 
   Revision 1.12  2005/01/08 16:19:42  florian
