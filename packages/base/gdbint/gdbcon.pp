@@ -60,7 +60,12 @@ procedure UnixDir(var s : string);
 var i : longint;
 begin
   for i:=1 to length(s) do
-    if s[i]='\' then s[i]:='/';
+    if s[i]='\' then
+{$ifdef win32}
+  { Don't touch at '\ ' used to escapes spaces in windows file names PM }
+     if (i=length(s)) or (s[i+1]<>' ') then
+{$endif win32}
+      s[i]:='/';
 end;
 
 constructor TGDBController.Init;
@@ -258,7 +263,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.1  2002-01-29 17:54:49  peter
+  Revision 1.2  2002-03-26 16:23:14  pierre
+   * get IDE to work with dirs containing spaces for win32
+
+  Revision 1.1  2002/01/29 17:54:49  peter
     * splitted to base and extra
 
   Revision 1.3  2001/04/08 11:43:39  peter
