@@ -162,6 +162,9 @@ interface
       tsuperregisterset = set of tsuperregister;
 
     const
+       { Invalid register number }
+       RS_INVALID    = $ff;
+
        tcgsize2size : Array[tcgsize] of integer =
          { integer values }
         (0,1,2,4,8,1,2,4,8,
@@ -299,7 +302,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.22  2003-09-03 15:55:00  peter
+  Revision 1.23  2003-09-03 16:29:37  peter
+    * superregisters also from .dat file
+
+  Revision 1.22  2003/09/03 15:55:00  peter
     * NEWRA branch merged
 
   Revision 1.21.2.4  2003/09/01 21:02:55  peter
