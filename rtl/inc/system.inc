@@ -671,7 +671,7 @@ Begin
   { Show runtime error and exit }
   If erroraddr<>nil Then
    Begin
-     Writeln(stdout,'Runtime error ',Errorcode,' at $',hexstr(Longint(Erroraddr),8));
+     Writeln(stdout,'Runtime error ',Errorcode,' at $',hexstr(PtrInt(Erroraddr),sizeof(PtrInt)*2));
      { to get a nice symify }
      Writeln(stdout,BackTraceStrFunc(Erroraddr));
      dump_stack(stdout,ErrorBase);
@@ -702,7 +702,7 @@ end;
 
 function SysBackTraceStr (Addr: Pointer): ShortString;
 begin
-  SysBackTraceStr:='  $'+HexStr(Longint(addr),8);
+  SysBackTraceStr:='  $'+HexStr(Ptrint(addr),sizeof(PtrInt)*2);
 end;
 
 
@@ -881,7 +881,10 @@ end;
 
 {
   $Log$
-  Revision 1.55  2004-04-22 17:10:38  peter
+  Revision 1.56  2004-04-22 19:43:43  peter
+    * fix 64bit address printing
+
+  Revision 1.55  2004/04/22 17:10:38  peter
     * random(int64) added
 
   Revision 1.54  2004/02/20 11:01:20  daniel

@@ -752,7 +752,7 @@ begin
   BackTraceStrFunc:=@SysBackTraceStr;
   GetLineInfo(dword(addr),func,source,line);
 { create string }
-  StabBackTraceStr:='  $'+HexStr(Longint(addr),8);
+  StabBackTraceStr:='  $'+HexStr(ptrint(addr),sizeof(ptrint)*2);
   if func<>'' then
    StabBackTraceStr:=StabBackTraceStr+'  '+func;
   if source<>'' then
@@ -781,7 +781,10 @@ finalization
 end.
 {
   $Log$
-  Revision 1.20  2004-02-06 20:17:12  daniel
+  Revision 1.21  2004-04-22 19:43:43  peter
+    * fix 64bit address printing
+
+  Revision 1.20  2004/02/06 20:17:12  daniel
     * Use $ for hex numbers instead of alien 0x
 
   Revision 1.19  2003/10/17 20:52:12  olle
