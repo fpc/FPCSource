@@ -3,25 +3,34 @@
 }
 unit UnzipDLL;
 
+{$IFDEF VIRTUALPASCAL}
 {$Cdecl+,AlignRec-,OrgName+}
+{$ELSE}
+ {$IFDEF FPC}
+  {$PACKRECORDS 1}
+ {$ENDIF}
+{$ENDIF}
 
 interface
 
 const
-{$IFDEF OS2}
- AllFiles: string [1] = '*';
-{$ELSE}
- AllFiles: string [3] = '*.*';
-{$ENDIF}
+ UnzipErr: longint = 0;
 
 type
  TArgV = array [0..1024] of PChar;
  PArgV = ^TArgV;
  TCharArray = array [1..1024*1024] of char;
  PCharArray = ^TCharArray;
-
-function FileUnzipEx (SourceZipFile, TargetDirectory,
+ TFileUnzipEx = function (SourceZipFile, TargetDirectory,
                                                     FileSpecs: PChar): integer;
+
+function DllFileUnzipEx (SourceZipFile, TargetDirectory,
+                                                    FileSpecs: PChar): integer;
+
+const
+ FileUnzipEx: TFileUnzipEx = @DllFileUnzipEx;
+
+(* Returns non-zero result on success. *)
 
 implementation
 
@@ -36,13 +45,24 @@ uses
      BseDos,
   {$ENDIF VirtualPascal}
  {$ENDIF FPC}
+{$ELSE}
+ {$IFDEF WIN32}
+     Windows,
+ {$ENDIF WIN32}
 {$ENDIF OS2}
- Dos;
+ Unzip, Dos;
 
 type
- UzpMainFunc = function (ArgC: longint; var ArgV: TArgV): longint;
+ UzpMainFunc = function (ArgC: longint; var ArgV: TArgV): longint; cdecl;
 
 const
+{$IFDEF OS2}
+ AllFiles: string [1] = '*';
+{$ELSE}
+ {$IFDEF WIN32}
+ AllFiles: string [3] = '*.*';
+ {$ENDIF}
+{$ENDIF}
 {$IFDEF OS2}
  LibPath = 'LIBPATH';
 {$ELSE}
@@ -60,10 +80,13 @@ const
 var
  DLLHandle: longint;
  OldExit: pointer;
+ C: char;
 
 function DLLInit: boolean;
 var
+{$IFDEF OS2}
  ErrPath: array [0..259] of char;
+{$ENDIF}
  DLLPath: PathStr;
  Dir: DirStr;
  Name: NameStr;
@@ -73,6 +96,7 @@ begin
  FSplit (FExpand (ParamStr (0)), Dir, Name, Ext);
  DLLPath := Dir + DLLName;
  Insert ('.DLL', DLLPath, byte (DLLPath [0]));
+{$IFDEF OS2}
  if (DosLoadModule (@ErrPath, SizeOf (ErrPath), @DLLPath [1], DLLHandle) <> 0)
  and (DosLoadModule (@ErrPath, SizeOf (ErrPath), @DLLName [1], DLLHandle) <> 0)
                                                                            then
@@ -82,16 +106,40 @@ begin
    Write (#13#10'Error while loading module ');
    WriteLn (PChar (@ErrPath));
   end;
+ {$IFDEF FPC}
+ end else DLLInit := DosQueryProcAddr (DLLHandle, UzpMainOrd, nil, pointer (UzpMain)) = 0;
+ {$ELSE}
  end else DLLInit := DosQueryProcAddr (DLLHandle, UzpMainOrd, nil, @UzpMain) = 0;
+ {$ENDIF}
+{$ELSE}
+ {$IFDEF WIN32}
+ DLLHandle := LoadLibrary (@DLLPath [1]);
+ if DLLHandle = 0 then DLLHandle := LoadLibrary (@DLLName [1]);
+ if DLLHandle = 0 then WriteLn (#13#10'Error while loading DLL.') else
+ begin
+(*  UzpMain := UzpMainFunc (GetProcAddress (DLLHandle, 'UzpMain'));
+*)
+  UzpMain := UzpMainFunc (GetProcAddress (DLLHandle, 'Unz_Unzip'));
+  DLLInit := Assigned (UzpMain);
+ end;
+ {$ENDIF}
+{$ENDIF}
 end;
 
 procedure NewExit;
 begin
  ExitProc := OldExit;
+{$IFDEF OS2}
  DosFreeModule (DLLHandle);
+{$ELSE}
+ {$IFDEF WIN32}
+ FreeLibrary (DLLHandle);
+ {$ENDIF}
+{$ENDIF}
 end;
 
-function FileUnzipEx;
+function DllFileUnzipEx (SourceZipFile, TargetDirectory,
+                                                    FileSpecs: PChar): integer;
 var
  I, FCount, ArgC: longint;
  ArgV: TArgV;
@@ -153,7 +201,8 @@ begin
  ArgV [ArgC] := TargetDirectory;
  Inc (ArgC);
  ArgV [ArgC] := @ExDirOpt [3]; (* contains #0 *)
- if UzpMain (ArgC, ArgV) <> 0 then FileUnzipEx := 0 else FileUnzipEx := FCount;
+ UnzipErr := UzpMain (ArgC, ArgV);
+ if UnzipErr <> 0 then DllFileUnzipEx := 0 else DllFileUnzipEx := FCount;
  for I := 1 to FCount do FreeMem (ArgV [I + OptCount], StrLen [I + OptCount]);
 end;
 
@@ -169,12 +218,20 @@ begin
   WriteLn ('Please, download the library, either from the location where you found');
   WriteLn ('this installer, or from any FTP archive carrying InfoZip programs.');
   WriteLn ('If you have this DLL on your disk, please, check your configuration (' + LIBPATH + ').');
-  Halt (255);
+  WriteLn (#13#10'If you want to try unpacking the files with internal unpacking routine,');
+  WriteLn ('answer the following question with Y. However, this might not work correctly');
+  WriteLn ('under some conditions (e.g. for long names and drives not supporting them).');
+  Write (#13#10'Do you want to continue now (y/N)? ');
+  ReadLn (C);
+  if UpCase (C) = 'Y' then FileUnzipEx := TFileUnzipEx (@Unzip.FileUnzipEx) else Halt (255);
  end;
 end.
 {
   $Log$
-  Revision 1.1  2000-07-13 06:34:24  michael
+  Revision 1.2  2000-12-19 00:51:10  hajny
+    * modifications from /install/fpinst merged in
+
+  Revision 1.1  2000/07/13 06:34:24  michael
   + Initial import
 
   Revision 1.1  2000/03/02 12:16:57  michael
