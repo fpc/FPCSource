@@ -32,9 +32,17 @@
    Removed amigaoverlays, use smartlink instead.
    05 Nov 2002.
    
+   Added the define use_amiga_smartlink.
+   13 Jan 2003.
+
    nils.sjoholm@mailbox.swipnet.se Nils Sjoholm
 
 }
+
+{$I useamigasmartlink.inc}
+{$ifdef use_amiga_smartlink}
+    {$smartlink on}
+{$endif use_amiga_smartlink}
 
 unit intuition;
 
@@ -5708,7 +5716,10 @@ END. (* UNIT INTUITION *)
 
 {
   $Log$
-  Revision 1.2  2002-11-19 18:47:42  nils
+  Revision 1.3  2003-01-13 20:34:19  nils
+  * added the define use_amiga_smartlink
+
+  Revision 1.2  2002/11/19 18:47:42  nils
     * update check internal log
 
 }
