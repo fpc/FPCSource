@@ -318,7 +318,7 @@ LStriCompEqual:
         { if they are equal and one is zero, then the other one is zero too }
         { and we're done as well (r3 also contains 0 then)                  }
         { otherwise loop                                                    }
-        bne     LStriCompLoop
+        bne     cr1,LStriCompLoop
 LStriCompDone:
 end ['r3','r4','r26','r27','r28','r29','r30','cr0','cr1'];
 
@@ -470,7 +470,10 @@ end ['r28','r29','r30','cr0','cr1'];
 
 {
   $Log$
-  Revision 1.7  2001-07-07 12:46:12  jonas
+  Revision 1.8  2001-07-21 15:51:50  jonas
+    * fixed small bug in stricomp
+
+  Revision 1.7  2001/07/07 12:46:12  jonas
     * some small bugfixes and cache optimizations
 
   Revision 1.6  2001/02/23 14:05:33  jonas
