@@ -1,3 +1,7 @@
+
+{$Id$}
+
+
 {******************************************************************************
                           Basic Socket Functions
 ******************************************************************************}
@@ -14,7 +18,7 @@ end;
 
 Function SendTo(Sock:Longint;Const Buf;BufLen,Flags:Longint;Var Addr; AddrLen : Longint):Longint;
 begin
-  Sendto:=SocketCall(syscall_nr_Sendto,Sock,Longint(@Buf),BufLen,Flags,Longint(@Addr),AddrLen);
+  Sendto:=do_syscall(syscall_nr_Sendto,Sock,Longint(@Buf),BufLen,Flags,Longint(@Addr),AddrLen);
 end;
 
 Function Recv(Sock:Longint;Var Buf;BufLen,Flags:Longint):Longint;
@@ -185,3 +189,13 @@ begin
   if Connect then
      Sock2File(Sock,SockIn,SockOut);
 end;
+
+{
+ $Log$
+ Revision 1.5  2002-02-05 07:54:34  marco
+  * Fixed typo
+
+
+
+
+}
