@@ -83,7 +83,7 @@ UNIT Objects;
 {<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>}
 
 {====Include file to sort compiler platform out =====================}
-{$I Platform.inc}
+{$I platform.inc}
 {====================================================================}
 
 
@@ -2729,7 +2729,10 @@ END;
 END.
 {
   $Log$
-  Revision 1.2  1998-05-21 19:30:58  peter
+  Revision 1.3  1998-05-25 09:50:04  peter
+    * Platform.inc -> platform.inc
+
+  Revision 1.2  1998/05/21 19:30:58  peter
     * objects compiles for linux
     + assign(pchar), assign(char), rename(pchar), rename(char)
     * fixed read_text_as_array
