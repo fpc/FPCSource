@@ -161,8 +161,8 @@
         mullw   r7,r3,r6    // lsw of second cross-product
         add     r12,r11,r12  // sum of leading zeroes
         mr      r10,r8
-        add     r8,r8,r9    // add
         or      r0,r12,r0    // maximise sum if no overflow checking, otherwise it remains
+        add     r8,r8,r9    // add
         cmplwi  cr1,r0,64   // >= 64 leading zero bits in total? If so, no overflow
         add     r8,r8,r7    // add
         bge+    cr1,.LDone  // if the sum of leading zero's >= 64 (or checkoverflow was 0)
@@ -203,7 +203,10 @@
 
 {
   $Log$
-  Revision 1.8  2005-02-19 14:16:02  jonas
+  Revision 1.9  2005-03-11 12:41:41  jonas
+    * mini scheduling optimization
+
+  Revision 1.8  2005/02/19 14:16:02  jonas
     * fixed overflow detection, + some small optimizations
 
   Revision 1.7  2005/02/14 17:13:31  peter
