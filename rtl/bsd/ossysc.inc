@@ -145,7 +145,10 @@ end;
 Function Fpmmap(start:pointer;len:size_t;prot:cint;flags:cint;fd:cint;offst:off_t):pointer; [public, alias:  'FPC_SYSC_MMAP'];
 
 begin
-  Fpmmap:=pointer(longint(do_syscall(syscall_nr_mmap,TSysParam(Start),Len,Prot,Flags,fd,{$ifdef cpupowerpc}0,{$endif}offst{$ifdef cpui386},0{$endif})));
+  Fpmmap:=pointer(longint(do_syscall(syscall_nr_mmap,TSysParam(Start),Len,Prot,Flags,fd,
+	{$ifdef FPC_BIG_ENDIAN}    hi(offst),lo(offst){$endif}
+	{$ifdef FPC_LITTLE_ENDIAN} lo(offst),hi(offst){$endif}
+        )));
 end;
 
 {$endif}
@@ -616,7 +619,11 @@ end;
 
 {
  $Log$
- Revision 1.17  2004-02-06 20:47:00  jonas
+ Revision 1.18  2004-07-17 16:02:58  marco
+  * generalised the {$ifdef cpu_i386} ..powerpc stuff to FPC_BIG_ENDIAN and
+ FPC_LITTLE_ENDIAN
+
+ Revision 1.17  2004/02/06 20:47:00  jonas
    + fpnanosleep for oscdeclh.inc
    - removed obsolete darwin remarks from bsd/ossysc.inc
 
