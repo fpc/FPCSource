@@ -251,23 +251,23 @@ var
 
 
     procedure test_int31(flag : longint);
-      begin                                                                                                                                                                                                                                                    
-         asm                                                                                                                                                                                                                                                   
-            pushl %ebx                                                                                                                                                                                                                                         
-            movw  $0,INT31ERROR                                                                                                                                                                                                                                
-            movl  flag,%ebx                                                                                                                                                                                                                                    
-            testb $1,%bl                                                                                                                                                                                                                                       
+      begin
+         asm
+            pushl %ebx
+            movw  $0,INT31ERROR
+            movl  flag,%ebx
+            testb $1,%bl
             jz    .Lti31_1
-            movw  %ax,INT31ERROR                                                                                                                                                                                                                               
+            movw  %ax,INT31ERROR
             xorl  %eax,%eax
-            jmp   .Lti31_2                                                                                                                                                                                                                                     
-            .Lti31_1:                                                                                                                                                                                                                                          
-            movl  $1,%eax                                                                                                                                                                                                                                      
-            .Lti31_2:                                                                                                                                                                                                                                          
-            popl  %ebx                                                                                                                                                                                                                                         
+            jmp   .Lti31_2
+            .Lti31_1:
+            movl  $1,%eax
+            .Lti31_2:
+            popl  %ebx
          end;
-      end;                                                                                                                                                                                                                                                     
-                                                                                                                                                                                                                                                               
+      end;
+
     function global_dos_alloc(bytes : longint) : longint;
 
       begin
@@ -721,7 +721,7 @@ end ['EAX','EDX'];
 
     var
        ___v2prt0_ds_alias : word; external name '___v2prt0_ds_alias';
-        
+
     function get_rm_callback(pm_func : pointer;const reg : trealregs;var rmcb : tseginfo) : boolean;
       begin
          asm
@@ -1106,7 +1106,7 @@ end ['EAX','EDX'];
          asm
            movl device,%edx
            movl handle,%esi
-           xorl %ebx,%ebx
+           movl offset,%ebx
            movl pagecount,%ecx
            movl $0x0508,%eax
            int $0x31
@@ -1171,7 +1171,10 @@ end.
 
 {
   $Log$
-  Revision 1.2  2000-07-13 11:33:40  michael
+  Revision 1.3  2000-12-30 22:42:30  peter
+    * fixed map_device_in_memory (from bug report)
+
+  Revision 1.2  2000/07/13 11:33:40  michael
   + removed logs
- 
+
 }
