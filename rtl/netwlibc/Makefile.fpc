@@ -44,11 +44,7 @@ UNITPREFIX=rtl
 IMPFILES=nwsnut.imp ws2_32.imp ws2nlm.imp libc.imp netware.imp \
 libcclib.imp nwplibc.o
 
-ifeq ($(findstring 1.0.,$(FPC_VERSION)),)
 SYSTEMUNIT=system
-else
-SYSTEMUNIT=sysnetwa
-endif
 
 # Use new feature from 1.0.5 version
 # that generates release PPU files
@@ -63,18 +59,16 @@ override FPCOPT+=-Ur
 
 
 # for netware always use multithread
-override FPCOPT+=-dMT -dDEBUG_MT
+override FPCOPT+=-dMT
 
 # and alway use smartlinking
-#CREATESMART=1
-CREATESMART=0
-
-# always use i386-netware- as the prefix for binutils (they are the same for netware and netwlibc)
-BINUTILSPREFIX=i386-netware-
+CREATESMART=1
 
 # Paths
 OBJPASDIR=$(RTL)/objpas
 
+# binutils are the same for targets netware and netwlibc
+override BINUTILSPREFIX=$(CPU_TARGET)-netware-
 
 [rules]
 SYSTEMPPU=$(addsuffix $(PPUEXT),$(SYSTEMUNIT))
@@ -97,8 +91,7 @@ SYSDEPS=$(SYSINCDEPS) $(SYSCPUDEPS)
 copyimpfiles:
 	$(COPY) $(IMPFILES) $(COMPILER_UNITTARGETDIR)
 
-# binutils are the same for tragets netware and netwlibc
-override BINUTILSPREFIX=$(CPU_TARGET)-netware-
+
 
 #
 # Loaders
