@@ -161,6 +161,8 @@ clean:
 	-$(MAKE) -C optex clean
 	-$(MAKE) -C printex clean
 	-$(MAKE) -C sockex clean
+	-$(MAKE) -C mouseex clean
+	-$(MAKE) -C go32ex clean
 	-$(MAKE) -C stringex clean
 	-$(MAKE) -C refex clean
 
@@ -174,6 +176,8 @@ unitex.chk:
 	$(MAKE) -C printex tex
 	$(MAKE) -C stringex tex
 	$(MAKE) -C sockex tex
+	$(MAKE) -C mouseex tex
+	$(MAKE) -C go32ex tex
 	touch unitex.chk
 
 refex.chk:
@@ -313,7 +317,10 @@ linuxexamples: examples
 
 #
 # $Log$
-# Revision 1.10  1998-09-11 11:01:10  peter
+# Revision 1.11  1998-09-11 12:08:07  michael
+# Additional cleans
+#
+# Revision 1.10  1998/09/11 11:01:10  peter
 #   * export a TMP=/tmp for dvips which don't like '.' in the directory
 #
 #
