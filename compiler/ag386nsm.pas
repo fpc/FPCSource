@@ -71,6 +71,22 @@ unit ag386nsm;
          double2str:=lower(hs);
       end;
 
+    function extended2str(e : extended) : string;
+      var
+         hs : string;
+         p : byte;
+      begin
+         str(e,hs);
+      { nasm expects a lowercase e }
+         p:=pos('E',hs);
+         if p>0 then
+          hs[p]:='e';
+         p:=pos('+',hs);
+         if p>0 then
+          delete(hs,p,1);
+         extended2str:=lower(hs);
+      end;
+
 
     function comp2str(d : bestreal) : string;
       type
@@ -322,7 +338,7 @@ unit ag386nsm;
                      end;
     ait_real_32bit : AsmWriteLn(#9#9'DD'#9+double2str(pai_single(hp)^.value));
     ait_real_64bit : AsmWriteLn(#9#9'DQ'#9+double2str(pai_double(hp)^.value));
- ait_real_extended : AsmWriteLn(#9#9'DD'#9+double2str(pai_extended(hp)^.value));
+ ait_real_extended : AsmWriteLn(#9#9'DT'#9+extended2str(pai_extended(hp)^.value));
           ait_comp : AsmWriteLn(#9#9'DQ'#9+comp2str(pai_extended(hp)^.value));
         ait_string : begin
                        counter := 0;
@@ -545,7 +561,10 @@ ait_stab_function_name : ;
 end.
 {
   $Log$
-  Revision 1.4  1998-06-05 17:46:03  peter
+  Revision 1.5  1998-08-08 10:19:18  florian
+    * small fixes to write the extended type correct
+
+  Revision 1.4  1998/06/05 17:46:03  peter
     * tp doesn't like comp() typecast
 
   Revision 1.3  1998/05/28 17:24:27  peter
