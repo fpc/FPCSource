@@ -48,10 +48,13 @@ implementation
 {$endif GDB}
        scanner,pbase,pexpr,psystem,psub;
 
-    procedure fixseg(p:TAAsmoutput;sec:TAsmSectionType);
+    procedure fixseg(p:TAAsmoutput; sec:TAsmSectionType; secname: string);
       begin
         maybe_new_object_file(p);
-        p.insert(Tai_section.Create(sec,'',0));
+        if target_info.system <> system_powerpc_macos then
+          p.insert(Tai_section.Create(sec,'',0))
+        else
+          p.insert(Tai_section.Create(sec,secname,0));
       end;
 
 
@@ -148,6 +151,7 @@ implementation
     procedure insertsegment;
       var
         oldaktfilepos : tfileposinfo;
+        {Note: Sections get names in macos only.}
       begin
       { Insert Ident of the compiler }
         if (not (cs_create_smart in aktmoduleswitches))
@@ -163,17 +167,17 @@ implementation
          end;
         { align code segment }
         codeSegment.concat(Tai_align.Create(aktalignment.procalign));
-        { Insert start and end of sections }
-        fixseg(codesegment,sec_code);
-        fixseg(datasegment,sec_data);
-        fixseg(bsssegment,sec_bss);
-        { we should use .rdata section for these two no ?
-          .rdata is a read only data section (PM) }
-        fixseg(rttilist,sec_data);
-        fixseg(consts,sec_data);
-        fixseg(picdata,sec_data);
-        if assigned(resourcestringlist) then
-          fixseg(resourcestringlist,sec_data);
+				{ Insert start and end of sections }
+				fixseg(codesegment,sec_code,'____seg_code');
+				fixseg(datasegment,sec_data,'____seg_data');
+				fixseg(bsssegment,sec_bss,'____seg_bss');
+				{ we should use .rdata section for these two no ?
+					.rdata is a read only data section (PM) }
+				fixseg(rttilist,sec_data,'____seg_rtti');
+				fixseg(consts,sec_data,'____seg_consts');
+				fixseg(picdata,sec_data,'____seg_picdata');
+				if assigned(resourcestringlist) then
+					fixseg(resourcestringlist,sec_data,'____seg_resstrings');
 {$ifdef GDB}
         if assigned(debuglist) then
           begin
@@ -181,7 +185,7 @@ implementation
             aktfilepos.line:=0;
             debugList.insert(Tai_symbol.Createname('gcc2_compiled',AT_DATA,0));
             debugList.insert(Tai_symbol.Createname('fpc_compiled',AT_DATA,0));
-            fixseg(debuglist,sec_code);
+            fixseg(debuglist,sec_code,'____seg_debug');
             aktfilepos:=oldaktfilepos;
           end;
 {$endif GDB}
@@ -1508,7 +1512,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.168  2004-10-26 15:11:01  peter
+  Revision 1.169  2004-10-31 15:29:39  olle
+    + All sections get names in macos
+
+  Revision 1.168  2004/10/26 15:11:01  peter
     * -Ch for heapsize added again
     * __heapsize contains the heapsize
 
