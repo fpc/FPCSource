@@ -1,0 +1,18 @@
+#
+#   Makefile.fpc for sqlite implementation
+#
+
+[package]
+name=sqlite
+version=1.0.8
+
+[target]
+units=sqlite
+
+[require]
+
+[install]
+fpcpackage=y
+
+[default]
+fpcdir=../../..
