@@ -1354,7 +1354,7 @@ cg_e_control_flow_outside_finally=06040_E_Control flow statements aren't allowed
 #
 # Assembler reader
 #
-# 07085 is the last used one
+# 07097 is the last used one
 #
 asmr_d_start_reading=07000_D_Starting $1 styled assembler parsing
 % This informs you that an assembler block is being parsed
@@ -1490,6 +1490,15 @@ asmr_h_RESULT_is_reg=07085_H_RESULT is register $1
 asmr_w_adding_explicit_args_fXX=07086_W_"$1" without operand translated into "$1 %st,%st(1)"
 asmr_w_adding_explicit_first_arg_fXX=07087_W_"$1 %st(n)" translated into "$1 %st,%st(n)"
 asmr_w_adding_explicit_second_arg_fXX=07088_W_"$1 %st(n)" translated into "$1 %st(n),%st"
+asmr_e_invalid_char_smaller=07089_E_Char < not allowed here
+asmr_e_invalid_char_greater=07090_E_Char > not allowed here
+asmr_w_xdef_not_supported=07091_W_XDEF not supported
+asmr_e_invalid_global_def=07092_E_Invalid XDEF syntax
+asmr_w_align_not_supported=07093_W_ALIGN not supported
+asmr_e_no_inc_and_dec_together=07094_E_Inc and Dec cannot be together
+asmr_e_invalid_reg_list_in_movem=07095_E_Invalid reglist for movem
+asmr_e_invalid_reg_list_for_opcode=07096_E_Reglist invalid for opcode
+asmr_e_68020_mode_required=07097_E_68020 mode required
 #
 # Assembler/binary writers
 #
@@ -1934,6 +1943,7 @@ option_help_pages=11025_[
 3*2TLINUX_Linux
 3*2Tnetware_Novell Netware Module (experimental)
 3*2TOS2_OS/2 2.x
+3*2TSUNOS_SunOS/Solaris
 3*2TWin32_Windows 32 Bit
 3*1W<x>_Win32 target options
 3*2WB<x>_Set Image base to Hexadecimal <x> value

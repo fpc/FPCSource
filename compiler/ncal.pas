@@ -1497,7 +1497,7 @@ interface
       begin
          inherited create(procinlinen);
          inlineprocsym:=tcallnode(callp).symtableprocentry;
-         retoffset:=-4; { less dangerous as zero (PM) }
+         retoffset:=-target_os.size_of_pointer; { less dangerous as zero (PM) }
          para_offset:=0;
          para_size:=inlineprocsym^.definition^.para_size(target_os.stackalignment);
          if ret_in_param(inlineprocsym^.definition^.rettype.def) then
@@ -1568,7 +1568,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.22  2001-01-08 21:46:46  peter
+  Revision 1.23  2001-02-26 19:44:52  peter
+    * merged generic m68k updates from fixes branch
+
+  Revision 1.22  2001/01/08 21:46:46  peter
     * don't push high value for open array with cdecl;external;
 
   Revision 1.21  2000/12/31 11:14:10  jonas

@@ -1441,7 +1441,14 @@ begin
       begin
         def_symbol('UNIX');
       end;
-   end;
+    target_i386_sunos :
+      begin
+        def_symbol('UNIX');
+        def_symbol('SOLARIS');
+        def_symbol('LIBC');
+        def_symbol('SUNOS');
+      end;
+  end;
 
 { write logo if set }
   if option.DoWriteLogo then
@@ -1564,7 +1571,10 @@ finalization
 end.
 {
   $Log$
-  Revision 1.31  2001-02-26 12:47:46  jonas
+  Revision 1.32  2001-02-26 19:44:53  peter
+    * merged generic m68k updates from fixes branch
+
+  Revision 1.31  2001/02/26 12:47:46  jonas
     * fixed bug in type checking for compatibility of set elements (merged)
     * released fix in options.pas from Carl also for FPC (merged)
 

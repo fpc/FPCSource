@@ -165,7 +165,7 @@ implementation
 {$ifdef m68k}
                    usedinproc:=usedinproc or ($800 shr word(R_D0));
 
-                   if is_64bitint(procinfo^.retdef) then
+                   if is_64bitint(procinfo^.returntype.def) then
                      usedinproc:=usedinproc or ($800 shr byte(R_D1))
 {$endif}
 {$endif newcg}
@@ -823,7 +823,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.24  2000-12-25 00:07:27  peter
+  Revision 1.25  2001-02-26 19:44:53  peter
+    * merged generic m68k updates from fixes branch
+
+  Revision 1.24  2000/12/25 00:07:27  peter
     + new tlinkedlist class (merge of old tstringqueue,tcontainer and
       tlinkedlist objects)
 

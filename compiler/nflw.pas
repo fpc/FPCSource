@@ -502,7 +502,9 @@ implementation
 
          { Check count var, record fields are also allowed in tp7 }
          hp:=t2;
-         while (hp.nodetype=subscriptn) do
+         while (hp.nodetype=subscriptn) or
+               ((hp.nodetype=vecn) and
+                is_constintnode(tvecnode(hp).right)) do
           hp:=tsubscriptnode(hp).left;
          { we need a simple loadn, but the load must be in a global symtable or
            in the same lexlevel }
@@ -1025,7 +1027,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.12  2000-12-31 11:14:10  jonas
+  Revision 1.13  2001-02-26 19:44:53  peter
+    * merged generic m68k updates from fixes branch
+
+  Revision 1.12  2000/12/31 11:14:10  jonas
     + implemented/fixed docompare() mathods for all nodes (not tested)
     + nopt.pas, nadd.pas, i386/n386opt.pas: optimized nodes for adding strings
       and constant strings/chars together

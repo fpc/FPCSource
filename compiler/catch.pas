@@ -96,7 +96,9 @@ begin
 {$ifndef nocatch}
   {$ifdef has_signal}
     NewSignal:=SignalHandler({$ifdef fpcprocvar}@{$endif}CatchSignal);
-    OldSigSegm:=Signal (SIGSEGV,NewSignal);
+    {$ifndef sunos}
+      OldSigSegm:=Signal (SIGSEGV,NewSignal);
+    {$endif} // lxrun on solaris hooks this for handling linux-calls!
     OldSigInt:=Signal (SIGINT,NewSignal);
     OldSigFPE:=Signal (SIGFPE,NewSignal);
   {$endif}
@@ -105,7 +107,10 @@ end.
 
 {
   $Log$
-  Revision 1.7  2001-02-05 20:47:00  peter
+  Revision 1.8  2001-02-26 19:44:52  peter
+    * merged generic m68k updates from fixes branch
+
+  Revision 1.7  2001/02/05 20:47:00  peter
     * support linux unit for ver1_0 compilers
 
   Revision 1.6  2001/01/21 20:32:45  marco

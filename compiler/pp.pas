@@ -25,12 +25,12 @@ program pp;
 {
   possible compiler switches (* marks a currently required switch):
   -----------------------------------------------------------------
-  USE_RHIDE           generates errors and warning in an format recognized
-                      by rhide
   TP                  to compile the compiler with Turbo or Borland Pascal
   GDB*                support of the GNU Debugger
   I386                generate a compiler for the Intel i386+
   M68K                generate a compiler for the M68000
+  SPARC               generate a compiler for SPARC
+  POWERPC             generate a compiler for the PowerPC
   USEOVERLAY          compiles a TP version which uses overlays
   DEBUG               version with debug code is generated
   EXTDEBUG            some extra debug code is executed
@@ -42,9 +42,7 @@ program pp;
   NOAG386INT          no Intel Assembler output
   NOAG386NSM          no NASM output
   NOAG386BIN          leaves out the binary writer, default for TP
-  LOGMEMBLOCKS        adds memory manager which logs the size of
-                      each allocated memory block, the information
-                      is written to memuse.log after compiling
+  NORA386DIR          No direct i386 assembler reader
   -----------------------------------------------------------------
 
   Required switches for a i386 compiler be compiled by Free Pascal Compiler:
@@ -160,7 +158,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.6  2000-11-29 00:30:37  florian
+  Revision 1.7  2001-02-26 19:44:53  peter
+    * merged generic m68k updates from fixes branch
+
+  Revision 1.6  2000/11/29 00:30:37  florian
     * unused units removed from uses clause
     * some changes for widestrings
 

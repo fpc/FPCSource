@@ -80,6 +80,9 @@ uses
   {$ifndef NOTARGETOS2}
     ,t_os2
   {$endif}
+  {$ifndef NOTARGETSUNOS}
+    ,t_sunos
+  {$endif}
   {$ifndef NOTARGETWIN32}
     ,t_win32
   {$endif}
@@ -198,10 +201,10 @@ begin
     target_i386_freebsd:
       exportlib:=Texportlibfreebsd.Create;
   {$endif NOTARGETFREEBSD}
-//  {$ifndef NOTARGETSOLARIS}
-//    target_i386_solaris:
-//      exportlib:=new(pexportlibsolaris,Init);
-//  {$endif NOTARGETSOLARIS}
+  {$ifndef NOTARGETSUNOS}
+    target_i386_SUNOS:
+      exportlib:=Texportlibsunos.Create;
+  {$endif NOTARGETSUNOS}
   {$ifndef NOTARGETWIN32}
     target_i386_Win32 :
       exportlib:=Texportlibwin32.Create;
@@ -236,7 +239,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.11  2001-02-03 00:09:02  peter
+  Revision 1.12  2001-02-26 19:44:52  peter
+    * merged generic m68k updates from fixes branch
+
+  Revision 1.11  2001/02/03 00:09:02  peter
     * fixed netware typo in previous commit
 
   Revision 1.10  2001/02/02 22:43:39  peter

@@ -111,6 +111,26 @@ type
     sp_protected,
     sp_static,
     sp_primary_typesym    { this is for typesym, to know who is the primary symbol of a def }
+{$ifdef tp}
+    ,sp_7
+    ,sp_8
+    ,sp_9
+    ,sp_10
+    ,sp_11
+    ,sp_12
+    ,sp_13
+    ,sp_14
+    ,sp_15
+    ,sp_16
+    ,sp_17
+    ,sp_18
+    ,sp_19
+    ,sp_20
+    ,sp_21
+    ,sp_22
+    ,sp_23
+    ,sp_24
+{$endif}
   );
   tsymoptions=set of tsymoption;
 
@@ -118,6 +138,30 @@ type
   tdefoption=(df_none,
     df_need_rtti,          { the definitions needs rtti }
     df_has_rtti            { the rtti is generated      }
+{$ifdef tp}
+    ,df_3
+    ,df_4
+    ,df_5
+    ,df_6
+    ,df_7
+    ,df_8
+    ,df_9
+    ,df_10
+    ,df_11
+    ,df_12
+    ,df_13
+    ,df_14
+    ,df_15
+    ,df_16
+    ,df_17
+    ,df_18
+    ,df_19
+    ,df_20
+    ,df_21
+    ,df_22
+    ,df_23
+    ,df_24
+{$endif}
   );
   tdefoptions=set of tdefoption;
 
@@ -161,6 +205,18 @@ type
     pocall_internproc,    { Procedure has compiler magic}
     pocall_internconst,   { procedure has constant evaluator intern }
     pocall_cppdecl        { C++ calling conventions }
+    ,pocall_13
+    ,pocall_14
+    ,pocall_15
+    ,pocall_16
+    ,pocall_17
+    ,pocall_18
+    ,pocall_19
+    ,pocall_20
+    ,pocall_21
+    ,pocall_22
+    ,pocall_23
+    ,pocall_24
   );
   tproccalloptions=set of tproccalloption;
 
@@ -172,6 +228,24 @@ type
     potype_constructor,  { Procedure is a constructor }
     potype_destructor,   { Procedure is a destructor }
     potype_operator      { Procedure defines an operator }
+    ,potype_7
+    ,potype_8
+    ,potype_9
+    ,potype_10
+    ,potype_11
+    ,potype_12
+    ,potype_13
+    ,potype_14
+    ,potype_15
+    ,potype_16
+    ,potype_17
+    ,potype_18
+    ,potype_19
+    ,potype_20
+    ,potype_21
+    ,potype_22
+    ,potype_23
+    ,potype_24
   );
   tproctypeoptions=set of tproctypeoption;
 
@@ -194,11 +268,18 @@ type
     po_savestdregs,       { save std regs cdecl and stdcall need that ! }
     po_saveregisters,     { save all registers }
     po_overload           { procedure is declared with overload directive }
+    ,po_18
+    ,po_19
+    ,po_20
+    ,po_21
+    ,po_22
+    ,po_23
+    ,po_24
   );
   tprocoptions=set of tprocoption;
 
   { options for objects and classes }
-  tobjectdeftype = (
+  tobjectdeftype = (odt_none,
     odt_class,
     odt_object,
     odt_interfacecom,
@@ -219,8 +300,20 @@ type
     oo_has_msgint,
     oo_has_abstract,       { the object/class has an abstract method => no instances can be created }
     oo_can_have_published { the class has rtti, i.e. you can publish properties }
+    ,oo_12
+    ,oo_13
+    ,oo_14
+    ,oo_15
+    ,oo_16
+    ,oo_17
+    ,oo_18
+    ,oo_19
+    ,oo_20
+    ,oo_21
+    ,oo_22
+    ,oo_23
+    ,oo_24
   );
-
   tobjectoptions=set of tobjectoption;
 
   { options for properties }
@@ -230,6 +323,25 @@ type
     ppo_stored,
     ppo_hasparameters,
     ppo_is_override
+    ,ppo_6
+    ,ppo_7
+    ,ppo_8
+    ,ppo_9
+    ,ppo_10
+    ,ppo_11
+    ,ppo_12
+    ,ppo_13
+    ,ppo_14
+    ,ppo_15
+    ,ppo_16
+    ,ppo_17
+    ,ppo_18
+    ,ppo_19
+    ,ppo_20
+    ,ppo_21
+    ,ppo_22
+    ,ppo_23
+    ,ppo_24
   );
   tpropertyoptions=set of tpropertyoption;
 
@@ -244,6 +356,21 @@ type
     vo_is_local_copy,
     vo_is_const,  { variable is declared as const (parameter) and can't be written to }
     vo_is_exported
+    ,vo_10
+    ,vo_11
+    ,vo_12
+    ,vo_13
+    ,vo_14
+    ,vo_15
+    ,vo_16
+    ,vo_17
+    ,vo_18
+    ,vo_19
+    ,vo_20
+    ,vo_21
+    ,vo_22
+    ,vo_23
+    ,vo_24
   );
   tvaroptions=set of tvaroption;
 
@@ -328,7 +455,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.12  2000-11-04 14:25:21  florian
+  Revision 1.13  2001-02-26 19:44:55  peter
+    * merged generic m68k updates from fixes branch
+
+  Revision 1.12  2000/11/04 14:25:21  florian
     + merged Attila's changes for interfaces, not tested yet
 
   Revision 1.11  2000/10/31 22:02:51  peter

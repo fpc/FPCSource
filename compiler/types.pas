@@ -237,7 +237,7 @@ interface
 implementation
 
     uses
-       globtype,globals,tokens,verbose,
+       globtype,globals,systems,tokens,verbose,
        symconst,symtable,nld;
 
     var
@@ -744,9 +744,9 @@ implementation
              formaldef :
                push_addr_param:=true;
              recorddef :
-               push_addr_param:=(def^.size>4);
+               push_addr_param:=(def^.size>target_os.size_of_pointer);
              arraydef :
-               push_addr_param:=((Parraydef(def)^.highrange>=Parraydef(def)^.lowrange) and (def^.size>4)) or
+               push_addr_param:=((Parraydef(def)^.highrange>=Parraydef(def)^.lowrange) and (def^.size>target_os.size_of_pointer)) or
                                 is_open_array(def) or
                                 is_array_of_const(def) or
                                 is_array_constructor(def);
@@ -1741,7 +1741,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.33  2001-02-26 12:47:46  jonas
+  Revision 1.34  2001-02-26 19:44:55  peter
+    * merged generic m68k updates from fixes branch
+
+  Revision 1.33  2001/02/26 12:47:46  jonas
     * fixed bug in type checking for compatibility of set elements (merged)
     * released fix in options.pas from Carl also for FPC (merged)
 

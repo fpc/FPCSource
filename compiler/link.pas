@@ -33,6 +33,7 @@ unit link;
 interface
 uses
   cobjects,cclasses,
+  systems,
   fmodule;
 
 Type
@@ -68,8 +69,11 @@ Type
        Function  MakeStaticLibrary:boolean;virtual;
      end;
 
-Var
-  Linker : TLinker;
+     TLinkerClass = class of TLinker;
+
+var
+  CLinker : array[ttarget] of TLinkerClass;
+  Linker  : TLinker;
 
 procedure InitLinker;
 procedure DoneLinker;
@@ -83,7 +87,7 @@ uses
 {$else Delphi}
   dos,
 {$endif Delphi}
-  cutils,globtype,systems,
+  cutils,globtype,
   script,globals,verbose,ppu
 {$ifdef i386}
   {$ifndef NOTARGETLINUX}
@@ -91,6 +95,9 @@ uses
   {$endif}
   {$ifndef NOTARGETFREEBSD}
     ,t_fbsd
+  {$endif}
+  {$ifndef NOTARGETSUNOS}
+    ,t_sunos
   {$endif}
   {$ifndef NOTARGETOS2}
     ,t_os2
@@ -488,6 +495,10 @@ begin
     target_i386_FreeBSD :
       linker:=TlinkerFreeBSD.Create;
   {$endif}
+  {$ifndef NOTARGETSUNOS}
+    target_i386_sunos :
+      linker:=Tlinkersunos.Create;
+  {$endif}
   {$ifndef NOTARGETWIN32}
     target_i386_Win32 :
       linker:=Tlinkerwin32.Create;
@@ -543,11 +554,13 @@ begin
    Linker.Free;
 end;
 
-
 end.
 {
   $Log$
-  Revision 1.13  2001-02-20 21:41:17  peter
+  Revision 1.14  2001-02-26 19:44:52  peter
+    * merged generic m68k updates from fixes branch
+
+  Revision 1.13  2001/02/20 21:41:17  peter
     * new fixfilename, findfile for unix. Look first for lowercase, then
       NormalCase and last for UPPERCASE names.
 

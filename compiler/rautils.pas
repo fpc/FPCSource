@@ -69,7 +69,8 @@ Function SearchLabel(const s: string; var hl: pasmlabel;emit:boolean): boolean;
 ---------------------------------------------------------------------}
 
 type
-  TOprType=(OPR_NONE,OPR_CONSTANT,OPR_SYMBOL,OPR_REFERENCE,OPR_REGISTER);
+  TOprType=(OPR_NONE,OPR_CONSTANT,OPR_SYMBOL,
+            OPR_REFERENCE,OPR_REGISTER,OPR_REGLIST);
 
   TOprRec = record
     case typ:TOprType of
@@ -78,6 +79,11 @@ type
       OPR_SYMBOL    : (symbol:PAsmSymbol;symofs:longint);
       OPR_REFERENCE : (ref:treference);
       OPR_REGISTER  : (reg:tregister);
+{$ifdef m68k}
+      OPR_REGLIST   : (reglist:pregisterlist);
+{$else not m68k}
+      OPR_REGLIST   : ();
+{$endif m68k}
   end;
 
   POperand = ^TOperand;
@@ -105,6 +111,7 @@ type
     opsize    : topsize;
     condition : tasmcond;
     ops       : byte;
+    labeled   : boolean;
     operands  : array[1..maxoperands] of POperand;
     constructor init;
     destructor  done;virtual;
@@ -841,7 +848,7 @@ Begin
                 end
               else
                 begin
-                  if (procinfo^.framepointer=R_ESP) and
+                  if (procinfo^.framepointer=stack_pointer) and
                      assigned(procinfo^.parent) and
                      (lexlevel=pvarsym(sym)^.owner^.symtablelevel+1) and
                      { same problem as above !!
@@ -881,7 +888,7 @@ Begin
                     opr.ref.base:=procinfo^.framepointer
                   else
                     begin
-                      if (procinfo^.framepointer=R_ESP) and
+                      if (procinfo^.framepointer=stack_pointer) and
                          assigned(procinfo^.parent) and
                          (lexlevel=pvarsym(sym)^.owner^.symtablelevel+1) and
                          {(procinfo^.parent^.sym^.definition^.localst=pvarsym(sym)^.owner) and}
@@ -1046,6 +1053,7 @@ Begin
   Condition:=C_NONE;
   Ops:=0;
   InitOperands;
+  Labeled:=false;
 end;
 
 
@@ -1548,7 +1556,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.14  2000-12-25 00:07:28  peter
+  Revision 1.15  2001-02-26 19:44:54  peter
+    * merged generic m68k updates from fixes branch
+
+  Revision 1.14  2000/12/25 00:07:28  peter
     + new tlinkedlist class (merge of old tstringqueue,tcontainer and
       tlinkedlist objects)
 

@@ -61,9 +61,10 @@ interface
        ttarget = (target_none,
             target_i386_GO32V1,target_i386_GO32V2,target_i386_linux,
             target_i386_OS2,target_i386_Win32,target_i386_freebsd,
-            target_i386_Netware,
+            target_i386_Netware,target_i386_sunos,
             target_m68k_Amiga,target_m68k_Atari,target_m68k_Mac,
-            target_m68k_linux,target_m68k_PalmOS,target_alpha_linux,
+            target_m68k_linux,target_m68k_PalmOS,
+            target_alpha_linux,
             target_powerpc_linux,target_powerpc_macos
        );
 
@@ -75,7 +76,7 @@ interface
        { alias for supported_target field in tasminfo }
        target_any = target_none;
 
-       {$ifdef i386} i386targetcnt=7; {$else} i386targetcnt=0; {$endif}
+       {$ifdef i386} i386targetcnt=8; {$else} i386targetcnt=0; {$endif}
        {$ifdef m68k} m68ktargetcnt=5; {$else} m68ktargetcnt=0; {$endif}
        {$ifdef alpha} alphatargetcnt=1; {$else} alphatargetcnt=0; {$endif}
        {$ifdef powerpc} powerpctargetcnt=2; {$else} powerpctargetcnt=0; {$endif}
@@ -129,12 +130,12 @@ interface
      type
        tos = ( os_none,
             os_i386_GO32V1,os_i386_GO32V2,os_i386_Linux,os_i386_OS2,
-            os_i386_Win32,os_i386_freeBSD,os_i386_Netware,
+            os_i386_Win32,os_i386_freeBSD,os_i386_Netware,os_i386_sunos,
             os_m68k_Amiga,os_m68k_Atari,os_m68k_Mac,os_m68k_Linux,
             os_m68k_PalmOS,os_alpha_linux,os_powerpc_linux,os_powerpc_macos
        );
      const
-       i386oscnt=7;
+       i386oscnt=8;
        m68koscnt=5;
        alphaoscnt=1;
        powerpcoscnt=2;
@@ -405,6 +406,28 @@ implementation
             libprefix    : '';
             Cprefix      : '';
             newline      : #13#10;
+            endian       : endian_little;
+            stackalignment : 4;
+            maxCrecordalignment : 4;
+            size_of_pointer : 4;
+            size_of_longint : 4;
+            use_bound_instruction : false;
+            use_function_relative_addresses : true
+          ),
+          (
+            id     : os_i386_sunos;
+            name         : 'sunOS/ELF for i386';
+            shortname    : 'sunos';
+            sharedlibext : '.so';
+            staticlibext : '.a';
+            sourceext    : '.pp';
+            pasext       : '.pas';
+            exeext       : '';
+            defext       : '.def';
+            scriptext    : '.sh';
+            libprefix    : 'lib';
+            Cprefix      : '';
+            newline      : #10;
             endian       : endian_little;
             stackalignment : 4;
             maxCrecordalignment : 4;
@@ -1196,6 +1219,29 @@ implementation
             heapsize    : 256*1024;
             maxheapsize : 32768*1024;
             stacksize   : 8192
+          ),
+          (
+            target      : target_i386_sunos;
+            flags       : [];
+            cpu         : i386;
+            short_name  : 'SUNOS';
+            unit_env    : 'SUNOSUNITS';
+            smartext    : '.sl';
+            unitext     : '.ppu';
+            unitlibext  : '.ppl';
+            asmext      : '.s';
+            objext      : '.o';
+            resext      : '.res';
+            resobjext   : '.or';
+            exeext      : '';
+            os          : os_i386_sunos;
+            assem       : as_i386_as;
+            assemsrc    : as_i386_as;
+            ar          : ar_i386_ar;
+            res         : res_none;
+            heapsize    : 256*1024;
+            maxheapsize : 32768*1024;
+            stacksize   : 8192
           )
 {$endif i386}
 {$ifdef m68k}
@@ -1613,21 +1659,27 @@ begin
     {$else}
       {$ifdef OS2}
         set_source_os(os_i386_OS2);
-        if (OS_Mode = osDOS) or (OS_Mode = osDPMI)
-                                            then source_os.scriptext := '.bat';
-{OS/2 via EMX can be run under DOS as well}
+        if (OS_Mode = osDOS) or (OS_Mode = osDPMI) then
+         source_os.scriptext := '.bat';
+        { OS/2 via EMX can be run under DOS as well }
       {$else}
-        {$ifdef LINUX}
-           {$Ifdef BSD}
+        {$ifdef WIN32}
+          set_source_os(os_i386_WIN32);
+        {$else}
+          {$Ifdef BSD}
             set_source_os(os_i386_FreeBSD);
           {$else}
-            set_source_os(os_i386_LINUX);
-           {$endif}
-        {$else}
-          {$ifdef WIN32}
-            set_source_os(os_i386_WIN32);
-          {$endif win32}
-        {$endif linux}
+            {$ifdef sunos}
+              set_source_os(os_i386_sunos);
+            {$else}
+              { Must be the last as some freebsd also
+                defined linux }
+              {$ifdef Linux}
+                set_source_os(os_i386_LINUX);
+              {$endif linux}
+            {$endif sunos}
+          {$endif bsd}
+        {$endif win32}
       {$endif os2}
     {$endif go32v2}
   {$endif go32v1}
@@ -1711,7 +1763,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.13  2001-02-20 21:36:40  peter
+  Revision 1.14  2001-02-26 19:44:55  peter
+    * merged generic m68k updates from fixes branch
+
+  Revision 1.13  2001/02/20 21:36:40  peter
     * tasm/masm fixes merged
 
   Revision 1.12  2001/01/06 20:15:43  peter

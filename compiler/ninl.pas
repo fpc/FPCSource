@@ -910,7 +910,13 @@ implementation
                             hp:=left;
                             while assigned(hp) do
                               begin
+{$ifdef i386}
                                 incrementregisterpushed($ff);
+{$endif}
+{$ifdef m68k}
+                                for regi:=R_D0 to R_A6 do
+                                  inc(reg_pushes[regi],t_times*2);
+{$endif}
                                 if (tcallparanode(hp).left.nodetype=typen) then
                                   CGMessage(type_e_cant_read_write_type);
                                 if assigned(tcallparanode(hp).left.resulttype) then
@@ -1529,7 +1535,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.27  2001-02-22 11:24:40  jonas
+  Revision 1.28  2001-02-26 19:44:53  peter
+    * merged generic m68k updates from fixes branch
+
+  Revision 1.27  2001/02/22 11:24:40  jonas
     * fixed bug in previous fix (hopped over revision 1.26 because that one
       also removed the fix for high(cardinal))
 
