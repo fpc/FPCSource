@@ -20,6 +20,9 @@
 
  ****************************************************************************
 }
+{$ifdef FPC}
+  {$goto on}
+{$endif FPC}
 unit cg386add;
 interface
 
@@ -2267,7 +2270,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.96  2000-02-18 21:25:48  florian
+  Revision 1.97  2000-02-29 23:57:36  pierre
+    Use $GOTO ON
+
+  Revision 1.96  2000/02/18 21:25:48  florian
     * fixed a bug in int64/qword handling was a quite ugly one
 
   Revision 1.95  2000/02/18 16:13:28  florian

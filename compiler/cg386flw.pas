@@ -20,6 +20,9 @@
 
  ****************************************************************************
 }
+{$ifdef FPC}
+  {$goto on}
+{$endif FPC}
 unit cg386flw;
 interface
 
@@ -1203,7 +1206,10 @@ do_jmp:
 end.
 {
   $Log$
-  Revision 1.69  2000-02-10 23:44:42  florian
+  Revision 1.70  2000-02-29 23:58:19  pierre
+    Use $GOTO ON
+
+  Revision 1.69  2000/02/10 23:44:42  florian
     * big update for exception handling code generation: possible mem holes
       fixed, break/continue/exit should work always now as expected
 
