@@ -1194,7 +1194,7 @@ begin
         decl    %ebx
         jnz     .LM3
         movb    %cl,(%edi)      // Copy String length
-  end;
+  end ['eax','ecx','edx','ebx','esi','edi'];
 end;
 
 
@@ -1225,7 +1225,7 @@ begin
         decl    %ebx
         jnz     .LM5
         movb    %cl,(%edi)      // Copy String length
-  end;
+  end ['eax','ecx','edx','ebx','esi','edi'];
 end;
 
 
@@ -1319,7 +1319,10 @@ end;
 
 {
   $Log$
-  Revision 1.49  2003-10-16 21:28:40  peter
+  Revision 1.50  2003-10-23 17:01:27  peter
+    * save edi,ebx,esi in int_str
+
+  Revision 1.49  2003/10/16 21:28:40  peter
     * use __HIGH()
 
   Revision 1.48  2003/10/14 00:57:48  florian
