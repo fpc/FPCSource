@@ -89,6 +89,8 @@ Procedure ShutDownDFA;
 
 Function FindLabel(L: PasmLabel; Var hp: Pai): Boolean;
 
+Procedure IncState(Var S: Byte; amount: longint);
+
 {******************************* Constants *******************************}
 
 Const
@@ -116,14 +118,17 @@ type
       {start and end of block instructions that defines the
        content of this register.}
                StartMod: pai;
-      {starts at 0, gets increased everytime the register is written to}
-               WState: Byte;
-      {starts at 0, gets increased everytime the register is read from}
-               RState: Byte;
       {how many instructions starting with StarMod does the block consist of}
                NrOfMods: Byte;
       {the type of the content of the register: unknown, memory, constant}
                Typ: Byte;
+               case byte of
+      {starts at 0, gets increased everytime the register is written to}
+                 1: (WState: Byte;
+      {starts at 0, gets increased everytime the register is read from}
+                       RState: Byte);
+      { to compare both states in one operation }
+                 2: (state: word);
              End;
 
 {Contents of the integer registers}
@@ -1177,13 +1182,13 @@ Begin
 End;
 
 
-Procedure IncState(Var S: Byte);
+Procedure IncState(Var S: Byte; amount: longint);
 {Increases S by 1, wraps around at $ffff to 0 (so we won't get overflow
  errors}
 Begin
-  If (s <> $ff)
-    Then Inc(s)
-    Else s := 0
+  if (s <= $ff - amount) then
+    inc(s, amount)
+  else s := longint(s) + amount - $ff;
 End;
 
 Function sequenceDependsonReg(Const Content: TContent; seqReg, Reg: TRegister): Boolean;
@@ -1241,7 +1246,7 @@ begin
       with p1^.regs[counter] Do
         if (typ in [con_ref,con_noRemoveRef]) and
            sequenceDependsOnReg(p1^.Regs[counter],counter,reg) then
-          if typ = con_ref then
+          if typ in [con_ref,con_invalid] then
             typ := con_invalid
           { con_invalid and con_noRemoveRef = con_unknown }
           else typ := con_unknown;
@@ -1269,7 +1274,7 @@ Begin
         begin
           if doIncState then
             begin
-              incState(WState);
+              incState(wstate,1);
               typ := con_unknown;
             end
           else
@@ -1488,7 +1493,7 @@ Procedure ReadReg(p: PPaiProp; Reg: TRegister);
 Begin
   Reg := Reg32(Reg);
   If Reg in [R_EAX..R_EDI] Then
-    IncState(p^.Regs[Reg].RState)
+    incState(p^.regs[Reg].rstate,1)
 End;
 
 
@@ -1572,14 +1577,14 @@ Begin
   If (Ref.base = procinfo^.FramePointer) or
       Assigned(Ref.Symbol) Then
     Begin
-      If (Ref.Index = R_NO) And
-         (Not(Assigned(Ref.Symbol)) or
-          (Ref.base = R_NO)) Then
-  { local variable which is not an array }
-        RefsEq := {$ifdef fpc}@{$endif}RefsEqual
+      If (ref.index <> R_NO) or
+         (assigned(ref.symbol) and
+          (ref.base <> R_NO)) then
+  { local/global variable or parameter which is an array }
+        RefsEq := {$ifdef fpc}@{$endif}ArrayRefsEq
       Else
-  { local variable which is an array }
-        RefsEq := {$ifdef fpc}@{$endif}ArrayRefsEq;
+  { local/global variable or parameter which is not an array }
+        RefsEq := {$ifdef fpc}@{$endif}RefsEqual;
 
 {write something to a parameter, a local or global variable, so
    * with uncertain optimizations on:
@@ -1696,7 +1701,7 @@ Begin
     if (typ in [con_ref,con_noRemoveRef])
       Then
         Begin
-          IncState(WState);
+          incState(wstate,1);
  {also store how many instructions are part of the sequence in the first
   instructions PPaiProp, so it can be easily accessed from within
   CheckSequence}
@@ -2031,7 +2036,7 @@ Begin
                             Begin
                               With CurProp^.Regs[TmpReg] Do
                                 Begin
-                                  IncState(WState);
+                                  incState(wstate,1);
  {also store how many instructions are part of the sequence in the first
   instructions PPaiProp, so it can be easily accessed from within
   CheckSequence}
@@ -2333,7 +2338,14 @@ End.
 
 {
   $Log$
-  Revision 1.8  2000-08-25 19:39:18  jonas
+  Revision 1.9  2000-09-20 15:00:58  jonas
+    + much improved CSE: the CSE now searches further back for sequences it
+      can reuse. After I've also implemented register renaming, the effect
+      should be even better (afaik web bug 1088 will then even be optimized
+      properly). I don't know about the slow down factor this adds. Maybe
+      a new optimization level should be introduced?
+
+  Revision 1.8  2000/08/25 19:39:18  jonas
     * bugfix to FindRegAlloc function (caused wrong regalloc info in
       some cases) (merged from fixes branch)
 

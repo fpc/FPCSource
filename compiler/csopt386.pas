@@ -34,7 +34,8 @@ Procedure CSE(AsmL: PAasmOutput; First, Last: Pai);
 Implementation
 
 Uses
-  CObjects, verbose, hcodegen, globals,cpubase,cpuasm,DAOpt386, tgeni386;
+  {$ifdef replaceregdebug}cutils,{$endif}
+  verbose, hcodegen, globals,cpubase,cpuasm,DAOpt386, tgeni386;
 
 {
 Function PaiInSequence(P: Pai; Const Seq: TContent): Boolean;
@@ -56,14 +57,153 @@ Begin
 End;
 }
 
-Function CheckSequence(p: Pai; Reg: TRegister; Var Found: Longint; Var RegInfo: TRegInfo): Boolean;
+function modifiesMemLocation(p1: pai): boolean;
+var p: paicpu;
+    opCount: byte;
+begin
+  modifiesMemLocation := false;
+  if p1^.typ <> ait_instruction then
+    exit;
+  p := paicpu(p1);
+  for opCount := 1 to MaxCh do
+    case InsProp[p^.opcode].Ch[opCount] of
+      Ch_MOp1,CH_WOp1,CH_RWOp1:
+        if p^.oper[0].typ = top_ref then
+          begin
+            modifiesMemLocation := true;
+            exit
+          end;
+      Ch_MOp2,CH_WOp2,CH_RWOp2:
+        if p^.oper[1].typ = top_ref then
+          begin
+            modifiesMemLocation := true;
+            exit
+          end;
+      Ch_MOp3,CH_WOp3,CH_RWOp3:
+        if p^.oper[2].typ = top_ref then
+          begin
+            modifiesMemLocation := true;
+            exit
+          end;
+      Ch_WMemEDI:
+        begin
+          modifiesMemLocation := true;
+          exit;
+        end;
+    end;
+end;
+
+function getPrevSequence(reg: tregister; current: pai; var prev: pai; var passedJump: boolean):
+  tregister;
+
+  function stillValid(p: pai): boolean;
+  begin
+    stillValid :=
+      (p^.typ = ait_instruction) and
+      (paicpu(p)^.opcode <> a_jmp) and
+      (ppaiprop(p^.optinfo)^.regs[reg].state =
+         ppaiprop(current^.optinfo)^.regs[reg].state) and
+      { in case destroyreg is called with doIncState = false }
+      (ppaiprop(p^.optinfo)^.regs[reg].typ =
+        ppaiprop(current^.optinfo)^.regs[reg].typ);
+    passedJump :=
+      (p^.typ = ait_instruction) and
+      (paicpu(p)^.is_jmp);
+  end;
+
+  function findChangedRegister(p: pai): tregister;
+  var
+    regCounter: tregister;
+  begin
+    for regCounter := R_EAX to R_EDI do
+      with ppaiprop(p^.optinfo)^.regs[regCounter] do
+      if ((startmod <>
+            ppaiprop(current^.optinfo)^.regs[regCounter].startmod)  or
+          (nrOfMods <>
+            ppaiprop(current^.optinfo)^.regs[regCounter].nrOfMods)) and
+           (not ppaiprop(p^.optinfo)^.canBeRemoved) and
+         (ppaiprop(p^.optinfo)^.regs[regCounter].typ in
+           [con_ref,con_noRemoveRef]) then
+        begin
+          findChangedRegister := regCounter;
+          exit;
+        end;
+    findChangedRegister := R_NO;
+  end;
+
+var
+  hp, prevFound: pai;
+  tmpResult: tregister;
+begin
+ getPrevSequence := R_NO;
+ { no memory writes (could be refined further) }
+  if modifiesMemLocation(current) or
+     not getLastInstruction(current,hp) then
+    exit;
+  tmpResult := R_NO;
+  while (tmpResult = R_NO) and
+        stillValid(hp) do
+    begin
+      { in case getPreviousInstruction fails and sets hp to nil in the }
+      { next iteration                                                 }
+      prevFound := hp;
+      tmpResult := findChangedRegister(hp);
+      if modifiesMemLocation(hp) or
+        { do not load the self pointer or a regvar before a (conditional)  }
+        { jump with a new value, since if the jump is taken, the old value }
+        { is (probably) still necessary                                    } 
+        (passedJump and not(reg in (usableregs+[R_EDI]))) or
+         not getLastInstruction(hp,hp) then
+        break;
+    end;
+  getPrevSequence := tmpResult;
+  if tmpResult <> R_NO then
+    prev := prevFound;
+end;
+
+
 {checks whether the current instruction sequence (starting with p) and the
  one between StartMod and EndMod of Reg are the same. If so, the number of
  instructions that match is stored in Found and true is returned, otherwise
  Found holds the number of instructions between StartMod and EndMod and false
  is returned}
-Var hp2, hp3{, EndMod}: Pai;
-    PrevNonRemovablePai: Pai;
+Function CheckSequence(p: Pai; var prev: pai; Reg: TRegister; Var Found: Longint;
+           Var RegInfo: TRegInfo): Boolean;
+
+
+  function getNextRegToTest(var orgP: pai; currentReg: tregister): tregister;
+  const
+    checkingPrevSequences: boolean = false;
+    passedJump: boolean = false;
+  begin
+    if currentReg = R_NO then
+      checkingPrevSequences := false;
+    if not checkingPrevSequences then
+      begin
+        Repeat
+          Inc(currentReg);
+        Until (currentReg > R_EDI) or
+              (ppaiprop(orgP^.optInfo)^.regs[currentReg].typ
+                 in [con_ref,con_noRemoveRef]);
+        if currentReg > R_EDI then
+          begin
+            if not modifiesMemLocation(orgP) and
+               (ppaiprop(orgP^.optinfo)^.regs[reg].rstate =
+                  ppaiprop(p^.optinfo)^.regs[reg].rstate) then
+              begin
+                checkingPrevSequences := true;
+                passedJump := false;
+              end
+            else
+              getNextRegToTest := R_NO;
+          end
+        else getNextRegToTest := currentReg;
+      end;
+    if checkingPrevSequences then
+      getNextRegToTest := getPrevSequence(reg,orgP,orgP, passedJump);
+  end;
+
+Var hp2, hp3{, EndMod},highPrev, orgPrev: Pai;
     {Cnt,} OldNrOfMods: Longint;
     startRegInfo, OrgRegInfo, HighRegInfo: TRegInfo;
     HighFound, OrgRegFound: Byte;
@@ -86,19 +226,16 @@ Begin {CheckSequence}
       new2OldReg[stack_pointer] := stack_pointer;
       oldRegsEncountered := newRegsEncountered;
     end;
-  RegCounter := R_EAX;
-  GetLastInstruction(p, PrevNonRemovablePai);
-  While (RegCounter <= R_EDI) And
-        not(ppaiprop(prevNonRemovablePai^.optInfo)^.regs[regCounter].typ in
-          [con_ref,con_noRemoveRef]) do
-    Inc(RegCounter);
-  While (RegCounter <= R_EDI) Do
+
+  GetLastInstruction(p, prev);
+  regCounter := getNextRegToTest(prev,R_NO);
+  While (RegCounter <> R_NO) Do
     Begin
       regInfo := startRegInfo;
       Found := 0;
-      hp2 := PPaiProp(PrevNonRemovablePai^.OptInfo)^.Regs[RegCounter].StartMod;
-      If (PrevNonRemovablePai <> PPaiProp(PrevNonRemovablePai^.OptInfo)^.Regs[RegCounter].StartMod)
-        Then OldNrOfMods := PPaiProp(PrevNonRemovablePai^.OptInfo)^.Regs[RegCounter].NrOfMods
+      hp2 := PPaiProp(prev^.OptInfo)^.Regs[RegCounter].StartMod;
+      If (prev <> PPaiProp(prev^.OptInfo)^.Regs[RegCounter].StartMod)
+        Then OldNrOfMods := PPaiProp(prev^.OptInfo)^.Regs[RegCounter].NrOfMods
         Else OldNrOfMods := 1;
       hp3 := p;
       While (Found <> OldNrOfMods) And
@@ -111,7 +248,9 @@ Begin {CheckSequence}
               (paicpu(hp3)^.opcode = A_MOVSX)) and
              (paicpu(hp3)^.oper[0].typ in
                [top_const,top_ref,top_symbol]) and
-             (paicpu(hp3)^.oper[1].typ = top_reg) then
+             (paicpu(hp3)^.oper[1].typ = top_reg) and
+             not(regInRef(reg32(paicpu(hp3)^.oper[1].reg),
+                   paicpu(hp3)^.oper[0].ref^)) then
             regInfo.lastReload
               [reg32(paicpu(hp3)^.oper[1].reg)] := hp3;
           GetNextInstruction(hp2, hp2);
@@ -120,9 +259,9 @@ Begin {CheckSequence}
         End;
       for regCounter2 := R_EAX to R_EDX do
         if (regInfo.new2OldReg[regCounter2] <> R_NO) and
-           (reg in PPaiProp(hp3^.optInfo)^.usedRegs) and
-           not regLoadedWithNewValue(reg,false,hp3) then
-          include(regInfo.regsStillUsedAfterSeq,regCounter);
+           (regCounter2 in PPaiProp(hp3^.optInfo)^.usedRegs) and
+           not regLoadedWithNewValue(regCounter2,false,hp3) then
+          include(regInfo.regsStillUsedAfterSeq,regCounter2);
       If (Found <> OldNrOfMods) or
  { the following is to avoid problems with rangecheck code (see testcse2) }
          (assigned(hp3) and
@@ -147,23 +286,18 @@ Begin {CheckSequence}
          (Found > HighFound)
         Then
           Begin
+            highPrev := prev;
             HighFound := Found;
             HighRegInfo := RegInfo;
           End;
       If (RegCounter = Reg) Then
         Begin
+          orgPrev := prev;
           OrgRegFound := Found;
           OrgRegResult := TmpResult;
           OrgRegInfo := RegInfo
         End;
-      Repeat
-        Inc(RegCounter);
-      Until (RegCounter > R_EDI) or
-            ((ppaiprop(prevNonRemovablePai^.optInfo)^.regs[regCounter].typ
-                in [con_ref,con_noRemoveRef]) {And
-             ((Regcounter = Reg) Or
-              Not(PaiInSequence(p, PPaiProp(PrevNonRemovablePai^.OptInfo)^.Regs[RegCounter]))) }
-            );
+      regCounter := getNextRegToTest(prev,regCounter);
     End;
   If (HighFound > 0) And
      (Not(OrgRegResult) Or
@@ -175,6 +309,7 @@ Begin {CheckSequence}
 {$else fpc}
         CheckSequence := True;
 {$endif fpc}
+        prev := highPrev;
         RegInfo := HighRegInfo;
         Found := HighFound
       End
@@ -185,6 +320,7 @@ Begin {CheckSequence}
 {$else fpc}
         CheckSequence := OrgRegResult;
 {$endif fpc}
+        prev := orgPrev;
         Found := OrgRegFound;
         RegInfo := OrgRegInfo;
       End;
@@ -361,12 +497,14 @@ Procedure RestoreRegContentsTo(reg: TRegister; const c: TContent; p, endP: pai);
 var
 {$ifdef replaceregdebug}
     hp: pai;
+    l: longint;
 {$endif replaceregdebug}
     tmpState: byte;
 begin
 {$ifdef replaceregdebug}
+  l := random(1000);
   hp := new(pai_asm_comment,init(strpnew(
-          'restored '+att_reg2str[reg]+' with data from here...')));
+          'restored '+att_reg2str[reg]+' with data from here... '+tostr(l))));
   hp^.next := p;
   hp^.previous := p^.previous;
   p^.previous := hp;
@@ -388,7 +526,7 @@ begin
   if assigned(p) then
     begin
       hp := new(pai_asm_comment,init(strpnew(
-        'restored '+att_reg2str[reg]+' till here...')));
+        'restored '+att_reg2str[reg]+' till here... '+tostr(l))));
       hp^.next := p;
       hp^.previous := p^.previous;
       p^.previous := hp;
@@ -397,6 +535,7 @@ begin
     end;
 {$endif replaceregdebug}
 end;
+
 
 function FindRegDealloc(reg: tregister; p: pai): boolean;
 { assumes reg is a 32bit register }
@@ -438,25 +577,36 @@ Procedure ClearRegContentsFrom(reg: TRegister; p, endP: pai);
 var
 {$ifdef replaceregdebug}
     hp: pai;
+    l: longint;
 {$endif replaceregdebug}
-    tmpState: byte;
+    oldStartmod: pai;
 begin
+{$ifdef replaceregdebug}
+  l := random(1000);
+  hp := new(pai_asm_comment,init(strpnew(
+          'cleared '+att_reg2str[reg]+' from here... '+tostr(l))));
+  hp^.next := p;
+  hp^.previous := p^.previous;
+  p^.previous := hp;
+  if assigned(hp^.previous) then
+    hp^.previous^.next := hp;
+{$endif replaceregdebug}
   PPaiProp(p^.optInfo)^.Regs[reg].typ := con_unknown;
   While (p <> endP) Do
     Begin
       PPaiProp(p^.optInfo)^.Regs[reg].typ := con_unknown;
       getNextInstruction(p,p);
     end;
-  tmpState := PPaiProp(p^.optInfo)^.Regs[reg].wState;
+  oldStartmod := PPaiProp(p^.optInfo)^.Regs[reg].startmod;
   repeat
     PPaiProp(p^.optInfo)^.Regs[reg].typ := con_unknown;
   until not getNextInstruction(p,p) or
-        (PPaiProp(p^.optInfo)^.Regs[reg].wState <> tmpState);
+        (PPaiProp(p^.optInfo)^.Regs[reg].startmod <> oldStartmod);
 {$ifdef replaceregdebug}
   if assigned(p) then
     begin
       hp := new(pai_asm_comment,init(strpnew(
-        'cleared '+att_reg2str[reg]+' till here...')));
+        'cleared '+att_reg2str[reg]+' till here... '+tostr(l))));
       hp^.next := p;
       hp^.previous := p^.previous;
       p^.previous := hp;
@@ -488,33 +638,69 @@ begin
   end;
 end;
 
-Procedure ChangeReg(var Reg: TRegister; orgReg, newReg: TRegister);
+function ChangeReg(var Reg: TRegister; orgReg, newReg: TRegister): boolean;
 begin
+  changeReg := true;
   if reg = newReg then
     reg := orgReg
   else if reg = regtoreg8(newReg) then
          reg := regtoreg8(orgReg)
   else if reg = regtoreg16(newReg) then
-         reg := regtoreg16(orgReg);
+         reg := regtoreg16(orgReg)
+  else changeReg := false;
 end;
 
-procedure changeOp(var o: toper; orgReg, newReg: tregister);
+function changeOp(var o: toper; orgReg, newReg: tregister): boolean;
 begin
   case o.typ of
-    top_reg: changeReg(o.reg,orgReg,newReg);
+    top_reg: changeOp := changeReg(o.reg,orgReg,newReg);
     top_ref:
       begin
-        changeReg(o.ref^.base,orgReg,newReg);
-        changeReg(o.ref^.index,orgReg,newReg);
+        changeOp :=
+          changeReg(o.ref^.base,orgReg,newReg) or
+          changeReg(o.ref^.index,orgReg,newReg);
       end;
   end;
 end;
 
-Procedure DoReplaceReg(orgReg,newReg: tregister; hp: paicpu);
-var opCount: byte;
+procedure updateStates(orgReg,newReg: tregister; hp: pai; writeStateToo: boolean);
+var
+  prev: pai;
+  newOrgRegRState, newOrgRegWState: byte;
+begin
+  if getLastInstruction(hp,prev) then
+    with ppaiprop(prev^.optinfo)^ do
+      begin
+        newOrgRegRState := regs[orgReg].rState +
+          ppaiprop(hp^.optinfo)^.regs[newReg].rState - regs[newReg].rstate;
+        if writeStateToo then
+          newOrgRegWState := regs[orgReg].wState +
+            ppaiprop(hp^.optinfo)^.regs[newReg].wState - regs[newReg].wstate;
+      end
+  else
+    with ppaiprop(hp^.optinfo)^.regs[newReg] do
+      begin
+        newOrgRegRState := rState;
+        if writeStateToo then
+          newOrgRegWState := wState;
+      end;
+  with ppaiprop(hp^.optinfo)^.regs[orgReg] do
+    begin
+      rState := newOrgRegRState;
+      if writeStateToo then
+        wState := newOrgRegwState;
+    end;
+end;
+
+function doReplaceReg(orgReg,newReg: tregister; hp: paicpu): boolean;
+var
+  opCount: byte;
+  tmpResult: boolean;
 begin
   for opCount := 0 to 2 do
-    changeOp(hp^.oper[opCount],orgReg,newReg)
+    tmpResult :=
+      changeOp(hp^.oper[opCount],orgReg,newReg) or tmpResult;
+  doReplaceReg := tmpResult;
 end;
 
 function RegSizesOK(oldReg,newReg: TRegister; p: paicpu): boolean;
@@ -535,9 +721,10 @@ begin
     end;
 end;
 
-procedure DoReplaceReadReg(orgReg,newReg: tregister; p: paicpu);
+function doReplaceReadReg(orgReg,newReg: tregister; p: paicpu): boolean;
 var opCount: byte;
 begin
+  doReplaceReadReg := false;
   { handle special case }
   case p^.opcode of
     A_IMUL:
@@ -546,9 +733,17 @@ begin
           1: internalerror(1301001);
           2,3:
             begin
-              changeOp(p^.oper[0],orgReg,newReg);
-              if p^.ops = 3 then
-                changeOp(p^.oper[1],orgReg,newReg);
+              if changeOp(p^.oper[0],orgReg,newReg) then
+                begin
+{                  updateStates(orgReg,newReg,p,false);}
+                  doReplaceReadReg := true;
+                end;
+             if p^.ops = 3 then
+                if changeOp(p^.oper[1],orgReg,newReg) then
+                  begin
+{                    updateStates(orgReg,newReg,p,false);}
+                    doReplaceReadReg := true;
+                  end;
             end;
         end;
       end;
@@ -557,22 +752,114 @@ begin
       begin
         for opCount := 0 to 2 do
           if p^.oper[opCount].typ = top_ref then
-            changeOp(p^.oper[opCount],orgReg,newReg);
+            if changeOp(p^.oper[opCount],orgReg,newReg) then
+              begin
+{                updateStates(orgReg,newReg,p,false);}
+                doReplaceReadReg := true;
+              end;
         for opCount := 1 to MaxCh do
           case InsProp[p^.opcode].Ch[opCount] of
             Ch_ROp1:
               if p^.oper[0].typ = top_reg then
-                ChangeReg(p^.oper[0].reg,orgReg,newReg);
+                if changeReg(p^.oper[0].reg,orgReg,newReg) then
+                  begin
+{                    updateStates(orgReg,newReg,p,false);}
+                    doReplaceReadReg := true;
+                  end;
             Ch_ROp2:
               if p^.oper[1].typ = top_reg then
-                ChangeReg(p^.oper[1].reg,orgReg,newReg);
+                if changeReg(p^.oper[1].reg,orgReg,newReg) then
+                  begin
+{                    updateStates(orgReg,newReg,p,false);}
+                    doReplaceReadReg := true;
+                  end;
             Ch_ROp3:
               if p^.oper[2].typ = top_reg then
-                ChangeReg(p^.oper[2].reg,orgReg,newReg);
+                if changeReg(p^.oper[2].reg,orgReg,newReg) then
+                  begin
+{                    updateStates(orgReg,newReg,p,false);}
+                    doReplaceReadReg := true;
+                  end;
           end;
       end;
   end;
 end;
+
+
+procedure updateState(reg: tregister; p: pai);
+{ this procedure updates the read and write states of the instructions }
+{ coming after p. It's called when the read/write state of p has been  }
+{ changed and this change has to be propagated to the following        }
+{ instructions as well                                                 }
+var
+  newRState, newWState: byte;
+  prevRState, prevWState: byte;
+  doRState, doWState: boolean;
+begin
+  { get the new read/write states from p }
+  with ppaiprop(p^.optinfo)^.regs[reg] do
+    begin
+      newRState := rState;
+      newWState := wState;
+    end;
+  if not GetNextInstruction(p,p) then
+    exit;
+  { get the old read/write states from the next instruction, to know }
+  { when we can stop updating                                        }
+  with ppaiprop(p^.optinfo)^.regs[reg] do
+    begin
+      prevRState := rState;
+      prevWState := wState;
+    end;
+  { adjust the states if this next instruction reads/writes the register }
+  if regReadByInstruction(reg,p) then
+    incState(newRState,1);
+  if regModifiedByInstruction(reg,p) then
+    incState(newWState,1);
+  { do we still have to update the read and/or write states? }
+  doRState := true;
+  doWState := true;
+  repeat
+    { update the states }
+    with ppaiprop(p^.optinfo)^.regs[reg] do
+      begin
+        if doRState then
+          rState := newRState;
+        if doWState then
+          wState := newWState;
+      end;
+    if not getNextInstruction(p,p) then
+      break;
+    with ppaiprop(p^.optinfo)^.regs[reg] do
+      begin
+        { stop updating the read state if it changes }
+        doRState :=
+          doRState and (rState = prevRState);
+        { if, by accident, this changed state is the same as the one }
+        { we've been using, change it to a value that's definitely   }
+        { different from the previous and next state                 }
+        if not doRState and
+           (rState = newRState) then
+          begin
+            incState(newRState,1);
+            prevRState := rState; 
+            doRState := true;
+          end;
+        { ditto for the write state }
+        doWState :=
+          doWState and (WState = prevWState);
+        if not doWState and
+           (wState = newWState) then
+          begin
+            incState(newWState,1);
+            prevWState := wState; 
+            doWState := true;
+          end;
+      end;
+  { stop when we don't have to update either state anymore }
+  until not(doRState or doWState);
+end;
+
 
 function ReplaceReg(asmL: PaasmOutput; orgReg, newReg: TRegister; p: pai;
            const c: TContent; orgRegCanBeModified: Boolean;
@@ -585,7 +872,8 @@ function ReplaceReg(asmL: PaasmOutput; orgReg, newReg: TRegister; p: pai;
 { if the function returns true, returnEndP holds the last instruction    }
 { where newReg was replaced by orgReg                                    }
 var endP, hp: Pai;
-    removeLast, sequenceEnd, tmpResult, newRegModified, orgRegRead: Boolean;
+    removeLast, sequenceEnd, tmpResult, newRegModified, orgRegRead,
+      stateChanged, readStateChanged: Boolean;
 
   function storeBack(p1: pai): boolean;
   { returns true if p1 contains an instruction that stores the contents }
@@ -664,6 +952,8 @@ begin
                          not(newRegModified and orgRegRead)) (* and
     { since newReg will be replaced by orgReg, we can't allow that newReg }
     { gets modified if orgRegCanBeModified = false                        }
+    
+    { this now gets checked after the loop (JM) }
                          (orgRegCanBeModified or not(newRegModified)) *);
           tmpResult :=
             not(removeLast) and
@@ -709,16 +999,28 @@ begin
 {$endif replaceregdebug}
       replaceReg := true;
       returnEndP := endP;
+
       getNextInstruction(p,hp);
+      stateChanged := false;
       while hp <> endP do
         begin
-          if not(PPaiProp(hp^.optInfo)^.canBeRemoved) and
+          if {not(PPaiProp(hp^.optInfo)^.canBeRemoved) and }
              (hp^.typ = ait_instruction) then
-            DoReplaceReg(orgReg,newReg,paicpu(hp));
-          GetNextInstruction(hp,hp)
+            stateChanged := 
+              doReplaceReg(orgReg,newReg,paicpu(hp)) or stateChanged;
+            if stateChanged then
+              updateStates(orgReg,newReg,hp,true);
+          getNextInstruction(hp,hp)
         end;
       if assigned(endp) and (endp^.typ = ait_instruction) then
-        DoReplaceReadReg(orgReg,newReg,paicpu(endP));
+        readStateChanged :=
+          DoReplaceReadReg(orgReg,newReg,paicpu(endP));
+      if stateChanged or readStateChanged then
+        updateStates(orgReg,newReg,endP,stateChanged);
+
+      if stateChanged or readStateChanged then
+        updateState(orgReg,endP);
+
 { the replacing stops either at the moment that                             }
 {  a) the newreg gets loaded with a new value (one not depending on the     }
 {     current value of newreg)                                              }
@@ -733,7 +1035,8 @@ begin
       if removeLast or
          (p <> endp) or
          not RegLoadedWithNewValue(newReg,true,endP) then
-        RestoreRegContentsTo(newReg, c ,p, hp);
+        RestoreRegContentsTo(newReg,c,p,hp);
+
 { In both case a and b, it is possible that the new register was modified   }
 { (e.g. an add/sub), so if it was replaced by oldreg in that instruction,   }
 { oldreg's contents have been changed. To take this into account, we simply }
@@ -743,6 +1046,7 @@ begin
       if removeLast then
         ppaiprop(endP^.optinfo)^.canBeRemoved := true;
       allocRegBetween(asml,orgReg,p,endP);
+
     end
 {$ifdef replaceregdebug}
      else
@@ -834,7 +1138,7 @@ Procedure DoCSE(AsmL: PAasmOutput; First, Last: Pai);
  removed immediately because sometimes an instruction needs to be checked in
  two different sequences}
 var cnt, cnt2, cnt3: longint;
-    p, hp1, hp2: Pai;
+    p, hp1, hp2, prevSeq, prevSeq_next: Pai;
     hp3, hp4: pai;
     hp5 : pai;
     RegInfo: TRegInfo;
@@ -875,7 +1179,7 @@ Begin
                                  'cse checking '+att_reg2str[Reg32(Paicpu(p)^.oper[1].reg)])));
                                insertLLItem(asml,p,p^.next,hp5);
 {$endif csdebug}
-                               If CheckSequence(p, Paicpu(p)^.oper[1].reg, Cnt, RegInfo) And
+                               If CheckSequence(p,prevSeq,Paicpu(p)^.oper[1].reg, Cnt, RegInfo) And
                                   (Cnt > 0) Then
                                  Begin
                                    hp1 := nil;
@@ -924,7 +1228,8 @@ Begin
                                                          PPaiProp(hp5^.OptInfo)^.CanBeRemoved := True;
                                                        getNextInstruction(hp5,hp5);
                                                      end;
-{$endif noremove}                                end
+                                                 end
+{$endif noremove}
                                              end
                                          end
 {$ifndef noremove}
@@ -934,10 +1239,10 @@ Begin
                                        ; Inc(Cnt2);
                                        GetNextInstruction(p, p);
                                      End;
-                                   hp3 := New(Pai_Marker,Init(NoPropInfoStart));
-                                   InsertLLItem(AsmL, Pai(hp2^.Previous), hp2, hp3);
  {hp4 is used to get the contents of the registers before the sequence}
                                    GetLastInstruction(hp2, hp4);
+
+                                   getNextInstruction(prevSeq,prevSeq_next);
 {$IfDef CSDebug}
               For RegCounter := R_EAX To R_EDI Do
                 If (RegCounter in RegInfo.RegsLoadedForRef) Then
@@ -954,21 +1259,44 @@ Begin
                                         (RegInfo.New2OldReg[RegCounter] <> R_NO) Then
                                        Begin
                                          AllocRegBetween(AsmL,RegInfo.New2OldReg[RegCounter],
-                                           PPaiProp(hp4^.OptInfo)^.Regs[RegInfo.New2OldReg[RegCounter]].StartMod,hp2);
+                                           PPaiProp(prevSeq^.OptInfo)^.Regs[RegInfo.New2OldReg[RegCounter]].StartMod,prevSeq_next);
+                                         if hp4 <> prevSeq then
+                                           begin
+                                             if assigned(reginfo.lastReload[regCounter]) then
+                                               getLastInstruction(reginfo.lastReload[regCounter],hp3)
+                                             else hp3 := hp4;
+                                             if prevSeq <> hp3 then
+                                               clearRegContentsFrom(regCounter,prevSeq_next,
+                                                 hp3);
+                                             allocRegBetween(asmL,regCounter,prevSeq,hp3);
+                                           end;
                                          If Not(RegCounter In RegInfo.RegsLoadedForRef) And
                                                         {old reg                new reg}
                                             (RegInfo.New2OldReg[RegCounter] <> RegCounter) Then
                                            Begin
                                              getLastInstruction(p,hp3);
-                                             If not(regCounter in usableRegs + [R_EDI,R_ESI]) or
+                                             If (hp4 <> prevSeq) or
+                                                not(regCounter in usableRegs + [R_EDI,R_ESI]) or
                                                 not ReplaceReg(asmL,RegInfo.New2OldReg[RegCounter],
                                                       regCounter,hp3,
-                                                      PPaiProp(hp4^.optInfo)^.Regs[regCounter],true,hp5) then
+                                                      PPaiProp(PrevSeq^.optInfo)^.Regs[regCounter],true,hp5) then
                                                begin
+                                                 hp3 := New(Pai_Marker,Init(NoPropInfoEnd));
+                                                 InsertLLItem(AsmL, prevSeq, Pai(prevSeq^.next), hp3);
                                                  hp3 := New(Paicpu,Op_Reg_Reg(A_MOV, S_L,
                                                                          {old reg          new reg}
                                                        RegInfo.New2OldReg[RegCounter], RegCounter));
-                                                 InsertLLItem(AsmL, Pai(hp2^.previous), hp2, hp3);
+                                                 InsertLLItem(AsmL, prevSeq, Pai(prevSeq^.next), hp3);
+                                                 hp3 := New(Pai_Marker,Init(NoPropInfoStart));
+                                                 InsertLLItem(AsmL, prevSeq, Pai(prevSeq^.next), hp3);
+                                                 { adjusts states in previous instruction so that it will  }
+                                                 { definitely be different from the previous or next state }
+                                                 incstate(ppaiprop(prevSeq_next^.optinfo)^.
+                                                   regs[RegInfo.New2OldReg[RegCounter]].rstate,20);
+                                                 incstate(ppaiprop(prevSeq_next^.optinfo)^.
+                                                   regs[regCounter].wstate,20);
+                                                 updateState(RegInfo.New2OldReg[RegCounter],
+                                                   prevSeq_next);
                                                end
                                            End
                                          Else
@@ -1002,8 +1330,6 @@ Begin
                                                hp2,hp3);
                                            End;
                                        End;
-                                   hp3 := New(Pai_Marker,Init(NoPropInfoEnd));
-                                   InsertLLItem(AsmL, Pai(hp2^.Previous), hp2, hp3);
                                    If hp1 <> nil Then
                                      p := hp1;
                                    Continue;
@@ -1167,7 +1493,14 @@ End.
 
 {
   $Log$
-  Revision 1.7  2000-08-25 19:40:45  jonas
+  Revision 1.8  2000-09-20 15:00:58  jonas
+    + much improved CSE: the CSE now searches further back for sequences it
+      can reuse. After I've also implemented register renaming, the effect
+      should be even better (afaik web bug 1088 will then even be optimized
+      properly). I don't know about the slow down factor this adds. Maybe
+      a new optimization level should be introduced?
+
+  Revision 1.7  2000/08/25 19:40:45  jonas
     * refined previous fix a bit, some instructions weren't being removed
       while they could (merged from fixes branch)
     * made checksequence a bit faster
