@@ -33,7 +33,7 @@ interface
 {$ifdef win32}
       windows,
 {$endif}
-{$ifdef unix}
+{$ifdef hasunix}
   {$ifdef ver1_0}
       linux,
   {$else}
@@ -950,12 +950,12 @@ implementation
 
    Function GetFileTime ( Var F : File) : Longint;
      Var
-     {$ifdef unix}
+     {$ifdef hasunix}
        Info : Stat;
      {$endif}
        L : longint;
      begin
-     {$ifdef unix}
+     {$ifdef hasunix}
        FStat (F,Info);
        L:=Info.Mtime;
      {$else}
@@ -1071,7 +1071,7 @@ implementation
         hp,p,p2 : pchar;
       {$endif}
       begin
-      {$ifdef unix}
+      {$ifdef hasunix}
         GetEnvPchar:={$ifdef ver1_0}Linux{$else}Unix{$endif}.Getenv(envname);
         {$define GETENVOK}
       {$endif}
@@ -1111,7 +1111,7 @@ implementation
 
     procedure FreeEnvPChar(p:pchar);
       begin
-      {$ifndef unix}
+      {$ifndef hasunix}
        {$ifndef os2}
         StrDispose(p);
        {$endif}
@@ -1122,7 +1122,7 @@ implementation
     Procedure Shell(const command:string);
       { This is already defined in the linux.ppu for linux, need for the *
         expansion under linux }
-      {$ifdef unix}
+      {$ifdef hasunix}
       begin
         {$ifdef ver1_0}Linux{$else}Unix{$endif}.Shell(command);
       end;
@@ -1525,7 +1525,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.80  2003-01-04 16:20:44  hajny
+  Revision 1.81  2003-01-10 21:49:00  marco
+   * more hasunix fixes
+
+  Revision 1.80  2003/01/04 16:20:44  hajny
     * modified to make use of the common GetEnv code under OS/2
 
   Revision 1.79  2002/12/25 01:26:17  peter

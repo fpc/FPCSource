@@ -93,7 +93,7 @@ Procedure GenerateAsmRes(const st : string);
 implementation
 
 uses
-{$ifdef Unix}
+{$ifdef hasUnix}
   {$ifdef ver1_0}
     Linux,
   {$else}
@@ -172,7 +172,7 @@ begin
   while not data.Empty do
    Writeln(t,data.GetFirst);
   Close(t);
-{$ifdef Unix}
+{$ifdef hasUnix}
   if executable then
    ChMod(fn,493);
 {$endif}
@@ -415,7 +415,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.18  2003-01-06 20:16:42  peter
+  Revision 1.19  2003-01-10 21:49:00  marco
+   * more hasunix fixes
+
+  Revision 1.18  2003/01/06 20:16:42  peter
     * don't prepend ./ to quoted filenames
 
   Revision 1.17  2002/11/15 01:58:54  peter

@@ -173,7 +173,7 @@ interface
 Implementation
 
     uses
-{$ifdef unix}
+{$ifdef hasunix}
   {$ifdef ver1_0}
       linux,
   {$else}
@@ -510,7 +510,7 @@ Implementation
       begin
         if SmartAsm then
          NextSmartName(Aplace);
-{$ifdef unix}
+{$ifdef hasunix}
         if DoPipe then
          begin
            Message1(exec_i_assembling_pipe,asmfile);
@@ -538,7 +538,7 @@ Implementation
         l : longint;
       begin
         AsmFlush;
-{$ifdef unix}
+{$ifdef hasunix}
         if DoPipe then
          PClose(outfile)
         else
@@ -1607,7 +1607,10 @@ Implementation
 end.
 {
   $Log$
-  Revision 1.48  2002-11-24 18:21:49  carl
+  Revision 1.49  2003-01-10 21:49:00  marco
+   * more hasunix fixes
+
+  Revision 1.48  2002/11/24 18:21:49  carl
     - remove some unused defines
 
   Revision 1.47  2002/11/17 16:31:55  carl
