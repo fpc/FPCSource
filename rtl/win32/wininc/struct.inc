@@ -3482,14 +3482,16 @@
      PMENUEVENTRECORD = ^MENU_EVENT_RECORD;
 
      INPUT_RECORD = record
-          EventType : WORD;
-              case longint of
+          EventType: Word;
+          Reserved: Word;
+          Event : record case longint of
                  0 : ( KeyEvent : KEY_EVENT_RECORD );
                  1 : ( MouseEvent : MOUSE_EVENT_RECORD );
                  2 : ( WindowBufferSizeEvent : WINDOW_BUFFER_SIZE_RECORD );
                  3 : ( MenuEvent : MENU_EVENT_RECORD );
                  4 : ( FocusEvent : FOCUS_EVENT_RECORD );
        end;
+      end;
      PINPUT_RECORD = ^INPUT_RECORD;
      _INPUT_RECORD = INPUT_RECORD;
      TINPUTRECORD = INPUT_RECORD;
@@ -6966,7 +6968,10 @@ type
 
 {
   $Log$
-  Revision 1.8  2001-07-30 14:23:15  marco
+  Revision 1.9  2001-08-04 10:25:46  peter
+    * fixed input_record to be more delphi compatible
+
+  Revision 1.8  2001/07/30 14:23:15  marco
    * Added finddataw
 
   Revision 1.7  2001/06/13 08:57:01  marco
@@ -6986,5 +6991,5 @@ type
 
   Revision 1.2  2000/07/13 11:34:01  michael
   + removed logs
- 
+
 }
