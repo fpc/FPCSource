@@ -89,6 +89,8 @@ endif
 ifndef FPCDIR
 ifdef DEFAULTFPCDIR
 FPCDIR=$(DEFAULTFPCDIR)
+else
+FPCDIR=../../..
 endif
 endif
 
@@ -121,7 +123,10 @@ install:
 
 #
 # $Log$
-# Revision 1.1  1999-04-16 20:16:38  michael
+# Revision 1.2  1999-04-21 09:50:43  michael
+# . Added default dir ../../..
+#
+# Revision 1.1  1999/04/16 20:16:38  michael
 # + Adapted ide Makefiles
 #
 # Revision 1.1  1999/03/16 00:50:29  peter
