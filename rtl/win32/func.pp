@@ -1981,7 +1981,8 @@ ExitProcess(
 
   function BeginPaint(hWnd:HWND; lpPaint:LPPAINTSTRUCT):HDC;
 
-(* Const before type ignored *)
+  function BeginPaint(hWnd:HWND;var lPaint:PAINTSTRUCT):HDC;
+
   function EndPaint(hWnd:HWND; var lpPaint:PAINTSTRUCT):WINBOOL;
 
   function GetUpdateRect(hWnd:HWND; lpRect:LPRECT; bErase:WINBOOL):WINBOOL;
@@ -4773,6 +4774,7 @@ in define line 6852 *)
   function ReleaseDC(hWnd:HWND; hDC:HDC):longint; external 'user32' name 'ReleaseDC';
 
   function BeginPaint(hWnd:HWND; lpPaint:LPPAINTSTRUCT):HDC; external 'user32' name 'BeginPaint';
+  function BeginPaint(hWnd:HWND;var lPaint:PAINTSTRUCT):HDC; external 'user32' name 'BeginPaint';
 
   function EndPaint(hWnd:HWND; var lpPaint:PAINTSTRUCT):WINBOOL; external 'user32' name 'EndPaint';
 
@@ -6773,7 +6775,10 @@ end.
 {$endif not windows_include_files}
 {
   $Log$
-  Revision 1.6  1998-10-27 11:17:14  peter
+  Revision 1.7  1998-12-28 23:35:15  peter
+    * small fixes for better compatibility
+
+  Revision 1.6  1998/10/27 11:17:14  peter
     * type HINSTANCE -> HINST
 
   Revision 1.5  1998/09/04 17:17:33  pierre

@@ -23,15 +23,7 @@
 {$ifndef windows_include_files}
 
 unit base;
-
-{  Automatically converted by H2PAS.EXE from base.h
-   Utility made by Florian Klaempfl 25th-28th september 96
-   Improvements made by Mark A. Malakanov 22nd-25th may 97
-   Further improvements by Michael Van Canneyt, April 1998
-   define handling and error recovery by Pierre Muller, June 1998 }
-
-
-  interface
+interface
 
 {$endif not windows_include_files}
 
@@ -70,292 +62,139 @@ unit base;
      59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
    }
 
-{$ifndef _GNU_H_WINDOWS32_BASE}
-{$define _GNU_H_WINDOWS32_BASE}
-  {  Not convertable by H2PAS
-  #ifndef NULL
-  #ifdef __cplusplus
-  #define NULL  (0)
-  #else
-  #define NULL  ((void  )0)
-  #endif
-  #endif  !NULL  }
-  {  Not convertable by H2PAS
-  #define FALSE 0
-  #define TRUE 1
-   }
-{$ifndef RC_INVOKED}
-  { typedef ACMDRIVERENUMCB;
-  typedef ACMDRIVERPROC;
-  typedef ACMFILERCHOOSEHOOKPROC;
-  typedef ACMFILTERENUMCB;
-  typedef ACMFILTERTAGENUMCB;
-  typedef ACMFORMATCHOOSEHOOKPROC;
-  typedef ACMFORMATENUMCB;
-  typedef ACMFORMATTAGENUMCB;
-  typedef APPLET_PROC;
-   }
-
   const
-     NULL : pchar = nil;
+     NULL = nil;
+
   type
 
      ATOM = word;
 
      WINBOOL = longbool;
-
      BOOL = WINBOOL;
 
      CALTYPE = cardinal;
-
      CALID = cardinal;
 
      CCHAR = char;
 
      COLORREF = cardinal;
-  {  Not convertable by H2PAS
-  #define CONST const
-   }
-  { Check VOID before defining CHAR, SHORT, and LONG  }
-{$ifndef VOID}
-  {  Not convertable by H2PAS
-  #define VOID void
-  typedef char CHAR;
-   }
-
-  type
 
      SHORT = integer;
-
-     LONG = longint;
-{$endif}
-  {
-  typedef CTRYID;
-  typedef DLGPROC;
-   }
-
-  type
-
+     INT   = longint;
+     LONG  = longint;
      DWORD = cardinal;
-  { was unsigned long  }
 
-     DWORDLONG = double;
-
-     PDWORDLONG = ^DWORDLONG;
-  {
-  typedef EDITWORDBREAKPROC;
-  typedef ENHMFENUMPROC;
-  typedef ENUMRESLANGPROC;
-  typedef ENUMRESNAMEPROC;
-  typedef ENUMRESTYPEPROC;
-   }
-
-     FLOAT = real;
-  { typedef GLOBALHANDLE;  }
-
-  {   HANDLE = pointer;
-    need to be compatible
-    with longint for Delphi !! }
-     HANDLE = longint; { or should it be cardinal ?? PM }
-
-     HACCEL = HANDLE;
-
-     HBITMAP = HANDLE;
-
-     HBRUSH = HANDLE;
-
-     HCOLORSPACE = HANDLE;
-
-     HCONV = HANDLE;
-
-     HCONVLIST = HANDLE;
-
-     HCURSOR = HANDLE;
-
-     HDBC = HANDLE;
-
-     HDC = HANDLE;
-
-     HDDEDATA = HANDLE;
-
-     HDESK = HANDLE;
-
-     HDROP = HANDLE;
-
-     HDWP = HANDLE;
-
-     HENHMETAFILE = HANDLE;
-
-     HENV = HANDLE;
-
-     HFILE = longint;
-
-     HFONT = HANDLE;
-
-     HGDIOBJ = HANDLE;
-
-     HGLOBAL = HANDLE;
-
-     HGLRC = HANDLE;
-
-     HHOOK = HANDLE;
-
-     HICON = HANDLE;
-
-     HIMAGELIST = HANDLE;
-
-     { Not HINSTANCE, that will create prolems with the var hInstance
-       and in delphi its also called HINST (PFV) }
-     HINST = HANDLE;
-
-     HKEY = HANDLE;
-
-     PHKEY = ^HKEY;
-
-     HKL = HANDLE;
-
-     HLOCAL = HANDLE;
-
-     HMENU = HANDLE;
-
-     HMETAFILE = HANDLE;
-
-     HMODULE = HANDLE;
-
-     HPALETTE = HANDLE;
-
-     HPEN = HANDLE;
-
-     HRASCONN = HANDLE;
-
-     HRESULT = longint;
-
-     HRGN = HANDLE;
-
-     HRSRC = HANDLE;
-
-     HSTMT = HANDLE;
-
-     HSZ = HANDLE;
-
-     HWINSTA = HANDLE;
-
-     HWND = HANDLE;
-
-     INT = longint;
-
-     LANGID = word;
-
-     LCID = DWORD;
-
-     LCTYPE = DWORD;
-  { typedef LOCALHANDLE  }
-
-     LONGLONG = double;
-
+     LONGLONG  = double;
      PLONGLONG = ^LONGLONG;
 
-     LP = ^word;
+     DWORDLONG  = double;  { was unsigned long  }
+     PDWORDLONG = ^DWORDLONG;
 
+     FLOAT = real;
+
+     HANDLE = longint;    { or should it be cardinal ?? PM }
+
+     HACCEL = HANDLE;
+     HBITMAP = HANDLE;
+     HBRUSH = HANDLE;
+     HCOLORSPACE = HANDLE;
+     HCONV = HANDLE;
+     HCONVLIST = HANDLE;
+     HCURSOR = HANDLE;
+     HDBC = HANDLE;
+     HDC = HANDLE;
+     HDDEDATA = HANDLE;
+     HDESK = HANDLE;
+     HDROP = HANDLE;
+     HDWP = HANDLE;
+     HENHMETAFILE = HANDLE;
+     HENV = HANDLE;
+     HFILE = HANDLE;
+     HFONT = HANDLE;
+     HGDIOBJ = HANDLE;
+     HGLOBAL = HANDLE;
+     HGLRC = HANDLE;
+     HHOOK = HANDLE;
+     HICON = HANDLE;
+     HIMAGELIST = HANDLE;
+     HINST = HANDLE;   { Not HINSTANCE, else it has problems with the var HInstance }
+     HKEY = HANDLE;
+     HKL = HANDLE;
+     HLOCAL = HANDLE;
+     HMENU = HANDLE;
+     HMETAFILE = HANDLE;
+     HMODULE = HANDLE;
+     HPALETTE = HANDLE;
+     HPEN = HANDLE;
+     HRASCONN = HANDLE;
+     HRESULT = HANDLE;
+     HRGN = HANDLE;
+     HRSRC = HANDLE;
+     HSTMT = HANDLE;
+     HSZ = HANDLE;
+     HWINSTA = HANDLE;
+     HWND = HANDLE;
+
+     LANGID = word;
+     LCID   = DWORD;
+     LCTYPE = DWORD;
      LPARAM = longint;
 
+     LP     = ^word;
      LPBOOL = ^WINBOOL;
-
      LPBYTE = ^BYTE;
-
-     LPCCH = ^CHAR;
-
-     LPCH = ^CHAR;
+     LPCCH  = PCHAR;
+     LPCH   = PCHAR;
 
      LPCOLORREF = ^COLORREF;
 
-     LPCSTR = ^char;
+     LPCSTR  = Pchar;
 {$ifdef UNICODE}
-
-  type
-
      LPCTSTR = ^word;
 {$else}
-
-  type
-
-     LPCTSTR = ^char;
+     LPCTSTR = Pchar;
 {$endif}
-  { UNICODE  }
 
-  type
-
-     LPCWCH = ^word;
-(* Const before type ignored *)
-
+     LPCWCH  = ^word;
      LPCWSTR = ^word;
 
      LPDWORD = ^DWORD;
-  { typedef LPFRHOOKPROC;  }
 
      LPHANDLE = ^HANDLE;
-  { typedef LPHANDLER_FUNCTION;  }
 
-     LPINT = ^longint;
-
+     LPINT  = ^longint;
      LPLONG = ^longint;
 
-     LPSTR = ^char;
+     LPSTR = Pchar;
 {$ifdef UNICODE}
-
-  type
-
-     LPTCH = ^word;
-
+     LPTCH  = ^word;
      LPTSTR = ^word;
 {$else}
-
-  type
-
-     LPTCH = ^char;
-
-     LPTSTR = ^char;
+     LPTCH  = Pchar;
+     LPTSTR = Pchar;
 {$endif}
-  { UNICODE  }
-
-  type
 
      LRESULT = longint;
 
-     LPVOID = pointer;
-(* Const before type ignored *)
-
+     LPVOID  = pointer;
      LPCVOID = pointer;
 
-     LPWCH = ^word;
-
+     LPWCH  = ^word;
      LPWORD = ^word;
-
      LPWSTR = ^word;
-  { typedef NPSTR;  }
-
      NWPSTR = ^word;
 
      PWINBOOL = ^WINBOOL;
-
      PBOOLEAN = ^BYTE;
 
      PBYTE = ^BYTE;
-(* Const before type ignored *)
 
-     PCCH = ^CHAR;
+     PCCH = PCHAR;
+     PCH  = PCHAR;
 
-     PCH = ^CHAR;
+     PCSTR = Pchar;
 
-     PCHAR = ^CHAR;
-(* Const before type ignored *)
-
-     PCSTR = ^char;
-(* Const before type ignored *)
-
-     PCWCH = ^word;
-(* Const before type ignored *)
-
+     PCWCH  = ^word;
      PCWSTR = ^word;
 
      PDWORD = ^DWORD;
@@ -363,134 +202,69 @@ unit base;
      PFLOAT = ^real;
 
      PHANDLE = ^HANDLE;
-  { typedef PHKEY;  }
+     PHKEY = ^HKEY;
 
      PINT = ^longint;
-  { typedef LCID  PLCID;  }
-
      PLONG = ^longint;
-
      PSHORT = ^integer;
-  { typedef PSID;  }
 
-     PSTR = ^char;
+     PSTR = Pchar;
 
-     PSZ = ^char;
+     PSZ = Pchar;
 {$ifdef UNICODE}
-
-  type
-
      PTBYTE = ^word;
-
      PTCH = ^word;
-
      PTCHAR = ^word;
-
      PTSTR = ^word;
 {$else}
-
-  type
-
      PTBYTE = ^byte;
-
-     PTCH = ^char;
-
-     PTCHAR = ^char;
-
-     PTSTR = ^char;
+     PTCH   = Pchar;
+     PTCHAR = Pchar;
+     PTSTR  = Pchar;
 {$endif}
-  { UNICODE  }
-
-  type
 
      PUCHAR = ^byte;
+     PWCH   = ^word;
+     PWCHAR = ^word;
 
-     PUINT = ^cardinal;
-
-     PULONG = ^cardinal;
-
+     PWORD   = ^word;
+     PUINT   = ^cardinal;
+     PULONG  = ^cardinal;
      PUSHORT = ^word;
 
      PVOID = pointer;
 
-     PWCH = ^word;
-
-     PWCHAR = ^word;
-
-     PWORD = ^word;
-  {
-  typedef PWSTR;
-  typedef REGSAM;
-   }
-
      RETCODE = integer;
 
      SC_HANDLE = HANDLE;
-
      SC_LOCK = LPVOID;
-
      LPSC_HANDLE = ^SC_HANDLE;
 
      SERVICE_STATUS_HANDLE = DWORD;
-  { typedef SPHANDLE;  }
+
 {$ifdef UNICODE}
-
-  type
-
      TBYTE = word;
-
      TCHAR = word;
-
      BCHAR = word;
 {$else}
-
-  type
-
      TBYTE = byte;
-
      TCHAR = char;
-
      BCHAR = BYTE;
 {$endif}
-  { UNICODE  }
-
-  type
 
      UCHAR = byte;
-
-     UINT = cardinal;
-
-     ULONG = cardinal;
-
-     USHORT = word;
-
      WCHAR = word;
 
-     WORD = word;
+     UINT   = cardinal;
+     WORD   = word;
+     ULONG  = cardinal;
+     USHORT = word;
 
      WPARAM = cardinal;
-  { typedef YIELDPROC;  }
-  { Only use __stdcall under WIN32 compiler  }
-  { #ifdef i386
-  #define STDCALL     __attribute__ ((stdcall))
-  #define CDECL       __cdecl
-  #define CALLBACK    WINAPI
-  #define PASCAL      WINAPI
-  #else
-  #define STDCALL
-  #define CDECL
-  #define CALLBACK
-  #define PASCAL
-  #endif
-  #define WINAPI      STDCALL
-  #define APIENTRY    STDCALL
-  #define WINGDIAPI
 
-  #define _export
-      }
-  {
-    Enumerations
-   }
+{
+  Enumerations
+}
 
      ACL_INFORMATION_CLASS = (AclRevisionInformation := 1,AclSizeInformation
        );
@@ -557,16 +331,11 @@ unit base;
        );
 
      tagTOKEN_TYPE = TOKEN_TYPE;
-{$endif}
-  { ! defined (RC_INVOKED)  }
-  {
-    Macros
-   }
-  {  Not convertable by H2PAS
-  #define FORWARD_WM_NOTIFY(hwnd, idFrom, pnmhdr, fn) \
-      (void)(fn)((hwnd), WM_NOTIFY, (WPARAM)(int)(id), \
-      (LPARAM)(NMHDR FAR )(pnmhdr))
-   }
+
+ {
+   Macros
+ }
+
   { was #define dname(params) def_expr }
   { argument types are unknown }
   function GetBValue(rgb : longint) : BYTE;
@@ -587,6 +356,7 @@ unit base;
   #define HANDLE_WM_NOTIFY(hwnd, wParam, lParam, fn) \
       (fn)((hwnd), (int)(wParam), (NMHDR FAR )(lParam))
    }
+
   { was #define dname(params) def_expr }
   { argument types are unknown }
   function HIBYTE(w : longint) : BYTE;
@@ -738,12 +508,12 @@ unit base;
   #define TEXT(quote) quote
   #endif
    }
-{$ifndef RC_INVOKED}
-  {
-     Definitions for callback procedures
-   }
 
-  type
+ {
+    Definitions for callback procedures
+ }
+
+ type
 
      BFFCALLBACK = function (_para1:HWND; _para2:UINT; _para3:LPARAM; _para4:LPARAM):longint;
 
@@ -765,7 +535,7 @@ unit base;
 
      LPSETUPHOOKPROC = function (_para1:HWND; _para2:UINT; _para3:WPARAM; _para4:LPARAM):UINT;
 
-     DLGPROC = function (_para1:HWND; _para2:UINT; _para3:WPARAM; _para4:LPARAM):WINBOOL;
+     DLGPROC = function (_para1:HWND; _para2:UINT; _para3:WPARAM; _para4:LPARAM):LRESULT;
 
      PFNPROPSHEETCALLBACK = function (_para1:HWND; _para2:UINT; _para3:LPARAM):longint;
 
@@ -809,8 +579,6 @@ unit base;
 
      LINEDDAPROC = procedure (_para1:longint; _para2:longint; _para3:LPARAM);
 
-     { ABORTPROC = function (_para1:HDC; _para2:longint):WINBOOL;
-     conflicts with the function AbortProc !! }
      TABORTPROC = function (_para1:HDC; _para2:longint):WINBOOL;
 
      LPPAGEPAINTHOOK = function (_para1:HWND; _para2:UINT; _para3:WPARAM; _para4:LPARAM):UINT;
@@ -888,23 +656,16 @@ unit base;
    }
      SC_GROUP_IDENTIFIERA = '+';
 {$ifdef UNICODE}
-
-  const
      SERVICES_ACTIVE_DATABASE = SERVICES_ACTIVE_DATABASEW;
      SERVICES_FAILED_DATABASE = SERVICES_FAILED_DATABASEW;
      SC_GROUP_IDENTIFIER = SC_GROUP_IDENTIFIERW;
 {$else}
-
-  const
      SERVICES_ACTIVE_DATABASE = SERVICES_ACTIVE_DATABASEA;
      SERVICES_FAILED_DATABASE = SERVICES_FAILED_DATABASEA;
      SC_GROUP_IDENTIFIER = SC_GROUP_IDENTIFIERA;
 {$endif}
-  { UNICODE  }
-  { ----------------------------------  }
-  { From ddeml.h in old Cygnus headers  }
 
-  type
+type
 
      CALLB = procedure ;CDECL;
 
@@ -929,23 +690,15 @@ unit base;
      PCCSTYLEFLAGA = ^CCSTYLEFLAGA;
 
      LPCCSTYLEFLAGA = ^CCSTYLEFLAGA;
-  {  Not convertable by H2PAS
-  #define DECLARE_HANDLE(s) typedef HANDLE s
-   }
-{$endif}
-  { ! defined (RC_INVOKED)  }
-{$endif}
-  { _GNU_H_WINDOWS32_BASE  }
 
 {$endif read_interface}
+
 
 {$ifndef windows_include_files}
   implementation
 {$endif not windows_include_files}
 
 {$ifdef read_implementation}
-
- { const External_library='kernel32';  not used in base }
 
   { was #define dname(params) def_expr }
   { argument types are unknown }
@@ -1207,7 +960,10 @@ end.
 
 {
   $Log$
-  Revision 1.8  1998-10-27 11:17:11  peter
+  Revision 1.9  1998-12-28 23:35:14  peter
+    * small fixes for better compatibility
+
+  Revision 1.8  1998/10/27 11:17:11  peter
     * type HINSTANCE -> HINST
 
   Revision 1.7  1998/09/08 14:30:03  pierre
