@@ -92,6 +92,9 @@ end;
       { Yes, add the mode }
       if not assigned(newModeList.modeinfo[driverNr]) then
         begin
+{$ifdef logging}
+          logln('Adding resolution '+strf(modenr)+' for drivernr '+strf(drivernr));
+{$endif logging}
           new(newModeList.modeinfo[driverNr]);
           newModeList.modeinfo[driverNr]^ := mode;
           with newModeList.modeinfo[driverNr]^ do
@@ -122,6 +125,9 @@ end;
              (list^.maxx = mode.maxx) and
              (list^.maxy = mode.maxy) then
             begin
+{$ifdef logging}
+              logln('replacing resolution '+strf(modenr)+' for drivernr '+strf(drivernr));
+{$endif logging}
               { save/restore next, drivernr and drivermode in list }
               driverNr := list^.driverNumber;
               modeNr := list^.modeNumber;
@@ -138,6 +144,9 @@ end;
               inc(newModeList.loHiModeNr[driverNr].hi);
               newLst^ := mode;
               newLst^.driverNumber := driverNr;
+{$ifdef logging}
+              logln('Adding resolution '+strf(modenr)+' for drivernr '+strf(drivernr));
+{$endif logging}
               if assigned(list) then
                 newLst^.next := list^.next
               else
@@ -396,7 +405,7 @@ end;
            exit;
          end;
        {$ifdef logging}
-       LogLn('GetModeRange : Mode 0 found');
+       LogLn('GetModeRange : Mode '+strf(lomode)+' found');
        {$endif}
        { now it exists... find highest available mode... }
        hiMode := -32767;
@@ -514,6 +523,9 @@ end;
       YAspect := modeinfo^.YAspect;
       MaxX := modeinfo^.MaxX;
       MaxY := modeinfo^.MaxY;
+{$ifdef logging}
+      logln('maxx = '+strf(maxx)+', maxy = '+strf(maxy));
+{$endif logging}
       HardwarePages := modeInfo^.HardwarePages;
       MaxColor := modeinfo^.MaxColor;
       PaletteSize := modeinfo^.PaletteSize;
@@ -538,8 +550,8 @@ end;
       { those variables.                            }
       SetActivePage(0);
       SetVisualPage(0);
-      GraphDefaults;
       SetViewPort(0,0,MaxX,MaxY,TRUE);
+      GraphDefaults;
     end;
 
     procedure RestoreCrtMode;
@@ -559,7 +571,12 @@ end;
 
 {
 $Log$
-Revision 1.26  2000-06-22 18:36:19  peter
+Revision 1.27  2000-06-23 19:56:38  jonas
+  * setviewport was sometimes called with parameters from the previous
+    active mode, either directly from setgraphmode or from
+    setbkcolor
+
+Revision 1.26  2000/06/22 18:36:19  peter
   * removed notes
 
 Revision 1.25  2000/06/19 01:18:49  carl

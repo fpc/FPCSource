@@ -1171,11 +1171,21 @@ Procedure SetViewPort(X1, Y1, X2, Y2: smallint; Clip: Boolean);
 Begin
   if (X1 > GetMaxX) or (X2 > GetMaxX) or (X1 > X2) or (X1 < 0) then
   Begin
+{$ifdef logging}
+    logln('invalid setviewport parameters: ('
+      +strf(x1)+','+strf(y1)+'), ('+strf(x2)+','+strf(y2)+')');
+    logln('maxx = '+strf(getmaxx)+', maxy = '+strf(getmaxy));
+{$endif logging}
     _GraphResult := grError;
     exit;
   end;
   if (Y1 > GetMaxY) or (Y2 > GetMaxY) or (Y1 > Y2) or (Y1 < 0) then
   Begin
+{$ifdef logging}
+    logln('invalid setviewport parameters: ('
+      +strf(x1)+','+strf(y1)+'), ('+strf(x2)+','+strf(y2)+')');
+    logln('maxx = '+strf(getmaxx)+', maxy = '+strf(getmaxy));
+{$endif logging}
     _GraphResult := grError;
     exit;
   end;
@@ -1756,6 +1766,9 @@ end;
      { unchanged.                                         }
      if (Pattern > UserFill) or (Color > GetMaxColor) then
       begin
+{$ifdef logging}
+           logln('invalid fillstyle parameters');
+{$endif logging}
            _GraphResult := grError;
            exit;
       end;
@@ -1777,6 +1790,9 @@ end;
    begin
      if Color > GetMaxColor then
        begin
+{$ifdef logging}
+            logln('invalid fillpattern parameters');
+{$endif logging}
             _GraphResult := grError;
             exit;
        end;
@@ -1917,7 +1933,13 @@ end;
      ViewPort: ViewportType;
    Begin
      GetViewSettings(Viewport);
+{$ifdef logging}
+      logln('calling setviewport from setbkcolor');
+{$endif logging}
      SetViewPort(0,0,MaxX,MaxY,FALSE);
+{$ifdef logging}
+      logln('calling setviewport from setbkcolor done');
+{$endif logging}
      CurrentBkColor := ColorNum;
      {ClearViewPort;}
      if not DirectColor and (ColorNum<256) then
@@ -2046,7 +2068,6 @@ end;
 
 
      CurrentColor:=white;
-     SetBkColor(Black);
 
 
      ClipPixels := TRUE;
@@ -2055,9 +2076,12 @@ end;
      StartYViewPort := 0;
      ViewWidth := MaxX;
      ViewHeight := MaxY;
+
      { Reset CP }
      CurrentX := 0;
      CurrentY := 0;
+
+     SetBkColor(Black);
 
      { normal write mode }
      CurrentWriteMode := CopyPut;
@@ -2406,7 +2430,12 @@ begin
 end;
 {
   $Log$
-  Revision 1.36  2000-06-18 18:41:18  peter
+  Revision 1.37  2000-06-23 19:56:37  jonas
+    * setviewport was sometimes called with parameters from the previous
+      active mode, either directly from setgraphmode or from
+      setbkcolor
+
+  Revision 1.36  2000/06/18 18:41:18  peter
     * detectmode between ifdef
 
   Revision 1.35  2000/06/18 08:11:53  jonas
