@@ -1,3 +1,5 @@
+{ %CPU=m68k }
+
 { This tests the $E+ compiler
   switch. It verifies if the
   switch is correctly enabled
