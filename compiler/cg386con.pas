@@ -26,6 +26,9 @@ interface
     uses
       tree;
 
+{.$define SMALLSETORD}
+
+
     procedure secondrealconst(var p : ptree);
     procedure secondfixconst(var p : ptree);
     procedure secondordconst(var p : ptree);
@@ -136,7 +139,11 @@ implementation
     procedure secondstringconst(var p : ptree);
       var
          hp1 : pai;
-         lastlabel,l1 : plabel;
+{$ifdef UseAnsiString}
+         l1,
+{$endif}        
+
+         lastlabel : plabel;
          pc : pchar;
          same_string : boolean;
          i : word;
@@ -263,11 +270,29 @@ implementation
 
     procedure secondsetcons(var p : ptree);
       var
-         l : plabel;
-         i : longint;
-         hp : ptree;
-         href,sref : treference;
+         l    : plabel;
+         i    : longint;
+         href : treference;
       begin
+{$ifdef SMALLSETORD}
+        if psetdef(p^.resulttype)^.settype=smallset then
+         begin
+           p^.location.loc:=LOC_MEM;
+           p^.location.reference.isintvalue:=true;
+           p^.location.reference.offset:=p^.constset^[0];
+         end
+        else
+         begin
+           reset_reference(href);
+           getlabel(l);
+           stringdispose(p^.location.reference.symbol);
+           href.symbol:=stringdup(constlabel2str(l,constseta));
+           concat_constlabel(l,constseta);
+           for i:=0 to 31 do
+             consts^.concat(new(pai_const,init_8bit(p^.constset^[i])));
+           p^.location.reference:=href;
+         end;
+{$else}
         reset_reference(href);
         getlabel(l);
         stringdispose(p^.location.reference.symbol);
@@ -284,6 +309,7 @@ implementation
              consts^.concat(new(pai_const,init_8bit(p^.constset^[i])));
          end;
         p^.location.reference:=href;
+{$endif SMALLSETORD}
       end;
 
 
@@ -302,7 +328,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.11  1998-08-14 18:18:39  peter
+  Revision 1.12  1998-08-28 10:56:57  peter
+    * removed warnings
+
+  Revision 1.11  1998/08/14 18:18:39  peter
     + dynamic set contruction
     * smallsets are now working (always longint size)
 

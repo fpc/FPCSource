@@ -23,7 +23,10 @@
 unit tpexcept;
 interface
 
-{$S-}
+{$ifndef LINUX}
+  {$S-}
+{$endif}
+
 
 type
    jmp_buf = record
@@ -328,7 +331,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.1  1998-08-10 10:18:36  peter
+  Revision 1.2  1998-08-28 10:57:03  peter
+    * removed warnings
+
+  Revision 1.1  1998/08/10 10:18:36  peter
     + Compiler,Comphook unit which are the new interface units to the
       compiler
 

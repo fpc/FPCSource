@@ -560,7 +560,7 @@ do_jmp:
 
       var
          exceptlabel,doexceptlabel,oldendexceptlabel,
-         nextonlabel,lastonlabel : plabel;
+         lastonlabel : plabel;
 
       begin
          { this can be called recursivly }
@@ -621,7 +621,7 @@ do_jmp:
     procedure secondon(var p : ptree);
 
       var
-         nextonlabel,myendexceptlabel : plabel;
+         nextonlabel : plabel;
          ref : treference;
 
       begin
@@ -737,9 +737,15 @@ do_jmp:
 end.
 {
   $Log$
-  Revision 1.11  1998-08-05 16:00:10  florian
+  Revision 1.12  1998-08-28 10:56:58  peter
+    * removed warnings
+
+  Revision 1.11  1998/08/05 16:00:10  florian
     * some fixes for ansi strings
-    * $log$ to $Log$ changed
+    * $log$ to $Log$
+    * $log$ to Revision 1.12  1998-08-28 10:56:58  peter
+    * $log$ to   * removed warnings
+    * $log$ to changed
 
   Revision 1.10  1998/08/04 16:26:26  jonas
     * converted // comment to TP comment

@@ -1289,14 +1289,7 @@ end;
 Procedure PeepHoleOptPass2(AsmL: PAasmOutput);
 
 var
-  p,hp1,hp2 : pai;
-  TmpBool1, TmpBool2: Boolean;
-
-  TmpRef: PReference;
-
-{$IfDef RegAlloc}
-  RegsUsed: Set of TRegister;
-{$EndIf RegAlloc}
+  p,hp1 : pai;
 Begin
   P := Pai(AsmL^.First);
   While Assigned(p) Do
@@ -1367,7 +1360,10 @@ End.
 
 {
  $Log$
- Revision 1.10  1998-08-27 15:17:50  florian
+ Revision 1.11  1998-08-28 10:57:02  peter
+   * removed warnings
+
+ Revision 1.10  1998/08/27 15:17:50  florian
    * reinstated Jonas' bugfix
 
  Revision 1.9  1998/08/25 16:58:59  pierre

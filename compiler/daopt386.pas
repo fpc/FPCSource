@@ -993,7 +993,10 @@ Function DoDFAPass2(First: Pai): Pai;
  been processed}
 Var
     CurProp: PPaiProp;
-    Cnt, InstrCnt, TmpState: Longint;
+{$ifdef AnalyzeLoops}
+    TmpState,
+{$endif AnalyzeLoops}
+    Cnt, InstrCnt : Longint;
     InstrProp: TAsmInstrucProp;
     p, hp: Pai;
     TmpRef: TReference;
@@ -1154,7 +1157,7 @@ Begin
                       End
 {$ifdef AnalyzeLoops}
                   Else
-                {backward jump, a loop for example}
+{                backward jump, a loop for example}
 {                    If (JmpsProcessed > 0) Or
                        Not(GetLastInstruction(PaiObj, hp) And
                            (hp^.typ = ait_labeled_instruction) And
@@ -1183,10 +1186,10 @@ Begin
                                     End
                                 End;
                         End
-{                      Else
+{                      Else }
 {instruction prior to label is a jmp and no jumps to the label have yet been
  processed}
-                        Begin
+{                        Begin
                           Inc(JmpsProcessed);
                           For TmpReg := R_EAX to R_EDI Do
                             Begin
@@ -1367,7 +1370,7 @@ Function InitDFAPass2(AsmL: PAasmOutput): Boolean;
  cases}
 Var p: Pai;
     Count: Longint;
-    TmpStr: String;
+{    TmpStr: String; }
 Begin
   P := Pai(AsmL^.First);
   NrOfPaiObjs := 1;
@@ -1445,7 +1448,10 @@ End.
 
 {
  $Log$
- Revision 1.7  1998-08-19 16:07:44  jonas
+ Revision 1.8  1998-08-28 10:56:59  peter
+   * removed warnings
+
+ Revision 1.7  1998/08/19 16:07:44  jonas
    * changed optimizer switches + cleanup of DestroyRefs in daopt386.pas
 
  Revision 1.6  1998/08/10 14:49:57  peter

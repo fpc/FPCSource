@@ -82,9 +82,11 @@ unit pdecl;
          sym : psym;
          ps : pconstset;
          pd : pbestreal;
-{$ifdef USEANSISTRING}  
+{$ifdef USEANSISTRING}
+
          sp : pstring;
-{$endif USEANSISTRING}  
+{$endif USEANSISTRING}
+
       begin
          consume(_CONST);
          repeat
@@ -952,7 +954,7 @@ unit pdecl;
          hp1        : pdef;
          oldprocsym : Pprocsym;
          oldparse_only : boolean;
-         classnamelabel,rttilabel : plabel;
+         classnamelabel : plabel;
 
       begin
          {Nowadays aktprocsym may already have a value, so we need to save
@@ -1970,7 +1972,10 @@ unit pdecl;
 end.
 {
   $Log$
-  Revision 1.43  1998-08-25 13:09:25  pierre
+  Revision 1.44  1998-08-28 10:57:01  peter
+    * removed warnings
+
+  Revision 1.43  1998/08/25 13:09:25  pierre
     * corrected mangling sheme :
       cvar add Cprefix to the mixed case name whereas
       export or public use direct name

@@ -390,8 +390,10 @@ implementation
 
     procedure second_string_string(p,hp : ptree;convtyp : tconverttype);
 
+{$ifdef UseAnsiString}
       var
          pushed : tpushed;
+{$endif UseAnsiString}
 
       begin
 {$ifdef UseAnsiString}
@@ -1205,7 +1207,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.12  1998-08-14 18:18:38  peter
+  Revision 1.13  1998-08-28 10:56:56  peter
+    * removed warnings
+
+  Revision 1.12  1998/08/14 18:18:38  peter
     + dynamic set contruction
     * smallsets are now working (always longint size)
 
