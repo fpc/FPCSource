@@ -577,18 +577,23 @@ begin
 end;
 
 function TSymbolScopeView.GetText(Item,MaxLen: Sw_Integer): String;
-var S,S2: string;
+var S1: string;
+    S : PSymbol;
 begin
-  S:=Symbols^.At(Item)^.GetText;
+  S:=Symbols^.At(Item);
 {$ifndef NODEBUG}
   if assigned(Debugger) and Debugger^.IsRunning and
-     assigned(MyBW) and MyBW^.IsValid then
+     assigned(MyBW) and MyBW^.IsValid  and
+     (S^.typ=varsym) and (S^.DebuggerCount<>Debugger^.RunCount) then
     begin
-      S2:=GetPChar(Debugger^.GetValue(GetStr(MyBW^.Prefix)+Symbols^.At(Item)^.GetName));
-      S:=S+' = '+S2;
+      If Assigned(S^.DebuggerValue) then
+        DisposeStr(S^.DebuggerValue);
+      S^.DebuggerValue:=NewStr(GetPChar(Debugger^.GetValue(GetStr(MyBW^.Prefix)+S^.GetName)));
+      S^.DebuggerCount:=Debugger^.RunCount;
     end;
 {$endif ndef NODEBUG}
-  GetText:=copy(S,1,MaxLen);
+  S1:=S^.GetText;
+  GetText:=copy(S1,1,MaxLen);
 end;
 
 
@@ -932,9 +937,6 @@ constructor TBrowserWindow.Init(var Bounds: TRect; ATitle: TTitleStr; ANumber: S
              AInheritance: PObjectSymbol; AMemInfo: PSymbolMemINfo);
 var R: TRect;
     HSB,VSB: PScrollBar;
-{$ifndef NODEBUG}
-    S2 : String;
-{$endif NODEBUG}
 function CreateVSB(R: TRect): PScrollBar;
 var R2: TRect;
     SB: PScrollBar;
@@ -960,10 +962,13 @@ begin
   GetExtent(R); R.Grow(-1,-1); R.B.Y:=R.A.Y+1;
 {$ifndef NODEBUG}
   if assigned(Debugger) and Debugger^.IsRunning and
-     assigned(Sym) and (Sym^.typ=varsym) then
+     assigned(Sym) and (Sym^.typ=varsym) and (Sym^.DebuggerCount<>Debugger^.RunCount) then
     begin
-      S2:=GetPChar(Debugger^.GetValue(ATitle));
-      New(ST, Init(R, ' '+AName+' = '+S2));
+      If Assigned(Sym^.DebuggerValue) then
+        DisposeStr(Sym^.DebuggerValue);
+      Sym^.DebuggerValue:=NewStr(GetPChar(Debugger^.GetValue(ATitle)));
+      Sym^.DebuggerCount:=Debugger^.RunCount;
+      New(ST, Init(R, ' '+AName+' = '+GetStr(Sym^.DebuggerValue)));
     end
   else
 {$endif NODEBUG}
@@ -1242,7 +1247,10 @@ end;
 END.
 {
   $Log$
-  Revision 1.21  2000-03-07 21:55:16  pierre
+  Revision 1.22  2000-03-08 16:53:21  pierre
+   * Value of vars in browsers cleaned up
+
+  Revision 1.21  2000/03/07 21:55:16  pierre
    + Add current value to browser
 
   Revision 1.20  1999/11/10 00:42:42  pierre
