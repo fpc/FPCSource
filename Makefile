@@ -2659,7 +2659,7 @@ FPCISSSUBST=-d BUILDDIR=$(subst /,$(PATHSEP),$(INNODIR))
 ifdef NODOCS
 FPCISSSUBST+=-d DisableDocs=;
 endif
-innobuild: build
+innocheck:
 ifndef NODOCS
 ifeq ($(wildcard docs-pdf.zip),)
 	@$(ECHO) "No documentation available. Please copy the file docs-pdf.zip to this directory."
@@ -2670,6 +2670,7 @@ ifeq ($(wildcard libgdb/win32/libgdb.a),)
 	@$(ECHO) "Libgdb not available. Please get and unzip libgdb-<version>.i386-win32.zip in this directory."
 	@exit 1
 endif
+innobuild: innocheck build
 	$(DELTREE) $(INNODIR)
 	$(MKDIR) $(INNODIR)
 ifndef NODOCS
