@@ -751,7 +751,11 @@ LShortStrCopyLoop2:
 LShortStrCopyDone2:
 end ['R0','R3','R4','R5','R10','CR0','CTR'];
 
-{$define FPC_SYSTEM_HAS_FPC_SHORTSTR_CONCAT}
+{define FPC_SYSTEM_HAS_FPC_SHORTSTR_CONCAT}
+(*
+
+BUGGY!!
+
 function fpc_shortstr_concat(const s1,s2: shortstring): shortstring; compilerproc;
 { expects that results (r3) contains a pointer to the current string and s1 }
 { (r4) a pointer to the one that has to be concatenated                     }
@@ -782,7 +786,7 @@ LShortStrConcatLoop:
       bdnz    LShortStrConcatLoop
 LShortStrConcatDone:
 end ['R3','R4','R8','R9','R10','CTR'];
-
+*)
 
 {$define FPC_SYSTEM_HAS_FPC_SHORTSTR_COMPARE}
 function fpc_shortstr_compare(const dstr,sstr:shortstring): longint; [public,alias:'FPC_SHORTSTR_COMPARE']; compilerproc;
@@ -956,7 +960,11 @@ end ['R3','R10'];
 
 {
   $Log$
-  Revision 1.19  2002-09-10 17:47:20  jonas
+  Revision 1.20  2002-09-10 21:30:34  jonas
+    * disabled powerpc-specific fpc_shortstr_concat for now, it was
+      completely wrong
+
+  Revision 1.19  2002/09/10 17:47:20  jonas
     * fixed bug with concatting 0-length shortstrings
 
   Revision 1.18  2002/09/07 16:01:26  peter
