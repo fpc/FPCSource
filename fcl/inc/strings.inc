@@ -234,7 +234,7 @@ begin
   // Determine needed place
   L:=0;
   For I:=0 to count-1 do L:=L+Length(Strings[I])+NewLineSize;
-  Setlength(Result,0);
+  Setlength(Result,L);
   P:=Pointer(Result); 
   For i:=0 To count-1 do
     begin
@@ -898,7 +898,10 @@ end;
 
 {
   $Log$
-  Revision 1.9  1999-01-28 23:55:43  florian
+  Revision 1.10  1999-02-02 12:54:06  florian
+    * tstrings.gettextstr fixed, setlength got a wrong length (0 instead L)
+
+  Revision 1.9  1999/01/28 23:55:43  florian
     * made it compilable
 
   Revision 1.8  1998/11/13 09:40:16  michael
