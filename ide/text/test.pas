@@ -1,5 +1,7 @@
-program TestProgram;
+{$mode objfpc}
+{$R-}
 
+program TestProgram;
 
 uses
 {$ifdef go32v2}
@@ -114,6 +116,8 @@ end;
 
 function Func1(x,z : word; var y : boolean; const r: TRecord): shortint;
 
+var loc : string;
+
   procedure test_local(c,f : longint);
    var
       int_loc : longint;
@@ -121,9 +125,18 @@ function Func1(x,z : word; var y : boolean; const r: TRecord): shortint;
       Writeln('dummy for browser');
    end;
 
+  procedure indirect_call;
+   var
+     loc : longint;
+   begin
+     loc:=1;
+     test_local(5,7);
+   end;
 begin
+  loc:='This is a string';
   if Hello=0 then X:=0 else X:=1;
   test_local(0,2);
+  indirect_call;
   Func1:=X;
 end;
 
@@ -140,5 +153,7 @@ BEGIN
   new(X);
   X^.next:=X;
   dispose(X);
-  Halt;
+ { for i:=1 to 99 do
+    Writeln('Line ',i); }
+  Halt(4);
 END.

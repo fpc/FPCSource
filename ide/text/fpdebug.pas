@@ -340,7 +340,7 @@ uses
   Dos,Mouse,Video,
   App,Commands,Strings,
   Systems,
-  FPVars,FPUtils,FPConst,
+  FPVars,FPUtils,FPConst,FPSwitch,
   FPIntf,FPCompile,FPIde,FPHelp,
   Validate,WEditor,WUtils;
 
@@ -1860,6 +1860,15 @@ procedure TWatch.Get_new_value;
       p:=StrNew(Debugger^.GetOutput);
     { do not open a messagebox for such errors }
     Debugger^.got_error:=false;
+
+    { We should try here to find the expr in parent
+      procedure if there are
+      I will implement this as I added a
+      parent_ebp pseudo local var to local procedure
+      in stabs debug info PM }
+    { But there are some pitfalls like
+      locals redefined in other sublocals that call the function }
+
     q:=nil;
     if assigned(p) and (p[0]='$') then
       q:=StrPos(p,'=');
@@ -2831,7 +2840,7 @@ end;
       Debugger^.Command('backtrace');
       { generate list }
       { all is in tframeentry }
-      for i:=Debugger^.frame_count-1 downto 0 do
+      for i:=0 to Debugger^.frame_count-1 do
         begin
           with Debugger^.frames[i]^ do
             begin
@@ -2859,7 +2868,7 @@ end;
       { select frame for watches }
       If not assigned(Debugger) then
         exit;
-    {$ifdef NODEBUG}
+    {$ifndef NODEBUG}
       Debugger^.Command('f '+IntToStr(Focused));
       { for local vars }
       Debugger^.ReadWatches;
@@ -2948,9 +2957,11 @@ procedure InitDebugger;
 var s : string;
     i,p : longint;
 {$endif DEBUG}
+var
+   cm : longint;
+
 begin
 {$ifdef DEBUG}
-  PushStatus('Starting debugger');
   Assign(gdb_file,GDBOutFileName);
   {$I-}
   Rewrite(gdb_file);
@@ -2973,7 +2984,24 @@ begin
     Use_gdb_file:=true;
   {$I+}
 {$endif}
-  if (not ExistsFile(ExeFile)) or (CompilationPhase<>cpDone) then
+
+  if TargetSwitches^.GetCurrSelParam<>source_os.shortname then
+    begin
+     cm:=ConfirmBox(#3'Sorry, can not debug'#13#3'programs compiled for'
+       +TargetSwitches^.GetCurrSelParam+'.'#13#3
+       +'Change target to'
+       +source_os.shortname+'?',nil,true);
+     if cm=cmCancel then
+       Exit;
+     if cm=cmYes then
+       begin
+         { force recompilation }
+         PrevMainFile:='';
+         TargetSwitches^.SetCurrSelParam(source_os.shortname);
+       end;
+    end;
+  if (not ExistsFile(ExeFile)) or (CompilationPhase<>cpDone) or
+     (PrevMainFile<>MainFile) then
     DoCompile(cRun);
   if CompilationPhase<>cpDone then
     Exit;
@@ -2982,12 +3010,9 @@ begin
      ErrorBox('Oooops, nothing to debug.',nil);
      Exit;
    end;
-  if target_os.shortname<>source_os.shortname then
-    begin
-     ErrorBox(#3'Sorry, I can only debug'#13#3'programs compiled for '#13#3
-       +source_os.shortname,nil);
-     Exit;
-    end;
+{$ifdef DEBUG}
+  PushStatus('Starting debugger');
+{$endif DEBUG}
 { init debugcontroller }
   if assigned(Debugger) then
    dispose(Debugger,Done);
@@ -3119,7 +3144,10 @@ end.
 
 {
   $Log$
-  Revision 1.47  2000-02-04 00:10:58  pierre
+  Revision 1.48  2000-02-04 14:34:46  pierre
+  readme.txt
+
+  Revision 1.47  2000/02/04 00:10:58  pierre
    * Breakpoint line in Source Window better handled
 
   Revision 1.46  2000/02/01 10:59:58  pierre

@@ -89,10 +89,12 @@ type
       procedure AddLongintItem(const name,param:string);
       procedure AddStringItem(const name,param:string;mult:boolean);
       function  GetCurrSel:integer;
+      function  GetCurrSelParam : String;
       function  GetBooleanItem(index:integer):boolean;
       function  GetLongintItem(index:integer):longint;
       function  GetStringItem(index:integer):string;
       procedure SetCurrSel(index:integer);
+      function  SetCurrSelParam(const s : String) : boolean;
       procedure SetBooleanItem(index:integer;b:boolean);
       procedure SetLongintItem(index:integer;l:longint);
       procedure SetStringItem(index:integer;const s:string);
@@ -440,10 +442,39 @@ begin
 end;
 
 
+function  TSwitches.GetCurrSelParam : String;
+begin
+  if IsSel then
+    GetCurrSelParam:=PSwitchItem(Items^.At(SelNr[SwitchesMode]))^.Param
+  else
+    GetCurrSelParam:='';
+end;
+
 procedure TSwitches.SetCurrSel(index:integer);
 begin
   if IsSel then
    SelNr[SwitchesMode]:=index;
+end;
+
+function  TSwitches.SetCurrSelParam(const s : String) : boolean;
+  function checkitem(P:PSwitchItem):boolean;{$ifndef FPC}far;{$endif}
+  begin
+    { empty items are not equivalent to others !! }
+    CheckItem:=((S='') and (P^.Param='')) or
+               ((Length(S)>0) and (P^.Param=s));
+  end;
+
+var
+  FoundP : PSwitchItem;
+begin
+  FoundP:=Items^.FirstThat(@CheckItem);
+  if Assigned(FoundP) then
+    begin
+      SetCurrSelParam:=true;
+      SelNr[SwitchesMode]:=Items^.IndexOf(FoundP);
+    end
+  else
+    SetCurrSelParam:=false;
 end;
 
 
@@ -905,7 +936,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.16  2000-02-04 00:05:20  pierre
+  Revision 1.17  2000-02-04 14:34:47  pierre
+  readme.txt
+
+  Revision 1.16  2000/02/04 00:05:20  pierre
    * -Fi must also be used for GetSourceDirectories
 
   Revision 1.15  2000/01/10 15:52:53  pierre
