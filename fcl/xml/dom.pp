@@ -791,7 +791,7 @@ begin
     raise EDOMHierarchyRequest.Create('NodeWC.RemoveChild');
 
   if OldChild = FFirstChild then
-    FFirstChild := nil
+    FFirstChild := FFirstChild.NextSibling
   else
     OldChild.FPreviousSibling.FNextSibling := OldChild.FNextSibling;
 
@@ -1499,7 +1499,11 @@ end.
 
 {
   $Log$
-  Revision 1.15  2000-06-29 08:45:05  sg
+  Revision 1.16  2000-07-09 11:38:33  sg
+  * Fixed TDOMNode_WithChildren.RemoveNode for the case when the node to be
+    removed is the first child node.
+
+  Revision 1.15  2000/06/29 08:45:05  sg
   * RemoveAttributeNode bugfix
 
   Revision 1.14  2000/05/04 18:24:22  sg
