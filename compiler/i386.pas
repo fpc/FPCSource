@@ -1,4 +1,4 @@
-{
+{                                                   
     $Id$
     Copyright (c) 1995-98 by Florian Klaempfl
 
@@ -1160,7 +1160,7 @@ unit i386;
         'fnsts','sahf','fdivp','fsubp','setc','setnc','jc','jnc',
         'ja','jae','jb','jbe','seta','setae','setb','setbe',
         'aaa','aad','aam','aas','cbw','cdq','clc','cli',
-        'clts','cmc','cwd','cwde','daa','das','hlt','iret','lahf',
+        'clts','cmc','cwd','cwde','daa','das','hlt','iretd','lahf',
         'lods','lock','nop','pusha','pushf','pushfd',
         'stc','std','sti','stos','wait','xlat','xlatb','movsx',
         'movsx','movsx','movsx','movsx','movzx','popa','in',
@@ -1978,7 +1978,10 @@ Begin
 end.
 {
   $Log$
-  Revision 1.38  1999-03-26 00:05:31  peter
+  Revision 1.39  1999-04-12 19:20:45  florian
+    * iret is in intel mode now written as iretd
+
+  Revision 1.38  1999/03/26 00:05:31  peter
     * released valintern
     + deffile is now removed when compiling is finished
     * ^( compiles now correct
