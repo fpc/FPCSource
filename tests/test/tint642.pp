@@ -8,12 +8,20 @@ uses
    ;
 type
    tqwordrec = packed record
-{$ifndef ENDIAN_BIG}   
+{$ifndef ENDIAN_BIG}
       low,high : dword;
 {$else}
       high, low : dword;
-{$endif}      
+{$endif}
    end;
+
+const
+{$ifdef CPU68K}
+  { this test takes ages under m68k otherwise PM }
+  NumIterations = 10000;
+{$else not CPU68K}
+  NumIterations = 100000;
+{$endif not CPU68K}
 
 procedure dumpqword(q : qword);
 
@@ -418,8 +426,8 @@ procedure testmulqword;
 
      { now test the multiplication procedure with random bit patterns }
      writeln('Doing some random multiplications, takes a few seconds');
-     writeln('.....................................100%');
-     for i:=1 to 1000000 do
+     writeln('........................................ 100%');
+     for i:=1 to NumIterations do
        begin
           tqwordrec(q1).high:=0;
           tqwordrec(q1).low:=random($7ffffffe);
@@ -434,10 +442,10 @@ procedure testmulqword;
                writeln(' failed');
                do_error(1806);
             end;
-          if i mod 50000=0 then
+          if i mod (NumIterations div 20)=0 then
             write('.');
        end;
-     for i:=1 to 1000000 do
+     for i:=1 to NumIterations do
        begin
           tqwordrec(q1).high:=0;
           tqwordrec(q1).low:=random($7ffffffe);
@@ -453,7 +461,7 @@ procedure testmulqword;
                writeln(' failed');
                do_error(1806);
             end;
-          if i mod 50000=0 then
+          if i mod (NumIterations div 20)=0 then
             write('.');
        end;
      writeln(' OK');
@@ -490,8 +498,8 @@ procedure testdivqword;
 
      { now test the division procedure with random bit patterns }
      writeln('Doing some random divisions, takes a few seconds');
-     writeln('.................100%');
-     for i:=1 to 100000 do
+     writeln('.................... 100%');
+     for i:=1 to NumIterations do
        begin
           tqwordrec(q1).high:=random($7ffffffe);
           tqwordrec(q1).low:=random($7ffffffe);
@@ -513,10 +521,10 @@ procedure testdivqword;
                writeln(' failed');
                do_error(1906);
             end;
-          if i mod 10000=0 then
+          if i mod (NumIterations div 10)=0 then
             write('.');
        end;
-     for i:=1 to 100000 do
+     for i:=1 to NumIterations do
        begin
           tqwordrec(q1).high:=0;
           tqwordrec(q1).low:=random($7ffffffe);
@@ -537,7 +545,7 @@ procedure testdivqword;
                writeln(' failed');
                do_error(1907);
             end;
-          if i mod 10000=0 then
+          if i mod (NumIterations div 10)=0 then
             write('.');
        end;
      writeln(' OK');
@@ -833,8 +841,8 @@ procedure testmodqword;
 
      { now test the modulo division procedure with random bit patterns }
      writeln('Doing some random module divisions, takes a few seconds');
-     writeln('.................100%');
-     for i:=1 to 100000 do
+     writeln('.................... 100%');
+     for i:=1 to NumIterations do
        begin
           tqwordrec(q1).high:=random($7ffffffe);
           tqwordrec(q1).low:=random($7ffffffe);
@@ -853,10 +861,10 @@ procedure testmodqword;
                writeln(' failed');
                do_error(2306);
             end;
-          if i mod 10000=0 then
+          if i mod (NumIterations div 10)=0 then
             write('.');
        end;
-     for i:=1 to 100000 do
+     for i:=1 to NumIterations do
        begin
           tqwordrec(q1).high:=random($7ffffffe);
           tqwordrec(q1).low:=random($7ffffffe);
@@ -876,7 +884,7 @@ procedure testmodqword;
                writeln(' failed');
                do_error(2307);
             end;
-          if i mod 10000=0 then
+          if i mod (NumIterations div 10)=0 then
             write('.');
        end;
      writeln(' OK');
