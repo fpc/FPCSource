@@ -59,7 +59,7 @@ _haltproc:
 	mov	1, %g1			/* "exit" system call */
   sethi	%hi(U_SYSTEM_EXITCODE),%o0
 	or	%o0,%lo(U_SYSTEM_EXITCODE),%o0
-	ld	[%o0], %o0			/* give exit status to parent process*/
+	ldsh	[%o0], %o0			/* give exit status to parent process*/
 	ta	0x10			/* dot the system call */
   nop				/* delay slot */
 /* and what if it goes wrong? just retry! */
@@ -71,7 +71,10 @@ _haltproc:
 	.size _start, .-_start
 
 # $Log$
-# Revision 1.5  2004-03-16 10:19:11  mazen
+# Revision 1.6  2004-05-17 20:56:56  peter
+#   * use ldsh to load exitcode
+#
+# Revision 1.5  2004/03/16 10:19:11  mazen
 # + _haltproc definition for linux/sparc
 #
 # Revision 1.4  2003/06/02 22:03:37  mazen
