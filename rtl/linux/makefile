@@ -23,7 +23,7 @@
 
 # set the directory where to install the units.
 ifndef UNITINSTALLDIR
-UNITINSTALLDIR=/usr/lib/ppc/0.99.5/linuxunits
+UNITINSTALLDIR=/usr/lib/fpc/0.99.5/linuxunits
 endif
 
 # set the directory where to install the libs (must exist)
