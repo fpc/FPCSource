@@ -12,11 +12,13 @@ type
   private
     FCaption: String;
     FNext: Integer;
+    FNext6: Integer;
   protected
   public
     property Caption: String read FCaption write FCaption;
   published
     property Next: Integer read FNext write FNext;
+    property Next6: Integer read FNext6 write FNext6;
   end;
 
   TTest = class(TBaseTest)
@@ -36,7 +38,7 @@ begin
   t:=TTest.Create;
   p:=GetPropInfo(t,'Next');
   if (p<>nil) and
-     (p^.name='Next') then
+     (p^.name=Upcase('Next')) then
    writeln('Success')
   else
    begin
