@@ -138,9 +138,9 @@ var
 
 type
   TIntConst = class
-    IntegerType: PTypeInfo;		// The integer type RTTI pointer
-    IdentToIntFn: TIdentToInt;		// Identifier to Integer conversion
-    IntToIdentFn: TIntToIdent;		// Integer to Identifier conversion
+    IntegerType: PTypeInfo;             // The integer type RTTI pointer
+    IdentToIntFn: TIdentToInt;          // Identifier to Integer conversion
+    IntToIdentFn: TIntToIdent;          // Integer to Identifier conversion
     constructor Create(AIntegerType: PTypeInfo; AIdentToInt: TIdentToInt;
       AIntToIdent: TIntToIdent);
   end;
@@ -273,7 +273,7 @@ function InitInheritedComponent(Instance: TComponent; RootAncestor: TClass): Boo
       { !!!: This would work only on Win32, how should we do this multiplatform?
       Result := InternalReadComponentRes(ClassType.ClassName,
         FindResourceHInstance(FindClassHInstance(ClassType)), Instance)
-	or Result;}
+        or Result;}
       Result := False;
     end;
   end;
@@ -366,12 +366,12 @@ begin
       if GlobalList.Count > 0 then
       begin
         ToDoList := nil;
-	DoneList := TList.Create;
-	ToDoList := TList.Create;
-	try
-	  i := 0;
-	  while i < GlobalList.Count do
-	    with TPropFixup(GlobalList[i]) do
+        DoneList := TList.Create;
+        ToDoList := TList.Create;
+        try
+          i := 0;
+          while i < GlobalList.Count do
+            with TPropFixup(GlobalList[i]) do
             begin
               Root := FindGlobalComponent(FRootName);
               if Assigned(Root) or (GetOrdProp(FInstance, FPropInfo) <> 0) then
@@ -381,21 +381,21 @@ begin
                   Reference := FindNestedComponent(Root, FName);
                   SetOrdProp(FInstance, FPropInfo, Longint(Reference));
                 end;
-		// Move component to list of done components, if necessary
-		if (DoneList.IndexOf(FInstance) < 0) and
-		  (ToDoList.IndexOf(FInstance) >= 0) then
-		  DoneList.Add(FInstance);
+                // Move component to list of done components, if necessary
+                if (DoneList.IndexOf(FInstance) < 0) and
+                  (ToDoList.IndexOf(FInstance) >= 0) then
+                  DoneList.Add(FInstance);
                 GlobalList.Delete(i);
-                Free;	// ...the fixup
+                Free;   // ...the fixup
               end else
               begin
-	        // Move component to list of components to process, if necessary
-		Index := DoneList.IndexOf(FInstance);
-		if Index <> -1 then
-		  DoneList.Delete(Index);
-		if ToDoList.IndexOf(FInstance) < 0 then
-		  ToDoList.Add(FInstance);
-		Inc(i);
+                // Move component to list of components to process, if necessary
+                Index := DoneList.IndexOf(FInstance);
+                if Index <> -1 then
+                  DoneList.Delete(Index);
+                if ToDoList.IndexOf(FInstance) < 0 then
+                  ToDoList.Add(FInstance);
+                Inc(i);
               end;
             end;
             for i := 0 to DoneList.Count - 1 do
@@ -405,7 +405,7 @@ begin
                 Exclude(TComponent(Instance).FComponentState, csFixups);
             end;
           finally
-	    ToDoList.Free;
+            ToDoList.Free;
             DoneList.Free;
           end;
         end;
@@ -900,21 +900,21 @@ var
     case parser.Token of
       toInteger:
         begin
-	  WriteInteger(parser.TokenInt);
-	  parser.NextToken;
-	end;
+          WriteInteger(parser.TokenInt);
+          parser.NextToken;
+        end;
       toFloat:
         begin
           Output.WriteByte(Ord(vaExtended));
           flt := Parser.TokenFloat;
           Output.Write(flt, SizeOf(flt));
-	  parser.NextToken;
+          parser.NextToken;
         end;
       toString:
         begin
           s := parser.TokenString;
           while parser.NextToken = '+' do
-	  begin
+          begin
             parser.NextToken;   // Get next string fragment
             parser.CheckToken(toString);
             s := s + parser.TokenString;
@@ -931,12 +931,12 @@ var
           else if CompareText(parser.TokenString, 'nil') = 0 then
             Output.WriteByte(Ord(vaNil))
           else
-	  begin
+          begin
             Output.WriteByte(Ord(vaIdent));
             WriteString(parser.TokenString);
           end;
-	  Parser.NextToken;
-	end;
+          Parser.NextToken;
+        end;
       // Set
       '[':
         begin
@@ -944,17 +944,17 @@ var
           Output.WriteByte(Ord(vaSet));
           if parser.Token <> ']' then
             while True do
-	    begin
+            begin
               parser.CheckToken(toSymbol);
               WriteString(parser.TokenString);
               parser.NextToken;
               if parser.Token = ']' then
-	        break;
+                break;
               parser.CheckToken(',');
               parser.NextToken;
             end;
           Output.WriteByte(0);
-	  parser.NextToken;
+          parser.NextToken;
         end;
       // List
       '(':
@@ -962,9 +962,9 @@ var
           parser.NextToken;
           Output.WriteByte(Ord(vaList));
           while parser.Token <> ')' do
-	    ProcessValue;
+            ProcessValue;
           Output.WriteByte(0);
-	  parser.NextToken;
+          parser.NextToken;
         end;
       // Collection
       '<':
@@ -972,18 +972,18 @@ var
           parser.NextToken;
           Output.WriteByte(Ord(vaCollection));
           while parser.Token <> '>' do
-	  begin
+          begin
             parser.CheckTokenSymbol('item');
             parser.NextToken;
             // ConvertOrder
             Output.WriteByte(Ord(vaList));
             while not parser.TokenSymbolIs('end') do
-	      ProcessProperty;
+              ProcessProperty;
             parser.NextToken;   // Skip 'end'
             Output.WriteByte(0);
           end;
           Output.WriteByte(0);
-	  parser.NextToken;
+          parser.NextToken;
         end;
       // Binary data
       '{':
@@ -997,7 +997,7 @@ var
           finally
             stream.Free;
           end;
-	  parser.NextToken;
+          parser.NextToken;
         end;
       else
         parser.Error(SInvalidProperty);
@@ -1181,7 +1181,10 @@ end;
 
 {
   $Log$
-  Revision 1.4  2000-10-13 12:33:23  sg
+  Revision 1.5  2000-10-15 09:27:48  peter
+    + Added some index checking. Centralized error handling (merged)
+
+  Revision 1.4  2000/10/13 12:33:23  sg
   * Some small cosmetic changes and minor fixes
 
   Revision 1.3  2000/07/22 14:55:56  sg
@@ -1189,5 +1192,5 @@ end;
 
   Revision 1.2  2000/07/13 11:32:59  michael
   + removed logs
- 
+
 }
