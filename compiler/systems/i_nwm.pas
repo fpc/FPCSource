@@ -31,7 +31,7 @@ unit i_nwm;
        system_i386_netware_info : tsysteminfo =
           (
             system       : system_i386_netware;
-            name         : 'Netware for i386';
+            name         : 'Netware for i386(clib)';
             shortname    : 'Netware';
             flags        : [];
             cpu          : cpu_i386;
@@ -59,7 +59,7 @@ unit i_nwm;
             sharedClibprefix : '';
             Cprefix      : '';
             newline      : #13#10;
-            dirsep       : '\';
+            dirsep       : '/';
             files_case_relevent : false;
             assem        : as_i386_elf32;
             assemextern  : as_gas;
@@ -75,18 +75,18 @@ unit i_nwm;
                 loopalign       : 4;
                 jumpalign       : 0;
                 constalignmin   : 0;
-                constalignmax   : 1;
+                constalignmax   : 4;
                 varalignmin     : 0;
-                varalignmax     : 1;
-                localalignmin   : 0;
-                localalignmax   : 1;
+                varalignmax     : 4;
+                localalignmin   : 4;
+                localalignmax   : 4;
                 recordalignmin  : 0;
-                recordalignmax  : 2;
+                recordalignmax  : 4;
                 maxCrecordalign : 4
               );
             first_parm_offset : 8;
             heapsize     : 256*1024;
-            stacksize    : 8192;
+            stacksize    : 16384;
             DllScanSupported:false;
             use_function_relative_addresses : true
           );
@@ -102,7 +102,10 @@ initialization
 end.
 {
   $Log$
-  Revision 1.5  2004-07-30 19:22:14  armin
+  Revision 1.6  2004-07-31 22:52:58  armin
+  changed path sep to /
+
+  Revision 1.5  2004/07/30 19:22:14  armin
   * typo in set_source_info
 
   Revision 1.4  2004/06/20 08:55:32  florian
