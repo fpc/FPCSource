@@ -28,14 +28,6 @@
        An arbitrary binary file can get converted to constants. In this mode
         only one constant per include file is possible.
 
-This program has been working for three weeks now, all major bugs are fixed I
-hope. A different kind of (possible) problems are the amounts of memory
-allocated for the temporary buffer (MaxBuffersize variable), which
-is now initialised to 256000 bytes (for textfile type, per record), and 1 MB
-maximum for binary files. Also the program has to be compiled with a large
-enough heap (-CH parameter of FPC) to allow this. This is the case without
-modifying the default ppc386.cfg or adding -Ch parameters.
-
     This program is distributed in the hope that it will be useful,
     but WITHOUT ANY WARRANTY; without even the implied warranty of
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
@@ -47,11 +39,15 @@ uses strings;
 CONST
   version='0.99.13';
 
-{                              ************
+  maxbufsize = 1024*1024;  { 1 mb buffer }
 
-                Simple service routines. These are copied from EPasStr.
-                The program doesn't use EPasStr, because I want it to function
-        BEFORE EPasStr is compiled, and distributable without XTDFPC.}
+type
+  TOutputMode=(OutByte,OutChar,OutString);
+
+
+{*****************************************************************************
+            Simple service routines. These are copied from EPasStr.
+*****************************************************************************}
 
 TYPE CHARSET=SET OF CHAR;
 
@@ -145,7 +141,9 @@ BEGIN
 END;
 
 
-{---- End EPasStr routines ----}
+{*****************************************************************************
+                              Parsing helpers
+*****************************************************************************}
 
 FUNCTION XlatString(Var S : String):BOOLEAN;
 {replaces \xxx in string S with #x, and \\ with \ (escaped)
@@ -222,17 +220,19 @@ END;
 {Global equates}
 
 VAR
-  Inname,                  {Name of input file}
-  OutName,                {Name of output (.inc) file}
-  BinConstName: string;     {(-b only) commandline name of constant}
-  ArrayByte,            {TRUE when output of ARRAY OF BYTE is desired
-                                ARRAY OF CHAR otherwise}
-  I_Binary  : BOOLEAN;      {TRUE is binary input, FALSE textual}
-  MsgTxt     : pchar;       {Temporary storage of data}
-  msgsize    : longint;     {Bytes used in MsgTxt}
-  maxbufsize : LONGINT;     {Bytes allocated for MsgTxt}
-  C       : CHAR;
+  Inname,                     { Name of input file }
+  OutName,                    { Name of output (.inc) file }
+  BinConstName : string;      { (-b only) commandline name of constant }
+  OutputMode   : TOutputMode; { Output mode (char,byte,string) }
+  I_Binary     : BOOLEAN;     { TRUE is binary input, FALSE textual }
+  MsgTxt       : pchar;       { Temporary storage of data }
+  msgsize      : longint;     { Bytes used in MsgTxt }
+  C            : CHAR;
 
+
+{*****************************************************************************
+                               WriteCharFile
+*****************************************************************************}
 
 {Dump the contents of MsgTxt (msgsize bytes) to file T (which has been opened),
 using CONSTNAME as the name of the ARRAY OF CHAR constant}
@@ -280,6 +280,11 @@ begin
   Writeln(T);
 end;
 
+
+{*****************************************************************************
+                               WriteByteFile
+*****************************************************************************}
+
 {Dump the contents of MsgTxt (msgsize bytes) to file T (which has been opened),
 using CONSTNAME as the name of the ARRAY OF BYTE constant}
 procedure WriteByteFile(var t:text;constname:string);
@@ -302,7 +307,6 @@ procedure WriteByteFile(var t:text;constname:string);
 var
   cidx,i  : longint;
   p       : pchar;
-
 begin
   Writeln('Writing constant: ',constname,' to file '#39,outname,#39);
 {Open textfile}
@@ -333,6 +337,113 @@ begin
   Writeln(T);
 end;
 
+
+{*****************************************************************************
+                               WriteStringFile
+*****************************************************************************}
+
+procedure WriteStringFile(var t:text;constname:string);
+const
+  maxslen=240; { to overcome aligning problems }
+
+  function l0(l:longint):string;
+  var
+    s : string[16];
+  begin
+    str(l,s);
+    while (length(s)<5) do
+     s:='0'+s;
+    l0:=s;
+  end;
+
+var
+  slen,
+  len,i  : longint;
+  p      : pchar;
+  start,
+  quote  : boolean;
+begin
+  Writeln('Writing constant: ',constname,' to file '#39,outname,#39);
+{Open textfile}
+  writeln(t,'{$ifdef Delphi}');
+  writeln(t,'const '+constname+' : array[0..',msgsize div maxslen,'] of string[',maxslen,']=(');
+  writeln(t,'{$else Delphi}');
+  writeln(t,'const '+constname+' : array[0..',msgsize div maxslen,',1..',maxslen,'] of char=(');
+  write(t,'{$endif Delphi}');
+{Parse buffer in msgbuf and create indexs}
+  p:=msgtxt;
+  slen:=0;
+  len:=0;
+  quote:=false;
+  start:=true;
+  for i:=1 to msgsize do
+   begin
+     if slen>=maxslen then
+      begin
+        if quote then
+         begin
+           write(t,'''');
+           quote:=false;
+         end;
+        write(t,',');
+        slen:=0;
+        inc(len);
+      end;
+     if (len>70) or (start) then
+      begin
+        if quote then
+         begin
+           write(t,'''');
+           quote:=false;
+         end;
+        if slen>0 then
+          writeln(t,'+')
+        else
+          writeln(t);
+        len:=0;
+        start:=false;
+      end;
+     if (len=0) then
+      write(t,'  ');
+     if (ord(p^)>=32) and (p^<>#39) then
+      begin
+        if not quote then
+         begin
+           write(t,'''');
+           quote:=true;
+           inc(len);
+         end;
+        write(t,p^);
+        inc(len);
+      end
+     else
+      begin
+        if quote then
+         begin
+           write(t,'''');
+           inc(len);
+           quote:=false;
+         end;
+        write(t,'#'+chr(ord(p^) div 100+48)+chr((ord(p^) mod 100) div 10+48)+chr(ord(p^) mod 10+48));
+        inc(len,3);
+      end;
+     { start a new line when a #0 or #10 is found }
+     if p^ in [#0,#10] then
+      start:=true;
+     inc(slen);
+     inc(p);
+   end;
+  if quote then
+   write(t,'''');
+  writeln(t,'');
+  writeln(t,');');
+end;
+
+
+{*****************************************************************************
+                                   Parser
+*****************************************************************************}
+
 FUNCTION SpecialItem(S : String):LONGINT;
 { This procedure finds the next comma, (or the end of the string)
     but comma's within single or double quotes should be ignored.
@@ -355,6 +466,7 @@ BEGIN
     SpecialItem:=DataItem;
 END;
 
+
 { Handles reading and processing of a textual file}
 procedure DoFile;
 var
@@ -367,165 +479,162 @@ var
                           current DATA-item being processed }
   VarName : String;     { Variable name of constant to be written}
 
-PROCEDURE ParseError;
-{Extremely simple errorhandler}
+  PROCEDURE ParseError;
+  {Extremely simple errorhandler}
+  BEGIN
+   Writeln('Error in line : ',Line, ' Somewhere near :',#39,S1,#39);
+   Close(InfIle); Close(Outfile);
+   HALT;
+  END;
 
-BEGIN
- Writeln('Error in line : ',Line, ' Somewhere near :',#39,S1,#39);
- Close(InfIle); Close(Outfile);
- HALT;
-END;
-
-PROCEDURE FixDec;
-{ Reads decimal value starting at S1[1].
-     Value in I3, number of digits found in I1}
-
-BEGIN
- I1:=1;
- WHILE ((S1[I1]>#47) AND (S1[I1]<#58)) AND (I1<=Length(S1)) DO
-  INC(I1);
- DEC(I1);
- IF I1=0 THEN
-  ParseError;
- I3:=0;
- FOR I2:=1 TO I1 DO
-  I3:=(I3*10)+ ORD(S1[I2])-48;
-
-{Calc no of bytes(1,2 or 4) required from no of digits found}
-
- IF (I1<3) THEN
-  I2:=1
- ELSE
-  IF (I1=3) AND (I3<256) THEN
-   I2:=1
-  ELSE
-   BEGIN
-    IF I1<5 THEN
-     I2:=2
-     ELSE
-      IF (I1=5) AND (i3<65536) THEN
+  PROCEDURE FixDec;
+  { Reads decimal value starting at S1[1].
+       Value in I3, number of digits found in I1}
+  BEGIN
+   I1:=1;
+   WHILE ((S1[I1]>#47) AND (S1[I1]<#58)) AND (I1<=Length(S1)) DO
+    INC(I1);
+   DEC(I1);
+   IF I1=0 THEN
+    ParseError;
+   I3:=0;
+   FOR I2:=1 TO I1 DO
+    I3:=(I3*10)+ ORD(S1[I2])-48;
+  {Calc no of bytes(1,2 or 4) required from no of digits found}
+   IF (I1<3) THEN
+    I2:=1
+   ELSE
+    IF (I1=3) AND (I3<256) THEN
+     I2:=1
+    ELSE
+     BEGIN
+      IF I1<5 THEN
        I2:=2
-      ELSE
-       I2:=4;
-   END;
-END;
-
-PROCEDURE DoChar;
-{ Reads a #xxx constant at S1[1], and puts it in msgtxt array.
-    Deletes #xxx constant from S1}
-
-BEGIN
- Delete(S1,1,1);
- FixDec;
- msgtxt[Msgsize]:=CHR(I3);
- inc(msgsize);
- Delete(S1,1,I1);
-END;
-
-PROCEDURE DoQuote;
-{ Reads a quoted text-string ('xxx' or "xxx"). Quotechar is in S1[1]
-  (always ' or "), any char except the quotechar is allowed between two
-  quotechars.
-    Deletes quoted textstring incl quotes from S1}
-
-VAR C : Char;
-
-BEGIN
-  C:=S1[1];
-  Delete(S1,1,1);
-  I1:=Pos(C,S1);                       {Find other quote}
-  IF I1=0 THEN
-   ParseError;                    {Quotes have to be matched}
-  Dec(I1);
-  IF I1<>0 THEN
-   BEGIN
-    Move(S1[1],Msgtxt[Msgsize],I1);
-    INC(msgsize,I1);
-   END;
-  Delete(S1,1,I1+1);
-  LTrim(S1,' ');
-END;
-
-PROCEDURE FixHex(base2:LONGINT);
-{ Reads a base 2,8 or 16 constant from S1.
-  Parameter = 2Log of base (1,3 or 4 corresponding to base 2,8 and 16)
-  Constant is processed, the number of digits estimated (1,2 or 4 bytes) and
-  the value is appended to msgtxt accordingly}
-
-BEGIN
- I3:=0;
- I2:=1;
- WHILE (S1[I2] IN ['0'..'9','A'..'F','a'..'f']) AND (I2<=Length(S1)) DO
-  BEGIN
-   IF (S1[I2]>#47) AND (S1[I2]<#58) THEN
-    I3:=(I3 SHL base2)+ ORD(S1[I2])-48
-   ELSE
-    IF (S1[I2]>#64) AND (S1[I2]<#71) THEN
-     I3:=(I3 SHL base2)+ ORD(S1[I2])-55
-    ELSE
-     IF (S1[I2]>#96) AND (S1[I2]<#103) THEN
-      I3:=(I3 SHL base2)+ ORD(S1[I2])-87
-    ELSE
-     ParseError;
-    INC(I2);
+       ELSE
+        IF (I1=5) AND (i3<65536) THEN
+         I2:=2
+        ELSE
+         I2:=4;
+     END;
   END;
- DEC(I2);
- CASE Base2 OF
-  4 :   BEGIN
-        I4:=(I2 SHR 1);
-        IF ODD(I2) THEN
-         INC(I4);
-        IF I4=3 THEN I4:=4
-       END;
-  3 :   I4:=(I2*3 DIV 8)+1;
-  1 :   BEGIN
-         IF I2<9 THEN
-          I4:=1
-         ELSE
-          IF I2<17 THEN
-           I4:=2
-          ELSE
-          I4:=4;
-        END;
-   ELSE
-    BEGIN
-     Writeln(' severe internal error ');
-     ParseError;
-    END; {else}
-   END; {Case}
-  move(I3,msgtxt[Msgsize],i4);
-  inc(msgsize,i4);
-END;
 
-PROCEDURE DoTextual;
-{ processes aggregates of textual data like 'xxx'+#39"2143124"+'1234'#123}
-
-BEGIN
- REPEAT
-  CASE S1[1] OF
-   '#' : DoChar;
-   '"',#39 : DoQuote;           {Should I support octal codes here?}
-  ELSE
-   ParseError;
-   END;
-  LTrim(S1,' ');
-  IF (S1[1]='+') THEN
+  PROCEDURE DoChar;
+  { Reads a #xxx constant at S1[1], and puts it in msgtxt array.
+      Deletes #xxx constant from S1}
+  BEGIN
    Delete(S1,1,1);
-  LTrim(S1,' ');
- UNTIL Length(S1)=0;
-END;
-
-PROCEDURE FlushMsgTxt;            {Flush MsgTxt array}
-BEGIN
- IF msgsize>0 THEN          {In memory? Then flush}
-  BEGIN
-   IF ArrayByte THEN
-    WriteByteFile(outfile,Varname)
-   ELSE
-    WriteCharFile(outfile,varname);
-   msgsize:=0;
+   FixDec;
+   msgtxt[Msgsize]:=CHR(I3);
+   inc(msgsize);
+   Delete(S1,1,I1);
   END;
-END;
+
+  PROCEDURE DoQuote;
+  { Reads a quoted text-string ('xxx' or "xxx"). Quotechar is in S1[1]
+    (always ' or "), any char except the quotechar is allowed between two
+    quotechars.
+      Deletes quoted textstring incl quotes from S1}
+  VAR
+    C : Char;
+  BEGIN
+    C:=S1[1];
+    Delete(S1,1,1);
+    I1:=Pos(C,S1);                       {Find other quote}
+    IF I1=0 THEN
+     ParseError;                    {Quotes have to be matched}
+    Dec(I1);
+    IF I1<>0 THEN
+     BEGIN
+      Move(S1[1],Msgtxt[Msgsize],I1);
+      INC(msgsize,I1);
+     END;
+    Delete(S1,1,I1+1);
+    LTrim(S1,' ');
+  END;
+
+  PROCEDURE FixHex(base2:LONGINT);
+  { Reads a base 2,8 or 16 constant from S1.
+    Parameter = 2Log of base (1,3 or 4 corresponding to base 2,8 and 16)
+    Constant is processed, the number of digits estimated (1,2 or 4 bytes) and
+    the value is appended to msgtxt accordingly}
+  BEGIN
+    I3:=0;
+    I2:=1;
+    WHILE (S1[I2] IN ['0'..'9','A'..'F','a'..'f']) AND (I2<=Length(S1)) DO
+     BEGIN
+      IF (S1[I2]>#47) AND (S1[I2]<#58) THEN
+       I3:=(I3 SHL base2)+ ORD(S1[I2])-48
+      ELSE
+       IF (S1[I2]>#64) AND (S1[I2]<#71) THEN
+        I3:=(I3 SHL base2)+ ORD(S1[I2])-55
+       ELSE
+        IF (S1[I2]>#96) AND (S1[I2]<#103) THEN
+         I3:=(I3 SHL base2)+ ORD(S1[I2])-87
+       ELSE
+        ParseError;
+       INC(I2);
+     END;
+    DEC(I2);
+    CASE Base2 OF
+     4 :   BEGIN
+           I4:=(I2 SHR 1);
+           IF ODD(I2) THEN
+            INC(I4);
+           IF I4=3 THEN I4:=4
+          END;
+     3 :   I4:=(I2*3 DIV 8)+1;
+     1 :   BEGIN
+            IF I2<9 THEN
+             I4:=1
+            ELSE
+             IF I2<17 THEN
+              I4:=2
+             ELSE
+             I4:=4;
+           END;
+      ELSE
+       BEGIN
+        Writeln(' severe internal error ');
+        ParseError;
+       END; {else}
+    END; {Case}
+    move(I3,msgtxt[Msgsize],i4);
+    inc(msgsize,i4);
+  END;
+
+  PROCEDURE DoTextual;
+  { processes aggregates of textual data like 'xxx'+#39"2143124"+'1234'#123}
+
+  BEGIN
+   REPEAT
+    CASE S1[1] OF
+     '#' : DoChar;
+     '"',#39 : DoQuote;           {Should I support octal codes here?}
+    ELSE
+     ParseError;
+     END;
+    LTrim(S1,' ');
+    IF (S1[1]='+') THEN
+     Delete(S1,1,1);
+    LTrim(S1,' ');
+   UNTIL Length(S1)=0;
+  END;
+
+  PROCEDURE FlushMsgTxt;            {Flush MsgTxt array}
+  BEGIN
+   IF msgsize>0 THEN          {In memory? Then flush}
+    BEGIN
+      case outputmode of
+        OutByte :
+          WriteByteFile(outfile,Varname);
+        OutChar :
+          WriteCharFile(outfile,varname);
+        OutString :
+          WriteStringFile(outfile,varname);
+      end;
+     msgsize:=0;
+    END;
+  END;
 
 {Actual DoFile}
 begin
@@ -538,12 +647,10 @@ begin
   {$I+}
   if ioresult<>0 then
    begin
-     WriteLn('*** message file '+inname+' not found ***');
+     WriteLn('file '+inname+' not found');
      exit;
    end;
-
 {Create output file}
-
   assign (outfile,outname);
   rewrite(outfile);
   msgsize:=0;
@@ -572,7 +679,6 @@ begin
          CASE S1[1] OF        {Select field type}
           #39,'"','#' : DoTextual; { handles textual aggregates
                                      e.g. #124"142"#123'sdgf''ads'}
-
           '$' : BEGIN         {Handle $xxxx hex codes}
                  Delete(S1,1,1);
                  RTrim(S1,' ');
@@ -635,11 +741,11 @@ begin
           BEGIN
            FlushMsgTxt;
            I1:=1;
-           ArrayByte:=FALSE;
+           OutputMode:=OutChar;
            IF S[2]='$' THEN      {Flag for ARRAY OF BYTE?}
             BEGIN
              INC(I1);
-             ArrayByte:=TRUE;
+             OutputMode:=OutByte;
             END;
            Delete(S,1,I1);
            VarName:=S;
@@ -659,6 +765,10 @@ begin
 end;
 
 
+{*****************************************************************************
+                                    Binary File
+*****************************************************************************}
+
 procedure DoBinary;
 var
   Infile  : File;
@@ -666,34 +776,37 @@ var
   i       : longint;
 begin
   Writeln('processing file : ',inname);
-  {Read the message file}
+{ Read the file }
   assign(infile,inname);
   {$I-}
    reset(infile,1);
   {$I+}
   if ioresult<>0 then
    begin
-     WriteLn('*** message file '+inname+' not found ***');
+     WriteLn('file '+inname+' not found');
      exit;
    end;
-  assign (outfile,outname);
-  rewrite(outfile);
 { First parse the file and count bytes needed }
   msgsize:=FileSize(InFile);
-  IF Msgsize>1048576 THEN
-   msgsize:=1048576;
   Getmem(msgtxt,msgsize);
   BlockRead(InFile,msgTxt[0],msgsize,i);
+  close(infile);
   IF I<>msgsize THEN
    BEGIN
-    Writeln('Error while reading file',inName);
-    HALT(1);
+     Writeln('Error while reading file',inName);
+     HALT(1);
    END;
-  IF ArrayByte THEN
-   WriteByteFile(outfile,BinconstName)
-  ELSE
-   WriteCharFile(outfile,BinconstName);
-  close(infile);
+{ Output }
+  assign (outfile,outname);
+  rewrite(outfile);
+  case outputmode of
+    OutByte :
+      WriteByteFile(outfile,BinconstName);
+    OutChar :
+      WriteCharFile(outfile,BinconstName);
+    OutString :
+      WriteStringFile(outfile,BinconstName);
+  end;
   Close(Outfile);
 end;
 
@@ -717,6 +830,7 @@ var
     writeln('<Options> can be :');
     writeln('              -B     File to read is binary.');
     writeln('              -A     array of byte output (default is array of char)');
+    writeln('              -S     array of string output');
     writeln('              -V     Show version');
     writeln('        -? or -H     This HelpScreen');
     writeln;
@@ -727,7 +841,7 @@ var
 
 begin
   I_binary:=FALSE;
-  ArrayByte:=FALSE;
+  OutputMode:=OutChar;
   FIles:=0;
   for i:=1to paramcount do
    begin
@@ -738,7 +852,8 @@ begin
         delete(para,1,2);
         case ch of
          'B' : I_Binary:=TRUE;
-         'A' : Arraybyte:=TRUE;
+         'A' : OutputMode:=OutByte;
+         'S' : OutputMode:=OutString;
          'V' : begin
                  Writeln('Data2Inc ',version,' (C) 1999 Peter Vreman and Marco van de Voort');
                  Writeln;
@@ -767,17 +882,19 @@ begin
 end;
 
 begin
- MaxBufSize:=100000;
- GetPara;
-
- IF I_Binary THEN
-  DoBinary
- ELSE
-  DoFile;
+  GetPara;
+  IF I_Binary THEN
+   DoBinary
+  ELSE
+   DoFile;
 end.
 {
   $Log$
-  Revision 1.1  1999-11-09 14:40:50  peter
+  Revision 1.2  1999-11-23 09:42:18  peter
+    + -s for string writing
+    * some small cleanups
+
+  Revision 1.1  1999/11/09 14:40:50  peter
     * initial version
 
 }
