@@ -204,6 +204,9 @@ begin
       Insert(IL2);
       R2.Move(0,-1);
       Insert(New(PLabel, Init(R2, '~G~rep arguments', IL2)));
+      R1.Assign(R2.B.X, R2.A.Y+1, R2.B.X+3, R2.B.Y+1);
+      Control := New(PHistory, Init(R1, IL2, GrepArgsId));
+      Insert(Control);
     end;
 
     InsertButtons(PGrepDialog);
@@ -219,6 +222,12 @@ begin
          { Linux ? }
          AddToolCommand(GrepExe+' -n '+GrepArgs);
          ToFocus:=ToolMessages^.count-1;
+         UpdateToolMessages;
+         if Assigned(MessagesWindow) then
+           MessagesWindow^.FocusItem(ToFocus);
+         showmsg:=true;
+         Messages;
+
          if not ExecuteRedir(GrepExe,'-n '+GrepArgs,'',GrepOutName,GrepErrName) then
            Begin
               { 2 as exit code just means that
@@ -231,7 +240,6 @@ begin
                 end;
            End;
          {$I-}
-         showmsg:=true;
          Assign(GrepOut,GrepOutName);
          Reset(GrepOut);
          error_in_reading:=false;
@@ -283,7 +291,10 @@ end;
 
 {
   $Log$
-  Revision 1.17  2000-02-10 00:48:02  pierre
+  Revision 1.18  2000-03-02 22:33:36  pierre
+   * Grep improoved
+
+  Revision 1.17  2000/02/10 00:48:02  pierre
    * avoid crash for empty string
 
   Revision 1.16  2000/02/02 22:49:44  pierre

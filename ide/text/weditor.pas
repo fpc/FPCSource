@@ -488,6 +488,7 @@ const
      TextReplaceID = 106;
      GotoID        = 107;
      TextGrepId    = 108;
+     GrepArgsId    = 109;
 
      { used for ShiftDel and ShiftIns to avoid
        GetShiftState to be considered for extending
@@ -5613,7 +5614,10 @@ end;
 END.
 {
   $Log$
-  Revision 1.81  2000-02-09 12:56:54  pierre
+  Revision 1.82  2000-03-02 22:33:36  pierre
+   * Grep improoved
+
+  Revision 1.81  2000/02/09 12:56:54  pierre
    * fix for DelChar past end of line
 
   Revision 1.80  2000/02/07 12:11:15  pierre
