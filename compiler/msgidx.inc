@@ -205,6 +205,7 @@ parser_e_only_one_default_property,
 parser_e_property_need_paras,
 parser_e_constructor_cannot_be_not_virtual,
 parser_e_no_default_property_available,
+parser_e_cant_have_published,
 {
   Symbol table
 }

@@ -379,7 +379,7 @@ unit files;
 
       { load ppu version }
       val(header[3]+header[4]+header[5],ppuversion,code);
-      if ppuversion<>13 then
+      if not(ppuversion in [13..14]) then
        begin
          ppufile^.done;
          Message1(unit_d_ppu_invalid_version,tostr(ppuversion));
@@ -630,7 +630,11 @@ unit files;
 end.
 {
   $Log$
-  Revision 1.5  1998-04-30 15:59:40  pierre
+  Revision 1.6  1998-05-01 07:43:53  florian
+    + basics for rtti implemented
+    + switch $m (generate rtti for published sections)
+
+  Revision 1.5  1998/04/30 15:59:40  pierre
     * GDB works again better :
       correct type info in one pass
     + UseTokenInfo for better source position

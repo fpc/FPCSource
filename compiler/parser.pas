@@ -141,7 +141,7 @@ unit parser;
          oldc : char;
          oldcomment_level : word;
 
-         oldimports,oldexports,oldresource,
+         oldimports,oldexports,oldresource,oldrttilist,
          oldbsssegment,olddatasegment,oldcodesegment,
          oldexprasmlist,olddebuglist,
          oldinternals,oldexternals,oldconsts : paasmoutput;
@@ -269,6 +269,7 @@ unit parser;
          oldexternals:=externals;
          oldinternals:=internals;
          oldconsts:=consts;
+         oldrttilist:=rttilist;
          oldexprasmlist:=exprasmlist;
          oldimports:=importssection;
          oldexports:=exportssection;
@@ -312,6 +313,7 @@ unit parser;
          externals:=new(paasmoutput,init);
          internals:=new(paasmoutput,init);
          consts:=new(paasmoutput,init);
+         rttilist:=new(paasmoutput,init);
          importssection:=nil;
          exportssection:=nil;
          resourcesection:=nil;
@@ -540,7 +542,11 @@ done:
 end.
 {
   $Log$
-  Revision 1.9  1998-04-30 15:59:40  pierre
+  Revision 1.10  1998-05-01 07:43:56  florian
+    + basics for rtti implemented
+    + switch $m (generate rtti for published sections)
+
+  Revision 1.9  1998/04/30 15:59:40  pierre
     * GDB works again better :
       correct type info in one pass
     + UseTokenInfo for better source position

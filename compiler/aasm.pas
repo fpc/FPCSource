@@ -272,7 +272,7 @@ type
     var
       datasegment,codesegment,bsssegment,
       internals,externals,debuglist,consts,importssection,
-      exportssection,resourcesection : paasmoutput;
+      exportssection,resourcesection,rttilist : paasmoutput;
 
    { external symbols without repetition }
     function search_assembler_symbol(pl : paasmoutput;const _name : string;exttype : texternal_typ) : pai_external;
@@ -721,7 +721,11 @@ type
 end.
 {
   $Log$
-  Revision 1.4  1998-04-29 10:33:40  pierre
+  Revision 1.5  1998-05-01 07:43:52  florian
+    + basics for rtti implemented
+    + switch $m (generate rtti for published sections)
+
+  Revision 1.4  1998/04/29 10:33:40  pierre
     + added some code for ansistring (not complete nor working yet)
     * corrected operator overloading
     * corrected nasm output

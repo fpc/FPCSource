@@ -644,6 +644,7 @@ ait_stab_function_name : ;
 {$endif EXTDEBUG}
          WriteTree(datasegment);
          WriteTree(consts);
+         WriteTree(rttilist);
 
          AsmLn;
          AsmWriteLn('SECTION .bss');
@@ -673,6 +674,7 @@ ait_stab_function_name : ;
 {$endif EXTDEBUG}
          WriteTree(datasegment);
          WriteTree(consts);
+         WriteTree(rttilist);
          AsmWriteLn('_DATA'#9#9'ENDS');
 
          AsmLn;
@@ -692,7 +694,11 @@ ait_stab_function_name : ;
 end.
 {
   $Log$
-  Revision 1.4  1998-04-29 10:33:41  pierre
+  Revision 1.5  1998-05-01 07:43:52  florian
+    + basics for rtti implemented
+    + switch $m (generate rtti for published sections)
+
+  Revision 1.4  1998/04/29 10:33:41  pierre
     + added some code for ansistring (not complete nor working yet)
     * corrected operator overloading
     * corrected nasm output

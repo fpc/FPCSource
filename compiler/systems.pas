@@ -176,6 +176,7 @@ unit systems;
    { just for tests }
             objext : '.OA';
             dllext : '.DLL';
+            arext : '.AA';
             unitext : '.PAU';
             libext : '.PPL';
             asmext : '.SA';
@@ -375,7 +376,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.5  1998-04-29 10:34:06  pierre
+  Revision 1.6  1998-05-01 07:43:57  florian
+    + basics for rtti implemented
+    + switch $m (generate rtti for published sections)
+
+  Revision 1.5  1998/04/29 10:34:06  pierre
     + added some code for ansistring (not complete nor working yet)
     * corrected operator overloading
     * corrected nasm output

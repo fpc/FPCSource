@@ -933,8 +933,15 @@ unit pdecl;
 
          { set the class attribute }
          if is_a_class then
-           aktclass^.options:=aktclass^.options or oois_class;
+           begin
+              aktclass^.options:=aktclass^.options or oois_class;
 
+              if (cs_generate_rtti in aktswitches) or
+                  (assigned(aktclass^.childof) and
+                   ((aktclass^.childof^.options and oo_can_have_published)<>0)
+                  ) then
+                aktclass^.options:=aktclass^.options or oo_can_have_published;
+           end;
 
          aktobjectdef:=aktclass;
 
@@ -971,9 +978,11 @@ unit pdecl;
                      end;
                    if (token=ID) and (pattern='PUBLISHED') then
                      begin
+                        if (aktclass^.options and oo_can_have_published)=0 then
+                          Message(parser_e_cant_have_published);
                         consume(ID);
-                        current_object_option:=sp_public;
-                        actmembertype:=sp_public;
+                        current_object_option:=sp_published;
+                        actmembertype:=sp_published;
                      end;
                    object_komponenten;
                 end;
@@ -1778,7 +1787,11 @@ unit pdecl;
 end.
 {
   $Log$
-  Revision 1.13  1998-04-30 15:59:41  pierre
+  Revision 1.14  1998-05-01 07:43:56  florian
+    + basics for rtti implemented
+    + switch $m (generate rtti for published sections)
+
+  Revision 1.13  1998/04/30 15:59:41  pierre
     * GDB works again better :
       correct type info in one pass
     + UseTokenInfo for better source position

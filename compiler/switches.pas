@@ -73,7 +73,7 @@ const
    {J} (typesw:illegal; setsw:cs_none; proc:nil),
    {K} (typesw:unsupported; setsw:cs_none; proc:nil),
    {L} (typesw:unsupported; setsw:cs_none; proc:nil),
-   {M} (typesw:illegal; setsw:cs_none; proc:nil),
+   {M} (typesw:local; setsw:cs_generate_rtti; proc:nil),
    {N} (typesw:unsupported; setsw:cs_none; proc:nil),
    {O} (typesw:unsupported; setsw:cs_none; proc:nil),
    {P} (typesw:unsupported; setsw:cs_none; proc:nil),
@@ -158,7 +158,11 @@ end;
 end.
 {
   $Log$
-  Revision 1.2  1998-04-28 11:45:53  florian
+  Revision 1.3  1998-05-01 07:43:56  florian
+    + basics for rtti implemented
+    + switch $m (generate rtti for published sections)
+
+  Revision 1.2  1998/04/28 11:45:53  florian
     * make it compilable with TP
     + small COM problems solved to compile classes.pp
 
