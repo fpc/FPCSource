@@ -45,6 +45,7 @@ type
     TLine = object(TCustomLine)
     public { internal use only! }
       Text        : PString;
+      DefaultEditorInfo : PEditorLineInfo;
       EditorInfos : PEditorLineInfoCollection;
       Flags       : longint;
       Owner       : PCustomCodeEditorCore;
@@ -293,12 +294,23 @@ const
 constructor TLine.Init(AOwner: PCustomCodeEditorCore; const AText: string; AFlags: longint);
 begin
   inherited Init(AText,AFlags);
-  New(EditorInfos, Init(10,10));
+  // New(EditorInfos, Init(10,10));
   Owner:=AOwner;
 end;
 
 procedure TLine.AddEditorInfo(Index: sw_integer; AEditor: PCustomCodeEditor);
 begin
+  if Index=0 then
+    begin
+      DefaultEditorInfo:=New(PEditorLineInfo, Init(AEditor));
+      exit;
+    end;
+  if not assigned(EditorInfos) then
+    begin
+      New(EditorInfos, Init(10,10));
+      EditorInfos^.AtInsert(0,DefaultEditorInfo);
+      DefaultEditorInfo:=nil;
+    end;
   EditorInfos^.AtInsert(Index,New(PEditorLineInfo, Init(AEditor)));
 end;
 
@@ -306,7 +318,8 @@ procedure TLine.RemoveEditorInfo(AEditor: PCustomCodeEditor);
 var E: PEditorLineInfo;
 begin
   E:=GetEditorInfo(AEditor);
-  EditorInfos^.Free(E);
+  if Assigned(EditorInfos) then
+    EditorInfos^.Free(E);
 end;
 
 function TLine.GetText: string;
@@ -325,7 +338,10 @@ begin
   Match:=P^.Editor=Editor;
 end;
 begin
-  GetEditorInfo:=EditorInfos^.FirstThat(@Match);
+  if not assigned(EditorInfos) then
+    GetEditorInfo:=DefaultEditorInfo
+  else
+    GetEditorInfo:=EditorInfos^.FirstThat(@Match);
 end;
 
 function TLine.GetFlags: longint;
@@ -342,8 +358,15 @@ end;
 
 destructor TLine.Done;
 begin
-  if Assigned(Text) then DisposeStr(Text); Text:=nil;
-  if Assigned(EditorInfos) then Dispose(EditorInfos, Done); EditorInfos:=nil;
+  if Assigned(Text) then
+    DisposeStr(Text);
+  Text:=nil;
+  if Assigned(EditorInfos) then
+    Dispose(EditorInfos, Done);
+  EditorInfos:=nil;
+  if Assigned(DefaultEditorInfo) then
+    Dispose(DefaultEditorInfo, Done);
+  DefaultEditorInfo:=nil;
   inherited Done;
 end;
 
@@ -904,6 +927,7 @@ end;
 procedure TCodeEditor.SetSyntaxCompleted(SC : boolean);
 begin
   Core^.SetSyntaxCompleted(SC);
+  UpdateIndicator;
 end;
 
 function TCodeEditor.GetLastSyntaxedLine: sw_integer;
@@ -1966,7 +1990,10 @@ end;
 END.
 {
  $Log$
- Revision 1.2  2001-08-05 02:01:48  peter
+ Revision 1.3  2001-09-14 16:33:06  pierre
+  * several small changes
+
+ Revision 1.2  2001/08/05 02:01:48  peter
    * FVISION define to compile with fvision units
 
  Revision 1.1  2001/08/04 11:30:25  peter
