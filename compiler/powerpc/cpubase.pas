@@ -110,7 +110,9 @@ uses
         R_M13,R_M14,R_M15,R_M16,R_M17,R_M18,R_M19,R_M20,R_M21,R_M22, R_M23,R_M24,
         R_M25,R_M26,R_M27,R_M28,R_M29,R_M30,R_M31,
         R_CR,R_CR0,R_CR1,R_CR2,R_CR3,R_CR4,R_CR5,R_CR6,R_CR7,
-        R_XER,R_LR,R_CTR,R_FPSCR
+        R_XER,R_LR,R_CTR,R_FPSCR,
+
+        R_INTREGISTER {Only for use by the register allocator.}
       );
 
       Tregister=record
@@ -189,6 +191,28 @@ uses
         'CR','CR0','CR1','CR2','CR3','CR4','CR5','CR6','CR7',
         'XER','LR','CTR','FPSCR'
       );
+
+    {New register coding:}
+
+    {Special registers:}
+    const
+      NR_NO = $0000;  {Invalid register}
+
+    {Normal registers:}
+
+    {General purpose registers:}
+      NR_R0 = $0100; NR_R1 = $0200; NR_R2 = $0300;
+      NR_R3 = $0400; NR_R4 = $0500; NR_R5 = $0600;
+      NR_R6 = $0700; NR_R7 = $0800; NR_R8 = $0900;
+      NR_R9 = $0A00; NR_R10 = $0B00; NR_R11 = $0C00;
+      NR_R12 = $0D00; NR_R13 = $0E00; NR_R14 = $0F00;
+      NR_R15 = $1000; NR_R16 = $1100; NR_R17 = $1200;
+      NR_R18 = $1300; NR_R19 = $1400; NR_R20 = $1500;
+      NR_R21 = $1600; NR_R22 = $1700; NR_R23 = $1800;
+      NR_R24 = $1900; NR_R25 = $1A00; NR_R26 = $1B00;
+      NR_R27 = $1C00; NR_R28 = $1D00; NR_R29 = $1E00;
+      NR_R30 = $1F00; NR_R31 = $2000;
+
 
 {*****************************************************************************
                                 Conditions
@@ -753,14 +777,55 @@ implementation
     procedure convert_register_to_enum(var r:Tregister);
 
     begin
-      {$warning Convert_register_to_enum implementation is missing!}
-      internalerror(200301082);
+      if r.enum = R_INTREGISTER then
+        case r.number of
+          NR_NO: r.enum:= R_NO;
+
+          NR_R0: r.enum:= R_0;
+          NR_R1: r.enum:= R_1;
+          NR_R2: r.enum:= R_2;
+          NR_R3: r.enum:= R_3;
+          NR_R4: r.enum:= R_4;
+          NR_R5: r.enum:= R_5;
+          NR_R6: r.enum:= R_6;
+          NR_R7: r.enum:= R_7;
+          NR_R8: r.enum:= R_8;
+          NR_R9: r.enum:= R_9;
+          NR_R10: r.enum:= R_10;
+          NR_R11: r.enum:= R_11;
+          NR_R12: r.enum:= R_12;
+          NR_R13: r.enum:= R_13;
+          NR_R14: r.enum:= R_14;
+          NR_R15: r.enum:= R_15;
+          NR_R16: r.enum:= R_16;
+          NR_R17: r.enum:= R_17;
+          NR_R18: r.enum:= R_18;
+          NR_R19: r.enum:= R_19;
+          NR_R20: r.enum:= R_20;
+          NR_R21: r.enum:= R_21;
+          NR_R22: r.enum:= R_22;
+          NR_R23: r.enum:= R_23;
+          NR_R24: r.enum:= R_24;
+          NR_R25: r.enum:= R_25;
+          NR_R26: r.enum:= R_26;
+          NR_R27: r.enum:= R_27;
+          NR_R28: r.enum:= R_28;
+          NR_R29: r.enum:= R_29;
+          NR_R30: r.enum:= R_30;
+          NR_R31: r.enum:= R_31;
+        else
+          internalerror(200301082);
+        end;
     end;
 
 end.
 {
   $Log$
-  Revision 1.41  2003-01-13 17:17:50  olle
+  Revision 1.42  2003-01-16 11:31:28  olle
+    + added new register constants
+    + implemented register convertion proc
+
+  Revision 1.41  2003/01/13 17:17:50  olle
     * changed global var access, TOC now contain pointers to globals
     * fixed handling of function pointers
 
