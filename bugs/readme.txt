@@ -113,6 +113,7 @@ Fixed bugs:
                (at least under 0.99.0)
   bug0101.pp   no type checking for routines in interfance and       OK 0.99.1 (CEC)
                 implementation
+  bug0102.pp   page fault when trying to compile under ppcm68k       OK 0.99.1
   bug0104.pp   cardinal greater than $7fffffff aren't written        OK 0.99.1 (FK)
                correct
   bug0105.pp   typecasts are now ignored problem (NOT A BUG)         OK 0.99.1
@@ -120,6 +121,7 @@ Fixed bugs:
   bug0108.pp   gives wrong error message                             OK 0.99.1 (PFV)
   bug0109.pp   syntax error not detected when using a set as pointer OK 0.99.1 (FK)
   bug0112.pp   still generates an internal error 10                  OK 0.99.1 (FK)
+  bug0113.pp   point initialization problems                         OK 0.99.1 (PM/FK)
   bug0114.pp   writeln problem (by Pavel Ozerski)                    OK 0.99.1 (PFV)
   bug0116.pp   when local variable size is > $ffff, enter can't be   OK 0.99.1 (FK)
                used to create the stack frame, but it is with -Og
@@ -154,10 +156,10 @@ bug0092.pp   The unfixable bug. Maybe we find a solution one day.
 bug0096.pp   problem with objects as parameters
 bug0097.pp   two errors in bp7 but not in FPC
 bug0100.pp   a unit may only occure once in uses
-bug0102.pp   page fault when trying to compile under ppcm68k (intel version)
 bug0103.pp   problems with boolean typecasts (other type)
 bug0107.pp   shows page fault problem (run in TRUE DOS mode)
 bug0110.pp   SigSegv when using undeclared var in Case
 bug0111.pp   blockread(typedfile,...) is not allowed in TP7
-bug0113.pp   point initialization problems
 bug0115.pp   missing writeln for comp data type
+bug0117.pp   internalerror 17 (and why is there an automatic float 
+              conversion?)
