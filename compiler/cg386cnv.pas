@@ -909,10 +909,10 @@ implementation
            LOC_JUMP : begin
                         getlabel(hlabel);
                         emitlab(truelabel);
-                        exprasmlist^.concat(new(pai386,op_const_reg(A_MOV,newsize,1,hregister)));
+                        exprasmlist^.concat(new(pai386,op_const_reg(A_MOV,newsize,1,pto^.location.register)));
                         emitjmp(C_None,hlabel);
                         emitlab(falselabel);
-                        exprasmlist^.concat(new(pai386,op_reg_reg(A_XOR,newsize,hregister,hregister)));
+                        exprasmlist^.concat(new(pai386,op_reg_reg(A_XOR,newsize,pto^.location.register,pto^.location.register)));
                         emitlab(hlabel);
                       end;
          else
@@ -1160,7 +1160,7 @@ implementation
          { the helper routines need access to the release list }
          oldlrl:=ltemptoremove;
          ltemptoremove:=oldrl;
-         if p^.convtyp<>tc_bool_2_int then
+         if not(p^.convtyp in [tc_bool_2_int,tc_bool_2_bool]) then
            begin
               secondpass(p^.left);
               set_location(p^.location,p^.left^.location);
@@ -1288,7 +1288,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.65  1999-04-19 09:45:47  pierre
+  Revision 1.66  1999-04-20 10:35:58  peter
+    * fixed bool2bool
+
+  Revision 1.65  1999/04/19 09:45:47  pierre
     +  cdecl or stdcall push all args with longint size
     *  tempansi stuff cleaned up
 
