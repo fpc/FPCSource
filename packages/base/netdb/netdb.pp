@@ -477,7 +477,7 @@ begin
     ID[1]:=Random(256);
     Flags1:=QF_RD;
     Flags2:=0;
-    qdcount:=1 shl 8;
+    qdcount:=htons(1); // was 1 shl 8;
     ancount:=0;
     nscount:=0;
     arcount:=0;
@@ -1153,7 +1153,10 @@ end.
 
 {
   $Log$
-  Revision 1.11  2004-02-20 21:35:00  peter
+  Revision 1.12  2005-02-07 14:12:31  marco
+   * fixed endianess ugliness (3636)
+
+  Revision 1.11  2004/02/20 21:35:00  peter
     * 1.0.x fix
 
   Revision 1.10  2004/01/24 12:23:10  michael
