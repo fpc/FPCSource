@@ -52,6 +52,8 @@ package=uunzipgo32.zip[uzipgo32.zip],Unzip units
 # Dos 12
 package=unetdbgo32.zip[undbgo32.zip],~N~etDB units
 # Dos 13
+package=uuncgigo32.zip[ucgigo32.zip],Uncgi unit
+# Dos 14
 #package=ufvgo32.zip,Free ~V~ision (FV)
 
 
@@ -112,7 +114,9 @@ package=uunzipw32.zip,Unzip units
 package=uzlibw32.zip,ZLib interface units
 # Win32-2 12
 package=unetdbw32.zip,NetDB units
-# Win32-2 12
+# Win32-2 13
+package=uuncgiw32.zip,Uncgi unit
+# Win32-2 14
 #package=ufvw32.zip,Free ~V~ision (FV)
 
 
@@ -142,6 +146,8 @@ package=gdbemx.zip,GNU ~D~ebugger for EMX and PMGDB front-end
 # OS/2 7
 package=ufclemx.zip,~F~ree Component Library (FCL)
 # OS/2 8
+package=uuncgiemx.zip[ucgiemx.zip],Uncgi unit
+# OS/2 9
 #package=ufvemx.zip,Free ~V~ision (FV)
 
 
@@ -215,6 +221,8 @@ package=utilssrc.zip[utilsrc.zip],~U~tils sources
 package=installersrc.zip[instsrc.zip],~I~nstaller sources
 # Source 7
 package=docsrc.zip,~D~ocumentation sources (LaTeX)
+# Source 8
+package=uuncgisrc.zip[ucgisrc.zip],Uncgi unit source
 
 #
 # Source packages 2nd part
