@@ -750,13 +750,7 @@ implementation
     procedure gen_implicit_initfinal(list:taasmoutput;flag:word;st:tsymtable);
       var
         pd : tprocdef;
-        usesacc,
-        usesfpu,
-        usesacchi : boolean;
-        headertai : tai;
-        templist  : taasmoutput;
       begin
-        templist:=Taasmoutput.create;
         { update module flags }
         current_module.flags:=current_module.flags or flag;
         { create procdef }
@@ -777,40 +771,7 @@ implementation
         tcgprocinfo(current_procinfo).code:=cnothingnode.create;
         add_entry_exit_code(tcgprocinfo(current_procinfo).code,aktfilepos,aktfilepos);
         tcgprocinfo(current_procinfo).generate_code;
-(*
-        { start register allocator and temp gen }
-        cg.init_register_allocators;
-        tg:=ttgobj.create;
-        include(current_procinfo.flags,pi_do_call);
-        { generate symbol and save end of header position }
-        gen_proc_symbol(templist);
-        headertai:=tai(templist.last);
-        list.concatlist(templist);
-        { generate procedure 'body' }
-        gen_entry_code(list,false);
-        gen_initialize_code(list,false);
-        gen_finalize_code(list,false);
-        usesacc:=false;
-        usesfpu:=false;
-        usesacchi:=false;
-        gen_load_return_value(list,usesacc,usesacchi,usesfpu);
-        { Add save and restore of used registers }
-        gen_save_used_regs(templist);
-        list.insertlistafter(headertai,templist);
-        gen_restore_used_regs(list,usesacc,usesacchi,usesfpu);
-        { Add stack allocation code after header }
-        gen_stackalloc_code(templist);
-        list.insertlistafter(headertai,templist);
-        { Add exit code at the end }
-        gen_exit_code(list,false,usesacc,usesacchi);
-        { release }
-        cg.done_register_allocators;
-        tg.free;
-        rg:=nil;
-        tg:=nil;
         release_main_proc(pd);
-        templist.free;
-*)
       end;
 
 
@@ -1480,7 +1441,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.125  2003-09-23 17:56:05  peter
+  Revision 1.126  2003-09-23 18:03:08  peter
+    * add missing release of main_proc
+
+  Revision 1.125  2003/09/23 17:56:05  peter
     * locals and paras are allocated in the code generation
     * tvarsym.localloc contains the location of para/local when
       generating code for the current procedure
