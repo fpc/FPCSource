@@ -97,12 +97,22 @@ SYSDEPS=$(SYSINCDEPS) $(SYSCPUDEPS)
 # System dependent
 #####################################################################
 
-# Define Linux Units
+# Define Go32v2 Units
 SYSTEMPPU=system$(PPUEXT)
+
+# BUGFIX branch cannot handle sysutils
+ifndef BUGFIX
 OBJECTS=strings go32 objpas sysutils math\
 	dpmiexcp profile dxeload emu387 \
 	dos crt objects printer \
-	cpu mmx mouse getopts graph \
+	cpu mmx mouse getopts graph 
+else
+OBJECTS=strings go32 objpas math\
+	dpmiexcp profile dxeload emu387 \
+	dos crt objects printer \
+	cpu mmx mouse getopts graph 
+endif
+
 
 LOADERS=prt0 exceptn fpu
 
@@ -279,7 +289,10 @@ include $(CFG)/makefile.def
 
 #
 # $Log$
-# Revision 1.11  1998-07-29 15:44:37  michael
+# Revision 1.12  1998-08-05 10:31:05  pierre
+#   + added BUGFIX test to be able to compile bugfix branch
+#
+# Revision 1.11  1998/07/29 15:44:37  michael
 #  included sysutils and math.pp as target. They compile now.
 #
 # Revision 1.10  1998/07/22 21:37:03  michael
