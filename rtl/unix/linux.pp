@@ -1985,15 +1985,55 @@ function TTYName(Handle:Longint):string;
   Return the name of the current tty described by handle f.
   returns empty string in case of an error.
 }
-Const
-  dev='/dev';
 var
-  name      : string;
-  st        : stat;
   mydev,
   myino     : longint;
-  dirstream : pdir;
-  d         : pdirent;
+  st        : stat;
+
+  function mysearch(n:string): boolean;
+  {searches recursively for the device in the directory given by n,
+    returns true if found and sets the name of the device in ttyname}
+  var dirstream : pdir;
+      d         : pdirent;
+      name      : string;
+      st        : stat;
+  begin
+    dirstream:=opendir(n);
+    if (linuxerror<>0) then
+     exit;
+    d:=Readdir(dirstream);
+    while (d<>nil) do
+     begin
+       name:=n+'/'+strpas(@(d^.name));
+       fstat(name,st);
+       if linuxerror=0 then
+        begin
+          if ((st.mode and $E000)=$4000) and  { if it is a directory }
+             (strpas(@(d^.name))<>'.') and    { but not ., .. and fd subdirs }
+             (strpas(@(d^.name))<>'..') and
+             (strpas(@(d^.name))<>'fd') then
+           begin                      {we found a directory, search inside it}
+             if mysearch(name) then
+              begin                 {the device is here}
+                closedir(dirstream);  {then don't continue searching}
+                mysearch:=true;
+                exit;
+              end;
+           end
+          else if (d^.ino=myino) and (st.dev=mydev) then
+           begin
+             closedir(dirstream);
+             ttyname:=name;
+             mysearch:=true;
+             exit;
+           end;
+        end;
+       d:=Readdir(dirstream);
+     end;
+    closedir(dirstream);
+    mysearch:=false;
+  end;
+
 begin
   TTYName:='';
   fstat(handle,st);
@@ -2001,26 +2041,7 @@ begin
    exit;
   mydev:=st.dev;
   myino:=st.ino;
-  dirstream:=opendir(dev);
-  if (linuxerror<>0) then
-   exit;
-  d:=Readdir(dirstream);
-  while (d<>nil) do
-   begin
-     if (d^.ino=myino) then
-      begin
-        name:=dev+'/'+strpas(@(d^.name));
-        fstat(name,st);
-        if (linuxerror=0) and (st.dev=mydev) then
-         begin
-           closedir(dirstream);
-           ttyname:=name;
-           exit;
-         end;
-      end;
-     d:=Readdir(dirstream);
-   end;
-  closedir(dirstream);
+  mysearch('/dev');
 end;
 
 
@@ -2608,7 +2629,10 @@ End.
 
 {
   $Log$
-  Revision 1.5  2000-10-26 22:51:12  peter
+  Revision 1.6  2000-12-28 20:42:12  peter
+    * ttyname fix from the mailinglist (merged)
+
+  Revision 1.5  2000/10/26 22:51:12  peter
     * nano sleep (merged)
 
   Revision 1.4  2000/10/11 13:59:16  marco
