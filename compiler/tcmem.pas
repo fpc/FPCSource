@@ -302,14 +302,14 @@ implementation
                      if not(cs_typed_addresses in aktlocalswitches) then
                        p^.resulttype:=voidfarpointerdef
                      else
-                       p^.resulttype:=new(ppointerdef,initfardef(p^.left^.resulttype));
+                       p^.resulttype:=new(ppointerdef,initfardef(hp^.resulttype));
                    end
                   else
                    begin
                      if not(cs_typed_addresses in aktlocalswitches) then
                        p^.resulttype:=voidpointerdef
                      else
-                       p^.resulttype:=new(ppointerdef,initdef(p^.left^.resulttype));
+                       p^.resulttype:=new(ppointerdef,initdef(hp^.resulttype));
                    end;
                 end;
            end;
@@ -646,7 +646,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.42  2000-02-17 14:53:43  florian
+  Revision 1.43  2000-03-22 15:41:10  jonas
+    * fixed webbug 882
+
+  Revision 1.42  2000/02/17 14:53:43  florian
     * some updates for the newcg
 
   Revision 1.41  2000/02/09 13:23:08  peter
