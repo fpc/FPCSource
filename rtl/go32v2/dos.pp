@@ -873,7 +873,11 @@ begin
     end
   else
     if pa[1]='\' then
-      pa:=s[1]+':'+pa
+      begin
+        { Do not touch Network drive names if LFNSupport is true }
+        if not ((Length(pa)>1) and (pa[2]='\') and LFNSupport) then
+          pa:=s[1]+':'+pa;
+      end
     else if s[0]=#3 then
       pa:=s+pa
     else
@@ -1169,7 +1173,10 @@ End;
 end.
 {
   $Log$
-  Revision 1.22  2000-02-09 16:59:28  peter
+  Revision 1.23  2000-03-22 08:00:42  pierre
+   + allow double backslash for network drives
+
+  Revision 1.22  2000/02/09 16:59:28  peter
     * truncated log
 
   Revision 1.21  2000/02/09 13:00:32  peter
@@ -1214,5 +1221,4 @@ end.
       if it was found
 
 }
-
 
