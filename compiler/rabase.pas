@@ -96,8 +96,6 @@ unit rabase;
 var
   asmmode : tasmmode;
 
-initialization
-  fillchar(asmmode,sizeof(asminfos),0);
 finalization
   for asmmode:=low(tasmmode) to high(tasmmode) do
    if assigned(asmmodeinfos[asmmode]) then
@@ -108,7 +106,10 @@ finalization
 end.
 {
   $Log$
-  Revision 1.1  2003-11-12 16:05:39  florian
+  Revision 1.2  2003-11-12 16:58:42  peter
+    * fixed wrong initialization
+
+  Revision 1.1  2003/11/12 16:05:39  florian
     * assembler readers OOPed
     + typed currency constants
     + typed 128 bit float constants if the CPU supports it
