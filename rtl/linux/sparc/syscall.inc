@@ -28,28 +28,28 @@ function FpSysCall(sysnr:TSysParam):TSysResult; assembler;[public,alias:'FPC_SYS
   copies back the registers as they are after the SysCall.
 }
 asm
-        or      %i0,%g0,%g1
+        mov     %i0,%g1
         ta      0x10
-        bcc     .LSyscOK0
+        bcc     .LSyscOK
         nop
-        sethi   %hi(fpc_threadvar_relocate_proc),%o0
-        or      %o0,%lo(fpc_threadvar_relocate_proc),%o0
-        ld      [%o0],%o7
-        subcc   %o7,%g0,%g0
-        bne     .LThread0
+        sethi   %hi(fpc_threadvar_relocate_proc),%o2
+        or      %o2,%lo(fpc_threadvar_relocate_proc),%o2
+        ld      [%o2],%o3
+        subcc   %o3,%g0,%g0
+        bne     .LThread
         nop
-        sethi   %hi(Errno+4),%o0
-        ba      .LNoThread0
-        or      %o0,%lo(Errno+4),%o0
-.LThread0:
+        sethi   %hi(Errno+4),%o2
+        ba      .LNoThread
+        or      %o2,%lo(Errno+4),%o2
+.LThread:
         sethi   %hi(Errno),%o0
-        ld      [%o7],%o1
+        ld      [%o3],%o1
         or      %o0,%lo(Errno),%o0
         call    %o1
-.LNoThread0:
-        st      %i0,[%o0]
+.LNoThread:
+        st      %o0,[%o2]
         mov     -1,%o0
-.LSyscOK0:
+.LSyscOK:
         mov     %o0,%i0
 end;
 
@@ -60,29 +60,29 @@ function FpSysCall(sysnr,param1:TSysParam):TSysResult; assembler;[public,alias:'
   copies back the registers as they are after the SysCall.
 }
 asm
-        or      %i0,%g0,%g1
-        or      %i1,%g0,%o0
+        mov     %i0,%g1
+        mov     %i1,%o0
         ta      0x10
-        bcc     .LSyscOK1
+        bcc     .LSyscOK
         nop
-        sethi   %hi(fpc_threadvar_relocate_proc),%o0
-        or      %o0,%lo(fpc_threadvar_relocate_proc),%o0
-        ld      [%o0],%o7
-        subcc   %o7,%g0,%g0
-        bne     .LThread1
+        sethi   %hi(fpc_threadvar_relocate_proc),%o2
+        or      %o2,%lo(fpc_threadvar_relocate_proc),%o2
+        ld      [%o2],%o3
+        subcc   %o3,%g0,%g0
+        bne     .LThread
         nop
-        sethi   %hi(Errno+4),%o0
-        ba      .LNoThread1
-        or      %o0,%lo(Errno+4),%o0
-.LThread1:
+        sethi   %hi(Errno+4),%o2
+        ba      .LNoThread
+        or      %o2,%lo(Errno+4),%o2
+.LThread:
         sethi   %hi(Errno),%o0
-        ld      [%o7],%o1
+        ld      [%o3],%o1
         or      %o0,%lo(Errno),%o0
         call    %o1
-.LNoThread1:
-        st      %i0,[%o0]
+.LNoThread:
+        st      %o0,[%o2]
         mov     -1,%o0
-.LSyscOK1:
+.LSyscOK:
         mov     %o0,%i0
 end;
 
@@ -93,30 +93,30 @@ function FpSysCall(sysnr,param1,param2:TSysParam):TSysResult; assembler;[public,
   copies back the registers as they are after the SysCall.
 }
 asm
-        or      %i0,%g0,%g1
-        or      %i1,%g0,%o0
-        or      %i2,%g0,%o1
+        mov     %i0,%g1
+        mov     %i1,%o0
+        mov     %i2,%o1
         ta      0x10
-        bcc     .LSyscOK2
+        bcc     .LSyscOK
         nop
-        sethi   %hi(fpc_threadvar_relocate_proc),%o0
-        or      %o0,%lo(fpc_threadvar_relocate_proc),%o0
-        ld      [%o0],%o7
-        subcc   %o7,%g0,%g0
-        bne     .LThread2
+        sethi   %hi(fpc_threadvar_relocate_proc),%o2
+        or      %o2,%lo(fpc_threadvar_relocate_proc),%o2
+        ld      [%o2],%o3
+        subcc   %o3,%g0,%g0
+        bne     .LThread
         nop
-        sethi   %hi(Errno+4),%o0
-        ba      .LNoThread2
-        or      %o0,%lo(Errno+4),%o0
-.LThread2:
+        sethi   %hi(Errno+4),%o2
+        ba      .LNoThread
+        or      %o2,%lo(Errno+4),%o2
+.LThread:
         sethi   %hi(Errno),%o0
-        ld      [%o7],%o1
+        ld      [%o3],%o1
         or      %o0,%lo(Errno),%o0
         call    %o1
-.LNoThread2:
-        st      %i0,[%o0]
+.LNoThread:
+        st      %o0,[%o2]
         mov     -1,%o0
-.LSyscOK2:
+.LSyscOK:
         mov     %o0,%i0
 end;
 
@@ -127,31 +127,31 @@ function FpSysCall(sysnr,param1,param2,param3:TSysParam):TSysResult; assembler;[
   copies back the registers as they are after the SysCall.
 }
 asm
-        or      %i0,%g0,%g1
-        or      %i1,%g0,%o0
-        or      %i2,%g0,%o1
-        or      %i3,%g0,%o2
+        mov     %i0,%g1
+        mov     %i1,%o0
+        mov     %i2,%o1
+        mov     %i3,%o2
         ta      0x10
-        bcc     .LSyscOK3
+        bcc     .LSyscOK
         nop
         sethi   %hi(fpc_threadvar_relocate_proc),%o2
         or      %o2,%lo(fpc_threadvar_relocate_proc),%o2
         ld      [%o2],%o3
-        subcc   %o7,%g0,%g0
-        bne     .LThread3
+        subcc   %o3,%g0,%g0
+        bne     .LThread
         nop
         sethi   %hi(Errno+4),%o2
-        ba      .LNoThread3
+        ba      .LNoThread
         or      %o2,%lo(Errno+4),%o2
-.LThread3:
-        sethi   %hi(Errno),%o2
+.LThread:
+        sethi   %hi(Errno),%o0
         ld      [%o3],%o1
-        or      %o2,%lo(Errno),%o2
+        or      %o0,%lo(Errno),%o0
         call    %o1
-.LNoThread3:
+.LNoThread:
         st      %o0,[%o2]
         mov     -1,%o0
-.LSyscOK3:
+.LSyscOK:
         mov     %o0,%i0
 end;
 
@@ -162,32 +162,32 @@ function FpSysCall(sysnr,param1,param2,param3,param4:TSysParam):TSysResult; asse
   copies back the registers as they are after the SysCall.
 }
 asm
-        or      %i0,%g0,%g1
-        or      %i1,%g0,%o0
-        or      %i2,%g0,%o1
-        or      %i3,%g0,%o2
-        or      %i4,%g0,%o3
+        mov     %i0,%g1
+        mov     %i1,%o0
+        mov     %i2,%o1
+        mov     %i3,%o2
+        mov     %i4,%o3
         ta      0x10
-        bcc     .LSyscOK4
+        bcc     .LSyscOK
         nop
-        sethi   %hi(fpc_threadvar_relocate_proc),%o0
-        or      %o0,%lo(fpc_threadvar_relocate_proc),%o0
-        ld      [%o0],%o7
-        subcc   %o7,%g0,%g0
-        bne     .LThread4
+        sethi   %hi(fpc_threadvar_relocate_proc),%o2
+        or      %o2,%lo(fpc_threadvar_relocate_proc),%o2
+        ld      [%o2],%o3
+        subcc   %o3,%g0,%g0
+        bne     .LThread
         nop
-        sethi   %hi(Errno+4),%o0
-        ba      .LNoThread4
-        or      %o0,%lo(Errno+4),%o0
-.LThread4:
+        sethi   %hi(Errno+4),%o2
+        ba      .LNoThread
+        or      %o2,%lo(Errno+4),%o2
+.LThread:
         sethi   %hi(Errno),%o0
-        ld      [%o7],%o1
+        ld      [%o3],%o1
         or      %o0,%lo(Errno),%o0
         call    %o1
-.LNoThread4:
-        st      %i0,[%o0]
+.LNoThread:
+        st      %o0,[%o2]
         mov     -1,%o0
-.LSyscOK4:
+.LSyscOK:
         mov     %o0,%i0
 end;
 
@@ -198,33 +198,33 @@ function FpSysCall(sysnr,param1,param2,param3,param4,param5:TSysParam):TSysResul
   copies back the registers as they are after the SysCall.
 }
 asm
-        or      %i0,%g0,%g1
-        or      %i1,%g0,%o0
-        or      %i2,%g0,%o1
-        or      %i3,%g0,%o2
-        or      %i4,%g0,%o3
-        or      %i5,%g0,%o4
+        mov     %i0,%g1
+        mov     %i1,%o0
+        mov     %i2,%o1
+        mov     %i3,%o2
+        mov     %i4,%o3
+        mov     %i5,%o4
         ta      0x10
-        bcc     .LSyscOK5
+        bcc     .LSyscOK
         nop
-        sethi   %hi(fpc_threadvar_relocate_proc),%o0
-        or      %o0,%lo(fpc_threadvar_relocate_proc),%o0
-        ld      [%o0],%o7
-        subcc   %o7,%g0,%g0
-        bne     .LThread5
+        sethi   %hi(fpc_threadvar_relocate_proc),%o2
+        or      %o2,%lo(fpc_threadvar_relocate_proc),%o2
+        ld      [%o2],%o3
+        subcc   %o3,%g0,%g0
+        bne     .LThread
         nop
-        sethi   %hi(Errno+4),%o0
-        ba      .LNoThread5
-        or      %o0,%lo(Errno+4),%o0
-.LThread5:
+        sethi   %hi(Errno+4),%o2
+        ba      .LNoThread
+        or      %o2,%lo(Errno+4),%o2
+.LThread:
         sethi   %hi(Errno),%o0
-        ld      [%o7],%o1
+        ld      [%o3],%o1
         or      %o0,%lo(Errno),%o0
         call    %o1
-.LNoThread5:
-        st      %i0,[%o0]
+.LNoThread:
+        st      %o0,[%o2]
         mov     -1,%o0
-.LSyscOK5:
+.LSyscOK:
         mov     %o0,%i0
 end;
 
@@ -235,41 +235,44 @@ function FpSysCall(sysnr,param1,param2,param3,param4,param5,param6:TSysParam):TS
   copies back the registers as they are after the SysCall.
 }
 asm
-        or      %i0,%g0,%g1
-        or      %i1,%g0,%o0
-        or      %i2,%g0,%o1
-        or      %i3,%g0,%o2
-        or      %i4,%g0,%o3
+        mov     %i0,%g1
+        mov     %i1,%o0
+        mov     %i2,%o1
+        mov     %i3,%o2
+        mov     %i4,%o3
         ld      [%i6+92],%o5
-        or      %i5,%g0,%o4
+        mov     %i5,%o4
         ta      0x10
-        bcc     .LSyscOK6
+        bcc     .LSyscOK
         nop
-        sethi   %hi(fpc_threadvar_relocate_proc),%o0
-        or      %o0,%lo(fpc_threadvar_relocate_proc),%o0
-        ld      [%o0],%o7
-        subcc   %o7,%g0,%g0
-        bne     .LThread6
+        sethi   %hi(fpc_threadvar_relocate_proc),%o2
+        or      %o2,%lo(fpc_threadvar_relocate_proc),%o2
+        ld      [%o2],%o3
+        subcc   %o3,%g0,%g0
+        bne     .LThread
         nop
-        sethi   %hi(Errno+4),%o0
-        ba      .LNoThread6
-        or      %o0,%lo(Errno+4),%o0
-.LThread6:
+        sethi   %hi(Errno+4),%o2
+        ba      .LNoThread
+        or      %o2,%lo(Errno+4),%o2
+.LThread:
         sethi   %hi(Errno),%o0
-        ld      [%o7],%o1
+        ld      [%o3],%o1
         or      %o0,%lo(Errno),%o0
         call    %o1
-.LNoThread6:
-        st      %i0,[%o0]
+.LNoThread:
+        st      %o0,[%o2]
         mov     -1,%o0
-.LSyscOK6:
+.LSyscOK:
         mov     %o0,%i0
 end;
 
 
 {
   $Log$
-  Revision 1.12  2004-06-30 21:15:51  florian
+  Revision 1.13  2004-07-02 19:29:19  peter
+    * fixed errno setting
+
+  Revision 1.12  2004/06/30 21:15:51  florian
     * first syscall fix
 
   Revision 1.11  2004/02/06 23:06:16  florian
