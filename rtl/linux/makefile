@@ -324,7 +324,7 @@ sharedlibinstall: sharedlib
 libinstall: staticlibinstall sharedlibinstall
 
 libsclean : clean
-	-$(DEL) *$(SMARTLIBEXT) *$(SHAREDLIBEXT) *$(PPLEXT)
+	-$(DEL) *$(STATICLIBEXT) *$(SHAREDLIBEXT) *$(PPLEXT)
 
 #####################################################################
 # Default targets
@@ -334,7 +334,10 @@ include $(CFG)/makefile.def
 
 #
 # $Log$
-# Revision 1.22  1998-08-21 20:20:12  michael
+# Revision 1.23  1998-09-07 18:31:53  peter
+#   * fixed $smartlibext -> $staticlibext to fix a 'rm *' :(
+#
+# Revision 1.22  1998/08/21 20:20:12  michael
 # + Fixed spaces to tabs.
 #
 # Revision 1.21  1998/08/21 15:17:00  peter

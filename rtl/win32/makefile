@@ -238,7 +238,7 @@ sharedlibinstall: sharedlib
 libinstall: staticlibinstall
 
 libsclean : clean
-	-$(DEL) *$(SMARTLIBEXT) *$(SHAREDLIBEXT) *$(PPLEXT)
+	-$(DEL) *$(STATICLIBEXT) *$(SHAREDLIBEXT) *$(PPLEXT)
 
 # Getting DLL names
 # not present in headers !!
@@ -375,7 +375,10 @@ include $(CFG)/makefile.def
 
 #
 # $Log$
-# Revision 1.12  1998-09-04 17:17:36  pierre
+# Revision 1.13  1998-09-07 18:31:54  peter
+#   * fixed $smartlibext -> $staticlibext to fix a 'rm *' :(
+#
+# Revision 1.12  1998/09/04 17:17:36  pierre
 #   + all unknown function ifdef with
 #     conditionnal unknown_functions
 #     testwin works now, but windowcreate still fails !!
