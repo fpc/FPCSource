@@ -16,8 +16,19 @@
  *       Class implementations are in separate files.                 *
  **********************************************************************}
 
+{!!!TSE 21.08.1998 added german exception messages}
+{$i constsg.inc}
+
 { Utility routines }
 {$i util.inc}
+
+{!!!TSE 21.09.1998 reimplements exceptions classes}
+{$IFNDEF USE_EXCEPTIONS}
+constructor Exception.Create(Msg : String);
+begin
+  inherited Create;
+end;
+{$ENDIF}
 
 { TBits implementation }
 {$i bits.inc}
@@ -325,7 +336,10 @@ end;
 
 {
   $Log$
-  Revision 1.3  1998-06-03 15:10:20  michael
+  Revision 1.4  1998-09-23 07:47:40  michael
+  + Some changes by TSE
+
+  Revision 1.3  1998/06/03 15:10:20  michael
   + added include of util.inc
 
   Revision 1.2  1998/05/04 14:30:11  michael
@@ -361,7 +375,10 @@ end;
 
 {
   $Log$
-  Revision 1.3  1998-06-03 15:10:20  michael
+  Revision 1.4  1998-09-23 07:47:40  michael
+  + Some changes by TSE
+
+  Revision 1.3  1998/06/03 15:10:20  michael
   + added include of util.inc
 
   Revision 1.2  1998/05/04 14:30:11  michael

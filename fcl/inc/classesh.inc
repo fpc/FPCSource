@@ -13,7 +13,14 @@
  **********************************************************************}
 type
    { extra types to compile with FPC }
-   Exception = class(TObject);
+{$IFNDEF USE_EXCEPTIONS}
+   {!!!TSE 21.09.1998 redefined, create constructor added}
+   Exception = class(TObject)
+   public
+     constructor Create(Msg : String);
+   end;
+{$ENDIF}
+
    EOutOfMemory = class(Exception);
    TRTLCriticalSection = class(TObject);
    HRSRC = longint;
@@ -713,7 +720,7 @@ type
     function GetPosition: Longint;
     procedure SetPosition(Value: Longint);
     procedure WriteBuffer;
-    procedure WriteData(Instance: TComponent); virtual; // linker optimization
+    procedure WriteData(Instance: TComponent); // linker optimization
     procedure WriteProperty(Instance: TPersistent; PropInfo: Pointer);
     procedure WriteProperties(Instance: TPersistent);
     procedure WritePropName(const PropName: string);
@@ -1048,7 +1055,10 @@ function LineStart(Buffer, BufPos: PChar): PChar;
 
 {
   $Log$
-  Revision 1.7  1998-08-22 10:41:00  michael
+  Revision 1.8  1998-09-23 07:47:41  michael
+  + Some changes by TSE
+
+  Revision 1.7  1998/08/22 10:41:00  michael
   + Some adaptations for changed comment and published handling
 
   Revision 1.6  1998/06/11 13:46:32  michael
