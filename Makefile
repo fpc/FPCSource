@@ -255,7 +255,15 @@ else
 ifeq ($(OS_TARGET),freebsd)
 ALLTARGET=smart
 else
+ifeq ($(OS_TARGET),netbsd)
+ALLTARGET=smart
+else
+ifeq ($(OS_TARGET),openbsd)
+ALLTARGET=smart
+else
 ALLTARGET=all
+endif
+endif
 endif
 endif
 endif
@@ -273,7 +281,15 @@ else
 ifeq ($(OS_TARGET),freebsd)
 PKGPRE=units
 else
+ifeq ($(OS_TARGET),netbsd)
+PKGPRE=units
+else
+ifeq ($(OS_TARGET),openbsd)
+PKGPRE=units
+else
 PKGPRE=u
+endif
+endif
 endif
 endif
 override RELEASE=1
@@ -294,6 +310,9 @@ ifeq ($(OS_TARGET),win32)
 IDE=1
 endif
 ifeq ($(OS_TARGET),linux)
+IDE=1
+endif
+ifeq ($(OS_TARGET),freebsd)
 IDE=1
 endif
 endif
@@ -1782,7 +1801,7 @@ sourcezip:
 	$(MAKE) utils_zipsourceinstall
 	$(MAKE) ide_zipsourceinstall
 	$(MAKE) installer_zipsourceinstall
-.PHONY: go32v2 win32 linux freebsd os2 go32v2zip win32zip linuxzip freebsdzip os2zip
+.PHONY: go32v2 win32 linux freebsd os2 netbsd openbsd go32v2zip win32zip linuxzip freebsdzip os2zip netbsdzip openbsdzip
 go32v2: checkfpcdir
 	$(MAKE) install OS_TARGET=go32v2
 win32: checkfpcdir
@@ -1791,6 +1810,10 @@ linux: checkfpcdir
 	$(MAKE) install OS_TARGET=linux
 freebsd: checkfpcdir
 	$(MAKE) install OS_TARGET=freebsd
+netbsd: checkfpcdir
+	$(MAKE) install OS_TARGET=netbsd
+openbsd: checkfpcdir
+	$(MAKE) install OS_TARGET=openbsd
 os2: checkfpcdir
 	$(MAKE) install OS_TARGET=os2
 sunos: checkfpcdir
@@ -1803,6 +1826,10 @@ linuxzip: checkfpcdir
 	$(MAKE) zipinstall OS_TARGET=linux
 freebsdzip : checkfpcdir
 	$(MAKE) zipinstall OS_TARGET=freebsd
+netbsdzip : checkfpcdir
+	$(MAKE) zipinstall OS_TARGET=netbsd
+openbsdzip : checkfpcdir
+	$(MAKE) zipinstall OS_TARGET=openbsd
 beoszip : checkfpcdir
 	$(MAKE) zipinstall OS_TARGET=beos USEZIP=1
 os2zip: checkfpcdir
