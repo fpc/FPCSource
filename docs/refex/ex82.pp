@@ -1,4 +1,4 @@
-Program example81;
+Program example82;
 
 { Program to demonstrate the BinStr function }
 

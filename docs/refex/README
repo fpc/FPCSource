@@ -98,3 +98,4 @@ ex92.pp contains an example of the GetResourceStringName function.
 ex93.pp contains an example of the Hash function.
 ex94.pp contains an example of the SetResourceStringValue function.
 ex95.pp contains an example of the SetResourceStrings function.
+ex96.pp contains an example of the Assigned function.

@@ -1,4 +1,4 @@
-Program Example54;
+Program Example70;
 
 { Program to demonstrate the Trunc function. }
 
