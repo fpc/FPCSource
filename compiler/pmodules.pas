@@ -408,6 +408,8 @@ implementation
             end;
            pu:=tused_unit(pu.next);
          end;
+        { deref }
+        punitsymtable(current_module.globalsymtable)^.deref;
         { load browser info if stored }
         if ((current_module.flags and uf_has_browser)<>0) and load_refs then
           punitsymtable(current_module.globalsymtable)^.load_symtable_refs;
@@ -1625,7 +1627,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.21  2001-01-14 22:13:52  peter
+  Revision 1.22  2001-02-21 19:37:19  peter
+    * moved deref to be done after loading of implementation units. prederef
+      is still done directly after loading of symbols and definitions.
+
+  Revision 1.21  2001/01/14 22:13:52  peter
     * fixed crash with program name as a important unit name
 
   Revision 1.20  2000/12/25 00:07:27  peter

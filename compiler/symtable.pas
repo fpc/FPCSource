@@ -52,6 +52,7 @@ interface
           procedure loadsyms;
           procedure writedefs;
           procedure writesyms;
+          procedure prederef;
           procedure deref;
           procedure insert(sym : psymentry);virtual;
           procedure insert_in(psymt : psymtable;offset : longint);
@@ -235,11 +236,6 @@ implementation
     procedure write_refs(sym : pnamedindexobject);
       begin
          pstoredsym(sym)^.write_references;
-      end;
-
-    procedure derefsym(p : pnamedindexobject);
-      begin
-         psym(p)^.deref;
       end;
 
     procedure check_forward(sym : pnamedindexobject);
@@ -736,7 +732,7 @@ implementation
       end;
 
 
-    procedure tstoredsymtable.deref;
+    procedure tstoredsymtable.prederef;
       var
         hp : pdef;
         hs : psym;
@@ -748,6 +744,14 @@ implementation
            hs^.prederef;
            hs:=psym(hs^.indexnext);
          end;
+      end;
+
+
+    procedure tstoredsymtable.deref;
+      var
+        hp : pdef;
+        hs : psym;
+      begin
         { deref the definitions }
         hp:=pdef(defindex^.first);
         while assigned(hp) do
@@ -763,6 +767,7 @@ implementation
            hs:=psym(hs^.indexnext);
          end;
       end;
+
 
     { this procedure is reserved for inserting case variant into
       a record symtable }
@@ -876,7 +881,7 @@ implementation
          if not (typ in [localsymtable,parasymtable,recordsymtable,objectsymtable]) then
           begin
             { now we can deref the syms and defs }
-            deref;
+            prederef;
             { restore symtablestack }
             symtablestack:=next;
           end;
@@ -2369,7 +2374,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.25  2001-02-20 21:41:16  peter
+  Revision 1.26  2001-02-21 19:37:19  peter
+    * moved deref to be done after loading of implementation units. prederef
+      is still done directly after loading of symbols and definitions.
+
+  Revision 1.25  2001/02/20 21:41:16  peter
     * new fixfilename, findfile for unix. Look first for lowercase, then
       NormalCase and last for UPPERCASE names.
 
