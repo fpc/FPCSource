@@ -171,7 +171,8 @@ begin
   if have_80387 then
    begin
      { mask all exceptions, except invalid operation }
-     _control87($033e, $ffff)
+     { change to same value as in v2prt0.as (PM)     }
+     _control87($0332, $ffff)
    end
   else
     begin
@@ -216,7 +217,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.3  1999-04-08 12:22:59  peter
+  Revision 1.4  1999-04-28 00:27:43  pierre
+   * bug0230 fixed OVERFLOW and DIVZ cause FPU exception
+
+  Revision 1.3  1999/04/08 12:22:59  peter
     * removed os.inc
 
   Revision 1.2  1999/03/01 15:40:50  peter
