@@ -817,13 +817,13 @@ implementation
            AddTargetVariable('compiler_librarydir');
            AddTargetVariable('compiler_targetdir');
            AddTargetVariable('compiler_unittargetdir');
-           { Add default tools }
-           AddDefaultTools;
-           { default dirs/tools/extensions }
-           AddIniSection('extensions');
+           { default Dirs and extensions }
            AddIniSection('defaultdirs');
            if FInput.CheckLibcRequire then
             AddIniSection('dirlibc');
+           AddIniSection('extensions');
+           { Add default tools }
+           AddDefaultTools;
            { Required packages }
            AddRequiredPackages;
            { commandline }
@@ -879,7 +879,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.17  2001-09-11 11:04:51  pierre
+  Revision 1.18  2001-10-14 21:38:33  peter
+    * cross compiling support
+
+  Revision 1.17  2001/09/11 11:04:51  pierre
    * handle default cpu and target without override, use require section for override
 
   Revision 1.16  2001/08/22 20:45:19  peter

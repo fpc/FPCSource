@@ -524,6 +524,7 @@ implementation
         CurrSec : TFPCMakeSection;
       begin
         try
+          CurrSec:=nil;
           SLInput:=TStringList.Create;
           if assigned(FStream) then
            SLInput.LoadFromStream(FStream)
@@ -543,7 +544,7 @@ implementation
                  begin
                    j:=pos(']',s);
                    if j=0 then
-                    raise Exception.Create(Format(s_err_section_start,[FFileName,i]));
+                    raise Exception.Create(Format(s_err_section_start,[FFileName,i+1]));
                    SecName:=Copy(s,2,j-2);
                    CurrSec:=TFPCMakeSection(FSections[SecName]);
                    if CurrSec=nil then
@@ -552,7 +553,7 @@ implementation
                 else
                  begin
                    if CurrSec=nil then
-                    raise Exception.Create(Format(s_err_no_section,[FFileName,i]));
+                    raise Exception.Create(Format(s_err_no_section,[FFileName,i+1]));
                    { Insert string without spaces stripped }
                    CurrSec.AddLine(SLInput[i]);
                  end;
@@ -1330,7 +1331,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.14  2001-09-29 19:47:50  carl
+  Revision 1.15  2001-10-14 21:38:32  peter
+    * cross compiling support
+
+  Revision 1.14  2001/09/29 19:47:50  carl
   * make it work for BeOS
 
   Revision 1.13  2001/08/22 20:45:19  peter
