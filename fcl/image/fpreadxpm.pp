@@ -70,6 +70,7 @@ begin
   result.red   := (Convert(copy(s,1,l)));
   result.green := (Convert(copy(s,l+1,l)));
   result.blue  :=  Convert(copy(s,l+l+1,l));
+  result.alpha := AlphaOpaque;
 end;
 
 function TFPReaderXPM.NameToColor(s : string) : TFPColor;
