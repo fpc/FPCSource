@@ -29,10 +29,10 @@ Type
 {$ifdef Win32}
     FindData : TWin32FindData;
 {$endif}
-{$ifdef netware}
+{$ifdef netware_clib}
     FindData : TNetwareFindData;
 {$endif}
-{$ifdef netwlibc}
+{$ifdef netware_libc}
     FindData : TNetwareLibcFindData;
 {$endif}
   end;
@@ -92,7 +92,10 @@ Function GetFileHandle(var f : Text):Longint;
 
 {
   $Log$
-  Revision 1.6  2004-09-05 00:02:40  armin
+  Revision 1.7  2004-10-03 20:27:00  armin
+  * changed defines for netware
+
+  Revision 1.6  2004/09/05 00:02:40  armin
   * added target netwlibc
 
   Revision 1.5  2004/05/01 11:56:25  marco
