@@ -113,7 +113,9 @@ const
       ('~N~ormal','~D~ebug','~R~elease');
     SwitchesModeStr : array[TSwitchMode] of string[8]=
       ('NORMAL','DEBUG','RELEASE');
-
+    CustomArg : array[TSwitchMode] of string=
+      ('','','');
+      
 var
     LibLinkerSwitches,
     DebugInfoSwitches,
@@ -480,6 +482,24 @@ begin
     Items^.ForEach(@writeitem);
 end;
 
+procedure WriteCustom;
+var
+  s : string;
+  i : longint;
+begin
+  s:=CustomArg[SwitchesMode];
+  While s<>'' do
+    begin
+       i:=pos(' ',s);
+       if i=0 then i:=256;
+       writeln(CfgFile,' '+Copy(s,1,i-1));
+       if i=256 then
+         s:=''
+       else
+         s:=copy(s,i+1,255);
+    end;
+end;
+
 
 function TSwitches.ReadItemsCfg(const s:string):boolean;
 
@@ -551,6 +571,7 @@ begin
      DebugInfoSwitches^.WriteItemsCfg;
      ProfileInfoSwitches^.WriteItemsCfg;
      MemorySizeSwitches^.WriteItemsCfg;
+     WriteCustom;
      Writeln(CfgFile,'#ENDIF');
      Writeln(CfgFile,'');
    end;
@@ -563,6 +584,7 @@ procedure ReadSwitches(const fn:string);
 var
   c : char;
   s : string;
+  res : boolean;
   OldSwitchesMode,i : TSwitchMode;
 begin
   assign(CfgFile,fn);
@@ -580,39 +602,46 @@ begin
      if (length(s)>=2) and (s[1]='-') then
       begin
       c:=s[2];
+      res:=false;
       Delete(s,1,2);
       case c of
-       'd' : ConditionalSwitches^.ReadItemsCfg(s);
-       'X' : LibLinkerSwitches^.ReadItemsCfg(s);
-       'g' : DebugInfoSwitches^.ReadItemsCfg(s);
-       'p' : ProfileInfoSwitches^.ReadItemsCfg(s);
-       'S' : SyntaxSwitches^.ReadItemsCfg(s);
-       'F' : DirectorySwitches^.ReadItemsCfg(s);
-       'T' : TargetSwitches^.ReadItemsCfg(s);
-       'R' : AsmReaderSwitches^.ReadItemsCfg(s);
+       'd' : res:=ConditionalSwitches^.ReadItemsCfg(s);
+       'X' : res:=LibLinkerSwitches^.ReadItemsCfg(s);
+       'g' : res:=DebugInfoSwitches^.ReadItemsCfg(s);
+       'p' : res:=ProfileInfoSwitches^.ReadItemsCfg(s);
+       'S' : res:=SyntaxSwitches^.ReadItemsCfg(s);
+       'F' : res:=DirectorySwitches^.ReadItemsCfg(s);
+       'T' : res:=TargetSwitches^.ReadItemsCfg(s);
+       'R' : res:=AsmReaderSwitches^.ReadItemsCfg(s);
        'C' : begin
-               CodegenSwitches^.ReadItemsCfg(s);
-               MemorySizeSwitches^.ReadItemsCfg(s);
+               res:=CodegenSwitches^.ReadItemsCfg(s);
+               if not res then
+                 res:=MemorySizeSwitches^.ReadItemsCfg(s);
              end;
-       'v' : VerboseSwitches^.ReadItemsCfg(s);
+       'v' : res:=VerboseSwitches^.ReadItemsCfg(s);
        'O' : begin
+               res:=true;
                if not OptimizationSwitches^.ReadItemsCfg(s) then
                  if not ProcessorSwitches^.ReadItemsCfg(s) then
-                   OptimizingGoalSwitches^.ReadItemsCfg(s)
+                   res:=OptimizingGoalSwitches^.ReadItemsCfg(s)
              end;
-      end;
+       end;
+      { keep all others as a string }
+      if not res then
+       CustomArg[SwitchesMode]:=CustomArg[SwitchesMode]+' -'+c+s;
       end
      else
       if (Copy(s,1,7)='#IFDEF ') then
        begin
-    Delete(s,1,7);
-    for i:=low(TSwitchMode) to high(TSwitchMode) do
-     if s=SwitchesModeStr[i] then
-      begin
-        SwitchesMode:=i;
-        break;
-      end;
-       end;
+         Delete(s,1,7);
+         for i:=low(TSwitchMode) to high(TSwitchMode) do
+         if s=SwitchesModeStr[i] then
+           begin
+             SwitchesMode:=i;
+             break;
+           end;
+       end
+      else;
    end;
   close(CfgFile);
   SwitchesMode:=OldSwitchesMode;
@@ -793,7 +822,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.7  1999-02-06 00:07:48  florian
+  Revision 1.8  1999-02-08 17:38:52  pierre
+   + added CustomArg
+
+  Revision 1.7  1999/02/06 00:07:48  florian
     * speed/size optimization is now a radio button
 
   Revision 1.6  1999/02/05 13:51:44  peter
