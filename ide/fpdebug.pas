@@ -377,7 +377,10 @@ procedure UpdateDebugViews;
 implementation
 
 uses
-  Dos,Video,
+  Dos,
+{$ifdef fpc}
+  Video,
+{$endif fpc}
   App,Strings,
 {$ifdef FVISION}
   FVConsts,
@@ -4167,7 +4170,10 @@ end.
 
 {
   $Log$
-  Revision 1.28  2002-09-13 08:13:07  pierre
+  Revision 1.29  2002-09-13 22:30:50  pierre
+   * only fpc uses video unit
+
+  Revision 1.28  2002/09/13 08:13:07  pierre
    * avoid RTE 201 in hexstr calls
 
   Revision 1.27  2002/09/07 21:04:41  carl

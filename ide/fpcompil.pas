@@ -148,7 +148,10 @@ uses
 {$ifdef HasSignal}
   fpcatch,
 {$endif HasSignal}
-  Dos,Video,
+  Dos,
+{$ifdef fpc}
+  Video,
+{$endif fpc}
   StdDlg,App,tokens,
 {$ifdef FVISION}
   FVConsts,
@@ -1290,7 +1293,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.13  2002-09-09 06:53:54  pierre
+  Revision 1.14  2002-09-13 22:30:50  pierre
+   * only fpc uses video unit
+
+  Revision 1.13  2002/09/09 06:53:54  pierre
    * avoid to save file used by codecomplete
 
   Revision 1.12  2002/09/07 15:40:42  peter
