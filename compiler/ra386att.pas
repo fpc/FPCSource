@@ -3349,11 +3349,9 @@ Begin
                    end;
                   if actasmtoken=AS_LPAREN then
                     BuildReference(instr);
-                  { allow leal l+2,%eax }
 
-                  if is_var and (actasmtoken in [AS_PLUS,AS_MINUS]) and
-                     (instr.operands[operandnum].ref.base=R_NO) and
-                     (instr.operands[operandnum].ref.index=R_NO) then
+                  { allow leal l+2,%eax }
+                  if is_var and (actasmtoken in [AS_PLUS,AS_MINUS]) then
                     Begin
                       Instr.Operands[OperandNum].Ref.Offset :=
                         Instr.Operands[OperandNum].Ref.Offset
@@ -3960,7 +3958,10 @@ end.
 
 {
   $Log$
-  Revision 1.39  1999-04-26 23:26:12  peter
+  Revision 1.40  1999-04-29 09:37:44  peter
+    * fixed var+const support
+
+  Revision 1.39  1999/04/26 23:26:12  peter
     * redesigned record offset parsing to support nested records
     * normal compiler uses the redesigned createvarinstr()
 
