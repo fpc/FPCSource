@@ -638,10 +638,15 @@ unit pmodules;
         make_ref:=false;
         readconstdefs;
         { if POWER is defined in the RTL then use it for starstar overloading }
+{$ifdef DONOTCHAINOPERATORS}
         getsym('POWER',false);
+{$endif DONOTCHAINOPERATORS}
         make_ref:=true;
+{$ifdef DONOTCHAINOPERATORS}
+        { Code now in chainoperators PM }
         if assigned(srsym) and (srsym^.typ=procsym) and (overloaded_operators[_STARSTAR]=nil) then
           overloaded_operators[_STARSTAR]:=pprocsym(srsym);
+{$endif DONOTCHAINOPERATORS}
       { Objpas unit? }
         if m_objpas in aktmodeswitches then
          begin
@@ -1673,7 +1678,10 @@ unit pmodules;
 end.
 {
   $Log$
-  Revision 1.190  2000-04-26 08:54:18  pierre
+  Revision 1.191  2000-04-27 11:35:03  pierre
+   * power to ** operator fixed
+
+  Revision 1.190  2000/04/26 08:54:18  pierre
     * More changes for operator bug
       Order_overloaded method removed because it conflicted with
       new implementation where the defs are ordered

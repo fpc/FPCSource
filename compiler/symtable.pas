@@ -1258,6 +1258,7 @@ implementation
       begin
          storesymtablestack:=symtablestack;
          symtablestack:=@self;
+         make_ref:=false;
          for t:=first_overloaded to last_overloaded do
            begin
               p:=nil;
@@ -1266,12 +1267,15 @@ implementation
               { each operator has a unique lowercased internal name PM }
               while assigned(symtablestack) do
                 begin
-                  { search for same procsym in other units }
                   getsym(overloaded_names[t],false);
+                  if (t=_STARSTAR) and (srsym=nil) then
+                    begin
+                      symtablestack:=systemunit;
+                      getsym('POWER',false);
+                    end;
                   if assigned(srsym) then
                     begin
-                       if (srsym^.typ<>procsym) or
-                          (pprocsym(srsym)^.definition^.proctypeoption<> potype_operator) then
+                       if (srsym^.typ<>procsym) then
                          internalerror(12344321);
                        if assigned(p) then
                          begin
@@ -1298,9 +1302,11 @@ implementation
                         p^.nextprocsym:=nil;
 {$endif CHAINPROCSYMS}
                     end;
+                  { search for same procsym in other units }
                 end;
               symtablestack:=@self;
            end;
+         make_ref:=true;
          symtablestack:=storesymtablestack;
       end;
 {$endif DONOTCHAINOPERATORS}
@@ -2879,7 +2885,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.87  2000-04-27 10:06:04  pierre
+  Revision 1.88  2000-04-27 11:35:04  pierre
+   * power to ** operator fixed
+
+  Revision 1.87  2000/04/27 10:06:04  pierre
     * fix for snapshot failue
     * order_overloaded reintrocduced and adapted to operators
 
