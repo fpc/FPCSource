@@ -187,6 +187,7 @@ type
       procedure   Close; virtual;
       procedure   SelectTab(BrowserTab: Sw_integer); virtual;
       function    GetPalette: PPalette; virtual;
+      function    Disassemble : boolean;
       destructor  Done;virtual;
     private
       PageTab       : PBrowserTab;
@@ -1650,12 +1651,41 @@ begin
         case Event.KeyCode of
           kbEsc :
             Close;
+          kbAltI :
+            If not Disassemble then
+              DontClear:=true;
         else DontClear:=true;
         end;
         if DontClear=false then ClearEvent(Event);
       end;
   end;
   inherited HandleEvent(Event);
+end;
+
+function TBrowserWindow.Disassemble : boolean;
+begin
+  Disassemble:=false;
+  if not assigned(sym) or (sym^.typ<>procsym) then
+    exit;
+  { We need to load exefile }
+{$ifndef NODEBUG}
+  InitGDBWindow;
+  if not assigned(Debugger) then
+    begin
+      new(Debugger,Init);
+      if assigned(Debugger) then
+        Debugger^.SetExe(ExeFile);
+    end;
+  if not assigned(Debugger) or not Debugger^.HasExe then
+    exit;
+  { goto source/assembly mixture }
+  InitDisassemblyWindow;
+  DisassemblyWindow^.LoadFunction(Sym^.GetName);
+  DisassemblyWindow^.SelectInDebugSession;
+  Disassemble:=true;
+{$else NODEBUG}
+  NoDebugger;
+{$endif NODEBUG}
 end;
 
 procedure TBrowserWindow.SetState(AState: Word; Enable: Boolean);
@@ -1819,7 +1849,10 @@ end;
 END.
 {
   $Log$
-  Revision 1.5  2002-09-07 15:40:45  peter
+  Revision 1.6  2002-12-02 01:00:12  pierre
+   + Alt+I to disassemble a function from browser window
+
+  Revision 1.5  2002/09/07 15:40:45  peter
     * old logs removed and tabs fixed
 
 }
