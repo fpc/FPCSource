@@ -226,7 +226,7 @@ type
     procedure FreeBuffers; virtual;
     function GetAsBoolean: Boolean; virtual;
     function GetAsDateTime: TDateTime; virtual;
-    function GetAsFloat: Extended; virtual;
+    function GetAsFloat: Double; virtual;
     function GetAsLongint: Longint; virtual;
     function GetAsInteger: Longint; virtual;
     function GetAsString: string; virtual;
@@ -243,7 +243,7 @@ type
     procedure ReadState(Reader: TReader); override;
     procedure SetAsBoolean(AValue: Boolean); virtual;
     procedure SetAsDateTime(AValue: TDateTime); virtual;
-    procedure SetAsFloat(AValue: Extended); virtual;
+    procedure SetAsFloat(AValue: Double); virtual;
     procedure SetAsLongint(AValue: Longint); virtual;
     procedure SetAsInteger(AValue: Longint); virtual;
     procedure SetAsString(const AValue: string); virtual;
@@ -265,7 +265,7 @@ type
     procedure Validate(Buffer: Pointer);
     property AsBoolean: Boolean read GetAsBoolean write SetAsBoolean;
     property AsDateTime: TDateTime read GetAsDateTime write SetAsDateTime;
-    property AsFloat: Extended read GetAsFloat write SetAsFloat;
+    property AsFloat: Double read GetAsFloat write SetAsFloat;
     property AsLongint: Longint read GetAsLongint write SetAsLongint;
     property AsInteger: Integer read GetAsInteger write SetAsInteger;
     property AsString: string read GetAsString write SetAsString;
@@ -318,7 +318,7 @@ type
     class procedure CheckTypeSize(AValue: Longint); override;
     function GetAsBoolean: Boolean; override;
     function GetAsDateTime: TDateTime; override;
-    function GetAsFloat: Extended; override;
+    function GetAsFloat: Double; override;
     function GetAsLongint: Longint; override;
     function GetAsString: string; override;
     function GetDataSize: Word; override;
@@ -327,7 +327,7 @@ type
     function GetValue(var AValue: string): Boolean;
     procedure SetAsBoolean(AValue: Boolean); override;
     procedure SetAsDateTime(AValue: TDateTime); override;
-    procedure SetAsFloat(AValue: Extended); override;
+    procedure SetAsFloat(AValue: Double); override;
     procedure SetAsLongint(AValue: Longint); override;
     procedure SetAsString(const AValue: string); override;
   public
@@ -343,7 +343,7 @@ type
     FDisplayFormat : String;
     FEditFormat : String;
   protected
-    procedure RangeError(AValue, Min, Max: Extended);
+    procedure RangeError(AValue, Min, Max: Double);
     procedure SetDisplayFormat(const AValue: string);
     procedure SetEditFormat(const AValue: string);
   public
@@ -364,13 +364,13 @@ type
     Procedure SetMinValue (AValue : longint);
     Procedure SetMaxValue (AValue : longint);
   protected
-    function GetAsFloat: Extended; override;
+    function GetAsFloat: Double; override;
     function GetAsLongint: Longint; override;
     function GetAsString: string; override;
     function GetDataSize: Word; override;
     procedure GetText(var AText: string; ADisplayText: Boolean); override;
     function GetValue(var AValue: Longint): Boolean;
-    procedure SetAsFloat(AValue: Extended); override;
+    procedure SetAsFloat(AValue: Double); override;
     procedure SetAsLongint(AValue: Longint); override;
     procedure SetAsString(const AValue: string); override;
   public
@@ -414,26 +414,26 @@ type
 
   TFloatField = class(TNumericField)
   private
-    FMaxValue : Extended;
-    FMinValue : Extended;
+    FMaxValue : Double;
+    FMinValue : Double;
     FPrecision : Longint;
   protected
-    function GetAsFloat: Extended; override;
+    function GetAsFloat: Double; override;
     function GetAsLongint: Longint; override;
     function GetAsString: string; override;
     function GetDataSize: Word; override;
     procedure GetText(var theText: string; ADisplayText: Boolean); override;
-    procedure SetAsFloat(AValue: Extended); override;
+    procedure SetAsFloat(AValue: Double); override;
     procedure SetAsLongint(AValue: Longint); override;
     procedure SetAsString(const AValue: string); override;
   public
     constructor Create(AOwner: TComponent); override;
-    Function CheckRange(AValue : Extended) : Boolean;
-    property Value: Extended read GetAsFloat write SetAsFloat;
+    Function CheckRange(AValue : Double) : Boolean;
+    property Value: Double read GetAsFloat write SetAsFloat;
 
   published
-    property MaxValue: Extended read FMaxValue write FMaxValue;
-    property MinValue: Extended read FMinValue write FMinValue;
+    property MaxValue: Double read FMaxValue write FMaxValue;
+    property MinValue: Double read FMinValue write FMinValue;
     property Precision: Longint read FPrecision write FPrecision default 15;
   end;
 
@@ -467,12 +467,12 @@ type
     FDisplayFormat : String;
   protected
     function GetAsDateTime: TDateTime; override;
-    function GetAsFloat: Extended; override;
+    function GetAsFloat: Double; override;
     function GetAsString: string; override;
     function GetDataSize: Word; override;
     procedure GetText(var theText: string; ADisplayText: Boolean); override;
     procedure SetAsDateTime(AValue: TDateTime); override;
-    procedure SetAsFloat(AValue: Extended); override;
+    procedure SetAsFloat(AValue: Double); override;
     procedure SetAsString(const AValue: string); override;
   public
     constructor Create(AOwner: TComponent); override;
@@ -538,13 +538,13 @@ type
   private
   protected
     class procedure CheckTypeSize(AValue: Longint); override;
-    function GetAsFloat: Extended; override;
+    function GetAsFloat: Double; override;
     function GetAsLongint: Longint; override;
     function GetAsString: string; override;
     function GetDataSize: Word; override;
     function GetDefaultWidth: Longint; override;
     procedure GetText(var TheText: string; ADisplayText: Boolean); override;
-    procedure SetAsFloat(AValue: Extended); override;
+    procedure SetAsFloat(AValue: Double); override;
     procedure SetAsLongint(AValue: Longint); override;
     procedure SetAsString(const AValue: string); override;
   public
@@ -1492,7 +1492,10 @@ end.
 
 {
   $Log$
-  Revision 1.16  2004-05-02 21:23:18  peter
+  Revision 1.17  2004-07-18 13:16:50  michael
+  + Changed extended to double for better Delphi compatibility
+
+  Revision 1.16  2004/05/02 21:23:18  peter
     * use ptrint
 
   Revision 1.15  2004/03/25 20:43:39  michael

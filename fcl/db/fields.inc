@@ -315,7 +315,7 @@ begin
   AccessError(SdateTime);
 end;
 
-function TField.GetAsFloat: Extended;
+function TField.GetAsFloat: Double;
 
 begin
   AccessError(SDateTime);
@@ -461,7 +461,7 @@ begin
   AccessError(SDateTime);
 end;
 
-procedure TField.SetAsFloat(AValue: Extended);
+procedure TField.SetAsFloat(AValue: Double);
 
 begin
   AccessError(SFloat);
@@ -621,7 +621,7 @@ begin
   Result:=StrToDateTime(GetAsString);
 end;
 
-function TStringField.GetAsFloat: Extended;
+function TStringField.GetAsFloat: Double;
 
 begin
   Result:=StrToFloat(GetAsString);
@@ -683,7 +683,7 @@ begin
   SetAsString(DateTimeToStr(AValue));
 end;
 
-procedure TStringField.SetAsFloat(AValue: Extended);
+procedure TStringField.SetAsFloat(AValue: Double);
 
 begin
   SetAsString(FloatToStr(AValue));
@@ -718,7 +718,7 @@ begin
   AlignMent:=taRightJustify;
 end;
 
-procedure TNumericField.RangeError(AValue, Min, Max: Extended);
+procedure TNumericField.RangeError(AValue, Min, Max: Double);
 
 begin
   DatabaseErrorFMT(SRangeError,[AValue,Min,Max,FieldName]);
@@ -759,7 +759,7 @@ begin
   FValidchars:=['+','-','0'..'9'];
 end;
 
-function TLongintField.GetAsFloat: Extended;
+function TLongintField.GetAsFloat: Double;
 
 begin
   Result:=GetAsLongint;
@@ -830,7 +830,7 @@ begin
     end;
 end;
 
-procedure TLongintField.SetAsFloat(AValue: Extended);
+procedure TLongintField.SetAsFloat(AValue: Double);
 
 begin
   SetAsLongint(Round(Avalue));
@@ -942,7 +942,7 @@ end;
 
 { TFloatField }
 
-function TFloatField.GetAsFloat: Extended;
+function TFloatField.GetAsFloat: Double;
 
 begin
   If Not GetData(@Result) Then
@@ -957,7 +957,7 @@ end;
 
 function TFloatField.GetAsString: string;
 
-Var R : Extended;
+Var R : Double;
 
 begin
   If GetData(@R) then
@@ -969,14 +969,14 @@ end;
 function TFloatField.GetDataSize: Word;
 
 begin
-  Result:=SizeOf(Extended);
+  Result:=SizeOf(Double);
 end;
 
 procedure TFloatField.GetText(var TheText: string; ADisplayText: Boolean);
 
 Var
     fmt : string;
-    E : Extended;
+    E : Double;
 
 begin
   text:='';
@@ -993,7 +993,7 @@ begin
     Text:=FloatToStrF(E,ffgeneral,FPrecision,0);
 end;
 
-procedure TFloatField.SetAsFloat(AValue: Extended);
+procedure TFloatField.SetAsFloat(AValue: Double);
 
 begin
   If CheckRange(AValue) then
@@ -1010,7 +1010,7 @@ end;
 
 procedure TFloatField.SetAsString(const AValue: string);
 
-Var R : Extended;
+Var R : Double;
     Code : longint;
 
 begin
@@ -1028,7 +1028,7 @@ begin
   SetDatatype(ftfloat);
 end;
 
-Function TFloatField.CheckRange(AValue : Extended) : Boolean;
+Function TFloatField.CheckRange(AValue : Double) : Boolean;
 
 begin
   If (FMinValue<>0) or (FmaxValue<>0) then
@@ -1131,7 +1131,7 @@ begin
 end;
 
 
-function TDateTimeField.GetAsFloat: Extended;
+function TDateTimeField.GetAsFloat: Double;
 
 begin
   Result:=GetAsdateTime;
@@ -1183,7 +1183,7 @@ begin
 end;
 
 
-procedure TDateTimeField.SetAsFloat(AValue: Extended);
+procedure TDateTimeField.SetAsFloat(AValue: Double);
 
 begin
   SetAsDateTime(AValue);
@@ -1353,7 +1353,7 @@ begin
 end;
 
 
-function TBCDField.GetAsFloat: Extended;
+function TBCDField.GetAsFloat: Double;
 
 begin
   //!! To be implemented
@@ -1395,7 +1395,7 @@ begin
 end;
 
 
-procedure TBCDField.SetAsFloat(AValue: Extended);
+procedure TBCDField.SetAsFloat(AValue: Double);
 
 begin
   //!! To be implemented
@@ -1806,7 +1806,10 @@ end;
 
 {
   $Log$
-  Revision 1.11  2004-05-02 21:23:18  peter
+  Revision 1.12  2004-07-18 13:16:50  michael
+  + Changed extended to double for better Delphi compatibility
+
+  Revision 1.11  2004/05/02 21:23:18  peter
     * use ptrint
 
   Revision 1.10  2004/03/25 20:43:39  michael
