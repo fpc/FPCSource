@@ -8,8 +8,8 @@
 { Bug report             : mazen.neifer.01@supaero.org                        }
 {*****************************************************************************}
 {
-		Id:
-		
+    $Id$
+
 		Copyright (c) 1998-2000 by Florian Klaempfl
 
     This program is free software;you can redistribute it and/or modify
@@ -1074,5 +1074,7 @@ BEGIN
   cg:=tcgSPARC.create;
 END.
 {
-	$Log:
+  $Log$
+  Revision 1.6  2002-10-01 17:41:50  florian
+    * fixed log and id
 }
