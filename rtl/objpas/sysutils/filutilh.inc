@@ -23,6 +23,7 @@ Type
     ExcludeAttr : Longint;
 {$ifdef unix}    
     FindHandle : Pointer;
+    Mode : TMode;
 {$else unix}
     FindHandle : THandle;
 {$endif unix}    
@@ -92,7 +93,10 @@ Function GetFileHandle(var f : Text):Longint;
 
 {
   $Log$
-  Revision 1.7  2004-10-03 20:27:00  armin
+  Revision 1.8  2004-12-19 18:03:29  michael
+  + Added mode field to TSearchRec for Kylix compatibility
+
+  Revision 1.7  2004/10/03 20:27:00  armin
   * changed defines for netware
 
   Revision 1.6  2004/09/05 00:02:40  armin

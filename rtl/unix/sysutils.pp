@@ -529,6 +529,7 @@ begin
            Name:=strpas(p^.name);
            Time:=UnixToWinAge(Sinfo.st_mtime);
            Size:=Sinfo.st_Size;
+           Mode:=Sinfo.st_mode;
            end;
       end;
     P^.Next:=Nil;
@@ -1104,7 +1105,10 @@ end.
 {
 
   $Log$
-  Revision 1.55  2004-12-11 11:32:44  michael
+  Revision 1.56  2004-12-19 18:03:29  michael
+  + Added mode field to TSearchRec for Kylix compatibility
+
+  Revision 1.55  2004/12/11 11:32:44  michael
   + Added GetEnvironmentVariableCount and GetEnvironmentString calls
 
   Revision 1.54  2004/11/14 15:10:44  marco
