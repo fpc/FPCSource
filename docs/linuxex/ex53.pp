@@ -7,7 +7,7 @@ Uses linux;
 Var Info : Stat;
 
 begin
-  if FStat (paramstr(1),info) then
+  if LStat (paramstr(1),info) then
     begin
     if S_ISLNK(info.mode) then 
       Writeln ('File is a link');
