@@ -16,7 +16,10 @@ begin
     If (GetKeyEventFlags(K)<>KbfnKey) then
       Writeln('Not a function key')
     else  
-      Writeln('Got key : ',KeyEventToString(K));
+      begin
+      Write('Got key (',GetKeyEventCode(K));
+      Writeln(') : ',KeyEventToString(K));
+      end;
   Until (GetKeyEventChar(K)='q');
   DoneKeyboard;
 end.
