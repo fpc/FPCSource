@@ -211,7 +211,7 @@ begin
                  New (FStat);
                  ND := NewDir + Path;
                  Handle := $FFFFFFFF;
-                 RC := DosFindFirst (ND, Handle, $39, FStat, SizeOf (FStat^),
+                 RC := DosFindFirst (ND, Handle, $37, FStat, SizeOf (FStat^),
                                                             Count, ilStandard);
                  DosFindClose (Handle);
                  Dispose (FStat);
@@ -1000,7 +1000,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.14  1999-09-13 17:35:15  hajny
+  Revision 1.15  1999-09-13 17:56:26  hajny
+    * another correction to FSearch fix - mistyping
+
+  Revision 1.14  1999/09/13 17:35:15  hajny
     * little addition/correction to FSearch fix
 
   Revision 1.13  1999/09/09 09:20:43  hajny
