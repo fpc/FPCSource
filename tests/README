@@ -1,0 +1,17 @@
+This directory contains a testsuite for the Free Pascal Compiler.
+
+Tests starting with 'ts' have to compile and execute.
+Tests starting with 'tf' will crash the compiler.
+
+You can use the batch files to do all tests. testall.bat will compile all
+tests.
+
+template1.bat is a template for compiling tests that have to run and
+execute.
+
+template2.bat is a template for compiling tests that should crash the
+compiler. The test is considered passed if the compiler crashes or reports
+an error.
+
+
+
