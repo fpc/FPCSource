@@ -128,6 +128,11 @@ uses
   lineinfo,
   {$endif nocatch}
 {$endif}
+{$ifdef win32}
+  {$ifdef DEBUG}
+  lineinfo,
+  {$endif DEBUG}
+{$endif}
 {$endif FPC}
   globals,compiler
 {$ifdef logmemblocks}
@@ -279,7 +284,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.56  2000-02-18 12:34:43  pierre
+  Revision 1.57  2000-03-14 16:30:14  pierre
+   + lineinfo for win32 with debug
+
+  Revision 1.56  2000/02/18 12:34:43  pierre
    DEBUG implies NOCATCH for go32v2
 
   Revision 1.55  2000/02/10 23:44:43  florian
