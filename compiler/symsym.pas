@@ -1186,10 +1186,7 @@ implementation
          absseg:=false;
          case abstyp of
            tovar :
-             begin
-               asmname:=stringdup(readstring);
-               ref:=pstoredsym(srsym);
-             end;
+             asmname:=stringdup(readstring);
            toasm :
              asmname:=stringdup(readstring);
            toaddr :
@@ -1231,16 +1228,19 @@ implementation
 
 
     procedure tabsolutesym.deref;
+      var
+        srsym : psym;
+        srsymtable : psymtable;
       begin
          tvarsym.deref;
          if (abstyp=tovar) and (asmname<>nil) then
            begin
               { search previous loaded symtables }
-              getsym(asmname^,false);
-              if not(assigned(srsym)) then
-                getsymonlyin(owner,asmname^);
-              if not(assigned(srsym)) then
-                srsym:=generrorsym;
+              searchsym(asmname^,srsym,srsymtable);
+              if not assigned(srsym) then
+               srsym:=searchsymonlyin(owner,asmname^);
+              if not assigned(srsym) then
+               srsym:=generrorsym;
               ref:=pstoredsym(srsym);
               stringdispose(asmname);
            end;
@@ -2471,7 +2471,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.7  2000-12-25 00:07:30  peter
+  Revision 1.8  2001-03-11 22:58:51  peter
+    * getsym redesign, removed the globals srsym,srsymtable
+
+  Revision 1.7  2000/12/25 00:07:30  peter
     + new tlinkedlist class (merge of old tstringqueue,tcontainer and
       tlinkedlist objects)
 

@@ -29,7 +29,7 @@ interface
     uses
        cutils,cobjects,cclasses,
        tokens,globals,
-       symbase,symdef,symsym
+       symconst,symbase,symtype,symdef,symsym,symtable
 {$ifdef fixLeaksOnError}
        ,comphook
 {$endif fixLeaksOnError}
@@ -97,6 +97,10 @@ interface
 
     { consumes tokens while they are semicolons }
     procedure emptystats;
+
+    { consume a symbol, if not found give an error and
+      and return an errorsym }
+    function consume_sym(var srsym:psym;var srsymtable:psymtable):boolean;
 
     { reads a list of identifiers into a string list }
     function idlist : tidstringlist;
@@ -239,6 +243,48 @@ implementation
       end;
 
 
+
+    function consume_sym(var srsym:psym;var srsymtable:psymtable):boolean;
+      begin
+        { first check for identifier }
+        if token<>_ID then
+         begin
+           consume(_ID);
+           srsym:=generrorsym;
+           srsymtable:=nil;
+           consume_sym:=false;
+           exit;
+         end;
+        searchsym(pattern,srsym,srsymtable);
+        if assigned(srsym) then
+         begin
+           if (srsym^.typ=unitsym) then
+            begin
+              { only allow unit.symbol access if the name was
+                found in the current module }
+              if srsym^.owner^.unitid=0 then
+               begin
+                 consume(_ID);
+                 consume(_POINT);
+                 srsymtable:=punitsym(srsym)^.unitsymtable;
+                 srsym:=searchsymonlyin(srsymtable,pattern);
+               end
+              else
+               srsym:=nil;
+            end;
+         end;
+        { if nothing found give error and return errorsym }
+        if srsym=nil then
+         begin
+           identifier_not_found(pattern);
+           srsym:=generrorsym;
+           srsymtable:=nil;
+         end;
+        consume(_ID);
+        consume_sym:=assigned(srsym);
+      end;
+
+
     { reads a list of identifiers into a string list }
     function idlist : tidstringlist;
       var
@@ -276,7 +322,10 @@ end.
 
 {
   $Log$
-  Revision 1.7  2000-12-25 00:07:27  peter
+  Revision 1.8  2001-03-11 22:58:49  peter
+    * getsym redesign, removed the globals srsym,srsymtable
+
+  Revision 1.7  2000/12/25 00:07:27  peter
     + new tlinkedlist class (merge of old tstringqueue,tcontainer and
       tlinkedlist objects)
 

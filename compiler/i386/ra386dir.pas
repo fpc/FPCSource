@@ -42,7 +42,7 @@ interface
        { aasm }
        cpubase,aasm,
        { symtable }
-       symconst,symtype,symdef,symsym,symtable,types,
+       symconst,symbase,symtype,symdef,symsym,symtable,types,
        { pass 1 }
        nbas,
        { parser }
@@ -62,7 +62,8 @@ interface
          retstr,s,hs : string;
          c : char;
          ende : boolean;
-         sym : psym;
+         srsym,sym : psym;
+         srsymtable : psymtable;
          code : TAAsmoutput;
          i,l : longint;
 
@@ -121,7 +122,7 @@ interface
                          begin
                             if c=':' then
                               begin
-                                getsym(upper(hs),false);
+                                searchsym(upper(hs),srsym,srsymtable);
                                 if srsym<>nil then
                                   if (srsym^.typ = labelsym) then
                                     Begin
@@ -208,8 +209,7 @@ interface
 
                                         begin
 {$ifndef IGNOREGLOBALVAR}
-                                           getsym(upper(hs),false);
-                                           sym:=srsym;
+                                           searchsym(upper(hs),sym,srsymtable);
                                            if assigned(sym) and (sym^.owner^.symtabletype in [unitsymtable,
                                              globalsymtable,staticsymtable]) then
                                              begin
@@ -288,7 +288,10 @@ interface
 end.
 {
   $Log$
-  Revision 1.4  2000-12-25 00:07:34  peter
+  Revision 1.5  2001-03-11 22:58:52  peter
+    * getsym redesign, removed the globals srsym,srsymtable
+
+  Revision 1.4  2000/12/25 00:07:34  peter
     + new tlinkedlist class (merge of old tstringqueue,tcontainer and
       tlinkedlist objects)
 

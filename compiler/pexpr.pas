@@ -43,7 +43,7 @@ interface
     function string_dec : pdef;
 
     { the ID token has to be consumed before calling this function }
-    procedure do_member_read(getaddr : boolean;const sym : psym;var p1 : tnode;
+    procedure do_member_read(getaddr : boolean;sym : psym;var p1 : tnode;
       var pd : pdef;var again : boolean);
 
 {$ifdef int64funcresok}
@@ -904,12 +904,13 @@ implementation
 
 
     { the ID token has to be consumed before calling this function }
-    procedure do_member_read(getaddr : boolean;const sym : psym;var p1 : tnode;
+    procedure do_member_read(getaddr : boolean;sym : psym;var p1 : tnode;
       var pd : pdef;var again : boolean);
 
       var
          static_name : string;
          isclassref : boolean;
+         srsymtable : psymtable;
          objdef : pobjectdef;
 
       begin
@@ -978,10 +979,10 @@ implementation
                         Message(parser_e_only_class_methods_via_class_ref);
                       if (sp_static in sym^.symoptions) then
                         begin
-                           static_name:=lower(srsym^.owner^.name^)+'_'+sym^.name;
-                           getsym(static_name,true);
+                           static_name:=lower(sym^.owner^.name^)+'_'+sym^.name;
+                           searchsym(static_name,sym,srsymtable);
                            p1.destroy;
-                           p1:=genloadnode(pvarsym(srsym),srsymtable);
+                           p1:=genloadnode(pvarsym(sym),srsymtable);
                         end
                       else
                         p1:=gensubscriptnode(pvarsym(sym),p1);
@@ -991,7 +992,7 @@ implementation
                    begin
                       if isclassref then
                         Message(parser_e_only_class_methods_via_class_ref);
-                      handle_propertysym(sym,srsymtable,p1,pd);
+                      handle_propertysym(sym,sym^.owner,p1,pd);
                    end;
                  else internalerror(16);
               end;
@@ -1032,11 +1033,10 @@ implementation
                          Is_func_ret
          ---------------------------------------------}
 
-        function is_func_ret(sym : psym) : boolean;
+        function is_func_ret(var sym : psym;var srsymtable:psymtable) : boolean;
         var
            p : pprocinfo;
            storesymtablestack : psymtable;
-
         begin
           is_func_ret:=false;
           if not assigned(procinfo) or
@@ -1073,14 +1073,17 @@ implementation
                  end;
                p:=p^.parent;
             end;
-          { we must use the function call }
+          { we must use the function call, update the
+            sym to be the procsym }
           if (sym^.typ=funcretsym) then
             begin
                storesymtablestack:=symtablestack;
-               symtablestack:=srsymtable^.next;
-               getsym(sym^.name,true);
-               if srsym^.typ<>procsym then
-                 Message(cg_e_illegal_expression);
+               symtablestack:=sym^.owner^.next;
+               searchsym(sym^.name,sym,srsymtable);
+               if not assigned(sym) then
+                sym:=generrorsym;
+               if (sym^.typ<>procsym) then
+                Message(cg_e_illegal_expression);
                symtablestack:=storesymtablestack;
             end;
         end;
@@ -1093,326 +1096,318 @@ implementation
          var
            pc : pchar;
            len : longint;
+           srsym : psym;
+           srsymtable : psymtable;
          begin
            { allow post fix operators }
            again:=true;
+           consume_sym(srsym,srsymtable);
+           if not is_func_ret(srsym,srsymtable) then
             begin
-              if lastsymknown then
+              { check semantics of private }
+              if (srsym^.typ in [propertysym,procsym,varsym]) and
+                 (srsym^.owner^.symtabletype=objectsymtable) then
                begin
-                 srsym:=lastsrsym;
-                 srsymtable:=lastsrsymtable;
-                 lastsymknown:=false;
-               end
-              else
-               getsym(pattern,true);
-              consume(_ID);
-               if not is_func_ret(srsym) then
-              { else it's a normal symbol }
-                begin
-                { is it defined like UNIT.SYMBOL ? }
-                  if srsym^.typ=unitsym then
-                   begin
-                     consume(_POINT);
-                     getsymonlyin(punitsym(srsym)^.unitsymtable,pattern);
-{$ifdef TEST_PROCSYMS}
-                     unit_specific:=true;
-{$endif TEST_PROCSYMS}
-                     consume(_ID);
-{$ifdef TEST_PROCSYMS}
-                   end
-                  else
-                   unit_specific:=false;
-{$else TEST_PROCSYMS}
-                   end;
-{$endif TEST_PROCSYMS}
-                  if not assigned(srsym) then
-                   Begin
-                     p1:=cerrornode.create;
-                     { try to clean up }
-                     pd:=generrordef;
-                   end
-                  else
-                   Begin
-                     { check semantics of private }
-                     if (srsym^.typ in [propertysym,procsym,varsym]) and
-                        (srsymtable^.symtabletype=objectsymtable) then
-                      begin
-                         if (sp_private in srsym^.symoptions) and
-                            (pobjectdef(srsym^.owner^.defowner)^.owner^.symtabletype=unitsymtable) then
-                            Message(parser_e_cant_access_private_member);
-                      end;
-                     case srsym^.typ of
-              absolutesym : begin
-                              p1:=genloadnode(pvarsym(srsym),srsymtable);
-                              pd:=pabsolutesym(srsym)^.vartype.def;
-                            end;
-                   varsym : begin
-                              { are we in a class method ? }
-                              if (srsymtable^.symtabletype=objectsymtable) and
-                                 assigned(aktprocsym) and
-                                 (po_classmethod in aktprocsym^.definition^.procoptions) then
-                                Message(parser_e_only_class_methods);
-                              if (sp_static in srsym^.symoptions) then
+                 if (sp_private in srsym^.symoptions) and
+                    (pobjectdef(srsym^.owner^.defowner)^.owner^.symtabletype=unitsymtable) then
+                   Message(parser_e_cant_access_private_member);
+               end;
+              case srsym^.typ of
+                absolutesym :
+                  begin
+                    p1:=genloadnode(pvarsym(srsym),srsymtable);
+                    pd:=pabsolutesym(srsym)^.vartype.def;
+                  end;
+
+                varsym :
+                  begin
+                    { are we in a class method ? }
+                    if (srsym^.owner^.symtabletype=objectsymtable) and
+                       assigned(aktprocsym) and
+                       (po_classmethod in aktprocsym^.definition^.procoptions) then
+                      Message(parser_e_only_class_methods);
+                    if (sp_static in srsym^.symoptions) then
+                     begin
+                       static_name:=lower(srsym^.owner^.name^)+'_'+srsym^.name;
+                       searchsym(static_name,srsym,srsymtable);
+                     end;
+                    p1:=genloadnode(pvarsym(srsym),srsymtable);
+                    if pvarsym(srsym)^.varstate=vs_declared then
+                     begin
+                       include(p1.flags,nf_first);
+                       { set special between first loaded until checked in firstpass }
+                       pvarsym(srsym)^.varstate:=vs_declared_and_first_found;
+                     end;
+                    pd:=pvarsym(srsym)^.vartype.def;
+                  end;
+
+                typedconstsym :
+                  begin
+                    p1:=gentypedconstloadnode(ptypedconstsym(srsym),srsymtable);
+                    pd:=ptypedconstsym(srsym)^.typedconsttype.def;
+                  end;
+
+                syssym :
+                  p1:=statement_syssym(psyssym(srsym)^.number,pd);
+
+                typesym :
+                  begin
+                    pd:=ptypesym(srsym)^.restype.def;
+                    if not assigned(pd) then
+                     begin
+                       pd:=generrordef;
+                       again:=false;
+                     end
+                    else
+                     begin
+                       { if we read a type declaration  }
+                       { we have to return the type and }
+                       { nothing else               }
+                       if block_type=bt_type then
+                        begin
+                          { we don't need sym reference when it's in the
+                            current unit or system unit, because those
+                            units are always loaded (PFV) }
+                          if not(assigned(pd^.owner)) or
+                             (pd^.owner^.unitid=0) or
+                             (pd^.owner^.unitid=1) then
+                           p1:=gentypenode(pd,nil)
+                          else
+                           p1:=gentypenode(pd,ptypesym(srsym));
+                          { here we can also set resulttype !! }
+                          p1.resulttype:=pd;
+                          pd:=voiddef;
+                        end
+                       else { not type block }
+                        begin
+                          if token=_LKLAMMER then
+                           begin
+                             consume(_LKLAMMER);
+                             p1:=comp_expr(true);
+                             consume(_RKLAMMER);
+                             p1:=gentypeconvnode(p1,pd);
+                             include(p1.flags,nf_explizit);
+                           end
+                          else { not LKLAMMER }
+                           if (token=_POINT) and
+                              is_object(pd) then
+                            begin
+                              consume(_POINT);
+                              if assigned(procinfo) and
+                                 assigned(procinfo^._class) and
+                                 not(getaddr) then
                                begin
-                                 static_name:=lower(srsym^.owner^.name^)+'_'+srsym^.name;
-                                 getsym(static_name,true);
-                               end;
-                              p1:=genloadnode(pvarsym(srsym),srsymtable);
-                              if pvarsym(srsym)^.varstate=vs_declared then
-                               begin
-                                 include(p1.flags,nf_first);
-                                 { set special between first loaded until checked in firstpass }
-                                 pvarsym(srsym)^.varstate:=vs_declared_and_first_found;
-                               end;
-                              pd:=pvarsym(srsym)^.vartype.def;
-                            end;
-            typedconstsym : begin
-                              p1:=gentypedconstloadnode(ptypedconstsym(srsym),srsymtable);
-                              pd:=ptypedconstsym(srsym)^.typedconsttype.def;
-                            end;
-                   syssym : p1:=statement_syssym(psyssym(srsym)^.number,pd);
-                  typesym : begin
-                              pd:=ptypesym(srsym)^.restype.def;
-                              if not assigned(pd) then
-                               begin
-                                 pd:=generrordef;
-                                 again:=false;
+                                 if procinfo^._class^.is_related(pobjectdef(pd)) then
+                                  begin
+                                    p1:=gentypenode(pd,ptypesym(srsym));
+                                    p1.resulttype:=pd;
+                                    { search also in inherited methods }
+                                    repeat
+                                      sym:=pvarsym(pobjectdef(pd)^.symtable^.search(pattern));
+                                      if assigned(sym) then
+                                       break;
+                                      pd:=pobjectdef(pd)^.childof;
+                                    until not assigned(pd);
+                                    consume(_ID);
+                                    do_member_read(false,sym,p1,pd,again);
+                                  end
+                                 else
+                                  begin
+                                    Message(parser_e_no_super_class);
+                                    pd:=generrordef;
+                                    again:=false;
+                                  end;
                                end
                               else
                                begin
-                                 { if we read a type declaration  }
-                                 { we have to return the type and }
-                                 { nothing else               }
-                                  if block_type=bt_type then
-                                   begin
-                                     { we don't need sym reference when it's in the
-                                       current unit or system unit, because those
-                                       units are always loaded (PFV) }
-                                     if not(assigned(pd^.owner)) or
-                                        (pd^.owner^.unitid=0) or
-                                        (pd^.owner^.unitid=1) then
-                                      p1:=gentypenode(pd,nil)
-                                     else
-                                      p1:=gentypenode(pd,ptypesym(srsym));
-                                     { here we can also set resulttype !! }
-                                     p1.resulttype:=pd;
-                                     pd:=voiddef;
-                                   end
-                                 else { not type block }
+                                 { allows @TObject.Load }
+                                 { also allows static methods and variables }
+                                 p1:=ctypenode.create(nil,nil);
+                                 p1.resulttype:=pd;
+                                 { TP allows also @TMenu.Load if Load is only }
+                                 { defined in an anchestor class              }
+                                 sym:=pvarsym(search_class_member(pobjectdef(pd),pattern));
+                                 if not assigned(sym) then
+                                  Message1(sym_e_id_no_member,pattern)
+                                 else if not(getaddr) and not(sp_static in sym^.symoptions) then
+                                  Message(sym_e_only_static_in_static)
+                                 else
                                   begin
-                                    if token=_LKLAMMER then
-                                     begin
-                                       consume(_LKLAMMER);
-                                       p1:=comp_expr(true);
-                                       consume(_RKLAMMER);
-                                       p1:=gentypeconvnode(p1,pd);
-                                       include(p1.flags,nf_explizit);
-                                     end
-                                    else { not LKLAMMER }
-                                     if (token=_POINT) and
-                                        is_object(pd) then
-                                       begin
-                                         consume(_POINT);
-                                         if assigned(procinfo) and
-                                            assigned(procinfo^._class) and
-                                            not(getaddr) then
-                                          begin
-                                            if procinfo^._class^.is_related(pobjectdef(pd)) then
-                                             begin
-                                               p1:=gentypenode(pd,ptypesym(srsym));
-                                               p1.resulttype:=pd;
-                                               { search also in inherited methods }
-                                               repeat
-                                                 srsymtable:=pobjectdef(pd)^.symtable;
-                                                 sym:=pvarsym(srsymtable^.search(pattern));
-                                                 if assigned(sym) then
-                                                  break;
-                                                 pd:=pobjectdef(pd)^.childof;
-                                               until not assigned(pd);
-                                               consume(_ID);
-                                               do_member_read(false,sym,p1,pd,again);
-                                             end
-                                            else
-                                             begin
-                                               Message(parser_e_no_super_class);
-                                               pd:=generrordef;
-                                               again:=false;
-                                             end;
-                                          end
-                                         else
-                                          begin
-                                            { allows @TObject.Load }
-                                            { also allows static methods and variables }
-                                            p1:=ctypenode.create(nil,nil);
-                                            p1.resulttype:=pd;
-                                            { TP allows also @TMenu.Load if Load is only }
-                                            { defined in an anchestor class              }
-                                            sym:=pvarsym(search_class_member(pobjectdef(pd),pattern));
-                                            if not assigned(sym) then
-                                              Message1(sym_e_id_no_member,pattern)
-                                            else if not(getaddr) and not(sp_static in sym^.symoptions) then
-                                              Message(sym_e_only_static_in_static)
-                                            else
-                                             begin
-                                               consume(_ID);
-                                               do_member_read(getaddr,sym,p1,pd,again);
-                                             end;
-                                          end;
-                                       end
-                                     else
-                                       begin
-                                          { class reference ? }
-                                          if is_class(pd) then
-                                            begin
-                                               if getaddr and (token=_POINT) then
-                                                 begin
-                                                    consume(_POINT);
-                                                    { allows @Object.Method }
-                                                    { also allows static methods and variables }
-                                                    p1:=gentypenode(nil,nil);
-                                                    p1.resulttype:=pd;
-                                                    { TP allows also @TMenu.Load if Load is only }
-                                                    { defined in an anchestor class              }
-                                                    sym:=pvarsym(search_class_member(pobjectdef(pd),pattern));
-                                                    if not assigned(sym) then
-                                                      Message1(sym_e_id_no_member,pattern)
-                                                    else
-                                                     begin
-                                                       consume(_ID);
-                                                       do_member_read(getaddr,sym,p1,pd,again);
-                                                     end;
-                                                 end
-                                               else
-                                                 begin
-                                                    p1:=gentypenode(pd,nil);
-                                                    p1.resulttype:=pd;
-                                                    pd:=new(pclassrefdef,init(pd));
-                                                    p1:=cloadvmtnode.create(p1);
-                                                    p1.resulttype:=pd;
-                                                 end;
-                                            end
-                                          else
-                                            begin
-                                               { generate a type node }
-                                               { (for typeof etc)     }
-                                               if allow_type then
-                                                 begin
-                                                    p1:=gentypenode(pd,nil);
-                                                    { here we must use typenodetype explicitly !! PM
-                                                    p1.resulttype:=pd; }
-                                                    pd:=voiddef;
-                                                 end
-                                               else
-                                                 Message(parser_e_no_type_not_allowed_here);
-                                            end;
-                                       end;
+                                    consume(_ID);
+                                    do_member_read(getaddr,sym,p1,pd,again);
                                   end;
                                end;
-                            end;
-                  enumsym : begin
-                              p1:=genenumnode(penumsym(srsym));
-                              pd:=p1.resulttype;
-                            end;
-                 constsym : begin
-                              case pconstsym(srsym)^.consttyp of
-                                constint :
-                                  { do a very dirty trick to bootstrap this code }
-                                  if (pconstsym(srsym)^.value>=-(int64(2147483647)+int64(1))) and (pconstsym(srsym)^.value<=2147483647) then
-                                    p1:=genordinalconstnode(pconstsym(srsym)^.value,s32bitdef)
-                                  else if (pconstsym(srsym)^.value > maxlongint) and (pconstsym(srsym)^.value <= int64(maxlongint)+int64(maxlongint)+1) then
-                                    p1:=genordinalconstnode(pconstsym(srsym)^.value,u32bitdef)
-                                  else
-                                    p1:=genordinalconstnode(pconstsym(srsym)^.value,cs64bitdef);
-                                conststring :
-                                  begin
-                                    len:=pconstsym(srsym)^.len;
-                                    if not(cs_ansistrings in aktlocalswitches) and (len>255) then
-                                     len:=255;
-                                    getmem(pc,len+1);
-                                    move(pchar(tpointerord(pconstsym(srsym)^.value))^,pc^,len);
-                                    pc[len]:=#0;
-                                    p1:=genpcharconstnode(pc,len);
-                                  end;
-                                constchar :
-                                  p1:=genordinalconstnode(pconstsym(srsym)^.value,cchardef);
-                                constreal :
-                                  p1:=genrealconstnode(pbestreal(tpointerord(pconstsym(srsym)^.value))^,bestrealdef^);
-                                constbool :
-                                  p1:=genordinalconstnode(pconstsym(srsym)^.value,booldef);
-                                constset :
-                                  p1:=gensetconstnode(pconstset(tpointerord(pconstsym(srsym)^.value)),
-                                        psetdef(pconstsym(srsym)^.consttype.def));
-                                constord :
-                                  p1:=genordinalconstnode(pconstsym(srsym)^.value,
-                                        pconstsym(srsym)^.consttype.def);
-                                constpointer :
-                                  p1:=genpointerconstnode(pconstsym(srsym)^.value,
-                                        pconstsym(srsym)^.consttype.def);
-                                constnil :
-                                  p1:=cnilnode.create;
-                                constresourcestring:
-                                  begin
-                                     p1:=genloadnode(pvarsym(srsym),srsymtable);
-                                     p1.resulttype:=cansistringdef;
-                                  end;
+                            end
+                          else
+                           begin
+                             { class reference ? }
+                             if is_class(pd) then
+                              begin
+                                if getaddr and (token=_POINT) then
+                                 begin
+                                   consume(_POINT);
+                                   { allows @Object.Method }
+                                   { also allows static methods and variables }
+                                   p1:=gentypenode(nil,nil);
+                                   p1.resulttype:=pd;
+                                   { TP allows also @TMenu.Load if Load is only }
+                                   { defined in an anchestor class              }
+                                   sym:=pvarsym(search_class_member(pobjectdef(pd),pattern));
+                                   if not assigned(sym) then
+                                    Message1(sym_e_id_no_member,pattern)
+                                   else
+                                    begin
+                                      consume(_ID);
+                                      do_member_read(getaddr,sym,p1,pd,again);
+                                    end;
+                                 end
+                                else
+                                 begin
+                                   p1:=gentypenode(pd,nil);
+                                   p1.resulttype:=pd;
+                                   pd:=new(pclassrefdef,init(pd));
+                                   p1:=cloadvmtnode.create(p1);
+                                   p1.resulttype:=pd;
+                                 end;
+                              end
+                             else
+                              begin
+                                { generate a type node }
+                                { (for typeof etc)     }
+                                if allow_type then
+                                 begin
+                                   p1:=gentypenode(pd,nil);
+                                   { here we must use typenodetype explicitly !! PM
+                                     p1.resulttype:=pd; }
+                                   pd:=voiddef;
+                                 end
+                                else
+                                 Message(parser_e_no_type_not_allowed_here);
                               end;
-                              pd:=p1.resulttype;
-                            end;
-                  procsym : begin
-                              { are we in a class method ? }
-                              possible_error:=(srsymtable^.symtabletype=objectsymtable) and
-                                              assigned(aktprocsym) and
-                                              (po_classmethod in aktprocsym^.definition^.procoptions);
-                              p1:=gencallnode(pprocsym(srsym),srsymtable);
-{$ifdef TEST_PROCSYMS}
-                              p1.unit_specific:=unit_specific;
-{$endif TEST_PROCSYMS}
-                              do_proc_call(getaddr or
-                                (getprocvar and
-                                 ((block_type=bt_const) or
-                                  ((m_tp_procvar in aktmodeswitches) and
-                                   proc_to_procvar_equal(pprocsym(srsym)^.definition,getprocvardef)
+                           end;
+                        end;
+                     end;
+                  end;
+
+                enumsym :
+                  begin
+                    p1:=genenumnode(penumsym(srsym));
+                    pd:=p1.resulttype;
+                  end;
+
+                constsym :
+                  begin
+                    case pconstsym(srsym)^.consttyp of
+                      constint :
+                        begin
+                          { do a very dirty trick to bootstrap this code }
+                          if (pconstsym(srsym)^.value>=-(int64(2147483647)+int64(1))) and (pconstsym(srsym)^.value<=2147483647) then
+                           p1:=genordinalconstnode(pconstsym(srsym)^.value,s32bitdef)
+                          else if (pconstsym(srsym)^.value > maxlongint) and (pconstsym(srsym)^.value <= int64(maxlongint)+int64(maxlongint)+1) then
+                           p1:=genordinalconstnode(pconstsym(srsym)^.value,u32bitdef)
+                          else
+                           p1:=genordinalconstnode(pconstsym(srsym)^.value,cs64bitdef);
+                        end;
+                      conststring :
+                        begin
+                          len:=pconstsym(srsym)^.len;
+                          if not(cs_ansistrings in aktlocalswitches) and (len>255) then
+                           len:=255;
+                          getmem(pc,len+1);
+                          move(pchar(tpointerord(pconstsym(srsym)^.value))^,pc^,len);
+                          pc[len]:=#0;
+                          p1:=genpcharconstnode(pc,len);
+                        end;
+                      constchar :
+                        p1:=genordinalconstnode(pconstsym(srsym)^.value,cchardef);
+                      constreal :
+                        p1:=genrealconstnode(pbestreal(tpointerord(pconstsym(srsym)^.value))^,bestrealdef^);
+                      constbool :
+                        p1:=genordinalconstnode(pconstsym(srsym)^.value,booldef);
+                      constset :
+                        p1:=gensetconstnode(pconstset(tpointerord(pconstsym(srsym)^.value)),
+                                            psetdef(pconstsym(srsym)^.consttype.def));
+                      constord :
+                        p1:=genordinalconstnode(pconstsym(srsym)^.value,pconstsym(srsym)^.consttype.def);
+                      constpointer :
+                        p1:=genpointerconstnode(pconstsym(srsym)^.value,pconstsym(srsym)^.consttype.def);
+                      constnil :
+                        p1:=cnilnode.create;
+                      constresourcestring:
+                        begin
+                          p1:=genloadnode(pvarsym(srsym),srsymtable);
+                          p1.resulttype:=cansistringdef;
+                        end;
+                    end;
+                    pd:=p1.resulttype;
+                  end;
+
+                procsym :
+                  begin
+                    { are we in a class method ? }
+                    possible_error:=(srsym^.owner^.symtabletype=objectsymtable) and
+                                    assigned(aktprocsym) and
+                                    (po_classmethod in aktprocsym^.definition^.procoptions);
+                    p1:=gencallnode(pprocsym(srsym),srsymtable);
+                    do_proc_call(getaddr or
+                                 (getprocvar and
+                                  ((block_type=bt_const) or
+                                   ((m_tp_procvar in aktmodeswitches) and
+                                    proc_to_procvar_equal(pprocsym(srsym)^.definition,getprocvardef)
+                                   )
                                   )
-                                 )
-                                ),again,tcallnode(p1),pd);
-                              if (block_type=bt_const) and
-                                 getprocvar then
-                                handle_procvar(getprocvardef,p1);
-                              if possible_error and
-                                 not(po_classmethod in tcallnode(p1).procdefinition^.procoptions) then
-                                Message(parser_e_only_class_methods);
-                            end;
-              propertysym : begin
-                              { access to property in a method }
-                              { are we in a class method ? }
-                              if (srsymtable^.symtabletype=objectsymtable) and
-                                 assigned(aktprocsym) and
-                                 (po_classmethod in aktprocsym^.definition^.procoptions) then
-                               Message(parser_e_only_class_methods);
-                              { no method pointer }
-                              p1:=nil;
-                              handle_propertysym(srsym,srsymtable,p1,pd);
-                            end;
-                 errorsym : begin
-                              p1:=cerrornode.create;
-                              p1.resulttype:=generrordef;
-                              pd:=generrordef;
-                              if token=_LKLAMMER then
-                               begin
-                                 consume(_LKLAMMER);
-                                 parse_paras(false,false);
-                                 consume(_RKLAMMER);
-                               end;
-                            end;
-                     else
-                       begin
-                         p1:=cerrornode.create;
-                         pd:=generrordef;
-                         Message(cg_e_illegal_expression);
-                       end;
-                     end; { end case }
-                   end;
-                end;
+                                 ),again,tcallnode(p1),pd);
+                    if (block_type=bt_const) and
+                       getprocvar then
+                     handle_procvar(getprocvardef,p1);
+                    if possible_error and
+                       not(po_classmethod in tcallnode(p1).procdefinition^.procoptions) then
+                     Message(parser_e_only_class_methods);
+                  end;
+
+                propertysym :
+                  begin
+                    { access to property in a method }
+                    { are we in a class method ? }
+                    if (srsym^.owner^.symtabletype=objectsymtable) and
+                       assigned(aktprocsym) and
+                       (po_classmethod in aktprocsym^.definition^.procoptions) then
+                     Message(parser_e_only_class_methods);
+                    { no method pointer }
+                    p1:=nil;
+                    handle_propertysym(srsym,srsymtable,p1,pd);
+                  end;
+
+                labelsym :
+                  begin
+                    consume(_COLON);
+                    if plabelsym(srsym)^.defined then
+                     Message(sym_e_label_already_defined);
+                    plabelsym(srsym)^.defined:=true;
+                    p1:=clabelnode.create(plabelsym(srsym)^.lab,nil);
+                    pd:=voiddef;
+                  end;
+
+                errorsym :
+                  begin
+                    p1:=cerrornode.create;
+                    p1.resulttype:=generrordef;
+                    pd:=generrordef;
+                    if token=_LKLAMMER then
+                     begin
+                       consume(_LKLAMMER);
+                       parse_paras(false,false);
+                       consume(_RKLAMMER);
+                     end;
+                  end;
+
+                else
+                  begin
+                    p1:=cerrornode.create;
+                    pd:=generrordef;
+                    Message(cg_e_illegal_expression);
+                  end;
+              end; { end case }
             end;
          end;
 
@@ -1522,7 +1517,6 @@ implementation
 
         var
            store_static : boolean;
-
         { p1 and p2 must contain valid value_str }
         begin
           check_tokenpos;
@@ -1677,7 +1671,6 @@ implementation
                              while assigned(classh) do
                               begin
                                 sym:=psym(classh^.symtable^.search(pattern));
-                                srsymtable:=classh^.symtable;
                                 if assigned(sym) then
                                  break;
                                 classh:=classh^.childof;
@@ -1707,7 +1700,6 @@ implementation
                               while assigned(classh) do
                                 begin
                                    sym:=psym(classh^.symtable^.search(pattern));
-                                   srsymtable:=classh^.symtable;
                                    if assigned(sym) then
                                      break;
                                    classh:=classh^.childof;
@@ -1867,7 +1859,6 @@ implementation
                         while assigned(classh) do
                          begin
                            sym:=psym(classh^.symtable^.search(pattern));
-                           srsymtable:=classh^.symtable;
                            if assigned(sym) then
                             break;
                            classh:=classh^.childof;
@@ -1935,8 +1926,7 @@ implementation
                     classh:=procinfo^._class^.childof;
                     while assigned(classh) do
                      begin
-                       srsymtable:=pobjectdef(classh)^.symtable;
-                       sym:=psym(srsymtable^.search(hs));
+                       sym:=psym(pobjectdef(classh)^.symtable^.search(hs));
                        if assigned(sym) then
                         begin
                           { only for procsyms we need to set the type (PFV) }
@@ -2420,7 +2410,10 @@ _LECKKLAMMER : begin
 end.
 {
   $Log$
-  Revision 1.24  2000-12-25 00:07:27  peter
+  Revision 1.25  2001-03-11 22:58:50  peter
+    * getsym redesign, removed the globals srsym,srsymtable
+
+  Revision 1.24  2000/12/25 00:07:27  peter
     + new tlinkedlist class (merge of old tstringqueue,tcontainer and
       tlinkedlist objects)
 

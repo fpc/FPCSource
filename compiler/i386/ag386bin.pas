@@ -604,6 +604,8 @@ implementation
                            end;
                          top_symbol :
                            begin
+                             if sym=nil then
+                              sym:=sym;
                              UsedAsmSymbolListInsert(sym);
                            end;
                        end;
@@ -1031,7 +1033,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.5  2001-03-05 21:39:11  peter
+  Revision 1.6  2001-03-11 22:58:51  peter
+    * getsym redesign, removed the globals srsym,srsymtable
+
+  Revision 1.5  2001/03/05 21:39:11  peter
     * changed to class with common TAssembler also for internal assembler
 
   Revision 1.4  2000/12/25 00:07:31  peter

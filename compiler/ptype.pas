@@ -76,6 +76,8 @@ implementation
       var
         is_unit_specific : boolean;
         pos : tfileposinfo;
+        srsym : psym;
+        srsymtable : psymtable;
       begin
          s:=pattern;
          pos:=akttokenpos;
@@ -95,13 +97,13 @@ implementation
            end;
          { try to load the symbol to see if it's a unitsym }
          is_unit_specific:=false;
-         getsym(s,false);
+         searchsym(s,srsym,srsymtable);
          consume(_ID);
          if assigned(srsym) and
             (srsym^.typ=unitsym) then
            begin
               consume(_POINT);
-              getsymonlyin(punitsym(srsym)^.unitsymtable,pattern);
+              srsym:=searchsymonlyin(punitsym(srsym)^.unitsymtable,pattern);
               pos:=akttokenpos;
               s:=pattern;
               consume(_ID);
@@ -577,7 +579,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.17  2000-12-07 17:19:43  jonas
+  Revision 1.18  2001-03-11 22:58:50  peter
+    * getsym redesign, removed the globals srsym,srsymtable
+
+  Revision 1.17  2000/12/07 17:19:43  jonas
     * new constant handling: from now on, hex constants >$7fffffff are
       parsed as unsigned constants (otherwise, $80000000 got sign extended
       and became $ffffffff80000000), all constants in the longint range

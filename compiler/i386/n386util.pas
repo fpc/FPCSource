@@ -1083,19 +1083,13 @@ implementation
        equal the check is also insert (needed for succ,pref,inc,dec)
      }
       var
-        neglabel,
-        poslabel : pasmlabel;
-        href   : treference;
-        rstr   : string;
-        hreg   : tregister;
+        neglabel : pasmlabel;
         opsize : topsize;
         op     : tasmop;
         fromdef : pdef;
         lto,hto,
         lfrom,hfrom : longint;
-        doublebound,
-        is_reg,
-        popecx : boolean;
+        is_reg : boolean;
       begin
         { range checking on and range checkable value? }
         if not(cs_check_range in aktlocalswitches) or
@@ -1172,7 +1166,7 @@ implementation
               { since from is signed, values > maxlongint are < 0 and must }
               { be rejected                                                }
               if hto < 0 then
-                hto := maxlongint; 
+                hto := maxlongint;
             end
           else
             { from is unsigned, to is signed }
@@ -1253,10 +1247,11 @@ implementation
     procedure push_shortstring_length(p:tnode);
       var
         hightree : tnode;
+        srsym    : psym;
       begin
         if is_open_string(p.resulttype) then
          begin
-           getsymonlyin(tloadnode(p).symtable,'high'+pvarsym(tloadnode(p).symtableentry)^.name);
+           srsym:=searchsymonlyin(tloadnode(p).symtable,'high'+pvarsym(tloadnode(p).symtableentry)^.name);
            hightree:=genloadnode(pvarsym(srsym),tloadnode(p).symtable);
            firstpass(hightree);
            secondpass(hightree);
@@ -1482,7 +1477,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.12  2001-03-04 10:26:56  jonas
+  Revision 1.13  2001-03-11 22:58:52  peter
+    * getsym redesign, removed the globals srsym,srsymtable
+
+  Revision 1.12  2001/03/04 10:26:56  jonas
     * new rangecheck code now handles conversion between signed and cardinal types correctly
 
   Revision 1.11  2001/03/03 12:41:22  jonas

@@ -43,7 +43,7 @@ Implementation
        { aasm }
        cpubase,aasm,
        { symtable }
-       symconst,symtype,symsym,symtable,types,
+       symconst,symbase,symtype,symsym,symtable,types,
        { pass 1 }
        nbas,
        { parser }
@@ -705,6 +705,7 @@ var
   prevtok : tasmtoken;
   hl : PAsmLabel;
   sym : psym;
+  srsymtable : psymtable;
 Begin
   { reset }
   value:=0;
@@ -812,16 +813,16 @@ Begin
               BuildRecordOffsetSize(tempstr,k,l)
              else
               begin
-                getsym(tempstr,false);
-                if assigned(srsym) then
+                searchsym(tempstr,sym,srsymtable);
+                if assigned(sym) then
                  begin
-                   case srsym^.typ of
+                   case sym^.typ of
                      varsym :
-                       l:=pvarsym(srsym)^.getsize;
+                       l:=pvarsym(sym)^.getsize;
                      typedconstsym :
-                       l:=ptypedconstsym(srsym)^.getsize;
+                       l:=ptypedconstsym(sym)^.getsize;
                      typesym :
-                       l:=ptypesym(srsym)^.restype.def^.size;
+                       l:=ptypesym(sym)^.restype.def^.size;
                      else
                        Message(asmr_e_wrong_sym_type);
                    end;
@@ -877,24 +878,23 @@ Begin
                hs:=hl^.name
              else
               begin
-                getsym(tempstr,false);
-                sym:=srsym;
+                searchsym(tempstr,sym,srsymtable);
                 if assigned(sym) then
                  begin
-                   case srsym^.typ of
+                   case sym^.typ of
                      varsym :
                        begin
                          if sym^.owner^.symtabletype in [localsymtable,parasymtable] then
                           Message(asmr_e_no_local_or_para_allowed);
-                         hs:=pvarsym(srsym)^.mangledname;
+                         hs:=pvarsym(sym)^.mangledname;
                        end;
                      typedconstsym :
-                       hs:=ptypedconstsym(srsym)^.mangledname;
+                       hs:=ptypedconstsym(sym)^.mangledname;
                      procsym :
-                       hs:=pprocsym(srsym)^.mangledname;
+                       hs:=pprocsym(sym)^.mangledname;
                      typesym :
                        begin
-                         if not(ptypesym(srsym)^.restype.def^.deftype in [recorddef,objectdef]) then
+                         if not(ptypesym(sym)^.restype.def^.deftype in [recorddef,objectdef]) then
                           Message(asmr_e_wrong_sym_type);
                        end;
                      else
@@ -1605,7 +1605,6 @@ Procedure T386IntelInstruction.BuildOpCode;
 var
   PrefixOp,OverrideOp: tasmop;
   size : topsize;
-  lasttoken : tasmtoken;
   operandnum : longint;
 Begin
   PrefixOp:=A_None;
@@ -1950,7 +1949,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.9  2001-02-20 21:51:36  peter
+  Revision 1.10  2001-03-11 22:58:52  peter
+    * getsym redesign, removed the globals srsym,srsymtable
+
+  Revision 1.9  2001/02/20 21:51:36  peter
     * fpu fixes (merged)
 
   Revision 1.8  2001/02/09 23:42:49  peter

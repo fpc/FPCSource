@@ -77,6 +77,7 @@ implementation
          tmpguid   : tguid;
          aktpos    : longint;
          obj       : pobjectdef;
+         srsym     : psym;
          symt      : psymtable;
          value     : bestreal;
          strval    : pchar;
@@ -864,7 +865,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.17  2001-02-04 11:12:16  jonas
+  Revision 1.18  2001-03-11 22:58:50  peter
+    * getsym redesign, removed the globals srsym,srsymtable
+
+  Revision 1.17  2001/02/04 11:12:16  jonas
     * fixed web bug 1377 & const pointer arithmtic
 
   Revision 1.16  2001/02/03 00:26:35  peter

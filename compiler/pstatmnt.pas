@@ -524,6 +524,8 @@ implementation
          old_block_type : tblock_type;
          exceptsymtable : psymtable;
          objname : stringid;
+         srsym : psym;
+         srsymtable : psymtable;
 
       begin
          procinfo^.flags:=procinfo^.flags or
@@ -576,19 +578,14 @@ implementation
                      if token=_ID then
                        begin
                           objname:=pattern;
-                          getsym(objname,false);
+                          { can't use consume_sym here, because we need already
+                            to check for the colon }
+                          searchsym(objname,srsym,srsymtable);
                           consume(_ID);
                           { is a explicit name for the exception given ? }
                           if try_to_consume(_COLON) then
                             begin
-                               getsym(pattern,true);
-                               consume(_ID);
-                               if srsym^.typ=unitsym then
-                                 begin
-                                    consume(_POINT);
-                                    getsymonlyin(punitsym(srsym)^.unitsymtable,pattern);
-                                    consume(_ID);
-                                 end;
+                               consume_sym(srsym,srsymtable);
                                if (srsym^.typ=typesym) and
                                   is_class(ptypesym(srsym)^.restype.def) then
                                  begin
@@ -615,16 +612,23 @@ implementation
                                  with "e: Exception" the e is not necessary }
                                if srsym=nil then
                                 begin
-                                  Message1(sym_e_id_not_found,objname);
+                                  identifier_not_found(objname);
                                   srsym:=generrorsym;
                                 end;
-                               { only exception type }
+                               { support unit.identifier }
                                if srsym^.typ=unitsym then
                                  begin
                                     consume(_POINT);
-                                    getsymonlyin(punitsym(srsym)^.unitsymtable,pattern);
+                                    srsym:=searchsymonlyin(punitsym(srsym)^.unitsymtable,pattern);
                                     consume(_ID);
+                                    if srsym=nil then
+                                     begin
+                                       identifier_not_found(objname);
+                                       srsym:=generrorsym;
+                                     end;
                                  end;
+                               { check if type is valid, must be done here because
+                                 with "e: Exception" the e is not necessary }
                                if (srsym^.typ=typesym) and
                                   is_class(ptypesym(srsym)^.restype.def) then
                                  ot:=pobjectdef(ptypesym(srsym)^.restype.def)
@@ -941,7 +945,7 @@ implementation
                       end
                     else
                       begin
-                        p2:=ccallnode.create(pprocsym(sym),srsymtable,p2);
+                        p2:=ccallnode.create(pprocsym(sym),sym^.owner,p2);
                         { support dispose(p,done()); }
                         if try_to_consume(_LKLAMMER) then
                           begin
@@ -1016,9 +1020,8 @@ implementation
          p       : tnode;
          code    : tnode;
          filepos : tfileposinfo;
-         sr      : plabelsym;
-      label
-         ready;
+         srsym   : psym;
+         srsymtable : psymtable;
       begin
          filepos:=akttokenpos;
          case token of
@@ -1034,8 +1037,7 @@ implementation
                   end
                 else
                   begin
-                     getsym(pattern,true);
-                     consume(token);
+                     consume_sym(srsym,srsymtable);
                      if srsym^.typ<>labelsym then
                        begin
                           Message(sym_e_id_is_no_label_id);
@@ -1092,36 +1094,16 @@ implementation
              Message(scan_f_end_of_file);
          else
            begin
-              if (token in [_INTCONST,_ID]) then
-                begin
-                   getsym(pattern,true);
-                   lastsymknown:=true;
-                   lastsrsym:=srsym;
-                   { it is NOT necessarily the owner
-                     it can be a withsymtable !!! }
-                   lastsrsymtable:=srsymtable;
-                   if assigned(srsym) and (srsym^.typ=labelsym) then
-                     begin
-                        consume(token);
-                        consume(_COLON);
-                        { we must preserve srsym to set code later }
-                        sr:=plabelsym(srsym);
-                        if sr^.defined then
-                          Message(sym_e_label_already_defined);
-                        sr^.defined:=true;
-
-                        { statement modifies srsym }
-                        lastsymknown:=false;
-                        { the pointer to the following instruction }
-                        { isn't a very clean way                   }
-                        code:=clabelnode.create(sr^.lab,statement{$ifdef FPCPROCVAR}(){$endif});
-                        sr^.code:=code;
-                        { sorry, but here is a jump the easiest way }
-                        goto ready;
-                     end;
-                end;
               p:=expr;
-              if not(p.nodetype in [calln,assignn,breakn,inlinen,continuen]) then
+
+              if p.nodetype=labeln then
+               begin
+                 { the pointer to the following instruction }
+                 { isn't a very clean way                   }
+                 tlabelnode(p).left:=statement{$ifdef FPCPROCVAR}(){$endif};
+               end;
+
+              if not(p.nodetype in [calln,assignn,breakn,inlinen,continuen,labeln]) then
                 Message(cg_e_illegal_expression);
               { specify that we don't use the value returned by the call }
               { Question : can this be also improtant
@@ -1134,7 +1116,6 @@ implementation
               code:=p;
            end;
          end;
-         ready:
          if assigned(code) then
           code.set_tree_filepos(filepos);
          statement:=code;
@@ -1259,7 +1240,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.19  2000-12-25 00:07:27  peter
+  Revision 1.20  2001-03-11 22:58:50  peter
+    * getsym redesign, removed the globals srsym,srsymtable
+
+  Revision 1.19  2000/12/25 00:07:27  peter
     + new tlinkedlist class (merge of old tstringqueue,tcontainer and
       tlinkedlist objects)
 

@@ -91,7 +91,7 @@ implementation
 {$endif GDB}
       globtype,systems,
       cutils,verbose,globals,
-      symconst,symbase,symdef,symsym,symtable,aasm,types,
+      symconst,symbase,symtype,symdef,symsym,symtable,aasm,types,
       hcodegen,temp_gen,pass_2,
       pass_1,nld,ncon,nadd,
       cpubase,cpuasm,
@@ -462,6 +462,7 @@ implementation
          hp  : preference;
          href : treference;
          tai : Taicpu;
+         srsym : psym;
          pushed : tpushed;
          hightree : tnode;
          hl,otl,ofl : pasmlabel;
@@ -741,7 +742,7 @@ implementation
                         parraydef(left.resulttype)^.genrangecheck;
                         href.symbol:=newasmsymbol(parraydef(left.resulttype)^.getrangecheckstring);
                         href.offset:=4;
-                        getsymonlyin(tloadnode(left).symtable,
+                        srsym:=searchsymonlyin(tloadnode(left).symtable,
                           'high'+pvarsym(tloadnode(left).symtableentry)^.name);
                         hightree:=genloadnode(pvarsym(srsym),tloadnode(left).symtable);
                         firstpass(hightree);
@@ -1060,7 +1061,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.9  2001-02-02 22:38:00  peter
+  Revision 1.10  2001-03-11 22:58:52  peter
+    * getsym redesign, removed the globals srsym,srsymtable
+
+  Revision 1.9  2001/02/02 22:38:00  peter
     * fixed crash with new(precord), merged
 
   Revision 1.8  2000/12/25 00:07:33  peter

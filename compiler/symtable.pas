@@ -116,19 +116,14 @@ interface
 
 
     var
-       srsym          : psym;           { result of the last search }
-       srsymtable     : psymtable;
-       lastsrsym      : psym;           { last sym found in statement }
-       lastsrsymtable : psymtable;
-       lastsymknown   : boolean;
        constsymtable  : psymtable;      { symtable were the constants can be inserted }
        systemunit     : punitsymtable;  { pointer to the system unit }
-       read_member : boolean;      { reading members of an symtable }
+       read_member    : boolean;        { reading members of an symtable }
 
-       lexlevel : longint;       { level of code                     }
-                                   { 1 for main procedure             }
-                                   { 2 for normal function or proc     }
-                                   { higher for locals           }
+       lexlevel       : longint;       { level of code }
+                                       { 1 for main procedure }
+                                       { 2 for normal function or proc }
+                                       { higher for locals }
 
 {****************************************************************************
                              Functions
@@ -138,11 +133,13 @@ interface
     function  globaldef(const s : string) : pdef;
     function  findunitsymtable(st:psymtable):psymtable;
     procedure duplicatesym(sym:psym);
+    procedure identifier_not_found(const s:string);
 
 {*** Search ***}
+    function  searchsym(const s : stringid;var srsym:psym;var srsymtable:psymtable):boolean;
     function  search_a_symtable(const symbol:string;symtabletype:tsymtabletype):Psym;
-    procedure getsym(const s : stringid;notfounderror : boolean);
-    procedure getsymonlyin(p : psymtable;const s : stringid);
+    function  searchsymonlyin(p : psymtable;const s : stringid):psym;
+    function  search_class_member(pd : pobjectdef;const s : string):psym;
 
 {*** PPU Write/Loading ***}
     procedure writeunitas(const s : string;unittable : punitsymtable;only_crc : boolean);
@@ -150,7 +147,6 @@ interface
     procedure load_interface;
 
 {*** Object Helpers ***}
-    function search_class_member(pd : pobjectdef;const n : string) : psym;
     function search_default_property(pd : pobjectdef) : ppropertysym;
 
 {*** symtable stack ***}
@@ -386,6 +382,8 @@ implementation
     procedure chainprocsym(p : psym);
       var
          storesymtablestack : psymtable;
+         srsym : psym;
+         srsymtable : psymtable;
       begin
          if p^.typ=procsym then
            begin
@@ -394,8 +392,9 @@ implementation
               while assigned(symtablestack) do
                 begin
                   { search for same procsym in other units }
-                  getsym(p^.name,false);
-                  if assigned(srsym) and (srsym^.typ=procsym) then
+                  searchsym(p^.name,srsym,srsymtable)
+                  if assigned(srsym) and
+                     (srsym^.typ=procsym) then
                     begin
                        pprocsym(p)^.nextprocsym:=pprocsym(srsym);
                        symtablestack:=storesymtablestack;
@@ -448,6 +447,8 @@ implementation
         p : pprocsym;
         t : ttoken;
         def : pprocdef;
+        srsym : psym;
+        srsymtable,
         storesymtablestack : psymtable;
       begin
          storesymtablestack:=symtablestack;
@@ -461,12 +462,15 @@ implementation
               { each operator has a unique lowercased internal name PM }
               while assigned(symtablestack) do
                 begin
-                  getsym(overloaded_names[t],false);
-                  if (t=_STARSTAR) and (srsym=nil) then
-                    begin
-                      symtablestack:=systemunit;
-                      getsym('POWER',false);
-                    end;
+                  searchsym(overloaded_names[t],srsym,srsymtable);
+                  if not assigned(srsym) then
+                   begin
+                     if (t=_STARSTAR) then
+                      begin
+                        symtablestack:=systemunit;
+                        searchsym('POWER',srsym,srsymtable);
+                      end;
+                   end;
                   if assigned(srsym) then
                     begin
                        if (srsym^.typ<>procsym) then
@@ -486,7 +490,7 @@ implementation
                          (def^.nextoverloaded^.owner=p^.owner) do
                          def:=def^.nextoverloaded;
                        def^.nextoverloaded:=nil;
-                       symtablestack:=srsymtable^.next;
+                       symtablestack:=srsym^.owner^.next;
                     end
                   else
                     begin
@@ -734,7 +738,6 @@ implementation
 
     procedure tstoredsymtable.prederef;
       var
-        hp : pdef;
         hs : psym;
       begin
         { first deref the ttypesyms }
@@ -1085,8 +1088,8 @@ implementation
              is_object(pdef(defowner))
             ) then
            begin
-              hsym:=search_class_member(pobjectdef(defowner),sym^.name);
               { but private ids can be reused }
+              hsym:=search_class_member(pobjectdef(defowner),sym^.name);
               if assigned(hsym) and
                 (not(sp_private in hsym^.symoptions) or
                  (hsym^.owner^.defowner^.owner^.symtabletype<>unitsymtable)) then
@@ -2047,7 +2050,7 @@ implementation
          { show a fatal that you need -S2 or -Sd, but only
            if we just parsed the a token that has m_class }
          if not(m_class in aktmodeswitches) and
-            (s=pattern) and
+            (Upper(s)=pattern) and
             (tokeninfo^[idtoken].keyword=m_class) then
            Message(parser_f_need_objfpc_or_delphi_mode);
        end;
@@ -2058,55 +2061,73 @@ implementation
                                   Search
 *****************************************************************************}
 
-    procedure getsym(const s : stringid;notfounderror : boolean);
+    function  searchsym(const s : stringid;var srsym:psym;var srsymtable:psymtable):boolean;
       var
         speedvalue : longint;
       begin
          speedvalue:=getspeedvalue(s);
-         lastsrsym:=nil;
          srsymtable:=symtablestack;
          while assigned(srsymtable) do
            begin
               srsym:=psym(srsymtable^.speedsearch(s,speedvalue));
               if assigned(srsym) then
-                exit
+               begin
+                 searchsym:=true;
+                 exit;
+               end
               else
-                srsymtable:=srsymtable^.next;
+               srsymtable:=srsymtable^.next;
            end;
-         if notfounderror then
-           begin
-              identifier_not_found(s);
-              srsym:=generrorsym;
-           end
-         else
-           srsym:=nil;
+         searchsym:=false;
       end;
 
 
-    procedure getsymonlyin(p : psymtable;const s : stringid);
+    function  searchsymonlyin(p : psymtable;const s : stringid):psym;
+      var
+        srsym      : psym;
       begin
-         { the caller have to take care if srsym=nil (FK) }
-         srsym:=nil;
+         { the caller have to take care if srsym=nil }
          if assigned(p) then
            begin
-              srsymtable:=p;
-              srsym:=psym(srsymtable^.search(s));
+              srsym:=psym(p^.search(s));
               if assigned(srsym) then
-                exit
-              else
                begin
-                  if (punitsymtable(srsymtable)=punitsymtable(current_module.globalsymtable)) then
-                    begin
-                       getsymonlyin(psymtable(current_module.localsymtable),s);
-                       if assigned(srsym) then
-                         srsymtable:=psymtable(current_module.localsymtable)
-                       else
-                         identifier_not_found(s);
-                    end
-                  else
-                    identifier_not_found(s);
+                 searchsymonlyin:=srsym;
+                 exit;
                end;
+              { also check in the local symtbale if it exists }
+              if (punitsymtable(p)=punitsymtable(current_module.globalsymtable)) then
+                begin
+                   srsym:=psym(psymtable(current_module.localsymtable)^.search(s));
+                   if assigned(srsym) then
+                    begin
+                      searchsymonlyin:=srsym;
+                      exit;
+                    end;
+                end
            end;
+         searchsymonlyin:=nil;
+       end;
+
+
+    function search_class_member(pd : pobjectdef;const s : string):psym;
+    { searches n in symtable of pd and all anchestors }
+      var
+        speedvalue : longint;
+        srsym      : psym;
+      begin
+        speedvalue:=getspeedvalue(s);
+        while assigned(pd) do
+         begin
+           srsym:=psym(pd^.symtable^.speedsearch(s,speedvalue));
+           if assigned(srsym) then
+            begin
+              search_class_member:=srsym;
+              exit;
+            end;
+           pd:=pd^.childof;
+         end;
+        search_class_member:=nil;
       end;
 
 
@@ -2138,12 +2159,14 @@ implementation
 
       var st : string;
           symt : psymtable;
+          srsym      : psym;
+          srsymtable : psymtable;
       begin
          srsym := nil;
          if pos('.',s) > 0 then
            begin
            st := copy(s,1,pos('.',s)-1);
-           getsym(st,false);
+           searchsym(st,srsym,srsymtable);
            st := copy(s,pos('.',s)+1,255);
            if assigned(srsym) then
              begin
@@ -2154,10 +2177,12 @@ implementation
                end else srsym := nil;
              end;
            end else st := s;
-         if srsym = nil then getsym(st,false);
          if srsym = nil then
-           getsymonlyin(systemunit,st);
-         if srsym^.typ<>typesym then
+          searchsym(st,srsym,srsymtable);
+         if srsym = nil then
+           srsym:=searchsymonlyin(systemunit,st);
+         if (not assigned(srsym)) or
+            (srsym^.typ<>typesym) then
            begin
              Message(type_e_type_id_expected);
              exit;
@@ -2168,28 +2193,6 @@ implementation
 {****************************************************************************
                               Object Helpers
 ****************************************************************************}
-
-    function search_class_member(pd : pobjectdef;const n : string) : psym;
-    { searches n in symtable of pd and all anchestors }
-      var
-         sym : psym;
-      begin
-         sym:=nil;
-         while assigned(pd) do
-           begin
-              sym:=psym(pd^.symtable^.search(n));
-              if assigned(sym) then
-                break;
-              pd:=pd^.childof;
-           end;
-         { this is needed for static methods in do_member_read pexpr unit PM
-           caused bug0214 }
-         if assigned(sym) then
-           begin
-             srsymtable:=pd^.symtable;
-           end;
-         search_class_member:=sym;
-      end;
 
    var
       _defaultprop : ppropertysym;
@@ -2374,7 +2377,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.26  2001-02-21 19:37:19  peter
+  Revision 1.27  2001-03-11 22:58:51  peter
+    * getsym redesign, removed the globals srsym,srsymtable
+
+  Revision 1.26  2001/02/21 19:37:19  peter
     * moved deref to be done after loading of implementation units. prederef
       is still done directly after loading of symbols and definitions.
 

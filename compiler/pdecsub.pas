@@ -99,6 +99,7 @@ implementation
         tt      : ttype;
         hvs,
         vs      : Pvarsym;
+        srsym   : psym;
         hs1,hs2 : string;
         varspez : Tvarspez;
         inserthigh : boolean;
@@ -174,8 +175,7 @@ implementation
                      if (token=_CONST) and (m_objpas in aktmodeswitches) then
                       begin
                         consume(_CONST);
-                        srsym:=nil;
-                        getsymonlyin(systemunit,'TVARREC');
+                        srsym:=searchsymonlyin(systemunit,'TVARREC');
                         if not assigned(srsym) then
                          InternalError(1234124);
                         Parraydef(tt.def)^.elementtype:=ptypesym(srsym)^.restype;
@@ -314,6 +314,7 @@ var orgsp,sp:stringid;
     sym:Psym;
     hs:string;
     st : psymtable;
+    srsymtable : psymtable;
     overloaded_level:word;
     storepos,procstartfilepos : tfileposinfo;
     i: longint;
@@ -337,7 +338,8 @@ begin
     end;
 
     { examine interface map: function/procedure iname.functionname=locfuncname }
-    if parse_only and assigned(procinfo^._class) and
+    if parse_only and
+       assigned(procinfo^._class) and
        assigned(procinfo^._class^.implementedinterfaces) and
        (procinfo^._class^.implementedinterfaces^.count>0) and
        try_to_consume(_POINT) then
@@ -345,11 +347,14 @@ begin
          storepos:=akttokenpos;
          akttokenpos:=procstartfilepos;
          { get interface syms}
-         getsym(sp,true);
-         sym:=srsym;
+         searchsym(sp,sym,srsymtable);
+         if not assigned(sym) then
+          begin
+            identifier_not_found(orgsp);
+            sym:=generrorsym;
+          end;
          akttokenpos:=storepos;
          { load proc name }
-         sp:=pattern;
          if sym^.typ=typesym then
            i:=procinfo^._class^.implementedinterfaces^.searchintf(ptypesym(sym)^.restype.def);
          { qualifier is interface name? }
@@ -378,22 +383,27 @@ begin
      (lexlevel=normal_function_level) and
      try_to_consume(_POINT) then
    begin
+     { search for object name }
      storepos:=akttokenpos;
      akttokenpos:=procstartfilepos;
-     getsym(sp,true);
-     sym:=srsym;
+     searchsym(sp,sym,srsymtable);
+     if not assigned(sym) then
+      begin
+        identifier_not_found(orgsp);
+        sym:=generrorsym;
+      end;
      akttokenpos:=storepos;
-     { load proc name }
+     { consume proc name }
      sp:=pattern;
      orgsp:=orgpattern;
      procstartfilepos:=akttokenpos;
+     consume(_ID);
      { qualifier is class name ? }
      if (sym^.typ<>typesym) or
         (ptypesym(sym)^.restype.def^.deftype<>objectdef) then
        begin
           Message(parser_e_class_id_expected);
           aktprocsym:=nil;
-          consume(_ID);
        end
      else
        begin
@@ -401,7 +411,6 @@ begin
           aktobjectdef:=pobjectdef(ptypesym(sym)^.restype.def);
           procinfo^._class:=pobjectdef(ptypesym(sym)^.restype.def);
           aktprocsym:=pprocsym(procinfo^._class^.symtable^.search(sp));
-          consume(_ID);
           {The procedure has been found. So it is
            a global one. Set the flags to mark this.}
           procinfo^.flags:=procinfo^.flags or pi_is_global;
@@ -1878,7 +1887,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.12  2001-03-06 18:28:02  peter
+  Revision 1.13  2001-03-11 22:58:50  peter
+    * getsym redesign, removed the globals srsym,srsymtable
+
+  Revision 1.12  2001/03/06 18:28:02  peter
     * patch from Pavel with a new and much faster DLL Scanner for
       automatic importing so $linklib works for DLLs. Thanks Pavel!
 

@@ -261,7 +261,9 @@ implementation
          { we must pop this size also after !! }
 {        must_pop : boolean; }
          pop_size : longint;
+{$ifdef dummy}
          push_size : longint;
+{$endif}
          pop_esp : boolean;
          pop_allowed : boolean;
          regs_to_push : byte;
@@ -390,7 +392,7 @@ implementation
 {$endif GDB}
              end;
           end;
-         {
+{$ifdef dummy}
          if pop_allowed and (cs_align in aktglobalswitches) then
            begin
               pop_esp:=true;
@@ -411,7 +413,7 @@ implementation
               emit_reg(A_PUSH,S_L,R_EDI);
            end
          else
-         }
+{$endif dummy}
            pop_esp:=false;
          if (resulttype<>pdef(voiddef)) and
             ret_in_param(resulttype) then
@@ -1587,7 +1589,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.18  2001-01-27 21:29:35  florian
+  Revision 1.19  2001-03-11 22:58:51  peter
+    * getsym redesign, removed the globals srsym,srsymtable
+
+  Revision 1.18  2001/01/27 21:29:35  florian
      * behavior -Oa optimized
 
   Revision 1.17  2001/01/08 21:46:46  peter

@@ -791,12 +791,12 @@ Function TOperand.SetupVar(const hs:string;GetOffset : boolean): Boolean;
 { if not found returns FALSE.                               }
 var
   sym : psym;
+  srsymtable : psymtable;
   harrdef : parraydef;
 Begin
   SetupVar:=false;
 { are we in a routine ? }
-  getsym(hs,false);
-  sym:=srsym;
+  searchsym(hs,sym,srsymtable);
   if sym=nil then
    exit;
   case sym^.typ of
@@ -1179,8 +1179,11 @@ end;
 ****************************************************************************}
 
 Function SearchType(const hs:string): Boolean;
+var
+  srsym : psym;
+  srsymtable : psymtable;
 begin
-  getsym(hs,false);
+  searchsym(hs,srsym,srsymtable);
   SearchType:=assigned(srsym) and
              (srsym^.typ=typesym);
 end;
@@ -1188,10 +1191,13 @@ end;
 
 
 Function SearchRecordType(const s:string): boolean;
+var
+  srsym : psym;
+  srsymtable : psymtable;
 Begin
   SearchRecordType:=false;
 { Check the constants in symtable }
-  getsym(s,false);
+  searchsym(s,srsym,srsymtable);
   if srsym <> nil then
    Begin
      case srsym^.typ of
@@ -1217,6 +1223,9 @@ Function SearchIConstant(const s:string; var l:longint): boolean;
 { Remarks: Also handle TRUE and FALSE returning in those cases 1 and 0 }
 {  respectively.                                                       }
 {**********************************************************************}
+var
+  srsym : psym;
+  srsymtable : psymtable;
 Begin
   SearchIConstant:=false;
 { check for TRUE or FALSE reserved words first }
@@ -1233,7 +1242,7 @@ Begin
      exit;
    end;
 { Check the constants in symtable }
-  getsym(s,false);
+  searchsym(s,srsym,srsymtable);
   if srsym <> nil then
    Begin
      case srsym^.typ of
@@ -1266,6 +1275,7 @@ var
   st   : psymtable;
   harrdef : parraydef;
   sym  : psym;
+  srsymtable : psymtable;
   i    : longint;
   base : string;
 Begin
@@ -1281,8 +1291,7 @@ Begin
    st:=procinfo^._class^.symtable
   else
    begin
-     getsym(base,false);
-     sym:=srsym;
+     searchsym(base,sym,srsymtable);
      st:=nil;
      { we can start with a var,type,typedconst }
      case sym^.typ of
@@ -1365,14 +1374,14 @@ end;
 Function SearchLabel(const s: string; var hl: pasmlabel;emit:boolean): boolean;
 var
   sym : psym;
+  srsymtable : psymtable;
   hs  : string;
 Begin
   hl:=nil;
   SearchLabel:=false;
 { Check for pascal labels, which are case insensetive }
   hs:=upper(s);
-  getsym(hs,false);
-  sym:=srsym;
+  searchsym(hs,sym,srsymtable);
   if sym=nil then
    exit;
   case sym^.typ of
@@ -1556,7 +1565,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.15  2001-02-26 19:44:54  peter
+  Revision 1.16  2001-03-11 22:58:50  peter
+    * getsym redesign, removed the globals srsym,srsymtable
+
+  Revision 1.15  2001/02/26 19:44:54  peter
     * merged generic m68k updates from fixes branch
 
   Revision 1.14  2000/12/25 00:07:28  peter

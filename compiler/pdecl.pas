@@ -269,6 +269,8 @@ implementation
         hpd,pd : pdef;
         stpos  : tfileposinfo;
         again  : boolean;
+        srsym  : psym;
+        srsymtable : psymtable;
       begin
          { Check only typesyms or record/object fields }
          case psym(p)^.typ of
@@ -305,7 +307,7 @@ implementation
                     akttokenpos:=pforwarddef(hpd)^.forwardpos;
                     resolving_forward:=true;
                     make_ref:=false;
-                    getsym(pforwarddef(hpd)^.tosymname,false);
+                    searchsym(pforwarddef(hpd)^.tosymname,srsym,srsymtable);
                     make_ref:=true;
                     resolving_forward:=false;
                     akttokenpos:=stpos;
@@ -371,6 +373,7 @@ implementation
          typename,orgtypename : stringid;
          newtype  : ptypesym;
          sym      : psym;
+         srsymtable : psymtable;
          tt       : ttype;
          defpos,storetokenpos : tfileposinfo;
          old_block_type : tblock_type;
@@ -389,8 +392,7 @@ implementation
            if token=_TYPE then
             Consume(_TYPE);
            { is the type already defined? }
-           getsym(typename,false);
-           sym:=srsym;
+           searchsym(typename,sym,srsymtable);
            newtype:=nil;
            { found a symbol with this name? }
            if assigned(sym) then
@@ -544,7 +546,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.24  2000-12-25 00:07:27  peter
+  Revision 1.25  2001-03-11 22:58:49  peter
+    * getsym redesign, removed the globals srsym,srsymtable
+
+  Revision 1.24  2000/12/25 00:07:27  peter
     + new tlinkedlist class (merge of old tstringqueue,tcontainer and
       tlinkedlist objects)
 

@@ -5425,6 +5425,8 @@ Const local_symtable_index : longint = $8001;
 
       var st : string;
           symt : psymtable;
+          srsym : psym;
+          srsymtable : psymtable;
           old_make_ref : boolean;
       begin
          old_make_ref:=make_ref;
@@ -5434,7 +5436,7 @@ Const local_symtable_index : longint = $8001;
          if pos('.',s) > 0 then
            begin
            st := copy(s,1,pos('.',s)-1);
-           getsym(st,false);
+           searchsym(st,srsym,srsymtable);
            st := copy(s,pos('.',s)+1,255);
            if assigned(srsym) then
              begin
@@ -5445,8 +5447,10 @@ Const local_symtable_index : longint = $8001;
                end else srsym := nil;
              end;
            end else st := s;
-         if srsym = nil then getsym(st,true);
-         if srsym^.typ<>typesym then
+         if srsym = nil then
+          searchsym(st,srsym,srsymtable);
+         if (srsym=nil) or
+            (srsym^.typ<>typesym) then
            begin
              Message(type_e_type_id_expected);
              exit;
@@ -5561,7 +5565,10 @@ Const local_symtable_index : longint = $8001;
 end.
 {
   $Log$
-  Revision 1.20  2001-01-06 20:11:29  peter
+  Revision 1.21  2001-03-11 22:58:50  peter
+    * getsym redesign, removed the globals srsym,srsymtable
+
+  Revision 1.20  2001/01/06 20:11:29  peter
     * merged c packrecords fix
 
   Revision 1.19  2000/12/25 00:07:29  peter

@@ -25,8 +25,6 @@ unit pdecvar;
 
 {$i defines.inc}
 
-{$define UseUnionSymtable}
-
 interface
 
     procedure read_var_decs(is_record,is_object,is_threadvar:boolean);
@@ -120,13 +118,13 @@ implementation
          { startvarrec contains the start of the variant part of a record }
          maxsize,maxalignment,startvarrecalign,startvarrecsize : longint;
          pt : tnode;
-{$ifdef UseUnionSymtable}
+         srsym : psym;
+         srsymtable : psymtable;
          unionsymtable : psymtable;
          offset : longint;
          uniondef : precorddef;
          unionsym : pvarsym;
          uniontype : ttype;
-{$endif UseUnionSymtable}
       begin
          old_current_object_option:=current_object_option;
          { all variables are public if not in a object declaration }
@@ -212,15 +210,7 @@ implementation
                 { parse the rest }
                 if token=_ID then
                  begin
-                   getsym(pattern,true);
-                   consume(_ID);
-                   { support unit.variable }
-                   if srsym^.typ=unitsym then
-                    begin
-                      consume(_POINT);
-                      getsymonlyin(punitsym(srsym)^.unitsymtable,pattern);
-                      consume(_ID);
-                    end;
+                   consume_sym(srsym,srsymtable);
                    { we should check the result type of srsym }
                    if not (srsym^.typ in [varsym,typedconstsym,funcretsym]) then
                      Message(parser_e_absolute_only_to_var_or_const);
@@ -447,17 +437,17 @@ implementation
               maxalignment:=0;
               consume(_CASE);
               s:=pattern;
-              getsym(s,false);
+              searchsym(s,srsym,srsymtable);
               { may be only a type: }
               if assigned(srsym) and (srsym^.typ in [typesym,unitsym]) then
                begin
                  { for records, don't search the recordsymtable for
                    the symbols of the types }
                  oldsymtablestack:=symtablestack;
-                     symtablestack:=symtablestack^.next;
+                 symtablestack:=symtablestack^.next;
                  read_type(casetype,'');
-                     symtablestack:=oldsymtablestack;
-                   end
+                 symtablestack:=oldsymtablestack;
+               end
               else
                 begin
                   consume(_ID);
@@ -465,22 +455,20 @@ implementation
                   { for records, don't search the recordsymtable for
                     the symbols of the types }
                   oldsymtablestack:=symtablestack;
-                      symtablestack:=symtablestack^.next;
+                  symtablestack:=symtablestack^.next;
                   read_type(casetype,'');
-                      symtablestack:=oldsymtablestack;
+                  symtablestack:=oldsymtablestack;
                   symtablestack^.insert(new(pvarsym,init(s,casetype)));
                 end;
               if not(is_ordinal(casetype.def)) or is_64bitint(casetype.def)  then
                Message(type_e_ordinal_expr_expected);
               consume(_OF);
-{$ifdef UseUnionSymtable}
               UnionSymtable:=new(pstoredsymtable,init(recordsymtable));
               UnionSymtable^.next:=symtablestack;
               registerdef:=false;
               UnionDef:=new(precorddef,init(unionsymtable));
               registerdef:=true;
               symtablestack:=UnionSymtable;
-{$endif UseUnionSymtable}
               startvarrecsize:=symtablestack^.datasize;
               startvarrecalign:=symtablestack^.dataalignment;
               repeat
@@ -517,7 +505,6 @@ implementation
               { at last set the record size to that of the biggest variant }
               symtablestack^.datasize:=maxsize;
               symtablestack^.dataalignment:=maxalignment;
-{$ifdef UseUnionSymtable}
               uniontype.def:=uniondef;
               uniontype.sym:=nil;
               UnionSym:=new(pvarsym,init('case',uniontype));
@@ -532,7 +519,6 @@ implementation
               UnionSym^.owner:=nil;
               dispose(unionsym,done);
               dispose(uniondef,done);
-{$endif UseUnionSymtable}
            end;
          block_type:=old_block_type;
          current_object_option:=old_current_object_option;
@@ -541,7 +527,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.10  2001-03-06 18:28:02  peter
+  Revision 1.11  2001-03-11 22:58:50  peter
+    * getsym redesign, removed the globals srsym,srsymtable
+
+  Revision 1.10  2001/03/06 18:28:02  peter
     * patch from Pavel with a new and much faster DLL Scanner for
       automatic importing so $linklib works for DLLs. Thanks Pavel!
 

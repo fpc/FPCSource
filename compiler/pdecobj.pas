@@ -281,10 +281,9 @@ implementation
                            begin
                              p^.readaccess^.addsym(sym);
                              consume(_POINT);
-                             getsymonlyin(precorddef(pvarsym(sym)^.vartype.def)^.symtable,pattern);
-                             if not assigned(srsym) then
+                             sym:=searchsymonlyin(precorddef(pvarsym(sym)^.vartype.def)^.symtable,pattern);
+                             if not assigned(sym) then
                                Message1(sym_e_illegal_field,pattern);
-                             sym:=srsym;
                              consume(_ID);
                            end;
                        end;
@@ -332,10 +331,9 @@ implementation
                            begin
                              p^.writeaccess^.addsym(sym);
                              consume(_POINT);
-                             getsymonlyin(precorddef(pvarsym(sym)^.vartype.def)^.symtable,pattern);
-                             if not assigned(srsym) then
+                             sym:=searchsymonlyin(precorddef(pvarsym(sym)^.vartype.def)^.symtable,pattern);
+                             if not assigned(sym) then
                                Message1(sym_e_illegal_field,pattern);
-                             sym:=srsym;
                              consume(_ID);
                            end;
                        end;
@@ -395,10 +393,9 @@ implementation
                                       begin
                                         p^.storedaccess^.addsym(sym);
                                         consume(_POINT);
-                                        getsymonlyin(precorddef(pvarsym(sym)^.vartype.def)^.symtable,pattern);
-                                        if not assigned(srsym) then
+                                        sym:=searchsymonlyin(precorddef(pvarsym(sym)^.vartype.def)^.symtable,pattern);
+                                        if not assigned(sym) then
                                           Message1(sym_e_illegal_field,pattern);
-                                        sym:=srsym;
                                         consume(_ID);
                                       end;
                                   end;
@@ -1168,7 +1165,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.15  2000-12-25 00:07:27  peter
+  Revision 1.16  2001-03-11 22:58:49  peter
+    * getsym redesign, removed the globals srsym,srsymtable
+
+  Revision 1.15  2000/12/25 00:07:27  peter
     + new tlinkedlist class (merge of old tstringqueue,tcontainer and
       tlinkedlist objects)
 
