@@ -546,30 +546,24 @@ var
   oSection: TIniFileSection;
   oKey: TIniFileKey;
 begin
-  if (Section > '') and (Ident > '') then begin
-    // update or add key
+  if (Section > '') and (Ident > '') then
+    begin
     oSection := FSectionList.SectionByName(Section);
-    if (Value > '') then begin
-      if oSection = nil then begin
-        oSection := TIniFileSection.Create(Section);
-        FSectionList.Add(oSection);
+    if oSection = nil then
+      begin
+      oSection := TIniFileSection.Create(Section);
+      FSectionList.Add(oSection);
       end;
-      with oSection.KeyList do begin
-        oKey := KeyByName(Ident);
-        if oKey <> nil then
-          oKey.Value := Value
-        else
-          oSection.KeyList.Add(TIniFileKey.Create(Ident, Value));
+    with oSection.KeyList do
+      begin
+      oKey := KeyByName(Ident);
+      if oKey <> nil then
+        oKey.Value := Value
+      else
+        oSection.KeyList.Add(TIniFileKey.Create(Ident, Value));
       end;
-    end else if oSection <> nil then begin
-      // remove key
-      oKey := oSection.KeyList.KeyByName(Ident);
-      if oKey <> nil then begin
-        oSection.KeyList.Remove(oKey);
-      end;
-    end;
     UpdateFile;
-  end;
+    end;
 end;
 
 procedure TIniFile.ReadSection(const Section: string; Strings: TStrings);
@@ -772,7 +766,10 @@ end.
 
 {
   $Log$
-  Revision 1.1.2.1  2000-11-26 22:41:26  michael
+  Revision 1.1.2.2  2000-12-21 15:46:04  michael
+  + Fixed writing of empty values
+
+  Revision 1.1.2.1  2000/11/26 22:41:26  michael
   + Fix for addition of empty ident/value by Jean-Pierre Planas
 
   Revision 1.1  2000/07/13 06:31:30  michael
