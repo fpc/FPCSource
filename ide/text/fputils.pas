@@ -126,7 +126,7 @@ function SmartPath(Path: string): string;
 var S: string;
 begin
   GetDir(0,S); if copy(S,length(S),1)<>DirSep then S:=S+DirSep;
-  if (copy(Path,1,length(S))=S) {and (Pos('\',copy(Path,length(S)+1,255))=0)} then
+  if (copy(Path,1,length(S))=S) {and (Pos('\',copy(Path,length(S)+1,High(S)))=0)} then
      system.Delete(Path,1,length(S));
   SmartPath:=Path;
 end;
@@ -664,7 +664,10 @@ end;
 END.
 {
   $Log$
-  Revision 1.15  2000-04-18 11:42:37  pierre
+  Revision 1.16  2000-06-22 09:07:13  pierre
+   * Gabor changes: see fixes.txt
+
+  Revision 1.15  2000/04/18 11:42:37  pierre
    lot of Gabor changes : see fixes.txt
 
   Revision 1.14  2000/01/03 11:38:34  michael

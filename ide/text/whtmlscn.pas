@@ -128,13 +128,18 @@ const
   );
 
 function TCustomHTMLLinkScanner.DocAddTextChar(C: char): boolean;
+var Added: boolean;
 begin
+  Added:=false;
   if InAnchor then
+  begin
     CurLinkText:=CurLinkText+C;
+    Added:=true;
+  end;
+  DocAddTextChar:=Added;
 end;
 
 procedure TCustomHTMLLinkScanner.DocAnchor(Entered: boolean);
-var P: sw_integer;
 begin
   if Entered then
     begin
@@ -210,7 +215,6 @@ begin
 end;
 
 procedure THTMLLinkScanDocument.Store(var S: TStream);
-var I: integer;
 begin
   S.WriteStr(DocName);
   Aliases^.Store(S);
@@ -449,7 +453,10 @@ end;
 END.
 {
   $Log$
-  Revision 1.6  2000-05-29 11:09:14  pierre
+  Revision 1.7  2000-06-22 09:07:15  pierre
+   * Gabor changes: see fixes.txt
+
+  Revision 1.6  2000/05/29 11:09:14  pierre
    + New bunch of Gabor's changes: see fixes.txt
 
   Revision 1.5  2000/05/17 08:49:16  pierre

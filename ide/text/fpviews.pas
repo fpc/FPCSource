@@ -440,8 +440,7 @@ procedure RegisterFPViews;
 implementation
 
 uses
-  {$ifdef GABOR}crt,{$endif}
-  Video,Strings,Keyboard,Memory,MsgBox,Validate,
+  Video,Strings,Keyboard,Validate,
   Tokens,Version,
 {$ifndef NODEBUG}
   gdbint,
@@ -1389,8 +1388,8 @@ begin
       else if Editor^.GetModified then
         begin
           PA[1]:=@AFileName;
-(*          longint(PA[2]):=Editor^.ChangedLine;
-          EditorDialog(edChangedOnloading,@PA);*)
+          longint(PA[2]):={Editor^.ChangedLine}-1;
+          EditorDialog(edChangedOnloading,@PA);
         end;
    end;
   Insert(Editor);
@@ -3472,7 +3471,10 @@ end;
 END.
 {
   $Log$
-  Revision 1.72  2000-06-16 08:50:42  pierre
+  Revision 1.73  2000-06-22 09:07:13  pierre
+   * Gabor changes: see fixes.txt
+
+  Revision 1.72  2000/06/16 08:50:42  pierre
    + new bunch of Gabor's changes
 
   Revision 1.71  2000/05/29 10:44:57  pierre

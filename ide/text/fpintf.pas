@@ -30,11 +30,11 @@ procedure SetPrimaryFile(const fn:string);
 implementation
 
 uses
-  Compiler,CompHook,
+  Compiler,
 {$ifndef NODEBUG}
   FPDebug,
 {$endif NODEBUG}
-  FPCompile,FPRedir,FPVars,
+  FPRedir,FPVars,
   FPUtils,FPSwitch;
 
 {****************************************************************************
@@ -212,7 +212,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.11  2000-05-29 10:44:56  pierre
+  Revision 1.12  2000-06-22 09:07:12  pierre
+   * Gabor changes: see fixes.txt
+
+  Revision 1.11  2000/05/29 10:44:56  pierre
    + New bunch of Gabor's changes: see fixes.txt
 
   Revision 1.10  2000/05/02 08:42:27  pierre

@@ -37,13 +37,13 @@ const
       ncRawChar      = $F;
       ncRepChar      = $E;
 
-      rtFileHeader   = Byte ($0);
-      rtContext      = Byte ($1);
-      rtText         = Byte ($2);
-      rtKeyWord      = Byte ($3);
-      rtIndex        = Byte ($4);
-      rtCompression  = Byte ($5);
-      rtIndexTags    = Byte ($6);
+      oa_rtFileHeader   = Byte ($0);
+      oa_rtContext      = Byte ($1);
+      oa_rtText         = Byte ($2);
+      oa_rtKeyWord      = Byte ($3);
+      oa_rtIndex        = Byte ($4);
+      oa_rtCompression  = Byte ($5);
+      oa_rtIndexTags    = Byte ($6);
 
       ctNone         = $00;
       ctNibble       = $02;
@@ -137,7 +137,7 @@ type
       end;
 
       TRecord = packed record
-        SClass   : byte;
+        SClass   : word;
         Size     : word;
         Data     : pointer;
       end;
@@ -197,6 +197,8 @@ type
         IndexEntries : PIndexEntryCollection;
         constructor Init(AID: word);
         function    LoadTopic(HelpCtx: THelpCtx): PTopic; virtual;
+        procedure   AddTopic(HelpCtx: THelpCtx; Pos: longint; const Param: string);
+        procedure   AddIndexEntry(const Text: string; AHelpCtx: THelpCtx);
         destructor  Done; virtual;
       public
         function    LoadIndex: boolean; virtual;
@@ -241,6 +243,7 @@ type
         constructor Init;
         function    AddOAHelpFile(const FileName: string): boolean;
         function    AddHTMLHelpFile(const FileName, TOCEntry: string): boolean;
+        function    AddNGHelpFile(const FileName: string): boolean;
         function    AddHTMLIndexHelpFile(const FileName: string): boolean;
         function    LoadTopic(SourceFileID: word; Context: THelpCtx): PTopic; virtual;
         function    TopicSearch(Keyword: string; var FileID: word; var Context: THelpCtx): boolean; virtual;
@@ -262,17 +265,21 @@ const TopicCacheSize    : sw_integer = 10;
 function  NewTopic(FileID: byte; HelpCtx: THelpCtx; Pos: longint; Param: string): PTopic;
 procedure DisposeTopic(P: PTopic);
 
+procedure RenderTopic(Lines: PUnsortedStringCollection; T: PTopic);
+procedure AddLinkToTopic(T: PTopic; AFileID: word; ACtx: THelpCtx);
+
 function  NewIndexEntry(Tag: string; FileID: word; HelpCtx: THelpCtx): PIndexEntry;
 procedure DisposeIndexEntry(P: PIndexEntry);
+
+procedure DisposeRecord(var R: TRecord);
 
 implementation
 
 uses
-  Dos,
 {$ifdef Linux}
   linux,
 {$endif Linux}
-  WConsts,WViews,WHTMLHlp;
+  WConsts,WHTMLHlp,WNGHelp;
 
 
 Function GetDosTicks:longint; { returns ticks at 18.2 Hz, just like DOS }
@@ -354,6 +361,51 @@ begin
     T^.NamedMarks^.ForEach(@CloneMark);
   end;
   CloneTopic:=NT;
+end;
+
+procedure RenderTopic(Lines: PUnsortedStringCollection; T: PTopic);
+var Size,CurPtr,I: sw_word;
+    S: string;
+begin
+  CurPtr:=0;
+  for I:=0 to Lines^.Count-1 do
+  begin
+    S:=GetStr(Lines^.At(I));
+    Size:=length(S)+1;
+    Inc(CurPtr,Size);
+  end;
+  Size:=CurPtr;
+  T^.TextSize:=Size; GetMem(T^.Text,T^.TextSize);
+  CurPtr:=0;
+  for I:=0 to Lines^.Count-1 do
+  begin
+    S:=GetStr(Lines^.At(I)); Size:=length(S);
+    Move(S[1],PByteArray(T^.Text)^[CurPtr],Size);
+    Inc(CurPtr,Size);
+    PByteArray(T^.Text)^[CurPtr]:=ord(hscLineBreak);
+    Inc(CurPtr);
+    if CurPtr>=T^.TextSize then Break;
+  end;
+end;
+
+procedure AddLinkToTopic(T: PTopic; AFileID: word; ACtx: THelpCtx);
+var NewSize: word;
+    NewPtr: pointer;
+begin
+  NewSize:=(T^.LinkCount+1)*sizeof(T^.Links^[0]);
+  GetMem(NewPtr,NewSize);
+  if Assigned(T^.Links) then
+  begin
+    Move(T^.Links^,NewPtr^,T^.LinkSize);
+    FreeMem(T^.Links,T^.LinkSize);
+  end;
+  T^.Links:=NewPtr;
+  with T^.Links^[T^.LinkCount] do
+  begin
+    FileID:=AFileID;
+    Context:=ACtx;
+  end;
+  Inc(T^.LinkCount);
 end;
 
 function NewIndexEntry(Tag: string; FileID: word; HelpCtx: THelpCtx): PIndexEntry;
@@ -457,6 +509,16 @@ begin
   New(IndexEntries, Init(200,100));
 end;
 
+procedure THelpFile.AddTopic(HelpCtx: THelpCtx; Pos: longint; const Param: string);
+begin
+  Topics^.Insert(NewTopic(ID,HelpCtx,Pos,Param));
+end;
+
+procedure THelpFile.AddIndexEntry(const Text: string; AHelpCtx: THelpCtx);
+begin
+  IndexEntries^.Insert(NewIndexEntry(Text,ID,AHelpCtx));
+end;
+
 function THelpFile.LoadTopic(HelpCtx: THelpCtx): PTopic;
 var T: PTopic;
 begin
@@ -526,7 +588,7 @@ var OK: boolean;
     FS,L: longint;
     R: TRecord;
 begin
-  inherited Init(AID);
+  if inherited Init(AID)=false then Fail;
   F:=New(PBufStream, Init(AFileName, stOpenRead, HelpStreamBufSize));
   OK:=F<>nil;
   if OK then OK:=(F^.Status=stOK);
@@ -542,12 +604,12 @@ begin
     OK:=ReadRecord(R,false);
     if (OK=false) or (R.SClass=0) or (R.Size=0) then Break;
     case R.SClass of
-      rtContext     : begin F^.Seek(L); OK:=ReadTopics; end;
-      rtText        : {Skip};
-      rtKeyword     : {Skip};
-      rtIndex       : begin IndexTablePos:=L; {OK:=ReadIndexTable; }end;
-      rtCompression : begin F^.Seek(L); OK:=ReadCompression; end;
-      rtIndexTags   : begin IndexTagsPos:=L; {OK:=ReadIndexTags; }end;
+      oa_rtContext     : begin F^.Seek(L); OK:=ReadTopics; end;
+      oa_rtText        : {Skip};
+      oa_rtKeyword     : {Skip};
+      oa_rtIndex       : begin IndexTablePos:=L; {OK:=ReadIndexTable; }end;
+      oa_rtCompression : begin F^.Seek(L); OK:=ReadCompression; end;
+      oa_rtIndexTags   : begin IndexTagsPos:=L; {OK:=ReadIndexTags; }end;
     else
      begin
      {$ifdef DEBUGMSG}
@@ -592,7 +654,7 @@ begin
     if OK then
     begin
       OK:=ReadRecord(R,true);
-      OK:=OK and (R.SClass=rtFileHeader) and (R.Size=SizeOf(Header));
+      OK:=OK and (R.SClass=oa_rtFileHeader) and (R.Size=SizeOf(Header));
       if OK then Move(R.Data^,Header,SizeOf(Header));
       DisposeRecord(R);
     end;
@@ -620,7 +682,7 @@ begin
     if (L=-1) and (Header.MainIndexScreen>0) then
        L:=GetCtxPos(Contexts[Header.MainIndexScreen]);
     if (L>0) then
-      Topics^.Insert(NewTopic(ID,I,L,''));
+      AddTopic(I,L,'');
   end;
   DisposeRecord(R);
   TopicsRead:=OK;
@@ -652,7 +714,7 @@ begin
     S[0]:=chr(AddLen); Move(PByteArray(@Entries)^[CurPtr+1],S[1],AddLen);
     LastTag:=copy(LastTag,1,CopyCnt)+S;
     HelpCtx:=PWord(@PByteArray(@Entries)^[CurPtr+1+AddLen])^;
-    IndexEntries^.Insert(NewIndexEntry(LastTag,ID,HelpCtx));
+    AddIndexEntry(LastTag,HelpCtx);
     Inc(CurPtr,1+AddLen+2);
   end;
   DisposeRecord(R);
@@ -855,9 +917,9 @@ begin
     FillChar(TextR,SizeOf(TextR),0); FillChar(KeyWR,SizeOf(KeyWR),0);
     F^.Seek(T^.FileOfs); OK:=F^.Status=stOK;
     if OK then OK:=ReadRecord(TextR,true);
-    OK:=OK and (TextR.SClass=rtText);
+    OK:=OK and (TextR.SClass=oa_rtText);
     if OK then OK:=ReadRecord(KeyWR,true);
-    OK:=OK and (KeyWR.SClass=rtKeyword);
+    OK:=OK and (KeyWR.SClass=oa_rtKeyword);
 
     if OK then
     begin
@@ -935,6 +997,13 @@ var H: PHelpFile;
 begin
   H:=New(PHTMLHelpFile, Init(FileName, LastID+1, TOCEntry));
   AddHTMLHelpFile:=AddFile(H);;
+end;
+
+function THelpFacility.AddNGHelpFile(const FileName: string): boolean;
+var H: PHelpFile;
+begin
+  H:=New(PNGHelpFile, Init(FileName, LastID+1));
+  AddNGHelpFile:=AddFile(H);;
 end;
 
 function THelpFacility.AddHTMLIndexHelpFile(const FileName: string): boolean;
@@ -1026,24 +1095,6 @@ begin
   if S='' then S:=' ';
   Lines^.Insert(NewStr(S));
 end;
-procedure RenderTopic;
-var Size,CurPtr,I: sw_word;
-    S: string;
-function CountSize(P: PString): boolean; {$ifndef FPC}far;{$endif}
-begin Inc(Size, length(P^)+1); CountSize:=Size>MaxHelpTopicSize-300; end;
-begin
-  Size:=0; Lines^.FirstThat(@CountSize);
-  T^.TextSize:=Size; GetMem(T^.Text,T^.TextSize);
-  CurPtr:=0;
-  for I:=0 to Lines^.Count-1 do
-  begin
-    S:=Lines^.At(I)^;
-    Size:=length(S)+1; S[Size]:=hscLineBreak;
-    Move(S[1],PByteArray(T^.Text)^[CurPtr],Size);
-    Inc(CurPtr,Size);
-    if CurPtr>=T^.TextSize then Break;
-  end;
-end;
 var Line: string;
 procedure FlushLine;
 begin
@@ -1102,7 +1153,7 @@ begin
     FlushLine;
     AddLine('');
   end;
-  RenderTopic;
+  RenderTopic(Lines,T);
   Dispose(Lines, Done);
   Keywords^.DeleteAll; Dispose(Keywords, Done);
   BuildIndexTopic:=T;
@@ -1134,7 +1185,10 @@ end;
 END.
 {
   $Log$
-  Revision 1.23  2000-06-16 08:50:44  pierre
+  Revision 1.24  2000-06-22 09:07:14  pierre
+   * Gabor changes: see fixes.txt
+
+  Revision 1.23  2000/06/16 08:50:44  pierre
    + new bunch of Gabor's changes
 
   Revision 1.22  2000/05/31 20:42:02  pierre

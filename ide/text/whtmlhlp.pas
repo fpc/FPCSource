@@ -137,8 +137,7 @@ const HTMLGetSectionColor : THTMLGetSectionColorProc = DefHTMLGetSectionColor;
 
 implementation
 
-uses WConsts,WUtils,WViews,WHTMLScn,
-     Dos;
+uses WConsts,WUtils,WViews,WHTMLScn;
 
 function DefHTMLGetSectionColor(Section: THTMLSection; var Color: byte): boolean;
 begin
@@ -744,7 +743,10 @@ end;
 END.
 {
   $Log$
-  Revision 1.14  2000-06-16 08:50:45  pierre
+  Revision 1.15  2000-06-22 09:07:15  pierre
+   * Gabor changes: see fixes.txt
+
+  Revision 1.14  2000/06/16 08:50:45  pierre
    + new bunch of Gabor's changes
 
 }

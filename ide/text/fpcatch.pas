@@ -43,7 +43,7 @@ uses
   drivers,
 {$endif FPC}
   app,commands,msgbox,
-  FPString,FPViews,FPIDE;
+  FPString,FPIDE;
 
 
 {$ifdef HasSignal}
@@ -112,7 +112,10 @@ end.
 
 {
   $Log$
-  Revision 1.5  2000-05-02 08:42:26  pierre
+  Revision 1.6  2000-06-22 09:07:11  pierre
+   * Gabor changes: see fixes.txt
+
+  Revision 1.5  2000/05/02 08:42:26  pierre
    * new set of Gabor changes: see fixes.txt
 
   Revision 1.4  2000/03/07 21:09:20  pierre

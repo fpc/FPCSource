@@ -76,13 +76,13 @@
   Documentation Ü
  ßßßßßßßßßßßßßßßß
  Although the IDE itself has no kind of "native"
- documentation or help, it is capable of reading both HTML
- and TPH format help files. That means, that you can use
- both the FPC documentation (included in your distribution,
- or downloadable from the Free Pascal HP) and/or the help
- files of your Turbo or Borland Pascal (from version 5.5
- thru 7.0) installation.
- You can install help files of both types in the on-line
+ documentation or help, it is capable of reading HTML,
+ Turbo Pascal (TPH), and Norton Guide (NG) format files.
+ That means, that you can use both the FPC documentation
+ (included in your distribution, or downloadable from the
+ Free Pascal HP) and/or the help files of your Turbo or
+ Borland Pascal (from version 5.5 thru 7.0) installation.
+ You can install help files of all types in the on-line
  help system by going to Help menu, selecting Files and
  adding them to the list.
 

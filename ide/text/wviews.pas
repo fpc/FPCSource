@@ -557,10 +557,10 @@ procedure TrackMouse;
 var
   Mouse: TPoint;
   R: TRect;
-  OldC: PMenuItem;
+{  OldC: PMenuItem;}
 begin
   MakeLocal(E.Where, Mouse);
-  OldC:=Current;
+{  OldC:=Current;}
   Current := Menu^.Items;
   while Current <> nil do
   begin
@@ -1272,7 +1272,7 @@ begin
     P:=Pos(#13,S);
     if P=0 then P:=length(S)+1;
     CurS:=copy(S,1,P-1);
-    CurS:=copy(CurS,Delta.X+1,255);
+    CurS:=copy(CurS,Delta.X+1,High(CurS));
     CurS:=copy(CurS,1,MaxViewWidth);
     Delete(S,1,P);
     end;
@@ -1889,7 +1889,7 @@ begin
           if (ListBox<>nil) and (Event.InfoPtr=ListBox) then
             begin
               FocusItem(ListBox^.Focused);
-              Text:=GetText(List^.At(Focused),255);
+              Text:=GetText(List^.At(Focused),High(Text));
               DrawView;
               DropList(false);
             end;
@@ -2189,7 +2189,10 @@ end;
 END.
 {
   $Log$
-  Revision 1.14  2000-06-16 08:50:45  pierre
+  Revision 1.15  2000-06-22 09:07:15  pierre
+   * Gabor changes: see fixes.txt
+
+  Revision 1.14  2000/06/16 08:50:45  pierre
    + new bunch of Gabor's changes
 
   Revision 1.13  2000/05/02 08:42:29  pierre

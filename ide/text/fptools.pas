@@ -149,8 +149,8 @@ implementation
 
 uses Dos,
      Commands,App,MsgBox,
-     WUtils,WINI,WEditor,
-     FPConst,FPString,FPVars,FPUtils,FPCodCmp,FPCodTmp;
+     WINI,WEditor,
+     FPConst,FPString,FPVars,FPUtils;
 
 {$ifndef NOOBJREG}
 const
@@ -571,7 +571,7 @@ begin
   ReDraw;
 end;
 
-procedure ReplaceStr(var S: string; const What,NewS: string);
+(*procedure ReplaceStr(var S: string; const What,NewS: string);
 var I : integer;
 begin
   repeat
@@ -597,7 +597,7 @@ begin
       Insert(NewS,S,I);
     end;
   until I=0;
-end;
+end;*)
 
 function GetCoordEntry(F: PINIFile; Section, Entry: string; var P: TPoint): boolean;
 var OK: boolean;
@@ -612,7 +612,7 @@ begin
   OK:=OK and (Px>0);
   if OK then P.X:=StrToInt(copy(S,1,Px-1));
   OK:=OK and (LastStrToIntResult=0);
-  if OK then P.Y:=StrToInt(copy(S,Px+1,255));
+  if OK then P.Y:=StrToInt(copy(S,Px+1,High(S)));
   OK:=OK and (LastStrToIntResult=0);
   GetCoordEntry:=OK;
 end;
@@ -1008,7 +1008,7 @@ begin
         if (WordS='$CAP') then
           begin
             if (Pass=0) then
-              if (Params[I]=' ') and (I<=255) then Params[I]:='_';
+              if (Params[I]=' ') and (I<=High(Params)) then Params[I]:='_';
           end else
         if (WordS='$CAP_MSG') then
           begin
@@ -1090,7 +1090,7 @@ begin
               if ReadTill(S,')')=false then Err:=I else
               begin
                 Consume(')');
-                FSplit(S,D,N,E); E:=copy(E,2,255);
+                FSplit(S,D,N,E); E:=copy(E,2,High(E));
                 I:=I+ReplacePart(LastWordStart,I-1,E)-1;
               end;
           end else
@@ -1167,9 +1167,9 @@ begin
                   I:=I+ReplacePart(LastWordStart,I-1,'')-1;
                   if CheckOnly=false then
                     begin
-                      S:=copy(Params,I+1,255);
+                      S:=copy(Params,I+1,High(Params));
                       if InputBox(dialog_programarguments, label_enterprogramargument,
-                        S,255-I+1)=cmOK then
+                        S,High(Params)-I+1)=cmOK then
                         begin
                           ReplacePart(LastWordStart,255,S);
                           I:=255;
@@ -1182,7 +1182,7 @@ begin
         if (WordS='$SAVE') then
           begin
             if (Pass=0) then
-              if (Params[I]=' ') and (I<=255) then Params[I]:='_';
+              if (Params[I]=' ') and (I<=High(Params)) then Params[I]:='_';
           end else
         if (WordS='$SAVE_ALL') then
           begin
@@ -1259,7 +1259,7 @@ procedure AddLine;
 begin
   Row:=ord(Line[1])+ord(Line[2]) shl 8;
   Col:=ord(Line[3])+ord(Line[4]) shl 8;
-  AddToolMessage(FileName,copy(Line,5,255),Row,Col);
+  AddToolMessage(FileName,copy(Line,5,High(Line)),Row,Col);
 end;
 begin
   New(S, Init(MsgFileName, stOpenRead, 4096));
@@ -1507,7 +1507,10 @@ end;
 END.
 {
   $Log$
-  Revision 1.19  2000-05-02 08:42:29  pierre
+  Revision 1.20  2000-06-22 09:07:12  pierre
+   * Gabor changes: see fixes.txt
+
+  Revision 1.19  2000/05/02 08:42:29  pierre
    * new set of Gabor changes: see fixes.txt
 
   Revision 1.18  2000/04/25 08:42:33  pierre

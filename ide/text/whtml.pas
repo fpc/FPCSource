@@ -146,7 +146,7 @@ begin
 end;
 
 constructor TDOSTextFile.Init(AFileName: string);
-{$ifdef TPUNIXLF}
+(*{$ifdef TPUNIXLF}
   procedure readln(var t:text;var s:string);
   var
     c : char;
@@ -167,7 +167,7 @@ constructor TDOSTextFile.Init(AFileName: string);
        dec(i);
     s[0]:=chr(i);
    end;
-{$endif}
+{$endif}*)
 var f: text;
     S: string;
 begin
@@ -180,7 +180,7 @@ begin
   New(Lines, Init(500,2000));
   while (Eof(f)=false) and (IOResult=0) do
     begin
-      readln(f,S);
+      readln(f,S); { this is the one in WUTILS.PAS }
       AddLine(S);
     end;
   Close(f);
@@ -711,7 +711,10 @@ end;
 END.
 {
   $Log$
-  Revision 1.6  2000-04-25 08:42:35  pierre
+  Revision 1.7  2000-06-22 09:07:15  pierre
+   * Gabor changes: see fixes.txt
+
+  Revision 1.6  2000/04/25 08:42:35  pierre
    * New Gabor changes : see fixes.txt
 
   Revision 1.5  2000/03/21 23:20:47  pierre

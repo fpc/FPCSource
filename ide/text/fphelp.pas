@@ -282,6 +282,14 @@ procedure InitHelpSystem;
     {$IFDEF DEBUG}SetStatus(msg_LoadingHelpFile);{$ENDIF}
   end;
 
+  procedure AddNGFile(HelpFile: string);
+  begin
+    {$IFDEF DEBUG}SetStatus(msg_LoadingHelpFile+' ('+SmartPath(HelpFile)+')');{$ENDIF}
+    if HelpFacility^.AddNGHelpFile(HelpFile)=false then
+      ErrorBox(FormatStrStr(msg_failedtoloadhelpfile,HelpFile),nil);
+    {$IFDEF DEBUG}SetStatus(msg_LoadingHelpFile);{$ENDIF}
+  end;
+
   procedure AddHTMLIndexFile(HelpFile: string);
   begin
     {$IFDEF DEBUG}SetStatus(msg_LoadingHelpFile+' ('+SmartPath(HelpFile)+')');{$ENDIF}
@@ -301,12 +309,14 @@ begin
       S:=HelpFiles^.At(I)^; TopicTitle:='';
       P:=Pos('|',S);
       if P>0 then
-        begin TopicTitle:=copy(S,P+1,255); S:=copy(S,1,P-1); end;
+        begin TopicTitle:=copy(S,P+1,High(S)); S:=copy(S,1,P-1); end;
       if TopicTitle='' then TopicTitle:=S;
       if copy(UpcaseStr(ExtOf(S)),1,length(HTMLExt))=UpcaseStr(HTMLExt) then { this recognizes both .htm and .html }
           AddHTMLFile(TopicTitle,S) else
       if UpcaseStr(ExtOf(S))=UpcaseStr(HTMLIndexExt) then
           AddHTMLIndexFile(S) else
+      if UpcaseStr(ExtOf(S))=UpcaseStr(NGExt) then
+          AddNGFile(S) else
         AddOAFile(S);
     end;
   PopStatus;
@@ -480,7 +490,10 @@ end;
 END.
 {
   $Log$
-  Revision 1.33  2000-06-16 08:50:40  pierre
+  Revision 1.34  2000-06-22 09:07:12  pierre
+   * Gabor changes: see fixes.txt
+
+  Revision 1.33  2000/06/16 08:50:40  pierre
    + new bunch of Gabor's changes
 
   Revision 1.32  2000/05/30 07:18:33  pierre

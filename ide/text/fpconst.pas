@@ -49,8 +49,9 @@ const
 
      HTMLIndexExt         = '.htx';
      HTMLExt              = '.htm';
-     HelpFileExts         = '*.tph;*.htm*;*'+HTMLIndexExt;
      TemplateExt          = '.pt';
+     NGExt                = '.ng';
+     HelpFileExts         = '*.tph;*.htm*;*'+HTMLIndexExt+';*'+NGExt;
 
      EnterSign            = #17#196#217;
 
@@ -405,7 +406,10 @@ implementation
 END.
 {
   $Log$
-  Revision 1.40  2000-06-16 08:50:40  pierre
+  Revision 1.41  2000-06-22 09:07:11  pierre
+   * Gabor changes: see fixes.txt
+
+  Revision 1.40  2000/06/16 08:50:40  pierre
    + new bunch of Gabor's changes
 
   Revision 1.39  2000/05/30 07:18:33  pierre

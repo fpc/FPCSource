@@ -868,7 +868,7 @@ end;
 
 procedure TSymbolReferenceView.HandleEvent(var Event: TEvent);
 var OldFocus: sw_integer;
-    DontClear: boolean;
+{    DontClear: boolean;}
 begin
   OldFocus:=Focused;
 {  case Event.What of
@@ -1692,7 +1692,10 @@ end;
 END.
 {
   $Log$
-  Revision 1.28  2000-06-16 08:50:42  pierre
+  Revision 1.29  2000-06-22 09:07:12  pierre
+   * Gabor changes: see fixes.txt
+
+  Revision 1.28  2000/06/16 08:50:42  pierre
    + new bunch of Gabor's changes
 
   Revision 1.27  2000/05/29 10:44:57  pierre

@@ -127,6 +127,12 @@ function Now: longint;
 function FormatDateTimeL(L: longint; const Format: string): string;
 function FormatDateTime(const D: DateTime; const Format: string): string;
 
+{$ifdef TP}
+function StrPas(C: PChar): string;
+{$endif}
+function MemToStr(var B; Count: byte): string;
+procedure StrToMem(S: string; var B);
+
 procedure GiveUpTimeSlice;
 
 const LastStrToIntResult : integer = 0;
@@ -164,7 +170,7 @@ const
      begin
       c:=#0;
       i:=0;
-      while (not eof(t)) and (c<>#10) do
+      while (not eof(t)) and (c<>#10) and (i<High(S)) do
        begin
          read(t,c);
          if c<>#10 then
@@ -198,7 +204,9 @@ procedure ReadlnFromStream(Stream: PStream; var S:string;var linecomplete : bool
     i:=0;
     { this created problems for lines longer than 255 characters
       now those lines are cutted into pieces without warning PM }
-    while (not eofstream(stream)) and (c<>#10) and (i<255) do
+    { changed implicit 255 to High(S), so it will be automatically extended
+      when longstrings eventually become default - Gabor }
+    while (not eofstream(stream)) and (c<>#10) and (i<High(S)) do
      begin
        stream^.read(c,sizeof(c));
        if c<>#10 then
@@ -214,7 +222,7 @@ procedure ReadlnFromStream(Stream: PStream; var S:string;var linecomplete : bool
       end;
     if (c=#13) and (not eofstream(stream)) then
       stream^.read(c,sizeof(c));
-    if (i=255) and not eofstream(stream) then
+    if (i=High(S)) and not eofstream(stream) then
       begin
         pos:=stream^.getpos;
         stream^.read(c,sizeof(c));
@@ -228,6 +236,36 @@ procedure ReadlnFromStream(Stream: PStream; var S:string;var linecomplete : bool
     s[0]:=chr(i);
   end;
 
+{$ifdef TP}
+{ TP's own StrPas() is buggy, because it causes GPF with strings longer than
+  255 chars }
+function StrPas(C: PChar): string;
+var S: string;
+    I: longint;
+begin
+  if Assigned(C)=false then
+    S:=''
+  else
+    begin
+      I:=StrLen(C); if I>255 then I:=255;
+      S[0]:=chr(I); Move(C^,S[1],I);
+    end;
+  StrPas:=S;
+end;
+{$endif}
+
+function MemToStr(var B; Count: byte): string;
+var S: string;
+begin
+  S[0]:=chr(Count);
+  if Count>0 then Move(B,S[1],Count);
+  MemToStr:=S;
+end;
+
+procedure StrToMem(S: string; var B);
+begin
+  if length(S)>0 then Move(S[1],B,length(S));
+end;
 
 function Max(A,B: longint): longint;
 begin
@@ -289,7 +327,7 @@ begin
   i:=1;
   while (i<length(s)) and (s[i]=' ') do
    inc(i);
-  LTrim:=Copy(s,i,255);
+  LTrim:=Copy(s,i,High(S));
 end;
 
 function RTrim(const S: string): string;
@@ -482,7 +520,7 @@ begin
 {$ifdef win32}
   hs:=n+#0;
   i:=Windows.GetFullPathName(@hs[1],256,hs2,j);
-  if (i>0) and (i<=255) then
+  if (i>0) and (i<=high(hs)) then
     begin
       hs:=strpas(hs2);
       GetLongName:=hs;
@@ -662,7 +700,7 @@ end;
 
 function TTextCollection.LookUp(const S: string; var Idx: sw_integer): string;
 var OLI,ORI,Left,Right,Mid: integer;
-    LeftP,RightP,MidP: PString;
+    {LeftP,RightP,}MidP: PString;
     {LeftS,}MidS{,RightS}: string;
     FoundS: string;
     UpS : string;
@@ -676,7 +714,7 @@ begin
     begin
       OLI:=Left; ORI:=Right;
       Mid:=Left+(Right-Left) div 2;
-      LeftP:=At(Left); RightP:=At(Right); MidP:=At(Mid);
+{      LeftP:=At(Left); RightP:=At(Right); }MidP:=At(Mid);
 {      LeftS:=UpCaseStr(LeftP^); }MidS:=UpCaseStr(MidP^);
 {      RightS:=UpCaseStr(RightP^);}
       if copy(MidS,1,length(UpS))=UpS then
@@ -934,7 +972,10 @@ end;
 END.
 {
   $Log$
-  Revision 1.24  2000-06-16 21:16:41  pierre
+  Revision 1.25  2000-06-22 09:07:15  pierre
+   * Gabor changes: see fixes.txt
+
+  Revision 1.24  2000/06/16 21:16:41  pierre
    * allow to read until 255 chars per line
 
   Revision 1.23  2000/06/16 08:50:45  pierre

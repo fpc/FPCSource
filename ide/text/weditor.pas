@@ -55,7 +55,7 @@ const
       cmToggleCase           = 51263;
 
       EditorTextBufSize = {$ifdef FPC}32768{$else} 4096{$endif};
-      MaxLineLength     = {$ifdef FPC}  255{$else}  255{$endif};
+      MaxLineLength     = 255;
       MaxLineCount      = {$ifdef FPC}2000000{$else}16380{$endif};
 
       CodeCompleteMinLen = 4; { minimum length of text to try to complete }
@@ -933,7 +933,7 @@ begin
      if s[p]=TAB then
       begin
         PAdd:=TabSize-((p-1) mod TabSize);
-        s:=copy(S,1,P-1)+CharStr(' ',PAdd)+copy(S,P+1,255);
+        s:=copy(S,1,P-1)+CharStr(' ',PAdd)+copy(S,P+1,High(s));
         inc(P,PAdd-1);
       end;
    end;
@@ -948,7 +948,7 @@ begin
   repeat
     P:=Pos(TabS,S);
     if P>0 then
-      S:=copy(S,1,P-1)+TAB+copy(S,P+TabSize,255);
+      S:=copy(S,1,P-1)+TAB+copy(S,P+TabSize,High(S));
   until P=0;
   CompressUsingTabs:=S;
 end;}
@@ -1782,21 +1782,31 @@ begin
 end;
 
 function TCustomCodeEditorCore.UpdateAttrs(FromLine: sw_integer; Attrs: byte): sw_integer;
+var MinLine: sw_integer;
 procedure CallIt(P: PEditorBinding); {$ifndef FPC}far;{$endif}
+var I: sw_integer;
 begin
-  DoUpdateAttrs(P^.Editor,FromLine,Attrs);
+  I:=DoUpdateAttrs(P^.Editor,FromLine,Attrs);
+  if (I<MinLine) or (MinLine=-1) then MinLine:=I;
 end;
 begin
+  MinLine:=-1;
   Bindings^.ForEach(@CallIt);
+  UpdateAttrs:=MinLine;
 end;
 
 function TCustomCodeEditorCore.UpdateAttrsRange(FromLine, ToLine: sw_integer; Attrs: byte): sw_integer;
+var MinLine: sw_integer;
 procedure CallIt(P: PEditorBinding); {$ifndef FPC}far;{$endif}
+var I: sw_integer;
 begin
-  DoUpdateAttrsRange(P^.Editor,FromLine,ToLine,Attrs);
+  I:=DoUpdateAttrsRange(P^.Editor,FromLine,ToLine,Attrs);
+  if (I<MinLine) or (MinLine=-1) then MinLine:=I;
 end;
 begin
+  MinLine:=-1;
   Bindings^.ForEach(@CallIt);
+  UpdateAttrsRange:=MinLine;
 end;
 
 function TCustomCodeEditorCore.DoUpdateAttrs(Editor: PCustomCodeEditor; FromLine: sw_integer; Attrs: byte): sw_integer;
@@ -2538,7 +2548,7 @@ begin
     LineDelta:=0; LineCount:=(Editor^.SelEnd.Y-Editor^.SelStart.Y)+1;
     OK:=GetLineCount<MaxLineCount;
     OrigS:=GetDisplayText(DestPos.Y);
-    AfterS:=Copy(OrigS,DestPos.X+1,255);
+    AfterS:=Copy(OrigS,DestPos.X+1,High(OrigS));
 
     while OK and (LineDelta<LineCount) do
     begin
@@ -2559,13 +2569,13 @@ begin
       if (LineDelta=LineCount-1) or VerticalBlock then
         LineEndX:=Editor^.SelEnd.X-1
       else
-        LineEndX:=255;
+        LineEndX:=High(S);
 
       if LineEndX<LineStartX then
         S:=''
       else if VerticalBlock then
         S:=RExpand(copy(Editor^.GetLineText(Editor^.SelStart.Y+LineDelta),LineStartX+1,LineEndX-LineStartX+1),
-                   Min(LineEndX-LineStartX+1,255))
+                   Min(LineEndX-LineStartX+1,High(S)))
       else
         S:=copy(Editor^.GetLineText(Editor^.SelStart.Y+LineDelta),LineStartX+1,LineEndX-LineStartX+1);
       if VerticalBlock=false then
@@ -3161,7 +3171,7 @@ var SelectColor,
     LineText,Format: string;
     isBreak : boolean;
     C: char;
-    FreeFormat: array[0..255] of boolean;
+    FreeFormat: array[0..MaxLineLength] of boolean;
     Color: word;
     ColorTab: array[coFirstColor..coLastColor] of word;
     ErrorLine: integer;
@@ -3240,7 +3250,7 @@ begin
 
 {    if FlagSet(efSyntaxHighlight) then MaxX:=length(LineText)+1
        else }MaxX:=Size.X+Delta.X;
-    for X:=1 to Min(MaxX,255) do
+    for X:=1 to Min(MaxX,High(LineText)) do
     begin
       AX:=Delta.X+X-1;
       if X<=length(LineText) then C:=LineText[X] else C:=' ';
@@ -3403,7 +3413,7 @@ begin
       while (CurPos.X+Shift<length(PreS)) and (PreS[CurPos.X+Shift]<>' ') do
        Inc(Shift);
     end;
-  SetLineText(CurPos.Y,RExpand(copy(S,1,CurPos.X+1),CurPos.X+1)+CharStr(' ',Shift)+copy(S,CurPos.X+2,255));
+  SetLineText(CurPos.Y,RExpand(copy(S,1,CurPos.X+1),CurPos.X+1)+CharStr(' ',Shift)+copy(S,CurPos.X+2,High(S)));
   SetCurPtr(CurPos.X+Shift,CurPos.Y);
   UpdateAttrs(CurPos.Y,attrAll);
   DrawLines(CurPos.Y);
@@ -3736,7 +3746,7 @@ var SymIdx: integer;
     LineText,LineAttr: string;
     CurChar: char;
     X,Y: sw_integer;
-    P,LineCount: sw_integer;
+    LineCount: sw_integer;
     JumpPos: TPoint;
     BracketLevel: integer;
 begin
@@ -3843,7 +3853,7 @@ begin
     end;
     SetDisplayText(CurPos.Y,copy(S,1,CurPos.X-1+1));
     CalcIndent(CurPos.Y);
-    InsertLine(CurPos.Y+1,IndentStr+copy(S,CurPos.X+1,255));
+    InsertLine(CurPos.Y+1,IndentStr+copy(S,CurPos.X+1,High(S)));
     LimitsChanged;
 (*    if PointOfs(SelStart)<>PointOfs(SelEnd) then { !!! check it - it's buggy !!! }
       begin SelEnd.Y:=CurPos.Y+1; SelEnd.X:=length(GetLineText(CurPos.Y+1))-SelBack; end;*)
@@ -3943,7 +3953,7 @@ begin
      S:=GetLineText(CurPos.Y);
      OI:=LinePosToCharIdx(CurPos.Y,CurPos.X);
      CI:=LinePosToCharIdx(CurPos.Y,CP);
-     SetLineText(CurPos.Y,copy(S,1,CI-1)+copy(S,OI,255));
+     SetLineText(CurPos.Y,copy(S,1,CI-1)+copy(S,OI,High(S)));
      SetCurPtr(CP,CurPos.Y);
 {$ifdef Undo}
      SetStoreUndo(HoldUndo);
@@ -3990,7 +4000,7 @@ begin
      CI:=LinePosToCharIdx(CurPos.Y,CurPos.X);
      if S[CI]=TAB then
        begin
-         S:=Copy(S,1,CI-1)+CharStr(' ',GetTabSize-1)+Copy(S,CI+1,255);
+         S:=Copy(S,1,CI-1)+CharStr(' ',GetTabSize-1)+Copy(S,CI+1,High(S));
 {$ifdef Undo}
          SetStoreUndo(HoldUndo);
          Addaction(eaDeleteText,CurPos,CurPos,' ');
@@ -4044,7 +4054,7 @@ begin
   S:=GetLineText(CurPos.Y);
   if (S<>'') and (CurPos.X<>0) then
   begin
-    SetLineText(CurPos.Y,copy(S,LinePosToCharIdx(CurPos.Y,CurPos.X),255));
+    SetLineText(CurPos.Y,copy(S,LinePosToCharIdx(CurPos.Y,CurPos.X),High(S)));
     SetCurPtr(0,CurPos.Y);
     UpdateAttrs(CurPos.Y,attrAll);
     DrawLines(CurPos.Y);
@@ -4073,13 +4083,13 @@ end;
 procedure TCustomCodeEditor.DelLine;
 var
   HoldUndo : boolean;
-  SP : TPoint;
+{  SP : TPoint;}
 begin
   if IsReadOnly then Exit;
   Lock;
   if GetLineCount>0 then
   begin
-    SP:=CurPos;
+{    SP:=CurPos;}
     DeleteLine(CurPos.Y);
     HoldUndo:=GetStoreUndo;
     SetStoreUndo(false);
@@ -4194,7 +4204,7 @@ begin
       StartX:=SelStart.X;
       EndX:=SelEnd.X;
       SetDisplayText(CurLine,RExpand(copy(S,1,StartX),StartX)
-        +copy(S,EndX+1,255));
+        +copy(S,EndX+1,High(S)));
       if GetStoreUndo then
         begin
           SPos.X:=StartX;
@@ -4211,12 +4221,12 @@ begin
       StartX:=SelStart.X;
       EndX:=SelEnd.X;
       SetDisplayText(CurLine,RExpand(copy(S,1,StartX),StartX)
-        +copy(GetDisplayText(CurLine+LineCount-1),EndX+1,255));
+        +copy(GetDisplayText(CurLine+LineCount-1),EndX+1,High(S)));
       if GetStoreUndo then
         begin
           SPos.X:=StartX;
           SPos.Y:=CurLine;
-          AddAction(eaDeleteText,SPos,SPos,Copy(S,StartX+1,255));
+          AddAction(eaDeleteText,SPos,SPos,Copy(S,StartX+1,High(S)));
           S:=GetDisplayText(CurLine+LineCount-1);
         end;
       Inc(CurLine);
@@ -4230,7 +4240,7 @@ begin
         end;
       if GetStoreUndo then
         begin
-          AddAction(eaInsertText,SPos,SPos,Copy(S,EndX+1,255));
+          AddAction(eaInsertText,SPos,SPos,Copy(S,EndX+1,High(S)));
         end;
     end;
   HideSelect;
@@ -4552,15 +4562,15 @@ begin
         TabStart:=CharIdxToLinePos(CurPos.Y,CI-1)+1;
       if SC=Tab then TabS:=Tab else
         TabS:=CharStr(' ',CurPos.X-TabStart);
-      SetLineText(CurPos.Y,copy(S,1,CI-1)+TabS+SC+copy(S,CI+1,255));
+      SetLineText(CurPos.Y,copy(S,1,CI-1)+TabS+SC+copy(S,CI+1,High(S)));
       SetCurPtr(CharIdxToLinePos(CurPos.Y,CI+length(TabS)+length(SC)),CurPos.Y);
     end
   else
     begin
       if Overwrite and (CI<=length(S)) then
-        SetLineText(CurPos.Y,copy(S,1,CI-1)+SC+copy(S,CI+length(SC),255))
+        SetLineText(CurPos.Y,copy(S,1,CI-1)+SC+copy(S,CI+length(SC),High(S)))
       else
-        SetLineText(CurPos.Y,copy(S,1,CI-1)+SC+copy(S,CI,255));
+        SetLineText(CurPos.Y,copy(S,1,CI-1)+SC+copy(S,CI,High(S)));
       SetCurPtr(CharIdxToLinePos(CurPos.Y,CI+length(SC)),CurPos.Y);
     end;
 {$ifdef Undo}
@@ -4691,7 +4701,7 @@ begin
   s:=GetLineText(i);
   str_begin:=LinePosToCharIdx(i,SelStart.X);
   if SelEnd.Y>SelStart.Y then
-    str_end:=255
+    str_end:=High(S)
   else
     str_end:=LinePosToCharIdx(i,SelEnd.X)-1;
   s:=copy(s,str_begin,str_end-str_begin+1);
@@ -5136,15 +5146,15 @@ begin
 end;
 
 procedure TCustomCodeEditor.SetCurPtr(X,Y: sw_integer);
-var OldPos,{OldSEnd,}OldSStart: TPoint;
+var OldPos{,OldSEnd,OldSStart}: TPoint;
     Extended: boolean;
 begin
   Lock;
   X:=Max(0,Min(MaxLineLength+1,X));
   Y:=Max(0,Min(GetLineCount-1,Y));
   OldPos:=CurPos;
-{  OldSEnd:=SelEnd;}
-  OldSStart:=SelStart;
+{  OldSEnd:=SelEnd;
+  OldSStart:=SelStart;}
   CurPos.X:=X;
   CurPos.Y:=Y;
   TrackCursor(false);
@@ -5463,7 +5473,7 @@ begin
       S:=CompressUsingTabs(S,TabSize);
       }
     if Line=EndP.Y then S:=copy(S,1,LinePosToCharIdx(Line,EndP.X));
-    if Line=StartP.Y then S:=copy(S,LinePosToCharIdx(Line,StartP.X),255);
+    if Line=StartP.Y then S:=copy(S,LinePosToCharIdx(Line,StartP.X),High(S));
     Stream^.Write(S[1],length(S));
     if Line<EndP.Y then
       Stream^.Write(EOL[1],length(EOL));
@@ -5848,7 +5858,10 @@ end;
 END.
 {
   $Log$
-  Revision 1.94  2000-06-16 21:17:39  pierre
+  Revision 1.95  2000-06-22 09:07:13  pierre
+   * Gabor changes: see fixes.txt
+
+  Revision 1.94  2000/06/16 21:17:39  pierre
    + TCustoCodeEditorCore.GetChangedLine
 
   Revision 1.93  2000/06/16 08:50:43  pierre

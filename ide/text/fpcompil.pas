@@ -93,7 +93,7 @@ uses
 {$endif}
   Dos,Video,
   App,Commands,tokens,
-  CompHook, Compiler, systems, browcol, switches,
+  CompHook, Compiler, systems, browcol,
   WEditor,
   FPString,FPRedir,FPDesk,FPUsrScr,FPHelp,
   FPConst,FPVars,FPUtils,FPIntf,FPSwitch;
@@ -641,7 +641,6 @@ var
   Error,LinkErrorCount : longint;
   E : TEvent;
   DummyView: PView;
-  R: TRect;
 const
   PpasFile = 'ppas';
 
@@ -912,7 +911,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.59  2000-06-16 08:50:40  pierre
+  Revision 1.60  2000-06-22 09:07:11  pierre
+   * Gabor changes: see fixes.txt
+
+  Revision 1.59  2000/06/16 08:50:40  pierre
    + new bunch of Gabor's changes
 
   Revision 1.58  2000/05/29 10:44:56  pierre

@@ -342,7 +342,7 @@ procedure UpdateDebugViews;
 implementation
 
 uses
-  Dos,Mouse,Video,
+  Dos,Video,
   App,Commands,Strings,
 {$ifdef win32}
   Windebug,
@@ -1650,7 +1650,6 @@ var R,R2: TRect;
     S: String;
     X,X1 : Sw_integer;
     Btn: PButton;
-const White = 15;
 begin
   Desktop^.GetExtent(R); R.A.Y:=R.B.Y-18;
   inherited Init(R, dialog_breakpointlist, wnNoNumber);
@@ -3347,7 +3346,10 @@ end.
 
 {
   $Log$
-  Revision 1.62  2000-06-11 07:01:32  peter
+  Revision 1.63  2000-06-22 09:07:11  pierre
+   * Gabor changes: see fixes.txt
+
+  Revision 1.62  2000/06/11 07:01:32  peter
     * give watches window also a number
     * leave watches window in the bottom when cascading windows
 

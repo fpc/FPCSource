@@ -1,3 +1,13 @@
+Gabors's log to 22/6/2000 commits
+========================== Other improvements ============================
+
+ [+] added support for reading .NG (Norton Guide) in the help system
+
+========================== Misc modifications ============================
+
+ [?] the VESA unit now uses the routines of PMODE, instead of it's owns
+ [?] constants (255) changed to High()s in checks for maximum string lengths
+
 Gabors's log to 16/6/2000 commits
 ========================= Already fixed ================================
 

@@ -533,8 +533,8 @@ begin
          begin
            PAdd:=TabSize-((p-1) mod TabSize);
            if DF<>'' then
-            DF:=copy(DF,1,P-1)+CharStr(DF[p],PAdd)+copy(DF,P+1,255);
-           DT:=copy(DT,1,P-1)+CharStr(' ',PAdd)+copy(DT,P+1,255);
+            DF:=copy(DF,1,P-1)+CharStr(DF[p],PAdd)+copy(DF,P+1,High(DF));
+           DT:=copy(DT,1,P-1)+CharStr(' ',PAdd)+copy(DT,P+1,High(DF));
            inc(P,PAdd-1);
          end;
       end;

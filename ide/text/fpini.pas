@@ -27,9 +27,9 @@ function  WriteINIFile: boolean;
 implementation
 
 uses
-  Dos,Objects,Drivers,App,
+  Dos,Objects,Drivers,
   WINI,{$ifndef EDITORS}WEditor,WCEdit{$else}Editors{$endif},
-  {$ifndef NODEBUG}FPDebug,{$endif}FPConst,FPVars,FPViews,
+  {$ifndef NODEBUG}FPDebug,{$endif}FPConst,FPVars,
   FPIntf,FPTools,FPSwitch;
 
 const
@@ -84,7 +84,7 @@ const
   ieWatchCount       = 'Count';
   ieWatchName        = 'Watch';
   ieSourceList       = 'SourceList';
-  ieVideoMode        = 'VideoMode';
+{  ieVideoMode        = 'VideoMode';}
   ieAutoSave         = 'AutoSaveFlags';
   ieMiscOptions      = 'MiscOptions';
   ieDesktopLocation  = 'DesktopLocation';
@@ -125,11 +125,11 @@ begin
   begin
     Inc(I); Hex:=false;
     if S[I]='$' then begin Inc(I); Hex:=true; end;
-    P:=Pos('#',copy(S,I,255)); if P>0 then P:=I+P-1 else P:=length(S)+1;
+    P:=Pos('#',copy(S,I,High(S))); if P>0 then P:=I+P-1 else P:=length(S)+1;
     if Hex=false then
       begin
         X:=StrToInt(copy(S,I,P-I));
-        OK:=(LastStrToIntResult=0) and (0<=X) and (X<=255);
+        OK:=(LastStrToIntResult=0) and (0<=X) and (X<=High(S));
       end
     else
       begin
@@ -528,7 +528,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.29  2000-06-16 08:50:41  pierre
+  Revision 1.30  2000-06-22 09:07:12  pierre
+   * Gabor changes: see fixes.txt
+
+  Revision 1.29  2000/06/16 08:50:41  pierre
    + new bunch of Gabor's changes
 
   Revision 1.28  2000/03/21 23:30:22  pierre

@@ -169,11 +169,11 @@ begin
     ReadStringPos:=-1;
 end;
 
-function ReadString(const InS: string; StartP: sw_integer; var Expr: string): sw_integer;
+{function ReadString(const InS: string; StartP: sw_integer; var Expr: string): sw_integer;
 var P: sw_integer;
 begin
   ReadString:=ReadStringPos(InS,StartP,Expr,P);
-end;
+end;}
 
 function ProcessTemplateLine(var S: string): boolean;
 var OK: boolean;
@@ -289,7 +289,10 @@ end;
 END.
 {
   $Log$
-  Revision 1.9  2000-05-02 08:42:28  pierre
+  Revision 1.10  2000-06-22 09:07:12  pierre
+   * Gabor changes: see fixes.txt
+
+  Revision 1.9  2000/05/02 08:42:28  pierre
    * new set of Gabor changes: see fixes.txt
 
   Revision 1.8  1999/06/25 00:33:40  pierre

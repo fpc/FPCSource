@@ -213,7 +213,7 @@ implementation
 
 uses
   Video,
-  WConsts,WViews;
+  WConsts;
 
 const CommentColor = Blue;
 
@@ -794,7 +794,7 @@ begin
   while (Y<=R.B.Y) do
   begin
     if Y=R.A.Y then StartX:=R.A.X else StartX:=Margin;
-    if Y=R.B.Y then EndX:=R.B.X else EndX:=255;
+    if Y=R.B.Y then EndX:=R.B.X else EndX:=High(S);
     S:=S+copy(GetLineText(Y),StartX+1,EndX-StartX+1);
     Inc(Y);
   end;
@@ -1138,7 +1138,7 @@ begin
     MoveChar(B,' ',NormalColor,Size.X);
     if Y<GetLineCount then
     begin
-      S:=copy(GetLineText(Y),Delta.X+1,255);
+      S:=copy(GetLineText(Y),Delta.X+1,High(S));
       S:=copy(S,1,MaxViewWidth);
       MoveStr(B,S,NormalColor);
 
@@ -1196,7 +1196,7 @@ begin
       if ((SelR.A.X<>SelR.B.X) or (SelR.A.Y<>SelR.B.Y)) and (SelR.A.Y<=Y) and (Y<=SelR.B.Y) then
       begin
         if Y=SelR.A.Y then MinX:=SelR.A.X else MinX:=0;
-        if Y=SelR.B.Y then MaxX:=SelR.B.X-1 else MaxX:=255;
+        if Y=SelR.B.Y then MaxX:=SelR.B.X-1 else MaxX:=High(string);
         for DX:=MinX to MaxX do
         begin
           X:=DX;
@@ -1318,7 +1318,10 @@ end;
 END.
 {
   $Log$
-  Revision 1.17  2000-06-16 08:50:45  pierre
+  Revision 1.18  2000-06-22 09:07:14  pierre
+   * Gabor changes: see fixes.txt
+
+  Revision 1.17  2000/06/16 08:50:45  pierre
    + new bunch of Gabor's changes
 
   Revision 1.16  2000/05/30 07:18:33  pierre

@@ -72,7 +72,7 @@ procedure RegisterCodeTemplates;
 
 implementation
 
-uses Commands,Views,MsgBox,App,
+uses Commands,Views,App,
      FPConst,FPString;
 
 {$ifndef NOOBJREG}
@@ -252,8 +252,6 @@ end;
 
 constructor TCodeTemplateDialog.Init(const ATitle: string; ATemplate: PCodeTemplate);
 var R,R2,R3: TRect;
-    Items: PSItem;
-    I,KeyCount: sw_integer;
 begin
   R.Assign(0,0,52,15);
   inherited Init(R,ATitle);
@@ -276,7 +274,6 @@ function TCodeTemplateDialog.Execute: Word;
 var R: word;
     S: string;
     L: PUnsortedStringCollection;
-    W: word;
 begin
   New(L, Init(10,10));
   S:=Template^.GetShortCut;
@@ -392,8 +389,6 @@ var R: word;
     C: PCodeTemplateCollection;
     L: PUnsortedStringCollection;
     I: integer;
-    S1,S2,S3: string;
-    W: word;
 begin
   New(C, Init(10,20));
   if Assigned(CodeTemplates) then
@@ -423,8 +418,6 @@ var P,P2: PCodeTemplate;
     IC: boolean;
     S: string;
     L: PUnsortedStringCollection;
-    I: sw_integer;
-    W: word;
     Cmd: word;
     CanExit: boolean;
 begin

@@ -161,7 +161,7 @@ begin
           Inc(P2);
         end;
       Value:=NewStr(Trim(ValueS));
-      Comment:=NewStr(copy(S,P2+1,255));
+      Comment:=NewStr(copy(S,P2+1,High(S)));
     end else
     begin
       Tag:=nil;
@@ -478,7 +478,10 @@ end;
 END.
 {
   $Log$
-  Revision 1.9  2000-04-18 11:42:39  pierre
+  Revision 1.10  2000-06-22 09:07:15  pierre
+   * Gabor changes: see fixes.txt
+
+  Revision 1.9  2000/04/18 11:42:39  pierre
    lot of Gabor changes : see fixes.txt
 
   Revision 1.8  1999/03/08 14:58:21  peter

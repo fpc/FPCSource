@@ -154,9 +154,8 @@ uses
 {$endif WinClipSupported}
   Video,Mouse,Keyboard,
   Dos,Memory,Menus,Dialogs,StdDlg,ColorSel,Commands,HelpCtx,
-  AsciiTab,
   Systems,
-  WUtils,WHelp,WHlpView,WINI,WViews,
+  WUtils,WHlpView,WViews,
   FPConst,FPVars,FPUtils,FPSwitch,FPIni,FPIntf,FPCompile,FPHelp,
   FPTemplt,FPCalc,FPUsrScr,FPTools,{$ifndef NODEBUG}FPDebug,{$endif}FPRedir,
   FPDesk,FPCodCmp,FPCodTmp;
@@ -1061,7 +1060,10 @@ end;
 END.
 {
   $Log$
-  Revision 1.64  2000-06-16 21:19:41  pierre
+  Revision 1.65  2000-06-22 09:07:12  pierre
+   * Gabor changes: see fixes.txt
+
+  Revision 1.64  2000/06/16 21:19:41  pierre
    * Use Open instead of OpenSearch if OpenFileName is empty
 
   Revision 1.63  2000/06/16 08:50:40  pierre

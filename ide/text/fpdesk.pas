@@ -47,15 +47,13 @@ uses Dos,
      Objects,Drivers,Video,
      Views,App,HistList,BrowCol,
      WResourc,WViews,WEditor,
-     WUtils,
 {$ifndef NODEBUG}
      fpdebug,
 {$endif ndef NODEBUG}
-     FPConst,FPVars,FPString,FPUtils,FPViews,FPCompile,FPTools,FPHelp,
+     FPConst,FPVars,FPString,FPUtils,FPViews,FPHelp,
      FPCodCmp,FPCodTmp;
 
 type
-     PWindowInfo = ^TWindowInfo;
      TWindowInfo = packed record
        HelpCtx   : word;
        Bounds    : TRect;
@@ -797,7 +795,10 @@ end;
 END.
 {
   $Log$
-  Revision 1.28  2000-05-02 08:42:27  pierre
+  Revision 1.29  2000-06-22 09:07:12  pierre
+   * Gabor changes: see fixes.txt
+
+  Revision 1.28  2000/05/02 08:42:27  pierre
    * new set of Gabor changes: see fixes.txt
 
   Revision 1.27  2000/04/25 08:42:33  pierre

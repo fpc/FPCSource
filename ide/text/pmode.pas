@@ -581,7 +581,6 @@ end;
 
 procedure realcall(Proc: pointer; var r: registers);
 var rr: trealregs;
-const DPMI_INTR = $31;
 begin
   rr.realeax:=r.ax;
   rr.realebx:=r.bx;
@@ -718,7 +717,10 @@ end;
 END.
 {
   $Log$
-  Revision 1.1  2000-04-20 08:47:39  pierre
+  Revision 1.2  2000-06-22 09:07:13  pierre
+   * Gabor changes: see fixes.txt
+
+  Revision 1.1  2000/04/20 08:47:39  pierre
    + new files from Gabor
 
 

@@ -172,7 +172,7 @@ implementation
 
 uses
   Dos,
-  GlobType,Tokens,Compiler,
+  GlobType,
   FPString,FPVars,FPUtils;
 
 var
@@ -1113,7 +1113,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.22  2000-05-02 08:42:28  pierre
+  Revision 1.23  2000-06-22 09:07:12  pierre
+   * Gabor changes: see fixes.txt
+
+  Revision 1.22  2000/05/02 08:42:28  pierre
    * new set of Gabor changes: see fixes.txt
 
   Revision 1.21  2000/04/25 08:42:33  pierre

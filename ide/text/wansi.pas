@@ -735,7 +735,6 @@ begin
 end;
 
 procedure TANSIView.Draw;
-type PDrawBuffer = ^TDrawBuffer;
 var I: integer;
     Pos: longint;
     X,Y: integer;
@@ -940,7 +939,6 @@ begin
 end;
 
 procedure TANSIBackground.Draw;
-type PDrawBuffer = ^TDrawBuffer;
 var I: integer;
     Pos: longint;
     X,Y: integer;
