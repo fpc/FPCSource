@@ -1,0 +1,140 @@
+#
+#   Makefile.fpc for Amiga RTL
+#
+
+[package]
+main=rtl
+
+[target]
+loaders=
+units=system 
+# exec strings \
+#      dos crt objects printer \
+#      objpas \
+#      heaptrc lineinfo getopts graph \
+#      sysutils math typinfo
+# rsts=math
+
+[require]
+nortl=y
+
+[install]
+fpcpackage=y
+
+[default]
+fpcdir=../..
+target=macos
+
+[compiler]
+includedir=$(INC) $(PROCINC)
+sourcedir=$(INC) $(PROCINC)
+targetdir=.
+
+
+[prerules]
+RTL=..
+INC=../inc
+PROCINC=../$(CPU_TARGET)
+PPUEXT=pput
+ASMEXT=.s
+
+UNITPREFIX=rtl
+
+# Use new feature from 1.0.5 version
+# that generates release PPU files
+# which will not be recompiled
+ifdef RELEASE
+ifeq ($(findstring 1.0.2,$(FPC_VERSION)),)
+ifeq ($(findstring 1.0.4,$(FPC_VERSION)),)
+override FPCOPT+=-Ur
+endif
+endif
+endif
+
+# Paths
+OBJPASDIR=$(RTL)/objpas
+GRAPHDIR=$(INC)/graph
+
+[rules]
+# Get the system independent include file names.
+# This will set the following variables :
+# SYSINCNAMES
+include $(INC)/makefile.inc
+SYSINCDEPS=$(addprefix $(INC)/,$(SYSINCNAMES))
+
+# Get the processor dependent include file names.
+# This will set the following variables :
+# CPUINCNAMES
+include $(PROCINC)/makefile.cpu
+SYSCPUDEPS=$(addprefix $(PROCINC)/,$(CPUINCNAMES))
+
+# Put system unit dependencies together.
+SYSDEPS=$(SYSINCDEPS) $(SYSCPUDEPS)
+
+
+#
+# Loaders
+#
+
+#prt0$(OEXT) : prt0$(LOADEREXT)
+#	-$(AS) prt0$(LOADEREXT) -o prt0$(OEXT)
+
+#gprt0$(OEXT) : $(GLOADERAS)
+#	-$(AS) $(GLOADERAS) -o gprt0$(OEXT)
+
+#
+# Base Units (System, strings, os-dependent-base-unit)
+#
+
+system$(PPUEXT) : system.pp $(SYSLINUXDEPS) $(SYSDEPS)
+	$(COMPILER) -Us -Sg system.pp $(REDIR)
+
+strings$(PPUEXT) : ../template/strings.pp system$(PPUEXT)
+	$(COMPILER) ../template/strings.pp $(REDIR)
+
+exec$(PPUEXT) : exec.pp exec.inc system$(PPUEXT)
+	$(COMPILER) exec $(REDIR)
+
+#
+# Delphi Object Model
+#
+
+objpas$(PPUEXT) : $(OBJPASDIR)/objpas.pp system$(PPUEXT)
+	$(COPY) $(OBJPASDIR)/objpas.pp .
+	$(COMPILER) objpas $(REDIR)
+	$(DEL) objpas.pp
+
+sysutils$(PPUEXT) : $(OBJPASDIR)/sysutils.pp objpas$(PPUEXT) system$(PPUEXT)
+	$(COPY) $(OBJPASDIR)/sysutils.pp .
+	$(COMPILER) sysutils $(REDIR)
+#$(DEL) sysutils.pp
+
+#
+# System Dependent Units
+#
+
+#
+# TP7 Compatible RTL Units
+#
+
+dos$(PPUEXT) : $(DOSDEPS) system$(PPUEXT)
+        $(COMPILER) dos $(REDIR)
+
+crt$(PPUEXT) : crt.pp $(INC)/textrec.inc system$(PPUEXT)
+        $(COMPILER) crt $(REDIR)
+
+printer$(PPUEXT) : printer.pp system$(PPUEXT)
+        $(COMPILER) printer $(REDIR)
+	
+objects$(PPUEXT) : $(INC)/objects.pp system$(PPUEXT)
+        $(COMPILER) $(INC)/objects.pp $(REDIR)
+
+#
+# Other RTL Units
+#
+
+getopts$(PPUEXT) : $(INC)/getopts.pp strings$(PPUEXT) system$(PPUEXT)
+        $(COMPILER) $(INC)/getopts.pp $(REDIR)
+	
+heaptrc$(PPUEXT) : $(INC)/heaptrc.pp system$(PPUEXT)
+        $(COMPILER) $(INC)/heaptrc.pp $(REDIR)
