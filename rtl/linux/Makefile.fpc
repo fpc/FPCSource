@@ -12,6 +12,9 @@ units=$(SYSTEMUNIT) objpas strings \
       errors sockets gpm ipc serial dl dynlibs
 rst=math varutils
 
+[clean]
+units=syslinux
+
 [require]
 rtl=0
 
