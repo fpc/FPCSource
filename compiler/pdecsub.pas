@@ -1556,7 +1556,7 @@ const
        { Adjust positions of args for cdecl or stdcall }
          if (aktprocsym.definition.deftype=procdef) and
             (([pocall_cdecl,pocall_cppdecl,pocall_stdcall]*aktprocsym.definition.proccalloptions)<>[]) then
-           tstoredsymtable(aktprocsym.definition.parast).set_alignment(target_info.size_of_longint);
+           tparasymtable(aktprocsym.definition.parast).set_alignment(target_info.size_of_longint);
 
       { Call the handler }
         if pointer({$ifndef FPCPROCVAR}@{$endif}proc_direcdata[p].handler)<>nil then
@@ -1888,7 +1888,16 @@ const
 end.
 {
   $Log$
-  Revision 1.27  2001-06-04 18:12:26  peter
+  Revision 1.28  2001-07-01 20:16:16  peter
+    * alignmentinfo record added
+    * -Oa argument supports more alignment settings that can be specified
+      per type: PROC,LOOP,VARMIN,VARMAX,CONSTMIN,CONSTMAX,RECORDMIN
+      RECORDMAX,LOCALMIN,LOCALMAX. It is possible to set the mimimum
+      required alignment and the maximum usefull alignment. The final
+      alignment will be choosen per variable size dependent on these
+      settings
+
+  Revision 1.27  2001/06/04 18:12:26  peter
     * fixed crash with procvar directive parsing. Be carefull as the procvar
       directive parsing uses aktprocsym.definition that is a tprocdef, but
       for procvar the type is tprocvardef. So some fields are not available

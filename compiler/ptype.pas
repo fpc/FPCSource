@@ -232,7 +232,7 @@ implementation
         ap : tarraydef;
         s : stringid;
         l,v : TConstExprInt;
-        oldaktpackrecords : tpackrecords;
+        oldaktpackrecords : longint;
         hs : string;
         defpos,storepos : tfileposinfo;
 
@@ -545,13 +545,13 @@ implementation
                   array_dec
                 else
                   begin
-                    oldaktpackrecords:=aktpackrecords;
-                    aktpackrecords:=packrecord_1;
+                    oldaktpackrecords:=aktalignment.recordalignmax;
+                    aktalignment.recordalignmax:=1;
                     if token in [_CLASS,_OBJECT] then
                       tt.setdef(object_dec(name,nil))
                     else
                       tt.setdef(record_dec);
-                    aktpackrecords:=oldaktpackrecords;
+                    aktalignment.recordalignmax:=oldaktpackrecords;
                   end;
               end;
             _CLASS,
@@ -599,7 +599,16 @@ implementation
 end.
 {
   $Log$
-  Revision 1.26  2001-06-04 18:06:38  peter
+  Revision 1.27  2001-07-01 20:16:16  peter
+    * alignmentinfo record added
+    * -Oa argument supports more alignment settings that can be specified
+      per type: PROC,LOOP,VARMIN,VARMAX,CONSTMIN,CONSTMAX,RECORDMIN
+      RECORDMAX,LOCALMIN,LOCALMAX. It is possible to set the mimimum
+      required alignment and the maximum usefull alignment. The final
+      alignment will be choosen per variable size dependent on these
+      settings
+
+  Revision 1.26  2001/06/04 18:06:38  peter
     * fix for enum with assignment
 
   Revision 1.25  2001/06/04 11:51:59  peter

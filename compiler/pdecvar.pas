@@ -116,7 +116,8 @@ implementation
          tconstsym : ttypedconstsym;
          { maxsize contains the max. size of a variant }
          { startvarrec contains the start of the variant part of a record }
-         maxsize,maxalignment,startvarrecalign,startvarrecsize : longint;
+         usedalign,
+         maxsize,minalignment,maxalignment,startvarrecalign,startvarrecsize : longint;
          pt : tnode;
          srsym : tsym;
          srsymtable : tsymtable;
@@ -514,7 +515,26 @@ implementation
               symtablestack:=symtablestack.next;
               { we do NOT call symtablestack.insert
                on purpose PM }
-              offset:=align_from_size(symtablestack.datasize,maxalignment);
+              if aktalignment.recordalignmax=-1 then
+               begin
+{$ifdef i386}
+                 if maxalignment>2 then
+                  minalignment:=4
+                 else if maxalignment>1 then
+                  minalignment:=2
+                 else
+                  minalignment:=1;
+{$else}
+{$ifdef m68k}
+                 minalignment:=2;
+{$endif}
+                 minalignment:=1;
+{$endif}
+               end
+              else
+               minalignment:=maxalignment;
+              usedalign:=used_align(maxalignment,minalignment,maxalignment);
+              offset:=align(symtablestack.datasize,usedalign);
               symtablestack.datasize:=offset+unionsymtable.datasize;
               if maxalignment>symtablestack.dataalignment then
                 symtablestack.dataalignment:=maxalignment;
@@ -530,7 +550,16 @@ implementation
 end.
 {
   $Log$
-  Revision 1.17  2001-06-03 21:57:36  peter
+  Revision 1.18  2001-07-01 20:16:16  peter
+    * alignmentinfo record added
+    * -Oa argument supports more alignment settings that can be specified
+      per type: PROC,LOOP,VARMIN,VARMAX,CONSTMIN,CONSTMAX,RECORDMIN
+      RECORDMAX,LOCALMIN,LOCALMAX. It is possible to set the mimimum
+      required alignment and the maximum usefull alignment. The final
+      alignment will be choosen per variable size dependent on these
+      settings
+
+  Revision 1.17  2001/06/03 21:57:36  peter
     + hint directive parsing support
 
   Revision 1.16  2001/04/18 22:01:57  peter

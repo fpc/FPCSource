@@ -94,7 +94,7 @@ implementation
       begin
          { set default para_alignment to target_info.stackalignment }
          if para_alignment=0 then
-          para_alignment:=target_info.stackalignment;
+          para_alignment:=aktalignment.paraalign;
 
          { push from left to right if specified }
          if push_from_left_to_right and assigned(right) then
@@ -311,7 +311,7 @@ implementation
          if ([pocall_cdecl,pocall_cppdecl,pocall_stdcall]*procdefinition.proccalloptions)<>[] then
           para_alignment:=4
          else
-          para_alignment:=target_info.stackalignment;
+          para_alignment:=aktalignment.paraalign;
 
          if not assigned(procdefinition) then
           exit;
@@ -485,7 +485,7 @@ implementation
                   para_alignment,para_offset);
            end;
          if inlined then
-           inlinecode.retoffset:=gettempofsizepersistant(Align(resulttype.def.size,target_info.stackalignment));
+           inlinecode.retoffset:=gettempofsizepersistant(Align(resulttype.def.size,aktalignment.paraalign));
          if ret_in_param(resulttype.def) then
            begin
               { This must not be counted for C code
@@ -1576,7 +1576,16 @@ begin
 end.
 {
   $Log$
-  Revision 1.25  2001-06-04 11:48:02  peter
+  Revision 1.26  2001-07-01 20:16:20  peter
+    * alignmentinfo record added
+    * -Oa argument supports more alignment settings that can be specified
+      per type: PROC,LOOP,VARMIN,VARMAX,CONSTMIN,CONSTMAX,RECORDMIN
+      RECORDMAX,LOCALMIN,LOCALMAX. It is possible to set the mimimum
+      required alignment and the maximum usefull alignment. The final
+      alignment will be choosen per variable size dependent on these
+      settings
+
+  Revision 1.25  2001/06/04 11:48:02  peter
     * better const to var checking
 
   Revision 1.24  2001/05/19 21:22:53  peter

@@ -165,7 +165,7 @@ interface
         Initsetalloc,                            {0=fixed, 1 =var}
        {$ENDIF}
        initpackenum       : longint;
-       initpackrecords    : tpackrecords;
+       initalignment      : talignmentinfo;
        initoptprocessor,
        initspecificoptprocessor : tprocessors;
        initasmmode        : tasmmode;
@@ -183,7 +183,7 @@ interface
        {$ENDIF}
        aktpackenum        : longint;
        aktmaxfpuregisters : longint;
-       aktpackrecords     : tpackrecords;
+       aktalignment       : talignmentinfo;
        aktoptprocessor,
        aktspecificoptprocessor : tprocessors;
        aktasmmode         : tasmmode;
@@ -202,8 +202,7 @@ interface
        EntryMemUsed : longint;
 {$endif FPC}
      { parameter switches }
-       debugstop,
-       only_one_pass : boolean;
+       debugstop : boolean;
 {$EndIf EXTDEBUG}
        { windows / OS/2 application type }
        apptype : tapptype;
@@ -275,6 +274,8 @@ interface
 
     function  string2guid(const s: string; var GUID: TGUID): boolean;
     function  guid2string(const GUID: TGUID): string;
+
+    function UpdateAlignmentStr(s:string;var a:talignmentinfo):boolean;
 
 
 implementation
@@ -1060,6 +1061,7 @@ implementation
         SetCompileMode:=b;
       end;
 
+
     { '('D1:'00000000-'D2:'0000-'D3:'0000-'D4:'0000-000000000000)' }
     function string2guid(const s: string; var GUID: TGUID): boolean;
         function ishexstr(const hs: string): boolean;
@@ -1138,6 +1140,52 @@ implementation
       end;
 
 
+    function UpdateAlignmentStr(s:string;var a:talignmentinfo):boolean;
+      var
+        tok  : string;
+        vstr : string;
+        l    : longint;
+        code : integer;
+        b    : talignmentinfo;
+      begin
+        UpdateAlignmentStr:=true;
+        uppervar(s);
+        fillchar(b,sizeof(b),0);
+        repeat
+          tok:=GetToken(s,'=');
+          if tok='' then
+           break;
+          vstr:=GetToken(s,',');
+          val(vstr,l,code);
+          if tok='PROC' then
+           b.procalign:=l
+          else if tok='JUMP' then
+           b.jumpalign:=l
+          else if tok='LOOP' then
+           b.loopalign:=l
+          else if tok='CONSTMIN' then
+           b.constalignmin:=l
+          else if tok='CONSTMAX' then
+           b.constalignmax:=l
+          else if tok='VARMIN' then
+           b.varalignmin:=l
+          else if tok='VARMAX' then
+           b.varalignmax:=l
+          else if tok='LOCALMIN' then
+           b.localalignmin:=l
+          else if tok='LOCALMAX' then
+           b.localalignmax:=l
+          else if tok='RECORDMIN' then
+           b.recordalignmin:=l
+          else if tok='RECORDMAX' then
+           b.recordalignmax:=l
+          else if tok='PARAALIGN' then
+           b.paraalign:=l
+          else { Error }
+           UpdateAlignmentStr:=false;
+        until false;
+        UpdateAlignment(a,b);
+      end;
 
 {****************************************************************************
                                     Init
@@ -1235,6 +1283,7 @@ implementation
         initmoduleswitches:=[cs_extsyntax,cs_browser];
         initglobalswitches:=[cs_check_unit_name,cs_link_static];
         initoutputformat:=as_none;
+        fillchar(initalignment,sizeof(talignmentinfo),0);
 {$ifdef i386}
         initoptprocessor:=Class386;
         initspecificoptprocessor:=Class386;
@@ -1242,7 +1291,6 @@ implementation
         {$IFDEF testvarsets}
         initsetalloc:=0;
         {$ENDIF}
-        initpackrecords:=packrecord_2;
         initasmmode:=asmmode_i386_att;
 {$else not i386}
   {$ifdef m68k}
@@ -1252,7 +1300,6 @@ implementation
         {$IFDEF testvarsets}
          initsetalloc:=0;
         {$ENDIF}
-        initpackrecords:=packrecord_2;
         initoutputformat:=as_m68k_as;
         initasmmode:=asmmode_m68k_mot;
   {$endif m68k}
@@ -1284,7 +1331,16 @@ begin
 end.
 {
   $Log$
-  Revision 1.38  2001-06-18 20:36:24  peter
+  Revision 1.39  2001-07-01 20:16:15  peter
+    * alignmentinfo record added
+    * -Oa argument supports more alignment settings that can be specified
+      per type: PROC,LOOP,VARMIN,VARMAX,CONSTMIN,CONSTMAX,RECORDMIN
+      RECORDMAX,LOCALMIN,LOCALMAX. It is possible to set the mimimum
+      required alignment and the maximum usefull alignment. The final
+      alignment will be choosen per variable size dependent on these
+      settings
+
+  Revision 1.38  2001/06/18 20:36:24  peter
     * -Ur switch (merged)
     * masm fixes (merged)
     * quoted filenames for go32v2 and win32

@@ -300,7 +300,7 @@ const
       begin
         { align to 4 bytes at least
           otherwise all those subl $2,%esp are meaningless PM }
-        _align:=target_info.stackalignment;
+        _align:=target_info.alignment.localalignmin;
         if _align<4 then
           _align:=4;
         gettempsize:=Align(-lasttemp,_align);
@@ -614,7 +614,16 @@ begin
 end.
 {
   $Log$
-  Revision 1.15  2001-06-02 19:20:10  peter
+  Revision 1.16  2001-07-01 20:16:18  peter
+    * alignmentinfo record added
+    * -Oa argument supports more alignment settings that can be specified
+      per type: PROC,LOOP,VARMIN,VARMAX,CONSTMIN,CONSTMAX,RECORDMIN
+      RECORDMAX,LOCALMIN,LOCALMAX. It is possible to set the mimimum
+      required alignment and the maximum usefull alignment. The final
+      alignment will be choosen per variable size dependent on these
+      settings
+
+  Revision 1.15  2001/06/02 19:20:10  peter
     * allocate at least 4 bytes, also for 0 byte temps. Give a warning
       with extdebug
 

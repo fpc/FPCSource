@@ -1432,8 +1432,22 @@ function tDLLScannerWin32.scan(const binname:string):longbool;
             ar           : ar_gnu_arw;
             res          : res_gnu_windres;
             endian       : endian_little;
-            stackalignment : 4;
-            maxCrecordalignment : 16;
+            alignment    :
+              (
+                procalign       : 4;
+                loopalign       : 4;
+                jumpalign       : 0;
+                constalignmin   : 0;
+                constalignmax   : 1;
+                varalignmin     : 0;
+                varalignmax     : 1;
+                localalignmin   : 0;
+                localalignmax   : 1;
+                paraalign       : 4;
+                recordalignmin  : 0;
+                recordalignmax  : 2;
+                maxCrecordalign : 16
+              );
             size_of_pointer : 4;
             size_of_longint : 4;
             heapsize     : 256*1024;
@@ -1456,7 +1470,16 @@ initialization
 end.
 {
   $Log$
-  Revision 1.13  2001-06-28 19:46:25  peter
+  Revision 1.14  2001-07-01 20:16:21  peter
+    * alignmentinfo record added
+    * -Oa argument supports more alignment settings that can be specified
+      per type: PROC,LOOP,VARMIN,VARMAX,CONSTMIN,CONSTMAX,RECORDMIN
+      RECORDMAX,LOCALMIN,LOCALMAX. It is possible to set the mimimum
+      required alignment and the maximum usefull alignment. The final
+      alignment will be choosen per variable size dependent on these
+      settings
+
+  Revision 1.13  2001/06/28 19:46:25  peter
     * added override and virtual for constructors
 
   Revision 1.12  2001/06/18 20:36:26  peter

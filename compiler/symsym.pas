@@ -1392,29 +1392,10 @@ implementation
       end;
 
 
-    function  data_align(length : longint) : longint;
-      begin
-         (* this is useless under go32v2 at least
-         because the section are only align to dword
-         if length>8 then
-           data_align:=16
-         else if length>4 then
-           data_align:=8
-         else *)
-         if length>2 then
-           data_align:=4
-         else
-          if length>1 then
-           data_align:=2
-         else
-           data_align:=1;
-      end;
-
-
     procedure tvarsym.insert_in_data;
       var
          varalign,
-         l,ali,modulo : longint;
+         l,modulo : longint;
          storefilepos : tfileposinfo;
       begin
         if (vo_is_external in varoptions) then
@@ -1442,7 +1423,7 @@ implementation
              storefilepos:=aktfilepos;
              aktfilepos:=akttokenpos;
              if (vo_is_thread_var in varoptions) then
-               l:=4
+               l:=target_info.size_of_pointer
              else
                l:=getvaluesize;
              case owner.symtabletype of
@@ -1452,48 +1433,28 @@ implementation
                localsymtable :
                  begin
                    varstate:=vs_declared;
-                   modulo:=owner.datasize and 3;
-{$ifdef m68k}
-                 { word alignment required for motorola }
-                   if (l=1) then
-                    l:=2
-                   else
-{$endif}
-{
-                   if (cs_optimize in aktglobalswitches) and
-                      (aktoptprocessor in [classp5,classp6]) and
-                      (l>=8) and ((owner.datasize and 7)<>0) then
-                     inc(owner.datasize,8-(owner.datasize and 7))
-                   else
-}
-                     begin
-                        if (l>=4) and (modulo<>0) then
-                          inc(l,4-modulo)
-                        else
-                          if (l>=2) and ((modulo and 1)<>0) then
-                            inc(l,2-(modulo and 1));
-                     end;
-                   inc(owner.datasize,l);
-                   address:=owner.datasize;
+                   varalign:=size_2_align(l);
+                   varalign:=used_align(varalign,aktalignment.localalignmin,aktalignment.localalignmax);
+                   address:=align(owner.datasize,varalign)+l;
+                   owner.datasize:=address;
                  end;
                staticsymtable :
                  begin
                    { enable unitialized warning for local symbols }
                    varstate:=vs_declared;
+                   varalign:=size_2_align(l);
+                   varalign:=used_align(varalign,aktalignment.varalignmin,aktalignment.varalignmax);
+                   address:=align(owner.datasize,varalign);
+                   { insert cut for smartlinking or alignment }
                    if (cs_create_smart in aktmoduleswitches) then
-                     bssSegment.concat(Tai_cut.Create);
-                   ali:=data_align(l);
-                   if ali>1 then
-                     begin
-                        modulo:=owner.datasize mod ali;
-                        if modulo>0 then
-                          inc(owner.datasize,ali-modulo);
-                     end;
+                     bssSegment.concat(Tai_cut.Create)
+                   else if (address<>owner.datasize) then
+                     bssSegment.concat(Tai_align.create(varalign));
+                   owner.datasize:=address+l;
 {$ifdef GDB}
                    if cs_debuginfo in aktmoduleswitches then
                       concatstabto(bsssegment);
 {$endif GDB}
-
                    if (cs_create_smart in aktmoduleswitches) or
                       DLLSource or
                       (vo_is_exported in varoptions) or
@@ -1501,29 +1462,26 @@ implementation
                      bssSegment.concat(Tai_datablock.Create_global(mangledname,l))
                    else
                      bssSegment.concat(Tai_datablock.Create(mangledname,l));
-                   { increase datasize }
-                   inc(owner.datasize,l);
                    { this symbol can't be loaded to a register }
                    exclude(varoptions,vo_regable);
                    exclude(varoptions,vo_fpuregable);
                  end;
                globalsymtable :
                  begin
+                   varalign:=size_2_align(l);
+                   varalign:=used_align(varalign,aktalignment.varalignmin,aktalignment.varalignmax);
+                   address:=align(owner.datasize,varalign);
+                   { insert cut for smartlinking or alignment }
                    if (cs_create_smart in aktmoduleswitches) then
-                     bssSegment.concat(Tai_cut.Create);
-                   ali:=data_align(l);
-                   if ali>1 then
-                     begin
-                        modulo:=owner.datasize mod ali;
-                        if modulo>0 then
-                          inc(owner.datasize,ali-modulo);
-                     end;
+                     bssSegment.concat(Tai_cut.Create)
+                   else if (address<>owner.datasize) then
+                     bssSegment.concat(Tai_align.create(varalign));
+                   owner.datasize:=address+l;
 {$ifdef GDB}
                    if cs_debuginfo in aktmoduleswitches then
                      concatstabto(bsssegment);
 {$endif GDB}
                    bssSegment.concat(Tai_datablock.Create_global(mangledname,l));
-                   inc(owner.datasize,l);
                    { this symbol can't be loaded to a register }
                    exclude(varoptions,vo_regable);
                    exclude(varoptions,vo_fpuregable);
@@ -1535,7 +1493,7 @@ implementation
                    exclude(varoptions,vo_regable);
                    exclude(varoptions,vo_fpuregable);
                  { get the alignment size }
-                   if (aktpackrecords=packrecord_C) then
+                   if (aktalignment.recordalignmax=-1) then
                     begin
                       varalign:=vartype.def.alignment;
                       if (varalign>4) and ((varalign mod 4)<>0) and
@@ -1545,7 +1503,7 @@ implementation
                         end;
                       if varalign=0 then
                         varalign:=l;
-                      if (owner.dataalignment<target_info.maxCrecordalignment) then
+                      if (owner.dataalignment<aktalignment.maxCrecordalign) then
                        begin
                          if (varalign>16) and (owner.dataalignment<32) then
                           owner.dataalignment:=32
@@ -1561,67 +1519,28 @@ implementation
                          else if (varalign>1) and (owner.dataalignment<2) then
                           owner.dataalignment:=2;
                        end;
-                      if owner.dataalignment>target_info.maxCrecordalignment then
-                        owner.dataalignment:=target_info.maxCrecordalignment;
+                      owner.dataalignment:=max(owner.dataalignment,aktalignment.maxCrecordalign);
                     end
                    else
                     varalign:=vartype.def.alignment;
                    if varalign=0 then
-                     varalign:=l;
-                 { align record and object fields }
-                   if (varalign=1) or (owner.dataalignment=1) then
-                    begin
-                      address:=owner.datasize;
-                      inc(owner.datasize,l)
-                    end
-                   else if (varalign=2) or (owner.dataalignment=2) then
-                     begin
-                       owner.datasize:=(owner.datasize+1) and (not 1);
-                       address:=owner.datasize;
-                       inc(owner.datasize,l)
-                     end
-                   else if (varalign<=4) or (owner.dataalignment=4) then
-                     begin
-                       owner.datasize:=(owner.datasize+3) and (not 3);
-                       address:=owner.datasize;
-                       inc(owner.datasize,l);
-                     end
-                   else if (varalign<=8) or (owner.dataalignment=8) then
-                     begin
-                       owner.datasize:=(owner.datasize+7) and (not 7);
-                       address:=owner.datasize;
-                       inc(owner.datasize,l);
-                     end
-                         { 12 is needed for C long double support }
-                   else if (varalign<=12) and (owner.dataalignment=12) then
-                     begin
-                       owner.datasize:=((owner.datasize+11) div 12) * 12;
-                       address:=owner.datasize;
-                       inc(owner.datasize,l);
-                     end
-                   else if (varalign<=16) or (owner.dataalignment=16) then
-                     begin
-                       owner.datasize:=(owner.datasize+15) and (not 15);
-                       address:=owner.datasize;
-                       inc(owner.datasize,l);
-                     end
-                   else if (varalign<=32) or (owner.dataalignment=32) then
-                     begin
-                       owner.datasize:=(owner.datasize+31) and (not 31);
-                       address:=owner.datasize;
-                       inc(owner.datasize,l);
-                     end
-                    else
-                     internalerror(1000022);
+                     varalign:=size_2_align(l);
+                   varalign:=used_align(varalign,aktalignment.recordalignmin,owner.dataalignment);
+                   address:=align(owner.datasize,varalign);
+                   owner.datasize:=address+l;
                  end;
                parasymtable :
                  begin
                    { here we need the size of a push instead of the
                      size of the data }
                    l:=getpushsize;
+                   varalign:=size_2_align(l);
                    varstate:=vs_assigned;
+                   { we need the new datasize already aligned so we can't
+                     use the align_address here }
                    address:=owner.datasize;
-                   owner.datasize:=align(owner.datasize+l,target_info.stackalignment);
+                   varalign:=used_align(varalign,owner.dataalignment,owner.dataalignment);
+                   owner.datasize:=align(address+l,varalign);
                  end
                else
                  begin
@@ -1803,7 +1722,7 @@ implementation
     procedure ttypedconstsym.insert_in_data;
       var
         curconstsegment : taasmoutput;
-        l,ali,modulo : longint;
+        address,l,varalign : longint;
         storefilepos : tfileposinfo;
       begin
         storefilepos:=aktfilepos;
@@ -1812,22 +1731,19 @@ implementation
           curconstsegment:=consts
         else
           curconstsegment:=datasegment;
-        if (cs_create_smart in aktmoduleswitches) then
-          curconstSegment.concat(Tai_cut.Create);
         l:=getsize;
-        ali:=data_align(l);
-        if ali>1 then
-          begin
-             curconstSegment.concat(Tai_align.Create(ali));
-             modulo:=owner.datasize mod ali;
-             if modulo>0 then
-               inc(owner.datasize,ali-modulo);
-          end;
-        {  Why was there no owner size update here ??? }
-        inc(owner.datasize,l);
+        varalign:=size_2_align(l);
+        varalign:=used_align(varalign,aktalignment.constalignmin,aktalignment.constalignmax);
+        address:=align(owner.datasize,varalign);
+        { insert cut for smartlinking or alignment }
+        if (cs_create_smart in aktmoduleswitches) then
+          curconstSegment.concat(Tai_cut.Create)
+        else if (address<>owner.datasize) then
+          curconstSegment.concat(Tai_align.create(varalign));
+        owner.datasize:=address+l;
 {$ifdef GDB}
-              if cs_debuginfo in aktmoduleswitches then
-                concatstabto(curconstsegment);
+        if cs_debuginfo in aktmoduleswitches then
+          concatstabto(curconstsegment);
 {$endif GDB}
         if (owner.symtabletype=globalsymtable) then
           begin
@@ -2329,7 +2245,16 @@ implementation
 end.
 {
   $Log$
-  Revision 1.13  2001-05-08 21:06:32  florian
+  Revision 1.14  2001-07-01 20:16:17  peter
+    * alignmentinfo record added
+    * -Oa argument supports more alignment settings that can be specified
+      per type: PROC,LOOP,VARMIN,VARMAX,CONSTMIN,CONSTMAX,RECORDMIN
+      RECORDMAX,LOCALMIN,LOCALMAX. It is possible to set the mimimum
+      required alignment and the maximum usefull alignment. The final
+      alignment will be choosen per variable size dependent on these
+      settings
+
+  Revision 1.13  2001/05/08 21:06:32  florian
     * some more support for widechars commited especially
       regarding type casting and constants
 

@@ -27,7 +27,7 @@ unit options;
 interface
 
 uses
-  globtype,globals,verbose;
+  globtype,globals,verbose,systems;
 
 type
   TOption=class
@@ -40,6 +40,7 @@ type
     ParaUnitPath,
     ParaObjectPath,
     ParaLibraryPath : TSearchPathList;
+    ParaAlignment   : TAlignmentInfo;
     Constructor Create;
     Destructor Destroy;override;
     procedure WriteLogo;
@@ -72,7 +73,7 @@ uses
 {$else Delphi}
   dos,
 {$endif Delphi}
-  version,systems,
+  version,
   cutils,messages
 {$ifdef BrowserLog}
   ,browlog
@@ -356,10 +357,10 @@ begin
                       initglobalswitches:=initglobalswitches+[cs_asm_leave];
                       for j:=1 to length(more) do
                        case more[j] of
-                        'l' : initglobalswitches:=initglobalswitches+[cs_asm_source];
-                        'r' : initglobalswitches:=initglobalswitches+[cs_asm_regalloc];
-                        't' : initglobalswitches:=initglobalswitches+[cs_asm_tempalloc];
-                        '-' : initglobalswitches:=initglobalswitches-
+                        'l' : include(initglobalswitches,cs_asm_source);
+                        'r' : include(initglobalswitches,cs_asm_regalloc);
+                        't' : include(initglobalswitches,cs_asm_tempalloc);
+                        '-' : initglobalswitches:=initglobalswitches -
                                 [cs_asm_leave, cs_asm_source,cs_asm_regalloc, cs_asm_tempalloc];
                        else
                          IllegalPara(opt);
@@ -372,30 +373,35 @@ begin
                        IllegalPara(opt);
                     end;
               'b' : begin
+                      if UnsetBool(More,0) then
+                       begin
+                         exclude(initmoduleswitches,cs_browser);
+                         exclude(initmoduleswitches,cs_local_browser);
 {$ifdef BrowserLog}
-                      initglobalswitches:=initglobalswitches+[cs_browser_log];
+                         exclude(initglobalswitches,cs_browser_log);
 {$endif}
+                       end
+                      else
+                       begin
+                         include(initmoduleswitches,cs_browser);
+{$ifdef BrowserLog}
+                         include(initglobalswitches,cs_browser_log);
+{$endif}
+                       end;
                       if More<>'' then
-                        if More='l' then
-                          initmoduleswitches:=initmoduleswitches+[cs_local_browser]
-                        else if More='-' then
-                          begin
-                            initmoduleswitches:=initmoduleswitches-[cs_browser,cs_local_browser];
-{$ifdef BrowserLog}
-                            initglobalswitches:=initglobalswitches-[cs_browser_log];
-{$endif}
-                          end
-                        else if More<>'+' then
+                        if (More='l') or (More='l+') then
+                          include(initmoduleswitches,cs_local_browser)
+                        else
+                         if More='l-' then
+                          exclude(initmoduleswitches,cs_local_browser)
+                        else
 {$ifdef BrowserLog}
                           browserlog.elements_to_list.insert(more);
 {$else}
                           IllegalPara(opt);
 {$endif}
                     end;
-              'B' : if UnSetBool(more,0) then
-                      do_build:=false
-                    else
-                      do_build:=true;
+              'B' : do_build:=not UnSetBool(more,0);
               'C' : begin
                       j := 1;
                       while j <= length(more) Do
@@ -409,49 +415,53 @@ begin
                                   IllegalPara(opt);
                                  break;
                                end;
-                            'i' : If UnsetBool(More, j) then
-                                    initlocalswitches:=initlocalswitches-[cs_check_io]
-                                  else initlocalswitches:=initlocalswitches+[cs_check_io];
-                            'n' : If UnsetBool(More, j) then
-                                    initglobalswitches:=initglobalswitches-[cs_link_extern]
-                                  Else initglobalswitches:=initglobalswitches+[cs_link_extern];
+                            'i' :
+                              If UnsetBool(More, j) then
+                                exclude(initlocalswitches,cs_check_io)
+                              else
+                                include(initlocalswitches,cs_check_io);
+                            'n' :
+                              If UnsetBool(More, j) then
+                                exclude(initglobalswitches,cs_link_extern)
+                              Else
+                                include(initglobalswitches,cs_link_extern);
                             'o' :
                               If UnsetBool(More, j) then
-                                  initlocalswitches:=initlocalswitches-[cs_check_overflow]
+                                exclude(initlocalswitches,cs_check_overflow)
                               Else
-                                initlocalswitches:=initlocalswitches+[cs_check_overflow];
+                                include(initlocalswitches,cs_check_overflow);
                             'r' :
                               If UnsetBool(More, j) then
-                                 initlocalswitches:=initlocalswitches-[cs_check_range]
+                                exclude(initlocalswitches,cs_check_range)
                               Else
-                                initlocalswitches:=initlocalswitches+[cs_check_range];
+                                include(initlocalswitches,cs_check_range);
                             'R' :
                               If UnsetBool(More, j) then
-                                initlocalswitches:=initlocalswitches-[cs_check_object_ext]
+                                exclude(initlocalswitches,cs_check_object_ext)
                               Else
-                                initlocalswitches:=initlocalswitches+[cs_check_object_ext];
+                                include(initlocalswitches,cs_check_object_ext);
                             's' :
-                               begin
+                              begin
                                  val(copy(more,j+1,length(more)-j),stacksize,code);
                                  if (code<>0) or (stacksize>=67107840) or (stacksize<1024) then
                                   IllegalPara(opt);
                                  break;
-                               end;
+                              end;
                             't' :
                                If UnsetBool(More, j) then
-                                 initlocalswitches:=initlocalswitches-[cs_check_stack]
+                                 exclude(initlocalswitches,cs_check_stack)
                                Else
-                                 initlocalswitches:=initlocalswitches+[cs_check_stack];
+                                 include(initlocalswitches,cs_check_stack);
                             'D' :
                                If UnsetBool(More, j) then
-                                   initmoduleswitches:=initmoduleswitches-[cs_create_dynamic]
+                                 exclude(initmoduleswitches,cs_create_dynamic)
                                Else
-                                 initmoduleswitches:=initmoduleswitches+[cs_create_dynamic];
+                                 include(initmoduleswitches,cs_create_dynamic);
                             'X' :
                                If UnsetBool(More, j) then
-                                 initmoduleswitches:=initmoduleswitches-[cs_create_smart]
+                                 exclude(initmoduleswitches,cs_create_smart)
                                Else
-                                 initmoduleswitches:=initmoduleswitches+[cs_create_smart];
+                                 include(initmoduleswitches,cs_create_smart);
                             else
                                IllegalPara(opt);
                           end;
@@ -460,7 +470,7 @@ begin
                     end;
               'd' : def_symbol(more);
               'D' : begin
-                      initglobalswitches:=initglobalswitches+[cs_link_deffile];
+                      include(initglobalswitches,cs_link_deffile);
                       for j:=1 to length(more) do
                        case more[j] of
                         'd' : begin
@@ -495,8 +505,7 @@ begin
                               end;
                         'w' : usewindowapi:=true;
                         '-' : begin
-                                initglobalswitches:=initglobalswitches-
-                                  [cs_link_deffile];
+                                exclude(initglobalswitches,cs_link_deffile);
                                 usewindowapi:=false;
                               end;
                        else
@@ -505,10 +514,10 @@ begin
                     end;
               'e' : exepath:=FixPath(More,true);
               { Just used by RHIDE }
-              'E' : if (length(more)=0) or (UnsetBool(More, 0)) then
-                      initglobalswitches:=initglobalswitches+[cs_link_extern]
+              'E' : if UnsetBool(More, 0) then
+                      exclude(initglobalswitches,cs_link_extern)
                     else
-                      initglobalswitches:=initglobalswitches-[cs_link_extern];
+                      include(initglobalswitches,cs_link_extern);
               'F' : begin
                       c:=more[1];
                       Delete(more,1,1);
@@ -547,26 +556,41 @@ begin
               'g' : begin
                       if UnsetBool(More, 0) then
                         begin
-                          initmoduleswitches:=initmoduleswitches-[cs_debuginfo];
-                          if (length(More)>1) and (More[2]='l') then
-                            initglobalswitches:=initglobalswitches+[cs_gdb_lineinfo];
+                          exclude(initmoduleswitches,cs_debuginfo);
+                          exclude(initglobalswitches,cs_gdb_dbx);
+                          exclude(initglobalswitches,cs_gdb_gsym);
+                          exclude(initglobalswitches,cs_gdb_heaptrc);
+                          exclude(initglobalswitches,cs_gdb_lineinfo);
+                          exclude(initglobalswitches,cs_checkpointer);
                         end
                       else
                        begin
 {$ifdef GDB}
-                         initmoduleswitches:=initmoduleswitches+[cs_debuginfo];
+                         include(initmoduleswitches,cs_debuginfo);
                          if not RelocSectionSetExplicitly then
                            RelocSection:=false;
                          for j:=1 to length(more) do
                           case more[j] of
-                           'd' : initglobalswitches:=initglobalswitches+[cs_gdb_dbx];
-                           'g' : initglobalswitches:=initglobalswitches+[cs_gdb_gsym];
-                           'h' : initglobalswitches:=initglobalswitches+[cs_gdb_heaptrc];
-                           'l' : initglobalswitches:=initglobalswitches+[cs_gdb_lineinfo];
-                           'c' : initglobalswitches:=initglobalswitches+[cs_checkpointer];
-{$ifdef EXTDEBUG}
-                           'p' : only_one_pass:=true;
-{$endif EXTDEBUG}
+                           'd' : if UnsetBool(More, j) then
+                                   exclude(initglobalswitches,cs_gdb_dbx)
+                                 else
+                                   include(initglobalswitches,cs_gdb_dbx);
+                           'g' : if UnsetBool(More, j) then
+                                   exclude(initglobalswitches,cs_gdb_gsym)
+                                 else
+                                   include(initglobalswitches,cs_gdb_gsym);
+                           'h' : if UnsetBool(More, j) then
+                                   exclude(initglobalswitches,cs_gdb_heaptrc)
+                                 else
+                                   include(initglobalswitches,cs_gdb_heaptrc);
+                           'l' : if UnsetBool(More, j) then
+                                   exclude(initglobalswitches,cs_gdb_lineinfo)
+                                 else
+                                   include(initglobalswitches,cs_gdb_lineinfo);
+                           'c' : if UnsetBool(More, j) then
+                                   exclude(initglobalswitches,cs_checkpointer)
+                                 else
+                                   include(initglobalswitches,cs_checkpointer);
                           else
                             IllegalPara(opt);
                           end;
@@ -592,14 +616,8 @@ begin
                      ParaLinkOptions:=ParaLinkOptions+' '+More
                     else
                      IllegalPara(opt);
-              'l' : if UnSetBool(more,0) then
-                      DoWriteLogo:=false
-                    else
-                      DoWriteLogo:=true;
-              'm' : if UnSetBool(more,0) then
-                      parapreprocess:=false
-                    else
-                      parapreprocess:=true;
+              'l' : DoWriteLogo:=not UnSetBool(more,0);
+              'm' : parapreprocess:=not UnSetBool(more,0);
               'n' : if More='' then
                      begin
                        read_configfile:=false;
@@ -618,15 +636,18 @@ begin
                           undef_symbol('FPC_PROFILE');
                         end
                       else
+                        if Length(More)=0 then
+                          IllegalPara(opt)
+                        else
                         case more[1] of
-                         'g' : if (length(opt)=3) and UnsetBool(more, 1) then
+                         'g' : if UnsetBool(more, 1) then
                                 begin
-                                  initmoduleswitches:=initmoduleswitches-[cs_profile];
+                                  exclude(initmoduleswitches,cs_profile);
                                   undef_symbol('FPC_PROFILE');
                                 end
                                else
                                 begin
-                                  initmoduleswitches:=initmoduleswitches+[cs_profile];
+                                  include(initmoduleswitches,cs_profile);
                                   def_symbol('FPC_PROFILE');
                                end;
                         else
@@ -635,9 +656,9 @@ begin
                     end;
 {$ifdef Unix}
               'P' : if UnsetBool(More, 0) then
-                      initglobalswitches:=initglobalswitches-[cs_asm_pipe]
+                      exclude(initglobalswitches,cs_asm_pipe)
                     else
-                      initglobalswitches:=initglobalswitches+[cs_asm_pipe];
+                      include(initglobalswitches,cs_asm_pipe);
 {$endif Unix}
               's' : if UnsetBool(More, 0) then
                       initglobalswitches:=initglobalswitches-[cs_asm_extern,cs_link_extern]
@@ -657,30 +678,27 @@ begin
                         for j:=1 to length(more) do
                          case more[j] of
                           '2' : SetCompileMode('OBJFPC',true);
-                          'a' : initlocalswitches:=InitLocalswitches+[cs_do_assertion];
-                          'c' : initmoduleswitches:=initmoduleswitches+[cs_support_c_operators];
+                          'a' : include(initlocalswitches,cs_do_assertion);
+                          'c' : include(initmoduleswitches,cs_support_c_operators);
                           'd' : SetCompileMode('DELPHI',true);
                           'e' : begin
                                   SetErrorFlags(copy(more,j+1,length(more)));
                                   break;
                                 end;
-                          'g' : initmoduleswitches:=initmoduleswitches+[cs_support_goto];
-                          'h' : initlocalswitches:=initlocalswitches+[cs_ansistrings];
-                          'i' : initmoduleswitches:=initmoduleswitches+[cs_support_inline];
-                          'm' : initmoduleswitches:=initmoduleswitches+[cs_support_macro];
+                          'g' : include(initmoduleswitches,cs_support_goto);
+                          'h' : include(initlocalswitches,cs_ansistrings);
+                          'i' : include(initmoduleswitches,cs_support_inline);
+                          'm' : include(initmoduleswitches,cs_support_macro);
                           'o' : SetCompileMode('TP',true);
                           'p' : SetCompileMode('GPC',true);
-                          's' : initglobalswitches:=initglobalswitches+[cs_constructor_name];
-                          't' : initmoduleswitches:=initmoduleswitches+[cs_static_keyword];
+                          's' : include(initglobalswitches,cs_constructor_name);
+                          't' : include(initmoduleswitches,cs_static_keyword);
                           '-' : begin
-                                  initglobalswitches:=initglobalswitches -
-                                    [cs_constructor_name];
-                                  initlocalswitches:=InitLocalswitches -
-                                    [cs_do_assertion, cs_ansistrings];
-                                  initmoduleswitches:=initmoduleswitches -
-                                    [cs_support_c_operators, cs_support_goto,
-                                     cs_support_inline, cs_support_macro,
-                                     cs_static_keyword];
+                                  exclude(initglobalswitches,cs_constructor_name);
+                                  initlocalswitches:=InitLocalswitches - [cs_do_assertion, cs_ansistrings];
+                                  initmoduleswitches:=initmoduleswitches - [cs_support_c_operators, cs_support_goto,
+                                                                            cs_support_inline, cs_support_macro,
+                                                                            cs_static_keyword];
                                 end;
                          else
                           IllegalPara(opt);
@@ -719,18 +737,16 @@ begin
                                 break;
                               end;
 {$endif UNITALIASES}
-                        'n' : initglobalswitches:=initglobalswitches-[cs_check_unit_name];
+                        'n' : exclude(initglobalswitches,cs_check_unit_name);
                         'p' : begin
                                 Message2(option_obsolete_switch_use_new,'-Up','-Fu');
                                 break;
                               end;
                         'r' : do_release:=true;
-                        's' : initmoduleswitches:=initmoduleswitches+[cs_compilesystem];
+                        's' : include(initmoduleswitches,cs_compilesystem);
                         '-' : begin
-                                initmoduleswitches:=initmoduleswitches
-                                  - [cs_compilesystem];
-                                initglobalswitches:=initglobalswitches
-                                  + [cs_check_unit_name];
+                                exclude(initmoduleswitches,cs_compilesystem);
+                                exclude(initglobalswitches,cs_check_unit_name);
                               end;
                        else
                          IllegalPara(opt);
@@ -744,8 +760,7 @@ begin
                       begin
                        inc(j);
                        case More[j] of
-                        'B': {bind_win32_dll:=true}
-                             begin
+                        'B': begin
                                {  -WB200000 means set trefered base address
                                  to $200000, but does not change relocsection boolean
                                  this way we can create both relocatble and
@@ -762,12 +777,18 @@ begin
                                  end;
                                break;
                              end;
-                        'C': apptype:=app_cui;
+                        'C': if UnsetBool(More, j) then
+                               apptype:=app_gui
+                              else
+                               apptype:=app_cui;
                         'D': ForceDeffileForExport:=not UnsetBool(More, j);
                         'F': apptype:=app_fs;
-                        'G': apptype:=app_gui;
+                        'G': if UnsetBool(More, j) then
+                               apptype:=app_cui
+                              else
+                               apptype:=app_gui;
                         'N': begin
-                               RelocSection:=false;
+                               RelocSection:=UnsetBool(More,j);
                                RelocSectionSetExplicitly:=true;
                              end;
                         'R': begin
@@ -783,35 +804,38 @@ begin
               'X' : begin
                       for j:=1 to length(More) do
                        case More[j] of
-                        'c' : initglobalswitches:=initglobalswitches+[cs_link_toc];
-                        's' : initglobalswitches:=initglobalswitches+[cs_link_strip];
-                        't' : initglobalswitches:=initglobalswitches+[cs_link_staticflag];
+                        's' : include(initglobalswitches,cs_link_strip);
+                        't' : include(initglobalswitches,cs_link_staticflag);
                         'D' : begin
                                 def_symbol('FPC_LINK_DYNAMIC');
                                 undef_symbol('FPC_LINK_SMART');
                                 undef_symbol('FPC_LINK_STATIC');
-                                initglobalswitches:=initglobalswitches+[cs_link_shared];
-                                initglobalswitches:=initglobalswitches-[cs_link_static,cs_link_smart];
+                                exclude(initglobalswitches,cs_link_static);
+                                exclude(initglobalswitches,cs_link_smart);
+                                include(initglobalswitches,cs_link_shared);
                                 LinkTypeSetExplicitly:=true;
                               end;
                         'S' : begin
                                 def_symbol('FPC_LINK_STATIC');
                                 undef_symbol('FPC_LINK_SMART');
                                 undef_symbol('FPC_LINK_DYNAMIC');
-                                initglobalswitches:=initglobalswitches+[cs_link_static];
-                                initglobalswitches:=initglobalswitches-[cs_link_shared,cs_link_smart];
+                                include(initglobalswitches,cs_link_static);
+                                exclude(initglobalswitches,cs_link_smart);
+                                exclude(initglobalswitches,cs_link_shared);
                                 LinkTypeSetExplicitly:=true;
                               end;
                         'X' : begin
                                 def_symbol('FPC_LINK_SMART');
                                 undef_symbol('FPC_LINK_STATIC');
                                 undef_symbol('FPC_LINK_DYNAMIC');
-                                initglobalswitches:=initglobalswitches+[cs_link_smart];
-                                initglobalswitches:=initglobalswitches-[cs_link_shared,cs_link_static];
+                                exclude(initglobalswitches,cs_link_static);
+                                include(initglobalswitches,cs_link_smart);
+                                exclude(initglobalswitches,cs_link_shared);
                                 LinkTypeSetExplicitly:=true;
                               end;
                         '-' : begin
-                                initglobalswitches:=initglobalswitches-[cs_link_toc, cs_link_strip, cs_link_staticflag];
+                                exclude(initglobalswitches,cs_link_staticflag);
+                                exclude(initglobalswitches,cs_link_strip);
                                 set_default_link_type;
                               end;
                        else
@@ -1208,6 +1232,7 @@ begin
   ParaObjectPath:=TSearchPathList.Create;
   ParaUnitPath:=TSearchPathList.Create;
   ParaLibraryPath:=TSearchPathList.Create;
+  FillChar(ParaAlignment,sizeof(ParaAlignment),0);
 end;
 
 
@@ -1504,10 +1529,23 @@ begin
 { turn off stripping if compiling with debuginfo or profile }
   if (cs_debuginfo in initmoduleswitches) or
      (cs_profile in initmoduleswitches) then
-    initglobalswitches:=initglobalswitches-[cs_link_strip];
+    exclude(initglobalswitches,cs_link_strip);
 
   if not LinkTypeSetExplicitly then
    set_default_link_type;
+
+  { Default alignment settings,
+    1. load the defaults for the target
+    2. override with generic optimizer setting (little size)
+    3. override with the user specified -Oa }
+  UpdateAlignment(initalignment,target_info.alignment);
+  if (cs_littlesize in aktglobalswitches) then
+   begin
+     initalignment.procalign:=1;
+     initalignment.jumpalign:=1;
+     initalignment.loopalign:=1;
+   end;
+  UpdateAlignment(initalignment,option.paraalignment);
 
 { Set defines depending on the target }
   if (target_info.target in [target_i386_GO32V1,target_i386_GO32V2]) then
@@ -1526,7 +1564,16 @@ finalization
 end.
 {
   $Log$
-  Revision 1.46  2001-06-29 19:41:54  peter
+  Revision 1.47  2001-07-01 20:16:16  peter
+    * alignmentinfo record added
+    * -Oa argument supports more alignment settings that can be specified
+      per type: PROC,LOOP,VARMIN,VARMAX,CONSTMIN,CONSTMAX,RECORDMIN
+      RECORDMAX,LOCALMIN,LOCALMAX. It is possible to set the mimimum
+      required alignment and the maximum usefull alignment. The final
+      alignment will be choosen per variable size dependent on these
+      settings
+
+  Revision 1.46  2001/06/29 19:41:54  peter
     * patch from Pavel Ozerski to support +/- better
 
   Revision 1.45  2001/06/19 14:55:45  jonas

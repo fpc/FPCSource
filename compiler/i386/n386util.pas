@@ -291,7 +291,7 @@ implementation
       { copy the element on the stack, slightly complicated }
         if p.nodetype=ordconstn then
          begin
-           if target_info.stackalignment=4 then
+           if aktalignment.paraalign=4 then
              exprasmList.concat(Taicpu.Op_const(A_PUSH,S_L,tordconstnode(p).value))
            else
              exprasmList.concat(Taicpu.Op_const(A_PUSH,S_W,tordconstnode(p).value));
@@ -320,7 +320,7 @@ implementation
                        hr32:=reg8toreg32(hr);
                      end;
                  end;
-                 if target_info.stackalignment=4 then
+                 if aktalignment.paraalign=4 then
                    exprasmList.concat(Taicpu.Op_reg(A_PUSH,S_L,hr32))
                  else
                    exprasmList.concat(Taicpu.Op_reg(A_PUSH,S_W,hr16));
@@ -1472,7 +1472,16 @@ implementation
 end.
 {
   $Log$
-  Revision 1.16  2001-04-18 22:02:03  peter
+  Revision 1.17  2001-07-01 20:16:20  peter
+    * alignmentinfo record added
+    * -Oa argument supports more alignment settings that can be specified
+      per type: PROC,LOOP,VARMIN,VARMAX,CONSTMIN,CONSTMAX,RECORDMIN
+      RECORDMAX,LOCALMIN,LOCALMAX. It is possible to set the mimimum
+      required alignment and the maximum usefull alignment. The final
+      alignment will be choosen per variable size dependent on these
+      settings
+
+  Revision 1.16  2001/04/18 22:02:03  peter
     * registration of targets and assemblers
 
   Revision 1.15  2001/04/13 01:22:19  peter

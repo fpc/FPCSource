@@ -119,22 +119,22 @@ implementation
            { Support also the ON and OFF as switch }
            hs:=current_scanner.readid;
            if (hs='ON') then
-            aktpackrecords:=packrecord_4
+            aktalignment.recordalignmax:=4
            else
             if (hs='OFF') then
-             aktpackrecords:=packrecord_1
+             aktalignment.recordalignmax:=1
            else
             Message(scan_w_only_pack_records);
          end
         else
          begin
            case current_scanner.readval of
-             1 : aktpackrecords:=packrecord_1;
-             2 : aktpackrecords:=packrecord_2;
-             4 : aktpackrecords:=packrecord_4;
-             8 : aktpackrecords:=packrecord_8;
-            16 : aktpackrecords:=packrecord_16;
-            32 : aktpackrecords:=packrecord_32;
+             1 : aktalignment.recordalignmax:=1;
+             2 : aktalignment.recordalignmax:=2;
+             4 : aktalignment.recordalignmax:=4;
+             8 : aktalignment.recordalignmax:=8;
+            16 : aktalignment.recordalignmax:=16;
+            32 : aktalignment.recordalignmax:=32;
            else
             Message(scan_w_only_pack_records);
            end;
@@ -546,23 +546,24 @@ implementation
         if not(c in ['0'..'9']) then
          begin
            hs:=current_scanner.readid;
+           { C has the special recordalignmax of -1 }
            if (hs='C') then
-            aktpackrecords:=packrecord_C
+            aktalignment.recordalignmax:=-1
            else
             if (hs='NORMAL') or (hs='DEFAULT') then
-             aktpackrecords:=packrecord_2
+             aktalignment.recordalignmax:=2
            else
             Message(scan_w_only_pack_records);
          end
         else
          begin
            case current_scanner.readval of
-             1 : aktpackrecords:=packrecord_1;
-             2 : aktpackrecords:=packrecord_2;
-             4 : aktpackrecords:=packrecord_4;
-             8 : aktpackrecords:=packrecord_8;
-            16 : aktpackrecords:=packrecord_16;
-            32 : aktpackrecords:=packrecord_32;
+             1 : aktalignment.recordalignmax:=1;
+             2 : aktalignment.recordalignmax:=2;
+             4 : aktalignment.recordalignmax:=4;
+             8 : aktalignment.recordalignmax:=8;
+            16 : aktalignment.recordalignmax:=16;
+            32 : aktalignment.recordalignmax:=32;
            else
             Message(scan_w_only_pack_records);
            end;
@@ -870,7 +871,16 @@ implementation
 end.
 {
   $Log$
-  Revision 1.4  2001-06-03 20:20:27  peter
+  Revision 1.5  2001-07-01 20:16:16  peter
+    * alignmentinfo record added
+    * -Oa argument supports more alignment settings that can be specified
+      per type: PROC,LOOP,VARMIN,VARMAX,CONSTMIN,CONSTMAX,RECORDMIN
+      RECORDMAX,LOCALMIN,LOCALMAX. It is possible to set the mimimum
+      required alignment and the maximum usefull alignment. The final
+      alignment will be choosen per variable size dependent on these
+      settings
+
+  Revision 1.4  2001/06/03 20:20:27  peter
     * Align directive supports also values to be Kylix compatible. It's
       strange because the help of kylix still shows only On and Off as
       possible values, so still support those. On means 4 bytes and Off

@@ -97,6 +97,23 @@ interface
 *****************************************************************************}
 
      type
+       palignmentinfo = ^talignmentinfo;
+       talignmentinfo = packed record
+         procalign,
+         loopalign,
+         jumpalign,
+         constalignmin,
+         constalignmax,
+         varalignmin,
+         varalignmax,
+         localalignmin,
+         localalignmax,
+         paraalign,
+         recordalignmin,
+         recordalignmax,
+         maxCrecordalign : longint;
+       end;
+
        pasminfo = ^tasminfo;
        tasminfo = packed record
           id          : tasm;
@@ -164,9 +181,8 @@ interface
           linkextern   : tld;  { external linker, used by -s }
           ar           : tar;
           res          : tres;
-          endian          : tendian;
-          stackalignment  : word;
-          maxCrecordalignment : word;
+          endian       : tendian;
+          alignment    : talignmentinfo;
           size_of_pointer : byte;
           size_of_longint : byte;
           heapsize,
@@ -210,6 +226,8 @@ interface
     function set_target_by_string(const s : string) : boolean;
     function set_target_asm_by_string(const s : string) : boolean;
     function set_asmmode_by_string(const s:string;var t:tasmmode):boolean;
+
+    procedure UpdateAlignment(var d:talignmentinfo;const s:talignmentinfo);
 
     procedure RegisterTarget(const r:ttargetinfo);
     procedure RegisterAsmMode(const r:tasmmodeinfo);
@@ -332,6 +350,43 @@ begin
       t:=asmmodeinfos[ht]^.id;
       set_asmmode_by_string:=true;
     end;
+end;
+
+
+procedure UpdateAlignment(var d:talignmentinfo;const s:talignmentinfo);
+begin
+  with d do
+   begin
+     { general update rules:
+       minimum: if higher then update
+       maximum: if lower then update or if undefined then update }
+     if s.procalign>procalign then
+      procalign:=s.procalign;
+     if s.loopalign>loopalign then
+      loopalign:=s.loopalign;
+     if s.jumpalign>jumpalign then
+      jumpalign:=s.jumpalign;
+     if s.constalignmin>constalignmin then
+      constalignmin:=s.constalignmin;
+     if (constalignmax=0) or (s.constalignmax<constalignmax) then
+      constalignmax:=s.constalignmax;
+     if s.varalignmin>varalignmin then
+      varalignmin:=s.varalignmin;
+     if (varalignmax=0) or (s.varalignmax<varalignmax) then
+      varalignmax:=s.varalignmax;
+     if s.localalignmin>localalignmin then
+      localalignmin:=s.localalignmin;
+     if (localalignmax=0) or (s.localalignmax<localalignmax) then
+      localalignmax:=s.localalignmax;
+     if s.paraalign>paraalign then
+      paraalign:=s.paraalign;
+     if s.recordalignmin>recordalignmin then
+      recordalignmin:=s.recordalignmin;
+     if (recordalignmax=0) or (s.recordalignmax<recordalignmax) then
+      recordalignmax:=s.recordalignmax;
+     if (maxCrecordalign=0) or (s.maxCrecordalign<maxCrecordalign) then
+      maxCrecordalign:=s.maxCrecordalign;
+   end;
 end;
 
 
@@ -575,7 +630,16 @@ finalization
 end.
 {
   $Log$
-  Revision 1.20  2001-06-19 14:43:31  marco
+  Revision 1.21  2001-07-01 20:16:18  peter
+    * alignmentinfo record added
+    * -Oa argument supports more alignment settings that can be specified
+      per type: PROC,LOOP,VARMIN,VARMAX,CONSTMIN,CONSTMAX,RECORDMIN
+      RECORDMAX,LOCALMIN,LOCALMAX. It is possible to set the mimimum
+      required alignment and the maximum usefull alignment. The final
+      alignment will be choosen per variable size dependent on these
+      settings
+
+  Revision 1.20  2001/06/19 14:43:31  marco
    * Fixed ifdef linux bug
 
   Revision 1.19  2001/06/03 20:21:08  peter

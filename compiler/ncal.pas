@@ -1586,9 +1586,9 @@ implementation
          inlineprocsym:=tcallnode(callp).symtableprocentry;
          retoffset:=-target_info.size_of_pointer; { less dangerous as zero (PM) }
          para_offset:=0;
-         para_size:=inlineprocsym.definition.para_size(target_info.stackalignment);
+         para_size:=inlineprocsym.definition.para_size(target_info.alignment.paraalign);
          if ret_in_param(inlineprocsym.definition.rettype.def) then
-           para_size:=para_size+target_info.size_of_pointer;
+           inc(para_size,target_info.size_of_pointer);
          { copy args }
          if assigned(code) then
            inlinetree:=code.getcopy
@@ -1655,7 +1655,16 @@ begin
 end.
 {
   $Log$
-  Revision 1.35  2001-06-04 18:08:19  peter
+  Revision 1.36  2001-07-01 20:16:15  peter
+    * alignmentinfo record added
+    * -Oa argument supports more alignment settings that can be specified
+      per type: PROC,LOOP,VARMIN,VARMAX,CONSTMIN,CONSTMAX,RECORDMIN
+      RECORDMAX,LOCALMIN,LOCALMAX. It is possible to set the mimimum
+      required alignment and the maximum usefull alignment. The final
+      alignment will be choosen per variable size dependent on these
+      settings
+
+  Revision 1.35  2001/06/04 18:08:19  peter
     * procvar support for varargs
 
   Revision 1.34  2001/06/04 11:48:02  peter

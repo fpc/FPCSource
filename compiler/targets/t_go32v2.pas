@@ -64,10 +64,7 @@ procedure TLinkerGo32v2.SetDefaultInfo;
 begin
   with Info do
    begin
-      if cs_align in aktglobalswitches then
-        ExeCmd[1]:='ld $SCRIPT $OPT $STRIP -o $EXE'
-      else
-        ExeCmd[1]:='ld -oformat coff-go32-exe $OPT $STRIP -o $EXE @$RES'
+     ExeCmd[1]:='ld $SCRIPT $OPT $STRIP -o $EXE';
    end;
 end;
 
@@ -153,10 +150,12 @@ begin
   WriteResponseFile:=True;
 end;
 
+
 Function TLinkerGo32v2.WriteScript(isdll:boolean) : Boolean;
 Var
   scriptres  : TLinkRes;
   i        : longint;
+  HPath    : TStringListItem;
   s        : string;
   linklibc : boolean;
 begin
@@ -167,21 +166,19 @@ begin
   ScriptRes.Add('OUTPUT_FORMAT("coff-go32-exe")');
   ScriptRes.Add('ENTRY(start)');
 
-{$ifdef dummy}
   { Write path to search libraries }
-  HPath:=current_module.locallibrarysearchpath.First;
+  HPath:=TStringListItem(current_module.locallibrarysearchpath.First);
   while assigned(HPath) do
    begin
-     ScriptRes.Add('SEARCH_PATH("'+GetShortName(HPath^.Data^)+'")');
-     HPath:=HPath^.Next;
+     LinkRes.Add('SEARCH_PATH("'+GetShortName(HPath.Str)+'")');
+     HPath:=TStringListItem(HPath.Next);
    end;
-  HPath:=LibrarySearchPath.First;
+  HPath:=TStringListItem(LibrarySearchPath.First);
   while assigned(HPath) do
    begin
-     ScriptRes.Add('SEARCH_PATH("'+GetShortName(HPath^.Data^)+'")');
-     HPath:=HPath^.Next;
+     LinkRes.Add('SEARCH_PATH("'+GetShortName(HPath.Str)+'")');
+     HPath:=TStringListItem(HPath.Next);
    end;
-{$endif dummy}
 
   ScriptRes.Add('SECTIONS');
   ScriptRes.Add('{');
@@ -289,11 +286,8 @@ begin
   if (cs_link_strip in aktglobalswitches) then
    StripStr:='-s';
 
-  if cs_align in aktglobalswitches then
-    WriteScript(false)
-  else
-    { Write used files and libraries }
-    WriteResponseFile(false);
+  { Write used files and libraries and our own ld script }
+  WriteScript(false);
 
 { Call linker }
   SplitBinCmd(Info.ExeCmd[1],binstr,cmdstr);
@@ -454,8 +448,22 @@ end;
             ar           : ar_gnu_ar;
             res          : res_none;
             endian       : endian_little;
-            stackalignment : 2;
-            maxCrecordalignment : 4;
+            alignment    :
+              (
+                procalign       : 4;
+                loopalign       : 4;
+                jumpalign       : 0;
+                constalignmin   : 0;
+                constalignmax   : 1;
+                varalignmin     : 0;
+                varalignmax     : 1;
+                localalignmin   : 0;
+                localalignmax   : 1;
+                paraalign       : 2;
+                recordalignmin  : 0;
+                recordalignmax  : 2;
+                maxCrecordalign : 4
+              );
             size_of_pointer : 4;
             size_of_longint : 4;
             heapsize     : 2048*1024;
@@ -473,7 +481,16 @@ initialization
 end.
 {
   $Log$
-  Revision 1.7  2001-06-28 19:46:25  peter
+  Revision 1.8  2001-07-01 20:16:20  peter
+    * alignmentinfo record added
+    * -Oa argument supports more alignment settings that can be specified
+      per type: PROC,LOOP,VARMIN,VARMAX,CONSTMIN,CONSTMAX,RECORDMIN
+      RECORDMAX,LOCALMIN,LOCALMAX. It is possible to set the mimimum
+      required alignment and the maximum usefull alignment. The final
+      alignment will be choosen per variable size dependent on these
+      settings
+
+  Revision 1.7  2001/06/28 19:46:25  peter
     * added override and virtual for constructors
 
   Revision 1.6  2001/06/18 20:36:26  peter

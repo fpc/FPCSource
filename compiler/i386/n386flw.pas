@@ -119,16 +119,8 @@ implementation
          if nodetype=whilen then
            emitjmp(C_None,lcont);
 
-
          { align loop target }
-         if not(cs_littlesize in aktglobalswitches) then
-           begin
-              if (cs_align in aktglobalswitches) then
-                exprasmList.concat(Tai_align.Create_op(16,$90))
-              else
-                exprasmList.concat(Tai_align.Create_op(4,$90))
-           end;
-
+         exprasmList.concat(Tai_align.Create(aktalignment.loopalign));
          emitlab(lloop);
 
          aktcontinuelabel:=lcont;
@@ -355,14 +347,7 @@ implementation
            emitjmp(hcond,aktbreaklabel);
 
          { align loop target }
-         if not(cs_littlesize in aktglobalswitches) then
-           begin
-              if (cs_align in aktglobalswitches) then
-                exprasmList.concat(Tai_align.Create_op(16,$90))
-              else
-                exprasmList.concat(Tai_align.Create_op(4,$90))
-           end;
-
+         exprasmList.concat(Tai_align.Create(aktalignment.loopalign));
          emitlab(l3);
 
          { help register must not be in instruction block }
@@ -1355,7 +1340,16 @@ begin
 end.
 {
   $Log$
-  Revision 1.12  2001-04-15 09:48:31  peter
+  Revision 1.13  2001-07-01 20:16:20  peter
+    * alignmentinfo record added
+    * -Oa argument supports more alignment settings that can be specified
+      per type: PROC,LOOP,VARMIN,VARMAX,CONSTMIN,CONSTMAX,RECORDMIN
+      RECORDMAX,LOCALMIN,LOCALMAX. It is possible to set the mimimum
+      required alignment and the maximum usefull alignment. The final
+      alignment will be choosen per variable size dependent on these
+      settings
+
+  Revision 1.12  2001/04/15 09:48:31  peter
     * fixed crash in labelnode
     * easier detection of goto and label in try blocks
 

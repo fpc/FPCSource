@@ -1116,7 +1116,12 @@ Implementation
 {$endif GDB}
            case hp.typ of
              ait_align :
-               objectdata.writebytes(Tai_align(hp).getfillbuf^,Tai_align(hp).fillsize);
+               begin
+                 if objectdata.currsec=sec_bss then
+                   objectdata.alloc(Tai_align(hp).fillsize)
+                 else
+                   objectdata.writebytes(Tai_align(hp).getfillbuf^,Tai_align(hp).fillsize);
+               end;
              ait_section :
                begin
                  objectdata.defaultsection(Tai_section(hp).sec);
@@ -1515,7 +1520,16 @@ Implementation
 end.
 {
   $Log$
-  Revision 1.21  2001-06-18 20:36:23  peter
+  Revision 1.22  2001-07-01 20:16:15  peter
+    * alignmentinfo record added
+    * -Oa argument supports more alignment settings that can be specified
+      per type: PROC,LOOP,VARMIN,VARMAX,CONSTMIN,CONSTMAX,RECORDMIN
+      RECORDMAX,LOCALMIN,LOCALMAX. It is possible to set the mimimum
+      required alignment and the maximum usefull alignment. The final
+      alignment will be choosen per variable size dependent on these
+      settings
+
+  Revision 1.21  2001/06/18 20:36:23  peter
     * -Ur switch (merged)
     * masm fixes (merged)
     * quoted filenames for go32v2 and win32

@@ -267,7 +267,7 @@ implementation
          oldaktmoduleswitches : tmoduleswitches;
          oldaktfilepos      : tfileposinfo;
          oldaktpackenum,oldaktmaxfpuregisters : longint;
-         oldaktpackrecords  : tpackrecords;
+         oldaktalignment  : talignmentinfo;
          oldaktoutputformat : tasm;
          oldaktspecificoptprocessor,
          oldaktoptprocessor : tprocessors;
@@ -339,7 +339,7 @@ implementation
           end;
          oldaktlocalswitches:=aktlocalswitches;
          oldaktmoduleswitches:=aktmoduleswitches;
-         oldaktpackrecords:=aktpackrecords;
+         oldaktalignment:=aktalignment;
          oldaktpackenum:=aktpackenum;
          oldaktmaxfpuregisters:=aktmaxfpuregisters;
          oldaktoutputformat:=aktoutputformat;
@@ -403,7 +403,7 @@ implementation
          {$IFDEF Testvarsets}
          aktsetalloc:=initsetalloc;
          {$ENDIF}
-         aktpackrecords:=initpackrecords;
+         aktalignment:=initalignment;
          aktpackenum:=initpackenum;
          aktoutputformat:=initoutputformat;
          aktoptprocessor:=initoptprocessor;
@@ -536,7 +536,7 @@ implementation
               move(oldoverloaded_operators,overloaded_operators,sizeof(toverloaded_operators));
               aktlocalswitches:=oldaktlocalswitches;
               aktmoduleswitches:=oldaktmoduleswitches;
-              aktpackrecords:=oldaktpackrecords;
+              aktalignment:=oldaktalignment;
               aktpackenum:=oldaktpackenum;
               aktmaxfpuregisters:=oldaktmaxfpuregisters;
               aktoutputformat:=oldaktoutputformat;
@@ -617,7 +617,16 @@ implementation
 end.
 {
   $Log$
-  Revision 1.19  2001-05-19 23:05:19  peter
+  Revision 1.20  2001-07-01 20:16:16  peter
+    * alignmentinfo record added
+    * -Oa argument supports more alignment settings that can be specified
+      per type: PROC,LOOP,VARMIN,VARMAX,CONSTMIN,CONSTMAX,RECORDMIN
+      RECORDMAX,LOCALMIN,LOCALMAX. It is possible to set the mimimum
+      required alignment and the maximum usefull alignment. The final
+      alignment will be choosen per variable size dependent on these
+      settings
+
+  Revision 1.19  2001/05/19 23:05:19  peter
     * support uses <unit> in <file> construction
 
   Revision 1.18  2001/05/06 14:49:17  peter

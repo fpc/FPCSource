@@ -81,8 +81,6 @@ interface
           procedure check_forwards;
           procedure checklabels;
           function  needs_init_final : boolean;
-          { change alignment for args  only parasymtable }
-          procedure set_alignment(_alignment : longint);
 {$ifdef CHAINPROCSYMS}
           procedure chainprocsyms;
 {$endif CHAINPROCSYMS}
@@ -132,6 +130,8 @@ interface
        public
           constructor create;
           procedure insert(sym : tsymentry);override;
+          { change alignment for args  only parasymtable }
+          procedure set_alignment(_alignment : longint);
        end;
 
        tabstractunitsymtable = class(tstoredsymtable)
@@ -929,27 +929,6 @@ implementation
       end;
 
 
-    procedure tstoredsymtable.set_alignment(_alignment : longint);
-      var
-         sym : tvarsym;
-         l : longint;
-      begin
-        dataalignment:=_alignment;
-        if (symtabletype<>parasymtable) then
-          internalerror(1111);
-        sym:=tvarsym(symindex.first);
-        datasize:=0;
-        { there can be only varsyms }
-        while assigned(sym) do
-          begin
-             l:=sym.getpushsize;
-             sym.address:=datasize;
-             datasize:=align(datasize+l,dataalignment);
-             sym:=tvarsym(sym.indexnext);
-          end;
-      end;
-
-
     procedure tstoredsymtable.allunitsused;
       begin
          foreach({$ifdef FPCPROCVAR}@{$endif}unitsymbolused);
@@ -1301,7 +1280,7 @@ implementation
       begin
         inherited create('');
         symtabletype:=parasymtable;
-        dataalignment:=4;
+        dataalignment:=aktalignment.paraalign;
       end;
 
 
@@ -1338,6 +1317,26 @@ implementation
 
          inherited insert(sym);
       end;
+
+
+    procedure tparasymtable.set_alignment(_alignment : longint);
+      var
+         sym : tvarsym;
+         l : longint;
+      begin
+        dataalignment:=_alignment;
+        sym:=tvarsym(symindex.first);
+        datasize:=0;
+        { there can be only varsyms }
+        while assigned(sym) do
+          begin
+             l:=sym.getpushsize;
+             sym.address:=datasize;
+             datasize:=align(datasize+l,dataalignment);
+             sym:=tvarsym(sym.indexnext);
+          end;
+      end;
+
 
 
 {****************************************************************************
@@ -2037,7 +2036,16 @@ implementation
 end.
 {
   $Log$
-  Revision 1.37  2001-06-04 11:53:14  peter
+  Revision 1.38  2001-07-01 20:16:18  peter
+    * alignmentinfo record added
+    * -Oa argument supports more alignment settings that can be specified
+      per type: PROC,LOOP,VARMIN,VARMAX,CONSTMIN,CONSTMAX,RECORDMIN
+      RECORDMAX,LOCALMIN,LOCALMAX. It is possible to set the mimimum
+      required alignment and the maximum usefull alignment. The final
+      alignment will be choosen per variable size dependent on these
+      settings
+
+  Revision 1.37  2001/06/04 11:53:14  peter
     + varargs directive
 
   Revision 1.36  2001/06/03 21:57:38  peter

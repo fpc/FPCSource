@@ -51,9 +51,17 @@ begin
            While (j <= Length(Opt)) Do
              Begin
                case opt[j] of
-                 '-' : initglobalswitches:=initglobalswitches-[cs_optimize,cs_fastoptimize,cs_slowoptimize,cs_littlesize,
-                           cs_regalloc,cs_uncertainopts,cs_align];
-                 'a' : initglobalswitches:=initglobalswitches+[cs_align];
+                 '-' :
+                   begin
+                     initglobalswitches:=initglobalswitches-[cs_optimize,cs_fastoptimize,cs_slowoptimize,cs_littlesize,
+                       cs_regalloc,cs_uncertainopts];
+                     FillChar(ParaAlignment,sizeof(ParaAlignment),0);
+                   end;
+                 'a' :
+                   begin
+                     UpdateAlignmentStr(Copy(Opt,j+1,255),ParaAlignment);
+                     j:=length(Opt);
+                   end;
                  'g' : initglobalswitches:=initglobalswitches+[cs_littlesize];
                  'G' : initglobalswitches:=initglobalswitches-[cs_littlesize];
                  'r' :
@@ -121,7 +129,16 @@ initialization
 end.
 {
   $Log$
-  Revision 1.3  2001-05-12 12:11:31  peter
+  Revision 1.4  2001-07-01 20:16:20  peter
+    * alignmentinfo record added
+    * -Oa argument supports more alignment settings that can be specified
+      per type: PROC,LOOP,VARMIN,VARMAX,CONSTMIN,CONSTMAX,RECORDMIN
+      RECORDMAX,LOCALMIN,LOCALMAX. It is possible to set the mimimum
+      required alignment and the maximum usefull alignment. The final
+      alignment will be choosen per variable size dependent on these
+      settings
+
+  Revision 1.3  2001/05/12 12:11:31  peter
     * simplify_ppu is now the default, a recompile of the compiler now
       only compiles pp.pas
 

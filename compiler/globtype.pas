@@ -109,7 +109,7 @@ interface
          cs_load_gpc_unit,
          { optimizer }
          cs_regalloc,cs_uncertainopts,cs_littlesize,cs_optimize,
-         cs_fastoptimize, cs_slowoptimize,cs_align,
+         cs_fastoptimize, cs_slowoptimize,
          { browser }
          cs_browser_log,
          { debugger }
@@ -119,7 +119,7 @@ interface
          cs_asm_regalloc,cs_asm_tempalloc,
          { linking }
          cs_link_extern,cs_link_static,cs_link_smart,cs_link_shared,cs_link_deffile,
-         cs_link_strip,cs_link_toc,cs_link_staticflag
+         cs_link_strip,cs_link_staticflag
        );
        tglobalswitches = set of tglobalswitch;
 
@@ -162,18 +162,6 @@ interface
        { currently parsed block type }
        tblock_type = (bt_none,
          bt_general,bt_type,bt_const,bt_except
-       );
-
-       { packrecords types }
-       tpackrecords = (packrecord_none,
-         packrecord_1,packrecord_2,packrecord_4,
-         packrecord_8,packrecord_16,packrecord_32,
-         packrecord_C
-       );
-
-    const
-       packrecordalignment : array[tpackrecords] of byte=(0,
-         1,2,4,8,16,32,1
        );
 
     type
@@ -220,7 +208,16 @@ implementation
 end.
 {
   $Log$
-  Revision 1.12  2001-06-03 21:57:35  peter
+  Revision 1.13  2001-07-01 20:16:15  peter
+    * alignmentinfo record added
+    * -Oa argument supports more alignment settings that can be specified
+      per type: PROC,LOOP,VARMIN,VARMAX,CONSTMIN,CONSTMAX,RECORDMIN
+      RECORDMAX,LOCALMIN,LOCALMAX. It is possible to set the mimimum
+      required alignment and the maximum usefull alignment. The final
+      alignment will be choosen per variable size dependent on these
+      settings
+
+  Revision 1.12  2001/06/03 21:57:35  peter
     + hint directive parsing support
 
   Revision 1.11  2001/01/20 18:32:52  hajny

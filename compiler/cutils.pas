@@ -38,12 +38,15 @@ interface
     function min(a,b : longint) : longint;
     function max(a,b : longint) : longint;
     function align(i,a:longint):longint;
-    function align_from_size(datasize:longint;length:longint):longint;
+    function used_align(varalign,minalign,maxalign:longint):longint;
+    function size_2_align(len : longint) : longint;
     procedure Replace(var s:string;s1:string;const s2:string);
     procedure ReplaceCase(var s:string;const s1,s2:string);
     function upper(const s : string) : string;
     function lower(const s : string) : string;
+    function trimbspace(const s:string):string;
     function trimspace(const s:string):string;
+    function GetToken(var s:string;endchar:char):string;
     procedure uppervar(var s : string);
     function hexstr(val : cardinal;cnt : byte) : string;
     function tostru(i:cardinal) : string;
@@ -132,31 +135,6 @@ uses
            max:=a;
       end;
 
-    function align_from_size(datasize:longint;length:longint):longint;
-
-    {Increases the datasize with the required alignment; i.e. on pentium
-     words should be aligned word; and dwords should be aligned dword.
-     So for a word (len=2), datasize is increased to the nearest multiple
-     of 2, and for len=4, datasize is increased to the nearest multiple of
-     4.}
-
-    var data_align:word;
-
-    begin
-        {$IFDEF I386}
-        if length>2 then
-            data_align:=4
-        else if length>1 then
-            data_align:=2
-        else
-            data_align:=1;
-        {$ENDIF}
-        {$IFDEF M68K}
-        data_align:=2;
-        {$ENDIF}
-        align_from_size:=(datasize+data_align-1) and not(data_align-1);
-    end;
-
 
     function align(i,a:longint):longint;
     {
@@ -167,7 +145,43 @@ uses
         if a<=1 then
          align:=i
         else
-         align:=(i+a-1) and not(a-1);
+         align:=((i+a-1) div a) * a;
+      end;
+
+
+    function size_2_align(len : longint) : longint;
+      begin
+         if len>16 then
+           size_2_align:=32
+         else if len>8 then
+           size_2_align:=16
+         else if len>4 then
+           size_2_align:=8
+         else if len>2 then
+           size_2_align:=4
+         else if len>1 then
+           size_2_align:=2
+         else
+           size_2_align:=1;
+      end;
+
+
+    function used_align(varalign,minalign,maxalign:longint):longint;
+      begin
+        { varalign  : minimum alignment required for the variable
+          minalign  : Minimum alignment of this structure, 0 = undefined
+          maxalign  : Maximum alignment of this structure, 0 = undefined }
+        if (minalign>0) and
+           (varalign<minalign) then
+         used_align:=minalign
+        else
+         begin
+           if (maxalign>0) and
+              (varalign>maxalign) then
+            used_align:=maxalign
+           else
+            used_align:=varalign;
+         end;
       end;
 
 
@@ -295,6 +309,22 @@ uses
       end;
 
 
+   function trimbspace(const s:string):string;
+   {
+     return s with all leading spaces and tabs removed
+   }
+     var
+       i,j : longint;
+     begin
+       j:=1;
+       i:=length(s);
+       while (j<i) and (s[j] in [#9,' ']) do
+        inc(j);
+       trimbspace:=Copy(s,j,i-j+1);
+     end;
+
+
+
    function trimspace(const s:string):string;
    {
      return s with all leading and ending spaces and tabs removed
@@ -312,6 +342,25 @@ uses
      end;
 
 
+    function GetToken(var s:string;endchar:char):string;
+      var
+        i : longint;
+      begin
+        s:=TrimSpace(s);
+        i:=pos(EndChar,s);
+        if i=0 then
+         begin
+           GetToken:=s;
+           s:='';
+         end
+        else
+         begin
+           GetToken:=Copy(s,1,i-1);
+           Delete(s,1,i);
+         end;
+      end;
+
+
    function tostr(i : longint) : string;
    {
      return string of value i
@@ -322,6 +371,7 @@ uses
         str(i,hs);
         tostr:=hs;
      end;
+
 
    function int64tostr(i : int64) : string;
    {
@@ -658,7 +708,16 @@ initialization
 end.
 {
   $Log$
-  Revision 1.7  2001-06-18 20:36:23  peter
+  Revision 1.8  2001-07-01 20:16:15  peter
+    * alignmentinfo record added
+    * -Oa argument supports more alignment settings that can be specified
+      per type: PROC,LOOP,VARMIN,VARMAX,CONSTMIN,CONSTMAX,RECORDMIN
+      RECORDMAX,LOCALMIN,LOCALMAX. It is possible to set the mimimum
+      required alignment and the maximum usefull alignment. The final
+      alignment will be choosen per variable size dependent on these
+      settings
+
+  Revision 1.7  2001/06/18 20:36:23  peter
     * -Ur switch (merged)
     * masm fixes (merged)
     * quoted filenames for go32v2 and win32

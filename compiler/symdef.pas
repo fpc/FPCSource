@@ -2866,8 +2866,13 @@ implementation
          inherited create;
          deftype:=recorddef;
          symtable:=p;
-         symtable.defowner := self;
-         symtable.dataalignment:=packrecordalignment[aktpackrecords];
+         symtable.defowner:=self;
+         { recordalign -1 means C record packing, that starts
+           with an alignment of 1 }
+         if aktalignment.recordalignmax=-1 then
+          symtable.dataalignment:=1
+         else
+          symtable.dataalignment:=aktalignment.recordalignmax;
       end;
 
 
@@ -4067,7 +4072,12 @@ Const local_symtable_index : longint = $8001;
         vmt_offset:=0;
         symtable.datasize:=0;
         symtable.defowner:=self;
-        symtable.dataalignment:=packrecordalignment[aktpackrecords];
+        { recordalign -1 means C record packing, that starts
+          with an alignment of 1 }
+        if aktalignment.recordalignmax=-1 then
+         symtable.dataalignment:=1
+        else
+         symtable.dataalignment:=aktalignment.recordalignmax;
         lastvtableindex:=0;
         set_parent(c);
         objname:=stringdup(n);
@@ -5514,7 +5524,16 @@ Const local_symtable_index : longint = $8001;
 end.
 {
   $Log$
-  Revision 1.35  2001-06-27 21:37:36  peter
+  Revision 1.36  2001-07-01 20:16:16  peter
+    * alignmentinfo record added
+    * -Oa argument supports more alignment settings that can be specified
+      per type: PROC,LOOP,VARMIN,VARMAX,CONSTMIN,CONSTMAX,RECORDMIN
+      RECORDMAX,LOCALMIN,LOCALMAX. It is possible to set the mimimum
+      required alignment and the maximum usefull alignment. The final
+      alignment will be choosen per variable size dependent on these
+      settings
+
+  Revision 1.35  2001/06/27 21:37:36  peter
     * v10 merges
 
   Revision 1.34  2001/06/04 18:05:39  peter

@@ -738,7 +738,7 @@ implementation
         case t.loc of
           LOC_REGISTER,
          LOC_CREGISTER : begin
-                           if target_info.stackalignment=4 then
+                           if aktalignment.paraalign=4 then
                              exprasmList.concat(Taicpu.Op_reg(A_PUSH,S_L,makereg32(t.register)))
                            else
                              exprasmList.concat(Taicpu.Op_reg(A_PUSH,S_W,makereg16(t.register)));
@@ -746,7 +746,7 @@ implementation
                          end;
                LOC_MEM,
          LOC_REFERENCE : begin
-                           if target_info.stackalignment=4 then
+                           if aktalignment.paraalign=4 then
                             opsize:=S_L
                            else
                             opsize:=S_W;
@@ -822,7 +822,7 @@ implementation
         if t.is_immediate then
           begin
             if (size=4) or
-               (target_info.stackalignment=4) then
+               (aktalignment.paraalign=4) then
               exprasmList.concat(Taicpu.Op_const(A_PUSH,S_L,t.offset))
             else
               exprasmList.concat(Taicpu.Op_const(A_PUSH,S_W,t.offset));
@@ -838,7 +838,7 @@ implementation
               end;
               exprasmList.concat(Taicpu.Op_ref_reg(A_MOVZX,s,
                 newreference(t),R_EDI));
-              if target_info.stackalignment=4 then
+              if aktalignment.paraalign=4 then
                 exprasmList.concat(Taicpu.Op_reg(A_PUSH,S_L,R_EDI))
               else
                 exprasmList.concat(Taicpu.Op_reg(A_PUSH,S_W,R_DI));
@@ -2404,12 +2404,11 @@ implementation
           end;
 {$endif GDB}
 
-       { Align, gprof uses 16 byte granularity }
+         { Align, gprof uses 16 byte granularity }
          if (cs_profile in aktmoduleswitches) then
           exprasmList.insert(Tai_align.Create_op(16,$90))
          else
-          if not(cs_littlesize in aktglobalswitches) then
-           exprasmList.insert(Tai_align.Create(16));
+          exprasmList.insert(Tai_align.Create(aktalignment.procalign));
        end;
        if inlined then
          load_regvars(exprasmlist,nil);
@@ -2997,7 +2996,16 @@ implementation
 end.
 {
   $Log$
-  Revision 1.24  2001-05-27 14:30:55  florian
+  Revision 1.25  2001-07-01 20:16:18  peter
+    * alignmentinfo record added
+    * -Oa argument supports more alignment settings that can be specified
+      per type: PROC,LOOP,VARMIN,VARMAX,CONSTMIN,CONSTMAX,RECORDMIN
+      RECORDMAX,LOCALMIN,LOCALMAX. It is possible to set the mimimum
+      required alignment and the maximum usefull alignment. The final
+      alignment will be choosen per variable size dependent on these
+      settings
+
+  Revision 1.24  2001/05/27 14:30:55  florian
     + some widestring stuff added
 
   Revision 1.23  2001/04/21 13:33:16  peter
