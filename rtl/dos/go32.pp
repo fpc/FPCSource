@@ -186,19 +186,19 @@ unit go32;
        tport = class
           procedure writeport(p : word;data : byte);
           function readport(p : word) : byte;
-          property p[w : word] : byte read readport write writeport;default;
+          property pp[w : word] : byte read readport write writeport;default;
        end;
 
        tportw = class
           procedure writeport(p : word;data : word);
           function readport(p : word) : word;
-          property p[w : word] : word read readport write writeport;default;
+          property pp[w : word] : word read readport write writeport;default;
        end;
 
        tportl = class
           procedure writeport(p : word;data : longint);
           function readport(p : word) : longint;
-          property p[w : word] : longint read readport write writeport;default;
+          property pp[w : word] : longint read readport write writeport;default;
        end;
     var
        { we don't need to initialize port, because neither member
@@ -1209,7 +1209,13 @@ end.
 
 {
   $Log$
-  Revision 1.3  1998-04-12 22:35:29  florian
+  Revision 1.4  1998-04-24 08:26:50  pierre
+    * had to rename property from p to pp to
+      avoid duplicate identifier error in
+      implementation of readport and writeport
+      that have p as argument
+
+  Revision 1.3  1998/04/12 22:35:29  florian
     + support of port-array added
 
   Revision 1.2  1998/03/29 17:26:20  florian
