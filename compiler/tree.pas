@@ -1673,7 +1673,23 @@ unit tree;
              if p^.varstateset then
                exit;
               case p^.treetype of
-           typeconvn,subscriptn :
+           typeconvn :
+             if p^.convtyp in
+               [
+                tc_cchar_2_pchar,
+                tc_cstring_2_pchar,
+                tc_array_2_pointer
+               ] then
+               set_varstate(p^.left,false)
+             else if p^.convtyp in
+               [
+                tc_pchar_2_string,
+                tc_pointer_2_array
+               ] then
+               set_varstate(p^.left,true)
+             else
+               set_varstate(p^.left,must_be_valid);
+           subscriptn :
              set_varstate(p^.left,must_be_valid);
            vecn:
              begin
@@ -1895,7 +1911,10 @@ unit tree;
 end.
 {
   $Log$
-  Revision 1.106  1999-12-22 01:01:52  peter
+  Revision 1.107  2000-01-06 01:10:33  pierre
+   * fixes for set_varstate on conversions
+
+  Revision 1.106  1999/12/22 01:01:52  peter
     - removed freelabel()
     * added undefined label detection in internal assembler, this prevents
       a lot of ld crashes and wrong .o files
@@ -1998,4 +2017,3 @@ end.
     * procedure of object and addrn fixes
 
 }
-
