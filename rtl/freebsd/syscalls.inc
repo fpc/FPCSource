@@ -292,7 +292,7 @@ end;
 Function Sys_Mkdir(Filename:pchar;mode:longint):longint;
 
 begin {Mode is 16-bit on F-BSD}
-  sys_mkdir:=do_syscall(syscall_nr_mkdir,longint(filename),mode shl 8);
+  sys_mkdir:=do_syscall(syscall_nr_mkdir,longint(filename),mode);
 end;
 
 Function Sys_Rmdir(Filename:pchar):longint;
@@ -455,7 +455,10 @@ end;
 
 {
   $Log$
-  Revision 1.3  2000-09-19 09:25:17  marco
+  Revision 1.4  2000-09-19 09:57:35  marco
+   * Fixed mkdir
+
+  Revision 1.3  2000/09/19 09:25:17  marco
    * addw fix for main thread.
 
   Revision 1.2  2000/09/18 13:42:35  marco
