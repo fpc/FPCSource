@@ -3097,6 +3097,8 @@ begin
    end;
 {get the entries}
   new(root);
+  root^.next:=nil;
+  root^.name:=nil;
   run:=root;
   repeat
     buffer:=Sys_readdir(thedir);
@@ -3513,7 +3515,10 @@ End.
 
 {
   $Log$
-  Revision 1.22  1998-10-23 00:05:32  peter
+  Revision 1.23  1998-10-30 15:47:11  peter
+    * fixed glob, which did not reset  the root
+
+  Revision 1.22  1998/10/23 00:05:32  peter
     * getenv with envp=nil check
 
   Revision 1.21  1998/10/15 08:31:11  peter
