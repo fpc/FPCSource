@@ -137,8 +137,8 @@ implementation
          resulttypepass(left);
          resulttypepass(right);
          { both left and right need to be valid }
-         set_varstate(left,vs_used,true);
-         set_varstate(right,vs_used,true);
+         set_varstate(left,vs_used,[vsf_must_be_valid]);
+         set_varstate(right,vs_used,[vsf_must_be_valid]);
          if codegenerror then
            exit;
 
@@ -1304,9 +1304,9 @@ implementation
                            hsym,
                            ctypeconvnode.create_internal(right,methodpointertype));
 	       end;
-	    if (ld.deftype=procvardef) and 
+	    if (ld.deftype=procvardef) and
 	       (not tprocvardef(ld).is_addressonly) then
-	      begin   	     
+	      begin   	
                 left:=csubscriptnode.create(
                           hsym,
                           ctypeconvnode.create_internal(left,methodpointertype));
@@ -2191,7 +2191,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.142  2005-03-14 20:18:22  peter
+  Revision 1.143  2005-03-25 22:20:18  peter
+    * add hint when passing an uninitialized variable to a var parameter
+
+  Revision 1.142  2005/03/14 20:18:22  peter
     * for methodpointers compare only proc field
 
   Revision 1.141  2005/02/17 17:52:39  peter

@@ -371,8 +371,8 @@ const
   sym_w_function_result_not_set=05033;
   sym_w_wrong_C_pack=05034;
   sym_e_illegal_field=05035;
-  sym_n_uninitialized_local_variable=05036;
-  sym_n_uninitialized_variable=05037;
+  sym_w_uninitialized_local_variable=05036;
+  sym_w_uninitialized_variable=05037;
   sym_e_id_no_member=05038;
   sym_h_param_list=05039;
   sym_e_segment_too_large=05040;
@@ -381,6 +381,8 @@ const
   sym_w_non_portable_symbol=05044;
   sym_w_non_implemented_symbol=05055;
   sym_e_cant_create_unique_type=05056;
+  sym_h_uninitialized_local_variable=05057;
+  sym_h_uninitialized_variable=05058;
   cg_e_parasize_too_big=06009;
   cg_e_file_must_call_by_reference=06012;
   cg_e_cant_use_far_pointer_there=06013;
@@ -651,9 +653,9 @@ const
   option_info=11024;
   option_help_pages=11025;
 
-  MsgTxtSize = 38145;
+  MsgTxtSize = 38259;
 
   MsgIdxMax : array[1..20] of longint=(
-    19,69,214,59,57,46,100,20,35,60,
+    19,69,214,59,59,46,100,20,35,60,
     40,1,1,1,1,1,1,1,1,1
   );

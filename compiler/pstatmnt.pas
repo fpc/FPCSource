@@ -126,7 +126,7 @@ implementation
          caseexpr:=comp_expr(true);
          { determines result type }
          do_resulttypepass(caseexpr);
-         set_varstate(caseexpr,vs_used,true);
+         set_varstate(caseexpr,vs_used,[vsf_must_be_valid]);
          casedeferror:=false;
          casedef:=caseexpr.resulttype.def;
          if (not assigned(casedef)) or
@@ -413,11 +413,11 @@ implementation
            needs to be done before the instruction block is
            parsed to have a valid hloopvar }
          resulttypepass(hfrom);
-         set_varstate(hfrom,vs_used,true);
+         set_varstate(hfrom,vs_used,[vsf_must_be_valid]);
          resulttypepass(hto);
-         set_varstate(hto,vs_used,true);
+         set_varstate(hto,vs_used,[vsf_must_be_valid]);
          resulttypepass(hloopvar);
-         set_varstate(hloopvar,vs_used,false);
+         set_varstate(hloopvar,vs_used,[]);
 
          { ... now the instruction block }
          hblock:=statement;
@@ -1182,7 +1182,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.155  2005-02-14 17:13:07  peter
+  Revision 1.156  2005-03-25 22:20:19  peter
+    * add hint when passing an uninitialized variable to a var parameter
+
+  Revision 1.155  2005/02/14 17:13:07  peter
     * truncate log
 
   Revision 1.154  2005/02/11 16:24:59  peter

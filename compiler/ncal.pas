@@ -479,7 +479,7 @@ type
                    floatdef :
                      inserttypeconv(left,s64floattype);
                  end;
-                 set_varstate(left,vs_used,true);
+                 set_varstate(left,vs_used,[vsf_must_be_valid]);
                  resulttype:=left.resulttype;
                  { also update parasym type to get the correct parameter location
                    for the new types }
@@ -488,7 +488,7 @@ type
              else
               if (vo_is_hidden_para in parasym.varoptions) then
                begin
-                 set_varstate(left,vs_used,true);
+                 set_varstate(left,vs_used,[vsf_must_be_valid]);
                  resulttype:=left.resulttype;
                end
              else
@@ -625,10 +625,14 @@ type
 
                  if do_count then
                   begin
-                    if parasym.varspez in [vs_var,vs_out] then
-                      set_varstate(left,vs_used,false)
-                    else
-                      set_varstate(left,vs_used,true);
+                    case parasym.varspez of
+                      vs_out :
+                        set_varstate(left,vs_used,[]);
+                      vs_var :
+                        set_varstate(left,vs_used,[vsf_must_be_valid,vsf_use_hints]);
+                      else
+                        set_varstate(left,vs_used,[vsf_must_be_valid]);
+                    end;
                   end;
                  { must only be done after typeconv PM }
                  resulttype:=parasym.vartype;
@@ -1488,7 +1492,6 @@ type
         paraidx,
         cand_cnt : integer;
         i : longint;
-        method_must_be_valid,
         is_const : boolean;
       label
         errorexit;
@@ -1525,7 +1528,7 @@ type
          { procedure variable ? }
          if assigned(right) then
            begin
-              set_varstate(right,vs_used,true);
+              set_varstate(right,vs_used,[vsf_must_be_valid]);
               resulttypepass(right);
               if codegenerror then
                exit;
@@ -1832,10 +1835,9 @@ type
                     )
                    )
                   ) then
-                 method_must_be_valid:=false
+                 set_varstate(methodpointer,vs_used,[])
                else
-                 method_must_be_valid:=true;
-               set_varstate(methodpointer,vs_used,method_must_be_valid);
+                 set_varstate(methodpointer,vs_used,[vsf_must_be_valid]);
 
                { The object is already used if it is called once }
                if (hpt.nodetype=loadn) and
@@ -2516,7 +2518,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.280  2005-03-14 20:18:46  peter
+  Revision 1.281  2005-03-25 22:20:18  peter
+    * add hint when passing an uninitialized variable to a var parameter
+
+  Revision 1.280  2005/03/14 20:18:46  peter
     * fix empty varargs codegeneration for x86_64
 
   Revision 1.279  2005/02/17 17:50:26  peter

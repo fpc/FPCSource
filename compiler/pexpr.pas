@@ -684,7 +684,7 @@ implementation
               p2:=nil;
               repeat
                 p1:=comp_expr(true);
-                set_varstate(p1,vs_used,true);
+                set_varstate(p1,vs_used,[vsf_must_be_valid]);
                 if not((p1.resulttype.def.deftype=stringdef) or
                        ((p1.resulttype.def.deftype=orddef) and
                         (torddef(p1.resulttype.def).typ=uchar))) then
@@ -2536,7 +2536,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.185  2005-03-05 16:37:42  florian
+  Revision 1.186  2005-03-25 22:20:19  peter
+    * add hint when passing an uninitialized variable to a var parameter
+
+  Revision 1.185  2005/03/05 16:37:42  florian
     * fixed copy(dyn. array,...);
 
   Revision 1.184  2005/03/04 09:56:35  jonas

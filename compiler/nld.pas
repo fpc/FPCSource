@@ -574,8 +574,8 @@ implementation
           end;
 
         resulttypepass(right);
-        set_varstate(left,vs_assigned,false);
-        set_varstate(right,vs_used,true);
+        set_varstate(left,vs_assigned,[]);
+        set_varstate(right,vs_used,[vsf_must_be_valid]);
         if codegenerror then
           exit;
 
@@ -819,8 +819,8 @@ implementation
         result:=nil;
         resulttypepass(left);
         resulttypepass(right);
-        set_varstate(left,vs_used,true);
-        set_varstate(right,vs_used,true);
+        set_varstate(left,vs_used,[vsf_must_be_valid]);
+        set_varstate(right,vs_used,[vsf_must_be_valid]);
         if codegenerror then
          exit;
         resulttype:=left.resulttype;
@@ -884,7 +884,7 @@ implementation
            while assigned(hp) do
             begin
               resulttypepass(hp.left);
-              set_varstate(hp.left,vs_used,true);
+              set_varstate(hp.left,vs_used,[vsf_must_be_valid]);
               if (htype.def=nil) then
                htype:=hp.left.resulttype
               else
@@ -1189,7 +1189,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.146  2005-03-18 16:41:27  peter
+  Revision 1.147  2005-03-25 22:20:19  peter
+    * add hint when passing an uninitialized variable to a var parameter
+
+  Revision 1.146  2005/03/18 16:41:27  peter
   don't check size differences for booleans
 
   Revision 1.145  2005/02/14 17:13:06  peter

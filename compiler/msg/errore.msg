@@ -1328,12 +1328,12 @@ sym_w_wrong_C_pack=05034_W_Type "$1" is not aligned correctly in current record 
 % for C structures.
 sym_e_illegal_field=05035_E_Unknown record field identifier "$1"
 % The field doesn't exist in the record/object definition.
-sym_n_uninitialized_local_variable=05036_W_Local variable "$1" does not seem to be initialized
+sym_w_uninitialized_local_variable=05036_W_Local variable "$1" does not seem to be initialized
 % This message is displayed if the compiler thinks that a variable will
 % be used (i.e. appears in the right-hand-side of an expression) when it
 % was not initialized first (i.e. appeared in the left-hand side of an
 % assigment)
-sym_n_uninitialized_variable=05037_W_Variable "$1" does not seem to be initialized
+sym_w_uninitialized_variable=05037_W_Variable "$1" does not seem to be initialized
 % This message is displayed if the compiler thinks that a variable will
 % be used (i.e. appears in the right-hand-side of an expression) when it
 % was not initialized first (i.e. appeared in the left-hand side of an
@@ -1369,6 +1369,16 @@ sym_e_cant_create_unique_type=05056_E_Can't create unique type from this type
 % Only simple types like ordinal, float and string types are supported when
 % redefining a type with \var{type newtype = type oldtype;}.
 % \end{description}
+sym_h_uninitialized_local_variable=05057_H_Local variable "$1" does not seem to be initialized
+% This message is displayed if the compiler thinks that a variable will
+% be used (i.e. appears in the right-hand-side of an expression) when it
+% was not initialized first (i.e. appeared in the left-hand side of an
+% assigment)
+sym_h_uninitialized_variable=05058_H_Variable "$1" does not seem to be initialized
+% This message is displayed if the compiler thinks that a variable will
+% be used (i.e. appears in the right-hand-side of an expression) when it
+% was not initialized first (i.e. appeared in the left-hand side of an
+% assigment)
 #
 # Codegenerator
 #

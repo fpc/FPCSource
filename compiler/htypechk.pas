@@ -133,7 +133,10 @@ interface
     procedure test_local_to_procvar(from_def:tprocvardef;to_def:tdef);
 
     { sets varsym varstate field correctly }
-    procedure set_varstate(p:tnode;newstate:tvarstate;must_be_valid:boolean);
+    type
+      tvarstateflag = (vsf_must_be_valid,vsf_use_hints);
+      tvarstateflags = set of tvarstateflag;
+    procedure set_varstate(p:tnode;newstate:tvarstate;varstateflags:tvarstateflags);
 
     { sets the callunique flag, if the node is a vecn, }
     { takes care of type casts etc.                 }
@@ -730,7 +733,7 @@ implementation
       end;
 
 
-    procedure set_varstate(p:tnode;newstate:tvarstate;must_be_valid:boolean);
+    procedure set_varstate(p:tnode;newstate:tvarstate;varstateflags:tvarstateflags);
       var
         hsym : tabstractvarsym;
       begin
@@ -743,10 +746,10 @@ implementation
                    tc_cchar_2_pchar,
                    tc_cstring_2_pchar,
                    tc_array_2_pointer :
-                     must_be_valid:=false;
+                     exclude(varstateflags,vsf_must_be_valid);
                    tc_pchar_2_string,
                    tc_pointer_2_array :
-                     must_be_valid:=true;
+                     include(varstateflags,vsf_must_be_valid);
                  end;
                  p:=tunarynode(p).left;
                end;
@@ -754,9 +757,9 @@ implementation
                p:=tunarynode(p).left;
              vecn:
                begin
-                 set_varstate(tbinarynode(p).right,vs_used,true);
+                 set_varstate(tbinarynode(p).right,vs_used,[vsf_must_be_valid]);
                  if not(tunarynode(p).left.resulttype.def.deftype in [stringdef,arraydef]) then
-                   must_be_valid:=true;
+                   include(varstateflags,vsf_must_be_valid);
                  p:=tunarynode(p).left;
                end;
              { do not parse calln }
@@ -767,7 +770,7 @@ implementation
                  if (tloadnode(p).symtableentry.typ in [localvarsym,paravarsym,globalvarsym]) then
                   begin
                     hsym:=tabstractvarsym(tloadnode(p).symtableentry);
-                    if must_be_valid and (hsym.varstate=vs_declared) then
+                    if (vsf_must_be_valid in varstateflags) and (hsym.varstate=vs_declared) then
                       begin
                         { Give warning/note for uninitialized locals }
                         if assigned(hsym.owner) and
@@ -778,10 +781,22 @@ implementation
                             if (vo_is_funcret in hsym.varoptions) then
                                CGMessage(sym_w_function_result_not_set)
                             else
-                             if tloadnode(p).symtable.symtabletype=localsymtable then
-                               CGMessage1(sym_n_uninitialized_local_variable,hsym.realname)
-                            else
-                              CGMessage1(sym_n_uninitialized_variable,hsym.realname);
+                              begin
+                                if tloadnode(p).symtable.symtabletype=localsymtable then
+                                  begin
+                                    if (vsf_use_hints in varstateflags) then
+                                      CGMessage1(sym_h_uninitialized_local_variable,hsym.realname)
+                                    else
+                                      CGMessage1(sym_w_uninitialized_local_variable,hsym.realname);
+                                  end
+                                else
+                                  begin
+                                    if (vsf_use_hints in varstateflags) then
+                                      CGMessage1(sym_h_uninitialized_variable,hsym.realname)
+                                    else
+                                      CGMessage1(sym_w_uninitialized_variable,hsym.realname);
+                                  end;
+                              end;
                           end;
                       end;
                     { don't override vs_used with vs_assigned }
@@ -2033,7 +2048,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.119  2005-03-10 00:15:20  peter
+  Revision 1.120  2005-03-25 22:20:18  peter
+    * add hint when passing an uninitialized variable to a var parameter
+
+  Revision 1.119  2005/03/10 00:15:20  peter
   don't allow overloading orddef,enumdef.floatdef for unary operators
 
   Revision 1.118  2005/02/20 13:12:22  peter

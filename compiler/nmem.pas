@@ -416,7 +416,7 @@ implementation
 
          { this is like the function addr }
          inc(parsing_para_level);
-         set_varstate(left,vs_used,false);
+         set_varstate(left,vs_used,[]);
          dec(parsing_para_level);
       end;
 
@@ -462,7 +462,7 @@ implementation
       begin
          result:=nil;
          resulttypepass(left);
-         set_varstate(left,vs_used,true);
+         set_varstate(left,vs_used,[vsf_must_be_valid]);
          if codegenerror then
           exit;
 
@@ -627,8 +627,11 @@ implementation
          valid:=is_dynamic_array(left.resulttype.def) or
                 is_ansistring(left.resulttype.def) or
                 is_widestring(left.resulttype.def);
-         set_varstate(left,vs_used,valid);
-         set_varstate(right,vs_used,true);
+         if valid then
+           set_varstate(left,vs_used,[vsf_must_be_valid])
+         else
+           set_varstate(left,vs_used,[]);
+         set_varstate(right,vs_used,[vsf_must_be_valid]);
          if codegenerror then
           exit;
 
@@ -869,8 +872,7 @@ implementation
         resulttype:=voidtype;
 
         resulttypepass(withrefnode);
-        //unset_varstate(withrefnode);
-        set_varstate(withrefnode,vs_used,true);
+        set_varstate(withrefnode,vs_used,[vsf_must_be_valid]);
         if codegenerror then
          exit;
 
@@ -931,7 +933,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.94  2005-02-14 17:13:06  peter
+  Revision 1.95  2005-03-25 22:20:19  peter
+    * add hint when passing an uninitialized variable to a var parameter
+
+  Revision 1.94  2005/02/14 17:13:06  peter
     * truncate log
 
 }

@@ -367,7 +367,7 @@ implementation
          { loop instruction }
          if assigned(right) then
            resulttypepass(right);
-         set_varstate(left,vs_used,true);
+         set_varstate(left,vs_used,[vsf_must_be_valid]);
          if codegenerror then
            exit;
 
@@ -541,7 +541,7 @@ implementation
          { else path }
          if assigned(t1) then
            resulttypepass(t1);
-         set_varstate(left,vs_used,true);
+         set_varstate(left,vs_used,[vsf_must_be_valid]);
          if codegenerror then
            exit;
 
@@ -802,7 +802,7 @@ implementation
                 cloadnode.create(current_procinfo.procdef.funcretsym,current_procinfo.procdef.funcretsym.owner),
                 left);
             resulttypepass(left);
-            set_varstate(left,vs_used,true);
+            set_varstate(left,vs_used,[vsf_must_be_valid]);
           end;
         resulttype:=voidtype;
       end;
@@ -1122,7 +1122,7 @@ implementation
            begin
               { first para must be a _class_ }
               resulttypepass(left);
-              set_varstate(left,vs_used,true);
+              set_varstate(left,vs_used,[vsf_must_be_valid]);
               if codegenerror then
                exit;
               if not(is_class(left.resulttype.def)) then
@@ -1251,16 +1251,16 @@ implementation
          resulttype:=voidtype;
 
          resulttypepass(left);
-         set_varstate(left,vs_used,true);
+         set_varstate(left,vs_used,[vsf_must_be_valid]);
 
          resulttypepass(right);
-         set_varstate(right,vs_used,true);
+         set_varstate(right,vs_used,[vsf_must_be_valid]);
 
          { special finally block only executed when there was an exception }
          if assigned(t1) then
            begin
              resulttypepass(t1);
-             set_varstate(t1,vs_used,true);
+             set_varstate(t1,vs_used,[vsf_must_be_valid]);
            end;
       end;
 
@@ -1391,7 +1391,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.111  2005-03-24 23:06:43  peter
+  Revision 1.112  2005-03-25 22:20:19  peter
+    * add hint when passing an uninitialized variable to a var parameter
+
+  Revision 1.111  2005/03/24 23:06:43  peter
     * don't remove repeat until node in repeat until true;
 
   Revision 1.110  2005/02/23 20:38:09  florian

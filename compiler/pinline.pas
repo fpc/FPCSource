@@ -80,9 +80,9 @@ implementation
         p:=comp_expr(true);
         { calc return type }
         if is_new then
-          set_varstate(p,vs_assigned,false)
+          set_varstate(p,vs_assigned,[])
         else
-          set_varstate(p,vs_used,true);
+          set_varstate(p,vs_used,[vsf_must_be_valid]);
         { constructor,destructor specified }
         if try_to_consume(_COMMA) then
           begin
@@ -419,7 +419,7 @@ implementation
            ppn:=tcallparanode(paras);
            while assigned(ppn.right) do
             begin
-              set_varstate(ppn.left,vs_used,true);
+              set_varstate(ppn.left,vs_used,[vsf_must_be_valid]);
               inserttypeconv(ppn.left,sinttype);
               inc(dims);
               ppn:=tcallparanode(ppn.right);
@@ -435,7 +435,7 @@ implementation
         destppn:=ppn.left;
         inc(parsing_para_level);
         valid_for_var(destppn);
-        set_varstate(destppn,vs_assigned,false);
+        set_varstate(destppn,vs_assigned,[]);
         dec(parsing_para_level);
         { first param must be a string or dynamic array ...}
         isarray:=is_dynamic_array(destppn.resulttype.def);
@@ -741,7 +741,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.42  2005-03-25 21:55:43  jonas
+  Revision 1.43  2005-03-25 22:20:19  peter
+    * add hint when passing an uninitialized variable to a var parameter
+
+  Revision 1.42  2005/03/25 21:55:43  jonas
     * removed some unused variables
 
   Revision 1.41  2005/03/05 16:37:42  florian

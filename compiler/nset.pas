@@ -143,7 +143,7 @@ implementation
          resulttypepass(left);
          if assigned(right) then
           resulttypepass(right);
-         set_varstate(left,vs_used,true);
+         set_varstate(left,vs_used,[vsf_must_be_valid]);
          if codegenerror then
           exit;
 
@@ -212,7 +212,7 @@ implementation
          result:=nil;
          resulttype:=booltype;
          resulttypepass(right);
-         set_varstate(right,vs_used,true);
+         set_varstate(right,vs_used,[vsf_must_be_valid]);
          if codegenerror then
           exit;
 
@@ -239,7 +239,7 @@ implementation
            end;
 
          resulttypepass(left);
-         set_varstate(left,vs_used,true);
+         set_varstate(left,vs_used,[vsf_must_be_valid]);
          if codegenerror then
            exit;
 
@@ -337,8 +337,8 @@ implementation
          result:=nil;
          resulttypepass(left);
          resulttypepass(right);
-         set_varstate(left,vs_used,true);
-         set_varstate(right,vs_used,true);
+         set_varstate(left,vs_used,[vsf_must_be_valid]);
+         set_varstate(right,vs_used,[vsf_must_be_valid]);
          if codegenerror then
            exit;
          { both types must be compatible }
@@ -588,7 +588,7 @@ implementation
          expectloc:=LOC_VOID;
          { evalutes the case expression }
          firstpass(left);
-         set_varstate(left,vs_used,true);
+         set_varstate(left,vs_used,[vsf_must_be_valid]);
          if codegenerror then
            exit;
          registersint:=left.registersint;
@@ -801,7 +801,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.57  2005-02-14 17:13:06  peter
+  Revision 1.58  2005-03-25 22:20:19  peter
+    * add hint when passing an uninitialized variable to a var parameter
+
+  Revision 1.57  2005/02/14 17:13:06  peter
     * truncate log
 
 }

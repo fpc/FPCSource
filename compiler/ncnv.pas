@@ -2434,8 +2434,8 @@ implementation
          resulttypepass(left);
          resulttypepass(right);
 
-         set_varstate(left,vs_used,true);
-         set_varstate(right,vs_used,true);
+         set_varstate(left,vs_used,[vsf_must_be_valid]);
+         set_varstate(right,vs_used,[vsf_must_be_valid]);
 
          if codegenerror then
            exit;
@@ -2546,8 +2546,8 @@ implementation
          resulttypepass(right);
          resulttypepass(left);
 
-         set_varstate(right,vs_used,true);
-         set_varstate(left,vs_used,true);
+         set_varstate(right,vs_used,[vsf_must_be_valid]);
+         set_varstate(left,vs_used,[vsf_must_be_valid]);
 
          if codegenerror then
            exit;
@@ -2654,7 +2654,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.179  2005-03-11 21:55:43  florian
+  Revision 1.180  2005-03-25 22:20:18  peter
+    * add hint when passing an uninitialized variable to a var parameter
+
+  Revision 1.179  2005/03/11 21:55:43  florian
     + array -> dyn. array type cast
 
   Revision 1.178  2005/03/05 16:09:20  jonas
