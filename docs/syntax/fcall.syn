@@ -1,0 +1,32 @@
+\begin{diagram}{Function calls}{functioncalls}
+\begin{mysyntdiag}
+\synt{function\ call}
+\( 
+\synt{function\ identifier} \\
+\synt{method\ designator} \\
+\synt{qualified\ method\ designator}\\
+\synt{variable\ reference}
+\)
+\[
+\synt{actual\ parameter\ list}
+\]
+\end{mysyntdiag}
+\begin{mysyntdiag}
+\synt{actual\ parameter\ list}
+\lit* ( 
+\[
+\<[b] 
+\synt{actual\ parameter} \\ 
+\lit* , 
+\> 
+\]
+\lit* )
+\end{mysyntdiag}
+\begin{mysyntdiag}
+\synt{actual\ parameter} 
+\( 
+\synt{expression} \\ 
+\synt{variable\ reference}
+\)
+\end{mysyntdiag}
+\end{diagram}

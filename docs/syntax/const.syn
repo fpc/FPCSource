@@ -1,0 +1,6 @@
+\begin{psyntax}{Constant declaration}{constdec}
+ \synt{constant\ declaration}
+\begin{rep}[b]
+  \synt{identifier} \lit*= \synt{expression} \lit*; \\
+\end{rep}  
+\end{psyntax}

@@ -1,0 +1,10 @@
+\begin{psyntax}{Statements}{statements}
+\synt{statement}
+\[
+\synt{label} \lit*:
+\]
+\[
+\synt{simple\ statement}\\
+\synt{structured\ statement}
+\]
+\end{psyntax}

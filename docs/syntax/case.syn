@@ -1,0 +1,21 @@
+\begin{diagram}{Case statement}{casestatement}
+\begin{mysyntdiag}
+\synt{case\ statement}
+\lit*{case} \synt{expression} \lit*{of}
+\<[b] case \\ \lit* ; \>
+\[ \synt{else\ part} \] \[ \lit* ; \] 
+\lit*{end}
+\end{mysyntdiag}
+\begin{mysyntdiag}
+\synt{case} 
+\<[b] 
+  \synt{constant} \[ \lit*{..} \synt{constant} \] \\
+\lit* ,
+\>
+\lit* :
+\synt{statement}
+\end{mysyntdiag}
+\begin{mysyntdiag}
+\synt{else\ part} \lit* {else} \synt{statement}
+\end{mysyntdiag}
+\end{diagram}

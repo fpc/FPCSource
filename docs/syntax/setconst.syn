@@ -1,0 +1,15 @@
+\begin{diagram}{Set constructors}{setconstuctors}
+\begin{mysyntdiag}
+\synt{set\ constructor} \lit* [ 
+\[
+ \<[b] \synt{set\ group} \\ \lit* , \>
+\]
+\lit* ]
+\end{mysyntdiag}
+\begin{mysyntdiag}
+\synt{set\ group} \synt{expression} 
+\[
+\lit* {..} \synt{expression}
+\]
+\end{mysyntdiag}
+\end{diagram}

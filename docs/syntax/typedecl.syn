@@ -1,0 +1,3 @@
+\begin{psyntax}{Type declaration}{typedecl}
+\synt{type\ declaration} \synt{identifier} \lit*= \synt{type} \lit* ;
+\end{psyntax}

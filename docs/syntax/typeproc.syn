@@ -1,0 +1,27 @@
+\begin{diagram}{Procedural Types}{Procedural types}
+\begin{mysyntdiag}
+\synt{procedural\ type} 
+\( \synt{function\ header} \\ 
+   \synt{procedure\ header}
+\)
+\[ \lit*{of} \lit*{object} \]
+\[ \synt{call\ modifiers} \] 
+\end{mysyntdiag}
+\begin{mysyntdiag}
+\synt{function\ header} \lit*{function} \synt{formal\ parameter\ list}
+\lit*: \synt{result\ type}
+\end{mysyntdiag}
+\begin{mysyntdiag}
+\synt{procedure\ header} \lit*{procedure} \synt{formal\ parameter\ list}
+\end{mysyntdiag}
+\begin{mysyntdiag}
+\synt{call\ modifiers} 
+\( 
+\lit*{register} \\
+\lit*{cdecl}    \\
+\lit*{pascal}   \\
+\lit*{stdcall}  \\
+\lit*{popstack}
+\)
+\end{mysyntdiag}
+\end{diagram}

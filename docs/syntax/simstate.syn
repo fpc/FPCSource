@@ -1,0 +1,8 @@
+\begin{psyntax}{Simple statements}{simplestatement}
+\synt{siple\ statement}
+\(
+\synt{assignment\ statement} \\
+\synt{procedure\ statement} \\
+\synt{goto\ statement}
+\)
+\end{psyntax}

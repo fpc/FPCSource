@@ -1,0 +1,12 @@
+\begin{diagram}{Simple types}{simpletypes}
+\begin{mysyntdiag}
+\synt{simple\ type}
+\(
+\synt{ordinal\ type} \\
+\synt{real\ type}
+\)
+\end{mysyntdiag}
+\begin{mysyntdiag}
+\synt{real\ type} \synt{real\ type\ identifier}
+\end{mysyntdiag}
+\end{diagram}

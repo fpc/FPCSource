@@ -1,0 +1,7 @@
+\begin{psyntax}{Conditional statements}{conditionalstatements}
+\synt{conditional\ statement}
+\(
+\synt{if\ statement}\\
+\synt{case\ statement}
+\)
+\end{psyntax}

@@ -1,0 +1,62 @@
+\begin{diagram}{Class type}{classtype}
+\begin{mysyntdiag}
+\[ \lit*{packed} \]
+\lit*{class} 
+\[ heritage \]
+\[ 
+\begin{rep}[b]
+  \synt{component\ list} \\ 
+  \synt{class\ visibility\ specifier} 
+\end{rep} \lit*{end} 
+\]
+\end{mysyntdiag}
+\begin{mysyntdiag}
+\synt{heritage} \lit*( \synt{class\ type\ identifier} \lit* )
+\end{mysyntdiag}
+\begin{mysyntdiag}
+\synt{component\ list} 
+\[ \<[b] \synt{field\ definition} \\ \> \]
+\[ 
+  \<[b] 
+    \( 
+      \synt{method\ definition} \\
+      \synt{property\ definition}
+    \) \\ 
+  \> 
+\]
+\end{mysyntdiag}
+\begin{mysyntdiag}
+\synt{field\ definition} \synt{identifier\ list} \lit*: \synt{type} \lit*;
+\end{mysyntdiag}
+\begin{mysyntdiag}
+\synt{method\ definition} 
+\( 
+\[
+\lit*{class}
+\]
+\(
+\synt{function\ header} \\
+\synt{procedure\ header}
+\) \\
+\synt{constructor\ header} \\
+\synt{desctuctor\ header}
+\)
+\lit*;
+\[
+\lit*{virtual} \lit*;
+\]
+\[ \synt{call\ modifiers} \lit*; \]
+\[
+\lit*{abstract} \lit*;
+\]
+\end{mysyntdiag}
+\begin{mysyntdiag}
+\synt{class\ visibility\ specifier}
+\( 
+\lit*{private}\\
+\lit*{protected}\\
+\lit*{public}\\
+\lit*{published}
+\)
+\end{mysyntdiag}
+\end{diagram}

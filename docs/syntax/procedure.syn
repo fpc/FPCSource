@@ -1,0 +1,12 @@
+\begin{psyntax}{Procedure statements}{proecedurestatements}
+\synt{procedure\ statement}
+\(
+\synt{procedure\ identifier} \\
+\synt{method\ identifier} \\
+\synt{qualified\ method\ identifier} \\
+\synt{variable\ reference}
+\)
+\[
+\synt{actual\ parameter\ list}
+\]
+\end{psyntax}

@@ -1,0 +1,10 @@
+\begin{psyntax}{Address factor}{addressfactor}
+\synt{address factor}
+\lit* @
+\( 
+\synt{variable\ reference} \\
+\synt{procedure\ identifier} \\
+\synt{function\ identifier}\\
+\synt{qualified\ method\ identifier}
+\)
+\end{psyntax}

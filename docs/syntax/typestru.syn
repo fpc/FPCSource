@@ -1,0 +1,11 @@
+\begin{psyntax}{Structured Types}{typestructured}
+\synt{structured\ type} 
+\(
+\synt{array\ type} \\
+\synt{record\ type} \\
+\synt{class\ type} \\
+\synt{class\ reference\ type}\\
+\synt{set\ type}\\
+\synt{file\ type}
+\)
+\end{psyntax}

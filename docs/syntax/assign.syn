@@ -1,0 +1,14 @@
+\begin{psyntax}{Assignments}{assignments}
+\synt{assignment\ statement}
+\(
+\synt{variable\ reference} \\
+\synt{function\ identifier}
+\)
+\( 
+\lit*{:=} \\
+\lit*{+=} \\
+\lit*{*=} \\
+\lit*{/=}
+\)
+\synt{expression}
+\end{psyntax}

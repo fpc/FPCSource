@@ -1,0 +1,15 @@
+\begin{psyntax}{Terms}{terms}
+\synt{term}
+\<[b] \synt{factor} \\
+\(
+\verb+ * + \\
+\verb+ / + \\
+\lit*{div} \\
+\lit*{mod} \\
+\lit*{and} \\
+\lit*{shl} \\
+\lit*{shr} \\
+\lit*{as} 
+\)
+\>
+\end{psyntax}

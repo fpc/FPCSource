@@ -1,0 +1,23 @@
+\begin{diagram}{Factors}{factors}
+\begin{mysyntdiag}
+\synt{factor}
+\( \lit* ( \synt{expression} \lit*) \\
+\synt{variable\ reference} \\
+\synt{function\ call} \\
+\synt{unsigned\ constant}\\
+\lit*{not} \synt{factor} \\
+\lit{sign} \synt{factor}\\
+\synt{set\ constructor}\\
+\synt{value\ typecast}\\
+\synt{address\ factor}\\
+\)
+\end{mysyntdiag}
+\begin{mysyntdiag}
+\synt{unsigned\ constant} 
+\( \synt{unsigned\ number} \\
+   \synt{character\ string} \\
+   \synt{constant\ identifier} \\
+   \lit*{Nil}
+\)
+\end{mysyntdiag}
+\end{diagram}

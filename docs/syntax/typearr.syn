@@ -1,0 +1,6 @@
+\begin{psyntax}{Array types}{arraytypes}
+\synt{array\ type}
+\[ \lit*{packed} \] \lit*{array}\lit*[ 
+\<[b] \synt{ordinal\ type} \\ \lit*, \> 
+\lit*] \lit*{of} \synt{type}
+\end{psyntax}

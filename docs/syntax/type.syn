@@ -1,0 +1,11 @@
+\begin{psyntax}{Types}{type}
+\synt{type}
+\(
+\synt{simple\ type} \\
+\synt{string\ type} \\
+\synt{structured\ type} \\
+\synt{pointer\ type} \\
+\synt{procedural\ type}\\
+\synt{type\ identifier}
+\)
+\end{psyntax}

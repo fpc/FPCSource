@@ -1,0 +1,25 @@
+\begin{diagram}{Character strings}{characterstrings}
+\begin{mysyntdiag}
+\synt{character\ string} 
+\begin{rep}[b] \( \synt{quoted\ string} \\ \synt{control\ string} \) \end{rep}
+\end{mysyntdiag}
+\begin{mysyntdiag}
+\synt{quoted\ string} 
+\lit*{'}
+\begin{rep}[b] \synt{string\ character} \\  \end{rep}
+\lit*{'}
+\end{mysyntdiag}
+\begin{mysyntdiag}
+\synt{string\ character} 
+\(
+\tok{ Any character except ' or CR} \\
+\lit*{''}
+\)
+\end{mysyntdiag}
+\begin{mysyntdiag}
+\synt{control\ string} 
+\begin{rep}[b]
+\lit*{\#} \synt{unsigned\ integer} \\
+\end{rep}
+\end{mysyntdiag}
+\end{diagram}

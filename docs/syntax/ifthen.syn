@@ -1,0 +1,9 @@
+\begin{psyntax}{If then statements}{ifthenstatement}
+\synt{if\ statement}
+\lit*{if}
+\synt{expression}
+\lit*{then} \synt{statement}
+\[
+\lit*{else} \synt{statement}
+\]
+\end{psyntax}

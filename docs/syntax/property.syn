@@ -1,0 +1,42 @@
+\begin{diagram}{Properties}{properties}
+\begin{mysyntdiag}
+\synt{property\ definition}
+\lit*{property} \synt{identifier} \[ \synt{property\ interface} \]
+\synt{property\ specifiers}
+\end{mysyntdiag}
+\begin{mysyntdiag}
+\synt{property\ interface}
+\[ \synt{property\ parameter\ list}\] \lit*: \synt{type\ identifier}
+\end{mysyntdiag}
+\begin{mysyntdiag}
+\synt{property\ parameter\ list} \lit*[
+\<[b] \synt{parameter\ declaration} \\ \lit; \> 
+\lit*]
+\end{mysyntdiag}
+\begin{mysyntdiag}
+\synt{property\ specifiers}
+\[ \synt{read\ specifier} \]
+\[ \synt{write\ specifier} \]
+\[ \synt{default\ specifier} \]
+\end{mysyntdiag}
+\begin{mysyntdiag}
+\synt{read\ specifier} \lit*{read} \synt{field\ or\ method}
+\end{mysyntdiag}
+\begin{mysyntdiag}
+\synt{write\ specifier} \lit*{write} \synt{field\ or\ method}
+\end{mysyntdiag}
+\begin{mysyntdiag}
+\synt{default\ specifier}
+\( 
+\lit*{default} \[ \synt{constant} \] \\
+\lit*{nodefault}
+\)
+\end{mysyntdiag}
+\begin{mysyntdiag}
+\synt{field\ or\ method}
+\(
+\synt{field\ identifier} \\
+\synt{method\ identifier}
+\)
+\end{mysyntdiag}
+\end{diagram}

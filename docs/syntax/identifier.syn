@@ -1,0 +1,10 @@
+\begin{psyntax}{Identifiers}{identifiers}
+\synt{identifier} \[ \synt{letter} \\ \lit*{\_} \] 
+\begin{rep}[b] \\
+\(
+\synt{letter} \\
+\synt{digit} \\
+\lit*{\_} 
+\)
+\end{rep}
+\end{psyntax}

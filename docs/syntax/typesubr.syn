@@ -1,0 +1,3 @@
+\begin{psyntax}{Subrange types}{subranges}
+\synt{subrange\ type} \synt{constant} \lit*{..} \synt{constant}
+\end{psyntax}

@@ -1,0 +1,30 @@
+\begin{diagram}{Expressions}{expressions}
+\begin{mysyntdiag}
+\synt{expression}
+\synt{simple\ expression}
+\[ 
+\(
+ \verb+ * +  \\
+ \verb+ <= + \\
+ \verb+ > +  \\
+ \verb+ >= + \\
+ \verb+ = +  \\
+ \verb+ <> + \\
+ \verb+ in + \\
+ \verb+ is + 
+\)
+\synt{simple\ expression}
+\]
+\end{mysyntdiag}
+\begin{mysyntdiag}
+\synt{simple\ expression} 
+\<[b] \synt{term} \\
+\( 
+ \lit* + \\
+ \lit* - \\
+ \lit*{or} \\
+ \lit*{xor} 
+\)
+\>
+\end{mysyntdiag}
+\end{diagram}

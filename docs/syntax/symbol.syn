@@ -1,0 +1,12 @@
+\begin{diagram}{Recognised symbols}{symbols}
+\begin{mysyntdiag}
+\synt{letter} \( \lit*{A ... Z} \\ \lit*{a ... z} \) 
+\end{mysyntdiag}
+\begin{mysyntdiag}
+\synt{digit}  \lit*{0 ... 9}
+\end{mysyntdiag}
+\begin{mysyntdiag}
+\synt{hex\ digit} 
+\( \lit*{0 ... 9} \\ \lit*{A ... F} \\ \lit*{a ...f} \) 
+\end{mysyntdiag}
+\end{diagram}

@@ -1,0 +1,51 @@
+\begin{diagram}{object type}{objecttype}
+\begin{mysyntdiag}
+\[ \lit*{packed} \]
+\lit*{object} 
+\[ heritage \]
+\[ 
+\begin{rep}[b]
+  \synt{component\ list} \\ 
+  \synt{object\ visibility\ specifier} 
+\end{rep} \lit*{end} 
+\]
+\end{mysyntdiag}
+\begin{mysyntdiag}
+\synt{heritage} \lit*( \synt{object\ type\ identifier} \lit* )
+\end{mysyntdiag}
+\begin{mysyntdiag}
+\synt{component\ list} 
+\[ \<[b] \synt{field\ definition} \\ \> \]
+\[ \<[b] \synt{method\ definition} \\ \> \]
+\end{mysyntdiag}
+\begin{mysyntdiag}
+\synt{field\ definition} \synt{identifier\ list} \lit*: \synt{type} \lit*;
+\end{mysyntdiag}
+\begin{mysyntdiag}
+\synt{method\ definition} 
+\( 
+\synt{function\ header} \\
+\synt{procedure\ header} \\
+\synt{constructor\ header} \\
+\synt{desctuctor\ header}
+\)
+\lit*; \synt{method\ directives} 
+\end{mysyntdiag}
+\begin{mysyntdiag}
+\synt{method\ directives}
+\[
+\lit*{virtual} \lit*;
+\]
+\[ \synt{call\ modifiers} \lit*; \]
+\[
+\lit*{abstract} \lit*;
+\]
+\end{mysyntdiag}
+\begin{mysyntdiag}
+\synt{object\ visibility\ specifier}
+\( 
+\lit*{private} \\
+\lit*{public}
+\)
+\end{mysyntdiag}
+\end{diagram}

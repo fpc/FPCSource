@@ -1,0 +1,7 @@
+\begin{psyntax}{Typecasts}{typecasts}
+\synt{value\ typecast} 
+\synt{type\ identifier} 
+\lit* ( 
+\synt{expression} 
+\lit* )
+\end{psyntax}

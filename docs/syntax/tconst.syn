@@ -1,0 +1,18 @@
+\begin{diagram}{Typed constant declaration}{typedconstantdeclaration}
+\begin{mysyntdiag} 
+\synt{typed\ constant\ declaration}
+\begin{rep}[b]
+  \synt{identifier} \lit*: \synt{type} \lit*= \synt{typed\ constant} \lit*; \\
+\end{rep}  
+\end{mysyntdiag}
+\begin{mysyntdiag}
+\synt{typed\ constant}
+\(
+\synt{constant} \\
+\synt{address\ constant} \\
+\synt{array\ constant} \\
+\synt{record\ constant} \\
+\synt{procedural\ constant}
+\)
+\end{mysyntdiag}
+\end{diagram}
