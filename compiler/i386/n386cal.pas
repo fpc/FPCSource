@@ -1318,8 +1318,7 @@ implementation
               if location.loc in [LOC_MEM,LOC_REFERENCE] then
                 begin
                    { data which must be finalized ? }
-                   if (resulttype^.needs_inittable) and
-                     not(is_class(resulttype)) then
+                   if (resulttype^.needs_inittable) then
                       finalize(resulttype,location.reference,false);
                    { release unused temp }
                    ungetiftemp(location.reference)
@@ -1557,7 +1556,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.4  2000-11-04 14:25:23  florian
+  Revision 1.5  2000-11-06 23:15:01  peter
+    * added copyvaluepara call again
+
+  Revision 1.4  2000/11/04 14:25:23  florian
     + merged Attila's changes for interfaces, not tested yet
 
   Revision 1.3  2000/11/04 13:12:14  jonas

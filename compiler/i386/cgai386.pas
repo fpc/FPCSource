@@ -2309,8 +2309,7 @@ implementation
 
       { initialize return value }
       if (procinfo^.returntype.def<>pdef(voiddef)) and
-        (procinfo^.returntype.def^.needs_inittable) and
-        not(is_class(procinfo^.returntype.def)) then
+         (procinfo^.returntype.def^.needs_inittable) then
         begin
            procinfo^.flags:=procinfo^.flags or pi_needs_implicit_finally;
            reset_reference(r);
@@ -2333,17 +2332,14 @@ implementation
          else
            aktprocsym^.definition^.localst^.foreach({$ifndef TP}@{$endif}initialize_data);
       end;
-      {
+
+      { initialisizes temp. ansi/wide string data }
+      inittempvariables;
+
       { generate copies of call by value parameters }
       if not(po_assembler in aktprocsym^.definition^.procoptions) and
          (([pocall_cdecl,pocall_cppdecl]*aktprocsym^.definition^.proccalloptions)=[]) then
         aktprocsym^.definition^.parast^.foreach({$ifndef TP}@{$endif}copyvalueparas);
-
-      { add a reference to all call by value/const parameters }
-      aktprocsym^.definition^.parast^.foreach({$ifndef TP}@{$endif}incr_data);
-      }
-      { initialisizes temp. ansi/wide string data }
-      inittempvariables;
 
       { do we need an exception frame because of ansi/widestrings/interfaces ? }
       if not inlined and
@@ -2932,7 +2928,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.7  2000-11-04 14:25:23  florian
+  Revision 1.8  2000-11-06 23:15:01  peter
+    * added copyvaluepara call again
+
+  Revision 1.7  2000/11/04 14:25:23  florian
     + merged Attila's changes for interfaces, not tested yet
 
   Revision 1.6  2000/10/31 22:02:55  peter

@@ -625,8 +625,7 @@ implementation
                            end
                          else
                            begin
-                              if (right.resulttype^.needs_inittable) and
-                                  not(is_class(right.resulttype)) then
+                              if (right.resulttype^.needs_inittable) then
                                 begin
                                    { this would be a problem }
                                    if not(left.resulttype^.needs_inittable) then
@@ -1065,7 +1064,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.3  2000-11-04 14:25:23  florian
+  Revision 1.4  2000-11-06 23:15:02  peter
+    * added copyvaluepara call again
+
+  Revision 1.3  2000/11/04 14:25:23  florian
     + merged Attila's changes for interfaces, not tested yet
 
   Revision 1.2  2000/10/31 22:02:56  peter
