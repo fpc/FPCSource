@@ -9,7 +9,7 @@ main=rtl
 [target]
 loaders=
 units=$(SYSTEMUNIT) unixtype ctypes objpas macpas strings sysctl baseunix unixutil \
-      unix initc cmem matrix \
+      unix initc cmem matrix dynlibs \
       dos dl objects printer sockets \
       sysutils typinfo systhrds classes math varutils \
       charset ucomplex getopts heaptrc lineinfo \
