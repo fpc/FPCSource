@@ -56,7 +56,7 @@ unit paramgr;
           { Returns true if a parameter needs to be copied on the stack, this
             is required for cdecl procedures
           }
-          function copy_value_on_stack(def : tdef;calloption : tproccalloption) : boolean;
+          function copy_value_on_stack(def : tdef;calloption : tproccalloption) : boolean;virtual;
           {# Returns a structure giving the information on
             the storage of the parameter (which must be
             an integer parameter). This is only used when calling
@@ -443,7 +443,10 @@ end.
 
 {
    $Log$
-   Revision 1.48  2003-07-05 20:11:41  jonas
+   Revision 1.49  2003-07-08 21:24:59  peter
+     * sparc fixes
+
+   Revision 1.48  2003/07/05 20:11:41  jonas
      * create_paraloc_info() is now called separately for the caller and
        callee info
      * fixed ppc cycle

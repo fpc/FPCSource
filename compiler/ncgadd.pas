@@ -228,20 +228,18 @@ interface
     procedure tcgaddnode.release_reg_left_right;
       begin
         if (right.location.loc in [LOC_REGISTER,LOC_FPUREGISTER]) and
-           ((location.loc<>LOC_REGISTER) or
-            (
-             (location.register.enum <> right.location.register.enum) and
-             (location.register.number <> right.location.register.number)
-            )
-           ) then
+           not(
+               (location.loc=LOC_REGISTER) and
+               (location.register.enum=right.location.register.enum) and
+               (location.register.number=right.location.register.number)
+              ) then
           location_release(exprasmlist,right.location);
         if (left.location.loc in [LOC_REGISTER,LOC_FPUREGISTER]) and
-           ((location.loc<>LOC_REGISTER) or
-            (
-             (location.register.enum <> left.location.register.enum) and
-             (location.register.number <> left.location.register.number)
-            )
-           ) then
+           not(
+               (location.loc=LOC_REGISTER) and
+               (location.register.enum=left.location.register.enum) and
+               (location.register.number=left.location.register.number)
+              ) then
           location_release(exprasmlist,left.location);
       end;
 
@@ -568,6 +566,8 @@ interface
         { emit overflow check if enabled }
         if checkoverflow then
            cg.g_overflowcheck(exprasmlist,Location,ResultType.Def);
+
+        release_reg_left_right;
       end;
 
 
@@ -697,6 +697,8 @@ interface
         { emit overflow check if required }
         if checkoverflow then
           cg.g_overflowcheck(exprasmlist,Location,ResultType.Def);
+
+        release_reg_left_right;
       end;
 
 
@@ -752,7 +754,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.14  2003-07-06 17:44:12  peter
+  Revision 1.15  2003-07-08 21:24:59  peter
+    * sparc fixes
+
+  Revision 1.14  2003/07/06 17:44:12  peter
     * cleanup and first sparc implementation
 
   Revision 1.13  2003/06/12 16:43:07  peter

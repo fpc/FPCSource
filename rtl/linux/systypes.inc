@@ -69,13 +69,17 @@ type
 {$ifdef powerpc}
   dev_t = cardinal;
 {$else powerpc}
+{$ifdef sparc}
+  dev_t = cardinal;
+{$else sparc}
 {$error dev_t unknown for this processor}
+{$endif sparc}
 {$endif powerpc}
 {$endif m68k}
 {$endif i386}
 
 { definition of stat record type }
-{$i stat.inc}  
+{$i stat.inc}
   PStat=^Stat;
   TStat=Stat;
 
@@ -126,7 +130,10 @@ type
 
 {
   $Log$
-  Revision 1.9  2003-07-08 14:18:40  peter
+  Revision 1.10  2003-07-08 21:23:24  peter
+    * sparc fixes
+
+  Revision 1.9  2003/07/08 14:18:40  peter
     * fdset changed to 1024 bits
 
   Revision 1.8  2003/05/15 22:50:50  jonas

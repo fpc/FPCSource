@@ -1140,6 +1140,7 @@ implementation
          include(current_procinfo.flags,pi_is_assembler);
          p:=_asm_statement;
 
+{$ifndef sparc}
          { set the framepointer to esp for assembler functions when the
            following conditions are met:
            - if the are no local variables (except the allocated result)
@@ -1171,6 +1172,7 @@ implementation
                  then
                  OptimizeFramePointer(tasmnode(p));
             end;
+{$endif sparc}
 
         { Flag the result as assigned when it is returned in a
           register.
@@ -1189,7 +1191,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.105  2003-06-17 16:34:44  jonas
+  Revision 1.106  2003-07-08 21:24:59  peter
+    * sparc fixes
+
+  Revision 1.105  2003/06/17 16:34:44  jonas
     * lots of newra fixes (need getfuncretparaloc implementation for i386)!
     * renamed all_intregisters to volatile_intregisters and made it
       processor dependent

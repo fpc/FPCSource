@@ -26,11 +26,13 @@ interface
 
     uses
       cpubase,
-      aasmtai,
+      aasmtai,globtype,
       symconst,symbase,symtype,symdef,paramgr;
 
     type
       TSparcParaManager=class(TParaManager)
+        function copy_value_on_stack(def : tdef;calloption : tproccalloption) : boolean;override;
+        function push_addr_param(def : tdef;calloption : tproccalloption) : boolean;override;
         {Returns a structure giving the information on the storage of the parameter
         (which must be an integer parameter)
         @param(nr Parameter number of routine, starting from 1)}
@@ -53,6 +55,34 @@ implementation
       verbose,
       cpuinfo,cginfo,cgbase,
       defutil,rgobj;
+
+    function tsparcparamanager.copy_value_on_stack(def : tdef;calloption : tproccalloption) : boolean;
+      begin
+        result:=false;
+      end;
+
+
+    { true if a parameter is too large to copy and only the address is pushed }
+    function tsparcparamanager.push_addr_param(def : tdef;calloption : tproccalloption) : boolean;
+      begin
+        push_addr_param:=false;
+        case def.deftype of
+          recorddef,
+          arraydef,
+          variantdef,
+          formaldef :
+            push_addr_param:=true;
+          objectdef :
+            push_addr_param:=is_object(def);
+          stringdef :
+            push_addr_param:=(tstringdef(def).string_typ in [st_shortstring,st_longstring]);
+          procvardef :
+            push_addr_param:=(po_methodpointer in tprocvardef(def).procoptions);
+          setdef :
+            push_addr_param:=(tsetdef(def).settype<>smallset);
+        end;
+      end;
+
 
     function TSparcParaManager.GetIntParaLoc(List:TAasmOutput;nr:longint):TParaLocation;
       begin
@@ -278,7 +308,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.25  2003-07-06 22:10:56  peter
+  Revision 1.26  2003-07-08 21:25:00  peter
+    * sparc fixes
+
+  Revision 1.25  2003/07/06 22:10:56  peter
     * big endian first allocates high
 
   Revision 1.24  2003/07/06 17:58:22  peter

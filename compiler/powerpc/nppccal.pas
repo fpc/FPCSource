@@ -33,6 +33,7 @@ interface
        tppccallnode = class(tcgcallnode)
           function pass_1 : tnode;override;
           procedure push_framepointer;override;
+          procedure free_pushed_framepointer;override;
        end;
 
 implementation
@@ -120,12 +121,20 @@ implementation
          internalerror(2002081303);
     end;
 
+
+  procedure tppccallnode.free_pushed_framepointer;
+    begin
+    end;
+
 begin
    ccallnode:=tppccallnode;
 end.
 {
   $Log$
-  Revision 1.19  2003-07-06 20:25:03  jonas
+  Revision 1.20  2003-07-08 21:24:59  peter
+    * sparc fixes
+
+  Revision 1.19  2003/07/06 20:25:03  jonas
     * fixed ppc compiler
 
   Revision 1.18  2003/06/13 21:19:32  peter

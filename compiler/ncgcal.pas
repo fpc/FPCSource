@@ -59,6 +59,7 @@ interface
           function  align_parasize:longint;virtual;
           procedure pop_parasize(pop_size:longint);virtual;
           procedure push_framepointer;virtual;
+          procedure free_pushed_framepointer;virtual;
           procedure extra_interrupt_code;virtual;
        public
           procedure pass_2;override;
@@ -390,6 +391,12 @@ implementation
       end;
 
 
+    procedure tcgcallnode.free_pushed_framepointer;
+      begin
+        paramanager.freeintparaloc(exprasmlist,1);
+      end;
+
+
     procedure tcgcallnode.handle_return_value;
       var
         cgsize : tcgsize;
@@ -651,7 +658,6 @@ implementation
       {$endif}
          pushedother : tpushedsavedother;
          oldpushedparasize : longint;
-         paraitem : tparaitem;
          { adress returned from an I/O-error }
          iolabel : tasmlabel;
          { help reference pointer }
@@ -664,6 +670,26 @@ implementation
 {$endif x86}
          vmtreg,vmtreg2 : tregister;
          oldaktcallnode : tcallnode;
+
+         procedure freeparas;
+         var
+           paraitem : tparaitem;
+         begin
+           { free the resources allocated for the parameters }
+           paraitem:=tparaitem(procdefinition.para.first);
+           while assigned(paraitem) do
+             begin
+               paramanager.freeparaloc(exprasmlist,paraitem.callerparaloc);
+               paraitem:=tparaitem(paraitem.next);
+             end;
+           { free pushed base pointer }
+           if (right=nil) and
+              (current_procinfo.procdef.parast.symtablelevel>=normal_function_level) and
+              assigned(tprocdef(procdefinition).parast) and
+              ((tprocdef(procdefinition).parast.symtablelevel)>normal_function_level) then
+             free_pushed_framepointer;
+         end;
+
       begin
          if not assigned(procdefinition) then
            internalerror(200305264);
@@ -920,12 +946,7 @@ implementation
                    cg.a_load_reg_reg(exprasmlist,OS_ADDR,OS_ADDR,vmtreg,vmtreg2);
 {$endif newra}
                    { free the resources allocated for the parameters }
-                   paraitem:=tparaitem(procdefinition.para.first);
-                   while assigned(paraitem) do
-                     begin
-                       paramanager.freeparaloc(exprasmlist,paraitem.callerparaloc);
-                       paraitem:=tparaitem(paraitem.next);
-                     end;
+                   freeparas;
 
 {$ifdef newra}
                    rg.allocexplicitregistersint(exprasmlist,regs_to_alloc);
@@ -941,13 +962,8 @@ implementation
                 end
               else
                 begin
-                 { free the resources allocated for the parameters }
-                  paraitem:=tparaitem(procdefinition.para.first);
-                  while assigned(paraitem) do
-                    begin
-                      paramanager.freeparaloc(exprasmlist,paraitem.callerparaloc);
-                      paraitem:=tparaitem(paraitem.next);
-                    end;
+                  { free the resources allocated for the parameters }
+                  freeparas;
 
 {$ifdef newra}
                   rg.allocexplicitregistersint(exprasmlist,regs_to_alloc);
@@ -992,12 +1008,7 @@ implementation
 {$endif newra}
 
               { free the resources allocated for the parameters }
-              paraitem:=tparaitem(procdefinition.para.first);
-              while assigned(paraitem) do
-                begin
-                  paramanager.freeparaloc(exprasmlist,paraitem.callerparaloc);
-                  paraitem:=tparaitem(paraitem.next);
-                end;
+              freeparas;
 
 {$ifdef newra}
               rg.allocexplicitregistersint(exprasmlist,regs_to_alloc);
@@ -1518,7 +1529,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.100  2003-07-06 21:50:33  jonas
+  Revision 1.101  2003-07-08 21:24:59  peter
+    * sparc fixes
+
+  Revision 1.100  2003/07/06 21:50:33  jonas
     * fixed ppc compilation problems and changed VOLATILE_REGISTERS for x86
       so that it doesn't include ebp and esp anymore
 

@@ -119,8 +119,8 @@ implementation
           InternalError(2002100804);
         result :=not(assigned(ref.symbol))and
                   (((ref.index.number = NR_NO) and
-                   (ref.offset >= low(smallint)) and
-                    (ref.offset <= high(smallint))) or
+                   (ref.offset >= simm13lo) and
+                    (ref.offset <= simm13hi)) or
                   ((ref.index.number <> NR_NO) and
                   (ref.offset = 0)));
       end;
@@ -1005,7 +1005,8 @@ implementation
          if not issimpleref(source) or
             (
               (source.index.number<>NR_NO) and
-              ((source.offset+longint(len))>high(smallint))
+              (((source.offset+longint(len))>simm13hi) or
+               ((source.offset+longint(len))<simm13lo))
             ) then
            begin
 {$ifdef newra}
@@ -1027,7 +1028,8 @@ implementation
         if not issimpleref(dest) or
            (
             (dest.index.number<>NR_NO) and
-            ((dest.offset + longint(len)) > high(smallint))
+            (((dest.offset + longint(len)) > simm13hi) or
+             ((dest.offset + longint(len)) < simm13lo))
            ) then
           begin
 {$ifdef newra}
@@ -1255,7 +1257,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.64  2003-07-06 22:10:13  peter
+  Revision 1.65  2003-07-08 21:24:59  peter
+    * sparc fixes
+
+  Revision 1.64  2003/07/06 22:10:13  peter
     * operand order of cmp fixed
 
   Revision 1.63  2003/07/06 17:58:22  peter

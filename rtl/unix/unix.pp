@@ -422,15 +422,15 @@ type
 function MMap(const m:tmmapargs):longint;
 function MUnMap (P : Pointer; Size : Longint) : Boolean;
 
-{**************************
-     Port IO functions
-***************************}
+{***********************************
+  Port IO functions (x86 specific)
+***********************************}
 
+{$ifdef i386}
 Function  IOperm (From,Num : Cardinal; Value : Longint) : boolean;
 {$ifndef BSD}
 Function  IoPL(Level : longint) : Boolean;
 {$endif}
-{$ifdef i386}
 Procedure WritePort (Port : Longint; Value : Byte);
 Procedure WritePort (Port : Longint; Value : Word);
 Procedure WritePort (Port : Longint; Value : Longint);
@@ -449,7 +449,7 @@ function  ReadPortL (Port : Longint): LongInt;
 Procedure ReadPortL (Port : Longint; Var Buf; Count: longint);
 Procedure ReadPortW (Port : Longint; Var Buf; Count: longint);
 Procedure ReadPortB (Port : Longint; Var Buf; Count: longint);
-{$endif}
+{$endif i386}
 
 {**************************
     Utility functions
@@ -3059,7 +3059,10 @@ End.
 
 {
   $Log$
-  Revision 1.29  2003-05-30 19:58:40  marco
+  Revision 1.30  2003-07-08 21:23:24  peter
+    * sparc fixes
+
+  Revision 1.29  2003/05/30 19:58:40  marco
    * Getting NetBSD/i386 to compile.
 
   Revision 1.28  2003/05/29 19:16:16  marco

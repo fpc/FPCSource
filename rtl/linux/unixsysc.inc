@@ -856,6 +856,8 @@ end;
       Port IO functions
 --------------------------------}
 
+{$ifdef i386}
+
 Function  IOperm (From,Num : Cardinal; Value : Longint) : boolean;
 {
   Set permissions on NUM ports starting with port FROM to VALUE
@@ -882,10 +884,14 @@ begin
   LinuxError:=Errno;
 end;
 
+{$endif i386}
 
 {
   $Log$
-  Revision 1.8  2002-12-18 16:43:26  marco
+  Revision 1.9  2003-07-08 21:23:24  peter
+    * sparc fixes
+
+  Revision 1.8  2002/12/18 16:43:26  marco
    * new unix rtl, linux part.....
 
   Revision 1.7  2002/09/07 16:01:20  peter

@@ -48,11 +48,10 @@ unit cpugas;
           begin
             inc(offset,offsetfixup);
             offsetfixup:=0;
-            if assigned(symbol) then
+            if (base.number=NR_NO) and (index.number=NR_NO) then
               begin
-                 if (base.number<>NR_NO) or (index.number<>NR_NO) then
-                   internalerror(2003052601);
-                 GetReferenceString:=symbol.name;
+                 if assigned(symbol) then
+                   GetReferenceString:=symbol.name;
                  if offset>0 then
                    GetReferenceString:=GetReferenceString+'+'+ToStr(offset)
                  else if offset<0 then
@@ -66,6 +65,8 @@ unit cpugas;
               end
             else
               begin
+                if assigned(symbol) then
+                  internalerror(2003052601);
                 GetReferenceString:='[';
                 if base.number<>NR_NO then
                   GetReferenceString:=GetReferenceString+std_reg2str[base.enum];
@@ -204,7 +205,10 @@ begin
 end.
 {
     $Log$
-    Revision 1.20  2003-07-02 22:18:04  peter
+    Revision 1.21  2003-07-08 21:25:00  peter
+      * sparc fixes
+
+    Revision 1.20  2003/07/02 22:18:04  peter
       * paraloc splitted in callerparaloc,calleeparaloc
       * sparc calling convention updates
 

@@ -153,7 +153,9 @@ interface
           location.register:=right.location.register;
 
         exprasmlist.concat(taicpu.op_reg_reg_reg(op,
-           left.location.register,right.location.register,location.register))
+           left.location.register,right.location.register,location.register));
+
+        release_reg_left_right;
       end;
 
 
@@ -175,6 +177,8 @@ interface
            left.location.register,right.location.register));
         { Delay slot (can only contain integer operation) }
         exprasmlist.concat(taicpu.op_none(A_NOP));
+
+        release_reg_left_right;
       end;
 
 
@@ -195,6 +199,8 @@ interface
 
         location_reset(location,LOC_FLAGS,OS_NO);
         location.resflags:=getresflags(true);
+
+        release_reg_left_right;
       end;
 
 
@@ -215,6 +221,8 @@ interface
 
         location_reset(location,LOC_FLAGS,OS_NO);
         location.resflags:=getresflags(true);
+
+        release_reg_left_right;
       end;
 
 
@@ -228,6 +236,8 @@ interface
 
         location_reset(location,LOC_FLAGS,OS_NO);
         location.resflags:=getresflags(unsigned);
+
+        release_reg_left_right;
       end;
 
 
@@ -252,6 +262,8 @@ interface
 
         location_reset(location,LOC_FLAGS,OS_NO);
         location.resflags:=getresflags(unsigned);
+
+        release_reg_left_right;
       end;
 
 begin
@@ -259,7 +271,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.17  2003-07-06 22:09:50  peter
+  Revision 1.18  2003-07-08 21:25:00  peter
+    * sparc fixes
+
+  Revision 1.17  2003/07/06 22:09:50  peter
     * signed compare fixed
 
   Revision 1.16  2003/07/06 17:44:12  peter
