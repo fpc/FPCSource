@@ -895,13 +895,13 @@ begin
   HPath:=TStringListItem(current_module.locallibrarysearchpath.First);
   while assigned(HPath) do
    begin
-     LinkRes.Add('SEARCH_DIR('+GetShortName(HPath.Str)+')');
+     LinkRes.Add('SEARCH_DIR('+MaybeQuoted(HPath.Str)+')');
      HPath:=TStringListItem(HPath.Next);
    end;
   HPath:=TStringListItem(LibrarySearchPath.First);
   while assigned(HPath) do
    begin
-     LinkRes.Add('SEARCH_DIR('+GetShortName(HPath.Str)+')');
+     LinkRes.Add('SEARCH_DIR('+MaybeQuoted(HPath.Str)+')');
      HPath:=TStringListItem(HPath.Next);
    end;
 
@@ -909,17 +909,17 @@ begin
   { profiling of shared libraries is currently not supported }
   LinkRes.Add('INPUT(');
   if isdll then
-   LinkRes.AddFileName(GetShortName(FindObjectFile('wdllprt0','')))
+   LinkRes.AddFileName(MaybeQuoted(FindObjectFile('wdllprt0','')))
   else
   if (cs_profile in aktmoduleswitches) then
-   LinkRes.AddFileName(GetShortName(FindObjectFile('gprt0','')))
-  else 
-   LinkRes.AddFileName(GetShortName(FindObjectFile('wprt0','')));
+   LinkRes.AddFileName(MaybeQuoted(FindObjectFile('gprt0','')))
+  else
+   LinkRes.AddFileName(MaybeQuoted(FindObjectFile('wprt0','')));
   while not ObjectFiles.Empty do
    begin
      s:=ObjectFiles.GetFirst;
      if s<>'' then
-      LinkRes.AddFileName(GetShortName(s));
+      LinkRes.AddFileName(MaybeQuoted(s));
    end;
   LinkRes.Add(')');
 
@@ -939,7 +939,7 @@ begin
      While not StaticLibFiles.Empty do
       begin
         S:=StaticLibFiles.GetFirst;
-        LinkRes.AddFileName(GetShortName(s));
+        LinkRes.AddFileName(MaybeQuoted(s));
       end;
      LinkRes.Add(')');
    end;
@@ -953,7 +953,7 @@ begin
         S:=SharedLibFiles.GetFirst;
         if FindLibraryFile(s,target_info.staticClibprefix,target_info.staticClibext,s2) then
           begin
-            LinkRes.Add(GetShortName(s2));
+            LinkRes.Add(MaybeQuoted(s2));
             continue;
           end;
         if pos(target_info.sharedlibprefix,s)=1 then
@@ -1625,7 +1625,10 @@ initialization
 end.
 {
   $Log$
-  Revision 1.8  2002-12-01 18:57:34  carl
+  Revision 1.9  2002-12-24 15:55:51  peter
+    * Use maybequote instead of getshortname
+
+  Revision 1.8  2002/12/01 18:57:34  carl
     * disable overflow checking in some parts to avoid problems
 
   Revision 1.7  2002/11/30 18:45:28  carl
