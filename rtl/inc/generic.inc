@@ -496,12 +496,12 @@ begin
       exit;
     end;
 }
-  slen:=length(pstring(sstr)^);
+  slen:=length(sstr);
   if slen<len then
     len:=slen;
   { don't forget the length character }
   if len <> 0 then
-      move(sstr[0],result[0],len+1);
+    move(sstr[0],result[0],len+1);
 end;
 
 procedure fpc_shortstr_copy(len:longint;sstr,dstr:pointer);[public,alias:'FPC_SHORTSTR_COPY'];
@@ -606,7 +606,7 @@ begin
   if l>0 then
     move(p^,s[1],l);
   s[0]:=chr(l);
-  strpas := s;
+  fpc_pchar_to_shortstr := s;
 end;
 
 {$endif ndef FPC_SYSTEM_HAS_FPC_PCHAR_TO_SHORTSTR}
@@ -617,11 +617,11 @@ function strpas(p:pchar):shortstring; [external name 'FPC_PCHAR_TO_SHORTSTR'];
 {$ifndef FPC_SYSTEM_HAS_FPC_CHARARRAY_TO_SHORTSTR}
 
 {$ifdef hascompilerproc}
-function fpc_chararray_to_shortstr(p:pchar; l : longint):shortstring;[public,alias:'FPC_CHARARRAY_TO_SHORTSTR'];
+function fpc_chararray_to_shortstr(const arr: array of char):shortstring;[public,alias:'FPC_CHARARRAY_TO_SHORTSTR']; compilerproc;
 var
   l: longint;
 {$else hascompilerproc}
-function fpc_chararray_to_shortstr(const arr: array of char):shortstring;[public,alias:'FPC_CHARARRAY_TO_SHORTSTR']; compilerproc;
+function fpc_chararray_to_shortstr(p:pchar; l : longint):shortstring;[public,alias:'FPC_CHARARRAY_TO_SHORTSTR'];
 {$endif hascompilerproc}
 begin
 {$ifdef hascompilerproc}
@@ -891,7 +891,17 @@ end;
 
 {
   $Log$
-  Revision 1.20  2001-08-30 15:43:15  jonas
+  Revision 1.21  2001-09-03 13:27:43  jonas
+    * compilerproc implementation of set addition/substraction/...
+    * changed the declaration of some set helpers somewhat to accomodate the
+      above change
+    * i386 still uses the old code for comparisons of sets, because its
+      helpers return the results in the flags
+    * dummy tc_normal_2_small_set type conversion because I need the original
+      resulttype of the set add nodes
+    NOTE: you have to start a cycle with 1.0.5!
+
+  Revision 1.20  2001/08/30 15:43:15  jonas
     * converted adding/comparing of strings to compileproc. Note that due
       to the way the shortstring helpers for i386 are written, they are
       still handled by the old code (reason: fpc_shortstr_compare returns

@@ -184,7 +184,8 @@ interface
           tc_intf_2_string,
           tc_intf_2_guid,
           tc_class_2_intf,
-          tc_char_2_char
+          tc_char_2_char,
+          tc_normal_2_smallset
        );
 
     function assignment_overloaded(from_def,to_def : tdef) : tprocdef;
@@ -1783,7 +1784,17 @@ implementation
 end.
 {
   $Log$
-  Revision 1.46  2001-09-02 21:15:34  peter
+  Revision 1.47  2001-09-03 13:27:41  jonas
+    * compilerproc implementation of set addition/substraction/...
+    * changed the declaration of some set helpers somewhat to accomodate the
+      above change
+    * i386 still uses the old code for comparisons of sets, because its
+      helpers return the results in the flags
+    * dummy tc_normal_2_small_set type conversion because I need the original
+      resulttype of the set add nodes
+    NOTE: you have to start a cycle with 1.0.5!
+
+  Revision 1.46  2001/09/02 21:15:34  peter
     * don't allow int64->real for delphi mode
 
   Revision 1.45  2001/08/19 21:11:21  florian

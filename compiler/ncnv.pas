@@ -126,7 +126,10 @@ implementation
          end;
 
         { don't insert obsolete type conversions }
-        if is_equal(p.resulttype.def,t.def) then
+        if is_equal(p.resulttype.def,t.def) and
+           not ((p.resulttype.def.deftype=setdef) and
+                (tsetdef(p.resulttype.def).settype <>
+                 tsetdef(t.def).settype)) then
          begin
            p.resulttype:=t;
          end
@@ -686,7 +689,8 @@ implementation
           { intf_2_string } nil,
           { intf_2_guid } nil,
           { class_2_intf } nil,
-          { char_2_char } @ttypeconvnode.resulttype_char_to_char
+          { char_2_char } @ttypeconvnode.resulttype_char_to_char,
+          { nomal_2_smallset} nil
          );
       type
          tprocedureofobject = function : tnode of object;
@@ -725,19 +729,24 @@ implementation
             check here if we are loading a smallset into a normalset }
             if (resulttype.def.deftype=setdef) and
                (left.resulttype.def.deftype=setdef) and
-               (tsetdef(resulttype.def).settype<>smallset) and
-               (tsetdef(left.resulttype.def).settype=smallset) then
-             begin
-             { try to define the set as a normalset if it's a constant set }
-               if left.nodetype=setconstn then
-                begin
-                  resulttype:=left.resulttype;
-                  tsetdef(resulttype.def).settype:=normset
-                end
-               else
-                convtype:=tc_load_smallset;
-               exit;
-             end
+               ((tsetdef(resulttype.def).settype = smallset) xor
+                (tsetdef(left.resulttype.def).settype = smallset)) then
+              begin
+              { try to define the set as a normalset if it's a constant set }
+                if (tsetdef(resulttype.def).settype <> smallset) then
+                  begin
+                    if (left.nodetype=setconstn) then
+                      begin
+                        resulttype:=left.resulttype;
+                        tsetdef(resulttype.def).settype:=normset
+                      end
+                     else
+                      convtype:=tc_load_smallset;
+                  end
+                else
+                  convtype := tc_normal_2_smallset;
+                exit;
+              end
             else
              begin
                left.resulttype:=resulttype;
@@ -1274,7 +1283,8 @@ implementation
            @ttypeconvnode.first_nothing,
            @ttypeconvnode.first_nothing,
            @ttypeconvnode.first_class_to_intf,
-           @ttypeconvnode.first_char_to_char
+           @ttypeconvnode.first_char_to_char,
+           @ttypeconvnode.first_nothing
          );
       type
          tprocedureofobject = function : tnode of object;
@@ -1466,7 +1476,17 @@ begin
 end.
 {
   $Log$
-  Revision 1.36  2001-09-02 21:12:06  peter
+  Revision 1.37  2001-09-03 13:27:42  jonas
+    * compilerproc implementation of set addition/substraction/...
+    * changed the declaration of some set helpers somewhat to accomodate the
+      above change
+    * i386 still uses the old code for comparisons of sets, because its
+      helpers return the results in the flags
+    * dummy tc_normal_2_small_set type conversion because I need the original
+      resulttype of the set add nodes
+    NOTE: you have to start a cycle with 1.0.5!
+
+  Revision 1.36  2001/09/02 21:12:06  peter
     * move class of definitions into type section for delphi
 
   Revision 1.35  2001/08/29 19:49:03  jonas
@@ -1489,7 +1509,7 @@ end.
   Revision 1.33  2001/08/28 13:24:46  jonas
     + compilerproc implementation of most string-related type conversions
     - removed all code from the compiler which has been replaced by
-      compilerproc implementations (using {$ifdef hascompilerproc} is not
+      compilerproc implementations (using (ifdef hascompilerproc) is not
       necessary in the compiler)
 
   Revision 1.32  2001/08/26 13:36:40  florian

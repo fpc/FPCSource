@@ -24,8 +24,11 @@
 
 {$ifdef hascompilerproc}
 
+{ some dummy types necessary to have generic resulttypes for certain compilerprocs }
 type
   fpc_big_chararray = array[0..maxlongint] of char;
+  fpc_small_set = set of 0..31;
+  fpc_normal_set = set of byte;
 
 procedure fpc_Shortstr_SetLength(var s:shortstring;len:StrLenInt); compilerproc;
 function fpc_shortstr_to_shortstr(len:longint; const sstr: shortstring): shortstring; compilerproc;
@@ -186,18 +189,18 @@ Procedure fpc_Addref (Data,TypeInfo : Pointer); compilerproc;
 Procedure fpc_DecRef (Data,TypeInfo : Pointer);  compilerproc;
 procedure fpc_FinalizeArray(data,typeinfo : pointer;count,size : longint); compilerproc;
 
-procedure fpc_set_load_small(p : pointer;l:longint); compilerproc;
-procedure fpc_set_create_element(p : pointer;b : byte); compilerproc;
-procedure fpc_set_set_byte(p : pointer;b : byte); compilerproc;
-procedure fpc_set_unset_byte(p : pointer;b : byte); compilerproc;
-procedure fpc_set_set_range(p : pointer;l,h : byte); compilerproc;
-procedure fpc_set_in_byte(p : pointer;b : byte); compilerproc;
-procedure fpc_set_add_sets(set1,set2,dest : pointer); compilerproc;
-procedure fpc_set_mul_sets(set1,set2,dest:pointer); compilerproc;
-procedure fpc_set_sub_sets(set1,set2,dest:pointer); compilerproc;
-procedure fpc_set_symdif_sets(set1,set2,dest:pointer); compilerproc;
-procedure fpc_set_comp_sets(set1,set2 : pointer); compilerproc;
-procedure fpc_set_contains_sets(set1,set2 : pointer); compilerproc;
+function fpc_set_load_small(l: fpc_small_set): fpc_normal_set; compilerproc;
+function fpc_set_create_element(b : byte): fpc_normal_set; compilerproc;
+function fpc_set_set_byte(const source: fpc_normal_set; b : byte): fpc_normal_set; compilerproc;
+function fpc_set_unset_byte(const source: fpc_normal_set; b : byte): fpc_normal_set; compilerproc;
+function fpc_set_set_range(const orgset: fpc_normal_set; l,h : byte): fpc_normal_set; compilerproc;
+function fpc_set_in_byte(const p: fpc_normal_set; b: byte): boolean; compilerproc;
+function fpc_set_add_sets(const set1,set2: fpc_normal_set): fpc_normal_set; compilerproc;
+function fpc_set_mul_sets(const set1,set2: fpc_normal_set): fpc_normal_set; compilerproc;
+function fpc_set_sub_sets(const set1,set2: fpc_normal_set): fpc_normal_set; compilerproc;
+function fpc_set_symdif_sets(const set1,set2: fpc_normal_set): fpc_normal_set; compilerproc;
+function fpc_set_comp_sets(const set1,set2: fpc_normal_set): boolean; compilerproc;
+function fpc_set_contains_sets(const set1,set2: fpc_normal_set): boolean; compilerproc;
 
 {$ifdef LARGESETS}
 procedure fpc_largeset_set_word(p : pointer;b : word); compilerproc;
@@ -237,7 +240,17 @@ Procedure fpc_typed_read(TypeSize : Longint;var f : TypedFile;var Buf); compiler
 
 {
   $Log$
-  Revision 1.7  2001-08-30 15:43:15  jonas
+  Revision 1.8  2001-09-03 13:27:43  jonas
+    * compilerproc implementation of set addition/substraction/...
+    * changed the declaration of some set helpers somewhat to accomodate the
+      above change
+    * i386 still uses the old code for comparisons of sets, because its
+      helpers return the results in the flags
+    * dummy tc_normal_2_small_set type conversion because I need the original
+      resulttype of the set add nodes
+    NOTE: you have to start a cycle with 1.0.5!
+
+  Revision 1.7  2001/08/30 15:43:15  jonas
     * converted adding/comparing of strings to compileproc. Note that due
       to the way the shortstring helpers for i386 are written, they are
       still handled by the old code (reason: fpc_shortstr_compare returns

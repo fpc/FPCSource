@@ -14,38 +14,49 @@
 
  **********************************************************************}
 
- TYPE
-   { TNormalSet = array[0..31] of byte;}
-    TNormalSet = array[0..7] of longint;
-
 {$ifndef FPC_SYSTEM_HAS_FPC_SET_LOAD_SMALL}
 { Error No pascal version of FPC_SET_LOAD_SMALL}
  { THIS DEPENDS ON THE ENDIAN OF THE ARCHITECTURE!
    Not anymore PM}
 
-procedure do_load_small(p : pointer;l:longint);[public,alias:'FPC_SET_LOAD_SMALL'];
+function fpc_set_load_small(l: fpc_small_set): fpc_normal_set; [public,alias:'FPC_SET_LOAD_SMALL']; {$ifdef hascompilerproc} compilerproc; {$endif}
  {
   load a normal set p from a smallset l
  }
  begin
-   Fillchar(p^,SizeOf(TNormalSet),#0);
-   TNormalSet(p^)[0] := l;
+   fpc_set_load_small[0] := l;
+   FillDWord(fpc_set_load_small[1],7,0);
  end;
 {$endif FPC_SYSTEM_HAS_FPC_SET_LOAD_SMALL}
 
 
 {$ifndef FPC_SYSTEM_HAS_FPC_SET_CREATE_ELEMENT}
- procedure do_create_element(p : pointer;b : byte);[public,alias:'FPC_SET_CREATE_ELEMENT'];
+function fpc_set_create_element(b : byte): fpc_normal_set;[public,alias:'FPC_SET_CREATE_ELEMENT']; {$ifdef hascompilerproc} compilerproc; {$endif}
  {
   create a new set in p from an element b
  }
  begin
-   Fillchar(p^,SizeOf(TNormalSet),#0);
-   TNormalSet(p^)[b div 32] := 1 shl (b mod 32);
+   FillDWord(fpc_set_create_element,SizeOf(fpc_set_create_element) div 4,0);
+   fpc_set_create_element[b div 32] := 1 shl (b mod 32);
  end;
 {$endif FPC_SYSTEM_HAS_FPC_SET_CREATE_ELEMENT}
 
 {$ifndef FPC_SYSTEM_HAS_FPC_SET_SET_BYTE}
+
+{$ifdef hascompilerproc}
+ function fpc_set_set_byte(const source: fpc_normal_set; b : byte): fpc_normal_set; compilerproc;
+ {
+  add the element b to the set "source"
+ }
+  var
+   c: longint;
+  begin
+    move(source,fpc_set_set_byte,sizeof(source));
+    c := fpc_set_set_byte[b div 32];
+    c := (1 shl (b mod 32)) or c;
+    fpc_set_set_byte[b div 32] := c;
+  end;
+{$else hascompilerproc}
  procedure do_set_byte(p : pointer;b : byte);[public,alias:'FPC_SET_SET_BYTE'];
  {
   add the element b to the set pointed by p
@@ -53,15 +64,18 @@ procedure do_load_small(p : pointer;l:longint);[public,alias:'FPC_SET_LOAD_SMALL
   var
    c: longint;
   begin
-    c := TNormalSet(p^)[b div 32];
+    c := fpc_normal_set(p^)[b div 32];
     c := (1 shl (b mod 32)) or c;
-    TNormalSet(p^)[b div 32] := c;
+    fpc_normal_set(p^)[b div 32] := c;
   end;
+{$endif hascompilerproc}
 {$endif FPC_SYSTEM_HAS_FPC_SET_SET_BYTE}
 
 
 {$ifndef FPC_SYSTEM_HAS_FPC_SET_UNSET_BYTE}
- procedure do_unset_byte(p : pointer;b : byte);[public,alias:'FPC_SET_UNSET_BYTE'];
+
+{$ifdef hascompilerproc}
+function fpc_set_unset_byte(const source: fpc_normal_set; b : byte): fpc_normal_set; compilerproc;
  {
    suppresses the element b to the set pointed by p
    used for exclude(set,element)
@@ -69,14 +83,47 @@ procedure do_load_small(p : pointer;l:longint);[public,alias:'FPC_SET_LOAD_SMALL
   var
    c: longint;
   begin
-    c := TNormalSet(p^)[b div 32];
+    move(source,fpc_set_unset_byte,sizeof(source));
+    c := fpc_set_unset_byte[b div 32];
     c := c and not (1 shl (b mod 32));
-    TNormalSet(p^)[b div 32] := c;
+    fpc_set_unset_byte[b div 32] := c;
   end;
+{$else hascompilerproc}
+procedure do_unset_byte(p : pointer;b : byte);[public,alias:'FPC_SET_UNSET_BYTE'];
+ {
+   suppresses the element b to the set pointed by p
+   used for exclude(set,element)
+ }
+  var
+   c: longint;
+  begin
+    c := fpc_normal_set(p^)[b div 32];
+    c := c and not (1 shl (b mod 32));
+    fpc_normal_set(p^)[b div 32] := c;
+  end;
+{$endif hascompilerproc}
 {$endif FPC_SYSTEM_HAS_FPC_SET_UNSET_BYTE}
 
 
 {$ifndef FPC_SYSTEM_HAS_FPC_SET_SET_RANGE}
+{$ifdef hascompilerproc}
+ function fpc_set_set_range(const orgset: fpc_normal_set; l,h : byte): fpc_normal_set; compilerproc;
+ {
+   adds the range [l..h] to the set orgset
+ }
+  var
+   i: integer;
+   c: longint;
+  begin
+    move(orgset,fpc_set_set_range,sizeof(orgset));
+    for i:=l to h do
+      begin
+        c := fpc_set_set_range[i div 32];
+        c := (1 shl (i mod 32)) or c;
+        fpc_set_set_range[i div 32] := c;
+      end;
+  end;
+{$else hascompilerproc}
  procedure do_set_range(p : pointer;l,h : byte);[public,alias:'FPC_SET_SET_RANGE'];
  {
   bad implementation, but it's very seldom used
@@ -87,37 +134,34 @@ procedure do_load_small(p : pointer;l:longint);[public,alias:'FPC_SET_LOAD_SMALL
   begin
     for i:=l to h do
       begin
-        c := TNormalSet(p^)[i div 32];
+        c := fpc_normal_set(p^)[i div 32];
         c := (1 shl (i mod 32)) or c;
-        TNormalSet(p^)[i div 32] := c;
+        fpc_normal_set(p^)[i div 32] := c;
       end;
   end;
-{$endif}
+{$endif hascompilerproc}
+{$endif ndef FPC_SYSTEM_HAS_FPC_SET_SET_RANGE}
 
 
 {$ifndef FPC_SYSTEM_HAS_FPC_SET_IN_BYTE}
 
-{ saveregisters is a bit of overkill, but this routine should save all registers }
-{ and it should be overriden for each platform and be written in assembler       }
-{ by saving all required registers.                                              }
- function do_in_byte(p : pointer;b : byte):boolean;[public,alias:'FPC_SET_IN_BYTE'];saveregisters;
+ function fpc_set_in_byte(const p: fpc_normal_set; b: byte): boolean; [public,alias:'FPC_SET_IN_BYTE']; {$ifdef hascompilerproc} compilerproc; {$else} saveregisters; {$endif}
  {
    tests if the element b is in the set p the carryflag is set if it present
  }
-  var
-    c: longint;
   begin
-    c := TNormalSet(p^)[b div 32];
-    if ((1 shl (b mod 32)) and c) <> 0 then
-     do_in_byte := TRUE
-    else
-     do_in_byte := FALSE;
+    fpc_set_in_byte := (p[b div 32] and (1 shl (b mod 32))) <> 0;
   end;
 {$endif}
 
 
 {$ifndef FPC_SYSTEM_HAS_FPC_SET_ADD_SETS}
- procedure do_add_sets(set1,set2,dest : pointer);[public,alias:'FPC_SET_ADD_SETS'];
+{$ifdef hascompilerproc}
+ function fpc_set_add_sets(const set1,set2: fpc_normal_set): fpc_normal_set;[public,alias:'FPC_SET_ADD_SETS']; compilerproc;
+ var
+   dest: fpc_normal_set absolute fpc_set_add_sets;
+{$else hascompilerproc}
+ procedure do_add_sets(const set1,set2: fpc_normal_Set; var dest : fpc_normal_set);[public,alias:'FPC_SET_ADD_SETS'];
  {
    adds set1 and set2 into set dest
  }
@@ -125,13 +169,20 @@ procedure do_load_small(p : pointer;l:longint);[public,alias:'FPC_SET_LOAD_SMALL
     i: integer;
    begin
      for i:=0 to 7 do
-       TnormalSet(dest^)[i] := TNormalSet(set1^)[i] or TNormalSet(set2^)[i];
+       dest[i] := set1[i] or set2[i];
    end;
+{$endif hascompilerproc}
 {$endif}
 
 
 {$ifndef FPC_SYSTEM_HAS_FPC_SET_MUL_SETS}
- procedure do_mul_sets(set1,set2,dest:pointer);[public,alias:'FPC_SET_MUL_SETS'];
+{$ifdef hascompilerproc}
+ function fpc_set_mul_sets(const set1,set2: fpc_normal_set): fpc_normal_set;[public,alias:'FPC_SET_MUL_SETS']; compilerproc;
+ var
+   dest: fpc_normal_set absolute fpc_set_mul_sets;
+{$else hascompilerproc}
+ procedure do_mul_sets(const set1,set2: fpc_normal_set; var dest: fpc_normal_set);[public,alias:'FPC_SET_MUL_SETS'];
+{$endif hascompilerproc}
  {
    multiplies (takes common elements of) set1 and set2 result put in dest
  }
@@ -139,13 +190,19 @@ procedure do_load_small(p : pointer;l:longint);[public,alias:'FPC_SET_LOAD_SMALL
     i: integer;
    begin
      for i:=0 to 7 do
-       TnormalSet(dest^)[i] := TNormalSet(set1^)[i] and TNormalSet(set2^)[i];
+       dest[i] := set1[i] and set2[i];
    end;
 {$endif}
 
 
 {$ifndef FPC_SYSTEM_HAS_FPC_SET_SUB_SETS}
- procedure do_sub_sets(set1,set2,dest:pointer);[public,alias:'FPC_SET_SUB_SETS'];
+{$ifdef hascompilerproc}
+ function fpc_set_sub_sets(const set1,set2: fpc_normal_set): fpc_normal_set;[public,alias:'FPC_SET_SUB_SETS']; compilerproc;
+ var
+   dest: fpc_normal_set absolute fpc_set_sub_sets;
+{$else hascompilerproc}
+ procedure do_sub_sets(const set1,set2: fpc_normal_set; var dest: fpc_normal_set);[public,alias:'FPC_SET_SUB_SETS'];
+{$endif hascompilerproc}
  {
   computes the diff from set1 to set2 result in dest
  }
@@ -153,13 +210,19 @@ procedure do_load_small(p : pointer;l:longint);[public,alias:'FPC_SET_LOAD_SMALL
     i: integer;
    begin
      for i:=0 to 7 do
-       TnormalSet(dest^)[i] := TNormalSet(set1^)[i] and not TNormalSet(set2^)[i];
+       dest[i] := set1[i] and not set2[i];
    end;
 {$endif}
 
 
 {$ifndef FPC_SYSTEM_HAS_FPC_SET_SYMDIF_SETS}
- procedure do_symdif_sets(set1,set2,dest:pointer);[public,alias:'FPC_SET_SYMDIF_SETS'];
+{$ifdef hascompilerproc}
+ function fpc_set_symdif_sets(const set1,set2: fpc_normal_set): fpc_normal_set;[public,alias:'FPC_SET_SYMDIF_SETS']; compilerproc;
+ var
+   dest: fpc_normal_set absolute fpc_set_symdif_sets;
+{$else hascompilerproc}
+ procedure do_symdif_sets(const set1,set2: fpc_normal_set; var dest: fpc_normal_set);[public,alias:'FPC_SET_SYMDIF_SETS'];
+{$endif hascompilerproc}
  {
    computes the symetric diff from set1 to set2 result in dest
  }
@@ -167,53 +230,57 @@ procedure do_load_small(p : pointer;l:longint);[public,alias:'FPC_SET_LOAD_SMALL
     i: integer;
    begin
      for i:=0 to 7 do
-       TnormalSet(dest^)[i] := TNormalSet(set1^)[i] xor TNormalSet(set2^)[i];
+       dest[i] := set1[i] xor set2[i];
    end;
 {$endif}
 
 {$ifndef FPC_SYSTEM_HAS_FPC_SET_COMP_SETS}
-{ saveregisters is a bit of overkill, but this routine should save all registers }
-{ and it should be overriden for each platform and be written in assembler       }
-{ by saving all required registers.                                              }
- function do_comp_sets(set1,set2 : pointer):boolean;[public,alias:'FPC_SET_COMP_SETS'];saveregisters;
+ function fpc_set_comp_sets(const set1,set2 : fpc_normal_set):boolean;[public,alias:'FPC_SET_COMP_SETS'];{$ifdef hascompilerproc} compilerproc; {$else} saveregisters; {$endif}
  {
   compares set1 and set2 zeroflag is set if they are equal
  }
    var
     i: integer;
    begin
-     do_comp_sets := false;
+     fpc_set_comp_sets:= false;
      for i:=0 to 7 do
-       if TNormalSet(set1^)[i] <> TNormalSet(set2^)[i] then
+       if set1[i] <> set2[i] then
          exit;
-     do_comp_sets := true;
+     fpc_set_comp_sets:= true;
    end;
 {$endif}
 
 
 
 {$ifndef FPC_SYSTEM_HAS_FPC_SET_CONTAINS_SET}
-{ saveregisters is a bit of overkill, but this routine should save all registers }
-{ and it should be overriden for each platform and be written in assembler       }
-{ by saving all required registers.                                              }
- function do_contains_sets(set1,set2 : pointer):boolean;[public,alias:'FPC_SET_CONTAINS_SETS'];saveregisters;
+ function fpc_set_contains_sets(const set1,set2 : fpc_normal_set):boolean;[public,alias:'FPC_SET_CONTAINS_SETS'];{$ifdef hascompilerproc} compilerproc; {$else} saveregisters; {$endif}
  {
   on exit, zero flag is set if set1 <= set2 (set2 contains set1)
  }
  var
   i : integer;
  begin
-   do_contains_sets := false;
+   fpc_set_contains_sets:= false;
    for i:=0 to 7 do
-     if (TNormalSet(set1^)[i] and TNormalSet(set2^)[i]) <> TNormalSet(set1^)[i] then
+     if (set2[i] and not set1[i]) <> 0 then
        exit;
-   do_contains_sets := true;
+   fpc_set_contains_sets:= true;
  end;
 {$endif}
 
 {
   $Log$
-  Revision 1.4  2001-06-27 21:37:38  peter
+  Revision 1.5  2001-09-03 13:27:43  jonas
+    * compilerproc implementation of set addition/substraction/...
+    * changed the declaration of some set helpers somewhat to accomodate the
+      above change
+    * i386 still uses the old code for comparisons of sets, because its
+      helpers return the results in the flags
+    * dummy tc_normal_2_small_set type conversion because I need the original
+      resulttype of the set add nodes
+    NOTE: you have to start a cycle with 1.0.5!
+
+  Revision 1.4  2001/06/27 21:37:38  peter
     * v10 merges
 
   Revision 1.3  2001/05/18 22:59:59  peter

@@ -14,55 +14,89 @@
 
  **********************************************************************}
 
+{$ifndef hascompilerproc}
+type
+  fpc_small_set = set of 0..31;
+  fpc_normal_set = set of byte;
+{$endif hascompilerproc}
+
 {$define FPC_SYSTEM_HAS_FPC_SET_LOAD_SMALL}
-procedure fpc_set_load_small(p : pointer;l:longint);assembler;[public,alias:'FPC_SET_LOAD_SMALL']; {$ifdef hascompilerproc} compilerproc; {$endif}
+function fpc_set_load_small(l: fpc_small_set): fpc_normal_set;assembler;[public,alias:'FPC_SET_LOAD_SMALL']; {$ifdef hascompilerproc} compilerproc; {$endif}
 {
   load a normal set p from a smallset l
 }
 asm
-        movl    p,%edi
+        movl    __RESULT,%edi
         movl    l,%eax
-        movl    %eax,(%edi)
-        addl    $4,%edi
         movl    $7,%ecx
+        movl    %eax,4(%edi)
+        addl    $4,%edi
         xorl    %eax,%eax
         rep
         stosl
-end;
+end ['EAX','ECX','EDI'];
 
 {$define FPC_SYSTEM_HAS_FPC_SET_CREATE_ELEMENT}
-procedure fpc_set_create_element(p : pointer;b : byte);assembler;[public,alias:'FPC_SET_CREATE_ELEMENT']; {$ifdef hascompilerproc} compilerproc; {$endif}
+
+function fpc_set_create_element(b : byte): fpc_normal_set;assembler;[public,alias:'FPC_SET_CREATE_ELEMENT']; {$ifdef hascompilerproc} compilerproc; {$endif}
 {
   create a new set in p from an element b
 }
 asm
+{$ifndef hascompilerproc}
         pushl   %eax
         pushl   %ecx
-        movl    p,%edi
+{$endif not hascompilerproc}
+        movl    __RESULT,%edi
         xorl    %eax,%eax
         movl    $8,%ecx
         rep
         stosl
         movb    b,%al
-        movl    p,%edi
+        movl    __RESULT,%edi
         movl    %eax,%ecx
         shrl    $3,%eax
         andl    $7,%ecx
         addl    %eax,%edi
         btsl    %ecx,(%edi)
+{$ifdef hascompilerproc}
+        movl    __RESULT,%edi
+{$else hascompilerproc}
         popl    %ecx
         popl    %eax
-end;
+{$endif hascompilerproc}
+end ['EAX','ECX','EDI'];
 
 
 {$define FPC_SYSTEM_HAS_FPC_SET_SET_BYTE}
-procedure fpc_set_set_byte(p : pointer;b : byte);assembler;[public,alias:'FPC_SET_SET_BYTE']; {$ifdef hascompilerproc} compilerproc; {$endif}
+{$ifdef hascompilerproc}
+function fpc_set_set_byte(const source: fpc_normal_set; b : byte): fpc_normal_set;assembler; compilerproc;
+{
+  add the element b to the set pointed by source
+}
+asm
+       movl $8,%ecx
+       movl source,%esi
+       movl __RESULT,%edi
+       movb b,%al
+       rep
+       movsl
+       andl $0xf8,%eax
+       subl $32,%edi
+       shrl $3,%eax
+       addl %eax,%edi
+       movb b,%al
+       andl $7,%eax
+       btsl %eax,(%edi)
+end ['EAX','ECX','EDI'];
+{$else hascompilerproc}
+function fpc_set_set_byte(b : byte): fpc_normal_set;assembler;[public,alias:'FPC_SET_SET_BYTE'];
 {
   add the element b to the set pointed by p
 }
 asm
        pushl %eax
-       movl p,%edi
+       movl __RESULT,%edi
        movb b,%al
        andl $0xf8,%eax
        shrl $3,%eax
@@ -72,17 +106,39 @@ asm
        btsl %eax,(%edi)
        popl %eax
 end;
+{$endif hascompilerproc}
 
 
 {$define FPC_SYSTEM_HAS_FPC_SET_UNSET_BYTE}
-procedure fpc_set_unset_byte(p : pointer;b : byte);assembler;[public,alias:'FPC_SET_UNSET_BYTE']; {$ifdef hascompilerproc} compilerproc; {$endif}
+{$ifdef hascompilerproc}
+function fpc_set_unset_byte(const source: fpc_normal_set; b : byte): fpc_normal_set;assembler; compilerproc;
+{
+  add the element b to the set pointed by source
+}
+asm
+       movl $8,%ecx
+       movl source,%esi
+       movl __RESULT,%edi
+       movb b,%al
+       rep
+       movsl
+       andl $0xf8,%eax
+       subl $32,%edi
+       shrl $3,%eax
+       addl %eax,%edi
+       movb b,%al
+       andl $7,%eax
+       btrl %eax,(%edi)
+end ['EAX','ECX','EDI'];
+{$else hascompilerproc}
+function fpc_set_unset_byte(b : byte): fpc_normal_set;assembler;[public,alias:'FPC_SET_UNSET_BYTE']; {$ifdef hascompilerproc} compilerproc; {$endif}
 {
   suppresses the element b to the set pointed by p
   used for exclude(set,element)
 }
 asm
        pushl %eax
-       movl p,%edi
+       movl __RESULT,%edi
        movb b,%al
        andl $0xf8,%eax
        shrl $3,%eax
@@ -92,20 +148,73 @@ asm
        btrl %eax,(%edi)
        popl %eax
 end;
+{$endif hascompilerproc}
 
 
 {$define FPC_SYSTEM_HAS_FPC_SET_SET_RANGE}
-procedure fpc_set_set_range(p : pointer;l,h : byte);assembler;[public,alias:'FPC_SET_SET_RANGE']; {$ifdef hascompilerproc} compilerproc; {$endif}
+
+{$ifdef hascompilerproc}
+function fpc_set_set_range(const orgset: fpc_normal_set; l,h : byte): fpc_normal_set;assembler; compilerproc;
 {
   adds the range [l..h] to the set pointed to by p
 }
 asm
-        pushl   %eax
+        movzbl l,%eax               // lowest bit to be set in eax
+        movzbl h,%ebx               // highest in ebx
+        movl   $8,%ecx              // we have to copy 32 bytes
+        movl   __RESULT,%edi        // target set address in edi
+        movl   orgset, %esi         // source set address in esi
+        cmpl   %eax,%ebx            // high < low?
+        rep                         // copy source to dest (it's possible to do the range
+        movsl                       // setting and copying simultanuously of course, but
+                                    // that would result in many more jumps and code)
+        movl   %eax,%ecx            // lowest also in ecx
+        jb     .Lset_range_done     // if high > low, then dest := source
+        shrl   $3,%eax              // divide by 8 to get starting and ending byte
+        shrl   $3,%ebx              // address
+        andb   $31,%cl              // low five bits of lo determine start of bit mask
+        andl   $0x0fffffffc,%eax    // clear two lowest bits to get start/end longint
+        subl   $32,%edi             // get back to start of dest
+        andl   $0x0fffffffc,%ebx    // address * 4
+        movl   $0x0ffffffff,%edx    // edx = bitmask to be inserted
+        shll   %cl,%edx             // shift bitmask to clear bits below lo
+        addl   %eax,%edi            // go to starting pos in set
+        subl   %eax,%ebx            // are bit lo and hi in the same longint?
+        jz     .Lset_range_hi       // yes, keep current mask and adjust for hi bit
+        orl    %edx,(%edi)          // no, store current mask
+        movl   $0x0ffffffff,%edx    // new mask
+        addl   $4,%edi              // next longint of set
+        subl   $4,%ebx              // bit hi in this longint?
+        jz     .Lset_range_hi       // yes, keep full mask and adjust for hi bit
+.Lset_range_loop:
+        movl   %edx,(%edi)          // no, fill longints in between with full mask
+        addl   $4,%edi
+        subl   $4,%ebx
+        jnz    .Lset_range_loop
+.Lset_range_hi:
+        movb   h,%cl
+        movl   %edx,%ebx            // save current bitmask
+        andb   $31,%cl
+        subb   $31,%cl              // cl := (31 - (hi and 31)) = shift count to
+        negb   %cl                  // adjust bitmask for hi bit
+        shrl   %cl,%edx             // shift bitmask to clear bits higher than hi
+        andl   %edx,%ebx            // combine both bitmasks
+        orl    %ebx,(%edi)          // store to set
+.Lset_range_done:
+end;
+
+{$else hascompilerproc}
+
+function fpc_set_set_range(l,h : byte): fpc_normal_set;assembler;[public,alias:'FPC_SET_SET_RANGE'];
+{
+  adds the range [l..h] to the set pointed to by p
+}
+asm
         movzbl l,%eax              // lowest bit to be set in eax
         movzbl h,%ebx              // highest in ebx
         cmpl   %eax,%ebx
         jb     .Lset_range_done
-        movl   p,%edi               // set address in edi
+        movl   __RESULT,%edi               // set address in edi
         movl   %eax,%ecx            // lowest also in ecx
         shrl   $3,%eax              // divide by 8 to get starting and ending byte
         shrl   $3,%ebx              // address
@@ -137,12 +246,22 @@ asm
         andl   %edx,%ebx            // combine both bitmasks
         orl    %ebx,(%edi)          // store to set
 .Lset_range_done:
-        popl %eax
 end;
-
+{$endif hascompilerproc}
 
 {$define FPC_SYSTEM_HAS_FPC_SET_IN_BYTE}
-procedure fpc_set_in_byte(p : pointer;b : byte);assembler;[public,alias:'FPC_SET_IN_BYTE']; {$ifdef hascompilerproc} compilerproc; {$endif}
+
+{$ifdef hascompilerproc}
+{ can't use as compilerproc, it returns its results in the flags :/ }
+function fpc_set_in_byte(const p: fpc_normal_set; b: byte): boolean; compilerproc;
+begin
+  fpc_set_in_byte := false;
+  { make sure we won't accidentally call it }
+  runerror(216);
+end;
+{$endif hascompilerproc}
+
+function fpc_set_in_byte_i386(p: pointer; b : byte): boolean;assembler;[public,alias:'FPC_SET_IN_BYTE'];
 {
   tests if the element b is in the set p the carryflag is set if it present
 }
@@ -161,14 +280,23 @@ end;
 
 
 {$define FPC_SYSTEM_HAS_FPC_SET_ADD_SETS}
-procedure fpc_set_add_sets(set1,set2,dest : pointer);assembler;[public,alias:'FPC_SET_ADD_SETS']; {$ifdef hascompilerproc} compilerproc; {$endif}
+
+{$ifdef hascompilerproc}
+function fpc_set_add_sets(const set1,set2: fpc_normal_set): fpc_normal_set;assembler;[public,alias:'FPC_SET_ADD_SETS']; compilerproc;
+{$else hascompilerproc}
+procedure fpc_set_add_sets(set1,set2,dest : pointer);assembler;[public,alias:'FPC_SET_ADD_SETS'];
+{$endif hascompilerproc}
 {
   adds set1 and set2 into set dest
 }
 asm
       movl set1,%esi
       movl set2,%ebx
+{$ifdef hascompilerproc}
+      movl __RESULT,%edi
+{$else hascompilerproc}
       movl dest,%edi
+{$endif hascompilerproc}
       movl $8,%ecx
    .LMADDSETS1:
       lodsl
@@ -181,14 +309,23 @@ end;
 
 
 {$define FPC_SYSTEM_HAS_FPC_SET_MUL_SETS}
-procedure fpc_set_mul_sets(set1,set2,dest:pointer);assembler;[public,alias:'FPC_SET_MUL_SETS']; {$ifdef hascompilerproc} compilerproc; {$endif}
+
+{$ifdef hascompilerproc}
+function fpc_set_mul_sets(const set1,set2: fpc_normal_set): fpc_normal_set;assembler;[public,alias:'FPC_SET_MUL_SETS']; compilerproc;
+{$else hascompilerproc}
+procedure fpc_set_mul_sets(set1,set2,dest:pointer);assembler;[public,alias:'FPC_SET_MUL_SETS'];
+{$endif hascompilerproc}
 {
   multiplies (takes common elements of) set1 and set2 result put in dest
 }
 asm
       movl set1,%esi
       movl set2,%ebx
+{$ifdef hascompilerproc}
+      movl __RESULT,%edi
+{$else hascompilerproc}
       movl dest,%edi
+{$endif hascompilerproc}
       movl $8,%ecx
   .LMMULSETS1:
       lodsl
@@ -201,14 +338,23 @@ end;
 
 
 {$define FPC_SYSTEM_HAS_FPC_SET_SUB_SETS}
-procedure fpc_set_sub_sets(set1,set2,dest:pointer);assembler;[public,alias:'FPC_SET_SUB_SETS']; {$ifdef hascompilerproc} compilerproc; {$endif}
+
+{$ifdef hascompilerproc}
+function fpc_set_sub_sets(const set1,set2: fpc_normal_set): fpc_normal_set;assembler;[public,alias:'FPC_SET_SUB_SETS']; compilerproc;
+{$else hascompilerproc}
+procedure fpc_set_sub_sets(set1,set2,dest:pointer);assembler;[public,alias:'FPC_SET_SUB_SETS'];
+{$endif hascompilerproc}
 {
   computes the diff from set1 to set2 result in dest
 }
 asm
         movl set1,%esi
         movl set2,%ebx
-        movl dest,%edi
+{$ifdef hascompilerproc}
+      movl __RESULT,%edi
+{$else hascompilerproc}
+      movl dest,%edi
+{$endif hascompilerproc}
         movl $8,%ecx
     .LMSUBSETS1:
         lodsl
@@ -223,14 +369,23 @@ end;
 
 
 {$define FPC_SYSTEM_HAS_FPC_SET_SYMDIF_SETS}
-procedure fpc_set_symdif_sets(set1,set2,dest:pointer);assembler;[public,alias:'FPC_SET_SYMDIF_SETS']; {$ifdef hascompilerproc} compilerproc; {$endif}
+
+{$ifdef hascompilerproc}
+function fpc_set_symdif_sets(const set1,set2: fpc_normal_set): fpc_normal_set;assembler;[public,alias:'FPC_SET_SYMDIF_SETS']; compilerproc;
+{$else hascompilerproc}
+procedure fpc_set_symdif_sets(set1,set2,dest:pointer);assembler;[public,alias:'FPC_SET_SYMDIF_SETS'];
+{$endif hascompilerproc}
 {
    computes the symetric diff from set1 to set2 result in dest
 }
 asm
         movl set1,%esi
         movl set2,%ebx
-        movl dest,%edi
+{$ifdef hascompilerproc}
+      movl __RESULT,%edi
+{$else hascompilerproc}
+      movl dest,%edi
+{$endif hascompilerproc}
         movl $8,%ecx
     .LMSYMDIFSETS1:
         lodsl
@@ -244,7 +399,18 @@ end;
 
 
 {$define FPC_SYSTEM_HAS_FPC_SET_COMP_SETS}
-procedure fpc_set_comp_sets(set1,set2 : pointer);assembler;[public,alias:'FPC_SET_COMP_SETS']; {$ifdef hascompilerproc} compilerproc; {$endif}
+
+{$ifdef hascompilerproc}
+{ can't use as compilerproc, it returns its results in the flags :/ }
+function fpc_set_comp_sets(const set1,set2: fpc_normal_set): boolean; compilerproc;
+begin
+  fpc_set_comp_sets := false;
+  { make sure we won't accidentally call it }
+  runerror(216);
+end;
+{$endif hascompilerproc}
+
+procedure fpc_set_comp_sets_i386(set1,set2 : pointer);assembler;[public,alias:'FPC_SET_COMP_SETS'];
 {
   compares set1 and set2 zeroflag is set if they are equal
 }
@@ -269,7 +435,17 @@ end;
 
 
 {$define FPC_SYSTEM_HAS_FPC_SET_CONTAINS_SET}
-procedure fpc_set_contains_sets(set1,set2 : pointer);assembler;[public,alias:'FPC_SET_CONTAINS_SETS']; {$ifdef hascompilerproc} compilerproc; {$endif}
+{$ifdef hascompilerproc}
+{ can't use as compilerproc, it returns its results in the flags :/ }
+function fpc_set_contains_sets(const set1,set2: fpc_normal_set): boolean; compilerproc;
+begin
+  fpc_set_contains_sets := false;
+  { make sure we won't accidentally call it }
+  runerror(216);
+end;
+{$endif hascompilerproc}
+
+procedure fpc_set_contains_sets_i386(set1,set2 : pointer);assembler;[public,alias:'FPC_SET_CONTAINS_SETS'];
 {
   on exit, zero flag is set if set1 <= set2 (set2 contains set1)
 }
@@ -455,7 +631,17 @@ end;
 
 {
   $Log$
-  Revision 1.5  2001-08-01 15:00:10  jonas
+  Revision 1.6  2001-09-03 13:27:43  jonas
+    * compilerproc implementation of set addition/substraction/...
+    * changed the declaration of some set helpers somewhat to accomodate the
+      above change
+    * i386 still uses the old code for comparisons of sets, because its
+      helpers return the results in the flags
+    * dummy tc_normal_2_small_set type conversion because I need the original
+      resulttype of the set add nodes
+    NOTE: you have to start a cycle with 1.0.5!
+
+  Revision 1.5  2001/08/01 15:00:10  jonas
     + "compproc" helpers
     * renamed several helpers so that their name is the same as their
       "public alias", which should facilitate the conversion of processor

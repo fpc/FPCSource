@@ -36,6 +36,7 @@ interface
           procedure SetResultLocation(cmpop,unsigned : boolean);
          protected
           function first_addstring : tnode; override;
+          function first_addset : tnode; override;
          private
           procedure second_addstring;
           procedure second_addset;
@@ -257,9 +258,21 @@ interface
                                 Addset
 *****************************************************************************}
 
+    { we have to disable the compilerproc handling for all set helpers that }
+    { return booleans, because they return their results in the flags       }
+    function ti386addnode.first_addset : tnode;
+      begin
+        if is_boolean(resulttype.def) then
+          begin
+            result := nil;
+            exit;
+          end;
+        result := inherited first_addset;
+      end;
+
+
     procedure ti386addnode.second_addset;
       var
-        createset,
         cmpop,
         pushed : boolean;
         href   : treference;
@@ -272,16 +285,7 @@ interface
         if nf_swaped in flags then
          swapleftright;
 
-        { optimize first loading of a set }
-        if (right.nodetype=setelementn) and
-           not(assigned(tsetelementnode(right).right)) and
-           is_emptyset(left) then
-         createset:=true
-        else
-         begin
-           createset:=false;
-           secondpass(left);
-         end;
+         secondpass(left);
 
         { are too few registers free? }
         pushed:=maybe_push(right.registers32,left,false);
@@ -294,151 +298,45 @@ interface
         set_location(location,left.location);
 
         { handle operations }
+        { (the rest is handled by compilerprocs in pass 1) (JM) }
 
         case nodetype of
           equaln,
         unequaln
-        ,lten, gten
-                  : begin
-                     cmpop:=true;
-                     del_location(left.location);
-                     del_location(right.location);
-                     pushusedregisters(pushedregs,$ff);
-                     If (nodetype in [equaln, unequaln, lten]) Then
-                       Begin
-                         emitpushreferenceaddr(right.location.reference);
-                         emitpushreferenceaddr(left.location.reference);
-                       End
-                     Else  {gten = lten, if the arguments are reversed}
-                       Begin
-                         emitpushreferenceaddr(left.location.reference);
-                         emitpushreferenceaddr(right.location.reference);
-                       End;
-                     saveregvars($ff);
-                     Case nodetype of
-                       equaln, unequaln:
-                         emitcall('FPC_SET_COMP_SETS');
-                       lten, gten:
-                         Begin
-                           emitcall('FPC_SET_CONTAINS_SETS');
-                           { we need a jne afterwards, not a jnbe/jnae }
-                           nodetype := equaln;
-                        End;
-                     End;
-                     maybe_loadself;
-                     popusedregisters(pushedregs);
-                     ungetiftemp(left.location.reference);
-                     ungetiftemp(right.location.reference);
-                   end;
-            addn : begin
-                   { add can be an other SET or Range or Element ! }
-                     { del_location(right.location);
-                       done in pushsetelement below PM
-
-                     And someone added it again because those registers must
-                     not be pushed by the pushusedregisters, however this
-                     breaks the optimizer (JM)
-
-                     del_location(right.location);
-                     pushusedregisters(pushedregs,$ff);}
-
-                     regstopush := $ff;
-                     remove_non_regvars_from_loc(right.location,regstopush);
-                     if (right.nodetype = setelementn) and
-                        assigned(tsetelementnode(right).right) then
-                       remove_non_regvars_from_loc(tsetelementnode(right).right.location,regstopush);
-                     remove_non_regvars_from_loc(left.location,regstopush);
-                     pushusedregisters(pushedregs,regstopush);
-                     { this is still right before the instruction that uses }
-                     { left.location, but that can be fixed by the      }
-                     { optimizer. There must never be an additional         }
-                     { between the release and the use, because that is not }
-                     { detected/fixed. As Pierre said above, right.loc  }
-                     { will be released in pushsetelement (JM)              }
-                     del_location(left.location);
-                     href.symbol:=nil;
-                     gettempofsizereference(32,href);
-                     if createset then
-                      begin
-                        pushsetelement(tunarynode(right).left);
-                        emitpushreferenceaddr(href);
-                        saveregvars(regstopush);
-                        emitcall('FPC_SET_CREATE_ELEMENT');
-                      end
-                     else
-                      begin
-                      { add a range or a single element? }
-                        if right.nodetype=setelementn then
-                         begin
-                           concatcopy(left.location.reference,href,32,false,false);
-                           if assigned(tbinarynode(right).right) then
-                            begin
-                              pushsetelement(tbinarynode(right).right);
-                              pushsetelement(tunarynode(right).left);
-                              emitpushreferenceaddr(href);
-                              saveregvars(regstopush);
-                              emitcall('FPC_SET_SET_RANGE');
-                            end
-                           else
-                            begin
-                              pushsetelement(tunarynode(right).left);
-                              emitpushreferenceaddr(href);
-                              saveregvars(regstopush);
-                              emitcall('FPC_SET_SET_BYTE');
-                            end;
-                         end
-                        else
-                         begin
-                         { must be an other set }
-                           emitpushreferenceaddr(href);
-                           emitpushreferenceaddr(right.location.reference);
-                           emitpushreferenceaddr(left.location.reference);
-                           saveregvars(regstopush);
-                           emitcall('FPC_SET_ADD_SETS');
-                         end;
-                      end;
-                     maybe_loadself;
-                     popusedregisters(pushedregs);
-                     ungetiftemp(left.location.reference);
-                     ungetiftemp(right.location.reference);
-                     location.loc:=LOC_MEM;
-                     location.reference:=href;
-                   end;
-            subn,
-         symdifn,
-            muln : begin
-                     { Find out which registers have to pushed (JM) }
-                     regstopush := $ff;
-                     remove_non_regvars_from_loc(left.location,regstopush);
-                     remove_non_regvars_from_loc(right.location,regstopush);
-                     { Push them (JM) }
-                     pushusedregisters(pushedregs,regstopush);
-                     href.symbol:=nil;
-                     gettempofsizereference(32,href);
-                     emitpushreferenceaddr(href);
-                     { Release the registers right before they're used,  }
-                     { see explanation in cgai386.pas:loadansistring for }
-                     { info why this is done right before the push (JM)  }
-                     del_location(right.location);
-                     emitpushreferenceaddr(right.location.reference);
-                     { The same here }
-                     del_location(left.location);
-                     emitpushreferenceaddr(left.location.reference);
-                     saveregvars(regstopush);
-                     case nodetype of
-                      subn : emitcall('FPC_SET_SUB_SETS');
-                   symdifn : emitcall('FPC_SET_SYMDIF_SETS');
-                      muln : emitcall('FPC_SET_MUL_SETS');
-                     end;
-                     maybe_loadself;
-                     popusedregisters(pushedregs);
-                     ungetiftemp(left.location.reference);
-                     ungetiftemp(right.location.reference);
-                     location.loc:=LOC_MEM;
-                     location.reference:=href;
-                   end;
+        ,lten, gten :
+          begin
+            cmpop:=true;
+            del_location(left.location);
+            del_location(right.location);
+            pushusedregisters(pushedregs,$ff);
+            If (nodetype in [equaln, unequaln, lten]) Then
+              Begin
+                emitpushreferenceaddr(right.location.reference);
+                emitpushreferenceaddr(left.location.reference);
+              End
+            Else  {gten = lten, if the arguments are reversed}
+              Begin
+                emitpushreferenceaddr(left.location.reference);
+                emitpushreferenceaddr(right.location.reference);
+              End;
+            saveregvars($ff);
+            Case nodetype of
+              equaln, unequaln:
+                emitcall('FPC_SET_COMP_SETS');
+              lten, gten:
+                Begin
+                  emitcall('FPC_SET_CONTAINS_SETS');
+                  { we need a jne afterwards, not a jnbe/jnae }
+                  nodetype := equaln;
+               End;
+            End;
+            maybe_loadself;
+            popusedregisters(pushedregs);
+            ungetiftemp(left.location.reference);
+            ungetiftemp(right.location.reference);
+          end;
         else
-          CGMessage(type_e_mismatch);
+          internalerror(200108314);
         end;
         SetResultLocation(cmpop,true);
       end;
@@ -2082,7 +1980,17 @@ begin
 end.
 {
   $Log$
-  Revision 1.20  2001-08-30 15:43:14  jonas
+  Revision 1.21  2001-09-03 13:27:42  jonas
+    * compilerproc implementation of set addition/substraction/...
+    * changed the declaration of some set helpers somewhat to accomodate the
+      above change
+    * i386 still uses the old code for comparisons of sets, because its
+      helpers return the results in the flags
+    * dummy tc_normal_2_small_set type conversion because I need the original
+      resulttype of the set add nodes
+    NOTE: you have to start a cycle with 1.0.5!
+
+  Revision 1.20  2001/08/30 15:43:14  jonas
     * converted adding/comparing of strings to compileproc. Note that due
       to the way the shortstring helpers for i386 are written, they are
       still handled by the old code (reason: fpc_shortstr_compare returns

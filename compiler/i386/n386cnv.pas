@@ -806,7 +806,8 @@ implementation
            @ti386typeconvnode.second_nothing, { interface 2 string }
            @ti386typeconvnode.second_nothing, { interface 2 guid   }
            @ti386typeconvnode.second_class_to_intf,
-           @ti386typeconvnode.second_char_to_char
+           @ti386typeconvnode.second_char_to_char,
+           @ti386typeconvnode.second_nothing  { normal_2_smallset }
          );
       type
          tprocedureofobject = procedure of object;
@@ -1000,7 +1001,17 @@ begin
 end.
 {
   $Log$
-  Revision 1.22  2001-08-29 19:49:03  jonas
+  Revision 1.23  2001-09-03 13:27:42  jonas
+    * compilerproc implementation of set addition/substraction/...
+    * changed the declaration of some set helpers somewhat to accomodate the
+      above change
+    * i386 still uses the old code for comparisons of sets, because its
+      helpers return the results in the flags
+    * dummy tc_normal_2_small_set type conversion because I need the original
+      resulttype of the set add nodes
+    NOTE: you have to start a cycle with 1.0.5!
+
+  Revision 1.22  2001/08/29 19:49:03  jonas
     * some fixes in compilerprocs for chararray to string conversions
     * conversion from string to chararray is now also done via compilerprocs
 

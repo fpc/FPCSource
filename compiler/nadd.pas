@@ -38,6 +38,7 @@ interface
           { override the following if you want to implement }
           { parts explicitely in the code generator (JM)    }
           function first_addstring: tnode; virtual;
+          function first_addset: tnode; virtual;
        end;
        taddnodeclass = class of taddnode;
 
@@ -53,7 +54,7 @@ implementation
     uses
       globtype,systems,
       cutils,verbose,globals,widestr,
-      symconst,symtype,symdef,symsym,types,
+      symconst,symtype,symbase,symdef,symsym,symtable,types,
       cpuinfo,
       cgbase,
       htypechk,pass_1,
@@ -1110,6 +1111,164 @@ implementation
       end;
 
 
+    function taddnode.first_addset: tnode;
+      var
+        procname: string[31];
+        tempn: tnode;
+        paras: tcallparanode;
+        srsym: ttypesym;
+        symowner: tsymtable;
+        createset: boolean;
+      begin
+        { get the sym that represents the fpc_normal_set type }
+        if not(cs_compilesystem in aktmoduleswitches) then
+          srsym := ttypesym(searchsymonlyin(systemunit,'FPC_NORMAL_SET'))
+        else
+          searchsym('FPC_NORMAL_SET',tsym(srsym),symowner);
+        if not assigned(srsym) or
+           (srsym.typ <> typesym) then
+          internalerror(200108313);
+
+        case nodetype of
+          equaln,unequaln,lten,gten:
+            begin
+              case nodetype of
+                equaln,unequaln:
+                  procname := 'fpc_set_comp_sets';
+                lten,gten:
+                  begin
+                    procname := 'fpc_set_contains_set';
+                    { (left >= right) = (right <= left) }
+                    if nodetype = gten then
+                      begin
+                        tempn := left;
+                        left := right;
+                        right := tempn;
+                      end;
+                   end;
+               end;
+               { convert the arguments (explicitely) to fpc_normal_set's }
+               left := ctypeconvnode.create(left,srsym.restype);
+               right := ctypeconvnode.create(right,srsym.restype);
+               result := ccallnode.createintern(procname,ccallparanode.create(right,
+                 ccallparanode.create(left,nil)));
+               { left and right are reused as parameters }
+               left := nil;
+               right := nil;
+               { for an unequaln, we have to negate the result of comp_sets }
+               if nodetype = unequaln then
+                 result := cnotnode.create(result);
+            end;
+          addn:
+            begin
+              { optimize first loading of a set }
+              if (right.nodetype=setelementn) and
+                 not(assigned(tsetelementnode(right).right)) and
+                 is_emptyset(left) then
+                begin
+                  { type cast the value to pass as argument to a byte, }
+                  { since that's what the helper expects               }
+                  tsetelementnode(right).left :=
+                    ctypeconvnode.create(tsetelementnode(right).left,u8bittype);
+                  tsetelementnode(right).left.toggleflag(nf_explizit);
+                  { set the resulttype to the actual one (otherwise it's }
+                  { "fpc_normal_set")                                    }
+                  result := ccallnode.createinternres('fpc_set_create_element',
+                    ccallparanode.create(tsetelementnode(right).left,nil),
+                    resulttype);
+                  { reused }
+                  tsetelementnode(right).left := nil;
+                end
+              else
+                begin
+                  if right.nodetype=setelementn then
+                   begin
+                     { convert the arguments to bytes, since that's what }
+                     { the helper expects                               }
+                     tsetelementnode(right).left :=
+                       ctypeconvnode.create(tsetelementnode(right).left,
+                       u8bittype);
+                     tsetelementnode(right).left.toggleflag(nf_explizit);
+                    
+                     { convert the original set (explicitely) to an   }
+                     { fpc_normal_set so we can pass it to the helper }
+                     left := ctypeconvnode.create(left,srsym.restype);
+                     left.toggleflag(nf_explizit);
+                     
+                     { add a range or a single element? }
+                     if assigned(tsetelementnode(right).right) then
+                       begin
+                         tsetelementnode(right).right :=
+                           ctypeconvnode.create(tsetelementnode(right).right,
+                           u8bittype);
+                         tsetelementnode(right).right.toggleflag(nf_explizit);
+                         
+                         { create the call }
+                         result := ccallnode.createinternres('fpc_set_set_range',
+                           ccallparanode.create(tsetelementnode(right).right,
+                           ccallparanode.create(tsetelementnode(right).left,
+                           ccallparanode.create(left,nil))),resulttype);
+                       end
+                     else
+                       begin
+                         result := ccallnode.createinternres('fpc_set_set_byte',
+                           ccallparanode.create(tsetelementnode(right).left,
+                           ccallparanode.create(left,nil)),resulttype);
+                       end;
+                     { remove reused parts from original node }
+                     tsetelementnode(right).right := nil;
+                     tsetelementnode(right).left := nil;
+                     left := nil;
+                   end
+                  else
+                   begin
+                     { add two sets }
+                     
+                     { convert the sets to fpc_normal_set's }
+                     left := ctypeconvnode.create(left,srsym.restype);
+                     left.toggleflag(nf_explizit);
+                     right := ctypeconvnode.create(right,srsym.restype);
+                     right.toggleflag(nf_explizit);
+                     result := ccallnode.createinternres('fpc_set_add_sets',
+                       ccallparanode.create(right,
+                       ccallparanode.create(left,nil)),resulttype);
+                     { remove reused parts from original node }
+                     left := nil;
+                     right := nil;
+                   end;
+                end
+            end;
+          subn,symdifn,muln:
+            begin
+              { convert the sets to fpc_normal_set's }
+              left := ctypeconvnode.create(left,srsym.restype);
+              left.toggleflag(nf_explizit);
+              right := ctypeconvnode.create(right,srsym.restype);
+              right.toggleflag(nf_explizit);
+              paras := ccallparanode.create(right,
+                ccallparanode.create(left,nil));
+              case nodetype of
+                subn:
+                  result := ccallnode.createinternres('fpc_set_sub_sets',
+                    paras,resulttype);
+                symdifn:
+                  result := ccallnode.createinternres('fpc_set_symdif_sets',
+                    paras,resulttype);
+                muln:
+                  result := ccallnode.createinternres('fpc_set_mul_sets',
+                    paras,resulttype);
+              end;
+              { remove reused parts from original node }
+              left := nil;
+              right := nil;
+            end;
+          else
+            internalerror(200108311);
+        end;
+        firstpass(result);
+      end;
+
+
     function taddnode.pass_1 : tnode;
       var
          hp      : tnode;
@@ -1203,6 +1362,9 @@ implementation
               end
              else
               begin
+                 result := first_addset;
+                 if assigned(result) then
+                   exit;
                  calcregisters(self,0,0,0);
                  { here we call SET... }
                  procinfo^.flags:=procinfo^.flags or pi_do_call;
@@ -1369,7 +1531,17 @@ begin
 end.
 {
   $Log$
-  Revision 1.36  2001-09-02 21:12:06  peter
+  Revision 1.37  2001-09-03 13:27:42  jonas
+    * compilerproc implementation of set addition/substraction/...
+    * changed the declaration of some set helpers somewhat to accomodate the
+      above change
+    * i386 still uses the old code for comparisons of sets, because its
+      helpers return the results in the flags
+    * dummy tc_normal_2_small_set type conversion because I need the original
+      resulttype of the set add nodes
+    NOTE: you have to start a cycle with 1.0.5!
+
+  Revision 1.36  2001/09/02 21:12:06  peter
     * move class of definitions into type section for delphi
 
   Revision 1.35  2001/08/31 15:42:15  jonas
