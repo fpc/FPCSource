@@ -100,6 +100,17 @@ Begin
  Begin
   WriteLn(' FAILED.');
  end;
+ Write('TESTING INCLUDE:');
+ op:=A_RTE;
+ include(oplist,op);
+ if op in oplist then
+ Begin
+  WriteLn(' PASSED.');
+ end
+ else
+ Begin
+  WriteLn(' FAILED.');
+ end;
 end;
 
 
@@ -140,7 +151,13 @@ Begin
  if (A_MOVE in oplist) or (A_LABEL in oplist) or (A_JSR in oplist) then
   WriteLn('TESTING SET_SUB_SETS: FAILED.')
  else
-  WriteLn('TESTING SET_SUB_SETS: PASSED.')
+  WriteLn('TESTING SET_SUB_SETS: PASSED.');
+ oplist := [A_MOVE,A_RTE];
+ exclude(oplist,A_MOVE);
+ if (A_MOVE in oplist) then
+  WriteLn('TESTING EXCLUDE: FAILED.')
+ else
+  WriteLn('TESTING EXCLUDE: PASSED.')  
 end;
 
 Procedure SetCompSets;
