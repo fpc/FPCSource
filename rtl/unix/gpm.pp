@@ -365,8 +365,8 @@ begin
 
   {Open a completely transparent gpm connection.}
   conn.eventmask:=0;
-  conn.defaultMask:=not 0;
-  conn.minmod:=not 0;
+  conn.defaultMask:=$ffff;
+  conn.minmod:=$ffff;
   conn.maxmod:=0;
   {cannot do this under xterm, tough}
   success:=gpm_open(conn,0)>=0;
@@ -784,7 +784,7 @@ begin
 
   n^.xmin:=x1;        n^.xmax:=x2;
   n^.ymin:=y1;        n^.ymax:=y2;
-  n^.minmod:=0;       n^.maxmod:=not 0;
+  n^.minmod:=0;       n^.maxmod:=$ffff;
   n^.prev:=nil;       n^.next:=nil;
   n^.eventmask:=mask;
   n^.owned:=0;        { use dispose }
@@ -953,7 +953,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.9  2004-07-09 22:40:02  daniel
+  Revision 1.10  2004-07-09 23:10:14  peter
+    * fixed range check errors
+
+  Revision 1.9  2004/07/09 22:40:02  daniel
     * Fixed fitvalues
 
   Revision 1.8  2004/07/09 19:03:35  peter
