@@ -27,7 +27,7 @@ unit ncgset;
 interface
 
     uses
-       node,nset,cpubase,cginfo,cgbase,cgobj,aasmbase,aasmtai;
+       node,nset,cpubase,cginfo,cgbase,cgobj,aasmbase,aasmtai,globals;
 
     type
        tcgsetelementnode = class(tsetelementnode)
@@ -56,6 +56,23 @@ interface
             because of portability problems.
           }
           procedure pass_2;override;
+
+        protected
+
+          procedure genlinearlist(hp : pcaserecord); virtual;
+          procedure genlinearcmplist(hp : pcaserecord); virtual;
+
+          with_sign : boolean;
+          opsize : tcgsize;
+          jmp_gt,jmp_lt,jmp_le : topcmp;
+          { register with case expression }
+          hregister,hregister2 : tregister;
+          endlabel,elselabel : tasmlabel;
+
+          { true, if we can omit the range check of the jump table }
+          jumptable_no_range : boolean;
+          min_label : tconstexprint;
+
        end;
 
 
@@ -63,7 +80,7 @@ implementation
 
     uses
       globtype,systems,
-      verbose,globals,
+      verbose,
       symconst,symdef,defbase,
       paramgr,
       pass_2,
@@ -572,19 +589,175 @@ implementation
                             TCGCASENODE
 *****************************************************************************}
 
-    procedure tcgcasenode.pass_2;
-      var
-         with_sign : boolean;
-         opsize : tcgsize;
-         jmp_gt,jmp_lt,jmp_le : topcmp;
-         hp : tnode;
-         { register with case expression }
-         hregister,hregister2 : tregister;
-         endlabel,elselabel : tasmlabel;
+    procedure tcgcasenode.genlinearlist(hp : pcaserecord);
 
-         { true, if we can omit the range check of the jump table }
-         jumptable_no_range : boolean;
-         min_label : tconstexprint;
+      var
+         first : boolean;
+         last : TConstExprInt;
+         scratch_reg: tregister;
+
+      procedure genitem(t : pcaserecord);
+
+          procedure gensub(value:longint);
+          begin
+            { here, since the sub and cmp are separate we need
+              to move the result before subtract to a help
+              register.
+            }
+            cg.a_load_reg_reg(exprasmlist, opsize, hregister, scratch_reg);
+            cg.a_op_const_reg(exprasmlist, OP_SUB, value, hregister);
+          end;
+
+        begin
+           if assigned(t^.less) then
+             genitem(t^.less);
+           { need we to test the first value }
+           if first and (t^._low>get_min_value(left.resulttype.def)) then
+             begin
+                cg.a_cmp_const_reg_label(exprasmlist,OS_INT,jmp_lt,longint(t^._low),hregister,elselabel);
+             end;
+           if t^._low=t^._high then
+             begin
+                if t^._low-last=0 then
+                  begin
+                    cg.a_cmp_const_reg_label(exprasmlist, OS_INT, OC_EQ,0,hregister,t^.statement);
+                  end
+                else
+                  begin
+                      gensub(longint(t^._low-last));
+                      cg.a_cmp_const_reg_label(exprasmlist, OS_INT, OC_EQ,longint(t^._low-last),scratch_reg,t^.statement);
+                  end;
+                last:=t^._low;
+             end
+           else
+             begin
+                { it begins with the smallest label, if the value }
+                { is even smaller then jump immediately to the    }
+                { ELSE-label                                }
+                if first then
+                  begin
+                     { have we to ajust the first value ? }
+                     if (t^._low>get_min_value(left.resulttype.def)) then
+                       gensub(longint(t^._low));
+                  end
+                else
+                  begin
+                    { if there is no unused label between the last and the }
+                    { present label then the lower limit can be checked    }
+                    { immediately. else check the range in between:       }
+                    gensub(longint(t^._low-last));
+                    cg.a_cmp_const_reg_label(exprasmlist, OS_INT,jmp_lt,longint(t^._low-last),scratch_reg,elselabel);
+                  end;
+                gensub(longint(t^._high-t^._low));
+                cg.a_cmp_const_reg_label(exprasmlist, OS_INT,jmp_le,longint(t^._high-t^._low),scratch_reg,t^.statement);
+                last:=t^._high;
+             end;
+           first:=false;
+           if assigned(t^.greater) then
+             genitem(t^.greater);
+        end;
+
+      begin
+         { do we need to generate cmps? }
+         if (with_sign and (min_label<0)) then
+           genlinearcmplist(hp)
+         else
+           begin
+              last:=0;
+              first:=true;
+              scratch_reg := cg.get_scratch_reg_int(exprasmlist);
+              genitem(hp);
+              cg.free_scratch_reg(exprasmlist,scratch_reg);
+              cg.a_jmp_always(exprasmlist,elselabel);
+           end;
+      end;
+
+
+    procedure tcgcasenode.genlinearcmplist(hp : pcaserecord);
+
+      var
+         first : boolean;
+         last : TConstExprInt;
+
+      procedure genitem(t : pcaserecord);
+
+        var
+           l1 : tasmlabel;
+
+        begin
+           if assigned(t^.less) then
+             genitem(t^.less);
+           if t^._low=t^._high then
+             begin
+                if opsize in [OS_S64,OS_64] then
+                  begin
+                     getlabel(l1);
+                     cg.a_cmp_const_reg_label(exprasmlist, OS_INT, OC_NE, longint(hi(int64(t^._low))),hregister2,l1);
+                     cg.a_cmp_const_reg_label(exprasmlist, OS_INT, OC_EQ, longint(lo(int64(t^._low))),hregister, t^.statement);
+                     cg.a_label(exprasmlist,l1);
+                  end
+                else
+                  begin
+                     cg.a_cmp_const_reg_label(exprasmlist, OS_INT, OC_EQ, longint(t^._low),hregister, t^.statement);
+                     last:=t^._low;
+                  end;
+             end
+           else
+             begin
+                { it begins with the smallest label, if the value }
+                { is even smaller then jump immediately to the    }
+                { ELSE-label                                }
+                if first or (t^._low-last>1) then
+                  begin
+                     if opsize in [OS_64,OS_S64] then
+                       begin
+                          getlabel(l1);
+                          cg.a_cmp_const_reg_label(exprasmlist, OS_INT, jmp_lt, longint(hi(int64(t^._low))),
+                               hregister2, elselabel);
+                          cg.a_cmp_const_reg_label(exprasmlist, OS_INT, jmp_gt, longint(hi(int64(t^._low))),
+                               hregister2, l1);
+                          { the comparisation of the low dword must be always unsigned! }
+                          cg.a_cmp_const_reg_label(exprasmlist, OS_INT, OC_B, longint(lo(int64(t^._low))), hregister, elselabel);
+                          cg.a_label(exprasmlist,l1);
+                       end
+                     else
+                       begin
+                        cg.a_cmp_const_reg_label(exprasmlist, OS_INT, jmp_lt, longint(t^._low), hregister,
+                           elselabel);
+                       end;
+                  end;
+
+                if opsize in [OS_S64,OS_64] then
+                  begin
+                     getlabel(l1);
+                     cg.a_cmp_const_reg_label(exprasmlist, OS_INT, jmp_lt, longint(hi(int64(t^._high))), hregister2,
+                           t^.statement);
+                     cg.a_cmp_const_reg_label(exprasmlist, OS_INT, jmp_gt, longint(hi(int64(t^._high))), hregister2,
+                           l1);
+                    cg.a_cmp_const_reg_label(exprasmlist, OS_INT, OC_BE, longint(lo(int64(t^._high))), hregister, t^.statement);
+                    cg.a_label(exprasmlist,l1);
+                  end
+                else
+                  begin
+                     cg.a_cmp_const_reg_label(exprasmlist, OS_INT, jmp_le, longint(t^._high), hregister, t^.statement);
+                  end;
+
+                last:=t^._high;
+             end;
+           first:=false;
+           if assigned(t^.greater) then
+             genitem(t^.greater);
+        end;
+
+      begin
+         last:=0;
+         first:=true;
+         genitem(hp);
+         cg.a_jmp_always(exprasmlist,elselabel);
+      end;
+
+
+    procedure tcgcasenode.pass_2;
 
       procedure gentreejmp(p : pcaserecord);
 
@@ -629,172 +802,6 @@ implementation
            gentreejmp(p^.greater);
       end;
 
-      procedure genlinearcmplist(hp : pcaserecord);
-
-        var
-           first : boolean;
-           last : TConstExprInt;
-
-        procedure genitem(t : pcaserecord);
-
-          var
-             l1 : tasmlabel;
-
-          begin
-             if assigned(t^.less) then
-               genitem(t^.less);
-             if t^._low=t^._high then
-               begin
-                  if opsize in [OS_S64,OS_64] then
-                    begin
-                       getlabel(l1);
-                       cg.a_cmp_const_reg_label(exprasmlist, OS_INT, OC_NE, longint(hi(int64(t^._low))),hregister2,l1);
-                       cg.a_cmp_const_reg_label(exprasmlist, OS_INT, OC_EQ, longint(lo(int64(t^._low))),hregister, t^.statement);
-                       cg.a_label(exprasmlist,l1);
-                    end
-                  else
-                    begin
-                       cg.a_cmp_const_reg_label(exprasmlist, OS_INT, OC_EQ, longint(t^._low),hregister, t^.statement);
-                       last:=t^._low;
-                    end;
-               end
-             else
-               begin
-                  { it begins with the smallest label, if the value }
-                  { is even smaller then jump immediately to the    }
-                  { ELSE-label                                }
-                  if first or (t^._low-last>1) then
-                    begin
-                       if opsize in [OS_64,OS_S64] then
-                         begin
-                            getlabel(l1);
-                            cg.a_cmp_const_reg_label(exprasmlist, OS_INT, jmp_lt, longint(hi(int64(t^._low))),
-                                 hregister2, elselabel);
-                            cg.a_cmp_const_reg_label(exprasmlist, OS_INT, jmp_gt, longint(hi(int64(t^._low))),
-                                 hregister2, l1);
-                            { the comparisation of the low dword must be always unsigned! }
-                            cg.a_cmp_const_reg_label(exprasmlist, OS_INT, OC_B, longint(lo(int64(t^._low))), hregister, elselabel);
-                            cg.a_label(exprasmlist,l1);
-                         end
-                       else
-                         begin
-                          cg.a_cmp_const_reg_label(exprasmlist, OS_INT, jmp_lt, longint(t^._low), hregister,
-                             elselabel);
-                         end;
-                    end;
-
-                  if opsize in [OS_S64,OS_64] then
-                    begin
-                       getlabel(l1);
-                       cg.a_cmp_const_reg_label(exprasmlist, OS_INT, jmp_lt, longint(hi(int64(t^._high))), hregister2,
-                             t^.statement);
-                       cg.a_cmp_const_reg_label(exprasmlist, OS_INT, jmp_gt, longint(hi(int64(t^._high))), hregister2,
-                             l1);
-                      cg.a_cmp_const_reg_label(exprasmlist, OS_INT, OC_BE, longint(lo(int64(t^._high))), hregister, t^.statement);
-                      cg.a_label(exprasmlist,l1);
-                    end
-                  else
-                    begin
-                       cg.a_cmp_const_reg_label(exprasmlist, OS_INT, jmp_le, longint(t^._high), hregister, t^.statement);
-                    end;
-
-                  last:=t^._high;
-               end;
-             first:=false;
-             if assigned(t^.greater) then
-               genitem(t^.greater);
-          end;
-
-        begin
-           last:=0;
-           first:=true;
-           genitem(hp);
-           cg.a_jmp_always(exprasmlist,elselabel);
-        end;
-
-      procedure genlinearlist(hp : pcaserecord);
-
-        var
-           first : boolean;
-           last : TConstExprInt;
-           scratch_reg: tregister;
-
-        procedure genitem(t : pcaserecord);
-
-            procedure gensub(value:longint);
-            begin
-              { here, since the sub and cmp are separate we need
-                to move the result before subtract to a help
-                register.
-              }
-              cg.a_load_reg_reg(exprasmlist, opsize, hregister, scratch_reg);
-              cg.a_op_const_reg(exprasmlist, OP_SUB, value, hregister);
-            end;
-
-          begin
-             if assigned(t^.less) then
-               genitem(t^.less);
-             { need we to test the first value }
-             if first and (t^._low>get_min_value(left.resulttype.def)) then
-               begin
-                  cg.a_cmp_const_reg_label(exprasmlist,OS_INT,jmp_lt,longint(t^._low),hregister,elselabel);
-               end;
-             if t^._low=t^._high then
-               begin
-                  if t^._low-last=0 then
-                    begin
-                      cg.a_cmp_const_reg_label(exprasmlist, OS_INT, OC_EQ,0,hregister,t^.statement);
-                    end
-                  else
-                    begin
-                        gensub(longint(t^._low-last));
-                        cg.a_cmp_const_reg_label(exprasmlist, OS_INT, OC_EQ,longint(t^._low-last),hregister,t^.statement);
-                    end;
-                  last:=t^._low;
-               end
-             else
-               begin
-                  { it begins with the smallest label, if the value }
-                  { is even smaller then jump immediately to the    }
-                  { ELSE-label                                }
-                  if first then
-                    begin
-                       { have we to ajust the first value ? }
-                       if (t^._low>get_min_value(left.resulttype.def)) then
-                         gensub(longint(t^._low));
-                    end
-                  else
-                    begin
-                      { if there is no unused label between the last and the }
-                      { present label then the lower limit can be checked    }
-                      { immediately. else check the range in between:       }
-                      gensub(longint(t^._low-last));
-                      cg.a_cmp_const_reg_label(exprasmlist, OS_INT,jmp_lt,longint(t^._low-last),hregister,elselabel);
-                    end;
-                  gensub(longint(t^._high-t^._low));
-                  cg.a_cmp_const_reg_label(exprasmlist, OS_INT,jmp_le,longint(t^._high-t^._low),hregister,t^.statement);
-                  last:=t^._high;
-               end;
-             first:=false;
-             if assigned(t^.greater) then
-               genitem(t^.greater);
-          end;
-
-        begin
-           { do we need to generate cmps? }
-           if (with_sign and (min_label<0)) then
-             genlinearcmplist(hp)
-           else
-             begin
-                last:=0;
-                first:=true;
-                scratch_reg := cg.get_scratch_reg_int(exprasmlist);
-                genitem(hp);
-                cg.free_scratch_reg(exprasmlist,scratch_reg);
-                cg.a_jmp_always(exprasmlist,elselabel);
-             end;
-        end;
-
 
       var
          lv,hv,
@@ -804,6 +811,7 @@ implementation
          otl, ofl: tasmlabel;
          isjump : boolean;
          dist : cardinal;
+         hp : tnode;
       begin
          getlabel(endlabel);
          getlabel(elselabel);
@@ -949,7 +957,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.13  2002-08-11 06:14:40  florian
+  Revision 1.14  2002-08-11 11:37:42  jonas
+    * genlinear(cmp)list can now be overridden by descendents
+
+  Revision 1.13  2002/08/11 06:14:40  florian
     * fixed powerpc compilation problems
 
   Revision 1.12  2002/08/10 17:15:12  jonas
