@@ -52,11 +52,11 @@ naming system was introduced.
 The compilation proces is started by typing
 .I ppc386
 followed by a sourcefile name (normally with .pas or .pp extension). Before processing the actual processing of the source file,
-.BR ppc386.cfg (5)
+.BR fpc.cfg (5)
 the configuration file of the compiler is read which contains the location of the
 RTL, other packages (API, FCL, FreeVision), and optionally default values for some
 switches. See the separate manpage of
-.BR ppc386.cfg (5)
+.BR fpc.cfg (5)
 for more information.
 
 .SH Options
@@ -106,7 +106,7 @@ version number.
 .TP
 .I -n
 Tells the compiler not to read the configuration file
-.BR ppc386.cfg (5)
+.BR fpc.cfg (5)
 
 .PP
 Options for getting feedback
@@ -557,7 +557,7 @@ Compile a system unit. This option causes the
 compiler to define only some very basic types.
 
 .SH SEE ALSO
-.BR  ppc386.cfg (5)
+.BR  fpc.cfg (5)
 .BR  ppdep (1)
 .BR  ppudump (1)
 .BR  ppumove (1)

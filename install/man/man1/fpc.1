@@ -1,4 +1,4 @@
-.TH fpc 1 "18 nov 2000" "Free Pascal" "Free Pascal Compiler"
+.TH fpc 1 "23 nov 2001" "Free Pascal" "Free Pascal Compiler"
 .SH NAME
 fpc \- Free Pascal Compiler (FPC) binary
 
@@ -20,7 +20,7 @@ The compiler uses
 .BR LD (1)
 and can use
 .BR AS (1)
-(see parameter \-Aas, but also has its own binary object writer.
+(see parameter \-Aas), but also has its own binary object writer.
 .PP
 The current main targets are
 .I Go32V2
@@ -30,19 +30,17 @@ The current main targets are
 .I OS/2
 and
 .I Win32.
-The other targets (M68K compilers for Atari and Amiga) are based on older
-versions of the compiler.
+The other targets (M68K compilers for Atari and Amiga) are either based on older
+versions of the compiler or are still in development.
 .PP
 This manpage is meant for quick\-reference only. FPC comes with a great (600+ pages)
 manual, which is updated constantly, while this man page can be out of date.
 
 .SH Version number
 
-Right now the compiler uses versionnumbers like 0.99.12 and 0.99.13. After
-the 1.0 release this will change to 1.0 and 1.1. Both version naming types have
-in common that if the last number is even (0.99.12, 1.0), it is stable, and the last number odd
-is a dialy changing development version.(0.99.13, 1.1) just like the kernel.
-Fixes to releases will be named 0.99.12-x with x a number (e.g. 0.99.12-1)
+Starting with release 1.0, a new versioning system has been implemented. 
+If the last number is even (1.0, 1.0.2), it is stable, and if the last number is 
+odd it is a daily changing development version.(1.0.5, 1.1) just like the linux kernel.
 .PP
 Version 0.99.5 however is a stable release. It was made before the even/odd version
 naming system was introduced.
@@ -52,11 +50,11 @@ naming system was introduced.
 The compilation proces is started by typing
 .I fpc
 followed by a sourcefile name (normally with .pas or .pp extension). Before processing the actual processing of the source file,
-.BR ppc386.cfg (5)
-the configuration file of the i386 compiler is read which contains the location of the
-RTL, other packages (API, FCL, FreeVision), and optionally default values for some
+.BR fpc.cfg (5)
+the configuration file of the compiler is read which contains the location of the
+RTL, other packages (FCL, FreeVision), and optionally default values for some
 switches. See the separate manpage of
-.BR ppc386.cfg (5)
+.BR fpc.cfg (5)
 for more information.
 
 .SH Options
@@ -106,7 +104,7 @@ version number.
 .TP
 .I -n
 Tells the compiler not to read the configuration file
-.BR ppc386.cfg (5)
+.BR fpc.cfg (5)
 
 .PP
 Options for getting feedback
@@ -252,12 +250,6 @@ Add
 .I xxx
 to the include file search path.
 This path is used when looking for include files.
-.TP
-.BI \-P
-uses pipes instead of files when assembling. This may speed up
-the compiler on OS/2 and Linux. Only with assemblers (such as
-.I GNU AS
-) that support piping.
 .TP
 By default, the compiler only searches for units in the current directory
 and the directory where the compiler itself resides. This option tells the
@@ -446,10 +438,13 @@ DOS and version 2 of the DJ DELORIE extender.
 Linux.
 .TP
 .I OS2
-OS/2 (2.x) (this is still under development).
+OS/2 using EMX
 .TP
 .I WIN32
 Windows 32 bit.
+.TP
+.I BeOS
+BeOS 80x86
 .RE
 .TP
 .BI -u xxx
@@ -557,7 +552,7 @@ Compile a system unit. This option causes the
 compiler to define only some very basic types.
 
 .SH SEE ALSO
-.BR  ppc386.cfg (5)
+.BR  fpc.cfg (5)
 .BR  ppdep (1)
 .BR  ppudump (1)
 .BR  ppumove (1)
