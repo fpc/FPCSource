@@ -730,6 +730,9 @@ implementation
     function ttypenode.pass_1 : tnode;
       begin
          result:=nil;
+         { a typenode can't generate code, so we give here
+           an error. Else it'll be an abstract error in pass_2 }
+         Message(parser_e_no_type_not_allowed_here);
       end;
 
 
@@ -749,7 +752,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.15  2001-04-14 14:06:31  peter
+  Revision 1.16  2001-05-09 19:57:51  peter
+    * typenode doesn't generate code, give error in pass_1 instead of
+      getting an abstract methode runtime error
+
+  Revision 1.15  2001/04/14 14:06:31  peter
     * move more code from loadnode.pass_1 to det_resulttype
 
   Revision 1.14  2001/04/13 01:22:10  peter
