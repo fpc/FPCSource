@@ -233,132 +233,140 @@ implementation
 
 
     procedure compile(const filename:string);
+      type
+        polddata=^tolddata;
+        tolddata=record
+        { scanner }
+          oldidtoken,
+          oldtoken       : ttoken;
+          oldtokenpos    : tfileposinfo;
+          oldc           : char;
+          oldpattern,
+          oldorgpattern  : string;
+          old_block_type : tblock_type;
+        { symtable }
+          oldrefsymtable,
+          olddefaultsymtablestack,
+          oldsymtablestack : tsymtable;
+          oldaktprocsym    : tprocsym;
+          oldaktprocdef    : tprocdef;
+          oldoverloaded_operators : toverloaded_operators;
+        { cg }
+          oldparse_only  : boolean;
+        { asmlists }
+          oldimports,
+          oldexports,
+          oldresource,
+          oldrttilist,
+          oldresourcestringlist,
+          oldbsssegment,
+          olddatasegment,
+          oldcodesegment,
+          oldexprasmlist,
+          olddebuglist,
+          oldwithdebuglist,
+          oldconsts     : taasmoutput;
+          oldobjectlibrary : tasmlibrarydata;
+        { resourcestrings }
+          OldResourceStrings : tResourceStrings;
+        { akt.. things }
+          oldaktlocalswitches  : tlocalswitches;
+          oldaktmoduleswitches : tmoduleswitches;
+          oldaktfilepos      : tfileposinfo;
+          oldaktpackenum,oldaktmaxfpuregisters : longint;
+          oldaktalignment  : talignmentinfo;
+          oldaktoutputformat : tasm;
+          oldaktspecificoptprocessor,
+          oldaktoptprocessor : tprocessors;
+          oldaktasmmode      : tasmmode;
+          oldaktinterfacetype: tinterfacetypes;
+          oldaktmodeswitches : tmodeswitches;
+          old_compiled_module : tmodule;
+          oldaktdefproccall : tproccalloption;
+          oldsourcecodepage : tcodepagestring;
+          oldstatement_level : integer;
+{$ifdef GDB}
+          store_dbx : plongint;
+{$endif GDB}
+        end;
+
       var
-       { scanner }
-         oldidtoken,
-         oldtoken       : ttoken;
-         oldtokenpos    : tfileposinfo;
-         oldc           : char;
-         oldpattern,
-         oldorgpattern  : string;
-         old_block_type : tblock_type;
-       { symtable }
-         oldrefsymtable,
-         olddefaultsymtablestack,
-         oldsymtablestack : tsymtable;
-         oldaktprocsym    : tprocsym;
-         oldaktprocdef    : tprocdef;
-         oldoverloaded_operators : toverloaded_operators;
-       { cg }
-         oldparse_only  : boolean;
-       { asmlists }
-         oldimports,
-         oldexports,
-         oldresource,
-         oldrttilist,
-         oldresourcestringlist,
-         oldbsssegment,
-         olddatasegment,
-         oldcodesegment,
-         oldexprasmlist,
-         olddebuglist,
-         oldwithdebuglist,
-         oldconsts     : taasmoutput;
-         oldobjectlibrary : tasmlibrarydata;
-       { resourcestrings }
-         OldResourceStrings : tResourceStrings;
-       { akt.. things }
-         oldaktlocalswitches  : tlocalswitches;
-         oldaktmoduleswitches : tmoduleswitches;
-         oldaktfilepos      : tfileposinfo;
-         oldaktpackenum,oldaktmaxfpuregisters : longint;
-         oldaktalignment  : talignmentinfo;
-         oldaktoutputformat : tasm;
-         oldaktspecificoptprocessor,
-         oldaktoptprocessor : tprocessors;
-         oldaktasmmode      : tasmmode;
-         oldaktinterfacetype: tinterfacetypes;
-         oldaktmodeswitches : tmodeswitches;
-         old_compiled_module : tmodule;
-         oldaktdefproccall : tproccalloption;
-         oldsourcecodepage : tcodepagestring;
-{        will only be increased once we start parsing blocks in the }
-{         implementation, so doesn't need to be saved/restored (JM) }
-{          oldexceptblockcounter  : integer;                        }
-         oldstatement_level : integer;
+         olddata : polddata;
 {$ifdef USEEXCEPT}
 {$ifndef Delphi}
          recoverpos    : jmp_buf;
          oldrecoverpos : pjmp_buf;
 {$endif Delphi}
 {$endif useexcept}
-{$ifdef GDB}
-         store_dbx : plongint;
-{$endif GDB}
-
-      begin
+       begin
          inc(compile_level);
          parser_current_file:=filename;
-         old_compiled_module:=compiled_module;
-       { save symtable state }
-         oldsymtablestack:=symtablestack;
-         olddefaultsymtablestack:=defaultsymtablestack;
-         oldrefsymtable:=refsymtable;
-         oldaktprocsym:=aktprocsym;
-         oldaktprocdef:=aktprocdef;
-         oldaktdefproccall:=aktdefproccall;
-         move(overloaded_operators,oldoverloaded_operators,sizeof(toverloaded_operators));
-       { save scanner state }
-         oldc:=c;
-         oldpattern:=pattern;
-         oldorgpattern:=orgpattern;
-         oldtoken:=token;
-         oldidtoken:=idtoken;
-         old_block_type:=block_type;
-         oldtokenpos:=akttokenpos;
-         oldsourcecodepage:=aktsourcecodepage;
-       { save cg }
-         oldparse_only:=parse_only;
-       { save assembler lists }
-         olddatasegment:=datasegment;
-         oldbsssegment:=bsssegment;
-         oldcodesegment:=codesegment;
-         olddebuglist:=debuglist;
-         oldwithdebuglist:=withdebuglist;
-         oldconsts:=consts;
-         oldrttilist:=rttilist;
-         oldexprasmlist:=exprasmlist;
-         oldimports:=importssection;
-         oldexports:=exportssection;
-         oldresource:=resourcesection;
-         oldresourcestringlist:=resourcestringlist;
-         oldobjectlibrary:=objectlibrary;
-         OldResourceStrings:=ResourceStrings;
-       { save akt... state }
-       { handle the postponed case first }
-        if localswitcheschanged then
+         { Uses heap memory instead of placing everything on the
+           stack. This is needed because compile() can be called
+           recursively }
+         new(olddata);
+         with olddata^ do
           begin
-            aktlocalswitches:=nextaktlocalswitches;
-            localswitcheschanged:=false;
-          end;
-         oldaktlocalswitches:=aktlocalswitches;
-         oldaktmoduleswitches:=aktmoduleswitches;
-         oldaktalignment:=aktalignment;
-         oldaktpackenum:=aktpackenum;
-         oldaktmaxfpuregisters:=aktmaxfpuregisters;
-         oldaktoutputformat:=aktoutputformat;
-         oldaktoptprocessor:=aktoptprocessor;
-         oldaktspecificoptprocessor:=aktspecificoptprocessor;
-         oldaktasmmode:=aktasmmode;
-         oldaktinterfacetype:=aktinterfacetype;
-         oldaktfilepos:=aktfilepos;
-         oldaktmodeswitches:=aktmodeswitches;
-         oldstatement_level:=statement_level;
-{         oldexceptblockcounter:=exceptblockcounter; }
+            old_compiled_module:=compiled_module;
+          { save symtable state }
+            oldsymtablestack:=symtablestack;
+            olddefaultsymtablestack:=defaultsymtablestack;
+            oldrefsymtable:=refsymtable;
+            oldaktprocsym:=aktprocsym;
+            oldaktprocdef:=aktprocdef;
+            oldaktdefproccall:=aktdefproccall;
+            move(overloaded_operators,oldoverloaded_operators,sizeof(toverloaded_operators));
+          { save scanner state }
+            oldc:=c;
+            oldpattern:=pattern;
+            oldorgpattern:=orgpattern;
+            oldtoken:=token;
+            oldidtoken:=idtoken;
+            old_block_type:=block_type;
+            oldtokenpos:=akttokenpos;
+            oldsourcecodepage:=aktsourcecodepage;
+          { save cg }
+            oldparse_only:=parse_only;
+          { save assembler lists }
+            olddatasegment:=datasegment;
+            oldbsssegment:=bsssegment;
+            oldcodesegment:=codesegment;
+            olddebuglist:=debuglist;
+            oldwithdebuglist:=withdebuglist;
+            oldconsts:=consts;
+            oldrttilist:=rttilist;
+            oldexprasmlist:=exprasmlist;
+            oldimports:=importssection;
+            oldexports:=exportssection;
+            oldresource:=resourcesection;
+            oldresourcestringlist:=resourcestringlist;
+            oldobjectlibrary:=objectlibrary;
+            OldResourceStrings:=ResourceStrings;
+          { save akt... state }
+          { handle the postponed case first }
+           if localswitcheschanged then
+             begin
+               aktlocalswitches:=nextaktlocalswitches;
+               localswitcheschanged:=false;
+             end;
+            oldaktlocalswitches:=aktlocalswitches;
+            oldaktmoduleswitches:=aktmoduleswitches;
+            oldaktalignment:=aktalignment;
+            oldaktpackenum:=aktpackenum;
+            oldaktmaxfpuregisters:=aktmaxfpuregisters;
+            oldaktoutputformat:=aktoutputformat;
+            oldaktoptprocessor:=aktoptprocessor;
+            oldaktspecificoptprocessor:=aktspecificoptprocessor;
+            oldaktasmmode:=aktasmmode;
+            oldaktinterfacetype:=aktinterfacetype;
+            oldaktfilepos:=aktfilepos;
+            oldaktmodeswitches:=aktmodeswitches;
+            oldstatement_level:=statement_level;
 {$ifdef GDB}
-         store_dbx:=dbx_counter;
-         dbx_counter:=nil;
+            store_dbx:=dbx_counter;
+            dbx_counter:=nil;
 {$endif GDB}
+          end;
        { show info }
          Message1(parser_i_compiling,filename);
 
@@ -482,64 +490,67 @@ implementation
 
          if (compile_level>1) then
            begin
+              with olddata^ do
+               begin
+                 { restore scanner }
+                 c:=oldc;
+                 pattern:=oldpattern;
+                 orgpattern:=oldorgpattern;
+                 token:=oldtoken;
+                 idtoken:=oldidtoken;
+                 akttokenpos:=oldtokenpos;
+                 block_type:=old_block_type;
+                 { restore cg }
+                 parse_only:=oldparse_only;
+                 { restore asmlists }
+                 exprasmlist:=oldexprasmlist;
+                 datasegment:=olddatasegment;
+                 bsssegment:=oldbsssegment;
+                 codesegment:=oldcodesegment;
+                 consts:=oldconsts;
+                 debuglist:=olddebuglist;
+                 withdebuglist:=oldwithdebuglist;
+                 importssection:=oldimports;
+                 exportssection:=oldexports;
+                 resourcesection:=oldresource;
+                 rttilist:=oldrttilist;
+                 resourcestringlist:=oldresourcestringlist;
+                 { object data }
+                 ResourceStrings:=OldResourceStrings;
+                 objectlibrary:=oldobjectlibrary;
+                 { restore previous scanner }
+                 current_scanner:=tscannerfile(old_compiled_module.scanner);
+                 if assigned(current_scanner) then
+                   parser_current_file:=current_scanner.inputfile.name^;
+                 { restore symtable state }
+                 refsymtable:=oldrefsymtable;
+                 symtablestack:=oldsymtablestack;
+                 defaultsymtablestack:=olddefaultsymtablestack;
+                 aktdefproccall:=oldaktdefproccall;
+                 aktprocsym:=oldaktprocsym;
+                 aktprocdef:=oldaktprocdef;
+                 move(oldoverloaded_operators,overloaded_operators,sizeof(toverloaded_operators));
+                 aktsourcecodepage:=oldsourcecodepage;
+                 aktlocalswitches:=oldaktlocalswitches;
+                 aktmoduleswitches:=oldaktmoduleswitches;
+                 aktalignment:=oldaktalignment;
+                 aktpackenum:=oldaktpackenum;
+                 aktmaxfpuregisters:=oldaktmaxfpuregisters;
+                 aktoutputformat:=oldaktoutputformat;
+                 set_target_asm(aktoutputformat);
+                 aktoptprocessor:=oldaktoptprocessor;
+                 aktspecificoptprocessor:=oldaktspecificoptprocessor;
+                 aktasmmode:=oldaktasmmode;
+                 aktinterfacetype:=oldaktinterfacetype;
+                 aktfilepos:=oldaktfilepos;
+                 aktmodeswitches:=oldaktmodeswitches;
+                 statement_level:=oldstatement_level;
+                 aktexceptblock:=0;
+                 exceptblockcounter:=0;
 {$ifdef GDB}
-              dbx_counter:=store_dbx;
+                 dbx_counter:=store_dbx;
 {$endif GDB}
-              { restore scanner }
-              c:=oldc;
-              pattern:=oldpattern;
-              orgpattern:=oldorgpattern;
-              token:=oldtoken;
-              idtoken:=oldidtoken;
-              akttokenpos:=oldtokenpos;
-              block_type:=old_block_type;
-              { restore cg }
-              parse_only:=oldparse_only;
-              { restore asmlists }
-              exprasmlist:=oldexprasmlist;
-              datasegment:=olddatasegment;
-              bsssegment:=oldbsssegment;
-              codesegment:=oldcodesegment;
-              consts:=oldconsts;
-              debuglist:=olddebuglist;
-              withdebuglist:=oldwithdebuglist;
-              importssection:=oldimports;
-              exportssection:=oldexports;
-              resourcesection:=oldresource;
-              rttilist:=oldrttilist;
-              resourcestringlist:=oldresourcestringlist;
-              { object data }
-              ResourceStrings:=OldResourceStrings;
-              objectlibrary:=oldobjectlibrary;
-              { restore previous scanner }
-              current_scanner:=tscannerfile(old_compiled_module.scanner);
-              if assigned(current_scanner) then
-                parser_current_file:=current_scanner.inputfile.name^;
-              { restore symtable state }
-              refsymtable:=oldrefsymtable;
-              symtablestack:=oldsymtablestack;
-              defaultsymtablestack:=olddefaultsymtablestack;
-              aktdefproccall:=oldaktdefproccall;
-              aktprocsym:=oldaktprocsym;
-              aktprocdef:=oldaktprocdef;
-              move(oldoverloaded_operators,overloaded_operators,sizeof(toverloaded_operators));
-              aktsourcecodepage:=oldsourcecodepage;
-              aktlocalswitches:=oldaktlocalswitches;
-              aktmoduleswitches:=oldaktmoduleswitches;
-              aktalignment:=oldaktalignment;
-              aktpackenum:=oldaktpackenum;
-              aktmaxfpuregisters:=oldaktmaxfpuregisters;
-              aktoutputformat:=oldaktoutputformat;
-              set_target_asm(aktoutputformat);
-              aktoptprocessor:=oldaktoptprocessor;
-              aktspecificoptprocessor:=oldaktspecificoptprocessor;
-              aktasmmode:=oldaktasmmode;
-              aktinterfacetype:=oldaktinterfacetype;
-              aktfilepos:=oldaktfilepos;
-              aktmodeswitches:=oldaktmodeswitches;
-              statement_level:=oldstatement_level;
-              aktexceptblock:=0;
-              exceptblockcounter:=0;
+               end;
            end
          else
            begin
@@ -594,7 +605,10 @@ implementation
            end;
 
          dec(compile_level);
-         compiled_module:=old_compiled_module;
+         compiled_module:=olddata^.old_compiled_module;
+
+         dispose(olddata);
+
 {$ifdef USEEXCEPT}
          if longjump_used then
            longjmp(recoverpospointer^,1);
@@ -604,7 +618,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.44  2002-09-05 19:27:06  peter
+  Revision 1.45  2002-10-07 19:29:52  peter
+    * Place old data in compile() in the heap to save stack
+
+  Revision 1.44  2002/09/05 19:27:06  peter
     * fixed crash when current_module becomes nil
 
   Revision 1.43  2002/08/18 19:58:28  peter
