@@ -21,7 +21,7 @@
 {***********************************************************************}
 
 { Introduced defines
-    - 64bitarch (for 64-bits Linux systems, test system was idefix
+    - 64bitarch (for 64-bits Linux systems, test system was idefix (in ctypes)
     - 64bitfs   (should be on if libc switches to a 64-bit system.
 
 All three tested systems (PPC,Alpha,2x i386) gave the same POSIX limits,
@@ -30,43 +30,15 @@ and all three 32-bit systems returned completely identical types too
 introduction)
 }
 
+{$I ctypes.inc}
+
 Type
-    { the following type definitions are compiler dependant }
-    { and system dependant                                  }
-
-    cint8  = shortint;
-    cuint8 = byte;
-    cuint16= word;
-    cint16 = smallint;
-    cint32 = longint;
-    cuint32= cardinal;
-    cint64 = int64;
-{$ifndef VER_1_0}
-    cuint64= qword;
-{$else
-    cuint64= int64;
-{$endif}
-
-    cint   = longint;           { minimum range is : 32-bit    }
-    cuint  = Cardinal;          { minimum range is : 32-bit    }
-  {$ifdef 64bitarch}
-    clong  = int64;
-  {$ifdef VER_1_0}
-    culong = int64;
-  {$else}
-    culong = qword;
-   {$endif}
-  {$else}
-    clong  = longint;
-    culong = Cardinal;
-   {$endif}
-    cshort = integer;
-    cushort= word;
 
 {$ifndef VER_1_0}
     dev_t    = cuint64;         { used for device numbers      }
 {$else}
     dev_t    = int64;
+{$endif}
     gid_t    = cuint32;         { used for group IDs           }
     ino_t    = clong;           { used for file serial numbers }
     mode_t   = cuint32;         { used for file attributes     }
@@ -89,13 +61,14 @@ Type
     ssize_t  = cint32;          { used by function for returning number of bytes }
    {$endif}
     uid_t    = cuint32;         { used for user ID type        }
-  {$ifdef 64bitarch
+  {$ifdef 64bitarch}
     clock_t  = cuint64;
     time_t   = cint64;           { used for returning the time  }
   {$else}
     clock_t  = culong;
     time_t   = clong;           { used for returning the time  }
-  {$endif]
+  {$endif}
+    ptime_t  = ^time_t;
     socklen_t= cuint32;
 
 CONST
@@ -108,7 +81,10 @@ CONST
 
 {
    $Log$
-   Revision 1.1  2002-10-29 16:47:17  marco
+   Revision 1.2  2002-11-12 14:28:40  marco
+    * some updates
+
+   Revision 1.1  2002/10/29 16:47:17  marco
     * Linux versions
 
 
