@@ -412,19 +412,29 @@ end;
 {*****************************************************************************
                          Stack check code
 *****************************************************************************}
+
 {$IFNDEF NO_GENERIC_STACK_CHECK}
+
+var
+  StackError : boolean;
 
 {$IFOPT S+}
 {$DEFINE STACKCHECK}
 {$ENDIF}
 {$S-}
-procedure fpc_stackcheck(stack_size:longint);[public,alias:'FPC_STACKCHECK'];
+procedure fpc_stackcheck(stack_size:longint);[saveregisters,public,alias:'FPC_STACKCHECK'];
 var
  c: cardinal;
 begin
- c := cardinal(Sptr) - cardinal(stack_size) - STACK_MARGIN;
- if (c <= cardinal(StackBottom)) then
+  { Avoid recursive calls when called from the exit routines }
+  if StackError then
+   exit;
+  c := cardinal(Sptr) - cardinal(stack_size) - STACK_MARGIN;
+  if (c <= cardinal(StackBottom)) then
+   begin
+     StackError:=true;
      HandleError(202);
+   end;
 end;
 {$IFDEF STACKCHECK}
 {$S+}
@@ -594,8 +604,8 @@ Begin
   Halt(0);
 End;
 
-function do_isdevice(handle:longint):boolean;forward;
 
+function do_isdevice(handle:longint):boolean;forward;
 
 Procedure dump_stack(var f : text;bp : Longint);
 var
@@ -714,7 +724,12 @@ end;
 
 {
   $Log$
-  Revision 1.26  2002-04-15 18:51:20  carl
+  Revision 1.27  2002-04-15 19:38:40  peter
+    * stackcheck protected against infinite recursive after stack error
+    * stackcheck requires saveregisters, because it can be called from
+      iocheck and then will destroy the result of the original function
+
+  Revision 1.26  2002/04/15 18:51:20  carl
   + generic stack checking can be overriden
 
   Revision 1.25  2002/04/12 17:37:36  carl
