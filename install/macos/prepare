@@ -1,5 +1,7 @@
 # MPW script to  prepare an installation package
 # Precondition: fpc:install:macos is current dir.
+# Parameter: version number, e. g. 1.9.6
+
 
 If {1} == ''
   Echo '#ERROR FPC version must be given as parameter (e. g. 1.9.6)'
@@ -7,7 +9,7 @@ If {1} == ''
 Else
 	Set fpcversion "{1}"
 End
-#Set fpcversion '1.9.6'
+
 Set compilerdir :::compiler:
 Set rtlunitsdir :::rtl:units:powerpc-macos:
 
@@ -23,15 +25,9 @@ Set Exit 1
 NewFolder "{stuffolder}"
 
 maccopy ::doc:readme.txt "{stuffolder}README" 1 1
-maccopy :"Installer README MacOS" "{stuffolder}README MacOS" 1 2
+maccopy :"Installer README" "{stuffolder}README MacOS" 1 2
 maccopy :Install "{stuffolder}INSTALL" 1 3
 SetFile -c 'MPSX' -t 'TEXT' "{stuffolder}INSTALL"
-#maccopy ::doc:whatsnew.txt "{stuffolder}Whatsnew" 2 1
-#maccopy ::doc:copying.fpc "{stuffolder}Copying.fpc" 2 2
-#maccopy ::doc:copying "{stuffolder}Copying" 2 3
-#maccopy ::doc:faq.txt "{stuffolder}FAQ" 3 1
-#maccopy ::doc:faq.htm "{stuffolder}FAQ.htm" 3 2
-#SetFile -c 'MSIE' -t 'TEXT' "{stuffolder}FAQ.htm"
 
 NewFolder "{stuffolder}FreePascal"
 NewFolder "{stuffolder}FreePascal:bin"
@@ -40,7 +36,7 @@ Duplicate "{compilerdir}"utils:fpc.mpw  "{stuffolder}FreePascal:bin:fpc"
 
 NewFolder "{stuffolder}FreePascal:docs"
 maccopy ::doc:readme.txt "{stuffolder}FreePascal:docs:README" 1 1
-maccopy :"Installer README MacOS" "{stuffolder}FreePascal:docs:README MacOS" 1 2
+maccopy :"Installer README" "{stuffolder}FreePascal:docs:README MacOS" 1 2
 maccopy ::doc:whatsnew.txt "{stuffolder}FreePascal:docs:Whatsnew" 2 1
 maccopy ::doc:copying.fpc "{stuffolder}FreePascal:docs:Copying.fpc" 2 2
 maccopy ::doc:copying "{stuffolder}FreePascal:docs:Copying" 2 3

@@ -2,10 +2,15 @@ Run the MPW script 'prepare' to create an installer package (as a stuffit archiv
 
 The installer package will consist of:
 
-1) 'Installer README' (renamed to README in the installer package)
+1) 'Installer README' (renamed to README MacOS in the installer package)
 
 2) 'Install' (which in the installer package will get creator 'MPSX', so
               that when doubleclicked, it will be run by ToolServer )
 
 3) A FreePascal folder, containing all files to be installed.
+
+NOTE If you have a fresh checkout from cvs, you might need to set the filetypes
+of the scripts so that MPW eats them:
+  SetFile -c 'MPS ' -t 'TEXT' prepare maccopy
+
 
