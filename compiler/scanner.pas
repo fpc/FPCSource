@@ -2504,45 +2504,41 @@ exit_label:
              asmgetchar:=c;
              exit;
            end;
-         case c of
-          '{' : begin
-                  skipcomment;
-                  asmgetchar:=c;
-                  exit;
-                end;
-          '/' : begin
+         repeat
+           case c of
+             '{' :
+               skipcomment;
+             '/' :
+               begin
                   readchar;
                   if c='/' then
-                   begin
-                     skipdelphicomment;
-                     asmgetchar:=c;
-                   end
+                   skipdelphicomment
                   else
                    begin
                      asmgetchar:='/';
                      lastasmgetchar:=c;
+                     exit;
                    end;
-                  exit;
-                end;
-          '(' : begin
+               end;
+             '(' :
+               begin
                   readchar;
                   if c='*' then
-                   begin
-                     skipoldtpcomment;
-                     asmgetchar:=c;
-                   end
+                   skipoldtpcomment
                   else
                    begin
                      asmgetchar:='(';
                      lastasmgetchar:=c;
+                     exit;
                    end;
-                  exit;
-                end;
-         else
-          begin
-            asmgetchar:=c;
-          end;
-         end;
+               end;
+             else
+               begin
+                 asmgetchar:=c;
+                 exit;
+               end;
+           end;
+         until false;
       end;
 
 
@@ -2593,7 +2589,10 @@ exit_label:
 end.
 {
   $Log$
-  Revision 1.15  2001-04-13 18:00:36  peter
+  Revision 1.16  2001-04-13 22:12:34  peter
+    * fixed comment after comment parsing in assembler blocks
+
+  Revision 1.15  2001/04/13 18:00:36  peter
     * easier registration of directives
 
   Revision 1.14  2001/04/13 01:22:13  peter
