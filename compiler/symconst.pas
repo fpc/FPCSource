@@ -251,7 +251,8 @@ type
     vo_is_const,  { variable is declared as const (parameter) and can't be written to }
     vo_is_exported,
     vo_is_high_value,
-    vo_is_funcret
+    vo_is_funcret,
+    vo_is_result  { special result variable }
   );
   tvaroptions=set of tvaroption;
 
@@ -353,7 +354,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.49  2003-04-25 20:59:35  peter
+  Revision 1.50  2003-04-26 00:33:07  peter
+    * vo_is_result flag added for the special RESULT symbol
+
+  Revision 1.49  2003/04/25 20:59:35  peter
     * removed funcretn,funcretsym, function result is now in varsym
       and aliases for result and function name are added using absolutesym
     * vs_hidden parameter for funcret passed in parameter

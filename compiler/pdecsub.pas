@@ -162,6 +162,7 @@ implementation
             begin
               vs:=tabsolutesym.create_ref('RESULT',pd.rettype,tstoredsym(pd.funcretsym));
               include(vs.varoptions,vo_is_funcret);
+              include(vs.varoptions,vo_is_result);
               pd.localst.insert(vs);
             end;
 
@@ -2177,7 +2178,10 @@ const
 end.
 {
   $Log$
-  Revision 1.116  2003-04-25 20:59:33  peter
+  Revision 1.117  2003-04-26 00:33:07  peter
+    * vo_is_result flag added for the special RESULT symbol
+
+  Revision 1.116  2003/04/25 20:59:33  peter
     * removed funcretn,funcretsym, function result is now in varsym
       and aliases for result and function name are added using absolutesym
     * vs_hidden parameter for funcret passed in parameter

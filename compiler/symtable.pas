@@ -564,7 +564,7 @@ implementation
                (hsym.typ=varsym) and
                (vo_is_funcret in tvarsym(hsym).varoptions) and
                not((m_result in aktmodeswitches) and
-                   (hsym.name='RESULT')) then
+                   (vo_is_result in tvarsym(hsym).varoptions)) then
              hsym.owner.rename(hsym.name,'hidden'+hsym.name)
             else
              begin
@@ -1259,7 +1259,7 @@ implementation
                      (sym.typ in [absolutesym,varsym]) and
                      (vo_is_funcret in tvarsym(sym).varoptions) and
                      not((m_result in aktmodeswitches) and
-                         (sym.name='RESULT')) then
+                         (vo_is_result in tvarsym(sym).varoptions)) then
                    sym.owner.rename(sym.name,'hidden'+sym.name)
                   else
                    begin
@@ -2437,7 +2437,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.94  2003-04-25 20:59:35  peter
+  Revision 1.95  2003-04-26 00:33:07  peter
+    * vo_is_result flag added for the special RESULT symbol
+
+  Revision 1.94  2003/04/25 20:59:35  peter
     * removed funcretn,funcretsym, function result is now in varsym
       and aliases for result and function name are added using absolutesym
     * vs_hidden parameter for funcret passed in parameter

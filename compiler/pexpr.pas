@@ -1038,7 +1038,8 @@ implementation
               (
                (token=_LKLAMMER) or
                (not(m_fpc in aktmodeswitches) and
-                (afterassignment or in_args))
+                (afterassignment or in_args) and
+                not(vo_is_result in tvarsym(srsym).varoptions))
               ) then
             begin
               storesymtablestack:=symtablestack;
@@ -2310,7 +2311,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.110  2003-04-25 20:59:33  peter
+  Revision 1.111  2003-04-26 00:33:07  peter
+    * vo_is_result flag added for the special RESULT symbol
+
+  Revision 1.110  2003/04/25 20:59:33  peter
     * removed funcretn,funcretsym, function result is now in varsym
       and aliases for result and function name are added using absolutesym
     * vs_hidden parameter for funcret passed in parameter
