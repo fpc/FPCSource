@@ -349,13 +349,16 @@ procedure fpc_dynarray_copy(var pdest : pointer;psrc : pointer;ti : pointer;
      realpdest^.high:=cnt-1;
      { increment ref. count of members }
      for i:= 0 to cnt-1 do
-       int_addref(pointer(pdest+sizeof(tdynarray)+elesize*i),eletype);
+       int_addref(pointer(pdest+elesize*i),eletype);
   end;
 
 
 {
   $Log$
-  Revision 1.34  2004-11-07 18:31:50  jonas
+  Revision 1.35  2005-01-24 21:32:48  florian
+    * fixed copy(dyn. array of ansistring)
+
+  Revision 1.34  2004/11/07 18:31:50  jonas
     * fixed getting pointer to nested dynarray types
 
   Revision 1.33  2004/11/07 18:02:47  jonas
