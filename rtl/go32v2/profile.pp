@@ -74,8 +74,10 @@ const
 var
   djgpp_timer_hdlr : pointer;external name '___djgpp_timer_hdlr';
   djgpp_old_timer : tseginfo;external name '___djgpp_old_timer';
-  endtext : longint;external name '_etext';
-  starttext : longint;external name 'start';
+  start : longint;external name 'start';
+  _etext : longint;external name '_etext';
+  starttext : longint;
+  endtext : longint;
 
 
 procedure sbrk_getmem(var p : pointer;size : longint);
@@ -285,6 +287,8 @@ procedure mcount_init;
     end;
 
 begin
+  starttext:=longint(@start);
+  endtext:=longint(@_etext);
   h.low := starttext;
   h.high := endtext;
   histlen := ((h.high-h.low) div 16) * 2; { must be even }
@@ -324,7 +328,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.5  2000-02-09 16:59:29  peter
+  Revision 1.6  2000-03-20 13:09:07  pierre
+   * fix for bug 876
+
+  Revision 1.5  2000/02/09 16:59:29  peter
     * truncated log
 
   Revision 1.4  2000/01/07 16:41:32  daniel
