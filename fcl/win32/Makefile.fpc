@@ -4,6 +4,7 @@
 
 [targets]
 units=classes $(INCUNITS) $(XMLUNITS) $(SHEDITUNITS) process fileinfo
+rst=ssockets cachecls
 
 [defaults]
 defaulttarget=win32

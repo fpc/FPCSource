@@ -4,6 +4,7 @@
 
 [targets]
 units=classes $(INCUNITS) $(XMLUNITS) $(SHEDITUNITS)
+rst=ssockets cachecls
 
 [defaults]
 defaulttarget=go32v2

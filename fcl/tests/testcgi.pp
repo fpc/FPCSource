@@ -102,8 +102,8 @@ end;
 begin
    try
       cgiStuff := TCGIData.Create;
-      cgiStuff.FName := 'Michael A. Hess';    // replace with your name
-      cgiStuff.FEmail := 'mhess@miraclec.com';// replace with your email
+      cgiStuff.Name := 'Michael A. Hess';    // replace with your name
+      cgiStuff.Email := 'mhess@miraclec.com';// replace with your email
       cgiStuff.Run;
    finally
       cgiStuff.Free;

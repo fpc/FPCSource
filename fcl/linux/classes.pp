@@ -34,9 +34,6 @@ implementation
 uses
   linux;
 
-var
-ClassList : TThreadlist;
-ClassAliasList : TStringList;
 { OS - independent class implementations are in /inc directory. }
 {$i classes.inc}
 
@@ -53,7 +50,10 @@ finalization
 end.
 {
   $Log$
-  Revision 1.18  2000-06-29 16:32:06  sg
+  Revision 1.19  2000-07-01 09:49:02  peter
+    * fixed go32v2,win32 build
+
+  Revision 1.18  2000/06/29 16:32:06  sg
   * Changes in initialisation/finalisation for streaming support
 
   Revision 1.17  2000/06/27 17:17:34  lazarus

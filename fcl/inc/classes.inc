@@ -16,6 +16,10 @@
  *       Class implementations are in separate files.                 *
  **********************************************************************}
 
+var
+  ClassList : TThreadlist;
+  ClassAliasList : TStringList;
+
 {
  Include all message strings
 
@@ -543,7 +547,7 @@ begin
           CurFixup := TPropFixup(Items[i]);
           if ((not Assigned(Root)) or (CurFixup.FInstanceRoot = Root)) and
             ((Length(RootName) = 0) or
-	    (UpperCase(RootName) = UpperCase(CurFixup.FRootName))) then
+            (UpperCase(RootName) = UpperCase(CurFixup.FRootName))) then
           begin
             Delete(i);
             CurFixup.Free;
@@ -1194,7 +1198,10 @@ end;
 
 {
   $Log$
-  Revision 1.17  2000-06-29 16:29:23  sg
+  Revision 1.18  2000-07-01 09:49:02  peter
+    * fixed go32v2,win32 build
+
+  Revision 1.17  2000/06/29 16:29:23  sg
   * Implemented streaming. Note: The writer driver interface is stable, but
     the reader interface is not final yet!
 
