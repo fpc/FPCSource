@@ -545,7 +545,9 @@ var
    edata : cardinal; external name 'edata';
 {$endif go32v2}
 
-{$S-}
+{$ifndef linux}
+  {$S-}
+{$endif}
 
 var
    heap_at_init : pointer;
@@ -930,7 +932,10 @@ finalization
 end.
 {
   $Log$
-  Revision 1.28  1999-11-09 22:32:23  pierre
+  Revision 1.29  1999-11-14 21:35:04  peter
+    * removed warnings
+
+  Revision 1.28  1999/11/09 22:32:23  pierre
    * several extra_size_info fixes
 
   Revision 1.27  1999/11/06 14:35:38  peter

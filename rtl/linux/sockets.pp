@@ -295,9 +295,6 @@ end;
 
 
 Function Connect(Sock:longint;const addr:string;var SockIn,SockOut:text):Boolean;
-
-Var FD : Longint;
-
 begin
   Connect:=DoConnect(Sock,addr);
   If Connect then
@@ -307,7 +304,6 @@ end;
 
 
 Function Connect(Sock:longint;const addr:string;var SockIn,SockOut:file):Boolean;
-
 begin
   Connect:=DoConnect(Sock,addr);
   if Connect then
@@ -320,7 +316,10 @@ end.
 
 {
   $Log$
-  Revision 1.9  1999-07-03 15:16:47  michael
+  Revision 1.10  1999-11-14 21:35:04  peter
+    * removed warnings
+
+  Revision 1.9  1999/07/03 15:16:47  michael
   + Fixed Connect call
 
   Revision 1.8  1999/06/27 16:04:25  michael

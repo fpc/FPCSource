@@ -26,7 +26,7 @@ MODULES+=$(wildcard ide)
 ###############################
 
 ifndef RTLDIR
-RTLDIR=rtl
+RTLDIR=rtl/$(OS_TARGET)
 endif
 
 ifndef COMPILERDIR
@@ -115,8 +115,6 @@ sharedinstall: $(addsuffix _sharedinstall,$(MODULES))
 #######################################
 # RTL
 #######################################
-
-override RTLDIR:=$(RTLDIR)/$(OS_TARGET)
 
 rtl_all:
         $(MAKE) -C $(RTLDIR) all

@@ -1922,10 +1922,14 @@ Function Dup2(var oldfile,newfile:text):Boolean;
 var
   tmphandle : word;
 begin
-  if TextRec(oldfile).mode in [fmOutput, fmInOut, fmAppend] then
-    flush(oldfile);{ We cannot share buffers, so we flush them. }
-  if TextRec(newfile).mode in [fmOutput, fmInOut, fmAppend] then
-    flush(newfile);
+  case TextRec(oldfile).mode of
+    fmOutput, fmInOut, fmAppend :
+      flush(oldfile);{ We cannot share buffers, so we flush them. }
+  end;
+  case TextRec(newfile).mode of
+    fmOutput, fmInOut, fmAppend :
+      flush(newfile);
+  end;
   tmphandle:=textrec(newfile).handle;
   textrec(newfile):=textrec(oldfile);
   textrec(newfile).handle:=tmphandle;
@@ -3810,7 +3814,10 @@ End.
 
 {
   $Log$
-  Revision 1.52  1999-11-14 11:11:15  michael
+  Revision 1.53  1999-11-14 21:35:04  peter
+    * removed warnings
+
+  Revision 1.52  1999/11/14 11:11:15  michael
   + Added Pause() and alarm()
 
   Revision 1.51  1999/11/11 19:43:49  sg
