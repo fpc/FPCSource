@@ -40,12 +40,21 @@ unit tgcpu;
           procedure ungetregister(r : tregister);virtual;
           function istemp(const ref : treference) : boolean;virtual;
           procedure del_reference(const ref : treference);virtual;
+          procedure pushusedregisters(var pushed : tpushed;b : byte);virtual;
+          procedure popusedregisters(const pushed : tpushed);virtual;
+          procedure saveusedregisters(var saved : tsaved;b : byte);virtual;
+          procedure restoreusedregisters(const saved : tsaved);virtual;
+          procedure clearregistercount;virtual;
+          procedure resetusableregisters;virtual;
        end;
 
     var
        tg : ttgobji386;
 
   implementation
+
+
+{ !!!!!!!! the following procedures need to be implemented !!!!!!!!!! }
 
     procedure ttgobji386.ungetregister(r : tregister);
 
@@ -62,13 +71,45 @@ unit tgcpu;
       begin
       end;
 
+    procedure ttgobji386.pushusedregisters(var pushed : tpushed;b : byte);
+
+      begin
+      end;
+
+    procedure ttgobji386.popusedregisters(const pushed : tpushed);
+
+      begin
+      end;
+
+    procedure ttgobji386.saveusedregisters(var saved : tsaved;b : byte);
+
+      begin
+      end;
+
+    procedure ttgobji386.restoreusedregisters(const saved : tsaved);
+
+      begin
+      end;
+
+    procedure ttgobji386.clearregistercount;
+
+      begin
+      end;
+
+    procedure ttgobji386.resetusableregisters;
+
+      begin
+      end;
 
 begin
    tg.init;
 end.
 {
   $Log$
-  Revision 1.6  2000-01-07 01:14:57  peter
+  Revision 1.7  2000-03-01 15:36:13  florian
+    * some new stuff for the new cg
+
+  Revision 1.6  2000/01/07 01:14:57  peter
     * updated copyright to 2000
 
   Revision 1.5  1999/09/15 20:35:47  florian

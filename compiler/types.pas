@@ -175,11 +175,38 @@ interface
     { returns true, if sym needs an entry in the proplist of a class rtti }
     function needs_prop_entry(sym : psym) : boolean;
 
+    { returns true, if p contains data which needs init/final code }
+    function needs_init_final(p : psymtable) : boolean;
+
 implementation
 
     uses
        strings,globtype,globals,htypechk,
        tree,verbose,symconst;
+
+    var
+       b_needs_init_final : boolean;
+
+    procedure _needs_init_final(p : pnamedindexobject);{$ifndef FPC}far;{$endif}
+
+
+      begin
+         if (psym(p)^.typ=varsym) and
+           assigned(pvarsym(p)^.vartype.def) and
+           not((pvarsym(p)^.vartype.def^.deftype=objectdef) and
+           pobjectdef(pvarsym(p)^.vartype.def)^.is_class) and
+           pvarsym(p)^.vartype.def^.needs_inittable then
+           b_needs_init_final:=true;
+      end;
+
+    { returns true, if p contains data which needs init/final code }
+    function needs_init_final(p : psymtable) : boolean;
+
+      begin
+         b_needs_init_final:=false;
+         p^.foreach({$ifndef TP}@{$endif}_needs_init_final);
+         needs_init_final:=b_needs_init_final;
+      end;
 
     function needs_prop_entry(sym : psym) : boolean;
 
@@ -1014,7 +1041,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.98  2000-02-28 17:23:57  daniel
+  Revision 1.99  2000-03-01 15:36:12  florian
+    * some new stuff for the new cg
+
+  Revision 1.98  2000/02/28 17:23:57  daniel
   * Current work of symtable integration committed. The symtable can be
     activated by defining 'newst', but doesn't compile yet. Changes in type
     checking and oop are completed. What is left is to write a new

@@ -166,6 +166,10 @@ Type
          LOC_MEM,
          LOC_REFERENCE,
          LOC_JUMP,
+         { the alpha doesn't have flags, but this }
+         { avoid some conditional compiling       }
+         { DON'T USE for the alpha                }
+         LOC_FLAGS,
          LOC_CREGISTER,
          LOC_CONST);
 
@@ -299,7 +303,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.16  2000-01-07 01:14:56  peter
+  Revision 1.17  2000-03-01 15:36:13  florian
+    * some new stuff for the new cg
+
+  Revision 1.16  2000/01/07 01:14:56  peter
     * updated copyright to 2000
 
   Revision 1.15  1999/11/09 22:57:09  peter

@@ -29,8 +29,6 @@ unit cgobj;
        cobjects,aasm,symtable,symconst,cpuasm,cpubase,cgbase,cpuinfo,tainst;
 
     type
-       qword = comp;
-
        talignment = (AM_NATURAL,AM_NONE,AM_2BYTE,AM_4BYTE,AM_8BYTE);
 
        pcg = ^tcg;
@@ -1116,7 +1114,10 @@ unit cgobj;
 end.
 {
   $Log$
-  Revision 1.34  2000-02-20 20:49:46  florian
+  Revision 1.35  2000-03-01 15:36:13  florian
+    * some new stuff for the new cg
+
+  Revision 1.34  2000/02/20 20:49:46  florian
     * newcg is compiling
     * fixed the dup id problem reported by Paul Y.
 

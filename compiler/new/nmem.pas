@@ -45,20 +45,21 @@ unit nmem;
        passignmentnode = ^tassignmentnode;
        tassignmentnode = object(tbinarynode)
           assigntyp : tassigntyp;
-          concat_string : boolean;
           constructor init(l,r : pnode);
           destructor done;virtual;
           procedure det_temp;virtual;
           procedure det_resulttype;virtual;
           procedure secondpass;virtual;
-          procedure loadansistring;
-          procedure loadshortstring;
-          procedure loadansi2short(l,r : pnode);
        end;
 
     var
        { this is necessary for the const section }
        simple_loadn : boolean;
+
+       p2_assignment : procedure(p : passignmentnode);
+       p2_assignment_flags : procedure(p : passignmentnode);
+       p2_assignment_string : procedure(p : passignmentnode);
+       p2_assignment_int64_reg : procedure(p : passignmentnode);
 
   implementation
 
@@ -323,80 +324,9 @@ unit nmem;
          inherited done;
       end;
 
-    procedure tassignmentnode.loadansistring;
-
-      begin
-         abstract;
-      end;
-
-    procedure tassignmentnode.loadshortstring;
-
-      begin
-         abstract;
-      end;
-
-    procedure tassignmentnode.loadansi2short(l,r : pnode);
-
-      begin
-         abstract;
-      end;
-
     procedure tassignmentnode.det_temp;
 
       begin
-{$ifdef dummy}
-         store_valid:=must_be_valid;
-         must_be_valid:=false;
-
-         { must be made unique }
-         set_unique(p^.left);
-
-         firstpass(p^.left);
-         if codegenerror then
-           exit;
-
-         { test if we can avoid copying string to temp
-           as in s:=s+...; (PM) }
-         must_be_valid:=true;
-         firstpass(p^.right);
-         must_be_valid:=store_valid;
-         if codegenerror then
-           exit;
-
-         { some string functions don't need conversion, so treat them separatly }
-         if is_shortstring(p^.left^.resulttype) and (assigned(p^.right^.resulttype)) then
-          begin
-            if not (is_shortstring(p^.right^.resulttype) or
-                    is_ansistring(p^.right^.resulttype) or
-                    is_char(p^.right^.resulttype)) then
-             begin
-               p^.right:=gentypeconvnode(p^.right,p^.left^.resulttype);
-               firstpass(p^.right);
-               if codegenerror then
-                exit;
-             end;
-            { we call STRCOPY }
-            procinfo.flags:=procinfo.flags or pi_do_call;
-            hp:=p^.right;
-          end
-         else
-          begin
-            p^.right:=gentypeconvnode(p^.right,p^.left^.resulttype);
-            firstpass(p^.right);
-            if codegenerror then
-             exit;
-          end;
-
-         { set assigned flag for varsyms }
-         if (p^.left^.treetype=loadn) and
-            (p^.left^.symtableentry^.typ=varsym) and
-            (pvarsym(p^.left^.symtableentry)^.varstate=vs_declared) then
-           pvarsym(p^.left^.symtableentry)^.varstate:=vs_assigned;
-
-         p^.registersint:=p^.left^.registersint+p^.right^.registersint;
-         p^.registersfpu:=max(p^.left^.registersfpu,p^.right^.registersfpu);
-         p^.registersmm:=max(p^.left^.registersmm,p^.right^.registersmm);
-{$endif dummy}
       end;
 
     procedure tassignmentnode.det_resulttype;
@@ -409,206 +339,228 @@ unit nmem;
            CGMessage(type_e_mismatch);
       end;
 
-    procedure tassignmentnode.secondpass;
-
-      var
-         r : treference;
-         opsize : tcgsize;
+    { updated from old cg on 29.2.00 by FK }
+    procedure generic_p2_stringassignment(p : passignmentnode);
 
       begin
-         if left^.resulttype^.deftype=stringdef then
+         if is_ansistring(left^.resulttype) then
            begin
-              if is_ansistring(left^.resulttype) then
-                begin
-                  { the source and destinations are released
-                    in loadansistring, because an ansi string can
-                    also be in a register
-                  }
-                  loadansistring;
-                end
-              else
-              if is_shortstring(left^.resulttype) then
-                begin
-                  if is_ansistring(right^.resulttype) then
-                    begin
-                      if (right^.treetype=stringconstn) and
-                         (pstringconstnode(right)^.length=0) then
-                        begin
-                           cg^.a_load_const_ref(list,OS_8,0,left^.location.reference);
-                           tg.del_reference(left^.location.reference);
-                        end
-                      else
-                        loadansi2short(right,left);
-                    end
-                  else
-                    begin
-                       { we do not need destination anymore }
-                       tg.del_reference(left^.location.reference);
-                       tg.del_reference(right^.location.reference);
-                       loadshortstring;
-                       tg.ungetiftemp(right^.location.reference);
-                    end;
-                end
-              else if is_longstring(left^.resulttype) then
-                begin
-                   abstract;
-                end
-              else
-                begin
-                  { its the only thing we have to do }
-                  tg.del_reference(right^.location.reference);
-                end
+             { the source and destinations are released
+               in loadansistring, because an ansi string can
+               also be in a register
+             }
+             loadansistring;
            end
-        else case right^.location.loc of
+         else
+         if is_shortstring(left^.resulttype) then
+           begin
+             if is_ansistring(right^.resulttype) then
+               begin
+                 if (right^.treetype=stringconstn) and
+                    (pstringconstnode(right)^.length=0) then
+                   begin
+                      cg^.a_load_const_ref(list,OS_8,0,left^.location.reference);
+                      tg.del_reference(left^.location.reference);
+                   end
+                 else
+                   loadansi2short(right,left);
+               end
+             else
+               begin
+                  { we do not need destination anymore }
+                  tg.del_reference(left^.location.reference);
+                  { tg.del_reference(right^.location.reference);
+                    done in loadshortstring }
+                  loadshortstring;
+                  tg.ungetiftemp(right^.location.reference);
+               end;
+           end
+         else if is_longstring(left^.resulttype) then
+           begin
+              abstract;
+           end
+         else
+           begin
+             { its the only thing we have to do }
+             tg.del_reference(right^.location.reference);
+           end
+      end;
+
+    procedure generic_p2_assignment_int64_reg(p : passignmentnode);
+
+      begin
+         { we don't know it better here }
+         generic_p2_assignment(p);
+      end;
+
+    { updated from old cg on 29.2.00 by FK }
+    procedure generic_p2_assignment_flags(p : passignmentnode);
+
+      begin
+         { for example the alpha doesn't have flags }
+         abstract;
+      end;
+
+    { updated from old cg on 29.2.00 by FK }
+    procedure generic_p2_assignment(p : passignmentnode);
+
+      var
+         opsize : topsize;
+         otlabel,hlabel,oflabel : pasmlabel;
+         fputyp : tfloattype;
+         loc : tloc;
+         r : preference;
+         ai : paicpu;
+         op : tasmop;
+
+      begin
+         loc:=left^.location.loc;
+         case right^.location.loc of
             LOC_REFERENCE,
             LOC_MEM : begin
-{$ifdef dummy}
                          { extra handling for ordinal constants }
-                         if (right^.treetype in [ordconstn,fixconstn]) or
+                         if (p^.right^.treetype in [ordconstn,fixconstn]) or
                             (loc=LOC_CREGISTER) then
                            begin
                               case p^.left^.resulttype^.size of
-                                 1 : opsize:=OS_B;
-                                 2 : opsize:=OS_W;
-                                 4 : opsize:=OS_L;
-                                 { S_L is correct, the copy is done }
-                                 { with two moves                   }
-                                 8 : opsize:=OS_L;
+                                 1 : opsize:=OS_8;
+                                 2 : opsize:=OS_16;
+                                 4 : opsize:=OS_32;
+                                 8 : opsize:=OS_64;
                               end;
                               if loc=LOC_CREGISTER then
                                 begin
-                                  exprasmlist^.concat(new(paicpu,op_ref_reg(A_MOV,opsize,
+                                  emit_ref_reg(A_MOV,opsize,
                                     newreference(p^.right^.location.reference),
-                                    p^.left^.location.register)));
+                                    p^.left^.location.register);
+
+                         !!!!!!!!!!!! only 32 bit cpus
                                   if is_64bitint(p^.right^.resulttype) then
                                     begin
                                        r:=newreference(p^.right^.location.reference);
                                        inc(r^.offset,4);
-                                       exprasmlist^.concat(new(paicpu,op_ref_reg(A_MOV,opsize,r,
-                                         p^.left^.location.registerhigh)));
+                                       emit_ref_reg(A_MOV,opsize,r,
+                                         p^.left^.location.registerhigh);
                                     end;
-{$IfDef regallocfix}
-                                  del_reference(p^.right^.location.reference);
-{$EndIf regallocfix}
+                                  tg.del_reference(right^.location.reference);
                                 end
                               else
                                 begin
-                                  exprasmlist^.concat(new(paicpu,op_const_ref(A_MOV,opsize,
+                                  emit_const_ref(A_MOV,opsize,
                                     p^.right^.location.reference.offset,
-                                    newreference(p^.left^.location.reference))));
+                                    newreference(p^.left^.location.reference));
+
+                         !!!!!!!!!!!! only 32 bit cpus
                                   if is_64bitint(p^.right^.resulttype) then
                                     begin
                                        r:=newreference(p^.left^.location.reference);
                                        inc(r^.offset,4);
-                                       exprasmlist^.concat(new(paicpu,op_const_ref(A_MOV,opsize,
-                                         0,r)));
+                                       emit_const_ref(A_MOV,opsize,
+                                         0,r);
                                     end;
-{$IfDef regallocfix}
-                                  del_reference(p^.left^.location.reference);
-{$EndIf regallocfix}
-                                {exprasmlist^.concat(new(paicpu,op_const_loc(A_MOV,opsize,
-                                    p^.right^.location.reference.offset,
-                                    p^.left^.location)));}
+                                  del_reference(left^.location.reference);
                                 end;
 
                            end
+
+                         !!!!!!!!!!!! only 386
                          else if loc=LOC_CFPUREGISTER then
                            begin
                               floatloadops(pfloatdef(p^.right^.resulttype)^.typ,op,opsize);
-                              exprasmlist^.concat(new(paicpu,op_ref(op,opsize,
-                                newreference(p^.right^.location.reference))));
-                              exprasmlist^.concat(new(paicpu,op_reg(A_FSTP,S_NO,
-                                correct_fpuregister(p^.left^.location.register,fpuvaroffset+1))));
+                              emit_ref(op,opsize,
+                                newreference(p^.right^.location.reference));
+                              emit_reg(A_FSTP,S_NO,
+                                correct_fpuregister(p^.left^.location.register,fpuvaroffset+1));
                            end
                          else
-{$endif dummy}
                            begin
                               if (right^.resulttype^.needs_inittable) and
-                                ( (right^.resulttype^.deftype<>objectdef) or
+                                ((right^.resulttype^.deftype<>objectdef) or
                                   not(pobjectdef(right^.resulttype)^.is_class)) then
                                 begin
                                    { this would be a problem }
                                    if not(left^.resulttype^.needs_inittable) then
-                                     internalerror(3457);
+                                     internalerror(292001);
 
                                    { increment source reference counter }
-                                   r.symbol:=right^.resulttype^.get_inittable_label;
-                                   cg^.a_param_ref_addr(list,r,2);
-                                   cg^.a_param_ref_addr(list,right^.location.reference,1);
-                                   cg^.a_call_name(list,'FPC_ADDREF',0);
-                                   { decrement destination reference counter }
-                                   r.symbol:=left^.resulttype^.get_inittable_label;
-                                   cg^.a_param_ref_addr(list,r,2);
-                                   cg^.a_param_ref_addr(list,left^.location.reference,1);
-                                   cg^.a_call_name(list,'FPC_DECREF',0)
-                                end;
-                              cg^.g_concatcopy(list,right^.location.reference,
-                                left^.location.reference,left^.resulttype^.size,false);
-                              tg.ungetiftemp(right^.location.reference);
-                           end;
+                                   new(r);
+                                   reset_reference(r^);
+                                   r^.symbol:=p^.right^.resulttype^.get_inittable_label;
+                                   emitpushreferenceaddr(r^);
 
+                                   emitpushreferenceaddr(p^.right^.location.reference);
+                                   emitcall('FPC_ADDREF');
+                                   { decrement destination reference counter }
+                                   new(r);
+                                   reset_reference(r^);
+                                   r^.symbol:=p^.left^.resulttype^.get_inittable_label;
+                                   emitpushreferenceaddr(r^);
+                                   emitpushreferenceaddr(p^.left^.location.reference);
+                                   emitcall('FPC_DECREF');
+                                end;
+
+{$ifdef regallocfix}
+                              concatcopy(p^.right^.location.reference,
+                                p^.left^.location.reference,p^.left^.resulttype^.size,true,false);
+                              ungetiftemp(p^.right^.location.reference);
+{$Else regallocfix}
+                              concatcopy(p^.right^.location.reference,
+                                p^.left^.location.reference,p^.left^.resulttype^.size,false,false);
+                              ungetiftemp(p^.right^.location.reference);
+{$endif regallocfix}
+                           end;
                       end;
-                 end;   { needs to be removed together with the dummy }
-{$ifdef dummy}
 {$ifdef SUPPORT_MMX}
             LOC_CMMXREGISTER,
             LOC_MMXREGISTER:
               begin
                  if loc=LOC_CMMXREGISTER then
-                   exprasmlist^.concat(new(paicpu,op_reg_reg(A_MOVQ,S_NO,
-                   p^.right^.location.register,p^.left^.location.register)))
+                   emit_reg_reg(A_MOVQ,S_NO,
+                   p^.right^.location.register,p^.left^.location.register)
                  else
-                   exprasmlist^.concat(new(paicpu,op_reg_ref(A_MOVQ,S_NO,
-                     p^.right^.location.register,newreference(p^.left^.location.reference))));
+                   emit_reg_ref(A_MOVQ,S_NO,
+                     p^.right^.location.register,newreference(p^.left^.location.reference));
               end;
 {$endif SUPPORT_MMX}
             LOC_REGISTER,
             LOC_CREGISTER : begin
                               case p^.right^.resulttype^.size of
-                                 1 : opsize:=S_B;
-                                 2 : opsize:=S_W;
-                                 4 : opsize:=S_L;
-                                 8 : opsize:=S_L;
+                                 1 : opsize:=OS_8;
+                                 2 : opsize:=OS_16;
+                                 4 : opsize:=OS_32;
+                                 8 : opsize:=OS_64;
                               end;
                               { simplified with op_reg_loc       }
                               if loc=LOC_CREGISTER then
                                 begin
-                                  exprasmlist^.concat(new(paicpu,op_reg_reg(A_MOV,opsize,
+                                  emit_reg_reg(A_MOV,opsize,
                                     p^.right^.location.register,
-                                    p^.left^.location.register)));
-{$IfDef regallocfix}
+                                    p^.left^.location.register);
                                  ungetregister(p^.right^.location.register);
-{$EndIf regallocfix}
                                 end
                               else
                                 Begin
-                                  exprasmlist^.concat(new(paicpu,op_reg_ref(A_MOV,opsize,
+                                  emit_reg_ref(A_MOV,opsize,
                                     p^.right^.location.register,
-                                    newreference(p^.left^.location.reference))));
-{$IfDef regallocfix}
+                                    newreference(p^.left^.location.reference));
                                   ungetregister(p^.right^.location.register);
                                   del_reference(p^.left^.location.reference);
-{$EndIf regallocfix}
                                 end;
                               if is_64bitint(p^.right^.resulttype) then
                                 begin
                                    { simplified with op_reg_loc  }
                                    if loc=LOC_CREGISTER then
-                                     exprasmlist^.concat(new(paicpu,op_reg_reg(A_MOV,opsize,
+                                     emit_reg_reg(A_MOV,opsize,
                                        p^.right^.location.registerhigh,
-                                       p^.left^.location.registerhigh)))
+                                       p^.left^.location.registerhigh)
                                    else
                                      begin
                                         r:=newreference(p^.left^.location.reference);
                                         inc(r^.offset,4);
-                                        exprasmlist^.concat(new(paicpu,op_reg_ref(A_MOV,opsize,
-                                          p^.right^.location.registerhigh,r)));
+                                        emit_reg_ref(A_MOV,opsize,
+                                          p^.right^.location.registerhigh,r);
                                      end;
                                 end;
-                              {exprasmlist^.concat(new(paicpu,op_reg_loc(A_MOV,opsize,
-                                  p^.right^.location.register,
-                                  p^.left^.location)));      }
-
                            end;
             LOC_FPU : begin
                               if (p^.left^.resulttype^.deftype=floatdef) then
@@ -625,8 +577,8 @@ unit nmem;
                               case loc of
                                  LOC_CFPUREGISTER:
                                    begin
-                                      exprasmlist^.concat(new(paicpu,op_reg(A_FSTP,S_NO,
-                                        correct_fpuregister(p^.left^.location.register,fpuvaroffset))));
+                                      emit_reg(A_FSTP,S_NO,
+                                        correct_fpuregister(p^.left^.location.register,fpuvaroffset));
                                       dec(fpuvaroffset);
                                    end;
                                  LOC_REFERENCE:
@@ -635,6 +587,8 @@ unit nmem;
                                    internalerror(48991);
                               end;
                            end;
+
+                         !!!!!!!!!!!! only 386
             LOC_CFPUREGISTER: begin
                               if (p^.left^.resulttype^.deftype=floatdef) then
                                fputyp:=pfloatdef(p^.left^.resulttype)^.typ
@@ -647,14 +601,14 @@ unit nmem;
                                 fputyp:=pfloatdef(p^.right^.left^.resulttype)^.typ
                               else
                                 fputyp:=s32real;
-                              exprasmlist^.concat(new(paicpu,op_reg(A_FLD,S_NO,
-                                correct_fpuregister(p^.right^.location.register,fpuvaroffset))));
+                              emit_reg(A_FLD,S_NO,
+                                correct_fpuregister(p^.right^.location.register,fpuvaroffset));
                               inc(fpuvaroffset);
                               case loc of
                                  LOC_CFPUREGISTER:
                                    begin
-                                      exprasmlist^.concat(new(paicpu,op_reg(A_FSTP,S_NO,
-                                        correct_fpuregister(p^.right^.location.register,fpuvaroffset))));
+                                      emit_reg(A_FSTP,S_NO,
+                                        correct_fpuregister(p^.right^.location.register,fpuvaroffset));
                                       dec(fpuvaroffset);
                                    end;
                                  LOC_REFERENCE:
@@ -664,54 +618,81 @@ unit nmem;
                               end;
                            end;
             LOC_JUMP     : begin
+                              { support every type of boolean here }
+                              case p^.right^.resulttype^.size of
+                                 1 : opsize:=OS_8;
+                                 2 : opsize:=OS_16;
+                                 4 : opsize:=OS_32;
+                                 { this leads to an efficiency of 1.5   }
+                                 { per cent regarding memory usage .... }
+                                 8 : opsize:=OS_64;
+                              end;
                               getlabel(hlabel);
-                              emitlab(truelabel);
+                              a_label(p^.list,p^.truelabel);
                               if loc=LOC_CREGISTER then
-                                exprasmlist^.concat(new(paicpu,op_const_reg(A_MOV,S_B,
-                                  1,p^.left^.location.register)))
+                                a_load_const_reg(p^.list,opsize,1,
+                                  p^.left^.location.register)
                               else
-                                exprasmlist^.concat(new(paicpu,op_const_ref(A_MOV,S_B,
-                                  1,newreference(p^.left^.location.reference))));
-                              {exprasmlist^.concat(new(paicpu,op_const_loc(A_MOV,S_B,
-                                  1,p^.left^.location)));}
-                              emitjmp(C_None,hlabel);
-                              emitlab(falselabel);
+                                a_load_const_ref(p^.list,opsize,1,
+                                  newreference(p^.left^.location.reference));
+                              a_jmp_cond(p^.list,C_None,hlabel);
+                              a_label(p^.list,p^.falselabel);
+
                               if loc=LOC_CREGISTER then
-                                exprasmlist^.concat(new(paicpu,op_reg_reg(A_XOR,S_B,
-                                  p^.left^.location.register,
-                                  p^.left^.location.register)))
+                                a_load_const_reg(p^.list,opsize,0,
+                                  p^.left^.location.register);
                               else
                                 begin
-                                  exprasmlist^.concat(new(paicpu,op_const_ref(A_MOV,S_B,
-                                    0,newreference(p^.left^.location.reference))));
-{$IfDef regallocfix}
-                                  del_reference(p^.left^.location.reference);
-{$EndIf regallocfix}
+                                  a_load_const_ref(p^.list,opsize,0,
+                                    newreference(p^.left^.location.reference));
+                                  tg.del_reference(p^.left^.location.reference);
                                  end;
-                              emitlab(hlabel);
+                              a_label(p^.list,hlabel);
                            end;
-            LOC_FLAGS    : begin
-                              if loc=LOC_CREGISTER then
-                                emit_flag2reg(p^.right^.location.resflags,p^.left^.location.register)
-                              else
-                                begin
-                                  ai:=new(paicpu,op_ref(A_Setcc,S_B,newreference(p^.left^.location.reference)));
-                                  ai^.SetCondition(flag_2_cond[p^.right^.location.resflags]);
-                                  exprasmlist^.concat(ai);
-                                end;
-{$IfDef regallocfix}
-                              del_reference(p^.left^.location.reference);
-{$EndIf regallocfix}
-                           end;
-            else internalerror(68997);
+            LOC_FLAGS:
+              p2_assignment_flags(p);
          end;
-{$endif dummy}
       end;
 
+
+    procedure tassignmentnode.secondpass;
+
+      var
+         r : treference;
+         opsize : tcgsize;
+
+      begin
+         if not(left^.location.loc in lvaluelocations) then
+           begin
+              CGMessage(cg_e_illegal_expression);
+              exit;
+           end;
+         if left^.resulttype^.deftype=stringdef then
+           p2_assignment_string(@self);
+         { if is an int64 which has to do with registers, we
+           need to call probably a procedure for 32 bit processors
+         }
+         else if is_64bitint(left^.resulttype) and
+           ((left^.location in [LOC_REGISGTER,LOC_CREGISTER) or
+            (left^.location in [LOC_REGISGTER,LOC_CREGISTER)) then
+         else
+           p2_assignment_int64_reg(@self)
+         else
+           p2_assignment(@self);
+      end;
+
+begin
+   p2_assignment:=@generic_p2_assignment;
+   p2_assignment_flags:=p2_assignment_flags;
+   p2_assignment_string:=@generic_p2_assignment_string;
+   p2_assignment_int64_reg:=@generic_p2_assignment_int64_reg;
 end.
 {
   $Log$
-  Revision 1.16  2000-01-07 01:14:53  peter
+  Revision 1.17  2000-03-01 15:36:13  florian
+    * some new stuff for the new cg
+
+  Revision 1.16  2000/01/07 01:14:53  peter
     * updated copyright to 2000
 
   Revision 1.15  1999/12/06 18:17:10  peter

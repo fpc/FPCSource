@@ -3298,16 +3298,31 @@ procedure mov_reg_to_dest(p : ptree; s : topsize; reg : tregister);
       if not(po_assembler in aktprocsym^.definition^.procoptions) then
         aktprocsym^.definition^.parast^.foreach({$ifndef TP}@{$endif}copyvalueparas);
 
-      { initialisizes local data }
-      aktprocsym^.definition^.localst^.foreach({$ifndef TP}@{$endif}initialize_data);
+      { initialisize local data like ansistrings }
+      case aktprocsym^.definition^.proctypeoption of
+         potype_unitinit:
+           begin
+              { using current_module^.globalsymtable is hopefully      }
+              { more robust than symtablestack and symtablestack^.next }
+              psymtable(current_module^.globalsymtable)^.foreach({$ifndef TP}@{$endif}initialize_data);
+              psymtable(current_module^.localsymtable)^.foreach({$ifndef TP}@{$endif}initialize_data);
+           end;
+         { units have seperate code for initilization and finalization }
+         potype_unitfinalize: ;
+         else
+           aktprocsym^.definition^.localst^.foreach({$ifndef TP}@{$endif}initialize_data);
+      end;
+
       { add a reference to all call by value/const parameters }
       aktprocsym^.definition^.parast^.foreach({$ifndef TP}@{$endif}incr_data);
 
-      { initilisizes temp. ansi/wide string data }
+      { initialisizes temp. ansi/wide string data }
       inittempansistrings;
 
       { do we need an exception frame because of ansi/widestrings ? }
-      if (procinfo^.flags and pi_needs_implicit_finally)<>0 then
+      if ((procinfo^.flags and pi_needs_implicit_finally)<>0) and
+      { but it's useless in init/final code of units }
+        not(aktprocsym^.definition^.proctypeoption in [potype_unitfinalize,potype_unitinit]) then
         begin
             usedinproc:=usedinproc or ($80 shr byte(R_EAX));
 
@@ -3491,15 +3506,29 @@ procedure mov_reg_to_dest(p : ptree; s : topsize; reg : tregister);
       { finalize temporary data }
       finalizetempansistrings;
 
-      { finalize local data }
-      aktprocsym^.definition^.localst^.foreach({$ifndef TP}@{$endif}finalize_data);
+      { finalize local data like ansistrings}
+      case aktprocsym^.definition^.proctypeoption of
+         potype_unitfinalize:
+           begin
+              { using current_module^.globalsymtable is hopefully      }
+              { more robust than symtablestack and symtablestack^.next }
+              psymtable(current_module^.globalsymtable)^.foreach({$ifndef TP}@{$endif}finalize_data);
+              psymtable(current_module^.localsymtable)^.foreach({$ifndef TP}@{$endif}finalize_data);
+           end;
+         { units have seperate code for initialization and finalization }
+         potype_unitinit: ;
+         else
+           aktprocsym^.definition^.localst^.foreach({$ifndef TP}@{$endif}finalize_data);
+      end;
 
       { finalize paras data }
       if assigned(aktprocsym^.definition^.parast) then
         aktprocsym^.definition^.parast^.foreach({$ifndef TP}@{$endif}finalize_data);
 
       { do we need to handle exceptions because of ansi/widestrings ? }
-      if (procinfo^.flags and pi_needs_implicit_finally)<>0 then
+      if ((procinfo^.flags and pi_needs_implicit_finally)<>0) and
+      { but it's useless in init/final code of units }
+        not(aktprocsym^.definition^.proctypeoption in [potype_unitfinalize,potype_unitinit]) then
         begin
            { the exception helper routines modify all registers }
            aktprocsym^.definition^.usedregisters:=$ff;
@@ -3782,7 +3811,10 @@ procedure mov_reg_to_dest(p : ptree; s : topsize; reg : tregister);
 end.
 {
   $Log$
-  Revision 1.85  2000-03-01 12:35:44  pierre
+  Revision 1.86  2000-03-01 15:36:11  florian
+    * some new stuff for the new cg
+
+  Revision 1.85  2000/03/01 12:35:44  pierre
    * fix for bug 855
 
   Revision 1.84  2000/03/01 00:03:12  pierre

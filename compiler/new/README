@@ -32,6 +32,8 @@ intregs                    all!! available integer register
 fpuregs                    all!! available fpu register
 mmregs                     all!! available multimedia register
 
+lvaluelocations            a set of all locations which can be an l-value
+
 Intel specific
 --------------
 unusedregssse
@@ -39,9 +41,9 @@ availabletempregssse
 countusableregssse
 
 Jonas Maebe schrieb:
-> 
+>
 > Hello,
-> 
+>
 > Is there any difference between the localsize parameter of
 > g_stackframe_entry and the parasize parameter of g_return_from_proc, or
 > are they both the same value?
@@ -50,7 +52,7 @@ They are different, I think the value of g_return_from_proc doesn't matter
 for the PowerPC. It's the size of parameters passed on the stack
 and only important for the i386/m68k probably.
 
-> 
+>
 > And for the PowerPC, what will they contain? Just the size of the local
 > variables and parameters, or also the maximum needed size for parameters
 > of any procedure called by the current one (the caller must reserve space
@@ -67,7 +69,32 @@ I'll commit it soon) will contain
 all registers which must be saved by the entry and restored by the exit code of a procedure
 and you have to add extra space to do that.
 
+The code generation
+-------------------
 
+The code generation can be seperated into 3 layers:
+1. the method secondpass of the tnode childs
+2. the procedure variables p2_
+3. the code generator object
+
+1.: This procedure does very high level stuff, if the code generation
+is processor independed, it calls the appropriate procedures of the
+code generator object to generate the code, but in most cases, it
+calls procedure variables of the second layer
+
+2. This procedure variables must be initialized to match to the match the
+current processor
+
+The following procedure variables are currently used
+
+   Name                      Purpose                 Alternatives
+-----------------------------------------------------------------------------
+p2_assignment
+p2_assignment_int64_reg   Do an assignment of a int64
+
+
+3. The code generator object does very basic operations like generating
+move code etc.
 
 Alignment
 ---------
@@ -83,7 +110,9 @@ CVS Log
 -------
 
 $Log$
-Revision 1.4  1999-10-14 14:57:54  florian
-  - removed the hcodegen use in the new cg, use cgbase instead
+Revision 1.5  2000-03-01 15:36:12  florian
+  * some new stuff for the new cg
 
+Revision 1.4  1999/10/14 14:57:54  florian
+  - removed the hcodegen use in the new cg, use cgbase instead
 

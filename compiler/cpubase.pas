@@ -509,6 +509,9 @@ const
   fpuregs = [];
   mmregs = [R_MM0..R_MM7];
 
+  lvaluelocations = [LOC_REFERENCE,LOC_CFPUREGISTER,
+    LOC_CREGISTER,LOC_MMXREGISTER,LOC_CMMXREGISTER];
+
   registers_saved_on_cdecl = [R_ESI,R_EDI,R_EBX];
 
   { generic register names }
@@ -901,7 +904,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.22  2000-02-09 13:22:51  peter
+  Revision 1.23  2000-03-01 15:36:11  florian
+    * some new stuff for the new cg
+
+  Revision 1.22  2000/02/09 13:22:51  peter
     * log truncated
 
   Revision 1.21  2000/01/28 09:41:39  peter

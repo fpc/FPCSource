@@ -407,46 +407,8 @@ implementation
          if codegenerror then
            exit;
 
-{$ifdef dummy}
-         { we use now the standard mechanism via maybe_push/restore
-           to do that (FK)
-         }
-         case p^.left^.location.loc of
-            LOC_REFERENCE : begin
-                              { in case left operator uses to register }
-                              { but to few are free then LEA }
-                              if (p^.left^.location.reference.base<>R_NO) and
-                                 (p^.left^.location.reference.index<>R_NO) and
-                                 (usablereg32<p^.right^.registers32) then
-                                begin
-                                   del_reference(p^.left^.location.reference);
-                                   hregister:=getregister32;
-                                   emit_ref_reg(A_LEA,S_L,newreference(
-                                     p^.left^.location.reference),
-                                     hregister);
-                                   reset_reference(p^.left^.location.reference);
-                                   p^.left^.location.reference.base:=hregister;
-                                   p^.left^.location.reference.index:=R_NO;
-                                end;
-                              loc:=LOC_REFERENCE;
-                           end;
-            LOC_CFPUREGISTER:
-              loc:=LOC_CFPUREGISTER;
-            LOC_CREGISTER:
-              loc:=LOC_CREGISTER;
-            LOC_MMXREGISTER:
-              loc:=LOC_MMXREGISTER;
-            LOC_CMMXREGISTER:
-              loc:=LOC_CMMXREGISTER;
-            else
-               begin
-                  CGMessage(cg_e_illegal_expression);
-                  exit;
-               end;
-         end;
-{$endif dummy}
          if not(p^.left^.location.loc in [LOC_REFERENCE,LOC_CFPUREGISTER,
-           LOC_CREGISTER,LOC_MMXREGISTER,LOC_CMMXREGISTER]) then
+           LOC_CREGISTER,LOC_CMMXREGISTER]) then
            begin
               CGMessage(cg_e_illegal_expression);
               exit;
@@ -513,9 +475,7 @@ implementation
                         begin
                           emit_const_ref(A_MOV,S_B,
                             0,newreference(p^.left^.location.reference));
-{$IfDef regallocfix}
                           del_reference(p^.left^.location.reference);
-{$EndIf regallocfix}
                         end
                       else
                         loadansi2short(p^.right,p^.left);
@@ -1019,7 +979,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.102  2000-03-01 13:20:33  pierre
+  Revision 1.103  2000-03-01 15:36:11  florian
+    * some new stuff for the new cg
+
+  Revision 1.102  2000/03/01 13:20:33  pierre
    * fix for bug 859
 
   Revision 1.101  2000/03/01 00:03:11  pierre

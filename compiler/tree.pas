@@ -369,7 +369,7 @@ unit tree;
 {$I innr.inc}
 
 {$ifdef newcg}
-{$I new/nodeh.inc}
+{$I nodeh.inc}
 {$endif newcg}
   implementation
 
@@ -2061,12 +2061,15 @@ unit tree;
       end;
 
 {$ifdef newcg}
-{$I new/node.inc}
+{$I node.inc}
 {$endif newcg}
 end.
 {
   $Log$
-  Revision 1.115  2000-03-01 11:43:55  daniel
+  Revision 1.116  2000-03-01 15:36:12  florian
+    * some new stuff for the new cg
+
+  Revision 1.115  2000/03/01 11:43:55  daniel
   * Some more work on the new symtable.
   + Symtable stack unit 'symstack' added.
 

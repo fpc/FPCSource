@@ -44,7 +44,7 @@ unit pmodules;
        globtype,version,systems,tokens,
        cobjects,comphook,compiler,
        globals,verbose,files,
-       symconst,symtable,aasm,
+       symconst,symtable,aasm,types,
 {$ifdef newcg}
        cgbase,
 {$else newcg}
@@ -963,6 +963,8 @@ unit pmodules;
         store_crc,store_interface_crc : longint;
 {$endif}
          s1,s2  : ^string; {Saves stack space}
+         force_init_final : boolean;
+
       begin
          consume(_UNIT);
          if Compile_Level=1 then
@@ -1195,6 +1197,11 @@ unit pmodules;
 
          { avoid self recursive destructor call !! PM }
          aktprocsym^.definition^.localst:=nil;
+
+         { if the unit contains ansi/widestrings, initialization and
+           finalization code must be forced }
+         force_init_final:=needs_init_final(current_module^.globalsymtable)
+           or needs_init_final(current_module^.localsymtable);
 
          { finalize? }
          if token=_FINALIZATION then
@@ -1632,7 +1639,10 @@ unit pmodules;
 end.
 {
   $Log$
-  Revision 1.185  2000-02-09 13:22:57  peter
+  Revision 1.186  2000-03-01 15:36:11  florian
+    * some new stuff for the new cg
+
+  Revision 1.185  2000/02/09 13:22:57  peter
     * log truncated
 
   Revision 1.184  2000/02/06 17:20:53  peter
