@@ -1255,11 +1255,21 @@
          tsym.done;
       end;
 
-    function ttypedconstsym.mangledname : string;
 
+    function ttypedconstsym.mangledname : string;
       begin
          mangledname:='TC_'+prefix^+'_'+name;
       end;
+
+
+    function ttypedconstsym.getsize : longint;
+      begin
+        if assigned(definition) then
+         getsize:=definition^.size
+        else
+         getsize:=0;
+      end;
+
 
     procedure ttypedconstsym.deref;
 
@@ -1718,7 +1728,10 @@
 
 {
   $Log$
-  Revision 1.56  1998-10-28 18:26:18  pierre
+  Revision 1.57  1998-11-05 23:39:31  peter
+    + typedconst.getsize
+
+  Revision 1.56  1998/10/28 18:26:18  pierre
    * removed some erros after other errors (introduced by useexcept)
    * stabs works again correctly (for how long !)
 

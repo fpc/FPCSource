@@ -260,6 +260,7 @@
           function  mangledname : string;virtual;
           procedure write;virtual;
           procedure deref;virtual;
+          function  getsize:longint;
           procedure insert_in_data;virtual;
           procedure really_insert_in_data;
 {$ifdef GDB}
@@ -318,7 +319,10 @@
 
 {
   $Log$
-  Revision 1.4  1998-10-20 08:07:02  pierre
+  Revision 1.5  1998-11-05 23:39:32  peter
+    + typedconst.getsize
+
+  Revision 1.4  1998/10/20 08:07:02  pierre
     * several memory corruptions due to double freemem solved
       => never use p^.loc.location:=p^.left^.loc.location;
     + finally I added now by default
