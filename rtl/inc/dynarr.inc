@@ -90,10 +90,14 @@ procedure fpc_dynarray_clear_internal(p : pointer;ti : pointer);
 
 
 procedure fpc_dynarray_clear(var p : pointer;ti : pointer); [Public,Alias:'FPC_DYNARRAY_CLEAR']; {$ifdef hascompilerproc} compilerproc; {$endif}
+  var
+     realp : pdynarray;
   begin
     if (P=Nil) then 
       exit;
-    fpc_dynarray_clear_internal(p-sizeof(tdynarray),ti);
+    realp:=pdynarray(p-sizeof(tdynarray));
+    if declocked(realp^.refcount) then
+      fpc_dynarray_clear_internal(p-sizeof(tdynarray),ti);
     p:=nil;
   end;
 
@@ -195,14 +199,15 @@ procedure fpc_dynarray_setlength(var p : pointer;pti : pointer;
      else
        begin
           realp:=pdynarray(p-sizeof(tdynarray));
-
-          if dims[dimcount-1]<0 then
-            HandleErrorFrame(201,get_frame);
+          newp := realp;
 
           { if the new dimension is 0, we've to release all data }
-          if dims[dimcount-1]=0 then
+          if dims[dimcount-1]<=0 then
             begin
-               fpc_dynarray_clear_internal(realp,pdynarraytypeinfo(pti));
+               if dims[dimcount-1]<0 then
+                 HandleErrorFrame(201,get_frame);
+               if declocked(realp^.refcount) then
+                 fpc_dynarray_clear_internal(realp,pdynarraytypeinfo(pti));
                p:=nil;
                exit;
             end;
@@ -236,7 +241,6 @@ procedure fpc_dynarray_setlength(var p : pointer;pti : pointer;
             end
           else if dims[dimcount-1]<>realp^.high+1 then
             begin
-
                { range checking is quite difficult ...  }
                { if size overflows then it is less than }
                { the values it was calculated from      }
@@ -344,7 +348,10 @@ procedure fpc_dynarray_copy(var pdest : pointer;psrc : pointer;ti : pointer;
 
 {
   $Log$
-  Revision 1.28  2004-05-31 20:25:04  peter
+  Revision 1.29  2004-09-15 07:28:09  michael
+  + Fix crash when resizing dynamic array
+
+  Revision 1.28  2004/05/31 20:25:04  peter
     * removed warnings
 
   Revision 1.27  2004/05/31 14:31:57  peter
