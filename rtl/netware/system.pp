@@ -27,13 +27,11 @@ interface
   {$define Set_i386_Exception_handler}
 {$endif cpui386}
 
-
 { include system-independent routine headers }
 
 {$I systemh.inc}
 
-type
- THandle = cardinal;
+type THandle = DWord;
 
 {Platform specific information}
 const
@@ -44,27 +42,16 @@ const
  PathSeparator = ';';
 { FileNameCaseSensitive is defined separately below!!! }
 
-type
-   { the fields of this record are os dependent  }
-   { and they shouldn't be used in a program     }
-   { only the type TCriticalSection is important }
-   TRTLCriticalSection = packed record
-      SemaHandle : LONGINT;
-      SemaIsOpen : BOOLEAN;
-   end;
-
-{ include threading stuff }
-{ i threadh.inc}
 
 { include heap support headers }
 {$I heaph.inc}
 
 CONST
   { Default filehandles }
-   UnusedHandle    : longint = -1;
-   StdInputHandle  : longint = 0;
-   StdOutputHandle : longint = 0;
-   StdErrorHandle  : longint = 0;
+   UnusedHandle    : THandle = -1;
+   StdInputHandle  : THandle = 0;
+   StdOutputHandle : THandle = 0;
+   StdErrorHandle  : THandle = 0;
 
    FileNameCaseSensitive : boolean = false;
 
@@ -261,6 +248,7 @@ var  HeapSbrkBlockList : ^THeapSbrkBlockList = nil;
 { exit (to avoid message "Module did not release xx resources") }
 Function Sbrk(size : longint):pointer;
 var P2 : POINTER;
+    i  : longint;
 begin
   Sbrk := _malloc (size);
   if Sbrk <> nil then begin
@@ -276,6 +264,13 @@ begin
       fillchar (HeapSbrkBlockList^,sizeof(HeapSbrkBlockList^),0);
       HeapSbrkAllocated := HeapInitialMaxBlocks;
     end;
+    if (HeapSbrkLastUsed > 0) then
+      for i := 1 to HeapSbrkLastUsed do
+        if (HeapSbrkBlockList^[i] = nil) then
+        begin  // reuse free slot
+	  HeapSbrkBlockList^[i] := Sbrk;
+	  exit;
+        end;
     if (HeapSbrkLastUsed = HeapSbrkAllocated) then
     begin  { grow }
       p2 := _realloc (HeapSbrkBlockList, HeapSbrkAllocated + HeapInitialMaxBlocks);
@@ -299,7 +294,8 @@ begin
   if HeapSbrkBlockList <> nil then
   begin
     for i := 1 to HeapSbrkLastUsed do
-      _free (HeapSbrkBlockList^[i]);
+      if (HeapSbrkBlockList^[i] <> nil) then
+        _free (HeapSbrkBlockList^[i]);
     _free (HeapSbrkBlockList);
     HeapSbrkAllocated := 0;
     HeapSbrkLastUsed := 0;
@@ -319,8 +315,18 @@ end;
 {$define HAS_SYSOSFREE}
 
 procedure SysOSFree(p: pointer; size: ptrint);
+var i : longint;
 begin
-  fpmunmap(p, size);
+//fpmunmap(p, size);
+  if (HeapSbrkLastUsed > 0) then
+    for i := 1 to HeapSbrkLastUsed do
+      if (HeapSbrkBlockList^[i] = p) then
+      begin
+	_free (p);
+	HeapSbrkBlockList^[i] := nil;
+	exit;
+      end;
+  HandleError (204);  // invalid pointer operation
 end;
 
 { include standard heap management }
@@ -383,7 +389,7 @@ BEGIN
 END;
 
 { close a file from the handle value }
-procedure do_close(handle : longint);
+procedure do_close(handle : thandle);
 VAR res : LONGINT;
 begin
   res := _close (handle);
@@ -413,10 +419,10 @@ begin
     InOutRes := 0
 end;
 
-function do_write(h,addr,len : longint) : longint;
+function do_write(h:thandle;addr:pointer;len : longint) : longint;
 VAR res : LONGINT;
 begin
-  res := _write (h,POINTER(addr),len);
+  res := _write (h,addr,len);
   IF res > 0 THEN
     InOutRes := 0
   ELSE
@@ -424,10 +430,10 @@ begin
   do_write := res;
 end;
 
-function do_read(h,addr,len : longint) : longint;
+function do_read(h:thandle;addr:pointer;len : longint) : longint;
 VAR res : LONGINT;
 begin
-  res := _read (h,POINTER(addr),len);
+  res := _read (h,addr,len);
   IF res > 0 THEN
     InOutRes := 0
   ELSE
@@ -436,7 +442,7 @@ begin
 end;
 
 
-function do_filepos(handle : longint) : longint;
+function do_filepos(handle : thandle) : longint;
 VAR res : LONGINT;
 begin
   InOutRes:=1;
@@ -453,7 +459,7 @@ CONST SEEK_SET = 0; // Seek from beginning of file.
       SEEK_END = 2; // Seek from end of file.
 
 
-procedure do_seek(handle,pos : longint);
+procedure do_seek(handle:thandle;pos : longint);
 VAR res : LONGINT;
 begin
   res := _lseek (handle,pos, SEEK_SET);
@@ -463,7 +469,7 @@ begin
     SetFileError (res);
 end;
 
-function do_seekend(handle:longint):longint;
+function do_seekend(handle:thandle):longint;
 VAR res : LONGINT;
 begin
   res := _lseek (handle,0, SEEK_END);
@@ -475,7 +481,7 @@ begin
 end;
 
 
-function do_filesize(handle : longint) : longint;
+function do_filesize(handle : thandle) : longint;
 VAR res     : LONGINT;
 begin
   res := _filelength (handle);
@@ -491,7 +497,7 @@ begin
 end;
 
 { truncate at a given position }
-procedure do_truncate (handle,pos:longint);
+procedure do_truncate (handle:thandle;pos:longint);
 VAR res : LONGINT;
 begin
   res := _chsize (handle,pos);
@@ -582,7 +588,7 @@ Begin
     InOutRes := 0;
 End;
 
-function do_isdevice(handle:longint):boolean;
+function do_isdevice(handle:THandle):boolean;
 begin
   do_isdevice := (_isatty (handle) > 0);
 end;
@@ -835,7 +841,10 @@ Begin
 End.
 {
   $Log$
-  Revision 1.22  2004-06-17 16:16:14  peter
+  Revision 1.23  2004-07-30 15:05:25  armin
+  make netware rtl compilable under 1.9.5
+
+  Revision 1.22  2004/06/17 16:16:14  peter
     * New heapmanager that releases memory back to the OS, donated
       by Micha Nelissen
 

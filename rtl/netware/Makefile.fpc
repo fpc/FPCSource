@@ -8,14 +8,15 @@ main=rtl
 [target]
 loaders=nwpre prelude
 units=$(SYSTEMUNIT) systhrds objpas strings \
-      winsock \
-      dos crt objects matrix \
-      sysutils classes typinfo math \
-      cpu mmx getopts heaptrc lineinfo \
-      sockets aio varutils \
-      video mouse keyboard types \
-      nwsnut nwserv nwnit nwprot sysconst
-rsts=math typinfo varutils classes
+      lineinfo winsock heaptrc matrix initc \
+      dos crt objects \
+      sysutils classes typinfo math varutils \
+      cpu mmx getopts   \
+      sockets \
+      video mouse keyboard types dateutils rtlconst sysconst \
+      strutils convutils \
+      aio nwsnut nwserv nwnit nwprot
+rsts=math varutils typinfo classes dateutils sysconst
 
 [require]
 nortl=y
@@ -111,6 +112,7 @@ objpas$(PPUEXT): $(OBJPASDIR)/objpas.pp $(INC)/except.inc $(SYSTEMUNIT)$(PPUEXT)
 strings$(PPUEXT) : $(INC)/strings.pp $(INC)/stringsi.inc\
                    $(PROCINC)/strings.inc $(PROCINC)/stringss.inc\
                    $(SYSTEMUNIT)$(PPUEXT)
+systhrds$(PPUEXT): systhrds.pp $(INC)/threadh.inc $(SYSTEMUNIT)$(PPUEXT) objpas$(PPUEXT)
 
 #
 # System Dependent Units
@@ -126,6 +128,9 @@ sockets$(PPUEXT) : sockets.pp netware$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT) \
                    $(INC)/sockets.inc $(INC)/socketsh.inc
 
 #dynlibs$(PPUEXT) : $(INC)/dynlibs.pp windows$(PPUEXT)
+
+initc$(PPUEXT) : initc.pp $(SYSTEMUNIT)$(PPUEXT)
+
 
 #
 # TP7 Compatible RTL Units
@@ -146,7 +151,7 @@ sysutils$(PPUEXT) : sysutils.pp $(wildcard $(OBJPASDIR)/sysutils/*.inc) \
         $(COMPILER) -Fi$(OBJPASDIR)/sysutils sysutils.pp
 
 classes$(PPUEXT) : classes.pp $(wildcard $(OBJPASDIR)/classes/*.inc) \
-                   sysutils$(PPUEXT) typinfo$(PPUEXT)
+                   sysutils$(PPUEXT) typinfo$(PPUEXT) rtlconst$(PPUEXT) sysconst$(PPUEXT)
         $(COMPILER) -Fi$(OBJPASDIR)/classes classes.pp
 
 typinfo$(PPUEXT): $(OBJPASDIR)/typinfo.pp objpas$(PPUEXT)
@@ -158,12 +163,28 @@ math$(PPUEXT): $(OBJPASDIR)/math.pp objpas$(PPUEXT) sysutils$(PPUEXT)
 gettext$(PPUEXT): $(OBJPASDIR)/gettext.pp objpas$(PPUEXT) sysutils$(PPUEXT)
         $(COMPILER) $(OBJPASDIR)/gettext.pp
 
-varutils$(PPUEXT) : $(OBJPASDIR)/cvarutil.inc $(OBJPASDIR)/varutils.inc \
-                    $(OBJPASDIR)/varutilh.inc varutils.pp
-        $(COMPILER) -I$(OBJPASDIR) $(UNIXINC)/varutils.pp
+varutils$(PPUEXT) : varutils.pp $(OBJPASDIR)/cvarutil.inc \
+                    objpas$(PPUEXT) $(OBJPASDIR)/varutilh.inc
+        $(COMPILER) -I$(OBJPASDIR) varutils.pp
 
 types$(PPUEXT) : $(OBJPASDIR/types.pp objpas$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
         $(COMPILER) $(OBJPASDIR)/types.pp
+
+rtlconst$(PPUEXT) : $(OBJPASDIR)/rtlconst.pp
+        $(COMPILER) $(OBJPASDIR)/rtlconst.pp
+
+sysconst$(PPUEXT) : $(OBJPASDIR)/sysconst.pp objpas$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
+        $(COMPILER) $(OBJPASDIR)/sysconst.pp
+
+dateutils$(PPUEXT) : $(OBJPASDIR)/dateutils.pp
+        $(COMPILER) -I$(OBJPASDIR) $(OBJPASDIR)/dateutils.pp
+
+convutils$(PPUEXT) : $(OBJPASDIR)/convutils.pp
+        $(COMPILER) -I$(OBJPASDIR) $(OBJPASDIR)/convutils.pp
+
+strutils$(PPUEXT) : $(OBJPASDIR)/strutils.pp
+        $(COMPILER) -I$(OBJPASDIR) $(OBJPASDIR)/strutils.pp
+
 
 #
 # Other system-independent RTL Units

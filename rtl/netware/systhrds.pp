@@ -13,6 +13,7 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 
  **********************************************************************}
+{$mode objfpc}
 unit systhrds;
 interface
 
@@ -29,8 +30,19 @@ interface
     termination because some versions of netware will abend if there
     are open semaphores on nlm unload.
 }
-{ Include generic thread interface }
-{$i threadh.inc }
+
+type
+   { the fields of this record are os dependent  }
+   { and they shouldn't be used in a program     }
+   { only the type TCriticalSection is important }
+   PRTLCriticalSection = ^TRTLCriticalSection;
+   TRTLCriticalSection = packed record
+      SemaHandle : LONGINT;
+      SemaIsOpen : BOOLEAN;
+   end;
+
+{ include threading stuff }
+{$i threadh.inc}
 
 {Delphi/Windows compatible priority constants, they are also defined for Unix and Win32}
 const
@@ -44,12 +56,20 @@ const
 
 implementation
 
+function  SysGetCurrentThreadId : dword;forward;
+
 {$i thread.inc }
 
 { some declarations for Netware API calls }
 {$I nwsys.inc}
 
 {  define DEBUG_MT}
+
+{*****************************************************************************
+                             Threadvar support
+*****************************************************************************}
+
+{$ifdef HASTHREADVAR}
 
 const
    threadvarblocksize : dword = 0;     // total size of allocated threadvars
@@ -128,6 +148,8 @@ end;
 { Include OS independent Threadvar initialization }
 {$i threadvr.inc}
 
+{$endif HASTHREADVAR}
+
 
 {*****************************************************************************
                             Thread starting
@@ -147,7 +169,9 @@ procedure DoneThread;
 
   begin
      { release thread vars }
+{$ifdef HASTHREADVAR}
      SysReleaseThreadVars;
+{$endif}
   end;
 
 
@@ -157,7 +181,11 @@ function ThreadMain(param : pointer) : dword; cdecl;
      ti : tthreadinfo;
 
   begin
+{$ifdef HASTHREADVAR}
+     { Allocate local thread vars, this must be the first thing,
+       because the exception management and io depends on threadvars }
      SysAllocateThreadVars;
+{$endif HASTHREADVAR}
 {$ifdef DEBUG_MT}
      ConsolePrintf(#13'New thread started, initialising ...'#13#10);
 {$endif DEBUG_MT}
@@ -171,10 +199,9 @@ function ThreadMain(param : pointer) : dword; cdecl;
      DoneThread;
   end;
 
-
-function BeginThread(sa : Pointer;stacksize : dword;
-  ThreadFunction : tthreadfunc;p : pointer;creationFlags : dword;
-  var ThreadId : DWord) : DWord;
+function SysBeginThread(sa : Pointer;stacksize : dword;
+                         ThreadFunction : tthreadfunc;p : pointer;
+                         creationFlags : dword; var ThreadId : DWord) : DWord;
 
   var ti : pthreadinfo;
 
@@ -182,11 +209,13 @@ function BeginThread(sa : Pointer;stacksize : dword;
 {$ifdef DEBUG_MT}
      ConsolePrintf(#13'Creating new thread'#13#10);
 {$endif DEBUG_MT}
+{$ifdef HASTHREADVAR}
      if not IsMultiThread then
      begin
        InitThreadVars(@SysRelocateThreadvar);
        IsMultithread:=true;
      end;
+{$endif}     
      { the only way to pass data to the newly created thread }
      { in a MT safe way, is to use the heap                  }
      new(ti);
@@ -196,17 +225,16 @@ function BeginThread(sa : Pointer;stacksize : dword;
 {$ifdef DEBUG_MT}
      ConsolePrintf(#13'Starting new thread'#13#10);
 {$endif DEBUG_MT}
-     BeginThread :=
+     SysBeginThread :=
        _BeginThread (@ThreadMain,NIL,Stacksize,ti);
   end;
 
 
-procedure EndThread(ExitCode : DWord);
+procedure SysEndThread(ExitCode : DWord);
 begin
   DoneThread;
   ExitThread(ExitCode , TSR_THREAD);
 end;
-
 
 {*****************************************************************************
                             Thread handling
@@ -217,34 +245,34 @@ function __SuspendThread (threadId : dword) : dword; cdecl; external 'clib' name
 function __ResumeThread (threadId : dword) : dword; cdecl; external 'clib' name 'ResumeThread';
 procedure __ThreadSwitchWithDelay; cdecl; external 'clib' name 'ThreadSwitchWithDelay';
 
-{redefined because the interface has not cdecl calling convention}
-function SuspendThread (threadHandle : dword) : dword;
-begin
-  SuspendThread := __SuspendThread (threadHandle);
-end;
-
-
-function ResumeThread (threadHandle : dword) : dword;
-begin
-  ResumeThread := __ResumeThread (threadHandle);
-end;
-
-
-procedure ThreadSwitch;
+procedure SysThreadSwitch;
 begin
   __ThreadSwitchWithDelay;
 end;
 
 
-function  KillThread (threadHandle : dword) : dword;
+{redefined because the interface has not cdecl calling convention}
+function SysSuspendThread (threadHandle : dword) : dword;
 begin
-  KillThread := 1;  {not supported for netware}
+  SysSuspendThread := __SuspendThread (threadHandle);
+end;
+
+
+function SysResumeThread (threadHandle : dword) : dword;
+begin
+  SysResumeThread := __ResumeThread (threadHandle);
+end;
+
+
+function  SysKillThread (threadHandle : dword) : dword;
+begin
+  SysKillThread := 1;  {not supported for netware}
 end;
 
 function GetThreadName  (threadId : longint; var threadName) : longint; cdecl; external 'clib' name 'GetThreadName';
 //function __RenameThread (threadId : longint; threadName:pchar) : longint; cdecl; external 'clib' name 'RenameThread';
 
-function  WaitForThreadTerminate (threadHandle : dword; TimeoutMs : longint) : dword;
+function  SysWaitForThreadTerminate (threadHandle : dword; TimeoutMs : longint) : dword;
 var
   status : longint;
   buf : array [0..50] of char;
@@ -254,24 +282,24 @@ begin
     status := GetThreadName (ThreadHandle,Buf); {should return EBADHNDL if thread is terminated}
     ThreadSwitch;
   until status <> 0;
-  WaitForThreadTerminate:=0;
+  SysWaitForThreadTerminate:=0;
 end;
 
-function  ThreadSetPriority (threadHandle : dword; Prio: longint): boolean; {-15..+15, 0=normal}
+function  SysThreadSetPriority (threadHandle : dword; Prio: longint): boolean; {-15..+15, 0=normal}
 begin
-  ThreadSetPriority := true;
+  SysThreadSetPriority := true;
 end;
 
-function  ThreadGetPriority (threadHandle : dword): Integer;
+function  SysThreadGetPriority (threadHandle : dword): Integer;
 begin
-  ThreadGetPriority := 0;
+  SysThreadGetPriority := 0;
 end;
 
 function GetThreadID : dword; cdecl; external 'clib' name 'GetThreadID';
 
-function  GetCurrentThreadId : dword;
+function  SysGetCurrentThreadId : dword;
 begin
-  GetCurrentThreadId := GetThreadID;
+  SysGetCurrentThreadId := GetThreadID;
 end;
 
 
@@ -352,44 +380,56 @@ end;
 { this allows to do a lot of things in MT safe way }
 { it is also used to make the heap management      }
 { thread safe                                      }
-procedure InitCriticalSection(var cs : TRTLCriticalSection);
+procedure SysInitCriticalSection(var cs);// : TRTLCriticalSection);
 begin
-  cs.SemaHandle := _OpenLocalSemaphore (1);
-  if cs.SemaHandle <> 0 then
+  with PRTLCriticalSection(@cs)^ do
   begin
-    cs.SemaIsOpen := true;
-    SaveSema (cs.SemaHandle);
-  end else
-  begin
-    cs.SemaIsOpen := false;
-    ConsolePrintf (#13'fpc-rtl: InitCriticalsection, OpenLocalSemaphore returned error'#13#10,0);
+    SemaHandle := _OpenLocalSemaphore (1);
+    if SemaHandle <> 0 then
+    begin
+      SemaIsOpen := true;
+      SaveSema (SemaHandle);
+    end else
+    begin
+      SemaIsOpen := false;
+      ConsolePrintf (#13'fpc-rtl: InitCriticalsection, OpenLocalSemaphore returned error'#13#10,0);
+    end;
   end;
 end;
 
-procedure DoneCriticalsection(var cs : TRTLCriticalSection);
+procedure SysDoneCriticalsection(var cs);
 begin
-  if cs.SemaIsOpen then
+  with PRTLCriticalSection(@cs)^ do
   begin
-    _CloseLocalSemaphore (cs.SemaHandle);
-    ReleaseSema (cs.SemaHandle);
-    cs.SemaIsOpen := FALSE;
+    if SemaIsOpen then
+    begin
+      _CloseLocalSemaphore (SemaHandle);
+      ReleaseSema (SemaHandle);
+      SemaIsOpen := FALSE;
+    end;
   end;
 end;
 
-procedure EnterCriticalsection(var cs : TRTLCriticalSection);
+procedure SysEnterCriticalsection(var cs);
 begin
-  if cs.SemaIsOpen then
-    _WaitOnLocalSemaphore (cs.SemaHandle)
-  else
-    ConsolePrintf (#13'fpc-rtl: EnterCriticalsection, TRTLCriticalSection not open'#13#10,0);
+  with PRTLCriticalSection(@cs)^ do
+  begin
+    if SemaIsOpen then
+      _WaitOnLocalSemaphore (SemaHandle)
+    else
+      ConsolePrintf (#13'fpc-rtl: EnterCriticalsection, TRTLCriticalSection not open'#13#10,0);
+  end;
 end;
 
-procedure LeaveCriticalsection(var cs : TRTLCriticalSection);
+procedure SysLeaveCriticalSection(var cs);
 begin
-  if cs.SemaIsOpen then
-    _SignalLocalSemaphore (cs.SemaHandle)
-  else
-    ConsolePrintf (#13'fpc-rtl: LeaveCriticalsection, TRTLCriticalSection not open'#13#10,0);
+  with PRTLCriticalSection(@cs)^ do
+  begin
+    if SemaIsOpen then
+      _SignalLocalSemaphore (SemaHandle)
+    else
+      ConsolePrintf (#13'fpc-rtl: LeaveCriticalsection, TRTLCriticalSection not open'#13#10,0);
+  end;
 end;
 
 
@@ -406,7 +446,7 @@ end;
 {*****************************************************************************
                            Heap Mutex Protection
 *****************************************************************************}
-			
+
 var
   HeapMutex : TRTLCriticalSection;
 				
@@ -424,7 +464,7 @@ procedure NWHeapMutexLock;
 begin
   EnterCriticalSection(heapmutex);
 end;
-														
+
 procedure NWHeapMutexUnlock;
 begin
   LeaveCriticalSection(heapmutex);
@@ -437,24 +477,68 @@ const
            MutexLock : @NWHeapMutexLock;
     	   MutexUnlock : @NWHeapMutexUnlock;
   );
-																							
+
 procedure InitHeapMutexes;
 begin
   SetMemoryMutexManager(NWMemoryMutexManager);
 end;
 
+Var
+  NWThreadManager : TThreadManager;
 
+Procedure SetNWThreadManager;
+
+begin
+  With NWThreadManager do
+    begin
+    InitManager            :=Nil;
+    DoneManager            :=Nil;
+    BeginThread            :=@SysBeginThread;
+    EndThread              :=@SysEndThread;
+    SuspendThread          :=@SysSuspendThread;
+    ResumeThread           :=@SysResumeThread;
+    KillThread             :=@SysKillThread;
+    ThreadSwitch           :=@SysThreadSwitch;
+    WaitForThreadTerminate :=@SysWaitForThreadTerminate;
+    ThreadSetPriority      :=@SysThreadSetPriority;
+    ThreadGetPriority      :=@SysThreadGetPriority;
+    GetCurrentThreadId     :=@SysGetCurrentThreadId;
+    InitCriticalSection    :=@SysInitCriticalSection;
+    DoneCriticalSection    :=@SysDoneCriticalSection;
+    EnterCriticalSection   :=@SysEnterCriticalSection;
+    LeaveCriticalSection   :=@SysLeaveCriticalSection;
+{$ifdef HASTHREADVAR}
+    InitThreadVar          :=@SysInitThreadVar;
+    RelocateThreadVar      :=@SysRelocateThreadVar;
+    AllocateThreadVars     :=@SysAllocateThreadVars;
+    ReleaseThreadVars      :=@SysReleaseThreadVars;
+{$endif HASTHREADVAR}
+    BasicEventCreate       :=@NoBasicEventCreate;
+    basiceventdestroy      :=@Nobasiceventdestroy;
+    basiceventResetEvent   :=@NobasiceventResetEvent;
+    basiceventSetEvent     :=@NobasiceventSetEvent;
+    basiceventWaitFor      :=@NobasiceventWaitFor;
+    end;
+  SetThreadManager(NWThreadManager);
+  InitHeapMutexes;
+end;
 
 initialization
-  InitHeapMutexes;
+  SetNWThreadManager;
   NWSysSetThreadFunctions (@CloseAllRemainingSemaphores,
                            @SysReleaseThreadVars,
-                           @SetThreadDataAreaPtr);
+			   @SetThreadDataAreaPtr);
+
 end.
+
+
 
 {
   $Log$
-  Revision 1.3  2003-10-01 21:00:09  peter
+  Revision 1.4  2004-07-30 15:05:25  armin
+  make netware rtl compilable under 1.9.5
+
+  Revision 1.3  2003/10/01 21:00:09  peter
     * GetCurrentThreadHandle renamed to GetCurrentThreadId
 
   Revision 1.2  2003/03/27 17:14:27  armin

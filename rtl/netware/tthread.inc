@@ -118,7 +118,7 @@ end;
 
 
 { TThread }
-function ThreadProc(args:pointer): Integer;cdecl;
+function ThreadProc(args:pointer): Integer;
 var
   FreeThread: Boolean;
   Thread : TThread absolute args;
@@ -129,7 +129,7 @@ begin
     Thread.FFatalException := TObject(AcquireExceptionObject);
   end;
   FreeThread := Thread.FFreeOnTerminate;
-  Result := Thread.FReturnValue;
+  ThreadProc := Thread.FReturnValue;
   Thread.FFinished := True;
   Thread.DoTerminate;
   if FreeThread then
@@ -146,7 +146,7 @@ begin
   AddThread(self);
   FSuspended := CreateSuspended;
   { Create new thread }
-  FHandle := BeginThread (@ThreadProc,self);
+  FHandle := BeginThread (@ThreadProc,pointer(self));
   if FSuspended then Suspend;
   FThreadID := FHandle;
   //IsMultiThread := TRUE;  {already set by systhrds}
@@ -162,8 +162,8 @@ begin
      Terminate;
      WaitFor;
    end;
-  if FHandle <> -1 then
-    KillThread (FHandle);  {something went wrong, kill the thread (not possible on netware)}
+  {if FHandle <> -1 then
+    KillThread (FHandle);}  {something went wrong, kill the thread (not possible on netware)}
   FFatalException.Free;
   FFatalException := nil;
   inherited Destroy;
@@ -255,12 +255,15 @@ function TThread.WaitFor: Integer;
 begin
   Result := WaitForThreadTerminate (FHandle,0);
   if Result = 0 then
-    FHandle := -1;
+    FHandle := 0;
 end;
 
 {
   $Log$
-  Revision 1.1  2003-10-06 21:01:06  peter
+  Revision 1.2  2004-07-30 15:05:25  armin
+  make netware rtl compilable under 1.9.5
+
+  Revision 1.1  2003/10/06 21:01:06  peter
     * moved classes unit to rtl
 
   Revision 1.3  2003/10/06 17:06:55  florian
