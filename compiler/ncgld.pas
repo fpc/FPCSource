@@ -159,10 +159,8 @@ implementation
                        cg.a_call_reg(exprasmlist,hregister);
                        paramanager.freeintparaloc(exprasmlist,1);
                     {$ifdef newra}
-                       rg.ungetregisterint(exprasmlist,hregister);
                        r:=rg.getexplicitregisterint(exprasmlist,NR_FUNCTION_RESULT_REG);
                        rg.ungetregisterint(exprasmlist,r);
-                       hregister:=rg.getregisterint(exprasmlist,OS_ADDR);
                     {$else}
                        r.enum:=R_INTREGISTER;
                        r.number:=NR_FUNCTION_RESULT_REG;
@@ -939,7 +937,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.74  2003-07-06 17:58:22  peter
+  Revision 1.75  2003-07-20 16:26:43  jonas
+    * fix for threadvars with -dnewra
+
+  Revision 1.74  2003/07/06 17:58:22  peter
     * framepointer fixes for sparc
     * parent framepointer code more generic
 
