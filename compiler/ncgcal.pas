@@ -1091,6 +1091,7 @@ implementation
          current_procinfo:=cprocinfo.create(nil);
          current_procinfo.procdef:=tprocdef(procdefinition);
          current_procinfo.flags:=oldprocinfo.flags;
+         current_procinfo.aktlocaldata.destroy;
          current_procinfo.aktlocaldata:=oldprocinfo.aktlocaldata;
 
          { when the oldprocinfo is also being inlined reuse the
@@ -1214,7 +1215,7 @@ implementation
 
          { restore }
          current_procinfo.aktlocaldata:=nil;
-         current_procinfo.free;
+         current_procinfo.destroy;
          current_procinfo:=oldprocinfo;
          inlining_procedure:=oldinlining_procedure;
       end;
@@ -1235,7 +1236,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.157  2004-02-22 12:04:04  florian
+  Revision 1.158  2004-02-22 13:01:15  daniel
+    * Fixed memory leak
+
+  Revision 1.157  2004/02/22 12:04:04  florian
     + nx86set added
     * some more x86-64 fixes
 
