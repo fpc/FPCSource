@@ -513,6 +513,10 @@ function arctan2(y,x : float) : float;
       end
     else
       ArcTan2:=ArcTan(y/x);
+    if x<0.0 then
+      ArcTan2:=ArcTan2+pi;
+    if ArcTan2>pi then
+      ArcTan2:=ArcTan2-2*pi;
   end;
 {$endif FPC_MATH_HAS_ARCTAN2}
 
@@ -1349,7 +1353,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.27  2005-01-04 16:47:05  florian
+  Revision 1.28  2005-01-12 20:17:39  florian
+    * generic arctan2 for 3rd and 4th quadrand fixed
+
+  Revision 1.27  2005/01/04 16:47:05  florian
     * compilation on ARM fixed
 
   Revision 1.26  2004/12/05 16:52:34  jonas
