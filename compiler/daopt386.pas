@@ -2140,13 +2140,13 @@ Begin
                       End
                     Else
             {$ifdef arithopt}
-                      AddOp2RegContents(Paicpu(p), Paicpu(p)^.oper[1])
+                      AddInstr2OpContents(Paicpu(p), Paicpu(p)^.oper[1])
             {$else arithopt}
                       DestroyOp(p, Paicpu(p)^.oper[1])
             {$endif arithopt}
                   Else
             {$ifdef arithopt}
-                    AddOp2RegContents(Paicpu(p), Paicpu(p)^.oper[2]);
+                    AddInstr2OpContents(Paicpu(p), Paicpu(p)^.oper[2]);
             {$else arithopt}
                     DestroyOp(p, Paicpu(p)^.oper[2]);
             {$endif arithopt}
@@ -2350,7 +2350,10 @@ End.
 
 {
  $Log$
- Revision 1.57  1999-08-25 12:00:00  jonas
+ Revision 1.58  1999-09-05 12:37:50  jonas
+   * fixed typo's in -darithopt
+
+ Revision 1.57  1999/08/25 12:00:00  jonas
    * changed pai386, paippc and paiapha (same for tai*) to paicpu (taicpu)
 
  Revision 1.56  1999/08/18 13:25:54  jonas
