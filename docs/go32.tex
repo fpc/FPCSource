@@ -373,6 +373,7 @@ calculated by adding the value returned by
 \begin{FPCList}
 \item[Example]
 \begin{verbatim}
+
 uses go32;
 
 var VGAsel : word;
@@ -386,17 +387,20 @@ begin
   VGAsel := allocate_ldt_descriptors(1); 
   { allocate one descriptor to the VGA }
   set_segment_base_address(VGAsel, 
-                           get_linear_address($A0000,
-                           $FFFF)); 
+                           get_linear_addr($A0000,$FFFF)); 
+
   { set the base address to the VGA }
   set_segment_limit(VGAsel, $FFFF); 
   { set the limit of the descriptor }
   {...}
-  seg_fillchar(VGAsel, 100*320+6, 1, 15); 
+  seg_fillchar(VGAsel, 100*320+100, 1, #15);
+
+
   { put a pixel at (6/100) in color 15 }
   readln;
   {...}
-  free_ldt_descriptor(sel);
+  free_ldt_descriptor(VGAsel);
+
   r.realeax := $3; realintr($10, r); 
   { set textmode again }
   {...}
@@ -460,7 +464,7 @@ begin
      { set VGA mode 13h }
      VGASel := segment_to_descriptor($A000);
      {...}
-     seg_fillchar(VGAsel, 100*320+6, 1, 15); 
+     seg_fillchar(VGAsel, 100*320+6, 1, #15); 
      { put a pixel at (6/100) in color 15 }
      readln;
      {...} 
