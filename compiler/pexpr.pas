@@ -71,12 +71,12 @@ implementation
        symconst,symbase,symsym,symtable,defutil,defcmp,
        { pass 1 }
        pass_1,htypechk,
-       nutils,nmat,nadd,ncal,nmem,nset,ncnv,ninl,ncon,nld,nflw,nbas,
+       nmat,nadd,ncal,nmem,nset,ncnv,ninl,ncon,nld,nflw,nbas,
        { parser }
        scanner,
        pbase,pinline,
        { codegen }
-       cgbase,procinfo
+       procinfo
        ;
 
     { sub_expr(opmultiply) is need to get -1 ** 4 to be
@@ -805,7 +805,7 @@ implementation
 
 
     { the following procedure handles the access to a property symbol }
-    procedure handle_propertysym(sym : tsym;st : tsymtable;var p1 : tnode; getaddr: boolean);
+    procedure handle_propertysym(sym : tsym;st : tsymtable;var p1 : tnode);
 
         procedure symlist_to_node(var p1:tnode;pl:tsymlist);
         var
@@ -1093,7 +1093,7 @@ implementation
                    begin
                       if isclassref then
                         Message(parser_e_only_class_methods_via_class_ref);
-                      handle_propertysym(sym,sym.owner,p1,getaddr);
+                      handle_propertysym(sym,sym.owner,p1);
                    end;
                  else internalerror(16);
               end;
@@ -1390,7 +1390,7 @@ implementation
                      Message(parser_e_only_class_methods);
                     { no method pointer }
                     p1:=nil;
-                    handle_propertysym(srsym,srsymtable,p1,getaddr);
+                    handle_propertysym(srsym,srsymtable,p1);
                   end;
 
                 labelsym :
@@ -1564,7 +1564,7 @@ implementation
                           begin
                             { The property symbol is referenced indirect }
                             inc(protsym.refs);
-                            handle_propertysym(protsym,protsym.owner,p1,getaddr);
+                            handle_propertysym(protsym,protsym.owner,p1);
                           end;
                       end
                     else
@@ -1817,7 +1817,19 @@ implementation
         again:=false;
         if token=_ID then
          begin
-           factor_read_id(p1,again);
+           again:=true;
+           { Handle references to self }
+           if (idtoken=_SELF) and
+              not(block_type in [bt_const,bt_type]) and
+              assigned(current_procinfo) and
+              assigned(current_procinfo.procdef._class) then
+             begin
+               p1:=load_self_node;
+               consume(_ID);
+               again:=true;
+             end
+           else
+             factor_read_id(p1,again);
            if again then
             begin
               check_tokenpos;
@@ -1828,24 +1840,6 @@ implementation
          end
         else
          case token of
-           _SELF :
-             begin
-               again:=true;
-               consume(_SELF);
-               if not(assigned(current_procinfo) and
-                      assigned(current_procinfo.procdef._class)) then
-                begin
-                  p1:=cerrornode.create;
-                  again:=false;
-                  Message(parser_e_self_not_in_method);
-                end
-               else
-                begin
-                  p1:=load_self_node;
-                  postfixoperators(p1,again);
-                end;
-             end;
-
            _INHERITED :
              begin
                again:=true;
@@ -2418,7 +2412,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.134  2003-10-09 15:00:13  florian
+  Revision 1.135  2003-10-09 15:20:56  peter
+    * self is not a token anymore. It is handled special when found
+      in a code block and when parsing an method
+
+  Revision 1.134  2003/10/09 15:00:13  florian
     * fixed constructor call in class methods
 
   Revision 1.133  2003/10/08 19:19:45  peter

@@ -1057,7 +1057,6 @@ implementation
       var
         old_current_procinfo : tprocinfo;
         oldconstsymtable : tsymtable;
-        oldselftokenmode,
         oldfailtokenmode : tmodeswitch;
         pdflags          : tpdflags;
         pd               : tprocdef;
@@ -1169,12 +1168,6 @@ implementation
                 oldfailtokenmode:=tokeninfo^[_FAIL].keyword;
                 tokeninfo^[_FAIL].keyword:=m_all;
               end;
-             { set _SELF as keyword if methods }
-             if assigned(pd._class) then
-              begin
-                oldselftokenmode:=tokeninfo^[_SELF].keyword;
-                tokeninfo^[_SELF].keyword:=m_all;
-              end;
 
              tcgprocinfo(current_procinfo).parse_body;
 
@@ -1192,9 +1185,6 @@ implementation
              { reset _FAIL as _SELF normal }
              if (pd.proctypeoption=potype_constructor) then
                tokeninfo^[_FAIL].keyword:=oldfailtokenmode;
-             if assigned(pd._class) then
-               tokeninfo^[_SELF].keyword:=oldselftokenmode;
-              consume(_SEMICOLON);
 
              { release procinfo }
              if tprocinfo(current_module.procinfo)<>current_procinfo then
@@ -1202,6 +1192,8 @@ implementation
              current_module.procinfo:=current_procinfo.parent;
              if not isnestedproc then
                current_procinfo.free;
+
+             consume(_SEMICOLON);
            end;
 
          { Restore old state }
@@ -1316,7 +1308,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.159  2003-10-07 15:17:07  peter
+  Revision 1.160  2003-10-09 15:20:56  peter
+    * self is not a token anymore. It is handled special when found
+      in a code block and when parsing an method
+
+  Revision 1.159  2003/10/07 15:17:07  peter
     * inline supported again, LOC_REFERENCEs are used to pass the
       parameters
     * inlineparasymtable,inlinelocalsymtable removed
