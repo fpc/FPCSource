@@ -53,11 +53,12 @@ _start:
 
         xorq    %rbp, %rbp
         call    PASCALMAIN
+	jmp	_haltproc
 
         .globl  _haltproc
         .type   _haltproc,@function
 _haltproc:
-        movl    $1,%eax                 /* exit call */
+        movl    $60,%eax                 /* exit call */
         xorq    %rbx,%rbx
         movw    U_SYSTEM_EXITCODE,%bx
         syscall
@@ -89,7 +90,10 @@ __data_start:
 
 #
 # $Log$
-# Revision 1.5  2004-04-12 19:05:55  florian
+# Revision 1.6  2004-04-20 20:30:11  florian
+#   * fixed halt code
+#
+# Revision 1.5  2004/04/12 19:05:55  florian
 #   + haltproc added
 #
 # Revision 1.4  2004/02/20 23:48:27  peter
