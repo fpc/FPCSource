@@ -1403,10 +1403,11 @@ begin
 {$else}
   CurDir:=LowerCaseStr(GetCurDir);
 {$endif Unix}
-  if Pos(CurDir,OSFileName(FEXpand(AFile)))=1 then
-    FileName:=NewStr(Copy(OSFileName(FExpand(AFile)),length(CurDir)+1,255))
+  AFile:=FEXpand(AFile);
+  if Pos(CurDir,OSFileName(AFile))=1 then
+    FileName:=NewStr(Copy(OSFileName(AFile),length(CurDir)+1,255))
   else
-    FileName:=NewStr(OSFileName(FExpand(AFile)));
+    FileName:=NewStr(OSFileName(AFile));
   Name:=nil;
   Line:=ALine;
   IgnoreCount:=0;
@@ -1597,7 +1598,7 @@ var W: PSourceWindow;
 begin
   if typ=bt_file_line then
     begin
-      W:=SearchOnDesktop(FExpand(OSFileName(GetStr(FileName))),false);
+      W:=SearchOnDesktop(OSFileName(GetStr(FileName)),false);
       If assigned(W) then
         begin
           if state=bs_enabled then
@@ -1663,7 +1664,7 @@ procedure TBreakpointCollection.ShowBreakpoints(W : PFPWindow);
   procedure SetInSource(P : PBreakpoint);{$ifndef FPC}far;{$endif}
   begin
     If assigned(P^.FileName) and
-      (OSFileName(FExpand(P^.FileName^))=OSFileName(FExpand(PSourceWindow(W)^.Editor^.FileName))) then
+      (OSFileName(P^.FileName^)=OSFileName(FExpand(PSourceWindow(W)^.Editor^.FileName))) then
       PSourceWindow(W)^.Editor^.SetLineFlagState(P^.Line-1,lfBreakpoint,P^.state=bs_enabled);
   end;
 
@@ -1683,7 +1684,7 @@ procedure TBreakpointCollection.ShowBreakpoints(W : PFPWindow);
                 S:=PDisassemblyWindow(W)^.Editor^.GetDisplayText(i);
                 ps:=pos(':',S);
                 qs:=pos(' ',copy(S,ps+1,High(S)));
-                if (GDBFileName(FExpand(P^.FileName^))=GDBFileName(FExpand(Copy(S,1,ps-1)))) and
+                if (GDBFileName(P^.FileName^)=GDBFileName(FExpand(Copy(S,1,ps-1)))) and
                    (StrToInt(copy(S,ps+1,qs-1))=P^.line) then
                   PDisassemblyWindow(W)^.Editor^.SetLineFlagState(i,lfBreakpoint,P^.state=bs_enabled);
               end;
@@ -1709,7 +1710,7 @@ procedure TBreakpointCollection.AdaptBreakpoints(Editor : PSourceEditor; Pos, Ch
   procedure AdaptInSource(P : PBreakpoint);{$ifndef FPC}far;{$endif}
   begin
     If assigned(P^.FileName) and
-      (OSFileName(FExpand(P^.FileName^))=OSFileName(FExpand(Editor^.FileName))) then
+      (OSFileName(P^.FileName^)=OSFileName(FExpand(Editor^.FileName))) then
         begin
           if P^.state=bs_enabled then
             Editor^.SetLineFlagState(P^.Line-1,lfBreakpoint,false);
@@ -1747,7 +1748,7 @@ function TBreakpointCollection.FindBreakpointAt(Editor : PSourceEditor; Line : l
   function IsAtLine(P : PBreakpoint) : boolean;{$ifndef FPC}far;{$endif}
   begin
     If assigned(P^.FileName) and
-       (OSFileName(FExpand(P^.FileName^))=OSFileName(FExpand(Editor^.FileName))) and
+       (OSFileName(P^.FileName^)=OSFileName(FExpand(Editor^.FileName))) and
        (Line=P^.Line) then
       IsAtLine:=true
     else
@@ -1794,7 +1795,7 @@ var PB : PBreakpoint;
   function IsThere(P : PBreakpoint) : boolean;{$ifndef FPC}far;{$endif}
   begin
     IsThere:=(P^.typ=bt_file_line) and assigned(P^.FileName) and
-      (OSFileName(FExpand(P^.FileName^))=FileName) and (P^.Line=LineNr);
+      (OSFileName(P^.FileName^)=FileName) and (P^.Line=LineNr);
   end;
 begin
     FileName:=OSFileName(FileName);
@@ -3603,7 +3604,10 @@ end.
 
 {
   $Log$
-  Revision 1.51  2004-07-09 23:17:25  peter
+  Revision 1.52  2004-11-06 17:22:52  peter
+    * fixes for new fv
+
+  Revision 1.51  2004/07/09 23:17:25  peter
     * revert isatty patch
 
   Revision 1.49  2004/02/20 21:46:06  peter

@@ -134,6 +134,12 @@
 {$ifdef FPC}
   {$define USERESSTRINGS}
   {$define USE_FREEVISION}
+  
+  { Use inlining for small functions }
+  {$ifndef VER1_0}
+    {$inline on}
+    {.$define USEINLINE}
+  {$endif}
 {$endif}
 
 {$define TEST_PARTIAL_SYNTAX}

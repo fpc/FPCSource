@@ -1637,6 +1637,7 @@ end;
 
 function UpdateMenu(M: PMenu): boolean;
 var P: PMenuItem;
+    Enable,
     IsEnabled: boolean;
 begin
   if M=nil then begin UpdateMenu:=false; Exit; end;
@@ -1649,12 +1650,14 @@ begin
          if not P^.Disabled then
            IsEnabled:=true;
        end
-    else if (IsSeparator(P)=false) {and (P^.Disabled=false)} and
-       (Application^.CommandEnabled(P^.Command)=true) then
-       begin
-         p^.disabled:=not Application^.CommandEnabled(P^.Command);
-         if not p^.disabled then
-           IsEnabled:=true;
+    else
+      begin
+        if not IsSeparator(P) and
+	   Application^.CommandEnabled(P^.Command) then
+	  begin
+            p^.disabled:=false;
+            IsEnabled:=true;
+	  end;  
        end;
     P:=P^.Next;
   end;
@@ -2535,7 +2538,10 @@ end;
 END.
 {
   $Log$
-  Revision 1.8  2004-02-13 06:26:46  pierre
+  Revision 1.9  2004-11-06 17:22:53  peter
+    * fixes for new fv
+
+  Revision 1.8  2004/02/13 06:26:46  pierre
   * try to fix webbug 2931 completely
 
   Revision 1.7  2004/02/10 07:16:28  pierre

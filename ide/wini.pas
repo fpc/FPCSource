@@ -31,6 +31,7 @@ type
       procedure   SetValue(const S: string);
       destructor  Done; virtual;
     private
+      TagHash  : Cardinal;
       Tag      : PString;
       Value    : PString;
       Comment  : PString;
@@ -49,6 +50,7 @@ type
       procedure   ForEachEntry(EnumProc: pointer); virtual;
       destructor  Done; virtual;
     private
+      NameHash : Cardinal;
       Name     : PString;
       Entries  : PCollection;
     end;
@@ -86,6 +88,15 @@ implementation
 
 uses
   WUtils;
+
+function CalcHash(const s: String): Cardinal;
+var
+  i: integer;
+begin
+  CalcHash := 0;
+  for i := 1 to Length(s) do
+    CalcHash := CalcHash shl 9 - CalcHash shl 4 + Ord(S[I]);
+end;
 
 constructor TINIEntry.Init(const ALine: string);
 begin
@@ -154,6 +165,7 @@ begin
   if P<>0 then
     begin
       Tag:=NewStr(copy(S,1,P-1));
+      TagHash:=CalcHash(UpcaseStr(Tag^));
       P2:=P+1; InString:=false; ValueS:='';
       StartP:=P2;
       while (P2<=length(S)) do
@@ -170,6 +182,7 @@ begin
     end else
     begin
       Tag:=nil;
+      TagHash:=0;
       Value:=nil;
       Comment:=NewStr(S);
     end;
@@ -190,6 +203,7 @@ constructor TINISection.Init(const AName: string);
 begin
   inherited Init;
   Name:=NewStr(AName);
+  NameHash:=CalcHash(UpcaseStr(AName));
   New(Entries, Init(50,500));
 end;
 
@@ -230,13 +244,23 @@ begin
 end;
 
 function TINISection.SearchEntry(Tag: string): PINIEntry;
-function MatchingEntry(E: PINIEntry): boolean;
+var
+  P : PINIEntry;
+  I : Sw_integer;
+  Hash : Cardinal;
 begin
-  MatchingEntry:=UpcaseStr(E^.GetTag)=Tag;
-end;
-begin
+  SearchEntry:=nil;
   Tag:=UpcaseStr(Tag);
-  SearchEntry:=Entries^.FirstThat(@MatchingEntry);
+  Hash:=CalcHash(Tag);
+  for I:=0 to Entries^.Count-1 do
+    begin
+      P:=Entries^.At(I);
+      if (P^.TagHash=Hash) and (UpcaseStr(P^.GetTag)=Tag) then
+        begin
+	  SearchEntry:=P;
+	  break;
+	end;
+    end;	
 end;
 
 procedure TINISection.DeleteEntry(Tag: string);
@@ -368,17 +392,23 @@ begin
 end;
 
 function TINIFile.SearchSection(Section: string): PINISection;
-function MatchingSection(P: PINISection): boolean;
-var SN: string;
-    M: boolean;
+var
+  P : PINISection;
+  I : Sw_integer;
+  Hash : Cardinal;
 begin
-  SN:=UpcaseStr(P^.GetName);
-  M:=SN=Section;
-  MatchingSection:=M;
-end;
-begin
+  SearchSection:=nil;
   Section:=UpcaseStr(Section);
-  SearchSection:=Sections^.FirstThat(@MatchingSection);
+  Hash:=CalcHash(Section);
+  for I:=0 to Sections^.Count-1 do
+    begin
+      P:=Sections^.At(I);
+      if (P^.NameHash=Hash) and (UpcaseStr(P^.GetName)=Section) then
+        begin
+	  SearchSection:=P;
+	  break;
+	end;
+    end;	
 end;
 
 function TINIFile.SearchEntry(const Section, Tag: string): PINIEntry;
@@ -479,7 +509,10 @@ end;
 END.
 {
   $Log$
-  Revision 1.4  2004-11-02 23:53:19  peter
+  Revision 1.5  2004-11-06 17:22:53  peter
+    * fixes for new fv
+
+  Revision 1.4  2004/11/02 23:53:19  peter
     * fixed crashes with ide and 1.9.x
 
   Revision 1.3  2002/09/07 15:40:50  peter

@@ -280,40 +280,28 @@ var
   ClassS: string[20];
   S: string;
 begin
-  if TClass=
-    V_Fatal       then ClassS:=msg_class_Fatal   else if TClass =
-    V_Error       then ClassS:=msg_class_Error   else if TClass =
-    V_Normal      then ClassS:=msg_class_Normal  else if TClass =
-    V_Warning     then ClassS:=msg_class_Warning else if TClass =
-    V_Note        then ClassS:=msg_class_Note    else if TClass =
-    V_Hint        then ClassS:=msg_class_Hint
+  case TClass and V_LevelMask of
+    V_Fatal   : ClassS:=msg_class_Fatal;  
+    V_Error   : ClassS:=msg_class_Error;  
+    V_Normal  : ClassS:=msg_class_Normal; 
+    V_Warning : ClassS:=msg_class_Warning;
+    V_Note    : ClassS:=msg_class_Note;   
+    V_Hint    : ClassS:=msg_class_Hint;
 {$ifdef VERBOSETXT}
-    else if TClass =
-{$ifdef COMPILER_1_0}
-    V_Macro       then ClassS:=msg_class_macro   else if TClass =
-    V_Procedure   then ClassS:=msg_class_procedure else if TClass =
+    V_Conditional : ClassS:=msg_class_conditional;
+    V_Info    : ClassS:=msg_class_info;
+    V_Status  : ClassS:=msg_class_status;
+    V_Used    : ClassS:=msg_class_used;
+    V_Tried   : ClassS:=msg_class_tried;
+    V_Debug   : ClassS:=msg_class_debug;
 {$endif}
-    V_Conditional then ClassS:=msg_class_conditional else if TClass =
-    V_Info        then ClassS:=msg_class_info    else if TClass =
-    V_Status      then ClassS:=msg_class_status  else if TClass =
-    V_Used        then ClassS:=msg_class_used    else if TClass =
-    V_Tried       then ClassS:=msg_class_tried   else if TClass =
-    V_Debug       then ClassS:=msg_class_debug
-  else
-   ClassS:='???';
-{$else}
-  else
-   ClassS:='';
-{$endif}
+    else
+      ClassS:='???';
+  end;  
   if ClassS<>'' then
    ClassS:=RExpand(ClassS,0)+': ';
   if assigned(Module) and
-{$ifdef COMPILER_1_0}
-     (TClass<=V_ShowFile)
-{$else}
-     ((TClass and V_LineInfo)=V_LineInfo)
-{$endif}
-     {and (status.currentsource<>'') and (status.currentline>0)} then
+     ((TClass and V_LineInfo)=V_LineInfo) then
     begin
       if Row>0 then
        begin
@@ -1306,7 +1294,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.26  2004-11-05 00:00:33  peter
+  Revision 1.27  2004-11-06 17:22:52  peter
+    * fixes for new fv
+
+  Revision 1.26  2004/11/05 00:00:33  peter
   set exefile after compilation, before the target_info is not filled
 
   Revision 1.25  2004/11/02 23:53:19  peter

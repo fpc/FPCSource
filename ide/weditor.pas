@@ -280,7 +280,7 @@ type
    {a}function    GetEditorInfo(Editor: PCustomCodeEditor): PEditorLineInfo; virtual;
    {a}function    GetFlags: longint; virtual;
    {a}procedure   SetFlags(AFlags: longint); virtual;
-      function    IsFlagSet(AFlag: longint): boolean;
+      function    IsFlagSet(AFlag: longint): boolean; {$ifdef USEINLINE}inline;{$endif}
       procedure   SetFlagState(AFlag: longint; ASet: boolean);
       destructor  Done; virtual;
     public { internal use only! }
@@ -493,7 +493,7 @@ type
    {a}procedure   SetSyntaxCompleted(SC: boolean); virtual;
    {a}function    GetLastSyntaxedLine: sw_integer; virtual;
    {a}procedure   SetLastSyntaxedLine(ALine: sw_integer); virtual;
-      function    IsFlagSet(AFlag: longint): boolean;
+      function    IsFlagSet(AFlag: longint): boolean;{$ifdef USEINLINE}inline;{$endif}
       function    GetReservedColCount: sw_integer; virtual;
    {a}function    GetTabSize: integer; virtual;
    {a}procedure   SetTabSize(ATabSize: integer); virtual;
@@ -1311,7 +1311,7 @@ begin
   Abstract;
 end;
 
-function TCustomLine.IsFlagSet(AFlag: longint): boolean;
+function TCustomLine.IsFlagSet(AFlag: longint): boolean;{$ifdef USEINLINE}inline;{$endif}
 begin
   IsFlagSet:=(GetFlags and AFlag)=AFlag;
 end;
@@ -2739,7 +2739,7 @@ begin
   Abstract;
 end;
 
-function TCustomCodeEditor.IsFlagSet(AFlag: longint): boolean;
+function TCustomCodeEditor.IsFlagSet(AFlag: longint): boolean;{$ifdef USEINLINE}inline;{$endif}
 begin
   IsFlagSet:=(GetFlags and AFlag)=AFlag;
 end;
@@ -7271,7 +7271,10 @@ end;
 END.
 {
   $Log$
-  Revision 1.46  2004-11-03 12:08:30  peter
+  Revision 1.47  2004-11-06 17:22:53  peter
+    * fixes for new fv
+
+  Revision 1.46  2004/11/03 12:08:30  peter
     * fixed newline broken by valgrind patch
 
   Revision 1.45  2004/11/02 23:53:19  peter

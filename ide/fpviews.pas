@@ -2107,7 +2107,7 @@ procedure TSourceWindow.SetTitle(ATitle: string);
 begin
   if Title<>nil then DisposeStr(Title);
   Title:=NewStr(ATitle);
-{$ifdef FVISION}
+{$ifdef OLDGVFVISION}
   If assigned(Owner) then
     DrawBorder;
 {$else}
@@ -4581,7 +4581,10 @@ end;
 END.
 {
   $Log$
-  Revision 1.45  2004-11-05 00:21:56  peter
+  Revision 1.46  2004-11-06 17:22:52  peter
+    * fixes for new fv
+
+  Revision 1.45  2004/11/05 00:21:56  peter
   version info at startup
 
   Revision 1.44  2004/05/03 21:12:54  peter
