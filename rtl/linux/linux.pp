@@ -2092,44 +2092,40 @@ Procedure AssignStream(Var StreamIn,Streamout:text;Const Prog:String);
 }
 var
   pipi,
-  pipo : array[0..1] of text;
+  pipo : text;
   pid  : longint;
-  F : text;
+  
 begin
   LinuxError:=0;
-  AssignPipe(pipi[0],pipo[0]);
+  AssignPipe(streamin,pipo);
   if Linuxerror<>0 then
    exit;
-  AssignPipe(pipi[1],pipo[1]);
+  AssignPipe(pipi,streamout);
   if Linuxerror<>0 then
    exit;
   pid:=fork;
   if linuxerror<>0 then
    begin
-     for pid:=0 to 1 do
-      begin
-        close(pipi[pid]);
-        close(pipo[pid]);
-      end;
+     close(pipi);
+     close(pipo);
+     close (streamin);
+     close (streamout);
      exit;
    end;
   if pid=0 then
    begin
      { We're in the child }
      { Close what we don't need }
-     close(pipo[1]);
-     close(pipi[0]);
-     Reset(pipi[1]);
-     Rewrite(pipo[0]);
-     dup2(pipi[1],input);
-     close(pipi[1]);
+     close(streamout);
+     close(streamin);
+     dup2(pipi,input);
      if linuxerror<>0 then
       halt(127);
-     dup2(pipo[0],output);
-     close(pipo[0]);
+     close(pipi);
+     dup2(pipo,output);
      if linuxerror<>0 then
-      halt(127);
-     close(f);
+       halt (127);
+     close(pipo);
      Execl(Prog);
      halt(127);
    end
@@ -2142,11 +2138,15 @@ begin
           pipo[1] --> pipi[1]
           pipi[0] <-- pipo[0]
       }
-     close(pipo[0]);
-     dup(pipi[0],streamin);
-     close(pipi[1]);
-     dup(pipo[1],streamout);
+
+     close(pipo);
+     // dup(pipi[0],streamin);
+     // close (pipi[0]);
+     close(pipi);
+     // dup(pipo[1],streamout);
+     // close (pipo[1]);
    end;
+
 end;
 
 
@@ -3123,8 +3123,11 @@ End.
 
 {
   $Log$
-  Revision 1.1  1998-03-25 11:18:43  root
-  Initial revision
+  Revision 1.2  1998-04-04 17:07:17  michael
+  + Fixed AssignStream, it completely refused to work
+
+  Revision 1.1.1.1  1998/03/25 11:18:43  root
+  * Restored version
 
   Revision 1.17  1998/02/23 14:17:51  michael
   * Fixed pclose bug. Programs went into a neverending loop.
