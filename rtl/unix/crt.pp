@@ -467,19 +467,21 @@ end;
 
 
 
-procedure DoEmptyLine(y,xl,xh:longint);
+Procedure DoEmptyLine(y,xl,xh:Longint);
 {
-  Write an Empty line at Row Y from Col Xl to XH, Memory is also updated
+  Write an empty line at row Y from column Xl to Xh. Memory is also updated.
 }
-var
-  len : longint;
-begin
+Var
+  len : Longint;
+  blank_with_attribute : TCharAttr;
+Begin
   ttyGotoXY(xl,y);
   len:=xh-xl+1;
   LineWrite(Space(len));
-  FillWord(ConsoleBuf^[(y-1)*ScreenWidth+xl-1],len,(TextAttr shl 8)+ord(' '));
-end;
-
+  blank_with_attribute.ch:=' ';
+  blank_with_attribute.attr:=TextAttr;
+  FillWord(ConsoleBuf^[(y-1)*ScreenWidth+xl-1],len,word(blank_with_attribute));
+End;
 
 
 procedure DoScrollLine(y1,y2,xl,xh:longint);
@@ -613,11 +615,13 @@ End;
 
 Procedure ClrScr;
 {
-  Clear the current window, and set the cursor on x1,y1
+  Clear the current window, and set the cursor on 1,1
 }
 Var
   CY,i      : Longint;
   oldflush  : boolean;
+  blank_with_attribute : TCharAttr;
+
 Begin
   { See if color has changed }
   if OldTextAttr<>TextAttr then
@@ -633,7 +637,9 @@ Begin
       ttySendStr(#27'[H'#27'[2J');
      CurrX:=1;
      CurrY:=1;
-     FillWord(ConsoleBuf^,ScreenWidth*ScreenHeight,(TextAttr shl 8)+ord(' '));
+     blank_with_attribute.ch   := ' ';
+     blank_with_attribute.attr := TextAttr;
+     FillWord(ConsoleBuf^,ScreenWidth*ScreenHeight,word(blank_with_attribute));
    end
   else
    begin
@@ -1622,7 +1628,10 @@ Finalization
 End.
 {
   $Log$
-  Revision 1.22  2005-02-14 17:13:31  peter
+  Revision 1.23  2005-03-15 09:20:11  jonas
+    * endianess fixes from mischi
+
+  Revision 1.22  2005/02/14 17:13:31  peter
     * truncate log
 
 }
