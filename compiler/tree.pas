@@ -149,7 +149,7 @@ unit tree;
 
        { allows to determine which elementes are to be replaced }
        tdisposetyp = (dt_nothing,dt_leftright,dt_left,dt_leftrighthigh,
-                      dt_mbleft,dt_typeconv,dt_inlinen,
+                      dt_mbleft,dt_typeconv,dt_inlinen,dt_leftrightmethod,
                       dt_mbleft_and_method,dt_loop,dt_case,dt_with,dt_onn);
 
       { different assignment types }
@@ -390,6 +390,15 @@ unit tree;
                  if assigned(p^.hightree) then
                    hp^.left:=getcopy(p^.hightree);
               end;
+            dt_leftrightmethod :
+              begin
+                 if assigned(p^.left) then
+                   hp^.left:=getcopy(p^.left);
+                 if assigned(p^.right) then
+                   hp^.right:=getcopy(p^.right);
+                 if assigned(p^.methodpointer) then
+                   hp^.left:=getcopy(p^.methodpointer);
+              end;
             dt_nothing : ;
             dt_left    :
               if assigned(p^.left) then
@@ -486,6 +495,15 @@ unit tree;
                    disposetree(p^.right);
                  if assigned(p^.hightree) then
                    disposetree(p^.hightree);
+              end;
+            dt_leftrightmethod :
+              begin
+                 if assigned(p^.left) then
+                   disposetree(p^.left);
+                 if assigned(p^.right) then
+                   disposetree(p^.right);
+                 if assigned(p^.methodpointer) then
+                   disposetree(p^.methodpointer);
               end;
             dt_case :
               begin
@@ -1067,7 +1085,7 @@ unit tree;
          p^.unit_specific:=false;
          p^.no_check:=false;
          p^.return_value_used:=true;
-         p^.disposetyp := dt_leftright;
+         p^.disposetyp := dt_leftrightmethod;
          p^.methodpointer:=nil;
          p^.left:=nil;
          p^.right:=nil;
@@ -1093,7 +1111,7 @@ unit tree;
          p^.return_value_used:=true;
          p^.symtableprocentry:=v;
          p^.symtableproc:=st;
-         p^.disposetyp:=dt_mbleft_and_method;
+         p^.disposetyp:=dt_leftrightmethod;
          p^.left:=nil;
          p^.right:=nil;
          p^.methodpointer:=mp;
@@ -1721,7 +1739,10 @@ unit tree;
 end.
 {
   $Log$
-  Revision 1.86  1999-08-04 00:23:49  florian
+  Revision 1.87  1999-08-09 22:14:46  peter
+    * fixed disposing of tree node
+
+  Revision 1.86  1999/08/04 00:23:49  florian
     * renamed i386asm and i386base to cpuasm and cpubase
 
   Revision 1.85  1999/08/03 22:03:40  peter
