@@ -23,6 +23,9 @@
 unit pmodules;
 
 {.$define TEST_IMPL does not work well }
+{ other way to get correct type info, in test (PM) }
+
+{$define New_GDB}
 
   interface
 
@@ -575,6 +578,7 @@ unit pmodules;
          while assigned(hp) do
            begin
 {$IfDef GDB}
+{$IfnDef New_GDB}
               if (cs_debuginfo in aktmoduleswitches) and
                 not hp^.is_stab_written then
                 begin
@@ -582,6 +586,7 @@ unit pmodules;
                    hp^.is_stab_written:=true;
                    hp^.unitid:=psymtable(hp^.u^.globalsymtable)^.unitid;
                 end;
+{$endIf nDef New_GDB}
 {$EndIf GDB}
               if hp^.in_uses then
                 begin
@@ -612,6 +617,47 @@ unit pmodules;
       end;
 
 
+     procedure write_gdb_info;
+      var
+         hp : pused_unit;
+       begin
+{$IfDef GDB}
+         { now insert the units in the symtablestack }
+         hp:=pused_unit(current_module^.used_units.first);
+         while assigned(hp) do
+           begin
+              if (cs_debuginfo in aktmoduleswitches) and
+                not hp^.is_stab_written then
+                begin
+                   punitsymtable(hp^.u^.globalsymtable)^.concattypestabto(debuglist);
+                   hp^.is_stab_written:=true;
+                   hp^.unitid:=psymtable(hp^.u^.globalsymtable)^.unitid;
+                end;
+              hp:=pused_unit(hp^.next);
+           end;
+         if current_module^.in_implementation then
+           begin
+              if assigned(current_module^.localsymtable) then
+                begin
+                   { all types }
+                   punitsymtable(current_module^.localsymtable)^.concattypestabto(debuglist);
+                   { and all local symbols}
+                   punitsymtable(current_module^.localsymtable)^.concatstabto(debuglist);
+                end;
+           end
+         else
+           begin
+              if assigned(current_module^.globalsymtable) then
+                begin
+                   { all types }
+                   punitsymtable(current_module^.globalsymtable)^.concattypestabto(debuglist);
+                   { and all local symbols}
+                   punitsymtable(current_module^.globalsymtable)^.concatstabto(debuglist);
+                end;
+           end;
+{$EndIf GDB}
+        end;
+        
     procedure parse_implementation_uses(symt:Psymtable);
       begin
          if token=_USES then
@@ -805,6 +851,10 @@ unit pmodules;
             exit;
           end;
 
+{$ifdef New_GDB}
+         write_gdb_info;
+{$endIf Def New_GDB}
+
          { Parse the implementation section }
          consume(_IMPLEMENTATION);
          current_module^.in_implementation:=true;
@@ -922,6 +972,7 @@ unit pmodules;
          { add all used definitions even for implementation}
          if (cs_debuginfo in aktmoduleswitches) then
           begin
+{$IfnDef New_GDB}
             if assigned(current_module^.globalsymtable) then
               begin
                  { all types }
@@ -929,10 +980,13 @@ unit pmodules;
                  { and all local symbols}
                  punitsymtable(current_module^.globalsymtable)^.concatstabto(debuglist);
               end;
-            { all types }
+            { all local types }
             punitsymtable(st)^.concattypestabto(debuglist);
             { and all local symbols}
             st^.concatstabto(debuglist);
+{$else New_GDB}
+            write_gdb_info;
+{$endIf Def New_GDB}
           end;
 {$endif GDB}
 
@@ -1113,6 +1167,9 @@ unit pmodules;
          { consume the last point }
          consume(POINT);
 
+{$ifdef New_GDB}
+         write_gdb_info;
+{$endIf Def New_GDB}
          { leave when we got an error }
          if (status.errorcount>0) and not status.skip_error then
           begin
@@ -1160,7 +1217,10 @@ unit pmodules;
 end.
 {
   $Log$
-  Revision 1.86  1998-11-30 09:43:22  pierre
+  Revision 1.87  1998-12-01 23:40:53  pierre
+   * new try for correct debug info generation
+
+  Revision 1.86  1998/11/30 09:43:22  pierre
     * some range check bugs fixed (still not working !)
     + added DLL writing support for win32 (also accepts variables)
     + TempAnsi for code that could be used for Temporary ansi strings
