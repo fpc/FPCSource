@@ -1394,6 +1394,7 @@ implementation
       begin
         first_int_to_int:=nil;
         if (left.expectloc<>LOC_REGISTER) and
+           not is_void(left.resulttype.def) and
            (resulttype.def.size>left.resulttype.def.size) then
            expectloc:=LOC_REGISTER
         else
@@ -2108,7 +2109,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.112  2003-06-03 21:05:48  peter
+  Revision 1.113  2003-06-04 17:29:01  jonas
+    * fixed void_to_(int,pointer) typeconversion
+
+  Revision 1.112  2003/06/03 21:05:48  peter
     * fix check for procedure without parameters
     * calling constructor as member will not allocate memory
 
