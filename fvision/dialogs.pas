@@ -615,7 +615,7 @@ TYPE
         associated with the cluster item that was pressed to the check boxes'
         owner. }
       {#X CommandList }
-    procedure Store (var S : TStream); virtual;
+    procedure Store (var S : TStream); { store should never be virtual;}
       { Store calls the inherited Store method then writes the #CommandList#
         to the stream. }
       {#X Load }
@@ -653,7 +653,7 @@ TYPE
         associated with the cluster item that was pressed to the check boxes
         owner. }
       {#X CommandList MovedTo }
-    procedure Store (var S : TStream); virtual;
+    procedure Store (var S : TStream); { store should never be virtual;}
       { Store calls the inherited Store method then writes the #CommandList#
         to the stream. }
       {#X Load }
@@ -794,7 +794,7 @@ TYPE
       AListBox: PListBox; AEditCommand, ANewCommand: Word);
     constructor Load(var S: TStream);
     procedure HandleEvent(var Event: TEvent); virtual;
-    procedure Store(var S: TStream); virtual;
+    procedure Store(var S: TStream); { store should never be virtual;}
   end;  { of TListDlg }
 
 
@@ -4204,7 +4204,10 @@ END;
 END.
 {
  $Log$
- Revision 1.18  2002-09-07 15:06:36  peter
+ Revision 1.19  2002-09-09 08:14:47  pierre
+  * remove virtual modifer from store methods
+
+ Revision 1.18  2002/09/07 15:06:36  peter
    * old logs removed and tabs fixed
 
  Revision 1.17  2002/05/31 12:35:21  pierre

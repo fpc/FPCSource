@@ -682,6 +682,7 @@ VAR I, J: Byte; Rslt: TPicResult; Reprocess: Boolean;
 
    BEGIN
      Incomp := False;                                 { Clear incomplete }
+     InCompJ:=0;                                      { set to avoid a warning }
      OldI := I;                                       { Hold I count }
      OldJ := J;                                       { Hold J count }
      Repeat
@@ -1058,7 +1059,10 @@ END.
 
 {
  $Log$
- Revision 1.6  2002-09-07 15:06:38  peter
+ Revision 1.7  2002-09-09 08:14:48  pierre
+  * remove virtual modifer from store methods
+
+ Revision 1.6  2002/09/07 15:06:38  peter
    * old logs removed and tabs fixed
 
 }

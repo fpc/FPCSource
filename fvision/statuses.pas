@@ -238,7 +238,7 @@ type
         to cmStatusPause and Event.InfoPtr set to #Status#^.Command.  The
         Status view's sfPause bit is turned off by calling SetState. }
       {#X Pause sdXXXX Cancel }
-    procedure Store (var S : TStream); virtual;
+    procedure Store (var S : TStream); { store should never be virtual;}
       { Store calls the inherited Store method then writes #Command# to the
         stream. }
       {#X Load }
@@ -308,7 +308,7 @@ type
     procedure InsertButtons (AFlags : Word); virtual;
       { InsertButtons enlarges the dialog to the necessary size and inserts
         the buttons specified in AFlags into the last row of the dialog. }
-    procedure Store (var S : TStream); virtual;
+    procedure Store (var S : TStream); { store should never be virtual;}
       { Store calls the inherited Store method then writes #Status# to the
         stream. }
       {#X Load }
@@ -388,7 +388,7 @@ Min = XXX  Max = XXX  Current = XXX }
       { SetData assumes Rec is a #TGaugeRec# and sets the gauge's variables
         accordingly. }
       {#X GetData }
-    procedure Store (var S : TStream); virtual;
+    procedure Store (var S : TStream); { store should never be virtual;}
       { Store calls the inherited Store method then writes #Min#, #Max# and
         #Current# to the stream. }
       {#X Load }
@@ -444,7 +444,7 @@ Min = XXX  Max = XXX  Current = XXX }
       { SetData assumes Rec is a #TArrowGaugeRec# and sets the view's
         variables accordingly. }
       {#X GetData }
-    procedure Store (var S : TStream); virtual;
+    procedure Store (var S : TStream); { store should never be virtual;}
       { Store calls the inherited Store method then writes #Right# to the
         stream. }
       {#X Load }
