@@ -1285,6 +1285,18 @@ begin
         ppaiprop(startMod^.optInfo)^.canBeRemoved := true;
 end;
 
+function is_mov_for_div(p: paicpu): boolean;
+begin
+  is_mov_for_div :=
+    (p^.opcode = A_MOV) and
+    (p^.oper[0].typ = top_const) and
+    (p^.oper[1].typ = top_reg) and
+    (p^.oper[1].reg = R_EDX) and
+    getNextInstruction(p,p) and
+    (p^.typ = ait_instruction) and
+    ((p^.opcode = A_DIV) or
+     (p^.opcode = A_IDIV));
+end;
 
 procedure DoCSE(AsmL: PAasmOutput; First, Last: Pai; findPrevSeqs, doSubOpts: boolean);
 {marks the instructions that can be removed by RemoveInstructs. They're not
@@ -1367,26 +1379,31 @@ Begin
                                                (paicpu(p)^.opcode = A_MOVZX) or
                                                (paicpu(p)^.opcode = A_MOVSX)) And
                                               (paicpu(p)^.oper[1].typ = top_reg) then
-                                             begin
-                                               regCounter := reg32(paicpu(p)^.oper[1].reg);
-                                               if (regCounter in reginfo.regsStillUsedAfterSeq) then
-                                                 begin
-                                                   if (hp1 = nil) then
-                                                     hp1 := reginfo.lastReload[regCounter];
-                                                 end
+                                             if not is_mov_for_div(paicpu(p)) then
+                                               begin
+                                                 regCounter := reg32(paicpu(p)^.oper[1].reg);
+                                                 if (regCounter in reginfo.regsStillUsedAfterSeq) then
+                                                   begin
+                                                    if (hp1 = nil) then
+                                                      hp1 := reginfo.lastReload[regCounter];
+                                                   end
 {$ifndef noremove}
-                                               else
-                                                 begin
-                                                   hp5 := p;
-                                                   for cnt3 := ppaiprop(p^.optinfo)^.regs[regCounter].nrofmods downto 1 do
-                                                     begin
-                                                       if regModifiedByInstruction(regCounter,hp5) then
-                                                         PPaiProp(hp5^.OptInfo)^.CanBeRemoved := True;
-                                                       getNextInstruction(hp5,hp5);
-                                                     end;
-                                                 end
+                                                 else
+                                                   begin
+                                                     hp5 := p;
+                                                     for cnt3 := ppaiprop(p^.optinfo)^.regs[regCounter].nrofmods downto 1 do
+                                                       begin
+                                                         if regModifiedByInstruction(regCounter,hp5) then
+                                                           PPaiProp(hp5^.OptInfo)^.CanBeRemoved := True;
+                                                         getNextInstruction(hp5,hp5);
+                                                       end;
+                                                   end
 {$endif noremove}
-                                             end
+                                               end
+{$ifndef noremove}
+                                             else
+                                               PPaiProp(p^.OptInfo)^.CanBeRemoved := True
+{$endif noremove}
                                          end
 {$ifndef noremove}
                                        else
@@ -1684,7 +1701,10 @@ End.
 
 {
   $Log$
-  Revision 1.6  2000-11-14 12:17:34  jonas
+  Revision 1.7  2000-11-28 16:32:11  jonas
+    + support for optimizing simple sequences with div/idiv/mul opcodes
+
+  Revision 1.6  2000/11/14 12:17:34  jonas
     * fixed some bugs in checksequence
 
   Revision 1.5  2000/11/09 12:34:44  jonas

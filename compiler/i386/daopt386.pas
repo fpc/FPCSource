@@ -2219,7 +2219,9 @@ Begin
                   hp := new(pai_asm_comment,init(strpnew('destroying eax and edx')));
                   insertllitem(asml,p,p^.next,hp);
 {$endif statedebug}
-                  DestroyReg(CurProp, R_EAX, true);
+{                  DestroyReg(CurProp, R_EAX, true);}
+                  AddInstr2RegContents({$ifdef statedebug}asml,{$endif}
+                    paicpu(p), R_EAX);
                   DestroyReg(CurProp, R_EDX, true)
                 End;
               A_IMUL:
@@ -2234,7 +2236,9 @@ Begin
                         hp := new(pai_asm_comment,init(strpnew('destroying eax and edx')));
                         insertllitem(asml,p,p^.next,hp);
 {$endif statedebug}
-                        DestroyReg(CurProp, R_EAX, true);
+{                        DestroyReg(CurProp, R_EAX, true); }
+                        AddInstr2RegContents({$ifdef statedebug}asml,{$endif}
+                          paicpu(p), R_EAX);
                         DestroyReg(CurProp, R_EDX, true)
                       End
                     Else
@@ -2443,7 +2447,10 @@ End.
 
 {
   $Log$
-  Revision 1.9  2000-11-23 14:20:18  jonas
+  Revision 1.10  2000-11-28 16:32:11  jonas
+    + support for optimizing simple sequences with div/idiv/mul opcodes
+
+  Revision 1.9  2000/11/23 14:20:18  jonas
     * fixed stupid bug in previous commit
 
   Revision 1.8  2000/11/23 13:26:33  jonas
