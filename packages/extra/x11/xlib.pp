@@ -1761,73 +1761,73 @@ procedure XSetAuthorization(para1:Pchar; para2:cint; para3:Pchar; para4:cint);cd
 }
 
 {$ifdef MACROS}
-function ConnectionNumber(dpy : PDisplay) : longint;
-function RootWindow(dpy : PDisplay; scr : longint) : TWindow;
-function DefaultScreen(dpy : PDisplay) : longint;
+function ConnectionNumber(dpy : PDisplay) : cint;
+function RootWindow(dpy : PDisplay; scr : cint) : TWindow;
+function DefaultScreen(dpy : PDisplay) : cint;
 function DefaultRootWindow(dpy : PDisplay) : TWindow;
-function DefaultVisual(dpy : PDisplay; scr : longint) : PVisual;
-function DefaultGC(dpy : PDisplay; scr : longint) : TGC;
-function BlackPixel(dpy : PDisplay; scr : longint) : dword;
-function WhitePixel(dpy : PDisplay; scr : longint) : dword;
-function QLength(dpy : PDisplay) : longint;
-function DisplayWidth(dpy : PDisplay; scr : longint) : longint;
-function DisplayHeight(dpy : PDisplay; scr : longint) : longint;
-function DisplayWidthMM(dpy : PDisplay; scr : longint) : longint;
-function DisplayHeightMM(dpy : PDisplay; scr : longint) : longint;
-function DisplayPlanes(dpy : PDisplay; scr : longint) : longint;
-function DisplayCells(dpy : PDisplay; scr : longint) : longint;
-function ScreenCount(dpy : PDisplay) : longint;
+function DefaultVisual(dpy : PDisplay; scr : cint) : PVisual;
+function DefaultGC(dpy : PDisplay; scr : cint) : TGC;
+function BlackPixel(dpy : PDisplay; scr : cint) : culong;
+function WhitePixel(dpy : PDisplay; scr : cint) : culong;
+function QLength(dpy : PDisplay) : cint;
+function DisplayWidth(dpy : PDisplay; scr : cint) : cint;
+function DisplayHeight(dpy : PDisplay; scr : cint) : cint;
+function DisplayWidthMM(dpy : PDisplay; scr : cint) : cint;
+function DisplayHeightMM(dpy : PDisplay; scr : cint) : cint;
+function DisplayPlanes(dpy : PDisplay; scr : cint) : cint;
+function DisplayCells(dpy : PDisplay; scr : cint) : cint;
+function ScreenCount(dpy : PDisplay) : cint;
 function ServerVendor(dpy : PDisplay) : Pchar;
-function ProtocolVersion(dpy : PDisplay) : longint;
-function ProtocolRevision(dpy : PDisplay) : longint;
-function VendorRelease(dpy : PDisplay) : longint;
+function ProtocolVersion(dpy : PDisplay) : cint;
+function ProtocolRevision(dpy : PDisplay) : cint;
+function VendorRelease(dpy : PDisplay) : cint;
 function DisplayString(dpy : PDisplay) : Pchar;
-function DefaultDepth(dpy : PDisplay; scr : longint) : longint;
-function DefaultColormap(dpy : PDisplay; scr : longint) : TColormap;
-function BitmapUnit(dpy : PDisplay) : longint;
-function BitmapBitOrder(dpy : PDisplay) : longint;
-function BitmapPad(dpy : PDisplay) : longint;
-function ImageByteOrder(dpy : PDisplay) : longint;
-function NextRequest(dpy : PDisplay) : dword;
-function LastKnownRequestProcessed(dpy : PDisplay) : dword;
-function ScreenOfDisplay(dpy : PDisplay; scr : longint) : PScreen;
+function DefaultDepth(dpy : PDisplay; scr : cint) : cint;
+function DefaultColormap(dpy : PDisplay; scr : cint) : TColormap;
+function BitmapUnit(dpy : PDisplay) : cint;
+function BitmapBitOrder(dpy : PDisplay) : cint;
+function BitmapPad(dpy : PDisplay) : cint;
+function ImageByteOrder(dpy : PDisplay) : cint;
+function NextRequest(dpy : PDisplay) : culong;
+function LastKnownRequestProcessed(dpy : PDisplay) : culong;
+function ScreenOfDisplay(dpy : PDisplay; scr : cint) : PScreen;
 function DefaultScreenOfDisplay(dpy : PDisplay) : PScreen;
 function DisplayOfScreen(s : PScreen) : PDisplay;
 function RootWindowOfScreen(s : PScreen) : TWindow;
-function BlackPixelOfScreen(s : PScreen) : dword;
-function WhitePixelOfScreen(s : PScreen) : dword;
+function BlackPixelOfScreen(s : PScreen) : culong;
+function WhitePixelOfScreen(s : PScreen) : culong;
 function DefaultColormapOfScreen(s : PScreen) : TColormap;
-function DefaultDepthOfScreen(s : PScreen) : longint;
+function DefaultDepthOfScreen(s : PScreen) : cint;
 function DefaultGCOfScreen(s : PScreen) : TGC;
 function DefaultVisualOfScreen(s : PScreen) : PVisual;
-function WidthOfScreen(s : PScreen) : longint;
-function HeightOfScreen(s : PScreen) : longint;
-function WidthMMOfScreen(s : PScreen) : longint;
-function HeightMMOfScreen(s : PScreen) : longint;
-function PlanesOfScreen(s : PScreen) : longint;
-function CellsOfScreen(s : PScreen) : longint;
-function MinCmapsOfScreen(s : PScreen) : longint;
-function MaxCmapsOfScreen(s : PScreen) : longint;
+function WidthOfScreen(s : PScreen) : cint;
+function HeightOfScreen(s : PScreen) : cint;
+function WidthMMOfScreen(s : PScreen) : cint;
+function HeightMMOfScreen(s : PScreen) : cint;
+function PlanesOfScreen(s : PScreen) : cint;
+function CellsOfScreen(s : PScreen) : cint;
+function MinCmapsOfScreen(s : PScreen) : cint;
+function MaxCmapsOfScreen(s : PScreen) : cint;
 function DoesSaveUnders(s : PScreen) : TBool;
-function DoesBackingStore(s : PScreen) : longint;
-function EventMaskOfScreen(s : PScreen) : longint;
+function DoesBackingStore(s : PScreen) : cint;
+function EventMaskOfScreen(s : PScreen) : clong;
 function XAllocID(dpy : PDisplay) : TXID;
 {$endif MACROS}
 
 implementation
 
 {$ifdef MACROS}
-function ConnectionNumber(dpy : PDisplay) : longint;
+function ConnectionNumber(dpy : PDisplay) : cint;
 begin
    ConnectionNumber:=(PXPrivDisplay(dpy))^.fd;
 end;
 
-function RootWindow(dpy : PDisplay; scr : longint) : TWindow;
+function RootWindow(dpy : PDisplay; scr : cint) : TWindow;
 begin
    RootWindow:=(ScreenOfDisplay(dpy,scr))^.root;
 end;
 
-function DefaultScreen(dpy : PDisplay) : longint;
+function DefaultScreen(dpy : PDisplay) : cint;
 begin
    DefaultScreen:=(PXPrivDisplay(dpy))^.default_screen;
 end;
@@ -1837,62 +1837,62 @@ begin
    DefaultRootWindow:=(ScreenOfDisplay(dpy,DefaultScreen(dpy)))^.root;
 end;
 
-function DefaultVisual(dpy : PDisplay; scr : longint) : PVisual;
+function DefaultVisual(dpy : PDisplay; scr : cint) : PVisual;
 begin
    DefaultVisual:=(ScreenOfDisplay(dpy,scr))^.root_visual;
 end;
 
-function DefaultGC(dpy : PDisplay; scr : longint) : TGC;
+function DefaultGC(dpy : PDisplay; scr : cint) : TGC;
 begin
    DefaultGC:=(ScreenOfDisplay(dpy,scr))^.default_gc;
 end;
 
-function BlackPixel(dpy : PDisplay; scr : longint) : dword;
+function BlackPixel(dpy : PDisplay; scr : cint) : culong;
 begin
    BlackPixel:=(ScreenOfDisplay(dpy,scr))^.black_pixel;
 end;
 
-function WhitePixel(dpy : PDisplay; scr : longint) : dword;
+function WhitePixel(dpy : PDisplay; scr : cint) : culong;
 begin
    WhitePixel:=(ScreenOfDisplay(dpy,scr))^.white_pixel;
 end;
 
-function QLength(dpy : PDisplay) : longint;
+function QLength(dpy : PDisplay) : cint;
 begin
    QLength:=(PXPrivDisplay(dpy))^.qlen;
 end;
 
-function DisplayWidth(dpy : PDisplay; scr : longint) : longint;
+function DisplayWidth(dpy : PDisplay; scr : cint) : cint;
 begin
    DisplayWidth:=(ScreenOfDisplay(dpy,scr))^.width;
 end;
 
-function DisplayHeight(dpy : PDisplay; scr : longint) : longint;
+function DisplayHeight(dpy : PDisplay; scr : cint) : cint;
 begin
    DisplayHeight:=(ScreenOfDisplay(dpy,scr))^.height;
 end;
 
-function DisplayWidthMM(dpy : PDisplay; scr : longint) : longint;
+function DisplayWidthMM(dpy : PDisplay; scr : cint) : cint;
 begin
    DisplayWidthMM:=(ScreenOfDisplay(dpy,scr))^.mwidth;
 end;
 
-function DisplayHeightMM(dpy : PDisplay; scr : longint) : longint;
+function DisplayHeightMM(dpy : PDisplay; scr : cint) : cint;
 begin
    DisplayHeightMM:=(ScreenOfDisplay(dpy,scr))^.mheight;
 end;
 
-function DisplayPlanes(dpy : PDisplay; scr : longint) : longint;
+function DisplayPlanes(dpy : PDisplay; scr : cint) : cint;
 begin
    DisplayPlanes:=(ScreenOfDisplay(dpy,scr))^.root_depth;
 end;
 
-function DisplayCells(dpy : PDisplay; scr : longint) : longint;
+function DisplayCells(dpy : PDisplay; scr : cint) : cint;
 begin
    DisplayCells:=(DefaultVisual(dpy,scr))^.map_entries;
 end;
 
-function ScreenCount(dpy : PDisplay) : longint;
+function ScreenCount(dpy : PDisplay) : cint;
 begin
    ScreenCount:=(PXPrivDisplay(dpy))^.nscreens;
 end;
@@ -1902,17 +1902,17 @@ begin
    ServerVendor:=(PXPrivDisplay(dpy))^.vendor;
 end;
 
-function ProtocolVersion(dpy : PDisplay) : longint;
+function ProtocolVersion(dpy : PDisplay) : cint;
 begin
    ProtocolVersion:=(PXPrivDisplay(dpy))^.proto_major_version;
 end;
 
-function ProtocolRevision(dpy : PDisplay) : longint;
+function ProtocolRevision(dpy : PDisplay) : cint;
 begin
    ProtocolRevision:=(PXPrivDisplay(dpy))^.proto_minor_version;
 end;
 
-function VendorRelease(dpy : PDisplay) : longint;
+function VendorRelease(dpy : PDisplay) : cint;
 begin
    VendorRelease:=(PXPrivDisplay(dpy))^.release;
 end;
@@ -1922,47 +1922,47 @@ begin
    DisplayString:=(PXPrivDisplay(dpy))^.display_name;
 end;
 
-function DefaultDepth(dpy : PDisplay; scr : longint) : longint;
+function DefaultDepth(dpy : PDisplay; scr : cint) : cint;
 begin
    DefaultDepth:=(ScreenOfDisplay(dpy,scr))^.root_depth;
 end;
 
-function DefaultColormap(dpy : PDisplay; scr : longint) : TColormap;
+function DefaultColormap(dpy : PDisplay; scr : cint) : TColormap;
 begin
    DefaultColormap:=(ScreenOfDisplay(dpy,scr))^.cmap;
 end;
 
-function BitmapUnit(dpy : PDisplay) : longint;
+function BitmapUnit(dpy : PDisplay) : cint;
 begin
    BitmapUnit:=(PXPrivDisplay(dpy))^.bitmap_unit;
 end;
 
-function BitmapBitOrder(dpy : PDisplay) : longint;
+function BitmapBitOrder(dpy : PDisplay) : cint;
 begin
    BitmapBitOrder:=(PXPrivDisplay(dpy))^.bitmap_bit_order;
 end;
 
-function BitmapPad(dpy : PDisplay) : longint;
+function BitmapPad(dpy : PDisplay) : cint;
 begin
    BitmapPad:=(PXPrivDisplay(dpy))^.bitmap_pad;
 end;
 
-function ImageByteOrder(dpy : PDisplay) : longint;
+function ImageByteOrder(dpy : PDisplay) : cint;
 begin
    ImageByteOrder:=(PXPrivDisplay(dpy))^.byte_order;
 end;
 
-function NextRequest(dpy : PDisplay) : dword;
+function NextRequest(dpy : PDisplay) : culong;
 begin
    NextRequest:=((PXPrivDisplay(dpy))^.request) + 1;
 end;
 
-function LastKnownRequestProcessed(dpy : PDisplay) : dword;
+function LastKnownRequestProcessed(dpy : PDisplay) : culong;
 begin
    LastKnownRequestProcessed:=(PXPrivDisplay(dpy))^.last_request_read;
 end;
 
-function ScreenOfDisplay(dpy : PDisplay; scr : longint) : PScreen;
+function ScreenOfDisplay(dpy : PDisplay; scr : cint) : PScreen;
 begin
    ScreenOfDisplay:=@(((PXPrivDisplay(dpy))^.screens)[scr]);
 end;
@@ -1982,12 +1982,12 @@ begin
    RootWindowOfScreen:=s^.root;
 end;
 
-function BlackPixelOfScreen(s : PScreen) : dword;
+function BlackPixelOfScreen(s : PScreen) : culong;
 begin
    BlackPixelOfScreen:=s^.black_pixel;
 end;
 
-function WhitePixelOfScreen(s : PScreen) : dword;
+function WhitePixelOfScreen(s : PScreen) : culong;
 begin
    WhitePixelOfScreen:=s^.white_pixel;
 end;
@@ -1997,7 +1997,7 @@ begin
    DefaultColormapOfScreen:=s^.cmap;
 end;
 
-function DefaultDepthOfScreen(s : PScreen) : longint;
+function DefaultDepthOfScreen(s : PScreen) : cint;
 begin
    DefaultDepthOfScreen:=s^.root_depth;
 end;
@@ -2012,42 +2012,42 @@ begin
    DefaultVisualOfScreen:=s^.root_visual;
 end;
 
-function WidthOfScreen(s : PScreen) : longint;
+function WidthOfScreen(s : PScreen) : cint;
 begin
    WidthOfScreen:=s^.width;
 end;
 
-function HeightOfScreen(s : PScreen) : longint;
+function HeightOfScreen(s : PScreen) : cint;
 begin
    HeightOfScreen:=s^.height;
 end;
 
-function WidthMMOfScreen(s : PScreen) : longint;
+function WidthMMOfScreen(s : PScreen) : cint;
 begin
    WidthMMOfScreen:=s^.mwidth;
 end;
 
-function HeightMMOfScreen(s : PScreen) : longint;
+function HeightMMOfScreen(s : PScreen) : cint;
 begin
    HeightMMOfScreen:=s^.mheight;
 end;
 
-function PlanesOfScreen(s : PScreen) : longint;
+function PlanesOfScreen(s : PScreen) : cint;
 begin
    PlanesOfScreen:=s^.root_depth;
 end;
 
-function CellsOfScreen(s : PScreen) : longint;
+function CellsOfScreen(s : PScreen) : cint;
 begin
    CellsOfScreen:=(DefaultVisualOfScreen(s))^.map_entries;
 end;
 
-function MinCmapsOfScreen(s : PScreen) : longint;
+function MinCmapsOfScreen(s : PScreen) : cint;
 begin
    MinCmapsOfScreen:=s^.min_maps;
 end;
 
-function MaxCmapsOfScreen(s : PScreen) : longint;
+function MaxCmapsOfScreen(s : PScreen) : cint;
 begin
    MaxCmapsOfScreen:=s^.max_maps;
 end;
@@ -2057,12 +2057,12 @@ begin
    DoesSaveUnders:=s^.save_unders;
 end;
 
-function DoesBackingStore(s : PScreen) : longint;
+function DoesBackingStore(s : PScreen) : cint;
 begin
    DoesBackingStore:=s^.backing_store;
 end;
 
-function EventMaskOfScreen(s : PScreen) : longint;
+function EventMaskOfScreen(s : PScreen) : clong;
 begin
    EventMaskOfScreen:=s^.root_input_mask;
 end;
