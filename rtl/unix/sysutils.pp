@@ -35,8 +35,6 @@ uses
 
 Procedure AddDisk(const path:string);
 
-const
-  Tzseconds : Longint = 0;
 
 implementation
 
@@ -820,8 +818,6 @@ End;
 
 
 
-{ Include timezone handling routines which use /usr/share/timezone info }
-{$i timezone.inc}
 
 Procedure GetLocalTime(var SystemTime: TSystemTime);
 begin
@@ -1092,7 +1088,10 @@ end.
 {
 
   $Log$
-  Revision 1.51  2004-11-01 07:10:56  peter
+  Revision 1.52  2004-11-02 13:59:42  marco
+   * timezone stuff back to unix
+
+  Revision 1.51  2004/11/01 07:10:56  peter
     * 1.0.x bootstrap fix
 
   Revision 1.50  2004/10/31 22:25:31  olle
