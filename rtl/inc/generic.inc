@@ -31,8 +31,16 @@ var
 begin
   if count <= 0 then exit;
   Dec(count);
-  for i:=0 to count do
-    bytearray(dest)[i]:=bytearray(source)[i];
+  if @source<@dest then
+    begin
+      for i:=count downto 0 do
+        bytearray(dest)[i]:=bytearray(source)[i];
+    end
+  else
+    begin
+      for i:=0 to count do
+        bytearray(dest)[i]:=bytearray(source)[i];
+    end;
 end;
 {$endif not FPC_SYSTEM_HAS_MOVE}
 
@@ -511,22 +519,12 @@ function fpc_shortstr_to_shortstr(len:longint;const sstr:shortstring): shortstri
 var
   slen : byte;
 begin
-{ these are shortstrings, not pointers! (JM)
-  if dstr=nil then
-    exit;
-  if sstr=nil then
-    begin
-      if dstr<>nil then
-        pstring(dstr)^[0]:=#0;
-      exit;
-    end;
-}
   slen:=length(sstr);
   if slen<len then
     len:=slen;
-  { don't forget the length character }
-  if len <> 0 then
-    move(sstr[0],result[0],len+1);
+  move(sstr[0],result[0],len+1);
+  if slen>len then
+    result[0]:=chr(len);
 end;
 
 {$ifdef interncopy}
@@ -539,25 +537,12 @@ var
 type
   pstring = ^string;
 begin
-{ these are shortstrings, not pointers! (JM)
-  if dstr=nil then
-    exit;
-  if sstr=nil then
-    begin
-      if dstr<>nil then
-        pstring(dstr)^[0]:=#0;
-      exit;
-    end;
-}
   slen:=length(pstring(sstr)^);
   if slen<len then
     len:=slen;
-  { don't forget the length character }
-  if len <> 0 then
-      move(sstr^,dstr^,len+1);
- { already done by the move above (JM)
-  pstring(dstr)^[0]:=chr(len);
- }
+  move(sstr^,dstr^,len+1);
+  if slen>len then
+    pchar(dstr)^:=chr(len);
 end;
 
 {$endif ndef FPC_SYSTEM_HAS_FPC_SHORTSTR_ASSIGN}
@@ -1134,7 +1119,10 @@ end;
 
 {
   $Log$
-  Revision 1.66  2004-01-21 01:25:02  florian
+  Revision 1.67  2004-01-28 17:02:13  florian
+    * fixed a couple of broken generic routines
+
+  Revision 1.66  2004/01/21 01:25:02  florian
     * improved generic int. div routines
 
   Revision 1.65  2004/01/20 23:16:56  florian
