@@ -35,7 +35,7 @@ typedef CHAR      * _Seg16 PCHAR16; }
 {       typedef int ( APIENTRY _PFN)  ();
 typedef _PFN    *PFN;
 typedef int ( APIENTRY _NPFN)  ();
-typedef _NPFN   *NPFN;	}
+typedef _NPFN   *NPFN;  }
 
        PBYTE = ^BYTE;
        NPBYTE = ^BYTE;
@@ -346,7 +346,7 @@ typedef _NPFN   *NPFN;	}
   
       { null. term. Strings sind in den Header Dateien oft als }
       { array[0..0] of byte deklariert, der folgende Typ er-   }
-      { m”glich eine Typkonvertierung			       }
+      { m”glich eine Typkonvertierung                  }
       CHARARRAY = array[0..0] of char;
      
   implementation

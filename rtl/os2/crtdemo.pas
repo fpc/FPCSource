@@ -63,19 +63,19 @@ procedure Initialize;
 { generator. Paint the help line. }
 begin
   OrigMode:=LastMode;                  { Remember original video mode }
-  TextMode(_80cols+_50rows);      	   { use 43 or 50 lines on EGA/VGA }
+  TextMode(_80cols+_50rows);           { use 43 or 50 lines on EGA/VGA }
   LastCol:=Lo(WindMax)+1;              { get last column, row }
   LastRow:=Hi(WindMax)+1;
   GoToXY(1,LastRow);                   { put message line on screen }
   TextBackground(Black);
   TextColor(White);
-  Write(' Ins-InsLine  ',
-		'Del-DelLine  ',
-		#27#24#25#26'-Cursor  ',
-		'Alt-W-Window  ',
-		'Alt-R-Random  ',
-		'Esc-Exit');
-  Dec(LastRow,80 div LastCol);         { don't write on message line }
+  Write(' Ins-InsLine  '+
+        'Del-DelLine  '+
+        #27#24#25#26'-Cursor  '+
+        'Alt-W-Window  '+
+        'Alt-R-Random  '+
+        'Esc-Exit');
+  LastRow:=lastrow-80 div LastCol;     { don't write on message line }
   Randomize;                           { init random number generator }
 end; { Init }
 

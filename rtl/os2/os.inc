@@ -20,8 +20,8 @@
 
 {
   $Log$
-  Revision 1.1  1998-03-25 11:18:46  root
-  Initial revision
+  Revision 1.2  1998-04-09 08:24:14  daniel
+  * Brings OS/2 directory up to date.
 
   Revision 1.3  1998/01/26 12:01:56  michael
   + Added log at the end

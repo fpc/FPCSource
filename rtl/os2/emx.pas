@@ -6,7 +6,7 @@ Part of FPK Pascal runtime library for OS/2
 
 
 History:
-	2 June 1997 : Creation.
+    2 June 1997 : Creation.
 
 This unit is copyright (c) 1997 by Dani‰l Mantione.
 FPK Pascal is copyright (c) -1997 by Florian Klaempfl.
@@ -22,9 +22,9 @@ Modifying this unit is allowed, under the following conditions:
 
 unit emx;
 
-type	Pfar=record
-			segment,offset:word;
-		end;
+type    Pfar=record
+            segment,offset:word;
+        end;
 
 {! Don't call this one. It is used by the startup code.}
 procedure __emxinit;

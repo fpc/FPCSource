@@ -37,7 +37,7 @@ program generic;
   const
      frameflags : longint = FCF_TITLEBAR+
                             FCF_SYSMENU+
-     			    FCF_SIZEBORDER+
+                    FCF_SIZEBORDER+
                             FCF_MINBUTTON+
                             FCF_MAXBUTTON+
                             FCF_SHELLPOSITION+

@@ -1,6 +1,10 @@
 / prt0.s (emx+fpk) -- Made from crt0.s,
 /                     Copyright (c) 1990-1994 by Eberhard Mattes.
-/                     Portions Copyright (c) 1997 Dani‰l Mantione.
+/                     Changed for FPK-Pascal in 1997 Dani‰l Mantione.
+/					  This code is _not_ under the Library GNU Public
+/					  License, because the original is not. See copying.emx
+/					  for details. You should have received it with this
+/					  product, write the author if you haven't.
 
 		.globl  __text
 		.globl  ___syscall
@@ -10,15 +14,15 @@
 		.globl  __heap_end
 		.globl  __init
 
-        .text
+		.text
 
 __text:
-        push    $__data
-        call    __dos_init
-        jmp     __init
+		push    $__data
+		call    __dos_init
+		jmp     __init
 
 ___syscall:
-        call    __dos_syscall
+		call    __dos_syscall
 		ret
 
 		.space  6, 0x90

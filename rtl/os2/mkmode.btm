@@ -1,1 +1,0 @@
-ld -o modeinfo prt0.o prt1.o modeinfo.o sysos2.o emx.a dosinit.o wrap.a
