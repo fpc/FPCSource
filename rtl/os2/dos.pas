@@ -177,7 +177,8 @@ function fsearch(path:pathstr;dirlist:string):pathstr;
 var i,p1:longint;
     s:searchrec;
     newdir:pathstr;
-    RC, Handle, Count: longint;
+    Handle: cardinal;
+    RC, Count: longint;
     FStat: PFileFindBuf3;
     ND: PathStr;
 
@@ -209,6 +210,7 @@ begin
                 begin
                  New (FStat);
                  ND := NewDir + Path;
+                 Handle := $FFFFFFFF;
                  RC := DosFindFirst (ND, Handle, $39, FStat, SizeOf (FStat^),
                                                             Count, ilStandard);
                  DosFindClose (Handle);
@@ -998,7 +1000,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.13  1999-09-09 09:20:43  hajny
+  Revision 1.14  1999-09-13 17:35:15  hajny
+    * little addition/correction to FSearch fix
+
+  Revision 1.13  1999/09/09 09:20:43  hajny
     * FSearch under OS/2 fixed
 
   Revision 1.12  1999/01/22 16:25:58  pierre
