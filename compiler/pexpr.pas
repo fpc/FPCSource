@@ -767,9 +767,9 @@ unit pexpr;
                          (m_tp_procvar in aktmodeswitches) and
                          proc_to_procvar_equal(pprocsym(sym)^.definition,getprocvardef))
                         ,again,p1,pd);
-                      { now we know the real method e.g. we can check for }
-                      { a class method                              }
+                      { now we know the real method e.g. we can check for a class method }
                       if isclassref and
+                         assigned(p1^.procdefinition) and
                          not(po_classmethod in p1^.procdefinition^.procoptions) and
                          not(p1^.procdefinition^.proctypeoption=potype_constructor) then
                         Message(parser_e_only_class_methods_via_class_ref);
@@ -2062,7 +2062,10 @@ _LECKKLAMMER : begin
 end.
 {
   $Log$
-  Revision 1.133  1999-08-05 16:53:04  peter
+  Revision 1.134  1999-08-09 22:16:29  peter
+    * fixed crash after wrong para's with class contrustor
+
+  Revision 1.133  1999/08/05 16:53:04  peter
     * V_Fatal=1, all other V_ are also increased
     * Check for local procedure when assigning procvar
     * fixed comment parsing because directives
