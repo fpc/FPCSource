@@ -390,68 +390,70 @@ implementation
            { 2 booleans ? }
              if is_boolean(ld) and is_boolean(rd) then
               begin
-                case p^.treetype of
-                  andn,
-                  orn:
-                    begin
-                      make_bool_equal_size(p);
-                      calcregisters(p,0,0,0);
-                      p^.location.loc:=LOC_JUMP;
-                    end;
-                  xorn,ltn,lten,gtn,gten:
-                    begin
-                      make_bool_equal_size(p);
-                      if (p^.left^.location.loc in [LOC_JUMP,LOC_FLAGS]) and
-                        (p^.left^.location.loc in [LOC_JUMP,LOC_FLAGS]) then
-                        calcregisters(p,2,0,0)
-                      else
-                        calcregisters(p,1,0,0);
-                    end;
-                  unequaln,
-                  equaln:
-                    begin
-                      make_bool_equal_size(p);
-                      { Remove any compares with constants }
-                      if (p^.left^.treetype=ordconstn) then
-                       begin
-                         hp:=p^.right;
-                         b:=(p^.left^.value<>0);
-                         ot:=p^.treetype;
-                         disposetree(p^.left);
-                         putnode(p);
-                         p:=hp;
-                         if (not(b) and (ot=equaln)) or
-                            (b and (ot=unequaln)) then
-                          begin
-                            p:=gensinglenode(notn,p);
-                            firstpass(p);
-                          end;
-                         exit;
-                       end;
-                      if (p^.right^.treetype=ordconstn) then
-                       begin
-                         hp:=p^.left;
-                         b:=(p^.right^.value<>0);
-                         ot:=p^.treetype;
-                         disposetree(p^.right);
-                         putnode(p);
-                         p:=hp;
-                         if (not(b) and (ot=equaln)) or
-                            (b and (ot=unequaln)) then
-                          begin
-                            p:=gensinglenode(notn,p);
-                            firstpass(p);
-                          end;
-                         exit;
-                       end;
-                      if (p^.left^.location.loc in [LOC_JUMP,LOC_FLAGS]) and
-                        (p^.left^.location.loc in [LOC_JUMP,LOC_FLAGS]) then
-                        calcregisters(p,2,0,0)
-                      else
-                        calcregisters(p,1,0,0);
-                    end;
+                if (cs_full_boolean_eval in aktlocalswitches) or
+                   (p^.treetype in [xorn,ltn,lten,gtn,gten]) then
+                  begin
+                     make_bool_equal_size(p);
+                    if (p^.left^.location.loc in [LOC_JUMP,LOC_FLAGS]) and
+                       (p^.left^.location.loc in [LOC_JUMP,LOC_FLAGS]) then
+                      calcregisters(p,2,0,0)
+                    else
+                      calcregisters(p,1,0,0);
+                  end
                 else
-                  CGMessage(type_e_mismatch);
+                  case p^.treetype of
+                    andn,
+                    orn:
+                      begin
+                        make_bool_equal_size(p);
+                        calcregisters(p,0,0,0);
+                        p^.location.loc:=LOC_JUMP;
+                      end;
+                    unequaln,
+                    equaln:
+                      begin
+                        make_bool_equal_size(p);
+                        { Remove any compares with constants }
+                        if (p^.left^.treetype=ordconstn) then
+                         begin
+                           hp:=p^.right;
+                           b:=(p^.left^.value<>0);
+                           ot:=p^.treetype;
+                           disposetree(p^.left);
+                           putnode(p);
+                           p:=hp;
+                           if (not(b) and (ot=equaln)) or
+                              (b and (ot=unequaln)) then
+                            begin
+                              p:=gensinglenode(notn,p);
+                              firstpass(p);
+                            end;
+                           exit;
+                         end;
+                        if (p^.right^.treetype=ordconstn) then
+                         begin
+                           hp:=p^.left;
+                           b:=(p^.right^.value<>0);
+                           ot:=p^.treetype;
+                           disposetree(p^.right);
+                           putnode(p);
+                           p:=hp;
+                           if (not(b) and (ot=equaln)) or
+                              (b and (ot=unequaln)) then
+                            begin
+                              p:=gensinglenode(notn,p);
+                              firstpass(p);
+                            end;
+                           exit;
+                         end;
+                        if (p^.left^.location.loc in [LOC_JUMP,LOC_FLAGS]) and
+                          (p^.left^.location.loc in [LOC_JUMP,LOC_FLAGS]) then
+                          calcregisters(p,2,0,0)
+                        else
+                          calcregisters(p,1,0,0);
+                      end;
+                  else
+                    CGMessage(type_e_mismatch);
                 end;
 (*
                 { these one can't be in flags! }
@@ -1291,7 +1293,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.8  2000-09-10 20:19:23  peter
+  Revision 1.9  2000-09-21 11:30:49  jonas
+    + support for full boolean evaluation (b+/b-), default remains short
+      circuit boolean evaluation
+
+  Revision 1.8  2000/09/10 20:19:23  peter
     * fixed crash with smallset -> normalset conversion (merged)
 
   Revision 1.7  2000/08/29 08:24:45  jonas

@@ -45,7 +45,7 @@ type
 const
   SwitchTable:array['A'..'Z'] of SwitchRec=(
    {A} (typesw:unsupportedsw; setsw:ord(cs_localnone)),
-   {B} (typesw:unsupportedsw; setsw:ord(cs_localnone)),
+   {B} (typesw:localsw; setsw:ord(cs_full_boolean_eval)),
    {C} (typesw:localsw; setsw:ord(cs_do_assertion)),
    {D} (typesw:modulesw; setsw:ord(cs_debuginfo)),
    {E} (typesw:globalsw; setsw:ord(cs_fp_emulation)),
@@ -174,7 +174,11 @@ end;
 end.
 {
   $Log$
-  Revision 1.3  2000-08-27 16:11:53  peter
+  Revision 1.4  2000-09-21 11:30:49  jonas
+    + support for full boolean evaluation (b+/b-), default remains short
+      circuit boolean evaluation
+
+  Revision 1.3  2000/08/27 16:11:53  peter
     * moved some util functions from globals,cobjects to cutils
     * splitted files into finput,fmodule
 

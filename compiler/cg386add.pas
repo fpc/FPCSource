@@ -760,6 +760,53 @@ implementation
            end;
         end;
 
+
+    procedure handle_bool_as_int;
+
+      begin
+        if p^.left^.treetype=ordconstn then
+        swaptree(p);
+        if p^.left^.location.loc=LOC_JUMP then
+          begin
+            otl:=truelabel;
+            getlabel(truelabel);
+            ofl:=falselabel;
+            getlabel(falselabel);
+          end;
+
+        secondpass(p^.left);
+        { if in flags then copy first to register, because the
+          flags can be destroyed }
+        case p^.left^.location.loc of
+          LOC_FLAGS:
+            locflags2reg(p^.left^.location,opsize);
+          LOC_JUMP:
+            locjump2reg(p^.left^.location,opsize, otl, ofl);
+        end;
+        set_location(p^.location,p^.left^.location);
+        pushed:=maybe_push(p^.right^.registers32,p,false);
+        if p^.right^.location.loc=LOC_JUMP then
+          begin
+            otl:=truelabel;
+            getlabel(truelabel);
+            ofl:=falselabel;
+            getlabel(falselabel);
+          end;
+        secondpass(p^.right);
+        if pushed then
+          begin
+            restore(p,false);
+            set_location(p^.left^.location,p^.location);
+          end;
+        case p^.right^.location.loc of
+          LOC_FLAGS:
+            locflags2reg(p^.right^.location,opsize);
+          LOC_JUMP:
+            locjump2reg(p^.right^.location,opsize,otl,ofl);
+        end;
+      end;
+
+
       begin
       { to make it more readable, string and set (not smallset!) have their
         own procedures }
@@ -792,19 +839,67 @@ implementation
          { calculate the operator which is more difficult }
          firstcomplex(p);
 
+         { set the opsize for booleans already (JM) }
+         if (porddef(p^.left^.resulttype)^.typ=bool8bit) or
+            (porddef(p^.right^.resulttype)^.typ=bool8bit) then
+           opsize:=S_B
+         else
+           if (porddef(p^.left^.resulttype)^.typ=bool16bit) or
+              (porddef(p^.right^.resulttype)^.typ=bool16bit) then
+             opsize:=S_W
+         else
+           opsize:=S_L;
+         
          { handling boolean expressions extra: }
          if is_boolean(p^.left^.resulttype) and
             is_boolean(p^.right^.resulttype) then
            begin
-             if (porddef(p^.left^.resulttype)^.typ=bool8bit) or
-                (porddef(p^.right^.resulttype)^.typ=bool8bit) then
-               opsize:=S_B
-             else
-               if (porddef(p^.left^.resulttype)^.typ=bool16bit) or
-                  (porddef(p^.right^.resulttype)^.typ=bool16bit) then
-                 opsize:=S_W
-             else
-               opsize:=S_L;
+             if (cs_full_boolean_eval in aktlocalswitches) or
+                (p^.treetype in
+                  [unequaln,ltn,lten,gtn,gten,equaln,xorn]) then
+               begin
+                 if p^.left^.treetype=ordconstn then
+                 swaptree(p);
+                 if p^.left^.location.loc=LOC_JUMP then
+                   begin
+                     otl:=truelabel;
+                     getlabel(truelabel);
+                     ofl:=falselabel;
+                     getlabel(falselabel);
+                   end;
+
+                 secondpass(p^.left);
+                 { if in flags then copy first to register, because the
+                   flags can be destroyed }
+                 case p^.left^.location.loc of
+                   LOC_FLAGS:
+                     locflags2reg(p^.left^.location,opsize);
+                   LOC_JUMP:
+                     locjump2reg(p^.left^.location,opsize, otl, ofl);
+                 end;
+                 set_location(p^.location,p^.left^.location);
+                 pushed:=maybe_push(p^.right^.registers32,p,false);
+                 if p^.right^.location.loc=LOC_JUMP then
+                   begin
+                     otl:=truelabel;
+                     getlabel(truelabel);
+                     ofl:=falselabel;
+                     getlabel(falselabel);
+                   end;
+                 secondpass(p^.right);
+                 if pushed then
+                   begin
+                     restore(p,false);
+                     set_location(p^.left^.location,p^.location);
+                   end;
+                 case p^.right^.location.loc of
+                   LOC_FLAGS:
+                     locflags2reg(p^.right^.location,opsize);
+                   LOC_JUMP:
+                     locjump2reg(p^.right^.location,opsize,otl,ofl);
+                 end;
+                 goto do_normal;
+               end;
              case p^.treetype of
               andn,
                orn : begin
@@ -834,50 +929,6 @@ implementation
                        secondpass(p^.right);
                        maketojumpbool(p^.right);
                      end;
-          unequaln,ltn,lten,gtn,gten,
-       equaln,xorn : begin
-                       if p^.left^.treetype=ordconstn then
-                        swaptree(p);
-                       if p^.left^.location.loc=LOC_JUMP then
-                         begin
-                            otl:=truelabel;
-                            getlabel(truelabel);
-                            ofl:=falselabel;
-                            getlabel(falselabel);
-                         end;
-
-                       secondpass(p^.left);
-                       { if in flags then copy first to register, because the
-                         flags can be destroyed }
-                       case p^.left^.location.loc of
-                          LOC_FLAGS:
-                            locflags2reg(p^.left^.location,opsize);
-                          LOC_JUMP:
-                            locjump2reg(p^.left^.location,opsize, otl, ofl);
-                       end;
-                       set_location(p^.location,p^.left^.location);
-                       pushed:=maybe_push(p^.right^.registers32,p,false);
-                       if p^.right^.location.loc=LOC_JUMP then
-                         begin
-                            otl:=truelabel;
-                            getlabel(truelabel);
-                            ofl:=falselabel;
-                            getlabel(falselabel);
-                         end;
-                       secondpass(p^.right);
-                       if pushed then
-                         begin
-                            restore(p,false);
-                            set_location(p^.left^.location,p^.location);
-                         end;
-                       case p^.right^.location.loc of
-                          LOC_FLAGS:
-                            locflags2reg(p^.right^.location,opsize);
-                          LOC_JUMP:
-                            locjump2reg(p^.right^.location,opsize,otl,ofl);
-                       end;
-                       goto do_normal;
-                    end
              else
                CGMessage(type_e_mismatch);
              end
@@ -2324,7 +2375,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.5  2000-08-27 16:11:49  peter
+  Revision 1.6  2000-09-21 11:30:49  jonas
+    + support for full boolean evaluation (b+/b-), default remains short
+      circuit boolean evaluation
+
+  Revision 1.5  2000/08/27 16:11:49  peter
     * moved some util functions from globals,cobjects to cutils
     * splitted files into finput,fmodule
 

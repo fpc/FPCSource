@@ -69,6 +69,7 @@ interface
          cs_check_overflow,cs_check_range,cs_check_object_ext,
          cs_check_io,cs_check_stack,
          cs_omitstackframe,cs_do_assertion,cs_generate_rtti,
+         cs_full_boolean_eval,
          { mmx }
          cs_mmx,cs_mmx_saturation,
          { parser }
@@ -207,7 +208,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.5  2000-08-05 13:25:06  peter
+  Revision 1.6  2000-09-21 11:30:49  jonas
+    + support for full boolean evaluation (b+/b-), default remains short
+      circuit boolean evaluation
+
+  Revision 1.5  2000/08/05 13:25:06  peter
     * packenum 1 fixes (merged)
 
   Revision 1.4  2000/08/02 19:49:59  peter
