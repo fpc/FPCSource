@@ -622,8 +622,10 @@ end;
 *****************************************************************************}
 
 Begin
+{$ifdef SYSTEMDEBUG}
 { to test stack depth }
   loweststack:=maxlongint;
+{$endif}
 { Setup heap }
   InitHeap;
 { Setup stdin, stdout and stderr }
@@ -636,7 +638,10 @@ Begin
 End.
 {
   $Log$
-  Revision 1.7  2001-06-30 18:55:49  hajny
+  Revision 1.8  2001-07-29 13:50:44  peter
+    * merged updates from v10
+
+  Revision 1.7  2001/06/30 18:55:49  hajny
     * GetDir fix for inaccessible drives
 
   Revision 1.6  2001/06/19 20:46:07  hajny
@@ -653,5 +658,5 @@ End.
 
   Revision 1.2  2000/07/13 11:33:38  michael
   + removed logs
- 
+
 }

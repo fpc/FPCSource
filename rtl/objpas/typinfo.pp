@@ -29,18 +29,9 @@ unit typinfo;
 // temporary types:
 
     type
-//       PShortString =^ShortString;
-//       PByte        =^Byte;
-//       PWord        =^Word;
-//       PLongint     =^Longint;
-//       PBoolean     =^Boolean;
-//       PSingle      =^Single;
-//       PDouble      =^Double;
-//       PExtended    =^Extended;
-//       PComp        =^Comp;
-{$ifndef HASVARIANT}
+//{$ifndef HASVARIANT}
        Variant      = Pointer;
-{$endif}
+//{$endif}
 
 {$MINENUMSIZE 1   this saves a lot of memory }
        // if you change one of the following enumeration types
@@ -1291,8 +1282,8 @@ end;
 end.
 {
   $Log$
-  Revision 1.10  2001-07-29 13:37:46  peter
-    * merged completion from v10
+  Revision 1.11  2001-07-29 13:50:44  peter
+    * merged updates from v10
 
   Revision 1.9  2001/07/06 14:56:06  peter
     * merged more D5/D6 stuff from v10
