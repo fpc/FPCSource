@@ -17,6 +17,7 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 
  **********************************************************************}
+{$INLINE ON}
 
 unit Dos;
 
@@ -1311,7 +1312,10 @@ End.
 
 {
   $Log$
-  Revision 1.9  2004-11-18 22:30:33  karoly
+  Revision 1.10  2004-11-23 02:57:58  karoly
+    * Fixed missing $INLINE
+
+  Revision 1.9  2004/11/18 22:30:33  karoly
     * Some cleanup, leap year calculation fixed
 
   Revision 1.8  2004/10/27 01:31:40  karoly
