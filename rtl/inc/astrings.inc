@@ -42,7 +42,7 @@ Procedure Incr_Ansi_Ref (Var S : Pointer); forward;
 Procedure AssignAnsiString (Var S1 : Pointer; S2 : Pointer); forward;
 Function  Ansi_String_Concat (S1,S2 : Pointer): Pointer; forward;
 Procedure Ansi_ShortString_Concat (Var S1: AnsiString; Var S2 : ShortString); forward;
-Procedure Ansi_To_ShortString (Var S1 : ShortString; S2 : Pointer; maxlen : longint); forward;
+Procedure Ansi_To_ShortString (Var S1 : ShortString; S2 : Pointer); forward;
 Procedure Short_To_AnsiString (Var S1 : Pointer; Const S2 : ShortString); forward;
 Procedure Char_To_AnsiString(var S1 : Pointer; c : Char); forward;
 Function  AnsiCompare (S1,S2 : Pointer): Longint; forward;
@@ -228,7 +228,7 @@ begin
 end;
 
 
-Procedure Ansi_To_ShortString (Var S1 : ShortString;S2 : Pointer; Maxlen : Longint);[Public, alias: 'FPC_ANSISTR_TO_SHORTSTR'];
+Procedure Ansi_To_ShortString (Var S1 : ShortString;S2 : Pointer);[Public, alias: 'FPC_ANSISTR_TO_SHORTSTR'];
 {
   Converts a AnsiString to a ShortString;
 }
@@ -240,8 +240,8 @@ begin
   else
    begin
      Size:=PAnsiRec(S2-FirstOff)^.Len;
-     If Size>maxlen then
-      Size:=maxlen;
+     If Size>high(S1) then
+      Size:=high(S1);
      Move (S2^,S1[1],Size);
      byte(S1[0]):=Size;
    end;
@@ -499,7 +499,7 @@ Procedure Val (Const S : AnsiString; var R : real; Var Code : Integer);
 Var SS : String;
 
 begin
- Ansi_To_ShortString (SS,Pointer(S),255);
+ Ansi_To_ShortString (SS,Pointer(S));
  Val(SS,R,Code);
 end;
 
@@ -510,7 +510,7 @@ Procedure Val (var S : AnsiString; var D : Double; Var Code : Integer);
 Var SS : ShortString;
 
 begin
- Ansi_To_ShortString (SS,S,255);
+ Ansi_To_ShortString (SS,S);
  Val(SS,D,Code);
 end;
 }
@@ -521,7 +521,7 @@ Procedure Val (Const S : AnsiString; var E : Extended; Code : Integer);
 Var SS : ShortString;
 
 begin
- Ansi_To_ShortString (SS,Pointer(S),255);
+ Ansi_To_ShortString (SS,Pointer(S));
  Val(SS,E,Code);
 end;
 
@@ -532,7 +532,7 @@ Procedure Val (Const S : AnsiString; var C : Cardinal; Code : Integer);
 Var SS : ShortString;
 
 begin
- Ansi_To_ShortString (SS,Pointer(S),255);
+ Ansi_To_ShortString (SS,Pointer(S));
  Val(SS,C,Code);
 end;
 
@@ -543,7 +543,7 @@ Procedure Val (Const S : AnsiString; var L : Longint; Var Code : Integer);
 Var SS : ShortString;
 
 begin
- Ansi_To_ShortString (SS,Pointer(S),255);
+ Ansi_To_ShortString (SS,Pointer(S));
  Val(SS,L,Code);
 end;
 
@@ -554,7 +554,7 @@ Procedure Val (Const S : AnsiString; var W : Word; Var Code : Integer);
 Var SS : ShortString;
 
 begin
- Ansi_To_ShortString (SS,Pointer(S),255);
+ Ansi_To_ShortString (SS,Pointer(S));
  Val(SS,W,Code);
 end;
 
@@ -565,7 +565,7 @@ Procedure Val (Const S : AnsiString; var I : Integer; Var Code : Integer);
 Var SS : ShortString;
 
 begin
- Ansi_To_ShortString (SS,Pointer(S),255);
+ Ansi_To_ShortString (SS,Pointer(S));
  Val(SS,I,Code);
 end;
 
@@ -576,7 +576,7 @@ Procedure Val (Const S : AnsiString; var B : Byte; Var Code : Integer);
 Var SS : ShortString;
 
 begin
- Ansi_To_ShortString (SS,Pointer(S),255);
+ Ansi_To_ShortString (SS,Pointer(S));
  Val(SS,B,Code);
 end;
 
@@ -587,7 +587,7 @@ Procedure Val (Const S : AnsiString; var SI : ShortInt; Var Code : Integer);
 Var SS : ShortString;
 
 begin
- Ansi_To_ShortString (SS,Pointer(S),255);
+ Ansi_To_ShortString (SS,Pointer(S));
  Val(SS,SI,Code);
 end;
 
@@ -727,7 +727,10 @@ end;
 
 {
   $Log$
-  Revision 1.8  1999-01-06 14:48:43  michael
+  Revision 1.9  1999-02-02 11:37:34  peter
+    * fixed ansi2short
+
+  Revision 1.8  1999/01/06 14:48:43  michael
   + Implemented more str() functions
 
   Revision 1.7  1999/01/06 13:03:39  peter
