@@ -45,7 +45,7 @@ Abstract:
 
 {$MACRO ON}
 {$MODE Delphi}
-{$IFDEF Windows}
+{$IFDEF Win32}
   {$DEFINE extdecl := stdcall}
 {$ELSE}
   {$DEFINE extdecl := cdecl}
@@ -1498,7 +1498,7 @@ var
   glVertex4sv: procedure(const v: PGLshort); extdecl;
   glVertexPointer: procedure(size: GLint; atype: GLenum; stride: GLsizei; const pointer: Pointer); extdecl;
   glViewport: procedure(x, y: GLint; width, height: GLsizei); extdecl;
-  {$IFDEF Windows}
+  {$IFDEF Win32}
   ChoosePixelFormat: function(DC: HDC; p2: PPixelFormatDescriptor): Integer; extdecl;
   {$ENDIF}
 
@@ -1878,7 +1878,7 @@ begin
   @glVertex4sv := nil;
   @glVertexPointer := nil;
   @glViewport := nil;
-  {$IFDEF Windows}
+  {$IFDEF Win32}
   @ChoosePixelFormat := nil;
   {$ENDIF}
 
@@ -2231,7 +2231,7 @@ begin
   @glVertexPointer := GetProcAddress(LibGL, 'glVertexPointer');
   @glViewport := GetProcAddress(LibGL, 'glViewport');
 
-  {$IFDEF Windows}
+  {$IFDEF Win32}
   @ChoosePixelFormat := GetProcAddress(LibGL, 'ChoosePixelFormat');
   if not Assigned(ChoosePixelFormat) then
     @ChoosePixelFormat := @Windows.ChoosePixelFormat;
@@ -2246,7 +2246,7 @@ initialization
   {$ENDIF}
 
   try
-    {$IFDEF Windows}
+    {$IFDEF Win32}
     LoadOpenGL('opengl32.dll');
     {$ELSE}
     LoadOpenGL('libGL.so.1');

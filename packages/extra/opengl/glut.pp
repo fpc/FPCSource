@@ -8,7 +8,7 @@
 
 {$MACRO ON}
 {$MODE Delphi}
-{$IFDEF Windows}
+{$IFDEF Win32}
   {$DEFINE extdecl := stdcall}
 {$ELSE}
   {$DEFINE extdecl := cdecl}
@@ -32,7 +32,7 @@ interface
 
 uses
   SysUtils,
-  {$IFDEF Windows}
+  {$IFDEF Win32}
   Windows,
   {$ELSE}
   DLLFuncs,
@@ -633,7 +633,7 @@ end;
 initialization
 
   try
-    {$IFDEF Windows}
+    {$IFDEF Win32}
     LoadGlut('glut32.dll');
     {$ELSE}
     LoadGlut('libglut.so.3');

@@ -55,7 +55,7 @@ Abstract:
 
 {$MACRO ON}
 {$MODE Delphi}
-{$IFDEF Windows}
+{$IFDEF Win32}
   {$DEFINE extdecl := stdcall}
 {$ELSE}
   {$DEFINE extdecl := cdecl}
@@ -67,7 +67,7 @@ interface
 
 uses
   SysUtils,
-  {$IFDEF Windows}
+  {$IFDEF Win32}
   Windows,
   {$ELSE}
   DLLFuncs,
@@ -499,7 +499,7 @@ end;
 initialization
 
   try
-    {$IFDEF Windows}
+    {$IFDEF Win32}
     LoadGLu('glu32.dll');
     {$ELSE}
     LoadGLu('libGLU.so.1');
@@ -515,7 +515,10 @@ end.
 
 {
   $Log$
-  Revision 1.1  2002-10-13 13:57:31  sg
+  Revision 1.2  2002-10-13 14:36:47  sg
+  * Win32 fix: The OS symbol is called "Win32", not "Windows"
+
+  Revision 1.1  2002/10/13 13:57:31  sg
   * Finally, the new units are available: Match the C headers more closely;
     support for OpenGL extensions, and much more. Based on the Delphi units
     by Tom Nuydens of delphi3d.net

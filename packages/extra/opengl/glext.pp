@@ -8,7 +8,7 @@
 
 {$MACRO ON}
 {$MODE Delphi}
-{$IFDEF Windows}
+{$IFDEF Win32}
   {$DEFINE extdecl:=stdcall }
 {$ELSE}
   {$DEFINE extdecl:=cdecl }
@@ -91,7 +91,7 @@ interface
 
 uses
   SysUtils,
-  {$IFDEF Windows}
+  {$IFDEF Win32}
   Windows,
   {$ELSE}
   DLLFuncs,
@@ -100,7 +100,7 @@ uses
 
 {******************************************************************************}
 
-{$IFDEF Windows}
+{$IFDEF Win32}
 // Not declared in Windows.pas.
 function wglGetProcAddress(proc: PChar): Pointer; extdecl; external 'OpenGL32.dll';
 {$ELSE}
@@ -2071,7 +2071,7 @@ const
 var
   glFlushVertexArrayRangeNV: procedure; extdecl;
   glVertexArrayRangeNV: procedure(size: GLsizei; const ptr: Pointer); extdecl;
-  {$IFDEF Windows}
+  {$IFDEF Win32}
   wglAllocateMemoryNV: function(size: GLsizei; readFrequency, writeFrequency,
 				priority: Single): Pointer; extdecl;
   wglFreeMemoryNV: procedure(ptr: Pointer); extdecl;
@@ -3519,7 +3519,7 @@ const
   GL_TEXTURE_FLOAT_COMPONENTS_NV    = $888C;
   GL_FLOAT_CLEAR_COLOR_VALUE_NV     = $888D;
   GL_FLOAT_RGBA_MODE_NV             = $888E;
-  {$IFDEF Windows}
+  {$IFDEF Win32}
   WGL_FLOAT_COMPONENTS_NV           = $20B0;
   WGL_BIND_TO_TEXTURE_RECTANGLE_FLOAT_R_NV = $20B1;
   WGL_BIND_TO_TEXTURE_RECTANGLE_FLOAT_RG_NV = $20B2;
@@ -3571,7 +3571,7 @@ const
 
 {******************************************************************************}
 
-{$IFDEF Windows}
+{$IFDEF Win32}
 //*** WGL_ARB_buffer_region
 const
   WGL_FRONT_COLOR_BUFFER_BIT_ARB    = $00000001;
