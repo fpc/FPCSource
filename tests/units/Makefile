@@ -820,11 +820,7 @@ ifneq ($(wildcard fpcmake.loc),)
 include fpcmake.loc
 endif
 .PHONY: rtl fcl clean
-ifneq ($(findstring 1.0.,$(FPC_VERSION)),)
-INSTALLOPT=UNITINSTALLDIR=$(BASEDIR)
-else
 INSTALLOPT=INSTALL_UNITDIR=$(BASEDIR)
-endif
 rtl:
 	$(MAKE) -C ../../rtl all
 	$(MAKE) -C ../../rtl install $(INSTALLOPT)
