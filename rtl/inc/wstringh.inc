@@ -60,6 +60,7 @@ Type
     CompareWideStringProc : function(const s1, s2 : WideString) : PtrInt;
     SameWideStringProc : function(const s1, s2 : WideString) : Boolean;
     CompareTextWideStringProc : function(const s1, s2 : WideString): PtrInt;
+    CharLengthPCharProc : function(const Str: PChar): PtrInt;
   end;
 
 
@@ -81,7 +82,10 @@ Procedure SetWideStringManager (Const New : TWideStringManager; Var Old: TWideSt
 
 {
   $Log$
-  Revision 1.2  2005-02-03 18:40:50  florian
+  Revision 1.3  2005-02-06 09:38:45  florian
+    +  StrCharLength infrastructure
+
+  Revision 1.2  2005/02/03 18:40:50  florian
     + infrastructure for WideCompareText implemented
 
   Revision 1.1  2005/02/01 20:22:49  florian

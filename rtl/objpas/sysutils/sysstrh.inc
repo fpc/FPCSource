@@ -171,6 +171,8 @@ Function StrByteType(Str: PChar; Index: Cardinal): TMbcsByteType;
 Function ByteToCharLen(const S: string; MaxLen: Integer): Integer;
 Function CharToByteLen(const S: string; MaxLen: Integer): Integer;
 Function ByteToCharIndex(const S: string; Index: Integer): Integer;
+Function StrCharLength(const Str: PChar): Integer;
+
 
 const
 {$ifndef unix}
@@ -200,7 +202,10 @@ function BCDToInt(Value: integer): integer;
 
 {
   $Log$
-  Revision 1.13  2005-01-17 18:38:48  peter
+  Revision 1.14  2005-02-06 09:38:45  florian
+    +  StrCharLength infrastructure
+
+  Revision 1.13  2005/01/17 18:38:48  peter
     * extended overload disabled for powerpc
 
   Revision 1.12  2005/01/16 17:53:27  michael
