@@ -432,7 +432,13 @@ implementation
         { looks a little bit dangerous to me            }
         { len-1 gives problems with is_open_array if len=0, }
         { is_open_array checks now for isconstructor (FK)   }
-        p^.resulttype:=new(parraydef,init(0,len-1,s32bitdef));
+      { skip if already done ! (PM) }
+        if not assigned(p^.resulttype) or
+           (p^.resulttype^.deftype<>arraydef) or
+           not parraydef(p^.resulttype)^.IsConstructor or
+           (parraydef(p^.resulttype)^.lowrange<>0) or
+           (parraydef(p^.resulttype)^.highrange<>len-1) then
+          p^.resulttype:=new(parraydef,init(0,len-1,s32bitdef));
         parraydef(p^.resulttype)^.definition:=pd;
         parraydef(p^.resulttype)^.IsConstructor:=true;
         parraydef(p^.resulttype)^.IsVariant:=varia;
@@ -454,7 +460,13 @@ implementation
 end.
 {
   $Log$
-  Revision 1.34  1999-06-01 19:26:39  peter
+  Revision 1.35  1999-06-17 13:19:59  pierre
+   * merged from 0_99_12 branch
+
+  Revision 1.34.2.1  1999/06/17 12:33:39  pierre
+   * avoid warning with extdebug for arrayconstruct
+
+  Revision 1.34  1999/06/01 19:26:39  peter
     * fixed bug 249
 
   Revision 1.33  1999/05/27 19:45:21  peter
