@@ -325,6 +325,7 @@ var
   i,bp : longint;
   pl : plongint;
   p : pointer;
+  pp : pheap_mem_info;
 begin
   inc(getmem_size,size);
   inc(getmem8_size,((size+7) div 8)*8);
@@ -333,26 +334,32 @@ begin
   if add_tail then
     inc(bp,sizeof(longint));
   p:=SysGetMem(bp);
+  pp:=pheap_mem_info(p);
 { Create the info block }
-  pheap_mem_info(p)^.sig:=$DEADBEEF;
-  pheap_mem_info(p)^.size:=size;
-  pheap_mem_info(p)^.extra_info_size:=extra_info_size;
-  pheap_mem_info(p)^.exact_info_size:=exact_info_size;
+  pp^.sig:=$DEADBEEF;
+  pp^.size:=size;
+  pp^.extra_info_size:=extra_info_size;
+  pp^.exact_info_size:=exact_info_size;
   {
     the end of the block contains:
     <tail>   4 bytes
     <extra_info>   X bytes
   }
-  pheap_mem_info(p)^.extra_info:=pointer(p)+bp-extra_info_size;
-  fillchar(pheap_mem_info(p)^.extra_info^,extra_info_size,0);
-  pheap_mem_info(p)^.extra_info^.fillproc:=fill_extra_info_proc;
-  pheap_mem_info(p)^.extra_info^.displayproc:=display_extra_info_proc;
-  if assigned(fill_extra_info_proc) then
-    begin
-      inside_trace_getmem:=true;
-      fill_extra_info_proc(@pheap_mem_info(p)^.extra_info^.data);
-      inside_trace_getmem:=false;
-    end;
+  if extra_info_size>0 then
+   begin
+     pp^.extra_info:=pointer(p)+bp-extra_info_size;
+     fillchar(pp^.extra_info^,extra_info_size,0);
+     pp^.extra_info^.fillproc:=fill_extra_info_proc;
+     pp^.extra_info^.displayproc:=display_extra_info_proc;
+     if assigned(fill_extra_info_proc) then
+      begin
+        inside_trace_getmem:=true;
+        fill_extra_info_proc(@pp^.extra_info^.data);
+        inside_trace_getmem:=false;
+      end;
+   end
+  else
+   pp^.extra_info:=nil;    
   if add_tail then
     begin
       pl:=pointer(p)+bp-extra_info_size-sizeof(longint);
@@ -526,6 +533,7 @@ var
 begin
   pp:=pheap_mem_info(p-sizeof(theap_mem_info));
   size:=TraceMemSize(p);
+  size:=TraceMemSize(p);
   { this can never happend normaly }
   if pp^.size>size then
    begin
@@ -546,6 +554,7 @@ function TraceReAllocMem(var p:pointer;size:longint):Pointer;
 var
   newP: pointer;
   oldsize,
+  allocsize,
   i,bp : longint;
   pl : plongint;
   pp : pheap_mem_info;
@@ -588,15 +597,18 @@ begin
   { save info }
   oldextrasize:=pp^.extra_info_size;
   oldexactsize:=pp^.exact_info_size;
-  old_fill_extra_info_proc:=pp^.extra_info^.fillproc;
-  old_display_extra_info_proc:=pp^.extra_info^.displayproc;
+  if pp^.extra_info_size>0 then
+   begin
+     old_fill_extra_info_proc:=pp^.extra_info^.fillproc;
+     old_display_extra_info_proc:=pp^.extra_info^.displayproc;
+   end;  
   { Do the real ReAllocMem, but alloc also for the info block }
-  bp:=size+sizeof(theap_mem_info)+pp^.extra_info_size;
+  allocsize:=size+sizeof(theap_mem_info)+pp^.extra_info_size;
   if add_tail then
-   inc(bp,sizeof(longint));
+   inc(allocsize,sizeof(longint));
   { Try to resize the block, if not possible we need to do a
     getmem, move data, freemem }
-  if not SysTryResizeMem(p,bp) then
+  if not SysTryResizeMem(p,allocsize) then
    begin
      { restore p }
      inc(p,sizeof(theap_mem_info));
@@ -624,28 +636,35 @@ begin
   pp^.size:=size;
   pp^.extra_info_size:=oldextrasize;
   pp^.exact_info_size:=oldexactsize;
+  { add the new extra_info and tail }
+  if pp^.extra_info_size>0 then
+   begin
+     pp^.extra_info:=p+allocsize-pp^.extra_info_size;
+     fillchar(pp^.extra_info^,extra_info_size,0);
+     pp^.extra_info^.fillproc:=old_fill_extra_info_proc;
+     pp^.extra_info^.displayproc:=old_display_extra_info_proc;
+     if assigned(pp^.extra_info^.fillproc) then
+      pp^.extra_info^.fillproc(@pp^.extra_info^.data);
+   end
+  else
+   pp^.extra_info:=nil;    
+  if add_tail then
+    begin
+      pl:=pointer(p)+allocsize-pp^.extra_info_size-sizeof(longint);
+      pl^:=$DEADBEEF;
+    end;
+  { generate new backtrace }
   bp:=get_caller_frame(get_frame);
   for i:=1 to tracesize do
    begin
      pp^.calls[i]:=get_caller_addr(bp);
      bp:=get_caller_frame(bp);
    end;
-  { add the new extra_info and tail }
-  pp^.extra_info:=p+bp-pp^.extra_info_size;
-  fillchar(pp^.extra_info^,extra_info_size,0);
-  pp^.extra_info^.fillproc:=old_fill_extra_info_proc;
-  pp^.extra_info^.displayproc:=old_display_extra_info_proc;
-  if assigned(pp^.extra_info^.fillproc) then
-    pp^.extra_info^.fillproc(@pp^.extra_info^.data);
-  if add_tail then
-    begin
-      pl:=pointer(p)+bp-pp^.extra_info_size-sizeof(longint);
-      pl^:=$DEADBEEF;
-    end;
-{ update the pointer }
+  { regenerate signature }
   if usecrc then
     pp^.sig:=calculate_sig(pp);
-  inc(p,sizeof(theap_mem_info)+extra_info_size);
+{ update the pointer }
+  inc(p,sizeof(theap_mem_info));
   TraceReAllocmem:=p;
 end;
 
@@ -1005,7 +1024,10 @@ finalization
 end.
 {
   $Log$
-  Revision 1.7  2001-04-11 12:34:50  peter
+  Revision 1.8  2001-04-11 14:08:31  peter
+    * some small fixes to my previous commit
+
+  Revision 1.7  2001/04/11 12:34:50  peter
     * extra info update so it can be always be set on/off
 
   Revision 1.6  2000/12/16 15:57:17  jonas
