@@ -25,6 +25,7 @@ var s : string;
     regcount_bsstart:byte;
     names,
     regtypes,
+    supregs,
     numbers,
     stdnames,
     gasnames,
@@ -264,7 +265,7 @@ begin
         readcomma;
         regtypes[regcount]:=readstr;
         readcomma;
-        numbers[regcount]:=readstr;
+        supregs[regcount]:=readstr;
         readcomma;
         stdnames[regcount]:=readstr;
         readcomma;
@@ -273,6 +274,14 @@ begin
         motnames[regcount]:=readstr;
         readcomma;
         stabs[regcount]:=readstr;
+        { Create register number }
+        if supregs[regcount][1]<>'$' then
+          begin
+            writeln('Missing $ before number, at line ',line);
+            writeln('Line: "',s,'"');
+            halt(1);
+          end;
+        numbers[regcount]:=regtypes[regcount]+'0000'+copy(supregs[regcount],2,255);
         if i<length(s) then
           begin
             writeln('Extra chars at end of line, at line ',line);
@@ -328,8 +337,8 @@ begin
         end
       else
         first:=false;
-      writeln(confile,'NR_',names[i],' = ',regtypes[i],'0000',copy(numbers[i],2,255),';');
-      writeln(supfile,'RS_',names[i],' = ',numbers[i],';');
+      writeln(confile,'NR_',names[i],' = ',numbers[i],';');
+      writeln(supfile,'RS_',names[i],' = ',supregs[i],';');
       write(numfile,'NR_',names[i]);
       write(stdfile,'''',stdnames[i],'''');
       write(gasfile,'''',gasnames[i],'''');
@@ -374,7 +383,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.4  2003-09-03 19:37:07  peter
+  Revision 1.5  2003-09-03 20:33:28  peter
+    * fixed sorting of register number
+
+  Revision 1.4  2003/09/03 19:37:07  peter
     * powerpc reg update
 
   Revision 1.2  2003/09/03 15:55:01  peter
