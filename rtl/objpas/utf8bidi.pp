@@ -436,7 +436,6 @@ var
 begin
   temp := UTF8ToUnicode(Dest);
   c := WideChar(UTF8ToUCS16(Src));
-  WriteLn(3,HexStr(Word(c),4));
   Result := FreeBIDI.InsertChar(c, temp, vp, pDir);
   Dest := UnicodeToUTF8(temp);
 end;
