@@ -1293,6 +1293,10 @@ if VideoInitialized then
 {$ifdef GRAPH_API}
 if Not TextmodeGFV then
   begin
+{$ifdef go32v2}
+    I := VGA;
+    J := VGAHi;
+{$else not go32v2}
 {$ifdef win32}
     I := VESA;
     J := mLargestWindow16;
@@ -1300,6 +1304,7 @@ if Not TextmodeGFV then
     I := Detect;                                   { Detect video card }
     J := 0;                                        { Zero select mode }
 {$endif win32}
+{$endif go32v2}
     InitGraph(I, J, '');                           { Initialize graphics }
     I := Graph.GetMaxX;                            { Fetch max x size }
     J := Graph.GetMaxY;                            { Fetch max y size }
@@ -1621,7 +1626,10 @@ BEGIN
 END.
 {
  $Log$
- Revision 1.21  2002-05-29 19:36:12  pierre
+ Revision 1.22  2002-05-29 21:21:54  pierre
+  * Use VGAHi for go32v2 graph version for now
+
+ Revision 1.21  2002/05/29 19:36:12  pierre
   * fix graph related problems
 
  Revision 1.20  2002/05/28 19:14:35  pierre
