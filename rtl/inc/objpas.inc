@@ -174,7 +174,7 @@
                  for i:=0 to intftable^.EntryCount-1 do
                    ppointer(@(PChar(instance)[intftable^.Entries[i].IOffset]))^:=
                      pointer(intftable^.Entries[i].VTable);
-               objclass:=objclass.classparent
+               objclass:=pclass(pointer(objclass)+vmtParent)^;
             end;
         end;
 {$else HASINTF}
@@ -217,15 +217,9 @@
 
       procedure TObject.FreeInstance;
 
-        var
-           p : Pointer;
-
         begin
            CleanupInstance;
-
-           { self is a register, so we can't pass it call by reference }
-           p:=Pointer(Self);
-           FreeMem(p,InstanceSize);
+           FreeMem(Pointer(Self));
         end;
 
       function TObject.ClassType : TClass;
@@ -253,14 +247,14 @@
            UName : ShortString;
            methodtable : pmethodnametable;
            i : dword;
-           c : tclass;
+           vmt : tclass;
 
         begin
            UName := UpCase(name);
-           c:=self;
-           while assigned(c) do
+           vmt:=self;
+           while assigned(vmt) do
              begin
-                methodtable:=pmethodnametable((Pointer(c)+vmtMethodTable)^);
+                methodtable:=pmethodnametable((Pointer(vmt)+vmtMethodTable)^);
                 if assigned(methodtable) then
                   begin
                      for i:=0 to methodtable^.count-1 do
@@ -270,7 +264,7 @@
                             exit;
                          end;
                   end;
-                c:=c.ClassParent;
+                vmt:=pclass(pointer(vmt)+vmtParent)^;
              end;
            MethodAddress:=nil;
         end;
@@ -280,12 +274,12 @@
         var
            methodtable : pmethodnametable;
            i : dword;
-           c : tclass;
+           vmt : tclass;
         begin
-           c:=self;
-           while assigned(c) do
+           vmt:=self;
+           while assigned(vmt) do
              begin
-                methodtable:=pmethodnametable((Pointer(c)+vmtMethodTable)^);
+                methodtable:=pmethodnametable((Pointer(vmt)+vmtMethodTable)^);
                 if assigned(methodtable) then
                   begin
                      for i:=0 to methodtable^.count-1 do
@@ -295,7 +289,7 @@
                             exit;
                          end;
                   end;
-                c:=c.ClassParent;
+                vmt:=pclass(pointer(vmt)+vmtParent)^;
              end;
            MethodName:='';
         end;
@@ -346,7 +340,7 @@
                  end;
                end;
                { Try again with the parent class type }
-               CurClassType := CurClassType.ClassParent;
+               CurClassType:=pclass(pointer(CurClassType)+vmtParent)^;
              end;
            end;
 
@@ -381,18 +375,18 @@
       class function TObject.InheritsFrom(aclass : TClass) : Boolean;
 
         var
-           c : tclass;
+           vmt : tclass;
 
         begin
-           c:=self;
-           while assigned(c) do
+           vmt:=self;
+           while assigned(vmt) do
              begin
-                if c=aclass then
+                if vmt=aclass then
                   begin
                      InheritsFrom:=true;
                      exit;
                   end;
-                c:=c.ClassParent;
+                vmt:=pclass(pointer(vmt)+vmtParent)^;
              end;
            InheritsFrom:=false;
         end;
@@ -460,7 +454,7 @@
                           exit;
                        end;
                   end;
-                vmt:=vmt.ClassParent;
+                vmt:=pclass(pointer(vmt)+vmtParent)^;
              end;
            DefaultHandler(message);
         end;
@@ -503,7 +497,7 @@
                           exit;
                        end;
                   end;
-                vmt:=vmt.ClassParent;
+                vmt:=pclass(pointer(vmt)+vmtParent)^;
              end;
            DefaultHandlerStr(message);
         end;
@@ -529,7 +523,7 @@
              begin
                 if Assigned(Pointer((Pointer(vmt)+vmtInitTable)^)) then
                   int_finalize(Pointer(Self),Pointer((Pointer(vmt)+vmtInitTable)^));
-                vmt:=vmt.ClassParent;
+                vmt:=pclass(pointer(vmt)+vmtParent)^;
              end;
         end;
 
@@ -701,7 +695,10 @@
 
 {
   $Log$
-  Revision 1.28  2002-10-11 14:05:21  florian
+  Revision 1.29  2002-10-15 19:29:49  peter
+    * manual inline classparent calls in the loops
+
+  Revision 1.28  2002/10/11 14:05:21  florian
     * initinterfacepointers improved
 
   Revision 1.27  2002/09/07 15:07:46  peter
