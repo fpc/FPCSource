@@ -2,7 +2,7 @@
     $Id$
     This file is part of the Free Pascal run time library.
 
-    Copyright (c) 1998 by Florian Klaempfl
+    Copyright (c) 1998,99 by Florian Klaempfl
     member of the Free Pascal development team
 
     See the file COPYING.FPC, included in this distribution,
@@ -207,8 +207,8 @@ unit typinfo;
          movl IValue,%eax
          pushl %eax
       .LINoPush:
-         call (%edi)
-         // now the result should be in EAX, untested yet (FK)
+         call %edi
+         // now the result is in EAX
       end;
 
     function CallIntegerProc(s : Pointer;Address : Pointer;Value : Integer; INdex,IVAlue : Longint) : Integer;assembler;
@@ -225,8 +225,7 @@ unit typinfo;
          movl IValue,%eax
          pushl %eax
       .LIPNoPush:
-         call (%edi)
-         // now the result should be in EAX, untested yet (FK)
+         call %edi
       end;
 
     function CallExtendedFunc(s : Pointer;Address : Pointer; INdex,IValue : Longint) : Extended;assembler;
@@ -240,8 +239,8 @@ unit typinfo;
          movl IValue,%eax
          pushl %eax
       .LINoPush:
-         call (%edi)
-         //!! now What ??
+         call %edi
+         // 
       end;
 
     function CallExtendedProc(s : Pointer;Address : Pointer;Value : Extended; INdex,IVAlue : Longint) : Integer;assembler;
@@ -249,9 +248,10 @@ unit typinfo;
          movl S,%esi
          movl Address,%edi
          // Push value to set
-         //!! MUST BE CHANGED !!
          leal Value,%eax
-         pushl %eax
+         pushl (%eax)
+         pushl 4(%eax)
+         pushl 8(%eax)
          // ? Indexed procedure
          movl Index,%eax
          xorl %eax,%eax
@@ -259,7 +259,7 @@ unit typinfo;
          movl IValue,%eax
          pushl %eax
       .LIPNoPush:
-         call (%edi)
+         call %edi
       end;
 
     function CallBooleanFunc(s : Pointer;Address : Pointer; Index,IValue : Longint) : Boolean;assembler;
@@ -273,12 +273,12 @@ unit typinfo;
          movl IValue,%eax
          pushl %eax
       .LBNoPush:
-         call (%edi)
-         // now the result should be in EAX, untested yet (FK)
+         call %edi
       end;
 
-    //!! Assembler functions can't have short stringreturn values.
-    //!! So we make a procedure with var parameter.
+    // Assembler functions can't have short stringreturn values.
+    // So we make a procedure with var parameter.
+    // That's not true (FK)
 
     Procedure CallSStringFunc(s : Pointer;Address : Pointer; INdex,IValue : Longint;
                             Var Res: Shortstring);assembler;
@@ -291,17 +291,17 @@ unit typinfo;
          jnz .LSSNoPush
          movl IValue,%eax
          pushl %eax
+         // the result is stored in an invisible parameter
+         pushl Res
       .LSSNoPush:
-         call (%edi)
-         //!! now what ?? MVC
+         call %edi
       end;
 
-    Procedure CallSStringProc(s : Pointer;Address : Pointer;Value : ShortString; INdex,IVAlue : Longint);assembler;
+    Procedure CallSStringProc(s : Pointer;Address : Pointer;Const Value : ShortString; INdex,IVAlue : Longint);assembler;
       asm
          movl S,%esi
          movl Address,%edi
          // Push value to set
-         //!! Is this correct for short strings ????
          movl Value,%eax
          pushl %eax
          // ? Indexed procedure
@@ -311,8 +311,7 @@ unit typinfo;
          movl IValue,%eax
          pushl %eax
       .LSSPNoPush:
-         call (%edi)
-         //!! now what ? MVC
+         call %edi
       end;
 
     function GetTypeData(TypeInfo : PTypeInfo) : PTypeData;
@@ -764,7 +763,11 @@ end.
 
 {
   $Log$
-  Revision 1.21  1999-05-07 11:02:14  florian
+  Revision 1.22  1999-05-19 12:03:23  florian
+    * the set/get procedures must be called with call %edi instead call (%edi)
+    * handling of extended and string properties fixed
+
+  Revision 1.21  1999/05/07 11:02:14  florian
     * two typos fixed
 
   Revision 1.20  1999/05/03 07:30:07  michael
