@@ -8,6 +8,10 @@ interface
 
 function Compile(const cmd:string):longint;
 
+const
+       { do we need to link }
+       IsExe : boolean = false;
+
 implementation
 uses
   comphook;
@@ -24,7 +28,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.1  1999-01-28 19:56:12  peter
+  Revision 1.2  1999-11-18 13:38:11  pierre
+   + IsExe var added
+
+  Revision 1.1  1999/01/28 19:56:12  peter
     * moved to include compiler/gdb independent of each other
 
   Revision 1.3  1999/01/04 11:49:39  peter
