@@ -334,6 +334,12 @@ for i:=1 to length(doscmd) do
   if doscmd[i] = quote then
     begin
     quote := #0;
+    if (i>1) and ((doscmd[i-1]='''') or (doscmd[i-1]='"')) then
+      begin
+      j := i+1;
+      doscmd[i] := #0;
+      continue;
+      end;
     doscmd[i] := #0;
     largs[argc]:=@doscmd[j];
     inc(argc);
@@ -1254,7 +1260,10 @@ Begin
 End.
 {
   $Log$
-  Revision 1.13  1999-05-19 16:54:21  pierre
+  Revision 1.14  1999-07-19 07:57:49  michael
+  + Small fix from Michael Baikov in setup_params
+
+  Revision 1.13  1999/05/19 16:54:21  pierre
    * closes all handles >+ 5
 
   Revision 1.12  1999/05/17 21:52:33  florian
