@@ -4,4 +4,5 @@ Register variables:
   Readln ................................ testreg2.pp
   Range checking ........................ testreg3.pp
 Common subexpression elimination (assembler)
-  Multidimensional array index operation. testcse1.pp 
+  Multidimensional array index operation. testcse1.pp
+  CSE and range checking ................ testcse2.pp
