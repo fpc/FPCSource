@@ -12,8 +12,8 @@ var
 
   // Delphi accepts this.
   WSAStartup: function(wVersionRequired: Word; var WSData: TWSAData): Integer stdcall = nil;
-  // FPC accepts this.
-  WSAStartup2: function(wVersionRequired: Word; var WSData: TWSAData): Integer = nil; stdcall;
+  // FPC should accept this too
+  WSAStartup2: function(wVersionRequired: Word; var WSData: TWSAData): Integer;stdcall = nil;
 
 implementation
 
