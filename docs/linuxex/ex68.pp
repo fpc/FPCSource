@@ -2,10 +2,8 @@ Program Example68;
 
 { Program to demonstrate the Octal function. }
 
-Uses linux;
-
 begin
-  Writeln('Mode 777 : ', Octal(777));
-  Writeln('Mode 644 : ', Octal(644));
-  Writeln('Mode 755 : ', Octal(755));
+  Writeln('Mode 777 : ', &777);
+  Writeln('Mode 644 : ', &544);
+  Writeln('Mode 755 : ', &755);
 end.

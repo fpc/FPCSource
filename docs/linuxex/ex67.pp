@@ -1,6 +1,6 @@
 Program Example67;
 
-uses Linux;
+uses UnixUtil;
 
 { Program to demonstrate the FSplit function. }
 

@@ -1,5 +1,8 @@
 program TestC{lone};
 
+{$ifdef Linux}
+// close is very Linux specific. 1.9.x threading is done via pthreads.
+
 uses
   Linux, Errors, crt;
 
@@ -68,4 +71,7 @@ begin
     end;
     end;
   FreeMem( theStack, StackSze );
+{$else}
+begin
+{$endif}
 end.

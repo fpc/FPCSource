@@ -2,7 +2,7 @@ Program Example70;
 
 { Program to demonstrate the StringToPPchar function. }
 
-Uses linux;
+Uses UnixUtil;
 
 Var S : String;
     P : PPChar;
@@ -11,7 +11,7 @@ Var S : String;
 begin
   // remark whitespace at end.
   S:='This is a string with words. ';
-  P:=StringToPPChar(S);
+  P:=StringToPPChar(S,0);
   I:=0;
   While P[i]<>Nil do
     begin

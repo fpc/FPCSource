@@ -2,7 +2,7 @@ Program Example69;
 
 { Program to demonstrate the FNMatch function. }
 
-Uses linux;
+Uses unixutil;
 
   Procedure TestMatch(Pattern,Name : String);
   

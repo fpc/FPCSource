@@ -2,7 +2,7 @@ program example72;
 
 { Program to demonstrate the NanoSleep function. } 
 
-uses Linux;
+uses BaseUnix;
 
 Var
   Req,Rem : TimeSpec;
@@ -16,7 +16,7 @@ begin
     end;
   Write('NanoSleep returned : ');
   Flush(Output);
-  Res:=(NanoSleep(Req,rem);
+  Res:=(fpNanoSleep(@Req,@rem));
   Writeln(res);
   If (res<>0) then
     With rem do
