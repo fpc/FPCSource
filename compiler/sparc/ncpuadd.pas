@@ -49,7 +49,7 @@ interface
       cutils,verbose,globals,
       symconst,symdef,paramgr,
       aasmbase,aasmtai,aasmcpu,defutil,htypechk,
-      cgbase,cpuinfo,pass_1,pass_2,regvars,
+      cgbase,cpuinfo,pass_1,pass_2,regvars,cgcpu,
       cpupara,
       ncon,nset,nadd,
       ncgutil,tgobj,rgobj,rgcpu,cgobj,cg64f32;
@@ -124,6 +124,10 @@ interface
       var
         op : TAsmOp;
       begin
+        pass_left_right;
+        if (nf_swaped in flags) then
+          swapleftright;
+
         case nodetype of
           addn :
             op:=A_FADDs;
@@ -139,8 +143,6 @@ interface
 
         { force fpureg as location, left right doesn't matter
           as both will be in a fpureg }
-        if (nf_swaped in flags) then
-          swapleftright;
         location_force_fpureg(exprasmlist,left.location,true);
         location_force_fpureg(exprasmlist,right.location,(left.location.loc<>LOC_CFPUREGISTER));
 
@@ -157,10 +159,12 @@ interface
 
     procedure tsparcaddnode.second_cmpfloat;
       begin
-        { force fpureg as location, left right doesn't matter
-          as both will be in a fpureg }
+        pass_left_right;
         if (nf_swaped in flags) then
           swapleftright;
+
+        { force fpureg as location, left right doesn't matter
+          as both will be in a fpureg }
         location_force_fpureg(exprasmlist,left.location,true);
         location_force_fpureg(exprasmlist,right.location,true);
 
@@ -168,19 +172,47 @@ interface
         location.resflags := getresflags(true);
 
         exprasmlist.concat(taicpu.op_reg_reg(A_FCMPs,
-           left.location.register,right.location.register))
+           left.location.register,right.location.register));
+        { Delay slot (can only contain integer operation) }
+        exprasmlist.concat(taicpu.op_none(A_NOP));
       end;
 
 
     procedure tsparcaddnode.second_cmpboolean;
+      var
+        zeroreg : tregister;
       begin
+        pass_left_right;
+        force_reg_left_right(true,true);
+
+        zeroreg.enum:=R_INTREGISTER;
+        zeroreg.number:=NR_G0;
+
+        if right.location.loc = LOC_CONSTANT then
+          tcgsparc(cg).handle_reg_const_reg(exprasmlist,A_SUBcc,left.location.register,right.location.value,zeroreg)
+        else
+          exprasmlist.concat(taicpu.op_reg_reg_reg(A_SUBcc,left.location.register,right.location.register,zeroreg));
+
         location_reset(location,LOC_FLAGS,OS_NO);
         location.resflags := getresflags(true);
       end;
 
 
     procedure tsparcaddnode.second_cmpsmallset;
+      var
+        zeroreg : tregister;
       begin
+        pass_left_right;
+        force_reg_left_right(true,true);
+
+        zeroreg.enum:=R_INTREGISTER;
+        zeroreg.number:=NR_G0;
+
+        if right.location.loc = LOC_CONSTANT then
+          tcgsparc(cg).handle_reg_const_reg(exprasmlist,A_SUBcc,left.location.register,right.location.value,zeroreg)
+        else
+          exprasmlist.concat(taicpu.op_reg_reg_reg(A_SUBcc,left.location.register,right.location.register,zeroreg));
+
         location_reset(location,LOC_FLAGS,OS_NO);
         location.resflags := getresflags(true);
       end;
@@ -194,7 +226,20 @@ interface
 
 
     procedure tsparcaddnode.second_cmpordinal;
+      var
+        zeroreg : tregister;
       begin
+        pass_left_right;
+        force_reg_left_right(true,true);
+
+        zeroreg.enum:=R_INTREGISTER;
+        zeroreg.number:=NR_G0;
+
+        if right.location.loc = LOC_CONSTANT then
+          tcgsparc(cg).handle_reg_const_reg(exprasmlist,A_SUBcc,left.location.register,right.location.value,zeroreg)
+        else
+          exprasmlist.concat(taicpu.op_reg_reg_reg(A_SUBcc,left.location.register,right.location.register,zeroreg));
+
         location_reset(location,LOC_FLAGS,OS_NO);
         location.resflags := getresflags(true);
       end;
@@ -204,7 +249,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.15  2003-06-01 21:38:06  peter
+  Revision 1.16  2003-07-06 17:44:12  peter
+    * cleanup and first sparc implementation
+
+  Revision 1.15  2003/06/01 21:38:06  peter
     * getregisterfpu size parameter added
     * op_const_reg size parameter added
     * sparc updates
