@@ -22,7 +22,7 @@ uses
 {$ifdef win32}
   windows,
 {$endif win32}
-  Objects;
+  video,Objects;
 
 type
 
@@ -90,6 +90,8 @@ type
       procedure   Capture; virtual;
       procedure   SwitchTo; virtual;
       procedure   SwitchBack; virtual;
+    private
+      IDE_screen: pvideobuf;
     end;
 {$endif}
 
@@ -122,7 +124,7 @@ const UserScreen : PScreen = nil;
 implementation
 
 uses
-  Dos,Video
+  Dos
 (*  {$ifdef TP}
     {$ifdef DPMI}
     ,WinAPI
@@ -454,6 +456,7 @@ end;
 constructor TLinuxScreen.Init;
 begin
   inherited Init;
+  IDE_screen := nil;
 end;
 
 
@@ -496,11 +499,18 @@ end;
 
 procedure TLinuxScreen.SwitchTo;
 begin
+  new(IDE_screen);
+  move(videobuf^,IDE_screen^,videobufsize);
 end;
 
 
 procedure TLinuxScreen.SwitchBack;
 begin
+  if IDE_screen = nil then
+    exit;
+  move(IDE_screen^,videobuf^,videobufsize);
+  dispose(IDE_screen);
+  IDE_screen := nil;
 end;
 
 {$endif}
@@ -715,76 +725,11 @@ end;
 end.
 {
   $Log$
-  Revision 1.1  2000-07-13 09:48:36  michael
+  Revision 1.2  2000-08-21 10:57:01  jonas
+    * IDE screen saving/restoring implemented for Linux (merged from fixes
+      branch)
+
+  Revision 1.1  2000/07/13 09:48:36  michael
   + Initial import
-
-  Revision 1.13  2000/06/16 15:00:20  pierre
-   * accord to new WriteConsoleOuput declarations
-
-  Revision 1.12  2000/04/25 08:42:33  pierre
-   * New Gabor changes : see fixes.txt
-
-  Revision 1.11  2000/04/18 11:42:37  pierre
-   lot of Gabor changes : see fixes.txt
-
-  Revision 1.10  2000/03/13 20:30:37  pierre
-   + stores IDE screen before Switching for DOS
-
-  Revision 1.9  2000/02/04 23:17:25  pierre
-   * Keep the entry ScreenBuffer at exit
-
-  Revision 1.8  1999/12/01 16:17:18  pierre
-   * Restore std_output_handle correctly at exit for GDB
-
-  Revision 1.7  1999/11/10 17:12:00  pierre
-   * Win32 screen problems solved
-
-  Revision 1.6  1999/09/22 13:02:00  pierre
-   + Twin32Screen added
-
-  Revision 1.5  1999/08/16 18:25:24  peter
-    * Adjusting the selection when the editor didn't contain any line.
-    * Reserved word recognition redesigned, but this didn't affect the overall
-      syntax highlight speed remarkably (at least not on my Amd-K6/350).
-      The syntax scanner loop is a bit slow but the main problem is the
-      recognition of special symbols. Switching off symbol processing boosts
-      the performance up to ca. 200%...
-    * The editor didn't allow copying (for ex to clipboard) of a single character
-    * 'File|Save as' caused permanently run-time error 3. Not any more now...
-    * Compiler Messages window (actually the whole desktop) did not act on any
-      keypress when compilation failed and thus the window remained visible
-    + Message windows are now closed upon pressing Esc
-    + At 'Run' the IDE checks whether any sources are modified, and recompiles
-      only when neccessary
-    + BlockRead and BlockWrite (Ctrl+K+R/W) implemented in TCodeEditor
-    + LineSelect (Ctrl+K+L) implemented
-    * The IDE had problems closing help windows before saving the desktop
-
-  Revision 1.4  1999/06/28 19:32:25  peter
-    * fixes from gabor
-
-  Revision 1.3  1999/02/02 16:41:42  peter
-    + automatic .pas/.pp adding by opening of file
-    * better debuggerscreen changes
-
-  Revision 1.2  1999/01/04 11:49:51  peter
-   * 'Use tab characters' now works correctly
-   + Syntax highlight now acts on File|Save As...
-   + Added a new class to syntax highlight: 'hex numbers'.
-   * There was something very wrong with the palette managment. Now fixed.
-   + Added output directory (-FE<xxx>) support to 'Directories' dialog...
-   * Fixed some possible bugs in Running/Compiling, and the compilation/run
-     process revised
-
-  Revision 1.1  1998/12/28 15:47:53  peter
-    + Added user screen support, display & window
-    + Implemented Editor,Mouse Options dialog
-    + Added location of .INI and .CFG file
-    + Option (INI) file managment implemented (see bottom of Options Menu)
-    + Switches updated
-    + Run program
-
-  Revision 1.0  1998/12/24 09:55:49  gabor
-    Original implementation
 
 }
