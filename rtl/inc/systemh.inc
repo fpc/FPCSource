@@ -166,6 +166,17 @@ Type
 { procedure type }
   TProcedure  = Procedure;
 
+{ array types }
+  IntegerArray  = array[0..$effffff] of Integer;
+  TIntegerArray = IntegerArray;
+  PIntegerArray = ^IntegerArray;
+  PointerArray  = array [0..512*1024*1024-2] of Pointer;
+  TPointerArray = PointerArray;
+  PPointerArray = ^PointerArray;
+{$ifdef HASINTF}
+  TBoundArray = array of integer;
+{$endif HASINTF}
+
 const
 { Maximum value of the biggest signed and unsigned integer type available}
   MaxSIntValue = High(ValSInt);
@@ -558,7 +569,10 @@ const
 
 {
   $Log$
-  Revision 1.41  2002-01-24 18:27:06  peter
+  Revision 1.42  2002-01-25 17:39:35  peter
+    * array types added
+
+  Revision 1.41  2002/01/24 18:27:06  peter
     * lowercase() overloaded
 
   Revision 1.40  2002/01/24 12:33:53  jonas
