@@ -1418,7 +1418,7 @@ implementation
                              end;
                          end
                         else
-                        { tvarrec -> array of constconst }
+                        { array of tvarrec -> array of const }
                          if is_array_of_const(def_to) and
                             is_equal(parraydef(def_to)^.elementtype.def,parraydef(def_from)^.elementtype.def) then
                           begin
@@ -1444,6 +1444,16 @@ implementation
                            doconv:=tc_string_2_chararray;
                            b:=1;
                          end;
+                      end;
+                    recorddef :
+                      begin
+                        { tvarrec -> array of constconst }
+                         if is_array_of_const(def_to) and
+                            is_equal(def_from,parraydef(def_to)^.elementtype.def) then
+                          begin
+                            doconv:=tc_equal;
+                            b:=1;
+                          end;
                       end;
                   end;
                 end;
@@ -1730,7 +1740,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.31  2001-01-22 11:20:15  jonas
+  Revision 1.32  2001-02-20 21:44:25  peter
+    * tvarrec -> array of const fixed
+
+  Revision 1.31  2001/01/22 11:20:15  jonas
     * fixed web bug 1363 (merged)
 
   Revision 1.30  2001/01/08 21:43:38  peter
