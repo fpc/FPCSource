@@ -366,9 +366,11 @@ function Compile(const cmd:string):longint;
 
 var
   starttime  : real;
+{$ifdef SHOWUSEDMEM}
 {$ifdef HASGETHEAPSTATUS}
   hstatus : TFPCHeapStatus;
 {$endif HASGETHEAPSTATUS}
+{$endif SHOWUSEDMEM}
 begin
   try
     try
@@ -441,7 +443,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.58  2005-02-28 15:38:38  marco
+  Revision 1.59  2005-03-25 21:55:43  jonas
+    * removed some unused variables
+
+  Revision 1.58  2005/02/28 15:38:38  marco
    * getFPCheapstatus  (no, FPC HEAP, not FP CHEAP!)
 
   Revision 1.57  2005/02/15 19:15:45  peter

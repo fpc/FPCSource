@@ -64,8 +64,6 @@ implementation
 
       procedure genitem(t : pcaselabel);
 
-      var r:Tregister;
-
           procedure gensub(value:longint);
           var
             tmpreg: tregister;
@@ -156,7 +154,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.18  2005-02-14 17:13:10  peter
+  Revision 1.19  2005-03-25 21:55:43  jonas
+    * removed some unused variables
+
+  Revision 1.18  2005/02/14 17:13:10  peter
     * truncate log
 
 }

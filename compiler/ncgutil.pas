@@ -1334,8 +1334,6 @@ implementation
         i : longint;
         currpara : tparavarsym;
         paraloc  : pcgparalocation;
-        hreflo,
-        hrefhi,
         href     : treference;
         sizeleft : aint;
 {$ifdef sparc}
@@ -2367,7 +2365,6 @@ implementation
 
     procedure gen_intf_wrapper(list:taasmoutput;_class:tobjectdef);
       var
-        rawdata: taasmoutput;
         i,j,
         proccount : longint;
         tmps : string;
@@ -2408,7 +2405,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.264  2005-03-09 22:37:24  peter
+  Revision 1.265  2005-03-25 21:55:43  jonas
+    * removed some unused variables
+
+  Revision 1.264  2005/03/09 22:37:24  peter
   put intf wrappers in code section
 
   Revision 1.263  2005/03/02 19:44:11  jonas

@@ -1464,7 +1464,9 @@ unit rgobj;
     procedure trgobj.generate_interference_graph(list:Taasmoutput;headertai:tai);
       var
         p : tai;
+{$ifdef EXTDEBUG}
         i : integer;
+{$endif EXTDEBUG}
         supreg : tsuperregister;
       begin
         { All allocations are available. Now we can generate the
@@ -2012,7 +2014,10 @@ unit rgobj;
 end.
 {
   $Log$
-  Revision 1.155  2005-03-20 19:47:46  peter
+  Revision 1.156  2005-03-25 21:55:43  jonas
+    * removed some unused variables
+
+  Revision 1.155  2005/03/20 19:47:46  peter
     * fix spilling code when explicit cpu registers are used in an
       instruction
 

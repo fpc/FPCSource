@@ -213,9 +213,9 @@ begin
     Message1(exec_i_linking,current_module.exefilename^);
 
 { Create some replacements }
+  StripStr:='';
 (*
   StaticStr:='';
-  StripStr:='';
   DynLinkStr:='';
   if (cs_link_staticflag in aktglobalswitches) then
    StaticStr:='-static';
@@ -272,7 +272,10 @@ initialization
 end.
 {
   $Log$
-  Revision 1.21  2005-02-14 17:13:10  peter
+  Revision 1.22  2005-03-25 21:55:43  jonas
+    * removed some unused variables
+
+  Revision 1.21  2005/02/14 17:13:10  peter
     * truncate log
 
   Revision 1.20  2005/02/08 22:30:32  olle

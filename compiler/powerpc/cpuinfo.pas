@@ -62,7 +62,7 @@ Const
      '604'
    );
 
-   fputypestr : array[tfputype] of string[6] = ('',
+   fputypestr : array[tfputype] of string[8] = ('',
      'SOFT',
      'STANDARD'
    );
@@ -72,7 +72,10 @@ Implementation
 end.
 {
   $Log$
-  Revision 1.22  2005-02-14 17:13:10  peter
+  Revision 1.23  2005-03-25 21:55:43  jonas
+    * removed some unused variables
+
+  Revision 1.22  2005/02/14 17:13:10  peter
     * truncate log
 
 }

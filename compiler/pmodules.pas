@@ -922,7 +922,10 @@ implementation
          main_file: tinputfile;
          st     : tsymtable;
          unitst : tglobalsymtable;
-         store_crc,store_interface_crc : cardinal;
+{$ifdef EXTDEBUG}
+         store_crc,
+{$endif EXTDEBUG}
+         store_interface_crc : cardinal;
          s1,s2  : ^string; {Saves stack space}
          force_init_final : boolean;
          pd : tprocdef;
@@ -1273,7 +1276,9 @@ implementation
 
          { Write out the ppufile after the object file has been created }
          store_interface_crc:=current_module.interface_crc;
+{$ifdef EXTDEBUG}
          store_crc:=current_module.crc;
+{$endif EXTDEBUG}
          if (Errorcount=0) then
            tppumodule(current_module).writeppu;
 
@@ -1622,7 +1627,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.185  2005-02-14 17:13:07  peter
+  Revision 1.186  2005-03-25 21:55:43  jonas
+    * removed some unused variables
+
+  Revision 1.185  2005/02/14 17:13:07  peter
     * truncate log
 
   Revision 1.184  2005/02/06 21:33:28  peter

@@ -394,8 +394,6 @@ const
 
     { calling a procedure by name }
     procedure tcgppc.a_call_name(list : taasmoutput;const s : string);
-      var
-        href : treference;
       begin
          { MacOS: The linker on MacOS (PPCLink) inserts a call to glue code,
            if it is a cross-TOC call. If so, it also replaces the NOP
@@ -521,8 +519,7 @@ const
                      ((A_LWZ,A_LWZU),(A_LWZX,A_LWZUX)));
        var
          op: tasmop;
-         tmpreg: tregister;
-         ref2, tmpref: treference;
+         ref2: treference;
 
        begin
           { TODO: optimize/take into consideration fromsize/tosize. Will }
@@ -847,7 +844,6 @@ const
         l : tasmlabel);
 
         var
-          p: taicpu;
           scratch_register: TRegister;
           signed: boolean;
 
@@ -884,7 +880,6 @@ const
         reg1,reg2 : tregister;l : tasmlabel);
 
         var
-          p: taicpu;
           op: tasmop;
 
         begin
@@ -1050,16 +1045,11 @@ const
 
 
      var regcounter,firstregfpu,firstreggpr: TSuperRegister;
-         href,href2 : treference;
+         href : treference;
          usesfpr,usesgpr,gotgot : boolean;
-         parastart : aint;
-         l : tasmlabel;
          regcounter2, firstfpureg: Tsuperregister;
-         i : integer;
-         hp: tparavarsym;
          cond : tasmcond;
          instr : taicpu;
-         size: tcgsize;
 
       begin
         { CR and LR only have to be saved in case they are modified by the current }
@@ -1590,7 +1580,7 @@ const
      const
          macosLinkageAreaSize = 24;
 
-     var regcounter: TRegister;
+     var 
          href : treference;
          registerSaveAreaSize : longint;
 
@@ -1717,7 +1707,6 @@ const
 
        var
          ref2, tmpref: treference;
-         tmpreg:Tregister;
 
        begin
          ref2 := ref;
@@ -1813,7 +1802,6 @@ const
         src, dst: TReference;
         lab: tasmlabel;
         count, count2: aint;
-        orgsrc, orgdst: boolean;
         size: tcgsize;
 
       begin
@@ -1853,12 +1841,10 @@ const
           begin
             src.base := rg[R_INTREGISTER].getregister(list,R_SUBWHOLE);
             a_loadaddr_ref_reg(list,source,src.base);
-            orgsrc := false;
           end
         else
           begin
             src := source;
-            orgsrc := true;
           end;
         { load the address of dest into dst.base }
         if (count > 4) or
@@ -1868,12 +1854,10 @@ const
           begin
             dst.base := rg[R_INTREGISTER].getregister(list,R_SUBWHOLE);
             a_loadaddr_ref_reg(list,dest,dst.base);
-            orgdst := false;
           end
         else
           begin
             dst := dest;
-            orgdst := true;
           end;
 
 {$ifndef ppc603}
@@ -2044,9 +2028,7 @@ const
         end;
 
       var
-        lab : tasmsymbol;
         make_global : boolean;
-        href : treference;
       begin
         if procdef.proctypeoption<>potype_none then
           Internalerror(200006137);
@@ -2107,7 +2089,6 @@ const
 
        var
          tmpreg: tregister;
-         orgindex: tregister;
        begin
          result := false;
          if (ref.base = NR_NO) then
@@ -2420,7 +2401,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.195  2005-02-14 17:13:10  peter
+  Revision 1.196  2005-03-25 21:55:43  jonas
+    * removed some unused variables
+
+  Revision 1.195  2005/02/14 17:13:10  peter
     * truncate log
 
   Revision 1.194  2005/02/13 18:55:19  florian

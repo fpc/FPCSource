@@ -213,7 +213,6 @@ implementation
         );
       var
         i : integer;
-        v : int64;
       begin
         list.concat(tai_const.create_8bit(op));
         for i:=0 to ops-1 do
@@ -421,7 +420,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.5  2005-02-14 17:13:06  peter
+  Revision 1.6  2005-03-25 21:55:43  jonas
+    * removed some unused variables
+
+  Revision 1.5  2005/02/14 17:13:06  peter
     * truncate log
 
 }

@@ -4125,7 +4125,9 @@ implementation
     function tprocdef.write_references(ppufile:tcompilerppufile;locals:boolean):boolean;
       var
         ref : tref;
+{$ifdef supportbrowser}
         pdo : tobjectdef;
+{$endif supportbrowser}
         move_last : boolean;
         d : tderef;
         oldparasymtable,
@@ -6394,7 +6396,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.300  2005-03-13 08:35:09  florian
+  Revision 1.301  2005-03-25 21:55:43  jonas
+    * removed some unused variables
+
+  Revision 1.300  2005/03/13 08:35:09  florian
     * fixed FieldAddress for 64 bit and CPUs requiring proper alignment
 
   Revision 1.299  2005/03/07 17:58:27  peter

@@ -620,11 +620,9 @@ implementation
         highppn,
         npara,
         paras   : tnode;
-        temp    : ttempcreatenode;
         ppn     : tcallparanode;
         paradef : tdef;
         counter : integer;
-        newstatement : tstatementnode;
 {$ifdef ansistring_bits}
         mode    : byte;
 {$endif ansistring_bits}
@@ -743,7 +741,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.41  2005-03-05 16:37:42  florian
+  Revision 1.42  2005-03-25 21:55:43  jonas
+    * removed some unused variables
+
+  Revision 1.41  2005/03/05 16:37:42  florian
     * fixed copy(dyn. array,...);
 
   Revision 1.40  2005/03/03 19:36:42  jonas

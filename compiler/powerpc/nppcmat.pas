@@ -188,7 +188,6 @@ implementation
          op : topcg;
          asmop1, asmop2: tasmop;
          shiftval: aint;
-         r : Tregister;
 
       begin
          secondpass(left);
@@ -356,7 +355,7 @@ implementation
     procedure tppcunaryminusnode.pass_2;
 
       var
-        src1, src2, tmp: tregister;
+        src1: tregister;
         op: tasmop;
 
       begin
@@ -452,7 +451,6 @@ implementation
 
       var
          hl : tasmlabel;
-         regl, regh: tregister;
 
       begin
          if is_boolean(resulttype.def) then
@@ -526,7 +524,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.44  2005-02-14 17:13:10  peter
+  Revision 1.45  2005-03-25 21:55:43  jonas
+    * removed some unused variables
+
+  Revision 1.44  2005/02/14 17:13:10  peter
     * truncate log
 
 }
