@@ -1,4 +1,3 @@
-{ %RESULT=210 }
 {$R+}
 
 program test_fail;
@@ -69,7 +68,7 @@ program test_fail;
     mem : sizeint;
   begin
      require_error(210);
-     
+
 	 mem:=0;
 	 DoMem(mem);
      new(pa1,init(false));
