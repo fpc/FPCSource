@@ -124,10 +124,14 @@ unit ncpuset;
 
 
 
-
+begin
+  ccasenode:=tcpucasenode;
 end.
 {
   $Log$
-  Revision 1.1  2004-10-30 17:50:53  florian
+  Revision 1.2  2004-10-30 22:01:11  florian
+    * jmp table code generation for case statement on sparc
+
+  Revision 1.1  2004/10/30 17:50:53  florian
     * initial revision, not yet enabled
 }

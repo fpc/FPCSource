@@ -843,7 +843,7 @@ implementation
                    { optimize for size ? }
                    if cs_littlesize in aktglobalswitches  then
                      begin
-                       if (has_jumptable) and
+                       if has_jumptable and
                           not((labels<=2) or
                               ((max_label-min_label)<0) or
                               ((max_label-min_label)>3*labels)) then
@@ -944,7 +944,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.68  2004-09-25 14:23:54  peter
+  Revision 1.69  2004-10-30 22:01:11  florian
+    * jmp table code generation for case statement on sparc
+
+  Revision 1.68  2004/09/25 14:23:54  peter
     * ungetregister is now only used for cpuregisters, renamed to
       ungetcpuregister
     * renamed (get|unget)explicitregister(s) to ..cpuregister

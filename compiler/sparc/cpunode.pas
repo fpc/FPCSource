@@ -20,22 +20,29 @@
 
  *****************************************************************************}
 unit CpuNode;
-{$INCLUDE fpcdefs.inc}
+
+{$I fpcdefs.inc}
+
 interface
-{This unit is used to define the specific CPU implementations. All needed
+{ This unit is used to define the specific CPU implementations. All needed
 actions are included in the INITALIZATION part of these units. This explains
-the behaviour of such a unit having just a USES clause!}
+the behaviour of such a unit having just a USES clause! }
+
 implementation
-uses
-  ncgbas,ncgflw,ncgcnv,ncgld,ncgmem,ncgcon,
-  ncpuadd,ncpucall,ncpumat,
-  ncgset,ncpuinln,ncpucnv,ncpuobj,
-  { this not really a node }
-  rgcpu;
+
+  uses
+    ncgbas,ncgflw,ncgcnv,ncgld,ncgmem,ncgcon,ncgset,
+    ncpuadd,ncpucall,ncpumat,ncpuinln,ncpucnv,ncpuobj,ncpuset,
+    { this not really a node }
+    rgcpu;
+
 end.
 {
     $Log$
-    Revision 1.10  2004-06-20 08:55:32  florian
+    Revision 1.11  2004-10-30 22:01:11  florian
+      * jmp table code generation for case statement on sparc
+
+    Revision 1.10  2004/06/20 08:55:32  florian
       * logs truncated
 
     Revision 1.9  2004/06/16 20:07:10  florian
