@@ -362,7 +362,7 @@ implementation
                                        ((procdefcoll^.data^.options and povirtualmethod)<>0) or
                                        ((hp^.options and povirtualmethod)<>0)
                                      ) then
-                                    begin
+                                    begin { same parameters }
                                        { wenn sie gleich sind }
                                        { und eine davon virtual deklariert ist }
                                        { Fehler falls nur eine VIRTUAL }
@@ -390,7 +390,14 @@ implementation
                                                    newentry;
                                                    exit;
                                                 end;
-                                         end;
+                                         end
+                                       else
+                                       { the flags have to match      }
+                                       { except abstract and override }
+                                       { only if both are virtual !!  }
+                                       if (procdefcoll^.data^.options and not(poabstractmethod or pooverridingmethod))<>
+                                         (hp^.options and not(poabstractmethod or pooverridingmethod)) then
+                                            Message1(parser_e_header_dont_match_forward,_c^.objname^+'.'+_name);
 
                                        { check, if the overridden directive is set }
                                        { (povirtualmethod is set! }
@@ -417,18 +424,12 @@ implementation
                                          Message1(parser_e_overloaded_methodes_not_same_ret,_c^.objname^+'.'+_name);
 
 
-                                       { the flags have to match      }
-                                       { except abstract and override }
-                                       if (procdefcoll^.data^.options and not(poabstractmethod or pooverridingmethod))<>
-                                         (hp^.options and not(poabstractmethod or pooverridingmethod)) then
-                                            Message1(parser_e_header_dont_match_forward,_c^.objname^+'.'+_name);
-
                                        { now set the number }
                                        hp^.extnumber:=procdefcoll^.data^.extnumber;
                                        { and exchange }
                                        procdefcoll^.data:=hp;
                                        stored:=true;
-                                    end;
+                                    end;  { same parameters }
                                   procdefcoll:=procdefcoll^.next;
                                end;
                              { if it isn't saved in the list }
@@ -470,7 +471,10 @@ implementation
              do_genvmt(p^.childof);
 
            { walk through all public syms }
-           _c:=_class;
+           { I had to change that to solve bug0260 (PM)}
+           {_c:=_class;}
+           _c:=p;
+           { Florian, please check if you agree (PM) }
            p^.publicsyms^.foreach({$ifndef TP}@{$endif}eachsym);
         end;
 
@@ -558,7 +562,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.10  1999-06-02 22:44:07  pierre
+  Revision 1.11  1999-06-15 13:27:06  pierre
+   * bug0260 fixed
+
+  Revision 1.10  1999/06/02 22:44:07  pierre
    * previous wrong log corrected
 
   Revision 1.9  1999/06/02 22:25:33  pierre
