@@ -1,11 +1,12 @@
-Program softint;
+uses
+	go32;
 
-uses go32;
-
-var r : trealregs;
+var
+	r : trealregs;
 
 begin
-     r.al := $01;
-     realintr($21, r);
-     Writeln('DOS v', r.al,'.',r.ah, ' detected');
+	r.ah := $30;
+	r.al := $01;
+	realintr($21, r);
+	Writeln('DOS v', r.al,'.',r.ah, ' detected');
 end.
