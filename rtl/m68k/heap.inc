@@ -134,11 +134,6 @@
        move.l HEAPSIZE,d0
     end ['d0'];
 
-    function heapsize : longint;
-
-      begin
-         heapsize:=_heapsize;
-      end;
 
 {$IfDef CHECKHEAP}
     procedure call_stack(p : pointer);
@@ -1060,17 +1055,21 @@ begin
 {$endif TEMPHEAP}
   HeapOrg := GetHeapStart;
   HeapPtr := HeapOrg;
+  _memavail := GetHeapSize;
   HeapEnd := HeapOrg + _memavail;
   HeapError := @GrowHeap;
-  _memavail := GetHeapSize;
   _heapsize:=longint(heapend)-longint(heaporg);
   Freelist := nil;
 end;
 
 {
   $Log$
-  Revision 1.1  1998-03-25 11:18:44  root
-  Initial revision
+  Revision 1.2  1998-07-02 12:22:38  carl
+    - removed heapsize function, would cause conflicts with HEAPSIZE var
+    * GetHeapstart was misplaced
+
+  Revision 1.1.1.1  1998/03/25 11:18:44  root
+  * Restored version
 
   Revision 1.3  1998/01/26 12:01:52  michael
   + Added log at the end
