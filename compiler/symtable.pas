@@ -1663,8 +1663,17 @@ implementation
             hsym:=tsym(next.search(sym.name));
             if assigned(hsym) then
              begin
-               DuplicateSym(hsym);
-               exit;
+               { Delphi you can have a symbol with the same name as the
+                 unit, the unit can then not be accessed anymore using
+                 <unit>.<id>, so we can hide the symbol }
+               if (m_duplicate_names in aktmodeswitches) and
+                  (hsym.typ=symconst.unitsym) then
+                hsym.owner.rename(hsym.name,'hidden'+hsym.name)
+               else
+                begin
+                  DuplicateSym(hsym);
+                  exit;
+                end;
              end;
           end;
 
@@ -1821,8 +1830,17 @@ implementation
             hsym:=tsym(next.search(sym.name));
             if assigned(hsym) then
              begin
-               DuplicateSym(hsym);
-               exit;
+               { Delphi you can have a symbol with the same name as the
+                 unit, the unit can then not be accessed anymore using
+                 <unit>.<id>, so we can hide the symbol }
+               if (m_duplicate_names in aktmodeswitches) and
+                  (hsym.typ=symconst.unitsym) then
+                hsym.owner.rename(hsym.name,'hidden'+hsym.name)
+               else
+                begin
+                  DuplicateSym(hsym);
+                  exit;
+                end;
              end;
           end;
 
@@ -2341,7 +2359,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.86  2002-12-21 13:07:34  peter
+  Revision 1.87  2002-12-25 01:26:56  peter
+    * duplicate procsym-unitsym fix
+
+  Revision 1.86  2002/12/21 13:07:34  peter
     * type redefine fix for tb0437
 
   Revision 1.85  2002/12/07 14:27:10  carl

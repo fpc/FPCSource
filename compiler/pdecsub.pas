@@ -409,6 +409,7 @@ implementation
         st : tsymtable;
         srsymtable : tsymtable;
         storepos,procstartfilepos : tfileposinfo;
+        searchagain : boolean;
         i: longint;
       begin
         { Save the position where this procedure really starts }
@@ -521,64 +522,80 @@ implementation
               (options in [potype_constructor,potype_destructor]) then
               Message(parser_e_constructors_always_objects);
 
-           akttokenpos:=procstartfilepos;
-           aktprocsym:=tprocsym(symtablestack.search(sp));
+           repeat
+             searchagain:=false;
+             akttokenpos:=procstartfilepos;
+             aktprocsym:=tprocsym(symtablestack.search(sp));
 
-           if not(parse_only) then
-             begin
-               {The procedure we prepare for is in the implementation
-                part of the unit we compile. It is also possible that we
-                are compiling a program, which is also some kind of
-                implementaion part.
-
-                We need to find out if the procedure is global. If it is
-                global, it is in the global symtable.}
-               if not assigned(aktprocsym) and
-                  (symtablestack.symtabletype=staticsymtable) and
-                  assigned(symtablestack.next) and
-                  (symtablestack.next.unitid=0) then
-                begin
-                  {Search the procedure in the global symtable.}
-                  aktprocsym:=tprocsym(symtablestack.next.search(sp));
-                  if assigned(aktprocsym) then
-                   begin
-                     {Check if it is a procedure.}
-                     if aktprocsym.typ<>procsym then
-                      DuplicateSym(aktprocsym);
-                     {The procedure has been found. So it is
-                      a global one. Set the flags to mark this.}
-                     procinfo.flags:=procinfo.flags or pi_is_global;
-                   end;
-                end;
-             end;
-         end;
-
-        if assigned(aktprocsym) then
-         begin
-           { Check if overloaded is a procsym }
-           if aktprocsym.typ<>procsym then
-            begin
-              { when the other symbol is a unit symbol then hide the unit
-                symbol. Only in tp mode because it's bad programming }
-              if (m_duplicate_names in aktmodeswitches) and
-                 (aktprocsym.typ=unitsym) then
+             if not(parse_only) then
                begin
-                 aktprocsym.owner.rename(aktprocsym.name,'hidden'+aktprocsym.name);
-               end
-              else
-               begin
-                 {  we use a different error message for tp7 so it looks more compatible }
-                 if (m_fpc in aktmodeswitches) then
-                  Message1(parser_e_overloaded_no_procedure,aktprocsym.realname)
-                 else
-                  DuplicateSym(aktprocsym);
-                 { rename the name to an unique name to avoid an
-                   error when inserting the symbol in the symtable }
-                 orgsp:=orgsp+'$'+tostr(aktfilepos.line);
+                 {The procedure we prepare for is in the implementation
+                  part of the unit we compile. It is also possible that we
+                  are compiling a program, which is also some kind of
+                  implementaion part.
+
+                  We need to find out if the procedure is global. If it is
+                  global, it is in the global symtable.}
+                 if not assigned(aktprocsym) and
+                    (symtablestack.symtabletype=staticsymtable) and
+                    assigned(symtablestack.next) and
+                    (symtablestack.next.unitid=0) then
+                  begin
+                    {Search the procedure in the global symtable.}
+                    aktprocsym:=tprocsym(symtablestack.next.search(sp));
+                    if assigned(aktprocsym) then
+                     begin
+                       {Check if it is a procedure.}
+                       if aktprocsym.typ<>procsym then
+                        begin
+                          { when the other symbol is a unit symbol then hide the unit
+                            symbol. Only in tp mode because it's bad programming }
+                          if (m_duplicate_names in aktmodeswitches) and
+                             (aktprocsym.typ=unitsym) then
+                           begin
+                             aktprocsym.owner.rename(aktprocsym.name,'hidden'+aktprocsym.name);
+                             searchagain:=true;
+                           end
+                          else
+                           DuplicateSym(aktprocsym);
+                        end;
+                       {The procedure has been found. So it is
+                        a global one. Set the flags to mark this.}
+                       procinfo.flags:=procinfo.flags or pi_is_global;
+                     end;
+                  end;
                end;
-              { generate a new aktprocsym }
-              aktprocsym:=nil;
-            end;
+
+             if (not searchagain) and
+                assigned(aktprocsym) then
+              begin
+                { Check if overloaded is a procsym }
+                if aktprocsym.typ<>procsym then
+                 begin
+                   { when the other symbol is a unit symbol then hide the unit
+                     symbol. Only in tp mode because it's bad programming }
+                   if (m_duplicate_names in aktmodeswitches) and
+                      (aktprocsym.typ=unitsym) then
+                    begin
+                      aktprocsym.owner.rename(aktprocsym.name,'hidden'+aktprocsym.name);
+                      searchagain:=true;
+                    end
+                   else
+                    begin
+                      {  we use a different error message for tp7 so it looks more compatible }
+                      if (m_fpc in aktmodeswitches) then
+                       Message1(parser_e_overloaded_no_procedure,aktprocsym.realname)
+                      else
+                       DuplicateSym(aktprocsym);
+                      { rename the name to an unique name to avoid an
+                        error when inserting the symbol in the symtable }
+                      orgsp:=orgsp+'$'+tostr(aktfilepos.line);
+                    end;
+                   { generate a new aktprocsym }
+                   aktprocsym:=nil;
+                 end;
+              end;
+           until not searchagain;
          end;
 
         { test again if assigned, it can be reset to recover }
@@ -2079,7 +2096,10 @@ const
 end.
 {
   $Log$
-  Revision 1.93  2002-12-24 21:21:06  peter
+  Revision 1.94  2002-12-25 01:26:56  peter
+    * duplicate procsym-unitsym fix
+
+  Revision 1.93  2002/12/24 21:21:06  peter
     * remove code that skipped the _ prefix for win32 imports
 
   Revision 1.92  2002/12/23 21:24:22  peter

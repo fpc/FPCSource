@@ -657,7 +657,9 @@ implementation
            begin
              Message1(parser_p_procedure_start,
                       aktprocdef.fullprocname);
-             aktprocdef.aliasnames.insert(aktprocdef.mangledname);
+
+             if assigned(aktprocsym.owner) then
+               aktprocdef.aliasnames.insert(aktprocdef.mangledname);
             { set _FAIL as keyword if constructor }
             if (aktprocdef.proctypeoption=potype_constructor) then
               tokeninfo^[_FAIL].keyword:=m_all;
@@ -687,6 +689,12 @@ implementation
              prevdef.nextoverloaded:=stdef;
            end;
 {$endif notused}
+         { release procsym when it was not stored in the symtable }
+         if not assigned(aktprocsym.owner) then
+          begin
+            aktprocsym.free;
+            aktprocdef.procsym:=nil;
+          end;
          aktprocsym:=oldprocsym;
          aktprocdef:=oldprocdef;
          procinfo:=oldprocinfo;
@@ -810,7 +818,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.81  2002-12-15 13:37:15  peter
+  Revision 1.82  2002-12-25 01:26:56  peter
+    * duplicate procsym-unitsym fix
+
+  Revision 1.81  2002/12/15 13:37:15  peter
     * don't include uf_init for library. The code is already called and
       does not need to be in the initfinal table
 
