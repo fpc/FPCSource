@@ -36,7 +36,7 @@ Uses CObjects, verbose, hcodegen, globals
      ,i386, DAOpt386
    {$endif i386}
      ;
-
+{
 Function PaiInSequence(P: Pai; Const Seq: TContent): Boolean;
 Var P1: Pai;
     Counter: Byte;
@@ -54,7 +54,7 @@ Begin
     End;
   PaiInSequence := TmpResult;
 End;
-
+}
 Function CheckSequence(p: Pai; Reg: TRegister; Var Found: Longint; Var RegInfo: TRegInfo): Boolean;
 {checks whether the current instruction sequence (starting with p) and the
  one between StartMod and EndMod of Reg are the same. If so, the number of
@@ -72,69 +72,56 @@ Var hp2, hp3, EndMod: Pai;
 Begin {CheckSequence}
   Reg := Reg32(Reg);
   TmpResult := False;
+  FillChar(OrgRegInfo, SizeOf(OrgRegInfo), 0);
+  OrgRegFound := 0;
   HighFound := 0;
+  OrgRegResult := False;
   RegCounter := R_EAX;
   GetLastInstruction(p, PrevNonRemovablePai);
-  While (PPaiProp(PrevNonRemovablePai^.fileinfo.line)^.Regs[RegCounter].Typ <> Con_Ref) Or
-{ the next check is because what a register contains is stored in the
-  ppaiprop of the first instruction of the loading sequence. If it's left
-  out,
-
-  movl 8(%ebp), %eax                            movl 8(%ebp), %eax
-  movl 8(%ebp), %edx                            movl %eax, %edx
-  movl (%edx), %edx     would be changed to
-  movl (%eax), %eax                             movl (%eax), %eax
-  cmpl (%edx), %eax                             cmpl (%edx), %eax}
-
-        ((Regcounter <> Reg) And
-         PaiInSequence(p, PPaiProp(PrevNonRemovablePai^.fileinfo.line)^.Regs[RegCounter])) Do
+  While (PPaiProp(PrevNonRemovablePai^.fileinfo.line)^.Regs[RegCounter].Typ <> Con_Ref)
+         And (RegCounter <= R_EDI) Do
     Inc(RegCounter);
- {no need to check whether RegCounter becomes > R_EDI here, because at least
-  PPaiProp(p^.fileinfo.line)^.Regs[Reg].Typ = Con_Ref}
-  Repeat
-    FillChar(RegInfo, SizeOf(RegInfo), 0);
-    RegInfo.RegsEncountered := [ProcInfo.FramePointer, R_ESP];
-    RegInfo.SubstRegs[ProcInfo.FramePointer] := ProcInfo.FramePointer;
-    RegInfo.SubstRegs[R_ESP] := R_ESP;
-    Found := 0;
-    hp2 := PPaiProp(PrevNonRemovablePai^.fileinfo.line)^.Regs[RegCounter].StartMod;
-{    EndMod := hp2;
-    If (PPaiProp(PrevNonRemovablePai^.fileinfo.line)^.Regs[RegCounter].NrOfMods = 1)
-      Then OldNrOfMods := 1
-      Else
-        For OldNrOfMods := 2 to PPaiProp(PrevNonRemovablePai^.fileinfo.line)^.Regs[RegCounter].NrOfMods Do
-          GetNextInstruction(EndMod, EndMod);}
-    OldNrOfMods := PPaiProp(PrevNonRemovablePai^.fileinfo.line)^.Regs[RegCounter].NrOfMods;
-    hp3 := p;
-    While (Found <> OldNrOfMods) And
-                                { old  new }
-           InstructionsEquivalent(hp2, hp3, RegInfo) Do
-      Begin
-        GetNextInstruction(hp2, hp2);
-        GetNextInstruction(hp3, hp3);
-        Inc(Found)
-      End;
-    If (Found <> OldNrOfMods)
-      Then
-         Begin
-(*             If ((Found+1) = OldNrOfMods) And
-             Assigned(hp2) And
-             (Pai(hp2)^.typ = ait_instruction) And
-             (Pai386(hp2)^._operator In [A_MOV, A_MOVZX]) And
-             (Pai386(hp2)^.op1t = top_ref) And
-             (Pai386(hp2)^.op2t = top_reg) And
-             Assigned(hp3) And
-             (Pai(hp3)^.typ = ait_instruction) And
-             (Pai386(hp3)^._operator In [A_MOV, A_MOVZX]) And
-             (Pai386(hp3)^.op1t = top_ref) And
-             (Pai386(hp3)^.op2t = top_reg) And
-             (Pai386(hp2)^._operator <> Pai386(hp3)^._operator) And
+  While (RegCounter <= R_EDI) Do
+    Begin
+      FillChar(RegInfo, SizeOf(RegInfo), 0);
+      RegInfo.RegsEncountered := [ProcInfo.FramePointer, R_ESP];
+      RegInfo.SubstRegs[ProcInfo.FramePointer] := ProcInfo.FramePointer;
+      RegInfo.SubstRegs[R_ESP] := R_ESP;
+      Found := 0;
+      hp2 := PPaiProp(PrevNonRemovablePai^.fileinfo.line)^.Regs[RegCounter].StartMod;
+      If (PrevNonRemovablePai <> PPaiProp(PrevNonRemovablePai^.fileinfo.line)^.Regs[RegCounter].StartMod)
+        Then OldNrOfMods := PPaiProp(PrevNonRemovablePai^.fileinfo.line)^.Regs[RegCounter].NrOfMods
+        Else OldNrOfMods := 1;
+      hp3 := p;
+      While (Found <> OldNrOfMods) And
+                                  { old  new }
+             InstructionsEquivalent(hp2, hp3, RegInfo) Do
+        Begin
+          GetNextInstruction(hp2, hp2);
+          GetNextInstruction(hp3, hp3);
+          Inc(Found)
+        End;
+      If (Found <> OldNrOfMods)
+        Then
+          Begin
+(*              If ((Found+1) = OldNrOfMods) And
+              Assigned(hp2) And
+              (Pai(hp2)^.typ = ait_instruction) And
+              (Pai386(hp2)^._operator In [A_MOV, A_MOVZX]) And
+              (Pai386(hp2)^.op1t = top_ref) And
+              (Pai386(hp2)^.op2t = top_reg) And
+              Assigned(hp3) And
+              (Pai(hp3)^.typ = ait_instruction) And
+              (Pai386(hp3)^._operator In [A_MOV, A_MOVZX]) And
+              (Pai386(hp3)^.op1t = top_ref) And
+              (Pai386(hp3)^.op2t = top_reg) And
+               (Pai386(hp2)^._operator <> Pai386(hp3)^._operator) And
 {$IfDef RegInfo}
-             RefsEquivalent(TReference(Pai386(hp2)^.op1^),TReference(Pai386(hp3)^.op1^), RegInfo)
+              RefsEquivalent(TReference(Pai386(hp2)^.op1^),TReference(Pai386(hp3)^.op1^), RegInfo)
 {$Else RegInfo}
-             RefsEqual(TReference(Pai386(hp2)^.op1^),TReference(Pai386(hp3)^.op1^))
+              RefsEqual(TReference(Pai386(hp2)^.op1^),TReference(Pai386(hp3)^.op1^))
 {$EndIf RegInfo}
-            Then
+             Then
 
 {hack to be able to optimize
      mov (mem), reg
@@ -146,59 +133,59 @@ Begin {CheckSequence}
      mov (reg), reg
      movzx (reg), reg [*]}
 
-              If (Pai386(hp2)^._operator = A_MOV)
-                Then
-                  Begin
-                   If (Pai386(hp2)^.Size = S_B) And
+               If (Pai386(hp2)^._operator = A_MOV)
+                 Then
+                   Begin
+                    If (Pai386(hp2)^.Size = S_B) And
 {$IfDef RegInfo}
-                      RegsEquivalent(Reg8toReg32(TRegister(Pai386(hp2)^.op2)),
-                                     TRegister(Pai386(hp3)^.op2), RegInfo)
+                       RegsEquivalent(Reg8toReg32(TRegister(Pai386(hp2)^.op2)),
+                                      TRegister(Pai386(hp3)^.op2), RegInfo)
 {$Else RegInfo}
-                       (Reg8toReg32(TRegister(Pai386(hp2)^.op2)) =
-                        TRegister(Pai386(hp3)^.op2))
+                        (Reg8toReg32(TRegister(Pai386(hp2)^.op2)) =
+                         TRegister(Pai386(hp3)^.op2))
 {$EndIf RegInfo}
-                      Then
-                        Begin
-                          Pai386(hp2)^._operator := A_MOVZX;
-                          Pai386(hp2)^.op2 := Pai386(hp3)^.op2;
-                          Pai386(hp2)^.Size := S_BL;
-                          Inc(Found);
-                          TmpResult := True;
-                        End
-                      Else
-                        Begin
-                          TmpResult := False;
-                          If (Found > 0) Then
-                            Found := PPaiProp(Pai(p)^.fileinfo.line)^.Regs[Reg].NrOfMods
-                        End
-                  End
-                Else
-                  Begin
-                    If (Pai386(hp3)^.Size = S_B) And
+                       Then
+                         Begin
+                           Pai386(hp2)^._operator := A_MOVZX;
+                           Pai386(hp2)^.op2 := Pai386(hp3)^.op2;
+                           Pai386(hp2)^.Size := S_BL;
+                           Inc(Found);
+                           TmpResult := True;
+                         End
+                       Else
+                         Begin
+                           TmpResult := False;
+                           If (Found > 0) Then
+                             Found := PPaiProp(Pai(p)^.fileinfo.line)^.Regs[Reg].NrOfMods
+                         End
+                   End
+                 Else
+                   Begin
+                     If (Pai386(hp3)^.Size = S_B) And
 {$IfDef RegInfo}
-                      RegsEquivalent(TRegister(Pai386(hp2)^.op2),
-                                     Reg8toReg32(TRegister(Pai386(hp3)^.op2)),
-                                     RegInfo)
+                       RegsEquivalent(TRegister(Pai386(hp2)^.op2),
+                                      Reg8toReg32(TRegister(Pai386(hp3)^.op2)),
+                                      RegInfo)
 {$Else RegInfo}
-                       (Reg8toReg32(TRegister(Pai386(hp3)^.op2)) =
-                        TRegister(Pai386(hp2)^.op2))
+                        (Reg8toReg32(TRegister(Pai386(hp3)^.op2)) =
+                         TRegister(Pai386(hp2)^.op2))
 {$EndIf RegInfo}
-                      Then
-                        Begin
-                          TmpResult := True;
-                          Inc(Found)
-                        End
-                      Else
-                        Begin
-                          TmpResult := False;
-                          If (Found > 0) Then
-                            Found := PPaiProp(Pai(p)^.fileinfo.line)^.Regs[Reg].NrOfMods
-                        End
-                  End
-            Else *)
-              Begin
-                 TmpResult := False;
-                 If (found > 0) then
+                       Then
+                         Begin
+                           TmpResult := True;
+                           Inc(Found)
+                         End
+                       Else
+                         Begin
+                           TmpResult := False;
+                           If (Found > 0) Then
+                             Found := PPaiProp(Pai(p)^.fileinfo.line)^.Regs[Reg].NrOfMods
+                         End
+                   End
+             Else *)
+                Begin
+                  TmpResult := False;
+                  If (found > 0) then
  {this is correct because we only need to turn off the CanBeRemoved flag
   when an instruction has already been processed by CheckSequence
   (otherwise CanBeRemoved can't be true and thus can't have to be turned off).
@@ -207,30 +194,31 @@ Begin {CheckSequence}
   and that it was equal (otherwise CheckSequence would have returned false
   and the instruction wouldn't have been removed). If this "If found > 0"
   check is left out, incorrect optimizations are performed.}
-                   Found := PPaiProp(Pai(p)^.fileinfo.line)^.Regs[Reg].NrOfMods
-              End
-         End
-      Else TmpResult := True;
-    If TmpResult And
-       (Found > HighFound)
-      Then
+                    Found := PPaiProp(Pai(p)^.fileinfo.line)^.Regs[Reg].NrOfMods
+                End
+          End
+        Else TmpResult := True;
+      If TmpResult And
+         (Found > HighFound)
+        Then
+          Begin
+            HighFound := Found;
+            HighRegInfo := RegInfo;
+          End;
+      If (RegCounter = Reg) Then
         Begin
-          HighFound := Found;
-          HighRegInfo := RegInfo;
+          OrgRegFound := Found;
+          OrgRegResult := TmpResult;
+          OrgRegInfo := RegInfo
         End;
-    If (RegCounter = Reg) Then
-      Begin
-        OrgRegFound := Found;
-        OrgRegResult := TmpResult;
-        OrgRegInfo := RegInfo
-      End;
-    Repeat
-      Inc(RegCounter);
-    Until (RegCounter > R_EDI) or
-          ((PPaiProp(PrevNonRemovablePai^.fileinfo.line)^.Regs[RegCounter].Typ = Con_Ref) And
-           ((Regcounter = Reg) Or
-            Not(PaiInSequence(p, PPaiProp(PrevNonRemovablePai^.fileinfo.line)^.Regs[RegCounter]))));
-  Until (RegCounter > R_EDI);
+      Repeat
+        Inc(RegCounter);
+      Until (RegCounter > R_EDI) or
+            ((PPaiProp(PrevNonRemovablePai^.fileinfo.line)^.Regs[RegCounter].Typ = Con_Ref) {And
+             ((Regcounter = Reg) Or
+              Not(PaiInSequence(p, PPaiProp(PrevNonRemovablePai^.fileinfo.line)^.Regs[RegCounter]))) }
+            );
+    End;
   If (HighFound > 0) And
      (Not(OrgRegResult) Or
       (HighFound > OrgRegFound))
@@ -263,7 +251,7 @@ Var Cnt, Cnt2: Longint;
     TmpState: Word;
 Begin
   p := First;
-  If (p^.typ in (SkipInstr+ait_marker)) Then
+  If (p^.typ in (SkipInstr+[ait_marker])) Then
     GetNextInstruction(p, p);
   First := p;
   While Assigned(p) Do
@@ -287,13 +275,6 @@ Begin
                       Begin {destination is always a register in this case}
                         With PPaiProp(p^.fileinfo.line)^.Regs[Reg32(Tregister(Pai386(p)^.op2))] Do
                           Begin
-{                            hp1 := p;
-                            While GetLastInstruction(hp1, hp1) And
-                                  PPaiProp(hp1^.fileinfo.line)^.CanBeRemoved Do;}
-                            GetLastInstruction(p, hp1);
-                            If Assigned(hp1) And
-                               (PPaiProp(hp1^.fileinfo.line)^.
-                                Regs[Reg32(TRegister(Pai386(p)^.op2))].typ = con_ref) Then
   {so we don't try to check a sequence when the register only contains a constant}
                                If CheckSequence(p, TRegister(Pai386(p)^.op2), Cnt, RegInfo) And
                                   (Cnt > 0)
@@ -471,6 +452,8 @@ Begin
                                    End
                                  Else
                                    If (Cnt > 0) And
+                                      (PPaiProp(p^.fileinfo.line)^.
+                                        Regs[Reg32(TRegister(Pai386(p)^.op2))].Typ = Con_Ref) And
                                       (PPaiProp(p^.fileinfo.line)^.CanBeRemoved) Then
                                      Begin
                                        hp2 := p;
@@ -533,7 +516,7 @@ Var p, hp1: Pai;
     InstrCnt: Longint;
 Begin
   p := First;
-  If (p^.typ in (SkipInstr + ait_marker)) Then
+  If (p^.typ in (SkipInstr + [ait_marker])) Then
     GetNextInstruction(p, p);
   InstrCnt := 1;
   While Assigned(p) Do
@@ -580,7 +563,10 @@ End.
 
 {
  $Log$
- Revision 1.9  1998-10-01 20:21:49  jonas
+ Revision 1.10  1998-10-02 17:29:23  jonas
+   * much better interregister CSE
+
+ Revision 1.9  1998/10/01 20:21:49  jonas
    * inter-register CSE, still requires some tweaks (peepholeoptpass2, better  RegAlloc)
 
  Revision 1.8  1998/09/21 08:45:09  pierre
