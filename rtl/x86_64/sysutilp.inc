@@ -20,8 +20,8 @@
 
 function InterLockedDecrement (var Target: longint) : longint; assembler;
 asm
-        movl    $-1,%edx
-        xchgl   %edx,%eax
+        movl		  $-1,%edx
+        xchgq   %rdx,%rax
         lock
         xaddl   %eax, (%rdx)
         decl    %eax
@@ -31,7 +31,7 @@ end;
 function InterLockedIncrement (var Target: longint) : longint; assembler;
 asm
         movl    $1,%edx
-        xchgl   %edx,%eax
+        xchgq   %rdx,%rax
         lock
         xaddl   %eax, (%rdx)
         incl    %eax
@@ -47,7 +47,7 @@ end;
 
 function InterLockedExchangeAdd (var Target: longint;Source : longint) : longint; assembler;
 asm
-        xchgl   %eax,%edx
+        xchgq   %rax,%rdx
         lock
         xaddl   %eax, (%rdx)
 end;
@@ -55,7 +55,10 @@ end;
 
 {
   $Log$
-  Revision 1.2  2004-03-05 12:17:50  marco
+  Revision 1.3  2004-11-01 19:10:52  florian
+    * Interlocked* fixed
+
+  Revision 1.2  2004/03/05 12:17:50  marco
    * interlocked* changed to longints, including winapi. (which was a bug)
 
   Revision 1.1  2004/02/20 22:15:16  florian
