@@ -649,10 +649,13 @@ unit ag386att;
 
            ait_symbol_end :
              begin
-               s:=target_asm.labelprefix+'e'+tostr(symendcount);
-               inc(symendcount);
-               AsmWriteLn(s+':');
-               AsmWriteLn(#9'.size'#9+pai_symbol(hp)^.sym^.name+', '+s+' - '+pai_symbol(hp)^.sym^.name);
+               if target_info.target=target_i386_linux then
+                begin
+                  s:=target_asm.labelprefix+'e'+tostr(symendcount);
+                  inc(symendcount);
+                  AsmWriteLn(s+':');
+                  AsmWriteLn(#9'.size'#9+pai_symbol(hp)^.sym^.name+', '+s+' - '+pai_symbol(hp)^.sym^.name);
+                end;
              end;
 
            ait_instruction :
@@ -829,7 +832,10 @@ unit ag386att;
 end.
 {
   $Log$
-  Revision 1.6  1999-07-29 20:53:56  peter
+  Revision 1.7  1999-07-30 12:26:07  peter
+    * write .size only for linux
+
+  Revision 1.6  1999/07/29 20:53:56  peter
     * write .size also
 
   Revision 1.5  1999/07/22 09:37:29  florian
