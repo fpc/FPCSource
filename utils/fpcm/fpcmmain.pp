@@ -22,7 +22,9 @@ interface
 {$ifdef Unix}
   {$ifdef VER1_0}
   {$ifdef linux}
+     {$ifndef BSD}
       linux,
+     {$endif}
   {$endif}
   {$ifdef BSD}
       Linux,
@@ -52,19 +54,19 @@ interface
     type
       TTarget=(
         t_linux,t_go32v2,t_win32,t_os2,t_freebsd,t_beos,t_netbsd,
-        t_amiga,t_atari, t_sunos, t_qnx, t_netware
+        t_amiga,t_atari, t_sunos, t_qnx, t_netware, t_openbsd,t_wdosx
       );
       TTargetSet=set of TTarget;
 
     const
       TargetStr : array[TTarget] of string=(
         'linux','go32v2','win32','os2','freebsd','beos','netbsd',
-        'amiga','atari','sunos', 'qnx', 'netware'
+        'amiga','atari','sunos', 'qnx', 'netware','openbsd','wdosx'
       );
 
       TargetSuffix : array[TTarget] of string=(
         '_linux','_go32v2','_win32','_os2','_freebsd','_beos','_netbsd',
-        '_amiga','_atari','_sunos', '_qnx', '_netware'
+        '_amiga','_atari','_sunos', '_qnx', '_netware','_openbsd','_wdosx'
       );
 
 
@@ -1481,7 +1483,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.24  2002-06-01 18:39:15  marco
+  Revision 1.25  2002-07-30 13:18:42  marco
+   * OpenBSD fixes
+
+  Revision 1.24  2002/06/01 18:39:15  marco
    * Renamefest
 
   Revision 1.23  2002/03/15 11:37:46  armin
