@@ -51,30 +51,25 @@ type
     constructor op_ref_ref(op:tasmop;_size:topsize;const _op1,_op2:treference);
     constructor op_reg_reg_reg(op:tasmop;_op1,_op2,_op3:tregister);
     constructor op_reg_const_reg(Op:TAsmOp;SrcReg:TRegister;value:aWord;DstReg:TRegister);
- constructor op_const_ref_reg(op:tasmop;_size:topsize;_op1:aword;const _op2:treference;_op3:tregister);
- constructor op_const_reg_ref(op:tasmop;_size:topsize;_op1:aword;_op2:tregister;const _op3:treference);
+  constructor op_const_ref_reg(op:tasmop;_size:topsize;_op1:aword;const _op2:treference;_op3:tregister);
+  constructor op_const_reg_ref(op:tasmop;_size:topsize;_op1:aword;_op2:tregister;const _op3:treference);
 
  { this is for Jmp instructions }
- constructor op_cond_sym(op:tasmop;cond:TAsmCond;_size:topsize;_op1:tasmsymbol);
- constructor op_sym(op:tasmop;_size:topsize;_op1:tasmsymbol);
- constructor op_sym_ofs(op:tasmop;_size:topsize;_op1:tasmsymbol;_op1ofs:longint);
- constructor op_sym_ofs_reg(op:tasmop;_size:topsize;_op1:tasmsymbol;_op1ofs:longint;_op2:tregister);
- constructor op_sym_ofs_ref(op:tasmop;_size:topsize;_op1:tasmsymbol;_op1ofs:longint;const _op2:treference);
+  constructor op_cond_sym(op:tasmop;cond:TAsmCond;_size:topsize;_op1:tasmsymbol);
+  constructor op_sym(op:tasmop;_size:topsize;_op1:tasmsymbol);
+  constructor op_sym_ofs(op:tasmop;_size:topsize;_op1:tasmsymbol;_op1ofs:longint);
+  constructor op_sym_ofs_reg(op:tasmop;_size:topsize;_op1:tasmsymbol;_op1ofs:longint;_op2:tregister);
+  constructor op_sym_ofs_ref(op:tasmop;_size:topsize;_op1:tasmsymbol;_op1ofs:longint;const _op2:treference);
   constructor op_caddr_reg(op:TAsmOp;rgb:TRegister;cnst:Integer;reg:TRegister);
   constructor op_raddr_reg(op:TAsmOp;rg1,rg2:TRegister;reg:TRegister);
- procedure changeopsize(siz:topsize);
- function  GetString:string;
- procedure CheckNonCommutativeOpcodes;
+  procedure changeopsize(siz:topsize);
+  procedure CheckNonCommutativeOpcodes;
   procedure loadcaddr(opidx:longint;aReg:TRegister;cnst:Integer);
   procedure loadraddr(opidx:longint;rg1,rg2:TRegister);
   private
  procedure init(_size:topsize);{this need to be called by all constructor}
  public
      { the next will reset all instructions that can change in pass 2 }
-     procedure ResetPass1;
-     procedure ResetPass2;
-     function  CheckIfValid:boolean;
-     function  Pass1(offset:longint):longint;virtual;
      procedure SetCondition(const c:TAsmCond);
   private
      { next fields are filled in pass1, so pass2 is faster }
@@ -83,8 +78,6 @@ type
      inssize   : longint;
      LastInsOffset : longint; { need to be public to be reset }
      function  InsEnd:longint;
-     procedure create_ot;
-     function  Matches(p:PInsEntry):longint;
      function  calcsize(p:PInsEntry):longint;
      function  NeedAddrPrefix(opidx:byte):boolean;
      procedure Swatoperands;
@@ -294,71 +287,6 @@ constructor taicpu.op_raddr_reg(op:TAsmOp;rg1,rg2,reg:TRegister);
     loadraddr(0,rg1,rg2);
     loadreg(1,reg);
   end;
-function taicpu.GetString:string;
-  var
-    i:longint;
-    s:string;
-    addsize:boolean;
-  begin
-    s:='['+std_op2str[opcode];
-    for i:=1to ops do
-     begin
-       if i=1 then
-        s:=s+' '
-       else
-        s:=s+',';
-       { type }
-       addsize:=false;
-       if (oper[i-1].ot and OT_XMMREG)=OT_XMMREG then
-        s:=s+'xmmreg'
-       else
-         if (oper[i-1].ot and OT_MMXREG)=OT_MMXREG then
-          s:=s+'mmxreg'
-       else
-         if (oper[i-1].ot and OT_FPUREG)=OT_FPUREG then
-          s:=s+'fpureg'
-       else
-        if (oper[i-1].ot and OT_REGISTER)=OT_REGISTER then
-         begin
-           s:=s+'reg';
-           addsize:=true;
-         end
-       else
-        if (oper[i-1].ot and OT_IMMEDIATE)=OT_IMMEDIATE then
-         begin
-           s:=s+'imm';
-           addsize:=true;
-         end
-       else
-        if (oper[i-1].ot and OT_MEMORY)=OT_MEMORY then
-         begin
-           s:=s+'mem';
-           addsize:=true;
-         end
-       else
-         s:=s+'???';
-       { size }
-       if addsize then
-        begin
-          if (oper[i-1].ot and OT_BITS8)<>0 then
-            s:=s+'8'
-          else
-           if (oper[i-1].ot and OT_BITS16)<>0 then
-            s:=s+'16'
-          else
-           if (oper[i-1].ot and OT_BITS32)<>0 then
-            s:=s+'32'
-          else
-            s:=s+'??';
-          { signed }
-          if (oper[i-1].ot and OT_SIGNED)<>0 then
-           s:=s+'s';
-        end;
-     end;
-    GetString:=s+']';
-  end;
-
-
 procedure taicpu.Swatoperands;
   var
     p:TOper;
@@ -430,335 +358,9 @@ size:byte;
 modrm:byte;
 sib:byte;
   end;
-
-procedure taicpu.create_ot;
-{
-  this function will also fix some other fields which only needs to be once
-}
-var
-  i,l,relsize:longint;
-begin
-  if ops=0 then
-   exit;
-  { update oper[].ot field }
-  for i:=0 to ops-1 do
-   with oper[i] do
-begin
-  case typ of
-    top_reg:
-      {ot:=reg2type[reg]};
-    top_ref:
-      begin
-      { create ot field }
-        {if (ot and OT_SIZE_MASK)=0 then
-          ot:=OT_MEMORY or opsize_2_type[i,opsize]
-        else
-          ot:=OT_MEMORY or (ot and OT_SIZE_MASK);
-        if (ref^.base=R_NONE) and (ref^.index=R_NONE) then
-          ot:=ot or OT_MEM_OFFS;}
-      { fix scalefactor }
-        if (ref^.index.enum=R_NONE) then
-         ref^.scalefactor:=0
-        else
-         if (ref^.scalefactor=0) then
-          ref^.scalefactor:=1;
-      end;
-    top_const:
-      begin
-        if (opsize<>S_W) and (longint(val)>=-128) and (val<=127) then
-          ot:=OT_IMM8 or OT_SIGNED
-        else
-          ot:=OT_IMMEDIATE {or opsize_2_type[i,opsize];}
-      end;
-    top_symbol:
-      begin
-        if LastInsOffset=-1 then
-         l:=0
-        else
-         l:=InsOffset-LastInsOffset;
-        inc(l,symofs);
-        if assigned(sym) then
-         inc(l,sym.address);
-        { instruction size will then always become 2 (PFV) }
-        relsize:=(InsOffset+2)-l;
-        if (not assigned(sym) or
-            ((sym.currbind<>AB_EXTERNAL) and (sym.address<>0))) and
-           (relsize>=-128) and (relsize<=127) then
-         ot:=OT_IMM32 or OT_SHORT
-        else
-         ot:=OT_IMM32 or OT_NEAR;
-      end;
-  end;
-end;
-end;
-
-
 function taicpu.InsEnd:longint;
 begin
   InsEnd:=InsOffset+InsSize;
-end;
-
-
-function taicpu.Matches(p:PInsEntry):longint;
-{ * IF_SM stands for Size Match:any operand whose size is not
- * explicitly specified by the template is `really' intended to be
- * the same size as the first size-specified operand.
- * Non-specification is tolerated in the input instruction, but
- * _wrong_ specification is not.
- *
- * IF_SM2 invokes Size Match on only the first _two_ operands, for
- * three-operand instructions such as SHLD:it implies that the
- * first two operands must match in size, but that the third is
- * required to be _unspecified_.
- *
- * IF_SB invokes Size Byte:operands with unspecified size in the
- * template are really bytes, and so no non-byte specification in
- * the input instruction will be tolerated. IF_SW similarly invokes
- * Size Word, and IF_SD invokes Size Doubleword.
- *
- * (The default state if neither IF_SM nor IF_SM2 is specified is
- * that any operand with unspecified size in the template is
- * required to have unspecified size in the instruction too...)
-}
-var
-  i,j,asize,oprs:longint;
-  siz:array[0..2] of longint;
-begin
-  Matches:=100;
-
-  { Check the opcode and operands }
-  if (p^.opcode<>opcode) or (p^.ops<>ops) then
-   begin
- Matches:=0;
- exit;
-   end;
-
-  { Check that no spurious colons or TOs are present }
-  for i:=0 to p^.ops-1 do
-   if (oper[i].ot and (not p^.optypes[i]) and (OT_COLON or OT_TO))<>0 then
-begin
-  Matches:=0;
-  exit;
-end;
-
-  { Check that the operand flags all match up }
-  for i:=0 to p^.ops-1 do
-   begin
- if ((p^.optypes[i] and (not oper[i].ot)) or
-     ((p^.optypes[i] and OT_SIZE_MASK) and
-      ((p^.optypes[i] xor oper[i].ot) and OT_SIZE_MASK)))<>0 then
-  begin
-    if ((p^.optypes[i] and (not oper[i].ot) and OT_NON_SIZE) or
-        (oper[i].ot and OT_SIZE_MASK))<>0 then
-     begin
-       Matches:=0;
-       exit;
-     end
-    else
-     Matches:=1;
-  end;
-   end;
-
-{ Check operand sizes }
-  { as default an untyped size can get all the sizes, this is different
-from nasm, but else we need to do a lot checking which opcodes want
-size or not with the automatic size generation }
-  asize:=longint($ffffffff);
-  if (p^.flags and IF_SB)<>0 then
-asize:=OT_BITS8
-  else if (p^.flags and IF_SW)<>0 then
-asize:=OT_BITS16
-  else if (p^.flags and IF_SD)<>0 then
-asize:=OT_BITS32;
-  if (p^.flags and IF_ARMASK)<>0 then
-   begin
- siz[0]:=0;
- siz[1]:=0;
- siz[2]:=0;
- if (p^.flags and IF_AR0)<>0 then
-  siz[0]:=asize
- else if (p^.flags and IF_AR1)<>0 then
-  siz[1]:=asize
- else if (p^.flags and IF_AR2)<>0 then
-  siz[2]:=asize;
-   end
-  else
-   begin
-   { we can leave because the size for all operands is forced to be
- the same
- but not if IF_SB IF_SW or IF_SD is set PM }
- if asize=-1 then
-   exit;
- siz[0]:=asize;
- siz[1]:=asize;
- siz[2]:=asize;
-   end;
-
-  if (p^.flags and (IF_SM or IF_SM2))<>0 then
-   begin
- if (p^.flags and IF_SM2)<>0 then
-  oprs:=2
- else
-  oprs:=p^.ops;
- for i:=0 to oprs-1 do
-  if ((p^.optypes[i] and OT_SIZE_MASK) <> 0) then
-   begin
-     for j:=0 to oprs-1 do
-      siz[j]:=p^.optypes[i] and OT_SIZE_MASK;
-     break;
-   end;
-end
-   else
-oprs:=2;
-
-  { Check operand sizes }
-  for i:=0 to p^.ops-1 do
-   begin
- if ((p^.optypes[i] and OT_SIZE_MASK)=0) and
-    ((oper[i].ot and OT_SIZE_MASK and (not siz[i]))<>0) and
-    { Immediates can always include smaller size }
-    ((oper[i].ot and OT_IMMEDIATE)=0) and
-     (((p^.optypes[i] and OT_SIZE_MASK) or siz[i])<(oper[i].ot and OT_SIZE_MASK)) then
-  Matches:=2;
-   end;
-end;
-
-
-procedure taicpu.ResetPass1;
-begin
-  { we need to reset everything here, because the choosen insentry
-can be invalid for a new situation where the previously optimized
-insentry is not correct }
-  InsEntry:=nil;
-  InsSize:=0;
-  LastInsOffset:=-1;
-end;
-
-
-procedure taicpu.ResetPass2;
-begin
-  { we are here in a second pass, check if the instruction can be optimized }
-  if assigned(InsEntry) and
- ((InsEntry^.flags and IF_PASS2)<>0) then
-   begin
- InsEntry:=nil;
- InsSize:=0;
-   end;
-  LastInsOffset:=-1;
-end;
-
-
-function taicpu.CheckIfValid:boolean;
-var
-  m,i:longint;
-begin
-  CheckIfValid:=false;
-{ Things which may only be done once, not when a second pass is done to
-  optimize }
-  if (Insentry=nil) or ((InsEntry^.flags and IF_PASS2)<>0) then
-   begin
- { create the .ot fields }
- create_ot;
- { set the file postion }
- aktfilepos:=fileinfo;
-   end
-  else
-   begin
- { we've already an insentry so it's valid }
- CheckIfValid:=true;
- exit;
-   end;
-{ Lookup opcode in the table }
-  InsSize:=-1;
-  i:=instabcache^[opcode];
-  if i=-1 then
-   begin
-{$ifdef TP}
- Message1(asmw_e_opcode_not_in_table,'');
-{$else}
- Message1(asmw_e_opcode_not_in_table,std_op2str[opcode]);
-{$endif}
- exit;
-   end;
-//  insentry:=@instab[i];
-  while (insentry^.opcode=opcode) do
-   begin
- m:=matches(insentry);
- if m=100 then
-  begin
-    InsSize:=calcsize(insentry);
-    {if (segprefix<>R_NONE) then
-     inc(InsSize);}{No segprefix!}
-    { For opsize if size if forced }
-    if (insentry^.flags and (IF_SB or IF_SW or IF_SD))<>0 then
-       begin
-         if (insentry^.flags and IF_ARMASK)=0 then
-           begin
-             if (insentry^.flags and IF_SB)<>0 then
-               begin
-                 if opsize=S_NO then
-                   opsize:=S_B;
-               end
-             else if (insentry^.flags and IF_SW)<>0 then
-               begin
-                 if opsize=S_NO then
-                   opsize:=S_W;
-               end
-             else if (insentry^.flags and IF_SD)<>0 then
-               begin
-                 if opsize=S_NO then
-                   opsize:=S_SW;
-               end;
-           end;
-       end;
-    CheckIfValid:=true;
-    exit;
-  end;
- inc(i);
-//     insentry:=@instab[i];
-   end;
-  if insentry^.opcode<>opcode then
-   Message1(asmw_e_invalid_opcode_and_operands,GetString);
-{ No instruction found, set insentry to nil and inssize to -1 }
-  insentry:=nil;
-  inssize:=-1;
-end;
-function taicpu.Pass1(offset:longint):longint;
-begin
-  Pass1:=0;
-{ Save the old offset and set the new offset }
-  InsOffset:=Offset;
-{ Things which may only be done once, not when a second pass is done to
-  optimize }
-  if Insentry=nil then
-   begin
- { Check if error last time then InsSize=-1 }
- if InsSize=-1 then
-  exit;
- { set the file postion }
- aktfilepos:=fileinfo;
-   end
-  else
-   begin
-{$ifdef PASS2FLAG}
- { we are here in a second pass, check if the instruction can be optimized }
- if (InsEntry^.flags and IF_PASS2)=0 then
-  begin
-    Pass1:=InsSize;
-    exit;
-  end;
- { update the .ot fields, some top_const can be updated }
- create_ot;
-{$endif}
-   end;
-{ Check if it's a valid instruction }
-  if CheckIfValid then
-   begin
- LastInsOffset:=InsOffset;
- Pass1:=InsSize;
- exit;
-   end;
-  LastInsOffset:=-1;
 end;
 procedure TAiCpu.SetCondition(const c:TAsmCond);
   const
@@ -1096,7 +698,10 @@ procedure InitAsm;
 end.
 {
     $Log$
-    Revision 1.21  2003-04-29 11:06:15  mazen
+    Revision 1.22  2003-05-06 15:00:36  mazen
+    - non used code removed to bring up with powerpc changes
+
+    Revision 1.21  2003/04/29 11:06:15  mazen
     * test of invalid opcode/operand combination gives internal error
 
     Revision 1.20  2003/04/28 09:40:47  mazen
