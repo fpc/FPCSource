@@ -17,7 +17,7 @@
 
 { The RTTI is implemented through a series of constants : }
 
-Const 
+Const
        tkUnknown       = 0;
        tkInteger       = 1;
        tkChar          = 2;
@@ -38,8 +38,10 @@ Const
        tkObject        = 16;
        tkWChar         = 17;
        tkBool          = 18;
- 
-{ A record is designed as follows : 
+       tkInt64         = 19;
+       tkQWord         = 20;
+
+{ A record is designed as follows :
     1    : tkrecord
     2    : Length of name string (n);
     3    : name string;
@@ -79,14 +81,17 @@ TArrayRec = record
   Size,Count : Longint;
   Info : Pointer;
   end;
-  
+
 { The actual Routines are implemented per processor. }
 
 {$i rttip.inc}
 
-{ 
+{
   $Log$
-  Revision 1.7  2000-06-14 08:52:05  michael
+  Revision 1.8  2000-06-22 20:04:07  peter
+    * added tkint64,tkqword constants
+
+  Revision 1.7  2000/06/14 08:52:05  michael
   + Fixed all constants so they match compiler defined constants
 
   Revision 1.6  2000/02/09 16:59:31  peter
