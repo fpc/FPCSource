@@ -616,6 +616,7 @@
          typ:=propertysym;
          propoptions:=[];
          proptype:=nil;
+         proptypesym:=nil;
          readaccessdef:=nil;
          writeaccessdef:=nil;
          readaccesssym:=nil;
@@ -678,6 +679,7 @@
          inherited load;
          typ:=propertysym;
          proptype:=readdefref;
+         proptypesym:=ppropertysym(readsymref);
          readsmallset(propoptions);
          index:=readlong;
          default:=readlong;
@@ -704,7 +706,13 @@
         end;
 
       begin
-         resolvedef(proptype);
+         if assigned(proptypesym) then
+          begin
+            resolvesym(psym(proptypesym));
+            proptype:=proptypesym^.proptype;
+          end
+         else
+          resolvedef(proptype);
          resolvedef(readaccessdef);
          resolvedef(writeaccessdef);
          resolvedef(storeddef);
@@ -734,7 +742,16 @@
 
       begin
          tsym.write;
-         writedefref(proptype);
+         if assigned(proptypesym) then
+          begin
+            writedefref(nil);
+            writesymref(proptypesym);
+          end
+         else
+          begin
+            writedefref(proptype);
+            writesymref(nil);
+          end;
          writesmallset(propoptions);
          writelong(index);
          writelong(default);
@@ -2192,7 +2209,12 @@
 
 {
   $Log$
-  Revision 1.129  1999-11-21 01:42:37  pierre
+  Revision 1.130  1999-11-26 00:19:12  peter
+    * property overriding dereference fix, but it need a bigger redesign
+      which i'll do tomorrow. This quick hack is for the lazarus ppl so
+      they can hack on mwcustomedit.
+
+  Revision 1.129  1999/11/21 01:42:37  pierre
    * Nextoverloading ordering fix
 
   Revision 1.128  1999/11/20 01:22:20  pierre

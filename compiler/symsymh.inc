@@ -196,6 +196,7 @@
        tpropertysym = object(tsym)
           propoptions : tpropertyoptions;
           proptype    : pdef;
+          proptypesym : ppropertysym;
           readaccesssym,writeaccesssym,storedsym : ppropsymlist;
           readaccessdef,writeaccessdef,storeddef,indexdef : pdef;
           index,default : longint;
@@ -323,7 +324,12 @@
 
 {
   $Log$
-  Revision 1.40  1999-11-17 17:05:06  pierre
+  Revision 1.41  1999-11-26 00:19:12  peter
+    * property overriding dereference fix, but it need a bigger redesign
+      which i'll do tomorrow. This quick hack is for the lazarus ppl so
+      they can hack on mwcustomedit.
+
+  Revision 1.40  1999/11/17 17:05:06  pierre
    * Notes/hints changes
 
   Revision 1.39  1999/11/15 22:00:48  peter

@@ -479,6 +479,7 @@ uses
                           p^.propoptions:=ppropertysym(overriden)^.propoptions;
                           p^.index:=ppropertysym(overriden)^.index;
                           p^.proptype:=ppropertysym(overriden)^.proptype;
+                          p^.proptypesym:=ppropertysym(overriden);
                           p^.writeaccesssym:=copypropsymlist(ppropertysym(overriden)^.writeaccesssym);
                           p^.readaccesssym:=copypropsymlist(ppropertysym(overriden)^.readaccesssym);
                           p^.storedsym:=copypropsymlist(ppropertysym(overriden)^.storedsym);
@@ -1608,7 +1609,12 @@ uses
 end.
 {
   $Log$
-  Revision 1.10  1999-11-17 17:05:03  pierre
+  Revision 1.11  1999-11-26 00:19:12  peter
+    * property overriding dereference fix, but it need a bigger redesign
+      which i'll do tomorrow. This quick hack is for the lazarus ppl so
+      they can hack on mwcustomedit.
+
+  Revision 1.10  1999/11/17 17:05:03  pierre
    * Notes/hints changes
 
   Revision 1.9  1999/11/11 00:56:54  pierre
