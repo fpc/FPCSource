@@ -9,7 +9,7 @@ main=rtl
 [target]
 loaders=
 units=$(SYSTEMUNIT) objpas strings sysctl baseunix unixtype unixutil \
-      unix initc   \
+      unix initc cmem \
       dos dl objects printer \
       sysutils typinfo systhrds classes math varutils \
       charset ucomplex getopts heaptrc lineinfo \
@@ -230,6 +230,7 @@ terminfo$(PPUEXT) : terminfo.pp unix$(PPUEXT)
 
 callspec$(PPUEXT) : $(INC)/callspec.pp $(SYSTEMUNIT)$(PPUEXT)
 
+cmem$(PPUEXT) : $(INC)/cmem.pp $(SYSTEMUNIT)$(PPUEXT)
 
 sysctl$(PPUEXT) : $(BSDINC)/sysctl.pp $(SYSTEMUNIT)$(PPUEXT)
 

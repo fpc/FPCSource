@@ -86,7 +86,7 @@ type
   ppfreerecord = ^pfreerecord;
   pfreerecord  = ^tfreerecord;
   tfreerecord  = record
-    size  : longint;
+    size  : ptrint;
     next,
     prev  : pfreerecord;
   end; { 12 bytes }
@@ -94,7 +94,7 @@ type
   pheaprecord = ^theaprecord;
   theaprecord = record
   { this should overlap with tfreerecord }
-    size  : longint;
+    size  : ptrint;
   end; { 4 bytes }
 
   tfreelists   = array[0..maxblock] of pfreerecord;
@@ -104,8 +104,8 @@ type
   pfreelists   = ^tfreelists;
 
 var
-  internal_memavail  : longint;
-  internal_heapsize  : longint;
+  internal_memavail  : ptrint;
+  internal_heapsize  : ptrint;
   freelists          : tfreelists;
   before_heapend_block : pfreerecord;
 {$ifdef SYSTEMDEBUG}
@@ -189,7 +189,7 @@ begin
 end;
 
 
-procedure GetMem(Var p:pointer;Size:Longint);
+procedure GetMem(Var p:pointer;Size:ptrint);
 begin
   if IsMultiThread and MemoryManager.NeedLock then
    begin
@@ -206,12 +206,12 @@ begin
    end;
 end;
 
-procedure GetMemory(Var p:pointer;Size:Longint);
+procedure GetMemory(Var p:pointer;Size:ptrint);
 begin
   GetMem(p,size);
 end;
 
-procedure FreeMem(p:pointer;Size:Longint);
+procedure FreeMem(p:pointer;Size:ptrint);
 begin
   if IsMultiThread and MemoryManager.NeedLock then
    begin
@@ -228,12 +228,12 @@ begin
    end;
 end;
 
-procedure FreeMemory(p:pointer;Size:Longint);
+procedure FreeMemory(p:pointer;Size:ptrint);
 begin
   FreeMem(p,size);
 end;
 
-function MaxAvail:Longint;
+function MaxAvail:ptrint;
 begin
   if IsMultiThread and MemoryManager.NeedLock then
    begin
@@ -251,7 +251,7 @@ begin
 end;
 
 
-function MemAvail:Longint;
+function MemAvail:ptrint;
 begin
   if IsMultiThread and MemoryManager.NeedLock then
    begin
@@ -270,7 +270,7 @@ end;
 
 
 { FPC Additions }
-function HeapSize:Longint;
+function HeapSize:ptrint;
 begin
   if IsMultiThread and MemoryManager.NeedLock then
    begin
@@ -288,7 +288,7 @@ begin
 end;
 
 
-function MemSize(p:pointer):Longint;
+function MemSize(p:pointer):ptrint;
 begin
   if IsMultiThread and MemoryManager.NeedLock then
    begin
@@ -307,7 +307,7 @@ end;
 
 
 { Delphi style }
-function FreeMem(p:pointer):Longint;
+function FreeMem(p:pointer):ptrint;
 begin
   if IsMultiThread and MemoryManager.NeedLock then
    begin
@@ -324,13 +324,13 @@ begin
    end;
 end;
 
-function FreeMemory(p:pointer):Longint;
+function FreeMemory(p:pointer):ptrint;
 
 begin
  FreeMemory:=FreeMem(p);
 end;
 
-function GetMem(size:longint):pointer;
+function GetMem(size:ptrint):pointer;
 begin
   if IsMultiThread and MemoryManager.NeedLock then
    begin
@@ -347,13 +347,13 @@ begin
    end;
 end;
 
-function GetMemory(size:longint):pointer;
+function GetMemory(size:ptrint):pointer;
 
 begin
  GetMemory:=Getmem(size);
 end;
 
-function AllocMem(Size:Longint):pointer;
+function AllocMem(Size:ptrint):pointer;
 begin
   if IsMultiThread and MemoryManager.NeedLock then
    begin
@@ -371,7 +371,7 @@ begin
 end;
 
 
-function ReAllocMem(var p:pointer;Size:Longint):pointer;
+function ReAllocMem(var p:pointer;Size:ptrint):pointer;
 begin
   if IsMultiThread and MemoryManager.NeedLock then
    begin
@@ -389,7 +389,7 @@ begin
 end;
 
 
-function ReAllocMemory(var p:pointer;Size:Longint):pointer;
+function ReAllocMemory(var p:pointer;Size:ptrint):pointer;
 
 begin
  ReAllocMemory:=ReAllocMem(p,size);
@@ -398,7 +398,7 @@ end;
 {$ifdef ValueGetmem}
 
 { Needed for calls from Assembler }
-function fpc_getmem(size:longint):pointer;compilerproc;[public,alias:'FPC_GETMEM'];
+function fpc_getmem(size:ptrint):pointer;compilerproc;[public,alias:'FPC_GETMEM'];
 begin
   if IsMultiThread and MemoryManager.NeedLock then
    begin
@@ -418,7 +418,7 @@ end;
 {$else ValueGetmem}
 
 { Needed for calls from Assembler }
-procedure AsmGetMem(var p:pointer;size:longint);[public,alias:'FPC_GETMEM'];
+procedure AsmGetMem(var p:pointer;size:ptrint);[public,alias:'FPC_GETMEM'];
 begin
   p:=MemoryManager.GetMem(size);
 end;
@@ -461,19 +461,19 @@ end;
                          Heapsize,Memavail,MaxAvail
 *****************************************************************************}
 
-function SysHeapsize : longint;
+function SysHeapsize : ptrint;
 begin
   Sysheapsize:=internal_heapsize;
 end;
 
 
-function SysMemavail : longint;
+function SysMemavail : ptrint;
 begin
   Sysmemavail:=internal_memavail;
 end;
 
 
-function SysMaxavail : longint;
+function SysMaxavail : ptrint;
 var
   hp : pfreerecord;
 begin
@@ -491,7 +491,7 @@ end;
 {$ifdef DUMPBLOCKS}
 procedure DumpBlocks;
 var
-  s,i,j : longint;
+  s,i,j : ptrint;
   hp  : pfreerecord;
 begin
   for i:=1 to maxblock do
@@ -524,7 +524,7 @@ end;
 {$ifdef TestFreeLists}
 procedure TestFreeLists;
 var
-  i,j : longint;
+  i,j : ptrint;
   hp  : pfreerecord;
 begin
   for i:=0 to maxblock do
@@ -553,7 +553,7 @@ end;
 procedure TryConcatFreeRecord(pcurr:pfreerecord);
 var
   hp : pfreerecord;
-  pcurrsize,s1 : longint;
+  pcurrsize,s1 : ptrint;
 begin
   pcurrsize:=pcurr^.size and sizemask;
   hp:=pcurr;
@@ -621,14 +621,14 @@ end;
                                  SysGetMem
 *****************************************************************************}
 
-function SysGetMem(size : longint):pointer;
+function SysGetMem(size : ptrint):pointer;
 type
-  heaperrorproc=function(size:longint):integer;
+  heaperrorproc=function(size:ptrint):integer;
 var
   proc  : heaperrorproc;
   pcurr : pfreerecord;
   s,s1,maxs1,
-  sizeleft : longint;
+  sizeleft : ptrint;
   again : boolean;
 {$ifdef BESTMATCH}
   pbest : pfreerecord;
@@ -867,9 +867,9 @@ end;
                                SysFreeMem
 *****************************************************************************}
 
-Function SysFreeMem(p : pointer):Longint;
+Function SysFreeMem(p : pointer):ptrint;
 var
-  pcurrsize,s : longint;
+  pcurrsize,s : ptrint;
   pcurr : pfreerecord;
 begin
   if p=nil then
@@ -903,9 +903,9 @@ end;
                               SysFreeMemSize
 *****************************************************************************}
 
-Function SysFreeMemSize(p : pointer;size : longint):longint;
+Function SysFreeMemSize(p : pointer;size : ptrint):ptrint;
 var
-  pcurrsize,s : longint;
+  pcurrsize,s : ptrint;
   pcurr : pfreerecord;
 begin
   SysFreeMemSize:=0;
@@ -951,7 +951,7 @@ end;
                                  SysMemSize
 *****************************************************************************}
 
-function SysMemSize(p:pointer):longint;
+function SysMemSize(p:pointer):ptrint;
 begin
   SysMemSize:=(pheaprecord(pointer(p)-sizeof(theaprecord))^.size and sizemask)-sizeof(theaprecord);
 end;
@@ -961,7 +961,7 @@ end;
                                  SysAllocMem
 *****************************************************************************}
 
-function SysAllocMem(size : longint):pointer;
+function SysAllocMem(size : ptrint):pointer;
 begin
   sysallocmem:=MemoryManager.GetMem(size);
   if sysallocmem<>nil then
@@ -973,13 +973,13 @@ end;
                                  SysResizeMem
 *****************************************************************************}
 
-function SysTryResizeMem(var p:pointer;size : longint):boolean;
+function SysTryResizeMem(var p:pointer;size : ptrint):boolean;
 var
   oldsize,
   currsize,
   foundsize,
   sizeleft,
-  s     : longint;
+  s     : ptrint;
   wasbeforeheapend : boolean;
   hp,
   pnew,
@@ -1135,9 +1135,9 @@ end;
                                  SysResizeMem
 *****************************************************************************}
 
-function SysReAllocMem(var p:pointer;size : longint):pointer;
+function SysReAllocMem(var p:pointer;size : ptrint):pointer;
 var
-  oldsize : longint;
+  oldsize : ptrint;
   p2 : pointer;
 begin
   { Free block? }
@@ -1334,7 +1334,11 @@ end;
 
 {
   $Log$
-  Revision 1.27  2004-03-15 20:42:39  peter
+  Revision 1.28  2004-03-15 21:48:26  peter
+    * cmem moved to rtl
+    * longint replaced with ptrint in heapmanagers
+
+  Revision 1.27  2004/03/15 20:42:39  peter
     * exit with rte 204 instead of looping infinite when a heap record
       size is overwritten with 0
 

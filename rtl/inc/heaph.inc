@@ -19,15 +19,15 @@ type
   PMemoryManager = ^TMemoryManager;
   TMemoryManager = record
     NeedLock    : boolean;
-    Getmem      : Function(Size:Longint):Pointer;
-    Freemem     : Function(p:pointer):Longint;
-    FreememSize : Function(p:pointer;Size:Longint):Longint;
-    AllocMem    : Function(Size:longint):Pointer;
-    ReAllocMem  : Function(var p:pointer;Size:longint):Pointer;
-    MemSize     : function(p:pointer):Longint;
-    MemAvail    : Function:Longint;
-    MaxAvail    : Function:Longint;
-    HeapSize    : Function:Longint;
+    Getmem      : Function(Size:ptrint):Pointer;
+    Freemem     : Function(p:pointer):ptrint;
+    FreememSize : Function(p:pointer;Size:ptrint):ptrint;
+    AllocMem    : Function(Size:ptrint):Pointer;
+    ReAllocMem  : Function(var p:pointer;Size:ptrint):Pointer;
+    MemSize     : function(p:pointer):ptrint;
+    MemAvail    : Function:ptrint;
+    MaxAvail    : Function:ptrint;
+    HeapSize    : Function:ptrint;
   end;
   TMemoryMutexManager = record
     MutexInit : procedure;
@@ -42,44 +42,44 @@ procedure SetMemoryMutexManager(var MutexMgr: TMemoryMutexManager);
 
 { Variables }
 const
-  growheapsize1 : longint=256*1024;  { < 256k will grow with 256k }
-  growheapsize2 : longint=1024*1024; { > 256k will grow with 1m }
+  growheapsize1 : ptrint=256*1024;  { < 256k will grow with 256k }
+  growheapsize2 : ptrint=1024*1024; { > 256k will grow with 1m }
   ReturnNilIfGrowHeapFails : boolean = false;
 var
   heaporg,heapptr,heapend,heaperror,freelist : pointer;
 
 { Default MemoryManager functions }
-Function  SysGetmem(Size:Longint):Pointer;
-Function  SysFreemem(p:pointer):Longint;
-Function  SysFreememSize(p:pointer;Size:Longint):Longint;
-Function  SysMemSize(p:pointer):Longint;
-Function  SysAllocMem(size:longint):Pointer;
-function  SysTryResizeMem(var p:pointer;size : longint):boolean;
-Function  SysReAllocMem(var p:pointer;size:longint):Pointer;
-Function  Sysmemavail:Longint;
-Function  Sysmaxavail:Longint;
-Function  Sysheapsize:longint;
+Function  SysGetmem(Size:ptrint):Pointer;
+Function  SysFreemem(p:pointer):ptrint;
+Function  SysFreememSize(p:pointer;Size:ptrint):ptrint;
+Function  SysMemSize(p:pointer):ptrint;
+Function  SysAllocMem(size:ptrint):Pointer;
+function  SysTryResizeMem(var p:pointer;size : ptrint):boolean;
+Function  SysReAllocMem(var p:pointer;size:ptrint):Pointer;
+Function  Sysmemavail:ptrint;
+Function  Sysmaxavail:ptrint;
+Function  Sysheapsize:ptrint;
 
 { Tp7 functions }
-Procedure Getmem(Var p:pointer;Size:Longint);
-Procedure Getmemory(Var p:pointer;Size:Longint);
-Procedure Freemem(p:pointer;Size:Longint);
-Procedure Freememory(p:pointer;Size:Longint);
-Function  memavail:Longint;
-Function  maxavail:Longint;
+Procedure Getmem(Var p:pointer;Size:ptrint);
+Procedure Getmemory(Var p:pointer;Size:ptrint);
+Procedure Freemem(p:pointer;Size:ptrint);
+Procedure Freememory(p:pointer;Size:ptrint);
+Function  memavail:ptrint;
+Function  maxavail:ptrint;
 
 { FPC additions }
-Function  MemSize(p:pointer):Longint;
-Function  heapsize:longint;
+Function  MemSize(p:pointer):ptrint;
+Function  heapsize:ptrint;
 
 { Delphi functions }
-function GetMem(size:longint):pointer;
-function GetMemory(size:longint):pointer;
-function Freemem(p:pointer):longint;
-function Freememory(p:pointer):longint;
-function AllocMem(Size:Longint):pointer;
-function ReAllocMem(var p:pointer;Size:Longint):pointer;
-function ReAllocMemory(var p:pointer;Size:Longint):pointer;
+function GetMem(size:ptrint):pointer;
+function GetMemory(size:ptrint):pointer;
+function Freemem(p:pointer):ptrint;
+function Freememory(p:pointer):ptrint;
+function AllocMem(Size:ptrint):pointer;
+function ReAllocMem(var p:pointer;Size:ptrint):pointer;
+function ReAllocMemory(var p:pointer;Size:ptrint):pointer;
 
 { Do nothing functions, are only here for tp7 compat }
 Procedure mark(var p : pointer);
@@ -87,7 +87,7 @@ Procedure release(var p : pointer);
 
 {$ifndef ValueGetmem}
 { Needed to solve overloading problem with call from assembler (PFV) }
-Procedure AsmGetmem(var p:pointer;size:Longint);
+Procedure AsmGetmem(var p:pointer;size:ptrint);
 {$endif ValueGetmem}
 {$ifndef ValueFreemem}
 Procedure AsmFreemem(var p:pointer);
@@ -95,7 +95,11 @@ Procedure AsmFreemem(var p:pointer);
 
 {
   $Log$
-  Revision 1.7  2003-10-02 14:03:24  marco
+  Revision 1.8  2004-03-15 21:48:26  peter
+    * cmem moved to rtl
+    * longint replaced with ptrint in heapmanagers
+
+  Revision 1.7  2003/10/02 14:03:24  marco
    * *memORY overloads
 
   Revision 1.6  2002/10/30 20:39:13  peter

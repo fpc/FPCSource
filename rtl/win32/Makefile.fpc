@@ -9,7 +9,7 @@ main=rtl
 loaders=wprt0 wdllprt0 gprt0
 units=$(SYSTEMUNIT) systhrds objpas strings \
       lineinfo heaptrc \
-      windows ole2 activex winsock initc \
+      windows ole2 activex winsock initc cmem \
       dos crt objects graph messages \
       sysutils classes typinfo math varutils variants \
       cpu mmx charset ucomplex getopts \
@@ -225,6 +225,8 @@ heaptrc$(PPUEXT) : $(INC)/heaptrc.pp $(SYSTEMUNIT)$(PPUEXT)
 lineinfo$(PPUEXT) : $(INC)/lineinfo.pp $(SYSTEMUNIT)$(PPUEXT)
 
 charset$(PPUEXT) : $(INC)/charset.pp $(SYSTEMUNIT)$(PPUEXT)
+
+cmem$(PPUEXT) : $(INC)/cmem.pp $(SYSTEMUNIT)$(PPUEXT)
 
 ucomplex$(PPUEXT) : $(INC)/ucomplex.pp math$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
 

@@ -9,7 +9,7 @@ main=rtl
 loaders=prt0 dllprt0 cprt0 gprt0 $(CRT21)
 units=$(SYSTEMUNIT) unixtype baseunix strings systhrds  objpas syscall unixutil \
       heaptrc lineinfo \
-      $(LINUXUNIT1) termio unix $(LINUXUNIT2) initc $(CPU_UNITS) \
+      $(LINUXUNIT1) termio unix $(LINUXUNIT2) initc cmem $(CPU_UNITS) \
       dos crt objects printer ggigraph \
       sysutils typinfo math varutils \
       charset ucomplex getopts \
@@ -277,5 +277,7 @@ ipc$(PPUEXT) : ipc.pp unix$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
 terminfo$(PPUEXT) : terminfo.pp unix$(PPUEXT)
 
 callspec$(PPUEXT) : $(INC)/callspec.pp $(SYSTEMUNIT)$(PPUEXT)
+
+cmem$(PPUEXT) : $(INC)/cmem.pp $(SYSTEMUNIT)$(PPUEXT)
 
 cthreads$(PPUEXT) : $(UNIXINC)/cthreads.pp $(SYSTEMUNIT)$(PPUEXT) systhrds$(PPUEXT)
