@@ -1329,10 +1329,14 @@ unit cgobj;
 
 finalization
   cg.free;
+  cg64.free;
 end.
 {
   $Log$
-  Revision 1.30  2002-07-01 18:46:22  peter
+  Revision 1.31  2002-07-02 11:40:00  jonas
+    * fixed cg64 memory leak
+
+  Revision 1.30  2002/07/01 18:46:22  peter
     * internal linker
     * reorganized aasm layer
 
