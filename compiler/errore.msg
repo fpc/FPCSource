@@ -1299,6 +1299,8 @@ asmr_e_no_local_or_para_allowed=E_Cannot use local variable or parameters here
 % address can't be get directly.
 asmr_e_need_offset=E_need to use OFFSET here
 % You need to use OFFSET <id> here to get the address of the identifier.
+asmr_e_need_dollar=E_need to use $ here
+% You need to use $<id> here to get the address of the identifier.
 asmr_e_cant_have_multiple_relocatable_symbols=E_Cannot use multiple relocatable symbols
 % You can't have more than one relocatable symbol (variable/typed constant)
 % in one argument.

@@ -351,6 +351,7 @@ type tmsgconst=(
   asmr_e_type_without_identifier,
   asmr_e_no_local_or_para_allowed,
   asmr_e_need_offset,
+  asmr_e_need_dollar,
   asmr_e_cant_have_multiple_relocatable_symbols,
   asmr_e_only_add_relocatable_symbol,
   asmr_e_invalid_constant_expression,
@@ -696,4 +697,4 @@ type tmsgconst=(
 endmsgconst
 );
 const
-  MsgCRCValue : longint = -1829475890;
+  MsgCRCValue : longint = 1458557689;
