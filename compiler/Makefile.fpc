@@ -482,8 +482,12 @@ endif
 cycledep:
         $(MAKE) cycle USEDEPEND=1
 
+extcycle:
+        $(MAKE) cycle OPT='-n -OG2p3 -gl -CRriot -dEXTDEBUG'
+
 cvstest:
         $(MAKE) cycle 'LOCALOPT=-n -Se' 'RTLOPTS=-n -Se'
+
 
 ##########################
 # Full cycle
@@ -542,10 +546,10 @@ endif
         $(MKDIR) $(PPCCPULOCATION)
         $(INSTALLEXE) $(EXENAME) $(PPCCPULOCATION)
 ifdef CROSSCOMPILE
-	$(MKDIR) $(PPCCROSSLOCATION)
-	$(ECHO) $(PPCROSSNAME)
-	$(ECHO $(PPCCROSSLOCATION)
-	$(INSTALLEXE) $(PPCROSSNAME) $(PPCCROSSLOCATION)
+        $(MKDIR) $(PPCCROSSLOCATION)
+        $(ECHO) $(PPCROSSNAME)
+        $(ECHO $(PPCCROSSLOCATION)
+        $(INSTALLEXE) $(PPCROSSNAME) $(PPCCROSSLOCATION)
 endif
 endif
 
