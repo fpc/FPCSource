@@ -1024,6 +1024,30 @@ procedure testintqword;
       do_error(2606);
   end;
 
+procedure testcritical;
+
+  var
+     a : array[0..10,0..10,0..10] of qword;
+     i,j,k : longint;
+
+  begin
+     i:=1;
+     j:=3;
+     k:=5;
+     { check if it is handled correct if a register is used }
+     { in a reference as well as temp. reg                  }
+     a[i,j,k]:=1234;
+     a[i,j,k]:=a[i,j,k]+a[i,j,k];
+     if a[i,j,k]<>2468 then
+       do_error(2700);
+     if not(not(a[i,j,k]))<>a[i,j,k] then
+       do_error(2701);                       
+     if -(-(a[i,j,k]))<>a[i,j,k] then
+       do_error(2702);
+     if (a[i,j,k] shl (i-i))<>a[i,j,k] then
+       do_error(2703);
+  end;
+
 var
    q : qword;
 
@@ -1131,6 +1155,10 @@ begin
    testioqword;
    writeln('Testing QWord input/output was successful');
    writeln;
+
+   writeln('Some extra tests for critical things');
+   testcritical;
+   writeln('Extra tests for critical things were successful');
 
    writeln('------------------------------------------------------');
    writeln('              QWord test successful');
