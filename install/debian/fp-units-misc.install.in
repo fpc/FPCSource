@@ -1,13 +1,13 @@
 /usr/share/doc/fp-units-misc
 
-/usr/lib/fpc/%{fpcversion}/units/linux/utmp
-/usr/lib/fpc/%{fpcversion}/units/linux/libc
-/usr/lib/fpc/%{fpcversion}/units/linux/pthreads
-/usr/lib/fpc/%{fpcversion}/units/linux/unixutil
-/usr/lib/fpc/%{fpcversion}/units/linux/zlib
-/usr/lib/fpc/%{fpcversion}/units/linux/tcl
-/usr/lib/fpc/%{fpcversion}/units/linux/cdrom
-/usr/lib/fpc/%{fpcversion}/units/linux/bfd
-/usr/lib/fpc/%{fpcversion}/units/linux/syslog
-/usr/lib/fpc/%{fpcversion}/units/linux/gdbint
-/usr/lib/fpc/%{fpcversion}/units/linux/unzip
+/usr/lib/fpc/%{fpcversion}/units/%{fpctarget}/utmp
+/usr/lib/fpc/%{fpcversion}/units/%{fpctarget}/libc
+/usr/lib/fpc/%{fpcversion}/units/%{fpctarget}/pthreads
+/usr/lib/fpc/%{fpcversion}/units/%{fpctarget}/unixutil
+/usr/lib/fpc/%{fpcversion}/units/%{fpctarget}/zlib
+/usr/lib/fpc/%{fpcversion}/units/%{fpctarget}/tcl
+/usr/lib/fpc/%{fpcversion}/units/%{fpctarget}/cdrom
+/usr/lib/fpc/%{fpcversion}/units/%{fpctarget}/bfd
+/usr/lib/fpc/%{fpcversion}/units/%{fpctarget}/syslog
+/usr/lib/fpc/%{fpcversion}/units/%{fpctarget}/gdbint
+/usr/lib/fpc/%{fpcversion}/units/%{fpctarget}/unzip

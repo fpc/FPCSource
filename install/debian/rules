@@ -44,6 +44,7 @@ FPCDIR=
 # Get Package version and FPC version out of changelog file
 PACKAGEVERSION:=$(shell head -n 1 debian/changelog | awk '{ print $$2 }' | tr -d '[()]')
 FPCVERSION:=$(shell echo $(PACKAGEVERSION) | awk -F '-' '{ print $$1 }')
+FPCTARGET=$(CPU_TARGET)-linux
 # Get directories	
 PWD:=$(shell pwd)
 BUILD_DIR=$(PWD)/debian/build
@@ -97,7 +98,7 @@ clean:
 debian-files: debian-files-stamp
 debian-files-stamp:
 	@echo "--- Creating debian files"
-	bash debian/fixdeb debian $(PPNEW)
+	bash debian/fixdeb debian $(FPCTARGET) $(PPNEW)
 
 	touch debian-files-stamp
 

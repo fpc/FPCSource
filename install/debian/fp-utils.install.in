@@ -16,10 +16,7 @@
 /usr/bin/fprcp
 /usr/bin/fpdoc
 /usr/bin/makeskel
-/usr/lib/fpc/%{fpcversion}/units/linux/lexlib.ppu
-/usr/lib/fpc/%{fpcversion}/units/linux/yacclib.ppu
-/usr/lib/fpc/%{fpcversion}/units/linux/lexlib.o
-/usr/lib/fpc/%{fpcversion}/units/linux/yacclib.o
+/usr/lib/fpc/%{fpcversion}/units/%{fpctarget}/lexyacc
 /usr/lib/fpc/lexyacc/yylex.cod
 /usr/lib/fpc/lexyacc/yyparse.cod
 /usr/share/man/man1/delp.1
