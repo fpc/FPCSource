@@ -23,8 +23,12 @@
 CONST PTHREAD_EXPLICIT_SCHED       = 0;
       PTHREAD_CREATE_DETACHED      = 1;
       PTHREAD_SCOPE_PROCESS        = 0;
+      PTHREAD_MUTEX_RECURSIVE 	   = 2;
 
  TYPE
+  pthread_mutex_attr = record
+       end;
+
     pthread_t       = pointer;
     ppthread_t      = ^pthread_t;
     pthread_key_t   = cint;
@@ -33,10 +37,17 @@ CONST PTHREAD_EXPLICIT_SCHED       = 0;
     ppthread_mutex_t= PRTLCriticalSection;
     pthread_attr_t  = pointer; // opague
     ppthread_attr_t = ^pthread_attr_t; // opague
+    ppthread_mutexattr_t        = ^pthread_mutex_attr;
+//    ppthread_mutexattr_t = ^pthread_mutexattr_t;
     __destr_func_t  = procedure (p :pointer);cdecl;
     __startroutine_t= function (p :pointer):pointer;cdecl;
     pthread_mutex_attr_t  = pointer;
     ppthread_mutex_attr_t = ^pthread_mutex_t;
+    sem                = record end;
+    sem_t              = ^sem;
+    psem_t             = ^sem_t;
+    TSemaphore         = sem_t;
+    PSemaphore         = ^TSemaphore;
 
 function  pthread_getspecific      (t : pthread_key_t):pointer; cdecl; external;
 function  pthread_setspecific      (t : pthread_key_t;p:pointer):cint; cdecl; external;
@@ -56,9 +67,27 @@ function  pthread_cancel(_para1:pthread_t):cint;cdecl;external;
 function  pthread_detach(_para1:pthread_t):cint;cdecl;external;
 function  pthread_join(_para1:pthread_t; _para2:Ppointer):cint;cdecl;external;
 
+function sem_init(__sem:Psem_t; __pshared:cint;__value:dword):cint;cdecl; external;
+function sem_destroy(__sem:Psem_t):cint;cdecl;external ;
+function sem_close(__sem:Psem_t):cint;cdecl;external ;
+function sem_unlink(__name:Pchar):cint;cdecl;external ;
+function sem_wait(__sem:Psem_t):cint;cdecl;external ;
+function sem_trywait(__sem:Psem_t):cint;cdecl;external ;
+function sem_post(__sem:Psem_t):cint;cdecl;external ;
+function sem_getvalue(__sem:Psem_t; __sval:Pcint):cint;cdecl;external;
+function pthread_mutexattr_init(_para1:Ppthread_mutexattr_t):cint;cdecl;external;
+function pthread_mutexattr_destroy(_para1:Ppthread_mutexattr_t):cint;cdecl;external;
+function pthread_mutexattr_gettype(_para1:Ppthread_mutexattr_t; _para2:Pcint):cint;cdecl;external;
+function pthread_mutexattr_settype(_para1:Ppthread_mutexattr_t; _para2:cint):cint;cdecl;external;
+
+
+
 {
   $Log$
-  Revision 1.2  2003-11-27 20:24:10  michael
+  Revision 1.3  2004-05-23 15:30:55  marco
+   * basicevent, still untested
+
+  Revision 1.2  2003/11/27 20:24:10  michael
   + Redefined ppthread_mutex_t
 
   Revision 1.1  2003/11/18 22:33:42  marco
