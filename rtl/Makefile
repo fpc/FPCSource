@@ -433,11 +433,11 @@ showinstall: $(addsuffix _showinstall,$(OS_TARGET))
 
 install: $(addsuffix _install,$(OS_TARGET))
 
-sourceinstall: fpc_sourceinstall $(addsuffix _sourceinstall,$(OS_TARGET))
+sourceinstall: fpc_sourceinstall
 
 zipinstall: fpc_zipinstall $(addsuffix _zipinstall,$(OS_TARGET))
 
-zipsourceinstall: fpc_zipsourceinstall $(addsuffix _zipsourceinstall,$(OS_TARGET))
+zipsourceinstall: fpc_zipsourceinstall
 
 clean: $(addsuffix _clean,$(OS_TARGET))
 

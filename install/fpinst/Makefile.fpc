@@ -6,7 +6,8 @@
 programs=install
 
 [install]
-sourcesubdir=installer
+packagename=fpinst
+sourcesubdir=fpinst
 
 [clean]
 units=ziptypes unzip

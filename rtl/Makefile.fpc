@@ -10,7 +10,7 @@ defaultdir=$(OS_TARGET)
 
 [install]
 packagename=rtl
-sourcesubs=0
+sourcesubdirs=0
 
 [sections]
 none=1

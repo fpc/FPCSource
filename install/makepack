@@ -8,10 +8,12 @@
 VERSION=0.99.14
 RELEASE=ELF
 
+unset FPCDIR
+
 make linux
-make source
-make docs
-make demo
+#make source
+#make docs
+#make demo
 
 SOURCES=`/bin/ls *src.tar.gz`
 FILES=`/bin/ls *linux.tar.gz`

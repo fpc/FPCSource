@@ -175,6 +175,7 @@ endif
 
 # Install
 
+PACKAGENAME=fpinst
 ZIPTARGET=install
 
 # Defaults

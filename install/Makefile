@@ -997,7 +997,7 @@ help:
 
 .PHONY: installer
 
-INSTALLERBUILDDIR=../installer
+INSTALLERBUILDDIR=../fpinst
 
 installer:
 	$(COPYTREE) fpinst $(INSTALLERBUILDDIR)
@@ -1007,6 +1007,12 @@ ifdef UPXPROG
 	-$(UPXPROG) install.exe
 endif
 	$(DELTREE) $(INSTALLERBUILDDIR)
+
+installersrc:
+	$(COPYTREE) fpinst $(INSTALLERBUILDDIR)
+	$(MAKE) -C $(INSTALLERBUILDDIR) zipsourceinstall
+	$(DELTREE) $(INSTALLERBUILDDIR)
+
 
 ##########################################################################
 # Basego32.zip
@@ -1065,6 +1071,42 @@ install: build-stamp
 	$(MAKE) -C $(CVSBASE) fcl_zipinstall $(INSTALLOPTS) PACKAGEPREFIX=$(PKGPRE)
 	$(MAKE) -C $(CVSBASE) packages_zipinstall $(INSTALLOPTS) PACKAGEPREFIX=$(PKGPRE)
 
+
+##########################################################################
+# Docs
+##########################################################################
+
+.PHONY: docspdf docs docsrcinstall docsrc
+
+docspdf:
+	$(MAKE) -C $(CVSBASE)/docs pdfinstall
+
+docs:
+	$(MAKE) zipinstall ZIPTARGET=docspdf ZIPNAME=docs
+
+docsrcinstall:
+	$(MAKE) -C $(CVSBASE)/docs clean
+	$(MKDIR) $(SOURCEINSTALLDIR)
+	$(COPYTREE) $(CVSBASE)/docs $(SOURCEINSTALLDIR)
+
+docsrc:
+	$(MAKE) zipinstall ZIPTARGET=docsrcinstall ZIPNAME=docsrc
+
+
+##########################################################################
+# Demos
+##########################################################################
+
+.PHONY: demo demoinstall
+
+demoinstall:
+	$(COPYTREE) demo $(PREFIXINSTALLDIR)
+
+demo:
+	$(MAKE) zipinstall ZIPTARGET=demoinstall ZIPNAME=demo
+
+
+
 ##########################################################################
 # Source targets
 ##########################################################################
@@ -1086,28 +1128,8 @@ source:
 	$(MAKE) -C $(CVSBASE) fcl_zipsourceinstall
 	$(MAKE) -C $(CVSBASE) packages_zipsourceinstall
 	$(MAKE) -C $(CVSBASE) utils_zipsourceinstall
-
-##########################################################################
-# Docs
-##########################################################################
-
-docspdf:
-	$(MAKE) -C $(CVSBASE)/docs pdfinstall
-
-docs:
-	$(MAKE) zipinstall ZIPTARGET=docspdf ZIPNAME=docs
-
-##########################################################################
-# Demos
-##########################################################################
-
-.PHONY: demo demoinstall
-
-demoinstall:
-	$(COPYTREE) demo $(PREFIXINSTALLDIR)
-
-demo:
-	$(MAKE) zipinstall ZIPTARGET=demoinstall ZIPNAME=demo
+	$(MAKE) installersrc
+	$(MAKE) docsrc
 
 
 ##########################################################################
