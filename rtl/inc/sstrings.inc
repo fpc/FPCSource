@@ -60,7 +60,21 @@ begin
    dec(index)
   else
    index:=0;
-  s:=Copy(s,1,Index)+source+Copy(s,Index+1,length(s));
+{  s:=Copy(s,1,Index)+source+Copy(s,Index+1,length(s));}
+  move(s[Index+1],s[Index+Length(Source)+1], Length(s)-Index);
+  move(Source[1],s[Index+1],Length(Source));
+  Inc(Byte(s[0]),Byte(source[0]));
+end;
+
+procedure insert(source : Char;var s : shortstring;index : StrLenInt);
+begin
+  if index>1 then
+   dec(index)
+  else
+   index:=0;
+  move(s[Index+1],s[Index+2], Length(s)-Index);
+  s[Index+1] := Source;
+  Inc(Byte(s[0]));
 end;
 
 
@@ -937,7 +951,11 @@ end;
 
 {
   $Log$
-  Revision 1.17  1998-12-15 22:43:02  peter
+  Revision 1.18  1999-01-11 19:26:55  jonas
+    * made inster(string,string,index) a bit faster
+    + overloaded insert(char,string,index)
+
+  Revision 1.17  1998/12/15 22:43:02  peter
     * removed temp symbols
 
   Revision 1.16  1998/11/05 10:29:34  pierre

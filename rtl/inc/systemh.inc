@@ -188,6 +188,7 @@ function strlen(p:pchar):longint;
 Function  Copy(const s:shortstring;index:StrLenInt;count:StrLenInt):shortstring;
 Procedure Delete(Var s:shortstring;index:StrLenInt;count:StrLenInt);
 Procedure Insert(const source:shortstring;Var s:shortstring;index:StrLenInt);
+Procedure Insert(source:Char;Var s:shortstring;index:StrLenInt);
 Function  Pos(const substr:shortstring;const s:shortstring):StrLenInt;
 Function  Pos(C:Char;const s:shortstring):StrLenInt;
 Procedure SetLength(var s:shortstring;len:StrLenInt);
@@ -430,7 +431,11 @@ const
 
 {
   $Log$
-  Revision 1.46  1998-12-28 15:50:48  peter
+  Revision 1.47  1999-01-11 19:26:53  jonas
+    * made inster(string,string,index) a bit faster
+    + overloaded insert(char,string,index)
+
+  Revision 1.46  1998/12/28 15:50:48  peter
     + stdout, which is needed when you write something in the system unit
       to the screen. Like the runtime error
 
