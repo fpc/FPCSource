@@ -24,7 +24,7 @@
 
 {$define FPC_SYSTEM_HAS_MOVE}
 
-procedure Move(var sou{}rce;var dest;count:longint);assembler;
+procedure Move(var source;var dest;count:longint);assembler;
 asm
                 {  count <= 0 ?  }
                 cmpwi   cr0,r5,0
@@ -32,19 +32,19 @@ asm
                 sub     r30,r4,r3
                 {  carry := boolean(dest-source < count) = boolean(overlap) }
                 subc    r30,r30,r5
-                
+
                 {  count < 11 ? (to decide whether we will move dwords or bytes  }
                 cmpwi   cr1,r5,11
-                
+
                 {  if overlap, then r30 := -1 else r30 := 0  }
                 subfe   r30,r30,r30
-                
+
                 {  count < 39 ? (32 + max. alignment (7) }
                 cmpwi   cr7,r5,39
-                
+
                 {  if count <= 0, stop  }
                 ble     cr0,LMoveDone
-                
+
                 {  if overlap, then r29 := count else r29 := 0  }
                 and     r29,r5,r30
                 {  if overlap, then point source and dest to the end  }
@@ -85,12 +85,17 @@ LMove4ByteAlignLoop:
                 {  if 11 <= count < 39, copy using dwords }
                 blt     cr7,LMoveDWords
 
+                { multiply the update count with 4 }
+                slwi    r30,r30,2
+
                 beq     cr0,L8BytesAligned
-                
+
                 {  count >= 39 -> align to 8 byte boundary and then use the FPU  }
                 {  since we're already at 4 byte alignment, use dword store      }
-                lwzux   r29,r3,r30
-                stwux   r29,r4,r30
+                lwz     r29,0(r3)
+                add     r3,r3,r30,
+                stw     r29,0(r4)
+                add     r4,r4,r30,
 L8BytesAligned:
                 { count div 32 ( >= 1, since count was >=39 }
                 srwi    r29,r5,5
@@ -99,13 +104,13 @@ L8BytesAligned:
                 { to decide if we will do some dword stores afterwards or not }
                 cmpwi   cr1,r5,11
                 mtctr   r29
-                
+
                 {  r29 := count div 4, will be moved to ctr when copying dwords  }
                 srwi    r29,r5,2
-                
+
                 {  adjust the update count: it will now be 8 or -8 depending on overlap  }
-                slwi    r30,r30,3
-                
+                slwi    r30,r30,1
+
                 {  adjust source and dest pointers: because of the above loop, dest is now   }
                 {  aligned to 8 bytes. So if we substract r30 we will still have an 8 bytes  }
                 { aligned address)                                                           }
@@ -127,8 +132,8 @@ LMove32ByteLoop:
                 beq     cr0,LMoveDone
 
                 {  make r30 again -1 or 1, but first adjust source/dest pointers }
-                add		r3,r3,r30
-                add		r4,r4,r30
+                add     r3,r3,r30
+                add     r4,r4,r30
                 srawi   r30,r30,3
                 sub     r3,r3,r30
                 sub     r4,r4,r30
@@ -143,8 +148,8 @@ LMoveDWords:
                 andi.   r5,r5,3
                 {  r30 * 4  }
                 slwi    r30,r30,2
-                sub		r3,r3,r30
-                sub		r4,r4,r30
+                sub     r3,r3,r30
+                sub     r4,r4,r30
 
 LMoveDWordsLoop:
                 lwzux   r29,r3,r30
@@ -153,8 +158,8 @@ LMoveDWordsLoop:
 
                 beq     cr0,LMoveDone
                 {  make r30 again -1 or 1  }
-                add		r3,r3,r30
-                add		r4,r4,r30
+                add     r3,r3,r30
+                add     r4,r4,r30
                 srawi   r30,r30,2
                 sub     r3,r3,r30
                 sub     r4,r4,r30
@@ -433,7 +438,7 @@ asm
         subme   r3,r3,r3      { if r3 >= r4 then r3' := 0 else r3' := -1     }
         and     r3,r29,r3     { if r3 >= r4 then r3' := 0 else r3' := r3-r30 }
         add     r3,r3,r30     { if r3 >= r4 then r3' := r30 else r3' := r3   }
-        
+
         cmpli   r3,0
         { put length in ctr }
         mtctr   r3
@@ -448,7 +453,10 @@ end ['r3','r4','r5','r29','r30','cr0','ctr'];
 
 {
   $Log$
-  Revision 1.3  2001-03-02 13:24:10  jonas
+  Revision 1.4  2001-03-03 13:53:36  jonas
+    * fixed small bug in move
+
+  Revision 1.3  2001/03/02 13:24:10  jonas
     + new, complete implementation of move procedure (including support for
       overlapping regions)
 
