@@ -8,8 +8,26 @@ var s: String;
     code: word;
     e: 0..10;
     f : text;
+    should_generate_error : boolean;
+    oldexit : pointer;
+
+  procedure myexit;
+   begin
+     exitproc:=oldexit;
+     if should_generate_error and (exitcode=201) then
+       begin
+         Writeln('Program generates a range check error correctly');
+         errorcode:=0;
+         erroraddr:=nil;
+         close(f);
+         erase(f);
+       end;
+   end;
 
 Begin
+  oldexit:=exitproc;
+  exitproc:=@myexit;
+  should_generate_error:=false;
 {$R-}
   s := '$fffff';
   val(s, i, code); {no range check error may occur here}
@@ -31,6 +49,7 @@ Begin
   Writeln('integer($ffff) = ', i,'(should not give range check error)');
 
   Writeln('Enter value from 0-10 to test Val rangecheck, another for subrange rangecheck: ');
+  should_generate_error:=true;
   Readln(f,e);
 
   Writeln('If you entered a value different from 0-10, subrange range checks don''t work!');
