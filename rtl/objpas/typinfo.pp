@@ -132,6 +132,7 @@ unit typinfo;
               );
       end;
 
+{$PACKRECORDS C}
       // unsed, just for completeness
       TPropData =
 {$ifndef FPC_REQUIRES_PROPER_ALIGNMENT}
@@ -141,6 +142,7 @@ unit typinfo;
         PropCount : Word;
         PropList : record _alignmentdummy : ptrint; end;
       end;
+{$PACKRECORDS 1}
 
       PPropInfo = ^TPropInfo;
       TPropInfo = packed record
@@ -1490,7 +1492,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.31  2004-11-24 22:27:24  florian
+  Revision 1.32  2004-12-27 16:16:24  florian
+    * another alignment fix
+
+  Revision 1.31  2004/11/24 22:27:24  florian
     * fixed tpropdata record
 
   Revision 1.30  2004/10/10 19:18:31  florian
