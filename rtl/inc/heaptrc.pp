@@ -764,20 +764,14 @@ begin
   { I don't know where the stack is in other OS !! }
 {$ifdef win32}
   { inside stack ? }
-  asm
-     movl %ebp,get_ebp
-  end;
-  if (ptruint(p)>get_ebp) and
+  if (ptruint(p)>ptruint(get_frame)) and
      (ptruint(p)<Win32StackTop) then
     goto _exit;
 {$endif win32}
 
 {$ifdef linux}
   { inside stack ? }
-  asm
-     movl %ebp,get_ebp
-  end;
-  if (ptruint(p)>get_ebp) and
+  if (ptruint(p)>ptruint(get_frame)) and
      (ptruint(p)<$c0000000) then      //todo: 64bit!
     goto _exit;
   { inside data ? }
@@ -1157,7 +1151,10 @@ finalization
 end.
 {
   $Log$
-  Revision 1.35  2004-10-25 15:38:59  peter
+  Revision 1.36  2004-10-25 17:04:07  peter
+    * fix for non-i386
+
+  Revision 1.35  2004/10/25 15:38:59  peter
     * compiler defined HEAP and HEAPSIZE removed
 
   Revision 1.34  2004/10/24 20:01:41  peter
