@@ -6,7 +6,7 @@ type
       procedure intfp;
    end;
 
-   tc1 = class(tobject,i1)
+   tc1 = class(tinterfacedobject,i1)
       procedure i1.intfp = p;
       procedure p;
    end;
