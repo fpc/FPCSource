@@ -145,6 +145,12 @@ Var
 Const
    HexDisplayPrefix : string = '$';
 
+const
+  PathDelim=System.DirectorySeparator;
+  DriveDelim=System.DriveSeparator;
+  PathSep=System.PathSeparator;
+   
+
 Type
    TFileRec=FileRec;
    TTextRec=TextRec;
@@ -171,7 +177,10 @@ Type
 
 {
   $Log$
-  Revision 1.14  2001-10-23 21:51:03  peter
+  Revision 1.15  2001-11-07 14:58:24  michael
+  + Added PathDelim,DriveDelim,PathSep; Removed PathSeparator
+
+  Revision 1.14  2001/10/23 21:51:03  peter
     * criticalsection renamed to rtlcriticalsection for kylix compatibility
 
   Revision 1.13  2001/08/22 21:19:16  florian
