@@ -159,7 +159,12 @@ uses
   FpDpAnsi,WConsts,
   Video,Mouse,Keyboard,
   Compiler,Version,
-  Dos,Memory,Menus,Dialogs,StdDlg,ColorSel,Commands,HelpCtx,
+  Dos,Memory,Menus,Dialogs,StdDlg,ColorSel,
+{$ifdef FVISION}
+  FVConsts,
+{$else}
+  Commands,HelpCtx,
+{$endif}
   Systems,
   WUtils,WHlpView,WViews,WHTMLHlp,
   FPConst,FPVars,FPUtils,FPSwitch,FPIni,FPIntf,FPCompil,FPHelp,
@@ -1150,7 +1155,10 @@ end;
 END.
 {
   $Log$
-  Revision 1.1  2001-08-04 11:30:23  peter
+  Revision 1.2  2001-08-05 02:01:47  peter
+    * FVISION define to compile with fvision units
+
+  Revision 1.1  2001/08/04 11:30:23  peter
     * ide works now with both compiler versions
 
   Revision 1.1.2.30  2001/06/14 09:15:48  pierre

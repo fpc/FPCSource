@@ -18,12 +18,13 @@ unit WHlpView;
 interface
 
 uses
-  Objects,Drivers,Commands,Views,
-{$ifdef EDITORS}
-  Editors,
+  Objects,Drivers,Views,
+{$ifdef FVISION}
+  FVConsts,
 {$else}
-  WEditor,WCEdit,
+  Commands,
 {$endif}
+  WEditor,WCEdit,
   WUtils,WHelp;
 
 {$IFNDEF EDITORS}
@@ -1348,7 +1349,10 @@ end;
 END.
 {
   $Log$
-  Revision 1.1  2001-08-04 11:30:25  peter
+  Revision 1.2  2001-08-05 02:01:49  peter
+    * FVISION define to compile with fvision units
+
+  Revision 1.1  2001/08/04 11:30:25  peter
     * ide works now with both compiler versions
 
   Revision 1.1.2.5  2001/03/20 00:20:44  pierre

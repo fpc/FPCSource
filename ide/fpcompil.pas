@@ -149,7 +149,12 @@ uses
   signals,
 {$endif}
   Dos,Video,
-  StdDlg,App,Commands,tokens,
+  StdDlg,App,tokens,
+{$ifdef FVISION}
+  FVConsts,
+{$else}
+  Commands,
+{$endif}
   CompHook, Compiler, systems, browcol,
   WEditor,
   FPString,FPRedir,FPDesk,
@@ -712,7 +717,7 @@ begin
       CompilerStatusDialog^.Update;
 {$ifdef DEBUG}
  {$ifndef NODEBUG}
-     def_gdb_stop(level);
+//     def_gdb_stop(level);
  {$endif}
 {$endif DEBUG}
 {$ifdef redircompiler}
@@ -1226,7 +1231,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.1  2001-08-04 11:30:22  peter
+  Revision 1.2  2001-08-05 02:01:47  peter
+    * FVISION define to compile with fvision units
+
+  Revision 1.1  2001/08/04 11:30:22  peter
     * ide works now with both compiler versions
 
   Revision 1.1.2.24  2001/06/07 16:41:12  jonas

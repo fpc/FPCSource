@@ -53,7 +53,11 @@ Procedure SetKnownKeys;
 implementation
 
 uses
+{$ifdef FVISION}
+  FVConsts,
+{$else}
   Commands,
+{$endif}
   WUtils;
 
 {$ifndef NotUseTree}
@@ -338,7 +342,10 @@ end.
 
 {
   $Log$
-  Revision 1.1  2001-08-04 11:30:23  peter
+  Revision 1.2  2001-08-05 02:01:48  peter
+    * FVISION define to compile with fvision units
+
+  Revision 1.1  2001/08/04 11:30:23  peter
     * ide works now with both compiler versions
 
   Revision 1.1.2.10  2001/03/27 14:22:44  pierre

@@ -31,9 +31,6 @@ uses
     unix,
   {$endif}
 {$endif Unix}
-{$ifdef FVISION}
-  Common,
-{$endif FVISION}
   Dos,Objects;
 
 const
@@ -1223,7 +1220,10 @@ BEGIN
 END.
 {
   $Log$
-  Revision 1.1  2001-08-04 11:30:26  peter
+  Revision 1.2  2001-08-05 02:01:49  peter
+    * FVISION define to compile with fvision units
+
+  Revision 1.1  2001/08/04 11:30:26  peter
     * ide works now with both compiler versions
 
   Revision 1.1.2.14  2001/06/20 22:56:31  pierre

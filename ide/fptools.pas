@@ -153,7 +153,12 @@ procedure RegisterFPTools;
 implementation
 
 uses Dos,
-     Commands,App,MsgBox,
+{$ifdef FVISION}
+     FVConsts,
+{$else}
+     Commands,
+{$endif}
+     App,MsgBox,
      WConsts,WUtils,WINI,WEditor,
      FPConst,FPString,FPVars,FPUtils;
 
@@ -1590,7 +1595,10 @@ end;
 END.
 {
   $Log$
-  Revision 1.1  2001-08-04 11:30:24  peter
+  Revision 1.2  2001-08-05 02:01:48  peter
+    * FVISION define to compile with fvision units
+
+  Revision 1.1  2001/08/04 11:30:24  peter
     * ide works now with both compiler versions
 
   Revision 1.1.2.5  2001/03/20 00:20:42  pierre

@@ -18,13 +18,14 @@ unit FPHelp;
 interface
 
 uses
-  Drivers,HelpCtx,
-  WHelp,WHlpView,WHTML,
-{$ifdef EDITORS}
-  Editors,
+  Drivers,
+{$ifdef FVISION}
+  FVConsts,
 {$else}
-  WEditor,WCEdit,
+  Commands,HelpCtx,
 {$endif}
+  WHelp,WHlpView,WHTML,
+  WEditor,WCEdit,
   WViews,WHTMLScn,
   FPViews;
 
@@ -65,7 +66,7 @@ const
 
 implementation
 
-uses Objects,Views,App,MsgBox,Commands,
+uses Objects,Views,App,MsgBox,
      WUtils,WOAHelp,WHTMLHlp,WNGHelp,WOS2Help,WVPHelp,WWinHelp,
      FPString,FPConst,FPVars,FPUtils;
 
@@ -503,7 +504,10 @@ end;
 END.
 {
   $Log$
-  Revision 1.1  2001-08-04 11:30:23  peter
+  Revision 1.2  2001-08-05 02:01:47  peter
+    * FVISION define to compile with fvision units
+
+  Revision 1.1  2001/08/04 11:30:23  peter
     * ide works now with both compiler versions
 
   Revision 1.1.2.7  2001/03/12 17:34:55  pierre

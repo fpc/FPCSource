@@ -19,7 +19,12 @@ unit FPCalc;
 interface
 
 uses
-  Drivers,Objects,Commands,Views,Dialogs,App,
+  Drivers,Objects,Views,Dialogs,App,
+{$ifdef FVISION}
+  FVConsts,
+{$else}
+  Commands,
+{$endif}
   WViews,
   FPViews;
 
@@ -463,7 +468,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.1  2001-08-04 11:30:22  peter
+  Revision 1.2  2001-08-05 02:01:47  peter
+    * FVISION define to compile with fvision units
+
+  Revision 1.1  2001/08/04 11:30:22  peter
     * ide works now with both compiler versions
 
   Revision 1.1.2.1  2000/11/13 16:59:08  pierre

@@ -36,13 +36,14 @@ implementation
 
 uses
   Dos,Objects,
-  Commands,MsgBox,
-  WUtils,
-{$ifdef EDITORS}
-  Editors,
+{$ifdef FVISION}
+  FVConsts,
 {$else}
-  WEditor,
+  Commands,
 {$endif}
+  MsgBox,
+  WUtils,
+  WEditor,
   FPConst,FPVars,FPString,FPUtils;
 
 type
@@ -289,7 +290,10 @@ end;
 END.
 {
   $Log$
-  Revision 1.1  2001-08-04 11:30:24  peter
+  Revision 1.2  2001-08-05 02:01:48  peter
+    * FVISION define to compile with fvision units
+
+  Revision 1.1  2001/08/04 11:30:24  peter
     * ide works now with both compiler versions
 
   Revision 1.1  2000/07/13 09:48:36  michael

@@ -35,7 +35,12 @@ procedure RegisterCodeComplete;
 
 implementation
 
-uses Commands,Views,Dialogs,MsgBox,
+uses Views,Dialogs,MsgBox,
+{$ifdef FVISION}
+     FVConsts,
+{$else}
+     Commands,
+{$endif}
      WEditor,
      FPConst,FPString,FPViews;
 

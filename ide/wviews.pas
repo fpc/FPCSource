@@ -256,7 +256,13 @@ procedure RegisterWViews;
 implementation
 
 uses Mouse,
-     Resource,Commands,App,MsgBox,StdDlg,
+     Resource,
+{$ifdef FVISION}
+     FVConsts,
+{$else}
+     Commands,
+{$endif}
+     App,MsgBox,StdDlg,
      WConsts,WUtils;
 
 {$ifndef NOOBJREG}
@@ -2483,7 +2489,10 @@ end;
 END.
 {
   $Log$
-  Revision 1.1  2001-08-04 11:30:26  peter
+  Revision 1.2  2001-08-05 02:01:49  peter
+    * FVISION define to compile with fvision units
+
+  Revision 1.1  2001/08/04 11:30:26  peter
     * ide works now with both compiler versions
 
   Revision 1.1.2.8  2001/03/20 00:13:54  pierre

@@ -17,7 +17,12 @@ unit FPConst;
 
 interface
 
-uses Views,App,Commands,
+uses Views,App,
+{$ifdef FVISION}
+     FVConsts,
+{$else}
+     Commands,
+{$endif}
      WViews,WEditor,WHTMLHlp;
 
 const
@@ -428,7 +433,10 @@ implementation
 END.
 {
   $Log$
-  Revision 1.1  2001-08-04 11:30:23  peter
+  Revision 1.2  2001-08-05 02:01:47  peter
+    * FVISION define to compile with fvision units
+
+  Revision 1.1  2001/08/04 11:30:23  peter
     * ide works now with both compiler versions
 
   Revision 1.1.2.12  2001/03/12 17:34:54  pierre

@@ -54,7 +54,12 @@ uses
   keyboard,
   drivers,
 {$endif FPC}
-  dos,app,commands,msgbox,
+{$ifdef FVISION}
+  FVConsts,
+{$else}
+  Commands,
+{$endif}
+  dos,app,msgbox,
   FPString,FPCompil,FPIDE;
 
 Const
@@ -190,7 +195,10 @@ end.
 
 {
   $Log$
-  Revision 1.1  2001-08-04 11:30:22  peter
+  Revision 1.2  2001-08-05 02:01:47  peter
+    * FVISION define to compile with fvision units
+
+  Revision 1.1  2001/08/04 11:30:22  peter
     * ide works now with both compiler versions
 
   Revision 1.1.2.4  2000/11/30 13:04:01  pierre

@@ -19,7 +19,12 @@ unit WEditor;
 interface
 {tes}
 uses
-  Dos,Objects,Drivers,Views,Menus,Commands,
+  Dos,Objects,Drivers,Views,Menus,
+{$ifdef FVISION}
+  FVConsts,
+{$else}
+  Commands,
+{$endif}
   WUtils;
 
 const
@@ -6863,7 +6868,10 @@ end;
 END.
 {
   $Log$
-  Revision 1.1  2001-08-04 11:30:25  peter
+  Revision 1.2  2001-08-05 02:01:48  peter
+    * FVISION define to compile with fvision units
+
+  Revision 1.1  2001/08/04 11:30:25  peter
     * ide works now with both compiler versions
 
   Revision 1.1.2.37  2001/08/03 11:43:58  pierre

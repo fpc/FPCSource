@@ -74,7 +74,12 @@ procedure RegisterCodeTemplates;
 
 implementation
 
-uses Commands,Views,App,
+uses Views,App,
+{$ifdef FVISION}
+     FVConsts,
+{$else}
+     Commands,
+{$endif}
      FPConst,FPString;
 
 {$ifndef NOOBJREG}

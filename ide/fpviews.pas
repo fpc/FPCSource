@@ -20,21 +20,22 @@ unit FPViews;
 interface
 
 uses
-  Dos,Objects,Drivers,Commands,HelpCtx,Views,Menus,Dialogs,App,Gadgets,
-  ASCIITAB,
-{$ifdef EDITORS}
-  Editors,
+  Dos,Objects,Drivers,
+{$ifdef FVISION}
+  FVConsts,
 {$else}
-  WEditor,WCEdit,
+  Commands,HelpCtx,
 {$endif}
+  Views,Menus,Dialogs,App,Gadgets,
+  ASCIITAB,
+  WEditor,WCEdit,
   WUtils,WHelp,WHlpView,WViews,WANSI,
   Comphook,
   FPConst,FPUsrScr;
 
 type
-{$IFNDEF EDITORS}
-    TEditor = TCodeEditor; PEditor = PCodeEditor;
-{$ENDIF}
+    TEditor = TCodeEditor;
+    PEditor = PCodeEditor;
 
     PStoreCollection = ^TStoreCollection;
     TStoreCollection = object(TStringCollection)
@@ -130,7 +131,6 @@ type
           PScrollBar; AIndicator: PIndicator;const AFileName: string);
     public
       CompileStamp : longint;
-{$ifndef EDITORS}
     public
       CodeCompleteTip: PFPToolTip;
       { Syntax highlight }
@@ -145,7 +145,6 @@ type
       function    CompleteCodeWord(const WordS: string; var Text: string): boolean; virtual;
       procedure   SetCodeCompleteWord(const S: string); virtual;
       procedure   AlignCodeCompleteTip;
-{$endif}
       procedure   HandleEvent(var Event: TEvent); virtual;
 {$ifdef DebugUndo}
       procedure   DumpUndo;
@@ -758,14 +757,10 @@ const AlphaNum : set of char = ['A'..'Z','0'..'9','_'];
 begin
   with Editor^ do
   begin
-{$ifdef EDITORS}
-    S:='';
-{$else}
     S:=GetDisplayText(CurPos.Y);
     PS:=CurPos.X; while (PS>0) and (Upcase(S[PS]) in AlphaNum) do Dec(PS);
     PE:=CurPos.X; while (PE<length(S)) and (Upcase(S[PE+1]) in (AlphaNum+ValidSpecChars)) do Inc(PE);
     S:=Trim(copy(S,PS+1,PE-PS));
-{$endif}
   end;
   GetEditorCurWord:=S;
 end;
@@ -1078,8 +1073,6 @@ end;
                                SourceEditor
 *****************************************************************************}
 
-{$ifndef EDITORS}
-
 function SearchCoreForFileName(const AFileName: string): PCodeEditorCore;
 var EC: PCodeEditorCore;
 function Check(P: PView): boolean; {$ifndef FPC}far;{$endif}
@@ -1248,8 +1241,6 @@ begin
   if CodeCompleteTip^.GetState(sfVisible)=false then
     CodeCompleteTip^.Show;
 end;
-
-{$endif EDITORS}
 
 procedure TSourceEditor.ModifiedChanged;
 begin
@@ -1724,7 +1715,11 @@ procedure TSourceWindow.SetTitle(ATitle: string);
 begin
   if Title<>nil then DisposeStr(Title);
   Title:=NewStr(ATitle);
+{$ifdef FVISION}
+  DrawBorder;
+{$else}
   Frame^.DrawView;
+{$endif}
 end;
 
 procedure TSourceWindow.HandleEvent(var Event: TEvent);
@@ -3165,10 +3160,10 @@ begin
   if InDraw then Exit;
   InDraw:=true;
   { - Start of TGroup.Draw - }
-  if Buffer = nil then
+{  if Buffer = nil then
   begin
     GetBuffer;
-  end;
+  end; }
   { - Start of TGroup.Draw - }
 
   C1:=GetColor(1); C2:=(GetColor(7) and $f0 or $08)+GetColor(9)*256; C3:=GetColor(8)+GetColor({9}8)*256;
@@ -4166,7 +4161,10 @@ end;
 END.
 {
   $Log$
-  Revision 1.1  2001-08-04 11:30:24  peter
+  Revision 1.2  2001-08-05 02:01:48  peter
+    * FVISION define to compile with fvision units
+
+  Revision 1.1  2001/08/04 11:30:24  peter
     * ide works now with both compiler versions
 
   Revision 1.1.2.34  2001/07/30 20:31:25  pierre
