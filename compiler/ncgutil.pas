@@ -1020,7 +1020,7 @@ implementation
                end;
              floatdef :
                begin
-                 cg.a_loadfpu_ref_reg(list,cgsize,href,fpuresultreg);
+                 cg.a_loadfpu_ref_reg(list,cgsize,href,FPU_RESULT_REG);
                end;
              else
                begin
@@ -1060,7 +1060,7 @@ implementation
                end;
              floatdef :
                begin
-                 cg.a_loadfpu_reg_ref(list,cgsize,fpuresultreg,href);
+                 cg.a_loadfpu_reg_ref(list,cgsize,FPU_RESULT_REG,href);
                end;
              else
                begin
@@ -1629,7 +1629,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.23  2002-07-20 11:57:54  florian
+  Revision 1.24  2002-07-25 17:58:24  carl
+    + FPURESULTREG -> FPU_RESULT_REG
+
+  Revision 1.23  2002/07/20 11:57:54  florian
     * types.pas renamed to defbase.pas because D6 contains a types
       unit so this would conflicts if D6 programms are compiled
     + Willamette/SSE2 instructions to assembler added

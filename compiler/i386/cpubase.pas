@@ -410,7 +410,7 @@ uses
       accumulatorhigh = R_EDX;
       { WARNING: don't change to R_ST0!! See comments above implementation of }
       { a_loadfpu* methods in rgcpu (JM)                                      }
-      fpuresultreg = R_ST;
+      fpu_result_reg = R_ST;
       mmresultreg = R_MM0;
 
 {*****************************************************************************
@@ -486,7 +486,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.26  2002-07-07 09:52:33  florian
+  Revision 1.27  2002-07-25 18:01:29  carl
+    + FPURESULTREG -> FPU_RESULT_REG
+
+  Revision 1.26  2002/07/07 09:52:33  florian
     * powerpc target fixed, very simple units can be compiled
     * some basic stuff for better callparanode handling, far from being finished
 

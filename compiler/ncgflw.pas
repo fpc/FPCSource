@@ -500,9 +500,9 @@ implementation
                 floatdef :
                   begin
 {$ifndef i386}
-                    cg.a_reg_alloc(exprasmlist,fpuresultreg);
+                    cg.a_reg_alloc(exprasmlist,FPU_RESULT_REG);
 {$endif not i386}
-                    cg.a_loadfpu_loc_reg(exprasmlist,left.location,fpuresultreg);
+                    cg.a_loadfpu_loc_reg(exprasmlist,left.location,FPU_RESULT_REG);
                   end;
                 else
                   begin
@@ -535,7 +535,7 @@ do_jmp:
                 cg.a_reg_dealloc(exprasmlist,accumulatorhigh);
 {$ifndef i386}
               if (aktprocdef.rettype.def.deftype = floatdef) then
-                cg.a_reg_dealloc(exprasmlist,fpuresultreg);
+                cg.a_reg_dealloc(exprasmlist,FPU_RESULT_REG);
 {$endif not i386}
            end
          else
@@ -627,7 +627,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.28  2002-07-21 06:58:49  daniel
+  Revision 1.29  2002-07-25 17:56:29  carl
+    + FPURESULTREG -> FPU_RESULT_REG
+
+  Revision 1.28  2002/07/21 06:58:49  daniel
   * Changed booleans into flags
 
   Revision 1.27  2002/07/20 12:54:53  daniel

@@ -520,7 +520,7 @@ uses
       { WARNING: don't change to R_ST0!! See comments above implementation of }
       { a_loadfpu* methods in rgcpu (JM)                                      }
 {$warning I don't know the exact values, please check (PFV) }
-      fpuresultreg = R_F0;
+      FPU_RESULT_REG = R_F0;
       mmresultreg = R_M0;
 
 {*****************************************************************************
@@ -647,7 +647,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.19  2002-07-13 19:38:44  florian
+  Revision 1.20  2002-07-25 18:04:10  carl
+    + FPURESULTREG -> FPU_RESULT_REG
+
+  Revision 1.19  2002/07/13 19:38:44  florian
     * some more generic calling stuff fixed
 
   Revision 1.18  2002/07/11 14:41:34  florian
