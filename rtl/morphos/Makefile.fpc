@@ -12,7 +12,7 @@ units=$(SYSTEMUNIT) objpas macpas strings \
       sysutils classes math typinfo varutils \
       charset ucomplex getopts matrix \
       variants types rtlconst sysconst dateutil \
-      exec timer doslib utility
+      exec timer doslib utility hardware inputevent graphics layers
 rsts=math rtlconst varutils typinfo variants classes sysconst dateutil
 
 [require]
@@ -177,3 +177,14 @@ timer$(PPUEXT)   : timer.pp timerd.inc timerf.inc
 utility$(PPUEXT) : utility.pp exec$(PPUEXT) utilf.inc utild1.inc utild2.inc
 
 doslib$(PPUEXT)  : doslib.pp exec$(PPUEXT) timer$(PPUEXT) doslibd.inc doslibf.inc
+
+hardware$(PPUEXT): hardware.pas exec$(PPUEXT)
+
+inputevent$(PPUEXT): inputevent.pas exec$(PPUEXT) timer$(PPUEXT) utility$(PPUEXT)
+
+graphics$(PPUEXT): graphics.pas exec$(PPUEXT) utility$(PPUEXT) hardware$(PPUEXT)
+
+layers$(PPUEXT)  : layers.pas exec$(PPUEXT) graphics$(PPUEXT) utility$(PPUEXT)
+
+intuition$(PPUEXT): intuition.pas exec$(PPUEXT) graphics$(PPUEXT) utility$(PPUEXT) \
+                    inputevent$(PPUEXT) timer$(PPUEXT) layers$(PPUEXT)
