@@ -145,8 +145,8 @@ function NetAddrToStr (Entry : Longint) : String;
 function StrToNetAddr (IP : String) : Longint;
 Function HostToNet (Host : Longint) : Longint;
 Function NetToHost (Net : Longint) : Longint;
-Function ShortHostToNet (Host : integer) : integer;
-Function ShortNetToHost (Net : integer) : integer;
+Function ShortHostToNet (Host : Word) : Word;
+Function ShortNetToHost (Net : Word) : Word;
 
 { C style calls, linked in from Libc }
 
@@ -512,13 +512,13 @@ begin
   NetToHost:=NetToHost or ( (THostAddr(Net)[4]) shl 24);
 end;
 
-Function ShortHostToNet (Host : integer) : integer;
+Function ShortHostToNet (Host : Word) : Word;
 
 begin
   ShortHostToNet:=lo(host)*256+Hi(Host);
 end;
 
-Function ShortNetToHost (Net : integer) : integer;
+Function ShortNetToHost (Net : Word) : Word;
 
 begin
   ShortNetToHost:=lo(Net)*256+Hi(Net);
@@ -528,7 +528,11 @@ end.
 
 
    $Log$
-   Revision 1.2  2000-07-13 11:33:26  michael
+   Revision 1.3  2001-12-17 20:29:00  sg
+   * Now uses 'word' instead of 'integer' for short<->net conversions, as the
+     short conversions are used for port numbers, which are unsigned.
+
+   Revision 1.2  2000/07/13 11:33:26  michael
    + removed logs
  
 }
