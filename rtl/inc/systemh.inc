@@ -118,7 +118,7 @@ Type
   ValSInt = Longint;
   ValUInt = Cardinal;
   ValReal = Double;
-  
+
   { map comp to int64, but this doesn't mean to compile the comp support in! }
   Comp = Int64;
 {$endif powerpc}
@@ -351,7 +351,9 @@ function strlen(p:pchar):longint;
 {$ifndef INTERNSETLENGTH}
 Procedure SetLength (Var S:ShortString;len:StrLenInt);
 {$endif INTERNSETLENGTH}
+{$ifndef InternCopy}
 Function  Copy(const s:shortstring;index:StrLenInt;count:StrLenInt):shortstring;
+{$endif interncopy}
 Procedure Delete(Var s:shortstring;index:StrLenInt;count:StrLenInt);
 Procedure Insert(const source:shortstring;Var s:shortstring;index:StrLenInt);
 Procedure Insert(source:Char;Var s:shortstring;index:StrLenInt);
@@ -376,7 +378,9 @@ Function  binStr(Val:int64;cnt:byte):shortstring;
 Function  Chr(b:byte):Char;
 Function  upCase(c:Char):Char;
 Function  lowerCase(c:Char):Char; overload;
+{$ifndef InternCopy}
 function  copy(c:char;index : StrLenInt;count : StrLenInt): shortstring;
+{$endif interncopy}
 function  pos(const substr : shortstring;c:char): StrLenInt;
 {$ifndef INTERNLENGTH}
 function  length(c:char):byte;
@@ -394,7 +398,9 @@ Procedure UniqueString (Var S : AnsiString);
 {$ifndef INTERNLENGTH}
 Function  Length (Const S : AnsiString) : Longint;
 {$endif INTERNLENGTH}
+{$ifndef InternCopy}
 Function  Copy (Const S : AnsiString; Index,Size : Longint) : AnsiString;
+{$endif interncopy}
 Function  Pos (Const Substr : AnsiString; Const Source : AnsiString) : Longint;
 Function  Pos (c : Char; Const s : AnsiString) : Longint;
 Procedure Insert (Const Source : AnsiString; Var S : AnsiString; Index : Longint);
@@ -416,7 +422,9 @@ Procedure UniqueString (Var S : WideString);
 {$ifndef INTERNLENGTH}
 Function  Length (Const S : WideString) : Longint;
 {$endif INTERNLENGTH}
+{$ifndef InternCopy}
 Function  Copy (Const S : WideString; Index,Size : Longint) : WideString;
+{$endif interncopy}
 Function  Pos (Const Substr : WideString; Const Source : WideString) : Longint;
 Function  Pos (c : Char; Const s : WideString) : Longint;
 Function  Pos (c : WideChar; Const s : WideString) : Longint;
@@ -596,7 +604,12 @@ const
 
 {
   $Log$
-  Revision 1.56  2002-09-28 21:18:02  florian
+  Revision 1.57  2002-10-02 18:21:51  peter
+    * Copy() changed to internal function calling compilerprocs
+    * FPC_SHORTSTR_COPY renamed to FPC_SHORTSTR_ASSIGN because of the
+      new copy functions
+
+  Revision 1.56  2002/09/28 21:18:02  florian
     * map comp to int64 for the powerpc
 
   Revision 1.55  2002/09/26 21:50:37  florian

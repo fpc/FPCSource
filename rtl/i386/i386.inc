@@ -732,7 +732,7 @@ end;
                                  String
 ****************************************************************************}
 
-{$define FPC_SYSTEM_HAS_FPC_SHORTSTR_COPY}
+{$define FPC_SYSTEM_HAS_FPC_SHORTSTR_ASSIGN}
 
 function fpc_shortstr_to_shortstr(len:longint; const sstr: shortstring): shortstring; [public,alias: 'FPC_SHORTSTR_TO_SHORTSTR']; {$ifdef hascompilerproc} compilerproc; {$endif}
 begin
@@ -768,7 +768,11 @@ begin
   end ['ESI','EDI','EAX','ECX'];
 end;
 
+{$ifdef interncopy}
+procedure fpc_shortstr_assign(len:longint;sstr,dstr:pointer);[public,alias:'FPC_SHORTSTR_ASSIGN'];
+{$else}
 procedure fpc_shortstr_copy(len:longint;sstr,dstr:pointer);[public,alias:'FPC_SHORTSTR_COPY'];
+{$endif}
 begin
   asm
         pushl   %eax
@@ -1170,7 +1174,12 @@ procedure inclocked(var l : longint);assembler;
 
 {
   $Log$
-  Revision 1.30  2002-09-07 21:33:35  carl
+  Revision 1.31  2002-10-02 18:21:51  peter
+    * Copy() changed to internal function calling compilerprocs
+    * FPC_SHORTSTR_COPY renamed to FPC_SHORTSTR_ASSIGN because of the
+      new copy functions
+
+  Revision 1.30  2002/09/07 21:33:35  carl
     - removed unused defines
 
   Revision 1.29  2002/09/07 16:01:19  peter

@@ -519,7 +519,11 @@ begin
 end;
 
 
+{$ifdef interncopy}
+Function Fpc_Ansistr_Copy (Const S : AnsiString; Index,Size : Longint) : AnsiString;compilerproc;
+{$else}
 Function Copy (Const S : AnsiString; Index,Size : Longint) : AnsiString;
+{$endif}
 var
   ResultAddress : Pointer;
 begin
@@ -544,7 +548,11 @@ begin
         PByte(ResultAddress+Size)^:=0;
       end;
    end;
+{$ifdef interncopy}
+  Pointer(fpc_ansistr_Copy):=ResultAddress;
+{$else}
   Pointer(Copy):=ResultAddress;
+{$endif}
 end;
 
 
@@ -782,7 +790,12 @@ end;
 
 {
   $Log$
-  Revision 1.28  2002-09-14 11:20:50  carl
+  Revision 1.29  2002-10-02 18:21:51  peter
+    * Copy() changed to internal function calling compilerprocs
+    * FPC_SHORTSTR_COPY renamed to FPC_SHORTSTR_ASSIGN because of the
+      new copy functions
+
+  Revision 1.28  2002/09/14 11:20:50  carl
     * Delphi compatibility fix (with string routines)
 
   Revision 1.27  2002/09/07 21:10:47  carl

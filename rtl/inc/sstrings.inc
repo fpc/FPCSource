@@ -27,7 +27,11 @@ begin
   s[0]:=chr(len);
 end;
 
+{$ifdef interncopy}
+function fpc_shortstr_copy(const s : shortstring;index : StrLenInt;count : StrLenInt): shortstring;compilerproc;
+{$else}
 function copy(const s : shortstring;index : StrLenInt;count : StrLenInt): shortstring;
+{$endif}
 begin
   if count<0 then
    count:=0;
@@ -40,8 +44,13 @@ begin
   else
    if count>length(s)-index then
     count:=length(s)-index;
+{$ifdef interncopy}
+  fpc_shortstr_Copy[0]:=chr(Count);
+  Move(s[Index+1],fpc_shortstr_Copy[1],Count);
+{$else}
   Copy[0]:=chr(Count);
   Move(s[Index+1],Copy[1],Count);
+{$endif}
 end;
 
 
@@ -150,6 +159,15 @@ begin
 end;
 
 
+{$ifdef interncopy}
+function fpc_char_copy(c:char;index : StrLenInt;count : StrLenInt): shortstring;compilerproc;
+begin
+  if (index=1) and (Count>0) then
+   fpc_char_Copy:=c
+  else
+   fpc_char_Copy:='';
+end;
+{$else}
 function copy(c:char;index : StrLenInt;count : StrLenInt): shortstring;
 begin
   if (index=1) and (Count>0) then
@@ -157,6 +175,7 @@ begin
   else
    Copy:='';
 end;
+{$endif}
 
 
 function pos(const substr : shortstring;c:char): StrLenInt;
@@ -659,7 +678,12 @@ end;
 
 {
   $Log$
-  Revision 1.23  2002-09-14 11:20:50  carl
+  Revision 1.24  2002-10-02 18:21:51  peter
+    * Copy() changed to internal function calling compilerprocs
+    * FPC_SHORTSTR_COPY renamed to FPC_SHORTSTR_ASSIGN because of the
+      new copy functions
+
+  Revision 1.23  2002/09/14 11:20:50  carl
     * Delphi compatibility fix (with string routines)
 
   Revision 1.22  2002/09/07 21:19:00  carl

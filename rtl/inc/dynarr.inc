@@ -248,20 +248,32 @@ procedure fpc_dynarray_setlength(var p : pointer;pti : pointer;
   end;
 
 
-function fpc_dynarray_copy(var p : pointer;ti : pointer;
-  dimcount : dword;dims : pdynarrayindex) : pointer;[Public,Alias:'FPC_DYNARRAY_COPY']; {$ifdef hascompilerproc} compilerproc; {$endif}
-
+procedure fpc_dynarray_copy(var pdest : pointer;psrc : pointer;ti : pointer);{$ifdef hascompilerproc} compilerproc; {$endif}
+  var
+    size : longint;
   begin
-     { note: ti is of type pdynarrayinfo, but it can't be declared       }
-     { that way because this procedure is also declared in the interface }
-     { (as compilerproc) and the pdynarraytypeinfo isn't available there }
-     {!!!!!!!!!!}
+     pdest:=nil;
+     if psrc=nil then
+       exit;
+
+     { skip kind and name }
+     inc(pointer(ti),ord(pdynarraytypeinfo(ti)^.namelen));
+
+     { create new array }
+     size:=pdynarraytypeinfo(ti)^.elesize*(pdynarray(psrc)^.high+1)+sizeof(tdynarray);
+     getmem(pdest,size);
+     move(psrc^,pdest^,size);
   end;
 
 
 {
   $Log$
-  Revision 1.18  2002-09-07 15:07:45  peter
+  Revision 1.19  2002-10-02 18:21:51  peter
+    * Copy() changed to internal function calling compilerprocs
+    * FPC_SHORTSTR_COPY renamed to FPC_SHORTSTR_ASSIGN because of the
+      new copy functions
+
+  Revision 1.18  2002/09/07 15:07:45  peter
     * old logs removed and tabs fixed
 
   Revision 1.17  2002/04/26 15:19:05  peter

@@ -723,8 +723,12 @@ LShortStrCopyDone:
 end ['R0','R3','R4','R5','R10','CR0','CTR'];
 
 
-{$define FPC_SYSTEM_HAS_FPC_SHORTSTR_COPY}
+{$define FPC_SYSTEM_HAS_FPC_SHORTSTR_ASSIGN}
+{$ifdef interncopy}
+procedure fpc_shortstr_assign(len:longint;sstr,dstr:pointer);[public,alias:'FPC_SHORTSTR_ASSIGN'];
+{$else}
 procedure fpc_shortstr_copy(len:longint;sstr,dstr:pointer);[public,alias:'FPC_SHORTSTR_COPY'];
+{$endif}
 assembler;
 { input: r3: len, r4: sstr, r5: dstr }
 asm
@@ -960,7 +964,12 @@ end ['R3','R10'];
 
 {
   $Log$
-  Revision 1.20  2002-09-10 21:30:34  jonas
+  Revision 1.21  2002-10-02 18:21:52  peter
+    * Copy() changed to internal function calling compilerprocs
+    * FPC_SHORTSTR_COPY renamed to FPC_SHORTSTR_ASSIGN because of the
+      new copy functions
+
+  Revision 1.20  2002/09/10 21:30:34  jonas
     * disabled powerpc-specific fpc_shortstr_concat for now, it was
       completely wrong
 

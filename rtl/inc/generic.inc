@@ -422,7 +422,7 @@ begin
      end
    else
      ppointer(_self+vmt_pos)^:=nil;
-   _self := nil;  
+   _self := nil;
 end;
 {$endif FPC_SYSTEM_HAS_FPC_HELP_FAIL}
 
@@ -506,7 +506,7 @@ end;
                                  String
 ****************************************************************************}
 
-{$ifndef FPC_SYSTEM_HAS_FPC_SHORTSTR_COPY}
+{$ifndef FPC_SYSTEM_HAS_FPC_SHORTSTR_ASSIGN}
 
 function fpc_shortstr_to_shortstr(len:longint;const sstr:shortstring): shortstring;[public,alias:'FPC_SHORTSTR_TO_SHORTSTR']; {$ifdef hascompilerproc} compilerproc; {$endif}
 var
@@ -530,7 +530,11 @@ begin
     move(sstr[0],result[0],len+1);
 end;
 
+{$ifdef interncopy}
+procedure fpc_shortstr_assign(len:longint;sstr,dstr:pointer);[public,alias:'FPC_SHORTSTR_ASSIGN']; {$ifdef HAS_COMPILER_PROC} compilerproc; {$endif}
+{$else}
 procedure fpc_shortstr_copy(len:longint;sstr,dstr:pointer);[public,alias:'FPC_SHORTSTR_COPY']; {$ifdef HAS_COMPILER_PROC} compilerproc; {$endif}
+{$endif}
 var
   slen : byte;
 type
@@ -557,7 +561,7 @@ begin
  }
 end;
 
-{$endif ndef FPC_SYSTEM_HAS_FPC_SHORTSTR_COPY}
+{$endif ndef FPC_SYSTEM_HAS_FPC_SHORTSTR_ASSIGN}
 
 {$ifndef FPC_SYSTEM_HAS_FPC_SHORTSTR_CONCAT}
 
@@ -920,7 +924,12 @@ end;
 {$endif ndef FPC_SYSTEM_HAS_INT_STR_LONGWORD}
 {
   $Log$
-  Revision 1.37  2002-09-27 21:10:40  carl
+  Revision 1.38  2002-10-02 18:21:51  peter
+    * Copy() changed to internal function calling compilerprocs
+    * FPC_SHORTSTR_COPY renamed to FPC_SHORTSTR_ASSIGN because of the
+      new copy functions
+
+  Revision 1.37  2002/09/27 21:10:40  carl
     * fix 2GB limit problem
 
   Revision 1.36  2002/09/13 19:13:06  carl

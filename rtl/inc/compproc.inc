@@ -47,16 +47,18 @@ function fpc_pchar_to_shortstr(p:pchar):shortstring; compilerproc;
 function fpc_chararray_to_shortstr(const arr: array of char):shortstring; compilerproc;
 function fpc_shortstr_to_chararray(arraysize: longint; const src: ShortString): fpc_big_chararray; compilerproc;
 
+Function  fpc_shortstr_Copy(const s:shortstring;index:StrLenInt;count:StrLenInt):shortstring;compilerproc;
+Function  fpc_ansistr_Copy (Const S : AnsiString; Index,Size : Longint) : AnsiString;compilerproc;
+Function  fpc_widestr_Copy (Const S : WideString; Index,Size : Longint) : WideString;compilerproc;
+function  fpc_char_copy(c:char;index : StrLenInt;count : StrLenInt): shortstring;compilerproc;
+procedure fpc_dynarray_copy(var pdest : pointer;psrc : pointer;ti : pointer);compilerproc;
 
-function fpc_dynarray_length(p : pointer) : tdynarrayindex; compilerproc;
-function fpc_dynarray_high(p : pointer) : tdynarrayindex; compilerproc;
+function  fpc_dynarray_length(p : pointer) : tdynarrayindex; compilerproc;
+function  fpc_dynarray_high(p : pointer) : tdynarrayindex; compilerproc;
 procedure fpc_dynarray_clear(var p : pointer;ti : pointer); compilerproc;
 procedure fpc_dynarray_decr_ref(var p : pointer;ti : pointer); compilerproc;
 procedure fpc_dynarray_incr_ref(p : pointer); compilerproc;
-procedure fpc_dynarray_setlength(var p : pointer;pti : pointer;
-  dimcount : dword;dims : pdynarrayindex); compilerproc;
-function fpc_dynarray_copy(var p : pointer;ti : pointer;
-  dimcount : dword;dims : pdynarrayindex) : pointer; compilerproc;
+procedure fpc_dynarray_setlength(var p : pointer;pti : pointer; dimcount : dword;dims : pdynarrayindex); compilerproc;
 
 procedure fpc_ShortStr_Float(d : ValReal;len,fr,rt : longint;var s : shortstring); compilerproc;
 procedure fpc_ShortStr_Longint(v : longint;len : longint;var s : shortstring); compilerproc;
@@ -263,7 +265,12 @@ function fpc_qword_to_double(q: qword): double; compilerproc;
 
 {
   $Log$
-  Revision 1.23  2002-09-27 21:10:40  carl
+  Revision 1.24  2002-10-02 18:21:51  peter
+    * Copy() changed to internal function calling compilerprocs
+    * FPC_SHORTSTR_COPY renamed to FPC_SHORTSTR_ASSIGN because of the
+      new copy functions
+
+  Revision 1.23  2002/09/27 21:10:40  carl
     * fix 2GB limit problem
 
   Revision 1.22  2002/09/07 21:12:04  carl

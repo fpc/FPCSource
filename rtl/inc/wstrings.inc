@@ -619,7 +619,11 @@ begin
 end;
 
 
+{$ifdef interncopy}
+Function Fpc_WideStr_Copy (Const S : WideString; Index,Size : Longint) : WideString;compilerproc;
+{$else}
 Function Copy (Const S : WideString; Index,Size : Longint) : WideString;
+{$endif}
 var
   ResultAddress : Pointer;
 begin
@@ -644,7 +648,11 @@ begin
         PWideChar(ResultAddress+Size*sizeof(WideChar))^:=#0;
       end;
    end;
+{$ifdef interncopy}
+  Pointer(fpc_widestr_Copy):=ResultAddress;
+{$else}
   Pointer(Copy):=ResultAddress;
+{$endif}
 end;
 
 
@@ -880,7 +888,12 @@ end;
 
 {
   $Log$
-  Revision 1.22  2002-09-26 21:50:38  florian
+  Revision 1.23  2002-10-02 18:21:52  peter
+    * Copy() changed to internal function calling compilerprocs
+    * FPC_SHORTSTR_COPY renamed to FPC_SHORTSTR_ASSIGN because of the
+      new copy functions
+
+  Revision 1.22  2002/09/26 21:50:38  florian
     + some WideString<->AnsiString conversion functions added
 
   Revision 1.21  2002/09/14 11:20:50  carl
