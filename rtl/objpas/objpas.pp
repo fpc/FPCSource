@@ -262,10 +262,10 @@ unit objpas;
            ClassName:=PShortString((PPointer(Self)+vmtClassName)^)^;
         end;
 
-      class function TObject.classnameis(const name : string) : boolean;
+      class function TObject.ClassNameIs(const name : string) : boolean;
 
         begin
-           classnameis:=classname=name;
+           ClassNameIs:=ClassName=name;
         end;
 
       class function TObject.InheritsFrom(aclass : TClass) : Boolean;
@@ -306,7 +306,8 @@ unit objpas;
            vmt:=ClassType;
            while vmt<>nil do
              begin
-                Finalize(Pointer(Self),Pointer(vmt)+vmtInitTable);
+                if Assigned(Pointer((Pointer(vmt)+vmtInitTable)^)) then
+                  Finalize(Pointer(Self),Pointer((Pointer(vmt)+vmtInitTable)^));
                 vmt:=vmt.ClassParent;
              end;
         end;
@@ -319,7 +320,10 @@ end.
 {$endif VER0_99_5}
 {
   $Log$
-  Revision 1.7  1998-09-04 08:49:06  peter
+  Revision 1.8  1998-09-06 21:27:31  florian
+    + method tobject.classinfo added
+
+  Revision 1.7  1998/09/04 08:49:06  peter
     * 0.99.5 doesn't compile a whole objpas anymore to overcome crashes
 
   Revision 1.6  1998/08/23 20:58:52  florian
