@@ -18,7 +18,12 @@
 %   write to the Free Software Foundation, Inc., 59 Temple Place - Suite 330,
 %   Boston, MA 02111-1307, USA.
 %
-\documentclass{report}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Preamble. 
+% Uncomment the one you need here. The book version is for the published
+% book version.
+%\documentclass{report}
+\documentclass{book}
 %
 % Preamble
 %
@@ -27,18 +32,20 @@
   \usepackage{htmllist}
   \latex{\usepackage{fpc}}
 \else
+b%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Uncomment the fpc or fpcbook version, depending on the output format 
+% you want.
   \usepackage{fpc}
+  \usepackage{fpcbook}
 \fi
-%
-\html{\input{fpc-html.tex}}
-%
-\ifpdf
+\latex{%
+  \ifpdf
   \pdfinfo{/Author(Michael Van Canneyt)
            /Title(Standard units Reference Guide)
            /Subject(Free Pascal Reference guide)
            /Keywords(Free Pascal, Language, System Unit)
            }
-\fi
+\fi}
 %
 % Settings
 %
@@ -48,7 +55,6 @@
 %
 \usepackage{syntax}
 \input{syntax/diagram.tex}
-\usepackage{layout}
 %
 % Start of document.
 %
@@ -72,7 +78,6 @@
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % About this guide
-\layout
 \section*{About this guide}
 This document describes all constants, types, variables, functions and
 procedures as they are declared in the system unit.
