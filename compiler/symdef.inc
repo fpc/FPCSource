@@ -46,6 +46,7 @@
        tkClass         = 16;
        tkObject        = 17;
        tkWChar         = 18;
+       tkBool          = 19;
 
        otSByte         = 0;
        otUByte         = 1;
@@ -574,6 +575,12 @@
          end;
       end;
 
+    function tstringdef.is_publishable : boolean;
+
+      begin
+         is_publishable:=true;
+      end;
+
 {*************************************************************************************************************************
                                  TENUMDEF
 ****************************************************************************}
@@ -711,12 +718,38 @@
       end;
 {$endif GDB}
 
-    procedure tenumdef.generate_rtti;
+    procedure tenumdef.write_child_rtti_data;
 
       begin
-         inherited generate_rtti;
+         if assigned(basedef) then
+           basedef^.get_rtti_label;
+      end;
+
+    procedure tenumdef.write_rtti_data;
+
+      begin
          rttilist^.concat(new(pai_const,init_8bit(tkEnumeration)));
-         rttilist^.concat(new(pai_const,init_8bit(0)));
+         case savesize of
+            1:
+              rttilist^.concat(new(pai_const,init_8bit(otUByte)));
+            2:
+              rttilist^.concat(new(pai_const,init_8bit(otUWord)));
+            4:
+              rttilist^.concat(new(pai_const,init_8bit(otULong)));
+         end;
+         rttilist^.concat(new(pai_const,init_32bit(min)));
+         rttilist^.concat(new(pai_const,init_32bit(max)));
+         if assigned(basedef) then
+           rttilist^.concat(new(pai_const,init_symbol(strpnew(lab2str(basedef^.get_rtti_label)))))
+         else
+           rttilist^.concat(new(pai_const,init_32bit(0)));
+         {!!!!!!! Name list }
+      end;
+
+    function tenumdef.is_publishable : boolean;
+
+      begin
+         is_publishable:=true;
       end;
 
 {*************************************************************************************************************************
@@ -856,8 +889,27 @@
 
     procedure torddef.write_rtti_data;
 
+      const
+        trans : array[uchar..bool8bit] of byte =
+          (otUByte,otUByte,otUWord,otULong,otSByte,otSWord,otSLong,otUByte);
+
       begin
-         rttilist^.concat(new(pai_const,init_8bit(255)));
+         case typ of
+            bool8bit:
+              rttilist^.concat(new(pai_const,init_8bit(tkBool)));
+            uchar:
+              rttilist^.concat(new(pai_const,init_8bit(tkChar)));
+            else
+              rttilist^.concat(new(pai_const,init_8bit(tkInteger)));
+         end;
+         rttilist^.concat(new(pai_const,init_32bit(low)));
+         rttilist^.concat(new(pai_const,init_32bit(high)));
+      end;
+
+    function torddef.is_publishable : boolean;
+
+      begin
+         is_publishable:=typ in [uchar..bool8bit];
       end;
 
 {*************************************************************************************************************************
@@ -941,6 +993,12 @@
       begin
          rttilist^.concat(new(pai_const,init_8bit(tkFloat)));
          rttilist^.concat(new(pai_const,init_8bit(translate[typ])));
+      end;
+
+    function tfloatdef.is_publishable : boolean;
+
+      begin
+         is_publishable:=true;
       end;
 
 {*************************************************************************************************************************
@@ -1236,11 +1294,24 @@
          resolvedef(setof);
       end;
 
-    procedure tsetdef.generate_rtti;
+    procedure tsetdef.write_rtti_data;
 
       begin
-         inherited generate_rtti;
-         rttilist^.concat(new(pai_const,init_8bit(255)));
+         rttilist^.concat(new(pai_const,init_8bit(tkSet)));
+         rttilist^.concat(new(pai_const,init_8bit(otULong)));
+         rttilist^.concat(new(pai_const,init_symbol(strpnew(lab2str(setof^.get_rtti_label)))));
+      end;
+
+    procedure tsetdef.write_child_rtti_data;
+
+      begin
+         setof^.get_rtti_label;
+      end;
+
+    function tsetdef.is_publishable : boolean;
+
+      begin
+         is_publishable:=settype=smallset;
       end;
 
 {***********************************************************************************
@@ -1386,7 +1457,7 @@
     procedure tarraydef.write_child_rtti_table;
 
       begin
-         definition^.generate_rtti;
+         definition^.get_rtti_label;
       end;
 
     procedure tarraydef.write_rtti_data;
@@ -1399,7 +1470,7 @@
          { count of elements }
          rttilist^.concat(new(pai_const,init_32bit(highrange-lowrange+1)));
          { element type }
-         rttilist^.concat(new(pai_const,init_symbol(strpnew(lab2str(definition^.get_inittable_label)))));
+         rttilist^.concat(new(pai_const,init_symbol(strpnew(lab2str(definition^.get_rtti_label)))));
       end;
 
 {***********************************************************************************
@@ -2167,11 +2238,6 @@
 {$endif UseBrowser}
       end;
 
-    procedure tprocdef.write_rtti_data;
-
-      begin
-      end;
-
 {***********************************************************************************
                                  TPROCVARDEF
 ***************************************************************************}
@@ -2254,6 +2320,24 @@
          is_def_stab_written:=true;
       end;
 {$endif GDB}
+
+    procedure tprocvardef.write_rtti_data;
+
+      begin
+         {!!!!!!!}
+      end;
+
+    procedure tprocvardef.write_child_rtti_data;
+
+      begin
+         {!!!!!!!!}
+      end;
+
+    function tprocvardef.is_publishable : boolean;
+
+      begin
+         is_publishable:=(options and pomethodpointer)<>0;
+      end;
 
 {***************************************************************************
                               TOBJECTDEF
@@ -2790,6 +2874,12 @@
          publicsyms^.foreach(write_property_info);
       end;
 
+    function tobjectdef.is_publishable : boolean;
+
+      begin
+         is_publishable:=isclass;
+      end;
+
 {****************************************************************************
                                   TERRORDEF
 ****************************************************************************}
@@ -2809,7 +2899,11 @@
 
 {
   $Log$
-  Revision 1.37  1998-09-07 19:33:24  florian
+  Revision 1.38  1998-09-07 23:10:23  florian
+    * a lot of stuff fixed regarding rtti and publishing of properties,
+      basics should now work
+
+  Revision 1.37  1998/09/07 19:33:24  florian
     + some stuff for property rtti added:
        - NameIndex of the TPropInfo record is now written correctly
        - the DEFAULT/NODEFAULT keyword is supported now

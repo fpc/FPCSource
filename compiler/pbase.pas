@@ -193,6 +193,7 @@ unit pbase;
                    s:=lower(st^.name^)+'_'+s;
                    st^.defowner^.owner^.insert(new(pvarsym,init(s,def)));
                 end;
+
            end;
          dispose(sc,done);
       end;
@@ -201,7 +202,11 @@ end.
 
 {
   $Log$
-  Revision 1.14  1998-07-14 21:46:49  peter
+  Revision 1.15  1998-09-07 23:10:21  florian
+    * a lot of stuff fixed regarding rtti and publishing of properties,
+      basics should now work
+
+  Revision 1.14  1998/07/14 21:46:49  peter
     * updated messages file
 
   Revision 1.13  1998/07/14 14:46:52  peter

@@ -163,6 +163,8 @@ type tmsgconst=(
   parser_e_register_calling_not_supported,
   parser_e_property_cant_have_a_default_value,
   parser_e_property_default_value_must_const,
+  parser_e_cant_publish_that,
+  parser_e_cant_publish_that_property,
   type_e_mismatch,
   type_e_integer_expr_expected,
   type_e_ordinal_expr_expected,

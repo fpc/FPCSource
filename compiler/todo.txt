@@ -12,20 +12,24 @@ compiler version and your short cut.
           does read/write access ................................. 0.99.6 (FK)
         - indexed properties ..................................... 0.99.6 (FK)
         - default properties ..................................... 0.99.6 (FK)
+    - save array for overriding
     - stored qualifier
         - read/write from/to unit file ........................... 0.99.6 (FK)
   - call of destructor helper routine
   - message qualifier
         - correct handling of constructor result type ............ 0.99.6 (FK)
-  - rtti
-  - published
+        - rtti ................................................... 0.99.8 (FK)
+        - published .............................................. 0.99.8 (FK)
   - dynamic methods
-  - correct handling of access specifiers ........................ 0.99.7 (FK)
+        - correct handling of access specifiers .................. 0.99.7 (FK)
   - interface
 * rtti
           - generation ........................................... 0.99.7 (FK)
           - use when copying etc. ................................ 0.99.7 (FK)
-  - new/dispose should look for rtti'ed data
+          - new/dispose should look for rtti'ed data ............. 0.99.8 (FK)
+  - enumeration names
+  - methodpointers
+  - change booleans into enumerations
 * AnsiString
   - operators
   - indexed access
@@ -53,7 +57,7 @@ compiler version and your short cut.
       - open array with call by value ............................ 0.99.6 (FK)
       - subrange types of enumerations ........................... 0.99.7 (PFV)
 - method pointers (procedure of object)
-- code generation for exceptions
+      - code generation for exceptions ........................... 0.99.7 (FK)
 - assertation
 - sysutils unit for go32v2 (excpetions!)
 - initialisation/finalization for units
@@ -68,3 +72,8 @@ compiler version and your short cut.
 - include/exclude
         - make dec/inc internal................................... 0.99.6 (PFV)
         - make length internal.................................... 0.99.7 (PFV)
+* Delphi 4 support
+  - overloaded directive
+  - default parameters
+  - dynamic arrays
+  - 64 bit int

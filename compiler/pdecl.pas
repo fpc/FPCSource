@@ -425,7 +425,12 @@ unit pdecl;
               end;
              { insert it in the symtable, if not done yet }
              if not symdone then
-              insert_syms(symtablestack,sc,p);
+               begin
+                  if (current_object_option=sp_published) and
+                    (not((p^.deftype=objectdef) and (pobjectdef(p)^.isclass))) then
+                    Message(parser_e_cant_publish_that);
+                  insert_syms(symtablestack,sc,p);
+               end;
            end;
        { Check for Case }
          if is_record and (token=_CASE) then
@@ -716,6 +721,9 @@ unit pdecl;
                 { property parameters ? }
                 if token=LECKKLAMMER then
                   begin
+                     if current_object_option=sp_published then
+                       Message(parser_e_cant_publish_that_property);
+
                      { create a list of the parameters in propertyparas }
                      consume(LECKKLAMMER);
                      inc(testcurobject);
@@ -819,6 +827,11 @@ unit pdecl;
                           message(parser_e_no_property_found_to_override);
                        end;
                   end;
+
+                if (current_object_option=sp_published) and
+                  not(p^.proptype^.is_publishable) then
+                  Message(parser_e_cant_publish_that_property);
+
                 { create data defcoll to allow correct parameter checks }
                 new(datacoll);
                 datacoll^.paratyp:=vs_value;
@@ -1358,7 +1371,10 @@ unit pdecl;
                 datasegment^.concat(new(pai_const,init_32bit(0)));
 
               { pointer to type info of published section }
-              datasegment^.concat(new(pai_const,init_symbol(strpnew(aktclass^.rtti_name))));
+              if (aktclass^.options and oo_can_have_published)<>0 then
+                datasegment^.concat(new(pai_const,init_symbol(strpnew(aktclass^.rtti_name))))
+              else
+                datasegment^.concat(new(pai_const,init_32bit(0)));
 
               { pointer to field table }
               datasegment^.concat(new(pai_const,init_32bit(0)));
@@ -1992,7 +2008,11 @@ unit pdecl;
 end.
 {
   $Log$
-  Revision 1.51  1998-09-07 19:33:22  florian
+  Revision 1.52  1998-09-07 23:10:22  florian
+    * a lot of stuff fixed regarding rtti and publishing of properties,
+      basics should now work
+
+  Revision 1.51  1998/09/07 19:33:22  florian
     + some stuff for property rtti added:
        - NameIndex of the TPropInfo record is now written correctly
        - the DEFAULT/NODEFAULT keyword is supported now
