@@ -23,7 +23,8 @@ libgcc=1
 [postsettings]
 # when making a full version include the compiler
 ifeq ($(FULL),1)
-override UNITDIR+=../../compiler
+override UNITDIR+=../../compiler ../../compiler/$(CPU_TARGET)
+override INCDIR+=../../compiler ../../compiler/$(CPU_TARGET)
 else
 override UNITDIR+=../fake/compiler
 endif
