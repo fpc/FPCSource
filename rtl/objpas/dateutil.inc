@@ -1518,9 +1518,53 @@ end;
 
 
 Procedure DecodeDateWeek(const AValue: TDateTime; var AYear, AWeekOfYear, ADayOfWeek: Word);
+  
+var
+  DOY : Integer;
+  D: Word;
+  YS : TDateTime;
+  YSDOW, YEDOW: Word;
+  
 begin
-  NotYetImplemented('DecodeDateWeek');
+  AYear:=YearOf(AValue);
+  // Correct to ISO DOW
+  ADayOfWeek:=DayOfWeek(AValue)-1;
+  If ADAyOfWeek=0 then
+    ADayofweek:=7;
+  YS:=StartOfAYear(AYear);
+  DOY:=Trunc(AValue-YS)+1;
+  YSDOW:=DayOfTheWeek(YS);
+  // Correct week if later than wednesday. First week never starts later than wednesday
+  if (YSDOW<5) then 
+    Inc(DOY,YSDOW-1)
+  else
+    Dec(DOY,8-YSDOW);
+  if (DOY<=0) then // Day is in last week of previous year.
+    DecodeDateWeek(YS-1,AYear,AWeekOfYear,D)
+  else
+    begin
+    AWeekOfYear:=DOY div 7;
+    if ((DOY mod 7)<>0) then
+      Inc(AWeekOfYear);
+    if (AWeekOfYear>52) then // Maybe in first week of next year ?
+      begin
+      YEDOW:=YSDOW;
+      if IsLeapYear(AYear) then
+        begin
+        Inc(YEDOW);
+        if (YEDOW>7) then
+          YEDOW:=1
+        else
+      end;
+      if (YEDOW<4) then // Really next year.
+        begin
+        Inc(AYear);
+        AWeekOfYear:=1;
+        end;
+      end;
+  end;
 end;
+
 
 
 Function TryEncodeDateWeek(const AYear, AWeekOfYear: Word; var AValue: TDateTime; const ADayOfWeek: Word): Boolean;
@@ -1952,7 +1996,10 @@ end.
 
 {
   $Log$
-  Revision 1.2  2004-01-10 19:35:17  michael
+  Revision 1.3  2004-08-12 12:26:34  michael
+  + Implemented decodedateweek
+
+  Revision 1.2  2004/01/10 19:35:17  michael
   + Moved all resource strings to rtlconst/sysconst
 
   Revision 1.1  2003/12/06 18:03:46  hajny
