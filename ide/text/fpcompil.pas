@@ -455,6 +455,9 @@ begin
      { update info messages }
      if assigned(CompilerStatusDialog) then
       CompilerStatusDialog^.Update;
+{$ifdef DEBUG}
+     def_gdb_stop(level);
+{$endif DEBUG}
 {$ifdef redircompiler}
       RedirEnableAll;
 {$endif}
@@ -745,7 +748,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.43  1999-11-18 13:49:56  pierre
+  Revision 1.44  1999-11-21 01:44:34  pierre
+   + Use def_gdb_stop for easy GDB debugging
+
+  Revision 1.43  1999/11/18 13:49:56  pierre
    + use IsExe var to know if we need to call ppas
 
   Revision 1.42  1999/11/10 17:20:41  pierre
