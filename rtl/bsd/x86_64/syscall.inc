@@ -35,7 +35,7 @@ asm
   movq  FPC_THREADVAR_RELOCATE,%rax
   testq %rax,%rax
   jne   .LThread
-  movq  %rcx,Errno+4
+  movq  %rcx,Errno+8
   jmp   .LNoThread
 .LThread:
   pushq %rcx
@@ -60,7 +60,7 @@ asm
   movq  FPC_THREADVAR_RELOCATE,%rax
   testq %rax,%rax
   jne   .LThread
-  movq  %rcx,Errno+4
+  movq  %rcx,Errno+8
   jmp   .LNoThread
 .LThread:
   pushq %rcx
@@ -87,7 +87,7 @@ asm
   movq  FPC_THREADVAR_RELOCATE,%rax
   testq %rax,%rax
   jne   .LThread
-  movq  %rcx,Errno+4
+  movq  %rcx,Errno+8
   jmp   .LNoThread
 .LThread:
   pushq %rcx
@@ -115,7 +115,7 @@ asm
   movq  FPC_THREADVAR_RELOCATE,%rax
   testq %rax,%rax
   jne   .LThread
-  movq  %rcx,Errno+4
+  movq  %rcx,Errno+8
   jmp   .LNoThread
 .LThread:
   pushq %rcx
@@ -144,7 +144,7 @@ asm
   movq  FPC_THREADVAR_RELOCATE,%rax
   testq %rax,%rax
   jne   .LThread
-  movq  %rcx,Errno+4
+  movq  %rcx,Errno+8
   jmp   .LNoThread
 .LThread:
   pushq %rcx
@@ -174,7 +174,7 @@ asm
   movq  FPC_THREADVAR_RELOCATE,%rax
   testq %rax,%rax
   jne   .LThread
-  movq  %rcx,Errno+4
+  movq  %rcx,Errno+8
   jmp   .LNoThread
 .LThread:
   pushq %rcx
@@ -206,7 +206,7 @@ asm
   movq  FPC_THREADVAR_RELOCATE,%rax
   testq %rax,%rax
   jne   .LThread
-  movq  %rcx,Errno+4
+  movq  %rcx,Errno+8
   jmp   .LNoThread
 .LThread:
   pushq %rcx
@@ -228,7 +228,7 @@ procedure actualsyscall; assembler; {inline requires a dummy push IIRC}
      movq  FPC_THREADVAR_RELOCATE,%rax
      testq %rax,%rax
      jne   .LThread
-     movq  %rcx,Errno+4
+     movq  %rcx,Errno+8
      jmp   .LNoThread
    .LThread:
      pushq %rcx
@@ -259,7 +259,10 @@ end;
 
 {
   $Log$
-  Revision 1.2  2004-05-16 21:01:23  marco
+  Revision 1.3  2004-05-18 20:05:01  marco
+   * errno+4 becomes errno+8
+
+  Revision 1.2  2004/05/16 21:01:23  marco
    * syscallnr for __syscall entered
 
   Revision 1.1  2004/05/16 20:48:32  marco
