@@ -24,9 +24,14 @@ begin
   Func1:=X;
 end;
 
+var i : longint;
+
 BEGIN
   X:=nil;
   writeln('Hello world!');
+  Writeln('ParamCount = ',ParamCount);
+  For i:=0 to paramcount do
+   writeln('Paramstr(',i,') = ',Paramstr(i));
   writeln(IsOdd(3));
   writeln(Func1(5,5,true));
   Halt;
