@@ -1438,7 +1438,7 @@ end;
 Function fdTruncate(fd,size:longint):boolean;
 
 begin
- fdtruncate:=do_syscall(201,fd,size)=0;
+ fdtruncate:=do_syscall(201,fd,size,0)=0;
  LinuxError:=Errno;
 end;
 
@@ -3645,7 +3645,10 @@ End.
 
 {
   $Log$
-  Revision 1.7  2000-03-16 16:19:28  marco
+  Revision 1.8  2000-03-17 12:58:57  marco
+   * some changes to ftruncate based procs. Added a "0" as extra parameter
+
+  Revision 1.7  2000/03/16 16:19:28  marco
    * fixes that made ppc386 -h working
 
   Revision 1.6  2000/03/02 15:33:20  marco

@@ -38,7 +38,7 @@ type
 
 { The following are records for system calls BSD updated }
   dirent = packed record
-    ino    : cardinal;		{ This is not inode number, but "a number 
+    ino    : cardinal;		{ This is not inode number, but "a number
 				  unique for each file on a filesystem"}
     reclen : word;
     d_type,
@@ -58,11 +58,12 @@ type
     nextoff: longint;
     dd_max : integer; {size of buf. Irrelevant, as buf is of type dirent}
     lock   : pointer;
+    dummy  : array[0..1023] of char;
   end;
   PDir =^TDir;
 
 {$packrecords C}
- Stat =record {BSD version} 
+ Stat =record {BSD version}
         dev,                            { inode's device }
         ino        :  cardinal;         { inode's number }
         mode, 				{ inode protection mode }
@@ -138,7 +139,10 @@ type
 
 {
   $Log$
-  Revision 1.4  2000-02-04 16:55:47  marco
+  Revision 1.5  2000-03-17 12:58:57  marco
+   * some changes to ftruncate based procs. Added a "0" as extra parameter
+
+  Revision 1.4  2000/02/04 16:55:47  marco
    * Fixed tdir, some params need to be 32-bit
 
   Revision 1.3  2000/02/03 17:05:55  marco

@@ -338,7 +338,7 @@ Procedure Do_Truncate(Handle,Pos:longint);
 
 begin
 {$ifndef crtlib}
-  do_syscall(201,handle,pos);
+  do_syscall(201,handle,pos,0);
   Errno2Inoutres;
 {$endif}
 end;
@@ -689,7 +689,10 @@ End.
 
 {
   $Log$
-  Revision 1.2  2000-03-16 16:21:10  marco
+  Revision 1.3  2000-03-17 12:58:57  marco
+   * some changes to ftruncate based procs. Added a "0" as extra parameter
+
+  Revision 1.2  2000/03/16 16:21:10  marco
    * changes to get ppc386 -h working
 
   Revision 1.1  2000/03/01 20:23:07  marco
