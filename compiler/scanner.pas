@@ -621,7 +621,12 @@ implementation
                          c:=inputpointer^;
                          inc(longint(inputpointer));
                        end;
-              #0,#26 : reload;
+              #0 : reload;
+              #26 : begin
+                      reload;
+                      if c=#26 then
+                        break;
+                    end;
              #13,#10 : begin
                          linebreak;
                          break;
@@ -1656,7 +1661,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.83  1999-05-20 14:57:29  peter
+  Revision 1.84  1999-05-31 23:28:42  pierre
+   * problem with main file end without newline
+
+  Revision 1.83  1999/05/20 14:57:29  peter
     * fixed line counting with macro's
 
   Revision 1.82  1999/05/04 21:45:04  florian
