@@ -672,7 +672,7 @@ Procedure TStringList.QuickSort(L, R: Integer; CompareFn: TStringListSortCompare
 Var I,J, Pivot : Longint;
 
 begin
-  Repeat;
+  Repeat
     I:=L;
     J:=R;
     Pivot:=(L+R) div 2;
@@ -682,6 +682,10 @@ begin
       If I<=J then
         begin
         ExchangeItems(I,J); // No check, indices are correct.
+        if Pivot=I then
+          Pivot:=J
+        else if Pivot=J then
+          Pivot := I;
         Inc(I);
         Dec(j);
         end;
@@ -915,7 +919,7 @@ begin
   If (Index1<0) or (Index1>=FCount) then
     Error(SListIndexError,Index1);
   If (Index2<0) or (Index2>=FCount) then
-    Error(SListIndexError,Index1);
+    Error(SListIndexError,Index2);
   Changing;
   ExchangeItems(Index1,Index2);
   changed;
@@ -995,7 +999,7 @@ function StringListAnsiCompare(List: TStringList; Index1, Index: Integer): Integ
 
 begin
   Result := AnsiCompareText(List.FList^[Index1].FString,
-    List.FList^[Index1].FString);
+    List.FList^[Index].FString);
 end;
 
 Procedure TStringList.Sort;
@@ -1006,7 +1010,10 @@ end;
 
 {
   $Log$
-  Revision 1.1.2.3  2001-01-10 16:58:25  sg
+  Revision 1.1.2.4  2001-02-23 22:22:28  michael
+  + Fixed sorting of stringslist
+
+  Revision 1.1.2.3  2001/01/10 16:58:25  sg
   * Implemented streaming support
 
   Revision 1.1.2.2  2000/12/03 22:32:27  sg
