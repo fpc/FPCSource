@@ -457,6 +457,8 @@ implementation
 
 
     procedure second_cstring_to_pchar(pto,pfrom : ptree;convtyp : tconverttype);
+      var
+        hr : preference;
       begin
          clear_location(pto^.location);
          pto^.location.loc:=LOC_REGISTER;
@@ -470,8 +472,18 @@ implementation
              end;
            st_ansistring :
              begin
-               emit_ref_reg(A_MOV,S_L,newreference(pfrom^.location.reference),
-                 pto^.location.register);
+               if (pfrom^.treetype=stringconstn) and
+                  (str_length(pfrom)=0) then
+                begin
+                  new(hr);
+                  reset_reference(hr^);
+                  hr^.symbol:=newasmsymbol('FPC_EMPTYCHAR');
+                  emit_ref_reg(A_LEA,S_L,hr,pto^.location.register);
+                end
+               else
+
+                emit_ref_reg(A_MOV,S_L,newreference(pfrom^.location.reference),
+                  pto^.location.register);
              end;
            st_longstring:
              begin
@@ -1464,7 +1476,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.89  1999-09-26 21:30:15  peter
+  Revision 1.90  1999-10-06 08:32:00  peter
+    * fixed empty const ansistring 2 pchar
+
+  Revision 1.89  1999/09/26 21:30:15  peter
     + constant pointer support which can happend with typecasting like
       const p=pointer(1)
     * better procvar parsing in typed consts
