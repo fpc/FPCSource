@@ -168,7 +168,7 @@ implementation
          ((tc_not_possible,tc_not_possible,tc_not_possible,tc_not_possible),
           (tc_not_possible,tc_char_2_char,tc_not_possible,tc_not_possible),
           (tc_not_possible,tc_not_possible,tc_int_2_int,tc_not_possible),
-          (tc_not_possible,tc_not_possible,tc_bool_2_int,tc_bool_2_bool));
+          (tc_not_possible,tc_not_possible,tc_not_possible,tc_bool_2_bool));
         basedefconvertsexplicit : array[tbasedef,tbasedef] of tconverttype =
           { void, char, int, bool }
          ((tc_not_possible,tc_not_possible,tc_not_possible,tc_not_possible),
@@ -1193,7 +1193,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.9  2002-12-18 21:37:36  peter
+  Revision 1.10  2002-12-23 22:22:16  peter
+    * don't allow implicit bool->int conversion
+
+  Revision 1.9  2002/12/18 21:37:36  peter
     * allow classref-classref always when explicit
 
   Revision 1.8  2002/12/15 22:37:53  peter
