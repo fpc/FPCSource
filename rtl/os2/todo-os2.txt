@@ -40,7 +40,7 @@ other OS/2 APIs                               low
     - Sockets
     - FTP API
   - NetAPI (NetBIOS)
-  - DIVE
+          - DIVE....................................................KB
   - DART
   - Unicode
   - OpenGL
