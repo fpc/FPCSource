@@ -38,6 +38,8 @@ Unit RexxSAA;
 
 Interface
 
+{$Mode ObjFpc}
+
 Const
 {$IFDEF OS2}
   REXX='REXX';
@@ -295,7 +297,7 @@ Function RexxStart(ArgC: Longint;      // Num of args passed to rexx
          Env: PChar;                   // ASCIIZ initial environment.
          rType: Longint;               // type (command,subrtn,funct)
          Exit_: PRXSYSEXIT;             // SysExit env. names &  codes
-         Ret: PWord;                   // Ret code from if numeric
+         Ret: PInteger;                   // Ret code from if numeric
          RetVal: PRXSTRING): Longint; cdecl;  // Retvalue from the rexx proc
 
 Function RexxStart(ArgC: Longint;      // Num of args passed to rexx
@@ -305,7 +307,7 @@ Function RexxStart(ArgC: Longint;      // Num of args passed to rexx
          Env: PChar;                   // ASCIIZ initial environment.
          rType: Longint;               // type (command,subrtn,funct)
          Exit_: PRXSYSEXIT;             // SysExit env. names &  codes
-     var Ret: Word;                    // Ret code from if numeric
+     var Ret: Integer;                    // Ret code from if numeric
      var RetVal: RXSTRING): Longint; cdecl;  // Retvalue from the rexx proc
 
 // Subcommand Interface
@@ -872,7 +874,10 @@ End.
 
 {
 $Log$
-Revision 1.2  2003-11-07 20:43:23  hajny
+Revision 1.3  2003-11-14 09:34:35  yuri
+* Added missed part of integer x word fix
+
+Revision 1.2  2003/11/07 20:43:23  hajny
   * incorrect type (integer x word) fixed
 
 Revision 1.1  2003/02/15 11:44:58  hajny
