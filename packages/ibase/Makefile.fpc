@@ -11,4 +11,7 @@ fpcdir=../..
 
 
 [rules]
-testib$(EXEEXT): testib.pp ibase$(PPUEXT)
+testib40$(EXEEXT): testib40.pp ibase40$(PPUEXT)
+
+testib60$(EXEEXT): testib60.pp ibase60$(PPUEXT)
+
