@@ -7,7 +7,7 @@ main=rtl
 
 [target]
 loaders=prt0 dllprt0 cprt0 gprt0 cprt21 gprt21
-units=$(SYSTEMUNIT) baseunix strings systhrds  objpas syscall unixutil \
+units=$(SYSTEMUNIT) unixtype baseunix strings systhrds  objpas syscall unixutil \
       heaptrc lineinfo \
       $(LINUXUNIT1) termio unix $(LINUXUNIT2) initc $(CPU_UNITS) \
       dos crt objects printer ggigraph \
@@ -164,6 +164,8 @@ strings$(PPUEXT) : $(INC)/strings.pp $(INC)/stringsi.inc\
 unix$(PPUEXT) : unix.pp strings$(PPUEXT) baseunix$(PPUEXT) $(INC)/textrec.inc $(INC)/filerec.inc \
                  sysc11.inc systypes.inc sysconst.inc $(UNIXINC)/timezone.inc $(SYSTEMUNIT)$(PPUEXT) \
                  unixsysc.inc
+
+unixtype$(PPUEXT) : $(UNIXINC)/unixtype.pp ptypes.inc ctypes.inc $(SYSTEMUNIT)$(PPUEXT)
 
 baseunix$(PPUEXT) : errno.inc bunxtype.inc ptypes.inc ctypes.inc \
   signal.inc $(UNIXINC)/bunxh.inc bunxmain.inc ostypes.inc \

@@ -33,7 +33,7 @@ uses
 
 implementation
 
-Uses UnixUtil,Baseunix;
+Uses UnixUtil,Baseunix,UnixType;
 
 {$Define OS_FILEISREADONLY} // Specific implementation for Unix.
 
@@ -629,7 +629,10 @@ end.
 {
 
   $Log$
-  Revision 1.36  2004-02-13 10:50:23  marco
+  Revision 1.37  2004-03-04 22:15:16  marco
+   * UnixType changes. Please report problems to me.
+
+  Revision 1.36  2004/02/13 10:50:23  marco
    * Hopefully last large changes to fpexec and friends.
   	- naming conventions changes from Michael.
   	- shell functions get alternative under ifdef.

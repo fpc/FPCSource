@@ -139,14 +139,22 @@ CONST
    { System limits, POSIX value in parentheses, used for buffer and stack allocation }
    { took idefix' values}
 
-    ARG_MAX  = 131072;   {4096}  { Maximum number of argument size     }
-    NAME_MAX = 255;     {14}    { Maximum number of bytes in filename }
-    PATH_MAX = 4095;    {255}   { Maximum number of bytes in pathname }
-    SYS_NMLM                 = 65;
+    ARG_MAX        = 131072;   {4096}  { Maximum number of argument size     }
+    NAME_MAX       = 255;      {14}    { Maximum number of bytes in filename }
+    PATH_MAX       = 4095;     {255}   { Maximum number of bytes in pathname }
+    SYS_NMLN       = 65;
+{$ifdef FPC_USE_LIBC}
+   SIG_MAXSIG      = 1024;	// highest signal version
+{$else}
+   SIG_MAXSIG      = 128;	// highest signal version
+{$endif}
 
 {
    $Log$
-   Revision 1.7  2004-01-11 09:56:20  jonas
+   Revision 1.8  2004-03-04 22:15:16  marco
+    * UnixType changes. Please report problems to me.
+
+   Revision 1.7  2004/01/11 09:56:20  jonas
      * moved tstatfs from systypes.inc to ptypes.inc to fix make cycle with
        -dFPC_USE_LIBC (systypes.inc is now completely commented out)
 

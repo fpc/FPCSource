@@ -21,7 +21,9 @@
 {                         POSIX STRUCTURES                              }
 {***********************************************************************}
 
+{$ifdef FPC_IS_SYSTEM}
 {$i ptypes.inc}
+{$ENDIF}
 
 {$ifdef cpupowerpc}
   {$ifdef netbsd}
@@ -42,6 +44,7 @@ CONST                		// OS specific parameters for general<fd,sig>set behaviou
    ln2bitsinword   = 5;         { 32bit : ln(32)/ln(2)=5 } 
    ln2bitmask	   = 1 shl ln2bitsinword - 1;
    wordsinfdset    = FD_MAXFDSET DIV BITSINWORD;        // words in fdset_t   
+   wordsinsigset   = SIG_MAXSIG  DIV BITSINWORD;
 
 TYPE
    { system information services }
@@ -214,7 +217,10 @@ CONST
 
 {
   $Log$
-  Revision 1.8  2004-02-29 13:46:52  marco
+  Revision 1.9  2004-03-04 22:15:16  marco
+   * UnixType changes. Please report problems to me.
+
+  Revision 1.8  2004/02/29 13:46:52  marco
    * forgotten?
 
   Revision 1.7  2004/01/04 20:08:45  jonas

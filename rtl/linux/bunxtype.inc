@@ -18,12 +18,14 @@
 {                         Base Unix Structures				}
 {***********************************************************************}
 
+{$IFDEF FPC_IS_SYSTEM}
 {$i ptypes.inc}
+{$ENDIF}
 
 
 CONST
 //  SYS_NMLM 		     = 65;
-    UTSNAME_LENGTH 	     = SYS_NMLM;
+    UTSNAME_LENGTH 	     = SYS_NMLN;
     UTSNAME_NODENAME_LENGTH  = UTSNAME_LENGTH;
     {$ifdef usedomain}
     UTSNAME_DOMAIN_LENGTH    = UTSNAME_LENGTH;
@@ -31,11 +33,6 @@ CONST
 
    FD_MAXFDSET	   = 1024;
    BITSINWORD      = 8*sizeof(longint);
-{$ifdef FPC_USE_LIBC}
-   SIG_MAXSIG      = 1024;	// highest signal version
-{$else}
-   SIG_MAXSIG      = 128;	// highest signal version
-{$endif}
    wordsinsigset   = SIG_MAXSIG DIV BITSINWORD;  	// words in sigset_t
    wordsinfdset    = FD_MAXFDSET DIV BITSINWORD;  	// words in fdset_t
    ln2bitsinword   = 5;         { 32bit : ln(32)/ln(2)=5 }
@@ -271,7 +268,10 @@ const
 
 {
   $Log$
-  Revision 1.8  2004-02-22 15:00:27  marco
+  Revision 1.9  2004-03-04 22:15:16  marco
+   * UnixType changes. Please report problems to me.
+
+  Revision 1.8  2004/02/22 15:00:27  marco
    * genfdset word count added. Small fix for libc maxsigsetsize
 
   Revision 1.7  2004/01/31 16:17:38  florian

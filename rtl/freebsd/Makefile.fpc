@@ -10,7 +10,7 @@ fpcpackage=y
 
 [target]
 loaders=prt0 cprt0 gprt0
-units=$(SYSTEMUNIT) objpas strings syscall sysctl baseunix unixutil \
+units=$(SYSTEMUNIT) objpas strings syscall sysctl unixtype baseunix unixutil \
       unix rtlconst initc   \
       dos dl termio objects printer \
       sysutils typinfo systhrds types classes math varutils \
@@ -141,6 +141,8 @@ strings$(PPUEXT) : $(INC)/strings.pp $(INC)/stringsi.inc\
 # System Dependent Units
 #
 
+unixtype$(PPUEXT): $(UNIXINC)/unixtype.pp $(BSDINC)/ctypes.inc ptypes.inc $(SYSTEMUNIT)$(PPUEXT)
+
 baseunix$(PPUEXT) : errno.inc $(BSDINC)/bunxtype.inc ptypes.inc $(BSDINC)/ctypes.inc \
   signal.inc $(UNIXINC)/bunxh.inc $(BSDINC)/bunxmain.inc $(BSDINC)/ostypes.inc \
   $(BSDINC)/bunxfunc.inc $(BSDPROCINC)/syscallh.inc sysnr.inc \
@@ -243,4 +245,5 @@ callspec$(PPUEXT) : $(INC)/callspec.pp $(SYSTEMUNIT)$(PPUEXT)
 sysctl$(PPUEXT) : $(BSDINC)/sysctl.pp $(SYSTEMUNIT)$(PPUEXT)
 
 cthreads$(PPUEXT) : $(UNIXINC)/cthreads.pp systhrds$(PPUEXT)
+
 

@@ -22,11 +22,15 @@ Interface
 {$define FPC_USE_SYSCALL}
 {$endif}
 
-{$I ptypes.inc}
+{ I ptypes.inc}
 
 {$Packrecords C}
-type psize_t=^size_t;
-
+// type psize_t=^size_t;
+Type size_t=dword;
+     psize_t=^dword;
+     cint  = longint;
+     cuint = dword;
+ 
 {
  * Copyright (c) 1989, 1993
  *      The Regents of the University of California.  All rights reserved.
@@ -148,7 +152,10 @@ end.
 
 {
   $Log$
-  Revision 1.6  2003-12-30 12:26:21  marco
+  Revision 1.7  2004-03-04 22:15:16  marco
+   * UnixType changes. Please report problems to me.
+
+  Revision 1.6  2003/12/30 12:26:21  marco
    * FPC_USE_LIBC
 
   Revision 1.5  2003/11/19 17:11:40  marco

@@ -160,12 +160,14 @@ begin
 end;
 {$else}
 
+{$ifndef HAS_LIBC_PIPING}
 Function PClose(Var F:file) : cint;
 var
   pl : ^cint;
   res : cint;
 
 begin
+
   fpclose(filerec(F).Handle);
 { closed our side, Now wait for the other - this appears to be needed ?? }
   pl:=@(filerec(f).userdata[2]);
@@ -185,6 +187,7 @@ begin
   fpwaitpid(pl^,@res,0);
   pclose:=res shr 8;
 end;
+{$ENDIF}
 
 {$endif}
 // can't have oldfpccall here, linux doesn't need it.
@@ -275,7 +278,10 @@ end;
 
 {
   $Log$
-  Revision 1.18  2004-01-01 17:07:21  marco
+  Revision 1.19  2004-03-04 22:15:16  marco
+   * UnixType changes. Please report problems to me.
+
+  Revision 1.18  2004/01/01 17:07:21  marco
    * few small freebsd fixes backported from debugging linux
 
   Revision 1.17  2003/12/30 12:32:30  marco

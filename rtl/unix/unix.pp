@@ -16,7 +16,9 @@
 Unit Unix;
 Interface
 
-Uses UnixUtil,BaseUnix;
+Uses UnixUtil,BaseUnix,UnixType;
+
+{$i aliasptp.inc}
 
 {$define POSIXWORKAROUND}
 { Get Types and Constants }
@@ -1740,8 +1742,8 @@ End.
 
 {
   $Log$
-  Revision 1.67  2004-03-03 17:23:06  olle
-    * tiny tiny flaw fix
+  Revision 1.68  2004-03-04 22:15:17  marco
+   * UnixType changes. Please report problems to me.
 
   Revision 1.66  2004/02/16 13:21:18  marco
    * fpexec for popen

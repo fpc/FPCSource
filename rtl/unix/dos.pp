@@ -66,7 +66,7 @@ Procedure AddDisk(const path:string);
 Implementation
 
 Uses
-  Strings,UnixUtil,Unix,BaseUnix;
+  Strings,UnixUtil,Unix,BaseUnix,UnixType;
 
 {******************************************************************************
                            --- Link C Lib if set ---
@@ -832,7 +832,10 @@ End.
 
 {
   $Log$
-  Revision 1.30  2004-02-18 22:00:45  peter
+  Revision 1.31  2004-03-04 22:15:16  marco
+   * UnixType changes. Please report problems to me.
+
+  Revision 1.30  2004/02/18 22:00:45  peter
     * dirptr changed to pointer
 
   Revision 1.29  2004/02/18 19:08:27  florian

@@ -16,6 +16,11 @@
 Unit BaseUnix;
 
 Interface
+
+Uses UnixType;
+
+{$i aliasptp.inc}
+
 {$define oldreaddir}		// Keep using readdir system call instead
 				// of userland getdents stuff.
 {$define usedomain}		// Allow uname with "domain" entry.
@@ -74,7 +79,10 @@ end.
 
 {
   $Log$
-  Revision 1.8  2004-01-04 21:04:08  jonas
+  Revision 1.9  2004-03-04 22:15:16  marco
+   * UnixType changes. Please report problems to me.
+
+  Revision 1.8  2004/01/04 21:04:08  jonas
     * declare C-library routines as external in libc for Darwin (so we
       generate proper import entries)
 
