@@ -36,15 +36,11 @@ type
   PByte = ^Byte;
 
 const
-{$IFDEF OLDRANDOM}
 { Random / Randomize constants }
   OldRandSeed : Cardinal = 0;
   InitialSeed : Boolean = TRUE;
   Seed2 : Cardinal = 0;
   Seed3 : Cardinal = 0;
-{$ELSE}
-  seed2:cardinal=0;
-{$ENDIF}
 
 { For Error Handling.}
   ErrorBase : Longint = 0;
@@ -178,8 +174,6 @@ End;
 
 {$endif RTLLITE}
 
-{$ifdef OLDRANDOM}
-
 {****************************************************************************
                           Random function routines
 
@@ -192,23 +186,21 @@ End;
 {$R-}
 {$Q-}
 
-Procedure UseSeed(seed : Longint);Forward;
+Procedure NewSeed;Forward;
 
 
-Function Random : Real;
-var
-    ReturnValue : Real;
+Function Random : Extended;
 begin
-    if (InitialSeed) OR ((RandSeed <> OldRandSeed) AND (NOT InitialSeed)) then
+    if (InitialSeed) OR (RandSeed <> OldRandSeed) then
     Begin
     { This is a pretty complicated affair                             }
-    {  Initially we must call UseSeed when RandSeed is initalized     }
-    {  We must also call UseSeed each time RandSeed is reinitialized  }
+    {  Initially we must call NewSeed when RandSeed is initalized     }
+    {  We must also call NewSeed each time RandSeed is reinitialized  }
     {  DO NOT CHANGE THE ORDER OF DECLARATIONS IN THIS BLOCK          }
     {  UNLESS YOU WANT RANDON TO CRASH OF COURSE (CEC)                }
       InitialSeed:=FALSE;
       OldRandSeed:=RandSeed;
-      UseSeed(RandSeed);
+      NewSeed;
     end;
     Inc(RandSeed);
     RandSeed := (RandSeed * 706) mod 500009;
@@ -217,63 +209,46 @@ begin
     Seed2 := (Seed2 * 774) MOD 600011;
     INC(Seed3);
     Seed3 := (Seed3 * 871) MOD 765241;
-    ReturnValue := RandSeed/500009.0 +
-            Seed2/600011.0 +
-           Seed3/765241.0;
-    Random := frac(ReturnValue);
+    Random :=
+      frac(RandSeed/500009.0 +
+           Seed2/600011.0 +
+           Seed3/765241.0);
 end;
 
-
-Function Random(l : Longint) : Longint;
+Function internRandom(l : Cardinal) : Cardinal;
 begin
-    if (InitialSeed) OR ((RandSeed <> OldRandSeed) AND (NOT InitialSeed)) then
-    Begin
-    { This is a pretty complicated affair                             }
-    {  Initially we must call UseSeed when RandSeed is initalized     }
-    {  We must also call UseSeed each time RandSeed is reinitialized  }
-    {  DO NOT CHANGE THE ORDER OF DECLARATIONS IN THIS BLOCK          }
-    {  UNLESS YOU WANT RANDON TO CRASH OF COURSE (CEC)                }
-      InitialSeed:=FALSE;
-      OldRandSeed:=RandSeed;
-      UseSeed(Randseed);
-    end;
+    if (InitialSeed) OR (RandSeed <> OldRandSeed) then
+      Begin
+      { This is a pretty complicated affair                             }
+      {  Initially we must call NewSeed when RandSeed is initalized     }
+      {  We must also call NewSeed each time RandSeed is reinitialized  }
+      {  DO NOT CHANGE THE ORDER OF DECLARATIONS IN THIS BLOCK          }
+      {  UNLESS YOU WANT RANDOM TO CRASH OF COURSE (CEC)                }
+        InitialSeed:=FALSE;
+        OldRandSeed:=RandSeed;
+        NewSeed;
+      end;
     Inc(RandSeed);
     RandSeed := (RandSeed * 998) mod 1000003;
     OldRandSeed:=RandSeed;
-    if l=0 then
-     Random:=0
-    else
-     Random := RandSeed mod l;
+    if l<>0 then
+      begin
+        internRandom := RandSeed mod l;
+      end
+    else internRandom:=0;
 end;
 
-
-Procedure UseSeed(seed : Longint);
+function random(l:cardinal): cardinal;
 begin
-    randseed := seed mod 1000003;
-    Seed2 := (Random(65000) * Random(65000)) mod 600011;
-    Seed3 := (Random(65000) * Random(65000)) mod 765241;
+  random := trunc(random()*l);
 end;
 
-{$ELSE OLDRANDOM}
-
-function random:real;
-
+Procedure NewSeed;
 begin
-    do_random1;
-    do_random2;
-    random:=randseed;
-    random:=seed2+random/(65536.0*65536.0);
-    random:=random/(65536.0*65536.0);
+    randseed := randseed mod 1000003;
+    Seed2 := (internRandom(65000) * internRandom(65000)) mod 600011;
+    Seed3 := (internRandom(65000) * internRandom(65000)) mod 765241;
 end;
-
-function random(l:cardinal):cardinal;
-
-begin
-    do_random1;
-    random:=randseed mod l;
-end;
-
-{$ENDIF RANDOM}
 
 { Include processor specific routines }
 {$I math.inc}
@@ -608,7 +583,11 @@ end;
 
 {
   $Log$
-  Revision 1.72  1999-11-15 21:49:47  peter
+  Revision 1.73  1999-11-20 12:48:09  jonas
+    * reinstated old random generator, but modified it so the integer
+      one now has a much longer period
+
+  Revision 1.72  1999/11/15 21:49:47  peter
     * exception address fixes
 
   Revision 1.71  1999/11/09 22:40:12  pierre

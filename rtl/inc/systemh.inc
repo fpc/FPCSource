@@ -179,12 +179,8 @@ Function  Swap (X:Int64):Int64;
 {$endif}
 {$endif RTLLITE}
 
-{$IFNDEF OLDRANDOM}
 Function  Random(l:cardinal):cardinal;
-{$ELSE}
-Function  Random(l:longint):longint;
-{$ENDIF}
-Function  Random:real;
+Function  Random: extended;
 Procedure Randomize;
 
 Function abs(l:Longint):Longint;
@@ -402,7 +398,11 @@ const
 
 {
   $Log$
-  Revision 1.66  1999-11-09 20:14:12  daniel
+  Revision 1.67  1999-11-20 12:48:09  jonas
+    * reinstated old random generator, but modified it so the integer
+      one now has a much longer period
+
+  Revision 1.66  1999/11/09 20:14:12  daniel
   * Committed new random generator.
 
   Revision 1.65  1999/11/06 14:35:39  peter
