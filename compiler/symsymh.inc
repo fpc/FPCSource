@@ -101,7 +101,6 @@
           constructor init;
        end;
 
-       pprocsym = ^tprocsym;
        tprocsym = object(tsym)
           definition  : pprocdef;
 {$ifdef CHAINPROCSYMS}
@@ -331,7 +330,10 @@
 
 {
   $Log$
-  Revision 1.30  1999-08-03 22:03:21  peter
+  Revision 1.31  1999-08-10 12:33:38  pierre
+   * pprocsym defined earlier for use in tprocdef
+
+  Revision 1.30  1999/08/03 22:03:21  peter
     * moved bitmask constants to sets
     * some other type/const renamings
 

@@ -68,6 +68,7 @@ unit symtable;
        { needed for names by the definitions }
        ptypesym = ^ttypesym;
        penumsym = ^tenumsym;
+       pprocsym = ^tprocsym;
 
        pref = ^tref;
        tref = object
@@ -2344,7 +2345,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.38  1999-08-05 16:53:18  peter
+  Revision 1.39  1999-08-10 12:33:36  pierre
+   * pprocsym defined earlier for use in tprocdef
+
+  Revision 1.38  1999/08/05 16:53:18  peter
     * V_Fatal=1, all other V_ are also increased
     * Check for local procedure when assigning procvar
     * fixed comment parsing because directives
