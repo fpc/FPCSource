@@ -53,7 +53,7 @@ uses dos,sysconst;
 { * Followings are implemented in the system unit! * }
 function PathConv(path: shortstring): shortstring; external name 'PATHCONV';
 procedure AddToList(var l: Pointer; h: LongInt); external name 'ADDTOLIST';
-procedure RemoveFromList(var l: Pointer; h: longint); external name 'REMOVEFROMLIST';
+procedure RemoveFromList(var l: Pointer; h: LongInt); external name 'REMOVEFROMLIST';
 
 var
   MOS_fileList: Pointer; external name 'MOS_FILELIST';
@@ -65,8 +65,8 @@ var
 {$I-}{ Required for correct usage of these routines }
 
 
+(****** non portable routines ******)
 
-(* non portable routines *)
 function FileOpen(const FileName: string; Mode: Integer): LongInt;
 var
   dosResult: LongInt;
@@ -79,7 +79,6 @@ begin
     dosResult:=-1
   else
     AddToList(MOS_fileList,dosResult);
-  
 
   FileOpen:=dosResult;
 end;
@@ -121,8 +120,6 @@ end;
 
 
 function FileRead(Handle: LongInt; var Buffer; Count: LongInt): LongInt;
-var
-  dosResult: LongInt;
 begin
   FileRead:=-1;
   if (Count<=0) or (Handle<=0) then exit;
@@ -132,8 +129,6 @@ end;
 
 
 function FileWrite(Handle: LongInt; const Buffer; Count: LongInt): LongInt;
-var
-  dosResult: LongInt;
 begin
   FileWrite:=-1;
   if (Count<=0) or (Handle<=0) then exit;
@@ -142,28 +137,74 @@ begin
 end;
 
 
-function FileSeek (Handle,FOffset,Origin : Longint) : Longint;
+function FileSeek(Handle, FOffset, Origin: LongInt) : LongInt;
+var
+  seekMode: LongInt;
 begin
   FileSeek:=-1;
+  if (Handle<=0) then exit;
+
+  case Origin do
+    fsFromBeginning: seekMode:=OFFSET_BEGINNING;
+    fsFromCurrent  : seekMode:=OFFSET_CURRENT;
+    fsFromEnd      : seekMode:=OFFSET_END;
+  end;
+
+  FileSeek:=dosSeek(Handle, FOffset, seekMode);
 end;
 
-function FileSeek (Handle: longint; FOffset, Origin: Int64): Int64;
+function FileSeek(Handle: LongInt; FOffset, Origin: Int64): Int64;
 begin
+  {$WARNING Need to add 64bit call }
+  FileSeek:=FileSeek(Handle,LongInt(FOffset),LongInt(Origin));
 end;
+
 
 procedure FileClose(Handle: LongInt);
 begin
-  if Handle<=0 then exit;
+  if (Handle<=0) then exit;
 
   dosClose(Handle);
   RemoveFromList(MOS_fileList,Handle);
 end;
 
 
-Function FileTruncate (Handle,Size: Longint) : boolean;
+function FileTruncate(Handle, Size: LongInt): Boolean;
+var
+  dosResult: LongInt;
 begin
+  FileTruncate:=False;
+  if (Handle<=0) then exit;
+
+  dosResult:=SetFileSize(Handle, Size, OFFSET_BEGINNING);
+  if (dosResult<0) then exit;
+  
+  FileTruncate:=True;
 end;
-(* end of non portable routines *)
+
+
+function DeleteFile(const FileName: string) : Boolean;
+var
+  tmpStr: array[0..255] of char;
+begin
+  tmpStr:=PathConv(FileName)+#0;
+
+  DeleteFile:=dosDeleteFile(@tmpStr);
+end;
+
+
+function RenameFile(const OldName, NewName: string): Boolean;
+var
+  tmpOldName, tmpNewName: array[0..255] of char;
+begin
+  tmpOldName:=PathConv(OldName)+#0;
+  tmpNewName:=PathConv(NewName)+#0;
+
+  RenameFile:=Rename(tmpOldName, tmpNewName);
+end;
+
+
+(****** end of non portable routines ******)
 
 
 Function FileAge (Const FileName : String): Longint;
@@ -306,26 +347,6 @@ begin
 end;
 
 
-function DeleteFile(const FileName: string) : Boolean;
-var
-  tmpStr: array[0..255] of char;
-begin
- tmpStr:=PathConv(FileName)+#0;
-
- DeleteFile:=dosDeleteFile(@tmpStr);
-end;
-
-Function RenameFile (Const OldName, NewName : String) : Boolean;
-var
- F: File;
-begin
- Assign(F,OldName);
- Rename(F,NewName);
- RenameFile := (IOResult = 0);
-end;
-
-
-
 
 {****************************************************************************
                               Disk Functions
@@ -373,13 +394,10 @@ Begin
 End;
 
 
-
 Function DiskSize(Drive: Byte): int64;
 Begin
   DiskSize := dos.DiskSize(Drive);
 End;
-
-
 
 
 Function GetCurrentDir : String;
@@ -550,7 +568,10 @@ Finalization
 end.
 {
     $Log$
-    Revision 1.3  2005-01-11 17:44:06  karoly
+    Revision 1.4  2005-01-12 08:03:42  karoly
+      * Few more Sysutils functions implemented
+
+    Revision 1.3  2005/01/11 17:44:06  karoly
       * basic file I/O implemented
 
     Revision 1.2  2004/12/11 11:32:44  michael

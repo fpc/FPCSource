@@ -176,7 +176,7 @@ begin
 end;
 
 { Function to be called to remove a file from the list }
-procedure RemoveFromList(var l: PFileList; h: longint); alias: 'REMOVEFROMLIST'; [public];
+procedure RemoveFromList(var l: PFileList; h: LongInt); alias: 'REMOVEFROMLIST'; [public];
 var
   p     : PFileList;
   inList: Boolean;
@@ -475,7 +475,7 @@ end;
 
 function SysOSAlloc(size: ptrint): pointer;
 begin
-  result := AllocPooled(MOS_heapPool,size);
+  result:=AllocPooled(MOS_heapPool,size);
 end;
 
 {$define HAS_SYSOSFREE}
@@ -879,7 +879,10 @@ end.
 
 {
   $Log$
-  Revision 1.28  2005-01-11 17:43:14  karoly
+  Revision 1.29  2005-01-12 08:03:42  karoly
+    * Few more Sysutils functions implemented
+
+  Revision 1.28  2005/01/11 17:43:14  karoly
     * some cleanup, more sanity checks and updates for sysutils
 
   Revision 1.27  2004/12/14 21:01:16  karoly
