@@ -386,9 +386,9 @@ function GetDIBColorTable(DC: HDC; p2, p3: UINT; var RGBQuadStructs): UINT; exte
 function GetDIBits(DC: HDC; Bitmap: HBitmap; StartScan, NumScans: UINT; Bits: Pointer; var BitInfo: TBitmapInfo; Usage: UINT): Integer; external 'gdi32' name 'GetDIBits';
 function GetDiskFreeSpace(lpRootPathName: PChar; var lpSectorsPerCluster, lpBytesPerSector, lpNumberOfFreeClusters, lpTotalNumberOfClusters: DWORD): BOOL;external 'kernel32' name 'GetDiskFreeSpaceA';
 function GetDiskFreeSpaceA(lpRootPathName: LPCSTR; var lpSectorsPerCluster, lpBytesPerSector, lpNumberOfFreeClusters, lpTotalNumberOfClusters: DWORD): BOOL; external 'kernel32' name 'GetDiskFreeSpaceA';
-function GetDiskFreeSpaceEx(lpDirectoryName: PChar; var lpFreeBytesAvailableToCaller, lpTotalNumberOfBytes; lpTotalNumberOfFreeBytes: PLargeInteger): BOOL;external 'kernel32' name 'GetDiskFreeSpaceExA';
-function GetDiskFreeSpaceExA(lpDirectoryName: LPCSTR; var lpFreeBytesAvailableToCaller, lpTotalNumberOfBytes; lpTotalNumberOfFreeBytes: PLargeInteger): BOOL;external 'kernel32' name 'GetDiskFreeSpaceExA';
-function GetDiskFreeSpaceExW(lpDirectoryName: LPWSTR; var lpFreeBytesAvailableToCaller, lpTotalNumberOfBytes; lpTotalNumberOfFreeBytes: PLargeInteger): BOOL;external 'kernel32' name 'GetDiskFreeSpaceExW';
+function GetDiskFreeSpaceEx(lpDirectoryName: PChar; var lpFreeBytesAvailableToCaller, lpTotalNumberOfBytes: TLargeInteger; lpTotalNumberOfFreeBytes: PLargeInteger): BOOL;external 'kernel32' name 'GetDiskFreeSpaceExA';
+function GetDiskFreeSpaceExA(lpDirectoryName: LPCSTR; var lpFreeBytesAvailableToCaller, lpTotalNumberOfBytes: TLargeInteger; lpTotalNumberOfFreeBytes: PLargeInteger): BOOL;external 'kernel32' name 'GetDiskFreeSpaceExA';
+function GetDiskFreeSpaceExW(lpDirectoryName: LPWSTR; var lpFreeBytesAvailableToCaller, lpTotalNumberOfBytes: TLargeInteger; lpTotalNumberOfFreeBytes: PLargeInteger): BOOL;external 'kernel32' name 'GetDiskFreeSpaceExW';
 function GetDiskFreeSpaceW(lpRootPathName: LPWSTR; var lpSectorsPerCluster, lpBytesPerSector, lpNumberOfFreeClusters, lpTotalNumberOfClusters: DWORD): BOOL; external 'kernel32' name 'GetDiskFreeSpaceW';
 function GetDlgItemInt(hDlg: HWND; nIDDlgItem: Integer; var lpTranslated: BOOL; bSigned: BOOL): UINT; external 'user32' name 'GetDlgItemInt';
 //function GetEnhMetaFilePixelFormat(p1: HENHMETAFILE; p2: Cardinal; var p3: TPixelFormatDescriptor): UINT;external 'gdi32' name 'GetEnhMetaFilePixelFormat';
@@ -902,7 +902,10 @@ function HResultFromNT(x : Longint) : HRESULT;
 
 {
   $Log$
-  Revision 1.5  2001-08-19 09:27:52  florian
+  Revision 1.6  2001-12-10 12:31:15  jonas
+    * fixed GetDiskFreeSpaceEx* declarations (merged)
+
+  Revision 1.5  2001/08/19 09:27:52  florian
     + a lot of constants added
 
   Revision 1.4  2001/07/30 21:06:06  peter
