@@ -729,7 +729,7 @@ end;
 
 procedure SysOSFree(p: pointer; size: ptrint);
 begin
-  fpmunmap(p, size);
+  FreePooled(MOS_heapPool,p,size);
 end;
 
 {$I heap.inc}
@@ -1178,7 +1178,10 @@ end.
 
 {
   $Log$
-  Revision 1.14  2004-06-17 16:16:14  peter
+  Revision 1.15  2004-06-23 13:27:32  karoly
+    * fixed system unit for the new heap manager
+
+  Revision 1.14  2004/06/17 16:16:14  peter
     * New heapmanager that releases memory back to the OS, donated
       by Micha Nelissen
 
