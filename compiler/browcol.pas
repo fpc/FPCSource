@@ -34,6 +34,10 @@ const
   RecordTypes : set of tsymtyp =
     ([typesym,unitsym,programsym]);
 
+    sfRecord        = $00000001;
+    sfObject        = $00000002;
+    sfClass         = $00000004;
+
 type
     TStoreCollection = object(TStringCollection)
       function Add(const S: string): PString;
@@ -60,6 +64,14 @@ type
       destructor  Done; virtual;
     end;
 
+    PSymbolMemInfo = ^TSymbolMemInfo;
+    TSymbolMemInfo = record
+      Addr      : longint;
+      LocalAddr : longint;
+      Size      : longint;
+      PushSize  : longint;
+    end;
+
     PSymbol = ^TSymbol;
     TSymbol = object(TObject)
       Name       : PString;
@@ -69,10 +81,13 @@ type
       Items      : PSymbolCollection;
       DType      : PString;
       VType      : PString;
-      Ancestor   : PString;
-      IsRecord   : boolean;
-      IsClass    : boolean;
-      constructor Init(const AName: string; ATyp: tsymtyp; AParams: string);
+      ObjectID   : longint;
+      AncestorID : longint;
+      Ancestor   : PSymbol;
+      Flags      : longint;
+      MemInfo    : PSymbolMemInfo;
+      constructor Init(const AName: string; ATyp: tsymtyp; AParams: string; AMemInfo: PSymbolMemInfo);
+      procedure   SetMemInfo(const AMemInfo: TSymbolMemInfo);
       function    GetReferenceCount: Sw_integer;
       function    GetReference(Index: Sw_integer): PReference;
       function    GetItemCount: Sw_integer;
@@ -81,6 +96,25 @@ type
       function    GetText: string;
       function    GetTypeName: string;
       destructor  Done; virtual;
+    end;
+
+    PObjectSymbolCollection = ^TObjectSymbolCollection;
+
+    PObjectSymbol = ^TObjectSymbol;
+    TObjectSymbol = object(TObject)
+      Parent     : PObjectSymbol;
+      Symbol     : PSymbol;
+      Expanded   : boolean;
+      constructor Init(AParent: PObjectSymbol; ASymbol: PSymbol);
+      constructor InitName(const AName: string);
+      function    GetName: string;
+      function    GetDescendantCount: sw_integer;
+      function    GetDescendant(Index: sw_integer): PObjectSymbol;
+      procedure   AddDescendant(P: PObjectSymbol);
+      destructor  Done; virtual;
+    private
+      Name: PString;
+      Descendants: PObjectSymbolCollection;
     end;
 
     TSymbolCollection = object(TSortedCollection)
@@ -95,6 +129,19 @@ type
       function  LookUp(const S: string; var Idx: sw_integer): string; virtual;
     end;
 
+    PIDSortedSymbolCollection = ^TIDSortedSymbolCollection;
+    TIDSortedSymbolCollection = object(TSymbolCollection)
+      function  Compare(Key1, Key2: Pointer): Sw_Integer; virtual;
+      procedure Insert(Item: Pointer); virtual;
+      function  SearchSymbolByID(AID: longint): PSymbol;
+    end;
+
+    TObjectSymbolCollection = object(TSortedCollection)
+      function  Compare(Key1, Key2: Pointer): Sw_Integer; virtual;
+      function  LookUp(const S: string; var Idx: sw_integer): string; virtual;
+       function At(Index: Sw_Integer): PObjectSymbol;
+    end;
+
     TReferenceCollection = object(TCollection)
        function At(Index: Sw_Integer): PReference;
     end;
@@ -103,6 +150,7 @@ const
   Modules     : PSymbolCollection = nil;
   ModuleNames : PModuleNameCollection = nil;
   TypeNames   : PTypeNameCollection = nil;
+  ObjectTree  : PObjectSymbol = nil;
 
 
 procedure DisposeBrowserCol;
@@ -111,12 +159,15 @@ procedure CreateBrowserCol;
 procedure InitBrowserCol;
 procedure DoneBrowserCol;
 
+procedure BuildObjectInfo;
+
+function SearchObjectForSymbol(O: PSymbol): PObjectSymbol;
 
 implementation
 
 uses
   Drivers,Views,App,
-  aasm,globtype,globals,files;
+  aasm,globtype,globals,files,comphook;
 
 {****************************************************************************
                                    Helpers
@@ -268,6 +319,96 @@ begin
 end;
 
 {****************************************************************************
+                           TIDSortedSymbolCollection
+****************************************************************************}
+
+function TIDSortedSymbolCollection.Compare(Key1, Key2: Pointer): Sw_Integer;
+var K1: PSymbol absolute Key1;
+    K2: PSymbol absolute Key2;
+    R: Sw_integer;
+begin
+  if K1^.ObjectID<K2^.ObjectID then R:=-1 else
+  if K1^.ObjectID>K2^.ObjectID then R:=1 else
+  R:=0;
+  Compare:=R;
+end;
+
+procedure TIDSortedSymbolCollection.Insert(Item: Pointer);
+begin
+  TSortedCollection.Insert(Item);
+end;
+
+function TIDSortedSymbolCollection.SearchSymbolByID(AID: longint): PSymbol;
+var S: TSymbol;
+    Index: sw_integer;
+    P: PSymbol;
+begin
+  S.ObjectID:=AID;
+  if Search(@S,Index)=false then P:=nil else
+    P:=At(Index);
+  SearchSymbolByID:=P;
+end;
+
+{****************************************************************************
+                           TObjectSymbolCollection
+****************************************************************************}
+
+function TObjectSymbolCollection.At(Index: Sw_Integer): PObjectSymbol;
+begin
+  At:=inherited At(Index);
+end;
+
+function TObjectSymbolCollection.Compare(Key1, Key2: Pointer): Sw_Integer;
+var K1: PObjectSymbol absolute Key1;
+    K2: PObjectSymbol absolute Key2;
+    R: Sw_integer;
+    S1,S2: string;
+begin
+  S1:=Upper(K1^.GetName);
+  S2:=Upper(K2^.GetName);
+  if S1<S2 then R:=-1 else
+  if S1>S2 then R:=1 else
+  R:=0;
+  Compare:=R;
+end;
+
+function TObjectSymbolCollection.LookUp(const S: string; var Idx: sw_integer): string;
+var OLI,ORI,Left,Right,Mid: integer;
+    LeftP,RightP,MidP: PObjectSymbol;
+    RL: integer;
+    LeftS,MidS,RightS: string;
+    FoundS: string;
+    UpS : string;
+begin
+  Idx:=-1; FoundS:='';
+  Left:=0; Right:=Count-1;
+  UpS:=Upper(S);
+  if Left<Right then
+  begin
+    while (Left<Right) do
+    begin
+      OLI:=Left; ORI:=Right;
+      Mid:=Left+(Right-Left) div 2;
+      LeftP:=At(Left); RightP:=At(Right); MidP:=At(Mid);
+      LeftS:=Upper(LeftP^.GetName); MidS:=Upper(MidP^.GetName);
+      RightS:=Upper(RightP^.GetName);
+      if copy(MidS,1,length(UpS))=UpS then
+        begin
+          Idx:=Mid; FoundS:=copy(MidS,1,length(S));
+        end;
+{      else}
+        if UpS<MidS then
+          Right:=Mid
+        else
+          Left:=Mid;
+      if (OLI=Left) and (ORI=Right) then
+        Break;
+    end;
+  end;
+  LookUp:=FoundS;
+end;
+
+{****************************************************************************
                                 TReference
 ****************************************************************************}
 
@@ -294,15 +435,23 @@ end;
                                    TSymbol
 ****************************************************************************}
 
-constructor TSymbol.Init(const AName: string; ATyp: tsymtyp; AParams: string);
+constructor TSymbol.Init(const AName: string; ATyp: tsymtyp; AParams: string; AMemInfo: PSymbolMemInfo);
 begin
   inherited Init;
   Name:=NewStr(AName); Typ:=ATyp;
+  if AMemInfo<>nil then
+    SetMemInfo(AMemInfo^);
   New(References, Init(20,50));
   if ATyp in RecordTypes then
     begin
       Items:=New(PSortedSymbolCollection, Init(50,100));
     end;
+end;
+
+procedure TSymbol.SetMemInfo(const AMemInfo: TSymbolMemInfo);
+begin
+  if MemInfo=nil then New(MemInfo);
+  Move(AMemInfo,MemInfo^,SizeOf(MemInfo^));
 end;
 
 function TSymbol.GetReferenceCount: Sw_integer;
@@ -349,18 +498,18 @@ begin
       S:=S+' ';
    end;
   S:=S+' '+GetName;
-  if IsRecord then
+  if (Flags and sfRecord)<>0 then
     S:=S+' = record'
   else
-  if Ancestor<>nil then
+  if (Flags and sfObject)<>0 then
     begin
       S:=S+' = ';
-      if IsClass then
+      if (Flags and sfClass)<>0 then
         S:=S+'class'
       else
         S:=S+'object';
-      if Ancestor^<>'.' then
-        S:=S+'('+Ancestor^+')';
+      if Ancestor<>nil then
+        S:=S+'('+Ancestor^.GetName+')';
     end
   else
     begin
@@ -405,6 +554,8 @@ end;
 destructor TSymbol.Done;
 begin
   inherited Done;
+  if assigned(MemInfo) then
+    Dispose(MemInfo);
   if assigned(References) then
     Dispose(References, Done);
   if assigned(Items) then
@@ -421,6 +572,54 @@ begin
     DisposeStr(Ancestor);}
 end;
 
+
+constructor TObjectSymbol.Init(AParent: PObjectSymbol; ASymbol: PSymbol);
+begin
+  inherited Init;
+  Parent:=AParent;
+  Symbol:=ASymbol;
+end;
+
+constructor TObjectSymbol.InitName(const AName: string);
+begin
+  inherited Init;
+  Name:=NewStr(AName);
+end;
+
+function TObjectSymbol.GetName: string;
+begin
+  if Name<>nil then
+    GetName:=Name^
+  else
+    GetName:=Symbol^.GetName;
+end;
+
+function TObjectSymbol.GetDescendantCount: sw_integer;
+var Count: sw_integer;
+begin
+  if Descendants=nil then Count:=0 else
+    Count:=Descendants^.Count;
+  GetDescendantCount:=Count;
+end;
+
+function TObjectSymbol.GetDescendant(Index: sw_integer): PObjectSymbol;
+begin
+  GetDescendant:=Descendants^.At(Index);
+end;
+
+procedure TObjectSymbol.AddDescendant(P: PObjectSymbol);
+begin
+  if Descendants=nil then
+    New(Descendants, Init(50,10));
+  Descendants^.Insert(P);
+end;
+
+destructor TObjectSymbol.Done;
+begin
+  if Assigned(Name) then DisposeStr(Name); Name:=nil;
+  if Assigned(Descendants) then Dispose(Descendants, Done); Descendants:=nil;
+  inherited Done;
+end;
 
 {*****************************************************************************
                               Main Routines
@@ -443,6 +642,11 @@ begin
      dispose(TypeNames,Done);
      TypeNames:=nil;
    end;
+  if assigned(ObjectTree) then
+    begin
+      Dispose(ObjectTree, Done);
+      ObjectTree:=nil;
+    end;
 end;
 
 
@@ -714,7 +918,8 @@ procedure CreateBrowserCol;
       end;
     end;
   end;
-
+  var MemInfo: TSymbolMemInfo;
+      ObjDef: pobjectdef;
   begin
     if not Assigned(Table) then
      Exit;
@@ -728,11 +933,10 @@ procedure CreateBrowserCol;
      end;}
     for I:=1 to symcount do
       begin
-        Symbol:=nil;
         Sym:=Table^.GetsymNr(I);
         if Sym=nil then Continue;
         ParamCount:=0;
-        New(Symbol, Init(Sym^.Name,Sym^.Typ,''));
+        New(Symbol, Init(Sym^.Name,Sym^.Typ,'',nil));
         case Sym^.Typ of
           varsym :
              with pvarsym(sym)^ do
@@ -743,6 +947,11 @@ procedure CreateBrowserCol;
                  else
                    SetVType(Symbol,GetDefinitionStr(definition));
                ProcessDefIfStruct(definition);
+               MemInfo.Addr:=address;
+               MemInfo.LocalAddr:=localaddress;
+               MemInfo.Size:=getsize;
+               MemInfo.PushSize:=getpushsize;
+               Symbol^.SetMemInfo(MemInfo);
              end;
           constsym :
              SetDType(Symbol,GetConstValueName(pconstsym(sym)));
@@ -802,17 +1011,18 @@ procedure CreateBrowserCol;
                   objectdef :
                     with pobjectdef(definition)^ do
                     begin
-                      if childof=nil then
-                        S:='.'
-                      else
-                        S:=childof^.name^;
-                      Symbol^.Ancestor:=TypeNames^.Add(S);
-                      Symbol^.IsClass:=(options and oo_is_class)<>0;
+                      ObjDef:=childof;
+                      Symbol^.ObjectID:=longint(definition);
+                      if ObjDef<>nil then
+                        Symbol^.AncestorID:=longint(ObjDef);{TypeNames^.Add(S);}
+                      Symbol^.Flags:=(Symbol^.Flags or sfObject);
+                      if (options and oo_is_class)<>0 then
+                        Symbol^.Flags:=(Symbol^.Flags or sfClass);
                       ProcessSymTable(Symbol,Symbol^.Items,pobjectdef(definition)^.publicsyms);
                     end;
                   recorddef :
                     begin
-                      Symbol^.IsRecord:=true;
+                      Symbol^.Flags:=(Symbol^.Flags or sfRecord);
                       ProcessSymTable(Symbol,Symbol^.Items,precdef(definition)^.symtable);
                     end;
                   filedef :
@@ -823,11 +1033,8 @@ procedure CreateBrowserCol;
             end;
         end;
         Ref:=Sym^.defref;
-        If assigned(Symbol) then
-         begin
-          Owner^.Insert(Symbol);
-          while Assigned(Symbol) and assigned(Ref) do
-           begin
+        while Assigned(Symbol) and assigned(Ref) do
+          begin
             inputfile:=get_source_file(ref^.moduleindex,ref^.posinfo.fileindex);
             if Assigned(inputfile) and Assigned(inputfile^.name) then
               begin
@@ -836,8 +1043,9 @@ procedure CreateBrowserCol;
                 Symbol^.References^.Insert(Reference);
               end;
             Ref:=Ref^.nextref;
-           end;
-         end;
+          end;
+        if Assigned(Symbol) then
+        Owner^.Insert(Symbol);
       end;
   end;
 
@@ -854,7 +1062,7 @@ begin
        t:=psymtable(hp^.globalsymtable);
        if assigned(t) then
          begin
-           New(UnitS, Init(T^.Name^,unitsym,''));
+           New(UnitS, Init(T^.Name^,unitsym,'',nil));
            Modules^.Insert(UnitS);
            ProcessSymTable(UnitS,UnitS^.Items,T);
            if cs_local_browser in aktmoduleswitches then
@@ -866,7 +1074,113 @@ begin
          end;
        hp:=pmodule(hp^.next);
     end;
+  BuildObjectInfo;
+end;
 
+procedure BuildObjectInfo;
+var C: PIDSortedSymbolCollection;
+    ObjectC: PObjectSymbolCollection;
+    ObjectsSymbol: PObjectSymbol;
+procedure InsertSymbolCollection(Symbols: PSymbolCollection);
+var I: sw_integer;
+    P: PSymbol;
+begin
+  for I:=0 to Symbols^.Count-1 do
+    begin
+      P:=Symbols^.At(I);
+      if (P^.Flags and sfObject)<>0 then
+        C^.Insert(P);
+      if P^.Items<>nil then
+        InsertSymbolCollection(P^.Items);
+    end;
+end;
+function SearchObjectForSymbol(O: PSymbol): PObjectSymbol;
+var I,Idx: sw_integer;
+    OS,P: PObjectSymbol;
+begin
+  P:=nil;
+  for I:=0 to ObjectC^.Count-1 do
+    begin
+      OS:=ObjectC^.At(I);
+      if OS^.Symbol=O then
+        begin P:=OS; Break; end;
+    end;
+  SearchObjectForSymbol:=P;
+end;
+procedure BuildTree;
+var I: sw_integer;
+    Symbol: PSymbol;
+    Parent,OS: PObjectSymbol;
+begin
+  I:=0;
+  while (I<C^.Count) do
+    begin
+      Symbol:=C^.At(I);
+      if Symbol^.Ancestor=nil then
+        Parent:=ObjectsSymbol
+      else
+        Parent:=SearchObjectForSymbol(Symbol^.Ancestor);
+      if Parent<>nil then
+        begin
+          New(OS, Init(Parent, Symbol));
+          Parent^.AddDescendant(OS);
+          ObjectC^.Insert(OS);
+          C^.AtDelete(I);
+        end
+      else
+        Inc(I);
+    end;
+end;
+var Pass: integer;
+    I: sw_integer;
+    P: PSymbol;
+begin
+  New(C, Init(1000,5000));
+  InsertSymbolCollection(Modules);
+
+  { --- Resolve ancestor<->descendant references --- }
+  for I:=0 to C^.Count-1 do
+    begin
+      P:=C^.At(I);
+      if P^.AncestorID<>0 then
+        P^.Ancestor:=C^.SearchSymbolByID(P^.AncestorID);
+    end;
+
+  { --- Build object tree --- }
+  if assigned(ObjectTree) then Dispose(ObjectTree, Done);
+  New(ObjectsSymbol, InitName('Objects'));
+  ObjectTree:=ObjectsSymbol;
+
+  New(ObjectC, Init(C^.Count,100));
+
+  Pass:=0;
+  if C^.Count>0 then
+  repeat
+    BuildTree;
+    Inc(Pass);
+  until (C^.Count=0) or (Pass>20); { more than 20 levels ? - then there must be a bug }
+
+  ObjectC^.DeleteAll; Dispose(ObjectC, Done);
+  C^.DeleteAll; Dispose(C, Done);
+end;
+
+function SearchObjectForSymbol(O: PSymbol): PObjectSymbol;
+var I,Idx: sw_integer;
+    OS,P: PObjectSymbol;
+    ObjectC: PObjectSymbolCollection;
+begin
+  P:=nil;
+  if ObjectTree<>nil then
+  begin
+    ObjectC:=ObjectTree^.Descendants;
+    for I:=0 to ObjectC^.Count-1 do
+      begin
+        OS:=ObjectC^.At(I);
+        if OS^.Symbol=O then
+          begin P:=OS; Break; end;
+      end;
+  end;
+  SearchObjectForSymbol:=P;
 end;
 
 
@@ -903,11 +1217,8 @@ begin
 end.
 {
   $Log$
-  Revision 1.10  1999-03-26 11:39:25  pierre
-   * avoid empty symbols
-
-  Revision 1.9  1999/03/24 23:16:44  peter
-    * fixed bugs 212,222,225,227,229,231,233
+  Revision 1.11  1999-04-08 10:17:42  peter
+    + objects support
 
   Revision 1.8  1999/03/03 01:38:11  pierre
    * avoid infinite recursion in ProcessDefIfStruct
