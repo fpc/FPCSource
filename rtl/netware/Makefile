@@ -4,16 +4,17 @@
 UNITDIR = $(INSTALL_PREFIX)/usr/lib/fpc/1.1/units/netware/rtl
 #PPC386OPT = -n -dMT -dDEBUG_MT -di386 -dSYSTEMDEBUG -O3 -Sg -Tnetware -Aelf -a -al -gg -FE.
 #PPC386OPT = -n -di386 -dSYSTEMDEBUG -O3 -Sg -Tnetware -Aelf -a -al -gg -FE.
-PPC386OPT = -n -di386 -O3 -Sg -Tnetware -Aelf -a -al -FE.
+PPC386OPT = -n -di386 -O3 -Og -Sg -Tnetware -Aelf -a -al -FE.
 PPC386OPTDBG = -n -di386 -O3 -Sg -Tnetware -Aelf -a -al -gg -FE.
 INCLUDES = -I../inc -I../i386 -I../objpas
 
 SYSUNIT=system
 NWPRE=nwpre
+PRELUDE=prelude
 OBJEXT=on
 PPUEXT=ppn
 ASMEXT=s
-OBJS = $(SYSUNIT).$(OBJEXT) $(NWPRE).$(OBJEXT) ../inc/os_types.$(OBJEXT) ../inc/strings.$(OBJEXT) dos.$(OBJEXT) ../objpas/objpas.$(OBJEXT) sysutils.$(OBJEXT) crt.$(OBJEXT) sockets.$(OBJEXT) mouse.$(OBJEXT) netware.$(OBJEXT) video.$(OBJEXT) keyboard.$(OBJEXT) ../objpas/math.$(OBJEXT) ../objpas/typinfo.$(OBJEXT) ../inc/objects.$(OBJEXT) ../inc/getopts.$(OBJEXT) ../inc/heaptrc.$(OBJEXT) varutils.$(OBJEXT) ../i386/cpu.$(OBJEXT) ../i386/mmx.$(OBJEXT) winsock2.$(OBJEXT)
+OBJS = $(SYSUNIT).$(OBJEXT) $(NWPRE).$(OBJEXT) $(PRELUDE).$(OBJEXT) ../inc/os_types.$(OBJEXT) ../inc/strings.$(OBJEXT) dos.$(OBJEXT) ../objpas/objpas.$(OBJEXT) sysutils.$(OBJEXT) crt.$(OBJEXT) sockets.$(OBJEXT) mouse.$(OBJEXT) netware.$(OBJEXT) video.$(OBJEXT) keyboard.$(OBJEXT) ../objpas/math.$(OBJEXT) ../objpas/typinfo.$(OBJEXT) ../inc/objects.$(OBJEXT) ../inc/getopts.$(OBJEXT) ../inc/heaptrc.$(OBJEXT) varutils.$(OBJEXT) ../i386/cpu.$(OBJEXT) ../i386/mmx.$(OBJEXT) winsock2.$(OBJEXT)
 
 
 all:	$(OBJS)
@@ -21,22 +22,25 @@ all:	$(OBJS)
 $(SYSUNIT).$(OBJEXT):	$(SYSUNIT).pp nwsys.inc
 	ppc386 -Us $(PPC386OPT) $(INCLUDES) $(SYSUNIT).pp
 
-$(NWPRE).$(OBJEXT):	$(NWPRE).pp
-	ppc386 $(PPC386OPTDBG) $(INCLUDES) $(NWPRE).pp
+$(NWPRE).$(OBJEXT):	$(NWPRE).as
+	as $(NWPRE).as -o $(NWPRE).$(OBJEXT)
+
+$(PRELUDE).$(OBJEXT):	$(NWPRE).as
+	as $(PRELUDE).as -o $(PRELUDE).$(OBJEXT)
 
 %.$(OBJEXT):	%.pp nwsys.inc
 	ppc386 $(PPC386OPT) $(INCLUDES) $*.pp
 
 install: $(OBJS)
-
+	rm -f $(UNITDIR)/*
 	cp -f $(SYSUNIT).$(OBJEXT) $(UNITDIR)
 	cp -f $(SYSUNIT).$(PPUEXT) $(UNITDIR)
 	cp -f dos.$(OBJEXT) $(UNITDIR)
 	cp -f dos.$(PPUEXT) $(UNITDIR)
 	cp -f strings.$(OBJEXT) $(UNITDIR)
 	cp -f strings.$(PPUEXT) $(UNITDIR)
-	cp -f nwpre.$(OBJEXT) $(UNITDIR)
-	cp -f nwpre.$(PPUEXT) $(UNITDIR)
+	cp -f $(NWPRE).$(OBJEXT) $(UNITDIR)
+	cp -f $(PRELUDE).$(OBJEXT) $(UNITDIR)
 	cp -f sysutils.$(OBJEXT) $(UNITDIR)
 	cp -f sysutils.$(PPUEXT) $(UNITDIR)
 	cp -f objpas.$(OBJEXT) $(UNITDIR)
@@ -75,7 +79,7 @@ install: $(OBJS)
 	cp -f nwimp/*.imp $(UNITDIR)
 
 clean:
-	rm -f *.$(OBJEXT) *.$(PPUEXT) *.$(ASMEXT) *.bak
+	rm -f *.$(OBJEXT) *.$(PPUEXT) *.$(ASMEXT) *.bak *.rst *.a
 
 dist:
 	clean
