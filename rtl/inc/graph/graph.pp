@@ -3025,6 +3025,12 @@ begin
  InstallUserFont('LITT');
  InstallUserFont('SANS');
  InstallUserFont('GOTH');
+ InstallUserFont('SCRI');
+ InstallUserFont('SIMP');
+ InstallUserFont('TSCR');
+ InstallUserFont('LCOM');
+ InstallUserFont('EURO');
+ InstallUserFont('BOLD');
  { This installs an exit procedure which cleans up the mode list...}
  ExitSave := ExitProc;
  ExitProc := @GraphExitProc;
@@ -3042,7 +3048,10 @@ SetGraphBufSize
 
 {
   $Log$
-  Revision 1.51  1999-12-26 10:33:06  jonas
+  Revision 1.52  1999-12-29 17:26:00  jonas
+    + by default, also attempt to install the fonts that come with TP7
+
+  Revision 1.51  1999/12/26 10:33:06  jonas
     * XAspect and YAspect are now words instead of smallints, they
       overflowed for resolutions > 640x480 otherwise
     * the number of pixels required for an ellipse in internalellipsedef
