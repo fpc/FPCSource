@@ -542,6 +542,7 @@ begin {CheckSequence}
       else if assigned(hp3) then
         for regcounter2 := RS_EAX to RS_EDI do
           if (regcounter2 in reginfo.regsLoadedforRef) and
+             regModified[regcounter2] and
              (regcounter2 in ptaiprop(hp3.optinfo)^.usedRegs) and
              not regLoadedWithNewValue(regcounter2,false,hp3) then
             begin
@@ -1607,14 +1608,16 @@ end;
 procedure loadcseregs(asml: taasmoutput; const reginfo: toptreginfo; curseqend, prevseqstart, curseqstart, curprev: tai; cnt: longint);
 var
   regsloaded: tregset;
-  regloads: array[RS_EAX..RS_EDI] of tai;
-  regcounter: tsuperregister;
+  regloads, reguses: array[RS_EAX..RS_EDI] of tai;
+  regcounter, substreg: tsuperregister;
   hp, hp2: tai;
   insertpos, prevseq_next: tai;
   i: longint;
+  opc: tasmop;
 begin
   regsloaded := [];
   fillchar(regloads,sizeof(regloads),0);
+  fillchar(reguses,sizeof(reguses),0);
   getnextinstruction(prevseqstart,prevseq_next);
   for regcounter := RS_EAX To RS_EDI do
     if (reginfo.new2oldreg[regcounter] <> RS_INVALID) Then
@@ -1653,22 +1656,23 @@ begin
                     regCounter,hp,curseqstart,
                     ptaiprop(prevseqstart.optinfo)^.Regs[regCounter],true,hp2) then
               begin
-                if not(reginfo.new2oldreg[regcounter] in regsloaded) or
-                   { happens if the register has been replaced }
-                   not(assigned(regloads[reginfo.new2oldreg[regcounter]])) then
-                  insertpos := prevseq_next
+                opc := A_MOV;
+                insertpos := prevseq_next;
+                if assigned(reguses[regcounter]) then
+                  if assigned(regloads[reginfo.new2oldreg[regcounter]]) then
+                    opc := A_XCHG
+                  else
+                    insertpos := tai(reguses[regcounter].next)
                 else
-                  begin
-{$warning add cycle detection for register loads and use xchg if necessary}
+                  if assigned(regloads[reginfo.new2oldreg[regcounter]]) then
                     insertpos := regloads[reginfo.new2oldreg[regcounter]];
-                  end;
-
                 hp := Tai_Marker.Create(NoPropInfoStart);
                 InsertLLItem(asml, insertpos.previous,insertpos, hp);
-                hp2 := taicpu.Op_Reg_Reg(A_MOV, S_L,
+                hp2 := taicpu.Op_Reg_Reg(opc, S_L,
                                            {old reg                                        new reg}
                       newreg(R_INTREGISTER,reginfo.new2oldreg[regcounter],R_SUBWHOLE), newreg(R_INTREGISTER,regcounter,R_SUBWHOLE));
                 regloads[regcounter] := hp2;
+                reguses[reginfo.new2oldreg[regcounter]] := hp2;
                 new(ptaiprop(hp2.optinfo));
                 ptaiprop(hp2.optinfo)^ := ptaiprop(insertpos.optinfo)^;
                 ptaiprop(hp2.optinfo)^.canBeRemoved := false;
@@ -2182,7 +2186,11 @@ end.
 
 {
   $Log$
-  Revision 1.71  2004-12-27 15:20:03  jonas
+  Revision 1.72  2004-12-28 18:01:40  jonas
+    * fixed several regvar related bugs, cycle with -OZp3r doesn't work
+      yet though
+
+  Revision 1.71  2004/12/27 15:20:03  jonas
     * fixed internalerror when cycling with -O3p3u
 
   Revision 1.70  2004/12/18 15:16:10  jonas

@@ -170,7 +170,6 @@ type
 procedure InsertLLItem(AsmL: TAAsmOutput; prev, foll, new_one: TLinkedListItem);
 
 
-function RefsEquivalent(const R1, R2: TReference; var RegInfo: toptreginfo; OpAct: TOpAction): Boolean;
 function RefsEqual(const R1, R2: TReference): Boolean;
 function isgp32reg(supreg: tsuperregister): Boolean;
 function reginref(supreg: tsuperregister; const ref: treference): boolean;
@@ -201,7 +200,6 @@ procedure UpdateUsedRegs(var UsedRegs: TRegSet; p: tai);
 procedure AllocRegBetween(asml: taasmoutput; reg: tregister; p1, p2: tai; const initialusedregs: tregset);
 function FindRegDealloc(supreg: tsuperregister; p: tai): boolean;
 
-//function RegsEquivalent(OldReg, NewReg: tregister; var RegInfo: toptreginfo; OpAct: TopAction): Boolean;
 function InstructionsEquivalent(p1, p2: tai; var RegInfo: toptreginfo): Boolean;
 function sizescompatible(loadsize,newsize: topsize): boolean;
 function OpsEqual(const o1,o2:toper): Boolean;
@@ -618,7 +616,7 @@ begin
 end;
 
 
-function RegsEquivalent(oldreg, newreg: tregister; var reginfo: toptreginfo; opact: topaction): Boolean;
+function RegsEquivalent(oldreg, newreg: tregister; const oldinst, newinst: taicpu; var reginfo: toptreginfo; opact: topaction): Boolean;
 begin
   if not((oldreg = NR_NO) or (newreg = NR_NO)) then
     if RegsSameSize(oldreg, newreg) then
@@ -652,7 +650,10 @@ begin
         else
            if not(getsupreg(newreg) in NewRegsEncountered) and
               ((opact = opact_write) or
-               (newreg = oldreg)) then
+               ((newreg = oldreg) and
+                (ptaiprop(oldinst.optinfo)^.regs[getsupreg(oldreg)].wstate =
+                 ptaiprop(newinst.optinfo)^.regs[getsupreg(oldreg)].wstate) and
+                not(regmodifiedbyinstruction(getsupreg(oldreg),oldinst)))) then
              begin
                AddReg2RegInfo(oldreg, newreg, reginfo);
                RegsEquivalent := true
@@ -666,12 +667,12 @@ begin
 end;
 
 
-function RefsEquivalent(const r1, r2: treference; var regInfo: toptreginfo; opact: topaction): boolean;
+function RefsEquivalent(const r1, r2: treference; const oldinst, newinst: taicpu; var regInfo: toptreginfo): boolean;
 begin
   RefsEquivalent :=
     (r1.offset = r2.offset) and
-    RegsEquivalent(r1.base, r2.base, reginfo, opact) and
-    RegsEquivalent(r1.index, r2.index, reginfo, opact) and
+    RegsEquivalent(r1.base, r2.base, oldinst, newinst, reginfo, OpAct_Read) and
+    RegsEquivalent(r1.index, r2.index, oldinst, newinst, reginfo, OpAct_Read) and
     (r1.segment = r2.segment) and (r1.scalefactor = r2.scalefactor) and
     (r1.symbol = r2.symbol) and (r1.refaddr = r2.refaddr) and
     (r1.relsymbol = r2.relsymbol);
@@ -1407,15 +1408,15 @@ begin
     end;
 end;}
 
-function OpsEquivalent(const o1, o2: toper; var RegInfo: toptreginfo; OpAct: TopAction): Boolean;
+function OpsEquivalent(const o1, o2: toper; const oldinst, newinst: taicpu; var RegInfo: toptreginfo; OpAct: TopAction): Boolean;
 begin {checks whether the two ops are equivalent}
   OpsEquivalent := False;
   if o1.typ=o2.typ then
     case o1.typ Of
       top_reg:
-        OpsEquivalent :=RegsEquivalent(o1.reg,o2.reg, RegInfo, OpAct);
+        OpsEquivalent :=RegsEquivalent(o1.reg,o2.reg, oldinst, newinst, RegInfo, OpAct);
       top_ref:
-        OpsEquivalent := RefsEquivalent(o1.ref^, o2.ref^, RegInfo, OpAct);
+        OpsEquivalent := RefsEquivalent(o1.ref^, o2.ref^, oldinst, newinst, RegInfo);
       Top_Const:
         OpsEquivalent := o1.val = o2.val;
       Top_None:
@@ -1497,7 +1498,7 @@ begin {checks whether two taicpu instructions are equal}
  {the "old" instruction is a load of a register with a new value, not with
   a value based on the contents of this register (so no "mov (reg), reg")}
         if not(RegInRef(getsupreg(taicpu(p2).oper[1]^.reg), taicpu(p2).oper[0]^.ref^)) and
-           RefsEqual(taicpu(p1).oper[0]^.ref^, taicpu(p2).oper[0]^.ref^) then
+           RefsEquivalent(taicpu(p1).oper[0]^.ref^, taicpu(p2).oper[0]^.ref^,taicpu(p1), taicpu(p2), reginfo) then
  {the "new" instruction is also a load of a register with a new value, and
   this value is fetched from the same memory location}
           begin
@@ -1517,7 +1518,7 @@ begin {checks whether two taicpu instructions are equal}
  {the registers from .oper[1]^ have to be equivalent, but not necessarily equal}
             InstructionsEquivalent :=
               RegsEquivalent(taicpu(p1).oper[1]^.reg,
-                taicpu(p2).oper[1]^.reg, RegInfo, OpAct_Write);
+                taicpu(p2).oper[1]^.reg, taicpu(p1), taicpu(p2), RegInfo, OpAct_Write);
           end
  {the registers are loaded with values from different memory locations. if
   this was allowed, the instructions "mov -4(esi),eax" and "mov -4(ebp),eax"
@@ -1560,8 +1561,8 @@ begin {checks whether two taicpu instructions are equal}
 {$endif csdebug}
             end;
           InstructionsEquivalent :=
-             OpsEquivalent(taicpu(p1).oper[0]^, taicpu(p2).oper[0]^, RegInfo, OpAct_Read) and
-             OpsEquivalent(taicpu(p1).oper[1]^, taicpu(p2).oper[1]^, RegInfo, OpAct_Write)
+             OpsEquivalent(taicpu(p1).oper[0]^, taicpu(p2).oper[0]^, taicpu(p1), taicpu(p2), RegInfo, OpAct_Read) and
+             OpsEquivalent(taicpu(p1).oper[1]^, taicpu(p2).oper[1]^, taicpu(p1), taicpu(p2), RegInfo, OpAct_Write)
         end
     else
  {an instruction <> mov, movzx, movsx}
@@ -1575,11 +1576,11 @@ begin {checks whether two taicpu instructions are equal}
   {$endif csdebug}
         InstructionsEquivalent :=
           (not(assigned(taicpu(p1).oper[0])) or
-           OpsEquivalent(taicpu(p1).oper[0]^, taicpu(p2).oper[0]^, RegInfo, OpAct_Unknown)) and
+           OpsEquivalent(taicpu(p1).oper[0]^, taicpu(p2).oper[0]^, taicpu(p1), taicpu(p2), RegInfo, OpAct_Unknown)) and
           (not(assigned(taicpu(p1).oper[1])) or
-           OpsEquivalent(taicpu(p1).oper[1]^, taicpu(p2).oper[1]^, RegInfo, OpAct_Unknown)) and
+           OpsEquivalent(taicpu(p1).oper[1]^, taicpu(p2).oper[1]^, taicpu(p1), taicpu(p2), RegInfo, OpAct_Unknown)) and
           (not(assigned(taicpu(p1).oper[2])) or
-           OpsEquivalent(taicpu(p1).oper[2]^, taicpu(p2).oper[2]^, RegInfo, OpAct_Unknown))
+           OpsEquivalent(taicpu(p1).oper[2]^, taicpu(p2).oper[2]^, taicpu(p1), taicpu(p2), RegInfo, OpAct_Unknown))
        end
  {the instructions haven't even got the same structure, so they're certainly
   not equivalent}
@@ -2792,7 +2793,11 @@ end.
 
 {
   $Log$
-  Revision 1.77  2004-12-18 15:16:10  jonas
+  Revision 1.78  2004-12-28 18:01:41  jonas
+    * fixed several regvar related bugs, cycle with -OZp3r doesn't work
+      yet though
+
+  Revision 1.77  2004/12/18 15:16:10  jonas
     * fixed tracking of usage of flags register
     * fixed destroying of "memwrite"'s
     * fixed checking of entire sequences in all cases (previously this was
