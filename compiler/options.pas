@@ -1920,10 +1920,20 @@ begin
   fpcdir:=FixPath(getenv('FPCDIR'),false);
   if fpcdir='' then
    begin
-     if PathExists('/usr/local/lib/fpc/'+version_string) then
-      fpcdir:='/usr/local/lib/fpc/'+version_string+'/'
+     if source_info.cpu<>target_info.cpu then
+       begin
+         if PathExists('/usr/local/lib/fpc/'+version_string+'/cross/'+cpu2str[target_info.cpu]+'-'+target_info.shortname) then
+           fpcdir:='/usr/local/lib/fpc/'+version_string+'/cross/'+cpu2str[target_info.cpu]+'-'+target_info.shortname+'/'
+         else
+           fpcdir:='/usr/lib/fpc/'+version_string+'/cross/'+cpu2str[target_info.cpu]+'-'+target_info.shortname+'/';
+       end
      else
-      fpcdir:='/usr/lib/fpc/'+version_string+'/';
+       begin
+         if PathExists('/usr/local/lib/fpc/'+version_string) then
+           fpcdir:='/usr/local/lib/fpc/'+version_string+'/'
+         else
+           fpcdir:='/usr/lib/fpc/'+version_string+'/';
+       end;
    end;
 {$else}
   fpcdir:=FixPath(getenv('FPCDIR'),false);
@@ -1938,13 +1948,26 @@ begin
   { first try development RTL, else use the default installation path }
   if not disable_configfile then
     begin
-      if PathExists(FpcDir+'rtl/'+lower(target_info.shortname)) then
-       UnitSearchPath.AddPath(FpcDir+'rtl/'+lower(target_info.shortname),false)
+      if source_info.cpu<>target_info.cpu then
+        begin
+          if PathExists(FpcDir+'rtl/'+lower(target_info.shortname)) then
+           UnitSearchPath.AddPath(FpcDir+'rtl/'+lower(target_info.shortname),false)
+          else
+           begin
+             UnitSearchPath.AddPath(FpcDir+'units/',false);
+             UnitSearchPath.AddPath(FpcDir+'units/rtl',false);
+           end;
+        end
       else
-       begin
-         UnitSearchPath.AddPath(FpcDir+'units/'+lower(target_info.shortname),false);
-         UnitSearchPath.AddPath(FpcDir+'units/'+lower(target_info.shortname)+'/rtl',false);
-       end;
+        begin
+          if PathExists(FpcDir+'rtl/'+lower(target_info.shortname)) then
+           UnitSearchPath.AddPath(FpcDir+'rtl/'+lower(target_info.shortname),false)
+          else
+           begin
+             UnitSearchPath.AddPath(FpcDir+'units/'+lower(target_info.shortname),false);
+             UnitSearchPath.AddPath(FpcDir+'units/'+lower(target_info.shortname)+'/rtl',false);
+           end;
+        end;
     end;
   { Add exepath if the exe is not in the current dir, because that is always searched already.
     Do not add it when linking on the target because then we can maybe already find
@@ -2006,7 +2029,10 @@ finalization
 end.
 {
   $Log$
-  Revision 1.127  2004-03-10 22:52:57  peter
+  Revision 1.128  2004-03-20 22:57:07  florian
+    + cross compilation dir search added
+
+  Revision 1.127  2004/03/10 22:52:57  peter
     * more stabs fixes
     * special mode -gv for valgrind compatible stabs
 
