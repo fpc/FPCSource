@@ -21,6 +21,7 @@ unitdir=../libasync
 sourcedir_linux=unix
 sourcedir_freebsd=unix
 sourcedir_netbsd=unix
+sourcedir_openbsd=unix
 targetdir=.
 
 [default]
