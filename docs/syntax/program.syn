@@ -19,6 +19,4 @@
 \synt{uses\ clause}
 \lit*{uses} \<[b] \synt{identifier} \\ \lit* , \>
 \end{mysyntdiag}
-\begin{mysyntdiag}
-\end{mysyntdiag}
 \end{diagram}
