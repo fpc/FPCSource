@@ -487,7 +487,9 @@ end;
       {$ifdef logging}
       LogLn('set bank '+strf(curbank)+' for offset '+hexstr(offs,8));
       {$endif logging}
-      If amount > 3 Then
+      If ((amount >= 4) and
+          ((offs and 3) = 0)) or
+         (amount >= 4+4-(offs and 3)) Then
       { allign target }
         Begin
           If (offs and 3) <> 0 then
@@ -603,7 +605,9 @@ end;
                  {$ifdef logging2}
                  LogLn('set bank '+strf(curbank)+' for offset '+hexstr(offs,8));
                  {$endif logging2}
-                 If HLength > 3 Then
+                 If ((HLength >= 4) and
+                     ((offs and 3) = 0)) or
+                    (HLength >= 4+4-(offs and 3)) Then
                  { align target }
                    Begin
                      l := 0;
@@ -673,7 +677,9 @@ end;
                  {$ifdef logging2}
                  LogLn('set bank '+strf(curbank)+' for offset '+hexstr(offs,8));
                  {$endif logging}
-                 If HLength > 3 Then
+                 If ((HLength >= 4) and
+                     ((offs and 3) = 0)) or
+                    (HLength >= 4+4-(offs and 3)) Then
                  { allign target }
                    Begin
                      l := 0;
@@ -743,7 +749,9 @@ end;
                  {$ifdef logging2}
                  LogLn('set bank '+strf(curbank)+' for offset '+hexstr(offs,8));
                  {$endif logging}
-                 If HLength > 3 Then
+                 If ((HLength >= 4) and
+                     ((offs and 3) = 0)) or
+                    (HLength >= 4+4-(offs and 3)) Then
                  { allign target }
                    Begin
                      l := 0;
@@ -814,7 +822,9 @@ end;
                  {$ifdef logging2}
                  LogLn('set bank '+strf(curbank)+' for offset '+hexstr(offs,8)+' -- '+strf(offs));
                  {$endif logging}
-                 If HLength > 3 Then
+                 If ((HLength >= 4) and
+                     ((offs and 3) = 0)) or
+                    (HLength >= 4+4-(offs and 3)) Then
                  { allign target }
                    Begin
                      l := 0;
@@ -2489,7 +2499,10 @@ end;
 
 (*
 $Log$
-Revision 1.15  2000-01-02 18:51:05  jonas
+Revision 1.16  2000-01-06 15:19:42  jonas
+  * fixed bug in getscanlinevesa256 and hlinevesa256 for short lines (<8 pixels)
+
+Revision 1.15  2000/01/02 18:51:05  jonas
   * again small fix to patternline-, hline- and getscanlinevesa256
 
 Revision 1.14  1999/12/29 12:15:41  jonas
