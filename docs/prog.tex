@@ -3796,14 +3796,23 @@ be used for special purposes by software developpers.
 \end{description}
 
 \subsection{procedural types}
+<<<<<<< prog.tex
+
+A procedural type is stored as a generic pointer, which stores
+the address of the routine.
+=======
 
 A procedural type to a normal procedure or function is stored as a generic pointer, 
 which stores the address of the entry point of the routine. 
+>>>>>>> 1.29
 
+<<<<<<< prog.tex
+=======
 In the case of a method procedural type, the storage consists of two pointers,
 the first being a pointer to the entry point of the method, and the second
 one being a pointer to \var{self} (the object instance).
 
+>>>>>>> 1.29
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % The alignment of data elements
 \section{Data alignment}
@@ -5012,6 +5021,33 @@ gcc -o ctest2 ctest2.c -ldl
 
 The \var{-ldl} tells gcc that the program needs the \file{libdl.so} library
 to load dynamical libraries.
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Some windows issues
+\section{Some Windows issues}
+\label{shlibwinissues}
+By default, \fpc (actually, the linker used by \fpc)
+creates libraries that are not relocatable. This means that they must be
+loaded at a fixed address in memory: this address is called the
+ImageBase address. If two \fpc generated libraries are loaded by a
+program, there will be a conflict, because the first librarie already
+occupies the memory location where the second library should be loaded.
+
+There are 2 switches in Free Pascal which control the generation of
+shared libraries under \windows:
+\begin{description}
+\item[-WR] Generate a relocatable library. This library can be moved to
+another location in memory if the ImageBase address it wants is already
+in use.
+\item[-WB] Specify the ImageBase address for the generated library.
+The standard ImageBase used by \fpc is \var{0x10000000}. This switch
+allows to change that by specifying another address, for instance
+\var{-WB11000000}.
+\end{description}
+The first option is preferred, as a program may load many libraries
+present on the system, and they could already be using the ImageBase
+address. The second option is faster, as no relocation needs to be
+done if the ImageBase address is not yet in use.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % using resources
@@ -6782,6 +6818,75 @@ operating systems no longer define LINUX starting with version 1.0.7.
 % Appendix H : Operating system specific behavior
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
+<<<<<<< prog.tex
+\chapter{Stack configuration}
+\label{ch:AppH}
+
+This gives some important information on stack settings under
+the different operating systems. It might be important when
+porting applications to other operating systems.
+
+\section{DOS}
+
+Under the DOS targets, the default stack is set to 256 kB.
+This can be modified with the GO32V2 target using a special
+DJGPP utility \file{stubedit}. It is to note that the stack
+size may be enlarged with the compiler switch (\var{-Cs}).
+If the size specified with \var{-Cs} is \emph{greater} 
+than the default stack size, it will be used instead, 
+otherwise the default stack size is used.
+
+\section{Linux}
+
+Under \linux, stack size is only limited by the available memory of
+the system.
+
+\section{Netbsd}
+
+Under \netbsd, stack size is only limited by the available memory of
+the system.
+
+\section{Freebsd}
+
+Under \freebsd, stack size is only limited by the available memory of
+the system.
+
+\section{BeOS}
+
+Under \beos, stack size is fixed at 256Kb. It currently
+cannot be changed, it is recommended to turn on stack
+checking when compiling for this target platform.
+
+\section{Windows}
+
+Under \windows, stack size is only limited by the available memory of
+the system.
+
+\section{OS/2}
+
+Under \ostwo, stack size is specified at a default
+value of 8 Mbytes. This currently cannot be changed
+directly.
+
+\section{Amiga}
+
+Under AmigaOS, stack size is determined by the user, which sets this
+value using the stack program. Typical sizes range from 4 kB to 40 kB.
+The stack size currently cannot be changed, it is recommended to turn
+on stack checking when compiling for this target platform.
+
+\section{Atari}
+
+Under Atari TOS, stack size is currently limited to 8 kB.
+The stack size currently cannot be changed, it is recommended to turn
+on stack checking when compiling for this target platform.
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Appendix I : Operating system specific behavior
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+=======
+>>>>>>> 1.27
 \chapter{Operating system specific behavior}
 \label{ch:AppH}
 
