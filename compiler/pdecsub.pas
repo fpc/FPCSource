@@ -710,7 +710,10 @@ implementation
         pd.proctypeoption:=potype;
         { methods need to be exported }
         if assigned(aclass) and
-           (symtablestack.symtablelevel=main_program_level) then
+           (
+            (symtablestack.symtabletype=objectsymtable) or
+            (symtablestack.symtablelevel=main_program_level)
+           ) then
           include(pd.procoptions,po_public);
 
         { symbol options that need to be kept per procdef }
@@ -2168,7 +2171,10 @@ const
 end.
 {
   $Log$
-  Revision 1.126  2003-06-02 21:42:05  jonas
+  Revision 1.127  2003-06-05 20:04:43  peter
+    * set po_public also when parsing the object declaration
+
+  Revision 1.126  2003/06/02 21:42:05  jonas
     * function results can now also be regvars
     - removed tprocinfo.return_offset, never use it again since it's invalid
       if the result is a regvar
