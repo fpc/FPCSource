@@ -517,7 +517,7 @@ implementation
                              while assigned(procdefcoll) do
                                begin
                                   { compare parameters }
-                                  if equal_paras(procdefcoll^.data^.para,hp^.para,false) and
+                                  if equal_paras(procdefcoll^.data^.para,hp^.para,cp_all) and
                                      (
                                        (po_virtualmethod in procdefcoll^.data^.procoptions) or
                                        (po_virtualmethod in hp^.procoptions)
@@ -731,7 +731,12 @@ implementation
 end.
 {
   $Log$
-  Revision 1.28  2000-05-11 06:55:28  florian
+  Revision 1.29  2000-06-20 12:47:52  pierre
+    * equal_paras and convertable_paras changed by transforming third parameter
+      into an enum with three possible values:
+      cp_none, cp_value_equal_const and cp_all.
+
+  Revision 1.28  2000/05/11 06:55:28  florian
     * fixed some vmt problems, especially related to overloaded methods
       in objects/classes
 

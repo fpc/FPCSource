@@ -1286,11 +1286,16 @@ begin
            { check the parameters }
            if (not(m_repeat_forward in aktmodeswitches) and
                (aktprocsym^.definition^.para^.count=0)) or
-              (equal_paras(aktprocsym^.definition^.para,hd^.para,false) and
+              (equal_paras(aktprocsym^.definition^.para,hd^.para,cp_none) and
               { for operators equal_paras is not enough !! }
               ((aktprocsym^.definition^.proctypeoption<>potype_operator) or (optoken<>_ASSIGNMENT) or
                is_equal(pd^.nextoverloaded^.rettype.def,aktprocsym^.definition^.rettype.def))) then
              begin
+               if not equal_paras(aktprocsym^.definition^.para,hd^.para,cp_all) then
+                 begin
+                    Message1(parser_e_header_dont_match_forward,aktprocsym^.demangledName);
+                    exit;
+                 end;
                if hd^.forwarddef then
                { remove the forward definition  but don't delete it,      }
                { the symtable is the owner !!  }
@@ -2074,7 +2079,12 @@ end.
 
 {
   $Log$
-  Revision 1.63  2000-06-18 18:12:40  peter
+  Revision 1.64  2000-06-20 12:47:52  pierre
+    * equal_paras and convertable_paras changed by transforming third parameter
+      into an enum with three possible values:
+      cp_none, cp_value_equal_const and cp_all.
+
+  Revision 1.63  2000/06/18 18:12:40  peter
     * support overload keyword
 
   Revision 1.62  2000/06/02 21:24:48  pierre

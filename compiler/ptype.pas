@@ -287,7 +287,7 @@ uses
              get_procdef:=nil;
              while assigned(p) do
                begin
-                  if equal_paras(p^.para,propertyparas,true) then
+                  if equal_paras(p^.para,propertyparas,cp_value_equal_const) then
                     break;
                   p:=p^.nextoverloaded;
                end;
@@ -1589,7 +1589,12 @@ uses
 end.
 {
   $Log$
-  Revision 1.27  2000-06-18 18:16:38  peter
+  Revision 1.28  2000-06-20 12:47:53  pierre
+    * equal_paras and convertable_paras changed by transforming third parameter
+      into an enum with three possible values:
+      cp_none, cp_value_equal_const and cp_all.
+
+  Revision 1.27  2000/06/18 18:16:38  peter
     * don't allow enum assignments in tp/delphi mode
 
   Revision 1.26  2000/06/13 17:09:56  kaz

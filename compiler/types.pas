@@ -146,15 +146,20 @@ interface
     function CheckTypes(def1,def2 : pdef) : boolean;
 
     { true, if two parameter lists are equal        }
-    { if value_equal_const is true, call by value   }
+    { if acp is cp_none, all have to match exactly  }
+    { if acp is cp_value_equal_const call by value  }
     { and call by const parameter are assumed as    }
     { equal                                         }
-    function equal_paras(paralist1,paralist2 : plinkedlist;value_equal_const : boolean) : boolean;
+    { if acp is cp_all the var const or nothing are considered equal }
+    type
+      compare_type = ( cp_none, cp_value_equal_const, cp_all);
+
+    function equal_paras(paralist1,paralist2 : plinkedlist; acp : compare_type) : boolean;
 
 
     { true if a type can be allowed for another one
       in a func var }
-    function convertable_paras(paralist1,paralist2 : plinkedlist;value_equal_const : boolean) : boolean;
+    function convertable_paras(paralist1,paralist2 : plinkedlist; acp : compare_type) : boolean;
 
     { true if a function can be assigned to a procvar }
     function proc_to_procvar_equal(def1:pprocdef;def2:pprocvardef) : boolean;
@@ -215,7 +220,9 @@ implementation
          (sym^.typ in [propertysym,varsym]);
       end;
 
-    function equal_paras(paralist1,paralist2 : plinkedlist;value_equal_const : boolean) : boolean;
+    {  compare_type = ( cp_none, cp_value_equal_const, cp_all); }
+
+    function equal_paras(paralist1,paralist2 : plinkedlist; acp : compare_type) : boolean;
       var
         def1,def2 : pparaitem;
       begin
@@ -223,7 +230,8 @@ implementation
          def2:=pparaitem(paralist2^.first);
          while (assigned(def1)) and (assigned(def2)) do
            begin
-              if value_equal_const then
+             case acp of
+              cp_value_equal_const :
                 begin
                    if not(is_equal(def1^.paratype.def,def2^.paratype.def)) or
                      ((def1^.paratyp<>def2^.paratyp) and
@@ -235,8 +243,8 @@ implementation
                         equal_paras:=false;
                         exit;
                      end;
-                end
-              else
+                end;
+              cp_all :
                 begin
                    if not(is_equal(def1^.paratype.def,def2^.paratype.def)) or
                      (def1^.paratyp<>def2^.paratyp) then
@@ -245,6 +253,15 @@ implementation
                         exit;
                      end;
                 end;
+              cp_none :
+                begin
+                   if not(is_equal(def1^.paratype.def,def2^.paratype.def)) then
+                     begin
+                        equal_paras:=false;
+                        exit;
+                     end;
+                end;
+              end;
               def1:=pparaitem(def1^.next);
               def2:=pparaitem(def2^.next);
            end;
@@ -254,7 +271,7 @@ implementation
            equal_paras:=false;
       end;
 
-    function convertable_paras(paralist1,paralist2 : plinkedlist;value_equal_const : boolean) : boolean;
+    function convertable_paras(paralist1,paralist2 : plinkedlist;acp : compare_type) : boolean;
       var
         def1,def2 : pparaitem;
         doconv : tconverttype;
@@ -263,7 +280,8 @@ implementation
          def2:=pparaitem(paralist2^.first);
          while (assigned(def1)) and (assigned(def2)) do
            begin
-              if value_equal_const then
+              case acp of
+              cp_value_equal_const :
                 begin
                    if (isconvertable(def1^.paratype.def,def2^.paratype.def,doconv,callparan,false)=0) or
                      ((def1^.paratyp<>def2^.paratyp) and
@@ -275,8 +293,8 @@ implementation
                         convertable_paras:=false;
                         exit;
                      end;
-                end
-              else
+                end;
+              cp_all :
                 begin
                    if (isconvertable(def1^.paratype.def,def2^.paratype.def,doconv,callparan,false)=0) or
                      (def1^.paratyp<>def2^.paratyp) then
@@ -285,6 +303,15 @@ implementation
                         exit;
                      end;
                 end;
+              cp_none :
+                begin
+                   if (isconvertable(def1^.paratype.def,def2^.paratype.def,doconv,callparan,false)=0) then
+                     begin
+                        convertable_paras:=false;
+                        exit;
+                     end;
+                end;
+              end;
               def1:=pparaitem(def1^.next);
               def2:=pparaitem(def2^.next);
            end;
@@ -322,8 +349,8 @@ implementation
          { check return value and para's and options, methodpointer is already checked
            parameters may also be convertable }
          if is_equal(def1^.rettype.def,def2^.rettype.def) and
-            (equal_paras(def1^.para,def2^.para,false) or
-             convertable_paras(def1^.para,def2^.para,false)) and
+            (equal_paras(def1^.para,def2^.para,cp_all) or
+             convertable_paras(def1^.para,def2^.para,cp_all)) and
             ((po_comp * def1^.procoptions)= (po_comp * def2^.procoptions)) then
            proc_to_procvar_equal:=true
          else
@@ -944,7 +971,7 @@ implementation
                    ((pprocvardef(def1)^.procoptions * po_compatibility_options)=
                     (pprocvardef(def2)^.procoptions * po_compatibility_options)) and
                    is_equal(pprocvardef(def1)^.rettype.def,pprocvardef(def2)^.rettype.def) and
-                   equal_paras(pprocvardef(def1)^.para,pprocvardef(def2)^.para,false);
+                   equal_paras(pprocvardef(def1)^.para,pprocvardef(def2)^.para,cp_all);
              end
          else
            if (def1^.deftype=arraydef) and (def2^.deftype=arraydef) then
@@ -1058,7 +1085,12 @@ implementation
 end.
 {
   $Log$
-  Revision 1.100  2000-05-28 15:22:54  florian
+  Revision 1.101  2000-06-20 12:47:53  pierre
+    * equal_paras and convertable_paras changed by transforming third parameter
+      into an enum with three possible values:
+      cp_none, cp_value_equal_const and cp_all.
+
+  Revision 1.100  2000/05/28 15:22:54  florian
     * fixed a problem with subrange enumerations in case statements
 
   Revision 1.99  2000/03/01 15:36:12  florian
