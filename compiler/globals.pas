@@ -64,7 +64,7 @@ interface
        tpmodeswitches     : tmodeswitches=
          [m_tp7,m_all,m_tp_procvar,m_duplicate_names];
        gpcmodeswitches    : tmodeswitches=
-         [m_gpc,m_all];
+         [m_gpc,m_all,m_tp_procvar];
        macmodeswitches : tmodeswitches=
          [m_mac,m_all,m_result,m_repeat_forward,m_cvar_support,m_tp_procvar];
 
@@ -2289,7 +2289,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.172  2005-02-14 17:13:06  peter
+  Revision 1.173  2005-03-13 11:27:52  florian
+    + gpc mode uses tp_procvars
+
+  Revision 1.172  2005/02/14 17:13:06  peter
     * truncate log
 
   Revision 1.171  2005/02/08 22:33:51  olle
