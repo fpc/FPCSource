@@ -323,14 +323,14 @@ procedure gdk_im_begin(ic:TGdkIC; window:PGdkWindow);cdecl;external gdkdll name 
 procedure gdk_im_end;cdecl;external gdkdll name 'gdk_im_end';
 function  gdk_im_decide_style(supported_style:TGdkIMStyle):TGdkIMStyle;cdecl;external gdkdll name 'gdk_im_decide_style';
 function  gdk_im_set_best_style(best_allowed_style:TGdkIMStyle):TGdkIMStyle;cdecl;external gdkdll name 'gdk_im_set_best_style';
-function  gdk_ic_new(attr:TGdkICAttr; mask:TGdkICAttributesType):TGdkIC;cdecl;external gdkdll name 'gdk_ic_new';
+function  gdk_ic_new(attr:PGdkICAttr; mask:TGdkICAttributesType):TGdkIC;cdecl;external gdkdll name 'gdk_ic_new';
 procedure gdk_ic_destroy(ic:TGdkIC);cdecl;external gdkdll name 'gdk_ic_destroy';
 function  gdk_ic_get_style(ic:TGdkIC):TGdkIMStyle;cdecl;external gdkdll name 'gdk_ic_get_style';
 function  gdk_ic_get_events(ic:TGdkIC):TGdkEventMask;cdecl;external gdkdll name 'gdk_ic_get_events';
-function  gdk_ic_attr_new:TGdkICAttr;cdecl;external gdkdll name 'gdk_ic_attr_new';
-procedure gdk_ic_attr_destroy(attr:TGdkICAttr);cdecl;external gdkdll name 'gdk_ic_attr_destroy';
-function  gdk_ic_set_attr(ic:TGdkIC; attr:TGdkICAttr; mask:TGdkICAttributesType):TGdkICAttributesType;cdecl;external gdkdll name 'gdk_ic_set_attr';
-function  gdk_ic_get_attr(ic:TGdkIC; attr:TGdkICAttr; mask:TGdkICAttributesType):TGdkICAttributesType;cdecl;external gdkdll name 'gdk_ic_get_attr';
+function  gdk_ic_attr_new:PGdkICAttr;cdecl;external gdkdll name 'gdk_ic_attr_new';
+procedure gdk_ic_attr_destroy(attr:PGdkICAttr);cdecl;external gdkdll name 'gdk_ic_attr_destroy';
+function  gdk_ic_set_attr(ic:TGdkIC; attr:PGdkICAttr; mask:TGdkICAttributesType):TGdkICAttributesType;cdecl;external gdkdll name 'gdk_ic_set_attr';
+function  gdk_ic_get_attr(ic:TGdkIC; attr:PGdkICAttr; mask:TGdkICAttributesType):TGdkICAttributesType;cdecl;external gdkdll name 'gdk_ic_get_attr';
 function  gdk_wcstombs(src:PGdkWChar):Pgchar;cdecl;external gdkdll name 'gdk_wcstombs';
 function  gdk_mbstowcs(dest:PGdkWChar; src:Pgchar; dest_max:gint):gint;cdecl;external gdkdll name 'gdk_mbstowcs';
 function  gdk_color_context_new(visual:PGdkVisual; colormap:PGdkColormap):PGdkColorContext;cdecl;external gdkdll name 'gdk_color_context_new';
@@ -387,7 +387,10 @@ procedure gdk_threads_leave;cdecl;external gdkdll name 'gdk_threads_leave';
 
 {
   $Log$
-  Revision 1.4  2003-08-06 07:28:21  michael
+  Revision 1.5  2004-04-01 12:25:37  michael
+  + Fixed gdk_ic_new,gdk_ic_attr_new,  gdk_ic_attr_destroy gdk_ic_set_attr gdk_ic_get_attr, noted by marc weustink
+
+  Revision 1.4  2003/08/06 07:28:21  michael
   + Patch from Marc Weustinck to fix Win32 version
 
   Revision 1.3  2003/03/02 02:08:50  hajny
