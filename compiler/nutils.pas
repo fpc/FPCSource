@@ -448,7 +448,14 @@ implementation
         while true do
           begin
             case p.nodetype of
-              temprefn:
+              temprefn,
+              loadvmtaddrn,
+              { main reason for the next one: we can't take the address of }
+              { loadparentfpnode, so replacing it by a temp which is the   }
+              { address of this node's location and then dereferencing     }
+              { doesn't work. If changed, check whether webtbs/tw0935      }
+              { still works with nodeinlining (JM)                         }
+              loadparentfpn:
                 begin
                   result := 1;
                   exit;
@@ -519,7 +526,11 @@ end.
 
 {
   $Log$
-  Revision 1.21  2004-11-08 22:09:59  peter
+  Revision 1.22  2004-11-28 19:29:45  jonas
+    * loadvmtaddrn and loadparentfpn both have complexity 1 (the latter
+      fixes compilation of tw0935 with nodeinlining)
+
+  Revision 1.21  2004/11/08 22:09:59  peter
     * tvarsym splitted
 
   Revision 1.20  2004/11/02 12:55:16  peter
