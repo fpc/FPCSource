@@ -444,19 +444,6 @@ begin
         Copyfile(OutName,LongLogFile,true);
         Verbose(V_Abort,known_problem+'exitcode: '+ToStr(ExecuteResult));
       end
-     else if (ExecuteResult<>0) and
-             GetCompilerVersion and (Pos('1.0',CompilerVersion)=1) and
-        (((Config.KnownCompile10Note<>'') and (Config.KnownCompile10Error=0)) or
-         ((Config.KnownCompile10Error<>0) and (ExecuteResult=Config.KnownCompile10Error))) then
-      begin
-        AddLog(FailLogFile,TestName+known_problem+Config.KnownCompile10Note);
-        AddLog(ResLogFile,failed_to_run+PPFileInfo+known_problem+Config.KnownCompile10Note);
-        AddLog(LongLogFile,line_separation);
-        AddLog(LongLogFile,known_problem+Config.KnownCompile10Note);
-        AddLog(LongLogFile,failed_to_compile+PPFileInfo+' ('+ToStr(ExecuteResult)+')');
-        Copyfile(OutName,LongLogFile,true);
-        Verbose(V_Abort,known_problem+'exitcode: '+ToStr(ExecuteResult));
-      end
      else if ExecuteResult<>0 then
       begin
         AddLog(FailLogFile,TestName);
@@ -640,7 +627,7 @@ begin
 
   if Res then
    begin
-     if Config.IsKnown and (not DoKnown) then
+     if Config.IsKnownCompileError and (not DoKnown) then
       begin
         { avoid a second attempt by writing to elg file }
         AddLog(OutName,skipping_known_bug+PPFileInfo);
@@ -652,7 +639,7 @@ begin
 
   if Res and not DoUsual then
     res:=(Config.IsInteractive and DoInteractive) or
-         (Config.IsKnown and DoKnown) or
+         (Config.IsKnownRunError and DoKnown) or
          (Config.UsesGraph and DoGraph);
 
   if Res then
@@ -773,6 +760,13 @@ begin
         AddLog(ResLogFile,skipping_run_test+PPFileInfo);
         Verbose(V_Debug,skipping_run_test);
       end
+     else if Config.IsKnownRunError and (not DoKnown) then
+      begin
+        { avoid a second attempt by writing to elg file }
+        AddLog(OutName,skipping_known_bug+PPFileInfo);
+        AddLog(ResLogFile,skipping_known_bug+PPFileInfo);
+        Verbose(V_Abort,skipping_known_bug);
+      end
      else
       begin
         if (not Config.ShouldFail) and DoExecute then
@@ -799,7 +793,12 @@ begin
 end.
 {
   $Log$
-  Revision 1.28  2003-10-13 14:19:02  peter
+  Revision 1.29  2003-10-31 16:14:20  peter
+    * remove compileerror10, note10
+    * remove known, use knowncompileerror,knownrunerror instead
+    * knowncompileerror,knownrunerror tests are now really skipped
+
+  Revision 1.28  2003/10/13 14:19:02  peter
     * digest updated for max version limit
 
   Revision 1.27  2003/06/13 08:16:34  pierre

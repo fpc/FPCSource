@@ -21,16 +21,15 @@ type
     MinVersion,
     MaxVersion,
     KnownRunNote,
-    KnownCompileNote,
-    KnownCompile10Note    : string;
+    KnownCompileNote : string;
     ResultCode    : longint;
     KnownRunError : longint;
-    KnownCompileError,
-    KnownCompile10Error : longint;
+    KnownCompileError : longint;
     NeedRecompile : boolean;
     NeedLibrary   : boolean;
     IsInteractive : boolean;
-    IsKnown       : boolean;
+    IsKnownRunError,
+    IsKnownCompileError : boolean;
     NoRun         : boolean;
     UsesGraph     : boolean;
     ShouldFail    : boolean;
@@ -206,6 +205,7 @@ begin
               else
                if GetEntry('KNOWNRUNERROR') then
                 begin
+                  r.IsKnownRunError:=true;
                   if res<>'' then
                     begin
                       val(res,l,code);
@@ -224,6 +224,7 @@ begin
               else
                if GetEntry('KNOWNCOMPILEERROR') then
                 begin
+                  r.IsKnownCompileError:=true;
                   if res<>'' then
                     begin
                       val(res,l,code);
@@ -239,27 +240,6 @@ begin
                         r.KnownCompileNote:=res;
                     end;
                 end
-              else
-               if GetEntry('KNOWNCOMPILE10ERROR') then
-                begin
-                  if res<>'' then
-                    begin
-                      val(res,l,code);
-                      if code>1 then
-                        begin
-                          part:=code;
-                          val(copy(res,1,code-1),l,code);
-                          delete(res,1,part);
-                        end;
-                      if code=0 then
-                        r.KnownCompile10Error:=l;
-                      if res<>'' then
-                        r.KnownCompile10Note:=res;
-                    end;
-                end
-              else
-               if GetEntry('KNOWN') then
-                 r.IsKnown:=true
               else
                if GetEntry('INTERACTIVE') then
                 r.IsInteractive:=true
