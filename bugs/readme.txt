@@ -209,6 +209,7 @@ Fixed bugs:
   bug0181.pp   shows a problem with name mangling                    OK 0.99.9 (PM)
   bug0182.pp   @record.field doesn't work in constant expr           OK 0.99.9 (PM)
   bug0184.pp   multiple copies of the same constant set are stored in executable OK 0.99.9 (PFV)
+  bug0186.pp   Erroneous array syntax is accepted.                   OK 0.99.9 (PFV)
 
 Unproducable bugs:
 ------------------
@@ -247,5 +248,4 @@ bug0169.pp   missing new(type) support for not object/class
 bug0171.pp   missing typecasting in constant expressions
 bug0183.pp   internal error 10
 bug0185.pp   missing range checking for Val and subrange types
-bug0186.pp   Erroneous array syntax is accepted.
 bug0187.pp   constructor in a WIth statement isn't called correct.
