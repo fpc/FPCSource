@@ -1,6 +1,7 @@
 { Source provided for Free Pascal Bug Report 3217 }
 { Submitted by "C Western" on  2004-07-18 }
 { e-mail: mftq75@dsl.pipex.com }
+{$mode objfpc}
 function TT(I:Integer):Double;
 begin
   Result := (I+0.2)*(I+0.3)+(I+0.5);
