@@ -318,7 +318,7 @@ procedure inclocked(var l : int64);assembler;
      incq       (%rdi)
      jmp        .Linclockedend
 .Linclockednolock:
-     incl       (%rdi)
+     incq       (%rdi)
 .Linclockedend:
   end;
 
@@ -348,7 +348,10 @@ end;
 
 {
   $Log$
-  Revision 1.13  2004-06-05 07:55:22  peter
+  Revision 1.14  2004-11-01 20:31:35  florian
+    * another fix for locked reference counting
+
+  Revision 1.13  2004/06/05 07:55:22  peter
     * fixed parameters of get_caller_*()
 
   Revision 1.12  2004/05/01 15:59:17  florian

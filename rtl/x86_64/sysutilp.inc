@@ -20,6 +20,7 @@
 
 function InterLockedDecrement (var Target: longint) : longint; assembler;
 asm
+        movl    %rdi,%rax
         movl		  $-1,%edx
         xchgq   %rdx,%rax
         lock
@@ -30,6 +31,7 @@ end;
 
 function InterLockedIncrement (var Target: longint) : longint; assembler;
 asm
+        movl    %rdi,%rax
         movl    $1,%edx
         xchgq   %rdx,%rax
         lock
@@ -40,23 +42,23 @@ end;
 
 function InterLockedExchange (var Target: longint;Source : longint) : longint; assembler;
 asm
-        xchgl   (%rax),%edx
-        movl    %edx,%eax
+        xchgl   (%rdi),%rsi
+        movl    %rsi,%eax
 end;
 
 
 function InterLockedExchangeAdd (var Target: longint;Source : longint) : longint; assembler;
 asm
-        xchgq   %rax,%rdx
+        xchgq   %rdi,%rsi
         lock
-        xaddl   %eax, (%rdx)
+        xaddl   %rdi, (%rsi)
 end;
 
 
 {
   $Log$
-  Revision 1.3  2004-11-01 19:10:52  florian
-    * Interlocked* fixed
+  Revision 1.4  2004-11-01 20:31:35  florian
+    * another fix for locked reference counting
 
   Revision 1.2  2004/03/05 12:17:50  marco
    * interlocked* changed to longints, including winapi. (which was a bug)
