@@ -1075,7 +1075,7 @@ implementation
             assigned(defowner) and
             (
              not(m_delphi in aktmodeswitches) or
-             is_object(defowner)
+             is_object(pdef(defowner))
             ) then
            begin
               hsym:=search_class_member(pobjectdef(defowner),sym^.name);
@@ -2368,7 +2368,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.20  2000-12-10 14:14:51  florian
+  Revision 1.21  2000-12-10 20:25:32  peter
+    * fixed missing typecast
+
+  Revision 1.20  2000/12/10 14:14:51  florian
     * fixed web bug 1203: class fields can be now redefined
       in Delphi mode though I don't like this :/
 
