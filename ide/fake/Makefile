@@ -129,22 +129,20 @@ endif
 ifndef COMPONENTDIR
 COMPONENTDIR=$(FPCDIR)/components
 endif
-# Check if packagedir really exists else turn it off
+# Create units dir
+ifneq ($(FPCDIR),.)
+UNITSDIR=$(FPCDIR)/units/$(OS_TARGET)
+endif
+
+# Check if the dirs really exists, else turn it off
+ifeq ($(wildcard $(UNITSDIR)),)
+UNITSDIR=
+endif
 ifeq ($(wildcard $(PACKAGEDIR)),)
 PACKAGEDIR=
 endif
 ifeq ($(wildcard $(COMPONENTDIR)),)
 COMPONENTDIR=
-endif
-
-# Create rtl,units dir
-ifneq ($(FPCDIR),.)
-override UNITSDIR=$(FPCDIR)/units/$(OS_TARGET)
-ifneq ($(wildcard $(FPCDIR)/rtl),)
-override RTLDIR=$(FPCDIR)/rtl/$(OS_TARGET)
-else
-override RTLDIR=$(UNITSDIR)/rtl
-endif
 endif
 
 #####################################################################
@@ -189,8 +187,29 @@ ZIPTARGET=install
 
 # Packages
 
-override PACKAGES=rtl
+override PACKAGES+=rtl
+ifneq ($(wildcard $(FPCDIR)/rtl),)
+ifneq ($(wildcard $(FPCDIR)/rtl/$(OS_TARGET)),)
 PACKAGEDIR_RTL=$(FPCDIR)/rtl/$(OS_TARGET)
+else
+PACKAGEDIR_RTL=$(FPCDIR)/rtl
+endif
+UNITDIR_RTL=$(PACKAGEDIR_RTL)
+else
+PACKAGEDIR_RTL=
+ifneq ($(wildcard $(UNITSDIR)/rtl),)
+ifneq ($(wildcard $(UNITSDIR)/rtl/$(OS_TARGET)),)
+UNITDIR_RTL=$(UNITSDIR)/rtl/$(OS_TARGET)
+else
+UNITDIR_RTL=$(UNITSDIR)/rtl
+endif
+else
+UNITDIR_RTL=
+endif
+endif
+ifdef UNITDIR_RTL
+override NEEDUNITDIR+=$(UNITDIR_RTL)
+endif
 
 # Libraries
 
@@ -236,7 +255,18 @@ endif
 endif
 endif
 
-.PHONY:  rtl_package
+PACKAGERTL=1
+ifdef PACKAGERTL
+ifneq ($(wildcard $(PACKAGEDIR_RTL)),)
+ifeq ($(wildcard $(PACKAGEDIR_RTL)/$(FPCMADE)),)
+override COMPILEPACKAGES+=rtl
+rtl_package:
+	$(MAKE) -C $(PACKAGEDIR_RTL) all
+endif
+endif
+endif
+
+.PHONY:  rtl_package rtl_package
 
 
 # Target Dirs

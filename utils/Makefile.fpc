@@ -4,13 +4,13 @@
 
 [targets]
 dirs=tply h2pas
-programs=ppufiles ppudump ppumove ppdep ptop rstconv data2inc fpcmake delp
+programs=ppufiles ppudump ppumove ppdep ptop rstconv data2inc fpcmake delp bin2obj
 
 [clean]
 units=ppu ptopu
 
 [require]
-packages=fcl
+packages=fcl zlib
 
 [tools]
 tooldata2inc=1

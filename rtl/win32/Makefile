@@ -144,24 +144,6 @@ endif
 ifndef COMPONENTDIR
 COMPONENTDIR=$(FPCDIR)/components
 endif
-# Check if packagedir really exists else turn it off
-ifeq ($(wildcard $(PACKAGEDIR)),)
-PACKAGEDIR=
-endif
-ifeq ($(wildcard $(COMPONENTDIR)),)
-COMPONENTDIR=
-endif
-
-# Create rtl,units dir
-ifneq ($(FPCDIR),.)
-override UNITSDIR=$(FPCDIR)/units/$(OS_TARGET)
-ifneq ($(wildcard $(FPCDIR)/rtl),)
-override RTLDIR=$(FPCDIR)/rtl/$(OS_TARGET)
-else
-override RTLDIR=$(UNITSDIR)/rtl
-endif
-endif
-
 #####################################################################
 # Default Settings
 #####################################################################
@@ -355,10 +337,6 @@ endif
 
 ifdef UNITSDIR
 override FPCOPT+=-Fu$(UNITSDIR)
-endif
-
-ifdef RTLDIR
-override FPCOPT+=-Fu$(RTLDIR)
 endif
 
 ifdef NEEDINCDIR

@@ -137,22 +137,20 @@ endif
 ifndef COMPONENTDIR
 COMPONENTDIR=$(FPCDIR)/components
 endif
-# Check if packagedir really exists else turn it off
+# Create units dir
+ifneq ($(FPCDIR),.)
+UNITSDIR=$(FPCDIR)/units/$(OS_TARGET)
+endif
+
+# Check if the dirs really exists, else turn it off
+ifeq ($(wildcard $(UNITSDIR)),)
+UNITSDIR=
+endif
 ifeq ($(wildcard $(PACKAGEDIR)),)
 PACKAGEDIR=
 endif
 ifeq ($(wildcard $(COMPONENTDIR)),)
 COMPONENTDIR=
-endif
-
-# Create rtl,units dir
-ifneq ($(FPCDIR),.)
-override UNITSDIR=$(FPCDIR)/units/$(OS_TARGET)
-ifneq ($(wildcard $(FPCDIR)/rtl),)
-override RTLDIR=$(FPCDIR)/rtl/$(OS_TARGET)
-else
-override RTLDIR=$(UNITSDIR)/rtl
-endif
 endif
 
 #####################################################################
@@ -248,8 +246,29 @@ endif
 
 # Packages
 
-override PACKAGES=rtl
+override PACKAGES+=rtl
+ifneq ($(wildcard $(FPCDIR)/rtl),)
+ifneq ($(wildcard $(FPCDIR)/rtl/$(OS_TARGET)),)
 PACKAGEDIR_RTL=$(FPCDIR)/rtl/$(OS_TARGET)
+else
+PACKAGEDIR_RTL=$(FPCDIR)/rtl
+endif
+UNITDIR_RTL=$(PACKAGEDIR_RTL)
+else
+PACKAGEDIR_RTL=
+ifneq ($(wildcard $(UNITSDIR)/rtl),)
+ifneq ($(wildcard $(UNITSDIR)/rtl/$(OS_TARGET)),)
+UNITDIR_RTL=$(UNITSDIR)/rtl/$(OS_TARGET)
+else
+UNITDIR_RTL=$(UNITSDIR)/rtl
+endif
+else
+UNITDIR_RTL=
+endif
+endif
+ifdef UNITDIR_RTL
+override NEEDUNITDIR+=$(UNITDIR_RTL)
+endif
 
 # Libraries
 
@@ -380,12 +399,12 @@ ifdef NEEDOPT
 override FPCOPT+=$(NEEDOPT)
 endif
 
-ifdef UNITSDIR
-override FPCOPT+=-Fu$(UNITSDIR)
+ifdef NEEDUNITDIR
+override FPCOPT+=$(addprefix -Fu,$(NEEDUNITDIR))
 endif
 
-ifdef RTLDIR
-override FPCOPT+=-Fu$(RTLDIR)
+ifdef UNITSDIR
+override FPCOPT+=-Fu$(UNITSDIR)
 endif
 
 # Target dirs
@@ -800,7 +819,18 @@ endif
 endif
 endif
 
-.PHONY:  rtl_package
+PACKAGERTL=1
+ifdef PACKAGERTL
+ifneq ($(wildcard $(PACKAGEDIR_RTL)),)
+ifeq ($(wildcard $(PACKAGEDIR_RTL)/$(FPCMADE)),)
+override COMPILEPACKAGES+=rtl
+rtl_package:
+	$(MAKE) -C $(PACKAGEDIR_RTL) all
+endif
+endif
+endif
+
+.PHONY:  rtl_package rtl_package
 
 #####################################################################
 # General compile rules
@@ -1172,8 +1202,8 @@ next :
 else
 next :
 	$(MAKE) execlean
-	$(MAKE) -C $(RTLDIR) clean
-	$(MAKE) -C $(RTLDIR) 'FPC=$(FPC)' 'OPT=$(RTLOPTS)' all
+	$(MAKE) -C $(UNITDIR_RTL) clean
+	$(MAKE) -C $(UNITDIR_RTL) 'FPC=$(FPC)' 'OPT=$(RTLOPTS)' all
 	$(MAKE) clean
 	$(MAKE) all
 endif
@@ -1245,7 +1275,7 @@ tokens.dat : $(wildcard *.pas) $(wildcard *.inc)
 remake: $(EXENAME)
 	$(MOVE) $(EXENAME) $(TEMPNAME)
 	$(MAKE) execlean
-	$(MAKE) -C $(RTLDIR) clean
+	$(MAKE) -C $(UNITDIR_RTL) clean
 	$(MAKE) clean
 	$(MAKE) 'FPC=$(BASEDIR)/$(TEMPNAME)' all
 
@@ -1269,8 +1299,8 @@ $(TEMPNAME3) : $(TEMPNAME2)
 
 cycle:
 	$(MAKE) clean
-	$(MAKE) -C $(RTLDIR) clean
-	$(MAKE) -C $(RTLDIR) 'OPT=$(RTLOPTS)' all
+	$(MAKE) -C $(UNITDIR_RTL) clean
+	$(MAKE) -C $(UNITDIR_RTL) 'OPT=$(RTLOPTS)' all
 	$(MAKE) remake3
 	$(MAKE) echotime
 
@@ -1319,14 +1349,16 @@ endif
 # Misc
 #####################################################################
 
-rtl :
-	$(MAKE) -C $(RTLDIR) all
+.PHONY: rtl rtlclean rtlinstall
 
-rtlclean :
-	$(MAKE) -C $(RTLDIR) clean
+rtl:
+	$(MAKE) -C $(UNITDIR_RTL) all
+
+rtlclean:
+	$(MAKE) -C $(UNITDIR_RTL) clean
 
 rtlinstall:
-	$(MAKE) -C $(RTLDIR) install
+	$(MAKE) -C $(UNITDIR_RTL) install
 
 #####################################################################
 # local user configurable file

@@ -157,8 +157,8 @@ next :
 else
 next :
         $(MAKE) execlean
-        $(MAKE) -C $(RTLDIR) clean
-        $(MAKE) -C $(RTLDIR) 'FPC=$(FPC)' 'OPT=$(RTLOPTS)' all
+        $(MAKE) -C $(UNITDIR_RTL) clean
+        $(MAKE) -C $(UNITDIR_RTL) 'FPC=$(FPC)' 'OPT=$(RTLOPTS)' all
         $(MAKE) clean
         $(MAKE) all
 endif
@@ -230,7 +230,7 @@ tokens.dat : $(wildcard *.pas) $(wildcard *.inc)
 remake: $(EXENAME)
         $(MOVE) $(EXENAME) $(TEMPNAME)
         $(MAKE) execlean
-        $(MAKE) -C $(RTLDIR) clean
+        $(MAKE) -C $(UNITDIR_RTL) clean
         $(MAKE) clean
         $(MAKE) 'FPC=$(BASEDIR)/$(TEMPNAME)' all
 
@@ -254,8 +254,8 @@ $(TEMPNAME3) : $(TEMPNAME2)
 
 cycle:
         $(MAKE) clean
-        $(MAKE) -C $(RTLDIR) clean
-        $(MAKE) -C $(RTLDIR) 'OPT=$(RTLOPTS)' all
+        $(MAKE) -C $(UNITDIR_RTL) clean
+        $(MAKE) -C $(UNITDIR_RTL) 'OPT=$(RTLOPTS)' all
         $(MAKE) remake3
         $(MAKE) echotime
 
@@ -304,14 +304,16 @@ endif
 # Misc
 #####################################################################
 
-rtl :
-        $(MAKE) -C $(RTLDIR) all
+.PHONY: rtl rtlclean rtlinstall
 
-rtlclean :
-        $(MAKE) -C $(RTLDIR) clean
+rtl:
+        $(MAKE) -C $(UNITDIR_RTL) all
+
+rtlclean:
+        $(MAKE) -C $(UNITDIR_RTL) clean
 
 rtlinstall:
-        $(MAKE) -C $(RTLDIR) install
+        $(MAKE) -C $(UNITDIR_RTL) install
 
 #####################################################################
 # local user configurable file
