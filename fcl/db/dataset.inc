@@ -786,10 +786,15 @@ begin
 {$ifdef dsdebug}
     Writeln ('   Freeing buffers :',FBufferCount-Value);
 {$endif}
-    For I:=Value+1 to FBufferCount do
-      FreeRecordBuffer(FBuffers[i]);
-    ReAllocMem(FBuffers,(Value+1)*SizeOf(Pchar));
+   If Assigned(FBuffers) then
+      begin
+      For I:=Value+1 to FBufferCount do
+        FreeRecordBuffer(FBuffers[i]);
+      ReAllocMem(FBuffers,(Value+1)*SizeOf(Pchar));
+      end;
     end;
+  If Value=-1 then
+    Value:=0;  
   FBufferCount:=Value;
 {$ifdef dsdebug}
   Writeln ('   SetBufListSize: Final FBufferCount=',FBufferCount);
@@ -1690,7 +1695,10 @@ end;
 
 {
   $Log$
-  Revision 1.10  2003-11-09 21:23:10  michael
+  Revision 1.11  2004-01-05 21:21:38  michael
+  + Fix in setbuflistsize for when Value=-1
+
+  Revision 1.10  2003/11/09 21:23:10  michael
   + Patch from Micha Nelissen, fixing some Delphi compatibility issues
 
   Revision 1.9  2003/10/06 17:04:28  florian
