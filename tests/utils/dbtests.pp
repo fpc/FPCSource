@@ -15,9 +15,10 @@ Uses
 Function GetTestID(Name : string) : Integer; 
 Function GetOSID(Name : String) : Integer;
 Function GetCPUID(Name : String) : Integer;
+Function GetVersionID(Name : String) : Integer;
 Function AddTest(Name : String; AddSource : Boolean) : Integer;
 Function UpdateTest(ID : Integer; Info : TConfig; Source : String) : Boolean;
-Function AddTestResult(TestID,OSID,CPUID,TestRes : Integer; 
+Function AddTestResult(TestID,OSID,CPUID,VersionID,TestRes : Integer; 
                        OK, Skipped : Boolean;
                        Log : String;
                        TestDate : TDateTime) : Integer;
@@ -175,6 +176,15 @@ begin
   Result:=IDQuery(Format(SFromName,[Name]));
 end;
 
+Function GetVersionID(Name : String) : Integer;
+
+Const 
+  SFromName = 'SELECT TV_ID FROM TESTVERSION WHERE (TV_VERSION="%s")';
+
+begin
+  Result:=IDQuery(Format(SFromName,[Name]));
+end;
+
 Function GetCPUID(Name : String) : Integer;
 
 Const 
@@ -253,17 +263,17 @@ begin
   Result:=RunQuery(Qry,res)
 end;
 
-Function AddTestResult(TestID,OSID,CPUID,TestRes : Integer; 
+Function AddTestResult(TestID,OSID,CPUID,VersionID,TestRes : Integer; 
                        OK, Skipped : Boolean;
                        Log : String;
                        TestDate : TDateTime) : Integer;
 
 Const
   SInsertRes = 'Insert into TESTRESULTS ('+
-              ' TR_TEST_FK, TR_DATE, TR_CPU_FK, TR_OS_FK,'+
+              ' TR_TEST_FK, TR_DATE, TR_CPU_FK, TR_OS_FK,TR_VERSION_FK,'+
               ' TR_OK, TR_SKIP, TR_RESULT, TR_LOG)'+
               'VALUES ('+
-              ' %d,"%s",%d,%d,'+
+              ' %d,"%s",%d,%d,%d,'+
               ' "%s","%s",%d,"%s")';
 
 Var
@@ -272,7 +282,7 @@ Var
    
 begin
   Result:=-1;
-  Qry:=Format(SInsertRes,[TestID,FormatDateTime('yyyymmdd',TestDate),CPUID,OSID,
+  Qry:=Format(SInsertRes,[TestID,FormatDateTime('yyyymmdd',TestDate),CPUID,OSID,VersionID,
                          B[OK],B[Skipped],TestRes,EscapeSQL(Log)
                          ]);
   If RunQuery(Qry,Res) then

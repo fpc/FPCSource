@@ -168,6 +168,7 @@ TConfigOpt = (
   coLogFile,
   coOS,
   coCPU,
+  coVersion,
   coDate
  );
 
@@ -181,15 +182,17 @@ ConfigStrings : Array [TConfigOpt] of string = (
   'logfile',
   'os',
   'cpu',
+  'version',
   'date'
 );
 
 ConfigOpts : Array[TConfigOpt] of char 
-           = ('d','h','u','p','l','o','c','t');
+           = ('d','h','u','p','l','o','c','v','t');
 
 Var
   TestOS,
   TestCPU,
+  TestVersion,
   DatabaseName,
   HostName,
   UserName,
@@ -208,6 +211,7 @@ begin
     coLogFile      : LogFileName:=Value;
     coOS           : TestOS:=Value;
     coCPU          : TestCPU:=Value; 
+    coVersion      : TestVersion:=Value;
     coDate         : TestDate:=StrToDate(Value);
   end;
 end;
@@ -319,6 +323,7 @@ end;
 Var
   TestCPUID : Integer;
   TestOSID  : Integer;
+  TestVersionID  : Integer;
 
 Procedure GetIDs;
 
@@ -329,6 +334,9 @@ begin
   TestOSID  := GetOSID(TestOS);
   If TestOSID=-1 then
     Verbose(V_Error,'NO ID for OS "'+TestOS+'" found.');
+  TestVersionID  := GetVersionID(TestVersion);
+  If TestVersionID=-1 then
+    Verbose(V_Error,'NO ID for version "'+TestVersion+'" found.');
   If (Round(TestDate)=0) then 
     Testdate:=Date;
 end;
@@ -374,7 +382,7 @@ begin
             TestLog:=GetLog(Line)
           else
             TestLog:='';  
-          AddTestResult(ID,TestOSID,TestCPUID,Ord(TS),
+          AddTestResult(ID,TestOSID,TestCPUID,TestVersionID,Ord(TS),
                         TestOK[TS],TestSkipped[TS],
                         TestLog,
                         TestDate);
@@ -403,7 +411,10 @@ end.
 
 {
   $Log$
-  Revision 1.1  2002-12-17 15:04:32  michael
+  Revision 1.2  2002-12-21 15:31:16  michael
+  + Added support for compiler version
+
+  Revision 1.1  2002/12/17 15:04:32  michael
   + Added dbdigest to store results in a database
 
   Revision 1.2  2002/11/18 16:42:43  pierre
