@@ -482,18 +482,21 @@ implementation
            end;
 
          { are we accessing a pointer[], then convert the pointer to
-           an array first }
-         if (p^.left^.resulttype^.deftype=pointerdef) then
-           begin
-             { convert pointer to array }
-             harr:=new(parraydef,init(0,$7fffffff,s32bitdef));
-             parraydef(harr)^.elementtype.def:=ppointerdef(p^.left^.resulttype)^.pointertype.def;
-             p^.left:=gentypeconvnode(p^.left,harr);
-             firstpass(p^.left);
-             if codegenerror then
-               exit;
-             p^.resulttype:=parraydef(harr)^.elementtype.def
-           end;
+           an array first, in FPC this is allowed for all pointers in
+           delphi/tp7 it's only allowed for pchars }
+         if (p^.left^.resulttype^.deftype=pointerdef) and
+            ((m_fpc in aktmodeswitches) or
+             is_pchar(p^.left^.resulttype)) then
+          begin
+            { convert pointer to array }
+            harr:=new(parraydef,init(0,$7fffffff,s32bitdef));
+            parraydef(harr)^.elementtype.def:=ppointerdef(p^.left^.resulttype)^.pointertype.def;
+            p^.left:=gentypeconvnode(p^.left,harr);
+            firstpass(p^.left);
+            if codegenerror then
+             exit;
+            p^.resulttype:=parraydef(harr)^.elementtype.def
+          end;
 
          { determine return type }
          if not assigned(p^.resulttype) then
@@ -512,7 +515,8 @@ implementation
                 end;
              end
            else
-             CGMessage(type_e_mismatch);
+             CGMessage(type_e_array_required);
+
          { the register calculation is easy if a const index is used }
          if p^.right^.treetype=ordconstn then
            begin
@@ -639,7 +643,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.5  2000-08-04 22:00:52  peter
+  Revision 1.6  2000-08-20 15:05:45  peter
+    * don't allow pointer indexing in non-fpc modes
+    * array type required message instead of type mismatch (merged)
+
+  Revision 1.5  2000/08/04 22:00:52  peter
     * merges from fixes
 
   Revision 1.4  2000/08/02 19:49:59  peter
