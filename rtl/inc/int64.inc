@@ -316,8 +316,8 @@
       begin
          hs:='';
          repeat
-           hs:=chr(longint(value mod 10)+48)+hs;
-           value:=value div 10;
+           hs:=chr(longint(value mod qword(10))+48)+hs;
+           value:=value div qword(10);
          until value=0;
          s:=hs;
       end;
@@ -477,7 +477,10 @@
 
 {
   $Log$
-  Revision 1.7  2000-12-10 15:00:14  florian
+  Revision 1.8  2001-03-03 12:39:09  jonas
+    * fixed qword_str for values with bit 63 = 1
+
+  Revision 1.7  2000/12/10 15:00:14  florian
     * val for int64 hopefully works now correct
 
   Revision 1.6  2000/12/09 20:52:40  florian
