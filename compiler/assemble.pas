@@ -104,6 +104,7 @@ uses
   {$ifndef NoAg68kMit}
     ,ag68kmit
   {$endif NoAg68kMit}
+    ,ag68kmpw
 {$endif}
   ;
 
@@ -431,6 +432,7 @@ begin
   {$ifndef NoAg68kMit}
    as_mit : a:=new(pm68kmitasmlist,Init);
   {$endif NoAg86KMot}
+   as_mpw : a:=new(pm68kmpwasmlist,Init);
 {$endif}
   else
    Message(assem_f_assembler_output_not_supported);
@@ -456,7 +458,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.22  1998-09-16 16:41:39  peter
+  Revision 1.23  1998-10-07 04:27:37  carl
+    + MPW support
+
+  Revision 1.22  1998/09/16 16:41:39  peter
     * merged fixes
 
   Revision 1.21.2.1  1998/09/16 16:11:38  peter
