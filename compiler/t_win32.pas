@@ -427,12 +427,6 @@ implementation
              inc(last_index);
              hp.index:=last_index;
           end;
-        { use pascal name is none specified }
-        if (hp.options and eo_name)=0 then
-          begin
-             hp.name:=stringdup(hp.sym^.name);
-             hp.options:=hp.options or eo_name;
-          end;
         { now place in correct order }
         hp2:=texported_item(current_module._exports.first);
         while assigned(hp2) and
@@ -1303,7 +1297,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.7  2000-12-25 00:07:30  peter
+  Revision 1.8  2000-12-30 22:53:25  peter
+    * export with the case provided in the exports section
+
+  Revision 1.7  2000/12/25 00:07:30  peter
     + new tlinkedlist class (merge of old tstringqueue,tcontainer and
       tlinkedlist objects)
 

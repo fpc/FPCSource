@@ -54,6 +54,7 @@ implementation
     procedure read_exports;
       var
          hp        : texported_item;
+         orgs,
          DefString : string;
          ProcName  : string;
          InternalProcName : string;
@@ -74,6 +75,7 @@ implementation
                         consume(_POINT);
                         getsymonlyin(punitsym(srsym)^.unitsymtable,pattern);
                      end;
+                   orgs:=orgpattern;
                    consume(_ID);
                    if assigned(srsym) then
                      begin
@@ -87,7 +89,7 @@ implementation
                          Message(parser_e_illegal_symbol_exported)
                         else
                          begin
-                          ProcName:=hp.sym^.name;
+                          ProcName:=orgs;
                           InternalProcName:=hp.sym^.mangledname;
                           { This is wrong if the first is not
                             an underline }
@@ -145,6 +147,12 @@ implementation
                           end;
                         if (DefString<>'') and UseDeffileForExport then
                          DefFile.AddExport(DefString);
+                        { Default to generate a name entry with the provided name }
+                        if not assigned(hp^.name) then
+                         begin
+                           hp^.name:=stringdup(orgs);
+                           hp^.options:=hp^.options or eo_name;
+                         end;
                         if hp.sym^.typ=procsym then
                           exportlib.exportprocedure(hp)
                         else
@@ -167,7 +175,10 @@ end.
 
 {
   $Log$
-  Revision 1.9  2000-12-25 00:07:27  peter
+  Revision 1.10  2000-12-30 22:53:25  peter
+    * export with the case provided in the exports section
+
+  Revision 1.9  2000/12/25 00:07:27  peter
     + new tlinkedlist class (merge of old tstringqueue,tcontainer and
       tlinkedlist objects)
 
