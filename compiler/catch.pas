@@ -37,12 +37,14 @@ Unit catch;
 interface
 uses
 {$ifdef unix}
+ {$ifndef beos}
   {$define has_signal}
   {$ifdef ver1_0}
     Linux,
   {$else}
     Unix,
   {$endif}
+ {$endif}
 {$endif}
 {$ifdef go32v2}
   {$define has_signal}
@@ -107,7 +109,10 @@ end.
 
 {
   $Log$
-  Revision 1.11  2002-05-18 13:34:05  peter
+  Revision 1.12  2003-01-10 21:37:48  marco
+   * beos shouldnt define hassignal (unix<-> hasunix problem)
+
+  Revision 1.11  2002/05/18 13:34:05  peter
     * readded missing revisions
 
   Revision 1.10  2002/05/16 19:46:35  carl
