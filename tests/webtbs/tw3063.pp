@@ -2,9 +2,10 @@
 { Submitted by "Werner Bochtler" on  2004-04-23 }
 { e-mail: werner.bochtler@zkrd.de }
 program scope;
-uses classes;
 
 {$mode delphi}
+
+uses classes;
 
 var
   error: string;
