@@ -445,6 +445,12 @@ TYPE
        { screen scan line with a word for each pixel in the scanline    }
        getscanlineproc = procedure (Y : integer; var data);
 
+       { changes the active display screen where we draw to... }
+       setactivepageproc = procedure (page: word);
+
+       { changes the active display screen which we see ... }
+       setvisualpageproc = procedure (page: word);
+
        { this routine actually switches to the desired video mode.     }
        initmodeproc = procedure;
 
@@ -480,6 +486,8 @@ TYPE
       GetPixel       : GetPixelProc;
       PutPixel       : PutPixelProc;
       { defaults possible ... }
+      SetVisualPage  : SetVisualPageProc;
+      SetActivePage  : SetActivePageProc;
       ClearViewPort  : ClrViewProc;
       PutImage       : PutImageProc;
       GetImage       : GetImageProc;
@@ -504,6 +512,8 @@ VAR
   GetImage       : GetImageProc;
   ImageSize      : ImageSizeProc;
   GetPixel       : GetPixelProc;
+  SetVisualPage  : SetVisualPageProc;
+  SetActivePage  : SetActivePageProc;
 
   GraphFreeMemPtr: graphfreememprc;
   GraphGetMemPtr : graphgetmemprc;
@@ -521,8 +531,6 @@ VAR
 
 Procedure Closegraph;
 procedure SetLineStyle(LineStyle: word; Pattern: word; Thickness: word);
-procedure SetVisualPage(page : word);
-procedure SetActivePage(page : word);
 function  GraphErrorMsg(ErrorCode: Integer): string;
 Function  GetMaxX: Integer;
 Function  GetMaxY: Integer;
@@ -550,6 +558,7 @@ procedure SetFillStyle(Pattern : word; Color: word);
 procedure SetFillPattern(Pattern: FillPatternType; Color: word);
  procedure MoveRel(Dx, Dy: Integer);
  procedure MoveTo(X,Y: Integer);
+
  { -------------------- Color/Palette ------------------------------- }
  procedure SetBkColor(ColorNum: Word);
  function  GetColor: Word;
@@ -570,6 +579,7 @@ procedure SetFillPattern(Pattern: FillPatternType; Color: word);
  { -------------------- Circle related routines --------------------- }
  procedure GetAspectRatio(var Xasp,Yasp : word);
  procedure SetAspectRatio(Xasp, Yasp : word);
+ procedure GetArcCoords(var ArcCoords: ArcCoordsType);
 
 
  procedure Arc(X,Y : Integer; StAngle,EndAngle,Radius: word);
@@ -665,7 +675,6 @@ var
   StartYViewPort: Integer; { absolute }
   ViewWidth : Integer;
   ViewHeight: Integer;
-  VideoStart: Pointer;     { ADDRESS OF CURRENT ACTIVE PAGE }
 
 
   IsGraphMode : Boolean; { Indicates if we are in graph mode or not }
@@ -901,7 +910,7 @@ var
 		   x := x + xinc2;
 		   y := y + yinc2;
 		  end;
-		CurrentColor := OldCurrentColor;
+		  CurrentColor := OldCurrentColor;
 	     end;
 	  end
 	 else
@@ -1224,15 +1233,14 @@ var
        { removed from inner loop to make faster }
        ConvFac:=Pi/180.0;
        Repeat
-	 { this used by both sin and cos }
-	 TempTerm := j*ConvFac;
-	 { Calculate points }
-	 xpt^[i]:=round(XRadius*Cos(TempTerm));
-	 { calculate the value of y }
-	 ypt^[i]:=round(YRadius*Sin(TempTerm+Pi));
-     if abs(ypt^[i]) > YRadius then ypt^[i] := 0;
-	 j:=j+Delta;
-	 inc(i);
+	     { this used by both sin and cos }
+	     TempTerm := j*ConvFac;
+	     { Calculate points }
+	     xpt^[i]:=round(XRadius*Cos(TempTerm));
+         { calculate the value of y }
+	     ypt^[i]:=round(YRadius*Sin(TempTerm+Pi));
+	     j:=j+Delta;
+	     inc(i);
        Until j > DeltaAngle;
      end
    else
@@ -1248,23 +1256,23 @@ var
       { removed from inner loop to make faster }
       ConvFac:=Pi/180.0;
       for Count:=0 to 2 do
-	Begin
-	  aval:=XRadius+Count-1;
-	  bval:=YRadius+Count-1;
-	  Delta := DeltaAngle / (NumOfPix[Count]);
-	  aval:= (longint(aval)*10000) div XAspect;
-	  bval:= (longint(bval)*10000) div YAspect;
-	  j:=Delta+Stangle;
-	  Repeat
-	    { this used by both sin and cos }
-	    TempTerm := j*ConvFac;
-	    xpt^[i]:=round((aval)*Cos(TempTerm));
-	    { calculate the value of y }
-	    ypt^[i]:=round(bval*Sin(TempTerm+Pi));
-	    j:=j+Delta;
-	    inc(i);
-	  Until j > DeltaAngle;
-	end;
+	    Begin
+	     aval:=XRadius+Count-1;
+	     bval:=YRadius+Count-1;
+	     Delta := DeltaAngle / (NumOfPix[Count]);
+	     aval:= (longint(aval)*10000) div XAspect;
+	     bval:= (longint(bval)*10000) div YAspect;
+	     j:=Delta+Stangle;
+	     Repeat
+	       { this used by both sin and cos }
+	       TempTerm := j*ConvFac;
+	       xpt^[i]:=round((aval)*Cos(TempTerm));
+	       { calculate the value of y }
+	       ypt^[i]:=round(bval*Sin(TempTerm+Pi));
+	       j:=j+Delta;
+	       inc(i);
+	     Until j > DeltaAngle;
+	    end;
     end;
    {******************************************}
    {  NOW ALL PIXEL POINTS ARE IN BUFFER      }
@@ -1273,9 +1281,7 @@ var
    Count:=0;
    OldcurrentColor:=currentColor;
    Repeat
-{$R-}
-     DirectPutPixel(xpt^[Count]+X,ypt^[Count]+Y);
-{$R+}
+     PutPixel(xpt^[Count]+X,ypt^[Count]+Y,CurrentColor);
      inc(count);
    until Count>=i;
 
@@ -1284,10 +1290,8 @@ var
    ArcCall.Y := Y;
    ArcCall.XStart := xpt^[0] + X;
    ArcCall.YStart := ypt^[0] + Y;
-{$R-}
    ArcCall.XEnd := xpt^[Count-1] + X;
    ArcCall.YEnd := ypt^[Count-1] + Y;
-{$R+}
    CurrentColor:=OldCurrentColor;
    if LineInfo.Thickness=NormWidth then
      Begin
@@ -1302,6 +1306,24 @@ var
   end;
 
 
+  {********************************************************}
+  { Procedure InternalEllipse()                            }
+  {--------------------------------------------------------}
+  { This routine first calculates all points required to   }
+  { draw a circle to the screen, and stores the points     }
+  { to display in a buffer before plotting them. The       }
+  { aspect ratio of the screen is taken into account when  }
+  { calculating the values.                                }
+  {--------------------------------------------------------}
+  { INPUTS: X,Y : Center coordinates of Ellipse.           }
+  {  XRadius - X-Axis radius of ellipse.                   }
+  {  YRadius - Y-Axis radius of ellipse.                   }
+  {  stAngle, EndAngle: Start angle and end angles of the  }
+  {  ellipse (used for partial ellipses and circles)       }
+  {--------------------------------------------------------}
+  { NOTE: - uses the current write mode.                   }
+  {       - Angles must both be between 0 and 360          }
+  {********************************************************}
 (*
 Procedure InternalEllipseDefault (x, y : integer;
     xradius, yradius, stAngle, EndAngle : Word);
@@ -1315,20 +1337,52 @@ const
 
 Procedure PlotPoints;
 
+var
+ i,j: integer;
+ xm, ym: integer;
+ xp, yp: integer;
 Begin
-  If (Alpha>=StAngle) And (Alpha<=EndAngle) then
-      DirectPutPixel (x-xa,y-ya);
-  If (180-Alpha>=StAngle) And (180-Alpha<=EndAngle) then
-      DirectPutPixel (x-xa,y+ya);
-  If (180+Alpha>=StAngle) And (180+Alpha<=EndAngle) then
-      DirectPutPixel (x+xa,y+ya);
-  If (360-Alpha>=StAngle) And (360-Alpha<=EndAngle) then
-      DirectPutPixel (x+xa,y-ya);
+   ym := y-ya;
+   yp := y+ya;
+   xm := x-xa;
+   xp := x+xa;
+   if LineInfo.Thickness = Normwidth then
+     Begin
+       If (Alpha>=StAngle) And (Alpha<=EndAngle) then
+          PutPixel (xm,ym, CurrentColor);
+       If (180-Alpha>=StAngle) And (180-Alpha<=EndAngle) then
+          PutPixel (xm,yp, CurrentColor);
+       If (180+Alpha>=StAngle) And (180+Alpha<=EndAngle) then
+          PutPixel (xp,yp, CurrentColor);
+       If (360-Alpha>=StAngle) And (360-Alpha<=EndAngle) then
+          PutPixel (xp,ym, CurrentColor);
+     end
+   else
+     Begin
+       If (Alpha>=StAngle) And (Alpha<=EndAngle) then
+          for i:=-1 to 1 do
+            for j:=-1 to 1 do
+              PutPixel (xm+i,ym+j, CurrentColor);
+       If (180-Alpha>=StAngle) And (180-Alpha<=EndAngle) then
+          for i:=-1 to 1 do
+            for j:=-1 to 1 do
+              PutPixel (xm+i,yp+j, CurrentColor);
+       If (180+Alpha>=StAngle) And (180+Alpha<=EndAngle) then
+          for i:=-1 to 1 do
+            for j:=-1 to 1 do
+              PutPixel (xp+i,yp+j, CurrentColor);
+       If (360-Alpha>=StAngle) And (360-Alpha<=EndAngle) then
+          for i:=-1 to 1 do
+            for j:=-1 to 1 do
+              PutPixel (xp+i,ym+j, CurrentColor);
+     end;
 End;
 
 Begin
   StAngle:=StAngle MOD 361;
   EndAngle:=EndAngle MOD 361;
+  StAngle := StAngle + 270;
+  EndAngle := EndAngle + 270;
   If StAngle>EndAngle then
   Begin
     StAngle:=StAngle Xor EndAngle; EndAngle:=EndAngle Xor StAngle; StAngle:=EndAngle Xor StAngle;
@@ -1374,8 +1428,8 @@ Begin
       Dec (error,twoXbSqr);
     End;
   End;
-End;*)
-
+End;
+  *)
   procedure PatternLineDefault(x1,x2,y: integer);
   {********************************************************}
   { Draws a horizontal patterned line according to the     }
@@ -1740,14 +1794,14 @@ end;
    end;
 
 
-procedure SetVisualPage(page : word);
-begin
-end;
+  procedure SetVisualPageDefault(page : word);
+   begin
+   end;
 
 
-procedure SetActivePage(page : word);
-begin
-end;
+  procedure SetActivePageDefault(page : word);
+   begin
+   end;
 
 
   Procedure DefaultHooks;
@@ -1767,6 +1821,8 @@ end;
     GetPixel := nil;
 
     { optional...}
+    SetActivePage := SetActivePageDefault;
+    SetVisualPage := SetVisualPageDefault;
     ClearViewPort := ClearViewportDefault;
     PutImage := DefaultPutImage;
     GetImage := DefaultGetImage;
