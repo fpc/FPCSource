@@ -49,7 +49,7 @@ unit rgcpu;
 {$endif newra}
 
           function getregisterfpu(list: taasmoutput;size:TCGSize) : tregister; override;
-          procedure ungetregisterfpu(list: taasmoutput; r : tregister); override;
+          procedure ungetregisterfpu(list: taasmoutput; r : tregister;size:TCGSize); override;
 
           procedure ungetreference(list: taasmoutput; const ref : treference); override;
 
@@ -279,7 +279,7 @@ unit rgcpu;
       end;
 
 
-    procedure trgcpu.ungetregisterfpu(list : taasmoutput; r : tregister);
+    procedure trgcpu.ungetregisterfpu(list : taasmoutput; r : tregister;size:TCGSize);
 
       begin
         { nothing to do, fpu stack management is handled by the load/ }
@@ -517,7 +517,10 @@ end.
 
 {
   $Log$
-  Revision 1.25  2003-06-03 21:11:09  peter
+  Revision 1.26  2003-06-12 21:12:20  peter
+    * size para for ungetregisterfpu
+
+  Revision 1.25  2003/06/03 21:11:09  peter
     * cg.a_load_* get a from and to size specifier
     * makeregsize only accepts newregister
     * i386 uses generic tcgnotnode,tcgunaryminus
