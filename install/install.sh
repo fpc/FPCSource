@@ -77,6 +77,7 @@ LIBDIR=/usr/lib/fpc/$VERSION
 SRCDIR=/usr/src/fpc-$VERSION
 DOCDIR=/usr/doc/fpc-$VERSION
 DEMODIR=$DOCDIR/demo
+UTILDIR=/usr/local/bin
 
 HERE=`pwd`
 if checkpath /usr/local/bin; then
@@ -107,6 +108,16 @@ echo Installing program in $EXECDIR ...
 makedirhierarch $EXECDIR
 ln -sf $LIBDIR/ppc386 $EXECDIR/ppc386
 echo Done.
+echo
+
+# Install the utilities. Optional.
+if yesno "Install utility binaries"; then
+  ask "Install utility binaries in" UTILDIR
+  echo Installing utility binaries in $UTILDIR ...
+  makedirhierarch $UTILDIR
+  unztar bins.tar.gz $UTILDIR
+  echo Done.
+fi
 echo
 
 # Install the sources. Optional.
