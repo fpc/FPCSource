@@ -3536,64 +3536,9 @@ in define line 6852 *)
     function DescribePixelFormat(_para1:HDC; _para2:longint; _para3:UINT; _para4:LPPIXELFORMATDESCRIPTOR):longint;
 
 (* Const before type ignored *)
-{ Not in my gdi32.dll
-    function GetEnhMetaFilePixelFormat(_para1:HENHMETAFILE; _para2:DWORD; var _para3:PIXELFORMATDESCRIPTOR):UINT;
-}
-{    function GetPixelFormat(_para1:HDC):longint; already above }
-
-(* Const before type ignored *)
     function SetPixelFormat(_para1:HDC; _para2:longint; var _para3:PIXELFORMATDESCRIPTOR):WINBOOL;
 
     function SwapBuffers(_para1:HDC):WINBOOL;
-
-    function wglCreateContext(_para1:HDC):HGLRC;
-
-    function wglCreateLayerContext(_para1:HDC; _para2:longint):HGLRC;
-
-    function wglCopyContext(_para1:HGLRC; _para2:HGLRC; _para3:UINT):WINBOOL;
-
-    function wglDeleteContext(_para1:HGLRC):WINBOOL;
-
-    function wglDescribeLayerPlane(_para1:HDC; _para2:longint; _para3:longint; _para4:UINT; _para5:LPLAYERPLANEDESCRIPTOR):WINBOOL;
-
-    function wglGetCurrentContext:HGLRC;
-
-    function wglGetCurrentDC:HDC;
-
-(* Const before type ignored *)
-    function wglGetLayerPaletteEntries(_para1:HDC; _para2:longint; _para3:longint; _para4:longint; var _para5:COLORREF):longint;
-
-    function wglGetProcAddress(_para1:LPCSTR):PROC;
-
-    function wglMakeCurrent(_para1:HDC; _para2:HGLRC):WINBOOL;
-
-    function wglRealizeLayerPalette(_para1:HDC; _para2:longint; _para3:WINBOOL):WINBOOL;
-
-(* Const before type ignored *)
-    function wglSetLayerPaletteEntries(_para1:HDC; _para2:longint; _para3:longint; _para4:longint; var _para5:COLORREF):longint;
-
-    function wglShareLists(_para1:HGLRC; _para2:HGLRC):WINBOOL;
-
-    function wglSwapLayerBuffers(_para1:HDC; _para2:UINT):WINBOOL;
-
-    {
-      Why are these different between ANSI and UNICODE?
-      There doesn't seem to be any difference.
-       }
-(*{$ifdef UNICODE}
-
-    const
-       wglUseFontBitmaps = wglUseFontBitmapsW;
-       wglUseFontOutlines = wglUseFontOutlinesW;
-{$else}
-
-    const
-       wglUseFontBitmaps = wglUseFontBitmapsA;
-       wglUseFontOutlines = wglUseFontOutlinesA;
-{$endif}
-    { !UNICODE  } *)
-    { -------------------------------------  }
-    { From shellapi.h in old Cygnus headers  }
 
     function DragQueryPoint(_para1:HDROP; _para2:LPPOINT):WINBOOL;
 
@@ -6680,34 +6625,6 @@ in define line 6826 *)
 
     function SwapBuffers(_para1:HDC):WINBOOL; external 'gdi32' name 'SwapBuffers';
 
-    function wglCreateContext(_para1:HDC):HGLRC; external 'opengl32' name 'wglCreateContext';
-
-    function wglCreateLayerContext(_para1:HDC; _para2:longint):HGLRC; external 'opengl32' name 'wglCreateLayerContext';
-
-    function wglCopyContext(_para1:HGLRC; _para2:HGLRC; _para3:UINT):WINBOOL; external 'opengl32' name 'wglCopyContext';
-
-    function wglDeleteContext(_para1:HGLRC):WINBOOL; external 'opengl32' name 'wglDeleteContext';
-
-    function wglDescribeLayerPlane(_para1:HDC; _para2:longint; _para3:longint; _para4:UINT; _para5:LPLAYERPLANEDESCRIPTOR):WINBOOL; external 'opengl32' name 'wglDescribeLayerPlane';
-
-    function wglGetCurrentContext:HGLRC; external 'opengl32' name 'wglGetCurrentContext';
-
-    function wglGetCurrentDC:HDC; external 'opengl32' name 'wglGetCurrentDC';
-
-    function wglGetLayerPaletteEntries(_para1:HDC; _para2:longint; _para3:longint; _para4:longint; var _para5:COLORREF):longint; external 'opengl32' name 'wglGetLayerPaletteEntries';
-
-    function wglGetProcAddress(_para1:LPCSTR):PROC; external 'opengl32' name 'wglGetProcAddress';
-
-    function wglMakeCurrent(_para1:HDC; _para2:HGLRC):WINBOOL; external 'opengl32' name 'wglMakeCurrent';
-
-    function wglRealizeLayerPalette(_para1:HDC; _para2:longint; _para3:WINBOOL):WINBOOL; external 'opengl32' name 'wglRealizeLayerPalette';
-
-    function wglSetLayerPaletteEntries(_para1:HDC; _para2:longint; _para3:longint; _para4:longint; var _para5:COLORREF):longint; external 'opengl32' name 'wglSetLayerPaletteEntries';
-
-    function wglShareLists(_para1:HGLRC; _para2:HGLRC):WINBOOL; external 'opengl32' name 'wglShareLists';
-
-    function wglSwapLayerBuffers(_para1:HDC; _para2:UINT):WINBOOL; external 'opengl32' name 'wglSwapLayerBuffers';
-
     function DragQueryPoint(_para1:HDROP; _para2:LPPOINT):WINBOOL; external 'shell32' name 'DragQueryPoint';
 
     procedure DragFinish(_para1:HDROP); external 'shell32' name 'DragFinish';
@@ -6779,7 +6696,11 @@ end.
 {$endif not windows_include_files}
 {
   $Log$
-  Revision 1.10  1999-04-20 11:36:14  peter
+  Revision 1.11  1999-05-10 19:34:10  florian
+    * moved all opengl32.dll stuff to a newly created opengl32 unit, so
+      win32 programs should also run on Windows without opengl32.dll
+
+  Revision 1.10  1999/04/20 11:36:14  peter
     * compatibility fixes
 
   Revision 1.9  1999/03/30 17:00:23  peter

@@ -23,7 +23,7 @@ unit windows;
 {$define read_interface}
 {$undef read_implementation}
   
-{$warning starting interface of windows unit }
+{$message starting interface of windows unit }
 
 {$i base.pp}
 {$i errors.pp}
@@ -68,7 +68,11 @@ const External_library='kernel32';
 end.
 {
   $Log$
-  Revision 1.2  1999-01-09 07:29:51  florian
+  Revision 1.3  1999-05-10 19:34:15  florian
+    * moved all opengl32.dll stuff to a newly created opengl32 unit, so
+      win32 programs should also run on Windows without opengl32.dll
+
+  Revision 1.2  1999/01/09 07:29:51  florian
     * some updates to compile API units for win32
 
   Revision 1.1  1998/08/31 11:54:02  pierre

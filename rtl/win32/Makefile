@@ -62,7 +62,7 @@ LOADEROBJECTS=wprt0 wdllprt0
 
 # Unit Objects
 UNITOBJECTS=$(SYSTEMUNIT) objpas strings \
-	    windows ole2 \
+            windows ole2 opengl32 \
 	    dos crt objects \
 	    sysutils typinfo math \
 	    cpu mmx getopts heaptrc
@@ -378,7 +378,11 @@ endif
 
 #
 # $Log$
-# Revision 1.29  1999-05-05 22:24:09  peter
+# Revision 1.30  1999-05-10 19:34:06  florian
+#   * moved all opengl32.dll stuff to a newly created opengl32 unit, so
+#     win32 programs should also run on Windows without opengl32.dll
+#
+# Revision 1.29  1999/05/05 22:24:09  peter
 #   * 0.99.10 check for browser
 #
 # Revision 1.28  1999/05/04 11:59:52  peter

@@ -908,14 +908,6 @@ uses
 
   function StartServiceW(hService:SC_HANDLE; dwNumServiceArgs:DWORD; var lpServiceArgVectors:LPCWSTR):WINBOOL;
 
-  { Extensions to OpenGL  }
-  function wglUseFontBitmapsW(_para1:HDC; _para2:DWORD; _para3:DWORD; _para4:DWORD):WINBOOL;
-
-  function wglUseFontOutlinesW(_para1:HDC; _para2:DWORD; _para3:DWORD; _para4:DWORD; _para5:FLOAT;
-             _para6:FLOAT; _para7:longint; _para8:LPGLYPHMETRICSFLOAT):WINBOOL;
-
-  { -------------------------------------  }
-  { From shellapi.h in old Cygnus headers  }
   function DragQueryFileW(_para1:HDROP; _para2:cardinal; _para3:LPCWSTR; _para4:cardinal):cardinal;
 
   function ExtractAssociatedIconW(_para1:HINST; _para2:LPCWSTR; var _para3:WORD):HICON;
@@ -1811,11 +1803,6 @@ uses
 
   function StartServiceW(hService:SC_HANDLE; dwNumServiceArgs:DWORD; var lpServiceArgVectors:LPCWSTR):WINBOOL; external 'advapi32' name 'StartServiceW';
 
-  function wglUseFontBitmapsW(_para1:HDC; _para2:DWORD; _para3:DWORD; _para4:DWORD):WINBOOL; external 'opengl32' name 'wglUseFontBitmapsW';
-
-  function wglUseFontOutlinesW(_para1:HDC; _para2:DWORD; _para3:DWORD; _para4:DWORD; _para5:FLOAT;
-             _para6:FLOAT; _para7:longint; _para8:LPGLYPHMETRICSFLOAT):WINBOOL; external 'opengl32' name 'wglUseFontOutlinesW';
-
   function DragQueryFileW(_para1:HDROP; _para2:cardinal; _para3:LPCWSTR; _para4:cardinal):cardinal; external 'shell32' name 'DragQueryFileW';
 
   function ExtractAssociatedIconW(_para1:HINST; _para2:LPCWSTR; var _para3:WORD):HICON; external 'shell32' name 'ExtractAssociatedIconW';
@@ -1850,7 +1837,11 @@ end.
 {$endif not windows_include_files}
 {
   $Log$
-  Revision 1.8  1999-05-01 12:27:54  peter
+  Revision 1.9  1999-05-10 19:34:14  florian
+    * moved all opengl32.dll stuff to a newly created opengl32 unit, so
+      win32 programs should also run on Windows without opengl32.dll
+
+  Revision 1.8  1999/05/01 12:27:54  peter
     * fixed conflicting declarations
 
   Revision 1.7  1999/04/20 11:36:21  peter

@@ -892,11 +892,6 @@ uses
 
   function StartServiceA(hService:SC_HANDLE; dwNumServiceArgs:DWORD; var lpServiceArgVectors:LPCSTR):WINBOOL;
 
-  function wglUseFontBitmapsA(_para1:HDC; _para2:DWORD; _para3:DWORD; _para4:DWORD):WINBOOL;
-
-  function wglUseFontOutlinesA(_para1:HDC; _para2:DWORD; _para3:DWORD; _para4:DWORD; _para5:FLOAT;
-             _para6:FLOAT; _para7:longint; _para8:LPGLYPHMETRICSFLOAT):WINBOOL;
-
   function DragQueryFileA(_para1:HDROP; _para2:cardinal; var _para3:char; _para4:cardinal):cardinal;
 
   function ExtractAssociatedIconA(_para1:HINST; var _para2:char; var _para3:WORD):HICON;
@@ -1780,11 +1775,6 @@ uses
 
   function StartServiceA(hService:SC_HANDLE; dwNumServiceArgs:DWORD; var lpServiceArgVectors:LPCSTR):WINBOOL; external 'advapi32' name 'StartServiceA';
 
-  function wglUseFontBitmapsA(_para1:HDC; _para2:DWORD; _para3:DWORD; _para4:DWORD):WINBOOL; external 'opengl32' name 'wglUseFontBitmapsA';
-
-  function wglUseFontOutlinesA(_para1:HDC; _para2:DWORD; _para3:DWORD; _para4:DWORD; _para5:FLOAT;
-             _para6:FLOAT; _para7:longint; _para8:LPGLYPHMETRICSFLOAT):WINBOOL; external 'opengl32' name 'wglUseFontOutlinesA';
-
   function DragQueryFileA(_para1:HDROP; _para2:cardinal; var _para3:char; _para4:cardinal):cardinal; external 'shell32' name 'DragQueryFileA';
 
   function ExtractAssociatedIconA(_para1:HINST; var _para2:char; var _para3:WORD):HICON; external 'shell32' name 'ExtractAssociatedIconA';
@@ -1818,7 +1808,11 @@ end.
 {$endif not windows_include_files}
 {
   $Log$
-  Revision 1.8  1999-05-01 12:27:50  peter
+  Revision 1.9  1999-05-10 19:34:09  florian
+    * moved all opengl32.dll stuff to a newly created opengl32 unit, so
+      win32 programs should also run on Windows without opengl32.dll
+
+  Revision 1.8  1999/05/01 12:27:50  peter
     * fixed conflicting declarations
 
   Revision 1.7  1999/04/20 11:36:08  peter
