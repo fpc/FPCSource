@@ -57,9 +57,9 @@ unit objpas;
 
 {$ifdef HasResourceStrings}
      { Resourcestring support }
-     Function GetResourceString(Const Name : ShortString) : AnsiString;
+     Function GetResourceString(Hash : Longint;Const Name : ShortString) : AnsiString;
      Procedure ResetResourceTables;
-     Function SetResourceString(Const Name : Shortstring; Const Value : AnsiString) : Boolean;
+     Function SetResourceString(Hash : Longint;Const Name : Shortstring; Const Value : AnsiString) : Boolean;
 {$endif}
 
 
@@ -260,14 +260,13 @@ begin
      CalcStringHashValue:=Hash;
 end;
 
-Function FindIndex (Const Value : Shortstring) : Longint;
+Function FindIndex (Hash : longint;Const Value : Shortstring) : Longint;
 
 Var
-  I,Hash : longint;
+  I : longint;
   
 begin
   // Linear search, later we can implement binary search.
-  Hash:=CalcStringHashValue(Value);
   Result:=-1;
   With ResourceStringTable do
     For I:=0 to Count-1 do
@@ -289,25 +288,21 @@ begin
 end;
 
 
-Function GetResourceString(Const Name : ShortString) : AnsiString;[Public,Alias : 'FPC_GETRESOURCESTRING'];
-
-Var I : longint;
+Function GetResourceString(Hash : longint;Const Name : ShortString) : AnsiString;[Public,Alias : 'FPC_GETRESOURCESTRING'];
 
 begin
-  I:=FindIndex(Name);
-  If I<>-1 then
-     Result:=ResourceStringTable.ResRec[I].CurrentValue
+  Hash:=FindIndex(Hash,Name);
+  If Hash<>-1 then
+     Result:=ResourceStringTable.ResRec[Hash].CurrentValue
   else
      Result:='';
 end;
 
 
-Function SetResourceString(Const Name : ShortString; Const Value : AnsiString) : Boolean;
-
-Var Hash : Longint;
+Function SetResourceString(Hash : Longint;Const Name : ShortString; Const Value : AnsiString) : Boolean;
 
 begin
-  Hash:=FindIndex(Name);
+  Hash:=FindIndex(Hash,Name);
   Result:=Hash<>-1;
   If Result then
     ResourceStringTable.ResRec[Hash].CurrentValue:=Value;
@@ -338,7 +333,10 @@ end.
 
 {
   $Log$
-  Revision 1.31  1999-08-15 21:02:56  michael
+  Revision 1.32  1999-08-15 21:28:57  michael
+  + Pass hash also for speed reasons.
+
+  Revision 1.31  1999/08/15 21:02:56  michael
   + Changed resource string mechanism to use names.
 
   Revision 1.30  1999/08/15 18:56:13  michael
