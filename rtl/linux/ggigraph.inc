@@ -3,7 +3,7 @@
     This file is part of the Free Pascal run time library.
     Copyright (c) 1999 by the Free Pascal development team
 
-    svgalib implementation of graph unit.
+    GGI implementation of graph unit.
 
     See the file COPYING.FPC, included in this distribution,
     for details about the copyright.
@@ -13,6 +13,8 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 
  **********************************************************************}
+
+{$LINKLIB c}
  
   const
    InternalDriverName = 'LinuxVGA';
@@ -86,7 +88,7 @@ Const
   G1600x1200x16M32  = 49;
 
   GLASTMODE         = 49;
-  ModeNames : Array[0..GLastMode] of string [18] = 
+  ModeNames : Array[0..GLastMode] of string [20] = 
    ('80x40[T]',
     'S320x200[GT_4BIT]',
     'S640x200[GT_4BIT]',
@@ -482,7 +484,11 @@ end;
 
 {
 $Log$
-Revision 1.2  1999-11-08 00:08:43  michael
+Revision 1.3  1999-11-08 20:04:55  sg
+* GGI programs must link to libc, or ggiOpen will fail!
+* Changed max length of ModeNames string from 18 to 20 chars
+
+Revision 1.2  1999/11/08 00:08:43  michael
 * Fist working version of svgalib new graph unit
 * Initial implementation of ggi new graph unit
 
