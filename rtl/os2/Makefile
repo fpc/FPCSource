@@ -1394,6 +1394,7 @@ pmstddlg$(PPUEXT) : pmstddlg.pas os2def$(PPUEXT) doscalls$(PPUEXT) pmwin$(PPUEXT
 pmhelp$(PPUEXT) : pmhelp.pas os2def$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
 pmdev$(PPUEXT) : pmdev.pas os2def$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
 pmspl$(PPUEXT) : pmspl.pas os2def$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
+pmshl$(PPUEXT) : pmshl.pas os2def$(PPUEXT) pmwin$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
 pmwp$(PPUEXT) : pmwp.pas os2def$(PPUEXT) pmwin$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
 pmwsock$(PPUEXT) : pmwsock.pas os2def$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
 winsock$(PPUEXT) : winsock.pas pmwsock$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)

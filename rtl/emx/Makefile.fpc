@@ -11,10 +11,10 @@ units=$(SYSTEMUNIT) objpas strings \
       ports os2def doscalls moncalls kbdcalls moucalls viocalls \
       pmbitmap pmwin pmgpi pmstddlg pmhelp pmdev pmspl pmshl pmwp pmwsock pmbidi \
       dos crt objects printer \
-      sysutils classes typinfo math varutils variants \
+      sysutils classes math typinfo varutils winsock \
       charset ucomplex cpu mmx getopts heaptrc lineinfo dynlibs \
-      video mouse keyboard variants types sysconst rtlconst dateutil
-rsts=math varutils typinfo variants classes dateutil sysconst
+      video mouse keyboard variants types rtlconst sysconst dateutil
+rsts=math varutils typinfo variants pmhelp classes sysconst dateutil
 
 [require]
 nortl=y
@@ -82,7 +82,6 @@ SYSDEPS=$(SYSINCDEPS) $(SYSCPUDEPS)
 %$(OEXT) : %.as
         $(AS) -o $*$(OEXT) $*.as
 
-
 #
 # Base Units (System, strings, os-dependent-base-unit)
 #
@@ -133,6 +132,10 @@ pmwp$(PPUEXT) : $(OS2INC)/pmwp.pas os2def$(PPUEXT) pmwin$(PPUEXT) $(SYSTEMUNIT)$
 
 pmwsock$(PPUEXT) : $(OS2INC)/pmwsock.pas os2def$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
 
+winsock$(PPUEXT) : $(OS2INC)/winsock.pas pmwsock$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
+
+pmbidi$(PPUEXT) : $(OS2INC)/pmbidi.pas os2def$(PPUEXT) pmwin$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
+
 dynlibs$(PPUEXT) : $(INC)/dynlibs.pp doscalls$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
 
 #
@@ -158,9 +161,9 @@ sysutils$(PPUEXT) : sysutils.pp $(wildcard $(OBJPASDIR)/sysutils/*.inc) \
                     objpas$(PPUEXT) dos$(PPUEXT) sysconst$(PPUEXT)
         $(COMPILER) -Fi$(OBJPASDIR)/sysutils sysutils.pp
 
-classes$(PPUEXT) : ../os2/classes.pp $(wildcard $(OBJPASDIR)/classes/*.inc) \
-                   sysutils$(PPUEXT) typinfo$(PPUEXT)
-        $(COMPILER) -Fi$(OBJPASDIR)/classes ../os2/classes.pp
+classes$(PPUEXT) : $(OS2INC)/classes.pp $(wildcard $(OBJPASDIR)/classes/*.inc) \
+                   sysutils$(PPUEXT) typinfo$(PPUEXT) rtlconst$(PPUEXT) types$(PPUEXT)
+        $(COMPILER) -Fi$(OBJPASDIR)/classes $(OS2INC)/classes.pp
 
 typinfo$(PPUEXT): $(OBJPASDIR)/typinfo.pp objpas$(PPUEXT)
         $(COMPILER) -Sg $(OBJPASDIR)/typinfo.pp $(REDIR)
@@ -178,7 +181,7 @@ types$(PPUEXT) : $(OBJPASDIR/types.pp objpas$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
 rtlconst$(PPUEXT) : $(OBJPASDIR)/rtlconst.pp
         $(COMPILER) $(OBJPASDIR)/rtlconst.pp
 
-sysconst$(PPUEXT) : $(OBJPASDIR)/sysconst.pp objpas$(PPUEXT)
+sysconst$(PPUEXT) : $(OBJPASDIR)/sysconst.pp objpas$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
         $(COMPILER) $(OBJPASDIR)/sysconst.pp
 
 dateutil$(PPUEXT) : $(OBJPASDIR)/dateutil.pp

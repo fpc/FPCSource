@@ -231,9 +231,9 @@ override FPCOPT+=-Ur
 endif
 OBJPASDIR=$(RTL)/objpas
 GRAPHDIR=$(INC)/graph
-override TARGET_UNITS+=$(SYSTEMUNIT) objpas strings ports os2def doscalls moncalls kbdcalls moucalls viocalls pmbitmap pmwin pmgpi pmstddlg pmhelp pmdev pmspl pmshl pmwp pmwsock pmbidi dos crt objects printer sysutils classes typinfo math varutils variants charset ucomplex cpu mmx getopts heaptrc lineinfo dynlibs video mouse keyboard variants types sysconst rtlconst dateutil
+override TARGET_UNITS+=$(SYSTEMUNIT) objpas strings ports os2def doscalls moncalls kbdcalls moucalls viocalls pmbitmap pmwin pmgpi pmstddlg pmhelp pmdev pmspl pmshl pmwp pmwsock pmbidi dos crt objects printer sysutils classes math typinfo varutils winsock charset ucomplex cpu mmx getopts heaptrc lineinfo dynlibs video mouse keyboard variants types rtlconst sysconst dateutil
 override TARGET_LOADERS+=prt0 prt1
-override TARGET_RSTS+=math varutils typinfo variants classes dateutil sysconst
+override TARGET_RSTS+=math varutils typinfo variants pmhelp classes dateutil sysconst
 override INSTALL_FPCPACKAGE=y
 override COMPILER_INCLUDEDIR+=$(INC) $(PROCINC) $(OS2INC)
 override COMPILER_SOURCEDIR+=$(INC) $(PROCINC) $(OS2INC)
@@ -1398,6 +1398,8 @@ pmspl$(PPUEXT) : $(OS2INC)/pmspl.pas os2def$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
 pmshl$(PPUEXT) : $(OS2INC)/pmshl.pas os2def$(PPUEXT) pmwin$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
 pmwp$(PPUEXT) : $(OS2INC)/pmwp.pas os2def$(PPUEXT) pmwin$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
 pmwsock$(PPUEXT) : $(OS2INC)/pmwsock.pas os2def$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
+winsock$(PPUEXT) : $(OS2INC)/winsock.pas pmwsock$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
+pmbidi$(PPUEXT) : $(OS2INC)/pmbidi.pas os2def$(PPUEXT) pmwin$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
 dynlibs$(PPUEXT) : $(INC)/dynlibs.pp doscalls$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
 dos$(PPUEXT) : dos.pas $(INC)/filerec.inc $(INC)/textrec.inc strings$(PPUEXT) \
 	       doscalls$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
@@ -1407,9 +1409,9 @@ printer$(PPUEXT) : $(OS2INC)/printer.pas $(INC)/textrec.inc $(SYSTEMUNIT)$(PPUEX
 sysutils$(PPUEXT) : sysutils.pp $(wildcard $(OBJPASDIR)/sysutils/*.inc) \
 		    objpas$(PPUEXT) dos$(PPUEXT) sysconst$(PPUEXT)
 	$(COMPILER) -Fi$(OBJPASDIR)/sysutils sysutils.pp
-classes$(PPUEXT) : ../os2/classes.pp $(wildcard $(OBJPASDIR)/classes/*.inc) \
-		   sysutils$(PPUEXT) typinfo$(PPUEXT)
-	$(COMPILER) -Fi$(OBJPASDIR)/classes ../os2/classes.pp
+classes$(PPUEXT) : $(OS2INC)/classes.pp $(wildcard $(OBJPASDIR)/classes/*.inc) \
+		   sysutils$(PPUEXT) typinfo$(PPUEXT) rtlconst$(PPUEXT) types$(PPUEXT)
+	$(COMPILER) -Fi$(OBJPASDIR)/classes $(OS2INC)/classes.pp
 typinfo$(PPUEXT): $(OBJPASDIR)/typinfo.pp objpas$(PPUEXT)
 	$(COMPILER) -Sg $(OBJPASDIR)/typinfo.pp $(REDIR)
 math$(PPUEXT): $(OBJPASDIR)/math.pp objpas$(PPUEXT) sysutils$(PPUEXT)
@@ -1421,7 +1423,7 @@ types$(PPUEXT) : $(OBJPASDIR/types.pp objpas$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
 	$(COMPILER) $(OBJPASDIR)/types.pp
 rtlconst$(PPUEXT) : $(OBJPASDIR)/rtlconst.pp
 	$(COMPILER) $(OBJPASDIR)/rtlconst.pp
-sysconst$(PPUEXT) : $(OBJPASDIR)/sysconst.pp objpas$(PPUEXT)
+sysconst$(PPUEXT) : $(OBJPASDIR)/sysconst.pp objpas$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
 	$(COMPILER) $(OBJPASDIR)/sysconst.pp
 dateutil$(PPUEXT) : $(OBJPASDIR)/dateutil.pp
 	$(COMPILER) -I$(OBJPASDIR) $(OBJPASDIR)/dateutil.pp
