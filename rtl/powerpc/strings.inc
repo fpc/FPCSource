@@ -132,7 +132,7 @@ LStrECopyAlignedLoop:
         { test for zero byte }
         add     r10,r0,r8
         andc    r10,r10,r0
-        and.    r10,r10,r9
+        and.    r10,r10,r7
         bne     LStrECopyEndFound
         stwu    r0,4(r3)
         b       LStrECopyAlignedLoop
@@ -464,7 +464,10 @@ end ['R0','R9','R10','CR0','CR1'];
 
 {
   $Log$
-  Revision 1.15  2003-05-17 00:01:13  jonas
+  Revision 1.16  2003-05-17 12:55:30  florian
+    * fixed copy&paste bug in strecopy
+
+  Revision 1.15  2003/05/17 00:01:13  jonas
     * fixed strcopy
 
   Revision 1.14  2002/09/11 07:49:40  jonas
