@@ -256,41 +256,37 @@ implementation
              end;
            { we can't accept a equal in type }
            pt1:=comp_expr(not(ignore_equal));
-           do_resulttypepass(pt1);
            if (token=_POINTPOINT) then
              begin
                consume(_POINTPOINT);
                { get high value of range }
                pt2:=comp_expr(not(ignore_equal));
-               do_resulttypepass(pt2);
+               { make both the same type }
+               inserttypeconv(pt1,pt2.resulttype);
                { both must be evaluated to constants now }
                if (pt1.nodetype=ordconstn) and
                   (pt2.nodetype=ordconstn) then
                  begin
-                 { check types }
-                   if CheckTypes(pt1.resulttype.def,pt2.resulttype.def) then
+                   { Check bounds }
+                   if tordconstnode(pt2).value<tordconstnode(pt1).value then
+                     Message(cg_e_upper_lower_than_lower)
+                   else
                      begin
-                     { Check bounds }
-                       if tordconstnode(pt2).value<tordconstnode(pt1).value then
-                         Message(cg_e_upper_lower_than_lower)
-                       else
-                        begin
-                        { All checks passed, create the new def }
-                          case pt1.resulttype.def.deftype of
-                            enumdef :
-                              tt.setdef(tenumdef.create_subrange(tenumdef(pt1.resulttype.def),tordconstnode(pt1).value,tordconstnode(pt2).value));
-                            orddef :
-                              begin
-                                if is_char(pt1.resulttype.def) then
-                                  tt.setdef(torddef.create(uchar,tordconstnode(pt1).value,tordconstnode(pt2).value))
-                                else
-                                  if is_boolean(pt1.resulttype.def) then
-                                    tt.setdef(torddef.create(bool8bit,tordconstnode(pt1).value,tordconstnode(pt2).value))
-                                  else
-                                    tt.setdef(torddef.create(uauto,tordconstnode(pt1).value,tordconstnode(pt2).value));
-                              end;
-                          end;
-                        end;
+                       { All checks passed, create the new def }
+                       case pt1.resulttype.def.deftype of
+                         enumdef :
+                           tt.setdef(tenumdef.create_subrange(tenumdef(pt1.resulttype.def),tordconstnode(pt1).value,tordconstnode(pt2).value));
+                         orddef :
+                           begin
+                             if is_char(pt1.resulttype.def) then
+                               tt.setdef(torddef.create(uchar,tordconstnode(pt1).value,tordconstnode(pt2).value))
+                             else
+                               if is_boolean(pt1.resulttype.def) then
+                                 tt.setdef(torddef.create(bool8bit,tordconstnode(pt1).value,tordconstnode(pt2).value))
+                               else
+                                 tt.setdef(torddef.create(uauto,tordconstnode(pt1).value,tordconstnode(pt2).value));
+                           end;
+                       end;
                      end;
                  end
                else
@@ -590,7 +586,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.23  2001-04-13 01:22:13  peter
+  Revision 1.24  2001-06-03 20:16:19  peter
+    * allow int64 in range declaration for new types
+
+  Revision 1.23  2001/04/13 01:22:13  peter
     * symtable change to classes
     * range check generation and errors fixed, make cycle DEBUG=1 works
     * memory leaks fixed
