@@ -244,10 +244,6 @@ unit parser;
 
        { init code generator for a new module }
          codegen_newmodule;
-{$ifdef GDB}
-         if cs_debuginfo in aktmoduleswitches then
-           reset_gdb_info;
-{$endif GDB}
 
        { Handle things which need to be once }
          if (compile_level=1) then
@@ -280,10 +276,6 @@ unit parser;
            it's the default to release the trees }
          codegen_donemodule;
 
-{$ifdef GDB}
-         if cs_debuginfo in aktmoduleswitches then
-           reset_gdb_info;
-{$endif GDB}
 
        { free ppu }
          if assigned(current_module^.ppufile) then
@@ -297,24 +289,16 @@ unit parser;
          current_module^.scanner:=prev_scanner;
          if assigned(prev_scanner) then
            prev_scanner^.invalid:=true;
-(* Peter I do not agree here because
-   most time current_scanner is from another unit !! PM
-          end;
 
-       { free scanner, but it can already be freed due a 2nd compile }
-         if assigned(current_scanner) then
-          begin
-            dispose(current_scanner,done);
-            current_scanner:=nil;
-          end;
-         current_module^.scanner:=nil;
- *)
        { free macros }
-{!!! No check for unused macros yet !!! }
+         {!!! No check for unused macros yet !!! }
          dispose(macros,done);
 
          if (compile_level>1) then
            begin
+              { reset ranges/stabs in exported definitions }
+              reset_global_defs;
+
               { restore scanner }
               c:=oldc;
               pattern:=oldpattern;
@@ -400,7 +384,10 @@ unit parser;
 end.
 {
   $Log$
-  Revision 1.57  1998-10-08 17:17:23  pierre
+  Revision 1.58  1998-10-16 08:50:02  peter
+    * reset_gdb_info -> reset_global_def becuase it also resets rangenr !
+
+  Revision 1.57  1998/10/08 17:17:23  pierre
     * current_module old scanner tagged as invalid if unit is recompiled
     + added ppheap for better info on tracegetmem of heaptrc
       (adds line column and file index)
