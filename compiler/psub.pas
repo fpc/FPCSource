@@ -49,6 +49,7 @@ interface
         nestedprocs : tlinkedlist;
         constructor create(aparent:tprocinfo);override;
         destructor  destroy;override;
+        procedure printproc;
         procedure generate_code;
         procedure resetprocdef;
         procedure add_to_symtablestack;
@@ -246,28 +247,6 @@ implementation
            Comment(V_Error,'Error creating '+treelogfilename);
            exit;
          end;
-        close(printnodefile);
-      end;
-
-
-    procedure printnode_procdef(pd:tprocdef);
-      begin
-        assign(printnodefile,treelogfilename);
-        {$I-}
-         append(printnodefile);
-         if ioresult<>0 then
-          rewrite(printnodefile);
-        {$I+}
-        if ioresult<>0 then
-         begin
-           Comment(V_Error,'Error creating '+treelogfilename);
-           exit;
-         end;
-        writeln(printnodefile);
-        writeln(printnodefile,'*******************************************************************************');
-        writeln(printnodefile,current_procinfo.procdef.fullprocname(false));
-        writeln(printnodefile,'*******************************************************************************');
-        printnode(printnodefile,pd.inlininginfo^.code);
         close(printnodefile);
       end;
 
@@ -516,6 +495,28 @@ implementation
            code.free;
          inherited destroy;
        end;
+
+
+    procedure tcgprocinfo.printproc;
+      begin
+        assign(printnodefile,treelogfilename);
+        {$I-}
+         append(printnodefile);
+         if ioresult<>0 then
+          rewrite(printnodefile);
+        {$I+}
+        if ioresult<>0 then
+         begin
+           Comment(V_Error,'Error creating '+treelogfilename);
+           exit;
+         end;
+        writeln(printnodefile);
+        writeln(printnodefile,'*******************************************************************************');
+        writeln(printnodefile,procdef.fullprocname(false));
+        writeln(printnodefile,'*******************************************************************************');
+        printnode(printnodefile,code);
+        close(printnodefile);
+      end;
 
 
     procedure tcgprocinfo.add_entry_exit_code;
@@ -1052,7 +1053,7 @@ implementation
 
          { Print the node to tree.log }
          if paraprintnodetree=1 then
-           printnode_procdef(procdef);
+           printproc;
 
          { ... remove symbol tables }
          remove_from_symtablestack;
@@ -1445,7 +1446,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.223  2004-12-15 16:00:16  peter
+  Revision 1.224  2004-12-15 17:01:28  peter
+    * fixed crash with -vp
+
+  Revision 1.223  2004/12/15 16:00:16  peter
     * external is again allowed in implementation
 
   Revision 1.222  2004/12/05 12:28:11  peter
