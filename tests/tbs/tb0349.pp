@@ -8,4 +8,6 @@ begin
    p:=@c1;
    i:=0;
    c2:=p[i];
+   p:='';
+   p:='hello';
 end.
