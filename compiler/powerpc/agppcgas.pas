@@ -296,7 +296,12 @@ unit agppcgas;
           end;
 
           if (taicpu(hp).ops>0) and (taicpu(hp).oper[0]^.typ<>top_none) then
-            s:=s+getopstr_jmp(taicpu(hp).oper[0]^);
+            begin
+              { first write the current contents of s, because the symbol }
+              { may be 255 characters                                     }
+              asmwrite(s);
+              s:=getopstr_jmp(taicpu(hp).oper[0]^);
+            end;
         end
       else
         { process operands }
@@ -328,7 +333,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.37  2003-11-29 22:54:32  jonas
+  Revision 1.38  2003-12-09 20:09:09  jonas
+    * support writing of symbols with length 255
+
+  Revision 1.37  2003/11/29 22:54:32  jonas
     * more ppc fixes, hello world works again under linuxppc
 
   Revision 1.36  2003/11/29 18:17:26  jonas
