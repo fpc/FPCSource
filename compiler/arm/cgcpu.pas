@@ -844,51 +844,54 @@ unit cgcpu;
          r : byte;
       begin
         LocalSize:=align(LocalSize,4);
-        firstfloatreg:=RS_NO;
-        { save floating point registers? }
-        for r:=RS_F0 to RS_F7 do
-          if r in rg[R_FPUREGISTER].used_in_proc-paramanager.get_volatile_registers_fpu(pocall_stdcall) then
-            begin
-              if firstfloatreg=RS_NO then
-                firstfloatreg:=r;
-              lastfloatreg:=r;
-            end;
-        a_reg_alloc(list,NR_STACK_POINTER_REG);
-        a_reg_alloc(list,NR_FRAME_POINTER_REG);
-        a_reg_alloc(list,NR_R12);
-
-        list.concat(taicpu.op_reg_reg(A_MOV,NR_R12,NR_STACK_POINTER_REG));
-        { save int registers }
-        reference_reset(ref);
-        ref.index:=NR_STACK_POINTER_REG;
-        ref.addressmode:=AM_PREINDEXED;
-        list.concat(setoppostfix(taicpu.op_ref_regset(A_STM,ref,
-          rg[R_INTREGISTER].used_in_proc-paramanager.get_volatile_registers_int(pocall_stdcall)+[RS_R11,RS_R12,RS_R14,RS_R15]),
-          PF_FD));
-
-        list.concat(taicpu.op_reg_reg_const(A_SUB,NR_FRAME_POINTER_REG,NR_R12,4));
-
-        { allocate necessary stack size }
-        { don't use  a_op_const_reg_reg here because we don't allow register allocations
-          in the entry/exit code }
-        if not(is_shifter_const(localsize,shift)) then
+        if not(nostackframe) then
           begin
-            a_load_const_reg(list,OS_ADDR,LocalSize,NR_R12);
-            list.concat(taicpu.op_reg_reg_reg(A_SUB,NR_STACK_POINTER_REG,NR_STACK_POINTER_REG,NR_R12));
-            a_reg_dealloc(list,NR_R12);
-          end
-        else
-          begin
-            a_reg_dealloc(list,NR_R12);
-            list.concat(taicpu.op_reg_reg_const(A_SUB,NR_STACK_POINTER_REG,NR_STACK_POINTER_REG,LocalSize));
-          end;
-        if firstfloatreg<>RS_NO then
-          begin
+            firstfloatreg:=RS_NO;
+            { save floating point registers? }
+            for r:=RS_F0 to RS_F7 do
+              if r in rg[R_FPUREGISTER].used_in_proc-paramanager.get_volatile_registers_fpu(pocall_stdcall) then
+                begin
+                  if firstfloatreg=RS_NO then
+                    firstfloatreg:=r;
+                  lastfloatreg:=r;
+                end;
+            a_reg_alloc(list,NR_STACK_POINTER_REG);
+            a_reg_alloc(list,NR_FRAME_POINTER_REG);
+            a_reg_alloc(list,NR_R12);
+
+            list.concat(taicpu.op_reg_reg(A_MOV,NR_R12,NR_STACK_POINTER_REG));
+            { save int registers }
             reference_reset(ref);
-            ref.base:=NR_FRAME_POINTER_REG;
-            ref.offset:=tarmprocinfo(current_procinfo).floatregstart;
-            list.concat(taicpu.op_reg_const_ref(A_SFM,newreg(R_FPUREGISTER,firstfloatreg,R_SUBWHOLE),
-              lastfloatreg-firstfloatreg+1,ref));
+            ref.index:=NR_STACK_POINTER_REG;
+            ref.addressmode:=AM_PREINDEXED;
+            list.concat(setoppostfix(taicpu.op_ref_regset(A_STM,ref,
+              rg[R_INTREGISTER].used_in_proc-paramanager.get_volatile_registers_int(pocall_stdcall)+[RS_R11,RS_R12,RS_R14,RS_R15]),
+              PF_FD));
+
+            list.concat(taicpu.op_reg_reg_const(A_SUB,NR_FRAME_POINTER_REG,NR_R12,4));
+
+            { allocate necessary stack size }
+            { don't use  a_op_const_reg_reg here because we don't allow register allocations
+              in the entry/exit code }
+            if not(is_shifter_const(localsize,shift)) then
+              begin
+                a_load_const_reg(list,OS_ADDR,LocalSize,NR_R12);
+                list.concat(taicpu.op_reg_reg_reg(A_SUB,NR_STACK_POINTER_REG,NR_STACK_POINTER_REG,NR_R12));
+                a_reg_dealloc(list,NR_R12);
+              end
+            else
+              begin
+                a_reg_dealloc(list,NR_R12);
+                list.concat(taicpu.op_reg_reg_const(A_SUB,NR_STACK_POINTER_REG,NR_STACK_POINTER_REG,LocalSize));
+              end;
+            if firstfloatreg<>RS_NO then
+              begin
+                reference_reset(ref);
+                ref.base:=NR_FRAME_POINTER_REG;
+                ref.offset:=tarmprocinfo(current_procinfo).floatregstart;
+                list.concat(taicpu.op_reg_const_ref(A_SFM,newreg(R_FPUREGISTER,firstfloatreg,R_SUBWHOLE),
+                  lastfloatreg-firstfloatreg+1,ref));
+              end;
           end;
       end;
 
@@ -899,34 +902,40 @@ unit cgcpu;
          firstfloatreg,lastfloatreg,
          r : byte;
       begin
-        { restore floating point register }
-        firstfloatreg:=RS_NO;
-        { save floating point registers? }
-        for r:=RS_F0 to RS_F7 do
-          if r in rg[R_FPUREGISTER].used_in_proc-paramanager.get_volatile_registers_fpu(pocall_stdcall) then
-            begin
-              if firstfloatreg=RS_NO then
-                firstfloatreg:=r;
-              lastfloatreg:=r;
-            end;
-        if firstfloatreg<>RS_NO then
+        if not(nostackframe) then
           begin
-            reference_reset(ref);
-            ref.base:=NR_FRAME_POINTER_REG;
-            ref.offset:=tarmprocinfo(current_procinfo).floatregstart;
-            list.concat(taicpu.op_reg_const_ref(A_LFM,newreg(R_FPUREGISTER,firstfloatreg,R_SUBWHOLE),
-              lastfloatreg-firstfloatreg+1,ref));
-          end;
+            { restore floating point register }
+            firstfloatreg:=RS_NO;
+            { save floating point registers? }
+            for r:=RS_F0 to RS_F7 do
+              if r in rg[R_FPUREGISTER].used_in_proc-paramanager.get_volatile_registers_fpu(pocall_stdcall) then
+                begin
+                  if firstfloatreg=RS_NO then
+                    firstfloatreg:=r;
+                  lastfloatreg:=r;
+                end;
 
-        if (current_procinfo.framepointer=NR_STACK_POINTER_REG) then
-          list.concat(taicpu.op_reg_reg(A_MOV,NR_R15,NR_R14))
+            if firstfloatreg<>RS_NO then
+              begin
+                reference_reset(ref);
+                ref.base:=NR_FRAME_POINTER_REG;
+                ref.offset:=tarmprocinfo(current_procinfo).floatregstart;
+                list.concat(taicpu.op_reg_const_ref(A_LFM,newreg(R_FPUREGISTER,firstfloatreg,R_SUBWHOLE),
+                  lastfloatreg-firstfloatreg+1,ref));
+              end;
+
+            if (current_procinfo.framepointer=NR_STACK_POINTER_REG) then
+              list.concat(taicpu.op_reg_reg(A_MOV,NR_R15,NR_R14))
+            else
+              begin
+                { restore int registers and return }
+                reference_reset(ref);
+                ref.index:=NR_FRAME_POINTER_REG;
+                list.concat(setoppostfix(taicpu.op_ref_regset(A_LDM,ref,rg[R_INTREGISTER].used_in_proc-paramanager.get_volatile_registers_int(pocall_stdcall)+[RS_R11,RS_R13,RS_R15]),PF_EA));
+              end;
+          end
         else
-          begin
-            { restore int registers and return }
-            reference_reset(ref);
-            ref.index:=NR_FRAME_POINTER_REG;
-            list.concat(setoppostfix(taicpu.op_ref_regset(A_LDM,ref,rg[R_INTREGISTER].used_in_proc-paramanager.get_volatile_registers_int(pocall_stdcall)+[RS_R11,RS_R13,RS_R15]),PF_EA));
-          end;
+          list.concat(taicpu.op_reg_reg(A_MOV,NR_PC,NR_R14));
       end;
 
 
@@ -1286,7 +1295,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.63  2004-11-06 15:18:57  florian
+  Revision 1.64  2005-01-04 15:36:32  florian
+    * implemented nostackframe calling convention directive
+
+  Revision 1.63  2004/11/06 15:18:57  florian
     * fixed OP_SUB for negative constants fitting in the shifter
 
   Revision 1.62  2004/11/01 17:41:28  florian
