@@ -1527,38 +1527,134 @@ The tools menu can be extended with any external program which is command-line
 oriented. The output of such a program will be caught and displayed in the 
 messages window.
 
+Adding a tool to the tools menu can be done using the \menu{Options|Tools} menu.
+This will display the tools dialog.
+\begin{htmlonly}
+The tools dialog looks as follows:
+\htmladdimg{../pics/ide/otools.png}
+\end{htmlonly}
+\begin{latexonly}
+The tools dialog is shown in \seefig{otools}.
+\begin{figure}[ht]
+\caption{The ASCII table.}\label{fig:otools}
+\ifpdf
+\epsfig{file=pics/ide/otools.png,width=\textwidth}
+\else
+\epsfig{file=pics/ide/otools.eps,width=\textwidth}
+\fi
+\end{figure}
+\end{latexonly}
+In the tools dialog, the following actions are available:
+\begin{description}
+\item[New] Shows the tool properties dialog where the
+properties of a new tool can be entered.
+\item[Edit] Shows the tool properties dialog where the
+properties of the highlighted tool can be edited.
+\item[Delete] Removes the currently highlighted tool.
+\item[Cancel] Discards all changes and closes the dialog.
+\item[OK] Saves all changes and closes the dialog.
+\end{description}
+The definitions of the tools are written in the desktop
+configuration file, so unless auto-saving of the desktop file
+is enabled, the dektop file should be saved explicitly after
+the dialog is closed.
+
 \subsection{Meta parameters}
 When specifing the command line for the called tool, meta parameters can
 be used. Meta parameters are variables and and they are replaced
-by it's contents before passing the command line to the tool.
+by their contents before passing the command line to the tool.
 
-%%%!!!!!!!!!!!!!!
 \begin{description}
-\item[\$CAP]
+\item[\$CAP] 
 \item[\$CAP\_MSG]
+Captures the output of the tool and puts it in the messages window.
 \item[\$CAP\_EDIT]
-\item[\$COL] replaced by the coloumn of the cursor in the active window
+Captures the output of the tool and puts it in a separate editor window.
+\item[\$COL]
+Replaced by the colomn of the cursor in the active editor window. If there is no
+ active window or the active window is a dialog, then it is replaced by 0.
 \item[\$CONFIG]
-\item[\$DIR]
-\item[\$DRIVE]
+Replaced by the complete filename of the current configuration file.
+\item[\$DIR()]
+Replaced by the full directory of the filename argument, including trailing
+directory separator. e.g.
+\begin{verbatim}
+  $DIR('d:\data\myfile.pas')
+\end{verbatim}
+would return \file{d:\data\}.
+\item[\$DRIVE()]
+Replaced by the drive letter of the filename argument. e.g.
+\begin{verbatim}
+  $DRIVE('d:\data\myfile.pas')
+\end{verbatim}
+would return \file{d:}.
 \item[\$EDNAME]
+Replaced by the complete file name of the file in the active edit window.
+If there is no active edit window, this is an empty string.
 \item[\$EXENAME]
-\item[\$EXT]
-\item[\$LINE] replaced by the line number of the cursor in the active window
-\item[\$NAME]
-\item[\$NAMEEXT]
+Replaced by the executable name that would be created if the make command
+was used. (i.e. from the 'Primary File' setting or the active edit window).
+\item[\$EXT()]
+Replaced by the extension of the filename argument.
+The extension includes the dot.
+e.g.
+\begin{verbatim}
+  $DIR('d:\data\myfile.pas')
+\end{verbatim}
+would return \file{.pas}.
+\item[\$LINE]
+Replaced by the line number of the cursor in the active edit window.
+If no edit window is present or active, this is 0.
+\item[\$NAME()]
+Replaced by the name part (excluding extension and dot) of the filename
+argument.
+e.g.
+\begin{verbatim}
+  $NAME('d:\data\myfile.pas')
+\end{verbatim}
+would return \file{myfile}.
+\item[\$NAMEEXT()]
+Replaced by the name and extension part of the filename argument.
+e.g.
+\begin{verbatim}
+  $DIR('d:\data\myfile.pas')
+\end{verbatim}
+would return \file{myfile.pas}.
 \item[\$NOSWAP]
-\item[\$DRIVE]
-\item[\$PROMPT] prompt for a program argument.
-\item[\$SAVE] 
+Does nothing in the IDE, it is provided for compatibility with \tp only.
+\item[\$PROMPT()]
+Prompt displays a dialog bow that allows editing of all arguments that
+come after it. Arguments that appear before the \var{\$PROMPT} keyword
+are not presented for editing.
+
+If a (optional) filename argument is present, \var{\$PROMPT) will load
+a dialog description from the filename argument, e.g.
+\begin{verbatim}
+$PROMPT('cvsco.tdf')
+\end{verbatim}
+would parse the file \file{cvsco.tdf}, construct a dialog with it and
+display it. After the dialog closed, the information entered by the user
+is used to construct the tool command line.
+
+See \sees{commanddialogs} for more information on how to create a dialog
+description.
+\item[\$SAVE]
+Befure executing the command, the active editor window is saved, even if it is not modified.
 \item[\$SAVE\_ALL]
+Before executing the command, all unsaved editor files are saved without prompting.
 \item[\$SAVE\_CUR]
+Before executing the command the contents of the active editor window are
+saved without prompting if they are modified.
 \item[\$SAVE\_PROMPT]
-\item[\$WRITEMSG]
+Before executing the command, a dialog is displayed askeing whether any
+unsaved files should be saved before executing the command.
+\item[\$WRITEMSG()]
+Writes the parsed tool output information to a file with name as in the argument.
 \end{description}	
 
 \subsection{Building your own tool command line dialog box}
-%%%!!!!!!!!!!!!!!
+\label{se:commanddialogs}
+
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Project management
@@ -1927,7 +2023,10 @@ Undo & \key{Alt-Backspace} & \\
 \end{FPCltable}
 %
 %  $Log$
-%  Revision 1.1.2.7  2000-11-19 23:08:32  michael
+%  Revision 1.1.2.8  2000-11-20 18:53:52  michael
+%  + Documenting tools
+%
+%  Revision 1.1.2.7  2000/11/19 23:08:32  michael
 %  + Further implementation.
 %
 %  Revision 1.1.2.6  2000/11/18 00:06:11  michael
