@@ -350,7 +350,7 @@ unit temp_gen;
                  exit;
 {$ifdef EXTDEBUG}
                end
-              else
+              else if (tl^.temptype=tt_freeansistring) then
                begin
                  Comment(V_Debug,'temp ansi managment problem : ungetiftempansi()'+
                      ' at pos '+tostr(ref.offset)+ ' already free !');
@@ -524,7 +524,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.30  1999-05-31 20:35:47  peter
+  Revision 1.31  1999-06-01 22:46:26  pierre
+   * extdebug wrong warning removed
+
+  Revision 1.30  1999/05/31 20:35:47  peter
     * ansistring fixes, decr_ansistr called after all temp ansi reuses
 
   Revision 1.29  1999/05/27 19:45:26  peter
