@@ -113,7 +113,7 @@ var
   actopcode      : tasmop;
   actopsize      : topsize;
   actcondition   : tasmcond;
-  iasmops        : ^op2strtable;
+  iasmops        : Pdictionary;
   iasmregs       : ^reg2strtable;
 
 
@@ -122,11 +122,16 @@ Procedure SetupTables;
 var
   i : tasmop;
   j : tregister;
+  str2opentry: pstr2opentry;
 Begin
   { opcodes }
-  new(iasmops);
+  new(iasmops,init);
   for i:=firstop to lastop do
-   iasmops^[i] := upper(int_op2str[i]);
+    begin
+      new(str2opentry,initname(upper(int_op2str[i])));
+      str2opentry^.op:=i;
+      iasmops^.insert(str2opentry);
+    end;
   { registers }
   new(iasmregs);
   for j:=firstreg to lastreg do
@@ -141,7 +146,7 @@ end;
 
    function is_asmopcode(const s: string):boolean;
    var
-     i: tasmop;
+     str2opentry: pstr2opentry;
      cond : string[4];
      cnd : tasmcond;
      j: longint;
@@ -152,10 +157,10 @@ end;
      actcondition:=C_None;
      actopsize:=S_NO;
 
-     for i:=firstop to lastop do
-      if s=iasmops^[i] then
+     str2opentry:=pstr2opentry(iasmops^.search(s));
+     if assigned(str2opentry) then
        begin
-         actopcode:=i;
+         actopcode:=str2opentry^.op;
          actasmtoken:=AS_OPCODE;
          is_asmopcode:=TRUE;
          exit;
@@ -1815,7 +1820,7 @@ var
 procedure ra386int_exit;{$ifndef FPC}far;{$endif}
 begin
   if assigned(iasmops) then
-    dispose(iasmops);
+    dispose(iasmops,done);
   if assigned(iasmregs) then
     dispose(iasmregs);
   exitproc:=old_exit;
@@ -1828,7 +1833,12 @@ begin
 end.
 {
   $Log$
-  Revision 1.68  2000-05-12 21:26:23  pierre
+  Revision 1.69  2000-05-12 21:57:02  pierre
+    + use of a dictionary object
+      for faster opcode searching in assembler readers
+      implemented by Kovacs Attila Zoltan
+
+  Revision 1.68  2000/05/12 21:26:23  pierre
     * fix the FDIV FDIVR FSUB FSUBR and popping equivalent
       simply by swapping from reverse to normal and vice-versa
       when passing from one syntax to the other !

@@ -196,6 +196,11 @@ type
 
   op2strtable=array[tasmop] of string[11];
 
+  pstr2opentry = ^tstr2opentry;
+  tstr2opentry = object(Tnamedindexobject)
+    op: TAsmOp;
+  end;
+
 const
   firstop = low(tasmop);
   lastop  = high(tasmop);
@@ -902,7 +907,12 @@ end;
 end.
 {
   $Log$
-  Revision 1.28  2000-05-10 19:09:07  pierre
+  Revision 1.29  2000-05-12 21:57:02  pierre
+    + use of a dictionary object
+      for faster opcode searching in assembler readers
+      implemented by Kovacs Attila Zoltan
+
+  Revision 1.28  2000/05/10 19:09:07  pierre
     * op2strtable string length changed to 11
       Thanks to Kovacs Attila Zoltan
       this should be set by nasmconv utility !

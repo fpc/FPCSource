@@ -96,7 +96,7 @@ var
   actasmregister : tregister;
   actopsize      : topsize;
   actcondition   : tasmcond;
-  iasmops        : ^op2strtable;
+  iasmops        : Pdictionary;
   iasmregs       : ^reg2strtable;
 
 
@@ -105,11 +105,16 @@ Procedure SetupTables;
 var
   i : tasmop;
   j : tregister;
+  str2opentry: pstr2opentry;
 Begin
   { opcodes }
-  new(iasmops);
+  new(iasmops,init);
   for i:=firstop to lastop do
-   iasmops^[i] := upper(att_op2str[i]);
+    begin
+      new(str2opentry,initname(upper(att_op2str[i])));
+      str2opentry^.op:=i;
+      iasmops^.insert(str2opentry);
+    end;
   { registers }
   new(iasmregs);
   for j:=firstreg to lastreg do
@@ -138,13 +143,13 @@ const
     S_NO,S_NO,S_NO,S_NO,S_NO,S_NO,S_IL,S_IS,S_IQ,S_NO
   );
 var
+  str2opentry: pstr2opentry;
   i    : tasmop;
   cond : string[4];
   cnd  : tasmcond;
   len,
   j,
   sufidx : longint;
-  hid  : string;
 Begin
   is_asmopcode:=FALSE;
 
@@ -159,11 +164,12 @@ Begin
      if copy(s,len+1,length(att_sizesuffixstr[sufidx]))=att_sizesuffixstr[sufidx] then
       begin
         { here we search the entire table... }
-        hid:=copy(s,1,len);
-        for i:=firstop to lastop do
-         if (length(hid) > 0) and (hid=iasmops^[i]) then
+        str2opentry:=nil;
+        if {(length(s)>0) and} (len>0) then
+          str2opentry:=pstr2opentry(iasmops^.search(copy(s,1,len)));
+        if assigned(str2opentry) then
           begin
-            actopcode:=i;
+            actopcode:=str2opentry^.op;
             if att_needsuffix[actopcode]=attsufFPU then
              actopsize:=att_sizefpusuffix[sufidx]
             else if att_needsuffix[actopcode]=attsufFPUint then
@@ -1982,7 +1988,7 @@ var
 procedure ra386att_exit;{$ifndef FPC}far;{$endif}
 begin
   if assigned(iasmops) then
-    dispose(iasmops);
+    dispose(iasmops,done);
   if assigned(iasmregs) then
     dispose(iasmregs);
   exitproc:=old_exit;
@@ -1995,7 +2001,12 @@ begin
 end.
 {
   $Log$
-  Revision 1.77  2000-05-11 09:56:21  pierre
+  Revision 1.78  2000-05-12 21:57:02  pierre
+    + use of a dictionary object
+      for faster opcode searching in assembler readers
+      implemented by Kovacs Attila Zoltan
+
+  Revision 1.77  2000/05/11 09:56:21  pierre
     * fixed several compare problems between longints and
       const > $80000000 that are treated as int64 constanst
       by Delphi reported by Kovacs Attila Zoltan
