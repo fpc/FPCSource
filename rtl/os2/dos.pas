@@ -133,7 +133,7 @@ unit dos;
           buffer : textbuf;
        end;
 
-       { data structure for the registers needed by msdos and intr }    
+       { data structure for the registers needed by msdos and intr }
        registers = record
          case i : integer of
             0 : (ax,f1,bx,f2,cx,f3,dx,f4,bp,f5,si,f51,di,f6,ds,f7,es,f8,flags,fs,gs : word);
@@ -910,8 +910,10 @@ unit dos;
 
     function disksize(drive : byte) : longint;
 
+    var fi:OS2FSallocate;
+
     begin
-        {$IFNDEF OS/2}
+        {$IFNDEF OS2}
         asm
             movb 8(%ebp),%dl
             movb $0x36,%ah
@@ -954,15 +956,15 @@ unit dos;
                 cwde
                 leave
                 ret
-             end;
+             end
          else
             {In OS/2, we use the filesystem information.}
             begin
-                doserror:=dosQFSinfo(drive,1,FI,sizeof(FI));
+                doserror:=dosqueryFSinfo(drive,1,FI,sizeof(FI));
                 if doserror=0 then
-                    diskfree:=FI.cunit*FI.csectorunit*FI.cbsector
+                    disksize:=FI.cunit*FI.csectorunit*FI.cbsector
                 else
-                    diskfree:=-1;
+                    disksize:=-1;
             end;
         {$ENDIF}
       end;
