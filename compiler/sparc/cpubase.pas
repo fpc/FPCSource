@@ -29,7 +29,7 @@ unit cpubase;
 interface
 
 uses
-  strings,cutils,cclasses,aasmbase,cpuinfo,cginfo;
+  strings,cutils,cclasses,aasmbase,cpuinfo,cgbase;
 
 
 {*****************************************************************************
@@ -202,22 +202,6 @@ uses
     const
       symaddr2str: array[trefsymaddr] of string[3] = ('','','%hi','%lo');
 
-
-{*****************************************************************************
-                                Operand
-*****************************************************************************}
-
-    type
-      toptype=(top_none,top_reg,top_ref,top_const,top_symbol);
-      toper=record
-        ot:LongInt;
-        case typ:toptype of
-          top_none:();
-          top_reg:(reg:tregister);
-          top_ref:(ref:preference);
-          top_const:(val:aword);
-          top_symbol:(sym:tasmsymbol;symofs:LongInt);
-      end;
 
 {*****************************************************************************
                                 Operand Sizes
@@ -621,7 +605,13 @@ implementation
 end.
 {
   $Log$
-  Revision 1.51  2003-09-14 21:35:15  peter
+  Revision 1.52  2003-10-01 20:34:50  peter
+    * procinfo unit contains tprocinfo
+    * cginfo renamed to cgbase
+    * moved cgmessage to verbose
+    * fixed ppc and sparc compiles
+
+  Revision 1.51  2003/09/14 21:35:15  peter
     * new volatile registers proc
 
   Revision 1.50  2003/09/14 19:19:05  peter

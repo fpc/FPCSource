@@ -123,7 +123,7 @@ implementation
        defutil,defcmp,cpubase,
        ncnv,nld,
        nmem,ncal,nmat,
-       cginfo,cgbase
+       cgbase,procinfo
        ;
 
     type
@@ -996,7 +996,13 @@ implementation
 end.
 {
   $Log$
-  Revision 1.66  2003-08-23 18:52:18  peter
+  Revision 1.67  2003-10-01 20:34:48  peter
+    * procinfo unit contains tprocinfo
+    * cginfo renamed to cgbase
+    * moved cgmessage to verbose
+    * fixed ppc and sparc compiles
+
+  Revision 1.66  2003/08/23 18:52:18  peter
     * don't check size for open array in valid_for_assign
 
   Revision 1.65  2003/07/08 15:20:56  peter

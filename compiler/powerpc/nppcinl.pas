@@ -49,7 +49,8 @@ implementation
       cutils,globals,
       aasmtai,aasmcpu,
       symconst,symdef,
-      cginfo,cgbase,pass_2,
+      defutil,
+      cgbase,pass_2,
       cpubase,ncgutil,
       cgobj,rgobj;
 
@@ -115,7 +116,13 @@ begin
 end.
 {
   $Log$
-  Revision 1.9  2003-08-08 19:01:02  jonas
+  Revision 1.10  2003-10-01 20:34:49  peter
+    * procinfo unit contains tprocinfo
+    * cginfo renamed to cgbase
+    * moved cgmessage to verbose
+    * fixed ppc and sparc compiles
+
+  Revision 1.9  2003/08/08 19:01:02  jonas
     * fixed bug in load_fpu_location found by Olle
 
   Revision 1.8  2003/06/13 17:03:38  jonas

@@ -124,7 +124,7 @@ implementation
       cutils,verbose,globals,
       symconst,symbase,defutil,defcmp,
       nbas,
-      htypechk,pass_1,ncal,nld,ncon,ncnv,cginfo,cgbase
+      htypechk,pass_1,ncal,nld,ncon,ncnv,cgbase,procinfo
       ;
 
 {*****************************************************************************
@@ -904,7 +904,13 @@ begin
 end.
 {
   $Log$
-  Revision 1.63  2003-09-28 17:55:04  peter
+  Revision 1.64  2003-10-01 20:34:49  peter
+    * procinfo unit contains tprocinfo
+    * cginfo renamed to cgbase
+    * moved cgmessage to verbose
+    * fixed ppc and sparc compiles
+
+  Revision 1.63  2003/09/28 17:55:04  peter
     * parent framepointer changed to hidden parameter
     * tloadparentfpnode added
 

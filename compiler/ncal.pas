@@ -186,7 +186,8 @@ implementation
       htypechk,pass_1,cpubase,
       ncnv,nld,ninl,nadd,ncon,nmem,
       nutils,
-      rgobj,cginfo,cgbase
+      rgobj,
+      cgbase,procinfo
       ;
 
 type
@@ -2515,7 +2516,13 @@ begin
 end.
 {
   $Log$
-  Revision 1.184  2003-09-28 21:44:55  peter
+  Revision 1.185  2003-10-01 20:34:48  peter
+    * procinfo unit contains tprocinfo
+    * cginfo renamed to cgbase
+    * moved cgmessage to verbose
+    * fixed ppc and sparc compiles
+
+  Revision 1.184  2003/09/28 21:44:55  peter
     * fix check that filedef needs var para
 
   Revision 1.183  2003/09/28 17:55:03  peter

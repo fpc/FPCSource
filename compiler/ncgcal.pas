@@ -82,7 +82,7 @@ implementation
   {$endif}
       gdb,
 {$endif GDB}
-      cginfo,cgbase,pass_2,
+      cgbase,pass_2,
       cpuinfo,aasmbase,aasmtai,aasmcpu,
       nbas,nmem,nld,ncnv,
 {$ifdef x86}
@@ -93,7 +93,9 @@ implementation
 {$else cpu64bit}
       cg64f32,
 {$endif cpu64bit}
-      ncgutil,cgobj,tgobj,regvars,rgobj,rgcpu;
+      ncgutil,cgobj,tgobj,
+      regvars,rgobj,rgcpu,
+      procinfo;
 
 
 {*****************************************************************************
@@ -209,10 +211,10 @@ implementation
                case left.location.loc of
                  LOC_FPUREGISTER,
                  LOC_CFPUREGISTER:
-                   cg.a_paramfpu_reg(exprasmlist,def_cgsize(p.resulttype.def),left.location.register,tempparaloc);
+                   cg.a_paramfpu_reg(exprasmlist,def_cgsize(left.resulttype.def),left.location.register,tempparaloc);
                  LOC_REFERENCE,
                  LOC_CREFERENCE :
-                   cg.a_paramfpu_ref(exprasmlist,def_cgsize(p.resulttype.def),left.location.reference,tempparaloc)
+                   cg.a_paramfpu_ref(exprasmlist,def_cgsize(left.resulttype.def),left.location.reference,tempparaloc)
                  else
                    internalerror(200204243);
                end;
@@ -1006,8 +1008,7 @@ implementation
          inlining_procedure:=true;
 
          { calculate registers to pass the parameters }
-         paramanager.create_paraloc_info(procdefinition,callerside);
-         paramanager.create_paraloc_info(procdefinition,calleeside);
+         paramanager.create_inline_paraloc_info(procdefinition);
 
 (*
          { deallocate the registers used for the current procedure's regvars }
@@ -1308,7 +1309,13 @@ begin
 end.
 {
   $Log$
-  Revision 1.122  2003-09-30 21:02:37  peter
+  Revision 1.123  2003-10-01 20:34:48  peter
+    * procinfo unit contains tprocinfo
+    * cginfo renamed to cgbase
+    * moved cgmessage to verbose
+    * fixed ppc and sparc compiles
+
+  Revision 1.122  2003/09/30 21:02:37  peter
     * updates for inlining
 
   Revision 1.121  2003/09/30 19:55:19  peter

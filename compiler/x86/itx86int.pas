@@ -27,7 +27,7 @@ unit itx86int;
 interface
 
     uses
-      cginfo;
+      cgbase;
 
     function masm_regnum_search(const s:string):Tregister;
     function masm_regname(r:Tregister):string;
@@ -88,7 +88,13 @@ implementation
 end.
 {
   $Log$
-  Revision 1.3  2003-09-04 14:42:44  peter
+  Revision 1.4  2003-10-01 20:34:51  peter
+    * procinfo unit contains tprocinfo
+    * cginfo renamed to cgbase
+    * moved cgmessage to verbose
+    * fixed ppc and sparc compiles
+
+  Revision 1.3  2003/09/04 14:42:44  peter
     * return 0 instead of $ff when no reg is found
 
   Revision 1.2  2003/09/03 15:55:02  peter

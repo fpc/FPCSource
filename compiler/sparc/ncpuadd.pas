@@ -27,7 +27,7 @@ unit ncpuadd;
 interface
 
     uses
-       node,ncgadd,cpubase,cginfo;
+       node,ncgadd,cpubase;
 
     type
        tsparcaddnode = class(tcgaddnode)
@@ -257,7 +257,13 @@ begin
 end.
 {
   $Log$
-  Revision 1.19  2003-09-03 15:55:01  peter
+  Revision 1.20  2003-10-01 20:34:50  peter
+    * procinfo unit contains tprocinfo
+    * cginfo renamed to cgbase
+    * moved cgmessage to verbose
+    * fixed ppc and sparc compiles
+
+  Revision 1.19  2003/09/03 15:55:01  peter
     * NEWRA branch merged
 
   Revision 1.18.2.1  2003/09/01 21:02:55  peter

@@ -28,7 +28,7 @@ unit cgcpu;
 
     uses
        symtype,
-       cginfo,cgbase,cgobj,
+       cgbase,cgobj,
        aasmbase,aasmcpu,aasmtai,
        cpubase,cpuinfo,node,cg64f32;
 
@@ -50,7 +50,6 @@ unit cgcpu;
 
         procedure a_call_name(list : taasmoutput;const s : string);override;
         procedure a_call_reg(list : taasmoutput;reg: tregister); override;
-        procedure a_call_ref(list : taasmoutput;const ref : treference);override;
 
         procedure a_op_const_reg(list : taasmoutput; Op: TOpCG; size: TCGSize; a: AWord; reg: TRegister); override;
         procedure a_op_reg_reg(list : taasmoutput; Op: TOpCG; size: TCGSize; src, dst: TRegister); override;
@@ -155,12 +154,18 @@ const
   implementation
 
     uses
-       globtype,globals,verbose,systems,cutils,symconst,symdef,symsym,rgobj,tgobj,cpupi, rgcpu;
+       globtype,globals,verbose,systems,cutils,
+       symconst,symdef,symsym,
+       rgobj,tgobj,cpupi,rgcpu,procinfo;
 
 
     procedure tcgppc.init_register_allocators;
       begin
-        rg := trgcpu.create(29,chr(ord(RS_R3))+chr(ord(RS_R4))+chr(ord(RS_R5))+chr(ord(RS_R6))+chr(ord(RS_R7))+chr(ord(RS_R8))+chr(ord(RS_R9))+chr(ord(RS_R10))+chr(ord(RS_R11))+chr(ord(RS_R12))+chr(ord(RS_R31))+chr(ord(RS_R30))+chr(ord(RS_R29))+chr(ord(RS_R28))+chr(ord(RS_R27))+chr(ord(RS_R26))+chr(ord(RS_R25))+chr(ord(RS_R24))+chr(ord(RS_R23))+chr(ord(RS_R22))+chr(ord(RS_R21))+chr(ord(RS_R20))+chr(ord(RS_R19))+chr(ord(RS_R18))+chr(ord(RS_R17))+chr(ord(RS_R16))+chr(ord(RS_R15))+chr(ord(RS_R14))+chr(ord(RS_R13)));
+        rg := trgcpu.create(29,chr(ord(RS_R3))+chr(ord(RS_R4))+chr(ord(RS_R5))+chr(ord(RS_R6))+chr(ord(RS_R7))+chr(ord(RS_R8))+
+           chr(ord(RS_R9))+chr(ord(RS_R10))+chr(ord(RS_R11))+chr(ord(RS_R12))+chr(ord(RS_R31))+chr(ord(RS_R30))+chr(ord(RS_R29))+
+           chr(ord(RS_R28))+chr(ord(RS_R27))+chr(ord(RS_R26))+chr(ord(RS_R25))+chr(ord(RS_R24))+chr(ord(RS_R23))+chr(ord(RS_R22))+
+           chr(ord(RS_R21))+chr(ord(RS_R20))+chr(ord(RS_R19))+chr(ord(RS_R18))+chr(ord(RS_R17))+chr(ord(RS_R16))+chr(ord(RS_R15))+
+           chr(ord(RS_R14))+chr(ord(RS_R13)));
       end;
 
 
@@ -300,38 +305,6 @@ const
         //list.concat(tai_comment.create(strpnew('***** a_call_reg')));
       end;
 
-
-    { calling a procedure by address }
-    procedure tcgppc.a_call_ref(list : taasmoutput;const ref : treference);
-
-      var
-        tmpreg : tregister;
-        tmpref : treference;
-
-      begin
-        tmpreg := rg.getregisterint(list,OS_ADDR);
-        a_load_ref_reg(list,OS_ADDR,OS_ADDR,ref,tmpreg);
-        if target_info.system=system_powerpc_macos then
-          begin
-            {Generate instruction to load the procedure address from
-            the transition vector.}
-            //TODO: Support cross-TOC calls.
-            reference_reset(tmpref);
-            tmpref.offset := 0;
-            //tmpref.symaddr := refs_full;
-            tmpref.base:= tmpreg;
-            list.concat(taicpu.op_reg_ref(A_LWZ,tmpreg,tmpref));
-          end;
-        list.concat(taicpu.op_reg(A_MTCTR,tmpreg));
-        rg.ungetregisterint(list,tmpreg);
-        list.concat(taicpu.op_none(A_BCTRL));
-        //if target_info.system=system_powerpc_macos then
-        //  //NOP is not needed here.
-        //  list.concat(taicpu.op_none(A_NOP));
-        if not(pi_do_call in current_procinfo.flags) then
-          internalerror(2003060705);
-        //list.concat(tai_comment.create(strpnew('***** a_call_ref')));
-      end;
 
 {********************** load instructions ********************}
 
@@ -1107,7 +1080,9 @@ const
                   begin
                     if (hp.paraloc[calleeside].loc in [LOC_REFERENCE,LOC_CREFERENCE]) then
                       begin
-                        reference_reset_base(href,current_procinfo.framepointer,tvarsym(hp.parasym).adjusted_address);
+                        if tvarsym(hp.parasym).localloc.loc<>LOC_REFERENCE then
+                          internalerror(200310011);
+                        reference_reset_base(href,tvarsym(hp.parasym).localloc.reference.index,tvarsym(hp.parasym).localloc.reference.offset);
                         reference_reset_base(href2,NR_R12,hp.paraloc[callerside].reference.offset);
                         cg.a_load_ref_ref(list,hp.paraloc[calleeside].size,hp.paraloc[calleeside].size,href2,href);
                       end
@@ -2396,7 +2371,13 @@ begin
 end.
 {
   $Log$
-  Revision 1.126  2003-09-14 16:37:20  jonas
+  Revision 1.127  2003-10-01 20:34:49  peter
+    * procinfo unit contains tprocinfo
+    * cginfo renamed to cgbase
+    * moved cgmessage to verbose
+    * fixed ppc and sparc compiles
+
+  Revision 1.126  2003/09/14 16:37:20  jonas
     * fixed some ppc problems
 
   Revision 1.125  2003/09/03 21:04:14  peter

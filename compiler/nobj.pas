@@ -28,11 +28,14 @@ unit nobj;
 interface
 
     uses
-       cutils,cclasses,cpuinfo,
-       symdef,aasmbase,aasmtai,aasmcpu,globtype
 {$ifdef Delphi}
-       ,dmisc
+       dmisc,
 {$endif}
+       cutils,cclasses,
+       globtype,
+       symdef,
+       aasmbase,aasmtai,
+       cpuinfo
        ;
 
     type
@@ -149,7 +152,9 @@ implementation
 {$ifdef GDB}
        gdb,
 {$endif GDB}
-       cpubase,cgbase,cginfo,cgobj,rgobj
+       aasmcpu,
+       cpubase,procinfo,cgbase,
+       cgobj,rgobj
        ;
 
 
@@ -1339,7 +1344,13 @@ initialization
 end.
 {
   $Log$
-  Revision 1.48  2003-09-23 17:56:05  peter
+  Revision 1.49  2003-10-01 20:34:49  peter
+    * procinfo unit contains tprocinfo
+    * cginfo renamed to cgbase
+    * moved cgmessage to verbose
+    * fixed ppc and sparc compiles
+
+  Revision 1.48  2003/09/23 17:56:05  peter
     * locals and paras are allocated in the code generation
     * tvarsym.localloc contains the location of para/local when
       generating code for the current procedure

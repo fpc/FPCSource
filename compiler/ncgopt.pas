@@ -38,12 +38,12 @@ type
 implementation
 
 uses
-  globtype,
+  globtype,globals,
   pass_1,defutil,htypechk,
   symdef,paramgr,
   aasmbase,aasmtai,
   ncnv, ncon, pass_2,
-  cginfo, cgbase, cpubase,
+  cgbase, cpubase,
   tgobj, rgobj, cgobj, ncgutil;
 
 
@@ -201,7 +201,13 @@ end.
 
 {
   $Log$
-  Revision 1.8  2003-09-07 22:09:35  peter
+  Revision 1.9  2003-10-01 20:34:48  peter
+    * procinfo unit contains tprocinfo
+    * cginfo renamed to cgbase
+    * moved cgmessage to verbose
+    * fixed ppc and sparc compiles
+
+  Revision 1.8  2003/09/07 22:09:35  peter
     * preparations for different default calling conventions
     * various RA fixes
 

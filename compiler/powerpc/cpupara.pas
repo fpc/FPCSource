@@ -31,22 +31,22 @@ unit cpupara;
        globtype,
        aasmtai,
        cpubase,
-       symconst,symbase,symtype,symdef,paramgr, cginfo;
+       symconst,symbase,symtype,symdef,paramgr,cgbase;
 
     type
        tppcparamanager = class(tparamanager)
           function get_volatile_registers_int(calloption : tproccalloption):tsuperregisterset;override;
           function get_volatile_registers_fpu(calloption : tproccalloption):tsuperregisterset;override;
-          function push_addr_param(def : tdef;calloption : tproccalloption) : boolean;override;
+          function push_addr_param(varspez:tvarspez;def : tdef;calloption : tproccalloption) : boolean;override;
           function getintparaloc(calloption : tproccalloption; nr : longint) : tparalocation;override;
-          procedure create_paraloc_info(p : tabstractprocdef; side: tcallercallee);override;
+          function create_paraloc_info(p : tabstractprocdef; side: tcallercallee):longint;override;
        end;
 
   implementation
 
     uses
        verbose,systems,
-       cpuinfo,cgbase,
+       cpuinfo,
        rgobj,
        defutil,symsym;
 
@@ -55,7 +55,7 @@ unit cpupara;
       begin
         result := [RS_R3..RS_R12];
       end;
-          
+
     function tppcparamanager.get_volatile_registers_fpu(calloption : tproccalloption):tsuperregisterset;
       begin
         case target_info.abi of
@@ -146,28 +146,34 @@ unit cpupara;
          end;
       end;
 
-    function tppcparamanager.push_addr_param(def : tdef;calloption : tproccalloption) : boolean;
+    function tppcparamanager.push_addr_param(varspez:tvarspez;def : tdef;calloption : tproccalloption) : boolean;
       begin
+        { var,out always require address }
+        if varspez in [vs_var,vs_out] then
+          begin
+            result:=true;
+            exit;
+          end;
         case def.deftype of
           recorddef:
-            push_addr_param:=true;
+            result:=true;
           arraydef:
-            push_addr_param:=(tarraydef(def).highrange>=tarraydef(def).lowrange) or
+            result:=(tarraydef(def).highrange>=tarraydef(def).lowrange) or
                              is_open_array(def) or
                              is_array_of_const(def) or
                              is_array_constructor(def);
           setdef :
-            push_addr_param:=(tsetdef(def).settype<>smallset);
+            result:=(tsetdef(def).settype<>smallset);
           stringdef :
-            push_addr_param:=tstringdef(def).string_typ in [st_shortstring,st_longstring];
+            result:=tstringdef(def).string_typ in [st_shortstring,st_longstring];
           procvardef :
-            push_addr_param:=po_methodpointer in tprocvardef(def).procoptions;
+            result:=po_methodpointer in tprocvardef(def).procoptions;
           else
-            push_addr_param:=inherited push_addr_param(def,calloption);
+            result:=inherited push_addr_param(varspez,def,calloption);
         end;
       end;
 
-    procedure tppcparamanager.create_paraloc_info(p : tabstractprocdef; side: tcallercallee);
+    function tppcparamanager.create_paraloc_info(p : tabstractprocdef; side: tcallercallee):longint;
 
       var
          nextintreg,nextfloatreg,nextmmreg : tsuperregister;
@@ -199,6 +205,7 @@ unit cpupara;
         end;
 
       begin
+         result:=0;
          nextintreg:=RS_R3;
          nextfloatreg:=RS_F1;
          nextmmreg:=RS_M1;
@@ -289,7 +296,7 @@ unit cpupara;
                  LOC_REFERENCE:
                    begin
                       paraloc.size:=OS_ADDR;
-                      if push_addr_param(paradef,p.proccalloption) or
+                      if push_addr_param(hp.paratyp,paradef,p.proccalloption) or
                         is_open_array(paradef) or
                         is_array_of_const(paradef) then
                         assignintreg
@@ -306,8 +313,9 @@ unit cpupara;
               end;
               if side = calleeside then
                 begin
-                  if (paraloc.loc = LOC_REFERENCE) then
-                    paraloc.reference.offset := tvarsym(hp.parasym).adjusted_address;
+{$warning FIXME Calleeside offset needs to be calculated}
+                  {if (paraloc.loc = LOC_REFERENCE) then
+                    paraloc.reference.offset := tvarsym(hp.parasym).adjusted_address;}
                 end;
               hp.paraloc[side]:=paraloc;
               hp:=tparaitem(hp.next);
@@ -349,7 +357,13 @@ begin
 end.
 {
   $Log$
-  Revision 1.46  2003-09-14 21:56:41  jonas
+  Revision 1.47  2003-10-01 20:34:49  peter
+    * procinfo unit contains tprocinfo
+    * cginfo renamed to cgbase
+    * moved cgmessage to verbose
+    * fixed ppc and sparc compiles
+
+  Revision 1.46  2003/09/14 21:56:41  jonas
     + implemented volatile register queries
 
   Revision 1.45  2003/09/14 16:37:20  jonas

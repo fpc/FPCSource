@@ -39,14 +39,20 @@ unit cpupi;
   implementation
 
     uses
-      cgbase, cpubase, rgobj;
+      procinfo;
 
 begin
    cprocinfo:=ti386procinfo;
 end.
 {
   $Log$
-  Revision 1.13  2003-09-25 21:30:11  peter
+  Revision 1.14  2003-10-01 20:34:49  peter
+    * procinfo unit contains tprocinfo
+    * cginfo renamed to cgbase
+    * moved cgmessage to verbose
+    * fixed ppc and sparc compiles
+
+  Revision 1.13  2003/09/25 21:30:11  peter
     * parameter fixes
 
   Revision 1.12  2003/09/23 17:56:06  peter

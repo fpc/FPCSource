@@ -27,7 +27,7 @@ unit n386mem;
 interface
 
     uses
-      cginfo,cpuinfo,cpubase,
+      cgbase,cpuinfo,cpubase,
       node,nmem,ncgmem;
 
     type
@@ -142,7 +142,13 @@ begin
 end.
 {
   $Log$
-  Revision 1.55  2003-09-29 20:58:56  peter
+  Revision 1.56  2003-10-01 20:34:49  peter
+    * procinfo unit contains tprocinfo
+    * cginfo renamed to cgbase
+    * moved cgmessage to verbose
+    * fixed ppc and sparc compiles
+
+  Revision 1.55  2003/09/29 20:58:56  peter
     * optimized releasing of registers
 
   Revision 1.54  2003/09/03 15:55:01  peter

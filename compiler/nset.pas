@@ -118,7 +118,7 @@ implementation
       verbose,
       symconst,symdef,symsym,defutil,defcmp,
       htypechk,pass_1,
-      nbas,ncnv,ncon,cpubase,nld,rgobj,cginfo,cgbase;
+      nbas,ncnv,ncon,cpubase,nld,rgobj,cgbase;
 
     function gencasenode(l,r : tnode;nodes : pcaserecord) : tnode;
 
@@ -686,7 +686,13 @@ begin
 end.
 {
   $Log$
-  Revision 1.44  2003-09-03 15:55:01  peter
+  Revision 1.45  2003-10-01 20:34:49  peter
+    * procinfo unit contains tprocinfo
+    * cginfo renamed to cgbase
+    * moved cgmessage to verbose
+    * fixed ppc and sparc compiles
+
+  Revision 1.44  2003/09/03 15:55:01  peter
     * NEWRA branch merged
 
   Revision 1.43  2003/06/12 22:09:54  jonas

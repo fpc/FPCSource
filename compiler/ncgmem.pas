@@ -30,7 +30,7 @@ unit ncgmem;
 interface
 
     uses
-      cginfo,cpuinfo,cpubase,
+      cgbase,cpuinfo,cpubase,
       node,nmem;
 
     type
@@ -92,7 +92,7 @@ implementation
       cutils,verbose,globals,
       symconst,symdef,symsym,symtable,defutil,paramgr,
       aasmbase,aasmtai,
-      cgbase,pass_2,
+      procinfo,pass_2,
       pass_1,nld,ncon,nadd,
       cgobj,tgobj,rgobj,ncgutil,symbase
       ;
@@ -870,7 +870,13 @@ begin
 end.
 {
   $Log$
-  Revision 1.76  2003-09-29 20:58:56  peter
+  Revision 1.77  2003-10-01 20:34:48  peter
+    * procinfo unit contains tprocinfo
+    * cginfo renamed to cgbase
+    * moved cgmessage to verbose
+    * fixed ppc and sparc compiles
+
+  Revision 1.76  2003/09/29 20:58:56  peter
     * optimized releasing of registers
 
   Revision 1.75  2003/09/28 21:45:52  peter

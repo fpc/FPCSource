@@ -27,7 +27,7 @@ unit ncgmat;
 interface
 
     uses
-      node,nmat,cpubase,cgbase,cginfo;
+      node,nmat,cpubase,cgbase;
 
 type
       tcgunaryminusnode = class(tunaryminusnode)
@@ -502,7 +502,13 @@ begin
 end.
 {
   $Log$
-  Revision 1.18  2003-09-10 08:31:47  marco
+  Revision 1.19  2003-10-01 20:34:48  peter
+    * procinfo unit contains tprocinfo
+    * cginfo renamed to cgbase
+    * moved cgmessage to verbose
+    * fixed ppc and sparc compiles
+
+  Revision 1.18  2003/09/10 08:31:47  marco
    * Patch from Peter for paraloc
 
   Revision 1.17  2003/09/03 15:55:00  peter

@@ -46,7 +46,7 @@ interface
        scanner,
        rautils,
        { codegen }
-       cginfo,cgbase,
+       procinfo,cgbase,
        { constants }
        aggas,cpubase,globtype
        ;
@@ -61,7 +61,6 @@ interface
          srsym,sym : tsym;
          srsymtable : tsymtable;
          code : TAAsmoutput;
-         framereg : tregister;
          i,l : longint;
 
        procedure writeasmline;
@@ -87,12 +86,6 @@ interface
        if assigned(current_procinfo.procdef.funcretsym) and
           is_fpu(current_procinfo.procdef.rettype.def) then
          tvarsym(current_procinfo.procdef.funcretsym).varstate:=vs_assigned;
-       framereg:=current_procinfo.framepointer;
-       if (not is_void(current_procinfo.procdef.rettype.def)) then
-         retstr:=upper(tostr(tvarsym(current_procinfo.procdef.funcretsym).adjusted_address)+'('+std_regname(framereg)+')')
-       else
-         retstr:='';
-
 
        c:=current_scanner.asmgetchar;
        code:=TAAsmoutput.Create;
@@ -138,11 +131,6 @@ interface
                            begin
                               { is the last written character an special }
                               { char ?                                   }
-                              if (s[length(s)]='%') and
-                                 (not paramanager.ret_in_param(current_procinfo.procdef.rettype.def,current_procinfo.procdef.proccalloption)) and
-                                 ((pos('AX',upper(hs))>0) or
-                                 (pos('AL',upper(hs))>0)) then
-                                tvarsym(current_procinfo.procdef.funcretsym).varstate:=vs_assigned;
                               if (s[length(s)]<>'%') and
                                 (s[length(s)]<>'$') and
                                 ((s[length(s)]<>'0') or (hs[1]<>'x')) then
@@ -170,8 +158,7 @@ interface
                                           if (vo_is_external in tvarsym(sym).varoptions) then
                                             hs:=tvarsym(sym).mangledname
                                           else
-                                            hs:='-'+tostr(tvarsym(sym).address)+
-                                                '('+std_regname(current_procinfo.framepointer)+')';
+                                            hs:='%%'+tvarsym(sym).name;
                                           end
                                         else
                                         { call to local function }
@@ -191,12 +178,9 @@ interface
                                           begin
                                              if sym.typ=varsym then
                                                begin
-                                                  l:=tvarsym(sym).address;
-                                                  { set offset }
-                                                  inc(l,current_procinfo.procdef.parast.address_fixup);
-                                                  hs:=tostr(l)+'('+std_regname(current_procinfo.framepointer)+')';
-                                                  if pos(',',s) > 0 then
-                                                    tvarsym(sym).varstate:=vs_used;
+                                                 hs:='%%'+tvarsym(sym).name;
+                                                 if pos(',',s) > 0 then
+                                                   tvarsym(sym).varstate:=vs_used;
                                                end;
                                           end
                                      end
@@ -281,8 +265,7 @@ interface
                                               case sym.typ of
                                                 varsym :
                                                   begin
-                                                    hs:=tostr(tvarsym(sym).adjusted_address)+
-                                                        '('+std_regname(framereg)+')';
+                                                    hs:='%%'+tvarsym(sym).name;
                                                     inc(tvarsym(sym).refs);
                                                   end;
                                                 typedconstsym :
@@ -339,7 +322,13 @@ initialization
 end.
 {
   $Log$
-  Revision 1.14  2003-09-03 15:55:01  peter
+  Revision 1.15  2003-10-01 20:34:50  peter
+    * procinfo unit contains tprocinfo
+    * cginfo renamed to cgbase
+    * moved cgmessage to verbose
+    * fixed ppc and sparc compiles
+
+  Revision 1.14  2003/09/03 15:55:01  peter
     * NEWRA branch merged
 
   Revision 1.13.2.1  2003/09/01 21:02:55  peter

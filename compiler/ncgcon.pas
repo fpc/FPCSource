@@ -67,7 +67,7 @@ implementation
       verbose,globals,
       symconst,symdef,aasmbase,aasmtai,aasmcpu,defutil,
       cpuinfo,cpubase,
-      cginfo,cgbase,tgobj,rgobj
+      cgbase,tgobj,rgobj
 {$ifdef delphi}
       ,dmisc
 {$endif}
@@ -554,7 +554,13 @@ begin
 end.
 {
   $Log$
-  Revision 1.30  2003-09-06 16:47:24  florian
+  Revision 1.31  2003-10-01 20:34:48  peter
+    * procinfo unit contains tprocinfo
+    * cginfo renamed to cgbase
+    * moved cgmessage to verbose
+    * fixed ppc and sparc compiles
+
+  Revision 1.30  2003/09/06 16:47:24  florian
     + support of NaN and Inf in the compiler as values of real constants
 
   Revision 1.29  2003/09/03 15:55:00  peter

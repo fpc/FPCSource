@@ -49,7 +49,7 @@ implementation
       cutils,verbose,globals,fmodule,
       symconst,symdef,
       aasmbase,aasmtai,aasmcpu,
-      cginfo,cgbase,pass_1,pass_2,
+      cgbase,pass_1,pass_2,
       cpubase,paramgr,
       nbas,ncon,ncal,ncnv,nld,
       tgobj,ncgutil,cgobj,cg64f32,rgobj,rgcpu;
@@ -123,7 +123,13 @@ begin
 end.
 {
   $Log$
-  Revision 1.5  2003-06-13 17:05:24  jonas
+  Revision 1.6  2003-10-01 20:34:50  peter
+    * procinfo unit contains tprocinfo
+    * cginfo renamed to cgbase
+    * moved cgmessage to verbose
+    * fixed ppc and sparc compiles
+
+  Revision 1.5  2003/06/13 17:05:24  jonas
     * fixed small LOC_(C)FPUREGISTER bug
 
   Revision 1.4  2003/06/01 21:38:07  peter

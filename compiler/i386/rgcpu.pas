@@ -32,7 +32,7 @@ unit rgcpu;
       cpubase,
       cpuinfo,
       aasmbase,aasmtai,
-      cclasses,globtype,cgbase,cginfo,rgobj;
+      cclasses,globtype,cgbase,rgobj;
 
     type
        trgcpu = class(trgobj)
@@ -242,7 +242,13 @@ unit rgcpu;
 end.
 {
   $Log$
-  Revision 1.35  2003-09-11 11:55:00  florian
+  Revision 1.36  2003-10-01 20:34:49  peter
+    * procinfo unit contains tprocinfo
+    * cginfo renamed to cgbase
+    * moved cgmessage to verbose
+    * fixed ppc and sparc compiles
+
+  Revision 1.35  2003/09/11 11:55:00  florian
     * improved arm code generation
     * move some protected and private field around
     * the temp. register for register parameters/arguments are now released

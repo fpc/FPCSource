@@ -50,7 +50,7 @@ Implementation
        scanner,
        itx86att,
        rax86,rautils,
-       cginfo,cgobj
+       procinfo,cgbase,cgobj
        ;
 
 type
@@ -2129,7 +2129,13 @@ finalization
 end.
 {
   $Log$
-  Revision 1.48  2003-09-23 20:37:53  peter
+  Revision 1.49  2003-10-01 20:34:49  peter
+    * procinfo unit contains tprocinfo
+    * cginfo renamed to cgbase
+    * moved cgmessage to verbose
+    * fixed ppc and sparc compiles
+
+  Revision 1.48  2003/09/23 20:37:53  peter
     * fix global var+offset
 
   Revision 1.47  2003/09/23 17:56:06  peter

@@ -29,7 +29,7 @@ unit cgx86;
   interface
 
     uses
-       cginfo,cgbase,cgobj,
+       cgbase,cgobj,
        aasmbase,aasmtai,aasmcpu,
        cpubase,cpuinfo,
        symconst,symtype;
@@ -141,7 +141,7 @@ unit cgx86;
 
     uses
        globtype,globals,verbose,systems,cutils,
-       symdef,symsym,defutil,paramgr,
+       symdef,symsym,defutil,paramgr,procinfo,
        rgobj,tgobj,rgcpu;
 
 {$ifndef NOTARGETWIN32}
@@ -1597,7 +1597,13 @@ unit cgx86;
 end.
 {
   $Log$
-  Revision 1.69  2003-09-30 19:53:47  peter
+  Revision 1.70  2003-10-01 20:34:51  peter
+    * procinfo unit contains tprocinfo
+    * cginfo renamed to cgbase
+    * moved cgmessage to verbose
+    * fixed ppc and sparc compiles
+
+  Revision 1.69  2003/09/30 19:53:47  peter
     * fix pushw reg
 
   Revision 1.68  2003/09/29 20:58:56  peter

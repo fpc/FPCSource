@@ -59,7 +59,7 @@ interface
 {$endif}
       cutils,globtype,systems,cclasses,
       verbose,finput,fmodule,script,cpuinfo,
-      cginfo,
+      cgbase,
       itppcgas
       ;
 
@@ -1337,7 +1337,13 @@ initialization
 end.
 {
   $Log$
-  Revision 1.25  2003-09-12 12:30:27  olle
+  Revision 1.26  2003-10-01 20:34:49  peter
+    * procinfo unit contains tprocinfo
+    * cginfo renamed to cgbase
+    * moved cgmessage to verbose
+    * fixed ppc and sparc compiles
+
+  Revision 1.25  2003/09/12 12:30:27  olle
     * max lenght of symbols increased to 255
     * emitted strings can now contain backslashes
 

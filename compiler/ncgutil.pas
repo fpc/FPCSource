@@ -29,9 +29,9 @@ interface
     uses
       node,cpuinfo,
       globtype,
-      cpubase,
+      cpubase,cgbase,
       aasmbase,aasmtai,aasmcpu,
-      cginfo,symconst,symbase,symdef,symsym,symtype,symtable,
+      symconst,symbase,symdef,symsym,symtype,symtable,
 {$ifndef cpu64bit}
       cg64f32,
 {$endif cpu64bit}
@@ -106,8 +106,8 @@ implementation
     cutils,cclasses,
     globals,systems,verbose,
     defutil,
-    paramgr,fmodule,
-    cgbase,regvars,
+    procinfo,paramgr,fmodule,
+    regvars,
 {$ifdef GDB}
     gdb,
 {$endif GDB}
@@ -1859,7 +1859,13 @@ implementation
 end.
 {
   $Log$
-  Revision 1.153  2003-09-30 21:02:37  peter
+  Revision 1.154  2003-10-01 20:34:48  peter
+    * procinfo unit contains tprocinfo
+    * cginfo renamed to cgbase
+    * moved cgmessage to verbose
+    * fixed ppc and sparc compiles
+
+  Revision 1.153  2003/09/30 21:02:37  peter
     * updates for inlining
 
   Revision 1.152  2003/09/29 20:58:56  peter

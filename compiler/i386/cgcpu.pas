@@ -29,7 +29,7 @@ unit cgcpu;
   interface
 
     uses
-       cginfo,cgbase,cgobj,cg64f32,cgx86,
+       cgbase,cgobj,cg64f32,cgx86,
        aasmbase,aasmtai,aasmcpu,
        cpubase,cpuinfo,
        node,symconst
@@ -207,7 +207,13 @@ begin
 end.
 {
   $Log$
-  Revision 1.38  2003-09-25 13:13:32  florian
+  Revision 1.39  2003-10-01 20:34:49  peter
+    * procinfo unit contains tprocinfo
+    * cginfo renamed to cgbase
+    * moved cgmessage to verbose
+    * fixed ppc and sparc compiles
+
+  Revision 1.38  2003/09/25 13:13:32  florian
     * more x86-64 fixes
 
   Revision 1.37  2003/09/03 15:55:01  peter

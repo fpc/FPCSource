@@ -45,7 +45,7 @@ implementation
        globtype,globals,verbose,
        systems,cpuinfo,
        { aasm }
-       cginfo,cpubase,aasmbase,aasmtai,aasmcpu,
+       cpubase,aasmbase,aasmtai,aasmcpu,
        { symtable }
        symconst,symbase,symtype,symdef,symsym,symtable,defutil,defcmp,
        paramgr,
@@ -56,7 +56,7 @@ implementation
        scanner,
        pbase,pexpr,
        { codegen }
-       tgobj,rgobj,cgbase
+       procinfo,tgobj,rgobj,cgbase
        ,ncgutil
        ,radirect
 {$ifdef i386}
@@ -1122,7 +1122,13 @@ implementation
 end.
 {
   $Log$
-  Revision 1.110  2003-09-23 17:56:05  peter
+  Revision 1.111  2003-10-01 20:34:49  peter
+    * procinfo unit contains tprocinfo
+    * cginfo renamed to cgbase
+    * moved cgmessage to verbose
+    * fixed ppc and sparc compiles
+
+  Revision 1.110  2003/09/23 17:56:05  peter
     * locals and paras are allocated in the code generation
     * tvarsym.localloc contains the location of para/local when
       generating code for the current procedure

@@ -31,10 +31,8 @@ interface
 
     type
        tppccallnode = class(tcgcallnode)
-          function pass_1 : tnode;override;
-          procedure push_framepointer;override;
-          procedure free_pushed_framepointer;override;
        end;
+
 
 implementation
 
@@ -50,80 +48,24 @@ implementation
   {$endif}
       gdb,
 {$endif GDB}
-      cginfo,cgbase,pass_2,
+      cgbase,pass_2,
       cpuinfo,cpubase,aasmbase,aasmtai,aasmcpu,
       nmem,nld,ncnv,
-      ncgutil,cgobj,tgobj,regvars,rgobj,rgcpu,cg64f32,cgcpu,cpupi;
-
-  function tppccallnode.pass_1 : tnode;
-
-    begin
-       result:=inherited pass_1;
-       if assigned(result) then
-         exit;
-       if procdefinition is tprocdef then
-         begin
-            if tprocdef(procdefinition).parast.datasize>tppcprocinfo(current_procinfo).maxpushedparasize then
-              tppcprocinfo(current_procinfo).maxpushedparasize:=tprocdef(procdefinition).parast.datasize;
-         end
-       else
-         begin
-            {!!!!}
-         end;
-    end;
-
-  procedure tppccallnode.push_framepointer;
-    var
-       href : treference;
-       hregister1 : tregister;
-       i : longint;
-    begin
-       if current_procinfo.procdef.parast.symtablelevel=(tprocdef(procdefinition).parast.symtablelevel) then
-         begin
-            { pass the same framepointer as the current procedure got }
-            reference_reset_base(href,current_procinfo.framepointer,PARENT_FRAMEPOINTER_OFFSET);
-            cg.a_load_ref_reg(exprasmlist,OS_ADDR,OS_ADDR,href,NR_R11);
-            { it must be adjusted! }
-         end
-         { this is only true if the difference is one !!
-           but it cannot be more !! }
-       else if (current_procinfo.procdef.parast.symtablelevel=(tprocdef(procdefinition).parast.symtablelevel)-1) then
-         begin
-            { pass the same framepointer as the current procedure got }
-            cg.a_load_reg_reg(exprasmlist,OS_32,OS_32,NR_R1,NR_R11);
-         end
-       else if (current_procinfo.procdef.parast.symtablelevel>(tprocdef(procdefinition).parast.symtablelevel)) then
-         begin
-            hregister1:=rg.getregisterint(exprasmlist,OS_ADDR);
-            reference_reset_base(href,current_procinfo.framepointer,PARENT_FRAMEPOINTER_OFFSET);
-            cg.a_load_ref_reg(exprasmlist,OS_ADDR,OS_ADDR,href,hregister1);
-            { the previous frame pointer is always saved at }
-            { previous_framepointer+12 (in the link area)   }
-            reference_reset_base(href,hregister1,12);
-            i:=current_procinfo.procdef.parast.symtablelevel-1;
-            while (i>tprocdef(procdefinition).parast.symtablelevel) do
-              begin
-                 cg.a_load_ref_reg(exprasmlist,OS_ADDR,OS_ADDR,href,hregister1);
-                 dec(i);
-              end;
-            cg.a_load_reg_reg(exprasmlist,OS_ADDR,OS_ADDR,hregister1,NR_R11);
-            rg.ungetregisterint(exprasmlist,hregister1);
-         end
-       else
-         internalerror(2002081303);
-    end;
-
-
-  procedure tppccallnode.free_pushed_framepointer;
-    begin
-    end;
+      ncgutil,cgobj,tgobj,regvars,rgobj,rgcpu,
+      cg64f32,cgcpu,cpupi,procinfo;
 
 begin
    ccallnode:=tppccallnode;
 end.
 {
   $Log$
-  Revision 1.21  2003-09-03 19:35:24  peter
+  Revision 1.22  2003-10-01 20:34:49  peter
+    * procinfo unit contains tprocinfo
+    * cginfo renamed to cgbase
+    * moved cgmessage to verbose
+    * fixed ppc and sparc compiles
+
+  Revision 1.21  2003/09/03 19:35:24  peter
     * powerpc compiles again
 
   Revision 1.20  2003/07/08 21:24:59  peter

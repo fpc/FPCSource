@@ -142,10 +142,11 @@ implementation
 
     uses
       cutils,verbose,globtype,globals,systems,
-      symtable,paramgr,defutil,defcmp,
+      symtable,symnot,
+      defutil,defcmp,
       htypechk,pass_1,
-      ncon,ninl,ncnv,nmem,ncal,cpubase,rgobj,cginfo,cgbase
-      ,symnot
+      ncon,ninl,ncnv,nmem,ncal,
+      paramgr,cpubase,rgobj,cgbase,procinfo
       ;
 
 {*****************************************************************************
@@ -1273,7 +1274,13 @@ begin
 end.
 {
   $Log$
-  Revision 1.107  2003-09-28 17:55:03  peter
+  Revision 1.108  2003-10-01 20:34:48  peter
+    * procinfo unit contains tprocinfo
+    * cginfo renamed to cgbase
+    * moved cgmessage to verbose
+    * fixed ppc and sparc compiles
+
+  Revision 1.107  2003/09/28 17:55:03  peter
     * parent framepointer changed to hidden parameter
     * tloadparentfpnode added
 

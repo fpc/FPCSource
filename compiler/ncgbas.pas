@@ -70,8 +70,9 @@ interface
       globtype,systems,
       cutils,verbose,globals,
       aasmbase,aasmtai,aasmcpu,symsym,
+      defutil,
       nflw,pass_2,
-      cgbase,cginfo,cgobj,tgobj,rgobj
+      cgbase,procinfo,cgobj,tgobj,rgobj
       ;
 
 {*****************************************************************************
@@ -363,7 +364,13 @@ begin
 end.
 {
   $Log$
-  Revision 1.40  2003-09-23 17:56:05  peter
+  Revision 1.41  2003-10-01 20:34:48  peter
+    * procinfo unit contains tprocinfo
+    * cginfo renamed to cgbase
+    * moved cgmessage to verbose
+    * fixed ppc and sparc compiles
+
+  Revision 1.40  2003/09/23 17:56:05  peter
     * locals and paras are allocated in the code generation
     * tvarsym.localloc contains the location of para/local when
       generating code for the current procedure

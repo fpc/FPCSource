@@ -86,7 +86,7 @@ var
 implementation
 
 uses cutils, htypechk, defutil, defcmp, globtype, globals, cpubase, ncnv, ncon,ncal,
-     verbose, symdef, cginfo,cgbase;
+     verbose, symdef, cgbase, procinfo;
 
 
 {*****************************************************************************
@@ -290,7 +290,13 @@ end.
 
 {
   $Log$
-  Revision 1.16  2003-05-26 21:15:18  peter
+  Revision 1.17  2003-10-01 20:34:49  peter
+    * procinfo unit contains tprocinfo
+    * cginfo renamed to cgbase
+    * moved cgmessage to verbose
+    * fixed ppc and sparc compiles
+
+  Revision 1.16  2003/05/26 21:15:18  peter
     * disable string node optimizations for the moment
 
   Revision 1.15  2003/04/27 11:21:33  peter

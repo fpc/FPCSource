@@ -165,15 +165,15 @@ function get_source_file(moduleindex,fileindex : longint) : tinputfile;
 
 implementation
 
-uses
-{$ifdef delphi}
-  dmisc,
-{$else}
-  dos,
-{$endif}
-  verbose,systems,
-  scanner,
-  cgbase;
+    uses
+    {$ifdef delphi}
+      dmisc,
+    {$else}
+      dos,
+    {$endif}
+      verbose,systems,
+      scanner,
+      procinfo;
 
 
 {*****************************************************************************
@@ -652,7 +652,13 @@ uses
 end.
 {
   $Log$
-  Revision 1.37  2003-08-23 22:31:42  peter
+  Revision 1.38  2003-10-01 20:34:48  peter
+    * procinfo unit contains tprocinfo
+    * cginfo renamed to cgbase
+    * moved cgmessage to verbose
+    * fixed ppc and sparc compiles
+
+  Revision 1.37  2003/08/23 22:31:42  peter
     * reload also caller module when it is already compiled
 
   Revision 1.36  2003/06/07 20:26:32  peter

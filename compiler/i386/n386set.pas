@@ -51,9 +51,9 @@ implementation
       verbose,globals,
       symconst,symdef,defutil,
       aasmbase,aasmtai,aasmcpu,
-      cginfo,cgbase,pass_2,
+      cgbase,pass_2,
       ncon,
-      cpubase,cpuinfo,
+      cpubase,cpuinfo,procinfo,
       cga,cgobj,tgobj,ncgutil,rgobj,
       cgx86;
 
@@ -672,7 +672,13 @@ begin
 end.
 {
   $Log$
-  Revision 1.66  2003-09-28 21:48:20  peter
+  Revision 1.67  2003-10-01 20:34:49  peter
+    * procinfo unit contains tprocinfo
+    * cginfo renamed to cgbase
+    * moved cgmessage to verbose
+    * fixed ppc and sparc compiles
+
+  Revision 1.66  2003/09/28 21:48:20  peter
     * fix register leaks
 
   Revision 1.65  2003/09/07 22:09:35  peter

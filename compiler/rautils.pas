@@ -28,7 +28,7 @@ Interface
 
 Uses
   cutils,cclasses,
-  globtype,aasmbase,aasmtai,cpubase,cpuinfo,cginfo,
+  globtype,aasmbase,aasmtai,cpubase,cpuinfo,cgbase,
   symconst,symbase,symtype,symdef,symsym;
 
 Const
@@ -218,7 +218,7 @@ uses
   defutil,systems,verbose,globals,
   symtable,paramgr,
   aasmcpu,
-  cgbase,tgobj;
+  tgobj,procinfo;
 
 {*************************************************************************
                               TExprParse
@@ -1502,7 +1502,13 @@ end;
 end.
 {
   $Log$
-  Revision 1.68  2003-09-25 14:57:36  peter
+  Revision 1.69  2003-10-01 20:34:49  peter
+    * procinfo unit contains tprocinfo
+    * cginfo renamed to cgbase
+    * moved cgmessage to verbose
+    * fixed ppc and sparc compiles
+
+  Revision 1.68  2003/09/25 14:57:36  peter
     * fix check for unreachable locals
 
   Revision 1.67  2003/09/23 17:56:06  peter

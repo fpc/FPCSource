@@ -27,7 +27,7 @@ unit cgcpu;
 interface
 
     uses
-       cginfo,cgbase,cgobj,cg64f32,
+       cgbase,cgobj,cg64f32,
        aasmbase,aasmtai,aasmcpu,
        cpubase,cpuinfo,
        node,symconst,SymType;
@@ -76,7 +76,6 @@ interface
         procedure a_jmp_flags(list:TAasmOutput;const f:TResFlags;l:tasmlabel);override;
         procedure g_flags2reg(list:TAasmOutput;Size:TCgSize;const f:tresflags;reg:TRegister);override;
         procedure g_overflowCheck(List:TAasmOutput;const Loc:TLocation;def:TDef);override;
-        procedure g_save_parent_framepointer_param(list:taasmoutput);override;
         procedure g_stackframe_entry(list:TAasmOutput;localsize:LongInt);override;
         procedure g_restore_all_registers(list:TAasmOutput;accused,acchiused:boolean);override;
         procedure g_restore_frame_pointer(list:TAasmOutput);override;
@@ -789,16 +788,6 @@ implementation
 
   { *********** entry/exit code and address loading ************ }
 
-    procedure tcgsparc.g_save_parent_framepointer_param(list:taasmoutput);
-      var
-        href : treference;
-      begin
-        reference_reset_base(href,current_procinfo.framepointer,PARENT_FRAMEPOINTER_OFFSET);
-        { Parent framepointer is always pushed the first parameter (%i0) }
-        a_load_reg_ref(list,OS_ADDR,OS_ADDR,NR_I0,href);
-      end;
-
-
     procedure TCgSparc.g_stackframe_entry(list:TAasmOutput;LocalSize:LongInt);
       begin
         { Althogh the SPARC architecture require only word alignment, software
@@ -1107,7 +1096,13 @@ begin
 end.
 {
   $Log$
-  Revision 1.68  2003-09-14 21:35:52  peter
+  Revision 1.69  2003-10-01 20:34:49  peter
+    * procinfo unit contains tprocinfo
+    * cginfo renamed to cgbase
+    * moved cgmessage to verbose
+    * fixed ppc and sparc compiles
+
+  Revision 1.68  2003/09/14 21:35:52  peter
     * flags2reg fixed
     * fixed 64bit not
 

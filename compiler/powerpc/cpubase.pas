@@ -29,7 +29,7 @@ unit cpubase;
 interface
 
 uses
-  strings,cutils,cclasses,aasmbase,cpuinfo,cginfo;
+  strings,cutils,cclasses,aasmbase,cpuinfo,cgbase;
 
 
 {*****************************************************************************
@@ -277,23 +277,6 @@ uses
       { MacOS only. Whether the direct data area (TOC) directly contain
         global variables. Otherwise it contains pointers to global variables. }
       macos_direct_globals = false;
-
-{*****************************************************************************
-                                Operand
-*****************************************************************************}
-
-    type
-      toptype=(top_none,top_reg,top_ref,top_const,top_symbol,top_bool);
-
-      toper=record
-        case typ : toptype of
-         top_none   : ();
-         top_reg    : (reg:tregister);
-         top_ref    : (ref:preference);
-         top_const  : (val:aword);
-         top_symbol : (sym:tasmsymbol;symofs:longint);
-         top_bool  :  (b: boolean);
-      end;
 
 {*****************************************************************************
                                 Operand Sizes
@@ -747,7 +730,13 @@ implementation
 end.
 {
   $Log$
-  Revision 1.68  2003-09-14 16:37:20  jonas
+  Revision 1.69  2003-10-01 20:34:49  peter
+    * procinfo unit contains tprocinfo
+    * cginfo renamed to cgbase
+    * moved cgmessage to verbose
+    * fixed ppc and sparc compiles
+
+  Revision 1.68  2003/09/14 16:37:20  jonas
     * fixed some ppc problems
 
   Revision 1.67  2003/09/03 21:04:14  peter

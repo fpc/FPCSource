@@ -34,7 +34,7 @@ unit cg64f32;
     uses
        aasmbase,aasmtai,aasmcpu,
        cpuinfo, cpubase,cpupara,
-       cginfo, cgobj,
+       cgbase, cgobj,
        node,symtype
 {$ifdef delphi}
        ,dmisc
@@ -94,7 +94,6 @@ unit cg64f32;
 
     uses
        globtype,globals,systems,
-       cgbase,
        verbose,
        symbase,symconst,symdef,defutil,rgobj,tgobj,paramgr;
 
@@ -762,7 +761,13 @@ begin
 end.
 {
   $Log$
-  Revision 1.49  2003-09-03 15:55:00  peter
+  Revision 1.50  2003-10-01 20:34:48  peter
+    * procinfo unit contains tprocinfo
+    * cginfo renamed to cgbase
+    * moved cgmessage to verbose
+    * fixed ppc and sparc compiles
+
+  Revision 1.49  2003/09/03 15:55:00  peter
     * NEWRA branch merged
 
   Revision 1.48.2.2  2003/08/28 18:35:07  peter

@@ -31,10 +31,10 @@ unit verbose;
 
 interface
 
-uses
-  cutils,
-  globals,finput,
-  cmsgs;
+    uses
+      cutils,
+      globals,finput,
+      cmsgs;
 
 {$ifndef EXTERN_MSG}
   {$i msgtxt.inc}
@@ -42,63 +42,73 @@ uses
 
 {$i msgidx.inc}
 
-Const
-  { Levels }
-  V_None         = $0;
-  V_Fatal        = $1;
-  V_Error        = $2;
-  V_Normal       = $4; { doesn't show a text like Error: }
-  V_Warning      = $8;
-  V_Note         = $10;
-  V_Hint         = $20;
-  V_LineInfoMask = $fff;
-  { From here by default no line info }
-  V_Info         = $1000;
-  V_Status       = $2000;
-  V_Used         = $4000;
-  V_Tried        = $8000;
-  V_Conditional  = $10000;
-  V_Debug        = $20000;
-  V_Executable   = $40000;
-  V_LevelMask    = $fffffff;
-  V_All          = V_LevelMask;
-  V_Default      = V_Fatal + V_Error + V_Normal;
-  { Flags }
-  V_LineInfo     = $10000000;
+    Const
+      { Levels }
+      V_None         = $0;
+      V_Fatal        = $1;
+      V_Error        = $2;
+      V_Normal       = $4; { doesn't show a text like Error: }
+      V_Warning      = $8;
+      V_Note         = $10;
+      V_Hint         = $20;
+      V_LineInfoMask = $fff;
+      { From here by default no line info }
+      V_Info         = $1000;
+      V_Status       = $2000;
+      V_Used         = $4000;
+      V_Tried        = $8000;
+      V_Conditional  = $10000;
+      V_Debug        = $20000;
+      V_Executable   = $40000;
+      V_LevelMask    = $fffffff;
+      V_All          = V_LevelMask;
+      V_Default      = V_Fatal + V_Error + V_Normal;
+      { Flags }
+      V_LineInfo     = $10000000;
 
-var
-  msg : pmessage;
+    var
+      msg : pmessage;
 
-const
-  msgfilename : string = '';
+    const
+      msgfilename : string = '';
 
-procedure SetRedirectFile(const fn:string);
-function  SetVerbosity(const s:string):boolean;
-procedure PrepareReport;
+    procedure SetRedirectFile(const fn:string);
+    function  SetVerbosity(const s:string):boolean;
+    procedure PrepareReport;
 
-function  CheckVerbosity(v:longint):boolean;
-procedure SetCompileModule(p:tmodulebase);
-procedure Stop;
-procedure ShowStatus;
-function  ErrorCount:longint;
-procedure SetErrorFlags(const s:string);
-procedure GenerateError;
-procedure Internalerror(i:longint);
-procedure Comment(l:longint;s:string);
-function  MessagePchar(w:longint):pchar;
-procedure Message(w:longint);
-procedure Message1(w:longint;const s1:string);
-procedure Message2(w:longint;const s1,s2:string);
-procedure Message3(w:longint;const s1,s2,s3:string);
-procedure Message4(w:longint;const s1,s2,s3,s4:string);
-procedure MessagePos(const pos:tfileposinfo;w:longint);
-procedure MessagePos1(const pos:tfileposinfo;w:longint;const s1:string);
-procedure MessagePos2(const pos:tfileposinfo;w:longint;const s1,s2:string);
-procedure MessagePos3(const pos:tfileposinfo;w:longint;const s1,s2,s3:string);
-procedure MessagePos4(const pos:tfileposinfo;w:longint;const s1,s2,s3,s4:string);
+    function  CheckVerbosity(v:longint):boolean;
+    procedure SetCompileModule(p:tmodulebase);
+    procedure Stop;
+    procedure ShowStatus;
+    function  ErrorCount:longint;
+    procedure SetErrorFlags(const s:string);
+    procedure GenerateError;
+    procedure Internalerror(i:longint);
+    procedure Comment(l:longint;s:string);
+    function  MessagePchar(w:longint):pchar;
+    procedure Message(w:longint);
+    procedure Message1(w:longint;const s1:string);
+    procedure Message2(w:longint;const s1,s2:string);
+    procedure Message3(w:longint;const s1,s2,s3:string);
+    procedure Message4(w:longint;const s1,s2,s3,s4:string);
+    procedure MessagePos(const pos:tfileposinfo;w:longint);
+    procedure MessagePos1(const pos:tfileposinfo;w:longint;const s1:string);
+    procedure MessagePos2(const pos:tfileposinfo;w:longint;const s1,s2:string);
+    procedure MessagePos3(const pos:tfileposinfo;w:longint;const s1,s2,s3:string);
+    procedure MessagePos4(const pos:tfileposinfo;w:longint;const s1,s2,s3,s4:string);
 
-procedure InitVerbose;
-procedure DoneVerbose;
+    { message calls with codegenerror support }
+    procedure cgmessage(t : longint);
+    procedure cgmessage1(t : longint;const s : string);
+    procedure cgmessage2(t : longint;const s1,s2 : string);
+    procedure cgmessage3(t : longint;const s1,s2,s3 : string);
+    procedure CGMessagePos(const pos:tfileposinfo;t:longint);
+    procedure CGMessagePos1(const pos:tfileposinfo;t:longint;const s1:string);
+    procedure CGMessagePos2(const pos:tfileposinfo;t:longint;const s1,s2:string);
+    procedure CGMessagePos3(const pos:tfileposinfo;t:longint;const s1,s2,s3:string);
+
+    procedure InitVerbose;
+    procedure DoneVerbose;
 
 
 implementation
@@ -660,6 +670,112 @@ var
       end;
 
 
+{*****************************************************************************
+            override the message calls to set codegenerror
+*****************************************************************************}
+
+    procedure cgmessage(t : longint);
+      var
+         olderrorcount : longint;
+      begin
+         if not(codegenerror) then
+           begin
+              olderrorcount:=Errorcount;
+              verbose.Message(t);
+              codegenerror:=olderrorcount<>Errorcount;
+           end;
+      end;
+
+    procedure cgmessage1(t : longint;const s : string);
+      var
+         olderrorcount : longint;
+      begin
+         if not(codegenerror) then
+           begin
+              olderrorcount:=Errorcount;
+              verbose.Message1(t,s);
+              codegenerror:=olderrorcount<>Errorcount;
+           end;
+      end;
+
+    procedure cgmessage2(t : longint;const s1,s2 : string);
+      var
+         olderrorcount : longint;
+      begin
+         if not(codegenerror) then
+           begin
+              olderrorcount:=Errorcount;
+              verbose.Message2(t,s1,s2);
+              codegenerror:=olderrorcount<>Errorcount;
+           end;
+      end;
+
+    procedure cgmessage3(t : longint;const s1,s2,s3 : string);
+      var
+         olderrorcount : longint;
+      begin
+         if not(codegenerror) then
+           begin
+              olderrorcount:=Errorcount;
+              verbose.Message3(t,s1,s2,s3);
+              codegenerror:=olderrorcount<>Errorcount;
+           end;
+      end;
+
+
+    procedure cgmessagepos(const pos:tfileposinfo;t : longint);
+      var
+         olderrorcount : longint;
+      begin
+         if not(codegenerror) then
+           begin
+              olderrorcount:=Errorcount;
+              verbose.MessagePos(pos,t);
+              codegenerror:=olderrorcount<>Errorcount;
+           end;
+      end;
+
+    procedure cgmessagepos1(const pos:tfileposinfo;t : longint;const s1 : string);
+      var
+         olderrorcount : longint;
+      begin
+         if not(codegenerror) then
+           begin
+              olderrorcount:=Errorcount;
+              verbose.MessagePos1(pos,t,s1);
+              codegenerror:=olderrorcount<>Errorcount;
+           end;
+      end;
+
+    procedure cgmessagepos2(const pos:tfileposinfo;t : longint;const s1,s2 : string);
+      var
+         olderrorcount : longint;
+      begin
+         if not(codegenerror) then
+           begin
+              olderrorcount:=Errorcount;
+              verbose.MessagePos2(pos,t,s1,s2);
+              codegenerror:=olderrorcount<>Errorcount;
+           end;
+      end;
+
+    procedure cgmessagepos3(const pos:tfileposinfo;t : longint;const s1,s2,s3 : string);
+      var
+         olderrorcount : longint;
+      begin
+         if not(codegenerror) then
+           begin
+              olderrorcount:=Errorcount;
+              verbose.MessagePos3(pos,t,s1,s2,s3);
+              codegenerror:=olderrorcount<>Errorcount;
+           end;
+      end;
+
+
+{*****************************************************************************
+                                Initialization
+*****************************************************************************}
+
     procedure InitVerbose;
       begin
       { Init }
@@ -705,7 +821,13 @@ finalization
 end.
 {
   $Log$
-  Revision 1.26  2003-04-25 20:59:35  peter
+  Revision 1.27  2003-10-01 20:34:49  peter
+    * procinfo unit contains tprocinfo
+    * cginfo renamed to cgbase
+    * moved cgmessage to verbose
+    * fixed ppc and sparc compiles
+
+  Revision 1.26  2003/04/25 20:59:35  peter
     * removed funcretn,funcretsym, function result is now in varsym
       and aliases for result and function name are added using absolutesym
     * vs_hidden parameter for funcret passed in parameter

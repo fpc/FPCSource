@@ -49,7 +49,7 @@ interface
        scanner,
        rax86,
        { codegen }
-       cginfo,cgbase,
+       cgbase,procinfo,
        { constants }
        itx86att,
        cpubase
@@ -65,7 +65,6 @@ interface
          srsym,sym : tsym;
          srsymtable : tsymtable;
          code : TAAsmoutput;
-         framereg : tregister;
          i,l : longint;
 
        procedure writeasmline;
@@ -78,13 +77,6 @@ interface
            s[0]:=chr(i);
            if s<>'' then
             code.concat(Tai_direct.Create(strpnew(s)));
-            { consider it set function set if the offset was loaded }
-{$warning TODO Fix setting of funcret vs_assigned}
-(*
-           if assigned(current_procinfo.procdef.funcretsym) and
-              (pos(retstr,upper(s))>0) then
-             tvarsym(current_procinfo.procdef.funcretsym).varstate:=vs_assigned;
-*)
            s:='';
          end;
 
@@ -94,15 +86,6 @@ interface
        if assigned(current_procinfo.procdef.funcretsym) and
           is_fpu(current_procinfo.procdef.rettype.def) then
          tvarsym(current_procinfo.procdef.funcretsym).varstate:=vs_assigned;
-(*
-       if tvarsym(current_procinfo.procdef.funcretsym).localloc.loc<>LOC_REFERENCE then
-         internalerror(2003091813);
-       framereg:=tvarsym(current_procinfo.procdef.funcretsym).localloc.reference.index;
-       if (not is_void(current_procinfo.procdef.rettype.def)) then
-         retstr:=upper(tostr(tvarsym(current_procinfo.procdef.funcretsym).localloc.reference.offset)+'('+gas_regname(framereg)+')')
-       else
-         retstr:='';
-*)
        c:=current_scanner.asmgetchar;
        code:=TAAsmoutput.Create;
        while not(ende) do
@@ -313,11 +296,6 @@ interface
                 end;
               '{',';',#10,#13 :
                 begin
-{$warning TODO Fix setting of funcret vs_assigned}
-(*
-                  if pos(retstr,s) > 0 then
-                    tvarsym(current_procinfo.procdef.funcretsym).varstate:=vs_assigned;
-*)
                   writeasmline;
                   c:=current_scanner.asmgetchar;
                 end;
@@ -365,7 +343,13 @@ initialization
 end.
 {
   $Log$
-  Revision 1.9  2003-09-23 17:56:06  peter
+  Revision 1.10  2003-10-01 20:34:51  peter
+    * procinfo unit contains tprocinfo
+    * cginfo renamed to cgbase
+    * moved cgmessage to verbose
+    * fixed ppc and sparc compiles
+
+  Revision 1.9  2003/09/23 17:56:06  peter
     * locals and paras are allocated in the code generation
     * tvarsym.localloc contains the location of para/local when
       generating code for the current procedure

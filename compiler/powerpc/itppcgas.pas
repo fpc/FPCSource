@@ -27,7 +27,7 @@ unit itppcgas;
 interface
 
     uses
-      cginfo,cpubase;
+      cpubase,cgbase;
 
     const
       gas_op2str : array[tasmop] of string[14] = ('<none>',
@@ -135,7 +135,13 @@ implementation
 end.
 {
   $Log$
-  Revision 1.1  2003-09-03 19:35:24  peter
+  Revision 1.2  2003-10-01 20:34:49  peter
+    * procinfo unit contains tprocinfo
+    * cginfo renamed to cgbase
+    * moved cgmessage to verbose
+    * fixed ppc and sparc compiles
+
+  Revision 1.1  2003/09/03 19:35:24  peter
     * powerpc compiles again
 
 }

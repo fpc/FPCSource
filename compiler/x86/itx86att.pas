@@ -27,7 +27,7 @@ unit itx86att;
 interface
 
     uses
-      cginfo,cpubase;
+      cgbase,cpubase;
 
     type
       TAttSuffix = (AttSufNONE,AttSufINT,AttSufFPU,AttSufFPUint);
@@ -133,7 +133,13 @@ implementation
 end.
 {
   $Log$
-  Revision 1.5  2003-09-24 17:12:36  florian
+  Revision 1.6  2003-10-01 20:34:51  peter
+    * procinfo unit contains tprocinfo
+    * cginfo renamed to cgbase
+    * moved cgmessage to verbose
+    * fixed ppc and sparc compiles
+
+  Revision 1.5  2003/09/24 17:12:36  florian
     * x86-64 adaptions
 
   Revision 1.4  2003/09/03 15:55:02  peter

@@ -35,7 +35,8 @@ interface
     uses
        cutils,cclasses,
        globtype,globals,systems,
-       cginfo,cpuinfo,cpubase,
+       cpuinfo,cpubase,
+       cgbase,
        symppu,symtype,
        aasmbase;
 
@@ -143,7 +144,7 @@ interface
 
     type
       { Types of operand }
-      toptype=(top_none,top_reg,top_ref,top_const,top_symbol,top_local);
+      toptype=(top_none,top_reg,top_ref,top_const,top_symbol,top_bool,top_local);
 
       toper=record
         ot : longint;
@@ -153,6 +154,7 @@ interface
          top_ref    : (ref:preference);
          top_const  : (val:aword);
          top_symbol : (sym:tasmsymbol;symofs:longint);
+         top_bool   : (b:boolean);
          { local varsym that will be inserted in pass_2 }
          top_local  : (localsym:pointer;localsymderef:tderef;localsymofs:longint);
       end;
@@ -503,8 +505,16 @@ interface
     var
       { array with all class types for tais }
       aiclass : taiclassarray;
-      { temporary lists }
-      exprasmlist,
+
+      { Current expression list }
+      exprasmlist : taasmoutput;
+
+      { labels for BREAK and CONTINUE }
+      aktbreaklabel,aktcontinuelabel : tasmlabel;
+
+      { label when the result is true or false }
+      truelabel,falselabel : tasmlabel;
+
       { default lists }
       datasegment,codesegment,bsssegment,
       debuglist,withdebuglist,consts,
@@ -2141,7 +2151,13 @@ implementation
 end.
 {
   $Log$
-  Revision 1.40  2003-09-23 17:56:05  peter
+  Revision 1.41  2003-10-01 20:34:48  peter
+    * procinfo unit contains tprocinfo
+    * cginfo renamed to cgbase
+    * moved cgmessage to verbose
+    * fixed ppc and sparc compiles
+
+  Revision 1.40  2003/09/23 17:56:05  peter
     * locals and paras are allocated in the code generation
     * tvarsym.localloc contains the location of para/local when
       generating code for the current procedure

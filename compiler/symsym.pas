@@ -29,15 +29,15 @@ interface
        { common }
        cutils,
        { target }
-       cginfo,cpuinfo,globtype,
+       globtype,globals,
        { symtable }
        symconst,symbase,symtype,symdef,
        { ppu }
        ppu,symppu,
        cclasses,symnot,
        { aasm }
-       aasmbase,aasmtai,cpubase,
-       globals
+       aasmbase,aasmtai,
+       cpuinfo,cpubase,cgbase
        ;
 
     type
@@ -379,7 +379,8 @@ implementation
        { module }
        fmodule,
        { codegen }
-       tgobj,paramgr,cgbase,cresstr
+       tgobj,paramgr,cresstr,
+       procinfo
        ;
 
 {****************************************************************************
@@ -2677,7 +2678,13 @@ implementation
 end.
 {
   $Log$
-  Revision 1.121  2003-09-25 21:25:37  peter
+  Revision 1.122  2003-10-01 20:34:49  peter
+    * procinfo unit contains tprocinfo
+    * cginfo renamed to cgbase
+    * moved cgmessage to verbose
+    * fixed ppc and sparc compiles
+
+  Revision 1.121  2003/09/25 21:25:37  peter
     * has_local_copy gdb fix
 
   Revision 1.120  2003/09/25 16:18:54  peter

@@ -61,7 +61,7 @@ implementation
       verbose,
       symconst,symsym,symtype,symdef,symtable,
       nbas,ncon,ncnv,nld,nflw,nset,ncal,nadd,nmem,
-      cgbase,
+      cgbase,procinfo,
       pass_1;
 
   function foreachnode(var n: tnode; f: foreachnodefunction): boolean;
@@ -254,7 +254,13 @@ end.
 
 {
   $Log$
-  Revision 1.6  2003-06-13 21:19:30  peter
+  Revision 1.7  2003-10-01 20:34:49  peter
+    * procinfo unit contains tprocinfo
+    * cginfo renamed to cgbase
+    * moved cgmessage to verbose
+    * fixed ppc and sparc compiles
+
+  Revision 1.6  2003/06/13 21:19:30  peter
     * current_procdef removed, use current_procinfo.procdef instead
 
   Revision 1.5  2003/05/26 21:17:17  peter

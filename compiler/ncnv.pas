@@ -178,7 +178,7 @@ implementation
       cutils,verbose,globals,widestr,
       symconst,symdef,symsym,symtable,
       ncon,ncal,nset,nadd,ninl,nmem,nmat,
-      cginfo,cgbase,
+      cgbase,procinfo,
       htypechk,pass_1,cpubase,cpuinfo;
 
 
@@ -2102,7 +2102,13 @@ begin
 end.
 {
   $Log$
-  Revision 1.119  2003-09-25 14:57:51  peter
+  Revision 1.120  2003-10-01 20:34:48  peter
+    * procinfo unit contains tprocinfo
+    * cginfo renamed to cgbase
+    * moved cgmessage to verbose
+    * fixed ppc and sparc compiles
+
+  Revision 1.119  2003/09/25 14:57:51  peter
     * fix different expectloc
 
   Revision 1.118  2003/09/06 22:27:08  florian

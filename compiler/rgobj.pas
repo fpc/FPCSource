@@ -89,13 +89,14 @@ unit rgobj;
   interface
 
     uses
-      cutils, cpubase,
-      cpuinfo,
-      aasmbase,aasmtai,aasmcpu,
-      cclasses,globtype,cginfo,cgbase,node
 {$ifdef delphi}
-      ,dmisc
+      dmisc,
 {$endif}
+      cutils,cclasses,
+      globtype,
+      cpubase,cpuinfo,cgbase,
+      aasmbase,aasmtai,aasmcpu,
+      node
       ;
 
 
@@ -458,7 +459,8 @@ unit rgobj;
     uses
        systems,
        globals,verbose,
-       cgobj,tgobj;
+       cgobj,tgobj,
+       procinfo;
 
     constructor Trgobj.create(Acpu_registers:byte;const Ausable:string);
 
@@ -2298,7 +2300,13 @@ end.
 
 {
   $Log$
-  Revision 1.80  2003-09-30 19:54:42  peter
+  Revision 1.81  2003-10-01 20:34:49  peter
+    * procinfo unit contains tprocinfo
+    * cginfo renamed to cgbase
+    * moved cgmessage to verbose
+    * fixed ppc and sparc compiles
+
+  Revision 1.80  2003/09/30 19:54:42  peter
     * reuse registers with the least conflicts
 
   Revision 1.79  2003/09/29 20:58:56  peter

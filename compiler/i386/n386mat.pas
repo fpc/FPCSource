@@ -62,7 +62,7 @@ implementation
       globtype,systems,
       cutils,verbose,globals,
       symconst,symdef,aasmbase,aasmtai,defutil,
-      cginfo,cgbase,pass_1,pass_2,
+      cgbase,pass_1,pass_2,
       ncon,
       cpubase,cpuinfo,
       cga,tgobj,ncgutil,cgobj,rgobj;
@@ -569,7 +569,13 @@ begin
 end.
 {
   $Log$
-  Revision 1.62  2003-09-29 20:58:56  peter
+  Revision 1.63  2003-10-01 20:34:49  peter
+    * procinfo unit contains tprocinfo
+    * cginfo renamed to cgbase
+    * moved cgmessage to verbose
+    * fixed ppc and sparc compiles
+
+  Revision 1.62  2003/09/29 20:58:56  peter
     * optimized releasing of registers
 
   Revision 1.61  2003/09/28 21:48:20  peter

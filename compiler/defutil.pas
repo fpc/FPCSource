@@ -28,10 +28,9 @@ interface
 
     uses
        cclasses,
-       cpuinfo,
        globals,
-       node,
-       symconst,symbase,symtype,symdef;
+       symconst,symbase,symtype,symdef,
+       cgbase,cpuinfo,cpubase;
 
     type
        tmmxtype = (mmxno,mmxu8bit,mmxs8bit,mmxu16bit,mmxs16bit,
@@ -179,6 +178,10 @@ interface
 
     {# returns the mmx type }
     function mmx_type(p : tdef) : tmmxtype;
+
+    {# From a definition return the abstract code generator size enum. It is
+       to note that the value returned can be @var(OS_NO) }
+    function def_cgsize(def: tdef): tcgsize;
 
 
 implementation
@@ -754,10 +757,78 @@ implementation
 {$endif SUPPORT_MMX}
       end;
 
+
+    function def_cgsize(def: tdef): tcgsize;
+      begin
+        case def.deftype of
+          orddef,
+          enumdef,
+          setdef:
+            begin
+              result := int_cgsize(def.size);
+              if is_signed(def) then
+                result := tcgsize(ord(result)+(ord(OS_S8)-ord(OS_8)));
+            end;
+          classrefdef,
+          pointerdef:
+            result := OS_ADDR;
+          procvardef:
+            begin
+              if tprocvardef(def).is_methodpointer and
+                 (not tprocvardef(def).is_addressonly) then
+                result := OS_64
+              else
+                result := OS_ADDR;
+            end;
+          stringdef :
+            begin
+              if is_ansistring(def) or is_widestring(def) then
+                result := OS_ADDR
+              else
+                result := OS_NO;
+            end;
+          objectdef :
+            begin
+              if is_class_or_interface(def) then
+                result := OS_ADDR
+              else
+                result := OS_NO;
+            end;
+          floatdef:
+            result := tfloat2tcgsize[tfloatdef(def).typ];
+          recorddef :
+            result:=int_cgsize(def.size);
+          arraydef :
+            begin
+              if not is_special_array(def) then
+                result := int_cgsize(def.size)
+              else
+                begin
+                  if is_dynamic_array(def) then
+                    result := OS_ADDR
+                  else
+                    result := OS_NO;
+                end;
+            end;
+          else
+            begin
+              { undefined size }
+              result:=OS_NO;
+            end;
+        end;
+      end;
+
+
 end.
 {
   $Log$
-  Revision 1.5  2003-04-25 20:59:33  peter
+  Revision 1.6  2003-10-01 20:34:48  peter
+    * procinfo unit contains tprocinfo
+    * cginfo renamed to cgbase
+    * moved cgmessage to verbose
+    * fixed ppc and sparc compiles
+
+  Revision 1.5  2003/04/25 20:59:33  peter
     * removed funcretn,funcretsym, function result is now in varsym
       and aliases for result and function name are added using absolutesym
     * vs_hidden parameter for funcret passed in parameter

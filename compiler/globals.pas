@@ -158,10 +158,11 @@ interface
        akttokenpos,                  { position of the last token }
        aktfilepos : tfileposinfo;    { current position }
 
-       { ad 18.05.2001: Screen and Threadname for Netware }
        nwscreenname : string;
        nwthreadname : string;
        nwcopyright  : string;
+
+       codegenerror : boolean;           { true if there is an error reported }
 
        block_type : tblock_type;         { type of currently parsed block }
 
@@ -968,7 +969,7 @@ implementation
    Function GetFileTime ( Var F : File) : Longint;
      Var
      {$ifdef hasunix}
-	info: Stat;
+        info: Stat;
      {$endif}
        L : longint;
      begin
@@ -976,13 +977,13 @@ implementation
        {$IFDEF VER1_0}
         FStat (F,Info);
         {$ifdef BSD}
- 	L:=Info.st_Mtime;
- 	{$else}
- 	L:=Info.Mtime;
-	{$endif}
+        L:=Info.st_Mtime;
+        {$else}
+        L:=Info.Mtime;
+        {$endif}
        {$ELSE}
         FPFStat (F,Info);
-	L:=Info.st_Mtime;
+        L:=Info.st_Mtime;
        {$ENDIF}
      {$else}
        GetFTime(f,l);
@@ -1695,7 +1696,13 @@ implementation
 end.
 {
   $Log$
-  Revision 1.103  2003-09-24 17:13:22  florian
+  Revision 1.104  2003-10-01 20:34:48  peter
+    * procinfo unit contains tprocinfo
+    * cginfo renamed to cgbase
+    * moved cgmessage to verbose
+    * fixed ppc and sparc compiles
+
+  Revision 1.103  2003/09/24 17:13:22  florian
     + processor type intialization for x86-64 added
 
   Revision 1.102  2003/09/18 15:38:17  marco

@@ -30,7 +30,7 @@ interface
        aasmbase,aasmtai,aasmcpu,
        node,
        symsym,
-       cpubase, cginfo, tgobj, rgobj;
+       cpubase, cgbase, tgobj, rgobj;
 
     procedure assign_regvars(p: tnode);
     procedure load_regvars(asml: TAAsmoutput; p: tnode);
@@ -56,7 +56,7 @@ implementation
       cutils,cclasses,verbose,globals,
       psub,
       symconst,symbase,symtype,symdef,paramgr,defutil,
-      cpuinfo,cgbase,cgobj,rgcpu;
+      cpuinfo,cgobj,rgcpu,procinfo;
 
 
     procedure searchregvars(p : tnamedindexitem;arg:pointer);
@@ -612,7 +612,13 @@ end.
 
 {
   $Log$
-  Revision 1.67  2003-09-25 13:13:32  florian
+  Revision 1.68  2003-10-01 20:34:49  peter
+    * procinfo unit contains tprocinfo
+    * cginfo renamed to cgbase
+    * moved cgmessage to verbose
+    * fixed ppc and sparc compiles
+
+  Revision 1.67  2003/09/25 13:13:32  florian
     * more x86-64 fixes
 
   Revision 1.66  2003/09/23 17:56:06  peter

@@ -39,7 +39,7 @@ uses
   globtype,globals,
   cpuinfo,
   aasmbase,
-  cginfo
+  cgbase
 {$ifdef delphi}
   ,dmisc
 {$endif}
@@ -558,7 +558,13 @@ implementation
 end.
 {
   $Log$
-  Revision 1.21  2003-09-28 21:49:39  peter
+  Revision 1.22  2003-10-01 20:34:51  peter
+    * procinfo unit contains tprocinfo
+    * cginfo renamed to cgbase
+    * moved cgmessage to verbose
+    * fixed ppc and sparc compiles
+
+  Revision 1.21  2003/09/28 21:49:39  peter
     * removed emitjmp
 
   Revision 1.20  2003/09/25 21:29:23  peter

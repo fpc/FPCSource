@@ -31,7 +31,7 @@ interface
     uses
       cclasses,globals,
       node,
-      symdef,cgbase;
+      symdef,procinfo;
 
     type
       tcgprocinfo=class(tprocinfo)
@@ -131,8 +131,6 @@ implementation
       begin
          { parse const,types and vars }
          read_declarations(islibrary);
-
-         current_procinfo.handle_body_start;
 
          { do we have an assembler block without the po_assembler?
            we should allow this for Delphi compatibility (PFV) }
@@ -610,13 +608,12 @@ implementation
 
         { set the start offset to the start of the temp area in the stack }
         tg:=ttgobj.create;
-//        tg.setfirsttemp(firsttemp_offset);
 
         { Create register allocator }
         cg.init_register_allocators;
 
-        { generate callee paraloc register info }
-        paramanager.create_paraloc_info(current_procinfo.procdef,calleeside);
+        current_procinfo.set_first_temp_offset;
+        current_procinfo.generate_parameter_info;
 
         { Allocate space in temp/registers for parast and localst }
         aktfilepos:=entrypos;
@@ -1307,7 +1304,13 @@ begin
 end.
 {
   $Log$
-  Revision 1.154  2003-09-29 20:58:56  peter
+  Revision 1.155  2003-10-01 20:34:49  peter
+    * procinfo unit contains tprocinfo
+    * cginfo renamed to cgbase
+    * moved cgmessage to verbose
+    * fixed ppc and sparc compiles
+
+  Revision 1.154  2003/09/29 20:58:56  peter
     * optimized releasing of registers
 
   Revision 1.153  2003/09/28 17:55:04  peter

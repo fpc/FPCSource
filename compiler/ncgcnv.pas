@@ -61,12 +61,12 @@ interface
   implementation
 
     uses
-      cutils,verbose,globtype,
+      cutils,verbose,globtype,globals,
       aasmbase,aasmtai,aasmcpu,symconst,symdef,paramgr,
       ncon,ncal,
       cpubase,cpuinfo,systems,
       pass_2,
-      cginfo,cgbase,
+      procinfo,cgbase,
       cgobj,
       ncgutil,
       tgobj,rgobj
@@ -511,7 +511,13 @@ end.
 
 {
   $Log$
-  Revision 1.46  2003-09-28 13:39:38  peter
+  Revision 1.47  2003-10-01 20:34:48  peter
+    * procinfo unit contains tprocinfo
+    * cginfo renamed to cgbase
+    * moved cgmessage to verbose
+    * fixed ppc and sparc compiles
+
+  Revision 1.46  2003/09/28 13:39:38  peter
     * optimized releasing of registers
 
   Revision 1.45  2003/08/26 12:43:02  peter

@@ -36,7 +36,7 @@ uses
   symconst,symtype,symdef,symsym,
   fmodule,
   nobj,
-  cpuinfo,cpubase,cginfo,
+  cpuinfo,cpubase,
   cga,tgobj,rgobj,cgobj;
 
    type
@@ -223,7 +223,13 @@ initialization
 end.
 {
   $Log$
-  Revision 1.25  2003-09-25 21:30:11  peter
+  Revision 1.26  2003-10-01 20:34:49  peter
+    * procinfo unit contains tprocinfo
+    * cginfo renamed to cgbase
+    * moved cgmessage to verbose
+    * fixed ppc and sparc compiles
+
+  Revision 1.25  2003/09/25 21:30:11  peter
     * parameter fixes
 
   Revision 1.24  2003/09/25 14:59:06  peter

@@ -75,7 +75,7 @@ implementation
       symbase,symconst,symtype,symdef,symsym,symtable,paramgr,defutil,defcmp,
       pass_1,
       ncal,ncon,ncnv,nadd,nld,nbas,nflw,nmem,nmat,
-      cpubase,cginfo,cgbase
+      cpubase,cgbase,procinfo
       ;
 
    function geninlinenode(number : byte;is_const:boolean;l : tnode) : tinlinenode;
@@ -129,7 +129,6 @@ implementation
         newparas,
         dest,
         source  : tcallparanode;
-        newnode : tnode;
         procname: string;
         is_real : boolean;
 
@@ -2358,7 +2357,13 @@ begin
 end.
 {
   $Log$
-  Revision 1.118  2003-09-23 21:10:11  peter
+  Revision 1.119  2003-10-01 20:34:48  peter
+    * procinfo unit contains tprocinfo
+    * cginfo renamed to cgbase
+    * moved cgmessage to verbose
+    * fixed ppc and sparc compiles
+
+  Revision 1.118  2003/09/23 21:10:11  peter
     * don't call firstpass in resulttypepass
 
   Revision 1.117  2003/09/23 17:56:05  peter

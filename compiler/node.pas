@@ -29,7 +29,7 @@ interface
     uses
        cclasses,
        globtype,globals,
-       cpubase,cginfo,
+       cpubase,cgbase,
        aasmbase,
        symtype,symppu;
 
@@ -977,7 +977,13 @@ implementation
 end.
 {
   $Log$
-  Revision 1.67  2003-09-28 17:55:04  peter
+  Revision 1.68  2003-10-01 20:34:49  peter
+    * procinfo unit contains tprocinfo
+    * cginfo renamed to cgbase
+    * moved cgmessage to verbose
+    * fixed ppc and sparc compiles
+
+  Revision 1.67  2003/09/28 17:55:04  peter
     * parent framepointer changed to hidden parameter
     * tloadparentfpnode added
 

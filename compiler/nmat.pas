@@ -86,7 +86,7 @@ implementation
       globtype,
       symconst,symtype,symtable,symdef,defutil,
       htypechk,pass_1,cpubase,
-      cginfo,cgbase,
+      cgbase,procinfo,
       ncon,ncnv,ncal,nadd;
 
 {****************************************************************************
@@ -831,7 +831,13 @@ begin
 end.
 {
   $Log$
-  Revision 1.51  2003-09-07 22:09:35  peter
+  Revision 1.52  2003-10-01 20:34:49  peter
+    * procinfo unit contains tprocinfo
+    * cginfo renamed to cgbase
+    * moved cgmessage to verbose
+    * fixed ppc and sparc compiles
+
+  Revision 1.51  2003/09/07 22:09:35  peter
     * preparations for different default calling conventions
     * various RA fixes
 

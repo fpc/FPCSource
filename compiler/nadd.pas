@@ -72,13 +72,13 @@ implementation
       globtype,systems,
       cutils,verbose,globals,widestr,
       symconst,symtype,symdef,symsym,symtable,defutil,defcmp,
-      cginfo,cgbase,
+      cgbase,
       htypechk,pass_1,
       nbas,nmat,ncnv,ncon,nset,nopt,ncal,ninl,
       {$ifdef state_tracking}
       nstate,
       {$endif}
-      cpubase,cpuinfo;
+      cpubase,cpuinfo,procinfo;
 
 
 {*****************************************************************************
@@ -1873,7 +1873,13 @@ begin
 end.
 {
   $Log$
-  Revision 1.95  2003-09-06 16:47:24  florian
+  Revision 1.96  2003-10-01 20:34:48  peter
+    * procinfo unit contains tprocinfo
+    * cginfo renamed to cgbase
+    * moved cgmessage to verbose
+    * fixed ppc and sparc compiles
+
+  Revision 1.95  2003/09/06 16:47:24  florian
     + support of NaN and Inf in the compiler as values of real constants
 
   Revision 1.94  2003/09/03 15:55:00  peter

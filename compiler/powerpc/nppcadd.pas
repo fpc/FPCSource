@@ -27,7 +27,7 @@ unit nppcadd;
 interface
 
     uses
-       node,nadd,ncgadd,cpubase,cginfo;
+       node,nadd,ncgadd,cpubase;
 
     type
        tppcaddnode = class(tcgaddnode)
@@ -1428,7 +1428,13 @@ begin
 end.
 {
   $Log$
-  Revision 1.35  2003-09-03 19:39:16  peter
+  Revision 1.36  2003-10-01 20:34:49  peter
+    * procinfo unit contains tprocinfo
+    * cginfo renamed to cgbase
+    * moved cgmessage to verbose
+    * fixed ppc and sparc compiles
+
+  Revision 1.35  2003/09/03 19:39:16  peter
     * removed empty cga unit
 
   Revision 1.34  2003/09/03 19:35:24  peter

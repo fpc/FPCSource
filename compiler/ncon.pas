@@ -171,8 +171,11 @@ interface
 implementation
 
     uses
-      cutils,verbose,systems,
-      defutil,cpubase,cginfo,nld;
+      cutils,
+      verbose,systems,
+      defutil,
+      cpubase,cgbase,
+      nld;
 
     function genintconstnode(v : TConstExprInt) : tordconstnode;
 
@@ -905,7 +908,13 @@ begin
 end.
 {
   $Log$
-  Revision 1.51  2003-09-06 16:47:24  florian
+  Revision 1.52  2003-10-01 20:34:48  peter
+    * procinfo unit contains tprocinfo
+    * cginfo renamed to cgbase
+    * moved cgmessage to verbose
+    * fixed ppc and sparc compiles
+
+  Revision 1.51  2003/09/06 16:47:24  florian
     + support of NaN and Inf in the compiler as values of real constants
 
   Revision 1.50  2003/09/03 15:55:01  peter

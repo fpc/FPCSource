@@ -53,8 +53,8 @@ implementation
       symconst,symtype,symdef,symsym,symtable,defutil,paramgr,
       ncnv,ncon,nmem,nbas,
       aasmbase,aasmtai,aasmcpu,regvars,
-      cginfo,cgbase,pass_2,
-      cpubase,cpuinfo,
+      cgbase,pass_2,
+      cpubase,cpuinfo,procinfo,
       tgobj,ncgutil,cgobj,rgobj,ncgbas;
 
 {*****************************************************************************
@@ -699,12 +699,12 @@ implementation
 
         procedure push_value(p:tnode);
         var
-          href : treference;
 {$ifdef i386}
+          href : treference;
           tempreference : treference;
           sizetopush : longint;
-{$endif i386}
           size : longint;
+{$endif i386}
           cgsize : tcgsize;
         begin
           { we've nothing to push when the size of the parameter is 0 }
@@ -761,10 +761,10 @@ implementation
               case p.location.loc of
                 LOC_FPUREGISTER,
                 LOC_CFPUREGISTER:
-                  cg.a_paramfpu_reg(exprasmlist,def_cgsize(p.resulttype.def),p.location.register,locpara);
+                  cg.a_paramfpu_reg(exprasmlist,def_cgsize(p.resulttype.def),p.location.register,paraloc);
                 LOC_REFERENCE,
                 LOC_CREFERENCE :
-                  cg.a_paramfpu_ref(exprasmlist,def_cgsize(p.resulttype.def),p.location.reference,locpara)
+                  cg.a_paramfpu_ref(exprasmlist,def_cgsize(p.resulttype.def),p.location.reference,paraloc)
                 else
                   internalerror(200204243);
               end;
@@ -786,7 +786,7 @@ implementation
                  reference_reset_base(href,NR_STACK_POINTER_REG,0);
                  cg.g_concatcopy(exprasmlist,p.location.reference,href,size,false,false);
 {$else i386}
-                 cg.a_param_copy_ref(exprasmlist,p.resulttype.def.size,p.location.reference,locpara);
+                 cg.a_param_copy_ref(exprasmlist,p.resulttype.def.size,p.location.reference,paraloc);
 {$endif i386}
                end
               else
@@ -1045,7 +1045,13 @@ begin
 end.
 {
   $Log$
-  Revision 1.88  2003-09-29 20:58:56  peter
+  Revision 1.89  2003-10-01 20:34:48  peter
+    * procinfo unit contains tprocinfo
+    * cginfo renamed to cgbase
+    * moved cgmessage to verbose
+    * fixed ppc and sparc compiles
+
+  Revision 1.88  2003/09/29 20:58:56  peter
     * optimized releasing of registers
 
   Revision 1.87  2003/09/28 21:46:18  peter

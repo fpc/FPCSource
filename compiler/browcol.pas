@@ -267,7 +267,7 @@ uses
   CUtils,
   globtype,globals,comphook,
   finput,fmodule,
-  cpuinfo,cginfo,aasmbase,aasmtai,paramgr,
+  cpuinfo,cgbase,aasmbase,aasmtai,paramgr,
   symsym,symdef,symtype,symbase;
 
 const
@@ -2112,7 +2112,13 @@ begin
 end.
 {
   $Log$
-  Revision 1.35  2003-09-24 13:02:10  marco
+  Revision 1.36  2003-10-01 20:34:48  peter
+    * procinfo unit contains tprocinfo
+    * cginfo renamed to cgbase
+    * moved cgmessage to verbose
+    * fixed ppc and sparc compiles
+
+  Revision 1.35  2003/09/24 13:02:10  marco
    * (Peter) patch to fix snapshot
 
   Revision 1.34  2003/09/07 22:09:34  peter

@@ -56,7 +56,8 @@ implementation
      cclasses,globals,
      symconst,symbase,symtype,symsym,paramgr,
      aasmbase,aasmtai,
-     pass_1,cpubase,cginfo,cgbase,
+     pass_1,cpubase,cgbase,
+     procinfo,
 {$ifdef EXTDEBUG}
      cgobj,
 {$endif EXTDEBUG}
@@ -270,9 +271,6 @@ implementation
          { only do secondpass if there are no errors }
          if ErrorCount=0 then
            begin
-              { assign parameter locations }
-              current_procinfo.after_pass1;
-
               { caller paraloc info is also necessary in the stackframe_entry }
               { code of the ppc (and possibly other processors)               }
               if not current_procinfo.procdef.has_paraloc_info then
@@ -312,7 +310,13 @@ implementation
 end.
 {
   $Log$
-  Revision 1.66  2003-09-28 21:45:52  peter
+  Revision 1.67  2003-10-01 20:34:49  peter
+    * procinfo unit contains tprocinfo
+    * cginfo renamed to cgbase
+    * moved cgmessage to verbose
+    * fixed ppc and sparc compiles
+
+  Revision 1.66  2003/09/28 21:45:52  peter
     * fix register leak in with debug
 
   Revision 1.65  2003/09/28 17:55:04  peter

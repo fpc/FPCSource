@@ -29,9 +29,9 @@ unit paramgr;
   interface
 
     uses
-       cpubase,cginfo,
-       aasmtai,
        globtype,
+       cpubase,cgbase,
+       aasmtai,
        symconst,symtype,symdef;
 
     type
@@ -79,7 +79,7 @@ unit paramgr;
             @param(list Current assembler list)
             @param(loc Parameter location)
           }
-          procedure allocparaloc(list: taasmoutput; var loc: tparalocation); virtual;
+          procedure allocparaloc(list: taasmoutput; const loc: tparalocation); virtual;
 
           {# free a parameter location allocated with allocparaloc
 
@@ -88,10 +88,17 @@ unit paramgr;
           }
           procedure freeparaloc(list: taasmoutput; const loc: tparalocation); virtual;
 
-          {# This is used to populate the location information on all parameters
-             for the routine as seen in either the caller or the callee. This is used for normal call resolution.
+          { This is used to populate the location information on all parameters
+            for the routine as seen in either the caller or the callee. It returns
+            the size allocated on the stack
           }
-          procedure create_paraloc_info(p : tabstractprocdef; side: tcallercallee);virtual;abstract;
+          function  create_paraloc_info(p : tabstractprocdef; side: tcallercallee):longint;virtual;abstract;
+
+          { This is used to populate the location information on all parameters
+            for the routine when it is being inlined. It returns
+            the size allocated on the stack
+          }
+          function  create_inline_paraloc_info(p : tabstractprocdef):longint;virtual;
 
           { Return the location of the low and high part of a 64bit parameter }
           procedure splitparaloc64(const locpara:tparalocation;var loclopara,lochipara:tparalocation);virtual;
@@ -109,8 +116,8 @@ implementation
     uses
        cpuinfo,globals,systems,
        symbase,symsym,
-       rgobj,
-       defutil,cgbase,verbose;
+       rgobj,cgobj,
+       defutil,verbose;
 
     { true if uses a parameter as return value }
     function tparamanager.ret_in_param(def : tdef;calloption : tproccalloption) : boolean;
@@ -253,26 +260,15 @@ implementation
       end;
 
 
-    procedure tparamanager.allocparaloc(list: taasmoutput; var loc: tparalocation);
+    procedure tparamanager.allocparaloc(list: taasmoutput; const loc: tparalocation);
       begin
         case loc.loc of
           LOC_REGISTER, LOC_CREGISTER:
             begin
-              { NR_NO means we need to allocate imaginary registers.
-                This is used for inlining parameters (PFV) }
-              if loc.register=NR_NO then
-                begin
-{$ifndef cpu64bit}
-                  if (loc.size in [OS_64,OS_S64,OS_F64]) then
-                    begin
-                      loc.registerhigh:=rg.getregisterint(list,OS_32);
-                      loc.registerlow:=rg.getregisterint(list,OS_32);
-                    end
-                  else
-{$endif cpu64bit}
-                    loc.register:=rg.getregisterint(list,loc.size);
-                end
-              else
+              { NR_NO means we don't need to allocate the parameter.
+                This is used for inlining parameters which allocates
+                the parameters in gen_alloc_parast (PFV) }
+              if loc.register<>NR_NO then
                 begin
 {$ifndef cpu64bit}
                   if (loc.size in [OS_64,OS_S64,OS_F64]) then
@@ -287,9 +283,7 @@ implementation
             end;
           LOC_FPUREGISTER, LOC_CFPUREGISTER:
             begin
-              if loc.register=NR_NO then
-                loc.register:=rg.getregisterfpu(list,loc.size)
-              else
+              if loc.register<>NR_NO then
                 rg.getexplicitregisterfpu(list,loc.register);
             end;
           LOC_REFERENCE,LOC_CREFERENCE:
@@ -371,6 +365,43 @@ implementation
       end;
 
 
+    function tparamanager.create_inline_paraloc_info(p : tabstractprocdef):longint;
+      var
+        hp : tparaitem;
+        paraloc : tparalocation;
+        parasize : longint;
+      begin
+        parasize:=0;
+        hp:=tparaitem(p.para.first);
+        while assigned(hp) do
+          begin
+            if push_addr_param(hp.paratyp,hp.paratype.def,p.proccalloption) then
+              paraloc.size:=OS_ADDR
+            else
+              paraloc.size:=def_cgsize(hp.paratype.def);
+            if paraloc.size=OS_NO then
+              internalerror(200309301);
+            { Indicate parameter is loaded in register, the register
+              will be allocated when the allocpara is called }
+            paraloc.loc:=LOC_REGISTER;
+            paraloc.register:=NR_NO;
+(*
+                paraloc.loc:=LOC_REFERENCE;
+                paraloc.reference.index:=NR_FRAME_POINTER_REG;
+                l:=push_size(hp.paratyp,hp.paratype.def,p.proccalloption);
+                varalign:=size_2_align(l);
+                paraloc.reference.offset:=parasize+target_info.first_parm_offset;
+                varalign:=used_align(varalign,p.paraalign,p.paraalign);
+                parasize:=align(parasize+l,varalign);
+*)
+            hp.paraloc[callerside]:=paraloc;
+            hp.paraloc[calleeside]:=paraloc;
+            hp:=tparaitem(hp.next);
+          end;
+        { We need to return the size allocated }
+        result:=parasize;
+      end;
+
 
 initialization
   ;
@@ -380,7 +411,13 @@ end.
 
 {
    $Log$
-   Revision 1.57  2003-09-30 21:02:37  peter
+   Revision 1.58  2003-10-01 20:34:49  peter
+     * procinfo unit contains tprocinfo
+     * cginfo renamed to cgbase
+     * moved cgmessage to verbose
+     * fixed ppc and sparc compiles
+
+   Revision 1.57  2003/09/30 21:02:37  peter
      * updates for inlining
 
    Revision 1.56  2003/09/23 17:56:05  peter

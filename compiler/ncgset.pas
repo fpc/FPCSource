@@ -27,7 +27,7 @@ unit ncgset;
 interface
 
     uses
-       node,nset,cpubase,cginfo,cgbase,cgobj,aasmbase,aasmtai,globals;
+       node,nset,cpubase,cgbase,cgobj,aasmbase,aasmtai,globals;
 
     type
        tcgsetelementnode = class(tsetelementnode)
@@ -1003,7 +1003,13 @@ begin
 end.
 {
   $Log$
-  Revision 1.48  2003-09-03 15:55:01  peter
+  Revision 1.49  2003-10-01 20:34:48  peter
+    * procinfo unit contains tprocinfo
+    * cginfo renamed to cgbase
+    * moved cgmessage to verbose
+    * fixed ppc and sparc compiles
+
+  Revision 1.48  2003/09/03 15:55:01  peter
     * NEWRA branch merged
 
   Revision 1.47.2.1  2003/08/29 17:28:59  peter

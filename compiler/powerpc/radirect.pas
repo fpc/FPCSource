@@ -51,9 +51,9 @@ interface
        { parser }
        scanner,
        { codegen }
-       cgbase,
+       cgbase,procinfo,
        { constants }
-       cginfo,cpubase,
+       cpubase,
        itppcgas
        ;
 
@@ -181,14 +181,10 @@ interface
                                                  hs:=tvarsym(sym).mangledname
                                                else
                                                  begin
-                                                    if (tvarsym(sym).reg<>NR_NO) then
-// until new regallocator stuff settles down
-//                                                      hs:=gas_reg2str[procinfo.framepointer.enum]
-                                                      hs:=gas_regname(framereg)
+                                                    if (tvarsym(sym).localloc.loc=LOC_REGISTER) then
+                                                      hs:=gas_regname(tvarsym(sym).localloc.register)
                                                     else
-                                                      hs:=tostr(tvarsym(sym).address)+
-//                                                        '('+gas_reg2str[procinfo.framepointer.enum]+')';
-                                                        '('+gas_regname(framereg)+')';
+                                                      hs:='%%'+tvarsym(sym).name;
                                                  end;
                                             end
                                           else
@@ -206,11 +202,7 @@ interface
                                             begin
                                                if sym.typ=varsym then
                                                  begin
-                                                    l:=tvarsym(sym).address;
-                                                    { set offset }
-                                                    inc(l,current_procinfo.procdef.parast.address_fixup);
-//                                                    hs:=tostr(l)+'('+gas_reg2str[procinfo.framepointer.enum]+')';
-                                                    hs:=tostr(l)+'('+gas_regname(framereg)+')';
+                                                    hs:='%%'+tvarsym(sym).name;
                                                     if pos(',',s) > 0 then
                                                       tvarsym(sym).varstate:=vs_used;
                                                  end;
@@ -340,7 +332,13 @@ initialization
 end.
 {
   $Log$
-  Revision 1.18  2003-09-04 00:15:29  florian
+  Revision 1.19  2003-10-01 20:34:49  peter
+    * procinfo unit contains tprocinfo
+    * cginfo renamed to cgbase
+    * moved cgmessage to verbose
+    * fixed ppc and sparc compiles
+
+  Revision 1.18  2003/09/04 00:15:29  florian
     * first bunch of adaptions of arm compiler for new register type
 
   Revision 1.17  2003/09/03 19:35:24  peter

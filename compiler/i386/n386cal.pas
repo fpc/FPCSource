@@ -54,8 +54,8 @@ implementation
   {$endif}
       gdb,
 {$endif GDB}
-      cginfo,cgbase,pass_2,
-      cpubase,paramgr,
+      cgbase,pass_2,
+      cpubase,paramgr,procinfo,
       aasmbase,aasmtai,aasmcpu,
       node,ncal,nbas,nmem,nld,ncnv,
       ncgutil,cga,cgobj,tgobj,rgobj,cpuinfo;
@@ -170,7 +170,13 @@ begin
 end.
 {
   $Log$
-  Revision 1.95  2003-09-23 17:56:06  peter
+  Revision 1.96  2003-10-01 20:34:49  peter
+    * procinfo unit contains tprocinfo
+    * cginfo renamed to cgbase
+    * moved cgmessage to verbose
+    * fixed ppc and sparc compiles
+
+  Revision 1.95  2003/09/23 17:56:06  peter
     * locals and paras are allocated in the code generation
     * tvarsym.localloc contains the location of para/local when
       generating code for the current procedure

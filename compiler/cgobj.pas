@@ -38,13 +38,13 @@ unit cgobj;
   interface
 
     uses
-       cclasses,aasmbase,aasmtai,aasmcpu,symtable,
-       cpubase,cpuinfo,
-       cginfo,
-       symconst,symbase,symtype,symdef
 {$ifdef delphi}
-       ,dmisc
+       dmisc,
 {$endif}
+       cclasses,
+       cpubase,cpuinfo,cgbase,
+       aasmbase,aasmtai,aasmcpu,
+       symconst,symbase,symtype,symdef,symtable
        ;
 
     type
@@ -471,10 +471,11 @@ unit cgobj;
        {# Code generator class for all operations working with 64-Bit operands }
        cg64 : tcg64;
 
-  implementation
+
+implementation
 
     uses
-       globals,globtype,options,systems,cgbase,
+       globals,globtype,options,systems,
        verbose,defutil,paramgr,symsym,
        rgobj,cutils;
 
@@ -483,6 +484,7 @@ unit cgobj;
         exprasmlist, the lists are always passed as arguments.
         Declaring it as string here results in an error when compiling (PFV) }
       exprasmlist = 'error';
+
 
 {*****************************************************************************
                             basic functionallity
@@ -1524,7 +1526,13 @@ finalization
 end.
 {
   $Log$
-  Revision 1.125  2003-09-28 17:55:03  peter
+  Revision 1.126  2003-10-01 20:34:48  peter
+    * procinfo unit contains tprocinfo
+    * cginfo renamed to cgbase
+    * moved cgmessage to verbose
+    * fixed ppc and sparc compiles
+
+  Revision 1.125  2003/09/28 17:55:03  peter
     * parent framepointer changed to hidden parameter
     * tloadparentfpnode added
 

@@ -30,7 +30,7 @@ unit cpupi;
 
     uses
        cutils,
-       cgbase,cpuinfo,psub;
+       procinfo,cpuinfo,psub;
 
     type
        tppcprocinfo = class(tcgprocinfo)
@@ -39,8 +39,7 @@ unit cpupi;
           { max. of space need for parameters, currently used by the PowerPC port only }
           maxpushedparasize : aword;
           constructor create(aparent:tprocinfo);override;
-          procedure handle_body_start;override;
-          procedure after_pass1;override;
+          procedure set_first_temp_offset;override;
           procedure allocate_push_parasize(size: longint);override;
           function calc_stackframe_size:longint;override;
        end;
@@ -63,7 +62,7 @@ unit cpupi;
       end;
 
 
-    procedure tppcprocinfo.handle_body_start;
+    procedure tppcprocinfo.set_first_temp_offset;
       var
          ofs : aword;
       begin
@@ -75,13 +74,12 @@ unit cpupi;
               abi_powerpc_sysv:
                 ofs:=align(maxpushedparasize+LinkageAreaSizeSYSV,16);
             end;
-            inc(procdef.parast.address_fixup,ofs);
-            procdef.localst.address_fixup:=procdef.parast.address_fixup+procdef.parast.datasize;
+            tg.setfirsttemp(ofs);
           end;
-        inherited handle_body_start;
       end;
 
 
+(*
     procedure tppcprocinfo.after_pass1;
       begin
          if not(po_assembler in procdef.procoptions) then
@@ -91,7 +89,6 @@ unit cpupi;
 
              if cs_asm_source in aktglobalswitches then
                aktproccode.insert(Tai_comment.Create(strpnew('Locals start at: r1+'+tostr(procdef.localst.address_fixup))));
-
              firsttemp_offset:=align(procdef.localst.address_fixup+procdef.localst.datasize,16);
              if cs_asm_source in aktglobalswitches then
                aktproccode.insert(Tai_comment.Create(strpnew('Temp. space start: r1+'+tostr(firsttemp_offset))));
@@ -102,6 +99,7 @@ unit cpupi;
              inherited after_pass1;
            end;
       end;
+*)
 
 
     procedure tppcprocinfo.allocate_push_parasize(size:longint);
@@ -126,7 +124,13 @@ begin
 end.
 {
   $Log$
-  Revision 1.28  2003-09-28 17:55:04  peter
+  Revision 1.29  2003-10-01 20:34:49  peter
+    * procinfo unit contains tprocinfo
+    * cginfo renamed to cgbase
+    * moved cgmessage to verbose
+    * fixed ppc and sparc compiles
+
+  Revision 1.28  2003/09/28 17:55:04  peter
     * parent framepointer changed to hidden parameter
     * tloadparentfpnode added
 

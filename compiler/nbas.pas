@@ -27,7 +27,7 @@ unit nbas;
 interface
 
     uses
-       cpubase,cginfo,
+       cpubase,cgbase,
        aasmbase,aasmtai,aasmcpu,
        node,
        symtype,symppu;
@@ -177,7 +177,8 @@ implementation
       verbose,globals,globtype,systems,
       symconst,symdef,symsym,symutil,defutil,defcmp,
       pass_1,
-      nld,ncal,nflw,rgobj,cgbase
+      nld,ncal,nflw,
+      rgobj,procinfo
       ;
 
 
@@ -832,7 +833,13 @@ begin
 end.
 {
   $Log$
-  Revision 1.62  2003-09-23 17:56:05  peter
+  Revision 1.63  2003-10-01 20:34:48  peter
+    * procinfo unit contains tprocinfo
+    * cginfo renamed to cgbase
+    * moved cgmessage to verbose
+    * fixed ppc and sparc compiles
+
+  Revision 1.62  2003/09/23 17:56:05  peter
     * locals and paras are allocated in the code generation
     * tvarsym.localloc contains the location of para/local when
       generating code for the current procedure

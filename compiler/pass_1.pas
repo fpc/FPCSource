@@ -46,8 +46,7 @@ implementation
       cutils,globals,
       cgbase,symdef
 {$ifdef extdebug}
-      ,cginfo,verbose,
-      htypechk
+      ,verbose,htypechk
 {$endif extdebug}
 {$ifdef state_tracking}
       ,nstate
@@ -215,7 +214,13 @@ implementation
 end.
 {
   $Log$
-  Revision 1.31  2003-09-23 17:56:05  peter
+  Revision 1.32  2003-10-01 20:34:49  peter
+    * procinfo unit contains tprocinfo
+    * cginfo renamed to cgbase
+    * moved cgmessage to verbose
+    * fixed ppc and sparc compiles
+
+  Revision 1.31  2003/09/23 17:56:05  peter
     * locals and paras are allocated in the code generation
     * tvarsym.localloc contains the location of para/local when
       generating code for the current procedure

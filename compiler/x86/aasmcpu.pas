@@ -32,7 +32,8 @@ interface
 
     uses
       cclasses,globals,verbose,
-      cginfo,cpuinfo,cpubase,
+      cpuinfo,cpubase,
+      cgbase,
       symppu,symtype,symsym,
       aasmbase,aasmtai;
 
@@ -2317,7 +2318,13 @@ implementation
 end.
 {
   $Log$
-  Revision 1.29  2003-09-29 20:58:56  peter
+  Revision 1.30  2003-10-01 20:34:50  peter
+    * procinfo unit contains tprocinfo
+    * cginfo renamed to cgbase
+    * moved cgmessage to verbose
+    * fixed ppc and sparc compiles
+
+  Revision 1.29  2003/09/29 20:58:56  peter
     * optimized releasing of registers
 
   Revision 1.28  2003/09/28 21:49:30  peter

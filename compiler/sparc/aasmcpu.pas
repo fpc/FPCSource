@@ -29,7 +29,7 @@ interface
 uses
   cclasses,aasmtai,
   aasmbase,globals,verbose,
-  cginfo,cpubase,cpuinfo;
+  cgbase,cpubase,cpuinfo;
 
     const
       { "mov reg,reg" source operand number }
@@ -297,7 +297,13 @@ implementation
 end.
 {
   $Log$
-  Revision 1.33  2003-09-14 19:19:04  peter
+  Revision 1.34  2003-10-01 20:34:49  peter
+    * procinfo unit contains tprocinfo
+    * cginfo renamed to cgbase
+    * moved cgmessage to verbose
+    * fixed ppc and sparc compiles
+
+  Revision 1.33  2003/09/14 19:19:04  peter
     * updates for new ra
 
   Revision 1.32  2003/09/03 15:55:01  peter

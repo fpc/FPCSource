@@ -39,8 +39,9 @@ implementation
 
     uses
       systems,globtype,globals,
+      defutil,
       cpubase,
-      cga,cginfo,cgbase,rgobj,rgcpu;
+      cga,cgbase,rgobj,rgcpu;
 
 {*****************************************************************************
                            TI386REALCONSTNODE
@@ -90,7 +91,13 @@ begin
 end.
 {
   $Log$
-  Revision 1.21  2003-09-06 16:47:24  florian
+  Revision 1.22  2003-10-01 20:34:49  peter
+    * procinfo unit contains tprocinfo
+    * cginfo renamed to cgbase
+    * moved cgmessage to verbose
+    * fixed ppc and sparc compiles
+
+  Revision 1.21  2003/09/06 16:47:24  florian
     + support of NaN and Inf in the compiler as values of real constants
 
   Revision 1.20  2003/09/03 15:55:01  peter

@@ -33,10 +33,10 @@ unit tgobj;
   interface
 
     uses
-      globals,
-      cpubase,
-      cpuinfo,cginfo,
-      cclasses,globtype,cgbase,aasmbase,aasmtai,aasmcpu;
+      cclasses,
+      globals,globtype,
+      cpubase,cpuinfo,cgbase,
+      aasmbase,aasmtai,aasmcpu;
 
     type
       ptemprecord = ^ttemprecord;
@@ -109,8 +109,9 @@ unit tgobj;
     implementation
 
     uses
-       systems,
-       verbose,cutils
+       cutils,
+       systems,verbose,
+       procinfo
        ;
 
 
@@ -540,7 +541,13 @@ unit tgobj;
 end.
 {
   $Log$
-  Revision 1.39  2003-09-23 17:56:06  peter
+  Revision 1.40  2003-10-01 20:34:49  peter
+    * procinfo unit contains tprocinfo
+    * cginfo renamed to cgbase
+    * moved cgmessage to verbose
+    * fixed ppc and sparc compiles
+
+  Revision 1.39  2003/09/23 17:56:06  peter
     * locals and paras are allocated in the code generation
     * tvarsym.localloc contains the location of para/local when
       generating code for the current procedure

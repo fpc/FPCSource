@@ -30,7 +30,6 @@ unit rgcpu;
 
      uses
        aasmbase,aasmtai,
-       cginfo,
        cpubase,
        rgobj;
 
@@ -133,7 +132,13 @@ end.
 
 {
   $Log$
-  Revision 1.15  2003-09-14 17:27:56  jonas
+  Revision 1.16  2003-10-01 20:34:49  peter
+    * procinfo unit contains tprocinfo
+    * cginfo renamed to cgbase
+    * moved cgmessage to verbose
+    * fixed ppc and sparc compiles
+
+  Revision 1.15  2003/09/14 17:27:56  jonas
     - removed initialization code
 
   Revision 1.14  2003/09/03 19:35:24  peter

@@ -37,7 +37,9 @@ interface
        { node }
        node,
        { aasm }
-       aasmbase,aasmtai,cginfo,cpubase,cpuinfo
+       aasmbase,aasmtai,
+       cpubase,cpuinfo,
+       cgbase
 {$ifdef Delphi}
        ,dmisc
 {$endif}
@@ -5895,7 +5897,13 @@ implementation
 end.
 {
   $Log$
-  Revision 1.167  2003-10-01 16:49:05  florian
+  Revision 1.168  2003-10-01 20:34:49  peter
+    * procinfo unit contains tprocinfo
+    * cginfo renamed to cgbase
+    * moved cgmessage to verbose
+    * fixed ppc and sparc compiles
+
+  Revision 1.167  2003/10/01 16:49:05  florian
     * para items are now reversed for pascal calling conventions
 
   Revision 1.166  2003/10/01 15:32:58  florian

@@ -64,7 +64,7 @@ implementation
       ncon,ncal,
       ncgutil,
       cpubase,aasmcpu,
-      rgobj,tgobj,cgobj,cginfo;
+      rgobj,tgobj,cgobj;
 
 
 {*****************************************************************************
@@ -251,7 +251,13 @@ begin
 end.
 {
   $Log$
-  Revision 1.18  2003-09-14 21:36:01  peter
+  Revision 1.19  2003-10-01 20:34:50  peter
+    * procinfo unit contains tprocinfo
+    * cginfo renamed to cgbase
+    * moved cgmessage to verbose
+    * fixed ppc and sparc compiles
+
+  Revision 1.18  2003/09/14 21:36:01  peter
     * remove ppc code
 
   Revision 1.17  2003/06/04 20:59:37  mazen

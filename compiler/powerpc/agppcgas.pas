@@ -46,7 +46,7 @@ unit agppcgas;
 
     uses
        cutils,globals,verbose,
-       cginfo,systems,
+       cgbase,systems,
        assemble,
        itppcgas,
        aasmcpu;
@@ -298,7 +298,13 @@ begin
 end.
 {
   $Log$
-  Revision 1.30  2003-09-03 19:35:24  peter
+  Revision 1.31  2003-10-01 20:34:49  peter
+    * procinfo unit contains tprocinfo
+    * cginfo renamed to cgbase
+    * moved cgmessage to verbose
+    * fixed ppc and sparc compiles
+
+  Revision 1.30  2003/09/03 19:35:24  peter
     * powerpc compiles again
 
   Revision 1.29  2003/08/20 14:28:52  daniel

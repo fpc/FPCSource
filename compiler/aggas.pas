@@ -69,7 +69,7 @@ implementation
       dos,
 {$endif Delphi}
       cutils,globtype,systems,
-      fmodule,finput,verbose,cpubase,cginfo
+      fmodule,finput,verbose,cpubase
 {$ifdef GDB}
   {$ifdef delphi}
       ,sysutils
@@ -832,7 +832,13 @@ var
 end.
 {
   $Log$
-  Revision 1.35  2003-09-23 17:56:05  peter
+  Revision 1.36  2003-10-01 20:34:48  peter
+    * procinfo unit contains tprocinfo
+    * cginfo renamed to cgbase
+    * moved cgmessage to verbose
+    * fixed ppc and sparc compiles
+
+  Revision 1.35  2003/09/23 17:56:05  peter
     * locals and paras are allocated in the code generation
     * tvarsym.localloc contains the location of para/local when
       generating code for the current procedure

@@ -27,7 +27,7 @@ unit n386add;
 interface
 
     uses
-       node,nadd,cpubase,cginfo;
+       node,nadd,cpubase;
 
     type
        ti386addnode = class(taddnode)
@@ -1485,7 +1485,13 @@ begin
 end.
 {
   $Log$
-  Revision 1.79  2003-09-28 21:48:20  peter
+  Revision 1.80  2003-10-01 20:34:49  peter
+    * procinfo unit contains tprocinfo
+    * cginfo renamed to cgbase
+    * moved cgmessage to verbose
+    * fixed ppc and sparc compiles
+
+  Revision 1.79  2003/09/28 21:48:20  peter
     * fix register leaks
 
   Revision 1.78  2003/09/28 13:35:40  peter

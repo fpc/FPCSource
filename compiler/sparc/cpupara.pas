@@ -25,23 +25,23 @@ unit cpupara;
 interface
 
     uses
-      cpubase,cginfo,
+      cpubase,cgbase,
       aasmtai,globtype,
       symconst,symbase,symtype,symdef,paramgr;
 
     type
       TSparcParaManager=class(TParaManager)
-        function copy_value_on_stack(def : tdef;calloption : tproccalloption) : boolean;override;
-        function push_addr_param(def : tdef;calloption : tproccalloption) : boolean;override;
-        function get_volatile_registers_int(calloption : tproccalloption):tsuperregisterset;override;
-        function get_volatile_registers_fpu(calloption : tproccalloption):tsuperregisterset;override;
+        function  copy_value_on_stack(varspez:tvarspez;def : tdef;calloption : tproccalloption) : boolean;override;
+        function  push_addr_param(varspez:tvarspez;def : tdef;calloption : tproccalloption) : boolean;override;
+        function  get_volatile_registers_int(calloption : tproccalloption):tsuperregisterset;override;
+        function  get_volatile_registers_fpu(calloption : tproccalloption):tsuperregisterset;override;
         {Returns a structure giving the information on the storage of the parameter
         (which must be an integer parameter)
         @param(nr Parameter number of routine, starting from 1)}
-        function getintparaloc(calloption : tproccalloption; nr : longint) : tparalocation;override;
+        function  getintparaloc(calloption : tproccalloption; nr : longint) : tparalocation;override;
         procedure allocparaloc(list: taasmoutput; const loc: tparalocation);override;
         procedure freeparaloc(list: taasmoutput; const loc: tparalocation);override;
-        procedure create_paraloc_info(p:TAbstractProcDef; side: tcallercallee);override;
+        function  create_paraloc_info(p:TAbstractProcDef; side: tcallercallee):longint;override;
         procedure splitparaloc64(const locpara:tparalocation;var loclopara,lochipara:tparalocation);override;
       end;
 
@@ -50,19 +50,25 @@ implementation
 
     uses
       verbose,
-      cpuinfo,cgbase,
+      cpuinfo,
       defutil,rgobj;
 
-    function tsparcparamanager.copy_value_on_stack(def : tdef;calloption : tproccalloption) : boolean;
+    function tsparcparamanager.copy_value_on_stack(varspez:tvarspez;def : tdef;calloption : tproccalloption) : boolean;
       begin
         result:=false;
       end;
 
 
     { true if a parameter is too large to copy and only the address is pushed }
-    function tsparcparamanager.push_addr_param(def : tdef;calloption : tproccalloption) : boolean;
+    function tsparcparamanager.push_addr_param(varspez:tvarspez;def : tdef;calloption : tproccalloption) : boolean;
       begin
-        push_addr_param:=false;
+        result:=false;
+        { var,out always require address }
+        if varspez in [vs_var,vs_out] then
+          begin
+            result:=true;
+            exit;
+          end;
         case def.deftype of
           recorddef,
           arraydef,
@@ -70,13 +76,13 @@ implementation
           formaldef :
             push_addr_param:=true;
           objectdef :
-            push_addr_param:=is_object(def);
+            result:=is_object(def);
           stringdef :
-            push_addr_param:=(tstringdef(def).string_typ in [st_shortstring,st_longstring]);
+            result:=(tstringdef(def).string_typ in [st_shortstring,st_longstring]);
           procvardef :
-            push_addr_param:=(po_methodpointer in tprocvardef(def).procoptions);
+            result:=(po_methodpointer in tprocvardef(def).procoptions);
           setdef :
-            push_addr_param:=(tsetdef(def).settype<>smallset);
+            result:=(tsetdef(def).settype<>smallset);
         end;
       end;
 
@@ -137,7 +143,7 @@ implementation
       end;
 
 
-    procedure TSparcParaManager.create_paraloc_info(p:TAbstractProcDef; side: tcallercallee);
+    function TSparcParaManager.create_paraloc_info(p:TAbstractProcDef; side: tcallercallee):longint;
       var
         nextintreg : tsuperregister;
         stack_offset : longint;
@@ -154,7 +160,7 @@ implementation
         while assigned(hp) do
           begin
             fillchar(paraloc,sizeof(tparalocation),0);
-            if push_addr_param(hp.paratype.def,p.proccalloption) or (hp.paratyp in [vs_var,vs_out]) then
+            if push_addr_param(hp.paratyp,hp.paratype.def,p.proccalloption) or (hp.paratyp in [vs_var,vs_out]) then
               paraloc.size:=OS_ADDR
             else
               begin
@@ -255,6 +261,8 @@ implementation
             paraloc.loc:=LOC_REFERENCE;
           end;
         p.funcret_paraloc[side]:=paraloc;
+        { Size on stack is not used }
+        result:=0;
       end;
 
 
@@ -285,7 +293,13 @@ begin
 end.
 {
   $Log$
-  Revision 1.30  2003-09-14 21:35:15  peter
+  Revision 1.31  2003-10-01 20:34:50  peter
+    * procinfo unit contains tprocinfo
+    * cginfo renamed to cgbase
+    * moved cgmessage to verbose
+    * fixed ppc and sparc compiles
+
+  Revision 1.30  2003/09/14 21:35:15  peter
     * new volatile registers proc
 
   Revision 1.29  2003/09/14 19:19:05  peter

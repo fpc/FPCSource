@@ -27,7 +27,7 @@ unit ncgadd;
 interface
 
     uses
-       node,nadd,cpubase,cginfo;
+       node,nadd,cpubase;
 
     type
        tcgaddnode = class(taddnode)
@@ -735,7 +735,13 @@ begin
 end.
 {
   $Log$
-  Revision 1.19  2003-09-14 21:57:08  jonas
+  Revision 1.20  2003-10-01 20:34:48  peter
+    * procinfo unit contains tprocinfo
+    * cginfo renamed to cgbase
+    * moved cgmessage to verbose
+    * fixed ppc and sparc compiles
+
+  Revision 1.19  2003/09/14 21:57:08  jonas
     * fixed release_reg_left_right for fpu registers
 
   Revision 1.18  2003/09/14 21:34:16  peter

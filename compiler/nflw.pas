@@ -220,7 +220,7 @@ implementation
     {$ifdef state_tracking}
       nstate,
     {$endif}
-      cginfo,cgbase
+      cgbase,procinfo
       ;
 
     function genloopnode(t : tnodetype;l,r,n1 : tnode;back : boolean) : tnode;
@@ -1429,7 +1429,13 @@ begin
 end.
 {
   $Log$
-  Revision 1.79  2003-07-06 15:31:20  daniel
+  Revision 1.80  2003-10-01 20:34:48  peter
+    * procinfo unit contains tprocinfo
+    * cginfo renamed to cgbase
+    * moved cgmessage to verbose
+    * fixed ppc and sparc compiles
+
+  Revision 1.79  2003/07/06 15:31:20  daniel
     * Fixed register allocator. *Lots* of fixes.
 
   Revision 1.78  2003/06/13 21:19:30  peter

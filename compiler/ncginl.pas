@@ -56,8 +56,8 @@ implementation
       cutils,verbose,globals,fmodule,
       symconst,symdef,defutil,symsym,
       aasmbase,aasmtai,aasmcpu,
-      cginfo,cgbase,pass_1,pass_2,
-      cpuinfo,cpubase,paramgr,
+      cgbase,pass_1,pass_2,
+      cpuinfo,cpubase,paramgr,procinfo,
       nbas,ncon,ncal,ncnv,nld,
       tgobj,ncgutil,cgobj,rgobj
 {$ifndef cpu64bit}
@@ -663,7 +663,13 @@ end.
 
 {
   $Log$
-  Revision 1.42  2003-09-10 08:31:47  marco
+  Revision 1.43  2003-10-01 20:34:48  peter
+    * procinfo unit contains tprocinfo
+    * cginfo renamed to cgbase
+    * moved cgmessage to verbose
+    * fixed ppc and sparc compiles
+
+  Revision 1.42  2003/09/10 08:31:47  marco
    * Patch from Peter for paraloc
 
   Revision 1.41  2003/09/07 22:09:35  peter

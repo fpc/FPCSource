@@ -54,7 +54,8 @@ implementation
 {$endif GDB}
       comphook,
       scanner,scandir,
-      pbase,ptype,psystem,pmodules,psub,cresstr,cpuinfo;
+      pbase,ptype,psystem,pmodules,psub,
+      cresstr,cpuinfo,procinfo;
 
 
     procedure initparser;
@@ -235,6 +236,70 @@ implementation
       end;
 {$endif PREPROCWRITE}
 
+
+{*****************************************************************************
+                      Create information for a new module
+*****************************************************************************}
+
+    procedure init_module;
+      begin
+         { Create assembler output lists for CG }
+         exprasmlist:=taasmoutput.create;
+         datasegment:=taasmoutput.create;
+         codesegment:=taasmoutput.create;
+         bsssegment:=taasmoutput.create;
+         debuglist:=taasmoutput.create;
+         withdebuglist:=taasmoutput.create;
+         consts:=taasmoutput.create;
+         rttilist:=taasmoutput.create;
+         ResourceStringList:=Nil;
+         importssection:=nil;
+         exportssection:=nil;
+         resourcesection:=nil;
+         { Resource strings }
+         ResourceStrings:=TResourceStrings.Create;
+         { use the librarydata from current_module }
+         objectlibrary:=current_module.librarydata;
+      end;
+
+
+    procedure done_module;
+{$ifdef MEMDEBUG}
+      var
+        d : tmemdebug;
+{$endif}
+      begin
+{$ifdef MEMDEBUG}
+         d:=tmemdebug.create(current_module.modulename^+' - asmlists');
+{$endif}
+         exprasmlist.free;
+         codesegment.free;
+         bsssegment.free;
+         datasegment.free;
+         debuglist.free;
+         withdebuglist.free;
+         consts.free;
+         rttilist.free;
+         if assigned(ResourceStringList) then
+          ResourceStringList.free;
+         if assigned(importssection) then
+          importssection.free;
+         if assigned(exportssection) then
+          exportssection.free;
+         if assigned(resourcesection) then
+          resourcesection.free;
+{$ifdef MEMDEBUG}
+         d.free;
+{$endif}
+         { resource strings }
+         ResourceStrings.free;
+         objectlibrary:=nil;
+      end;
+
+
+{*****************************************************************************
+                             Compile a source file
+*****************************************************************************}
 
     procedure compile(const filename:string);
       type
@@ -420,17 +485,17 @@ implementation
          aktasmmode:=initasmmode;
          aktinterfacetype:=initinterfacetype;
 
-       { startup scanner and load the first file }
+         { startup scanner and load the first file }
          current_scanner:=tscannerfile.Create(filename);
          current_scanner.firstfile;
          current_module.scanner:=current_scanner;
-       { macros }
+         { macros }
          default_macros;
-       { read the first token }
+         { read the first token }
          current_scanner.readtoken;
 
-       { init code generator for a new module }
-         codegen_newmodule;
+         { init code generator for a new module }
+         init_module;
 
          { If the compile level > 1 we get a nice "unit expected" error
            message if we are trying to use a program as unit.}
@@ -468,9 +533,9 @@ implementation
            end;
 {$endif Splitheap}
 
-       { restore old state, close trees, > 0.99.5 has heapblocks, so
-         it's the default to release the trees }
-         codegen_donemodule;
+         { restore old state, close trees, > 0.99.5 has heapblocks, so
+           it's the default to release the trees }
+         done_module;
 
          if assigned(current_module) then
           begin
@@ -623,7 +688,13 @@ implementation
 end.
 {
   $Log$
-  Revision 1.56  2003-09-03 11:18:37  florian
+  Revision 1.57  2003-10-01 20:34:49  peter
+    * procinfo unit contains tprocinfo
+    * cginfo renamed to cgbase
+    * moved cgmessage to verbose
+    * fixed ppc and sparc compiles
+
+  Revision 1.56  2003/09/03 11:18:37  florian
     * fixed arm concatcopy
     + arm support in the common compiler sources added
     * moved some generic cg code around

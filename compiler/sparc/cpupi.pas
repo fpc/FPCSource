@@ -28,7 +28,7 @@ interface
 
   uses
     cutils,
-    cgbase,cpuinfo,
+    procinfo,cpuinfo,
     psub;
 
   type
@@ -66,7 +66,7 @@ implementation
         savearea : longint;
       begin
         { ABI requires at least space to save 6 arguments }
-        savearea:=procdef.parast.address_fixup+max(maxpushedparasize,6*4);
+        savearea:=max(maxpushedparasize,6*4);
         {
           Stackframe layout:
           %fp
@@ -77,7 +77,7 @@ implementation
             <register window save area for calling>
           %sp
         }
-        result:=Align(tg.direction*tg.lasttemp+savearea,4);
+        result:=Align(tg.direction*tg.lasttemp+savearea+target_info.first_parm_offset,4);
       end;
 
 
@@ -86,7 +86,13 @@ begin
 end.
 {
   $Log$
-  Revision 1.21  2003-09-14 19:19:05  peter
+  Revision 1.22  2003-10-01 20:34:50  peter
+    * procinfo unit contains tprocinfo
+    * cginfo renamed to cgbase
+    * moved cgmessage to verbose
+    * fixed ppc and sparc compiles
+
+  Revision 1.21  2003/09/14 19:19:05  peter
     * updates for new ra
 
   Revision 1.20  2003/09/03 15:55:01  peter

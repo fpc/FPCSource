@@ -43,7 +43,7 @@ implementation
        cgbase,cpuinfo,cgobj,
        nbas,ncgutil,
        link,assemble,import,export,gendef,ppu,comprsrc,
-       cresstr,cpubase,
+       cresstr,cpubase,procinfo,
 {$ifdef GDB}
        gdb,
 {$endif GDB}
@@ -1443,7 +1443,13 @@ implementation
 end.
 {
   $Log$
-  Revision 1.127  2003-09-30 08:39:50  michael
+  Revision 1.128  2003-10-01 20:34:49  peter
+    * procinfo unit contains tprocinfo
+    * cginfo renamed to cgbase
+    * moved cgmessage to verbose
+    * fixed ppc and sparc compiles
+
+  Revision 1.127  2003/09/30 08:39:50  michael
   + Patch from Wiktor Sywula for watcom support
 
   Revision 1.126  2003/09/23 18:03:08  peter
