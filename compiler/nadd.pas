@@ -1055,6 +1055,10 @@ implementation
           begin
             if not(nodetype in [equaln,unequaln]) then
              CGMessage(type_e_mismatch);
+            { convert both to voidpointer, because methodpointers are 8 bytes }
+            { even though only the first 4 bytes must be compared (JM)        }
+            inserttypeconv_explicit(left,voidpointertype);
+            inserttypeconv_explicit(right,voidpointertype);
           end
 
        { support dynamicarray=nil,dynamicarray<>nil }
@@ -1138,6 +1142,10 @@ implementation
           begin
             if not (nodetype in [equaln,unequaln]) then
              CGMessage(type_e_mismatch);
+            { convert both to voidpointer, because methodpointers are 8 bytes }
+            { even though only the first 4 bytes must be compared (JM)        }
+            inserttypeconv_explicit(left,voidpointertype);
+            inserttypeconv_explicit(right,voidpointertype);
           end
 
          { enums }
@@ -1882,7 +1890,13 @@ begin
 end.
 {
   $Log$
-  Revision 1.101  2003-12-21 11:28:41  daniel
+  Revision 1.102  2003-12-29 22:33:08  jonas
+    * fixed methodpointer comparing in a generic way (typecast both left and
+      right explicitly to voidpointer), instead of relying on strange
+      behvaiour or n386addnode.pass_2 (if size of def = 8, only use the first
+      4 bytes instead of internalerror-ing or so)
+
+  Revision 1.101  2003/12/21 11:28:41  daniel
     * Some work to allow mmx instructions to be used for 32 byte sets
 
   Revision 1.100  2003/12/09 21:17:04  jonas
