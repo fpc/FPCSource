@@ -81,34 +81,7 @@ const
       firstsavemmreg  = R_XMM0;
       lastsavemmreg   = R_XMM15;
 
-      general_registers = [R_EAX,R_EBX,R_ECX,R_EDX];
-      general_superregisters = [RS_RAX,RS_RBX,RS_RCX,RS_RDX];
 
-{$ifdef newra}
-      usableregsint = [first_imreg..last_imreg];
-{$else}
-      usableregsint = [RS_RAX,RS_RBX,RS_RCX,RS_RDX];
-{$endif}
-      c_countusableregsint = 4;
-
-      maxaddrregs = 1;
-      addrregs    = [R_ESI];
-      usableregsaddr = [RS_RSI];
-      c_countusableregsaddr = 1;
-
-      maxvarregs = 4;
-      varregs : array[1..maxvarregs] of Toldregister =
-         (R_EBX,R_EDX,R_ECX,R_EAX);
-
-      maxfpuvarregs = 8;
-
-      {# Registers which are defined as scratch and no need to save across
-         routine calls or in assembler blocks.
-      }
-{$ifndef newra}
-      max_scratch_regs = 1;
-      scratch_regs : array[1..max_scratch_regs] of Tsuperregister = (RS_RDI);
-{$endif}
 {*****************************************************************************
                           Default generic sizes
 *****************************************************************************}
@@ -126,33 +99,28 @@ const
                           Generic Register names
 *****************************************************************************}
 
-      {# Stack pointer register }
-      stack_pointer_reg = R_RSP;
-      NR_STACK_POINTER_REG = NR_RSP;
-      {# Frame pointer register }
-      frame_pointer_reg = R_RBP;
-      NR_FRAME_POINTER_REG = NR_RBP;
-      { Register for addressing absolute data in a position independant way,
-        such as in PIC code. The exact meaning is ABI specific. For
-        further information look at GCC source : PIC_OFFSET_TABLE_REGNUM
-      }
-      pic_offset_reg = R_EBX;
-      accumulator = R_RAX;
-      RS_ACCUMULATOR = RS_RAX;
-      NR_ACCUMULATOR = NR_RAX;
-      { the return_result_reg, is used inside the called function to store its return
-        value when that is a scalar value otherwise a pointer to the address of the
-        result is placed inside it }
-      return_result_reg   = accumulator;
-      RS_RETURN_RESULT_REG = RS_ACCUMULATOR;
-      NR_RETURN_RESULT_REG = NR_ACCUMULATOR;
+       { location of function results }
 
-      { the function_result_reg contains the function result after a call to a scalar
-        function othewise it contains a pointer to the returned result}
-      function_result_reg = accumulator;
+       stack_pointer_reg = R_RSP;
+       frame_pointer_reg = R_RBP;
+       self_pointer_reg  = R_RSI;
+       accumulator   = R_RAX;
+       { the return_result_reg, is used inside the called function to store its return
+         value when that is a scalar value otherwise a pointer to the address of the
+         result is placed inside it }
+       return_result_reg   = accumulator;
 
-      fpu_result_reg = R_ST;
-      mmresultreg = R_MM0;
+       { the function_result_reg contains the function result after a call to a scalar
+         function othewise it contains a pointer to the returned result}
+       function_result_reg = accumulator;
+       accumulatorhigh = R_RDX;
+       { the register where the vmt offset is passed to the destructor }
+       { helper routine                                                }
+       vmt_offset_reg = R_RDI;
+
+       resultreg = R_RAX;
+       resultreg64 = R_RAX;
+       fpu_result_reg = R_ST;
 
 {*****************************************************************************
                        GCC /ABI linking information
@@ -178,10 +146,7 @@ const
 
 {
   $Log$
-  Revision 1.2  2002-04-25 16:12:09  florian
-    * fixed more problems with cpubase and x86-64
-
-  Revision 1.1  2003/04/25 11:12:09  florian
+  Revision 1.1  2003-04-25 11:12:09  florian
     * merged i386/cpubase and x86_64/cpubase to x86/cpubase;
       different stuff went to cpubase.inc
 }
