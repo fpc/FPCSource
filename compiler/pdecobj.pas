@@ -201,29 +201,6 @@ implementation
 
         var
            sym : tsym;
-           propertyparas : tparalinkedlist;
-
-        { returns the matching procedure to access a property }
-{        function get_procdef : tprocdef;
-          var
-             p : pprocdeflist;
-          begin
-             get_procdef:=nil;
-             p:=tprocsym(sym).defs;
-             while assigned(p) do
-               begin
-                  if equal_paras(p^.def.para,propertyparas,cp_value_equal_const) or
-                     convertable_paras(p^.def.para,propertyparas,cp_value_equal_const) then
-                    begin
-                      get_procdef:=p^.def;
-                      exit;
-                    end;
-                  p:=p^.next;
-               end;
-          end;}
-
-        var
-           hp2,datacoll : tparaitem;
            p : tpropertysym;
            overriden : tsym;
            hs : string;
@@ -238,6 +215,9 @@ implementation
            dummyst : tparasymtable;
            vs : tvarsym;
            sc : tsinglelist;
+           oldregisterdef : boolean;
+           temppara : tparaitem;
+           propertyprocdef : tprocvardef;
         begin
            { check for a class }
            aktprocsym:=nil;
@@ -246,8 +226,10 @@ implementation
               ((m_delphi in aktmodeswitches) and (is_object(aktclass)))) then
              Message(parser_e_syntax_error);
            consume(_PROPERTY);
-           propertyparas:=TParaLinkedList.Create;
-           datacoll:=nil;
+           oldregisterdef:=registerdef;
+           registerdef:=false;
+           propertyprocdef:=tprocvardef.create;
+           registerdef:=oldregisterdef;
            if token=_ID then
              begin
                 p:=tpropertysym.create(orgpattern);
@@ -259,8 +241,7 @@ implementation
                      if (sp_published in current_object_option) then
                        Message(parser_e_cant_publish_that_property);
 
-                     { create a list of the parameters in propertyparas }
-
+                     { create a list of the parameters }
                      dummyst:=tparasymtable.create;
                      dummyst.next:=symtablestack;
                      symtablestack:=dummyst;
@@ -313,10 +294,7 @@ implementation
                        vs:=tvarsym(sc.first);
                        while assigned(vs) do
                         begin
-                          hp2:=TParaItem.create;
-                          hp2.paratyp:=varspez;
-                          hp2.paratype:=tt;
-                          propertyparas.insert(hp2);
+                          propertyprocdef.concatpara(nil,tt,nil,varspez,nil);
                           vs:=tvarsym(vs.listnext);
                         end;
                      until not try_to_consume(_SEMICOLON);
@@ -330,12 +308,12 @@ implementation
 
                      { the parser need to know if a property has parameters, the
                        index parameter doesn't count (PFV) }
-                     if not(propertyparas.empty) then
+                     if propertyprocdef.minparacount>0 then
                        include(p.propoptions,ppo_hasparameters);
                   end;
                 { overriden property ?                                 }
                 { force property interface, if there is a property parameter }
-                if (token=_COLON) or not(propertyparas.empty) then
+                if (token=_COLON) or (propertyprocdef.minparacount>0) then
                   begin
                      consume(_COLON);
                      single_type(p.proptype,hs,false);
@@ -355,10 +333,7 @@ implementation
                           p.indextype.setdef(pt.resulttype.def);
                           include(p.propoptions,ppo_indexed);
                           { concat a longint to the para template }
-                          hp2:=TParaItem.Create;
-                          hp2.paratyp:=vs_value;
-                          hp2.paratype:=p.indextype;
-                          propertyparas.insert(hp2);
+                          propertyprocdef.concatpara(nil,p.indextype,nil,vs_value,nil);
                           pt.free;
                        end;
                   end
@@ -380,11 +355,6 @@ implementation
                    not(p.proptype.def.is_publishable) then
                   Message(parser_e_cant_publish_that_property);
 
-                { create data defcoll to allow correct parameter checks }
-                datacoll:=TParaItem.Create;
-                datacoll.paratyp:=vs_value;
-                datacoll.paratype:=p.proptype;
-
                 if try_to_consume(_READ) then
                  begin
                    p.readaccess.clear;
@@ -394,7 +364,7 @@ implementation
                       case sym.typ of
                         procsym :
                           begin
-                            pd:=Tprocsym(sym).search_procdef_bypara(propertyparas,true,false);
+                            pd:=Tprocsym(sym).search_procdef_bypara(propertyprocdef.para,true,false);
                             if not(assigned(pd)) or
                                not(equal_defs(pd.rettype.def,p.proptype.def)) then
                               Message(parser_e_ill_property_access_sym);
@@ -430,10 +400,10 @@ implementation
                         procsym :
                           begin
                             { insert data entry to check access method }
-                            propertyparas.insert(datacoll);
-                            pd:=Tprocsym(sym).search_procdef_bypara(propertyparas,true,false);
+                            temppara:=propertyprocdef.concatpara(nil,p.proptype,nil,vs_value,nil);
+                            pd:=Tprocsym(sym).search_procdef_bypara(propertyprocdef.para,true,false);
                             { ... and remove it }
-                            propertyparas.remove(datacoll);
+                            propertyprocdef.removepara(temppara);
                             if not(assigned(pd)) then
                               Message(parser_e_ill_property_access_sym);
                             p.writeaccess.setdef(pd);
@@ -551,21 +521,18 @@ implementation
                      }
                        begin
                           include(p.propoptions,ppo_defaultproperty);
-                          if propertyparas.empty then
+                          if propertyprocdef.maxparacount=0 then
                             message(parser_e_property_need_paras);
                        end;
                      consume(_SEMICOLON);
                   end;
-                { clean up }
-                if assigned(datacoll) then
-                  datacoll.free;
              end
            else
              begin
                 consume(_ID);
                 consume(_SEMICOLON);
              end;
-           propertyparas.free;
+           propertyprocdef.free;
         end;
 
 
@@ -1172,7 +1139,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.58  2003-01-09 21:52:37  peter
+  Revision 1.59  2003-04-10 17:57:52  peter
+    * vs_hidden released
+
+  Revision 1.58  2003/01/09 21:52:37  peter
     * merged some verbosity options.
     * V_LineInfo is a verbosity flag to include line info
 

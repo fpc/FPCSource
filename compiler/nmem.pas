@@ -425,13 +425,12 @@ implementation
                  if not assigned(tloadnode(left).left) then
                    include(tprocvardef(resulttype.def).procoptions,po_addressonly);
 
-                 { we need to process the parameters reverse so they are inserted
-                   in the correct right2left order (PFV) }
-                 hp2:=TParaItem(hp3.Para.last);
+                 { Add parameters in left to right order }
+                 hp2:=TParaItem(hp3.Para.first);
                  while assigned(hp2) do
                    begin
-                      tprocvardef(resulttype.def).concatpara(hp2.paratype,hp2.parasym,hp2.paratyp,hp2.defaultvalue);
-                      hp2:=TParaItem(hp2.previous);
+                      tprocvardef(resulttype.def).concatpara(nil,hp2.paratype,hp2.parasym,hp2.paratyp,hp2.defaultvalue);
+                      hp2:=TParaItem(hp2.next);
                    end;
               end
             else
@@ -1055,7 +1054,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.46  2003-01-30 21:46:57  peter
+  Revision 1.47  2003-04-10 17:57:52  peter
+    * vs_hidden released
+
+  Revision 1.46  2003/01/30 21:46:57  peter
     * self fixes for static methods (merged)
 
   Revision 1.45  2003/01/09 21:52:37  peter

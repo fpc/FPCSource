@@ -95,31 +95,11 @@ implementation
 *****************************************************************************}
 
     procedure tcgcallparanode.secondcallparan(push_from_left_to_right:boolean;calloption:tproccalloption;para_alignment,para_offset : longint);
-
-
-{$ifndef VS_HIDDEN}
-      { goes to pass 1 }
-      procedure maybe_push_high;
-        begin
-           { open array ? }
-           { defcoll.data can be nil for read/write }
-           if assigned(paraitem.paratype.def) and
-              assigned(hightree) then
-            begin
-              secondpass(hightree);
-              { this is a longint anyway ! }
-              push_value_para(exprasmlist,hightree,calloption,para_offset,4,paraitem.paraloc);
-            end;
-        end;
-{$endif VS_HIDDEN}
-
       var
          otlabel,oflabel : tasmlabel;
-         { temporary variables: }
          tempdeftype : tdeftype;
          tmpreg : tregister;
          href   : treference;
-
       begin
          { set default para_alignment to target_info.stackalignment }
          if para_alignment=0 then
@@ -214,9 +194,6 @@ implementation
                         (left.nodetype=selfn)) then
                   internalerror(200106041);
                end;
-{$ifndef VS_HIDDEN}
-              maybe_push_high;
-{$endif VS_HIDDEN}
               if (paraitem.paratyp=vs_out) and
                  assigned(paraitem.paratype.def) and
                  not is_class(paraitem.paratype.def) and
@@ -270,9 +247,6 @@ implementation
                        internalerror(200204011);
                     end;
 
-{$ifndef VS_HIDDEN}
-                   maybe_push_high;
-{$endif VS_HIDDEN}
                    inc(pushedparasize,POINTER_SIZE);
                    if calloption=pocall_inline then
                      begin
@@ -1448,7 +1422,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.43  2003-04-06 21:11:23  olle
+  Revision 1.44  2003-04-10 17:57:52  peter
+    * vs_hidden released
+
+  Revision 1.43  2003/04/06 21:11:23  olle
     * changed newasmsymbol to newasmsymboldata for data symbols
 
   Revision 1.42  2003/04/04 15:38:56  peter

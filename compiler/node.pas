@@ -226,7 +226,6 @@ interface
 
          { flags used by tcallparanode }
          nf_varargs_para,  { belongs this para to varargs }
-         nf_hightree_generated, { has the hightree for thispara been generated }
 
          { taddrnode }
          nf_procvarload,
@@ -973,7 +972,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.51  2003-03-28 19:16:56  peter
+  Revision 1.52  2003-04-10 17:57:52  peter
+    * vs_hidden released
+
+  Revision 1.51  2003/03/28 19:16:56  peter
     * generic constructor working for i386
     * remove fixed self register
     * esi added as address register for i386

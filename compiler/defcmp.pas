@@ -1057,8 +1057,8 @@ implementation
          { we need to parse the list from left-right so the
            not-default parameters are checked first }
          lowesteq:=high(tequaltype);
-         def1:=TParaItem(paralist1.last);
-         def2:=TParaItem(paralist2.last);
+         def1:=TParaItem(paralist1.first);
+         def2:=TParaItem(paralist2.first);
          while (assigned(def1)) and (assigned(def2)) do
            begin
              eq:=te_incompatible;
@@ -1116,8 +1116,8 @@ implementation
                  if not equal_constsym(tconstsym(def1.defaultvalue),tconstsym(def2.defaultvalue)) then
                    exit;
                end;
-              def1:=TParaItem(def1.previous);
-              def2:=TParaItem(def2.previous);
+              def1:=TParaItem(def1.next);
+              def2:=TParaItem(def2.next);
            end;
          { when both lists are empty then the parameters are equal. Also
            when one list is empty and the other has a parameter with default
@@ -1182,7 +1182,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.20  2003-03-20 17:52:18  peter
+  Revision 1.21  2003-04-10 17:57:52  peter
+    * vs_hidden released
+
+  Revision 1.20  2003/03/20 17:52:18  peter
     * fix compare for unique types, they are allowed when they match
       exact
 

@@ -41,6 +41,7 @@ interface
 
     function  is_proc_directive(tok:ttoken):boolean;
 
+    procedure insert_hidden_para(pd:tabstractprocdef);
     procedure check_self_para(aktprocdef:tabstractprocdef);
     procedure parameter_dec(aktprocdef:tabstractprocdef);
 
@@ -87,6 +88,48 @@ implementation
        ;
 
 
+    procedure insert_hidden_para(pd:tabstractprocdef);
+      var
+        currpara : tparaitem;
+        hvs : tvarsym;
+      begin
+        { walk from right to left, so we can insert the
+          high parameters after the current parameter }
+        currpara:=tparaitem(pd.para.last);
+        while assigned(currpara) do
+         begin
+           { need high parameter ? }
+           if paramanager.push_high_param(currpara.paratype.def,pd.proccalloption) then
+            begin
+              if assigned(currpara.parasym) then
+               begin
+                 hvs:=tvarsym.create('$high'+tvarsym(currpara.parasym).name,s32bittype);
+                 hvs.varspez:=vs_const;
+                 include(hvs.varoptions,vo_is_high_value);
+                 tvarsym(currpara.parasym).owner.insert(hvs);
+                 tvarsym(currpara.parasym).highvarsym:=hvs;
+               end
+              else
+               hvs:=nil;
+              pd.concatpara(currpara,s32bittype,hvs,vs_hidden,nil);
+            end
+           else
+            begin
+              { Give a warning that cdecl routines does not include high()
+                support }
+              if (pd.proccalloption in [pocall_cdecl,pocall_cppdecl]) and
+                 paramanager.push_high_param(currpara.paratype.def,pocall_fpccall) then
+               begin
+                 if is_open_string(currpara.paratype.def) then
+                    Message(parser_w_cdecl_no_openstring);
+                 Message(parser_w_cdecl_has_no_high);
+               end;
+            end;
+           currpara:=tparaitem(currpara.previous);
+         end;
+      end;
+
+
     procedure checkvaluepara(p:tnamedindexitem;arg:pointer);
       begin
         if tsym(p).typ<>varsym then
@@ -106,7 +149,7 @@ implementation
       end;
 
 
-    procedure checkparatype(p:tnamedindexitem;arg:pointer);
+    procedure check_c_para(p:tnamedindexitem;arg:pointer);
       begin
         if (tsym(p).typ<>varsym) then
          exit;
@@ -121,34 +164,11 @@ implementation
                     if (varspez<>vs_var) then
                       Message(parser_h_c_arrays_are_references);
                   end;
-                 if is_array_of_const(vartype.def) or
-                    is_open_array(vartype.def) then
-                  begin
-                    if assigned(highvarsym) then
-                     begin
-                       Message(parser_w_cdecl_has_no_high);
-                       { removing it is too complicated, we just hide it PM }
-                       owner.rename(highvarsym.name,'hidden'+copy(highvarsym.name,5,length(highvarsym.name)));
-                     end;
-                  end;
                  if is_array_of_const(vartype.def) and
                     assigned(indexnext) and
                     (tsym(indexnext).typ=varsym) and
                     not(vo_is_high_value in tvarsym(indexnext).varoptions) then
                    Message(parser_e_C_array_of_const_must_be_last);
-               end;
-             stringdef :
-               begin
-                 if is_open_string(vartype.def) then
-                  begin
-                    Message(parser_w_cdecl_no_openstring);
-                    if assigned(highvarsym) then
-                     begin
-                       Message(parser_w_cdecl_has_no_high);
-                       { removing it is too complicated, we just hide it PM }
-                       owner.rename(highvarsym.name,'hidden'+copy(highvarsym.name,5,high(name)));
-                     end;
-                  end;
                end;
             end;
          end;
@@ -190,13 +210,11 @@ implementation
         sc      : tsinglelist;
         tt      : ttype;
         arrayelementtype : ttype;
-        hvs,
         vs      : tvarsym;
         srsym   : tsym;
         hs1 : string;
         varspez : Tvarspez;
         hpara      : tparaitem;
-        inserthigh : boolean;
         tdefaultvalue : tconstsym;
         defaultrequired : boolean;
         old_object_option : tsymoptions;
@@ -242,151 +260,122 @@ implementation
               end
           else
               varspez:=vs_value;
-          inserthigh:=false;
           tdefaultvalue:=nil;
           tt.reset;
-            begin
-             { read identifiers and insert with error type }
-               sc.reset;
-               repeat
-                 vs:=tvarsym.create(orgpattern,generrortype);
-                 currparast.insert(vs);
-                 if assigned(vs.owner) then
-                  sc.insert(vs)
-                 else
-                  vs.free;
-                 consume(_ID);
-               until not try_to_consume(_COMMA);
-             { read type declaration, force reading for value and const paras }
-               if (token=_COLON) or (varspez=vs_value) then
-                begin
-                  consume(_COLON);
-                { check for an open array }
-                  if token=_ARRAY then
-                   begin
-                     consume(_ARRAY);
-                     consume(_OF);
-                   { define range and type of range }
-                     tt.setdef(tarraydef.create(0,-1,s32bittype));
-                   { array of const ? }
-                     if (token=_CONST) and (m_objpas in aktmodeswitches) then
-                      begin
-                        consume(_CONST);
-                        srsym:=searchsymonlyin(systemunit,'TVARREC');
-                        if not assigned(srsym) then
-                         InternalError(1234124);
-                        tarraydef(tt.def).setelementtype(ttypesym(srsym).restype);
-                        tarraydef(tt.def).IsArrayOfConst:=true;
-                      end
-                     else
-                      begin
-                        { define field type }
-                        single_type(arrayelementtype,hs1,false);
-                        tarraydef(tt.def).setelementtype(arrayelementtype);
-                      end;
-                     inserthigh:=true;
-                   end
-                  else
-                   begin
-                     { open string ? }
-                     if (varspez=vs_var) and
-                             (
-                               (
-                                 ((token=_STRING) or (idtoken=_SHORTSTRING)) and
-                                 (cs_openstring in aktmoduleswitches) and
-                                 not(cs_ansistrings in aktlocalswitches)
-                               ) or
-                             (idtoken=_OPENSTRING)) then
-                      begin
-                        consume(token);
-                        tt:=openshortstringtype;
-                        hs1:='openstring';
-                        inserthigh:=true;
-                      end
-                     else
-                      begin
-                        { everything else }
-                        single_type(tt,hs1,false);
-                      end;
+          { read identifiers and insert with error type }
+          sc.reset;
+          repeat
+            vs:=tvarsym.create(orgpattern,generrortype);
+            currparast.insert(vs);
+            if assigned(vs.owner) then
+             sc.insert(vs)
+            else
+             vs.free;
+            consume(_ID);
+          until not try_to_consume(_COMMA);
+          { read type declaration, force reading for value and const paras }
+          if (token=_COLON) or (varspez=vs_value) then
+           begin
+             consume(_COLON);
+             { check for an open array }
+             if token=_ARRAY then
+              begin
+                consume(_ARRAY);
+                consume(_OF);
+                { define range and type of range }
+                tt.setdef(tarraydef.create(0,-1,s32bittype));
+                { array of const ? }
+                if (token=_CONST) and (m_objpas in aktmodeswitches) then
+                 begin
+                   consume(_CONST);
+                   srsym:=searchsymonlyin(systemunit,'TVARREC');
+                   if not assigned(srsym) then
+                    InternalError(1234124);
+                   tarraydef(tt.def).setelementtype(ttypesym(srsym).restype);
+                   tarraydef(tt.def).IsArrayOfConst:=true;
+                 end
+                else
+                 begin
+                   { define field type }
+                   single_type(arrayelementtype,hs1,false);
+                   tarraydef(tt.def).setelementtype(arrayelementtype);
+                 end;
+              end
+             else
+              begin
+                { open string ? }
+                if (varspez=vs_var) and
+                        (
+                          (
+                            ((token=_STRING) or (idtoken=_SHORTSTRING)) and
+                            (cs_openstring in aktmoduleswitches) and
+                            not(cs_ansistrings in aktlocalswitches)
+                          ) or
+                        (idtoken=_OPENSTRING)) then
+                 begin
+                   consume(token);
+                   tt:=openshortstringtype;
+                   hs1:='openstring';
+                 end
+                else
+                 begin
+                   { everything else }
+                   single_type(tt,hs1,false);
+                 end;
 
-                     { default parameter }
-                     if (m_default_para in aktmodeswitches) then
-                      begin
-                        if try_to_consume(_EQUAL) then
-                         begin
-                           vs:=tvarsym(sc.first);
-                           if assigned(vs.listnext) then
-                             Message(parser_e_default_value_only_one_para);
-                           { prefix 'def' to the parameter name }
-                           tdefaultvalue:=ReadConstant('$def'+vs.name,vs.fileinfo);
-                           if assigned(tdefaultvalue) then
-                            tprocdef(aktprocdef).parast.insert(tdefaultvalue);
-                           defaultrequired:=true;
-                         end
-                        else
-                         begin
-                           if defaultrequired then
-                             Message1(parser_e_default_value_expected_for_para,vs.name);
-                         end;
-                      end;
-                   end;
-                end
-               else
-                begin
+                { default parameter }
+                if (m_default_para in aktmodeswitches) then
+                 begin
+                   if try_to_consume(_EQUAL) then
+                    begin
+                      vs:=tvarsym(sc.first);
+                      if assigned(vs.listnext) then
+                        Message(parser_e_default_value_only_one_para);
+                      { prefix 'def' to the parameter name }
+                      tdefaultvalue:=ReadConstant('$def'+vs.name,vs.fileinfo);
+                      if assigned(tdefaultvalue) then
+                       tprocdef(aktprocdef).parast.insert(tdefaultvalue);
+                      defaultrequired:=true;
+                    end
+                   else
+                    begin
+                      if defaultrequired then
+                        Message1(parser_e_default_value_expected_for_para,vs.name);
+                    end;
+                 end;
+              end;
+           end
+          else
+           begin
 {$ifndef UseNiceNames}
-                  hs1:='$$$';
+             hs1:='$$$';
 {$else UseNiceNames}
-                  hs1:='var';
+             hs1:='var';
 {$endif UseNiceNames}
-                  tt:=cformaltype;
-                end;
+             tt:=cformaltype;
+           end;
 
-               { For proc vars we only need the definitions }
-               if not is_procvar then
-                begin
-                  vs:=tvarsym(sc.first);
-                  while assigned(vs) do
-                   begin
-                     { update varsym }
-                     vs.vartype:=tt;
-                     vs.varspez:=varspez;
-                     if (varspez in [vs_var,vs_const,vs_out]) and
-                        paramanager.push_addr_param(tt.def,aktprocdef.proccalloption) then
-                       include(vs.varoptions,vo_regable);
-
-                     { also need to push a high value? }
-                     if inserthigh then
-                      begin
-                        hvs:=tvarsym.create('$high'+vs.name,s32bittype);
-                        hvs.varspez:=vs_const;
-                        include(hvs.varoptions,vo_is_high_value);
-{$ifdef vs_hidden}
-                        aktprocdef.concatpara(s32bittype,hvs,vs_hidden,nil);
-{$endif vs_hidden}
-                        currparast.insert(hvs);
-                        vs.highvarsym:=hvs;
-                      end;
-                     hpara:=aktprocdef.concatpara(tt,vs,varspez,tdefaultvalue);
-                     if vs.name='SELF' then
-                      aktprocdef.selfpara:=hpara;
-                     vs:=tvarsym(vs.listnext);
-                   end;
-                end
-               else
-                begin
-                  vs:=tvarsym(sc.first);
-                  while assigned(vs) do
-                   begin
-                     { don't insert a parasym, the varsyms will be
-                       disposed }
-                     hpara:=aktprocdef.concatpara(tt,nil,varspez,tdefaultvalue);
-                     if vs.name='SELF' then
-                      aktprocdef.selfpara:=hpara;
-                     vs:=tvarsym(vs.listnext);
-                   end;
-                end;
-            end;
-          { set the new mangled name }
+          vs:=tvarsym(sc.first);
+          while assigned(vs) do
+           begin
+             { update varsym }
+             vs.vartype:=tt;
+             vs.varspez:=varspez;
+             { For proc vars we only need the definitions }
+             if not is_procvar then
+              begin
+                if (varspez in [vs_var,vs_const,vs_out]) and
+                   paramanager.push_addr_param(tt.def,aktprocdef.proccalloption) then
+                  include(vs.varoptions,vo_regable);
+                hpara:=aktprocdef.concatpara(nil,tt,vs,varspez,tdefaultvalue);
+              end
+             else
+              hpara:=aktprocdef.concatpara(nil,tt,nil,varspez,tdefaultvalue);
+             { save position of self parameter }
+             if vs.name='SELF' then
+              aktprocdef.selfpara:=hpara;
+             vs:=tvarsym(vs.listnext);
+           end;
         until not try_to_consume(_SEMICOLON);
         { remove parasymtable from stack }
         if is_procvar then
@@ -1594,9 +1583,6 @@ const
         { set the default calling convention }
         if def.proccalloption=pocall_none then
           def.proccalloption:=aktdefproccall;
-        { generate symbol names for local copies }
-        if (def.deftype=procdef) then
-          tprocdef(def).parast.foreach_static({$ifdef FPCPROCVAR}@{$endif}checkvaluepara,nil);
         { handle proccall specific settings }
         case def.proccalloption of
           pocall_cdecl :
@@ -1617,7 +1603,7 @@ const
                  if not assigned(tprocdef(def).parast) then
                   internalerror(200110234);
                  { check C cdecl para types }
-                 tprocdef(def).parast.foreach_static({$ifdef FPCPROCVAR}@{$endif}checkparatype,nil);
+                 tprocdef(def).parast.foreach_static({$ifdef FPCPROCVAR}@{$endif}check_c_para,nil);
                  { Adjust alignment to match cdecl or stdcall }
                  tprocdef(def).parast.dataalignment:=std_param_align;
                end;
@@ -1637,7 +1623,7 @@ const
                  if not assigned(tprocdef(def).parast) then
                   internalerror(200110235);
                  { check C cdecl para types }
-                 tprocdef(def).parast.foreach_static({$ifdef FPCPROCVAR}@{$endif}checkparatype,nil);
+                 tprocdef(def).parast.foreach_static({$ifdef FPCPROCVAR}@{$endif}check_c_para,nil);
                  { Adjust alignment to match cdecl or stdcall }
                  tprocdef(def).parast.dataalignment:=std_param_align;
                end;
@@ -1709,6 +1695,14 @@ const
             end;
         end;
 
+        { insert hidden high parameters }
+        insert_hidden_para(def);
+
+        { insert local valXXX value parameters }
+        if (def.deftype=procdef) then
+          tprocdef(def).parast.foreach_static({$ifdef FPCPROCVAR}@{$endif}checkvaluepara,nil);
+
+
         { add mangledname to external list }
         if (def.deftype=procdef) and
            (po_external in def.procoptions) and
@@ -1733,13 +1727,8 @@ const
               ps:=tsym(st.symindex.first);
               while assigned(ps.indexnext) and (tsym(ps.indexnext)<>lastps) do
                 ps:=tsym(ps.indexnext);
-              if (ps.typ=varsym) and
-                 not(vo_is_high_value in tvarsym(ps).varoptions) then
-               begin
-                 st.insertvardata(ps);
-                 if assigned(tvarsym(ps).highvarsym) then
-                   st.insertvardata(tvarsym(ps).highvarsym);
-               end;
+              if (ps.typ=varsym) then
+                st.insertvardata(ps);
               lastps:=ps;
             end;
          end
@@ -2143,7 +2132,10 @@ const
 end.
 {
   $Log$
-  Revision 1.110  2003-03-28 19:16:56  peter
+  Revision 1.111  2003-04-10 17:57:53  peter
+    * vs_hidden released
+
+  Revision 1.110  2003/03/28 19:16:56  peter
     * generic constructor working for i386
     * remove fixed self register
     * esi added as address register for i386

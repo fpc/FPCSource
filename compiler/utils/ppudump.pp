@@ -160,6 +160,17 @@ begin
 end;
 
 
+Function Varspez2Str(w:longint):string;
+const
+  varspezstr : array[0..4] of string[6]=('Value','Const','Var','Out','Hidden');
+begin
+  if w<=ord(high(varspezstr)) then
+    Varspez2Str:=varspezstr[w]
+  else
+    Varspez2Str:='<Unknown>';
+end;
+
+
 function PPUFlags2Str(flags:longint):string;
 type
   tflagopt=record
@@ -714,7 +725,6 @@ const
      (mask:po_clearstack;      str:'ClearStack'),
      (mask:po_internconst;     str:'InternConst')
   );
-  tvarspez : array[0..3] of string[5]=('Value','Const','Var  ','Out  ');
 var
   proctypeoption  : tproctypeoption;
   proccalloption  : tproccalloption;
@@ -731,7 +741,7 @@ begin
    begin
      write(space,'       TypeOption : ');
      first:=true;
-     for i:=1to proctypeopts do
+     for i:=1 to proctypeopts do
       if (proctypeopt[i].mask=proctypeoption) then
        begin
          if first then
@@ -763,20 +773,19 @@ begin
    end;
   params:=ppufile.getbyte;
   writeln(space,' Nr of parameters : ',params);
-  if params>0 then
+  for i:=1 to params do
    begin
-     repeat
-       write(space,'  - ',tvarspez[ppufile.getbyte],' : ');
-       readtype;
-       write(space,'    Default : ');
-       readsymref;
-       write(space,'    Symbol  : ');
-       readsymref;
-       write(space,'   Location : ');
-       writeln('<not yet implemented>');
-       ppufile.getdata(paraloc,sizeof(paraloc));
-       dec(params);
-     until params=0;
+     writeln(space,' - Parameter ',i);
+     writeln(space,'       Spez : ',Varspez2Str(ppufile.getbyte));
+     write  (space,'       Type : ');
+     readtype;
+     write  (space,'    Default : ');
+     readsymref;
+     write  (space,'     Symbol : ');
+     readsymref;
+     write  (space,'   Location : ');
+     writeln('<not yet implemented>');
+     ppufile.getdata(paraloc,sizeof(paraloc));
    end;
 end;
 
@@ -993,7 +1002,7 @@ begin
          ibvarsym :
            begin
              readcommonsym('Variable symbol ');
-             writeln(space,'        Type: ',getbyte);
+             writeln(space,'        Spez: ',Varspez2Str(getbyte));
              writeln(space,'     Address: ',getlongint);
              write  (space,'    Var Type: ');
              readtype;
@@ -1929,7 +1938,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.37  2003-03-24 19:57:54  hajny
+  Revision 1.38  2003-04-10 17:57:53  peter
+    * vs_hidden released
+
+  Revision 1.37  2003/03/24 19:57:54  hajny
     + emx target added
 
   Revision 1.36  2003/03/17 15:54:22  peter

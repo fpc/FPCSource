@@ -137,7 +137,7 @@ interface
           function last_procdef:Tprocdef;
           function search_procdef_nopara_boolret:Tprocdef;
           function search_procdef_bytype(pt:Tproctypeoption):Tprocdef;
-          function search_procdef_bypara(params:Tparalinkedlist;
+          function search_procdef_bypara(params:Tlinkedlist;
                                          allowconvert,
                                          allowdefault:boolean):Tprocdef;
           function search_procdef_byprocvardef(d:Tprocvardef):Tprocdef;
@@ -1025,7 +1025,7 @@ implementation
       end;
 
 
-    function Tprocsym.search_procdef_bypara(params:Tparalinkedlist;
+    function Tprocsym.search_procdef_bypara(params:Tlinkedlist;
                                             allowconvert,
                                             allowdefault:boolean):Tprocdef;
       var
@@ -2563,7 +2563,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.94  2003-03-17 15:54:22  peter
+  Revision 1.95  2003-04-10 17:57:53  peter
+    * vs_hidden released
+
+  Revision 1.94  2003/03/17 15:54:22  peter
     * store symoptions also for procdef
     * check symoptions (private,public) when calculating possible
       overload candidates
