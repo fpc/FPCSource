@@ -20,7 +20,7 @@ interface
 uses Objects;
 
 const
-{$ifdef linux}
+{$ifdef Unix}
   dirsep = '/';
   listsep = [';',':'];
   exeext = '';
@@ -121,15 +121,15 @@ end;
 function FixFileName(const s:string):string;
 var
   i      : longint;
-{$ifdef Linux}
+{$ifdef Unix}
   NoPath : boolean;
 {$endif}
 begin
-  {$ifdef Linux}NoPath:=true;{$endif}
+  {$ifdef Unix}NoPath:=true;{$endif}
   for i:=length(s) downto 1 do
    begin
      case s[i] of
- {$ifdef Linux}
+ {$ifdef Unix}
   '/','\' : begin
               FixFileName[i]:='/';
               NoPath:=false; {Skip lowercasing path: 'X11'<>'x11' }
@@ -301,7 +301,7 @@ var
   N1,N2 : NameStr;
   E1,E2 : Extstr;
 begin
-{$ifdef linux}
+{$ifdef Unix}
   FSplit(What,D1,N1,E1);
   FSplit(Mask,D2,N2,E2);
 {$else}
@@ -493,7 +493,13 @@ end;
 END.
 {
   $Log$
-  Revision 1.4  2000-11-13 17:37:42  pierre
+  Revision 1.5  2000-11-15 00:14:10  pierre
+   new merge
+
+  Revision 1.1.2.5  2000/11/14 09:23:56  marco
+   * Second batch
+
+  Revision 1.4  2000/11/13 17:37:42  pierre
    merges from fixes branch
 
   Revision 1.1.2.4  2000/11/13 16:59:09  pierre

@@ -25,6 +25,7 @@ procedure SetRunParameters(const Params: string);
 { Compile }
 procedure Compile(const FileName, ConfigFile: string);
 procedure SetPrimaryFile(const fn:string);
+function LinkAfter : boolean;
 
 
 implementation
@@ -43,6 +44,11 @@ uses
 
 var
   RunParameters : string;
+
+function LinkAfter : boolean;
+begin
+  LinkAfter:=LinkAfterSwitches^.GetBooleanItem(0);
+end;
 
 function GetRunParameters: string;
 begin
@@ -85,8 +91,6 @@ begin
     cmd:='@'+ConfigFile+' '+cmd;
   if not UseExternalCompiler then
 {$endif USE_EXTERNAL_COMPILER}
-    if LinkAfter then
-      cmd:=cmd+' -s';
 { Add the switches from the primary file }
   if PrimaryFileSwitches<>'' then
     cmd:=cmd+' '+PrimaryFileSwitches;
@@ -212,7 +216,13 @@ end;
 end.
 {
   $Log$
-  Revision 1.2  2000-11-13 17:37:42  pierre
+  Revision 1.3  2000-11-15 00:14:10  pierre
+   new merge
+
+  Revision 1.1.2.2  2000/11/14 17:40:43  pierre
+   + External linking now optional
+
+  Revision 1.2  2000/11/13 17:37:42  pierre
    merges from fixes branch
 
   Revision 1.1.2.1  2000/11/13 16:59:09  pierre

@@ -363,7 +363,8 @@ procedure TIDEApp.DoLinkerSwitch;
 var R,R2: TRect;
     D: PCenterDialog;
     RB2: PRadioButtons;
-    I: longint;
+    CB : PCheckBoxes;
+    Count,I: longint;
     Items: PSItem;
     L: longint;
 begin
@@ -372,27 +373,26 @@ begin
   with D^ do
   begin
     GetExtent(R); R.Grow(-3,-1);
-{    R2.Copy(R); Inc(R2.A.Y); R2.B.Y:=R2.A.Y+GetEXEFormatCount; R2.B.X:=R2.A.X+(R2.B.X-R2.A.X) div 2;
+    Count:=LinkAfterSwitches^.ItemCount;
+    R2.Copy(R);
+    R2.B.X:=R2.A.X+(R2.B.X-R2.A.X) div 2 - 1;
+    Inc(R2.A.Y,1);
+    R2.B.Y:=R2.A.Y+Count;
     Items:=nil;
-    for I:=GetEXEFormatCount downto 1 do
-      Items:=NewSItem(GetEXEFormatName(TEXEFormat(I)),Items);
-    New(RB1, Init(R2, Items));
-    Mask:=0; V:=1;
-    for I:=1 to GetEXEFormatCount do
-     begin
-       if IsEXEFormatAvailable(TEXEFormat(I)) then
-          Mask:=Mask or V;
-       V:=V shl 1;
-     end;
-    RB1^.SetButtonState($ffff,false);
-    RB1^.SetButtonState(Mask,true);
-    L:=ord(GetEXEFormat)-1;
-    RB1^.SetData(L);
-    Insert(RB1);
-    R2.Copy(R); R2.B.Y:=R2.A.Y+1;
-    Insert(New(PLabel, Init(R2, 'Output format', RB1)));}
+    for I:=Count-1 downto 0 do
+      Items:=NewSItem(LinkAfterSwitches^.ItemName(I), Items);
+    New(CB, Init(R2, Items));
+    for I:=0 to Count-1 do
+      if LinkAfterSwitches^.GetBooleanItem(I) then
+        CB^.Press(I);
+    Insert(CB);
+    Dec(R2.A.Y);
+    R2.B.Y:=R2.A.Y+1;
+    Insert(New(PLabel, Init(R2, label_compiler_linkafter, CB)));
 
-    R2.Copy(R); Inc(R2.A.Y); R2.B.Y:=R2.A.Y+LibLinkerSwitches^.ItemCount; R2.A.X:=R2.B.X-(R2.B.X-R2.A.X) div 2+1;
+    R2.Copy(R); Inc(R2.A.Y);
+    R2.B.Y:=R2.A.Y+LibLinkerSwitches^.ItemCount;
+    R2.A.X:=R2.B.X-(R2.B.X-R2.A.X) div 2+1;
     Items:=nil;
     for I:=LibLinkerSwitches^.ItemCount-1 downto 0 do
       Items:=NewSItem(LibLinkerSwitches^.ItemName(I), Items);
@@ -400,6 +400,7 @@ begin
     L:=LibLinkerSwitches^.GetCurrSel;
     RB2^.SetData(L);
     Insert(RB2);
+
     R2.Copy(R); R2.B.Y:=R2.A.Y+1; R2.A.X:=R2.B.X-(R2.B.X-R2.A.X) div 2+1;
     Insert(New(PLabel, Init(R2, label_linker_preferredlibtype, RB2)));
   end;
@@ -416,6 +417,8 @@ begin
           FormatStrStr3(msg_xmustbesettoyforz_doyouwanttochangethis,
            label_compiler_assembleroutput,'pecoff','smartlinking'),nil,false)=cmYes then
              AsmOutputSwitches^.SetCurrSelParam('pecoff');
+    for I:=0 to LinkAfterSwitches^.ItemCount-1 do
+      LinkAfterSwitches^.SetBooleanItem(I,CB^.Mark(I));
   end;
   Dispose(D, Done);
 end;
@@ -429,9 +432,9 @@ var R,R2,R3: TRect;
 {$ifdef win32}
     CB2: PCheckBoxes;
 {$endif win32}
-{$ifdef linux}
+{$ifdef Unix}
     IL: PInputLine;
-{$endif linux}
+{$endif Unix}
     IL2: PInputLine;
     L,I: longint;
     Items: PSItem;
@@ -439,11 +442,11 @@ const
 {$ifdef win32}
   OtherFieldLines = 3;
 {$else not win32}
-{$ifdef linux}
+{$ifdef Unix}
   OtherFieldLines = 3;
-{$else not linux}
+{$else not Unix}
   OtherFieldLines = 0;
-{$endif linux}
+{$endif Unix}
 {$endif win32}
 begin
   R.Assign(0,0,60,2+DebugInfoSwitches^.ItemCount+2
@@ -497,7 +500,7 @@ begin
     R2.Move(0,-1);
     Insert(New(PLabel, Init(R2,label_debugger_redirection, CB2)));
 {$endif win32}
-{$ifdef linux}
+{$ifdef Unix}
     R2.Move(0,4);
     New(IL, Init(R2, 255));
     IL^.Data^:=DebuggeeTTY;
@@ -525,9 +528,9 @@ begin
     else
       DebuggeeTTY:='';
 {$endif win32}
-{$ifdef linux}
+{$ifdef Unix}
     DebuggeeTTY:=IL^.Data^;
-{$endif linux}
+{$endif Unix}
   end;
   Dispose(D, Done);
 end;
@@ -1231,7 +1234,16 @@ end;
 
 {
   $Log$
-  Revision 1.3  2000-10-31 22:35:54  pierre
+  Revision 1.4  2000-11-15 00:14:10  pierre
+   new merge
+
+  Revision 1.1.2.6  2000/11/14 17:40:43  pierre
+   + External linking now optional
+
+  Revision 1.1.2.5  2000/11/14 09:40:35  marco
+   * Third batch renamefest
+
+  Revision 1.3  2000/10/31 22:35:54  pierre
    * New big merge from fixes branch
 
   Revision 1.1.2.4  2000/10/18 21:53:27  pierre

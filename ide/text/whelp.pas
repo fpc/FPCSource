@@ -289,9 +289,9 @@ procedure DisposeRecord(var R: TRecord);
 implementation
 
 uses
-{$ifdef Linux}
+{$ifdef Unix}
   linux,
-{$endif Linux}
+{$endif Unix}
 {$IFDEF OS2}
   DosCalls,
 {$ENDIF OS2}
@@ -309,7 +309,7 @@ Function GetDosTicks:longint; { returns ticks at 18.2 Hz, just like DOS }
     GetDosTicks := L div 55;
   end;
 {$ENDIF}
-{$IFDEF LINUX}
+{$IFDEF Unix}
   var
     tv : TimeVal;
     tz : TimeZone;
@@ -317,7 +317,7 @@ Function GetDosTicks:longint; { returns ticks at 18.2 Hz, just like DOS }
     GetTimeOfDay(tv); {Timezone no longer used?}
     GetDosTicks:=((tv.Sec mod 86400) div 60)*1092+((tv.Sec mod 60)*1000000+tv.USec) div 54945;
   end;
-{$endif Linux}
+{$endif Unix}
 {$ifdef Win32}
   begin
     GetDosTicks:=(Windows.GetTickCount*5484) div 100;
@@ -1308,11 +1308,19 @@ end;
 END.
 {
   $Log$
-  Revision 1.4  2000-11-13 17:37:43  pierre
+  Revision 1.5  2000-11-15 00:14:11  pierre
+   new merge
+
+  Revision 1.1.2.3  2000/11/14 09:08:51  marco
+   * First batch IDE renamefest
+
+  Revision 1.4  2000/11/13 17:37:43  pierre
    merges from fixes branch
 
-  Revision 1.3  2000/11/11 23:05:31  hajny
+  Revision 1.1.2.2  2000/11/12 19:48:20  hajny
     * OS/2 implementation of GetDosTicks added
+
+  Revision 1.3  2000/11/11 23:05:31  hajny
 
   Revision 1.2  2000/10/31 22:35:56  pierre
    * New big merge from fixes branch

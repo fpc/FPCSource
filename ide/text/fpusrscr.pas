@@ -77,7 +77,7 @@ type
     end;
 {$endif}
 
-{$ifdef Linux}
+{$ifdef Unix}
     PLinuxScreen = ^TLinuxScreen;
     TLinuxScreen = object(TScreen)
       constructor Init;
@@ -452,7 +452,7 @@ end;
                                  TLinuxScreen
 ****************************************************************************}
 
-{$ifdef Linux}
+{$ifdef Unix}
 
 constructor TLinuxScreen.Init;
 begin
@@ -702,7 +702,7 @@ begin
 {$ifdef DOS}
   UserScreen:=New(PDOSScreen, Init);
 {$else}
-  {$ifdef LINUX}
+  {$ifdef Unix}
     UserScreen:=New(PLinuxScreen, Init);
   {$else}
 
@@ -711,7 +711,7 @@ begin
     {$else}
       UserScreen:=New(PScreen, Init);
     {$endif Win32}
-  {$endif Linux}
+  {$endif Unix}
 {$endif Dos}
 end;
 
@@ -729,7 +729,13 @@ end;
 end.
 {
   $Log$
-  Revision 1.5  2000-10-31 22:35:55  pierre
+  Revision 1.6  2000-11-15 00:14:10  pierre
+   new merge
+
+  Revision 1.1.2.4  2000/11/14 09:23:56  marco
+   * Second batch
+
+  Revision 1.5  2000/10/31 22:35:55  pierre
    * New big merge from fixes branch
 
   Revision 1.1.2.3  2000/10/10 21:24:56  pierre

@@ -145,7 +145,7 @@ var
 implementation
 
 uses
-{$ifdef linux}
+{$ifdef Unix}
   linux,
 {$endif}
 {$ifdef HasSignal}
@@ -721,11 +721,11 @@ end;
 
 procedure TIDEApp.ShowUserScreen;
 begin
-{$ifdef linux}
+{$ifdef Unix}
   { We need to get the IDE screen's contents from the API's video buffer (JM) }
   if assigned(userscreen) then
     userscreen^.capture;
-{$endif linux}
+{$endif Unix}
   DoneSysError;
   DoneEvents;
   DoneKeyboard;
@@ -745,11 +745,11 @@ end;
 
 procedure TIDEApp.ShowIDEScreen;
 begin
-{$ifndef linux}
+{$ifndef Unix}
   { the video has to be initialized already for linux (JM) }
   if Assigned(UserScreen) then
     UserScreen^.SwitchBack;
-{$endif linux}
+{$endif Unix}
   InitDosMem;
 {$ifndef go32v2}
   InitScreen;
@@ -763,10 +763,10 @@ begin
   InitSysError;
   CurDirChanged;
   Message(Application,evBroadcast,cmUpdate,nil);
-{$ifdef linux}
+{$ifdef Unix}
   if Assigned(UserScreen) then
     UserScreen^.SwitchBack;
-{$endif linux}
+{$endif Unix}
 {$ifndef go32v2}
   UpdateScreen(true);
 {$endif go32v2}
@@ -800,9 +800,9 @@ end;
 
 function TIDEApp.DoExecute(ProgramPath, Params, InFile,OutFile: string; ExecType: TExecType): boolean;
 var CanRun: boolean;
-{$ifndef linux}
+{$ifndef Unix}
     PosExe: sw_integer;
-{$endif linux}
+{$endif Unix}
 begin
   SaveCancelled:=false;
   CanRun:=AutoSave;
@@ -825,25 +825,25 @@ begin
      { DO NOT use COMSPEC for exe files as the
       ExitCode is lost in those cases PM }
 
-{$ifndef linux}
+{$ifndef Unix}
     posexe:=Pos('.EXE',UpCaseStr(ProgramPath));
     { if programpath was three char long => bug }
     if (posexe>0) and (posexe=Length(ProgramPath)-3) then
       begin
-{$endif linux}
+{$endif Unix}
         if (InFile='') and (OutFile='') then
           DosExecute(ProgramPath,Params)
         else
           ExecuteRedir(ProgramPath,Params,InFile,OutFile,'stderr');
-{$ifndef linux}
+{$ifndef Unix}
       end
     else if (InFile='') and (OutFile='') then
       DosExecute(GetEnv('COMSPEC'),'/C '+ProgramPath+' '+Params)
     else
       ExecuteRedir(GetEnv('COMSPEC'),'/C '+ProgramPath+' '+Params,InFile,OutFile,'stderr');
-{$endif linux}
+{$endif Unix}
 
-{$ifdef linux}
+{$ifdef Unix}
     if (DebuggeeTTY='') and (OutFile='') then
       begin
         Write(' Press any key to return to IDE');
@@ -989,7 +989,7 @@ procedure TIDEApp.DosShell;
 var
   s : string;
 begin
-{$ifdef linux}
+{$ifdef Unix}
   s:=GetEnv('SHELL');
   if s='' then
     if ExistsFile('bin/sh') then
@@ -1115,7 +1115,13 @@ end;
 END.
 {
   $Log$
-  Revision 1.4  2000-10-31 22:35:54  pierre
+  Revision 1.5  2000-11-15 00:14:10  pierre
+   new merge
+
+  Revision 1.1.2.12  2000/11/14 09:23:55  marco
+   * Second batch
+
+  Revision 1.4  2000/10/31 22:35:54  pierre
    * New big merge from fixes branch
 
   Revision 1.1.2.11  2000/10/18 21:53:27  pierre

@@ -510,6 +510,7 @@ const
       label_compiler_runtimechecks = 'Fut s-idejû ellen‹rz‚sek';
       label_compiler_optimizations = 'Optimaliz ci¢k';
       label_compiler_targetprocessor = 'C‚l-processzor';
+      label_compiler_linkafter = 'Linking stage'; { NOT TRANSLATED }
       label_compiler_verboseswitches = 'Verbose kapcsol¢k';
       label_compiler_browser = 'Tall¢z¢';
       label_compiler_assemblerreader = 'Assembler olvas¢';
@@ -795,6 +796,8 @@ const
       opt_stripalldebugsymbols = 'Debug szimb¢lumok elt vol¡t ~s~a';
       opt_gendebugsymbolinfo = '~D~ebug szimb¢lum info gener l sa';
       opt_gensymbolandbacktraceinfo = 'Backtrace sorinfom ci¢ gener ~l~ sa is';
+      { Link after options }
+      opt_linkafter = 'Call ~l~inker after'; { NOT TRANSLATED }
       { Profiling options }
       opt_noprofileinfo = '~N~incs profile inform ci¢';
       opt_gprofinfo = 'Profile inf¢ gener l sa g~p~rof-hoz';
@@ -983,9 +986,14 @@ const
 
 {
   $Log$
-  Revision 1.3  2000-10-31 22:35:55  pierre
-   * New big merge from fixes branch
+  Revision 1.4  2000-11-15 00:14:10  pierre
+   new merge
 
+  Revision 1.1.2.7  2000/11/14 17:40:44  pierre
+   + External linking now optional
+
+  Revision 1.3  2000/10/31 22:35:55  pierre
+   * New big merge from fixes branch
 
   Revision 1.1.2.6  2000/10/18 21:53:27  pierre
    * several Gabor fixes

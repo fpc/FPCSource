@@ -150,6 +150,7 @@ type
         procedure   HandleEvent(var Event: TEvent); virtual;
         procedure   SetCurPtr(X,Y: sw_integer); virtual;
         function    GetLineCount: sw_integer; virtual;
+        function    GetLine(LineNo: sw_integer): PCustomLine; virtual;
         function    GetLineText(Line: sw_integer): string; virtual;
         function    GetDisplayText(I: sw_integer): string; virtual;
         function    GetLinkCount: sw_integer; virtual;
@@ -750,6 +751,11 @@ begin
   GetLineCount:=Count;
 end;
 
+function THelpViewer.GetLine(LineNo: sw_integer): PCustomLine;
+begin
+  {Abstract; used in wcedit unit ! }
+  GetLine:=nil;
+end;
 function THelpViewer.GetDisplayText(I: sw_integer): string;
 begin
   GetDisplayText:=ExtractTabs(GetLineText(I),DefaultTabSize);
@@ -1318,7 +1324,13 @@ end;
 END.
 {
   $Log$
-  Revision 1.1  2000-07-13 09:48:37  michael
+  Revision 1.2  2000-11-15 00:14:11  pierre
+   new merge
+
+  Revision 1.1.2.1  2000/11/14 23:41:33  pierre
+   * fix for bug 1234
+
+  Revision 1.1  2000/07/13 09:48:37  michael
   + Initial import
 
   Revision 1.18  2000/06/22 09:07:14  pierre

@@ -40,6 +40,15 @@
   {$define HasSignal}
 {$endif}
 
+
+{$ifdef FreeBSD}
+  {$undef SUPPORTVESA}
+  {$define SUPPORTREDIR}
+  {$undef WinClipSupported}
+  {$define HasSignal}
+{$endif}
+
+
 {$ifdef Win32}
   {$undef SUPPORTVESA}
   {$define SUPPORTREDIR}

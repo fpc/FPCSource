@@ -510,6 +510,7 @@ const
       label_compiler_runtimechecks = 'Run-time checks';
       label_compiler_optimizations = 'Optimizations';
       label_compiler_targetprocessor = 'Target processor';
+      label_compiler_linkafter = 'Linking stage';
       label_compiler_verboseswitches = 'Verbose Switches';
       label_compiler_browser = 'Browser';
       label_compiler_assemblerreader = 'Assembler reader';
@@ -794,6 +795,8 @@ const
       opt_stripalldebugsymbols = '~S~trip all debug symbols from executable';
       opt_gendebugsymbolinfo = 'Generate ~d~ebug symbol information';
       opt_gensymbolandbacktraceinfo = 'Generate also backtrace ~l~ine information';
+      { Link after options }
+      opt_linkafter = 'Call ~l~inker after';
       { Profiling options }
       opt_noprofileinfo = '~N~o profile information';
       opt_gprofinfo = 'Generate profile code for g~p~rof';
@@ -981,8 +984,17 @@ const
 
 {
   $Log$
-  Revision 1.3  2000-10-06 22:58:59  pierre
+  Revision 1.4  2000-11-15 00:14:10  pierre
+   new merge
+
+  Revision 1.1.2.7  2000/11/14 17:40:43  pierre
+   + External linking now optional
+
+  Revision 1.3  2000/10/06 22:58:59  pierre
    * fixes for linux GDB tty command (merged)
+
+  Revision 1.1.2.6  2000/10/06 22:52:36  pierre
+   * fixes for linux GDB tty command
 
   Revision 1.2  2000/08/22 09:41:40  pierre
    * first big merge from fixes branch

@@ -688,7 +688,7 @@ type
     TCodeEditorDialog = function(Dialog: Integer; Info: Pointer): Word;
 
 const
-     EOL : String[2] = {$ifdef Linux}#10;{$else}#13#10;{$endif}
+     EOL : String[2] = {$ifdef Unix}#10;{$else}#13#10;{$endif}
 
      cmCopyWin = 240;
      cmPasteWin = 241;
@@ -1526,7 +1526,8 @@ begin
   for I:=0 to Count-1 do
   begin
     L:=GetLine(I);
-    L^.AddEditorInfo(Idx,AEditor);
+    if Assigned(L) then
+      L^.AddEditorInfo(Idx,AEditor);
   end;
 
   BindingsChanged;
@@ -1544,7 +1545,8 @@ begin
     for I:=0 to Count-1 do
     begin
       L:=GetLine(I);
-      L^.RemoveEditorInfo(AEditor);
+      if Assigned(L) then
+        L^.RemoveEditorInfo(AEditor);
     end;
     Bindings^.Free(B);
 
@@ -2956,7 +2958,14 @@ begin
   Lock;
   for Y:=StartY to EndY do
   begin
-    L:=GetLine(Y); EI:=L^.GetEditorInfo(@Self);
+    L:=GetLine(Y);
+    if assigned(L) then
+      EI:=L^.GetEditorInfo(@Self)
+    else
+      begin
+        CreateFold:=False;
+        exit;
+      end;
     if Y=StartY then
       ParentF:=EI^.Fold
     else
@@ -3001,11 +3010,17 @@ end;
 
 procedure TCustomCodeEditor.RemoveAllFolds;
 var I: sw_integer;
+    L: PCustomLine;
 begin
+
   for I:=0 to GetLineCount-1 do
-   with GetLine(I)^ do
-    with GetEditorInfo(@Self)^ do
-     SetFold(nil);
+    begin
+      L:=GetLine(I);
+      if not assigned(L) then exit;
+      with L^ do
+        with GetEditorInfo(@Self)^ do
+          SetFold(nil);
+    end;
   DrawView;
 end;
 
@@ -3144,6 +3159,7 @@ begin
   for I:=0 to Count-1 do
   begin
     L:=GetLine(I);
+    if not assigned(L) then exit;
     if I=LineNo then
       L^.SetFlags(L^.GetFlags or Flags)
     else
@@ -3564,8 +3580,16 @@ begin
         if (0<=AY) and (AY<LineCount) then
           begin
             Line:=GetLine(AY);
-            IsBreak:=GetLine(AY)^.IsFlagSet(lfBreakpoint);
-            EI:=Line^.GetEditorInfo(@Self);
+            if assigned(Line) then
+              begin
+                IsBreak:=Line^.IsFlagSet(lfBreakpoint);
+                EI:=Line^.GetEditorInfo(@Self);
+              end
+            else
+              begin
+                IsBreak:=false;
+                EI:=nil;
+              end;
           end
         else
           begin
@@ -4221,13 +4245,17 @@ var L: PCustomLine;
     LI: PEditorLineInfo;
     F: PFold;
 begin
-  F:=nil; LI:=nil;
+  F:=nil;
   if IsFlagSet(efFolds) then
   if (0<=EditorLine) and (EditorLine<GetLineCount) then
   begin
     L:=GetLine(EditorLine);
-    if Assigned(L) then LI:=L^.GetEditorInfo(@Self);
-    if Assigned(LI) then F:=LI^.Fold;
+    if Assigned(L) then
+      LI:=L^.GetEditorInfo(@Self)
+    else
+      LI:=nil;
+    if Assigned(LI) then
+      F:=LI^.Fold;
   end;
   GetLineFold:=F;
 end;
@@ -4425,7 +4453,10 @@ begin
     if CurPos.Y<GetLineCount then
       begin
         L:=GetLine(CurPos.Y);
-        EI:=L^.GetEditorInfo(@Self);
+        if not assigned(L) then
+          EI:=nil
+        else
+          EI:=L^.GetEditorInfo(@Self);
       end
     else
       EI:=nil;
@@ -6153,7 +6184,6 @@ function TCustomCodeEditorCore.SaveAreaToStream(Editor: PCustomCodeEditor; Strea
 var S: string;
     OK: boolean;
     Line: Sw_integer;
-    P: PCustomLine;
 begin
   if EndP.X=0 then
     begin
@@ -6169,8 +6199,7 @@ begin
   OK:=(Stream^.Status=stOK); Line:=StartP.Y;
   while OK and (Line<=EndP.Y) and (Line<GetLineCount) do
   begin
-    P:=GetLine(Line);
-    S:=P^.GetText;
+    S:=GetLineText(Line);
     { Remove all traling spaces PM }
     if not Editor^.IsFlagSet(efKeepTrailingSpaces) then
       While (Length(S)>0) and (S[Length(S)]=' ') do
@@ -6571,7 +6600,16 @@ end;
 END.
 {
   $Log$
-  Revision 1.5  2000-11-13 17:37:42  pierre
+  Revision 1.6  2000-11-15 00:14:11  pierre
+   new merge
+
+  Revision 1.1.2.17  2000/11/14 23:41:32  pierre
+   * fix for bug 1234
+
+  Revision 1.1.2.16  2000/11/14 09:08:50  marco
+   * First batch IDE renamefest
+
+  Revision 1.5  2000/11/13 17:37:42  pierre
    merges from fixes branch
 
   Revision 1.1.2.15  2000/11/13 16:55:09  pierre

@@ -19,7 +19,7 @@ Unit FPRedir;
 Interface
 
 {$R-}
-{$ifndef linux}
+{$ifndef Unix}
   {$S-}
 {$endif}
 
@@ -32,7 +32,7 @@ Interface
 {$ifdef Win32}
 {$define implemented}
 {$endif}
-{$ifdef linux}
+{$ifdef Unix}
 {$define implemented}
 {$endif}
 
@@ -76,9 +76,9 @@ Uses
 {$ifdef win32}
   windows,
 {$endif win32}
-{$ifdef linux}
+{$ifdef Unix}
   linux,
-{$endif linux}
+{$endif Unix}
   dos;
 
 var
@@ -125,7 +125,7 @@ Var
 var
   TempHOut, TempHIn,TempHError : longint;
 
-{ For linux the following functions exist
+{ For Unix the following functions exist
 Function  Dup(oldfile:longint;var newfile:longint):Boolean;
 Function  Dup2(oldfile,newfile:longint):Boolean;
 Function  fdClose(fd:longint):boolean;
@@ -678,7 +678,7 @@ end;
 {$EndIf MsDos}
     SwapVectors;
     { Must use shell() for linux for the wildcard expansion (PFV) }
-{$ifdef linux}
+{$ifdef Unix}
     IOStatus:=0;
     ExecuteResult:=Shell(Progname+' '+Comline);
     { Signal that causes the stop of the shell }
@@ -725,7 +725,13 @@ Begin
 End.
 {
   $Log$
-  Revision 1.2  2000-10-31 22:35:54  pierre
+  Revision 1.3  2000-11-15 00:14:10  pierre
+   new merge
+
+  Revision 1.1.2.2  2000/11/14 09:40:35  marco
+   * Third batch renamefest
+
+  Revision 1.2  2000/10/31 22:35:54  pierre
    * New big merge from fixes branch
 
   Revision 1.1.2.1  2000/10/04 13:29:59  pierre

@@ -24,9 +24,9 @@ uses
 {$ifdef win32}
   windows,
 {$endif win32}
-{$ifdef linux}
+{$ifdef Unix}
   linux,
-{$endif linux}
+{$endif Unix}
   Dos,Objects;
 
 const
@@ -34,7 +34,7 @@ const
       kbCtrlGrayMinus        = $8e00;
       kbCtrlGrayMul          = $9600;
 
-  TempFirstChar = {$ifndef Linux}'~'{$else}'_'{$endif};
+  TempFirstChar = {$ifndef Unix}'~'{$else}'_'{$endif};
   TempExt       = '.tmp';
   TempNameLen   = 8;
 
@@ -174,7 +174,7 @@ procedure GiveUpTimeSlice;
 
 const LastStrToIntResult : integer = 0;
       LastHexToIntResult : integer = 0;
-      DirSep             : char    = {$ifdef Linux}'/'{$else}'\'{$endif};
+      DirSep             : char    = {$ifdef Unix}'/'{$else}'\'{$endif};
 
 procedure RegisterWUtils;
 
@@ -1142,7 +1142,7 @@ begin
   intr($2f,r);
 end;
 {$endif}
-{$ifdef Linux}
+{$ifdef Unix}
   var
     req,rem : timespec;
 begin
@@ -1183,7 +1183,13 @@ BEGIN
 END.
 {
   $Log$
-  Revision 1.7  2000-11-13 17:37:44  pierre
+  Revision 1.8  2000-11-15 00:14:11  pierre
+   new merge
+
+  Revision 1.1.2.10  2000/11/14 09:08:51  marco
+   * First batch IDE renamefest
+
+  Revision 1.7  2000/11/13 17:37:44  pierre
    merges from fixes branch
 
   Revision 1.1.2.9  2000/11/13 16:59:10  pierre

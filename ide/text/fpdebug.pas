@@ -348,9 +348,9 @@ uses
 {$ifdef win32}
   Windebug,
 {$endif win32}
-{$ifdef linux}
+{$ifdef Unix}
   Linux,FileCtrl,
-{$endif linux}
+{$endif Unix}
   Systems,
   FPString,FPVars,FPUtils,FPConst,FPSwitch,
   FPIntf,FPCompil,FPIde,FPHelp,
@@ -463,11 +463,11 @@ end;
 {$endif}
 
 function  GDBFileName(st : string) : string;
-{$ifndef Linux}
+{$ifndef Unix}
 var i : longint;
-{$endif Linux}
+{$endif Unix}
 begin
-{$ifdef Linux}
+{$ifdef Unix}
   GDBFileName:=st;
 {$else}
 { should we also use / chars ? }
@@ -604,7 +604,7 @@ begin
     Command('set new-console off');
   NoSwitch:=DebuggeeTTY<>'';
 {$endif win32}
-{$ifdef linux}
+{$ifdef Unix}
   { Run the debuggee in another tty }
   if DebuggeeTTY <> '' then
     begin
@@ -616,7 +616,7 @@ begin
       Command('tty '+TTYName(stdin));
       NoSwitch := false;
     end;
-{$endif linux}
+{$endif Unix}
   { Switch to user screen to get correct handles }
   UserScreen;
   inherited Run;
@@ -808,7 +808,8 @@ begin
          if fn='' then
            Found:=false
          else
-           Found:=IDEApp.OpenSearch(fn);
+         { it is easier to handle with a * at the end }
+           Found:=IDEApp.OpenSearch(fn+'*');
          Desktop^.Lock;
          if not Found then
            begin
@@ -920,11 +921,11 @@ begin
   Inc(RunCount);
   if NoSwitch then
     begin
-{$ifdef linux}
+{$ifdef Unix}
       PushStatus(msg_runninginanotherwindow+DebuggeeTTY);
-{$else not linux}
+{$else not Unix}
       PushStatus(msg_runninginanotherwindow);
-{$endif linux}
+{$endif Unix}
     end
   else
     begin
@@ -3374,7 +3375,16 @@ end.
 
 {
   $Log$
-  Revision 1.5  2000-11-13 17:37:41  pierre
+  Revision 1.6  2000-11-15 00:14:10  pierre
+   new merge
+
+  Revision 1.1.2.10  2000/11/14 17:40:42  pierre
+   + External linking now optional
+
+  Revision 1.1.2.9  2000/11/14 09:23:55  marco
+   * Second batch
+
+  Revision 1.5  2000/11/13 17:37:41  pierre
    merges from fixes branch
 
   Revision 1.1.2.8  2000/11/13 16:59:08  pierre

@@ -20,6 +20,19 @@ packages=api fv gdbint
 [libs]
 libgcc=1
 
+[presettings]
+ifeq ($(OS_TARGET),linux)
+ifneq ($(findstring 1.0.,$(FPC_VERSION)),)
+override FPCOPT+=-dUNIX
+endif
+endif
+
+ifeq ($(OS_TARGET),freebsd)
+ifneq ($(findstring 1.0.,$(FPC_VERSION)),)
+override FPCOPT+=-dUNIX
+endif
+endif
+
 
 [postsettings]
 # when making a full version include the compiler

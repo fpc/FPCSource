@@ -113,7 +113,7 @@ const
 implementation
 
 uses
-{$ifdef linux}
+{$ifdef Unix}
   Linux,
 {$endif}
 {$ifdef go32v2}
@@ -665,19 +665,27 @@ end;
                                  DoCompile
 ****************************************************************************}
 
+{ This function must return '' if
+  "Options|Directories|Exe and PPU directory" is empty }
 function GetExePath: string;
 var Path: string;
     I: Sw_integer;
 begin
-  Path:='.'+DirSep;
+  Path:='';
   if DirectorySwitches<>nil then
     with DirectorySwitches^ do
     for I:=0 to ItemCount-1 do
       begin
-        if Pos('EXE',KillTilde(ItemName(I)))>0 then
-          begin Path:=GetStringItem(I); Break; end;
+        if ItemParam(I)='-FE' then
+          begin
+            Path:=GetStringItem(I);
+            Break;
+          end;
       end;
-  GetExePath:=CompleteDir(FExpand(Path));
+  if Path<>'' then
+    GetExePath:=CompleteDir(FExpand(Path))
+  else
+    GetExePath:='';
 end;
 
 function GetMainFile: string;
@@ -752,7 +760,7 @@ begin
   if ((DesktopFileFlags and dfSymbolInformation)<>0) then
     WriteSymbolsFile(BrowserName);
 {  MainFile:=FixFileName(FExpand(FileName));}
-  SetStatus('Preparing to compile...');
+  SetStatus('Preparing to compile...'+NameOf(MainFile));
   If GetEXEPath<>'' then
     EXEFile:=FixFileName(GetEXEPath+NameOf(MainFile)+ExeExt)
   else
@@ -847,7 +855,7 @@ begin
        ChangeRedirOut(FPOutFileName,false);
        ChangeRedirError(FPErrFileName,false);
 {$endif}
-{$ifdef linux}
+{$ifdef Unix}
        Shell(GetExePath+PpasFile+source_os.scriptext);
        Error:=LinuxError;
 {$else}
@@ -1105,7 +1113,16 @@ end;
 end.
 {
   $Log$
-  Revision 1.6  2000-11-13 17:37:41  pierre
+  Revision 1.7  2000-11-15 00:14:10  pierre
+   new merge
+
+  Revision 1.1.2.11  2000/11/14 17:40:02  pierre
+   * fix the linking problem in another directory
+
+  Revision 1.1.2.10  2000/11/14 09:23:55  marco
+   * Second batch
+
+  Revision 1.6  2000/11/13 17:37:41  pierre
    merges from fixes branch
 
   Revision 1.1.2.9  2000/11/06 16:55:48  pierre

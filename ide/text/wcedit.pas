@@ -419,7 +419,8 @@ begin
   if LineNo<GetLineCount then
   begin
     P:=GetLine(LineNo);
-    P^.SetFlagState(Flag,ASet);
+    if assigned(P) then
+      P^.SetFlagState(Flag,ASet);
   end;
 end;
 
@@ -531,6 +532,8 @@ begin
   if (0<=LineNo) and (LineNo<GetLineCount) then
    begin
      L:=GetLine(LineNo);
+     if not assigned(L) then
+       exit;
      DF:=IGetLineFormat(Binding,LineNo);
      DT:=L^.GetText;
      p:=0;
@@ -554,7 +557,10 @@ var P: PCustomLine;
     LI: PEditorLineInfo;
     S: string;
 begin
-  if (0<=LineNo) and (LineNo<GetLineCount) then P:=GetLine(LineNo) else P:=nil;
+  if (0<=LineNo) and (LineNo<GetLineCount) then
+    P:=GetLine(LineNo)
+  else
+    P:=nil;
   if P=nil then LI:=nil else
     LI:=P^.GetEditorInfo(Binding^.Editor);
   if LI=nil then S:='' else S:=LI^.GetFormat;
@@ -1825,7 +1831,13 @@ end;
 END.
 {
  $Log$
- Revision 1.4  2000-11-03 16:05:38  pierre
+ Revision 1.5  2000-11-15 00:14:11  pierre
+  new merge
+
+ Revision 1.1.2.7  2000/11/14 23:41:32  pierre
+  * fix for bug 1234
+
+ Revision 1.4  2000/11/03 16:05:38  pierre
   * (merged)
 
  Revision 1.1.2.6  2000/11/03 15:49:26  pierre

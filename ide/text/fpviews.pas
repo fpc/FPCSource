@@ -619,11 +619,11 @@ function EditorWindowFile(const Name : String): PSourceWindow;
 function EditorWindow(P: PView): boolean; {$ifndef FPC}far;{$endif}
 begin
   EditorWindow:=(TypeOf(P^)=TypeOf(TSourceWindow)) and
-{$ifdef linux}
+{$ifdef Unix}
                  (PSourceWindow(P)^.Editor^.FileName=Name);
 {$else}
                  (UpcaseStr(PSourceWindow(P)^.Editor^.FileName)=UpcaseStr(Name));
-{$endif def linux}
+{$endif Unix}
 end;
 begin
   EditorWindowFile:=pointer(Desktop^.FirstThat(@EditorWindow));
@@ -3161,6 +3161,9 @@ begin
 {$ifdef os2}
   OSStr:='OS/2';
 {$endif}
+{$ifdef FreeBSD}
+  OSStr:='FreeBSD';
+{$endif}
   R.Assign(0,0,38,14{$ifdef NODEBUG}-1{$endif});
   inherited Init(R, dialog_about);
 
@@ -3572,7 +3575,13 @@ end;
 END.
 {
   $Log$
-  Revision 1.4  2000-11-13 17:37:42  pierre
+  Revision 1.5  2000-11-15 00:14:11  pierre
+   new merge
+
+  Revision 1.1.2.14  2000/11/14 09:08:49  marco
+   * First batch IDE renamefest
+
+  Revision 1.4  2000/11/13 17:37:42  pierre
    merges from fixes branch
 
   Revision 1.1.2.13  2000/11/06 16:55:48  pierre

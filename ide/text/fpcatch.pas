@@ -18,7 +18,7 @@ interface
 
 {$i globdir.inc}
 
-{$ifdef linux}
+{$ifdef Unix}
 uses
   linux;
 {$endif}
@@ -52,7 +52,7 @@ uses
 
 
 {$ifdef HasSignal}
-{$ifdef linux}
+{$ifdef Unix}
 Procedure CatchSignal(Sig : Integer);cdecl;
 {$else}
 Function CatchSignal(Sig : longint):longint;
@@ -122,7 +122,7 @@ begin
                 end;
              end;
   end;
-{$ifndef linux}
+{$ifndef Unix}
   CatchSignal:=0;
 {$endif}
 end;
@@ -145,7 +145,13 @@ end.
 
 {
   $Log$
-  Revision 1.2  2000-10-31 22:35:54  pierre
+  Revision 1.3  2000-11-15 00:14:10  pierre
+   new merge
+
+  Revision 1.1.2.2  2000/11/14 09:23:55  marco
+   * Second batch
+
+  Revision 1.2  2000/10/31 22:35:54  pierre
    * New big merge from fixes branch
 
   Revision 1.1.2.1  2000/10/31 07:52:55  pierre

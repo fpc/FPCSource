@@ -143,6 +143,7 @@ const
 var
     LibLinkerSwitches,
     DebugInfoSwitches,
+    LinkAfterSwitches,
     ProfileInfoSwitches,
     {MemorySizeSwitches, doubled !! }
     SyntaxSwitches,
@@ -691,6 +692,7 @@ begin
      LibLinkerSwitches^.WriteItemsCfg;
      DebugInfoSwitches^.WriteItemsCfg;
      ProfileInfoSwitches^.WriteItemsCfg;
+     LinkAfterSwitches^.WriteItemsCfg;
      BrowserSwitches^.WriteItemsCfg;
      {MemorySizeSwitches^.WriteItemsCfg;}
      WriteCustom;
@@ -748,6 +750,7 @@ begin
                    res:=OptimizingGoalSwitches^.ReadItemsCfg(s);
              end;
        'p' : res:=ProfileInfoSwitches^.ReadItemsCfg(s);
+       's' : res:=LinkAfterSwitches^.ReadItemsCfg(s);
        'R' : res:=AsmReaderSwitches^.ReadItemsCfg(s);
        'S' : res:=SyntaxSwitches^.ReadItemsCfg(s);
        'T' : res:=TargetSwitches^.ReadItemsCfg(s);
@@ -946,6 +949,8 @@ begin
      { AddSelectItem('Generate ~d~bx symbol information','d');
        does not work anyhow (PM) }
    end;
+  New(LinkAfterSwitches,Init('s'));
+  LinkAfterSwitches^.AddBooleanItem(opt_linkafter,'',idNone);
   New(ProfileInfoSwitches,InitSelect('p'));
   with ProfileInfoSwitches^ do
    begin
@@ -1010,7 +1015,7 @@ begin
 {$ifdef go32v2}
        TargetSwitches^.SetCurrSel(1);
 {$endif}
-{$ifdef linux}
+{$ifdef Linux}
        TargetSwitches^.SetCurrSel(2);
 {$endif}
 {$ifdef win32}
@@ -1140,7 +1145,16 @@ end;
 end.
 {
   $Log$
-  Revision 1.3  2000-10-31 22:35:55  pierre
+  Revision 1.4  2000-11-15 00:14:10  pierre
+   new merge
+
+  Revision 1.1.2.6  2000/11/14 17:40:44  pierre
+   + External linking now optional
+
+  Revision 1.1.2.5  2000/11/14 09:40:35  marco
+   * Third batch renamefest
+
+  Revision 1.3  2000/10/31 22:35:55  pierre
    * New big merge from fixes branch
 
   Revision 1.1.2.4  2000/10/26 10:17:10  pierre
