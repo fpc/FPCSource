@@ -28,3 +28,5 @@ ts010015.pp       tests typed files.
 ts10100.pp        tests for delphi object model
 -
 ts101xx.pp
+
+to000000          shows when uncertain optimizations can cause wrong code
