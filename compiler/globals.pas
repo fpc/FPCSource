@@ -899,7 +899,7 @@ implementation
 
    function FindExe(bin:string;var found:boolean):string;
    begin
-     bin:=FixFileName(bin)+source_os.exeext;
+     bin:=FixFileName(AddExtension(bin,source_os.exeext));
 {$ifdef delphi}
      FindExe:=FindFile(bin,'.;'+exepath+';'+dmisc.getenv('PATH'),found)+bin;
 {$else delphi}
@@ -1278,7 +1278,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.22  2000-12-26 15:57:25  peter
+  Revision 1.23  2001-01-13 00:03:41  peter
+    * fixed findexe to also support already extension in name
+
+  Revision 1.22  2000/12/26 15:57:25  peter
     * use system.paramstr()
 
   Revision 1.21  2000/12/25 00:07:26  peter
