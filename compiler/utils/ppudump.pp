@@ -387,14 +387,14 @@ end;
 
 procedure ReadLoadUnit;
 var
-  ucrc,uintfcrc : longint;
+  ucrc,uintfcrc : cardinal;
 begin
   while not ppufile.EndOfEntry do
     begin
       inc(unitnumber);
       write('Uses unit: ',ppufile.getstring,' (Number: ',unitnumber,')');
-      ucrc:=ppufile.getlongint;
-      uintfcrc:=ppufile.getlongint;
+      ucrc:=cardinal(ppufile.getlongint);
+      uintfcrc:=cardinal(ppufile.getlongint);
       writeln(' (Crc: ',hexstr(ucrc,8),', IntfcCrc: ',hexstr(uintfcrc,8),')');
     end;
 end;
@@ -523,7 +523,7 @@ type
 var
   b : tdereftype;
   first : boolean;
-  idx : word;
+  idx : longint;
   i,n : byte;
   pdata : pbyte;
 begin
@@ -2083,7 +2083,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.59  2004-11-15 23:35:31  peter
+  Revision 1.60  2004-11-16 20:49:08  peter
+  * fixed rangecheck error with derefdata
+
+  Revision 1.59  2004/11/15 23:35:31  peter
     * tparaitem removed, use tparavarsym instead
     * parameter order is now calculated from paranr value in tparavarsym
 
