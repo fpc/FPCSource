@@ -40,12 +40,14 @@ unit rgcpu;
          procedure ungetregisterint(list: taasmoutput; reg: tregister); override;
          function getexplicitregisterfpu(list : taasmoutput; r : Toldregister) : tregister;override;
          procedure ungetregisterfpu(list: taasmoutput; r : tregister; size:TCGsize);override;
+{$ifndef newra}
          procedure saveusedintregisters(list:Taasmoutput;
                                          var saved:Tpushedsavedint;
                                          const s:Tsupregset);override;
          procedure saveusedotherregisters(list:Taasmoutput;
                                            var saved:Tpushedsavedother;
                                            const s:Tregisterset);override;
+{$endif newra}
          procedure cleartempgen; override;
         private
          usedpararegs: Tsupregset;
@@ -121,6 +123,7 @@ unit rgcpu;
       end;
 
 
+{$ifndef newra}
     procedure trgcpu.saveusedintregisters(list:Taasmoutput;
                                          var saved:Tpushedsavedint;
                                          const s:Tsupregset);
@@ -141,6 +144,7 @@ unit rgcpu;
         // correctly yet)
         filldword(saved,sizeof(saved) div 4,reg_not_saved);
       end;
+{$endif newra}
 
 
     procedure trgcpu.cleartempgen;
@@ -157,7 +161,11 @@ end.
 
 {
   $Log$
-  Revision 1.10  2003-06-12 22:09:54  jonas
+  Revision 1.11  2003-06-14 22:32:43  jonas
+    * ppc compiles with -dnewra, haven't tried to compile anything with it
+      yet though
+
+  Revision 1.10  2003/06/12 22:09:54  jonas
     * tcginnode.pass_2 doesn't call a helper anymore in any case
     * fixed ungetregisterfpu compilation problems
 

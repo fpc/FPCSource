@@ -82,9 +82,13 @@ implementation
 
       begin
          secondpass(left);
+{$ifndef newra}
          maybe_save(exprasmlist,right.registers32,left.location,saved);
+{$endif newra}
          secondpass(right);
+{$ifndef newra}
          maybe_restore(exprasmlist,left.location,saved);
+{$endif newra}
          location_copy(location,left.location);
 
          { put numerator in register }
@@ -102,8 +106,12 @@ implementation
            end;
          if (nodetype = modn) then
            begin
+{$ifndef newra}
              resultreg := cg.get_scratch_reg_int(exprasmlist,size);
-           end;
+{$else newra}         
+             resultreg := rg.getregisterint(exprasmlist,size);                                         
+{$endif newra}         
+            end;
 
          if (nodetype = divn) and
             (right.nodetype = ordconstn) and
@@ -145,7 +153,11 @@ implementation
                rg.ungetregisterint(exprasmlist,divider);
                exprasmlist.concat(taicpu.op_reg_reg_reg(A_SUB,location.register,
                  numerator,resultreg));
+{$ifndef newra}
                cg.free_scratch_reg(exprasmlist,resultreg);
+{$else newra}         
+               rg.ungetregisterint(exprasmlist,resultreg);
+{$endif newra}         
                resultreg := location.register;
              end
            else
@@ -183,9 +195,13 @@ implementation
 
       begin
          secondpass(left);
+{$ifndef newra}
          maybe_save(exprasmlist,right.registers32,left.location,saved);
+{$endif newra}
          secondpass(right);
+{$ifndef newra}
          maybe_restore(exprasmlist,left.location,saved);
+{$endif newra}
 
          if is_64bitint(left.resulttype.def) then
            begin
@@ -296,9 +312,11 @@ implementation
                      location.registerlow := resultreg;
                    end;
 
+{$ifndef newra}
                  if right.location.loc in [LOC_CREFERENCE,LOC_REFERENCE] then
                    cg.free_scratch_reg(exprasmlist,hregister1)
-                 else
+                  else
+{$endif newra}
                    rg.ungetregisterint(exprasmlist,hregister1);
                end
            end
@@ -520,7 +538,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.30  2003-06-08 18:20:02  jonas
+  Revision 1.31  2003-06-14 22:32:43  jonas
+    * ppc compiles with -dnewra, haven't tried to compile anything with it
+      yet though
+
+  Revision 1.30  2003/06/08 18:20:02  jonas
     * fixed small bug where a location was set to LOC_CREGISTER instead of
       LOC_REGISTER
 

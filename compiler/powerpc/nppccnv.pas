@@ -190,7 +190,11 @@ implementation
               leftreg := left.location.register;
               if signed then
                 begin
+{$ifndef newra}
                   valuereg := cg.get_scratch_reg_int(exprasmlist,OS_INT);
+{$else newra}
+                  valuereg := rg.getregisterint(exprasmlist,OS_INT);               
+{$endif newra}
                   valuereg_is_scratch := true;
                 end
               else
@@ -198,7 +202,11 @@ implementation
             end;
           LOC_REFERENCE,LOC_CREFERENCE:
             begin
+{$ifndef newra}
               leftreg := cg.get_scratch_reg_int(exprasmlist,OS_INT);
+{$else newra}
+              leftreg := rg.getregisterint(exprasmlist,OS_INT);               
+{$endif newra}
               valuereg := leftreg;
               valuereg_is_scratch := true;
               if signed then
@@ -211,10 +219,18 @@ implementation
           else
             internalerror(200110012);
          end;
+{$ifndef newra}
          tempreg := cg.get_scratch_reg_int(exprasmlist,OS_INT);
+{$else newra}
+         tempreg := rg.getregisterint(exprasmlist,OS_INT);               
+{$endif newra}
          exprasmlist.concat(taicpu.op_reg_const(A_LIS,tempreg,$4330));
          cg.a_load_reg_ref(exprasmlist,OS_32,OS_32,tempreg,ref);
+{$ifndef newra}
          cg.free_scratch_reg(exprasmlist,tempreg);
+{$else newra}
+         rg.ungetregisterint(exprasmlist,tempreg);               
+{$endif newra}
          if signed then
            exprasmlist.concat(taicpu.op_reg_reg_const(A_XORIS,valuereg,
              { xoris expects a unsigned 16 bit int (FK) }
@@ -223,15 +239,23 @@ implementation
          cg.a_load_reg_ref(exprasmlist,OS_32,OS_32,valuereg,ref);
          dec(ref.offset,4);
          if (valuereg_is_scratch) then
+{$ifndef newra}
            cg.free_scratch_reg(exprasmlist,valuereg);
-
+{$else newra}         
+           rg.ungetregisterint(exprasmlist,valuereg);
+{$endif newra}         
+ 
          if (left.location.loc = LOC_REGISTER) or
             ((left.location.loc = LOC_CREGISTER) and
              not signed) then
            rg.ungetregisterint(exprasmlist,leftreg)
          else
+{$ifndef newra}
            cg.free_scratch_reg(exprasmlist,valuereg);
-
+{$else newra}         
+           rg.ungetregisterint(exprasmlist,valuereg);                                         
+{$endif newra}         
+ 
          tmpfpureg := rg.getregisterfpu(exprasmlist,OS_F64);
          cg.a_loadfpu_ref_reg(exprasmlist,OS_F64,tempconst.location.reference,
            tmpfpureg);
@@ -264,7 +288,6 @@ implementation
             exprasmlist.concat(taicpu.op_reg_reg(A_FRSP,location.register,
               location.register));
        end;
-
 
 
 
@@ -434,7 +457,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.39  2003-06-12 22:09:54  jonas
+  Revision 1.40  2003-06-14 22:32:43  jonas
+    * ppc compiles with -dnewra, haven't tried to compile anything with it
+      yet though
+
+  Revision 1.39  2003/06/12 22:09:54  jonas
     * tcginnode.pass_2 doesn't call a helper anymore in any case
     * fixed ungetregisterfpu compilation problems
 

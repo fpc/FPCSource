@@ -78,6 +78,18 @@ uses
          constructor op_sym_ofs_ref(op : tasmop;_op1 : tasmsymbol;_op1ofs:longint;const _op2 : treference);
 
          procedure loadbool(opidx:longint;_b:boolean);
+
+
+         function is_nop: boolean; override;
+         function is_move:boolean; override;
+         function spill_registers(list:Taasmoutput;
+                                  rgget:Trggetproc;
+                                  rgunget:Trgungetproc;
+                                  r:Tsupregset;
+                                  var unusedregsint:Tsupregset;
+                                  const spilltemplist:Tspill_temp_list):boolean; override;
+
+
       end;
 
       tai_align = class(tai_align_abstract)
@@ -397,6 +409,33 @@ implementation
       end;
 
 
+{ ****************************** newra stuff *************************** }
+
+    function taicpu.is_nop: boolean;
+      begin
+        { we don't insert any more nops than necessary }
+        is_nop := false;
+      end;
+
+
+    function taicpu.is_move:boolean;
+      begin
+        is_move := opcode = A_MR;
+      end;
+
+
+    function taicpu.spill_registers(list:Taasmoutput; 
+                             rgget:Trggetproc; 
+                             rgunget:Trgungetproc; 
+                             r:Tsupregset; 
+                             var unusedregsint:Tsupregset; 
+                              const spilltemplist:Tspill_temp_list): boolean;
+      begin
+        internalerror(211);
+      end;
+
+
+
     procedure InitAsm;
       begin
       end;
@@ -409,7 +448,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.7  2003-06-14 14:53:50  jonas
+  Revision 1.8  2003-06-14 22:32:43  jonas
+    * ppc compiles with -dnewra, haven't tried to compile anything with it
+      yet though
+
+  Revision 1.7  2003/06/14 14:53:50  jonas
     * fixed newra cycle for x86
     * added constants for indicating source and destination operands of the
       "move reg,reg" instruction to aasmcpu (and use those in rgobj)

@@ -555,11 +555,13 @@ uses
       param_regs_mm: Array[1..max_param_regs_mm] of Toldregister =
         (R_M1,R_M2,R_M3,R_M4,R_M5,R_M6,R_M7,R_M8,R_M9,R_M10,R_M11,R_M12,R_M13);
 
+{$ifndef newra}
       {# Registers which are defined as scratch and no need to save across
          routine calls or in assembler blocks.
       }
       max_scratch_regs = 3;
       scratch_regs: Array[1..max_scratch_regs] of Tsuperregister = (RS_R29,RS_R30,RS_R31);
+{$endif newra}
 
 {*****************************************************************************
                           Default generic sizes
@@ -875,7 +877,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.57  2003-06-13 17:44:44  jonas
+  Revision 1.58  2003-06-14 22:32:43  jonas
+    * ppc compiles with -dnewra, haven't tried to compile anything with it
+      yet though
+
+  Revision 1.57  2003/06/13 17:44:44  jonas
     + added supreg_name function
 
   Revision 1.56  2003/06/12 19:11:34  jonas

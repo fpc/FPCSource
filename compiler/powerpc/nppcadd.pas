@@ -101,13 +101,17 @@ interface
         secondpass(left);
 
         { are too few registers free? }
+{$ifndef newra}
         maybe_save(exprasmlist,right.registers32,left.location,pushedregs);
+{$endif newra}
         if location.loc=LOC_FPUREGISTER then
           pushedfpu:=maybe_pushfpu(exprasmlist,right.registersfpu,left.location)
         else
           pushedfpu:=false;
         secondpass(right);
+{$ifndef newra}
         maybe_restore(exprasmlist,left.location,pushedregs);
+{$endif newra}
         if pushedfpu then
           begin
             tmpreg := rg.getregisterfpu(exprasmlist,left.location.size);
@@ -262,7 +266,11 @@ interface
             else
               begin
                 useconst := false;
+{$ifndef newra}
                 tmpreg := cg.get_scratch_reg_int(exprasmlist,OS_INT);
+{$else newra}
+                tmpreg := rg.getregisterint(exprasmlist,OS_INT);
+{$endif newra}
                 cg.a_load_const_reg(exprasmlist,OS_INT,
                   aword(right.location.value),tmpreg);
                end
@@ -290,7 +298,11 @@ interface
             begin
               exprasmlist.concat(taicpu.op_reg_reg(op,
                 left.location.register,tmpreg));
+{$ifndef newra}
               cg.free_scratch_reg(exprasmlist,tmpreg);
+{$else newra}
+              rg.ungetregisterint(exprasmlist,tmpreg);
+{$endif newra}
             end
         else
           exprasmlist.concat(taicpu.op_reg_reg(op,
@@ -348,7 +360,9 @@ interface
                falselabel:=ofl;
              end;
 
+{$ifndef newra}
             maybe_save(exprasmlist,right.registers32,left.location,pushedregs);
+{$endif newra}
             isjump:=(right.location.loc=LOC_JUMP);
             if isjump then
               begin
@@ -358,7 +372,9 @@ interface
                  objectlibrary.getlabel(falselabel);
               end;
             secondpass(right);
+{$ifndef newra}
             maybe_restore(exprasmlist,left.location,pushedregs);
+{$endif newra}
             if right.location.loc in [LOC_FLAGS,LOC_JUMP] then
              location_force_reg(exprasmlist,right.location,cgsize,false);
             if isjump then
@@ -585,7 +601,11 @@ interface
                       left.location.register,location.register)
                   else
                     begin
+{$ifndef newra}
                       tmpreg := cg.get_scratch_reg_int(exprasmlist,OS_INT);
+{$else newra}
+                      tmpreg := rg.getregisterint(exprasmlist,OS_INT);
+{$endif newra}
                       cg.a_load_const_reg(exprasmlist,OS_INT,1,tmpreg);
                       cg.a_op_reg_reg(exprasmlist,OP_SHL,OS_INT,
                         right.location.register,tmpreg);
@@ -595,7 +615,11 @@ interface
                       else
                         cg.a_op_const_reg_reg(exprasmlist,OP_OR,OS_INT,
                           aword(left.location.value),tmpreg,location.register);
+{$ifndef newra}
                       cg.free_scratch_reg(exprasmlist,tmpreg);
+{$else newra}
+                      rg.ungetregisterint(exprasmlist,tmpreg);
+{$endif newra}
                     end;
                   opdone := true;
                 end
@@ -625,12 +649,20 @@ interface
                 begin
                   if left.location.loc = LOC_CONSTANT then
                     begin
+{$ifndef newra}
                       tmpreg := cg.get_scratch_reg_int(exprasmlist,OS_INT);
+{$else newra}
+                      tmpreg := rg.getregisterint(exprasmlist,OS_INT);
+{$endif newra}
                       cg.a_load_const_reg(exprasmlist,OS_INT,
                         aword(left.location.value),tmpreg);
                       exprasmlist.concat(taicpu.op_reg_reg_reg(A_ANDC,
                         location.register,tmpreg,right.location.register));
+{$ifndef newra}
                       cg.free_scratch_reg(exprasmlist,tmpreg);
+{$else newra}
+                      rg.ungetregisterint(exprasmlist,tmpreg);
+{$endif newra}
                     end
                   else
                     exprasmlist.concat(taicpu.op_reg_reg_reg(A_ANDC,
@@ -652,7 +684,11 @@ interface
                   (nodetype = gten)) then
                 swapleftright;
               // now we have to check whether left >= right
+{$ifndef newra}
               tmpreg := cg.get_scratch_reg_int(exprasmlist,OS_INT);
+{$else newra}
+              tmpreg := rg.getregisterint(exprasmlist,OS_INT);
+{$endif newra}
               if left.location.loc = LOC_CONSTANT then
                 begin
                   cg.a_op_const_reg_reg(exprasmlist,OP_AND,OS_INT,
@@ -674,7 +710,11 @@ interface
                     exprasmlist.concat(taicpu.op_reg_reg_reg(A_ANDC_,tmpreg,
                       right.location.register,left.location.register));
                 end;
+{$ifndef newra}
               cg.free_scratch_reg(exprasmlist,tmpreg);
+{$else newra}
+              rg.ungetregisterint(exprasmlist,tmpreg);
+{$endif newra}
               location.resflags.cr := R_CR0;
               location.resflags.flag := F_EQ;
               opdone := true;
@@ -900,11 +940,19 @@ interface
                       else
                         begin
                           if (aword(right.location.valueqword) <> 0) then
-                            tempreg64.reglo := cg.get_scratch_reg_int(exprasmlist,OS_INT)
+{$ifndef newra}
+                            tempreg64.reglo := cg.get_scratch_reg_int(exprasmlist,OS_32)
+{$else newra}
+                            tempreg64.reglo := rg.getregisterint(exprasmlist,OS_32)
+{$endif newra}
                           else
                             tempreg64.reglo := left.location.registerlow;
                           if ((right.location.valueqword shr 32) <> 0) then
-                            tempreg64.reghi := cg.get_scratch_reg_int(exprasmlist,OS_INT)
+{$ifndef newra}
+                            tempreg64.reghi := cg.get_scratch_reg_int(exprasmlist,OS_32)
+{$else newra}
+                            tempreg64.reghi := rg.getregisterint(exprasmlist,OS_32)
+{$endif newra}
                           else
                             tempreg64.reghi := left.location.registerhigh;
                         end;
@@ -935,8 +983,13 @@ interface
                     end
                   else
                     begin
-                       tempreg64.reglo := cg.get_scratch_reg_int(exprasmlist,OS_INT);
-                       tempreg64.reghi := cg.get_scratch_reg_int(exprasmlist,OS_INT);
+{$ifndef newra}
+                       tempreg64.reglo := cg.get_scratch_reg_int(exprasmlist,OS_32);
+                       tempreg64.reghi := cg.get_scratch_reg_int(exprasmlist,OS_32);
+{$else newra}
+                       tempreg64.reglo := rg.getregisterint(exprasmlist,OS_INT);
+                       tempreg64.reghi := rg.getregisterint(exprasmlist,OS_INT);
+{$endif newra}
                        cg64.a_op64_reg_reg_reg(exprasmlist,OP_XOR,
                          left.location.register64,right.location.register64,
                          tempreg64);
@@ -949,9 +1002,17 @@ interface
                     tempreg64.reglo,tempreg64.reghi));
                   cg.a_reg_dealloc(exprasmlist,r);
                   if (tempreg64.reglo.number <> left.location.registerlow.number) then
+{$ifndef newra}
                     cg.free_scratch_reg(exprasmlist,tempreg64.reglo);
+{$else newra}
+                    rg.ungetregisterint(exprasmlist,tempreg64.reglo);                                          
+{$endif newra}
                   if (tempreg64.reghi.number <> left.location.registerhigh.number) then
+{$ifndef newra}
                     cg.free_scratch_reg(exprasmlist,tempreg64.reghi);
+{$else newra}
+                    rg.ungetregisterint(exprasmlist,tempreg64.reghi);
+{$endif newra}
 
                   location_reset(location,LOC_FLAGS,OS_NO);
                   location.resflags := getresflags;
@@ -1432,12 +1493,20 @@ interface
                        end
                      else
                        begin
+{$ifndef newra}
                          tmpreg := cg.get_scratch_reg_int(exprasmlist,OS_INT);
+{$else newra}
+                         tmpreg := rg.getregisterint(exprasmlist,OS_INT);               
+{$endif newra}
                          cg.a_load_const_reg(exprasmlist,OS_INT,
                            aword(left.location.value),tmpreg);
                          cg.a_op_reg_reg_reg(exprasmlist,OP_SUB,OS_INT,
                            right.location.register,tmpreg,location.register);
+{$ifndef newra}
                          cg.free_scratch_reg(exprasmlist,tmpreg);
+{$else newra}
+                         rg.ungetregisterint(exprasmlist,tmpreg);
+{$endif newra}
                        end;
                  end;
                ltn,lten,gtn,gten,equaln,unequaln :
@@ -1472,7 +1541,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.32  2003-06-04 11:58:58  jonas
+  Revision 1.33  2003-06-14 22:32:43  jonas
+    * ppc compiles with -dnewra, haven't tried to compile anything with it
+      yet though
+
+  Revision 1.32  2003/06/04 11:58:58  jonas
     * calculate localsize also in g_return_from_proc since it's now called
       before g_stackframe_entry (still have to fix macos)
     * compilation fixes (cycle doesn't work yet though)

@@ -195,10 +195,18 @@ const
                reference_reset(ref);
                ref.base:=locpara.reference.index;
                ref.offset:=locpara.reference.offset;
+{$ifndef newra}
                tmpreg := get_scratch_reg_int(list,size);
+{$else newra}
+               tmpreg := rg.getregisterint(list,size);
+{$endif newra}
                a_load_ref_reg(list,size,size,r,tmpreg);
                a_load_reg_ref(list,size,size,tmpreg,ref);
+{$ifndef newra}
                free_scratch_reg(list,tmpreg);
+{$else newra}
+               rg.ungetregisterint(list,tmpreg); 
+{$endif newra}
             end;
           LOC_FPUREGISTER,LOC_CFPUREGISTER:
             case size of
@@ -216,7 +224,6 @@ const
 
 
     procedure tcgppc.a_paramaddr_ref(list : taasmoutput;const r : treference;const locpara : tparalocation);
-
       var
         ref: treference;
         tmpreg: tregister;
@@ -230,10 +237,18 @@ const
                 reference_reset(ref);
                 ref.base := locpara.reference.index;
                 ref.offset := locpara.reference.offset;
+{$ifndef newra}
                 tmpreg := get_scratch_reg_address(list);
+{$else newra}
+                tmpreg := rg.getregisterint(list,OS_ADDR);
+{$endif newra}
                 a_loadaddr_ref_reg(list,r,tmpreg);
                 a_load_reg_ref(list,OS_ADDR,OS_ADDR,tmpreg,ref);
+{$ifndef newra}
                 free_scratch_reg(list,tmpreg);
+{$else newra}
+                rg.ungetregisterint(list,tmpreg);
+{$endif newra}
               end;
             else
               internalerror(2002080701);
@@ -269,14 +284,22 @@ const
             {Generate instruction to load the procedure address from
             the transition vector.}
             //TODO: Support cross-TOC calls.
+{$ifndef newra}
             tmpreg := get_scratch_reg_int(list,OS_INT);
+{$else newra}
+            tmpreg := rg.getregisterint(list,OS_INT);
+{$endif newra}
             reference_reset(tmpref);
             tmpref.offset := 0;
             //tmpref.symaddr := refs_full;
             tmpref.base:= reg;
             list.concat(taicpu.op_reg_ref(A_LWZ,tmpreg,tmpref));
             list.concat(taicpu.op_reg(A_MTCTR,tmpreg));
+{$ifndef newra}
             free_scratch_reg(list,tmpreg);
+{$else newra}            
+            rg.ungetregisterint(list,tmpreg);
+{$endif newra}            
           end
         else
           list.concat(taicpu.op_reg(A_MTCTR,reg));
@@ -298,7 +321,11 @@ const
         tmpref : treference;
 
       begin
+{$ifndef newra}
         tmpreg := get_scratch_reg_int(list,OS_ADDR);
+{$else newra}            
+        tmpreg := rg.getregisterint(list,OS_ADDR);
+{$endif newra}            
         a_load_ref_reg(list,OS_ADDR,OS_ADDR,ref,tmpreg);
         if target_info.system=system_powerpc_macos then
           begin
@@ -312,7 +339,11 @@ const
             list.concat(taicpu.op_reg_ref(A_LWZ,tmpreg,tmpref));
           end;
         list.concat(taicpu.op_reg(A_MTCTR,tmpreg));
+{$ifndef newra}
         free_scratch_reg(list,tmpreg);
+{$else newra}
+        rg.ungetregisterint(list,tmpreg);
+{$endif newra} 
         list.concat(taicpu.op_none(A_BCTRL));
         //if target_info.system=system_powerpc_macos then
         //  //NOP is not needed here.
@@ -369,7 +400,11 @@ const
          op := storeinstr[tcgsize2unsigned[tosize],ref2.index.number<>NR_NO,false];
          a_load_store(list,op,reg,ref2);
          if freereg then
+{$ifndef newra}
            cg.free_scratch_reg(list,ref2.base);
+{$else newra}
+            rg.ungetregisterint(list,ref2.base);
+{$endif newra}
        End;
 
 
@@ -403,7 +438,11 @@ const
           op := loadinstr[fromsize,ref2.index.number<>NR_NO,false];
           a_load_store(list,op,reg,ref2);
           if freereg then
+{$ifndef newra}
             free_scratch_reg(list,ref2.base);
+{$else newra}
+            rg.ungetregisterint(list,ref2.base);
+{$endif newra}
           { sign extend shortint if necessary, since there is no }
           { load instruction that does that automatically (JM)   }
           if fromsize = OS_S8 then
@@ -478,7 +517,11 @@ const
          op := fpuloadinstr[size,ref2.index.number <> NR_NO,false];
          a_load_store(list,op,reg,ref2);
          if freereg then
+{$ifndef newra}
            cg.free_scratch_reg(list,ref2.base);
+{$else newra}
+           rg.ungetregisterint(list,ref2.base);
+{$endif newra}
        end;
 
 
@@ -502,14 +545,15 @@ const
          op := fpustoreinstr[size,ref2.index.number <> NR_NO,false];
          a_load_store(list,op,reg,ref2);
          if freereg then
+{$ifndef newra}
            cg.free_scratch_reg(list,ref2.base);
+{$else newra}
+           rg.ungetregisterint(list,ref2.base);
+{$endif newra}
        end;
 
 
      procedure tcgppc.a_op_const_reg(list : taasmoutput; Op: TOpCG; size: TCGSize; a: AWord; reg: TRegister);
-
-       var
-         scratch_register: TRegister;
 
        begin
          a_op_const_reg_reg(list,op,OS_32,a,reg,reg);
@@ -663,11 +707,19 @@ const
             if gotrlwi and
                (src.number = dst.number) then
               begin
+{$ifndef newra}
                 scratchreg := get_scratch_reg_int(list,OS_INT);
+{$else newra}
+                scratchreg := rg.getregisterint(list,OS_INT);
+{$endif newra}
                 list.concat(taicpu.op_reg_const(A_LI,scratchreg,-1));
                 list.concat(taicpu.op_reg_reg_const_const_const(A_RLWIMI,dst,
                   scratchreg,0,l1,l2));
+{$ifndef newra}
                 free_scratch_reg(list,scratchreg);
+{$else newra}
+                rg.ungetregisterint(list,scratchreg);
+{$endif newra}
               end
             else
               do_lo_hi;
@@ -697,10 +749,18 @@ const
         { perform the operation                                        }
         if useReg then
           begin
+{$ifndef newra}
             scratchreg := get_scratch_reg_int(list,OS_INT);
+{$else newra}
+            scratchreg := rg.getregisterint(list,OS_INT);
+{$endif newra}
             a_load_const_reg(list,OS_32,a,scratchreg);
             a_op_reg_reg_reg(list,op,OS_32,scratchreg,src,dst);
+{$ifndef newra}
             free_scratch_reg(list,scratchreg);
+{$else newra}
+            rg.ungetregisterint(list,scratchreg);
+{$endif newra}
           end;
       end;
 
@@ -747,20 +807,36 @@ const
               list.concat(taicpu.op_reg_reg_const(A_CMPWI,r,reg,longint(a)))
             else
               begin
+{$ifndef newra}
                 scratch_register := get_scratch_reg_int(list,OS_INT);
+{$else newra}
+                scratch_register := rg.getregisterint(list,OS_INT);        
+{$endif newra}
                 a_load_const_reg(list,OS_32,a,scratch_register);
                 list.concat(taicpu.op_reg_reg_reg(A_CMPW,r,reg,scratch_register));
+{$ifndef newra}
                 free_scratch_reg(list,scratch_register);
+{$else newra}
+                rg.ungetregisterint(list,scratch_register);        
+{$endif newra}
               end
           else
             if (a <= $ffff) then
               list.concat(taicpu.op_reg_reg_const(A_CMPLWI,r,reg,a))
             else
               begin
+{$ifndef newra}
                 scratch_register := get_scratch_reg_int(list,OS_32);
+{$else newra}
+                scratch_register := rg.getregisterint(list,OS_INT);
+{$endif newra}
                 a_load_const_reg(list,OS_32,a,scratch_register);
                 list.concat(taicpu.op_reg_reg_reg(A_CMPLW,r,reg,scratch_register));
+{$ifndef newra}
                 free_scratch_reg(list,scratch_register);
+{$else newra}
+                rg.ungetregisterint(list,scratch_register);
+{$endif newra}
               end;
           a_jmp(list,A_BC,TOpCmp2AsmCond[cmp_op],0,l);
         end;
@@ -1075,10 +1151,18 @@ const
             else
               begin
                 reference_reset_base(href,r,0);
+{$ifndef newra}
                 href.index := get_scratch_reg_int(list,OS_32);
+{$else newra}
+                href.index := rg.getregisterint(list,OS_32);
+{$endif newra}
                 a_load_const_reg(list,OS_S32,-localsize,href.index);
                 a_load_store(list,A_STWUX,r,href);
+{$ifndef newra}
                 free_scratch_reg(list,href.index);
+{$else newra}
+                rg.ungetregisterint(list,href.index);
+{$endif newra}
               end;
           end;
 
@@ -1588,10 +1672,18 @@ const
             else
               begin
                 reference_reset_base(href,r,0);
+{$ifndef newra}
                 href.index := get_scratch_reg_int(list,OS_32);
+{$else newra}
+                href.index := rg.getregisterint(list,OS_ADDR);
+{$endif newra}
                 a_load_const_reg(list,OS_S32,-localsize,href.index);
                 a_load_store(list,A_STWUX,r,href);
+{$ifndef newra}
                 free_scratch_reg(list,href.index);
+{$else newra}
+                rg.ungetregisterint(list,href.index);
+{$endif newra}
               end;
           end;
       end;
@@ -1737,7 +1829,11 @@ const
                        ref2.base,tmpref));
                      if freereg then
                        begin
+{$ifndef newra}
                          cg.free_scratch_reg(list,ref2.base);
+{$else newra}
+                         rg.ungetregisterint(list,ref2.base);
+{$endif newra}
                          freereg := false;
                        end;
                    end
@@ -1763,7 +1859,11 @@ const
                  (r.number <> ref2.base.number) then
            list.concat(taicpu.op_reg_reg(A_MR,r,ref2.base));
          if freereg then
+{$ifndef newra}
            cg.free_scratch_reg(list,ref2.base);
+{$else newra}                         
+           rg.ungetregisterint(list,ref2.base);
+{$endif newra}                         
        end;
 
 { ************* concatcopy ************ }
@@ -1831,7 +1931,11 @@ const
         { load the address of source into src.base }
         if loadref then
           begin
+{$ifndef newra}
             src.base := get_scratch_reg_address(list);
+{$else newra}
+           src.base := rg.getregisterint(list,OS_ADDR);
+{$endif newra}
             a_load_ref_reg(list,OS_32,OS_32,source,src.base);
             orgsrc := false;
           end
@@ -1840,7 +1944,11 @@ const
                 ((source.index.number <> NR_NO) and
                  ((source.offset + longint(len)) > high(smallint))) then
           begin
+{$ifndef newra}
             src.base := get_scratch_reg_address(list);
+{$else newra}
+            src.base := rg.getregisterint(list,OS_ADDR);
+{$endif newra}
             a_loadaddr_ref_reg(list,source,src.base);
             orgsrc := false;
           end
@@ -1857,7 +1965,11 @@ const
            ((dest.index.number <> NR_NO) and
             ((dest.offset + longint(len)) > high(smallint))) then
           begin
+{$ifndef newra}
             dst.base := get_scratch_reg_address(list);
+{$else newra}                                                
+            dst.base := rg.getregisterint(list,OS_ADDR);
+{$endif newra}      
             a_loadaddr_ref_reg(list,dest,dst.base);
             orgdst := false;
           end
@@ -1879,7 +1991,11 @@ const
             inc(src.offset,8);
             list.concat(taicpu.op_reg_reg_const(A_SUBI,src.base,src.base,8));
             list.concat(taicpu.op_reg_reg_const(A_SUBI,dst.base,dst.base,8));
+{$ifndef newra}
             countreg := get_scratch_reg_int(list,OS_INT);
+{$else newra}                                                
+            countreg := rg.getregisterint(list,OS_INT);                         
+{$endif newra}                                                
             a_load_const_reg(list,OS_32,count,countreg);
             { explicitely allocate R_0 since it can be used safely here }
             { (for holding date that's being copied)                    }
@@ -1892,7 +2008,11 @@ const
             list.concat(taicpu.op_reg_ref(A_LFDU,r,src));
             list.concat(taicpu.op_reg_ref(A_STFDU,r,dst));
             a_jmp(list,A_BC,C_NE,0,lab);
+{$ifndef newra}
             free_scratch_reg(list,countreg);
+{$else newra}                                                
+           rg.ungetregisterint(list,countreg);                         
+{$endif newra}                                                
             a_reg_dealloc(list,r);
             len := len mod 8;
           end;
@@ -1937,7 +2057,11 @@ const
             inc(src.offset,4);
             list.concat(taicpu.op_reg_reg_const(A_SUBI,src.base,src.base,4));
             list.concat(taicpu.op_reg_reg_const(A_SUBI,dst.base,dst.base,4));
+{$ifndef newra}
             countreg := get_scratch_reg_int(list,OS_INT);
+{$else newra}                                                
+            countreg := rg.getregisterint(list,OS_INT);                         
+{$endif newra}                                                
             a_load_const_reg(list,OS_32,count,countreg);
             { explicitely allocate R_0 since it can be used safely here }
             { (for holding date that's being copied)                    }
@@ -1950,7 +2074,11 @@ const
             list.concat(taicpu.op_reg_ref(A_LWZU,r,src));
             list.concat(taicpu.op_reg_ref(A_STWU,r,dst));
             a_jmp(list,A_BC,C_NE,0,lab);
+{$ifndef newra}
             free_scratch_reg(list,countreg);
+{$else newra}                                                
+           rg.ungetregisterint(list,countreg);                         
+{$endif newra}                                                
             a_reg_dealloc(list,r);
             len := len mod 4;
           end;
@@ -2000,9 +2128,17 @@ const
              reference_release(list,source);
          end
        else
+{$ifndef newra}
          free_scratch_reg(list,src.base);
+{$else newra}                                                
+         rg.ungetregisterint(list,src.base);                         
+{$endif newra}                                                
        if not orgdst then
+{$ifndef newra}
          free_scratch_reg(list,dst.base);
+{$else newra}                                                
+         rg.ungetregisterint(list,dest.base);                         
+{$endif newra}                                                
        if delsource then
          tg.ungetiftemp(list,source);
       end;
@@ -2190,7 +2326,11 @@ const
                 ((ref.offset <> 0) or assigned(ref.symbol)) then
                begin
                  result := true;
+{$ifndef newra}
                  tmpreg := cg.get_scratch_reg_int(list,OS_INT);
+{$else newra}                                                
+                 tmpreg := rg.getregisterint(list,OS_INT);                         
+{$endif newra}                                                
                  if not assigned(ref.symbol) and
                     (cardinal(ref.offset-low(smallint)) <=
                       high(smallint)-low(smallint)) then
@@ -2311,7 +2451,11 @@ const
                           op    reg, tempreg
                         but which saves one instruction.}
 
+{$ifndef newra}
                         tmpreg := get_scratch_reg_address(list);
+{$else newra}                                                
+                        tmpreg := rg.getregisterint(list,OS_ADDR);                         
+{$endif newra}                                                
                         reference_reset(tmpref);
                         tmpref.symbol := ref.symbol;
                         tmpref.offset := ref.offset;
@@ -2326,7 +2470,11 @@ const
                       end
                     else
                       begin
+{$ifndef newra}
                         tmpreg := get_scratch_reg_address(list);
+{$else newra}                                                
+                        tmpreg := rg.getregisterint(list,OS_ADDR);                         
+{$endif newra}                                                
                         reference_reset(tmpref);
                         tmpref.symbol := ref.symbol;
                         tmpref.offset := ref.offset;
@@ -2361,7 +2509,11 @@ const
                       end
                     else
                       begin
+{$ifndef newra}
                         tmpreg := get_scratch_reg_address(list);
+{$else newra}                                                
+                        tmpreg := rg.getregisterint(list,OS_ADDR);                         
+{$endif newra}                                                
                         reference_reset(tmpref);
                         tmpref.symbol := ref.symbol;
                         tmpref.offset := ref.offset;
@@ -2382,7 +2534,11 @@ const
               end
             else
               begin
+{$ifndef newra}
                 tmpreg := get_scratch_reg_address(list);
+{$else newra}
+                tmpreg := rg.getregisterint(list,OS_ADDR);
+{$endif newra}
                 reference_reset(tmpref);
                 tmpref.symbol := ref.symbol;
                 tmpref.offset := ref.offset;
@@ -2400,7 +2556,11 @@ const
         else
           list.concat(taicpu.op_reg_ref(op,reg,ref));
         if (tmpreg.number <> NR_NO) then
+{$ifndef newra}
           free_scratch_reg(list,tmpreg);
+{$else newra}                                                                   
+          rg.ungetregisterint(list,tmpreg);
+{$endif newra}                                                                  
       end;
 
 
@@ -2495,22 +2655,40 @@ const
                     end
                   else if ((value shr 32) = 0) then
                     begin
+{$ifndef newra}
                       tmpreg := cg.get_scratch_reg_int(list,OS_32);
+{$else newra}                                                                   
+                      tmpreg := rg.getregisterint(list,OS_32);
+{$endif newra}                                                                  
                       cg.a_load_const_reg(list,OS_32,cardinal(value),tmpreg);
                       list.concat(taicpu.op_reg_reg_reg(ops[issub,2],
                         regdst.reglo,regsrc.reglo,tmpreg));
+{$ifndef newra}
                       cg.free_scratch_reg(list,tmpreg);
+{$else newra}                                                                   
+                      rg.ungetregisterint(list,tmpreg);
+{$endif newra}                                                                  
                       list.concat(taicpu.op_reg_reg(ops[issub,3],
                         regdst.reghi,regsrc.reghi));
                     end
                   else
                     begin
-                      tmpreg64.reglo := cg.get_scratch_reg_int(list,OS_INT);
-                      tmpreg64.reghi := cg.get_scratch_reg_int(list,OS_INT);
+{$ifndef newra}
+                      tmpreg64.reglo := cg.get_scratch_reg_int(list,OS_32);
+                      tmpreg64.reghi := cg.get_scratch_reg_int(list,OS_32);
+{$else newra}                                                                   
+                      tmpreg64.reglo := rg.getregisterint(list,OS_32);
+                      tmpreg64.reghi := rg.getregisterint(list,OS_32);
+{$endif newra}                                                                  
                       a_load64_const_reg(list,value,tmpreg64);
                       a_op64_reg_reg_reg(list,op,tmpreg64,regsrc,regdst);
+{$ifndef newra}
                       cg.free_scratch_reg(list,tmpreg64.reghi);
                       cg.free_scratch_reg(list,tmpreg64.reglo);
+{$else newra}
+                      rg.ungetregisterint(list,tmpreg64.reglo);
+                      rg.ungetregisterint(list,tmpreg64.reghi);  
+{$endif newra}
                     end
                 end
               else
@@ -2532,7 +2710,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.108  2003-06-13 21:19:31  peter
+  Revision 1.109  2003-06-14 22:32:43  jonas
+    * ppc compiles with -dnewra, haven't tried to compile anything with it
+      yet though
+
+  Revision 1.108  2003/06/13 21:19:31  peter
     * current_procdef removed, use current_procinfo.procdef instead
 
   Revision 1.107  2003/06/09 14:54:26  jonas

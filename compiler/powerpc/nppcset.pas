@@ -78,12 +78,20 @@ implementation
                 hregister,value))
             else
               begin
+{$ifndef newra}
                 tmpreg := cg.get_scratch_reg_int(exprasmlist,OS_INT);
-                cg.a_load_const_reg(exprasmlist,OS_INT,aword(value),tmpreg);
+{$else newra}         
+                tmpreg := rg.getregisterint(exprasmlist,OS_INT);
+{$endif newra}         
+                 cg.a_load_const_reg(exprasmlist,OS_INT,aword(value),tmpreg);
                 exprasmlist.concat(taicpu.op_reg_reg_reg(A_ADD_,hregister,
                   hregister,tmpreg));
+{$ifndef newra}
                 cg.free_scratch_reg(exprasmlist,tmpreg);
-              end;
+{$else newra}         
+                rg.ungetregisterint(exprasmlist,tmpreg);                                         
+{$endif newra}         
+               end;
           end;
 
         begin
@@ -159,7 +167,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.7  2003-02-19 22:00:16  daniel
+  Revision 1.8  2003-06-14 22:32:43  jonas
+    * ppc compiles with -dnewra, haven't tried to compile anything with it
+      yet though
+
+  Revision 1.7  2003/02/19 22:00:16  daniel
     * Code generator converted to new register notation
     - Horribily outdated todo.txt removed
 
