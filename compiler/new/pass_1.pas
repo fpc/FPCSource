@@ -202,7 +202,7 @@ implementation
          oldpos           : tfileposinfo;
 {$ifdef extdebug}
          str1,str2 : string;
-         oldp      : ptree;
+         oldp      : pnode;
          not_first : boolean;
 {$endif extdebug}
       begin
@@ -267,12 +267,14 @@ implementation
                 begin
                    comment(v_debug,'tree changed after first counting pass '
                      +tostr(longint(p^.treetype)));
-                   compare_trees(oldp,p);
+                   {!!!!!!! compare_trees(oldp,p); }
                 end;
               dispose(oldp);
            end;
+         {!!!!!!!
          if count_ref then
            inc(p^.firstpasscount);
+         }
 {$endif extdebug}
       end;
 
@@ -296,7 +298,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.1  1998-12-26 15:20:31  florian
+  Revision 1.2  1999-01-13 22:52:37  florian
+    + YES, finally the new code generator is compilable, but it doesn't run yet :(
+
+  Revision 1.1  1998/12/26 15:20:31  florian
     + more changes for the new version
 
 }

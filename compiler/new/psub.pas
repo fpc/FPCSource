@@ -48,7 +48,8 @@ uses
   strings,globals,verbose,comphook,files,
   scanner,aasm,tree,types,
   import,gendef,
-  hcodegen,temp_gen,pass_1,pass_2
+  convtree,
+  hcodegen,temp_gen,pass_1,pass_2,cgobj
 {$ifdef GDB}
   ,gdb
 {$endif GDB}
@@ -79,11 +80,10 @@ var
   filepos : tfileposinfo;
   p       : Pdef;
   vs      : Pvarsym;
-{$ifdef VALUEPARA}
   l       : longint;
-{$endif}
   hs1,hs2 : string;
   varspez : Tvarspez;
+
 begin
   consume(LKLAMMER);
   inc(testcurobject);
@@ -152,7 +152,7 @@ begin
      end
     else
      begin
-{$ifndef UseNiceNames}
+{$ifdef NoNiceNames}
        hs1:='$$$';
 {$else UseNiceNames}
        hs1:='var';
@@ -164,7 +164,7 @@ begin
      begin
        s:=sc^.get_with_tokeninfo(filepos);
        aktprocsym^.definition^.concatdef(p,varspez);
-{$ifndef UseNiceNames}
+{$ifdef NoNiceNames}
        hs2:=hs2+'$'+hs1;
 {$else UseNiceNames}
        hs2:=hs2+tostr(length(hs1))+hs1;
@@ -173,18 +173,6 @@ begin
        vs^.fileinfo:=filepos;
        vs^.varspez:=varspez;
      { we have to add this to avoid var param to be in registers !!!}
-{$ifndef VALUEPARA}
-       if (varspez in [vs_var,vs_const]) and dont_copy_const_param(p) then
-         vs^.var_options := vs^.var_options or vo_regable;
-     { search for duplicate ids in object members/methods    }
-     { but only the current class, I don't know why ...      }
-     { at least TP and Delphi do it in that way         (FK) }
-       if assigned(procinfo._class) and (lexlevel=normal_function_level) and
-          (procinfo._class^.publicsyms^.search(vs^.name)<>nil) then
-      {   (search_class_member(procinfo._class,vs^.name)<>nil) then }
-         Message1(sym_e_duplicate_id,vs^.name);
-       aktprocsym^.definition^.parast^.insert(vs);
-{$else}
        if (varspez in [vs_var,vs_const]) and push_addr_param(p) then
          vs^.var_options := vs^.var_options or vo_regable;
 
@@ -212,7 +200,6 @@ begin
          end
        else
          aktprocsym^.definition^.parast^.insert(vs);
-{$endif}
      end;
     dispose(sc,done);
     aktprocsym^.definition^.setmangledname(hs2);
@@ -1047,8 +1034,8 @@ begin
     end;
 end;
 
-procedure compile_proc_body(const proc_names:Tstringcontainer;
-                            make_global,parent_has_class:boolean);
+procedure compile_proc_body(const proc_names : tstringcontainer;
+                            make_global,parent_has_class : boolean);
 {
   Compile the body of a procedure
 }
@@ -1058,13 +1045,13 @@ var
    { switches can change inside the procedure }
    entryswitches, exitswitches : tlocalswitches;
    { code for the subroutine as tree }
-   code:ptree;
+   code : pnode;
    { size of the local strackframe }
-   stackframe:longint;
+   stackframe : longint;
    { true when no stackframe is required }
-   nostackframe:boolean;
+   nostackframe : boolean;
    { number of bytes which have to be cleared by RET }
-   parasize:longint;
+   parasize : longint;
    { filepositions }
    entrypos,
    savepos,
@@ -1131,9 +1118,10 @@ begin
 
    { parse the code ... }
    if (aktprocsym^.definition^.options and poassembler)<> 0 then
-     code:=assembler_block
+     code:=convtree2node(assembler_block)
    else
-     code:=block(current_module^.islibrary);
+     code:=convtree2node(block(current_module^.islibrary));
+
 
    { get a better entry point }
    if assigned(code) then
@@ -1181,14 +1169,14 @@ begin
    aktfilepos:=entrypos;
    aktlocalswitches:=entryswitches;
    if assigned(code) then
-     genentrycode(procinfo.aktentrycode,proc_names,make_global,stackframe,parasize,nostackframe,false);
+     cg^.g_entrycode(procinfo.aktentrycode,proc_names,make_global,stackframe,parasize,nostackframe,false);
 
    { now generate exit code with the correct position and switches }
    aktfilepos:=exitpos;
    aktlocalswitches:=exitswitches;
    if assigned(code) then
      begin
-       genexitcode(procinfo.aktexitcode,parasize,nostackframe,false);
+       cg^.g_exitcode(procinfo.aktexitcode,parasize,nostackframe,false);
        procinfo.aktproccode^.insertlist(procinfo.aktentrycode);
        procinfo.aktproccode^.concatlist(procinfo.aktexitcode);
 {$ifdef i386}
@@ -1259,7 +1247,7 @@ begin
 
     { remove code tree, if not inline procedure }
     if assigned(code) and ((aktprocsym^.definition^.options and poinline)=0) then
-      disposetree(code);
+      dispose(code,done);
 
    { remove class member symbol tables }
    while symtablestack^.symtabletype=objectsymtable do
@@ -1460,7 +1448,10 @@ end.
 
 {
   $Log$
-  Revision 1.1  1998-12-26 15:20:31  florian
+  Revision 1.2  1999-01-13 22:52:39  florian
+    + YES, finally the new code generator is compilable, but it doesn't run yet :(
+
+  Revision 1.1  1998/12/26 15:20:31  florian
     + more changes for the new version
 
 }

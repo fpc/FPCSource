@@ -199,6 +199,12 @@ unit tree;
             the node }
           procedure det_temp;virtual;
           procedure secondpass;virtual;
+{$ifdef EXTDEBUG}
+          { writes a node for debugging purpose, shouldn't be called }
+          { direct, because there is no test for nil, use writenode  }
+          { to write a complete tree                                 }
+          procedure dowrite;virtual;
+{$endif EXTDEBUG}
        end;
 
        ploadnode = ^tloadnode;
@@ -237,9 +243,9 @@ unit tree;
           resulttype : pdef;
           fileinfo : tfileposinfo;
           localswitches : tlocalswitches;
-{$ifdef extdebug}
+{$ifdef EXTDEBUG}
           firstpasscount : longint;
-{$endif extdebug}
+{$endif EXTDEBUG}
           case treetype : ttreetyp of
              addn : (use_strconcat : boolean;string_typ : tstringtype);
              callparan : (is_colon_para : boolean;exact_match_found : boolean);
@@ -275,6 +281,7 @@ unit tree;
           punarynode = ^tunarynode;
           tunarynode = object(tnode)
              left : pnode;
+             procedure dowrite;virtual;
           end;
 
           pbinarynode = ^tbinarynode;
@@ -287,6 +294,11 @@ unit tree;
              { is true, if the right and left operand are swaped }
              { against the original order                        }
              swaped : boolean;
+          end;
+
+          pblocknode = ^tblocknode;
+          tblocknode = object(tunarynode)
+            constructor init;
           end;
 
 {$ifdef dummy}
@@ -363,11 +375,14 @@ unit tree;
     function getnode : ptree;
     procedure set_file_line(from,_to : ptree);
     procedure set_tree_filepos(p : ptree;const filepos : tfileposinfo);
-{$ifdef extdebug}
+{$ifdef EXTDEBUG}
     procedure compare_trees(oldp,p : ptree);
     const
        maxfirstpasscount : longint = 0;
-{$endif extdebug}
+
+    { writes a complete tree, checks for nil }
+    procedure writenode(n : pnode);
+{$endif EXTDEBUG}
 
     { sets the callunique flag, if the node is a vecn, }
     { takes care of type casts etc.                    }
@@ -394,6 +409,20 @@ unit tree;
        systems,
        globals,verbose,files,types;
 
+{$ifdef EXTDEBUG}
+
+    const
+       indention : string = '';
+
+    procedure writenode(n : pnode);
+
+      begin
+         if assigned(n) then
+           n^.dowrite
+         else
+           writeln(indention,'nil');
+      end;
+{$endif EXTDEBUG}
 {****************************************************************************
                                  TNODE
  ****************************************************************************}
@@ -422,10 +451,10 @@ unit tree;
          if (location.loc in [LOC_MEM,LOC_REFERENCE]) and
             assigned(location.reference.symbol) then
            stringdispose(location.reference.symbol);
-{$ifdef extdebug}
+{$ifdef EXTDEBUG}
          if firstpasscount>maxfirstpasscount then
             maxfirstpasscount:=firstpasscount;
-{$endif extdebug}
+{$endif EXTDEBUG}
       end;
 
     procedure tnode.pass_1;
@@ -452,6 +481,95 @@ unit tree;
       begin
          abstract;
       end;
+
+{$ifdef EXTDEBUG}
+    procedure tnode.dowrite;
+
+      const treetype2str : array[ttreetyp] of string[20] = (
+          'addn',
+          'muln',
+          'subn',
+          'divn',
+          'symdifn',
+          'modn',
+          'assignn',
+          'loadn',
+          'rangen',
+          'ltn',
+          'lten',
+          'gtn',
+          'gten',
+          'equaln',
+          'unequaln',
+          'inn',
+          'orn',
+          'xorn',
+          'shrn',
+          'shln',
+          'slashn',
+          'andn',
+          'subscriptn',
+          'derefn',
+          'addrn',
+          'doubleaddrn',
+          'ordconstn',
+          'typeconvn',
+          'calln',
+          'callparan',
+          'realconstn',
+          'fixconstn',
+          'umminusn',
+          'asmn',
+          'vecn',
+          'stringconstn',
+          'funcretn',
+          'selfn',
+          'notn',
+          'inlinen',
+          'niln',
+          'errorn',
+          'typen',
+          'hnewn',
+          'hdisposen',
+          'newn',
+          'simpledisposen',
+          'setelementn',
+          'setconstn',
+          'blockn',
+          'statementn',
+          'loopn',
+          'ifn',
+          'breakn',
+          'continuen',
+          'repeatn',
+          'whilen',
+          'forn',
+          'exitn',
+          'withn',
+          'casen',
+          'labeln',
+          'goton',
+          'simplenewn',
+          'tryexceptn',
+          'raisen',
+          'switchesn',
+          'tryfinallyn',
+          'onn',
+          'isn',
+          'asn',
+          'caretn',
+          'failn',
+          'starstarn',
+          'procinlinen',
+          'arrayconstructn',
+          'arrayconstructrangen',
+          'nothingn',
+          'loadvmtn');
+
+      begin
+         write(indention,'(',treetype2str[treetype]);
+      end;
+{$endif EXTDEBUG}
 
 {****************************************************************************
                                  TLOADNODE
@@ -481,6 +599,31 @@ unit tree;
          inherited done;
          { method pointer load nodes can use the left subtree }
          { !!!!! dispose(left,done); }
+      end;
+
+{****************************************************************************
+                                 TUNARYNODE
+ ****************************************************************************}
+
+    procedure tunarynode.dowrite;
+
+      begin
+         inherited dowrite;
+         writeln(',');
+         writenode(left);
+         writeln(')');
+         dec(byte(indention[0]),2);
+      end;
+
+{****************************************************************************
+                                 TBLOCKNODE
+ ****************************************************************************}
+
+    constructor tblocknode.init;
+
+      begin
+         inherited init;
+         treetype:=blockn;
       end;
 
 {$ifdef dummy}
@@ -1775,7 +1918,10 @@ unit tree;
 end.
 {
   $Log$
-  Revision 1.2  1998-12-26 15:20:32  florian
+  Revision 1.3  1999-01-13 22:52:40  florian
+    + YES, finally the new code generator is compilable, but it doesn't run yet :(
+
+  Revision 1.2  1998/12/26 15:20:32  florian
     + more changes for the new version
 
   Revision 1.1  1998/12/15 22:21:53  florian

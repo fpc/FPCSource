@@ -50,10 +50,13 @@ unit cgobj;
           procedure g_copyvalueparas(p : psym);
 {$endif}
 
-          procedure g_entrycode(list : paasmoutput;const proc_names:tstringcontainer;make_global:boolean;
-                              stackframe:longint;
-                              var parasize:longint;var nostackframe:boolean;
-                              inlined : boolean);
+          procedure g_entrycode(list : paasmoutput;
+            const proc_names : tstringcontainer;make_global : boolean;
+            stackframe : longint;var parasize : longint;
+            var nostackframe : boolean;inlined : boolean);
+
+          procedure g_exitcode(list : paasmoutput;parasize : longint;
+            nostackframe,inlined : boolean);
 
           { string helper routines }
           procedure g_decransiref(const ref : treference);
@@ -723,6 +726,149 @@ unit cgobj;
   {$endif GDB}
     end;
 
+  procedure tcg.g_exitcode(list : paasmoutput;parasize:longint;nostackframe,inlined:boolean);
+{$ifdef GDB}
+    var
+       mangled_length : longint;
+       p : pchar;
+{$endif GDB}
+  begin
+{$ifdef dummy}
+      { !!!! insert there automatic destructors }
+      curlist:=list;
+      if aktexitlabel^.is_used then
+        list^.insert(new(pai_label,init(aktexitlabel)));
+
+      { call the destructor help procedure }
+      if (aktprocsym^.definition^.options and podestructor)<>0 then
+        begin
+          if procinfo._class^.isclass then
+            begin
+              list^.insert(new(pai386,op_csymbol(A_CALL,S_NO,
+                newcsymbol('FPC_DISPOSE_CLASS',0))));
+              concat_external('FPC_DISPOSE_CLASS',EXT_NEAR);
+            end
+          else
+            begin
+              list^.insert(new(pai386,op_csymbol(A_CALL,S_NO,
+                newcsymbol('FPC_HELP_DESTRUCTOR',0))));
+              list^.insert(new(pai386,op_const_reg(A_MOV,S_L,procinfo._class^.vmt_offset,R_EDI)));
+              concat_external('FPC_HELP_DESTRUCTOR',EXT_NEAR);
+            end;
+        end;
+
+      { finalize local data }
+      aktprocsym^.definition^.localst^.foreach(finalize_data);
+
+      { finalize paras data }
+      if assigned(aktprocsym^.definition^.parast) then
+        aktprocsym^.definition^.parast^.foreach(finalize_data);
+
+      { call __EXIT for main program }
+      if (not DLLsource) and (not inlined) and ((aktprocsym^.definition^.options and poproginit)<>0) then
+       begin
+         list^.concat(new(pai386,op_csymbol(A_CALL,S_NO,newcsymbol('FPC_DO_EXIT',0))));
+         concat_external('FPC_DO_EXIT',EXT_NEAR);
+       end;
+
+      { handle return value }
+      if (aktprocsym^.definition^.options and poassembler)=0 then
+          if (aktprocsym^.definition^.options and poconstructor)=0 then
+            handle_return_value(list,inlined)
+          else
+              begin
+                  { successful constructor deletes the zero flag }
+                  { and returns self in eax                      }
+                  list^.concat(new(pai_label,init(quickexitlabel)));
+                  { eax must be set to zero if the allocation failed !!! }
+                  list^.concat(new(pai386,op_reg_reg(A_MOV,S_L,R_ESI,R_EAX)));
+                  list^.concat(new(pai386,op_reg_reg(A_OR,S_L,R_EAX,R_EAX)));
+              end;
+
+      { stabs uses the label also ! }
+      if aktexit2label^.is_used or
+         ((cs_debuginfo in aktmoduleswitches) and not inlined) then
+        list^.concat(new(pai_label,init(aktexit2label)));
+      { gives problems for long mangled names }
+      {list^.concat(new(pai_symbol,init(aktprocsym^.definition^.mangledname+'_end')));}
+
+      { should we restore edi ? }
+      { for all i386 gcc implementations }
+      if ((aktprocsym^.definition^.options and pocdecl)<>0) then
+        begin
+          list^.insert(new(pai386,op_reg(A_POP,S_L,R_EDI)));
+          list^.insert(new(pai386,op_reg(A_POP,S_L,R_ESI)));
+          if (aktprocsym^.definition^.usedregisters and ($80 shr byte(R_EBX)))<>0 then
+           list^.insert(new(pai386,op_reg(A_POP,S_L,R_EBX)));
+          { here we could reset R_EBX
+            but that is risky because it only works
+            if genexitcode is called after genentrycode
+            so lets skip this for the moment PM
+          aktprocsym^.definition^.usedregisters:=
+            aktprocsym^.definition^.usedregisters or not ($80 shr byte(R_EBX));
+          }
+        end;
+
+      if not(nostackframe) and not inlined then
+          list^.concat(new(pai386,op_none(A_LEAVE,S_NO)));
+      { parameters are limited to 65535 bytes because }
+      { ret allows only imm16                         }
+      if (parasize>65535) and not(aktprocsym^.definition^.options and poclearstack<>0) then
+       CGMessage(cg_e_parasize_too_big);
+
+      { at last, the return is generated }
+
+      if not inlined then
+      if (aktprocsym^.definition^.options and pointerrupt)<>0 then
+          generate_interrupt_stackframe_exit
+      else
+       begin
+       {Routines with the poclearstack flag set use only a ret.}
+       { also routines with parasize=0           }
+         if (parasize=0) or (aktprocsym^.definition^.options and poclearstack<>0) then
+          list^.concat(new(pai386,op_none(A_RET,S_NO)))
+         else
+          list^.concat(new(pai386,op_const(A_RET,S_NO,parasize)));
+       end;
+
+{$ifdef GDB}
+      if (cs_debuginfo in aktmoduleswitches) and not inlined  then
+          begin
+              aktprocsym^.concatstabto(list);
+              if assigned(procinfo._class) then
+                  list^.concat(new(pai_stabs,init(strpnew(
+                   '"$t:v'+procinfo._class^.numberstring+'",'+
+                   tostr(N_PSYM)+',0,0,'+tostr(procinfo.esi_offset)))));
+
+              if (porddef(aktprocsym^.definition^.retdef) <> voiddef) then
+                if ret_in_param(aktprocsym^.definition^.retdef) then
+                  list^.concat(new(pai_stabs,init(strpnew(
+                   '"'+aktprocsym^.name+':X*'+aktprocsym^.definition^.retdef^.numberstring+'",'+
+                   tostr(N_PSYM)+',0,0,'+tostr(procinfo.retoffset)))))
+                else
+                  list^.concat(new(pai_stabs,init(strpnew(
+                   '"'+aktprocsym^.name+':X'+aktprocsym^.definition^.retdef^.numberstring+'",'+
+                   tostr(N_PSYM)+',0,0,'+tostr(procinfo.retoffset)))));
+
+              mangled_length:=length(aktprocsym^.definition^.mangledname);
+              getmem(p,mangled_length+50);
+              strpcopy(p,'192,0,0,');
+              strpcopy(strend(p),aktprocsym^.definition^.mangledname);
+              list^.concat(new(pai_stabn,init(strnew(p))));
+              {list^.concat(new(pai_stabn,init(strpnew('192,0,0,'
+               +aktprocsym^.definition^.mangledname))));
+              p[0]:='2';p[1]:='2';p[2]:='4';
+              strpcopy(strend(p),'_end');}
+              freemem(p,mangled_length+50);
+              list^.concat(new(pai_stabn,init(
+                strpnew('224,0,0,'+lab2str(aktexit2label)))));
+               { strpnew('224,0,0,'
+               +aktprocsym^.definition^.mangledname+'_end'))));}
+          end;
+{$endif GDB}
+      curlist:=nil;
+{$endif dummy}
+  end;
 {*****************************************************************************
                        some abstract definitions
  ****************************************************************************}
@@ -779,7 +925,10 @@ unit cgobj;
 end.
 {
   $Log$
-  Revision 1.3  1998-12-26 15:20:30  florian
+  Revision 1.4  1999-01-13 22:52:36  florian
+    + YES, finally the new code generator is compilable, but it doesn't run yet :(
+
+  Revision 1.3  1998/12/26 15:20:30  florian
     + more changes for the new version
 
   Revision 1.2  1998/12/15 22:18:55  florian
