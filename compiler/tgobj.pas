@@ -427,11 +427,10 @@ unit tgobj;
 
 
     procedure ttgobj.GetTemp(list: taasmoutput; size : longint;temptype:ttemptype;var ref : treference);
-      begin
-         FillChar(ref,sizeof(treference),0);
-         ref.base:=procinfo.framepointer;
-         ref.offset:=AllocTemp(list,size,temptype);
-      end;
+    
+    begin
+      reference_reset_base(ref,procinfo.framepointer,alloctemp(list,size,temptype));
+    end;
 
 
     function ttgobj.istemp(const ref : treference) : boolean;
@@ -543,7 +542,10 @@ finalization
 end.
 {
   $Log$
-  Revision 1.23  2003-01-08 18:43:57  daniel
+  Revision 1.24  2003-02-03 23:07:39  daniel
+    * Made gettemp use intended procedure for setting reference
+
+  Revision 1.23  2003/01/08 18:43:57  daniel
    * Tregister changed into a record
 
   Revision 1.22  2002/12/01 18:58:26  carl
