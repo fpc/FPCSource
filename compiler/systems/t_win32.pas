@@ -1006,7 +1006,7 @@ begin
   AsBinStr:=FindUtil(utilsprefix+'as');
   if RelocSection then
    { Using short form to avoid problems with 128 char limitation under Dos. }
-   RelocStr:='--base_file base.$$$';
+   RelocStr:='--base-file base.$$$';
   if apptype=app_gui then
    AppTypeStr:='--subsystem windows';
   if assigned(DLLImageBase) then
@@ -1622,7 +1622,10 @@ initialization
 end.
 {
   $Log$
-  Revision 1.24  2003-12-08 22:37:04  peter
+  Revision 1.25  2003-12-09 19:54:59  marco
+   * base-file instead of base_file
+
+  Revision 1.24  2003/12/08 22:37:04  peter
     * base_file instead of b
 
   Revision 1.23  2003/10/10 17:48:14  peter
