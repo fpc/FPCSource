@@ -173,7 +173,7 @@ function EnsureRange(const AValue, AMin, AMax: Double): Double;
 
 
 procedure DivMod(Dividend: Integer; Divisor: Word;  var Result, Remainder: Word);
-  
+
 
 // Sign functions
 Type
@@ -619,15 +619,16 @@ function lnxp1(x : float) : float;
 function power(base,exponent : float) : float;
 
   begin
-    If Exponent=0.0 then
-      Result:=1.0
+    if Exponent=0.0 then
+      result:=1.0
+    else if (base=0.0) and (exponent>0.0) then
+      result:=0.0
+    else if (abs(exponent)<=maxint) and (frac(exponent)=0.0) then
+      result:=intpower(base,trunc(exponent))
+    else if base>0.0 then
+      result:=exp(exponent * ln (base))
     else
-      If base>0.0 then
-        Power:=exp(exponent * ln (base))
-      else if base=0.0 then
-        Result:=0.0
-      else
-        InvalidArgument
+      InvalidArgument;
   end;
 
 function intpower(base : float;const exponent : Integer) : float;
@@ -1338,7 +1339,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.23  2004-07-25 16:46:08  michael
+  Revision 1.24  2004-12-04 23:38:59  florian
+    * fixed power(float,float) for negative exponents
+
+  Revision 1.23  2004/07/25 16:46:08  michael
   + Implemented DivMod
 
   Revision 1.22  2004/05/29 12:28:59  florian
