@@ -35,6 +35,18 @@ ifndef PP
 PP=ppc386
 endif
 
+# first try go32v2 specific gdate
+DATE=$(strip $(wildcard $(addsuffix /gdate.exe,$(subst ;, ,$(PATH)))))
+
+# try generic date.exe
+ifeq ($(DATE),)
+DATE=$(strip $(wildcard $(addsuffix /date.exe,$(subst :, ,$(PATH)))))
+endif
+
+# finally try for linux
+ifeq ($(DATE),)
+DATE=$(strip $(wildcard $(addsuffix /date,$(subst :, ,$(PATH)))))
+endif
 
 #####################################################################
 # Setup Targets
@@ -181,7 +193,7 @@ endif
 PPDEFS:=-d$(CPU) -dGDB -dFPC
 
 # Set the needed compiler options
-PPOPTS:=$(OPT) $(PPDEFS) -Sg -T$(TARGET)
+PPOPTS:=$(OPT) $(LOCALOPT) $(PPDEFS) -Sg -T$(TARGET)
 
 # for win32 create at least 8 mb heap
 ifdef Win32
@@ -230,13 +242,40 @@ MSGFILES:=$(wildcard *.msg)
 	 diff diff3 patch rtl toflor replacediff3 restorediff3 \
 	 test rtlzip rtlclean \
 
+# also call ppas if with command option -s 
+ifeq (,$(findstring -s ,$(COMPILER)))
+EXECPPAS=
+else
+EXECPPAS=@ppas
+endif
+
 .pas.ppu:
 	$(COMPILER) $<
+	$(EXECPPAS)
 
 .pas$(EXEEXT):
 	$(COMPILER) $<
+	$(EXECPPAS)
+
 
 all : $(EXENAME)
+#	@echo Start $(STARTTIME) now $(ENDTIME)
+# does not work because $(ENDTIME) is expanded
+# before execution !!
+	$(MAKE) echotime
+
+ifeq ($(MAKELEVEL),0)
+ifndef STARTTIME
+STARTTIME:=$(shell $(DATE) +%T)
+endif
+endif
+
+export STARTTIME
+
+ENDTIME=$(shell $(DATE) +%T)
+
+echotime:
+	@echo Start $(STARTTIME) now $(ENDTIME)
 
 ifndef DIFFRESULT
 next :
@@ -251,7 +290,7 @@ next :
 endif
 
 clean :
-	-rm -f *.o *.ppu *.s $(EXENAME)
+	-rm -f *.o *.ppu *.ppw *.s $(EXENAME)
 
 distclean: clean
 	-rm -f $(TEMPNAME) $(TEMPNAME1) $(TEMPNAME2) $(TEMPNAME3)
@@ -261,12 +300,14 @@ distclean: clean
 #####################################################################
 
 info :
-	@echo - Target is $(TARGET)
-	@echo - Basedir is $(BASEDIR)
-	@echo - Unitdir is $(UNITDIR)
-	@echo - Pascal files are $(PASFILES)
-	@echo - Inc files are $(INCFILES)
-	@echo - Msg files are $(MSGFILES)
+	@echo Target is $(TARGET)
+	@echo Basedir is $(BASEDIR)
+	@echo Unitdir is $(UNITDIR)
+	@echo Compiler is $(COMPILER)
+	@echo Execppas is $(EXECPPAS)
+	@echo Pascal files are $(PASFILES)
+	@echo Inc files are $(INCFILES)
+	@echo Msg files are $(MSGFILES)
 
 #####################################################################
 # Include depencies (linux only)
@@ -296,10 +337,12 @@ msg: msgtxt.inc
 # Make only the compiler
 ifdef inlinux
 $(EXENAME) : $(PPEXENAME)
+	$(EXECPPAS)
 	$(REPLACE) $(PPEXENAME) $(EXENAME)
 else
 $(EXENAME) : $(PASFILES) $(INCFILES) $(MSGFILES)
 	$(COMPILER) pp.pas
+	$(EXECPPAS)
 	$(REPLACE) $(PPEXENAME) $(EXENAME)
 endif
 
@@ -334,6 +377,7 @@ cycle:
 	$(MAKE) -C $(UNITDIR) clean
 	$(MAKE) -C $(UNITDIR)
 	$(MAKE) remake3
+	$(MAKE) echotime
 
 ansirtl:
 	$(MAKE) -C $(UNITDIR) clean
@@ -445,21 +489,29 @@ diffclean :
 	-del *.new
 
 rtl :
-	make -C $(UNITDIR) all
+	$(MAKE) -C $(UNITDIR) all
 
 rtlclean :
-	make -C $(UNITDIR) clean
+	$(MAKE) -C $(UNITDIR) clean
 
 # just a quick way to get ppc68k
 $(M68KEXENAME):
-	make clean
+	$(MAKE) clean
 	$(PP) -uI386 -uSUPPORT_MMX -dm68k -o$(M68KEXENAME) pp
-	make clean
+	$(MAKE) clean
+
+test:
+	@echo time is $(STARTTIME) date.exe is $(DATE)
 
 # Test of log at the end
 # does CVS add # at start of each line ??
 # $Log$
-# Revision 1.28  1998-08-29 13:52:30  peter
+# Revision 1.29  1998-09-02 08:51:30  pierre
+#   + added -s support must be defined as LOCALOPT
+#     because it does not work for rtl building
+#   + added some compilation time info
+#
+# Revision 1.28  1998/08/29 13:52:30  peter
 #   + new messagefile
 #   * merged optione.msg into errore.msg
 #
