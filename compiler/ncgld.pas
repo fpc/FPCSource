@@ -71,8 +71,10 @@ implementation
 
     procedure tcgloadnode.generate_picvaraccess;
       begin
+{$ifndef sparc}
         location.reference.base:=current_procinfo.got;
         location.reference.symbol:=objectlibrary.newasmsymbol(tglobalvarsym(symtableentry).mangledname+'@GOT',AB_EXTERNAL,AT_DATA);
+{$endif sparc}
       end;
 
 
@@ -235,7 +237,8 @@ implementation
                               globalsymtable,
                               staticsymtable :
                                 begin
-                                  if cs_create_pic in aktmoduleswitches then
+                                  if (target_info.system=system_powerpc_darwin) and
+                                    (cs_create_pic in aktmoduleswitches) then
                                     begin
                                       generate_picvaraccess;
                                       if not(pi_needs_got in current_procinfo.flags) then
@@ -951,7 +954,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.135  2005-01-04 16:37:09  peter
+  Revision 1.136  2005-01-23 17:14:21  florian
+    + optimized code generation on sparc
+    + some stuff for pic code on sparc added
+
+  Revision 1.135  2005/01/04 16:37:09  peter
     * don't release temps for array of ansistring
 
   Revision 1.134  2004/12/18 15:48:27  florian

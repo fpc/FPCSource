@@ -354,6 +354,10 @@ implementation
 {$ifdef SUPPORT_MMX}
          registersmmx:=0;
 {$endif SUPPORT_MMX}
+         if (cs_create_pic in aktmoduleswitches) and
+           not(symtableentry.typ in [paravarsym,localvarsym]) then
+           include(current_procinfo.flags,pi_needs_got);
+
          case symtableentry.typ of
             absolutevarsym :
               ;
@@ -1177,7 +1181,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.142  2004-12-26 16:21:39  peter
+  Revision 1.143  2005-01-23 17:14:21  florian
+    + optimized code generation on sparc
+    + some stuff for pic code on sparc added
+
+  Revision 1.142  2004/12/26 16:21:39  peter
     * resourcestring does not need exception frame
 
   Revision 1.141  2004/12/07 13:52:54  michael

@@ -56,16 +56,19 @@ implementation
                  else if offset<0 then
                    GetReferenceString:=GetReferenceString+ToStr(offset);
                  case refaddr of
-                   addr_hi :
+                   addr_hi:
                      GetReferenceString:='%hi('+GetReferenceString+')';
-                   addr_lo :
+                   addr_lo:
                      GetReferenceString:='%lo('+GetReferenceString+')';
                  end;
               end
             else
               begin
-                if assigned(symbol) then
+{$ifdef extdebug}
+                if assigned(symbol) and
+                  not(refaddr in [addr_pic,addr_lo]) then
                   internalerror(2003052601);
+{$endif extdebug}
                 if base<>NR_NO then
                   GetReferenceString:=GetReferenceString+gas_regname(base);
                 if index=NR_NO then
@@ -76,11 +79,24 @@ implementation
                       GetReferenceString:=GetReferenceString+'+'+ToStr(offset)
                     else if offset<0 then
                       GetReferenceString:=GetReferenceString+ToStr(offset);
+                    {
+                    else if (offset=0) and not(assigned(symbol)) then
+                      GetReferenceString:=GetReferenceString+ToStr(offset);
+                    }
+                    if assigned(symbol) then
+                      begin
+                        if refaddr=addr_lo then
+                          GetReferenceString:='%lo('+symbol.name+')+'+GetReferenceString
+                        else
+                          GetReferenceString:=symbol.name+'+'+GetReferenceString;
+                      end;
                   end
                 else
                   begin
-                    if Offset<>0 then
+{$ifdef extdebug}
+                    if (Offset<>0) or assigned(symbol) then
                       internalerror(2003052603);
+{$endif extdebug}
                     GetReferenceString:=GetReferenceString+'+'+gas_regname(index);
                   end;
               end;
@@ -97,7 +113,8 @@ implementation
             top_const:
               getopstr:=tostr(longint(val));
             top_ref:
-              if Oper.ref^.refaddr=addr_no then
+              if (oper.ref^.refaddr in [addr_no,addr_pic]) or ((oper.ref^.refaddr=addr_lo) and ((oper.ref^.base<>NR_NO) or
+                (oper.ref^.index<>NR_NO))) then
                 getopstr:='['+getreferencestring(ref^)+']'
               else
                 getopstr:=getreferencestring(ref^);
@@ -189,7 +206,11 @@ begin
 end.
 {
     $Log$
-    Revision 1.30  2004-10-31 21:45:04  peter
+    Revision 1.31  2005-01-23 17:14:21  florian
+      + optimized code generation on sparc
+      + some stuff for pic code on sparc added
+
+    Revision 1.30  2004/10/31 21:45:04  peter
       * generic tlocation
       * move tlocation to cgutils
 
