@@ -133,6 +133,11 @@ unit cgai386;
     procedure genexitcode(alist : paasmoutput;parasize:longint;
                           nostackframe,inlined:boolean);
 
+    { if a unit doesn't have a explicit init/final code,  }
+    { we've to generate one, if the units has ansistrings }
+    { in the interface or implementation                  }
+    procedure genimplicitunitfinal(alist : paasmoutput);
+    procedure genimplicitunitinit(alist : paasmoutput);
 {$ifdef test_dest_loc}
 
 const
@@ -3827,7 +3832,41 @@ procedure mov_reg_to_dest(p : ptree; s : topsize; reg : tregister);
       exprasmlist:=oldexprasmlist;
   end;
 
+    procedure genimplicitunitfinal(alist : paasmoutput);
 
+      begin
+         { using current_module^.globalsymtable is hopefully      }
+         { more robust than symtablestack and symtablestack^.next }
+         psymtable(current_module^.globalsymtable)^.foreach({$ifndef TP}@{$endif}finalize_data);
+         psymtable(current_module^.localsymtable)^.foreach({$ifndef TP}@{$endif}finalize_data);
+         exprasmlist^.insert(new(pai_symbol,initname_global('FINALIZE$$'+current_module^.modulename^,0)));
+         exprasmlist^.insert(new(pai_symbol,initname_global(target_os.cprefix+current_module^.modulename^+'_finalize',0)));
+{$ifdef GDB}
+         if (cs_debuginfo in aktmoduleswitches) and
+           target_os.use_function_relative_addresses then
+           exprasmlist^.insert(new(pai_stab_function_name,init(strpnew('FINALIZE$$'+current_module^.modulename^))));
+{$endif GDB}
+         exprasmlist^.concat(new(paicpu,op_none(A_RET,S_NO)));
+         alist^.concatlist(exprasmlist);
+      end;
+
+    procedure genimplicitunitinit(alist : paasmoutput);
+
+      begin
+         { using current_module^.globalsymtable is hopefully      }
+         { more robust than symtablestack and symtablestack^.next }
+         psymtable(current_module^.globalsymtable)^.foreach({$ifndef TP}@{$endif}finalize_data);
+         psymtable(current_module^.localsymtable)^.foreach({$ifndef TP}@{$endif}finalize_data);
+         exprasmlist^.insert(new(pai_symbol,initname_global('INIT$$'+current_module^.modulename^,0)));
+         exprasmlist^.insert(new(pai_symbol,initname_global(target_os.cprefix+current_module^.modulename^+'_init',0)));
+{$ifdef GDB}
+         if (cs_debuginfo in aktmoduleswitches) and
+           target_os.use_function_relative_addresses then
+           exprasmlist^.insert(new(pai_stab_function_name,init(strpnew('INIT$$'+current_module^.modulename^))));
+{$endif GDB}
+         exprasmlist^.concat(new(paicpu,op_none(A_RET,S_NO)));
+         alist^.concatlist(exprasmlist);
+      end;
 
 {$ifdef test_dest_loc}
        procedure mov_reg_to_dest(p : ptree; s : topsize; reg : tregister);
@@ -3855,7 +3894,12 @@ procedure mov_reg_to_dest(p : ptree; s : topsize; reg : tregister);
 end.
 {
   $Log$
-  Revision 1.92  2000-04-01 14:18:45  peter
+  Revision 1.93  2000-04-02 10:18:18  florian
+    * bug 701 fixed: ansistrings in interface and implementation part of the units
+      are now finalized correctly even if there are no explicit initialization/
+      finalization statements
+
+  Revision 1.92  2000/04/01 14:18:45  peter
     * use arraydef.elesize instead of elementtype.def.size
 
   Revision 1.91  2000/03/31 22:56:46  pierre

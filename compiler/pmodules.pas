@@ -49,6 +49,9 @@ unit pmodules;
        cgbase,
 {$else newcg}
        hcodegen,
+{$ifdef i386}
+       cgai386,
+{$endif i386}
 {$endif newcg}
        link,assemble,import,export,gendef,ppu,comprsrc,
        cresstr,cpubase,cpuasm,
@@ -1203,6 +1206,16 @@ unit pmodules;
          force_init_final:=needs_init_final(current_module^.globalsymtable)
            or needs_init_final(current_module^.localsymtable);
 
+         { should we force unit initialization? }
+         { this is a hack, but how can it be done better ? }
+         if force_init_final and ((current_module^.flags and uf_init)=0) then
+           begin
+              current_module^.flags:=current_module^.flags or uf_init;
+              { now we can insert a cut }
+              if (cs_create_smart in aktmoduleswitches) then
+                codesegment^.concat(new(pai_cut,init));
+              genimplicitunitinit(codesegment);
+           end;
          { finalize? }
          if token=_FINALIZATION then
            begin
@@ -1229,6 +1242,14 @@ unit pmodules;
               names.done;
 {$endif fixLeaksOnError}
               codegen_doneprocedure;
+           end
+         else if force_init_final then
+           begin
+              current_module^.flags:=current_module^.flags or uf_finalize;
+              { now we can insert a cut }
+              if (cs_create_smart in aktmoduleswitches) then
+                codesegment^.concat(new(pai_cut,init));
+              genimplicitunitfinal(codesegment);
            end;
 
          { the last char should always be a point }
@@ -1639,7 +1660,12 @@ unit pmodules;
 end.
 {
   $Log$
-  Revision 1.186  2000-03-01 15:36:11  florian
+  Revision 1.187  2000-04-02 10:18:18  florian
+    * bug 701 fixed: ansistrings in interface and implementation part of the units
+      are now finalized correctly even if there are no explicit initialization/
+      finalization statements
+
+  Revision 1.186  2000/03/01 15:36:11  florian
     * some new stuff for the new cg
 
   Revision 1.185  2000/02/09 13:22:57  peter
