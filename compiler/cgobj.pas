@@ -170,7 +170,7 @@ unit cgobj;
              This routine must be overriden for each new target cpu.
           }
           procedure a_call_name(list : taasmoutput;const s : string);virtual; abstract;
-          procedure a_call_ref(list : taasmoutput;const ref : treference);virtual; abstract;
+          procedure a_call_ref(list : taasmoutput;const ref : treference);virtual;abstract;
 
           { move instructions }
           procedure a_load_const_reg(list : taasmoutput;size : tcgsize;a : aword;register : tregister);virtual; abstract;
@@ -1396,7 +1396,10 @@ finalization
 end.
 {
   $Log$
-  Revision 1.39  2002-07-28 15:56:00  jonas
+  Revision 1.40  2002-07-29 21:16:02  florian
+    * some more ppc fixes
+
+  Revision 1.39  2002/07/28 15:56:00  jonas
     + tcg64.a_op64_const_reg_reg() and tcg64.a_op64_reg_reg_reg() methods +
       generic implementation
 
