@@ -881,7 +881,6 @@ implementation
       procedure readparentclasses;
 
         begin
-
            { reads the parent class }
            if token=_LKLAMMER then
              begin
@@ -1157,7 +1156,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.8  2000-11-06 20:30:55  peter
+  Revision 1.9  2000-11-06 23:05:52  florian
+    * more fixes
+
+  Revision 1.8  2000/11/06 20:30:55  peter
     * more fixes to get make cycle working
 
   Revision 1.7  2000/11/04 18:03:57  florian

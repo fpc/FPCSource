@@ -4055,6 +4055,9 @@ Const local_symtable_index : longint = $8001;
    constructor tobjectdef.init(ot : tobjectdeftype;const n : string;c : pobjectdef);
      begin
         inherited init;
+        objecttype:=ot;
+        writeln(byte(ot));
+        writeln(byte(objecttype));
         deftype:=objectdef;
         objectoptions:=[];
         childof:=nil;
@@ -4068,7 +4071,6 @@ Const local_symtable_index : longint = $8001;
         set_parent(c);
         objname:=stringdup(n);
         lastvtableindex:=0;
-        objecttype:=ot;
 
         { set up guid }
         isiidguidvalid:=true; { default null guid }
@@ -5521,7 +5523,10 @@ Const local_symtable_index : longint = $8001;
 end.
 {
   $Log$
-  Revision 1.5  2000-11-06 20:30:55  peter
+  Revision 1.6  2000-11-06 23:05:52  florian
+    * more fixes
+
+  Revision 1.5  2000/11/06 20:30:55  peter
     * more fixes to get make cycle working
 
   Revision 1.4  2000/11/04 14:25:22  florian
