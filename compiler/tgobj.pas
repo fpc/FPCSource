@@ -103,8 +103,8 @@ unit tgobj;
           procedure ungetiftemp(list: taasmoutput; const ref : treference);
 
           { Allocate space for a local }
-          procedure getlocal(list: taasmoutput; size : longint;def:tdef;var ref : tparareference);
-          procedure UnGetLocal(list: taasmoutput; const ref : tparareference);
+          procedure getlocal(list: taasmoutput; size : longint;def:tdef;var ref : treference);
+          procedure UnGetLocal(list: taasmoutput; const ref : treference);
        end;
 
      var
@@ -159,19 +159,41 @@ unit tgobj;
     procedure ttgobj.resettempgen;
       var
          hp : ptemprecord;
+{$ifdef EXTDEBUG}
+         currpos,
+         lastpos : longint;
+{$endif EXTDEBUG}
       begin
+{$ifdef EXTDEBUG}
+        lastpos:=lasttemp;
+{$endif EXTDEBUG}
         { Clear the old templist }
         while assigned(templist) do
          begin
 {$ifdef EXTDEBUG}
            if not(templist^.temptype in FreeTempTypes) then
-            begin
-              Comment(V_Warning,'tgobj: (ResetTempgen) temp at pos '+tostr(templist^.pos)+
-                      ' with size '+tostr(templist^.size)+' and type '+TempTypeStr[templist^.temptype]+
-                      ' from pos '+tostr(templist^.posinfo.line)+':'+tostr(templist^.posinfo.column)+
-                      ' not freed at the end of the procedure');
-            end;
-{$endif}
+             begin
+               Comment(V_Warning,'tgobj: (ResetTempgen) temp at pos '+tostr(templist^.pos)+
+                       ' with size '+tostr(templist^.size)+' and type '+TempTypeStr[templist^.temptype]+
+                       ' from pos '+tostr(templist^.posinfo.line)+':'+tostr(templist^.posinfo.column)+
+                       ' not freed at the end of the procedure');
+             end;
+           if direction=1 then
+             currpos:=templist^.pos+templist^.size
+           else
+             currpos:=templist^.pos;
+           if currpos<>lastpos then
+             begin
+               Comment(V_Warning,'tgobj: (ResetTempgen) temp at pos '+tostr(templist^.pos)+
+                       ' with size '+tostr(templist^.size)+' and type '+TempTypeStr[templist^.temptype]+
+                       ' from pos '+tostr(templist^.posinfo.line)+':'+tostr(templist^.posinfo.column)+
+                       ' was expected at position '+tostr(lastpos));
+             end;
+           if direction=1 then
+             lastpos:=templist^.pos
+           else
+             lastpos:=templist^.pos+templist^.size;
+{$endif EXTDEBUG}
            hp:=templist;
            templist:=hp^.next;
            dispose(hp);
@@ -200,7 +222,7 @@ unit tgobj;
 
     function ttgobj.AllocTemp(list: taasmoutput; size,alignment : longint; temptype : ttemptype;def : tdef) : longint;
       var
-         tl,
+         tl,htl,
          bestslot,bestprev,
          hprev,hp : ptemprecord;
          bestsize : longint;
@@ -275,36 +297,45 @@ unit tgobj;
             if bestsize=size then
              begin
                tl:=bestslot;
-               tl^.temptype:=temptype;
-               tl^.def:=def;
                { Remove from the tempfreelist }
                if assigned(bestprev) then
                  bestprev^.nextfree:=tl^.nextfree
                else
                  tempfreelist:=tl^.nextfree;
-               tl^.nextfree:=nil;
              end
             else
              begin
-               { Resize the old block }
-               dec(bestslot^.size,size);
-               { Create new block and link after bestslot }
+               { Duplicate bestlost and the block in the list }
                new(tl);
-               tl^.temptype:=temptype;
-               tl^.def:=def;
-               if direction=1 then
-                 begin
-                   tl^.pos:=bestslot^.pos;
-                   inc(bestslot^.pos,size);
-                 end
-               else
-                 tl^.pos:=bestslot^.pos+bestslot^.size;
-               tl^.size:=size;
-               tl^.nextfree:=nil;
-               { link the new block }
+               move(bestslot^,tl^,sizeof(ttemprecord));
                tl^.next:=bestslot^.next;
                bestslot^.next:=tl;
+               { Now we split the block in 2 parts. Depending on the direction
+                 we need to resize the newly inserted block or the old reused block.
+                 For direction=1 we can use tl for the new block. For direction=-1 we
+                 will be reusing bestslot and resize the new block, that means we need
+                 to swap the pointers }
+               if direction=-1 then
+                 begin
+                   htl:=tl;
+                   tl:=bestslot;
+                   bestslot:=htl;
+                   { Update the tempfreelist to point to the new block }
+                   if assigned(bestprev) then
+                     bestprev^.nextfree:=bestslot
+                   else
+                     tempfreelist:=bestslot;
+                 end;
+               { Create new block and resize the old block }
+               tl^.size:=size;
+               tl^.nextfree:=nil;
+               { Resize the old block }
+               dec(bestslot^.size,size);
+               inc(bestslot^.pos,size);
              end;
+            tl^.temptype:=temptype;
+            tl^.def:=def;
+            tl^.nextfree:=nil;
           end
          else
           begin
@@ -404,7 +435,6 @@ unit tgobj;
                else
                 begin
                   hp^.nextfree:=tempfreelist;
-
                   tempfreelist:=hp;
                 end;
                { Concat blocks when the next block is free and
@@ -558,18 +588,21 @@ unit tgobj;
       end;
 
 
-    procedure ttgobj.getlocal(list: taasmoutput; size : longint;def:tdef;var ref : tparareference);
+    procedure ttgobj.getlocal(list: taasmoutput; size : longint;def:tdef;var ref : treference);
       var
         varalign : longint;
       begin
         varalign:=def.alignment;
         varalign:=used_align(varalign,aktalignment.localalignmin,aktalignment.localalignmax);
-        ref.index:=current_procinfo.framepointer;
+        { can't use reference_reset_base, because that will let tgobj depend
+          on cgobj (PFV) }
+        fillchar(ref,sizeof(ref),0);
+        ref.base:=current_procinfo.framepointer;
         ref.offset:=alloctemp(list,size,varalign,tt_persistent,nil);
       end;
 
 
-    procedure ttgobj.UnGetLocal(list: taasmoutput; const ref : tparareference);
+    procedure ttgobj.UnGetLocal(list: taasmoutput; const ref : treference);
       begin
         FreeTemp(list,ref.offset,[tt_persistent]);
       end;
@@ -578,7 +611,17 @@ unit tgobj;
 end.
 {
   $Log$
-  Revision 1.45  2004-06-20 08:55:30  florian
+  Revision 1.46  2004-09-20 07:32:02  jonas
+    * fixed crashes on direction=1 systems (mainly by Peter)
+
+  Revision 1.45.4.2  2004/09/07 20:52:10  peter
+    * fix resizing of bestslot to preserve alignment for the returned
+      block
+
+  Revision 1.45.4.1  2004/08/31 20:43:06  peter
+    * paraloc patch
+
+  Revision 1.45  2004/06/20 08:55:30  florian
     * logs truncated
 
   Revision 1.44  2004/06/16 20:07:10  florian
