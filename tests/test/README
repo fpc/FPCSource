@@ -51,6 +51,8 @@ Range checking ........ trange1.pp     range checking when converting int64/
                         trange2.pp     range checking when converting
                                        between longint and cardinal
                         trange3.pp     range checking for array
+                        trange4.pp     range checking when assigning
+                                       values to int64/qword
 Random ................ trandom.pp     tests random (interactive)
 Floating Point ........ tfpu1.pp
                         tfpu2.pp
