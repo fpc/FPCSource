@@ -6,7 +6,7 @@ unit dbtests;
 Interface
 
 Uses
-  mysql,testu;
+  mysql3,testu;
 
 { ---------------------------------------------------------------------
   High-level access
