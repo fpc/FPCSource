@@ -1,4 +1,4 @@
-{$mode delphi}
+{$ifdef fpc}{$mode delphi}{$endif}
 
 type
 parent = class
@@ -13,5 +13,10 @@ begin
 inherited;
 end;
 
+var
+  o : child;
 begin
+  o:=child.create;
+  o.test;
+  o.free;
 end.
