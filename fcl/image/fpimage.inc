@@ -304,7 +304,7 @@ begin
     then
       begin
         FPalette := TFPPalette.Create (0);
-        FPalette.Add (colTransparent);    
+        // FPalette.Add (colTransparent);
       end
     else
       begin
@@ -378,6 +378,7 @@ end;
 
 constructor TFPMemoryImage.Create (AWidth,AHeight:integer);
 begin
+  Fdata := nil;
   inherited create (AWidth,AHeight);
 {Default behavior is to use palette as suggested by Michael}
   SetUsePalette(True);
@@ -476,13 +477,16 @@ begin
     then
       begin
         FPalette:=TFPPalette.Create(0);
-        FPalette.Add(colTransparent);    
-        OldColors:=PFPColorArray(FData);
-        GetMem(FData,FWidth*FHeight*SizeOf(Integer));
-        for r:=0 to FHeight-1 do
-          for c:=0 to FWidth-1 do
-            Colors[c,r]:=OldColors^[r*FWidth+c];
-        FreeMem(OldColors);
+        //FPalette.Add(colTransparent);
+        if assigned(FData) then
+          begin
+          OldColors:=PFPColorArray(FData);
+          GetMem(FData,FWidth*FHeight*SizeOf(Integer));
+          for r:=0 to FHeight-1 do
+            for c:=0 to FWidth-1 do
+              Colors[c,r]:=OldColors^[r*FWidth+c];
+          FreeMem(OldColors);
+          end;
       end
     else
       begin

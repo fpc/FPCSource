@@ -14,7 +14,7 @@
 
  **********************************************************************}
 
-function FillOtherBits (initial:word;CorrectBits:byte):word;
+{function FillOtherBits (initial:word;CorrectBits:byte):word;
 var r,c : byte;
 begin
   c := 16 div CorrectBits;
@@ -27,7 +27,19 @@ function ShiftAndFill (initial:word; CorrectBits:byte):word;
 begin
   result := FillOtherBits (initial shl (16-correctbits), correctbits);
 end;
+}
+function CalculateGray (const from : TFPcolor) : word;
+var temp : longword;
+begin
+  with GrayConvMatrix do
+    temp := round(red*from.red + green*from.green + blue*from.blue);
+  if temp > $ffff then
+    result := $ffff
+  else
+    result := temp;
+end;
 
+(*
 type
   TColorBits = array [0..3] of TColorData;
      // 0:alpha, 1:red, 2:green, 3:blue
@@ -113,6 +125,7 @@ function ConvertColor (const From : TColorData; FromFmt:TColorFormat) : TFPColor
     result := SetGrayScale (value);
     result.alpha := alphaOpaque;
   end;
+var m : qword;
 begin
   case FromFmt of
     cfMono : result := SetGrayScaleA (ShiftAndFill(From,1));
@@ -160,12 +173,41 @@ begin
   result := ConvertColor (From.data, From.Fmt)
 end;
 
-function CalculateGray (const c : TFPcolor; Bits:byte) : TColorData;
+const BitMasks : array[1..32] of longword =
+    ($8000000, $C000000, $E000000, $F000000,
+     $F800000, $FC00000, $FE00000, $FF00000,
+     $FF80000, $FFC0000, $FFE0000, $FFF0000,
+     $FFF8000, $FFFC000, $FFFE000, $FFFF000,
+     $FFFF800, $FFFFC00, $FFFFE00, $FFFFF00,
+     $FFFFF80, $FFFFFC0, $FFFFFE0, $FFFFFF0,
+     $FFFFFF8, $FFFFFFC, $FFFFFFE, $FFFFFFF,
+     $FFFFFFF, $FFFFFFF, $FFFFFFF, $FFFFFFF);
+
+procedure PrepareBitMasks;
+{ Putting the correct bits in the array (problem with constants in compiler 1.0)}
+var r : integer;
 begin
-  // MG: ToDo
-  raise FPImageException.create ('Not yet implemented');
-  if (c.alpha=0) or (Bits=0) then ;
-  Result:=0;
+  for r := 1 to 32 do
+    BitMasks[r] := BitMasks[r] shl 4;
+  inc (BitMasks[29], $8);
+  inc (BitMasks[30], $C);
+  inc (BitMasks[31], $E);
+  inc (BitMasks[32], $F);
+end;
+
+function CalculateGray (const c : TFPcolor; Bits:byte) : TColorData;
+var temp : longword;
+begin
+  with GrayConvMatrix do
+    temp := round(red*c.red + green*c.green + blue*c.blue);
+  result := temp;
+  //temp := temp + (result shl 16);
+  //result := temp and BitMasks[Bits];
+  {if not (c = colBlack) then
+    with c do
+      //writeln ('red:',red,' - green:',green,' - blue:',blue, ' : result=',result);
+      writeln (format('red:%4x - green:%4x - blue:%4x => result:%4x',[integer(red),
+               integer(green),integer(blue),integer(result)]));}
 end;
 
 function CalculateGrayA (const c : TFPcolor; Bits:byte) : TColorData;
@@ -217,6 +259,8 @@ begin
       result := MakeSample(From.blue, sb[3], cb[3]) or
                 MakeSample(From.red, sb[1], cb[1]) or
                 MakeSample(From.green, sb[2], cb[2]);
+      with From do
+        writeln (red,',',green,',',blue,',',result);
       end;
     cfRGBA8,cfRGBA16,cfRGBA32,cfRGBA64,
     cfABGR8,cfABGR16,cfABGR32,cfABGR64 :
@@ -249,6 +293,7 @@ begin
   result.Fmt := Fmt;
   result.data := ConvertColorToData (From, Fmt);
 end;
+*)
 
 function CompareColors(const Color1, Color2: TFPColor): integer;
 begin

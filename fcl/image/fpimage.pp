@@ -251,15 +251,20 @@ type
       property TypeNames [index:integer] : string read GetTypeName;
     end;
 
-function ShiftAndFill (initial:word; CorrectBits:byte):word;
+{function ShiftAndFill (initial:word; CorrectBits:byte):word;
 function FillOtherBits (initial:word;CorrectBits:byte):word;
+}
+function CalculateGray (const From : TFPColor) : word;
+(*
 function ConvertColor (const From : TDeviceColor) : TFPColor;
 function ConvertColor (const From : TColorData; FromFmt:TColorFormat) : TFPColor;
 function ConvertColorToData (const From : TFPColor; Fmt : TColorFormat) : TColorData;
 function ConvertColorToData (const From : TDeviceColor; Fmt : TColorFormat) : TColorData;
 function ConvertColor (const From : TFPColor; Fmt : TColorFormat) : TDeviceColor;
 function ConvertColor (const From : TDeviceColor; Fmt : TColorFormat) : TDeviceColor;
+*)
 function FPColor (r,g,b,a:word) : TFPColor;
+function FPColor (r,g,b:word) : TFPColor;
 {$ifdef debug}function MakeHex (n:TColordata;nr:byte): string;{$endif}
 
 operator = (const c,d:TFPColor) : boolean;
@@ -311,6 +316,20 @@ const
 
 {$i FPColors.inc}
 
+type
+  TGrayConvMatrix = record
+    red, green, blue : single;
+  end;
+
+var
+  GrayConvMatrix : TGrayConvMatrix;
+
+const
+  GCM_NTSC : TGrayConvMatrix = (red:0.299; green:0.587; blue:0.114);
+  GCM_JPEG : TGrayConvMatrix = (red:0.299; green:0.587; blue:0.114);
+  GCM_Mathematical : TGrayConvMatrix = (red:0.334; green:0.333; blue:0.333);
+  GCM_Photoshop : TGrayConvMatrix = (red:0.213; green:0.715; blue:0.072);
+
 implementation
 
 procedure FPImgError (Fmt:TErrorTextIndices; data : array of const);
@@ -327,6 +346,17 @@ end;
 {$i FPHandler.inc}
 {$i FPPalette.inc}
 {$i FPColCnv.inc}
+
+function FPColor (r,g,b:word) : TFPColor;
+begin
+  with result do
+    begin
+    red := r;
+    green := g;
+    blue := b;
+    alpha := alphaOpaque;
+    end;
+end;
 
 function FPColor (r,g,b,a:word) : TFPColor;
 begin
@@ -391,12 +421,15 @@ end;
 
 initialization
   ImageHandlers := TImageHandlersManager.Create;
-  ColorBits [cfRGB48,1] := ColorBits [cfRGB48,1] shl 16;
+  GrayConvMatrix := GCM_JPEG;
+  // Following lines are here because the compiler 1.0 can't work with int64 constants
+(*  ColorBits [cfRGB48,1] := ColorBits [cfRGB48,1] shl 16;
   ColorBits [cfRGBA64,1] := ColorBits [cfRGBA64,1] shl 32;
   ColorBits [cfRGBA64,2] := ColorBits [cfRGBA64,2] shl 16;
   ColorBits [cfABGR64,0] := ColorBits [cfABGR64,0] shl 32;
   ColorBits [cfABGR64,3] := ColorBits [cfABGR64,3] shl 16;
   ColorBits [cfBGR48,3] := ColorBits [cfBGR48,3] shl 16;
+  PrepareBitMasks;*)
 
 finalization
   ImageHandlers.Free;

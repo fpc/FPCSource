@@ -24,6 +24,7 @@ uses
 Type
 
   TSetPixelProc = procedure (x,y:integer; CD : TColordata) of object;
+  TConvertColorProc = function (CD:TColorData) : TFPColor of object;
 
   TFPReaderPNG = class (TFPCustomImageReader)
     private
@@ -39,14 +40,26 @@ Type
       BitsUsed : EightLong; // bitmasks to use to split a byte into smaller parts
       BitShift : byte;  // shift right to do of the bits extracted with BitsUsed for 1 element
       CountBitsUsed : byte;  // number of bit groups (1 pixel) per byte (when bytewidth = 1)
-      CFmt : TColorFormat; // format of the colors to convert from
+      //CFmt : TColorFormat; // format of the colors to convert from
       StartX,StartY, DeltaX,DeltaY, StartPass,EndPass : integer;  // number and format of passes
       FSwitchLine, FCurrentLine, FPreviousLine : pByteArray;
       FPalette : TFPPalette;
       FSetPixel : TSetPixelProc;
+      FConvertColor : TConvertColorProc;
       procedure ReadChunk;
       procedure HandleData;
       procedure HandleUnknown;
+      function ColorGray1 (CD:TColorData) : TFPColor;
+      function ColorGray2 (CD:TColorData) : TFPColor;
+      function ColorGray4 (CD:TColorData) : TFPColor;
+      function ColorGray8 (CD:TColorData) : TFPColor;
+      function ColorGray16 (CD:TColorData) : TFPColor;
+      function ColorGrayAlpha8 (CD:TColorData) : TFPColor;
+      function ColorGrayAlpha16 (CD:TColorData) : TFPColor;
+      function ColorColor8 (CD:TColorData) : TFPColor;
+      function ColorColor16 (CD:TColorData) : TFPColor;
+      function ColorColorAlpha8 (CD:TColorData) : TFPColor;
+      function ColorColorAlpha16 (CD:TColorData) : TFPColor;
     protected
       UseTransparent, EndOfFile : boolean;
       TransparentDataValue : TColorData;
@@ -73,7 +86,8 @@ Type
       function DecideSetPixel : TSetPixelProc; virtual;
       procedure InternalRead  (Str:TStream; Img:TFPCustomImage); override;
       function  InternalCheck (Str:TStream) : boolean; override;
-      property ColorFormat : TColorformat read CFmt;
+      //property ColorFormat : TColorformat read CFmt;
+      property ConvertColor : TConvertColorProc read FConvertColor;
       property CurrentPass : byte read FCurrentPass;
       property Pltte : boolean read FPltte;
       property ThePalette : TFPPalette read FPalette;
@@ -218,6 +232,7 @@ end;
 procedure TFPReaderPNG.HandlePalette;
 var r : longword;
     c : TFPColor;
+    t : word;
 begin
   if header.colortype = 3 then
     with chunk do
@@ -225,7 +240,7 @@ begin
       if TheImage.UsePalette then
         FPalette := TheImage.Palette
       else
-        FPalette := TFPPalette.Create(1);
+        FPalette := TFPPalette.Create(0);
       c.Alpha := AlphaOpaque;
       if (aLength mod 3) > 0 then
         raise PNGImageException.Create ('Impossible length for PLTE-chunk');
@@ -233,11 +248,14 @@ begin
       ThePalette.count := 0;
       while r < alength do
         begin
-        c.red := ShiftAndFill(data^[r], 8);
+        t := data^[r];
+        c.red := t + (t shl 8);
         inc (r);
-        c.green := ShiftAndFill(data^[r], 8);
+        t := data^[r];
+        c.green := t + (t shl 8);
         inc (r);
-        c.blue := ShiftAndFill(data^[r], 8);
+        t := data^[r];
+        c.blue := t + (t shl 8);
         inc (r);
         ThePalette.Add (c);
         end;
@@ -246,7 +264,7 @@ end;
 
 procedure TFPReaderPNG.SetPalettePixel (x,y:integer; CD : TColordata);
 begin  // both PNG and palette have palette
-  TheImage.Pixels[x,y] := CD
+  TheImage.Pixels[x,y] := CD;
 end;
 
 procedure TFPReaderPNG.SetPalColPixel (x,y:integer; CD : TColordata);
@@ -257,14 +275,16 @@ end;
 procedure TFPReaderPNG.SetColorPixel (x,y:integer; CD : TColordata);
 var c : TFPColor;
 begin  // both PNG and Img work without palette, and no transparency colordata
-  c := ConvertColor (CD,CFmt);
+  // c := ConvertColor (CD,CFmt);
+  c := ConvertColor (CD);
   TheImage.Colors[x,y] := c;
 end;
 
 procedure TFPReaderPNG.SetColorTrPixel (x,y:integer; CD : TColordata);
 var c : TFPColor;
 begin  // both PNG and Img work without palette, and there is a transparency colordata
-  c := ConvertColor (CD,CFmt);
+  //c := ConvertColor (CD,CFmt);
+  c := ConvertColor (CD);
   if TransparentDataValue = CD then
     c.alpha := alphaTransparent;
   TheImage.Colors[x,y] := c;
@@ -397,10 +417,6 @@ begin
     if UsingBitGroup >= CountBitsUsed then
       UsingBitGroup := 0;
     end
-{    else if bytewidth = 2 then
-    result := DataBytes shr 16
-  else if bytewidth = 3 then
-    result := Databytes shr 8}
   else
     result := Databytes;
 end;
@@ -417,6 +433,160 @@ begin
     c := CalcColor;
     FSetPixel (x,y,c);
     end
+end;
+
+function TFPReaderPNG.ColorGray1 (CD:TColorDAta) : TFPColor;
+begin
+  if CD = 0 then
+    result := colBlack
+  else
+    result := colWhite;
+end;
+
+function TFPReaderPNG.ColorGray2 (CD:TColorDAta) : TFPColor;
+var c : word;
+begin
+  c := CD and 3;
+  c := c + (c shl 2);
+  c := c + (c shl 4);
+  c := c + (c shl 8);
+  with result do
+    begin
+    red := c;
+    green := c;
+    blue := c;
+    alpha := alphaOpaque;
+    end;
+end;
+
+function TFPReaderPNG.ColorGray4 (CD:TColorDAta) : TFPColor;
+var c : word;
+begin
+  c := CD and $F;
+  c := c + (c shl 4);
+  c := c + (c shl 8);
+  with result do
+    begin
+    red := c;
+    green := c;
+    blue := c;
+    alpha := alphaOpaque;
+    end;
+end;
+
+function TFPReaderPNG.ColorGray8 (CD:TColorDAta) : TFPColor;
+var c : word;
+begin
+  c := CD and $FF;
+  c := c + (c shl 8);
+  with result do
+    begin
+    red := c;
+    green := c;
+    blue := c;
+    alpha := alphaOpaque;
+    end;
+end;
+
+function TFPReaderPNG.ColorGray16 (CD:TColorDAta) : TFPColor;
+var c : word;
+begin
+  c := CD and $FFFF;
+  with result do
+    begin
+    red := c;
+    green := c;
+    blue := c;
+    alpha := alphaOpaque;
+    end;
+end;
+
+function TFPReaderPNG.ColorGrayAlpha8 (CD:TColorData) : TFPColor;
+var c : word;
+begin
+  c := CD and $FF00;
+  c := c + (c shr 8);
+  with result do
+    begin
+    red := c;
+    green := c;
+    blue := c;
+    c := CD and $FF;
+    alpha := c + (c shl 8);
+    end;
+end;
+
+function TFPReaderPNG.ColorGrayAlpha16 (CD:TColorData) : TFPColor;
+var c : word;
+begin
+  c := (CD and qword($FFFF0000)) shr 16;
+  with result do
+    begin
+    red := c;
+    green := c;
+    blue := c;
+    alpha := CD and $FFFF;
+    end;
+end;
+
+function TFPReaderPNG.ColorColor8 (CD:TColorData) : TFPColor;
+var c : word;
+begin
+  with result do
+    begin
+    c := CD and $FF;
+    red := c + (c shl 8);
+    c := CD and $FF00;
+    green := c + (c shr 8);
+    c := (CD and $FF0000) shr 8;
+    blue := c + (c shr 8);
+    alpha := alphaOpaque;
+    end;
+end;
+
+function TFPReaderPNG.ColorColor16 (CD:TColorData) : TFPColor;
+var c : qword;
+begin
+  with result do
+    begin
+    red := CD and $FFFF;
+    c := qword($FFFF0000);
+    green := (CD and c) shr 16;
+    c := c shl 16;
+    blue := (CD and c) shr 32;
+    alpha := alphaOpaque;
+    end;
+end;
+
+function TFPReaderPNG.ColorColorAlpha8 (CD:TColorData) : TFPColor;
+var c : qword;
+begin
+  with result do
+    begin
+    c := CD and $FF;
+    red := c + (c shl 8);
+    c := CD and $FF00;
+    green := c + (c shr 8);
+    c := (CD and $FF0000) shr 8;
+    blue := c + (c shr 8);
+    c := (CD and qword($FF000000)) shr 16;
+    alpha := c + (c shr 8);
+    end;
+end;
+
+function TFPReaderPNG.ColorColorAlpha16 (CD:TColorData) : TFPColor;
+var c : qword;
+begin
+  with result do
+    begin
+    red := CD and $FFFF;
+    c := qword($FFFF0000);
+    green := (CD and c) shr 16;
+    c := c shl 16;
+    blue := (CD and c) shr 32;
+    c := c shl 16;
+    alpha := (CD and c) shr 48;
+    end;
 end;
 
 procedure TFPReaderPNG.DoDecompress;
@@ -452,33 +622,70 @@ procedure TFPReaderPNG.DoDecompress;
       Fpltte := (ColorType = 3);
       case colortype of
         0 : case Bitdepth of
-              1  : CFmt := cfMono;
-              2  : CFmt := cfGray2;
-              4  : CFmt := cfGray4;
-              8  : CFmt := cfGray8;
-              16 : CFmt := cfGray16;
+              1  : begin
+                   FConvertColor := @ColorGray1; //CFmt := cfMono;
+                   ByteWidth := 1;
+                   end;
+              2  : begin
+                   FConvertColor := @ColorGray2; //CFmt := cfGray2;
+                   ByteWidth := 1;
+                   end;
+              4  : begin
+                   FConvertColor := @ColorGray4; //CFmt := cfGray4;
+                   ByteWidth := 1;
+                   end;
+              8  : begin
+                   FConvertColor := @ColorGray8; //CFmt := cfGray8;
+                   ByteWidth := 1;
+                   end;
+              16 : begin
+                   FConvertColor := @ColorGray16; //CFmt := cfGray16;
+                   ByteWidth := 2;
+                   end;
             end;
         2 : if BitDepth = 8 then
-              CFmt := cfBGR24
+              begin
+              FConvertColor := @ColorColor8; //CFmt := cfBGR24
+              ByteWidth := 3;
+              end
             else
-              CFmt := cfBGR48;
+              begin
+              FConvertColor := @ColorColor16; //CFmt := cfBGR48;
+              ByteWidth := 6;
+              end;
+        3 : if BitDepth = 16 then
+              ByteWidth := 2
+            else
+              ByteWidth := 1;
         4 : if BitDepth = 8 then
-              CFmt := cfGrayA16
+              begin
+              FConvertColor := @ColorGrayAlpha8; //CFmt := cfGrayA16
+              ByteWidth := 2;
+              end
             else
-              CFmt := cfGrayA32;
+              begin
+              FConvertColor := @ColorGrayAlpha16; //CFmt := cfGrayA32;
+              ByteWidth := 4;
+              end;
         6 : if BitDepth = 8 then
-              CFmt := cfABGR32
+              begin
+              FConvertColor := @ColorColorAlpha8; //CFmt := cfABGR32
+              ByteWidth := 4;
+              end
             else
-              CFmt := cfABGR64;
+              begin
+              FConvertColor := @ColorColorAlpha16; //CFmt := cfABGR64;
+              ByteWidth := 8;
+              end;
       end;
-      ByteWidth := BytesNeeded[CFmt];
+      //ByteWidth := BytesNeeded[CFmt];
       case BitDepth of
-        1 :begin
+        1 : begin
             CountBitsUsed := 8;
             BitShift := 1;
             BitsUsed := BitsUsed1Depth;
             end;
-        2 :begin
+        2 : begin
             CountBitsUsed := 4;
             BitShift := 2;
             BitsUsed := BitsUsed2Depth;

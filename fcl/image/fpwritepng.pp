@@ -24,6 +24,8 @@ type
 
   TGetPixelFunc = function (x,y : LongWord) : TColorData of object;
 
+  TColorFormatFunction = function (color:TFPColor) : TColorData of object;
+
   TFPWriterPNG = class (TFPCustomImageWriter)
     private
       FUsetRNS, FCompressedText, FWordSized, FIndexed,
@@ -31,6 +33,7 @@ type
       FByteWidth : byte;
       FChunk : TChunk;
       CFmt : TColorFormat; // format of the colors to convert from
+      FFmtColor : TColorFormatFunction;
       FTransparentColor : TFPColor;
       FSwitchLine, FCurrentLine, FPreviousLine : pByteArray;
       FPalette : TFPPalette;
@@ -68,11 +71,20 @@ type
       procedure DetermineHeader (var AHeader : THeaderChunk); virtual;
       function DetermineFilter (Current, Previous:PByteArray; linelength:longword):byte; virtual;
       procedure FillScanLine (y : integer; ScanLine : pByteArray); virtual;
+      function ColorDataGrayB(color:TFPColor) : TColorData;
+      function ColorDataColorB(color:TFPColor) : TColorData;
+      function ColorDataGrayW(color:TFPColor) : TColorData;
+      function ColorDataColorW(color:TFPColor) : TColorData;
+      function ColorDataGrayAB(color:TFPColor) : TColorData;
+      function ColorDataColorAB(color:TFPColor) : TColorData;
+      function ColorDataGrayAW(color:TFPColor) : TColorData;
+      function ColorDataColorAW(color:TFPColor) : TColorData;
       property ChunkDataBuffer : pByteArray read FChunk.data;
       property UsetRNS : boolean read FUsetRNS;
       property SingleTransparentColor : TFPColor read FTransparentColor;
       property ThePalette : TFPPalette read FPalette;
       property ColorFormat : TColorformat read CFmt;
+      property ColorFormatFunc : TColorFormatFunction read FFmtColor;
       property byteWidth : byte read FByteWidth;
       property DatalineLength : longword read FDatalineLength;
     public
@@ -318,21 +330,53 @@ var c : integer;
     with AHeader do
       case colortype of
         0 : if FWordSized then
-              CFmt := cfGray16
+              begin
+              FFmtColor := @ColorDataGrayW;
+              FByteWidth := 2;
+              //CFmt := cfGray16
+              end
             else
-              CFmt := cfGray8;
+              begin
+              FFmtColor := @ColorDataGrayB;
+              FByteWidth := 1;
+              //CFmt := cfGray8;
+              end;
         2 : if FWordSized then
-              CFmt := cfBGR48
+              begin
+              FFmtColor := @ColorDataColorW;
+              FByteWidth := 6;
+              //CFmt := cfBGR48
+              end
             else
-              CFmt := cfBGR24;
+              begin
+              FFmtColor := @ColorDataColorB;
+              FByteWidth := 3;
+              //CFmt := cfBGR24;
+              end;
         4 : if FWordSized then
-              CFmt := cfGrayA32
+              begin
+              FFmtColor := @ColorDataGrayAW;
+              FByteWidth := 4;
+              //CFmt := cfGrayA32
+              end
             else
-              CFmt := cfGrayA16;
+              begin
+              FFmtColor := @ColorDataGrayAB;
+              FByteWidth := 2;
+              //CFmt := cfGrayA16;
+              end;
         6 : if FWordSized then
-              CFmt := cfABGR64
+              begin
+              FFmtColor := @ColorDataColorAW;
+              FByteWidth := 8;
+              //CFmt := cfABGR64
+              end
             else
-              CFmt := cfABGR32;
+              begin
+              FFmtColor := @ColorDataColorAB;
+              FByteWidth := 4;
+              //CFmt := cfABGR32;
+              end;
       end;
   end;
 begin
@@ -374,7 +418,6 @@ begin
       else
         BitDepth := 8;
       DetermineColorFormat;
-      FByteWidth := BytesNeeded[CFmt];
       end;
     Compression := 0;
     Filter := 0;
@@ -395,9 +438,62 @@ begin
   WriteChunk;
 end;
 
+{ Color convertions }
+
+function TFPWriterPNG.ColorDataGrayB(color:TFPColor) : TColorData;
+var t : word;
+begin
+  t := CalculateGray (color);
+  result := hi(t);
+end;
+
+function TFPWriterPNG.ColorDataGrayW(color:TFPColor) : TColorData;
+begin
+  result := CalculateGray (color);
+end;
+
+function TFPWriterPNG.ColorDataGrayAB(color:TFPColor) : TColorData;
+begin
+  result := ColorDataGrayB (color);
+  result := (result shl 8) and hi(color.Alpha);
+end;
+
+function TFPWriterPNG.ColorDataGrayAW(color:TFPColor) : TColorData;
+begin
+  result := ColorDataGrayW (color);
+  result := (result shl 16) and color.Alpha;
+end;
+
+function TFPWriterPNG.ColorDataColorB(color:TFPColor) : TColorData;
+begin
+  with color do
+    result := hi(red) + (green and $FF00) + (hi(blue) shl 16);
+end;
+
+function TFPWriterPNG.ColorDataColorW(color:TFPColor) : TColorData;
+begin
+  with color do
+    result := red + (green shl 16) + (blue shl 32);
+end;
+
+function TFPWriterPNG.ColorDataColorAB(color:TFPColor) : TColorData;
+begin
+  with color do
+    result := hi(red) + (green and $FF00) + (hi(blue) shl 16) + (hi(alpha) shl 24);
+end;
+
+function TFPWriterPNG.ColorDataColorAW(color:TFPColor) : TColorData;
+begin
+  with color do
+    result := red + (green shl 16) + (blue shl 32) + (alpha shl 48);
+end;
+
+{ Data making routines }
+
 function TFPWriterPNG.GetColorPixel (x,y:longword) : TColorData;
 begin
-  result := ConvertColorToData(TheImage.Colors[x,y],CFmt);
+  result := FFmtColor (TheImage[x,y]);
+  //result := ConvertColorToData(TheImage.Colors[x,y],CFmt);
 end;
 
 function TFPWriterPNG.GetPalettePixel (x,y:longword) : TColorData;
@@ -565,9 +661,9 @@ procedure TFPWriterPNG.WritetRNS;
   begin
     SetChunkLength(2);
     if WordSized then
-      g := ConvertColorToData (SingleTransparentColor, cfGray16)
+      g := CalculateGray (SingleTransparentColor)
     else
-      g := ConvertColorToData (SingleTransparentColor, cfGray8);
+      g := hi (CalculateGray(SingleTransparentColor));
     g := swap (g);
     move (g,ChunkDataBuffer^[0],2);
     WriteChunk;

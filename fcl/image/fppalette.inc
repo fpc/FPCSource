@@ -23,7 +23,7 @@ begin
   else
     FData := nil;
   FCapacity := ACount;
-  SetCount (ACount);
+  SetCount (0);
 end;
 
 destructor TFPPalette.destroy;
