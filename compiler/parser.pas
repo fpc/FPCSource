@@ -64,7 +64,7 @@ unit parser;
       cg386,
   {$endif i386}
 {$endif newcg}
-      tree,scanner,pbase,pdecl,psystem,pmodules;
+      comphook,tree,scanner,pbase,pdecl,psystem,pmodules;
 
 
     procedure initparser;
@@ -412,6 +412,12 @@ unit parser;
                AsmRes.WriteToDisk;
              end;
 
+{$ifdef USEEXCEPT}
+         if not longjump_used then
+{$endif USEEXCEPT}
+         { do not create browsers on errors !! }
+         if status.errorcount=0 then
+            begin
 {$ifdef BrowserLog}
           { Write Browser Log }
             if (cs_browser_log in aktglobalswitches) and
@@ -431,7 +437,7 @@ unit parser;
           { Write Browser Collections }
             CreateBrowserCol;
 {$endif}
-
+             end;
           (* Obsolete code aktprocsym
              is disposed by the localsymtable disposal (PM)
           { Free last aktprocsym }
@@ -456,7 +462,10 @@ unit parser;
 end.
 {
   $Log$
-  Revision 1.74  1999-05-27 19:44:41  peter
+  Revision 1.75  1999-06-15 13:23:48  pierre
+   * don't generate browser if errors during compilation
+
+  Revision 1.74  1999/05/27 19:44:41  peter
     * removed oldasm
     * plabel -> pasmlabel
     * -a switches to source writing automaticly
