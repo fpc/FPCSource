@@ -424,8 +424,10 @@ implementation
         else
           procname := procname + 'qword';
 }
-        result := ccallnode.createintern(procname,ccallparanode.create(left,
-          ccallparanode.create(right,nil)));
+        { this order of parameters works at least for the arm,
+          however it should work for any calling conventions (FK) }
+        result := ccallnode.createintern(procname,ccallparanode.create(right,
+          ccallparanode.create(left,nil)));
         left := nil;
         right := nil;
         firstpass(result);
@@ -839,7 +841,12 @@ begin
 end.
 {
   $Log$
-  Revision 1.54  2003-12-09 21:17:04  jonas
+  Revision 1.55  2004-01-23 15:12:49  florian
+    * fixed generic shl/shr operations
+    + added register allocation hook calls for arm specific operand types:
+      register set and shifter op
+
+  Revision 1.54  2003/12/09 21:17:04  jonas
     + support for evaluating qword constant expressions (both arguments have
       to be a qword, constants have to be explicitly typecasted to qword)
 

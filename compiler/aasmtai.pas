@@ -1728,6 +1728,8 @@ implementation
                 begin
                   new(shifterop);
                   shifterop^:=o.shifterop^;
+                  if assigned(add_reg_instruction_hook) then
+                    add_reg_instruction_hook(self,shifterop^.rs);
                 end;
 {$endif ARM}
              end;
@@ -1946,7 +1948,12 @@ implementation
 end.
 {
   $Log$
-  Revision 1.64  2004-01-12 16:37:59  peter
+  Revision 1.65  2004-01-23 15:12:49  florian
+    * fixed generic shl/shr operations
+    + added register allocation hook calls for arm specific operand types:
+      register set and shifter op
+
+  Revision 1.64  2004/01/12 16:37:59  peter
     * moved spilling code from taicpu to rg
 
   Revision 1.63  2003/12/28 16:20:09  jonas

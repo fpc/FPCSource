@@ -109,11 +109,15 @@ implementation
               end;
             shifterop^:=so;
             typ:=top_shifterop;
+            if assigned(add_reg_instruction_hook) then
+              add_reg_instruction_hook(self,shifterop^.rs);
           end;
       end;
 
 
     procedure taicpu.loadregset(opidx:longint;const s:tcpuregisterset);
+      var
+        i : byte;
       begin
         allocate_oper(opidx+1);
         with oper[opidx]^ do
@@ -123,6 +127,11 @@ implementation
            new(regset);
            regset^:=s;
            typ:=top_regset;
+           for i:=RS_R0 to RS_R15 do
+             begin
+               if assigned(add_reg_instruction_hook) and (i in regset^) then
+                 add_reg_instruction_hook(self,newreg(R_INTREGISTER,i,R_SUBWHOLE));
+             end;
          end;
       end;
 
@@ -409,7 +418,12 @@ implementation
 end.
 {
   $Log$
-  Revision 1.22  2004-01-21 19:01:03  florian
+  Revision 1.23  2004-01-23 15:12:49  florian
+    * fixed generic shl/shr operations
+    + added register allocation hook calls for arm specific operand types:
+      register set and shifter op
+
+  Revision 1.22  2004/01/21 19:01:03  florian
     * fixed handling of max. distance of pc relative symbols
 
   Revision 1.21  2004/01/20 21:02:55  florian

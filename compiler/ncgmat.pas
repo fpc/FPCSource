@@ -446,8 +446,6 @@ implementation
               }
               if right.location.loc<>LOC_REGISTER then
                 begin
-                  if right.location.loc<>LOC_CREGISTER then
-                   location_release(exprasmlist,right.location);
                   hcountreg:=cg.getintregister(exprasmlist,OS_INT);
                   freescratch := true;
                   cg.a_load_loc_reg(exprasmlist,right.location.size,right.location,hcountreg);
@@ -455,6 +453,8 @@ implementation
               else
                 hcountreg:=right.location.register;
               cg.a_op_reg_reg(exprasmlist,op,OS_INT,hcountreg,location.register);
+              if right.location.loc<>LOC_REGISTER then
+                location_release(exprasmlist,right.location);
               if freescratch then
                 cg.ungetregister(exprasmlist,hcountreg);
            end;
@@ -524,7 +524,12 @@ begin
 end.
 {
   $Log$
-  Revision 1.24  2004-01-20 12:59:37  florian
+  Revision 1.25  2004-01-23 15:12:49  florian
+    * fixed generic shl/shr operations
+    + added register allocation hook calls for arm specific operand types:
+      register set and shifter op
+
+  Revision 1.24  2004/01/20 12:59:37  florian
     * common addnode code for x86-64 and i386
 
   Revision 1.23  2003/12/06 01:15:22  florian
