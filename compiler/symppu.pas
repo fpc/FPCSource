@@ -70,10 +70,34 @@ implementation
 
 
     procedure tcompilerppufile.getposinfo(var p:tfileposinfo);
+      var
+        info : byte;
       begin
-        p.fileindex:=getword;
-        p.line:=getlongint;
-        p.column:=getword;
+        {
+          info byte layout in bits:
+          0-1 - amount of bytes for fileindex
+          2-3 - amount of bytes for line
+          4-5 - amount of bytes for column
+        }
+        info:=getbyte;
+        case (info and $03) of
+         0 : p.fileindex:=getbyte;
+         1 : p.fileindex:=getword;
+         2 : p.fileindex:=(getbyte shl 16) or getword;
+         3 : p.fileindex:=getlongint;
+        end;
+        case ((info shr 2) and $03) of
+         0 : p.line:=getbyte;
+         1 : p.line:=getword;
+         2 : p.line:=(getbyte shl 16) or getword;
+         3 : p.line:=getlongint;
+        end;
+        case ((info shr 4) and $03) of
+         0 : p.column:=getbyte;
+         1 : p.column:=getword;
+         2 : p.column:=(getbyte shl 16) or getword;
+         3 : p.column:=getlongint;
+        end;
       end;
 
 
@@ -156,13 +180,78 @@ implementation
     procedure tcompilerppufile.putposinfo(const p:tfileposinfo);
       var
         oldcrc : boolean;
+        info   : byte;
       begin
         { posinfo is not relevant for changes in PPU }
         oldcrc:=do_crc;
         do_crc:=false;
-        putword(p.fileindex);
-        putlongint(p.line);
-        putword(p.column);
+        {
+          info byte layout in bits:
+          0-1 - amount of bytes for fileindex
+          2-3 - amount of bytes for line
+          4-5 - amount of bytes for column
+        }
+        info:=0;
+        { calculate info byte }
+        if (p.fileindex>$ff) then
+         begin
+           if (p.fileindex<=$ffff) then
+            info:=info or $1
+           else
+            if (p.fileindex<=$ffffff) then
+             info:=info or $2
+           else
+            info:=info or $3;
+          end;
+        if (p.line>$ff) then
+         begin
+           if (p.line<=$ffff) then
+            info:=info or $4
+           else
+            if (p.line<=$ffffff) then
+             info:=info or $8
+           else
+            info:=info or $c;
+          end;
+        if (p.column>$ff) then
+         begin
+           if (p.column<=$ffff) then
+            info:=info or $10
+           else
+            if (p.column<=$ffffff) then
+             info:=info or $20
+           else
+            info:=info or $30;
+          end;
+        { write data }
+        putbyte(info);
+        case (info and $03) of
+         0 : putbyte(p.fileindex);
+         1 : putword(p.fileindex);
+         2 : begin
+               putbyte(p.fileindex shr 16);
+               putword(p.fileindex and $ffff);
+             end;
+         3 : putlongint(p.fileindex);
+        end;
+        case ((info shr 2) and $03) of
+         0 : putbyte(p.line);
+         1 : putword(p.line);
+         2 : begin
+               putbyte(p.line shr 16);
+               putword(p.line and $ffff);
+             end;
+         3 : putlongint(p.line);
+        end;
+        case ((info shr 4) and $03) of
+         0 : putbyte(p.column);
+         1 : putword(p.column);
+         2 : begin
+               putbyte(p.column shr 16);
+               putword(p.column and $ffff);
+             end;
+         3 : putlongint(p.column);
+        end;
         do_crc:=oldcrc;
       end;
 
@@ -299,7 +388,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.7  2001-10-21 12:33:07  peter
+  Revision 1.8  2002-04-19 15:40:40  peter
+    * optimize tfileposinfo writing, this reduces the ppu size with 20%
+
+  Revision 1.7  2001/10/21 12:33:07  peter
     * array access for properties added
 
   Revision 1.6  2001/05/06 14:49:17  peter
