@@ -1514,9 +1514,20 @@ implementation
                      bssSegment.concat(Tai_datablock.Create_global(mangledname,l))
                    else
                      bssSegment.concat(Tai_datablock.Create(mangledname,l));
-                   { this symbol can't be loaded to a register }
-                   exclude(varoptions,vo_regable);
-                   exclude(varoptions,vo_fpuregable);
+                   {Global variables (in implementation part of course)
+		    *can* be loaded into registers, they just may not be
+		    accessed from procedures. The lexlevel  test in nld.pas,
+		    Tloadnode.pass_1, should take care of this.
+		    
+		    If for some reason you think it isn't safe, try isolating
+		    and disabling those specific cases, because small programs
+		    without procedures can be very speed critical. For example,
+		    think of benchmarks and programming contests. Also, new
+		    users often test the quality of the code the compiler
+		    generates and they do that with small programs, we should
+		    show them the full optimizing power. (DM)}
+                   {exclude(varoptions,vo_regable);
+                   exclude(varoptions,vo_fpuregable);}
                  end;
                globalsymtable :
                  begin
@@ -2517,7 +2528,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.43  2002-07-20 11:57:58  florian
+  Revision 1.44  2002-07-20 17:45:29  daniel
+  * Register variables are now possible for global variables too. This is
+    important for small programs without procedures.
+
+  Revision 1.43  2002/07/20 11:57:58  florian
     * types.pas renamed to defbase.pas because D6 contains a types
       unit so this would conflicts if D6 programms are compiled
     + Willamette/SSE2 instructions to assembler added
