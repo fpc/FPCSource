@@ -1,7 +1,9 @@
+{ %FAIL }
+
 type
   enum1 = (one,two,three);
   enum2 = (four,five,six);
-  
+
   enumset1 = set of enum1;
 
 var
