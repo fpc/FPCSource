@@ -299,13 +299,13 @@ unit pdecl;
                  Message(parser_e_absolute_only_to_var_or_const);
                 symdone:=true;
               end;
-           { for a record there doesn't need to be a ; before the END or ) }
+             { for a record there doesn't need to be a ; before the END or ) }
              if not((is_record or is_object) and (token in [_END,RKLAMMER])) then
-              consume(SEMICOLON);
-           { Check for variable directives }
+               consume(SEMICOLON);
+             { Check for variable directives }
              if (token=ID) then
               begin
-              { Check for C Variable declarations }
+                { Check for C Variable declarations }
                 if support_c_var and
                    not(is_record or is_object) and
                    ((pattern='EXPORT') or
@@ -429,9 +429,11 @@ unit pdecl;
                 maxsize:=max(maxsize,symtablestack^.datasize);
               { the items of the next variant are overlayed }
                 symtablestack^.datasize:=startvarrec;
-                if token<>_END then
-                  consume(SEMICOLON);
-              until token=_END;
+                if (token<>_END) and (token<>RKLAMMER) then
+                  consume(SEMICOLON)
+                else
+                  break;
+              until (token=_END) or (token=RKLAMMER);
             { at last set the record size to that of the biggest variant }
               symtablestack^.datasize:=maxsize;
            end;
@@ -1873,7 +1875,12 @@ unit pdecl;
 end.
 {
   $Log$
-  Revision 1.33  1998-07-18 17:11:11  florian
+  Revision 1.34  1998-07-20 22:17:15  florian
+    * hex constants in numeric char (#$54#$43 ...) are now allowed
+    * there was a bug in record_var_dec which prevents the used
+      of nested variant records (for example drivers.tevent of tv)
+
+  Revision 1.33  1998/07/18 17:11:11  florian
     + ansi string constants fixed
     + switch $H partial implemented
 

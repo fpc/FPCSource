@@ -1309,12 +1309,25 @@ implementation
                           case c of
                            '#' : begin
                                    readchar; { read # }
-                                   asciinr:='';
-                                   while (c in ['0'..'9']) and (length(asciinr)<3) do
-                                    begin
-                                      asciinr:=asciinr+c;
-                                      readchar;
-                                    end;
+                                   if c='$' then
+                                     begin
+                                        readchar; { read leading $ }
+                                        asciinr:='$';
+                                        while (upcase(c) in ['A'..'F','0'..'9']) and (length(asciinr)<3) do
+                                         begin
+                                           asciinr:=asciinr+c;
+                                           readchar;
+                                         end;
+                                     end
+                                   else
+                                     begin
+                                        asciinr:='';
+                                        while (c in ['0'..'9']) and (length(asciinr)<3) do
+                                         begin
+                                           asciinr:=asciinr+c;
+                                           readchar;
+                                         end;
+                                     end;
                                    valint(asciinr,l,code);
                                    if (asciinr='') or (code<>0) or
                                       (l<0) or (l>255) then
@@ -1535,7 +1548,12 @@ exit_label:
 end.
 {
   $Log$
-  Revision 1.35  1998-07-14 21:38:13  peter
+  Revision 1.36  1998-07-20 22:17:17  florian
+    * hex constants in numeric char (#$54#$43 ...) are now allowed
+    * there was a bug in record_var_dec which prevents the used
+      of nested variant records (for example drivers.tevent of tv)
+
+  Revision 1.35  1998/07/14 21:38:13  peter
     + support for with p^do constructs
 
   Revision 1.34  1998/07/14 14:47:04  peter

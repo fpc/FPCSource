@@ -294,7 +294,20 @@ unit ptconst;
                    begin
                      { first write the maximum size }
                      datasegment^.concat(new(pai_const,init_32bit(p^.length)))));
-                     writestringdata(datasegment);
+                     { fill byte }
+                     datasegment^.concat(new(pai_const,init_8bit(0)));
+                     if p^.treetype=stringconstn then
+                       begin
+                          { this can also handle longer strings }
+                          generate_pascii(consts,p^.values,p^.length);
+                       end
+                     else if is_constcharnode(p) then
+                       begin
+                          consts^.concat(new(pai_const,init_8bit(p^.value)));
+                          strlength:=1;
+                       end
+                     else Message(cg_e_illegal_expression);
+                     datasegment^.concat(new(pai_const,init_8bit(0)));
                    end;
 {$endif UseLongString}
 {$ifdef UseAnsiString}
@@ -479,7 +492,12 @@ unit ptconst;
 end.
 {
   $Log$
-  Revision 1.8  1998-07-20 18:40:15  florian
+  Revision 1.9  1998-07-20 22:17:16  florian
+    * hex constants in numeric char (#$54#$43 ...) are now allowed
+    * there was a bug in record_var_dec which prevents the used
+      of nested variant records (for example drivers.tevent of tv)
+
+  Revision 1.8  1998/07/20 18:40:15  florian
     * handling of ansi string constants should now work
 
   Revision 1.7  1998/07/18 22:54:29  florian
