@@ -120,10 +120,16 @@ implementation
                      begin
                        if inlined then
                          begin
+{$ifdef AllocEDI}
+                           exprasmlist^.concat(new(pairegalloc,alloc(R_EDI)));
+{$endif AllocEDI}
                            emit_ref_reg(A_LEA,S_L,
                              newreference(p^.left^.location.reference),R_EDI);
                            r:=new_reference(procinfo^.framepointer,para_offset-pushedparasize);
                            emit_reg_ref(A_MOV,S_L,R_EDI,r);
+{$ifdef AllocEDI}
+                           exprasmlist^.concat(new(pairegalloc,dealloc(R_EDI)));
+{$endif AllocEDI}
                          end
                       else
                         emitpushreferenceaddr(p^.left^.location.reference);
@@ -140,10 +146,16 @@ implementation
               inc(pushedparasize,4);
               if inlined then
                 begin
+{$ifdef AllocEDI}
+                   exprasmlist^.concat(new(pairegalloc,alloc(R_EDI)));
+{$endif AllocEDI}
                    emit_ref_reg(A_LEA,S_L,
                      newreference(p^.left^.location.reference),R_EDI);
                    r:=new_reference(procinfo^.framepointer,para_offset-pushedparasize);
                    emit_reg_ref(A_MOV,S_L,R_EDI,r);
+{$ifdef AllocEDI}
+                   exprasmlist^.concat(new(pairegalloc,dealloc(R_EDI)));
+{$endif AllocEDI}
                 end
               else
                 emitpushreferenceaddr(p^.left^.location.reference);
@@ -165,11 +177,17 @@ implementation
                    inc(pushedparasize,4);
                    if inlined then
                      begin
+{$ifdef AllocEDI}
+                           exprasmlist^.concat(new(pairegalloc,alloc(R_EDI)));
+{$endif AllocEDI}
                         emit_ref_reg(A_LEA,S_L,
                           newreference(p^.left^.location.reference),R_EDI);
                         r:=new_reference(procinfo^.framepointer,para_offset-pushedparasize);
                         emit_reg_ref(A_MOV,S_L,
                           R_EDI,r);
+{$ifdef AllocEDI}
+                        exprasmlist^.concat(new(pairegalloc,dealloc(R_EDI)));
+{$endif AllocEDI}
                      end
                    else
                      emitpushreferenceaddr(p^.left^.location.reference);
@@ -405,11 +423,16 @@ implementation
 {$endif not OLD_C_STACK}
               if inlined then
                 begin
+{$ifdef AllocEDI}
+                   exprasmlist^.concat(new(pairegalloc,alloc(R_EDI)));
+{$endif AllocEDI}
                    emit_ref_reg(A_LEA,S_L,
                      newreference(funcretref),R_EDI);
                    r:=new_reference(procinfo^.framepointer,inlinecode^.retoffset);
-                   emit_reg_ref(A_MOV,S_L,
-                     R_EDI,r);
+                   emit_reg_ref(A_MOV,S_L,R_EDI,r);
+{$ifdef AllocEDI}
+                   exprasmlist^.concat(new(pairegalloc,dealloc(R_EDI)));
+{$endif AllocEDI}
                 end
               else
                 emitpushreferenceaddr(funcretref);
@@ -755,6 +778,9 @@ implementation
                             r^.base:=R_ESI;
                             { this is one point where we need vmt_offset (PM) }
                             r^.offset:= pprocdef(p^.procdefinition)^._class^.vmt_offset;
+{$ifdef AllocEDI}
+                           exprasmlist^.concat(new(pairegalloc,alloc(R_EDI)));
+{$endif AllocEDI}
                             emit_ref_reg(A_MOV,S_L,r,R_EDI);
                             new(r);
                             reset_reference(r^);
@@ -794,6 +820,9 @@ implementation
                      end;
 {$endif TESTOBJEXT}
                    emit_ref(A_CALL,S_NO,r);
+{$ifdef AllocEDI}
+                   exprasmlist^.concat(new(pairegalloc,dealloc(R_EDI)));
+{$endif AllocEDI}
                 end
               else if not inlined then
                 emitcall(pprocdef(p^.procdefinition)^.mangledname)
@@ -829,6 +858,9 @@ implementation
                       (p^.right^.location.reference.index=R_ESI) then
                      begin
                         del_reference(p^.right^.location.reference);
+{$ifdef AllocEDI}
+                        exprasmlist^.concat(new(pairegalloc,alloc(R_EDI)));
+{$endif AllocEDI}
                         emit_ref_reg(A_MOV,S_L,
                           newreference(p^.right^.location.reference),R_EDI);
                         hregister:=R_EDI;
@@ -849,7 +881,14 @@ implementation
                    if hregister=R_NO then
                      emit_ref(A_CALL,S_NO,newreference(p^.right^.location.reference))
                    else
-                     emit_reg(A_CALL,S_NO,hregister);
+                     begin
+{$ifdef AllocEDI}
+                       if hregister = R_EDI then
+                         exprasmlist^.concat(new(pairegalloc,alloc(R_EDI)))
+                       else ungetregister32(hregister);
+{$endif AllocEDI}
+                       emit_reg(A_CALL,S_NO,hregister);
+                     end;
 
                    del_reference(p^.right^.location.reference);
                 end
@@ -878,7 +917,15 @@ implementation
                 pop_size:=0;
                 { better than an add on all processors }
                 if pushedparasize=4 then
-                  emit_reg(A_POP,S_L,R_EDI)
+                  begin
+{$ifdef AllocEDI}
+                    exprasmlist^.concat(new(pairegalloc,alloc(R_EDI)));
+{$endif AllocEDI}
+                    emit_reg(A_POP,S_L,R_EDI);
+{$ifdef AllocEDI}
+                exprasmlist^.concat(new(pairegalloc,dealloc(R_EDI)));
+{$endif AllocEDI}
+                  end
                 { the pentium has two pipes and pop reg is pairable }
                 { but the registers must be different!        }
                 else if (pushedparasize=8) and
@@ -886,8 +933,20 @@ implementation
                   (aktoptprocessor=ClassP5) and
                   (procinfo^._class=nil) then
                     begin
+{$ifdef AllocEDI}
+                       exprasmlist^.concat(new(pairegalloc,alloc(R_EDI)));
+{$endif AllocEDI}
                        emit_reg(A_POP,S_L,R_EDI);
+{$ifdef AllocEDI}
+                       exprasmlist^.concat(new(pairegalloc,dealloc(R_EDI)));
+{$endif AllocEDI}
+{$ifdef AllocEDI}
+                       exprasmlist^.concat(new(pairegalloc,alloc(R_ESI)));
+{$endif AllocEDI}
                        emit_reg(A_POP,S_L,R_ESI);
+{$ifdef AllocEDI}
+                       exprasmlist^.concat(new(pairegalloc,alloc(R_ESI)));
+{$endif AllocEDI}
                     end
                 else if pushedparasize<>0 then
                   emit_const_reg(A_ADD,S_L,pushedparasize,R_ESP);
@@ -1230,7 +1289,12 @@ implementation
 end.
 {
   $Log$
-  Revision 1.114  2000-01-07 01:14:20  peter
+  Revision 1.115  2000-01-09 01:44:19  jonas
+    + (de)allocation info for EDI to fix reported bug on mailinglist.
+      Also some (de)allocation info for ESI added. Between -dallocEDI
+      because at this time of the night bugs could easily slip in ;)
+
+  Revision 1.114  2000/01/07 01:14:20  peter
     * updated copyright to 2000
 
   Revision 1.113  1999/12/22 01:01:46  peter

@@ -448,6 +448,10 @@ procedure mov_reg_to_dest(p : ptree; s : topsize; reg : tregister);
                                  S_W : hreg:=R_DI;
                                  S_L : hreg:=R_EDI;
                                end;
+{$ifdef AllocEDI}
+                               if hreg in [R_DI,R_EDI] then
+                                 exprasmlist^.concat(new(pairegalloc,alloc(R_EDI)));
+{$endif AllocEDI}
                                emit_ref_reg(A_MOV,siz,
                                  newreference(t.reference),hreg);
                                del_reference(t.reference);
@@ -460,6 +464,10 @@ procedure mov_reg_to_dest(p : ptree; s : topsize; reg : tregister);
                                     else
                                       ungetregister(hreg);
                                  end;
+{$ifdef AllocEDI}
+                               if hreg in [R_DI,R_EDI] then
+                                 exprasmlist^.concat(new(pairegalloc,dealloc(R_EDI)));
+{$endif AllocEDI}
                                { we can release the registers }
                                { but only AFTER the MOV! Important for the optimizer!
                                  (JM)}
@@ -698,10 +706,16 @@ procedure mov_reg_to_dest(p : ptree; s : topsize; reg : tregister);
                              internalerror(331)
                            else
                              begin
+{$ifdef AllocEDI}
+                               exprasmlist^.concat(new(pairegalloc,alloc(R_EDI)));
+{$endif AllocEDI}
                                emit_ref_reg(A_LEA,S_L,
                                  newreference(t.reference),R_EDI);
                                exprasmlist^.concat(new(paicpu,op_reg_ref(A_MOV,S_L,
                                  R_EDI,newreference(ref))));
+{$ifdef AllocEDI}
+                               exprasmlist^.concat(new(pairegalloc,dealloc(R_EDI)));
+{$endif AllocEDI}
                              end;
                             { release the registers }
                             del_reference(t.reference);
@@ -723,9 +737,15 @@ procedure mov_reg_to_dest(p : ptree; s : topsize; reg : tregister);
                              internalerror(331)
                            else
                              begin
+{$ifdef AllocEDI}
+                               exprasmlist^.concat(new(pairegalloc,alloc(R_EDI)));
+{$endif AllocEDI}
                                emit_ref_reg(A_LEA,S_L,
                                  newreference(t.reference),R_EDI);
                                exprasmlist^.concat(new(paicpu,op_reg(A_PUSH,S_L,R_EDI)));
+{$ifdef AllocEDI}
+                               exprasmlist^.concat(new(pairegalloc,dealloc(R_EDI)));
+{$endif AllocEDI}
                              end;
                            if freetemp then
                             ungetiftemp(t.reference);
@@ -968,6 +988,9 @@ procedure mov_reg_to_dest(p : ptree; s : topsize; reg : tregister);
                       ) then
                   begin
                      del_reference(p^.location.reference);
+{$ifdef AllocEDI}
+                    exprasmlist^.concat(new(pairegalloc,alloc(R_EDI)));
+{$endif AllocEDI}
                      emit_ref_reg(A_LEA,S_L,newreference(p^.location.reference),
                        R_EDI);
 {$ifdef TEMPS_NOT_PUSH}
@@ -977,6 +1000,9 @@ procedure mov_reg_to_dest(p : ptree; s : topsize; reg : tregister);
 {$else TEMPS_NOT_PUSH}
                      exprasmlist^.concat(new(paicpu,op_reg(A_PUSH,S_L,R_EDI)));
 {$endif TEMPS_NOT_PUSH}
+{$ifdef AllocEDI}
+                     exprasmlist^.concat(new(pairegalloc,dealloc(R_EDI)));
+{$endif AllocEDI}
                      pushed:=true;
                   end
               else pushed:=false;
@@ -1021,10 +1047,16 @@ procedure mov_reg_to_dest(p : ptree; s : topsize; reg : tregister);
                       ) then
                   begin
                      del_reference(p^.location.reference);
+{$ifdef AllocEDI}
+                     exprasmlist^.concat(new(pairegalloc,alloc(R_EDI)));
+{$endif AllocEDI}
                      emit_ref_reg(A_LEA,S_L,newreference(p^.location.reference),
                        R_EDI);
                      gettempofsizereference(href,4);
                      exprasmlist^.concat(new(paicpu,op_reg_ref(A_MOV,S_L,R_EDI,href)));
+{$ifdef AllocEDI}
+                     exprasmlist^.concat(new(pairegalloc,dealloc(R_EDI)));
+{$endif AllocEDI}
                      p^.temp_offset:=href.offset;
                      pushed:=true;
                   end
@@ -1043,8 +1075,14 @@ procedure mov_reg_to_dest(p : ptree; s : topsize; reg : tregister);
             not(cs_littlesize in aktglobalswitches)
            Then
              begin
+{$ifdef AllocEDI}
+               exprasmlist^.concat(new(pairegalloc,alloc(R_EDI)));
+{$endif AllocEDI}
                emit_reg_reg(A_XOR,S_L,R_EDI,R_EDI);
                exprasmlist^.concat(new(paicpu,op_reg(A_PUSH,S_L,R_EDI)));
+{$ifdef AllocEDI}
+               exprasmlist^.concat(new(pairegalloc,dealloc(R_EDI)));
+{$endif AllocEDI}
              end
            else
              exprasmlist^.concat(new(paicpu,op_const(A_PUSH,S_L,l)));
@@ -1061,8 +1099,14 @@ procedure mov_reg_to_dest(p : ptree; s : topsize; reg : tregister);
                 not(cs_littlesize in aktglobalswitches)
                then
                  begin
+{$ifdef AllocEDI}
+                   exprasmlist^.concat(new(pairegalloc,alloc(R_EDI)));
+{$endif AllocEDI}
                    emit_ref_reg(A_MOV,S_L,newreference(ref),R_EDI);
                    exprasmlist^.concat(new(paicpu,op_reg(A_PUSH,S_L,R_EDI)));
+{$ifdef AllocEDI}
+                   exprasmlist^.concat(new(pairegalloc,dealloc(R_EDI)));
+{$endif AllocEDI}
                  end
                else exprasmlist^.concat(new(paicpu,op_ref(A_PUSH,S_L,newreference(ref))));
            end;
@@ -1097,8 +1141,14 @@ procedure mov_reg_to_dest(p : ptree; s : topsize; reg : tregister);
                 exprasmlist^.concat(new(paicpu,op_reg(A_PUSH,S_L,ref.base)))
               else
                 begin
+{$ifdef AllocEDI}
+                   exprasmlist^.concat(new(pairegalloc,alloc(R_EDI)));
+{$endif AllocEDI}
                    emit_ref_reg(A_LEA,S_L,newreference(ref),R_EDI);
                    exprasmlist^.concat(new(paicpu,op_reg(A_PUSH,S_L,R_EDI)));
+{$ifdef AllocEDI}
+                   exprasmlist^.concat(new(pairegalloc,dealloc(R_EDI)));
+{$endif AllocEDI}
                 end;
            end;
         end;
@@ -1403,15 +1453,25 @@ procedure mov_reg_to_dest(p : ptree; s : topsize; reg : tregister);
                                inc(pushedparasize,8);
                                if inlined then
                                  begin
+{$ifdef AllocEDI}
+                                   exprasmlist^.concat(new(pairegalloc,alloc(R_EDI)));
+{$endif AllocEDI}
                                    emit_ref_reg(A_MOV,S_L,
                                      newreference(tempreference),R_EDI);
                                    r:=new_reference(procinfo^.framepointer,para_offset-pushedparasize);
                                    exprasmlist^.concat(new(paicpu,op_reg_ref(A_MOV,S_L,R_EDI,r)));
+{$ifdef AllocEDI}
+                                   exprasmlist^.concat(new(pairegalloc,dealloc(R_EDI)));
+                                   exprasmlist^.concat(new(pairegalloc,alloc(R_EDI)));
+{$endif AllocEDI}
                                    inc(tempreference.offset,4);
                                    emit_ref_reg(A_MOV,S_L,
                                      newreference(tempreference),R_EDI);
                                    r:=new_reference(procinfo^.framepointer,para_offset-pushedparasize+4);
                                    exprasmlist^.concat(new(paicpu,op_reg_ref(A_MOV,S_L,R_EDI,r)));
+{$ifdef AllocEDI}
+                                   exprasmlist^.concat(new(pairegalloc,dealloc(R_EDI)));
+{$endif AllocEDI}
                                  end
                                else
                                  begin
@@ -1425,10 +1485,16 @@ procedure mov_reg_to_dest(p : ptree; s : topsize; reg : tregister);
                                inc(pushedparasize,4);
                                if inlined then
                                  begin
+{$ifdef AllocEDI}
+                                   exprasmlist^.concat(new(pairegalloc,alloc(R_EDI)));
+{$endif AllocEDI}
                                    emit_ref_reg(A_MOV,S_L,
                                      newreference(tempreference),R_EDI);
                                    r:=new_reference(procinfo^.framepointer,para_offset-pushedparasize);
                                    exprasmlist^.concat(new(paicpu,op_reg_ref(A_MOV,S_L,R_EDI,r)));
+{$ifdef AllocEDI}
+                                   exprasmlist^.concat(new(pairegalloc,dealloc(R_EDI)));
+{$endif AllocEDI}
                                  end
                                else
                                  emit_push_mem(tempreference);
@@ -1448,10 +1514,16 @@ procedure mov_reg_to_dest(p : ptree; s : topsize; reg : tregister);
                                 end;
                                if inlined then
                                 begin
+{$ifdef AllocEDI}
+                                  exprasmlist^.concat(new(pairegalloc,alloc(R_EDI)));
+{$endif AllocEDI}
                                   emit_ref_reg(A_MOV,opsize,
                                     newreference(tempreference),hreg);
                                   r:=new_reference(procinfo^.framepointer,para_offset-pushedparasize);
                                   exprasmlist^.concat(new(paicpu,op_reg_ref(A_MOV,opsize,hreg,r)));
+{$ifdef AllocEDI}
+                                  exprasmlist^.concat(new(pairegalloc,dealloc(R_EDI)));
+{$endif AllocEDI}
                                 end
                                else
                                 exprasmlist^.concat(new(paicpu,op_ref(A_PUSH,opsize,
@@ -1470,10 +1542,16 @@ procedure mov_reg_to_dest(p : ptree; s : topsize; reg : tregister);
                                inc(pushedparasize,4);
                                if inlined then
                                  begin
+{$ifdef AllocEDI}
+                                    exprasmlist^.concat(new(pairegalloc,alloc(R_EDI)));
+{$endif AllocEDI}
                                     emit_ref_reg(A_MOV,S_L,
                                       newreference(tempreference),R_EDI);
                                     r:=new_reference(procinfo^.framepointer,para_offset-pushedparasize);
                                     exprasmlist^.concat(new(paicpu,op_reg_ref(A_MOV,S_L,R_EDI,r)));
+{$ifdef AllocEDI}
+                                    exprasmlist^.concat(new(pairegalloc,dealloc(R_EDI)));
+{$endif AllocEDI}
                                  end
                                else
                                  emit_push_mem(tempreference);
@@ -1485,10 +1563,16 @@ procedure mov_reg_to_dest(p : ptree; s : topsize; reg : tregister);
                               inc(tempreference.offset,4);
                               if inlined then
                                 begin
+{$ifdef AllocEDI}
+                                   exprasmlist^.concat(new(pairegalloc,alloc(R_EDI)));
+{$endif AllocEDI}
                                    emit_ref_reg(A_MOV,S_L,
                                      newreference(tempreference),R_EDI);
                                    r:=new_reference(procinfo^.framepointer,para_offset-pushedparasize);
                                    exprasmlist^.concat(new(paicpu,op_reg_ref(A_MOV,S_L,R_EDI,r)));
+{$ifdef AllocEDI}
+                                   exprasmlist^.concat(new(pairegalloc,dealloc(R_EDI)));
+{$endif AllocEDI}
                                 end
                               else
                                 emit_push_mem(tempreference);
@@ -1496,10 +1580,16 @@ procedure mov_reg_to_dest(p : ptree; s : topsize; reg : tregister);
                               dec(tempreference.offset,4);
                               if inlined then
                                 begin
+{$ifdef AllocEDI}
+                                   exprasmlist^.concat(new(pairegalloc,alloc(R_EDI)));
+{$endif AllocEDI}
                                    emit_ref_reg(A_MOV,S_L,
                                      newreference(tempreference),R_EDI);
                                    r:=new_reference(procinfo^.framepointer,para_offset-pushedparasize);
                                    exprasmlist^.concat(new(paicpu,op_reg_ref(A_MOV,S_L,R_EDI,r)));
+{$ifdef AllocEDI}
+                                   exprasmlist^.concat(new(pairegalloc,dealloc(R_EDI)));
+{$endif AllocEDI}
                                 end
                               else
                                 emit_push_mem(tempreference);
@@ -1513,10 +1603,16 @@ procedure mov_reg_to_dest(p : ptree; s : topsize; reg : tregister);
                                 inc(tempreference.offset,6);
                               if inlined then
                                 begin
+{$ifdef AllocEDI}
+                                   exprasmlist^.concat(new(pairegalloc,alloc(R_EDI)));
+{$endif AllocEDI}
                                    emit_ref_reg(A_MOV,S_L,
                                      newreference(tempreference),R_EDI);
                                    r:=new_reference(procinfo^.framepointer,para_offset-pushedparasize);
                                    exprasmlist^.concat(new(paicpu,op_reg_ref(A_MOV,S_L,R_EDI,r)));
+{$ifdef AllocEDI}
+                                   exprasmlist^.concat(new(pairegalloc,dealloc(R_EDI)));
+{$endif AllocEDI}
                                 end
                               else
                                 emit_push_mem(tempreference);
@@ -1524,10 +1620,16 @@ procedure mov_reg_to_dest(p : ptree; s : topsize; reg : tregister);
                               inc(pushedparasize,4);
                               if inlined then
                                 begin
+{$ifdef AllocEDI}
+                                   exprasmlist^.concat(new(pairegalloc,alloc(R_EDI)));
+{$endif AllocEDI}
                                    emit_ref_reg(A_MOV,S_L,
                                      newreference(tempreference),R_EDI);
                                    r:=new_reference(procinfo^.framepointer,para_offset-pushedparasize);
                                    exprasmlist^.concat(new(paicpu,op_reg_ref(A_MOV,S_L,R_EDI,r)));
+{$ifdef AllocEDI}
+                                   exprasmlist^.concat(new(pairegalloc,dealloc(R_EDI)));
+{$endif AllocEDI}
                                 end
                               else
                                 emit_push_mem(tempreference);
@@ -1547,10 +1649,16 @@ procedure mov_reg_to_dest(p : ptree; s : topsize; reg : tregister);
                                 end;
                               if inlined then
                                 begin
+{$ifdef AllocEDI}
+                                   exprasmlist^.concat(new(pairegalloc,alloc(R_EDI)));
+{$endif AllocEDI}
                                    emit_ref_reg(A_MOV,opsize,
                                      newreference(tempreference),hreg);
                                    r:=new_reference(procinfo^.framepointer,para_offset-pushedparasize);
                                    exprasmlist^.concat(new(paicpu,op_reg_ref(A_MOV,opsize,hreg,r)));
+{$ifdef AllocEDI}
+                                   exprasmlist^.concat(new(pairegalloc,dealloc(R_EDI)));
+{$endif AllocEDI}
                                 end
                               else
                                 exprasmlist^.concat(new(paicpu,op_ref(A_PUSH,opsize,
@@ -1565,10 +1673,16 @@ procedure mov_reg_to_dest(p : ptree; s : topsize; reg : tregister);
                          inc(pushedparasize,4);
                          if inlined then
                            begin
+{$ifdef AllocEDI}
+                              exprasmlist^.concat(new(pairegalloc,alloc(R_EDI)));
+{$endif AllocEDI}
                               emit_ref_reg(A_MOV,S_L,
                                 newreference(tempreference),R_EDI);
                               r:=new_reference(procinfo^.framepointer,para_offset-pushedparasize);
                               exprasmlist^.concat(new(paicpu,op_reg_ref(A_MOV,S_L,R_EDI,r)));
+{$ifdef AllocEDI}
+                              exprasmlist^.concat(new(pairegalloc,dealloc(R_EDI)));
+{$endif AllocEDI}
                            end
                          else
                            emit_push_mem(tempreference);
@@ -1661,6 +1775,9 @@ procedure mov_reg_to_dest(p : ptree; s : topsize; reg : tregister);
                end;
              LOC_FLAGS:
                begin
+{$ifdef AllocEDI}
+                  exprasmlist^.concat(new(pairegalloc,alloc(R_EDI)));
+{$endif AllocEDI}
                   if not(R_EAX in unused) then
                     emit_reg_reg(A_MOV,S_L,R_EAX,R_EDI);
                   emit_flag2reg(p^.location.resflags,R_AL);
@@ -1685,7 +1802,12 @@ procedure mov_reg_to_dest(p : ptree; s : topsize; reg : tregister);
                   else
                     exprasmlist^.concat(new(paicpu,op_reg(A_PUSH,opsize,hreg)));
                   if not(R_EAX in unused) then
-                    emit_reg_reg(A_MOV,S_L,R_EDI,R_EAX);
+                    begin
+                      emit_reg_reg(A_MOV,S_L,R_EDI,R_EAX);
+{$ifdef AllocEDI}
+                      exprasmlist^.concat(new(pairegalloc,dealloc(R_EDI)));
+{$endif AllocEDI}
+                    end;
                end;
 {$ifdef SUPPORT_MMX}
              LOC_MMXREGISTER,
@@ -1986,15 +2108,27 @@ procedure mov_reg_to_dest(p : ptree; s : topsize; reg : tregister);
               emitjmp(C_L,neglabel);
             end;
            { insert bound instruction only }
+{$ifdef AllocEDI}
+           exprasmlist^.concat(new(pairegalloc,alloc(R_EDI)));
+{$endif AllocEDI}
            exprasmlist^.concat(new(paicpu,op_sym_ofs_reg(A_MOV,S_L,newasmsymbol(rstr),0,R_EDI)));
            emitcall('FPC_BOUNDCHECK');
+{$ifdef AllocEDI}
+           exprasmlist^.concat(new(pairegalloc,dealloc(R_EDI)));
+{$endif AllocEDI}
            { u32bit needs 2 checks }
            if doublebound then
             begin
               emitjmp(C_None,poslabel);
               emitlab(neglabel);
+{$ifdef AllocEDI}
+              exprasmlist^.concat(new(pairegalloc,alloc(R_EDI)));
+{$endif AllocEDI}
               exprasmlist^.concat(new(paicpu,op_sym_ofs_reg(A_MOV,S_L,newasmsymbol(rstr),8,R_EDI)));
               emitcall('FPC_BOUNDCHECK');
+{$ifdef AllocEDI}
+              exprasmlist^.concat(new(pairegalloc,dealloc(R_EDI)));
+{$endif AllocEDI}
               emitlab(poslabel);
             end;
            if popecx then
@@ -2012,12 +2146,18 @@ procedure mov_reg_to_dest(p : ptree; s : topsize; reg : tregister);
                hreg:=p^.location.register
               else
                begin
+{$ifdef AllocEDI}
+                 exprasmlist^.concat(new(pairegalloc,alloc(R_EDI)));
+{$endif AllocEDI}
                  emit_reg_reg(op,opsize,p^.location.register,R_EDI);
                  hreg:=R_EDI;
                end;
             end
            else
             begin
+{$ifdef AllocEDI}
+              exprasmlist^.concat(new(pairegalloc,alloc(R_EDI)));
+{$endif AllocEDI}
               emit_ref_reg(op,opsize,newreference(p^.location.reference),R_EDI);
               hreg:=R_EDI;
             end;
@@ -2025,7 +2165,7 @@ procedure mov_reg_to_dest(p : ptree; s : topsize; reg : tregister);
             begin
               getlabel(neglabel);
               getlabel(poslabel);
-              emit_reg_reg(A_OR,S_L,hreg,hreg);
+              emit_reg_reg(A_TEST,S_L,hreg,hreg);
               emitjmp(C_L,neglabel);
             end;
            { insert bound instruction only }
@@ -2039,6 +2179,10 @@ procedure mov_reg_to_dest(p : ptree; s : topsize; reg : tregister);
               exprasmlist^.concat(new(paicpu,op_reg_ref(A_BOUND,S_L,hreg,newreference(href))));
               emitlab(poslabel);
             end;
+{$ifdef AllocEDI}
+           if hreg = R_EDI then
+             exprasmlist^.concat(new(pairegalloc,dealloc(R_EDI)));
+{$endif AllocEDI}
          end;
       end;
 
@@ -2075,6 +2219,9 @@ procedure mov_reg_to_dest(p : ptree; s : topsize; reg : tregister);
              (not(cs_littlesize in aktglobalswitches ) and (size<=12))) then
            begin
               helpsize:=size shr 2;
+{$ifdef AllocEDI}
+              exprasmlist^.concat(new(pairegalloc,alloc(R_EDI)));
+{$endif AllocEDI}
               for i:=1 to helpsize do
                 begin
                    emit_ref_reg(A_MOV,S_L,newreference(source),R_EDI);
@@ -2099,6 +2246,9 @@ procedure mov_reg_to_dest(p : ptree; s : topsize; reg : tregister);
                    inc(dest.offset,2);
                    dec(size,2);
                 end;
+{$ifdef AllocEDI}
+              exprasmlist^.concat(new(pairegalloc,dealloc(R_EDI)));
+{$endif AllocEDI}
               if size>0 then
                 begin
                    { and now look for an 8 bit register }
@@ -2130,7 +2280,12 @@ procedure mov_reg_to_dest(p : ptree; s : topsize; reg : tregister);
                       end;
                    if swap then
                      { was earlier XCHG, of course nonsense }
-                     emit_reg_reg(A_MOV,S_L,reg32,R_EDI);
+                     begin
+{$ifdef AllocEDI}
+                       exprasmlist^.concat(new(pairegalloc,alloc(R_EDI)));
+{$endif AllocEDI}
+                       emit_reg_reg(A_MOV,S_L,reg32,R_EDI);
+                     end;
                    emit_ref_reg(A_MOV,S_B,newreference(source),reg8);
 {$ifdef regallocfix}
                    If delsource then
@@ -2138,16 +2293,27 @@ procedure mov_reg_to_dest(p : ptree; s : topsize; reg : tregister);
 {$endif regallocfix}
                    exprasmlist^.concat(new(paicpu,op_reg_ref(A_MOV,S_B,reg8,newreference(dest))));
                    if swap then
-                     emit_reg_reg(A_MOV,S_L,R_EDI,reg32);
+                     begin
+                       emit_reg_reg(A_MOV,S_L,R_EDI,reg32);
+{$ifdef AllocEDI}
+                       exprasmlist^.concat(new(pairegalloc,dealloc(R_EDI)));
+{$endif AllocEDI}
+                     end;
                 end;
            end
          else
            begin
+{$ifdef AllocEDI}
+              exprasmlist^.concat(new(pairegalloc,alloc(R_EDI)));
+{$endif AllocEDI}
               emit_ref_reg(A_LEA,S_L,newreference(dest),R_EDI);
 {$ifdef regallocfix}
              {is this ok?? (JM)}
               del_reference(dest);
 {$endif regallocfix}
+{$ifdef AllocEDI}
+              exprasmlist^.concat(new(pairegalloc,alloc(R_ESI)));
+{$endif AllocEDI}
               if loadref then
                 emit_ref_reg(A_MOV,S_L,newreference(source),R_ESI)
               else
@@ -2188,8 +2354,17 @@ procedure mov_reg_to_dest(p : ptree; s : topsize; reg : tregister);
                    if size=1 then
                      exprasmlist^.concat(new(paicpu,op_none(A_MOVSB,S_NO)));
                 end;
+{$ifdef AllocEDI}
+              exprasmlist^.concat(new(pairegalloc,dealloc(R_EDI)));
+              exprasmlist^.concat(new(pairegalloc,dealloc(R_ESI)));
+{$endif AllocEDI}
               if ecxpushed then
-                exprasmlist^.concat(new(paicpu,op_reg(A_POP,S_L,R_ECX)));
+                begin
+{$ifdef AllocEDI}
+                  exprasmlist^.concat(new(pairegalloc,alloc(R_ECX)));
+{$endif AllocEDI}
+                  exprasmlist^.concat(new(paicpu,op_reg(A_POP,S_L,R_ECX)));
+                end;
 
               { loading SELF-reference again }
               maybe_loadesi;
@@ -2277,6 +2452,9 @@ procedure mov_reg_to_dest(p : ptree; s : topsize; reg : tregister);
                    reset_reference(hp^);
                    hp^.offset:=procinfo^.framepointer_offset;
                    hp^.base:=procinfo^.framepointer;
+{$ifdef AllocEDI}
+                   exprasmlist^.concat(new(pairegalloc,alloc(R_ESI)));
+{$endif AllocEDI}
                    emit_ref_reg(A_MOV,S_L,hp,R_ESI);
                    p:=procinfo^.parent;
                    for i:=3 to lexlevel-1 do
@@ -2599,6 +2777,9 @@ procedure mov_reg_to_dest(p : ptree; s : topsize; reg : tregister);
               reset_reference(r^);
               r^.base:=procinfo^.framepointer;
               r^.offset:=pvarsym(p)^.address+4+procinfo^.call_offset;
+{$ifdef AllocEDI}
+              exprasmlist^.concat(new(pairegalloc,alloc(R_EDI)));
+{$endif AllocEDI}
               exprasmlist^.concat(new(paicpu,
                 op_ref_reg(A_MOV,S_L,r,R_EDI)));
 
@@ -2630,11 +2811,17 @@ procedure mov_reg_to_dest(p : ptree; s : topsize; reg : tregister);
                    emitlab(ok);
                    exprasmlist^.concat(new(paicpu,
                      op_reg_reg(A_SUB,S_L,R_EDI,R_ESP)));
+{$ifdef AllocEDI}
+                   exprasmlist^.concat(new(pairegalloc,dealloc(R_EDI)));
+{$endif AllocEDI}
                    { now reload EDI }
                    new(r);
                    reset_reference(r^);
                    r^.base:=procinfo^.framepointer;
                    r^.offset:=pvarsym(p)^.address+4+procinfo^.call_offset;
+{$ifdef AllocEDI}
+                   exprasmlist^.concat(new(pairegalloc,alloc(R_EDI)));
+{$endif AllocEDI}
                    exprasmlist^.concat(new(paicpu,
                      op_ref_reg(A_MOV,S_L,r,R_EDI)));
 
@@ -2656,6 +2843,10 @@ procedure mov_reg_to_dest(p : ptree; s : topsize; reg : tregister);
                 end;
 
               { don't destroy the registers! }
+{$ifdef AllocEDI}
+              exprasmlist^.concat(new(pairegalloc,alloc(R_ECX)));
+              exprasmlist^.concat(new(pairegalloc,alloc(R_ESI)));
+{$endif AllocEDI}
               exprasmlist^.concat(new(paicpu,
                 op_reg(A_PUSH,S_L,R_ECX)));
               exprasmlist^.concat(new(paicpu,
@@ -2705,6 +2896,11 @@ procedure mov_reg_to_dest(p : ptree; s : topsize; reg : tregister);
                 S_W : exprasmlist^.concat(new(paicpu,op_none(A_MOVSW,S_NO)));
                 S_L : exprasmlist^.concat(new(paicpu,op_none(A_MOVSD,S_NO)));
               end;
+{$ifdef AllocEDI}
+              exprasmlist^.concat(new(pairegalloc,dealloc(R_EDI)));
+              exprasmlist^.concat(new(pairegalloc,dealloc(R_ESI)));
+              exprasmlist^.concat(new(pairegalloc,dealloc(R_ECX)));
+{$endif AllocEDI}
               exprasmlist^.concat(new(paicpu,
                 op_reg(A_POP,S_L,R_ESI)));
               exprasmlist^.concat(new(paicpu,
@@ -2883,6 +3079,9 @@ procedure mov_reg_to_dest(p : ptree; s : topsize; reg : tregister);
             begin
               exprasmlist^.insert(new(paicpu,op_cond_sym(A_Jcc,C_Z,S_NO,faillabel)));
               emitinsertcall('FPC_HELP_CONSTRUCTOR');
+{$ifdef AllocEDI}
+              exprasmlist^.concat(new(pairegalloc,alloc(R_EDI)));
+{$endif AllocEDI}
               exprasmlist^.insert(new(paicpu,op_const_reg(A_MOV,S_L,procinfo^._class^.vmt_offset,R_EDI)));
             end;
         end;
@@ -2897,6 +3096,9 @@ procedure mov_reg_to_dest(p : ptree; s : topsize; reg : tregister);
            reset_reference(hr^);
            hr^.offset:=procinfo^.selfpointer_offset;
            hr^.base:=procinfo^.framepointer;
+{$ifdef AllocEDI}
+           exprasmlist^.concat(new(pairegalloc,alloc(R_ESI)));
+{$endif AllocEDI}
            exprasmlist^.insert(new(paicpu,op_ref_reg(A_MOV,S_L,hr,R_ESI)));
         end;
       { should we save edi,esi,ebx like C ? }
@@ -2981,6 +3183,9 @@ procedure mov_reg_to_dest(p : ptree; s : topsize; reg : tregister);
                                   else
                                     begin
                                        getlabel(again);
+{$ifdef AllocEDI}
+                                       exprasmlist^.concat(new(pairegalloc,alloc(R_EDI)));
+{$endif AllocEDI}
                                        exprasmlist^.concat(new(paicpu,
                                          op_const_reg(A_MOV,S_L,stackframe div winstackpagesize,R_EDI)));
                                        emitlab(again);
@@ -2991,6 +3196,9 @@ procedure mov_reg_to_dest(p : ptree; s : topsize; reg : tregister);
                                        exprasmlist^.concat(new(paicpu,
                                          op_reg(A_DEC,S_L,R_EDI)));
                                        emitjmp(C_NZ,again);
+{$ifdef AllocEDI}
+                                       exprasmlist^.concat(new(pairegalloc,dealloc(R_EDI)));
+{$endif AllocEDI}
                                        exprasmlist^.concat(new(paicpu,
                                          op_const_reg(A_SUB,S_L,stackframe mod winstackpagesize,R_ESP)));
                                     end
@@ -3199,6 +3407,9 @@ procedure mov_reg_to_dest(p : ptree; s : topsize; reg : tregister);
           else
             begin
               emitinsertcall('FPC_HELP_DESTRUCTOR');
+{$ifdef AllocEDI}
+              exprasmlist^.concat(new(pairegalloc,alloc(R_EDI)));
+{$endif AllocEDI}
               exprasmlist^.insert(new(paicpu,op_const_reg(A_MOV,S_L,procinfo^._class^.vmt_offset,R_EDI)));
               { must the object be finalized ? }
               if procinfo^._class^.needs_inittable then
@@ -3206,6 +3417,9 @@ procedure mov_reg_to_dest(p : ptree; s : topsize; reg : tregister);
                    getlabel(nofinal);
                    exprasmlist^.insert(new(pai_label,init(nofinal)));
                    emitinsertcall('FPC_FINALIZE');
+{$ifdef AllocEDI}
+                   exprasmlist^.concat(new(pairegalloc,dealloc(R_EDI)));
+{$endif AllocEDI}
                    exprasmlist^.insert(new(paicpu,op_reg(A_PUSH,S_L,R_ESI)));
                    exprasmlist^.insert(new(paicpu,op_sym(A_PUSH,S_L,procinfo^._class^.get_inittable_label)));
                    ai:=new(paicpu,op_sym(A_Jcc,S_NO,nofinal));
@@ -3281,13 +3495,19 @@ procedure mov_reg_to_dest(p : ptree; s : topsize; reg : tregister);
                   else
                     begin
                       emit_ref_reg(A_MOV,S_L,new_reference(procinfo^.framepointer,12),R_ESI);
+{$ifdef AllocEDI}
+                       exprasmlist^.concat(new(pairegalloc,alloc(R_EDI)));
+{$endif AllocEDI}
                       emit_const_reg(A_MOV,S_L,procinfo^._class^.vmt_offset,R_EDI);
                       emitcall('FPC_HELP_FAIL');
+{$ifdef AllocEDI}
+                      exprasmlist^.concat(new(pairegalloc,dealloc(R_EDI)));
+{$endif AllocEDI}
                     end;
                   emitlab(okexitlabel);
 
                   emit_reg_reg(A_MOV,S_L,R_ESI,R_EAX);
-                  emit_reg_reg(A_OR,S_L,R_EAX,R_EAX);
+                  emit_reg_reg(A_TEST,S_L,R_ESI,R_ESI);
               end;
 
       { stabs uses the label also ! }
@@ -3447,7 +3667,12 @@ procedure mov_reg_to_dest(p : ptree; s : topsize; reg : tregister);
 end.
 {
   $Log$
-  Revision 1.66  2000-01-07 01:14:22  peter
+  Revision 1.67  2000-01-09 01:44:21  jonas
+    + (de)allocation info for EDI to fix reported bug on mailinglist.
+      Also some (de)allocation info for ESI added. Between -dallocEDI
+      because at this time of the night bugs could easily slip in ;)
+
+  Revision 1.66  2000/01/07 01:14:22  peter
     * updated copyright to 2000
 
   Revision 1.65  1999/12/22 01:01:47  peter

@@ -371,6 +371,9 @@ implementation
                       { the set element isn't never samller than a byte  }
                       { and because it's a small set we need only 5 bits }
                       { but 8 bits are easier to load               }
+{$ifdef AllocEDI}
+                      exprasmlist^.concat(new(pairegalloc,alloc(R_EDI)));
+{$endif AllocEDI}
                       emit_ref_reg(A_MOVZX,S_BL,
                         newreference(p^.left^.location.reference),R_EDI);
                       hr:=R_EDI;
@@ -400,6 +403,10 @@ implementation
                           newreference(p^.right^.location.reference));
                     end;
                   end;
+{$ifdef AllocEDI}
+                  if hr = R_EDI then
+                    exprasmlist^.concat(new(pairegalloc,alloc(R_EDI)));
+{$endif AllocEDI}
                   ungetregister32(hr);
                   p^.location.loc:=LOC_FLAGS;
                   p^.location.resflags:=F_C;
@@ -898,7 +905,12 @@ implementation
 end.
 {
   $Log$
-  Revision 1.45  2000-01-07 01:14:21  peter
+  Revision 1.46  2000-01-09 01:44:21  jonas
+    + (de)allocation info for EDI to fix reported bug on mailinglist.
+      Also some (de)allocation info for ESI added. Between -dallocEDI
+      because at this time of the night bugs could easily slip in ;)
+
+  Revision 1.45  2000/01/07 01:14:21  peter
     * updated copyright to 2000
 
   Revision 1.44  1999/12/01 22:45:54  peter

@@ -52,7 +52,7 @@ implementation
 
     procedure secondmoddiv(var p : ptree);
       var
-         hreg1 : tregister;
+         hreg1, hreg2 : tregister;
          shrdiv, andmod, pushed,popeax,popedx : boolean;
 
          power : longint;
@@ -137,15 +137,58 @@ implementation
                      "Cardinal($ffffffff) div 16" overflows! (JM)}
                     If is_signed(p^.left^.resulttype) Then
                       Begin
-                        emit_reg_reg(A_OR,S_L,hreg1,hreg1);
-                        getlabel(hl);
-                        emitjmp(C_NS,hl);
-                        if power=1 then
-                          emit_reg(A_INC,S_L,hreg1)
+{$ifdef newOptimizations}
+                        If (aktOptProcessor <> class386) and
+                           not(CS_LittleSize in aktglobalswitches) then
+                        { use a sequence without jumps, saw this in
+                          comp.compilers (JM) }
+                          begin
+                          { no jumps, but more operations }
+                            if (hreg1 = R_EAX) and
+                               (R_EDX in unused) then
+                              begin
+                                hreg2 := getexplicitregister32(R_EDX);
+                                emit_none(A_CDQ,S_NO);
+                              end
+                            else
+                              begin
+{$ifdef AllocEDI}
+                                exprasmlist^.concat(new(pairegalloc,alloc(R_EDI)));
+{$endif AllocEDI}
+                                hreg2 := R_EDI;
+                                emit_reg_reg(A_MOV,S_L,hreg1,R_EDI);
+                              { if the left value is signed, R_EDI := $ffffffff,
+                                otherwise 0 }
+                                emit_const_reg(A_SAR,S_L,31,R_EDI);
+                            { if signed, R_EDI := right value-1, otherwise 0 }
+                              end;
+                            emit_const_reg(A_AND,S_L,p^.right^.value-1,hreg2);
+                          { add to the left value }
+                            emit_reg_reg(A_ADD,S_L,hreg2,hreg1);
+                          { release EDX if we used it }
+                            if (hreg2 = R_EDX) then
+                              ungetregister32(hreg2)
+{$ifdef AllocEDI}
+                            else
+                              exprasmlist^.concat(new(pairegalloc,dealloc(R_EDI)))
+{$endif AllocEDI}
+                            ;
+                          { do the shift }
+                            emit_const_reg(A_SAR,S_L,power,hreg1);
+                          end
                         else
-                          emit_const_reg(A_ADD,S_L,p^.right^.value-1,hreg1);
-                        emitlab(hl);
-                        emit_const_reg(A_SAR,S_L,power,hreg1);
+{$endif newOptimizations}
+                          begin
+                          { a jump, but less operations }
+                            emit_reg_reg(A_TEST,S_L,hreg1,hreg1);
+                            getlabel(hl);
+                            emitjmp(C_NS,hl);
+                            if power=1 then
+                              emit_reg(A_INC,S_L,hreg1)
+                            else
+                              emit_const_reg(A_ADD,S_L,p^.right^.value-1,hreg1);
+                            emitlab(hl);
+                          end
                       End
                     Else
                       emit_const_reg(A_SHR,S_L,power,hreg1);
@@ -164,6 +207,9 @@ implementation
                       { EDI is always free, it's }
                       { only used for temporary  }
                       { purposes              }
+{$ifdef AllocEDI}
+                   exprasmlist^.concat(new(pairegalloc,alloc(R_EDI)));
+{$endif AllocEDI}
                    if (p^.right^.location.loc<>LOC_REGISTER) and
                       (p^.right^.location.loc<>LOC_CREGISTER) then
                      begin
@@ -215,6 +261,9 @@ implementation
                      emit_reg(A_DIV,S_L,R_EDI)
                    else
                      emit_reg(A_IDIV,S_L,R_EDI);
+{$ifdef AllocEDI}
+                   exprasmlist^.concat(new(pairegalloc,dealloc(R_EDI)));
+{$endif AllocEDI}
                    if p^.treetype=divn then
                      begin
                         { if result register is busy then copy }
@@ -840,6 +889,9 @@ implementation
              secondpass(p^.left);
              p^.location.loc:=LOC_MMXREGISTER;
              { prepare EDI }
+{$ifdef AllocEDI}
+             exprasmlist^.concat(new(pairegalloc,alloc(R_EDI)));
+{$endif AllocEDI}
              emit_const_reg(A_MOV,S_L,$ffffffff,R_EDI);
              { load operand }
              case p^.left^.location.loc of
@@ -860,6 +912,9 @@ implementation
              end;
              { load mask }
              emit_reg_reg(A_MOVD,S_NO,R_EDI,R_MM7);
+{$ifdef AllocEDI}
+             exprasmlist^.concat(new(pairegalloc,dealloc(R_EDI)));
+{$endif AllocEDI}
              { lower 32 bit }
              emit_reg_reg(A_PXOR,S_D,R_MM7,p^.location.register);
              { shift mask }
@@ -940,7 +995,12 @@ implementation
 end.
 {
   $Log$
-  Revision 1.38  2000-01-07 01:14:21  peter
+  Revision 1.39  2000-01-09 01:44:20  jonas
+    + (de)allocation info for EDI to fix reported bug on mailinglist.
+      Also some (de)allocation info for ESI added. Between -dallocEDI
+      because at this time of the night bugs could easily slip in ;)
+
+  Revision 1.38  2000/01/07 01:14:21  peter
     * updated copyright to 2000
 
   Revision 1.37  2000/01/07 00:12:10  peter

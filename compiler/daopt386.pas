@@ -133,16 +133,43 @@ type
 {contents of the FPU registers}
   TRegFPUContent = Array[R_ST..R_ST7] Of TContent;
 
+{$ifdef tempOpts}
+{ linked list which allows searching/deleting based on value, no extra frills}
+  PSearchLinkedListItem = ^TSearchLinkedListItem;
+  TSearchLinkedListItem = object(TLinkedList_Item)
+    constructor init;
+    function equals(p: PSearchLinkedListItem): boolean; virtual;
+  end;
+
+  PSearchDoubleIntItem = ^TSearchDoubleInttem;
+  TSearchDoubleIntItem = object(TLinkedList_Item)
+    constructor init(_int1,_int2: longint);
+    function equals(p: PSearchLinkedListItem): boolean; virtual;
+   private
+    int1, int2: longint;
+  end;
+
+  PSearchLinkedList = ^TSearchLinkedList;
+  TSearchLinkedList = object(TLinkedList)
+    function searchByValue(p: PSearchLinkedListItem): boolean;
+    procedure removeByValue(p: PSearchLinkedListItem);
+  end;
+{$endif tempOpts}
+
 {information record with the contents of every register. Every Pai object
  gets one of these assigned: a pointer to it is stored in the OptInfo field}
   TPaiProp = Record
                Regs: TRegContent;
 {               FPURegs: TRegFPUContent;} {currently not yet used}
-    {allocated Registers}
+    { allocated Registers }
                UsedRegs: TRegSet;
-    {status of the direction flag}
+    { status of the direction flag }
                DirFlag: TFlagContents;
-    {can this instruction be removed?}
+{$ifdef tempOpts}
+    { currently used temps }
+               tempAllocs: PSearchLinkedList;
+{$endif tempOpts}
+    { can this instruction be removed? }
                CanBeRemoved: Boolean;
              End;
 
@@ -201,6 +228,76 @@ Var
   that modified the register}
   NrOfInstrSinceLastMod: TInstrSinceLastMod;
 
+{$ifdef tempOpts}
+  constructor TSearchLinkedListItem.init;
+  begin
+  end;
+
+  function TSearchLinkedListItem.equals(p: PSearchLinkedListItem): boolean;
+  begin
+    equals := false;
+  end;
+
+  constructor TSearchDoubleIntItem.init(_int1,_int2: longint);
+  begin
+    int1 := _int1;
+    int2 := _int2;
+  end;
+
+  function TSearchDoubleIntItem.equals(p: PSearchLinkedListItem): boolean;
+  begin
+    equals := (TSearchDoubleIntItem(p).int1 = int1) and
+              (TSearchDoubleIntItem(p).int2 = int2);
+  end;
+
+  function TSearchLinkedList.searchByValue(p: PSearchLinkedListItem): boolean;
+  var temp: PSearchLinkedListItem;
+  begin
+    temp := first;
+    while (temp <> last^.next) and
+          not(temp^.equals(p)) do
+      temp := temp^.next;
+    searchByValue := temp <> last^.next;
+  end;
+
+  procedure TSearchLinkedList.removeByValue(p: PSearchLinkedListItem);
+  begin
+    temp := first;
+    while (temp <> last^.next) and
+          not(temp^.equals(p)) do
+      temp := temp^.next;
+    if temp <> last^.next then
+      begin
+        remove(temp);
+        dispose(temp,done);
+      end;
+  end;
+
+Procedure updateTempAllocs(Var UsedRegs: TRegSet; p: Pai);
+{updates UsedRegs with the RegAlloc Information coming after P}
+Begin
+  Repeat
+    While Assigned(p) And
+          ((p^.typ in (SkipInstr - [ait_RegAlloc])) or
+           ((p^.typ = ait_label) And
+            Not(Pai_Label(p)^.l^.is_used))) Do
+         p := Pai(p^.next);
+    While Assigned(p) And
+          (p^.typ=ait_RegAlloc) Do
+      Begin
+        if pairegalloc(p)^.allocation then
+          UsedRegs := UsedRegs + [PaiRegAlloc(p)^.Reg]
+        else
+          UsedRegs := UsedRegs - [PaiRegAlloc(p)^.Reg];
+        p := pai(p^.next);
+      End;
+  Until Not(Assigned(p)) Or
+        (Not(p^.typ in SkipInstr) And
+         Not((p^.typ = ait_label) And
+            Not(Pai_Label(p)^.l^.is_used)));
+End;
+
+{$endif tempOpts}
 
 {************************ Create the Label table ************************}
 
@@ -304,6 +401,8 @@ Begin
           If Pai_Label(p)^.l^.is_used Then
             LabelTable^[Pai_Label(p)^.l^.labelnr-LowLabel].PaiObj := p;
         ait_regAlloc:
+          { ESI and EDI are (de)allocated manually, don't mess with them }
+          if not(paiRegAlloc(p)^.Reg in [R_EDI,R_ESI]) then
            begin
              if PairegAlloc(p)^.Allocation then
               Begin
@@ -1918,7 +2017,12 @@ End.
 
 {
  $Log$
- Revision 1.76  2000-01-07 01:14:23  peter
+ Revision 1.77  2000-01-09 01:44:21  jonas
+   + (de)allocation info for EDI to fix reported bug on mailinglist.
+     Also some (de)allocation info for ESI added. Between -dallocEDI
+     because at this time of the night bugs could easily slip in ;)
+
+ Revision 1.76  2000/01/07 01:14:23  peter
    * updated copyright to 2000
 
  Revision 1.75  1999/12/05 16:48:43  jonas

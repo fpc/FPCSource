@@ -827,6 +827,9 @@ implementation
                  end
                else
                 { call can happend with a property }
+{$ifdef AllocEDI}
+                    exprasmlist^.concat(new(pairegalloc,alloc(R_EDI)));
+{$endif AllocEDI}
                 if { (p^.left^.treetype=calln) and  Don't think that
                       this is necessary (FK) }
                    (p^.left^.resulttype^.deftype=objectdef) and
@@ -863,6 +866,9 @@ implementation
                   { move to temp reference }
                   emit_reg_ref(A_MOV,S_L,
                     R_EDI,newreference(p^.withreference^));
+{$ifdef AllocEDI}
+                  exprasmlist^.concat(new(pairegalloc,dealloc(R_EDI)));
+{$endif AllocEDI}
                   del_reference(p^.left^.location.reference);
                 end;
 
@@ -885,7 +891,12 @@ implementation
 end.
 {
   $Log$
-  Revision 1.66  2000-01-07 01:14:21  peter
+  Revision 1.67  2000-01-09 01:44:20  jonas
+    + (de)allocation info for EDI to fix reported bug on mailinglist.
+      Also some (de)allocation info for ESI added. Between -dallocEDI
+      because at this time of the night bugs could easily slip in ;)
+
+  Revision 1.66  2000/01/07 01:14:21  peter
     * updated copyright to 2000
 
   Revision 1.65  2000/01/04 15:15:50  florian

@@ -300,6 +300,9 @@ implementation
                             LOC_MEM,
                             LOC_REFERENCE:
                               begin
+{$ifdef AllocEDI}
+                                 exprasmlist^.concat(new(pairegalloc,alloc(R_EDI)));
+{$endif AllocEDI}
                                  hregister:=R_EDI;
                                  if pobjectdef(p^.left^.resulttype)^.is_class then
                                    emit_ref_reg(A_MOV,S_L,
@@ -343,9 +346,15 @@ implementation
                               { ... and store it }
                               emit_reg_ref(A_MOV,S_L,
                                 R_EDI,newreference(p^.location.reference));
+{$ifdef AllocEDI}
+                              exprasmlist^.concat(new(pairegalloc,dealloc(R_EDI)));
+{$endif AllocEDI}
                            end
                          else
                            begin
+{$ifdef AllocEDI}
+                              exprasmlist^.concat(new(pairegalloc,dealloc(R_EDI)));
+{$endif AllocEDI}
                               s:=newasmsymbol(pprocsym(p^.symtableentry)^.definition^.mangledname);
                               emit_sym_ofs_ref(A_MOV,S_L,s,0,
                                 newreference(p^.location.reference));
@@ -996,7 +1005,12 @@ implementation
 end.
 {
   $Log$
-  Revision 1.94  2000-01-07 01:14:21  peter
+  Revision 1.95  2000-01-09 01:44:20  jonas
+    + (de)allocation info for EDI to fix reported bug on mailinglist.
+      Also some (de)allocation info for ESI added. Between -dallocEDI
+      because at this time of the night bugs could easily slip in ;)
+
+  Revision 1.94  2000/01/07 01:14:21  peter
     * updated copyright to 2000
 
   Revision 1.93  1999/12/30 15:04:31  peter

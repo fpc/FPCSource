@@ -98,6 +98,9 @@ implementation
                  else
                    begin
                       { not so elegant (goes better with extra register }
+{$ifdef AllocEDI}
+                      exprasmlist^.concat(new(pairegalloc,alloc(R_EDI)));
+{$endif AllocEDI}
                       if (p^.right^.location.loc in [LOC_REGISTER,LOC_CREGISTER]) then
                         begin
                            emit_reg_reg(A_MOV,S_L,makereg32(p^.right^.location.register),R_EDI);
@@ -111,6 +114,9 @@ implementation
                       emit_const_reg(A_SHL,S_L,8,R_EDI);
                       emit_const_reg(A_OR,S_L,1,R_EDI);
                       emit_reg_ref(A_MOV,S_W,R_DI,newreference(p^.left^.location.reference));
+{$ifdef AllocEDI}
+                      exprasmlist^.concat(new(pairegalloc,dealloc(R_EDI)));
+{$endif AllocEDI}
                    end;
               end;
          else
@@ -695,6 +701,10 @@ implementation
          if (pfrom^.location.loc=LOC_REGISTER) or
             (pfrom^.location.loc=LOC_CREGISTER) then
            begin
+{$ifdef AllocEDI}
+              if not (porddef(pfrom^.resulttype)^.typ in [u32bit,s32bit,u64bit,s64bit]) then
+                exprasmlist^.concat(new(pairegalloc,alloc(R_EDI)));
+{$endif AllocEDI}
               case porddef(pfrom^.resulttype)^.typ of
                  s8bit : emit_reg_reg(A_MOVSX,S_BL,pfrom^.location.register,R_EDI);
                  u8bit : emit_reg_reg(A_MOVZX,S_BL,pfrom^.location.register,R_EDI);
@@ -713,6 +723,9 @@ implementation
          else
            begin
               r:=newreference(pfrom^.location.reference);
+{$ifdef AllocEDI}
+              exprasmlist^.concat(new(pairegalloc,alloc(R_EDI)));
+{$endif AllocEDI}
               case porddef(pfrom^.resulttype)^.typ of
                  s8bit:
                    emit_ref_reg(A_MOVSX,S_BL,r,R_EDI);
@@ -738,6 +751,10 @@ implementation
            end;
          { for 64 bit integers, the high dword is already pushed }
          emit_reg(A_PUSH,S_L,hregister);
+{$ifdef AllocEDI}
+         if hregister = R_EDI then
+           exprasmlist^.concat(new(pairegalloc,dealloc(R_EDI)));
+{$endif AllocEDI}
          r:=new_reference(R_ESP,0);
          case porddef(pfrom^.resulttype)^.typ of
            u32bit:
@@ -757,10 +774,16 @@ implementation
                 { if it is 1 then we add $80000000 000000000 }
                 { as double                                  }
                 inc(r^.offset,4);
+{$ifdef AllocEDI}
+                exprasmlist^.concat(new(pairegalloc,alloc(R_EDI)));
+{$endif AllocEDI}
                 emit_ref_reg(A_MOV,S_L,r,R_EDI);
                 r:=new_reference(R_ESP,4);
                 emit_const_ref(A_AND,S_L,$7fffffff,r);
-                emit_const_reg(A_AND,S_L,$80000000,R_EDI);
+                emit_const_reg(A_TEST,S_L,$80000000,R_EDI);
+{$ifdef AllocEDI}
+                exprasmlist^.concat(new(pairegalloc,dealloc(R_EDI)));
+{$endif AllocEDI}
                 r:=new_reference(R_ESP,0);
                 emit_ref(A_FILD,S_IQ,r);
                 getdatalabel(l1);
@@ -779,7 +802,13 @@ implementation
            else
              begin
                 emit_ref(A_FILD,S_IL,r);
+{$ifdef AllocEDI}
+                exprasmlist^.concat(new(pairegalloc,alloc(R_EDI)));
+{$endif AllocEDI}
                 emit_reg(A_POP,S_L,R_EDI);
+{$ifdef AllocEDI}
+                exprasmlist^.concat(new(pairegalloc,dealloc(R_EDI)));
+{$endif AllocEDI}
              end;
          end;
          inc(fpuvaroffset);
@@ -818,7 +847,13 @@ implementation
          rreg:=getregister32;
          emit_reg(A_POP,S_L,rreg);
          { better than an add on all processors }
+{$ifdef AllocEDI}
+         exprasmlist^.concat(new(pairegalloc,alloc(R_EDI)));
+{$endif AllocEDI}
          emit_reg(A_POP,S_L,R_EDI);
+{$ifdef AllocEDI}
+         exprasmlist^.concat(new(pairegalloc,dealloc(R_EDI)));
+{$endif AllocEDI}
 
          clear_location(pto^.location);
          pto^.location.loc:=LOC_REGISTER;
@@ -1355,19 +1390,31 @@ implementation
                            r^.base:=p^.location.register
                           else
                             begin
+{$ifdef AllocEDI}
+                               exprasmlist^.concat(new(pairegalloc,alloc(R_EDI)));
+{$endif AllocEDI}
                                emit_mov_loc_reg(p^.location,R_EDI);
                                r^.base:=R_EDI;
                             end;
                           { NIL must be accepted !! }
                           emit_reg_reg(A_OR,S_L,r^.base,r^.base);
+{$ifdef AllocEDI}
+                          exprasmlist^.concat(new(pairegalloc,dealloc(R_EDI)));
+{$endif AllocEDI}
                           getlabel(nillabel);
                           emitjmp(C_E,nillabel);
                           { this is one point where we need vmt_offset (PM) }
                           r^.offset:= pobjectdef(ppointerdef(p^.resulttype)^.definition)^.vmt_offset;
+{$ifdef AllocEDI}
+                          exprasmlist^.concat(new(pairegalloc,alloc(R_EDI)));
+{$endif AllocEDI}
                           emit_ref_reg(A_MOV,S_L,r,R_EDI);
                           emit_sym(A_PUSH,S_L,
                             newasmsymbol(pobjectdef(ppointerdef(p^.resulttype)^.definition)^.vmt_mangledname));
                           emit_reg(A_PUSH,S_L,R_EDI);
+{$ifdef AllocEDI}
+                          exprasmlist^.concat(new(pairegalloc,dealloc(R_EDI)));
+{$endif AllocEDI}
                           emitcall('FPC_CHECK_OBJECT_EXT');
                           emitlab(nillabel);
                        end;
@@ -1486,7 +1533,12 @@ implementation
 end.
 {
   $Log$
-  Revision 1.98  2000-01-07 01:14:20  peter
+  Revision 1.99  2000-01-09 01:44:19  jonas
+    + (de)allocation info for EDI to fix reported bug on mailinglist.
+      Also some (de)allocation info for ESI added. Between -dallocEDI
+      because at this time of the night bugs could easily slip in ;)
+
+  Revision 1.98  2000/01/07 01:14:20  peter
     * updated copyright to 2000
 
   Revision 1.97  1999/12/22 01:01:46  peter
