@@ -639,7 +639,8 @@ uses
              ibmodulename :
                begin
                  newmodulename:=ppufile.getstring;
-                 if upper(newmodulename)<>modulename^ then
+                 if (cs_check_unit_name in aktglobalswitches) and
+                    (upper(newmodulename)<>modulename^) then
                    Message2(unit_f_unit_name_error,realmodulename^,newmodulename);
                  stringdispose(modulename);
                  stringdispose(realmodulename);
@@ -1180,7 +1181,10 @@ uses
 end.
 {
   $Log$
-  Revision 1.10  2001-08-19 09:39:27  peter
+  Revision 1.11  2002-01-19 14:20:13  peter
+    * check for -Un when loading ppu with wrong name
+
+  Revision 1.10  2001/08/19 09:39:27  peter
     * local browser support fixed
 
   Revision 1.9  2001/06/18 20:36:23  peter
