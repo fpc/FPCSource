@@ -55,7 +55,7 @@ DOTEST=./dotest$(EXEEXT)
 $(DOTEST) : units utils/dotest.pp utils/redir.pp
         $(FPC) -Fuunits -FE. utils/dotest
 
-testcheck: units $(DOTEST)
+testcheck: units allpreps $(DOTEST)
 
 #
 # Dotest options
@@ -84,6 +84,19 @@ DIRS=webtbs webtbf tbs tbf test test/cg test/units/system test/units/objects
 
 %.elg : %.pp
         $(DOTEST) $(DOTESTOPT) -e $<
+
+#
+# Preparations for tests:
+#
+# 1. Copy target dependent ctest.o to test/cg
+#
+
+.PHONY: allpreps
+
+allpreps: allpreps-stamp.$(OS_TARGET)
+allpreps-stamp.$(OS_TARGET):
+        $(COPY) test/cg/obj/$(OS_TARGET)/$(CPU_TARGET)/ctest.o test/cg
+        $(ECHO) $(DATE) > preps.timestamp
 
 #
 # Compile tests
@@ -137,7 +150,7 @@ else
 endif
         -rm -f *.tmp core
         -rm -f $(LOG) $(LONGLOG) $(FAILLIST)
-        -rm -f ppas.sh ppas.bat gmon.out
+        -rm -f ppas.sh ppas.bat gmon.out allpreps-stamp.$(OS_TARGET)
         $(MAKE) -C units clean
 
 distclean: clean
