@@ -765,6 +765,7 @@ cleanall: fpc_cleanall
 ifneq ($(wildcard fpcmake.loc),)
 include fpcmake.loc
 endif
+TESTSUBDIRS=cg units/system units/dos units/crt
 ifeq ($(OS_TARGET),linux)
 INUNIX=1
 endif
@@ -809,7 +810,8 @@ alltbs : testcheck $(patsubst %.pp,%.log,$(wildcard tbs/t*.pp))
 alltbf : testcheck $(patsubst %.pp,%.log,$(wildcard tbf/t*.pp))
 allwebtbs : testcheck $(patsubst %.pp,%.log,$(wildcard webtbs/t*.pp))
 allwebtbf : testcheck $(patsubst %.pp,%.log,$(wildcard webtbf/t*.pp))
-alltest : testcheck $(patsubst %.pp,%.log,$(wildcard test/t*.pp))
+TESTDIRS:=test $(addprefix test/,$(TESTSUBDIRS))
+alltest : testcheck $(patsubst %.pp,%.log,$(wildcard $(addsuffix /t*.pp,$(TESTDIRS))))
 alltestopt : testcheck $(patsubst %.pp,%.log,$(wildcard testopt/t*.pp))
 alltests: alltest alltbs alltbf allwebtbs allwebtbf
 .PHONY: allexectbs allexectbf allexecwebtbs allexecwebtbf allexectest allexectestopt allexectests

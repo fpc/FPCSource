@@ -11,6 +11,9 @@ rule=allexectests
 
 
 [rules]
+# Subdirs available in the test subdir
+TESTSUBDIRS=cg units/system units/dos units/crt
+
 # Unix like OS ?
 ifeq ($(OS_TARGET),linux)
 INUNIX=1
@@ -91,7 +94,8 @@ alltbf : testcheck $(patsubst %.pp,%.log,$(wildcard tbf/t*.pp))
 allwebtbs : testcheck $(patsubst %.pp,%.log,$(wildcard webtbs/t*.pp))
 allwebtbf : testcheck $(patsubst %.pp,%.log,$(wildcard webtbf/t*.pp))
 
-alltest : testcheck $(patsubst %.pp,%.log,$(wildcard test/t*.pp))
+TESTDIRS:=test $(addprefix test/,$(TESTSUBDIRS))
+alltest : testcheck $(patsubst %.pp,%.log,$(wildcard $(addsuffix /t*.pp,$(TESTDIRS))))
 alltestopt : testcheck $(patsubst %.pp,%.log,$(wildcard testopt/t*.pp))
 
 alltests: alltest alltbs alltbf allwebtbs allwebtbf
