@@ -37,7 +37,10 @@ end.
 
 {
   $Log$
-  Revision 1.1  2003-04-29 21:12:17  pierre
+  Revision 1.1  2004-04-27 23:07:16  olle
+    * moved to utils in accordance with the major makefile rework
+
+  Revision 1.1  2003/04/29 21:12:17  pierre
    * win32 specific unit added
 
 }
