@@ -30,23 +30,23 @@ asm
         ta      0x10
         bcc     .LSyscOK
         nop
+        mov     %o0,%l0
         sethi   %hi(fpc_threadvar_relocate_proc),%o2
         or      %o2,%lo(fpc_threadvar_relocate_proc),%o2
         ld      [%o2],%o3
         subcc   %o3,%g0,%g0
         bne     .LThread
         nop
-        sethi   %hi(Errno+4),%o2
+        sethi   %hi(Errno+4),%o0
         ba      .LNoThread
-        or      %o2,%lo(Errno+4),%o2
+        or      %o0,%lo(Errno+4),%o0
 .LThread:
         sethi   %hi(Errno),%o0
-        ld      [%o3],%o4
         or      %o0,%lo(Errno),%o0
-        call    %o4
-        nop
+        call    %o3
+        ld      [%o0],%o0
 .LNoThread:
-        st      %o0,[%o2]
+        st      %l0,[%o0]
         ba      .LReturn
         mov     -1,%i0
 .LSyscOK:
@@ -72,23 +72,23 @@ asm
         ta      0x10
         bcc     .LSyscOK
         nop
+        mov     %o0,%l0
         sethi   %hi(fpc_threadvar_relocate_proc),%o2
         or      %o2,%lo(fpc_threadvar_relocate_proc),%o2
         ld      [%o2],%o3
         subcc   %o3,%g0,%g0
         bne     .LThread
         nop
-        sethi   %hi(Errno+4),%o2
+        sethi   %hi(Errno+4),%o0
         ba      .LNoThread
-        or      %o2,%lo(Errno+4),%o2
+        or      %o0,%lo(Errno+4),%o0
 .LThread:
         sethi   %hi(Errno),%o0
-        ld      [%o3],%o1
         or      %o0,%lo(Errno),%o0
-        call    %o1
-        nop
+        call    %o3
+        ld      [%o0],%o0
 .LNoThread:
-        st      %o0,[%o2]
+        st      %l0,[%o0]
         mov     -1,%o0
 .LSyscOK:
         mov     %o0,%i0
@@ -106,23 +106,23 @@ asm
         ta      0x10
         bcc     .LSyscOK
         nop
+        mov     %o0,%l0
         sethi   %hi(fpc_threadvar_relocate_proc),%o2
         or      %o2,%lo(fpc_threadvar_relocate_proc),%o2
         ld      [%o2],%o3
         subcc   %o3,%g0,%g0
         bne     .LThread
         nop
-        sethi   %hi(Errno+4),%o2
+        sethi   %hi(Errno+4),%o0
         ba      .LNoThread
-        or      %o2,%lo(Errno+4),%o2
+        or      %o0,%lo(Errno+4),%o0
 .LThread:
         sethi   %hi(Errno),%o0
-        ld      [%o3],%o1
         or      %o0,%lo(Errno),%o0
-        call    %o1
-        nop
+        call    %o3
+        ld      [%o0],%o0
 .LNoThread:
-        st      %o0,[%o2]
+        st      %l0,[%o0]
         mov     -1,%o0
 .LSyscOK:
         mov     %o0,%i0
@@ -141,23 +141,23 @@ asm
         ta      0x10
         bcc     .LSyscOK
         nop
+        mov     %o0,%l0
         sethi   %hi(fpc_threadvar_relocate_proc),%o2
         or      %o2,%lo(fpc_threadvar_relocate_proc),%o2
         ld      [%o2],%o3
         subcc   %o3,%g0,%g0
         bne     .LThread
         nop
-        sethi   %hi(Errno+4),%o2
+        sethi   %hi(Errno+4),%o0
         ba      .LNoThread
-        or      %o2,%lo(Errno+4),%o2
+        or      %o0,%lo(Errno+4),%o0
 .LThread:
         sethi   %hi(Errno),%o0
-        ld      [%o3],%o1
         or      %o0,%lo(Errno),%o0
-        call    %o1
-        nop
+        call    %o3
+        ld      [%o0],%o0
 .LNoThread:
-        st      %o0,[%o2]
+        st      %l0,[%o0]
         mov     -1,%o0
 .LSyscOK:
         mov     %o0,%i0
@@ -177,6 +177,7 @@ asm
         ta      0x10
         bcc     .LSyscOK
         nop
+        mov     %o0,%l0
         sethi   %hi(fpc_threadvar_relocate_proc),%o2
         or      %o2,%lo(fpc_threadvar_relocate_proc),%o2
         ld      [%o2],%o3
@@ -214,23 +215,23 @@ asm
         ta      0x10
         bcc     .LSyscOK
         nop
+        mov     %o0,%l0
         sethi   %hi(fpc_threadvar_relocate_proc),%o2
         or      %o2,%lo(fpc_threadvar_relocate_proc),%o2
         ld      [%o2],%o3
         subcc   %o3,%g0,%g0
         bne     .LThread
         nop
-        sethi   %hi(Errno+4),%o2
+        sethi   %hi(Errno+4),%o0
         ba      .LNoThread
-        or      %o2,%lo(Errno+4),%o2
+        or      %o0,%lo(Errno+4),%o0
 .LThread:
         sethi   %hi(Errno),%o0
-        ld      [%o3],%o1
         or      %o0,%lo(Errno),%o0
-        call    %o1
-        nop
+        call    %o3
+        ld      [%o0],%o0
 .LNoThread:
-        st      %o0,[%o2]
+        st      %l0,[%o0]
         mov     -1,%o0
 .LSyscOK:
         mov     %o0,%i0
@@ -252,23 +253,23 @@ asm
         ta      0x10
         bcc     .LSyscOK
         nop
+        mov     %o0,%l0
         sethi   %hi(fpc_threadvar_relocate_proc),%o2
         or      %o2,%lo(fpc_threadvar_relocate_proc),%o2
         ld      [%o2],%o3
         subcc   %o3,%g0,%g0
         bne     .LThread
         nop
-        sethi   %hi(Errno+4),%o2
+        sethi   %hi(Errno+4),%o0
         ba      .LNoThread
-        or      %o2,%lo(Errno+4),%o2
+        or      %o0,%lo(Errno+4),%o0
 .LThread:
         sethi   %hi(Errno),%o0
-        ld      [%o3],%o1
         or      %o0,%lo(Errno),%o0
-        call    %o1
-        nop
+        call    %o3
+        ld      [%o0],%o0
 .LNoThread:
-        st      %o0,[%o2]
+        st      %l0,[%o0]
         mov     -1,%o0
 .LSyscOK:
         mov     %o0,%i0
@@ -291,23 +292,23 @@ asm
         ta      0x10
         bcc     .LSyscOK
         nop
+        mov     %o0,%l0
         sethi   %hi(fpc_threadvar_relocate_proc),%o2
         or      %o2,%lo(fpc_threadvar_relocate_proc),%o2
         ld      [%o2],%o3
         subcc   %o3,%g0,%g0
         bne     .LThread
         nop
-        sethi   %hi(Errno+4),%o2
+        sethi   %hi(Errno+4),%o0
         ba      .LNoThread
-        or      %o2,%lo(Errno+4),%o2
+        or      %o0,%lo(Errno+4),%o0
 .LThread:
         sethi   %hi(Errno),%o0
-        ld      [%o3],%o1
         or      %o0,%lo(Errno),%o0
-        call    %o1
-        nop
+        call    %o3
+        ld      [%o0],%o0
 .LNoThread:
-        st      %o0,[%o2]
+        st      %l0,[%o0]
         mov     -1,%o0
 .LSyscOK:
         mov     %o0,%i0
@@ -316,7 +317,10 @@ end;
 
 {
   $Log$
-  Revision 1.15  2004-11-06 22:48:16  florian
+  Revision 1.16  2004-11-07 00:30:17  florian
+    * more errno setting in sparc/linux mt programs fixed
+
+  Revision 1.15  2004/11/06 22:48:16  florian
     * fixed errno setting in mt sparc/linux mt programs
 
   Revision 1.14  2004/08/22 12:34:11  florian
