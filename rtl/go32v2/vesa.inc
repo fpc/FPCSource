@@ -2473,6 +2473,9 @@ Const
 {$endif fpc}
       mov  [VideoMode], al
     end;
+    { saving/restoring video state screws up Windows (JM) }
+    if inWindows then
+      exit;
 {$ifdef logging}
         LogLn('Prepare to save VESA video state');
 {$endif logging}
@@ -2715,7 +2718,10 @@ Const
 
 {
   $Log$
-  Revision 1.6  2000-12-16 15:57:17  jonas
+  Revision 1.7  2001-09-10 16:15:52  jonas
+    * merged windows mode saving stuff from fixes branch
+
+  Revision 1.6  2000/12/16 15:57:17  jonas
     * removed 64bit evaluations when range checking is on
 
   Revision 1.5  2000/08/12 12:27:13  jonas

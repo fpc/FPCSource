@@ -139,6 +139,7 @@ const
 
   var
      ScrWidth : word absolute $40:$4a;
+     inWindows: boolean;
 
 {$ifndef tp}
   procedure seg_bytemove(sseg : word;source : longint;dseg : word;dest : longint;count : longint);
@@ -1569,9 +1570,18 @@ const CrtAddress: word = 0;
     { Get the video mode }
     asm
       mov  ah,0fh
+{$ifdef fpc}
+      push ebp
+{$endif fpc}
       int  10h
+{$ifdef fpc}
+      pop ebp
+{$endif fpc}
       mov  [VideoMode], al
     end;
+    { saving/restoring video state screws up Windows (JM) }
+    if inWindows then
+      exit;
     { Prepare to save video state...}
     asm
       mov  ax, 1C00h       { get buffer size to save state }
@@ -1660,6 +1670,7 @@ const CrtAddress: word = 0;
          regs.es := RealStateSeg;
          regs.ebx := 0;
          RealIntr($10,regs);
+(*
 {$ifndef fpc}
          if GlobalDosFree(longint(SavePtr) shr 16)<>0 then
 {$else fpc}
@@ -1668,6 +1679,7 @@ const CrtAddress: word = 0;
           RunError(216);
 
          SavePtr := nil;
+*)
        end;
   end;
 
@@ -1743,7 +1755,8 @@ const CrtAddress: word = 0;
            mov  bx, WORD PTR [SavePtr]
            int  10h
          end;
-         FreeMem(SavePtr, 64*StateSize);
+{        done in exitproc (JM)
+         FreeMem(SavePtr, 64*StateSize);}
          SavePtr := nil;
        end;
   end;
@@ -1855,14 +1868,8 @@ const CrtAddress: word = 0;
         _graphresult := grnoinitgraph;
         exit
       end;
-{$ifdef logging}
-    LogLn('calling RestoreVideoState at '+strf(longint(RestoreVideoState)));
-{$endif logging}
     if not assigned(RestoreVideoState) then
       RunError(216);
-{$ifdef logging}
-    LogLn('actual call of RestoreVideoState');
-{$endif logging}
     RestoreVideoState;
     isgraphmode := false;
  end;
@@ -2652,12 +2659,59 @@ const CrtAddress: word = 0;
        end;
    end;
 
+var
+  go32exitsave: pointer;
+
+procedure freeSaveStateBuffer; {$ifndef fpc}far; {$endif}
 begin
+  if savePtr <> nil then
+    begin
+{$ifdef dpmi}
+{$ifndef fpc}
+      if GlobalDosFree(longint(SavePtr) shr 16)<>0 then;
+{$else fpc}
+      if Not Global_Dos_Free(longint(SavePtr) shr 16) then;
+{$endif fpc}
+{$else dpmi}
+      FreeMem(SavePtr, 64*StateSize);
+{$endif dpmi}
+      SavePtr := nil;
+  end;
+  exitproc := go32exitsave;
+end;
+
+begin
+  { must be done *before* initialize graph is called, because the save }
+  { buffer can be used in the normal exit_proc (which is hooked in     }
+  { initializegraph and as such executed first) (JM)                   }
+  go32exitsave := exitproc;
+  exitproc := @freeSaveStateBuffer;
+  { windows screws up the display if the savestate/restore state  }
+  { stuff is used (or uses an abnormal amount of cpu time after   }
+  { such a problem has exited), so detect its presense and do not }
+  { use those functions if it's running. I'm really tired of      }
+  { working around Windows bugs :( (JM)                           }
+  asm
+    mov  ax,$160a
+{$ifdef fpc}
+    push ebp
+{$endif fpc}
+    int  $2f
+{$ifdef fpc}
+    pop ebp
+{$endif fpc}
+    test ax,ax
+    sete al
+    mov  inWindows,al
+  end;
   InitializeGraph;
 end.
 {
   $Log$
-  Revision 1.7  2001-06-06 17:20:22  jonas
+  Revision 1.8  2001-09-10 16:15:52  jonas
+    * merged windows mode saving stuff from fixes branch
+
+  Revision 1.7  2001/06/06 17:20:22  jonas
     * fixed wrong typed constant procvars in preparation of my fix which will
       disallow them in FPC mode (plus some other unmerged changes since
       LAST_MERGE)
