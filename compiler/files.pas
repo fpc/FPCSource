@@ -448,7 +448,7 @@ unit files;
                     { search for include files in the includepathlist }
                     if b<>ibend then
                       begin
-                         temp:=search(hs,includesearchpath,incfile_found)
+                         temp:=search(hs,includesearchpath,incfile_found);
                          if incfile_found then
                            begin
                               hs:=temp+hs;
@@ -938,7 +938,10 @@ unit files;
 end.
 {
   $Log$
-  Revision 1.17  1998-06-09 16:01:40  pierre
+  Revision 1.18  1998-06-11 13:58:07  peter
+    * small fix to let newppu compile
+
+  Revision 1.17  1998/06/09 16:01:40  pierre
     + added procedure directive parsing for procvars
       (accepted are popstack cdecl and pascal)
     + added C vars with the following syntax

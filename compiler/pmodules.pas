@@ -40,6 +40,9 @@ unit pmodules;
        cobjects,verbose,systems,globals,
        symtable,aasm,hcodegen,
        link,assemble,import
+{$ifdef NEWPPU}
+       ,ppu
+{$endif NEWPPU}
 {$ifdef i386}
        ,i386
 {$endif}
@@ -119,8 +122,6 @@ unit pmodules;
 
 
     procedure inserttargetspecific;
-      var
-        i : longint;
       begin
 {$ifdef i386}
         case target_info.target of
@@ -134,13 +135,6 @@ unit pmodules;
                          linked, can't use concat_external because those aren't written for
                          asw (PFV) }
                          datasegment^.concat(new(pai_const,init_symbol('_mainCRTStartup')));
-                       { generate the last entry for the imports directory, is done
-                         in the ld script }
-                       {  if not(assigned(importssection)) then
-                           importssection:=new(paasmoutput,init);
-                         importssection^.concat(new(pai_section,init_idata(3)));
-                         for i:=1 to 5 do
-                           importssection^.concat(new(pai_const,init_32bit(0))); }
                        end;
         end;
 {$endif i386}
@@ -716,32 +710,9 @@ unit pmodules;
               refsymtable^.concatstabto(debuglist);
            end;
 {$endif GDB}
-         { for interdependent units
-         the crc is included in the ppufile
-         but it is not known when writing the first ppufile
-         so I tried to add a fake writing of the ppu
-         just to get the CRC
-         but the result is different for the real CRC
-         it calculates after, I don't know why
 
-         Answer:
-         -------
-         When reading the interface part, the compiler assumes
-         that all registers are modified by a procedure
-         usedinproc:=$ff !
-         If the definition is read, the compiler determines
-         the used registers and write the correct value
-         to usedinproc
-
-         only_calculate_crc:=true;
-         writeunitas(current_module^.current_inputfile^.path^+current_module^.current_inputfile^.name^+
-                     +'.PPS',punitsymtable(symtablestack));
-         only_calculate_crc:=false;
-         }
          { generates static symbol table }
          p:=new(punitsymtable,init(staticsymtable,current_module^.modulename^));
-         { must be done only after _USES !! (PM)
-         refsymtable:=p;}
 
          {Generate a procsym.}
          aktprocsym:=new(Pprocsym,init(current_module^.modulename^+'_init'));
@@ -754,16 +725,13 @@ unit pmodules;
          dispose(aktprocsym^.definition^.localst,done);
          aktprocsym^.definition^.localst:=p;
 
-
-         { testing !!!!!!!!! }
-         { we set the interface part as a unitsymtable  }
-         { for the case we need to compile another unit }
-
          { remove the globalsymtable from the symtable stack }
          { to reinsert it after loading the implementation units }
          symtablestack:=unitst^.next;
 
+         { Read the implementation units }
          parse_implementation_uses(unitst);
+
          { now we can change refsymtable }
          refsymtable:=p;
 
@@ -796,19 +764,20 @@ unit pmodules;
          { clear flags }
          procinfo.flags:=0;
 
-         {Reset the codegenerator.}
+         { Create a new procedure }
          codegen_newprocedure;
 
+         { Compile the unit }
          names.init;
          names.insert(current_module^.modulename^+'_init');
          names.insert('INIT$$'+current_module^.modulename^);
          compile_proc_body(names,true,false);
          names.done;
 
+         { Shutdown the codegen for this procedure }
          codegen_doneprocedure;
 
          consume(POINT);
-
 
          { size of the static data }
          datasize:=symtablestack^.datasize;
@@ -993,7 +962,10 @@ unit pmodules;
 end.
 {
   $Log$
-  Revision 1.26  1998-06-09 16:01:47  pierre
+  Revision 1.27  1998-06-11 13:58:08  peter
+    * small fix to let newppu compile
+
+  Revision 1.26  1998/06/09 16:01:47  pierre
     + added procedure directive parsing for procvars
       (accepted are popstack cdecl and pascal)
     + added C vars with the following syntax
