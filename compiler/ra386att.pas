@@ -1147,6 +1147,9 @@ const
            end;
            { Check for constants without bases/indexes in memory }
            { references.                                         }
+           { Update: allow constant references under Go32v2, to  }
+           { access data in the bios data segmement (JM)         }
+{$ifndef Go32v2}
            if (operandtype = OPR_REFERENCE) and
               (ref.base = R_NO) and
               (ref.index = R_NO) and
@@ -1156,6 +1159,7 @@ const
                 ref.isintvalue := TRUE;
                 Message(assem_e_const_ref_not_allowed);
               end;
+{$endif Go32v2}
               opinfo := findtype(operands[i]);
           end; { end with }
      end; {endfor}
@@ -2804,12 +2808,15 @@ const
 
 
 
-  Function BuildRefExpression: longint;
+  Function BuildRefExpression(BetweenBrackets: Boolean): longint;
   {*********************************************************************}
-  { FUNCTION BuildExpression: longint                                   }
-  {  Description: This routine calculates a constant expression to      }
-  {  a given value. The return value is the value calculated from       }
+  { FUNCTION BuildRefExpression: longint                                }
+  {  Description: This routine calculates a constant offset expression  }
+  {  to a given value. The return value is the value calculated from    }
   {  the expression.                                                    }
+  {  If BetweenBrackets is false, it's an offset before the brackets of }
+  {  a reference, such as 16(%ebp), otherwise it's one in between       }
+  {  brackets, such as fs:(0x046c)                                      }
   { The following tokens (not strings) are recognized:                  }
   {    SHL,SHR,/,*,NOT,OR,XOR,AND,MOD,+/-,numbers,ID to constants.      }
   {*********************************************************************}
@@ -2829,8 +2836,22 @@ const
     Repeat
       Case actasmtoken of
       AS_RPAREN: Begin
-                   Message(assem_e_parenthesis_are_not_allowed);
-                   Consume(AS_RPAREN);
+                   If Not(BetweenBrackets) Then
+                     Begin
+                       Message(assem_e_parenthesis_are_not_allowed);
+                       Consume(AS_RPAREN);
+                     End
+                   Else
+                     Begin
+                      { in this case a closing parenthesis denotes the end
+                        of the expression }
+                       If Not ErrorFlag Then
+                          BuildRefExpression := CalculateExpression(expr)
+                       else
+                         BuildRefExpression := 0;
+                     { no longer in an expression }
+                       exit;
+                     End
                  end;
       AS_SHL:    Begin
                    Consume(AS_SHL);
@@ -2878,12 +2899,20 @@ const
                 end;
       { End of reference }
       AS_LPAREN: Begin
-                     if not ErrorFlag then
-                        BuildRefExpression := CalculateExpression(expr)
-                     else
-                        BuildRefExpression := 0;
+                   If Not(BetweenBrackets) Then
+                     Begin
+                       if not ErrorFlag then
+                          BuildRefExpression := CalculateExpression(expr)
+                       else
+                          BuildRefExpression := 0;
                      { no longer in an expression }
-                     exit;
+                       exit;
+                     End
+                   Else
+                     Begin
+                       Message(assem_e_parenthesis_are_not_allowed);
+                       Consume(AS_RPAREN);
+                     End
                   end;
       AS_ID:
                 Begin
@@ -2968,6 +2997,40 @@ const
      Consume(AS_LPAREN);
      initAsmRef(instr);
      Case actasmtoken of
+        { absolute offset, such as fs:(0x046c) }
+        AS_HEXNUM,AS_INTNUM,AS_MINUS,
+        AS_BINNUM,AS_OCTALNUM,AS_PLUS:
+          Begin
+            If Instr.Operands[OperandNum].Ref.Offset <> 0 Then
+             { offset(offset) is invalid }
+              Begin
+                Message(assem_e_invalid_reference);
+                while actasmtoken <> AS_SEPARATOR do
+                  Consume(actasmtoken);
+              End
+            Else
+              Begin
+                Instr.Operands[OperandNum].Ref.Offset := BuildRefExpression(True);
+                if actasmtoken <> AS_RPAREN then
+                  Begin
+                    Message(assem_e_invalid_reference);
+                    while actasmtoken <> AS_SEPARATOR do
+                      Consume(actasmtoken);
+                  end
+                else
+                  Begin
+                    Consume(AS_RPAREN);
+                    if not (actasmtoken in [AS_COMMA, AS_SEPARATOR]) then
+                      Begin
+                        { error recovery ... }
+                        Message(assem_e_invalid_reference);
+                        while actasmtoken <> AS_SEPARATOR do
+                          Consume(actasmtoken);
+                      end;
+                   end;
+              End;
+            exit;
+          End;
         { // (reg ... // }
         AS_REGISTER: Begin
                        { Check if there is already a base (mostly ebp,esp) than this is
@@ -3177,7 +3240,7 @@ const
      AS_BINNUM,AS_OCTALNUM,AS_PLUS:
                    Begin
                       InitAsmRef(instr);
-                      instr.operands[operandnum].ref.offset:=BuildRefExpression;
+                      instr.operands[operandnum].ref.offset:=BuildRefExpression(False);
                       BuildReference(instr);
                    end;
    { // Call from memory address // }
@@ -3345,7 +3408,7 @@ const
                         AS_BINNUM,AS_OCTALNUM,AS_PLUS
                         :  Begin
                                        instr.operands[operandnum].
-                                       ref.offset:=BuildRefExpression;
+                                       ref.offset:=BuildRefExpression(False);
                                        BuildReference(instr);
                                       end;
                         AS_LPAREN: BuildReference(instr);
@@ -3906,7 +3969,10 @@ end.
 
 {
   $Log$
-  Revision 1.23  1998-12-02 16:23:33  jonas
+  Revision 1.24  1998-12-08 23:03:48  jonas
+    * allow constant offsets for go32v2 in assembler blocks
+
+  Revision 1.23  1998/12/02 16:23:33  jonas
     * changed "if longintvar in set" to case or "if () or () .." statements
     * tree.pas: changed inlinenumber (and associated constructor/vars) to a byte
 

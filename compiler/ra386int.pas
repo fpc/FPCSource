@@ -984,6 +984,9 @@ var
             end;
             { Check for constants without bases/indexes in memory }
             { references.                                         }
+            { Update: allow constant references under Go32v2, to  }
+            { access data in the bios data segmement (JM)         }
+{$ifndef Go32v2}
             if (operandtype = OPR_REFERENCE) and
                (ref.base = R_NO) and
                (ref.index = R_NO) and
@@ -993,7 +996,7 @@ var
                  ref.isintvalue := TRUE;
                  Message(assem_e_const_ref_not_allowed);
                end;
-
+{$endif Go32v2}
               opinfo := findtype(operands[i]);
 
           end; { end with }
@@ -3514,7 +3517,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.16  1998-12-02 16:23:36  jonas
+  Revision 1.17  1998-12-08 23:03:46  jonas
+    * allow constant offsets for go32v2 in assembler blocks
+
+  Revision 1.16  1998/12/02 16:23:36  jonas
     * changed "if longintvar in set" to case or "if () or () .." statements
     * tree.pas: changed inlinenumber (and associated constructor/vars) to a byte
 
