@@ -244,7 +244,7 @@ unit winsock;
                   sa_family : Smallint; (* 2 byte *)
                   sa_data : array[0..14-1] of char;    (* 14 byte *)
                  );
-       end;          
+       end;
        TSockAddrIn = sockaddr_in;
        PSockAddrIn = ^TSockAddrIn;
        TSockAddr = sockaddr_in;
@@ -716,7 +716,9 @@ unit winsock;
       external winsockdll name 'select';
     function send(s:TSocket;Const buf; len:tOS_INT; flags:tOS_INT):tOS_INT;stdcall;
       external winsockdll name 'send';
-    function sendto(s:TSocket; buf:pchar; len:tOS_INT; flags:tOS_INT;Const toaddr:TSockAddr; tolen:tOS_INT):tOS_INT;stdcall;
+    function sendto(s:TSocket; buf:pchar; len:tOS_INT; flags:tOS_INT;toaddr:PSockAddr; tolen:tOS_INT):tOS_INT;stdcall;
+      external winsockdll name 'sendto';
+    function sendto(s:TSocket; Const buf; len:tOS_INT; flags:tOS_INT;Const toaddr:TSockAddr; tolen:tOS_INT):tOS_INT;stdcall;
       external winsockdll name 'sendto';
     function setsockopt(s:TSocket; level:tOS_INT; optname:tOS_INT; optval:pchar; optlen:tOS_INT):tOS_INT;stdcall;
       external winsockdll name 'setsockopt';
@@ -886,7 +888,10 @@ unit winsock;
 end.
 {
   $Log$
-  Revision 1.11  2002-12-25 01:04:03  peter
+  Revision 1.12  2003-01-01 14:34:22  peter
+    * sendto overload
+
+  Revision 1.11  2002/12/25 01:04:03  peter
     * sendto overload added
 
   Revision 1.10  2002/09/07 21:28:10  carl

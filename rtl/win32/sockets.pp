@@ -56,7 +56,7 @@ end;
 Function SendTo(Sock:Longint;Const Buf;BufLen,Flags:Longint;Var Addr; AddrLen : Longint):Longint;
 begin
   // Dubious construct, this should be checked.
-  SendTo:=WinSock.SendTo(Sock,pchar(@Buf),BufLen,Flags,Winsock.TSockAddr(Addr),AddrLen);
+  SendTo:=WinSock.SendTo(Sock,Buf,BufLen,Flags,Winsock.TSockAddr(Addr),AddrLen);
   if SendTo<0 then
     SocketError:=WSAGetLastError
   else
@@ -245,7 +245,10 @@ finalization
 end.
 {
   $Log$
-  Revision 1.9  2002-09-07 16:01:29  peter
+  Revision 1.10  2003-01-01 14:34:22  peter
+    * sendto overload
+
+  Revision 1.9  2002/09/07 16:01:29  peter
     * old logs removed and tabs fixed
 
   Revision 1.8  2002/07/17 07:28:21  pierre
