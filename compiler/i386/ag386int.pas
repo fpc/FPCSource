@@ -854,7 +854,7 @@ ait_stab_function_name : ;
             id     : as_i386_wasm;
             idtxt  : 'WASM';
             asmbin : 'wasm';
-            asmcmd : '$ASM -6s -fpc -fp6 -ms -zq -Fo=$OBJ';
+            asmcmd : '$ASM -6s -fp6 -ms -zq -Fo=$OBJ';
             supported_target : system_any; { what should I write here ?? }
             outputbinary: false;
             allowdirect : true;
@@ -875,7 +875,10 @@ initialization
 end.
 {
   $Log$
-  Revision 1.44  2003-12-14 22:42:39  peter
+  Revision 1.45  2003-12-15 15:58:17  peter
+    * wasm args fix from wiktor
+
+  Revision 1.44  2003/12/14 22:42:39  peter
     * fixed range check errors
 
   Revision 1.43  2003/10/21 15:15:36  peter
