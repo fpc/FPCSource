@@ -495,7 +495,7 @@ implementation
                      end;
                    end
                   else
-                   IncompatibleTypes(t.def,p.resulttype.def);
+                   IncompatibleTypes(p.resulttype.def,t.def);
                 end
               else
                 Message(cg_e_illegal_expression);
@@ -1001,7 +1001,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.74  2003-11-12 16:05:39  florian
+  Revision 1.75  2003-11-22 00:32:35  jonas
+    * fixed reversed "got <type 1>, expected <type 1>" error message
+
+  Revision 1.74  2003/11/12 16:05:39  florian
     * assembler readers OOPed
     + typed currency constants
     + typed 128 bit float constants if the CPU supports it
