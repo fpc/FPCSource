@@ -103,12 +103,19 @@ begin
   gtk_widget_show(MainWindow);
   Pages[0].SetFocus;
   gtk_main;
+
+  Pages[2].Free;
+  Pages[1].Free;
+  Pages[0].Free;
 end.
 
 
 {
   $Log$
-  Revision 1.3  2000-01-07 01:24:34  peter
+  Revision 1.4  2000-02-22 14:30:32  sg
+  * Fixed memory leaks
+
+  Revision 1.3  2000/01/07 01:24:34  peter
     * updated copyright to 2000
 
   Revision 1.2  2000/01/06 16:12:53  sg
