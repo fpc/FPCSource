@@ -453,13 +453,14 @@ begin
                 movw %ax, Err
 .LIncFHandles:
             end;
-        if Err <> 0 then
-            begin
-                Increase_File_Handle_Count := false;
-                Dec (FileHandleCount, 10);
-            end
-        else
-            Increase_File_Handle_Count := true;
+            if Err <> 0 then
+                begin
+                    Increase_File_Handle_Count := false;
+                    Dec (FileHandleCount, 10);
+                end
+            else
+                Increase_File_Handle_Count := true;
+        end;
 end;
 
 procedure do_open(var f;p:pchar;flags:longint);
@@ -503,7 +504,7 @@ begin
         2 : filerec(f).mode:=fminout;
     end;
     if (flags and $1000)<>0 then
-        Action := $500; (* Create / replace *)
+        Action := $50000; (* Create / replace *)
 (*        begin
             filerec(f).mode:=fmoutput;
             oflags:=2;
@@ -533,13 +534,22 @@ begin
             exit;
         end;
     Action := Action or (Flags and $FF);
+(* DenyNone if sharing not specified. *)
+    if Flags and 112 = 0 then
+(*        begin
+            if Flags and 3 = 0 then*)
+                Action := Action or 64;
+(*            else
+                Action := Action or 32;
+        end;*)
     asm
         movl $0x7f2b, %eax
         movl Action, %ecx
         movl p, %edx
         call syscall
-        jnc .LOPEN1
-        movw %ax, InOutRes;
+        cmpl $0xffffffff, %eax
+        jnz .LOPEN1
+        movw %cx, InOutRes
         movw UnusedHandle, %ax
 .LOPEN1:
         movl f,%edx
@@ -846,7 +856,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.31  2000-06-05 18:53:30  hajny
+  Revision 1.32  2000-06-11 09:47:57  hajny
+    * error handling and sharing corrected
+
+  Revision 1.31  2000/06/05 18:53:30  hajny
     * FileHandleCount handling for OS/2 added
 
   Revision 1.30  2000/06/04 14:14:01  hajny
