@@ -44,11 +44,7 @@ unit pstatmnt;
        symtable,aasm,pass_1,types,scanner,hcodegen,ppu
        ,pbase,pexpr,pdecl
 {$ifdef i386}
-{$ifndef OLDASM}
        ,i386base,i386asm
-{$else}
-       ,i386
-{$endif}
        ,tgeni386
   {$ifndef NoRa386Int}
        ,ra386int
@@ -126,7 +122,7 @@ unit pstatmnt;
 
       var
          { contains the label number of currently parsed case block }
-         aktcaselabel : plabel;
+         aktcaselabel : pasmlabel;
          firstlabel : boolean;
          root : pcaserecord;
 
@@ -690,6 +686,8 @@ unit pstatmnt;
       begin
          Inside_asm_statement:=true;
          case aktasmmode of
+           asmmode_none : ; { just be there to allow to a compile without
+                              any assembler readers }
 {$ifdef i386}
   {$ifndef NoRA386Att}
            asmmode_i386_att:
@@ -821,7 +819,7 @@ unit pstatmnt;
 
   {var o:Pobject;
            begin
-               new(o,init);        (*Also a valid new statement*)
+               new(o,init);     (*Also a valid new statement*)
            end;}
 
           if try_to_consume(COMMA) then
@@ -866,7 +864,7 @@ unit pstatmnt;
                    { search cons-/destructor, also in parent classes }
                    sym:=search_class_member(classh,pattern);
                    { the second parameter of new/dispose must be a call }
-                   { to a cons-/destructor                                }
+                   { to a cons-/destructor                              }
                    if (not assigned(sym)) or (sym^.typ<>procsym) then
                          begin
                             Message(parser_e_expr_have_to_be_destructor_call);
@@ -993,7 +991,7 @@ unit pstatmnt;
       var
          p : ptree;
          code : ptree;
-         labelnr : plabel;
+         labelnr : pasmlabel;
          filepos : tfileposinfo;
 
       label
@@ -1225,7 +1223,7 @@ unit pstatmnt;
                 begin
                    { in assembler code the result should be directly in %eax
                    procinfo.retoffset:=procinfo.firsttemp-procinfo.retdef^.size;
-                   procinfo.firsttemp:=procinfo.retoffset;                   }
+                   procinfo.firsttemp:=procinfo.retoffset;                 }
 
 {$ifdef i386}
                    usedinproc:=usedinproc or ($80 shr byte(R_EAX))
@@ -1242,8 +1240,8 @@ unit pstatmnt;
               }
             end;
            { set the framepointer to esp for assembler functions }
-           { but only if the are no local variables              }
-           { added no parameter also (PM)                        }
+           { but only if the are no local variables           }
+           { added no parameter also (PM)                       }
            if ((aktprocsym^.definition^.options and poassembler)<>0) and
                (aktprocsym^.definition^.localst^.datasize=0) and
                (aktprocsym^.definition^.parast^.datasize=0) and
@@ -1267,7 +1265,15 @@ unit pstatmnt;
 end.
 {
   $Log$
-  Revision 1.86  1999-05-21 13:55:08  peter
+  Revision 1.87  1999-05-27 19:44:50  peter
+    * removed oldasm
+    * plabel -> pasmlabel
+    * -a switches to source writing automaticly
+    * assembler readers OOPed
+    * asmsymbol automaticly external
+    * jumptables and other label fixes for asm readers
+
+  Revision 1.86  1999/05/21 13:55:08  peter
     * NEWLAB for label as symbol
 
   Revision 1.85  1999/05/17 23:51:40  peter

@@ -29,6 +29,8 @@
 
 unit cobjects;
 
+{ define OLDSPEEDVALUE}
+
   interface
 
     uses
@@ -40,9 +42,13 @@ unit cobjects;
 {$endif}
       ;
 
-    const   hasharraysize = 253; {The size of a hasharray should be a prime
-                                  number for better spreading of nodes in
-                                  the array!! (DM)}
+    const
+       { the real size will be [-hasharray..hasharray] ! }
+{$ifdef TP}
+       hasharraysize = 127;
+{$else}
+       hasharraysize = 2047;
+{$endif}
 
     type
        pstring = ^string;
@@ -178,7 +184,7 @@ unit cobjects;
        end;
 
        Pdictionaryhasharray=^Tdictionaryhasharray;
-       Tdictionaryhasharray=array[0..hasharraysize-1] of Pnamedindexobject;
+       Tdictionaryhasharray=array[-hasharraysize..hasharraysize] of Pnamedindexobject;
 
        Tnamedindexcallback = procedure(p:Pnamedindexobject);
 
@@ -340,6 +346,8 @@ unit cobjects;
        end;
 {$endif BUFFEREDFILE}
 
+    function getspeedvalue(const s : string) : longint;
+
     { releases the string p and assignes nil to p }
     { if p=nil then freemem isn't called          }
     procedure stringdispose(var p : pstring);
@@ -367,6 +375,66 @@ unit cobjects;
 
   implementation
 
+{$ifndef OLDSPEEDVALUE}
+
+{*****************************************************************************
+                                   Crc 32
+*****************************************************************************}
+
+var
+{$ifdef Delphi}
+  Crc32Tbl : array[0..255] of longword;
+{$else Delphi}
+  Crc32Tbl : array[0..255] of longint;
+{$endif Delphi}
+
+procedure MakeCRC32Tbl;
+var
+{$ifdef Delphi}
+  crc : longword;
+{$else Delphi}
+  crc : longint;
+{$endif Delphi}
+  i,n : byte;
+begin
+  for i:=0 to 255 do
+   begin
+     crc:=i;
+     for n:=1 to 8 do
+      if odd(crc) then
+       crc:=(crc shr 1) xor $edb88320
+      else
+       crc:=crc shr 1;
+     Crc32Tbl[i]:=crc;
+   end;
+end;
+
+
+{$ifopt R+}
+  {$define Range_check_on}
+{$endif opt R+}
+
+{$R- needed here }
+{CRC 32}
+Function GetSpeedValue(Const s:String):longint;
+var
+  i,InitCrc : longint;
+begin
+  if Crc32Tbl[1]=0 then
+   MakeCrc32Tbl;
+  InitCrc:=$ffffffff;
+  for i:=1to Length(s) do
+   InitCrc:=Crc32Tbl[byte(InitCrc) xor ord(s[i])] xor (InitCrc shr 8);
+  GetSpeedValue:=InitCrc;
+end;
+
+{$ifdef Range_check_on}
+  {$R+}
+  {$undef Range_check_on}
+{$endif Range_check_on}
+
+{$else}
+
 {$ifndef TP}
     function getspeedvalue(const s : string) : longint;
       var
@@ -380,7 +448,7 @@ unit cobjects;
         i:=0;
         while p1<>p2 do
          begin
-           inc(i,p1^);
+           i:=i + ord(p1^);
            inc(longint(p1));
          end;
         getspeedvalue:=i;
@@ -402,12 +470,15 @@ unit cobjects;
         l:=0;
         while p1<>p2 do
          begin
-           l:=l+p1^;
+           l:=l + ord(p1^);
            inc(p1);
          end;
         getspeedvalue:=l;
       end;
 {$endif}
+
+{$endif OLDSPEEDVALUE}
+
 
     function pchar2pstring(p : pchar) : pstring;
       var
@@ -1044,7 +1115,7 @@ end;
         if assigned(root) then
           cleartree(root);
         if assigned(hasharray) then
-         for w:=0 to hasharraysize-1 do
+         for w:=-hasharraysize to hasharraysize do
           if assigned(hasharray^[w]) then
            cleartree(hasharray^[w]);
       end;
@@ -1057,7 +1128,7 @@ end;
         if assigned(hasharray) then
          begin
            empty:=false;
-           for w:=0 to hasharraysize-1 do
+           for w:=-hasharraysize to hasharraysize do
             if assigned(hasharray^[w]) then
              exit;
            empty:=true;
@@ -1083,7 +1154,7 @@ end;
       begin
         if assigned(hasharray) then
          begin
-           for i:=0 to hasharraysize-1 do
+           for i:=-hasharraysize to hasharraysize do
             if assigned(hasharray^[i]) then
              a(hasharray^[i]);
          end
@@ -1941,7 +2012,15 @@ end;
 end.
 {
   $Log$
-  Revision 1.31  1999-05-21 13:54:59  peter
+  Revision 1.32  1999-05-27 19:44:23  peter
+    * removed oldasm
+    * plabel -> pasmlabel
+    * -a switches to source writing automaticly
+    * assembler readers OOPed
+    * asmsymbol automaticly external
+    * jumptables and other label fixes for asm readers
+
+  Revision 1.31  1999/05/21 13:54:59  peter
     * NEWLAB for label as symbol
 
   Revision 1.30  1999/05/21 10:38:59  peter

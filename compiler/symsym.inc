@@ -204,17 +204,12 @@
                                  TLABELSYM
 ****************************************************************************}
 
-    constructor tlabelsym.init(const n : string; l : plabel);
+    constructor tlabelsym.init(const n : string; l : pasmlabel);
 
       begin
          inherited init(n);
          typ:=labelsym;
          lab:=l;
-{$ifndef NEWLAB}
-         lab^.is_used:=false;
-         lab^.is_set:=true;
-         lab^.refcount:=0;
-{$endif}
          defined:=false;
       end;
 
@@ -235,16 +230,12 @@
          inherited done;
       end;
 
-    function tlabelsym.mangledname : string;
 
+    function tlabelsym.mangledname : string;
       begin
-{$ifdef NEWLAB}
          mangledname:=lab^.name;
-{$else}
-         { this also sets the is_used field }
-         mangledname:=lab2str(lab);
-{$endif}
       end;
+
 
     procedure tlabelsym.write;
       begin
@@ -2017,7 +2008,15 @@
 
 {
   $Log$
-  Revision 1.92  1999-05-21 13:55:21  peter
+  Revision 1.93  1999-05-27 19:45:06  peter
+    * removed oldasm
+    * plabel -> pasmlabel
+    * -a switches to source writing automaticly
+    * assembler readers OOPed
+    * asmsymbol automaticly external
+    * jumptables and other label fixes for asm readers
+
+  Revision 1.92  1999/05/21 13:55:21  peter
     * NEWLAB for label as symbol
 
   Revision 1.91  1999/05/20 22:22:44  pierre

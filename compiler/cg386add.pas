@@ -37,11 +37,7 @@ implementation
       cobjects,verbose,globals,
       symtable,aasm,types,
       hcodegen,temp_gen,pass_2,
-{$ifndef OLDASM}
       i386base,i386asm,
-{$else}
-      i386,
-{$endif}
       cgai386,tgeni386;
 
 {*****************************************************************************
@@ -179,16 +175,16 @@ implementation
                         end;
 
                         { push the still used registers }
-                        pushusedregisters(exprasmlist,pushedregs,$ff);
+                        pushusedregisters(pushedregs,$ff);
                         { push data }
                         clear_location(p^.location);
                         p^.location.loc:=LOC_MEM;
                         gettempansistringreference(p^.location.reference);
-                        emitpushreferenceaddr(exprasmlist,p^.location.reference);
+                        emitpushreferenceaddr(p^.location.reference);
                         emit_push_loc(p^.right^.location);
                         emit_push_loc(p^.left^.location);
-                        emitcall('FPC_ANSISTR_CONCAT',true);
-                        popusedregisters(exprasmlist,pushedregs);
+                        emitcall('FPC_ANSISTR_CONCAT');
+                        popusedregisters(pushedregs);
                         maybe_loadesi;
                         ungetiftempansi(p^.left^.location.reference);
                         ungetiftempansi(p^.right^.location.reference);
@@ -215,7 +211,7 @@ implementation
                             ungetregister32(p^.left^.location.register);
                         end;
                         { push the still used registers }
-                        pushusedregisters(exprasmlist,pushedregs,$ff);
+                        pushusedregisters(pushedregs,$ff);
                         { push data }
                         case p^.right^.location.loc of
                           LOC_REFERENCE,LOC_MEM:
@@ -229,9 +225,9 @@ implementation
                           LOC_REGISTER,LOC_CREGISTER:
                             exprasmlist^.concat(new(pai386,op_reg(A_PUSH,S_L,p^.left^.location.register)));
                         end;
-                        emitcall('FPC_ANSISTR_COMPARE',true);
+                        emitcall('FPC_ANSISTR_COMPARE');
                         emit_reg_reg(A_OR,S_L,R_EAX,R_EAX);
-                        popusedregisters(exprasmlist,pushedregs);
+                        popusedregisters(pushedregs);
                         maybe_loadesi;
                         { done in temptoremove (PM)
                         ungetiftemp(p^.left^.location.reference);
@@ -275,20 +271,20 @@ implementation
                         { on the right we do not need the register anymore too }
 {$IfNDef regallocfix}
                         del_reference(p^.right^.location.reference);
-                        pushusedregisters(exprasmlist,pushedregs,$ff);
+                        pushusedregisters(pushedregs,$ff);
 {$Else regallocfix}
                         pushusedregisters(pushedregs,$ff
                           xor ($80 shr byte(p^.right^.location.reference.base))
                           xor ($80 shr byte(p^.right^.location.reference.index)));
 {$EndIf regallocfix}
-                        emitpushreferenceaddr(exprasmlist,p^.left^.location.reference);
-                        emitpushreferenceaddr(exprasmlist,p^.right^.location.reference);
+                        emitpushreferenceaddr(p^.left^.location.reference);
+                        emitpushreferenceaddr(p^.right^.location.reference);
 {$IfDef regallocfix}
                         del_reference(p^.right^.location.reference);
 {$EndIf regallocfix}
-                        emitcall('FPC_SHORTSTR_CONCAT',true);
+                        emitcall('FPC_SHORTSTR_CONCAT');
                         maybe_loadesi;
-                        popusedregisters(exprasmlist,pushedregs);
+                        popusedregisters(pushedregs);
 
                         set_location(p^.location,p^.left^.location);
                         ungetiftemp(p^.right^.location.reference);
@@ -321,16 +317,16 @@ implementation
                           end
                         else
                           begin
-                             pushusedregisters(exprasmlist,pushedregs,$ff);
+                             pushusedregisters(pushedregs,$ff);
                              secondpass(p^.left);
-                             emitpushreferenceaddr(exprasmlist,p^.left^.location.reference);
+                             emitpushreferenceaddr(p^.left^.location.reference);
                              del_reference(p^.left^.location.reference);
                              secondpass(p^.right);
-                             emitpushreferenceaddr(exprasmlist,p^.right^.location.reference);
+                             emitpushreferenceaddr(p^.right^.location.reference);
                              del_reference(p^.right^.location.reference);
-                             emitcall('FPC_SHORTSTR_COMPARE',true);
+                             emitcall('FPC_SHORTSTR_COMPARE');
                              maybe_loadesi;
-                             popusedregisters(exprasmlist,pushedregs);
+                             popusedregisters(pushedregs);
                           end;
                         ungetiftemp(p^.left^.location.reference);
                         ungetiftemp(p^.right^.location.reference);
@@ -404,17 +400,17 @@ implementation
 {$IfNDef regallocfix}
                      del_reference(p^.left^.location.reference);
                      del_reference(p^.right^.location.reference);
-                     pushusedregisters(exprasmlist,pushedregs,$ff);
+                     pushusedregisters(pushedregs,$ff);
 {$EndIf regallocfix}
 {$IfNDef NoSetInclusion}
                      If (p^.treetype in [equaln, unequaln, lten]) Then
                        Begin
 {$EndIf NoSetInclusion}
-                         emitpushreferenceaddr(exprasmlist,p^.right^.location.reference);
+                         emitpushreferenceaddr(p^.right^.location.reference);
 {$IfDef regallocfix}
                          del_reference(p^.right^.location.reference);
 {$EndIf regallocfix}
-                         emitpushreferenceaddr(exprasmlist,p^.left^.location.reference);
+                         emitpushreferenceaddr(p^.left^.location.reference);
 {$IfDef regallocfix}
                          del_reference(p^.left^.location.reference);
 {$EndIf regallocfix}
@@ -422,11 +418,11 @@ implementation
                        End
                      Else  {gten = lten, if the arguments are reversed}
                        Begin
-                         emitpushreferenceaddr(exprasmlist,p^.left^.location.reference);
+                         emitpushreferenceaddr(p^.left^.location.reference);
 {$IfDef regallocfix}
                          del_reference(p^.left^.location.reference);
 {$EndIf regallocfix}
-                         emitpushreferenceaddr(exprasmlist,p^.right^.location.reference);
+                         emitpushreferenceaddr(p^.right^.location.reference);
 {$IfDef regallocfix}
                          del_reference(p^.right^.location.reference);
 {$EndIf regallocfix}
@@ -434,13 +430,13 @@ implementation
                      Case p^.treetype of
                        equaln, unequaln:
 {$EndIf NoSetInclusion}
-                         emitcall('FPC_SET_COMP_SETS',true);
+                         emitcall('FPC_SET_COMP_SETS');
 {$IfNDef NoSetInclusion}
-                       lten, gten: emitcall('FPC_SET_CONTAINS_SETS',true)
+                       lten, gten: emitcall('FPC_SET_CONTAINS_SETS')
                      End;
 {$EndIf NoSetInclusion}
                      maybe_loadesi;
-                     popusedregisters(exprasmlist,pushedregs);
+                     popusedregisters(pushedregs);
                      ungetiftemp(p^.left^.location.reference);
                      ungetiftemp(p^.right^.location.reference);
                    end;
@@ -449,7 +445,7 @@ implementation
 {$IfNDef regallocfix}
                      del_reference(p^.left^.location.reference);
                      del_reference(p^.right^.location.reference);
-                     pushusedregisters(exprasmlist,pushedregs,$ff);
+                     pushusedregisters(pushedregs,$ff);
 {$EndIf regallocfix}
                      href.symbol:=nil;
                      gettempofsizereference(32,href);
@@ -460,8 +456,8 @@ implementation
                         del_reference(p^.right^.location.reference);
 {$EndIf regallocfix}
                         pushsetelement(p^.right^.left);
-                        emitpushreferenceaddr(exprasmlist,href);
-                        emitcall('FPC_SET_CREATE_ELEMENT',true);
+                        emitpushreferenceaddr(href);
+                        emitcall('FPC_SET_CREATE_ELEMENT');
                       end
                      else
                       begin
@@ -477,33 +473,33 @@ implementation
                             begin
                               pushsetelement(p^.right^.right);
                               pushsetelement(p^.right^.left);
-                              emitpushreferenceaddr(exprasmlist,href);
-                              emitcall('FPC_SET_SET_RANGE',true);
+                              emitpushreferenceaddr(href);
+                              emitcall('FPC_SET_SET_RANGE');
                             end
                            else
                             begin
                               pushsetelement(p^.right^.left);
-                              emitpushreferenceaddr(exprasmlist,href);
-                              emitcall('FPC_SET_SET_BYTE',true);
+                              emitpushreferenceaddr(href);
+                              emitcall('FPC_SET_SET_BYTE');
                             end;
                          end
                         else
                          begin
                          { must be an other set }
-                           emitpushreferenceaddr(exprasmlist,href);
-                           emitpushreferenceaddr(exprasmlist,p^.right^.location.reference);
+                           emitpushreferenceaddr(href);
+                           emitpushreferenceaddr(p^.right^.location.reference);
 {$IfDef regallocfix}
                         del_reference(p^.right^.location.reference);
 {$EndIf regallocfix}
-                           emitpushreferenceaddr(exprasmlist,p^.left^.location.reference);
+                           emitpushreferenceaddr(p^.left^.location.reference);
 {$IfDef regallocfix}
                         del_reference(p^.left^.location.reference);
 {$EndIf regallocfix}
-                           emitcall('FPC_SET_ADD_SETS',true);
+                           emitcall('FPC_SET_ADD_SETS');
                          end;
                       end;
                      maybe_loadesi;
-                     popusedregisters(exprasmlist,pushedregs);
+                     popusedregisters(pushedregs);
                      ungetiftemp(p^.left^.location.reference);
                      ungetiftemp(p^.right^.location.reference);
                      p^.location.loc:=LOC_MEM;
@@ -515,26 +511,26 @@ implementation
 {$IfNDef regallocfix}
                      del_reference(p^.left^.location.reference);
                      del_reference(p^.right^.location.reference);
-                     pushusedregisters(exprasmlist,pushedregs,$ff);
+                     pushusedregisters(pushedregs,$ff);
 {$EndIf regallocfix}
                      href.symbol:=nil;
                      gettempofsizereference(32,href);
-                     emitpushreferenceaddr(exprasmlist,href);
-                     emitpushreferenceaddr(exprasmlist,p^.right^.location.reference);
+                     emitpushreferenceaddr(href);
+                     emitpushreferenceaddr(p^.right^.location.reference);
 {$IfDef regallocfix}
                      del_reference(p^.right^.location.reference);
 {$EndIf regallocfix}
-                     emitpushreferenceaddr(exprasmlist,p^.left^.location.reference);
+                     emitpushreferenceaddr(p^.left^.location.reference);
 {$IfDef regallocfix}
                      del_reference(p^.left^.location.reference);
 {$EndIf regallocfix}
                      case p^.treetype of
-                      subn : emitcall('FPC_SET_SUB_SETS',true);
-                   symdifn : emitcall('FPC_SET_SYMDIF_SETS',true);
-                      muln : emitcall('FPC_SET_MUL_SETS',true);
+                      subn : emitcall('FPC_SET_SUB_SETS');
+                   symdifn : emitcall('FPC_SET_SYMDIF_SETS');
+                      muln : emitcall('FPC_SET_MUL_SETS');
                      end;
                      maybe_loadesi;
-                     popusedregisters(exprasmlist,pushedregs);
+                     popusedregisters(pushedregs);
                      ungetiftemp(p^.left^.location.reference);
                      ungetiftemp(p^.right^.location.reference);
                      p^.location.loc:=LOC_MEM;
@@ -553,7 +549,7 @@ implementation
 
     procedure secondadd(var p : ptree);
     { is also being used for xor, and "mul", "sub, or and comparative }
-    { operators                                                       }
+    { operators                                                }
 
       label do_normal;
 
@@ -563,10 +559,10 @@ implementation
          pushed,mboverflow,cmpop : boolean;
          op,op2 : tasmop;
          flags : tresflags;
-         otl,ofl,hl : plabel;
+         otl,ofl,hl : pasmlabel;
          power : longint;
          opsize : topsize;
-         hl4: plabel;
+         hl4: pasmlabel;
          hr : preference;
 
          { true, if unsigned types are compared }
@@ -1153,7 +1149,7 @@ implementation
                        end;
                    { at this point, p^.location.loc should be LOC_REGISTER }
                    { and p^.location.register should be a valid register   }
-                   { containing the left result                            }
+                   { containing the left result                     }
 
                     if p^.right^.location.loc<>LOC_REGISTER then
                      begin
@@ -1264,7 +1260,7 @@ implementation
                                p^.location.register,p^.right^.location.register)));
                                swap_location(p^.location,p^.right^.location);
                                { newly swapped also set swapped flag }
-                               { just to maintain ordering           }
+                               { just to maintain ordering         }
                                p^.swaped:=not(p^.swaped);
                           end
                         else
@@ -1290,7 +1286,7 @@ implementation
                    { only in case of overflow operations }
                    { produce overflow code }
                    { we must put it here directly, because sign of operation }
-                   { is in unsigned VAR!!                                    }
+                   { is in unsigned VAR!!                                   }
                    if mboverflow then
                     begin
                       if cs_check_overflow in aktlocalswitches  then
@@ -1300,7 +1296,7 @@ implementation
                           emitjmp(C_NB,hl4)
                          else
                           emitjmp(C_NO,hl4);
-                         emitcall('FPC_OVERFLOW',true);
+                         emitcall('FPC_OVERFLOW');
                          emitlab(hl4);
                        end;
                     end;
@@ -1522,7 +1518,7 @@ implementation
                         release_qword_loc(p^.right^.location);
                         p^.location.registerlow:=getexplicitregister32(R_EAX);
                         p^.location.registerhigh:=getexplicitregister32(R_EDX);
-                        pushusedregisters(exprasmlist,pushedreg,$ff
+                        pushusedregisters(pushedreg,$ff
                           and not($80 shr byte(p^.location.registerlow))
                           and not($80 shr byte(p^.location.registerhigh)));
                         if cs_check_overflow in aktlocalswitches then
@@ -1537,12 +1533,12 @@ implementation
                         clear_location(hloc);
                         emit_pushq_loc(p^.right^.location);
                         if porddef(p^.resulttype)^.typ=u64bit then
-                          emitcall('FPC_MUL_QWORD',true)
+                          emitcall('FPC_MUL_QWORD')
                         else
-                          emitcall('FPC_MUL_INT64',true);
+                          emitcall('FPC_MUL_INT64');
                         emit_reg_reg(A_MOV,S_L,R_EAX,p^.location.registerlow);
                         emit_reg_reg(A_MOV,S_L,R_EDX,p^.location.registerhigh);
-                        popusedregisters(exprasmlist,pushedreg);
+                        popusedregisters(pushedreg);
                         p^.location.loc:=LOC_REGISTER;
                      end
                    else
@@ -1625,7 +1621,7 @@ implementation
                             end;
                         { at this point, p^.location.loc should be LOC_REGISTER }
                         { and p^.location.register should be a valid register   }
-                        { containing the left result                            }
+                        { containing the left result                        }
 
                         if p^.right^.location.loc<>LOC_REGISTER then
                           begin
@@ -1683,6 +1679,8 @@ implementation
                                          p^.right^.location.reference),p^.location.registerlow)));
                                        secondjmp64bitcmp;
 
+                                       emitjmp(C_None,falselabel);
+
                                        ungetiftemp(p^.right^.location.reference);
                                        del_reference(p^.right^.location.reference);
                                     end;
@@ -1733,7 +1731,7 @@ implementation
                              { when swapped another result register }
                              if (p^.treetype=subn) and p^.swaped then
                                begin
-                                  exprasmlist^.concat(new(pai386,op_reg_reg(op,S_L,
+                                 exprasmlist^.concat(new(pai386,op_reg_reg(op,S_L,
                                     p^.location.registerlow,
                                     p^.right^.location.registerlow)));
                                  exprasmlist^.concat(new(pai386,op_reg_reg(op2,S_L,
@@ -1777,7 +1775,7 @@ implementation
                         { only in case of overflow operations }
                         { produce overflow code }
                         { we must put it here directly, because sign of operation }
-                        { is in unsigned VAR!!                                    }
+                        { is in unsigned VAR!!                              }
                         if mboverflow then
                          begin
                            if cs_check_overflow in aktlocalswitches  then
@@ -1787,7 +1785,7 @@ implementation
                                emitjmp(C_NB,hl4)
                               else
                                emitjmp(C_NO,hl4);
-                              emitcall('FPC_OVERFLOW',true);
+                              emitcall('FPC_OVERFLOW');
                               emitlab(hl4);
                             end;
                          end;
@@ -2044,7 +2042,7 @@ implementation
                        end;
                    { at this point, p^.location.loc should be LOC_MMXREGISTER }
                    { and p^.location.register should be a valid register      }
-                   { containing the left result                               }
+                   { containing the left result                        }
                    if p^.right^.location.loc<>LOC_MMXREGISTER then
                      begin
                         if (p^.treetype=subn) and p^.swaped then
@@ -2090,7 +2088,7 @@ implementation
                                p^.location.register,p^.right^.location.register)));
                                swap_location(p^.location,p^.right^.location);
                                { newly swapped also set swapped flag }
-                               { just to maintain ordering           }
+                               { just to maintain ordering         }
                                p^.swaped:=not(p^.swaped);
                           end
                         else
@@ -2112,7 +2110,15 @@ implementation
 end.
 {
   $Log$
-  Revision 1.61  1999-05-25 20:36:11  florian
+  Revision 1.62  1999-05-27 19:44:04  peter
+    * removed oldasm
+    * plabel -> pasmlabel
+    * -a switches to source writing automaticly
+    * assembler readers OOPed
+    * asmsymbol automaticly external
+    * jumptables and other label fixes for asm readers
+
+  Revision 1.61  1999/05/25 20:36:11  florian
     * some bugs in the qword code generation fixed
 
   Revision 1.60  1999/05/23 19:55:10  florian

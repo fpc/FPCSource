@@ -45,20 +45,6 @@ const
   MaxPrefixes=4;
 
 type
-  { this is for quicker determination of the operand type instead of
-    using opertype and OT ... etc. }
-  toptype=(top_none,top_reg,top_ref,top_const,top_symbol);
-
-  toper=record
-    ot  : longint;
-    case typ : toptype of
-     top_none   : ();
-     top_reg    : (reg:tregister);
-     top_ref    : (ref:preference);
-     top_const  : (val:longint);
-     top_symbol : (sym:pasmsymbol;symofs:longint);
-  end;
-
   pairegalloc = ^tairegalloc;
   tairegalloc = object(tai)
      allocation : boolean;
@@ -78,6 +64,7 @@ type
 
   pai386 = ^tai386;
   tai386 = object(tai)
+     is_jmp    : boolean; { is this instruction a jump? (needed for optimizer) }
      opcode    : tasmop;
      opsize    : topsize;
      condition : TAsmCond;
@@ -126,6 +113,7 @@ type
      destructor done;virtual;
      function  getcopy:plinkedlist_item;virtual;
      function  GetString:string;
+     procedure SwapOperands;
   private
      segprefix : tregister;
      procedure init(op : tasmop;_size : topsize); { this need to be called by all constructor }
@@ -147,20 +135,6 @@ type
      function  NeedAddrPrefix(opidx:byte):boolean;
 {$endif NOAG386BIN}
   end;
-
-{$ifndef NEWLAB}
-  pai386_labeled = ^tai386_labeled;
-  tai386_labeled = object(tai386)
-     lab : plabel;
-     constructor op_lab(op : tasmop; l : plabel);
-     constructor op_cond_lab(op : tasmop; cond:tasmcond;l : plabel);
-     destructor  done;virtual;
-{$ifndef NOAG386BIN}
-     function  Pass1(offset:longint):longint;virtual;
-     procedure Pass2;virtual;
-{$endif}
-  end;
-{$endif}
 
 
 implementation
@@ -242,6 +216,8 @@ uses
            symofs:=sofs;
            typ:=top_symbol;
          end;
+        { Mark the symbol as used }
+        inc(s^.refs);
       end;
 
     procedure tai386.loadref(opidx:longint;p:preference);
@@ -267,6 +243,9 @@ uses
                if not(ref^.segment in [R_DS,R_NO]) then
                  segprefix:=ref^.segment;
                typ:=top_ref;
+               { mark symbol as used }
+               if assigned(ref^.symbol) then
+                 inc(ref^.symbol^.refs);
              end;
          end;
       end;
@@ -306,6 +285,7 @@ uses
     procedure tai386.init(op : tasmop;_size : topsize);
       begin
          typ:=ait_instruction;
+         is_jmp:=false;
          segprefix:=R_NO;
          opcode:=op;
          opsize:=_size;
@@ -678,8 +658,8 @@ begin
              inc(l,sym^.address);
             { instruction size will then always become 2 (PFV) }
             relsize:=InsOffset+2-l;
-            if (l<>-1) and
-               (not assigned(sym) or (sym^.typ<>AS_EXTERNAL)) and
+            if (not assigned(sym) or
+                ((sym^.typ<>AS_EXTERNAL) and (sym^.address<>0))) and
                (relsize>=-128) and (relsize<=127) then
              ot:=OT_IMM32 or OT_SHORT
             else
@@ -693,6 +673,28 @@ end;
 function tai386.InsEnd:longint;
 begin
   InsEnd:=InsOffset+InsSize;
+end;
+
+
+procedure tai386.SwapOperands;
+var
+  p : TOper;
+begin
+  { Fix the operands which are in AT&T style and we need them in Intel style }
+  case ops of
+    2 : begin
+          { 0,1 -> 1,0 }
+          p:=oper[0];
+          oper[0]:=oper[1];
+          oper[1]:=p;
+        end;
+    3 : begin
+          { 0,1,2 -> 2,1,0 }
+          p:=oper[0];
+          oper[0]:=oper[2];
+          oper[2]:=p;
+        end;
+  end;
 end;
 
 
@@ -796,7 +798,6 @@ end;
 function tai386.Pass1(offset:longint):longint;
 var
   m,i,size_prob : longint;
-  p : toper;
 begin
   Pass1:=0;
 { Save the old offset and set the new offset }
@@ -808,21 +809,8 @@ begin
      { Check if error last time then InsSize=-1 }
      if InsSize=-1 then
       exit;
-     { Fix the operands which are in AT&T style and we need them in Intel style }
-     case ops of
-       2 : begin
-             { 0,1 -> 1,0 }
-             p:=oper[0];
-             oper[0]:=oper[1];
-             oper[1]:=p;
-           end;
-       3 : begin
-             { 0,1,2 -> 2,1,0 }
-             p:=oper[0];
-             oper[0]:=oper[2];
-             oper[2]:=p;
-           end;
-     end;
+     { We need intel style operands }
+     SwapOperands;
      { create the .ot fields }
      create_ot;
      { set the file postion }
@@ -1529,72 +1517,18 @@ begin
 end;
 {$endif NOAG386BIN}
 
-
-{$ifndef NEWLAB}
-
-{*****************************************************************************
-                               Tai_Labeled
-*****************************************************************************}
-
-    constructor tai386_labeled.op_lab(op : tasmop; l : plabel);
-      begin
-         inherited op_none(op,S_NO);
-         typ:=ait_labeled_instruction;
-         lab:=l;
-         lab^.is_used:=true;
-         inc(lab^.refcount);
-      end;
-
-    constructor tai386_labeled.op_cond_lab(op : tasmop; cond:tasmcond;l : plabel);
-      begin
-         inherited op_none(op,S_NO);
-         condition:=cond;
-         typ:=ait_labeled_instruction;
-         lab:=l;
-         lab^.is_used:=true;
-         inc(lab^.refcount);
-      end;
-
-
-    destructor tai386_labeled.done;
-      begin
-         dec(lab^.refcount);
-         if lab^.refcount=0 then
-           Begin
-             lab^.is_used := False;
-             If Not(lab^.is_set) Then
-               Dispose(lab);
-           End;
-        inherited done;
-      end;
-
-
-{$ifndef NOAG386BIN}
-   function tai386_labeled.Pass1(offset:longint):longint;
-      begin
-         { Only create the Operand if it's not set yet }
-         ops:=1;
-         loadsymbol(0,nil,lab^.address);
-         Pass1:=inherited Pass1(offset);
-      end;
-
-
-   procedure tai386_labeled.Pass2;
-      begin
-         { update the address which can be changed if it was
-           a forward reference }
-         oper[0].symofs:=lab^.address;
-         inherited Pass2;
-      end;
-{$endif}
-
-{$endif}
-
-
 end.
 {
   $Log$
-  Revision 1.9  1999-05-21 13:55:02  peter
+  Revision 1.10  1999-05-27 19:44:33  peter
+    * removed oldasm
+    * plabel -> pasmlabel
+    * -a switches to source writing automaticly
+    * assembler readers OOPed
+    * asmsymbol automaticly external
+    * jumptables and other label fixes for asm readers
+
+  Revision 1.9  1999/05/21 13:55:02  peter
     * NEWLAB for label as symbol
 
   Revision 1.8  1999/05/17 21:57:09  florian

@@ -29,11 +29,7 @@ unit hcodegen;
       tokens,verbose,
       aasm,symtable
 {$ifdef i386}
-{$ifndef OLDASM}
       ,i386base
-{$else}
-      ,i386
-{$endif}
 {$endif}
 {$ifdef m68k}
       ,m68k
@@ -47,11 +43,11 @@ unit hcodegen;
        pi_operator  = $8;       { set, if the procedure is an operator   }
        pi_C_import  = $10;      { set, if the procedure is an external C function }
        pi_uses_exceptions = $20;{ set, if the procedure has a try statement => }
-                                { no register variables                        }
+                                { no register variables                 }
        pi_is_assembler = $40;   { set if the procedure is declared as ASSEMBLER
                                   => don't optimize}
        pi_needs_implicit_finally = $80; { set, if the procedure contains data which }
-                                        { needs to be finalized                     }
+                                        { needs to be finalized              }
     type
        pprocinfo = ^tprocinfo;
        tprocinfo = record
@@ -84,7 +80,7 @@ unit hcodegen;
           call_offset : longint;
 
           { some collected informations about the procedure }
-          { see pi_xxxx above                               }
+          { see pi_xxxx above                          }
           flags : longint;
 
           { register used as frame pointer }
@@ -104,7 +100,7 @@ unit hcodegen;
 
        { some kind of temp. types needs to be destructed }
        { for example ansistring, this is done using this }
-       { list                                            }
+       { list                                       }
        ptemptodestroy = ^ttemptodestroy;
        ttemptodestroy = object(tlinkedlist_item)
           typ : pdef;
@@ -117,19 +113,19 @@ unit hcodegen;
        procinfo : tprocinfo;
 
        { labels for BREAK and CONTINUE }
-       aktbreaklabel,aktcontinuelabel : plabel;
+       aktbreaklabel,aktcontinuelabel : pasmlabel;
 
        { label when the result is true or false }
-       truelabel,falselabel : plabel;
+       truelabel,falselabel : pasmlabel;
 
        { label to leave the sub routine }
-       aktexitlabel : plabel;
+       aktexitlabel : pasmlabel;
 
        { also an exit label, only used we need to clear only the stack }
-       aktexit2label : plabel;
+       aktexit2label : pasmlabel;
 
        { only used in constructor for fail or if getmem fails }
-       quickexitlabel : plabel;
+       quickexitlabel : pasmlabel;
 
        { Boolean, wenn eine loadn kein Assembler erzeugt hat }
        simple_loadn : boolean;
@@ -151,13 +147,8 @@ unit hcodegen;
     procedure cgmessage2(const t : tmsgconst;const s1,s2 : string);
     procedure cgmessage3(const t : tmsgconst;const s1,s2,s3 : string);
 
-{$ifndef NEWLAB}
-    { helpers }
-    procedure maybe_concat_external(symt : psymtable;const name : string);
-{$endif}
-
     { initialize respectively terminates the code generator }
-    { for a new module or procedure                         }
+    { for a new module or procedure                      }
     procedure codegen_doneprocedure;
     procedure codegen_donemodule;
     procedure codegen_newmodule;
@@ -223,25 +214,6 @@ implementation
 
 
 {*****************************************************************************
-                                    Helpers
-*****************************************************************************}
-
-{$ifndef NEWLAB}
-
-    procedure maybe_concat_external(symt : psymtable;const name : string);
-      begin
-         if (symt^.symtabletype=unitsymtable) or
-            ((symt^.symtabletype in [recordsymtable,objectsymtable]) and
-             (symt^.defowner^.owner^.symtabletype=unitsymtable)) or
-            ((symt^.symtabletype=withsymtable) and
-             (symt^.defowner^.owner^.symtabletype=unitsymtable)) then
-           concat_external(name,EXT_NEAR);
-      end;
-
-{$endif}
-
-
-{*****************************************************************************
          initialize/terminate the codegen for procedure and modules
 *****************************************************************************}
 
@@ -253,7 +225,7 @@ implementation
            so it must not be reset to zero before this storage !}
          { the type of this lists isn't important }
          { because the code of this lists is      }
-         { copied to the code segment             }
+         { copied to the code segment        }
          procinfo.aktentrycode:=new(paasmoutput,init);
          procinfo.aktexitcode:=new(paasmoutput,init);
          procinfo.aktproccode:=new(paasmoutput,init);
@@ -279,8 +251,6 @@ implementation
          codesegment:=new(paasmoutput,init);
          bsssegment:=new(paasmoutput,init);
          debuglist:=new(paasmoutput,init);
-         externals:=new(paasmoutput,init);
-         internals:=new(paasmoutput,init);
          consts:=new(paasmoutput,init);
          rttilist:=new(paasmoutput,init);
          importssection:=nil;
@@ -299,8 +269,6 @@ implementation
          dispose(bsssegment,done);
          dispose(datasegment,done);
          dispose(debuglist,done);
-         dispose(externals,done);
-         dispose(internals,done);
          dispose(consts,done);
          dispose(rttilist,done);
          if assigned(importssection) then
@@ -328,7 +296,15 @@ end.
 
 {
   $Log$
-  Revision 1.32  1999-05-21 13:55:01  peter
+  Revision 1.33  1999-05-27 19:44:31  peter
+    * removed oldasm
+    * plabel -> pasmlabel
+    * -a switches to source writing automaticly
+    * assembler readers OOPed
+    * asmsymbol automaticly external
+    * jumptables and other label fixes for asm readers
+
+  Revision 1.32  1999/05/21 13:55:01  peter
     * NEWLAB for label as symbol
 
   Revision 1.31  1999/05/17 21:57:08  florian

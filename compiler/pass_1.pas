@@ -43,11 +43,7 @@ implementation
       tcadd,tccal,tccnv,tccon,tcflw,
       tcinl,tcld,tcmat,tcmem,tcset
 {$ifdef i386}
-{$ifndef OLDASM}
       ,i386base,i386asm
-{$else}
-      ,i386
-{$endif}
       ,tgeni386
 {$endif}
 {$ifdef m68k}
@@ -200,31 +196,31 @@ implementation
     procedure firstpass(var p : ptree);
       const
          procedures : array[ttreetyp] of firstpassproc =
-            (firstadd,         {addn}
-             firstadd,         {muln}
-             firstadd,         {subn}
+            (firstadd,   {addn}
+             firstadd,   {muln}
+             firstadd,   {subn}
              firstmoddiv,      {divn}
-             firstadd,         {symdifn}
+             firstadd,   {symdifn}
              firstmoddiv,      {modn}
              firstassignment,  {assignn}
-             firstload,        {loadn}
+             firstload, {loadn}
              firstrange,       {range}
-             firstadd,         {ltn}
-             firstadd,         {lten}
-             firstadd,         {gtn}
-             firstadd,         {gten}
-             firstadd,         {equaln}
-             firstadd,         {unequaln}
-             firstin,          {inn}
-             firstadd,         {orn}
-             firstadd,         {xorn}
+             firstadd,   {ltn}
+             firstadd,   {lten}
+             firstadd,   {gtn}
+             firstadd,   {gten}
+             firstadd,   {equaln}
+             firstadd,   {unequaln}
+             firstin,     {inn}
+             firstadd,   {orn}
+             firstadd,   {xorn}
              firstshlshr,      {shrn}
              firstshlshr,      {shln}
-             firstadd,         {slashn}
-             firstadd,         {andn}
+             firstadd,   {slashn}
+             firstadd,   {andn}
              firstsubscript,   {subscriptn}
              firstderef,       {derefn}
-             firstaddr,        {addrn}
+             firstaddr, {addrn}
              firstdoubleaddr,  {doubleaddrn}
              firstordconst,    {ordconstn}
              firsttypeconv,    {typeconvn}
@@ -233,47 +229,47 @@ implementation
              firstrealconst,   {realconstn}
              firstfixconst,    {fixconstn}
              firstumminus,     {umminusn}
-             firstasm,         {asmn}
-             firstvec,         {vecn}
+             firstasm,   {asmn}
+             firstvec,   {vecn}
              firststringconst, {stringconstn}
              firstfuncret,     {funcretn}
-             firstself,        {selfn}
-             firstnot,         {notn}
+             firstself, {selfn}
+             firstnot,   {notn}
              firstinline,      {inlinen}
-             firstniln,        {niln}
+             firstniln, {niln}
              firsterror,       {errorn}
-             firsttype,        {typen}
-             firsthnew,        {hnewn}
+             firsttype, {typen}
+             firsthnew, {hnewn}
              firsthdispose,    {hdisposen}
-             firstnew,         {newn}
+             firstnew,   {newn}
              firstsimplenewdispose, {simpledisposen}
              firstsetelement,  {setelementn}
              firstsetconst,    {setconstn}
              firstblock,       {blockn}
              firststatement,   {statementn}
              firstnothing,     {loopn}
-             firstif,          {ifn}
+             firstif,     {ifn}
              firstnothing,     {breakn}
              firstnothing,     {continuen}
              first_while_repeat, {repeatn}
              first_while_repeat, {whilen}
-             firstfor,         {forn}
-             firstexit,        {exitn}
-             firstwith,        {withn}
-             firstcase,        {casen}
+             firstfor,   {forn}
+             firstexit, {exitn}
+             firstwith, {withn}
+             firstcase, {casen}
              firstlabel,       {labeln}
-             firstgoto,        {goton}
+             firstgoto, {goton}
              firstsimplenewdispose, {simplenewn}
              firsttryexcept,   {tryexceptn}
              firstraise,       {raisen}
              firstnothing,     {switchesn}
              firsttryfinally,  {tryfinallyn}
-             firston,          {onn}
-             firstis,          {isn}
-             firstas,          {asn}
+             firston,     {onn}
+             firstis,     {isn}
+             firstas,     {asn}
              firsterror,       {caretn}
              firstnothing,     {failn}
-             firstadd,         {starstarn}
+             firstadd,   {starstarn}
              firstprocinline,  {procinlinen}
              firstarrayconstruct, {arrayconstructn}
              firstarrayconstructrange, {arrayconstructrangen}
@@ -283,7 +279,7 @@ implementation
       var
          oldcodegenerror  : boolean;
          oldlocalswitches : tlocalswitches;
-         oldpos           : tfileposinfo;
+         oldpos    : tfileposinfo;
 {$ifdef extdebug}
          str1,str2 : string;
          oldp      : ptree;
@@ -372,7 +368,15 @@ implementation
 end.
 {
   $Log$
-  Revision 1.101  1999-05-01 13:24:26  peter
+  Revision 1.102  1999-05-27 19:44:42  peter
+    * removed oldasm
+    * plabel -> pasmlabel
+    * -a switches to source writing automaticly
+    * assembler readers OOPed
+    * asmsymbol automaticly external
+    * jumptables and other label fixes for asm readers
+
+  Revision 1.101  1999/05/01 13:24:26  peter
     * merged nasm compiler
     * old asm moved to oldasm/
 

@@ -44,11 +44,7 @@ implementation
       gdb,
 {$endif GDB}
       hcodegen,temp_gen,pass_2,
-{$ifndef OLDASM}
       i386base,i386asm,
-{$else}
-      i386,
-{$endif}
       cgai386,tgeni386,cg386ld;
 
 {*****************************************************************************
@@ -77,7 +73,7 @@ implementation
         end;
 
       var
-         otlabel,oflabel : plabel;
+         otlabel,oflabel : pasmlabel;
          align : longint;
          { temporary variables: }
          tempdeftype : tdeftype;
@@ -130,7 +126,7 @@ implementation
                            exprasmlist^.concat(new(pai386,op_reg_ref(A_MOV,S_L,R_EDI,r)));
                          end
                       else
-                        emitpushreferenceaddr(exprasmlist,p^.left^.location.reference);
+                        emitpushreferenceaddr(p^.left^.location.reference);
                         del_reference(p^.left^.location.reference);
                      end;
                 end;
@@ -150,7 +146,7 @@ implementation
                    exprasmlist^.concat(new(pai386,op_reg_ref(A_MOV,S_L,R_EDI,r)));
                 end
               else
-                emitpushreferenceaddr(exprasmlist,p^.left^.location.reference);
+                emitpushreferenceaddr(p^.left^.location.reference);
               del_reference(p^.left^.location.reference);
            end
          else
@@ -171,7 +167,7 @@ implementation
                           R_EDI,r)));
                      end
                    else
-                     emitpushreferenceaddr(exprasmlist,p^.left^.location.reference);
+                     emitpushreferenceaddr(p^.left^.location.reference);
                    del_reference(p^.left^.location.reference);
                 end
               else
@@ -213,7 +209,7 @@ implementation
          { true if a constructor is called again }
          extended_new : boolean;
          { adress returned from an I/O-error }
-         iolabel : plabel;
+         iolabel : pasmlabel;
          { lexlevel count }
          i : longint;
          { help reference pointer }
@@ -224,9 +220,9 @@ implementation
          inlinecode : ptree;
          para_offset : longint;
          { instruction for alignement correction }
-{         corr : pai386;}
+{        corr : pai386;}
          { we must pop this size also after !! }
-{         must_pop : boolean; }
+{        must_pop : boolean; }
          pop_size : longint;
 
       label
@@ -287,14 +283,14 @@ implementation
                 iolabel:=nil;
 
               { save all used registers }
-              pushusedregisters(exprasmlist,pushed,pprocdef(p^.procdefinition)^.usedregisters);
+              pushusedregisters(pushed,pprocdef(p^.procdefinition)^.usedregisters);
 
               { give used registers through }
               usedinproc:=usedinproc or pprocdef(p^.procdefinition)^.usedregisters;
            end
          else
            begin
-              pushusedregisters(exprasmlist,pushed,$ff);
+              pushusedregisters(pushed,$ff);
               usedinproc:=$ff;
               { no IO check for methods and procedure variables }
               iolabel:=nil;
@@ -384,7 +380,7 @@ implementation
                      R_EDI,r)));
                 end
               else
-                emitpushreferenceaddr(exprasmlist,funcretref);
+                emitpushreferenceaddr(funcretref);
            end;
          { procedure variable ? }
          if (p^.right=nil) then
@@ -469,10 +465,6 @@ implementation
                                              exprasmlist^.concat(new(pai386,op_sym_ofs_reg(A_MOV,S_L,
                                                newasmsymbol(pobjectdef(
                                                p^.methodpointer^.resulttype)^.vmt_mangledname),0,R_ESI)));
-{$ifndef NEWLAB}
-                                             maybe_concat_external(pobjectdef(p^.methodpointer^.resulttype)^.owner,
-                                               pobjectdef(p^.methodpointer^.resulttype)^.vmt_mangledname);
-{$endif}
                                            end;
                                          { exprasmlist^.concat(new(pai386,op_reg(A_PUSH,S_L,R_ESI)));
                                            this is done below !! }
@@ -499,7 +491,7 @@ implementation
                                       exprasmlist^.concat(new(pai386,op_reg(A_PUSH,S_L,R_ESI)));
                                     { if an inherited con- or destructor should be  }
                                     { called in a con- or destructor then a warning }
-                                    { will be made                                  }
+                                    { will be made                                }
                                     { con- and destructors need a pointer to the vmt }
                                     if is_con_or_destructor and
                                     not(pobjectdef(p^.methodpointer^.resulttype)^.isclass) and
@@ -527,10 +519,6 @@ implementation
                                     { insert the vmt }
                                     exprasmlist^.concat(new(pai386,op_sym(A_PUSH,S_L,
                                       newasmsymbol(pobjectdef(p^.methodpointer^.resulttype)^.vmt_mangledname))));
-{$ifndef NEWLAB}
-                                    maybe_concat_external(pobjectdef(p^.methodpointer^.resulttype)^.owner,
-                                      pobjectdef(p^.methodpointer^.resulttype)^.vmt_mangledname);
-{$endif}
                                     extended_new:=true;
                                  end;
                                hdisposen:
@@ -538,17 +526,13 @@ implementation
                                     secondpass(p^.methodpointer);
 
                                     { destructor with extended syntax called from dispose }
-                                    { hdisposen always deliver LOC_REFERENCE              }
+                                    { hdisposen always deliver LOC_REFERENCE          }
                                     exprasmlist^.concat(new(pai386,op_ref_reg(A_LEA,S_L,
                                       newreference(p^.methodpointer^.location.reference),R_ESI)));
                                     del_reference(p^.methodpointer^.location.reference);
                                     exprasmlist^.concat(new(pai386,op_reg(A_PUSH,S_L,R_ESI)));
                                     exprasmlist^.concat(new(pai386,op_sym(A_PUSH,S_L,
                                       newasmsymbol(pobjectdef(p^.methodpointer^.resulttype)^.vmt_mangledname))));
-{$ifndef NEWLAB}
-                                    maybe_concat_external(pobjectdef(p^.methodpointer^.resulttype)^.owner,
-                                      pobjectdef(p^.methodpointer^.resulttype)^.vmt_mangledname);
-{$endif}
                                  end;
                                else
                                  begin
@@ -618,13 +602,9 @@ implementation
                                                    { it's no bad idea, to insert the VMT }
                                                    exprasmlist^.concat(new(pai386,op_sym(A_PUSH,S_L,newasmsymbol(
                                                      pobjectdef(p^.methodpointer^.resulttype)^.vmt_mangledname))));
-{$ifndef NEWLAB}
-                                                   maybe_concat_external(pobjectdef(p^.methodpointer^.resulttype)^.owner,
-                                                     pobjectdef(p^.methodpointer^.resulttype)^.vmt_mangledname);
-{$endif}
                                                 end
                                               { destructors haven't to dispose the instance, if this is }
-                                              { a direct call                                           }
+                                              { a direct call                                      }
                                               else
                                                 push_int(0);
                                            end;
@@ -669,9 +649,9 @@ implementation
                 ((pprocdef(p^.procdefinition)^.parast^.symtablelevel)>normal_function_level) then
                 begin
                    { if we call a nested function in a method, we must      }
-                   { push also SELF!                                        }
+                   { push also SELF!                                    }
                    { THAT'S NOT TRUE, we have to load ESI via frame pointer }
-                   { access                                                 }
+                   { access                                              }
                    {
                      begin
                         loadesi:=false;
@@ -721,9 +701,9 @@ implementation
                  not(no_virtual_call) then
                 begin
                    { static functions contain the vmt_address in ESI }
-                   { also class methods                              }
+                   { also class methods                       }
                    { Here it is quite tricky because it also depends }
-                   { on the methodpointer                         PM }
+                   { on the methodpointer                        PM }
                    if assigned(aktprocsym) then
                      begin
                        if ((((aktprocsym^.properties and sp_static)<>0) or
@@ -773,7 +753,7 @@ implementation
                    if (cs_check_range in aktlocalswitches) then
                      begin
                         exprasmlist^.concat(new(pai386,op_reg(A_PUSH,S_L,r^.base)));
-                        emitcall('FPC_CHECK_OBJECT',true);
+                        emitcall('FPC_CHECK_OBJECT');
                      end;
 {$else TESTOBJEXT}
                    if (cs_check_range in aktlocalswitches) then
@@ -787,12 +767,7 @@ implementation
                    exprasmlist^.concat(new(pai386,op_ref(A_CALL,S_NO,r)));
                 end
               else if not inlined then
-                emitcall(pprocdef(p^.procdefinition)^.mangledname,
-                  (p^.symtableproc^.symtabletype=unitsymtable) or
-                  ((p^.symtableproc^.symtabletype=objectsymtable) and
-                  (pobjectdef(p^.symtableproc^.defowner)^.owner^.symtabletype=unitsymtable))or
-                  ((p^.symtableproc^.symtabletype=withsymtable) and
-                  (pobjectdef(p^.symtableproc^.defowner)^.owner^.symtabletype=unitsymtable)))
+                emitcall(pprocdef(p^.procdefinition)^.mangledname)
               else { inlined proc }
                 { inlined code is in inlinecode }
                 begin
@@ -815,8 +790,8 @@ implementation
                    hregister:=R_NO;
 
                    { do some hacking if we call a method pointer }
-                   { which is a class member                     }
-                   { else ESI is overwritten !                   }
+                   { which is a class member                 }
+                   { else ESI is overwritten !             }
                    if (p^.right^.location.reference.base=R_ESI) or
                       (p^.right^.location.reference.index=R_ESI) then
                      begin
@@ -872,7 +847,7 @@ implementation
                 if pushedparasize=4 then
                   exprasmlist^.concat(new(pai386,op_reg(A_POP,S_L,R_EDI)))
                 { the pentium has two pipes and pop reg is pairable }
-                { but the registers must be different!              }
+                { but the registers must be different!        }
                 else if (pushedparasize=8) and
                   not(cs_littlesize in aktglobalswitches) and
                   (aktoptprocessor=ClassP5) and
@@ -897,7 +872,7 @@ implementation
               p^.location.reference.symbol:=nil;
               p^.location.reference:=funcretref;
            end;
-         { we have only to handle the result if it is used, but        }
+         { we have only to handle the result if it is used, but }
          { ansi/widestrings must be registered, so we can dispose them }
          if (p^.resulttype<>pdef(voiddef)) and (p^.return_value_used or
            is_ansistring(p^.resulttype) or is_widestring(p^.resulttype)) then
@@ -1018,7 +993,7 @@ implementation
                    gettempansistringreference(hr);
                    { cleanup the temp slot }
                    exprasmlist^.concat(new(pai386,op_reg(A_PUSH,S_L,R_EAX)));
-                   decrstringref(exprasmlist,p^.resulttype,hr);
+                   decrstringref(p^.resulttype,hr);
                    exprasmlist^.concat(new(pai386,op_reg(A_POP,S_L,R_EAX)));
 
                    exprasmlist^.concat(new(pai386,op_reg_ref(A_MOV,S_L,R_EAX,
@@ -1046,14 +1021,14 @@ implementation
          { perhaps i/o check ? }
          if iolabel<>nil then
            begin
-              exprasmlist^.concat(new(pai386,op_sym(A_PUSH,S_L,newasmsymbol(lab2str(iolabel)))));
-              emitcall('FPC_IOCHECK',true);
+              exprasmlist^.concat(new(pai386,op_sym(A_PUSH,S_L,iolabel)));
+              emitcall('FPC_IOCHECK');
            end;
          if pop_size>0 then
            exprasmlist^.concat(new(pai386,op_const_reg(A_ADD,S_L,pop_size,R_ESP)));
 
          { restore registers }
-         popusedregisters(exprasmlist,pushed);
+         popusedregisters(pushed);
 
          { at last, restore instance pointer (SELF) }
          if loadesi then
@@ -1102,7 +1077,7 @@ implementation
                    if (p^.resulttype^.needs_inittable) and
                      ( (p^.resulttype^.deftype<>objectdef) or
                        not(pobjectdef(p^.resulttype)^.isclass)) then
-                      finalize(exprasmlist,p^.resulttype,p^.location.reference);
+                      finalize(p^.resulttype,p^.location.reference);
                    { release unused temp }
                    ungetiftemp(p^.location.reference)
                 end
@@ -1127,7 +1102,7 @@ implementation
            nostackframe,make_global : boolean;
            proc_names : tstringcontainer;
            inlineentrycode,inlineexitcode : paasmoutput;
-           oldexitlabel,oldexit2label,oldquickexitlabel:Plabel;
+           oldexitlabel,oldexit2label,oldquickexitlabel:Pasmlabel;
        begin
           oldexitlabel:=aktexitlabel;
           oldexit2label:=aktexit2label;
@@ -1190,7 +1165,15 @@ implementation
 end.
 {
   $Log$
-  Revision 1.86  1999-05-23 18:41:58  florian
+  Revision 1.87  1999-05-27 19:44:07  peter
+    * removed oldasm
+    * plabel -> pasmlabel
+    * -a switches to source writing automaticly
+    * assembler readers OOPed
+    * asmsymbol automaticly external
+    * jumptables and other label fixes for asm readers
+
+  Revision 1.86  1999/05/23 18:41:58  florian
     * better error recovering in typed constants
     * some problems with arrays of const fixed, some problems
       due my previous

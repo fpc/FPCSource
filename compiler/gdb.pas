@@ -27,11 +27,7 @@ unit gdb;
     uses
       globtype,
 {$ifdef i386}
-   {$ifndef OLDASM}
-       i386base,
-   {$else}
-       i386,
-   {$endif}
+      i386base,
 {$endif i386}
       strings,cobjects,globals,aasm;
 
@@ -96,11 +92,9 @@ Const
           0,1,2,3,4,5,6,7,0,1,2,3,4,5,7,0,1,2,3,0,1,2,3,
           -1,10,12,13,14,15,11,
           -1,-1,-1,-1,-1,-1,-1,-1,-1,
-{$ifndef OLDASM}
           -1,-1,-1,-1,-1,-1,
           -1,-1,-1,-1,
           -1,-1,-1,-1,-1,
-{$endif}
           { I think, GDB doesn't know MMX (FK) }
           -1,-1,-1,-1,-1,-1,-1,-1,
           -1,-1,-1,-1,-1,-1,-1,-1
@@ -263,7 +257,15 @@ end.
 
 {
   $Log$
-  Revision 1.10  1999-05-12 00:19:48  peter
+  Revision 1.11  1999-05-27 19:44:27  peter
+    * removed oldasm
+    * plabel -> pasmlabel
+    * -a switches to source writing automaticly
+    * assembler readers OOPed
+    * asmsymbol automaticly external
+    * jumptables and other label fixes for asm readers
+
+  Revision 1.10  1999/05/12 00:19:48  peter
     * removed R_DEFAULT_SEG
     * uniform float names
 

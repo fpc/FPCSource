@@ -29,11 +29,11 @@ unit pdecl;
 
     var
        { pointer to the last read type symbol, (for "forward" }
-       { types)                                               }
+       { types)                                        }
        lasttypesym : ptypesym;
 
        { hack, which allows to use the current parsed }
-       { object type as function argument type        }
+       { object type as function argument type  }
        testcurobject : byte;
        curobjectname : stringid;
 
@@ -43,7 +43,7 @@ unit pdecl;
     function stringtype : pdef;
 
     { reads a string, file type or a type id and returns a name and }
-    { pdef                                                          }
+    { pdef                                                        }
     function single_type(var s : string) : pdef;
 
     { reads the declaration blocks }
@@ -64,11 +64,7 @@ unit pdecl;
        ,pbase,ptconst,pexpr,psub,pexports
        { processor specific stuff }
 {$ifdef i386}
-{$ifndef OLDASM}
        ,i386base
-{$else}
-       ,i386
-{$endif}
 {$endif}
 {$ifdef m68k}
        ,m68k
@@ -222,7 +218,7 @@ unit pdecl;
     procedure label_dec;
 
       var
-         hl : plabel;
+         hl : pasmlabel;
 
       begin
          consume(_LABEL);
@@ -245,11 +241,11 @@ unit pdecl;
 
     procedure read_var_decs(is_record,is_object,is_threadvar:boolean);
     { reads the filed of a record into a        }
-    { symtablestack, if record=false            }
+    { symtablestack, if record=false        }
     { variants are forbidden, so this procedure }
-    { can be used to read object fields         }
+    { can be used to read object fields  }
     { if absolute is true, ABSOLUTE and file    }
-    { types are allowed                         }
+    { types are allowed                  }
     { => the procedure is also used to read     }
     { a sequence of variable declaration        }
       var
@@ -317,9 +313,6 @@ unit pdecl;
                   dispose(sc,done);
                   aktvarsym:=new(pvarsym,init_C(s,target_os.Cprefix+C_name,p));
                   aktvarsym^.var_options:=aktvarsym^.var_options or vo_is_external;
-{$ifndef NEWLAB}
-                  concat_external(aktvarsym^.mangledname,EXT_NEAR);
-{$endif}
                   symtablestack^.insert(aktvarsym);
                   tokenpos:=storetokenpos;
                   symdone:=true;
@@ -512,10 +505,6 @@ unit pdecl;
                           end;
                          importlib^.importvariable(aktvarsym^.mangledname,dll_name,C_name)
                        end
-{$ifndef NEWLAB}
-                      else
-                       concat_external(aktvarsym^.mangledname,EXT_NEAR);
-{$endif}
                     end;
                    symdone:=true;
                  end
@@ -639,7 +628,7 @@ unit pdecl;
     function id_type(var s : string) : pdef;
     { reads a type definition and returns a pointer }
     { to a appropriating pdef, s gets the name of   }
-    { the type to allow name mangling               }
+    { the type to allow name mangling          }
       begin
          s:=pattern;
          consume(ID);
@@ -683,7 +672,7 @@ unit pdecl;
 
     function single_type(var s : string) : pdef;
     { reads a string, file type or a type id and returns a name and }
-    { pdef                                                          }
+    { pdef                                                        }
        var
           hs : string;
        begin
@@ -876,7 +865,7 @@ unit pdecl;
                      dec(testcurobject);
                      consume(RECKKLAMMER);
                   end;
-                { overriden property ?                                       }
+                { overriden property ?                                 }
                 { force property interface, if there is a property parameter }
                 if (token=COLON) or assigned(propertyparas) then
                   begin
@@ -1125,12 +1114,12 @@ unit pdecl;
         end;
 
       var
-         hs         : string;
+         hs      : string;
          pcrd       : pclassrefdef;
-         hp1        : pdef;
+         hp1    : pdef;
          oldprocsym : pprocsym;
          oldparse_only : boolean;
-         intmessagetable,strmessagetable,classnamelabel : plabel;
+         intmessagetable,strmessagetable,classnamelabel : pasmlabel;
          storetypeforwardsallowed : boolean;
          pt : ptree;
 
@@ -1269,7 +1258,7 @@ unit pdecl;
          { if no parent class, then a class get tobject as parent }
          else if is_a_class then
            begin
-              { is the current class tobject?        }
+              { is the current class tobject?   }
               { so you could define your own tobject }
               if n='TOBJECT' then
                 begin
@@ -1550,7 +1539,7 @@ unit pdecl;
 
               { table for string messages }
               if (aktclass^.options and oo_hasmsgstr)<>0 then
-                datasegment^.concat(new(pai_const_symbol,initname(lab2str(strmessagetable))))
+                datasegment^.concat(new(pai_const_symbol,init(strmessagetable)))
               else
                 datasegment^.concat(new(pai_const,init_32bit(0)));
 
@@ -1562,7 +1551,7 @@ unit pdecl;
 
               { inittable for con-/destruction }
               if aktclass^.needs_inittable then
-                datasegment^.concat(new(pai_const_symbol,initname(lab2str(aktclass^.get_inittable_label))))
+                datasegment^.concat(new(pai_const_symbol,init(aktclass^.get_inittable_label)))
               else
                 datasegment^.concat(new(pai_const,init_32bit(0)));
 
@@ -1579,12 +1568,12 @@ unit pdecl;
 
               { pointer to dynamic table }
               if (aktclass^.options and oo_hasmsgint)<>0 then
-                datasegment^.concat(new(pai_const_symbol,initname(lab2str(intmessagetable))))
+                datasegment^.concat(new(pai_const_symbol,init(intmessagetable)))
               else
                 datasegment^.concat(new(pai_const,init_32bit(0)));
 
               { pointer to class name string }
-              datasegment^.concat(new(pai_const_symbol,initname(lab2str(classnamelabel))));
+              datasegment^.concat(new(pai_const_symbol,init(classnamelabel)));
            end;
 {$ifdef GDB}
          { generate the VMT }
@@ -1602,7 +1591,7 @@ unit pdecl;
               datasegment^.concat(new(pai_symbol,initname_global(aktclass^.vmt_mangledname)));
 
               { determine the size with publicsyms^.datasize, because }
-              { size gives back 4 for classes                         }
+              { size gives back 4 for classes                    }
               datasegment^.concat(new(pai_const,init_32bit(aktclass^.publicsyms^.datasize)));
               datasegment^.concat(new(pai_const,init_32bit(-aktclass^.publicsyms^.datasize)));
 
@@ -1614,10 +1603,6 @@ unit pdecl;
                  ((aktclass^.childof^.options and oo_hasvmt)<>0) then
                 begin
                    datasegment^.concat(new(pai_const_symbol,initname(aktclass^.childof^.vmt_mangledname)));
-{$ifndef NEWLAB}
-                   if aktclass^.childof^.owner^.symtabletype=unitsymtable then
-                     concat_external(aktclass^.childof^.vmt_mangledname,EXT_NEAR);
-{$endif}
                 end
               else
                 datasegment^.concat(new(pai_const,init_32bit(0)));
@@ -1930,7 +1915,7 @@ unit pdecl;
                         consume(ASSIGNMENT);
                         v:=get_intconst;
                         { please leave that a note, allows type save }
-                        { declarations in the win32 units !          }
+                        { declarations in the win32 units !       }
                         if v<=l then
                          Message(parser_n_duplicate_enum);
                         l:=v;
@@ -2136,7 +2121,7 @@ unit pdecl;
 
     procedure var_dec;
     { parses varaible declarations and inserts them in }
-    { the top symbol table of symtablestack            }
+    { the top symbol table of symtablestack         }
       begin
         consume(_VAR);
         read_var_decs(false,false,false);
@@ -2144,7 +2129,7 @@ unit pdecl;
 
     procedure threadvar_dec;
     { parses thread variable declarations and inserts them in }
-    { the top symbol table of symtablestack                   }
+    { the top symbol table of symtablestack                }
       begin
         consume(_THREADVAR);
         if not(symtablestack^.symtabletype in [staticsymtable,globalsymtable]) then
@@ -2239,7 +2224,15 @@ unit pdecl;
 end.
 {
   $Log$
-  Revision 1.122  1999-05-21 20:08:22  florian
+  Revision 1.123  1999-05-27 19:44:45  peter
+    * removed oldasm
+    * plabel -> pasmlabel
+    * -a switches to source writing automaticly
+    * assembler readers OOPed
+    * asmsymbol automaticly external
+    * jumptables and other label fixes for asm readers
+
+  Revision 1.122  1999/05/21 20:08:22  florian
     * hopefully the default property bug fixed
 
   Revision 1.121  1999/05/21 13:55:04  peter

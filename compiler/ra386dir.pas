@@ -33,12 +33,9 @@ unit Ra386dir;
 
      uses
         files,hcodegen,globals,scanner,aasm
-{$ifndef OLDASM}
         ,i386base,i386asm
-{$else}
-        ,i386
-{$endif}
-        ,cobjects,symtable,types,verbose,rautils;
+        ,cobjects,symtable,types,verbose,
+        rautils,ra386;
 
     function assemble : ptree;
 
@@ -125,11 +122,8 @@ unit Ra386dir;
                                 if srsym<>nil then
                                   if (srsym^.typ = labelsym) then
                                     Begin
-                                       hs:=lab2str(plabelsym(srsym)^.lab);
-{$ifndef NEWLAB}
-                                       {label is set !! }
+                                       hs:=plabelsym(srsym)^.lab^.name;
                                        plabelsym(srsym)^.lab^.is_set:=true;
-{$endif}
                                     end
                                   else
                                     Message(asmr_w_using_defined_as_local);
@@ -160,7 +154,7 @@ unit Ra386dir;
                                         begin
                                            if (sym^.typ = labelsym) then
                                              Begin
-                                                hs:=lab2str(plabelsym(sym)^.lab);
+                                                hs:=plabelsym(sym)^.lab^.name;
                                              end
                                            else if sym^.typ=varsym then
                                              begin
@@ -257,7 +251,7 @@ unit Ra386dir;
                                                   hs:=tostr(procinfo.framepointer_offset)+
                                                     '('+att_reg2str[procinfo.framepointer]+')'
                                                 else
-                                                  Message(asmr_e_cannot_use___OLDEBP_outside_nested_procedure);
+                                                  Message(asmr_e_cannot_use_OLDEBP_outside_nested_procedure);
                                              end;
                                            end;
                                         end;
@@ -297,7 +291,15 @@ unit Ra386dir;
 end.
 {
   $Log$
-  Revision 1.20  1999-05-21 13:55:15  peter
+  Revision 1.21  1999-05-27 19:44:57  peter
+    * removed oldasm
+    * plabel -> pasmlabel
+    * -a switches to source writing automaticly
+    * assembler readers OOPed
+    * asmsymbol automaticly external
+    * jumptables and other label fixes for asm readers
+
+  Revision 1.20  1999/05/21 13:55:15  peter
     * NEWLAB for label as symbol
 
   Revision 1.19  1999/05/05 22:22:02  peter

@@ -39,11 +39,7 @@ implementation
       cobjects,verbose,globals,
       symtable,aasm,types,
       hcodegen,temp_gen,pass_2,
-{$ifndef OLDASM}
       i386base,i386asm,
-{$else}
-      i386,
-{$endif}
       cgai386,tgeni386,cg386cnv;
 
 {*****************************************************************************
@@ -75,9 +71,6 @@ implementation
                      end
                     else
                      p^.location.reference.symbol:=newasmsymbol(p^.symtableentry^.mangledname);
-{$ifndef NEWLAB}
-                    maybe_concat_external(p^.symtableentry^.owner,p^.symtableentry^.mangledname);
-{$endif}
                  end;
               varsym :
                  begin
@@ -86,10 +79,6 @@ implementation
                     if (pvarsym(p^.symtableentry)^.var_options and vo_is_C_var)<>0 then
                       begin
                          p^.location.reference.symbol:=newasmsymbol(p^.symtableentry^.mangledname);
-{$ifndef NEWLAB}
-                         if (pvarsym(p^.symtableentry)^.var_options and vo_is_external)<>0 then
-                           concat_external(p^.symtableentry^.mangledname,EXT_NEAR);
-{$endif}
                       end
                     { DLL variable }
                     else if (pvarsym(p^.symtableentry)^.var_options and vo_is_dll_var)<>0 then
@@ -104,9 +93,6 @@ implementation
                     else if (pvarsym(p^.symtableentry)^.var_options and vo_is_external)<>0 then
                       begin
                          p^.location.reference.symbol:=newasmsymbol(p^.symtableentry^.mangledname);
-{$ifndef NEWLAB}
-                         concat_external(p^.symtableentry^.mangledname,EXT_NEAR);
-{$endif}
                       end
                     { thread variable }
                     else if (pvarsym(p^.symtableentry)^.var_options and vo_is_thread_var)<>0 then
@@ -115,14 +101,10 @@ implementation
                          if popeax then
                            exprasmlist^.concat(new(pai386,op_reg(A_PUSH,S_L,R_EAX)));
                          p^.location.reference.symbol:=newasmsymbol(p^.symtableentry^.mangledname);
-{$ifndef NEWLAB}
-                         if p^.symtable^.symtabletype=unitsymtable then
-                           concat_external(p^.symtableentry^.mangledname,EXT_NEAR);
-{$endif}
                          exprasmlist^.concat(new(pai386,op_ref(A_PUSH,S_L,newreference(p^.location.reference))));
                          { the called procedure isn't allowed to change }
-                         { any register except EAX                      }
-                         emitcall('FPC_RELOCATE_THREADVAR',true);
+                         { any register except EAX                    }
+                         emitcall('FPC_RELOCATE_THREADVAR');
 
                          reset_reference(p^.location.reference);
                          p^.location.reference.base:=getregister32;
@@ -180,10 +162,6 @@ implementation
                                    staticsymtable :
                                      begin
                                        p^.location.reference.symbol:=newasmsymbol(p^.symtableentry^.mangledname);
-{$ifndef NEWLAB}
-                                       if symtabletype=unitsymtable then
-                                        concat_external(p^.symtableentry^.mangledname,EXT_NEAR);
-{$endif}
                                      end;
                                    stt_exceptsymtable:
                                      begin
@@ -195,10 +173,6 @@ implementation
                                         if (pvarsym(p^.symtableentry)^.properties and sp_static)<>0 then
                                           begin
                                              p^.location.reference.symbol:=newasmsymbol(p^.symtableentry^.mangledname);
-{$ifndef NEWLAB}
-                                             if p^.symtable^.defowner^.owner^.symtabletype=unitsymtable then
-                                               concat_external(p^.symtableentry^.mangledname,EXT_NEAR);
-{$endif}
                                           end
                                         else
                                           begin
@@ -212,7 +186,7 @@ implementation
                                         { symtable datasize field
                                           contains the offset of the temp
                                           stored }
-{                                        hp:=new_reference(procinfo.framepointer,
+{                                       hp:=new_reference(procinfo.framepointer,
                                           p^.symtable^.datasize);
 
                                         exprasmlist^.concat(new(pai386,op_ref_reg(A_MOV,S_L,hp,hregister)));}
@@ -346,26 +320,17 @@ implementation
                               s:=newasmsymbol(pprocsym(p^.symtableentry)^.definition^.mangledname);
                               exprasmlist^.concat(new(pai386,op_sym_ofs_ref(A_MOV,S_L,s,0,
                                 newreference(p^.location.reference))));
-{$ifndef NEWLAB}
-                              maybe_concat_external(p^.symtable,p^.symtableentry^.mangledname);
-{$endif}
                            end;
                       end
                     else
                       begin
                          {!!!!! Be aware, work on virtual methods too }
                          p^.location.reference.symbol:=newasmsymbol(pprocsym(p^.symtableentry)^.definition^.mangledname);
-{$ifndef NEWLAB}
-                         maybe_concat_external(p^.symtable,p^.symtableentry^.mangledname);
-{$endif}
                       end;
                  end;
               typedconstsym :
                  begin
                     p^.location.reference.symbol:=newasmsymbol(p^.symtableentry^.mangledname);
-{$ifndef NEWLAB}
-                    maybe_concat_external(p^.symtable,p^.symtableentry^.mangledname);
-{$endif}
                  end;
               else internalerror(4);
          end;
@@ -379,13 +344,11 @@ implementation
     procedure secondassignment(var p : ptree);
       var
          opsize : topsize;
-         otlabel,hlabel,oflabel : plabel;
+         otlabel,hlabel,oflabel : pasmlabel;
          hregister : tregister;
          loc : tloc;
          r : preference;
-{$ifndef OLDASM}
          ai : pai386;
-{$endif}
       begin
          otlabel:=truelabel;
          oflabel:=falselabel;
@@ -429,10 +392,10 @@ implementation
                   exit;
                end;
          end;
-         { lets try to optimize this (PM)             }
+         { lets try to optimize this (PM)            }
          { define a dest_loc that is the location      }
          { and a ptree to verify that it is the right }
-         { place to insert it                         }
+         { place to insert it                    }
 {$ifdef test_dest_loc}
          if (aktexprlevel<4) then
            begin
@@ -547,29 +510,20 @@ implementation
                                    { increment source reference counter }
                                    new(r);
                                    reset_reference(r^);
-                                   r^.symbol:=newasmsymbol(lab2str(p^.right^.resulttype^.get_inittable_label));
-                                   emitpushreferenceaddr(exprasmlist,r^);
+                                   r^.symbol:=p^.right^.resulttype^.get_inittable_label;
+                                   emitpushreferenceaddr(r^);
 
-                                   emitpushreferenceaddr(exprasmlist,p^.right^.location.reference);
+                                   emitpushreferenceaddr(p^.right^.location.reference);
                                    exprasmlist^.concat(new(pai386,
                                      op_sym(A_CALL,S_NO,newasmsymbol('FPC_ADDREF'))));
-{$ifndef NEWLAB}
-                                   if not (cs_compilesystem in aktmoduleswitches) then
-                                     concat_external('FPC_ADDREF',EXT_NEAR);
-{$endif}
                                    { decrement destination reference counter }
                                    new(r);
                                    reset_reference(r^);
-                                   r^.symbol:=newasmsymbol(lab2str(p^.left^.resulttype^.get_inittable_label));
-                                   emitpushreferenceaddr(exprasmlist,r^);
-
-                                   emitpushreferenceaddr(exprasmlist,p^.left^.location.reference);
+                                   r^.symbol:=p^.left^.resulttype^.get_inittable_label;
+                                   emitpushreferenceaddr(r^);
+                                   emitpushreferenceaddr(p^.left^.location.reference);
                                    exprasmlist^.concat(new(pai386,
                                      op_sym(A_CALL,S_NO,newasmsymbol('FPC_DECREF'))));
-{$ifndef NEWLAB}
-                                   if not(cs_compilesystem in aktmoduleswitches) then
-                                     concat_external('FPC_DECREF',EXT_NEAR);
-{$endif}
                                 end;
 
 {$ifdef regallocfix}
@@ -603,7 +557,7 @@ implementation
                                  4 : opsize:=S_L;
                                  8 : opsize:=S_L;
                               end;
-                              { simplified with op_reg_loc         }
+                              { simplified with op_reg_loc       }
                               if loc=LOC_CREGISTER then
                                 begin
                                   exprasmlist^.concat(new(pai386,op_reg_reg(A_MOV,opsize,
@@ -625,7 +579,7 @@ implementation
                                 end;
                               if is_64bitint(p^.right^.resulttype) then
                                 begin
-                                   { simplified with op_reg_loc         }
+                                   { simplified with op_reg_loc  }
                                    if loc=LOC_CREGISTER then
                                      exprasmlist^.concat(new(pai386,op_reg_reg(A_MOV,opsize,
                                        p^.right^.location.registerhigh,
@@ -640,7 +594,7 @@ implementation
                                 end;
                               {exprasmlist^.concat(new(pai386,op_reg_loc(A_MOV,opsize,
                                   p^.right^.location.register,
-                                  p^.left^.location)));             }
+                                  p^.left^.location)));      }
 
                            end;
             LOC_FPU : begin
@@ -681,16 +635,11 @@ implementation
                               if loc=LOC_CREGISTER then
                                 emit_flag2reg(p^.right^.location.resflags,p^.left^.location.register)
                               else
-{$ifndef OLDASM}
                                 begin
                                   ai:=new(pai386,op_ref(A_Setcc,S_B,newreference(p^.left^.location.reference)));
                                   ai^.SetCondition(flag_2_cond[p^.right^.location.resflags]);
                                   exprasmlist^.concat(ai);
                                 end;
-{$else}
-                                exprasmlist^.concat(new(pai386,op_ref(flag_2_set[p^.right^.location.resflags],S_B,
-                                  newreference(p^.left^.location.reference))));
-{$endif}
 {$IfDef regallocfix}
                               del_reference(p^.left^.location.reference);
 {$EndIf regallocfix}
@@ -781,13 +730,13 @@ implementation
       begin
         if not p^.cargs then
          begin
-            reset_reference(p^.location.reference);
+           reset_reference(p^.location.reference);
             if parraydef(p^.resulttype)^.highrange=-1 then
               begin
               end
             else
               gettempofsizereference((parraydef(p^.resulttype)^.highrange+1)*8,p^.location.reference);
-            href:=p^.location.reference;
+           href:=p^.location.reference;
          end;
         hp:=p;
         while assigned(hp) do
@@ -876,7 +825,15 @@ implementation
 end.
 {
   $Log$
-  Revision 1.58  1999-05-23 18:42:02  florian
+  Revision 1.59  1999-05-27 19:44:14  peter
+    * removed oldasm
+    * plabel -> pasmlabel
+    * -a switches to source writing automaticly
+    * assembler readers OOPed
+    * asmsymbol automaticly external
+    * jumptables and other label fixes for asm readers
+
+  Revision 1.58  1999/05/23 18:42:02  florian
     * better error recovering in typed constants
     * some problems with arrays of const fixed, some problems
       due my previous

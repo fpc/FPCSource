@@ -38,11 +38,7 @@ implementation
       hcodegen,htypechk,pass_1,
       tccal
 {$ifdef i386}
-{$ifndef OLDASM}
       ,i386base
-{$else}
-      ,i386
-{$endif}
       ,tgeni386
 {$endif}
 {$ifdef m68k}
@@ -538,7 +534,7 @@ implementation
                            { two paras ? }
                            if assigned(p^.left^.right) then
                              begin
-                                { insert a type conversion         }
+                                { insert a type conversion       }
                                 { the second param is always longint }
                                 p^.left^.right^.left:=gentypeconvnode(p^.left^.right^.left,s32bitdef);
                                 { check the type conversion }
@@ -581,7 +577,7 @@ implementation
                        while assigned(hp^.right) do
                          hp:=hp^.right;
                        { if resulttype is not assigned, then automatically }
-                       { file is not typed.                                }
+                       { file is not typed.                             }
                        if assigned(hp) and assigned(hp^.resulttype) then
                          Begin
                            if (hp^.resulttype^.deftype=filedef) and
@@ -965,7 +961,7 @@ implementation
                            { two paras ? }
                            if assigned(p^.left^.right) then
                              begin
-                                { insert a type conversion         }
+                                { insert a type conversion       }
                                 { to the type of the set elements  }
                                 p^.left^.right^.left:=gentypeconvnode(
                                   p^.left^.right^.left,
@@ -1105,7 +1101,15 @@ implementation
 end.
 {
   $Log$
-  Revision 1.34  1999-05-23 18:42:20  florian
+  Revision 1.35  1999-05-27 19:45:19  peter
+    * removed oldasm
+    * plabel -> pasmlabel
+    * -a switches to source writing automaticly
+    * assembler readers OOPed
+    * asmsymbol automaticly external
+    * jumptables and other label fixes for asm readers
+
+  Revision 1.34  1999/05/23 18:42:20  florian
     * better error recovering in typed constants
     * some problems with arrays of const fixed, some problems
       due my previous

@@ -177,8 +177,6 @@ unit globals;
     const
        parser_current_file : string = '';
 
-    function getspeedvalue(const s : string) : longint;
-
 {$ifdef debug}
     { if the pointer don't point to the heap then write an error }
     function assigned(p : pointer) : boolean;
@@ -240,45 +238,6 @@ unit globals;
               p:=nil;
            end;
       end;
-
-{$ifdef FPC}
-    function getspeedvalue(const s : string) : longint;
-      var
-        p1,p2:^byte;
-      begin
-        p1:=@s;
-        longint(p2):=longint(p1)+p1^+1;
-        inc(longint(p1));
-        getspeedvalue:=0;
-        while p1<>p2 do
-         begin
-           inc(getspeedvalue,p1^);
-           inc(longint(p1));
-         end;
-      end;
-{$else}
-    function getspeedvalue(const s : string) : longint;
-      type
-        ptrrec=record
-          ofs,seg:word;
-        end;
-      var
-        l,w   : longint;
-        p1,p2 : ^byte;
-      begin
-        p1:=@s;
-        ptrrec(p2).seg:=ptrrec(p1).seg;
-        ptrrec(p2).ofs:=ptrrec(p1).ofs+p1^+1;
-        inc(p1);
-        l:=0;
-        while p1<>p2 do
-         begin
-           l:=l+p1^;
-           inc(p1);
-         end;
-        getspeedvalue:=l;
-      end;
-{$endif}
 
 
     function ngraphsearchvalue(const s1,s2 : string) : double;
@@ -1203,7 +1162,15 @@ begin
 end.
 {
   $Log$
-  Revision 1.7  1999-05-13 21:59:26  peter
+  Revision 1.8  1999-05-27 19:44:29  peter
+    * removed oldasm
+    * plabel -> pasmlabel
+    * -a switches to source writing automaticly
+    * assembler readers OOPed
+    * asmsymbol automaticly external
+    * jumptables and other label fixes for asm readers
+
+  Revision 1.7  1999/05/13 21:59:26  peter
     * removed oldppu code
     * warning if objpas is loaded from uses
     * first things for new deref writing

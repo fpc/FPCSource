@@ -382,26 +382,10 @@ unit ag386bin;
                end;
              ait_symbol :
                pai_symbol(hp)^.sym^.setaddress(objectalloc^.currsec,objectalloc^.sectionsize,0);
-{$ifndef NEWLAB}
              ait_label :
-               begin
-                 pai_label(hp)^.setaddress(objectalloc^.sectionsize);
-                 if pai_label(hp)^.l^.is_symbol then
-                   begin
-                     pai_label(hp)^.sym:=newasmsymbol(lab2str(pai_label(hp)^.l));
-                     if (pai_label(hp)^.l^.is_data) and (cs_smartlink in aktmoduleswitches) then
-                       pai_label(hp)^.sym^.typ:=AS_GLOBAL
-                     else
-                       pai_label(hp)^.sym^.typ:=AS_LOCAL;
-                     pai_label(hp)^.sym^.setaddress(objectalloc^.currsec,pai_label(hp)^.l^.address,0);
-                   end;
-               end;
-{$endif}
+               pai_label(hp)^.l^.setaddress(objectalloc^.currsec,objectalloc^.sectionsize,0);
              ait_string :
                objectalloc^.sectionalloc(pai_string(hp)^.len);
-{$ifndef NEWLAB}
-             ait_labeled_instruction,
-{$endif}
              ait_instruction :
                objectalloc^.sectionalloc(pai386(hp)^.Pass1(objectalloc^.sectionsize));
              ait_cut :
@@ -428,9 +412,7 @@ unit ag386bin;
             begin
               if (objectalloc^.currsec<>sec_none) and
                  not(hp^.typ in  [
-{$ifndef NEWLAB}
-                     ait_external,ait_label,
-{$endif}
+                     ait_label,
                      ait_regalloc,ait_tempalloc,
                      ait_stabn,ait_stabs,ait_section,
                      ait_cut,ait_marker,ait_align,ait_stab_function_name]) then
@@ -501,10 +483,6 @@ unit ag386bin;
              ait_const_rva,
              ait_const_symbol :
                objectalloc^.sectionalloc(4);
-{$ifndef NEWLAB}
-             ait_external :
-               pai_external(hp)^.sym^.typ:=AS_EXTERNAL;
-{$endif}
              ait_section:
                begin
                  objectalloc^.setsection(pai_section(hp)^.sec);
@@ -540,26 +518,16 @@ unit ag386bin;
                   pai_symbol(hp)^.sym^.typ:=AS_LOCAL;
                  pai_symbol(hp)^.sym^.setaddress(objectalloc^.currsec,objectalloc^.sectionsize,0);
                end;
-{$ifndef NEWLAB}
              ait_label :
                begin
-                 pai_label(hp)^.setaddress(objectalloc^.sectionsize);
-                 if pai_label(hp)^.l^.is_symbol then
-                   begin
-                     pai_label(hp)^.sym:=newasmsymbol(lab2str(pai_label(hp)^.l));
-                     if (pai_label(hp)^.l^.is_data) and (cs_smartlink in aktmoduleswitches) then
-                       pai_label(hp)^.sym^.typ:=AS_GLOBAL
-                     else
-                       pai_label(hp)^.sym^.typ:=AS_LOCAL;
-                     pai_label(hp)^.sym^.setaddress(objectalloc^.currsec,pai_label(hp)^.l^.address,0);
-                   end;
+                 if pai_label(hp)^.is_global then
+                  pai_label(hp)^.l^.typ:=AS_GLOBAL
+                 else
+                  pai_label(hp)^.l^.typ:=AS_LOCAL;
+                 pai_label(hp)^.l^.setaddress(objectalloc^.currsec,objectalloc^.sectionsize,0);
                end;
-{$endif}
              ait_string :
                objectalloc^.sectionalloc(pai_string(hp)^.len);
-{$ifndef NEWLAB}
-             ait_labeled_instruction,
-{$endif}
              ait_instruction :
                objectalloc^.sectionalloc(pai386(hp)^.Pass1(objectalloc^.sectionsize));
              ait_direct :
@@ -598,9 +566,7 @@ unit ag386bin;
             begin
               if (objectoutput^.currsec<>sec_none) and
                  not(hp^.typ in  [
-{$ifndef NEWLAB}
-                     ait_external,ait_label,
-{$endif}
+                     ait_label,
                      ait_regalloc,ait_tempalloc,
                      ait_stabn,ait_stabs,ait_section,
                      ait_cut,ait_marker,ait_align,ait_stab_function_name]) then
@@ -634,10 +600,6 @@ unit ag386bin;
                  stabslastfileinfo.line:=-1;
 {$endif GDB}
                end;
-{$ifndef NEWLAB}
-             ait_external :
-               objectoutput^.writesymbol(pai_external(hp)^.sym);
-{$endif}
              ait_symbol :
                objectoutput^.writesymbol(pai_symbol(hp)^.sym);
              ait_datablock :
@@ -682,16 +644,8 @@ unit ag386bin;
              ait_const_symbol :
                objectoutput^.writereloc(pai_const_symbol(hp)^.offset,4,
                  pai_const_symbol(hp)^.sym,relative_false);
-{$ifndef NEWLAB}
              ait_label :
-               begin
-                 if assigned(pai_label(hp)^.sym) then
-                  objectoutput^.writesymbol(pai_label(hp)^.sym);
-               end;
-{$endif}
-{$ifndef NEWLAB}
-             ait_labeled_instruction,
-{$endif}
+               objectoutput^.writesymbol(pai_label(hp)^.l);
              ait_instruction :
                pai386(hp)^.Pass2;
 {$ifdef GDB}
@@ -799,8 +753,6 @@ unit ag386bin;
 
         new(mylist,init);
 
-        if not(cs_compilesystem in aktmoduleswitches) then
-          addlist(externals);
         if cs_debuginfo in aktmoduleswitches then
           addlist(debuglist);
         addlist(codesegment);
@@ -849,7 +801,15 @@ unit ag386bin;
 end.
 {
   $Log$
-  Revision 1.11  1999-05-21 13:54:41  peter
+  Revision 1.12  1999-05-27 19:43:59  peter
+    * removed oldasm
+    * plabel -> pasmlabel
+    * -a switches to source writing automaticly
+    * assembler readers OOPed
+    * asmsymbol automaticly external
+    * jumptables and other label fixes for asm readers
+
+  Revision 1.11  1999/05/21 13:54:41  peter
     * NEWLAB for label as symbol
 
   Revision 1.10  1999/05/19 11:54:17  pierre

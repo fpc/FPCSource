@@ -76,10 +76,15 @@ unit systems;
             as_i386_dbg,as_i386_coff,as_i386_pecoff
             ,as_m68k_as,as_m68k_gas,as_m68k_mit,as_m68k_mot,as_m68k_mpw
        );
+       { binary assembler writers, needed to test for -a }
      const
        {$ifdef i386} i386asmcnt=11; {$else} i386asmcnt=0; {$endif}
        {$ifdef m68k} m68kasmcnt=5; {$else} m68kasmcnt=0; {$endif}
        asmcnt=i386asmcnt+m68kasmcnt+1;
+
+       binassem : set of tasm = [
+         as_i386_dbg,as_i386_coff,as_i386_pecoff
+       ];
 
      type
        tlink = (link_none
@@ -126,7 +131,7 @@ unit systems;
 
    type
        tosinfo = packed record
-          id        : tos;
+          id    : tos;
           name      : string[30];
           shortname : string[8];
           sharedlibext : string[10];
@@ -148,7 +153,7 @@ unit systems;
        end;
 
        tasminfo = packed record
-          id          : tasm;
+          id      : tasm;
           idtxt       : string[8];
           asmbin      : string[8];
           asmcmd      : string[50];
@@ -161,7 +166,7 @@ unit systems;
        end;
 
        tlinkinfo = packed record
-          id            : tlink;
+          id        : tlink;
           linkbin       : string[8];
           linkcmd       : string[127];
           binders       : word;
@@ -192,7 +197,7 @@ unit systems;
        ttargetinfo = packed record
           target      : ttarget;
           flags       : set of ttargetflags;
-          cpu         : ttargetcpu;
+          cpu    : ttargetcpu;
           short_name  : string[8];
           unit_env    : string[12];
           system_unit : string[8];
@@ -204,11 +209,12 @@ unit systems;
           resext,
           resobjext,
           exeext      : string[4];
-          os          : tos;
-          link        : tlink;
+          os      : tos;
+          link  : tlink;
           assem       : tasm;
-          ar          : tar;
-          res         : tres;
+          assemsrc    : tasm; { default source writing assembler }
+          ar      : tar;
+          res    : tres;
           heapsize,
           maxheapsize,
           stacksize   : longint;
@@ -229,6 +235,13 @@ unit systems;
        target_res  : tresinfo;
        source_os   : tosinfo;
 
+    function set_target_os(t:tos):boolean;
+    function set_target_asm(t:tasm):boolean;
+    function set_target_link(t:tlink):boolean;
+    function set_target_ar(t:tar):boolean;
+    function set_target_res(t:tres):boolean;
+    function set_target_info(t:ttarget):boolean;
+
     function set_string_target(s : string) : boolean;
     function set_string_asm(s : string) : boolean;
     function set_string_asmmode(s:string;var t:tasmmode):boolean;
@@ -245,12 +258,12 @@ implementation
 ****************************************************************************}
        os_infos : array[1..oscnt] of tosinfo = (
           (
-            id           : os_none;
+            id     : os_none;
             name         : 'No operating system';
             shortname    : 'none'
           ),
           (
-            id           : os_i386_go32v1;
+            id     : os_i386_go32v1;
             name         : 'GO32 V1 DOS extender';
             shortname    : 'go32v1';
             sharedlibext : '.dll';
@@ -271,7 +284,7 @@ implementation
             use_function_relative_addresses : true
           ),
           (
-            id           : os_i386_go32v2;
+            id     : os_i386_go32v2;
             name         : 'GO32 V2 DOS extender';
             shortname    : 'go32v2';
             sharedlibext : '.dll';
@@ -292,7 +305,7 @@ implementation
             use_function_relative_addresses : true
           ),
           (
-            id           : os_i386_linux;
+            id     : os_i386_linux;
             name         : 'Linux for i386';
             shortname    : 'linux';
             sharedlibext : '.so';
@@ -313,7 +326,7 @@ implementation
             use_function_relative_addresses : true
           ),
           (
-            id           : os_i386_os2;
+            id     : os_i386_os2;
             name         : 'OS/2 via EMX';
             shortname    : 'os2';
             sharedlibext : '.ao2';
@@ -334,7 +347,7 @@ implementation
             use_function_relative_addresses : false
           ),
           (
-            id           : os_i386_win32;
+            id     : os_i386_win32;
             name         : 'Win32 for i386';
             shortname    : 'win32';
             sharedlibext : '.dll';
@@ -355,7 +368,7 @@ implementation
             use_function_relative_addresses : true
           ),
           (
-            id           : os_m68k_amiga;
+            id     : os_m68k_amiga;
             name         : 'Commodore Amiga';
             shortname    : 'amiga';
             sharedlibext : '.library';
@@ -376,7 +389,7 @@ implementation
             use_function_relative_addresses : false
           ),
           (
-            id           : os_m68k_atari;
+            id     : os_m68k_atari;
             name         : 'Atari ST/STE';
             shortname    : 'atari';
             sharedlibext : '.dll';
@@ -397,7 +410,7 @@ implementation
             use_function_relative_addresses : false
           ),
           (
-            id           : os_m68k_mac;
+            id     : os_m68k_mac;
             name         : 'Macintosh m68k';
             shortname    : 'mac';
             sharedlibext : '.dll';
@@ -418,7 +431,7 @@ implementation
             use_function_relative_addresses : false
           ),
           (
-            id           : os_m68k_linux;
+            id     : os_m68k_linux;
             name         : 'Linux for m68k';
             shortname    : 'linux';
             sharedlibext : '.so';
@@ -439,7 +452,7 @@ implementation
             use_function_relative_addresses : true
           ),
           (
-            id           : os_m68k_palmos;
+            id     : os_m68k_palmos;
             name         : 'PalmOS';
             shortname    : 'palmos';
             sharedlibext : '.so';
@@ -883,14 +896,14 @@ implementation
           (
             target      : target_none;
             flags       : [];
-            cpu         : no_cpu;
+            cpu  : no_cpu;
             short_name  : 'notarget'
           )
 {$ifdef i386}
           ,(
             target      : target_i386_GO32V1;
             flags       : [];
-            cpu         : i386;
+            cpu  : i386;
             short_name  : 'GO32V1';
             unit_env    : 'GO32V1UNITS';
             system_unit : 'SYSTEM';
@@ -902,11 +915,12 @@ implementation
             resext      : '.res';
             resobjext   : '.o1r';
             exeext      : ''; { The linker produces a.out }
-            os          : os_i386_GO32V1;
+            os    : os_i386_GO32V1;
             link        : link_i386_ldgo32v1;
             assem       : as_i386_as;
-            ar          : ar_i386_ar;
-            res         : res_none;
+            assemsrc    : as_i386_as;
+            ar    : ar_i386_ar;
+            res  : res_none;
             heapsize    : 2048*1024;
             maxheapsize : 32768*1024;
             stacksize   : 16384
@@ -914,7 +928,7 @@ implementation
           (
             target      : target_i386_GO32V2;
             flags       : [];
-            cpu         : i386;
+            cpu  : i386;
             short_name  : 'GO32V2';
             unit_env    : 'GO32V2UNITS';
             system_unit : 'SYSTEM';
@@ -926,15 +940,12 @@ implementation
             resext      : '.res';
             resobjext   : '.or';
             exeext      : '.exe';
-            os          : os_i386_GO32V2;
+            os    : os_i386_GO32V2;
             link        : link_i386_ldgo32v2;
-{$ifndef OLDASM}
             assem       : as_i386_coff;
-{$else}
-            assem       : as_i386_as;
-{$endif}
-            ar          : ar_i386_ar;
-            res         : res_none;
+            assemsrc    : as_i386_as;
+            ar    : ar_i386_ar;
+            res  : res_none;
             heapsize    : 2048*1024;
             maxheapsize : 32768*1024;
             stacksize   : 16384
@@ -942,7 +953,7 @@ implementation
           (
             target      : target_i386_LINUX;
             flags       : [];
-            cpu         : i386;
+            cpu  : i386;
             short_name  : 'LINUX';
             unit_env    : 'LINUXUNITS';
             system_unit : 'syslinux';
@@ -954,11 +965,12 @@ implementation
             resext      : '.res';
             resobjext   : '.or';
             exeext      : '';
-            os          : os_i386_Linux;
+            os    : os_i386_Linux;
             link        : link_i386_ld;
             assem       : as_i386_as;
-            ar          : ar_i386_ar;
-            res         : res_none;
+            assemsrc    : as_i386_as;
+            ar    : ar_i386_ar;
+            res  : res_none;
             heapsize    : 2048*1024;
             maxheapsize : 32768*1024;
             stacksize   : 8192
@@ -966,7 +978,7 @@ implementation
           (
             target      : target_i386_OS2;
             flags       : [];
-            cpu         : i386;
+            cpu  : i386;
             short_name  : 'OS2';
             unit_env    : 'OS2UNITS';
             system_unit : 'SYSOS2';
@@ -978,11 +990,12 @@ implementation
             resext      : '.res';
             resobjext   : '.oor';
             exeext      : ''; { The linker produces a.out }
-            os          : os_i386_OS2;
+            os    : os_i386_OS2;
             link        : link_i386_ldos2;
             assem       : as_i386_as_aout;
-            ar          : ar_i386_ar;
-            res         : res_none;
+            assemsrc    : as_i386_as_aout;
+            ar    : ar_i386_ar;
+            res  : res_none;
             heapsize    : 256*1024;
             maxheapsize : 32768*1024;
             stacksize   : 32768
@@ -990,7 +1003,7 @@ implementation
           (
             target      : target_i386_WIN32;
             flags       : [];
-            cpu         : i386;
+            cpu  : i386;
             short_name  : 'WIN32';
             unit_env    : 'WIN32UNITS';
             system_unit : 'SYSWIN32';
@@ -1002,11 +1015,12 @@ implementation
             resext      : '.rc';
             resobjext   : '.owr';
             exeext      : '.exe';
-            os          : os_i386_Win32;
+            os    : os_i386_Win32;
             link        : link_i386_ldw;
             assem       : as_i386_pecoff;
-            ar          : ar_i386_arw;
-            res         : res_i386_windres;
+            assemsrc    : as_i386_asw;
+            ar    : ar_i386_arw;
+            res  : res_i386_windres;
             heapsize    : 2048*1024;
             maxheapsize : 32*1024*1024;
             stacksize   : 32*1024*1024
@@ -1016,7 +1030,7 @@ implementation
           ,(
             target      : target_m68k_Amiga;
             flags       : [];
-            cpu         : m68k;
+            cpu  : m68k;
             short_name  : 'AMIGA';
             unit_env    : '';
             system_unit : 'sysamiga';
@@ -1028,11 +1042,12 @@ implementation
             resext      : '.res';
             resobjext   : '.or';
             exeext      : '';
-            os          : os_m68k_Amiga;
+            os    : os_m68k_Amiga;
             link        : link_m68k_ld;
             assem       : as_m68k_as;
-            ar          : ar_m68k_ar;
-            res         : res_none;
+            assemsrc    : as_m68k_as;
+            ar    : ar_m68k_ar;
+            res  : res_none;
             heapsize    : 128*1024;
             maxheapsize : 32768*1024;
             stacksize   : 8192
@@ -1040,7 +1055,7 @@ implementation
           (
             target      : target_m68k_Atari;
             flags       : [];
-            cpu         : m68k;
+            cpu  : m68k;
             short_name  : 'ATARI';
             unit_env    : '';
             system_unit : 'SYSATARI';
@@ -1052,11 +1067,12 @@ implementation
             resext      : '.res';
             resobjext   : '.or';
             exeext      : '.ttp';
-            os          : os_m68k_Atari;
+            os    : os_m68k_Atari;
             link        : link_m68k_ld;
             assem       : as_m68k_as;
-            ar          : ar_m68k_ar;
-            res         : res_none;
+            assemsrc    : as_m68k_as;
+            ar    : ar_m68k_ar;
+            res  : res_none;
             heapsize    : 16*1024;
             maxheapsize : 32768*1024;
             stacksize   : 8192
@@ -1064,7 +1080,7 @@ implementation
           (
             target      : target_m68k_Mac;
             flags       : [];
-            cpu         : m68k;
+            cpu  : m68k;
             short_name  : 'MACOS';
             unit_env    : '';
             system_unit : 'sysmac';
@@ -1076,11 +1092,12 @@ implementation
             resext      : '.res';
             resobjext   : '.or';
             exeext      : '';
-            os          : os_m68k_Mac;
+            os    : os_m68k_Mac;
             link        : link_m68k_ld;
             assem       : as_m68k_mpw;
-            ar          : ar_m68k_ar;
-            res         : res_none;
+            assemsrc    : as_m68k_mpw;
+            ar    : ar_m68k_ar;
+            res  : res_none;
             heapsize    : 128*1024;
             maxheapsize : 32768*1024;
             stacksize   : 8192
@@ -1088,7 +1105,7 @@ implementation
           (
             target      : target_m68k_linux;
             flags       : [];
-            cpu         : m68k;
+            cpu  : m68k;
             short_name  : 'LINUX';
             unit_env    : 'LINUXUNITS';
             system_unit : 'syslinux';
@@ -1100,11 +1117,12 @@ implementation
             resext      : '.res';
             resobjext   : '.or';
             exeext      : '';
-            os          : os_m68k_Linux;
+            os    : os_m68k_Linux;
             link        : link_m68k_ld;
             assem       : as_m68k_as;
-            ar          : ar_m68k_ar;
-            res         : res_none;
+            assemsrc    : as_m68k_as;
+            ar    : ar_m68k_ar;
+            res  : res_none;
             heapsize    : 128*1024;
             maxheapsize : 32768*1024;
             stacksize   : 8192
@@ -1112,7 +1130,7 @@ implementation
           (
             target      : target_m68k_PalmOS;
             flags       : [];
-            cpu         : m68k;
+            cpu  : m68k;
             short_name  : 'PALMOS';
             unit_env    : 'PALMUNITS';
             system_unit : 'syspalm';
@@ -1124,11 +1142,12 @@ implementation
             resext      : '.res';
             resobjext   : '.or';
             exeext      : '';
-            os          : os_m68k_PalmOS;
+            os    : os_m68k_PalmOS;
             link        : link_m68k_ld;
             assem       : as_m68k_as;
-            ar          : ar_m68k_ar;
-            res         : res_none;
+            assemsrc    : as_m68k_as;
+            ar    : ar_m68k_ar;
+            res  : res_none;
             heapsize    : 128*1024;
             maxheapsize : 32768*1024;
             stacksize   : 8192
@@ -1473,7 +1492,15 @@ begin
 end.
 {
   $Log$
-  Revision 1.76  1999-05-18 09:30:10  michael
+  Revision 1.77  1999-05-27 19:45:10  peter
+    * removed oldasm
+    * plabel -> pasmlabel
+    * -a switches to source writing automaticly
+    * assembler readers OOPed
+    * asmsymbol automaticly external
+    * jumptables and other label fixes for asm readers
+
+  Revision 1.76  1999/05/18 09:30:10  michael
   + changes by thomas hajt
 
   Revision 1.74  1999/05/17 13:02:12  pierre

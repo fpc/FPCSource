@@ -47,11 +47,7 @@ implementation
       cobjects,verbose,globals,systems,
       symtable,aasm,types,
       hcodegen,temp_gen,pass_2,
-{$ifndef OLDASM}
       i386base,i386asm,
-{$else}
-      i386,
-{$endif}
       cgai386,tgeni386;
 
 {*****************************************************************************
@@ -61,8 +57,8 @@ implementation
     procedure second_while_repeatn(var p : ptree);
       var
          lcont,lbreak,lloop,
-         oldclabel,oldblabel : plabel;
-         otlabel,oflabel : plabel;
+         oldclabel,oldblabel : pasmlabel;
+         otlabel,oflabel : pasmlabel;
 
       begin
          getlabel(lloop);
@@ -120,7 +116,7 @@ implementation
     procedure secondifn(var p : ptree);
 
       var
-         hl,otlabel,oflabel : plabel;
+         hl,otlabel,oflabel : pasmlabel;
 
       begin
          otlabel:=truelabel;
@@ -172,7 +168,7 @@ implementation
 
     procedure secondfor(var p : ptree);
       var
-         l3,oldclabel,oldblabel : plabel;
+         l3,oldclabel,oldblabel : pasmlabel;
          omitfirstcomp,temptovalue : boolean;
          hs : byte;
          temp1 : treference;
@@ -226,7 +222,7 @@ implementation
          cleartempgen;
          secondpass(p^.right);
          { calculate pointer value and check if changeable and if so }
-         { load into temporary variable                              }
+         { load into temporary variable                       }
          if p^.right^.treetype<>ordconstn then
            begin
               temp1.symbol:=nil;
@@ -268,7 +264,7 @@ implementation
          cleartempgen;
          secondpass(p^.right);
          { calculate pointer value and check if changeable and if so }
-         { load into temporary variable                              }
+         { load into temporary variable                       }
          if p^.right^.treetype<>ordconstn then
            begin
               temp1.symbol:=nil;
@@ -354,7 +350,7 @@ implementation
          end;
 
           { produce comparison and the corresponding }
-         { jump                                     }
+         { jump                              }
          if temptovalue then
            begin
               if p^.t2^.location.loc=LOC_CREGISTER then
@@ -427,7 +423,7 @@ implementation
          is_mem : boolean;
          {op : tasmop;
          s : topsize;}
-         otlabel,oflabel : plabel;
+         otlabel,oflabel : pasmlabel;
       label
          do_jmp;
       begin
@@ -573,7 +569,7 @@ do_jmp:
     procedure secondraise(var p : ptree);
 
       var
-         a : plabel;
+         a : pasmlabel;
 
       begin
          if assigned(p^.left) then
@@ -590,7 +586,7 @@ do_jmp:
                    getlabel(a);
                    emitlab(a);
                    exprasmlist^.concat(new(pai386,
-                     op_sym(A_PUSH,S_L,newasmsymbol(lab2str(a)))));
+                     op_sym(A_PUSH,S_L,a)));
                 end;
               secondpass(p^.left);
               if codegenerror then
@@ -604,11 +600,11 @@ do_jmp:
                        p^.left^.location.register)));
                  else CGMessage(type_e_mismatch);
               end;
-              emitcall('FPC_RAISEEXCEPTION',true);
+              emitcall('FPC_RAISEEXCEPTION');
              end
            else
              begin
-                emitcall('FPC_RERAISE',true);
+                emitcall('FPC_RERAISE');
              end;
        end;
 
@@ -618,13 +614,13 @@ do_jmp:
 *****************************************************************************}
 
     var
-       endexceptlabel : plabel;
+       endexceptlabel : pasmlabel;
 
     procedure secondtryexcept(var p : ptree);
 
       var
          exceptlabel,doexceptlabel,oldendexceptlabel,
-         lastonlabel : plabel;
+         lastonlabel : pasmlabel;
 
       begin
          { this can be called recursivly }
@@ -637,10 +633,10 @@ do_jmp:
          getlabel(endexceptlabel);
          getlabel(lastonlabel);
          push_int (1); { push type of exceptionframe }
-         emitcall('FPC_PUSHEXCEPTADDR',true);
+         emitcall('FPC_PUSHEXCEPTADDR');
          exprasmlist^.concat(new(pai386,
            op_reg(A_PUSH,S_L,R_EAX)));
-         emitcall('FPC_SETJMP',true);
+         emitcall('FPC_SETJMP');
          exprasmlist^.concat(new(pai386,
            op_reg(A_PUSH,S_L,R_EAX)));
          exprasmlist^.concat(new(pai386,
@@ -658,7 +654,7 @@ do_jmp:
          exprasmlist^.concat(new(pai386,
            op_reg_reg(A_TEST,S_L,R_EAX,R_EAX)));
          emitjmp(C_NE,doexceptlabel);
-         emitcall('FPC_POPADDRSTACK',true);
+         emitcall('FPC_POPADDRSTACK');
          emitjmp(C_None,endexceptlabel);
          emitlab(doexceptlabel);
 
@@ -673,11 +669,11 @@ do_jmp:
                 'default handler' flag (=-1)
               }
               push_int (-1);
-              emitcall('FPC_CATCHES',true);
+              emitcall('FPC_CATCHES');
               secondpass(p^.t1);
            end
          else
-           emitcall('FPC_RERAISE',true);
+           emitcall('FPC_RERAISE');
          emitlab(endexceptlabel);
          freelabel(exceptlabel);
          freelabel(doexceptlabel);
@@ -689,7 +685,7 @@ do_jmp:
     procedure secondon(var p : ptree);
 
       var
-         nextonlabel : plabel;
+         nextonlabel : pasmlabel;
          ref : treference;
 
       begin
@@ -698,11 +694,7 @@ do_jmp:
          { push the vmt }
          exprasmlist^.concat(new(pai386,op_sym(A_PUSH,S_L,
            newasmsymbol(p^.excepttype^.vmt_mangledname))));
-{$ifndef NEWLAB}
-         maybe_concat_external(p^.excepttype^.owner,
-           p^.excepttype^.vmt_mangledname);
-{$endif}
-         emitcall('FPC_CATCHES',true);
+         emitcall('FPC_CATCHES');
          exprasmlist^.concat(new(pai386,
            op_reg_reg(A_TEST,S_L,R_EAX,R_EAX)));
          emitjmp(C_E,nextonlabel);
@@ -720,7 +712,7 @@ do_jmp:
            secondpass(p^.right);
          exprasmlist^.concat(new(pai386,op_ref(A_PUSH,S_L,
            newreference(ref))));
-         emitcall('FPC_DESTROYEXCEPTION',true);
+         emitcall('FPC_DESTROYEXCEPTION');
 
          { clear some stuff }
          ungetiftemp(ref);
@@ -738,7 +730,7 @@ do_jmp:
     procedure secondtryfinally(var p : ptree);
 
       var
-         finallylabel,noreraiselabel : plabel;
+         finallylabel,noreraiselabel : pasmlabel;
 
       begin
          { we modify EAX }
@@ -747,10 +739,10 @@ do_jmp:
          getlabel(finallylabel);
          getlabel(noreraiselabel);
          push_int(1); { Type of stack-frame must be pushed}
-         emitcall('FPC_PUSHEXCEPTADDR',true);
+         emitcall('FPC_PUSHEXCEPTADDR');
          exprasmlist^.concat(new(pai386,
            op_reg(A_PUSH,S_L,R_EAX)));
-         emitcall('FPC_SETJMP',true);
+         emitcall('FPC_SETJMP');
          exprasmlist^.concat(new(pai386,
            op_reg(A_PUSH,S_L,R_EAX)));
          exprasmlist^.concat(new(pai386,
@@ -773,9 +765,9 @@ do_jmp:
          exprasmlist^.concat(new(pai386,
            op_reg_reg(A_TEST,S_L,R_EAX,R_EAX)));
          emitjmp(C_E,noreraiselabel);
-         emitcall('FPC_RERAISE',true);
+         emitcall('FPC_RERAISE');
          emitlab(noreraiselabel);
-         emitcall('FPC_POPADDRSTACK',true);
+         emitcall('FPC_POPADDRSTACK');
       end;
 
 
@@ -801,7 +793,15 @@ do_jmp:
 end.
 {
   $Log$
-  Revision 1.38  1999-05-21 13:54:48  peter
+  Revision 1.39  1999-05-27 19:44:12  peter
+    * removed oldasm
+    * plabel -> pasmlabel
+    * -a switches to source writing automaticly
+    * assembler readers OOPed
+    * asmsymbol automaticly external
+    * jumptables and other label fixes for asm readers
+
+  Revision 1.38  1999/05/21 13:54:48  peter
     * NEWLAB for label as symbol
 
   Revision 1.37  1999/05/17 21:57:01  florian

@@ -41,11 +41,7 @@ implementation
       hcodegen,htypechk,pass_1,
       tccnv
 {$ifdef i386}
-{$ifndef OLDASM}
       ,i386base
-{$else}
-      ,i386
-{$endif}
       ,tgeni386
 {$endif}
 {$ifdef m68k}
@@ -259,7 +255,15 @@ implementation
 end.
 {
   $Log$
-  Revision 1.9  1999-05-01 13:24:58  peter
+  Revision 1.10  1999-05-27 19:45:25  peter
+    * removed oldasm
+    * plabel -> pasmlabel
+    * -a switches to source writing automaticly
+    * assembler readers OOPed
+    * asmsymbol automaticly external
+    * jumptables and other label fixes for asm readers
+
+  Revision 1.9  1999/05/01 13:24:58  peter
     * merged nasm compiler
     * old asm moved to oldasm/
 

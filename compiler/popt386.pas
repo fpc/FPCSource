@@ -55,7 +55,7 @@ Var
 
   UsedRegs, TmpUsedRegs: TRegSet;
 
-  Procedure GetFinalDestination(hp: pai386_labeled);
+  Procedure GetFinalDestination(hp: pai386);
   {traces sucessive jumps to their final destination and sets it, e.g.
    je l1                je l3
    <code>               <code>
@@ -80,25 +80,22 @@ Var
     End;
 
   Begin
-    If (hp^.lab^.nb >= LoLab) and
-       (hp^.lab^.nb <= HiLab) and   {range check, a jump can go past an assembler block!}
-       Assigned(LTable^[hp^.lab^.nb-LoLab].PaiObj) Then
+    If (pasmlabel(hp^.oper[0].sym)^.labelnr >= LoLab) and
+       (pasmlabel(hp^.oper[0].sym)^.labelnr <= HiLab) and   {range check, a jump can go past an assembler block!}
+       Assigned(LTable^[pasmlabel(hp^.oper[0].sym)^.labelnr-LoLab].PaiObj) Then
       Begin
-        p1 := LTable^[hp^.lab^.nb-LoLab].PaiObj; {the jump's destination}
+        p1 := LTable^[pasmlabel(hp^.oper[0].sym)^.labelnr-LoLab].PaiObj; {the jump's destination}
         p1 := SkipLabels(p1);
-        If (pai(p1)^.typ = ait_labeled_instruction) and
-           ((pai386_labeled(p1)^.opcode = A_JMP) or
-            ((pai386_labeled(p1)^.opcode = A_Jcc) and (pai386_labeled(p1)^.condition = hp^.condition)))
-          Then
-            Begin
-              GetFinalDestination(pai386_labeled(p1));
-              Dec(hp^.lab^.refcount);
-              If (hp^.lab^.refcount = 0) Then
-                hp^.lab^.is_used := False;
-              hp^.lab := pai386_labeled(p1)^.lab;
-              Inc(hp^.lab^.refcount);
-            End
-      End
+        If (pai(p1)^.typ = ait_instruction) and
+           (pai386(p1)^.is_jmp) and
+           (pai386(p1)^.condition = hp^.condition) Then
+          Begin
+            GetFinalDestination(pai386(p1));
+            Dec(pasmlabel(hp^.oper[0].sym)^.refs);
+            hp^.oper[0].sym:=pai386(p1)^.oper[0].sym;
+            inc(pasmlabel(hp^.oper[0].sym)^.refs);
+          End;
+      End;
   End;
 
 Begin
@@ -108,63 +105,68 @@ Begin
     Begin
       UpDateUsedRegs(UsedRegs, Pai(p^.next));
       Case P^.Typ Of
-        Ait_Labeled_Instruction:
-          Begin
-  {the following if-block removes all code between a jmp and the next label,
-   because it can never be executed}
-            If (pai386_labeled(p)^.opcode = A_JMP) Then
-              Begin
-                hp1 := pai(p^.next);
-                While GetNextInstruction(p, hp1) and
-                      ((hp1^.typ <> ait_label) or
-                { skip unused labels, they're not referenced anywhere }
-                       Not(Pai_Label(hp1)^.l^.is_used)) Do
-                  If (hp1^.typ <> ait_label) Then
-                    Begin
-                      AsmL^.Remove(hp1);
-                      Dispose(hp1, done);
-                    End;
-               End;
-            If GetNextInstruction(p, hp1) then
-              Begin
-                If (pai(hp1)^.typ=ait_labeled_instruction) and
-                   (pai386_labeled(hp1)^.opcode=A_JMP) and
-                   GetNextInstruction(hp1, hp2) And
-                   FindLabel(pai386_labeled(p)^.lab, hp2)
-                  Then
-                    Begin
-                      if pai386_labeled(p)^.opcode=A_Jcc then
-                       pai386_labeled(p)^.condition:=inverse_cond[pai386_labeled(p)^.condition]
-                      else
-                       begin
-                         If (LabDif <> 0) Then
-                           GetFinalDestination(pai386_labeled(p));
-                         p:=pai(p^.next);
-                         continue;
-                       end;
-                      Dec(pai_label(hp2)^.l^.refcount);
-                      If (pai_label(hp2)^.l^.refcount = 0) Then
-                        pai_label(hp2)^.l^.is_used := False;
-                      pai386_labeled(p)^.lab:=pai386_labeled(hp1)^.lab;
-                      Inc(pai386_labeled(p)^.lab^.refcount);
-                      asml^.remove(hp1);
-                      dispose(hp1,done);
-                      If (LabDif <> 0) Then GetFinalDestination(pai386_labeled(p));
-                    end
-                  else
-                    if FindLabel(pai386_labeled(p)^.lab, hp1) then
-                      Begin
-                        hp2:=pai(hp1^.next);
-                        asml^.remove(p);
-                        dispose(p,done);
-                        p:=hp2;
-                        continue;
-                      end
-                    Else If (LabDif <> 0) Then GetFinalDestination(pai386_labeled(p));
-              end
-          end;
         ait_instruction:
           Begin
+            { Handle Jmp Optimizations }
+            if Pai386(p)^.is_jmp then
+             begin
+     {the following if-block removes all code between a jmp and the next label,
+      because it can never be executed}
+               If (pai386(p)^.opcode = A_JMP) Then
+                 Begin
+                   hp1 := pai(p^.next);
+                   While GetNextInstruction(p, hp1) and
+                         ((hp1^.typ <> ait_label) or
+                   { skip unused labels, they're not referenced anywhere }
+                          Not(Pai_Label(hp1)^.l^.is_used)) Do
+                     If (hp1^.typ <> ait_label) Then
+                       Begin
+                         AsmL^.Remove(hp1);
+                         Dispose(hp1, done);
+                       End;
+                  End;
+               If GetNextInstruction(p, hp1) then
+                 Begin
+                   If (pai(hp1)^.typ=ait_instruction) and
+                      (pai386(hp1)^.opcode=A_JMP) and
+                      GetNextInstruction(hp1, hp2) And
+                      FindLabel(PAsmLabel(pai386(p)^.oper[0].sym), hp2)
+                     Then
+                       Begin
+                         if pai386(p)^.opcode=A_Jcc then
+                          pai386(p)^.condition:=inverse_cond[pai386(p)^.condition]
+                         else
+                          begin
+                            If (LabDif <> 0) Then
+                              GetFinalDestination(pai386(p));
+                            p:=pai(p^.next);
+                            continue;
+                          end;
+                         Dec(pai_label(hp2)^.l^.refs);
+                         pai386(p)^.oper[0].sym:=pai386(hp1)^.oper[0].sym;
+                         Inc(pai386(p)^.oper[0].sym^.refs);
+                         asml^.remove(hp1);
+                         dispose(hp1,done);
+                         If (LabDif <> 0) Then
+                           GetFinalDestination(pai386(p));
+                       end
+                     else
+                       if FindLabel(pasmlabel(pai386(p)^.oper[0].sym), hp1) then
+                         Begin
+                           hp2:=pai(hp1^.next);
+                           asml^.remove(p);
+                           dispose(p,done);
+                           p:=hp2;
+                           continue;
+                         end
+                       Else
+                         If (LabDif <> 0) Then
+                           GetFinalDestination(pai386(p));
+                 end
+             end
+            else
+            { All other optimizes }
+             begin
             If (Pai386(p)^.oper[0].typ = top_ref) Then
               With Pai386(p)^.oper[0].ref^ Do
                 Begin
@@ -211,7 +213,8 @@ Begin
  jump}
                       If (Pai386(p)^.oper[1].typ = top_reg) And
                          GetNextInstruction(p, hp1) And
-                         (hp1^.typ = ait_labeled_instruction) And
+                         (hp1^.typ = ait_instruction) And
+                         (Pai386(hp1)^.is_jmp) and
                          Not(Pai386(p)^.oper[1].reg in UsedRegs) Then
                         Pai386(p)^.opcode := A_TEST;
                 End;
@@ -369,8 +372,8 @@ Begin
                      Not(CS_LittleSize in aktglobalswitches) And
                      (Not(GetNextInstruction(p, hp1)) Or
                        {GetNextInstruction(p, hp1) And}
-                       Not((Pai(hp1)^.typ = ait_labeled_instruction) And
-                           ((pai386_labeled(hp1)^.opcode = A_Jcc) and (pai386_labeled(hp1)^.condition in [C_O,C_NO]))))
+                       Not((Pai(hp1)^.typ = ait_instruction) And
+                           ((pai386(hp1)^.opcode=A_Jcc) and (pai386(hp1)^.condition in [C_O,C_NO]))))
                     Then
                       Begin
                         New(TmpRef);
@@ -662,7 +665,8 @@ Begin
                                 Begin
                                   TmpUsedRegs := UsedRegs;
                                   If GetNextInstruction(hp1, hp2) And
-                                     (hp2^.typ = ait_labeled_instruction) And
+                                     (hp2^.typ = ait_instruction) And
+                                     pai386(hp2)^.is_jmp and
                                      Not(RegUsedAfterInstruction(Pai386(hp1)^.oper[0].reg, hp1, TmpUsedRegs))
                                     Then
                    {change "mov %reg1, %reg2; test/or %reg2, %reg2; jxx" to
@@ -1387,6 +1391,7 @@ Begin
                      End;
                  End;
             End;
+            end; { if is_jmp }
           End;
 {        ait_label:
           Begin
@@ -1420,11 +1425,11 @@ Begin
               A_CALL:
                 If (AktOptProcessor < ClassP6) And
                    GetNextInstruction(p, hp1) And
-                   (hp1^.typ = ait_labeled_instruction) And
-                   (pai386_labeled(hp1)^.opcode = A_JMP) Then
+                   (hp1^.typ = ait_instruction) And
+                   (pai386(hp1)^.opcode = A_JMP) Then
                   Begin
-                    Inc(pai386_labeled(hp1)^.lab^.refcount);
-                    hp2 := New(Pai386,op_sym(A_PUSH,S_L,NewAsmSymbol(Lab2Str(pai386_labeled(hp1)^.lab))));
+                    Inc(pai386(hp1)^.oper[0].sym^.refs);
+                    hp2 := New(Pai386,op_sym(A_PUSH,S_L,pai386(hp1)^.oper[0].sym));
                     hp2^.fileinfo := p^.fileinfo;
                     InsertLLItem(AsmL, p^.previous, p, hp2);
                     Pai386(p)^.opcode := A_JMP;
@@ -1514,7 +1519,15 @@ End.
 
 {
  $Log$
- Revision 1.53  1999-05-12 00:19:52  peter
+ Revision 1.54  1999-05-27 19:44:49  peter
+   * removed oldasm
+   * plabel -> pasmlabel
+   * -a switches to source writing automaticly
+   * assembler readers OOPed
+   * asmsymbol automaticly external
+   * jumptables and other label fixes for asm readers
+
+ Revision 1.53  1999/05/12 00:19:52  peter
    * removed R_DEFAULT_SEG
    * uniform float names
 

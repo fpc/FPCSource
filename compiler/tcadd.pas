@@ -37,11 +37,7 @@ implementation
       symtable,aasm,types,
       hcodegen,htypechk,pass_1
 {$ifdef i386}
-{$ifndef OLDASM}
       ,i386base
-{$else}
-      ,i386
-{$endif}
 {$endif}
 {$ifdef m68k}
       ,m68k
@@ -725,7 +721,7 @@ implementation
                    p^.location.loc:=LOC_MEM;
                 end;
               { only if there is a type cast we need to do again }
-              { the first pass                                   }
+              { the first pass                             }
               if p^.left^.treetype=typeconvn then
                 firstpass(p^.left);
               if p^.right^.treetype=typeconvn then
@@ -1097,7 +1093,15 @@ implementation
 end.
 {
   $Log$
-  Revision 1.32  1999-05-23 18:42:18  florian
+  Revision 1.33  1999-05-27 19:45:12  peter
+    * removed oldasm
+    * plabel -> pasmlabel
+    * -a switches to source writing automaticly
+    * assembler readers OOPed
+    * asmsymbol automaticly external
+    * jumptables and other label fixes for asm readers
+
+  Revision 1.32  1999/05/23 18:42:18  florian
     * better error recovering in typed constants
     * some problems with arrays of const fixed, some problems
       due my previous

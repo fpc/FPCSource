@@ -24,10 +24,6 @@ unit assemble;
 
 interface
 
-{$ifdef OLDASM}
-  {$define NOAG386BIN}
-{$endif}
-
 uses
 {$ifdef Delphi}
   dmisc,
@@ -47,7 +43,7 @@ type
   {filenames}
     path     : pathstr;
     name     : namestr;
-    asmfile,             { current .s and .o file }
+    asmfile,         { current .s and .o file }
     objfile,
     as_bin   : string;
     IsEndFile : boolean;  { special 'end' file for import dir ? }
@@ -553,7 +549,15 @@ end;
 end.
 {
   $Log$
-  Revision 1.47  1999-05-13 21:59:19  peter
+  Revision 1.48  1999-05-27 19:44:03  peter
+    * removed oldasm
+    * plabel -> pasmlabel
+    * -a switches to source writing automaticly
+    * assembler readers OOPed
+    * asmsymbol automaticly external
+    * jumptables and other label fixes for asm readers
+
+  Revision 1.47  1999/05/13 21:59:19  peter
     * removed oldppu code
     * warning if objpas is loaded from uses
     * first things for new deref writing

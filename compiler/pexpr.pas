@@ -53,11 +53,7 @@ unit pexpr;
        ,pbase,pdecl
        { processor specific stuff }
 {$ifdef i386}
-{$ifndef OLDASM}
        ,i386base
-{$else}
-       ,i386
-{$endif}
 {$endif}
 {$ifdef m68k}
        ,m68k
@@ -504,7 +500,7 @@ unit pexpr;
          prevafterassn:=afterassignment;
          afterassignment:=false;
          { want we only determine the address of }
-         { a subroutine ?                        }
+         { a subroutine ?                       }
          if not(getaddr) then
            begin
               if token=LKLAMMER then
@@ -517,7 +513,7 @@ unit pexpr;
               else p1^.left:=nil;
 
               { do firstpass because we need the  }
-              { result type                       }
+              { result type                    }
               do_firstpass(p1);
            end
          else
@@ -613,7 +609,7 @@ unit pexpr;
                         if (p2^.treetype<>errorn) and getprocvar then
                           handle_procvar(pprocvardef(ppropertysym(sym)^.proptype),p2);
                         p1^.left:=gencallparanode(p2,p1^.left);
-{                        firstcallparan(p1^.left,nil); }
+{                       firstcallparan(p1^.left,nil); }
                         getprocvar:=false;
                      end
                    else if ppropertysym(sym)^.writeaccesssym^.typ=varsym then
@@ -708,7 +704,7 @@ unit pexpr;
            begin
               isclassref:=pd^.deftype=classrefdef;
 
-              { check protected and private members        }
+              { check protected and private members     }
               { please leave this code as it is,           }
               { it has now the same behaviaor as TP/Delphi }
               if ((sym^.properties and sp_private)<>0) and
@@ -729,7 +725,7 @@ unit pexpr;
                 end;
 
               { we assume, that only procsyms and varsyms are in an object }
-              { symbol table, for classes, properties are allowed          }
+              { symbol table, for classes, properties are allowed         }
               case sym^.typ of
                  procsym:
                    begin
@@ -739,7 +735,7 @@ unit pexpr;
                         proc_to_procvar_equal(getprocvardef,pprocsym(sym)^.definition))
                         ,again,p1,pd);
                       { now we know the real method e.g. we can check for }
-                      { a class method                                    }
+                      { a class method                              }
                       if isclassref and ((p1^.procdefinition^.options and (poclassmethod or poconstructor))=0) then
                         Message(parser_e_only_class_methods_via_class_ref);
                    end;
@@ -778,7 +774,7 @@ unit pexpr;
 
     function factor(getaddr : boolean) : ptree;
       var
-         l        : longint;
+         l      : longint;
          oldp1,
          p1,p2,p3 : ptree;
          code     : integer;
@@ -788,7 +784,7 @@ unit pexpr;
          again    : boolean;
          sym      : pvarsym;
          classh   : pobjectdef;
-         d        : bestreal;
+         d      : bestreal;
          static_name : string;
          propsym  : ppropertysym;
          filepos  : tfileposinfo;
@@ -942,7 +938,7 @@ unit pexpr;
                               else
                               { if we read a type declaration  }
                               { we have to return the type and }
-                              { nothing else                   }
+                              { nothing else               }
                                if block_type=bt_type then
                                 begin
                                   p1:=gentypenode(pd);
@@ -1712,7 +1708,7 @@ unit pexpr;
                  consume(LKLAMMER);
                  p1:=comp_expr(true);
                  consume(RKLAMMER);
-                 { it's not a good solution        }
+                 { it's not a good solution     }
                  { but (a+b)^ makes some problems  }
                  if token in [CARET,POINT,LECKKLAMMER] then
                   begin
@@ -1989,7 +1985,15 @@ unit pexpr;
 end.
 {
   $Log$
-  Revision 1.108  1999-05-18 14:15:54  peter
+  Revision 1.109  1999-05-27 19:44:46  peter
+    * removed oldasm
+    * plabel -> pasmlabel
+    * -a switches to source writing automaticly
+    * assembler readers OOPed
+    * asmsymbol automaticly external
+    * jumptables and other label fixes for asm readers
+
+  Revision 1.108  1999/05/18 14:15:54  peter
     * containsself fixes
     * checktypes()
 

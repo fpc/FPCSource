@@ -36,11 +36,7 @@ implementation
       cobjects,verbose,globals,files,
       symtable,aasm,types,
       hcodegen,temp_gen,pass_1,pass_2,
-{$ifndef OLDASM}
       i386base,i386asm,
-{$else}
-      i386,
-{$endif}
       cgai386,tgeni386,cg386cal;
 
 
@@ -97,55 +93,55 @@ implementation
                    emit_movq_reg_loc(R_EDX,R_EAX,dest^.location);
                 end
               else
-                begin
-                   Case dest^.resulttype^.size of
-                     1 : hreg:=regtoreg8(accumulator);
-                     2 : hreg:=regtoreg16(accumulator);
-                     4 : hreg:=accumulator;
-                   End;
-                   emit_mov_reg_loc(hreg,dest^.location);
-                   If (cs_check_range in aktlocalswitches) and
-                      {no need to rangecheck longints or cardinals on 32bit processors}
-                       not((porddef(dest^.resulttype)^.typ = s32bit) and
-                           (porddef(dest^.resulttype)^.low = $80000000) and
-                           (porddef(dest^.resulttype)^.high = $7fffffff)) and
-                       not((porddef(dest^.resulttype)^.typ = u32bit) and
-                           (porddef(dest^.resulttype)^.low = 0) and
-                           (porddef(dest^.resulttype)^.high = $ffffffff)) then
-                     Begin
-                       {do not register this temporary def}
-                       OldRegisterDef := RegisterDef;
-                       RegisterDef := False;
-                       hdef:=nil;
-                       Case PordDef(dest^.resulttype)^.typ of
-                         u8bit,u16bit,u32bit:
-                           begin
-                             new(hdef,init(u32bit,0,$ffffffff));
-                             hreg:=accumulator;
-                           end;
-                         s8bit,s16bit,s32bit:
-                           begin
-                             new(hdef,init(s32bit,$80000000,$7fffffff));
-                             hreg:=accumulator;
-                           end;
-                       end;
-                       { create a fake node }
-                       hp := genzeronode(nothingn);
-                       hp^.location.loc := LOC_REGISTER;
-                       hp^.location.register := hreg;
-                       if assigned(hdef) then
-                         hp^.resulttype:=hdef
-                       else
-                         hp^.resulttype:=dest^.resulttype;
-                       { emit the range check }
-                       emitrangecheck(hp,dest^.resulttype);
-                       hp^.right := nil;
-                       if assigned(hdef) then
-                         Dispose(hdef, Done);
-                       RegisterDef := OldRegisterDef;
-                       disposetree(hp);
-                     End;
-                end;
+               begin
+                 Case dest^.resulttype^.size of
+                  1 : hreg:=regtoreg8(accumulator);
+                  2 : hreg:=regtoreg16(accumulator);
+                  4 : hreg:=accumulator;
+                 End;
+                 emit_mov_reg_loc(hreg,dest^.location);
+                 If (cs_check_range in aktlocalswitches) and
+                    {no need to rangecheck longints or cardinals on 32bit processors}
+                    not((porddef(dest^.resulttype)^.typ = s32bit) and
+                        (porddef(dest^.resulttype)^.low = $80000000) and
+                        (porddef(dest^.resulttype)^.high = $7fffffff)) and
+                    not((porddef(dest^.resulttype)^.typ = u32bit) and
+                        (porddef(dest^.resulttype)^.low = 0) and
+                        (porddef(dest^.resulttype)^.high = $ffffffff)) then
+                  Begin
+                    {do not register this temporary def}
+                    OldRegisterDef := RegisterDef;
+                    RegisterDef := False;
+                    hdef:=nil;
+                    Case PordDef(dest^.resulttype)^.typ of
+                      u8bit,u16bit,u32bit:
+                        begin
+                          new(hdef,init(u32bit,0,$ffffffff));
+                          hreg:=accumulator;
+                        end;
+                      s8bit,s16bit,s32bit:
+                        begin
+                          new(hdef,init(s32bit,$80000000,$7fffffff));
+                          hreg:=accumulator;
+                        end;
+                    end;
+                    { create a fake node }
+                    hp := genzeronode(nothingn);
+                    hp^.location.loc := LOC_REGISTER;
+                    hp^.location.register := hreg;
+                    if assigned(hdef) then
+                      hp^.resulttype:=hdef
+                    else
+                      hp^.resulttype:=dest^.resulttype;
+                    { emit the range check }
+                    emitrangecheck(hp,dest^.resulttype);
+                    hp^.right := nil;
+                    if assigned(hdef) then
+                      Dispose(hdef, Done);
+                    RegisterDef := OldRegisterDef;
+                    disposetree(hp);
+                  End;
+               end;
             End;
           else
             internalerror(66766766);
@@ -156,7 +152,7 @@ implementation
     procedure secondinline(var p : ptree);
        const
          {tfloattype = (s32real,s64real,s80real,s64bit,f16bit,f32bit);}
-{         float_name: array[tfloattype] of string[8]=
+{        float_name: array[tfloattype] of string[8]=
            ('S32REAL','S64REAL','S80REAL','S64BIT','F16BIT','F32BIT'); }
          incdecop:array[in_inc_x..in_dec_x] of tasmop=(A_INC,A_DEC);
          addsubop:array[in_inc_x..in_dec_x] of tasmop=(A_ADD,A_SUB);
@@ -184,9 +180,6 @@ implementation
             new(r);
             reset_reference(r^);
             r^.symbol:=newasmsymbol('U_'+upper(target_info.system_unit)+io[doread]);
-{$ifndef NEWLAB}
-            concat_external(r^.symbol^.name,EXT_NEAR);
-{$endif}
             exprasmlist^.concat(new(pai386,op_ref_reg(A_LEA,S_L,r,R_EDI)))
           end;
 
@@ -200,7 +193,7 @@ implementation
            orgfloattype : tfloattype;
            has_length : boolean;
            dummycoll  : tdefcoll;
-           iolabel    : plabel;
+           iolabel    : pasmlabel;
            npara      : longint;
         begin
            { I/O check }
@@ -284,7 +277,7 @@ implementation
 
                 while assigned(node) do
                   begin
-                     pushusedregisters(exprasmlist,pushed,$ff);
+                     pushusedregisters(pushed,$ff);
                      hp:=node;
                      node:=node^.right;
                      hp^.right:=nil;
@@ -334,17 +327,17 @@ implementation
                           { we have to call blockread or blockwrite }
                           { but the real problem is that            }
                           { reset and rewrite should have set       }
-                          { the type size                           }
-                          { as recordsize for that file !!!!        }
+                          { the type size                          }
+                          { as recordsize for that file !!!!    }
                           { how can we make that                    }
                           { I think that is only possible by adding }
-                          { reset and rewrite to the inline list a call        }
+                          { reset and rewrite to the inline list a call }
                           { allways read only one record by element }
                             push_int(typedtyp^.size);
                             if doread then
-                              emitcall('FPC_TYPED_READ',true)
+                              emitcall('FPC_TYPED_READ')
                             else
-                              emitcall('FPC_TYPED_WRITE',true);
+                              emitcall('FPC_TYPED_WRITE');
                        end
                      else
                        begin
@@ -396,21 +389,21 @@ implementation
                           case pararesult^.deftype of
                             stringdef :
                               begin
-                                emitcall(rdwrprefix[doread]+pstringdef(pararesult)^.stringtypname,true);
+                                emitcall(rdwrprefix[doread]+pstringdef(pararesult)^.stringtypname);
                               end;
                             pointerdef :
                               begin
                                 if is_pchar(pararesult) then
-                                  emitcall(rdwrprefix[doread]+'PCHAR_AS_POINTER',true)
+                                  emitcall(rdwrprefix[doread]+'PCHAR_AS_POINTER')
                               end;
                             arraydef :
                               begin
                                 if is_chararray(pararesult) then
-                                  emitcall(rdwrprefix[doread]+'PCHAR_AS_ARRAY',true)
+                                  emitcall(rdwrprefix[doread]+'PCHAR_AS_ARRAY')
                               end;
                             floatdef :
                               begin
-                                emitcall(rdwrprefix[doread]+'FLOAT',true);
+                                emitcall(rdwrprefix[doread]+'FLOAT');
                                 if doread then
                                   StoreDirectFuncResult(destpara);
                               end;
@@ -418,58 +411,57 @@ implementation
                               begin
                                 case porddef(pararesult)^.typ of
                                   s8bit,s16bit,s32bit :
-                                    emitcall(rdwrprefix[doread]+'SINT',true);
+                                    emitcall(rdwrprefix[doread]+'SINT');
                                   u8bit,u16bit,u32bit :
-                                    emitcall(rdwrprefix[doread]+'UINT',true);
+                                    emitcall(rdwrprefix[doread]+'UINT');
                                   uchar :
-                                    emitcall(rdwrprefix[doread]+'CHAR',true);
+                                    emitcall(rdwrprefix[doread]+'CHAR');
                                   s64bitint:
-                                    emitcall(rdwrprefix[doread]+'INT64',true);
+                                    emitcall(rdwrprefix[doread]+'INT64');
                                   u64bit :
-                                    emitcall(rdwrprefix[doread]+'QWORD',true);
+                                    emitcall(rdwrprefix[doread]+'QWORD');
                                   bool8bit,
                                   bool16bit,
                                   bool32bit :
-                                    emitcall(rdwrprefix[doread]+'BOOLEAN',true);
-                                end;
-                                if doread then
+                                    emitcall(rdwrprefix[doread]+'BOOLEAN');
+                                end;                                                                 if doread then
                                  StoreDirectFuncResult(destpara);
                               end;
                           end;
                        end;
                    { load ESI in methods again }
-                     popusedregisters(exprasmlist,pushed);
+                     popusedregisters(pushed);
                      maybe_loadesi;
                   end;
              end;
          { Insert end of writing for textfiles }
            if ft=ft_text then
              begin
-               pushusedregisters(exprasmlist,pushed,$ff);
+               pushusedregisters(pushed,$ff);
                emit_push_mem(aktfile);
                if doread then
                 begin
                   if doln then
-                    emitcall('FPC_READLN_END',true)
+                    emitcall('FPC_READLN_END')
                   else
-                    emitcall('FPC_READ_END',true);
+                    emitcall('FPC_READ_END');
                 end
                else
                 begin
                   if doln then
-                    emitcall('FPC_WRITELN_END',true)
+                    emitcall('FPC_WRITELN_END')
                   else
-                    emitcall('FPC_WRITE_END',true);
+                    emitcall('FPC_WRITE_END');
                 end;
-               popusedregisters(exprasmlist,pushed);
+               popusedregisters(pushed);
                maybe_loadesi;
              end;
          { Insert IOCheck if set }
            if assigned(iolabel) then
              begin
                 { registers are saved in the procedure }
-                exprasmlist^.concat(new(pai386,op_sym(A_PUSH,S_L,newasmsymbol(lab2str(iolabel)))));
-                emitcall('FPC_IOCHECK',true);
+                exprasmlist^.concat(new(pai386,op_sym(A_PUSH,S_L,iolabel)));
+                emitcall('FPC_IOCHECK');
              end;
          { Freeup all used temps }
            ungetiftemp(aktfile);
@@ -499,7 +491,7 @@ implementation
            procedureprefix : string;
 
           begin
-           pushusedregisters(exprasmlist,pushed,$ff);
+           pushusedregisters(pushed,$ff);
            node:=p^.left;
            is_real:=false;
            has_length:=false;
@@ -596,24 +588,24 @@ implementation
              exit;
 
            if is_real then
-             emitcall(procedureprefix+'FLOAT',true)
+             emitcall(procedureprefix+'FLOAT')
            else
              case porddef(hp^.resulttype)^.typ of
                 u32bit:
-                  emitcall(procedureprefix+'CARDINAL',true);
+                  emitcall(procedureprefix+'CARDINAL');
 
                 u64bit:
-                  emitcall(procedureprefix+'QWORD',true);
+                  emitcall(procedureprefix+'QWORD');
 
                 s64bitint:
-                  emitcall(procedureprefix+'INT64',true);
+                  emitcall(procedureprefix+'INT64');
 
                 else
-                  emitcall(procedureprefix+'LONGINT',true);
+                  emitcall(procedureprefix+'LONGINT');
              end;
            disposetree(hp);
 
-           popusedregisters(exprasmlist,pushed);
+           popusedregisters(pushed);
         end;
 
 {$IfnDef OLDVAL}
@@ -665,7 +657,7 @@ implementation
              exit;
 
           {save the regvars}
-           pushusedregisters(exprasmlist,pushed,$ff);
+           pushusedregisters(pushed,$ff);
 
           {now that we've already pushed the addres of dest_para^.left on the
            stack, we can put the real parameters on the stack}
@@ -683,7 +675,7 @@ implementation
              Begin
            {only 32bit code parameter is supported, so fake one}
                GetTempOfSizeReference(4,hr);
-               emitpushreferenceaddr(exprasmlist,hr);
+               emitpushreferenceaddr(hr);
              End;
 
           {node = first parameter = string}
@@ -708,7 +700,7 @@ implementation
                else
                  procedureprefix := 'FPC_VAL_UINT_';
            End;
-           emitcall(procedureprefix+pstringdef(node^.resulttype)^.stringtypname,true);
+           emitcall(procedureprefix+pstringdef(node^.resulttype)^.stringtypname);
            { before disposing node we need to ungettemp !! PM }
            if node^.left^.location.loc in [LOC_REFERENCE,LOC_MEM] then
              ungetiftemp(node^.left^.location.reference);
@@ -730,7 +722,7 @@ implementation
 
            { restore the register vars}
 
-           popusedregisters(exprasmlist,pushed);
+           popusedregisters(pushed);
 
            If has_code and Not(has_32bit_code) Then
              {only 16bit code is possible}
@@ -810,7 +802,7 @@ implementation
          l : longint;
          ispushed : boolean;
          hregister : tregister;
-         otlabel,oflabel   : plabel;
+         otlabel,oflabel   : pasmlabel;
          oldpushedparasize : longint;
 
       begin
@@ -838,13 +830,13 @@ implementation
                       secondpass(hp);
                       if codegenerror then
                        exit;
-                      emitpushreferenceaddr(exprasmlist,hp^.location.reference);
+                      emitpushreferenceaddr(hp^.location.reference);
                       disposetree(hp);
                       { push msg }
                       secondpass(p^.left^.right^.left);
-                      emitpushreferenceaddr(exprasmlist,p^.left^.right^.left^.location.reference);
+                      emitpushreferenceaddr(p^.left^.right^.left^.location.reference);
                       { call }
-                      emitcall('FPC_ASSERT',true);
+                      emitcall('FPC_ASSERT');
                       emitlab(truelabel);
                    end;
                  freelabel(truelabel);
@@ -1132,15 +1124,15 @@ implementation
               end;
              in_reset_typedfile,in_rewrite_typedfile :
                begin
-                  pushusedregisters(exprasmlist,pushed,$ff);
+                  pushusedregisters(pushed,$ff);
                   exprasmlist^.concat(new(pai386,op_const(A_PUSH,S_L,pfiledef(p^.left^.resulttype)^.typed_as^.size)));
                   secondpass(p^.left);
-                  emitpushreferenceaddr(exprasmlist,p^.left^.location.reference);
+                  emitpushreferenceaddr(p^.left^.location.reference);
                   if p^.inlinenumber=in_reset_typedfile then
-                    emitcall('FPC_RESET_TYPED',true)
+                    emitcall('FPC_RESET_TYPED')
                   else
-                    emitcall('FPC_REWRITE_TYPED',true);
-                  popusedregisters(exprasmlist,pushed);
+                    emitcall('FPC_REWRITE_TYPED');
+                  popusedregisters(pushed);
                end;
             in_write_x :
               handlereadwrite(false,false);
@@ -1228,12 +1220,11 @@ implementation
                         begin
                            pushsetelement(p^.left^.right^.left);
                            { normset is allways a ref }
-                           emitpushreferenceaddr(exprasmlist,
-                             p^.left^.left^.location.reference);
+                           emitpushreferenceaddr(p^.left^.left^.location.reference);
                            if p^.inlinenumber=in_include_x_y then
-                             emitcall('FPC_SET_SET_BYTE',true)
+                             emitcall('FPC_SET_SET_BYTE')
                            else
-                             emitcall('FPC_SET_UNSET_BYTE',true);
+                             emitcall('FPC_SET_UNSET_BYTE');
                            {CGMessage(cg_e_include_not_implemented);}
                         end;
                    end;
@@ -1247,7 +1238,15 @@ implementation
 end.
 {
   $Log$
-  Revision 1.54  1999-05-23 19:55:11  florian
+  Revision 1.55  1999-05-27 19:44:13  peter
+    * removed oldasm
+    * plabel -> pasmlabel
+    * -a switches to source writing automaticly
+    * assembler readers OOPed
+    * asmsymbol automaticly external
+    * jumptables and other label fixes for asm readers
+
+  Revision 1.54  1999/05/23 19:55:11  florian
     * qword/int64 multiplication fixed
     + qword/int64 subtraction
 

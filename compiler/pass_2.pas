@@ -30,7 +30,7 @@ uses
   tree;
 
 { produces assembler for the expression in variable p }
-{ and produces an assembler node at the end           }
+{ and produces an assembler node at the end        }
 procedure generatecode(var p : ptree);
 
 { produces the actual code }
@@ -49,11 +49,7 @@ implementation
      ,gdb
 {$endif}
 {$ifdef i386}
-{$ifndef OLDASM}
      ,i386base,i386asm
-{$else}
-     ,i386
-{$endif}
      ,tgeni386,cgai386
      ,cg386con,cg386mat,cg386cnv,cg386set,cg386add
      ,cg386mem,cg386cal,cg386ld,cg386flw,cg386inl
@@ -122,15 +118,12 @@ implementation
 
 
     procedure secondasm(var p : ptree);
-{$ifndef OLDASM}
       var
         hp,hp2 : pai;
         localfixup,parafixup,
         i : longint;
         r : preference;
-{$endif}
       begin
-{$ifndef OLDASM}
          if (aktprocsym^.definition^.options and poinline)<>0 then
            begin
              localfixup:=aktprocsym^.definition^.localst^.address_fixup;
@@ -169,7 +162,6 @@ implementation
               end
            end
          else
-{$endif}
            exprasmlist^.concatlist(p^.p_asm);
          if not p^.object_preserved then
           begin
@@ -186,28 +178,28 @@ implementation
      procedure secondpass(var p : ptree);
        const
          procedures : array[ttreetyp] of secondpassproc =
-            (secondadd,         {addn}
-             secondadd,         {muln}
-             secondadd,         {subn}
+            (secondadd,  {addn}
+             secondadd,  {muln}
+             secondadd,  {subn}
              secondmoddiv,      {divn}
-             secondadd,         {symdifn}
+             secondadd,  {symdifn}
              secondmoddiv,      {modn}
              secondassignment,  {assignn}
              secondload,        {loadn}
              secondnothing,     {range}
-             secondadd,         {ltn}
-             secondadd,         {lten}
-             secondadd,         {gtn}
-             secondadd,         {gten}
-             secondadd,         {equaln}
-             secondadd,         {unequaln}
-             secondin,          {inn}
-             secondadd,         {orn}
-             secondadd,         {xorn}
+             secondadd,  {ltn}
+             secondadd,  {lten}
+             secondadd,  {gtn}
+             secondadd,  {gten}
+             secondadd,  {equaln}
+             secondadd,  {unequaln}
+             secondin,    {inn}
+             secondadd,  {orn}
+             secondadd,  {xorn}
              secondshlshr,      {shrn}
              secondshlshr,      {shln}
-             secondadd,         {slashn}
-             secondadd,         {andn}
+             secondadd,  {slashn}
+             secondadd,  {andn}
              secondsubscriptn,  {subscriptn}
              secondderef,       {derefn}
              secondaddr,        {addrn}
@@ -219,12 +211,12 @@ implementation
              secondrealconst,   {realconstn}
              secondfixconst,    {fixconstn}
              secondumminus,     {umminusn}
-             secondasm,         {asmn}
+             secondasm,  {asmn}
              secondvecn,        {vecn}
              secondstringconst, {stringconstn}
              secondfuncret,     {funcretn}
              secondselfn,       {selfn}
-             secondnot,         {notn}
+             secondnot,  {notn}
              secondinline,      {inlinen}
              secondniln,        {niln}
              seconderror,       {errorn}
@@ -238,12 +230,12 @@ implementation
              secondblockn,      {blockn}
              secondstatement,   {statementn}
              secondnothing,     {loopn}
-             secondifn,         {ifn}
+             secondifn,  {ifn}
              secondbreakn,      {breakn}
              secondcontinuen,   {continuen}
              second_while_repeatn, {repeatn}
              second_while_repeatn, {whilen}
-             secondfor,         {forn}
+             secondfor,  {forn}
              secondexitn,       {exitn}
              secondwith,        {withn}
              secondcase,        {casen}
@@ -254,12 +246,12 @@ implementation
              secondraise,       {raisen}
              secondnothing,     {switchesn}
              secondtryfinally,  {tryfinallyn}
-             secondon,          {onn}
-             secondis,          {isn}
-             secondas,          {asn}
+             secondon,    {onn}
+             secondis,    {isn}
+             secondas,    {asn}
              seconderror,       {caretn}
              secondfail,        {failn}
-             secondadd,         {starstarn}
+             secondadd,  {starstarn}
              secondprocinline,  {procinlinen}
              secondarrayconstruct, {arrayconstructn}
              secondnothing,     {arrayconstructrangen}
@@ -269,7 +261,7 @@ implementation
       var
          oldcodegenerror  : boolean;
          oldlocalswitches : tlocalswitches;
-         oldpos           : tfileposinfo;
+         oldpos    : tfileposinfo;
       begin
          if not(p^.error) then
           begin
@@ -448,9 +440,9 @@ implementation
                                     end;
 
                                   { register is no longer available for }
-                                  { expressions                         }
+                                  { expressions                  }
                                   { search the register which is the most }
-                                  { unused                                }
+                                  { unused                              }
                                   usableregs:=usableregs-[varregs[i]];
                                   is_reg_var[varregs[i]]:=true;
                                   dec(c_usableregs);
@@ -492,7 +484,7 @@ implementation
                                     begin
                                        { procinfo is there actual,      }
                                        { because we can't never be in a }
-                                       { nested procedure               }
+                                       { nested procedure              }
                                        { when loading parameter to reg  }
                                        new(hr);
                                        reset_reference(hr^);
@@ -555,7 +547,15 @@ implementation
 end.
 {
   $Log$
-  Revision 1.22  1999-05-18 14:15:50  peter
+  Revision 1.23  1999-05-27 19:44:43  peter
+    * removed oldasm
+    * plabel -> pasmlabel
+    * -a switches to source writing automaticly
+    * assembler readers OOPed
+    * asmsymbol automaticly external
+    * jumptables and other label fixes for asm readers
+
+  Revision 1.22  1999/05/18 14:15:50  peter
     * containsself fixes
     * checktypes()
 

@@ -38,11 +38,7 @@ implementation
       cobjects,verbose,globals,
       symtable,aasm,types,
       hcodegen,temp_gen,pass_2,
-{$ifndef OLDASM}
       i386base,i386asm,
-{$else}
-      i386,
-{$endif}
       cgai386,tgeni386;
 
      const
@@ -93,7 +89,7 @@ implementation
          setparts   : array[1..8] of Tsetpart;
          i,numparts : byte;
          {href,href2 : Treference;}
-         l,l2       : plabel;
+         l,l2       : pasmlabel;
 
          function analizeset(Aset:pconstset;is_small:boolean):boolean;
            type
@@ -223,19 +219,14 @@ implementation
             else
               p^.location.resflags:=F_E;
 
-            {reset_reference(href);}
             getlabel(l);
-            {href.symbol:=newasmsymbol(lab2str(l));}
 
             for i:=1 to numparts do
              if setparts[i].range then
               begin
                 { Check if left is in a range }
                 { Get a label to jump over the check }
-                {reset_reference(href2);}
                 getlabel(l2);
-                {shouldn't it be href2 here ??
-                href.symbol:=newasmsymbol(lab2str(l2));}
                 if setparts[i].start=setparts[i].stop-1 then
                  begin
                    case p^.left^.location.loc of
@@ -375,7 +366,7 @@ implementation
                     begin
                       { the set element isn't never samller than a byte  }
                       { and because it's a small set we need only 5 bits }
-                      { but 8 bits are easier to load                    }
+                      { but 8 bits are easier to load               }
                       exprasmlist^.concat(new(pai386,op_ref_reg(A_MOVZX,S_BL,
                         newreference(p^.left^.location.reference),R_EDI)));
                       hr:=R_EDI;
@@ -425,11 +416,11 @@ implementation
                else
                 begin
                   pushsetelement(p^.left);
-                  emitpushreferenceaddr(exprasmlist,p^.right^.location.reference);
+                  emitpushreferenceaddr(p^.right^.location.reference);
                   del_reference(p^.right^.location.reference);
                   { registers need not be save. that happens in SET_IN_BYTE }
                   { (EDI is changed) }
-                  emitcall('FPC_SET_IN_BYTE',true);
+                  emitcall('FPC_SET_IN_BYTE');
                   { ungetiftemp(p^.right^.location.reference); }
                   p^.location.loc:=LOC_FLAGS;
                   p^.location.resflags:=F_C;
@@ -453,7 +444,7 @@ implementation
          hp : ptree;
          { register with case expression }
          hregister : tregister;
-         endlabel,elselabel : plabel;
+         endlabel,elselabel : pasmlabel;
 
          { true, if we can omit the range check of the jump table }
          jumptable_no_range : boolean;
@@ -463,7 +454,7 @@ implementation
       procedure gentreejmp(p : pcaserecord);
 
         var
-           lesslabel,greaterlabel : plabel;
+           lesslabel,greaterlabel : pasmlabel;
 
        begin
          emitlab(p^._at);
@@ -537,7 +528,7 @@ implementation
                begin
                   { it begins with the smallest label, if the value }
                   { is even smaller then jump immediately to the    }
-                  { ELSE-label                                      }
+                  { ELSE-label                                }
                   if first then
                     begin
                        { have we to ajust the first value ? }
@@ -550,20 +541,11 @@ implementation
                               exprasmlist^.concat(new(pai386,op_const_reg(A_SUB,opsize,
                                 t^._low,hregister)));
                          end;
-                       { work around: if the lower range=0 and we
-                         do the subtraction we have to take care
-                         of the sign!
-                       this isn't necessary, this is tested before now (FK)
-                       if t^._low=0 then
-                         emitl(A_JBE,elselabel)
-                       else
-                       emitl(jmp_lee,elselabel);
-                       }
                     end
                   else
                   { if there is no unused label between the last and the }
                   { present label then the lower limit can be checked    }
-                  { immediately. else check the range in between:        }
+                  { immediately. else check the range in between:       }
                   if (t^._low-last>1) then
                     begin
                        exprasmlist^.concat(new(pai386,op_const_reg(A_SUB,opsize,t^._low-last,hregister)));
@@ -591,7 +573,7 @@ implementation
       procedure genjumptable(hp : pcaserecord;min_,max_ : longint);
 
         var
-           table : plabel;
+           table : pasmlabel;
            last : longint;
            hr : preference;
 
@@ -605,9 +587,9 @@ implementation
                genitem(t^.less);
              { fill possible hole }
              for i:=last+1 to t^._low-1 do
-               jumpsegment^.concat(new(pai_const_symbol,initname(lab2str(elselabel))));
+               jumpsegment^.concat(new(pai_const_symbol,init(elselabel)));
              for i:=t^._low to t^._high do
-               jumpsegment^.concat(new(pai_const_symbol,initname(lab2str(t^.statement))));
+               jumpsegment^.concat(new(pai_const_symbol,init(t^.statement)));
               last:=t^._high;
              if assigned(t^.greater) then
                genitem(t^.greater);
@@ -638,7 +620,7 @@ implementation
              end;
            new(hr);
            reset_reference(hr^);
-           hr^.symbol:=newasmsymbol(lab2str(table));
+           hr^.symbol:=table;
            hr^.offset:=(-min_)*4;
            hr^.index:=hregister;
            hr^.scalefactor:=4;
@@ -729,10 +711,10 @@ implementation
               { procedures are empirically passed on }
               { consumption can also be calculated   }
               { but does it pay on the different     }
-              { processors?                          }
+              { processors?                       }
               { moreover can the size only be appro- }
               { ximated as it is not known if rel8,  }
-              { rel16 or rel32 jumps are used        }
+              { rel16 or rel32 jumps are used   }
               min_label:=case_get_min(p^.nodes);
               max_label:=case_get_max(p^.nodes);
               labels:=case_count_labels(p^.nodes);
@@ -740,7 +722,7 @@ implementation
               getrange(p^.left^.resulttype,lv,hv);
               jumptable_no_range:=(lv=min_label) and (hv=max_label);
               { hack a little bit, because the range can be greater }
-              { than the positive range of a longint                }
+              { than the positive range of a longint            }
 
               if (min_label<0) and (max_label>0) then
                 begin
@@ -834,7 +816,15 @@ implementation
 end.
 {
   $Log$
-  Revision 1.31  1999-05-21 13:54:54  peter
+  Revision 1.32  1999-05-27 19:44:19  peter
+    * removed oldasm
+    * plabel -> pasmlabel
+    * -a switches to source writing automaticly
+    * assembler readers OOPed
+    * asmsymbol automaticly external
+    * jumptables and other label fixes for asm readers
+
+  Revision 1.31  1999/05/21 13:54:54  peter
     * NEWLAB for label as symbol
 
   Revision 1.30  1999/05/05 08:09:24  michael

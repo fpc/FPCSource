@@ -27,11 +27,7 @@ unit tgeni386;
     uses
        cobjects,globals,tree,hcodegen,verbose,files,aasm
 {$ifdef i386}
-{$ifndef OLDASM}
        ,i386base,i386asm
-{$else}
-       ,i386
-{$endif}
 {$endif}
        ;
 
@@ -66,12 +62,12 @@ unit tgeni386;
     procedure del_locref(const location : tlocation);
 
     { pushs and restores registers }
-    procedure pushusedregisters(list : paasmoutput;var pushed : tpushed;b : byte);
-    procedure popusedregisters(list : paasmoutput;const pushed : tpushed);
+    procedure pushusedregisters(var pushed : tpushed;b : byte);
+    procedure popusedregisters(const pushed : tpushed);
 
     { saves and restores used registers to temp. values }
-    procedure saveusedregisters(list : paasmoutput;var saved : tsaved;b : byte);
-    procedure restoreusedregisters(list : paasmoutput;const saved : tsaved);
+    procedure saveusedregisters(var saved : tsaved;b : byte);
+    procedure restoreusedregisters(const saved : tsaved);
 
     procedure clearregistercount;
     procedure resetusableregisters;
@@ -84,7 +80,7 @@ unit tgeni386;
        usedinproc : byte;
 
        { count, how much a register must be pushed if it is used as register }
-       { variable                                                            }
+       { variable                                                           }
 {$ifdef SUPPORT_MMX}
        reg_pushes : array[R_EAX..R_MM6] of longint;
        is_reg_var : array[R_EAX..R_MM6] of boolean;
@@ -99,7 +95,7 @@ implementation
     uses
       globtype,temp_gen;
 
-    procedure pushusedregisters(list : paasmoutput;var pushed : tpushed;b : byte);
+    procedure pushusedregisters(var pushed : tpushed;b : byte);
 
       var
          r : tregister;
@@ -117,7 +113,7 @@ implementation
                    if not(r in unused) then
                      begin
                         { then save it }
-                        list^.concat(new(pai386,op_reg(A_PUSH,S_L,r)));
+                        exprasmlist^.concat(new(pai386,op_reg(A_PUSH,S_L,r)));
 
                         { here was a big problem  !!!!!}
                         { you cannot do that for a register that is
@@ -138,12 +134,12 @@ implementation
               { if the mmx register is in use, save it }
               if not(r in unused) then
                 begin
-                   list^.concat(new(pai386,op_const_reg(
+                   exprasmlist^.concat(new(pai386,op_const_reg(
                      A_SUB,S_L,8,R_ESP)));
                    new(hr);
                    reset_reference(hr^);
                    hr^.base:=R_ESP;
-                   list^.concat(new(pai386,op_reg_ref(
+                   exprasmlist^.concat(new(pai386,op_reg_ref(
                      A_MOVQ,S_NO,r,hr)));
                    if not(is_reg_var[r]) then
                      unused:=unused+[r];
@@ -153,7 +149,7 @@ implementation
 {$endif SUPPORT_MMX}
       end;
 
-    procedure saveusedregisters(list : paasmoutput;var saved : tsaved;b : byte);
+    procedure saveusedregisters(var saved : tsaved;b : byte);
 
       var
          r : tregister;
@@ -173,7 +169,7 @@ implementation
                         { then save it }
                         gettempofsizereference(4,hr);
                         saved[r]:=hr.offset;
-                        list^.concat(new(pai386,op_reg_ref(A_MOV,S_L,r,newreference(hr))));
+                        exprasmlist^.concat(new(pai386,op_reg_ref(A_MOV,S_L,r,newreference(hr))));
                         { here was a big problem  !!!!!}
                         { you cannot do that for a register that is
                         globally assigned to a var
@@ -193,7 +189,7 @@ implementation
               if not(r in unused) then
                 begin
                    gettempofsizereference(8,hr);
-                   list^.concat(new(pai386,op_reg_ref(
+                   exprasmlist^.concat(new(pai386,op_reg_ref(
                      A_MOVQ,S_NO,r,newreference(hr))));
                    if not(is_reg_var[r]) then
                      unused:=unused+[r];
@@ -203,7 +199,7 @@ implementation
 {$endif SUPPORT_MMX}
       end;
 
-    procedure popusedregisters(list : paasmoutput;const pushed : tpushed);
+    procedure popusedregisters(const pushed : tpushed);
 
       var
          r : tregister;
@@ -220,9 +216,9 @@ implementation
                    new(hr);
                    reset_reference(hr^);
                    hr^.base:=R_ESP;
-                   list^.concat(new(pai386,op_ref_reg(
+                   exprasmlist^.concat(new(pai386,op_ref_reg(
                      A_MOVQ,S_NO,hr,r)));
-                   list^.concat(new(pai386,op_const_reg(
+                   exprasmlist^.concat(new(pai386,op_const_reg(
                      A_ADD,S_L,8,R_ESP)));
                    unused:=unused-[r];
                 end;
@@ -231,12 +227,12 @@ implementation
          for r:=R_EBX downto R_EAX do
            if pushed[r] then
              begin
-                list^.concat(new(pai386,op_reg(A_POP,S_L,r)));
+                exprasmlist^.concat(new(pai386,op_reg(A_POP,S_L,r)));
                 unused:=unused-[r];
              end;
       end;
 
-    procedure restoreusedregisters(list : paasmoutput;const saved : tsaved);
+    procedure restoreusedregisters(const saved : tsaved);
       var
          r : tregister;
          hr : treference;
@@ -251,7 +247,7 @@ implementation
                    reset_reference(hr);
                    hr.base:=frame_pointer;
                    hr.offset:=saved[r];
-                   list^.concat(new(pai386,op_ref_reg(
+                   exprasmlist^.concat(new(pai386,op_ref_reg(
                      A_MOVQ,S_NO,newreference(hr),r)));
                    unused:=unused-[r];
                    ungetiftemp(hr);
@@ -264,7 +260,7 @@ implementation
                 reset_reference(hr);
                 hr.base:=frame_pointer;
                 hr.offset:=saved[r];
-                list^.concat(new(pai386,op_ref_reg(A_MOV,S_L,newreference(hr),r)));
+                exprasmlist^.concat(new(pai386,op_ref_reg(A_MOV,S_L,newreference(hr),r)));
                 unused:=unused-[r];
                 ungetiftemp(hr);
              end;
@@ -463,7 +459,15 @@ begin
 end.
 {
   $Log$
-  Revision 1.25  1999-05-19 22:00:48  florian
+  Revision 1.26  1999-05-27 19:45:27  peter
+    * removed oldasm
+    * plabel -> pasmlabel
+    * -a switches to source writing automaticly
+    * assembler readers OOPed
+    * asmsymbol automaticly external
+    * jumptables and other label fixes for asm readers
+
+  Revision 1.25  1999/05/19 22:00:48  florian
     * some new routines for register management:
        maybe_savetotemp,restorefromtemp, saveusedregisters,
        restoreusedregisters

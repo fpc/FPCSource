@@ -97,7 +97,6 @@ const
 const
   newline = #10;
   firsttoken : boolean = TRUE;
-  operandnum : byte = 0;
 var
   _asmsorted     : boolean;
   inexpression   : boolean;
@@ -110,8 +109,6 @@ var
   actopcode      : tasmop;
   actopsize      : topsize;
   actcondition   : tasmcond;
-  Instr          : TInstruction;
-  labellist      : TAsmLabelList;
   iasmops        : ^op2strtable;
   iasmregs       : ^reg2strtable;
 
@@ -139,12 +136,6 @@ end;
 
 
    function is_asmopcode(const s: string):boolean;
-  {*********************************************************************}
-  { FUNCTION is_asmopcode(s: string):Boolean                            }
-  { Description: Determines if the s string is a valid opcode          }
-  { It sets also actopcode and actcondition }
-  { if so returns TRUE otherwise returns FALSE.                        }
-  {*********************************************************************}
    var
      i: tasmop;
      cond : string[4];
@@ -237,12 +228,13 @@ Begin
 end;
 
 
+function is_locallabel(const s:string):boolean;
+begin
+  is_locallabel:=(length(s)>1) and (s[1]='@');
+end;
+
+
 Procedure GetToken;
-{*********************************************************************}
-{ FUNCTION GetToken: tasmtoken;                                     }
-{  Description: This routine returns intel assembler tokens and       }
-{  does some minor syntax error checking.                             }
-{*********************************************************************}
 var
   len : longint;
   forcelabel : boolean;
@@ -339,7 +331,7 @@ begin
             end;
            uppervar(actasmpattern);
            { after prefix we allow also a new opcode }
-           If (operandnum=0) and is_asmopcode(actasmpattern) then
+           If is_prefix(actopcode) and is_asmopcode(actasmpattern) then
             Begin
               { if we are not in a constant }
               { expression than this is an  }
@@ -672,26 +664,12 @@ end;
 
 
 Procedure BuildConstSymbolExpression(needofs:boolean;var value:longint;var asmsym:string);
-{*********************************************************************}
-{ FUNCTION BuildConstExpression(false): longint                              }
-{  Description: This routine calculates a constant expression to      }
-{  a given value. The return value is the value calculated from       }
-{  the expression.                                                    }
-{ The following tokens (not strings) are recognized:                  }
-{    (,),SHL,SHR,/,*,NOT,OR,XOR,AND,MOD,+/-,numbers,ID to constants.  }
-{*********************************************************************}
-{ ENTRY: On entry the token should be any valid expression token.     }
-{ EXIT:  On Exit the token points to any token after the closing      }
-{         RBRACKET                                                    }
-{ ERROR RECOVERY: Tries to find COMMA or SEPARATOR token by consuming }
-{  invalid tokens.                                                    }
-{*********************************************************************}
 var
   tempstr,expr,hs : string;
   parenlevel,l,k : longint;
   errorflag : boolean;
   prevtok : tasmtoken;
-  hl : plabel;
+  hl : PAsmLabel;
   sym : psym;
 Begin
   { reset }
@@ -802,8 +780,14 @@ Begin
           else
            begin
              hs:='';
-             if SearchLabel(tempstr,hl) then
-              hs:=lab2str(hl)
+             if is_locallabel(tempstr) then
+              begin
+                CreateLocalLabel(tempstr,hl,false);
+                hs:=hl^.name
+              end
+             else
+              if SearchLabel(tempstr,hl,false) then
+               hs:=hl^.name
              else
               begin
                 getsym(tempstr,false);
@@ -886,19 +870,22 @@ begin
 end;
 
 
+{****************************************************************************
+                               T386IntelOperand
+****************************************************************************}
 
-Procedure BuildBracketExpression(var Instr: TInstruction);
-{*********************************************************************}
-{ PROCEDURE BuildBracketExpression                                    }
-{  Description: This routine builds up an expression after a LBRACKET }
-{  token is encountered.                                              }
-{   On entry actasmtoken should be equal to AS_LBRACKET.              }
-{  var_prefix : Should be set to true if variable identifier has      }
-{    been defined, such as in ID[                                     }
-{*********************************************************************}
-{ EXIT CONDITION:  On exit the routine should point to either the     }
-{       AS_COMMA or AS_SEPARATOR token.                               }
-{*********************************************************************}
+type
+  P386IntelOperand=^T386IntelOperand;
+  T386IntelOperand=object(T386Operand)
+    Procedure BuildOperand;virtual;
+  private
+    Procedure BuildReference;
+    Procedure BuildConstant;
+  end;
+
+
+
+Procedure T386IntelOperand.BuildReference;
 var
   l : longint;
   hs : string;
@@ -908,7 +895,7 @@ var
   GotPlus,Negative : boolean;
 Begin
   Consume(AS_LBRACKET);
-  initAsmRef(instr,operandnum);
+  InitRef;
   GotPlus:=true;
   Negative:=false;
   repeat
@@ -924,42 +911,42 @@ Begin
            begin
              l:=BuildConstExpression;
              if actasmtoken=AS_STAR then
-              instr.operands[operandnum].ref.scalefactor:=l
+              opr.ref.scalefactor:=l
              else
               begin
                 if negative then
-                  Dec(instr.operands[operandnum].ref.offset,l)
+                  Dec(opr.ref.offset,l)
                 else
-                  Inc(instr.operands[operandnum].ref.offset,l);
+                  Inc(opr.ref.offset,l);
               end;
            end
           else
            Begin
-             if instr.operands[operandnum].hasvar then
+             if hasvar then
                Message(asmr_e_cant_have_multiple_relocatable_symbols);
              if negative then
                Message(asmr_e_only_add_relocatable_symbol);
-             oldbase:=instr.operands[operandnum].ref.base;
-             instr.operands[operandnum].ref.base:=R_NO;
-             if not CreateVarInstr(instr,actasmpattern,operandnum) then
+             oldbase:=opr.ref.base;
+             opr.ref.base:=R_NO;
+             if not SetupVar(actasmpattern) then
                Message1(sym_e_unknown_id,actasmpattern);
              { is the base register loaded by the var ? }
-             if (instr.operands[operandnum].ref.base<>R_NO) then
+             if (opr.ref.base<>R_NO) then
               begin
                 { check if we can move the old base to the index register }
-                if (instr.operands[operandnum].ref.index<>R_NO) then
+                if (opr.ref.index<>R_NO) then
                  Message(asmr_e_wrong_base_index)
                 else
-                 instr.operands[operandnum].ref.index:=oldbase;
+                 opr.ref.index:=oldbase;
               end
              else
-              instr.operands[operandnum].ref.base:=oldbase;
+              opr.ref.base:=oldbase;
              { we can't have a Constant here so add the constant value to the
                offset }
-             if instr.operands[operandnum].operandtype=OPR_CONSTANT then
+             if opr.typ=OPR_CONSTANT then
               begin
-                instr.operands[operandnum].operandtype:=OPR_REFERENCE;
-                inc(instr.operands[operandnum].ref.offset,instr.operands[operandnum].val);
+                opr.typ:=OPR_REFERENCE;
+                inc(opr.ref.offset,opr.val);
               end;
              Consume(AS_ID);
            end;
@@ -995,7 +982,7 @@ Begin
               end;
             AS_REGISTER :
               begin
-                if instr.operands[operandnum].ref.scalefactor=0 then
+                if opr.ref.scalefactor=0 then
                  Message(asmr_e_wrong_scale_factor);
               end;
             else
@@ -1005,7 +992,7 @@ Begin
            begin
              if hs<>'' then
               val(hs,l,code);
-             instr.operands[operandnum].ref.scalefactor:=l
+             opr.ref.scalefactor:=l
            end;
           GotPlus:=false;
         end;
@@ -1018,14 +1005,14 @@ Begin
           Consume(AS_REGISTER);
           { this register will be the index }
           if (actasmtoken=AS_STAR) or
-             (instr.operands[operandnum].ref.base<>R_NO) then
+             (opr.ref.base<>R_NO) then
            begin
-             if (instr.operands[operandnum].ref.index<>R_NO) then
+             if (opr.ref.index<>R_NO) then
               Message(asmr_e_multiple_index);
-             instr.operands[operandnum].ref.index:=hreg;
+             opr.ref.index:=hreg;
            end
           else
-           instr.operands[operandnum].ref.base:=hreg;
+           opr.ref.base:=hreg;
           GotPlus:=false;
         end;
 
@@ -1037,13 +1024,13 @@ Begin
             Message(asmr_e_invalid_reference_syntax);
           l:=BuildConstExpression;
           if actasmtoken=AS_STAR then
-           instr.operands[operandnum].ref.scalefactor:=l
+           opr.ref.scalefactor:=l
           else
            begin
              if negative then
-               Dec(instr.operands[operandnum].ref.offset,l)
+               Dec(opr.ref.offset,l)
              else
-               Inc(instr.operands[operandnum].ref.offset,l);
+               Inc(opr.ref.offset,l);
            end;
           GotPlus:=false;
         end;
@@ -1067,24 +1054,39 @@ Begin
 end;
 
 
-Procedure BuildOperand(var instr: TInstruction);
+Procedure T386IntelOperand.BuildConstant;
+var
+  l : longint;
+  tempstr : string;
+begin
+  BuildConstSymbolExpression(true,l,tempstr);
+  if tempstr<>'' then
+   begin
+     opr.typ:=OPR_SYMBOL;
+     opr.symofs:=l;
+     opr.symbol:=newasmsymbol(tempstr);
+   end
+  else
+   begin
+     opr.typ:=OPR_CONSTANT;
+     opr.val:=l;
+   end;
+end;
 
-  Procedure BuildConstOperand(var instr: TInstruction);
-  var
-    l : longint;
-    tempstr : string;
+
+Procedure T386IntelOperand.BuildOperand;
+
+  procedure AddLabelOperand(hl:pasmlabel);
   begin
-    BuildConstSymbolExpression(true,l,tempstr);
-    if tempstr<>'' then
+    if is_calljmp(actopcode) then
      begin
-       instr.operands[operandnum].operandtype:=OPR_SYMBOL;
-       instr.operands[operandnum].symofs:=l;
-       instr.operands[operandnum].symbol:=newasmsymbol(tempstr);
+       opr.typ:=OPR_SYMBOL;
+       opr.symbol:=hl;
      end
     else
      begin
-       instr.operands[operandnum].operandtype:=OPR_CONSTANT;
-       instr.operands[operandnum].val:=l;
+       InitRef;
+       opr.ref.symbol:=hl;
      end;
   end;
 
@@ -1092,11 +1094,10 @@ var
   expr,
   tempstr : string;
   tempreg : tregister;
-  lab     : PAsmLabelRec;
   l,
   toffset,
   tsize   : longint;
-  hl      : plabel;
+  hl      : PAsmLabel;
 Begin
   tempstr:='';
   expr:='';
@@ -1109,20 +1110,20 @@ Begin
     AS_NOT,
     AS_LPAREN :
       Begin
-        if not (instr.operands[operandnum].operandtype in [OPR_NONE,OPR_CONSTANT]) then
+        if not (opr.typ in [OPR_NONE,OPR_CONSTANT]) then
           Message(asmr_e_invalid_operand_type);
-        BuildConstOperand(instr);
+        BuildConstant;
       end;
 
     AS_STRING :
       Begin
-        if not (instr.operands[operandnum].operandtype in [OPR_NONE]) then
+        if not (opr.typ in [OPR_NONE]) then
           Message(asmr_e_invalid_operand_type);
-        instr.operands[operandnum].operandtype:=OPR_CONSTANT;
         if not PadZero(actasmpattern,4) then
           Message1(asmr_e_invalid_string_as_opcode_operand,actasmpattern);
-        instr.operands[operandnum].val:=ord(actasmpattern[4]) + ord(actasmpattern[3]) shl 8 +
-                                        Ord(actasmpattern[2]) shl 16 + ord(actasmpattern[1]) shl 24;
+        opr.typ:=OPR_CONSTANT;
+        opr.val:=ord(actasmpattern[4]) + ord(actasmpattern[3]) shl 8 +
+                 Ord(actasmpattern[2]) shl 16 + ord(actasmpattern[1]) shl 24;
         Consume(AS_STRING);
       end;
 
@@ -1134,52 +1135,28 @@ Begin
          Begin
            if actasmpattern = '@RESULT' then
             Begin
-              initAsmRef(instr,operandnum);
-              SetUpResult(instr,operandnum);
+              InitRef;
+              SetupResult;
             end
            else
             if (actasmpattern = '@CODE') or (actasmpattern = '@DATA') then
               Message(asmr_w_CODE_and_DATA_not_supported)
            else
-            Begin
-              delete(actasmpattern,1,1);
-              if actasmpattern = '' then
-                Message(asmr_e_null_label_ref_not_allowed);
-              lab:=labellist.search(actasmpattern);
-              { check if the label is already defined   }
-              { if so, we then check if the plabel is   }
-              { non-nil, if so we add it to instruction }
-              if assigned(lab) then
-               Begin
-                 if assigned(lab^.lab) then
-                   Begin
-                     instr.operands[operandnum].operandtype:=OPR_LABINSTR;
-                     instr.operands[operandnum].hl:=lab^.lab;
-                     instr.labeled:=TRUE;
-                   end;
-               end
-              else
-              { the label does not exist, create it }
-              { emit the opcode, but set that the   }
-              { label has not been emitted          }
-               Begin
-                 getlabel(hl);
-                 labellist.insert(actasmpattern,hl,FALSE);
-                 instr.operands[operandnum].operandtype:=OPR_LABINSTR;
-                 instr.operands[operandnum].hl:=hl;
-                 instr.labeled:=TRUE;
-               end;
+            { Local Label }
+            begin
+              CreateLocalLabel(actasmpattern,hl,false);
+              Consume(AS_ID);
+              AddLabelOperand(hl);
+              if not (actasmtoken in [AS_SEPARATOR,AS_COMMA]) then
+               Message(asmr_e_syntax_error);
             end;
-           Consume(AS_ID);
-           if not (actasmtoken in [AS_SEPARATOR,AS_COMMA]) then
-             Message(asmr_e_syntax_error);
          end
         else
         { support result for delphi modes }
          if (m_objpas in aktmodeswitches) and (actasmpattern='RESULT') then
           begin
-            initAsmRef(instr,operandnum);
-            SetUpResult(instr,operandnum);
+            InitRef;
+            SetUpResult;
             Consume(AS_ID);
           end
         { probably a variable or normal expression }
@@ -1189,39 +1166,28 @@ Begin
            { is it a constant ? }
            if SearchIConstant(actasmpattern,l) then
             Begin
-              if not (instr.operands[operandnum].operandtype in [OPR_NONE,OPR_CONSTANT]) then
+              if not (opr.typ in [OPR_NONE,OPR_CONSTANT]) then
                Message(asmr_e_invalid_operand_type);
-              BuildConstOperand(instr);
+              BuildConstant;
             end
            else
-           { is it a label variable ? }
-            if SearchLabel(actasmpattern,hl) then
-             Begin
-               instr.operands[operandnum].operandtype:=OPR_LABINSTR;
-               instr.operands[operandnum].hl:=hl;
-               instr.labeled:=TRUE;
+            { Check for pascal label }
+            if SearchLabel(actasmpattern,hl,false) then
+             begin
                Consume(AS_ID);
+               AddLabelOperand(hl);
                if not (actasmtoken in [AS_SEPARATOR,AS_COMMA]) then
                 Message(asmr_e_syntax_error);
              end
             else
             { is it a normal variable ? }
              Begin
-               initAsmRef(instr,operandnum);
-               if not CreateVarInstr(instr,actasmpattern,operandnum) then
+               InitRef;
+               if not SetupVar(actasmpattern) then
                 Begin
-                  { not a variable.. }
-                  { check special variables.. }
+                  { not a variable, check special variables.. }
                   if actasmpattern = 'SELF' then
-                   Begin
-                     if assigned(procinfo._class) then
-                      Begin
-                        instr.operands[operandnum].ref.offset:=procinfo.ESI_offset;
-                        instr.operands[operandnum].ref.base:=procinfo.framepointer;
-                      end
-                     else
-                      Message(asmr_e_cannot_use_SELF_outside_a_method);
-                   end
+                   SetupSelf
                   else
                    Message1(sym_e_unknown_id,actasmpattern);
                 end;
@@ -1230,9 +1196,9 @@ Begin
                Consume(AS_ID);
                if actasmtoken=AS_LBRACKET then
                 begin
-                  instr.operands[operandnum].operandtype:=OPR_REFERENCE;
-                  reset_reference(Instr.Operands[OperandNum].Ref);
-                  BuildBracketExpression(instr);
+                  opr.typ:=OPR_REFERENCE;
+                  reset_reference(opr.Ref);
+                  BuildReference;
                 end;
                if actasmtoken=AS_DOT then
                 begin
@@ -1242,15 +1208,15 @@ Begin
                    begin
                      BuildRecordOffsetSize(expr,toffset,tsize);
                      inc(l,toffset);
-                     SetOperandSize(instr,operandnum,tsize);
+                     SetSize(tsize);
                    end;
                 end;
                if actasmtoken in [AS_PLUS,AS_MINUS] then
                 inc(l,BuildConstExpression);
-               if instr.operands[operandnum].operandtype=OPR_REFERENCE then
-                inc(instr.operands[operandnum].ref.offset,l)
+               if opr.typ=OPR_REFERENCE then
+                inc(opr.ref.offset,l)
                else
-                inc(instr.operands[operandnum].val,l);
+                inc(opr.val,l);
              end;
          end;
       end;
@@ -1263,24 +1229,24 @@ Begin
         if actasmtoken = AS_COLON then
          Begin
            Consume(AS_COLON);
-           initAsmRef(instr,operandnum);
-           instr.operands[operandnum].ref.segment:=tempreg;
-           BuildBracketExpression(instr);
+           InitRef;
+           opr.ref.segment:=tempreg;
+           BuildReference;
          end
         else
         { Simple register }
          begin
-           if not (instr.operands[operandnum].operandtype in [OPR_NONE,OPR_REGISTER]) then
+           if not (opr.typ in [OPR_NONE,OPR_REGISTER]) then
             Message(asmr_e_invalid_operand_type);
-           instr.operands[operandnum].operandtype:=OPR_REGISTER;
-           instr.operands[operandnum].reg:=tempreg;
-           instr.operands[operandnum].size:=reg_2_opsize[instr.operands[operandnum].reg];
+           opr.typ:=OPR_REGISTER;
+           opr.reg:=tempreg;
+           size:=reg_2_opsize[opr.reg];
          end;
       end;
 
     AS_LBRACKET: { a variable reference, register ref. or a constant reference }
       Begin
-        BuildBracketExpression(instr);
+        BuildReference;
       end;
 
     AS_SEG :
@@ -1303,18 +1269,157 @@ Begin
 end;
 
 
+{*****************************************************************************
+                                T386IntelInstruction
+*****************************************************************************}
+
+type
+  P386IntelInstruction=^T386IntelInstruction;
+  T386IntelInstruction=object(T386Instruction)
+    procedure InitOperands;virtual;
+    procedure BuildOpcode;virtual;
+  end;
+
+procedure T386IntelInstruction.InitOperands;
+var
+  i : longint;
+begin
+  for i:=1to 3 do
+   Operands[i]:=new(P386IntelOperand,Init);
+end;
+
+
+Procedure T386IntelInstruction.BuildOpCode;
+var
+  PrefixOp,OverrideOp: tasmop;
+  expr : string;
+  size : topsize;
+  operandnum : longint;
+Begin
+  expr:='';
+  PrefixOp:=A_None;
+  OverrideOp:=A_None;
+  { prefix seg opcode / prefix opcode }
+  repeat
+    if is_prefix(actopcode) then
+     begin
+       PrefixOp:=ActOpcode;
+       opcode:=ActOpcode;
+       condition:=ActCondition;
+       opsize:=ActOpsize;
+       ConcatInstruction(curlist);
+       Consume(AS_OPCODE);
+     end
+    else
+     if is_override(actopcode) then
+      begin
+        OverrideOp:=ActOpcode;
+        opcode:=ActOpcode;
+        condition:=ActCondition;
+        opsize:=ActOpsize;
+        ConcatInstruction(curlist);
+        Consume(AS_OPCODE);
+      end
+    else
+     break;
+  until (actasmtoken<>AS_OPCODE);
+  { opcode }
+  if (actasmtoken <> AS_OPCODE) then
+   Begin
+     Message(asmr_e_invalid_or_missing_opcode);
+     RecoverConsume(false);
+     exit;
+   end;
+  { Fill the instr object with the current state }
+  Opcode:=ActOpcode;
+  condition:=ActCondition;
+  opsize:=ActOpsize;
+  { Valid combination of prefix/override and instruction ?  }
+  if (prefixop<>A_NONE) and (NOT CheckPrefix(PrefixOp,actopcode)) then
+    Message1(asmr_e_invalid_prefix_and_opcode,actasmpattern);
+  if (overrideop<>A_NONE) and (NOT CheckOverride(OverrideOp,ActOpcode)) then
+    Message1(asmr_e_invalid_override_and_opcode,actasmpattern);
+  { We are reading operands, so opcode will be an AS_ID }
+  operandnum:=1;
+  Consume(AS_OPCODE);
+  { Zero operand opcode ?  }
+  if actasmtoken in [AS_SEPARATOR,AS_END] then
+   begin
+     operandnum:=0;
+     exit;
+   end;
+  { Read Operands }
+  repeat
+    case actasmtoken of
+
+      { End of asm operands for this opcode }
+      AS_END,
+      AS_SEPARATOR :
+        break;
+
+      { Operand delimiter }
+      AS_COMMA :
+        Begin
+          if operandnum > MaxOperands then
+            Message(asmr_e_too_many_operands)
+          else
+            Inc(operandnum);
+          Consume(AS_COMMA);
+        end;
+
+      { Typecast, Constant Expression, Type Specifier }
+      AS_DWORD,
+      AS_BYTE,
+      AS_WORD,
+      AS_TBYTE,
+      AS_QWORD :
+        Begin
+          { load the size in a temp variable, so it can be set when the
+            operand is read }
+          Case actasmtoken of
+            AS_DWORD : size:=S_L;
+            AS_WORD  : size:=S_W;
+            AS_BYTE  : size:=S_B;
+            AS_QWORD : size:=S_IQ;
+            AS_TBYTE : size:=S_FX;
+          end;
+          Consume(actasmtoken);
+          if actasmtoken=AS_PTR then
+           begin
+             Consume(AS_PTR);
+             Operands[operandnum]^.InitRef;
+           end;
+          Operands[operandnum]^.BuildOperand;
+          { now set the size which was specified by the override }
+          Operands[operandnum]^.size:=size;
+        end;
+
+      { Type specifier }
+      AS_NEAR,
+      AS_FAR :
+        Begin
+          if actasmtoken = AS_NEAR then
+            Message(asmr_w_near_ignored)
+          else
+            Message(asmr_w_far_ignored);
+          Consume(actasmtoken);
+          if actasmtoken=AS_PTR then
+           begin
+             Consume(AS_PTR);
+             Operands[operandnum]^.InitRef;
+           end;
+          Operands[operandnum]^.BuildOperand;
+        end;
+
+      else
+        Operands[operandnum]^.BuildOperand;
+    end; { end case }
+  until false;
+  Ops:=operandnum;
+end;
+
+
 Procedure BuildConstant(maxvalue: longint);
-{*********************************************************************}
-{ PROCEDURE BuildConstant                                             }
-{  Description: This routine takes care of parsing a DB,DD,or DW      }
-{  line and adding those to the assembler node. Expressions, range-   }
-{  checking are fullly taken care of.                                 }
-{   maxvalue: $ff -> indicates that this is a DB node.                }
-{             $ffff -> indicates that this is a DW node.              }
-{             $ffffffff -> indicates that this is a DD node.          }
-{*********************************************************************}
-{ EXIT CONDITION:  On exit the routine should point to AS_SEPARATOR.  }
-{*********************************************************************}
 var
  strlength: byte;
  asmsym,
@@ -1379,191 +1484,14 @@ Begin
 end;
 
 
-Procedure BuildOpCode;
-{*********************************************************************}
-{ PROCEDURE BuildOpcode;                                              }
-{  Description: Parses the intel opcode and operands, and writes it   }
-{  in the TInstruction object.                                        }
-{*********************************************************************}
-{ EXIT CONDITION:  On exit the routine should point to AS_SEPARATOR.  }
-{ On ENTRY: Token should point to AS_OPCODE                           }
-{*********************************************************************}
-var
-  PrefixOp,OverrideOp: tasmop;
-  expr : string;
-  size : topsize;
-Begin
-  expr:='';
-  PrefixOp:=A_None;
-  OverrideOp:=A_None;
-  { prefix seg opcode / prefix opcode }
-  repeat
-    if is_prefix(actopcode) then
-     begin
-       PrefixOp:=ActOpcode;
-       instr.opcode:=ActOpcode;
-       instr.condition:=ActCondition;
-       instr.opsize:=ActOpsize;
-       ConcatInstruction(curlist,instr);
-       Consume(AS_OPCODE);
-     end
-    else
-     if is_override(actopcode) then
-      begin
-        OverrideOp:=ActOpcode;
-        instr.opcode:=ActOpcode;
-        instr.condition:=ActCondition;
-        instr.opsize:=ActOpsize;
-        ConcatInstruction(curlist,instr);
-        Consume(AS_OPCODE);
-      end
-    else
-     break;
-  until (actasmtoken<>AS_OPCODE);
-  { opcode }
-  if (actasmtoken <> AS_OPCODE) then
-   Begin
-     Message(asmr_e_invalid_or_missing_opcode);
-     RecoverConsume(false);
-     exit;
-   end;
-  { Fill the instr object with the current state }
-  instr.Opcode:=ActOpcode;
-  instr.condition:=ActCondition;
-  instr.opsize:=ActOpsize;
-  { Valid combination of prefix/override and instruction ?  }
-  if (prefixop<>A_NONE) and (NOT CheckPrefix(PrefixOp,actopcode)) then
-    Message1(asmr_e_invalid_prefix_and_opcode,actasmpattern);
-  if (overrideop<>A_NONE) and (NOT CheckOverride(OverrideOp,ActOpcode)) then
-    Message1(asmr_e_invalid_override_and_opcode,actasmpattern);
-  { We are reading operands, so opcode will be an AS_ID }
-  operandnum:=1;
-  Consume(AS_OPCODE);
-  { Zero operand opcode ?  }
-  if actasmtoken in [AS_SEPARATOR,AS_END] then
-   begin
-     operandnum:=0;
-     exit;
-   end;
-  { Read Operands }
-  repeat
-    case actasmtoken of
-
-      { End of asm operands for this opcode }
-      AS_END,
-      AS_SEPARATOR :
-        break;
-
-      { Operand delimiter }
-      AS_COMMA :
-        Begin
-          if operandnum > MaxOperands then
-            Message(asmr_e_too_many_operands)
-          else
-            Inc(operandnum);
-          Consume(AS_COMMA);
-        end;
-
-      { Typecast, Constant Expression, Type Specifier }
-      AS_DWORD,
-      AS_BYTE,
-      AS_WORD,
-      AS_TBYTE,
-      AS_QWORD :
-        Begin
-          { load the size in a temp variable, so it can be set when the
-            operand is read }
-          Case actasmtoken of
-            AS_DWORD : size:=S_L;
-            AS_WORD  : size:=S_W;
-            AS_BYTE  : size:=S_B;
-            AS_QWORD : size:=S_IQ;
-            AS_TBYTE : size:=S_FX;
-          end;
-          Consume(actasmtoken);
-          Case actasmtoken of
-            { Reference }
-            AS_PTR :
-              Begin
-                Consume(AS_PTR);
-                BuildOperand(instr);
-              end;
-            { Possibly a typecast or a constant }
-            { expression.                       }
-            AS_LPAREN :
-              Begin
-                if actasmtoken = AS_ID then
-                 Begin
-                   { Case vartype of                }
-                   {  LOCAL: Replace by offset and  }
-                   {         BP in treference.      }
-                   {  GLOBAL: Replace by mangledname}
-                   {    in symbol of treference     }
-                   { Check if next token = RPAREN   }
-                   { otherwise syntax error.        }
-                   initAsmRef(instr,operandnum);
-                   if not CreateVarInstr(instr,actasmpattern,operandnum) then
-                     Message1(sym_e_unknown_id,actasmpattern);
-                 end
-                else
-                 begin
-                   instr.operands[operandnum].operandtype:=OPR_CONSTANT;
-                   instr.operands[operandnum].val:=BuildConstExpression;
-                 end;
-              end;
-            else
-              BuildOperand(instr);
-          end;
-          { now set the size which was specified by the override }
-          instr.operands[operandnum].size:=size;
-        end;
-
-      { Type specifier }
-      AS_NEAR,
-      AS_FAR :
-        Begin
-          if actasmtoken = AS_NEAR then
-            Message(asmr_w_near_ignored)
-          else
-            Message(asmr_w_far_ignored);
-          Consume(actasmtoken);
-          if actasmtoken = AS_PTR then
-           begin
-             initAsmRef(instr,operandnum);
-             Consume(AS_PTR);
-           end;
-          BuildOperand(instr);
-        end;
-
-      { Constant expression }
-      AS_LPAREN :
-        Begin
-          instr.operands[operandnum].operandtype:=OPR_CONSTANT;
-          instr.operands[operandnum].val:=BuildConstExpression;
-        end;
-
-      else
-        BuildOperand(instr);
-    end; { end case }
-  until false;
-end;
-
-
-
 Function Assemble: Ptree;
-{*********************************************************************}
-{ PROCEDURE Assemble;                                                 }
-{  Description: Parses the intel assembler syntax, parsing is done    }
-{  according to the rules in the Turbo Pascal manual.                 }
-{*********************************************************************}
 Var
-  hl : plabel;
-  labelptr : PAsmLabelRec;
+  hl : PAsmLabel;
+  instr : T386IntelInstruction;
 Begin
   Message1(asmr_d_start_reading,'intel');
   inexpression:=FALSE;
   firsttoken:=TRUE;
-  operandnum:=0;
   if assigned(procinfo.retdef) and
      (is_fpu(procinfo.retdef) or
      ret_in_acc(procinfo.retdef)) then
@@ -1576,46 +1504,26 @@ Begin
    end;
   curlist:=new(paasmoutput,init);
   { setup label linked list }
-  labellist.init;
+  new(LocalLabelList,Init);
+  { start tokenizer }
   c:=current_scanner^.asmgetchar;
   gettoken;
-
+  { main loop }
   repeat
     case actasmtoken of
-      AS_LLABEL :
+      AS_LLABEL:
         Begin
-          labelptr:=labellist.search(actasmpattern);
-          if not assigned(labelptr) then
-           Begin
-             getlabel(hl);
-             labellist.insert(actasmpattern,hl,TRUE);
-             ConcatLabel(curlist,hl);
-           end
-          else
-           { the label has already been inserted into the  }
-           { label list, either as an intruction label (in }
-           { this case it has not been emitted), or as a   }
-           { duplicate local symbol (in this case it has   }
-           { already been emitted).                        }
-           Begin
-              if labelptr^.emitted then
-               Message1(asmr_e_dup_local_sym,'@'+labelptr^.name^)
-              else
-               Begin
-                 if assigned(labelptr^.lab) then
-                   ConcatLabel(curlist,labelptr^.lab);
-                 labelptr^.emitted:=TRUE;
-               end;
-           end;
+          if CreateLocalLabel(actasmpattern,hl,true) then
+            ConcatLabel(curlist,hl);
           Consume(AS_LLABEL);
         end;
 
-      AS_LABEL :
+      AS_LABEL:
         Begin
-          if SearchLabel(actasmpattern,hl) then
-            ConcatLabel(curlist,hl)
+          if SearchLabel(upper(actasmpattern),hl,true) then
+           ConcatLabel(curlist,hl)
           else
-            Message1(asmr_e_unknown_label_identifier,actasmpattern);
+           Message1(asmr_e_unknown_label_identifier,actasmpattern);
           Consume(AS_LABEL);
         end;
 
@@ -1646,23 +1554,19 @@ Begin
       AS_OPCODE :
         Begin
           instr.init;
-          BuildOpcode;
-          instr.ops:=operandnum;
+          instr.BuildOpcode;
           { We need AT&T style operands }
-          SwapOperands(instr);
-          AddReferenceSizes(instr);
-          SetInstructionOpsize(instr);
-          CheckOperandSizes(instr);
-          ConcatInstruction(curlist,instr);
+          instr.SwapOperands;
+          instr.AddReferenceSizes;
+          instr.SetInstructionOpsize;
+          instr.CheckOperandSizes;
+          instr.ConcatInstruction(curlist);
           instr.done;
-          operandnum:=0;
         end;
 
       AS_SEPARATOR :
         Begin
           Consume(AS_SEPARATOR);
-          { let us go back to the first operand }
-          operandnum:=0;
         end;
 
       AS_END :
@@ -1676,29 +1580,11 @@ Begin
         end;
     end; { end case }
   until false;
-
-  { check if there were undefined symbols.   }
-  { if so, then list each of those undefined }
-  { labels.                                  }
-  if assigned(labellist.First) then
-   Begin
-     labelptr:=labellist.First;
-     if labellist.First <> nil then
-      Begin
-        { first label }
-        if not labelptr^.emitted then
-          Message1(asmr_e_unknown_local_sym,'@'+labelptr^.name^);
-        { other labels ... }
-        While (labelptr^.Next <> nil) do
-         Begin
-           labelptr:=labelptr^.Next;
-           if not labelptr^.emitted then
-            Message1(asmr_e_unknown_local_sym,'@'+labelptr^.name^);
-         end;
-      end;
-   end;
+  { Check LocalLabelList }
+  LocalLabelList^.CheckEmitted;
+  dispose(LocalLabelList,Done);
+  { Return the list in an asmnode }
   assemble:=genasmnode(curlist);
-  labellist.done;
   Message1(asmr_d_finish_reading,'intel');
 end;
 
@@ -1726,7 +1612,15 @@ begin
 end.
 {
   $Log$
-  Revision 1.34  1999-05-21 13:55:16  peter
+  Revision 1.35  1999-05-27 19:44:59  peter
+    * removed oldasm
+    * plabel -> pasmlabel
+    * -a switches to source writing automaticly
+    * assembler readers OOPed
+    * asmsymbol automaticly external
+    * jumptables and other label fixes for asm readers
+
+  Revision 1.34  1999/05/21 13:55:16  peter
     * NEWLAB for label as symbol
 
   Revision 1.33  1999/05/05 22:22:03  peter

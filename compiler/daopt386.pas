@@ -79,7 +79,7 @@ Function DFAPass2(
                                       BlockStart, BlockEnd: Pai): Boolean;
 Procedure ShutDownDFA;
 
-Function FindLabel(L: PLabel; Var hp: Pai): Boolean;
+Function FindLabel(L: PasmLabel; Var hp: Pai): Boolean;
 
 {******************************* Constants *******************************}
 
@@ -607,10 +607,10 @@ Begin
           Then
             Begin
               LabelFound := True;
-              If (Pai_Label(p)^.l^.nb < LowLabel) Then
-                LowLabel := Pai_Label(p)^.l^.nb;
-              If (Pai_Label(p)^.l^.nb > HighLabel) Then
-                HighLabel := Pai_Label(p)^.l^.nb;
+              If (Pai_Label(p)^.l^.labelnr < LowLabel) Then
+                LowLabel := Pai_Label(p)^.l^.labelnr;
+              If (Pai_Label(p)^.l^.labelnr > HighLabel) Then
+                HighLabel := Pai_Label(p)^.l^.labelnr;
             End
 {          Else
             Begin
@@ -678,7 +678,7 @@ Begin
                 Case p^.typ Of
                   ait_Label:
                     If Pai_Label(p)^.l^.is_used Then
-                      LabelTable^[Pai_Label(p)^.l^.nb-LowLabel].PaiObj := p;
+                      LabelTable^[Pai_Label(p)^.l^.labelnr-LowLabel].PaiObj := p;
                   ait_regAlloc:
                      begin
                        if PairegAlloc(p)^.Allocation then
@@ -732,7 +732,7 @@ End;
 
 {************************ Search the Label table ************************}
 
-Function FindLabel(L: PLabel; Var hp: Pai): Boolean;
+Function FindLabel(L: PasmLabel; Var hp: Pai): Boolean;
 
 {searches for the specified label starting from hp as long as the
  encountered instructions are labels, to be able to optimize constructs like
@@ -1647,7 +1647,7 @@ Begin
 {$Else JumpAnal}
           Begin
            If (Pai_Label(p)^.is_used) Then
-             With LTable^[Pai_Label(p)^.l^.nb-LoLab] Do
+             With LTable^[Pai_Label(p)^.l^.labelnr-LoLab] Do
 {$IfDef AnalyzeLoops}
               If (RefsFound = Pai_Label(p)^.l^.RefCount)
 {$Else AnalyzeLoops}
@@ -1662,9 +1662,8 @@ Begin
  {we've processed at least one jump to this label}
                       Begin
                         If (GetLastInstruction(p, hp) And
-                           Not(((hp^.typ = ait_labeled_instruction) or
-                                (hp^.typ = ait_instruction)) And
-                                (pai386_labeled(hp)^.opcode = A_JMP))
+                           Not(((hp^.typ = ait_instruction)) And
+                                (pai386_labeled(hp)^.is_jmp))
                           Then
   {previous instruction not a JMP -> the contents of the registers after the
    previous intruction has been executed have to be taken into account as well}
@@ -1680,7 +1679,7 @@ Begin
  {a label from a backward jump (e.g. a loop), no jump to this label has
   already been processed}
                       If GetLastInstruction(p, hp) And
-                         Not(hp^.typ = ait_labeled_instruction) And
+                         Not(hp^.typ = ait_instruction) And
                             (pai386_labeled(hp)^.opcode = A_JMP))
                         Then
   {previous instruction not a jmp, so keep all the registers' contents from the
@@ -1697,12 +1696,13 @@ Begin
      {continue until we find a jump to the label or a label which has already
       been processed}
                             While GetNextInstruction(hp, hp) And
-                                  Not((hp^.typ = ait_labeled_instruction) And
-                                      (pai386_labeled(hp)^.lab^.nb = Pai_Label(p)^.l^.nb)) And
+                                  Not((hp^.typ = ait_instruction) And
+                                      (pai386(hp)^.is_jmp) and
+                                      (pasmlabel(pai386(hp)^.oper[0].sym)^.labelnr = Pai_Label(p)^.l^.labelnr)) And
                                   Not((hp^.typ = ait_label) And
-                                      (LTable^[Pai_Label(hp)^.l^.nb-LoLab].RefsFound
+                                      (LTable^[Pai_Label(hp)^.l^.labelnr-LoLab].RefsFound
                                        = Pai_Label(hp)^.l^.RefCount) And
-                                      (LTable^[Pai_Label(hp)^.l^.nb-LoLab].JmpsProcessed > 0)) Do
+                                      (LTable^[Pai_Label(hp)^.l^.labelnr-LoLab].JmpsProcessed > 0)) Do
                               Inc(Cnt);
                             If (hp^.typ = ait_label)
                               Then
@@ -1732,12 +1732,20 @@ Begin
                   End;
           End;
 {$EndIf JumpAnal}
-        ait_labeled_instruction:
+
+{$ifdef GDB}
+        ait_stabs, ait_stabn, ait_stab_function_name:;
+{$endif GDB}
+
+        ait_instruction:
+          Begin
+            if pai386(p)^.is_jmp then
+             begin
 {$IfNDef JumpAnal}
   ;
 {$Else JumpAnal}
-          With LTable^[pai386_labeled(p)^.lab^.nb-LoLab] Do
-            If (RefsFound = pai386_labeled(p)^.lab^.RefCount) Then
+          With LTable^[pasmlabel(pai386(p)^.oper[0].sym)^.labelnr-LoLab] Do
+            If (RefsFound = pasmlabel(pai386(p)^.oper[0].sym)^.RefCount) Then
               Begin
                 If (InstrCnt < InstrNr)
                   Then
@@ -1818,11 +1826,9 @@ Begin
 {$endif AnalyzeLoops}
           End;
 {$EndIf JumpAnal}
-{$ifdef GDB}
-        ait_stabs, ait_stabn, ait_stab_function_name:;
-{$endif GDB}
-        ait_instruction:
-          Begin
+          end
+          else
+           begin
             InstrProp := AsmInstr[Pai386(p)^.opcode];
             Case Pai386(p)^.opcode Of
               A_MOV, A_MOVZX, A_MOVSX:
@@ -1990,6 +1996,7 @@ Begin
                       Inc(Cnt);
                     End
                 End;
+              end;
             End;
           End
         Else
@@ -2017,17 +2024,20 @@ Begin
     Begin
 {$IfDef JumpAnal}
       Case P^.Typ Of
-        ait_labeled_instruction:
-          begin
-            If (pai386_labeled(P)^.lab^.nb >= LoLab) And
-               (pai386_labeled(P)^.lab^.nb <= HiLab) Then
-            Inc(LTable^[pai386_labeled(P)^.lab^.nb-LoLab].RefsFound);
-          end;
         ait_label:
           Begin
             If (Pai_Label(p)^.l^.is_used) Then
-              LTable^[Pai_Label(P)^.l^.nb-LoLab].InstrNr := NrOfPaiObjs
+              LTable^[Pai_Label(P)^.l^.labelnr-LoLab].InstrNr := NrOfPaiObjs
           End;
+        ait_instruction:
+          begin
+            if pai386(p)^.is_jmp then
+             begin
+               If (pasmlabel(pai386(P)^.oper[0].sym)^.labelnr >= LoLab) And
+                  (pasmlabel(pai386(P)^.oper[0].sym)^.labelnr <= HiLab) Then
+                 Inc(LTable^[pasmlabel(pai386(P)^.oper[0].sym)^.labelnr-LoLab].RefsFound);
+             end;
+          end;
 {        ait_instruction:
           Begin
            If (Pai386(p)^.opcode = A_PUSH) And
@@ -2095,7 +2105,15 @@ End.
 
 {
  $Log$
- Revision 1.46  1999-05-08 20:40:02  jonas
+ Revision 1.47  1999-05-27 19:44:24  peter
+   * removed oldasm
+   * plabel -> pasmlabel
+   * -a switches to source writing automaticly
+   * assembler readers OOPed
+   * asmsymbol automaticly external
+   * jumptables and other label fixes for asm readers
+
+ Revision 1.46  1999/05/08 20:40:02  jonas
    * seperate OPTimizer INFO pointer field in tai object
    * fix to GetLastInstruction that sometimes caused a crash
 

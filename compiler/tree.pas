@@ -30,10 +30,8 @@ unit tree;
 
     uses
        globtype,cobjects,symtable,aasm
-{$ifndef OLDASM}
+{$ifdef i386}
        ,i386base
-{$else}
-       ,i386
 {$endif}
 {$ifdef m68k}
        ,m68k
@@ -48,30 +46,30 @@ unit tree;
        tconstset = array[0..31] of byte;
 
        ttreetyp = (
-          addn,            {Represents the + operator.}
-          muln,            {Represents the * operator.}
-          subn,            {Represents the - operator.}
-          divn,            {Represents the div operator.}
-          symdifn,         {Represents the >< operator.}
-          modn,            {Represents the mod operator.}
-          assignn,         {Represents an assignment.}
+          addn,     {Represents the + operator.}
+          muln,     {Represents the * operator.}
+          subn,     {Represents the - operator.}
+          divn,     {Represents the div operator.}
+          symdifn,       {Represents the >< operator.}
+          modn,     {Represents the mod operator.}
+          assignn,       {Represents an assignment.}
           loadn,           {Represents the use of a variabele.}
-          rangen,          {Represents a range (i.e. 0..9).}
-          ltn,             {Represents the < operator.}
-          lten,            {Represents the <= operator.}
-          gtn,             {Represents the > operator.}
-          gten,            {Represents the >= operator.}
-          equaln,          {Represents the = operator.}
-          unequaln,        {Represents the <> operator.}
-          inn,             {Represents the in operator.}
-          orn,             {Represents the or operator.}
-          xorn,            {Represents the xor operator.}
-          shrn,            {Represents the shr operator.}
-          shln,            {Represents the shl operator.}
-          slashn,          {Represents the / operator.}
-          andn,            {Represents the and operator.}
+          rangen,         {Represents a range (i.e. 0..9).}
+          ltn,       {Represents the < operator.}
+          lten,     {Represents the <= operator.}
+          gtn,       {Represents the > operator.}
+          gten,     {Represents the >= operator.}
+          equaln,         {Represents the = operator.}
+          unequaln,     {Represents the <> operator.}
+          inn,       {Represents the in operator.}
+          orn,       {Represents the or operator.}
+          xorn,     {Represents the xor operator.}
+          shrn,     {Represents the shr operator.}
+          shln,     {Represents the shl operator.}
+          slashn,         {Represents the / operator.}
+          andn,     {Represents the and operator.}
           subscriptn,      {??? Field in a record/object?}
-          derefn,          {Dereferences a pointer.}
+          derefn,         {Dereferences a pointer.}
           addrn,           {Represents the @ operator.}
           doubleaddrn,     {Represents the @@ operator.}
           ordconstn,       {Represents an ordinal value.}
@@ -80,47 +78,47 @@ unit tree;
           callparan,       {Represents a parameter.}
           realconstn,      {Represents a real value.}
           fixconstn,       {Represents a fixed value.}
-          umminusn,        {Represents a sign change (i.e. -2).}
-          asmn,            {Represents an assembler node }
-          vecn,            {Represents array indexing.}
+          umminusn,     {Represents a sign change (i.e. -2).}
+          asmn,     {Represents an assembler node }
+          vecn,     {Represents array indexing.}
           stringconstn,    {Represents a string constant.}
-          funcretn,        {Represents the function result var.}
+          funcretn,     {Represents the function result var.}
           selfn,           {Represents the self parameter.}
-          notn,            {Represents the not operator.}
-          inlinen,         {Internal procedures (i.e. writeln).}
-          niln,            {Represents the nil pointer.}
-          errorn,          {This part of the tree could not be
+          notn,     {Represents the not operator.}
+          inlinen,       {Internal procedures (i.e. writeln).}
+          niln,     {Represents the nil pointer.}
+          errorn,         {This part of the tree could not be
                             parsed because of a compiler error.}
           typen,           {A type name. Used for i.e. typeof(obj).}
           hnewn,           {The new operation, constructor call.}
           hdisposen,       {The dispose operation with destructor call.}
-          newn,            {The new operation, constructor call.}
+          newn,     {The new operation, constructor call.}
           simpledisposen,  {The dispose operation.}
           setelementn,     {A set element(s) (i.e. [a,b] and also [a..b]).}
           setconstn,       {A set constant (i.e. [1,2]).}
-          blockn,          {A block of statements.}
+          blockn,         {A block of statements.}
           statementn,      {One statement in a block of nodes.}
           loopn,           { used in genloopnode, must be converted }
-          ifn,             {An if statement.}
-          breakn,          {A break statement.}
+          ifn,       {An if statement.}
+          breakn,         {A break statement.}
           continuen,       {A continue statement.}
-          repeatn,         {A repeat until block.}
-          whilen,          {A while do statement.}
-          forn,            {A for loop.}
+          repeatn,       {A repeat until block.}
+          whilen,         {A while do statement.}
+          forn,     {A for loop.}
           exitn,           {An exit statement.}
           withn,           {A with statement.}
           casen,           {A case statement.}
-          labeln,          {A label.}
+          labeln,         {A label.}
           goton,           {A goto statement.}
           simplenewn,      {The new operation.}
           tryexceptn,      {A try except block.}
-          raisen,          {A raise statement.}
+          raisen,         {A raise statement.}
           switchesn,       {??? Currently unused...}
           tryfinallyn,     {A try finally statement.}
-          onn,             { for an on statement in exception code }
-          isn,             {Represents the is operator.}
-          asn,             {Represents the as typecast.}
-          caretn,          {Represents the ^ operator.}
+          onn,       { for an on statement in exception code }
+          isn,       {Represents the is operator.}
+          asn,       {Represents the as typecast.}
+          caretn,         {Represents the ^ operator.}
           failn,           {Represents the fail statement.}
           starstarn,       {Represents the ** operator exponentiation }
           procinlinen,     {Procedures that can be inlined }
@@ -174,10 +172,10 @@ unit tree;
           _low,_high : longint;
 
           { only used by gentreejmp }
-          _at : plabel;
+          _at : pasmlabel;
 
           { label of instruction }
-          statement : plabel;
+          statement : pasmlabel;
 
           { is this the first of an case entry, needed to release statement
             label (PFV) }
@@ -225,28 +223,28 @@ unit tree;
                       no_check,unit_specific,
                       return_value_used,static_call : boolean);
              ordconstn : (value : longint);
-             realconstn : (value_real : bestreal;lab_real : plabel);
+             realconstn : (value_real : bestreal;lab_real : pasmlabel);
              fixconstn : (value_fix: longint);
              funcretn : (funcretprocinfo : pointer;retdef : pdef);
              subscriptn : (vs : pvarsym);
              vecn : (memindex,memseg:boolean;callunique : boolean);
-             stringconstn : (value_str : pchar;length : longint; lab_str : plabel;stringtype : tstringtype);
+             stringconstn : (value_str : pchar;length : longint; lab_str : pasmlabel;stringtype : tstringtype);
              typeconvn : (convtyp : tconverttype;explizit : boolean);
              typen : (typenodetype : pdef);
              inlinen : (inlinenumber : byte;inlineconst:boolean);
              procinlinen : (inlinetree:ptree;inlineprocsym:pprocsym;retoffset,para_offset,para_size : longint);
-             setconstn : (value_set : pconstset;lab_set:plabel);
+             setconstn : (value_set : pconstset;lab_set:pasmlabel);
              loopn : (t1,t2 : ptree;backward : boolean);
              asmn : (p_asm : paasmoutput;object_preserved : boolean);
              casen : (nodes : pcaserecord;elseblock : ptree);
-             labeln,goton : (labelnr : plabel);
+             labeln,goton : (labelnr : pasmlabel);
              withn : (withsymtable : pwithsymtable;tablecount : longint;withreference:preference;islocal:boolean);
              onn : (exceptsymtable : psymtable;excepttype : pobjectdef);
              arrayconstructn : (cargs,cargswap: boolean);
            end;
 
     function gennode(t : ttreetyp;l,r : ptree) : ptree;
-    function genlabelnode(t : ttreetyp;nr : plabel) : ptree;
+    function genlabelnode(t : ttreetyp;nr : pasmlabel) : ptree;
     function genloadnode(v : pvarsym;st : psymtable) : ptree;
     function genloadcallnode(v: pprocsym;st: psymtable): ptree;
     function genloadmethodcallnode(v: pprocsym;st: psymtable; mp:ptree): ptree;
@@ -300,7 +298,7 @@ unit tree;
 {$endif extdebug}
 
     { sets the callunique flag, if the node is a vecn, }
-    { takes care of type casts etc.                    }
+    { takes care of type casts etc.                 }
     procedure set_unique(p : ptree);
 
     { gibt den ordinalen Werten der Node zurueck oder falls sie }
@@ -758,7 +756,7 @@ unit tree;
          p^.disposetyp:=dt_nothing;
          p^.treetype:=ordconstn;
          p^.registers32:=0;
-{         p^.registers16:=0;
+{        p^.registers16:=0;
          p^.registers8:=0; }
          p^.registersfpu:=0;
 {$ifdef SUPPORT_MMX}
@@ -781,7 +779,7 @@ unit tree;
          p^.disposetyp:=dt_nothing;
          p^.treetype:=realconstn;
          p^.registers32:=0;
-{         p^.registers16:=0;
+{        p^.registers16:=0;
          p^.registers8:=0; }
          p^.registersfpu:=0;
 {$ifdef SUPPORT_MMX}
@@ -804,7 +802,7 @@ unit tree;
          p^.disposetyp:=dt_nothing;
          p^.treetype:=stringconstn;
          p^.registers32:=0;
-{         p^.registers16:=0;
+{        p^.registers16:=0;
          p^.registers8:=0; }
          p^.registersfpu:=0;
 {$ifdef SUPPORT_MMX}
@@ -851,7 +849,7 @@ unit tree;
          p^.disposetyp:=dt_nothing;
          p^.treetype:=stringconstn;
          p^.registers32:=0;
-{         p^.registers16:=0;
+{        p^.registers16:=0;
          p^.registers8:=0; }
          p^.registersfpu:=0;
 {$ifdef SUPPORT_MMX}
@@ -886,7 +884,7 @@ unit tree;
          p^.treetype:=t;
          p^.left:=l;
          p^.registers32:=0;
-{         p^.registers16:=0;
+{        p^.registers16:=0;
          p^.registers8:=0; }
          p^.registersfpu:=0;
 {$ifdef SUPPORT_MMX}
@@ -908,7 +906,7 @@ unit tree;
          p^.registers32:=4;
          p^.p_asm:=p_asm;
          p^.object_preserved:=false;
-{         p^.registers16:=0;
+{        p^.registers16:=0;
          p^.registers8:=0; }
          p^.registersfpu:=8;
 {$ifdef SUPPORT_MMX}
@@ -926,7 +924,7 @@ unit tree;
       begin
          p:=getnode;
          p^.registers32:=0;
-{         p^.registers16:=0;
+{        p^.registers16:=0;
          p^.registers8:=0; }
          p^.registersfpu:=0;
 {$ifdef SUPPORT_MMX}
@@ -950,7 +948,7 @@ unit tree;
       begin
          p:=getnode;
          p^.registers32:=0;
-{         p^.registers16:=0;
+{        p^.registers16:=0;
          p^.registers8:=0; }
          p^.registersfpu:=0;
 {$ifdef SUPPORT_MMX}
@@ -973,7 +971,7 @@ unit tree;
       begin
          p:=getnode;
          p^.registers32:=0;
-{         p^.registers16:=0;
+{        p^.registers16:=0;
          p^.registers8:=0; }
          p^.registersfpu:=0;
 {$ifdef SUPPORT_MMX}
@@ -999,7 +997,7 @@ unit tree;
       begin
          p:=getnode;
          p^.registers32:=0;
-{         p^.registers16:=0;
+{        p^.registers16:=0;
          p^.registers8:=0; }
          p^.registersfpu:=0;
 {$ifdef SUPPORT_MMX}
@@ -1025,7 +1023,7 @@ unit tree;
          p^.treetype:=typeconvn;
          p^.left:=node;
          p^.registers32:=0;
-{         p^.registers16:=0;
+{        p^.registers16:=0;
          p^.registers8:=0; }
          p^.convtyp:=tc_equal;
          p^.registersfpu:=0;
@@ -1048,7 +1046,7 @@ unit tree;
          p^.disposetyp:=dt_nothing;
          p^.treetype:=typen;
          p^.registers32:=0;
-{         p^.registers16:=0;
+{        p^.registers16:=0;
          p^.registers8:=0; }
          p^.registersfpu:=0;
 {$ifdef SUPPORT_MMX}
@@ -1067,7 +1065,7 @@ unit tree;
       begin
          p:=getnode;
          p^.registers32:=0;
-{         p^.registers16:=0;
+{        p^.registers16:=0;
          p^.registers8:=0; }
          p^.registersfpu:=0;
 {$ifdef SUPPORT_MMX}
@@ -1095,7 +1093,7 @@ unit tree;
       begin
          p:=getnode;
          p^.registers32:=0;
-{         p^.registers16:=0;
+{        p^.registers16:=0;
          p^.registers8:=0; }
          p^.registersfpu:=0;
 {$ifdef SUPPORT_MMX}
@@ -1125,7 +1123,7 @@ unit tree;
          p^.left:=l;
          p^.registers32:=0;
          p^.vs:=varsym;
-{         p^.registers16:=0;
+{        p^.registers16:=0;
          p^.registers8:=0; }
          p^.registersfpu:=0;
 {$ifdef SUPPORT_MMX}
@@ -1145,7 +1143,7 @@ unit tree;
          p^.disposetyp:=dt_nothing;
          p^.treetype:=t;
          p^.registers32:=0;
-{         p^.registers16:=0;
+{        p^.registers16:=0;
          p^.registers8:=0; }
          p^.registersfpu:=0;
 {$ifdef SUPPORT_MMX}
@@ -1155,7 +1153,7 @@ unit tree;
          genzeronode:=p;
       end;
 
-   function genlabelnode(t : ttreetyp;nr : plabel) : ptree;
+   function genlabelnode(t : ttreetyp;nr : pasmlabel) : ptree;
 
       var
          p : ptree;
@@ -1165,7 +1163,7 @@ unit tree;
          p^.disposetyp:=dt_nothing;
          p^.treetype:=t;
          p^.registers32:=0;
-{         p^.registers16:=0;
+{        p^.registers16:=0;
          p^.registers8:=0; }
          p^.registersfpu:=0;
 {$ifdef SUPPORT_MMX}
@@ -1188,7 +1186,7 @@ unit tree;
          p^.disposetyp:=dt_nothing;
          p^.treetype:=selfn;
          p^.registers32:=0;
-{         p^.registers16:=0;
+{        p^.registers16:=0;
          p^.registers8:=0; }
          p^.registersfpu:=0;
 {$ifdef SUPPORT_MMX}
@@ -1211,7 +1209,7 @@ unit tree;
          p^.inlinenumber:=number;
          p^.inlineconst:=is_const;
          p^.registers32:=0;
-{         p^.registers16:=0;
+{        p^.registers16:=0;
          p^.registers8:=0; }
          p^.registersfpu:=0;
 {$ifdef SUPPORT_MMX}
@@ -1733,7 +1731,15 @@ unit tree;
 end.
 {
   $Log$
-  Revision 1.82  1999-05-18 14:15:59  peter
+  Revision 1.83  1999-05-27 19:45:29  peter
+    * removed oldasm
+    * plabel -> pasmlabel
+    * -a switches to source writing automaticly
+    * assembler readers OOPed
+    * asmsymbol automaticly external
+    * jumptables and other label fixes for asm readers
+
+  Revision 1.82  1999/05/18 14:15:59  peter
     * containsself fixes
     * checktypes()
 

@@ -35,6 +35,7 @@ unit ag386nsm;
       ti386nasmasmlist = object(tasmlist)
         procedure WriteTree(p:paasmoutput);virtual;
         procedure WriteAsmList;virtual;
+        procedure WriteExternals;
       end;
 
   implementation
@@ -43,11 +44,7 @@ unit ag386nsm;
       dos,strings,
       globtype,globals,systems,cobjects,
       files,verbose
-{$ifndef OLDASM}
       ,i386base,i386asm
-{$else}
-      ,i386
-{$endif}
 {$ifdef GDB}
       ,gdb
 {$endif GDB}
@@ -56,7 +53,7 @@ unit ag386nsm;
     const
       line_length = 70;
 
-{$ifndef NEWLAB}
+{$ifdef EXTTYPE}
       extstr : array[EXT_NEAR..EXT_ABS] of String[8] =
              ('NEAR','FAR','PROC','BYTE','WORD','DWORD',
               'CODEPTR','DATAPTR','FWORD','PWORD','QWORD','TBYTE','ABS');
@@ -178,184 +175,108 @@ unit ag386nsm;
        getreferencestring:=s;
      end;
 
-{$ifndef OLDASM}
-
-    function getopstr(const o:toper;s : topsize; opcode: tasmop;dest : boolean) : string;
-    var
-      hs : string;
-    begin
-      case o.typ of
-        top_reg :
-          getopstr:=int_nasmreg2str[o.reg];
-        top_const :
-          getopstr:=tostr(o.val);
-        top_symbol :
-          begin
-            if assigned(o.sym) then
-              hs:='dword '+o.sym^.name
-            else
-              hs:='dword ';
-            if o.symofs>0 then
-             hs:=hs+'+'+tostr(o.symofs)
-            else
-             if o.symofs<0 then
-              hs:=hs+tostr(o.symofs)
-            else
-             if not(assigned(o.sym)) then
-               hs:=hs+'0';
-            getopstr:=hs;
-          end;
-        top_ref :
-          begin
-            hs:=getreferencestring(o.ref^);
-            if not ((opcode = A_LEA) or (opcode = A_LGS) or
-                    (opcode = A_LSS) or (opcode = A_LFS) or
-                    (opcode = A_LES) or (opcode = A_LDS) or
-                    (opcode = A_SHR) or (opcode = A_SHL) or
-                    (opcode = A_SAR) or (opcode = A_SAL) or
-                    (opcode = A_OUT) or (opcode = A_IN)) then
-             begin
-               case s of
-                  S_B : hs:='byte '+hs;
-                  S_W : hs:='word '+hs;
-                  S_L : hs:='dword '+hs;
-                  S_IS : hs:='word '+hs;
-                  S_IL : hs:='dword '+hs;
-                  S_IQ : hs:='qword '+hs;
-                  S_FS : hs:='dword '+hs;
-                  S_FL : hs:='qword '+hs;
-                  S_FX : hs:='tword '+hs;
-                  S_BW : if dest then
-                      hs:='word '+hs
-                    else
-                      hs:='byte '+hs;
-                  S_BL : if dest then
-                      hs:='dword '+hs
-                    else
-                      hs:='byte '+hs;
-                  S_WL : if dest then
-                      hs:='dword '+hs
-                    else
-                      hs:='word '+hs;
-               end
-             end;
-            getopstr:=hs;
-          end;
-        else
-          internalerror(10001);
+    function sizestr(s:topsize;dest:boolean):string;
+      begin
+        case s of
+           S_B : sizestr:='byte ';
+           S_W : sizestr:='word ';
+           S_L : sizestr:='dword ';
+           S_IS : sizestr:='word ';
+           S_IL : sizestr:='dword ';
+           S_IQ : sizestr:='qword ';
+           S_FS : sizestr:='dword ';
+           S_FL : sizestr:='qword ';
+           S_FX : sizestr:='tword ';
+           S_BW : if dest then
+               sizestr:='word '
+             else
+               sizestr:='byte ';
+           S_BL : if dest then
+               sizestr:='dword '
+             else
+               sizestr:='byte ';
+           S_WL : if dest then
+               sizestr:='dword '
+             else
+               sizestr:='word ';
+        end;
       end;
-    end;
+
+
+    function getopstr(const o:toper;s : topsize; opcode: tasmop;ops:longint;dest : boolean) : string;
+      var
+        hs : string;
+      begin
+        case o.typ of
+          top_reg :
+            getopstr:=int_nasmreg2str[o.reg];
+          top_const :
+            begin
+              if (ops=1) and (opcode<>A_RET) then
+               getopstr:=sizestr(s,dest)+tostr(o.val)
+              else
+               getopstr:=tostr(o.val);
+            end;
+          top_symbol :
+            begin
+              if assigned(o.sym) then
+               hs:='dword '+o.sym^.name
+              else
+               hs:='dword ';
+              if o.symofs>0 then
+               hs:=hs+'+'+tostr(o.symofs)
+              else
+               if o.symofs<0 then
+                hs:=hs+tostr(o.symofs)
+               else
+                if not(assigned(o.sym)) then
+                 hs:=hs+'0';
+              getopstr:=hs;
+            end;
+          top_ref :
+            begin
+              hs:=getreferencestring(o.ref^);
+              if not ((opcode = A_LEA) or (opcode = A_LGS) or
+                      (opcode = A_LSS) or (opcode = A_LFS) or
+                      (opcode = A_LES) or (opcode = A_LDS) or
+                      (opcode = A_SHR) or (opcode = A_SHL) or
+                      (opcode = A_SAR) or (opcode = A_SAL) or
+                      (opcode = A_OUT) or (opcode = A_IN)) then
+               begin
+                 hs:=sizestr(s,dest)+hs;
+               end;
+              getopstr:=hs;
+            end;
+          else
+            internalerror(10001);
+        end;
+      end;
 
     function getopstr_jmp(const o:toper) : string;
-    var
-      hs : string;
-    begin
-      case o.typ of
-        top_reg :
-          getopstr_jmp:=int_nasmreg2str[o.reg];
-        top_ref :
-          getopstr_jmp:=getreferencestring(o.ref^);
-        top_const :
-          getopstr_jmp:=tostr(o.val);
-        top_symbol :
-          begin
-            hs:=o.sym^.name;
-            if o.symofs>0 then
-             hs:=hs+'+'+tostr(o.symofs)
-            else
-             if o.symofs<0 then
-              hs:=hs+tostr(o.symofs);
-            getopstr_jmp:=hs;
-          end;
-        else
-          internalerror(10001);
+      var
+        hs : string;
+      begin
+        case o.typ of
+          top_reg :
+            getopstr_jmp:=int_nasmreg2str[o.reg];
+          top_ref :
+            getopstr_jmp:=getreferencestring(o.ref^);
+          top_const :
+            getopstr_jmp:=tostr(o.val);
+          top_symbol :
+            begin
+              hs:=o.sym^.name;
+              if o.symofs>0 then
+               hs:=hs+'+'+tostr(o.symofs)
+              else
+               if o.symofs<0 then
+                hs:=hs+tostr(o.symofs);
+              getopstr_jmp:=hs;
+            end;
+          else
+            internalerror(10001);
+        end;
       end;
-    end;
-
-{$else}
-
-    function getopstr(t : byte;o : pointer;opofs:longint;s : topsize; opcode: tasmop;dest : boolean) : string;
-    var
-      hs : string;
-    begin
-      case t of
-       top_reg : getopstr:=int_nasmreg2str[tregister(o)];
-     top_const,
-       top_ref : begin
-                   if t=top_const then
-                     hs := tostr(longint(o))
-                   else
-                     hs:=getreferencestring(preference(o)^);
-                   if not ((opcode = A_LEA) or (opcode = A_LGS) or
-                           (opcode = A_LSS) or (opcode = A_LFS) or
-                           (opcode = A_LES) or (opcode = A_LDS) or
-                           (opcode = A_SHR) or (opcode = A_SHL) or
-                           (opcode = A_SAR) or (opcode = A_SAL) or
-                           (opcode = A_OUT) or (opcode = A_IN)) then
-                     begin
-                       case s of
-                          S_B : hs:='byte '+hs;
-                          S_W : hs:='word '+hs;
-                          S_L : hs:='dword '+hs;
-                          S_IS : hs:='word '+hs;
-                          S_IL : hs:='dword '+hs;
-                          S_IQ : hs:='qword '+hs;
-                          S_FS : hs:='dword '+hs;
-                          S_FL : hs:='qword '+hs;
-                          S_FX : hs:='tword '+hs;
-                          S_BW : if dest then
-                              hs:='word '+hs
-                            else
-                              hs:='byte '+hs;
-                          S_BL : if dest then
-                              hs:='dword '+hs
-                            else
-                              hs:='byte '+hs;
-                          S_WL : if dest then
-                              hs:='dword '+hs
-                            else
-                              hs:='word '+hs;
-                       end
-                     end;
-                   getopstr:=hs;
-                 end;
-    top_symbol : begin
-                   hs:='dword '+pasmsymbol(o)^.name;
-                   if opofs>0 then
-                    hs:=hs+'+'+tostr(opofs)
-                   else
-                    if opofs<0 then
-                     hs:=hs+tostr(opofs);
-                   getopstr:=hs;
-                 end;
-      else
-        internalerror(10001);
-      end;
-    end;
-
-    function getopstr_jmp(t : byte;o : pointer;opofs:longint) : string;
-    var
-      hs : string;
-    begin
-      case t of
-          top_reg : getopstr_jmp:=int_reg2str[tregister(o)];
-          top_ref : getopstr_jmp:=getreferencestring(preference(o)^);
-        top_const : getopstr_jmp:=tostr(longint(o));
-       top_symbol : begin
-                      hs:=pasmsymbol(o)^.name;
-                      if opofs>0 then
-                       hs:=hs+'+'+tostr(opofs)
-                      else
-                       if opofs<0 then
-                        hs:=hs+tostr(opofs);
-                      getopstr_jmp:=hs;
-                    end;
-      else
-        internalerror(10001);
-      end;
-    end;
-
-{$endif}
 
 
 {****************************************************************************
@@ -402,13 +323,10 @@ unit ag386nsm;
       counter,
       lines,
       i,j,l    : longint;
-      op       : tasmop;
       consttyp : tait;
       found,
       quoted   : boolean;
-{$ifndef OLDASM}
       sep      : char;
-{$endif}
     begin
       if not assigned(p) then
        exit;
@@ -432,9 +350,6 @@ unit ag386nsm;
                        LastSec:=pai_section(hp)^.sec;
                      end;
          ait_align : AsmWriteLn(#9'ALIGN '+tostr(pai_align(hp)^.aligntype));
-{$ifndef NEWLAB}
-      ait_external : AsmWriteLn('EXTERN '+pai_external(hp)^.sym^.name);
-{$endif}
      ait_datablock : begin
                        if pai_datablock(hp)^.is_global then
                         AsmWriteLn(#9'GLOBAL '+pai_datablock(hp)^.sym^.name);
@@ -547,30 +462,14 @@ unit ag386nsm;
                         end;
                        AsmLn;
                      end;
-{$ifndef NEWLAB}
          ait_label : begin
                        if pai_label(hp)^.l^.is_used then
-                        AsmWriteLn(lab2str(pai_label(hp)^.l)+':');
+                        AsmWriteLn(pai_label(hp)^.l^.name+':');
                      end;
-{$endif}
         ait_direct : begin
                        AsmWritePChar(pai_direct(hp)^.str);
                        AsmLn;
                      end;
-{$ifndef NEWLAB}
-ait_labeled_instruction :
-                     begin
-                       op:=pai386_labeled(hp)^.opcode;
-                       if not((op=A_JMP) or (op=A_LOOP) or (op=A_LOOPZ) or
-                              (op=A_LOOPE) or (op=A_LOOPNZ) or (op=A_LOOPNE) or
-                              (op=A_JCXZ) or (op=A_JECXZ)) then
-                        AsmWriteLn(#9#9+int_op2str[pai386_labeled(hp)^.opcode]+
-                          cond2str[pai386_labeled(hp)^.condition]+#9+'near '+lab2str(pai386_labeled(hp)^.lab))
-                       else
-                        AsmWriteLn(#9#9+int_op2str[pai386_labeled(hp)^.opcode]+
-                          cond2str[pai386_labeled(hp)^.condition]+#9+lab2str(pai386_labeled(hp)^.lab));
-                     end;
-{$endif}
         ait_symbol : begin
                        if pai_symbol(hp)^.is_global then
                         AsmWriteLn(#9'GLOBAL '+pai_symbol(hp)^.sym^.name);
@@ -582,13 +481,15 @@ ait_labeled_instruction :
                         AsmWriteLn(':')
                      end;
    ait_instruction : begin
+                     { We need intel order, no At&t }
+                       pai386(hp)^.SwapOperands;
+                     { Reset }
                        suffix:='';
                        prefix:='';
                        s:='';
-{$ifndef OLDASM}
                        if pai386(hp)^.ops<>0 then
                         begin
-                          if pai386(hp)^.opcode=A_CALL then
+                          if is_calljmp(pai386(hp)^.opcode) then
                            s:=#9+getopstr_jmp(pai386(hp)^.oper[0])
                           else
                            begin
@@ -598,7 +499,7 @@ ait_labeled_instruction :
                                  sep:=#9
                                 else
                                  sep:=',';
-                                s:=s+sep+getopstr(pai386(hp)^.oper[i],pai386(hp)^.opsize,pai386(hp)^.opcode,(i=1));
+                                s:=s+sep+getopstr(pai386(hp)^.oper[i],pai386(hp)^.opsize,pai386(hp)^.opcode,pai386(hp)^.ops,(i=2));
                               end;
                            end;
                         end;
@@ -607,94 +508,6 @@ ait_labeled_instruction :
                        else
                         AsmWriteLn(#9#9+prefix+int_op2str[pai386(hp)^.opcode]+
                           cond2str[pai386(hp)^.condition]+suffix+s);
-{$else}
-                     { added prefix instructions, must be on same line as opcode }
-                       if (pai386(hp)^.op1t = top_none) and
-                          ((pai386(hp)^.opcode = A_REP) or
-                           (pai386(hp)^.opcode = A_LOCK) or
-                           (pai386(hp)^.opcode =  A_REPE) or
-                           (pai386(hp)^.opcode = A_REPNE)) then
-                        Begin
-                          prefix:=int_op2str[pai386(hp)^.opcode]+#9;
-                          hp:=Pai(hp^.next);
-                        { this is theorically impossible... }
-                          if hp=nil then
-                           begin
-                             s:=#9#9+prefix;
-                             AsmWriteLn(s);
-                             break;
-                           end;
-                          { nasm prefers prefix on a line alone }
-                          AsmWriteln(#9#9+prefix);
-                          prefix:='';
-                        end
-                       else
-                        prefix:= '';
-                       { A_FNSTS need the w as suffix at least for nasm}
-                       if (pai386(hp)^.opcode = A_FNSTS) then
-                        pai386(hp)^.opcode:=A_FNSTSW
-                       else
-                        if (pai386(hp)^.opcode = A_FSTS) then
-                         pai386(hp)^.opcode:=A_FSTSW;
-                       if pai386(hp)^.op1t<>top_none then
-                        begin
-                          if pai386(hp)^.opcode=A_CALL then
-                           s:=getopstr_jmp(pai386(hp)^.op1t,pai386(hp)^.op1,pai386(hp)^.op1ofs)
-                          else
-                           begin
-                             s:=getopstr(pai386(hp)^.op1t,pai386(hp)^.op1,pai386(hp)^.op1ofs,
-                               pai386(hp)^.opsize,pai386(hp)^.opcode,false);
-                             if pai386(hp)^.op3t<>top_none then
-                              begin
-                                if pai386(hp)^.op2t<>top_none then
-{$ifdef NO_OP3}
-                                 s:=getopstr(pai386(hp)^.op2t,pointer(longint(twowords(pai386(hp)^.op2).word1)),0,
-                                             pai386(hp)^.opsize,pai386(hp)^.opcode,true)+','+s;
-                                s:=getopstr(pai386(hp)^.op3t,pointer(longint(twowords(pai386(hp)^.op2).word2)),0,
-                                            pai386(hp)^.opsize,pai386(hp)^.opcode,false)+','+s;
-{$else NO_OP3}
-                                 s:=getopstr(pai386(hp)^.op2t,pai386(hp)^.op2,0,
-                                             pai386(hp)^.opsize,pai386(hp)^.opcode,true)+','+s;
-                                s:=getopstr(pai386(hp)^.op3t,pai386(hp)^.op3,0,
-                                            pai386(hp)^.opsize,pai386(hp)^.opcode,false)+','+s;
-{$endif NO_OP3}
-                              end
-                             else
-                              if pai386(hp)^.op2t<>top_none then
-                               s:=getopstr(pai386(hp)^.op2t,pai386(hp)^.op2,0,pai386(hp)^.opsize,
-                                           pai386(hp)^.opcode,true)+','+s;
-                           end;
-                          s:=#9+s;
-                        end
-                       else
-                        begin
-                          { check if string instruction }
-                          { long form, otherwise may give range check errors }
-                          { in turbo pascal...                               }
-                          if ((pai386(hp)^.opcode = A_CMPS) or
-                             (pai386(hp)^.opcode = A_INS) or
-                             (pai386(hp)^.opcode = A_OUTS) or
-                             (pai386(hp)^.opcode = A_SCAS) or
-                             (pai386(hp)^.opcode = A_STOS) or
-                             (pai386(hp)^.opcode = A_MOVS) or
-                             (pai386(hp)^.opcode = A_LODS) or
-                             (pai386(hp)^.opcode = A_XLAT)) then
-                           Begin
-                             case pai386(hp)^.opsize of
-                              S_B: suffix:='b';
-                              S_W: suffix:='w';
-                              S_L: suffix:='d';
-                             else
-                              Message(assem_f_invalid_suffix_intel);
-                             end;
-                           end;
-                          s:='';
-                        end;
-                       if pai386(hp)^.opcode=A_FWAIT then
-                        AsmWriteln(#9#9'DB'#9'09bh')
-                       else
-                        AsmWriteLn(#9#9+prefix+int_op2str[pai386(hp)^.opcode]+suffix+s);
-{$endif OLDASM}
                      end;
 {$ifdef GDB}
              ait_stabn,
@@ -734,6 +547,22 @@ ait_stab_function_name : ;
     end;
 
 
+    var
+      currentasmlist : PAsmList;
+
+    procedure writeexternal(p:pasmsymbol);{$ifndef FPC}far;{$endif}
+      begin
+        if p^.typ=AS_EXTERNAL then
+         currentasmlist^.AsmWriteln('EXTERN'#9+p^.name);
+      end;
+
+    procedure ti386nasmasmlist.WriteExternals;
+      begin
+        currentasmlist:=@self;
+        AsmSymbolList^.foreach(writeexternal);
+      end;
+
+
     procedure ti386nasmasmlist.WriteAsmList;
     begin
 {$ifdef EXTDEBUG}
@@ -745,7 +574,9 @@ ait_stab_function_name : ;
       AsmLn;
 
       countlabelref:=false;
-      WriteTree(externals);
+
+      WriteExternals;
+
     { Nasm doesn't support stabs
       WriteTree(debuglist);}
 
@@ -766,7 +597,15 @@ ait_stab_function_name : ;
 end.
 {
   $Log$
-  Revision 1.39  1999-05-23 18:41:57  florian
+  Revision 1.40  1999-05-27 19:44:02  peter
+    * removed oldasm
+    * plabel -> pasmlabel
+    * -a switches to source writing automaticly
+    * assembler readers OOPed
+    * asmsymbol automaticly external
+    * jumptables and other label fixes for asm readers
+
+  Revision 1.39  1999/05/23 18:41:57  florian
     * better error recovering in typed constants
     * some problems with arrays of const fixed, some problems
       due my previous

@@ -48,11 +48,7 @@ implementation
       symtable,aasm,types,
       hcodegen,htypechk,pass_1
 {$ifdef i386}
-{$ifndef OLDASM}
       ,i386base
-{$else}
-      ,i386
-{$endif}
 {$endif}
 {$ifdef m68k}
       ,m68k
@@ -469,7 +465,7 @@ implementation
          else
            begin
               { this rules are suboptimal, but they should give }
-              { good results                                    }
+              { good results                                }
               p^.registers32:=max(p^.left^.registers32,p^.right^.registers32);
 
               { for ansi/wide strings, we need at least one register }
@@ -481,7 +477,7 @@ implementation
               if (p^.left^.registers32<=p^.right^.registers32) and
               { only if the node needs less than 3 registers }
               { two for the right node and one for the       }
-              { left address                                 }
+              { left address                             }
                 (p^.registers32<3) then
                 inc(p^.registers32);
 
@@ -569,7 +565,15 @@ implementation
 end.
 {
   $Log$
-  Revision 1.16  1999-05-18 09:52:21  peter
+  Revision 1.17  1999-05-27 19:45:24  peter
+    * removed oldasm
+    * plabel -> pasmlabel
+    * -a switches to source writing automaticly
+    * assembler readers OOPed
+    * asmsymbol automaticly external
+    * jumptables and other label fixes for asm readers
+
+  Revision 1.16  1999/05/18 09:52:21  peter
     * procedure of object and addrn fixes
 
   Revision 1.15  1999/05/17 23:51:46  peter

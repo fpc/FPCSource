@@ -41,11 +41,7 @@ unit ptconst;
        ,pbase,pexpr
        { processor specific stuff }
 {$ifdef i386}
-{$ifndef OLDASM}
        ,i386base
-{$else}
-       ,i386
-{$endif}
 {$endif}
 {$ifdef m68k}
        ,m68k
@@ -67,11 +63,11 @@ unit ptconst;
          i,l,offset,
          strlength : longint;
          curconstsegment : paasmoutput;
-         ll        : plabel;
-         s         : string;
-         ca        : pchar;
+         ll     : pasmlabel;
+         s       : string;
+         ca     : pchar;
          aktpos    : longint;
-         pd        : pprocdef;
+         pd     : pprocdef;
          obj       : pobjectdef;
          symt      : psymtable;
          hp1,hp2   : pdefcoll;
@@ -217,7 +213,7 @@ unit ptconst;
                    (p^.treetype<>addrn) then
                   begin
                     getdatalabel(ll);
-                    curconstsegment^.concat(new(pai_const_symbol,initname(lab2str(ll))));
+                    curconstsegment^.concat(new(pai_const_symbol,init(ll)));
                     consts^.concat(new(pai_label,init(ll)));
                     if p^.treetype=stringconstn then
                       begin
@@ -304,10 +300,6 @@ unit ptconst;
                              curconstsegment^.concat(new(pai_const,init_symbol(
                                strpnew(p^.left^.symtableentry^.mangledname))));
                           end;   *)
-{$ifndef NEWLAB}
-                        maybe_concat_external(hp^.symtableentry^.owner,
-                          hp^.symtableentry^.mangledname);
-{$endif}
                       end
                     else
                       Message(cg_e_illegal_expression);
@@ -321,10 +313,6 @@ unit ptconst;
                       begin
                         curconstsegment^.concat(new(pai_const_symbol,
                           initname(pobjectdef(p^.left^.resulttype)^.vmt_mangledname)));
-{$ifndef NEWLAB}
-                        if pobjectdef(p^.left^.resulttype)^.owner^.symtabletype=unitsymtable then
-                          concat_external(pobjectdef(p^.left^.resulttype)^.vmt_mangledname,EXT_NEAR);
-{$endif}
                       end
                     else
                       Message(cg_e_illegal_expression);
@@ -351,7 +339,7 @@ unit ptconst;
 {$ifdef m68k}
                         j:=0;
                         for l:=0 to ((def^.savesize-1) div 4) do
-                        { HORRIBLE HACK because of endian        }
+                        { HORRIBLE HACK because of endian       }
                         { now use intel endian for constant sets }
                          begin
                            curconstsegment^.concat(new(pai_const,init_8bit(p^.value_set^[j+3])));
@@ -414,7 +402,7 @@ unit ptconst;
                         begin
                            getmem(ca,def^.size-strlength);
                            { def^.size contains also the leading length, so we }
-                           { we have to subtract one                           }
+                           { we have to subtract one                       }
                            fillchar(ca[0],def^.size-strlength-1,' ');
                            ca[def^.size-strlength-1]:=#0;
                            { this can also handle longer strings }
@@ -459,7 +447,7 @@ unit ptconst;
                            else
                             strlength:=p^.length;
                            getdatalabel(ll);
-                           curconstsegment^.concat(new(pai_const_symbol,initname(lab2str(ll))));
+                           curconstsegment^.concat(new(pai_const_symbol,init(ll)));
                            { first write the maximum size }
                            consts^.concat(new(pai_const,init_32bit(strlength)));
                            { second write the real length }
@@ -603,10 +591,6 @@ unit ptconst;
                    else
                      Message(type_e_mismatch);
                    curconstsegment^.concat(new(pai_const_symbol,initname(pd^.mangledname)));
-{$ifndef NEWLAB}
-                   if pd^.owner^.symtabletype=unitsymtable then
-                     concat_external(pd^.mangledname,EXT_NEAR);
-{$endif}
                 end;
            end;
          { reads a typed constant record }
@@ -729,7 +713,15 @@ unit ptconst;
 end.
 {
   $Log$
-  Revision 1.45  1999-05-23 18:42:13  florian
+  Revision 1.46  1999-05-27 19:44:54  peter
+    * removed oldasm
+    * plabel -> pasmlabel
+    * -a switches to source writing automaticly
+    * assembler readers OOPed
+    * asmsymbol automaticly external
+    * jumptables and other label fixes for asm readers
+
+  Revision 1.45  1999/05/23 18:42:13  florian
     * better error recovering in typed constants
     * some problems with arrays of const fixed, some problems
       due my previous

@@ -65,9 +65,9 @@
 
        plabelsym = ^tlabelsym;
        tlabelsym = object(tsym)
-          lab : plabel;
+          lab : pasmlabel;
           defined : boolean;
-          constructor init(const n : string; l : plabel);
+          constructor init(const n : string; l : pasmlabel);
           destructor done;virtual;
           constructor load;
           function mangledname : string;virtual;
@@ -331,7 +331,15 @@
 
 {
   $Log$
-  Revision 1.25  1999-05-21 13:55:23  peter
+  Revision 1.26  1999-05-27 19:45:07  peter
+    * removed oldasm
+    * plabel -> pasmlabel
+    * -a switches to source writing automaticly
+    * assembler readers OOPed
+    * asmsymbol automaticly external
+    * jumptables and other label fixes for asm readers
+
+  Revision 1.25  1999/05/21 13:55:23  peter
     * NEWLAB for label as symbol
 
   Revision 1.24  1999/05/20 22:22:45  pierre

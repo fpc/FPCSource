@@ -34,6 +34,7 @@ unit ag386int;
       ti386intasmlist = object(tasmlist)
         procedure WriteTree(p:paasmoutput);virtual;
         procedure WriteAsmList;virtual;
+        procedure WriteExternals;
       end;
 
   implementation
@@ -42,11 +43,7 @@ unit ag386int;
       dos,strings,
       globtype,globals,systems,cobjects,
       files,verbose
-{$ifndef OLDASM}
       ,i386base,i386asm
-{$else}
-      ,i386
-{$endif}
 {$ifdef GDB}
       ,gdb
 {$endif GDB}
@@ -55,7 +52,7 @@ unit ag386int;
     const
       line_length = 70;
 
-{$ifndef NEWLAB}
+{$ifdef EXTTYPE}
       extstr : array[EXT_NEAR..EXT_ABS] of String[8] =
              ('NEAR','FAR','PROC','BYTE','WORD','DWORD',
               'CODEPTR','DATAPTR','FWORD','PWORD','QWORD','TBYTE','ABS');
@@ -176,7 +173,6 @@ unit ag386int;
        getreferencestring:=s;
      end;
 
-{$ifndef OLDASM}
 
     function getopstr(const o:toper;s : topsize; opcode: tasmop;dest : boolean) : string;
     var
@@ -267,89 +263,6 @@ unit ag386int;
       end;
     end;
 
-{$else}
-
-    function getopstr(t : byte;o : pointer;opofs:longint;s : topsize; _operator: tasmop;dest : boolean) : string;
-    var
-      hs : string;
-    begin
-      case t of
-       top_reg : getopstr:=int_reg2str[tregister(o)];
-     top_const,
-       top_ref : begin
-                   if t=top_const then
-                     hs := tostr(longint(o))
-                   else
-                     hs:=getreferencestring(preference(o)^);
-                   { can possibly give a range check error under tp }
-                   { if using in...                                 }
-                   if ((_operator <> A_LGS) and (_operator <> A_LSS) and
-                       (_operator <> A_LFS) and (_operator <> A_LDS) and
-                       (_operator <> A_LES)) then
-                    Begin
-                      case s of
-                       S_B : hs:='byte ptr '+hs;
-                       S_W : hs:='word ptr '+hs;
-                       S_L : hs:='dword ptr '+hs;
-                      S_IS : hs:='word ptr '+hs;
-                      S_IL : hs:='dword ptr '+hs;
-                      S_IQ : hs:='qword ptr '+hs;
-                      S_FS : hs:='dword ptr '+hs;
-                      S_FL : hs:='qword ptr '+hs;
-                      S_FX : hs:='tbyte ptr '+hs;
-                      S_BW : if dest then
-                              hs:='word ptr '+hs
-                             else
-                              hs:='byte ptr '+hs;
-                      S_BL : if dest then
-                              hs:='dword ptr '+hs
-                             else
-                              hs:='byte ptr '+hs;
-                      S_WL : if dest then
-                              hs:='dword ptr '+hs
-                             else
-                              hs:='word ptr '+hs;
-                      end;
-                    end;
-                   getopstr:=hs;
-                 end;
-    top_symbol : begin
-                   hs:='offset '+pasmsymbol(o)^.name;
-                   if opofs>0 then
-                    hs:=hs+'+'+tostr(opofs)
-                   else
-                    if opofs<0 then
-                     hs:=hs+tostr(opofs);
-                   getopstr:=hs;
-                 end;
-      else
-       internalerror(10001);
-      end;
-    end;
-
-    function getopstr_jmp(t : byte;o : pointer;opofs:longint) : string;
-    var
-      hs : string;
-    begin
-      case t of
-         top_reg : getopstr_jmp:=int_reg2str[tregister(o)];
-         top_ref : getopstr_jmp:=getreferencestring(preference(o)^);
-       top_const : getopstr_jmp:=tostr(longint(o));
-       top_symbol : begin
-                      hs:=pasmsymbol(o)^.name;
-                      if opofs>0 then
-                       hs:=hs+'+'+tostr(opofs)
-                      else
-                       if opofs<0 then
-                        hs:=hs+tostr(opofs);
-                      getopstr_jmp:=hs;
-                    end;
-      else
-       internalerror(10001);
-      end;
-    end;
-{$endif}
-
 
 {****************************************************************************
                                TI386INTASMLIST
@@ -382,10 +295,6 @@ unit ag386int;
     end;
 
     procedure ti386intasmlist.WriteTree(p:paasmoutput);
-    type
-      twowords=record
-        word1,word2:word;
-      end;
     var
       s,
       prefix,
@@ -397,9 +306,7 @@ unit ag386int;
       consttyp : tait;
       found,
       quoted   : boolean;
-{$ifndef OLDASM}
       sep      : char;
-{$endif}
     begin
       if not assigned(p) then
        exit;
@@ -432,10 +339,6 @@ unit ag386int;
                      { HERE UNDER TASM!                              }
                        AsmWriteLn(#9'ALIGN '+tostr(pai_align(hp)^.aligntype));
                      end;
-{$ifndef NEWLAB}
-      ait_external : AsmWriteLn(#9'EXTRN'#9+pai_external(hp)^.sym^.name+
-                                ' :'+extstr[pai_external(hp)^.exttyp]);
-{$endif}
      ait_datablock : begin
                        if pai_datablock(hp)^.is_global then
                          AsmWriteLn(#9'PUBLIC'#9+pai_datablock(hp)^.sym^.name);
@@ -548,11 +451,10 @@ unit ag386int;
                         end;
                        AsmLn;
                      end;
-{$ifndef NEWLAB}
          ait_label : begin
                        if pai_label(hp)^.l^.is_used then
                         begin
-                          AsmWrite(lab2str(pai_label(hp)^.l));
+                          AsmWrite(pai_label(hp)^.l^.name);
                           if assigned(hp^.next) and not(pai(hp^.next)^.typ in
                              [ait_const_32bit,ait_const_16bit,ait_const_8bit,
                               ait_const_symbol,ait_const_rva,
@@ -560,16 +462,10 @@ unit ag386int;
                            AsmWriteLn(':');
                         end;
                      end;
-{$endif}
         ait_direct : begin
                        AsmWritePChar(pai_direct(hp)^.str);
                        AsmLn;
                      end;
-{$ifndef NEWLAB}
-ait_labeled_instruction :
-               AsmWriteLn(#9#9+int_op2str[pai386_labeled(hp)^.opcode]+
-                 cond2str[pai386_labeled(hp)^.condition]+#9+lab2str(pai386_labeled(hp)^.lab));
-{$endif}
         ait_symbol : begin
                        if pai_symbol(hp)^.is_global then
                          AsmWriteLn(#9'PUBLIC'#9+pai_symbol(hp)^.sym^.name);
@@ -581,10 +477,12 @@ ait_labeled_instruction :
                         AsmWriteLn(':')
                      end;
    ait_instruction : begin
+                     { We need intel order, no At&t }
+                       pai386(hp)^.SwapOperands;
+                     { Reset }
                        suffix:='';
                        prefix:= '';
                        s:='';
-{$ifndef OLDASM}
                      { added prefix instructions, must be on same line as opcode }
                        if (pai386(hp)^.ops = 0) and
                           ((pai386(hp)^.opcode = A_REP) or
@@ -611,7 +509,7 @@ ait_labeled_instruction :
                         prefix:= '';
                        if pai386(hp)^.ops<>0 then
                         begin
-                          if pai386(hp)^.opcode=A_CALL then
+                          if is_calljmp(pai386(hp)^.opcode) then
                            s:=#9+getopstr_jmp(pai386(hp)^.oper[0])
                           else
                            begin
@@ -621,99 +519,11 @@ ait_labeled_instruction :
                                  sep:=#9
                                 else
                                  sep:=',';
-                                s:=s+sep+getopstr(pai386(hp)^.oper[i],pai386(hp)^.opsize,pai386(hp)^.opcode,(i=1));
+                                s:=s+sep+getopstr(pai386(hp)^.oper[i],pai386(hp)^.opsize,pai386(hp)^.opcode,(i=2));
                               end;
                            end;
                         end;
                        AsmWriteLn(#9#9+prefix+int_op2str[pai386(hp)^.opcode]+cond2str[pai386(hp)^.condition]+suffix+s);
-{$else}
-                     { added prefix instructions, must be on same line as opcode }
-                       if (pai386(hp)^.op1t = top_none) and
-                          ((pai386(hp)^.opcode = A_REP) or
-                           (pai386(hp)^.opcode = A_LOCK) or
-                           (pai386(hp)^.opcode =  A_REPE) or
-                           (pai386(hp)^.opcode = A_REPNE)) then
-                        Begin
-                          prefix:=int_op2str[pai386(hp)^.opcode]+#9;
-                          hp:=Pai(hp^.next);
-                        { this is theorically impossible... }
-                          if hp=nil then
-                           begin
-                             s:=#9#9+prefix;
-                             AsmWriteLn(s);
-                             break;
-                           end;
-                        end
-                       else
-                        prefix:= '';
-                       if pai386(hp)^.op1t<>top_none then
-                        begin
-                          if pai386(hp)^.opcode=A_CALL then
-                           begin
-                           { with tasm call near ptr [edi+12] does not
-                             work but call near [edi+12] works ?? (PM)
-
-                             It works with call dword ptr [], but you
-                             need /m2 (2 passes) with tasm (PFV)
-                           }
-{                                    if pai386(hp)^.op1t=top_ref then
-                              s:='near '+getopstr_jmp(pai386(hp)^.op1t,pai386(hp)^.op1)
-                             else
-                              s:='near ptr '+getopstr_jmp(pai386(hp)^.op1t,pai386(hp)^.op1);}
-                             s:='dword ptr '+getopstr_jmp(pai386(hp)^.op1t,pai386(hp)^.op1,pai386(hp)^.op1ofs);
-                           end
-                          else
-                           begin
-                             s:=getopstr(pai386(hp)^.op1t,pai386(hp)^.op1,pai386(hp)^.op1ofs,pai386(hp)^.opsize,
-                               pai386(hp)^.opcode,false);
-                             if pai386(hp)^.op3t<>top_none then
-                              begin
-                                if pai386(hp)^.op2t<>top_none then
-{$ifdef NO_OP3}
-                                 s:=getopstr(pai386(hp)^.op2t,pointer(longint(twowords(pai386(hp)^.op2).word1)),0,
-                                             pai386(hp)^.opsize,pai386(hp)^.opcode,true)+','+s;
-                                s:=getopstr(pai386(hp)^.op3t,pointer(longint(twowords(pai386(hp)^.op2).word2)),0,
-                                            pai386(hp)^.opsize,pai386(hp)^.opcode,false)+','+s;
-{$else NO_OP3}
-                                 s:=getopstr(pai386(hp)^.op2t,pai386(hp)^.op2,0,
-                                             pai386(hp)^.opsize,pai386(hp)^.opcode,true)+','+s;
-                                s:=getopstr(pai386(hp)^.op3t,pai386(hp)^.op3,0,
-                                            pai386(hp)^.opsize,pai386(hp)^.opcode,false)+','+s;
-{$endif NO_OP3}
-                              end
-                             else
-                              if pai386(hp)^.op2t<>top_none then
-                               s:=getopstr(pai386(hp)^.op2t,pai386(hp)^.op2,0,pai386(hp)^.opsize,
-                                           pai386(hp)^.opcode,true)+','+s;
-                           end;
-                          s:=#9+s;
-                        end
-                       else
-                        begin
-                          { check if string instruction }
-                          { long form, otherwise may give range check errors }
-                          { in turbo pascal...                               }
-                          if ((pai386(hp)^.opcode = A_CMPS) or
-                             (pai386(hp)^.opcode = A_INS) or
-                             (pai386(hp)^.opcode = A_OUTS) or
-                             (pai386(hp)^.opcode = A_SCAS) or
-                             (pai386(hp)^.opcode = A_STOS) or
-                             (pai386(hp)^.opcode = A_MOVS) or
-                             (pai386(hp)^.opcode = A_LODS) or
-                             (pai386(hp)^.opcode = A_XLAT)) then
-                           Begin
-                             case pai386(hp)^.opsize of
-                              S_B: suffix:='b';
-                              S_W: suffix:='w';
-                              S_L: suffix:='d';
-                             else
-                              Message(assem_f_invalid_suffix_intel);
-                             end;
-                           end;
-                          s:='';
-                        end;
-                       AsmWriteLn(#9#9+prefix+int_op2str[pai386(hp)^.opcode]+suffix+s);
-{$endif OLDASM}
                      end;
 {$ifdef GDB}
              ait_stabn,
@@ -762,9 +572,23 @@ ait_stab_function_name : ;
        end;
     end;
 
+    var
+      currentasmlist : PAsmList;
+
+    procedure writeexternal(p:pasmsymbol);{$ifndef FPC}far;{$endif}
+      begin
+        if p^.typ=AS_EXTERNAL then
+         currentasmlist^.AsmWriteln(#9'EXTRN'#9+p^.name);
+      end;
+
+    procedure ti386intasmlist.WriteExternals;
+      begin
+        currentasmlist:=@self;
+        AsmSymbolList^.foreach(writeexternal);
+      end;
+
 
     procedure ti386intasmlist.WriteAsmList;
-
     begin
 {$ifdef EXTDEBUG}
       if assigned(current_module^.mainsource) then
@@ -778,7 +602,9 @@ ait_stab_function_name : ;
       AsmLn;
 
       countlabelref:=false;
-      WriteTree(externals);
+
+      WriteExternals;
+
     { INTEL ASM doesn't support stabs
       WriteTree(debuglist);}
 
@@ -801,7 +627,15 @@ ait_stab_function_name : ;
 end.
 {
   $Log$
-  Revision 1.43  1999-05-23 18:41:55  florian
+  Revision 1.44  1999-05-27 19:44:00  peter
+    * removed oldasm
+    * plabel -> pasmlabel
+    * -a switches to source writing automaticly
+    * assembler readers OOPed
+    * asmsymbol automaticly external
+    * jumptables and other label fixes for asm readers
+
+  Revision 1.43  1999/05/23 18:41:55  florian
     * better error recovering in typed constants
     * some problems with arrays of const fixed, some problems
       due my previous

@@ -26,14 +26,14 @@ Interface
 Uses
   globtype,systems,
   symtable,aasm,hcodegen,verbose,globals,files,strings,
-  cobjects,
+  cobjects
 {$ifdef i386}
-  i386base;
+  ,i386base,i386asm
 {$endif}
 {$ifdef m68k}
-   m68k;
+  ,m68k
 {$endif}
-
+  ;
 
 Const
   RPNMax = 10;             { I think you only need 4, but just to be safe }
@@ -42,87 +42,80 @@ Const
   maxoperands = 3;         { Maximum operands for assembler instructions }
 
 
+{---------------------------------------------------------------------
+                       Local Label Management
+---------------------------------------------------------------------}
+
 Type
-  {---------------------------------------------------------------------}
-  {                     Label Management types                          }
-  {---------------------------------------------------------------------}
+  { Each local label has this structure associated with it }
+  PLocalLabel = ^TLocalLabel;
+  TLocalLabel = object(TNamedIndexObject)
+    Emitted : boolean;
+    constructor Init(const n:string);
+    function  Getpasmlabel:pasmlabel;
+  private
+    lab : pasmlabel;
+  end;
 
-    { Each local label has this structure associated with it }
-    PAsmLabelRec = ^TAsmLabelRec;
-    TAsmLabelRec = record
-      name: PString;    { pointer to a pascal string name of label }
-      lab: PLabel;      { pointer to a label as defined in FPC     }
-      emitted: boolean; { as the label itself been emitted ?       }
-      next: PAsmLabelRec;  { next node                                }
-    end;
+  PLocalLabelList = ^TLocalLabelList;
+  TLocalLabelList = Object(TDictionary)
+    procedure CheckEmitted;
+  end;
 
-    TAsmLabelList = Object
-    public
-      First: PAsmLabelRec;
-      Constructor Init;
-      Destructor Done;
-      Procedure Insert(s:string; lab: PLabel; emitted: boolean);
-      Function Search(const s: string): PAsmLabelRec;
-    private
-      Last: PAsmLabelRec;
-    end;
+var
+  LocalLabelList : PLocalLabelList;
+
+function CreateLocalLabel(const s: string; var hl: pasmlabel; emit:boolean):boolean;
+Function SearchLabel(const s: string; var hl: pasmlabel;emit:boolean): boolean;
 
 
+{---------------------------------------------------------------------
+                 Instruction management
+---------------------------------------------------------------------}
 
-  {---------------------------------------------------------------------}
-  {                 Instruction management types                        }
-  {---------------------------------------------------------------------}
+type
+  TOprType=(OPR_NONE,OPR_CONSTANT,OPR_SYMBOL,OPR_REFERENCE,OPR_REGISTER);
 
-  toperandtype = (OPR_NONE,OPR_REFERENCE,OPR_CONSTANT,OPR_REGISTER,OPR_LABINSTR,
-                  OPR_REGLIST,OPR_SYMBOL);
+  TOprRec = record
+    case typ:TOprType of
+      OPR_NONE   : ();
+      OPR_CONSTANT  : (val:longint);
+      OPR_SYMBOL    : (symbol:PAsmSymbol;symofs:longint);
+      OPR_REFERENCE : (ref:treference);
+      OPR_REGISTER  : (reg:tregister);
+  end;
 
-    { When the TReference field isintvalue = TRUE }
-    { then offset points to an ABSOLUTE address   }
-    { otherwise isintvalue should always be false }
+  POperand = ^TOperand;
+  TOperand = object
+    size   : topsize;
+    hasvar : boolean; { if the operand is loaded with a variable }
+    opr    : TOprRec;
+    constructor init;
+    destructor  done;virtual;
+    Procedure BuildOperand;virtual;
+    Procedure SetSize(_size:longint);
+    Function  SetupResult:boolean;
+    Function  SetupSelf:boolean;
+    Function  SetupOldEBP:boolean;
+    Function  SetupVar(const hs:string): Boolean;
+    Function  SetupDirectVar(const hs:string): Boolean;
+    Procedure InitRef;
+  end;
 
-    { Special cases:                              }
-    {   For the M68k Target, size is UNUSED, the  }
-    {   opcode determines the size of the         }
-    {   instruction.                              }
-    {  DIVS/DIVU/MULS/MULU of the form dn,dn:dn   }
-    {  is stored as three operands!!              }
-
-
-    { Each instruction operand can be of this type }
-    TOperand = record
-      size: topsize;
-      opinfo: longint; { ot_ flags }
-      overriden : boolean; { indicates if the opcode has been overriden }
-                           { by a pseudo-opcode such as DWORD PTR       }
-      hasvar : boolean; { if the operand is loaded with a variable }
-      case operandtype:toperandtype of
-       { the size of the opr_none field should be at least equal to each }
-       { other field as to facilitate initialization.                    }
-       OPR_NONE: (l: array[1..sizeof(treference)] of byte);
-       OPR_CONSTANT:  (val: longint);
-         { the fakeval is here so the val of a constant will not override
-           any field in the reference (PFV) }
-       OPR_REFERENCE: (fakeval:longint;ref:treference);
-       OPR_REGISTER:  (reg:tregister);
-       OPR_LABINSTR: (hl: plabel);
-       { Register list such as in the movem instruction }
-       OPR_REGLIST:  (list: set of tregister);
-       OPR_SYMBOL : (symofs:longint;symbol:pasmsymbol);
-    end;
-
-
-    TInstruction = object
-    public
-      opcode    : tasmop;
-      opsize    : topsize;
-      condition : tasmcond;
-      ops       : byte;
-      operands: array[1..maxoperands] of TOperand;
-      { set to TRUE if the instruction is labeled }
-      labeled: boolean;
-      procedure init;
-      procedure done;
-    end;
+  PInstruction = ^TInstruction;
+  TInstruction = object
+    opcode    : tasmop;
+    opsize    : topsize;
+    condition : tasmcond;
+    ops       : byte;
+    operands  : array[1..maxoperands] of POperand;
+    constructor init;
+    destructor  done;virtual;
+    Procedure InitOperands;virtual;
+    Procedure BuildOpcode;virtual;
+    procedure ConcatInstruction(p:PAasmoutput);virtual;
+    Procedure SwapOperands;
+  end;
 
 
   {---------------------------------------------------------------------}
@@ -182,51 +175,24 @@ Function ValDecimal(const S:String):longint;
 Function ValOctal(const S:String):longint;
 Function ValBinary(const S:String):longint;
 Function ValHexaDecimal(const S:String):longint;
+Function PadZero(Var s: String; n: byte): Boolean;
+Function EscapeToPascal(const s:string): string;
 
-  {*********************************************************************}
-  { PROCEDURE PadZero;                                                  }
-  {  Description: Makes sure that the string specified is of the given  }
-  {  length, by padding it with binary zeros, or truncating if necessary}
-  {  Remark: The return value is determined BEFORE any eventual padding.}
-  {  Return Value: TRUE  = if length of string s was <= then n          }
-  {                FALSE = if length of string s was > then n           }
-  {*********************************************************************}
-  Function PadZero(Var s: String; n: byte): Boolean;
+{---------------------------------------------------------------------
+                     Symbol helper routines
+---------------------------------------------------------------------}
 
-  { Converts a string containing C styled escape sequences to }
-  { a pascal style string.                                    }
-  Function EscapeToPascal(const s:string): string;
+Function GetRecordOffsetSize(s:string;Var Offset: longint;var Size:longint):boolean;
+Function SearchIConstant(const s:string; var l:longint): boolean;
 
 
-  {---------------------------------------------------------------------}
-  {                     Symbol helper routines                          }
-  {---------------------------------------------------------------------}
+{---------------------------------------------------------------------
+                  Instruction generation routines
+---------------------------------------------------------------------}
 
-  Procedure SetOperandSize(var instr:TInstruction;operandnum,size:longint);
-  Function GetRecordOffsetSize(s:string;Var Offset: longint;var Size:longint):boolean;
-  Function SearchIConstant(const s:string; var l:longint): boolean;
-  Function SearchLabel(const s: string; var hl: plabel): boolean;
-  Function SearchDirectVar(var Instr: TInstruction; const hs:string;operandnum:byte): Boolean;
-  Function CreateVarInstr(var Instr: TInstruction; const hs:string;
-     operandnum:byte):boolean;
-
-  Procedure SetupResult(Var Instr:TInstruction; operandnum: byte);
-{$ifdef i386}
-
-  Procedure FWaitWarning;
-{$endif}
-
-  {---------------------------------------------------------------------}
-  {                  Instruction generation routines                    }
-  {---------------------------------------------------------------------}
-
-  { swaps in the case of a 2/3 operand opcode the destination and the    }
-  { source as to put it in AT&T style instruction format.                }
-  Procedure SwapOperands(Var instr: TInstruction);
   Procedure ConcatPasString(p : paasmoutput;s:string);
-  { Writes the string s directly to the assembler output }
   Procedure ConcatDirect(p : paasmoutput;s:string);
-  Procedure ConcatLabel(p: paasmoutput;var l : plabel);
+  Procedure ConcatLabel(p: paasmoutput;var l : pasmlabel);
   Procedure ConcatConstant(p : paasmoutput;value: longint; maxvalue: longint);
   Procedure ConcatConstSymbol(p : paasmoutput;const sym:string;l:longint);
   Procedure ConcatRealConstant(p : paasmoutput;value: bestreal; real_typ : tfloattype);
@@ -236,22 +202,19 @@ Function ValHexaDecimal(const S:String):longint;
   Procedure ConcatLocal(p:paasmoutput;const s : string);
   Procedure ConcatGlobalBss(const s : string;size : longint);
   Procedure ConcatLocalBss(const s : string;size : longint);
-{$ifndef NEWLAB}
-  { add to list of external labels }
-  Procedure ConcatExternal(const s : string;typ : texternal_typ);
-  { add to internal list of labels }
-  Procedure ConcatInternal(const s : string;typ : texternal_typ);
-{$endif}
+
 
 Implementation
 
-{*************************************************************************}
-{                         Expression Parser                               }
-{*************************************************************************}
+
+{*************************************************************************
+                              TExprParse
+*************************************************************************}
 
 Constructor TExprParse.Init;
 Begin
 end;
+
 
 Procedure TExprParse.RPNPush(Num : longint);
 { Add an operand to the top of the RPN stack }
@@ -678,260 +641,473 @@ end;
 
 
 {****************************************************************************
+                                   TOperand
+****************************************************************************}
+
+constructor TOperand.init;
+begin
+  size:=S_NO;
+  hasvar:=false;
+  FillChar(Opr,sizeof(Opr),0);
+end;
+
+
+destructor TOperand.done;
+begin
+end;
+
+
+Procedure TOperand.SetSize(_size:longint);
+begin
+  if (size = S_NO) then
+   Begin
+     case _size of
+      1 : size:=S_B;
+      2 : size:=S_W{ could be S_IS};
+      4 : size:=S_L{ could be S_IL or S_FS};
+      8 : size:=S_IQ{ could be S_D or S_FL};
+      extended_size : size:=S_FX;
+     end;
+   end;
+end;
+
+
+Function TOperand.SetupResult:boolean;
+Begin
+  SetupResult:=false;
+  { replace by correct offset. }
+  if assigned(procinfo.retdef) and
+     (procinfo.retdef<>pdef(voiddef)) then
+   begin
+     opr.ref.offset:=procinfo.retoffset;
+     opr.ref.base:= procinfo.framepointer;
+     { always assume that the result is valid. }
+     procinfo.funcret_is_valid:=true;
+     SetupResult:=true;
+   end
+  else
+   Message(asmr_e_void_function);
+end;
+
+
+Function TOperand.SetupSelf:boolean;
+Begin
+  SetupSelf:=false;
+  if assigned(procinfo._class) then
+   Begin
+     opr.ref.offset:=procinfo.ESI_offset;
+     opr.ref.base:=procinfo.framepointer;
+     SetupSelf:=true;
+   end
+  else
+   Message(asmr_e_cannot_use_SELF_outside_a_method);
+end;
+
+
+Function TOperand.SetupOldEBP:boolean;
+Begin
+  SetupOldEBP:=false;
+  if lexlevel>normal_function_level then
+   Begin
+     opr.typ:=OPR_REFERENCE;
+     opr.ref.offset:=procinfo.framepointer_offset;
+     opr.ref.base:=procinfo.framepointer;
+     SetupOldEBP:=true;
+   end
+  else
+   Message(asmr_e_cannot_use_OLDEBP_outside_nested_procedure);
+end;
+
+
+Function TOperand.SetupVar(const hs:string): Boolean;
+{ search and sets up the correct fields in the Instr record }
+{ for the NON-constant identifier passed to the routine.    }
+{ if not found returns FALSE.                               }
+var
+  sym : psym;
+Begin
+  SetupVar:=false;
+{ are we in a routine ? }
+  getsym(hs,false);
+  sym:=srsym;
+  if sym=nil then
+   exit;
+  case sym^.typ of
+    varsym :
+      begin
+        { we always assume in asm statements that     }
+        { that the variable is valid.                 }
+        pvarsym(sym)^.is_valid:=1;
+        inc(pvarsym(sym)^.refs);
+        case pvarsym(sym)^.owner^.symtabletype of
+          unitsymtable,
+          globalsymtable,
+          staticsymtable :
+            opr.ref.symbol:=newasmsymbol(pvarsym(sym)^.mangledname);
+          parasymtable :
+            begin
+              opr.ref.base:=procinfo.framepointer;
+              opr.ref.offset:=pvarsym(sym)^.address;
+              opr.ref.offsetfixup:=aktprocsym^.definition^.parast^.address_fixup;
+              opr.ref.options:=ref_parafixup;
+            end;
+          localsymtable :
+            begin
+              if (pvarsym(sym)^.var_options and vo_is_external)<>0 then
+                opr.ref.symbol:=newasmsymbol(pvarsym(sym)^.mangledname)
+              else
+                begin
+                  opr.ref.base:=procinfo.framepointer;
+                  opr.ref.offset:=-(pvarsym(sym)^.address);
+                  opr.ref.options:=ref_localfixup;
+                  opr.ref.offsetfixup:=aktprocsym^.definition^.localst^.address_fixup;
+                end;
+            end;
+        end;
+        case pvarsym(sym)^.definition^.deftype of
+          orddef,
+          enumdef,
+          pointerdef,
+          floatdef :
+            SetSize(pvarsym(sym)^.getsize);
+          arraydef :
+            SetSize(parraydef(pvarsym(sym)^.definition)^.elesize)
+        end;
+        hasvar:=true;
+        SetupVar:=true;
+        Exit;
+      end;
+    typedconstsym :
+      begin
+        opr.ref.symbol:=newasmsymbol(ptypedconstsym(sym)^.mangledname);
+        case ptypedconstsym(sym)^.definition^.deftype of
+          orddef,
+          enumdef,
+          pointerdef,
+          floatdef :
+            SetSize(ptypedconstsym(sym)^.getsize);
+          arraydef :
+            SetSize(parraydef(ptypedconstsym(sym)^.definition)^.elesize)
+        end;
+        hasvar:=true;
+        SetupVar:=true;
+        Exit;
+      end;
+    constsym :
+      begin
+        if pconstsym(sym)^.consttype in [constint,constchar,constbool] then
+         begin
+           opr.typ:=OPR_CONSTANT;
+           opr.val:=pconstsym(sym)^.value;
+           hasvar:=true;
+           SetupVar:=true;
+           Exit;
+         end;
+      end;
+    typesym :
+      begin
+        if ptypesym(sym)^.definition^.deftype in [recorddef,objectdef] then
+         begin
+           opr.typ:=OPR_CONSTANT;
+           opr.val:=0;
+           hasvar:=true;
+           SetupVar:=TRUE;
+           Exit;
+         end;
+      end;
+    procsym :
+      begin
+        if assigned(pprocsym(sym)^.definition^.nextoverloaded) then
+          Message(asmr_w_calling_overload_func);
+        opr.typ:=OPR_SYMBOL;
+        opr.symbol:=newasmsymbol(pprocsym(sym)^.definition^.mangledname);
+        hasvar:=true;
+        SetupVar:=TRUE;
+        Exit;
+      end;
+    else
+      begin
+        Message(asmr_e_unsupported_symbol_type);
+        exit;
+      end;
+  end;
+end;
+
+
+{ looks for internal names of variables and routines }
+Function TOperand.SetupDirectVar(const hs:string): Boolean;
+{$ifndef OLDDIRECTVAR}
+var
+  p : pasmsymbol;
+begin
+  SetupDirectVar:=false;
+  p:=getasmsymbol(hs);
+  if assigned(p) then
+   begin
+     opr.ref.symbol:=p;
+     hasvar:=true;
+     SetupDirectVar:=true;
+   end;
+end;
+{$else}
+var
+  p : pai_external;
+Begin
+   SearchDirectVar:=false;
+   { search in the list of internals }
+   p:=search_assembler_symbol(internals,hs,EXT_ANY);
+     if p=nil then
+       p:=search_assembler_symbol(externals,hs,EXT_ANY);
+   if p<>nil then
+     begin
+       instr.operands[operandnum].opr.ref.symbol:=p^.sym;
+        case p^.exttyp of
+           EXT_BYTE   : instr.operands[operandnum].size:=S_B;
+           EXT_WORD   : instr.operands[operandnum].size:=S_W;
+           EXT_NEAR,EXT_FAR,EXT_PROC,EXT_DWORD,EXT_CODEPTR,EXT_DATAPTR:
+           instr.operands[operandnum].size:=S_L;
+           EXT_QWORD  : instr.operands[operandnum].size:=S_FL;
+           EXT_TBYTE  : instr.operands[operandnum].size:=S_FX;
+         else
+           { this is in the case where the instruction is LEA }
+           { or something like that, in that case size is not }
+           { important.                                       }
+             instr.operands[operandnum].size:=S_NO;
+         end;
+       instr.operands[operandnum].hasvar:=true;
+       SearchDirectVar:=TRUE;
+       Exit;
+     end;
+end;
+{$endif}
+
+procedure TOperand.InitRef;
+{*********************************************************************}
+{  Description: This routine first check if the opcode is of     }
+{  type OPR_NONE, or OPR_REFERENCE , if not it gives out an error.    }
+{  If the operandtype = OPR_NONE or <> OPR_REFERENCE then it sets up  }
+{  the operand type to OPR_REFERENCE, as well as setting up the ref   }
+{  to point to the default segment.                                   }
+{*********************************************************************}
+Begin
+  case opr.typ of
+    OPR_REFERENCE:
+      exit;
+    OPR_NONE: ;
+    else
+      Message(asmr_e_invalid_operand_type);
+  end;
+  opr.typ := OPR_REFERENCE;
+  reset_reference(opr.ref);
+end;
+
+
+procedure TOperand.BuildOperand;
+begin
+  abstract;
+end;
+
+
+{****************************************************************************
                                  TInstruction
 ****************************************************************************}
 
-Procedure TInstruction.init;
+constructor TInstruction.init;
 Begin
   Opcode:=A_NONE;
   Opsize:=S_NO;
   Condition:=C_NONE;
-  labeled:=FALSE;
   Ops:=0;
-  FillChar(Operands,sizeof(Operands),0);
+  InitOperands;
 end;
 
 
-Procedure TInstruction.done;
+destructor TInstruction.done;
+var
+  i : longint;
 Begin
+  for i:=1 to 3 do
+   Dispose(Operands[i],Done);
 end;
 
 
-{*************************************************************************}
-{                          Local label utilities                          }
-{*************************************************************************}
-
-  Constructor TAsmLabelList.Init;
-  Begin
-    First:=nil;
-    Last:=nil;
-  end;
+procedure TInstruction.InitOperands;
+var
+  i : longint;
+begin
+  for i:=1 to 3 do
+   New(Operands[i],init);
+end;
 
 
-  Procedure TAsmLabelList.Insert(s:string; lab: PLabel; emitted: boolean);
-  {*********************************************************************}
-  {  Description: Insert a node at the end of the list with lab and     }
-  {  and the name in s. The name is allocated on the heap.              }
-  {  Duplicates are not allowed.                                        }
-  {  Indicate in emitted if this label itself has been emitted, or is it}
-  {  a simple labeled instruction?                                      }
-  {*********************************************************************}
-  Begin
-    if search(s) = nil then
-    Begin
-      if First = nil then
-       Begin
-          New(First);
-          Last:=First;
-       end
-      else
-       Begin
-          New(Last^.Next);
-          Last:=Last^.Next;
-       end;
-      Last^.name:=stringdup(s);
-      Last^.Lab:=lab;
-      Last^.Next:=nil;
-      Last^.emitted:=emitted;
+Procedure TInstruction.SwapOperands;
+Var
+  p : POperand;
+Begin
+  case Ops of
+   2 :
+    begin
+      p:=Operands[1];
+      Operands[1]:=Operands[2];
+      Operands[2]:=p;
+    end;
+   3 :
+    begin
+      p:=Operands[1];
+      Operands[1]:=Operands[3];
+      Operands[3]:=p;
     end;
   end;
+end;
 
 
+procedure TInstruction.ConcatInstruction(p:PAasmOutput);
+begin
+  abstract;
+end;
 
-  Function TAsmLabelList.Search(const s: string): PAsmLabelRec;
-  {*********************************************************************}
-  {  Description: This routine searches for a label named s in the      }
-  {  linked list, returns a pointer to the label if found, otherwise    }
-  {  returns nil.                                                       }
-  {*********************************************************************}
-  Var
-    asmlab: PAsmLabelREc;
-  Begin
-    asmlab:=First;
-    if First = nil then
+
+procedure TInstruction.BuildOpcode;
+begin
+  abstract;
+end;
+
+
+{***************************************************************************
+                                 TLocalLabel
+***************************************************************************}
+
+constructor TLocalLabel.Init(const n:string);
+begin
+  inherited InitName(n);
+  lab:=nil;
+  emitted:=false;
+end;
+
+
+function TLocalLabel.Getpasmlabel:pasmlabel;
+begin
+  if not assigned(lab) then
+   begin
+     getlabel(lab);
+     { this label is forced to be used so it's always written }
+     inc(lab^.refs);
+   end;
+  Getpasmlabel:=lab;
+end;
+
+
+{***************************************************************************
+                             TLocalLabelList
+***************************************************************************}
+
+procedure LocalLabelEmitted(p:PNamedIndexObject);{$ifndef FPC}far;{$endif}
+begin
+  if not PLocalLabel(p)^.emitted  then
+   Message1(asmr_e_unknown_label_identifier,p^.name);
+end;
+
+procedure TLocalLabelList.CheckEmitted;
+begin
+  ForEach({$ifdef FPC}@{$endif}LocalLabelEmitted)
+end;
+
+
+function CreateLocalLabel(const s: string; var hl: pasmlabel; emit:boolean):boolean;
+var
+  lab : PLocalLabel;
+Begin
+  CreateLocalLabel:=true;
+{ Check if it already is defined }
+  lab:=PLocalLabel(LocalLabelList^.Search(s));
+  if not assigned(lab) then
+   begin
+     new(lab,init(s));
+     LocalLabelList^.Insert(lab);
+   end;
+{ set emitted flag and check for dup syms }
+  if emit then
+   begin
+     if lab^.Emitted then
+      begin
+        Message1(asmr_e_dup_local_sym,lab^.Name);
+        CreateLocalLabel:=false;
+      end;
+     lab^.Emitted:=true;
+   end;
+  hl:=lab^.Getpasmlabel;
+end;
+
+
+{****************************************************************************
+                      Symbol table helper routines
+****************************************************************************}
+
+Function SearchIConstant(const s:string; var l:longint): boolean;
+{**********************************************************************}
+{  Description: Searches for a CONSTANT of name s in either the local  }
+{  symbol list, then in the global symbol list, and returns the value  }
+{  of that constant in l. Returns TRUE if successfull, if not found,   }
+{  or if the constant is not of correct type, then returns FALSE       }
+{ Remarks: Also handle TRUE and FALSE returning in those cases 1 and 0 }
+{  respectively.                                                       }
+{**********************************************************************}
+var
+  sym: psym;
+Begin
+  SearchIConstant:=false;
+  { check for TRUE or FALSE reserved words first }
+  if s = 'TRUE' then
+   Begin
+     SearchIConstant:=TRUE;
+     l:=1;
+   end
+  else
+   if s = 'FALSE' then
     Begin
-      Search:=nil;
-      exit;
-    end;
-    While (asmlab^.name^ <> s) and (asmlab^.Next <> nil) do
-       asmlab:=asmlab^.Next;
-    if asmlab^.name^ = s then
-       search:=asmlab
-    else
-       search:=nil;
-  end;
-
-
-  Destructor TAsmLabelList.Done;
-  {*********************************************************************}
-  {  Description: This routine takes care of deallocating all nodes     }
-  {  in the linked list, as well as deallocating the string pointers    }
-  {  of these nodes.                                                    }
-  {                                                                     }
-  {  Remark: The PLabel field is NOT freed, the compiler takes care of  }
-  {  this.                                                              }
-  {*********************************************************************}
-  Var
-    temp: PAsmLabelRec;
-    temp1: PAsmLabelRec;
-  Begin
-    temp:=First;
-    while temp <> nil do
-    Begin
-      Freemem(Temp^.name, length(Temp^.name^)+1);
-      Temp1:=Temp^.Next;
-      Dispose(Temp);
-      Temp:=Temp1;
-      { The plabel could be deleted here, but let us not do }
-      { it, FPC will do it instead.                         }
-    end;
-  end;
-
-
-{*************************************************************************}
-{                      Symbol table helper routines                       }
-{*************************************************************************}
-
-  Procedure SwapOperands(Var instr: TInstruction);
-  Var
-   tempopr: TOperand;
-  Begin
-    if instr.Ops = 2 then
-    Begin
-      tempopr:=instr.operands[1];
-      instr.operands[1]:=instr.operands[2];
-      instr.operands[2]:=tempopr;
+      SearchIConstant:=TRUE;
+      l:=0;
     end
-    else
-    if instr.Ops = 3 then
+  else
+   if assigned(aktprocsym) then
     Begin
-      tempopr:=instr.operands[1];
-      instr.operands[1]:=instr.operands[3];
-      instr.operands[3]:=tempopr;
+      if assigned(aktprocsym^.definition) then
+       Begin
+       { Check the local constants }
+         if assigned(aktprocsym^.definition^.localst) and
+            (lexlevel >= normal_function_level) then
+          sym:=aktprocsym^.definition^.localst^.search(s)
+         else
+          sym:=nil;
+         if assigned(sym) then
+          Begin
+            if (sym^.typ = constsym) and
+               (pconstsym(sym)^.consttype in [constord,constint,constchar,constbool]) then
+             Begin
+               l:=pconstsym(sym)^.value;
+               SearchIConstant:=TRUE;
+               exit;
+             end;
+          end;
+       end;
     end;
-  end;
-
-
-  Function SearchIConstant(const s:string; var l:longint): boolean;
-  {**********************************************************************}
-  {  Description: Searches for a CONSTANT of name s in either the local  }
-  {  symbol list, then in the global symbol list, and returns the value  }
-  {  of that constant in l. Returns TRUE if successfull, if not found,   }
-  {  or if the constant is not of correct type, then returns FALSE       }
-  { Remarks: Also handle TRUE and FALSE returning in those cases 1 and 0 }
-  {  respectively.                                                       }
-  {**********************************************************************}
-  var
-    sym: psym;
-  Begin
-    SearchIConstant:=FALSE;
-    { check for TRUE or FALSE reserved words first }
-    if s = 'TRUE' then
-     Begin
-       SearchIConstant:=TRUE;
-       l:=1;
-     end
-    else
-     if s = 'FALSE' then
-      Begin
-        SearchIConstant:=TRUE;
-        l:=0;
-      end
-    else
-     if assigned(aktprocsym) then
-      Begin
-        if assigned(aktprocsym^.definition) then
-         Begin
-         { Check the local constants }
-           if assigned(aktprocsym^.definition^.localst) and
-              (lexlevel >= normal_function_level) then
-            sym:=aktprocsym^.definition^.localst^.search(s)
-           else
-            sym:=nil;
-           if assigned(sym) then
+  { Check the global constants }
+  getsym(s,false);
+  if srsym <> nil then
+   Begin
+     case srsym^.typ of
+       constsym :
+         begin
+           if (pconstsym(srsym)^.consttype in [constord,constint,constchar,constbool]) then
             Begin
-              if (sym^.typ = constsym) and
-                 (pconstsym(sym)^.consttype in [constord,constint,constchar,constbool]) then
-               Begin
-                 l:=pconstsym(sym)^.value;
-                 SearchIConstant:=TRUE;
-                 exit;
-               end;
+              l:=pconstsym(srsym)^.value;
+              SearchIConstant:=TRUE;
+              exit;
             end;
          end;
-      end;
-    { Check the global constants }
-    getsym(s,false);
-    if srsym <> nil then
-     Begin
-       case srsym^.typ of
-         constsym :
-           begin
-             if (pconstsym(srsym)^.consttype in [constord,constint,constchar,constbool]) then
-              Begin
-                l:=pconstsym(srsym)^.value;
-                SearchIConstant:=TRUE;
-                exit;
-              end;
-           end;
-       end;
      end;
-  end;
-
-
-  Procedure SetupResult(Var Instr:TInstruction; operandnum: byte);
-  {**********************************************************************}
-  {  Description: This routine changes the correct fields and correct    }
-  {  offset in the reference, so that it points to the __RESULT or       }
-  {  @Result variable (depending on the inline asm).                     }
-  {  Resturns a reference with all correct offset correctly set up.      }
-  {  The Operand should already point to a treference on entry.          }
-  {**********************************************************************}
-  Begin
-    { replace by correct offset. }
-    if assigned(procinfo.retdef) and
-      (procinfo.retdef<>pdef(voiddef)) then
-     begin
-       instr.operands[operandnum].ref.offset:=procinfo.retoffset;
-       instr.operands[operandnum].ref.base:= procinfo.framepointer;
-       { always assume that the result is valid. }
-       procinfo.funcret_is_valid:=true;
-     end
-    else
-     Message(asmr_e_void_function);
-  end;
-
-
-{$ifdef i386}
-  Procedure FWaitWarning;
-  begin
-    if (target_info.target=target_i386_GO32V2) and (cs_fp_emulation in aktmoduleswitches) then
-     Message(asmr_w_fwait_emu_prob);
-  end;
-{$endif i386}
-
-
-  Procedure SetOperandSize(var instr:TInstruction;operandnum,size:longint);
-  begin
-    { the current size is NOT overriden if it already }
-    { exists, such as in the case of a byte ptr, in   }
-    { front of the identifier.                        }
-    if (instr.operands[operandnum].size = S_NO) or (instr.operands[operandnum].overriden = FALSE) then
-    Begin
-      case size of
-       1: instr.operands[operandnum].size:=S_B;
-       2: instr.operands[operandnum].size:=S_W{ could be S_IS};
-       4: instr.operands[operandnum].size:=S_L{ could be S_IL or S_FS};
-       8: instr.operands[operandnum].size:=S_IQ{ could be S_D or S_FL};
-       extended_size: instr.operands[operandnum].size:=S_FX;
-      else
-       { this is in the case where the instruction is LEA }
-       { or something like that, in that case size is not }
-       { important.                                       }
-        instr.operands[operandnum].size:=S_NO;
-      end; { end case }
-    end;
-  end;
+   end;
+end;
 
 
 Function GetRecordOffsetSize(s:string;Var Offset: longint;var Size:longint):boolean;
@@ -1015,211 +1191,30 @@ Begin
 end;
 
 
-Function CreateVarInstr(var Instr: TInstruction; const hs:string;operandnum:byte): Boolean;
-{ search and sets up the correct fields in the Instr record }
-{ for the NON-constant identifier passed to the routine.    }
-{ if not found returns FALSE.                               }
+Function SearchLabel(const s: string; var hl: pasmlabel;emit:boolean): boolean;
 var
   sym : psym;
+  hs  : string;
 Begin
-  CreateVarInstr:=FALSE;
-{ are we in a routine ? }
+  hl:=nil;
+  SearchLabel:=false;
+{ Check for pascal labels, which are case insensetive }
+  hs:=upper(s);
   getsym(hs,false);
   sym:=srsym;
   if sym=nil then
    exit;
   case sym^.typ of
-    varsym :
+    labelsym :
       begin
-        { we always assume in asm statements that     }
-        { that the variable is valid.                 }
-        pvarsym(sym)^.is_valid:=1;
-        inc(pvarsym(sym)^.refs);
-        case pvarsym(sym)^.owner^.symtabletype of
-          unitsymtable,
-          globalsymtable,
-          staticsymtable :
-            instr.operands[operandnum].ref.symbol:=newasmsymbol(pvarsym(sym)^.mangledname);
-          parasymtable :
-            begin
-              instr.operands[operandnum].ref.base:=procinfo.framepointer;
-              instr.operands[operandnum].ref.offset:=pvarsym(sym)^.address;
-              instr.operands[operandnum].ref.offsetfixup:=aktprocsym^.definition^.parast^.address_fixup;
-              instr.operands[operandnum].ref.options:=ref_parafixup;
-            end;
-          localsymtable :
-            begin
-              if (pvarsym(sym)^.var_options and vo_is_external)<>0 then
-                instr.operands[operandnum].ref.symbol:=newasmsymbol(pvarsym(sym)^.mangledname)
-              else
-                begin
-                  instr.operands[operandnum].ref.base:=procinfo.framepointer;
-                  instr.operands[operandnum].ref.offset:=-(pvarsym(sym)^.address);
-                  instr.operands[operandnum].ref.options:=ref_localfixup;
-                  instr.operands[operandnum].ref.offsetfixup:=aktprocsym^.definition^.localst^.address_fixup;
-                end;
-            end;
-        end;
-        case pvarsym(sym)^.definition^.deftype of
-          orddef,
-          enumdef,
-          pointerdef,
-          floatdef :
-            SetOperandSize(instr,operandnum,pvarsym(sym)^.getsize);
-          arraydef :
-            SetOperandSize(instr,operandnum,parraydef(pvarsym(sym)^.definition)^.elesize)
-        end;
-        instr.operands[operandnum].hasvar:=true;
-        CreateVarInstr:=TRUE;
-        Exit;
-      end;
-    typedconstsym :
-      begin
-        instr.operands[operandnum].ref.symbol:=newasmsymbol(ptypedconstsym(sym)^.mangledname);
-        case ptypedconstsym(sym)^.definition^.deftype of
-          orddef,
-          enumdef,
-          pointerdef,
-          floatdef :
-            SetOperandSize(instr,operandnum,ptypedconstsym(sym)^.getsize);
-          arraydef :
-            SetOperandSize(instr,operandnum,parraydef(ptypedconstsym(sym)^.definition)^.elesize)
-        end;
-        instr.operands[operandnum].hasvar:=true;
-        CreateVarInstr:=TRUE;
-        Exit;
-      end;
-    constsym :
-      begin
-        if pconstsym(sym)^.consttype in [constint,constchar,constbool] then
-         begin
-           instr.operands[operandnum].operandtype:=OPR_CONSTANT;
-           instr.operands[operandnum].val:=pconstsym(sym)^.value;
-           instr.operands[operandnum].hasvar:=true;
-           CreateVarInstr:=TRUE;
-           Exit;
-         end;
-      end;
-    typesym :
-      begin
-        if ptypesym(sym)^.definition^.deftype in [recorddef,objectdef] then
-         begin
-           instr.operands[operandnum].operandtype:=OPR_CONSTANT;
-           instr.operands[operandnum].val:=0;
-           instr.operands[operandnum].hasvar:=true;
-           CreateVarInstr:=TRUE;
-           Exit;
-         end;
-      end;
-    procsym :
-      begin
-        if assigned(pprocsym(sym)^.definition^.nextoverloaded) then
-          Message(asmr_w_calling_overload_func);
-        instr.operands[operandnum].operandtype:=OPR_SYMBOL;
-        instr.operands[operandnum].symbol:=newasmsymbol(pprocsym(sym)^.definition^.mangledname);
-        instr.operands[operandnum].hasvar:=true;
-        CreateVarInstr:=TRUE;
-        Exit;
-      end;
-    else
-      begin
-        Message(asmr_e_unsupported_symbol_type);
+        hl:=plabelsym(sym)^.lab;
+        if emit then
+         plabelsym(sym)^.defined:=true;
+        SearchLabel:=true;
         exit;
       end;
   end;
 end;
-
-
-  Function SearchLabel(const s: string; var hl: plabel): boolean;
-  {**********************************************************************}
-  {  Description: Searches for a pascal label definition, first in the   }
-  {  local symbol list and then in the global symbol list. If found then }
-  {  return pointer to label and return true, otherwise returns false.   }
-  {**********************************************************************}
-  var
-    sym: psym;
-  Begin
-    SearchLabel:=FALSE;
-    if assigned(aktprocsym) then
-    Begin
-      { Check the local constants }
-    if assigned(aktprocsym^.definition) then
-    Begin
-        if assigned(aktprocsym^.definition^.localst) then
-          sym:=aktprocsym^.definition^.localst^.search(s)
-      else
-       sym:=nil;
-      if assigned(sym) then
-      Begin
-       if (sym^.typ = labelsym) then
-       Begin
-          hl:=plabelsym(sym)^.lab;
-          SearchLabel:=TRUE;
-          exit;
-       end;
-      end;
-    end;
-  end;
-    { Check the global label symbols... }
-    getsym(s,false);
-    if srsym <> nil then
-    Begin
-      if (srsym^.typ=labelsym) then
-      Begin
-        hl:=plabelsym(srsym)^.lab;
-        SearchLabel:=TRUE;
-        exit;
-      end;
-    end;
-  end;
-
-
-{ looks for internal names of variables and routines }
-Function SearchDirectVar(var Instr: TInstruction; const hs:string;operandnum:byte): Boolean;
-{$ifdef NEWLAB}
-var
-  p : pasmsymbol;
-begin
-  SearchDirectVar:=false;
-  p:=getasmsymbol(hs);
-  if assigned(p) then
-   begin
-     instr.operands[operandnum].ref.symbol:=p;
-     instr.operands[operandnum].hasvar:=true;
-     SearchDirectVar:=true;
-   end;
-end;
-{$else}
-var
-  p : pai_external;
-Begin
-   SearchDirectVar:=false;
-   { search in the list of internals }
-   p:=search_assembler_symbol(internals,hs,EXT_ANY);
-     if p=nil then
-       p:=search_assembler_symbol(externals,hs,EXT_ANY);
-   if p<>nil then
-     begin
-       instr.operands[operandnum].ref.symbol:=p^.sym;
-        case p^.exttyp of
-           EXT_BYTE   : instr.operands[operandnum].size:=S_B;
-           EXT_WORD   : instr.operands[operandnum].size:=S_W;
-           EXT_NEAR,EXT_FAR,EXT_PROC,EXT_DWORD,EXT_CODEPTR,EXT_DATAPTR:
-           instr.operands[operandnum].size:=S_L;
-           EXT_QWORD  : instr.operands[operandnum].size:=S_FL;
-           EXT_TBYTE  : instr.operands[operandnum].size:=S_FX;
-         else
-           { this is in the case where the instruction is LEA }
-           { or something like that, in that case size is not }
-           { important.                                       }
-             instr.operands[operandnum].size:=S_NO;
-         end;
-       instr.operands[operandnum].hasvar:=true;
-       SearchDirectVar:=TRUE;
-       Exit;
-     end;
-end;
-{$endif}
 
 
  {*************************************************************************}
@@ -1325,14 +1320,14 @@ end;
        end;
     end;
 
-   Procedure ConcatLabel(p: paasmoutput;var l : plabel);
+   Procedure ConcatLabel(p: paasmoutput;var l : pasmlabel);
   {*********************************************************************}
   { PROCEDURE ConcatLabel                                               }
   {  Description: This routine either emits a label or a labeled        }
   {  instruction to the linked list of instructions.                    }
   {*********************************************************************}
    begin
-     p^.concat(new(pai_label,init(l)))
+     p^.concat(new(pai_label,init(l)));
    end;
 
    procedure ConcatAlign(p:paasmoutput;l:longint);
@@ -1353,7 +1348,6 @@ end;
   {*********************************************************************}
    begin
        p^.concat(new(pai_symbol,initname_global(s)));
-       { concat_internal(s,EXT_NEAR); done in aasm }
    end;
 
    procedure ConcatLocal(p:paasmoutput;const s : string);
@@ -1364,7 +1358,6 @@ end;
   {*********************************************************************}
    begin
        p^.concat(new(pai_symbol,initname(s)));
-       { concat_internal(s,EXT_NEAR); done in aasm }
    end;
 
   Procedure ConcatGlobalBss(const s : string;size : longint);
@@ -1375,7 +1368,6 @@ end;
   {*********************************************************************}
    begin
        bsssegment^.concat(new(pai_datablock,init_global(s,size)));
-       { concat_internal(s,EXT_NEAR); done in aasm }
    end;
 
   Procedure ConcatLocalBss(const s : string;size : longint);
@@ -1386,42 +1378,20 @@ end;
   {*********************************************************************}
    begin
        bsssegment^.concat(new(pai_datablock,init(s,size)));
-       { concat_internal(s,EXT_NEAR); done in aasm }
    end;
-
-{$ifndef NEWLAB}
-  { add to list of external labels }
-  Procedure ConcatExternal(const s : string;typ : texternal_typ);
-  {*********************************************************************}
-  { PROCEDURE ConcatExternal                                            }
-  {  Description: This routine emits an external definition to the      }
-  {  linked list of instructions.(used by AT&T styled asm)              }
-  {*********************************************************************}
-  { check if in internal list and remove it there                       }
-  var p : pai_external;
-   begin
-       p:=search_assembler_symbol(internals,s,typ);
-       if p<>nil then internals^.remove(p);
-       concat_external(s,typ);
-   end;
-
-  { add to internal list of labels }
-  Procedure ConcatInternal(const s : string;typ : texternal_typ);
-  {*********************************************************************}
-  { PROCEDURE ConcatInternal                                            }
-  {  Description: This routine emits an internal definition of a symbol }
-  {  (used by AT&T styled asm for undefined labels)                     }
-  {*********************************************************************}
-   begin
-       concat_internal(s,typ);
-   end;
-{$endif}
-
 
 end.
 {
   $Log$
-  Revision 1.16  1999-05-21 13:55:18  peter
+  Revision 1.17  1999-05-27 19:45:01  peter
+    * removed oldasm
+    * plabel -> pasmlabel
+    * -a switches to source writing automaticly
+    * assembler readers OOPed
+    * asmsymbol automaticly external
+    * jumptables and other label fixes for asm readers
+
+  Revision 1.16  1999/05/21 13:55:18  peter
     * NEWLAB for label as symbol
 
   Revision 1.15  1999/05/12 00:17:11  peter
@@ -1447,7 +1417,7 @@ end.
 
   Revision 1.8  1999/04/26 23:26:19  peter
     * redesigned record offset parsing to support nested records
-    * normal compiler uses the redesigned createvarinstr()
+    * normal compiler uses the redesigned SetupVar()
 
   Revision 1.7  1999/04/14 09:07:48  peter
     * asm reader improvements

@@ -44,11 +44,7 @@ implementation
       symtable,aasm,types,
       hcodegen,htypechk,pass_1
 {$ifdef i386}
-{$ifndef OLDASM}
       ,i386base
-{$else}
-      ,i386
-{$endif}
 {$endif}
 {$ifdef m68k}
       ,m68k
@@ -65,7 +61,7 @@ implementation
         constp,
         buildp,
         p2,p3,p4    : ptree;
-        pd          : pdef;
+        pd        : pdef;
         constset    : pconstset;
         constsetlo,
         constsethi  : longint;
@@ -274,7 +270,7 @@ implementation
                 begin
                    p^.left^.stringtype:=pstringdef(p^.resulttype)^.string_typ;
                    { we don't have to do anything, the const }
-                   { node generates an ansistring            }
+                   { node generates an ansistring           }
                    p^.convtyp:=tc_equal;
                 end
               else
@@ -428,8 +424,8 @@ implementation
     procedure first_chararray_to_string(var p : ptree);
       begin
          { the only important information is the location of the }
-         { result                                                }
-         { other stuff is done by firsttypeconv                  }
+         { result                                               }
+         { other stuff is done by firsttypeconv           }
          p^.location.loc:=LOC_MEM;
       end;
 
@@ -755,7 +751,7 @@ implementation
                      { do common tc_equal cast }
                      p^.convtyp:=tc_equal;
                      { wenn Aufz„hltyp nach Ordinal konvertiert werden soll }
-                     { dann Aufz„hltyp=s32bit                               }
+                     { dann Aufz„hltyp=s32bit                          }
                      if (p^.left^.resulttype^.deftype=enumdef) and
                         is_ordinal(p^.resulttype) then
                        begin
@@ -825,7 +821,7 @@ implementation
                              ) then
                          CGMessage(cg_e_illegal_type_conversion);
                      { the conversion into a strutured type is only }
-                     { possible, if the source is no register         }
+                     { possible, if the source is no register    }
                      if ((p^.resulttype^.deftype in [recorddef,stringdef,arraydef]) or
                          ((p^.resulttype^.deftype=objectdef) and not(pobjectdef(p^.resulttype)^.isclass))
                         ) and (p^.left^.location.loc in [LOC_REGISTER,LOC_CREGISTER]) and
@@ -931,7 +927,15 @@ implementation
 end.
 {
   $Log$
-  Revision 1.32  1999-05-20 14:58:28  peter
+  Revision 1.33  1999-05-27 19:45:15  peter
+    * removed oldasm
+    * plabel -> pasmlabel
+    * -a switches to source writing automaticly
+    * assembler readers OOPed
+    * asmsymbol automaticly external
+    * jumptables and other label fixes for asm readers
+
+  Revision 1.32  1999/05/20 14:58:28  peter
     * fixed arrayconstruct->set conversion which didn't work for enum sets
 
   Revision 1.31  1999/05/13 21:59:52  peter

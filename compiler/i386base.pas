@@ -581,7 +581,7 @@ type
 
   { immediate/reference record }
   preference = ^treference;
-  treference = record
+  treference = packed record
      is_immediate : boolean; { is this used as reference or immediate }
      segment,
      base,
@@ -591,6 +591,24 @@ type
      symbol      : pasmsymbol;
      offsetfixup : longint;
      options     : trefoptions;
+  end;
+
+
+{*****************************************************************************
+                                Operand
+*****************************************************************************}
+
+type
+  toptype=(top_none,top_reg,top_ref,top_const,top_symbol);
+
+  toper=record
+    ot  : longint;
+    case typ : toptype of
+     top_none   : ();
+     top_reg    : (reg:tregister);
+     top_ref    : (ref:preference);
+     top_const  : (val:longint);
+     top_symbol : (sym:pasmsymbol;symofs:longint);
   end;
 
 
@@ -731,6 +749,8 @@ var
 
     function reg2str(r : tregister) : string;
 
+    function is_calljmp(o:tasmop):boolean;
+
 
 implementation
 
@@ -768,6 +788,22 @@ implementation
            'AL','CL','DL','BL');
       begin
          reg2str:=a[r];
+      end;
+
+
+    function is_calljmp(o:tasmop):boolean;
+      begin
+        case o of
+          A_CALL,
+          A_JCXZ,
+          A_JECXZ,
+          A_JMP,
+          A_LOOP,
+          A_Jcc :
+            is_calljmp:=true;
+          else
+            is_calljmp:=false;
+        end;
       end;
 
 
@@ -921,7 +957,15 @@ begin
 end.
 {
   $Log$
-  Revision 1.4  1999-05-17 14:33:50  pierre
+  Revision 1.5  1999-05-27 19:44:34  peter
+    * removed oldasm
+    * plabel -> pasmlabel
+    * -a switches to source writing automaticly
+    * assembler readers OOPed
+    * asmsymbol automaticly external
+    * jumptables and other label fixes for asm readers
+
+  Revision 1.4  1999/05/17 14:33:50  pierre
    uses heaptrc need for extrainfo with heaptrc
 
   Revision 1.3  1999/05/12 00:19:51  peter

@@ -43,11 +43,7 @@ implementation
       cobjects,verbose,globtype,globals,systems,
       symtable,aasm,types,
       hcodegen,temp_gen,pass_2,pass_1,
-{$ifndef OLDASM}
       i386base,i386asm,
-{$else}
-      i386,
-{$endif}
       cgai386,tgeni386;
 
 
@@ -86,10 +82,10 @@ implementation
                       A_MOV,S_B,0,newreference(p^.left^.location.reference))))
                  else
                    begin
-                     emitpushreferenceaddr(exprasmlist,p^.left^.location.reference);
-                     emitpushreferenceaddr(exprasmlist,p^.right^.location.reference);
+                     emitpushreferenceaddr(p^.left^.location.reference);
+                     emitpushreferenceaddr(p^.right^.location.reference);
                      push_shortstring_length(p^.left);
-                     emitcall('FPC_SHORTSTR_COPY',true);
+                     emitcall('FPC_SHORTSTR_COPY');
                      maybe_loadesi;
                    end;
               end;
@@ -136,7 +132,7 @@ implementation
                 ungetiftemp(source^.location.reference);
 {$IfNDef regallocfix}
                 del_reference(source^.location.reference);
-                pushusedregisters(exprasmlist,pushed,$ff);
+                pushusedregisters(pushed,$ff);
                 emit_push_mem(source^.location.reference);
 {$Else regallocfix}
                  pushusedregisters(pushed,$ff
@@ -150,7 +146,7 @@ implementation
              begin
 {$IfNDef regallocfix}
                 ungetregister32(source^.location.register);
-                pushusedregisters(exprasmlist,pushed,$ff);
+                pushusedregisters(pushed,$ff);
                 exprasmlist^.concat(new(pai386,op_reg(A_PUSH,S_L,source^.location.register)));
 {$Else regallocfix}
                  pushusedregisters(pushed, $ff xor ($80 shr byte(source^.location.register)));
@@ -160,9 +156,9 @@ implementation
              end;
          end;
          push_shortstring_length(dest);
-         emitpushreferenceaddr(exprasmlist,dest^.location.reference);
-         emitcall('FPC_ANSISTR_TO_SHORTSTR',true);
-         popusedregisters(exprasmlist,pushed);
+         emitpushreferenceaddr(dest^.location.reference);
+         emitcall('FPC_ANSISTR_TO_SHORTSTR');
+         popusedregisters(pushed);
          maybe_loadesi;
       end;
 
@@ -177,7 +173,7 @@ implementation
 
     procedure second_int_to_int(pto,pfrom : ptree;convtyp : tconverttype);
       var
-        op        : tasmop;
+        op      : tasmop;
         opsize    : topsize;
         hregister : tregister;
       begin
@@ -257,7 +253,7 @@ implementation
 
       begin
          { does anybody know a better solution than this big case statement ? }
-         { ok, a proc table would do the job                                  }
+         { ok, a proc table would do the job                              }
          case pstringdef(pto^.resulttype)^.string_typ of
 
             st_shortstring:
@@ -317,12 +313,12 @@ implementation
                       clear_location(pto^.location);
                       pto^.location.loc:=LOC_REFERENCE;
                       gettempansistringreference(pto^.location.reference);
-                      pushusedregisters(exprasmlist,pushed,$ff);
+                      pushusedregisters(pushed,$ff);
                       emit_push_lea_loc(pfrom^.location);
                       emit_push_lea_loc(pto^.location);
-                      emitcall('FPC_SHORTSTR_TO_ANSISTR',true);
+                      emitcall('FPC_SHORTSTR_TO_ANSISTR');
                       maybe_loadesi;
-                      popusedregisters(exprasmlist,pushed);
+                      popusedregisters(pushed);
 
                       ungetiftemp(pfrom^.location.reference);
                    end;
@@ -458,7 +454,7 @@ implementation
 
 
     { generates the code for the type conversion from an array of char }
-    { to a string                                                        }
+    { to a string                                                       }
     procedure second_chararray_to_string(pto,pfrom : ptree;convtyp : tconverttype);
       var
          pushed : tpushed;
@@ -467,7 +463,7 @@ implementation
          { calc the length of the array }
          l:=parraydef(pfrom^.resulttype)^.highrange-parraydef(pfrom^.resulttype)^.lowrange+1;
          { this is a type conversion which copies the data, so we can't }
-         { return a reference                                             }
+         { return a reference                                        }
          clear_location(pto^.location);
          pto^.location.loc:=LOC_MEM;
          case pstringdef(pto^.resulttype)^.string_typ of
@@ -495,12 +491,12 @@ implementation
              begin
                gettempansistringreference(pto^.location.reference);
                release_loc(pfrom^.location);
-               pushusedregisters(exprasmlist,pushed,$ff);
+               pushusedregisters(pushed,$ff);
                push_int(l);
-               emitpushreferenceaddr(exprasmlist,pfrom^.location.reference);
-               emitpushreferenceaddr(exprasmlist,pto^.location.reference);
-               emitcall('FPC_CHARARRAY_TO_ANSISTR',true);
-               popusedregisters(exprasmlist,pushed);
+               emitpushreferenceaddr(pfrom^.location.reference);
+               emitpushreferenceaddr(pto^.location.reference);
+               emitcall('FPC_CHARARRAY_TO_ANSISTR');
+               popusedregisters(pushed);
                maybe_loadesi;
              end;
            st_longstring:
@@ -540,11 +536,11 @@ implementation
              begin
                gettempansistringreference(pto^.location.reference);
                release_loc(pfrom^.location);
-               pushusedregisters(exprasmlist,pushed,$ff);
+               pushusedregisters(pushed,$ff);
                emit_pushw_loc(pfrom^.location);
-               emitpushreferenceaddr(exprasmlist,pto^.location.reference);
-               emitcall('FPC_CHAR_TO_ANSISTR',true);
-               popusedregisters(exprasmlist,pushed);
+               emitpushreferenceaddr(pto^.location.reference);
+               emitcall('FPC_CHAR_TO_ANSISTR');
+               popusedregisters(pushed);
                maybe_loadesi;
              end;
            else
@@ -667,7 +663,7 @@ implementation
       var
         popeax,popebx,popecx,popedx : boolean;
         startreg : tregister;
-        hl : plabel;
+        hl : pasmlabel;
         r : treference;
       begin
          if (pfrom^.location.loc=LOC_REGISTER) or
@@ -796,7 +792,7 @@ implementation
 
     procedure second_bool_to_int(pto,pfrom : ptree;convtyp : tconverttype);
       var
-         oldtruelabel,oldfalselabel,hlabel : plabel;
+         oldtruelabel,oldfalselabel,hlabel : pasmlabel;
          hregister : tregister;
          newsize,
          opsize : topsize;
@@ -976,13 +972,13 @@ implementation
         pushedregs : tpushed;
       begin
         href.symbol:=nil;
-        pushusedregisters(exprasmlist,pushedregs,$ff);
+        pushusedregisters(pushedregs,$ff);
         gettempofsizereference(32,href);
-        emitpushreferenceaddr(exprasmlist,pfrom^.location.reference);
-        emitpushreferenceaddr(exprasmlist,href);
-        emitcall('FPC_SET_LOAD_SMALL',true);
+        emitpushreferenceaddr(pfrom^.location.reference);
+        emitpushreferenceaddr(href);
+        emitcall('FPC_SET_LOAD_SMALL');
         maybe_loadesi;
-        popusedregisters(exprasmlist,pushedregs);
+        popusedregisters(pushedregs);
         clear_location(pto^.location);
         pto^.location.loc:=LOC_MEM;
         pto^.location.reference:=href;
@@ -991,7 +987,7 @@ implementation
 
     procedure second_ansistring_to_pchar(pto,pfrom : ptree;convtyp : tconverttype);
       var
-         l1,l2 : plabel;
+         l1,l2 : pasmlabel;
          hr : preference;
       begin
          clear_location(pto^.location);
@@ -1035,7 +1031,7 @@ implementation
              begin
                 pto^.location.loc:=LOC_REFERENCE;
                 gettempofsizereference(pto^.resulttype^.size,pto^.location.reference);
-                pushusedregisters(exprasmlist,pushed,$ff);
+                pushusedregisters(pushed,$ff);
                 case pfrom^.location.loc of
                    LOC_REGISTER,LOC_CREGISTER:
                      begin
@@ -1048,10 +1044,10 @@ implementation
                         del_reference(pfrom^.location.reference);
                      end;
                 end;
-                emitpushreferenceaddr(exprasmlist,pto^.location.reference);
-                emitcall('FPC_PCHAR_TO_SHORTSTR',true);
+                emitpushreferenceaddr(pto^.location.reference);
+                emitcall('FPC_PCHAR_TO_SHORTSTR');
                 maybe_loadesi;
-                popusedregisters(exprasmlist,pushed);
+                popusedregisters(pushed);
              end;
            st_ansistring:
              begin
@@ -1062,7 +1058,7 @@ implementation
                     begin
 {$IfNDef regallocfix}
                       del_reference(pfrom^.location.reference);
-                      pushusedregisters(exprasmlist,pushed,$ff);
+                      pushusedregisters(pushed,$ff);
                       emit_push_mem(pfrom^.location.reference);
 {$Else regallocfix}
                       pushusedregisters(pushed,$ff
@@ -1076,7 +1072,7 @@ implementation
                     begin
 {$IfNDef regallocfix}
                       ungetregister32(pfrom^.location.register);
-                      pushusedregisters(exprasmlist,pushed,$ff);
+                      pushusedregisters(pushed,$ff);
                       exprasmlist^.concat(new(pai386,op_reg(A_PUSH,S_L,pfrom^.location.register)));
 {$Else regallocfix}
                       pushusedregisters(pushed, $ff xor ($80 shr byte(pfrom^.location.register)));
@@ -1085,10 +1081,10 @@ implementation
 {$EndIf regallocfix}
                    end;
                 end;
-                emitpushreferenceaddr(exprasmlist,pto^.location.reference);
-                emitcall('FPC_PCHAR_TO_ANSISTR',true);
+                emitpushreferenceaddr(pto^.location.reference);
+                emitcall('FPC_PCHAR_TO_ANSISTR');
                 maybe_loadesi;
-                popusedregisters(exprasmlist,pushed);
+                popusedregisters(pushed);
              end;
          else
           begin
@@ -1143,7 +1139,7 @@ implementation
       begin
 
          { this isn't good coding, I think tc_bool_2_int, shouldn't be }
-         { type conversion (FK)                                        }
+         { type conversion (FK)                                 }
 
          if not(p^.convtyp in [tc_bool_2_int,tc_bool_2_bool]) then
            begin
@@ -1176,20 +1172,15 @@ implementation
                           { NIL must be accepted !! }
                           exprasmlist^.concat(new(pai386,op_reg_reg(A_OR,S_L,r^.base,r^.base)));
                           getlabel(nillabel);
-{$ifndef OLDASM}
-                          exprasmlist^.concat(new(pai386_labeled,op_cond_lab(A_Jcc,C_E,nillabel)));
-{$else}
-                          exprasmlist^.concat(new(pai386_labeled,op_lab(A_JE,nillabel)));
-{$endif}
-
+                          emitjmp(C_E,nillabel);
                           { this is one point where we need vmt_offset (PM) }
                           r^.offset:= pobjectdef(ppointerdef(p^.resulttype)^.definition)^.vmt_offset;
                           exprasmlist^.concat(new(pai386,op_ref_reg(A_MOV,S_L,r,R_EDI)));
                           exprasmlist^.concat(new(pai386,op_sym(A_PUSH,S_L,
                             newasmsymbol(pobjectdef(ppointerdef(p^.resulttype)^.definition)^.vmt_mangledname))));
                           exprasmlist^.concat(new(pai386,op_reg(A_PUSH,S_L,R_EDI)));
-                          emitcall('FPC_CHECK_OBJECT_EXT',true);
-                          exprasmlist^.concat(new(pai_label,init(nillabel)));
+                          emitcall('FPC_CHECK_OBJECT_EXT');
+                          emitlab(nillabel);
                        end;
 {$endif TESTOBJEXT2}
       end;
@@ -1205,7 +1196,7 @@ implementation
 
       begin
          { save all used registers }
-         pushusedregisters(exprasmlist,pushed,$ff);
+         pushusedregisters(pushed,$ff);
          secondpass(p^.left);
          clear_location(p^.location);
          p^.location.loc:=LOC_FLAGS;
@@ -1245,9 +1236,9 @@ implementation
               end;
             else internalerror(100);
          end;
-         emitcall('FPC_DO_IS',true);
+         emitcall('FPC_DO_IS');
          exprasmlist^.concat(new(pai386,op_reg_reg(A_OR,S_B,R_AL,R_AL)));
-         popusedregisters(exprasmlist,pushed);
+         popusedregisters(pushed);
          maybe_loadesi;
       end;
 
@@ -1262,7 +1253,7 @@ implementation
       begin
          secondpass(p^.left);
          { save all used registers }
-         pushusedregisters(exprasmlist,pushed,$ff);
+         pushusedregisters(pushed,$ff);
 
          { push instance to check: }
          case p^.left^.location.loc of
@@ -1295,17 +1286,25 @@ implementation
               end;
             else internalerror(100);
          end;
-         emitcall('FPC_DO_AS',true);
+         emitcall('FPC_DO_AS');
          { restore register, this restores automatically the }
-         { result                                            }
-         popusedregisters(exprasmlist,pushed);
+         { result                                           }
+         popusedregisters(pushed);
       end;
 
 
 end.
 {
   $Log$
-  Revision 1.73  1999-05-18 21:58:26  florian
+  Revision 1.74  1999-05-27 19:44:09  peter
+    * removed oldasm
+    * plabel -> pasmlabel
+    * -a switches to source writing automaticly
+    * assembler readers OOPed
+    * asmsymbol automaticly external
+    * jumptables and other label fixes for asm readers
+
+  Revision 1.73  1999/05/18 21:58:26  florian
     * fixed some bugs related to temp. ansistrings and functions results
       which return records/objects/arrays which need init/final.
 

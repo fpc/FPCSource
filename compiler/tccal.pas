@@ -42,12 +42,7 @@ implementation
       aasm,types,
       hcodegen,htypechk,pass_1
 {$ifdef i386}
-{$ifndef OLDASM}
-      ,i386base
-{$else}
-      ,i386
-{$endif}
-      ,tgeni386
+      ,i386base,tgeni386
 {$endif}
 {$ifdef m68k}
       ,m68k,tgen68k
@@ -168,7 +163,7 @@ implementation
               p^.resulttype:=p^.left^.resulttype;
            end
          { if we know the routine which is called, then the type }
-         { conversions are inserted                              }
+         { conversions are inserted                           }
          else
            begin
               { Do we need arrayconstructor -> set conversion, then insert
@@ -368,7 +363,7 @@ implementation
            is_equal:=(def^.deftype=formaldef) or
              (types.is_equal(p^.resulttype,def))
            { to support ansi/long/wide strings in a proper way }
-           { string and string[10] are assumed as equal        }
+           { string and string[10] are assumed as equal }
            { when searching the correct overloaded procedure   }
              or
              (
@@ -720,13 +715,13 @@ implementation
                      end;
 
                    { if there are several choices left then for orddef }
-                   { if a type is totally included in the other        }
+                   { if a type is totally included in the other }
                    { we don't fear an overflow ,                       }
-                   { so we can do as if it is an exact match           }
-                   { this will convert integer to longint              }
-                   { rather than to words                              }
-                   { conversion of byte to integer or longint          }
-                   {would still not be solved                          }
+                   { so we can do as if it is an exact match       }
+                   { this will convert integer to longint             }
+                   { rather than to words                             }
+                   { conversion of byte to integer or longint     }
+                   {would still not be solved                     }
                    if assigned(procs) and assigned(procs^.next) then
                      begin
                         hp:=procs;
@@ -1123,7 +1118,7 @@ implementation
          if inlined then
            p^.right:=inlinecode;
          { determine the registers of the procedure variable }
-         { is this OK for inlined procs also ?? (PM)         }
+         { is this OK for inlined procs also ?? (PM)     }
          if assigned(p^.right) then
            begin
               p^.registersfpu:=max(p^.right^.registersfpu,p^.registersfpu);
@@ -1167,7 +1162,15 @@ implementation
 end.
 {
   $Log$
-  Revision 1.47  1999-05-23 18:42:19  florian
+  Revision 1.48  1999-05-27 19:45:13  peter
+    * removed oldasm
+    * plabel -> pasmlabel
+    * -a switches to source writing automaticly
+    * assembler readers OOPed
+    * asmsymbol automaticly external
+    * jumptables and other label fixes for asm readers
+
+  Revision 1.47  1999/05/23 18:42:19  florian
     * better error recovering in typed constants
     * some problems with arrays of const fixed, some problems
       due my previous

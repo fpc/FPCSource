@@ -38,11 +38,11 @@
 
           has_inittable : boolean;
           { adress of init informations }
-          inittable_label : plabel;
+          inittable_label : pasmlabel;
 
           has_rtti   : boolean;
           { address of rtti }
-          rtti_label : plabel;
+          rtti_label : pasmlabel;
 
           nextglobal,
           previousglobal : pdef;
@@ -72,7 +72,7 @@
           { init. tables }
           function  needs_inittable : boolean;virtual;
           procedure generate_inittable;
-          function  get_inittable_label : plabel;
+          function  get_inittable_label : pasmlabel;
           { the default implemenation calls write_rtti_data     }
           { if init and rtti data is different these procedures }
           { must be overloaded                                  }
@@ -517,7 +517,15 @@
 
 {
   $Log$
-  Revision 1.29  1999-05-23 18:42:15  florian
+  Revision 1.30  1999-05-27 19:45:04  peter
+    * removed oldasm
+    * plabel -> pasmlabel
+    * -a switches to source writing automaticly
+    * assembler readers OOPed
+    * asmsymbol automaticly external
+    * jumptables and other label fixes for asm readers
+
+  Revision 1.29  1999/05/23 18:42:15  florian
     * better error recovering in typed constants
     * some problems with arrays of const fixed, some problems
       due my previous

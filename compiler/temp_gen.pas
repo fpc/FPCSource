@@ -26,11 +26,7 @@ unit temp_gen;
 
     uses
 {$ifdef i386}
-{$ifndef OLDASM}
       i386base,i386asm,
-{$else}
-      i386,
-{$endif}
 {$endif i386}
 {$ifdef m68k}
       m68k,
@@ -44,7 +40,7 @@ unit temp_gen;
       ptemprecord = ^ttemprecord;
       ttemprecord = record
          temptype   : ttemptype;
-         pos        : longint;
+         pos    : longint;
          size       : longint;
          next       : ptemprecord;
          nextfree   : ptemprecord; { for faster freeblock checking }
@@ -530,7 +526,15 @@ begin
 end.
 {
   $Log$
-  Revision 1.28  1999-05-21 17:23:47  peter
+  Revision 1.29  1999-05-27 19:45:26  peter
+    * removed oldasm
+    * plabel -> pasmlabel
+    * -a switches to source writing automaticly
+    * assembler readers OOPed
+    * asmsymbol automaticly external
+    * jumptables and other label fixes for asm readers
+
+  Revision 1.28  1999/05/21 17:23:47  peter
     * align tempsize also on stackalignment
 
   Revision 1.27  1999/05/21 11:46:28  pierre

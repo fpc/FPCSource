@@ -47,11 +47,7 @@ implementation
       cobjects,verbose,globals,
       symtable,aasm,types,
       hcodegen,temp_gen,pass_2,pass_1,
-{$ifndef OLDASM}
       i386base,i386asm,
-{$else}
-      i386,
-{$endif}
       cgai386,tgeni386;
 
 {*****************************************************************************
@@ -64,10 +60,6 @@ implementation
          exprasmlist^.concat(new(pai386,op_sym_ofs_reg(A_MOV,
             S_L,newasmsymbol(pobjectdef(pclassrefdef(p^.resulttype)^.definition)^.vmt_mangledname),0,
             p^.location.register)));
-{$ifndef NEWLAB}
-         maybe_concat_external(pobjectdef(pclassrefdef(p^.resulttype)^.definition)^.owner,
-            pobjectdef(pclassrefdef(p^.resulttype)^.definition)^.vmt_mangledname);
-{$endif}
       end;
 
 
@@ -96,28 +88,28 @@ implementation
            end
          else
            begin
-              pushusedregisters(exprasmlist,pushed,$ff);
+              pushusedregisters(pushed,$ff);
 
               { code copied from simplenewdispose PM }
               { determines the size of the mem block }
               push_int(ppointerdef(p^.resulttype)^.definition^.size);
 
               gettempofsizereference(target_os.size_of_pointer,p^.location.reference);
-              emitpushreferenceaddr(exprasmlist,p^.location.reference);
+              emitpushreferenceaddr(p^.location.reference);
 
-              emitcall('FPC_GETMEM',true);
+              emitcall('FPC_GETMEM');
               if ppointerdef(p^.resulttype)^.definition^.needs_inittable then
                 begin
                    new(r);
                    reset_reference(r^);
-                   r^.symbol:=newasmsymbol(lab2str(ppointerdef(p^.left^.resulttype)^.definition^.get_inittable_label));
-                   emitpushreferenceaddr(exprasmlist,r^);
+                   r^.symbol:=ppointerdef(p^.left^.resulttype)^.definition^.get_inittable_label;
+                   emitpushreferenceaddr(r^);
                    { push pointer adress }
-                   emitpushreferenceaddr(exprasmlist,p^.location.reference);
+                   emitpushreferenceaddr(p^.location.reference);
                    dispose(r);
-                   emitcall('FPC_INITIALIZE',true);
+                   emitcall('FPC_INITIALIZE');
                 end;
-              popusedregisters(exprasmlist,pushed);
+              popusedregisters(pushed);
               { may be load ESI }
               maybe_loadesi;
            end;
@@ -171,7 +163,7 @@ implementation
          if codegenerror then
            exit;
 
-         pushusedregisters(exprasmlist,pushed,$ff);
+         pushusedregisters(pushed,$ff);
          { determines the size of the mem block }
          push_int(ppointerdef(p^.left^.resulttype)^.definition^.size);
 
@@ -180,7 +172,7 @@ implementation
             LOC_CREGISTER : exprasmlist^.concat(new(pai386,op_reg(A_PUSH,S_L,
               p^.left^.location.register)));
             LOC_REFERENCE:
-              emitpushreferenceaddr(exprasmlist,p^.left^.location.reference);
+              emitpushreferenceaddr(p^.left^.location.reference);
          end;
 
          { call the mem handling procedures }
@@ -191,42 +183,42 @@ implementation
                   begin
                      new(r);
                      reset_reference(r^);
-                     r^.symbol:=newasmsymbol(lab2str(ppointerdef(p^.left^.resulttype)^.definition^.get_inittable_label));
-                     emitpushreferenceaddr(exprasmlist,r^);
+                     r^.symbol:=ppointerdef(p^.left^.resulttype)^.definition^.get_inittable_label;
+                     emitpushreferenceaddr(r^);
                      { push pointer adress }
                      case p^.left^.location.loc of
                         LOC_CREGISTER : exprasmlist^.concat(new(pai386,op_reg(A_PUSH,S_L,
                           p^.left^.location.register)));
                         LOC_REFERENCE:
-                          emitpushreferenceaddr(exprasmlist,p^.left^.location.reference);
+                          emitpushreferenceaddr(p^.left^.location.reference);
                      end;
                      dispose(r);
-                     emitcall('FPC_FINALIZE',true);
+                     emitcall('FPC_FINALIZE');
                   end;
-                emitcall('FPC_FREEMEM',true);
+                emitcall('FPC_FREEMEM');
              end;
            simplenewn:
              begin
-                emitcall('FPC_GETMEM',true);
+                emitcall('FPC_GETMEM');
                 if ppointerdef(p^.left^.resulttype)^.definition^.needs_inittable then
                   begin
                      new(r);
                      reset_reference(r^);
-                     r^.symbol:=newasmsymbol(lab2str(ppointerdef(p^.left^.resulttype)^.definition^.get_inittable_label));
-                     emitpushreferenceaddr(exprasmlist,r^);
+                     r^.symbol:=ppointerdef(p^.left^.resulttype)^.definition^.get_inittable_label;
+                     emitpushreferenceaddr(r^);
                      { push pointer adress }
                      case p^.left^.location.loc of
                         LOC_CREGISTER : exprasmlist^.concat(new(pai386,op_reg(A_PUSH,S_L,
                           p^.left^.location.register)));
                         LOC_REFERENCE:
-                          emitpushreferenceaddr(exprasmlist,p^.left^.location.reference);
+                          emitpushreferenceaddr(p^.left^.location.reference);
                      end;
                      dispose(r);
-                     emitcall('FPC_INITIALIZE',true);
+                     emitcall('FPC_INITIALIZE');
                   end;
              end;
          end;
-         popusedregisters(exprasmlist,pushed);
+         popusedregisters(pushed);
          { may be load ESI }
          maybe_loadesi;
       end;
@@ -322,7 +314,7 @@ implementation
               begin
                  exprasmlist^.concat(new(pai386,op_reg(
                    A_PUSH,S_L,p^.location.reference.base)));
-                 emitcall('FPC_CHECKPOINTER',true);
+                 emitcall('FPC_CHECKPOINTER');
               end;
       end;
 
@@ -412,9 +404,9 @@ implementation
       var
          extraoffset : longint;
          { rl stores the resulttype of the left node, this is necessary }
-         { to detect if it is an ansistring                             }
-         { because in constant nodes which constant index               }
-         { the left tree is removed                                     }
+         { to detect if it is an ansistring                          }
+         { because in constant nodes which constant index              }
+         { the left tree is removed                                  }
          rl : pdef;
          t   : ptree;
          hp  : preference;
@@ -440,14 +432,14 @@ implementation
                         CGMessage(cg_e_illegal_expression);
                         exit;
                      end;
-                   pushusedregisters(exprasmlist,pushed,$ff);
-                   emitpushreferenceaddr(exprasmlist,p^.left^.location.reference);
+                   pushusedregisters(pushed,$ff);
+                   emitpushreferenceaddr(p^.left^.location.reference);
                    if is_ansistring(p^.left^.resulttype) then
-                     emitcall('FPC_ANSISTR_UNIQUE',true)
+                     emitcall('FPC_ANSISTR_UNIQUE')
                    else
-                     emitcall('FPC_WIDESTR_UNIQUE',true);
+                     emitcall('FPC_WIDESTR_UNIQUE');
                    maybe_loadesi;
-                   popusedregisters(exprasmlist,pushed);
+                   popusedregisters(pushed);
                 end;
 
               if p^.left^.location.loc in [LOC_REGISTER,LOC_CREGISTER] then
@@ -467,11 +459,11 @@ implementation
                 we can use the ansistring routine here }
               if (cs_check_range in aktlocalswitches) then
                 begin
-                   pushusedregisters(exprasmlist,pushed,$ff);
+                   pushusedregisters(pushed,$ff);
                    exprasmlist^.concat(new(pai386,op_reg(A_PUSH,S_L,p^.location.reference.base)));
-                   emitcall('FPC_ANSISTR_CHECKZERO',true);
+                   emitcall('FPC_ANSISTR_CHECKZERO');
                    maybe_loadesi;
-                   popusedregisters(exprasmlist,pushed);
+                   popusedregisters(pushed);
                 end;
 
               if is_ansistring(p^.left^.resulttype) then
@@ -532,13 +524,13 @@ implementation
                         st_widestring,
                         st_ansistring:
                           begin
-                             pushusedregisters(exprasmlist,pushed,$ff);
+                             pushusedregisters(pushed,$ff);
                              push_int(p^.right^.value);
                              hp:=newreference(p^.location.reference);
                              dec(hp^.offset,7);
                              exprasmlist^.concat(new(pai386,op_ref(A_PUSH,S_L,hp)));
-                             emitcall('FPC_ANSISTR_RANGECHECK',true);
-                             popusedregisters(exprasmlist,pushed);
+                             emitcall('FPC_ANSISTR_RANGECHECK');
+                             popusedregisters(pushed);
                              maybe_loadesi;
                           end;
 
@@ -713,13 +705,13 @@ implementation
                          st_widestring,
                          st_ansistring:
                            begin
-                              pushusedregisters(exprasmlist,pushed,$ff);
+                              pushusedregisters(pushed,$ff);
                               exprasmlist^.concat(new(pai386,op_reg(A_PUSH,S_L,ind)));
                               hp:=newreference(p^.location.reference);
                               dec(hp^.offset,7);
                               exprasmlist^.concat(new(pai386,op_ref(A_PUSH,S_L,hp)));
-                              emitcall('FPC_ANSISTR_RANGECHECK',true);
-                              popusedregisters(exprasmlist,pushed);
+                              emitcall('FPC_ANSISTR_RANGECHECK');
+                              popusedregisters(pushed);
                               maybe_loadesi;
                            end;
                          st_shortstring:
@@ -758,9 +750,9 @@ implementation
                       A_LEA,S_L,newreference(p^.location.reference),
                       p^.location.reference.index)));
                     ungetregister32(p^.location.reference.base);
-                    { the symbol offset is loaded,               }
+                    { the symbol offset is loaded,             }
                     { so release the symbol name and set symbol  }
-                    { to nil                                     }
+                    { to nil                                 }
                     p^.location.reference.symbol:=nil;
                     p^.location.reference.offset:=0;
                     calc_emit_mul;
@@ -857,7 +849,15 @@ implementation
 end.
 {
   $Log$
-  Revision 1.45  1999-05-23 18:42:04  florian
+  Revision 1.46  1999-05-27 19:44:17  peter
+    * removed oldasm
+    * plabel -> pasmlabel
+    * -a switches to source writing automaticly
+    * assembler readers OOPed
+    * asmsymbol automaticly external
+    * jumptables and other label fixes for asm readers
+
+  Revision 1.45  1999/05/23 18:42:04  florian
     * better error recovering in typed constants
     * some problems with arrays of const fixed, some problems
       due my previous

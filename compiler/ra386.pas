@@ -33,21 +33,28 @@ function is_prefix(t:tasmop):boolean;
 function is_override(t:tasmop):boolean;
 Function CheckPrefix(prefixop,op:tasmop): Boolean;
 Function CheckOverride(overrideop,op:tasmop): Boolean;
-Procedure InitAsmRef(var instr: TInstruction;operandnum:byte);
+Procedure FWaitWarning;
 
-{ Operand sizes }
-procedure AddReferenceSizes(var instr:TInstruction);
-procedure SetInstructionOpsize(var instr:TInstruction);
-procedure CheckOperandSizes(var instr:TInstruction);
+type
+  P386Operand=^T386Operand;
+  T386Operand=object(TOperand)
+  end;
 
-{ opcode adding }
-procedure ConcatInstruction(p : paasmoutput;var instr:TInstruction);
+  P386Instruction=^T386Instruction;
+  T386Instruction=object(TInstruction)
+    { Operand sizes }
+    procedure AddReferenceSizes;
+    procedure SetInstructionOpsize;
+    procedure CheckOperandSizes;
+    { opcode adding }
+    procedure ConcatInstruction(p : paasmoutput);virtual;
+  end;
 
 
 implementation
 
 uses
-  globtype,globals,verbose,
+  globtype,systems,globals,verbose,
   i386asm;
 
 
@@ -131,34 +138,18 @@ Begin
 end;
 
 
-Procedure InitAsmRef(var instr: TInstruction;operandnum:byte);
-{*********************************************************************}
-{  Description: This routine first check if the opcode is of     }
-{  type OPR_NONE, or OPR_REFERENCE , if not it gives out an error.    }
-{  If the operandtype = OPR_NONE or <> OPR_REFERENCE then it sets up  }
-{  the operand type to OPR_REFERENCE, as well as setting up the ref   }
-{  to point to the default segment.                                   }
-{*********************************************************************}
-Begin
-  With instr do
-  Begin
-     case operands[operandnum].operandtype of
-       OPR_REFERENCE: exit;
-       OPR_NONE: ;
-     else
-       Message(asmr_e_invalid_operand_type);
-     end;
-     operands[operandnum].operandtype := OPR_REFERENCE;
-     operands[operandnum].ref.segment := R_NO;
-  end;
+Procedure FWaitWarning;
+begin
+  if (target_info.target=target_i386_GO32V2) and (cs_fp_emulation in aktmoduleswitches) then
+   Message(asmr_w_fwait_emu_prob);
 end;
 
 
 {*****************************************************************************
-                                Operand Sizes
+                              T386Instruction
 *****************************************************************************}
 
-procedure AddReferenceSizes(var instr:TInstruction);
+procedure T386Instruction.AddReferenceSizes;
 { this will add the sizes for references like [esi] which do not
   have the size set yet, it will take only the size if the other
   operand is a register }
@@ -167,146 +158,134 @@ var
   s : pasmsymbol;
   so : longint;
 begin
-  with instr do
-   begin
-     for i:=1to ops do
-      if (operands[i].size=S_NO) then
-       begin
-         case operands[i].operandtype of
-           OPR_REFERENCE :
+  for i:=1to ops do
+   if (operands[i]^.size=S_NO) then
+    begin
+      case operands[i]^.Opr.Typ of
+        OPR_REFERENCE :
+          begin
+            if i=2 then
+             operand2:=1
+            else
+             operand2:=2;
+            { Only allow register as operand to take the size from }
+            if operands[operand2]^.opr.typ=OPR_REGISTER then
+             operands[i]^.size:=operands[operand2]^.size
+            else
              begin
-               if i=2 then
-                operand2:=1
-               else
-                operand2:=2;
-               { Only allow register as operand to take the size from }
-               if operands[operand2].operandtype=OPR_REGISTER then
-                operands[i].size:=operands[operand2].size
-               else
-                begin
-                  { if no register then take the opsize (which is available with ATT) }
-                  operands[i].size:=opsize;
-                end;
+               { if no register then take the opsize (which is available with ATT) }
+               operands[i]^.size:=opsize;
              end;
-           OPR_SYMBOL :
+          end;
+        OPR_SYMBOL :
+          begin
+            { Fix lea which need a reference }
+            if opcode=A_LEA then
              begin
-               { Fix lea which need a reference }
-               if opcode=A_LEA then
-                begin
-                  s:=operands[i].symbol;
-                  so:=operands[i].symofs;
-                  operands[i].operandtype:=OPR_REFERENCE;
-                  reset_reference(operands[i].ref);
-                  operands[i].ref.symbol:=s;
-                  operands[i].ref.offset:=so;
-                end;
-               operands[i].size:=S_L;
+               s:=operands[i]^.opr.symbol;
+               so:=operands[i]^.opr.symofs;
+               operands[i]^.opr.typ:=OPR_REFERENCE;
+               reset_reference(operands[i]^.opr.ref);
+               operands[i]^.opr.ref.symbol:=s;
+               operands[i]^.opr.ref.offset:=so;
              end;
-         end;
-       end;
-   end;
+            operands[i]^.size:=S_L;
+          end;
+      end;
+    end;
 end;
 
 
-procedure SetInstructionOpsize(var instr:TInstruction);
+procedure T386Instruction.SetInstructionOpsize;
 begin
-  with instr do
-   begin
-     if opsize<>S_NO then
-      exit;
-     case ops of
-       0 : ;
-       1 :
-         opsize:=operands[1].size;
-       2 :
-         begin
-           case opcode of
-             A_MOVZX,A_MOVSX :
-               begin
-                 case operands[1].size of
-                   S_W :
-                     case operands[2].size of
-                       S_L :
-                         opsize:=S_WL;
-                     end;
-                   S_B :
-                     case operands[2].size of
-                       S_W :
-                         opsize:=S_BW;
-                       S_L :
-                         opsize:=S_BL;
-                     end;
-                 end;
-               end;
-             A_OUT :
-               opsize:=operands[1].size;
-             else
-               opsize:=operands[2].size;
-           end;
-         end;
-       3 :
-         opsize:=operands[3].size;
-     end;
-   end;
+  if opsize<>S_NO then
+   exit;
+  case ops of
+    0 : ;
+    1 :
+      opsize:=operands[1]^.size;
+    2 :
+      begin
+        case opcode of
+          A_MOVZX,A_MOVSX :
+            begin
+              case operands[1]^.size of
+                S_W :
+                  case operands[2]^.size of
+                    S_L :
+                      opsize:=S_WL;
+                  end;
+                S_B :
+                  case operands[2]^.size of
+                    S_W :
+                      opsize:=S_BW;
+                    S_L :
+                      opsize:=S_BL;
+                  end;
+              end;
+            end;
+          A_OUT :
+            opsize:=operands[1]^.size;
+          else
+            opsize:=operands[2]^.size;
+        end;
+      end;
+    3 :
+      opsize:=operands[3]^.size;
+  end;
 end;
 
 
-procedure CheckOperandSizes(var instr:TInstruction);
+procedure T386Instruction.CheckOperandSizes;
 var
   sizeerr : boolean;
   i : longint;
 begin
-  with instr do
+  { Check only the most common opcodes here, the others are done in
+    the assembler pass }
+  case opcode of
+    A_PUSH,A_DEC,A_INC,A_NOT,A_NEG,
+    A_CMP,A_MOV,
+    A_ADD,A_SUB,A_ADC,A_SBB,
+    A_AND,A_OR,A_TEST,A_XOR: ;
+  else
+    exit;
+  end;
+  { Handle the BW,BL,WL separatly }
+  sizeerr:=false;
+  if opsize in [S_BW,S_BL,S_WL] then
    begin
-     { don't check labeled instructions }
-     if labeled then
-      exit;
-     { Check only the most common opcodes here, the others are done in
-       the assembler pass }
-     case opcode of
-       A_PUSH,A_DEC,A_INC,A_NOT,A_NEG,
-       A_CMP,A_MOV,
-       A_ADD,A_SUB,A_ADC,A_SBB,
-       A_AND,A_OR,A_TEST,A_XOR: ;
-     else
-       exit;
-     end;
-     { Handle the BW,BL,WL separatly }
-     sizeerr:=false;
-     if opsize in [S_BW,S_BL,S_WL] then
-      begin
-        if ops<>2 then
-         sizeerr:=true
-        else
-         begin
-           case opsize of
-             S_BW :
-               sizeerr:=(operands[1].size<>S_B) or (operands[2].size<>S_W);
-             S_BL :
-               sizeerr:=(operands[1].size<>S_B) or (operands[2].size<>S_L);
-             S_WL :
-               sizeerr:=(operands[1].size<>S_W) or (operands[2].size<>S_L);
-           end;
-         end;
-      end
+     if ops<>2 then
+      sizeerr:=true
      else
       begin
-        for i:=1to ops do
-         begin
-           if (operands[i].operandtype<>OPR_CONSTANT) and
-              (operands[i].size<>opsize) then
-            sizeerr:=true;
-         end;
+        case opsize of
+          S_BW :
+            sizeerr:=(operands[1]^.size<>S_B) or (operands[2]^.size<>S_W);
+          S_BL :
+            sizeerr:=(operands[1]^.size<>S_B) or (operands[2]^.size<>S_L);
+          S_WL :
+            sizeerr:=(operands[1]^.size<>S_W) or (operands[2]^.size<>S_L);
+        end;
       end;
-     if sizeerr then
+   end
+  else
+   begin
+     for i:=1to ops do
       begin
-        { if range checks are on then generate an error }
-        if (cs_compilesystem in aktmoduleswitches) or
-           not (cs_check_range in aktlocalswitches) then
-          Message(asmr_w_size_suffix_and_dest_dont_match)
-        else
-          Message(asmr_e_size_suffix_and_dest_dont_match);
+        if (operands[i]^.opr.typ<>OPR_CONSTANT) and
+           (operands[i]^.size<>opsize) then
+         sizeerr:=true;
       end;
+   end;
+  if sizeerr then
+   begin
+     { if range checks are on then generate an error }
+     if (cs_compilesystem in aktmoduleswitches) or
+        not (cs_check_range in aktlocalswitches) then
+       Message(asmr_w_size_suffix_and_dest_dont_match)
+     else
+       Message(asmr_e_size_suffix_and_dest_dont_match);
    end;
 end;
 
@@ -315,89 +294,62 @@ end;
                               opcode Adding
 *****************************************************************************}
 
-procedure ConcatInstruction(p : paasmoutput;var instr:TInstruction);
+procedure T386Instruction.ConcatInstruction(p : paasmoutput);
 var
   siz  : topsize;
   i    : longint;
-{$ifndef NEWLAB}
-  hlab : plabel;
-{$endif}
   ai   : pai386;
 begin
-  with instr do
+{ Get Opsize }
+  if (opsize<>S_NO) or (Ops=0) then
+   siz:=opsize
+  else
    begin
-{$ifndef NEWLAB}
-   { Handle a labeled opcode first to see if it needs conversion }
-     if labeled then
-      begin
-        { check if it's a jmp or call to a label, then issue a pai386_labeled }
-        if (Ops=1) then
-         begin
-           case opcode of
-             A_CALL,A_JMP,A_Jcc,A_JCXZ, A_JECXZ,
-             A_LOOP, A_LOOPE, A_LOOPNE, A_LOOPNZ, A_LOOPZ :
-               begin
-                 p^.concat(new(pai386_labeled,op_cond_lab(opcode,condition,operands[1].hl)));
-                 exit;
-               end;
-           end;
-         end;
-        { convert all labinstr to references }
-        for i:=1to Ops do
-         if operands[i].operandtype=OPR_LABINSTR then
-          begin
-            hlab:=operands[i].hl;
-            operands[i].operandtype:=OPR_REFERENCE;
-            reset_reference(operands[i].ref);
-            operands[i].ref.symbol:=newasmsymbol(lab2str(hlab));
-          end;
-      end;
-{$endif}
-
-    { Get Opsize }
-      if (opsize<>S_NO) or (Ops=0) then
-       siz:=opsize
-      else
-       begin
-         if (Ops=2) and (instr.operands[1].operandtype=OPR_REGISTER) then
-          siz:=operands[1].size
-         else
-          siz:=operands[Ops].size;
-       end;
-
-     ai:=new(pai386,op_none(opcode,siz));
-     ai^.Ops:=Ops;
-     for i:=1to Ops do
-      begin
-        case instr.operands[i].operandtype of
-          OPR_CONSTANT :
-            ai^.loadconst(i-1,instr.operands[i].val);
-          OPR_REGISTER:
-            ai^.loadreg(i-1,instr.operands[i].reg);
-          OPR_SYMBOL:
-            ai^.loadsymbol(i-1,instr.operands[i].symbol,instr.operands[i].symofs);
-          OPR_REFERENCE:
-            ai^.loadref(i-1,newreference(instr.operands[i].ref));
-        end;
-      end;
-
-   { Condition ? }
-     if condition<>C_None then
-      ai^.SetCondition(condition);
-
-   { Concat the opcode or give an error }
-     if assigned(ai) then
-      p^.concat(ai)
+     if (Ops=2) and (operands[1]^.opr.typ=OPR_REGISTER) then
+      siz:=operands[1]^.size
      else
-      Message(asmr_e_invalid_opcode_and_operand);
-
+      siz:=operands[Ops]^.size;
    end;
+
+  ai:=new(pai386,op_none(opcode,siz));
+  ai^.Ops:=Ops;
+  for i:=1to Ops do
+   begin
+     case operands[i]^.opr.typ of
+       OPR_CONSTANT :
+         ai^.loadconst(i-1,operands[i]^.opr.val);
+       OPR_REGISTER:
+         ai^.loadreg(i-1,operands[i]^.opr.reg);
+       OPR_SYMBOL:
+         ai^.loadsymbol(i-1,operands[i]^.opr.symbol,operands[i]^.opr.symofs);
+       OPR_REFERENCE:
+         ai^.loadref(i-1,newreference(operands[i]^.opr.ref));
+     end;
+   end;
+
+ { Condition ? }
+  if condition<>C_None then
+   ai^.SetCondition(condition);
+
+ { Concat the opcode or give an error }
+  if assigned(ai) then
+   p^.concat(ai)
+  else
+   Message(asmr_e_invalid_opcode_and_operand);
 end;
 
 end.
 {
   $Log$
-  Revision 1.6  1999-05-21 13:55:12  peter
+  Revision 1.7  1999-05-27 19:44:55  peter
+    * removed oldasm
+    * plabel -> pasmlabel
+    * -a switches to source writing automaticly
+    * assembler readers OOPed
+    * asmsymbol automaticly external
+    * jumptables and other label fixes for asm readers
+
+  Revision 1.6  1999/05/21 13:55:12  peter
     * NEWLAB for label as symbol
 
   Revision 1.5  1999/05/13 21:59:40  peter

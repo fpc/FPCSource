@@ -28,8 +28,8 @@ interface
        symtable,aasm;
 
     { generates the message tables for a class }
-    function genstrmsgtab(_class : pobjectdef) : plabel;
-    function genintmsgtab(_class : pobjectdef) : plabel;
+    function genstrmsgtab(_class : pobjectdef) : pasmlabel;
+    function genintmsgtab(_class : pobjectdef) : pasmlabel;
 
     { generates a VMT for _class }
     procedure genvmt(_class : pobjectdef);
@@ -52,7 +52,7 @@ implementation
        pprocdeftree = ^tprocdeftree;
        tprocdeftree = record
           p   : pprocdef;
-          nl  : plabel;
+          nl  : pasmlabel;
           l,r : pprocdeftree;
        end;
 
@@ -186,21 +186,18 @@ implementation
            writestrentry(p^.l);
 
          { write name label }
-         datasegment^.concat(new(pai_const_symbol,initname(lab2str(p^.nl))));
+         datasegment^.concat(new(pai_const_symbol,init(p^.nl)));
          datasegment^.concat(new(pai_const_symbol,initname(p^.p^.mangledname)));
-{$ifndef NEWLAB}
-         maybe_concat_external(p^.p^.owner,p^.p^.mangledname);
-{$endif}
 
          if assigned(p^.r) then
            writestrentry(p^.r);
       end;
 
-    function genstrmsgtab(_class : pobjectdef) : plabel;
+    function genstrmsgtab(_class : pobjectdef) : pasmlabel;
 
 
       var
-         r : plabel;
+         r : pasmlabel;
 
       begin
          root:=nil;
@@ -234,18 +231,15 @@ implementation
          { write name label }
          datasegment^.concat(new(pai_const,init_32bit(p^.p^.messageinf.i)));
          datasegment^.concat(new(pai_const_symbol,initname(p^.p^.mangledname)));
-{$ifndef NEWLAB}
-         maybe_concat_external(p^.p^.owner,p^.p^.mangledname);
-{$endif}
 
          if assigned(p^.r) then
            writeintentry(p^.r);
       end;
 
-    function genintmsgtab(_class : pobjectdef) : plabel;
+    function genintmsgtab(_class : pobjectdef) : pasmlabel;
 
       var
-         r : plabel;
+         r : pasmlabel;
 
       begin
          root:=nil;
@@ -538,10 +532,6 @@ implementation
                                     begin
                                       datasegment^.concat(new(pai_const_symbol,
                                         initname(procdefcoll^.data^.mangledname)));
-{$ifndef NEWLAB}
-                                      maybe_concat_external(procdefcoll^.data^.owner,
-                                        procdefcoll^.data^.mangledname);
-{$endif}
                                     end;
                                end;
                           end;
@@ -572,7 +562,15 @@ implementation
 end.
 {
   $Log$
-  Revision 1.6  1999-05-21 13:55:00  peter
+  Revision 1.7  1999-05-27 19:44:30  peter
+    * removed oldasm
+    * plabel -> pasmlabel
+    * -a switches to source writing automaticly
+    * assembler readers OOPed
+    * asmsymbol automaticly external
+    * jumptables and other label fixes for asm readers
+
+  Revision 1.6  1999/05/21 13:55:00  peter
     * NEWLAB for label as symbol
 
   Revision 1.5  1999/05/17 21:57:07  florian

@@ -38,10 +38,7 @@ unit pmodules;
        symtable,aasm,hcodegen,
        link,assemble,import,export,gendef,ppu,comprsrc
 {$ifdef i386}
-{$ifndef OLDASM}
        ,i386base,i386asm
-{$else}       ,i386
-{$endif}
 {$endif}
 {$ifdef m68k}
        ,m68k
@@ -146,18 +143,12 @@ unit pmodules;
               if (hp^.u^.flags and uf_init)<>0 then
                begin
                  unitinits.concat(new(pai_const_symbol,initname('INIT$$'+hp^.u^.modulename^)));
-{$ifndef NEWLAB}
-                 concat_external('INIT$$'+hp^.u^.modulename^,EXT_NEAR);
-{$endif}
                end
               else
                unitinits.concat(new(pai_const,init_32bit(0)));
               if (hp^.u^.flags and uf_finalize)<>0 then
                begin
                  unitinits.concat(new(pai_const_symbol,initname('FINALIZE$$'+hp^.u^.modulename^)));
-{$ifndef NEWLAB}
-                 concat_external('FINALIZE$$'+hp^.u^.modulename^,EXT_NEAR);
-{$endif}
                end
               else
                unitinits.concat(new(pai_const,init_32bit(0)));
@@ -271,7 +262,7 @@ unit pmodules;
 
     procedure load_usedunits(compile_system:boolean);
       var
-        pu           : pused_unit;
+        pu         : pused_unit;
         loaded_unit  : pmodule;
         load_refs    : boolean;
         nextmapentry : longint;
@@ -892,9 +883,9 @@ unit pmodules;
          current_module^.localsymtable:=st;
 
          { the unit name must be usable as a unit specifier }
-         { inside the unit itself (PM)                      }
-         { this also forbids to have another symbol         }
-         { with the same name as the unit                   }
+         { inside the unit itself (PM)                }
+         { this also forbids to have another symbol      }
+         { with the same name as the unit                  }
          refsymtable^.insert(new(punitsym,init(current_module^.modulename^,unitst)));
 
          { a unit compiled at command line must be inside the loaded_unit list }
@@ -1216,7 +1207,7 @@ unit pmodules;
          current_module^.in_implementation:=true;
 
          { insert after the unit symbol tables the static symbol table }
-         { of the program                                              }
+         { of the program                                             }
          st:=new(punitsymtable,init(staticsymtable,current_module^.modulename^));
          current_module^.localsymtable:=st;
          symtablestack:=st;
@@ -1345,7 +1336,15 @@ unit pmodules;
 end.
 {
   $Log$
-  Revision 1.123  1999-05-21 13:55:06  peter
+  Revision 1.124  1999-05-27 19:44:48  peter
+    * removed oldasm
+    * plabel -> pasmlabel
+    * -a switches to source writing automaticly
+    * assembler readers OOPed
+    * asmsymbol automaticly external
+    * jumptables and other label fixes for asm readers
+
+  Revision 1.123  1999/05/21 13:55:06  peter
     * NEWLAB for label as symbol
 
   Revision 1.122  1999/05/18 22:36:29  pierre

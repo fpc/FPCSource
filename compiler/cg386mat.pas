@@ -39,11 +39,7 @@ implementation
       cobjects,verbose,globals,
       symtable,aasm,types,
       hcodegen,temp_gen,pass_2,
-{$ifndef OLDASM}
       i386base,i386asm,
-{$else}
-      i386,
-{$endif}
       cgai386,tgeni386;
 
 {*****************************************************************************
@@ -56,7 +52,7 @@ implementation
          shrdiv, andmod, pushed,popeax,popedx : boolean;
 
          power : longint;
-         hl : plabel;
+         hl : pasmlabel;
 
       begin
          shrdiv := false;
@@ -123,7 +119,7 @@ implementation
                  { bring denominator to EDI }
                  { EDI is always free, it's }
                  { only used for temporary  }
-                 { purposes                 }
+                 { purposes              }
               if (p^.right^.location.loc<>LOC_REGISTER) and
                  (p^.right^.location.loc<>LOC_CREGISTER) then
                 begin
@@ -244,7 +240,7 @@ implementation
          pushed,popecx : boolean;
          op : tasmop;
          hr : preference;
-         l1,l2,l3 : plabel;
+         l1,l2,l3 : pasmlabel;
 
       begin
          popecx:=false;
@@ -698,12 +694,12 @@ implementation
                    end;
               end;
            end;
-{ Here was a problem...            }
+{ Here was a problem...     }
 { Operand to be negated always     }
 { seems to be converted to signed  }
-{ 32-bit before doing neg!!        }
-{ So this is useless...            }
-{         emitoverflowcheck(p);}
+{ 32-bit before doing neg!!     }
+{ So this is useless...     }
+{        emitoverflowcheck(p);}
       end;
 
 
@@ -717,7 +713,7 @@ implementation
             (F_NE,F_E,F_LE,F_GE,F_L,F_G,F_NC,F_C,
              F_A,F_AE,F_B,F_BE);
       var
-         hl : plabel;
+         hl : pasmlabel;
          opsize : topsize;
          hr : preference;
 
@@ -890,14 +886,20 @@ implementation
 end.
 {
   $Log$
-  Revision 1.24  1999-05-25 20:36:13  florian
+  Revision 1.25  1999-05-27 19:44:16  peter
+    * removed oldasm
+    * plabel -> pasmlabel
+    * -a switches to source writing automaticly
+    * assembler readers OOPed
+    * asmsymbol automaticly external
+    * jumptables and other label fixes for asm readers
+
+  Revision 1.24  1999/05/25 20:36:13  florian
     * some bugs in the qword code generation fixed
 
   Revision 1.23  1999/05/08 20:41:08  jonas
     + positive number MOD power of 2 now done with AND instruction
-
     * fix to division of positive numbers by power of 2
-
     * the result of a MOD is left in EDX if possible
 
   Revision 1.22  1999/05/01 13:24:11  peter

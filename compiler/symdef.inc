@@ -385,11 +385,7 @@
          has_rtti:=true;
          getdatalabel(rtti_label);
          write_child_rtti_data;
-{$ifdef NEWLAB}
          rttilist^.concat(new(pai_symbol,init(rtti_label)));
-{$else}
-         rttilist^.concat(new(pai_label,init(rtti_label)));
-{$endif}
          write_rtti_data;
       end;
 
@@ -398,11 +394,7 @@
       begin
          if not(has_rtti) then
            generate_rtti;
-{$ifdef NEWLAB}
          get_rtti_label:=rtti_label^.name;
-{$else}
-         get_rtti_label:=lab2str(rtti_label);
-{$endif}
       end;
 
 
@@ -435,7 +427,7 @@
       end;
 
 
-    function tdef.get_inittable_label : plabel;
+    function tdef.get_inittable_label : pasmlabel;
       begin
          if not(has_inittable) then
            generate_inittable;
@@ -2015,11 +2007,7 @@
          if (psym(sym)^.typ=varsym) and
             pvarsym(sym)^.definition^.needs_inittable then
            begin
-{$ifdef NEWLAB}
               rttilist^.concat(new(pai_const_symbol,init(pvarsym(sym)^.definition^.get_inittable_label)));
-{$else}
-              rttilist^.concat(new(pai_const_symbol,initname(lab2str(pvarsym(sym)^.definition^.get_inittable_label))));
-{$endif}
               rttilist^.concat(new(pai_const,init_32bit(pvarsym(sym)^.address)));
            end;
       end;
@@ -3507,7 +3495,15 @@ Const local_symtable_index : longint = $8001;
 
 {
   $Log$
-  Revision 1.122  1999-05-23 18:42:14  florian
+  Revision 1.123  1999-05-27 19:45:02  peter
+    * removed oldasm
+    * plabel -> pasmlabel
+    * -a switches to source writing automaticly
+    * assembler readers OOPed
+    * asmsymbol automaticly external
+    * jumptables and other label fixes for asm readers
+
+  Revision 1.122  1999/05/23 18:42:14  florian
     * better error recovering in typed constants
     * some problems with arrays of const fixed, some problems
       due my previous

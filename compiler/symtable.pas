@@ -34,11 +34,7 @@ unit symtable;
        globtype,globals,tokens,systems,verbose,
        aasm
 {$ifdef i386}
-  {$ifndef OLDASM}
        ,i386base
-  {$else}
-       ,i386
-  {$endif}
 {$endif}
 {$ifdef m68k}
        ,m68k
@@ -144,7 +140,7 @@ unit symtable;
 
        tsymtable = object
           symtabletype : tsymtabletype;
-          unitid    : word;           { each symtable gets a number }
+          unitid    : word;        { each symtable gets a number }
           name      : pstring;
           datasize  : longint;
           symindex,
@@ -206,7 +202,7 @@ unit symtable;
 
        tunitsymtable = object(tsymtable)
           unittypecount  : word;
-          unitsym        : punitsym;
+          unitsym       : punitsym;
 {$ifdef GDB}
           dbx_count : longint;
           prev_dbx_counter : plongint;
@@ -243,8 +239,8 @@ unit symtable;
 ****************************************************************************}
 
     const
-       systemunit            : punitsymtable = nil; { pointer to the system unit }
-       objpasunit            : punitsymtable = nil; { pointer to the objpas unit }
+       systemunit           : punitsymtable = nil; { pointer to the system unit }
+       objpasunit           : punitsymtable = nil; { pointer to the objpas unit }
        current_object_option : symprop = sp_public;
 
     var
@@ -258,7 +254,7 @@ unit symtable;
                                      have been loaded }
        symtablestack : psymtable;  { linked list of symtables }
 
-       srsym : psym;               { result of the last search }
+       srsym : psym;           { result of the last search }
        srsymtable : psymtable;
        lastsrsym : psym;           { last sym found in statement }
        lastsrsymtable : psymtable;
@@ -274,21 +270,21 @@ unit symtable;
        charpointerdef : ppointerdef; { pointer for Char-Pointerdef      }
        voidfarpointerdef : ppointerdef;
 
-       cformaldef : pformaldef;    { unique formal definition          }
-       voiddef   : porddef;        { Pointer to Void (procedure)       }
-       cchardef  : porddef;        { Pointer to Char                   }
-       booldef   : porddef;        { pointer to boolean type           }
-       u8bitdef  : porddef;        { Pointer to 8-Bit unsigned         }
-       u16bitdef : porddef;        { Pointer to 16-Bit unsigned        }
-       u32bitdef : porddef;        { Pointer to 32-Bit unsigned        }
-       s32bitdef : porddef;        { Pointer to 32-Bit signed          }
+       cformaldef : pformaldef;    { unique formal definition     }
+       voiddef   : porddef;     { Pointer to Void (procedure)       }
+       cchardef  : porddef;     { Pointer to Char                  }
+       booldef   : porddef;     { pointer to boolean type          }
+       u8bitdef  : porddef;     { Pointer to 8-Bit unsigned      }
+       u16bitdef : porddef;     { Pointer to 16-Bit unsigned    }
+       u32bitdef : porddef;     { Pointer to 32-Bit unsigned    }
+       s32bitdef : porddef;     { Pointer to 32-Bit signed        }
 
        cu64bitdef : porddef;       { pointer to 64 bit unsigned def }
        cs64bitintdef : porddef;    { pointer to 64 bit signed def, }
                                    { calculated by the int unit on i386 }
 
-       s32floatdef : pfloatdef;    { pointer for realconstn            }
-       s64floatdef : pfloatdef;    { pointer for realconstn            }
+       s32floatdef : pfloatdef;    { pointer for realconstn         }
+       s64floatdef : pfloatdef;    { pointer for realconstn         }
        s80floatdef : pfloatdef;    { pointer to type of temp. floats   }
        s32fixeddef : pfloatdef;    { pointer to type of temp. fixed    }
 
@@ -304,11 +300,11 @@ unit symtable;
        cfiledef : pfiledef;       { get the same definition for all file }
                                   { uses for stabs }
 
-       firstglobaldef,         { linked list of all globals defs }
+       firstglobaldef,   { linked list of all globals defs }
        lastglobaldef : pdef;   { used to reset stabs/ranges }
 
        class_tobject : pobjectdef; { pointer to the anchestor of all   }
-                                   { clases                            }
+                                   { clases                         }
 
        aktprocsym : pprocsym;      { pointer to the symbol for the
                                      currently be parsed procedure }
@@ -317,17 +313,17 @@ unit symtable;
                                      currently be called procedure,
                                      only set/unset in firstcall }
 
-       aktvarsym : pvarsym;        { pointer to the symbol for the
+       aktvarsym : pvarsym;     { pointer to the symbol for the
                                      currently read var, only used
                                      for variable directives }
 
-       procprefix : string;        { eindeutige Namen bei geschachtel- }
+       procprefix : string;     { eindeutige Namen bei geschachtel- }
                                    { ten Unterprogrammen erzeugen      }
 
-       lexlevel : longint;         { level of code                     }
-                                   { 1 for main procedure              }
+       lexlevel : longint;       { level of code                     }
+                                   { 1 for main procedure             }
                                    { 2 for normal function or proc     }
-                                   { higher for locals                 }
+                                   { higher for locals           }
     const
        main_program_level = 1;
        unit_init_level = 1;
@@ -343,18 +339,18 @@ unit symtable;
 
     var
 
-       macros : psymtable;         { pointer for die Symboltabelle mit  }
-                                   { Makros                            }
+       macros : psymtable;       { pointer for die Symboltabelle mit  }
+                                   { Makros                         }
 
        read_member : boolean;      { true, wenn Members aus einer PPU-  }
                                    { Datei gelesen werden, d.h. ein     }
                                    { varsym seine Adresse einlesen soll }
 
-       generrorsym : psym;         { Jokersymbol, wenn das richtige    }
-                                   { Symbol nicht gefunden wird        }
+       generrorsym : psym;       { Jokersymbol, wenn das richtige    }
+                                   { Symbol nicht gefunden wird }
 
-       generrordef : pdef;         { Jokersymbol for eine fehlerhafte  }
-                                   { Typdefinition                     }
+       generrordef : pdef;       { Jokersymbol for eine fehlerhafte  }
+                                   { Typdefinition                   }
 
        aktobjectdef : pobjectdef;  { used for private functions check !! }
 
@@ -756,8 +752,8 @@ const localsymtablestack : psymtable = nil;
       begin
          if psym(sym)^.typ=procsym then
            pprocsym(sym)^.check_forward
-         { check also object method table             }
-         { we needn't to test the def list            }
+         { check also object method table            }
+         { we needn't to test the def list          }
          { because each object has to have a type sym }
          else
           if (psym(sym)^.typ=typesym) and
@@ -785,7 +781,7 @@ const localsymtablestack : psymtable = nil;
          if (psym(p)^.typ=varsym) and
             ((psym(p)^.owner^.symtabletype in [parasymtable,localsymtable,staticsymtable])) then
            { unused symbol should be reported only if no }
-           { error is reported                           }
+           { error is reported                     }
            { if the symbol is in a register it is used   }
            { also don't count the value parameters which have local copies }
            { also don't claim for high param of open parameters (PM) }
@@ -1413,7 +1409,7 @@ const localsymtablestack : psymtable = nil;
            chainprocsym(sym);
 {$endif CHAINPROCSYMS}
          { writes the symbol in data segment if required }
-         { also sets the datasize of owner               }
+         { also sets the datasize of owner             }
          if not in_loading then
            sym^.insert_in_data;
          if (symtabletype in [staticsymtable,globalsymtable]) then
@@ -1892,7 +1888,7 @@ const localsymtablestack : psymtable = nil;
 
     procedure tunitsymtable.writeasunit;
       var
-         pu           : pused_unit;
+         pu        : pused_unit;
       begin
       { first the unitname }
         current_ppu^.putstring(name^);
@@ -2232,7 +2228,7 @@ const localsymtablestack : psymtable = nil;
          p:=symtablestack;
          symtablestack:=p^.next;
          { symbol tables of unit interfaces are never disposed }
-         { this is handle by the unit unitm                    }
+         { this is handle by the unit unitm                 }
          if not(p^.symtabletype in [unitsymtable,globalsymtable,stt_exceptsymtable]) or dispose_global then
           dispose(p,done);
       end;
@@ -2345,7 +2341,15 @@ const localsymtablestack : psymtable = nil;
 end.
 {
   $Log$
-  Revision 1.16  1999-05-23 18:42:16  florian
+  Revision 1.17  1999-05-27 19:45:08  peter
+    * removed oldasm
+    * plabel -> pasmlabel
+    * -a switches to source writing automaticly
+    * assembler readers OOPed
+    * asmsymbol automaticly external
+    * jumptables and other label fixes for asm readers
+
+  Revision 1.16  1999/05/23 18:42:16  florian
     * better error recovering in typed constants
     * some problems with arrays of const fixed, some problems
       due my previous

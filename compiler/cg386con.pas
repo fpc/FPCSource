@@ -44,11 +44,7 @@ implementation
       cobjects,verbose,globals,
       symtable,aasm,types,
       hcodegen,temp_gen,pass_2,
-{$ifndef OLDASM}
       i386base,i386asm,
-{$else}
-      i386,
-{$endif}
       cgai386,tgeni386;
 
 {*****************************************************************************
@@ -62,7 +58,7 @@ implementation
 
       var
          hp1 : pai;
-         lastlabel : plabel;
+         lastlabel : pasmlabel;
          realait : tait;
       begin
          lastlabel:=nil;
@@ -74,13 +70,8 @@ implementation
               hp1:=pai(consts^.first);
               while assigned(hp1) do
                 begin
-{$ifdef NEWLAB}
-                   if hp1^.typ=ait_symbol then
-                     lastlabel:=pasmlabel(pai_symbol(hp1)^.sym)
-{$else}
                    if hp1^.typ=ait_label then
                      lastlabel:=pai_label(hp1)^.l
-{$endif}
                    else
                      begin
                         if (hp1^.typ=realait) and (lastlabel<>nil) then
@@ -124,7 +115,7 @@ implementation
                 end;
            end;
          reset_reference(p^.location.reference);
-         p^.location.reference.symbol:=newasmsymbol(lab2str(p^.lab_real));
+         p^.location.reference.symbol:=p^.lab_real;
          p^.location.loc:=LOC_MEM;
       end;
 
@@ -163,8 +154,8 @@ implementation
       var
          hp1 : pai;
          l1,l2,
-         lastlabel   : plabel;
-         pc          : pchar;
+         lastlabel   : pasmlabel;
+         pc       : pchar;
          same_string : boolean;
          l,j,
          i,mylength  : longint;
@@ -181,21 +172,16 @@ implementation
               hp1:=pai(consts^.first);
               while assigned(hp1) do
                 begin
-{$ifdef NEWLAB}
-                   if hp1^.typ=ait_symbol then
-                     lastlabel:=pasmlabel(pai_symbol(hp1)^.sym)
-{$else}
                    if hp1^.typ=ait_label then
                      lastlabel:=pai_label(hp1)^.l
-{$endif}
                    else
                      begin
                         { when changing that code, be careful that }
                         { you don't use typed consts, which are    }
-                        { are also written to consts               }
+                        { are also written to consts           }
                         { currently, this is no problem, because   }
                         { typed consts have no leading length or   }
-                        { they have no trailing zero               }
+                        { they have no trailing zero           }
                         if (hp1^.typ=ait_string) and (lastlabel<>nil) and
                            (pai_string(hp1)^.len=mylength) then
                           begin
@@ -232,7 +218,7 @@ implementation
                                  begin
                                    getdatalabel(l2);
                                    consts^.concat(new(pai_label,init(l2)));
-                                   consts^.concat(new(pai_const_symbol,initname(lab2str(p^.lab_str))));
+                                   consts^.concat(new(pai_const_symbol,init(p^.lab_str)));
                                    { return the offset of the real string }
                                    p^.lab_str:=l2;
                                  end;
@@ -263,7 +249,7 @@ implementation
                                 getdatalabel(l1);
                                 getdatalabel(l2);
                                 consts^.concat(new(pai_label,init(l2)));
-                                consts^.concat(new(pai_const_symbol,initname(lab2str(l1))));
+                                consts^.concat(new(pai_const_symbol,init(l1)));
                                 consts^.concat(new(pai_const,init_32bit(p^.length)));
                                 consts^.concat(new(pai_const,init_32bit(p^.length)));
                                 consts^.concat(new(pai_const,init_32bit(-1)));
@@ -298,7 +284,7 @@ implementation
                 end;
            end;
          reset_reference(p^.location.reference);
-         p^.location.reference.symbol:=newasmsymbol(lab2str(p^.lab_str));
+         p^.location.reference.symbol:=p^.lab_str;
          p^.location.loc:=LOC_MEM;
       end;
 
@@ -309,9 +295,9 @@ implementation
 
     procedure secondsetconst(var p : ptree);
       var
-         hp1         : pai;
-         lastlabel   : plabel;
-         i           : longint;
+         hp1     : pai;
+         lastlabel   : pasmlabel;
+         i         : longint;
          neededtyp   : tait;
       begin
 {$ifdef SMALLSETORD}
@@ -336,13 +322,8 @@ implementation
              hp1:=pai(consts^.first);
              while assigned(hp1) do
                begin
-{$ifdef NEWLAB}
-                  if hp1^.typ=ait_symbol then
-                    lastlabel:=pasmlabel(pai_symbol(hp1)^.sym)
-{$else}
                   if hp1^.typ=ait_label then
                     lastlabel:=pai_label(hp1)^.l
-{$endif}
                   else
                     begin
                       if (lastlabel<>nil) and (hp1^.typ=neededtyp) then
@@ -405,7 +386,7 @@ implementation
                end;
           end;
         reset_reference(p^.location.reference);
-        p^.location.reference.symbol:=newasmsymbol(lab2str(p^.lab_set));
+        p^.location.reference.symbol:=p^.lab_set;
         p^.location.loc:=LOC_MEM;
       end;
 
@@ -425,7 +406,15 @@ implementation
 end.
 {
   $Log$
-  Revision 1.35  1999-05-21 13:54:47  peter
+  Revision 1.36  1999-05-27 19:44:10  peter
+    * removed oldasm
+    * plabel -> pasmlabel
+    * -a switches to source writing automaticly
+    * assembler readers OOPed
+    * asmsymbol automaticly external
+    * jumptables and other label fixes for asm readers
+
+  Revision 1.35  1999/05/21 13:54:47  peter
     * NEWLAB for label as symbol
 
   Revision 1.34  1999/05/12 00:19:41  peter

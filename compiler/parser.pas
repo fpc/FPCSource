@@ -174,8 +174,6 @@ unit parser;
          oldcodesegment,
          oldexprasmlist,
          olddebuglist,
-         oldinternals,
-         oldexternals,
          oldconsts     : paasmoutput;
          oldasmsymbollist : pasmsymbollist;
        { akt.. things }
@@ -223,8 +221,6 @@ unit parser;
          oldbsssegment:=bsssegment;
          oldcodesegment:=codesegment;
          olddebuglist:=debuglist;
-         oldexternals:=externals;
-         oldinternals:=internals;
          oldconsts:=consts;
          oldrttilist:=rttilist;
          oldexprasmlist:=exprasmlist;
@@ -386,8 +382,6 @@ unit parser;
               codesegment:=oldcodesegment;
               consts:=oldconsts;
               debuglist:=olddebuglist;
-              externals:=oldexternals;
-              internals:=oldinternals;
               importssection:=oldimports;
               exportssection:=oldexports;
               resourcesection:=oldresource;
@@ -462,7 +456,15 @@ unit parser;
 end.
 {
   $Log$
-  Revision 1.73  1999-05-18 22:35:52  pierre
+  Revision 1.74  1999-05-27 19:44:41  peter
+    * removed oldasm
+    * plabel -> pasmlabel
+    * -a switches to source writing automaticly
+    * assembler readers OOPed
+    * asmsymbol automaticly external
+    * jumptables and other label fixes for asm readers
+
+  Revision 1.73  1999/05/18 22:35:52  pierre
    * double dispose of aktprocsym removed
 
   Revision 1.72  1999/04/26 13:31:36  peter
