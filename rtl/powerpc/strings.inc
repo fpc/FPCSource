@@ -412,10 +412,10 @@ asm
         subi    r3,r3,1
 .LStrScanLoop:
         lbzu    r0,1(r3)
-        cmplwi  r0,0
         cmplw   cr1,r0,r4
-        bne     .LStrScanLoop
+        cmplwi  r0,0
         beq     cr1,.LStrScanDone
+        bne     .LStrScanLoop
         li      r3, 0
 .LStrScanDone:
 end;
@@ -489,7 +489,10 @@ end;
 
 {
   $Log$
-  Revision 1.22  2003-11-29 16:27:19  jonas
+  Revision 1.23  2003-12-28 22:33:35  florian
+    * strscan fix from Jonas
+
+  Revision 1.22  2003/11/29 16:27:19  jonas
     * fixed several ppc assembler reader related problems
     * local vars in assembler procedures now start at offset 4
     * fixed second_int_to_bool (apparently an integer can be in  LOC_JUMP??)
