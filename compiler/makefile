@@ -310,7 +310,7 @@ install:
 	install -m 755 -d $(LIBINSTALLDIR)
 	install -m 755 ppc386 $(LIBINSTALLDIR)
 	ln -sf $(LIBINSTALLDIR)/ppc386 $(PROGINSTALLDIR)/ppc386
-	makecfg $(LIBINSTALLDIR)/samplecfg $(UNITINSTALLDIR) $(MSGINSTALLDIR) $(GCCLIBPATH)
+	-makecfg $(LIBINSTALLDIR)/samplecfg $(UNITINSTALLDIR) $(MSGINSTALLDIR) $(GCCLIBPATH)
 	install -m 755 -d $(MSGINSTALLDIR)
 	install -m 666 errore.msg $(MSGINSTALLDIR)
 	install -m 666 errorn.msg $(MSGINSTALLDIR)
@@ -412,7 +412,10 @@ rtlclean :
 # Test of log at the end
 # does CVS add # at start of each line ??
 # $Log$
-# Revision 1.10  1998-04-23 13:21:46  michael
+# Revision 1.11  1998-05-06 14:03:27  michael
+# + Make install doesn't stop if makecfg not found
+#
+# Revision 1.10  1998/04/23 13:21:46  michael
 # Updated version number
 #
 # Revision 1.9  1998/04/15 14:16:48  michael
