@@ -15,7 +15,6 @@
  **********************************************************************}
 unit heaptrc;
 
-{$mode objfpc}
 
 interface
 
@@ -754,7 +753,10 @@ finalization
 end.
 {
   $Log$
-  Revision 1.19  1999-07-10 10:33:50  peter
+  Revision 1.20  1999-08-17 14:56:03  michael
+  Removed the mode for objpas
+
+  Revision 1.19  1999/07/10 10:33:50  peter
     * merged
 
   Revision 1.18  1999/07/09 10:38:10  michael
