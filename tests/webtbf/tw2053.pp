@@ -25,8 +25,7 @@ var
   pArray: PMyRecordArray;
 
 begin
-  new(pArray);
-  //GetMem(pArray, 50 * SizeOf(TMyRecord));
+  GetMem(pArray, 50 * SizeOf(TMyRecord));
   Assert(Assigned(pArray));
 
   WriteLn('pArray = ', Longint(pArray));
@@ -39,7 +38,10 @@ end.
 
 {
    $Log$
-   Revision 1.3  2002-10-15 06:38:29  pierre
+   Revision 1.4  2002-10-15 15:48:25  carl
+    - remove Pierre's diff.
+
+   Revision 1.3  2002/10/15 06:38:29  pierre
     * really try to allocate more than 2Gb
 
    Revision 1.2  2002/10/09 16:56:46  carl
