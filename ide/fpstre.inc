@@ -988,7 +988,11 @@ const
       hint_grep              = 'Run grep';
       hint_gotosource        = 'Edit source';
       hint_registers         = 'Open the Registers Window';
+      hint_fpuregisters      = 'Open the FPU Registers Window';
+      hint_vectorregisters   = 'Open the Vector Registers Window';
       hint_messageswindow    = 'Open the message window';
+      hint_gotonextmsg       = 'Jumps to the next message in the Message Window';
+      hint_gotoprevmsg       = 'Jumps to the previous message in the Message Window';
       hint_usertool          = 'User installed tool';
       hint_asciitable        = 'Show ASCII table';
       hint_optionsmenu       = 'Setting for compiler, editor, mouse, etc.';
@@ -1023,6 +1027,7 @@ const
       hint_zoom              = 'Enlarge or restore the size of the active window';
       hint_next              = 'Make the next window active';
       hint_prev              = 'Make the previous window active';
+      hint_hide              = 'Hide the current window';
       hint_closewindow       = 'Close the active window';
       hint_windowlist        = 'Show a list of all open windows';
       hint_userscreenwindow  = 'Show contents of user screen in a window';
@@ -1063,7 +1068,10 @@ const
 
 {
   $Log$
-  Revision 1.30  2005-03-13 12:25:02  florian
+  Revision 1.31  2005-03-13 12:32:41  florian
+    * more status line hints fixed
+
+  Revision 1.30  2005/03/13 12:25:02  florian
     + Recent files write full name now as hint in the status line
     * Rundir hint in status line fixed
 

@@ -177,8 +177,13 @@ begin
     hcGrep          : S:=hint_grep;
     hcMsgGotoSource : S:=hint_gotosource;
     hcRegistersWindow : S:=hint_registers;
+    hcFPURegisters    : S:=hint_FPURegisters;
+    hcVectorRegisters : S:=hint_VectorRegisters;
 
     hcToolsMessages : S:=hint_messageswindow;
+    hcToolsMsgNext  : S:=hint_gotonextmsg;
+    hcToolsMsgPrev  : S:=hint_gotoprevmsg;
+
     hcToolsBase..
     hcToolsBase+MaxToolCount
                     : S:=hint_usertool;
@@ -220,6 +225,7 @@ begin
     hcZoom          : S:=hint_zoom;
     hcNext          : S:=hint_next;
     hcPrev          : S:=hint_prev;
+    hcHide          : S:=hint_hide;
     hcClose         : S:=hint_closewindow;
     hcWindowList    : S:=hint_windowlist;
     hcUserScreenWindow:S:=hint_userscreenwindow;
@@ -516,7 +522,10 @@ end;
 END.
 {
   $Log$
-  Revision 1.11  2005-03-13 12:25:02  florian
+  Revision 1.12  2005-03-13 12:32:41  florian
+    * more status line hints fixed
+
+  Revision 1.11  2005/03/13 12:25:02  florian
     + Recent files write full name now as hint in the status line
     * Rundir hint in status line fixed
 
