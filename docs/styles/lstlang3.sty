@@ -6,8 +6,8 @@
 %%
 %% lstdrvrs.dtx  (with options: `lang3')
 %% 
-%% (w)(c) 1996/1997/1998/1999/2000 Carsten Heinz and/or any other author
-%% listed elsewhere in this file.
+%% (w)(c) 1996/1997/1998/1999/2000/2001/2002 Carsten Heinz and/or any
+%% other author listed elsewhere in this file.
 %%
 %% This file is distributed under the terms of the LaTeX Project Public
 %% License from CTAN archives in directory  macros/latex/base/lppl.txt.
@@ -15,13 +15,11 @@
 %%
 %% This file is completely free and comes without any warranty.
 %%
-%% Permission is granted to change this file. You are not allowed to
-%% distribute any changed version of this file, neither under the same
-%% name nor under a different one.
-%%
 %% Send comments and ideas on the package, error reports and additional
 %% programming languages to <cheinz@gmx.de>.
 %%
+\ProvidesFile{lstlang3}
+    [2002/07/31 v1.0d listings language file]
 \lst@definelanguage[68]{Algol}%
   {morekeywords={abs,and,arg,begin,bin,bits,bool,by,bytes,case,channel,%
       char,co,comment,compl,conj,divab,do,down,elem,elif,else,empty,%
@@ -43,54 +41,68 @@
    keywordcommentsemicolon={end}{else,end}{comment}%
   }[keywords,keywordcomments]%
 %%
-%% Visual Basic definition (c) 2001 Frédéric Jacquet
-%%                             <fjacquet@gphy.campus.univ-poitiers.fr>
+%% x86masm definition (c) 2002 Andrew Zabolotny <zap@cobra.ru>
 %%
-\lstdefinelanguage[Visual]{Basic}
-  {morekeywords={AddressOf,Abs,And,AppActivate,Array,As,Asc,Atn,Base,%
-      Beep,Binary,ByRef,ByVal,CVErr,Call,CallByName,Case,ChDir,ChDrive,%
-      Choose,Chr,Close,Command,Compare,Comparison,Const,Cos,%
-      CreateObject,CurDir,DDB,Date,DateAdd,DateDiff,DatePart,%
-      DateSerial,DateValue,Day,Declare,Deftype,DeleteSetting,Dim,Dir,%
-      Do,DoEvents,EOF,Each,Else,Empty,End,Enum,Environ,Eqv,Erase,Error,%
-      Event,Exit,Exp,Explicit,FV,False,FileAttr,FileCopy,FileDateTime,%
-      FileLen,Filter,Fix,For,Format,FormatCurrency,FormatDateRime,%
-      FormatNumber,FormatPercent,Friend,Function,Get,GetAllSettings,%
-      GetAttr,GetAutoServerSettings,GetObject,GetSetting,GoSub,GoTo,%
-      Hex,Hour,IIf,IMEStatus,IPmt,IRR,If,Imp,Implements,InStr,InStrRev,%
-      Input,InputBox,Int,Is,IsArray,IsDate,IsEmpty,IsError,IsMissing,%
-      IsNull,IsNumeric,IsObject,Join,Kill,LBound,LCase,LOF,LSet,LTrim,%
-      Left,Len,Let,Like,Line,Load,LoadPicture,LoadResData,%
-      LoadResPicture,LoadResString,Loc,Lock,Lock,Log,Loop,MIRR,Math,Me,%
-      Mid,Minute,MkDir,Mod,Month,MonthName,MsgBox,NPV,NPer,Name,New,%
-      Next,Not,Nothing,Now,Null,Oct,On,Open,Option,Optional,Or,PPmt,PV,%
-      Paramarray,Partition,Pmt,Print,Private,Property,Public,Put,%
-      QBColor,RGB,RSet,RTrim,RaiseEvent,Randomize,Rate,ReDim,Rem,%
-      Replace,Resume,Return,Right,RmDir,Rnd,Round,SLN,SYD,SavePicture,%
-      SaveSetting,Second,Seek,Select,SendKeys,Set,SetAttr,Sgn,Shell,%
-      Sin,Space,Spc,Split,Sqr,Static,Step,Stop,Str,StrComp,StrConv,%
-      StrReverse,String,Sub,Switch,Tab,Tan,Then,Time,TimeSerial,%
-      TimeValue,Timer,Trim,True,Type,TypeName,UBound,UCase,Unload,%
-      Unlock,Val,VarType,Weekday,WeekdayName,Wend,While,Width,With,%
-      Withevents,Write,Xor,Year},%
-   sensitive=false,%
-   morecomment=[l]\',%
-   morestring=[b]"%
-  }%
+\lst@definelanguage[x86masm]{Assembler}%
+  {morekeywords={al,ah,ax,eax,bl,bh,bx,ebx,cl,ch,cx,ecx,dl,dh,dx,edx,%
+      si,esi,di,edi,bp,ebp,sp,esp,cs,ds,es,ss,fs,gs,cr0,cr1,cr2,cr3,%
+      db0,db1,db2,db3,db4,db5,db6,db7,tr0,tr1,tr2,tr3,tr4,tr5,tr6,tr7,%
+      st,aaa,aad,aam,aas,adc,add,and,arpl,bound,bsf,bsr,bswap,bt,btc,%
+      btr,bts,call,cbw,cdq,clc,cld,cli,clts,cmc,cmp,cmps,cmpsb,cmpsw,%
+      cmpsd,cmpxchg,cwd,cwde,daa,das,dec,div,enter,hlt,idiv,imul,in,%
+      inc,ins,int,into,invd,invlpg,iret,ja,jae,jb,jbe,jc,jcxz,jecxz,%
+      je,jg,jge,jl,jle,jna,jnae,jnb,jnbe,jnc,jne,jng,jnge,jnl,jnle,%
+      jno,jnp,jns,jnz,jo,jp,jpe,jpo,js,jz,jmp,lahf,lar,lea,leave,lgdt,%
+      lidt,lldt,lmsw,lock,lods,lodsb,lodsw,lodsd,loop,loopz,loopnz,%
+      loope,loopne,lds,les,lfs,lgs,lss,lsl,ltr,mov,movs,movsb,movsw,%
+      movsd,movsx,movzx,mul,neg,nop,not,or,out,outs,pop,popa,popad,%
+      popf,popfd,push,pusha,pushad,pushf,pushfd,rcl,rcr,rep,repe,%
+      repne,repz,repnz,ret,retf,rol,ror,sahf,sal,sar,sbb,scas,seta,%
+      setae,setb,setbe,setc,sete,setg,setge,setl,setle,setna,setnae,%
+      setnb,setnbe,setnc,setne,setng,setnge,setnl,setnle,setno,setnp,%
+      setns,setnz,seto,setp,setpe,setpo,sets,setz,sgdt,shl,shld,shr,%
+      shrd,sidt,sldt,smsw,stc,std,sti,stos,stosb,stosw,stosd,str,sub,%
+      test,verr,verw,wait,wbinvd,xadd,xchg,xlatb,xor,fabs,fadd,fbld,%
+      fbstp,fchs,fclex,fcom,fcos,fdecstp,fdiv,fdivr,ffree,fiadd,ficom,%
+      fidiv,fidivr,fild,fimul,fincstp,finit,fist,fisub,fisubr,fld,fld1,%
+      fldl2e,fldl2t,fldlg2,fldln2,fldpi,fldz,fldcw,fldenv,fmul,fnop,%
+      fpatan,fprem,fprem1,fptan,frndint,frstor,fsave,fscale,fsetpm,%
+      fsin,fsincos,fsqrt,fst,fstcw,fstenv,fstsw,fsub,fsubr,ftst,fucom,%
+      fwait,fxam,fxch,fxtract,fyl2x,fyl2xp1,f2xm1},%
+   morekeywords=[2]{.align,.alpha,assume,byte,code,comm,comment,.const,%
+      .cref,.data,.data?,db,dd,df,dosseg,dq,dt,dw,dword,else,end,endif,%
+      endm,endp,ends,eq,equ,.err,.err1,.err2,.errb,.errdef,.errdif,%
+      .erre,.erridn,.errnb,.errndef,.errnz,event,exitm,extrn,far,%
+      .fardata,.fardata?,fword,ge,group,gt,high,if,if1,if2,ifb,ifdef,%
+      ifdif,ife,ifidn,ifnb,ifndef,include,includelib,irp,irpc,label,%
+      .lall,le,length,.lfcond,.list,local,low,lt,macro,mask,mod,.model,%
+      name,ne,near,offset,org,out,page,proc,ptr,public,purge,qword,.%
+      radix,record,rept,.sall,seg,segment,.seq,.sfcond,short,size,%
+      .stack,struc,subttl,tbyte,.tfcond,this,title,type,.type,width,%
+      word,.xall,.xcref,.xlist},%
+   alsoletter=.,alsodigit=?,%
+   sensitive=f,%
+   morestring=[b]",%
+   morestring=[b]',%
+   morecomment=[l];%
+   }[directives,keywords,comments,strings]
 %%
-%% Clean definition (c) 1999 José Romildo Malaquias <romildo@iceb.ufop.br>
+%% Clean definition (c) 1999 Jos\'e Romildo Malaquias
+%%                           <romildo@iceb.ufop.br>
 %%
 %% Clean 1.3 :  some standard functional language: pure, lazy,
 %%              polymorphic type system, modules, type classes,
 %%              garbage collection, functions as first class citizens
 %%
 \lst@definelanguage{Clean}%
-  {otherkeywords={:,::,=,:==,=:,=>,->,<-,<-:,\{,\},\{|,|\},\#,\#!,|,\&,[,],!,.,\\\\,;,_},%
-   keywords={from,definition,implementation,import,module,system,case,code,%
-             if,in,let,let!,of,where,with,infix,infixl,infixr},%
-   ndkeywords={True,False,Start,Int,Real,Char,Bool,String,World,File,ProcId},%
+  {otherkeywords={:,::,=,:==,=:,=>,->,<-,<-:,\{,\},\{|,|\},\#,\#!,|,\&,%
+      [,],!,.,\\\\,;,_},%
+   morekeywords={from,definition,implementation,import,module,system,%
+      case,code,if,in,let,let!,of,where,with,infix,infixl,infixr},%
+   morendkeywords={True,False,Start,Int,Real,Char,Bool,String,World,%
+      File,ProcId},%
    sensitive,%
-   morecomment=[l]//%
+   morecomment=[l]//,% missing comma: Markus Pahlow
    morecomment=[n]{/*}{*/},%
    morestring=[b]"%
   }[keywords,comments,strings]%
@@ -121,6 +133,19 @@
    sensitive,%
    morestring=[d]"%
   }[keywords,strings]%
+\lst@definelanguage{ksh}
+  {morekeywords={alias,awk,cat,echo,else,elif,fi,exec,exit,%
+      for,in,do,done,select,case,esac,while,until,function,%
+      time,export,cd,eval,fc,fg,kill,let,pwd,read,return,rm,%
+      glob,goto,history,if,logout,nice,nohup,onintr,repeat,sed,%
+      set,setenv,shift,source,switch,then,umask,unalias,%
+      unset,wait,@,env,argv,child,home,ignoreeof,noclobber,%
+      noglob,nomatch,path,prompt,shell,status,verbose,print,printf,%
+      sqrt,BEGIN,END},%
+   morecomment=[l]\#,%
+   morestring=[d]",%
+   morestring=[d]'%
+  }[keywords,comments,strings]%
 \lst@definelanguage{Logo}%
   {morekeywords={and,atan,arctan,both,break,bf,bl,butfirst,butlast,%
       cbreak, close,co,continue,cos,count,clearscreen,cs,debquit,%
@@ -158,6 +183,19 @@
    morestring=[d]',%
    morestring=[d]"%
   }[keywords,comments,strings]%
+\lst@definelanguage{NASTRAN}
+  {morekeywords={ENDDATA},%
+   morecomment=[l]$,%
+   MoreSelectCharTable=%
+        \lst@CArgX BEGIN\ BULK\relax\lst@CDef{}%
+        {\lst@ifmode\else \ifnum\lst@length=\z@
+             \lst@EnterMode{\lst@GPmode}{\lst@modetrue
+                  \let\lst@currstyle\lst@gkeywords@sty}%
+         \fi \fi}%
+        {\ifnum\lst@mode=\lst@GPmode
+             \lst@XPrintToken \lst@LeaveMode
+         \fi}%
+  }[keywords,comments]%
 \lst@definelanguage{Oberon-2}%
   {morekeywords={ARRAY,BEGIN,BOOLEAN,BY,CASE,CHAR,CONST,DIV,DO,ELSE,%
       ELSIF,END,EXIT,FALSE,FOR,IF,IMPORT,IN,INTEGER,IS,LONGINT,%
@@ -171,14 +209,12 @@
    morestring=[d]"%
   }[keywords,comments,strings]%
 %%
-%% OCL definition (c) 2000 Achim D. Brucker <brucker@informatik.uni-freiburg.de>
-%% You are allowed to use, modify and distribute this code either under
-%% the terms of the LPPL (version 1.0 or later) or the GPL (version 2.0 or later).
+%% OCL definition (c) 2000 Achim D. Brucker
+%%                         <brucker@informatik.uni-freiburg.de>
 %%
-%% First we define are very decorative style. In the OMG standard only the boolean (infix (?))
-%% operations are highlighted, but I think all OCL-defined operations should be
-%% highlighted, because they are \emph{guaranteed} to be side-effect-free (in OCL only side effect
-%% free evaluations or path expressions are allowed).
+%% You are allowed to use, modify and distribute this code either under
+%% the terms of the LPPL (version 1.0 or later) or the GPL (version 2.0
+%% or later).
 %%
 \lst@definelanguage[decorative]{OCL}[OMG]{OCL}
   {otherkeywords={@pre},%
@@ -192,14 +228,8 @@
       asSequence,asBag,asSequence,asSet,append,prepend,subSequence,at,%
       first,last,true,false,isQuery}%
   }%
-%% Remark: "isQuery" is not real OCL, but a important Attribute of the
-%%         underlying UML model.
-%%
-%% The dialect called \texttt{OMG} is a very spare version. If you use
-%% this variant with bold style for first and second order keywords you
-%% get the look and feel of the OMG standard.
 \lst@definelanguage[OMG]{OCL}%
-    {morekeywords={context,pre,inv,post},
+    {morekeywords={context,pre,inv,post},%
     ndkeywords={or,xor,and,not,implies,if,then,else,endif},%
     morerdkeywords={Boolean,Integer,Real,String,Set,Sequence,Bag,%
        OclType,OclAny,OclExpression,Enumeration,Collection,},%
@@ -322,10 +352,11 @@
    alsoother={._$},%
    sensitive,%
    morecomment=[l]\#,%
-   morestring=[d]"%
+   morestring=[d]",%
+   morestring=[d]'% 2001 Robert Denham
   }%
 \lst@definelanguage{SAS}%
-  {prockeywords={proc},%
+  {procnamekeys={proc},%
    morekeywords={DATA,AND,OR,NOT,EQ,GT,LT,GE,LE,NE,INFILE,INPUT,DO,BY,%
       TO,SIN,COS,OUTPUT,END,PLOT,RUN,LIBNAME,VAR,TITLE,FIRSTOBS,OBS,%
       DELIMITER,DLM,EOF,ABS,DIM,HBOUND,LBOUND,MAX,MIN,MOD,SIGN,SQRT,%
@@ -342,7 +373,7 @@
       SHOW},%
    otherkeywords={!,!=,~,$,*,\&,_,/,<,>=,=<,>},%
    morestring=[d]'%
-   }%
+   }[keywords,comments,strings,procnames]%
 \lst@definelanguage[AlLaTeX]{TeX}[LaTeX]{TeX}%
   {moretexcs={AtBeginDocument,AtBeginDvi,AtEndDocument,AtEndOfClass,%
       AtEndOfPackage,ClassError,ClassInfo,ClassWarning,%

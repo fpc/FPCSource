@@ -6,8 +6,8 @@
 %%
 %% lstdrvrs.dtx  (with options: `lang1')
 %% 
-%% (w)(c) 1996/1997/1998/1999/2000 Carsten Heinz and/or any other author
-%% listed elsewhere in this file.
+%% (w)(c) 1996/1997/1998/1999/2000/2001/2002 Carsten Heinz and/or any
+%% other author listed elsewhere in this file.
 %%
 %% This file is distributed under the terms of the LaTeX Project Public
 %% License from CTAN archives in directory  macros/latex/base/lppl.txt.
@@ -15,13 +15,22 @@
 %%
 %% This file is completely free and comes without any warranty.
 %%
-%% Permission is granted to change this file. You are not allowed to
-%% distribute any changed version of this file, neither under the same
-%% name nor under a different one.
-%%
 %% Send comments and ideas on the package, error reports and additional
 %% programming languages to <cheinz@gmx.de>.
 %%
+\ProvidesFile{lstlang1}
+    [2002/07/31 v1.0d listings language file]
+%%
+%% ACSL definition (c) 2000 by Andreas Matthias <amat@kabsi.at>
+%%
+\lst@definelanguage{ACSL}[90]{Fortran}%
+   {morekeywords={algorithm,cinterval,constant,derivative,discrete,%
+         dynamic,errtag,initial,interval,maxterval,minterval,%
+         merror,xerror,nsteps,procedural,save,schedule,sort,%
+         table,terminal,termt,variable},%
+    sensitive=false,%
+    morecomment=[l]!%
+   }[keywords, comments]%
 %%
 %% Ada 95 definition (c) Torsten Neuer <tneuer@inwise.de>
 %%
@@ -40,19 +49,154 @@
    morestring=[m]",% percent not defined as stringizer so far
    morestring=[m]'%
   }[keywords,comments,strings]%
-\lst@definelanguage[Visual]{C++}[ANSI]{C++}%
+%%
+%% Visual Basic definition (c) 2002 Robert Frank <rf7@ukc.ac.uk>
+%%
+\lst@definelanguage[Visual]{Basic}
+  {morekeywords={Abs,Array,Asc,AscB,AscW,Atn,Avg,CBool,CByte,CCur,%
+      CDate,CDbl,Cdec,Choose,Chr,ChrB,ChrW,CInt,CLng,Command,Cos,%
+      Count,CreateObject,CSng,CStr,CurDir,CVar,CVDate,CVErr,Date,%
+      DateAdd,DateDiff,DatePart,DateSerial,DateValue,Day,DDB,Dir,%
+      DoEvents,Environ,EOF,Error,Exp,FileAttr,FileDateTime,FileLen,%
+      Fix,Format,FreeFile,FV,GetAllStrings,GetAttr,%
+      GetAutoServerSettings,GetObject,GetSetting,Hex,Hour,IIf,%
+      IMEStatus,Input,InputB,InputBox,InStr,InstB,Int,Integer,IPmt,%
+      IsArray,IsDate,IsEmpty,IsError,IsMissing,IsNull,IsNumeric,%
+      IsObject,LBound,LCase,Left,LeftB,Len,LenB,LoadPicture,Loc,LOF,%
+      Log,Ltrim,Max,Mid,MidB,Min,Minute,MIRR,Month,MsgBox,Now,NPer,%
+      NPV,Oct,Partition,Pmt,PPmt,PV,QBColor,Rate,RGB,Right,RightB,Rnd,%
+      Rtrim,Second,Seek,Sgn,Shell,Sin,SLN,Space,Spc,Sqr,StDev,StDevP,%
+      Str,StrComp,StrConv,String,Switch,Sum,SYD,Tab,Tan,Time,Timer,%
+      TimeSerial,TimeValue,Trim,TypeName,UBound,Ucase,Val,Var,VarP,%
+      VarType,Weekday,Year},% functions
+   morekeywords=[2]{Accept,Activate,Add,AddCustom,AddFile,AddFromFile,%
+      AddFromTemplate,AddItem,AddNew,AddToAddInToolbar,%
+      AddToolboxProgID,Append,AppendChunk,Arrange,Assert,AsyncRead,%
+      BatchUpdate,BeginTrans,Bind,Cancel,CancelAsyncRead,CancelBatch,%
+      CancelUpdate,CanPropertyChange,CaptureImage,CellText,CellValue,%
+      Circle,Clear,ClearFields,ClearSel,ClearSelCols,Clone,Close,Cls,%
+      ColContaining,ColumnSize,CommitTrans,CompactDatabase,Compose,%
+      Connect,Copy,CopyQueryDef,CreateDatabase,CreateDragImage,%
+      CreateEmbed,CreateField,CreateGroup,CreateIndex,CreateLink,%
+      CreatePreparedStatement,CreatePropery,CreateQuery,%
+      CreateQueryDef,CreateRelation,CreateTableDef,CreateUser,%
+      CreateWorkspace,Customize,Delete,DeleteColumnLabels,%
+      DeleteColumns,DeleteRowLabels,DeleteRows,DoVerb,Drag,Draw,Edit,%
+      EditCopy,EditPaste,EndDoc,EnsureVisible,EstablishConnection,%
+      Execute,ExtractIcon,Fetch,FetchVerbs,Files,FillCache,Find,%
+      FindFirst,FindItem,FindLast,FindNext,FindPrevious,Forward,%
+      GetBookmark,GetChunk,GetClipString,GetData,GetFirstVisible,%
+      GetFormat,GetHeader,GetLineFromChar,GetNumTicks,GetRows,%
+      GetSelectedPart,GetText,GetVisibleCount,GoBack,GoForward,Hide,%
+      HitTest,HoldFields,Idle,InitializeLabels,InsertColumnLabels,%
+      InsertColumns,InsertObjDlg,InsertRowLabels,InsertRows,Item,%
+      KillDoc,Layout,Line,LinkExecute,LinkPoke,LinkRequest,LinkSend,%
+      Listen,LoadFile,LoadResData,LoadResPicture,LoadResString,%
+      LogEvent,MakeCompileFile,MakeReplica,MoreResults,Move,MoveData,%
+      MoveFirst,MoveLast,MoveNext,MovePrevious,NavigateTo,NewPage,%
+      NewPassword,NextRecordset,OLEDrag,OnAddinsUpdate,OnConnection,%
+      OnDisconnection,OnStartupComplete,Open,OpenConnection,%
+      OpenDatabase,OpenQueryDef,OpenRecordset,OpenResultset,OpenURL,%
+      Overlay,PaintPicture,Paste,PastSpecialDlg,PeekData,Play,Point,%
+      PopulatePartial,PopupMenu,Print,PrintForm,PropertyChanged,Pset,%
+      Quit,Raise,RandomDataFill,RandomFillColumns,RandomFillRows,%
+      rdoCreateEnvironment,rdoRegisterDataSource,ReadFromFile,%
+      ReadProperty,Rebind,ReFill,Refresh,RefreshLink,RegisterDatabase,%
+      Reload,Remove,RemoveAddInFromToolbar,RemoveItem,Render,%
+      RepairDatabase,Reply,ReplyAll,Requery,ResetCustom,%
+      ResetCustomLabel,ResolveName,RestoreToolbar,Resync,Rollback,%
+      RollbackTrans,RowBookmark,RowContaining,RowTop,Save,SaveAs,%
+      SaveFile,SaveToFile,SaveToolbar,SaveToOle1File,Scale,ScaleX,%
+      ScaleY,Scroll,Select,SelectAll,SelectPart,SelPrint,Send,%
+      SendData,Set,SetAutoServerSettings,SetData,SetFocus,SetOption,%
+      SetSize,SetText,SetViewport,Show,ShowColor,ShowFont,ShowHelp,%
+      ShowOpen,ShowPrinter,ShowSave,ShowWhatsThis,SignOff,SignOn,Size,%
+      Span,SplitContaining,StartLabelEdit,StartLogging,Stop,%
+      Synchronize,TextHeight,TextWidth,ToDefaults,TwipsToChartPart,%
+      TypeByChartType,Update,UpdateControls,UpdateRecord,UpdateRow,%
+      Upto,WhatsThisMode,WriteProperty,ZOrder},% methods
+   morekeywords=[3]{AccessKeyPress,AfterAddFile,AfterChangeFileName,%
+      AfterCloseFile,AfterColEdit,AfterColUpdate,AfterDelete,%
+      AfterInsert,AfterLabelEdit,AfterRemoveFile,AfterUpdate,%
+      AfterWriteFile,AmbienChanged,ApplyChanges,Associate,%
+      AsyncReadComplete,AxisActivated,AxisLabelActivated,%
+      AxisLabelSelected,AxisLabelUpdated,AxisSelected,%
+      AxisTitleActivated,AxisTitleSelected,AxisTitleUpdated,%
+      AxisUpdated,BeforeClick,BeforeColEdit,BeforeColUpdate,%
+      BeforeConnect,BeforeDelete,BeforeInsert,BeforeLabelEdit,%
+      BeforeLoadFile,BeforeUpdate,ButtonClick,ButtonCompleted,%
+      ButtonGotFocus,ButtonLostFocus,Change,ChartActivated,%
+      ChartSelected,ChartUpdated,Click,ColEdit,Collapse,ColResize,%
+      ColumnClick,Compare,ConfigChageCancelled,ConfigChanged,%
+      ConnectionRequest,DataArrival,DataChanged,DataUpdated,DblClick,%
+      Deactivate,DeviceArrival,DeviceOtherEvent,DeviceQueryRemove,%
+      DeviceQueryRemoveFailed,DeviceRemoveComplete,DeviceRemovePending,%
+      DevModeChange,Disconnect,DisplayChanged,Dissociate,%
+      DoGetNewFileName,Done,DonePainting,DownClick,DragDrop,DragOver,%
+      DropDown,EditProperty,EnterCell,EnterFocus,Event,ExitFocus,%
+      Expand,FootnoteActivated,FootnoteSelected,FootnoteUpdated,%
+      GotFocus,HeadClick,InfoMessage,Initialize,IniProperties,%
+      ItemActivated,ItemAdded,ItemCheck,ItemClick,ItemReloaded,%
+      ItemRemoved,ItemRenamed,ItemSeletected,KeyDown,KeyPress,KeyUp,%
+      LeaveCell,LegendActivated,LegendSelected,LegendUpdated,%
+      LinkClose,LinkError,LinkNotify,LinkOpen,Load,LostFocus,%
+      MouseDown,MouseMove,MouseUp,NodeClick,ObjectMove,%
+      OLECompleteDrag,OLEDragDrop,OLEDragOver,OLEGiveFeedback,%
+      OLESetData,OLEStartDrag,OnAddNew,OnComm,Paint,PanelClick,%
+      PanelDblClick,PathChange,PatternChange,PlotActivated,%
+      PlotSelected,PlotUpdated,PointActivated,PointLabelActivated,%
+      PointLabelSelected,PointLabelUpdated,PointSelected,%
+      PointUpdated,PowerQuerySuspend,PowerResume,PowerStatusChanged,%
+      PowerSuspend,QueryChangeConfig,QueryComplete,QueryCompleted,%
+      QueryTimeout,QueryUnload,ReadProperties,Reposition,%
+      RequestChangeFileName,RequestWriteFile,Resize,ResultsChanged,%
+      RowColChange,RowCurrencyChange,RowResize,RowStatusChanged,%
+      SelChange,SelectionChanged,SendComplete,SendProgress,%
+      SeriesActivated,SeriesSelected,SeriesUpdated,SettingChanged,%
+      SplitChange,StateChanged,StatusUpdate,SysColorsChanged,%
+      Terminate,TimeChanged,TitleActivated,TitleSelected,%
+      TitleActivated,UnboundAddData,UnboundDeleteRow,%
+      UnboundGetRelativeBookmark,UnboundReadData,UnboundWriteData,%
+      Unload,UpClick,Updated,Validate,ValidationError,WillAssociate,%
+      WillChangeData,WillDissociate,WillExecute,WillUpdateRows,%
+      WithEvents,WriteProperties},% VB-events
+   morekeywords=[4]{AppActivate,Base,Beep,Call,Case,ChDir,ChDrive,%
+      Const,Declare,DefBool,DefByte,DefCur,DefDate,DefDbl,DefDec,%
+      DefInt,DefLng,DefObj,DefSng,DefStr,Deftype,DefVar,DeleteSetting,%
+      Dim,Do,Else,ElseIf,End,Enum,Erase,Event,Exit,Explicit,FileCopy,%
+      For,ForEach,Friend,Function,Get,GoSub,GoTo,If,Implements,Kill,%
+      Let,LineInput,Lock,Lset,MkDir,Name,Next,OnError,On,Option,%
+      Private,Property,Public,Put,RaiseEvent,Randomize,ReDim,Rem,%
+      Reset,Resume,Return,RmDir,Rset,SavePicture,SaveSetting,%
+      SendKeys,SetAttr,Static,Sub,Then,Type,Unlock,Wend,While,Width,%
+      With,Write},% statements
+   sensitive=false,
+   keywordcomment=rem,%
+   MoreSelectCharTable=\def\lst@BeginKC@{% chmod
+      \lst@ResetToken
+      \lst@BeginComment\lst@GPmode{{\lst@commentstyle}%
+                       \lst@Lmodetrue\lst@modetrue}\@empty}%
+   morecomment=[l]{'},
+   morecomment=[s]{/*}{*/},
+   morestring=[b]",
+   }[keywords,comments,strings,keywordcomments]
+\lst@definelanguage[ANSI]{C++}[ISO]{C++}{}%
+\lst@definelanguage[GNU]{C++}[ISO]{C++}%
+  {morekeywords={__attribute__,__extension__,__restrict,__restrict__,%
+      typeof,__typeof__},%
+  }%
+\lst@definelanguage[Visual]{C++}[ISO]{C++}%
   {morekeywords={__asm,__based,__cdecl,__declspec,dllexport,%
       dllimport,__except,__fastcall,__finally,__inline,__int8,__int16,%
       __int32,__int64,naked,__stdcall,thread,__try,__leave},%
   }%
-\lst@definelanguage[ANSI]{C++}[ANSI]{C}%
-  {morekeywords={asm,bad_cast,bad_typeid,bool,catch,class,const_cast,%
-      delete,dynamic_cast,false,friend,inline,namespace,new,operator,%
-      private,protected,public,reinterpret_cast,static_cast,template,%
-      this,throw,true,try,type_info,typeid,using,virtual,xalloc,%
-      __multiple_inheritance,__single_inheritance,%
-      __virtual_inheritance},%
-   morecomment=[l]//%
+\lst@definelanguage[ISO]{C++}[ANSI]{C}%
+  {morekeywords={and,and_eq,asm,bad_cast,bad_typeid,bitand,bitor,bool,%
+      catch,class,compl,const_cast,delete,dynamic_cast,explicit,export,%
+      false,friend,inline,mutable,namespace,new,not,not_eq,operator,or,%
+      or_eq,private,protected,public,reinterpret_cast,static_cast,%
+      template,this,throw,true,try,typeid,type_info,typename,using,%
+      virtual,wchar_t,xor,xor_eq},%
   }%
 %%
 %% Objective-C definition (c) 1997 Detlev Droege
@@ -62,7 +206,6 @@
   {morekeywords={bycopy,id,in,inout,oneway,out,self,super,%
       @class,@defs,@encode,@end,@implementation,@interface,@private,%
       @protected,@protocol,@public,@selector},%
-   morecomment=[l]//,%
    moredirectives={import}%
   }%
 \lst@definelanguage[ANSI]{C}%
@@ -72,11 +215,29 @@
       void,volatile,while},%
    sensitive,%
    morecomment=[s]{/*}{*/},%
+   morecomment=[l]//,% nonstandard
    morestring=[b]",%
    morestring=[b]',%
    moredirectives={define,elif,else,endif,error,if,ifdef,ifndef,line,%
       include,pragma,undef,warning}%
   }[keywords,comments,strings,directives]%
+%%
+%% C-Sharp definition (c) 2002 Martin Brodbeck <Martin.Brodbeck@gmx.de>
+%%
+\lst@definelanguage[Sharp]{C}%
+  {morekeywords={abstract,base,bool,break,byte,case,catch,char,checked,%
+      class,const,continue,decimal,default,delegate,do,double,else,%
+      enum,event,explicit,extern,false,finally,fixed,float,for,foreach,%
+      goto,if,implicit,in,int,interface,internal,is,lock,long,%
+      namespace,new,null,object,operator,out,override,params,private,%
+      protected,public,readonly,ref,return,sbyte,sealed,short,sizeof,%
+      static,string,struct,switch,this,throw,true,try,typeof,uint,%
+      ulong,unchecked,unsafe,ushort,using,virtual,void,while},%
+   sensitive,%
+   morecomment=[s]{/*}{*/},%
+   morecomment=[l]//,%
+   morestring=[b]"
+  }[keywords,comments,strings]%
 %%
 %% csh definition (c) 1998 Kai Below <below@tu-harburg.de>
 %%
@@ -92,7 +253,7 @@
   }[keywords,comments,strings]%
 \lst@definelanguage[90]{Fortran}[95]{Fortran}{}
 \lst@definelanguage[95]{Fortran}[77]{Fortran}%
-  {deletekeywords=SAVE,
+  {deletekeywords=SAVE,%
    morekeywords={ACTION,ADVANCE,ALLOCATE,ALLOCATABLE,ASSIGNMENT,CASE,%
       CONTAINS,CYCLE,DEALLOCATE,DEFAULT,DELIM,EXIT,INCLUDE,IN,NONE,IN,%
       OUT,INTENT,INTERFACE,IOLENGTH,KIND,LEN,MODULE,NAME,NAMELIST,NMT,%
@@ -102,8 +263,8 @@
       ENDBLOCKDATA,ENDDO,ENDFILE,ENDFUNCTION,ENDIF,ENDINTERFACE,%
       ENDMODULE,ENDPROGRAM,ENDSELECT,ENDSUBROUTINE,ENDTYPE,ENDWHERE,%
       GOTO,INOUT,SELECTCASE},%
-   morecomment=[l]!,%
-   deletecomment=[f]% no fixed comment line: 1998 Magne Rudshaug
+   deletecomment=[f],% no fixed comment line: 1998 Magne Rudshaug
+   morecomment=[l]!%
   }%
 \lst@definelanguage[77]{Fortran}%
   {morekeywords={ACCESS,ASSIGN,BACKSPACE,BLANK,BLOCK,CALL,CHARACTER,%
@@ -115,7 +276,9 @@
       RETURN,REWIND,SEQUENTIAL,STATUS,STOP,SUBROUTINE,THEN,TYPE,%
       UNFORMATTED,UNIT,WRITE,SAVE},%
    sensitive=f,%% not Fortran standard %%
-   morecomment=[f]*Cc,%
+   morecomment=[f]*,%
+   morecomment=[f]C,%
+   morecomment=[f]c,%
    morestring=[d]"%
   }[keywords,comments,strings]%
 \lst@definelanguage{HTML}%
@@ -133,19 +296,21 @@
    sensitive=f,%
    morestring=[d]",% ??? doubled
    MoreSelectCharTable=%
-      \lst@CArgX--\relax\lst@CommentB\lst@GPmode{}{}%
+      \lst@CArgX--\relax\lst@DefDelimB{}{}%
           {\ifnum\lst@mode=\lst@insidemode\else
                \expandafter\@gobblethree
-           \fi}\lst@commentstyle
-      \lst@CArgX--\relax\lst@CommentE\lst@GPmode{}{}{}%
+           \fi}%
+          \lst@BeginComment\lst@commentmode{{\lst@commentstyle}}%
+      \lst@CArgX--\relax\lst@DefDelimE{}{}{}%
+          \lst@EndComment\lst@commentmode
   }[keywords,comments,strings,html]%
 \lst@definelanguage{Java}%
   {morekeywords={abstract,boolean,break,byte,case,catch,char,class,%
-      const,continue,default,do,double,else,extends,final,finally,%
-      float,for,goto,if,implements,import,instanceof,int,interface,%
-      long,native,new,null,package,private,protected,public,return,%
-      short,static,super,switch,synchronized,this,throw,throws,%
-      transient,try,void,volatile,while,true,false},%
+      const,continue,default,do,double,else,extends,false,final,%
+      finally,float,for,goto,if,implements,import,instanceof,int,%
+      interface,label,long,native,new,null,package,private,protected,%
+      public,return,short,static,super,switch,synchronized,this,throw,%
+      throws,transient,true,try,void,volatile,while},%
    sensitive,%
    morecomment=[l]//,%
    morecomment=[s]{/*}{*/},%
@@ -378,6 +543,84 @@
    morecomment=[s]{(*}{*)},%
    morestring=[d]"%
   }[keywords,comments,strings]%
+%%
+%% Octave definition (c) 2001,2002 Ulrich G. Wortmann
+%%                                 <uliw@erdw.ethz.ch>
+%%
+\lst@definelanguage{Octave}%
+  {morekeywords={gt,lt,gt,lt,amp,abs,acos,acosh,acot,acoth,acsc,acsch,%
+      all,angle,ans,any,asec,asech,asin,asinh,atan,atan2,atanh,auread,%
+      auwrite,axes,axis,balance,bar,bessel,besselk,bessely,beta,%
+      betainc,betaln,blanks,bone,break,brighten,capture,cart2pol,%
+      cart2sph,caxis,cd,cdf2rdf,cedit,ceil,chol,cla,clabel,clc,clear,%
+      clf,clock,close,colmmd,Colon,colorbar,colormap,ColorSpec,colperm,%
+      comet,comet3,compan,compass,computer,cond,condest,conj,contour,%
+      contour3,contourc,contrast,conv,conv2,cool,copper,corrcoef,cos,%
+      cosh,cot,coth,cov,cplxpair,cputime,cross,csc,csch,csvread,%
+      csvwrite,cumprod,cumsum,cylinder,date,dbclear,dbcont,dbdown,%
+      dbquit,dbstack,dbstatus,dbstep,dbstop,dbtype,dbup,ddeadv,ddeexec,%
+      ddeinit,ddepoke,ddereq,ddeterm,ddeunadv,deblank,dec2hex,deconv,%
+      del2,delete,demo,det,diag,diary,diff,diffuse,dir,disp,dlmread,%
+      dlmwrite,dmperm,dot,drawnow,echo,eig,ellipj,ellipke,else,elseif,%
+      end,engClose,engEvalString,engGetFull,engGetMatrix,engOpen,%
+      engOutputBuffer,engPutFull,engPutMatrix,engSetEvalCallback,%
+      engSetEvalTimeout,engWinInit,eps,erf,erfc,erfcx,erfinv,%
+      errorbar,etime,etree,eval,exist,exp,expint,expm,expo,eye,fclose,%
+      feather,feof,ferror,feval,fft,fft2,fftshift,fgetl,fgets,figure,%
+      fill,fill3,filter,filter2,find,findstr,finite,fix,flag,fliplr,%
+      flipud,floor,flops,fmin,fmins,fopen,for,format,fplot,fprintf,%
+      fread,frewind,fscanf,fseek,ftell,full,function,funm,fwrite,fzero,%
+      gallery,gamma,gammainc,gammaln,gca,gcd,gcf,gco,get,getenv,%
+      getframe,ginput,global,gplot,gradient,gray,graymon,grid,griddata,%
+      gtext,hadamard,hankel,help,hess,hex2dec,hex2num,hidden,hilb,hist,%
+      hold,home,hostid,hot,hsv,hsv2rgb,if,ifft,ifft2,imag,image,%
+      imagesc,Inf,info,input,int2str,interp1,interp2,interpft,inv,%
+      invhilb,isempty,isglobal,ishold,isieee,isinf,isletter,isnan,%
+      isreal,isspace,issparse,isstr,jet,keyboard,kron,lasterr,lcm,%
+      legend,legendre,length,lin2mu,line,linspace,load,log,log10,log2,%
+      loglog,logm,logspace,lookfor,lower,ls,lscov,lu,magic,matClose,%
+      matDeleteMatrix,matGetDir,matGetFp,matGetFull,matGetMatrix,%
+      matGetNextMatrix,matGetString,matlabrc,matlabroot,matOpen,%
+      matPutFull,matPutMatrix,matPutString,max,mean,median,menu,mesh,%
+      meshc,meshgrid,meshz,mexAtExit,mexCallMATLAB,mexdebug,%
+      mexErrMsgTxt,mexEvalString,mexFunction,mexGetFull,mexGetMatrix,%
+      mexGetMatrixPtr,mexPrintf,mexPutFull,mexPutMatrix,mexSetTrapFlag,%
+      min,more,movie,moviein,mu2lin,mxCalloc,mxCopyCharacterToPtr,%
+      mxCopyComplex16ToPtr,mxCopyInteger4ToPtr,mxCopyPtrToCharacter,%
+      mxCopyPtrToComplex16,mxCopyPtrToInteger4,mxCopyPtrToReal8,%
+      mxCopyReal8ToPtr,mxCreateFull,mxCreateSparse,mxCreateString,%
+      mxFree,mxFreeMatrix,mxGetIr,mxGetJc,mxGetM,mxGetN,mxGetName,%
+      mxGetNzmax,mxGetPi,mxGetPr,mxGetScalar,mxGetString,mxIsComplex,%
+      mxIsFull,mxIsNumeric,mxIsSparse,mxIsString,mxIsTypeDouble,%
+      mxSetIr,mxSetJc,mxSetM,mxSetN,mxSetName,mxSetNzmax,mxSetPi,%
+      mxSetPr,NaN,nargchk,nargin,nargout,newplot,nextpow2,nnls,nnz,%
+      nonzeros,norm,normest,null,num2str,nzmax,ode23,ode45,orient,orth,%
+      pack,pascal,patch,path,pause,pcolor,pi,pink,pinv,plot,plot3,%
+      pol2cart,polar,poly,polyder,polyeig,polyfit,polyval,polyvalm,%
+      pow2,print,printopt,prism,prod,pwd,qr,qrdelete,qrinsert,quad,%
+      quad8,quit,quiver,qz,rand,randn,randperm,rank,rat,rats,rbbox,%
+      rcond,real,realmax,realmin,refresh,rem,reset,reshape,residue,%
+      return,rgb2hsv,rgbplot,rootobject,roots,rose,rosser,rot90,rotate,%
+      round,rref,rrefmovie,rsf2csf,save,saxis,schur,sec,sech,semilogx,%
+      semilogy,set,setstr,shading,sign,sin,sinh,size,slice,sort,sound,%
+      spalloc,sparse,spaugment,spconvert,spdiags,specular,speye,spfun,%
+      sph2cart,sphere,spinmap,spline,spones,spparms,sprandn,sprandsym,%
+      sprank,sprintf,spy,sqrt,sqrtm,sscanf,stairs,startup,std,stem,%
+      str2mat,str2num,strcmp,strings,strrep,strtok,subplot,subscribe,%
+      subspace,sum,surf,surface,surfc,surfl,surfnorm,svd,symbfact,%
+      symmmd,symrcm,tan,tanh,tempdir,tempname,terminal,text,tic,title,%
+      toc,toeplitz,trace,trapz,tril,triu,type,uicontrol,uigetfile,%
+      uimenu,uiputfile,unix,unwrap,upper,vander,ver,version,view,%
+      viewmtx,waitforbuttonpress,waterfall,wavread,wavwrite,what,%
+      whatsnew,which,while,white,whitebg,who,whos,wilkinson,wk1read,%
+      stderr,stdout,plot,set,endif,wk1write,xlabel,xor,ylabel,zeros,%
+      zlabel,zoom,endwhile,endfunction},%
+   sensitive=f,%
+   morecomment=[l]\#,%
+   morecomment=[l]\#\#,%
+   morestring=[m]',%
+   morestring=[m]"%
+  }[keywords,comments,strings]%
 \lst@definelanguage[XSC]{Pascal}[Standard]{Pascal}
   {deletekeywords={alfa,byte,pack,unpack},% 1998 Andreas Stephan
    morekeywords={dynamic,external,forward,global,module,nil,operator,%
@@ -431,7 +674,8 @@
       text,then,to,true,type,unpack,until,var,while,with,write,%
       writeln},%
    sensitive=f,%
-   morecomment=[d]{(*}{*)}{\{}{\}},%
+   morecomment=[s]{(*}{*)},%
+   morecomment=[s]{\{}{\}},%
    morestring=[d]'%
   }[keywords,comments,strings]%
 \lst@definelanguage{Perl}%
@@ -468,7 +712,8 @@
       \lst@ReplaceInput{\$\#}{\lst@ProcessOther\$\lst@ProcessOther\#}%
   }[keywords,comments,strings]%
 %%
-%% POV definition (c) 1999 Berthold Höllmann <bhoel@starship.python.net>
+%% POV definition (c) 1999 Berthold H\"ollmann
+%%                         <bhoel@starship.python.net>
 %%
 \lst@definelanguage{POV}%
   {morekeywords={abs,absorption,acos,acosh,adaptive,adc_bailout,agate,%
@@ -538,16 +783,18 @@
    sensitive=true,%
    morecomment=[l]\#,%
    morecomment=[s]{'''}{'''},% used for documentation text
-   morestring=',%
-   morestring="%
+   morecomment=[s]{"""}{"""},% added by Philipp Matthias Hahn
+   morestring=[b]',%
+   morestring=[b]"%
   }%
 %%
 %% SQL definition (c) 1998 Christian Haul
 %%                         <haul@dvs1.informatik.tu-darmstadt.de>
+%%            and (c) 2002 Neil Conway <nconway@klamath.dyndns.org>
 %%
 \lst@definelanguage{SQL}%
-  {morekeywords={ABSOLUTE,ACTION,ADD,ALLOCATE,ALTER,ARE,ASSERTION,AT,%
-      BETWEEN,BIT,BIT_LENGTH,BOTH,BY,CASCADE,CASCADED,CASE,CAST,%
+  {morekeywords={ABSOLUTE,ACTION,ADD,ALLOCATE,ALTER,ARE,AS,ASSERTION,%
+      AT,BETWEEN,BIT,BIT_LENGTH,BOTH,BY,CASCADE,CASCADED,CASE,CAST,%
       CATALOG,CHAR,CHAR_LENGTH,CHARACTER_LENGTH,CLUSTER,COALESCE,%
       COLLATE,COLLATION,COLUMN,CONNECT,CONNECTION,CONSTRAINT,%
       CONSTRAINTS,CONVERT,CORRESPONDING,CREATE,CROSS,CURRENT_DATE,%
@@ -556,16 +803,17 @@
       DISCONNECT,DOMAIN,DROP,ELSE,END,EXEC,EXCEPT,EXCEPTION,EXECUTE,%
       EXTERNAL,EXTRACT,FALSE,FIRST,FLOAT,FOREIGN,FROM,FULL,GET,GLOBAL,%
       GRAPHIC,HAVING,HOUR,IDENTITY,IMMEDIATE,INDEX,INITIALLY,INNER,%
-      INPUT,INSENSITIVE,INT,INTEGER,INTERSECT,INTERVAL,ISOLATION,JOIN,%
-      KEY,LAST,LEADING,LEFT,LEVEL,LOCAL,LOWER,MATCH,MINUTE,MONTH,NAMES,%
-      NATIONAL,NATURAL,NCHAR,NEXT,NO,NOT,NULL,NULLIF,OCTET_LENGTH,ON,%
-      ONLY,ORDERED,OUTER,OUTPUT,OVERLAPS,PAD,PARTIAL,POSITION,PREPARE,%
-      PRESERVE,PRIMARY,PRIOR,READ,RELATIVE,RESTRICT,REVOKE,RIGHT,ROWS,%
-      SCROLL,SECOND,SELECT,SESSION,SESSION_USER,SIZE,SMALLINT,SPACE,%
-      SQLSTATE,SUBSTRING,SYSTEM_USER,TABLE,TEMPORARY,THEN,TIME,%
-      TIMESTAMP,TIMEZONE_HOUR,TIMEZONE_MINUTE,TRAILING,TRANSACTION,%
-      TRANSLATE,TRANSLATION,TRIM,TRUE,UNIQUE,UNKNOWN,UPPER,USAGE,USING,%
-      VALUE,VARCHAR,VARGRAPHIC,VARYING,WHEN,WHERE,WRITE,YEAR,ZONE},%
+      INPUT,INSENSITIVE,INSERT,INT,INTO,INTEGER,INTERSECT,INTERVAL,%
+      ISOLATION,JOIN,KEY,LAST,LEADING,LEFT,LEVEL,LIMIT,LOCAL,LOWER,%
+      MATCH,MINUTE,MONTH,NAMES,NATIONAL,NATURAL,NCHAR,NEXT,NO,NOT,NULL,%
+      NULLIF,OCTET_LENGTH,ON,ONLY,ORDER,ORDERED,OUTER,OUTPUT,OVERLAPS,%
+      PAD,PARTIAL,POSITION,PREPARE,PRESERVE,PRIMARY,PRIOR,READ,%
+      RELATIVE,RESTRICT,REVOKE,RIGHT,ROWS,SCROLL,SECOND,SELECT,SESSION,%
+      SESSION_USER,SIZE,SMALLINT,SPACE,SQLSTATE,SUBSTRING,SYSTEM_USER,%
+      TABLE,TEMPORARY,THEN,TIME,TIMESTAMP,TIMEZONE_HOUR,%
+      TIMEZONE_MINUTE,TRAILING,TRANSACTION,TRANSLATE,TRANSLATION,TRIM,%
+      TRUE,UNIQUE,UNKNOWN,UPPER,USAGE,USING,VALUE,VALUES,VARCHAR,%
+      VARGRAPHIC,VARYING,WHEN,WHERE,WRITE,YEAR,ZONE},%
    sensitive,%
    morecomment=[l]--,%
    morecomment=[s]{/*}{*/},%
@@ -590,6 +838,45 @@
    morecomment=[l]--,%
    morestring=[d]{"}%
   }[keywords,comments,strings]%
+%%
+%% VHDL-AMS definition (c) Steffen Klupsch
+%%
+\lst@definelanguage[AMS]{VHDL}[]{VHDL}%
+  {morekeywords={ACROSS,ARRAY,BREAK,DISCONNECT,NATURE,NOISE,PORT,%
+      PROCEDURAL,QUANTITY,SHARED,SPECTRUM,SUBNATURE,TERMINAL,THROUGH,%
+      TOLERANCE,UNAFFACTED,UNITS}}
+\lst@definelanguage{XML}%
+  {keywords={,CDATA,DOCTYPE,ATTLIST,termdef,ELEMENT,EMPTY,ANY,ID,%
+      IDREF,IDREFS,ENTITY,ENTITIES,NMTOKEN,NMTOKENS,NOTATION,%
+      INCLUDE,IGNORE,SYSTEM,PUBLIC,NDATA,PUBLIC,%
+      PCDATA,REQUIRED,IMPLIED,FIXED,%%% preceded by #
+      xml,xml:space,xml:lang,version,standalone,default,preserve},%
+   alsoother=$,%
+   alsoletter=:,%
+   keywordsinside=<>,%
+   morestring=[d]",% ??? doubled
+   morestring=[d]',% ??? doubled
+   MoreSelectCharTable=%
+      \lst@CArgX--\relax\lst@DefDelimB{}{}%
+          {\ifnum\lst@mode=\lst@insidemode\else
+               \expandafter\@gobblethree
+           \fi}%
+          \lst@BeginComment\lst@commentmode{{\lst@commentstyle}}%
+      \lst@CArgX--\relax\lst@DefDelimE{}{}{}%
+          \lst@EndComment\lst@commentmode
+      \lst@CArgX[CDATA[\relax\lst@CDef{}%
+          {\ifnum\lst@mode=\lst@insidemode
+               \expandafter\lst@BeginCDATA
+           \else \expandafter\lst@CArgEmpty
+           \fi}%
+          \@empty
+      \lst@CArgX]]\relax\lst@CDef{}%
+          {\ifnum\lst@mode=\lst@GPmode
+               \expandafter\lst@EndComment
+           \else \expandafter\lst@CArgEmpty
+           \fi}%
+          \@empty
+  }[keywords,comments,strings,html]%
 \endinput
 %%
 %% End of file `lstlang1.sty'.

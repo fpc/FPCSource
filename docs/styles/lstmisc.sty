@@ -4,240 +4,209 @@
 %%
 %% The original source files were:
 %%
-%% listings.dtx  (with options: `misc')
+%% listings.dtx  (with options: `misc,0.21')
 %% 
 %% Please read the software license in listings.dtx or listings.dvi.
 %%
-%% (w)(c) 1996/1997/1998/1999/2000 Carsten Heinz and/or any other author
+%% (w)(c) 1996 -- 2002 Carsten Heinz and/or any other author
 %% listed elsewhere in this file.
 %%
 %% This file is distributed under the terms of the LaTeX Project Public
 %% License from CTAN archives in directory  macros/latex/base/lppl.txt.
 %% Either version 1.0 or, at your option, any later version.
 %%
+%% Permission is granted to modify the listings package as well as
+%% lstdrvrs.dtx. You are not allowed to distribute a modified version
+%% of the package or lstdrvrs.dtx unless you change the file names and
+%% provide the original files. In any case it is better to contact the
+%% address below; other users will welcome removed bugs, new features,
+%% and additional programming languages.
+%%
 %% The listings package is free software.
 %%
 %% However, if you distribute the package as part of a commercial
-%% product or if you use the package to prepare a document and sell the
-%% document (books, journals, and so on), I'd like to encourage you to
-%% make a donation to the LaTeX3 fund. The size of this `license fee'
-%% should depend on the value of the package for your product.
+%% product or if you use the package to prepare a commercial document
+%% (books, journals, and so on), I'd like to encourage you to make a
+%% donation to the LaTeX3 fund. The size of this `license fee' should
+%% depend on the value of the package for your product. For more
+%% information about LaTeX see http://www.latex-project.org
 %%
-%% If you use the package to typeset a non-commercial document, please
-%% send me a copy of the document (.dvi, .ps, .pdf, hardcopy, etc.) to
-%% support further development.
-%%
-%% Permission is granted to change this file. You are not allowed to
-%% distribute any changed version of this file, neither under the same
-%% name nor under a different one.
+%% No matter whether you use the package for a commercial or
+%% non-commercial document, please send me a copy of the document (.dvi,
+%% .ps, .pdf, hardcopy, etc.) to support further development---it is
+%% easier to introduce new features or simplify things if I see how the
+%% package is used by other people.
 %%
 %% Send comments and ideas on the package, error reports and additional
 %% programming languages to <cheinz@gmx.de>.
 %%
-\ProvidesFile{lstmisc.sty}[2000/08/23 v0.21 (Carsten Heinz)]
-\lst@AddToAtTop{\try@load@fontshape}{\def\space{ }}
+\def\filedate{2002/04/01}
+\def\fileversion{1.0}
+\ProvidesFile{lstmisc.sty}
+             [\filedate\space\fileversion\space(Carsten Heinz)]
+\lst@CheckVersion\fileversion
+    {\typeout{^^J%
+     ***^^J%
+     *** This file requires `listings.sty' version \fileversion.^^J%
+     *** You have a serious problem, so I'm exiting ...^^J%
+     ***^^J}%
+     \batchmode \@@end}
+\lst@BeginAspect{writefile}
+\newtoks\lst@WFtoken % global
+\lst@AddToHook{InitVarsBOL}{\global\lst@WFtoken{}}
+\newwrite\lst@WF
+\global\let\lst@WFifopen\iffalse % init
+\gdef\lst@WFWriteToFile{%
+  \begingroup
+   \let\lst@UM\@empty
+   \expandafter\edef\expandafter\lst@temp\expandafter{\the\lst@WFtoken}%
+   \immediate\write\lst@WF{\lst@temp}%
+  \endgroup
+  \global\lst@WFtoken{}}
+\gdef\lst@WFAppend#1{%
+    \global\lst@WFtoken=\expandafter{\the\lst@WFtoken#1}}
+\gdef\lst@BeginWriteFile{\lst@WFBegin\@gobble}
+\gdef\lst@BeginAlsoWriteFile{\lst@WFBegin\lst@OutputBox}
+\begingroup \catcode`\^^I=11
+\gdef\lst@WFBegin#1#2{%
+    \begingroup
+    \let\lst@OutputBox#1%
+    \def\lst@Append##1{%
+        \advance\lst@length\@ne
+        \expandafter\lst@token\expandafter{\the\lst@token##1}%
+        \ifx ##1\lst@outputspace \else
+            \lst@WFAppend##1%
+        \fi}%
+    \lst@lAddTo\lst@PreGotoTabStop{\lst@WFAppend{^^I}}%
+    \lst@lAddTo\lst@ProcessSpace{\lst@WFAppend{ }}%
+    \let\lst@DeInit\lst@WFDeInit
+    \let\lst@MProcessListing\lst@WFMProcessListing
+    \lst@WFifopen\else
+        \immediate\openout\lst@WF=#2\relax
+        \global\let\lst@WFifopen\iftrue
+        \@gobbletwo\fi\fi
+    \fi}
+\endgroup
+\gdef\lst@EndWriteFile{%
+    \immediate\closeout\lst@WF \endgroup
+    \global\let\lst@WFifopen\iffalse}
+\global\let\lst@WFMProcessListing\lst@MProcessListing
+\global\let\lst@WFDeInit\lst@DeInit
+\lst@AddToAtTop\lst@WFMProcessListing{\lst@WFWriteToFile}
+\lst@AddToAtTop\lst@WFDeInit{%
+    \ifnum\lst@length=\z@\else \lst@WFWriteToFile \fi}
+\lst@EndAspect
 \lst@BeginAspect{strings}
 \gdef\lst@stringtypes{d,b,m,bd,db}
-\global\let\lst@xstringtypes\@empty
-\lst@Key{string}\relax{%
-    \lstKV@XOptArg[d]{#1}\lst@SAC
-         {String}s\lst@stringtypes\lst@xstringtypes
-         \lst@DefStrings\lst@FVConvert \@empty}
-\lst@Key{morestring}\relax{%
-    \lstKV@XOptArg[d]{#1}\lst@SAC
-         {String}s\lst@stringtypes\lst@xstringtypes
-         \lst@DefStrings\lst@FVConvert \relax}
-\lst@Key{deletestring}\relax{%
-    \lstKV@XOptArg[d]{#1}\lst@SACDelete
-         {String}s\lst@stringtypes\lst@xstringtypes
-         \lst@DefStrings}
-\lst@AddToHook{SetLanguage}{\let\lst@DefStrings\@empty}
-\lst@AddToHook{SelectCharTable}{\lst@DefStrings}
+\gdef\lst@StringKey#1#2{%
+    \lst@Delim\lst@stringstyle #2\relax
+        {String}\lst@stringtypes #1%
+                     {\lst@BeginString\lst@EndString}%
+        \@@end\@empty{}}
+\lst@Key{string}\relax{\lst@StringKey\@empty{#1}}
+\lst@Key{morestring}\relax{\lst@StringKey\relax{#1}}
+\lst@Key{deletestring}\relax{\lst@StringKey\@nil{#1}}
 \lst@Key{stringstyle}{}{\def\lst@stringstyle{#1}}
 \lst@AddToHook{EmptyStyle}{\let\lst@stringstyle\@empty}
-\lst@Key{stringspaces}{true}[t]{\lstKV@SetIf{#1}\lst@ifstringspaces}
-\lst@NewMode\lst@stringmode
-\gdef\lst@BeginString#1#2{%
-    \lst@TrackNewLines
-    \lst@ifexstrings #2\lst@PrintToken \fi
-    \lst@EnterMode{#1}%
-        {\lst@modetrue \let\lst@currstyle\lst@stringstyle}%
-    \lst@ifexstrings\else #2\lst@PrintToken \fi
-    \lst@ifstringspaces
-        \lst@keepspacestrue
-        \let\lst@outputspace\lst@visiblespace
-    \fi}
+\lst@Key{showstringspaces}t[t]{\lstKV@SetIf{#1}\lst@ifshowstringspaces}
+\gdef\lst@BeginString{%
+    \lst@DelimOpen
+        \lst@ifexstrings\else
+        {\lst@ifshowstringspaces
+             \lst@keepspacestrue
+             \let\lst@outputspace\lst@visiblespace
+         \fi}}
 \lst@AddToHookExe{ExcludeDelims}{\let\lst@ifexstrings\iffalse}
-\gdef\lst@EndString#1{%
-    \lst@ifexstrings
-          \lst@PrintToken \lst@LeaveMode
-        #1\lst@PrintToken
-    \else
-        #1\lst@PrintToken \lst@LeaveMode
+\gdef\lst@EndString{\lst@DelimClose\lst@ifexstrings\else}
+\gdef\lst@StringDM@d#1#2\@empty#3#4#5{%
+    \lst@CArg #2\relax\lst@DefDelimBE{}{}{}#3{#1}{#5}#4}
+\gdef\lst@StringDM@b#1#2\@empty#3#4#5{%
+    \let\lst@ifbstring\iftrue
+    \lst@CArg #2\relax\lst@DefDelimBE
+       {\lst@ifletter \lst@Output \lst@letterfalse \fi}%
+       {\ifx\lst@lastother\lstum@backslash
+            \expandafter\@gobblethree
+        \fi}{}#3{#1}{#5}#4}
+\global\let\lst@ifbstring\iffalse % init
+\lst@AddToHook{SelectCharTable}{%
+    \lst@ifbstring
+        \lst@CArgX \\\\\relax \lst@CDefX{}%
+           {\lst@ProcessOther\lstum@backslash
+            \lst@ProcessOther\lstum@backslash}%
+           {}%
     \fi}
-\lst@Key{stringtest}\relax[t]{\lstKV@SetIf{#1}\lst@ifstringtest}
-\lst@AddToHook{SetLanguage}{\let\lst@ifstringtest\iftrue}
-\lst@AddToHook{Init}
-    {\lst@ifstringtest\else \let\lst@TestStringMode\@empty \fi}
-\gdef\lst@TestStringMode{%
-     \ifnum\lst@mode=\lst@stringmode
-         \PackageWarning{Listings}{String constant exceeds line}%
-         \lst@EndString{}%
-     \fi}
-\lst@AddToHook{EOL}{\lst@TestStringMode}
-\gdef\lst@ProcessString@d#1{%
-    \lst@ifletter \lst@Output\lst@letterfalse \fi
-    \let\lst@next\@empty
-    \ifnum\lst@mode=\lst@stringmode
-        \ifx #1\lst@closestring
-            \let\lst@next\lst@EndString
-        \fi
-    \else
-        \lst@ifmode\else
-            \let\lst@closestring#1%
-            \def\lst@next{\lst@BeginString\lst@stringmode}%
-        \fi
-    \fi
-    \expandafter\lst@next\csname\@lst s@s#1\endcsname}
-\gdef\lst@ProcessString@b#1{%
-    \lst@ifletter \lst@Output\lst@letterfalse \fi
-    \let\lst@next\@empty
-    \ifnum\lst@mode=\lst@stringmode
-        \ifx\lst@lastother\lstum@backslash\else
-            \ifx #1\lst@closestring
-                \let\lst@next\lst@EndString
-            \fi
-        \fi
-    \else
-        \lst@ifmode\else
-            \let\lst@closestring#1%
-            \def\lst@next{\lst@BeginString\lst@stringmode}%
-        \fi
-    \fi
-    \expandafter\lst@next\csname lsts@s#1\endcsname}
-\global\let\lst@ProcessString@bd\lst@ProcessString@b
-\global\let\lst@ProcessString@db\lst@ProcessString@bd
-\gdef\lst@ProcessString@m#1{%
-    \let\lst@next\@empty
-    \ifnum\lst@mode=\lst@stringmode
-        \lst@ifletter \lst@Output\lst@letterfalse \fi
-        \ifx #1\lst@closestring
-            \let\lst@next\lst@EndString
-        \fi
-    \else
-        \lst@ifletter
-            \lst@Output\lst@letterfalse
-        \else
-            \ifx\lst@lastother)\else \lst@ifmode\else
-                \let\lst@closestring#1%
-                \def\lst@next{\lst@BeginString\lst@stringmode}%
-            \fi \fi
-        \fi
-    \fi
-    \expandafter\lst@next\csname lsts@s#1\endcsname}
+\global\let\lst@StringDM@bd\lst@StringDM@b
+\global\let\lst@StringDM@db\lst@StringDM@bd
+\gdef\lst@StringDM@m#1#2\@empty#3#4#5{%
+    \lst@CArg #2\relax\lst@DefDelimBE{}{}%
+        {\let\lst@next\@gobblethree
+         \lst@ifletter\else
+         \ifx\lst@lastother)\else \ifx\lst@lastother]\else
+             \let\lst@next\@empty
+         \fi \fi \fi
+         \lst@next}#3{#1}{#5}#4}
 \lst@EndAspect
 \lst@BeginAspect{comments}
-\gdef\lst@commenttypes{l,f,s,d,n}
-\gdef\lst@xcommenttypes{l,f,s,d,n}
-\lst@Key{comment}{}
-    {\lstKV@XOptArg[]{#1}\lst@SAC
-         {Comment}c\lst@commenttypes\lst@xcommenttypes
-         \lst@DefComments\lst@FVConvert \@empty}
-\lst@Key{morecomment}\relax
-    {\lstKV@XOptArg[]{#1}\lst@SAC
-         {Comment}c\lst@commenttypes\lst@xcommenttypes
-         \lst@DefComments\lst@FVConvert \relax}
-\lst@Key{deletecomment}\relax{%
-    \lstKV@XOptArg[]{#1}\lst@SACDelete
-         {Comment}c\lst@commenttypes\lst@xcommenttypes
-         \lst@DefComments}
-\lst@AddToHook{SelectCharTable}{\lst@DefComments}
-\lst@AddToHook{SetLanguage}{\let\lst@DefComments\@empty}
+\gdef\lst@commenttypes{l,f,s,n}
+\gdef\lst@CommentKey#1#2{%
+    \lst@Delim\lst@commentstyle #2\relax
+        {Comment}\lst@commenttypes #1%
+                {\lst@BeginComment\lst@EndComment}%
+        i\@empty{\lst@BeginInvisible\lst@EndInvisible}}
+\lst@Key{comment}\relax{\lst@CommentKey\@empty{#1}}
+\lst@Key{morecomment}\relax{\lst@CommentKey\relax{#1}}
+\lst@Key{deletecomment}\relax{\lst@CommentKey\@nil{#1}}
 \lst@Key{commentstyle}{}{\def\lst@commentstyle{#1}}
-\lst@AddToHook{EmptyStyle}{\let\lst@commenstyle\itshape}
-\gdef\lst@BeginComment#1#2#3\@empty{%
-    \lst@TrackNewLines \lst@PrintToken
-    \lst@EnterMode{#1}{\lst@modetrue \let\lst@currstyle#2}%
-    \lst@mode\lst@nomode #3\lst@mode#1\relax
-    \lsthk@AfterBeginComment}
+\lst@AddToHook{EmptyStyle}{\let\lst@commentstyle\itshape}
+\gdef\lst@BeginComment{%
+    \lst@DelimOpen
+        \lst@ifexcomments\else
+        \lsthk@AfterBeginComment}
+\gdef\lst@EndComment{\lst@DelimClose\lst@ifexcomments\else}
 \lst@AddToHook{AfterBeginComment}{}
-\gdef\lst@EndComment#1\@empty{%
-    #1%
-    \lst@PrintToken \lst@LeaveMode
-    \let\lst@lastother\@empty}
-\gdef\lst@CommentB#1#2#3#4#5#6#7#8#9{%
-    \lst@CDef#1#2{#3}#4%
-        {#6}%
-        {\let\lst@bnext\lst@CArgEmpty
-         \lst@ifmode #7\else
-             #8%
-             \def\lst@bnext{\lst@BeginComment#5#9}%
-         \fi
-         \lst@bnext}%
-        \@empty}
-\gdef\lst@CommentE#1#2#3#4#5#6#7#8{%
-    \lst@CDef#1#2{#3}#4%
-        {#6}%
-        {\let\lst@enext\lst@CArgEmpty
-         \ifnum\lst@mode=#5%
-             #7%
-             \let\lst@enext\lst@EndComment
-         \else
-             #8%
-         \fi
-         \lst@enext}%
-        \@empty}
-\lst@AddToHook{Init}{\let\lst@bnext\relax \let\lst@enext\relax}
-\lst@NewMode\lst@CLmode
-\lst@AddToHook{EOL}{\ifnum\lst@mode=\lst@CLmode \lst@LeaveMode \fi}
-\gdef\lst@Comment@l#1\@empty{%
-    \lst@CArg #1\relax
-        \lst@CommentB\lst@CLmode{}{}{}\lst@commentstyle}
-\gdef\lst@Comment@f{\@ifnextchar[\lst@Comment@@f{\lst@Comment@@f[0]}}
-\gdef\lst@Comment@@f[#1]#2{%
-    \ifx\@empty#2\@empty\else
-        \lst@CArg #2\relax\lst@CommentB\lst@CLmode{}{}%
-            {\lst@CalcLineLength
-             \ifnum\@tempcnta=#1\else
-                \expandafter\@gobblethree
-             \fi}%
-            \lst@commentstyle
-        \def\lst@next{\lst@Comment@@f[#1]}%
-        \expandafter\lst@next
+\lst@AddToHookExe{ExcludeDelims}{\let\lst@ifexcomments\iffalse}
+\gdef\lst@BeginInvisible#1#2#3\@empty{%
+    \lst@TrackNewLines \lst@XPrintToken
+    \lst@BeginDropOutput{#1}}
+\gdef\lst@EndInvisible#1\@empty{\lst@EndDropOutput}
+\gdef\lst@CommentDM@l#1#2\@empty#3#4#5{%
+    \lst@CArg #2\relax\lst@DefDelimB{}{}{}#3{#1}{#5\lst@Lmodetrue}}
+\gdef\lst@CommentDM@f#1{%
+    \@ifnextchar[{\lst@Comment@@f{#1}}%
+                 {\lst@Comment@@f{#1}[0]}}
+\gdef\lst@Comment@@f#1[#2]#3\@empty#4#5#6{%
+    \lst@CArg #3\relax\lst@DefDelimB{}{}%
+        {\lst@CalcColumn
+         \ifnum #2=\@tempcnta\else
+             \expandafter\@gobblethree
+         \fi}%
+        #4{#1}{#6\lst@Lmodetrue}}
+\gdef\lst@CommentDM@s#1#2#3\@empty#4#5#6{%
+    \lst@CArg #2\relax\lst@DefDelimB{}{}{}#4{#1}{#6}%
+    \lst@CArg #3\relax\lst@DefDelimE{}{}{}#5{#1}}
+\gdef\lst@CommentDM@n#1#2#3\@empty#4#5#6{%
+    \ifx\@empty#3\@empty\else
+        \def\@tempa{#2}\def\@tempb{#3}%
+        \ifx\@tempa\@tempb
+            \PackageError{Listings}{Identical delimiters}%
+            {These delimiters make no sense with nested comments.}%
+        \else
+            \lst@CArg #2\relax\lst@DefDelimB
+                {}%
+                {\ifnum\lst@mode=#1\relax \expandafter\@gobble \fi}%
+                {}#4{#1}{#6}%
+            \lst@CArg #3\relax\lst@DefDelimE{}{}{}#5{#1}%
+        \fi
     \fi}
-\gdef\lst@CommentDM@s#1#2#3\@empty{%
-    \lst@CArg #2\relax\lst@CommentB{#1}{}{}{}\lst@commentstyle
-    \lst@CArg #3\relax\lst@CommentE{#1}{}{}{}}
-\gdef\lst@Comment@d#1\@empty{\lstKV@FourArg{#1}%
-    {\ifx\@empty##4\@empty\else
-         \lst@UseDynamicMode\lst@CommentDM@s{##1}{##2}\@empty
-         \lst@UseDynamicMode\lst@CommentDM@s{##3}{##4}\@empty
-     \fi}}
-\gdef\lst@CommentDM@n#1#2\@empty{\lstKV@TwoArg{#2}%
-    {\ifx\@empty##2\@empty\else
-         \def\@tempa{##1}\def\@tempb{##2}%
-         \ifx\@tempa\@tempb
-             \PackageError{Listings}{Identical delimiters}%
-             {These delimiters make no sense with nested comments.}%
-         \else
-             \lst@CArg ##1\relax\lst@CommentB{#1}%
-                 {}%
-                 {\ifnum\lst@mode=#1\relax \expandafter\@gobble \fi}%
-                 {}\lst@commentstyle
-             \lst@CArg ##2\relax\lst@CommentE{#1}{}{}{}%
-         \fi
-     \fi}}
 \lst@EndAspect
 \lst@BeginAspect{pod}
 \lst@Key{printpod}{false}[t]{\lstKV@SetIf{#1}\lst@ifprintpod}
 \lst@Key{podcomment}{false}[t]{\lstKV@SetIf{#1}\lst@ifpodcomment}
 \lst@AddToHookExe{SetLanguage}{\let\lst@ifpodcomment\iffalse}
 \lst@NewMode\lst@PODmode
-\lst@NewMode\lst@PODmode
 \lst@AddToHook{SelectCharTable}
     {\lst@ifpodcomment
-         \lst@CArgX =\relax\lst@CommentB\lst@PODmode
-           {}{}%
+         \lst@CArgX =\relax\lst@DefDelimB{}{}%
            {\ifnum\@tempcnta=\z@
                 \lst@ifprintpod\else
                     \def\lst@bnext{\lst@BeginDropOutput\lst@PODmode}%
@@ -246,53 +215,42 @@
             \else
                \expandafter\@gobblethree
             \fi}%
-           \lst@commentstyle
-         \lst@CArgX =cut\^^M\relax\lst@CommentE\lst@PODmode
-           {\lst@CalcLineLength}%
+           \lst@BeginComment\lst@PODmode\lst@commentstyle
+         \lst@CArgX =cut\^^M\relax\lst@DefDelimE
+           {\lst@CalcColumn}%
            {\ifnum\@tempcnta=\z@\else
                 \expandafter\@gobblethree
             \fi}%
            {}%
+           \lst@EndComment\lst@PODmode
  \fi}
 \lst@EndAspect
 \lst@BeginAspect{escape}
 \lst@Key{texcl}{false}[t]{\lstKV@SetIf{#1}\lst@iftexcl}
 \lst@AddToHook{TextStyle}{\let\lst@iftexcl\iffalse}
 \lst@AddToHook{EOL}
-    {\ifnum\lst@mode=\lst@TeXCLmode
+    {\ifnum\lst@mode=\lst@TeXLmode
          \expandafter\lst@escapeend
          \expandafter\lst@LeaveAllModes
          \expandafter\lst@ReenterModes
      \fi}
 \lst@AddToHook{AfterBeginComment}
-    {\lst@iftexcl \ifnum\lst@mode=\lst@CLmode
+    {\lst@iftexcl \lst@ifLmode \lst@ifdropinput\else
          \lst@PrintToken
          \lst@LeaveMode \lst@InterruptModes
-         \lst@EnterMode{\lst@TeXCLmode}{\lst@modetrue\lst@commentstyle}%
+         \lst@EnterMode{\lst@TeXLmode}{\lst@modetrue\lst@commentstyle}%
          \expandafter\expandafter\expandafter\lst@escapebegin
-     \fi \fi}
-\lst@NewMode\lst@TeXCLmode
-\gdef\lst@ActiveCDefX#1#2#3#4#5#6#7{%
-    \let#4#1%
+     \fi \fi \fi}
+\lst@NewMode\lst@TeXLmode
+\gdef\lst@ActiveCDefX#1{\lst@ActiveCDefX@#1}
+\gdef\lst@ActiveCDefX@#1#2#3{
     \catcode`#1\active\lccode`\~=`#1%
-    \ifx\@empty#2\@empty
-        \lowercase{\def~}{#5\def\lst@next{#6#7}\lst@next}%
-    \else \ifx\@empty#3\@empty
-        \lowercase{\def~}##1{%
-            #5%
-            \ifx##1#2\def\lst@next{#6#7}\else
-                     \def\lst@next{#4##1}\fi
-            \lst@next}%
-    \else
-        \lowercase{\def~}{%
-            #5%
-            \lst@IfNextCharsArg{#2#3}{#6#7}%
-                                     {\expandafter#4\lst@eaten}}%
-    \fi \fi}
+    \lowercase{\lst@CDefIt~}{#2}{#3}{}}
 \gdef\lst@Escape#1#2#3#4{%
     \lst@CArgX #1\relax\lst@CDefX
         {}%
-        {\lst@TrackNewLines\lst@UseLostSpace \lst@PrintToken
+        {\lst@ifdropinput\else
+         \lst@TrackNewLines\lst@OutputLostSpace \lst@XPrintToken
          \lst@InterruptModes
          \lst@EnterMode{\lst@TeXmode}{\lst@modetrue}%
          \ifx\^^M#2%
@@ -303,10 +261,12 @@
          \else
              \lst@CArg #2\relax\lst@ActiveCDefX
                  {}%
-                 {\lst@escapeend #4\lst@LeaveAllModes\lst@ReenterModes}%
+                 {\lst@escapeend #4\lst@LeaveAllModes\lst@ReenterModes
+                  \lst@whitespacefalse}%
                  {}%
          \fi
-         #3\lst@escapebegin}%
+         #3\lst@escapebegin
+         \fi}%
         {}}
 \lst@NewMode\lst@TeXmode
 \lst@Key{escapebegin}{}{\def\lst@escapebegin{#1}}
@@ -330,57 +290,14 @@
         {\setbox\@tempboxa=\hbox\bgroup$}%
         {$\egroup \lst@CalcLostSpaceAndOutput}\fi}
 \lst@EndAspect
-\lst@BeginAspect{writefile}
-\newwrite\lst@WF \newtoks\lst@WFtoken
-\lst@AddToHook{InitVarsBOL}{\global\lst@WFtoken{}}
-\gdef\lst@WFWriteToFile{%
-  \begingroup
-   \let\lst@UM\@empty
-   \expandafter\edef\expandafter\lst@temp\expandafter{\the\lst@WFtoken}%
-   \immediate\write\lst@WF{\lst@temp}%
-  \endgroup
-  \global\lst@WFtoken{}}
-\gdef\lst@WFAppend#1{%
-    \global\expandafter\lst@WFtoken\expandafter{\the\lst@WFtoken#1}}
-\gdef\lst@BeginWriteFile{%
-    \begingroup
-    \let\lst@OutputBox\@gobble
-    \lst@WFBegin}
-\gdef\lst@BeginAlsoWriteFile{\begingroup \lst@WFBegin}
-\begingroup \catcode`\^^I=11
-\gdef\lst@WFBegin#1{%
-    \def\lst@Append##1{\advance\lst@length\@ne
-        \expandafter\lst@token\expandafter{\the\lst@token##1}%
-        \lst@WFAppend##1}%
-    \def\lst@AppendOther##1{%
-        \let\lst@lastother=##1\advance\lst@length\@ne
-        \expandafter\lst@token\expandafter{\the\lst@token##1}%
-        \ifx ##1\lst@outputspace
-            \lst@WFAppend{ }%
-        \else
-            \lst@WFAppend##1%
-        \fi}%
-    \lst@lAddTo\lst@PreGotoTabStop{\lst@WFAppend{^^I}}%
-    \def\lst@ProcessSpace{%
-        \lst@ifletter \lst@Output\lst@letterfalse \fi
-        \lst@AppendOther\lst@outputspace}%
-    \let\lst@DeInit\lst@WFDeInit
-    \let\lst@MProcessListing\lst@WFMProcessListing
-    \immediate\openout\lst@WF=#1\relax}%
-\endgroup
-\gdef\lst@EndWriteFile{\immediate\closeout\lst@WF \endgroup}
-\global\let\lst@WFMProcessListing\lst@MProcessListing
-\global\let\lst@WFDeInit\lst@DeInit
-\lst@AddToAtTop\lst@WFMProcessListing{\lst@WFWriteToFile}
-\lst@AddToAtTop\lst@WFDeInit{%
-    \ifnum\lst@length=\z@\else \lst@WFWriteToFile \fi}
-\lst@EndAspect
 \lst@BeginAspect{keywords}
+\global\let\lst@ifsensitive\iftrue % init
+\global\let\lst@ifsensitivedefed\iffalse % init % \global
 \lst@ifsavemem\else
 \gdef\lst@KeywordTest#1#2#3{%
     \begingroup \let\lst@UM\@empty
     \global\expandafter\let\expandafter\@gtempa
-        \csname lst#1@\the\lst@token\endcsname
+        \csname\@lst#1@\the\lst@token\endcsname
     \endgroup
     \ifx\@gtempa\relax\else
         \let\lst@thestyle\@gtempa
@@ -391,7 +308,7 @@
 \gdef\lst@KEYWORDTEST@#1\relax#2#3#4{%
     \begingroup \let\lst@UM\@empty
     \global\expandafter\let\expandafter\@gtempa
-        \csname lst#2@#1\endcsname
+        \csname\@lst#2@#1\endcsname
     \endgroup
     \ifx\@gtempa\relax\else
         \let\lst@thestyle\@gtempa
@@ -399,7 +316,7 @@
 \gdef\lst@WorkingTest#1#2#3{%
     \begingroup \let\lst@UM\@empty
     \global\expandafter\let\expandafter\@gtempa
-        \csname lst#1@\the\lst@token\endcsname
+        \csname\@lst#1@\the\lst@token\endcsname
     \endgroup
     \@gtempa}
 \gdef\lst@WORKINGTEST{%
@@ -408,7 +325,7 @@
 \gdef\lst@WORKINGTEST@#1\relax#2#3#4{%
     \begingroup \let\lst@UM\@empty
     \global\expandafter\let\expandafter\@gtempa
-        \csname lst#2@#1\endcsname
+        \csname\@lst#2@#1\endcsname
     \endgroup
     \@gtempa}
 \gdef\lst@DefineKeywords#1#2#3{%
@@ -418,8 +335,8 @@
         \def\lst@next{\uppercase\expandafter{\expandafter\lst@for#2}}%
     \fi
     \lst@next\do
-    {\expandafter\ifx\csname lst#1@##1\endcsname\relax
-        \global\expandafter\let\csname lst#1@##1\endcsname#3%
+    {\expandafter\ifx\csname\@lst#1@##1\endcsname\relax
+        \global\expandafter\let\csname\@lst#1@##1\endcsname#3%
      \fi}}
 \gdef\lst@UndefineKeywords#1#2#3{%
     \lst@ifsensitivedefed
@@ -428,8 +345,8 @@
         \def\lst@next{\uppercase\expandafter{\expandafter\lst@for#2}}%
     \fi
     \lst@next\do
-    {\expandafter\ifx\csname lst#1@##1\endcsname#3%
-        \global\expandafter\let\csname lst#1@##1\endcsname\relax
+    {\expandafter\ifx\csname\@lst#1@##1\endcsname#3%
+        \global\expandafter\let\csname\@lst#1@##1\endcsname\relax
      \fi}}
 \fi
 \lst@ifsavemem
@@ -471,7 +388,7 @@
 \global\let\lst@WORKINGTEST\lst@WorkingTest
 \fi
 \lst@Key{sensitive}\relax[t]{\lstKV@SetIf{#1}\lst@ifsensitive}
-\lst@AddToHookExe{SetLanguage}{\let\lst@ifsensitive\iftrue}
+\lst@AddToHook{SetLanguage}{\let\lst@ifsensitive\iftrue}
 \lst@AddToHook{Init}
     {\lst@ifsensitive\else
          \let\lst@KeywordTest\lst@KEYWORDTEST
@@ -503,8 +420,8 @@
      \lst@ifsavemem
          \@tempa
      \else
-         \@ifundefined{lst@if#1@ins}%
-             {\@tempa \global\@namedef{lst@if#1@ins}{}}%
+         \@ifundefined{\@lst#1@if@ins}%
+             {\@tempa \global\@namedef{\@lst#1@if@ins}{}}%
              {}%
      \fi}
     {}}
@@ -553,13 +470,12 @@
     \lst@TK@@{#1}#2#3}
 \lst@AddToHook{InitVars}
     {\global\let\lst@ifsensitivedefed\lst@ifsensitive}
-\global\let\lst@ifsensitivedefed\iffalse % init % \global
 \gdef\lst@PostTrackKeywords#1#2#3#4{%
     \lst@ifsavemem\else
         \global\let#3#1%
         \global\let#4#2%
     \fi}
-\lst@Key{defaultclass}\@ne{\def\lst@defaultclass{#1}}
+\lst@Key{classoffset}\z@{\def\lst@classoffset{#1}}
 \gdef\lst@InstallFamily#1#2#3#4#5{%
     \lst@Key{#2}\relax{\lst@UseFamily{#2}##1\relax\lst@MakeKeywords}%
     \lst@Key{more#2}\relax
@@ -567,14 +483,14 @@
     \lst@Key{delete#2}\relax
         {\lst@UseFamily{#2}##1\relax\lst@DeleteKeywords}%
     \ifx\@empty#3\@empty\else
-        \lst@Key{#3}{#4}{\lstKV@OptArg[\lst@defaultclass]{##1}%
-            {\@tempcnta####1\relax
+        \lst@Key{#3}{#4}{\lstKV@OptArg[\@ne]{##1}%
+            {\@tempcnta\lst@classoffset \advance\@tempcnta####1\relax
              \@namedef{lst@#3\ifnum\@tempcnta=\@ne\else \the\@tempcnta
                              \fi}{####2}}}%
     \fi
     \expandafter\lst@InstallFamily@
-        \csname lst@#2@data\expandafter\endcsname
-        \csname lst@#5\endcsname {#1}{#2}{#3}}
+        \csname\@lst @#2@data\expandafter\endcsname
+        \csname\@lst @#5\endcsname {#1}{#2}{#3}}
 \gdef\lst@InstallFamily@#1#2#3#4#5#6#7#8{%
     \gdef#1{{#3}{#4}{#5}#2#7}%
     \long\def\lst@temp##1{#6}%
@@ -584,56 +500,55 @@
         \lst@AddTo#1{w#8}%
         \global\@namedef{lst@g#4@wp}##1{#6}%
     \fi}
-\gdef\lst@ProvideFamily#1{%
-    \@ifundefined{lst@#1\ifnum\@tempcnta=\@ne\else \the\@tempcnta \fi}%
-    {\expandafter\expandafter\expandafter\lst@ProvideFamily@
-         \csname lst@#1@data\endcsname
-         {\ifnum\@tempcnta=\@ne\else \the\@tempcnta \fi}}%
-    {}}
-\gdef\lst@ProvideFamily@#1#2#3#4#5#6#7#8{%
-    \expandafter\xdef\csname lst@g#2#8@sty\endcsname
-    {\if #6w%
-         \expandafter\noexpand\csname lst@g#2@wp\endcsname{#8}%
-     \else
-         \expandafter\noexpand\csname lst@#3#8\endcsname
-     \fi}%
-    \ifx\@empty#3\@empty\else
-        \edef\lst@temp{\noexpand\lst@AddToHook{Init}{%
-            \noexpand\lst@ProvideStyle\expandafter\noexpand
-                \csname lst@#3#8\endcsname\noexpand#4}}%
-        \lst@temp
-    \fi
-    \expandafter\lst@ProvideFamily@@
-         \csname lst@#2#8@list\expandafter\endcsname
-         \csname lst@#2#8\expandafter\endcsname
-         \csname lst@#2#8@also\expandafter\endcsname
-         \csname lst@g#2#8@list\expandafter\endcsname
-         \csname lst@g#2#8\expandafter\endcsname
-         \csname lst@g#2#8@sty\expandafter\endcsname
-         {#1}#5#6#7}
-\gdef\lst@ProvideFamily@@#1#2#3#4#5#6#7#8{%
-    \gdef#1{#2#5}\global\let#2\@empty \global\let#3\@empty % init
-    \gdef#4{#2#5}\global\let#5\@empty % init
-    \lst@AddToHook{Init}{\expandafter\lst@UseBasicClasses#3{}{}{}}%
-    \if #8l\relax
-        \lst@AddToHook{SetLanguage}{\def#1{#2#5}\let#2\@empty}%
-    \fi
-    \lst@InstallTest{#7}#1#2#4#5#6}
 \gdef\lst@UseFamily#1{%
     \def\lst@family{#1}%
-    \@ifnextchar[\lst@UseFamily@{\lst@UseFamily@[\lst@defaultclass]}}
+    \@ifnextchar[\lst@UseFamily@{\lst@UseFamily@[\@ne]}}
 \gdef\lst@UseFamily@[#1]{%
-    \@tempcnta#1\relax
+    \@tempcnta\lst@classoffset \advance\@tempcnta#1\relax
     \lst@ProvideFamily\lst@family
     \lst@UseFamily@a
         {\lst@family\ifnum\@tempcnta=\@ne\else \the\@tempcnta \fi}}
 \gdef\lst@UseFamily@a#1{%
     \expandafter\lst@UseFamily@b
-       \csname lst@#1@list\expandafter\endcsname
-       \csname lst@#1\expandafter\endcsname
-       \csname lst@#1@also\expandafter\endcsname
-       \csname lst@g#1\endcsname}
+       \csname\@lst @#1@list\expandafter\endcsname
+       \csname\@lst @#1\expandafter\endcsname
+       \csname\@lst @#1@also\expandafter\endcsname
+       \csname\@lst @g#1\endcsname}
 \gdef\lst@UseFamily@b#1#2#3#4#5\relax#6{\lstKV@XOptArg[]{#5}#6#1#2#3#4}
+\gdef\lst@ProvideFamily#1{%
+    \@ifundefined{lst@#1\ifnum\@tempcnta=\@ne\else \the\@tempcnta \fi}%
+    {\expandafter\expandafter\expandafter\lst@ProvideFamily@
+         \csname\@lst @#1@data\endcsname
+         {\ifnum\@tempcnta=\@ne\else \the\@tempcnta \fi}}%
+    {}}
+\gdef\lst@ProvideFamily@#1#2#3#4#5#6#7#8{%
+    \expandafter\xdef\csname\@lst @g#2#8@sty\endcsname
+    {\if #6w%
+         \expandafter\noexpand\csname\@lst @g#2@wp\endcsname{#8}%
+     \else
+         \expandafter\noexpand\csname\@lst @#3#8\endcsname
+     \fi}%
+    \ifx\@empty#3\@empty\else
+        \edef\lst@temp{\noexpand\lst@AddToHook{Init}{%
+            \noexpand\lst@ProvideStyle\expandafter\noexpand
+                \csname\@lst @#3#8\endcsname\noexpand#4}}%
+        \lst@temp
+    \fi
+    \expandafter\lst@ProvideFamily@@
+         \csname\@lst @#2#8@list\expandafter\endcsname
+         \csname\@lst @#2#8\expandafter\endcsname
+         \csname\@lst @#2#8@also\expandafter\endcsname
+         \csname\@lst @g#2#8@list\expandafter\endcsname
+         \csname\@lst @g#2#8\expandafter\endcsname
+         \csname\@lst @g#2#8@sty\expandafter\endcsname
+         {#1}#5#6#7}
+\gdef\lst@ProvideFamily@@#1#2#3#4#5#6#7#8{%
+    \gdef#1{#2#5}\global\let#2\@empty \global\let#3\@empty % init
+    \gdef#4{#2#5}\global\let#5\@empty % init
+    \if #8l\relax
+        \lst@AddToHook{SetLanguage}{\def#1{#2#5}\let#2\@empty}%
+    \fi
+    \lst@InstallTest{#7}#1#2#4#5#6}
 \gdef\lst@InstallKeywords#1#2#3#4#5{%
     \lst@Key{#2}\relax
         {\lst@UseFamily{#2}[\@ne]##1\relax\lst@MakeKeywords}%
@@ -645,16 +560,16 @@
         \lst@Key{#3}{#4}{\@namedef{lst@#3}{##1}}%
     \fi
     \expandafter\lst@InstallFamily@
-        \csname lst@#2@data\expandafter\endcsname
-        \csname lst@#5\endcsname {#1}{#2}{#3}}
+        \csname\@lst @#2@data\expandafter\endcsname
+        \csname\@lst @#5\endcsname {#1}{#2}{#3}}
 \gdef\lst@ProvideStyle#1#2{%
     \ifx#1\@undefined \let#1#2%
     \else\ifx#1\relax \let#1#2\fi\fi}
 \gdef\lst@BuildClassList#1#2,{%
     \ifx\relax#2\@empty\else
         \ifx\@empty#2\@empty\else
-            \lst@lExtend#1{\csname lst@#2\expandafter\endcsname
-                           \csname lst@g#2\endcsname}%
+            \lst@lExtend#1{\csname\@lst @#2\expandafter\endcsname
+                           \csname\@lst @g#2\endcsname}%
         \fi
         \expandafter\lst@BuildClassList\expandafter#1
     \fi}
@@ -678,51 +593,11 @@
     \lst@MakeMoreKeywords[#1]{#2}#3#4#5#6}
 \gdef\lst@MakeMoreKeywords[#1]#2#3#4#5#6{%
     \lst@BuildClassList#3#1,\relax,%
-    \lst@DefOther\lst@temp{,#2}\lst@lExtend#4\lst@temp
-    \expandafter\lst@SpecialKeywordScan\expandafter
-        #4\expandafter#5#5{}{}}
+    \lst@DefOther\lst@temp{,#2}\lst@lExtend#4\lst@temp}
 \gdef\lst@DeleteKeywords[#1]#2#3#4#5#6{%
     \lst@MakeKeywords[#1]{#2}\@tempa\@tempb#5#6%
     \lst@DeleteClassesIn#3\@tempa
-    \lst@DeleteKeysIn#4\@tempb
-    \lst@SpecialKeywordScan#4#5{}{}}
-\lst@Key{specialscan}t[t]{\lstKV@SetIf{#1}\lst@ifspecialscan}
-\lst@AddToHook{SelectLanguage}{\let\lst@ifspecialscan\iftrue}
-\lst@DefOther\lst@others{!"\#\%&'()*+-./0123456789:;<=>?[\]^`\{|\}~}
-\global\let\lst@others\lst@others % init
-\gdef\lst@SpecialKeywordScan#1#2#3#4{%
-    \lst@ifspecialscan
-        \def\lst@ialsoletter{#3}\def\lst@ialsodigit{#4}%
-        \expandafter\lst@SKS@\expandafter#1\lst@others\relax
-        \edef#2{{\lst@ialsoletter}{\lst@ialsodigit}}%
-    \fi}
-\gdef\lst@SKS@#1#2{%
-    \ifx\relax#2%
-        \expandafter\@gobbletwo
-    \else
-        \def\lst@temp##1#2##2##3\relax{%
-            \ifx\@empty##2\else
-                \def\lst@temp####1,#2####2####3\relax{%
-                    \ifx\@empty####2%
-                        \lst@SKS@@#2%
-                    \else
-                        \lst@SKSAdd\lst@ialsoletter#2%
-                    \fi}%
-                \expandafter\lst@temp\expandafter,#1,#2\@empty\relax
-            \fi}%
-        \expandafter\lst@temp #1#2\@empty\relax
-    \fi
-    \lst@SKS@#1}
-\gdef\lst@SKS@@#1{%
-    \ifnum`#1<`0%
-        \lst@SKSAdd\lst@ialsodigit#1%
-    \else\ifnum`#1>`9%
-        \lst@SKSAdd\lst@ialsodigit#1%
-    \fi \fi}
-\gdef\lst@SKSAdd#1#2{%
-    \def\lst@temp##1#2##2\relax{%
-        \ifx\@empty##2\@empty \lst@lAddTo#1{#2}\fi}%
-    \expandafter\lst@temp#1#2\relax}
+    \lst@DeleteKeysIn#4\@tempb}
 \lst@InstallFamily k{keywords}{keywordstyle}\bfseries{keywordstyle}{}ld
 \lst@Key{ndkeywords}\relax
     {\lst@UseFamily{keywords}[\tw@]#1\relax\lst@MakeKeywords}%
@@ -731,28 +606,43 @@
 \lst@Key{deletendkeywords}\relax
     {\lst@UseFamily{keywords}[\tw@]#1\relax\lst@DeleteKeywords}%
 \lst@Key{ndkeywordstyle}\relax{\@namedef{lst@keywordstyle2}{#1}}%
-\lst@Key{otherkeywords}{}{\lst@DefActive\lst@otherkeywords{#1}}
+\lst@Key{keywordsprefix}\relax{\lst@DefActive\lst@keywordsprefix{#1}}
+\global\let\lst@keywordsprefix\@empty
 \lst@AddToHook{SelectCharTable}
-    {\expandafter\lst@DefineOtherKeywords\lst@otherkeywords,\relax,}
-\gdef\lst@DefineOtherKeywords#1,{%
-    \ifx\relax#1\@empty\else
-        \ifx\@empty#1\@empty\else
-            \lst@CArg#1\relax\lst@CDef {}\lst@PrintOtherKeyword\@empty
-        \fi
-        \expandafter\lst@DefineOtherKeywords
-    \fi}
+    {\ifx\lst@keywordsprefix\@empty\else
+         \expandafter\lst@CArg\lst@keywordsprefix\relax
+             \lst@CDef{}%
+                      {\lst@ifletter\else
+                           \global\let\lst@prefixkeyword\@empty
+                       \fi}%
+                      {}%
+     \fi}
+\lst@AddToHook{Init}{\global\let\lst@prefixkeyword\relax}
+\lst@AddToHook{Output}
+    {\ifx\lst@prefixkeyword\@empty
+         \let\lst@thestyle\lst@gkeywords@sty
+         \global\let\lst@prefixkeyword\relax
+     \fi}%
+\lst@Key{otherkeywords}{}{%
+    \let\lst@otherkeywords\@empty
+    \lst@for{#1}\do{%
+      \lst@MakeActive{##1}%
+      \lst@lExtend\lst@otherkeywords{%
+          \expandafter\lst@CArg\lst@temp\relax\lst@CDef
+              {}\lst@PrintOtherKeyword\@empty}}}
+\lst@AddToHook{SelectCharTable}{\lst@otherkeywords}
 \gdef\lst@PrintOtherKeyword#1\@empty{%
-    \lst@PrintToken
+    \lst@XPrintToken
     \begingroup
-        \lst@modetrue \lsthk@TextStyle
-        \let\lst@ProcessDigit\lst@ProcessLetter
-        \let\lst@ProcessOther\lst@ProcessLetter
-        \lst@lettertrue
-        \lst@gkeywords@sty{#1\lst@PrintToken}%
+      \lst@modetrue \lsthk@TextStyle
+      \let\lst@ProcessDigit\lst@ProcessLetter
+      \let\lst@ProcessOther\lst@ProcessLetter
+      \lst@lettertrue
+      \lst@gkeywords@sty{#1\lst@XPrintToken}%
     \endgroup}
 \lst@EndAspect
 \lst@BeginAspect[keywords]{emph}
-\lst@InstallFamily e{emph}{emphstyle}\relax{empty}{}od
+\lst@InstallFamily e{emph}{emphstyle}{}{emphstyle}{}od
 \lst@EndAspect
 \lst@BeginAspect[keywords]{tex}
 \lst@InstallKeywords{cs}{texcs}{texcsstyle}\relax{keywordstyle}
@@ -772,7 +662,7 @@
 \lst@AddToHook{SelectCharTable}
     {\ifx\lst@directives\@empty\else
          \lst@DefSaveDef{`\#}\lsts@CCD
-         {\lst@CalcLineLength
+         {\lst@CalcColumn
           \lst@ifmode\else
               \ifnum\@tempcnta=\z@
                   \lst@EnterMode{\lst@CDmode}{}%
@@ -780,7 +670,7 @@
           \fi
           \ifnum\lst@mode=\lst@CDmode
               \ifnum\@tempcnta=\z@
-                  \lst@PrintToken
+                  \lst@XPrintToken
                   {\let\lst@currstyle\lst@directivestyle
                    \lsts@CCD\lst@PrintToken}%
               \else \lsts@CCD
@@ -789,26 +679,23 @@
           \fi}%
      \fi}
 \lst@AddTo\lst@stringtypes{,directive}
-\lst@AddTo\lst@xstringtypes{,directive}
 \gdef\lst@StringDM@directive#1#2#3\@empty{%
     \lst@CArg #2\relax\lst@CDef
         {}%
         {\let\lst@bnext\lst@CArgEmpty
          \ifnum\lst@mode=\lst@CDmode
-             \def\lst@bnext{\lst@EnterMode#1{\lst@modetrue
-                 \let\lst@currstyle\lst@stringstyle}}%
+             \def\lst@bnext{\lst@BeginString{#1}}%
          \fi
          \lst@bnext}%
         \@empty
     \lst@CArg #3\relax\lst@CDef
         {}%
         {\let\lst@enext\lst@CArgEmpty
-         \ifnum\lst@mode=#1%
-             \let\lst@bnext\lst@EndXString
+         \ifnum #1=\lst@mode
+             \let\lst@bnext\lst@EndString
          \fi
          \lst@bnext}%
         \@empty}
-\gdef\lst@EndXString#1\@empty{#1\lst@EndString}
 \lst@EndAspect
 \lst@BeginAspect[keywords]{html}
 \lst@NewMode\lst@insidemode
@@ -818,18 +705,19 @@
          \def\lst@DefInside{%
              \lst@DefSaveDef{`##1}\lsts@insideb
                  {\lst@ifmode\else \ifnum\lst@mode=\lst@insidemode\else
-                      \lst@PrintToken
+                      \lst@XPrintToken
                       \lst@EnterMode\lst@insidemode{}%
                   \fi\fi
                   \lsts@insideb}%
              \lst@DefSaveDef{`##2}\lsts@insidee
                   {\ifnum\lst@mode=\lst@insidemode
-                       \lsts@insidee \lst@PrintToken\lst@LeaveMode
+                       \lsts@insidee \lst@XPrintToken\lst@LeaveMode
                    \else
                        \expandafter\lsts@insidee
                    \fi}}%
      \fi\fi}}
 \lst@AddToHook{SelectCharTable}{\lst@DefInside}
+\lst@AddToHook{SetLanguage}{\let\lst@DefInside\@empty}
 \lst@AddToHook{Output}
     {\ifx\lst@DefInside\@empty\else \ifx\lst@thestyle\lst@gkeywords@sty
          \ifnum\lst@mode=\lst@insidemode\else
@@ -841,22 +729,22 @@
     {\ifnum\lst@mode=\lst@insidemode \lst@ifusekeysinside\else
          \let\lst@thestyle\lst@gkeywords@sty
      \fi\fi}
+\gdef\lst@BeginCDATA#1\@empty{%
+    \lst@TrackNewLines \lst@PrintToken
+    \lst@EnterMode\lst@GPmode{}\let\lst@ifmode\iffalse
+    \lst@mode\lst@insidemode #1\lst@mode\lst@GPmode\relax\lst@modetrue}
 \lst@EndAspect
 \lst@BeginAspect[keywords,comments]{keywordcomments}
 \lst@NewMode\lst@KCmode \lst@NewMode\lst@KCSmode
 \gdef\lst@BeginKC{%
-    \lst@token{}\lst@length\z@
+    \lst@ResetToken
     \lst@BeginComment\lst@KCmode\lst@commentstyle\@empty}
 \gdef\lst@BeginKCS{%
-    \lst@token{}\lst@length\z@
+    \lst@ResetToken
     \lst@BeginComment\lst@KCSmode\lst@commentstyle\@empty}
 \lst@AddToHook{PostOutput}{\lst@KCpost \global\let\lst@KCpost\@empty}
-\global\let\lst@KCpost\@empty
-\gdef\lst@EndKC{%
-    \xdef\@gtempa{%
-        \noexpand\lst@token{\the\lst@token}%
-        \noexpand\lst@length\the\lst@length\relax}%
-    \aftergroup\@gtempa \lst@LeaveMode}
+\global\let\lst@KCpost\@empty % init
+\gdef\lst@EndKC{\lst@SaveToken \lst@LeaveMode \lst@RestoreToken}
 \lst@InstallKeywords{kc}{keywordcomment}{}\relax{}
     {\ifnum\lst@mode=\lst@KCmode
          \edef\lst@temp{\the\lst@token}%
@@ -878,9 +766,9 @@
 \lst@AddToHook{SelectCharTable}
     {\ifx\lst@KCkeywords\@empty\else
         \lst@DefSaveDef{`\;}\lsts@EKC
-            {\lst@ifletter \lst@Output\lst@letterfalse \fi
-             \ifnum\lst@mode=\lst@KCmode \lst@EndComment \else
-             \ifnum\lst@mode=\lst@KCSmode \lst@EndComment
+            {\lst@XPrintToken
+             \ifnum\lst@mode=\lst@KCmode \lst@EndComment\@empty \else
+             \ifnum\lst@mode=\lst@KCSmode \lst@EndComment\@empty
              \fi \fi
              \lsts@EKC}%
      \fi}
@@ -903,8 +791,8 @@
     {kcs}owo
 \lst@EndAspect
 \lst@BeginAspect[keywords]{index}
-\lst@InstallFamily w{index}{indexstyle}\lstindexmacro{indexstyle1}
-    {\csname lst@indexstyle#1\expandafter\endcsname
+\lst@InstallFamily w{index}{indexstyle}\lstindexmacro{indexstyle}
+    {\csname\@lst @indexstyle#1\expandafter\endcsname
          \expandafter{\the\lst@token}}
     od
 \lst@UserCommand\lstindexmacro#1{\index{{\ttfamily#1}}}
@@ -916,17 +804,16 @@
 \lst@AddToHook{DetectKeywords}
     {\lst@ifprocname
          \let\lst@thestyle\lst@procnamestyle
-         \lst@ifindexproc \csname lst@gindex@sty\endcsname \fi
+         \lst@ifindexproc \csname\@lst @gindex@sty\endcsname \fi
          \lst@procnamefalse
      \fi}
 \lst@Key{procnamestyle}{}{\def\lst@procnamestyle{#1}}
 \lst@Key{indexprocnames}{false}[t]{\lstKV@SetIf{#1}\lst@ifindexproc}
-\lst@AddToHook{Init}
-    {\lst@ifindexproc
-         \@ifundefined{lst@indexstyle1}%
-             {\@namedef{lst@indexstyle1}##1{}}%
-             {}%
-     \fi \fi}
+\lst@AddToHook{Init}{\lst@ifindexproc \lst@indexproc \fi}
+\gdef\lst@indexproc{%
+    \@ifundefined{lst@indexstyle1}%
+        {\@namedef{lst@indexstyle1}##1{}}%
+        {}}
 \lst@InstallKeywords w{procnamekeys}{}\relax{}
     {\global\let\lst@PNpost\lst@procnametrue}
     od
@@ -976,18 +863,18 @@
     \lst@NormedDef\lst@oalias{#1}%
     \lst@NormedDef\lst@malias{#2}%
     \@ifundefined{lsta@\lst@malias}{}%
-        {\edef\lst@malias{\csname lsta@\lst@malias\endcsname}}%
+        {\edef\lst@malias{\csname\@lst a@\lst@malias\endcsname}}%
     \ifx\@empty\lst@oalias \@ifundefined{lstdd@\lst@malias}{}%
-        {\edef\lst@oalias{\csname lstdd@\lst@malias\endcsname}}%
+        {\edef\lst@oalias{\csname\@lst dd@\lst@malias\endcsname}}%
     \fi
     \edef\lst@temp{\lst@malias $\lst@oalias}%
     \@ifundefined{lsta@\lst@temp}{}%
-        {\edef\lst@temp{\csname lsta@\lst@temp\endcsname}}%
+        {\edef\lst@temp{\csname\@lst a@\lst@temp\endcsname}}%
     \expandafter\lst@FindAlias@\lst@temp $}
 \gdef\lst@FindAlias@#1$#2${%
     \def\lst@malias{#1}\def\lst@oalias{#2}%
     \ifx\@empty\lst@oalias \@ifundefined{lstdd@\lst@malias}{}%
-        {\edef\lst@oalias{\csname lstdd@\lst@malias\endcsname}}%
+        {\edef\lst@oalias{\csname\@lst dd@\lst@malias\endcsname}}%
     \fi}
 \gdef\lst@RequireLanguages#1{%
     \lst@Require{language}{lang}{#1}\lst@FindAlias\lstlanguagefiles
@@ -1027,7 +914,7 @@
     \lst@IfSubstring#3\lst@whitespaces{#1}{#2}#3}
 \begingroup
 \catcode`\^^I=12\catcode`\^^J=12\catcode`\^^M=12\catcode`\^^L=12\relax%
-\lst@DefActive\lst@whitespaces{\ ^^I^^J^^M}% ^^L removed
+\lst@DefActive\lst@whitespaces{\ ^^I^^J^^M}% add ^^L
 \global\let\lst@whitespaces\lst@whitespaces%
 \endgroup
 \gdef\lst@fmtIfIdentifier#1{%
@@ -1054,27 +941,14 @@
         \ifx \@empty##2\expandafter\@secondoftwo
                  \else \expandafter\@firstoftwo \fi}%
     \lst@temp#1#4\@empty\relax{#2}{#3}#4}
-\gdef\lst@fmtCDef#1#2#3#4#5#6#7{%
-    \let#4#1%
-    \ifx\@empty#2\@empty
-        \def#1{\lst@fmtIfNextCharIn{#5}{#4}{#6#4#7}}%
-    \else \ifx\@empty#3\@empty
-        \def#1##1{%
-            \ifx##1#2%
-                \def\lst@next{\lst@fmtIfNextCharIn{#5}{#4##1}%
-                                                      {#6#4#2#7}}%
-            \else
-                 \def\lst@next{#4##1}%
-            \fi
-            \lst@next}%
-    \else
-        \def#1{%
-            \lst@IfNextCharsArg{#2#3}%
-                {\lst@fmtIfNextCharIn{#5}{\expandafter#4\lst@eaten}%
-                                         {#6#4#2#3#7}}%
-                {\expandafter#4\lst@eaten}}%
-    \fi \fi}
-\gdef\lst@fmtCDefX#1#2#3#4#5#6#7{%
+\gdef\lst@fmtCDef#1{\lst@fmtCDef@#1}
+\gdef\lst@fmtCDef@#1#2#3#4#5#6#7{%
+    \lst@CDefIt#1{#2}{#3}%
+               {\lst@fmtIfNextCharIn{#5}{#4#2#3}{#6#4#2#3#7}}%
+               #4%
+               {}{}{}}
+\gdef\lst@fmtCDefX#1{\lst@fmtCDefX@#1}
+\gdef\lst@fmtCDefX@#1#2#3#4#5#6#7{%
     \let#4#1%
     \ifx\@empty#2\@empty
         \def#1{\lst@fmtIfNextCharIn{#5}{#4}{#6#7}}%
@@ -1174,16 +1048,16 @@
 \gdef\lst@fmtIndent{\global\advance\lst@fmtcurrindent\lst@fmtindent}
 \gdef\lst@fmtNoindent{\global\advance\lst@fmtcurrindent-\lst@fmtindent}
 \gdef\lst@fmtEnsureNewLine{%
-    \ifx\lst@newlines\@empty
-        \lst@AddTo\lst@newlines\lst@EnsuredNewLine
-    \fi
+    \global\advance\lst@newlines\@ne
+    \global\advance\lst@newlinesensured\@ne
     \lst@fmtignoretrue}
-\gdef\lst@EnsuredNewLine#1{%
-    \lst@ifnewline\else
-        \ifx#1\lst@NewLine\else \lst@NewLine \fi
+\lst@AddToAtTop\lst@DoNewLines{%
+    \ifnum\lst@newlines>\lst@newlinesensured
+        \global\advance\lst@newlines-\lst@newlinesensured
     \fi
-    #1}
-\lst@AddToHook{PostOutput}{\global\let\lst@ifnewline\iffalse}
+    \global\lst@newlinesensured\z@}
+\newcount\lst@newlinesensured % global
+\lst@AddToHook{Init}{\global\lst@newlinesensured\z@}
 \gdef\lst@fmtignoretrue{\let\lst@fmtifignore\iftrue}
 \gdef\lst@fmtignorefalse{\let\lst@fmtifignore\iffalse}
 \lst@AddToHook{InitVars}{\lst@fmtignorefalse}
@@ -1191,24 +1065,25 @@
 \gdef\lst@fmtUseLostSpace{%
     \lst@ifnewline \kern\lst@fmtcurrindent \global\lst@lostspace\z@
     \else
-        \ifdim\lst@lostspace>\z@ \lst@InsertLostSpace \fi
+        \lst@OldOLS
     \fi}
 \lst@AddToHook{Init}
     {\lst@true
      \ifx\lst@fmtformat\@empty \ifx\lst@fmt\@empty \lst@false \fi\fi
      \lst@if
-        \let\lst@UseLostSpace\lst@fmtUseLostSpace
+        \let\lst@OldOLS\lst@OutputLostSpace
+        \let\lst@OutputLostSpace\lst@fmtUseLostSpace
         \let\lst@ProcessSpace\lst@fmtProcessSpace
      \fi}
 \gdef\lst@fmtProcessSpace{%
     \lst@ifletter
-        \lst@Output\lst@letterfalse
+        \lst@Output
         \lst@fmtifignore\else
             \lst@AppendOther\lst@outputspace
         \fi
     \else \lst@ifkeepspaces
         \lst@AppendOther\lst@outputspace
-    \else \ifx\lst@newlines\@empty
+    \else \ifnum\lst@newlines=\z@
         \lst@AppendSpecialSpace
     \else \ifnum\lst@length=\z@
             \global\advance\lst@lostspace\lst@width
@@ -1234,103 +1109,126 @@
     \@namedef{\lst@ @fmt$\lst@fmta}{#3#4}}
 \lst@EndAspect
 \lst@BeginAspect{labels}
-\lst@Key{labelstyle}{}{\def\lst@labelstyle{#1}}
-\lst@Key{labelsep}{10pt}{\def\lst@labelsep{#1}}
-\lst@Key{labelstep}{0}{\def\lst@labelstep{#1\relax}}
-\lst@Key{firstlabel}\relax{\def\lst@firstlabel{#1\relax}}
-\lst@Key{advancelabel}\relax{\def\lst@advancelabel{#1\relax}}
-\lst@AddToHook{EmptyStyle}{\let\lst@labelstep\z@}
-\lst@AddToHook{PreSet}
-    {\let\lst@firstlabel\@undefined \let\lst@advancelabel\z@}
+\lst@Key{numbers}{none}{%
+    \let\lst@PlaceNumber\@empty
+    \lstKV@SwitchCases{#1}%
+    {none&\\%
+     left&\def\lst@PlaceNumber{\llap{\normalfont
+                \lst@numberstyle{\thelstnumber}\kern\lst@numbersep}}\\%
+     right&\def\lst@PlaceNumber{\rlap{\normalfont
+                \kern\linewidth \kern\lst@numbersep
+                \lst@numberstyle{\thelstnumber}}}%
+    }{\PackageError{Listings}{Numbers #1 unknown}\@ehc}}
+\lst@Key{numberstyle}{}{\def\lst@numberstyle{#1}}
+\lst@Key{numbersep}{10pt}{\def\lst@numbersep{#1}}
+\lst@Key{stepnumber}{1}{\def\lst@stepnumber{#1\relax}}
+\lst@AddToHook{EmptyStyle}{\let\lst@stepnumber\@ne}
+\lst@Key{numberblanklines}{true}[t]
+    {\lstKV@SetIf{#1}\lst@ifnumberblanklines}
+\lst@Key{firstnumber}{auto}{%
+    \lstKV@SwitchCases{#1}%
+    {auto&\let\lst@firstnumber\@undefined\\%
+     last&\let\lst@firstnumber\c@lstnumber
+    }{\def\lst@firstnumber{#1\relax}}}
+\lst@AddToHook{PreSet}{\let\lst@advancenumber\z@}
 \lst@AddToHook{PreInit}
-    {\ifx\lst@firstlabel\@undefined
-         \let\lst@firstlabel\lst@firstline
+    {\ifx\lst@firstnumber\@undefined
+         \let\lst@firstnumber\lst@firstline
      \fi}
-\gdef\lst@SetFirstLabel{%
-    \ifx\lst@firstlabel\@undefined
-        \@tempcnta 0\csname lstno@\lst@intname\endcsname\relax
-        \ifnum\@tempcnta=\z@ \@tempcnta\@ne \else \lst@continuetrue \fi
-        \advance\@tempcnta\lst@advancelabel
-        \edef\lst@firstlabel{\the\@tempcnta\relax}%
+\gdef\lst@SetFirstNumber{%
+    \ifx\lst@firstnumber\@undefined
+        \@tempcnta 0\csname\@lst no@\lst@intname\endcsname\relax
+        \ifnum\@tempcnta=\z@ \@tempcnta\lst@firstline
+                       \else \lst@nololtrue \fi
+        \advance\@tempcnta\lst@advancenumber
+        \edef\lst@firstnumber{\the\@tempcnta\relax}%
     \fi}
-\gdef\lst@SaveFirstLabel{%
+\gdef\lst@SaveFirstNumber{%
     \expandafter\xdef
-        \csname lstno\ifx\lst@intname\@empty @ \else @\lst@intname\fi
-        \endcsname{\the\c@lstlabel}}
-\newcounter{lstlabel}% \global
-\renewcommand*\thelstlabel{\@arabic\c@lstlabel}
+        \csname\@lst no\ifx\lst@intname\@empty @ \else @\lst@intname\fi
+        \endcsname{\the\c@lstnumber}}
+\newcounter{lstnumber}% \global
+\global\c@lstnumber\@ne % init
+\renewcommand*\thelstnumber{\@arabic\c@lstnumber}
 \lst@AddToHook{EveryPar}
-    {\global\advance\c@lstlabel\lst@labeladvance \lst@SkipOrPrintLabel}
-\global\let\lst@labeladvance\@ne
-\lst@AddToHook{Init}{\def\@currentlabel{\thelstlabel}}
+    {\global\advance\c@lstnumber\lst@advancelstnum
+     \global\advance\c@lstnumber\m@ne \refstepcounter{lstnumber}%
+     \lst@SkipOrPrintLabel}%
+\global\let\lst@advancelstnum\@ne
+\lst@AddToHook{Init}{\def\@currentlabel{\thelstnumber}}
 \lst@AddToHook{InitVars}
-    {\global\c@lstlabel\lst@firstlabel
-     \global\advance\c@lstlabel\lst@advancelabel
-     \global\advance\c@lstlabel-\lst@labeladvance}
+    {\global\c@lstnumber\lst@firstnumber
+     \global\advance\c@lstnumber\lst@advancenumber
+     \global\advance\c@lstnumber-\lst@advancelstnum
+     \ifx \lst@firstnumber\c@lstnumber
+         \global\advance\c@lstnumber-\lst@advancelstnum
+     \fi}
 \lst@AddToHook{ExitVars}
-    {\global\advance\c@lstlabel\lst@labeladvance}
-\newcount\lst@skiplabels % \global
+    {\global\advance\c@lstnumber\lst@advancelstnum}
+\AtBeginDocument{%
+    \def\theHlstnumber{\ifx\lst@@caption\@empty \lst@neglisting
+                                          \else \thelstlisting \fi
+                       .\thelstnumber}}
+\newcount\lst@skipnumbers % \global
 \lst@AddToHook{Init}
-    {\ifnum \z@>\lst@labelstep
-         \let\lst@labeladvance\m@ne
-         \edef\lst@labelstep{-\lst@labelstep}%
+    {\ifnum \z@>\lst@stepnumber
+         \let\lst@advancelstnum\m@ne
+         \edef\lst@stepnumber{-\lst@stepnumber}%
      \fi
-     \ifnum \z@<\lst@labelstep
-         \global\lst@skiplabels\lst@firstlabel
-         \global\divide\lst@skiplabels\lst@labelstep
-         \global\multiply\lst@skiplabels-\lst@labelstep
-         \global\advance\lst@skiplabels\lst@firstlabel
-         \ifnum\lst@skiplabels>\z@
-             \global\advance\lst@skiplabels -\lst@labelstep
+     \ifnum \z@<\lst@stepnumber
+         \global\lst@skipnumbers\lst@firstnumber
+         \global\divide\lst@skipnumbers\lst@stepnumber
+         \global\multiply\lst@skipnumbers-\lst@stepnumber
+         \global\advance\lst@skipnumbers\lst@firstnumber
+         \ifnum\lst@skipnumbers>\z@
+             \global\advance\lst@skipnumbers -\lst@stepnumber
          \fi
      \else
          \let\lst@SkipOrPrintLabel\relax
      \fi}
 \gdef\lst@SkipOrPrintLabel{%
-    \ifnum\lst@skiplabels=\z@
-        \global\advance\lst@skiplabels-\lst@labelstep\relax
-        \llap{\normalfont\lst@labelstyle{\thelstlabel}%
-              \kern\lst@labelsep}%
+    \ifnum\lst@skipnumbers=\z@
+        \global\advance\lst@skipnumbers-\lst@stepnumber\relax
+        \lst@PlaceNumber
     \fi
-    \global\advance\lst@skiplabels\@ne}
+    \global\advance\lst@skipnumbers\@ne}
+\lst@AddToHook{OnEmptyLine}{%
+    \lst@ifnumberblanklines\else \ifnum\lst@skipnumbers=\z@
+        \global\advance\lst@skipnumbers-\lst@stepnumber\relax
+    \fi\fi}
 \lst@EndAspect
 \lst@BeginAspect{lineshape}
-\newdimen\lst@innerspread \newdimen\lst@outerspread
-\lst@AddToHook{BoxUnsafe}{\lst@outerspread\z@ \lst@innerspread\z@}
-\lst@Key{wholeline}{false}[t]{\lstKV@SetIf{#1}\lst@ifwholeline}
+\lst@Key{xleftmargin}{\z@}{\def\lst@xleftmargin{#1}}
+\lst@Key{xrightmargin}{\z@}{\def\lst@xrightmargin{#1}}
+\lst@Key{resetmargins}{false}[t]{\lstKV@SetIf{#1}\lst@ifresetmargins}
+\lst@AddToHook{BoxUnsafe}{\let\lst@xleftmargin\z@
+                          \let\lst@xrightmargin\z@}
+\lst@AddToHook{TextStyle}{%
+    \let\lst@xleftmargin\z@ \let\lst@xrightmargin\z@
+    \let\lst@ifresetmargins\iftrue}
 \lst@Key{linewidth}\linewidth{\def\lst@linewidth{#1}}
 \lst@AddToHook{PreInit}{\linewidth\lst@linewidth\relax}
-\lst@Key{indent}{\z@}{\def\lst@indent{#1}}
-\lst@AddToHook{TextStyle}{\let\lst@indent\z@ \let\lst@ifwholeline\iftrue}
-\lst@Key{spread}{\z@,\z@}{\lstKV@CSTwoArg{#1}%
-    {\lst@innerspread##1\relax
-     \ifx\@empty##2\@empty
-         \divide\lst@innerspread\tw@\relax
-         \lst@outerspread\lst@innerspread
-     \else
-         \lst@outerspread##2\relax
-     \fi}}
 \gdef\lst@parshape{%
-    \parshape\@ne
-        \ifodd\c@page -\lst@innerspread\else -\lst@outerspread\fi
-        \linewidth}
+    \parshape\@ne \@totalleftmargin \linewidth}
 \lst@AddToHook{Init}
-    {\advance\linewidth\lst@innerspread
-     \advance\linewidth\lst@outerspread
-     \advance\linewidth-\lst@indent\relax
-     \advance\lst@innerspread-\lst@indent\relax
-     \advance\lst@outerspread-\lst@indent\relax
-     \lst@ifwholeline
+    {\lst@ifresetmargins
          \advance\linewidth\@totalleftmargin
-     \else
-         \advance\lst@innerspread-\@totalleftmargin
-         \advance\lst@outerspread-\@totalleftmargin
+         \advance\linewidth\rightmargin
+         \@totalleftmargin\z@
      \fi
-     \if@twoside\else \lst@outerspread\lst@innerspread \fi}
+     \advance\linewidth-\lst@xleftmargin
+     \advance\linewidth-\lst@xrightmargin
+     \advance\@totalleftmargin\lst@xleftmargin\relax}
 \lst@Key{lineskip}{\z@}{\def\lst@lineskip{#1\relax}}
-\lst@AddToHook{Init}{\parskip\lst@lineskip}
-\lst@EndAspect
-\lst@BeginAspect[lineshape]{breaklines}
+\lst@AddToHook{Init}
+    {\parskip\z@
+     \ifdim\z@=\lst@lineskip\else
+         \@tempdima\baselineskip
+         \advance\@tempdima\lst@lineskip
+         \divide\@tempdima\strip@pt\baselineskip\relax
+         \edef\baselinestretch{\strip@pt\@tempdima}%
+         \selectfont
+     \fi}
 \lst@Key{breaklines}{false}[t]{\lstKV@SetIf{#1}\lst@ifbreaklines}
 \lst@Key{breakindent}{20pt}{\def\lst@breakindent{#1}}
 \lst@Key{breakautoindent}{t}[t]{\lstKV@SetIf{#1}\lst@ifbreakautoindent}
@@ -1339,12 +1237,10 @@
 \lst@AddToHook{Init}
     {\lst@ifbreaklines
          \hbadness\@M \pretolerance\@M
-         \def\lst@parshape{\parshape\tw@
-             \ifodd\c@page -\lst@innerspread\else -\lst@outerspread\fi
-             \linewidth %
-             \lst@breakshape}%
+         \def\lst@parshape{\parshape\tw@ \@totalleftmargin\linewidth
+                           \lst@breakshape}%
      \else
-         \let\lst@discretionary\relax
+         \let\lst@discretionary\@empty
      \fi}
 \lst@AddToHook{OnNewLine}
     {\lst@ifbreaklines \lst@breakNewLine \fi}
@@ -1357,26 +1253,37 @@
 \gdef\lst@breakNewLine{%
     \@tempdima\lst@breakindent\relax
     \lst@ifbreakautoindent \advance\@tempdima\lst@lostspace \fi
-    \@tempdimb\@tempdima \@tempdimc-\@tempdima
-    \advance\@tempdima-\lst@innerspread
-    \advance\@tempdimb-\lst@outerspread
-    \advance\@tempdimc\linewidth
+    \@tempdimc-\@tempdima \advance\@tempdimc\linewidth
+                          \advance\@tempdima\@totalleftmargin
     \xdef\lst@breakshape{\noexpand\lst@breakcurrindent \the\@tempdimc}%
-    \xdef\lst@breakcurrindent{%
-        \noexpand\ifodd\c@page \the\@tempdima
-        \noexpand\else \the\@tempdimb \noexpand\fi}}
-\gdef\lst@breakProcessOther#1{%
-    \lst@ifletter \lst@Output\lst@letterfalse \fi
-    \lst@AppendOther#1\lst@OutputOther}
+    \xdef\lst@breakcurrindent{\the\@tempdima}}
+\gdef\lst@breakshape{\@totalleftmargin \linewidth}
+\gdef\lst@breakProcessOther#1{\lst@ProcessOther#1\lst@OutputOther}
 \lst@AddToHook{SelectCharTable}
     {\lst@ifbreaklines \lst@Def{`)}{\lst@breakProcessOther)}\fi}
 \lst@EndAspect
 \lst@BeginAspect[lineshape]{frames}
-\lst@Key{framerulewidth}{.4pt}{\def\lst@framerulewidth{#1}}
-\lst@Key{framerulesep}{2pt}{\def\lst@framerulesep{#1}}
-\lst@Key{frametextsep}{3pt}{\def\lst@frametextsep{#1}}
-\lst@Key{framespread}{\z@}{\def\lst@framespread{#1}}
-\lst@Key{frameshape}{}{\lstKV@FourArg{#1}%
+\lst@Key{framexleftmargin}{\z@}{\def\lst@framexleftmargin{#1}}
+\lst@Key{framexrightmargin}{\z@}{\def\lst@framexrightmargin{#1}}
+\lst@Key{framextopmargin}{\z@}{\def\lst@framextopmargin{#1}}
+\lst@Key{framexbottommargin}{\z@}{\def\lst@framexbottommargin{#1}}
+\lst@Key{backgroundcolor}{}{\def\lst@bkgcolor{#1}}
+\lst@Key{fillcolor}{}{\def\lst@fillcolor{#1}}
+\lst@Key{rulecolor}{}{\def\lst@rulecolor{#1}}
+\lst@Key{rulesepcolor}{}{\def\lst@rulesepcolor{#1}}
+\lst@AddToHook{Init}{%
+    \ifx\lst@fillcolor\@empty
+        \let\lst@fillcolor\lst@bkgcolor
+    \fi
+    \ifx\lst@rulesepcolor\@empty
+        \let\lst@rulesepcolor\lst@fillcolor
+    \fi}
+\lst@Key{rulesep}{2pt}{\def\lst@rulesep{#1}}
+\lst@Key{framerule}{.4pt}{\def\lst@framerulewidth{#1}}
+\lst@Key{framesep}{3pt}{\def\lst@frametextsep{#1}}
+\lst@Key{frameshape}{}{%
+    \let\lst@xrulecolor\@empty
+    \lstKV@FourArg{#1}%
     {\uppercase{\def\lst@frametshape{##1}}%
      \uppercase{\def\lst@framelshape{##2}}%
      \uppercase{\def\lst@framershape{##3}}%
@@ -1389,9 +1296,20 @@
     {\uppercase{\def\lst@frameround{#1}}%
      \expandafter\lstframe@\lst@frameround ffff\relax}
 \global\let\lst@frameround\@empty
-\lst@Key{frame}\relax
-    {\def\lst@frame{#1}%
-     \expandafter\lstframe@\lst@frameround ffff\relax}
+\lst@Key{frame}\relax{%
+    \let\lst@xrulecolor\@empty
+    \lstKV@SwitchCases{#1}%
+    {none&\let\lst@frame\@empty\\%
+     leftline&\def\lst@frame{l}\\%
+     topline&\def\lst@frame{t}\\%
+     bottomline&\def\lst@frame{b}\\%
+     lines&\def\lst@frame{tb}\\%
+     single&\def\lst@frame{trbl}\\%
+     shadowbox&\def\lst@frame{tRBl}%
+            \def\lst@xrulecolor{\lst@rulesepcolor}%
+            \def\lst@rulesep{\lst@frametextsep}%
+    }{\def\lst@frame{#1}}%
+    \expandafter\lstframe@\lst@frameround ffff\relax}
 \gdef\lstframe@#1#2#3#4#5\relax{%
     \lst@IfSubstring T\lst@frame{\edef\lst@frame{t\lst@frame}}{}%
     \lst@IfSubstring R\lst@frame{\edef\lst@frame{r\lst@frame}}{}%
@@ -1424,55 +1342,72 @@
         {\if #8T\def#6{R}\else \def#6{Y}\fi}%
         {\def#6{N}}%
     \lst@IfSubstring #2\lst@frame{\edef#5{#5#4Y#6}}{}}
-\lst@Key{backgroundcolor}{}{\lstKV@OptArg[]{#1}%
-    {\ifx\@empty##2\@empty
-         \let\lst@bkgcolor\@empty
-     \else
-         \ifx\@empty##1\@empty
-             \def\lst@bkgcolor{\color{##2}}%
-         \else
-             \def\lst@bkgcolor{\color[##1]{##2}}%
-         \fi
-     \fi}}
-\lst@Key{framerulecolor}{}{\lstKV@OptArg[]{#1}%
-    {\ifx\@empty##2\@empty
-         \let\lst@framerulecolor\@empty
-     \else
-         \ifx\@empty##1\@empty
-             \def\lst@framerulecolor{\color{##2}}%
-         \else
-             \def\lst@framerulecolor{\color[##1]{##2}}%
-         \fi
-     \fi}}
-\lst@AddToHook{EveryLine}
-    {\ifx\lst@bkgcolor\@empty\else
-         \@tempdima\linewidth \advance\@tempdima\lst@indent
-         \rlap{\begingroup \lst@bkgcolor
-               \kern-\lst@indent\relax
-               \color@block{\@tempdima}{\ht\strutbox}{\dp\strutbox}%
-               \endgroup}%
-     \fi}
-\gdef\lst@frameBkgBox#1{%
-    \ifx\lst@bkgcolor\@empty\else
-        \setbox#1\hbox{\begingroup \lst@bkgcolor
-                       \color@block{\wd#1}{\ht#1}{\dp#1}%
-                       \endgroup \box#1}%
-    \fi}
+\gdef\lst@frameMakeBoxV#1#2#3{%
+    \setbox#1\hbox{%
+      \color@begingroup \lst@rulecolor
+      \llap{\setbox\z@\hbox{\vrule\@width\z@\@height#2\@depth#3%
+                            \lst@frameL}%
+            \rlap{\lst@frameBlock\lst@rulesepcolor{\wd\z@}%
+                                                  {\ht\z@}{\dp\z@}}%
+            \box\z@
+            \ifx\lst@framelshape\@empty
+                \kern\lst@frametextsep\relax
+            \else
+                \lst@frameBlock\lst@fillcolor\lst@frametextsep{#2}{#3}%
+            \fi
+            \kern\lst@framexleftmargin}%
+      \rlap{\kern-\lst@framexleftmargin
+                    \@tempdima\linewidth
+            \advance\@tempdima\lst@framexleftmargin
+            \advance\@tempdima\lst@framexrightmargin
+            \lst@frameBlock\lst@bkgcolor\@tempdima{#2}{#3}%
+            \ifx\lst@framershape\@empty
+                \kern\lst@frametextsep\relax
+            \else
+                \lst@frameBlock\lst@fillcolor\lst@frametextsep{#2}{#3}%
+            \fi
+            \setbox\z@\hbox{\vrule\@width\z@\@height#2\@depth#3%
+                            \lst@frameR}%
+            \rlap{\lst@frameBlock\lst@rulesepcolor{\wd\z@}%
+                                                  {\ht\z@}{\dp\z@}}%
+            \box\z@}%
+      \color@endgroup}}
+\gdef\lst@frameBlock#1#2#3#4{%
+    \color@begingroup
+      #1%
+      \setbox\z@\hbox{\vrule\@height#3\@depth#4%
+                      \ifx#1\@empty \@width\z@ \kern#2\relax
+                              \else \@width#2\relax \fi}%
+      \box\z@
+    \color@endgroup}
 \gdef\lst@frameR{%
-    \strut\smash{\expandafter\lst@frameR@\lst@framershape\relax}%
-    \kern-\lst@framerulesep}
+    \expandafter\lst@frameR@\lst@framershape\relax
+    \kern-\lst@rulesep}
 \gdef\lst@frameR@#1{%
     \ifx\relax#1\@empty\else
         \if #1Y\lst@framevrule \else \kern\lst@framerulewidth \fi
-        \kern\lst@framerulesep
+        \kern\lst@rulesep
+        \expandafter\lst@frameR@b
+    \fi}
+\gdef\lst@frameR@b#1{%
+    \ifx\relax#1\@empty
+    \else
+        \if #1Y\color@begingroup
+               \lst@xrulecolor
+               \lst@framevrule
+               \color@endgroup
+        \else
+               \kern\lst@framerulewidth
+        \fi
+        \kern\lst@rulesep
         \expandafter\lst@frameR@
     \fi}
 \gdef\lst@frameL{%
-    \kern-\lst@framerulesep
-    \strut\smash{\expandafter\lst@frameL@\lst@framelshape\relax}}
+    \kern-\lst@rulesep
+    \expandafter\lst@frameL@\lst@framelshape\relax}
 \gdef\lst@frameL@#1{%
     \ifx\relax#1\@empty\else
-        \kern\lst@framerulesep
+        \kern\lst@rulesep
         \if#1Y\lst@framevrule \else \kern\lst@framerulewidth \fi
         \expandafter\lst@frameL@
     \fi}
@@ -1480,153 +1415,154 @@
     \global\let\lst@framediml\z@ \global\let\lst@framedimr\z@
     \setbox\z@\hbox{}\@tempcntb\z@
     \expandafter\lst@frameH@\expandafter#1#2\relax\relax\relax
-    \ifx\lst@bkgcolor\@empty\else
-        \@tempdima\lst@framediml
-        \advance\@tempdima\lst@indent
-        \setbox\z@\hbox{\rlap{%
-            \kern-\@tempdima
-            \kern-\ifodd\c@page\lst@innerspread\else\lst@outerspread\fi
-            \kern-\lst@framehalfspread
-            \advance\@tempdima\linewidth
-            \advance\@tempdima\lst@framedimr
-            \advance\@tempdima\lst@framespread
-            \begingroup \lst@bkgcolor
-            \color@block{\@tempdima}{\ht\z@}{\dp\z@}%
-            \endgroup}%
-            \box\z@}%
-    \fi}
+            \@tempdimb\lst@frametextsep\relax
+    \advance\@tempdimb\lst@framerulewidth\relax
+            \@tempdimc-\@tempdimb
+    \advance\@tempdimc\ht\z@
+    \advance\@tempdimc\dp\z@
+    \setbox\z@=\hbox{%
+      \lst@frameHBkg\lst@fillcolor\@tempdimb\@firstoftwo
+      \if#1T\rlap{\raise\dp\@tempboxa\box\@tempboxa}%
+       \else\rlap{\lower\ht\@tempboxa\box\@tempboxa}\fi
+      \lst@frameHBkg\lst@rulesepcolor\@tempdimc\@secondoftwo
+      \advance\@tempdimb\ht\@tempboxa
+      \if#1T\rlap{\raise\lst@frametextsep\box\@tempboxa}%
+       \else\rlap{\lower\@tempdimb\box\@tempboxa}\fi
+      \rlap{\box\z@}%
+    }}
 \gdef\lst@frameH@#1#2#3#4{%
     \ifx\relax#4\@empty\else
         \lst@frameh \@tempcntb#1#2#3#4%
         \advance\@tempcntb\@ne
         \expandafter\lst@frameH@\expandafter#1%
     \fi}
+\gdef\lst@frameHBkg#1#2#3{%
+    \setbox\@tempboxa\hbox{%
+        \kern-\lst@framexleftmargin
+        #3{\kern-\lst@framediml\relax}{\@tempdima\z@}%
+        \ifdim\lst@framediml>\@tempdimb
+            #3{\@tempdima\lst@framediml \advance\@tempdima-\@tempdimb
+               \lst@frameBlock\lst@rulesepcolor\@tempdima\@tempdimb\z@}%
+              {\kern-\lst@framediml
+               \advance\@tempdima\lst@framediml\relax}%
+        \fi
+        #3{\@tempdima\z@
+           \ifx\lst@framelshape\@empty\else
+               \advance\@tempdima\@tempdimb
+           \fi
+           \ifx\lst@framershape\@empty\else
+               \advance\@tempdima\@tempdimb
+           \fi}%
+          {\ifdim\lst@framedimr>\@tempdimb
+              \advance\@tempdima\lst@framedimr\relax
+           \fi}%
+        \advance\@tempdima\linewidth
+        \advance\@tempdima\lst@framexleftmargin
+        \advance\@tempdima\lst@framexrightmargin
+        \lst@frameBlock#1\@tempdima#2\z@
+        #3{\ifdim\lst@framedimr>\@tempdimb
+               \@tempdima-\@tempdimb
+               \advance\@tempdima\lst@framedimr\relax
+               \lst@frameBlock\lst@rulesepcolor\@tempdima\@tempdimb\z@
+           \fi}{}%
+        }}
 \gdef\lst@frameh#1#2#3#4#5{%
     \lst@frameCalcDimA#1%
     \lst@ifframeround \@getcirc\@tempdima \fi
-    \setbox\z@=\hbox{\rlap{\copy\z@}%
-      \setbox\z@=\hbox{%
-        \begingroup \lst@framerulecolor
-        \kern-\lst@indent
-        \kern\ifodd\c@page -\lst@innerspread\else -\lst@outerspread\fi
-        \kern-\lst@framehalfspread
-        \lst@frameCornerX\llap{#2L}#3%
+    \setbox\z@\hbox{%
+      \begingroup
+      \setbox\z@\hbox{%
+        \kern-\lst@framexleftmargin
+        \color@begingroup
+        \ifnum#1=\z@ \lst@rulecolor \else \lst@xrulecolor \fi
+        \lst@frameCornerX\llap{#2L}#3#1%
         \ifdim\lst@framediml<\@tempdimb
             \xdef\lst@framediml{\the\@tempdimb}%
         \fi
         \begingroup
-        \if#4Y\else\let\lst@framerulewidth\z@ \fi
-        \vrule\@width\lst@framespread\@height\lst@framerulewidth
-              \@depth\z@
-        \vrule\@width\lst@indent\@height\lst@framerulewidth\@depth\z@
-        \vrule\@width\linewidth\@height\lst@framerulewidth\@depth\z@
+        \if#4Y\else \let\lst@framerulewidth\z@ \fi
+                \@tempdima\lst@framexleftmargin
+        \advance\@tempdima\lst@framexrightmargin
+        \advance\@tempdima\linewidth
+        \vrule\@width\@tempdima\@height\lst@framerulewidth \@depth\z@
         \endgroup
-        \lst@frameCornerX\rlap{#2R}#5%
+        \lst@frameCornerX\rlap{#2R}#5#1%
         \ifdim\lst@framedimr<\@tempdimb
             \xdef\lst@framedimr{\the\@tempdimb}%
         \fi
-        \kern-\lst@framehalfspread
-        \endgroup}%
-    \if#2T\raise\dp\z@\copy\z@
-     \else\lower\ht\z@\copy\z@ \fi}}
-\gdef\lst@frameCornerX#1#2#3{%
-    \setbox\@tempboxa\hbox{\csname lst@frame\if#3RR\fi #2\endcsname}%
+        \color@endgroup}%
+      \if#2T\rlap{\raise\dp\z@\box\z@}%
+       \else\rlap{\lower\ht\z@\box\z@}\fi
+      \endgroup
+      \box\z@}}
+\gdef\lst@frameCornerX#1#2#3#4{%
+    \setbox\@tempboxa\hbox{\csname\@lst @frame\if#3RR\fi #2\endcsname}%
     \@tempdimb\wd\@tempboxa
     \if #3R%
         #1{\box\@tempboxa}%
     \else
         \if #3Y\expandafter#1\else
                \@tempdimb\z@ \expandafter\vphantom \fi
-        {\box\@tempboxa}
+        {\box\@tempboxa}%
     \fi}
 \gdef\lst@frameCalcDimA#1{%
-            \@tempdima\lst@framerulesep
+            \@tempdima\lst@rulesep
     \advance\@tempdima\lst@framerulewidth
     \multiply\@tempdima#1\relax
     \advance\@tempdima\lst@frametextsep
     \advance\@tempdima\lst@framerulewidth
     \multiply\@tempdima\tw@}
-\lst@AddToHook{Init}{\ifx\lst@frame\@empty\else \lst@frameInit \fi}
+\lst@AddToHook{Init}{\lst@frameInit}
+\newbox\lst@framebox
 \gdef\lst@frameInit{%
-    \ifx\lst@framelshape\@empty \let\lst@frameL\relax \fi
-    \ifx\lst@framershape\@empty \let\lst@frameR\relax \fi
-    \def\lst@framelr{%
-        \begingroup \lst@framerulecolor
-        \setbox\z@\hbox{\lst@frameL \kern\lst@frametextsep
-                        \kern\lst@framehalfspread}%
-        \lst@frameBkgBox\z@
-        \llap{\box\z@ \kern\lst@indent}%
-        \setbox\z@\hbox{\kern\lst@framehalfspread \kern\lst@frametextsep
-                        \lst@frameR}%
-        \lst@frameBkgBox\z@
-        \rlap{\kern\linewidth \box\z@}%
-        \endgroup}%
-    \ifx\lst@frameL\relax \ifx\lst@frameR\relax
-        \let\lst@framelr\strut
-    \fi \fi
-    \@tempdima\ht\strutbox \advance\@tempdima\lst@lineskip
-    \@tempdimb\dp\strutbox \advance\@tempdimb\lst@lineskip
-    \edef\lst@framevrule{%
-        \vrule\noexpand\@height\the\@tempdima
-              \noexpand\@depth\the\@tempdimb
-              \noexpand\@width\noexpand\lst@framerulewidth}%
-    \@tempdima\lst@framerulewidth \divide\@tempdima\tw@
-    \edef\lst@framerulehalfwidth{\the\@tempdima}%
-    \@tempdima\lst@framespread\relax \divide\@tempdima\tw@
-    \edef\lst@framehalfspread{\the\@tempdima}%
+    \ifx\lst@framelshape\@empty \let\lst@frameL\@empty \fi
+    \ifx\lst@framershape\@empty \let\lst@frameR\@empty \fi
+    \def\lst@framevrule{\vrule\@width\lst@framerulewidth\relax}%
     \lst@ifframeround
         \lst@frameCalcDimA\z@ \@getcirc\@tempdima
         \@tempdimb\@tempdima \divide\@tempdimb\tw@
         \advance\@tempdimb -\@wholewidth
         \edef\lst@frametextsep{\the\@tempdimb}%
         \edef\lst@framerulewidth{\the\@wholewidth}%
-        \edef\lst@framerulehalfwidth{\the\@halfwidth}%
         \lst@frameCalcDimA\@ne \@getcirc\@tempdima
         \@tempdimb\@tempdima \divide\@tempdimb\tw@
         \advance\@tempdimb -\tw@\@wholewidth
         \advance\@tempdimb -\lst@frametextsep
-        \edef\lst@framerulesep{\the\@tempdimb}%
+        \edef\lst@rulesep{\the\@tempdimb}%
     \fi
-    \expandafter\lst@frameH T\lst@frametshape
-    \ifvoid\z@\else
-        \par\parshape\z@
-        \@tempdima-\baselineskip \advance\@tempdima\ht\z@
-        \ifdim\prevdepth<\@cclvi\p@\else
-            \advance\@tempdima\prevdepth
+    \lst@frameMakeBoxV\lst@framebox{\ht\strutbox}{\dp\strutbox}%
+    \def\lst@framelr{\copy\lst@framebox}%
+    \ifx\lst@frametshape\@empty\else
+        \lst@frameH T\lst@frametshape
+        \ifvoid\z@\else
+            \par\lst@parshape
+            \@tempdima-\baselineskip \advance\@tempdima\ht\z@
+            \ifdim\prevdepth<\@cclvi\p@\else
+                \advance\@tempdima\prevdepth
+            \fi
+            \ifdim\@tempdima<\z@
+                \vskip\@tempdima\vskip\lineskip
+            \fi
+            \noindent\box\z@\par
+            \lineskiplimit\maxdimen \lineskip\z@
         \fi
-        \ifdim\@tempdima<\z@
-            \vskip\@tempdima\vskip\lineskip
-        \fi
-        \noindent\box\z@\par
-        \lineskiplimit\maxdimen \lineskip\z@
-    \fi
-    \lst@frameSpreadV}
+        \lst@frameSpreadV\lst@framextopmargin
+    \fi}
 \lst@AddToHook{EveryLine}{\lst@framelr}
 \global\let\lst@framelr\@empty
-\lst@AddToHook{DeInit}{\ifx\lst@frame\@empty\else \lst@frameExit \fi}
+\lst@AddToHook{DeInit}
+    {\ifx\lst@framebshape\@empty\else \lst@frameExit \fi}
 \gdef\lst@frameExit{%
-    \lst@frameSpreadV
+    \lst@frameSpreadV\lst@framexbottommargin
     \lst@frameH B\lst@framebshape
     \ifvoid\z@\else
-        \everypar{}\par\nointerlineskip\noindent\box\z@
+        \everypar{}\par\lst@parshape\nointerlineskip\noindent\box\z@
     \fi}
-\gdef\lst@frameSpreadV{%
-    \ifdim\z@=\lst@framespread\else
+\gdef\lst@frameSpreadV#1{%
+    \ifdim\z@=#1\else
         \everypar{}\par\lst@parshape\nointerlineskip\noindent
-        \setbox\z@=\hbox{%
-          \def\lst@framevrule{\vrule\@height\lst@framehalfspread
-              \@depth\z@\@width\lst@framerulewidth}%
-          \def\strut{\vrule\@height\lst@framehalfspread
-              \@depth\z@\@width\z@}%
-          \lst@framelr
-          \kern-\lst@indent
-          \ifx\lst@bkgcolor\@empty\else
-          \begingroup \lst@bkgcolor
-          \vrule\@height\lst@framehalfspread\@depth\z@\@width\linewidth
-          \vrule\@height\lst@framehalfspread\@depth\z@\@width\lst@indent
-          \endgroup
-          \fi}%
-        \rlap{\box\z@}%
+        \lst@frameMakeBoxV\z@{#1}{\z@}%
+        \box\z@
     \fi}
 \gdef\lst@frameTR{%
     \vrule\@width.5\@tempdima\@height\lst@framerulewidth\@depth\z@
@@ -1669,52 +1605,115 @@
 \lst@EndAspect
 \lst@BeginAspect[keywords]{make}
 \lst@NewMode\lst@makemode
-\gdef\lst@makekeyfalse{\let\lst@ifmakekey\iffalse}
-\gdef\lst@makekeytrue{\let\lst@ifmakekey\iftrue}
-\global\lst@makekeyfalse
-\lst@Key{makemacrouse}f[t]{\lstKV@SetIf{#1}\lst@ifmakemacrouse}
-\lst@AddToHook{SelectCharTable}
-    {\lst@ifmakemacrouse
-         \lst@ReplaceInput{$(}{%
-             \lst@PrintToken
-             \lst@EnterMode\lst@makemode{\lst@makekeyfalse}%
-             \def\lst@aside{\lst@ProcessOther\$\lst@ProcessOther(}}%
-         \lst@ReplaceInput{)}{%
-             \ifnum\lst@mode=\lst@makemode
-                 \lst@PrintToken
-                 \begingroup
-                     \lst@ProcessOther)%
-                     \lst@ifmakekey
-                         \lst@gkeywords@sty\lst@OutputOther
-                     \else
-                         \lst@OutputOther
-                     \fi
-                 \endgroup
-                 \lst@LeaveMode
-             \else
-                 \expandafter\lst@ProcessOther\expandafter)%
-             \fi}%
-     \else \ifx\lst@language\lst@make
-         \lst@ReplaceInput{$(}{\lst@ProcessOther\$\lst@ProcessOther(}%
-     \fi \fi}
-\gdef\lst@make{make}
-\lst@AddToHook{InitVars}{\let\lst@aside\@empty}
-\gdef\lst@makePrintAside#1{%
-    \ifx\lst@aside\@empty\else
-        \begingroup
-        \lst@token{}\lst@length\z@ \lst@aside \let\lst@aside\@empty
-        #1{\lst@OutputOther}%
-        \endgroup
-        \let\lst@aside\@empty
-    \fi}
-\lst@AddToHook{OutputOther}{\lst@makePrintAside\relax}
 \lst@AddToHook{Output}{%
     \ifnum\lst@mode=\lst@makemode
         \ifx\lst@thestyle\lst@gkeywords@sty
             \lst@makekeytrue
         \fi
-    \fi
-    \lst@makePrintAside\lst@thestyle}
+    \fi}
+\gdef\lst@makekeytrue{\let\lst@ifmakekey\iftrue}
+\gdef\lst@makekeyfalse{\let\lst@ifmakekey\iffalse}
+\global\lst@makekeyfalse % init
+\lst@Key{makemacrouse}f[t]{\lstKV@SetIf{#1}\lst@ifmakemacrouse}
+\gdef\lst@MakeSCT{%
+    \lst@ifmakemacrouse
+        \lst@ReplaceInput{$(}{%
+            \lst@PrintToken
+            \lst@EnterMode\lst@makemode{\lst@makekeyfalse}%
+            \lst@Merge{\lst@ProcessOther\$\lst@ProcessOther(}}%
+        \lst@ReplaceInput{)}{%
+            \ifnum\lst@mode=\lst@makemode
+                \lst@PrintToken
+                \begingroup
+                    \lst@ProcessOther)%
+                    \lst@ifmakekey
+                        \let\lst@currstyle\lst@gkeywords@sty
+                    \fi
+                    \lst@OutputOther
+                \endgroup
+                \lst@LeaveMode
+            \else
+                \expandafter\lst@ProcessOther\expandafter)%
+            \fi}%
+    \else
+        \lst@ReplaceInput{$(}{\lst@ProcessOther\$\lst@ProcessOther(}%
+    \fi}
+\lst@EndAspect
+\lst@BeginAspect{0.21}
+\lst@Key{labelstyle}{}{\def\lst@numberstyle{#1}}
+\lst@Key{labelsep}{10pt}{\def\lst@numbersep{#1}}
+\lst@Key{labelstep}{0}{%
+    \ifnum #1=\z@ \KV@lst@numbers{none}%
+            \else \KV@lst@numbers{left}\fi
+    \def\lst@stepnumber{#1\relax}}
+\lst@Key{firstlabel}\relax{\def\lst@firstnumber{#1\relax}}
+\lst@Key{advancelabel}\relax{\def\lst@advancenumber{#1\relax}}
+\let\c@lstlabel\c@lstnumber
+\lst@AddToHook{Init}{\let\thelstnumber\thelstlabel}
+\newcommand*\thelstlabel{\@arabic\c@lstlabel}
+\lst@Key{first}\relax{\def\lst@firstline{#1\relax}}
+\lst@Key{last}\relax{\def\lst@lastline{#1\relax}}
+\lst@Key{framerulewidth}{.4pt}{\def\lst@framerulewidth{#1}}
+\lst@Key{framerulesep}{2pt}{\def\lst@rulesep{#1}}
+\lst@Key{frametextsep}{3pt}{\def\lst@frametextsep{#1}}
+\lst@Key{framerulecolor}{}{\lstKV@OptArg[]{#1}%
+    {\ifx\@empty##2\@empty
+         \let\lst@rulecolor\@empty
+     \else
+         \ifx\@empty##1\@empty
+             \def\lst@rulecolor{\color{##2}}%
+         \else
+             \def\lst@rulecolor{\color[##1]{##2}}%
+         \fi
+     \fi}}
+\lst@Key{backgroundcolor}{}{\lstKV@OptArg[]{#1}%
+    {\ifx\@empty##2\@empty
+         \let\lst@bkgcolor\@empty
+     \else
+         \ifx\@empty##1\@empty
+             \def\lst@bkgcolor{\color{##2}}%
+         \else
+             \def\lst@bkgcolor{\color[##1]{##2}}%
+         \fi
+     \fi}}
+\lst@Key{framespread}{\z@}{\def\lst@framespread{#1}}
+\lst@AddToHook{PreInit}
+    {\@tempdima\lst@framespread\relax \divide\@tempdima\tw@
+     \edef\lst@framextopmargin{\the\@tempdima}%
+     \let\lst@framexrightmargin\lst@framextopmargin
+     \let\lst@framexbottommargin\lst@framextopmargin
+     \advance\@tempdima\lst@xleftmargin\relax
+     \edef\lst@framexleftmargin{\the\@tempdima}}
+\newdimen\lst@innerspread \newdimen\lst@outerspread
+\lst@Key{spread}{\z@,\z@}{\lstKV@CSTwoArg{#1}%
+    {\lst@innerspread##1\relax
+     \ifx\@empty##2\@empty
+         \divide\lst@innerspread\tw@\relax
+         \lst@outerspread\lst@innerspread
+     \else
+         \lst@outerspread##2\relax
+     \fi}}
+\lst@AddToHook{BoxUnsafe}{\lst@outerspread\z@ \lst@innerspread\z@}
+\lst@Key{wholeline}{false}[t]{\lstKV@SetIf{#1}\lst@ifresetmargins}
+\lst@Key{indent}{\z@}{\def\lst@xleftmargin{#1}}
+\lst@AddToHook{PreInit}
+    {\lst@innerspread=-\lst@innerspread
+     \lst@outerspread=-\lst@outerspread
+     \ifodd\c@page \advance\lst@innerspread\lst@xleftmargin
+             \else \advance\lst@outerspread\lst@xleftmargin \fi
+     \ifodd\c@page
+         \edef\lst@xleftmargin{\the\lst@innerspread}%
+         \edef\lst@xrightmargin{\the\lst@outerspread}%
+     \else
+         \edef\lst@xleftmargin{\the\lst@outerspread}%
+         \edef\lst@xrightmargin{\the\lst@innerspread}%
+     \fi}
+\lst@Key{defaultclass}\relax{\def\lst@classoffset{#1}}
+\lst@Key{stringtest}\relax{}% dummy
+\lst@Key{outputpos}\relax{\lst@outputpos#1\relax\relax}
+\lst@Key{stringspaces}\relax[t]{\lstKV@SetIf{#1}\lst@ifshowstringspaces}
+\lst@Key{visisblespaces}\relax[t]{\lstKV@SetIf{#1}\lst@ifshowspaces}
+\lst@Key{visibletabs}\relax[t]{\lstKV@SetIf{#1}\lst@ifshowtabs}
 \lst@EndAspect
 \lst@BeginAspect{fancyvrb}
 \@ifundefined{FancyVerbFormatLine}
@@ -1743,8 +1742,8 @@
         \lst@activecharsfalse
         \let\normalbaselines\relax
         \lst@Init\relax
-        \lst@ifwholeline \advance\linewidth-\@totalleftmargin \fi
-        \everypar{}\global\let\lst@newlines\@empty
+        \lst@ifresetmargins \advance\linewidth-\@totalleftmargin \fi
+        \everypar{}\global\lst@newlines\z@
         \lst@mode\lst@nomode \let\lst@entermodes\@empty
         \lst@InterruptModes
 %% D.G. modification begin - Nov. 25, 1998
@@ -1768,12 +1767,31 @@
 \lst@AddTo\FV@BVerbatimBegin\lstFV@VerbatimBegin
 \lst@AddToAtTop\FV@BVerbatimEnd\lstFV@VerbatimEnd
 \gdef\lstFV@FancyVerbFormatLine#1{%
-    \let\lst@arg\@empty \lst@true \lst@FVConvert#1\@nil
-    \global\let\lst@newlines\@empty
+    \let\lst@arg\@empty \lst@FVConvert#1\@nil
+    \global\lst@newlines\z@
     \vtop{\leavevmode\lst@parshape
           \lst@ReenterModes
-          \lst@arg \lst@PrintToken\lst@EOLUpdate
+          \lst@arg \lst@PrintToken\lst@EOLUpdate\lsthk@InitVarsBOL
           \lst@InterruptModes}}
+\gdef\lst@FVConvert{\futurelet\@let@token\lst@FVConvert@@}
+\gdef\lst@FVConvert@@{%
+    \ifcat\noexpand\@let@token\bgroup \expandafter\lst@FVConvertArg
+                                \else \expandafter\lst@FVConvert@ \fi}
+\gdef\lst@FVConvertArg#1{%
+    {\let\lst@arg\@empty
+     \lst@FVConvert#1\@nil
+     \global\let\@gtempa\lst@arg}%
+     \lst@lExtend\lst@arg{\expandafter{\@gtempa\lst@PrintToken}}%
+     \lst@FVConvert}
+\gdef\lst@FVConvert@#1{%
+    \ifx \@nil#1\else
+       \if\relax\noexpand#1%
+          \lst@lAddTo\lst@arg{\lst@OutputLostSpace\lst@PrintToken#1}%
+       \else
+          \lccode`\~=`#1\lowercase{\lst@lAddTo\lst@arg~}%
+       \fi
+       \expandafter\lst@FVConvert
+    \fi}
 \lst@EndAspect
 \lst@BeginAspect[keywords,comments,strings,language]{lgrind}
 \gdef\lst@LGGetNames#1:#2\relax{%
@@ -1860,7 +1878,7 @@
     \lst@if
         \edef\lstlang@{\lstlang@,lgrindef=\lst@LGvalue}%
     \fi
-    \expandafter\xdef\csname lstLGlang@\lst@language@\endcsname
+    \expandafter\xdef\csname\@lst LGlang@\lst@language@\endcsname
         {\noexpand\lstset{\lstlang@}}%
     \lst@ReplaceInArg\lst@arg{{: :}:}\let\lst@LGvalue\@empty
     \expandafter\lst@LGDroppedCaps\lst@arg\relax\relax
@@ -1909,10 +1927,9 @@
     \@ifundefined{lstLGlang@\lst@language@}%
         {\PackageError{Listings}%
          {LGrind language \lst@language@\space undefined}%
-         {The language is not loadable or just mispellt.^^J%
-          Type <RETURN> to proceed without changing the language.}}%
+         {The language is not loadable. \@ehc}}%
         {\lsthk@SetLanguage
-         \csname lstLGlang@\lst@language@\endcsname}}
+         \csname\@lst LGlang@\lst@language@\endcsname}}
 \@ifundefined{lstlgrindeffile}
     {\lst@UserCommand\lstlgrindeffile{lgrindef.}}{}
 \lst@EndAspect
