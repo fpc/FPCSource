@@ -112,8 +112,8 @@ begin
   P:=P+1;
   If P1-P>0 then 
     begin
-    //!! SetLength(Result,P1-P);
-    //!! L:=Pointer(Result);
+    SetLength(Result,P1-P);
+    L:=Pointer(Result);
     Move (P^,L^,P1-P);
     P:=P1+1;
     end;
@@ -135,8 +135,8 @@ begin
   else
     begin
     While (p^>' ') and (P^<>',') do P:=P+1;
-    //!! Setlength (S,P-PS);
-    //!! L:=Pointer(S);
+    Setlength (S,P-PS);
+    L:=Pointer(S);
     Move (PS^,L,P-PS);
     end;
   Result:=True;
@@ -150,7 +150,7 @@ Var P : Pointer;
 
 begin
   Self.Clear;
-  //!! P:=Pointer(Value);
+  P:=Pointer(Value);
   While GetNextQuotedChar (P,S) do Add (S);
 end;
 
@@ -194,6 +194,8 @@ end;
 Procedure TStrings.Error(const Msg: string; Data: Integer);
 
 begin
+  //!! Need to get correct address !!
+  Raise EStringListError.CreateFmt(Msg,[Data]);
 end;
 
 
@@ -232,14 +234,14 @@ begin
   // Determine needed place
   L:=0;
   For I:=0 to count-1 do L:=L+Length(Strings[I])+NewLineSize;
-  //!! Setlength(Result,0);
-  //!! P:=Pointer(Result); 
+  Setlength(Result,0);
+  P:=Pointer(Result); 
   For i:=0 To count-1 do
     begin
     S:=Strings[I];
     L:=Length(S);
-//!!    if L<>0 then 
-//!!      System.Move(Pointer(S)^,P^,L);
+    if L<>0 then 
+      System.Move(Pointer(S)^,P^,L);
     P:=P+L;
     p[0]:=#10;
 {$ifndef linux}
@@ -281,7 +283,7 @@ end;
 Procedure TStrings.SetTextStr(const Value: string); 
 
 begin
-  //!! SetText(PChar(Value));
+  SetText(PChar(Value));
 end;
 
 
@@ -401,7 +403,7 @@ end;
 Function TStrings.GetText: PChar; 
 
 begin
-//!!  Result:=StrNew(Pchar(Self.Text));
+  Result:=StrNew(Pchar(Self.Text));
 end;
 
 
@@ -516,8 +518,8 @@ begin
   If P^=#0 then exit;
   PS:=P;
   While (P^<>#10) do P:=P+1;
- //!!  SetLength (S,P-PS);
- //!!  System.Move (PS^,Pointer(S)^,P-PS);
+  SetLength (S,P-PS);
+  System.Move (PS^,Pointer(S)^,P-PS);
   If P[1]=#13 then P:=P+1;
   P:=P+1; // Point to character after #10(#13)
   Result:=True;
@@ -541,21 +543,58 @@ end;
 
 Procedure TStringList.ExchangeItems(Index1, Index2: Integer);
 
+Var P1,P2 : Pointer;
+
 begin
+  P1:=Pointer(Flist^[Index1].FString);
+  P2:=Pointer(Flist^[Index1].FObject);
+  Pointer(Flist^[Index1].Fstring):=Pointer(Flist^[Index2].Fstring);
+  Pointer(Flist^[Index1].FObject):=Pointer(Flist^[Index2].FObject);
+  Pointer(Flist^[Index2].Fstring):=P1;
+  Pointer(Flist^[Index2].FObject):=P2;
 end;
 
 
 
 Procedure TStringList.Grow;
 
+Var Extra : Longint;
+
 begin
+  If FCapacity>64 then
+    Extra:=FCapacity Div 4;
+  Else If FCapacity>8 Then 
+    Extra:=16;
+  Else 
+    Extra:=4;
+  SetCapacity(FCapacity+Extra); 
 end;
 
 
 
 Procedure TStringList.QuickSort(L, R: Integer);
 
+Var L,R,I,J : Longint;
+    Pivot : String;
+
 begin
+  Repeat;
+    I:=L;
+    J:=R;
+    Pivot:=Flist^[(L+R) div 2].FString;
+    Repeat
+      While AnsiCompareText(Flist^[I].Fstring,Pivot)<0 do Inc(I);
+      While AnsiCompareText(Flist^[J].Fstring,Pivot)>0 do Dec(J);
+      If I<=J then 
+        begin
+        ExchangeItems(I,J); // No check, indices are correct.
+        Inc(I);
+        Dec(j);
+        end;
+    until I>J;
+    If L<J then QuickSort(L,J);
+    L:=I;
+  Until I>=R;
 end;
 
 
@@ -563,6 +602,15 @@ end;
 Procedure TStringList.InsertItem(Index: Integer; const S: string);
 
 begin
+  Changing;
+  If FCount:=Fcapacity then Grow;
+  If Index<FCount then
+    System.Move (FList^[Index],FList^[Index+1],SizeOf(TStringItem));
+  Pointer(Flist^[Index].Fstring:=Nil;  // Needed to initialize...
+  Flist^[Index].FString:=S;
+  Flist^[Index].Fobject:=Nil;
+  Inc(FCount);
+  Changed;
 end;
 
 
@@ -570,6 +618,11 @@ end;
 Procedure TStringList.SetSorted(Value: Boolean);
 
 begin
+  If FSorted<>Value then
+    begin
+    If Value then sort;
+    FSorted:=VAlue
+    end;
 end;
 
 
@@ -577,6 +630,9 @@ end;
 Procedure TStringList.Changed; 
 
 begin
+  If (FUpdateCount=0) Then
+   If Assigned(FOnChange) then
+     FOnchange(Self);
 end;
 
 
@@ -584,6 +640,9 @@ end;
 Procedure TStringList.Changing; 
 
 begin
+  If FUpdateCount=0 then
+    if Assigned(FOnChanging) then
+      FOnchanging(Self);
 end;
 
 
@@ -591,6 +650,9 @@ end;
 Function TStringList.Get(Index: Integer): string; 
 
 begin
+  If (Index<0) or (INdex>=Fcount)  then
+    Error (SListIndexError,Index);
+  Result:=Flist^[Index].FString;
 end;
 
 
@@ -598,6 +660,7 @@ end;
 Function TStringList.GetCapacity: Integer; 
 
 begin
+  Result:=FCapacity;
 end;
 
 
@@ -605,6 +668,7 @@ end;
 Function TStringList.GetCount: Integer; 
 
 begin
+  Result:=FCount;
 end;
 
 
@@ -612,6 +676,9 @@ end;
 Function TStringList.GetObject(Index: Integer): TObject; 
 
 begin
+  If (Index<0) or (INdex>=Fcount)  then
+    Error (SListIndexError,Index);
+  Result:=Flist^[Index].FObject;
 end;
 
 
@@ -619,6 +686,13 @@ end;
 Procedure TStringList.Put(Index: Integer; const S: string); 
 
 begin
+  If Sorted then 
+    Error(SSortedListError,0);
+  If (Index<0) or (INdex>=Fcount)  then
+    Error (SListIndexError,Index);
+  Changing;
+  Flist^[Index].FString:=S;
+  Changed;
 end;
 
 
@@ -626,13 +700,45 @@ end;
 Procedure TStringList.PutObject(Index: Integer; AObject: TObject); 
 
 begin
+  If (Index<0) or (INdex>=Fcount)  then
+    Error (SListIndexError,Index);
+  Changing;
+  Flist^[Index].FObject:=AObject; 
+  Changed;
 end;
 
 
 
 Procedure TStringList.SetCapacity(NewCapacity: Integer); 
 
+Var NewList : Pointer;
+
 begin
+  If (NewCapacity<0) then 
+     Error (SListCapacityError,NewCapacity); 
+  If NewCapacity>FCapacity then
+    begin
+    GetMem (NewList,NewCapacity*SizeOf(TStringItem));
+    If NewList=Nil then
+      //!! Find another one here !!
+      Error (SListCapacityError,NewCapacity);
+    If Assigned(FList) then
+      begin
+      System.Move (FList^,NewList^,FCapacity*Sizeof(Pointer));
+      FillWord (NewList^[FCapacity],(NewCapacity-FCapacity)*WordRatio, 0);
+      FreeMem (Flist,FCapacity*SizeOf(Pointer));
+      end;
+    Flist:=NewList;
+    FCapacity:=NewCapacity;
+    end
+  else if NewCapacity<FCapacity then
+    begin
+    If NewCapacity<0 then
+      Error (SListCapacityError,NEwCapacity);
+    ToFree:=Flist+NewCapacity*SizeOf(Pointer);
+    FreeMem (ToFree, (FCapacity-NewCapacity)*SizeOf(Pointer));
+    FCapacity:=NewCapacity;
+    end;
 end;
 
 
@@ -640,13 +746,27 @@ end;
 Procedure TStringList.SetUpdateState(Updating: Boolean); 
 
 begin
+  If Updating then
+    Changing
+  else
+    Changed
 end;
 
 
 
 destructor TStringList.Destroy; 
 
+Var I : Longint;
+
 begin
+  FOnChange:=Nil;
+  FOnChanging:=Nil;
+  // This will force a dereference. Can be done better...
+  For I:=0 to FCount-1 do 
+    FList^.[I].FString:='';
+  FCount:=0;
+  SetCapacity(0);  
+  Inherited destroy;  
 end;
 
 
@@ -654,13 +774,29 @@ end;
 Function TStringList.Add(const S: string): Integer; 
 
 begin
+  If Not Sorted then
+    Result:=FCount
+  else
+    If Find (S,Result) then 
+      Case DUplicates of 
+        DupIgnore : Exit;
+        DupError : Error(SDuplicateString,0)
+      end;
+    end;
+   InsertItem (Result,S);
 end;
 
 
 
 Procedure TStringList.Clear; 
 
+Var I : longint;
+
 begin
+  For I:=0 to FCount-1 do
+    Flist^[I].FString:='';
+  FCount:=0;
+  SetCapacity(0);
 end;
 
 
@@ -668,6 +804,14 @@ end;
 Procedure TStringList.Delete(Index: Integer); 
 
 begin
+  If (Index<0) or (Index>=FCount) then
+    Error(SlistINdexError,Index);
+  Flist^[Index].FString:='';
+  Dec(FCount);
+  If Index<FCount then
+    System.Move(Flist^[Index+1],
+                Flist^[Index],
+                (Fcount-Index)*SizeOf(TStringItem));
 end;
 
 
@@ -675,13 +819,44 @@ end;
 Procedure TStringList.Exchange(Index1, Index2: Integer); 
 
 begin
+  If (Index1<0) or (Index1>=FCount) then 
+    Error(SListIndexError,Index1);
+  If (Index2<0) or (Index2>=FCount) then 
+    Error(SListIndexError,Index1);
+  Changing;
+  ExchangeItems(Index1,Index2);
+  changed;
 end;
-
-
 
 Function TStringList.Find(const S: string; var Index: Integer): Boolean; 
 
+{ Searches for the first string <= S, returns True if exact match,
+  sets index to the index f the found string. }
+
+Var I,L,R,Temp : Longint;
+
 begin
+  Result:=False;
+  // Use binary search.
+  L:=0;
+  R:=FCount-1;
+  While L<=R do
+    begin
+    I:=(L+R) div 2;
+    Temp:=AnsiCompareText(FList^ [I].FString,S);
+    If Temp<0 then 
+      L:=I+1
+    else
+      begin
+      R:=I-1;
+      If Temp=0 then
+        begin
+        Result:=True;
+        If Duplicates<>DupAccept then L:=I;
+        end;
+      end;
+    end;
+  Index:=L;    
 end;
 
 
@@ -689,6 +864,12 @@ end;
 Function TStringList.IndexOf(const S: string): Integer; 
 
 begin
+  If Not Sorted then 
+    Result:=Inherited indexOf(S)
+  else
+    // faster using binary search...
+    If Not Find (S,Result) then 
+      Result:=-1;
 end;
 
 
@@ -696,6 +877,14 @@ end;
 Procedure TStringList.Insert(Index: Integer; const S: string); 
 
 begin
+  If Sorted then
+    Error (SSortedListError,0)
+  else 
+    begin
+    If (Index<0) or (Index>FCount) then
+      Error (SListIndexError,Index);
+    else 
+      InsertItem (Index,S);
 end;
 
 
@@ -703,10 +892,20 @@ end;
 Procedure TStringList.Sort; 
 
 begin
+  If Not Sorted and FCount>1 then
+    begin
+    Changing
+    QuickSOrt(0,FCount-1);
+    Changed;
+    end;
 end;
+
 {
   $Log$
-  Revision 1.3  1998-05-07 14:16:51  michael
+  Revision 1.4  1998-10-24 13:45:37  michael
+  + Implemented stringlist. Untested, since classes broken.
+
+  Revision 1.3  1998/05/07 14:16:51  michael
   + Finished TStrings implementation.
 
   Revision 1.2  1998/05/06 12:58:53  michael

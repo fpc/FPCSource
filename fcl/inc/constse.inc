@@ -12,8 +12,6 @@
 
  **********************************************************************}
 
-{!!!TSE 21.09.1998}  
-{ Sorry, error messages are in german languae at this time}
 const
   SAssignError = '%s can not be assigned to %s';
   SFCreateError = 'File %s can not be created';
@@ -28,7 +26,7 @@ const
   SResNotFound = 'Resource %s not found';
   SClassMismatch = 'Resource %s has wrong class';
   SListIndexError = 'List index exceeds bounds (%d)';
-  SListCapacityError = 'The list capacity is reached (%d)';
+  SListCapacityError = 'The maximum list capacity is reached (%d)';
   SListCountError = 'List count too large (%d)';
   SSortedListError = 'Operation not allowed on sorted StringLists';
   SDuplicateString = 'Duplicate entries not allowed in StringList';

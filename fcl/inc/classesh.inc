@@ -11,17 +11,13 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 
  **********************************************************************}
+
+{ We NEED ansistrings !!}
+{$H+}
+
 type
    { extra types to compile with FPC }
-{$IFNDEF USE_EXCEPTIONS}
-   {!!!TSE 21.09.1998 redefined, create constructor added}
-   Exception = class(TObject)
-   public
-     constructor Create(Msg : String);
-   end;
-{$ENDIF}
 
-   EOutOfMemory = class(Exception);
    TRTLCriticalSection = class(TObject);
    HRSRC = longint;
    THANDLE = longint;
@@ -220,7 +216,7 @@ type
   public
     destructor Destroy; override;
     procedure Assign(Source: TPersistent); virtual;
-    function  GetNamePath: string; dynamic;
+    function  GetNamePath: string; virtual; {dynamic;}
   end;
 
 {$M-}
@@ -1055,7 +1051,10 @@ function LineStart(Buffer, BufPos: PChar): PChar;
 
 {
   $Log$
-  Revision 1.8  1998-09-23 07:47:41  michael
+  Revision 1.9  1998-10-24 13:45:35  michael
+  + Implemented stringlist. Untested, since classes broken.
+
+  Revision 1.8  1998/09/23 07:47:41  michael
   + Some changes by TSE
 
   Revision 1.7  1998/08/22 10:41:00  michael
