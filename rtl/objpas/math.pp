@@ -115,8 +115,24 @@ interface
        LessThanValue = Low(TValueRelationship);
        GreaterThanValue = High(TValueRelationship);
 {$ifndef ver1_0}
+{$ifopt R+}
+{$define RangeCheckWasOn}
+{$R-}
+{$endif opt R+}
+{$ifopt Q+}
+{$define OverflowCheckWasOn}
+{$Q-}
+{$endif opt Q+}
        NaN = 0.0/0.0;
        Infinity = 1.0/0.0;
+{$ifdef RangeCheckWasOn}
+{$R+}
+{$undef RangeCheckWasOn}
+{$endif}
+{$ifdef OverflowCheckWasOn}
+{$Q+}
+{$undef OverflowCheckWasOn}
+{$endif}
 {$endif ver1_0}
 
 { Min/max determination }
@@ -1309,7 +1325,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.20  2004-02-20 20:10:44  florian
+  Revision 1.21  2004-04-08 16:37:08  peter
+    * disable range,overflow check when generating Nan/Inf
+
+  Revision 1.20  2004/02/20 20:10:44  florian
     + added Inf/Nan stuff
 
   Revision 1.19  2004/02/09 18:53:09  florian
