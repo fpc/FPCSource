@@ -760,6 +760,7 @@ end;
 function TraceReAllocMem(var p:pointer;size:longint):Pointer;
 var
   newP: pointer;
+  oldsize,
   i,bp : longint;
   pl : plongint;
   pp : pheap_mem_info;
@@ -799,10 +800,11 @@ begin
      { restore p }
      inc(p,sizeof(theap_mem_info)+extra_info_size);
      { get a new block }
+     oldsize:=TraceMemSize(p);
      newP := TraceGetMem(size);
      { move the data }
      if newP <> nil then
-       move(p^,newP^,size);
+       move(p^,newP^,oldsize);
      { release p }
      traceFreeMem(p);
      p := newP;
@@ -975,7 +977,11 @@ finalization
 end.
 {
   $Log$
-  Revision 1.40  2000-02-09 16:59:30  peter
+  Revision 1.41  2000-02-10 13:59:35  peter
+    * fixed bug with reallocmem to use the wrong size when copying the
+      data to the new allocated pointer
+
+  Revision 1.40  2000/02/09 16:59:30  peter
     * truncated log
 
   Revision 1.39  2000/02/07 10:42:44  peter

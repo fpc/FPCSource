@@ -668,6 +668,7 @@ end;
 
 function SysReAllocMem(var p:pointer;size : longint):pointer;
 var
+  oldsize : longint;
   p2 : pointer;
 begin
   { Free block? }
@@ -686,9 +687,10 @@ begin
    { Resize block }
    if not SysTryResizeMem(p,size) then
     begin
+      oldsize:=MemoryManager.MemSize(p);
       p2:=MemoryManager.GetMem(size);
       if p2<>nil then
-       Move(p^,p2^,size);
+       Move(p^,p2^,oldsize);
       MemoryManager.FreeMem(p);
       p:=p2;
     end;
@@ -805,7 +807,11 @@ end;
 
 {
   $Log$
-  Revision 1.33  2000-02-02 11:12:29  peter
+  Revision 1.34  2000-02-10 13:59:35  peter
+    * fixed bug with reallocmem to use the wrong size when copying the
+      data to the new allocated pointer
+
+  Revision 1.33  2000/02/02 11:12:29  peter
     * fixed internal_memavail counting for tryresizemem
 
   Revision 1.32  2000/01/31 23:41:30  peter
