@@ -26,7 +26,11 @@
 {$IFDEF LANG_GERMAN}
 {$i constsg.inc}
 {$ELSE}
+{$IFDEF LANG_SPANISH}
+{$i constss.inc}
+{$ELSE}
 {$i constse.inc}
+{$ENDIF}
 {$ENDIF}
 
 { Utility routines }
@@ -362,7 +366,10 @@ end;
 
 {
   $Log$
-  Revision 1.7  1998-10-30 14:52:48  michael
+  Revision 1.8  1999-02-10 13:45:19  michael
+  + Added spanish language
+
+  Revision 1.7  1998/10/30 14:52:48  michael
   + Added format in interface
   + Some errors in parser fixed, it uses exceptions now
   + Strings now has no more syntax errors.
@@ -412,7 +419,10 @@ end;
 
 {
   $Log$
-  Revision 1.7  1998-10-30 14:52:48  michael
+  Revision 1.8  1999-02-10 13:45:19  michael
+  + Added spanish language
+
+  Revision 1.7  1998/10/30 14:52:48  michael
   + Added format in interface
   + Some errors in parser fixed, it uses exceptions now
   + Strings now has no more syntax errors.
