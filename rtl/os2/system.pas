@@ -64,11 +64,6 @@ const
 {x}  System_exception_frame : PEXCEPTION_FRAME =nil;
 {$ENDIF OS2EXCEPTIONS}
 
-
-type    Tos=(osDOS,osOS2,osDPMI);
-
-var     os_mode:Tos;
-
 type    TByteArray = array [0..$ffff] of byte;
         PByteArray = ^TByteArray;
 
@@ -782,11 +777,7 @@ function do_isdevice (Handle: longint): boolean; assembler;
 (*
 var HT, Attr: longint;
 begin
-    if os_mode = osOS2 then
-        begin
   if DosQueryHType (Handle, HT, Attr) <> 0 then HT := 1;
-        end
-    else
 *)
 asm
     push ebx
@@ -1114,7 +1105,6 @@ var TIB: PThreadInfoBlock;
 
 begin
     IsLibrary := FALSE;
-    os_mode:=OsOs2;
 {$ASMMODE INTEL}
     asm
     {Enable the brk area by initializing it with the initial heap size.}
@@ -1181,7 +1171,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.52  2003-10-25 22:45:37  hajny
+  Revision 1.53  2003-10-27 04:33:58  yuri
+  * os_mode removed (not required anymore)
+
+  Revision 1.52  2003/10/25 22:45:37  hajny
     * file handling related fixes
 
   Revision 1.51  2003/10/19 12:13:41  hajny
