@@ -415,15 +415,6 @@ Begin
      Oflags:=Oflags and not(Open_RDWR);
      FileRec(f).Handle:=sys_open(p,oflags,438);
    end;
-{ Check if it's a directory, then we should return io error 2 }
-  if ErrNo=0 then
-   begin
-     if (Sys_fstat(filerec(f).handle,dirtest)<>0) then
-      inoutres:=2
-     else
-      if (dirtest.mode and STAT_IFMT)<>STAT_IFREG then
-       inoutres:=2;
-   end;
   Errno2Inoutres;
 End;
 
@@ -789,7 +780,10 @@ End.
 
 {
   $Log$
-  Revision 1.4  2000-08-05 18:33:51  peter
+  Revision 1.5  2000-08-13 08:43:45  peter
+    * don't check for directory in do_open (merged)
+
+  Revision 1.4  2000/08/05 18:33:51  peter
     * paramstr(0) fix for linux 2.0 kernels (merged)
 
   Revision 1.3  2000/07/14 10:33:10  michael
@@ -797,5 +791,5 @@ End.
 
   Revision 1.2  2000/07/13 11:33:49  michael
   + removed logs
- 
+
 }
