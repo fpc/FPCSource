@@ -194,8 +194,8 @@ Source: units\i386-win32\zlib\*.*; DestDir: {app}\units\i386-win32\zlib; Flags: 
 Filename: {app}\Free Pascal.url; Section: InternetShortcut; Key: URL; String: http://www.freepascal.org/
 
 [Icons]
-Name: {userdesktop}\Free Pascal IDE; Filename: {app}\bin\i386-win32\fp.exe; components: ide; IconFileName: {app}\bin\i386-win32\fp32.ico;
-Name: {group}\Free Pascal; Filename: {app}\bin\i386-win32\fp.exe; components: ide; IconFileName: {app}\bin\i386-win32\fp32.ico;
+Name: {userdesktop}\Free Pascal IDE; Filename: {app}\bin\i386-win32\fp.exe; components: ide; IconFileName: {app}\bin\i386-win32\fp32.ico; WorkingDir: {app}\bin\i386-win32
+Name: {group}\Free Pascal; Filename: {app}\bin\i386-win32\fp.exe; components: ide; IconFileName: {app}\bin\i386-win32\fp32.ico; WorkingDir: {app}\bin\i386-win32
 Name: {group}\{cm:ProgramOnTheWeb,Free Pascal}; Filename: {app}\Free Pascal Website.url; IconFileName: {app}\bin\i386-win32\fp32.ico;
 Name: {group}\{cm:UninstallProgram,Free Pascal}; Filename: {uninstallexe}
 
