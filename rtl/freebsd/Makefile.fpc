@@ -14,7 +14,7 @@ units=$(SYSTEMUNIT) unixtype ctypes objpas macpas strings syscall sysctl  baseun
       unix rtlconst initc cmem matrix \
        dl termio  printer \
       sysutils typinfo systhrds types classes math varutils dynlibs \
-      cpu mmx charset ucomplex crt getopts heaptrc lineinfo \
+      $(CPU_UNITS) charset ucomplex crt getopts heaptrc lineinfo \
       errors sockets ipc terminfo \
       video mouse keyboard console serial variants dateutils \
       sysconst cthreads strutils convutils dos objects 
@@ -43,7 +43,7 @@ libunits=$(SYSTEMUNIT) objpas strings \
       unix  \
       dos crt objects printer \
       sysutils typinfo math \
-      cpu mmx getopts heaptrc \
+      $(CPU_UNITS) getopts heaptrc \
       errors sockets ipc dynlibs
 
 [prerules]
@@ -64,6 +64,13 @@ else
 SYSTEMUNIT=sysbsd
 override FPCOPT+=-dUNIX -dNOMOUSE
 endif
+
+ifeq ($(CPU_TARGET),i386)
+CPU_UNITS=x86 ports cpu mmx graph
+else
+CPU_UNITS=
+endif
+
 
 # Use new feature from 1.0.5 version
 # that generates release PPU files
@@ -170,6 +177,13 @@ printer$(PPUEXT) : $(UNIXINC)/printer.pp $(INC)/textrec.inc unix$(PPUEXT) $(SYST
 #
 # Graph
 #
+
+include $(GRAPHDIR)/makefile.inc
+GRAPHINCDEPS=$(addprefix $(GRAPHDIR)/,$(GRAPHINCNAMES))
+
+graph$(PPUEXT) : graph.pp unix$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT) \
+                 $(GRAPHINCDEPS) $(UNIXINC)/graph16.inc
+        $(COMPILER) -I$(GRAPHDIR) $(UNIXINC)/graph.pp
 
 #
 # Delphi Compatible Units
