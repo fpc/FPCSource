@@ -668,6 +668,8 @@ implementation
          if assigned(p^.left) then
             begin
                secondpass(p^.left);
+               if p^.left^.location.reference.segment<>R_DEFAULT_SEG then
+                 message(parser_e_no_with_for_variable_in_other_segments);
                ref.symbol:=nil;
                gettempofsizereference(4,ref);
                if (p^.left^.resulttype^.deftype=objectdef) and
@@ -700,7 +702,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.16  1998-10-21 11:44:42  florian
+  Revision 1.17  1998-11-16 15:35:09  pierre
+   * added error for with if different segment
+
+  Revision 1.16  1998/10/21 11:44:42  florian
     + check for access to index 0 of long/wide/ansi strings added,
       gives now an error
     * problem with access to contant index of ansistrings fixed
