@@ -30,8 +30,9 @@
 {$endif m68k}
 
 {$ifdef NEEDFPUEMU}
-
 {$E+}
+{$endif NEEDFPUEMU}
+
 procedure fail;
 begin
   WriteLn('Failed!');
@@ -271,17 +272,13 @@ Begin
 { RealTestComplex;}
 end.
 
-{$else NEEDFPUEMU}
-
-begin
-  writeln('No FPU emulation supported by this platform');
-end.
-
-{$endif NEEDFPUEMU}
 
 {
   $Log$
-  Revision 1.3  2002-12-06 15:49:36  peter
+  Revision 1.4  2003-04-26 16:44:10  florian
+    * released the code for all cpus, at least with i386, it works fine
+
+  Revision 1.3  2002/12/06 15:49:36  peter
     * FPU emu is only needed for m68k
 
   Revision 1.2  2002/09/07 15:40:49  peter
