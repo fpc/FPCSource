@@ -161,10 +161,10 @@ Procedure Keep(exitcode: word);
 
 Const
   { allow EXEC to inherited handles from calling process,
-    needed for FPREDIR in ide/text 
+    needed for FPREDIR in ide/text
     now set to true by default because
     other OS also pass open handles to childs PM }
-  ExecInheritsHandles : BOOL = true;
+  ExecInheritedHandles : BOOL = true;
 
 implementation
 uses strings;
@@ -894,7 +894,10 @@ End;
 end.
 {
   $Log$
-  Revision 1.21  1999-09-21 12:37:09  pierre
+  Revision 1.22  1999-09-21 13:24:32  pierre
+   * typo error
+
+  Revision 1.21  1999/09/21 12:37:09  pierre
    * Child inherits now file handles from parent in Exec by default
 
   Revision 1.20  1999/09/21 11:34:40  pierre
