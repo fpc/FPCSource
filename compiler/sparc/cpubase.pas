@@ -911,11 +911,11 @@ type
       NR_FUNCTION_RETURN_REG = NR_I0;
       RS_FUNCTION_RETURN_REG = RS_I0;
       { Low part of 64bit return value }
-      NR_FUNCTION_RETURN64LOW_REG = NR_I1;
-      RS_FUNCTION_RETURN64LOW_REG = RS_I1;
+      NR_FUNCTION_RETURN64_LOW_REG = NR_I1;
+      RS_FUNCTION_RETURN64_LOW_REG = RS_I1;
       { High part of 64bit return value }
-      NR_FUNCTION_RETURN64HIGH_REG = NR_I0;
-      RS_FUNCTION_RETURN64HIGH_REG = RS_I0;
+      NR_FUNCTION_RETURN64_HIGH_REG = NR_I0;
+      RS_FUNCTION_RETURN64_HIGH_REG = RS_I0;
       { The value returned from a function is available in this register }
       NR_FUNCTION_RESULT_REG = NR_O0;
       RS_FUNCTION_RESULT_REG = RS_O0;
@@ -955,6 +955,9 @@ type
                             CPU Dependent Constants
 *****************************************************************************}
 
+    const
+      simm13lo=-4096;
+      simm13hi=4095;
 
 {*****************************************************************************
                                   Helpers
@@ -1011,7 +1014,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.37  2003-05-31 15:05:28  peter
+  Revision 1.38  2003-06-01 01:04:35  peter
+    * reference fixes
+
+  Revision 1.37  2003/05/31 15:05:28  peter
     * FUNCTION_RESULT64_LOW/HIGH_REG added for int64 results
 
   Revision 1.36  2003/05/31 01:00:51  peter

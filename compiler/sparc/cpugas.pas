@@ -69,9 +69,9 @@ unit cpugas;
                 GetReferenceString:='[';
                 if base.number<>NR_NO then
                   GetReferenceString:=GetReferenceString+std_reg2str[base.enum];
-                if index.number<>NR_NO then
+                if index.number=NR_NO then
                   begin
-                    if (Offset<-4096) or (Offset>4095) then
+                    if (Offset<simm13lo) or (Offset>simm13hi) then
                       internalerror(2003053008);
                     if offset>0 then
                       GetReferenceString:=GetReferenceString+'+'+ToStr(offset)
@@ -207,7 +207,10 @@ begin
 end.
 {
     $Log$
-    Revision 1.17  2003-05-31 01:00:51  peter
+    Revision 1.18  2003-06-01 01:04:35  peter
+      * reference fixes
+
+    Revision 1.17  2003/05/31 01:00:51  peter
       * register fixes
 
     Revision 1.16  2003/05/30 23:57:08  peter
