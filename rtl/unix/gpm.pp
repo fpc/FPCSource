@@ -19,7 +19,7 @@ unit gpm;
        Unfortunately it isn't suitable for anything else besides a blocky
        cursor on a text mode interface. The GPM protocol suffers from serious
        defficiencies and ideally, gpm is abolished as quickly as possible.
-       
+
        With lack of a good alternative, GPM deserves good support. But
        please keep this in mind while coding.}
 
@@ -88,7 +88,7 @@ type
           clicks : longint;
           margin : TGpmMargin;
      end;
-     
+
      Pgpmevent=Pgpm_event;
      Tgpmevent=Tgpm_event;
 
@@ -107,7 +107,7 @@ type
           pid : longint;
           vc : longint;
        end;
-     
+
      Pgpmconnect=Pgpm_connect;
      Tgpmconnect=Tgpm_connect;
 
@@ -214,7 +214,7 @@ type  Pgpm_stst=^Tgpm_stst;
         info:Tgpmconnect;
         next:Pgpm_stst;
       end;
-      
+
       Pmicetab=^Tmicetab;
       Tmicetab=record
         next:Pmicetab;
@@ -361,7 +361,7 @@ var conn:Tgpmconnect;
 begin
   fpsigemptyset(new_sigset);
   fpsigaddset(new_sigset,SIGTSTP);
-  fpsigprocmask(SIG_BLOCK,new_sigset,old_sigset);
+  fpsigprocmask(SIG_BLOCK,{$ifdef ver1_0}@{$endif}new_sigset,{$ifdef ver1_0}@{$endif}old_sigset);
 
   {Open a completely transparent gpm connection.}
   conn.eventmask:=0;
@@ -954,7 +954,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.13  2004-11-06 20:06:19  peter
+  Revision 1.14  2004-11-21 11:28:21  peter
+    * fixed bootstrap with 1.0.10 and 1.9.4
+
+  Revision 1.13  2004/11/06 20:06:19  peter
     * mouse works again
 
   Revision 1.12  2004/11/03 16:51:05  peter

@@ -522,7 +522,7 @@ begin { Changes as above }
   fpsigaction(SIGQUIT, @ign, @quitact);
   fpsigemptyset(newsigblock);
   fpsigaddset(newsigblock,SIGCHLD);
-  fpsigprocmask(SIG_BLOCK,newsigblock,oldsigblock);
+  fpsigprocmask(SIG_BLOCK,{$ifdef ver1_0}@{$endif}newsigblock,{$ifdef ver1_0}@{$endif}oldsigblock);
   pid:=fpfork;
   if pid=0 then // We are in the Child
    begin
@@ -1254,7 +1254,10 @@ End.
 
 {
   $Log$
-  Revision 1.77  2004-11-19 13:15:15  marco
+  Revision 1.78  2004-11-21 11:28:21  peter
+    * fixed bootstrap with 1.0.10 and 1.9.4
+
+  Revision 1.77  2004/11/19 13:15:15  marco
    * external rework. Mostly done.
 
   Revision 1.76  2004/11/03 15:00:43  marco

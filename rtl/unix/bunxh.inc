@@ -22,11 +22,13 @@ Type TGrpArr = Array [0..0] of TGid;            { C style array workarounds}
 // if you are looking for macro definitions or non C template overloaded versions, they are moved to bunxovlh.inc
 
 {$ifdef linux}
-    Function  FpSigProcMask(how : cInt; nset : pSigSet; oset : pSigSet): cInt; 
-    Function  FpSigProcMask(how : cInt; Const nset : TSigSet; var oset : TSigSet): cInt; external name 'FPC_SYSC_SIGPROCMASK'; 
+    Function  FpSigProcMask(how : cInt; nset : pSigSet; oset : pSigSet): cInt;
+  {$ifndef VER1_0}
+    Function  FpSigProcMask(how : cInt; Const nset : TSigSet; var oset : TSigSet): cInt; external name 'FPC_SYSC_SIGPROCMASK';
+  {$endif}
 {$else}
-    Function  FpSigProcMask(how : cInt; nset : pSigSet; oset : pSigSet): cInt; external name 'FPC_SYSC_SIGPROCMASK'; 
-    Function  FpSigProcMask(how : cInt; Const nset : TSigSet; var oset : TSigSet): cInt; external name 'FPC_SYSC_SIGPROCMASK'; 
+    Function  FpSigProcMask(how : cInt; nset : pSigSet; oset : pSigSet): cInt; external name 'FPC_SYSC_SIGPROCMASK';
+    Function  FpSigProcMask(how : cInt; Const nset : TSigSet; var oset : TSigSet): cInt; external name 'FPC_SYSC_SIGPROCMASK';
 {$endif}
     Function  FpSigPending (var nset : TSigSet): cInt;
     Function  FpSigSuspend (Const sigmask : TSigSet): cInt;
@@ -39,7 +41,7 @@ Type TGrpArr = Array [0..0] of TGid;            { C style array workarounds}
     Function  FpUtime      (path : pChar; times : putimbuf): cInt;
     Function  FpPipe       (var fildes : tfildes):cInt;
     Function  FpDup        (fildes : cInt): cInt;  external name 'FPC_SYSC_DUP';
-    Function  FpDup2       (fildes, fildes2 : cInt): cInt; external name 'FPC_SYSC_DUP2'; 
+    Function  FpDup2       (fildes, fildes2 : cInt): cInt; external name 'FPC_SYSC_DUP2';
     Function  FpTimes      (var buffer : tms): TClock;
 
     Function  FpAlarm      (seconds : cuint): cuint;
@@ -63,7 +65,7 @@ Type TGrpArr = Array [0..0] of TGid;            { C style array workarounds}
 
     Function  FpGetcwd     (path:pChar; siz:TSize):pChar;  external name 'FPC_SYSC_GETCWD';
     Function  FpFork : TPid; external name 'FPC_SYSC_FORK';
-    Function  FpExecve     (path : pChar; argv : ppChar; envp: ppChar): cInt; 
+    Function  FpExecve     (path : pChar; argv : ppChar; envp: ppChar): cInt;
     // external name 'FPC_SYSC_EXECVE';
     Function  FpExecv      (path : pChar; argv : ppChar): cInt;
     Function  FpWaitpid    (pid : TPid; stat_loc : pcInt; options: cInt): TPid; external name 'FPC_SYSC_WAITPID';
@@ -110,7 +112,10 @@ Type TGrpArr = Array [0..0] of TGid;            { C style array workarounds}
 
 {
   $Log$
-  Revision 1.13  2004-11-19 13:15:14  marco
+  Revision 1.14  2004-11-21 11:28:21  peter
+    * fixed bootstrap with 1.0.10 and 1.9.4
+
+  Revision 1.13  2004/11/19 13:15:14  marco
    * external rework. Mostly done.
 
   Revision 1.12  2004/11/14 12:21:08  marco
