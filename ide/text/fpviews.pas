@@ -350,6 +350,16 @@ type
       procedure   Store(var S: TStream);
     end;
 
+    PFPCodeMemo = ^TFPCodeMemo;
+    TFPCodeMemo = object(TCodeEditor)
+      constructor Init(var Bounds: TRect; AHScrollBar, AVScrollBar:
+                    PScrollBar; AIndicator: PIndicator; ABufSize:Sw_Word);
+      function    IsReservedWord(const S: string): boolean; virtual;
+      function    GetSpecSymbolCount(SpecClass: TSpecSymbolClass): integer; virtual;
+      function    GetSpecSymbol(SpecClass: TSpecSymbolClass; Index: integer): string; virtual;
+      function    GetPalette: PPalette; virtual;
+    end;
+
 function  SearchFreeWindowNo: integer;
 
 function IsThereAnyEditor: boolean;
@@ -754,6 +764,13 @@ end;
 *****************************************************************************}
 
 {$ifndef EDITORS}
+constructor TSourceEditor.Init(var Bounds: TRect; AHScrollBar, AVScrollBar:
+          PScrollBar; AIndicator: PIndicator;const AFileName: string);
+begin
+  inherited Init(Bounds,AHScrollBar,AVScrollBar,AIndicator,AFileName);
+  StoreUndo:=true;
+end;
+
 function TSourceEditor.GetSpecSymbolCount(SpecClass: TSpecSymbolClass): integer;
 var Count: integer;
 begin
@@ -806,13 +823,6 @@ begin
   GetSpecSymbol:=S;
 end;
 
-constructor TSourceEditor.Init(var Bounds: TRect; AHScrollBar, AVScrollBar:
-          PScrollBar; AIndicator: PIndicator;const AFileName: string);
-begin
-  inherited Init(Bounds,AHScrollBar,AVScrollBar,AIndicator,AFileName);
-  StoreUndo:=true;
-end;
-
 function TSourceEditor.IsReservedWord(const S: string): boolean;
 begin
   IsReservedWord:=IsFPReservedWord(S);
@@ -843,6 +853,7 @@ begin
       if Assigned(CodeCompleteTip)=false then
         begin
           New(CodeCompleteTip, Init(R, S, alCenter));
+          CodeCompleteTip^.Hide;
           Application^.Insert(CodeCompleteTip);
         end
       else
@@ -852,24 +863,35 @@ begin
 end;
 
 procedure TSourceEditor.AlignCodeCompleteTip;
-var X,Y: integer;
+var P: TPoint;
     S: string;
     R: TRect;
 begin
   if Assigned(CodeCompleteTip)=false then Exit;
   S:=CodeCompleteTip^.GetText;
+  P.Y:=CurPos.Y;
   { determine the center of current word fragment }
-  X:=CurPos.X-(length(GetCodeCompleteFrag) div 2);
+  P.X:=CurPos.X-(length(GetCodeCompleteFrag) div 2);
   { calculate position for centering the complete word over/below the current }
-  X:=X-(length(S) div 2);
+  P.X:=P.X-(length(S) div 2);
+
+  P.X:=P.X-Delta.X;
+  P.Y:=P.Y-Delta.Y;
+  MakeGlobal(P,P);
+  if Assigned(CodeCompleteTip^.Owner) then
+    CodeCompleteTip^.Owner^.MakeLocal(P,P);
+
   { ensure that the tooltip stays in screen }
-  X:=Min(Max(0,X),ScreenWidth-length(S)-2-1);
-  if CurPos.Y>round(ScreenHeight*3/4) then
-    Y:=CurPos.Y-1
+  P.X:=Min(Max(0,P.X),ScreenWidth-length(S)-2-1);
+  { align it vertically }
+  if P.Y>round(ScreenHeight*3/4) then
+    Dec(P.Y)
   else
-    Y:=CurPos.Y+1;
-  R.Assign(X,Y,X+1+length(S)+1,Y+1);
+    Inc(P.Y);
+  R.Assign(P.X,P.Y,P.X+1+length(S)+1,P.Y+1);
   CodeCompleteTip^.Locate(R);
+  if CodeCompleteTip^.GetState(sfVisible)=false then
+    CodeCompleteTip^.Show;
 end;
 
 {$endif EDITORS}
@@ -991,6 +1013,16 @@ begin
             Message(@Self,evCommand,cmHelpTopicSearch,@Self);
           cmHelpTopicSearch :
             HelpTopicSearch(@Self);
+        else DontClear:=true;
+        end;
+        if not DontClear then ClearEvent(Event);
+      end;
+    evKeyDown :
+      begin
+        DontClear:=false;
+        case Event.KeyCode of
+          kbCtrlEnter :
+            Message(@Self,evCommand,cmOpenAtCursor,nil);
         else DontClear:=true;
         end;
         if not DontClear then ClearEvent(Event);
@@ -3062,6 +3094,77 @@ begin
   GetPalette:=@S;
 end;
 
+constructor TFPCodeMemo.Init(var Bounds: TRect; AHScrollBar, AVScrollBar:
+          PScrollBar; AIndicator: PIndicator; ABufSize:Sw_Word);
+begin
+  inherited Init(Bounds,AHScrollBar,AVScrollBar,AIndicator,ABufSize);
+  SetFlags(Flags and not (efPersistentBlocks) or efSyntaxHighlight);
+end;
+
+function TFPCodeMemo.GetPalette: PPalette;
+const P: string[length(CFPCodeMemo)] = CFPCodeMemo;
+begin
+  GetPalette:=@P;
+end;
+
+function TFPCodeMemo.GetSpecSymbolCount(SpecClass: TSpecSymbolClass): integer;
+var Count: integer;
+begin
+  case SpecClass of
+    ssCommentPrefix   : Count:=3;
+    ssCommentSingleLinePrefix   : Count:=1;
+    ssCommentSuffix   : Count:=2;
+    ssStringPrefix    : Count:=1;
+    ssStringSuffix    : Count:=1;
+    ssAsmPrefix       : Count:=1;
+    ssAsmSuffix       : Count:=1;
+    ssDirectivePrefix : Count:=1;
+    ssDirectiveSuffix : Count:=1;
+  end;
+  GetSpecSymbolCount:=Count;
+end;
+
+function TFPCodeMemo.GetSpecSymbol(SpecClass: TSpecSymbolClass; Index: integer): string;
+var S: string[20];
+begin
+  case SpecClass of
+    ssCommentPrefix :
+      case Index of
+        0 : S:='{';
+        1 : S:='(*';
+        2 : S:='//';
+      end;
+    ssCommentSingleLinePrefix :
+      case Index of
+        0 : S:='//';
+      end;
+    ssCommentSuffix :
+      case Index of
+        0 : S:='}';
+        1 : S:='*)';
+      end;
+    ssStringPrefix :
+      S:='''';
+    ssStringSuffix :
+      S:='''';
+    ssAsmPrefix :
+      S:='asm';
+    ssAsmSuffix :
+      S:='end';
+    ssDirectivePrefix :
+      S:='{$';
+    ssDirectiveSuffix :
+      S:='}';
+  end;
+  GetSpecSymbol:=S;
+end;
+
+function TFPCodeMemo.IsReservedWord(const S: string): boolean;
+begin
+  IsReservedWord:=IsFPReservedWord(S);
+end;
+
+
 {$ifdef VESA}
 function VESASetVideoModeProc(const VideoMode: TVideoMode; Params: Longint): Boolean; {$ifndef FPC}far;{$endif}
 begin
@@ -3110,7 +3213,10 @@ end;
 END.
 {
   $Log$
-  Revision 1.58  2000-02-06 23:42:47  pierre
+  Revision 1.59  2000-02-07 10:36:43  michael
+  + Something went wrong when unzipping
+
+  Revision 1.58  2000/02/06 23:42:47  pierre
    + Use ErrorLine on GotoSource
 
   Revision 1.57  2000/02/04 00:03:30  pierre
