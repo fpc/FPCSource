@@ -684,6 +684,7 @@ interface
        cvarianttype,
        { unsigned ord type with the same size as a pointer }
        ordpointertype,
+       defaultordconsttype,       { pointer to type of ordinal constants }
        pvmttype      : ttype;     { type of classrefs, used for stabs }
 
        { pointer to the anchestor of all classes }
@@ -2033,6 +2034,15 @@ implementation
 
     procedure tfiledef.setsize;
       begin
+{$ifdef cpu64bit}
+        case filetyp of
+          ft_text :
+            savesize:=592;
+          ft_typed,
+          ft_untyped :
+            savesize:=316;
+        end;
+{$else cpu64bit}
         case filetyp of
           ft_text :
             savesize:=572;
@@ -2040,6 +2050,7 @@ implementation
           ft_untyped :
             savesize:=316;
         end;
+{$endif cpu64bit}
       end;
 
 
@@ -5737,7 +5748,13 @@ implementation
 end.
 {
   $Log$
-  Revision 1.138  2003-04-27 11:21:34  peter
+  Revision 1.139  2003-05-01 07:59:43  florian
+    * introduced defaultordconsttype to decribe the default size of ordinal constants
+      on 64 bit CPUs it's equal to cs64bitdef while on 32 bit CPUs it's equal to s32bitdef
+    + added defines CPU32 and CPU64 for 32 bit and 64 bit CPUs
+    * int64s/qwords are allowed as for loop counter on 64 bit CPUs
+
+  Revision 1.138  2003/04/27 11:21:34  peter
     * aktprocdef renamed to current_procdef
     * procinfo renamed to current_procinfo
     * procinfo will now be stored in current_module so it can be

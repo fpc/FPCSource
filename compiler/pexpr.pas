@@ -1864,7 +1864,7 @@ implementation
                    else
                      begin
                        consume(_INTCONST);
-                       p1:=cordconstnode.create(l,s32bittype,true)
+                       p1:=cordconstnode.create(l,defaultordconsttype,true)
                      end
                  end
                else
@@ -2314,7 +2314,13 @@ implementation
 end.
 {
   $Log$
-  Revision 1.113  2003-04-27 11:21:33  peter
+  Revision 1.114  2003-05-01 07:59:42  florian
+    * introduced defaultordconsttype to decribe the default size of ordinal constants
+      on 64 bit CPUs it's equal to cs64bitdef while on 32 bit CPUs it's equal to s32bitdef
+    + added defines CPU32 and CPU64 for 32 bit and 64 bit CPUs
+    * int64s/qwords are allowed as for loop counter on 64 bit CPUs
+
+  Revision 1.113  2003/04/27 11:21:33  peter
     * aktprocdef renamed to current_procdef
     * procinfo renamed to current_procinfo
     * procinfo will now be stored in current_module so it can be

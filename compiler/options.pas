@@ -1658,26 +1658,33 @@ begin
 { new processor stuff }
 {$ifdef i386}
   def_symbol('CPUI386');
+  def_symbol('CPU32');
   def_symbol('FPC_HAS_TYPE_EXTENDED');
   def_symbol('FPC_HAS_TYPE_DOUBLE');
   def_symbol('FPC_HAS_TYPE_SINGLE');
 {$endif}
 {$ifdef m68k}
   def_symbol('CPU68K');
+  def_symbol('CPU32');
 {$endif}
 {$ifdef ALPHA}
   def_symbol('CPUALPHA');
+  def_symbol('CPU64');
 {$endif}
 {$ifdef powerpc}
   def_symbol('CPUPOWERPC');
+  def_symbol('CPUPOWERPC32');
+  def_symbol('CPU32');
   def_symbol('FPC_HAS_TYPE_DOUBLE');
   def_symbol('FPC_HAS_TYPE_SINGLE');
 {$endif}
 {$ifdef iA64}
   def_symbol('CPUIA64');
+  def_symbol('CPU64');
 {$endif}
 {$ifdef x86_64}
   def_symbol('CPUX86_64');
+  def_symbol('CPU64');
   def_symbol('FPC_HAS_TYPE_FLOAT128');
   def_symbol('FPC_HAS_TYPE_EXTENDED');
   def_symbol('FPC_HAS_TYPE_DOUBLE');
@@ -1685,9 +1692,12 @@ begin
 {$endif}
 {$ifdef sparc}
   def_symbol('CPUSPARC');
+  def_symbol('CPUSPARC32');
+  def_symbol('CPU32');
 {$endif}
 {$ifdef vis}
   def_symbol('CPUVIS');
+  def_symbol('CPU32');
 {$endif}
 
 { get default messagefile }
@@ -1908,7 +1918,13 @@ finalization
 end.
 {
   $Log$
-  Revision 1.96  2003-04-30 16:35:00  florian
+  Revision 1.97  2003-05-01 07:59:42  florian
+    * introduced defaultordconsttype to decribe the default size of ordinal constants
+      on 64 bit CPUs it's equal to cs64bitdef while on 32 bit CPUs it's equal to s32bitdef
+    + added defines CPU32 and CPU64 for 32 bit and 64 bit CPUs
+    * int64s/qwords are allowed as for loop counter on 64 bit CPUs
+
+  Revision 1.96  2003/04/30 16:35:00  florian
     * fixed defines for x86-64
 
   Revision 1.95  2003/04/24 11:21:45  florian

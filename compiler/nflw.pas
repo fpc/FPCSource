@@ -752,7 +752,11 @@ implementation
             if (hp.nodetype=loadn) and
                (tloadnode(hp).symtableentry.typ=varsym) then
               tvarsym(tloadnode(hp).symtableentry).varstate:=vs_used;
-            if (not(is_ordinal(t2.resulttype.def)) or is_64bitint(t2.resulttype.def)) then
+            if not(is_ordinal(t2.resulttype.def))
+{$ifndef cpu64bit}
+            or is_64bitint(t2.resulttype.def)
+{$endif cpu64bit}
+            then
               CGMessagePos(hp.fileinfo,type_e_ordinal_expr_expected);
           end
          else
@@ -1499,7 +1503,13 @@ begin
 end.
 {
   $Log$
-  Revision 1.71  2003-04-27 11:21:33  peter
+  Revision 1.72  2003-05-01 07:59:42  florian
+    * introduced defaultordconsttype to decribe the default size of ordinal constants
+      on 64 bit CPUs it's equal to cs64bitdef while on 32 bit CPUs it's equal to s32bitdef
+    + added defines CPU32 and CPU64 for 32 bit and 64 bit CPUs
+    * int64s/qwords are allowed as for loop counter on 64 bit CPUs
+
+  Revision 1.71  2003/04/27 11:21:33  peter
     * aktprocdef renamed to current_procdef
     * procinfo renamed to current_procinfo
     * procinfo will now be stored in current_module so it can be

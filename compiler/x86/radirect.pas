@@ -148,6 +148,7 @@ interface
                                    tvarsym(current_procdef.funcretsym).varstate:=vs_assigned;
                                  if (s[length(s)]<>'%') and
                                    (s[length(s)]<>'$') and
+                                   (s[length(s)]<>'.') and
                                    ((s[length(s)]<>'0') or (hs[1]<>'x')) then
                                    begin
                                       if assigned(current_procdef.localst) and
@@ -319,7 +320,13 @@ initialization
 end.
 {
   $Log$
-  Revision 1.1  2003-04-30 15:45:35  florian
+  Revision 1.2  2003-05-01 07:59:43  florian
+    * introduced defaultordconsttype to decribe the default size of ordinal constants
+      on 64 bit CPUs it's equal to cs64bitdef while on 32 bit CPUs it's equal to s32bitdef
+    + added defines CPU32 and CPU64 for 32 bit and 64 bit CPUs
+    * int64s/qwords are allowed as for loop counter on 64 bit CPUs
+
+  Revision 1.1  2003/04/30 15:45:35  florian
     * merged more x86-64/i386 code
 
   Revision 1.11  2003/04/27 11:21:36  peter

@@ -248,18 +248,23 @@ implementation
         globaldef('variant',cvarianttype);
 {$ifdef i386}
         ordpointertype:=u32bittype;
+        defaultordconsttype:=s32bittype;
 {$endif i386}
 {$ifdef x86_64}
         ordpointertype:=cu64bittype;
+        defaultordconsttype:=cs64bittype;
 {$endif x86_64}
 {$ifdef powerpc}
         ordpointertype:=u32bittype;
+        defaultordconsttype:=s32bittype;
 {$endif powerpc}
 {$ifdef sparc}
         ordpointertype:=u32bittype;
+        defaultordconsttype:=s32bittype;
 {$endif sparc}
 {$ifdef m68k}
         ordpointertype:=u32bittype;
+        defaultordconsttype:=s32bittype;
 {$endif}
       end;
 
@@ -297,9 +302,11 @@ implementation
 {$ifdef x86}
   {$ifdef i386}
         ordpointertype:=u32bittype;
+        defaultordconsttype:=s32bittype;
   {$endif i386}
   {$ifdef x86_64}
         ordpointertype:=cu64bittype;
+        defaultordconsttype:=cs64bittype;
   {$endif x86_64}
         s32floattype.setdef(tfloatdef.create(s32real));
         s64floattype.setdef(tfloatdef.create(s64real));
@@ -308,6 +315,7 @@ implementation
 {$endif x86}
 {$ifdef powerpc}
         ordpointertype:=u32bittype;
+        defaultordconsttype:=s32bittype;
         s32floattype.setdef(tfloatdef.create(s32real));
         s64floattype.setdef(tfloatdef.create(s64real));
         s80floattype.setdef(tfloatdef.create(s80real));
@@ -315,6 +323,7 @@ implementation
 {$endif powerpc}
 {$ifdef sparc}
         ordpointertype:=u32bittype;
+        defaultordconsttype:=s32bittype;
         s32floattype.setdef(tfloatdef.create(s32real));
         s64floattype.setdef(tfloatdef.create(s64real));
         s80floattype.setdef(tfloatdef.create(s80real));
@@ -322,6 +331,7 @@ implementation
 {$endif sparc}
 {$ifdef m68k}
         ordpointertype:=u32bittype;
+        defaultordconsttype:=s32bittype;
         s32floattype.setdef(tfloatdef.create(s32real));
         s64floattype.setdef(tfloatdef.create(s64real));
         s80floattype.setdef(tfloatdef.create(s80real));
@@ -481,7 +491,13 @@ implementation
 end.
 {
   $Log$
-  Revision 1.47  2003-04-25 20:59:34  peter
+  Revision 1.48  2003-05-01 07:59:42  florian
+    * introduced defaultordconsttype to decribe the default size of ordinal constants
+      on 64 bit CPUs it's equal to cs64bitdef while on 32 bit CPUs it's equal to s32bitdef
+    + added defines CPU32 and CPU64 for 32 bit and 64 bit CPUs
+    * int64s/qwords are allowed as for loop counter on 64 bit CPUs
+
+  Revision 1.47  2003/04/25 20:59:34  peter
     * removed funcretn,funcretsym, function result is now in varsym
       and aliases for result and function name are added using absolutesym
     * vs_hidden parameter for funcret passed in parameter
