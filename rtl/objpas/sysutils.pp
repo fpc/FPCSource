@@ -24,7 +24,7 @@ interface
        linux
     {$endif}
     {$ifdef win32}
-       windows,dos
+       dos,windows
     {$endif}
     {$ifdef go32v1}
        go32,dos
@@ -338,7 +338,10 @@ begin
 end.
 {
     $Log$
-    Revision 1.25  1999-04-08 16:26:31  michael
+    Revision 1.26  1999-04-09 08:40:46  michael
+    + Fixed tfiletime problem
+
+    Revision 1.25  1999/04/08 16:26:31  michael
     + Added (re)allocmem
 
     Revision 1.24  1999/04/08 12:23:05  peter
