@@ -818,7 +818,8 @@ function taicpu.Matches(p:PInsEntry):longint;
  * required to have unspecified size in the instruction too...)
 }
 var
-  i,siz,oprs : longint;
+  i,j,asize,oprs : longint;
+  siz : array[0..2] of longint;
 begin
   Matches:=100;
 
@@ -859,14 +860,36 @@ begin
   { as default an untyped size can get all the sizes, this is different
     from nasm, but else we need to do a lot checking which opcodes want
     size or not with the automatic size generation }
-  siz:=$ffffffff;
+  asize:=$ffffffff;
   if (p^.flags and IF_SB)<>0 then
-    siz:=OT_BITS8
+    asize:=OT_BITS8
   else if (p^.flags and IF_SW)<>0 then
-    siz:=OT_BITS16
+    asize:=OT_BITS16
   else if (p^.flags and IF_SD)<>0 then
-    siz:=OT_BITS32
-  else if (p^.flags and (IF_SM or IF_SM2))<>0 then
+    asize:=OT_BITS32;
+  if (p^.flags and IF_ARMASK)<>0 then
+   begin
+     siz[0]:=0;
+     siz[1]:=0;
+     siz[2]:=0;
+     if (p^.flags and IF_AR0)<>0 then
+      siz[0]:=asize
+     else if (p^.flags and IF_AR1)<>0 then
+      siz[1]:=asize
+     else if (p^.flags and IF_AR2)<>0 then
+      siz[2]:=asize;
+   end
+  else
+   begin
+   {  siz[0]:=asize;
+     siz[1]:=asize;
+     siz[2]:=asize; }
+   { we can leave because the size for all operands is forced to be
+     the same }
+     exit;
+   end;
+
+  if (p^.flags and (IF_SM or IF_SM2))<>0 then
    begin
      if (p^.flags and IF_SM2)<>0 then
       oprs:=2
@@ -875,19 +898,22 @@ begin
      for i:=0 to oprs-1 do
       if ((p^.optypes[i] and OT_SIZE_MASK) <> 0) then
        begin
-         siz:=p^.optypes[i] and OT_SIZE_MASK;
+         for j:=0 to oprs-1 do
+          siz[j]:=p^.optypes[i] and OT_SIZE_MASK;
          break;
        end;
-    end;
+    end
+   else
+    oprs:=2;
 
   { Check operand sizes }
   for i:=0to p^.ops-1 do
    begin
      if ((p^.optypes[i] and OT_SIZE_MASK)=0) and
-        ((oper[i].ot and OT_SIZE_MASK and (not siz))<>0) and
+        ((oper[i].ot and OT_SIZE_MASK and (not siz[i]))<>0) and
         { Immediates can always include smaller size }
         ((oper[i].ot and OT_IMMEDIATE)=0) and
-         (((p^.optypes[i] and OT_SIZE_MASK) or siz)<(oper[i].ot and OT_SIZE_MASK)) then
+         (((p^.optypes[i] and OT_SIZE_MASK) or siz[i])<(oper[i].ot and OT_SIZE_MASK)) then
       Matches:=2;
    end;
 end;
@@ -1647,7 +1673,11 @@ end;
 end.
 {
   $Log$
-  Revision 1.14  2000-05-12 21:26:22  pierre
+  Revision 1.15  2000-05-23 20:34:35  peter
+    * fixed instruction matching when a size flag is specified for all
+      operands
+
+  Revision 1.14  2000/05/12 21:26:22  pierre
     * fix the FDIV FDIVR FSUB FSUBR and popping equivalent
       simply by swapping from reverse to normal and vice-versa
       when passing from one syntax to the other !
