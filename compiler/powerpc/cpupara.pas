@@ -105,6 +105,13 @@ unit cpupara;
               getparaloc:=LOC_REGISTER;
             arraydef:
               getparaloc:=LOC_REFERENCE;
+            setdef:
+              if is_smallset(p) then
+                getparaloc:=LOC_REGISTER
+              else
+                getparaloc:=LOC_REFERENCE;
+            variantdef:
+              getparaloc:=LOC_REFERENCE;
             { avoid problems with errornous definitions }
             errordef:
               getparaloc:=LOC_REGISTER;
@@ -250,7 +257,7 @@ unit cpupara;
                 getfuncretparaloc.register:=R_3;
                 getfuncretparaloc.size:=def_cgsize(p.rettype.def);
                 if getfuncretparaloc.size in [OS_S64,OS_64] then
-                  getfuncretparaloc.registerhigh:=R_4;                 
+                  getfuncretparaloc.registerhigh:=R_4;
               end;
             floatdef:
               begin
@@ -284,7 +291,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.13  2002-09-10 21:28:05  jonas
+  Revision 1.14  2002-09-28 21:27:16  florian
+    + getparaloc supports now sets and variants
+
+  Revision 1.13  2002/09/10 21:28:05  jonas
     * int64 paras are now handled correctly (until the registers are used up
       anyway :)
     * the return location is now initialized correctly
