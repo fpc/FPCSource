@@ -73,7 +73,7 @@ testcheck: units allpreps $(DOTEST)
 #
 
 ifneq ($(FPC),ppc386$(EXEEXT))
-ifeq ($finstring -c$(FPC),$(DOTESTOPT),)
+ifeq ($(findstring -c$(FPC),$(DOTESTOPT)),)
 override DOTESTOPT+=-c$(FPC)
 endif
 endif
@@ -205,14 +205,14 @@ info :
         @echo This Makefile allows to test the compiler
         @echo
         @echo Targets:
-        @echo   all   - continue all tests
-        @echo   full  - clean and run all tests
-	@echo   dailytest - run full and save results
-	@echo               in files having the date as extension
-        @echo   onlyknown - run only known bugs
-        @echo   onlygraph - run only graph tests
-        @echo   onlyinteractive - run only interactive tests
-
+        @echo "  all   - continue all tests"
+        @echo "  full  - clean and run all tests"
+	@echo "  dailytest - run full and save results"
+	@echo "              in files having the date as extension"
+        @echo "  onlyknown - run only known bugs"
+        @echo "  onlygraph - run only graph tests"
+        @echo "  onlyinteractive - run only interactive tests"
+	@echo Done using FPC=$(FPC)
 
 override DATESUFFIX:=$(shell $(DATE) +%Y.%m.%d)
 
