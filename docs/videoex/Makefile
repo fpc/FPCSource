@@ -6,6 +6,20 @@
 
 # Compiler
 
+override PATH:=$(patsubst %/,%,$(subst \,/,$(PATH)))
+ifneq ($(findstring darwin,$(OSTYPE)),)
+inUnix=1 #darwin
+SEARCHPATH:=$(filter-out .,$(subst :, ,$(PATH)))
+else
+ifeq ($(findstring ;,$(PATH)),)
+inUnix=1
+SEARCHPATH:=$(filter-out .,$(subst :, ,$(PATH)))
+else
+SEARCHPATH:=$(subst ;, ,$(PATH))
+endif
+endif
+SEARCHPATH+=$(patsubst %/,%,$(subst \,/,$(dir $(MAKE))))
+
 ifndef FPC
 ifdef PP
 FPC=$(PP)
