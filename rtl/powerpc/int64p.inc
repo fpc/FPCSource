@@ -154,44 +154,58 @@
         cntlzw  r11,r3      // count leading zeroes of msw1
         cntlzw  r12,r5      // count leading zeroes of msw2
         subi    r0,r7,1     // if no overflowcheck, r0 := $ffffffff, else r0 := 0;
+        mr      r10,r8
         add     r9,r11,r12  // sum of leading zeroes
         or      r0,r9,r0    // maximise sum if no overflow checking, otherwise it remains
-        cmplwi  cr1,r0,63   // more than 63 leading zero bits in total? If so, no overflow
+        cmplwi  cr1,r0,64   // >= 64 leading zero bits in total? If so, no overflow
         beq     .Lmsw_zero  // if both msw's are zero, skip cross products
         mullw   r7,r3,r6    // lsw of first cross-product
         add     r8,r8,r7    // add
-        mullw   r7,r4,r5    // lsw of second cross-product
-        add     r8,r8,r7    // add
+        mullw   r5,r4,r5    // lsw of second cross-product
+        add     r8,r8,r5    // add
       .Lmsw_zero:
-        mullw   r7,r4,r6    // lsw of product of lsw's
-        bge+    cr1,.LDone  // if the sum of leading zero's >= 63 (or checkoverflow was 0)
+        bge+    cr1,.LDone  // if the sum of leading zero's >= 64 (or checkoverflow was 0)
                             // there's no overflow, otherwise more thorough check
-        subfic  r0,r11,31   // if msw f1 = 0, then r0 := -1, else r9 >= 0
-        cntlzw  r4,r4       // get leading zeroes count of lsw f1
+        subfic  r0,r11,31   // if msw f1 = 0, then r0 := -1, else r0 >= 0
+        cntlzw  r3,r4       // get leading zeroes count of lsw f1
         srawi   r0,r0,31    // if msw f1 = 0, then r0 := 1, else r0 := 0
-        subfic  r10,r12,31  // same for f2
-        cntlzw  r6,r6
-        srawi   r10,r10,31
-        and     r4,r4,r0    // if msw f1 <> 0, the leading zero count lsw f1 := 0
-        and     r6,r6,r10   // same for f2
-        add     r9,r9,r4    // add leading zero counts of lsw's to sum if appropriate
-        add     r9,r9,r6
-        cmplwi  r9,63       // is the sum now > 63?
-        bge     .LDone
+        subfic  r11,r12,31  // same for f2
+        cntlzw  r12,r6
+        srawi   r11,r11,31
+        and     r3,r3,r0    // if msw f1 <> 0, the leading zero count lsw f1 := 0
+        and     r12,r12,r11 // same for f2
+        add     r9,r9,r3    // add leading zero counts of lsw's to sum if appropriate
+        add     r9,r9,r12
+        cmplwi  r9,64       // is the sum now >= 64?
+        cmplwi  cr1,r9,62   // or <= 62?
+        bge+    .LDone      // >= 64 leading zeroes -> no overflow
+        ble+    cr1,.LOverflow  // <= 62 leading zeroes -> overflow
+                            // for 63 zeroes, we need additional checks
+        add     r9,r7,r5    // sum of lsw's cross products can't produce a carry,
+                            // because the sum of leading zeroes is 63 -> at least
+                            // one of these cross products is 0
+        li      r0, 0
+        addc    r9,r9,r10   // add the msw of the product of the lsw's
+        addze.  r0,r0
+        beq+    .LDone
+      .LOverflow:
         b       FPC_OVERFLOW
       .LDone:
+        mullw   r4,r4,r6    // lsw of product of lsw's
         mr      r3,r8       // get msw of product in correct register
-        mr      r4,r7       // get lsw of product in correct register
       end;
 
 
 {
   $Log$
-  Revision 1.3  2004-01-12 21:35:51  jonas
+  Revision 1.4  2004-05-29 21:35:54  jonas
+    * fixed overflow checking for qword multiplication
+
+  Revision 1.3  2004/01/12 21:35:51  jonas
     + assembler FPC_MUL_QWORD routine
 
   Revision 1.2  2004/01/12 18:03:30  jonas
-    + ppc implemetnation of fpc_mod/div_qword (from ppc compiler writers guide)
+    + ppc implementation of fpc_mod/div_qword (from ppc compiler writers guide)
 
   Revision 1.1  2003/09/14 11:34:13  peter
     * moved int64 asm code to int64p.inc
