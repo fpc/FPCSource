@@ -55,8 +55,10 @@ asm
         { get length  }
         lbz     r30,0(r4)
         { put in counter }
+        cmpli   r30,0
         mtctr   r30
         subi    r29,r3,1
+        beq     LStrCopyEmpty
 LStrPCopyLoop:
         { copy everything }
         lbzu    r30,1(r4)
@@ -64,12 +66,16 @@ LStrPCopyLoop:
         bdnz    LStrCopyLoop
         { add terminating #0 }
         li      r30,0
+LStrCopyEmpty:
         stb     r30,1(r29)
-end ['r4','r29','r30','ctr'];
+end ['r4','r29','r30','cr0','ctr'];
 
 {
   $Log$
-  Revision 1.1  2001-02-10 16:10:32  jonas
+  Revision 1.2  2001-02-11 12:15:03  jonas
+    * some small optimizations and bugfixes
+
+  Revision 1.1  2001/02/10 16:10:32  jonas
     * initial implementation: everything implemented, nothing tested
 
 

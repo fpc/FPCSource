@@ -58,7 +58,9 @@ LStrlCopyLoop:
         cmpli   r30,0
         stbu    r30,1(r29)
         bdnzne  LStrlCopyLoop
+        { if we stopped because we copied a #0, we're done }
         beq     LStrlCopyDone
+        { otherwise add the #0 }
         li      r30,0
         stb     r30,1(r29)
 LStrlCopyDone:
@@ -119,10 +121,9 @@ LStrCompLoop:
         { if chars not equal, we're ready }
         bne     LStrCompDone
         { if they are equal and one is zero, then the other one is zero too }
-        { and we're done as well (r3 does contain as well)                  }
-        beq     cr1,LStrCompDone
-        { otherwise loop }
-        b       LStrCompLoop
+        { and we're done as well (r3 also contains 0 then)                  }
+        { otherwise loop                                                    }
+        bne     cr1,LStrCompLoop
 LStrCompDone:
 end ['r3','r4','r28','r29','r30','cr0','cr1'];
 
@@ -151,10 +152,9 @@ LStrlCompLoop:
         { if chars not equal, we're ready }
         bne     LStrlCompDone
         { if they are equal and one is zero, then the other one is zero too }
-        { and we're done as well (r3 does contain as well)                  }
-        beq     cr1,LStrlCompDone
-        { otherwise loop }
-        bdnz    LStrlCompLoop
+        { and we're done as well (r3 also contains 0 then)                  }
+        { otherwise loop (if ctr <> 0)                                      }
+        bdnzne  cr1,LStrlCompLoop
 LStrlCompDone:
 end ['r3','r4','r28','r29','r30','cr0','cr1','ctr'];
 
@@ -175,33 +175,40 @@ LStriCompLoop:
         { calculate difference }
         sub.    r3,r29,r30
         { if chars are equal, no further test is necessary }
-        beq     LStriCompEqual
+        beq+    LStriCompEqual
 
+        { make both lowercase, no branches }
         li       r27,0
+        li       r25,0
+
         { r3 := r29 - 'A' }
         subic    r3,r29,'A'
         { if r29 < 'A' then r27 := 0 else r27 := $ffffffff }
         addme    r27,r27
+        { same for r30 }
+        subic    r3,r30,'A'
+        addme    r25,r25
+
         { r3 := 'Z' - r29 }
         subfic   r3,r29,'Z'
         { if r29 < 'A' then r27 := 0 else r27 := $20 }
         andi     r27,r27,0x020
         { if r29 > Z then r26 := 0 else r26 := $ffffffff
         subfe    r26,r26,r26
+        { same for r30 }
+        subfic   r3,r30,'Z'
+        andi     r25,r25,0x020
+        subfe    r24,r24,r24
+
         { if (r29 in ['A'..'Z'] then r27 := $20 else r27 := 0 }
         and      r27,r27,r26
+        { same for r30 }
+        and      r25,r25,r24
+
         { make lowercase }
         add      r29,r29,r27
-
         { same for r30 }
-        li       r27,0
-        subic    r3,r30,'A'
-        addme    r27,r27
-        subfic   r3,r30,'Z'
-        andi     r27,r27,0x020
-        subfe    r26,r26,r26
-        and      r27,r27,r26
-        add      r30,r30,r27
+        add      r30,r30,r25
 
         { compare again }
         sub.     r3,r29,r30
@@ -209,11 +216,10 @@ LStriCompLoop:
 LStriCompEqual:
         { if they are equal and one is zero, then the other one is zero too }
         { and we're done as well (r3 also contains 0 then)                  }
-        beq     cr1,LStriCompDone
-        { otherwise loop }
-        b       LStriCompLoop
+        { otherwise loop                                                    }
+        bne     LStriCompLoop
 LStriCompDone:
-end ['r3','r4','r26,'r27','r28','r29','r30','cr0','cr1'];
+end ['r3','r4','r26','r27','r28','r29','r30','cr0','cr1'];
 
 
 function strlicomp(str1,str2 : pchar;l : longint) : longint;assembler;
@@ -237,27 +243,28 @@ LStriCompLoop:
         { calculate difference }
         sub.    r3,r29,r30
         { if chars are equal, no further test is necessary }
-        beq     LStriCompEqual
+        beq+    LStriCompEqual
 
         { see stricomp for explanation }
         li       r27,0
+        li       r25,0
+
         subic    r3,r29,'A'
         addme    r27,r27
+        subic    r3,r30,'A'
+        addme    r25,r25
+
         subfic   r3,r29,'Z'
         andi     r27,r27,0x020
         subfe    r26,r26,r26
-        and      r27,r27,r26
-        add      r29,r29,r27
-
-        { same for r30 }
-        li       r27,0
-        subic    r3,r30,'A'
-        addme    r27,r27
         subfic   r3,r30,'Z'
-        andi     r27,r27,0x020
-        subfe    r26,r26,r26
+        andi     r25,r25,0x020
+        subfe    r24,r24,r24
+
         and      r27,r27,r26
-        add      r30,r30,r27
+        and      r25,r25,r24
+        add      r29,r29,r27
+        add      r30,r30,r25
 
         { compare again }
         sub.     r3,r29,r30
@@ -265,11 +272,10 @@ LStriCompLoop:
 LStriCompEqual:
         { if they are equal and one is zero, then the other one is zero too }
         { and we're done as well (r3 also contains 0 then)                  }
-        beq     cr1,LStriCompDone
-        { otherwise loop }
-        bdnz    LStriCompLoop
+        { otherwise loop (if ctr <> 0)                                      }
+        bdnzne  cr1,LStriCompLoop
 LStriCompDone:
-end ['r3','r4','r26,'r27','r28','r29','r30','cr0','cr1','ctr'];
+end ['r3','r4','r26','r27','r28','r29','r30','cr0','cr1','ctr'];
 
 
 function strscan(p : pchar;c : char) : pchar;assembler;
@@ -305,14 +311,14 @@ LStrrScanLoop:
         mr      r29,r3
 LStrrScanNotFound:
         bne     LStrrScanLoop
-        { Select min of r3 and r29 -> end of string or found position     }
+        { Select min of r3 and r29 -> end of string or found position    }
         { From the PPC compiler writer's guide, not sure if I could ever }
         { come up with something like this :)                            }
 
         subfc   r30,r3,r29   { r30 = r29 - r3, CA = (r29 >= r3) ? 1 : 0 }
-        subfe   r29,r29,r29    { r29' = (r29 >= r3) ? 0 : -1              }
+        subfe   r29,r29,r29  { r29' = (r29 >= r3) ? 0 : -1              }
         and     r30,r30,r29  { r30 = (r29 >= r3) ? 0 : r29 - r3         }
-        add     r3,r30,r3   { r3  = (r29 >= r3) ?  r3 : r29            }
+        add     r3,r30,r3    { r3  = (r29 >= r3) ?  r3 : r29            }
 LStrrScanDone:
 end ['r3','r4','r29','r30','cr0','cr1'];
 
@@ -359,7 +365,10 @@ end ['r28','r29','r30','cr0','cr1'];
 
 {
   $Log$
-  Revision 1.3  2001-02-10 16:09:43  jonas
+  Revision 1.4  2001-02-11 12:15:03  jonas
+    * some small optimizations and bugfixes
+
+  Revision 1.3  2001/02/10 16:09:43  jonas
    + implemented all missing routines and changed reg allocation to follow ABI
 
   Revision 1.2  2001/02/10 12:28:22  jonas
