@@ -2764,6 +2764,8 @@ implementation
           if uses_eax then
             exprasmList.concat(Taicpu.Op_reg_ref(A_MOV,S_L,R_EAX,new_reference(R_ESP,28)));
           exprasmList.concat(Taicpu.Op_none(A_POPA,S_L));
+          { We add a NOP because of the 386DX CPU bugs with POPAD }
+          exprasmlist.concat(taicpu.op_none(A_NOP,S_L));
         end;
       if not(nostackframe) then
         begin
@@ -2983,7 +2985,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.21  2001-04-18 22:02:00  peter
+  Revision 1.22  2001-04-21 12:05:32  peter
+    * add nop after popa (merged)
+
+  Revision 1.21  2001/04/18 22:02:00  peter
     * registration of targets and assemblers
 
   Revision 1.20  2001/04/13 01:22:17  peter
