@@ -54,10 +54,8 @@
        ./configure --enable-targets=i386-linux,i386-netware
        make all
 
-    Debugging is currently only possible at assembler level with nwdbg, written
-    by Jan Beulich. (or with my modified RDebug) Nwdbg supports symbols but it's
-    not a source-level debugger. You can get nwdbg from developer.novell.com.
-    To enter the debugger from your program, call _EnterDebugger (defined in unit system).
+    Debugging is possible with gdb and a converter from gdb to ndi available 
+    at http://home.arcor.de/armin.diehl/gdbnw (you have to compile with -gg)
 
     A sample program:
 
@@ -65,7 +63,7 @@
     (*$DESCRIPTION HelloWorldNlm*)
     (*$VERSION 1.2.3*)
     (*$ScreenName Hello*)
-    (*$M 8192,8192*)
+    (*$M 60000,60000*)
     begin
       writeLn ('hello world');
     end.
@@ -78,7 +76,6 @@
       - No debug symbols
       - libc support (needs new target)
       - prelude support (needs new compiler switch)
-      - a lot of additional units from nwsdk
 
 ****************************************************************************
 }
@@ -266,7 +263,6 @@ begin
   with Info do
    begin
      ExeCmd[1]:='nlmconv -T$RES';
-     {DllCmd[2]:='strip --strip-unneeded $EXE';}
    end;
 end;
 
@@ -275,7 +271,7 @@ Function TLinkerNetware.WriteResponseFile(isdll:boolean) : Boolean;
 Var
   linkres      : TLinkRes;
   i            : longint;
-  s,s2         : string;
+  s,s2,s3      : string;
   ProgNam      : string [80];
   NlmNam       : string [80];
   hp2          : texported_item;  { for exports }
@@ -328,11 +324,9 @@ begin
   if nwcopyright <> '' then
     LinkRes.Add('COPYRIGHT "' + nwcopyright + '"');
 
-  if stacksize > 1024 then
-  begin
-    str (stacksize, s);
-    LinkRes.Add ('STACKSIZE '+s);
-  end;
+  if stacksize < 32768 then stacksize := 32768;
+  str (stacksize, s);
+  LinkRes.Add ('STACKSIZE '+s);
 
   { add objectfiles, start with nwpre always }
   LinkRes.Add ('INPUT '+FindObjectFile('nwpre',''));
@@ -349,12 +343,16 @@ begin
   LinkRes.Add ('OUTPUT ' + NlmNam);
 
   { start and stop-procedures }
-  LinkRes.Add ('START _Prelude');  { defined in rtl/netware/nwpre.pp }
+  LinkRes.Add ('START _Prelude');  { defined in rtl/netware/nwpre.as }
   LinkRes.Add ('EXIT _Stop');
   LinkRes.Add ('CHECK FPC_NW_CHECKFUNCTION');
 
-  if not (cs_link_strip in aktglobalswitches) then
+  if (cs_gdb_dbx in aktglobalswitches) or 
+     (cs_gdb_gsym in aktglobalswitches) then
+  begin
     LinkRes.Add ('DEBUG');
+    Comment(V_Debug,'DEBUG');
+  end;
 
   { Write staticlibraries, is that correct ? }
   if not StaticLibFiles.Empty then
@@ -363,23 +361,26 @@ begin
       begin
         S:=lower (StaticLibFiles.GetFirst);
         if s<>'' then
+        begin
+    	  {ad: that's a hack !
+           whith -XX we get the .a files as static libs (in addition to the
+           imported libraries}
+         if (pos ('.a',s) <> 0) OR (pos ('.A', s) <> 0) then
          begin
-       {ad: that's a hack !
-        whith -XX we get the .a files as static libs (in addition to the
-        imported libraries}
-       if (pos ('.a',s) <> 0) OR (pos ('.A', s) <> 0) then
-       begin
-         LinkRes.Add ('INPUT '+FindObjectFile(s,''));
-       end else
-       begin
-             i:=Pos(target_info.staticlibext,S);
-             if i>0 then
-               Delete(S,i,255);
-             S := S + '.imp';
-             librarysearchpath.FindFile(S,s);
-             LinkRes.Add('IMPORT @'+s);
-       end;
-         end
+	   S2 := FindObjectFile(s,'');
+           LinkRes.Add ('INPUT '+S2);
+	   Comment(V_Debug,'INPUT '+S2);
+         end else
+         begin
+           i:=Pos(target_info.staticlibext,S);
+           if i>0 then
+             Delete(S,i,255);
+           S := S + '.imp'; S2 := '';
+           librarysearchpath.FindFile(S,S2);
+           LinkRes.Add('IMPORT @'+S2);
+	   Comment(V_Debug,'IMPORT @'+s2);
+         end;
+        end
       end;
    end;
 
@@ -401,9 +402,11 @@ begin
            if i>0 then
              Delete(S,i,255);
            S := S + '.imp';
-           librarysearchpath.FindFile(S,s);
-           LinkRes.Add('IMPORT @'+s);
+           librarysearchpath.FindFile(S,S3);
+           LinkRes.Add('IMPORT @'+S3);
            LinkRes.Add('MODULE '+s2);
+	   Comment(V_Debug,'MODULE '+S2);
+	   Comment(V_Debug,'IMPORT @'+S3);
          end
       end;
    end;
@@ -415,7 +418,7 @@ begin
      if not hp2.is_var then
       begin
         { Export the Symbol }
-        Comment(V_Debug,'Exporting '+hp2.name^);
+        Comment(V_Debug,'EXPORT '+hp2.name^);
         LinkRes.Add ('EXPORT '+hp2.name^);
       end
      else
@@ -465,7 +468,7 @@ begin
   { Remove ReponseFile }
   if (success) and not(cs_link_extern in aktglobalswitches) then
     RemoveFile(outputexedir+Info.ResName);
-
+    
   MakeExecutable:=success;   { otherwise a recursive call to link method }
 end;
 
@@ -483,7 +486,10 @@ initialization
 end.
 {
   $Log$
-  Revision 1.3  2002-11-17 16:32:04  carl
+  Revision 1.4  2003-03-21 19:19:51  armin
+  * search of .imp files was broken, debug only if -gg was specified
+
+  Revision 1.3  2002/11/17 16:32:04  carl
     * memory optimization (3-4%) : cleanup of tai fields,
        cleanup of tdef and tsym fields.
     * make it work for m68k
