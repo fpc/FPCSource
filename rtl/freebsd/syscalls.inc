@@ -24,7 +24,7 @@
                      --- Main:The System Call Self ---
 *****************************************************************************}
 
-
+{
 Function fpmmap(adr:pointer;len:TSize;prot:cint;flags:cint;fdes:cint;off:TOff):cint;  // moved from sysunix.inc, used in sbrk
 begin
  {$ifdef LITTLE_ENDIAN}
@@ -33,11 +33,14 @@ begin
   fpmmap:=do_syscall(syscall_nr_mmap,TSysParam(Adr),TSysParam(Len),Prot,Flags,fdes,0,lo(off));
  {$endif}
 end;
-
+}
 
 {
   $Log$
-  Revision 1.12  2003-09-14 20:15:01  marco
+  Revision 1.13  2003-09-16 12:58:35  marco
+   * fixje voor mmap parameter typering veranderingen
+
+  Revision 1.12  2003/09/14 20:15:01  marco
    * Unix reform stage two. Remove all calls from Unix that exist in Baseunix.
 
   Revision 1.11  2003/06/01 16:35:28  marco
