@@ -88,6 +88,7 @@ interface
         procedure g_save_standard_registers(list : taasmoutput);override;
         procedure g_concatcopy(list : taasmoutput;const source,dest : treference;len : aint);override;
         procedure g_concatcopy_unaligned(list : taasmoutput;const source,dest : treference;len : aint);override;
+        procedure g_concatcopy_move(list : taasmoutput;const source,dest : treference;len : aint);
       end;
 
       TCg64Sparc=class(tcg64f32)
@@ -975,94 +976,7 @@ implementation
 
     { ************* concatcopy ************ }
 
-    procedure TCgSparc.g_concatcopy(list:taasmoutput;const source,dest:treference;len:aint);
-      var
-        tmpreg1,
-        hreg,
-        countreg: TRegister;
-        src, dst: TReference;
-        lab: tasmlabel;
-        count, count2: aint;
-      begin
-        if len>high(longint) then
-          internalerror(2002072704);
-        reference_reset(src);
-        reference_reset(dst);
-        { load the address of source into src.base }
-        src.base:=GetAddressRegister(list);
-        a_loadaddr_ref_reg(list,source,src.base);
-        { load the address of dest into dst.base }
-        dst.base:=GetAddressRegister(list);
-        a_loadaddr_ref_reg(list,dest,dst.base);
-        { generate a loop }
-        count:=len div 4;
-        if count>4 then
-          begin
-            { the offsets are zero after the a_loadaddress_ref_reg and just }
-            { have to be set to 8. I put an Inc there so debugging may be   }
-            { easier (should offset be different from zero here, it will be }
-            { easy to notice in the generated assembler                     }
-            countreg:=GetIntRegister(list,OS_INT);
-            tmpreg1:=GetIntRegister(list,OS_INT);
-            a_load_const_reg(list,OS_INT,count,countreg);
-            { explicitely allocate R_O0 since it can be used safely here }
-            { (for holding date that's being copied)                    }
-            objectlibrary.getlabel(lab);
-            a_label(list, lab);
-            list.concat(taicpu.op_ref_reg(A_LD,src,tmpreg1));
-            list.concat(taicpu.op_reg_ref(A_ST,tmpreg1,dst));
-            list.concat(taicpu.op_reg_const_reg(A_ADD,src.base,4,src.base));
-            list.concat(taicpu.op_reg_const_reg(A_ADD,dst.base,4,dst.base));
-            list.concat(taicpu.op_reg_const_reg(A_SUBcc,countreg,1,countreg));
-            a_jmp_cond(list,OC_NE,lab);
-            list.concat(taicpu.op_none(A_NOP));
-            { keep the registers alive }
-            list.concat(taicpu.op_reg_reg(A_MOV,countreg,countreg));
-            list.concat(taicpu.op_reg_reg(A_MOV,src.base,src.base));
-            list.concat(taicpu.op_reg_reg(A_MOV,dst.base,dst.base));
-            len := len mod 4;
-          end;
-        { unrolled loop }
-        count:=len div 4;
-        if count>0 then
-          begin
-            tmpreg1:=GetIntRegister(list,OS_INT);
-            for count2 := 1 to count do
-              begin
-                list.concat(taicpu.op_ref_reg(A_LD,src,tmpreg1));
-                list.concat(taicpu.op_reg_ref(A_ST,tmpreg1,dst));
-                inc(src.offset,4);
-                inc(dst.offset,4);
-              end;
-            len := len mod 4;
-          end;
-        if (len and 4) <> 0 then
-          begin
-            hreg:=GetIntRegister(list,OS_INT);
-            a_load_ref_reg(list,OS_32,OS_32,src,hreg);
-            a_load_reg_ref(list,OS_32,OS_32,hreg,dst);
-            inc(src.offset,4);
-            inc(dst.offset,4);
-          end;
-        { copy the leftovers }
-        if (len and 2) <> 0 then
-          begin
-            hreg:=GetIntRegister(list,OS_INT);
-            a_load_ref_reg(list,OS_16,OS_16,src,hreg);
-            a_load_reg_ref(list,OS_16,OS_16,hreg,dst);
-            inc(src.offset,2);
-            inc(dst.offset,2);
-          end;
-        if (len and 1) <> 0 then
-          begin
-            hreg:=GetIntRegister(list,OS_INT);
-            a_load_ref_reg(list,OS_8,OS_8,src,hreg);
-            a_load_reg_ref(list,OS_8,OS_8,hreg,dst);
-          end;
-      end;
-
-
-    procedure tcgsparc.g_concatcopy_unaligned(list : taasmoutput;const source,dest : treference;len : aint);
+    procedure tcgsparc.g_concatcopy_move(list : taasmoutput;const source,dest : treference;len : aint);
       var
         paraloc1,paraloc2,paraloc3 : TCGPara;
       begin
@@ -1090,6 +1004,162 @@ implementation
         paraloc2.done;
         paraloc1.done;
       end;
+
+
+    procedure TCgSparc.g_concatcopy(list:taasmoutput;const source,dest:treference;len:aint);
+      var
+        tmpreg1,
+        hreg,
+        countreg: TRegister;
+        src, dst: TReference;
+        lab: tasmlabel;
+        count, count2: aint;
+      begin
+        if len>high(longint) then
+          internalerror(2002072704);
+        { anybody wants to determine a good value here :)? }
+        if len>100 then
+          g_concatcopy_move(list,source,dest,len)
+        else
+          begin
+            reference_reset(src);
+            reference_reset(dst);
+            { load the address of source into src.base }
+            src.base:=GetAddressRegister(list);
+            a_loadaddr_ref_reg(list,source,src.base);
+            { load the address of dest into dst.base }
+            dst.base:=GetAddressRegister(list);
+            a_loadaddr_ref_reg(list,dest,dst.base);
+            { generate a loop }
+            count:=len div 4;
+            if count>4 then
+              begin
+                { the offsets are zero after the a_loadaddress_ref_reg and just }
+                { have to be set to 8. I put an Inc there so debugging may be   }
+                { easier (should offset be different from zero here, it will be }
+                { easy to notice in the generated assembler                     }
+                countreg:=GetIntRegister(list,OS_INT);
+                tmpreg1:=GetIntRegister(list,OS_INT);
+                a_load_const_reg(list,OS_INT,count,countreg);
+                { explicitely allocate R_O0 since it can be used safely here }
+                { (for holding date that's being copied)                    }
+                objectlibrary.getlabel(lab);
+                a_label(list, lab);
+                list.concat(taicpu.op_ref_reg(A_LD,src,tmpreg1));
+                list.concat(taicpu.op_reg_ref(A_ST,tmpreg1,dst));
+                list.concat(taicpu.op_reg_const_reg(A_ADD,src.base,4,src.base));
+                list.concat(taicpu.op_reg_const_reg(A_ADD,dst.base,4,dst.base));
+                list.concat(taicpu.op_reg_const_reg(A_SUBcc,countreg,1,countreg));
+                a_jmp_cond(list,OC_NE,lab);
+                list.concat(taicpu.op_none(A_NOP));
+                { keep the registers alive }
+                list.concat(taicpu.op_reg_reg(A_MOV,countreg,countreg));
+                list.concat(taicpu.op_reg_reg(A_MOV,src.base,src.base));
+                list.concat(taicpu.op_reg_reg(A_MOV,dst.base,dst.base));
+                len := len mod 4;
+              end;
+            { unrolled loop }
+            count:=len div 4;
+            if count>0 then
+              begin
+                tmpreg1:=GetIntRegister(list,OS_INT);
+                for count2 := 1 to count do
+                  begin
+                    list.concat(taicpu.op_ref_reg(A_LD,src,tmpreg1));
+                    list.concat(taicpu.op_reg_ref(A_ST,tmpreg1,dst));
+                    inc(src.offset,4);
+                    inc(dst.offset,4);
+                  end;
+                len := len mod 4;
+              end;
+            if (len and 4) <> 0 then
+              begin
+                hreg:=GetIntRegister(list,OS_INT);
+                a_load_ref_reg(list,OS_32,OS_32,src,hreg);
+                a_load_reg_ref(list,OS_32,OS_32,hreg,dst);
+                inc(src.offset,4);
+                inc(dst.offset,4);
+              end;
+            { copy the leftovers }
+            if (len and 2) <> 0 then
+              begin
+                hreg:=GetIntRegister(list,OS_INT);
+                a_load_ref_reg(list,OS_16,OS_16,src,hreg);
+                a_load_reg_ref(list,OS_16,OS_16,hreg,dst);
+                inc(src.offset,2);
+                inc(dst.offset,2);
+              end;
+            if (len and 1) <> 0 then
+              begin
+                hreg:=GetIntRegister(list,OS_INT);
+                a_load_ref_reg(list,OS_8,OS_8,src,hreg);
+                a_load_reg_ref(list,OS_8,OS_8,hreg,dst);
+              end;
+          end;
+      end;
+
+
+    procedure tcgsparc.g_concatcopy_unaligned(list : taasmoutput;const source,dest : treference;len : aint);
+      var
+        src, dst: TReference;
+        tmpreg1,
+        countreg: TRegister;
+        i : aint;
+        lab: tasmlabel;
+      begin
+        if len>31 then
+          g_concatcopy_move(list,source,dest,len)
+        else
+          begin
+            reference_reset(src);
+            reference_reset(dst);
+            { load the address of source into src.base }
+            src.base:=GetAddressRegister(list);
+            a_loadaddr_ref_reg(list,source,src.base);
+            { load the address of dest into dst.base }
+            dst.base:=GetAddressRegister(list);
+            a_loadaddr_ref_reg(list,dest,dst.base);
+            { generate a loop }
+            if len>4 then
+              begin
+                { the offsets are zero after the a_loadaddress_ref_reg and just }
+                { have to be set to 8. I put an Inc there so debugging may be   }
+                { easier (should offset be different from zero here, it will be }
+                { easy to notice in the generated assembler                     }
+                countreg:=GetIntRegister(list,OS_INT);
+                tmpreg1:=GetIntRegister(list,OS_INT);
+                a_load_const_reg(list,OS_INT,len,countreg);
+                { explicitely allocate R_O0 since it can be used safely here }
+                { (for holding date that's being copied)                    }
+                objectlibrary.getlabel(lab);
+                a_label(list, lab);
+                list.concat(taicpu.op_ref_reg(A_LDUB,src,tmpreg1));
+                list.concat(taicpu.op_reg_ref(A_STB,tmpreg1,dst));
+                list.concat(taicpu.op_reg_const_reg(A_ADD,src.base,1,src.base));
+                list.concat(taicpu.op_reg_const_reg(A_ADD,dst.base,1,dst.base));
+                list.concat(taicpu.op_reg_const_reg(A_SUBcc,countreg,1,countreg));
+                a_jmp_cond(list,OC_NE,lab);
+                list.concat(taicpu.op_none(A_NOP));
+                { keep the registers alive }
+                list.concat(taicpu.op_reg_reg(A_MOV,countreg,countreg));
+                list.concat(taicpu.op_reg_reg(A_MOV,src.base,src.base));
+                list.concat(taicpu.op_reg_reg(A_MOV,dst.base,dst.base));
+              end
+            else
+              begin
+                { unrolled loop }
+                tmpreg1:=GetIntRegister(list,OS_INT);
+                for i:=1 to len do
+                  begin
+                    list.concat(taicpu.op_ref_reg(A_LDUB,src,tmpreg1));
+                    list.concat(taicpu.op_reg_ref(A_STB,tmpreg1,dst));
+                    inc(src.offset);
+                    inc(dst.offset);
+                  end;
+              end;
+          end;
+      end;
+
 
 {****************************************************************************
                                TCG64Sparc
@@ -1245,7 +1315,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.98  2004-10-31 21:45:03  peter
+  Revision 1.99  2004-12-18 15:48:06  florian
+    * fixed some alignment trouble
+
+  Revision 1.98  2004/10/31 21:45:03  peter
     * generic tlocation
     * move tlocation to cgutils
 

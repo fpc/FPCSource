@@ -594,8 +594,9 @@ implementation
 {$warning HACK: unaligned test, maybe remove all unaligned locations (array of char) from the compiler}
                         { Use unaligned copy when the offset is not aligned }
                         len:=left.resulttype.def.size;
-                        if (right.location.reference.offset mod sizeof(aint)<>0) and
-                           (len>sizeof(aint)) then
+                        if ((right.location.reference.offset mod sizeof(aint)<>0) or
+                            (left.location.reference.offset mod sizeof(aint)<>0)) and
+                           (len>=sizeof(aint)) then
                           cg.g_concatcopy_unaligned(exprasmlist,right.location.reference,left.location.reference,len)
                         else
                           cg.g_concatcopy(exprasmlist,right.location.reference,left.location.reference,len);
@@ -952,7 +953,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.133  2004-11-29 17:32:56  peter
+  Revision 1.134  2004-12-18 15:48:27  florian
+    * fixed some alignment trouble
+
+  Revision 1.133  2004/11/29 17:32:56  peter
     * prevent some IEs with delphi methodpointers
 
   Revision 1.132  2004/11/09 17:26:47  peter
