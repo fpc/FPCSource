@@ -339,6 +339,21 @@ begin
 end;
 
 
+function hexstr(val : pointer) : shortstring;
+var
+  i : longint;
+  v : ptrint;
+begin
+  v:=ptrint(val);
+  hexstr[0]:=chr(sizeof(pointer)*2);
+  for i:=sizeof(pointer)*2 downto 1 do
+   begin
+     hexstr[i]:=hextbl[v and $f];
+     v:=v shr 4;
+   end;
+end;
+
+
 function space (b : byte): shortstring;
 begin
   space[0] := chr(b);
@@ -865,7 +880,10 @@ end;
 
 {
   $Log$
-  Revision 1.33  2005-02-14 17:13:27  peter
+  Revision 1.34  2005-02-25 12:34:46  peter
+    * added HexStr(Pointer)
+
+  Revision 1.33  2005/02/14 17:13:27  peter
     * truncate log
 
 }

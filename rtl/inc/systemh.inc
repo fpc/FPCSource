@@ -516,6 +516,7 @@ Function  binStr(Val:Longint;cnt:byte):shortstring;
 Function  hexStr(Val:int64;cnt:byte):shortstring;
 Function  OctStr(Val:int64;cnt:byte):shortstring;
 Function  binStr(Val:int64;cnt:byte):shortstring;
+Function  hexStr(Val:Pointer):shortstring;
 
 { Char functions }
 {$ifdef INTERNCONSTINTF}
@@ -768,7 +769,10 @@ const
 
 {
   $Log$
-  Revision 1.120  2005-02-14 17:13:29  peter
+  Revision 1.121  2005-02-25 12:34:46  peter
+    * added HexStr(Pointer)
+
+  Revision 1.120  2005/02/14 17:13:29  peter
     * truncate log
 
   Revision 1.119  2005/02/08 20:25:28  florian
