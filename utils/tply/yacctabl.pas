@@ -48,14 +48,6 @@ uses
   YaccBase;
 
 
-{$IFNDEF Win32}
-var max_bytes : LongInt;
-  (* available memory *)
-
-function n_bytes : LongInt;
-  (* memory actually used *)
-{$ENDIF}
-
 const
 
 (* Maximum table sizes: *)
@@ -430,13 +422,6 @@ procedure sort_item_set ( var item_set : ItemSet );
 implementation
 
 uses YaccMsgs;
-
-{$IFNDEF Win32}
-function n_bytes : LongInt;
-  begin
-    n_bytes := max_bytes-memAvail
-  end(*n_bytes*);
-{$ENDIF}
 
 (* Symbol table routines: *)
 
@@ -928,10 +913,6 @@ begin
   verbose          := false;
   debug            := false;
   startnt          := 0;
-
-{$IFNDEF Win32}
-  max_bytes := memAvail;
-{$ENDIF}
 
   n_nts            := 1;
   n_lits           := 257;

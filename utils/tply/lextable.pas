@@ -44,15 +44,6 @@ interface
 
 uses LexBase;
 
-
-{$IFNDEF Win32}
-var max_bytes : LongInt;
-  (* available memory *)
-
-function n_bytes : LongInt;
-  (* memory actually used *)
-{$ENDIF}
-
 const
 
 (* Maximum table sizes: *)
@@ -205,13 +196,6 @@ procedure sortTrans;
 implementation
 
 uses LexMsgs;
-
-{$IFNDEF Win32}
-function n_bytes : LongInt;
-  begin
-    n_bytes := max_bytes-memAvail
-  end(*n_bytes*);
-{$ENDIF}
 
 (* Hash table routines: *)
 
@@ -465,10 +449,6 @@ begin
 
   verbose          := false;
   optimize         := false;
-
-{$IFNDEF Win32}
-  max_bytes        := memAvail;
-{$ENDIF}
 
   n_pos            := 0;
   n_states         := 0;
