@@ -219,7 +219,7 @@ aio$(PPUEXT) : aio.pp $(SYSTEMUNIT)$(PPUEXT)
 #
 # Netware-.imp files need to be installed in the unit-dir
 #
-override INSTALLPPUFILES+=aio.imp aio.imp audnlm32.imp \
+override INSTALLPPUFILES+=aio.imp audnlm32.imp \
 calnlm32.imp ccs.imp ccs-os.imp clibaux.imp \
 clibctx.imp clib.imp clxnlm32.imp dplsv386.imp \
 dsapi.imp dsevent.imp lib0.imp \

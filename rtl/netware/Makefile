@@ -228,7 +228,7 @@ override FPCOPT+=-Ur
 override FPCOPT+=-dMT -dDEBUG_MT
 CREATESMART=0
 OBJPASDIR=$(RTL)/objpas
-override TARGET_UNITS+=$(SYSTEMUNIT) systhrds objpas strings lineinfo winsock heaptrc matrix initc dos crt objects sysutils classes typinfo math varutils cpu mmx getopts   sockets video mouse keyboard types dateutils rtlconst sysconst strutils convutils aio nwsnut nwserv nwnit nwprot
+override TARGET_UNITS+=$(SYSTEMUNIT) systhrds objpas macpas strings lineinfo winsock heaptrc matrix initc dos crt objects sysutils classes typinfo math varutils cpu mmx getopts   sockets video mouse keyboard types dateutils rtlconst sysconst strutils convutils aio nwsnut nwserv nwnit nwprot
 override TARGET_LOADERS+=nwpre prelude
 override TARGET_RSTS+=math varutils typinfo classes dateutils sysconst
 override INSTALL_FPCPACKAGE=y
@@ -1425,6 +1425,8 @@ convutils$(PPUEXT) : $(OBJPASDIR)/convutils.pp
 	$(COMPILER) -I$(OBJPASDIR) $(OBJPASDIR)/convutils.pp
 strutils$(PPUEXT) : $(OBJPASDIR)/strutils.pp
 	$(COMPILER) -I$(OBJPASDIR) $(OBJPASDIR)/strutils.pp
+macpas$(PPUEXT) : $(INC)/macpas.pp system$(PPUEXT)
+	$(COMPILER) $(INC)/macpas.pp $(REDIR)
 cpu$(PPUEXT) : $(PROCINC)/cpu.pp $(SYSTEMUNIT)$(PPUEXT)
 mmx$(PPUEXT) : $(PROCINC)/mmx.pp cpu$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
 getopts$(PPUEXT) : $(INC)/getopts.pp $(SYSTEMUNIT)$(PPUEXT)
@@ -1433,7 +1435,7 @@ heaptrc$(PPUEXT) : $(INC)/heaptrc.pp $(SYSTEMUNIT)$(PPUEXT)
 lineinfo$(PPUEXT) : $(INC)/lineinfo.pp $(SYSTEMUNIT)$(PPUEXT)
 callspec$(PPUEXT) : $(INC)/callspec.pp $(SYSTEMUNIT)$(PPUEXT)
 aio$(PPUEXT) : aio.pp $(SYSTEMUNIT)$(PPUEXT)
-override INSTALLPPUFILES+=aio.imp aio.imp audnlm32.imp \
+override INSTALLPPUFILES+=aio.imp audnlm32.imp \
 calnlm32.imp ccs.imp ccs-os.imp clibaux.imp \
 clibctx.imp clib.imp clxnlm32.imp dplsv386.imp \
 dsapi.imp dsevent.imp lib0.imp \
