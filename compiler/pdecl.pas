@@ -126,8 +126,6 @@ unit pdecl;
            else
              Message(cg_e_illegal_expression);
         end;
-        if assigned(hp) then
-         symtablestack^.insert(hp);
         tokenpos:=storetokenpos;
         disposetree(p);
         readconstant:=hp;
@@ -269,8 +267,10 @@ unit pdecl;
                            if not sc^.empty then
                             Comment(V_Error,'default value only allowed for one parameter');
                            sc^.insert_with_tokeninfo(s,hpos);
-                           s:=lower(aktprocsym^.name+'.'+s);
-                           pdefaultvalue:=ReadConstant(s,hpos);
+			   { prefix 'def' to the parameter name }
+                           pdefaultvalue:=ReadConstant('def'+s,hpos);
+                           if assigned(pdefaultvalue) then
+                            pprocdef(aktprocdef)^.parast^.insert(pdefaultvalue);
                            defaultrequired:=true;
                          end
                         else
@@ -838,7 +838,9 @@ unit pdecl;
              _EQUAL:
                 begin
                    consume(_EQUAL);
-                   readconstant(name,filepos);
+                   sym:=readconstant(name,filepos);
+		   if assigned(sym) then
+		    symtablestack^.insert(sym);
                    consume(_SEMICOLON);
                 end;
 
@@ -1273,7 +1275,11 @@ unit pdecl;
 end.
 {
   $Log$
-  Revision 1.7  2000-08-13 08:42:59  peter
+  Revision 1.8  2000-08-13 13:11:28  peter
+    * put defaultpara values in parast and changed the name to
+      'def<Parameter name>'
+
+  Revision 1.7  2000/08/13 08:42:59  peter
     * support absolute refering to funcret (merged)
 
   Revision 1.6  2000/08/02 19:49:59  peter
