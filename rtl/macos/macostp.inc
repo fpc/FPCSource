@@ -1268,8 +1268,8 @@ type
   C_unsigned_int = Cardinal;
 
 var
-  errno: C_int; external name 'errno';
-  MacOSErr: C_short; external name 'MacOSErr';
+  errno: C_int; external 'StdCLib' name 'errno';
+  MacOSErr: C_short; external 'StdCLib' name 'MacOSErr';
 
 const
   _IOFBF = $00;

@@ -761,7 +761,28 @@ End;
   end;
 
 
-{$IFNDEF USE_FEXPAND_INC}
+{$UNDEF USE_FEXPAND_INC}
+
+{$IFDEF USE_FEXPAND_INC}
+
+//{$DEFINE FPC_FEXPAND_NO_DOTS_UPDIR}
+//{$DEFINE FPC_FEXPAND_NO_CURDIR}
+
+{$DEFINE FPC_FEXPAND_VOLUMES}
+{$DEFINE FPC_FEXPAND_NO_DEFAULT_PATHS}
+{$DEFINE FPC_FEXPAND_DRIVESEP_IS_ROOT}
+
+{ TODO A lot of issues before this works}
+
+{$I fexpand.inc}
+
+{$UNDEF FPC_FEXPAND_VOLUMES}
+{$UNDEF FPC_FEXPAND_NO_DEFAULT_PATHS}
+{$UNDEF FPC_FEXPAND_DRIVESEP_IS_ROOT}
+
+
+
+{$ELSE}
 
 { TODO nonexisting dirs in path's doesnt work (nonexisting files do work)
        example: Writeln('FExpand on :nisse:kalle : ', FExpand(':nisse:kalle')); }
