@@ -4,7 +4,7 @@
     Copyright (c) 2000 by Jonas Maebe and other members of the
     Free Pascal development team
 
-    Implementation of mathamatical Routines (only for real)
+    Implementation of mathematical Routines (only for real)
 
     See the file COPYING.FPC, included in this distribution,
     for details about the copyright.
@@ -208,7 +208,7 @@ LTruncPositive:
         lis    r4,longint_to_real_helper@ha
         lfd    f0,longint_to_real_helper@l(r4)
         {$else}
-        lwz    r3,longint_to_real_helper[TC](r2)
+        lwz    r4,longint_to_real_helper[TC](r2)
         lfd    f0,0(r4)
         {$endif}
         lfd    f3,temp
@@ -424,7 +424,10 @@ end;
 
 {
   $Log$
-  Revision 1.26  2003-06-14 12:41:08  jonas
+  Revision 1.27  2003-08-08 22:02:05  olle
+    * small bugfix macos
+
+  Revision 1.26  2003/06/14 12:41:08  jonas
     * fixed compilation problems (removed unnecessary modified registers
       lists from procedures)
 
