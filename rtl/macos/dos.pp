@@ -819,20 +819,23 @@ Var
   i : longint;
   p : ppchar;
 Begin
-  p:=envp;      {defined in system}
-  i:=1;
-  while (i<Index) and (p^<>nil) do
-    begin
-      inc(i);
-      inc(p);
-    end;
-  if p=nil then
+  if Index <= 0 then
     envstr:=''
   else
     begin
-      envstr:=strpas(p^) + '=' + strpas(p^+strlen(p^)+1)
+      p:=envp;      {defined in system}
+      i:=1;
+      while (i<Index) and (p^<>nil) do
+        begin
+          inc(i);
+          inc(p);
+        end;
+      if p=nil then
+        envstr:=''
+      else
+        envstr:=strpas(p^) + '=' + strpas(p^+strlen(p^)+1);
     end;
-End;
+end;
 
 
 function c_getenv(varname: PChar): PChar; {TODO perhaps move to a separate inc file.}

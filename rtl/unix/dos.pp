@@ -691,25 +691,28 @@ Begin
 End;
 
 
-
 Function EnvStr (Index: longint): String;
 Var
   i : longint;
   p : ppchar;
 Begin
-  p:=envp;      {defined in syslinux}
-  i:=1;
-  while (i<Index) and (p^<>nil) do
-   begin
-     inc(i);
-     inc(p);
-   end;
-  if p=nil then
-   envstr:=''
+  if Index <= 0 then
+    envstr:=''
   else
-   envstr:=strpas(p^)
-End;
-
+    begin
+      p:=envp;      {defined in syslinux}
+      i:=1;
+      while (i<Index) and (p^<>nil) do
+        begin
+          inc(i);
+          inc(p);
+        end;
+      if p=nil then
+        envstr:=''
+      else
+        envstr:=strpas(p^)
+    end;
+end;
 
 
 Function GetEnv(EnvVar: String): String;
@@ -833,7 +836,10 @@ End.
 
 {
   $Log$
-  Revision 1.32  2004-03-14 18:42:39  peter
+  Revision 1.33  2004-07-25 22:46:34  olle
+    * envstr now returns empty string when index out of bounds
+
+  Revision 1.32  2004/03/14 18:42:39  peter
     * reset searchrec info in findfirst
 
   Revision 1.31  2004/03/04 22:15:16  marco
