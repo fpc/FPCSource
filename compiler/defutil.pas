@@ -871,14 +871,14 @@ implementation
               if is_ansistring(def) or is_widestring(def) then
                 result := OS_ADDR
               else
-                result := OS_NO;
+                result:=int_cgsize(def.size);
             end;
           objectdef :
             begin
               if is_class_or_interface(def) then
                 result := OS_ADDR
               else
-                result := OS_NO;
+                result:=int_cgsize(def.size);
             end;
           floatdef:
             result := tfloat2tcgsize[tfloatdef(def).typ];
@@ -908,7 +908,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.22  2005-01-10 22:10:26  peter
+  Revision 1.23  2005-02-03 17:10:21  peter
+    * fix win32 small array parameters
+
+  Revision 1.22  2005/01/10 22:10:26  peter
     * widestring patches from Alexey Barkovoy
 
   Revision 1.21  2004/11/01 23:30:11  peter

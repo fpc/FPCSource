@@ -164,10 +164,8 @@ unit cgcpu;
         { cgpara.size=OS_NO requires a copy on the stack }
         if use_push(cgpara) then
           begin
-            if tcgsize2size[cgpara.size]<>tcgsize2size[size] then
-              internalerror(200501161);
             { Record copy? }
-            if (cgpara.size=OS_NO) then
+            if (cgpara.size=OS_NO) or (size=OS_NO) then
               begin
                 cgpara.check_simple_location;
                 len:=align(cgpara.intsize,cgpara.alignment);
@@ -177,6 +175,8 @@ unit cgcpu;
               end
             else
               begin
+                if tcgsize2size[cgpara.size]<>tcgsize2size[size] then
+                  internalerror(200501161);
                 { We need to push the data in reverse order,
                   therefor we use a recursive algorithm }
                 pushdata(cgpara.location,0);
@@ -743,7 +743,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.64  2005-01-24 22:08:32  peter
+  Revision 1.65  2005-02-03 17:10:21  peter
+    * fix win32 small array parameters
+
+  Revision 1.64  2005/01/24 22:08:32  peter
     * interface wrapper generation moved to cgobj
     * generate interface wrappers after the module is parsed
 
