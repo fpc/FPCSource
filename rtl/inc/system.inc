@@ -243,11 +243,12 @@ begin
   random := trunc(random()*l);
 end;
 
+{$ifndef cardinalmulfixed}
 function random(l:longint): longint;
 begin
   random := trunc(random()*l);
 end;
-
+{$endif cardinalmulfixed}
 
 Procedure NewSeed;
 begin
@@ -589,7 +590,10 @@ end;
 
 {
   $Log$
-  Revision 1.74  1999-12-01 12:37:13  jonas
+  Revision 1.75  1999-12-12 13:29:34  jonas
+    * remove "random(longint): longint" if cardinalmulfixed is defined
+
+  Revision 1.74  1999/12/01 12:37:13  jonas
     + function random(longint): longint
 
   Revision 1.73  1999/11/20 12:48:09  jonas
