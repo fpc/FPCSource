@@ -1333,9 +1333,57 @@ end;
                               Callable Routines
 ****************************************************************************}
 
-procedure read_arguments(cmd:string);
+function check_configfile(const fn:string;var foundfn:string):boolean;
+
+  function CfgFileExists(const fn:string):boolean;
+  begin
+    Comment(V_Tried,'Configfile search: '+fn);
+    CfgFileExists:=FileExists(fn);
+  end;
+
 var
   configpath : pathstr;
+begin
+  foundfn:=fn;
+  check_configfile:=true;
+  { retrieve configpath }
+{$ifdef Delphi}
+  configpath:=FixPath(dmisc.getenv('PPC_CONFIG_PATH'),false);
+{$else Delphi}
+  configpath:=FixPath(dos.getenv('PPC_CONFIG_PATH'),false);
+{$endif Delphi}
+{$ifdef Unix}
+  if configpath='' then
+   configpath:='/etc/';
+{$endif}
+  {
+    Order to read configuration file :
+    try reading fpc.cfg in :
+     1 - current dir
+     2 - configpath
+     3 - compiler path
+  }
+  if not FileExists(fn) then
+   begin
+{$ifdef Unix}
+     if (dos.getenv('HOME')<>'') and CfgFileExists(FixPath(dos.getenv('HOME'),false)+'.'+fn) then
+      foundfn:=FixPath(dos.getenv('HOME'),false)+'.'+fn
+     else
+{$endif}
+      if CfgFileExists(configpath+fn) then
+       foundfn:=configpath+fn
+     else
+{$ifndef Unix}
+      if CfgFileExists(exepath+fn) then
+       foundfn:=exepath+fn
+     else
+{$endif}
+      check_configfile:=false;
+   end;
+end;
+
+
+procedure read_arguments(cmd:string);
 begin
   option:=coption.create;
   disable_configfile:=false;
@@ -1411,110 +1459,54 @@ begin
   msgfilename:=dos.getenv('PPC_ERROR_FILE');
 {$endif Delphi}
 
-{ default configfile }
-  if (cmd<>'') and (cmd[1]='[') then
-   begin
-     ppccfg:=Copy(cmd,2,pos(']',cmd)-2);
-     Delete(cmd,1,pos(']',cmd));
-   end
-  else
-   begin
-     ppcaltcfg:='ppc386.cfg';
-     ppccfg:='fpc.cfg';
-   end;
+   { default configfile can be specified on the commandline,
+     remove it first }
+   if (cmd<>'') and (cmd[1]='[') then
+    begin
+      ppccfg:=Copy(cmd,2,pos(']',cmd)-2);
+      Delete(cmd,1,pos(']',cmd));
+    end
+   else
+    begin
+      ppccfg:='fpc.cfg';
+      ppcaltcfg:='ppc386.cfg';
+    end;
 
-{ Order to read configuration file :
-  try reading ppc386.cfg in :
-   1 - current dir
-   2 - configpath
-   3 - compiler path
-  else try reading fpc.cfg in :
-   1 - current dir
-   2 - configpath
-   3 - compiler path
-}
-{$ifdef Delphi}
-  configpath:=FixPath(dmisc.getenv('PPC_CONFIG_PATH'),false);
-{$else Delphi}
-  configpath:=FixPath(dos.getenv('PPC_CONFIG_PATH'),false);
-{$endif Delphi}
-{$ifdef Unix}
-  if configpath='' then
-   configpath:='/etc/';
-{$endif}
+   { read the parameters quick, only -i -v -T }
+   option.firstpass:=true;
+   if cmd<>'' then
+     option.parsecmd(cmd)
+   else
+    begin
+      option.read_parameters;
+      { Write only quickinfo }
+      if option.quickinfo<>'' then
+       option.writequickinfo;
+    end;
+   option.firstpass:=false;
+
+  { read configuration file }
   if ppccfg<>'' then
-   begin
-     read_configfile:=true;
-     if not FileExists(ppcaltcfg) then
-      begin
-{$ifdef Unix}
-        if (dos.getenv('HOME')<>'') and FileExists(FixPath(dos.getenv('HOME'),false)+'.'+ppcaltcfg) then
-         ppccfg:=FixPath(dos.getenv('HOME'),false)+'.'+ppcaltcfg
-        else
-{$endif}
-         if FileExists(configpath+ppcaltcfg) then
-          ppccfg:=configpath+ppcaltcfg
-        else
-{$ifndef Unix}
-         if FileExists(exepath+ppcaltcfg) then
-          ppccfg:=exepath+ppcaltcfg
-        else
-{$endif}
-         read_configfile:=false;
-      end
-     else
-        ppccfg := ppcaltcfg;  { file is found, then set it to ppccfg }
-
-
-     if not read_configfile then
-      begin
-        read_configfile := true;
-        if not FileExists(ppccfg) then
-         begin
-    {$ifdef Unix}
-            if (dos.getenv('HOME')<>'') and FileExists(FixPath(dos.getenv('HOME'),false)+'.'+ppccfg) then
-             ppccfg:=FixPath(dos.getenv('HOME'),false)+'.'+ppccfg
-            else
-    {$endif}
-             if FileExists(configpath+ppccfg) then
-              ppccfg:=configpath+ppccfg
-            else
-    {$ifndef Unix}
-             if FileExists(exepath+ppccfg) then
-              ppccfg:=exepath+ppccfg
-            else
-    {$endif}
-             read_configfile:=false;
-         end;
-      end
-   end
+    begin
+      read_configfile:=check_configfile(ppccfg,ppccfg);
+      { Maybe alternative configfile ? }
+      if (not read_configfile) and
+         (ppcaltcfg<>'') then
+        read_configfile:=check_configfile(ppcaltcfg,ppccfg);
+    end
   else
     read_configfile := false;
 
 { Read commandline and configfile }
   target_is_set:=false;
   asm_is_set:=false;
-
   param_file:='';
 
+  { read configfile }
   if read_configfile then
-   begin
-   { read the parameters quick, only -i -v -T }
-     option.firstpass:=true;
-     if cmd<>'' then
-       option.parsecmd(cmd)
-     else
-      begin
-        option.read_parameters;
-        { Write only quickinfo }
-        if option.quickinfo<>'' then
-         option.writequickinfo;
-      end;
-   { Read the configfile }
-     option.firstpass:=false;
-     if read_configfile then
-      option.interpret_file(ppccfg);
-   end;
+    option.interpret_file(ppccfg);
+
+  { read parameters again to override config file }
   if cmd<>'' then
     option.parsecmd(cmd)
   else
@@ -1682,7 +1674,12 @@ finalization
 end.
 {
   $Log$
-  Revision 1.85  2002-10-13 21:33:01  peter
+  Revision 1.86  2002-10-23 16:57:16  peter
+    * first search for fpc.cfg instead of deprecated ppc386.cfg
+    * parse commandline options first before searching configfile so -vt
+      can be used to display the searched files
+
+  Revision 1.85  2002/10/13 21:33:01  peter
     * define HASTHREADVAR
 
   Revision 1.84  2002/10/02 18:20:52  peter
