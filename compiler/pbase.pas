@@ -81,6 +81,8 @@ interface
 
     function try_consume_hintdirective(var symopt:tsymoptions):boolean;
 
+    procedure check_hints(const srsym: tsym);
+
     { just for an accurate position of the end of a procedure (PM) }
     var
        last_endtoken_filepos: tfileposinfo;
@@ -165,6 +167,23 @@ implementation
       end;
 
 
+    { check if a symbol contains the hint directive, and if so gives out a hint 
+      if required.
+    }
+    procedure check_hints(const srsym: tsym);
+     begin
+       if not assigned(srsym) then
+         exit;
+       if sp_hint_deprecated in srsym.symoptions then
+         Message1(sym_w_deprecated_symbol,lower(srsym.name));
+       if sp_hint_platform in srsym.symoptions then
+         Message1(sym_w_non_portable_symbol,lower(srsym.name));
+       if sp_hint_unimplemented in srsym.symoptions then
+         Message1(sym_w_non_implemented_symbol,lower(srsym.name));
+     end;
+
+
+
     function consume_sym(var srsym:tsym;var srsymtable:tsymtable):boolean;
       begin
         { first check for identifier }
@@ -177,6 +196,7 @@ implementation
            exit;
          end;
         searchsym(pattern,srsym,srsymtable);
+        check_hints(srsym);
         if assigned(srsym) then
          begin
            if (srsym.typ=unitsym) then
@@ -243,7 +263,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.20  2002-11-29 22:31:19  carl
+  Revision 1.21  2002-11-30 11:12:48  carl
+    + checking for symbols used with hint directives is done mostly in pexpr
+      only now
+
+  Revision 1.20  2002/11/29 22:31:19  carl
     + unimplemented hint directive added
     * hint directive parsing implemented
     * warning on these directives

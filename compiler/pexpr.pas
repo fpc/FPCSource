@@ -93,6 +93,9 @@ implementation
       got_addrn  : boolean = false;
       auto_inherited : boolean = false;
 
+
+
+
     procedure string_dec(var t: ttype);
     { reads a string type with optional length }
     { and returns a pointer to the string      }
@@ -939,6 +942,7 @@ implementation
                         begin
                            static_name:=lower(sym.owner.name^)+'_'+sym.name;
                            searchsym(static_name,sym,srsymtable);
+                           check_hints(sym);
                            p1.free;
                            p1:=cloadnode.create(sym,srsymtable);
                         end
@@ -1014,6 +1018,7 @@ implementation
                storesymtablestack:=symtablestack;
                symtablestack:=sym.owner.next;
                searchsym(sym.name,sym,srsymtable);
+               check_hints(sym);
                if not assigned(sym) then
                 sym:=generrorsym;
                if (sym.typ<>procsym) then
@@ -1067,6 +1072,7 @@ implementation
                      begin
                        static_name:=lower(srsym.owner.name^)+'_'+srsym.name;
                        searchsym(static_name,srsym,srsymtable);
+                       check_hints(srsym);
                      end;
                     p1:=cloadnode.create(srsym,srsymtable);
                     if tvarsym(srsym).varstate=vs_declared then
@@ -1118,6 +1124,7 @@ implementation
                                  p1:=ctypenode.create(htype);
                                  { search also in inherited methods }
                                  srsym:=searchsym_in_class(tobjectdef(htype.def),pattern);
+                                 check_hints(srsym); 
                                  consume(_ID);
                                  do_member_read(false,srsym,p1,again);
                                end
@@ -1135,6 +1142,7 @@ implementation
                               { TP allows also @TMenu.Load if Load is only }
                               { defined in an anchestor class              }
                               srsym:=search_class_member(tobjectdef(htype.def),pattern);
+                              check_hints(srsym);
                               if not assigned(srsym) then
                                Message1(sym_e_id_no_member,pattern)
                               else if not(getaddr) and not(sp_static in srsym.symoptions) then
@@ -1160,6 +1168,7 @@ implementation
                                 { TP allows also @TMenu.Load if Load is only }
                                 { defined in an anchestor class              }
                                 srsym:=search_class_member(tobjectdef(htype.def),pattern);
+                                check_hints(srsym);
                                 if not assigned(srsym) then
                                  Message1(sym_e_id_no_member,pattern)
                                 else
@@ -1535,6 +1544,7 @@ implementation
                        recorddef:
                          begin
                             hsym:=tsym(trecorddef(p1.resulttype.def).symtable.search(pattern));
+                            check_hints(hsym);
                             if assigned(hsym) and
                                (hsym.typ=varsym) then
                               p1:=csubscriptnode.create(hsym,p1)
@@ -1553,6 +1563,7 @@ implementation
                           begin
                              classh:=tobjectdef(tclassrefdef(p1.resulttype.def).pointertype.def);
                              hsym:=searchsym_in_class(classh,pattern);
+                             check_hints(hsym); 
                              if hsym=nil then
                               begin
                                 Message1(sym_e_id_no_member,pattern);
@@ -1574,6 +1585,7 @@ implementation
                               allow_only_static:=false;
                               classh:=tobjectdef(p1.resulttype.def);
                               hsym:=searchsym_in_class(classh,pattern);
+                              check_hints(hsym); 
                               allow_only_static:=store_static;
                               if hsym=nil then
                                 begin
@@ -1753,6 +1765,7 @@ implementation
                    end;
                   classh:=procinfo._class.childof;
                   sym:=searchsym_in_class(classh,hs);
+                  check_hints(sym);
                   if assigned(sym) then
                    begin
                      if sym.typ=procsym then
@@ -2272,7 +2285,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.94  2002-11-27 15:33:47  peter
+  Revision 1.95  2002-11-30 11:12:48  carl
+    + checking for symbols used with hint directives is done mostly in pexpr
+      only now
+
+  Revision 1.94  2002/11/27 15:33:47  peter
     * the never ending story of tp procvar hacks
 
   Revision 1.93  2002/11/26 22:58:24  peter
