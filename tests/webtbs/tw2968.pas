@@ -1,7 +1,8 @@
 { Source provided for Free Pascal Bug Report 2968 }
 { Submitted by "Marco (gory bugs)" on  2004-02-10 }
 { e-mail:  }
-Uses Unix,BaseUnix;
+uses
+  dos;
 
 function ArrayStringToPPchar(const S:Array of AnsiString;reserveone:boolean):ppchar; // const ?
 // ReserveOne:=True -> one extra pchar is allocated and the first ( p[0]) is left for commandline
@@ -23,7 +24,7 @@ begin
  ArrayStringToPPchar:=p;
 end;
 
-function intFpExec (Const PathName:AnsiString;const S:Array Of AnsiString):cint;
+function intFpExec (Const PathName:AnsiString;const S:Array Of AnsiString):longint;
 
 Var
   p       : ppchar;
@@ -35,7 +36,7 @@ begin
   newcmd:=PathName;
 {  If SearchPath Then
    Begin}
-     Thepath:=strpas(fpgetenv('PATH'));
+     Thepath:=getenv('PATH');
      if thepath='' then
       thepath:='.';
      newcmd:=FSearch(newcmd,thepath);
@@ -46,7 +47,7 @@ begin
 end;
 
 
-function FpExecLP(Const PathName:AnsiString;const S:Array Of AnsiString):cint;
+function FpExecLP(Const PathName:AnsiString;const S:Array Of AnsiString):longint;
 
 Begin
   FpExecLP:=intFPExec(PathName,S);
