@@ -32,7 +32,6 @@
 
   Constants should be assigned a reference count of -1
   Meaning that they can't be disposed of.
-
 }
 
 
@@ -280,12 +279,21 @@ end;
 
 
 Procedure PChar2Ansi(var a : ansistring;p : pchar);[Public,Alias : 'FPC_PCHAR_TO_ANSISTR'];
+
+Var L : Longint;
+
 begin
-  { !!!!!!!!! needs to be fixed (FK) }
   if p[0]=#0 Then
     Pointer(a):=nil
   else
-    Pointer(a):=p;
+    begin
+    //!! Horribly inneficient, but I see no other way...
+    L:=1;
+    While P[l]<>#0 do inc (l);
+    Pointer(a):=NewAnsistring(L);
+    SetLength(A,L);
+    Move (P[0],Pointer(A)^,L)
+    end;
 end;
 
 { the compiler generates inline code for that
@@ -714,7 +722,10 @@ end;
 
 {
   $Log$
-  Revision 1.3  1998-11-17 12:16:07  michael
+  Revision 1.4  1998-11-18 10:56:46  michael
+  + Fixed pchar2ansi
+
+  Revision 1.3  1998/11/17 12:16:07  michael
   + Fixed copy. Now reference count is correct
 
   Revision 1.2  1998/11/17 11:33:22  peter
