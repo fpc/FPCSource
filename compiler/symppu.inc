@@ -111,8 +111,10 @@
          begin
            if p^.owner^.symtabletype=staticsymtable then
             current_ppu^.putword($fffe)
-           else if not (p^.owner^.symtabletype in [unitsymtable,globalsymtable]) then
+           else if (p^.owner=aktrecordsymtable) then
             current_ppu^.putword($ffff)
+           else if p^.owner^.unitid>$8000 then
+            current_ppu^.putword(p^.owner^.unitid)
            else
             current_ppu^.putword(p^.owner^.unitid);
            current_ppu^.putword(p^.indexnb);
@@ -128,8 +130,10 @@
          begin
            if p^.owner^.symtabletype=staticsymtable then
             current_ppu^.putword($fffe)
-           else if not (p^.owner^.symtabletype in [unitsymtable,globalsymtable]) then
+           else if (p^.owner=aktrecordsymtable) then
             current_ppu^.putword($ffff)
+           else if p^.owner^.unitid>$8000 then
+            current_ppu^.putword(p^.owner^.unitid)
            else
             current_ppu^.putword(p^.owner^.unitid);
            current_ppu^.putword(p^.indexnb);
@@ -448,7 +452,11 @@
 
 {
   $Log$
-  Revision 1.32  1999-02-22 13:07:08  pierre
+  Revision 1.33  1999-02-23 18:29:25  pierre
+    * win32 compilation error fix
+    + some work for local browser (not cl=omplete yet)
+
+  Revision 1.32  1999/02/22 13:07:08  pierre
     + -b and -bl options work !
     + cs_local_browser ($L+) is disabled if cs_browser ($Y+)
       is not enabled when quitting global section

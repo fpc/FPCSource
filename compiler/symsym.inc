@@ -1704,9 +1704,9 @@
       begin
          inherited load_references;
          if (definition^.deftype=recorddef) then
-            precdef(definition)^.symtable^.load_browser;
+           precdef(definition)^.symtable^.load_browser;
          if (definition^.deftype=objectdef) then
-             pobjectdef(definition)^.publicsyms^.load_browser;
+           pobjectdef(definition)^.publicsyms^.load_browser;
       end;
 
 
@@ -1724,9 +1724,9 @@
           end;
          write_references:=true;
          if (definition^.deftype=recorddef) then
-            precdef(definition)^.symtable^.write_browser;
+           precdef(definition)^.symtable^.write_browser;
          if (definition^.deftype=objectdef) then
-             pobjectdef(definition)^.publicsyms^.write_browser;
+           pobjectdef(definition)^.publicsyms^.write_browser;
       end;
 
 
@@ -1811,7 +1811,11 @@
 
 {
   $Log$
-  Revision 1.73  1999-02-22 13:07:09  pierre
+  Revision 1.74  1999-02-23 18:29:27  pierre
+    * win32 compilation error fix
+    + some work for local browser (not cl=omplete yet)
+
+  Revision 1.73  1999/02/22 13:07:09  pierre
     + -b and -bl options work !
     + cs_local_browser ($L+) is disabled if cs_browser ($Y+)
       is not enabled when quitting global section

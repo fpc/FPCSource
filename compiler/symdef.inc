@@ -2229,9 +2229,14 @@
       end;
 
 
+Const local_symtable_index : longint = $8001;
+
     procedure tprocdef.load_references;
       var
         pos : tfileposinfo;
+{$ifdef TESTLOCALBROWSER}
+        pdo : pobjectdef;
+{$endif def TESTLOCALBROWSER}
         move_last : boolean;
       begin
         move_last:=lastwritten=lastref;
@@ -2248,12 +2253,48 @@
           lastwritten:=lastref;
         if (current_module^.flags and uf_local_browser)<>0 then
           begin
-{$ifdef Dummy}
+{$ifdef TESTLOCALBROWSER}
+             pdo:=_class;
+             if assigned(pdo) and (owner^.symtabletype<>localsymtable) then
+               localsymtablestack:=pdo^.publicsyms;
+             if owner^.symtabletype<>localsymtable then
+               while assigned(pdo) do
+                 begin
+                    if pdo^.publicsyms<>aktrecordsymtable then
+                      begin
+                         pdo^.publicsyms^.unitid:=local_symtable_index;
+                         inc(local_symtable_index);
+                      end;
+                    pdo:=pdo^.childof;
+                 end;
+               
              new(parast,loadas(parasymtable));
+             parast^.next:=localsymtablestack;
+             localsymtablestack:=parast;
+             parast^.unitid:=local_symtable_index;
+             inc(local_symtable_index);
              parast^.load_browser;
              new(localst,loadas(localsymtable));
+             localst^.next:=localsymtablestack;
+             localsymtablestack:=localst;
+             localst^.unitid:=local_symtable_index;
+             inc(local_symtable_index);
              localst^.load_browser;
-{$endif def Dummy}
+             { decrement for }
+             local_symtable_index:=local_symtable_index-2;
+             localsymtablestack:=localsymtablestack^.next^.next;
+             pdo:=_class;
+             if (owner^.symtabletype<>localsymtable) then
+               localsymtablestack:=nil;
+             if (owner^.symtabletype<>localsymtable) then
+               while assigned(pdo) do
+                 begin
+                    if pdo^.publicsyms<>aktrecordsymtable then
+                      dec(local_symtable_index);
+                    pdo:=pdo^.childof;
+                 end;
+
+{$endif def TESTLOCALBROWSER}
           end;
       end;
 
@@ -2261,6 +2302,9 @@
     function tprocdef.write_references : boolean;
       var
         ref : pref;
+{$ifdef TESTLOCALBROWSER}
+        pdo : pobjectdef;
+{$endif def TESTLOCALBROWSER}
         move_last : boolean;
       begin
         move_last:=lastwritten=lastref;
@@ -2292,18 +2336,44 @@
         write_references:=true;
         if (current_module^.flags and uf_local_browser)<>0 then
           begin
-{$ifdef Dummy}
-             { we need dummy para and local symtables
+{$ifdef TESTLOCALBROWSER}
+             pdo:=_class;
+             if (owner^.symtabletype<>localsymtable) then
+               while assigned(pdo) do
+                 begin
+                    if pdo^.publicsyms<>aktrecordsymtable then
+                      begin
+                         pdo^.publicsyms^.unitid:=local_symtable_index;
+                         inc(local_symtable_index);
+                      end;
+                    pdo:=pdo^.childof;
+                 end;
+               
+             { we need TESTLOCALBROWSER para and local symtables
                PPU files are then easier to read PM }
              if not assigned(parast) then
                parast:=new(psymtable,init(parasymtable));
              parast^.writeas;
+             parast^.unitid:=local_symtable_index;
+             inc(local_symtable_index);
              parast^.write_browser;
              if not assigned(localst) then
                localst:=new(psymtable,init(localsymtable));
              localst^.writeas;
+             localst^.unitid:=local_symtable_index;
+             inc(local_symtable_index);
              localst^.write_browser;
-{$endif def Dummy}
+             { decrement for }
+             local_symtable_index:=local_symtable_index-2;
+             pdo:=_class;
+             if (owner^.symtabletype<>localsymtable) then
+               while assigned(pdo) do
+                 begin
+                    if pdo^.publicsyms<>aktrecordsymtable then
+                      dec(local_symtable_index);
+                    pdo:=pdo^.childof;
+                 end;
+{$endif def TESTLOCALBROWSER}
           end;
       end;
 
@@ -3308,7 +3378,11 @@
 
 {
   $Log$
-  Revision 1.94  1999-02-22 20:13:38  florian
+  Revision 1.95  1999-02-23 18:29:23  pierre
+    * win32 compilation error fix
+    + some work for local browser (not cl=omplete yet)
+
+  Revision 1.94  1999/02/22 20:13:38  florian
     + first implementation of message keyword
 
   Revision 1.93  1999/02/22 13:07:07  pierre

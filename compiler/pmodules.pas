@@ -319,13 +319,6 @@ unit pmodules;
         { load browser info if stored }
         if ((current_module^.flags and uf_has_browser)<>0) then
           punitsymtable(current_module^.globalsymtable)^.load_symtable_refs;
-        if ((current_module^.flags and uf_local_browser)<>0) then
-         begin
-           current_module^.localsymtable:=new(psymtable,loadas(staticsymtable));
-           psymtable(current_module^.localsymtable)^.name:=
-              stringdup('implementation of '+psymtable(current_module^.globalsymtable)^.name^);
-           psymtable(current_module^.localsymtable)^.load_browser;
-         end;
         { remove the map, it's not needed anymore }
         dispose(current_module^.map);
         current_module^.map:=nil;
@@ -1055,17 +1048,12 @@ unit pmodules;
          if is_assembler_generated then
            insertobjectfile;
 
+         if cs_local_browser in aktmoduleswitches then
+           current_module^.localsymtable:=refsymtable;
          { Write out the ppufile }
          if (status.errorcount=0) then
            writeunitas(current_module^.ppufilename^,punitsymtable(symtablestack));
 
-         { write local browser }
-         if cs_local_browser in aktmoduleswitches then
-          begin
-            current_module^.localsymtable:=refsymtable;
-            refsymtable^.write;
-            refsymtable^.write_browser;
-          end;
           { must be done only after local symtable ref stores !! }
           closecurrentppu;
 {$ifdef GDB}
@@ -1259,7 +1247,11 @@ unit pmodules;
 end.
 {
   $Log$
-  Revision 1.99  1999-02-22 13:06:58  pierre
+  Revision 1.100  1999-02-23 18:29:20  pierre
+    * win32 compilation error fix
+    + some work for local browser (not cl=omplete yet)
+
+  Revision 1.99  1999/02/22 13:06:58  pierre
     + -b and -bl options work !
     + cs_local_browser ($L+) is disabled if cs_browser ($Y+)
       is not enabled when quitting global section
