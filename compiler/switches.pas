@@ -51,7 +51,7 @@ const
    {B} (typesw:localsw; setsw:ord(cs_full_boolean_eval)),
    {C} (typesw:localsw; setsw:ord(cs_do_assertion)),
    {D} (typesw:modulesw; setsw:ord(cs_debuginfo)),
-   {E} (typesw:globalsw; setsw:ord(cs_fp_emulation)),
+   {E} (typesw:modulesw; setsw:ord(cs_fp_emulation)),
    {F} (typesw:ignoredsw; setsw:ord(cs_localnone)),
    {G} (typesw:ignoredsw; setsw:ord(cs_localnone)),
    {H} (typesw:localsw; setsw:ord(cs_ansistrings)),
@@ -177,7 +177,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.6  2000-12-25 00:07:29  peter
+  Revision 1.7  2001-05-18 22:56:05  peter
+    * $E is moduleswitch (merged)
+
+  Revision 1.6  2000/12/25 00:07:29  peter
     + new tlinkedlist class (merge of old tstringqueue,tcontainer and
       tlinkedlist objects)
 
