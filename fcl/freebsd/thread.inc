@@ -171,7 +171,7 @@ begin
   Thread.DoTerminate;
   if FreeThread then
     Thread.Free;
-  fpExit(Result);
+  {$ifdef ver1_0}ExitProcess{$else}fpExit{$endif}(Result);
 end;
 
 
@@ -253,7 +253,7 @@ begin
          Linux.Setpriority
        {$else}
         Unix.fpSetPriority
-       {$endif}  	(Prio_Process,FHandle, Priorities[Value]);
+       {$endif} (Prio_Process,FHandle, Priorities[Value]);
 end;
 
 
@@ -316,7 +316,10 @@ end;
 
 {
   $Log$
-  Revision 1.10  2003-09-20 12:38:29  marco
+  Revision 1.11  2003-09-20 14:51:42  marco
+   * small v1_0 fix
+
+  Revision 1.10  2003/09/20 12:38:29  marco
    * FCL now compiles for FreeBSD with new 1.1. Now Linux.
 
   Revision 1.9  2003/01/17 19:01:07  marco
