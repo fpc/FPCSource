@@ -652,7 +652,7 @@ begin
       end;
     // render the glyph
     FTCheck(FT_Glyph_Copy (g^.glyph, gl),sErrMakingString1);
-    FTCheck(FT_Glyph_To_Bitmap (gl, CurRenderMode, @pos, true),sErrMakingString2);
+    FTCheck(FT_Glyph_To_Bitmap (gl, CurRenderMode, @pos, true),sErrMakingString4);
     // Copy what is needed to record
     bm := PFT_BitmapGlyph(gl);
     with result.Bitmaps[r]^ do
