@@ -85,7 +85,7 @@ unit cgcpu;
         procedure a_cmp_reg_reg_label(list : taasmoutput;size : tcgsize;cmp_op : topcmp;reg1,reg2 : tregister;l : tasmlabel); override;
         procedure a_cmp_ref_reg_label(list : taasmoutput;size : tcgsize;cmp_op : topcmp;const ref: treference; reg : tregister; l : tasmlabel); override;
 
-        procedure a_jmp_cond(list : taasmoutput;cond : TOpCmp;l: tasmlabel); override;
+        procedure a_jmp_always(list : taasmoutput;l: tasmlabel); override;
         procedure a_jmp_flags(list : taasmoutput;const f : TResFlags;l: tasmlabel); override;
 
         procedure g_flags2reg(list: taasmoutput; const f: tresflags; reg: TRegister); override;
@@ -107,12 +107,12 @@ unit cgcpu;
 
         procedure g_concatcopy(list : taasmoutput;const source,dest : treference;len : aword; delsource,loadref : boolean);override;
 
-        function makeregsize(var reg: tregister; size: tcgsize): topsize; override;
 
         class function reg_cgsize(const reg: tregister): tcgsize; override;
 
        private
 
+        procedure a_jmp_cond(list : taasmoutput;cond : TOpCmp;l: tasmlabel); 
         procedure get_64bit_ops(op:TOpCG;var op1,op2:TAsmOp);
         procedure sizes2load(s1 : tcgsize;s2 : topsize; var op: tasmop; var s3: topsize);
 
@@ -158,6 +158,12 @@ unit cgcpu;
        globtype,globals,verbose,systems,cutils,cga,rgobj,rgcpu;
 
 
+    { currently does nothing }
+    procedure tcg386.a_jmp_always(list : taasmoutput;l: tasmlabel); 
+     begin
+       a_jmp_cond(list, OC_NONE, l);      
+     end;
+
     { we implement the following routines because otherwise we can't }
     { instantiate the class since it's abstract                      }
 
@@ -168,9 +174,9 @@ unit cgcpu;
           OS_16,OS_S16:
             begin
               if target_info.alignment.paraalign = 2 then
-                list.concat(taicpu.op_reg(A_PUSH,S_W,changeregsize(r,S_W)))
+                list.concat(taicpu.op_reg(A_PUSH,S_W,rg.makeregsize(r,OS_16)))
               else
-                list.concat(taicpu.op_reg(A_PUSH,S_L,changeregsize(r,S_L)));
+                list.concat(taicpu.op_reg(A_PUSH,S_L,rg.makeregsize(r,OS_32)));
             end;
           OS_32,OS_S32:
             list.concat(taicpu.op_reg(A_PUSH,S_L,r));
@@ -212,7 +218,7 @@ unit cgcpu;
               tmpreg := get_scratch_reg(list);
               a_load_ref_reg(list,size,r,tmpreg);
               if target_info.alignment.paraalign = 2 then
-                list.concat(taicpu.op_reg(A_PUSH,S_W,changeregsize(tmpreg,S_W)))
+                list.concat(taicpu.op_reg(A_PUSH,S_W,rg.makeregsize(tmpreg,OS_16)))
               else
                 list.concat(taicpu.op_reg(A_PUSH,S_L,tmpreg));
               free_scratch_reg(list,tmpreg);
@@ -314,7 +320,7 @@ unit cgcpu;
 
       begin
         sizes2load(size,reg2opsize[reg2],op,s);
-        if (changeregsize(reg1,S_L) = changeregsize(reg2,S_L)) then
+        if (rg.makeregsize(reg1,OS_INT) = rg.makeregsize(reg2,OS_INT)) then
          begin
            { "mov reg1, reg1" doesn't make sense }
            if op = A_MOV then
@@ -583,7 +589,8 @@ unit cgcpu;
           popecx : boolean;
 
         begin
-          dstsize := makeregsize(dst,size);
+          dstsize := tcgsize2opsize[size];
+          dst := rg.makeregsize(dst,size);
           case op of
             OP_NEG,OP_NOT:
               begin
@@ -623,7 +630,7 @@ unit cgcpu;
                         list.concat(taicpu.op_reg(A_PUSH,S_L,R_ECX));
                         popecx := true;
                       end;
-                    a_load_reg_reg(list,OS_8,changeregsize(src,S_B),R_CL);
+                    a_load_reg_reg(list,OS_8,rg.makeregsize(src,OS_8),R_CL);
                   end
                 else
                   src := R_CL;
@@ -672,8 +679,8 @@ unit cgcpu;
               internalerror(200109239);
             else
               begin
-                opsize := makeregsize(reg,size);
-                list.concat(taicpu.op_ref_reg(TOpCG2AsmOp[op],opsize,ref,reg));
+                reg := rg.makeregsize(reg,size);
+                list.concat(taicpu.op_ref_reg(TOpCG2AsmOp[op],tcgsize2opsize[size],ref,reg));
               end;
           end;
        end;
@@ -825,8 +832,8 @@ unit cgcpu;
           opsize: topsize;
 
         begin
-          opsize := makeregsize(reg,size);
-          list.concat(taicpu.op_ref_reg(A_CMP,opsize,ref,reg));
+          reg := rg.makeregsize(reg,size);
+          list.concat(taicpu.op_ref_reg(A_CMP,tcgsize2opsize[size],ref,reg));
           a_jmp_cond(list,cmp_op,l);
         end;
 
@@ -863,7 +870,7 @@ unit cgcpu;
          ai : taicpu;
          hreg : tregister;
        begin
-          hreg := changeregsize(reg,S_B);
+          hreg := rg.makeregsize(reg,OS_8);
           ai:=Taicpu.Op_reg(A_Setcc,S_B,hreg);
           ai.SetCondition(flags_to_cond(f));
           list.concat(ai);
@@ -920,32 +927,6 @@ unit cgcpu;
        begin
          list.concat(taicpu.op_ref_reg(A_LEA,S_L,ref,r));
        end;
-
-    function tcg386.makeregsize(var reg: tregister; size: tcgsize): topsize;
-
-      begin
-        { this function only allows downsizing a register, because otherwise }
-        { we may start working with garbage (JM)                             }
-        case size of
-          OS_32,OS_S32:
-            begin
-              if not (reg in [R_EAX..R_EDI]) then
-                internalerror(2001092313);
-              result := S_L;
-            end;
-          OS_8,OS_S8:
-            begin
-              result := S_B;
-            end;
-          OS_16,OS_S16:
-            begin
-              result := S_W;
-            end;
-          else
-            internalerror(2001092312);
-        end;
-        reg := changeregsize(reg,result);
-      end;
 
 
 { ************* 64bit operations ************ }
@@ -1218,7 +1199,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.12  2002-04-15 19:44:20  peter
+  Revision 1.13  2002-04-21 15:31:05  carl
+  * changeregsize -> rg.makeregsize
+  + a_jmp_always added
+
+  Revision 1.12  2002/04/15 19:44:20  peter
     * fixed stackcheck that would be called recursively when a stack
       error was found
     * generic changeregsize(reg,size) for i386 register resizing
