@@ -66,6 +66,10 @@
          nextglobal := nil;
       end;
 
+{$ifdef MEMDEBUG}
+   var
+       manglenamesize : longint;
+{$endif}
 
     constructor tdef.load;
       begin
@@ -3089,8 +3093,17 @@ Const local_symtable_index : longint = $8001;
     procedure tprocdef.setmangledname(const s : string);
       begin
          if {$ifdef tp}not(use_big) and{$endif} (assigned(_mangledname)) then
-           strdispose(_mangledname);
+           begin
+{$ifdef MEMDEBUG}
+              dec(manglenamesize,length(_mangledname^));
+{$endif}
+              strdispose(_mangledname);
+           end;
          setstring(_mangledname,s);
+{$ifdef MEMDEBUG}
+         inc(manglenamesize,length(s));
+{$endif}
+{$ifdef EXTDEBUG}
          if assigned(parast) then
            begin
               stringdispose(parast^.name);
@@ -3101,6 +3114,7 @@ Const local_symtable_index : longint = $8001;
               stringdispose(localst^.name);
               localst^.name:=stringdup('locals of '+s);
            end;
+{$endif}
       end;
 
 
@@ -4164,7 +4178,11 @@ Const local_symtable_index : longint = $8001;
 
 {
   $Log$
-  Revision 1.7  2000-08-06 19:39:28  peter
+  Revision 1.8  2000-08-08 19:28:57  peter
+    * memdebug/memory patches (merged)
+    * only once illegal directive (merged)
+
+  Revision 1.7  2000/08/06 19:39:28  peter
     * default parameters working !
 
   Revision 1.6  2000/08/06 14:17:15  peter

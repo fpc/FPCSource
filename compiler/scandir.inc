@@ -1364,9 +1364,19 @@ const
                exit;
              end;
           end;
-         Message1(scan_d_handling_switch,'$'+hs);
+         { skip this directive? }
+         if current_scanner^.ignoredirectives.find(hs) then
+          begin
+            if (current_scanner^.comment_level>0) then
+             current_scanner^.readcomment;
+            { we've read the whole comment }
+            aktcommentstyle:=comment_none;
+            exit;
+          end;
          if hs='' then
-          Message1(scan_w_illegal_switch,'$'+hs);
+          begin
+            Message1(scan_w_illegal_switch,'$'+hs);
+          end;
       { Check for compiler switches }
          while (length(hs)=1) and (c in ['-','+']) do
           begin
@@ -1408,7 +1418,10 @@ const
                 p(t);
              end
             else
-             Message1(scan_w_illegal_directive,'$'+hs);
+             begin
+               current_scanner^.ignoredirectives.insert(hs);
+               Message1(scan_w_illegal_directive,'$'+hs);
+             end;
           { conditionals already read the comment }
             if (current_scanner^.comment_level>0) then
              current_scanner^.readcomment;
@@ -1419,7 +1432,11 @@ const
 
 {
   $Log$
-  Revision 1.2  2000-07-13 11:32:49  michael
+  Revision 1.3  2000-08-08 19:28:57  peter
+    * memdebug/memory patches (merged)
+    * only once illegal directive (merged)
+
+  Revision 1.2  2000/07/13 11:32:49  michael
   + removed logs
  
 }

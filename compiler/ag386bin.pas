@@ -826,6 +826,7 @@ unit ag386bin;
       var
         hp : pai;
         startsec : tsection;
+        place: tcutplace;
       begin
         objectalloc^.resetsections;
         objectalloc^.setsection(sec_code);
@@ -897,19 +898,25 @@ unit ag386bin;
            startsec:=objectalloc^.currsec;
 
            { we will start a new objectfile so reset everything }
+           { The place can still change in the next while loop, so don't init }
+           { the writer yet (JM)                                              }
            if (hp^.typ=ait_cut) then
-            objectoutput^.initwriting(pai_cut(hp)^.place)
+            place := pai_cut(hp)^.place
            else
-            objectoutput^.initwriting(cut_normal);
+            place := cut_normal;
 
            { avoid empty files }
            while assigned(hp^.next) and
                  (pai(hp^.next)^.typ in [ait_marker,ait_comment,ait_section,ait_cut]) do
             begin
               if pai(hp^.next)^.typ=ait_section then
-               startsec:=pai_section(hp^.next)^.sec;
+               startsec:=pai_section(hp^.next)^.sec
+              else if (pai(hp^.next)^.typ=ait_cut) then
+               place := pai_cut(hp)^.place;
               hp:=pai(hp^.next);
             end;
+
+           objectoutput^.initwriting(place);
 
            hp:=pai(hp^.next);
 
@@ -995,7 +1002,11 @@ unit ag386bin;
 end.
 {
   $Log$
-  Revision 1.4  2000-08-04 22:00:50  peter
+  Revision 1.5  2000-08-08 19:28:57  peter
+    * memdebug/memory patches (merged)
+    * only once illegal directive (merged)
+
+  Revision 1.4  2000/08/04 22:00:50  peter
     * merges from fixes
 
   Revision 1.3  2000/07/13 12:08:24  michael

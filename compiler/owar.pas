@@ -51,9 +51,10 @@ type
     symreloc,
     symstr,
     lfnstr,
-    ardata,
-    objdata : PDynamicArray;
-    objfixup : longint;
+    ardata{,
+    objdata }: PDynamicArray;
+    objfixup,
+    objdatasize : longint;
     objfn   : string;
     timestamp : string[12];
     procedure createarhdr(fn:string;size:longint;const gid,uid,mode:string);
@@ -183,21 +184,29 @@ begin
   objfn:=fn;
   objfixup:=ardata^.usedsize;
 { reset size }
-  new(objdata,init(1,objbufsize));
+{  new(objdata,init(1,objbufsize)); }
+  objdatasize := 0;
+  ardata^.seek(ardata^.usedsize + sizeof(tarhdr));
 end;
 
 
 procedure tarobjectwriter.close;
 begin
-  objdata^.align(2);
+  if (objdatasize and 1) <> 0 then
+    begin
+      inc(objdatasize);
+      ardata^.seek(ardata^.usedsize+1);
+    end;
 { fix the size in the header }
-  createarhdr(objfn,objdata^.usedsize,'42','42','644');
+{  createarhdr(objfn,objdata^.usedsize,'42','42','644');}
+  createarhdr(objfn,objdatasize,'42','42','644');
 { write the header }
+  ardata^.seek(objfixup);
   ardata^.write(arhdr,sizeof(tarhdr));
 { write the data of this objfile }
-  ardata^.write(objdata^.data^,objdata^.usedsize);
+{  ardata^.write(objdata^.data^,objdata^.usedsize);}
 { free this object }
-  dispose(objdata,done);
+{  dispose(objdata,done);}
 end;
 
 
@@ -211,7 +220,9 @@ end;
 
 procedure tarobjectwriter.write(var b;len:longint);
 begin
-  objdata^.write(b,len);
+{  objdata^.write(b,len);}
+   ardata^.write(b,len);
+   inc(objdatasize,len);
 end;
 
 
@@ -282,7 +293,11 @@ end;
 end.
 {
   $Log$
-  Revision 1.2  2000-07-13 11:32:44  michael
+  Revision 1.3  2000-08-08 19:28:57  peter
+    * memdebug/memory patches (merged)
+    * only once illegal directive (merged)
+
+  Revision 1.2  2000/07/13 11:32:44  michael
   + removed logs
 
 }

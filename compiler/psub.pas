@@ -472,7 +472,10 @@ begin
   if isclassmethod and
      assigned(aktprocsym) then
     include(aktprocsym^.definition^.procoptions,po_classmethod);
-  consume(_SEMICOLON);
+  { support procedure proc;stdcall export; in Delphi mode only }
+  if not((m_delphi in aktmodeswitches) and
+     is_proc_directive(token)) then
+   consume(_SEMICOLON);
   dec(lexlevel);
 end;
 
@@ -2075,7 +2078,11 @@ end.
 
 {
   $Log$
-  Revision 1.6  2000-08-06 19:39:28  peter
+  Revision 1.7  2000-08-08 19:28:57  peter
+    * memdebug/memory patches (merged)
+    * only once illegal directive (merged)
+
+  Revision 1.6  2000/08/06 19:39:28  peter
     * default parameters working !
 
   Revision 1.5  2000/08/06 14:17:15  peter

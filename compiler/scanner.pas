@@ -84,6 +84,7 @@ unit scanner;
           comment_level,
           yylexcount     : longint;
           lastasmgetchar : char;
+          ignoredirectives : tstringcontainer; { ignore directives, used to give warnings only once }
           preprocstack   : ppreprocstack;
           invalid        : boolean; { flag if sourcefiles have been destroyed ! }
 
@@ -287,6 +288,7 @@ implementation
         lasttoken:=NOTOKEN;
         nexttoken:=NOTOKEN;
         lastasmgetchar:=#0;
+        ignoredirectives.init;
         invalid:=false;
       { load block }
         if not openinputfile then
@@ -315,6 +317,7 @@ implementation
                  closeinputfile;
               end;
           end;
+         ignoredirectives.done;
        end;
 
 
@@ -1834,7 +1837,11 @@ exit_label:
 end.
 {
   $Log$
-  Revision 1.2  2000-07-13 11:32:49  michael
+  Revision 1.3  2000-08-08 19:28:57  peter
+    * memdebug/memory patches (merged)
+    * only once illegal directive (merged)
+
+  Revision 1.2  2000/07/13 11:32:49  michael
   + removed logs
 
 }

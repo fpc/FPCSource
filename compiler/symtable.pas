@@ -2972,12 +2972,19 @@ implementation
          symbolstream.done;
 {$endif}
 {$endif Delphi}
+{$ifdef MEMDEBUG}
+       writeln('Manglednames: ',manglenamesize,' bytes');
+{$endif}
      end;
 
 end.
 {
   $Log$
-  Revision 1.2  2000-07-13 11:32:50  michael
+  Revision 1.3  2000-08-08 19:28:57  peter
+    * memdebug/memory patches (merged)
+    * only once illegal directive (merged)
+
+  Revision 1.2  2000/07/13 11:32:50  michael
   + removed logs
 
 }
