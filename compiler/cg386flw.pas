@@ -394,6 +394,8 @@ implementation
          {op : tasmop;
          s : topsize;}
          otlabel,oflabel : pasmlabel;
+         r : preference;
+
       label
          do_jmp;
       begin
@@ -463,6 +465,20 @@ implementation
               this caused form bug 711 }
                        begin
                           case procinfo^.returntype.def^.size of
+                           { it can be a qword/int64 too ... }
+                           8 : if is_mem then
+                                 begin
+                                    emit_ref_reg(A_MOV,S_L,
+                                      newreference(p^.left^.location.reference),R_EAX);
+                                    r:=newreference(p^.left^.location.reference);
+                                    inc(r^.offset,4);
+                                    emit_ref_reg(A_MOV,S_L,r,R_EDX);
+                                 end
+                               else
+                                 begin
+                                    emit_reg_reg(A_MOV,S_L,p^.left^.location.registerlow,R_EAX);
+                                    emit_reg_reg(A_MOV,S_L,p^.left^.location.registerhigh,R_EDX);
+                                 end;
                           { if its 3 bytes only we can still
                             copy one of garbage ! PM }
                            4,3 : if is_mem then
@@ -480,6 +496,7 @@ implementation
                                    newreference(p^.left^.location.reference),R_AL)
                                else
                                  emit_reg_reg(A_MOV,S_B,makereg8(p^.left^.location.register),R_AL);
+                           else internalerror(605001);
                           end;
                         end;
               end;
@@ -1214,7 +1231,11 @@ do_jmp:
 end.
 {
   $Log$
-  Revision 1.73  2000-04-24 11:11:50  peter
+  Revision 1.74  2000-05-09 19:05:56  florian
+    * fixed a problem when returning int64/qword from a function in -Or: in some
+      cases a wrong result was returned
+
+  Revision 1.73  2000/04/24 11:11:50  peter
     * backtraces for exceptions are now only generated from the place of the
       exception
     * frame is also pushed for exceptions
