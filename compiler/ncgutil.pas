@@ -401,6 +401,20 @@ implementation
          end
         else
          begin
+         {$ifdef newra}
+           { transformations to 32bit or smaller }
+           if (l.loc=LOC_REGISTER) and (l.size in [OS_64,OS_S64]) then
+             { if the previous was 64bit release the high register }
+             begin
+               rg.ungetregisterint(list,l.registerhigh);
+               l.registerhigh.enum:=R_NO;
+             end;
+           {Do not bother to recycle the existing register. The register
+            allocator eliminates unnecessary moves, so it's not needed
+            and trying to recycle registers can cause problems because
+            the registers changes size and may need aditional constraints.}
+           hregister:=rg.getregisterint(list,dst_size);
+         {$else}
            { transformations to 32bit or smaller }
            if l.loc=LOC_REGISTER then
             begin
@@ -441,8 +455,6 @@ implementation
                  hregister:=rg.getregisterint(list,dst_size);
              end;
            hregister:=rg.makeregsize(hregister,dst_size);
-        {$ifdef newra}
-           rg.add_constraints(hregister.number);
         {$endif}
            { load value in new register }
            case l.loc of
@@ -1976,7 +1988,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.128  2003-07-02 22:18:04  peter
+  Revision 1.129  2003-07-06 15:31:20  daniel
+    * Fixed register allocator. *Lots* of fixes.
+
+  Revision 1.128  2003/07/02 22:18:04  peter
     * paraloc splitted in callerparaloc,calleeparaloc
     * sparc calling convention updates
 

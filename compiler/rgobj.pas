@@ -34,14 +34,21 @@
 
 Register allocator introduction.
 
-Free Pascal uses a Chaitin style register allocator similair to the one
-described in the book "Modern compiler implementation in C" by Andrew W. Appel.,
-published by Cambridge University Press.
+Free Pascal uses a Chaitin style register allocator. We use a variant similair
+to the one described in the book "Modern compiler implementation in C" by
+Andrew W. Appel., published by Cambridge University Press.
+
+The register allocator that is described by Appel uses a much improved way
+of register coalescing, called "iterated register coalescing". Instead
+of doing coalescing as a prepass to the register allocation, the coalescing
+is done inside the register allocator. This has the advantage that the
+register allocator can coalesce very aggresively without introducing spills.
 
 Reading this book is recommended for a complete understanding. Here is a small
 introduction.
 
-The code generator thinks it has an infinite amount of registers. Our processorhas a limited amount of registers. Therefore we must reduce the amount of
+The code generator thinks it has an infinite amount of registers. Our processor
+has a limited amount of registers. Therefore we must reduce the amount of
 registers until there are less enough to fit into the processors registers.
 
 Registers can interfere or not interfere. If two imaginary registers interfere
@@ -67,6 +74,9 @@ with those variables.
 Graph colouring is an NP complete problem. Therefore we use an approximation
 that pushes registers to colour on to a stack. This is done in the "simplify"
 procedure.
+
+The register allocator first checks which registers are a candidate for
+coalescing.
 
 *******************************************************************************}
 
@@ -274,6 +284,11 @@ unit rgobj;
              @param(r specific register to allocate)
           }
           function getexplicitregisterfpu(list : taasmoutput; r : Toldregister) : tregister;virtual;
+
+{$ifdef newra}
+          procedure allocexplicitregistersint(list:Taasmoutput;r:Tsupregset);
+          procedure deallocexplicitregistersint(list:Taasmoutput;r:Tsupregset);
+{$endif}
 
           {# Deallocate any kind of register }
           procedure ungetregister(list: taasmoutput; r : tregister); virtual;
@@ -493,7 +508,9 @@ unit rgobj;
 
       punusedstate = ^tunusedstate;
       tunusedstate = record
+{$ifndef newra}
         unusedregsint : Tsupregset;
+{$endif}
         unusedregsaddr : Tsupregset;
         unusedregsfpu : tregisterset;
         unusedregsmm : tregisterset;
@@ -521,7 +538,12 @@ unit rgobj;
        resetusableregisters;
        lastintreg:=0;
        maxintreg:=first_imreg;
-       cpu_registers:={Acpu_registers}last_supreg-first_supreg+1;
+       {What madman decided to change the code like this: (??)
+       cpu_registers:=last_supreg-first_supreg+1;
+       The amount of registers available for register allocation is
+       allmost allways smaller than the amount of registers that exists!
+       Therefore: }
+       cpu_registers:=Acpu_registers;
 {$ifdef TEMPREGDEBUG}
        fillchar(reg_user,sizeof(reg_user),0);
        fillchar(reg_releaser,sizeof(reg_releaser),0);
@@ -763,6 +785,52 @@ unit rgobj;
        getexplicitregisterint:=r2;
     end;
 
+{$ifdef newra}
+    procedure Trgobj.allocexplicitregistersint(list:Taasmoutput;r:Tsupregset);
+
+    var reg:Tregister;
+        i:Tsuperregister;
+
+    begin
+      if unusedregsint*r=r then
+        begin
+          unusedregsint:=unusedregsint-r;
+          used_in_proc_int:=used_in_proc_int+r;
+          for i:=first_supreg to last_supreg do
+            if i in r then
+              begin
+                add_edges_used(i);
+                reg.enum:=R_INTREGISTER;
+                reg.number:=i shl 8 or R_SUBWHOLE;
+                list.concat(Tai_regalloc.alloc(reg));
+              end;
+         end
+       else
+         internalerror(200305061);
+    end;
+
+    procedure Trgobj.deallocexplicitregistersint(list:Taasmoutput;r:Tsupregset);
+
+    var reg:Tregister;
+        i:Tsuperregister;
+
+    begin
+      if unusedregsint*r=[] then
+        begin
+          unusedregsint:=unusedregsint+r;
+          for i:=last_supreg downto first_supreg do
+            if i in r then
+              begin
+                reg.enum:=R_INTREGISTER;
+                reg.number:=i shl 8 or R_SUBWHOLE;
+                list.concat(Tai_regalloc.dealloc(reg));
+              end;
+         end
+       else
+         internalerror(200305062);
+    end;
+{$endif}
+
 
     { tries to allocate the passed register, if possible }
     function trgobj.getexplicitregisterfpu(list : taasmoutput; r : Toldregister) : tregister;
@@ -853,9 +921,7 @@ unit rgobj;
            exit;
          if r.enum>lastreg then
           internalerror(200301081);
-         if r.enum in intregs then
-           ungetregisterint(list,r)
-         else if r.enum in fpuregs then
+         if r.enum in fpuregs then
            ungetregisterfpu(list,r,OS_NO)
          else if r.enum in mmregs then
            ungetregistermm(list,r)
@@ -1357,7 +1423,9 @@ unit rgobj;
     procedure trgobj.saveUnusedState(var state: pointer);
       begin
         new(punusedstate(state));
+      {$ifndef newra}
         punusedstate(state)^.unusedregsint := unusedregsint;
+      {$endif}
         punusedstate(state)^.unusedregsfpu := unusedregsfpu;
         punusedstate(state)^.unusedregsmm := unusedregsmm;
       {$ifndef newra}
@@ -1370,7 +1438,9 @@ unit rgobj;
 
     procedure trgobj.restoreUnusedState(var state: pointer);
       begin
+      {$ifndef newra}
         unusedregsint := punusedstate(state)^.unusedregsint;
+      {$endif}
         unusedregsfpu := punusedstate(state)^.unusedregsfpu;
         unusedregsmm := punusedstate(state)^.unusedregsmm;
       {$ifndef newra}
@@ -1643,7 +1713,9 @@ unit rgobj;
               end;
         end;
       n:=Tsuperregister(simplifyworklist[p]);
-      delete(simplifyworklist,p,1);
+      if length(simplifyworklist)>1 then
+        simplifyworklist[p]:=simplifyworklist[length(simplifyworklist)];
+      dec(simplifyworklist[0]);
 
       {Push it on the selectstack.}
       selectstack:=selectstack+char(n);
@@ -1671,7 +1743,10 @@ unit rgobj;
       if not(u in [first_supreg..last_supreg]) and not move_related(u) and
          (degree[u]<cpu_registers) then
         begin
-          delete(freezeworklist,pos(char(u),freezeworklist),1);
+          if length(freezeworklist)>1 then
+            freezeworklist[pos(char(u),freezeworklist)]:=freezeworklist[length(freezeworklist)];
+          dec(freezeworklist[0]);
+{          delete(freezeworklist,pos(char(u),freezeworklist),1);}
           simplifyworklist:=simplifyworklist+char(u);
         end;
     end;
@@ -1940,6 +2015,7 @@ unit rgobj;
                 if a in colourednodes then
                   include(adj_colours,colour[a]);
               end;
+          include(adj_colours,RS_STACK_POINTER_REG);
           {Assume a spill by default...}
           spillednodes:=spillednodes+char(n);
           {Search for a colour not in this list.}
@@ -2246,9 +2322,8 @@ unit rgobj;
 
     begin
       if r.enum<=lastreg then
-        internalerror(2003010803);
+        internalerror(200301083);
       supreg:=r.number shr 8;
-      { takes much time }
       include(unusedregsint,supreg);
       if position=nil then
         list.insert(Tai_regalloc.dealloc(r))
@@ -2271,9 +2346,10 @@ unit rgobj;
       spill_registers:=false;
       unusedregsint:=[0..255];
       fillchar(degree,sizeof(degree),0);
+{      exclude(unusedregsint,RS_STACK_POINTER_REG);}
       if current_procinfo.framepointer.number=NR_FRAME_POINTER_REG then
         {Make sure the register allocator won't allocate registers into ebp.}
-        exclude(rg.unusedregsint,RS_FRAME_POINTER_REG);
+        exclude(unusedregsint,RS_FRAME_POINTER_REG);
       new(spill_temps);
       fillchar(spill_temps^,sizeof(spill_temps^),0);
       regs_to_spill_set:=[];
@@ -2459,7 +2535,10 @@ end.
 
 {
   $Log$
-  Revision 1.59  2003-07-06 15:00:47  jonas
+  Revision 1.60  2003-07-06 15:31:21  daniel
+    * Fixed register allocator. *Lots* of fixes.
+
+  Revision 1.59  2003/07/06 15:00:47  jonas
     * fixed my previous completely broken commit. It's not perfect though,
       registers > last_supreg and < max_intreg may still be "translated"
 

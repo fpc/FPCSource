@@ -2081,7 +2081,7 @@ implementation
       case ops of
         1:
           begin
-            if oper[0].typ=top_reg then
+            if (oper[0].typ=top_reg) and (oper[0].reg.enum=R_INTREGISTER) then
               begin
                 supreg:=oper[0].reg.number shr 8;
                 if supreg in r then
@@ -2109,7 +2109,7 @@ implementation
                      Change into:
 
                      mov r23d,[ebp-12]         ; Use a help register
-                     push [r23d+4*r22d]       ; Replace register by helpregister }
+                     push [r23d+4*r22d]        ; Replace register by helpregister }
                     subreg:=oper[0].ref^.base.number and $ff;
                     if oper[0].ref^.index.number=NR_NO then
                       pos:=Tai(previous)
@@ -2156,7 +2156,7 @@ implementation
           end;
         2:
           begin
-            if oper[0].typ=top_reg then
+            if (oper[0].typ=top_reg) and (oper[0].reg.enum=R_INTREGISTER) then
               begin
                 supreg:=oper[0].reg.number shr 8;
                 subreg:=oper[0].reg.number and $ff;
@@ -2196,7 +2196,7 @@ implementation
                       oper[0].ref^:=spilltemplist[supreg];
                     end;
               end;
-            if oper[1].typ=top_reg then
+            if (oper[1].typ=top_reg) and (oper[1].reg.enum=R_INTREGISTER) then
               begin
                 supreg:=oper[1].reg.number shr 8;
                 subreg:=oper[1].reg.number and $ff;
@@ -2246,6 +2246,23 @@ implementation
                          Change into:
   
                          add [ebp-12],r21d    ; Replace register by reference }
+                        if (opcode=A_MOVZX) or (opcode=A_MOVSX) then
+                          begin
+                            {Because 'movzx memory,register' does not exist...}
+                            spill_registers:=true;
+                            op:=opcode;
+                            opcode:=A_MOV;
+                            opsize:=reg2opsize(oper[1].reg);
+                            pos:=get_insert_pos(Tai(previous),oper[0].reg.number,0,0);
+                            rgget(list,pos,subreg,helpreg);
+                            helpins:=Taicpu.op_reg_reg(op,hopsize,oper[0].reg,helpreg);
+                            if pos=nil then
+                              list.insertafter(helpins,list.first)
+                            else
+                              list.insertafter(helpins,pos.next);
+                            rgunget(list,helpins,helpreg);
+                            forward_allocation(Tai(helpins.next));
+                          end;
                         oper[1].typ:=top_ref;
                         new(oper[1].ref);
                         oper[1].ref^:=spilltemplist[supreg];
@@ -2396,7 +2413,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.6  2003-06-14 14:53:50  jonas
+  Revision 1.7  2003-07-06 15:31:21  daniel
+    * Fixed register allocator. *Lots* of fixes.
+
+  Revision 1.6  2003/06/14 14:53:50  jonas
     * fixed newra cycle for x86
     * added constants for indicating source and destination operands of the
       "move reg,reg" instruction to aasmcpu (and use those in rgobj)

@@ -595,7 +595,8 @@ implementation
 
         { reset the temporary memory }
         rg.cleartempgen;
-        rg.used_in_proc_int:=[];
+{        exclude(rg.unusedregsint,RS_STACK_POINTER_REG);}
+        rg.used_in_proc_int:=[{RS_STACK_POINTER_REG}];
         rg.used_in_proc_other:=[];
 
         { set the start offset to the start of the temp area in the stack }
@@ -1253,7 +1254,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.130  2003-07-05 20:15:24  jonas
+  Revision 1.131  2003-07-06 15:31:21  daniel
+    * Fixed register allocator. *Lots* of fixes.
+
+  Revision 1.130  2003/07/05 20:15:24  jonas
     * set pi_do_call if range/overflow checking is on
 
   Revision 1.129  2003/06/17 16:34:44  jonas

@@ -297,17 +297,16 @@ interface
             end;
           top_symbol :
             begin
-              AsmWrite('dword ');
+              asmwrite('dword ');
               if assigned(o.sym) then
-               AsmWrite(o.sym.name);
+               begin
+                asmwrite(o.sym.name);
+                if o.symofs=0 then
+                  exit;
+               end;
               if o.symofs>0 then
-               AsmWrite('+'+tostr(o.symofs))
-              else
-               if o.symofs<0 then
-                AsmWrite(tostr(o.symofs))
-               else
-                if not(assigned(o.sym)) then
-                 AsmWrite('0');
+               asmwrite('+');
+              asmwrite(tostr(o.symofs))
             end;
           top_ref :
             begin
@@ -926,7 +925,10 @@ initialization
 end.
 {
   $Log$
-  Revision 1.35  2003-06-03 13:01:59  daniel
+  Revision 1.36  2003-07-06 15:31:21  daniel
+    * Fixed register allocator. *Lots* of fixes.
+
+  Revision 1.35  2003/06/03 13:01:59  daniel
     * Register allocator finished
 
   Revision 1.34  2003/05/26 19:37:57  peter

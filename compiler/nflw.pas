@@ -119,9 +119,9 @@ interface
           labsym : tlabelsym;
           labsymderef : tderef;
           exceptionblock : integer;
-//          internlab : tinterngotolabel;
+{          internlab : tinterngotolabel;}
           constructor create(p : tlabelsym);virtual;
-//          constructor createintern(g:tinterngotolabel);
+{          constructor createintern(g:tinterngotolabel);}
           constructor ppuload(t:tnodetype;ppufile:tcompilerppufile);override;
           procedure ppuwrite(ppufile:tcompilerppufile);override;
           procedure derefimpl;override;
@@ -1429,7 +1429,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.78  2003-06-13 21:19:30  peter
+  Revision 1.79  2003-07-06 15:31:20  daniel
+    * Fixed register allocator. *Lots* of fixes.
+
+  Revision 1.78  2003/06/13 21:19:30  peter
     * current_procdef removed, use current_procinfo.procdef instead
 
   Revision 1.77  2003/06/07 20:26:32  peter

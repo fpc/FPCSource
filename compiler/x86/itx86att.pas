@@ -146,11 +146,9 @@ interface
      function gas_regnum_search(const s:string):Tnewregister;
 
 
-  implementation
+implementation
 
-    uses
-      cutils,systems,
-      verbose;
+     uses cutils;
 
      function gas_regnum_search(const s:string):Tnewregister;
 
@@ -178,7 +176,10 @@ interface
 end.
 {
   $Log$
-  Revision 1.1  2003-05-22 21:33:08  peter
+  Revision 1.2  2003-07-06 15:31:21  daniel
+    * Fixed register allocator. *Lots* of fixes.
+
+  Revision 1.1  2003/05/22 21:33:08  peter
     * i386 att instruction table moved to separate unit
 
 }

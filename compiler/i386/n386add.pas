@@ -378,26 +378,15 @@ interface
                        location_release(exprasmlist,right.location);
                        cg.a_paramaddr_ref(exprasmlist,right.location.reference,paramanager.getintparaloc(exprasmlist,1));
                       {$ifdef newra}
-                        r.enum:=R_INTREGISTER;
-                        for i:=first_supreg to last_supreg do
-                          if i<>RS_FRAME_POINTER_REG then
-                            begin
-                              r.number:=i shl 8 or R_SUBWHOLE;
-                              rg.getexplicitregisterint(exprasmlist,r.number);
-                            end;
+                       rg.allocexplicitregistersint(exprasmlist,[first_supreg..last_supreg]-[RS_FRAME_POINTER_REG,RS_STACK_POINTER_REG]);
                       {$else}
-                        rg.saveintregvars(exprasmlist,regstopush);
+                       rg.saveintregvars(exprasmlist,regstopush);
                       {$endif}
                        cg.a_call_name(exprasmlist,'FPC_SHORTSTR_COMPARE');
                        paramanager.freeintparaloc(exprasmlist,2);
                        paramanager.freeintparaloc(exprasmlist,1);
                       {$ifdef newra}
-                        for i:=first_supreg to last_supreg do
-                          if i<>RS_FRAME_POINTER_REG then
-                            begin
-                              r.number:=i shl 8 or R_SUBWHOLE;
-                              rg.ungetregisterint(exprasmlist,r);
-                            end;
+                       rg.deallocexplicitregistersint(exprasmlist,[first_supreg..last_supreg]-[RS_FRAME_POINTER_REG,RS_STACK_POINTER_REG]);
                       {$else}
                         rg.restoreusedintregisters(exprasmlist,pushed);
                       {$endif}
@@ -1644,7 +1633,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.72  2003-06-17 16:51:30  peter
+  Revision 1.73  2003-07-06 15:31:21  daniel
+    * Fixed register allocator. *Lots* of fixes.
+
+  Revision 1.72  2003/06/17 16:51:30  peter
     * cycle fixes
 
   Revision 1.71  2003/06/07 18:57:04  jonas

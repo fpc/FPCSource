@@ -756,14 +756,15 @@ implementation
                  (not paramanager.ret_in_param(resulttype.def,procdefinition.proccalloption)) then
                begin
 {$ifndef cpu64bit}
-                 if resulttype.def.size>sizeof(aword) then
-                   begin
-                     include(regs_to_push_int,RS_FUNCTION_RESULT64_LOW_REG);
-                     include(regs_to_push_int,RS_FUNCTION_RESULT64_HIGH_REG);
-                   end
-                 else
+                 if resulttype.def.deftype<>floatdef then
+                   if resulttype.def.size>sizeof(aword) then
+                     begin
+                       include(regs_to_push_int,RS_FUNCTION_RESULT64_LOW_REG);
+                       include(regs_to_push_int,RS_FUNCTION_RESULT64_HIGH_REG);
+                     end
+                   else
 {$endif cpu64bit}
-                   include(regs_to_push_int,RS_FUNCTION_RESULT_REG);
+                    include(regs_to_push_int,RS_FUNCTION_RESULT_REG);
                end;
               rg.saveusedintregisters(exprasmlist,pushedint,regs_to_push_int);
 {$endif}
@@ -787,7 +788,7 @@ implementation
            begin
               {No procedure is allowed to destroy ebp.}
 {$ifdef newra}
-              regs_to_alloc:=VOLATILE_INTREGISTERS-[RS_FRAME_POINTER_REG];
+              regs_to_alloc:=VOLATILE_INTREGISTERS-[RS_FRAME_POINTER_REG,RS_STACK_POINTER_REG];
               if (not is_void(resulttype.def)) and
                  not(paramanager.ret_in_param(resulttype.def,procdefinition.proccalloption)) then
                 begin
@@ -939,12 +940,7 @@ implementation
                      end;
 
 {$ifdef newra}
-                   for i:=first_supreg to last_supreg do
-                    if i in regs_to_alloc then
-                      begin
-                        r.number:=i shl 8 or R_SUBWHOLE;
-                        rg.getexplicitregisterint(exprasmlist,r.number);
-                      end;
+                   rg.allocexplicitregistersint(exprasmlist,regs_to_alloc);
 {$endif}
                    { call method }
                    reference_reset_base(href,{$ifdef newra}vmtreg2{$else}vmtreg{$endif},
@@ -966,12 +962,7 @@ implementation
                     end;
 
 {$ifdef newra}
-                  for i:=first_supreg to last_supreg do
-                    if i in regs_to_alloc then
-                      begin
-                        r.number:=i shl 8 or R_SUBWHOLE;
-                        rg.getexplicitregisterint(exprasmlist,r.number);
-                      end;
+                  rg.allocexplicitregistersint(exprasmlist,regs_to_alloc);
 {$endif}
                   { Calling interrupt from the same code requires some
                     extra code }
@@ -990,14 +981,14 @@ implementation
               if right.location.loc in  [LOC_REFERENCE,LOC_CREFERENCE] then
                 begin
                   helpref:=right.location.reference;
-                  if helpref.index.number<>NR_NO then
+                  if (helpref.index.number<>NR_NO) and (helpref.index.number<>NR_FRAME_POINTER_REG) then
                     begin
                       rg.ungetregisterint(exprasmlist,helpref.index);
                       helpref.index:=rg.getabtregisterint(exprasmlist,OS_ADDR);
                       cg.a_load_reg_reg(exprasmlist,OS_ADDR,OS_ADDR,
                                         right.location.reference.index,helpref.index);
                     end;
-                  if helpref.base.number<>NR_NO then
+                  if (helpref.base.number<>NR_NO) and (helpref.base.number<>NR_FRAME_POINTER_REG) then
                     begin
                       rg.ungetregisterint(exprasmlist,helpref.base);
                       helpref.base:=rg.getabtregisterint(exprasmlist,OS_ADDR);
@@ -1021,12 +1012,7 @@ implementation
                 end;
 
 {$ifdef newra}
-              for i:=first_supreg to last_supreg do
-                if i in regs_to_alloc then
-                  begin
-                    r.number:=i shl 8 or R_SUBWHOLE;
-                    rg.getexplicitregisterint(exprasmlist,r.number);
-                  end;
+              rg.allocexplicitregistersint(exprasmlist,regs_to_alloc);
 {$endif}
               { Calling interrupt from the same code requires some
                 extra code }
@@ -1097,13 +1083,7 @@ implementation
                  end;
              end;
            end;
-         r.enum:=R_INTREGISTER;
-         for i:=first_supreg to last_supreg do
-           if i in regs_to_free then
-             begin
-               r.number:=i shl 8 or R_SUBWHOLE;
-               rg.ungetregisterint(exprasmlist,r);
-             end;
+         rg.deallocexplicitregistersint(exprasmlist,regs_to_free);
 {$endif}
          { handle function results }
          if (not is_void(resulttype.def)) then
@@ -1561,7 +1541,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.97  2003-07-05 20:21:26  jonas
+  Revision 1.98  2003-07-06 15:31:20  daniel
+    * Fixed register allocator. *Lots* of fixes.
+
+  Revision 1.97  2003/07/05 20:21:26  jonas
      * create_paraloc_info() is now called separately for the caller and
        callee info
      * fixed ppc cycle

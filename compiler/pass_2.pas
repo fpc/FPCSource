@@ -205,7 +205,11 @@ implementation
                  Comment(V_Warning,'Location is different in secondpass: '+nodetype2str[p.nodetype]);
              end;
 
-{$ifndef newra}
+{$ifdef newra}
+            if rg.unusedregsint*([first_supreg..last_supreg] - [RS_FRAME_POINTER_REG,RS_STACK_POINTER_REG])<>
+                                ([first_supreg..last_supreg] - [RS_FRAME_POINTER_REG,RS_STACK_POINTER_REG]) then
+              internalerror(200306171);
+{$else}
             { check if all scratch registers are freed }
             for i:=1 to max_scratch_regs do
               if not(scratch_regs[i] in cg.unusedscratchregisters) then
@@ -255,7 +259,9 @@ implementation
 
     procedure generatecode(var p : tnode);
       begin
+       {$ifndef newra}
          rg.cleartempgen;
+       {$endif}
          flowcontrol:=[];
          { when size optimization only count occurrence }
          if cs_littlesize in aktglobalswitches then
@@ -310,7 +316,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.59  2003-07-06 10:18:47  jonas
+  Revision 1.60  2003-07-06 15:31:20  daniel
+    * Fixed register allocator. *Lots* of fixes.
+
+  Revision 1.59  2003/07/06 10:18:47  jonas
     * also generate the caller paraloc info of a procedure if it doesn't exist
       yet at the start of pass_2
 
