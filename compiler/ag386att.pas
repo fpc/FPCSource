@@ -739,7 +739,7 @@ unit ag386att;
                   if calljmp then
                     begin
                        AsmWrite(s+#9);
-                       s:=+getopstr_jmp(paicpu(hp)^.oper[0]);
+                       s:=getopstr_jmp(paicpu(hp)^.oper[0]);
                     end
                   else
                    begin
@@ -902,7 +902,10 @@ unit ag386att;
 end.
 {
   $Log$
-  Revision 1.33  2000-04-12 12:42:28  pierre
+  Revision 1.34  2000-05-11 09:59:40  pierre
+   * changed to compile with Delphi, reported by Kovacs Attila Zoltan
+
+  Revision 1.33  2000/04/12 12:42:28  pierre
    * fix the -g-l option
 
   Revision 1.32  2000/04/06 07:04:50  pierre
