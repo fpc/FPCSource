@@ -74,6 +74,7 @@ Procedure fpc_Finalize (Data,TypeInfo: Pointer);saveregisters;[Public,Alias : 'F
   already defined or not so define it locally to avoid problems PM }
 Type
     Pbyte = ^Byte;
+    PPointer = ^Pointer;
 Var Temp       : PByte;
     I          : longint;
     Size,Count : longint;
@@ -83,7 +84,7 @@ begin
   Temp:=PByte(TypeInfo);
   case temp^ of
     tkAstring,tkWstring:
-      fpc_AnsiStr_Decr_Ref(Data);
+      fpc_AnsiStr_Decr_Ref(PPointer(Data)^);
     tkArray :
       begin
          inc(Temp);
@@ -235,7 +236,10 @@ procedure fpc_FinalizeArray(data,typeinfo : pointer;count,size : longint); [Publ
 
 {
  $Log$
- Revision 1.8  2001-11-17 16:56:08  florian
+ Revision 1.9  2001-11-22 07:33:08  michael
+  * Fixed memory corruption with finalize() of ansistring in a class
+
+ Revision 1.8  2001/11/17 16:56:08  florian
    * init and final code in genrtti.inc updated
 
  Revision 1.7  2001/11/17 10:29:48  florian
