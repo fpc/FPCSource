@@ -45,7 +45,7 @@ unit StdDlg;
   {$F+,O+,E+,N+}
 {$endif}
 {$X+,R-,I-,Q-,V-}
-{$ifndef OS_LINUX}
+{$ifndef OS_UNIX}
   {$S-}
 {$endif}
 {$ifdef OS_DOS}
@@ -68,7 +68,7 @@ const
   MaxDir   = 255;   { Maximum length of a DirStr. }
   MaxFName = 255; { Maximum length of a FNameStr. }
 
-  {$ifdef OS_LINUX}
+  {$ifdef OS_Unix}
   DirSeparator : Char = '/';
   {$else}
   DirSeparator : Char = '\';
@@ -680,7 +680,7 @@ begin
   else if PSearchRec(Key1)^.Name > PSearchRec(Key2)^.Name then
 {$else Unix}
   else if UpperName(PSearchRec(Key1)^.Name) > UpperName(PSearchRec(Key2)^.Name) then
-{$endif def linux}
+{$endif def unix}
     Compare := 1
   else Compare := -1;
 end;
@@ -854,7 +854,7 @@ begin
   SR.Name := S;
 {$ifndef Unix}
   UpStr(SR.Name);
-{$endif linux}
+{$endif Unix}
   GetKey := @SR;
 end;
 
@@ -979,7 +979,7 @@ begin
  {$endif}
  {$ifndef Unix}
   if Length(Dir) > 4 then
- {$endif not linux}
+ {$endif not Unix}
   begin
     P := MemAlloc(SizeOf(P^));
     if P <> nil then
@@ -1534,7 +1534,7 @@ var
   var Root: boolean;
   begin
     Root:=false;
-    {$ifdef Linux}
+    {$ifdef Unix}
     if Path=DirSeparator then Root:=true;
     {$else}
     if (length(Path)=3) and (Upcase(Path[1]) in['A'..'Z']) and
@@ -2334,7 +2334,7 @@ var
   Is: boolean;
 begin
   Is:=false;
-{$ifdef Linux}
+{$ifdef Unix}
   Is:=(S=DirSeparator); { handle root }
 {$else}
   Is:=(length(S)=3) and (Upcase(S[1]) in['A'..'Z']) and (S[2]=':') and (S[3]=DirSeparator);
