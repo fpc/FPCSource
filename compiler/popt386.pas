@@ -292,7 +292,28 @@ Begin
                 Begin
                   If (Pai386(p)^.op1t = Top_Const) And
                      (Pai386(p)^.op2t = Top_Reg) And
-                     (Pai386(p)^.Size = S_L) And
+                     (Pai386(p)^.Size = S_L) Then
+                    If (Longint(Pai386(p)^.op1) = 1) Then
+                      If (Pai386(p)^.op3t = Top_None) Then
+                       {remove "imul $1, reg"}
+                        Begin
+                          hp1 := Pai(p^.Next);
+                          AsmL^.Remove(p);
+                          Dispose(p, Done);
+                          p := hp1;
+                          Continue;
+                        End
+                      Else
+                       {change "imul $1, reg1, reg2" to "mov reg1, reg2"}
+                        Begin
+                          hp1 := New(Pai386, Op_Reg_Reg(A_MOV, S_L, TRegister(TwoWords(Pai386(p)^.op2).Word1),
+                                                        TRegister(TwoWords(Pai386(p)^.op2).Word2)));
+                          hp1^.fileinfo := p^.fileinfo;
+                          InsertLLItem(AsmL, p^.previous, p^.next, hp1);
+                          Dispose(p, Done);
+                          p := hp1;
+                        End
+                    Else If
                      ((Pai386(p)^.op3t = Top_Reg) or
                       (Pai386(p)^.op3t = Top_None)) And
                      (aktoptprocessor < ClassP6) And
@@ -316,8 +337,8 @@ Begin
                                 lea (reg1,reg1,2), reg2
                               imul 3, reg1 to
                                 lea (reg1,reg1,2), reg1}
-                               TmpRef^.base := TRegister(Pai386(p)^.op2);
-                               TmpRef^.Index := TRegister(Pai386(p)^.op2);
+                               TmpRef^.base := TRegister(twowords(Pai386(p)^.op2).Word1);
+                               TmpRef^.Index := TRegister(twowords(Pai386(p)^.op2).Word1);
                                TmpRef^.ScaleFactor := 2;
                                If (Pai386(p)^.op3t = Top_None)
                                  Then hp1 := New(Pai386, op_ref_reg(A_LEA, S_L, TmpRef, TRegister(Pai386(p)^.op2)))
@@ -333,8 +354,8 @@ Begin
                                lea (reg1,reg1,4), reg2
                              imul 5, reg1 to
                                lea (reg1,reg1,4), reg1}
-                              TmpRef^.base := TRegister(Pai386(p)^.op2);
-                              TmpRef^.Index := TRegister(Pai386(p)^.op2);
+                              TmpRef^.base := TRegister(twowords(Pai386(p)^.op2).Word1);
+                              TmpRef^.Index := TRegister(twowords(Pai386(p)^.op2).Word1);
                               TmpRef^.ScaleFactor := 4;
                               If (Pai386(p)^.op3t = Top_None)
                                 Then hp1 := New(Pai386, op_ref_reg(A_LEA, S_L, TmpRef, TRegister(Pai386(p)^.op2)))
@@ -355,7 +376,7 @@ Begin
                               If (aktoptprocessor <= Class386)
                                 Then
                                   Begin
-                                    TmpRef^.Index := TRegister(Pai386(p)^.op2);
+                                    TmpRef^.Index := TRegister(twowords(Pai386(p)^.op2).Word1);
                                     If (Pai386(p)^.op3t = Top_Reg)
                                       Then
                                         Begin
@@ -377,7 +398,7 @@ Begin
                                     TmpRef^.symbol := nil;
                                     TmpRef^.isintvalue := false;
                                     TmpRef^.offset := 0;
-                                    TmpRef^.Index := TRegister(Pai386(p)^.op2);
+                                    TmpRef^.Index := TRegister(twowords(Pai386(p)^.op2).Word1);
                                     TmpRef^.ScaleFactor := 2;
                                     If (Pai386(p)^.op3t = Top_Reg)
                                       Then
@@ -403,8 +424,8 @@ Begin
                                 lea (reg1,reg1,8), reg2
                               imul 9, reg1 to
                                 lea (reg1,reg1,8), reg1}
-                               TmpRef^.base := TRegister(Pai386(p)^.op2);
-                               TmpRef^.Index := TRegister(Pai386(p)^.op2);
+                               TmpRef^.base := TRegister(twowords(Pai386(p)^.op2).Word1);
+                               TmpRef^.Index := TRegister(twowords(Pai386(p)^.op2).Word1);
                                TmpRef^.ScaleFactor := 8;
                                If (Pai386(p)^.op3t = Top_None)
                                    Then hp1 := New(Pai386, op_ref_reg(A_LEA, S_L, TmpRef, TRegister(Pai386(p)^.op2)))
@@ -433,8 +454,8 @@ Begin
                                               TRegister(Pai386(p)^.op2), TRegister(Pai386(p)^.op2)));
                                    hp1^.fileinfo := p^.fileinfo;
                                    InsertLLItem(AsmL,p, p^.next, hp1);
-                                   TmpRef^.base := TRegister(Pai386(p)^.op2);
-                                   TmpRef^.Index := TRegister(Pai386(p)^.op2);
+                                   TmpRef^.base := TRegister(twowords(Pai386(p)^.op2).Word1);
+                                   TmpRef^.Index := TRegister(twowords(Pai386(p)^.op2).Word1);
                                    TmpRef^.ScaleFactor := 4;
                                    If (Pai386(p)^.op3t = Top_Reg)
                                      Then
@@ -460,7 +481,7 @@ Begin
                                If (aktoptprocessor <= Class386)
                                  Then
                                    Begin
-                                     TmpRef^.Index := TRegister(Pai386(p)^.op2);
+                                     TmpRef^.Index := TRegister(twowords(Pai386(p)^.op2).Word1);
                                      If (Pai386(p)^.op3t = Top_Reg)
                                        Then
                                          Begin
@@ -483,7 +504,7 @@ Begin
                                      TmpRef^.symbol := nil;
                                      TmpRef^.isintvalue := false;
                                      TmpRef^.offset := 0;
-                                     TmpRef^.Index := TRegister(Pai386(p)^.op2);
+                                     TmpRef^.Index := TRegister(twowords(Pai386(p)^.op2).Word1);
                                      If (Pai386(p)^.op3t = Top_Reg)
                                        Then
                                          Begin
@@ -517,15 +538,25 @@ Begin
                      (PReference(Pai386(p)^.op1)^.Index = R_NO) And
                      (PReference(Pai386(p)^.op1)^.Offset = 0) And
                      (Not(Assigned(PReference(Pai386(p)^.op1)^.Symbol))) Then
-                    Begin
-                      hp1 := New(Pai386, op_reg_reg(A_MOV, S_L,PReference(Pai386(p)^.op1)^.Base,
-                        TRegister(Pai386(p)^.op2)));
-                      hp1^.fileinfo := p^.fileinfo;
-                      InsertLLItem(AsmL,p^.previous,p^.next, hp1);
-                      Dispose(p, Done);
-                      p := hp1;
-                      Continue;
-                    End;
+                    If (PReference(Pai386(p)^.op1)^.Base <> TRegister(Pai386(p)^.op2))
+                      Then
+                        Begin
+                          hp1 := New(Pai386, op_reg_reg(A_MOV, S_L,PReference(Pai386(p)^.op1)^.Base,
+                            TRegister(Pai386(p)^.op2)));
+                          hp1^.fileinfo := p^.fileinfo;
+                         InsertLLItem(AsmL,p^.previous,p^.next, hp1);
+                         Dispose(p, Done);
+                         p := hp1;
+                         Continue;
+                       End
+                     Else
+                       Begin
+                         hp1 := Pai(p^.Next);
+                         AsmL^.Remove(p);
+                         Dispose(p, Done);
+                         p := hp1;
+                         Continue;
+                       End;
                 End;
               A_MOV:
                 Begin
@@ -1299,6 +1330,31 @@ Begin
         Ait_Instruction:
           Begin
             Case Pai386(p)^._operator Of
+              A_MOV:
+                Begin
+                  If (Pai386(p)^.op1t = top_reg) And
+                     (Pai386(p)^.op2t = top_reg) And
+                     GetNextInstruction(p, hp1) And
+                     (hp1^.typ = ait_Instruction) And
+                     (Pai386(hp1)^._operator = A_MOV) And
+                     (Pai386(hp1)^.op1t = top_ref) And
+                     (Pai386(hp1)^.op2t = top_reg) And
+                     ((TReference(Pai386(hp1)^.op1^).Base = TRegister(Pai386(p)^.op2)) Or
+                      (TReference(Pai386(hp1)^.op1^).Index = TRegister(Pai386(p)^.op2))) And
+                     (TRegister(Pai386(hp1)^.op2) = TRegister(Pai386(p)^.op2)) Then
+              {mov reg1, reg2
+               mov (reg2, ..), reg2      to   mov (reg1, ..), reg2}
+                    Begin
+                      If (TReference(Pai386(hp1)^.op1^).Base = TRegister(Pai386(p)^.op2)) Then
+                        TReference(Pai386(hp1)^.op1^).Base := TRegister(Pai386(p)^.op1);
+                      If (TReference(Pai386(hp1)^.op1^).Index = TRegister(Pai386(p)^.op2)) Then
+                        TReference(Pai386(hp1)^.op1^).Index := TRegister(Pai386(p)^.op1);
+                      AsmL^.Remove(p);
+                      Dispose(p, Done);
+                      p := hp1;
+                      Continue;
+                    End;
+                End;
               A_MOVZX:
                 Begin
                   If (Pai386(p)^.op2t = top_reg) Then
@@ -1363,7 +1419,10 @@ End.
 
 {
  $Log$
- Revision 1.16  1998-10-01 20:19:57  jonas
+ Revision 1.17  1998-10-02 17:29:56  jonas
+   + removal of "lea (reg), reg)", "imul $1, reg", change "mov reg1, reg2; mov (reg2), reg2" to "mov (reg1), reg2"
+
+ Revision 1.16  1998/10/01 20:19:57  jonas
    * moved UpdateUsedRegs (+ bugfix) to daopt386
 
  Revision 1.15  1998/09/30 12:18:29  peter
