@@ -732,6 +732,7 @@ begin
     write(stderr,msg);
   Writeln(stderr,' (',FName,', line ',LineNo,').');
   Writeln(stderr,'');
+  Halt(227);
 end;
 
 
@@ -756,7 +757,10 @@ end;
 
 {
   $Log$
-  Revision 1.34  2002-09-07 15:07:46  peter
+  Revision 1.35  2002-09-18 18:32:01  carl
+    * assert now halts with exitcode 227 (as Delphi does)
+
+  Revision 1.34  2002/09/07 15:07:46  peter
     * old logs removed and tabs fixed
 
   Revision 1.33  2002/08/19 19:34:02  peter
