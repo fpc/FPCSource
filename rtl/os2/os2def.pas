@@ -1,9 +1,38 @@
 {****************************************************************************
 
-		   Copyright (c) 1993,94,99 by FK, RB
-		  
+    $Id$
+
+              Copyright (c) 1993,94 by Florian Klaempfl
+                  Copyright (c) 1999 by Ramon Bosque
+
+ The Free Pascal runtime library is distributed under the Library GNU Public
+ License v2. So is this unit. The Library GNU Public License requires you to
+ distribute the source code of this unit with any product that uses it.
+ Because the EMX library isn't under the LGPL, we grant you an exception to
+ this, and that is, when you compile a program with the Free Pascal compiler,
+ you do not need to ship source code with that program, AS LONG AS YOU ARE
+ USING UNMODIFIED CODE! If you modify this code, you MUST change the next
+ line:
+
+ <This an official, unmodified FPK Pascal source code file.>
+
+ Send us your modified files, we can work together if you want!
+
+ FPK-Pascal is distributed in the hope that it will be useful,
+ but WITHOUT ANY WARRANTY; without even the implied warranty of
+ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ Library GNU General Public License for more details.
+
+ You should have received a copy of the Library GNU General Public License
+ along with Free Pascal; see the file COPYING.LIB.  If not, write to
+ the Free Software Foundation, 59 Temple Place - Suite 330,
+ Boston, MA 02111-1307, USA.
+
  ****************************************************************************}
 unit os2def;
+
+{Warning: This code is alfa. Future versions of this unit will propably
+ not be compatible.}
 
 interface
 
@@ -111,8 +140,6 @@ const
 
        PDRIVDATA = ^DRIVDATA;
 
-       PDEVOPENDATA = PDevOpenStruc;
-
        DEVOPENSTRUC = record
 	  pszLogAddress : pchar;
 	  pszDriverName : pchar;
@@ -126,6 +153,8 @@ const
        end;
 
        PDEVOPENSTRUC = ^DEVOPENSTRUC;
+
+       PDEVOPENDATA = PDevOpenStruc;
 
        PRINTDEST = record
 	  cb : cardinal;
@@ -248,3 +277,9 @@ const
   implementation
   
 end.
+{
+  $Log$
+  Revision 1.6  1999-08-05 07:37:27  hajny
+    * 'solution' for a compiler problem
+
+}
