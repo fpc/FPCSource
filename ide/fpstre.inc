@@ -104,6 +104,7 @@ const
       menu_debug_userscreen  = '~U~ser screen';
       menu_debug_breakpoint  = '~B~reakpoint';
       menu_debug_callstack   = '~C~all stack';
+      menu_debug_remote      = '~S~end to remote';
       menu_debug_registers   = '~R~egisters';
       menu_debug_fpu_registers   = '~F~loating Point Unit';
       menu_debug_addwatch    = '~A~dd Watch';
@@ -125,6 +126,7 @@ const
       menu_options_memory    = '~M~emory sizes...';
       menu_options_linker    = '~L~inker...';
       menu_options_debugger  = 'De~b~ugger...';
+      menu_options_remote    = '~R~emote...';
       menu_options_directories = '~D~irectories...';
       menu_options_browser   = 'Bro~w~ser...';
       menu_options_tools     = '~T~ools...';
@@ -490,6 +492,7 @@ const
       dialog_linker = 'Linker';
       label_linker_preferredlibtype = 'Preferred library type';
 
+      dialog_remote = 'Remote machine configuration';
       dialog_debugger = 'Browsing/Debugging/Profiling';
       label_debugger_debuginfo = 'Debugging information';
       label_debugger_profileswitches = 'Profiling Switches';
@@ -497,7 +500,13 @@ const
       label_debugger_useanotherconsole = '~U~se another console';
       label_debugger_redirection = 'Debuggee ~R~edirection';
       label_debugger_useanothertty = '~U~se Another tty for Debuggee';
-      label_debugger_remote_machine = '~R~emote machine name:port';
+
+      label_remote_machine = 'Remote ~m~achine name';
+      label_remote_port = 'Remote ~p~ort number';
+      label_remote_config = 'Remote con~f~ig file';
+      label_remote_ident = '~emote ~i~dent file';
+      label_remote_dir = 'Remote ~d~irectory';
+      label_remote_command = 'Remote ~c~ommand';
 
       dialog_helpfiles = 'Install Help Files';
       label_helpfiles_helpfiles = '~H~elp files';
@@ -978,6 +987,8 @@ const
       hint_memorysizes       = 'Set default stack and heap sizes for generated programs';
       hint_linkeroptions     = 'Set linker options';
       hint_debugoptions      = 'Set debug information options';
+      hint_remotedialog      = 'Set remote protocol parameters';
+      hint_transferremote    = 'Transfer executable to remote target';
       hint_directories       = 'Set paths for units, include, object and generated files';
       hint_browser           = 'Specify global browser settings';
       hint_tools             = 'Create or change tools';
@@ -1041,7 +1052,10 @@ const
 
 {
   $Log$
-  Revision 1.15  2002-11-21 17:52:28  pierre
+  Revision 1.16  2002-11-28 12:55:47  pierre
+   + added strings for remote support
+
+  Revision 1.15  2002/11/21 17:52:28  pierre
    * some crossgdb infos added
 
   Revision 1.14  2002/11/21 00:37:56  pierre
