@@ -414,7 +414,7 @@ begin
   Replace(s,'$1',s1);
   Replace(s,'$2',s2);
   Replace(s,'$3',s3);
-  Replace(s,'$4',s3);
+  Replace(s,'$4',s4);
   Get4:=s;
 end;
 
@@ -443,7 +443,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.1  2001-08-20 10:58:48  florian
+  Revision 1.2  2002-03-01 12:41:40  peter
+    * fixed Message4()
+
+  Revision 1.1  2001/08/20 10:58:48  florian
     * renamed messages unit to cmsgs to avoid conflicts with the
       win32 messages unit
 

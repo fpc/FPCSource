@@ -181,7 +181,7 @@ scan_w_only_pack_records=02015_W_Records fields can be aligned to 1,2,4,8,16 or 
 scan_w_only_pack_enum=02016_W_Enumerated can be saved in 1,2 or 4 bytes only
 % You are specifying the \var{\{\$PACKENUM n\}} with an illegal value for
 % \var{n}. Only 1,2 or 4 are valid in this case.
-scan_e_endif_expected=02017_E_$ENDIF expected for $1 $2 defined in line $3
+scan_e_endif_expected=02017_E_$ENDIF expected for $1 $2 defined in $3 line $4
 % Your conditional compilation statements are unbalanced.
 scan_e_preproc_syntax_error=02018_E_Syntax error while parsing a conditional compiling expression
 % There is an error in the expression following the \var{\{\$if ..\}} compiler
