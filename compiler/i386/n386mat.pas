@@ -196,6 +196,7 @@ implementation
 
     var hregisterhigh,hregisterlow:Tregister;
         op:Tasmop;
+        v : TConstExprInt;
         l1,l2,l3:Tasmlabel;
 
     begin
@@ -220,29 +221,20 @@ implementation
           { shifting by a constant directly coded: }
           if (right.nodetype=ordconstn) then
             begin
-              { shrd/shl works only for values <=31 !! }
-              if Tordconstnode(right).value>63 then
-                begin
-                  cg.a_load_const_reg(exprasmlist,OS_32,0,hregisterhigh);
-                  cg.a_load_const_reg(exprasmlist,OS_32,0,hregisterlow);
-                  location.registerlow:=hregisterlow;
-                  location.registerhigh:=hregisterhigh;
-                end
-              else if Tordconstnode(right).value>31 then
+              v:=Tordconstnode(right).value and 63;
+              if v>31 then
                 begin
                   if nodetype=shln then
                     begin
                       emit_reg_reg(A_XOR,S_L,hregisterhigh,hregisterhigh);
-                      if ((tordconstnode(right).value and 31) <> 0) then
-                        emit_const_reg(A_SHL,S_L,tordconstnode(right).value and 31,
-                                       hregisterlow);
+                      if ((v and 31) <> 0) then
+                        emit_const_reg(A_SHL,S_L,v and 31,hregisterlow);
                     end
                   else
                     begin
                       emit_reg_reg(A_XOR,S_L,hregisterlow,hregisterlow);
-                      if ((tordconstnode(right).value and 31) <> 0) then
-                        emit_const_reg(A_SHR,S_L,tordconstnode(right).value and 31,
-                                       hregisterhigh);
+                      if ((v and 31) <> 0) then
+                        emit_const_reg(A_SHR,S_L,v and 31,hregisterhigh);
                     end;
                   location.registerhigh:=hregisterlow;
                   location.registerlow:=hregisterhigh;
@@ -251,17 +243,13 @@ implementation
                 begin
                   if nodetype=shln then
                     begin
-                      emit_const_reg_reg(A_SHLD,S_L,tordconstnode(right).value and 31,
-                                         hregisterlow,hregisterhigh);
-                      emit_const_reg(A_SHL,S_L,tordconstnode(right).value and 31,
-                                     hregisterlow);
+                      emit_const_reg_reg(A_SHLD,S_L,v and 31,hregisterlow,hregisterhigh);
+                      emit_const_reg(A_SHL,S_L,v and 31,hregisterlow);
                     end
                   else
                     begin
-                      emit_const_reg_reg(A_SHRD,S_L,tordconstnode(right).value and 31,
-                                         hregisterhigh,hregisterlow);
-                      emit_const_reg(A_SHR,S_L,tordconstnode(right).value and 31,
-                                     hregisterhigh);
+                      emit_const_reg_reg(A_SHRD,S_L,v and 31,hregisterhigh,hregisterlow);
+                      emit_const_reg(A_SHR,S_L,v and 31,hregisterhigh);
                     end;
                   location.registerlow:=hregisterlow;
                   location.registerhigh:=hregisterhigh;
@@ -354,7 +342,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.69  2004-01-20 12:59:37  florian
+  Revision 1.70  2004-05-23 14:10:17  peter
+    * fix shl/shr with value > 63
+
+  Revision 1.69  2004/01/20 12:59:37  florian
     * common addnode code for x86-64 and i386
 
   Revision 1.68  2003/12/26 13:19:16  florian
