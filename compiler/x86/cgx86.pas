@@ -1589,6 +1589,10 @@ unit cgx86;
              begin
                a_call_name(list,'MCOUNT');
              end;
+           system_x86_64_linux:
+             begin
+               a_call_name(list,'mcount');
+             end;
         end;
       end;
 
@@ -1729,7 +1733,10 @@ unit cgx86;
 end.
 {
   $Log$
-  Revision 1.137  2004-11-02 18:23:16  florian
+  Revision 1.138  2004-11-02 20:50:54  florian
+    + added profiler call for x86_64
+
+  Revision 1.137  2004/11/02 18:23:16  florian
     * fixed -<sse register>
     * information about simple moves for sse is given to the register allocator
 
