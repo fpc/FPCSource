@@ -61,7 +61,7 @@ procedure TIDEApp.DoCompilerSwitch;
 var R,R2,TabR,TabIR: TRect;
     D: PCenterDialog;
     CB1,CB2,CB3,CB4: PCheckBoxes;
-    RB1,RB2: PRadioButtons;
+    RB1,RB2,RB3: PRadioButtons;
     Items: PSItem;
     IL: PInputLine;
     Count : integer;
@@ -114,10 +114,27 @@ begin
     R2.B.Y:=R2.A.Y+1;
     New(Label21, Init(R2, 'Run-time checks', CB3));
 
+    Count:=OptimizingGoalSwitches^.ItemCount;
+    R2.Copy(TabIR);
+    R2.A.X:=R2.B.X-(R2.B.X-R2.A.X) div 2;
+    Dec(R2.B.X,4);
+    R2.B.Y:=R2.A.Y+Count;
+    Items:=nil;
+    for I:=Count-1 downto 0 do
+      Items:=NewSItem(OptimizingGoalSwitches^.ItemName(I), Items);
+    New(RB3, Init(R2, Items));
+    for I:=0 to Count-1 do
+      if OptimizingGoalSwitches^.GetBooleanItem(I) then
+        RB3^.Press(I);
+    Dec(R2.A.Y);
+    R2.B.Y:=R2.A.Y+1;
+    New(Label22, Init(R2, 'Optimizations', RB3));
+
     Count:=OptimizationSwitches^.ItemCount;
     R2.Copy(TabIR);
     R2.A.X:=R2.B.X-(R2.B.X-R2.A.X) div 2;
     Dec(R2.B.X,4);
+    Inc(R2.A.Y, OptimizingGoalSwitches^.ItemCount);
     R2.B.Y:=R2.A.Y+Count;
     Items:=nil;
     for I:=Count-1 downto 0 do
@@ -128,7 +145,6 @@ begin
         CB2^.Press(I);
     Dec(R2.A.Y);
     R2.B.Y:=R2.A.Y+1;
-    New(Label22, Init(R2, 'Optimizations', CB2));
 
     Count:=ProcessorSwitches^.ItemCount;
     R2.Copy(TabIR);
@@ -149,7 +165,7 @@ begin
     R2.Copy(TabIR);
     R2.A.X:=R2.B.X-(R2.B.X-R2.A.X) div 2;
     Dec(R2.B.X,4);
-    Inc(R2.A.Y, 1+OptimizationSwitches^.ItemCount+1+ProcessorSwitches^.ItemCount);
+    Inc(R2.A.Y, OptimizationSwitches^.ItemCount+OptimizingGoalSwitches^.ItemCount);
     R2.B.Y:=R2.A.Y+Count;
     Items:=nil;
     for I:=Count-1 downto 0 do
@@ -190,10 +206,11 @@ begin
         NewTabItem(Label22,
         NewTabItem(CB2,
         NewTabItem(Label23,
+        NewTabItem(RB3,
         NewTabItem(RB1,
         NewTabItem(Label24,
         NewTabItem(RB2,
-        nil)))))))),
+        nil))))))))),
       NewTabDef('~V~erbose',CB4,
         NewTabItem(Label31,
         NewTabItem(CB4,
@@ -220,6 +237,7 @@ begin
       OptimizationSwitches^.SetBooleanItem(I,CB2^.Mark(I));
     for I:=0 to VerboseSwitches^.ItemCount-1 do
       VerboseSwitches^.SetBooleanItem(I,CB4^.Mark(I));
+    OptimizingGoalSwitches^.SetCurrSel(RB3^.Value);
     ProcessorSwitches^.SetCurrSel(RB1^.Value);
     AsmReaderSwitches^.SetCurrSel(RB2^.Value);
     ConditionalSwitches^.SetStringItem(0,IL^.Data^);
@@ -687,7 +705,10 @@ end;
 
 {
   $Log$
-  Revision 1.9  1999-02-05 12:11:58  pierre
+  Revision 1.10  1999-02-06 00:07:47  florian
+    * speed/size optimization is now a radio button
+
+  Revision 1.9  1999/02/05 12:11:58  pierre
     + SourceDir that stores directories for sources that the
       compiler should not know about
       Automatically asked for addition when a new file that

@@ -123,6 +123,7 @@ var
     VerboseSwitches,
     CodegenSwitches,
     OptimizationSwitches,
+    OptimizingGoalSwitches,
     ProcessorSwitches,
     AsmReaderSwitches,
     TargetSwitches,
@@ -454,20 +455,20 @@ var
     if P^.NeedParam then
      begin
        if (P^.Typ=ot_string) and (PStringItem(P)^.Multiple) then
-   begin
-     s:=PStringItem(P)^.Str[SwitchesMode];
-     repeat
-       i:=pos(';',s);
-       if i=0 then
-        i:=256;
-       s1:=Copy(s,1,i-1);
-       if s1<>'' then
-        writeln(CfgFile,' -'+Pref+P^.Param+s1);
-       Delete(s,1,i);
-     until s='';
-   end
+         begin
+           s:=PStringItem(P)^.Str[SwitchesMode];
+           repeat
+             i:=pos(';',s);
+             if i=0 then
+              i:=256;
+             s1:=Copy(s,1,i-1);
+             if s1<>'' then
+              writeln(CfgFile,' -'+Pref+P^.Param+s1);
+             Delete(s,1,i);
+           until s='';
+         end
        else
-   Writeln(CfgFile,' -'+Pref+P^.Param+P^.ParamValue);
+         Writeln(CfgFile,' -'+Pref+P^.Param+P^.ParamValue);
      end;
   end;
 
@@ -540,6 +541,7 @@ begin
      SyntaxSwitches^.WriteItemsCfg;
      CodegenSwitches^.WriteItemsCfg;
      OptimizationSwitches^.WriteItemsCfg;
+     OptimizingGoalSwitches^.WriteItemsCfg;
      ProcessorSwitches^.WriteItemsCfg;
      AsmReaderSwitches^.WriteItemsCfg;
      DirectorySwitches^.WriteItemsCfg;
@@ -595,7 +597,8 @@ begin
        'v' : VerboseSwitches^.ReadItemsCfg(s);
        'O' : begin
                if not OptimizationSwitches^.ReadItemsCfg(s) then
-                 ProcessorSwitches^.ReadItemsCfg(s);
+                 if not ProcessorSwitches^.ReadItemsCfg(s) then
+                   OptimizingGoalSwitches^.ReadItemsCfg(s)
              end;
       end;
       end
@@ -680,11 +683,15 @@ begin
      AddBooleanItem('~I~/O checking','i');
      AddBooleanItem('Integer ~o~verflow checking','o');
    end;
+  New(OptimizingGoalSwitches,InitSelect('O'));
+  with OptimizingGoalSwitches^ do
+    begin
+       AddSelectItem('Generate ~f~aster code','G');
+       AddSelectItem('Generate ~s~maller code','g');
+    end;
   New(OptimizationSwitches,Init('O'));
   with OptimizationSwitches^ do
    begin
-     AddBooleanItem('Generate ~s~maller code','g');
-     AddBooleanItem('Generate ~f~aster code','G');
      AddBooleanItem('Use register-~v~ariables','r');
      AddBooleanItem('~U~ncertain optimizations','u');
      AddBooleanItem('Level ~1~ optimizations','1');
@@ -773,6 +780,7 @@ begin
   dispose(VerboseSwitches,Done);
   dispose(CodegenSwitches,Done);
   dispose(OptimizationSwitches,Done);
+  dispose(OptimizingGoalSwitches,Done);
   dispose(ProcessorSwitches,Done);
   dispose(TargetSwitches,Done);
   dispose(AsmReaderSwitches,Done);
@@ -785,7 +793,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.6  1999-02-05 13:51:44  peter
+  Revision 1.7  1999-02-06 00:07:48  florian
+    * speed/size optimization is now a radio button
+
+  Revision 1.6  1999/02/05 13:51:44  peter
     * unit name of FPSwitches -> FPSwitch which is easier to use
     * some fixes for tp7 compiling
 
