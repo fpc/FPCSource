@@ -129,14 +129,20 @@ implementation
 
       begin
          if p<>nil then
-           dispose(p);
+          begin
+            freemem(p);
+            p:=nil;
+          end;
       end;
 
 end.
 
 {
   $Log$
-  Revision 1.6  2000-03-18 15:43:05  jonas
+  Revision 1.7  2000-03-19 08:40:14  peter
+    * strdispose uses freemem(pointer) and resets pointer to nil
+
+  Revision 1.6  2000/03/18 15:43:05  jonas
     * strdispose now uses dispose instead of freemem(strlen()+1)
 
   Revision 1.5  2000/02/09 16:59:31  peter
