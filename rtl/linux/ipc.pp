@@ -4,7 +4,7 @@
     Copyright (c) 1998 by the Free Pascal development team
 
     This file implements IPC calls calls for Linux
-    
+
     See the file COPYING.FPC, included in this distribution,
     for details about the copyright.
 
@@ -25,12 +25,12 @@ interface
 Var
   IPCError : longint;
 
-Type 
+Type
    TKey   = Longint;
    PULong = ^Cardinal;
    PWord  = ^Word;
-   
-Const 
+
+Const
   { IPC flags for get calls }
 
   IPC_CREAT  =  1 shl 9;  { create if key is nonexistent }
@@ -48,12 +48,12 @@ type
   PIPC_Perm = ^TIPC_Perm;
   TIPC_Perm = record
     key : TKey;
-    uid, 
+    uid,
     gid,
     cuid,
     cgid,
     mode,
-    seq : Word;   
+    seq : Word;
   end;
 
 { Function to generate a IPC key. }
@@ -63,8 +63,8 @@ Function ftok (Path : String; ID : char) : TKey;
   Shared memory stuff
   ----------------------------------------------------------------------}
 
-Type  
-  PShmid_DS = ^TShmid_ds; 
+Type
+  PShmid_DS = ^TShmid_ds;
   TShmid_ds = record
     shm_perm  : TIPC_Perm;
     shm_segsz : longint;
@@ -163,7 +163,7 @@ type
     msgseg  : Word;
   end;
 
-Function msgget(key: TKey; msgflg:longint):longint;	
+Function msgget(key: TKey; msgflg:longint):longint;
 Function msgsnd(msqid:longint; msgp: PMSGBuf; msgsz: longint; msgflg:longint): Boolean;
 Function msgrcv(msqid:longint; msgp: PMSGBuf; msgsz: longint; msgtyp:longint; msgflg:longint): Boolean;
 Function msgctl(msqid:longint; cmd: longint; buf: PMSQid_ds): Boolean;
@@ -295,7 +295,7 @@ function shmat (shmid:longint; shmaddr:pchar; shmflg:longint): pchar;
 
 Var raddr : pchar;
     error : longint;
-    
+
 begin
   error:=ipccall(CALL_SHMAT,shmid,shmflg,longint(@raddr),shmaddr);
   If Error<0 then
@@ -334,7 +334,7 @@ Type
     msgtyp : longint;
   end;
 
-Var 
+Var
    tmp : TIPC_Kludge;
 
 begin
@@ -367,3 +367,9 @@ begin
 end;
 
 end.
+{
+  $Log$
+  Revision 1.6  1999-05-27 21:38:31  peter
+    * log inserted
+
+}
