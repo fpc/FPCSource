@@ -25,8 +25,10 @@ function fpgetCerrno:libcint;
 procedure fpsetCerrno(err:libcint); 
 
 implementation
+// hasn't been divided up in .inc's, because I first want to see hoe
+// this idea works out.
 
-{$ifdef useold}
+{$ifdef UseOldErrnoDirectLink}
 Var
   interrno : libcint;external name 'h_errno';
 
@@ -47,9 +49,13 @@ const clib = 'c';
 {$ifdef Linux}
 function geterrnolocation: Plibcint; cdecl;external clib name '__errno_location';
 {$else}
-{$ifdef FreeBSD}
+{$ifdef FreeBSD} // tested on x86
 function geterrnolocation: Plibcint; cdecl;external clib name '__error';
 {$else}
+{$ifdef NetBSD} // from a sparc dump.
+function geterrnolocation: Plibcint; cdecl;external clib name '__errno';
+{$else}
+{$endif}
 {$endif}
 {$endif}
 
@@ -69,7 +75,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.4  2003-12-10 11:24:25  marco
+  Revision 1.5  2003-12-10 14:59:49  marco
+   * NetBSD supported added based on Sparc and define name changed to something more sensible
+
+  Revision 1.4  2003/12/10 11:24:25  marco
    * get/setcerrno added
 
   Revision 1.3  2002/09/07 16:01:27  peter
