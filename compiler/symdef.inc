@@ -2578,6 +2578,7 @@ Const local_symtable_index : longint = $8001;
       var
         pos : tfileposinfo;
 {$ifndef NOLOCALBROWSER}
+        oldsymtablestack,
         st : psymtable;
 {$endif ndef NOLOCALBROWSER}
         move_last : boolean;
@@ -2598,6 +2599,7 @@ Const local_symtable_index : longint = $8001;
            and is_in_current then
           begin
 {$ifndef NOLOCALBROWSER}
+             oldsymtablestack:=symtablestack;
              st:=aktlocalsymtable;
              new(parast,loadas(parasymtable));
              parast^.defowner:=@self;
@@ -2609,10 +2611,12 @@ Const local_symtable_index : longint = $8001;
              new(localst,loadas(localsymtable));
              localst^.defowner:=@self;
              aktlocalsymtable:=localst;
+             symtablestack:=parast;
              localst^.deref;
              localst^.next:=parast;
              localst^.load_browser;
              aktlocalsymtable:=st;
+             symtablestack:=oldsymtablestack;
 {$endif ndef NOLOCALBROWSER}
           end;
       end;
@@ -3854,7 +3858,11 @@ Const local_symtable_index : longint = $8001;
 
 {
   $Log$
-  Revision 1.187  2000-01-09 23:16:06  peter
+  Revision 1.188  2000-01-23 16:35:31  peter
+    * localbrowser loading of absolute fixed. It needed a symtablestack
+      which was not setup correctly
+
+  Revision 1.187  2000/01/09 23:16:06  peter
     * added st_default stringtype
     * genstringconstnode extended with stringtype parameter using st_default
       will do the old behaviour
