@@ -1,3 +1,5 @@
+{ %FAIL }
+
 type l = record
           i:longint;
           end;
