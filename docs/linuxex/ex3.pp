@@ -2,7 +2,7 @@ Program Example3;
 
 { Program to demonstrate the EpochToLocal function. }
 
-Uses linux;
+Uses Unix,UnixUtil;
 
 Var Year,month,day,hour,minute,seconds : Word;
 

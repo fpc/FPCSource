@@ -2,16 +2,16 @@ Program Example2;
 
 { Program to demonstrate the GetTimeOfDay function. }
 
-Uses linux;
+Uses BaseUnix,Unix;
 
 Var TV : TimeVal;
     TZ : TimeZone;
 
 begin
-  GetTimeOfDay (TV);
-  Writeln ('Seconds              : ',tv.sec);
-  Writeln ('Milliseconds         : ',tv.usec);
+  fpGetTimeOfDay (@TV,@tz);
+  Writeln ('Seconds              : ',tv.tv_sec);
+  Writeln ('Milliseconds         : ',tv.tv_usec);
   Writeln ('Minutes west of GMT  : ',tz.minuteswest);
   Writeln ('Daylight Saving Time : ',tz.dsttime);
-  Writeln ('Seconds in 1 call    : ',GetTimeOfDay);
+  Writeln ('Seconds in 1 call    : ',fpGetTimeOfDay(nil,nil));
 end.

@@ -2,7 +2,7 @@ Program Example4;
 
 { Program to demonstrate the LocalToEpoch function. }
 
-Uses linux;
+Uses UnixUtil;
 
 Var year,month,day,hour,minute,second : Word;
 

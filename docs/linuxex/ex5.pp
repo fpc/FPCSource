@@ -2,7 +2,7 @@ Program Example5;
 
 { Program to demonstrate the GetTime function. }
 
-Uses linux;
+Uses Unix;
 
 Var Hour, Minute, Second : Word;
 
