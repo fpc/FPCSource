@@ -70,7 +70,8 @@ implementation
       end;
 
       var
-         t       : ptree;
+         t,hp    : ptree;
+         ot,
          lt,rt   : ttreetyp;
          rv,lv   : longint;
          rvd,lvd : bestreal;
@@ -334,38 +335,56 @@ implementation
                   andn,
                   orn:
                     begin
-                       calcregisters(p,0,0,0);
-                       make_bool_equal_size(p);
-                       p^.location.loc:=LOC_JUMP;
+                      calcregisters(p,0,0,0);
+                      make_bool_equal_size(p);
+                      p^.location.loc:=LOC_JUMP;
                     end;
-             unequaln,
-          equaln,xorn : begin
-                          { this forces a better code generation (TEST }
-                          { instead of CMP)                            }
-                          if p^.treetype<>xorn then
-                            begin
-                               if (p^.left^.treetype=ordconstn) and
-                                 (p^.left^.value<>0) then
-                                 begin
-                                    p^.left^.value:=0;
-                                    if p^.treetype=equaln then
-                                      p^.treetype:=unequaln
-                                    else
-                                      p^.treetype:=equaln;
-                                 end;
-                               if (p^.right^.treetype=ordconstn) and
-                                 (p^.right^.value<>0) then
-                                 begin
-                                    p^.right^.value:=0;
-                                    if p^.treetype=equaln then
-                                      p^.treetype:=unequaln
-                                    else
-                                      p^.treetype:=equaln;
-                                 end;
-                            end;
-                          make_bool_equal_size(p);
-                          calcregisters(p,1,0,0);
-                        end
+                  xorn:
+                    begin
+                      make_bool_equal_size(p);
+                      calcregisters(p,1,0,0);
+                    end;
+                  unequaln,
+                  equaln:
+                    begin
+                      make_bool_equal_size(p);
+                      { Remove any compares with constants, becuase then
+                        we get a compare with Flags in the codegen which
+                        is not supported (PFV) }
+                      if (p^.left^.treetype=ordconstn) then
+                       begin
+                         hp:=p^.right;
+                         b:=(p^.left^.value<>0);
+                         ot:=p^.treetype;
+                         disposetree(p^.left);
+                         putnode(p);
+                         p:=hp;
+                         if (not(b) and (ot=equaln)) or
+                            (b and (ot=unequaln)) then
+                          begin
+                            p:=gensinglenode(notn,p);
+                            firstpass(p);
+                          end;
+                         exit;
+                       end;
+                      if (p^.right^.treetype=ordconstn) then
+                       begin
+                         hp:=p^.left;
+                         b:=(p^.right^.value<>0);
+                         ot:=p^.treetype;
+                         disposetree(p^.right);
+                         putnode(p);
+                         p:=hp;
+                         if (not(b) and (ot=equaln)) or
+                            (b and (ot=unequaln)) then
+                          begin
+                            p:=gensinglenode(notn,p);
+                            firstpass(p);
+                          end;
+                         exit;
+                       end;
+                      calcregisters(p,1,0,0);
+                    end;
                 else
                   CGMessage(type_e_mismatch);
                 end;
@@ -954,7 +973,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.18  1998-12-15 17:12:35  peter
+  Revision 1.19  1998-12-30 13:35:35  peter
+    * fix for boolean=true compares
+
+  Revision 1.18  1998/12/15 17:12:35  peter
     * pointer+ord not allowed in tp mode
 
   Revision 1.17  1998/12/11 00:03:51  peter
