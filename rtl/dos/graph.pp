@@ -158,7 +158,6 @@ procedure pixel(offset:longint);
 function  Convert(color:longint):longint;
 function  UnConvert(color:longint):longint;
 function  SetVESADisplayStart(PageNum : word;x,y : integer):Boolean;
-procedure GoodFillPoly(points : word;var polypoints);
 {$endif debug}
 
 {$ifdef Test_linear}
@@ -990,6 +989,8 @@ begin
   if not DetectVESA then
     Oh_Kacke('VESA-BIOS not found...');
   startmode:=GetVESAMode;
+  PrevExitProc:=ExitProc;
+  ExitProc:=@GraphExit;
   bankswitchptr:=@switchbank;
   GraphGetMemPtr:=@system.getmem;
   GraphFreeMemPtr:=@system.freemem;
@@ -1010,7 +1011,10 @@ end.
 
 {
   $Log$
-  Revision 1.13  1998-11-25 13:04:43  pierre
+  Revision 1.14  1998-11-25 22:59:23  pierre
+   * fillpoly works
+
+  Revision 1.13  1998/11/25 13:04:43  pierre
     + added multi page support
 
   Revision 1.12  1998/11/23 10:04:16  pierre

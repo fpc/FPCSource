@@ -243,30 +243,10 @@ begin
   lineinfo:=aktlineinfo;
 end;
 
-{ just dummy not implemented yet }
+{ this procedure is rather confuse
+  but I admit that I wrote it by try-error !! PM }
+  
 procedure FillPoly(points : word;var polypoints);
-{$R-}
- type PointTypeArray = Array[0..0] of PointType;
- var xm,ym : longint;
-     i : word;
-begin
-   { simply call drawpoly instead (PM) }
-   DrawPoly(points,polypoints);
-   { assume the poly is convex so the barcenter is inside PM }
-   { this can be completely wrong !! }
-   xm:=0;
-   ym:=0;
-   For i:=0 to points-1 do
-     begin
-        xm:=xm+PointTypeArray(polypoints)[i].x;
-        ym:=ym+PointTypeArray(polypoints)[i].y;
-     end;
-   xm:=xm div points;
-   ym:=ym div points;
-   floodfill(xm,ym,truecolor);
-end;
-
-procedure GoodFillPoly(points : word;var polypoints);
 {$R-}
  type PointTypeArray = Array[0..0] of PointType;
 
@@ -278,21 +258,22 @@ procedure GoodFillPoly(points : word;var polypoints);
                       { line equation consts }
                       xcoef,ycoef,_const,
                       lastvalue : longint;
+                      use_in_line : boolean;
                     End;
      LineSegmentInfoArray = Array[0..0] of TLineSegmentInfo;
      
  var
      xmin,xmax,ymin,ymax : longint;
-     x1,x2,y1,y2,xdeb    : longint;
+     x1,x2,y1,y2,y,xdeb  : longint;
      i,j,curx,cury       : longint;
      newvalue            : longint;
      LineInfo            : ^LineSegmentInfoArray;
-     oldinside,inside    : boolean;
+     PreviousInside,inside,side : boolean;
      viewport            : viewporttype;
 begin
    GetMem(LineInfo,(points+1)*SizeOf(TlineSegmentInfo));
-   xmax:=$8000000;xmin:=$7fffffff;
-   ymax:=$8000000;ymin:=$7fffffff;
+   xmax:=$80000000;xmin:=$7fffffff;
+   ymax:=$80000000;ymin:=$7fffffff;
    for i:=0 to points-1 do
      begin
         if i=points-1 then
@@ -326,6 +307,15 @@ begin
         LineInfo^[i]._const:=y1*x2-x1*y2;
      end; { setting of LineInfo }
 
+     side:=true;
+     for i:=0 to points-1 do
+       begin
+          cury:=LineInfo^[i].ymin;
+          newvalue:=LineInfo^[i].xcoef*(xmin-1)+
+               LineInfo^[i].ycoef*cury+LineInfo^[i]._const;
+          if (newvalue<0) then
+            side:=not side;
+       end;
    if aktviewport.clip then viewport:=aktviewport else viewport:=aktscreen;
    { reject invalid points !! }
  
@@ -334,61 +324,82 @@ begin
    viewport.x1:=0;
    viewport.y1:=0;
  
-{$ifdef Debug}
+{$ifdef GraphDebug}
        Writeln(stderr,'Rectangle (',xmin,',',ymin,'),(',xmax,',',ymax,')');
 {$endif def GraphDebug}
    if xmin<0 then xmin:=0;
    if ymin<0 then ymin:=0;
    if xmax>viewport.x2 then xmax:=viewport.x2;
    if ymax>viewport.y2 then ymax:=viewport.y2;
-{$ifdef Debug}
+{$ifdef GraphDebug}
        Writeln(stderr,'Rectangle (',xmin,',',ymin,'),(',xmax,',',ymax,')');
 {$endif def GraphDebug}
 
    for cury:=ymin to ymax do
      begin
         xdeb:=xmin;
-        oldinside:=true;
+        PreviousInside:=true;
         for i:=0 to points-1 do
-          if (cury>=LineInfo^[i].ymin) and (cury<LineInfo^[i].ymax) then
-            begin
-               LineInfo^[i].lastvalue:=LineInfo^[i].xcoef*(xmin-1)+
-                 LineInfo^[i].ycoef*cury+LineInfo^[i]._const;
-               if LineInfo^[i].lastvalue<0 then
-                 oldinside:=not oldinside;
-            end;
-        inside:=oldinside;
+          begin
+             if cury<LineInfo^[i].ymin then
+               y:=LineInfo^[i].ymin
+             else if cury>LineInfo^[i].ymax then
+               y:=LineInfo^[i].ymax
+             else
+               y:=cury;
+             newvalue:=LineInfo^[i].xcoef*(xmin-1)+
+               LineInfo^[i].ycoef*y+LineInfo^[i]._const;
+             LineInfo^[i].lastvalue:=newvalue;
+             if (newvalue<0) then
+               PreviousInside:=not PreviousInside;
+             if (cury<LineInfo^[i].ymin) or (cury>=LineInfo^[i].ymax) then
+               LineInfo^[i].use_in_line:=false
+             else
+               LineInfo^[i].use_in_line:=true;
+          end;
+        PreviousInside:=(side<>PreviousInside);
+        inside:=PreviousInside;
         for curx:=xmin to xmax do
            begin
               for i:=0 to points-1 do
-                if (cury>=LineInfo^[i].ymin) and (cury<LineInfo^[i].ymax) then
+                if LineInfo^[i].use_in_line then
                   begin
                      newvalue:=LineInfo^[i].lastvalue+LineInfo^[i].xcoef;
-                     if LineInfo^[i].lastvalue*newvalue<0 then
-                       inside:=not inside;
+                     if ((LineInfo^[i].lastvalue<0) and (newvalue>=0)) or
+                        ((LineInfo^[i].lastvalue>0) and (newvalue<=0)) then
+                       begin
+                          inside:=not inside;
+{$ifdef GraphDebug}
+                          Writeln(stderr,'Line ',i,' crossed (',curx,',',cury,')');
+                          Writeln(stderr,'Line x*',LineInfo^[i].xcoef,'+y*',
+                            LineInfo^[i].ycoef,'+',LineInfo^[i]._const,'=0');
+                          Writeln(stderr,'Old ',LineInfo^[i].lastvalue,' new ',newvalue);
+{$endif def GraphDebug}
+                       end;
                      LineInfo^[i].lastvalue:=newvalue;
                   end;
-              if inside<>oldinside then
+              if inside<>PreviousInside then
                 if inside then
                   xdeb:=curx
                 else
                   begin
                      patternline(xdeb,curx,cury);
-{$ifdef Debug}
+{$ifdef GraphDebug}
                      Writeln(stderr,'Pattern (',xdeb,',',curx,') at ',cury);
 {$endif def GraphDebug}
                   end;
-              oldinside:=inside;
+              PreviousInside:=inside;
            end;
         if inside then
           begin
              patternline(xdeb,xmax,cury);
-{$ifdef Debug}
+{$ifdef GraphDebug}
              Writeln(stderr,'Pattern (',xdeb,',',xmax,') at ',cury);
 {$endif def GraphDebug}
           end;
      end;
        
+   FreeMem(LineInfo,(points+1)*SizeOf(TlineSegmentInfo));
    { simply call drawpoly instead (PM) }
    DrawPoly(points,polypoints);
 end;
@@ -396,7 +407,10 @@ end;
 
 {
   $Log$
-  Revision 1.7  1998-11-25 13:04:44  pierre
+  Revision 1.8  1998-11-25 22:59:24  pierre
+   * fillpoly works
+
+  Revision 1.7  1998/11/25 13:04:44  pierre
     + added multi page support
 
   Revision 1.6  1998/11/20 18:42:07  pierre
