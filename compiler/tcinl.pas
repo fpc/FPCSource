@@ -373,7 +373,7 @@ implementation
                        p^.left:=hp;
                     end;
 
-                  { evalutes length of constant strings direct }
+                  { evaluates length of constant strings direct }
                   if (p^.left^.treetype=stringconstn) then
                     begin
 {$ifdef UseAnsiString}
@@ -384,7 +384,19 @@ implementation
                        disposetree(p);
                        firstpass(hp);
                        p:=hp;
-                    end;
+                    end
+                  { length of char is one allways }
+                  else if (p^.left^.treetype=ordconstn) then
+                    if (porddef(p^.left^.resulttype)^.typ=uchar) then
+                      begin
+                       hp:=genordinalconstnode(1,s32bitdef);
+                       disposetree(p);
+                       firstpass(hp);
+                       p:=hp;
+                      end
+                    else
+                      CGMessage(type_e_mismatch);
+                    ;
                end;
              in_assigned_x:
                begin
@@ -848,7 +860,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.4  1998-10-06 20:49:11  peter
+  Revision 1.5  1998-10-20 11:16:47  pierre
+   + length(c) where C is a char is allways 1
+
+  Revision 1.4  1998/10/06 20:49:11  peter
     * m68k compiler compiles again
 
   Revision 1.3  1998/10/05 12:32:49  peter
