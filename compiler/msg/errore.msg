@@ -1116,6 +1116,8 @@ type_e_cant_take_address_of_abstract_method=04050_E_The address of an abstract m
 type_e_operator_not_allowed=04051_E_The operator is not applicable for the operand type
 % You are trying an operator that is not available for the type of the
 % operands
+type_e_constant_expr_expected=04052_E_Constant Expression expected
+% The compiler expects an constant expression, but gets a variable expression.
 % \end{description}
 #
 # Symtable
