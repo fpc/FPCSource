@@ -625,15 +625,19 @@ implementation
                          begin
                            popecx:=true;
                            emit_reg(A_PUSH,S_L,R_ECX);
-                         end;
+                         end
+                        else
+                          getexplicitregister32(R_ECX);
                         emit_reg_reg(A_MOV,S_L,hregister2,R_ECX);
+                        ungetregister32(hregister2);
                      end;
-                   ungetregister32(hregister2);
                    { right operand is in ECX }
                    emit_reg_reg(op,S_L,R_CL,hregister1);
                    { maybe ECX back }
                    if popecx then
-                     emit_reg(A_POP,S_L,R_ECX);
+                     emit_reg(A_POP,S_L,R_ECX)
+                   else
+                     ungetregister32(R_ECX);
                    location.register:=hregister1;
                 end;
            end;
@@ -987,7 +991,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.1  2000-10-15 09:33:32  peter
+  Revision 1.2  2000-10-17 15:39:34  jonas
+    * fixed allocation of ecx for shl
+
+  Revision 1.1  2000/10/15 09:33:32  peter
     * moved n386*.pas to i386/ cpu_target dir
 
   Revision 1.4  2000/10/14 10:14:49  peter
