@@ -277,7 +277,7 @@
 
       begin
          if not(defined) then
-          Message1(sym_e_label_not_defined,name);
+          Message1(sym_w_label_not_defined,name);
          inherited done;
       end;
 
@@ -1735,7 +1735,10 @@
 
 {
   $Log$
-  Revision 1.58  1998-11-10 10:50:57  pierre
+  Revision 1.59  1998-11-13 12:09:11  peter
+    * unused label is now a warning
+
+  Revision 1.58  1998/11/10 10:50:57  pierre
    * temporary fix for long mangled procsym names
 
   Revision 1.57  1998/11/05 23:39:31  peter

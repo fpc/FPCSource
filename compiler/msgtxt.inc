@@ -218,7 +218,7 @@ const msgtxt : array[0..00094,1..240] of char=(
   'F_record or class type expected'#000+
   'E_Instances of classes or objects with an abtsract method are not allo'+
   'wed'#000+
-  'E_Label not defined $1'#000+
+  'W_Label not defined $1'#000+
   'E_Illegal label de','claration'#000+
   'E_GOTO und LABEL are not supported (use command line switch -Sg)'#000+
   'E_Label not found'#000+

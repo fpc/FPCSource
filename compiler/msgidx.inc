@@ -208,7 +208,7 @@ type tmsgconst=(
   sym_e_invalid_call_tvarsymmangledname,
   sym_f_type_must_be_rec_or_class,
   sym_e_no_instance_of_abstract_object,
-  sym_e_label_not_defined,
+  sym_w_label_not_defined,
   sym_e_ill_label_decl,
   sym_e_goto_and_label_not_supported,
   sym_e_label_not_found,
