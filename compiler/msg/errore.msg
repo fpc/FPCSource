@@ -903,6 +903,8 @@ parser_e_initialized_not_for_threadvar=03192_E_Cannot initialize variables decla
 % The variables will always be filled with zero at the start of a new thread.
 parser_e_msg_only_for_classes=03193_E_Message directive is only allowed in Classes
 % The message directive is only supported for Class types.
+parser_e_procedure_or_function_expected=03194_E_Procedure or Function expected
+% A class method can only be specified for procedures and functions.
 % \end{description}
 #
 # Type Checking

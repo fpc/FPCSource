@@ -696,9 +696,12 @@ implementation
       begin
         inc(lexlevel);
       { read class method }
-        if token=_CLASS then
+        if try_to_consume(_CLASS) then
          begin
-           consume(_CLASS);
+           { class method only allowed for procedures and functions }
+           if not(token in [_FUNCTION,_PROCEDURE]) then
+             Message(parser_e_procedure_or_function_expected);
+
            isclassmethod:=true;
          end
         else
@@ -2120,7 +2123,10 @@ const
 end.
 {
   $Log$
-  Revision 1.107  2003-03-17 18:56:02  peter
+  Revision 1.108  2003-03-19 17:34:04  peter
+    * only allow class [procedure|function]
+
+  Revision 1.107  2003/03/17 18:56:02  peter
     * fix crash with duplicate id
 
   Revision 1.106  2003/03/17 15:54:22  peter
