@@ -527,6 +527,11 @@ implementation
                    t:=cordconstnode.create(byte(compareansistrings(s1,s2,l1,l2)=0),booltype,true);
                  unequaln :
                    t:=cordconstnode.create(byte(compareansistrings(s1,s2,l1,l2)<>0),booltype,true);
+                 else
+                   begin
+                     CGMessage3(type_e_operator_not_supported_for_types,node2opstr(nodetype),ld.typename,rd.typename);
+                     t:=cnothingnode.create;
+                   end;
               end;
               result:=t;
               exit;
@@ -593,6 +598,11 @@ implementation
                    begin
                      b:=tsetconstnode(left).value_set^ >= tsetconstnode(right).value_set^;
                      t:=cordconstnode.create(byte(b),booltype,true);
+                   end;
+                 else
+                   begin
+                     CGMessage3(type_e_operator_not_supported_for_types,node2opstr(nodetype),ld.typename,rd.typename);
+                     t:=cnothingnode.create;
                    end;
               end;
               result:=t;
@@ -718,7 +728,11 @@ implementation
                        end;
                     end;
                   else
-                    CGMessage3(type_e_operator_not_supported_for_types,node2opstr(nodetype),ld.typename,rd.typename);
+                    begin
+                      CGMessage3(type_e_operator_not_supported_for_types,node2opstr(nodetype),ld.typename,rd.typename);
+                      result:=cnothingnode.create;
+                      exit;
+                    end;
                 end;
               end
              { Both are chars? }
@@ -2010,7 +2024,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.125  2004-06-20 08:55:29  florian
+  Revision 1.126  2004-08-08 15:22:29  florian
+    * fixed several ie9999s when illegal operators were used
+
+  Revision 1.125  2004/06/20 08:55:29  florian
     * logs truncated
 
   Revision 1.124  2004/06/16 20:07:07  florian

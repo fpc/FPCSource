@@ -295,7 +295,7 @@ scan_f_include_deep_ten=02062_F_Including include files exceeds a depth of 16.
 % recursion is used.
 scan_e_too_many_push=02063_F_Too many levels of PUSH
 % A maximum of 20 levels is allowed.  This error occur only in mode MacPas.
-scan_e_too_many_pop=02064_E_A POP without a preceding PUSH 
+scan_e_too_many_pop=02064_E_A POP without a preceding PUSH
 % This error occur only in mode MacPas.
 % \end{description}
 #
@@ -1180,7 +1180,7 @@ type_e_operator_not_allowed=04051_E_The operator is not applicable for the opera
 % operands
 type_e_constant_expr_expected=04052_E_Constant Expression expected
 % The compiler expects an constant expression, but gets a variable expression.
-type_e_operator_not_supported_for_types=04053_E_Operation "$1" not supported types "$2" and "$3"
+type_e_operator_not_supported_for_types=04053_E_Operation "$1" not supported for types "$2" and "$3"
 % The operation is not allowed for the supplied types
 type_e_illegal_type_conversion=04054_E_Illegal type conversion: "$1" to "$2"
 % When doing a type-cast, you must take care that the sizes of the variable and
