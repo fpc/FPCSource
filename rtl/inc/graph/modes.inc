@@ -406,6 +406,7 @@ end;
   procedure SetGraphMode(mode: smallint);
     var
      modeinfo: PModeInfo;
+     usedDriver: Integer;
     begin
       { check if the mode exists... }
       { Depending on the modenumber, we search using the old or new }
@@ -417,12 +418,19 @@ end;
         detectMode:
           begin
             mode := -32767;
+            usedDriver := IntcurrentNewDriver;
             modeInfo := searchmode(IntcurrentNewDriver,mode);
           end;
         lowNewMode..highNewMode:
-          modeInfo := searchmode(IntcurrentNewDriver,mode);
+          begin
+            usedDriver := IntcurrentNewDriver;
+            modeInfo := searchmode(IntcurrentNewDriver,mode);
+          end;
         else
-          modeinfo := searchmode(IntcurrentDriver,mode);
+          begin
+            usedDriver := IntcurrentDriver;
+            modeinfo := searchmode(IntcurrentDriver,mode);
+          end;
       end;
       if not assigned(modeinfo) then
         begin
@@ -434,8 +442,6 @@ end;
        end;
     { reset all hooks...}
     DefaultHooks;
-    { arccall not reset - tested against VGA BGI driver }
-    { Setup all hooks if none, keep old defaults...}
 
       { required hooks - returns error if no hooks to these }
       { routines.                                           }
@@ -531,7 +537,7 @@ end;
          OutTextXY:=modeInfo^.OutTextXY;
 
       IntCurrentMode := modeinfo^.ModeNumber;
-      IntCurrentDriver := modeinfo^.DriverNumber;
+      IntCurrentDriver := usedDriver;
 {$ifdef logging}
        logln('Entering mode '+strf(intCurrentMode)+' of driver '+strf(intCurrentDriver));
 {$endif logging}
@@ -592,7 +598,10 @@ end;
 
 {
   $Log$
-  Revision 1.5  2001-04-13 23:49:48  peter
+  Revision 1.6  2001-04-14 16:06:03  jonas
+    * fixed problem with new modes system (reported by Vladimir Ravodin) (merged)
+
+  Revision 1.5  2001/04/13 23:49:48  peter
     * fixes for the stricter compiler
 
   Revision 1.4  2000/08/12 12:27:14  jonas

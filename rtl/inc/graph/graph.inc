@@ -2303,7 +2303,12 @@ end;
 
         { _GraphResult is now already set to grOK by DetectGraph }
         IntCurrentDriver := GraphDriver;
-        IntCurrentNewDriver := GraphDriver;
+
+        if (graphDriver >= lowNewDriver) and
+           (graphDriver <= highNewDriver) then
+          IntCurrentNewDriver := GraphDriver
+        else IntCurrentNewDriver := -1;
+
         { Actually set the graph mode...}
         if firstCallOfInitgraph then
           begin
@@ -2324,7 +2329,12 @@ end;
          begin
            _GraphResult := grOK;
            IntCurrentDriver := GraphDriver;
-           IntCurrentNewDriver := GraphDriver;
+
+           if (graphDriver >= lowNewDriver) and
+              (graphDriver <= highNewDriver) then
+             IntCurrentNewDriver := GraphDriver
+           else IntCurrentNewDriver := -1;
+
            if firstCallOfInitgraph then
              begin
            SaveVideoState;
@@ -2441,7 +2451,10 @@ begin
 end;
 {
   $Log$
-  Revision 1.5  2000-12-07 17:19:47  jonas
+  Revision 1.6  2001-04-14 16:06:03  jonas
+    * fixed problem with new modes system (reported by Vladimir Ravodin) (merged)
+
+  Revision 1.5  2000/12/07 17:19:47  jonas
     * new constant handling: from now on, hex constants >$7fffffff are
       parsed as unsigned constants (otherwise, $80000000 got sign extended
       and became $ffffffff80000000), all constants in the longint range
