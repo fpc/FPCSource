@@ -352,27 +352,6 @@ None.
 \seep{SetRGBPalette}, \seep{SetPalette}
 \end{procedure}
 ------------------------
-\begin{procedure}{SetPalette}
-\Declaration
-Procedure SetPalette (ColorNum : Word; Color : Shortint);
-
-\Description
-\var{SetPalette} changes the \var{ColorNum}-th entry in the palette to
-\var{Color}. For examples, \var{SetPalette(0, LightCyan)} makes the first
-color in the palette light cyan. \var{Color} only accepts certain default
-colors, as specified in the \var{Color constants} section. If invalid
-input is passed to \var{SetPalette}, \var{GraphResult} returns a value
-of \var{grError} and the palette remains intact.
-
-Changes made to the palette are immediately visible on the screen.
-
-This routine returns \var{grError} if called in a direct color mode.
-
-\Errors
-None.
-\SeeAlso
-\seep{SetAllPallette},\seep{SetRGBPalette}
-\end{procedure}
 
 ------------------------
 \begin{procedure}{GetDefaultPalette}
@@ -418,25 +397,6 @@ None.
 \seef{GetPaletteSize}, \seep{SetPalette}
 \end{procedure}
 ---------------------------
-\begin{procedure}{SetRGBPalette}
-\Declaration
-Procedure SetRGBPalette (ColorNum,Red,Green,Blue : Integer);
-
-\Description
-\var{SetRGBPalette} sets the \var{ColorNum}-th entry in the palette to the
-color with RGB values \var{Red, Green Blue}. The Red , Green and Blue values
-must be in LSB format. If the palette entry could not be changed for a
-reason, the routine returns \var{grError}.
-
-This routine returns \var{grError} if called in a direct color mode.
-
-\Errors
-None.
-\SeeAlso
-\seep{SetAllPallette},
-\seep{SetPalette}
-\seep{GetRGBPalette}
-\end{procedure}
 ---------------------------
 \begin{function}{GetBkColor}
 \Declaration
@@ -487,24 +447,6 @@ None.
 \end{procedure}
 
 ----------------------------
-\begin{procedure}{SetColor}
-\Declaration
-Procedure SetColor (Color : Word);
-
-\Description
-Sets the foreground color to
-\var{Color}.
-
-The behaviour of this routine depends if we are in a direct color
-mode or not. In direct color mode, this value represents the direct
-RGB values to plot to the screen. In non direct color mode, the value
-represents an index to the color palette entry on the hardware.
-
-\Errors
-None.
-\SeeAlso
-\seef{GetColor}, \seep{SetBkColor}
-\end{procedure}
 ----------------------------
 \begin{procedure}{SetDirectVideo}
 \Declaration
@@ -567,24 +509,6 @@ None.
 
 
 ----------------------------
-\begin{procedure}{SetBkColor}
-\Declaration
-Procedure SetBkColor (Color : Word);
-
-\Description
-Sets the background color to
-\var{Color}.
-
-The behaviour of this routine depends if we are in a direct color
-mode or not. In direct color mode, this value represents the direct
-RGB values to plot to the screen. In non direct color mode, the value
-represents an index to the color palette entry on the hardware.
-
-\Errors
-None.
-\SeeAlso
-\seef{GetBkColor}, \seep{SetColor}
-\end{procedure}
 
 
 \section{Reference}
@@ -1556,12 +1480,14 @@ end.
 \end{verbatim}
 \begin{procedure}{Sector}
 \Declaration
-Procedure Sector (X,Y : Integer; \\ Start,Stop,XRadius,YRadius : Word);
+Procedure Sector (X,Y : Integer; StAngle,EndAngle,XRadius,YRadius : Word);
 
 \Description
 \var{Sector}
 draws and fills a sector of an ellipse  with center \var{(X,Y)} and radii
-\var{XRadius} and \var{YRadius}, starting at angle \var{Start} and ending at angle \var{Stop}.
+\var{XRadius} and \var{YRadius}, starting at angle \var{StAngle} and ending at angle
+\var{EndAngle}. The sector is outlined in the current color and filled with
+the pattern and color defined by \var{SetFillStyle} or \var{SetFillPattern}.
 \Errors
 None.
 \SeeAlso
@@ -1573,10 +1499,23 @@ Procedure SetActivePage (Page : Word);
 
 \Description
 Sets \var{Page} as the active page
-for all graphical output.
+for all graphical output. This means that all drawing will be done on this
+graphics, be it visible or not.
+
+The usual way to make fast animation, is to draw to a non visible active page
+and the simply call make that active page the visible page by calling
+\var{SetVisualPage}.
+
+\textit{Compatibility}:
+Not all systems and graphics mode support multiple graphics pages, to
+determine how many pages are available see \var{QueryAdapterInfo}.
+
+Multiple pages are currently not supported with DOS VESA modes.
+
 \Errors
 None.
 \SeeAlso
+\seep{SetVisualPage}, \seep{QueryAdapterInfo}
 
 \end{procedure}
 \begin{procedure}{SetAllPallette}
@@ -1586,7 +1525,19 @@ Procedure SetAllPallette (Var Palette);
 \Description
 Sets the current palette to
 \var{Palette}. \var{Palette} is an untyped variable, usually pointing to a
-record of type \var{PaletteType}
+record of type \var{PaletteType} which contains the Red, Green and Blue
+components of the RGB components to change for each color entry. If
+the Red, Green and Blue components are equal to -1 for a specific color
+entry, then that palette entry will not be changed. The size should
+contain the size of the palette to change (indexed at zero).
+
+\textit{Compatibility}:
+
+This call is not the same as in Turbo Pascal. RGB components should be
+set in LSB if each of the components has less then 16-bits resolution.
+
+This call is not supported in direct color modes.
+
 \Errors
 None.
 \SeeAlso
@@ -1598,21 +1549,66 @@ Procedure SetAspectRatio (Xasp,Yasp : Word);
 
 \Description
 Sets the aspect ratio of the
-current screen to \var{Xasp/Yasp}.
+current screen to \var{Xasp/Yasp}. The value of the aspect ratio is used
+by certain routines herein to draw circles which will actually appear round
+depending on the screen mode.
 \Errors
 None
 \SeeAlso
 \seep{InitGraph}, \seep{GetAspectRatio}
 \end{procedure}
-\begin{procedure}{SetFillPattern}
+\begin{procedure}{SetBkColor}
 \Declaration
-Procedure SetFillPattern (FillPattern : FillPatternType,\\ Color : Word);
+Procedure SetBkColor (Color : Word);
 
 \Description
-\var{SetFillPattern} sets the current fill-pattern to \var{FillPattern}, and
-the filling color to \var{Color}
+Sets the background color to
+\var{Color}.
+
+The behaviour of this routine depends if we are in a direct color
+mode or not. In direct color mode, this value represents the direct
+RGB values to plot to the screen. In non direct color mode, the value
+represents an index to the color palette entry on the hardware.
+
+\Errors
+None.
+\SeeAlso
+\seef{GetBkColor}, \seep{SetColor}
+\end{procedure}
+\begin{procedure}{SetColor}
+\Declaration
+Procedure SetColor (Color : Word);
+
+\Description
+Sets the foreground color to
+\var{Color}.
+
+The behaviour of this routine depends if we are in a direct color
+mode or not. In direct color mode, this value represents the direct
+RGB values to plot to the screen. In non direct color mode, the value
+represents an index to the color palette entry on the hardware.
+
+\Errors
+None.
+\SeeAlso
+\seef{GetColor}, \seep{SetBkColor}
+\end{procedure}
+\begin{procedure}{SetFillPattern}
+\Declaration
+Procedure SetFillPattern (Pattern : FillPatternType, Color : Word);
+
+\Description
+\var{SetFillPattern} sets the current fill-pattern to \var{Pattern}, and
+the filling color to \var{Color}. If invalid input is passed to
+\var{SetFillPattern}, \var{GraphResult} will return \var{grError}.
+
 The pattern is an 8x8 raster, corresponding to the 64 bits in
-\var{FillPattern}.
+\var{FillPattern}. Whenever a bit in a pattern byte is valued at 1,
+a pixel will be plotted. The pattern and color is used by \var{Bar},
+\var{FillPoly}, \var{FloodFill}, \var{bar3d}, \var{FillEllipse},
+\var{Sector}, and \var{PieSlice}.
+
+
 \Errors
 None
 \SeeAlso
@@ -1620,7 +1616,7 @@ None
 \end{procedure}
 \begin{procedure}{SetFillStyle}
 \Declaration
-Procedure SetFillStyle (Pattern,Color : word);
+Procedure SetFillStyle (Pattern, Color : word);
 
 \Description
 \var{SetFillStyle} sets the filling pattern and color to one of the
@@ -1636,11 +1632,14 @@ constants :
 \item \var{LtBkSlashFill} Idem as previous, normal lines.
 \item \var{HatchFill}  Fills with a hatch-like pattern.
 \item \var{XHatchFill} Fills with a hatch pattern, rotated 45 degrees.
-\item \var{InterLeaveFill} 
+\item \var{InterLeaveFill}
 \item \var{WideDotFill} Fills with dots, wide spacing.
 \item \var{CloseDotFill} Fills with dots, narrow spacing.
 \item \var{UserFill} Fills with a user-defined pattern.
 \end{itemize}
+
+If invalid input is passed to \var{SetFillStyle},
+\var{GraphResult} will return \var{grError}.
 
 \Errors
 None.
@@ -1652,8 +1651,7 @@ None.
 Procedure SetGraphBufSize (BufSize : Word);
 
 \Description
-\var{SetGraphBufSize} 
-sets the graphical buffer size. The default size is 4Kb
+This routine does nothing in FPC, and is here for compatibility.
 \Errors
 None.
 \SeeAlso
@@ -1665,16 +1663,25 @@ Procedure SetGraphMode (Mode : Integer);
 
 \Description
 \var{SetGraphMode} sets the
-graphical mode and clears the screen.
+graphical mode and clears the screen. \var{Mode} must be a valid mode,
+which can be queried by \var{QueryAdapterInfo}.
+
+If invalid input is passed to \var{SetGraphMode}, or if the mode cannot
+be set for a reason, \var{GraphResult} returns \var{grInvalidMode}.
+
+\var{SetGraphMode} resets all graphics variables to their default
+settings (such as if \var{GraphDefaults} was called, the active page
+is reset to page zero, the visual page is reset to page zero, and the viewport
+is set to the entire screen.
+
 \Errors
 None.
 \SeeAlso
-\seep{InitGraph}
+\seep{InitGraph}, \seep{QueryAdapterInfo}
 \end{procedure}
 \begin{procedure}{SetLineStyle}
 \Declaration
-Procedure SetLineStyle (LineStyle,Pattern,Width :
-Word);
+Procedure SetLineStyle (LineStyle, Pattern, Thickness : Word);
 
 \Description
 \var{SetLineStyle}
@@ -1687,8 +1694,10 @@ one of the following pre-defined constants:
 \item \var{Dashedln=3;} draws a dashed line.
 \item \var{UserBitln=4;} Draws a User-defined bit pattern.
 \end{itemize}
-If \var{UserBitln} is specified then \var{Pattern} contains the bit pattern.
-In all another cases, \var{Pattern} is ignored. The parameter \var{Width}
+If \var{UserBitln} is specified then \var{Pattern} contains the bit pattern to
+use for drawing the line. A bit of 1 specified a pixel which is on.
+
+In all another cases, \var{Pattern} is ignored. The parameter \var{Thickness}
 indicates how thick the line should be. You can specify one of the following
 pre-defined constants:
 \begin{itemize}
@@ -1696,32 +1705,78 @@ pre-defined constants:
 \item \var{ThickWidth=3}
 \end{itemize}
 
+If invalid input is passed to \var{SetLineStyle} , \var{GraphResult} will
+return \var{grError}.
+
 \Errors
 None.
 \SeeAlso
 \seep{GetLineSettings}
 \end{procedure}
-\begin{procedure}{SetTextJustify}
+\begin{procedure}{SetPalette}
 \Declaration
-Procedure SetTextJustify (Horizontal,Vertical : Word);
+Procedure SetPalette (ColorNum : Word; Color : Shortint);
 
 \Description
-\var{SetTextJustify} controls the placement of new text, relative to the 
-(graphical) cursor position. \var{Horizontal} controls horizontal placement, and can be
+\var{SetPalette} changes the \var{ColorNum}-th entry in the palette to
+\var{Color}. For examples, \var{SetPalette(0, LightCyan)} makes the first
+color in the palette light cyan. \var{Color} only accepts certain default
+colors, as specified in the \var{Color constants} section. If invalid
+input is passed to \var{SetPalette}, \var{GraphResult} returns a value
+of \var{grError} and the palette remains intact.
+
+Changes made to the palette are immediately visible on the screen.
+
+This routine returns \var{grError} if called in a direct color mode.
+
+\Errors
+None.
+\SeeAlso
+\seep{SetAllPallette},\seep{SetRGBPalette}
+\end{procedure}
+\begin{procedure}{SetRGBPalette}
+\Declaration
+Procedure SetRGBPalette (ColorNum,Red,Green,Blue : Integer);
+
+\Description
+\var{SetRGBPalette} sets the \var{ColorNum}-th entry in the palette to the
+color with RGB values \var{Red, Green Blue}. The Red , Green and Blue values
+must be in LSB format. If the palette entry could not be changed for a
+reason, the routine returns \var{grError}.
+
+This routine returns \var{grError} if called in a direct color mode.
+
+\Errors
+None.
+\SeeAlso
+\seep{SetAllPallette},
+\seep{SetPalette}
+\seep{GetRGBPalette}
+\end{procedure}
+\begin{procedure}{SetTextJustify}
+\Declaration
+Procedure SetTextJustify (Horiz, Vert : Word);
+
+\Description
+\var{SetTextJustify} controls the placement of new text, relative to the
+(graphical) cursor position. \var{Horiz} controls horizontal placement, and can be
 one of the following pre-defined constants:
 \begin{itemize}
-\item \var{LeftText=0;} Text is set left of the pointer.
-\item \var{CenterText=1;} Text is set centered horizontally on the pointer.
-\item \var{RightText=2;} Text is set to the right of the pointer.
+\item \var{LeftText=0;} Text is set left of the current pointer.
+\item \var{CenterText=1;} Text is set centered horizontally on the current pointer.
+\item \var{RightText=2;} Text is set to the right of the current pointer.
 \end{itemize}
 \var{Vertical} controls the vertical placement of the text, relative to the
 (graphical) cursor position. Its value can be one of the following
 pre-defined constants :
 \begin{itemize}
-\item \var{BottomText=0;} Text is placed under the pointer.
-\item \var{CenterText=1;} Text is placed centered vertically on the pointer.
-\item \var{TopText=2;}Text is placed above the pointer.
+\item \var{BottomText=0;} Text is placed under the current pointer.
+\item \var{CenterText=1;} Text is placed centered vertically on the current pointer.
+\item \var{TopText=2;}Text is placed above the current pointer.
 \end{itemize}
+
+If invalid input is passed \var{SetTextJustify} , \var{GraphResult} returns
+\var{grError}.
 
 \Errors
 None.
@@ -1742,11 +1797,26 @@ pre-defined constants for \var{Font} are:
 \item \var{SansSerifFont=3;}
 \item \var{GothicFont=4;}
 \end{itemize}
+
+
 Pre-defined constants for \var{Direction} are :
 \begin{itemize}
 \item \var{HorizDir=0;}
 \item \var{VertDir=1;}
 \end{itemize}
+
+Charsize indicated the magnification factor to use when drawing the fonts
+to the screen. When using the default internal font, this value can be
+any value equal or greater to one. In the case of stroked fonts, the
+value should always be equal or greater then 4.
+
+Stroked fonts are usually loaded from disk once onto the heap when a call
+is made to \var{SetTextStyle}.
+
+If there is an error when using this routine, \var{GraphResult} might return
+\var{grFontNotFound}, \var{grNoFontMem}, \var{grError}, \var{grIoError},
+\var{grInvalidFont}, or \var{grInvalidFontNum}.
+
 \Errors
 None.
 \SeeAlso
