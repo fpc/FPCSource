@@ -401,8 +401,30 @@ In this form:
 where \var{xxx} is one of \var{TIME}, \var{DATE}, \var{FPCVERSION} or
 \var{FPCTARGET}, will generate a macro with the value of these things.
 If \var{xxx} is none of the above, then it is assumed to be the value of
-an environment variable. It's value will be fetched.
+an environment variable. It's value will be fetched, and inserted in the coe
+as if it were a srtring.
 
+For example, the following program
+\begin{verbatim}
+Program InfoDemo;
+
+Const User = {$I %USER%};
+       
+begin
+  Write ('This program was comilped at ',{$I %TIME%});
+  Writeln (' on ',{$I %DATE%});
+  Writeln ('By ',User);
+  Writeln ('Compiler version : ',{$I %FPCVERSION%});
+  Writeln ('Target CPU : ',{$I %FPCTARGET%});
+end.
+\end{verbatim} 
+Creates the following output :
+\begin{verbatim}
+This program was comilped at 17:40:18 on 1998/09/09
+By michael
+Compiler version : 0.99.7
+Target CPU : i386
+\end{verbatim}
 % Assembler type
 \subsection{\var{\$I386\_XXX} : Specify assembler format}
 
