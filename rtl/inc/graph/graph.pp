@@ -1955,13 +1955,13 @@ end;
 
 Procedure DefaultPutImage(X,Y: Integer; var Bitmap; BitBlt: Word); {$ifndef fpc}far;{$endif fpc}
 type
-  pt = array[0..32000] of word;
+  pt = array[0..$fffffff] of word;
   ptw = array[0..3] of longint;
 var
   color: word;
   i,j: Integer;
   Y1,X1: Integer;
-  k: integer;
+  k: longint;
 Begin
   X1:= ptw(Bitmap)[0]+X; { get width and adjust end coordinate accordingly }
   Y1:= ptw(Bitmap)[1]+Y; { get height and adjust end coordinate accordingly }
@@ -1990,7 +1990,7 @@ end;
 
 Procedure DefaultGetImage(X1,Y1,X2,Y2: Integer; Var Bitmap); {$ifndef fpc}far;{$endif fpc}
 type
-  pt = array[0..32000] of word;
+  pt = array[0..$fffffff] of word;
   ptw = array[0..3] of longint;
 var
   i,j: integer;
@@ -2039,6 +2039,33 @@ end;
    begin
    end;
 
+  procedure DirectPutPixelDefault(X,Y: Integer);
+   begin
+     RunError(218);
+   end;
+
+  function GetPixelDefault(X,Y: Integer): word;
+   begin
+     RunError(218);
+     exit(0); { avoid warning }
+   end;
+
+  procedure PutPixelDefault(X,Y: Integer; Color: Word);
+   begin
+     RunError(218);
+   end;
+
+  procedure SetRGBPaletteDefault(ColorNum, RedValue, GreenValue, BlueValue: Integer);
+   begin
+     RunError(218);
+   end;
+
+  procedure GetRGBPaletteDefault(ColorNum: integer; var
+            RedValue, GreenValue, BlueValue: Integer);
+   begin
+     RunError(218);
+   end;
+
 
   Procedure DefaultHooks;
   {********************************************************}
@@ -2051,15 +2078,16 @@ end;
   Begin
     { All default hooks procedures }
 
+{$ifdef fpc}
     { required...}
-    DirectPutPixel := nil;
-    PutPixel := nil;
-    GetPixel := nil;
-    SetRGBPalette := nil;
-    GetRGBPalette := nil;
+    DirectPutPixel := @DirectPutPixelDefault;
+    PutPixel := @PutPixelDefault;
+    GetPixel := @GetPixelDefault;
+    SetRGBPalette := @SetRGBPaletteDefault;
+    GetRGBPalette := @GetRGBPaletteDefault;
+
 
     { optional...}
-{$ifdef fpc}
     SetActivePage := @SetActivePageDefault;
     SetVisualPage := @SetVisualPageDefault;
     ClearViewPort := @ClearViewportDefault;
@@ -2067,6 +2095,14 @@ end;
     GetImage := @DefaultGetImage;
     ImageSize := @DefaultImageSize;
 {$else fpc}
+    { required...}
+    DirectPutPixel := DirectPutPixelDefault;
+    PutPixel := PutPixelDefault;
+    GetPixel := GetPixelDefault;
+    SetRGBPalette := SetRGBPaletteDefault;
+    GetRGBPalette := GetRGBPaletteDefault;
+
+    { optional...}
     SetActivePage := SetActivePageDefault;
     SetVisualPage := SetVisualPageDefault;
     ClearViewPort := ClearViewportDefault;
@@ -2933,7 +2969,7 @@ begin
  SavePtr := Nil;
 {$ifdef oldfont}
 {$ifdef go32v2}
- LoadFont8x8; 
+ LoadFont8x8;
 {$endif go32v2}
 {$endif oldfont}
  { This must be called at startup... because GetGraphMode may }
@@ -2966,7 +3002,12 @@ SetGraphBufSize
 
 {
   $Log$
-  Revision 1.38  1999-11-11 17:55:07  florian
+  Revision 1.39  1999-11-24 23:42:31  pierre
+    * PutImage used an integer index that became negative !!!!
+    * Default needed procedure now genrate a RTE 218 instead of a
+      GPF by call to nil pointer !
+
+  Revision 1.38  1999/11/11 17:55:07  florian
     * the size was calculated wrong by imagesize
 
   Revision 1.37  1999/11/11 14:07:14  florian
