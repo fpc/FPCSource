@@ -241,7 +241,7 @@ implementation
                 exclude(regs,t.reference.base.number shr 8);
               if not(cs_regalloc in aktglobalswitches) or
                  ((t.reference.index.number shr 8) in rg.usableregsint) then
-                exclude(regs,t.reference.index.number);
+                exclude(regs,t.reference.index.number shr 8);
             end;
         end;
       end;
@@ -538,7 +538,7 @@ implementation
                       inc(l.reference.offset,TCGSize2Size[l.size]-TCGSize2Size[dst_size]);
                     l.size:=dst_size;
                   end;
-                  
+
                  cg.a_load_loc_reg(list,l,hregister);
                end;
            end;
@@ -1996,7 +1996,10 @@ function returns in a register and the caller receives it in an other one}
 end.
 {
   $Log$
-  Revision 1.79  2003-03-11 21:46:24  jonas
+  Revision 1.80  2003-03-17 15:52:20  peter
+    * fix range error
+
+  Revision 1.79  2003/03/11 21:46:24  jonas
     * lots of new regallocator fixes, both in generic and ppc-specific code
       (ppc compiler still can't compile the linux system unit though)
 
