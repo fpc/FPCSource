@@ -73,6 +73,7 @@
          if registerdef then
            symtablestack^.registerdef(@self);
          has_rtti:=false;
+         has_inittable:=false;
 {$ifdef GDB}
          is_def_stab_written := false;
          globalnb := 0;
@@ -99,6 +100,7 @@
          owner := nil;
          next := nil;
          has_rtti:=false;
+         has_inittable:=false;
 {$ifdef GDB}
          is_def_stab_written := false;
          globalnb := 0;
@@ -296,18 +298,15 @@
       begin
       end;
 
-    function tdef.needs_rtti : boolean;
-
-      begin
-         needs_rtti:=false;
-      end;
-
+    { rtti generation }
     procedure tdef.generate_rtti;
 
       begin
          has_rtti:=true;
          getlabel(rtti_label);
+         write_child_rtti_data;
          rttilist^.concat(new(pai_label,init(rtti_label)));
+         write_rtti_data;
       end;
 
     function tdef.get_rtti_label : plabel;
@@ -315,16 +314,50 @@
       begin
          if not(has_rtti) then
            generate_rtti;
-         { I don't know what's the use of rtti_label
-           but this was missing  (PM) }
          get_rtti_label:=rtti_label;
+      end;
+
+    { init table handling }
+    function tdef.needs_inittable : boolean;
+
+      begin
+         needs_inittable:=false;
+      end;
+
+    procedure tdef.generate_inittable;
+
+      begin
+         has_inittable:=true;
+         getlabel(inittable_label);
+         write_child_init_data;
+         rttilist^.concat(new(pai_label,init(inittable_label)));
+         write_init_data;
+      end;
+
+    procedure tdef.write_init_data;
+
+      begin
+         write_rtti_data;
+      end;
+
+    procedure tdef.write_child_init_data;
+
+      begin
+         write_child_rtti_data;
+      end;
+
+    function tdef.get_inittable_label : plabel;
+
+      begin
+         if not(has_inittable) then
+           generate_inittable;
+         get_inittable_label:=inittable_label;
       end;
 
     procedure tdef.writename;
 
       var
          str : string;
-
 
       begin
          { name }
@@ -335,6 +368,23 @@
            end
          else
            rttilist^.concat(new(pai_string,init(#0)))
+      end;
+
+    { returns true, if the definition can be published }
+    function tdef.is_publishable : boolean;
+
+      begin
+         is_publishable:=false;
+      end;
+
+    procedure tdef.write_rtti_data;
+
+      begin
+      end;
+
+    procedure tdef.write_child_rtti_data;
+
+      begin
       end;
 
 {*************************************************************************************************************************
@@ -495,15 +545,14 @@
       end;
 {$endif GDB}
 
-    function tstringdef.needs_rtti : boolean;
+    function tstringdef.needs_inittable : boolean;
       begin
-         needs_rtti:=string_typ in [st_ansistring,st_widestring];
+         needs_inittable:=string_typ in [st_ansistring,st_widestring];
       end;
 
-    procedure tstringdef.generate_rtti;
+    procedure tstringdef.write_rtti_data;
 
       begin
-         inherited generate_rtti;
          case string_typ of
             st_ansistring:
               begin
@@ -805,10 +854,9 @@
       end;
 {$endif GDB}
 
-    procedure torddef.generate_rtti;
+    procedure torddef.write_rtti_data;
 
       begin
-         inherited generate_rtti;
          rttilist^.concat(new(pai_const,init_8bit(255)));
       end;
 
@@ -884,14 +932,13 @@
       end;
 {$endif GDB}
 
-    procedure tfloatdef.generate_rtti;
+    procedure tfloatdef.write_rtti_data;
 
       const
          translate : array[tfloattype] of byte =
            (ftFixed32,ftSingle,ftDouble,ftExtended,ftComp,ftFixed16);
 
       begin
-         inherited generate_rtti;
          rttilist^.concat(new(pai_const,init_8bit(tkFloat)));
          rttilist^.concat(new(pai_const,init_8bit(translate[typ])));
       end;
@@ -1064,13 +1111,6 @@
       end;
 {$endif GDB}
 
-    procedure tfiledef.generate_rtti;
-
-      begin
-         inherited generate_rtti;
-         rttilist^.concat(new(pai_const,init_8bit(255)));
-      end;
-
 {*************************************************************************************************************************
                                TPOINTERDEF
 ****************************************************************************}
@@ -1153,13 +1193,6 @@
       end;
 {$endif GDB}
 
-    procedure tpointerdef.generate_rtti;
-
-      begin
-         inherited generate_rtti;
-         rttilist^.concat(new(pai_const,init_8bit(255)));
-      end;
-
 {*************************************************************************************************************************
                               TCLASSREFDEF
 ****************************************************************************}
@@ -1195,13 +1228,6 @@
       begin
       end;
 {$endif GDB}
-
-    procedure tclassrefdef.generate_rtti;
-
-      begin
-         inherited generate_rtti;
-         rttilist^.concat(new(pai_const,init_8bit(255)));
-      end;
 
 {***********************************************************************************
                                    TSETDEF
@@ -1331,13 +1357,6 @@
       end;
 {$endif GDB}
 
-    procedure tformaldef.generate_rtti;
-
-      begin
-         inherited generate_rtti;
-         rttilist^.concat(new(pai_const,init_8bit(255)));
-      end;
-
 {***********************************************************************************
                TARRAYDEF
 ***************************************************************************}
@@ -1419,27 +1438,32 @@
 {$endif GDB}
 
     function tarraydef.elesize : longint;
+
       begin
          elesize:=definition^.size;
       end;
 
     function tarraydef.size : longint;
+
       begin
          size:=(highrange-lowrange+1)*elesize;
       end;
 
-    function tarraydef.needs_rtti : boolean;
+    function tarraydef.needs_inittable : boolean;
+
       begin
-         needs_rtti:=definition^.needs_rtti;
+         needs_inittable:=definition^.needs_inittable;
       end;
 
-    procedure tarraydef.generate_rtti;
+    procedure tarraydef.write_child_rtti_table;
+
       begin
-         { first, generate the rtti of the element type, else we get mixed }
-         { up because the rtti would be mixed                              }
-         if not(definition^.has_rtti) then
-           definition^.generate_rtti;
-         inherited generate_rtti;
+         definition^.generate_rtti;
+      end;
+
+    procedure tarraydef.write_rtti_data;
+
+      begin
          rttilist^.concat(new(pai_const,init_8bit(13)));
          writename;
          { size of elements }
@@ -1447,7 +1471,7 @@
          { count of elements }
          rttilist^.concat(new(pai_const,init_32bit(highrange-lowrange+1)));
          { element type }
-         rttilist^.concat(new(pai_const,init_symbol(strpnew(lab2str(definition^.get_rtti_label)))));
+         rttilist^.concat(new(pai_const,init_symbol(strpnew(lab2str(definition^.get_inittable_label)))));
       end;
 
 {***********************************************************************************
@@ -1486,16 +1510,16 @@
       end;
 
     var
-       brtti : boolean;
+       binittable : boolean;
 
-    procedure check_rec_rtti(s : psym);
+    procedure check_rec_inittable(s : psym);
 
       begin
-         if (s^.typ=varsym) and (pvarsym(s)^.definition^.needs_rtti) then
-           brtti:=true;
+         if (s^.typ=varsym) and (pvarsym(s)^.definition^.needs_inittable) then
+           binittable:=true;
       end;
 
-    function trecdef.needs_rtti : boolean;
+    function trecdef.needs_inittable : boolean;
 
       var
          oldb : boolean;
@@ -1505,11 +1529,11 @@
          { so we have to change to old value how else should }
          { we do that ? check_rec_rtti can't be a nested     }
          { procedure of needs_rtti !                         }
-         oldb:=brtti;
-         brtti:=false;
-         symtable^.foreach(check_rec_rtti);
-         needs_rtti:=brtti;
-         brtti:=oldb;
+         oldb:=binittable;
+         binittable:=false;
+         symtable^.foreach(check_rec_inittable);
+         needs_inittable:=binittable;
+         binittable:=oldb;
       end;
 
     procedure trecdef.deref;
@@ -1617,41 +1641,84 @@
     var
        count : longint;
 
-    procedure count_field(sym : psym);{$ifndef fpc}far;{$endif}
+    procedure count_inittable_fields(sym : psym);{$ifndef fpc}far;{$endif}
+
+      begin
+         if pvarsym(sym)^.definition^.needs_inittable then
+           inc(count);
+      end;
+
+    procedure count_fields(sym : psym);{$ifndef fpc}far;{$endif}
 
       begin
          inc(count);
       end;
 
-    procedure write_field_info(sym : psym);{$ifndef fpc}far;{$endif}
+    procedure write_field_inittable(sym : psym);{$ifndef fpc}far;{$endif}
 
       begin
-         if (sym^.typ=varsym) and (pvarsym(sym)^.definition^.needs_rtti) then
+         if pvarsym(sym)^.definition^.needs_inittable then
            begin
-              rttilist^.concat(new(pai_const,init_symbol(strpnew(lab2str(pvarsym(sym)^.definition^.get_rtti_label)))));
+              rttilist^.concat(new(pai_const,init_symbol(strpnew(lab2str(pvarsym(sym)^.definition^.get_inittable_label)))));
               rttilist^.concat(new(pai_const,init_32bit(pvarsym(sym)^.address)));
            end;
+      end;
+
+    procedure write_field_rtti(sym : psym);{$ifndef fpc}far;{$endif}
+
+      begin
+         rttilist^.concat(new(pai_const,init_symbol(strpnew(lab2str(pvarsym(sym)^.definition^.get_rtti_label)))));
+         rttilist^.concat(new(pai_const,init_32bit(pvarsym(sym)^.address)));
+      end;
+
+    procedure generate_child_inittable(sym : psym);{$ifndef fpc}far;{$endif}
+
+      begin
+         if (sym^.typ=varsym) and pvarsym(sym)^.definition^.needs_inittable then
+         { force inittable generation }
+           pvarsym(sym)^.definition^.get_inittable_label;
       end;
 
     procedure generate_child_rtti(sym : psym);{$ifndef fpc}far;{$endif}
 
       begin
-         if (sym^.typ=varsym) and not(pvarsym(sym)^.definition^.has_rtti) then
-           pvarsym(sym)^.definition^.generate_rtti;
+         pvarsym(sym)^.definition^.get_rtti_label;
       end;
 
-    procedure trecdef.generate_rtti;
+    procedure trecdef.write_child_rtti_data;
 
       begin
          symtable^.foreach(generate_child_rtti);
-         inherited generate_rtti;
+      end;
+
+    procedure trecdef.write_child_init_data;
+
+      begin
+         symtable^.foreach(generate_child_inittable);
+      end;
+
+    procedure trecdef.write_rtti_data;
+
+      begin
          rttilist^.concat(new(pai_const,init_8bit(14)));
          writename;
          rttilist^.concat(new(pai_const,init_32bit(size)));
          count:=0;
-         symtable^.foreach(count_field);
+         symtable^.foreach(count_fields);
          rttilist^.concat(new(pai_const,init_32bit(count)));
-         symtable^.foreach(write_field_info);
+         symtable^.foreach(write_field_rtti);
+      end;
+
+    procedure trecdef.write_init_data;
+
+      begin
+         rttilist^.concat(new(pai_const,init_8bit(14)));
+         writename;
+         rttilist^.concat(new(pai_const,init_32bit(size)));
+         count:=0;
+         symtable^.foreach(count_inittable_fields);
+         rttilist^.concat(new(pai_const,init_32bit(count)));
+         symtable^.foreach(write_field_inittable);
       end;
 
 {***********************************************************************************
@@ -2172,6 +2239,11 @@
 {$endif UseBrowser}
       end;
 
+    procedure tprocdef.write_rtti_data;
+
+      begin
+      end;
+
 {***********************************************************************************
                                  TPROCVARDEF
 ***************************************************************************}
@@ -2255,13 +2327,6 @@
       end;
 {$endif GDB}
 
-    procedure tprocvardef.generate_rtti;
-
-      begin
-         inherited generate_rtti;
-         rttilist^.concat(new(pai_const,init_8bit(255)));
-      end;
-
 {***************************************************************************
                               TOBJECTDEF
 ***************************************************************************}
@@ -2304,14 +2369,12 @@
          name:=stringdup(readstring);
          childof:=pobjectdef(readdefref);
          options:=readlong;
-
          oldread_member:=read_member;
          read_member:=true;
          object_options:=true;
          publicsyms:=new(psymtable,loadasstruct(objectsymtable));
          object_options:=false;
          read_member:=oldread_member;
-
          publicsyms^.defowner:=@self;
          publicsyms^.datasize:=savesize;
          publicsyms^.name := stringdup(name^);
@@ -2585,15 +2648,18 @@
       end;
 {$endif GDB}
 
-    procedure tobjectdef.generate_rtti;
+    procedure tobjectdef.write_child_init_data;
 
       begin
-         publicsyms^.foreach(generate_child_rtti);
-         inherited generate_rtti;
+      end;
+
+    procedure tobjectdef.write_init_data;
+
+      begin
          if isclass then
-           rttilist^.concat(new(pai_const,init_8bit(17)))
+           rttilist^.concat(new(pai_const,init_8bit(tkclass)))
          else
-           rttilist^.concat(new(pai_const,init_8bit(16)));
+           rttilist^.concat(new(pai_const,init_8bit(tkobject)));
 
          { generate the name }
          rttilist^.concat(new(pai_const,init_8bit(length(name^))));
@@ -2601,9 +2667,89 @@
 
          rttilist^.concat(new(pai_const,init_32bit(size)));
          count:=0;
-         publicsyms^.foreach(count_field);
+         publicsyms^.foreach(count_inittable_fields);
          rttilist^.concat(new(pai_const,init_32bit(count)));
-         publicsyms^.foreach(write_field_info);
+         publicsyms^.foreach(write_field_inittable);
+      end;
+
+    function tobjectdef.needs_inittable : boolean;
+
+      var
+         oldb : boolean;
+
+      begin
+         { there are recursive calls to needs_inittable possible, }
+         { so we have to change to old value how else should      }
+         { we do that ? check_rec_rtti can't be a nested          }
+         { procedure of needs_rtti !                              }
+         oldb:=binittable;
+         binittable:=false;
+         publicsyms^.foreach(check_rec_inittable);
+         needs_inittable:=binittable;
+         binittable:=oldb;
+      end;
+
+    procedure count_published_properties(sym : psym);{$ifndef fpc}far;{$endif}
+
+      begin
+         if (sym^.properties and sp_published)<>0 then
+           inc(count);
+      end;
+
+    procedure write_property_info(sym : psym);{$ifndef fpc}far;{$endif}
+
+      begin
+      end;
+
+    procedure generate_published_child_rtti(sym : psym);{$ifndef fpc}far;{$endif}
+
+      begin
+      end;
+
+    procedure tobjectdef.write_child_rtti_data;
+
+      begin
+         if assigned(childof) then
+           childof^.get_rtti_label;
+         publicsyms^.foreach(generate_published_child_rtti);
+      end;
+
+    procedure tobjectdef.write_rtti_data;
+
+      begin
+         if isclass then
+           rttilist^.concat(new(pai_const,init_8bit(tkclass)))
+         else
+           rttilist^.concat(new(pai_const,init_8bit(tkobject)));
+
+         { generate the name }
+         rttilist^.concat(new(pai_const,init_8bit(length(name^))));
+         rttilist^.concat(new(pai_string,init(name^)));
+
+         { write class type }
+         rttilist^.concat(new(pai_const,init_symbol(strpnew(vmt_mangledname))));
+
+         { write owner typeinfo }
+         if assigned(childof) then
+           rttilist^.concat(new(pai_const,init_symbol(strpnew(lab2str(childof^.get_rtti_label)))))
+         else
+           rttilist^.concat(new(pai_const,init_32bit(0)));
+
+         { write published properties count }
+         count:=0;
+         publicsyms^.foreach(count_published_properties);
+         rttilist^.concat(new(pai_const,init_16bit(count)));
+
+         { write unit name }
+         if assigned(owner^.name) then
+           begin
+              rttilist^.concat(new(pai_const,init_8bit(length(owner^.name^))));
+              rttilist^.concat(new(pai_string,init(owner^.name^)));
+           end
+         else
+           rttilist^.concat(new(pai_const,init_8bit(0)));
+
+         publicsyms^.foreach(write_property_info);
       end;
 
 {****************************************************************************
@@ -2625,7 +2771,11 @@
 
 {
   $Log$
-  Revision 1.31  1998-09-02 15:14:28  peter
+  Revision 1.32  1998-09-03 16:03:20  florian
+    + rtti generation
+    * init table generation changed
+
+  Revision 1.31  1998/09/02 15:14:28  peter
     * enum packing changed from len to max
 
   Revision 1.30  1998/09/01 17:37:29  peter

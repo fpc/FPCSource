@@ -393,10 +393,10 @@ implementation
                            end
                          else
                            begin
-                              if p^.right^.resulttype^.needs_rtti then
+                              if p^.right^.resulttype^.needs_inittable then
                                 begin
                                    { this would be a problem }
-                                   if not(p^.left^.resulttype^.needs_rtti) then
+                                   if not(p^.left^.resulttype^.needs_inittable) then
                                      internalerror(3457);
 
                                    { increment source reference counter }
@@ -555,7 +555,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.10  1998-08-21 14:08:40  pierre
+  Revision 1.11  1998-09-03 16:03:14  florian
+    + rtti generation
+    * init table generation changed
+
+  Revision 1.10  1998/08/21 14:08:40  pierre
     + TEST_FUNCRET now default (old code removed)
       works also for m68k (at least compiles)
 

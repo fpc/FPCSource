@@ -1327,10 +1327,16 @@ unit pdecl;
               datasegment^.concat(new(pai_const,init_32bit(0)));
               { auto table }
               datasegment^.concat(new(pai_const,init_32bit(0)));
-              { rtti for dispose }
+
+              { inittable for con-/destruction }
+              if aktclass^.needs_inittable then
+                datasegment^.concat(new(pai_const,init_symbol(strpnew(lab2str(aktclass^.get_inittable_label)))))
+              else
+                datasegment^.concat(new(pai_const,init_32bit(0)));
+
+              { pointer to type info of published section }
               datasegment^.concat(new(pai_const,init_symbol(strpnew(lab2str(aktclass^.get_rtti_label)))));
-              { pointer to type info }
-              datasegment^.concat(new(pai_const,init_32bit(0)));
+
               { pointer to field table }
               datasegment^.concat(new(pai_const,init_32bit(0)));
               { pointer to method table }
@@ -1963,7 +1969,11 @@ unit pdecl;
 end.
 {
   $Log$
-  Revision 1.46  1998-09-01 17:39:48  peter
+  Revision 1.47  1998-09-03 16:03:18  florian
+    + rtti generation
+    * init table generation changed
+
+  Revision 1.46  1998/09/01 17:39:48  peter
     + internal constant functions
 
   Revision 1.45  1998/08/31 12:20:28  peter

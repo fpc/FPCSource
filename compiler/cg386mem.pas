@@ -143,7 +143,7 @@ implementation
          case p^.treetype of
            simpledisposen:
              begin
-                if ppointerdef(p^.left^.resulttype)^.definition^.needs_rtti then
+                if ppointerdef(p^.left^.resulttype)^.definition^.needs_inittable then
                   begin
                      new(r);
                      reset_reference(r^);
@@ -163,7 +163,7 @@ implementation
            simplenewn:
              begin
                 emitcall('GETMEM',true);
-                if ppointerdef(p^.left^.resulttype)^.definition^.needs_rtti then
+                if ppointerdef(p^.left^.resulttype)^.definition^.needs_inittable then
                   begin
                      new(r);
                      reset_reference(r^);
@@ -643,7 +643,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.8  1998-08-23 21:04:34  florian
+  Revision 1.9  1998-09-03 16:03:15  florian
+    + rtti generation
+    * init table generation changed
+
+  Revision 1.8  1998/08/23 21:04:34  florian
     + rtti generation for classes added
     + new/dispose do now also a call to INITIALIZE/FINALIZE, if necessaray
 
