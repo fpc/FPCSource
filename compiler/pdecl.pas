@@ -81,15 +81,16 @@ unit pdecl;
          def : pdef;
          sym : psym;
          storetokenpos,filepos : tfileposinfo;
+         old_block_type : tblock_type;
          ps : pconstset;
          pd : pbestreal;
 {$ifdef USEANSISTRING}
-
          sp : pstring;
 {$endif USEANSISTRING}
-
       begin
          consume(_CONST);
+         old_block_type:=block_type;
+         block_type:=bt_const;
          repeat
            name:=pattern;
            filepos:=tokenpos;
@@ -146,15 +147,15 @@ unit pdecl;
                 end;
               COLON:
                 begin
+                   consume(COLON);
                    { this was missed, so const s : ^string = nil gives an
                      error (FK)
                    }
                    block_type:=bt_type;
-                   consume(COLON);
                    ignore_equal:=true;
                    def:=read_type('');
-                   block_type:=bt_general;
                    ignore_equal:=false;
+                   block_type:=bt_const;
                    storetokenpos:=tokenpos;
                    tokenpos:=filepos;
                    sym:=new(ptypedconstsym,init(name,def));
@@ -167,6 +168,7 @@ unit pdecl;
               else consume(EQUAL);
            end;
          until token<>ID;
+         block_type:=old_block_type;
       end;
 
     procedure label_dec;
@@ -1582,46 +1584,48 @@ unit pdecl;
              end;
            { we can't accept a equal in type }
            pt1:=comp_expr(not(ignore_equal));
-           if (pt1^.treetype=typen) and (token<>POINTPOINT) then
+           do_firstpass(pt1);
+           if (token=POINTPOINT) then
              begin
-                { a simple type renaming }
-                p:=pt1^.resulttype;
-             end
-           else
-             begin
-                { range type }
-                consume(POINTPOINT);
-                { range type declaration }
-                do_firstpass(pt1);
-                pt2:=comp_expr(not(ignore_equal));
-                do_firstpass(pt2);
-                { valid expression ? }
-                if (pt1^.treetype<>ordconstn) or (pt2^.treetype<>ordconstn) then
-                  Message(sym_e_error_in_type_def)
-                else
-                  begin
-                  { Check bounds }
-                    if pt2^.value<pt1^.value then
-                      Message(cg_e_upper_lower_than_lower)
-                    else
+               consume(POINTPOINT);
+               { get high value of range }
+               pt2:=comp_expr(not(ignore_equal));
+               do_firstpass(pt2);
+               { both must be evaluated to constants now }
+               if (pt1^.treetype<>ordconstn) or (pt2^.treetype<>ordconstn) then
+                 Message(sym_e_error_in_type_def)
+               else
+                 begin
+                 { Check bounds }
+                   if pt2^.value<pt1^.value then
+                     Message(cg_e_upper_lower_than_lower)
+                   else
                      begin
                      { is one an enum ? }
                        if (pt1^.resulttype^.deftype=enumdef) or (pt2^.resulttype^.deftype=enumdef) then
-                        begin
-                        { both must be the have the same (enumdef) definition, else its a type mismatch }
-                          if (pt1^.resulttype=pt2^.resulttype) then
-                            p:=new(penumdef,init_subrange(penumdef(pt1^.resulttype),pt1^.value,pt2^.value))
-                          else
-                            Message(type_e_mismatch);
-                        end
+                         begin
+                         { both must be the have the same (enumdef) definition, else its a type mismatch }
+                           if (pt1^.resulttype=pt2^.resulttype) then
+                             p:=new(penumdef,init_subrange(penumdef(pt1^.resulttype),pt1^.value,pt2^.value))
+                           else
+                             Message(type_e_mismatch);
+                         end
                        else
-                        begin
-                        { both must be are orddefs, create an uauto orddef }
-                          p:=new(porddef,init(uauto,pt1^.value,pt2^.value));
-                        end;
+                         begin
+                         { both must be are orddefs, create an uauto orddef }
+                           p:=new(porddef,init(uauto,pt1^.value,pt2^.value));
+                         end;
                      end;
-                  end;
-                disposetree(pt2);
+                 end;
+               disposetree(pt2);
+             end
+           else
+             begin
+               { a simple type renaming }
+               if (pt1^.treetype=typen) then
+                 p:=pt1^.resulttype
+               else
+                 Message(sym_e_error_in_type_def);
              end;
            disposetree(pt1);
         end;
@@ -2037,7 +2041,11 @@ unit pdecl;
 end.
 {
   $Log$
-  Revision 1.60  1998-09-30 07:40:33  florian
+  Revision 1.61  1998-10-02 09:23:24  peter
+    * fixed error msg with type l=<var>
+    * block_type bt_const is now set in read_const_dec
+
+  Revision 1.60  1998/09/30 07:40:33  florian
     * better error recovering
 
   Revision 1.59  1998/09/26 17:45:33  peter
