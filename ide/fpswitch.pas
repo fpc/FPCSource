@@ -857,7 +857,7 @@ begin
   New(SyntaxSwitches,Init('S'));
   with SyntaxSwitches^ do
    begin
-     AddBooleanItem(opt_delphi2extensions,'2',idNone);
+     AddBooleanItem(opt_objectpascal,'2',idNone);
      AddBooleanItem(opt_clikeoperators,'c',idNone);
      AddBooleanItem(opt_stopafterfirsterror,'e',idNone);
      AddBooleanItem(opt_allowlabelandgoto,'g',idNone);
@@ -1282,7 +1282,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.19  2004-11-14 21:45:29  florian
+  Revision 1.20  2004-11-20 10:10:32  florian
+    * renamed Delphi 2 extensions on to Object pascal support
+
+  Revision 1.19  2004/11/14 21:45:29  florian
     * fixed non working mouse after tools call
     * better handling of source/target info
     * more info in about dialog

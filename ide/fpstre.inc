@@ -755,7 +755,7 @@ const
       msg_automaticallycreateddontedit = 'Automaticly created file, don''t edit.';
 
       { Compiler options }
-      opt_delphi2extensions = '~D~elphi 2 extensions on';
+      opt_objectpascal = '~O~bject pascal support';
       opt_clikeoperators = '~C~-like operators';
       opt_stopafterfirsterror = 'S~t~op after first error';
       opt_allowlabelandgoto = 'Allo~w~ LABEL and GOTO';
@@ -1057,7 +1057,10 @@ const
 
 {
   $Log$
-  Revision 1.21  2004-11-14 21:45:28  florian
+  Revision 1.22  2004-11-20 10:10:32  florian
+    * renamed Delphi 2 extensions on to Object pascal support
+
+  Revision 1.21  2004/11/14 21:45:28  florian
     * fixed non working mouse after tools call
     * better handling of source/target info
     * more info in about dialog

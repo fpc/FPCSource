@@ -733,7 +733,7 @@ const
       msg_automaticallycreateddontedit = 'Automatikusan l‚trehozott f jl, ne szerkessze!';
 
       { Compiler options }
-      opt_delphi2extensions = '~D~elphi 2 b‹v¡t‚sek be';
+      opt_objectpascal = '~D~elphi 2 b‹v¡t‚sek be';
       opt_clikeoperators = '~C~-szerû oper torok';
       opt_stopafterfirsterror = 'S~t~op az els‹ hiba ut n';
       opt_allowlabelandgoto = 'LABEL, GOTO enged‚l~y~ezve';
@@ -998,7 +998,10 @@ const
 
 {
   $Log$
-  Revision 1.2  2002-09-07 15:40:44  peter
+  Revision 1.3  2004-11-20 10:10:32  florian
+    * renamed Delphi 2 extensions on to Object pascal support
+
+  Revision 1.2  2002/09/07 15:40:44  peter
     * old logs removed and tabs fixed
 
 }
