@@ -7,7 +7,7 @@ uses
   dpmiexcp,
 {$endif}
     test1, Test2;
-    
+
 
 const A =  1234;
       C =  #1#2#3#4;
@@ -159,6 +159,7 @@ var i : longint;
 BEGIN
   ClassVar1:=TClass2.create;
   X:=nil;
+  // fg
   for i:=1 to 2000 do
     CharArray[i]:=chr(32+(i mod (255-32)));
   writeln('Hello world!');

@@ -1245,7 +1245,7 @@ begin
             NextResWord:='';
             GetDisplayTextFormat(Y,LineText,LineAttr);
             if LineCount<>1 then X:=-1
-            else if ord(LineAttr[X])<>coReservedWordColor then
+            else if ord(LineAttr[X+1])<>coReservedWordColor then
               exit;
             repeat
               Inc(X);
@@ -1285,7 +1285,7 @@ begin
             GetDisplayTextFormat(Y,LineText,LineAttr);
             if LineCount<>1 then
               X:=Length(LineText)
-            else if ord(LineAttr[X])<>coReservedWordColor then
+            else if ord(LineAttr[X+1])<>coReservedWordColor then
               exit;
             repeat
               Dec(X);
@@ -4357,7 +4357,10 @@ end;
 END.
 {
   $Log$
-  Revision 1.27  2002-09-05 10:49:48  pierre
+  Revision 1.28  2002-09-05 10:57:08  pierre
+   * fix small bug in previous commit
+
+  Revision 1.27  2002/09/05 10:49:48  pierre
    + FindMatchingDelimiter for pascal keywords with level counting
 
   Revision 1.26  2002/09/05 05:58:58  pierre
