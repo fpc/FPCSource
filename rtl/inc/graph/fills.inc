@@ -83,7 +83,7 @@ type
     var t : graph_int;
   begin
         t:=Trunc(x);
-        If (x > 0) and (frac(x)>0) then inc(t);
+        If (frac(x)>0) then inc(t);
         ceil := t;
   end;
 
@@ -92,21 +92,21 @@ type
    var t : graph_int;
   begin
         t:=Trunc(x);
-        If (x < 0) and (frac(x)>0) then dec(t);
+        If (frac(x)<0) then dec(t);
         floor := t;
   end;
 
   { simple descriptive name }
   function max(a, b : graph_int) : graph_int;
   begin
-         if (a > b) then max := a
+         if (a >= b) then max := a
           else max := b;
   end;
 
   { here too }
   function min(a, b : graph_int) : graph_int;
   begin
-        if (a < b) then min := a
+        if (a <= b) then min := a
         else min := b;
   end;
 
@@ -249,8 +249,8 @@ begin
                         xr := trunc(activetable^[j+1].x-0.5);
                         if frac(activetable^[j+1].x-0.5)<0 then dec(xr);
 
-                        if (xl <= xr) then
-                PatternLine(xl,xr,y);
+                        if (xl < xr) then
+                          PatternLine(xl,xr,y);
 {                               line(xl, y, xr+1, y);}
                         { increment both edges' coordinates }
                         with activetable^[j] do begin
@@ -304,8 +304,6 @@ var
   { need to draw. Doesn't add the point if there is a      }
   { buffer overflow.                                       }
   {********************************************************}
-   var
-    i: integer;
   Begin
     If Buffer.WordIndex<(StdBufferSize DIV 2)-3 then
      Begin
@@ -401,13 +399,16 @@ var
   { coordinates are local/viewport relative.               }
   {********************************************************}
   Var
+   stemp: PWordArray;
    Beginx : Integer;
    d, e, a : Byte;
    Cont : Boolean;
    BackupColor : Word;
-   x1, x2: integer;
+   x1, x2, prevy: integer;
    Index : Integer;
   Begin
+    { init prevy }
+    prevy := 32767;
     { Save current drawing color }
     BackupColor := CurrentColor;
     CurrentColor := FillSettings.Color;
@@ -433,12 +434,28 @@ var
      Begin
        PopPoint (x,y);
        { Get the complete lines for the following }
+       If (prevy - y = 1) then
+         { previous line was one below the new one, so the previous s2 }
+         { = new s1                                                    }
+         Begin
+           stemp := s1;
+           s1 := s2;
+           s2 := stemp;
+         End
+       Else If (y - prevy = 1) then
+         { previous line was one above the new one, so the previous s3 }
+         { = new s1                                                    }
+         Begin
+           stemp := s1;
+           s1 := s3;
+           s3 := stemp;
+         End
+       Else GetScanline (y,s1^);
        GetScanline (y-1,s2^);
-       GetScanline (y,s1^);
        GetScanline (y+1,s3^);
-
+       prevy := y;
        { check the current scan line }
-       While (s1^[x]<>Border) And (x<ViewWidth) Do Inc (x);
+       While (s1^[x]<>Border) And (x<=ViewWidth) Do Inc (x);
        d:=0;
        e:=0;
        dec(x);
@@ -492,7 +509,10 @@ var
 
 {
 $Log$
-Revision 1.8  1999-09-18 22:21:09  jonas
+Revision 1.9  1999-09-24 14:23:08  jonas
+  * floodfill uses scanline data from previous loop if line is adjacent
+
+Revision 1.8  1999/09/18 22:21:09  jonas
   + hlinevesa256 and vlinevesa256
   + support for not/xor/or/andput in vesamodes with 32k/64k colors
   * lots of changes to avoid warnings under FPC
