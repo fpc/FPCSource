@@ -490,6 +490,7 @@ implementation
           'procinlinen',
           'arrayconstructn',
           'arrayconstructrangen',
+          'addoptn',
           'nothingn',
           'loadvmtn');
 
@@ -501,9 +502,15 @@ implementation
     function tnode.isequal(p : tnode) : boolean;
 
       begin
-         isequal:=assigned(p) and (p.nodetype=nodetype) and
-           (flags*flagsequal=p.flags*flagsequal) and
-           docompare(p);
+         isequal:=
+           (not assigned(self) and not assigned(p)) or
+           (assigned(self) and assigned(p) and
+            { optimized subclasses have the same nodetype as their        }
+            { superclass (for compatibility), so also check the classtype (JM) }
+            (p.classtype=classtype) and
+            (p.nodetype=nodetype) and
+            (flags*flagsequal=p.flags*flagsequal) and
+            docompare(p));
       end;
 
     function tnode.docompare(p : tnode) : boolean;
@@ -705,7 +712,8 @@ implementation
     function tbinarynode.docompare(p : tnode) : boolean;
 
       begin
-         docompare:=left.isequal(tbinarynode(p).left) and
+         docompare:=
+           inherited docompare(p) and
            right.isequal(tbinarynode(p).right);
       end;
 
@@ -794,6 +802,7 @@ implementation
 
       begin
          docompare:=(inherited docompare(p)) or
+           { if that's in the flags, is p then always a tbinopnode (?) (JM) }
            ((nf_swapable in flags) and
             left.isequal(tbinopnode(p).right) and
             right.isequal(tbinopnode(p).left));
@@ -820,7 +829,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.11  2000-12-25 00:07:26  peter
+  Revision 1.12  2001-01-01 11:38:45  peter
+    * forgot to remove node.inc and nodeh.inc that were merged into node.pas
+      already.
+
+  Revision 1.11  2000/12/25 00:07:26  peter
     + new tlinkedlist class (merge of old tstringqueue,tcontainer and
       tlinkedlist objects)
 
