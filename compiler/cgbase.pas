@@ -149,9 +149,6 @@ unit cgbase;
 
           procedure allocate_interrupt_stackframe;virtual;
 
-          { Updates usedinproc depending on the resulttype }
-          procedure update_usedinproc_result;virtual;
-
           { Does the necessary stuff before a procedure body is compiled }
           procedure handle_body_start;virtual;
 
@@ -435,15 +432,6 @@ implementation
            end;
       end;
 
-    { updates usedinproc depending on the resulttype }
-    procedure tprocinfo.update_usedinproc_result;
-      begin
-         if paramanager.ret_in_reg(procdef.rettype.def,procdef.proccalloption) then
-           begin
-              rg.usedinproc := rg.usedinproc +
-              getfuncretusedregisters(procdef.rettype.def,procdef.proccalloption);
-           end;
-      end;
 
     procedure tprocinfo.set_result_offset;
       begin
@@ -658,7 +646,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.34  2002-11-25 17:43:16  peter
+  Revision 1.35  2003-01-01 21:04:48  peter
+    * removed unused method
+
+  Revision 1.34  2002/11/25 17:43:16  peter
     * splitted defbase in defutil,symutil,defcmp
     * merged isconvertable and is_equal into compare_defs(_ext)
     * made operator search faster by walking the list only once
