@@ -296,6 +296,7 @@ dvidist: dvi
 
 htmldist: html
 	find . -name '*.html' -or -name '*.gif' -or -name '*.css' >htmllist
+	find . -name '*.class' >>htmllist
 	tar -czf fpcdoc.tar.gz --files-from=htmllist
 	rm -f htmllist
 
@@ -339,7 +340,10 @@ linuxexamples: examples
 
 #
 # $Log$
-# Revision 1.18  1999-02-02 22:47:04  michael
+# Revision 1.19  1999-02-12 14:15:00  michael
+# * Last-minute changes so it can be texed
+#
+# Revision 1.18  1999/02/02 22:47:04  michael
 # + Better clean
 #
 # Revision 1.17  1999/01/17 15:12:50  michael
