@@ -34,7 +34,7 @@ interface
     type
        ti386callnode = class(tcgcallnode)
        protected
-          function  align_parasize(parasize,para_alignment:longint):longint;override;
+          function  align_parasize:longint;override;
           procedure pop_parasize(pop_size:longint);override;
           procedure extra_interrupt_code;override;
        end;
@@ -76,7 +76,7 @@ implementation
       end;
 
 
-    function ti386callnode.align_parasize(parasize,para_alignment:longint):longint;
+    function ti386callnode.align_parasize:longint;
       var
          pop_size : longint;
 {$ifdef OPTALIGN}
@@ -87,12 +87,8 @@ implementation
          rsp : tregister;
       begin
         pop_size:=0;
-        { Old pushedsize aligned on 4 ? }
-        i:=parasize and 3;
-        if i>0 then
-         inc(pop_size,4-i);
         { This parasize aligned on 4 ? }
-        i:=procdefinition.para_size(para_alignment) and 3;
+        i:=procdefinition.parast.datasize and 3;
         if i>0 then
          inc(pop_size,4-i);
         { insert the opcode and update pushedparasize }
@@ -114,7 +110,7 @@ implementation
          if pop_allowed and (cs_align in aktglobalswitches) then
            begin
               pop_esp:=true;
-              push_size:=procdefinition.para_size(para_alignment);
+              push_size:=procdefinition.parast.datasize;
               { !!!! here we have to take care of return type, self
                 and nested procedures
               }
@@ -201,7 +197,12 @@ begin
 end.
 {
   $Log$
-  Revision 1.91  2003-05-22 21:32:29  peter
+  Revision 1.92  2003-05-26 21:17:18  peter
+    * procinlinenode removed
+    * aktexit2label removed, fast exit removed
+    + tcallnode.inlined_pass_2 added
+
+  Revision 1.91  2003/05/22 21:32:29  peter
     * removed some unit dependencies
 
   Revision 1.90  2003/04/23 14:42:08  daniel

@@ -40,9 +40,13 @@ interface
        end;
 
        tcgcallnode = class(tcallnode)
+       private
+          procedure release_para_temps;
+          procedure normal_pass_2;
+          procedure inlined_pass_2;
        protected
           refcountedtemp : treference;
-          procedure handle_return_value(inlined:boolean);
+          procedure handle_return_value;
           {# This routine is used to push the current frame pointer
              on the stack. This is used in nested routines where the
              value of the frame pointer is always pushed as an extra
@@ -52,15 +56,11 @@ interface
              most stack based machines, where the frame pointer is
              the first invisible parameter.
           }
-          function  align_parasize(parasize,para_alignment:longint):longint;virtual;
+          function  align_parasize:longint;virtual;
           procedure pop_parasize(pop_size:longint);virtual;
           procedure push_framepointer;virtual;
           procedure extra_interrupt_code;virtual;
        public
-          procedure pass_2;override;
-       end;
-
-       tcgprocinlinenode = class(tprocinlinenode)
           procedure pass_2;override;
        end;
 
@@ -123,12 +123,8 @@ implementation
          { push from left to right if specified }
          if push_from_left_to_right and assigned(right) then
           begin
-            if (nf_varargs_para in flags) then
-              tcallparanode(right).secondcallparan(push_from_left_to_right,
-                                                   calloption,para_alignment,para_offset)
-            else
-              tcallparanode(right).secondcallparan(push_from_left_to_right,
-                                                   calloption,para_alignment,para_offset);
+            tcallparanode(right).secondcallparan(push_from_left_to_right,
+                                                 calloption,para_alignment,para_offset);
           end;
 
          otlabel:=truelabel;
@@ -347,10 +343,6 @@ implementation
          { push from right to left }
          if not push_from_left_to_right and assigned(right) then
           begin
-            if (nf_varargs_para in flags) then
-              tcallparanode(right).secondcallparan(push_from_left_to_right,
-                                                   calloption,para_alignment,para_offset)
-            else
               tcallparanode(right).secondcallparan(push_from_left_to_right,
                                                    calloption,para_alignment,para_offset);
           end;
@@ -366,7 +358,7 @@ implementation
       end;
 
 
-    function tcgcallnode.align_parasize(parasize,para_alignment:longint):longint;
+    function tcgcallnode.align_parasize:longint;
       begin
         result:=0;
       end;
@@ -413,7 +405,7 @@ implementation
       end;
 
 
-    procedure tcgcallnode.handle_return_value(inlined:boolean);
+    procedure tcgcallnode.handle_return_value;
       var
         cgsize : tcgsize;
         r,hregister : tregister;
@@ -465,8 +457,7 @@ implementation
                 cgsize:=def_cgsize(resulttype.def);
 
                 { an object constructor is a function with pointer result }
-                if (inlined or (right=nil)) and
-                   (procdefinition.proctypeoption=potype_constructor) then
+                if (procdefinition.proctypeoption=potype_constructor) then
                   cgsize:=OS_ADDR;
 
                 if cgsize<>OS_NO then
@@ -541,7 +532,41 @@ implementation
       end;
 
 
-    procedure tcgcallnode.pass_2;
+    procedure tcgcallnode.release_para_temps;
+      var
+        hp  : tnode;
+        ppn : tcallparanode;
+      begin
+        { Release temps from parameters }
+        ppn:=tcallparanode(left);
+        while assigned(ppn) do
+          begin
+             if assigned(ppn.left) then
+               begin
+                 { don't release the funcret temp }
+                 if not(vo_is_funcret in tvarsym(ppn.paraitem.parasym).varoptions) then
+                   location_freetemp(exprasmlist,ppn.left.location);
+                 { process also all nodes of an array of const }
+                 if ppn.left.nodetype=arrayconstructorn then
+                   begin
+                     if assigned(tarrayconstructornode(ppn.left).left) then
+                      begin
+                        hp:=ppn.left;
+                        while assigned(hp) do
+                         begin
+                           location_freetemp(exprasmlist,tarrayconstructornode(hp).left.location);
+                           hp:=tarrayconstructornode(hp).right;
+                         end;
+                      end;
+                   end;
+               end;
+             ppn:=tcallparanode(ppn.right);
+          end;
+
+      end;
+
+
+    procedure tcgcallnode.normal_pass_2;
       var
          regs_to_push_int : Tsupregset;
          regs_to_push_other : tregisterset;
@@ -553,23 +578,16 @@ implementation
          iolabel : tasmlabel;
          { help reference pointer }
          href : treference;
-         hp : tnode;
-         pp : tcallparanode;
-         inlined : boolean;
-         inlinecode : tprocinlinenode;
          pushedregs : tmaybesave;
-         store_parast_fixup,
          para_alignment,
-         para_offset : longint;
          pop_size : longint;
-         returnref,
-         pararef : treference;
          accreg : tregister;
          oldaktcallnode : tcallnode;
       begin
+         if not assigned(procdefinition) then
+           internalerror(200305264);
+
          iolabel:=nil;
-         inlinecode:=nil;
-         inlined:=false;
          rg.saveunusedstate(unusedstate);
 
          { if we allocate the temp. location for ansi- or widestrings }
@@ -590,38 +608,8 @@ implementation
          else
           para_alignment:=aktalignment.paraalign;
 
-         if not assigned(procdefinition) then
-          exit;
-
-         if (procdefinition.proccalloption=pocall_inline) then
-           begin
-              inlined:=true;
-              inlinecode:=tprocinlinenode(right);
-              right:=nil;
-              { set it to the same lexical level as the local symtable, becuase
-                the para's are stored there }
-              tprocdef(procdefinition).parast.symtablelevel:=current_procdef.localst.symtablelevel;
-              if assigned(left) then
-               begin
-                 inlinecode.para_size:=tprocdef(procdefinition).para_size(para_alignment);
-                 tg.GetTemp(exprasmlist,inlinecode.para_size,tt_persistent,pararef);
-                 inlinecode.para_offset:=pararef.offset;
-               end;
-              store_parast_fixup:=tprocdef(procdefinition).parast.address_fixup;
-              tprocdef(procdefinition).parast.address_fixup:=inlinecode.para_offset;
-{$ifdef extdebug}
-             Comment(V_debug,
-               'inlined parasymtable is at offset '
-               +tostr(tprocdef(procdefinition).parast.address_fixup));
-             exprasmList.concat(tai_comment.Create(
-               strpnew('inlined parasymtable is at offset '
-               +tostr(tprocdef(procdefinition).parast.address_fixup))));
-{$endif extdebug}
-           end;
-
          { proc variables destroy all registers }
-         if (inlined or
-            (right=nil)) and
+         if (right=nil) and
             { virtual methods too }
             not(po_virtualmethod in procdefinition.procoptions) then
            begin
@@ -669,11 +657,9 @@ implementation
          { Initialize for pushing the parameters }
          oldpushedparasize:=pushedparasize;
          pushedparasize:=0;
-         pop_size:=0;
 
          { Align stack if required }
-         if not inlined then
-           pop_size:=align_parasize(oldpushedparasize,para_alignment);
+         pop_size:=align_parasize;
 
          { Push parameters }
          oldaktcallnode:=aktcallnode;
@@ -683,31 +669,26 @@ implementation
          { destroy registers containing a parameter for the actual      }
          { function call (e.g. if it's a function, its result will      }
          { overwrite r3, which contains the first parameter) (JM)       }
-         if not(inlined) and
-            assigned(right) then
+         if assigned(right) then
            secondpass(right);
 
-         if inlined or
-            (right = nil) then
-          begin
-             if (po_virtualmethod in procdefinition.procoptions) and
-                 assigned(methodpointer) then
-                begin
-                   secondpass(methodpointer);
-                   location_force_reg(exprasmlist,methodpointer.location,OS_ADDR,false);
+         if (po_virtualmethod in procdefinition.procoptions) and
+            assigned(methodpointer) then
+           begin
+             secondpass(methodpointer);
+             location_force_reg(exprasmlist,methodpointer.location,OS_ADDR,false);
 
-                   { virtual methods require an index }
-                   if tprocdef(procdefinition).extnumber=-1 then
-                     internalerror(200304021);
-                   { VMT should already be loaded in a register }
-                   if methodpointer.location.register.number=NR_NO then
-                     internalerror(200304022);
+             { virtual methods require an index }
+             if tprocdef(procdefinition).extnumber=-1 then
+               internalerror(200304021);
+             { VMT should already be loaded in a register }
+             if methodpointer.location.register.number=NR_NO then
+               internalerror(200304022);
 
-                   { test validity of VMT }
-                   if not(is_interface(tprocdef(procdefinition)._class)) and
-                      not(is_cppclass(tprocdef(procdefinition)._class)) then
-                     cg.g_maybe_testvmt(exprasmlist,methodpointer.location.register,tprocdef(procdefinition)._class);
-                end;
+             { test validity of VMT }
+             if not(is_interface(tprocdef(procdefinition)._class)) and
+                not(is_cppclass(tprocdef(procdefinition)._class)) then
+               cg.g_maybe_testvmt(exprasmlist,methodpointer.location.register,tprocdef(procdefinition)._class);
            end;
 
          if assigned(left) then
@@ -720,21 +701,9 @@ implementation
                   maybe_save(exprasmlist,left.registers32,methodpointer.location,pushedregs);
 
             {$endif}
-              { be found elsewhere }
-              if inlined then
-                para_offset:=tprocdef(procdefinition).parast.address_fixup+
-                  tprocdef(procdefinition).parast.datasize
-              else
-                para_offset:=0;
-              if not(inlined) and
-                 assigned(right) then
-                tcallparanode(left).secondcallparan(
-                  (po_leftright in procdefinition.procoptions),procdefinition.proccalloption,
-                  para_alignment,para_offset)
-              else
-                tcallparanode(left).secondcallparan(
-                  (po_leftright in procdefinition.procoptions),procdefinition.proccalloption,
-                  para_alignment,para_offset);
+              tcallparanode(left).secondcallparan(
+                (po_leftright in procdefinition.procoptions),procdefinition.proccalloption,
+                 para_alignment,0);
             {$ifndef newra}
               if assigned(right) then
                 maybe_restore(exprasmlist,right.location,pushedregs)
@@ -745,27 +714,14 @@ implementation
            end;
          aktcallnode:=oldaktcallnode;
 
-         { Allocate return value for inlined routines }
-         if inlined and
-            (resulttype.def.size>0) then
-           begin
-             tg.GetTemp(exprasmlist,Align(resulttype.def.size,aktalignment.paraalign),tt_persistent,returnref);
-             inlinecode.retoffset:=returnref.offset;
-           end;
-
          { procedure variable or normal function call ? }
-         if inlined or
-            (right=nil) then
+         if (right=nil) then
            begin
               { push base pointer ?}
-              { never when inlining, since if necessary, the base pointer }
-              { can/will be gottten from the current procedure's symtable }
-              { (JM) }
-              if not inlined then
-                if (current_procdef.parast.symtablelevel>=normal_function_level) and
-                   assigned(tprocdef(procdefinition).parast) and
-                   ((tprocdef(procdefinition).parast.symtablelevel)>normal_function_level) then
-                  push_framepointer;
+              if (current_procdef.parast.symtablelevel>=normal_function_level) and
+                 assigned(tprocdef(procdefinition).parast) and
+                 ((tprocdef(procdefinition).parast.symtablelevel)>normal_function_level) then
+                push_framepointer;
 
               rg.saveintregvars(exprasmlist,regs_to_push_int);
               rg.saveotherregvars(exprasmlist,regs_to_push_other);
@@ -778,28 +734,17 @@ implementation
                       tprocdef(procdefinition)._class.vmtmethodoffset(tprocdef(procdefinition).extnumber));
                    cg.a_call_ref(exprasmlist,href);
 
-                   { release self }
+                   { release vmt register }
                    rg.ungetaddressregister(exprasmlist,methodpointer.location.register);
                 end
               else
                 begin
-                  if not inlined then
-                   begin
-                     { Calling interrupt from the same code requires some
-                       extra code }
-                     if (po_interrupt in procdefinition.procoptions) then
-                       extra_interrupt_code;
+                  { Calling interrupt from the same code requires some
+                    extra code }
+                  if (po_interrupt in procdefinition.procoptions) then
+                    extra_interrupt_code;
 
-                     cg.a_call_name(exprasmlist,tprocdef(procdefinition).mangledname);
-                   end
-                  else { inlined proc }
-                   begin
-                     { process the inlinecode }
-                     secondpass(tnode(inlinecode));
-                     { free the args }
-                     if tprocdef(procdefinition).parast.datasize>0 then
-                       tg.UnGetTemp(exprasmlist,pararef);
-                   end;
+                  cg.a_call_name(exprasmlist,tprocdef(procdefinition).mangledname);
                end;
            end
          else
@@ -818,7 +763,7 @@ implementation
            end;
 
          { Need to remove the parameters from the stack? }
-         if (not inlined) and (po_clearstack in procdefinition.procoptions) then
+         if (po_clearstack in procdefinition.procoptions) then
           begin
             { the old pop_size was already included in pushedparasize }
             pop_size:=pushedparasize;
@@ -831,7 +776,6 @@ implementation
          { Remove parameters/alignment from the stack }
          if pop_size>0 then
            pop_parasize(pop_size);
-
 
 {$ifdef powerpc}
          { this calculation must be done in pass_1 anyway, so don't worry }
@@ -848,7 +792,7 @@ implementation
 
          { handle function results }
          if (not is_void(resulttype.def)) then
-           handle_return_value(inlined)
+           handle_return_value
          else
            location_reset(location,LOC_VOID,OS_NO);
 
@@ -864,44 +808,8 @@ implementation
          rg.restoreusedotherregisters(exprasmlist,pushedother);
          rg.restoreusedintregisters(exprasmlist,pushedint);
 
-         { Release temps from parameters }
-         pp:=tcallparanode(left);
-         while assigned(pp) do
-           begin
-              if assigned(pp.left) then
-                begin
-                  { don't release the funcret temp }
-                  if not(vo_is_funcret in tvarsym(pp.paraitem.parasym).varoptions) then
-                    location_freetemp(exprasmlist,pp.left.location);
-                  { process also all nodes of an array of const }
-                  if pp.left.nodetype=arrayconstructorn then
-                    begin
-                      if assigned(tarrayconstructornode(pp.left).left) then
-                       begin
-                         hp:=pp.left;
-                         while assigned(hp) do
-                          begin
-                            location_freetemp(exprasmlist,tarrayconstructornode(hp).left.location);
-                            hp:=tarrayconstructornode(hp).right;
-                          end;
-                       end;
-                    end;
-                end;
-              pp:=tcallparanode(pp.right);
-           end;
-
-         if inlined then
-           begin
-             if (resulttype.def.size>0) then
-               tg.UnGetTemp(exprasmlist,returnref);
-             tprocdef(procdefinition).parast.address_fixup:=store_parast_fixup;
-             right:=inlinecode;
-
-             { from now on the result can be freed normally }
-             if assigned(funcretnode) and
-                paramanager.ret_in_param(resulttype.def,procdefinition.proccalloption) then
-               tg.ChangeTempType(exprasmlist,funcretnode.location.reference,tt_normal);
-           end;
+         { release temps of paras }
+         release_para_temps;
 
          { if return value is not used }
          if (not(nf_return_value_used in flags)) and (not is_void(resulttype.def)) then
@@ -931,186 +839,387 @@ implementation
 
 
 
-{*****************************************************************************
-                             TCGPROCINLINENODE
-*****************************************************************************}
-
-
-    procedure tcgprocinlinenode.pass_2;
-       var st : tsymtable;
-           oldprocdef : tprocdef;
-           ps, i : longint;
-           oldprocinfo : tprocinfo;
-           oldinlining_procedure,
-           nostackframe : boolean;
-           inlineentrycode,inlineexitcode : TAAsmoutput;
-           oldexitlabel,oldexit2label:tasmlabel;
-           oldregstate: pointer;
-           localsref : treference;
+    procedure tcgcallnode.inlined_pass_2;
+      var
+         regs_to_push_int : Tsupregset;
+         regs_to_push_other : tregisterset;
+         unusedstate: pointer;
+         pushedother : tpushedsavedother;
+         pushedint : tpushedsavedint;
+         oldpushedparasize : longint;
+         { adress returned from an I/O-error }
+         iolabel : tasmlabel;
+         { help reference pointer }
+         href : treference;
+         pushedregs : tmaybesave;
+         accreg : tregister;
+         oldaktcallnode : tcallnode;
+         oldprocdef : tprocdef;
+         i : longint;
+         oldprocinfo : tprocinfo;
+         oldinlining_procedure : boolean;
+         inlineentrycode,inlineexitcode : TAAsmoutput;
+         oldexitlabel:tasmlabel;
+         oldregstate: pointer;
+         old_local_fixup,
+         old_para_fixup : longint;
+         pararef,
+         localsref : treference;
 {$ifdef GDB}
-           startlabel,endlabel : tasmlabel;
-           pp : pchar;
-           mangled_length  : longint;
+         startlabel,endlabel : tasmlabel;
+         pp : pchar;
+         mangled_length  : longint;
 {$endif GDB}
-       begin
-          { deallocate the registers used for the current procedure's regvars }
-          if assigned(current_procdef.regvarinfo) then
-            begin
-              with pregvarinfo(current_procdef.regvarinfo)^ do
-                for i := 1 to maxvarregs do
-                  if assigned(regvars[i]) then
-                    store_regvar(exprasmlist,regvars[i].reg);
-              rg.saveStateForInline(oldregstate);
-              { make sure the register allocator knows what the regvars in the }
-              { inlined code block are (JM)                                    }
-              rg.resetusableregisters;
-              rg.clearregistercount;
-            {$ifndef newra}
-              rg.cleartempgen;
-            {$endif}
-              if assigned(inlineprocdef.regvarinfo) then
-                with pregvarinfo(inlineprocdef.regvarinfo)^ do
-                  for i := 1 to maxvarregs do
-                    if assigned(regvars[i]) then
-                      begin
-                        {Fix me!!}
-                        {tmpreg:=rg.makeregsize(regvars[i].reg,OS_INT);
-                        rg.makeregvar(tmpreg);}
-                        internalerror(200301232);
-                      end;
-            end;
-          oldinlining_procedure:=inlining_procedure;
-          oldexitlabel:=aktexitlabel;
-          oldexit2label:=aktexit2label;
-          oldprocdef:=current_procdef;
-          oldprocinfo:=current_procinfo;
-          objectlibrary.getlabel(aktexitlabel);
-          objectlibrary.getlabel(aktexit2label);
-          { we're inlining a procedure }
-          inlining_procedure:=true;
+      begin
+         if not(assigned(procdefinition) and (procdefinition.deftype=procdef)) then
+           internalerror(200305262);
 
-          { create temp procinfo }
-          current_procinfo:=cprocinfo.create(nil);
-          current_procinfo.procdef:=inlineprocdef;
-          current_procinfo.return_offset:=retoffset;
-          current_procdef:=current_procinfo.procdef;
+         oldinlining_procedure:=inlining_procedure;
+         oldexitlabel:=aktexitlabel;
+         oldprocdef:=current_procdef;
+         oldprocinfo:=current_procinfo;
+         objectlibrary.getlabel(aktexitlabel);
+         { we're inlining a procedure }
+         inlining_procedure:=true;
 
-          { arg space has been filled by the parent secondcall }
-          st:=current_procdef.localst;
-          { set it to the same lexical level }
-          st.symtablelevel:=oldprocdef.localst.symtablelevel;
-          if st.datasize>0 then
-            begin
-              tg.GetTemp(exprasmlist,st.datasize,tt_persistent,localsref);
-              if tg.direction>0 then
-                st.address_fixup:=localsref.offset
-              else
-                st.address_fixup:=localsref.offset+st.datasize;
+         { deallocate the registers used for the current procedure's regvars }
+         if assigned(current_procdef.regvarinfo) then
+           begin
+             with pregvarinfo(current_procdef.regvarinfo)^ do
+               for i := 1 to maxvarregs do
+                 if assigned(regvars[i]) then
+                   store_regvar(exprasmlist,regvars[i].reg);
+             rg.saveStateForInline(oldregstate);
+             { make sure the register allocator knows what the regvars in the }
+             { inlined code block are (JM)                                    }
+             rg.resetusableregisters;
+             rg.clearregistercount;
+           {$ifndef newra}
+             rg.cleartempgen;
+           {$endif}
+             if assigned(tprocdef(procdefinition).regvarinfo) then
+               with pregvarinfo(tprocdef(procdefinition).regvarinfo)^ do
+                 for i := 1 to maxvarregs do
+                   if assigned(regvars[i]) then
+                     begin
+                       {Fix me!!}
+                       {tmpreg:=rg.makeregsize(regvars[i].reg,OS_INT);
+                       rg.makeregvar(tmpreg);}
+                       internalerror(200301232);
+                     end;
+           end;
+
+         { create temp procinfo }
+         current_procinfo:=cprocinfo.create(nil);
+         current_procinfo.procdef:=tprocdef(procdefinition);
+         current_procdef:=current_procinfo.procdef;
+
+         { Localsymtable }
+         current_procdef.localst.symtablelevel:=oldprocdef.localst.symtablelevel;
+         if current_procdef.localst.datasize>0 then
+           begin
+             old_local_fixup:=current_procdef.localst.address_fixup;
+             tg.GetTemp(exprasmlist,current_procdef.localst.datasize,tt_persistent,localsref);
+             if tg.direction>0 then
+               current_procdef.localst.address_fixup:=localsref.offset
+             else
+               current_procdef.localst.address_fixup:=localsref.offset+current_procdef.localst.datasize;
 {$ifdef extdebug}
-              Comment(V_debug,'local symtable is at offset '+tostr(st.address_fixup));
-              exprasmList.concat(tai_comment.Create(strpnew(
-                'local symtable is at offset '+tostr(st.address_fixup))));
+             Comment(V_debug,'inlined local symtable ('+tostr(current_procdef.localst.datasize)+' bytes) is at offset '+tostr(current_procdef.localst.address_fixup));
+             exprasmList.concat(tai_comment.Create(strpnew(
+               'inlined local symtable ('+tostr(current_procdef.localst.datasize)+' bytes) is at offset '+tostr(current_procdef.localst.address_fixup))));
 {$endif extdebug}
-            end;
-          exprasmList.concat(Tai_Marker.Create(InlineStart));
+           end;
+
+         { Parasymtable }
+         current_procdef.parast.symtablelevel:=oldprocdef.localst.symtablelevel;
+         if current_procdef.parast.datasize>0 then
+           begin
+             old_para_fixup:=current_procdef.parast.address_fixup;
+             tg.GetTemp(exprasmlist,current_procdef.parast.datasize,tt_persistent,pararef);
+             current_procdef.parast.address_fixup:=pararef.offset;
 {$ifdef extdebug}
-          exprasmList.concat(tai_comment.Create(strpnew('Start of inlined proc')));
+             Comment(V_debug,'inlined para symtable ('+tostr(current_procdef.parast.datasize)+' bytes) is at offset '+tostr(current_procdef.parast.address_fixup));
+             exprasmList.concat(tai_comment.Create(strpnew(
+               'inlined para symtable ('+tostr(current_procdef.parast.datasize)+' bytes) is at offset '+tostr(current_procdef.parast.address_fixup))));
+{$endif extdebug}
+           end;
+
+         { Calculate offsets }
+         current_procinfo.after_header;
+
+         exprasmList.concat(Tai_Marker.Create(InlineStart));
+{$ifdef extdebug}
+         exprasmList.concat(tai_comment.Create(strpnew('Start of inlined proc')));
 {$endif extdebug}
 {$ifdef GDB}
-          if (cs_debuginfo in aktmoduleswitches) then
-            begin
-              objectlibrary.getaddrlabel(startlabel);
-              objectlibrary.getaddrlabel(endlabel);
-              cg.a_label(exprasmlist,startlabel);
-              inlineprocdef.localst.symtabletype:=inlinelocalsymtable;
-              inlineprocdef.parast.symtabletype:=inlineparasymtable;
+         if (cs_debuginfo in aktmoduleswitches) then
+           begin
+             objectlibrary.getaddrlabel(startlabel);
+             objectlibrary.getaddrlabel(endlabel);
+             cg.a_label(exprasmlist,startlabel);
+             tprocdef(procdefinition).localst.symtabletype:=inlinelocalsymtable;
+             procdefinition.parast.symtabletype:=inlineparasymtable;
 
-              { Here we must include the para and local symtable info }
-              inlineprocdef.concatstabto(withdebuglist);
+             { Here we must include the para and local symtable info }
+             procdefinition.concatstabto(withdebuglist);
 
-              { set it back for safety }
-              inlineprocdef.localst.symtabletype:=localsymtable;
-              inlineprocdef.parast.symtabletype:=parasymtable;
+             { set it back for safety }
+             tprocdef(procdefinition).localst.symtabletype:=localsymtable;
+             procdefinition.parast.symtabletype:=parasymtable;
 
-              mangled_length:=length(oldprocdef.mangledname);
-              getmem(pp,mangled_length+50);
-              strpcopy(pp,'192,0,0,'+startlabel.name);
-              if (target_info.use_function_relative_addresses) then
-                begin
-                  strpcopy(strend(pp),'-');
-                  strpcopy(strend(pp),oldprocdef.mangledname);
-                end;
-              withdebugList.concat(Tai_stabn.Create(strnew(pp)));
-            end;
-{$endif GDB}
-          { takes care of local data initialization }
-          inlineentrycode:=TAAsmoutput.Create;
-          inlineexitcode:=TAAsmoutput.Create;
-          ps:=para_size;
-          genentrycode(inlineentrycode,0,ps,nostackframe,true);
-          if po_assembler in current_procdef.procoptions then
-            inlineentrycode.insert(Tai_marker.Create(asmblockstart));
-          exprasmList.concatlist(inlineentrycode);
-          secondpass(inlinetree);
-          genexitcode(inlineexitcode,0,false,true);
-          if po_assembler in current_procdef.procoptions then
-            inlineexitcode.concat(Tai_marker.Create(asmblockend));
-          exprasmList.concatlist(inlineexitcode);
-
-          inlineentrycode.free;
-          inlineexitcode.free;
-{$ifdef extdebug}
-          exprasmList.concat(tai_comment.Create(strpnew('End of inlined proc')));
-{$endif extdebug}
-          exprasmList.concat(Tai_Marker.Create(InlineEnd));
-
-          {we can free the local data now, reset also the fixup address }
-          if st.datasize>0 then
-            begin
-              tg.UnGetTemp(exprasmlist,localsref);
-              st.address_fixup:=0;
-            end;
-          { restore procinfo }
-          current_procinfo.free;
-          current_procinfo:=oldprocinfo;
-{$ifdef GDB}
-          if (cs_debuginfo in aktmoduleswitches) then
-            begin
-              cg.a_label(exprasmlist,endlabel);
-              strpcopy(pp,'224,0,0,'+endlabel.name);
+             mangled_length:=length(oldprocdef.mangledname);
+             getmem(pp,mangled_length+50);
+             strpcopy(pp,'192,0,0,'+startlabel.name);
              if (target_info.use_function_relative_addresses) then
                begin
                  strpcopy(strend(pp),'-');
                  strpcopy(strend(pp),oldprocdef.mangledname);
                end;
-              withdebugList.concat(Tai_stabn.Create(strnew(pp)));
-              freemem(pp,mangled_length+50);
-            end;
+             withdebugList.concat(Tai_stabn.Create(strnew(pp)));
+           end;
 {$endif GDB}
-          { restore }
-          current_procdef:=oldprocdef;
-          aktexitlabel:=oldexitlabel;
-          aktexit2label:=oldexit2label;
-          inlining_procedure:=oldinlining_procedure;
 
-          { reallocate the registers used for the current procedure's regvars, }
-          { since they may have been used and then deallocated in the inlined  }
-          { procedure (JM)                                                     }
-          if assigned(current_procdef.regvarinfo) then
-            begin
-              rg.restoreStateAfterInline(oldregstate);
-            end;
-       end;
+         iolabel:=nil;
+         rg.saveunusedstate(unusedstate);
+
+         { if we allocate the temp. location for ansi- or widestrings }
+         { already here, we avoid later a push/pop                    }
+         if is_widestring(resulttype.def) then
+           begin
+             tg.GetTemp(exprasmlist,pointer_size,tt_widestring,refcountedtemp);
+             cg.g_decrrefcount(exprasmlist,resulttype.def,refcountedtemp,false);
+           end
+         else if is_ansistring(resulttype.def) then
+           begin
+             tg.GetTemp(exprasmlist,pointer_size,tt_ansistring,refcountedtemp);
+             cg.g_decrrefcount(exprasmlist,resulttype.def,refcountedtemp,false);
+           end;
+
+         if (cs_check_io in aktlocalswitches) and
+            (po_iocheck in procdefinition.procoptions) and
+            not(po_iocheck in current_procdef.procoptions) then
+           begin
+              objectlibrary.getaddrlabel(iolabel);
+              cg.a_label(exprasmlist,iolabel);
+           end
+         else
+           iolabel:=nil;
+
+         { save all used registers and possible registers
+           used for the return value }
+         regs_to_push_int := tprocdef(procdefinition).usedintregisters;
+         regs_to_push_other := tprocdef(procdefinition).usedotherregisters;
+         if (not is_void(resulttype.def)) and
+            (not paramanager.ret_in_param(resulttype.def,procdefinition.proccalloption)) then
+          begin
+            include(regs_to_push_int,RS_ACCUMULATOR);
+{$ifndef cpu64bit}
+            if resulttype.def.size>sizeof(aword) then
+              include(regs_to_push_int,RS_ACCUMULATORHIGH);
+{$endif cpu64bit}
+          end;
+         rg.saveusedintregisters(exprasmlist,pushedint,regs_to_push_int);
+         rg.saveusedotherregisters(exprasmlist,pushedother,regs_to_push_other);
+
+         { give used registers through }
+         rg.usedintinproc:=rg.usedintinproc + tprocdef(procdefinition).usedintregisters;
+         rg.usedinproc:=rg.usedinproc + tprocdef(procdefinition).usedotherregisters;
+
+         { Initialize for pushing the parameters }
+         oldpushedparasize:=pushedparasize;
+         pushedparasize:=0;
+
+         { Push parameters }
+         oldaktcallnode:=aktcallnode;
+         aktcallnode:=self;
+
+         if assigned(left) then
+           begin
+            {$ifndef newra}
+              if assigned(right) then
+                maybe_save(exprasmlist,left.registers32,right.location,pushedregs)
+              else
+                if assigned(methodpointer) then
+                  maybe_save(exprasmlist,left.registers32,methodpointer.location,pushedregs);
+
+            {$endif}
+              { we push from right to left, so start with parameters at the end of
+                the parameter block }
+              tcallparanode(left).secondcallparan(
+                  (po_leftright in procdefinition.procoptions),procdefinition.proccalloption,
+                  0,procdefinition.parast.address_fixup+procdefinition.parast.datasize);
+            {$ifndef newra}
+              if assigned(right) then
+                maybe_restore(exprasmlist,right.location,pushedregs)
+              else
+                if assigned(methodpointer) then
+                  maybe_restore(exprasmlist,methodpointer.location,pushedregs);
+            {$endif newra}
+           end;
+         aktcallnode:=oldaktcallnode;
+
+         rg.saveintregvars(exprasmlist,regs_to_push_int);
+         rg.saveotherregvars(exprasmlist,regs_to_push_other);
+
+         { takes care of local data initialization }
+         inlineentrycode:=TAAsmoutput.Create;
+         inlineexitcode:=TAAsmoutput.Create;
+
+         geninlineentrycode(inlineentrycode,0);
+         if po_assembler in current_procdef.procoptions then
+           inlineentrycode.insert(Tai_marker.Create(asmblockstart));
+         exprasmList.concatlist(inlineentrycode);
+
+         { process the inline code }
+         secondpass(inlinecode);
+
+{$ifdef powerpc}
+         { this calculation must be done in pass_1 anyway, so don't worry }
+         if tppcprocinfo(current_procinfo).maxpushedparasize<pushedparasize then
+           tppcprocinfo(current_procinfo).maxpushedparasize:=pushedparasize;
+{$endif powerpc}
+
+         { Restore }
+         pushedparasize:=oldpushedparasize;
+         rg.restoreunusedstate(unusedstate);
+{$ifdef TEMPREGDEBUG}
+         testregisters32;
+{$endif TEMPREGDEBUG}
+
+         geninlineexitcode(inlineexitcode,true);
+         if po_assembler in current_procdef.procoptions then
+           inlineexitcode.concat(Tai_marker.Create(asmblockend));
+         exprasmList.concatlist(inlineexitcode);
+
+         inlineentrycode.free;
+         inlineexitcode.free;
+{$ifdef extdebug}
+         exprasmList.concat(tai_comment.Create(strpnew('End of inlined proc')));
+{$endif extdebug}
+         exprasmList.concat(Tai_Marker.Create(InlineEnd));
+
+         {we can free the local data now, reset also the fixup address }
+         if current_procdef.localst.datasize>0 then
+           begin
+             tg.UnGetTemp(exprasmlist,localsref);
+             current_procdef.localst.address_fixup:=old_local_fixup;
+           end;
+         {we can free the para data now, reset also the fixup address }
+         if current_procdef.parast.datasize>0 then
+           begin
+             tg.UnGetTemp(exprasmlist,pararef);
+             current_procdef.parast.address_fixup:=old_para_fixup;
+           end;
+         { free return reference }
+         if (resulttype.def.size>0) then
+           begin
+             { from now on the result can be freed normally }
+//              if assigned(funcretnode) and
+//                 paramanager.ret_in_param(resulttype.def,procdefinition.proccalloption) then
+//                tg.ChangeTempType(exprasmlist,funcretnode.location.reference,tt_normal);
+           end;
+
+         { handle function results }
+         if (not is_void(resulttype.def)) then
+           handle_return_value
+         else
+           location_reset(location,LOC_VOID,OS_NO);
+
+         { perhaps i/o check ? }
+         if iolabel<>nil then
+           begin
+              reference_reset_symbol(href,iolabel,0);
+              cg.a_paramaddr_ref(exprasmlist,href,paramanager.getintparaloc(1));
+              cg.a_call_name(exprasmlist,'FPC_IOCHECK');
+           end;
+
+         { restore registers }
+         rg.restoreusedotherregisters(exprasmlist,pushedother);
+         rg.restoreusedintregisters(exprasmlist,pushedint);
+
+         { release temps of paras }
+         release_para_temps;
+
+         { if return value is not used }
+         if (not is_void(resulttype.def)) and
+            (not(nf_return_value_used in flags)) then
+           begin
+              if location.loc in [LOC_CREFERENCE,LOC_REFERENCE] then
+                begin
+                   { data which must be finalized ? }
+                   if (resulttype.def.needs_inittable) then
+                      cg.g_finalize(exprasmlist,resulttype.def,location.reference,false);
+                   { release unused temp }
+                   tg.ungetiftemp(exprasmlist,location.reference)
+                end
+              else if location.loc=LOC_FPUREGISTER then
+                begin
+{$ifdef x86}
+                  { release FPU stack }
+                  accreg.enum:=FPU_RESULT_REG;
+                  emit_reg(A_FSTP,S_NO,accreg);
+                  {
+                    dec(trgcpu(rg).fpuvaroffset);
+                    do NOT decrement as the increment before
+                    is not called for unused results PM }
+{$endif x86}
+                end;
+           end;
+
+         { release procinfo }
+         current_procinfo.free;
+         current_procinfo:=oldprocinfo;
+
+{$ifdef GDB}
+         if (cs_debuginfo in aktmoduleswitches) then
+           begin
+             cg.a_label(exprasmlist,endlabel);
+             strpcopy(pp,'224,0,0,'+endlabel.name);
+            if (target_info.use_function_relative_addresses) then
+              begin
+                strpcopy(strend(pp),'-');
+                strpcopy(strend(pp),oldprocdef.mangledname);
+              end;
+             withdebugList.concat(Tai_stabn.Create(strnew(pp)));
+             freemem(pp,mangled_length+50);
+           end;
+{$endif GDB}
+
+         { restore }
+         current_procdef:=oldprocdef;
+         aktexitlabel:=oldexitlabel;
+         inlining_procedure:=oldinlining_procedure;
+
+         { reallocate the registers used for the current procedure's regvars, }
+         { since they may have been used and then deallocated in the inlined  }
+         { procedure (JM)                                                     }
+         if assigned(current_procdef.regvarinfo) then
+           rg.restoreStateAfterInline(oldregstate);
+      end;
+
+
+    procedure tcgcallnode.pass_2;
+      begin
+        if assigned(inlinecode) then
+          inlined_pass_2
+        else
+          normal_pass_2;
+      end;
 
 
 begin
    ccallparanode:=tcgcallparanode;
    ccallnode:=tcgcallnode;
-   cprocinlinenode:=tcgprocinlinenode;
 end.
 {
   $Log$
-  Revision 1.74  2003-05-25 11:34:17  peter
+  Revision 1.75  2003-05-26 21:17:17  peter
+    * procinlinenode removed
+    * aktexit2label removed, fast exit removed
+    + tcallnode.inlined_pass_2 added
+
+  Revision 1.74  2003/05/25 11:34:17  peter
     * methodpointer self pushing fixed
 
   Revision 1.73  2003/05/25 08:59:16  peter

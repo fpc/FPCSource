@@ -429,7 +429,6 @@ interface
           function  concatpara(afterpara:tparaitem;const tt:ttype;sym : tsym;defval:tsym;vhidden:boolean):tparaitem;
           function  insertpara(const tt:ttype;sym : tsym;defval:tsym;vhidden:boolean):tparaitem;
           procedure removepara(currpara:tparaitem);
-          function  para_size(alignsize:longint) : longint;
           function  typename_paras(showhidden:boolean): string;
           procedure test_if_fpu_result;
           function  is_methodpointer:boolean;virtual;
@@ -3278,29 +3277,6 @@ implementation
 
 
 
-    function tabstractprocdef.para_size(alignsize:longint) : longint;
-      var
-         pdc : TParaItem;
-         l : longint;
-      begin
-         l:=0;
-         pdc:=TParaItem(Para.first);
-         while assigned(pdc) do
-          begin
-            inc(l,paramanager.push_size(pdc.paratyp,pdc.paratype.def,proccalloption));
-            l:=align(l,alignsize);
-            if assigned(pdc.paratype.def) and
-               is_special_array(pdc.paratype.def) then
-              begin
-                inc(l,POINTER_SIZE);
-                l:=align(l,alignsize);
-              end;
-            pdc:=TParaItem(pdc.next);
-          end;
-         para_size:=l;
-      end;
-
-
     function tabstractprocdef.typename_paras(showhidden:boolean) : string;
       var
         hs,s : string;
@@ -5762,7 +5738,12 @@ implementation
 end.
 {
   $Log$
-  Revision 1.145  2003-05-25 11:34:17  peter
+  Revision 1.146  2003-05-26 21:17:18  peter
+    * procinlinenode removed
+    * aktexit2label removed, fast exit removed
+    + tcallnode.inlined_pass_2 added
+
+  Revision 1.145  2003/05/25 11:34:17  peter
     * methodpointer self pushing fixed
 
   Revision 1.144  2003/05/15 18:58:53  peter

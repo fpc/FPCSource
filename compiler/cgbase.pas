@@ -188,9 +188,6 @@ unit cgbase;
        { label to leave the sub routine }
        aktexitlabel : tasmlabel;
 
-       { also an exit label, only used we need to clear only the stack }
-       aktexit2label : tasmlabel;
-
        {# true, if there was an error while code generation occurs }
        codegenerror : boolean;
 
@@ -582,7 +579,12 @@ implementation
 end.
 {
   $Log$
-  Revision 1.51  2003-05-23 14:27:35  peter
+  Revision 1.52  2003-05-26 21:17:17  peter
+    * procinlinenode removed
+    * aktexit2label removed, fast exit removed
+    + tcallnode.inlined_pass_2 added
+
+  Revision 1.51  2003/05/23 14:27:35  peter
     * remove some unit dependencies
     * current_procinfo changes to store more info
 

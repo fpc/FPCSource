@@ -84,9 +84,11 @@ implementation
       end;
       case n.nodetype of
         calln:
-          result := foreachnode(tcallnode(n).methodpointer,f) or result;
-        procinlinen:
-          result := foreachnode(tprocinlinenode(n).inlinetree,f) or result;
+          begin
+            { not in one statement, won't work because of b- }
+            result := foreachnode(tcallnode(n).methodpointer,f) or result;
+            result := foreachnode(tcallnode(n).inlinecode,f) or result;
+          end;
         ifn, whilerepeatn, forn:
           begin
             { not in one statement, won't work because of b- }
@@ -129,9 +131,10 @@ implementation
       end;
       case n.nodetype of
         calln:
-          result := foreachnodestatic(tcallnode(n).methodpointer,f) or result;
-        procinlinen:
-          result := foreachnodestatic(tprocinlinenode(n).inlinetree,f) or result;
+          begin
+            result := foreachnodestatic(tcallnode(n).methodpointer,f) or result;
+            result := foreachnodestatic(tcallnode(n).inlinecode,f) or result;
+          end;
         ifn, whilerepeatn, forn:
           begin
             { not in one statement, won't work because of b- }
@@ -250,7 +253,12 @@ end.
 
 {
   $Log$
-  Revision 1.4  2003-05-16 14:33:31  peter
+  Revision 1.5  2003-05-26 21:17:17  peter
+    * procinlinenode removed
+    * aktexit2label removed, fast exit removed
+    + tcallnode.inlined_pass_2 added
+
+  Revision 1.4  2003/05/16 14:33:31  peter
     * regvar fixes
 
   Revision 1.3  2003/05/13 20:54:06  peter

@@ -551,14 +551,9 @@ implementation
       var
         oldprocdef : tprocdef;
         oldprocinfo : tprocinfo;
-        oldexitlabel,
-        oldexit2label : tasmlabel;
+        oldexitlabel : tasmlabel;
         oldaktmaxfpuregisters : longint;
         oldfilepos : tfileposinfo;
-        { true when no stackframe is required }
-        nostackframe:boolean;
-        { number of bytes which have to be cleared by RET }
-        parasize:longint;
       begin
         { the initialization procedure can be empty, then we
           don't need to generate anything. When it was an empty
@@ -576,10 +571,8 @@ implementation
 
         { save old labels }
         oldexitlabel:=aktexitlabel;
-        oldexit2label:=aktexit2label;
         { get new labels }
         objectlibrary.getlabel(aktexitlabel);
-        objectlibrary.getlabel(aktexit2label);
         aktbreaklabel:=nil;
         aktcontinuelabel:=nil;
 
@@ -599,12 +592,12 @@ implementation
         { first generate entry code with the correct position and switches }
         aktfilepos:=current_procinfo.entrypos;
         aktlocalswitches:=current_procinfo.entryswitches;
-        genentrycode(current_procinfo.aktentrycode,0,parasize,nostackframe,false);
+        genentrycode(current_procinfo.aktentrycode,0,false);
 
         { now generate exit code with the correct position and switches }
         aktfilepos:=current_procinfo.exitpos;
         aktlocalswitches:=current_procinfo.exitswitches;
-        genexitcode(current_procinfo.aktexitcode,parasize,nostackframe,false);
+        genexitcode(current_procinfo.aktexitcode,false);
 
         { now all the registers used are known }
         current_procdef.usedintregisters:=rg.usedintinproc;
@@ -666,7 +659,6 @@ implementation
 
         { restore labels }
         aktexitlabel:=oldexitlabel;
-        aktexit2label:=oldexit2label;
 
         { restore }
         aktmaxfpuregisters:=oldaktmaxfpuregisters;
@@ -1216,7 +1208,12 @@ begin
 end.
 {
   $Log$
-  Revision 1.117  2003-05-25 08:59:47  peter
+  Revision 1.118  2003-05-26 21:17:18  peter
+    * procinlinenode removed
+    * aktexit2label removed, fast exit removed
+    + tcallnode.inlined_pass_2 added
+
+  Revision 1.117  2003/05/25 08:59:47  peter
     * do not generate code when there was an error
 
   Revision 1.116  2003/05/23 18:49:55  jonas

@@ -456,19 +456,19 @@ begin
   funcResRegs := funcResRegs - [R_EAX,R_EBX,R_ECX,R_EDX,R_ESI];
   funcResReg := reg.enum in funcResRegs;
   hp1 := p;
-  while not(funcResReg and
+{  while not(funcResReg and
             (p.typ = ait_instruction) and
             (Taicpu(p).opcode = A_JMP) and
             (tasmlabel(Taicpu(p).oper[0].sym) = aktexit2label)) and
         getLastInstruction(p, p) And
         not(regInInstruction(reg.enum, p)) Do
-    hp1 := p;
+    hp1 := p; }
   { don't insert a dealloc for registers which contain the function result }
   { if they are followed by a jump to the exit label (for exit(...))       }
-  if not(funcResReg) or
+  {if not(funcResReg) or
      not((hp1.typ = ait_instruction) and
          (Taicpu(hp1).opcode = A_JMP) and
-         (tasmlabel(Taicpu(hp1).oper[0].sym) = aktexit2label)) then
+         (tasmlabel(Taicpu(hp1).oper[0].sym) = aktexit2label)) then }
     begin
       p := tai_regalloc.deAlloc(reg);
       insertLLItem(AsmL, hp1.previous, hp1, p);
@@ -2669,7 +2669,12 @@ End.
 
 {
   $Log$
-  Revision 1.49  2003-04-27 11:21:35  peter
+  Revision 1.50  2003-05-26 21:17:18  peter
+    * procinlinenode removed
+    * aktexit2label removed, fast exit removed
+    + tcallnode.inlined_pass_2 added
+
+  Revision 1.49  2003/04/27 11:21:35  peter
     * aktprocdef renamed to current_procdef
     * procinfo renamed to current_procinfo
     * procinfo will now be stored in current_module so it can be

@@ -423,7 +423,6 @@ implementation
         nodeclass[asn]:=casnode;
         nodeclass[caretn]:=caddnode;
         nodeclass[starstarn]:=caddnode;
-        nodeclass[procinlinen]:=cprocinlinenode;
         nodeclass[arrayconstructorn]:=carrayconstructornode;
         nodeclass[arrayconstructorrangen]:=carrayconstructorrangenode;
         nodeclass[tempcreaten]:=ctempcreatenode;
@@ -494,7 +493,12 @@ implementation
 end.
 {
   $Log$
-  Revision 1.51  2003-05-25 11:34:17  peter
+  Revision 1.52  2003-05-26 21:17:18  peter
+    * procinlinenode removed
+    * aktexit2label removed, fast exit removed
+    + tcallnode.inlined_pass_2 added
+
+  Revision 1.51  2003/05/25 11:34:17  peter
     * methodpointer self pushing fixed
 
   Revision 1.50  2003/05/13 19:14:41  peter

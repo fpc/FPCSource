@@ -768,11 +768,8 @@ implementation
 
     procedure gen_implicit_initfinal(list:taasmoutput;flag:word;st:tsymtable);
       var
-        parasize : longint;
-        nostackframe : boolean;
         pd : tprocdef;
-        oldexitlabel,
-        oldexit2label : tasmlabel;
+        oldexitlabel : tasmlabel;
       begin
         { update module flags }
         current_module.flags:=current_module.flags or flag;
@@ -793,20 +790,15 @@ implementation
         end;
         { save labels }
         oldexitlabel:=aktexitlabel;
-        oldexit2label:=aktexit2label;
         { generate a dummy function }
-        parasize:=0;
-        nostackframe:=false;
         objectlibrary.getlabel(aktexitlabel);
-        objectlibrary.getlabel(aktexit2label);
         include(current_procinfo.flags,pi_do_call);
-        genentrycode(list,0,parasize,nostackframe,false);
-        genexitcode(list,parasize,nostackframe,false);
+        genentrycode(list,0,false);
+        genexitcode(list,false);
         list.convert_registers;
         release_main_proc(pd);
         { restore }
         aktexitlabel:=oldexitlabel;
-        aktexit2label:=oldexit2label;
       end;
 
 
@@ -1482,7 +1474,12 @@ So, all parameters are passerd into registers in sparc architecture.}
 end.
 {
   $Log$
-  Revision 1.108  2003-05-25 10:27:12  peter
+  Revision 1.109  2003-05-26 21:17:17  peter
+    * procinlinenode removed
+    * aktexit2label removed, fast exit removed
+    + tcallnode.inlined_pass_2 added
+
+  Revision 1.108  2003/05/25 10:27:12  peter
     * moved Comment calls to messge file
 
   Revision 1.107  2003/05/22 21:31:35  peter

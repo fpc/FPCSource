@@ -62,12 +62,11 @@ interface
                               para_offset:longint;alignment : longint;
                               const locpara : tparalocation);
 
-    procedure genentrycode(list : TAAsmoutput;
-                           stackframe:longint;
-                           var parasize:longint;
-                           var nostackframe:boolean;
-                           inlined : boolean);
-   procedure genexitcode(list : TAAsmoutput;parasize:longint;nostackframe:boolean;inlined:boolean);
+    procedure genentrycode(list : TAAsmoutput;stackframe:longint;inlined : boolean);
+    procedure genexitcode(list : TAAsmoutput;inlined:boolean);
+
+    procedure geninlineentrycode(list : TAAsmoutput;stackframe:longint);
+    procedure geninlineexitcode(list : TAAsmoutput;inlined:boolean);
 
    {#
       Allocate the buffers for exception management and setjmp environment.
@@ -1185,8 +1184,57 @@ implementation
       end;
 
 
+    procedure initretvalue(list:taasmoutput);
+      var
+        paraloc : tparalocation;
+        href    : treference;
+      begin
+        if not is_void(current_procdef.rettype.def) then
+          begin
+             { for now the pointer to the result can't be a register }
+             if paramanager.ret_in_param(current_procdef.rettype.def,current_procdef.proccalloption) then
+               begin
+{$ifdef powerpc}
+                  { no stack space is allocated in this case -> can't save the result reg on the stack }
+                  if not(po_assembler in current_procdef.procoptions) then
+{$endif powerpc}
+                    begin
+                      paraloc:=paramanager.getfuncretparaloc(current_procdef);
+                      reference_reset_base(href,current_procinfo.framepointer,current_procinfo.return_offset);
+                      case paraloc.loc of
+                        LOC_CREGISTER,
+                        LOC_REGISTER:
+                          if not(paraloc.size in [OS_64,OS_S64]) then
+                            cg.a_load_reg_ref(list,paraloc.size,paraloc.register,href)
+                          else
+                            cg64.a_load64_reg_ref(list,paraloc.register64,href);
+                        LOC_CFPUREGISTER,
+                        LOC_FPUREGISTER:
+                          cg.a_load_reg_ref(list,paraloc.size,paraloc.register,href);
+                        LOC_CMMREGISTER,
+                        LOC_MMREGISTER:
+                          cg.a_loadmm_reg_ref(list,paraloc.register,href);
+                      end;
+                    end;
+               end;
 
-    procedure handle_return_value(list:TAAsmoutput; inlined : boolean;var uses_acc,uses_acchi,uses_fpu : boolean);
+             { initialize return value }
+             if (current_procdef.rettype.def.needs_inittable) then
+               begin
+{$ifdef powerpc}
+                  if (po_assembler in current_procdef.procoptions) then
+                    internalerror(200304161);
+{$endif powerpc}
+                  if (cs_implicit_exceptions in aktmoduleswitches) then
+                    include(current_procinfo.flags,pi_needs_implicit_finally);
+                  reference_reset_base(href,current_procinfo.framepointer,current_procinfo.return_offset);
+                  cg.g_initialize(list,current_procdef.rettype.def,href,paramanager.ret_in_param(current_procdef.rettype.def,current_procdef.proccalloption));
+               end;
+          end;
+      end;
+
+
+    procedure handle_return_value(list:TAAsmoutput; var uses_acc,uses_acchi,uses_fpu : boolean);
       var
         href : treference;
         hreg,r,r2 : tregister;
@@ -1267,65 +1315,12 @@ implementation
       end;
 
 
-    procedure handle_fast_exit_return_value(list:TAAsmoutput);
-      var
-        href : treference;
-        hreg : tregister;
-        cgsize : TCGSize;
-        r,r2 : Tregister;
-      begin
-        if not is_void(current_procdef.rettype.def) then
-         begin
-           reference_reset_base(href,current_procinfo.framepointer,current_procinfo.return_offset);
-           cgsize:=def_cgsize(current_procdef.rettype.def);
-           case current_procdef.rettype.def.deftype of
-             orddef,
-             enumdef :
-               begin
-{$ifndef cpu64bit}
-                 r.enum:=accumulator;
-                 r2.enum:=accumulatorhigh;
-                 if cgsize in [OS_64,OS_S64] then
-                   cg64.a_load64_reg_ref(list,joinreg64(r,r2),href)
-                 else
-{$endif cpu64bit}
-                  begin
-                    hreg:=rg.makeregsize(r,cgsize);
-                    cg.a_load_reg_ref(list,cgsize,hreg,href);
-                  end;
-               end;
-             floatdef :
-               begin
-{$ifdef cpufpemu}
-                  if cs_fp_emulation in aktmoduleswitches then
-                    r.enum := accumulator
-                 else
-{$endif cpufpemu}
-                    r.enum:=fpu_result_reg;
-                 cg.a_loadfpu_reg_ref(list,cgsize,r,href);
-               end;
-             else
-               begin
-                 r.enum:=accumulator;
-                 if not paramanager.ret_in_param(current_procdef.rettype.def,current_procdef.proccalloption) then
-                  cg.a_load_reg_ref(list,cgsize,r,href);
-               end;
-           end;
-         end;
-      end;
-
-
-    procedure genentrycode(list : TAAsmoutput;
-                           stackframe:longint;
-                           var parasize:longint;
-                           var nostackframe:boolean;
-                           inlined : boolean);
+    procedure genentrycode(list : TAAsmoutput;stackframe:longint;inlined : boolean);
       var
         hs : string;
         href : treference;
         stackalloclist : taasmoutput;
         hp : tparaitem;
-        paraloc : tparalocation;
         rsp : tregister;
       begin
         if not inlined then
@@ -1424,48 +1419,8 @@ implementation
               cg.g_profilecode(list);
           end;
 
-        if not is_void(current_procdef.rettype.def) then
-          begin
-             { for now the pointer to the result can't be a register }
-             if paramanager.ret_in_param(current_procdef.rettype.def,current_procdef.proccalloption) then
-               begin
-{$ifdef powerpc}
-                  { no stack space is allocated in this case -> can't save the result reg on the stack }
-                  if not(po_assembler in current_procdef.procoptions) then
-{$endif powerpc}
-                    begin
-                      paraloc:=paramanager.getfuncretparaloc(current_procdef);
-                      reference_reset_base(href,current_procinfo.framepointer,current_procinfo.return_offset);
-                      case paraloc.loc of
-                        LOC_CREGISTER,
-                        LOC_REGISTER:
-                          if not(paraloc.size in [OS_64,OS_S64]) then
-                            cg.a_load_reg_ref(list,paraloc.size,paraloc.register,href)
-                          else
-                            cg64.a_load64_reg_ref(list,paraloc.register64,href);
-                        LOC_CFPUREGISTER,
-                        LOC_FPUREGISTER:
-                          cg.a_load_reg_ref(list,paraloc.size,paraloc.register,href);
-                        LOC_CMMREGISTER,
-                        LOC_MMREGISTER:
-                          cg.a_loadmm_reg_ref(list,paraloc.register,href);
-                      end;
-                    end;
-               end;
-
-             { initialize return value }
-             if (current_procdef.rettype.def.needs_inittable) then
-               begin
-{$ifdef powerpc}
-                  if (po_assembler in current_procdef.procoptions) then
-                    internalerror(200304161);
-{$endif powerpc}
-                  if (cs_implicit_exceptions in aktmoduleswitches) then
-                    include(current_procinfo.flags,pi_needs_implicit_finally);
-                  reference_reset_base(href,current_procinfo.framepointer,current_procinfo.return_offset);
-                  cg.g_initialize(list,current_procdef.rettype.def,href,paramanager.ret_in_param(current_procdef.rettype.def,current_procdef.proccalloption));
-               end;
-          end;
+        { initialize return value }
+        initretvalue(list);
 
         { initialize local data like ansistrings }
         case current_procdef.proctypeoption of
@@ -1508,9 +1463,9 @@ implementation
                  (cs_profile in aktmoduleswitches) then
                begin
                  reference_reset_symbol(href,objectlibrary.newasmsymboldata('etext'),0);
-                 cg.a_paramaddr_ref(list,href,paraloc);
+                 cg.a_paramaddr_ref(list,href,paramanager.getintparaloc(2));
                  reference_reset_symbol(href,objectlibrary.newasmsymboldata('__image_base__'),0);
-                 cg.a_paramaddr_ref(list,href,paraloc);
+                 cg.a_paramaddr_ref(list,href,paramanager.getintparaloc(2));
                  cg.a_call_name(list,'_monstartup');
                end;
 
@@ -1577,23 +1532,12 @@ implementation
            if (current_procinfo.framepointer.number=NR_STACK_POINTER_REG) then
             begin
               CGMessage(cg_d_stackframe_omited);
-              nostackframe:=true;
-              if (current_procdef.proctypeoption in [potype_unitinit,potype_proginit,potype_unitfinalize]) then
-                parasize:=0
-              else
-                parasize:=current_procdef.parast.datasize+current_procdef.parast.address_fixup-4;
               if stackframe<>0 then
                 cg.g_stackpointer_alloc(stackalloclist,stackframe);
             end
            else
 {$endif powerpc}
             begin
-              nostackframe:=false;
-              if (current_procdef.proctypeoption in [potype_unitinit,potype_proginit,potype_unitfinalize]) then
-                parasize:=0
-              else
-                parasize:=current_procdef.parast.datasize+current_procdef.parast.address_fixup-target_info.first_parm_offset;
-
               if (po_interrupt in current_procdef.procoptions) then
                 cg.g_interrupt_stackframe_entry(stackalloclist);
 
@@ -1612,7 +1556,7 @@ implementation
       end;
 
 
-   procedure genexitcode(list : TAAsmoutput;parasize:longint;nostackframe:boolean;inlined:boolean);
+   procedure genexitcode(list : TAAsmoutput;inlined:boolean);
       var
 {$ifdef GDB}
         stabsendlabel : tasmlabel;
@@ -1627,15 +1571,6 @@ implementation
         usesfpu : boolean;
         rsp,r  : Tregister;
       begin
-        if aktexit2label.is_used and
-           ((pi_needs_implicit_finally in current_procinfo.flags) or
-            (pi_uses_exceptions in current_procinfo.flags)) then
-          begin
-            cg.a_jmp_always(list,aktexitlabel);
-            cg.a_label(list,aktexit2label);
-            handle_fast_exit_return_value(list);
-          end;
-
         if aktexitlabel.is_used then
           cg.a_label(list,aktexitlabel);
 
@@ -1701,11 +1636,8 @@ implementation
                 usesacc:=true;
               end
             else
-              handle_return_value(list,inlined,usesacc,usesacchi,usesfpu)
+              handle_return_value(list,usesacc,usesacchi,usesfpu)
           end;
-
-        if aktexit2label.is_used and not aktexit2label.is_set then
-          cg.a_label(list,aktexit2label);
 
 {$ifdef GDB}
         if ((cs_debuginfo in aktmoduleswitches) and not inlined) then
@@ -1739,14 +1671,13 @@ implementation
         { remove stackframe }
         if not inlined then
          begin
-           if (not nostackframe) then
-            cg.g_restore_frame_pointer(list)
+           if (current_procinfo.framepointer.number=NR_STACK_POINTER_REG) then
+            begin
+              if (tg.gettempsize<>0) then
+                cg.a_op_const_reg(list,OP_ADD,tg.gettempsize,current_procinfo.framepointer);
+            end
            else
-            if (tg.gettempsize<>0) then
-              begin
-                 r.enum:=stack_pointer_reg;
-                 cg.a_op_const_reg(list,OP_ADD,tg.gettempsize,r);
-              end;
+            cg.g_restore_frame_pointer(list);
          end;
 
         { at last, the return is generated }
@@ -1755,16 +1686,7 @@ implementation
            if (po_interrupt in current_procdef.procoptions) then
             cg.g_interrupt_stackframe_exit(list,usesacc,usesacchi)
            else
-             begin
-{$ifndef i386}
-               { give a warning if the limit of parameters allowed for
-                 certain processors is reached.
-               }
-               if (parasize > maxparasize) then
-                 Message(cg_w_parasize_too_big);
-{$endif}
-               cg.g_return_from_proc(list,parasize);
-             end;
+            cg.g_return_from_proc(list,current_procdef.parast.datasize);
          end;
 
         if not inlined then
@@ -1833,10 +1755,143 @@ implementation
          cleanup_regvars(list);
       end;
 
+
+{****************************************************************************
+                                 Inlining
+****************************************************************************}
+
+    procedure handle_inlined_return_value(list:TAAsmoutput);
+      var
+        href : treference;
+        r,r2 : tregister;
+        cgsize : TCGSize;
+      begin
+        if not is_void(current_procdef.rettype.def) then
+         begin
+           reference_reset_base(href,current_procinfo.framepointer,current_procinfo.return_offset);
+           cgsize:=def_cgsize(current_procdef.rettype.def);
+           { Here, we return the function result. In most architectures, the value is
+             passed into the accumulator, but in a windowed architecure like sparc a
+             function returns in a register and the caller receives it in an other one }
+           case current_procdef.rettype.def.deftype of
+             orddef,
+             enumdef :
+               begin
+{$ifndef cpu64bit}
+                 if cgsize in [OS_64,OS_S64] then
+                  begin
+                    r:=rg.getregisterint(list,OS_INT);
+                    r2:=rg.getregisterint(list,OS_INT);
+                    cg64.a_load64_ref_reg(list,href,joinreg64(r,r2));
+                  end
+                 else
+{$endif cpu64bit}
+                  begin
+                    r:=rg.getregisterint(list,cgsize);
+                    cg.a_load_ref_reg(list,cgsize,href,r);
+                  end;
+               end;
+             floatdef :
+               begin
+{$ifdef cpufpemu}
+                  if cs_fp_emulation in aktmoduleswitches then
+                    r.enum := accumulator
+                 else
+{$endif cpufpemu}
+                  r.enum:=fpu_result_reg;
+                 cg.a_loadfpu_ref_reg(list,cgsize,href,r);
+               end;
+             else
+               begin
+                 if not paramanager.ret_in_param(current_procdef.rettype.def,current_procdef.proccalloption) then
+                  begin
+{$ifndef cpu64bit}
+                    { Win32 can return records in EAX:EDX }
+                    if cgsize in [OS_64,OS_S64] then
+                     begin
+                       r:=rg.getregisterint(list,OS_INT);
+                       r2:=rg.getregisterint(list,OS_INT);
+                       cg64.a_load64_ref_reg(list,href,joinreg64(r,r2));
+                     end
+                    else
+{$endif cpu64bit}
+                     begin
+                       r:=rg.getregisterint(list,cgsize);
+                       cg.a_load_ref_reg(list,cgsize,href,r);
+                     end;
+                   end
+               end;
+           end;
+         end;
+      end;
+
+
+    procedure geninlineentrycode(list : TAAsmoutput;stackframe:longint);
+      begin
+        { initialize return value }
+        initretvalue(list);
+
+        current_procdef.localst.foreach_static({$ifndef TP}@{$endif}initialize_data,list);
+
+        { initialisizes temp. ansi/wide string data }
+        inittempvariables(list);
+
+        { initialize ansi/widesstring para's }
+        if assigned(current_procdef.parast) then
+          current_procdef.parast.foreach_static({$ifndef TP}@{$endif}init_paras,list);
+
+        { generate copies of call by value parameters }
+        if not(po_assembler in current_procdef.procoptions) then
+          current_procdef.parast.foreach_static({$ifndef TP}@{$endif}copyvalueparas,list);
+
+        load_regvars(list,nil);
+      end;
+
+
+   procedure geninlineexitcode(list : TAAsmoutput;inlined:boolean);
+      var
+        usesacc,
+        usesacchi,
+        usesfpu : boolean;
+      begin
+        if aktexitlabel.is_used then
+          cg.a_label(list,aktexitlabel);
+
+        cleanup_regvars(list);
+
+        { finalize temporary data }
+        finalizetempvariables(list);
+
+        current_procdef.localst.foreach_static({$ifndef TP}@{$endif}finalize_data,list);
+
+        { finalize paras data }
+        if assigned(current_procdef.parast) then
+          current_procdef.parast.foreach_static({$ifndef TP}@{$endif}final_paras,list);
+
+        { handle return value, this is not done for assembler routines when
+          they didn't reference the result variable }
+        if not(po_assembler in current_procdef.procoptions) or
+           (assigned(current_procdef.funcretsym) and
+            (tvarsym(current_procdef.funcretsym).refcount>1)) then
+          begin
+            if (current_procdef.proctypeoption=potype_constructor) then
+             internalerror(200305263);
+//            handle_inlined_return_value(list);
+             handle_return_value(list,usesacc,usesacchi,usesfpu)
+          end;
+
+        cleanup_regvars(list);
+      end;
+
 end.
 {
   $Log$
-  Revision 1.106  2003-05-24 11:59:42  jonas
+  Revision 1.107  2003-05-26 21:17:17  peter
+    * procinlinenode removed
+    * aktexit2label removed, fast exit removed
+    + tcallnode.inlined_pass_2 added
+
+  Revision 1.106  2003/05/24 11:59:42  jonas
     * fixed integer typeconversion problems
 
   Revision 1.105  2003/05/23 14:27:35  peter

@@ -82,6 +82,8 @@ interface
           { function return node, this is used to pass the data for a
             ret_in_param return value }
           funcretnode    : tnode;
+          { inline function body }
+          inlinecode : tnode;
 
           { separately specified resulttype for some compilerprocs (e.g. }
           { you can't have a function with an "array of char" resulttype }
@@ -158,30 +160,12 @@ interface
        end;
        tcallparanodeclass = class of tcallparanode;
 
-       tprocinlinenode = class(tnode)
-          inlinetree : tnode;
-          inlineprocdef : tprocdef;
-          retoffset,para_offset,para_size : longint;
-          constructor create(p:tprocdef);virtual;
-          destructor destroy;override;
-          constructor ppuload(t:tnodetype;ppufile:tcompilerppufile);override;
-          procedure ppuwrite(ppufile:tcompilerppufile);override;
-          procedure derefimpl;override;
-          function getcopy : tnode;override;
-          function det_resulttype : tnode;override;
-          procedure insertintolist(l : tnodelist);override;
-          function pass_1 : tnode;override;
-          function docompare(p: tnode): boolean; override;
-       end;
-       tprocinlinenodeclass = class of tprocinlinenode;
-
     function reverseparameters(p: tcallparanode): tcallparanode;
 
 
     var
        ccallnode : tcallnodeclass;
        ccallparanode : tcallparanodeclass;
-       cprocinlinenode : tprocinlinenodeclass;
 
 implementation
 
@@ -888,6 +872,7 @@ type
          procdefinition:=nil;
          restypeset:=false;
          funcretnode:=nil;
+         inlinecode:=nil;
          paralength:=-1;
       end;
 
@@ -902,6 +887,7 @@ type
          procdefinition:=def;
          restypeset:=false;
          funcretnode:=nil;
+         inlinecode:=nil;
          paralength:=-1;
       end;
 
@@ -916,6 +902,7 @@ type
          procdefinition:=nil;
          restypeset:=false;
          funcretnode:=nil;
+         inlinecode:=nil;
          paralength:=-1;
       end;
 
@@ -974,6 +961,7 @@ type
       begin
          methodpointer.free;
          funcretnode.free;
+         inlinecode.free;
          inherited destroy;
       end;
 
@@ -990,6 +978,7 @@ type
         restypeset:=boolean(ppufile.getbyte);
         methodpointer:=ppuloadnode(ppufile);
         funcretnode:=ppuloadnode(ppufile);
+        inlinecode:=ppuloadnode(ppufile);
       end;
 
 
@@ -1001,6 +990,7 @@ type
         ppufile.putbyte(byte(restypeset));
         ppuwritenode(ppufile,methodpointer);
         ppuwritenode(ppufile,funcretnode);
+        ppuwritenode(ppufile,inlinecode);
       end;
 
 
@@ -1014,6 +1004,8 @@ type
           methodpointer.derefimpl;
         if assigned(funcretnode) then
           funcretnode.derefimpl;
+        if assigned(inlinecode) then
+          inlinecode.derefimpl;
       end;
 
 
@@ -1035,6 +1027,10 @@ type
          n.funcretnode:=funcretnode.getcopy
         else
          n.funcretnode:=nil;
+        if assigned(inlinecode) then
+         n.inlinecode:=inlinecode.getcopy
+        else
+         n.inlinecode:=nil;
         result:=n;
       end;
 
@@ -2270,13 +2266,12 @@ type
 
 
     function tcallnode.pass_1 : tnode;
-      var
-         inlinecode : tnode;
-         inlined : boolean;
 {$ifdef m68k}
+      var
          regi : tregister;
 {$endif}
 {$ifdef callparatemp}
+      var
          callparatemps, newblock: tblocknode;
          statement: tstatementnode;
          paras, oldright, newcall: tnode;
@@ -2285,8 +2280,6 @@ type
         errorexit;
       begin
          result:=nil;
-         inlined:=false;
-         inlinecode := nil;
 
          { work trough all parameters to get the register requirements }
          if assigned(left) then
@@ -2299,15 +2292,6 @@ type
          { function result node }
          if assigned(funcretnode) then
            firstpass(funcretnode);
-
-         if assigned(procdefinition) and
-            (procdefinition.proccalloption=pocall_inline) then
-           begin
-              inlinecode:=right;
-              if assigned(inlinecode) then
-               inlined:=true;
-              right:=nil;
-           end;
 
          { procedure variable ? }
          if assigned(right) then
@@ -2329,22 +2313,20 @@ type
                 begin
                    if assigned(methodpointer) then
                      CGMessage(cg_e_unable_inline_object_methods);
-                   if assigned(right) and (right.nodetype<>procinlinen) then
+                   if assigned(right) then
                      CGMessage(cg_e_unable_inline_procvar);
-                   if not assigned(inlinecode) then
+                   if assigned(inlinecode) then
+                     internalerror(200305261);
+                   if assigned(tprocdef(procdefinition).code) then
+                     inlinecode:=tprocdef(procdefinition).code.getcopy
+                   else
+                     CGMessage(cg_e_no_code_for_inline_stored);
+                   if assigned(inlinecode) then
                      begin
-                        if assigned(tprocdef(procdefinition).code) then
-                          inlinecode:=cprocinlinenode.create(tprocdef(procdefinition))
-                        else
-                          CGMessage(cg_e_no_code_for_inline_stored);
-                        if assigned(inlinecode) then
-                          begin
-                             { consider it has not inlined if called
-                               again inside the args }
-                             procdefinition.proccalloption:=pocall_fpccall;
-                             firstpass(inlinecode);
-                             inlined:=true;
-                          end;
+                       { consider it has not inlined if called
+                         again inside the args }
+                       procdefinition.proccalloption:=pocall_fpccall;
+                       firstpass(inlinecode);
                      end;
                 end
               else
@@ -2356,7 +2338,6 @@ type
              { It doesn't hurt to calculate it already though :) (JM) }
              rg.incrementintregisterpushed(tprocdef(procdefinition).usedintregisters);
              rg.incrementotherregisterpushed(tprocdef(procdefinition).usedotherregisters);
-
            end;
 
          { get a register for the return value }
@@ -2458,8 +2439,16 @@ type
                 verifyabstractcalls;
            end;
 
-         if inlined then
-           right:=inlinecode;
+         { determine the registers of the procedure variable }
+         { is this OK for inlined procs also ?? (PM)     }
+         if assigned(inlinecode) then
+           begin
+              registersfpu:=max(inlinecode.registersfpu,registersfpu);
+              registers32:=max(inlinecode.registers32,registers32);
+{$ifdef SUPPORT_MMX}
+              registersmmx:=max(inlinecode.registersmmx,registersmmx);
+{$endif SUPPORT_MMX}
+           end;
          { determine the registers of the procedure variable }
          { is this OK for inlined procs also ?? (PM)     }
          if assigned(right) then
@@ -2506,7 +2495,7 @@ type
            end;
 {$endif callparatemp}
       errorexit:
-         if inlined then
+         if assigned(inlinecode) then
            procdefinition.proccalloption:=pocall_inline;
 {$ifdef callparatemp}
          if assigned(callparatemps) then
@@ -2574,168 +2563,18 @@ type
       end;
 
 
-{****************************************************************************
-                            TPROCINLINENODE
- ****************************************************************************}
-
-    constructor tprocinlinenode.create(p:tprocdef);
-
-      begin
-         inherited create(procinlinen);
-         inlineprocdef:=p;
-         retoffset:=-POINTER_SIZE; { less dangerous as zero (PM) }
-         para_offset:=0;
-         para_size:=0;
-         { copy inlinetree }
-         if assigned(p.code) then
-           inlinetree:=p.code.getcopy
-         else
-           inlinetree:=nil;
-      end;
-
-
-    destructor tprocinlinenode.destroy;
-      begin
-        if assigned(inlinetree) then
-          inlinetree.free;
-        inherited destroy;
-      end;
-
-
-    constructor tprocinlinenode.ppuload(t:tnodetype;ppufile:tcompilerppufile);
-      begin
-        inherited ppuload(t,ppufile);
-        inlineprocdef:=tprocdef(ppufile.getderef);
-        inlinetree:=ppuloadnode(ppufile);
-        retoffset:=-POINTER_SIZE; { less dangerous as zero (PM) }
-        para_offset:=0;
-        para_size:=0;
-      end;
-
-
-    procedure tprocinlinenode.ppuwrite(ppufile:tcompilerppufile);
-      begin
-        inherited ppuwrite(ppufile);
-        ppufile.putderef(inlineprocdef);
-        ppuwritenode(ppufile,inlinetree);
-      end;
-
-
-    procedure tprocinlinenode.derefimpl;
-      begin
-        inherited derefimpl;
-        if assigned(inlinetree) then
-          inlinetree.derefimpl;
-        resolvedef(pointer(inlineprocdef));
-      end;
-
-
-    function tprocinlinenode.getcopy : tnode;
-
-      var
-         n : tprocinlinenode;
-
-      begin
-         n:=tprocinlinenode(inherited getcopy);
-         n.inlineprocdef:=inlineprocdef;
-         if assigned(inlinetree) then
-           n.inlinetree:=inlinetree.getcopy
-         else
-           n.inlinetree:=nil;
-         n.retoffset:=retoffset;
-         n.para_offset:=para_offset;
-         n.para_size:=para_size;
-         getcopy:=n;
-      end;
-
-    procedure tprocinlinenode.insertintolist(l : tnodelist);
-
-      begin
-      end;
-
-
-    function tprocinlinenode.det_resulttype : tnode;
-      var
-        storesymtablelevel : longint;
-        storeparasymtable,
-        storelocalsymtable : tsymtabletype;
-        oldprocdef : tprocdef;
-        oldprocinfo : tprocinfo;
-        oldinlining_procedure : boolean;
-      begin
-        result:=nil;
-        oldinlining_procedure:=inlining_procedure;
-        oldprocdef:=current_procdef;
-        oldprocinfo:=current_procinfo;
-        { we're inlining a procedure }
-        inlining_procedure:=true;
-
-        { create temp procinfo }
-        current_procinfo:=cprocinfo.create(nil);
-        current_procinfo.procdef:=inlineprocdef;
-        current_procinfo.return_offset:=retoffset;
-        current_procdef:=current_procinfo.procdef;
-
-        { set it to the same lexical level }
-        storesymtablelevel:=current_procdef.localst.symtablelevel;
-        storelocalsymtable:=current_procdef.localst.symtabletype;
-        storeparasymtable:=current_procdef.parast.symtabletype;
-        current_procdef.localst.symtablelevel:=oldprocdef.localst.symtablelevel;
-        current_procdef.localst.symtabletype:=inlinelocalsymtable;
-        current_procdef.parast.symtabletype:=inlineparasymtable;
-
-        { pass inlinetree }
-        resulttypepass(inlinetree);
-        resulttype:=inlineprocdef.rettype;
-
-        { retrieve info from inlineprocdef }
-        retoffset:=-POINTER_SIZE; { less dangerous as zero (PM) }
-        para_offset:=0;
-        para_size:=inlineprocdef.para_size(target_info.alignment.paraalign);
-        if paramanager.ret_in_param(inlineprocdef.rettype.def,inlineprocdef.proccalloption) then
-          inc(para_size,POINTER_SIZE);
-
-        { restore current_procinfo }
-        current_procinfo.free;
-        current_procinfo:=oldprocinfo;
-        { restore symtable }
-        current_procdef.localst.symtablelevel:=storesymtablelevel;
-        current_procdef.localst.symtabletype:=storelocalsymtable;
-        current_procdef.parast.symtabletype:=storeparasymtable;
-        { restore }
-        current_procdef:=oldprocdef;
-        inlining_procedure:=oldinlining_procedure;
-      end;
-
-
-    function tprocinlinenode.pass_1 : tnode;
-      begin
-        firstpass(inlinetree);
-        registers32:=inlinetree.registers32;
-        registersfpu:=inlinetree.registersfpu;
-{$ifdef SUPPORT_MMX}
-        registersmmx:=inlinetree.registersmmx;
-{$endif SUPPORT_MMX}
-        result:=nil;
-      end;
-
-
-    function tprocinlinenode.docompare(p: tnode): boolean;
-      begin
-        docompare :=
-          inherited docompare(p) and
-          inlinetree.isequal(tprocinlinenode(p).inlinetree) and
-          (inlineprocdef = tprocinlinenode(p).inlineprocdef);
-      end;
-
 begin
    ccallnode:=tcallnode;
    ccallparanode:=tcallparanode;
-   cprocinlinenode:=tprocinlinenode;
 end.
 {
   $Log$
-  Revision 1.161  2003-05-25 11:34:17  peter
+  Revision 1.162  2003-05-26 21:17:17  peter
+    * procinlinenode removed
+    * aktexit2label removed, fast exit removed
+    + tcallnode.inlined_pass_2 added
+
+  Revision 1.161  2003/05/25 11:34:17  peter
     * methodpointer self pushing fixed
 
   Revision 1.160  2003/05/25 08:59:16  peter

@@ -695,152 +695,14 @@ implementation
 *****************************************************************************}
 
     procedure tcgexitnode.pass_2;
-
-      var
-         otlabel,oflabel : tasmlabel;
-         cgsize : tcgsize;
-         r,hreg : tregister;
-         allocated_acc,
-         allocated_acchigh: boolean;
-      label
-         do_jmp;
       begin
          location_reset(location,LOC_VOID,OS_NO);
 
          include(flowcontrol,fc_exit);
          if assigned(left) then
-           begin
-             if onlyassign then
-               begin
-                  { just do a normal assignment followed by exit }
-                  secondpass(left);
-                  cg.a_jmp_always(exprasmlist,aktexitlabel);
-               end
-             else
-               begin
-                  allocated_acc := false;
-                  allocated_acchigh := false;
-                  otlabel:=truelabel;
-                  oflabel:=falselabel;
-                  objectlibrary.getlabel(truelabel);
-                  objectlibrary.getlabel(falselabel);
-                  secondpass(left);
-                  { increment reference counter, this is
-                    useless for string constants }
-                  if (left.resulttype.def.needs_inittable) and
-                     (left.nodetype<>stringconstn) then
-                    cg.g_incrrefcount(exprasmlist,left.resulttype.def,left.location.reference,false);
-                  { the result of left is not needed anymore after this
-                    node }
-                  location_freetemp(exprasmlist,left.location);
-                  location_release(exprasmlist,left.location);
-                  case left.location.loc of
-                    LOC_FPUREGISTER :
-                      goto do_jmp;
-{$ifdef cpuflags}
-                    LOC_FLAGS :
-                      begin
-                        r.enum:=R_INTREGISTER;
-                        r.number:=NR_ACCUMULATOR;
-                        cg.a_reg_alloc(exprasmlist,r);
-                        allocated_acc := true;
-                        cg.g_flags2reg(exprasmlist,OS_INT,left.location.resflags,r);
-                        goto do_jmp;
-                      end;
-{$endif cpuflags}
-                    LOC_JUMP :
-                      begin
-                        r.enum:=R_INTREGISTER;
-                        r.number:=(RS_ACCUMULATOR shl 8) or R_SUBL;
-                        cg.a_reg_alloc(exprasmlist,r);
-                        { get an 8-bit register }
-                        allocated_acc := true;
-                        cg.a_label(exprasmlist,truelabel);
-                        cg.a_load_const_reg(exprasmlist,OS_8,1,r);
-                        cg.a_jmp_always(exprasmlist,aktexit2label);
-                        cg.a_label(exprasmlist,falselabel);
-                        cg.a_load_const_reg(exprasmlist,OS_8,0,r);
-                        goto do_jmp;
-                      end;
-                  end;
-                  case current_procdef.rettype.def.deftype of
-                    pointerdef,
-                    procvardef :
-                      begin
-                        r.enum:=R_INTREGISTER;
-                        r.number:=NR_ACCUMULATOR;
-                        cg.a_reg_alloc(exprasmlist,r);
-                        allocated_acc := true;
-                        cg.a_load_loc_reg(exprasmlist,left.location,r);
-                      end;
-                    floatdef :
-                      begin
-{$ifdef cpufpemu}
-                        if cs_fp_emulation in aktmoduleswitches then
-                           r.enum := accumulator
-                        else
-{$endif cpufpemu}
-                           r.enum:=fpu_result_reg;
-{$ifndef i386}
-                        cg.a_reg_alloc(exprasmlist,r);
-{$endif not i386}
-                        cg.a_loadfpu_loc_reg(exprasmlist,left.location,r);
-                      end;
-                    else
-                      begin
-                        cgsize:=def_cgsize(current_procdef.rettype.def);
-                        allocated_acc := true;
-{$ifndef cpu64bit}
+           secondpass(left);
 
-                        if cgsize in [OS_64,OS_S64] then
-                          begin
-                             r.enum:=R_INTREGISTER;
-                             r.number:=NR_ACCUMULATOR;
-                             hreg.enum:=R_INTREGISTER;
-                             hreg.number:=NR_ACCUMULATORHIGH;
-                             cg.a_reg_alloc(exprasmlist,r);
-                             cg.a_reg_alloc(exprasmlist,hreg);
-                             allocated_acchigh := true;
-                             cg64.a_load64_loc_reg(exprasmlist,left.location,
-                                 joinreg64(r,hreg));
-                           end
-                         else
-{$endif cpu64bit}
-                           begin
-                             r.enum:=R_INTREGISTER;
-                             r.number:=(RS_ACCUMULATOR shl 8) or cgsize2subreg(cgsize);
-                             cg.a_reg_alloc(exprasmlist,r);
-                             cg.a_load_loc_reg(exprasmlist,left.location,r);
-                           end;
-                     end;
-                  end;
-
-               do_jmp:
-                  truelabel:=otlabel;
-                  falselabel:=oflabel;
-                  cg.a_jmp_always(exprasmlist,aktexit2label);
-                  r.enum:=R_INTREGISTER;
-                  r.number:=NR_ACCUMULATOR;
-{$ifndef cpu64bit}
-                  hreg.enum:=R_INTREGISTER;
-                  hreg.number:=NR_ACCUMULATORHIGH;
-{$endif cpu64bit}
-
-                  if allocated_acc then
-                    cg.a_reg_dealloc(exprasmlist,r);
-{$ifndef cpu64bit}
-                  if allocated_acchigh then
-                    cg.a_reg_dealloc(exprasmlist,hreg);
-{$endif cpu64bit}
-{$ifndef i386}
-                  r.enum:=fpu_result_reg;
-                  if (current_procdef.rettype.def.deftype = floatdef) then
-                    cg.a_reg_dealloc(exprasmlist,r);
-{$endif not i386}
-               end;
-           end
-         else
-           cg.a_jmp_always(exprasmlist,aktexitlabel);
+         cg.a_jmp_always(exprasmlist,aktexitlabel);
        end;
 
 
@@ -1033,7 +895,6 @@ implementation
          doobjectdestroy,
          doobjectdestroyandreraise,
          oldaktexitlabel,
-         oldaktexit2label,
          oldaktcontinuelabel,
          oldaktbreaklabel : tasmlabel;
          oldflowcontrol,tryflowcontrol,
@@ -1054,7 +915,6 @@ implementation
 
          { save the old labels for control flow statements }
          oldaktexitlabel:=aktexitlabel;
-         oldaktexit2label:=aktexit2label;
          if assigned(aktbreaklabel) then
            begin
               oldaktcontinuelabel:=aktcontinuelabel;
@@ -1082,7 +942,6 @@ implementation
          { try block }
          { set control flow labels for the try block }
          aktexitlabel:=exittrylabel;
-         aktexit2label:=exittrylabel;
          if assigned(oldaktbreaklabel) then
           begin
             aktcontinuelabel:=continuetrylabel;
@@ -1104,7 +963,6 @@ implementation
          { set control flow labels for the except block }
          { and the on statements                        }
          aktexitlabel:=exitexceptlabel;
-         aktexit2label:=exitexceptlabel;
          if assigned(oldaktbreaklabel) then
           begin
             aktcontinuelabel:=continueexceptlabel;
@@ -1228,7 +1086,6 @@ implementation
 
          { restore the control flow labels }
          aktexitlabel:=oldaktexitlabel;
-         aktexit2label:=oldaktexit2label;
          if assigned(oldaktbreaklabel) then
           begin
             aktcontinuelabel:=oldaktcontinuelabel;
@@ -1248,7 +1105,6 @@ implementation
          continueonlabel,
          breakonlabel,
          oldaktexitlabel,
-         oldaktexit2label,
          oldaktcontinuelabel,
          doobjectdestroyandreraise,
          doobjectdestroy,
@@ -1295,10 +1151,8 @@ implementation
          if assigned(right) then
            begin
               oldaktexitlabel:=aktexitlabel;
-              oldaktexit2label:=aktexit2label;
               objectlibrary.getlabel(exitonlabel);
               aktexitlabel:=exitonlabel;
-              aktexit2label:=exitonlabel;
               if assigned(aktbreaklabel) then
                begin
                  oldaktcontinuelabel:=aktcontinuelabel;
@@ -1354,7 +1208,6 @@ implementation
                 end;
 
               aktexitlabel:=oldaktexitlabel;
-              aktexit2label:=oldaktexit2label;
               if assigned(oldaktbreaklabel) then
                begin
                  aktcontinuelabel:=oldaktcontinuelabel;
@@ -1387,7 +1240,6 @@ implementation
          continuefinallylabel,
          breakfinallylabel,
          oldaktexitlabel,
-         oldaktexit2label,
          oldaktcontinuelabel,
          oldaktbreaklabel : tasmlabel;
          oldflowcontrol,tryflowcontrol : tflowcontrol;
@@ -1409,13 +1261,11 @@ implementation
          { the finally block must catch break, continue and exit }
          { statements                                            }
          oldaktexitlabel:=aktexitlabel;
-         oldaktexit2label:=aktexit2label;
          if implicitframe then
            exitfinallylabel:=finallylabel
          else
            objectlibrary.getlabel(exitfinallylabel);
          aktexitlabel:=exitfinallylabel;
-         aktexit2label:=exitfinallylabel;
          if assigned(aktbreaklabel) then
           begin
             oldaktcontinuelabel:=aktcontinuelabel;
@@ -1528,7 +1378,6 @@ implementation
          cg.a_label(exprasmlist,endfinallylabel);
 
          aktexitlabel:=oldaktexitlabel;
-         aktexit2label:=oldaktexit2label;
          if assigned(aktbreaklabel) then
           begin
             aktcontinuelabel:=oldaktcontinuelabel;
@@ -1554,7 +1403,12 @@ begin
 end.
 {
   $Log$
-  Revision 1.63  2003-05-23 14:27:35  peter
+  Revision 1.64  2003-05-26 21:17:17  peter
+    * procinlinenode removed
+    * aktexit2label removed, fast exit removed
+    + tcallnode.inlined_pass_2 added
+
+  Revision 1.63  2003/05/23 14:27:35  peter
     * remove some unit dependencies
     * current_procinfo changes to store more info
 

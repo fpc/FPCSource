@@ -1180,8 +1180,7 @@ implementation
          if (m_delphi in aktmodeswitches) then
            exclude(po_comp,po_varargs);
          if ((po_comp * def1.procoptions)= (po_comp * def2.procoptions)) and
-            equal_defs(def1.rettype.def,def2.rettype.def) and
-            (def1.para_size(target_info.alignment.paraalign)=def2.para_size(target_info.alignment.paraalign)) then
+            equal_defs(def1.rettype.def,def2.rettype.def) then
           begin
             { return equal type based on the parameters, but a proc->procvar
               is never exact, so map an exact match of the parameters to
@@ -1211,7 +1210,12 @@ implementation
 end.
 {
   $Log$
-  Revision 1.25  2003-05-15 18:58:53  peter
+  Revision 1.26  2003-05-26 21:17:17  peter
+    * procinlinenode removed
+    * aktexit2label removed, fast exit removed
+    + tcallnode.inlined_pass_2 added
+
+  Revision 1.25  2003/05/15 18:58:53  peter
     * removed selfpointer_offset, vmtpointer_offset
     * tvarsym.adjusted_address
     * address in localsymtable is now in the real direction

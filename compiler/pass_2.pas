@@ -134,7 +134,6 @@ implementation
              'as',    {asn}
              'error-caret',       {caretn}
              'add-starstar',  {starstarn}
-             'procinline',  {procinlinen}
              'arrayconstruc', {arrayconstructn}
              'noth-arrcnstr',     {arrayconstructrangen}
              'tempcreaten',
@@ -301,7 +300,12 @@ implementation
 end.
 {
   $Log$
-  Revision 1.52  2003-05-15 18:58:53  peter
+  Revision 1.53  2003-05-26 21:17:17  peter
+    * procinlinenode removed
+    * aktexit2label removed, fast exit removed
+    + tcallnode.inlined_pass_2 added
+
+  Revision 1.52  2003/05/15 18:58:53  peter
     * removed selfpointer_offset, vmtpointer_offset
     * tvarsym.adjusted_address
     * address in localsymtable is now in the real direction

@@ -93,7 +93,6 @@ interface
        tfornodeclass = class of tfornode;
 
        texitnode = class(tunarynode)
-          onlyassign : boolean;
           constructor create(l:tnode);virtual;
           constructor ppuload(t:tnodetype;ppufile:tcompilerppufile);override;
           procedure ppuwrite(ppufile:tcompilerppufile);override;
@@ -835,56 +834,34 @@ implementation
     constructor texitnode.create(l:tnode);
       begin
         inherited create(exitn,l);
-        onlyassign:=false;
       end;
 
 
     constructor texitnode.ppuload(t:tnodetype;ppufile:tcompilerppufile);
       begin
         inherited ppuload(t,ppufile);
-        onlyassign:=boolean(ppufile.getbyte);
       end;
 
 
     procedure texitnode.ppuwrite(ppufile:tcompilerppufile);
       begin
         inherited ppuwrite(ppufile);
-        ppufile.putbyte(byte(onlyassign));
       end;
 
 
     function texitnode.det_resulttype:tnode;
       begin
         result:=nil;
-        { Check the 2 types }
-        if not inlining_procedure then
-         begin
-           if assigned(left) then
-            begin
-              inserttypeconv(left,current_procdef.rettype);
-              if paramanager.ret_in_param(current_procdef.rettype.def,current_procdef.proccalloption) or
-                 (current_procdef.proctypeoption=potype_constructor) or
-                 (pi_needs_implicit_finally in current_procinfo.flags) or
-                 (pi_uses_exceptions in current_procinfo.flags) then
-               begin
-                 left:=cassignmentnode.create(
-                     cloadnode.create(current_procdef.funcretsym,current_procdef.funcretsym.owner),
-                     left);
-                 onlyassign:=true;
-               end
-              else
-               begin
-                 { mark funcretsym as assigned }
-                 inc(tvarsym(current_procdef.funcretsym).refs);
-                 tvarsym(current_procdef.funcretsym).varstate:=vs_assigned;
-               end;
-            end;
-         end;
         if assigned(left) then
-         begin
-           resulttypepass(left);
-           set_varstate(left,true);
-         end;
+          begin
+            { add assignment to funcretsym }
+            inserttypeconv(left,current_procdef.rettype);
+            left:=cassignmentnode.create(
+                cloadnode.create(current_procdef.funcretsym,current_procdef.funcretsym.owner),
+                left);
+            resulttypepass(left);
+            set_varstate(left,true);
+          end;
         resulttype:=voidtype;
       end;
 
@@ -1449,7 +1426,12 @@ begin
 end.
 {
   $Log$
-  Revision 1.74  2003-05-13 19:14:41  peter
+  Revision 1.75  2003-05-26 21:17:17  peter
+    * procinlinenode removed
+    * aktexit2label removed, fast exit removed
+    + tcallnode.inlined_pass_2 added
+
+  Revision 1.74  2003/05/13 19:14:41  peter
     * failn removed
     * inherited result code check moven to pexpr
 

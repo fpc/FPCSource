@@ -109,7 +109,6 @@ interface
           asn,              {Represents the as typecast}
           caretn,           {Represents the ^ operator}
           starstarn,        {Represents the ** operator exponentiation }
-          procinlinen,      {Procedures that can be inlined }
           arrayconstructorn, {Construction node for [...] parsing}
           arrayconstructorrangen, {Range element to allow sets in array construction tree}
           tempcreaten,      { for temps in the result/firstpass }
@@ -188,7 +187,6 @@ interface
           'asn',
           'caretn',
           'starstarn',
-          'procinlinen',
           'arrayconstructn',
           'arrayconstructrangen',
           'tempcreaten',
@@ -984,7 +982,12 @@ implementation
 end.
 {
   $Log$
-  Revision 1.61  2003-05-13 19:14:41  peter
+  Revision 1.62  2003-05-26 21:17:17  peter
+    * procinlinenode removed
+    * aktexit2label removed, fast exit removed
+    + tcallnode.inlined_pass_2 added
+
+  Revision 1.61  2003/05/13 19:14:41  peter
     * failn removed
     * inherited result code check moven to pexpr
 
