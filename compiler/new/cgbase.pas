@@ -44,7 +44,7 @@ unit cgbase;
        TOpCg = (OP_ADD,OP_AND,OP_DIV,OP_IDIV,OP_IMUL,OP_MUL,OP_NEG,OP_NOT,
                    OP_OR,OP_SAR,OP_SHL,OP_SHR,OP_SUB,OP_XOR);
 
-       TOpCmp = (OC_EQ,OC_GT,OC_LT,OC_GTE,OC_LTE,OC_NE,OC_BE,OC_B,
+       TOpCmp = (OC_NONE,OC_EQ,OC_GT,OC_LT,OC_GTE,OC_LTE,OC_NE,OC_BE,OC_B,
                  OC_AE,OC_A);
 
        TCgSize = (OS_NO,OS_8,OS_16,OS_32,OS_64);
@@ -512,7 +512,10 @@ unit cgbase;
 end.
 {
   $Log$
-  Revision 1.13  1999-12-01 12:42:33  peter
+  Revision 1.14  1999-12-24 22:47:42  jonas
+    * added OC_NONE to the compare forms (to allow unconditional jumps)
+
+  Revision 1.13  1999/12/01 12:42:33  peter
     * fixed bug 698
     * removed some notes about unused vars
 
