@@ -1373,7 +1373,7 @@ var
       OPR_CONSTANT :
         inc(opr.val,l);
       OPR_REFERENCE :
-        inc(opr.ref.offset);
+        inc(opr.ref.offset,l);
       else
         internalerror(200309222);
     end;
@@ -1929,7 +1929,10 @@ finalization
 end.
 {
   $Log$
-  Revision 1.51  2003-09-23 17:56:06  peter
+  Revision 1.52  2003-09-23 20:37:53  peter
+    * fix global var+offset
+
+  Revision 1.51  2003/09/23 17:56:06  peter
     * locals and paras are allocated in the code generation
     * tvarsym.localloc contains the location of para/local when
       generating code for the current procedure
