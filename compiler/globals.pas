@@ -1070,7 +1070,8 @@ implementation
                   ((dir.attr and directory)<>0) then
                 begin
                   currpath:=hsd+dir.name+dirsep;
-                  if not assigned(Find(currPath)) then
+                  hp:=Find(currPath);
+                  if not assigned(hp) then
                    AddCurrPath;
                 end;
                findnext(dir);
@@ -1471,7 +1472,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.44  2000-01-06 15:48:59  peter
+  Revision 1.45  2000-01-07 00:08:09  peter
+    * tp7 fix
+
+  Revision 1.44  2000/01/06 15:48:59  peter
     * wildcard support for directory adding, this allows the use of units/*
       in ppc386.cfg
 
