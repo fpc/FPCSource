@@ -30,9 +30,9 @@ endif
 # Add required defines
 override FPCOPT+=-dBrowserCol -dGDB
 ifeq ($(CPU_TARGET),i386)
-override FPCOPT+=-dSUPPORT_MMX
+# the x86 dir doesn't hurt for 1.0.x though we could leave it away
+override FPCOPT+=-dSUPPORT_MMX -Fu$(COMPILERDIR)/x86
 endif
-
 
 [rules]
 .PHONY: compiler_ppuclean all clean install
