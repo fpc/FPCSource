@@ -1,7 +1,7 @@
 
                             Free Pascal Compiler
 
-                        Version 1.9.3 aka 2.0.0-Beta2.5
+                        Version 1.9.4 aka 2.0.0-Beta3
 
 
 ***************************************************
@@ -27,6 +27,7 @@ More platforms will be supported in future 1.9.x beta releases. Because release 
 ***************************************************
 Features
 ***************************************************
+
 - high speed compiler
 - fully 32-bit code
 - language features:
@@ -64,9 +65,26 @@ Quick start
 
 As there is currently no IDE (Integrated Development Environment) available for the Free Pascal Compiler (nor a plug-in to integrate it into Project Builder or XCode), you currently have to use Terminal to compile your files.
 
-After installing this package, you can write your source code in your favorite editor (including Project Builder and XCode). To compile something, go to the correct directory in Terminal and type
+The compiler is called "fpc" and will be installed in /usr/local/bin. This
+directory may not be in your PATH yet (if you type "fpc" in a Terminal
+window and you get something like "fpc: command not found", then it isn't).
 
-        fpc name_of_your_source_file.pas
+If the installation directory is not yet in your path, you will have to add it. Follow the instructions at "http://fink.sourceforge.net/doc/users-guide/install.php#setup" to determine which file you have to edit, but instead of adding the line suggested there, add the following at the end:
+
+- if your shell is the Bourne shell:
+	export PATH=/usr/local/bin:$PATH
+
+- if your shell is the C Shell:
+	setenv PATH /usr/local/bin:${PATH}
+
+Next, close the Terminal window and open a new one. Now the path should be set correctly.
+
+After installing the package, you can write your source code in your favorite editor (including Project Builder and XCode). To compile something, go to the directory containing your source files in Terminal
+and type
+
+        fpc name_of_your_source_file
+
+The compiler only accepts one file name as argument, but will automatically search for and compile any units used by the specified source file. Run "fpc" without any arguments to get an overview of the possible command line options.
 
 
 ***************************************************
@@ -75,6 +93,7 @@ Documentation
 
 The documentation is installed in PDF format in
 /Developer/Documentation/Free Pascal Compiler
+
 
 ***************************************************
 Suggestions, Help, Bug reporting, snapshots,  ...
@@ -94,6 +113,7 @@ ftp: ftp://ftp.freepascal.org/fpc
 Additional information about mailing lists, news, future plans etc.
 can be found on the web site.
 
+
 SNAPSHOTS & SOURCES
 -------------------
 One of the features of FPC is the snapshots. These are made daily or weekly from the developers' latest versions of the source. Snapshots are available for the GO32v2, Win32, OS/2 and Linux versions of the compiler/rtl. Snapshots are also available for the go32v2 & Win32 IDEs, and for FV, FCL, GTK and utils for GO32v2 and Win32. The latest snapshots are in: ftp... /fpc/snapshot/ in appropriately named .zip/tar files.
@@ -109,7 +129,7 @@ REPORTING BUGS
 ----------------
 If you find a bug in the released version, you may want to try a snapshot (see SNAPSHOTS above) to see if it has been fixed before reporting it to the fpc-devel mailing list.
 
-If you find a fault or 'feature' in a release, please report it to the fpc-devel mailing list. PLEASE SEND ALSO A SMALL EXTRACT OF THE SOURCE CODE which caused the problem, and state the version eg Win32, GO32v2, and the date of the compiler etc on which you noticed the problem & any other useful info so the developers can reproduce the problem, otherwise they may not be willing/able to fix it.
+If you find a fault or 'feature' in a release, please report it using the webform on our website or on the fpc-devel mailing list. PLEASE SEND ALSO A SMALL EXTRACT OF THE SOURCE CODE which caused the problem, and state the version eg Win32, GO32v2, and the date of the compiler etc on which you noticed the problem & any other useful info so the developers can reproduce the problem, otherwise they may not be willing/able to fix it.
 
 
 ***************************************************
