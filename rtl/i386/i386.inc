@@ -90,7 +90,8 @@ end;
 
 
 {$define FPC_SYSTEM_HAS_FILLCHAR}
-Procedure FillChar(var x;count:longint;value:byte);assembler;
+Procedure FillChar(var x;count:longint;value:byte);
+  [public,alias: 'FPC_FILLCHAR'];assembler;
 asm
         cld
         movl    x,%edi
@@ -1116,8 +1117,9 @@ asm
         cmpl    4(%edi),%ecx
         jle     .Lbc_ok
 .Lbc_err:
+        pushl   %ebp
         pushl   $201
-        call    HandleError
+        call    HandleErrorFrame
 .Lbc_ok:
 end;
 {$ifdef SYSTEMDEBUG}
@@ -1154,7 +1156,10 @@ end;
 
 {
   $Log$
-  Revision 1.69  2000-02-09 16:59:29  peter
+  Revision 1.70  2000-04-06 08:39:22  florian
+    * the bounds check error gets now a correct stack frame
+
+  Revision 1.69  2000/02/09 16:59:29  peter
     * truncated log
 
   Revision 1.68  2000/01/13 13:06:03  jonas
