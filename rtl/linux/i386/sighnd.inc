@@ -50,14 +50,14 @@ begin
               { first check the more precise options }
               if (FpuState and FPU_DivisionByZero)<>0 then
                 res:=200
+              else if (FpuState and (FPU_StackOverflow or FPU_StackUnderflow or FPU_Invalid))<>0 Then
+                res:=207
               else if (FpuState and FPU_Overflow)<>0 then
                 res:=205
               else if (FpuState and FPU_Underflow)<>0 then
                 res:=206
               else if (FpuState and FPU_Denormal)<>0 then
                 res:=216
-              else if (FpuState and (FPU_StackOverflow or FPU_StackUnderflow or FPU_Invalid))<>0 Then
-                res:=207
               else
                 res:=207;  {'Coprocessor Error'}
             end;
@@ -75,7 +75,11 @@ end;
 
 {
   $Log$
-  Revision 1.6  2005-02-14 17:13:30  peter
+  Revision 1.7  2005-02-17 18:05:57  peter
+    * change order of if to prevent always stack overflow instead
+      of generic fpu error when multiple states are set
+
+  Revision 1.6  2005/02/14 17:13:30  peter
     * truncate log
 
   Revision 1.5  2005/01/30 18:01:15  peter
