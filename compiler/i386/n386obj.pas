@@ -91,26 +91,20 @@ function getselfoffsetfromsp(procdef: tprocdef): longint;
 begin
   { framepointer is pushed for nested procs }
   if procdef.parast.symtablelevel>normal_function_level then
-    getselfoffsetfromsp:=8
+    getselfoffsetfromsp:=4
   else
-    getselfoffsetfromsp:=4;
+    getselfoffsetfromsp:=0;
 end;
 
 
 procedure ti386classheader.cgintfwrapper(asmlist: TAAsmoutput; procdef: tprocdef; const labelname: string; ioffset: longint);
-
-  procedure checkvirtual;
-  begin
-    if (procdef.extnumber=-1) then
-      Internalerror(200006139);
-  end;
 
   procedure getselftoeax(offs: longint);
   var
     href : treference;
   begin
     { mov offset(%esp),%eax }
-    reference_reset_base(href,NR_ESP,getselfoffsetfromsp(procdef));
+    reference_reset_base(href,NR_ESP,getselfoffsetfromsp(procdef)+offs);
     cg.a_load_ref_reg(exprasmlist,OS_ADDR,OS_ADDR,href,NR_EAX);
   end;
 
@@ -118,16 +112,17 @@ procedure ti386classheader.cgintfwrapper(asmlist: TAAsmoutput; procdef: tprocdef
   var
     href : treference;
   begin
-    checkvirtual;
     { mov  0(%eax),%eax ; load vmt}
     reference_reset_base(href,NR_EAX,0);
-    emit_ref_reg(A_MOV,S_L,href,NR_EAX);
+    cg.a_load_ref_reg(exprasmlist,OS_ADDR,OS_ADDR,href,NR_EAX);
   end;
 
   procedure op_oneaxmethodaddr(op: TAsmOp);
   var
     href : treference;
   begin
+    if (procdef.extnumber=-1) then
+      Internalerror(200006139);
     { call/jmp  vmtoffs(%eax) ; method offs }
     reference_reset_base(href,NR_EAX,procdef._class.vmtmethodoffset(procdef.extnumber));
     emit_ref(op,S_L,href);
@@ -137,9 +132,11 @@ procedure ti386classheader.cgintfwrapper(asmlist: TAAsmoutput; procdef: tprocdef
   var
     href : treference;
   begin
-    { mov  vmtoffs(%eax),%eax ; method offs }
+    if (procdef.extnumber=-1) then
+      Internalerror(200006139);
+    { mov vmtoffs(%eax),%eax ; method offs }
     reference_reset_base(href,NR_EAX,procdef._class.vmtmethodoffset(procdef.extnumber));
-    emit_ref_reg(A_MOV,S_L,href,NR_EAX);
+    cg.a_load_ref_reg(exprasmlist,OS_ADDR,OS_ADDR,href,NR_EAX);
   end;
 
 var
@@ -226,7 +223,10 @@ initialization
 end.
 {
   $Log$
-  Revision 1.23  2003-09-23 17:56:06  peter
+  Revision 1.24  2003-09-25 14:59:06  peter
+    * fix intf wrapper code
+
+  Revision 1.23  2003/09/23 17:56:06  peter
     * locals and paras are allocated in the code generation
     * tvarsym.localloc contains the location of para/local when
       generating code for the current procedure
