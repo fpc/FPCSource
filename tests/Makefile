@@ -397,16 +397,16 @@ endif
 else
 CROSSBINDIR=
 endif
-ifdef inUnix
+ifeq ($(OS_SOURCE),linux)
 ifndef GCCLIBDIR
 GCCLIBDIR:=$(shell dirname `(gcc -v 2>&1)| head -n 1| awk '{ print $$4 } '`)
 endif
-ifeq ($(OS_TARGET),linux)
 ifndef OTHERLIBDIR
 OTHERLIBDIR:=$(shell grep -v "^\#" /etc/ld.so.conf | awk '{ ORS=" "; print $1 }')
 endif
 endif
-ifeq ($(OS_TARGET),netbsd)
+ifdef inUnix
+ifeq ($(OS_SOURCE),netbsd)
 OTHERLIBDIR+=/usr/pkg/lib
 endif
 export GCCLIBDIR OTHERLIB
@@ -805,14 +805,16 @@ TARPROG:=$(firstword $(TARPROG))
 endif
 endif
 export TARPROG
-ASNAME=as
-LDNAME=ld
-ARNAME=ar
-RCNAME=rc
+ASNAME=$(BINUTILSPREFIX)as
+LDNAME=$(BINUTILSPREFIX)ld
+ARNAME=$(BINUTILSPREFIX)ar
+RCNAME=$(BINUTILSPREFIX)rc
+ifeq ($(findstring 1.0.,$(FPC_VERSION)),)
 ifeq ($(OS_TARGET),win32)
 ASNAME=asw
 LDNAME=ldw
 ARNAME=arw
+endif
 endif
 ifndef ASPROG
 ifdef CROSSBINDIR
@@ -1087,6 +1089,11 @@ override FPCOPT+=-T$(OS_TARGET)
 endif
 ifeq ($(OS_SOURCE),openbsd)
 override FPCOPT+=-FD$(NEW_BINUTILS_PATH)
+endif
+ifndef CROSSBOOTSTRAP
+ifneq ($(BINUTILSPREFIX),)
+override FPCOPT+=-XP$(BINUTILSPREFIX)
+endif
 endif
 ifdef UNITDIR
 override FPCOPT+=$(addprefix -Fu,$(UNITDIR))
