@@ -47,6 +47,7 @@ unit cgcpu;
         function  getmmregister(list:Taasmoutput;size:Tcgsize):Tregister;override;
         procedure getexplicitregister(list:Taasmoutput;r:Tregister);override;
         procedure ungetregister(list:Taasmoutput;r:Tregister);override;
+        procedure ungetreference(list:Taasmoutput;const r:Treference);override;
         procedure add_move_instruction(instr:Taicpu);override;
         procedure do_register_allocation(list:Taasmoutput;headertai:tai);override;
         procedure allocexplicitregisters(list:Taasmoutput;rt:Tregistertype;r:Tcpuregisterset);override;
@@ -251,6 +252,15 @@ const
           else
             internalerror(200310091);
         end;
+      end;
+
+
+    procedure tcgppc.ungetreference(list:Taasmoutput;const r:Treference);
+      begin
+        if r.base<>NR_NO then
+          rgint.ungetregister(list,r.base);
+        if r.index<>NR_NO then
+          rgint.ungetregister(list,r.index);
       end;
 
 
@@ -2489,7 +2499,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.134  2003-10-19 01:34:30  florian
+  Revision 1.135  2003-11-02 15:20:06  jonas
+    * fixed releasing of references (ppc also has a base and an index, not
+      just a base)
+
+  Revision 1.134  2003/10/19 01:34:30  florian
     * some ppc stuff fixed
     * memory leak fixed
 
