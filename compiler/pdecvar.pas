@@ -1112,8 +1112,7 @@ implementation
               uniontype.sym:=nil;
               UnionSym:=tvarsym.create('$case',vs_value,uniontype);
               symtablestack:=symtablestack.next;
-              { we do NOT call symtablestack.insert
-               on purpose PM }
+              { Align the offset where the union symtable is added }
               if trecordsymtable(symtablestack).usefieldalignment=-1 then
                begin
 {$ifdef i386}
@@ -1137,7 +1136,7 @@ implementation
               trecordsymtable(symtablestack).datasize:=offset+unionsymtable.datasize;
               if maxalignment>trecordsymtable(symtablestack).fieldalignment then
                 trecordsymtable(symtablestack).fieldalignment:=maxalignment;
-              Unionsymtable.Insert_in(trecordsymtable(symtablestack),offset);
+              trecordsymtable(symtablestack).insertunionst(Unionsymtable,offset);
               Unionsym.owner:=nil;
               unionsym.free;
               uniondef.owner:=nil;
@@ -1152,7 +1151,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.61  2004-01-28 22:16:31  peter
+  Revision 1.62  2004-01-29 16:51:29  peter
+    * fixed alignment calculation for variant records
+    * fixed alignment padding of records
+
+  Revision 1.61  2004/01/28 22:16:31  peter
     * more record alignment fixes
 
   Revision 1.60  2004/01/28 20:30:18  peter

@@ -243,9 +243,8 @@ implementation
          consume(_END);
          typecanbeforward:=storetypecanbeforward;
          current_object_option:=old_object_option;
-         { may be scale record size to a size of n*4 ? }
-         trecordsymtable(symtablestack).datasize:=align(trecordsymtable(symtablestack).datasize,
-             trecordsymtable(symtablestack).fieldalignment);
+         { make the record size aligned }
+         trecordsymtable(symtablestack).addalignmentpadding;
          { restore symtable stack }
          symtablestack:=symtable.next;
       end;
@@ -644,7 +643,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.62  2004-01-28 22:16:31  peter
+  Revision 1.63  2004-01-29 16:51:29  peter
+    * fixed alignment calculation for variant records
+    * fixed alignment padding of records
+
+  Revision 1.62  2004/01/28 22:16:31  peter
     * more record alignment fixes
 
   Revision 1.61  2004/01/28 20:30:18  peter

@@ -102,12 +102,13 @@ interface
           procedure load_references(ppufile:tcompilerppufile;locals:boolean);override;
           procedure write_references(ppufile:tcompilerppufile;locals:boolean);override;
           procedure insertfield(sym:tvarsym;addsym:boolean);
+          procedure addalignmentpadding;
        end;
 
        trecordsymtable = class(tabstractrecordsymtable)
        public
           constructor create(usealign:shortint);
-          procedure insert_in(tsymt : trecordsymtable;offset : longint);
+          procedure insertunionst(unionst : trecordsymtable;offset : longint);
        end;
 
        tobjectsymtable = class(tabstractrecordsymtable)
@@ -1102,6 +1103,24 @@ implementation
       end;
 
 
+    procedure tabstractrecordsymtable.addalignmentpadding;
+      var
+        padalign : shortint;
+      begin
+        { make the record size aligned correctly so it can be
+          used as elements in an array. For C records we
+          use the fieldalignment, because that is updated with the
+          used alignment. For normal records we use minimum from
+          recordalginment or fieldalignment. This is required to
+          be able to override the natural alignment with 'packed' }
+        if usefieldalignment=-1 then
+          padalign:=fieldalignment
+        else
+          padalign:=min(fieldalignment,recordalignment);
+        datasize:=align(datasize,padalign);
+      end;
+
+
 {****************************************************************************
                               TRecordSymtable
 ****************************************************************************}
@@ -1118,45 +1137,49 @@ implementation
     { the offset is the location of the start of the variant
       and datasize and dataalignment corresponds to
       the complete size (see code in pdecl unit) PM }
-    procedure trecordsymtable.insert_in(tsymt : trecordsymtable;offset : longint);
+    procedure trecordsymtable.insertunionst(unionst : trecordsymtable;offset : longint);
       var
         ps,nps : tvarsym;
         pd,npd : tdef;
+        varalignrecord,
         storesize,storealign : longint;
       begin
-        storesize:=tsymt.datasize;
-        storealign:=tsymt.fieldalignment;
-        tsymt.datasize:=offset;
-        ps:=tvarsym(symindex.first);
+        storesize:=datasize;
+        storealign:=fieldalignment;
+        datasize:=offset;
+        ps:=tvarsym(unionst.symindex.first);
         while assigned(ps) do
           begin
             nps:=tvarsym(ps.indexnext);
             { remove from current symtable }
-            symindex.deleteindex(ps);
+            unionst.symindex.deleteindex(ps);
             ps.left:=nil;
             ps.right:=nil;
-            { add to symt }
-            ps.owner:=tsymt;
-            tsymt.datasize:=ps.fieldoffset+offset;
-            tsymt.symindex.insert(ps);
-            tsymt.symsearch.insert(ps);
+            { add to this record }
+            ps.owner:=self;
+            datasize:=ps.fieldoffset+offset;
+            symindex.insert(ps);
+            symsearch.insert(ps);
             { update address }
-            ps.fieldoffset:=tsymt.datasize;
+            ps.fieldoffset:=datasize;
+            { update alignment of this record }
+            varalignrecord:=used_align(ps.vartype.def.alignment,aktalignment.recordalignmin,aktalignment.recordalignmax);
+            recordalignment:=max(recordalignment,varalignrecord);
             { next }
             ps:=nps;
           end;
-        pd:=tdef(defindex.first);
+        pd:=tdef(unionst.defindex.first);
         while assigned(pd) do
           begin
             npd:=tdef(pd.indexnext);
-            defindex.deleteindex(pd);
+            unionst.defindex.deleteindex(pd);
             pd.left:=nil;
             pd.right:=nil;
-            tsymt.registerdef(pd);
+            registerdef(pd);
             pd:=npd;
           end;
-        tsymt.datasize:=storesize;
-        tsymt.fieldalignment:=storealign;
+        datasize:=storesize;
+        fieldalignment:=storealign;
       end;
 
 
@@ -2310,7 +2333,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.128  2004-01-28 22:16:31  peter
+  Revision 1.129  2004-01-29 16:51:29  peter
+    * fixed alignment calculation for variant records
+    * fixed alignment padding of records
+
+  Revision 1.128  2004/01/28 22:16:31  peter
     * more record alignment fixes
 
   Revision 1.127  2004/01/28 20:30:18  peter
