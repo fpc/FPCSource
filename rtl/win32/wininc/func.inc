@@ -156,7 +156,7 @@ function PulseEvent(hEvent:HANDLE):WINBOOL; external 'kernel32' name 'PulseEvent
 function ReleaseSemaphore(hSemaphore:HANDLE; lReleaseCount:LONG; lpPreviousCount:LPLONG):WINBOOL; external 'kernel32' name 'ReleaseSemaphore';
 function ReleaseMutex(hMutex:HANDLE):WINBOOL; external 'kernel32' name 'ReleaseMutex';
 function WaitForSingleObject(hHandle:HANDLE; dwMilliseconds:DWORD):DWORD; external 'kernel32' name 'WaitForSingleObject';
-function WaitForMultipleObjects(nCount:DWORD; var lpHandles:HANDLE; bWaitAll:WINBOOL; dwMilliseconds:DWORD):DWORD; external 'kernel32' name 'WaitForMultipleObjects';
+function WaitForMultipleObjects(nCount:DWORD; lpHandles : PWOHandleArray; bWaitAll:WINBOOL; dwMilliseconds:DWORD):DWORD; external 'kernel32' name 'WaitForMultipleObjects';
 procedure Sleep(dwMilliseconds:DWORD); external 'kernel32' name 'Sleep';
 function LoadResource(hModule:HINST; hResInfo:HRSRC):HGLOBAL; external 'kernel32' name 'LoadResource';
 function SizeofResource(hModule:HINST; hResInfo:HRSRC):DWORD; external 'kernel32' name 'SizeofResource';
@@ -2226,7 +2226,10 @@ end;
 
 {
   $Log$
-  Revision 1.5  2001-06-13 18:32:55  peter
+  Revision 1.6  2002-01-19 11:58:20  peter
+    * more functions from webbugs
+
+  Revision 1.5  2001/06/13 18:32:55  peter
     * fixed crash within donevideo (merged)
 
   Revision 1.4  2001/02/09 23:08:31  peter

@@ -446,6 +446,7 @@ function ExtractIcon(_para1:HINST; _para2:Pchar; _para3:cardinal):HICON;external
 function FindExecutable(_para1:pchar; _para2:pchar;_para3:pchar):HINST; external 'shell32' name 'FindExecutableA';
 function ShellAbout(_para1:HWND; _para2:pchar; _para3:pchar;_para4:HICON):longint; external 'shell32' name 'ShellAboutA';
 function ShellExecute(_para1:HWND; _para2:pchar; _para3:pchar;_para4:pchar; _para5:pchar;_para6:longint):HINST; external 'shell32' name 'ShellExecuteA';
+function Shell_NotifyIcon(dwMessage: DWORD; lpData: PNotifyIconDataA): BOOL; external 'shell32' name 'Shell_NotifyIconA';
 function DdeCreateStringHandle(_para1:DWORD; _para2:pchar;_para3:longint):HSZ; external 'user32' name 'DdeCreateStringHandleA';
 function DdeInitialize(_para1:LPDWORD; _para2:PFNCALLBACK; _para3:DWORD; _para4:DWORD):UINT;external 'user32' name 'DdeInitializeA';
 function DdeQueryString(_para1:DWORD; _para2:HSZ; _para3:pchar;_para4:DWORD; _para5:longint):DWORD; external 'user32' name 'DdeQueryStringA';
@@ -487,7 +488,10 @@ end;
 
 {
   $Log$
-  Revision 1.3  2000-10-11 16:05:55  peter
+  Revision 1.4  2002-01-19 11:58:20  peter
+    * more functions from webbugs
+
+  Revision 1.3  2000/10/11 16:05:55  peter
     * stdcall for callbacks (merged)
 
   Revision 1.2  2000/07/13 11:33:58  michael

@@ -453,6 +453,7 @@ function ExtractIconW(_para1:HINST; _para2:LPCWSTR; _para3:cardinal):HICON; exte
 function FindExecutableW(_para1:LPCWSTR; _para2:LPCWSTR; _para3:LPCWSTR):HINST; external 'shell32' name 'FindExecutableW';
 function ShellAboutW(_para1:HWND; _para2:LPCWSTR; _para3:LPCWSTR; _para4:HICON):longint; external 'shell32' name 'ShellAboutW';
 function ShellExecuteW(_para1:HWND; _para2:LPCWSTR; _para3:LPCWSTR; _para4:LPCWSTR; _para5:LPCWSTR;_para6:longint):HINST; external 'shell32' name 'ShellExecuteW';
+function Shell_NotifyIconW(dwMessage: DWORD; lpData: PNotifyIconDataA): BOOL; external 'shell32' name 'Shell_NotifyIconW';
 function DdeCreateStringHandleW(_para1:DWORD; _para2:LPCWSTR; _para3:longint):HSZ; external 'user32' name 'DdeCreateStringHandleW';
 function DdeInitializeW(_para1:LPDWORD; _para2:PFNCALLBACK; _para3:DWORD; _para4:DWORD):UINT; external 'user32' name 'DdeInitializeW';
 function DdeQueryStringW(_para1:DWORD; _para2:HSZ; _para3:LPCWSTR; _para4:DWORD; _para5:longint):DWORD; external 'user32' name 'DdeQueryStringW';
@@ -493,7 +494,10 @@ end;
 
 {
   $Log$
-  Revision 1.3  2000-10-11 16:05:56  peter
+  Revision 1.4  2002-01-19 11:58:22  peter
+    * more functions from webbugs
+
+  Revision 1.3  2000/10/11 16:05:56  peter
     * stdcall for callbacks (merged)
 
   Revision 1.2  2000/07/13 11:34:03  michael

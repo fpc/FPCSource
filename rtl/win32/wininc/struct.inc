@@ -746,7 +746,7 @@
      DCB = record
           DCBlength : DWORD;
           BaudRate : DWORD;
-          flag0 : DWORD;
+          flags : DWORD;
           wReserved : WORD;
           XonLim : WORD;
           XoffLim : WORD;
@@ -6449,6 +6449,39 @@
      TIMAGEDOSHEADER = IMAGE_DOS_HEADER;
      PIMAGEDOSHEADER = ^IMAGE_DOS_HEADER;
 
+      _NOTIFYICONDATAA = record
+          cbSize: DWORD;
+          Wnd: HWND;
+          uID: UINT;
+          uFlags: UINT;
+          uCallbackMessage: UINT;
+          hIcon: HICON;
+          szTip: array [0..63] of Char;
+     end;
+     _NOTIFYICONDATA = _NOTIFYICONDATAA;
+
+     _NOTIFYICONDATAW = record
+         cbSize: DWORD;
+         Wnd: HWND;
+         uID: UINT;
+         uFlags: UINT;
+         uCallbackMessage: UINT;
+         hIcon: HICON;
+         szTip: array [0..63] of Word;
+     end;
+     TNotifyIconDataA = _NOTIFYICONDATAA;
+     TNotifyIconDataW = _NOTIFYICONDATAW;
+     TNotifyIconData = TNotifyIconDataA;
+     NOTIFYICONDATAA = _NOTIFYICONDATAA;
+     NOTIFYICONDATAW = _NOTIFYICONDATAW;
+     NOTIFYICONDATA = NOTIFYICONDATAA;
+     PNotifyIconDataA = ^TNotifyIconDataA;
+     PNotifyIconDataW = ^TNotifyIconDataW;
+     PNotifyIconData = PNotifyIconDataA;
+
+     TWOHandleArray = array[0..MAXIMUM_WAIT_OBJECTS-1] of HANDLE;
+     PWOHandleArray = ^TWOHandleArray;
+
 {$ifndef HASVARIANT}
   { This causes trouble with a compiler which has real variant support FK }
   { Variant support }
@@ -6508,142 +6541,142 @@ type
 
   function fBinary(var a : DCB) : DWORD;
     begin
-       fBinary:=(a.flag0 and bm_DCB_fBinary) shr bp_DCB_fBinary;
+       fBinary:=(a.flags and bm_DCB_fBinary) shr bp_DCB_fBinary;
     end;
 
   procedure set_fBinary(var a : DCB; __fBinary : DWORD);
     begin
-       a.flag0:=a.flag0 or ((__fBinary shl bp_DCB_fBinary) and bm_DCB_fBinary);
+       a.flags:=a.flags or ((__fBinary shl bp_DCB_fBinary) and bm_DCB_fBinary);
     end;
 
   function fParity(var a : DCB) : DWORD;
     begin
-       fParity:=(a.flag0 and bm_DCB_fParity) shr bp_DCB_fParity;
+       fParity:=(a.flags and bm_DCB_fParity) shr bp_DCB_fParity;
     end;
 
   procedure set_fParity(var a : DCB; __fParity : DWORD);
     begin
-       a.flag0:=a.flag0 or ((__fParity shl bp_DCB_fParity) and bm_DCB_fParity);
+       a.flags:=a.flags or ((__fParity shl bp_DCB_fParity) and bm_DCB_fParity);
     end;
 
   function fOutxCtsFlow(var a : DCB) : DWORD;
     begin
-       fOutxCtsFlow:=(a.flag0 and bm_DCB_fOutxCtsFlow) shr bp_DCB_fOutxCtsFlow;
+       fOutxCtsFlow:=(a.flags and bm_DCB_fOutxCtsFlow) shr bp_DCB_fOutxCtsFlow;
     end;
 
   procedure set_fOutxCtsFlow(var a : DCB; __fOutxCtsFlow : DWORD);
     begin
-       a.flag0:=a.flag0 or ((__fOutxCtsFlow shl bp_DCB_fOutxCtsFlow) and bm_DCB_fOutxCtsFlow);
+       a.flags:=a.flags or ((__fOutxCtsFlow shl bp_DCB_fOutxCtsFlow) and bm_DCB_fOutxCtsFlow);
     end;
 
   function fOutxDsrFlow(var a : DCB) : DWORD;
     begin
-       fOutxDsrFlow:=(a.flag0 and bm_DCB_fOutxDsrFlow) shr bp_DCB_fOutxDsrFlow;
+       fOutxDsrFlow:=(a.flags and bm_DCB_fOutxDsrFlow) shr bp_DCB_fOutxDsrFlow;
     end;
 
   procedure set_fOutxDsrFlow(var a : DCB; __fOutxDsrFlow : DWORD);
     begin
-       a.flag0:=a.flag0 or ((__fOutxDsrFlow shl bp_DCB_fOutxDsrFlow) and bm_DCB_fOutxDsrFlow);
+       a.flags:=a.flags or ((__fOutxDsrFlow shl bp_DCB_fOutxDsrFlow) and bm_DCB_fOutxDsrFlow);
     end;
 
   function fDtrControl(var a : DCB) : DWORD;
     begin
-       fDtrControl:=(a.flag0 and bm_DCB_fDtrControl) shr bp_DCB_fDtrControl;
+       fDtrControl:=(a.flags and bm_DCB_fDtrControl) shr bp_DCB_fDtrControl;
     end;
 
   procedure set_fDtrControl(var a : DCB; __fDtrControl : DWORD);
     begin
-       a.flag0:=a.flag0 or ((__fDtrControl shl bp_DCB_fDtrControl) and bm_DCB_fDtrControl);
+       a.flags:=a.flags or ((__fDtrControl shl bp_DCB_fDtrControl) and bm_DCB_fDtrControl);
     end;
 
   function fDsrSensitivity(var a : DCB) : DWORD;
     begin
-       fDsrSensitivity:=(a.flag0 and bm_DCB_fDsrSensitivity) shr bp_DCB_fDsrSensitivity;
+       fDsrSensitivity:=(a.flags and bm_DCB_fDsrSensitivity) shr bp_DCB_fDsrSensitivity;
     end;
 
   procedure set_fDsrSensitivity(var a : DCB; __fDsrSensitivity : DWORD);
     begin
-       a.flag0:=a.flag0 or ((__fDsrSensitivity shl bp_DCB_fDsrSensitivity) and bm_DCB_fDsrSensitivity);
+       a.flags:=a.flags or ((__fDsrSensitivity shl bp_DCB_fDsrSensitivity) and bm_DCB_fDsrSensitivity);
     end;
 
   function fTXContinueOnXoff(var a : DCB) : DWORD;
     begin
-       fTXContinueOnXoff:=(a.flag0 and bm_DCB_fTXContinueOnXoff) shr bp_DCB_fTXContinueOnXoff;
+       fTXContinueOnXoff:=(a.flags and bm_DCB_fTXContinueOnXoff) shr bp_DCB_fTXContinueOnXoff;
     end;
 
   procedure set_fTXContinueOnXoff(var a : DCB; __fTXContinueOnXoff : DWORD);
     begin
-       a.flag0:=a.flag0 or ((__fTXContinueOnXoff shl bp_DCB_fTXContinueOnXoff) and bm_DCB_fTXContinueOnXoff);
+       a.flags:=a.flags or ((__fTXContinueOnXoff shl bp_DCB_fTXContinueOnXoff) and bm_DCB_fTXContinueOnXoff);
     end;
 
   function fOutX(var a : DCB) : DWORD;
     begin
-       fOutX:=(a.flag0 and bm_DCB_fOutX) shr bp_DCB_fOutX;
+       fOutX:=(a.flags and bm_DCB_fOutX) shr bp_DCB_fOutX;
     end;
 
   procedure set_fOutX(var a : DCB; __fOutX : DWORD);
     begin
-       a.flag0:=a.flag0 or ((__fOutX shl bp_DCB_fOutX) and bm_DCB_fOutX);
+       a.flags:=a.flags or ((__fOutX shl bp_DCB_fOutX) and bm_DCB_fOutX);
     end;
 
   function fInX(var a : DCB) : DWORD;
     begin
-       fInX:=(a.flag0 and bm_DCB_fInX) shr bp_DCB_fInX;
+       fInX:=(a.flags and bm_DCB_fInX) shr bp_DCB_fInX;
     end;
 
   procedure set_fInX(var a : DCB; __fInX : DWORD);
     begin
-       a.flag0:=a.flag0 or ((__fInX shl bp_DCB_fInX) and bm_DCB_fInX);
+       a.flags:=a.flags or ((__fInX shl bp_DCB_fInX) and bm_DCB_fInX);
     end;
 
   function fErrorChar(var a : DCB) : DWORD;
     begin
-       fErrorChar:=(a.flag0 and bm_DCB_fErrorChar) shr bp_DCB_fErrorChar;
+       fErrorChar:=(a.flags and bm_DCB_fErrorChar) shr bp_DCB_fErrorChar;
     end;
 
   procedure set_fErrorChar(var a : DCB; __fErrorChar : DWORD);
     begin
-       a.flag0:=a.flag0 or ((__fErrorChar shl bp_DCB_fErrorChar) and bm_DCB_fErrorChar);
+       a.flags:=a.flags or ((__fErrorChar shl bp_DCB_fErrorChar) and bm_DCB_fErrorChar);
     end;
 
   function fNull(var a : DCB) : DWORD;
     begin
-       fNull:=(a.flag0 and bm_DCB_fNull) shr bp_DCB_fNull;
+       fNull:=(a.flags and bm_DCB_fNull) shr bp_DCB_fNull;
     end;
 
   procedure set_fNull(var a : DCB; __fNull : DWORD);
     begin
-       a.flag0:=a.flag0 or ((__fNull shl bp_DCB_fNull) and bm_DCB_fNull);
+       a.flags:=a.flags or ((__fNull shl bp_DCB_fNull) and bm_DCB_fNull);
     end;
 
   function fRtsControl(var a : DCB) : DWORD;
     begin
-       fRtsControl:=(a.flag0 and bm_DCB_fRtsControl) shr bp_DCB_fRtsControl;
+       fRtsControl:=(a.flags and bm_DCB_fRtsControl) shr bp_DCB_fRtsControl;
     end;
 
   procedure set_fRtsControl(var a : DCB; __fRtsControl : DWORD);
     begin
-       a.flag0:=a.flag0 or ((__fRtsControl shl bp_DCB_fRtsControl) and bm_DCB_fRtsControl);
+       a.flags:=a.flags or ((__fRtsControl shl bp_DCB_fRtsControl) and bm_DCB_fRtsControl);
     end;
 
   function fAbortOnError(var a : DCB) : DWORD;
     begin
-       fAbortOnError:=(a.flag0 and bm_DCB_fAbortOnError) shr bp_DCB_fAbortOnError;
+       fAbortOnError:=(a.flags and bm_DCB_fAbortOnError) shr bp_DCB_fAbortOnError;
     end;
 
   procedure set_fAbortOnError(var a : DCB; __fAbortOnError : DWORD);
     begin
-       a.flag0:=a.flag0 or ((__fAbortOnError shl bp_DCB_fAbortOnError) and bm_DCB_fAbortOnError);
+       a.flags:=a.flags or ((__fAbortOnError shl bp_DCB_fAbortOnError) and bm_DCB_fAbortOnError);
     end;
 
   function fDummy2(var a : DCB) : DWORD;
     begin
-       fDummy2:=(a.flag0 and bm_DCB_fDummy2) shr bp_DCB_fDummy2;
+       fDummy2:=(a.flags and bm_DCB_fDummy2) shr bp_DCB_fDummy2;
     end;
 
   procedure set_fDummy2(var a : DCB; __fDummy2 : DWORD);
     begin
-       a.flag0:=a.flag0 or ((__fDummy2 shl bp_DCB_fDummy2) and bm_DCB_fDummy2);
+       a.flags:=a.flags or ((__fDummy2 shl bp_DCB_fDummy2) and bm_DCB_fDummy2);
     end;
 
   function fCtsHold(var a : COMSTAT) : DWORD;
@@ -6970,7 +7003,10 @@ type
 
 {
   $Log$
-  Revision 1.10  2001-08-19 09:27:52  florian
+  Revision 1.11  2002-01-19 11:58:21  peter
+    * more functions from webbugs
+
+  Revision 1.10  2001/08/19 09:27:52  florian
     + a lot of constants added
 
   Revision 1.9  2001/08/04 10:25:46  peter

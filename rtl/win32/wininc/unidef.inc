@@ -453,7 +453,8 @@ function ExtractIcon(_para1:HINST; _para2:LPCWSTR; _para3:cardinal):HICON; exter
 function FindExecutable(_para1:LPCWSTR; _para2:LPCWSTR; _para3:LPCWSTR):HINST; external 'shell32' name 'FindExecutableW';
 function ShellAbout(_para1:HWND; _para2:LPCWSTR; _para3:LPCWSTR; _para4:HICON):longint; external 'shell32' name 'ShellAboutW';
 function ShellExecute(_para1:HWND; _para2:LPCWSTR; _para3:LPCWSTR; _para4:LPCWSTR; _para5:LPCWSTR;_para6:longint):HINST; external 'shell32' name 'ShellExecuteW';
-function DdeCreateStringHandle(_para1:DWORD; _para2:LPCWSTR; _para3:longint):HSZ; external 'user32' name 'DdeCreateStringHandleW';
+function Shell_NotifyIcon(dwMessage: DWORD; lpData: PNotifyIconDataA): BOOL; external 'shell32' name 'Shell_NotifyIconW';
+unction DdeCreateStringHandle(_para1:DWORD; _para2:LPCWSTR; _para3:longint):HSZ; external 'user32' name 'DdeCreateStringHandleW';
 function DdeInitialize(_para1:LPDWORD; _para2:PFNCALLBACK; _para3:DWORD; _para4:DWORD):UINT; external 'user32' name 'DdeInitializeW';
 function DdeQueryString(_para1:DWORD; _para2:HSZ; _para3:LPCWSTR; _para4:DWORD; _para5:longint):DWORD; external 'user32' name 'DdeQueryStringW';
 function LogonUser(_para1:LPWSTR; _para2:LPWSTR; _para3:LPWSTR; _para4:DWORD; _para5:DWORD;_para6:PHANDLE):WINBOOL; external 'advapi32' name 'LogonUserW';
@@ -493,7 +494,10 @@ end;
 
 {
   $Log$
-  Revision 1.3  2000-10-11 16:05:56  peter
+  Revision 1.4  2002-01-19 11:58:22  peter
+    * more functions from webbugs
+
+  Revision 1.3  2000/10/11 16:05:56  peter
     * stdcall for callbacks (merged)
 
   Revision 1.2  2000/07/13 11:34:03  michael

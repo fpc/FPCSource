@@ -674,103 +674,17 @@ unit winsock;
        PTransmitFileBuffers = ^TTransmitFileBuffers;
 
     { Socket function prototypes  }
-    function accept(s:TSocket; addr: PSockAddr; addrlen : ptOS_INT) : TSocket;stdcall;
-    function accept(s:TSocket; addr: PSockAddr; var addrlen : tOS_INT) : TSocket;stdcall;
-    function bind(s:TSocket; addr: PSockaddr;namelen:tOS_INT):tOS_INT;stdcall;
-    function closesocket(s:TSocket):tOS_INT;stdcall;
-    function connect(s:TSocket; Const name:TSockAddr; namelen:tOS_INT):tOS_INT;stdcall;
-    function ioctlsocket(s:TSocket; cmd:longint; argp:pu_long):tOS_INT;stdcall; { really a c-long }
-    function getpeername(s:TSocket; var name:TSockAddr;var namelen:tOS_INT):tOS_INT;stdcall;
-    function getsockname(s:TSocket; var name:TSockAddr;var namelen:tOS_INT):tOS_INT;stdcall;
-    function getsockopt(s:TSocket; level:tOS_INT; optname:tOS_INT; optval:pchar;var optlen:tOS_INT):tOS_INT;stdcall;
-    function getsockopt(s:TSocket; level:tOS_INT; optname:tOS_INT; var optval; var optlen:tOS_INT):tOS_INT;stdcall;
-    function htonl(hostlong:u_long):u_long;stdcall;
-    function htons(hostshort:u_short):u_short;
-    function inet_addr(cp:pchar):cardinal;stdcall;
-    function inet_ntoa(i : TInAddr):pchar;stdcall;
-    function listen(s:TSocket; backlog:tOS_INT):tOS_INT;stdcall;
-    function ntohl(netlong:u_long):u_long;stdcall;
-    function ntohs(netshort:u_short):u_short;stdcall;
-    function recv(s:TSocket;var buf; len:tOS_INT; flags:tOS_INT):tOS_INT;stdcall;
-    function recvfrom(s:TSocket;var buf; len:tOS_INT; flags:tOS_INT;Const from:TSockAddr; fromlen:ptOS_INT):tOS_INT;stdcall;
-    function select(nfds:tOS_INT; readfds,writefds,exceptfds : PFDSet;timeout: PTimeVal):tOS_INT;stdcall;
-    function send(s:TSocket;Const buf; len:tOS_INT; flags:tOS_INT):tOS_INT;stdcall;
-    function sendto(s:TSocket; buf:pchar; len:tOS_INT; flags:tOS_INT;Const toaddr:TSockAddr; tolen:tOS_INT):tOS_INT;stdcall;
-    function setsockopt(s:TSocket; level:tOS_INT; optname:tOS_INT; optval:pchar; optlen:tOS_INT):tOS_INT;stdcall;
-    function setsockopt(s:TSocket; level:tOS_INT; optname:tOS_INT; Const optval; optlen:tOS_INT):tOS_INT;stdcall;
-    function shutdown(s:TSocket; how:tOS_INT):tOS_INT;stdcall;
-    function socket(af:tOS_INT; t:tOS_INT; protocol:tOS_INT):TSocket;stdcall;
-
-    { Database function prototypes  }
-    function gethostbyaddr(addr:pchar; len:tOS_INT; t:tOS_INT): PHostEnt;stdcall;
-    function gethostbyname(name:pchar):PHostEnt;stdcall;
-    function gethostname(name:pchar; namelen:tOS_INT):tOS_INT;stdcall;
-    function getservbyport(port:tOS_INT; proto:pchar):PServEnt;stdcall;
-    function getservbyname(name:pchar; proto:pchar):PServEnt;stdcall;
-    function getprotobynumber(proto:tOS_INT):PProtoEnt;stdcall;
-    function getprotobyname(name:pchar):PProtoEnt;stdcall;
-
-    { Microsoft Windows Extension function prototypes  }
-    function WSAStartup(wVersionRequired:word;var WSAData:TWSADATA):tOS_INT;stdcall;
-    function WSACleanup:tOS_INT;stdcall;
-    procedure WSASetLastError(iError:tOS_INT);stdcall;
-    function WSAGetLastError:tOS_INT;stdcall;
-    function WSAIsBlocking:BOOL;stdcall;
-    function WSAUnhookBlockingHook:tOS_INT;stdcall;
-    function WSASetBlockingHook(lpBlockFunc:TFarProc):TFarProc;stdcall;
-    function WSACancelBlockingCall:tOS_INT;stdcall;
-    function WSAAsyncGetServByName(hWnd:HWND; wMsg:u_int; name:pchar; proto:pchar; buf:pchar;
-                                   buflen:tOS_INT):THandle;stdcall;
-    function WSAAsyncGetServByPort(hWnd:HWND; wMsg:u_int; port:tOS_INT; proto:pchar; buf:pchar;
-                                   buflen:tOS_INT):THandle;stdcall;
-    function WSAAsyncGetProtoByName(hWnd:HWND; wMsg:u_int; name:pchar; buf:pchar; buflen:tOS_INT):THandle;stdcall;
-    function WSAAsyncGetProtoByNumber(hWnd:HWND; wMsg:u_int; number:tOS_INT; buf:pchar; buflen:tOS_INT):THandle;stdcall;
-    function WSAAsyncGetHostByName(hWnd:HWND; wMsg:u_int; name:pchar; buf:pchar; buflen:tOS_INT):THandle;stdcall;
-    function WSAAsyncGetHostByAddr(hWnd:HWND; wMsg:u_int; addr:pchar; len:tOS_INT; t:tOS_INT;
-                                   buf:pchar; buflen:tOS_INT):THandle;stdcall;
-    function WSACancelAsyncRequest(hAsyncTaskHandle:THandle):tOS_INT;stdcall;
-    function WSAAsyncSelect(s:TSocket; hWnd:HWND; wMsg:u_int; lEvent:longint):tOS_INT;stdcall; { really a c-long }
-    function WSARecvEx(s:TSocket;var buf; len:tOS_INT; flags:ptOS_INT):tOS_INT;stdcall;
-
-    { the following stuff was missed in my sockets.h (FK) }
-    function __WSAFDIsSet(s:TSocket; var FDSet:TFDSet):Bool;stdcall;
-    function __WSAFDIsSet_(s:TSocket; var FDSet:TFDSet):tOS_INT;stdcall;
-    function TransmitFile(hSocket:TSocket; hFile:THandle; nNumberOfBytesToWrite:dword;
-                          nNumberOfBytesPerSend:DWORD; lpOverlapped:POverlapped;
-                          lpTransmitBuffers:PTransmitFileBuffers; dwReserved:dword):Bool;stdcall;
-
-    function AcceptEx(sListenSocket,sAcceptSocket:TSocket;
-                      lpOutputBuffer:Pointer; dwReceiveDataLength,dwLocalAddressLength,
-                      dwRemoteAddressLength:dword; var lpdwBytesReceived:dword;
-                      lpOverlapped:POverlapped):Bool;stdcall;
-
-    procedure GetAcceptExSockaddrs(lpOutputBuffer:Pointer;
-                                   dwReceiveDataLength,dwLocalAddressLength,dwRemoteAddressLength:dword;
-                                   var LocalSockaddr:TSockAddr; var LocalSockaddrLength:tOS_INT;
-                                   var RemoteSockaddr:TSockAddr; var RemoteSockaddrLength:tOS_INT);stdcall;
-
-    function WSAMakeSyncReply(Buflen,Error:Word):dword;
-    function WSAMakeSelectReply(Event,Error:Word):dword;
-    function WSAGetAsyncBuflen(Param:dword):Word;
-    function WSAGetAsyncError(Param:dword):Word;
-    function WSAGetSelectEvent(Param:dword):Word;
-    function WSAGetSelectError(Param:dword):Word;
-    procedure FD_CLR(Socket:TSocket; var FDSet:TFDSet);
-    function FD_ISSET(Socket:TSocket; var FDSet:TFDSet):Boolean;
-    procedure FD_SET(Socket:TSocket; var FDSet:TFDSet);
-    procedure FD_ZERO(var FDSet:TFDSet);
-
-  implementation
-
     const
        winsockdll = 'wsock32.dll';
 
-    { Socket function prototypes  }
     function accept(s:TSocket; addr: PSockAddr; addrlen : ptOS_INT) : TSocket;stdcall;external winsockdll name 'accept';
     function accept(s:TSocket; addr: PSockAddr; var addrlen : tOS_INT) : TSocket;stdcall;external winsockdll name 'accept';
     function bind(s:TSocket; addr: PSockaddr;namelen:tOS_INT):tOS_INT;stdcall;external winsockdll name 'bind';
+    function bind(s:TSocket; const addr: TSockaddr;namelen:tOS_INT):tOS_INT;stdcall;external winsockdll name 'bind';
     function closesocket(s:TSocket):tOS_INT;stdcall;external winsockdll name 'closesocket';
+    function connect(s:TSocket; addr:PSockAddr; namelen:tOS_INT):tOS_INT;stdcall;external winsockdll name 'connect';
     function connect(s:TSocket; Const name:TSockAddr; namelen:tOS_INT):tOS_INT;stdcall;external winsockdll name 'connect';
+    function ioctlsocket(s:TSocket; cmd:longint; var arg:u_long):tOS_INT;stdcall;external winsockdll name 'ioctlsocket'; { really a c-long }
     function ioctlsocket(s:TSocket; cmd:longint; argp:pu_long):tOS_INT;stdcall;external winsockdll name 'ioctlsocket'; { really a c-long }
     function getpeername(s:TSocket; var name:TSockAddr;var namelen:tOS_INT):tOS_INT;stdcall;
       external winsockdll name 'getpeername';
@@ -787,8 +701,11 @@ unit winsock;
     function listen(s:TSocket; backlog:tOS_INT):tOS_INT;stdcall;external winsockdll name 'listen';
     function ntohl(netlong:u_long):u_long;stdcall;external winsockdll name 'ntohl';
     function ntohs(netshort:u_short):u_short;stdcall;external winsockdll name 'ntohs';
+    function recv(s:TSocket;buf:pchar; len:tOS_INT; flags:tOS_INT):tOS_INT;stdcall;external winsockdll name 'recv';
     function recv(s:TSocket;var buf; len:tOS_INT; flags:tOS_INT):tOS_INT;stdcall;external winsockdll name 'recv';
-    function recvfrom(s:TSocket;var buf; len:tOS_INT; flags:tOS_INT;Const from:TSockAddr; fromlen:ptOS_INT):tOS_INT;stdcall;
+    function recvfrom(s:TSocket;buf:pchar; len:tOS_INT; flags:tOS_INT;from:PSockAddr; fromlen:ptOS_INT):tOS_INT;stdcall;
+      external winsockdll name 'recvfrom';
+    function recvfrom(s:TSocket;var buf; len:tOS_INT; flags:tOS_INT;Const from:TSockAddr; var fromlen:tOS_INT):tOS_INT;stdcall;
       external winsockdll name 'recvfrom';
     function select(nfds:tOS_INT; readfds,writefds,exceptfds : PFDSet;timeout: PTimeVal):tOS_INT;stdcall;
       external winsockdll name 'select';
@@ -863,6 +780,19 @@ unit winsock;
                                    var LocalSockaddr:TSockAddr; var LocalSockaddrLength:tOS_INT;
                                    var RemoteSockaddr:TSockAddr; var RemoteSockaddrLength:tOS_INT);stdcall;
                                    external winsockdll name 'GetAcceptExSockaddrs';
+
+    function WSAMakeSyncReply(Buflen,Error:Word):dword;
+    function WSAMakeSelectReply(Event,Error:Word):dword;
+    function WSAGetAsyncBuflen(Param:dword):Word;
+    function WSAGetAsyncError(Param:dword):Word;
+    function WSAGetSelectEvent(Param:dword):Word;
+    function WSAGetSelectError(Param:dword):Word;
+    procedure FD_CLR(Socket:TSocket; var FDSet:TFDSet);
+    function FD_ISSET(Socket:TSocket; var FDSet:TFDSet):Boolean;
+    procedure FD_SET(Socket:TSocket; var FDSet:TFDSet);
+    procedure FD_ZERO(var FDSet:TFDSet);
+
+  implementation
 
     {
       Implementation of the helper routines
@@ -951,7 +881,10 @@ unit winsock;
 end.
 {
   $Log$
-  Revision 1.6  2001-10-15 15:09:51  jonas
+  Revision 1.7  2002-01-19 11:58:20  peter
+    * more functions from webbugs
+
+  Revision 1.6  2001/10/15 15:09:51  jonas
     * error constants must be longints, not cardinals
 
   Revision 1.5  2001/06/06 21:58:24  peter
