@@ -442,6 +442,7 @@ type tmsgconst=(
   unit_u_start_parse_interface,
   unit_u_start_parse_implementation,
   unit_u_second_load_unit,
+  unit_u_check_time,
   option_usage,
   option_only_one_source_support,
   option_def_only_for_os2,

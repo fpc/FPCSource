@@ -679,6 +679,7 @@ unit files;
               ((flags and uf_smartlink)<>0) then
             begin
               objfiletime:=getnamedfiletime(staticlibfilename^);
+              Message2(unit_u_check_time,staticlibfilename^,filetimestring(objfiletime));
               if (ppufiletime<0) or (objfiletime<0) or (ppufiletime>objfiletime) then
                 begin
                   Message(unit_u_recompile_staticlib_is_older);
@@ -690,6 +691,7 @@ unit files;
             if (flags and uf_shared_linked)<>0 then
              begin
                objfiletime:=getnamedfiletime(sharedlibfilename^);
+               Message2(unit_u_check_time,sharedlibfilename^,filetimestring(objfiletime));
                if (ppufiletime<0) or (objfiletime<0) or (ppufiletime>objfiletime) then
                 begin
                   Message(unit_u_recompile_sharedlib_is_older);
@@ -701,10 +703,12 @@ unit files;
             begin
             { the objectfile should be newer than the ppu file }
               objfiletime:=getnamedfiletime(objfilename^);
+              Message2(unit_u_check_time,objfilename^,filetimestring(objfiletime));
               if (ppufiletime<0) or (objfiletime<0) or (ppufiletime>objfiletime) then
                begin
                { check if assembler file is older than ppu file }
                  asmfileTime:=GetNamedFileTime(asmfilename^);
+                 Message2(unit_u_check_time,asmfilename^,filetimestring(asmfiletime));
                  if (asmfiletime<0) or (ppufiletime>asmfiletime) then
                   begin
                     Message(unit_u_recompile_obj_and_asm_older);
@@ -1001,7 +1005,10 @@ unit files;
 end.
 {
   $Log$
-  Revision 1.57  1998-10-09 16:36:03  pierre
+  Revision 1.58  1998-10-12 11:59:00  peter
+    + show name and date of .o and .s files which the compiler checks
+
+  Revision 1.57  1998/10/09 16:36:03  pierre
     * some memory leaks specific to usebrowser define fixed
     * removed tmodule.implsymtable (was like tmodule.localsymtable)
 
