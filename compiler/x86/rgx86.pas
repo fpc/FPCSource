@@ -166,6 +166,14 @@ implementation
                             { Some instructions don't allow memory references
                               for destination }
                             case instr.opcode of
+                              A_MULSS,
+                              A_MULSD,
+                              A_SUBSS,
+                              A_SUBSD,
+                              A_ADDSD,
+                              A_ADDSS,
+                              A_DIVSD,
+                              A_DIVSS,
                               A_SHLD,
                               A_SHRD,
                               A_IMUL :
@@ -315,7 +323,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.10  2004-10-31 21:45:04  peter
+  Revision 1.11  2004-11-01 17:30:17  florian
+    + added sse instruction being not be able writing to a memory location
+
+  Revision 1.10  2004/10/31 21:45:04  peter
     * generic tlocation
     * move tlocation to cgutils
 
