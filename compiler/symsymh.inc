@@ -157,7 +157,6 @@
 
        ttypesym = object(tsym)
           definition : pdef;
-          forwardpointer : pforwardpointer;
 {$ifdef GDB}
           isusedinstab : boolean;
 {$endif GDB}
@@ -166,6 +165,8 @@
           destructor done;virtual;
           procedure write;virtual;
           procedure deref;virtual;
+          procedure addforwardpointer(p:ppointerdef);
+          procedure updateforwarddef(p:pdef);
           procedure load_references;virtual;
           function  write_references : boolean;virtual;
 {$ifdef BrowserLog}
@@ -175,6 +176,8 @@
           function stabstring : pchar;virtual;
           procedure concatstabto(asmlist : paasmoutput);virtual;
 {$endif GDB}
+       private
+          forwardpointer : pforwardpointer;
        end;
 
        pvarsym = ^tvarsym;
@@ -330,6 +333,8 @@
        tsyssym = object(tsym)
           number : longint;
           constructor init(const n : string;l : longint);
+          constructor load;
+          destructor done;virtual;
           procedure write;virtual;
 {$ifdef GDB}
           procedure concatstabto(asmlist : paasmoutput);virtual;
@@ -338,7 +343,10 @@
 
 {
   $Log$
-  Revision 1.18  1999-04-14 09:15:03  peter
+  Revision 1.19  1999-04-17 13:16:23  peter
+    * fixes for storenumber
+
+  Revision 1.18  1999/04/14 09:15:03  peter
     * first things to store the symbol/def number in the ppu
 
   Revision 1.17  1999/03/31 13:55:23  peter

@@ -1719,12 +1719,11 @@
 {$ifdef GDB}
          isusedinstab := false;
 {$endif GDB}
+{$ifndef STORENUMBER}
          forwardpointer:=nil;
-         { this allows to link definitions with the type with declares }
-         { them                                                        }
-         if assigned(definition) then
-           if definition^.sym=nil then
-             definition^.sym:=@self;
+{$endif}
+        if assigned(definition) and not(assigned(definition^.sym)) then
+          definition^.sym:=@self;
       end;
 
     constructor ttypesym.load;
@@ -1732,7 +1731,9 @@
       begin
          tsym.load;
          typ:=typesym;
+{$ifndef STORENUMBER}
          forwardpointer:=nil;
+{$endif}
 {$ifdef GDB}
          isusedinstab := false;
 {$endif GDB}
@@ -1803,6 +1804,38 @@
       end;
 
 
+    procedure ttypesym.addforwardpointer(p:ppointerdef);
+      var
+        hfp : pforwardpointer;
+      begin
+        new(hfp);
+        hfp^.next:=forwardpointer;
+        hfp^.def:=p;
+        forwardpointer:=hfp;
+      end;
+
+
+    procedure ttypesym.updateforwarddef(p:pdef);
+      var
+        lasthfp,hfp : pforwardpointer;
+      begin
+        definition:=p;
+        properties:=current_object_option;
+        fileinfo:=tokenpos;
+        if assigned(definition) and not(assigned(definition^.sym)) then
+          definition^.sym:=@self;
+        { update all forwardpointers to this definition }
+        hfp:=forwardpointer;
+        while assigned(hfp) do
+         begin
+           lasthfp:=hfp;
+           hfp^.def^.definition:=definition;
+           hfp:=hfp^.next;
+           dispose(lasthfp);
+         end;
+      end;
+
+
 {$ifdef BrowserLog}
     procedure ttypesym.add_to_browserlog;
       begin
@@ -1840,6 +1873,7 @@
       end;
 {$endif GDB}
 
+
 {****************************************************************************
                                   TSYSSYM
 ****************************************************************************}
@@ -1851,8 +1885,25 @@
          number:=l;
       end;
 
+    constructor tsyssym.load;
+      begin
+         tsym.load;
+         typ:=syssym;
+         number:=readlong;
+      end;
+
+    destructor tsyssym.done;
+      begin
+        inherited done;
+      end;
+
     procedure tsyssym.write;
       begin
+{$ifdef STORENUMBER}
+         tsym.write;
+         writelong(number);
+         current_ppu^.writeentry(ibsyssym);
+{$endif}
       end;
 
 {$ifdef GDB}
@@ -1860,6 +1911,7 @@
       begin
       end;
 {$endif GDB}
+
 
 {****************************************************************************
                                   TMACROSYM
@@ -1884,7 +1936,10 @@
 
 {
   $Log$
-  Revision 1.78  1999-04-14 09:15:02  peter
+  Revision 1.79  1999-04-17 13:16:21  peter
+    * fixes for storenumber
+
+  Revision 1.78  1999/04/14 09:15:02  peter
     * first things to store the symbol/def number in the ppu
 
   Revision 1.77  1999/04/08 10:11:32  pierre

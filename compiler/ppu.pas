@@ -91,6 +91,7 @@ const
   ibunitsym       = 29;  { needed for browser }
   iblabelsym      = 30;
   ibfuncretsym    = 31;
+  ibsyssym        = 32;
   {definitions}
   iborddef        = 40;
   ibpointerdef    = 41;
@@ -230,7 +231,7 @@ implementation
 {$ifdef Test_Double_checksum}
   uses
     comphook;
-    
+
 {$endif def Test_Double_checksum}
 {*****************************************************************************
                                    Crc 32
@@ -874,7 +875,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.26  1999-04-07 15:39:31  pierre
+  Revision 1.27  1999-04-17 13:16:20  peter
+    * fixes for storenumber
+
+  Revision 1.26  1999/04/07 15:39:31  pierre
     + double_checksum code added
 
   Revision 1.25  1999/03/02 13:49:18  peter

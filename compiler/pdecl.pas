@@ -1089,7 +1089,6 @@ unit pdecl;
          hs         : string;
          pcrd       : pclassrefdef;
          hp1        : pdef;
-         hfp        : pforwardpointer;
          oldprocsym : pprocsym;
          oldparse_only : boolean;
          intmessagetable,strmessagetable,classnamelabel : plabel;
@@ -1147,23 +1146,8 @@ unit pdecl;
                      begin
                         pcrd:=new(pclassrefdef,init(hp1));
                         object_dec:=pcrd;
-                        {I add big troubles here
-                        with var p : ^byte in graph.putimage
-                        because a save_forward was called and
-                        no resolve forward
-                        => so the definition was rewritten after
-                        having been disposed !!
-                        Strange problems appeared !!!!}
-                        {Anyhow forwards should only be allowed
-                        inside a type statement ??
-                        don't you think so }
-                        if (lasttypesym<>nil) and ((lasttypesym^.properties and sp_forwarddef)<>0) then
-                         begin
-                           new(hfp);
-                           hfp^.next:=lasttypesym^.forwardpointer;
-                           hfp^.def:=ppointerdef(pcrd);
-                           lasttypesym^.forwardpointer:=hfp;
-                         end;
+                        if assigned(lasttypesym) and ((lasttypesym^.properties and sp_forwarddef)<>0) then
+                         lasttypesym^.addforwardpointer(ppointerdef(pcrd));
                         forwardsallowed:=false;
                      end
                    else
@@ -1898,8 +1882,6 @@ unit pdecl;
              ap^.definition:=hp1;
         end;
 
-      var
-        hfp : pforwardpointer;
       begin
          p:=nil;
          case token of
@@ -1981,23 +1963,8 @@ unit pdecl;
                     forwardsallowed:=true;
                  hp1:=single_type(hs);
                  p:=new(ppointerdef,init(hp1));
-                 {I add big troubles here
-                 with var p : ^byte in graph.putimage
-                 because a save_forward was called and
-                 no resolve forward
-                 => so the definition was rewritten after
-                 having been disposed !!
-                 Strange problems appeared !!!!}
-                 {Anyhow forwards should only be allowed
-                 inside a type statement ??
-                 don't you think so }
                  if (lasttypesym<>nil) and ((lasttypesym^.properties and sp_forwarddef)<>0) then
-                  begin
-                    new(hfp);
-                    hfp^.next:=lasttypesym^.forwardpointer;
-                    hfp^.def:=ppointerdef(p);
-                    lasttypesym^.forwardpointer:=hfp;
-                  end;
+                   lasttypesym^.addforwardpointer(ppointerdef(p));
                  forwardsallowed:=false;
               end;
             _RECORD:
@@ -2059,12 +2026,8 @@ unit pdecl;
 
       var
          typename : stringid;
-         newtype : ptypesym;
-{$ifdef dummy}
-         olddef,newdef : pdef;
-         s : string;
-{$endif dummy}
-
+         newtype  : ptypesym;
+         sym      : psym;
       begin
          block_type:=bt_type;
          consume(_TYPE);
@@ -2095,13 +2058,48 @@ unit pdecl;
 {$endif testequaltype}
              begin
                 getsym(typename,false);
+                sym:=srsym;
+                newtype:=nil;
+{$ifdef STORENUMBER}
+                { found a symbol with this name? }
+                if assigned(sym) then
+                 begin
+                   if (sym^.typ=typesym) then
+                    begin
+                      if (token=_CLASS) and
+                         (assigned(ptypesym(sym)^.definition)) and
+                         (ptypesym(sym)^.definition^.deftype=objectdef) and
+                         ((pobjectdef(ptypesym(sym)^.definition)^.options and oo_isforward)<>0) and
+                         ((pobjectdef(ptypesym(sym)^.definition)^.options and oo_is_class)<>0) then
+                       begin
+                         { we can ignore the result   }
+                         { the definition is modified }
+                         object_dec(typename,pobjectdef(ptypesym(sym)^.definition));
+                         newtype:=ptypesym(sym);
+                       end
+                      else
+                       if sym^.properties=sp_forwarddef then
+                        begin
+                          ptypesym(sym)^.updateforwarddef(read_type(typename));
+                          newtype:=ptypesym(sym);
+                        end;
+                    end;
+                 end;
+                { no old type reused ? Then insert this new type }
+                if not assigned(newtype) then
+                 begin
+                   newtype:=new(ptypesym,init(typename,read_type(typename)));
+                   newtype:=ptypesym(symtablestack^.insert(newtype));
+                 end;
+{$else}
                 { check if it is the definition of a forward defined class }
-                if assigned(srsym) and (token=_CLASS) and
-                  (srsym^.typ=typesym) and
-                  (assigned(ptypesym(srsym)^.definition)) and
-                  (ptypesym(srsym)^.definition^.deftype=objectdef) and
-                  ((pobjectdef(ptypesym(srsym)^.definition)^.options and oo_isforward)<>0) and
-                  ((pobjectdef(ptypesym(srsym)^.definition)^.options and oo_is_class)<>0) then
+                if assigned(srsym) and
+                   (token=_CLASS) and
+                   (srsym^.typ=typesym) and
+                   (assigned(ptypesym(srsym)^.definition)) and
+                   (ptypesym(srsym)^.definition^.deftype=objectdef) and
+                   ((pobjectdef(ptypesym(srsym)^.definition)^.options and oo_isforward)<>0) and
+                   ((pobjectdef(ptypesym(srsym)^.definition)^.options and oo_is_class)<>0) then
                   begin
                      { we can ignore the result   }
                      { the definition is modified }
@@ -2115,6 +2113,7 @@ unit pdecl;
                        because it can be an already defined forwarded type !! }
                      newtype:=ptypesym(symtablestack^.insert(newtype));
                   end;
+{$endif}
              end;
            consume(SEMICOLON);
            if assigned(newtype^.definition) and (newtype^.definition^.deftype=procvardef) then
@@ -2223,7 +2222,10 @@ unit pdecl;
 end.
 {
   $Log$
-  Revision 1.107  1999-04-14 09:14:50  peter
+  Revision 1.108  1999-04-17 13:16:19  peter
+    * fixes for storenumber
+
+  Revision 1.107  1999/04/14 09:14:50  peter
     * first things to store the symbol/def number in the ppu
 
   Revision 1.106  1999/04/07 15:31:15  pierre
