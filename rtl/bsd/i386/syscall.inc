@@ -34,11 +34,14 @@ procedure actualsyscall; assembler; {inline requires a dummy push IIRC}
     asm
          int $0x80
          jb .LErrorcode
-         xor %ebx,%ebx
          ret
 .LErrorcode:
-	 mov %eax,%ebx
-         mov $-1,%eax
+	 {$ifdef ErrnoWord}
+          movw  %bx,Errno
+	 {$else}
+          movl %ebx,Errno
+	 {$endif}
+//       mov $-1,%eax
    end;
 
 function Do_SysCall(sysnr:LONGINT):longint; assembler; [public,alias:'FPC_DOSYS0'];
@@ -46,11 +49,6 @@ function Do_SysCall(sysnr:LONGINT):longint; assembler; [public,alias:'FPC_DOSYS0
 asm
   movl  sysnr,%eax
   call  actualsyscall
-{$ifdef ErrnoWord}
-  movw  %bx,Errno
-{$else}
-  movl %ebx,Errno
-{$endif}
 end;
 
 function Do_SysCall(sysnr,param1:longint):longint; assembler;[public,alias:'FPC_DOSYS1'];
@@ -60,11 +58,6 @@ function Do_SysCall(sysnr,param1:longint):longint; assembler;[public,alias:'FPC_
   pushl Param1
   call  actualsyscall
   addl  $4,%esp
-{$ifdef ErrnoWord}
-  movw  %bx,Errno
-{$else}
-  movl %ebx,Errno
-{$endif}
  end;
 
 function Do_SysCall(sysnr,param1:integer):longint; assembler;[public,alias:'FPC_DOSYS1w'];
@@ -74,11 +67,6 @@ function Do_SysCall(sysnr,param1:integer):longint; assembler;[public,alias:'FPC_
   pushw Param1
   call  actualsyscall
   add   $2,%esp
-{$ifdef ErrnoWord}
-  movw  %bx,Errno
-{$else}
-  movl %ebx,Errno
-{$endif}
  end;
 
 function Do_SysCall(sysnr,param1,param2:LONGINT):longint; assembler; [public,alias:'FPC_DOSYS2'];
@@ -89,11 +77,6 @@ function Do_SysCall(sysnr,param1,param2:LONGINT):longint; assembler; [public,ali
    pushl Param1
    call  actualsyscall
    addl  $8,%esp
-{$ifdef ErrnoWord}
-  movw  %bx,Errno
-{$else}
-  movl %ebx,Errno
-{$endif}
  end;
 
 function Do_SysCall(sysnr,param1,param2,param3:LONGINT):longint; assembler;[public,alias:'FPC_DOSYS3'];
@@ -105,11 +88,6 @@ function Do_SysCall(sysnr,param1,param2,param3:LONGINT):longint; assembler;[publ
    pushl Param1
    call  actualsyscall
    addl  $12,%esp
-{$ifdef ErrnoWord}
-  movw  %bx,Errno
-{$else}
-  movl %ebx,Errno
-{$endif}
 end;
 
 function Do_SysCall(sysnr,param1,param2,param3,param4:LONGINT):longint; assembler;[public,alias:'FPC_DOSYS4'];
@@ -122,11 +100,6 @@ asm
    pushl Param1
    call  actualsyscall
    addl  $16,%esp
-{$ifdef ErrnoWord}
-  movw  %bx,Errno
-{$else}
-  movl %ebx,Errno
-{$endif}
 end;
 
 
@@ -141,11 +114,6 @@ function Do_SysCall(sysnr,param1,param2,param3,param4,param5:LONGINT):longint;  
    pushl Param1
    call  actualsyscall
    addl  $20,%esp
-{$ifdef ErrnoWord}
-  movw  %bx,Errno
-{$else}
-  movl %ebx,Errno
-{$endif}
 end;
 
 function Do_SysCall(sysnr,param1,param2,param3,param4,param5,param6:LONGINT):longint;  assembler;[public,alias:'FPC_DOSYS6'];
@@ -160,11 +128,6 @@ asm
    pushl Param1
    call  actualsyscall
    addl  $24,%esp
-{$ifdef ErrnoWord}
-  movw  %bx,Errno
-{$else}
-  movl %ebx,Errno
-{$endif}
 end;
 
 function Do_SysCall(sysnr,param1,param2,param3,param4,param5,param6,param7:LONGINT):longint;  assembler; [public,alias:'FPC_DOSYS7'];
@@ -180,9 +143,9 @@ asm
    pushl Param1
    call  actualsyscall
    addl  $28,%esp
-{$ifdef ErrnoWord}
-  movw  %bx,Errno
-{$else}
-  movl %ebx,Errno
-{$endif}
 end;
+
+{
+  $Log:
+
+}
