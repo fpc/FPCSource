@@ -332,6 +332,9 @@ utils_install:
 	$(MAKE) -C utils install
 
 # $Log$
-# Revision 1.10  1998-09-04 17:32:36  pierre
+# Revision 1.1  1998-09-10 14:19:02  peter
+#   - renamed
+#
+# Revision 1.10  1998/09/04 17:32:36  pierre
 #   * REDIR handling corrected
 #
