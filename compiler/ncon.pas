@@ -116,7 +116,11 @@ interface
 
     { some helper routines }
 
+{$ifdef INT64FUNCRESOK}
     function get_ordinal_value(p : tnode) : TConstExprInt;
+{$else INT64FUNCRESOK}
+    function get_ordinal_value(p : tnode) : longint;
+{$endif INT64FUNCRESOK}
     function is_constnode(p : tnode) : boolean;
     function is_constintnode(p : tnode) : boolean;
     function is_constcharnode(p : tnode) : boolean;
@@ -201,7 +205,11 @@ implementation
          genpcharconstnode:=cstringconstnode.createpchar(s,length);
       end;
 
+{$ifdef INT64FUNCRESOK}
     function get_ordinal_value(p : tnode) : TConstExprInt;
+{$else INT64FUNCRESOK}
+    function get_ordinal_value(p : tnode) : longint;
+{$endif INT64FUNCRESOK}
       begin
          if p.nodetype=ordconstn then
            get_ordinal_value:=tordconstnode(p).value
@@ -650,7 +658,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.12  2000-12-07 17:19:42  jonas
+  Revision 1.13  2000-12-15 13:26:01  jonas
+    * only return int64's from functions if it int64funcresok is defined
+    + added int64funcresok define to options.pas
+
+  Revision 1.12  2000/12/07 17:19:42  jonas
     * new constant handling: from now on, hex constants >$7fffffff are
       parsed as unsigned constants (otherwise, $80000000 got sign extended
       and became $ffffffff80000000), all constants in the longint range

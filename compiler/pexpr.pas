@@ -46,7 +46,11 @@ interface
     procedure do_member_read(getaddr : boolean;const sym : psym;var p1 : tnode;
       var pd : pdef;var again : boolean);
 
+{$ifdef int64funcresok}
     function get_intconst:TConstExprInt;
+{$else int64funcresok}
+    function get_intconst:longint;
+{$endif int64funcresok}
 
     function get_stringconst:string;
 
@@ -2367,8 +2371,11 @@ _LECKKLAMMER : begin
          expr:=p1;
       end;
 
-
+{$ifdef int64funcresok}
     function get_intconst:TConstExprInt;
+{$else int64funcresok}
+    function get_intconst:longint;
+{$endif int64funcresok}
     {Reads an expression, tries to evalute it and check if it is an integer
      constant. Then the constant is returned.}
     var
@@ -2378,9 +2385,9 @@ _LECKKLAMMER : begin
       do_firstpass(p);
       if not codegenerror then
        begin
-         if (p.nodetype<>ordconstn) and
-            (p.resulttype^.deftype=orddef) and
-           not(Porddef(p.resulttype)^.typ in [uvoid,uchar,bool8bit,bool16bit,bool32bit]) then
+         if (p.nodetype<>ordconstn) or
+            (p.resulttype^.deftype<>orddef) or
+            (Porddef(p.resulttype)^.typ in [uvoid,uchar,bool8bit,bool16bit,bool32bit]) then
           Message(cg_e_illegal_expression)
          else
           get_intconst:=tordconstnode(p).value;
@@ -2413,7 +2420,11 @@ _LECKKLAMMER : begin
 end.
 {
   $Log$
-  Revision 1.20  2000-12-15 12:13:52  michael
+  Revision 1.21  2000-12-15 13:26:01  jonas
+    * only return int64's from functions if it int64funcresok is defined
+    + added int64funcresok define to options.pas
+
+  Revision 1.20  2000/12/15 12:13:52  michael
   + Fix from Peter
 
   Revision 1.19  2000/12/07 17:19:42  jonas

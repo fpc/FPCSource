@@ -1230,6 +1230,7 @@ begin
   def_symbol('HASOUT');
   def_symbol('HASINTF');
   def_symbol('INTERNSETLENGTH');
+  def_symbol('INT64FUNCRESOK');
 
 {$ifdef SUPPORT_FIXED}
   def_symbol('HASFIXED');
@@ -1509,7 +1510,11 @@ end;
 end.
 {
   $Log$
-  Revision 1.19  2000-11-30 22:48:23  florian
+  Revision 1.20  2000-12-15 13:26:01  jonas
+    * only return int64's from functions if it int64funcresok is defined
+    + added int64funcresok define to options.pas
+
+  Revision 1.19  2000/11/30 22:48:23  florian
   * opts386 renamed
 
   Revision 1.18  2000/11/29 00:30:34  florian
