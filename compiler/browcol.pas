@@ -465,7 +465,6 @@ end;
 function TSortedSymbolCollection.LookUp(const S: string; var Idx: sw_integer): string;
 var OLI,ORI,Left,Right,Mid: sw_integer;
     LeftP,RightP,MidP: PSymbol;
-    RL: sw_integer;
     LeftS,MidS,RightS: string;
     FoundS: string;
     UpS : string;
@@ -592,8 +591,7 @@ end;
 function TObjectSymbolCollection.LookUp(const S: string; var Idx: sw_integer): string;
 var OLI,ORI,Left,Right,Mid: sw_integer;
     LeftP,RightP,MidP: PObjectSymbol;
-    RL: sw_integer;
-    LeftS,MidS,RightS: string;
+    MidS,LEftS,RightS: string;
     FoundS: string;
     UpS : string;
 begin
@@ -721,7 +719,6 @@ end;
 
 function TSymbol.GetText: string;
 var S: string;
-    I: Sw_integer;
 begin
   S:=GetTypeName;
   if length(S)>SymbolTypLen then
@@ -1157,7 +1154,7 @@ end;
       Reference: PReference;
       ParamCount: Sw_integer;
       Params: array[0..20] of PString;
-      inputfile : pinputfile;
+      inputfile : tinputfile;
       Idx: sw_integer;
       S: string;
   procedure SetVType(Symbol: PSymbol; VType: string);
@@ -1237,28 +1234,28 @@ end;
   end;
   function GetAbsProcParmDefStr(def: pabstractprocdef): string;
   var Name: string;
-      dc: pparaitem;
+      dc: tparaitem;
       Count: sw_integer;
       CurName: string;
   begin
     Name:='';
-    dc:=pparaitem(def^.para^.first);
+    dc:=tparaitem(def^.para.first);
     Count:=0;
     while assigned(dc) do
      begin
        CurName:='';
-       case dc^.paratyp of
+       case dc.paratyp of
          vs_Value : ;
          vs_Const : CurName:=CurName+'const ';
          vs_Var   : CurName:=CurName+'var ';
          vs_Out   : CurName:=CurName+'out ';
        end;
-       if assigned(dc^.paratype.def) then
-         CurName:=CurName+GetDefinitionStr(dc^.paratype.def);
-       if dc^.next<>nil then
+       if assigned(dc.paratype.def) then
+         CurName:=CurName+GetDefinitionStr(dc.paratype.def);
+       if dc.next<>nil then
          CurName:=', '+CurName;
        Name:=CurName+Name;
-       dc:=pparaitem(dc^.next);
+       dc:=tparaitem(dc.next);
        Inc(Count);
      end;
     GetAbsProcParmDefStr:=Name;
@@ -1562,9 +1559,9 @@ end;
         while Assigned(Symbol) and assigned(Ref) do
           begin
             inputfile:=get_source_file(ref^.moduleindex,ref^.posinfo.fileindex);
-            if Assigned(inputfile) and Assigned(inputfile^.name) then
+            if Assigned(inputfile) and Assigned(inputfile.name) then
               begin
-                New(Reference, Init(ModuleNames^.Add(inputfile^.name^),
+                New(Reference, Init(ModuleNames^.Add(inputfile.name^),
                   ref^.posinfo.line,ref^.posinfo.column));
                 Symbol^.References^.Insert(Reference);
               end;
@@ -1593,34 +1590,34 @@ procedure CreateBrowserCol;
 var
   T: PSymTable;
   UnitS,PM: PModuleSymbol;
-  hp : pmodule;
-  puu: pused_unit;
-  pdu: pdependent_unit;
-  pif: pinputfile;
+  hp : tmodule;
+  puu: tused_unit;
+  pdu: tdependent_unit;
+  pif: tinputfile;
 begin
   DisposeBrowserCol;
   if (cs_browser in aktmoduleswitches) then
     NewBrowserCol;
-  hp:=pmodule(loaded_units.first);
+  hp:=tmodule(loaded_units.first);
   if (cs_browser in aktmoduleswitches) then
    while assigned(hp) do
     begin
-       t:=psymtable(hp^.globalsymtable);
+       t:=psymtable(hp.globalsymtable);
        if assigned(t) then
          begin
-           New(UnitS, Init(T^.Name^,hp^.mainsource^));
-           if Assigned(hp^.loaded_from) then
-             if assigned(hp^.loaded_from^.globalsymtable) then
-               UnitS^.SetLoadedFrom(psymtable(hp^.loaded_from^.globalsymtable)^.name^);
+           New(UnitS, Init(T^.Name^,hp.mainsource^));
+           if Assigned(hp.loaded_from) then
+             if assigned(hp.loaded_from.globalsymtable) then
+               UnitS^.SetLoadedFrom(psymtable(hp.loaded_from.globalsymtable)^.name^);
 {           pimportlist(current_module.imports^.first);}
 
-           if assigned(hp^.sourcefiles) then
+           if assigned(hp.sourcefiles) then
            begin
-             pif:=hp^.sourcefiles^.files;
+             pif:=hp.sourcefiles.files;
              while (pif<>nil) do
              begin
-               UnitS^.AddSourceFile(pif^.path^+pif^.name^);
-               pif:=pif^.next;
+               UnitS^.AddSourceFile(pif.path^+pif.name^);
+               pif:=pif.next;
              end;
            end;
 
@@ -1628,40 +1625,40 @@ begin
            ProcessSymTable(UnitS,UnitS^.Items,T);
            if cs_local_browser in aktmoduleswitches then
              begin
-                t:=psymtable(hp^.localsymtable);
+                t:=psymtable(hp.localsymtable);
                 if assigned(t) then
                   ProcessSymTable(UnitS,UnitS^.Items,T);
              end;
          end;
-       hp:=pmodule(hp^.next);
+       hp:=tmodule(hp.next);
     end;
 
-  hp:=pmodule(loaded_units.first);
+  hp:=tmodule(loaded_units.first);
   if (cs_browser in aktmoduleswitches) then
    while assigned(hp) do
     begin
-       t:=psymtable(hp^.globalsymtable);
+       t:=psymtable(hp.globalsymtable);
        if assigned(t) then
          begin
            UnitS:=SearchModule(T^.Name^);
-           puu:=pused_unit(hp^.used_units.first);
+           puu:=tused_unit(hp.used_units.first);
            while (puu<>nil) do
            begin
-             PM:=SearchModule(puu^.name^);
+             PM:=SearchModule(puu.name^);
              if Assigned(PM) then
                UnitS^.AddUsedUnit(PM);
-             puu:=pused_unit(puu^.next);
+             puu:=tused_unit(puu.next);
            end;
-           pdu:=pdependent_unit(hp^.dependent_units.first);
+           pdu:=tdependent_unit(hp.dependent_units.first);
            while (pdu<>nil) do
            begin
-             PM:=SearchModule(psymtable(pdu^.u^.globalsymtable)^.name^);
+             PM:=SearchModule(psymtable(pdu.u.globalsymtable)^.name^);
              if Assigned(PM) then
                UnitS^.AddDependentUnit(PM);
-             pdu:=pdependent_unit(pdu^.next);
+             pdu:=tdependent_unit(pdu.next);
            end;
          end;
-       hp:=pmodule(hp^.next);
+       hp:=tmodule(hp.next);
     end;
 
   if (cs_browser in aktmoduleswitches) then
@@ -1819,8 +1816,8 @@ begin
 end;
 
 procedure BuildSourceList;
-var m: pmodule;
-    s: pinputfile;
+var m: tmodule;
+    s: tinputfile;
     p: pstring;
     ppu,obj: string;
     source: string;
@@ -1830,34 +1827,34 @@ begin
   if assigned(loaded_units.first) then
   begin
     New(SourceFiles, Init(50,10));
-    m:=pmodule(loaded_units.first);
+    m:=tmodule(loaded_units.first);
     while assigned(m) do
     begin
-      obj:=fexpand(m^.objfilename^);
+      obj:=fexpand(m.objfilename^);
       ppu:=''; source:='';
-      if m^.is_unit then
-        ppu:=fexpand(m^.ppufilename^);
-      if (m^.is_unit=false) and (m^.islibrary=false) then
-        ppu:=fexpand(m^.exefilename^);
-      if assigned(m^.sourcefiles) then
+      if m.is_unit then
+        ppu:=fexpand(m.ppufilename^);
+      if (m.is_unit=false) and (m.islibrary=false) then
+        ppu:=fexpand(m.exefilename^);
+      if assigned(m.sourcefiles) then
         begin
-          s:=m^.sourcefiles^.files;
+          s:=m.sourcefiles.files;
           while assigned(s) do
           begin
             source:='';
-            p:=s^.path;
+            p:=s.path;
             if assigned(p) then
               source:=source+p^;
-            p:=s^.name;
+            p:=s.name;
             if assigned(p) then
               source:=source+p^;
             source:=fexpand(source);
 
             SourceFiles^.Insert(New(PSourceFile, Init(source,obj,ppu)));
-            s:=s^.next;
+            s:=s.next;
           end;
         end;
-      m:=pmodule(m^.next);
+      m:=tmodule(m.next);
     end;
   end;
 end;
@@ -2095,7 +2092,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.14  2000-12-25 00:07:25  peter
+  Revision 1.15  2001-01-12 19:21:32  peter
+    * compiles again
+
+  Revision 1.14  2000/12/25 00:07:25  peter
     + new tlinkedlist class (merge of old tstringqueue,tcontainer and
       tlinkedlist objects)
 
