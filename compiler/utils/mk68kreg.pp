@@ -28,9 +28,10 @@ var s : string;
     supregs,
     numbers,
     stdnames,
+    gasnames,
     stabs : array[0..max_regcount-1] of string[63];
     regnumber_index,
-    std_regname_index : array[0..max_regcount-1] of byte;
+    std_regname_index,gas_regname_index : array[0..max_regcount-1] of byte;
 
 {$ifndef FPC}
   procedure readln(var t:text;var s:string);
@@ -173,6 +174,36 @@ begin
   until p=0;
 end;
 
+procedure build_gas_regname_index;
+
+var h,i,j,p,t:byte;
+
+begin
+  {Build the registernumber2regindex index.
+   Step 1: Fill.}
+  for i:=0 to regcount-1 do
+    gas_regname_index[i]:=i;
+  {Step 2: Sort. We use a Shell-Metzner sort.}
+  p:=regcount_bsstart;
+  repeat
+    for h:=0 to regcount-p-1 do
+      begin
+        i:=h;
+        repeat
+          j:=i+p;
+          if gasnames[gas_regname_index[j]]>=gasnames[gas_regname_index[i]] then
+            break;
+          t:=gas_regname_index[i];
+          gas_regname_index[i]:=gas_regname_index[j];
+          gas_regname_index[j]:=t;
+          if i<p then
+            break;
+          dec(i,p);
+        until false;
+      end;
+    p:=p shr 1;
+  until p=0;
+end;
 
 procedure read_spreg_file;
 
@@ -200,6 +231,8 @@ begin
         supregs[regcount]:=readstr;
         readcomma;
         stdnames[regcount]:=readstr;
+        readcomma;
+        gasnames[regcount]:=readstr;
         readcomma;
         stabs[regcount]:=readstr;
         { Create register number }
@@ -229,9 +262,9 @@ end;
 procedure write_inc_files;
 
 var
-    norfile,stdfile,supfile,
+    norfile,stdfile,gasfile,supfile,
     numfile,stabfile,confile,
-    rnifile,srifile:text;
+    rnifile,srifile,grifile:text;
     first:boolean;
 
 begin
@@ -240,10 +273,12 @@ begin
   openinc(supfile,'r68ksup.inc');
   openinc(numfile,'r68knum.inc');
   openinc(stdfile,'r68kstd.inc');
+  openinc(gasfile,'r68kgas.inc');
   openinc(stabfile,'r68ksta.inc');
   openinc(norfile,'r68knor.inc');
   openinc(rnifile,'r68krni.inc');
   openinc(srifile,'r68ksri.inc');
+  openinc(grifile,'r68kgri.inc');
   first:=true;
   for i:=0 to regcount-1 do
     begin
@@ -251,9 +286,11 @@ begin
         begin
           writeln(numfile,',');
           writeln(stdfile,',');
+          writeln(gasfile,',');
           writeln(stabfile,',');
           writeln(rnifile,',');
           writeln(srifile,',');
+          writeln(grifile,',');
         end
       else
         first:=false;
@@ -261,19 +298,23 @@ begin
       writeln(confile,'NR_'+names[i],' = ','tregister(',numbers[i],')',';');
       write(numfile,'tregister(',numbers[i],')');
       write(stdfile,'''',stdnames[i],'''');
+      write(gasfile,'''',gasnames[i],'''');
       write(stabfile,stabs[i]);
       write(rnifile,regnumber_index[i]);
       write(srifile,std_regname_index[i]);
+      write(grifile,gas_regname_index[i]);
     end;
   write(norfile,regcount);
   close(confile);
   close(supfile);
   closeinc(numfile);
   closeinc(stdfile);
+  closeinc(gasfile);
   closeinc(stabfile);
   closeinc(norfile);
   closeinc(rnifile);
   closeinc(srifile);
+  closeinc(grifile);
   writeln('Done!');
   writeln(regcount,' registers procesed');
 end;
@@ -289,11 +330,15 @@ begin
      regcount_bsstart:=regcount_bsstart*2;
    build_regnum_index;
    build_std_regname_index;
+   build_gas_regname_index;
    write_inc_files;
 end.
 {
 $Log$
-Revision 1.3  2004-01-30 13:42:03  florian
+Revision 1.4  2004-04-26 11:05:14  florian
+  + gas registers
+
+Revision 1.3  2004/01/30 13:42:03  florian
   * fixed more alignment issues
 
 Revision 1.2  2003/12/10 02:22:59  karoly

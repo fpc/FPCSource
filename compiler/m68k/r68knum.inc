@@ -24,4 +24,12 @@ tregister($02000004),
 tregister($02000005),
 tregister($02000006),
 tregister($02000007),
-tregister($05000000)
+tregister($05000000),
+tregister($05000001),
+tregister($05000002),
+tregister($05000003),
+tregister($05000004),
+tregister($05000005),
+tregister($05000006),
+tregister($05000007),
+tregister($05000008)
