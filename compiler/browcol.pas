@@ -1446,7 +1446,15 @@ end;
                  MemInfo.LocalAddr:=localvarsym^.address
                else
                  MemInfo.LocalAddr:=0;
-               MemInfo.Size:=getsize;
+               if assigned(vartype.def) and (vartype.def^.deftype=arraydef) then
+                 begin
+                   if parraydef(vartype.def)^.highrange<parraydef(vartype.def)^.lowrange then
+                     MemInfo.Size:=-1
+                   else
+                     MemInfo.Size:=getsize;
+                 end
+               else
+                 MemInfo.Size:=getsize;
                MemInfo.PushSize:=getpushsize;
                Symbol^.SetMemInfo(MemInfo);
              end;
@@ -2078,7 +2086,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.41  2000-06-19 19:56:43  pierre
+  Revision 1.42  2000-07-05 10:17:38  pierre
+   * avoid internalerror on open arrays
+
+  Revision 1.41  2000/06/19 19:56:43  pierre
    * small error fix
 
   Revision 1.40  2000/06/16 06:08:44  pierre
