@@ -104,7 +104,9 @@ END;
 PROCEDURE ShowHelp;
 {Shows some explanation of the game and waits for a key}
 
+{$ifndef UseGraphics}
 VAR I : LONGINT;
+{$endif}
 
 BEGIN
  {$IFDEF UseGraphics}
@@ -206,8 +208,9 @@ END;
 PROCEDURE ShowScore;
 {Simply procedure to update the score}
 
- VAR S : String;
-
+{$IFDEF UseGraphics}
+VAR S : String;
+{$ENDIF}
 BEGIN
  {$IFDEF UseGraphics}
   Str(Score:5,S);
@@ -374,7 +377,6 @@ VAR X,Y,
     MX,MY,MState,Dummy : LONGINT;
     EndOfGame          : LONGINT;
     S                  : String;
-    DoneSomething      : BOOLEAN;
 
 BEGIN
  RANDOMIZE;
@@ -391,7 +393,6 @@ BEGIN
     X:=MX SHR 3;
     Y:=MY SHR 3;
    {$ENDIF}
-   DoneSomething:=FALSE;
    IF PlayFieldPiecesLeft=0 THEN
     BEGIN
      INC(Score,1000);
@@ -413,7 +414,6 @@ BEGIN
       BEGIN
          IF (MState AND LButton) <>0 THEN {If leftbutton pressed,}
           BEGIN
-           DoneSomething:=TRUE;
            IF Y=4 THEN
             EndOfGame:=1;
            IF Y=6 THEN
@@ -444,7 +444,6 @@ BEGIN
        BEGIN
         IF MarkField[X,Y]<>4 THEN
          BEGIN
-          DoneSomething:=TRUE;
           MarkField:=PlayField;
           MarkAfield(X,Y);
           DisplayPlayField(MarkField);
@@ -457,7 +456,6 @@ BEGIN
         IF (MarkField[X,Y]=4) AND ((MState AND LButton) <>0) THEN
                                    {If leftbutton pressed,}
          BEGIN
-          DoneSomething:=TRUE;
           REPEAT                            {wait untill it's released.
                                            The moment of pressing counts}
            GetMouseState(X,Y,Dummy);
@@ -499,7 +497,6 @@ END;
 CONST FileName='samegame.scr';
 
 VAR I : LONGINT;
-    Error : LONGINT;
     {$IFDEF UseGraphics}
     gd,gm : INTEGER;
     Pal   : PaletteType;
@@ -550,7 +547,11 @@ BEGIN
 END.
 {
   $Log$
-  Revision 1.3  1999-12-31 17:04:22  marco
+  Revision 1.4  2000-01-21 00:44:51  peter
+    * remove unused vars
+    * renamed to .pp
+
+  Revision 1.3  1999/12/31 17:04:22  marco
 
 
   Graphical version

@@ -66,19 +66,19 @@ Var AMessage: Msg;
     WindowClass: WndClass;
     Menu: hMenu;
 
-Const 
+Const
   EditMenus: Array[201..203] Of pchar = ('Cut','copy','paste');
 
-Type 
+Type
   TFileName = Array[0..Max_Path] Of Char;
 
 Function SelectFile(Var FName:TFileName; Open:Boolean): Boolean;
 
-Const 
+Const
   Filter: PChar = 'Text files (*.txt)'#0'*.txt'#0'All files (*.*)'#0'*.*'#0;
   Ext: PChar = 'txt';
 
-Var 
+Var
   NameRec: OpenFileName;
 Begin
   FillChar(NameRec,SizeOf(NameRec),0);
@@ -137,7 +137,7 @@ End;
 
 Procedure LoadText;
 
-Var 
+Var
   FName: TFileName;
   F: File;
   Len: LongInt;
@@ -160,7 +160,7 @@ End;
 
 Procedure NewText;
 
-Const 
+Const
   Empty: PChar = '';
 Begin
   AskSave;
@@ -171,8 +171,7 @@ Function WindowProc (Window:HWnd;AMessage,WParam,LParam:Longint): Longint;
 stdcall;
 export;
 
-Var dc: hdc;
-    ps: paintstruct;
+Var ps: paintstruct;
     r: rect;
     StatH: Word;
     nrmenu : longint;
@@ -181,7 +180,7 @@ Begin
   Case AMessage Of
     wm_Paint:
               Begin
-                dc := BeginPaint(Window,@ps);
+                BeginPaint(Window,@ps);
                 GetClientRect(Window,@r);
                 EndPaint(Window,ps);
                 Exit;
@@ -240,11 +239,11 @@ End;
 
 Function EditCreate(ParentWindow,Status:HWnd): HWnd;
 
-Const 
+Const
   CS_Start = WS_Child or WS_HScroll or WS_VScroll or ES_MultiLine or ES_Left;
   EdiTText: PChar = '';
 
-Var 
+Var
   HEdit: HWND;
   R: TRect;
   StatH: Word;
@@ -337,7 +336,11 @@ End.
 
 {
   $Log$
-  Revision 1.6  1999-08-10 08:21:45  michael
+  Revision 1.7  2000-01-21 00:44:51  peter
+    * remove unused vars
+    * renamed to .pp
+
+  Revision 1.6  1999/08/10 08:21:45  michael
   + Log keyword placement correction.
 
   Revision 1.5  1999/08/10 08:20:49  michael

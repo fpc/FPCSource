@@ -34,6 +34,7 @@ var
   p : pointer;
 begin
   p:=Addr(T);
+  p:=p;
 end;
 
 procedure P4(x1:pointer);export;
@@ -61,7 +62,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.3  1999-10-26 12:33:53  peter
+  Revision 1.4  2000-01-21 00:44:51  peter
+    * remove unused vars
+    * renamed to .pp
+
+  Revision 1.3  1999/10/26 12:33:53  peter
     * fixed illegal expr
 
   Revision 1.2  1999/06/30 22:04:56  michael

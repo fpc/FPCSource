@@ -556,11 +556,11 @@ BEGIN
  ShowHighScore;
 END;
 
-VAR gd,gm : INTEGER;
-    Error : LONGINT;
-    {$IFDEF UseGraphics}
+{$IFDEF UseGraphics}
+VAR
+    gd,gm : INTEGER;
     Pal   : PaletteType;
-    {$ENDIF}
+{$ENDIF}
 
 BEGIN
  {$IFDEF UseGraphics}
@@ -812,7 +812,11 @@ END.
 
 {
   $Log$
-  Revision 1.4  2000-01-14 22:03:07  marco
+  Revision 1.5  2000-01-21 00:44:51  peter
+    * remove unused vars
+    * renamed to .pp
+
+  Revision 1.4  2000/01/14 22:03:07  marco
    * Changed some comments
 
   Revision 1.3  1999/12/31 17:03:50  marco

@@ -93,16 +93,12 @@ End;
 
 Procedure ginit640x480x16(direc:String);
 
-Var grd,grmode,errcode: integer;
+Var grd,grmode: integer;
 Begin
   closegraph;
   grd := 9;{ detect;}
   grmode := 2;{ m800x600x16;}
   initgraph(grd,grmode,direc);
-{  ErrCode := GraphResult;
-  If ErrCode <> grOk Then fatal(
-                       'PROC[GINIT640X480X16]- CANNOT INITIALIZE 640x480x16 GRAPHICS MODE'
-    );}
   setgraphmode(2);
 End;
 
@@ -298,7 +294,7 @@ Procedure fire_works;
 Const
   nof = 30;
 
-Type 
+Type
   fires = Record
             x,y: Longint;
             direct: longint;
@@ -659,7 +655,7 @@ Begin
 End;
 
 Begin
-  
+
   clean;
   Repeat
     interpret;

@@ -29,6 +29,9 @@ INTERFACE
 {$ifdef linux}
   {$define MouseAPI}
 {$endif}
+{$ifdef win32}
+  {$define MouseAPI}
+{$endif}
 {$IFDEF Ver70}
   {$define MouseAPI}
   {$G+}
@@ -155,11 +158,6 @@ CONST
   and then filled with names of the FPC-Devel list, and arranged them alfabetically}
   InitNames : ARRAY[0..9] OF String[12] = ('Carl','Daniel','Florian','Jonas','John','Marco','Michael (3x)',
                                            'Peter','Pierre','Thomas' );
-
-{$IFDEF MouseAPI}
-
-VAR MouseBuffer : LONGINT;
-{$ENDIF}
 
 FUNCTION MousePresent : BOOLEAN;
 
@@ -842,7 +840,7 @@ END;
    db $66; shr dx,16              { shr edx, 16 }
    { return: ax=low word, dx=hi word }
  END;
- 
+
  PROCEDURE  outportl(portx : word;data : longint); ASSEMBLER;
  ASM
    { we cant use the 32 bit operand prefix for loading the longint -
@@ -855,15 +853,16 @@ END;
 {$ENDIF}
 
 BEGIN
- {$IFDEF MouseAPI}
-  MouseBuffer:=0;
- {$ENDIF}
   DefColor:=TextAttr;                { Save the current attributes, to restore}
   Negative:=FALSE;                    { Negative=true-> better scores are lower}
 END.
 {
   $Log$
-  Revision 1.5  2000-01-14 22:03:43  marco
+  Revision 1.6  2000-01-21 00:44:51  peter
+    * remove unused vars
+    * renamed to .pp
+
+  Revision 1.5  2000/01/14 22:03:43  marco
    * Change Lee's first name to John :-)
 
   Revision 1.4  2000/01/01 14:54:16  marco

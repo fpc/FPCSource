@@ -271,7 +271,6 @@ procedure branch(x, y : word);  { make a new branch of the tree }
 var
   runnum : word;
   d      : byte;
-  i      : boolean;
 begin
   runnum := maxrun;      { max number of tree cells to add to a branch }
   connect(x, y);        { first connect frontier cell to the tree }
@@ -283,7 +282,7 @@ begin
       d := randomdir;
     until d and runset > 0;  { pick random direction to known frontier }
     rembar(x, y, d);          {    and make it part of the tree }
-    i := adjust(x, y, d);
+    adjust(x, y, d);
     addfront(x, y);      { then pick up the neighboring frontier cells }
     dec(runnum);
   end;
@@ -329,7 +328,6 @@ procedure solve(x, y, endx, endy : word);
 var
   j, k : word;
   d    : byte;
-  i    : boolean;
 begin
   d := rightdir;  { starting from left side of maze going right }
   while (x <> endx) or (y <> endy) do
@@ -346,7 +344,7 @@ begin
     end;
     j := x;
     k := y;
-    i := adjust(x, y, d);         { go in that direction }
+    adjust(x, y, d);         { go in that direction }
     with cell^[j,k] do
     begin    { turn on dot, off if we were here before }
       flags := ((((cell^[x,y].flags xor $80) xor flags) and $80) xor flags);
@@ -408,7 +406,6 @@ var
   x, y,
   endx,
   endy : word;
-  ch   : char;
 begin
   x := 1;                         { pick random start on left side wall }
   y := random(height) + 1;
@@ -419,8 +416,8 @@ begin
   mansolve(x, y, endx, endy);      { try it manually }
   solve(x, y, endx, endy);         { show how when he gives up }
   while keypressed do
-    ch := readkey;
-  ch := readkey;
+   readkey;
+  readkey;
 end;
 
 
