@@ -781,6 +781,13 @@ Begin
   asmsearchsym(s,sym,srsymtable);
   if sym = nil then
    exit;
+  if sym.typ=absolutesym then
+    begin
+      if (tabsolutesym(sym).abstyp=tovar) then
+        sym:=tabsolutesym(sym).ref
+      else
+        Message(asmr_e_unsupported_symbol_type);
+    end;
   case sym.typ of
     varsym :
       begin
@@ -1553,7 +1560,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.62  2003-05-30 23:57:08  peter
+  Revision 1.63  2003-06-06 14:43:29  peter
+    * absolutesym support
+
+  Revision 1.62  2003/05/30 23:57:08  peter
     * more sparc cleanup
     * accumulator removed, splitted in function_return_reg (called) and
       function_result_reg (caller)
