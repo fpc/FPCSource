@@ -1292,7 +1292,7 @@ the following conditions are satisfied:
 \item The procedure has no local variables.
 \item If the procedure is not an \var{assembler} procedure, it must not have
 a \var{asm \dots end;} block.
-\item it is not a constuctor or desctructor.
+\item it is not a constructor or destructor.
 \end{itemize}
 If these conditions are satisfied, the stack frame will be omitted.
 
@@ -1688,7 +1688,7 @@ sections.
 \label{se:Intel}
 
 \fpc supports Intel syntax for the Intel family of Ix86 processors
-in it's \var{asm} blocks.
+in its \var{asm} blocks.
 
 The Intel syntax in your \var{asm} block is converted to AT\&T syntax by the
 compiler, after which it is inserted in the compiled source.

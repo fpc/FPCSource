@@ -14,7 +14,7 @@
  \synt{formal\ parameter\ list}
 \end{mysyntdiag}
 \begin{mysyntdiag}
-\synt{desctructor\ header}
+\synt{destructor\ header}
 \lit*{destructor} 
 \begin{stack} \synt{identifier} \\ \synt{qualified\ method\ identifier} \end{stack}
  \synt{formal\ parameter\ list}
