@@ -213,7 +213,7 @@ unit typinfo;
     function GetEnumValue(TypeInfo : PTypeInfo;const Name : string) : Integer;
 
 
-  var
+  const
     BooleanIdents: array[Boolean] of String = ('False', 'True');
     DotSep: String = '.';
 
@@ -842,7 +842,10 @@ end.
 
 {
   $Log$
-  Revision 1.40  2000-06-22 15:29:31  sg
+  Revision 1.41  2000-06-22 15:31:09  sg
+  * Fixed a small typo in my previous update
+
+  Revision 1.40  2000/06/22 15:29:31  sg
   * Added prototypes for GetInt64Prop and SetInt64Prop
   * Added constants "BooleanIdents" and "DotSep"
 
