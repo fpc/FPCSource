@@ -151,7 +151,8 @@ BEGIN
   writeln(IsOdd(3));
   writeln(Func1(5,5,Bool,T));
   new(X);
-  X^.next:=X;
+  new(X^.next);
+  X^.next^.next:=X;
   dispose(X);
  { for i:=1 to 99 do
     Writeln('Line ',i); }
