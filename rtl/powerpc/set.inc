@@ -200,7 +200,7 @@ end ['R0','R3','R4','R5','R6','R9','R10','CR0','CTR'];
 
 
 {$define FPC_SYSTEM_HAS_FPC_SET_IN_BYTE}
-function fpc_set_in_byte(const p: fpc_normal_set; b : byte): boolean;compilerproc;assembler;
+function fpc_set_in_byte(const p: fpc_normal_set; b : byte): boolean;compilerproc;assembler;[public,alias:'FPC_SET_IN_BYTE'];
 {
   tests if the element b is in the set p, the **zero** flag is cleared if it's present
 
@@ -523,7 +523,10 @@ end;
 
 {
   $Log$
-  Revision 1.16  2002-10-17 10:14:46  jonas
+  Revision 1.17  2003-04-26 12:40:33  florian
+    + set_in_byte needed FPC_SET_IN_BYTE alias
+
+  Revision 1.16  2002/10/17 10:14:46  jonas
     * fixed srwi's after cntlzw instructions (should be 5 instead of 31)
 
   Revision 1.15  2002/09/07 16:01:26  peter
