@@ -693,6 +693,23 @@ do_jmp:
        endexceptlabel : tasmlabel;
        
        
+    procedure try_new_exception(list : taasmoutput;var jmpbuf,envbuf, href : treference;
+      a : aword; exceptlabel : tasmlabel);
+     begin
+       tg.gettempofsizereferencepersistant(list,24,jmpbuf);
+       tg.gettempofsizereferencepersistant(list,12,envbuf);
+       tg.gettempofsizereferencepersistant(list,sizeof(aword),href);
+       new_exception(list, jmpbuf,envbuf, href, a, exceptlabel);
+     end;
+     
+     
+    procedure try_free_exception(list : taasmoutput;var jmpbuf, envbuf, href : treference;
+     a : aword ; endexceptlabel : tasmlabel; onlyfree : boolean);
+     begin
+         free_exception(list, jmpbuf, envbuf, href, a, endexceptlabel, onlyfree);
+         tg.ungetpersistanttempreference(list,jmpbuf);
+         tg.ungetpersistanttempreference(list,envbuf);
+     end;
      
      
 
@@ -763,7 +780,7 @@ do_jmp:
          getlabel(endexceptlabel);
          getlabel(lastonlabel);
 
-         cg.g_new_exception(exprasmlist,tempbuf,tempaddr,href,1,exceptlabel);
+         try_new_exception(exprasmlist,tempbuf,tempaddr,href,1,exceptlabel);
          
          { try block }
          { set control flow labels for the try block }
@@ -784,7 +801,7 @@ do_jmp:
          cg.a_label(exprasmlist,exceptlabel);
 
                  
-         cg.g_free_exception(exprasmlist,tempbuf,tempaddr,href,0,endexceptlabel,false);
+         try_free_exception(exprasmlist,tempbuf,tempaddr,href,0,endexceptlabel,false);
          
          
          cg.a_label(exprasmlist,doexceptlabel);
@@ -820,7 +837,7 @@ do_jmp:
               getlabel(doobjectdestroy);
               getlabel(doobjectdestroyandreraise);
               
-              cg.g_new_exception(exprasmlist,tempbuf,tempaddr,href,1,exceptlabel);
+              try_new_exception(exprasmlist,tempbuf,tempaddr,href,1,exceptlabel);
 
               { here we don't have to reset flowcontrol           }
               { the default and on flowcontrols are handled equal }
@@ -829,7 +846,7 @@ do_jmp:
 
               cg.a_label(exprasmlist,doobjectdestroyandreraise);
               
-              cg.g_free_exception(exprasmlist,tempbuf,tempaddr,href,0,doobjectdestroy,false);
+              try_free_exception(exprasmlist,tempbuf,tempaddr,href,0,doobjectdestroy,false);
 
               cg.a_call_name(exprasmlist,'FPC_POPSECONDOBJECTSTACK');
 
@@ -972,7 +989,7 @@ do_jmp:
          getlabel(doobjectdestroyandreraise);
          
          { call setjmp, and jump to finally label on non-zero result }
-         cg.g_new_exception(exprasmlist,tempbuf,tempaddr,href,1,doobjectdestroyandreraise);
+         try_new_exception(exprasmlist,tempbuf,tempaddr,href,1,doobjectdestroyandreraise);
          
          if assigned(right) then
            begin
@@ -998,7 +1015,7 @@ do_jmp:
          getlabel(doobjectdestroy);
          cg.a_label(exprasmlist,doobjectdestroyandreraise);
          
-         cg.g_free_exception(exprasmlist,tempbuf,tempaddr,href,0,doobjectdestroy,false);
+         try_free_exception(exprasmlist,tempbuf,tempaddr,href,0,doobjectdestroy,false);
 
          cg.a_call_name(exprasmlist,'FPC_POPSECONDOBJECTSTACK');
          cg.a_param_reg(exprasmlist, OS_ADDR, accumulator, paramanager.getintparaloc(1));
@@ -1103,7 +1120,7 @@ do_jmp:
           end;
 
          { call setjmp, and jump to finally label on non-zero result }
-         cg.g_new_exception(exprasmlist,tempbuf,tempaddr,href,1,finallylabel);
+         try_new_exception(exprasmlist,tempbuf,tempaddr,href,1,finallylabel);
 
          { try code }
          if assigned(left) then
@@ -1116,7 +1133,7 @@ do_jmp:
 
          cg.a_label(exprasmlist,finallylabel);
          { just free the frame information }
-         cg.g_free_exception(exprasmlist,tempbuf,tempaddr,href,1,finallylabel,true);
+         try_free_exception(exprasmlist,tempbuf,tempaddr,href,1,finallylabel,true);
 
          { finally code }
          flowcontrol:=[];
@@ -1209,7 +1226,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.31  2002-08-04 19:06:41  carl
+  Revision 1.32  2002-08-09 19:10:59  carl
+    * fixed generic exception management
+
+  Revision 1.31  2002/08/04 19:06:41  carl
     + added generic exception support (still does not work!)
     + more documentation
 
