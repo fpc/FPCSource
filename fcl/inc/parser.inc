@@ -231,7 +231,8 @@ begin
         Inc(P);
         while P^ in ['0'..'9'] do Inc(P);
         Result := toInteger;
-        while P^ in ['0'..'9', '.', 'e', 'E', '+', '-'] do
+        while (P^ in ['0'..'9', '.', 'e', 'E', '+', '-']) and not
+	  ((P[0] = '.') and not (P[1] in ['0'..'9', 'e', 'E'])) do
         begin
           Inc(P);
           Result := toFloat;
@@ -307,7 +308,14 @@ begin
 end;
 {
   $Log$
-  Revision 1.2  2000-07-13 11:32:59  michael
+  Revision 1.3  2001-11-08 11:12:57  sg
+  * Parser now only detects a number as float when the "." is followed by
+    a valid char. Else the input is handled as a normal integer, followed by
+    the dot as separate char. This allows to parse input such as
+    "0..9" - until now this would have lead to a float "0..9" which, of
+    course, couldn't be converted afterwards.
+
+  Revision 1.2  2000/07/13 11:32:59  michael
   + removed logs
  
 }
