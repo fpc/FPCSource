@@ -2774,7 +2774,9 @@ begin
   R2.Copy(R); R2.B.Y:=R2.A.Y+1;
   Insert(New(PStaticText, Init(R2, ^C'FreePascal IDE for '+OSStr)));
   R2.Move(0,1);
-  Insert(New(PStaticText, Init(R2, ^C' Version '+VersionStr)));
+  Insert(New(PStaticText, Init(R2, ^C'Version '+VersionStr
+    {$ifdef FPC}+' '+{$i %date%}{$endif}
+    )));
   R2.Move(0,1);
   Insert(New(PStaticText, Init(R2, ^C'(Compiler Version '+Version_String+')')));
 {$ifndef NODEBUG}
@@ -2785,10 +2787,8 @@ begin
       R2.Move(0,1);
     end
   else
-    R2.Move(0,2);
-{$else NODEBUG}
-  R2.Move(0,2);
 {$endif NODEBUG}
+    R2.Move(0,2);
   Insert(New(PStaticText, Init(R2, ^C'Copyright (C) 1998-2000 by')));
   R2.Move(0,2);
   Insert(New(PStaticText, Init(R2, ^C'B‚rczi G bor')));
@@ -3055,7 +3055,10 @@ end;
 END.
 {
   $Log$
-  Revision 1.52  2000-01-03 11:38:34  michael
+  Revision 1.53  2000-01-07 14:02:52  pierre
+    + date string added
+
+  Revision 1.52  2000/01/03 11:38:34  michael
   Changes from Gabor
 
   Revision 1.51  1999/12/20 14:23:17  pierre
