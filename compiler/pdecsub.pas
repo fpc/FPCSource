@@ -1836,7 +1836,8 @@ const
                 tprocdef(aktprocsym.definition).parast.insert(otsym);
               { this increases the data size }
               { correct this to get the right ret $value }
-                dec(tprocdef(aktprocsym.definition).parast.datasize,otsym.getpushsize);
+                dec(tprocdef(aktprocsym.definition).parast.datasize,
+                    align(otsym.getpushsize,tprocdef(aktprocsym.definition).parast.dataalignment));
                 { this allows to read the funcretoffset }
                 otsym.address:=-4;
                 otsym.varspez:=vs_var;
@@ -1850,7 +1851,12 @@ const
 end.
 {
   $Log$
-  Revision 1.22  2001-05-04 15:52:03  florian
+  Revision 1.23  2001-05-08 14:32:58  jonas
+    * fixed bug for overloaded operators with a return type that has a size
+      which isn't a multiple of the target_os.stackalignment (main branch
+      patch from Peter)
+
+  Revision 1.22  2001/05/04 15:52:03  florian
     * some Delphi incompatibilities fixed:
        - out, dispose and new can be used as idenfiers now
        - const p = apointerype(nil); is supported now
