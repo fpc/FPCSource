@@ -613,6 +613,7 @@ implementation
          i : longint;
          { help reference pointer }
          r : preference;
+         hp,
          pp,params : ptree;
          inlined : boolean;
          inlinecode : ptree;
@@ -1313,9 +1314,24 @@ implementation
          while assigned(pp) do
            begin
               if assigned(pp^.left) then
-                if (pp^.left^.location.loc=LOC_REFERENCE) or
-                  (pp^.left^.location.loc=LOC_MEM) then
-                  ungetiftemp(pp^.left^.location.reference);
+                begin
+                  if pp^.left^.location.loc in [LOC_REFERENCE,LOC_MEM] then
+                    ungetiftemp(pp^.left^.location.reference);
+                { process also all nodes of an array of const }
+                  if pp^.left^.treetype=arrayconstructn then
+                    begin
+                      if assigned(pp^.left^.left) then
+                       begin
+                         hp:=pp^.left;
+                         while assigned(hp) do
+                          begin
+                            if hp^.left^.location.loc in [LOC_REFERENCE,LOC_MEM] then
+                              ungetiftemp(hp^.left^.location.reference);
+                            hp:=hp^.right;
+                          end;
+                       end;
+                    end;
+                end;
               pp:=pp^.right;
            end;
          if inlined then
@@ -1437,7 +1453,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.31  1998-09-28 16:57:15  pierre
+  Revision 1.32  1998-10-01 09:22:52  peter
+    * fixed value openarray
+    * ungettemp of arrayconstruct
+
+  Revision 1.31  1998/09/28 16:57:15  pierre
     * changed all length(p^.value_str^) into str_length(p)
       to get it work with and without ansistrings
     * changed sourcefiles field of tmodule to a pointer

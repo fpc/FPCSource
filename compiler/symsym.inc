@@ -942,12 +942,15 @@
          if assigned(definition) then
            begin
               case varspez of
-                 vs_value : getsize:=definition^.size;
+                 vs_value : begin
+                              if is_open_array(definition) then
+                                getsize:=sizeof(pointer)+4
+                              else
+                                getsize:=definition^.size;
+                            end;
                    vs_var : begin
                             { open arrays push also the high valye }
-                              if (definition^.deftype=arraydef) and
-                                 (parraydef(definition)^.lowrange=0) and
-                                 (parraydef(definition)^.highrange=-1) then
+                              if is_open_array(definition) then
                                 getsize:=sizeof(pointer)+4
                               else
                                 getsize:=sizeof(pointer);
@@ -1716,7 +1719,11 @@
 
 {
   $Log$
-  Revision 1.48  1998-09-26 17:45:44  peter
+  Revision 1.49  1998-10-01 09:22:55  peter
+    * fixed value openarray
+    * ungettemp of arrayconstruct
+
+  Revision 1.48  1998/09/26 17:45:44  peter
     + idtoken and only one token table
 
   Revision 1.47  1998/09/24 15:11:17  peter

@@ -608,22 +608,27 @@ implementation
       end;
 
 
-    procedure emit_lea_tree_ref(const p:ptree;const ref:treference);
-      var
-        href : treference;
-        t    : tlocation;
+    procedure emit_to_reference(var p:ptree);
       begin
-        t:=p^.location;
-        case t.loc of
+        case p^.location.loc of
                LOC_FPU : begin
-                           reset_reference(href);
-                           gettempofsizereference(10,href);
-                           floatstore(pfloatdef(p^.resulttype)^.typ,href);
-                           exprasmlist^.concat(new(pai386,op_ref_reg(A_LEA,S_L,
-                             newreference(href),R_EDI)));
-                           exprasmlist^.concat(new(pai386,op_reg_ref(A_MOV,S_L,
-                             R_EDI,newreference(ref))));
+                           reset_reference(p^.location.reference);
+                           gettempofsizereference(10,p^.location.reference);
+                           floatstore(pfloatdef(p^.resulttype)^.typ,p^.location.reference);
+                           p^.location.loc:=LOC_REFERENCE;
                          end;
+               LOC_MEM,
+         LOC_REFERENCE : ;
+        else
+         internalerror(333);
+        end;
+      end;
+
+
+
+    procedure emit_lea_loc_ref(const t:tlocation;const ref:treference);
+      begin
+        case t.loc of
                LOC_MEM,
          LOC_REFERENCE : begin
                            if t.reference.isintvalue then
@@ -710,7 +715,10 @@ implementation
            inc(href.offset,4);
            { write changing field update href to the next element }
            if vaddr then
-            emit_lea_tree_ref(hp^.left,href)
+            begin
+              emit_to_reference(hp^.left);
+              emit_lea_loc_ref(hp^.left^.location,href)
+            end
            else
             emit_mov_loc_ref(hp^.left^.location,href);
            inc(href.offset,4);
@@ -723,7 +731,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.21  1998-09-28 11:07:39  peter
+  Revision 1.22  1998-10-01 09:22:53  peter
+    * fixed value openarray
+    * ungettemp of arrayconstruct
+
+  Revision 1.21  1998/09/28 11:07:39  peter
     + floatdef support for array of const
 
   Revision 1.20  1998/09/24 14:26:03  peter
