@@ -65,7 +65,7 @@ package=ufvgo32.zip,Free ~V~ision (FV)
 pack=~W~in32
 binsub=\bin\i386-win32
 ppc386=ppc386
-targetname=win32
+targetname=i386-win32
 cfgfile=fpc.cfg
 idecfgfile=fp.cfg
 ideinifile=fp.ini
@@ -128,7 +128,7 @@ package=units-fv.i386-win32.zip,Free ~V~ision (FV)
 pack=~O~S/2
 binsub=\bin\os2
 ppc386=ppc386
-targetname=os2
+targetname=i386-os2
 cfgfile=fpc.cfg
 idecfgfile=fp.cfg
 ideinifile=fp.ini
@@ -281,7 +281,7 @@ pack=Commo~n~
 # Common 1
 package=docs-pdf.zip,Documentation (~P~DF)
 # Common 2
-package=doc-htm.zip[doc-html.zip],Documentation (~H~MTL)
+package=doc-html.zip[doc-htm.zip],Documentation (~H~MTL)
 # Common 3
 package=demo.zip,D~e~mos
 
@@ -447,8 +447,8 @@ defaultcfg=
 #     -Op2  set target processor to Pentium/PentiumMMX (tm)
 #     -Op3  set target processor to PPro/PII/c6x86/K6 (tm)
 
-# Optimize always for Size and Pentium
-#-Og2p2
+# Optimize always for Size and PentiumII
+#-Og2p3
 
 
 # -----------------------
@@ -638,8 +638,8 @@ endcfg
 
 defaultsetpath=
 @echo off
-echo Setting PATH for use with $FPCTARGET Free Pascal compiler
-set A=$1\bin\$FPCTARGET;%PATH%
+echo Setting PATH for use with $2 Free Pascal Compiler
+set A=$1\bin\$2;%PATH%
 set Path=
 set PATH=%A%
 set A=

@@ -130,7 +130,7 @@ program install;
        name     : string[12];
        binsub   : string[40];
        ppc386   : string[20];
-       targetname : string[20];
+       targetname : string[40];
        defidecfgfile,
        defideinifile,
        defcfgfile,
@@ -695,7 +695,7 @@ program install;
          begin
            s:=cfgdata[i]^;
            Replace(s,'$1',data.basepath);
-           Replace(s,'$target',targetname);
+           Replace(s,'$2',targetname);
            writeln(t,s);
          end
        else
@@ -1913,7 +1913,7 @@ end;
 
 var
    i : longint;
-
+   vm : tvideomode;
 begin
    { register objects for help streaming }
    RegisterWHTMLScan;
@@ -1977,6 +1977,10 @@ begin
    fillchar(data, SizeOf(data), 0);
 
    installapp.init;
+   vm.col:=80;
+   vm.row:=25;
+   vm.color:=true;
+   installapp.SetScreenVideoMode(vm);
 
    FSplit (FExpand (ParamStr (0)), DStr, CfgName, EStr);
 
@@ -1995,7 +1999,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.22  2004-12-21 18:52:31  peter
+  Revision 1.23  2004-12-22 15:28:48  peter
+    * more fixes for win32 installer
+
+  Revision 1.22  2004/12/21 18:52:31  peter
   checkbox mask works, scrollbox still not
 
   Revision 1.21  2004/12/20 18:27:00  peter

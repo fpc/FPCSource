@@ -137,7 +137,8 @@ procedure TScrollBox.ScrollTo(X, Y: Sw_Integer);
 var DX,DY: sw_integer;
 begin
   Inc(DrawLock);
-  DX:=Delta.X-X; DY:=Delta.Y-Y;
+  DX:=Delta.X-X;
+  DY:=Delta.Y-Y;
   if HScrollBar <> nil then
    HScrollBar^.SetValue(X);
   if VScrollBar <> nil then
@@ -265,7 +266,10 @@ end;
 END.
 {
   $Log$
-  Revision 1.5  2004-12-21 18:52:31  peter
+  Revision 1.6  2004-12-22 15:28:48  peter
+    * more fixes for win32 installer
+
+  Revision 1.5  2004/12/21 18:52:31  peter
   checkbox mask works, scrollbox still not
 
   Revision 1.4  2004/12/20 18:27:00  peter
