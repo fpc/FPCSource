@@ -199,6 +199,7 @@ implementation
                              intvalue := 0;
                              Message(cg_e_illegal_expression);
                            end;
+{$warning maybe change to create_64bit}
                         if target_info.endian = endian_little then
                           begin
                             curconstSegment.concat(Tai_const.Create_32bit(Cardinal(intvalue and $ffffffff)));
@@ -265,7 +266,7 @@ implementation
                           Tobjectdef(pointertype.def).vmt_mangledname)));
                      end;
                  niln:
-                   curconstSegment.concat(Tai_const.Create_32bit(0));
+                   curconstSegment.concat(Tai_const.Create_ptr(0));
                  else Message(cg_e_illegal_expression);
               end;
               p.free;
@@ -293,13 +294,11 @@ implementation
                       p:=hp;
                    end;
               { const pointer ? }
-{$warning 32bit pointer assumption}
               if (p.nodetype = pointerconstn) then
-                curconstsegment.concat(Tai_const.Create_32bit(
-                  Cardinal(tpointerconstnode(p).value)))
+                curconstsegment.concat(Tai_const.Create_ptr(TConstPtrUInt(tpointerconstnode(p).value)))
               { nil pointer ? }
               else if p.nodetype=niln then
-                curconstSegment.concat(Tai_const.Create_32bit(0))
+                curconstSegment.concat(Tai_const.Create_ptr(0))
               { maybe pchar ? }
               else
                 if is_char(tpointerdef(t.def).pointertype.def) and
@@ -360,6 +359,11 @@ implementation
               else
                 if p.nodetype=addrn then
                   begin
+                    { support @@procvar in tp mode }
+                    if (m_tp_procvar in aktmodeswitches) and
+                       (taddrnode(p).left.nodetype=addrn) then
+                      p:=taddrnode(p).left;
+                    { insert typeconv }
                     inserttypeconv(p,t);
                     { if a typeconv node was inserted then check if it was an tc_equal. If
                       true then we remove the node. If not tc_equal then we leave the typeconvn
@@ -576,7 +580,7 @@ implementation
                      begin
                         { an empty ansi string is nil! }
                         if (strlength=0) then
-                          curconstSegment.concat(Tai_const.Create_32bit(0))
+                          curconstSegment.concat(Tai_const.Create_ptr(0))
                         else
                           begin
                             objectlibrary.getdatalabel(ll);
@@ -605,7 +609,7 @@ implementation
                      begin
                         { an empty ansi string is nil! }
                         if (strlength=0) then
-                          curconstSegment.concat(Tai_const.Create_32bit(0))
+                          curconstSegment.concat(Tai_const.Create_ptr(0))
                         else
                           begin
                             objectlibrary.getdatalabel(ll);
@@ -696,7 +700,7 @@ implementation
                 begin
                   { Only allow nil initialization }
                   consume(_NIL);
-                  curconstSegment.concat(Tai_const.Create_32bit(0));
+                  curconstSegment.concat(Tai_const.Create_ptr(0));
                 end
               else
                 begin
@@ -710,9 +714,9 @@ implementation
               { under tp:  =nil or =var under fpc: =nil or =@var }
               if token=_NIL then
                 begin
-                   curconstSegment.concat(Tai_const.Create_32bit(0));
+                   curconstSegment.concat(Tai_const.Create_ptr(0));
                    if (po_methodpointer in tprocvardef(t.def).procoptions) then
-                     curconstSegment.concat(Tai_const.Create_32bit(0));
+                     curconstSegment.concat(Tai_const.Create_ptr(0));
                    consume(_NIL);
                    exit;
                 end;
@@ -910,7 +914,7 @@ implementation
                     end
                   else
                     begin
-                      curconstSegment.concat(Tai_const.Create_32bit(0));
+                      curconstSegment.concat(Tai_const.Create_ptr(0));
                     end;
                   p.free;
                 end
@@ -966,7 +970,7 @@ implementation
                                      { this is more general }
                                      aktpos:=vmt_offset + pointer_size;
                                    end;
-  
+
                                { if needed fill }
                                if fieldoffset>aktpos then
                                  for i:=1 to fieldoffset-aktpos do
@@ -974,7 +978,7 @@ implementation
 
                                { new position }
                                aktpos:=fieldoffset+vartype.def.size;
-  
+
                                { read the data }
                                readtypedconst(vartype,nil,writable);
 
@@ -1016,7 +1020,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.78  2004-02-07 23:28:34  daniel
+  Revision 1.79  2004-02-26 16:15:23  peter
+    * support @@procvar in typed consts
+
+  Revision 1.78  2004/02/07 23:28:34  daniel
     * Take advantage of our new with statement optimization
 
   Revision 1.77  2003/12/29 12:48:39  jonas
