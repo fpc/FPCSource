@@ -105,9 +105,9 @@ general_f_no_memory_left=F_Kein Speicher mehr Åbrig
 % conditional compiling handling.
 % \begin{description}
 scan_f_end_of_file=F_Unerwartetes Dateiende
-% this typically happens in on of the following cases :
+% this typically happens in one of the following cases :
 % \begin{itemize}
-% \item The source file ends befor then final \var{end.} statement. This
+% \item The source file ends before the final \var{end.} statement. This
 % happens mostly when the \var{begin} and \var{end} statements aren't
 % balanced;
 % \item An include file ends in the middle of a statement.
@@ -150,8 +150,8 @@ scan_f_cannot_open_input=F_Kann Datei $1 nicht îffnen
 % \fpc cannot find the program or unit source file you specified on the
 % command line.
 scan_f_cannot_open_includefile=F_Kann Include-Datei $1 nicht îffnen
-% \fpc cannot find the source file you specified in a \var{\{\$include \}}
-% stateent.
+% \fpc cannot find the source file you specified in a \var{\{\$include ..\}}
+% statement.
 scan_e_too_much_endifs=E_Zu viele $ENDIF oder $ELSE Direktiven
 % Your \var{\{\$IFDEF ..\}} and {\{\$ENDIF\}} statements aren't balanced.
 scan_w_only_pack_records=W_Record Elemente koennen nur im Raster 1,2,4 oder 16 Bytes ausgerichtet werden
@@ -163,10 +163,10 @@ scan_w_only_pack_enum=W_Aufzeahlungen koennen nur im Raster 1,2 or 4 bytes aufge
 scan_e_endif_expected=E_$1 erwartet fÅr $2 definiert in Zeile $3
 % Your conditional compilation statements are unbalanced.
 scan_e_preproc_syntax_error=E_Syntaxfehler im Argument einer $if Direktive
-% There is an error in the expression following the \var{\{\$if \}} compiler
+% There is an error in the expression following the \var{\{\$if ..\}} compiler
 % directive.
 scan_e_error_in_preproc_expr=E_Syntaxfehler im Context einer $if Direktive
-% There is an error in the expression following the \var{\{\$if \}} compiler
+% There is an error in the expression following the \var{\{\$if ..\}} compiler
 % directive.
 scan_w_marco_cut_after_255_chars=W_Inhalt des Makros wurde nach der Auswertung von 255 Zeichen abgeschnitten
 % The contents of macros canno be longer than 255 characters. This is a
@@ -578,7 +578,9 @@ parser_e_absolute_only_one_var=E_absolute kann nur auf eine alleinstehende Varia
 % Var Z : Longint;
 %     X,Y : Longint absolute Z;
 % \end{verbatim}
+% \begin{itemize}
 % \item [ absolute can only be associated a var or const ]
+% \end{itemize}
 % The address of a \var{absolute} directive can only point to a variable or
 % constant. Therefore, the following code will produce this error:
 % \begin{verbatim}
@@ -678,7 +680,7 @@ parser_w_inlining_disabled=W_Inlining deaktiviert
 % Inlining of procedures is disabled.
 parser_i_writing_browser_log=I_Schreibe Browser log $1
 % When information messages are on, the compiler warns you when it
-% writes the browser log (generated with the \var{\{\$Y+ \}} switch).
+% writes the browser log (generated with the \var{\{\$Y+\}} switch).
 parser_h_maybe_deref_caret_missing=H_Mîglicherweise fehlt eine Pointer Dereferenzierung
 % The compiler thinks that a pointer may need a dereference.
 parser_f_assembler_reader_not_supported=F_Gewaehlter Assembler-Leser nicht unterstÅtzt
@@ -768,8 +770,22 @@ type_e_mismatch=E_Typ passt nicht
 % \item You are calling a function or procedure with parameters that are
 % incompatible with the parameters in the function or procedure definition.
 % \end{itemize}
-type_e_incompatible_types=E_Inkompatible Typen: erhalten $1 erwartet $2
+type_e_incompatible_types=E_Inkompatible Typen: erhalten "$1", erwartet "$2"
 % There is no conversion possible between the two types
+% Another possiblity is that they are declared in different
+% declarations:
+% \begin{verbatim}
+% Var
+%    A1 : Array[1..10] Of Integer;
+%    A2 : Array[1..10] Of Integer;
+%
+% Begin
+%    A1:=A2; { This statement gives also this error, it
+%              is due the strict type checking of pascal }
+% End.
+% \end{verbatim}
+type_e_not_equal_types=E_Typen sind verschieden bei $1 und $2
+% The types are not equal
 type_e_integer_expr_expected=E_Integer Ausdruck erwartet
 % The compiler expects an expression of type integer, but gets a different
 % type.
@@ -814,7 +830,7 @@ type_h_use_div_for_int=H_Verwenden sie DIV um ein Integer Ergebnis zu erhalten
 % When hints are on, then an integer division with the '/' operator will
 % procuce this message, because the result will then be of type real
 type_e_strict_var_string_violation=E_String Typ ist unpassen, da in $V+ Mode
-% When compiling in \var{\{\$V+ \}} mode, the string you pass as a parameter
+% When compiling in \var{\{\$V+\}} mode, the string you pass as a parameter
 % should be of the exact same type as the declared parameter of the procedure.
 type_e_succ_and_pred_enums_with_assign_not_possible=E_Succ oder Pred kann nicht auf Enums mit Zuweisungen angewendet werden
 % When you declared an enumeration type which has assignments in it, as in C,
@@ -843,8 +859,10 @@ type_e_wrong_type_in_array_constructor=E_Falscher Typ im Array Constructor
 % allowed.
 type_e_wrong_parameter_type=E_Inkompatible Typen fÅr Argument #$1: erhalten $2, erwartet $3
 % You are trying to pass an invalid type for the specified parameter. 
+type_e_no_method_and_procedure_not_compatible=E_Methode (Variable) und Prozedur (Variable) sind nicht Kompatibel
+% You can't assign a method to a procedure variable or a procedure to a
+% method pointer.
 % \end{description}
-
 #
 # Symtable
 #
@@ -929,10 +947,10 @@ sym_w_function_result_not_set=W_Funktions Ergebnis scheint kein Set zu sein
 sym_e_illegal_field=E_Unbekannter Record Feld Bezeichner $1
 % The field doesn't exist in the record definition.
 sym_n_uninitialized_local_variable=W_Lokale Variable $1 wird benutzt, bevor ihr ein Wert zugewiesen wurde
-sym_n_uninitialized_local_variable=W_Variable $1 wird benutzt, bevor ihr ein Wert zugewiesen wurde
-% This message is displayed if the compiler thinks that a variable will
+sym_n_uninitialized_variable=W_Variable $1 scheint nicht initialisert worden zu sein
+% These messages are displayed if the compiler thinks that a variable will
 % be used (i.e. appears in the right-hand-side of an expression) when it
-% wasn't initialized first (i.e. appeared in the right-hand side of an
+% wasn't initialized first (i.e. appeared in the left-hand side of an
 % assigment)
 sym_e_id_no_member=E_Bezeichener verweist nicht auf ein Element $1
 % When using the extended syntax of \var{new}, you must specify the constructor
@@ -1071,6 +1089,8 @@ cg_w_may_wrong_math_argument=W_Mîglicherweise unzulÑssige Konstante wurde an int
 % the definition range of these functions, you may get unexpected
 % results when running the program
 cg_e_cannot_call_cons_dest_inside_with=E_Constructoren und Destruktoren kînnen in diesem Kontext nicht aufgerufen wenrden
+% Inside a \var{With} clause you cannot call a constructor or destructor for the
+% object you have in the \var{with} clause.
 cg_e_cannot_call_message_direct=E_Kann Message Handler Methode nicht direkt aufrufen
 % A message method handler method can't be called directly if it contains an
 % explicit self argument
@@ -1118,9 +1138,7 @@ asmr_e_error_converting_binary=E_Fehler beim Umwandeln in BinÑr $1
 asmr_e_error_converting_hexadecimal=E_Fehler beim Umwandeln in Hexadezimal $1
 asmr_h_direct_global_to_mangled=H_$1 Åbersetzt nach $2
 asmr_w_direct_global_is_overloaded_func=W_$1 ist einer overload Funktion zugeordnet
-asmr_e_cannot_use_SELF_outside_a_method=E_Kann SELF ausserhalb einer Methode nicht verwenden
-asmr_e_cannot_use___SELF_outside_methode=E_Kann __SELF ausserhalb einer Methode nicht verwenden
-asmr_e_cannot_use___OLDEBP_outside_nested_procedure=E_Kann __OLDEBP ausserhalb einer verschachtelten Prozedur nicht verwednen
+asmr_e_cannot_use___OLDEBP_outside_nested_procedure=E_Kann OLDEBP ausserhalb einer verschachtelten Prozedur nicht verwednen
 asmr_e_void_function=W_Prozeduren kînnen keinen Wert im asm Code zurÅckliefern
 asmr_e_SEG_not_supported=E_SEG nicht unterstÅtzt
 asmr_e_size_suffix_and_dest_dont_match=E_Grîssensuffix und Ziel- oder Quellgrîsse passen nicht zusammen
@@ -1369,16 +1387,18 @@ option_no_debug_support_recompile_fpc=H_Versuchen Sie mit -dGDB erneut zu kompil
 % It is possible to have a compiler executable that doesn't support
 % the generation of debugging info. If you use such an executable with the
 % \var{-g} switch, this warning will be displayed.
-option_obsolete_switch=W_Sie verwenden den ehemaligen Schalter $1
+option_obsolete_switch=E_Sie verwenden den ehemaligen Schalter $1
 % this warns you when you use a switch that is not needed/supported anymore.
 % It is recommended that you remove the switch to overcome problems in the
 % future, when the switch meaning may change.
-%
-option_obsolete_switch_use_new=W_Sie benutzen den ehemaligen Schalter $1, bitte benutzen Siease $2
+option_obsolete_switch_use_new=E_Sie benutzen den ehemaligen Schalter $1, bitte benutzen Sie $2
 % this warns you when you use a switch that is not supported anymore. You
 % must now use the second switch instead.
 % It is recommended that you change the switch to overcome problems in the
 % future, when the switch meaning may change.
+option_switch_bin_to_src_assembler=N_Schalte Assembler auf den Standard Assembler Quellencodeschreiber
+% this notifies you that the assembler has been changed because you used the
+% -a switch which can't be used with a binary assembler writer.
 # EndOfTeX
 #
 # Logo (option -l)
