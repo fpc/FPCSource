@@ -36,7 +36,6 @@ __ps_strings:
 .LC4 = .-.LCTOC1
 	.long _DYNAMIC
 .LC5 = .-.LCTOC1
-	.long _fini
 	.section	".text"
 	.align 2
 	.globl _start
