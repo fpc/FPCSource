@@ -125,12 +125,12 @@ Const
 FIELD_TYPE_CHAR = FIELD_TYPE_TINY;		{ For compability }
 FIELD_TYPE_INTERVAL = FIELD_TYPE_ENUM;  	{ For compability }
 
-Procedure sql_free (root : PMEM_ROOT);cdecl;
-Procedure init_alloc_root (root: PMEM_ROOT;block_size : Cardinal);cdecl;
-Function sql_alloc_first_block(root : PMEM_ROOT) : my_bool;cdecl;
-Function sql_alloc_root(mem_root : PMEM_ROOT;len : Cardinal) : longint;cdecl;
-Function sql_strdup_root(root : PMEM_ROOT;st : pchar) : pchar;cdecl;
-Function sql_memdup_root(root: PMEM_ROOT;st : pchar; len : Cardinal): longint;cdecl;
+Procedure sql_free (root : PMEM_ROOT);{$ifdef win32} stdcall {$else} cdecl {$endif};
+Procedure init_alloc_root (root: PMEM_ROOT;block_size : Cardinal);{$ifdef win32} stdcall {$else} cdecl {$endif};
+Function sql_alloc_first_block(root : PMEM_ROOT) : my_bool;{$ifdef win32} stdcall {$else} cdecl {$endif};
+Function sql_alloc_root(mem_root : PMEM_ROOT;len : Cardinal) : longint;{$ifdef win32} stdcall {$else} cdecl {$endif};
+Function sql_strdup_root(root : PMEM_ROOT;st : pchar) : pchar;{$ifdef win32} stdcall {$else} cdecl {$endif};
+Function sql_memdup_root(root: PMEM_ROOT;st : pchar; len : Cardinal): longint;{$ifdef win32} stdcall {$else} cdecl {$endif};
 
 {
 extern unsigned long max_allowed_packet;
@@ -141,14 +141,14 @@ extern unsigned long net_buffer_length;
 #define net_new_transaction(net) ((net)->pkt_nr=0)
 }
 
-Function  my_net_init(net :PNET; fd : Socket) : Longint;cdecl;
-procedure net_end(net : PNET);cdecl;
-Procedure net_clear(net : PNET);cdecl;
-Function  net_flush(net : PNET) : longint;cdecl;
-Function  my_net_write(net : PNET;packet : pbyte;len : cardinal) : longint;cdecl;
-Function  net_write_command(net : PNET; command : char;packet : pbyte;len : cardinal) : longint;cdecl;
-Function  net_real_write(net : PNET;packet : pbyte; len : Cardinal) : longint;cdecl;
-Function  my_net_read(net : PNET) : Cardinal;cdecl;
+Function  my_net_init(net :PNET; fd : Socket) : Longint;{$ifdef win32} stdcall {$else} cdecl {$endif};
+procedure net_end(net : PNET);{$ifdef win32} stdcall {$else} cdecl {$endif};
+Procedure net_clear(net : PNET);{$ifdef win32} stdcall {$else} cdecl {$endif};
+Function  net_flush(net : PNET) : longint;{$ifdef win32} stdcall {$else} cdecl {$endif};
+Function  my_net_write(net : PNET;packet : pbyte;len : cardinal) : longint;{$ifdef win32} stdcall {$else} cdecl {$endif};
+Function  net_write_command(net : PNET; command : char;packet : pbyte;len : cardinal) : longint;{$ifdef win32} stdcall {$else} cdecl {$endif};
+Function  net_real_write(net : PNET;packet : pbyte; len : Cardinal) : longint;{$ifdef win32} stdcall {$else} cdecl {$endif};
+Function  my_net_read(net : PNET) : Cardinal;{$ifdef win32} stdcall {$else} cdecl {$endif};
 
 Type
 TRand_struct  = record
@@ -183,13 +183,13 @@ PUDF_INIT = TUDF_INIT;
 
   { Prototypes to password functions }
 
-procedure randominit(rand : Prand_struct; seed1,seed2 : Cardinal);cdecl;
-Function  rnd(rand : Prand_struct) : double;cdecl;
-procedure make_scrambled_password(toarg, passwd : Pchar);cdecl;
-procedure get_salt_from_password(res : pcardinal; password : pchar);cdecl;
-procedure scramble(toarg,message,password : pchar; old_ver : my_bool);cdecl;
-function  check_scramble(scramble,message : pchar; salt : cardinal;old_ver:my_bool) : my_bool;cdecl;
-function  get_tty_password(opt_message:  pchar) : pchar;cdecl;
+procedure randominit(rand : Prand_struct; seed1,seed2 : Cardinal);{$ifdef win32} stdcall {$else} cdecl {$endif};
+Function  rnd(rand : Prand_struct) : double;{$ifdef win32} stdcall {$else} cdecl {$endif};
+procedure make_scrambled_password(toarg, passwd : Pchar);{$ifdef win32} stdcall {$else} cdecl {$endif};
+procedure get_salt_from_password(res : pcardinal; password : pchar);{$ifdef win32} stdcall {$else} cdecl {$endif};
+procedure scramble(toarg,message,password : pchar; old_ver : my_bool);{$ifdef win32} stdcall {$else} cdecl {$endif};
+function  check_scramble(scramble,message : pchar; salt : cardinal;old_ver:my_bool) : my_bool;{$ifdef win32} stdcall {$else} cdecl {$endif};
+function  get_tty_password(opt_message:  pchar) : pchar;{$ifdef win32} stdcall {$else} cdecl {$endif};
 
 {
 #define NULL_LENGTH ((unsigned long) ~0) { For net_store_length }
@@ -197,26 +197,26 @@ function  get_tty_password(opt_message:  pchar) : pchar;cdecl;
 
 implementation
 
-Procedure sql_free (root : PMEM_ROOT);cdecl;external;
-Procedure init_alloc_root (root: PMEM_ROOT;block_size : Cardinal);cdecl;external;
-Function sql_alloc_first_block(root : PMEM_ROOT) : my_bool;cdecl;external;
-Function sql_alloc_root(mem_root : PMEM_ROOT;len : Cardinal) : longint;cdecl;external;
-Function sql_strdup_root(root : PMEM_ROOT;st : pchar) : pchar;cdecl;external;
-Function sql_memdup_root(root: PMEM_ROOT;st : pchar; len : Cardinal) : longint;cdecl;external;
-Function  my_net_init(net :PNET; fd : Socket) : Longint;cdecl;external;
-procedure net_end(net : PNET);cdecl;external;
-Procedure net_clear(net : PNET);cdecl;external;
-Function  net_flush(net : PNET) : longint;cdecl;external;
-Function  my_net_write(net : PNET;packet : pbyte;len : cardinal) : longint;cdecl;external;
-Function  net_write_command(net : PNET; command : char;packet : pbyte;len : cardinal) : longint;cdecl;external;
-Function  net_real_write(net : PNET;packet : pbyte; len : Cardinal) : longint;cdecl;external;
-Function  my_net_read(net : PNET) : Cardinal;cdecl;external;
-procedure randominit(rand : Prand_struct; seed1,seed2 : Cardinal);cdecl;external;
-Function  rnd(rand : Prand_struct) : double;cdecl;external;
-procedure make_scrambled_password(toarg, passwd : Pchar);cdecl;external;
-procedure get_salt_from_password(res : pcardinal; password : pchar);cdecl;external;
-procedure scramble(toarg,message,password : pchar; old_ver : my_bool);cdecl;external;
-function  check_scramble(scramble,message : pchar; salt : cardinal;old_ver:my_bool) : my_bool;cdecl;external;
-function  get_tty_password(opt_message:  pchar) : pchar;cdecl;external;
+Procedure sql_free (root : PMEM_ROOT);{$ifdef win32} stdcall {$else} cdecl {$endif};external;
+Procedure init_alloc_root (root: PMEM_ROOT;block_size : Cardinal);{$ifdef win32} stdcall {$else} cdecl {$endif};external;
+Function sql_alloc_first_block(root : PMEM_ROOT) : my_bool;{$ifdef win32} stdcall {$else} cdecl {$endif};external;
+Function sql_alloc_root(mem_root : PMEM_ROOT;len : Cardinal) : longint;{$ifdef win32} stdcall {$else} cdecl {$endif};external;
+Function sql_strdup_root(root : PMEM_ROOT;st : pchar) : pchar;{$ifdef win32} stdcall {$else} cdecl {$endif};external;
+Function sql_memdup_root(root: PMEM_ROOT;st : pchar; len : Cardinal) : longint;{$ifdef win32} stdcall {$else} cdecl {$endif};external;
+Function  my_net_init(net :PNET; fd : Socket) : Longint;{$ifdef win32} stdcall {$else} cdecl {$endif};external;
+procedure net_end(net : PNET);{$ifdef win32} stdcall {$else} cdecl {$endif};external;
+Procedure net_clear(net : PNET);{$ifdef win32} stdcall {$else} cdecl {$endif};external;
+Function  net_flush(net : PNET) : longint;{$ifdef win32} stdcall {$else} cdecl {$endif};external;
+Function  my_net_write(net : PNET;packet : pbyte;len : cardinal) : longint;{$ifdef win32} stdcall {$else} cdecl {$endif};external;
+Function  net_write_command(net : PNET; command : char;packet : pbyte;len : cardinal) : longint;{$ifdef win32} stdcall {$else} cdecl {$endif};external;
+Function  net_real_write(net : PNET;packet : pbyte; len : Cardinal) : longint;{$ifdef win32} stdcall {$else} cdecl {$endif};external;
+Function  my_net_read(net : PNET) : Cardinal;{$ifdef win32} stdcall {$else} cdecl {$endif};external;
+procedure randominit(rand : Prand_struct; seed1,seed2 : Cardinal);{$ifdef win32} stdcall {$else} cdecl {$endif};external;
+Function  rnd(rand : Prand_struct) : double;{$ifdef win32} stdcall {$else} cdecl {$endif};external;
+procedure make_scrambled_password(toarg, passwd : Pchar);{$ifdef win32} stdcall {$else} cdecl {$endif};external;
+procedure get_salt_from_password(res : pcardinal; password : pchar);{$ifdef win32} stdcall {$else} cdecl {$endif};external;
+procedure scramble(toarg,message,password : pchar; old_ver : my_bool);{$ifdef win32} stdcall {$else} cdecl {$endif};external;
+function  check_scramble(scramble,message : pchar; salt : cardinal;old_ver:my_bool) : my_bool;{$ifdef win32} stdcall {$else} cdecl {$endif};external;
+function  get_tty_password(opt_message:  pchar) : pchar;{$ifdef win32} stdcall {$else} cdecl {$endif};external;
 
 end.
