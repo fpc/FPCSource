@@ -1802,7 +1802,7 @@ unit tree;
                       if p^.is_first_funcret then
                         pprocinfo(p^.funcretprocinfo)^.funcret_state:=vs_assigned;
                     end;
-                 vecn,typeconvn,subscriptn,derefn:
+                 vecn,typeconvn,subscriptn{,derefn}:
                     set_funcret_is_valid(p^.left);
               end;
            end;
@@ -2121,7 +2121,10 @@ unit tree;
 end.
 {
   $Log$
-  Revision 1.120  2000-05-17 17:10:06  peter
+  Revision 1.121  2000-06-06 20:24:07  pierre
+   Generate a warning if function result is a pointer and result^:=x; is used
+
+  Revision 1.120  2000/05/17 17:10:06  peter
     * add support for loading of typed const strings with resourcestrings,
       made the loading also a bit more generic
 
