@@ -1206,7 +1206,7 @@ begin
     internalerror(2003042614);
   tprocdef(pd).forwarddef:=false;
 {$ifdef powerpc}
-   if target_info.system in [system_powerpc_morphos,system_m68k_amiga] then
+   if target_info.system in [system_powerpc_morphos] then
     begin
       if idtoken=_LEGACY then
         begin
@@ -1218,11 +1218,32 @@ begin
           consume(_SYSV);
           include(pd.procoptions,po_syscall_sysv);
         end
+      else if idtoken=_BASESYSV then
+        begin
+          consume(_BASESYSV);
+          include(pd.procoptions,po_syscall_basesysv);
+        end 
+      else if idtoken=_SYSVBASE then
+        begin
+          consume(_SYSVBASE);
+          include(pd.procoptions,po_syscall_sysvbase);
+        end
+      else if idtoken=_R12BASE then
+        begin
+          consume(_R12BASE);
+          include(pd.procoptions,po_syscall_r12base);
+        end
       else 
         if syscall_convention='LEGACY' then 
           include(pd.procoptions,po_syscall_legacy)
         else if syscall_convention='SYSV' then
           include(pd.procoptions,po_syscall_sysv)
+        else if syscall_convention='BASESYSV' then
+          include(pd.procoptions,po_syscall_basesysv)
+        else if syscall_convention='SYSVBASE' then
+          include(pd.procoptions,po_syscall_sysvbase)
+        else if syscall_convention='R12BASE' then
+          include(pd.procoptions,po_syscall_r12base)
         else
           internalerror(2005010404);
       
@@ -1243,7 +1264,22 @@ begin
                 end
               else if po_syscall_sysv in tprocdef(pd).procoptions then
                 begin
-                  vs:=tparavarsym.create('$syscalllib',paranr_syscall_sysv,vs_value,tabstractvarsym(sym).vartype,[vo_is_syscall_lib,vo_is_hidden_para]);
+                  { Nothing to be done for sysv here for now, but this might change }
+                end
+              else if po_syscall_basesysv in tprocdef(pd).procoptions then
+                begin
+                  vs:=tparavarsym.create('$syscalllib',paranr_syscall_basesysv,vs_value,tabstractvarsym(sym).vartype,[vo_is_syscall_lib,vo_is_hidden_para]);
+                  pd.parast.insert(vs);
+                end
+              else if po_syscall_sysvbase in tprocdef(pd).procoptions then
+                begin
+                  vs:=tparavarsym.create('$syscalllib',paranr_syscall_sysvbase,vs_value,tabstractvarsym(sym).vartype,[vo_is_syscall_lib,vo_is_hidden_para]);
+                  pd.parast.insert(vs);
+                end
+              else if po_syscall_r12base in tprocdef(pd).procoptions then
+                begin
+                  vs:=tparavarsym.create('$syscalllib',paranr_syscall_r12base,vs_value,tabstractvarsym(sym).vartype,[vo_is_syscall_lib,vo_is_hidden_para,vo_has_explicit_paraloc]);
+                  paramanager.parseparaloc(vs,'R12');
                   pd.parast.insert(vs);
                 end
               else
@@ -2372,7 +2408,10 @@ const
 end.
 {
   $Log$
-  Revision 1.224  2005-01-05 02:31:06  karoly
+  Revision 1.225  2005-01-06 02:13:03  karoly
+    * more SysV call support stuff for MorphOS
+
+  Revision 1.224  2005/01/05 02:31:06  karoly
     * fixed SysV syscall support (MorphOS)
 
   Revision 1.223  2005/01/04 17:40:33  karoly

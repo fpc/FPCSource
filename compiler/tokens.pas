@@ -182,12 +182,14 @@ type
     _MESSAGE,
     _PRIVATE,
     _PROGRAM,
+    _R12BASE,
     _STDCALL,
     _SYSCALL,
     _VARARGS,
     _VIRTUAL,
     _ABSOLUTE,
     _ABSTRACT,
+    _BASESYSV,
     _CONTINUE,
     _CPPCLASS,
     _EXTERNAL,
@@ -201,6 +203,7 @@ type
     _REGISTER,
     _RESIDENT,
     _SAFECALL,
+    _SYSVBASE,
     _ASSEMBLER,
     _INHERITED,
     _INTERFACE,
@@ -362,7 +365,7 @@ const
       (str:'NEAR'          ;special:false;keyword:m_none;op:NOTOKEN),
       (str:'READ'          ;special:false;keyword:m_none;op:NOTOKEN),
       (str:'SELF'          ;special:false;keyword:m_none;op:NOTOKEN), {set inside methods only PM }
-      (str:'SYSV'          ;special:false;keyword:m_none;op:NOTOKEN),
+      (str:'SYSV'          ;special:false;keyword:m_none;op:NOTOKEN),   { Syscall variation on MorphOS }
       (str:'THEN'          ;special:false;keyword:m_all;op:NOTOKEN),
       (str:'TRUE'          ;special:false;keyword:m_all;op:NOTOKEN),
       (str:'TYPE'          ;special:false;keyword:m_all;op:NOTOKEN),
@@ -390,7 +393,7 @@ const
       (str:'EXCEPT'        ;special:false;keyword:m_class;op:NOTOKEN),
       (str:'EXPORT'        ;special:false;keyword:m_none;op:NOTOKEN),
       (str:'INLINE'        ;special:false;keyword:m_none;op:NOTOKEN),
-      (str:'LEGACY'        ;special:false;keyword:m_none;op:NOTOKEN),
+      (str:'LEGACY'        ;special:false;keyword:m_none;op:NOTOKEN),   { Syscall variation on MorphOS }
       (str:'OBJECT'        ;special:false;keyword:m_all;op:NOTOKEN),
       (str:'PACKED'        ;special:false;keyword:m_all;op:NOTOKEN),
       (str:'PASCAL'        ;special:false;keyword:m_none;op:NOTOKEN),
@@ -414,12 +417,14 @@ const
       (str:'MESSAGE'       ;special:false;keyword:m_none;op:NOTOKEN),
       (str:'PRIVATE'       ;special:false;keyword:m_none;op:NOTOKEN),
       (str:'PROGRAM'       ;special:false;keyword:m_all;op:NOTOKEN),
+      (str:'R12BASE'       ;special:false;keyword:m_none;op:NOTOKEN),   { Syscall variation on MorphOS }
       (str:'STDCALL'       ;special:false;keyword:m_none;op:NOTOKEN),
       (str:'SYSCALL'       ;special:false;keyword:m_none;op:NOTOKEN),
       (str:'VARARGS'       ;special:false;keyword:m_none;op:NOTOKEN),
       (str:'VIRTUAL'       ;special:false;keyword:m_none;op:NOTOKEN),
       (str:'ABSOLUTE'      ;special:false;keyword:m_none;op:NOTOKEN),
       (str:'ABSTRACT'      ;special:false;keyword:m_none;op:NOTOKEN),
+      (str:'BASESYSV'      ;special:false;keyword:m_none;op:NOTOKEN),   { Syscall variation on MorphOS }
       (str:'CONTINUE'      ;special:false;keyword:m_none;op:NOTOKEN),
       (str:'CPPCLASS'      ;special:false;keyword:m_fpc;op:NOTOKEN),
       (str:'EXTERNAL'      ;special:false;keyword:m_none;op:NOTOKEN),
@@ -433,6 +438,7 @@ const
       (str:'REGISTER'      ;special:false;keyword:m_none;op:NOTOKEN),
       (str:'RESIDENT'      ;special:false;keyword:m_none;op:NOTOKEN),
       (str:'SAFECALL'      ;special:false;keyword:m_none;op:NOTOKEN),
+      (str:'SYSVBASE'      ;special:false;keyword:m_none;op:NOTOKEN),   { Syscall variation on MorphOS }
       (str:'ASSEMBLER'     ;special:false;keyword:m_none;op:NOTOKEN),
       (str:'INHERITED'     ;special:false;keyword:m_all;op:NOTOKEN),
       (str:'INTERFACE'     ;special:false;keyword:m_all;op:NOTOKEN),
@@ -523,7 +529,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.34  2005-01-04 19:22:33  olle
+  Revision 1.35  2005-01-06 02:13:03  karoly
+    * more SysV call support stuff for MorphOS
+
+  Revision 1.34  2005/01/04 19:22:33  olle
     * sorted in correctly new tokens added by Karoly
 
   Revision 1.33  2005/01/04 17:40:33  karoly

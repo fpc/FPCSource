@@ -106,7 +106,10 @@ const
   paranr_result = 2;
   paranr_self = 3;
   paranr_vmt = 4;
-  paranr_syscall_sysv     = 9;
+  { Required to support variations of syscalls on MorphOS }
+  paranr_syscall_basesysv = 9;
+  paranr_syscall_sysvbase = high(word)-4;
+  paranr_syscall_r12base  = high(word)-3;
   paranr_syscall_legacy   = high(word)-2;
   paranr_result_leftright = high(word)-1;
 
@@ -251,9 +254,12 @@ type
     po_forward,
     po_global,
     po_has_inlininginfo,
-    { The two different kind of syscalls on MorphOS }
+    { The different kind of syscalls on MorphOS }
     po_syscall_legacy,
-    po_syscall_sysv  
+    po_syscall_sysv,
+    po_syscall_basesysv,
+    po_syscall_sysvbase,
+    po_syscall_r12base
   );
   tprocoptions=set of tprocoption;
 
@@ -433,7 +439,10 @@ initialization
 end.
 {
   $Log$
-  Revision 1.98  2005-01-05 02:31:06  karoly
+  Revision 1.99  2005-01-06 02:13:03  karoly
+    * more SysV call support stuff for MorphOS
+
+  Revision 1.98  2005/01/05 02:31:06  karoly
     * fixed SysV syscall support (MorphOS)
 
   Revision 1.97  2005/01/04 17:40:33  karoly

@@ -886,7 +886,8 @@ implementation
         current_scanner.skipspace;
         
         sctype:=current_scanner.readid;
-        if (sctype='LEGACY') or (sctype='SYSV') then
+        if (sctype='LEGACY') or (sctype='SYSV') or (sctype='SYSVBASE') or
+          (sctype='BASESYSV') or (sctype='R12BASE') then
           syscall_convention:=sctype
         else
           comment (V_Warning,'Invalid Syscall directive ignored.');
@@ -1169,7 +1170,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.49  2005-01-04 17:40:33  karoly
+  Revision 1.50  2005-01-06 02:13:03  karoly
+    * more SysV call support stuff for MorphOS
+
+  Revision 1.49  2005/01/04 17:40:33  karoly
     + sysv style syscalls added for MorphOS
 
   Revision 1.48  2005/01/04 16:18:57  florian

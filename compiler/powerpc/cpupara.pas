@@ -611,6 +611,14 @@ unit cpupara;
                 paraloc^.reference.offset:=56
               { 'A7' is the stack pointer on 68k, can't be overwritten
                 by API calls, so it has no offset }
+              { 'R12' is special, used internally to support r12base sysv 
+                calling convention }
+              else if s='R12' then
+                begin
+                  paraloc^.loc:=LOC_REGISTER;
+                  paraloc^.size:=OS_ADDR;
+                  paraloc^.register:=NR_R12;
+                end
               else
                 exit;
 
@@ -629,7 +637,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.78  2005-01-05 19:01:53  karoly
+  Revision 1.79  2005-01-06 02:13:03  karoly
+    * more SysV call support stuff for MorphOS
+
+  Revision 1.78  2005/01/05 19:01:53  karoly
     * sysv abi also uses F0-F13 as volatile registers
 
   Revision 1.77  2004/12/24 15:00:11  jonas

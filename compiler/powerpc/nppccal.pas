@@ -75,14 +75,40 @@ implementation
         case target_info.system of
           system_powerpc_morphos:
             begin
-              if po_syscall_sysv in tprocdef(procdefinition).procoptions then
+              if (po_syscall_sysv in tprocdef(procdefinition).procoptions) or 
+                (po_syscall_sysvbase in tprocdef(procdefinition).procoptions) then
                 begin
                   cg.getcpuregister(exprasmlist,NR_R0);
                   cg.getcpuregister(exprasmlist,NR_R31);
-                    
-                  exprasmlist.concat(taicpu.op_reg_reg_const(A_ADDI,NR_R31,NR_R3,-tprocdef(procdefinition).extnumber));
+                  
                   reference_reset(tmpref);
-                  tmpref.base := NR_R31;
+                  tmpref.symbol:=objectlibrary.newasmsymbol(tglobalvarsym(tprocdef(procdefinition).libsym).mangledname,AB_EXTERNAL,AT_DATA);
+                  tmpref.refaddr:=addr_hi;
+                  exprasmlist.concat(taicpu.op_reg_ref(A_LIS,NR_R31,tmpref));
+                  tmpref.base:=NR_R31;
+                  tmpref.refaddr:=addr_lo;
+                  exprasmlist.concat(taicpu.op_reg_ref(A_LWZ,NR_R31,tmpref));
+
+                  exprasmlist.concat(taicpu.op_reg_reg_const(A_ADDI,NR_R31,NR_R31,-tprocdef(procdefinition).extnumber));
+                  reference_reset_base(tmpref,NR_R31,0);
+                  exprasmlist.concat(taicpu.op_reg_ref(A_LWZ,NR_R0,tmpref));
+                  exprasmlist.concat(taicpu.op_reg(A_MTCTR,NR_R0));
+                  exprasmlist.concat(taicpu.op_none(A_BCTRL));
+
+                  cg.ungetcpuregister(exprasmlist,NR_R31);
+                  cg.ungetcpuregister(exprasmlist,NR_R0);
+                end
+              else if (po_syscall_basesysv in tprocdef(procdefinition).procoptions) or 
+                (po_syscall_r12base in tprocdef(procdefinition).procoptions) then
+                begin
+                  cg.getcpuregister(exprasmlist,NR_R0);
+                  cg.getcpuregister(exprasmlist,NR_R31);
+                  
+                  if (po_syscall_basesysv in tprocdef(procdefinition).procoptions) then
+                    exprasmlist.concat(taicpu.op_reg_reg_const(A_ADDI,NR_R31,NR_R3,-tprocdef(procdefinition).extnumber))
+                  else 
+                    exprasmlist.concat(taicpu.op_reg_reg_const(A_ADDI,NR_R31,NR_R12,-tprocdef(procdefinition).extnumber));
+                  reference_reset_base(tmpref,NR_R31,0);
                   exprasmlist.concat(taicpu.op_reg_ref(A_LWZ,NR_R0,tmpref));
                   exprasmlist.concat(taicpu.op_reg(A_MTCTR,NR_R0));
                   exprasmlist.concat(taicpu.op_none(A_BCTRL));
@@ -121,7 +147,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.33  2005-01-05 02:31:06  karoly
+  Revision 1.34  2005-01-06 02:13:03  karoly
+    * more SysV call support stuff for MorphOS
+
+  Revision 1.33  2005/01/05 02:31:06  karoly
     * fixed SysV syscall support (MorphOS)
 
   Revision 1.32  2005/01/04 17:40:33  karoly
