@@ -76,6 +76,8 @@ implementation
         { is the result size bigger ? }
         else if pto^.resulttype^.size>pfrom^.resulttype^.size then
           begin
+            { insert range check if necessary }
+            emitrangecheck(pfrom,pto^.resulttype);
             { remove reference }
             if not(pfrom^.location.loc in [LOC_REGISTER,LOC_CREGISTER]) then
               begin
@@ -121,15 +123,13 @@ implementation
             else
               exprasmlist^.concat(new(pai386,op_ref_reg(op,opsize,
                 newreference(pfrom^.location.reference),pto^.location.register)));
-            { insert range check if necessary }
-            emitrangecheck(pto,pto^.resulttype);
           end
 
         { the result size is equal }
         else
           begin
             { insert range check if necessary }
-            emitrangecheck(pto,pto^.resulttype);
+            emitrangecheck(pfrom,pto^.resulttype);
           end;
       end;
 
@@ -1449,7 +1449,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.36  1998-11-26 14:39:11  peter
+  Revision 1.37  1998-11-26 21:33:06  peter
+    * rangecheck updates
+
+  Revision 1.36  1998/11/26 14:39:11  peter
     * ansistring -> pchar fixed
     * ansistring constants fixed
     * ansistring constants are now written once
