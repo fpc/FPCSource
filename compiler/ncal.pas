@@ -24,6 +24,7 @@
 unit ncal;
 
 {$i fpcdefs.inc}
+{$define nice_ncal}
 
 interface
 
@@ -2595,7 +2596,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.93  2002-09-03 16:26:26  daniel
+  Revision 1.94  2002-09-03 19:27:22  daniel
+    * Activated new ncal code
+
+  Revision 1.93  2002/09/03 16:26:26  daniel
     * Make Tprocdef.defs protected
 
   Revision 1.92  2002/09/01 13:28:37  daniel
