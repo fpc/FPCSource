@@ -548,12 +548,16 @@ Type
 The C style enumeration type looks as follows:
 \begin{listing}
 Type
-  EnumType = (one, two, three, forty := 40);
+  EnumType = (one, two, three, forty := 40,fortyone);
 \end{listing}
 As a result, the ordinal number of \var{forty} is \var{40}, and not \var{3},
 as it would be when the \var{':= 40'} wasn't present.
+The ordinal value of \var{fortyone} is then {41}, and not \var{4}, as it
+would be when the assignment wasn't present. After an assignment in an
+enumerated definition the compiler adds 1 to the assigned value to assign to
+the next enumerated value.
 When specifying such an enumeration type, it is important to keep in mind
-that you should keep initialized set elements in ascending order. The
+that you should keep the enumerated elements in ascending order. The
 following will produce a compiler error:
 \renewcommand{\prelisting}{\sffamily}
 \begin{listing}
@@ -4131,7 +4135,7 @@ over its maximum value.
 \html{\input{refex/ex32.tex}}
 \begin{procedure}{Insert}
 \Declaration
-Procedure Insert (Const Source : String;var S : String;Index : integer);
+Procedure Insert (Const Source : String;var S : String;Index : Longint);
 
 \Description
 \var{Insert} inserts string \var{Source} in string \var{S}, at position
