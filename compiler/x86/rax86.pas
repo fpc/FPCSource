@@ -667,7 +667,8 @@ begin
                      asize:=OT_BITS8;
                    OS_16,OS_S16 :
                      asize:=OT_BITS16;
-                   OS_32,OS_S32,OS_F32,
+                   OS_32,OS_S32,OS_F32 :
+                     asize:=OT_BITS32;
                    OS_64,OS_S64:
                      begin
                        { Only FPU operations know about 64bit values, for all
@@ -715,7 +716,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.4  2003-05-31 16:22:28  peter
+  Revision 1.5  2003-06-07 10:23:50  peter
+    * 32bit operands need ofcourse 32bit size
+
+  Revision 1.4  2003/05/31 16:22:28  peter
     * fixed opsize and operand size setting for 64bit values
 
   Revision 1.3  2003/05/30 23:57:08  peter
