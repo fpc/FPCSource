@@ -15,6 +15,7 @@
 A & & \var{\$ASMMODE} & Select assembler mode. \\
 &\var{\$B} & \var{\$BOOLEVAL} & Use complete boolean evaluation. \\
 Sa &\var{\$C} & \var{\$ASSERTIONS} & Enable assertion support. \\
+& & \var{\$CALLING} & Set default calling convention \\
 d && \var{\$DEFINE} & Define a symbol. \\
 && \var{\$ELSE} & Switch conditional compilation. \\
 && \var{\$ENDIF} & End conditional compilation. \\
@@ -37,7 +38,8 @@ Ci &\var{\$I} & \var{\$IOCHECKS} & Include Input/Output checking. \\
 &\var{\$L} & \var{\$LINK} & Link object file. \\
 && \var{\$LINKLIB} & Link to a library. \\
 &\var{\$M} & \var{\$TYPEINFO} & Generate Run-Time type information. \\
-Sm && \var{\$MACRO} & Enable macro support. \\
+Sm & & \var{\$MACRO} & Enable macro support. \\
+& & \var{\$MAXFPUREGISTER} & set maximum number of FPU registers \\
 && \var{\$MESSAGE} & Generate info message. \\
 && \var{\$MMX} & Enable Intel MMX support. \\
 && \var{\$NOTE} & Generate note message. \\
@@ -66,21 +68,24 @@ u && \var{\$UNDEF} & Undefine a symbol. \\
 %\caption{Global compiler switches}
 \begin{tabularx}{\textwidth}{lllX}
 \textbf{cmd} & \textbf {short} & \textbf {long} & \textbf{explanation }\\ \hline
+& & \var{\$APPID} & Set application ID (PalmOS) \\
+& & \var{\$APPNAME} & Set application name (PalmOS) \\
 & & \var{\$APPTYPE} & Specify type of application (Win32 only) \\
 g& \var{\$D} & \var{\$DEBUGINFO} & Include debugging symbols. \\
 & & \var{\$DESCRIPTION} & Not supported. \\
 &\var{\$E} & & Enable emulation of coprocessor. \\
-& & \var{\$G} & Generate 80286 code. \\
+& \var{\$G}& & Generate 80286 code. \\
 Fi& & \var{\$INCLUDEPATH} & Specify include file search path. \\
 &\var{\$L} & \var{\$LOCALSYMBOLS} & Enable local symbol information. \\
 Fl& & \var{\$LIBRARYPATH} & Specify library search path. \\
 &\var{\$M} & \var{\$MEMORY} & Specify memory sizes. \\
 M& & \var{\$MODE} & Specify compiler compatibility mode. \\
-& & \var{\$N} & Enable numeric processing.  \\
-& & \var{\$O} & Enable overlay code generation.  \\
+& \var{\$N}& & Enable numeric processing.  \\
+& \var{\$O}& & Enable overlay code generation.  \\
 Fo& & \var{\$OBJECTPATH} & Specify object file search path. \\
 Ct& \var{\$S} & & Use stack checking \\
 Fu& & \var{\$UNITPATH} & Specify unit file search path. \\
+& & \var{\$VERSION} & Set DLL version (Windows)\\
 & \var{\$W} & \var{\$STACKFRAMES} & Generate stackframes. \\
 b & \var{\$Y} & \var{\$REFERENCEINFO} & Insert browser information. \\ \hline
 \end{tabularx}

@@ -303,8 +303,9 @@ true
 \end{verbatim}
 \end{multicols}
 \subsection{Modifiers}
-The following is a list of all modifiers. Contrary to Delphi, \fpc doesn't
-allow the programmer to redefine these modifiers.
+The following is a list of all modifiers. They are not exactly reserved
+words in the sense that they can be used as identifiers, but in specific
+places, they have a special meaning for the compiler.
 \begin{multicols}{4}
 \begin{verbatim}
 absolute
@@ -316,7 +317,9 @@ default
 export
 external
 far
+far16
 forward
+fpccall
 index
 name
 near
@@ -329,7 +332,9 @@ public
 published
 read
 register
+safecall
 saveregisters
+softfloat
 stdcall
 virtual
 write
@@ -1813,6 +1818,10 @@ can be converted to a variable of this type.
 Note that expressions involving variants take more time to be evaluated, and
 should therefore be used with caution. If a lot of calculations need to be
 made, it is best to avoid the use of variants.
+
+When considering implicit type conversions (e.g. byte to integer, integer to
+double, char to string) the compiler will ignore variants unless a variant
+appears explicitly in the expression. 
  
 \subsection{Variants and interfaces}
 
@@ -2004,7 +2013,58 @@ end.
 \end{verbatim}
 
 The read/write specifiers can be hidden by declaring them in another unit
-(which must be in the \var{uses} clause of the unit).
+which must be in the \var{uses} clause of the unit. This can be used to hide
+the read/write access specifiers for programmers, just as if they were in a
+\var{private} section of a class (discussed below). For the previous
+example, this could look as follows:
+\begin{verbatim}
+{$mode objfpc}
+unit testrw;
+
+Interface
+
+Function GetMyInt : Integer;
+Procedure SetMyInt(Value : Integer);
+
+Implementation
+
+Uses sysutils;
+
+Var
+  FMyInt : Integer;  
+  
+Function GetMyInt : Integer;
+
+begin
+  Result:=FMyInt;
+end;
+
+Procedure SetMyInt(Value : Integer);
+
+begin
+  If ((Value mod 2)=1) then
+    Raise Exception.Create('Only even values are allowed');
+  FMyInt:=Value;  
+end;
+
+end.
+\end{verbatim}
+The unit \file{testprop} would then look like:
+\begin{verbatim}
+{$mode objfpc}
+unit testprop;
+
+Interface
+
+uses testrw;
+
+Property
+  MyProp : Integer Read GetMyInt Write SetMyInt;
+
+Implementation
+
+end.  
+\end{verbatim}
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Objects
@@ -2812,7 +2872,7 @@ methods of the parent interface(s).
 An interface can be uniquely identified by a GUID (GUID is an acronym for
 Globally Unique Identifier, a 128-bit integer guaranteed always to be 
 unique\footnote{In theory, of course.}. Especially on Windows systems, the
-GUID of an interface can and most be used when using COM.
+GUID of an interface can and must be used when using COM.
 
 The definition of an Interface has the following form:
 \input{syntax/typeintf.syn}
@@ -2833,7 +2893,7 @@ hence also \var{override} cannot be present in the definition of a interface
 definition.
 \end{itemize}
 
-\section{Identification: A GUID}
+\section{Interface identification: A GUID}
 An interface can be identified by a GUID. This is a 128-bit number, which is
 represented in a text representation (a string literal):
 \begin{verbatim}
@@ -2872,6 +2932,8 @@ Const
 begin
 end.
 \end{verbatim}
+Normally, the GUIDs are only used in Windows, when using COM interfaces.
+More on this in the next section.
 
 \section{Interfaces and COM}
 When using interfaces on Windows which should be available to the COM
@@ -2937,6 +2999,20 @@ ype
 This declaration should tell the compiler that the \var{MyFunc} method of
 the \var{IMyInterface} interface is implemented in the \var{MyOtherFunction}
 method of the \var{TMyClass} class.
+
+\section{CORBA and other Interfaces}
+COM is not the only architecture where interfaces are used. CORBA knows
+interfaces, UNO (the OpenOffice API) uses interfaces, and Java as well.
+These languages do not know the \var{IUnknown} interface used as the basis of
+all interfaces in COM. It would therefore be a bad idea if an interface
+automatically descended from \var{IUnknown} if no parent interface was
+specified. Therefore, a directive \var{\{\$INTERFACES\}} was introduced in
+ \fpc: it specifies what the parent interface is of an interface, declared
+without parent. More information about this directive can be found in the
+\progref.
+
+Note that COM interfaces are by default reference counted. 
+CORBA interfaces are not necessarily reference counted.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Expressions
@@ -4415,7 +4491,8 @@ assembly-language level, by using it's mangled name (see the \progref).
 \label{se:register}
 The \var{register} keyword is used for compatibility with Delphi. In
 version 1.0.x of the compiler, this directive has no effect on the
-generated code.
+generated code. As of the 1.9.X versions, this directive is supported. The
+first three arguments are passed in registers EAX,ECX and EDX.
 
 \subsection{saveregisters}
 If this modifier is specified after a procedure or function, then the
@@ -4428,11 +4505,14 @@ calling assembler code.
 
 \subsection{safecall}
 This modifier ressembles closely the \var{stdcall} modifier. It sends
-parameters from right to left on the stack.
+parameters from right to left on the stack. The called procedure saves and
+restores all registers.
 
 More information about this modifier can be found in the \progref, in the
 section on the calling mechanism and the chapter on linking.
 
+\subsection{softfloat}
+This modifier makes sense only on the ARM architecture.
 
 \subsection{stdcall}
 This modifier pushes the parameters from right to left on the stack,

@@ -204,6 +204,17 @@ is the same as
 \end{verbatim}
 This is useful for indication what switch is meant.
 
+\subsection{\var{\protect\$ELSEC} : Switch conditional compilation}
+In MAC mode, this directive can be used as an alternative to the \var{\$ELSE}
+directive. It is supported for compatibility with existing \macos pascal
+compilers.
+
+
+\subsection{\var{\protect\$ENDC} : End conditional compilation}
+In MAC mode, this directive can be used as an alternative to the
+\var{\$ENDIF} directive. It is supported for compatibility with existing \macos pascal
+compilers.
+
 \subsection{\var{\protect\$ENDIF} : End conditional compilation}
 
 The \var{\{\$ENDIF\}} directive ends the conditional compilation initiated by the
@@ -380,6 +391,11 @@ the source cannot be used. Macros and symbols may be used, however.
 More information on this can be found in the section about
 conditionals.
 
+\subsection{\var{\protect\$IFC} : Start conditional compilation}
+In MAC mode, this directive can be used as an alternative to the \var{\$IF}
+directive. It is supported for compatibility with existing \macos pascal
+compilers.
+
 \subsection{\var{\protect\$IFDEF Name} : Start conditional compilation}
 
 If the symbol \var{Name} is not defined then the \var{\{\$IFDEF name\}}
@@ -415,6 +431,17 @@ Will compile the writeln statement if generation of type information is on.
 i.e. \var{\{\$IFOPT TYPEINFO\}} will not be accepted.
 \end{remark}
 
+\subsection{\var{\protect\$IMPLICITEXCEPTIONS} : Do not generate
+finalization code}
+
+The compiler generates an implicit \var{try}...\var{finally} frame around
+each procedure that needs initialization or finalization of variables, and
+finalizes the variables in the \var{finally} block. This
+slows down these procedures (with 5-10% sometimes). With this directive, the generation of such
+frames can be disabled. One should be careful with this directive, because
+it can lead to memory leaks if an exception occurs inside the routine.
+Therefore, standard it is set to \var{OFF}.
+
 \subsection{\var{\protect\$INFO} : Generate info message}
 
 If the generation of info is turned on, through the \var{-vi} command-line
@@ -439,6 +466,19 @@ the function or procedure is used a lot.
 By default, \var{Inline} procedures are not allowed. This directive must be 
 specified to use inlined code. The directive is equivalent to the command-line
  switch \var{-Si}. For more information on inline routines, consult the \refref.
+
+\subsection{\var{\protect\$INTERFACES\}} : Specify Interface type.}
+The \var{\{\$INTERFACES\}} directive tells the compiler what it should take
+as the parent interface of an interface declaration which does not
+explicitly specify a parent interface. By default the Windows COM \var{IUnknown}
+interface is used. Other implementations of interfaces (CORBA or Java) do
+not necessarily have this interface, and for such cases, this directive can
+be used. It accepts the following three values:
+\begin{description}
+\item[COM] Interfaces will descend from \var{IUnknown}.
+\item[CORBA] Interfaces will not have a parent.
+\item[DEFAULT] Currently, this is COM.
+\end{description}
 
 \subsection{\var{\protect\$I} or \var{\protect\$IOCHECKS} : Input/Output checking}
 
@@ -900,34 +940,10 @@ This works only on the intel compiler, and MMX support must be on
 saturation support (\sees{SaturationSupport}) for more information
 on the effect of this directive.
 
-\subsection{\var{\protect\$SMARTLINK} : Use smartlinking}
-
-A unit that is compiled in the \var{\{\$SMARTLINK ON\}} state will be
-compiled in such a way that it can be used for smartlinking. This means that
-the unit is chopped in logical pieces: each procedure is put in it's own
-object file, and all object files are put together in a big archive. When
-using such a unit, only the pieces of code that you really need or call,
-will be linked in your program, thus reducing the size of your executable
-substantially.
-
-Beware: using smartlinked units slows down the compilation process, because
-a separate object file must be created for each procedure. If you have units
-with many functions and procedures, this can be a time consuming process,
-even more so if you use an external assembler (the assembler is called to
-assemble each procedure or function code block separately).
-
-The smartlinking directive should be specified {\em before} the unit
-declaration part:
-\begin{verbatim}
-{$SMARTLINK ON}
-
-Unit MyUnit;
-
-Interface
- ...
-\end{verbatim}
-
-This directive is equivalent to the \var{-Cx} command-line switch.
+\subsection{\var{\protect\$SETC} : Define a symbol}
+In MAC mode, this directive can be used as an alternative to the
+\var{\$DEFINE} directive. It is supported for compatibility with existing \macos pascal
+compilers.
 
 \subsection{\var{\protect\$STATIC} : Allow use of \var{Static} keyword.}
 
@@ -1046,20 +1062,70 @@ By default, extended syntax is assumed.
 \label{se:GlobalSwitch}
 Global directives affect the whole of the compilation process. That is why
 they also have a command-line counterpart. The command-line counterpart is
-given for each of the directives.
+given for each of the directives. They must be specified {\em before} the
+\var{unit} or \var{program} clause in a source file, or they will have no
+effect.
 
-\subsection{\var{\protect\$APPTYPE} : Specify type of application (Win32 and AmigaOS only)}
+\subsection{\var{\protect\$APPNAME} : Specify application name.}
+Used on the PALM os only, it can be set to specify the application name,
+which can be viewed on the Palm only. This directive only makes sense in a
+program source file, not in a unit.
 
-The \var{\{\$APPTYPE XXX\}} accepts one argument that can have two possible
-values: \var{GUI} or \var{CONSOLE}. It is used to tell the \windows
-Operating system if an application is a console application or a graphical
-application. By default, a program compiled by \fpc is a console
-application. Running it will display a console window. Specifying the
-\var{\{\$APPTYPE GUI\}} directive will mark the application as a graphical
-application; no console window will be opened when the application is run.
-If run from the command-line, the command prompt will be returned immediatly
-after the application was started.
+\begin{verbatim}
+{$APPID MyApplication}
+\end{verbatim}
 
+\subsection{\var{\protect\$APPNAME} : Specify application name.}
+Used on the PALM os only, it can be set to specify the application name,
+which can be viewed on the Palm only. This directive only makes sense in a
+program source file, not in a unit.
+
+\begin{verbatim}
+{$APPNAME My Application, compiled using Free Pascal.}
+\end{verbatim}
+
+\subsection{\var{\protect\$APPTYPE} : Specify type of application.}
+This directive is currently only supported on the following targets:
+ Win32, Mac, OS2 and AmigaOS. On other targets, the directive is ignored.
+
+The \var{\{\$APPTYPE XXX\}} accepts one argument which specifies what kind
+of application is compiled. It can have the following
+values:
+\begin{description}
+\item[CONSOLE] A console application. A terminal will be created and
+standard input, output and standard error file descriptors will be
+initialized. In Windows, a terminal window will be created. This is the
+default. 
+
+Note that on \macos such applications cannot take command-line
+options, nor return a result code. They will run in a special 
+terminal window.
+
+On \ostwo, these applications can run both full-screen and in a terminal
+window.
+
+\linux applications are always console applications. The application itself
+can decide to close the standard files, though.
+
+\item[FS] specifies a full-screen VIO application on \ostwo. These
+applications use a special BIOS-like API to program the screen. \ostwo
+starts these application allways in full screen.
+
+\item[GUI] Specifying the \var{\{\$APPTYPE GUI\}} directive will mark the 
+application as a graphical application; no console window will be opened 
+when the application is run. No stanrdard file descriptors will be
+initialized, using them (with e.g. \var{writeln} statements) will produce  a
+run-time error. If run from the command-line, the command prompt will be
+returned immediatly after the application was started.
+
+On \ostwo and \macos, the GUI application type creates a GUI application, as
+on Windows. On \ostwo, this is a real Presentation Manager application.
+
+\item[TOOL] this is a special directive for the \macos. It tells the compiler
+to create a tool application: It initializes input, output, stderr files,
+it can take parameters and return a result code. It is implemented as an MPW
+tool which can only be run by MPW or ToolServer.
+\end{description} 
 Care should be taken when compiling \var{GUI} applications; the \var{Input}
 and \var{Output} files are not available in a GUI application, and
 attempting to read from or write to them will result in a run-time error.
@@ -1069,10 +1135,42 @@ at runtime. The \var{IsConsole} constant, declared in the Win32 and Amiga
 system units as
 \begin{verbatim}
 Const
-  IsConsole : Boolean
+  IsConsole : Boolean;
 \end{verbatim}
 contains \var{True} if the application is a console application, \var{False}
 if the application is a GUI application.
+
+\subsection{\var{\protect\$CALLING} : Default calling convention}
+This directive allows to specify the default calling convention used by the
+compiler, when no calling convention is specified for a procedure or
+function declaration. It can be one of the following values:
+\begin{description}
+\item[CDECL] C compiler calling convention.
+\item[CPPDECL] C++ compiler calling convention.
+\item[FAR16] Ignored, but parsed for compatibility reasons.
+\item[FPCCALL] Older FPC (1.0.X and before) standard calling convention. If
+a lot of direct assembler blocks are used, this mode should be used for
+maximum compatibility.
+\item[INLINE] Use inline code: the code for the function is inserted
+whenever it is called.
+\item[PASCAL] Pascal calling convention.
+\item[REGISTER] Register calling convention.
+\item[SAFECALL] Safecall calling convention (used in COM): The called
+procedure/function saves all registers.
+\item[STDCALL] Windows library calling convention.
+\item[SOFTFLOAT] For ARM processors.
+\end{description}
+It is equivalent to the \var{-Cc} command-line option.
+
+\subsection{\var{\protect\$COPYRIGHT} specify copyright info}
+This is intended for the NETWARE version of the compiler: it specifies the
+copyright information that can be viewed on a module for a Netware OS.
+
+For example:
+\begin{verbatim}
+{$COPYRIGHT GNU copyleft. compiled using Free Pascal}
+\end{verbatim}
+
 
 \subsection{\var{\protect\$D} or \var{\protect\$DEBUGINFO} : Debugging symbols}
 
@@ -1148,7 +1246,9 @@ Caution is in order when using this directive: If you distribute files, the
 places of the files may not be the same as on your machine; moreover, the
 directory structure may be different. In general it would be fair to say
 that you should avoid using {\em absolute} paths, instead use {\em relative}
-paths, as in the example above. Only use this directive if you are certain
+paths, as in the example above. Only
+
+ use this directive if you are certain
 of the places where the files reside. If you are not sure, it is better
 practice to use makefiles and makefile variables.
 
@@ -1215,6 +1315,9 @@ supplied.
 command-line option.
 \item[GPC] GNU pascal mode. This is the same as the \var{-Sp} command-line
 option.
+\item[MAC] MAC mode. In this mode, the compiler tries to be more compatible
+to commonly used pascal dialects on the \macos, such as Think Pascal, Metrowerks 
+Pascal, MPW Pascal. 
 \end{description}
 
 For an exact description of each of these modes, see appendix \ref{ch:AppD},
@@ -1258,6 +1361,13 @@ paths, as in the example above. Only use this directive if you are certain
 of the places where the files reside. If you are not sure, it is better
 practice to use makefiles and makefile variables.
 
+\subsection{\var{\protect\$PROFILE} : Profiling}
+
+This directive turns the generation of profiling code on (or off). It is
+equivalent to the \var{-gp} command-line option. Default is \var{OFF}. This
+directive only makes sense in a program source file, not in a unit.
+
+
 \subsection{\var{\protect\$S} : Stack checking}
 
 The \var{\{\$S+\}} directive tells the compiler to generate stack checking
@@ -1272,6 +1382,49 @@ The command-line compiler switch \var{-Ct} has the same effect as the
 \var{\{\$S+\}} directive.
 
 By default, no stack checking is performed.
+
+\subsection{\var{\protect\$SMARTLINK} : Use smartlinking}
+
+A unit that is compiled in the \var{\{\$SMARTLINK ON\}} state will be
+compiled in such a way that it can be used for smartlinking. This means that
+the unit is chopped in logical pieces: each procedure is put in it's own
+object file, and all object files are put together in a big archive. When
+using such a unit, only the pieces of code that you really need or call,
+will be linked in your program, thus reducing the size of your executable
+substantially.
+
+Beware: using smartlinked units slows down the compilation process, because
+a separate object file must be created for each procedure. If you have units
+with many functions and procedures, this can be a time consuming process,
+even more so if you use an external assembler (the assembler is called to
+assemble each procedure or function code block separately).
+
+The smartlinking directive should be specified {\em before} the unit
+declaration part:
+\begin{verbatim}
+{$SMARTLINK ON}
+
+Unit MyUnit;
+
+Interface
+ ...
+\end{verbatim}
+
+This directive is equivalent to the \var{-Cx} command-line switch.
+
+\subsection{\var{\protect\$THREADNAME} : Set thread name in Netware}
+This directive can be set to specify the thread name when compiling for
+Netware. 
+
+\subsection{\var{\protect\$THREADING} : Allow use of threads.}
+If a program needs threading, this directive must be specified; The compiler
+will then insert the \var{systhrd} unit in the uses list of the program and
+will enable some threading features. This directive defines or undefines the 
+\var{FPC\_THREADING} macro symbol.
+
+Specifying \var{\{\$THREADING OFF\}} will disable threading. The
+\var{FPC\_THREADING} will be undefined.
+
 
 \subsection{\var{\protect\$UNITPATH} : Specify unit path.}
 
@@ -1299,6 +1452,26 @@ that you should avoid using {\em absolute} paths, instead use {\em relative}
 paths, as in the example above. Only use this directive if you are certain
 of the places where the files reside. If you are not sure, it is better
 practice to use makefiles and makefile variables.
+
+\subsection{\var{\protect\$VERSION} : Specify DLL version.}
+On \windows, this can be used to specify a version number for a library.
+This version number will be used when the library is installed, and can be
+viewed in the Windows Explorer by opening the property sheet of the DLL and
+looking on the tab 'Version'. The version number consists of minimally one,
+maximum 3 numbers:
+\begin{verbatim}
+{$VERSION 1}
+\end{verbatim}
+Or:
+\begin{verbatim}
+{$VERSION 1.1}
+\end{verbatim}
+And even:
+\begin{verbatim}
+{$VERSION 1.1.1}
+\end{verbatim}
+This can not yet be used for executables on Windows, but may be activated in
+the future.
 
 \subsection{\var{\protect\$W} or \var{\protect\$STACKFRAMES} : Generate stackframes}
 
@@ -1426,7 +1599,9 @@ will evaluate to \var{True}.
 
 You can use any Pascal operator to construct your expression: \var{=, <>,
 >, <, >=, <=, AND, NOT, OR} and you can use round brackets to change the
-precedence of the operators.
+precedence of the operators. Additionally, the constants \var{FALSE} and
+\var{TRUE} can be used, and the operator \var{UNDEFINED}. The \var{UNDEFINED}
+operator returns \var{TRUE} if a macro was not yet defined.
 
 The following example shows you many of the possibilities:
 \begin{verbatim}
@@ -1525,6 +1700,19 @@ begin
 {$else}
 {$fatal $if not(0) rejected}
 {$endif}
+
+{$IF NOT UNDEFINED FPC} 
+// Detect FPC stuff when compiling on MAC.
+{$SETC TARGET_RT_MAC_68881:= FALSE}
+{$SETC TARGET_OS_MAC      := (NOT UNDEFINED MACOS) 
+                             OR (NOT UNDEFINED DARWIN)}
+{$SETC TARGET_OS_WIN32    := NOT UNDEFINED WIN32}
+{$SETC TARGET_OS_UNIX     := (NOT UNDEFINED UNIX) 
+                             AND (UNDEFINED DARWIN)}
+{$SETC TYPE_EXTENDED      := TRUE}
+{$SETC TYPE_LONGLONG      := FALSE}
+{$SETC TYPE_BOOL          := FALSE}
+{$ENDIF}
 
 {$info *************************************************}
 {$info * Now have to follow at least 2 error messages: *}
@@ -5678,7 +5866,7 @@ set with the \var{\$Mode} switch, or by command line switches.
 \section{FPC mode}
 This mode is selected by the \var{{\$MODE FPC}} switch. On the command-line,
 this means that you use none of the other compatibility mode switches.
-It is the default mode of the compiler. This means essentially:
+It is the default mode of the compiler (\var{-Mfpc}). This means essentially:
 \begin{enumerate}
 \item You must use the address operator to assign procedural variables.
 \item A forward declaration must be repeated exactly the same by the
@@ -5696,7 +5884,7 @@ parameters when implementing the function or procedure.
 \section{TP mode}
 This mode is selected by the \var{{\$MODE TP}} switch. It tries to emulate, 
 as closely as possible, the behavior of Turbo Pascal 7. On the command-line,
-this mode is selected by the \var{-So} switch.
+this mode is selected by the \var{-Mtp} switch.
 
 \begin{enumerate}
 \item Enumeration sizes default to a storage size of 1 byte if there
@@ -5716,7 +5904,7 @@ parameters when implementing the function or procedure.
 \section{Delphi mode}
 This mode is selected by the \var{{\$MODE DELPHI}} switch. It tries to emulate,
 as closely as possible, the behavior of Delphi 4. On the command-line,
-this mode is selected by the \var{-Sd} switch.
+this mode is selected by the \var{-Mdelpih} switch.
 \begin{enumerate}
 \item You can not use the address operator to assign procedural variables.
 \item A forward declaration must not be repeated exactly the same by the
@@ -5735,7 +5923,7 @@ properties (although it is bad programming practice).
 % GPC Mode
 \section{GPC mode}
 This mode is selected by the \var{{\$MODE GPC}} switch. On the command-line,
-this mode is selected by the \var{-Sp} switch.
+this mode is selected by the \var{-Mgpc} switch.
 \begin{enumerate}
 \item You must use the address operator to assign procedural variables.
 \item A forward declaration must not be repeated exactly the same by the
@@ -5751,7 +5939,7 @@ parameters when implementing the function or procedure.
 % Objfpc mode
 \section{OBJFPC mode}
 This mode is selected by the \var{{\$MODE OBJFPC}} switch. On the command-line,
-this mode is selected by the \var{-S2} switch.
+this mode is selected by the \var{-Mobjfpc} switch.
 \begin{enumerate}
 \item You must use the address operator to assign procedural variables.
 \item A forward declaration must be repeated exactly the same by the
@@ -5767,6 +5955,34 @@ consequences of this is that the type \var{Integer} is redefined as
 \item Parameters in class methods cannot have the same names as class
 properties.
 \end{enumerate}
+
+\section{MAC mode}
+This mode is selected by the \var{{\$MODE MAC}} switch. On the
+command-line, this mode is selected by the \var{-MMAC} switch. It mainly
+switches on some extra features:
+\begin{enumerate}
+\item Support for the \var{\$SETC} directive.
+\item Support for the \var{\$IFC}, \var{\$ELSEC} and \var{\$ENDC}
+directives.
+\item Support for the \var{UNDEFINED} construct in macros.
+\item Support for \var{TRUE} and \var{FALSE} as values in macro expressions.
+\item Macros may be assigned hexadecimal numbers, like \var{\$2345}.
+\end{enumerate}
+(Note: Macros are called 'Compiler Variables' in \macos dialects.)
+
+Currently, the following \macos pascal extensions are not yet supported in
+\var{MAC} mode:
+\begin{itemize}
+\item A nested procedure cannot be an actual parameter to a procedure. 
+\item No anonymous procedure types in formal parameters. 
+\item External procedures declared in the interface must have the directive \var{External}. 
+\item \var{Continue} instead of \var{Cycle}.
+\item \var{Break} instead of \var{Leave}
+\item \var{Exit} should not have the name of the procedure to exit as parameter.
+Instead, for a function the value to return can be supplied as parameter. 
+\item No propagating \var{uses}.
+\item Compiler directives defined in interface sections are not exported.
+\end{itemize}
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Appendix E
