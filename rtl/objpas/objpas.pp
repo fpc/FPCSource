@@ -155,8 +155,8 @@ interface
     Type
        PVarRec = ^TVarRec;
        TVarRec = record
-         case vtType: Byte of
-           vtInteger    : (VInteger: Integer; VType:Longint);
+         case vtType: Longint of
+           vtInteger    : (VInteger: Integer);
            vtBoolean    : (VBoolean: Boolean);
            vtChar       : (VChar: Char);
            vtExtended   : (VExtended: PExtended);
@@ -398,7 +398,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.13  1998-09-23 12:18:32  michael
+  Revision 1.14  1998-09-23 12:40:43  michael
+  Fixed TVarRec again. Should be OK now
+
+  Revision 1.13  1998/09/23 12:18:32  michael
   + added VType in TVArRec
 
   Revision 1.12  1998/09/23 10:00:47  peter
