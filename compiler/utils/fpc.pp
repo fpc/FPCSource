@@ -114,11 +114,11 @@ program fpc;
      for i:=1 to paramcount do
        begin
           s:=paramstr(i);
-          if pos('-V',s)=1 then
+          if pos('-L',s)=1 then
               versionstr:=copy(s,3,length(s)-2)
           else
             begin
-              if pos('-P',s)=1 then
+              if pos('-Q',s)=1 then
                  begin
                    processorstr:=copy(s,3,length(s)-2);
                   { -PB is a special code that will show the
@@ -170,7 +170,10 @@ program fpc;
   end.
 {
   $Log$
-  Revision 1.6  2003-09-30 11:24:59  marco
+  Revision 1.7  2003-09-30 17:25:01  marco
+   * -Q=-P and -L=-V
+
+  Revision 1.6  2003/09/30 11:24:59  marco
    * -V support
 
   Revision 1.5  2003/04/08 16:01:40  peter
