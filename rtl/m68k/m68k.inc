@@ -121,10 +121,12 @@
                 4 main programm-Addr
                 0 %ebp
             }
-            { initialise self ? }
-            move.l a5,d0
-            tst.l  d0      { set flags }
-            bne @LHC_4
+            { do we have to initialize self  }
+            { we just need to check for zero }
+            move.l    a5,d0
+            tst.l     d0      { set flags }
+            bne       @LHC_4
+
             { get memory, but save register first }
             { temporary variable }
             subq.l #4,sp
@@ -145,27 +147,27 @@
             { If no memory available : fail() }
             move.l a5,d0
             tst.l  d0         { set flags for a5 }
-            beq @LHC_5
+            beq    @LHC_5
             { init self for the constructor }
             move.l a5,12(a6)
          @LHC_4:
             { is there a VMT address ? }
             move.l 8(a6),d0
-            or.l d0,d0
+            or.l   d0,d0
             bne @LHC_7
             { In case the constructor doesn't do anything, the Zero-Flag }
             { can't be put, because this calls Fail() }
-            add.l #1,d0
+            add.l  #1,d0
             rts
          @LHC_7:
             { set zero inside the object }
             { Save Registers }
             movem.l d0-a7,-(sp)
-            move.w #0,-(sp)
+            move.w  #0,-(sp)
 
-            move.l 8(a6),a0
-            move.l (a0),-(sp)
-            move.l a5,-(sp)
+            move.l  8(a6),a0
+            move.l  (a0),-(sp)
+            move.l  a5,-(sp)
             {                }
             jsr  FILLOBJECT
             { Restore all registers in the correct order }
@@ -202,10 +204,10 @@
             move.l sp,d6
             { Save Registers }
             movem.l d0-a7,-(sp)
-            { Should the object be resolved ? }
-            move.l 8(a6),d0
-            or.l d0,d0
-            beq @LHD_3
+
+            move.l 8(a6),d0         { Get the address of the vmt }
+            or.l   d0,d0            { Check if there is a vmt    }
+            beq    @LHD_3
             { Yes, get size from SELF! }
             move.l 12(a6),a0
             { get VMT-pointer (from Self) to %ebx }
@@ -221,7 +223,7 @@
             move.l d6,a1
             move.l a0,(a1)
             move.l a1,-(sp)
-            jsr FREEMEM
+            jsr    FREEMEM
          @LHD_3:
             { Restore all registers in the correct order }
             movem.l (sp)+,d0-a7
@@ -285,7 +287,7 @@
   asm
    XDEF CHECK_OBJECT
      { save important registers }
-     move.l   a0/d0,-(sp)
+     movem.l   a0/d0,-(sp)
 
      { check if pointer is nil.... before trying to access it      }
      { offset is 12 contrary to i386 because we save two registers }
@@ -362,7 +364,7 @@
          erroraddr:=pointer(get_addr);
          DoError:=True;
          ErrorBase:=get_error_bp;
-         halt(errorcode);
+         halt(byte(errorcode));
       end;
 
     procedure io1(addr : longint);[public,alias: 'IOCHECK'];
@@ -421,22 +423,29 @@
             andi.l #$ff,d0     { zero extend d0-byte }
             move.l d0,d1       { save length to copy }
             move.b d0,(a1)+    { save new length     }
-            bra  @LMSTRCOPY55
-         @LMSTRCOPY56:
+            { Check if copying length is zero - if so then }
+            { exit without copying anything.               }
+            tst.b  d1
+            beq    @Lend
+            bra    @LMSTRCOPY55
+         @LMSTRCOPY56:         { 68010 Fast loop mode }
             move.b (a0)+,(a1)+
          @LMSTRCOPY55:
             dbra  d1,@LMSTRCOPY56
+         @Lend:
          end;
       end;
 
     { Concatenate Strings }
+    { PARAMETERS ARE REVERSED COMPARED TO NORMAL! }
+    { therefore online assembler may not parse the params as normal }
     procedure strconcat(s1,s2 : pointer);[public,alias: 'STRCONCAT'];
 
       begin
          asm
           move.b  #255,d0
-          move.l  s1,a0
-          move.l  s2,a1
+          move.l  s1,a0                { a0 = destination }
+          move.l  s2,a1                { a1 = source      }
           sub.b   (a0),d0              {  copyl:= 255 -length(s1)    }
           move.b  (a1),d6
           cmp.b   d0,d6                { if copyl > length(s2) then  }
@@ -448,37 +457,51 @@
           lea     1(a0,d6),a0          { s1[length(s1)+1]            }
           add.l   #1,a1                { s2[1]                       }
           move.b  d0,d6
+          { Check if copying length is zero - if so then }
+          { exit without copying anything.               }
+          tst.b  d6
+          beq    @Lend
     @Loop:
           move.b  (a1)+,(a0)+          { s1[i] := s2[i];             }
           dbra    d6,@Loop
           move.l  s1,a0
           add.b   d0,(a0)              { change to new string length }
+    @Lend:
          end ['d0','d1','a0','a1','d6'];
       end;
 
     { Compares strings }
-    procedure strcmp(dstr,sstr : pointer);[public,alias: 'STRCMP'];
-
-      begin
-         asm
-            move.l 12(a6),a0
-            move.l 8(a6),a1     { Get address of both strings }
+    { DO NOT CALL directly.                                 }
+    {   a0 = pointer to first string to compare             }
+    {   a1 = pointer to second string to compare            }
+    {   ALL FLAGS are set appropriately.                    }
+    {    ZF = strings are equal                             }
+    { REGISTERS DESTROYED: a0, a1, d0, d1, d6               }
+    procedure strcmp; assembler;
+     asm
+     XDEF STRCMP
 
             move.b (a0)+,d0     { Get length of first string  }
             move.b (a1)+,d6     { Get length of 2nd string    }
 
-            move.b d0,d1
-            cmp.b  d6,d1        { Get shortest string length }
+            move.b  d6,d1      { Save length of string for final compare   }
+
+            cmp.b  d0,d6        { Get shortest string length   }
             ble    @LSTRCONCAT1
-            move.b  d6,d1
+            move.b d0,d6       { Set length to shortest string }
 
          @LSTRCONCAT1:
-            tst.b   d1          { Both strings have a length of zero, exit }
+            tst.b  d6          { Both strings have a length of zero, exit }
             beq    @LSTRCONCAT2
+
             andi.l  #$ff,d6
 
-            or.l    d1,d1      { Make sure to set Zerfo flag to 0          }
-            bra    @LSTRCONCAT4
+
+            subq.l  #1,d6      { subtract first attempt                    }
+            { if value is -1 then don't loop and just compare lengths of   }
+            { both strings before exiting.                                 }
+            bmi     @LSTRCONCAT2
+            or.l    d0,d0      { Make sure to set Zerfo flag to 0          }
          @LSTRCONCAT5:
             { Workaroung for GAS v.134 bug }
             {  old: cmp.b (a1)+,(a0)+      }
@@ -487,10 +510,11 @@
             dbne    d6,@LSTRCONCAT5   { Repeat until not equal }
             bne     @LSTRCONCAT3
           @LSTRCONCAT2:
-            cmp.b   d6,d0   { Compare length - set flag if equal length strings }
+            { If length of both string are equal }
+            { Then set zero flag                 }
+            cmp.b   d1,d0   { Compare length - set flag if equal length strings }
          @LSTRCONCAT3:
-         end;
-      end;
+     end;
 
 
   Function strpas(p: pchar): string;
@@ -724,9 +748,9 @@ XDEF RE_BOUNDS_CHECK
 
 {
   $Log$
-  Revision 1.4  1998-05-25 12:18:48  carl
-    * strcopy bugfix
-     * co bugfix with stack
+  Revision 1.5  1998-06-05 12:28:58  carl
+    * all string internal routines fixed and tested (to my knowledge)
+    * bugfix of missing typecast with a call to halt with a word
 
   Revision 1.2  1998/03/27 23:48:06  carl
     * bugfix of STRCONCAT alignment problem
