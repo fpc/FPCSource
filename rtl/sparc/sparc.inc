@@ -2,40 +2,49 @@ procedure fpc_cpuinit;
 begin
 end;
 
+
 {$define FPC_SYSTEM_HAS_GET_FRAME}
-function get_frame:pointer;{assembler;}
-begin{asm}
-    {$warning FIX ME!}
-    //    !!!!!!! depends on ABI !!!!!!!!
+function get_frame:pointer;assembler;nostackframe;
+asm
+	mov %sp,%o0
 end;
+
+
 {$define FPC_SYSTEM_HAS_GET_CALLER_ADDR}
-function get_caller_addr(framebp:pointer):pointer;{assembler;}
-begin{asm}
-   {$warning FIX ME!}
-    //     !!!!!!! depends on ABI !!!!!!!!
+function get_caller_addr(framebp:pointer):pointer;assembler;nostackframe;
+asm
+	{ framebp = %o0 }
+	{ flush register windows, so they are stored in the stack }
+        ta      3
+	ld [%o0+60],%o0
+	{ add 8 to skip jmpl and delay slot }
+	add %o0,8,%o0
 end;
+
+
 {$define FPC_SYSTEM_HAS_GET_CALLER_FRAME}
-function get_caller_frame(framebp:pointer):pointer;{assembler;}
-begin{asm}
-    {$warning FIX ME!}
-   //     !!!!!!! depends on ABI !!!!!!!!
+function get_caller_frame(framebp:pointer):pointer;assembler;nostackframe;
+asm
+	{ flush register windows, so they are stored in the stack }
+        ta      3
+	{ framebp = %o0 }
+	ld [%o0+56],%o0
 end;
+
+
 {$define FPC_SYSTEM_HAS_SPTR}
-function Sptr:Pointer;{assembler;}
-begin{asm}
-   {$warning FIX ME!}
+function Sptr:Pointer;assembler;nostackframe;
+asm
+	mov %sp,%o0
 end;
-{$define FPC_SYSTEM_HAS_FPC_HELP_FAIL_CLASS}
-function fpc_help_fail_class(_vmt:pointer;_self:pointer):pointer;{assembler;}[public,alias:'FPC_HELP_FAIL_CLASS']; {$ifdef hascompilerproc} compilerproc; {$endif}
-{ a non zero class must allways be disposed
-  VMT is allways at pos 0 }
-begin{asm}
-{$warning FIX ME!}
-// !!!!!!!!!!!
-end;
+
+
 {
   $Log$
-  Revision 1.5  2004-01-02 17:22:14  jonas
+  Revision 1.6  2004-05-27 23:34:37  peter
+    * backtrace support
+
+  Revision 1.5  2004/01/02 17:22:14  jonas
     + fpc_cpuinit procedure to allow cpu/fpu initialisation before any unit
       initialises
     + fpu exceptions for invalid operations and division by zero enabled for
