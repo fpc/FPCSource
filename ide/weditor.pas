@@ -535,7 +535,8 @@ type
    {a}function    GetErrorMessage: string; virtual;
    {a}procedure   SetErrorMessage(const S: string); virtual;
    {a}procedure   AdjustSelection(DeltaX, DeltaY: sw_integer);
-   {a}procedure   AdjustSelectionPos(CurPosX, CurPosY: sw_integer; DeltaX, DeltaY: sw_integer);
+   {a}procedure   AdjustSelectionBefore(DeltaX, DeltaY: sw_integer);
+   {a}procedure   AdjustSelectionPos(OldCurPosX, OldCurPosY: sw_integer; DeltaX, DeltaY: sw_integer);
    {a}procedure   GetContent(ALines: PUnsortedStringCollection); virtual;
    {a}procedure   SetContent(ALines: PUnsortedStringCollection); virtual;
    {a}function    LoadFromStream(Stream: PFastBufStream): boolean; virtual;
@@ -2631,26 +2632,30 @@ begin
   { Abstract }
 end;
 
-procedure TCustomCodeEditor.AdjustSelectionPos(CurPosX, CurPosY: sw_integer; DeltaX, DeltaY: sw_integer);
+procedure TCustomCodeEditor.AdjustSelectionPos(OldCurPosX, OldCurPosY: sw_integer; DeltaX, DeltaY: sw_integer);
 var CP: TPoint;
 begin
   if ValidBlock=false then Exit;
 
-  CP.X:=CurPosX; CP.Y:=CurPosY;
+  CP.X:=OldCurPosX; CP.Y:=OldCurPosY;
   if (PosToOfsP(SelStart)<=PosToOfsP(CP)) and (PosToOfsP(CP)<PosToOfsP(SelEnd)) then
     begin
-      { CurPos is IN selection }
+      { OldCurPos is IN selection }
+      if (CP.Y=SelEnd.Y) then
+        begin
+          if ((SelStart.Y<>SelEnd.Y) or (SelStart.X<=CP.X)) and
+             (CP.X<=SelEnd.X) then
+            Inc(SelEnd.X,DeltaX);
+        end
+      else if (CP.Y=SelEnd.Y+DeltaY) then
+        Inc(SelEnd.X,DeltaX);
       Inc(SelEnd.Y,DeltaY);
-      if (CP.Y=SelEnd.Y) and
-         ((SelStart.Y<>SelEnd.Y) or (SelStart.X<=CP.X)) and
-         (CP.X<=SelEnd.X) then
-       Inc(SelEnd.X,DeltaX);
       SelectionChanged;
     end
   else
   if (PosToOfsP(CP)<=PosToOfsP(SelStart)) then
     begin
-      { CurPos is BEFORE selection }
+      { OldCurPos is BEFORE selection }
       if (CP.Y=SelStart.Y) and (CP.Y=SelEnd.Y) and (DeltaY<0) then
         begin
           SelStart:=CurPos; SelEnd:=CurPos;
@@ -2671,7 +2676,7 @@ begin
     end
   else
     begin
-      { CurPos is AFTER selection }
+      { OldCurPos is AFTER selection }
       { actually we don't have to do anything here }
     end;
 end;
@@ -3235,7 +3240,16 @@ begin
   DrawView;
 end;
 
+{ to be called if CurPos has already been changed }
+
 procedure TCustomCodeEditor.AdjustSelection(DeltaX, DeltaY: sw_integer);
+begin
+  AdjustSelectionPos(CurPos.X-DeltaX,CurPos.Y-DeltaY,DeltaX,DeltaY);
+end;
+
+{ to be called if CurPos has not yet been changed }
+
+procedure TCustomCodeEditor.AdjustSelectionBefore(DeltaX, DeltaY: sw_integer);
 begin
   AdjustSelectionPos(CurPos.X,CurPos.Y,DeltaX,DeltaY);
 end;
@@ -4829,14 +4843,14 @@ begin
      { obsolete IndentStr is taken care of by the Flags PM }
      Addaction(eaInsertLine,SCP,CurPos,CharStr(' ',i-1){IndentStr},GetFlags);
      SetStoreUndo(false);
-    AdjustSelection(CurPos.X-SCP.X,CurPos.Y-SCP.Y);
+     AdjustSelectionPos(SCP.X,SCP.Y,CurPos.X-SCP.X,CurPos.Y-SCP.Y);
   end else
   begin
     CalcIndent(CurPos.Y);
     if CurPos.Y=GetLineCount-1 then
     begin
       AddLine(IndentStr);
-      AdjustSelection(0,1);
+      AdjustSelectionBefore(0,1);
       LimitsChanged;
       SetStoreUndo(HoldUndo);
       UpdateAttrs(CurPos.Y,attrAll);
@@ -4890,6 +4904,7 @@ begin
         DeleteLine(CurPos.Y);
         LimitsChanged;
         SetCurPtr(CI,CurPos.Y-1);
+        AdjustSelectionPos(Ci,CurPos.Y,CurPos.X-SCP.X,CurPos.Y-SCP.Y);
       end;
    end
   else
@@ -4926,9 +4941,9 @@ begin
      SetStoreUndo(HoldUndo);
      Addaction(eaDeleteText,SCP,CurPos,Copy(S,CI,OI-CI),GetFlags);
      SetStoreUndo(false);
+     AdjustSelection(CurPos.X-SCP.X,CurPos.Y-SCP.Y);
    end;
   UpdateAttrs(CurPos.Y,attrAll);
-  AdjustSelection(CurPos.X-SCP.X,CurPos.Y-SCP.Y);
   DrawLines(CurPos.Y);
   SetStoreUndo(HoldUndo);
   SetModified(true);
@@ -4952,17 +4967,22 @@ begin
      if CurPos.Y<GetLineCount-1 then
       begin
         SetLineText(CurPos.Y,S+CharStr(' ',CurPOS.X-Length(S))+GetLineText(CurPos.Y+1));
+        SDX:=CurPos.X;
         SetStoreUndo(HoldUndo);
         SCP.X:=0;SCP.Y:=CurPos.Y+1;
         AddGroupedAction(eaDelChar);
         AddAction(eaMoveCursor,CurPos,SCP,'',GetFlags);
-        AddAction(eaDeleteLine,SCP,CurPos,GetLineText(CurPos.Y+1),GetFlags);
+        S:=GetLineText(CurPos.Y+1);
+        AddAction(eaDeleteLine,SCP,CurPos,S,GetFlags);
         CloseGroupedAction(eaDelChar);
         SetStoreUndo(false);
         DeleteLine(CurPos.Y+1);
         LimitsChanged;
-        SDX:=0; SDY:=-1;
-       end;
+        SDY:=-1;
+        SetCurPtr(CurPos.X,CurPos.Y);
+        UpdateAttrs(CurPos.Y,attrAll);
+        AdjustSelectionPos(CurPos.X,CurPos.Y,SDX,SDY);
+      end;
    end
   else
    begin
@@ -4990,10 +5010,10 @@ begin
        end;
      SetLineText(CurPos.Y,S);
      SDX:=-1;SDY:=0;
+     SetCurPtr(CurPos.X,CurPos.Y);
+     UpdateAttrs(CurPos.Y,attrAll);
+     AdjustSelection(SDX,SDY);
    end;
-  SetCurPtr(CurPos.X,CurPos.Y);
-  UpdateAttrs(CurPos.Y,attrAll);
-  AdjustSelection(SDX,SDY);
   DrawLines(CurPos.Y);
   SetStoreUndo(HoldUndo);
   SetModified(true);
@@ -5111,7 +5131,7 @@ begin
     SetStoreUndo(false);
     DeleteLine(CurPos.Y);
     LimitsChanged;
-    AdjustSelection(0,-1);
+    AdjustSelectionBefore(0,-1);
     SetCurPtr(0,CurPos.Y);
     UpdateAttrs(Max(0,CurPos.Y-1),attrAll);
     DrawLines(CurPos.Y);
@@ -7254,7 +7274,10 @@ end;
 END.
 {
   $Log$
-  Revision 1.40  2003-01-21 11:03:56  pierre
+  Revision 1.41  2003-01-29 00:29:14  pierre
+   * attempt to fix webbugs 2346-2348
+
+  Revision 1.40  2003/01/21 11:03:56  pierre
    * fix problem with Paste from Menu web bug 2173
 
   Revision 1.39  2002/12/18 01:18:10  pierre
