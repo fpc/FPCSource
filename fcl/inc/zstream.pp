@@ -8,7 +8,7 @@ uses Sysutils, Classes,zlib;
 type
   // Error reporting.
 
-  EZlibError = class(Exception);
+  EZlibError = class(EStreamError);
   ECompressionError = class(EZlibError);
   EDecompressionError = class(EZlibError);
 

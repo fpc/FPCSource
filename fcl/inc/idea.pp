@@ -46,7 +46,7 @@ PROCEDURE CipherIdea(input: ideacryptdata; VAR out: ideacryptdata; z: IDEAkey);
 
 Type  
 
-EIDEAError = Class(Exception);
+EIDEAError = Class(EStreamError);
 
 TIDEAEncryptStream = Class(TStream)
   private
