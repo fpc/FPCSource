@@ -20,11 +20,7 @@ interface
  {$DEFINE EMX} (* EMX is the only possibility under OS/2 at the moment *)
 {$ENDIF OS2}
 
-{ This is very important as this code can be called
-  from inside the RTE 202 error PM }
-{$ifndef Unix}
-  {$S-}
-{$endif}
+{$S-}
 
 procedure GetLineInfo(addr:dword;var func,source:string;var line:longint);
 
@@ -879,7 +875,10 @@ finalization
 end.
 {
   $Log$
-  Revision 1.9  2002-05-31 13:37:24  marco
+  Revision 1.10  2002-09-07 11:09:40  carl
+    * stack checking supported for all systems
+
+  Revision 1.9  2002/05/31 13:37:24  marco
    * more Renamefest
 
   Revision 1.8  2001/12/13 03:50:00  carl
