@@ -6175,13 +6175,25 @@ implementation
       end;
 
     procedure timplementedinterfaces.addimplproc(intfindex: longint; procdef: tprocdef);
+      var
+        found : boolean;
+        i     : longint;
       begin
         checkindex(intfindex);
         with timplintfentry(finterfaces.search(intfindex)) do
           begin
             if not assigned(procdefs) then
               procdefs:=tindexarray.create(4);
-            procdefs.insert(tprocdefstore.create(procdef));
+            { No duplicate entries of the same procdef }
+            found:=false;
+            for i:=1 to procdefs.count do
+              if tprocdefstore(procdefs.search(i)).procdef=procdef then
+                begin
+                  found:=true;
+                  break;
+                end;
+            if not found then
+              procdefs.insert(tprocdefstore.create(procdef));
           end;
       end;
 
@@ -6379,7 +6391,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.294  2005-02-02 19:02:47  florian
+  Revision 1.295  2005-02-10 22:08:37  peter
+    * implprocs requires no duplicate entries of the same procdef
+
+  Revision 1.294  2005/02/02 19:02:47  florian
     * type = type <procvar>; ignored
 
   Revision 1.293  2005/02/01 08:46:13  michael
