@@ -2873,11 +2873,33 @@ end;
 ****************************************************************************}
 
 procedure InitDebugger;
+{$ifdef DEBUG}
+var s : string;
+    i,p : longint;
+{$endif DEBUG}
 begin
 {$ifdef DEBUG}
   Assign(gdb_file,GDBOutFileName);
+  {$I-}
   Rewrite(gdb_file);
-  Use_gdb_file:=true;
+  if InOutRes<>0 then
+    begin
+      s:=GDBOutFileName;
+      p:=pos('.',s);
+      if p>1 then
+       for i:=0 to 9 do
+         begin
+           s:=copy(s,1,p-2)+chr(i+ord('0'))+copy(s,p,length(s));
+           InOutRes:=0;
+           Assign(gdb_file,s);
+           rewrite(gdb_file);
+           if InOutRes=0 then
+             break;
+         end;
+    end;
+  if IOResult=0 then
+    Use_gdb_file:=true;
+  {$I+}
 {$endif}
   if (not ExistsFile(ExeFile)) or (CompilationPhase<>cpDone) then
     DoCompile(cRun);
@@ -3018,7 +3040,10 @@ end.
 
 {
   $Log$
-  Revision 1.45  2000-01-28 22:38:21  pierre
+  Revision 1.46  2000-02-01 10:59:58  pierre
+   * allow FP to debug itself
+
+  Revision 1.45  2000/01/28 22:38:21  pierre
    * CrtlF9 starts debugger if there are active breakpoints
 
   Revision 1.44  2000/01/27 22:30:38  florian
