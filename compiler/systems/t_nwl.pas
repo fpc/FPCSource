@@ -76,7 +76,6 @@
 
     ToDo:
       - No duplicate imports and autoloads
-      - libc support (needs new target)
 
 ****************************************************************************
 }
@@ -124,7 +123,9 @@ implementation
     public
       constructor Create;override;
       procedure SetDefaultInfo;override;
+      function  MakeNetwareLoadableModule (isLib : boolean):boolean;
       function  MakeExecutable:boolean;override;
+      function  MakeSharedLibrary:boolean;override;
     end;
 
 Const tmpLinkFileName = 'link~tmp._o_';
@@ -521,13 +522,25 @@ begin
   WriteResponseFile:=True;
 end;
 
+Const
+  xdc : Array[0..127] of char = (
+       'B','A','G','F',#2,#0,#0,#0,#1,#0,#0,#0,#0,#0,#0,#0,#0,#0,#0,#0,#0,
+       #0,#0,#0,#0,#0,#0,#0,#0,#0,#0,#0,#2,#0,#0,#0,#0,#0,#0,#0,#16,#0,#0,
+       #0,#7,'M','P','K','_','B','a','g',#0,#0,#0,#0,#0,#0,#0,#0,#11,'M','T',
+       ' ','S','a','f','e',' ','N','L','M',#0,#0,#0,#0,#0,#0,#0,#0,#0,#0,#0,
+       #0,#0,#0,#0,#0,#0,#0,#0,#0,#0,#0,#0,#0,#0,#0,#0,#0,#0,#0,#0,#0,#0,#0,
+       #0,#0,#0,#0,#0,#0,#1,#0,#0,#0,#0,#0,#0,#0,#0,#0,#0,#0,#0,#0,#0,#0);
 
-function TLinkerNetwlibc.MakeExecutable:boolean;
+
+function TLinkerNetwlibc.MakeNetwareLoadableModule (isLib : boolean):boolean;
 var
   binstr,
-  cmdstr   : string;
+  cmdstr,
+  xdcname : string;
   success  : boolean;
   StripStr : string[2];
+  xdcpresent,usexdc : boolean;
+  f : file;
 begin
   if not(cs_link_extern in aktglobalswitches) then
    Message1(exec_i_linking,current_module.exefilename^);
@@ -541,6 +554,29 @@ begin
 { Write used files and libraries and create Headerfile for
   nlmconv in NLMConvLinkFile }
   WriteResponseFile(false);
+  if isLib then
+    NLMConvLinkFile.Add('FLAG_ON 1024');  {0x400 Specifies whether the NLM is a shared library.}
+
+{ if we have a xdc file, dont touch it, otherwise create a new
+  one and remove it after nlmconv }
+  xdcname := ForceExtension(current_module.exefilename^,'.xdc');
+  xdcpresent := FileExists (xdcname);
+  if not xdcpresent then
+  begin
+    assign (f,xdcname);
+    rewrite(f,1);
+    if ioresult = 0 then
+    begin
+      blockwrite (f,xdc,sizeof(xdc));
+      close(f);
+      usexdc := (IOResult = 0);
+    end else
+      usexdc := false;
+  end else
+    usexdc := true;
+
+  if usexdc then
+    NLMConvLinkFile.Add('XDCDATA '+xdcname);
 
 { Call linker, this will generate a new object file that will be passed
   to nlmconv. Otherwise we could not create nlms without debug info }
@@ -569,12 +605,25 @@ begin
     begin
       RemoveFile(outputexedir+'n'+Info.ResName);
       RemoveFile(outputexedir+tmpLinkFileName);
+      if not xdcpresent then
+        if usexdc then
+          RemoveFile (xdcname);
     end;
   end;
 
-  MakeExecutable:=success;   { otherwise a recursive call to link method }
+  MakeNetwareLoadableModule:=success;   { otherwise a recursive call to link method }
 end;
 
+function TLinkerNetwlibc.MakeExecutable:boolean;
+begin
+  MakeExecutable := MakeNetwareLoadableModule (false);
+end;
+
+
+function TLinkerNetwlibc.MakeSharedLibrary:boolean;
+begin
+  MakeSharedLibrary := MakeNetwareLoadableModule (true);
+end;
 
 {*****************************************************************************
                                      Initialize
@@ -589,7 +638,11 @@ initialization
 end.
 {
   $Log$
-  Revision 1.1  2004-09-04 21:18:47  armin
+  Revision 1.2  2004-09-19 14:23:43  armin
+  * support library flag
+  * automaticly gernerate xdc data
+
+  Revision 1.1  2004/09/04 21:18:47  armin
   * target netwlibc added (libc is preferred for newer netware versions)
 
   Revision 1.14  2004/08/30 11:17:34  armin
