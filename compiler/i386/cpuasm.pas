@@ -552,24 +552,23 @@ uses
 
     destructor taicpu.destroy;
       begin
-        if is_jmp then
-          dec(PasmLabel(oper[0].sym)^.refs)
-        else
-          begin
-            { unrolled for speed }
-            if (ops>0) then
-             begin
-               if (oper[0].typ=top_ref) then
-                dispose(oper[0].ref);
-               if (ops>1) then
-                begin
-                  if (oper[1].typ=top_ref) then
-                   dispose(oper[1].ref);
-                  if (ops>2) and (oper[2].typ=top_ref) then
-                   dispose(oper[2].ref);
-                end;
-             end;
-          end;
+        { unrolled for speed }
+        if (ops>0) then
+         begin
+           case oper[0].typ of
+             top_ref:
+               dispose(oper[0].ref);
+             top_symbol:
+               dec(Pasmsymbol(oper[0].sym)^.refs);
+           end;
+           if (ops>1) then
+            begin
+              if (oper[1].typ=top_ref) then
+               dispose(oper[1].ref);
+              if (ops>2) and (oper[2].typ=top_ref) then
+               dispose(oper[2].ref);
+            end;
+         end;
         inherited destroy;
       end;
 
@@ -1691,7 +1690,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.7  2000-12-26 15:56:17  peter
+  Revision 1.8  2001-01-07 15:48:56  jonas
+    * references to symbols were only decreased in taicpu.done for jmps, fixed
+
+  Revision 1.7  2000/12/26 15:56:17  peter
     * unrolled loops in taicpu.destroy
 
   Revision 1.6  2000/12/25 00:07:31  peter
