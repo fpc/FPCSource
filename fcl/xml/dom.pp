@@ -15,7 +15,7 @@
  **********************************************************************}
 
 {
- more or less DOM level 1 conformant class library for FreePascal
+  more or less DOM level 1 conformant class library for Free Pascal
 }
 
 {$MODE objfpc}
@@ -147,11 +147,11 @@ type
     FPreviousSibling, FNextSibling: TDOMNode;
     FOwnerDocument: TDOMDocument;
 
-    function  FGetNodeValue: DOMString; virtual;
-    procedure FSetNodeValue(AValue: DOMString); virtual;
-    function  FGetFirstChild: TDOMNode; virtual;
-    function  FGetLastChild: TDOMNode; virtual;
-    function  FGetAttributes: TDOMNamedNodeMap; virtual;
+    function  GetNodeValue: DOMString; virtual;
+    procedure SetNodeValue(AValue: DOMString); virtual;
+    function  GetFirstChild: TDOMNode; virtual;
+    function  GetLastChild: TDOMNode; virtual;
+    function  GetAttributes: TDOMNamedNodeMap; virtual;
 
     constructor Create(AOwner: TDOMDocument);
   public
@@ -159,15 +159,15 @@ type
     function GetChildNodes: TDOMNodeList; virtual;
 
     property NodeName: DOMString read FNodeName;
-    property NodeValue: DOMString read FGetNodeValue write FSetNodeValue;
+    property NodeValue: DOMString read GetNodeValue write SetNodeValue;
     property NodeType: Integer read FNodeType;
     property ParentNode: TDOMNode read FParentNode;
-    property FirstChild: TDOMNode read FGetFirstChild;
-    property LastChild: TDOMNode read FGetLastChild;
+    property FirstChild: TDOMNode read GetFirstChild;
+    property LastChild: TDOMNode read GetLastChild;
     property ChildNodes: TDOMNodeList read GetChildNodes;
     property PreviousSibling: TDOMNode read FPreviousSibling;
     property NextSibling: TDOMNode read FNextSibling;
-    property Attributes: TDOMNamedNodeMap read FGetAttributes;
+    property Attributes: TDOMNamedNodeMap read GetAttributes;
     property OwnerDocument: TDOMDocument read FOwnerDocument;
 
     function InsertBefore(NewChild, RefChild: TDOMNode): TDOMNode; virtual;
@@ -189,15 +189,17 @@ type
   TDOMNode_WithChildren = class(TDOMNode)
   protected
     FFirstChild, FLastChild: TDOMNode;
-    function FGetFirstChild: TDOMNode; override;
-    function FGetLastChild: TDOMNode; override;
+    function GetFirstChild: TDOMNode; override;
+    function GetLastChild: TDOMNode; override;
   public
+    destructor Destroy; override;
     function InsertBefore(NewChild, RefChild: TDOMNode): TDOMNode; override;
     function ReplaceChild(NewChild, OldChild: TDOMNode): TDOMNode; override;
     function RemoveChild(OldChild: TDOMNode): TDOMNode; override;
     function AppendChild(NewChild: TDOMNode): TDOMNode; override;
     function HasChildNodes: Boolean; override;
   end;
+
 
 // -------------------------------------------------------
 //   NodeList
@@ -209,11 +211,11 @@ type
     filter: DOMString;
     UseFilter: Boolean;
     constructor Create(ANode: TDOMNode; AFilter: DOMString);
-    function FGetCount: LongWord;
-    function FGetItem(index: LongWord): TDOMNode;
+    function GetCount: LongWord;
+    function GetItem(index: LongWord): TDOMNode;
   public
-    property Item[index: LongWord]: TDOMNode read FGetItem;
-    property Count: LongWord read FGetCount;
+    property Item[index: LongWord]: TDOMNode read GetItem;
+    property Count: LongWord read GetCount;
   end;
 
 
@@ -224,17 +226,17 @@ type
   TDOMNamedNodeMap = class(TList)
   protected
     OwnerDocument: TDOMDocument;
-    function  FGetItem(index: LongWord): TDOMNode;
-    procedure FSetItem(index: LongWord; AItem: TDOMNode);
-    function  FGetLength: LongWord;
+    function  GetItem(index: LongWord): TDOMNode;
+    procedure SetItem(index: LongWord; AItem: TDOMNode);
+    function  GetLength: LongWord;
 
     constructor Create(AOwner: TDOMDocument);
   public
     function GetNamedItem(const name: DOMString): TDOMNode;
     function SetNamedItem(arg: TDOMNode): TDOMNode;
     function RemoveNamedItem(const name: DOMString): TDOMNode;
-    property Item[index: LongWord]: TDOMNode read FGetItem write FSetItem;
-    property Length: LongWord read FGetLength;
+    property Item[index: LongWord]: TDOMNode read GetItem write SetItem;
+    property Length: LongWord read GetLength;
   end;
 
 
@@ -244,10 +246,10 @@ type
 
   TDOMCharacterData = class(TDOMNode)
   protected
-    function FGetLength: LongWord;
+    function GetLength: LongWord;
   public
     property Data: DOMString read FNodeValue;
-    property Length: LongWord read FGetLength;
+    property Length: LongWord read GetLength;
     function  SubstringData(offset, count: LongWord): DOMString;
     procedure AppendData(const arg: DOMString);
     procedure InsertData(offset: LongWord; const arg: DOMString);
@@ -332,14 +334,14 @@ type
   protected
     FSpecified: Boolean;
     AttrOwner: TDOMNamedNodeMap;
-    function  FGetNodeValue: DOMString; override;
-    procedure FSetNodeValue(AValue: DOMString); override;
+    function  GetNodeValue: DOMString; override;
+    procedure SetNodeValue(AValue: DOMString); override;
 
     constructor Create(AOwner: TDOMDocument);
   public
     property Name: DOMString read FNodeName;
     property Specified: Boolean read FSpecified;
-    property Value: DOMString read FNodeValue write FSetNodeValue;
+    property Value: DOMString read FNodeValue write SetNodeValue;
   end;
 
 
@@ -350,10 +352,11 @@ type
   TDOMElement = class(TDOMNode_WithChildren)
   protected
     FAttributes: TDOMNamedNodeMap;
-    function FGetAttributes: TDOMNamedNodeMap; override;
+    function GetAttributes: TDOMNamedNodeMap; override;
 
     constructor Create(AOwner: TDOMDocument); virtual;
   public
+    destructor Destroy; override;
     property  TagName: DOMString read FNodeName;
     function  GetAttribute(const name: DOMString): DOMString;
     procedure SetAttribute(const name, value: DOMString);
@@ -548,12 +551,12 @@ begin
   inherited Create;
 end;
 
-function TDOMNode.FGetNodeValue: DOMString;
+function TDOMNode.GetNodeValue: DOMString;
 begin
   Result := FNodeValue;
 end;
 
-procedure TDOMNode.FSetNodeValue(AValue: DOMString);
+procedure TDOMNode.SetNodeValue(AValue: DOMString);
 begin
   FNodeValue := AValue;
 end;
@@ -563,9 +566,9 @@ begin
   Result := TDOMNodeList.Create(Self, '*');
 end;
 
-function TDOMNode.FGetFirstChild: TDOMNode; begin Result := nil end;
-function TDOMNode.FGetLastChild: TDOMNode; begin Result := nil end;
-function TDOMNode.FGetAttributes: TDOMNamedNodeMap; begin Result := nil end;
+function TDOMNode.GetFirstChild: TDOMNode; begin Result := nil end;
+function TDOMNode.GetLastChild: TDOMNode; begin Result := nil end;
+function TDOMNode.GetAttributes: TDOMNamedNodeMap; begin Result := nil end;
 
 function TDOMNode.InsertBefore(NewChild, RefChild: TDOMNode): TDOMNode;
 begin
@@ -602,7 +605,7 @@ var
   child: TDOMNode;
 begin
   child := FirstChild;
-  while child <> nil do begin
+  while Assigned(child) do begin
     if child.NodeName = ANodeName then begin
       Result := child;
       exit;
@@ -613,14 +616,27 @@ begin
 end;
 
 
-function TDOMNode_WithChildren.FGetFirstChild: TDOMNode;
+function TDOMNode_WithChildren.GetFirstChild: TDOMNode;
 begin
   Result := FFirstChild;
 end;
 
-function TDOMNode_WithChildren.FGetLastChild: TDOMNode;
+function TDOMNode_WithChildren.GetLastChild: TDOMNode;
 begin
   Result := FLastChild;
+end;
+
+destructor TDOMNode_WithChildren.Destroy;
+var
+  child, next: TDOMNode;
+begin
+  child := FirstChild;
+  while Assigned(child) do begin
+    next := child.NextSibling;
+    child.Free;
+    child := next;
+  end;
+  inherited Destroy;
 end;
 
 function TDOMNode_WithChildren.InsertBefore(NewChild, RefChild: TDOMNode):
@@ -628,7 +644,7 @@ function TDOMNode_WithChildren.InsertBefore(NewChild, RefChild: TDOMNode):
 var
   i: Integer;
 begin
-  if RefChild = nil then begin
+  if not Assigned(RefChild) then begin
     AppendChild(NewChild);
     exit(NewChild);
   end;
@@ -676,6 +692,8 @@ begin
     FLastChild := nil
   else
     OldChild.FNextSibling.FPreviousSibling := OldChild.FPreviousSibling;
+
+  OldChild.Free;
 end;
 
 function TDOMNode_WithChildren.AppendChild(NewChild: TDOMNode): TDOMNode;
@@ -686,7 +704,7 @@ begin
     raise EDOMWrongDocument.Create('NodeWC.AppendChild');
 
   parent := Self;
-  while parent <> nil do begin
+  while Assigned(parent) do begin
     if parent = NewChild then
       raise EDOMHierarchyRequest.Create('NodeWC.AppendChild (cycle in tree)');
     parent := parent.ParentNode;
@@ -695,15 +713,14 @@ begin
   if NewChild.FParentNode = Self then
     RemoveChild(NewChild);
 
-  if NewChild.NodeType = DOCUMENT_FRAGMENT_NODE then begin
-    raise EDOMNotSupported.Create('NodeWC.AppendChild for DocumentFragments');
-  end else begin
-    if FLastChild = nil then
-      FFirstChild := NewChild
-    else begin
+  if NewChild.NodeType = DOCUMENT_FRAGMENT_NODE then
+    raise EDOMNotSupported.Create('NodeWC.AppendChild for DocumentFragments')
+  else begin
+    if Assigned(FFirstChild) then begin
       FLastChild.FNextSibling := NewChild;
       NewChild.FPreviousSibling := FLastChild;
-    end;
+    end else
+      FFirstChild := NewChild;
     FLastChild := NewChild;
     NewChild.FParentNode := Self;
   end;
@@ -713,7 +730,7 @@ end;
 
 function TDOMNode_WithChildren.HasChildNodes: Boolean;
 begin
-  Result := FFirstChild <> nil;
+  Result := Assigned(FFirstChild);
 end;
 
 
@@ -730,27 +747,27 @@ begin
   UseFilter := filter <> '*';
 end;
 
-function TDOMNodeList.FGetCount: LongWord;
+function TDOMNodeList.GetCount: LongWord;
 var
   child: TDOMNode;
 begin
   Result := 0;
   child := node.FirstChild;
-  while child <> nil do begin
+  while Assigned(child) do begin
     if (not UseFilter) or (child.NodeName = filter) then
       Inc(Result);
     child := child.NextSibling;
   end;
 end;
 
-function TDOMNodeList.FGetItem(index: LongWord): TDOMNode;
+function TDOMNodeList.GetItem(index: LongWord): TDOMNode;
 var
   child: TDOMNode;
 begin
   Result := nil;
   if index < 0 then exit;
   child := node.FirstChild;
-  while child <> nil do begin
+  while Assigned(child) do begin
     if index = 0 then begin
       Result := child;
       break;
@@ -772,17 +789,17 @@ begin
   OwnerDocument := AOwner;
 end;
 
-function TDOMNamedNodeMap.FGetItem(index: LongWord): TDOMNode;
+function TDOMNamedNodeMap.GetItem(index: LongWord): TDOMNode;
 begin
   Result := TDOMNode(Items[index]);
 end;
 
-procedure TDOMNamedNodeMap.FSetItem(index: LongWord; AItem: TDOMNode);
+procedure TDOMNamedNodeMap.SetItem(index: LongWord; AItem: TDOMNode);
 begin
   Items[index] := AItem;
 end;
 
-function TDOMNamedNodeMap.FGetLength: LongWord;
+function TDOMNamedNodeMap.GetLength: LongWord;
 begin
   Result := LongWord(Count);
 end;
@@ -805,7 +822,7 @@ begin
     raise EDOMWrongDocument.Create('NamedNodeMap.SetNamedItem');
 
   if arg.NodeType = ATTRIBUTE_NODE then begin
-    if TDOMAttr(arg).AttrOwner <> nil then
+    if Assigned(TDOMAttr(arg).AttrOwner) then
       raise EDOMInUseAttribute.Create('NamedNodeMap.SetNamedItem');
     TDOMAttr(arg).AttrOwner := Self;
   end;
@@ -838,7 +855,7 @@ end;
 //   CharacterData
 // -------------------------------------------------------
 
-function TDOMCharacterData.FGetLength: LongWord;
+function TDOMCharacterData.GetLength: LongWord;
 begin
   Result := system.Length(FNodeValue);
 end;
@@ -1012,16 +1029,14 @@ begin
   inherited Create(AOwner);
 end;
 
-function TDOMAttr.FGetNodeValue: DOMString;
+function TDOMAttr.GetNodeValue: DOMString;
 var
   child: TDOMNode;
 begin
-  if FFirstChild = nil then
-    Result := ''
-  else begin
-    Result := '';
+  SetLength(Result, 0);
+  if Assigned(FFirstChild) then begin
     child := FFirstChild;
-    while child <> nil do begin
+    while Assigned(child) do begin
       if child.NodeType = ENTITY_REFERENCE_NODE then
         Result := Result + '&' + child.NodeName + ';'
       else
@@ -1031,14 +1046,14 @@ begin
   end;
 end;
 
-procedure TDOMAttr.FSetNodeValue(AValue: DOMString);
+procedure TDOMAttr.SetNodeValue(AValue: DOMString);
 var
   tn: TDOMText;
 begin
   FSpecified := True;
   tn := TDOMText.Create(FOwnerDocument);
   tn.FNodeValue := AValue;
-  if FFirstChild <> nil then
+  if Assigned(FFirstChild) then
     ReplaceChild(tn, FFirstChild)
   else
     AppendChild(tn);
@@ -1056,7 +1071,19 @@ begin
   FAttributes := TDOMNamedNodeMap.Create(AOwner);
 end;
 
-function TDOMElement.FGetAttributes: TDOMNamedNodeMap;
+destructor TDOMElement.Destroy;
+var
+  i: Integer;
+begin
+  {As the attributes are _not_ childs of the element node, we have to free
+   them manually here:}
+  for i := 0 to FAttributes.Count - 1 do
+    FAttributes.Item[i].Free;
+  FAttributes.Free;
+  inherited Destroy;
+end;
+
+function TDOMElement.GetAttributes: TDOMNamedNodeMap;
 begin
   Result := FAttributes;
 end;
@@ -1070,7 +1097,7 @@ begin
       Result := FAttributes.Item[i].NodeValue;
       exit;
     end;
-  Result := '';
+  SetLength(Result, 0);
 end;
 
 procedure TDOMElement.SetAttribute(const name, value: DOMString);
@@ -1256,7 +1283,11 @@ end.
 
 {
   $Log$
-  Revision 1.10  2000-01-07 01:24:34  peter
+  Revision 1.11  2000-01-30 22:18:16  sg
+  * Fixed memory leaks, all nodes are now freed by their parent
+  * Many cosmetic changes
+
+  Revision 1.10  2000/01/07 01:24:34  peter
     * updated copyright to 2000
 
   Revision 1.9  2000/01/06 23:55:22  peter
