@@ -1,0 +1,27 @@
+# PPU files
+*.ppu
+*.ppw
+# Object files
+*.o
+*.ow
+# Generated assembler files
+*.s
+*.sw
+# Generated binaries
+*.exe
+# Compilation generated log files
+*.log
+# Execution generated log files
+*.elg
+# DLLs
+*.dll
+# Definition files for DLLs
+*.def
+# Temporary files
+*.tmp
+# FP IDE files
+fp.dsk
+fp.ini
+fp.cfg
+# Fpcmade stamp files
+fpcmade.*
