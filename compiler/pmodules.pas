@@ -641,16 +641,12 @@ unit pmodules;
         if m_objpas in aktmodeswitches then
          begin
            hp:=loadunit('OBJPAS',false);
-           objpasunit:=hp^.globalsymtable;
-           { insert in stack }
-           objpasunit^.next:=symtablestack;
-           symtablestack:=objpasunit;
+           psymtable(hp^.globalsymtable)^.next:=symtablestack;
+           symtablestack:=hp^.globalsymtable;
            { add to the used units }
            current_module^.used_units.concat(new(pused_unit,init(hp,true)));
-           refsymtable^.insert(new(punitsym,init('OBJPAS',objpasunit)));
-         end
-        else
-         objpasunit:=nil;
+           refsymtable^.insert(new(punitsym,init('OBJPAS',hp^.globalsymtable)));
+         end;
       { Profile unit? Needed for go32v2 only }
         if (cs_profile in aktmoduleswitches) and (target_info.target=target_i386_go32v2) then
          begin
@@ -1459,7 +1455,11 @@ unit pmodules;
 end.
 {
   $Log$
-  Revision 1.157  1999-09-27 23:44:54  peter
+  Revision 1.158  1999-10-03 19:44:42  peter
+    * removed objpasunit reference, tvarrec is now searched in systemunit
+      where it already was located
+
+  Revision 1.157  1999/09/27 23:44:54  peter
     * procinfo is now a pointer
     * support for result setting in sub procedure
 

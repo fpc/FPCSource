@@ -1040,12 +1040,15 @@ begin
 {$ifdef newcg}
   def_symbol('WITHNEWCG');
 {$endif}
+
 { Temporary defines, until things settle down }
   def_symbol('INT64');
   def_symbol('HASRESOURCESTRINGS');
   def_symbol('HASSAVEREGISTERS');
   def_symbol('NEWVMTOFFSET');
   def_symbol('HASINTERNMATH');
+  def_symbol('SYSTEMTVARREC');
+
 { some stuff for TP compatibility }
 {$ifdef i386}
   def_symbol('CPU86');
@@ -1225,7 +1228,11 @@ end;
 end.
 {
   $Log$
-  Revision 1.23  1999-09-20 16:38:59  peter
+  Revision 1.24  1999-10-03 19:44:41  peter
+    * removed objpasunit reference, tvarrec is now searched in systemunit
+      where it already was located
+
+  Revision 1.23  1999/09/20 16:38:59  peter
     * cs_create_smart instead of cs_smartlink
     * -CX is create smartlink
     * -CD is create dynamic, but does nothing atm.

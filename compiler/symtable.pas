@@ -234,7 +234,6 @@ unit symtable;
 
     const
        systemunit           : punitsymtable = nil; { pointer to the system unit }
-       objpasunit           : punitsymtable = nil; { pointer to the objpas unit }
        current_object_option : tsymoptions = [sp_public];
 
     var
@@ -2316,7 +2315,6 @@ implementation
         read_member:=false;
         symtablestack:=nil;
         systemunit:=nil;
-        objpasunit:=nil;
 {$ifdef GDB}
         firstglobaldef:=nil;
         lastglobaldef:=nil;
@@ -2350,7 +2348,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.51  1999-10-01 08:02:49  peter
+  Revision 1.52  1999-10-03 19:44:42  peter
+    * removed objpasunit reference, tvarrec is now searched in systemunit
+      where it already was located
+
+  Revision 1.51  1999/10/01 08:02:49  peter
     * forward type declaration rewritten
 
   Revision 1.50  1999/09/28 20:48:25  florian

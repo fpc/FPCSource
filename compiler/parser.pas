@@ -248,7 +248,6 @@ unit parser;
          symtablestack:=nil;
          defaultsymtablestack:=nil;
          systemunit:=nil;
-         objpasunit:=nil;
          refsymtable:=nil;
          aktprocsym:=nil;
          procprefix:='';
@@ -483,7 +482,11 @@ unit parser;
 end.
 {
   $Log$
-  Revision 1.86  1999-10-01 08:02:45  peter
+  Revision 1.87  1999-10-03 19:44:41  peter
+    * removed objpasunit reference, tvarrec is now searched in systemunit
+      where it already was located
+
+  Revision 1.86  1999/10/01 08:02:45  peter
     * forward type declaration rewritten
 
   Revision 1.85  1999/09/16 08:02:39  pierre

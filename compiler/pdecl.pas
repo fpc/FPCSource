@@ -1997,8 +1997,7 @@ unit pdecl;
                                begin
                                  consume(_CONST);
                                  srsym:=nil;
-                                 if assigned(objpasunit) then
-                                  getsymonlyin(objpasunit,'TVARREC');
+                                 getsymonlyin(systemunit,'TVARREC');
                                  if not assigned(srsym) then
                                   InternalError(1234124);
                                  Parraydef(p)^.definition:=ptypesym(srsym)^.definition;
@@ -2604,7 +2603,11 @@ unit pdecl;
 end.
 {
   $Log$
-  Revision 1.161  1999-10-01 11:18:02  peter
+  Revision 1.162  1999-10-03 19:44:42  peter
+    * removed objpasunit reference, tvarrec is now searched in systemunit
+      where it already was located
+
+  Revision 1.161  1999/10/01 11:18:02  peter
     * class/record type forward checking fixed
 
   Revision 1.159  1999/10/01 10:05:42  peter
