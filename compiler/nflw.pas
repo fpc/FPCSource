@@ -582,6 +582,7 @@ implementation
          if assigned(left) then
            begin
               firstpass(left);
+              set_varstate(left,true);
               procinfo^.funcret_state:=vs_assigned;
               if codegenerror then
                exit;
@@ -1027,7 +1028,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.13  2001-02-26 19:44:53  peter
+  Revision 1.14  2001-03-25 12:27:59  peter
+    * set funcret to assigned (merged)
+
+  Revision 1.13  2001/02/26 19:44:53  peter
     * merged generic m68k updates from fixes branch
 
   Revision 1.12  2000/12/31 11:14:10  jonas
