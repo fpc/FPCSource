@@ -313,25 +313,15 @@ Begin
                         End
                       End
                 End;
-              A_FSTP
-{$IfDef Ver0_99_11}
-              ,A_FISTP
-{$EndIf Ver0_99_11}
-
-              :
+              A_FSTP,A_FISTP:
                 Begin
                   If (Pai386(p)^.op1t = top_ref) And
                      GetNextInstruction(p, hp1) And
                      (Pai(hp1)^.typ = ait_instruction) And
-{$IfDef Ver0_99_11}
-                     ((
-{$EndIf Ver0_99_11}
-                       (Pai386(hp1)^._operator = A_FLD) And
-{$IfDef Ver0_99_11}
+                     (((Pai386(hp1)^._operator = A_FLD) And
                        (Pai386(p)^._operator = A_FSTP)) Or
                       ((Pai386(p)^._operator = A_FISTP) And
                        (Pai386(hp1)^._operator = A_FILD))) And
-{$EndIf Ver0_99_11}
                      (Pai386(hp1)^.op1t = top_ref) And
                      (Pai386(hp1)^.Size = Pai386(p)^.Size) And
                      RefsEqual(TReference(Pai386(p)^.op1^), TReference(Pai386(hp1)^.op1^))
@@ -357,14 +347,9 @@ Begin
                    {fst can't store an extended value!}
                            If (Pai386(p)^.Size <> S_FX) Then
                              Begin
-{$IfDef Ver0_99_11}
                                If (Pai386(p)^._operator = A_FLD) Then
-{$EndIf Ver0_99_11}
                                  Pai386(p)^._operator := A_FST
-{$IfDef Ver0_99_11}
-                               Else Pai386(p)^._operator := A_FIST
-{$EndIf Ver0_99_11}
-                               ;
+                               Else Pai386(p)^._operator := A_FIST;
                                AsmL^.Remove(hp1);
                                Dispose(hp1, done)
                              End
@@ -1311,7 +1296,6 @@ Begin
                                 dispose(hp1, done);
                               End;
                 End;
-{$IfDef Ver0_99_11}
               A_SETE..A_SETGE,A_SETC,A_SETNC,A_SETA..A_SETBE,A_SETO..A_SETNLE:
                 Begin
                   If (Pai386(p)^.Op1t = top_ref) And
@@ -1336,7 +1320,6 @@ Begin
                       Dispose(hp1, Done)
                     End
                 End;
-{$EndIf Ver0_99_11}
               A_SUB:
                 {change "subl $2, %esp; pushw x" to "pushl x"}
                 Begin
@@ -1554,7 +1537,10 @@ End.
 
 {
  $Log$
- Revision 1.27  1998-12-11 00:03:35  peter
+ Revision 1.28  1998-12-14 22:01:45  jonas
+   - removed {$ifdef ver0_99_11}'s
+
+ Revision 1.27  1998/12/11 00:03:35  peter
    + globtype,tokens,version unit splitted from globals
 
  Revision 1.26  1998/12/09 18:16:13  jonas
