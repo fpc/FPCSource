@@ -763,7 +763,9 @@
       { The tvarsym is necessary for 0.99.5 (PFV) }
          tvarsym.init(n,p);
          var_options:=var_options or vo_is_C_var;
-         _mangledname:=strpnew(target_os.Cprefix+mangled);
+         { C prefix not allways added moved to
+           pdecl PM }
+         _mangledname:=strpnew(mangled);
       end;
 
     constructor tvarsym.load_C;
@@ -1556,7 +1558,12 @@
 
 {
   $Log$
-  Revision 1.35  1998-08-25 12:42:46  pierre
+  Revision 1.36  1998-08-25 13:09:26  pierre
+    * corrected mangling sheme :
+      cvar add Cprefix to the mixed case name whereas
+      export or public use direct name
+
+  Revision 1.35  1998/08/25 12:42:46  pierre
     * CDECL changed to CVAR for variables
       specifications are read in structures also
     + started adding GPC compatibility mode ( option  -Sp)

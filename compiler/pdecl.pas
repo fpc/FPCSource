@@ -246,7 +246,7 @@ unit pdecl;
                   if not sc^.empty then
                    Message(parser_e_absolute_only_one_var);
                   dispose(sc,done);
-                  Csym:=new(pvarsym,init_C(s,C_name,p));
+                  Csym:=new(pvarsym,init_C(s,target_os.Cprefix+C_name,p));
                   Csym^.fileinfo:=filepos;
                   Csym^.var_options:=Csym^.var_options or vo_is_external;
                   externals^.concat(new(pai_external,init(Csym^.mangledname,EXT_NEAR)));
@@ -361,6 +361,7 @@ unit pdecl;
                       consume(ID);
                       consume(SEMICOLON);
                       is_cdecl:=true;
+                      C_name:=target_os.Cprefix+C_name;
                     end;
                    { external }
                    if pattern='EXTERNAL' then
@@ -1969,7 +1970,12 @@ unit pdecl;
 end.
 {
   $Log$
-  Revision 1.42  1998-08-25 12:42:41  pierre
+  Revision 1.43  1998-08-25 13:09:25  pierre
+    * corrected mangling sheme :
+      cvar add Cprefix to the mixed case name whereas
+      export or public use direct name
+
+  Revision 1.42  1998/08/25 12:42:41  pierre
     * CDECL changed to CVAR for variables
       specifications are read in structures also
     + started adding GPC compatibility mode ( option  -Sp)
