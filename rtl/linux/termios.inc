@@ -227,71 +227,71 @@ Const
 {$endif cpusparc}
 
 {$ifdef cpux86_64}
-  TCGETS =		$5401;
-  TCSETS =		$5402;
-  TCSETSW =		$5403;
-  TCSETSF =		$5404;
-  TCGETA =		$5405;
-  TCSETA =		$5406;
-  TCSETAW =		$5407;
-  TCSETAF =		$5408;
-  TCSBRK =		$5409;
-  TCXONC =		$540A;
-  TCFLSH =		$540B;
-  TIOCEXCL =	$540C;
-  TIOCNXCL =	$540D;
-  TIOCSCTTY =	$540E;
-  TIOCGPGRP =	$540F;
-  TIOCSPGRP =	$5410;
-  TIOCOUTQ =	$5411;
-  TIOCSTI =		$5412;
-  TIOCGWINSZ =	$5413;
-  TIOCSWINSZ =	$5414;
-  TIOCMGET =	$5415;
-  TIOCMBIS =	$5416;
-  TIOCMBIC =	$5417;
-  TIOCMSET =	$5418;
-  TIOCGSOFTCAR =	$5419;
-  TIOCSSOFTCAR =	$541A;
-  FIONREAD =	$541B;
-  TIOCINQ =		FIONREAD;
-  TIOCLINUX =	$541C;
-  TIOCCONS =	$541D;
-  TIOCGSERIAL =	$541E;
-  TIOCSSERIAL =	$541F;
-  TIOCPKT =		$5420;
-  FIONBIO =		$5421;
-  TIOCNOTTY =	$5422;
-  TIOCSETD =	$5423;
-  TIOCGETD =	$5424;
-  TCSBRKP =		$5425;
-  TIOCSBRK =	$5427;
-  TIOCCBRK =	$5428;
-  TIOCGSID =	$5429;
-  FIONCLEX =	$5450;
-  FIOCLEX =		$5451;
-  FIOASYNC =	$5452;
-  TIOCSERCONFIG =	$5453;
-  TIOCSERGWILD =	$5454;
-  TIOCSERSWILD =	$5455;
-  TIOCGLCKTRMIOS =	$5456;
-  TIOCSLCKTRMIOS =	$5457;
-  TIOCSERGSTRUCT =	$5458;
+  TCGETS =              $5401;
+  TCSETS =              $5402;
+  TCSETSW =             $5403;
+  TCSETSF =             $5404;
+  TCGETA =              $5405;
+  TCSETA =              $5406;
+  TCSETAW =             $5407;
+  TCSETAF =             $5408;
+  TCSBRK =              $5409;
+  TCXONC =              $540A;
+  TCFLSH =              $540B;
+  TIOCEXCL =    $540C;
+  TIOCNXCL =    $540D;
+  TIOCSCTTY =   $540E;
+  TIOCGPGRP =   $540F;
+  TIOCSPGRP =   $5410;
+  TIOCOUTQ =    $5411;
+  TIOCSTI =             $5412;
+  TIOCGWINSZ =  $5413;
+  TIOCSWINSZ =  $5414;
+  TIOCMGET =    $5415;
+  TIOCMBIS =    $5416;
+  TIOCMBIC =    $5417;
+  TIOCMSET =    $5418;
+  TIOCGSOFTCAR =        $5419;
+  TIOCSSOFTCAR =        $541A;
+  FIONREAD =    $541B;
+  TIOCINQ =             FIONREAD;
+  TIOCLINUX =   $541C;
+  TIOCCONS =    $541D;
+  TIOCGSERIAL = $541E;
+  TIOCSSERIAL = $541F;
+  TIOCPKT =             $5420;
+  FIONBIO =             $5421;
+  TIOCNOTTY =   $5422;
+  TIOCSETD =    $5423;
+  TIOCGETD =    $5424;
+  TCSBRKP =             $5425;
+  TIOCSBRK =    $5427;
+  TIOCCBRK =    $5428;
+  TIOCGSID =    $5429;
+  FIONCLEX =    $5450;
+  FIOCLEX =             $5451;
+  FIOASYNC =    $5452;
+  TIOCSERCONFIG =       $5453;
+  TIOCSERGWILD =        $5454;
+  TIOCSERSWILD =        $5455;
+  TIOCGLCKTRMIOS =      $5456;
+  TIOCSLCKTRMIOS =      $5457;
+  TIOCSERGSTRUCT =      $5458;
   TIOCSERGETLSR =   $5459;
   TIOCSERGETMULTI = $545A;
   TIOCSERSETMULTI = $545B;
-  TIOCMIWAIT =	$545C;
-  TIOCGICOUNT =	$545D;
+  TIOCMIWAIT =  $545C;
+  TIOCGICOUNT = $545D;
   TIOCGHAYESESP =   $545E;
   TIOCSHAYESESP =   $545F;
   FIOQSIZE =       $5460;
-  TIOCPKT_DATA =		 0;
-  TIOCPKT_FLUSHREAD =	 1;
-  TIOCPKT_FLUSHWRITE =	 2;
-  TIOCPKT_STOP =		 4;
-  TIOCPKT_START =		 8;
-  TIOCPKT_NOSTOP =		16;
-  TIOCPKT_DOSTOP =		32;
+  TIOCPKT_DATA =                 0;
+  TIOCPKT_FLUSHREAD =    1;
+  TIOCPKT_FLUSHWRITE =   2;
+  TIOCPKT_STOP =                 4;
+  TIOCPKT_START =                8;
+  TIOCPKT_NOSTOP =              16;
+  TIOCPKT_DOSTOP =              32;
   TIOCSER_TEMT =    $01;
 {$endif cpux86_64}
 
@@ -370,17 +370,7 @@ Type
     ws_ypixel : word;
   end;
   TWinSize=winsize;
-{
-  Termio = packed record
-    c_iflag,                             { input mode flags }
-    c_oflag,                             { output mode flags }
-    c_cflag,                             { control mode flags }
-    c_lflag  : Word;                    { local mode flags }
-    c_line   : Word;                    { line discipline - careful, only High byte in use}
-    c_cc     : array [0..NCC-1] of char;{ control characters }
-  end;
-  TTermio=Termio;
-}
+
 {$PACKRECORDS C}
   Termios = record
     c_iflag,
@@ -557,7 +547,10 @@ const
 
 {
   $Log$
-  Revision 1.10  2004-10-31 16:05:23  florian
+  Revision 1.11  2004-11-03 12:24:56  peter
+    * remove comment level 2 warning
+
+  Revision 1.10  2004/10/31 16:05:23  florian
     + added ioctl constants for arm
 
   Revision 1.9  2004/10/04 21:06:45  florian
