@@ -3,7 +3,7 @@
 #
 
 [target]
-dirs=helloworld helloworld2 gtk_demo gettingstarted plugins scribble_simple
+dirs=helloworld helloworld2 gtk_demo gettingstarted plugins scribble_simple gtkglext
 #filechooser - doesn't work yet
 
 [require]
