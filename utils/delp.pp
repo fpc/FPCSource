@@ -24,15 +24,10 @@ uses
   dos,getopts;
 
 const
-  Version   = 'Version 1.00';
+  Version   = 'Version 1.1';
   Title     = 'DelPascal';
-  Copyright = 'Copyright (c) 1999-2000 by the Free Pascal Development Team';
+  Copyright = 'Copyright (c) 1999-2002 by the Free Pascal Development Team';
 
-{$ifdef linux}
-  DirSep = '/';
-{$else}
-  DirSep = '\';
-{$endif}
 
 function DStr(l:longint):string;
 var
@@ -209,8 +204,9 @@ begin
   if Optind<>ParamCount then
     Usage;
   BaseDir:=Paramstr(OptInd);
-  If BaseDir[Length(BaseDir)]<>DirSep then
-    BaseDir:=BaseDir+DirSep;
+  If BaseDir[Length(BaseDir)]<>DirectorySeparator then
+    BaseDir:=BaseDir+DirectorySeparator;
+  { Win32 target }
   AddMask('*.ppw *.ow *.aw *.sw');
   AddMask('ppas.bat ppas.sh link.res fpcmaked fpcmade fpcmade.*');
   AddMask('*.tpu *.tpp *.tpw *.tr');
@@ -220,6 +216,10 @@ begin
   AddMask('*.pp1 *.o1 *.a1 *.s1');
   AddMask('*.ppo *.oo *.ao *.so');
   AddMask('*.rst');
+  { OS/2 target }
+  AddMask('*.oo2 *.so2 *.ppo');
+  { Amiga target }
+  AddMask('*.ppa *.asm');
   if not quiet then
     begin
       writeln(Title+' '+Version);
@@ -266,49 +266,16 @@ begin
 end.
 {
   $Log$
-  Revision 1.3  2001-06-03 20:30:23  peter
+  Revision 1.4  2002-02-27 16:32:08  carl
+  + make it work on other platforms
+  + added OS/2 masks
+  - remove log
+
+  Revision 1.3  2001/06/03 20:30:23  peter
     * delphi units added
     * ~ backup files added
 
   Revision 1.2  2000/12/27 22:13:44  peter
     * .rst added
-
-  Revision 1.1  2000/07/13 10:16:21  michael
-  + Initial import
-
-  Revision 1.11  2000/07/04 19:05:54  peter
-    * be optimistic: version 1.00 for some utils
-
-  Revision 1.10  2000/01/26 21:15:00  peter
-    * Fixed dir separator for linux
-
-  Revision 1.9  2000/01/24 16:31:12  michael
-  + Adapted delp so it accepts a directory as an option
-
-  Revision 1.8  2000/01/23 16:40:28  peter
-    * *.dll, *.so are also executables and only turned on by -e
-    * title+copyright like ppudump
-
-  Revision 1.7  2000/01/23 14:23:48  michael
-  + Typos fixed, version updated
-
-  Revision 1.6  2000/01/23 14:20:44  michael
-  + Added option to delete executables, plus help and quiet
-
-  Revision 1.5  2000/01/12 10:40:59  peter
-    * fixed bug which sometimes matched .ppw with .pp
-
-  Revision 1.4  2000/01/07 16:46:02  daniel
-    * copyright 2000
-
-  Revision 1.3  1999/12/19 17:12:10  peter
-    * added fpcmade
-
-  Revision 1.2  1999/12/02 11:31:11  peter
-    * removed temp comment
-
-  Revision 1.1  1999/12/01 22:45:04  peter
-    + delp tool which deletes all generated pascal files
-
 }
 
