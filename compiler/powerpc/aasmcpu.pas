@@ -56,6 +56,7 @@ uses
          constructor op_reg_bool_reg_reg(op : tasmop;_op1: tregister;_op2:boolean;_op3,_op4:tregister);
          constructor op_reg_bool_reg_const(op : tasmop;_op1: tregister;_op2:boolean;_op3:tregister;_op4: longint);
 
+         constructor op_reg_reg_reg_const_const(op : tasmop;_op1,_op2,_op3 : tregister;_op4,_op5 : Longint);
          constructor op_reg_reg_const_const_const(op : tasmop;_op1,_op2 : tregister;_op3,_op4,_op5 : Longint);
 
 
@@ -304,6 +305,24 @@ implementation
          loadconst(0,cardinal(_op4));
       end;
 
+
+     constructor taicpu.op_reg_reg_reg_const_const(op : tasmop;_op1,_op2,_op3 : tregister;_op4,_op5 : Longint);
+      begin
+         inherited create(op);
+         if (_op1.enum = R_INTREGISTER) and (_op1.number = NR_NO) then
+           internalerror(2003031232);
+         if (_op2.enum = R_INTREGISTER) and (_op2.number = NR_NO) then
+           internalerror(2003031233);
+         if (_op3.enum = R_INTREGISTER) and (_op3.number = NR_NO) then
+           internalerror(2003031233);
+         ops:=5;
+         loadreg(0,_op1);
+         loadreg(1,_op2);
+         loadreg(2,_op3);
+         loadconst(3,cardinal(_op4));
+         loadconst(4,cardinal(_op5));
+      end;
+
      constructor taicpu.op_reg_reg_const_const_const(op : tasmop;_op1,_op2 : tregister;_op3,_op4,_op5 : Longint);
       begin
          inherited create(op);
@@ -383,7 +402,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.5  2003-03-12 22:43:38  jonas
+  Revision 1.6  2003-05-11 11:08:25  jonas
+    + op_reg_reg_reg_const_const (for rlwnm)
+
+  Revision 1.5  2003/03/12 22:43:38  jonas
     * more powerpc and generic fixes related to the new register allocator
 
   Revision 1.4  2002/12/14 15:02:03  carl
