@@ -896,8 +896,13 @@ end;
 
 procedure setfattr(var f;attr : word);
 begin
-  doserror:=0;
-  if not(SetFileAttributes(filerec(f).name,attr)) then
+  { Fail for setting VolumeId }
+  if (attr and VolumeID)<>0 then
+    doserror:=5
+  else
+   if SetFileAttributes(filerec(f).name,attr) then
+    doserror:=0
+  else 
     doserror:=getlasterror;
 end;
 
@@ -1085,7 +1090,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.20  2003-09-17 15:06:36  peter
+  Revision 1.21  2003-10-27 15:27:47  peter
+    * fixed setfattr with volumeid
+
+  Revision 1.20  2003/09/17 15:06:36  peter
     * stdcall patch
 
   Revision 1.19  2003/06/10 11:16:15  jonas
