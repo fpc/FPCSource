@@ -162,12 +162,79 @@ type
     msgseg  : Word;
   end;
 
-
 Function msgget(key: TKey; msgflg:longint):longint;	
 Function msgsnd(msqid:longint; msgp: PMSGBuf; msgsz: longint; msgflg:longint): Boolean;
 Function msgrcv(msqid:longint; msgp: PMSGBuf; msgsz: longint; msgtyp:longint; msgflg:longint): Boolean;
 Function msgctl(msqid:longint; cmd: longint; buf: PMSQid_ds): Boolean;
 
+{ ----------------------------------------------------------------------
+  Semaphores stuff
+  ----------------------------------------------------------------------}
+
+const
+     SEM_UNDO = $1000;
+     GETPID = 11;
+     GETVAL = 12;
+     GETALL = 13;
+     GETNCNT = 14;
+     GETZCNT = 15;
+     SETVAL = 16;
+     SETALL = 17;
+
+     SEMMNI = 128;
+     SEMMSL = 32;
+     SEMMNS = (SEMMNI * SEMMSL);
+     SEMOPM = 32;
+     SEMVMX = 32767;
+
+type
+  PSEMid_ds = ^PSEMid_ds;
+  TSEMid_ds = record
+    sem_perm : tipc_perm;
+    sem_otime : longint;
+    sem_ctime : longint;
+    sem_base         : pointer;
+    sem_pending      : pointer;
+    sem_pending_last : pointer;
+    undo             : pointer;
+    sem_nsems : word;
+  end;
+
+  PSEMbuf = ^TSEMbuf;
+  TSEMbuf = record
+    sem_num : word;
+    sem_op  : integer;
+    sem_flg : integer;
+  end;
+
+
+  PSEMinfo = ^TSEMinfo;
+  TSEMinfo = record
+    semmap : longint;
+    semmni : longint;
+    semmns : longint;
+    semmnu : longint;
+    semmsl : longint;
+    semopm : longint;
+    semume : longint;
+    semusz : longint;
+    semvmx : longint;
+    semaem : longint;
+  end;
+
+  PSEMun = ^TSEMun;
+  TSEMun = record
+   case longint of
+      0 : ( val : longint );
+      1 : ( buf : PSEMid_ds );
+      2 : ( arr : Pointer );
+      3 : ( padbuf : PSeminfo );
+      4 : ( padpad : pointer );
+   end;
+
+Function semget(key:Tkey; nsems:longint; semflg:longint): longint;
+Function semop(semid:longint; sops: pointer; nsops: cardinal): Boolean;
+Function semctl(semid:longint; semnum:longint; cmd:longint; arg: tsemun): longint;
 
 implementation
 
@@ -279,6 +346,23 @@ Function msgctl(msqid:longint; cmd: longint; buf: PMSQid_ds): Boolean;
 
 begin
   msgctl:=ipccall(CALL_MSGCTL,msqid,cmd,0,buf)=0;
+end;
+
+Function semget(key:Tkey; nsems:longint; semflg:longint): longint;
+
+begin
+  semget:=ipccall (CALL_SEMGET,key,nsems,semflg,Nil);
+end;
+
+Function semop(semid:longint; sops: pointer; nsops:cardinal): Boolean;
+
+begin
+  semop:=ipccall (CALL_SEMOP,semid,Longint(nsops),0,Pointer(sops))=0;
+end;
+
+Function semctl(semid:longint; semnum:longint; cmd:longint; arg: tsemun): longint;
+begin
+  semctl:=ipccall(CALL_SEMCTL,semid,semnum,cmd,@arg);
 end;
 
 end.
