@@ -134,50 +134,6 @@ unit sysconst;
       SLongDayNameSat = 'Saturday';
       SLongDayNameSun = 'Sunday';
 
-{
-Resourcestring 
-  RunOutOfMemory     = 'Runtime error 1';
-  RunAbort           = 'Operation aborted';
-  RunAbstractError   = 'Abstract method called';
-  RunAccessDenied    = 'Access denied';
-  RunAccessViolation = 'Access violation';
-  RunAssertError     = '%s (%s, line %d)';
-  RunAssertionFailed = 'Assertion failed';
-  RunControlC = 'Control-C hit';
-  RunDiskFull = 'Disk Full';
-  RunDispatchError = 'No variant method call dispatch';
-  RunDivByZero = 'Division by zero';
-  RunEndOfFile = 'Read past end of file';
-  RunExternalException = 'External exception.';   
-  RunFileNotAssigned = 'File not assigned';
-  RunFileNotFound = 'File not found';
-  RunFileNotOpen = 'File not open';
-  RunFileNotOpenForInput = 'File not open for input';
-  RunFileNotOpenForOutput = 'File not open for output';
-  RunInValidFileName = 'Invalid filename';
-  RunIntfCastError = 'Interface not supported';
-  RunIntOverflow = 'Arithmetic overflow';
-  RunInvalidCast = 'Invalid type cast';
-  RunInvalidDrive = 'Invalid drive specified';
-  RunInvalidFileHandle = 'Invalid file handle';
-  RunInvalidInput = 'Invalid input';
-  RunInvalidOp = 'Invalid floating point operation';
-  RunInvalidPointer = 'Invalid pointer operation';
-  RunInvalidVarCast = 'Invalid variant type case';
-  RunInvalidVarOp = 'Invalid variant operation';
-  RunOverflow = 'Floating point overflow';
-  RunPrivilege = 'Privileged instruction';
-  RunRangeError = 'Range check error';
-  RunSafecallException = 'Exception in safecall method';
-  RunTooManyOpenFiles = 'Too many open files';
-  RunUnderflow = 'Floating point underflow';
-  RunUnknown = 'Unknown run-time error code: ';
-  RunVarArrayBounds = 'Variant array bounds error';
-  RunVarArrayCreate = 'Variant array cannot be created';
-  RunVarNotArray = 'Variant doesn''t contain an array';
-  RunExceptionStack = 'Exception stack error';
-  RunThreadsNotSupported = 'Threading not supported by this binary. Recompile with thread driver.';
-}
 Function GetRunError(Errno : Byte) : String;
 
 Implementation
@@ -462,7 +418,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.4  2003-11-27 20:39:43  michael
+  Revision 1.5  2003-11-30 15:04:56  michael
+  + Removed old strings
+
+  Revision 1.4  2003/11/27 20:39:43  michael
   + Added runerrors functionality to sysconst
 
   Revision 1.3  2003/11/26 20:34:19  michael
