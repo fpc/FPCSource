@@ -35,12 +35,10 @@ interface
     procedure assign_regvars(p: tnode);
     procedure load_regvars(asml: TAAsmoutput; p: tnode);
     procedure cleanup_regvars(asml: TAAsmoutput);
-{$ifdef i386}
     procedure store_regvar(asml: TAAsmoutput; reg: tregister);
     procedure load_regvar(asml: TAAsmoutput; vsym: tvarsym);
     procedure load_regvar_reg(asml: TAAsmoutput; reg: tregister);
     procedure load_all_regvars(asml: TAAsmoutput);
-{$endif i386}
 
 implementation
 
@@ -48,7 +46,7 @@ implementation
       globtype,systems,comphook,
       cutils,cclasses,verbose,globals,
       symconst,symbase,symtype,symdef,types,
-      cgbase,cpuasm,tgcpu;
+      cgbase,cpuasm,tgcpu,cgobj,cgcpu,cga;
 
     var
       parasym : boolean;
@@ -130,30 +128,12 @@ implementation
            end;
       end;
 
-{$ifdef i386}
-    function reg32(reg: tregister): tregister;
-      begin
-        case regsize(reg) of
-          S_B: reg32 := reg8toreg32(reg);
-          S_W: reg32 := reg16toreg32(reg);
-          S_L: reg32 := reg;
-        end;
-      end;
-{$else i386}
-    function reg32(reg: tregister): tregister;
-      begin
-        reg32 := reg;
-      end;
-{$endif i386}
-
-
     procedure assign_regvars(p: tnode);
           { register variables }
     var
       regvarinfo: pregvarinfo;
       i: longint;
     begin
-{$ifdef i386}
       { max. optimizations     }
       { only if no asm is used }
       { and no try statement   }
@@ -199,22 +179,20 @@ implementation
                            regvarinfo^.regvars[i].reg:=varregs[i];
                         end
                       else
+{$ifdef i386}
                        if (regvarinfo^.regvars[i].vartype.def.deftype in [orddef,enumdef]) and
                           (torddef(regvarinfo^.regvars[i].vartype.def).size=1) then
                         begin
-{$ifdef i386}
                           regvarinfo^.regvars[i].reg:=reg32toreg8(varregs[i]);
-{$endif}
                         end
                       else
                        if (regvarinfo^.regvars[i].vartype.def.deftype in [orddef,enumdef]) and
                           (torddef(regvarinfo^.regvars[i].vartype.def).size=2) then
                          begin
-{$ifdef i386}
                            regvarinfo^.regvars[i].reg:=reg32toreg16(varregs[i]);
-{$endif}
                          end
                       else
+{$endif i386}
                         begin
                           regvarinfo^.regvars[i].reg:=varregs[i];
                         end;
@@ -273,23 +251,20 @@ implementation
 {$ifdef i386}
                        { reserve place on the FPU stack }
                        regvarinfo^.fpuregvars[i].reg:=correct_fpuregister(R_ST0,i-1);
-{$endif i386}
-{$ifdef m68k}
+{$else i386}
                        regvarinfo^.fpuregvars[i].reg:=fpuvarregs[i];
-{$endif m68k}
+{$endif i386}
                      end;
                   end;
               end;
         end;
-{$endif i386}
      end;
 
 
-{$ifdef i386}
     procedure store_regvar(asml: TAAsmoutput; reg: tregister);
     var
       i: longint;
-      hr: preference;
+      hr: treference;
       regvarinfo: pregvarinfo;
       vsym: tvarsym;
     begin
@@ -298,20 +273,25 @@ implementation
         exit;
       for i := 1 to maxvarregs do
         if assigned(regvarinfo^.regvars[i]) and
-           (reg32(regvarinfo^.regvars[i].reg) = reg) then
+           (makereg32(regvarinfo^.regvars[i].reg) = reg) then
           begin
-            if regvar_loaded[reg32(reg)] then
+            if regvar_loaded[makereg32(reg)] then
               begin
                 vsym := tvarsym(regvarinfo^.regvars[i]);
-                new(hr);
-                reset_reference(hr^);
-                if vsym.owner.symtabletype in [inlinelocalsymtable,localsymtable] then
-                  hr^.offset:=-vsym.address+vsym.owner.address_fixup
-                else hr^.offset:=vsym.address+vsym.owner.address_fixup;
-                hr^.base:=procinfo^.framepointer;
-                asml.concat(Taicpu.op_reg_ref(A_MOV,regsize(vsym.reg),vsym.reg,hr));
-                asml.concat(Tairegalloc.dealloc(reg32(reg)));
-                regvar_loaded[reg32(reg)] := false;
+                { we only have to store the regvar back to memory if it's }
+                { possible that it's been modified  (JM)                  }
+                if not(vsym.varspez in [vs_const,vs_var,vs_out]) then
+                  begin
+                    reset_reference(hr);
+                    if vsym.owner.symtabletype in [inlinelocalsymtable,localsymtable] then
+                      hr.offset:=-vsym.address+vsym.owner.address_fixup
+                    else hr.offset:=vsym.address+vsym.owner.address_fixup;
+                    hr.base:=procinfo^.framepointer;
+                    cg.a_load_reg_ref(exprasmlist,def_cgsize(vsym.vartype.def),vsym.reg,hr);
+{                    asml.concat(Taicpu.op_reg_ref(A_MOV,regsize(vsym.reg),vsym.reg,hr)); }
+                  end;
+                asml.concat(Tairegalloc.dealloc(makereg32(reg)));
+                regvar_loaded[makereg32(reg)] := false;
               end;
             break;
           end;
@@ -319,43 +299,27 @@ implementation
 
     procedure load_regvar(asml: TAAsmoutput; vsym: tvarsym);
     var
-      hr: preference;
-      opsize: topsize;
-      opcode: tasmop;
+      hr: treference;
+      opsize: tcgsize;
     begin
-      if not regvar_loaded[reg32(vsym.reg)] then
+      if not regvar_loaded[makereg32(vsym.reg)] then
         begin
-          asml.concat(Tairegalloc.alloc(reg32(vsym.reg)));
-          { zero the regvars because the upper 48bits must be clear }
-          { for 8bits vars when using them with btrl                }
-          { don't care about sign extension, since the upper 24/16  }
-          { bits won't be adapted when doing maths anyway (JM)      }
-          case regsize(vsym.reg) of
-            S_L:
-              begin
-                opsize := S_L;
-                opcode := A_MOV;
-              end;
-            S_W:
-              begin
-                opsize := S_WL;
-                opcode := A_MOVZX;
-              end;
-            S_B:
-              begin
-                opsize := S_BL;
-                opcode := A_MOVZX;
-              end;
-          end;
-          asml.concat(Tairegalloc.alloc(reg32(vsym.reg)));
-          new(hr);
-          reset_reference(hr^);
+          asml.concat(Tairegalloc.alloc(makereg32(vsym.reg)));
+          reset_reference(hr);
           if vsym.owner.symtabletype in [inlinelocalsymtable,localsymtable] then
-            hr^.offset:=-vsym.address+vsym.owner.address_fixup
-          else hr^.offset:=vsym.address+vsym.owner.address_fixup;
-          hr^.base:=procinfo^.framepointer;
-          asml.concat(Taicpu.op_ref_reg(opcode,opsize,hr,reg32(vsym.reg)));
-          regvar_loaded[reg32(vsym.reg)] := true;
+            hr.offset:=-vsym.address+vsym.owner.address_fixup
+          else hr.offset:=vsym.address+vsym.owner.address_fixup;
+          hr.base:=procinfo^.framepointer;
+          if (vsym.varspez in [vs_var,vs_out]) or
+             ((vsym.varspez=vs_const) and
+               push_addr_param(vsym.vartype.def)) then
+            {FIXME!!! Needs to be OS_SIZE_OF_POINTER (JM) }
+            opsize := OS_32
+          else
+            opsize := def_cgsize(vsym.vartype.def);
+          cg.a_load_ref_reg(exprasmlist,opsize,hr,makereg32(vsym.reg));
+{          asml.concat(Taicpu.op_ref_reg(opcode,opsize,hr,makereg32(vsym.reg))); }
+          regvar_loaded[makereg32(vsym.reg)] := true;
         end;
     end;
 
@@ -367,10 +331,10 @@ implementation
       regvarinfo := pregvarinfo(aktprocdef.regvarinfo);
       if not assigned(regvarinfo) then
         exit;
-      reg := reg32(reg);
+      reg := makereg32(reg);
       for i := 1 to maxvarregs do
         if assigned(regvarinfo^.regvars[i]) and
-           (reg32(regvarinfo^.regvars[i].reg) = reg) then
+           (makereg32(regvarinfo^.regvars[i].reg) = reg) then
           load_regvar(asml,tvarsym(regvarinfo^.regvars[i]))
     end;
 
@@ -384,17 +348,14 @@ implementation
         exit;
       for i := 1 to maxvarregs do
         if assigned(regvarinfo^.regvars[i]) and
-           (reg32(regvarinfo^.regvars[i].reg) in [R_EAX,R_EBX,R_ECX,R_EDX]) then
+           (makereg32(regvarinfo^.regvars[i].reg) in [R_EAX,R_EBX,R_ECX,R_EDX]) then
           load_regvar(asml,tvarsym(regvarinfo^.regvars[i]))
     end;
-
-{$endif i386}
 
 
     procedure load_regvars(asml: TAAsmoutput; p: tnode);
     var
       i: longint;
-      {hr      : treference;}
       regvarinfo: pregvarinfo;
     begin
       if (cs_regalloc in aktglobalswitches) and
@@ -404,25 +365,6 @@ implementation
           { can happen when inlining assembler procedures (JM) }
           if not assigned(regvarinfo) then
             exit;
-{$ifdef m68k}
-          for i:=1 to maxvarregs do
-            begin
-              { parameter must be load }
-              if regvarinfo^.regvars_para[i] then
-                begin
-                  { procinfo is there actual,    }
-                  { because we can't never be in a }
-                  { nested procedure        }
-                  { when loading parameter to reg  }
-                  new(hr);
-                  reset_reference(hr^);
-                  hr^.offset:=tvarsym(regvarinfo^.regvars[i])^.address+procinfo^.para_offset;
-                  hr^.base:=procinfo^.framepointer;
-                  asml.concat(Taicpu,op_ref_reg(A_MOVE,regsize(regvarinfo^.regvars[i].reg),
-                    hr,regvarinfo^.regvars[i].reg)));
-                end
-            end;
-{$endif m68k}
           for i:=1 to maxvarregs do
             begin
              if assigned(regvarinfo^.regvars[i]) then
@@ -445,34 +387,14 @@ implementation
                   regvarinfo^.fpuregvars[i].reg:=correct_fpuregister(R_ST0,i-1);
                   asml.concat(Taicpu.op_none(A_FLDZ,S_NO));
 {$endif i386}
-{$ifdef dummy}
-                  { parameter must be load }
-                  if regvarinfo^.fpuregvars_para[i] then
-                    begin
-                      { procinfo is there actual,    }
-                      { because we can't never be in a }
-                      { nested procedure        }
-                      { when loading parameter to reg  }
-                      new(hr);
-                      reset_reference(hr^);
-                      hr^.offset:=tvarsym(regvarinfo^.regvars[i])^.address+procinfo^.para_offset;
-                      hr^.base:=procinfo^.framepointer;
-{$ifdef i386}
-                      asml.concat(Taicpu,op_ref_reg(A_MOV,regsize(regvarinfo^.regvars[i].reg),
-                        hr,regvarinfo^.regvars[i].reg)));
-{$endif i386}
-{$ifdef m68k}
-                      asml.concat(Taicpu,op_ref_reg(A_MOVE,regsize(regvarinfo^.regvars[i].reg),
-                        hr,regvarinfo^.regvars[i].reg)));
-{$endif m68k}
-                    end;
-{$endif dummy}
                 end;
             end;
+{$ifdef i386}
           if assigned(p) then
             if cs_asm_source in aktglobalswitches then
               asml.insert(Tai_asm_comment.Create(strpnew(tostr(p.registersfpu)+
               ' registers on FPU stack used by temp. expressions')));
+{$endif i386}
           for i:=1 to maxfpuvarregs do
             begin
                if assigned(regvarinfo^.fpuregvars[i]) then
@@ -496,7 +418,6 @@ implementation
     var
       i: longint;
     begin
-{$ifdef i386}
       { can happen when inlining assembler procedures (JM) }
       if not assigned(aktprocdef.regvarinfo) then
         exit;
@@ -504,23 +425,29 @@ implementation
          ((procinfo^.flags and (pi_uses_asm or pi_uses_exceptions))=0) then
         with pregvarinfo(aktprocdef.regvarinfo)^ do
           begin
+{$ifdef i386}
             for i:=1 to maxfpuvarregs do
               if assigned(fpuregvars[i]) then
                 { ... and clean it up }
                 asml.concat(Taicpu.op_reg(A_FSTP,S_NO,R_ST0));
+{$endif i386}
             for i := 1 to maxvarregs do
               if assigned(regvars[i]) and
-                 (regvar_loaded[reg32(regvars[i].reg)]) then
-                asml.concat(Tairegalloc.dealloc(reg32(regvars[i].reg)));
+                 (regvar_loaded[makereg32(regvars[i].reg)]) then
+                asml.concat(Tairegalloc.dealloc(makereg32(regvars[i].reg)));
           end;
-{$endif i386}
     end;
 
 end.
 
 {
   $Log$
-  Revision 1.19  2001-11-02 22:58:06  peter
+  Revision 1.20  2001-11-05 16:49:32  jonas
+    * constant regvars (addresses of var/out para's and const para's) aren't
+      saved to memory anymore when their register will be destroyed
+    * unit has been made mostly processor independent
+
+  Revision 1.19  2001/11/02 22:58:06  peter
     * procsym definition rewrite
 
   Revision 1.18  2001/08/26 13:36:49  florian
