@@ -88,6 +88,7 @@ type
 
   PFastBufStream = ^TFastBufStream;
   TFastBufStream = object(TBufStream)
+    constructor Init (FileName: FNameStr; Mode, Size: Word);
     procedure   Seek(Pos: Longint); virtual;
   private
     BasePos: longint;
@@ -856,14 +857,16 @@ begin
   S^.Write(Buf,Count);
 end;
 
-procedure TFastBufStream.Seek(Pos: Longint);
-function BufStartPos: longint;
+constructor TFastBufStream.Init (FileName: FNameStr; Mode, Size: Word);
 begin
-  BufStartPos:=Position-BufPtr;
+  Inherited Init(FileName,Mode,Size);
+  BasePos:=0;
 end;
+
+procedure TFastBufStream.Seek(Pos: Longint);
 var RelOfs: longint;
 begin
-  RelOfs:=Pos-{BufStartPos}BasePos;
+  RelOfs:=Pos-BasePos;
   if (RelOfs<0) or (RelOfs>=BufEnd) or (BufEnd=0) then
     begin
       inherited Seek(Pos);
@@ -1286,7 +1289,10 @@ BEGIN
 END.
 {
   $Log$
-  Revision 1.10  2002-08-29 07:59:46  pierre
+  Revision 1.11  2002-09-06 09:53:53  pierre
+   * explicitly set BasePos to zero in TFastBufStream constructor
+
+  Revision 1.10  2002/08/29 07:59:46  pierre
   CVS: Enter log comment for commit
    + SizeOfFile function added
 
