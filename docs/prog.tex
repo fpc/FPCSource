@@ -3717,9 +3717,9 @@ consequences of this is that the type \var{Integer} is redefined as
 \newcommand{\mvar}[1]{\var{\$(#1)}}
 
 \section{Introduction}
-\fpc comes with a special makefile, \file{kefile.fpc}, which can be incuded
-in any makefile you use to compile with \fpc. There is a template
-\file{Makefile} provided also. All sources from the \fpc team are copiled
+\fpc comes with a special makefile, \file{makefile.fpc}, which can be 
+included in any makefile you use to compile with \fpc. There is a template
+\file{Makefile} provided also. All sources from the \fpc team are compiled
 with this system.
 
 These files are installed in the following directories:
@@ -3736,7 +3736,7 @@ following places :
 \item The directory pointed to by the \var{DEFAULTFPCDIR} make variable.
 \item The current directory.
 \end{enumerate}
-Thus, setting \var{FPCMAKE} or \var{FPCDIR} as a environment string will
+Thus, setting \var{FPCMAKE} or \var{FPCDIR} as an environment string will
 ensure that \file{makefile.fpc} is always found, and will be read by all
 makefiles, derived from the template.
 
@@ -3748,18 +3748,30 @@ that, some settings in the template makefile are explained.
 
 The following programs are needed by the makefile to function correctly:
 \begin{description}
-\item[cp] a copy program
+\item[cp] a copy program.
 \item[date] a program that prints the date.
 \item[install] a program to install files.
 \item[make] the \file{make} program, obviously.
 \item[pwd] a program that prints the current working directory.
 \item[rm] a program to delete files.
 \end{description}
-These are standard programs on linux system, with the possible exception of
+These are standard programs on linux systems, with the possible exception of
 \file{make}. For \dos or \windowsnt, they can be found in the 
-\file{gnuutils.zip} of the \fpc FTP site.
+file \file{gnuutils.zip} on the \fpc FTP site.
 
 \section{Variables used by \file{makefile.fpc}}
+
+Many variables affect the behaviour of the makefile.  The variables can be
+split in several groups:
+\begin{description}
+\item[Required variables]
+\item[Directory variables]
+\item[Target variables]
+\item[Compiler command-line variables]
+\end{description}
+Each group will be discussed separately in the subsequent.
+
+\subsection{Required variables}
 
 In principle, the \var{makefile.fpc} only expects one variable to be set:
 \begin{description}
@@ -3767,8 +3779,7 @@ In principle, the \var{makefile.fpc} only expects one variable to be set:
 expects to find a directory \file{rtl} below this directory.
 \end{description}
 
-However, many variables can be set, and influence the behaviour of the
-makefile.
+\subsection{Directory variables}
 
 The first set of variables controls the directories used in the makefile:
 
@@ -3776,20 +3787,25 @@ The first set of variables controls the directories used in the makefile:
 \item[INC] this is a list of directories, separated by spaces, that will 
 be added as include directories to the compiler command-line.
 
-\item[LIBDIR] is a list of library paths, separated by spaces. They are 
+\item[LIBDIR] is a list of library paths, separated by spaces. Each
+directory in the list is prepended with \var{-Fl} and added to the 
+compiler options.
+
+\item[NEEDLIBDIR] is a space-separated list of library paths. Each
+directory in the list is 
 prepended with \var{-Fl} and added to the compiler options.
 
-\item[NEEDLIBDIR] is a space-separated list of library paths. They are 
-prepended with \var{-Fl} and added to the compiler options.
+\item[NEEDOBJDIR] is a list of object file directories, separated by
+ spaces. Each directory in the list is prepended with \var{-Fo} and 
+added to the compiler options.
 
-\item[NEEDOBJDIR] is a list of directories, separated by spaces, that is 
-added to the object files path, i.e. prepended with \var{-Fo}.
+\item[NEEDUNITDIR] is a list of unit directories, separated by spaces.
+Each directory in the list is prepended with \var{-Fu} and is added to the
+compiler options.
 
-\item[NEEDUNITDIR] is a list of directories, separated by spaces, that are
-added to the unit path of the compiler, i.e. they get \var {-Fu} prepended.
-
-\item[OBJDIR] is a list of directories, separated by spaces, that is 
-added to the object files path, i.e. prepended with \var{-Fo}.
+\item[OBJDIR] is a list of object file directories, separated by spaces, that is 
+added to the object files path, i.e. Each directory in the list is prepended with 
+\var{-Fo}.
 
 \item[OSINC] this is a space-separated list of OS-dependent directories 
 that will be added as include directories to the compiler command line.
@@ -3797,16 +3813,18 @@ that will be added as include directories to the compiler command line.
 \item[PROCINC] is a space-separated list of processor-dependent directories 
 that will be added as include directories to the compiler command-line.
 
+\item[RTL] If \var{RTLDIR} is not set, \var{RTL} is used to construct
+\var{RTLDIR}, after which \var{RTLDIR} is added to the compiler unit 
+path, with \var{-Fu} prepended. If \var{RTLDIR} is not set, it is set
+ to \mvar{RTL}/\mvar{OS\_TARGET}.
+
 \item[RTLDIR] Directory where the \var{RTL} unit sources are.
 If \var{RTLDIR} is not set, it is set to \mvar{RTL}/\mvar{OS\_TARGET}. \\
 If \var{RTL} is also not set, it is set to \mvar{FPCDIR}\var{/rtl/}\mvar{OS\_TARGET}.
 
-\item[RTL] If \var{RTLDIR} is not set, \var{RTL} is used to construct
-\var{RTLDIR}. \var{RTLDIR} is added to the compiler unit path, with \var{-Fu}
-prepended.
 
 \item[TARGETDIR] If set, this directory is added as the output directory of
-the compiler, where all unis and executables are written, i.e. it gets
+the compiler, where all units and executables are written, i.e. it gets
 \var{-FE} prepended.
 
 \item[UNIT] If \var{UNITDIR} is not set, \var{UNIT} is used to construct
@@ -3824,6 +3842,8 @@ If \var{UNIT} is also not set, it is set to \mvar{FPCDIR}\var{/rtl/}\mvar{OS\_TA
 the compiler, where all units are written, i.e. it gets
 \var{-FU} prepended. This overrides \var{TARGETDIR}.
 \end{description}
+
+\subsection{Target variables}
 
 The second set of variables controls the targets that are constructed
 by the makefile:
@@ -3844,6 +3864,8 @@ makefile.
 this target is built first. If successful, the zip archive will be made.
 \end{description}
 
+\subsection{Compiler command-line variables}
+
 The following variables control the compiler command-line:
 \begin{description}
 \item[CFGFILE] if this variable is set, it will be used as the name of the
@@ -3858,7 +3880,7 @@ Automatically determined by the makefile.
 
 \item[LIBTYPE] if set to \var{shared}, then the compiler will emit a shared
 library, with name \var{LIBNAME}.If \var{LIBTYPE} is set to \var{static},
-the compiler will emit a atatic, smartlinked library, 
+the compiler will emit a static, smartlinked library, 
 
 \item[NEEDGCCLIB] if this variable is defined, then the path to \file{libgcc}
 is added to the library path.
@@ -3867,7 +3889,8 @@ is added to the library path.
 append all directories that appear in \var{/etc/ld.so.conf} to the library path.
 
 
-\item[OPT] Any options that you want to the compiler command-line.
+\item[OPT] Any options that you want to pass to the compiler. The contents
+of \var{OPT} is simply added to the compiler command-line.
 
 \item[OPTDEF] Are optional defines, added to the command-line of the
 compiler. They do not get \var{-d} prepended.
@@ -3883,9 +3906,18 @@ will output smartlinked units if \var{LIBTYPE} is not set to \var{shared}.
 \section{Variables set by \file{makefile.fpc}}
 
 All of the following variables are only set by \var{makefile.fpc}, if
-they aren't already defined. This means that you can ovverride them by
+they aren't already defined. This means that you can override them by
 setting them on the make command line, or setting them in the makefile you
 use, BEFORE \file{makefile.fpc} is included.
+The following sets of variables are defined:
+\begin{description}
+\item[Directory variables]
+\item[Program names]
+\item[File extensions]
+item[Target files]
+\end{description}
+Each of these sets is discussed in the subsequent:
+\subsection{Directory variables}
 
 The following directories are defined by the makefile:
 
@@ -3894,8 +3926,8 @@ The following directories are defined by the makefile:
 available. If not, it is set to '.'.
 
 \item[BASEINSTALLDIR] is the base for all directories where units are
-installed. On \linux, this is set to\\
-\mvar{PREFIXINSTALLDIR}\var{/lib/fpc/}\mvar{RELEASEVER}. On other systems,
+installed. On \linux, this is set to
+\mvar{PREFIXINSTALLDIR}\var{/lib/fpc/}\mvar{RELEASEVER}.\\ On other systems,
 it is set to \mvar{PREFIXINSTALLDIR}
 
 \item[BININSTALLDIR] is set to \mvar{BASEINSTALLDIR}/\var{bin} on \linux,
@@ -3906,8 +3938,8 @@ the place where binaries are installed.
 \item[GCCLIBDIR] (\linux only) is set to the directory where \file{libgcc.a}
 is.
 
-\item[LIBINSTALLDIR] is set to \mvar{BASEINSTALLDIR} on \linux, and
-\mvar{BASEINSTALLDIR}/\var{lib} on other systems.
+\item[LIBINSTALLDIR] is set to \mvar{BASEINSTALLDIR} on \linux,\\
+ and \mvar{BASEINSTALLDIR}/\var{lib} on other systems.
 
 \item[OTHERLIBDIR] (\linux only) is set to the full set of paths in \file{/etc/ld.so.conf}
 
@@ -3929,9 +3961,11 @@ installed. It equals \mvar{UNITINSTALLDIR}/\var{static}.
 
 \item[UNITINSTALLDIR] is where units will be installed. This is set to\\
 \mvar{BASEINSTALLDIR}/\mvar{UNITPREFIX} \\
-on \linux. \\On other systems, it is
-set to \\\mvar{BASEINSTALLDIR}/\mvar{UNITPREFIX}/\mvar{OS\_TARGET}.
+on \linux. On other systems, it is set to \\
+\mvar{BASEINSTALLDIR}/\mvar{UNITPREFIX}/\mvar{OS\_TARGET}.
 \end{description}
+
+\subsection{Program names}
 
 The following variables are program names, used in makefile targets.
 \begin{description}
@@ -3949,10 +3983,11 @@ The following variables are program names, used in makefile targets.
 755} on linux.
 \item[LD] The linker. Default set to \file{ld}.
 \item[LDCONFIG] (\linux only) the program used to update the loader cache.
-\item[MKDIR] a program to create directories if the don't exist yet. Default
+\item[MKDIR] a program to create directories if they don't exist yet. Default
 set to \file{install -m 755 -d}
 \item[MOVE] a file move program. Default set to \file{mv -f}
-\item[PP] the Free Pascal compiler
+\item[PP] the Free Pascal compiler executable. Default set to
+\var{ppc386.exe}
 \item[PPAS] the name of the shell script created by the compiler if the
 \var{-s} option is specified. This command will be executed after
 compilation, if the \var{-s} option was detected among the options.
@@ -3963,6 +3998,8 @@ self-extracting compressed executables.
 \item[ZIPEXE] a zip program to compress files. zip targets are made with
 this program
 \end{description}
+
+\subsection{File extensions}
 
 The following variables denote extensions of files. These variables include
 the \var{.} (dot) of the extension. They are appended to object names.
@@ -3975,20 +4012,22 @@ executable startup code.
 \item[PACKAGESUFFIX] is a suffix that is appended to package names in zip
 targets. This serves so packages can be made for different OSes.
 \item[PASEXT] is the extension of pascal files used in the compile rules.
-it is determined by looking at the first \var{EXEOBJECTS} source file or 
+It is determined by looking at the first \var{EXEOBJECTS} source file or 
 the first \var{UNITOBJECTS} files.
-\item[PPLEXT] is the extension of shared-library unit files.
+\item[PPLEXT] is the extension of shared library unit files.
 \item[PPUEXT] is the extension of default units.
 \item[SHAREDLIBEXT] is the extension of shared libraries.
 \item[SMARTEXT] is the extension of smartlinked unit assembler files.
 \item[STATICLIBEXT] is the extension of static libraries.
 \end{description}
 
+\subsection{Target files}
+
 The following variables are defined to make targets and rules easier:
 
 \begin{description}
-\item[COMPILER] is the compltere compiler commandline, with all options
-added, after all Makefile variables have been examined.
+\item[COMPILER] is the complete compiler commandline, with all options
+added, after all \file{Makefile} variables have been examined.
 \item[DATESTR] contains the date.
 \item[EXEFILES] is a list of executables that will be created by the
 makefile.
@@ -4007,34 +4046,43 @@ extension appended.
 
 The \var{makefile.fpc} defines a series of targets, which can be called by
 your own targets. They have names that resemble default names (such as
-'all', 'clean', only they have \var{fpc\_} prepended.
+'all', 'clean'), only they have \var{fpc\_} prepended.
+
+\subsection{Pattern rules}
 
 The makefile makes the following pattern rules:
 \begin{description}
-\item[units] How to make a pascal unit form a pascal source file.
+\item[units] how to make a pascal unit form a pascal source file.
 \item[executables] how to make an executable from a pascal source file.
 \item[object file] how to make an object file from an assembler file.
 \end{description}
 
+\subsection{Build rules}
+
 The following build targets are defined:
 \begin{description}
-\item[fpc\_all] Target that builds all units and executables as well as
+\item[fpc\_all] target that builds all units and executables as well as
 loaders. If \var{DEFAULTUNITS} is defined, executables are excluded from the
 targets.
-\item[fpc\_exes] Target to make all executables in \var{EXEOBJECTS}.
-\item[fpc\_loaders] Target to make all files in \var{LOADEROBJECTS}.
-\item[fpc\_sharedlib] Target that makes all units as dynamic libraries.
-\item[fpc\_staticlib] Target that makes all units as smartlinked units.
-\item[fpc\_units] Target to make all units in \var{UNITOBJECTS}.
+\item[fpc\_exes] target to make all executables in \var{EXEOBJECTS}.
+\item[fpc\_loaders] target to make all files in \var{LOADEROBJECTS}.
+\item[fpc\_sharedlib] target that makes all units as dynamic libraries.
+\item[fpc\_staticlib] target that makes all units as smartlinked units.
+\item[fpc\_units] target to make all units in \var{UNITOBJECTS}.
 \end{description}
+
+\subsection{Cleaning rules}
 
 The following cleaning targets are defined:
 \begin{description}
 \item[fpc\_clean] cleans all files that result when \var{fpc\_all} was made.
-\item[fpc\_libsclean] is the same as \var{fpc\_clean}, but removes any
+\item[fpc\_libsclean] is the same as \var{fpc\_clean}, but also removes any
 shared or dynamic libraries that may have been built.
-\item[fpc\_cleanall] is the same as both previous target commands.
+\item[fpc\_cleanall] is the same as both previous target commands, but also
+deletes all object, unit and assembler files that are present.
 \end{description}
+
+\subsection{archiving rules}
 
 The following archiving targets are defined:
 \begin{description}
@@ -4045,21 +4093,25 @@ name is taken from \mvar{ZIPNAME}.
 The zip is made uzing the \var{ZIPEXE} program. Under \linux, a
 \file{.tar.gz} file is created.
 
+
+\subsection{Informative rules}
+
 The following targets produce information about the makefile:
 \begin{description}
-\item[fpc\_cfginfo] Gives generl configuration information: the location of
+\item[fpc\_cfginfo] gives general configuration information: the location of
 the makefile, the compiler version, target OS, CPU.
-\item[fpc\_dirinfo] Gives the directories, used by the compiler.
-\item[fpc\_info] Executes all other info targets.
-\item[fpc\_installinfo] Gives all directories where files will be installed.
+\item[fpc\_dirinfo] gives the directories, used by the compiler.
+\item[fpc\_info] executes all other info targets.
+\item[fpc\_installinfo] gives all directories where files will be installed.
 \item[fpc\_objectinfo] lists all objects that will be made.
 \item[fpc\_toolsinfo] lists all defined tools.
 \end{description}
 
 \section{Using the provided template}
+
 The template makefile that comes with \fpc does nothing other than 
 offering you some variables to be set for the \file{makefile.fpc}. 
-After that it loads the \var{makefile.fpc} in the indixated places.
+After that it loads the \var{makefile.fpc} in the indicated places.
 
 Finally it declares a set of default targets:
 \begin{description}
@@ -4087,7 +4139,7 @@ the following variables:
 You may want to set some of the following variables:
 \begin{description}
 \item[INC,PROCINC or OSINC] To indicate where include files can be found.
-\item[NEEDOPT] additional optionas added to the compile command.
+\item[NEEDOPT] additional options added to the compile command.
 \item[NEEDUNITDIR] space-separated list of directories where units that you
 need are located.
 \item[TARGETDIR,UNITTARGETDIR] where do you want executables and units to 
@@ -4105,5 +4157,245 @@ variables are set to you satisfaction. If the \file{makefile.fpc} is not
 found, this command will inform you of this.
 
 After that, a simple 'make all' will make all units and executables.
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Appendix F
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\chapter{Compiling the compiler yourself}
+\label{ch:AppF}
+
+\section{Introduction}
+
+The \fpc team releases at intervals a completely prepared package, with 
+compiler and units all ready to use, the so-called releases.  After a
+release, work on the compiler continues, bugs are fixed and features are
+added. The \fpc team doesn't make a new release whenever they change
+something in the compiler, instead the sources are available for anyone to
+use and compile. Compiled versions of RTL and compiler are also made daily,
+and put on the web.
+
+There are, nevertheless, circumstances when you'll want to compile the
+compiler yourself. For instance if you made changes to compiler code,
+or when you download the compiler via CVS. 
+
+There are essentially 2 ways of recompiling the compiler: by hand, or using
+the makefiles. Each of these methods will be discussed.
+
+\section{Before you begin}
+
+To compile the compiler easily, it is best to keep the following directory
+structure (a base directory of \file{/pp/src} is supposed, but that may be
+different):
+\begin{verbatim}
+/pp/src/Makefile
+       /makefile.fpc
+       /rtl/linux
+           /inc
+           /i386
+           /...
+       /compiler
+\end{verbatim}
+If you want to use the makefiles, you {\em must} use the above directory
+tree.
+
+The compiler and rtl source are zipped in such a way that if you unzip both
+files in the same directory (\file{/pp/src} in the above) the above
+directory tree results.
+
+The \file{makefile.fpc} and \file{Makefile} come from the \file{base.zip}
+file on the ftp site. If you compile manually, you don't need them.
+
+There are 2 ways to start compiling the compiler and RTL. Both ways must be
+used, depending on the situation. Usually, the RTL must be compiled first,
+before compiling the compiler, after which the compiler is compiled using
+the current compiler. In some special cases the compiler must be compiled
+first, with a previously compiled RTL.
+
+How to decide which should be compiled first? In general, the answer is that
+you should compile the RTL first. There are 2 exceptions to this rule:
+\begin{enumerate}
+\item The first case is when some of the internal routines in the RTL 
+have changed, or if new internal routines appeared. Since the OLD compiler
+doesn't know about these changed internal routines, it will emit function
+calls that are based on the old compiled RTL, and hence are not correct.
+Either the result will not link, or the binary will give errors.
+\item The second case is when something is added to the RTL that the
+compiler needs to know about (a new default assembler mechanism, for
+example).
+\end{enumerate}
+How to know if one of these things has occurred ? There is no way to know.
+(except by mailing the \fpc team) Iff you cannot recompile the compiler 
+when you first compile the RTL, then try the other way.
+
+\section{Compiling using \file{make}}
+
+When compiling with \var{make} it is necessary to have the above directory
+structure. Compiling the compiler is achieved with the target \var{cycle}.
+
+Under normal circumstances, recompiling the compiler is limited to the
+following instructions (assuming you start in directory \file{/pp/src}):
+\begin{verbatim}
+cd compiler
+make cycle
+\end{verbatim}
+This will work only if the \file{makefile.fpc} is installed correctly and
+if the needed tools are present in the \var{PATH}. Which tools must be
+installed can be found in appendix \ref{ch:makefile}.
+
+The above instructions will do the following:
+\begin{enumerate}
+\item Using the current compiler, the RTL is compiled in the correct
+directory, which is determined by the OS you are under. e.g. under \linux,
+the rtl is compile in diretory \file{rtl/linux}.
+\item The compiler is compiled using the newly compiled RTL. If successful,
+the newly compiled compiler executable is copied to a temporary executable.
+\item Using the temporary executable from the previous step, the RTL is
+re-compiled.
+\item Using the temporary executable and the newly compiled RTL from the
+last step, the compiler is compiled again.
+\end{enumerate}
+The last two steps are repeated 3 times, until three passes have been made or
+until the generated compiler binary is equal to the binary it was compiled
+with. This process ensures that the compiler binary is correct. 
+
+Compiling for another target:
+When you want to compile the compiler for another target, you must specify
+the \var{OS\_TARGET} makefile variable. It can be set to the following
+values: \var{win32}, \var{go32v2}, \var{os2} and \var{linux}.
+As an example, cross-compilation for the go32v2 target from the win32 target
+is chosen:
+\begin{verbatim}
+cd compiler
+make cycle OS_TARGET=go32v2
+\end{verbatim}
+This will compile the go32v2 RTL, and compile a \var{go32v2} compiler.
+
+If you want to compile a new compiler, but you want the compiler to be
+compiled first using an existing compiled RTL, you should specify the 
+\var{all} target, and specify another RTL directory than the default (which
+is the \file{../rtl/\$(OS\_TARGET)} directory). For instance, assuming that
+the compiled RTL units are in \var{/pp/rtl}, you could type
+\begin{verbatim}
+cd compiler
+make clean
+make all UNITDIR=/pp/rtl
+\end{verbatim}
+
+This will then compile the compiler using the RTL units in \file{/pp/rtl}.
+After this has been done, you can do the 'make cycle', starting with this 
+compiler:
+\begin{verbatim}
+make cycle PP=./ppc386
+\end{verbatim}
+This will do the \var{make cycle} from above, but will start with the compiler
+that was generated by the var{make all} instruction.
+
+In all cases, many options can be passed to \var{make} to influence the
+compile process. In general, the makefiles add any needed compiler options
+to the command-line, so that the RTL and compiler can be compiled. You can
+specify additional options (e.g. optimization options) by passing them in
+\var{OPT}.
+
+\section{Compiling by hand}
+
+Compiling by hand is difficult and tedious, but can be done. We'll treat the 
+compilation of RTl and compiler separately.
+
+\subsection{Compiling the RTL}
+To recompile the RTL, so a new compiler can be built, at least the following 
+units must be built, in the order specified:
+\begin{enumerate}
+\item[loaders] the program stubs, that are the startup code for each pascal
+program. These files have the \file{.as} extension, because they are written
+in assembler. They must be assembled with the gnu as assembler. These stubs
+are in the OS-dependent directory, except for \linux, where they are in a
+processor dependent subdirectory of the linux directory (\file{i386} or
+\file{m68k}).
+\item[system] the \file{system} unit. This unit is named differently on different
+systems:
+\begin{itemize}
+\item Only on GO32v2, it's called \file{system}.
+\item For \linux it's called \file{syslinux}.
+\item For \windowsnt it's calles \file{syswin32}.
+\item For \ostwo it's called \file{sysos2}
+\end{itemize}
+This unit resides in the OS-depentent subirectories of the RTL.
+\item[strings] The strings unit. This unit resides in the \file{inc}
+subdirectory of the RTL.
+\item[dos] The \file{dos} unit. It resides in the OS-dependent subdirectory
+of the RTL. Possibly other units will be compiled as a consequence of trying
+to compile this unit (e.g. on \linux, the \file{linux} unit will be compiled)
+\item[objects] the objects unit. It resides in the \file{inc} subdirectory
+of the RTL.
+\end{enumerate}
+To compile these units on a i386, the following statements will do:
+\begin{verbatim}
+ppc386 -Tlinux -b- -Fi../inc -Fi../i386 -FE. -di386 -Us -Sg syslinux.pp 
+ppc386 -Tlinux -b- -Fi../inc -Fi../i386 -FE. -di386 ../inc/strings.pp 
+ppc386 -Tlinux -b- -Fi../inc -Fi../i386 -FE. -di386 dos.pp 
+ppc386 -Tlinux -b- -Fi../inc -Fi../i386 -FE. -di386 ../inc/objects.pp 
+\end{verbatim}
+These are the minimum command-line options, needed to compile the RTL.
+
+For another processor, you should change the \var{i386} into the appropriate
+processor. For another operating system (target) you should change the
+\file{syslinux} in the appropriate system unit file, and you should change
+the target OS setting (\var{-T}).
+
+Depending on the target OS there are other units that you may wish to
+compile, but which are not strictly needed to recompile the compiler. 
+The following units are available for all plaforms: 
+\begin{description}
+\item[objpas] Needed for Delphi mode. needs \var{-S2} as an option. Resides
+in the \file{inc} subdirectory.
+\item[sysutils] many utility functions, like in Delphi. Resides in the
+\file{inc} directory, and needs \var{-S2}
+\item[typinfo] functions to access RTTI information, like Delphi. 
+\item[math] math functions like in Delphi.
+\item[mmx] extensions for MMX class Intel processors. Resides in
+in the \file{i386} directory.
+\item[getopts] a GNU compatible getopts unit.
+\item[heaptrc] to debug the heap.
+\end{description} 
+
+\subsection{Compiling the compiler}
+
+Compiling the compiler can be done with one statement. It's always best to
+remove all units from the compiler directory first, so something like
+\begin{verbatim}
+rm *.ppu *.o
+\end{verbatim}
+on \linux, and on \dos
+\begin{verbatim}
+del *.ppu
+del *.o
+\end{verbatim}
+After this, the compiler can be compiled with the following command-line:
+\begin{verbatim}
+ppc386 -Tlinux  -Fu../rtl/linux -di386 -dGDB pp.pas
+\end{verbatim}
+So, the minimum options are:
+\begin{enumerate}
+\item The target OS. Can be skipped if you're compiling for the same target as
+the compiler you're using.
+\item A path to an RTL. Can be skipped if a correct ppc386.cfg configuration
+is on your system. If you want to compile with the RTL you compiled first,
+this should be \file{../rtl/OS} (replace the OS with the appropriate
+operating system subdirectory of the RTL)
+\item A define with the processor you're compiling for. is required.
+\item \var{-dGDB} is not strictly needed, but is better to add since
+otherwise you won't be able to compile with debug information.
+\item \var{-Sg} is needed, some parts of the compiler use \var{goto}
+statements.
+\end{enumerate}
+So the absolute minimal command line is
+\begin{verbatim}
+ppc386 -di386 -Sg pp.pas
+\end{verbatim}
+
+You can define some other command-line options, but the above are the
+minimum. A list of recognised options can be found in the source, in
+\file{pp.pas}.
 
 \end{document}
