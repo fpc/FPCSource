@@ -330,7 +330,7 @@ endif
 #####################################################################
 
 msgtxt.inc: $(MSGFILE)
-        $(RTLDIR)/utils/msg2inc $(MSGFILE) msg msg
+	$(RTLDIR)/utils/msg2inc $(MSGFILE) msg msg
 
 msg: msgtxt.inc
 
@@ -506,7 +506,10 @@ test:
 # Test of log at the end
 # does CVS add # at start of each line ??
 # $Log$
-# Revision 1.30  1998-09-09 18:17:15  florian
+# Revision 1.31  1998-09-09 18:26:25  michael
+# Spaces to tabs...
+#
+# Revision 1.30  1998/09/09 18:17:15  florian
 #   * version number changed to 0.99.8
 #
 # Revision 1.29  1998/09/02 08:51:30  pierre
