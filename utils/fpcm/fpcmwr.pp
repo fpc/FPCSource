@@ -663,7 +663,6 @@ implementation
         AddTool('RMPROG','rm','');
         AddTool('MVPROG','mv','');
         AddIniSection('shelltools');
-        AddTool('PPUFILES','ppufiles','');
         AddTool('PPUMOVE','ppumove','');
         AddTool('FPCMAKE','fpcmake','');
         AddTool('ZIPPROG','zip','');
@@ -863,7 +862,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.11  2001-06-06 21:58:25  peter
+  Revision 1.12  2001-06-07 21:21:38  peter
+    * remove ppufiles
+    * fix staticlib prefix that is now libp instead of lib
+
+  Revision 1.11  2001/06/06 21:58:25  peter
     * Win32 fixes for Makefile so it doesn't require sh.exe
 
   Revision 1.10  2001/06/04 22:18:16  peter
