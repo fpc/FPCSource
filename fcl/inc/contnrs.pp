@@ -165,7 +165,15 @@ end;
 
 Procedure TObjectList.SetItem(Index: Integer; AObject: TObject);
 
+Var
+  O : TObject;
+
 begin
+  if OwnsObjects then
+    begin
+    O:=GetItem(Index);
+    FreeAndNil(O);
+    end;
   Put(Index,Pointer(AObject));
 end;
 
@@ -497,7 +505,10 @@ end.
 
 {
   $Log$
-  Revision 1.6  2002-09-07 15:15:24  peter
+  Revision 1.7  2004-12-22 12:05:41  michael
+  + Fixed bug 3461
+
+  Revision 1.6  2002/09/07 15:15:24  peter
     * old logs removed and tabs fixed
 
   Revision 1.5  2002/08/09 09:48:28  michael
