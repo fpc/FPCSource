@@ -13,9 +13,14 @@ uses
  {$ENDIF}
 {$ENDIF}
 
+{$IFNDEF FPC}
+type
+    cardinal = longint;
+{$ENDIF}
+
 const
     InitVideoCalled: boolean = false;
-    OrigEmpty: boolean = false;
+    OrigEmpty: boolean = true;
     LastCursorType: word = crUnderline;
     EmptyCell: cardinal = $0720;
 
@@ -29,10 +34,10 @@ type
 var OrigCurType: TVioCursorInfo;
     OrigVioMode: TVioModeInfo;
     OrigHighBit: TVioIntensity;
+    OrigCurRow: word;
+    OrigCurCol: word;
     CellHeight: byte;
 
-
-{$ASMMODE ATT}
 
 procedure CheckCellHeight;
 
@@ -62,11 +67,19 @@ begin
     RegisterVideoMode (40, 25, False, @DefaultVideoModeSelector, 0);
     RegisterVideoMode (80, 25, False, @DefaultVideoModeSelector, 0);
 }
+{$IFDEF FPC}
     RegisterVideoMode (40, 25, True, @DefaultVideoModeSelector, 0);
     RegisterVideoMode (80, 25, True, @DefaultVideoModeSelector, 0);
     RegisterVideoMode (80, 30, True, @DefaultVideoModeSelector, 0);
     RegisterVideoMode (80, 43, True, @DefaultVideoModeSelector, 0);
     RegisterVideoMode (80, 50, True, @DefaultVideoModeSelector, 0);
+{$ELSE}
+    RegisterVideoMode (40, 25, True, DefaultVideoModeSelector, 0);
+    RegisterVideoMode (80, 25, True, DefaultVideoModeSelector, 0);
+    RegisterVideoMode (80, 30, True, DefaultVideoModeSelector, 0);
+    RegisterVideoMode (80, 43, True, DefaultVideoModeSelector, 0);
+    RegisterVideoMode (80, 50, True, DefaultVideoModeSelector, 0);
+{$ENDIF}
 
 { The following modes wouldn't work on plain VGA; is it useful to check
   for their availability on the program startup?
@@ -109,6 +122,7 @@ begin
 {Remember original video mode, cursor type and high bit behaviour setting}
             Move (MI, OrigVioMode, SizeOf (OrigVioMode));
             VioGetCurType (OrigCurType, 0);
+            VioGetCurPos (OrigCurRow, OrigCurCol, 0);
             with OrigHighBit do
                 begin
                     cb := 6;
@@ -125,8 +139,13 @@ begin
                     if P = nil then
 {Assume we have at least 16 colours available in "colour" modes}
                         RegisterVideoMode (Col, Row, Color >= Colors_16,
+{$IFDEF FPC}
                                                  @DefaultVideoModeSelector, 0);
+{$ELSE}
+                                                  DefaultVideoModeSelector, 0);
+{$ENDIF}
                 end;
+            OrigEmpty := false;
         end;
     with MI do
         begin
@@ -138,9 +157,15 @@ begin
     LowAscii := true;
     SetCursorType (LastCursorType);
 {Get the address of the videobuffer.}
-    if VioGetBuf (VideoBuf, PWord (VideoBufSize)^, 0) = 0 then
+{$IFDEF PPC_VIRTUAL}
+    if VioGetBuf (pointer (VideoBuf), PWord (@VideoBufSize)^, 0) = 0 then
+        begin
+            SelToFlat (pointer (VideoBuf));
+{$ELSE}
+    if VioGetBuf (VideoBuf, PWord (@VideoBufSize)^, 0) = 0 then
         begin
             VideoBuf := SelToFlat (TFarPtr (VideoBuf));
+{$ENDIF}
             SetHighBitBlink (true);
         end
     else
@@ -238,6 +263,7 @@ begin
             SetCursorPos (0, 0);
             VioSetState (OrigHighBit, 0);
             VioSetCurType (OrigCurType, 0);
+            VioSetCurPos (OrigCurRow, OrigCurCol, 0);
             VideoBufSize := 0;
             InitVideoCalled := false;
         end;
@@ -264,7 +290,7 @@ begin
             with MI do
                 begin
                     cb := 8;
-                    fbType := 0;
+                    fbType := 1;
                     if VideoMode.Color then
                         Color := Colors_16
                     else
@@ -273,9 +299,16 @@ begin
                     Row := VideoMode.Row;
                 end;
             if VioSetMode (MI, 0) = 0 then
-                if VioGetBuf (VideoBuf, PWord (VideoBufSize)^, 0) = 0 then
+{$IFDEF PPC_VIRTUAL}
+                if VioGetBuf (pointer (VideoBuf),
+                                            PWord (@VideoBufSize)^, 0) = 0 then
+                    begin
+                        SelToFlat (pointer (VideoBuf));
+{$ELSE}
+                if VioGetBuf (VideoBuf, PWord (@VideoBufSize)^, 0) = 0 then
                     begin
                         VideoBuf := SelToFlat (TFarPtr (VideoBuf));
+{$ENDIF}
                         DefaultVideoModeSelector := true;
                         SetHighBitBlink (true);
                         CheckCellHeight;
@@ -286,8 +319,14 @@ begin
                     begin
                         DefaultVideoModeSelector := false;
                         VioSetMode (OldMI, 0);
-                        VioGetBuf (VideoBuf, PWord (VideoBufSize)^, 0);
+{$IFDEF PPC_VIRTUAL}
+                        VioGetBuf (pointer (VideoBuf),
+                                                    PWord (@VideoBufSize)^, 0);
+                        SelToFlat (pointer (VideoBuf));
+{$ELSE}
+                        VioGetBuf (VideoBuf, PWord (@VideoBufSize)^, 0);
                         VideoBuf := SelToFlat (TFarPtr (VideoBuf));
+{$ENDIF}
                         SetHighBitBlink (true);
                         CheckCellHeight;
                         SetCursorType (LastCursorType);
@@ -296,8 +335,13 @@ begin
             else
                 begin
                     DefaultVideoModeSelector := false;
-                    VioGetBuf (VideoBuf, PWord (VideoBufSize)^, 0);
+{$IFDEF PPC_VIRTUAL}
+                    VioGetBuf (pointer (VideoBuf), PWord (@VideoBufSize)^, 0);
+                    SelToFlat (pointer (VideoBuf));
+{$ELSE}
+                    VioGetBuf (VideoBuf, PWord (@VideoBufSize)^, 0);
                     VideoBuf := SelToFlat (TFarPtr (VideoBuf));
+{$ENDIF}
                     SetHighBitBlink (true);
                     SetCursorType (LastCursorType);
                 end;
@@ -308,7 +352,7 @@ end;
 procedure ClearScreen;
 
 begin
-    VioScrollDown (0, 0, word (-1), word (-1), 0, PWord (@EmptyCell)^, 0);
+    VioScrollDn (0, 0, word (-1), word (-1), 0, PWord (@EmptyCell)^, 0);
 end;
 
 
@@ -321,10 +365,13 @@ end;
 {
 
   $Log$
-  Revision 1.3  2000-09-24 19:53:03  hajny
+  Revision 1.4  2000-09-26 18:15:29  hajny
+    + working with VP/2 already (not FPC yet)!video.inc
+
+  Revision 1.3  2000/09/24 19:53:03  hajny
     * OS/2 implementation almost finished, not debugged yet
 
   Revision 1.2  2000/07/13 11:32:26  michael
   + removed logs
- 
+
 }
