@@ -34,10 +34,10 @@ begin
    myclassref:=tmyobject;
 
    classref:=getanchestor(myclassref);
-   if (constclassref1.classname<>'TOBJECT') or
+   if (upcase(constclassref1.classname)<>'TOBJECT') or
      (constclassref2<>nil) or
-     (myclassref.classname<>'TMYOBJECT') or
-     (classref.classname<>'TOBJECT') then
+     (upcase(myclassref.classname)<>'TMYOBJECT') or
+     (upcase(classref.classname)<>'TOBJECT') then
      begin
         writeln('Error');
         halt(1);

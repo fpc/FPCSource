@@ -1,9 +1,11 @@
 { %VERSION=1.1}
 var
    p : pwidechar;
-   c : widechar;
+   c1,c2 : widechar;
    i : longint;
 
 begin
-   c:=p[i];
+   p:=@c1;
+   i:=0;
+   c2:=p[i];
 end.
