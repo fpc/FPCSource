@@ -22,116 +22,214 @@
 }
 unit cgcpu;
 
-  interface
+interface
 
-    uses
-       cgobj,aasm,cpuasm,cpubase;
+uses
+   cgobj,aasm,cpuasm,cpubase;
 
-    type
-       pcgalpha = ^tcgalpha;
+type
+pcgalpha = ^tcgalpha;
+tcgalpha = object(tcg)
+  procedure a_push_reg(list : paasmoutput;r : tregister);virtual;
+  procedure a_call_name(list : paasmoutput;const s : string;
+    offset : longint);virtual;
+  procedure a_call_name(list : paasmoutput;const s : string;
+    offset : longint);virtual;
+  procedure a_push_reg(list : paasmoutput;r : tregister);virtual;
+  procedure a_load_const_reg(list : paasmoutput;size : tcgsize;a : aword;register : tregister);virtual;
+  procedure a_load_reg_ref(list : paasmoutput;size : tcgsize;register : tregister;const ref : treference);virtual;
+  procedure a_load_ref_reg(list : paasmoutput;size : tcgsize;const ref : treference;register : tregister);virtual;
+  procedure a_load_reg_reg(list : paasmoutput;size : tcgsize;reg1,reg2 : tregister);virtual;
+  procedure a_cmp_reg_const_label(list : paasmoutput;size : tcgsize;cmp_op : topcmp;b : byte;reg : tregister;  l : pasmlabel);virtual;
+  procedure a_cmp_reg_reg_label(list : paasmoutput;size : tcgsize;cmp_op : topcmp;reg1,reg2 : tregister;l : pasmlabel);
+  procedure a_cmp_reg_ref_label(list : paasmoutput;size : tcgsize;cmp_op : topcmp;reg : tregister;l : pasmlabel);
+  procedure a_cmp_ref_const_label(list : paasmoutput;size : tcgsize;cmp_op : topcmp;l : longint;reg : tregister; l : pasmlabel);
+  procedure a_loadaddress_ref_reg(list : paasmoutput;const ref : treference;r : tregister);virtual;
+  procedure g_stackframe_entry(list : paasmoutput;localsize : longint);virtual;
+  procedure g_maybe_loadself(list : paasmoutput);virtual;
+  procedure g_restore_frame_pointer(list : paasmoutput);virtual;
+  procedure g_push_exception_value_reg(list : paasmoutput;reg : tregister);virtual;
+  procedure g_push_exception_value_const(list : paasmoutput;reg : tregister);virtual;
+  procedure g_pop_exception_value_reg(list : paasmoutput;reg : tregister);virtual;
+  procedure g_stackframe_entry(list : paasmoutput;localsize : longint);virtual;
+  procedure g_exite_entry(list : paasmoutput;localsize : longint);virtual;
+  procedure g_exitcode(list : paasmoutput;parasize : longint;
+    nostackframe,inlined : boolean);
+  constructor init;
+end;
 
-       tcgalpha = object(tcg)
-          procedure a_push_reg(list : paasmoutput;r : tregister);virtual;
-          procedure a_call_name(list : paasmoutput;const s : string;
-            offset : longint);virtual;
+implementation
 
-          procedure a_load_const8_ref(list : paasmoutput;b : byte;const ref : treference);virtual;
-          procedure a_load_const16_ref(list : paasmoutput;w : word;const ref : treference);virtual;
-          procedure a_load_const32_ref(list : paasmoutput;l : longint;const ref : treference);virtual;
-          procedure a_load_const64_ref(list : paasmoutput;q : qword;const ref : treference);virtual;
+uses
+   globtype,globals;
 
-          procedure g_stackframe_entry(list : paasmoutput;localsize : longint);virtual;
-          procedure g_exite_entry(list : paasmoutput;localsize : longint);virtual;
-          procedure g_exitcode(list : paasmoutput;parasize : longint;
-            nostackframe,inlined : boolean);
-          constructor init;
-       end;
+constructor tcgalpha.init;
 
-  implementation
+  begin
+     inherited init;
+  end;
 
-    uses
-       globtype,globals;
+procedure tcgalpha.g_stackframe_entry(list : paasmoutput;localsize : longint);
 
-    constructor tcgalpha.init;
-
-      begin
-         inherited init;
-      end;
-
-    procedure tcgalpha.g_stackframe_entry(list : paasmoutput;localsize : longint);
-
+begin
+  With List^ do 
     begin
-      With List^ do 
-        begin
-        concat(new(paialpha,op_reg_ref(A_LDGP,Global_pointer,new_reference(R_27,0)));
-        concat(new(paialpha,op_reg_ref(A_LDA,Stack_Pointer,new_reference(Stack_pointer,-LocalSize))));
-        If LocalSize<>0 then
-          concat(new(paiframe,Init(Global_pinter,LocalSize,R27,0)));
-        // Always generate a frame pointer.
-        concat(new(paiframe,op_reg_reg_reg(A_BIS,Stackpointer,Stack_pointer,Frame_pointer)))
-        end;
+    concat(new(paialpha,op_reg_ref(A_LDGP,Global_pointer,new_reference(R_27,0)));
+    concat(new(paialpha,op_reg_ref(A_LDA,Stack_Pointer,new_reference(Stack_pointer,-LocalSize))));
+    If LocalSize<>0 then
+      concat(new(paiframe,Init(Global_pinter,LocalSize,R27,0)));
+    // Always generate a frame pointer.
+    concat(new(paiframe,op_reg_reg_reg(A_BIS,Stackpointer,Stack_pointer,Frame_pointer)))
     end;
+end;
 
-    procedure g_exitcode(list : paasmoutput;parasize : longint; nostackframe,inlined : boolean);
- 
+procedure g_exitcode(list : paasmoutput;parasize : longint; nostackframe,inlined : boolean);
+
+begin
+  With List^ do
     begin
-      With List^ do
-        begin
-        // Restore stack pointer from frame pointer
-        Concat (new(paialpha,op_reg_reg_reg(A_BIS,Frame_Pointer,Frame_Pointer,Stack_Pointer)));
-        // Restore previous stack position
-        Concat (new(paialpha,op_reg_const_reg(A_ADDQ,Stack_Pointer,Parasize,Stack_pointer)));
-        // return...
-        Concat (new(paialpha,op_reg_ref_const(A_RET,Stack_pointer,new_reference(Return_pointer,0),1)));
-        // end directive
-        Concat (new(paiend,init(''));
-        end;
+    // Restore stack pointer from frame pointer
+    Concat (new(paialpha,op_reg_reg_reg(A_BIS,Frame_Pointer,Frame_Pointer,Stack_Pointer)));
+    // Restore previous stack position
+    Concat (new(paialpha,op_reg_const_reg(A_ADDQ,Stack_Pointer,Parasize,Stack_pointer)));
+    // return...
+    Concat (new(paialpha,op_reg_ref_const(A_RET,Stack_pointer,new_reference(Return_pointer,0),1)));
+    // end directive
+    Concat (new(paiend,init(''));
     end;
-    
-     procedure tcgalpha.a_call_name(list : paasmoutput;const s : string;
-       offset : longint);
+end;
 
-       begin
-          { list^.concat(new(pai386,op_sym(A_CALL,S_NO,newasmsymbol(s)))); }
-          {!!!!!!!!!1 offset is ignored }
-          abstract;
-       end;
+procedure tcgalpha.a_call_name(list : paasmoutput;const s : string;  offset : longint);
 
-     procedure tcgalpha.a_push_reg(list : paasmoutput;r : tregister);
+  begin
+     { list^.concat(new(pai386,op_sym(A_CALL,S_NO,newasmsymbol(s)))); }
+     {!!!!!!!!!1 offset is ignored }
+     abstract;
+  end;
 
-       begin
-          { list^.concat(new(pai386,op_reg(A_PUSH,regsize(r),r))); }
-          abstract;
-       end;
+procedure tcgalpha.a_push_reg(list : paasmoutput;r : tregister);
 
-     procedure tcgalpha.a_load_const8_ref(list : paasmoutput;b : byte;const ref : treference);
+  begin
+     { list^.concat(new(pai386,op_reg(A_PUSH,regsize(r),r))); }
+     abstract;
+  end;
 
-       begin
-          abstract;
-       end;
 
-     procedure tcgalpha.a_load_const16_ref(list : paasmoutput;w : word;const ref : treference);
+procedure tcgalpha.a_call_name(list : paasmoutput;const s : string; offset : longint);virtual;
 
-       begin
-          abstract;
-       end;
+begin
+end;
 
-     procedure tcgalpha.a_load_const32_ref(list : paasmoutput;l : longint;const ref : treference);
 
-       begin
-          abstract;
-       end;
+procedure tcgalpha.a_push_reg(list : paasmoutput;r : tregister);virtual;
 
-     procedure tcgalpha.a_load_const64_ref(list : paasmoutput;q : qword;const ref : treference);
+begin
+end;
 
-       begin
-          abstract;
-       end;
+
+procedure tcgalpha.a_load_const_reg(list : paasmoutput;size : tcgsize;a : aword;register : tregister);virtual;
+
+begin
+end;
+
+
+procedure tcgalpha.a_load_reg_ref(list : paasmoutput;size : tcgsize;register : tregister;const ref : treference);virtual;
+
+begin
+end;
+
+
+procedure tcgalpha.a_load_ref_reg(list : paasmoutput;size : tcgsize;const ref : treference;register : tregister);virtual;
+
+begin
+end;
+
+
+procedure tcgalpha.a_load_reg_reg(list : paasmoutput;size : tcgsize;reg1,reg2 : tregister);virtual;
+
+begin
+end;
+
+
+procedure tcgalpha.a_cmp_reg_const_label(list : paasmoutput;size : tcgsize;cmp_op : topcmp;b : byte;reg : tregister; l : pasmlabel);virtual;
+
+begin
+end;
+
+
+procedure tcgalpha.a_cmp_reg_reg_label(list : paasmoutput;size : tcgsize;cmp_op : topcmp;reg1,reg2 : tregister;l : pasmlabel);
+
+begin
+end;
+
+
+procedure tcgalpha.a_cmp_reg_ref_label(list : paasmoutput;size : tcgsize;cmp_op : topcmp;reg : tregister;l : pasmlabel);
+
+begin
+end;
+
+
+procedure tcgalpha.a_cmp_ref_const_label(list : paasmoutput;size : tcgsize;cmp_op : topcmp;l : longint;reg : tregister; l : pasmlabel);
+
+begin
+end;
+
+
+
+
+begin
+end;
+
+
+procedure tcgalpha.a_loadaddress_ref_reg(list : paasmoutput;const ref : treference;r : tregister);virtual;
+
+begin
+end;
+
+
+procedure tcgalpha.g_stackframe_entry(list : paasmoutput;localsize : longint);virtual;
+
+begin
+end;
+
+
+procedure tcgalpha.g_maybe_loadself(list : paasmoutput);virtual;
+
+begin
+end;
+
+
+procedure tcgalpha.g_restore_frame_pointer(list : paasmoutput);virtual;
+
+begin
+end;
+
+
+procedure tcgalpha.g_push_exception_value_reg(list : paasmoutput;reg : tregister);virtual;
+
+begin
+end;
+
+
+procedure tcgalpha.g_push_exception_value_const(list : paasmoutput;reg : tregister);virtual;
+
+begin
+end;
+
+
+procedure tcgalpha.g_pop_exception_value_reg(list : paasmoutput;reg : tregister);virtual;
+
+begin
+end;
+
 
 end.
 {
   $Log$
-  Revision 1.3  1999-08-05 15:50:32  michael
+  Revision 1.4  1999-08-06 13:53:54  michael
+  Empty Virtual methods inserted
+
+  Revision 1.3  1999/08/05 15:50:32  michael
   * more changes
 
   Revision 1.2  1999/08/04 00:24:00  florian
