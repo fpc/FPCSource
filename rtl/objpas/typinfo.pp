@@ -357,8 +357,12 @@ unit typinfo;
           
       begin
       TD:=GetTypeData(TypeInfo);
-      Count:=TD^.PropCount;
-      TP:=PPropInfo(@TD^.UnitName+Length(TD^.UnitName)+1);
+      // Get this objects published properties count 
+      // Delphi uses propdata for this...
+      TP:=(@TD^.UnitName+Length(TD^.UnitName)+1);
+      Count:=PLongint(TP)^;
+      // Now point TP to first propinfo record.
+      Inc(Longint(TP),SizeOF(Word));
       While Count>0 do
         begin
         PropList^[0]:=TP;
@@ -405,7 +409,7 @@ unit typinfo;
           GetMem(TempList,Count*SizeOf(Pointer));
           Try
             GetPropInfos(TypeInfo,TempList);
-            For I:=0 to COunt-1 do
+            For I:=0 to Count-1 do
               begin
               PropInfo:=TempList^[i];
               If PropInfo^.PropType^.Kind in TypeKinds then
@@ -645,8 +649,8 @@ end.
 
 {
   $Log$
-  Revision 1.12  1998-11-24 15:03:32  michael
-  Implemented most important methods.
+  Revision 1.13  1998-11-25 16:47:03  michael
+  + Fixed typinfo count of properties
 
   Revision 1.11  1998/09/24 23:45:28  peter
     * updated for auto objpas loading
