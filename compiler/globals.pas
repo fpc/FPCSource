@@ -186,6 +186,8 @@ unit globals;
        RelocSectionSetExplicitly : boolean = false;
        DLLsource : boolean = false;
        DLLImageBase : pstring = nil;
+       UseDeffileForExport : boolean = true;
+       ForceDeffileForExport : boolean = false;
 
        { used to set all registers used for each global function
          this should dramatically decrease the number of
@@ -1328,9 +1330,13 @@ implementation
 
    procedure DoneGlobals;
      begin
-        initdefines.done;
-        if assigned(DLLImageBase) then
-          StringDispose(DLLImageBase);
+       initdefines.done;
+       if assigned(DLLImageBase) then
+         StringDispose(DLLImageBase);
+       RelocSection:=true;
+       RelocSectionSetExplicitly:=false;
+       DLLsource:=false;
+       UseDeffileForExport:=true;
        librarysearchpath.Done;
        unitsearchpath.Done;
        objectsearchpath.Done;
@@ -1412,7 +1418,14 @@ begin
 end.
 {
   $Log$
-  Revision 1.38  1999-12-06 18:21:03  peter
+  Revision 1.39  1999-12-08 10:40:00  pierre
+    + allow use of unit var in exports of DLL for win32
+      by using direct export writing by default instead of use of DEFFILE
+      that does not allow assembler labels that do not
+      start with an underscore.
+      Use -WD to force use of Deffile for Win32 DLL
+
+  Revision 1.38  1999/12/06 18:21:03  peter
     * support !ENVVAR for long commandlines
     * win32/go32v2 write short pathnames to link.res so c:\Program Files\ is
       finally supported as installdir.

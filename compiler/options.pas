@@ -732,6 +732,7 @@ begin
                                break;
                              end;
                         'C': apptype:=at_cui;
+                        'D': ForceDeffileForExport:=true;
                         'G': apptype:=at_gui;
                         'N': begin
                                RelocSection:=false;
@@ -1331,7 +1332,14 @@ end;
 end.
 {
   $Log$
-  Revision 1.39  1999-12-06 18:21:03  peter
+  Revision 1.40  1999-12-08 10:40:01  pierre
+    + allow use of unit var in exports of DLL for win32
+      by using direct export writing by default instead of use of DEFFILE
+      that does not allow assembler labels that do not
+      start with an underscore.
+      Use -WD to force use of Deffile for Win32 DLL
+
+  Revision 1.39  1999/12/06 18:21:03  peter
     * support !ENVVAR for long commandlines
     * win32/go32v2 write short pathnames to link.res so c:\Program Files\ is
       finally supported as installdir.

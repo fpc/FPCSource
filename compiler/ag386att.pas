@@ -855,7 +855,7 @@ unit ag386att;
       Writetree(importssection);
       { exports are written by DLLTOOL
         if we use it so don't insert it twice (PM) }
-      if not RelocSection then
+      if not UseDeffileForExport and assigned(exportssection) then
         Writetree(exportssection);
       Writetree(resourcesection);
       countlabelref:=true;
@@ -871,7 +871,14 @@ unit ag386att;
 end.
 {
   $Log$
-  Revision 1.20  1999-11-06 14:34:16  peter
+  Revision 1.21  1999-12-08 10:39:59  pierre
+    + allow use of unit var in exports of DLL for win32
+      by using direct export writing by default instead of use of DEFFILE
+      that does not allow assembler labels that do not
+      start with an underscore.
+      Use -WD to force use of Deffile for Win32 DLL
+
+  Revision 1.20  1999/11/06 14:34:16  peter
     * truncated log to 20 revs
 
   Revision 1.19  1999/11/02 15:06:56  peter

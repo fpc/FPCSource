@@ -618,6 +618,8 @@ begin
   { allow duplicated libs (PM) }
   SharedLibFiles.doubles:=true;
   StaticLibFiles.doubles:=true;
+  If not ForceDeffileForExport then
+    UseDeffileForExport:=false;
 end;
 
 Procedure TLinkerWin32.SetDefaultInfo;
@@ -626,7 +628,7 @@ begin
    begin
      ExeCmd[1]:='ldw $OPT $STRIP $APPTYPE $IMAGEBASE $RELOC -o $EXE $RES';
      DllCmd[1]:='ldw $OPT $STRIP --dll $APPTYPE $IMAGEBASE $RELOC -o $EXE $RES';
-     if RelocSection then
+     if UseDeffileForExport then
        begin
           ExeCmd[2]:='dlltool --as $ASBIN --dllname $EXE --output-exp exp.$$$ $RELOC $DEF';
           ExeCmd[3]:='ldw $OPT $STRIP $APPTYPE $IMAGEBASE -o $EXE $RES exp.$$$';
@@ -743,7 +745,7 @@ begin
   ImageBaseStr:='';
   StripStr:='';
   AsBinStr:=FindExe('asw',found);
-  if RelocSection then
+  if UseDeffileForExport then
    RelocStr:='--base-file base.$$$';
   if apptype=at_gui then
    AppTypeStr:='--subsystem windows';
@@ -819,7 +821,7 @@ begin
   ImageBaseStr:='';
   StripStr:='';
   AsBinStr:=FindExe('asw',found);
-  if RelocSection then
+  if UseDeffileForExport then
    RelocStr:='--base-file base.$$$';
   if apptype=at_gui then
    AppTypeStr:='--subsystem windows';
@@ -1058,7 +1060,14 @@ end;
 end.
 {
   $Log$
-  Revision 1.11  1999-12-06 18:21:04  peter
+  Revision 1.12  1999-12-08 10:40:01  pierre
+    + allow use of unit var in exports of DLL for win32
+      by using direct export writing by default instead of use of DEFFILE
+      that does not allow assembler labels that do not
+      start with an underscore.
+      Use -WD to force use of Deffile for Win32 DLL
+
+  Revision 1.11  1999/12/06 18:21:04  peter
     * support !ENVVAR for long commandlines
     * win32/go32v2 write short pathnames to link.res so c:\Program Files\ is
       finally supported as installdir.

@@ -808,6 +808,8 @@ parser_e_procname_to_short_for_export=E_Procedure name to short to be exported
 % The length of the procedure/function name must be at least 2 characters
 % long. This is because of a bug in dlltool which doesn't parse the .def
 % file correct with a name of length 1.
+parser_e_dlltool_unit_var_problem=E_No DEFFILE entry can be generated for unit global vars
+parser_e_dlltool_unit_var_problem2=E_Compile without -WD option
 % \end{description}
 #
 # Type Checking
@@ -1691,6 +1693,12 @@ ol119=3*2TGO32V2_version 2 of DJ Delorie DOS extender
 ol120=3*2TLINUX_Linux
 ol121=3*2TOS2_OS/2 2.x
 ol122=3*2TWin32_Windows 32 Bit
+ol001W=3*2WB<x> Set Image base to Hexadecimal <x> value
+ol002W=3*2WC Specify console type application
+ol003W=3*2WD Use DEFFILE to export functions of DLL or EXE
+ol004W=3*2WG Specify graphic type application
+ol005W=3*2WN Do not generate relocation code (necessary for debugging)
+ol006W=3*2WR Generate relocation code
 ol123=6*1A<x>_output format
 ol124=6*2Aas_Unix o-file using GNU AS
 ol125=6*2Agas_GNU Motorola assembler

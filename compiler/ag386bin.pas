@@ -869,7 +869,7 @@ unit ag386bin;
         addlist(bsssegment);
         if assigned(importssection) then
           addlist(importssection);
-        if assigned(exportssection) and not RelocSection then
+        if assigned(exportssection) and not UseDeffileForExport then
           addlist(exportssection);
         if assigned(resourcesection) then
           addlist(resourcesection);
@@ -910,7 +910,14 @@ unit ag386bin;
 end.
 {
   $Log$
-  Revision 1.29  1999-12-01 22:05:13  pierre
+  Revision 1.30  1999-12-08 10:39:59  pierre
+    + allow use of unit var in exports of DLL for win32
+      by using direct export writing by default instead of use of DEFFILE
+      that does not allow assembler labels that do not
+      start with an underscore.
+      Use -WD to force use of Deffile for Win32 DLL
+
+  Revision 1.29  1999/12/01 22:05:13  pierre
    * problem with unused external symbol in stabs solved
 
   Revision 1.28  1999/11/30 10:40:42  peter

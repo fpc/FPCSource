@@ -77,7 +77,12 @@ unit pexports;
                           { This is wrong if the first is not
                             an underline }
                           if InternalProcName[1]='_' then
-                            delete(InternalProcName,1,1);
+                            delete(InternalProcName,1,1)
+                          else if (target_os.id=os_i386_win32) and UseDeffileForExport then
+                            begin
+                              Message(parser_e_dlltool_unit_var_problem);
+                              Message(parser_e_dlltool_unit_var_problem2);
+                            end;
                           if length(InternalProcName)<2 then
                            Message(parser_e_procname_to_short_for_export);
                           DefString:=ProcName+'='+InternalProcName;
@@ -136,7 +141,14 @@ end.
 
 {
   $Log$
-  Revision 1.15  1999-11-22 22:20:43  pierre
+  Revision 1.16  1999-12-08 10:40:01  pierre
+    + allow use of unit var in exports of DLL for win32
+      by using direct export writing by default instead of use of DEFFILE
+      that does not allow assembler labels that do not
+      start with an underscore.
+      Use -WD to force use of Deffile for Win32 DLL
+
+  Revision 1.15  1999/11/22 22:20:43  pierre
     * Def file syntax for win32 with index corrected
     * direct output of .edata leads to same indexes
       (index 5 leads to next export being 6 unless otherwise
