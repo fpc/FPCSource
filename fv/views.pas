@@ -893,12 +893,12 @@ CONST
         e:=(length(SubStr)>0);
         while e and (i<=Length(s)-Length(SubStr)) do
          begin
-           inc(i);
            if (SubStr[1]=s[i]) and (Substr=Copy(s,i,Length(SubStr))) then
             begin
               j:=i;
               e:=false;
             end;
+           inc(i);
          end;
         PosIdx:=j;
       end;
@@ -5427,7 +5427,11 @@ BEGIN
        OutTextXY(RawOrigin.X+RawSize.X-2*FontWidth-ViewPort.X1,
          RawOrigin.Y+Y+1-ViewPort.Y1+2, S);           { Write number }
      End Else Begin                                   { LEON ????? }
-       WriteStr(Size.X-5,0,S,2);
+       If (Flags and wfZoom)<>0 then
+         I:=7
+       else
+         I:=3;
+       WriteCStr(Size.X-I,0,S,1,3);
      End;
    End;
    If (Flags AND wfClose<>0) Then Begin               { Close icon request }
@@ -5451,6 +5455,7 @@ BEGIN
          RawOrigin.Y+Y+1-ViewPort.Y1+2, '['+C+']'); { Write zoom icon }
      End Else Begin                                   { LEON??? }
        WriteCStr(Size.X-5,0,'[~'+C+'~]', 2, 3);
+       WriteCStr(Size.X-2,Size.Y-1,'~ды~',2, 3);
      End;
    End;
    If not TextModeGFV then
@@ -5553,7 +5558,10 @@ END.
 
 {
  $Log$
- Revision 1.22  2002-05-23 10:27:12  pierre
+ Revision 1.23  2002-05-24 13:16:11  pierre
+  * add window number and resize handle
+
+ Revision 1.22  2002/05/23 10:27:12  pierre
   * avoid problems with shadows when moving or resizing a window
 
  Revision 1.21  2002/05/23 09:06:01  pierre
