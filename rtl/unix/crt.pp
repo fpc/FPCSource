@@ -112,14 +112,22 @@ Begin
    begin
      if x=ox then
       begin
-        XY2Ansi:='';
+	// this workaround should improve behaviour on some terminals.
+	// debian bug 216057 but I also observed this with video on FreeBSD
+	if x=screenwidth then
+ 	  XY2Ansi:=#27'['+Str(y)+';'+Str(x)+'H'
+	else
+       // end workaround
+          XY2Ansi:='';
         exit;
       end;
+    {$ifdef Linux}	// linux CRT shortcut
      if x=1 then
       begin
         XY2Ansi:=#13;
         exit;
       end;
+    {$endif}
      if x>ox then
       begin
         XY2Ansi:=#27'['+Str(x-ox)+'C';
@@ -144,9 +152,11 @@ Begin
         exit;
       end;
    end;
+  {$ifdef Linux}			// this shortcut isn't for everybody 
   if (x=1) and (oy+1=y) then
    XY2Ansi:=#13#10
   else
+  {$endif}
    XY2Ansi:=#27'['+Str(y)+';'+Str(x)+'H';
 End;
 
@@ -1611,7 +1621,10 @@ Finalization
 End.
 {
   $Log$
-  Revision 1.19  2004-07-09 19:03:35  peter
+  Revision 1.20  2004-07-20 09:26:04  marco
+   * some updates to xy2ansi
+
+  Revision 1.19  2004/07/09 19:03:35  peter
     * isatty return cint again
 
   Revision 1.17  2004/02/08 16:22:20  michael
