@@ -684,7 +684,7 @@ interface
        pbestrealtype : ^ttype = @s80floattype;
 {$endif}
 {$ifdef m68k}
-       pbestrealtype : ^ttype = @s64floattype;
+       pbestrealtype : ^ttype = @s32floattype;
 {$endif}
 {$ifdef alpha}
        pbestrealtype : ^ttype = @s64floattype;
@@ -5522,7 +5522,10 @@ Const local_symtable_index : longint = $8001;
 end.
 {
   $Log$
-  Revision 1.31  2001-05-06 14:49:17  peter
+  Revision 1.32  2001-05-09 19:58:45  peter
+    * m68k doesn't support double (merged)
+
+  Revision 1.31  2001/05/06 14:49:17  peter
     * ppu object to class rewrite
     * move ppu read and write stuff to fppu
 

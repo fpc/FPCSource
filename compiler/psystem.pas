@@ -246,7 +246,7 @@ begin
 {$endif}
 {$ifdef m68k}
   s32floattype.setdef(tfloatdef.create(s32real));
-  s64floattype.setdef(tfloatdef.create(s64real));
+  s64floattype.setdef(tfloatdef.create(s32real));
   if (cs_fp_emulation in aktmoduleswitches) then
    s80floattype.setdef(tfloatdef.create(s32real)))
   else
@@ -265,7 +265,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.15  2001-04-13 01:22:13  peter
+  Revision 1.16  2001-05-09 19:58:45  peter
+    * m68k doesn't support double (merged)
+
+  Revision 1.15  2001/04/13 01:22:13  peter
     * symtable change to classes
     * range check generation and errors fixed, make cycle DEBUG=1 works
     * memory leaks fixed
