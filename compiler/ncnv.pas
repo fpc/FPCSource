@@ -1232,7 +1232,8 @@ implementation
                 begin
                   if not(
                      (left.resulttype.def.deftype=formaldef) or
-                     (left.resulttype.def.size=resulttype.def.size) or
+                     (not(is_open_array(left.resulttype.def)) and
+                      (left.resulttype.def.size=resulttype.def.size)) or
                      (is_void(left.resulttype.def)  and
                       (left.nodetype=derefn))
                      ) then
@@ -2026,7 +2027,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.74  2002-09-01 08:01:16  daniel
+  Revision 1.75  2002-09-02 19:24:42  peter
+    * array of char support for Str()
+
+  Revision 1.74  2002/09/01 08:01:16  daniel
    * Removed sets from Tcallnode.det_resulttype
    + Added read/write notifications of variables. These will be usefull
      for providing information for several optimizations. For example

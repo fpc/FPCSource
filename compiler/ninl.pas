@@ -154,7 +154,8 @@ implementation
         is_real := source.resulttype.def.deftype = floatdef;
 
         if not assigned(dest) or
-           (dest.left.resulttype.def.deftype<>stringdef) or
+           ((dest.left.resulttype.def.deftype<>stringdef) and
+            not(is_chararray(dest.left.resulttype.def))) or
            not(is_real or
                (source.left.resulttype.def.deftype = orddef)) then
           begin
@@ -230,7 +231,10 @@ implementation
         left := nil;
 
         { create procedure name }
-        procname := 'fpc_' + tstringdef(dest.resulttype.def).stringtypname+'_';
+        if is_chararray(dest.resulttype.def) then
+          procname:='fpc_chararray_'
+        else
+          procname := 'fpc_' + tstringdef(dest.resulttype.def).stringtypname+'_';
         if is_real then
           procname := procname + 'float'
         else
@@ -2362,7 +2366,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.84  2002-08-19 19:36:43  peter
+  Revision 1.85  2002-09-02 19:24:42  peter
+    * array of char support for Str()
+
+  Revision 1.84  2002/08/19 19:36:43  peter
     * More fixes for cross unit inlining, all tnodes are now implemented
     * Moved pocall_internconst to po_internconst because it is not a
       calling type at all and it conflicted when inlining of these small

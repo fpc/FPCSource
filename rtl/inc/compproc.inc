@@ -61,6 +61,9 @@ function fpc_dynarray_copy(var p : pointer;ti : pointer;
 procedure fpc_ShortStr_Float(d : ValReal;len,fr,rt : longint;var s : shortstring); compilerproc;
 procedure fpc_ShortStr_Longint(v : longint;len : longint;var s : shortstring); compilerproc;
 procedure fpc_shortstr_cardinal(v : cardinal;len : longint;var s : shortstring); compilerproc;
+procedure fpc_chararray_Float(d : ValReal;len,fr,rt : longint;var a : array of char); compilerproc;
+procedure fpc_chararray_Longint(v : longint;len : longint;var a : array of char); compilerproc;
+procedure fpc_chararray_cardinal(v : cardinal;len : longint;var a : array of char); compilerproc;
 Function fpc_Val_SInt_ShortStr(DestSize: longint; Const S: ShortString; var Code: ValSInt): ValSInt; compilerproc;
 Function fpc_Val_UInt_Shortstr(Const S: ShortString; var Code: ValSInt): ValUInt; compilerproc;
 Function fpc_Val_Real_ShortStr(const s : shortstring; var code : ValSInt): ValReal; compilerproc;
@@ -262,7 +265,10 @@ function fpc_qword_to_double(q: qword): double; compilerproc;
 
 {
   $Log$
-  Revision 1.19  2002-08-20 18:24:05  jonas
+  Revision 1.20  2002-09-02 19:24:41  peter
+    * array of char support for Str()
+
+  Revision 1.19  2002/08/20 18:24:05  jonas
     * interface "as" helpers converted from procedures to functions
 
   Revision 1.18  2002/07/31 16:58:12  jonas

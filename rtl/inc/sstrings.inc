@@ -361,6 +361,55 @@ begin
 end;
 
 
+{
+   Array Of Char Str() helpers
+}
+
+procedure fpc_chararray_longint(v : longint;len : longint;var a:array of char);{$ifdef hascompilerproc} compilerproc; {$endif}
+var
+  ss : shortstring;
+  maxlen : longint;
+begin
+  int_str(v,ss);
+  if length(ss)<len then
+    ss:=space(len-length(ss))+ss;
+  if length(ss)<high(a)+1 then
+    maxlen:=length(ss)
+  else
+    maxlen:=high(a)+1;
+  move(ss[1],pchar(@a)^,maxlen);
+end;
+
+
+procedure fpc_chararray_cardinal(v : cardinal;len : longint;var a : array of char);{$ifdef hascompilerproc} compilerproc; {$endif}
+var
+  ss : shortstring;
+  maxlen : longint;
+begin
+  int_str(v,ss);
+  if length(ss)<len then
+    ss:=space(len-length(ss))+ss;
+  if length(ss)<high(a)+1 then
+    maxlen:=length(ss)
+  else
+    maxlen:=high(a)+1;
+  move(ss[1],pchar(@a)^,maxlen);
+end;
+
+
+procedure fpc_chararray_Float(d : ValReal;len,fr,rt : longint;var a : array of char);{$ifdef hascompilerproc}compilerproc;{$endif hascompilerproc}
+var
+  ss : shortstring;
+  maxlen : longint;
+begin
+  str_real(len,fr,d,treal_type(rt),ss);
+  if length(ss)<high(a)+1 then
+    maxlen:=length(ss)
+  else
+    maxlen:=high(a)+1;
+  move(ss[1],pchar(@a)^,maxlen);
+end;
+
 
 {*****************************************************************************
                            Val() Functions
@@ -403,7 +452,7 @@ begin
               repeat
                 inc(code);
               until (code>=length(s)) or (s[code]<>'0');
-            end;      
+            end;
      end;
   end;
   InitVal:=code;
@@ -611,7 +660,10 @@ end;
 
 {
   $Log$
-  Revision 1.19  2002-08-06 20:53:38  michael
+  Revision 1.20  2002-09-02 19:24:41  peter
+    * array of char support for Str()
+
+  Revision 1.19  2002/08/06 20:53:38  michael
     + Added support for octal strings (using &)
 
   Revision 1.18  2002/01/24 18:27:06  peter
