@@ -397,10 +397,18 @@ Procedure AddExitProc(Proc:TProcedure);
 {$endif RTLLITE}
 Procedure halt;
 
+{*****************************************************************************
+                          SetJmp/LongJmp
+*****************************************************************************}
+
+{$i setjumph.inc}
 
 {
   $Log$
-  Revision 1.19  1998-07-20 23:36:57  michael
+  Revision 1.20  1998-07-28 20:37:47  michael
+  + added setjmp/longjmp and exception support
+
+  Revision 1.19  1998/07/20 23:36:57  michael
   changes for ansistrings
 
   Revision 1.18  1998/07/18 17:14:24  florian

@@ -512,9 +512,25 @@ begin
   runerror (227);
 end;
 
+{*****************************************************************************
+      SetJmp/LongJmp support.
+*****************************************************************************}
+
+{$i setjump.inc}
+
+{*****************************************************************************
+      Exception support.
+*****************************************************************************}
+
+// No go, because objpas needed :( (MVC)
+{  $i except.inc}
+
 {
   $Log$
-  Revision 1.23  1998-07-23 19:53:20  michael
+  Revision 1.24  1998-07-28 20:37:45  michael
+  + added setjmp/longjmp and exception support
+
+  Revision 1.23  1998/07/23 19:53:20  michael
   + Adapted assert to Delphi format
 
   Revision 1.22  1998/07/23 13:08:41  michael
