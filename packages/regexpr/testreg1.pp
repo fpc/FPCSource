@@ -1,9 +1,9 @@
+program testreg1;
 uses
-   dpmiexcp,regexpr;
+   regexpr;
 
 var
    r : tregexprengine;
-   b : array[0..100] of char;
    index,len : longint;
 
 procedure do_error(i : longint);
