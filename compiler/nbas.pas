@@ -627,6 +627,7 @@ implementation
         new(n.tempinfo);
         fillchar(n.tempinfo^,sizeof(n.tempinfo^),0);
         n.tempinfo^.restype := tempinfo^.restype;
+        n.tempinfo^.temptype := tempinfo^.temptype;
 
         { when the tempinfo has already a hookoncopy then it is not
           reset by a tempdeletenode }
@@ -851,7 +852,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.56  2003-06-09 18:26:46  peter
+  Revision 1.57  2003-06-10 09:10:47  jonas
+    * patch from Peter to fix tempinfo copying
+
+  Revision 1.56  2003/06/09 18:26:46  peter
     * remove temptype, use tempinfo.temptype instead
 
   Revision 1.55  2003/06/09 12:20:47  peter
