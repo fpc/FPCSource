@@ -1762,6 +1762,7 @@ implementation
                internalerror(200411154);
              ppufile.getdata(paraloc[callerside].add_location^,sizeof(paraloc[callerside].location^));
              paraloc[callerside].size:=paraloc[callerside].location^.size;
+             paraloc[callerside].intsize:=tcgsize2size[paraloc[callerside].size];
            end;
          typ:=paravarsym;
       end;
@@ -2649,7 +2650,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.201  2005-02-14 17:13:07  peter
+  Revision 1.202  2005-03-14 15:59:18  peter
+    * also set intsize for paralocs written to ppu
+
+  Revision 1.201  2005/02/14 17:13:07  peter
     * truncate log
 
   Revision 1.200  2005/02/03 21:43:25  peter
