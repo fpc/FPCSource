@@ -497,8 +497,6 @@ interface
                                    const r:tsuperregisterset;
                                    var live_registers_int:Tsuperregisterworklist;
                                    const spilltemplist:Tspill_temp_list):boolean;virtual;
-          function spilling_decode_loadstore(op: tasmop; var counterpart: tasmop; var wasload: boolean): boolean;virtual;abstract;
-          function spilling_create_loadstore(op: tasmop; r:tregister; const ref:treference): tai;virtual;abstract;
           function spilling_create_load(const ref:treference;r:tregister): tai;virtual;abstract;
           function spilling_create_store(r:tregister; const ref:treference): tai;virtual;abstract;
           function spilling_get_operation_type(opnr: longint): topertype;virtual;abstract;
@@ -2210,7 +2208,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.62  2003-12-26 14:02:30  peter
+  Revision 1.63  2003-12-28 16:20:09  jonas
+    - removed unused methods from old generic spilling code
+
+  Revision 1.62  2003/12/26 14:02:30  peter
     * sparc updates
     * use registertype in spill_register
 

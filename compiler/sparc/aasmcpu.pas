@@ -66,8 +66,6 @@ uses
 
          { register spilling code }
          function spilling_get_operation_type(opnr: longint): topertype;override;
-         function spilling_decode_loadstore(op: tasmop; var counterpart: tasmop; var wasload: boolean): boolean;override;
-         function spilling_create_loadstore(op: tasmop; r:tregister; const ref:treference): tai;override;
          function spilling_create_load(const ref:treference;r:tregister): tai;override;
          function spilling_create_store(r:tregister; const ref:treference): tai;override;
       end;
@@ -254,81 +252,6 @@ implementation
       end;
 
 
-    function taicpu.spilling_decode_loadstore(op: tasmop; var counterpart: tasmop; var wasload: boolean): boolean;
-      begin
-         result := true;
-         wasload := true;
-         case op of
-           A_LDSB,
-           A_LDUB :
-             begin
-               counterpart := A_STB;
-             end;
-           A_LDSH,
-           A_LDUH:
-             begin
-               counterpart := A_STH;
-             end;
-           A_LD :
-             begin
-               counterpart := A_ST;
-               wasload := false;
-             end;
-           A_LDD:
-             begin
-               counterpart := A_STD;
-               wasload := false;
-             end;
-           A_STB:
-             begin
-               counterpart := A_LDUB;
-             end;
-           A_STH:
-             begin
-               counterpart := A_LDUH;
-             end;
-           A_ST :
-             begin
-               counterpart := A_LD;
-               wasload := false;
-             end;
-           A_STD:
-             begin
-               counterpart := A_LDD;
-               wasload := false;
-             end;
-           A_LDF:
-             begin
-               counterpart := A_STF;
-               wasload := false;
-             end;
-           A_LDDF:
-             begin
-               counterpart := A_STDF;
-               wasload := false;
-             end;
-           A_STF:
-             begin
-               counterpart := A_LDF;
-               wasload := false;
-             end;
-           A_STDF:
-             begin
-               counterpart := A_LDDF;
-               wasload := false;
-             end;
-           else
-             result := false;
-         end;
-      end;
-
-
-    function taicpu.spilling_create_loadstore(op: tasmop; r:tregister; const ref:treference): tai;
-      begin
-        result:=taicpu.op_reg_ref(opcode,r,ref);
-      end;
-
-
     function taicpu.spilling_create_load(const ref:treference;r:tregister): tai;
       begin
         result:=taicpu.op_ref_reg(A_LD,ref,r);
@@ -353,7 +276,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.39  2003-12-26 14:02:30  peter
+  Revision 1.40  2003-12-28 16:20:09  jonas
+    - removed unused methods from old generic spilling code
+
+  Revision 1.39  2003/12/26 14:02:30  peter
     * sparc updates
     * use registertype in spill_register
 

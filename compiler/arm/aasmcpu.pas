@@ -72,8 +72,6 @@ uses
          function is_reg_move:boolean; override;
 
          { register spilling code }
-         function spilling_decode_loadstore(op: tasmop; var counterpart: tasmop; var wasload: boolean): boolean;override;
-         function spilling_create_loadstore(op: tasmop; r:tregister; const ref:treference): tai;override;
          function spilling_create_load(const ref:treference;r:tregister): tai;override;
          function spilling_create_store(r:tregister; const ref:treference): tai;override;
 
@@ -300,34 +298,6 @@ implementation
       end;
 
 
-    function taicpu.spilling_decode_loadstore(op: tasmop; var counterpart: tasmop; var wasload: boolean): boolean;
-      begin
-        result := true;
-        wasload := true;
-        case op of
-          A_LDR:
-            begin
-              counterpart := A_STR;
-            end;
-          A_STR:
-            begin
-              wasload:=false;
-              counterpart := A_LDR;
-            end;
-          A_LDM:
-            internalerror(2003070602);
-          else
-            result := false;
-        end;
-      end;
-
-
-    function taicpu.spilling_create_loadstore(op: tasmop; r:tregister; const ref:treference): tai;
-      begin
-        result:=taicpu.op_reg_ref(opcode,r,ref);
-      end;
-
-
     function taicpu.spilling_create_load(const ref:treference;r:tregister): tai;
       begin
         result:=taicpu.op_reg_ref(A_LDR,r,ref);
@@ -374,7 +344,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.19  2003-12-26 14:02:30  peter
+  Revision 1.20  2003-12-28 16:20:09  jonas
+    - removed unused methods from old generic spilling code
+
+  Revision 1.19  2003/12/26 14:02:30  peter
     * sparc updates
     * use registertype in spill_register
 
