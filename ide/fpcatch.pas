@@ -159,7 +159,7 @@ begin
     exit;
 {$ifdef win32}
   if GetConsoleMode(GetStdHandle(Std_Input_Handle), @Mode) then
-    SetConsoleMode(GetStdHandle(Std_Input_Handle), Mode and not ENABLE_PROCESSED_INPUT);
+    SetConsoleMode(GetStdHandle(Std_Input_Handle), (Mode or ENABLE_MOUSE_INPUT) and not ENABLE_PROCESSED_INPUT);
 {$endif win32}
 {$ifdef go32v2}
   djgpp_set_ctrl_c(false);
@@ -195,7 +195,10 @@ end.
 
 {
   $Log$
-  Revision 1.2  2001-08-05 02:01:47  peter
+  Revision 1.3  2001-10-24 14:17:27  pierre
+   * try to fix the Win2000 mouse problem
+
+  Revision 1.2  2001/08/05 02:01:47  peter
     * FVISION define to compile with fvision units
 
   Revision 1.1  2001/08/04 11:30:22  peter

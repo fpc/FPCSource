@@ -790,7 +790,7 @@ procedure TWin32Screen.SwitchBackToIDEScreen;
 begin
   SetConsoleActiveScreenBuffer(IDEScreenBufferHandle);
   SetStdHandle(Std_Output_Handle,IDEScreenBufferHandle);
-  IdeMode:=IdeMode and not ENABLE_PROCESSED_INPUT;
+  IdeMode:=(IdeMode or ENABLE_MOUSE_INPUT) and not ENABLE_PROCESSED_INPUT;
   SetConsoleMode(GetStdHandle(Std_Input_Handle), IdeMode);
   IDEActive:=true;
 end;
@@ -834,7 +834,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.3  2001-09-09 20:44:53  carl
+  Revision 1.4  2001-10-24 14:17:27  pierre
+   * try to fix the Win2000 mouse problem
+
+  Revision 1.3  2001/09/09 20:44:53  carl
   * bugfix of console sharing mode (on NT this would bug all
   std_input access).
 

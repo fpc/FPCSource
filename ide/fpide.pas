@@ -277,7 +277,7 @@ begin
   Insert(HeapView);
   Drivers.ShowMouse;
 {$ifdef win32}
-  Win32ShowMouse;
+  // Win32ShowMouse;
 {$endif win32}
 end;
 
@@ -794,6 +794,9 @@ begin
   InitSysError;
   CurDirChanged;
   Message(Application,evBroadcast,cmUpdate,nil);
+{$ifdef win32}
+  Win32ShowMouse;
+{$endif win32}
   if Assigned(UserScreen) then
     UserScreen^.SwitchBackToIDEScreen;
 {$ifdef Unix}
@@ -802,9 +805,6 @@ begin
 {$ifndef go32v2}
   UpdateScreen(true);
 {$endif go32v2}
-{$ifdef win32}
-  Win32ShowMouse;
-{$endif win32}
 end;
 
 function TIDEApp.AutoSave: boolean;
@@ -1167,7 +1167,10 @@ end;
 END.
 {
   $Log$
-  Revision 1.5  2001-10-02 23:56:30  pierre
+  Revision 1.6  2001-10-24 14:17:27  pierre
+   * try to fix the Win2000 mouse problem
+
+  Revision 1.5  2001/10/02 23:56:30  pierre
    * fix bug 1619 by using wconsole unit
 
   Revision 1.4  2001/10/01 00:24:09  pierre
