@@ -1365,9 +1365,9 @@
          definition:=def;
          value:=v;
          if def^.min>v then
-           def^.min:=v;
+           def^.setmin(v);
          if def^.max<v then
-           def^.max:=v;
+           def^.setmax(v);
 {$ifdef GDB}
          order;
 {$endif GDB}
@@ -1484,12 +1484,12 @@
       begin
          resolvedef(definition);
          if assigned(definition) then
-	  begin
+          begin
             if definition^.sym=nil then
              definition^.sym:=@self;
             if definition^.deftype=recorddef then
              precdef(definition)^.symtable^.name:=stringdup('record '+name);
-	  end;   
+          end;
       end;
 
 
@@ -1606,7 +1606,10 @@
 
 {
   $Log$
-  Revision 1.37  1998-09-01 07:54:25  pierre
+  Revision 1.38  1998-09-01 12:53:26  peter
+    + aktpackenum
+
+  Revision 1.37  1998/09/01 07:54:25  pierre
     * UseBrowser a little updated (might still be buggy !!)
     * bug in psub.pas in function specifier removed
     * stdcall allowed in interface and in implementation

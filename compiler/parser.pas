@@ -212,6 +212,7 @@ unit parser;
          aktlocalswitches:=initlocalswitches;
          aktmoduleswitches:=initmoduleswitches;
          aktpackrecords:=initpackrecords;
+         aktpackenum:=initpackenum;
          aktoutputformat:=initoutputformat;
          aktoptprocessor:=initoptprocessor;
          aktasmmode:=initasmmode;
@@ -370,7 +371,10 @@ unit parser;
 end.
 {
   $Log$
-  Revision 1.40  1998-09-01 07:54:19  pierre
+  Revision 1.41  1998-09-01 12:53:24  peter
+    + aktpackenum
+
+  Revision 1.40  1998/09/01 07:54:19  pierre
     * UseBrowser a little updated (might still be buggy !!)
     * bug in psub.pas in function specifier removed
     * stdcall allowed in interface and in implementation

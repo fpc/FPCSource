@@ -878,7 +878,10 @@ unit types;
 end.
 {
   $Log$
-  Revision 1.21  1998-08-19 00:42:45  peter
+  Revision 1.22  1998-09-01 12:53:28  peter
+    + aktpackenum
+
+  Revision 1.21  1998/08/19 00:42:45  peter
     + subrange types for enums
     + checking for bounds type with ranges
 
@@ -899,26 +902,6 @@ end.
 
   Revision 1.17  1998/08/05 16:00:17  florian
     * some fixes for ansi strings
-    * $log$ to $Log$
-    * $log$ to Revision 1.21  1998-08-19 00:42:45  peter
-    * $log$ to   + subrange types for enums
-    * $log$ to   + checking for bounds type with ranges
-    * $log$ to
-    * $log$ to Revision 1.20  1998/08/18 14:17:14  pierre
-    * $log$ to   * bug about assigning the return value of a function to
-    * $log$ to     a procvar fixed : warning
-    * $log$ to     assigning a proc to a procvar need @ in FPC mode !!
-    * $log$ to   * missing file/line info restored
-    * $log$ to
-    * $log$ to Revision 1.19  1998/08/18 09:24:48  pierre
-    * $log$ to   * small warning position bug fixed
-    * $log$ to   * support_mmx switches splitting was missing
-    * $log$ to   * rhide error and warning output corrected
-    * $log$ to
-    * $log$ to Revision 1.18  1998/08/14 18:18:49  peter
-    * $log$ to   + dynamic set contruction
-    * $log$ to   * smallsets are now working (always longint size)
-    * $log$ to changed
 
   Revision 1.16  1998/07/20 23:35:50  michael
   Const ansistrings are not copied.

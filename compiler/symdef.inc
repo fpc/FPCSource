@@ -533,47 +533,94 @@
       begin
          tdef.init;
          deftype:=enumdef;
-         min:=0;
-         max:=0;
-         savesize:=Sizeof(longint);
+         minval:=0;
+         maxval:=0;
+         calcsavesize;
          has_jumps:=false;
          basedef:=nil;
          first:=nil;
       end;
 
+
     constructor tenumdef.init_subrange(_basedef:penumdef;_min,_max:longint);
       begin
          tdef.init;
          deftype:=enumdef;
-         min:=_min;
-         max:=_max;
+         minval:=_min;
+         maxval:=_max;
          basedef:=_basedef;
-         savesize:=Sizeof(longint);
+         calcsavesize;
          has_jumps:=false;
          first:=nil;
       end;
+
 
     constructor tenumdef.load;
       begin
          tdef.load;
          deftype:=enumdef;
          basedef:=penumdef(readdefref);
-         min:=readlong;
-         max:=readlong;
-         savesize:=Sizeof(longint);
+         minval:=readlong;
+         maxval:=readlong;
+         savesize:=readlong;
          has_jumps:=false;
          first:=Nil;
       end;
+
+
+    procedure tenumdef.calcsavesize;
+      var
+        len : longint;
+      begin
+        len:=max-min;
+        if (aktpackenum=4) or (len>65535) then
+         savesize:=4
+        else
+         if (aktpackenum=2) or (len>255) then
+          savesize:=2
+        else
+         savesize:=1;
+      writeln('enum: ',aktpackenum,' save: ',savesize);
+      end;
+
+
+    procedure tenumdef.setmax(_max:longint);
+      begin
+        maxval:=_max;
+        calcsavesize;
+      end;
+
+
+    procedure tenumdef.setmin(_min:longint);
+      begin
+        minval:=_min;
+        calcsavesize;
+      end;
+
+
+    function tenumdef.min:longint;
+      begin
+        min:=minval;
+      end;
+
+
+    function tenumdef.max:longint;
+      begin
+        max:=maxval;
+      end;
+
 
     procedure tenumdef.deref;
       begin
         resolvedef(pdef(basedef));
       end;
 
+
     destructor tenumdef.done;
       begin
         inherited done;
       end;
+
 
     procedure tenumdef.write;
       begin
@@ -581,6 +628,7 @@
          writedefref(basedef);
          writelong(min);
          writelong(max);
+         writelong(savesize);
          current_ppu^.writeentry(ibenumdef);
       end;
 
@@ -1480,10 +1528,8 @@
          while assigned(hp) do
            begin
               hp^.deref;
-
               { set owner }
               hp^.owner:=symtable;
-
               hp:=hp^.next;
            end;
          {$ifdef tp}
@@ -2262,14 +2308,14 @@
          name:=stringdup(readstring);
          childof:=pobjectdef(readdefref);
          options:=readlong;
-	 
+        
          oldread_member:=read_member;
          read_member:=true;
          object_options:=true;
          publicsyms:=new(psymtable,loadasstruct(objectsymtable));
          object_options:=false;
          read_member:=oldread_member;
-	 
+        
          publicsyms^.defowner:=@self;
          publicsyms^.datasize:=savesize;
          publicsyms^.name := stringdup(name^);
@@ -2404,7 +2450,7 @@
          writedefref(childof);
          writelong(options);
          current_ppu^.writeentry(ibobjectdef);
-	 
+        
          oldread_member:=read_member;
          read_member:=true;
          object_options:=true;
@@ -2556,7 +2602,7 @@
          { generate the name }
          rttilist^.concat(new(pai_const,init_8bit(length(name^))));
          rttilist^.concat(new(pai_string,init(name^)));
-         
+
          rttilist^.concat(new(pai_const,init_32bit(size)));
          count:=0;
          publicsyms^.foreach(count_field);
@@ -2583,7 +2629,10 @@
 
 {
   $Log$
-  Revision 1.28  1998-09-01 07:54:22  pierre
+  Revision 1.29  1998-09-01 12:53:25  peter
+    + aktpackenum
+
+  Revision 1.28  1998/09/01 07:54:22  pierre
     * UseBrowser a little updated (might still be buggy !!)
     * bug in psub.pas in function specifier removed
     * stdcall allowed in interface and in implementation
