@@ -168,7 +168,8 @@ Let's get on with something useful.
 The compiler needs at least the following hardware:
 \begin{enumerate}
 \item An I386 or higher processor. A coprocessor is not required, although it
-will slow down your program's performance if you do floating point calculations.
+will slow down your program's performance if you do floating point calculations
+without a coprocessor, since an emulation will be used.
 \item 4 Mb of free memory. Under \dos, if you use DPMI memory management,
 such as under Windows, you will need at least 16 Mb.
 \item At least 500 Kb. free disk space.
@@ -1502,6 +1503,10 @@ which were possible in Turbo Pascal are no longer possible in Free Pascal.
 \item A file is opened for output only (using \var{fmOutput}) when it is
 opened with \var{Rewrite}. In order to be able to read from it, it should
 be reset with \var{Reset}.
+\item Destructors cannot have parameters. This restriction can be solved by 
+using the \var{-So} switch.
+\item There can be only one destructor. This restriction can also be 
+solved by using the \var{-So} switch.
 \item The order in which expressions are evaluated is not necessarily the
 same. In the following expression:
 \begin{verbatim}
@@ -1615,9 +1620,9 @@ attempt to mimic the Turbo Pascal compiler in the following ways:
 the differences between Turbo Pascal and \fpc is that the latter requires
 you to specify an address operator when assigning a value to a procedural
 variable. In Turbo Pascal compatibility mode, this is not required.
-\item Procedure overloading is disabled. This means that function header and
-implementation can be different (i.e. the function iplementation doesn't
-need to repeat the function header).
+\item Procedure overloading is disabled. If procedure overloading is
+disabled, the function header doesn't need to repeat the function header.
+
 \item Forward defined procedures don't need the full parameter list when
 they are defined. Due to the procedure overloading feature of \fpc, you must
 always specify the parameter list of a function when you define it, even
