@@ -133,14 +133,29 @@ end;
 
 Function ParamStr(Param : Integer) : Ansistring;
 
-  begin
-     paramstr:=system.paramstr(Param);
+Var Len : longint;
+
+begin
+    if (Param>=0) and (Param<argc) then
+      begin
+      Len:=0;
+      While Argv[Param][Len]<>#0 do 
+        Inc(len);
+      SetLength(Result,Len);
+      If Len>0 then 
+        Move(Argv[Param][0],Result[1],Len);
+      end
+    else
+      paramstr:='';
   end;
 
 end.
 {
   $Log$
-  Revision 1.25  1999-07-06 22:44:22  florian
+  Revision 1.26  1999-07-07 10:04:04  michael
+  + Paramstr now returns cmdline args >255 chars in ansistring objpas.pp
+
+  Revision 1.25  1999/07/06 22:44:22  florian
     + implemented a paramstr function which returns an ansistring, nevertheless
       it is limited to 255 chars because it maps to the system.paramstr, maybe
       we should use cmdline instead
