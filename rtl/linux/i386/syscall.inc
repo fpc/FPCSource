@@ -84,6 +84,7 @@ asm
   jmp   .LNoThread
 .LThread:
   movl  %eax,%ebx
+  movl Errno,%eax
   call  *%ecx
   movl  %ebx,(%eax)
 .LNoThread:
@@ -129,6 +130,7 @@ asm
   jmp   .LNoThread
 .LThread:
   movl  %eax,%ebx
+  movl Errno,%eax
   call  *%ecx
   movl  %ebx,(%eax)
 .LNoThread:
@@ -175,6 +177,7 @@ asm
   jmp   .LNoThread
 .LThread:
   movl  %eax,%ebx
+  movl Errno,%eax
   call  *%ecx
   movl  %ebx,(%eax)
 .LNoThread:
@@ -222,6 +225,7 @@ asm
   jmp   .LNoThread
 .LThread:
   movl  %eax,%ebx
+  movl Errno,%eax
   call  *%ecx
   movl  %ebx,(%eax)
 .LNoThread:
@@ -270,6 +274,7 @@ asm
   jmp   .LNoThread
 .LThread:
   movl  %eax,%ebx
+  movl Errno,%eax
   call  *%ecx
   movl  %ebx,(%eax)
 .LNoThread:
@@ -320,6 +325,7 @@ asm
   jmp   .LNoThread
 .LThread:
   movl  %eax,%ebx
+  movl Errno,%eax
   call  *%ecx
   movl  %ebx,(%eax)
 .LNoThread:
@@ -352,7 +358,10 @@ end;
 
 {
   $Log$
-  Revision 1.15  2004-05-28 21:41:49  marco
+  Revision 1.16  2004-05-28 21:43:25  marco
+   * and now for others too
+
+  Revision 1.15  2004/05/28 21:41:49  marco
    * added mov errno,%eax
 
   Revision 1.14  2004/03/10 21:41:53  jonas
