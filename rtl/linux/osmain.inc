@@ -377,7 +377,6 @@ Begin
    InOutRes:=0;
 End;
 
-
 Procedure RmDir(Const s: String);[IOCheck];
 Var
   Buffer: Array[0..255] of Char;
@@ -412,8 +411,6 @@ Begin
    InOutRes:=3;
 End;
 
-{ // $define usegetcwd}
-
 procedure getdir(drivenr : byte;var dir : shortstring);
 var
 {$ifndef usegetcwd}
@@ -424,13 +421,20 @@ var
   d            : pdirent;
   name         : string[255];
   thisdir      : stat;
-{$endif}
   tmp          : string[255];
+{$else}
+  tmp	       : array[0..4095] of char;
+{$endif}
 
 begin
 {$ifdef usegetcwd}
- Fpgetcwd(@tmp[1],255);
- dir:=tmp;
+ if Fpgetcwd(@tmp,10240+512)<>NIL then
+  dir:=pchar(@tmp)
+ else 
+  begin
+    dir:='';
+    writeln(geterrno);
+  end;
 {$else}
   dir:='';
   thedir:='';
@@ -515,7 +519,6 @@ begin
   FpSigAction(SIGILL,@act,@oldact);
 end;
 
-
 procedure SetupCmdLine;
 var
   bufsize,
@@ -574,27 +577,12 @@ begin
   FreeMem(buf,ARG_MAX);
 end;
 
-(*
-Begin
-{ Set up signals handlers }
-   InstallSignals;
-{ Setup heap }
-  InitHeap;
-  InitExceptions;
-{ Arguments }
-  SetupCmdLine;
-{ Setup stdin, stdout and stderr }
-  OpenStdIO(Input,fmInput,StdInputHandle);
-  OpenStdIO(Output,fmOutput,StdOutputHandle);
-  OpenStdIO(StdOut,fmOutput,StdOutputHandle);
-  OpenStdIO(StdErr,fmOutput,StdErrorHandle);
-{ Reset IO Error }
-  InOutRes:=0;
-End.
-*)
 {
  $Log$
- Revision 1.11  2003-12-30 16:26:10  marco
+ Revision 1.12  2004-01-01 14:19:55  marco
+  * use_getcwd updates because FPC_USE_LIBC uses that
+
+ Revision 1.11  2003/12/30 16:26:10  marco
   * some more fixes. Testing on idefix
 
  Revision 1.10  2003/12/21 20:30:49  peter
