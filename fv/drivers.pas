@@ -63,6 +63,10 @@ USES
          Windows,                                     { Standard unit }
    {$ENDIF}
 
+   {$ifdef OS_DOS}
+     Dos,
+   {$endif OS_DOS}
+
    {$IFDEF OS_OS2}                                    { OS2 CODE }
      {$IFDEF PPC_Virtual}                             { VIRTUAL PASCAL UNITS }
        OS2Def, OS2Base, OS2PMAPI,                     { Standard units }
@@ -748,17 +752,15 @@ var
 
 
 procedure GiveUpTimeSlice;
-{$ifdef GO32V2}{$define DOS}{$endif}
-{$ifdef TP}{$define DOS}{$endif}
-{$ifdef DOS}
+{$IFDEF OS_DOS}
 var r: registers;
 begin
   Intr ($28, R); (* This is supported everywhere. *)
   r.ax:=$1680;
   intr($2f,r);
 end;
-{$endif}
-{$ifdef Unix}
+{$ENDIF}
+{$IFDEF OS_UNIX}
   var
     req,rem : timespec;
 begin
@@ -766,13 +768,13 @@ begin
   req.tv_nsec:=10000000;{ 10 ms }
   {$ifdef ver1_0}nanosleep(req,rem){$else}fpnanosleep(@req,@rem){$endif};
 end;
-{$endif}
-{$IFDEF OS2}
+{$ENDIF}
+{$IFDEF OS_OS2}
 begin
  DosSleep (5);
 end;
 {$ENDIF}
-{$ifdef Win32}
+{$IFDEF OS_WINDOWS}
 begin
   { if the return value of this call is non zero then
     it means that a ReadFileEx or WriteFileEx have completed
@@ -784,14 +786,17 @@ begin
         if we use them }
     end;
 end;
-{$endif}
-{$undef DOS}
-{$ifdef netwlibc} {$define netware} {$endif}
-{$ifdef netware}
-begin
-  Delay (10);
-end;
-{$endif}
+{$ENDIF}
+{$IFDEF OS_NETWARE_LIBC}
+  begin
+    Delay (10);
+  end;
+{$ENDIF}
+{$IFDEF OS_NETWARE_CLIB}
+  begin
+    Delay (10);
+  end;
+{$ENDIF}
 
 
 {---------------------------------------------------------------------------}
@@ -1528,7 +1533,10 @@ BEGIN
 END.
 {
  $Log$
- Revision 1.50  2004-12-22 15:27:30  peter
+ Revision 1.51  2004-12-23 16:19:57  peter
+ add uses dos for OS_DOS
+
+ Revision 1.50  2004/12/22 15:27:30  peter
    * call giveuptimeslice to prevent busy loop with idle
 
  Revision 1.49  2004/12/18 16:18:47  peter
