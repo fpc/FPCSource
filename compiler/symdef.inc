@@ -387,7 +387,7 @@
 
     procedure tstringdef.write;
       begin
-{$ifndef NEWPPU}
+{$ifdef OLDPPU}
          case string_typ of
             shortstring:
               writebyte(ibstringdef);
@@ -404,7 +404,7 @@
            writebyte(len)
          else
            writelong(len);
-{$ifdef NEWPPU}
+{$ifndef OLDPPU}
          case string_typ of
            shortstring : current_ppu^.writeentry(ibstringdef);
             longstring : current_ppu^.writeentry(iblongstringdef);
@@ -529,12 +529,12 @@
     procedure tenumdef.write;
 
       begin
-{$ifndef NEWPPU}
+{$ifdef OLDPPU}
          writebyte(ibenumdef);
 {$endif}
          tdef.write;
          writelong(max);
-{$ifdef NEWPPU}
+{$ifndef OLDPPU}
          current_ppu^.writeentry(ibenumdef);
 {$endif}
       end;
@@ -691,14 +691,14 @@
 
     procedure torddef.write;
       begin
-{$ifndef NEWPPU}
+{$ifdef OLDPPU}
          writebyte(iborddef);
 {$endif}
          tdef.write;
          writebyte(byte(typ));
          writelong(low);
          writelong(high);
-{$ifdef NEWPPU}
+{$ifndef OLDPPU}
          current_ppu^.writeentry(iborddef);
 {$endif}
       end;
@@ -766,12 +766,12 @@
 
     procedure tfloatdef.write;
       begin
-{$ifndef NEWPPU}
+{$ifdef OLDPPU}
          writebyte(ibfloatdef);
 {$endif}
          tdef.write;
          writebyte(byte(typ));
-{$ifdef NEWPPU}
+{$ifndef OLDPPU}
          current_ppu^.writeentry(ibfloatdef);
 {$endif}
       end;
@@ -884,14 +884,14 @@
 
     procedure tfiledef.write;
       begin
-{$ifndef NEWPPU}
+{$ifdef OLDPPU}
          writebyte(ibfiledef);
 {$endif}
          tdef.write;
          writebyte(byte(filetype));
          if filetype=ft_typed then
            writedefref(typed_as);
-{$ifdef NEWPPU}
+{$ifndef OLDPPU}
          current_ppu^.writeentry(ibfiledef);
 {$endif}
       end;
@@ -1007,12 +1007,12 @@
 
     procedure tpointerdef.write;
       begin
-{$ifndef NEWPPU}
+{$ifdef OLDPPU}
          writebyte(ibpointerdef);
 {$endif}
          tdef.write;
          writedefref(definition);
-{$ifdef NEWPPU}
+{$ifndef OLDPPU}
          current_ppu^.writeentry(ibpointerdef);
 {$endif}
       end;
@@ -1093,12 +1093,12 @@
 
     procedure tclassrefdef.write;
       begin
-{$ifndef NEWPPU}
+{$ifdef OLDPPU}
          writebyte(ibclassrefdef);
 {$endif}
          tdef.write;
          writedefref(definition);
-{$ifdef NEWPPU}
+{$ifndef OLDPPU}
          current_ppu^.writeentry(ibclassrefdef);
 {$endif}
       end;
@@ -1168,7 +1168,7 @@
 
     procedure tsetdef.write;
       begin
-{$ifndef NEWPPU}
+{$ifdef OLDPPU}
          writebyte(ibsetdef);
 {$endif}
          tdef.write;
@@ -1176,7 +1176,7 @@
          writebyte(byte(settype));
          if settype=varset then
            writelong(savesize);
-{$ifdef NEWPPU}
+{$ifndef OLDPPU}
          current_ppu^.writeentry(ibsetdef);
 {$endif}
       end;
@@ -1235,11 +1235,11 @@
     procedure tformaldef.write;
 
       begin
-{$ifndef NEWPPU}
+{$ifdef OLDPPU}
          writebyte(ibformaldef);
 {$endif}
          tdef.write;
-{$ifdef NEWPPU}
+{$ifndef OLDPPU}
          current_ppu^.writeentry(ibformaldef);
 {$endif}
       end;
@@ -1318,7 +1318,7 @@
     procedure tarraydef.write;
 
       begin
-{$ifndef NEWPPU}
+{$ifdef OLDPPU}
          writebyte(ibarraydef);
 {$endif}
          tdef.write;
@@ -1326,7 +1326,7 @@
          writedefref(rangedef);
          writelong(lowrange);
          writelong(highrange);
-{$ifdef NEWPPU}
+{$ifndef OLDPPU}
          current_ppu^.writeentry(ibarraydef);
 {$endif}
       end;
@@ -1477,12 +1477,12 @@
       begin
          oldread_member:=read_member;
          read_member:=true;
-{$ifndef NEWPPU}
+{$ifdef OLDPPU}
          writebyte(ibrecorddef);
 {$endif}
          tdef.write;
          writelong(savesize);
-{$ifdef NEWPPU}
+{$ifndef OLDPPU}
          current_ppu^.writeentry(ibrecorddef);
 {$endif}
          self.symtable^.writeasstruct;
@@ -1867,7 +1867,7 @@
 
 {$ifdef UseBrowser}
 
-{$ifdef NEWPPU}
+{$ifndef OLDPPU}
 
     procedure tprocdef.load_references;
       var
@@ -1906,7 +1906,7 @@
         lastwritten:=lastref;
       end;
 
-{$else NEWPPU}
+{$else OLDPPU}
 
     procedure tprocdef.load_references;
       var
@@ -1977,7 +1977,7 @@
       end;
 
 
-{$endif NEWPPU}
+{$endif OLDPPU}
 
     procedure tprocdef.add_to_browserlog;
       begin
@@ -2011,7 +2011,7 @@
 
     procedure tprocdef.write;
       begin
-{$ifndef NEWPPU}
+{$ifdef OLDPPU}
          writebyte(ibprocdef);
 {$endif}
          inherited write;
@@ -2048,7 +2048,7 @@
                writeptree(ptree(code));
                }
            end;
-{$ifdef NEWPPU}
+{$ifndef OLDPPU}
          current_ppu^.writeentry(ibprocdef);
 {$endif}
       end;
@@ -2204,7 +2204,7 @@
 
     procedure tprocvardef.write;
       begin
-{$ifndef NEWPPU}
+{$ifdef OLDPPU}
          writebyte(ibprocvardef);
 {$endif}
          { here we cannot get a real good value so just give something }
@@ -2216,7 +2216,7 @@
            fpu_used:=0;
 {$endif StoreFPULevel}
          inherited write;
-{$ifdef NEWPPU}
+{$ifndef OLDPPU}
          current_ppu^.writeentry(ibprocvardef);
 {$endif}
       end;
@@ -2460,7 +2460,7 @@
       begin
          oldread_member:=read_member;
          read_member:=true;
-{$ifndef NEWPPU}
+{$ifdef OLDPPU}
          writebyte(ibobjectdef);
 {$endif}
          tdef.write;
@@ -2468,7 +2468,7 @@
          writestring(name^);
          writedefref(childof);
          writelong(options);
-{$ifdef NEWPPU}
+{$ifndef OLDPPU}
          current_ppu^.writeentry(ibobjectdef);
 {$endif}
          if (options and (oo_hasprivate or oo_hasprotected))<>0 then
@@ -2644,7 +2644,10 @@
 
 {
   $Log$
-  Revision 1.14  1998-06-16 08:56:31  peter
+  Revision 1.15  1998-06-24 14:48:37  peter
+    * ifdef newppu -> ifndef oldppu
+
+  Revision 1.14  1998/06/16 08:56:31  peter
     + targetcpu
     * cleaner pmodules for newppu
 
@@ -2697,7 +2700,7 @@
 
   Revision 1.1  1998/05/27 19:45:09  peter
     * symtable.pas splitted into includefiles
-    * symtable adapted for $ifdef NEWPPU
+    * symtable adapted for $ifndef OLDPPU
 
 }
 

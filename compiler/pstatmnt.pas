@@ -41,7 +41,7 @@ unit pstatmnt;
     uses
        cobjects,globals,files,verbose,systems,
        symtable,aasm,pass_1,types,scanner,hcodegen
-{$ifdef NEWPPU}
+{$ifndef OLDPPU}
        ,ppu
 {$endif}
        ,pbase,pexpr,pdecl
@@ -1136,7 +1136,10 @@ unit pstatmnt;
 end.
 {
   $Log$
-  Revision 1.21  1998-06-24 14:06:34  peter
+  Revision 1.22  1998-06-24 14:48:36  peter
+    * ifdef newppu -> ifndef oldppu
+
+  Revision 1.21  1998/06/24 14:06:34  peter
     * fixed the name changes
 
   Revision 1.20  1998/06/23 14:00:16  peter

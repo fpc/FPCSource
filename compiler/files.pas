@@ -27,7 +27,7 @@ unit files;
 
     uses
        cobjects,globals
-{$ifdef NEWPPU}
+{$ifndef OLDPPU}
        ,ppu
 {$endif}
        ;
@@ -89,7 +89,7 @@ unit files;
 
        pmodule = ^tmodule;
        tmodule = object(tlinkedlist_item)
-{$ifdef NEWPPU}
+{$ifndef OLDPPU}
           ppufile       : pppufile; { the PPU file }
 {$else}
           ppufile       : pextfile; { the PPU file }
@@ -131,13 +131,13 @@ unit files;
           mainsource    : pstring;  { name of the main sourcefile }
 
           constructor init(const s:string;_is_unit:boolean);
-{$ifdef NEWPPU}
+{$ifndef OLDPPU}
           destructor done;virtual;
 {$else}
           destructor special_done;virtual; { this is to be called only when compiling again }
-{$endif NEWPPU}
+{$endif OLDPPU}
           procedure setfilename(const _path,name:string);
-{$ifdef NEWPPU}
+{$ifndef OLDPPU}
           function  openppu:boolean;
 {$else}
           function  load_ppu(const unit_path,n,ext:string):boolean;
@@ -148,21 +148,21 @@ unit files;
        pused_unit = ^tused_unit;
        tused_unit = object(tlinkedlist_item)
           unitid          : word;
-{$ifdef NEWPPU}
+{$ifndef OLDPPU}
           name            : pstring;
           checksum        : longint;
           loaded          : boolean;
-{$endif NEWPPU}
+{$endif OLDPPU}
           in_uses,
           in_interface,
           is_stab_written : boolean;
           u               : pmodule;
-{$ifdef NEWPPU}
+{$ifndef OLDPPU}
           constructor init(_u : pmodule;intface:boolean);
           constructor init_to_load(const n:string;c:longint;intface:boolean);
-{$else NEWPPU}
+{$else OLDPPU}
           constructor init(_u : pmodule;f : byte);
-{$endif NEWPPU}
+{$endif OLDPPU}
           destructor done;virtual;
        end;
 
@@ -239,7 +239,7 @@ unit files;
     var
        main_module    : pmodule;     { Main module of the program }
        current_module : pmodule;     { Current module which is compiled }
-{$ifdef NEWPPU}
+{$ifndef OLDPPU}
        current_ppu    : pppufile;    { Current ppufile which is read }
 {$endif}
        global_unit_count : word;
@@ -380,7 +380,7 @@ unit files;
          libfilename:=stringdup(s+target_os.staticlibext);
       end;
 
-{$ifdef NEWPPU}
+{$ifndef OLDPPU}
 
     function tmodule.openppu:boolean;
       var
@@ -552,7 +552,7 @@ unit files;
          search_unit:=Found;
       end;
 
-{$else NEWPPU}
+{$else OLDPPU}
 
 {*****************************************************************************
 
@@ -804,7 +804,7 @@ unit files;
          search_unit:=Found;
       end;
 
-{$endif NEWPPU}
+{$endif OLDPPU}
 
 
     constructor tmodule.init(const s:string;_is_unit:boolean);
@@ -861,7 +861,7 @@ unit files;
       end;
 
 
-{$ifdef NEWPPU}
+{$ifndef OLDPPU}
     destructor tmodule.done;
       begin
         if assigned(map) then
@@ -905,13 +905,13 @@ unit files;
          inherited done;
       end;
 
-{$endif NEWPPU}
+{$endif OLDPPU}
 
 {****************************************************************************
                               TUSED_UNIT
  ****************************************************************************}
 
-{$ifdef NEWPPU}
+{$ifndef OLDPPU}
 
     constructor tused_unit.init(_u : pmodule;intface:boolean);
       begin
@@ -945,7 +945,7 @@ unit files;
         inherited done;
       end;
 
-{$else NEWPPU}
+{$else OLDPPU}
 
     constructor tused_unit.init(_u : pmodule;f : byte);
       begin
@@ -961,14 +961,17 @@ unit files;
         inherited done;
       end;
 
-{$endif NEWPPU}
+{$endif OLDPPU}
 
 
 end.
 {
   $Log$
-  Revision 1.26  1998-06-17 14:36:19  peter
-    * forgot an $ifdef NEWPPU :(
+  Revision 1.27  1998-06-24 14:48:34  peter
+    * ifdef newppu -> ifndef oldppu
+
+  Revision 1.26  1998/06/17 14:36:19  peter
+    * forgot an $ifndef OLDPPU :(
 
   Revision 1.25  1998/06/17 14:10:11  peter
     * small os2 fixes
@@ -1019,7 +1022,7 @@ end.
 
   Revision 1.14  1998/05/27 19:45:02  peter
     * symtable.pas splitted into includefiles
-    * symtable adapted for $ifdef NEWPPU
+    * symtable adapted for $ifndef OLDPPU
 
   Revision 1.13  1998/05/23 01:21:05  peter
     + aktasmmode, aktoptprocessor, aktoutputformat
@@ -1047,7 +1050,7 @@ end.
     - removed old style messages
 
   Revision 1.10  1998/05/11 13:07:53  peter
-    + $ifdef NEWPPU for the new ppuformat
+    + $ifndef OLDPPU for the new ppuformat
     + $define GDB not longer required
     * removed all warnings and stripped some log comments
     * no findfirst/findnext anymore to remove smartlink *.o files

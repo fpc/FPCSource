@@ -40,9 +40,9 @@ unit pmodules;
        cobjects,verbose,systems,globals,
        symtable,aasm,hcodegen,
        link,assemble,import
-{$ifdef NEWPPU}
+{$ifndef OLDPPU}
        ,ppu
-{$endif NEWPPU}
+{$endif OLDPPU}
 {$ifdef i386}
        ,i386
 {$endif}
@@ -141,7 +141,7 @@ unit pmodules;
       end;
 
 
-{$ifdef NEWPPU}
+{$ifndef OLDPPU}
 
     function loadunit(const s : string;compile_system:boolean) : pmodule;forward;
 
@@ -330,7 +330,7 @@ unit pmodules;
          loadunit:=hp;
       end;
 
-{$else NEWPPU}
+{$else OLDPPU}
 
 {*****************************************************************************
 
@@ -589,7 +589,7 @@ unit pmodules;
          loadunit:=hp;
       end;
 
-{$endif NEWPPU}
+{$endif OLDPPU}
 
 
     procedure loadsystemunit;
@@ -600,17 +600,17 @@ unit pmodules;
         will be loaded }
         if not(cs_compilesystem in aktswitches) then
           begin
-{$ifdef NEWPPU}
+{$ifndef OLDPPU}
             hp:=loadunit(upper(target_info.system_unit),true);
             systemunit:=hp^.symtable;
           { add to the used units }
             current_module^.used_units.concat(new(pused_unit,init(hp,true)));
-{$else NEWPPU}
+{$else OLDPPU}
             hp:=loadunit(upper(target_info.system_unit),true,true);
             systemunit:=hp^.symtable;
           { add to the used units }
             current_module^.used_units.concat(new(pused_unit,init(hp,0)));
-{$endif NEWPPU}
+{$endif OLDPPU}
           { read default constant definitions }
             make_ref:=false;
             readconstdefs;
@@ -647,14 +647,14 @@ unit pmodules;
          repeat
            s:=pattern;
            consume(ID);
-{$ifdef NEWPPU}
+{$ifndef OLDPPU}
            hp2:=loadunit(s,false);
          { the current module uses the unit hp2 }
            current_module^.used_units.concat(new(pused_unit,init(hp2,not current_module^.in_implementation)));
            pused_unit(current_module^.used_units.last)^.in_uses:=true;
-{$else NEWPPU}
+{$else OLDPPU}
            hp2:=loadunit(s,false,true);
-{$endif NEWPPU}
+{$endif OLDPPU}
            if current_module^.compiled then
              exit;
            refsymtable^.insert(new(punitsym,init(s,hp2^.symtable)));
@@ -1131,7 +1131,10 @@ unit pmodules;
 end.
 {
   $Log$
-  Revision 1.30  1998-06-17 14:10:16  peter
+  Revision 1.31  1998-06-24 14:48:35  peter
+    * ifdef newppu -> ifndef oldppu
+
+  Revision 1.30  1998/06/17 14:10:16  peter
     * small os2 fixes
     * fixed interdependent units with newppu (remake3 under linux works now)
 

@@ -32,7 +32,7 @@
 {$ENDIF}
 
 
-{$ifdef NEWPPU}
+{$ifndef OLDPPU}
 
 {*****************************************************************************
                                  PPU Writing
@@ -431,7 +431,7 @@
       end;
 
 
-{$else NEWPPU}
+{$else OLDPPU}
 
 
 {*****************************************************************************
@@ -693,11 +693,14 @@
 
 
 
-{$endif NEWPPU}
+{$endif OLDPPU}
 
 {
   $Log$
-  Revision 1.4  1998-06-16 08:56:32  peter
+  Revision 1.5  1998-06-24 14:48:39  peter
+    * ifdef newppu -> ifndef oldppu
+
+  Revision 1.4  1998/06/16 08:56:32  peter
     + targetcpu
     * cleaner pmodules for newppu
 

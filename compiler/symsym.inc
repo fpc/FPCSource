@@ -76,7 +76,7 @@
 
 {$ifdef UseBrowser}
 
-{$ifdef NEWPPU}
+{$ifndef OLDPPU}
 
     procedure tsym.load_references;
       var
@@ -127,7 +127,7 @@
          end;
       end;
 
-{$else NEWPPU}
+{$else OLDPPU}
 
     procedure tsym.load_references;
 
@@ -214,7 +214,7 @@
          ppufile.do_crc:=true;
       end;
 
-{$endif NEWPPU}
+{$endif OLDPPU}
 
     procedure tsym.add_to_browserlog;
       var
@@ -509,12 +509,12 @@
 
     procedure tprocsym.write;
       begin
-{$ifndef NEWPPU}
+{$ifdef OLDPPU}
          writebyte(ibprocsym);
 {$endif}
          tsym.write;
          writedefref(pdef(definition));
-{$ifdef NEWPPU}
+{$ifndef OLDPPU}
          current_ppu^.writeentry(ibprocsym);
 {$endif}
       end;
@@ -655,7 +655,7 @@
     procedure tpropertysym.write;
 
       begin
-{$ifndef NEWPPU}
+{$ifdef OLDPPU}
          writebyte(ibpropertysym);
 {$endif}
          tsym.write;
@@ -672,7 +672,7 @@
            writestring('');
          writedefref(readaccessdef);
          writedefref(writeaccessdef);
-{$ifdef NEWPPU}
+{$ifndef OLDPPU}
          current_ppu^.writeentry(ibpropertysym);
 {$endif}
       end;
@@ -741,7 +741,7 @@
     procedure tabsolutesym.write;
 
       begin
-{$ifndef NEWPPU}
+{$ifdef OLDPPU}
          writebyte(ibabsolutesym);
 {$endif}
          tsym.write;
@@ -755,7 +755,7 @@
            toasm : writestring(asmname^);
           toaddr : writelong(address);
          end;
-{$ifdef NEWPPU}
+{$ifndef OLDPPU}
         current_ppu^.writeentry(ibabsolutesym);
 {$endif}
       end;
@@ -882,7 +882,7 @@
     procedure tvarsym.write;
 
       begin
-{$ifndef NEWPPU}
+{$ifdef OLDPPU}
          if (var_options and vo_is_C_var)<>0 then
            writebyte(ibvarsym_C)
          else
@@ -900,7 +900,7 @@
               writebyte(var_options);
               writestring(mangledname);
            end;
-{$ifdef NEWPPU}
+{$ifndef OLDPPU}
          if (var_options and vo_is_C_var)<>0 then
            current_ppu^.writeentry(ibvarsym_C)
          else
@@ -1234,13 +1234,13 @@
     procedure ttypedconstsym.write;
 
       begin
-{$ifndef NEWPPU}
+{$ifdef OLDPPU}
          writebyte(ibtypedconstsym);
 {$endif}
          tsym.write;
          writedefref(definition);
          writestring(prefix^);
-{$ifdef NEWPPU}
+{$ifndef OLDPPU}
          current_ppu^.writeentry(ibtypedconstsym);
 {$endif}
       end;
@@ -1368,7 +1368,7 @@
     procedure tconstsym.write;
 
       begin
-{$ifndef NEWPPU}
+{$ifdef OLDPPU}
          writebyte(ibconstsym);
 {$endif}
          tsym.write;
@@ -1388,7 +1388,7 @@
 {***}
             else internalerror(13);
          end;
-{$ifdef NEWPPU}
+{$ifndef OLDPPU}
         current_ppu^.writeentry(ibconstsym);
 {$endif}
       end;
@@ -1492,13 +1492,13 @@
     procedure tenumsym.write;
 
       begin
-{$ifndef NEWPPU}
+{$ifdef OLDPPU}
          writebyte(ibenumsym);
 {$endif}
          tsym.write;
          writedefref(definition);
          writelong(value);
-{$ifdef NEWPPU}
+{$ifndef OLDPPU}
          current_ppu^.writeentry(ibenumsym);
 {$endif}
       end;
@@ -1569,12 +1569,12 @@
     procedure ttypesym.write;
 
       begin
-{$ifndef NEWPPU}
+{$ifdef OLDPPU}
          writebyte(ibtypesym);
 {$endif}
          tsym.write;
          writedefref(definition);
-{$ifdef NEWPPU}
+{$ifndef OLDPPU}
          current_ppu^.writeentry(ibtypesym);
 {$endif}
       end;
@@ -1647,7 +1647,10 @@
 
 {
   $Log$
-  Revision 1.16  1998-06-19 15:40:42  peter
+  Revision 1.17  1998-06-24 14:48:40  peter
+    * ifdef newppu -> ifndef oldppu
+
+  Revision 1.16  1998/06/19 15:40:42  peter
     * removed cosntructor/constructor warning and 0.99.5 recompiles it again
 
   Revision 1.15  1998/06/17 14:10:18  peter
@@ -1711,7 +1714,7 @@
 
   Revision 1.1  1998/05/27 19:45:09  peter
     * symtable.pas splitted into includefiles
-    * symtable adapted for $ifdef NEWPPU
+    * symtable adapted for $ifndef OLDPPU
 
 }
 
