@@ -344,7 +344,7 @@ function fpc_help_constructor(var _self : pointer; var vmt : pointer; vmt_pos : 
 begin
    if vmt=nil then
      begin
-       int_help_constructor:=_self;
+       fpc_help_constructor:=_self;
        exit;
      end;
    vmtcopy:=vmt;
@@ -359,7 +359,7 @@ begin
        fillchar(_self^,objectsize,#0);
        ppointer(_self+vmt_pos)^:=vmtcopy;
      end;
-   int_help_constructor:=_self;
+   fpc_help_constructor:=_self;
 end;
 
 {$endif ndef FPC_SYSTEM_HAS_FPC_HELP_CONSTRUCTOR}
@@ -421,12 +421,27 @@ begin
    else
      ppointer(_self+vmt_pos)^:=nil;
 end;
-
-{$endif ndef FPC_SYSTEM_HAS_FPC_HELP_FAIL}
+{$endif FPC_SYSTEM_HAS_FPC_HELP_FAIL}
 
 {$ifndef FPC_SYSTEM_HAS_FPC_NEW_CLASS}
-{$error No pascal version of Int_new_class}
-{$endif ndef FPC_SYSTEM_HAS_FPC_NEW_CLASS}
+{ the constructor receives as first parameter a pointer        }
+{ to the vmt or nil, if called when class already instanciated }
+{ RETURNS SELF                                                 }
+{ IMPORTANT: SELF REGISTER should be pre-loaded before call to }
+{ constructor for this to work!                                }
+function fpc_new_class(_vmt: pointer; _self : pointer):pointer;saveregisters;[public,alias:'FPC_NEW_CLASS']; {$ifdef hascompilerproc} compilerproc; {$endif}
+ begin
+   if _vmt <> nil then
+     begin
+       fpc_new_class := TObject.NewInstance;
+     end
+   else
+     begin
+       { calling when class already instanciated }
+       fpc_new_class := _self;
+     end;
+ end;
+{$endif FPC_SYSTEM_HAS_FPC_NEW_CLASS}
 
 {$ifndef FPC_SYSTEM_HAS_FPC_DISPOSE_CLASS}
 {$error No pascal version of Int_dispose_class}
@@ -926,7 +941,10 @@ end;
 
 {
   $Log$
-  Revision 1.24  2002-03-30 13:08:54  carl
+  Revision 1.25  2002-05-16 19:58:05  carl
+  * generic constructor implemented
+
+  Revision 1.24  2002/03/30 13:08:54  carl
   * memory corruption bugfix in FPC_HELP_CONSTRUCTOR if object cannot be allocated
 
   Revision 1.23  2002/01/25 17:38:55  peter
