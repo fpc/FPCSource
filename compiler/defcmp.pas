@@ -227,7 +227,7 @@ implementation
                           { "punish" bad type conversions :) (JM) }
                           if (not is_in_limit(def_from,def_to)) and
                              (def_from.size > def_to.size) then
-                            eq:=te_convert_l2
+                            eq:=te_convert_l3
                         else
                           eq:=te_convert_l1;
                       end;
@@ -298,9 +298,9 @@ implementation
                          { Prefer conversions to shortstring over other
                            conversions. This is compatible with Delphi (PFV) }
                          if tstringdef(def_to).string_typ=st_shortstring then
-                           eq:=te_convert_l1
+                           eq:=te_convert_l2
                          else
-                           eq:=te_convert_l2;
+                           eq:=te_convert_l3;
                        end;
                    end;
                  orddef :
@@ -340,7 +340,7 @@ implementation
                           if is_pchar(def_from) then
                            begin
                              doconv:=tc_pchar_2_string;
-                             { trefer ansistrings because pchars can overflow shortstrings, }
+                             { prefer ansistrings because pchars can overflow shortstrings, }
                              { but only if ansistrings are the default (JM)                 }
                              if (is_shortstring(def_to) and
                                  not(cs_ansistrings in aktlocalswitches)) or
@@ -353,12 +353,12 @@ implementation
                           else if is_pwidechar(def_from) then
                            begin
                              doconv:=tc_pwchar_2_string;
-                             { trefer ansistrings because pchars can overflow shortstrings, }
+                             { prefer ansistrings because pchars can overflow shortstrings, }
                              { but only if ansistrings are the default (JM)                 }
                              if is_widestring(def_to) then
                                eq:=te_convert_l1
                              else
-                               eq:=te_convert_l2;
+                               eq:=te_convert_l3;
                            end;
                        end;
                    end;
@@ -691,7 +691,7 @@ implementation
                          is_void(tpointerdef(def_from).pointertype.def) then
                        begin
                          doconv:=tc_equal;
-                         { give pwidechar a small penalty }
+                         { give pwidechar a penalty }
                          if is_pwidechar(def_to) then
                           eq:=te_convert_l2
                          else
@@ -1179,7 +1179,12 @@ implementation
 end.
 {
   $Log$
-  Revision 1.18  2003-01-15 01:44:32  peter
+  Revision 1.19  2003-01-16 22:13:51  peter
+    * convert_l3 convertlevel added. This level is used for conversions
+      where information can be lost like converting widestring->ansistring
+      or dword->byte
+
+  Revision 1.18  2003/01/15 01:44:32  peter
     * merged methodpointer fixes from 1.0.x
 
   Revision 1.17  2003/01/09 21:43:39  peter

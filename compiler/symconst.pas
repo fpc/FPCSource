@@ -303,7 +303,8 @@ type
   tequaltype = (
     te_incompatible,
     te_convert_operator,
-    te_convert_l2,     { compatible conversion with possible loss of data }
+    te_convert_l3,     { compatible conversion with possible loss of data }
+    te_convert_l2,     { compatible less prefered conversion }
     te_convert_l1,     { compatible conversion     }
     te_equal,          { the definitions are equal }
     te_exact
@@ -356,8 +357,8 @@ const
      );
 
      EqualTypeName : array[tequaltype] of string[16] = (
-       'incompatible','convert_operator','convert_l2','convert_l1',
-       'equal','exact'
+       'incompatible','convert_operator','convert_l3','convert_l2',
+       'convert_l1','equal','exact'
      );
 
 implementation
@@ -365,7 +366,12 @@ implementation
 end.
 {
   $Log$
-  Revision 1.45  2003-01-09 21:52:37  peter
+  Revision 1.46  2003-01-16 22:13:52  peter
+    * convert_l3 convertlevel added. This level is used for conversions
+      where information can be lost like converting widestring->ansistring
+      or dword->byte
+
+  Revision 1.45  2003/01/09 21:52:37  peter
     * merged some verbosity options.
     * V_LineInfo is a verbosity flag to include line info
 

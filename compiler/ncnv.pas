@@ -1068,7 +1068,8 @@ implementation
             end;
 
           te_convert_l1,
-          te_convert_l2 :
+          te_convert_l2,
+          te_convert_l3 :
             begin
               { nothing to do }
             end;
@@ -2024,7 +2025,12 @@ begin
 end.
 {
   $Log$
-  Revision 1.100  2003-01-15 01:44:32  peter
+  Revision 1.101  2003-01-16 22:13:52  peter
+    * convert_l3 convertlevel added. This level is used for conversions
+      where information can be lost like converting widestring->ansistring
+      or dword->byte
+
+  Revision 1.100  2003/01/15 01:44:32  peter
     * merged methodpointer fixes from 1.0.x
 
   Revision 1.99  2003/01/09 21:43:39  peter

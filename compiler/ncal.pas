@@ -46,6 +46,7 @@ interface
           equal_count,
           cl1_count,
           cl2_count,
+          cl3_count,
           coper_count : integer; { should be signed }
           ordinal_distance : bestreal;
           invalid     : boolean;
@@ -292,30 +293,35 @@ type
              res:=(bestpd^.coper_count-currpd^.coper_count);
              if (res=0) then
               begin
-                { less cl2 parameters? }
-                res:=(bestpd^.cl2_count-currpd^.cl2_count);
+                { less cl3 parameters? }
+                res:=(bestpd^.cl3_count-currpd^.cl3_count);
                 if (res=0) then
                  begin
-                   { less cl1 parameters? }
-                   res:=(bestpd^.cl1_count-currpd^.cl1_count);
+                   { less cl2 parameters? }
+                   res:=(bestpd^.cl2_count-currpd^.cl2_count);
                    if (res=0) then
                     begin
-                      { more exact parameters? }
-                      res:=(currpd^.exact_count-bestpd^.exact_count);
+                      { less cl1 parameters? }
+                      res:=(bestpd^.cl1_count-currpd^.cl1_count);
                       if (res=0) then
                        begin
-                         { less equal parameters? }
-                         res:=(bestpd^.equal_count-currpd^.equal_count);
+                         { more exact parameters? }
+                         res:=(currpd^.exact_count-bestpd^.exact_count);
                          if (res=0) then
                           begin
-                            { smaller ordinal distance? }
-                            if (currpd^.ordinal_distance<bestpd^.ordinal_distance) then
-                             res:=1
-                            else
-                             if (currpd^.ordinal_distance>bestpd^.ordinal_distance) then
-                              res:=-1
-                            else
-                             res:=0;
+                            { less equal parameters? }
+                            res:=(bestpd^.equal_count-currpd^.equal_count);
+                            if (res=0) then
+                             begin
+                               { smaller ordinal distance? }
+                               if (currpd^.ordinal_distance<bestpd^.ordinal_distance) then
+                                res:=1
+                               else
+                                if (currpd^.ordinal_distance>bestpd^.ordinal_distance) then
+                                 res:=-1
+                               else
+                                res:=0;
+                             end;
                           end;
                        end;
                     end;
@@ -1371,6 +1377,7 @@ type
                           ' eq: '+tostr(hp^.equal_count)+
                           ' l1: '+tostr(hp^.cl1_count)+
                           ' l2: '+tostr(hp^.cl2_count)+
+                          ' l3: '+tostr(hp^.cl3_count)+
                           ' oper: '+tostr(hp^.coper_count)+
                           ' ord: '+realtostr(hp^.exact_count));
               { Print parameters in left-right order }
@@ -1495,6 +1502,8 @@ type
                      inc(hp^.cl1_count);
                    te_convert_l2 :
                      inc(hp^.cl2_count);
+                   te_convert_l3 :
+                     inc(hp^.cl3_count);
                    te_convert_operator :
                      inc(hp^.coper_count);
                    te_incompatible :
@@ -2375,7 +2384,12 @@ begin
 end.
 {
   $Log$
-  Revision 1.126  2003-01-15 01:44:32  peter
+  Revision 1.127  2003-01-16 22:13:52  peter
+    * convert_l3 convertlevel added. This level is used for conversions
+      where information can be lost like converting widestring->ansistring
+      or dword->byte
+
+  Revision 1.126  2003/01/15 01:44:32  peter
     * merged methodpointer fixes from 1.0.x
 
   Revision 1.125  2003/01/12 17:52:07  peter
