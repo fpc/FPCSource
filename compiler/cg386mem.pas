@@ -560,6 +560,10 @@ implementation
            begin
               { quick hack, to overcome Delphi 2 }
               if (cs_regalloc in aktglobalswitches) and
+              { if we do range checking, we don't }
+              { need that fancy code (it would be }
+              { buggy)                            }
+                not(cs_check_range in aktlocalswitches) and
                 (p^.left^.resulttype^.deftype=arraydef) then
                 begin
                    extraoffset:=0;
@@ -947,7 +951,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.74  2000-04-01 14:18:44  peter
+  Revision 1.75  2000-04-11 20:36:39  florian
+    * sometimes wrong range checking code for arrays was generated when
+      using register variables
+
+  Revision 1.74  2000/04/01 14:18:44  peter
     * use arraydef.elesize instead of elementtype.def.size
 
   Revision 1.73  2000/03/19 11:55:08  peter
