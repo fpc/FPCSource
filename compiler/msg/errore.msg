@@ -173,11 +173,11 @@ scan_w_only_pack_enum=02016_W_Enumerated can be saved in 1,2 or 4 bytes only
 scan_e_endif_expected=02017_E_$ENDIF expected for $1 $2 defined in $3 line $4
 % Your conditional compilation statements are unbalanced.
 scan_e_preproc_syntax_error=02018_E_Syntax error while parsing a conditional compiling expression
-% There is an error in the expression following the \var{\{\$if ..\}} compiler
-% directive.
+% There is an error in the expression following the \var{\{\$if ..\}}, $ifc or $setc compiler
+% directives.
 scan_e_error_in_preproc_expr=02019_E_Evaluating a conditional compiling expression
-% There is an error in the expression following the \var{\{\$if ..\}} compiler
-% directive.
+% There is an error in the expression following the \var{\{\$if ..\}}, $ifc or $setc compiler
+% directives.
 scan_w_macro_cut_after_255_chars=02020_W_Macro contents are limited to 255 characters in length
 % The contents of macros cannot be longer than 255 characters.
 scan_e_endif_without_if=02021_E_ENDIF without IF(N)DEF
@@ -198,8 +198,8 @@ scan_e_keyword_cant_be_a_macro=02028_E_Keyword redefined as macro has no effect
 % You cannot redefine keywords with macros.
 scan_f_macro_buffer_overflow=02029_F_Macro buffer overflow while reading or expanding a macro
 % Your macro or it's result  was too long for the compiler.
-scan_w_macro_deep_ten=02030_W_Extension of macros exceeds a depth of 16.
-% When expanding a macro macros have been nested to a level of 16.
+scan_w_macro_deep_ten=02030_W_Expanding of macros exceeds a depth of 16.
+% When expanding a macro, macros have been nested to a level of 16.
 % The compiler will expand no further, since this may be a sign that
 % recursion is used.
 scan_w_wrong_styled_switch=02031_W_compiler switches aren't supported in // styled comments
@@ -297,6 +297,8 @@ scan_e_too_many_push=02063_F_Too many levels of PUSH
 % A maximum of 20 levels is allowed.  This error occur only in mode MacPas.
 scan_e_too_many_pop=02064_E_A POP without a preceding PUSH
 % This error occur only in mode MacPas.
+scan_e_error_macro_lacks_value=02065_E_Macro "$1" does not have any value
+% Thus the conditional compiling expression cannot be evaluated.
 % \end{description}
 #
 # Parser
@@ -2147,7 +2149,7 @@ option_help_pages=11025_[
 *g2gh_use heap trace unit (for memory leak debugging)
 *g2gl_use line info unit to show more info for backtraces
 *g2gc_generate checks for pointers
-*g2gv_generates programs tracable with valygrind
+*g2gv_generates programs tracable with valgrind
 *g2gw_generate dwarf debugging info
 **1i_information
 **2iD_return compiler date
