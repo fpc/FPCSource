@@ -1485,7 +1485,9 @@ interface
          if ret_in_param(inlineprocsym^.definition^.rettype.def) then
            para_size:=para_size+target_os.size_of_pointer;
          { copy args }
-         inlinetree:=code;
+         if assigned(code) then
+           inlinetree:=code.getcopy
+         else inlinetree := nil;
          registers32:=code.registers32;
          registersfpu:=code.registersfpu;
 {$ifdef SUPPORT_MMX}
@@ -1496,7 +1498,8 @@ interface
 
     destructor tprocinlinenode.destroy;
       begin
-        inlinetree.free;
+        if assigned(inlinetree) then
+          inlinetree.free;
         inherited destroy;
       end;
 
@@ -1539,7 +1542,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.16  2000-11-11 16:14:52  peter
+  Revision 1.17  2000-11-22 15:12:06  jonas
+    * fixed inline-related problems (partially "merges")
+
+  Revision 1.16  2000/11/11 16:14:52  peter
     * fixed crash with settextbuf,ptr
 
   Revision 1.15  2000/11/06 21:36:25  peter

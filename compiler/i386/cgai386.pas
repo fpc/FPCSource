@@ -2197,7 +2197,8 @@ implementation
         end;
 
       { omit stack frame ? }
-      if (not inlined) and (procinfo^.framepointer=stack_pointer) then
+      if (not inlined) then
+        if (procinfo^.framepointer=stack_pointer) then
           begin
               CGMessage(cg_d_stackframe_omited);
               nostackframe:=true;
@@ -2209,7 +2210,7 @@ implementation
                 exprasmlist^.insert(new(paicpu,
                   op_const_reg(A_SUB,S_L,stackframe,R_ESP)));
           end
-      else
+        else
           begin
               alignstack(alist);
               if (aktprocsym^.definition^.proctypeoption in [potype_unitinit,potype_proginit,potype_unitfinalize]) then
@@ -2936,7 +2937,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.11  2000-11-17 10:30:24  florian
+  Revision 1.12  2000-11-22 15:12:06  jonas
+    * fixed inline-related problems (partially "merges")
+
+  Revision 1.11  2000/11/17 10:30:24  florian
     * passing interfaces as parameters fixed
 
   Revision 1.10  2000/11/07 23:40:48  florian

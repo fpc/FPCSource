@@ -294,13 +294,12 @@ implementation
           exit;
 
          { Deciding whether we may still need the parameters happens next (JM) }
-         params:=left;
+         if assigned(left) then
+           params:=left.getcopy
+         else params := nil;
 
          if (pocall_inline in procdefinition^.proccalloptions) then
            begin
-              { make a copy for the next time the procedure is inlined (JM) }
-              if assigned(left) then
-                left:=left.getcopy;
               inlined:=true;
               inlinecode:=tprocinlinenode(right);
               { set it to the same lexical level as the local symtable, becuase
@@ -317,16 +316,10 @@ implementation
                strpnew('inlined parasymtable is at offset '
                +tostr(pprocdef(procdefinition)^.parast^.address_fixup)))));
 {$endif extdebug}
-              { copy for the next time the procedure is inlined (JM) }
-              if assigned(right) then
-                right:=right.getcopy;
               { disable further inlining of the same proc
                 in the args }
               exclude(procdefinition^.proccalloptions,pocall_inline);
-           end
-         else
-           { parameters not necessary anymore (JM) }
-           left := nil;
+           end;
          { only if no proc var }
          if inlined or
             not(assigned(right)) then
@@ -1340,8 +1333,8 @@ implementation
            end;
          if inlined then
            ungetpersistanttemp(inlinecode.retoffset);
-         inlinecode.free;
-         params.free;
+         if assigned(params) then
+           params.free;
 
 
          { from now on the result can be freed normally }
@@ -1592,7 +1585,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.8  2000-11-17 09:54:58  florian
+  Revision 1.9  2000-11-22 15:12:06  jonas
+    * fixed inline-related problems (partially "merges")
+
+  Revision 1.8  2000/11/17 09:54:58  florian
     * INT_CHECK_OBJECT_* isn't applied to interfaces anymore
 
   Revision 1.7  2000/11/12 23:24:14  florian
