@@ -15,7 +15,7 @@ PWD:=$(shell pwd)
 BUILD_DIR=$(PWD)/debian/build
 INSTALL_DIR=$(PWD)/debian/tmp
 DOC_DIR=$(INSTALL_DIR)/usr/share/doc
-EXAMPLE_TEMP=$(INSTALL_DIR)/usr/doc/fpc-$(FPCVERSION)/examples
+EXAMPLE_TEMP=$(DOC_DIR)/fpc-$(FPCVERSION)
 # Get utils
 NEWPP=$(PWD)/compiler/ppc386
 NEWFPDOC=$(PWD)/utils/fpdoc/fpdoc
@@ -112,45 +112,7 @@ install-arch-stamp: build-arch-stamp debian-files-stamp
 	install -d -m755 $(DOC_DIR)/fp-units-misc/examples
 	install -d -m755 $(DOC_DIR)/fp-units-base/examples
 
-	mv -f $(EXAMPLE_TEMP)/fcl $(DOC_DIR)/fp-units-fcl/examples
-
-	mv -f $(EXAMPLE_TEMP)/gtk $(DOC_DIR)/fp-units-gtk/examples
-#	mv -f $(EXAMPLE_TEMP)/fpgtk $(DOC_DIR)/fp-units-gtk/examples
-
-#	mv -f $(EXAMPLE_TEMP)/imlib $(DOC_DIR)/fp-units-gnome1/examples
-	mv -f $(EXAMPLE_TEMP)/zvt $(DOC_DIR)/fp-units-gnome1/examples
-#	mv -f $(EXAMPLE_TEMP)/gnome $(DOC_DIR)/fp-units-gnome1/examples
-	mv -f $(EXAMPLE_TEMP)/gconf $(DOC_DIR)/fp-units-gnome1/examples
-
-	mv -f $(EXAMPLE_TEMP)/paszlib $(DOC_DIR)/fp-units-base/examples
-	mv -f $(EXAMPLE_TEMP)/pasjpeg $(DOC_DIR)/fp-units-base/examples
-	mv -f $(EXAMPLE_TEMP)/regexpr $(DOC_DIR)/fp-units-base/examples
-	mv -f $(EXAMPLE_TEMP)/ncurses $(DOC_DIR)/fp-units-base/examples
-
-	mv -f $(EXAMPLE_TEMP)/forms $(DOC_DIR)/fp-units-gfx/examples
-	mv -f $(EXAMPLE_TEMP)/ggi $(DOC_DIR)/fp-units-gfx/examples
-	mv -f $(EXAMPLE_TEMP)/libgd $(DOC_DIR)/fp-units-gfx/examples
-	mv -f $(EXAMPLE_TEMP)/svgalib $(DOC_DIR)/fp-units-gfx/examples
-	mv -f $(EXAMPLE_TEMP)/opengl $(DOC_DIR)/fp-units-gfx/examples
-
-	mv -f $(EXAMPLE_TEMP)/ibase $(DOC_DIR)/fp-units-db/examples
-	mv -f $(EXAMPLE_TEMP)/mysql $(DOC_DIR)/fp-units-db/examples
-	mv -f $(EXAMPLE_TEMP)/oracle $(DOC_DIR)/fp-units-db/examples
-	mv -f $(EXAMPLE_TEMP)/postgres $(DOC_DIR)/fp-units-db/examples
-	mv -f $(EXAMPLE_TEMP)/gdbm $(DOC_DIR)/fp-units-db/examples
-	mv -f $(EXAMPLE_TEMP)/odbc $(DOC_DIR)/fp-units-db/examples
-
-	mv -f $(EXAMPLE_TEMP)/gdbint $(DOC_DIR)/fp-units-misc/examples
-	mv -f $(EXAMPLE_TEMP)/utmp $(DOC_DIR)/fp-units-misc/examples
-	mv -f $(EXAMPLE_TEMP)/syslog $(DOC_DIR)/fp-units-misc/examples
-	mv -f $(EXAMPLE_TEMP)/cdrom $(DOC_DIR)/fp-units-misc/examples
-	mv -f $(EXAMPLE_TEMP)/tcl $(DOC_DIR)/fp-units-misc/examples
-
-	mv -f $(EXAMPLE_TEMP)/inet $(DOC_DIR)/fp-units-net/examples
-	mv -f $(EXAMPLE_TEMP)/netdb $(DOC_DIR)/fp-units-net/examples
-
-# Check if all examples are removed, if not then the rmdir will fail
-	rmdir $(EXAMPLE_TEMP)
+	bash debian/moveexamples $(EXAMPLE_TEMP) $(DOC_DIR)
 
 # Install man pages and RTL demos and whatsnew and readme
 	$(MAKE) man_install $(INSTALLOPTS) INSTALL_PREFIX=$(INSTALL_DIR)/usr/share
