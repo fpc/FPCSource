@@ -145,6 +145,7 @@ begin
     CurrentVideoDriver.ClearScreen
   else
     UpdateScreen(True);
+  FillWord(OldVideoBuf^,VideoBufSize shr 1,$0720);
 end;
 
 Procedure SetCursorType (NewType : Word);
@@ -242,7 +243,10 @@ end;
 
 {
   $Log$
-  Revision 1.4  2001-10-06 22:28:24  michael
+  Revision 1.5  2001-10-10 21:03:48  michael
+  + Clearscreen now also clears oldvideobuf after screenupdate
+
+  Revision 1.4  2001/10/06 22:28:24  michael
   + Merged video mode selection/setting system
 
   Revision 1.3  2001/10/04 20:51:56  michael
