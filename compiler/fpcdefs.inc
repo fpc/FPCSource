@@ -61,9 +61,17 @@
   {$define cpufpemu}
 {$endif m68k}
 
+{ Optimizer is x86 only }
+{$ifndef i386}
+  {$define noopt}
+{$endif i386}
+
 {
   $Log$
-  Revision 1.15  2003-04-23 12:35:34  florian
+  Revision 1.16  2003-04-23 13:47:41  peter
+    * optimizer is x86
+
+  Revision 1.15  2003/04/23 12:35:34  florian
     * fixed several issues with powerpc
     + applied a patch from Jonas for nested function calls (PowerPC only)
     * ...
