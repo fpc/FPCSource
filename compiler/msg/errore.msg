@@ -912,6 +912,8 @@ parser_e_procedure_or_function_expected=03194_E_Procedure or Function expected
 parser_e_illegal_calling_convention=03195_W_Calling convention directive ignored: "$1"
 % Some calling conventions are supported only by certain CPUs. I.e. most non-i386 ports support
 % only the standard ABI calling convention of the CPU.
+parser_e_no_object_reintroduce=03196_E_REINTRODUCE can't be used in objects
+% \var{reintroduce} is not supported for objects.
 % \end{description}
 #
 # Type Checking

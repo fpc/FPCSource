@@ -638,7 +638,7 @@ implementation
                                          begin
                                            if is_visible then
                                              procdefcoll^.hidden:=true;
-                                           if _class=pd._class then
+                                           if (_class=pd._class) and not(po_reintroduce in pd.procoptions) then
                                              MessagePos1(pd.fileinfo,parser_w_should_use_override,pd.fullprocname(false));
                                          end;
                                       end
@@ -657,7 +657,7 @@ implementation
                                             begin
                                               if is_visible then
                                                 procdefcoll^.hidden:=true;
-                                              if _class=pd._class then
+                                              if (_class=pd._class) and not(po_reintroduce in pd.procoptions) then
                                                 MessagePos1(pd.fileinfo,parser_w_should_use_override,pd.fullprocname(false));
                                             end;
                                          end
@@ -723,7 +723,7 @@ implementation
                                             begin
                                               if is_visible then
                                                 procdefcoll^.hidden:=true;
-                                              if _class=pd._class then
+                                              if (_class=pd._class) and not(po_reintroduce in pd.procoptions) then
                                                 MessagePos1(pd.fileinfo,parser_w_should_use_override,pd.fullprocname(false));
                                             end;
                                          end;
@@ -1370,7 +1370,10 @@ initialization
 end.
 {
   $Log$
-  Revision 1.57  2003-12-08 22:34:24  peter
+  Revision 1.58  2004-01-21 14:22:00  florian
+    + reintroduce implemented
+
+  Revision 1.57  2003/12/08 22:34:24  peter
     * tai_const.create_32bit changed to cardinal
 
   Revision 1.56  2003/11/28 17:24:22  peter

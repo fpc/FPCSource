@@ -952,9 +952,9 @@ unit cgcpu;
         var
           l : tasmlabel;
         begin
-          objectlibrary.getdatalabel(l);
+          objectlibrary.getlabel(l);
           a_load_const_reg(list,OS_INT,count,countreg);
-          list.concat(Tai_symbol.Create(l,0));
+          cg.a_label(list,l);
           srcref.addressmode:=AM_POSTINDEXED;
           dstref.addressmode:=AM_POSTINDEXED;
           srcref.offset:=size;
@@ -1004,14 +1004,17 @@ unit cgcpu;
           begin
             destreg:=getintregister(list,OS_ADDR);
             a_loadaddr_ref_reg(list,dest,destreg);
-            if delsource then
-              reference_release(list,srcref);
+            reference_reset_base(dstref,destreg,0);
+
             srcreg:=getintregister(list,OS_ADDR);
             if loadref then
               a_load_ref_reg(list,OS_ADDR,OS_ADDR,source,srcreg)
             else
               a_loadaddr_ref_reg(list,source,srcreg);
-            // srcref.
+            reference_reset_base(srcref,srcreg,0);
+
+            if delsource then
+              reference_release(list,source);
 
             countreg:=getintregister(list,OS_32);
 
@@ -1200,7 +1203,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.31  2004-01-21 01:22:35  florian
+  Revision 1.32  2004-01-21 14:22:00  florian
+    + reintroduce implemented
+
+  Revision 1.31  2004/01/21 01:22:35  florian
     * fixed a_cmp_const_reg_label
     * fixed volatile register handling which was broken by my last patch
 

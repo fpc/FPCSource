@@ -205,9 +205,14 @@ type
     po_overload,          { procedure is declared with overload directive }
     po_varargs,           { printf like arguments }
     po_internconst,       { procedure has constant evaluator intern }
-    po_addressonly,       { flag that only the address of a method is returned and not a full methodpointer }
-    po_public,            { procedure is exported }
-    po_hascallingconvention { calling convention is specified explicitly }
+    { flag that only the address of a method is returned and not a full methodpointer }
+    po_addressonly,
+    { procedure is exported }
+    po_public,
+    { calling convention is specified explicitly }
+    po_hascallingconvention,
+    { reintroduce flag }
+    po_reintroduce
   );
   tprocoptions=set of tprocoption;
 
@@ -395,7 +400,10 @@ initialization
 end.
 {
   $Log$
-  Revision 1.73  2003-12-19 22:08:44  daniel
+  Revision 1.74  2004-01-21 14:22:00  florian
+    + reintroduce implemented
+
+  Revision 1.73  2003/12/19 22:08:44  daniel
     * Some work to restore the MMX capabilities
 
   Revision 1.72  2003/12/16 21:29:24  florian

@@ -1095,7 +1095,10 @@ end;
 
 procedure pd_reintroduce(pd:tabstractprocdef);
 begin
-  Message1(parser_w_proc_directive_ignored,'REINTRODUCE');
+  if pd.deftype<>procdef then
+    internalerror(200401211);
+  if not(is_class_or_interface(tprocdef(pd)._class)) then
+    Message(parser_e_no_object_reintroduce);
 end;
 
 
@@ -1417,13 +1420,13 @@ const
       mutexclpo     : [po_external]
     ),(
       idtok:_REINTRODUCE;
-      pd_flags : [pd_interface,pd_object];
+      pd_flags : [pd_interface,pd_object,pd_notobjintf];
       handler  : {$ifdef FPCPROCVAR}@{$endif}pd_reintroduce;
       pocall   : pocall_none;
-      pooption : [];
-      mutexclpocall : [];
+      pooption : [po_reintroduce];
+      mutexclpocall : [pocall_inline,pocall_internproc];
       mutexclpotype : [];
-      mutexclpo     : []
+      mutexclpo     : [po_external,po_interrupt,po_exports,po_overridingmethod]
     ),(
       idtok:_SAFECALL;
       pd_flags : [pd_interface,pd_implemen,pd_body,pd_procvar];
@@ -2152,7 +2155,10 @@ const
 end.
 {
   $Log$
-  Revision 1.155  2003-11-23 17:05:15  peter
+  Revision 1.156  2004-01-21 14:22:00  florian
+    + reintroduce implemented
+
+  Revision 1.155  2003/11/23 17:05:15  peter
     * register calling is left-right
     * parameter ordering
     * left-right calling inserts result parameter last
