@@ -353,6 +353,12 @@ procedure momentskewkurtosis(const data : PFloat; Const N : Integer;
 function norm(const data : array of float) : float;
 function norm(const data : PFloat; Const N : Integer) : float;
 
+{$ifndef ver1_0} // default params
+function ifthen(val:boolean;const iftrue:integer; const iffalse:integer= 0) :integer; {$ifdef MATHINLINE}inline; {$endif}
+function ifthen(val:boolean;const iftrue:int64  ; const iffalse:int64 = 0)  :int64;   {$ifdef MATHINLINE}inline; {$endif}
+function ifthen(val:boolean;const iftrue:double ; const iffalse:double =0.0):double;  {$ifdef MATHINLINE}inline; {$endif}
+{$endif}
+
 { include cpu specific stuff }
 {$i mathuh.inc}
 
@@ -1350,10 +1356,31 @@ begin
   Remainder:=Dividend Mod Divisor;
 end;
 {$endif}
+
+{$ifndef ver1_0} // default params
+function ifthen(val:boolean;const iftrue:integer; const iffalse:integer= 0) :integer; 
+begin
+  if val then result:=iftrue else result:=iffalse;
+end;
+
+function ifthen(val:boolean;const iftrue:int64  ; const iffalse:int64 = 0)  :int64; 
+begin
+  if val then result:=iftrue else result:=iffalse;
+end;
+
+function ifthen(val:boolean;const iftrue:double ; const iffalse:double =0.0):double;
+begin
+  if val then result:=iftrue else result:=iffalse;
+end;
+{$endif}
+
 end.
 {
   $Log$
-  Revision 1.28  2005-01-12 20:17:39  florian
+  Revision 1.29  2005-01-31 13:59:23  marco
+   * fixed
+
+  Revision 1.28  2005/01/12 20:17:39  florian
     * generic arctan2 for 3rd and 4th quadrand fixed
 
   Revision 1.27  2005/01/04 16:47:05  florian
