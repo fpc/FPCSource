@@ -200,7 +200,7 @@ implementation
          objectlibrary.getlabel(endexceptlabel);
          objectlibrary.getlabel(lastonlabel);
 
-         tg.gettempofsizereferencepersistant(exprasmlist,24,tempbuf);
+         tg.gettempofsizereferencepersistant(exprasmlist,JMP_BUF_SIZE,tempbuf);
          tg.gettempofsizereferencepersistant(exprasmlist,12,tempaddr);
          cg.a_paramaddr_ref(exprasmlist,tempaddr,paramanager.getintparaloc(3));
          cg.a_paramaddr_ref(exprasmlist,tempbuf,paramanager.getintparaloc(2));
@@ -278,7 +278,7 @@ implementation
               objectlibrary.getlabel(doobjectdestroy);
               objectlibrary.getlabel(doobjectdestroyandreraise);
 
-              tg.gettempofsizereferencepersistant(exprasmlist,24,tempbuf);
+              tg.gettempofsizereferencepersistant(exprasmlist,JMP_BUF_SIZE,tempbuf);
               tg.gettempofsizereferencepersistant(exprasmlist,12,tempaddr);
               cg.a_paramaddr_ref(exprasmlist,tempaddr,paramanager.getintparaloc(3));
               cg.a_paramaddr_ref(exprasmlist,tempbuf,paramanager.getintparaloc(2));
@@ -448,7 +448,7 @@ implementation
          objectlibrary.getlabel(doobjectdestroyandreraise);
 
          tg.gettempofsizereferencepersistant(exprasmlist,12,tempaddr);
-         tg.gettempofsizereferencepersistant(exprasmlist,24,tempbuf);
+         tg.gettempofsizereferencepersistant(exprasmlist,JMP_BUF_SIZE,tempbuf);
          cg.a_paramaddr_ref(exprasmlist,tempaddr,paramanager.getintparaloc(3));
          cg.a_paramaddr_ref(exprasmlist,tempbuf,paramanager.getintparaloc(2));
          cg.a_param_const(exprasmlist,OS_INT,1,paramanager.getintparaloc(1));
@@ -602,7 +602,7 @@ implementation
           end;
 
          tg.gettempofsizereferencepersistant(exprasmlist,12,tempaddr);
-         tg.gettempofsizereferencepersistant(exprasmlist,24,tempbuf);
+         tg.gettempofsizereferencepersistant(exprasmlist,JMP_BUF_SIZE,tempbuf);
          cg.a_paramaddr_ref(exprasmlist,tempaddr,paramanager.getintparaloc(3));
          cg.a_paramaddr_ref(exprasmlist,tempbuf,paramanager.getintparaloc(2));
          { Type of stack-frame must be pushed}
@@ -726,7 +726,12 @@ begin
 end.
 {
   $Log$
-  Revision 1.32  2002-08-11 14:32:30  peter
+  Revision 1.33  2002-08-15 15:15:55  carl
+    * jmpbuf size allocation for exceptions is now cpu specific (as it should)
+    * more generic nodes for maths
+    * several fixes for better m68k support
+
+  Revision 1.32  2002/08/11 14:32:30  peter
     * renamed current_library to objectlibrary
 
   Revision 1.31  2002/08/11 13:24:17  peter

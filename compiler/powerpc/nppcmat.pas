@@ -36,6 +36,8 @@ interface
 
       tppcshlshrnode = class(tshlshrnode)
          procedure pass_2;override;
+         { everything will be handled in pass_2 }
+         function first_shlshr64bitint: tnode; override;
       end;
 
       tppcunaryminusnode = class(tunaryminusnode)
@@ -160,6 +162,11 @@ implementation
 {*****************************************************************************
                              TPPCSHLRSHRNODE
 *****************************************************************************}
+
+    function tppcshlshrnode.first_shlshr64bitint: tnode; 
+      begin
+        result := nil;
+      end;
 
     procedure tppcshlshrnode.pass_2;
 
@@ -495,7 +502,12 @@ begin
 end.
 {
   $Log$
-  Revision 1.16  2002-08-10 17:15:31  jonas
+  Revision 1.17  2002-08-15 15:15:55  carl
+    * jmpbuf size allocation for exceptions is now cpu specific (as it should)
+    * more generic nodes for maths
+    * several fixes for better m68k support
+
+  Revision 1.16  2002/08/10 17:15:31  jonas
     * various fixes and optimizations
 
   Revision 1.15  2002/07/26 10:48:34  jonas

@@ -55,13 +55,24 @@ Const
    mmreg_size = 16;
    { target cpu string (used by compiler options) }
    target_cpu_string = 'powerpc';
+   { size of the buffer used for setjump/longjmp  
+     the size of this buffer is deduced from the
+     jmp_buf structure in setjumph.inc file 
+   }
+{$warning setjmp buf_size unknown!}   
+   jmp_buf_size = 0;
 
 Implementation
 
 end.
 {
   $Log$
-  Revision 1.9  2002-08-12 15:08:44  carl
+  Revision 1.10  2002-08-15 15:15:55  carl
+    * jmpbuf size allocation for exceptions is now cpu specific (as it should)
+    * more generic nodes for maths
+    * several fixes for better m68k support
+
+  Revision 1.9  2002/08/12 15:08:44  carl
     + stab register indexes for powerpc (moved from gdb to cpubase)
     + tprocessor enumeration moved to cpuinfo
     + linker in target_info is now a class

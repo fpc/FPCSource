@@ -36,6 +36,8 @@ interface
 
       ti386shlshrnode = class(tshlshrnode)
          procedure pass_2;override;
+         { everything will be handled in pass_2 }
+         function first_shlshr64bitint: tnode; override;
       end;
 
       ti386unaryminusnode = class(tunaryminusnode)
@@ -265,6 +267,12 @@ implementation
 {*****************************************************************************
                              TI386SHLRSHRNODE
 *****************************************************************************}
+
+
+    function ti386shlshrnode.first_shlshr64bitint: tnode; 
+      begin
+        result := nil;
+      end;
 
     procedure ti386shlshrnode.pass_2;
       var
@@ -830,7 +838,12 @@ begin
 end.
 {
   $Log$
-  Revision 1.38  2002-08-14 19:18:16  carl
+  Revision 1.39  2002-08-15 15:15:55  carl
+    * jmpbuf size allocation for exceptions is now cpu specific (as it should)
+    * more generic nodes for maths
+    * several fixes for better m68k support
+
+  Revision 1.38  2002/08/14 19:18:16  carl
     * bugfix of unaryminus node with left LOC_CREGISTER
 
   Revision 1.37  2002/08/12 15:08:42  carl

@@ -1277,7 +1277,7 @@ implementation
               not(aktprocdef.proctypeoption in [potype_unitfinalize,potype_unitinit]) then
             begin
               include(rg.usedinproc,accumulator);
-              tg.gettempofsizereferencepersistant(list,24,procinfo^.exception_jmp_ref);
+              tg.gettempofsizereferencepersistant(list,JMP_BUF_SIZE,procinfo^.exception_jmp_ref);
               tg.gettempofsizereferencepersistant(list,12,procinfo^.exception_env_ref);
               tg.gettempofsizereferencepersistant(list,sizeof(aword),procinfo^.exception_result_ref);
               new_exception(list,procinfo^.exception_jmp_ref,
@@ -1731,7 +1731,12 @@ implementation
 end.
 {
   $Log$
-  Revision 1.36  2002-08-14 19:25:09  carl
+  Revision 1.37  2002-08-15 15:15:55  carl
+    * jmpbuf size allocation for exceptions is now cpu specific (as it should)
+    * more generic nodes for maths
+    * several fixes for better m68k support
+
+  Revision 1.36  2002/08/14 19:25:09  carl
     * fix Florian's last commit for m68k compilation
 
   Revision 1.35  2002/08/13 21:40:56  florian

@@ -156,7 +156,7 @@ type
     str  : string[30];
   end;
 const
-  flagopts=15;
+  flagopts=16;
   flagopt : array[1..flagopts] of tflagopt=(
     (mask: $1    ;str:'init'),
     (mask: $2    ;str:'final'),
@@ -172,7 +172,8 @@ const
     (mask: $800  ;str:'has_resources'),
     (mask: $1000  ;str:'little_endian'),
     (mask: $2000  ;str:'release'),
-    (mask: $4000  ;str:'local_threadvars')
+    (mask: $4000  ;str:'local_threadvars'),
+    (mask: $8000  ;str:'fpu emulation on')
   );
 var
   i : longint;
@@ -1823,7 +1824,12 @@ begin
 end.
 {
   $Log$
-  Revision 1.26  2002-08-11 13:24:20  peter
+  Revision 1.27  2002-08-15 15:15:56  carl
+    * jmpbuf size allocation for exceptions is now cpu specific (as it should)
+    * more generic nodes for maths
+    * several fixes for better m68k support
+
+  Revision 1.26  2002/08/11 13:24:20  peter
     * saving of asmsymbols in ppu supported
     * asmsymbollist global is removed and moved into a new class
       tasmlibrarydata that will hold the info of a .a file which

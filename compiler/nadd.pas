@@ -45,6 +45,13 @@ interface
           { only implements "muln" nodes, the rest always has to be done in }
           { the code generator for performance reasons (JM)                 }
           function first_add64bitint: tnode; virtual;
+          { This routine calls internal runtime library helpers
+            for all floating point arithmetic in the case
+            where the emulation switches is on. Otherwise
+            returns nil, and everything must be done in
+            the code generation phase.
+          }  
+          function first_addfloat : tnode; virtual;
        end;
        taddnodeclass = class of taddnode;
 
@@ -1415,6 +1422,63 @@ implementation
         right := nil;
         firstpass(result);
       end;
+      
+      
+    function taddnode.first_addfloat: tnode;
+      var
+        procname: string[31];
+        temp: tnode;
+        power: longint;
+        { do we need to reverse the result ? }
+        notnode : boolean;
+      begin
+        result := nil;
+        notnode := false;
+        { In non-emulation mode, real opcodes are
+          emitted for floating point values.
+        }  
+        if not (cs_fp_emulation in aktmoduleswitches) then
+          exit;
+          
+        procname := 'FPC_REAL_';  
+        case nodetype of
+          addn : procname := procname + 'ADD';
+          muln : procname := procname + 'MUL';
+          subn : procname := procname + 'SUB';
+          slashn : procname := procname + 'DIV';
+          ltn : procname := procname + 'LESS_THAN';
+          lten: procname := procname + 'LESS_EQUAL_THAN';
+          gtn: 
+            begin
+             procname := procname + 'LESS_EQUAL_THAN';
+             notnode := true;
+            end;
+          gten:
+            begin
+              procname := procname + 'LESS_THAN';
+              notnode := true;
+            end;
+          equaln: procname := procname + 'EQUAL';
+          unequaln : 
+            begin
+              procname := procname + 'EQUAL';
+              notnode := true;
+            end;
+          else
+            CGMessage(type_e_mismatch);
+        end;
+        { otherwise, create the parameters for the helper }
+        right := ccallparanode.create(right,ccallparanode.create(left,nil));
+        left := nil;
+        { do we need to reverse the result }
+        if notnode then
+           result := cnotnode.create(ccallnode.createintern(procname,right))
+        else
+           result := ccallnode.createintern(procname,right);
+        right := nil;
+        firstpass(result);
+      end;
+      
 
     function taddnode.pass_1 : tnode;
       var
@@ -1439,6 +1503,9 @@ implementation
          { int/int gives real/real! }
          if nodetype=slashn then
            begin
+             result := first_addfloat;
+             if assigned(result) then
+               exit;
              location.loc:=LOC_FPUREGISTER;
              { maybe we need an integer register to save }
              { a reference                               }
@@ -1616,6 +1683,9 @@ implementation
          { is one a real float ? }
          else if (rd.deftype=floatdef) or (ld.deftype=floatdef) then
             begin
+              result := first_addfloat;
+              if assigned(result) then
+                exit;
               location.loc:=LOC_FPUREGISTER;
               calcregisters(self,0,1,0);
               { an add node always first loads both the left and the    }
@@ -1744,7 +1814,12 @@ begin
 end.
 {
   $Log$
-  Revision 1.60  2002-08-12 15:08:39  carl
+  Revision 1.61  2002-08-15 15:15:55  carl
+    * jmpbuf size allocation for exceptions is now cpu specific (as it should)
+    * more generic nodes for maths
+    * several fixes for better m68k support
+
+  Revision 1.60  2002/08/12 15:08:39  carl
     + stab register indexes for powerpc (moved from gdb to cpubase)
     + tprocessor enumeration moved to cpuinfo
     + linker in target_info is now a class

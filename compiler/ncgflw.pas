@@ -695,7 +695,7 @@ do_jmp:
     procedure try_new_exception(list : taasmoutput;var jmpbuf,envbuf, href : treference;
       a : aword; exceptlabel : tasmlabel);
      begin
-       tg.gettempofsizereferencepersistant(list,24,jmpbuf);
+       tg.gettempofsizereferencepersistant(list,JMP_BUF_SIZE,jmpbuf);
        tg.gettempofsizereferencepersistant(list,12,envbuf);
        tg.gettempofsizereferencepersistant(list,sizeof(aword),href);
        new_exception(list, jmpbuf,envbuf, href, a, exceptlabel);
@@ -1225,7 +1225,12 @@ begin
 end.
 {
   $Log$
-  Revision 1.35  2002-08-13 18:01:52  carl
+  Revision 1.36  2002-08-15 15:15:55  carl
+    * jmpbuf size allocation for exceptions is now cpu specific (as it should)
+    * more generic nodes for maths
+    * several fixes for better m68k support
+
+  Revision 1.35  2002/08/13 18:01:52  carl
     * rename swatoperands to swapoperands
     + m68k first compilable version (still needs a lot of testing):
         assembler generator, system information , inline
