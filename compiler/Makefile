@@ -217,7 +217,7 @@ next :
 	$(MAKE) all
 endif
 
-clean : testfpcmake
+clean : testfpcmake fpc_clean
 	-$(DEL) *$(OEXT) *$(PPUEXT) *$(ASMEXT) *$(STATICLIBEXT) $(EXENAME)
 	-$(DELTREE) $(SMARTEXT)
 
@@ -374,7 +374,10 @@ $(M68KEXENAME): $(PASFILES) $(INCFILES)
 
 #
 # $Log$
-# Revision 1.20  1999-03-11 17:54:01  peter
+# Revision 1.21  1999-03-12 17:24:43  michael
+# + Fixed clean target
+#
+# Revision 1.20  1999/03/11 17:54:01  peter
 #   * better check for makefile.fpc
 #   * check if cmp exists
 #
