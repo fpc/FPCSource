@@ -820,6 +820,10 @@ end;
   {$F-}
 {$endif}
 
+{$ifdef Delphi}
+  {$define TP}
+{$endif Delphi}
+
 {const
    namelength=15;}
 type
@@ -2036,7 +2040,11 @@ end.
 
 {
   $Log$
-  Revision 1.60  2000-05-09 14:19:08  pierre
+  Revision 1.61  2000-05-10 19:22:51  pierre
+    * Delphi defines TP so that code compiles
+      sent by Kovacs Attila Zoltan
+
+  Revision 1.60  2000/05/09 14:19:08  pierre
    * calculate para_offset for interrupt procedures
 
   Revision 1.59  2000/04/26 08:54:19  pierre
