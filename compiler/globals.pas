@@ -796,8 +796,9 @@ implementation
      procedure DefaultReplacements(var s:string);
        begin
          { Replace some macro's }
-         Replace(s,'$FPCVER',full_version_string);
-         Replace(s,'$VERSION',full_version_string);
+         Replace(s,'$FPCVER',version_string);
+         Replace(s,'$VERSION',version_string);
+         Replace(s,'$FULLVERSION',full_version_string);
          Replace(s,'$FPCDATE',date_string);
          Replace(s,'$FPCTARGET',target_cpu_string);
          Replace(s,'$FPCCPU',target_cpu_string);
@@ -1563,7 +1564,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.56  2000-03-20 16:04:05  pierre
+  Revision 1.57  2000-03-23 15:35:47  peter
+    * $VERSION is now version_string
+    + $FULLVERSION is now full_version_string
+
+  Revision 1.56  2000/03/20 16:04:05  pierre
    * probably a fix for bug 615
 
   Revision 1.55  2000/03/08 15:39:45  daniel
