@@ -569,6 +569,16 @@ begin
   aktprocsym^.definition^.extnumber:=get_intconst;
 end;
 
+procedure pd_interrupt(const procnames:Tstringcontainer);
+begin
+{$ifndef i386}
+  Message(parser_w_proc_interrupt_ignored);
+{$else i386}
+  if lexlevel<>normal_function_level then
+    Message(parser_e_dont_nest_interrupt);
+{$endif i386}
+end;
+
 procedure pd_system(const procnames:Tstringcontainer);
 begin
   aktprocsym^.definition^.setmangledname(realname);
@@ -949,7 +959,7 @@ const
     ),(
       idtok:_INTERRUPT;
       pd_flags : pd_implemen+pd_body;
-      handler  : nil;
+      handler  : {$ifndef TP}@{$endif}pd_interrupt;
       pocall   : [];
       pooption : [po_interrupt];
       mutexclpocall : [pocall_internproc,pocall_cdecl,pocall_clearstack,pocall_leftright,pocall_inline];
@@ -1948,6 +1958,16 @@ begin
   changed by check_identical (PFV) }
    procinfo^.returntype.def:=aktprocsym^.definition^.rettype.def;
 
+{$ifdef i386}
+   if (po_interrupt in aktprocsym^.definition^.procoptions) then
+     begin
+       { we push Flags and CS as long
+         to cope with the IRETD
+         and we save 6 register + 4 selectors }
+       inc(procinfo^.para_offset,8+6*4+4*2);
+     end;
+{$endif i386}
+
    { pointer to the return value ? }
    if ret_in_param(procinfo^.returntype.def) then
     begin
@@ -2016,7 +2036,10 @@ end.
 
 {
   $Log$
-  Revision 1.59  2000-04-26 08:54:19  pierre
+  Revision 1.60  2000-05-09 14:19:08  pierre
+   * calculate para_offset for interrupt procedures
+
+  Revision 1.59  2000/04/26 08:54:19  pierre
     * More changes for operator bug
       Order_overloaded method removed because it conflicted with
       new implementation where the defs are ordered
