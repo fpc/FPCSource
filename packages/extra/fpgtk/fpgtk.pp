@@ -1539,9 +1539,9 @@ TYPE
     procedure Prepend (Data:TStrings); Overload;
     procedure Prepend (Text:string; separator:string); Overload;
     procedure Prepend (data:array of string); Overload;
-    procedure Append (data:TStrings); Overload;
-    procedure Append (Text:string; Separator:string); Overload;
-    procedure Append (data:array of string); Overload;
+    function Append (data:TStrings) : Integer; Overload;
+    function Append (Text:string; Separator:string) : Integer; Overload;
+    function Append (data:array of string) : Integer; Overload;
     procedure Insert (row:integer; data:TStrings); Overload;
     procedure Insert (row:integer; Text:string; Separator:string); Overload;
     procedure Insert (row:integer; data:array of string); Overload;
@@ -8053,15 +8053,15 @@ begin
   freemem (ppdata, sizeof (pgchar) * (high(data)-low(data)+1));
 end;
 
-procedure TFPgtkCList.Append (data:TStrings); Overload;
+Function TFPgtkCList.Append (data:TStrings) : Integer; Overload;
 var ppdata : ppgchar;
 begin
   ppdata := StringsToPPgchar (Data);
-  gtk_clist_append (TheGtkObject, ppdata);
+  Result:=gtk_clist_append (TheGtkObject, ppdata);
   freemem (ppdata, sizeof (pgchar) * data.count);
 end;
 
-procedure TFPgtkCList.Append (Text:string; Separator:string); Overload;
+Function TFPgtkCList.Append (Text:string; Separator:string) : Integer; Overload;
 var l : TStrings;
     s : string;
 begin
@@ -8072,17 +8072,17 @@ begin
     if separator <> '' then
       s := stringreplace(Text, separator, '","', [rfReplaceAll]);
     l.CommaText := '"' + s + '"';
-    Append (l);
+    Result:=Append (l);
   finally
     l.Free;
   end;
 end;
 
-procedure TFPgtkCList.Append (data:array of string); Overload;
+Function TFPgtkCList.Append (data:array of string) : Integer; Overload;
 var ppdata : ppgchar;
 begin
   ppdata := ArrayToPPgchar (Data);
-  gtk_clist_append (TheGtkObject, ppdata);
+  Result:=gtk_clist_append (TheGtkObject, ppdata);
   freemem (ppdata, sizeof (pgchar) * (high(data)-low(data)+1));
 end;
 
