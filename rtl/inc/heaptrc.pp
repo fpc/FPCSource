@@ -15,6 +15,11 @@
  **********************************************************************}
 unit heaptrc;
 
+{ 0.99.12 had a bug that initialization/finalization only worked for
+  objfpc,delphi mode }
+{$ifdef VER0_99_12}
+  {$mode objfpc}
+{$endif}
 
 interface
 
@@ -753,7 +758,10 @@ finalization
 end.
 {
   $Log$
-  Revision 1.20  1999-08-17 14:56:03  michael
+  Revision 1.21  1999-08-18 12:03:16  peter
+    * objfpc mode for 0.99.12
+
+  Revision 1.20  1999/08/17 14:56:03  michael
   Removed the mode for objpas
 
   Revision 1.19  1999/07/10 10:33:50  peter
