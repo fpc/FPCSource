@@ -80,14 +80,14 @@ begin
 end;
 
 {---------------------------------------------------------------------------}
-{  FileOpen -> Platforms WIN32            - Never checked                   }
+{  FileOpen -> Platforms WIN32            - Tested MVC                      }
 {  Returns 0 on failure                                                     }
 {---------------------------------------------------------------------------}
 
 FUNCTION FileOpen (Var FileName: AsciiZ; Mode: Word): THandle;
 var
  oflags,cd: longint;
- AHandle : THandle;
+ AHandle : longint;
 begin
   { On opening reset error code }
   DosStreamError := 0;
@@ -107,14 +107,18 @@ begin
       end;
      end;
    AHandle:=CreateFile(pointer(@FileName),oflags,0,nil,cd,FILE_ATTRIBUTE_NORMAL,0);
-   if AHandle = 0 then
-       DosStreamError:=word(GetLastError);
-   FileOpen := AHandle;
+   if AHandle = -1 then
+     begin
+     FileOpen:=0;
+     DosStreamError:=word(GetLastError);
+     end
+   else 
+     FileOpen := AHandle;
 end;
 
 
 {***************************************************************************}
-{  DosSetFilePtr -> Platforms WIN32        - Not Checked                    }
+{  DosSetFilePtr -> Platforms WIN32        - Tested MVC                     }
 {***************************************************************************}
 FUNCTION SetFilePos (Handle: THandle; Pos: LongInt; MoveType: Word;
 Var Actual: LongInt): Word;
@@ -122,23 +126,26 @@ BEGIN
   { WARNING WIN32 CURRECTLY HAS THE SAME SEEK MODE AS MSDOS    }
   { if this changes don't forget to change and check the flags }
   { accordingly.                                               }
-  if SetFilePointer(handle,pos,nil,MoveType)=-1 then
+  Actual:=SetFilePointer(handle,pos,nil,MoveType);
+  If Actual=-1 then
     DosStreamError:=word(GetLastError);
-   Actual := pos;
-   SetFilePos := DosStreamError;                   { Return any error }
+  SetFilePos := DosStreamError;                   { Return any error }
 END;
 
 
 {---------------------------------------------------------------------------}
-{  FileRead -> Platforms WIN32            - Not checked                     }
+{  FileRead -> Platforms WIN32            - Tested MVC                      }
 {---------------------------------------------------------------------------}
 FUNCTION FileRead (Handle: THandle; Var Buf; Count: Sw_Word;
 Var Actual: Sw_Word): Word;
+
+Var res : longint;
+
 BEGIN
-  if readfile(handle,pointer(@buf),count,Actual,nil)=0 then
-    Begin
-      DosStreamError:=word(GetLastError);
-    end;
+  res:=0;
+  if readfile(handle,pointer(@buf),count,res,nil)=0 then
+     DosStreamError:=word(GetLastError);
+  Actual:=res;    
   FileRead:=DosStreamError;
 end;
 
@@ -177,7 +184,10 @@ END;
 
 {
   $Log$
-  Revision 1.1  1998-07-07 12:38:46  carl
+  Revision 1.2  1999-08-24 08:44:43  michael
+  + Fixed setfilepos and openfile
+
+  Revision 1.1  1998/07/07 12:38:46  carl
     + First version
 
   Revision 1.4  1998/07/06 12:26:19  carl
