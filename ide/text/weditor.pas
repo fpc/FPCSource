@@ -2648,11 +2648,11 @@ begin
   HoldUndo:=StoreUndo;
   StoreUndo:=false;
   S:=GetLineText(CurPos.Y);
-  if CurPos.X=length(S) then
+  if CurPos.X>=length(S) then
    begin
      if CurPos.Y<GetLineCount-1 then
       begin
-        SetLineText(CurPos.Y,S+GetLineText(CurPos.Y+1));
+        SetLineText(CurPos.Y,S+CharStr(' ',CurPOS.X-Length(S))+GetLineText(CurPos.Y+1));
         StoreUndo:=HoldUndo;
         SCP.X:=0;SCP.Y:=CurPos.Y+1;
         AddAction(eaDeleteLine,SCP,CurPos,GetLineText(CurPos.Y+1));
@@ -5613,7 +5613,10 @@ end;
 END.
 {
   $Log$
-  Revision 1.80  2000-02-07 12:11:15  pierre
+  Revision 1.81  2000-02-09 12:56:54  pierre
+   * fix for DelChar past end of line
+
+  Revision 1.80  2000/02/07 12:11:15  pierre
    Gabors changes
 
   Revision 1.79  2000/02/05 14:50:59  florian
