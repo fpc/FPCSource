@@ -553,6 +553,9 @@ implementation
          href,helpref : treference;
          para_alignment,
          pop_size : longint;
+{$ifndef usecallref}
+         pvreg,
+{$endif usecallref}
          vmtreg,vmtreg2 : tregister;
          oldaktcallnode : tcallnode;
 
@@ -646,47 +649,9 @@ implementation
 
 
          if (procdefinition.proccalloption in [pocall_cdecl,pocall_cppdecl,pocall_stdcall]) then
-          para_alignment:=4
+           para_alignment:=4
          else
-          para_alignment:=aktalignment.paraalign;
-
-         { proc variables destroy all registers }
-         if (right=nil) and
-            { virtual methods too }
-            not(po_virtualmethod in procdefinition.procoptions) then
-           begin
-              if (cs_check_io in aktlocalswitches) and
-                 (po_iocheck in procdefinition.procoptions) and
-                 not(po_iocheck in current_procinfo.procdef.procoptions) then
-                begin
-                   objectlibrary.getaddrlabel(iolabel);
-                   cg.a_label(exprasmlist,iolabel);
-                end
-              else
-                iolabel:=nil;
-
-(*
-              regs_to_alloc:=Tprocdef(procdefinition).usedintregisters;
-
-{$ifdef i386}
-              regs_to_push_other := tprocdef(procdefinition).usedotherregisters;
-{$else i386}
-              regs_to_push_other := VOLATILE_FPUREGISTERS;
-{$endif i386}
-              { on the ppc, ever procedure saves the non-volatile registers it uses itself }
-              { and must make sure it saves its volatile registers before doing a call     }
-{$ifdef i386}
-              { give used registers through }
-              rg.used_in_proc_int:=rg.used_in_proc_int + tprocdef(procdefinition).usedintregisters;
-              rg.used_in_proc_other:=rg.used_in_proc_other + tprocdef(procdefinition).usedotherregisters;
-{$endif i386}
-*)
-           end
-         else
-           begin
-              { no IO check for methods and procedure variables }
-              iolabel:=nil;
-           end;
+           para_alignment:=aktalignment.paraalign;
 
         regs_to_alloc:=paramanager.get_volatile_registers_int(procdefinition.proccalloption);
         regs_to_push_other:=paramanager.get_volatile_registers_fpu(procdefinition.proccalloption);
@@ -801,14 +766,28 @@ implementation
                    vmtreg2:=rg.getabtregisterint(exprasmlist,OS_ADDR);
                    rg.ungetregisterint(exprasmlist,vmtreg2);
                    cg.a_load_reg_reg(exprasmlist,OS_ADDR,OS_ADDR,vmtreg,vmtreg2);
+
+{$ifndef usecallref}
+                   pvreg:=rg.getabtregisterint(exprasmlist,OS_ADDR);
+                   reference_reset_base(href,vmtreg2,
+                      tprocdef(procdefinition)._class.vmtmethodoffset(tprocdef(procdefinition).extnumber));
+                   rg.ungetregisterint(exprasmlist,pvreg);
+                   cg.a_load_ref_reg(exprasmlist,OS_ADDR,OS_ADDR,href,pvreg);
+{$endif usecallref}
+
                    { free the resources allocated for the parameters }
                    freeparas;
 
                    rg.allocexplicitregistersint(exprasmlist,regs_to_alloc);
+
                    { call method }
+{$ifdef usecallref}
                    reference_reset_base(href,vmtreg2,
                       tprocdef(procdefinition)._class.vmtmethodoffset(tprocdef(procdefinition).extnumber));
                    cg.a_call_ref(exprasmlist,href);
+{$else usecallref}
+                   cg.a_call_reg(exprasmlist,pvreg);
+{$endif usecallref}
                 end
               else
                 begin
@@ -829,6 +808,8 @@ implementation
 {$ifdef i386}
               secondpass(right);
 {$endif i386}
+
+{$ifdef usecallref}
               if right.location.loc in  [LOC_REFERENCE,LOC_CREFERENCE] then
                 begin
                   helpref:=right.location.reference;
@@ -850,26 +831,38 @@ implementation
                 end
               else
                 rg.ungetregisterint(exprasmlist,right.location.register);
-
               location_freetemp(exprasmlist,right.location);
+{$else usecallref}
+              pvreg:=rg.getabtregisterint(exprasmlist,OS_ADDR);
+              rg.ungetregisterint(exprasmlist,pvreg);
+              { Only load OS_ADDR from the reference }
+              if right.location.loc in  [LOC_REFERENCE,LOC_CREFERENCE] then
+                cg.a_load_ref_reg(exprasmlist,OS_ADDR,OS_ADDR,right.location.reference,pvreg)
+              else
+                cg.a_load_loc_reg(exprasmlist,OS_ADDR,right.location,pvreg);
+              location_release(exprasmlist,right.location);
+              location_freetemp(exprasmlist,right.location);
+{$endif usecallref}
 
               { free the resources allocated for the parameters }
               freeparas;
 
               rg.allocexplicitregistersint(exprasmlist,regs_to_alloc);
+
               { Calling interrupt from the same code requires some
                 extra code }
               if (po_interrupt in procdefinition.procoptions) then
                 extra_interrupt_code;
 
-               rg.saveotherregvars(exprasmlist,ALL_OTHERREGISTERS);
-               if right.location.loc in [LOC_REFERENCE,LOC_CREFERENCE] then
-                 cg.a_call_ref(exprasmlist,helpref)
-               else
-                 cg.a_call_reg(exprasmlist,right.location.register);
-{               cg.a_call_loc(exprasmlist,right.location);}
-               location_release(exprasmlist,right.location);
-               location_freetemp(exprasmlist,right.location);
+              rg.saveotherregvars(exprasmlist,ALL_OTHERREGISTERS);
+{$ifdef usecallref}
+              if right.location.loc in  [LOC_REFERENCE,LOC_CREFERENCE] then
+                cg.a_call_ref(exprasmlist,helpref)
+              else
+                cg.a_call_reg(exprasmlist,right.location.register);
+{$else usecallref}
+              cg.a_call_reg(exprasmlist,pvreg);
+{$endif usecallref}
            end;
 
          { Need to remove the parameters from the stack? }
@@ -926,11 +919,13 @@ implementation
            location_reset(location,LOC_VOID,OS_NO);
 
          { perhaps i/o check ? }
-         if iolabel<>nil then
+         if (cs_check_io in aktlocalswitches) and
+            (po_iocheck in procdefinition.procoptions) and
+            not(po_iocheck in current_procinfo.procdef.procoptions) and
+            { no IO check for methods and procedure variables }
+            (right=nil) and
+            not(po_virtualmethod in procdefinition.procoptions) then
            begin
-              //reference_reset_symbol(href,iolabel,0);
-              //cg.a_paramaddr_ref(exprasmlist,href,paramanager.getintparaloc(exprasmlist,1));
-              //paramanager.freeintparaloc(exprasmlist,1);
               rg.allocexplicitregistersint(exprasmlist,paramanager.get_volatile_registers_int(pocall_default));
               cg.a_call_name(exprasmlist,'FPC_IOCHECK');
               rg.deallocexplicitregistersint(exprasmlist,paramanager.get_volatile_registers_int(pocall_default));
@@ -976,8 +971,6 @@ implementation
          unusedstate: pointer;
          pushedother : tpushedsavedother;
          oldpushedparasize : longint;
-         { adress returned from an I/O-error }
-         iolabel : tasmlabel;
          oldaktcallnode : tcallnode;
          oldprocdef : tprocdef;
          i : longint;
@@ -1103,7 +1096,6 @@ implementation
            end;
 {$endif GDB}
 
-         iolabel:=nil;
          rg.saveunusedstate(unusedstate);
 
          { if we allocate the temp. location for ansi- or widestrings }
@@ -1119,22 +1111,8 @@ implementation
              cg.g_decrrefcount(exprasmlist,resulttype.def,refcountedtemp,false);
            end;
 
-         if (cs_check_io in aktlocalswitches) and
-            (po_iocheck in procdefinition.procoptions) and
-            not(po_iocheck in current_procinfo.procdef.procoptions) then
-           begin
-              objectlibrary.getaddrlabel(iolabel);
-              cg.a_label(exprasmlist,iolabel);
-           end
-         else
-           iolabel:=nil;
-
          { save all used registers and possible registers
            used for the return value }
-(*
-         regs_to_push_int := tprocdef(procdefinition).usedintregisters;
-         regs_to_push_other := tprocdef(procdefinition).usedotherregisters;
-*)
          regs_to_push_int:=paramanager.get_volatile_registers_int(procdefinition.proccalloption);
          regs_to_push_other:=paramanager.get_volatile_registers_fpu(procdefinition.proccalloption);
          if (not is_void(resulttype.def)) then
@@ -1156,14 +1134,6 @@ implementation
            end;
 
          rg.saveusedotherregisters(exprasmlist,pushedother,regs_to_push_other);
-
-(*
-{$ifdef i386}
-         { give used registers through }
-         rg.used_in_proc_int:=rg.used_in_proc_int + tprocdef(procdefinition).usedintregisters;
-         rg.used_in_proc_other:=rg.used_in_proc_other + tprocdef(procdefinition).usedotherregisters;
-{$endif i386}
-*)
 
          { Initialize for pushing the parameters }
          oldpushedparasize:=pushedparasize;
@@ -1232,14 +1202,6 @@ implementation
              tg.UnGetTemp(exprasmlist,pararef);
              current_procinfo.procdef.parast.address_fixup:=old_para_fixup;
            end;
-         { free return reference }
-         if (resulttype.def.size>0) then
-           begin
-             { from now on the result can be freed normally }
-//              if assigned(funcretnode) and
-//                 paramanager.ret_in_param(resulttype.def,procdefinition.proccalloption) then
-//                tg.ChangeTempType(exprasmlist,funcretnode.location.reference,tt_normal);
-           end;
 
          { handle function results }
          if (not is_void(resulttype.def)) then
@@ -1248,11 +1210,13 @@ implementation
            location_reset(location,LOC_VOID,OS_NO);
 
          { perhaps i/o check ? }
-         if iolabel<>nil then
+         if (cs_check_io in aktlocalswitches) and
+            (po_iocheck in procdefinition.procoptions) and
+            not(po_iocheck in current_procinfo.procdef.procoptions) and
+            { no IO check for methods and procedure variables }
+            (right=nil) and
+            not(po_virtualmethod in procdefinition.procoptions) then
            begin
-              //reference_reset_symbol(href,iolabel,0);
-              //cg.a_paramaddr_ref(exprasmlist,href,paramanager.getintparaloc(exprasmlist,1));
-              //paramanager.freeintparaloc(exprasmlist,1);
               rg.allocexplicitregistersint(exprasmlist,paramanager.get_volatile_registers_int(pocall_default));
               cg.a_call_name(exprasmlist,'FPC_IOCHECK');
               rg.deallocexplicitregistersint(exprasmlist,paramanager.get_volatile_registers_int(pocall_default));
@@ -1335,7 +1299,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.113  2003-09-11 11:54:59  florian
+  Revision 1.114  2003-09-14 19:17:39  peter
+    * don't use a_call_ref because it can use a parameter register
+      as temp
+
+  Revision 1.113  2003/09/11 11:54:59  florian
     * improved arm code generation
     * move some protected and private field around
     * the temp. register for register parameters/arguments are now released
