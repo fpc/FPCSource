@@ -183,21 +183,24 @@ Perhaps handle readonly filesystems, as in sysunix.inc
 
 }
 
-{This implementation uses StdCLib, which is included in the MPW.}
-{$define MACOS_USE_STDCLIB}
-
-
 {******** include system independent routines **********}
 {$I system.inc}
 
 
 {*********************** MacOS API *********************}
-{Below is some MacOS API routines included for internal use.
-Note, because the System unit is the most low level, it should not 
+
+{This implementation uses StdCLib: }
+{$define MACOS_USE_STDCLIB}
+
+{Some MacOS API routines and StdCLib included for internal use:}
+{$I macostp.inc}
+
+{Note, because the System unit is the most low level, it should not 
 depend on any other units, and thus the macos api must be accessed 
 as an include file and not a unit.}
 
-{$I macostp.inc}
+{The reason StdCLib is used is that it can easily be connected
+to either SIOW or, in case of MPWTOOL, to MPW }
 
 {If the Apples Universal Interfaces are used, the qd variable is required
 to be allocated somewhere, so we do it here for the convenience to the user.}
@@ -211,131 +214,6 @@ var
 {************** API to StdCLib in MacOS ***************}
 {The reason StdCLib is used is that it can easily be connected
 to either SIOW or, in case of MPWTOOL, to MPW }
-
-{The prefix C_ or c_ is used where names conflicts with pascal
-keywords and names. Suffix Ptr is added for pointer to a type.}
-
-type
-  size_t = Longint;
-  off_t = Longint;
-  C_int = Longint;
-  C_short = Integer;
-  C_long = Longint;
-  C_unsigned_int = Cardinal;
-
-var
-  errno: C_int; external name 'errno';
-  MacOSErr: C_short; external name 'MacOSErr';
-
-const
-  _IOFBF = $00;
-  _IOLBF = $40;
-  _IONBF = $04;
-
-
-  O_RDONLY = $00;     // Open for reading only.
-  O_WRONLY = $01;     // Open for writing only.
-  O_RDWR   = $02;     // Open for reading & writing.
-  O_APPEND = $08;     // Write to the end of the file.
-  O_RSRC   = $10;     // Open the resource fork.
-  O_ALIAS  = $20;     // Open alias file.
-  O_CREAT  = $100;    // Open or create a file.
-  O_TRUNC  = $200;    // Open and truncate to zero length.
-  O_EXCL   = $400;    // Create file only; fail if exists.
-  O_BINARY = $800;    // Open as a binary stream.
-  O_NRESOLVE = $4000; // Don't resolve any aliases.
-
-
-  SEEK_SET = 0;
-  SEEK_CUR = 1;
-  SEEK_END = 2;
-
-  FIOINTERACTIVE = $00006602; // If device is interactive
-  FIOBUFSIZE     = $00006603; // Return optimal buffer size
-  FIOFNAME       = $00006604; // Return filename
-  FIOREFNUM      = $00006605; // Return fs refnum
-  FIOSETEOF      = $00006606; // Set file length
-
-  TIOFLUSH = $00007408;       // discard unread input.  arg is ignored
-
-function c_open(path: PChar; oflag: C_int): C_int; cdecl;
-  external 'StdCLib' name 'open';
-
-function c_close(filedes: C_int): C_int; cdecl;
-  external 'StdCLib' name 'close';
-
-function c_write(filedes: C_int; buf: pointer; nbyte: size_t): size_t; cdecl;
-  external 'StdCLib' name 'write';
-
-function c_read(filedes: C_int; buf: pointer; nbyte: size_t): size_t; cdecl;
-  external 'StdCLib' name 'read';
-
-function lseek(filedes: C_int; offset: off_t; whence: C_int): off_t; cdecl;
-  external 'StdCLib' name 'lseek';
-
-function ioctl(filedes: C_int; cmd: C_unsigned_int; arg: pointer): C_int; cdecl;
-  external 'StdCLib' name 'ioctl';
-
-function remove(filename: PChar): C_int; cdecl;
-  external 'StdCLib';
-
-function c_rename(old, c_new: PChar): C_int; cdecl;
-  external 'StdCLib' name 'rename';
-
-procedure c_exit(status: C_int); cdecl;
-  external 'StdCLib' name 'exit';
-
-  {cdecl is actually only needed for m68k}
-
-var
-  {Is set to zero for MPWTool, nonzero otherwise.}
-  StandAlone: C_int; external name 'StandAlone';
-
-CONST
-
-Sys_EPERM       = 1;    { No permission match }
-Sys_ENOENT      = 2;    { No such file or directory }
-Sys_ENORSRC     = 3;    { Resource not found *}
-Sys_EINTR       = 4;    { System service interrupted *}
-Sys_EIO         = 5;    { I/O error }
-Sys_ENXIO       = 6;    { No such device or address }
-Sys_E2BIG       = 7;    { Insufficient space for return argument * }
-Sys_ENOEXEC     = 8;    { File not executable * }
-Sys_EBADF       = 9;    { Bad file number }
-Sys_ECHILD      = 10;   { No child processes }
-Sys_EAGAIN      = 11;   { Resource temporarily unavailable * }
-Sys_ENOMEM      = 12;   { Not enough space * }
-Sys_EACCES      = 13;   { Permission denied }
-Sys_EFAULT      = 14;   { Illegal filename * }
-Sys_ENOTBLK     = 15;   { Block device required }
-Sys_EBUSY       = 16;   { Device or resource busy }
-Sys_EEXIST      = 17;   { File exists }
-Sys_EXDEV       = 18;   { Cross-device link }
-Sys_ENODEV      = 19;   { No such device }
-Sys_ENOTDIR     = 20;   { Not a directory }
-Sys_EISDIR      = 21;   { Is a directory }
-Sys_EINVAL      = 22;   { Invalid parameter * }
-Sys_ENFILE      = 23;   { File table overflow }
-Sys_EMFILE      = 24;   { Too many open files }
-Sys_ENOTTY      = 25;   { Not a typewriter }
-Sys_ETXTBSY     = 26;   { Text file busy. The new process was
-                          a pure procedure (shared text) file which was
-                          open for writing by another process, or file
-                          which was open for writing by another process,
-                          or while the pure procedure file was being
-                          executed an open(2) call requested write access
-                          requested write access.
-              (Probably not applicable on macos)}
-Sys_EFBIG       = 27;   { File too large }
-Sys_ENOSPC      = 28;   { No space left on device }
-Sys_ESPIPE      = 29;   { Illegal seek }
-Sys_EROFS       = 30;   { Read-only file system }
-Sys_EMLINK      = 31;   { Too many links }
-Sys_EPIPE       = 32;   { Broken pipe }
-Sys_EDOM        = 33;   { Math argument out of domain of func }
-Sys_ERANGE      = 34;   { Math result not representable }
-
-{ Note * is slightly different, compared to rtl/sunos/errno.inc}
 
 {$endif}
 
@@ -1347,7 +1225,10 @@ end.
 
 {
   $Log$
-  Revision 1.22  2004-09-30 19:58:42  olle
+  Revision 1.23  2004-10-19 19:56:59  olle
+    * Interface to StdLibC moved from system to macostp
+
+  Revision 1.22  2004/09/30 19:58:42  olle
     + Added SetDefaultMacOS[Filetype|Creator]
     * Files written to by fpc rtl now always will get decent filetype/creator
     * Adapted to use FSpGetFullPath

@@ -22,6 +22,8 @@ unit macostp;
 
 interface
 
+{$define MACOS_USE_STDCLIB}
+
 {$I macostp.inc}
 
 implementation
