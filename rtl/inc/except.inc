@@ -276,18 +276,21 @@ begin
   If not(assigned(ExceptObjectStack)) or
      not(assigned(ExceptObjectStack^.next)) then
     begin
-    writeln ('At end of ExceptionObjectStack');
-    halt (1);
+      writeln ('At end of ExceptionObjectStack');
+      halt (1);
     end
   else
     begin
-       { we need to return the exception object to dispose it }
-       fpc_PopSecondObjectStack:=ExceptObjectStack^.next^.FObject;
-       hp:=ExceptObjectStack^.next;
-       ExceptObjectStack^.next:=hp^.next;
-       if assigned(hp^.frames) then
-         freemem(hp^.frames);
-       dispose(hp);
+      if ExceptObjectStack^.next^.refcount=0 then
+        { we need to return the exception object to dispose it if refcount=0 }
+        fpc_PopSecondObjectStack:=ExceptObjectStack^.next^.FObject
+      else
+        fpc_PopSecondObjectStack:=nil;
+      hp:=ExceptObjectStack^.next;
+      ExceptObjectStack^.next:=hp^.next;
+      if assigned(hp^.frames) then
+        freemem(hp^.frames);
+      dispose(hp);
     end;
 end;
 
@@ -346,7 +349,10 @@ begin
 end;
 {
   $Log$
-  Revision 1.19  2005-02-14 17:13:22  peter
+  Revision 1.20  2005-04-03 11:32:05  florian
+    * ref. counting for popping second exceptiono object fixed
+
+  Revision 1.19  2005/02/14 17:13:22  peter
     * truncate log
 
   Revision 1.18  2005/01/29 17:01:18  peter
