@@ -280,7 +280,11 @@ Uses Strings;
 {$i filerec.inc}
 
 { Raw System calls are in Syscalls.inc}
+{$ifdef Linux}			// Linux has more "oldlinux" compability.
+{$i sysc11.inc}
+{$else}
 {$i syscalls.inc}
+{$endif}
 
 {$i unixsysc.inc}   {Syscalls only used in unit Unix/Linux}
 
@@ -647,13 +651,10 @@ End;
 {$ifndef BSD}
 {$ifdef linux}
 Function stime (t : longint) : Boolean;
-var
-  sr : Syscallregs;
 begin
-  sr.reg2:=longint(@t);
-  SysCall(Syscall_nr_stime,sr);
+  do_SysCall(Syscall_nr_stime,longint(@t));
   linuxerror:=fpgeterrno;;
-   stime:=linuxerror=0;
+  stime:=linuxerror=0;
 end;
 {$endif}
 {$endif}
@@ -1714,7 +1715,10 @@ End.
 
 {
   $Log$
-  Revision 1.41  2003-10-12 19:40:43  marco
+  Revision 1.42  2003-10-30 16:42:58  marco
+   * fixes for old syscall() convention removing
+
+  Revision 1.41  2003/10/12 19:40:43  marco
    * ioctl fixes. IDE now starts, but
 
   Revision 1.40  2003/09/29 14:36:06  peter
