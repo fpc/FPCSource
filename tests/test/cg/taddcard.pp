@@ -106,6 +106,11 @@ begin
  i := i * 10 * j * i * j * 16 * k;
  if i <> 256000 then
     result := false;
+ i := 100000;
+ j := 100;
+ i := i * j;
+ if i <> 10000000 then
+   result := false;
  if not result then
   WriteLn('Failure.')
  else
