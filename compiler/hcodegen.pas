@@ -35,7 +35,7 @@ unit hcodegen;
       ,m68k
 {$endif}
 {$ifdef alpha}
-      ,procbase
+      ,cpubase
 {$endif}
       ;
 
@@ -301,7 +301,10 @@ end.
 
 {
   $Log$
-  Revision 1.35  1999-08-01 23:04:49  michael
+  Revision 1.36  1999-08-01 23:09:26  michael
+  * procbase -> cpubase
+
+  Revision 1.35  1999/08/01 23:04:49  michael
   + Changes for Alpha
 
   Revision 1.34  1999/07/22 09:37:42  florian

@@ -42,7 +42,7 @@ unit symtable;
        ,m68k
 {$endif}
 {$ifdef alpha}
-       ,procbase
+       ,cpubase
        ,cpuinfo
 {$endif}
 {$ifdef GDB}
@@ -2342,7 +2342,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.31  1999-08-01 23:04:50  michael
+  Revision 1.32  1999-08-01 23:09:27  michael
+  * procbase -> cpubase
+
+  Revision 1.31  1999/08/01 23:04:50  michael
   + Changes for Alpha
 
   Revision 1.30  1999/07/24 00:13:26  peter
