@@ -26,7 +26,9 @@ Begin
   str(r,s);
   val(s,rr,code);
   { calculate maximum possible precision }
-  if sizeof(extended) = 10 then
+  if sizeof(extended) = 12 then
+    error := exp(17*ln(10))
+  else if sizeof(extended) = 10 then
     error := exp(17*ln(10))
   else if sizeof(extended) = 8 then
     error := exp(14*ln(10))
