@@ -1130,9 +1130,10 @@ implementation
         is_intregable:=false;
         case deftype of
           pointerdef,
-          enumdef,
-          procvardef :
+          enumdef:
             is_intregable:=true;
+          procvardef :
+            is_intregable:=not(po_methodpointer in tprocvardef(self).procoptions);
           orddef :
             case torddef(self).typ of
               bool8bit,bool16bit,bool32bit,
@@ -5524,7 +5525,10 @@ Const local_symtable_index : longint = $8001;
 end.
 {
   $Log$
-  Revision 1.36  2001-07-01 20:16:16  peter
+  Revision 1.37  2001-07-30 11:52:57  jonas
+    * fixed web bugs 1563/1564: procvars of object can't be regvars (merged)
+
+  Revision 1.36  2001/07/01 20:16:16  peter
     * alignmentinfo record added
     * -Oa argument supports more alignment settings that can be specified
       per type: PROC,LOOP,VARMIN,VARMAX,CONSTMIN,CONSTMAX,RECORDMIN
