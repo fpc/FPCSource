@@ -146,11 +146,11 @@ errVioNoSuchMode   = errVioBase + 3; { No such video mode }
 The following constants can be read to get some information about the
 current screen:
 \begin{verbatim}
-ScreenWidth     : Word = 0;
-ScreenHeight    : Word = 0;
+ScreenWidth     : Word = 0;  { Width of the screen, in characters  }
+ScreenHeight    : Word = 0;  { Height of the screen, in characters }
 LowAscii        : Boolean = true;
 NoExtendedFrame : Boolean = false;
-FVMaxWidth      = 132;
+FVMaxWidth      = 132; 
 \end{verbatim}
 The error-handling code uses the following constants:
 \begin{verbatim}
@@ -174,9 +174,12 @@ supports colors, or \var{False} if not.
     Color   : Boolean;
   end;
 \end{verbatim}
-\var{TVideoCell} describes one character on the screen. The high byte
+\var{TVideoCell} describes one character on the screen. One of the bytes 
 contains the color attribute with which the character is drawn on the screen,
-and the low byte contains the ASCII code of the character to be drawn.
+and the other byte contains the ASCII code of the character to be drawn. The
+exact position of the different bytes in the record is operating system specific.
+On most little-endian systems, the high byte represents the color attribute,
+while the low-byte represents the ASCII code of the character to be drawn.
 \begin{verbatim}
 TVideoCell = Word;
 PVideoCell = ^TVideoCell;
@@ -234,12 +237,10 @@ CursorX, CursorY : Word;
 \var{ScreenColor} indicates whether the current screen supports colors.
 \var{CursorX,CursorY} contain the current cursor position.
 
-The following variables form the heart of the \file{Video} unit: The
+The following variable forms the heart of the \file{Video} unit: The
 \var{VideoBuf} array represents the physical screen. Writing to this
 array and calling \seep{UpdateScreen} will write the actual characters
-to the screen. \var{VideoBufSize} contains the actual screen size, and is
-equal to the product of the number of columns times the number of lines 
-on the screen (\var{ScreenWidth*ScreenHeight}).
+to the screen. 
 \begin{verbatim}
 VideoBuf     : PVideoBuf;
 OldVideoBuf  : PVideoBuf;
