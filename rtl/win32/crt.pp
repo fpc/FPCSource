@@ -1,7 +1,9 @@
 {
     $Id$
+    This file is part of the Free Pascal run time library.
+    Copyright (c) 1999-2000 by the Free Pascal development team.
 
-    Borland Pascal 7 Compatible CRT Unit for win32
+    Borland Pascal 7 Compatible CRT Unit - win32 implentation
 
     See the file COPYING.FPC, included in this distribution,
     for details about the copyright.
@@ -15,88 +17,12 @@ unit crt;
 
 interface
 
-const
-{ CRT modes }
-  BW40          = 0;            { 40x25 B/W on Color Adapter }
-  CO40          = 1;            { 40x25 Color on Color Adapter }
-  BW80          = 2;            { 80x25 B/W on Color Adapter }
-  CO80          = 3;            { 80x25 Color on Color Adapter }
-  Mono          = 7;            { 80x25 on Monochrome Adapter }
-  Font8x8       = 256;          { Add-in for ROM font }
+{$i crth.inc}
 
-{ Mode constants for 3.0 compatibility }
-  C40           = CO40;
-  C80           = CO80;
-
-{ Foreground and background color constants }
-  Black         = 0;
-  Blue          = 1;
-  Green         = 2;
-  Cyan          = 3;
-  Red           = 4;
-  Magenta       = 5;
-  Brown         = 6;
-  LightGray     = 7;
-
-{ Foreground color constants }
-  DarkGray      = 8;
-  LightBlue     = 9;
-  LightGreen    = 10;
-  LightCyan     = 11;
-  LightRed      = 12;
-  LightMagenta  = 13;
-  Yellow        = 14;
-  White         = 15;
-
-{ Add-in for blinking }
-  Blink         = 128;
-
-var
-
-{ Interface variables }
-  CheckBreak: Boolean;    { Enable Ctrl-Break }
-  CheckEOF: Boolean;      { Enable Ctrl-Z }
-  DirectVideo: Boolean;   { Enable direct video addressing }
-  CheckSnow: Boolean;     { Enable snow filtering }
-  LastMode: Word;         { Current text mode }
-  TextAttr: Byte;         { Current text attribute }
-  WindMin: Word;          { Window upper left coordinates }
-  WindMax: Word;          { Window lower right coordinates }
-  { FPC Specific for large screen support }
-  WindMinX : DWord;
-  WindMaxX : DWord;
-  WindMinY : DWord;
-  WindMaxY : DWord	;
-
-{ Interface procedures }
-procedure AssignCrt(var F: Text);
-function KeyPressed: Boolean;
-function ReadKey: Char;
-procedure TextMode(Mode: Integer);
-procedure Window(X1,Y1,X2,Y2: DWord);
-procedure GotoXY(X,Y: DWord);
-function WhereX: DWord;
-function WhereY: DWord;
-procedure ClrScr;
-procedure ClrEol;
-procedure InsLine;
-procedure DelLine;
-procedure TextColor(Color: Byte);
-procedure TextBackground(Color: Byte);
-
-procedure LowVideo;
-procedure HighVideo;
-procedure NormVideo;
-
-procedure Delay(MS: Word);
-procedure Sound(Hz: Word);
-procedure NoSound;
-
-{Extra Functions}
-procedure cursoron;
-procedure cursoroff;
-procedure cursorbig;
-
+procedure Window32(X1,Y1,X2,Y2: DWord);
+procedure GotoXY32(X,Y: DWord);
+function WhereX32: DWord;
+function WhereY32: DWord;
 
 implementation
 
@@ -219,7 +145,14 @@ Begin
   TextBackGround(0);
 End;
 
-Procedure GotoXY(X: DWord; Y: DWord);
+Procedure GotoXY(X: Byte; Y: Byte);
+
+begin
+  GotoXY32(X,Y);
+end;
+
+Procedure GotoXY32(X: DWord; Y: DWord);
+
 { Go to coordinates X,Y in the current window. }
 Begin
   If (X > 0) and (X <= (WindMaxX - WindMinX + 1)) and
@@ -230,8 +163,13 @@ Begin
   End;
 End;
 
+Procedure Window(X1, Y1, X2, Y2: Byte);
 
-Procedure Window(X1, Y1, X2, Y2: DWord);
+begin
+  Window32(X1,Y1,X2,Y2);
+end;
+
+Procedure Window32(X1, Y1, X2, Y2: DWord);
 {
   Set screen window to the specified coordinates.
 }
@@ -288,7 +226,14 @@ begin
     Coord, @Temp);
 end;
 
-Function WhereX: DWord;
+Function WhereX: Byte;
+
+
+begin
+  WhereX:=WhereX32 mod 256;
+end;
+
+Function WhereX32: DWord;
 {
   Return current X-position of cursor.
 }
@@ -296,10 +241,16 @@ var
   x,y : DWord;
 Begin
   GetScreenCursor(x, y);
-  WhereX:= x - WindMinX +1;
+  WhereX32:= x - WindMinX +1;
 End;
 
-Function WhereY: DWord;
+Function WhereY: Byte;
+
+begin
+  WhereY:=WhereY32 mod 256;
+end;
+
+Function WhereY32: DWord;
 {
   Return current Y-position of cursor.
 }
@@ -307,7 +258,7 @@ var
   x, y : DWord;
 Begin
   GetScreenCursor(x, y);
-  WhereY:= y - WindMinY + 1;
+  WhereY32:= y - WindMinY + 1;
 End;
 
 
@@ -861,7 +812,10 @@ end. { unit Crt }
 
 {
   $Log$
-  Revision 1.20  2003-11-03 09:42:28  marco
+  Revision 1.21  2004-02-08 16:22:20  michael
+  + Moved CRT interface to common include file
+
+  Revision 1.20  2003/11/03 09:42:28  marco
    * Peter's Cardinal<->Longint fixes patch
 
   Revision 1.19  2002/12/15 20:23:30  peter

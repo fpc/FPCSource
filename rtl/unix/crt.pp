@@ -13,64 +13,19 @@
 
  **********************************************************************}
 unit Crt;
+
 Interface
 
-Const
-{ Controlling consts }
-  Flushing=false;               {if true then don't buffer output}
-
-{ CRT modes }
-  BW40          = 0;            { 40x25 B/W on Color Adapter }
-  CO40          = 1;            { 40x25 Color on Color Adapter }
-  BW80          = 2;            { 80x25 B/W on Color Adapter }
-  CO80          = 3;            { 80x25 Color on Color Adapter }
-  Mono          = 7;            { 80x25 on Monochrome Adapter }
-  Font8x8       = 256;          { Add-in for ROM font }
-
-{ Mode constants for 3.0 compatibility }
-  C40           = CO40;
-  C80           = CO80;
-
-{ Foreground and background color constants }
-  Black         = 0;
-  Blue          = 1;
-  Green         = 2;
-  Cyan          = 3;
-  Red           = 4;
-  Magenta       = 5;
-  Brown         = 6;
-  LightGray     = 7;
-
-{ Foreground color constants }
-  DarkGray      = 8;
-  LightBlue     = 9;
-  LightGreen    = 10;
-  LightCyan     = 11;
-  LightRed      = 12;
-  LightMagenta  = 13;
-  Yellow        = 14;
-  White         = 15;
-
-{ Add-in for blinking }
-  Blink         = 128;
-
-{Other Defaults}
-  TextAttr   : Byte = $07;
-  LastMode   : Word = 3;
-  WindMin    : Word = $0;
-  WindMax    : Word = $184f;
-var
-  CheckBreak,
-  CheckEOF,
-  CheckSnow,
-  DirectVideo: Boolean;
+{$i crth.inc}  
 
 Const
-  ScreenHeight : longint=25;
-  ScreenWidth  : longint=80;
-
-  ConsoleMaxX=1024;
-  ConsoleMaxY=1024;
+  { Controlling consts }
+  Flushing     = false;               {if true then don't buffer output}
+  ConsoleMaxX  = 1024;
+  ConsoleMaxY  = 1024;
+  ScreenHeight : longint = 25;
+  ScreenWidth  : longint = 80;
+  
 Type
   TCharAttr=packed record
     ch   : char;
@@ -78,36 +33,9 @@ Type
   end;
   TConsoleBuf=Array[0..ConsoleMaxX*ConsoleMaxY-1] of TCharAttr;
   PConsoleBuf=^TConsoleBuf;
+
 var
   ConsoleBuf : PConsoleBuf;
-
-
-Procedure AssignCrt(Var F: Text);
-Function  KeyPressed: Boolean;
-Function  ReadKey: Char;
-Procedure TextMode(Mode: Integer);
-Procedure Window(X1, Y1, X2, Y2: Byte);
-Procedure GoToXy(X: Byte; Y: Byte);
-Function  WhereX: Byte;
-Function  WhereY: Byte;
-Procedure ClrScr;
-Procedure ClrEol;
-Procedure InsLine;
-Procedure DelLine;
-Procedure TextColor(Color: Byte);
-Procedure TextBackground(Color: Byte);
-Procedure LowVideo;
-Procedure HighVideo;
-Procedure NormVideo;
-Procedure Delay(DTime: Word);
-Procedure Sound(Hz: Word);
-Procedure NoSound;
-
-{ extra }
-procedure CursorBig;
-procedure CursorOn;
-procedure CursorOff;
-
 
 Implementation
 
@@ -1116,12 +1044,12 @@ Begin
 End;
 
 
-Procedure Delay(DTime: Word);
+Procedure Delay(MS: Word);
 {
   Wait for DTime milliseconds.
 }
 Begin
-  fpSelect(0,nil,nil,nil,DTime);
+  fpSelect(0,nil,nil,nil,MS);
 End;
 
 
@@ -1683,7 +1611,10 @@ Finalization
 End.
 {
   $Log$
-  Revision 1.16  2003-11-24 22:27:25  michael
+  Revision 1.17  2004-02-08 16:22:20  michael
+  + Moved CRT interface to common include file
+
+  Revision 1.16  2003/11/24 22:27:25  michael
   + Bugfix for bug 2741
 
   Revision 1.15  2003/11/19 17:11:40  marco

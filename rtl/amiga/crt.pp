@@ -37,95 +37,7 @@ Const
   ScreenWidth  = 80;
   ScreenHeight = 25;
 
-{ CRT modes }
-  BW40          = 0;            { 40x25 B/W on Color Adapter }
-  CO40          = 1;            { 40x25 Color on Color Adapter }
-  BW80          = 2;            { 80x25 B/W on Color Adapter }
-  CO80          = 3;            { 80x25 Color on Color Adapter }
-  Mono          = 7;            { 80x25 on Monochrome Adapter }
-  Font8x8       = 256;          { Add-in for ROM font }
-
-{ Mode constants for 3.0 compatibility }
-  C40           = CO40;
-  C80           = CO80;
-
-{
-  When using this color constants on the Amiga
-  you can bet that they don't work as expected.
-  You never know what color the user has on
-  his Amiga. Perhaps we should do a check of
-  the number of bitplanes (for number of colors)
-
-  The normal 4 first pens for an Amiga are
-
-  0 LightGrey
-  1 Black
-  2 White
-  3 Blue
-
-}
-
-{ Foreground and background color constants  }
-  Black         = 1;  { normal pen for amiga }
-  Blue          = 3;  { windowborder color   }
-  Green         = 15;
-  Cyan          = 7;
-  Red           = 4;
-  Magenta       = 5;
-  Brown         = 6;
-  LightGray     = 0;  { canvas color         }
-
-{ Foreground color constants }
-  DarkGray      = 8;
-  LightBlue     = 9;
-  LightGreen    = 10;
-  LightCyan     = 11;
-  LightRed      = 12;
-  LightMagenta  = 13;
-  Yellow        = 14;
-  White         = 2;  { third color on amiga }
-
-{ Add-in for blinking }
-  Blink         = 128;
-
-{Other Defaults}
-  LastMode   : Word = 3;
-  WindMin    : Word = $0;
-  WindMax    : Word = $184f;
-{ These don't change anything if they are modified }
-  CheckSnow  : Boolean = FALSE;
-  DirectVideo: Boolean = FALSE;
-var
-  TextAttr : BYTE;
-  { CheckBreak have to make this one to a function for Amiga }
-  CheckEOF : Boolean;
-
-Procedure AssignCrt(Var F: Text);
-Function  KeyPressed: Boolean;
-Function  ReadKey: Char;
-Procedure TextMode(Mode: Integer);
-Procedure Window(X1, Y1, X2, Y2: BYTE);
-Procedure GoToXy(X: byte; Y: byte);
-Function  WhereX: Byte;
-Function  WhereY: Byte;
-Procedure ClrScr;
-Procedure ClrEol;
-Procedure InsLine;
-Procedure DelLine;
-Procedure TextColor(Color: Byte);
-Procedure TextBackground(Color: Byte);
-Procedure LowVideo;
-Procedure HighVideo;
-Procedure NormVideo;
-Procedure Delay(DTime: Word);
-Procedure Sound(Hz: Word);
-Procedure NoSound;
-
-{ Extra functions }
-
-Procedure CursorOn;
-Procedure CursorOff;
-Function CheckBreak: Boolean;
+{$i crth.inc}
 
 Implementation
 
@@ -1020,7 +932,10 @@ end.
 
 
   $Log$
-  Revision 1.3  2002-09-07 16:01:16  peter
+  Revision 1.4  2004-02-08 16:22:20  michael
+  + Moved CRT interface to common include file
+
+  Revision 1.3  2002/09/07 16:01:16  peter
     * old logs removed and tabs fixed
 
 }

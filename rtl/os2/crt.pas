@@ -13,75 +13,21 @@
 
 unit crt;
 
-
 interface
 
-uses dos;
-
-const
-  _40cols=0;
-  _80cols=1;
-  _132cols=2;
-  _25rows=0;
-  _28rows=16;
-  _43rows=32;
-  _50rows=48;
-  font8x8=_50rows;
-
-  black         =0;
-  blue          =1;
-  green         =2;
-  cyan          =3;
-  red           =4;
-  magenta       =5;
-  brown         =6;
-  lightgray     =7;
-  darkgray      =8;
-  lightblue     =9;
-  lightgreen    =10;
-  lightcyan     =11;
-  lightred      =12;
-  lightmagenta  =13;
-  yellow        =14;
-  white         =15;
-  blink         =128;
+{$i crth.inc}
 
 {cemodeset means that the procedure textmode has failed to set up a mode.}
 
-type    cexxxx=(cenoerror,cemodeset);
+type    
+  cexxxx=(cenoerror,cemodeset);
 
-var textattr:byte;                      {Text attribute.        RW}
-    windmin,windmax:word;               {Window coordinates.    R-}
-    lastmode:word;                      {Last videomode.        R-}
-    crt_error:cexxxx;                   {Crt-status.            RW}
-
-function keypressed:boolean;
-function readkey:char;
-
-procedure clrscr;
-procedure clreol;
-function whereX:byte;
-function whereY:byte;
-procedure gotoXY(x,y:byte);
-procedure window(left,top,right,bottom : byte);
-procedure textmode(mode:integer);
-procedure textcolor(colour:byte);
-procedure textbackground(colour:byte);
-procedure insline;
-procedure delline;
-procedure lowvideo;
-procedure normvideo;
-procedure highvideo;
-procedure assigncrt(var f:text);
-procedure delay(ms:word);
-procedure sound(hz:word);
-procedure nosound;
-
-{***************************************************************************}
-
-{***************************************************************************}
+var
+  crt_error:cexxxx;                   {Crt-status.            RW}
 
 implementation
+
+{$i textrec.inc}
 
 const   extkeycode:char=#0;
 
@@ -338,20 +284,20 @@ begin
     clrscr;
 end;
 
-procedure textcolor(colour:byte);
+procedure textcolor(color:byte);
 
 {All text written after calling this will have color as foreground colour.}
 
 begin
-    textattr:=(textattr and $70) or (colour and $f)+colour and 128;
+    textattr:=(textattr and $70) or (color and $f)+color and 128;
 end;
 
-procedure textbackground(colour:byte);
+procedure textbackground(color:byte);
 
 {All text written after calling this will have colour as background colour.}
 
 begin
-    textattr:=(textattr and $8f) or ((colour and $7) shl 4);
+    textattr:=(textattr and $8f) or ((color and $7) shl 4);
 end;
 
 procedure normvideo;
@@ -384,18 +330,18 @@ begin
   dossleep(ms)
 end;
 
-procedure window(left,top,right,bottom:byte);
+procedure window(X1,Y1,X2,Y2:byte);
 {Change the write window to the given coordinates.}
 begin
-    if (left<1) or
-     (top<1) or
-     (right>maxcols) or
-     (bottom>maxrows) or
-     (left>right) or
-     (top>bottom) then
+    if (X1<1) or
+     (Y1<1) or
+     (X2>maxcols) or
+     (Y2>maxrows) or
+     (X1>X2) or
+     (Y1>Y2) then
         exit;
-    windmin:=(left-1) or ((top-1) shl 8);
-    windmax:=(right-1) or ((bottom-1) shl 8);
+    windmin:=(X1-1) or ((Y1-1) shl 8);
+    windmax:=(X2-1) or ((Y2-1) shl 8);
     gotoXY(1,1);
 end;
 
@@ -563,6 +509,22 @@ procedure nosound;
 begin
 end;
 
+{Extra Functions}
+procedure cursoron;
+
+begin
+end;
+
+procedure cursoroff;
+
+begin
+end;
+
+procedure cursorbig;
+
+begin
+end;
+
 {Initialization.}
 
 var
@@ -596,7 +558,10 @@ end.
 
 {
   $Log$
-  Revision 1.5  2003-10-18 16:53:21  hajny
+  Revision 1.6  2004-02-08 16:22:20  michael
+  + Moved CRT interface to common include file
+
+  Revision 1.5  2003/10/18 16:53:21  hajny
     * longint2cardinal
 
   Revision 1.4  2003/09/24 12:30:08  yuri
