@@ -69,10 +69,10 @@ begin
   fsync:=do_syscall(syscall_nr_fsync,fd);
 end;
 
-Function  Flock (fd,mode : longint) : cint;
+Function  fpFlock (fd,mode : longint) : cint;
 
 begin
- Flock:=do_syscall(syscall_nr_flock,fd,mode);
+ fpFlock:=do_syscall(syscall_nr_flock,fd,mode);
 end;
 
 Function fStatFS(Fd:Longint;Var Info:tstatfs):cint;
@@ -278,7 +278,10 @@ end;
 
 {
   $Log$
-  Revision 1.19  2004-03-04 22:15:16  marco
+  Revision 1.20  2004-04-23 19:16:24  marco
+   * flock -> fpflock because of conflicting structure name
+
+  Revision 1.19  2004/03/04 22:15:16  marco
    * UnixType changes. Please report problems to me.
 
   Revision 1.18  2004/01/01 17:07:21  marco

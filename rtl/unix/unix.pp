@@ -140,13 +140,13 @@ Function W_STOPCODE (Signal: Integer): Integer;
 
 {$ifndef FPC_USE_LIBC} // defined using cdecl for libc.
 Function  fsync (fd : cint) : cint;
-Function  Flock   (fd,mode : cint)   : cint ;
+Function  fpFlock   (fd,mode : cint)   : cint ;
 Function  fStatFS (Fd: cint;Var Info:tstatfs):cint;
 Function  StatFS  (Path:pchar;Var Info:tstatfs):cint; 
 {$endif}
 
-Function  Flock   (var T : text;mode : cint) : cint;
-Function  Flock   (var F : File;mode : cint) : cint;
+Function  fpFlock   (var T : text;mode : cint) : cint;
+Function  fpFlock   (var F : File;mode : cint) : cint;
 
 
 Function  SelectText (var T:Text;TimeOut :PTimeVal):cint;
@@ -949,15 +949,15 @@ begin
   Execl:=ExecLE(ToDo,EnvP);
 end;
 
-Function Flock (var T : text;mode : cint) : cint;
+Function fpFlock (var T : text;mode : cint) : cint;
 begin
-  Flock:=Flock(TextRec(T).Handle,mode);
+  fpFlock:=fpFlock(TextRec(T).Handle,mode);
 end;
 
 
-Function  Flock (var F : File;mode : cint) :cint;
+Function  fpFlock (var F : File;mode : cint) :cint;
 begin
-  Flock:=Flock(FileRec(F).Handle,mode);
+  fpFlock:=fpFlock(FileRec(F).Handle,mode);
 end;
 
 Function SelectText(var T:Text;TimeOut :PTimeval):cint;
@@ -1754,7 +1754,10 @@ End.
 
 {
   $Log$
-  Revision 1.69  2004-04-22 17:17:13  peter
+  Revision 1.70  2004-04-23 19:16:25  marco
+   * flock -> fpflock because of conflicting structure name
+
+  Revision 1.69  2004/04/22 17:17:13  peter
     * x86-64 fixes
 
   Revision 1.68  2004/03/04 22:15:17  marco

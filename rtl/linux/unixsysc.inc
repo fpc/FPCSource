@@ -19,9 +19,9 @@ begin
   fsync := do_SysCall(syscall_nr_fsync, fd);
 end;
 
-Function  Flock (fd,mode : cint) : cint;
+Function  fpFlock (fd,mode : cint) : cint;
 begin
-  flock:=do_Syscall(Syscall_nr_flock,fd,mode);
+  fpflock:=do_Syscall(Syscall_nr_flock,fd,mode);
 end;
 
 
@@ -117,7 +117,10 @@ end;
 
 {
   $Log$
-  Revision 1.25  2004-01-02 22:46:29  marco
+  Revision 1.26  2004-04-23 19:16:24  marco
+   * flock -> fpflock because of conflicting structure name
+
+  Revision 1.25  2004/01/02 22:46:29  marco
    * fix from Marc W.
 
   Revision 1.24  2003/12/31 20:23:31  marco
