@@ -22,7 +22,7 @@
 }
 unit cpupi;
 
-{$i fpcdefs.inc}
+{$i ../fpcdefs.inc}
 
 interface
 
@@ -87,7 +87,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.24  2004-02-25 14:25:47  mazen
+  Revision 1.25  2004-03-11 16:22:09  mazen
+  + help lazarus analyze the file
+
+  Revision 1.24  2004/02/25 14:25:47  mazen
   * fix compile problem for sparc
 
   Revision 1.23  2004/01/12 22:11:39  peter

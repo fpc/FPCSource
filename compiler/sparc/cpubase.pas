@@ -24,7 +24,7 @@
 }
 unit cpubase;
 
-{$i fpcdefs.inc}
+{$INCLUDE ../fpcdefs.inc}
 
 interface
 
@@ -544,7 +544,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.63  2004-02-27 11:43:56  mazen
+  Revision 1.64  2004-03-11 16:22:52  mazen
+  + help lazarus analyze the file
+
+  Revision 1.63  2004/02/27 11:43:56  mazen
   * symaddr ==> refaddr to follow the rest of compiler changes
 
   Revision 1.62  2004/02/27 10:21:05  florian

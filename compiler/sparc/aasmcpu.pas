@@ -22,7 +22,7 @@
 }
 unit aasmcpu;
 
-{$i fpcdefs.inc}
+{$i ../fpcdefs.inc}
 
 interface
 
@@ -311,7 +311,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.45  2004-03-08 16:28:39  mazen
+  Revision 1.46  2004-03-11 16:21:27  mazen
+  + help lazarus analyze the file
+
+  Revision 1.45  2004/03/08 16:28:39  mazen
   * make it as similar to PPC one ase possible
 
   Revision 1.44  2004/02/27 11:47:32  mazen
