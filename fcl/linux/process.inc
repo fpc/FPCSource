@@ -42,7 +42,8 @@ begin
   else
     begin
     // Parent
-     
+    FPID:=FHandle;
+    FThreadHandle:=FHandle; 
     fdclose(FChildOutputStream.Handle);
     fdclose(FChildInputStream.Handle);
     fdclose(FChildErrorStream.Handle);

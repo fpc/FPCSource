@@ -39,6 +39,8 @@ Type
       FDeskTop : String;
       FEnvironment : Pointer;
       FExitCode : Cardinal;
+      FPID : Longint;
+      FThreadHandle,
       FHandle : THandle;
       FInherithandles : LongBool;
       FParentErrorStream : TInputPipeStream;
@@ -74,6 +76,8 @@ Type
       Property ExitStatus : Integer Read GetExitStatus;
       Property FillAttribute : Cardinal Read FFillAttribute Write FFillAttribute;
       Property Handle : THandle Read FHandle;
+      Property ThreadHandle : THandle Read FThreadHandle;
+      Property PID : Longint;
       Property Input : TOutPutPipeStream Read FParentOutPutStream;
       Property InheritHandles : LongBool Read FInheritHandles;
       Property OutPut : TInputPipeStream Read FParentInputStream;
