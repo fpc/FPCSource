@@ -21,15 +21,11 @@ unit Classes;
 interface
 
 uses
-  sysutils,
-  strings;
+  sysutils,strings;
 
 {$i classesh.inc}
 
 implementation
-
-{ Read OS-dependent files }
-{$i osfile.inc}
 
 { Read OS-independent files }
 {$i classes.inc}
@@ -38,7 +34,10 @@ end.
 
 {
   $Log$
-  Revision 1.6  1998-11-04 10:46:44  peter
+  Revision 1.7  1999-02-03 11:50:26  michael
+  + Only sysutils used now
+
+  Revision 1.6  1998/11/04 10:46:44  peter
     * exceptions work
 
   Revision 1.5  1998/10/30 14:49:03  michael
