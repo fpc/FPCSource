@@ -37,8 +37,9 @@ const
   maxblock     = maxblocksize div blocksize;
   maxreusebigger = 8; { max reuse bigger tries }
 
-  usedmask = $80000000;
-  sizemask = not usedmask;
+  usedmask = 1;            { flag if the block is used or not }
+  beforeheapendmask = 2;   { flag if the block is just before a heapptr }
+  sizemask = not(blocksize-1);
 
 {****************************************************************************}
 
@@ -302,7 +303,10 @@ begin
      if heapend-heapptr>size then
       begin
         sysgetmem:=heapptr;
-        pheaprecord(sysgetmem)^.size:=size or usedmask;
+        if (heapptr+size=heapend) then
+         pheaprecord(sysgetmem)^.size:=size or (usedmask or beforeheapendmask)
+        else
+         pheaprecord(sysgetmem)^.size:=size or usedmask;
         inc(sysgetmem,sizeof(theaprecord));
         inc(heapptr,size);
         exit;
@@ -378,7 +382,8 @@ begin
      if sizeleft>sizeof(tfreerecord) then
       begin
         pcurr:=pfreerecord(pointer(pcurr)+size);
-        pcurr^.size:=sizeleft;
+        { inherit the beforeheapendmask }
+        pcurr^.size:=sizeleft or (pheaprecord(sysgetmem)^.size and beforeheapendmask);
         { insert the block in the freelist }
         pcurr^.prev:=nil;
         s1:=sizeleft shr blockshr;
@@ -388,9 +393,15 @@ begin
         if assigned(freelists[s1]) then
          freelists[s1]^.prev:=pcurr;
         freelists[s1]:=pcurr;
+        { create the block we need to return }
+        pheaprecord(sysgetmem)^.size:=size or usedmask;
+      end
+     else
+      begin
+        { create the block we need to return }
+        pheaprecord(sysgetmem)^.size:=size or usedmask or (pheaprecord(sysgetmem)^.size and beforeheapendmask);
       end;
-     { create the block we need to return }
-     pheaprecord(sysgetmem)^.size:=size or usedmask;
+
      inc(sysgetmem,sizeof(theaprecord));
      exit;
    end;
@@ -401,7 +412,10 @@ begin
     if heapend-heapptr>size then
      begin
        sysgetmem:=heapptr;
-       pheaprecord(sysgetmem)^.size:=size or usedmask;
+       if (heapptr+size=heapend) then
+        pheaprecord(sysgetmem)^.size:=size or (usedmask or beforeheapendmask)
+       else
+        pheaprecord(sysgetmem)^.size:=size or usedmask;
        inc(sysgetmem,sizeof(theaprecord));
        inc(heapptr,size);
        exit;
@@ -428,18 +442,19 @@ end;
 
 Function SysFreeMem(var p : pointer):Longint;
 var
-  s : longint;
+  pcurrsize,s : longint;
   pcurr : pfreerecord;
 begin
   if p=nil then
    HandleError(204);
 { fix p to point to the heaprecord }
   pcurr:=pfreerecord(pointer(p)-sizeof(theaprecord));
-  pcurr^.size:=pcurr^.size and sizemask;
-  inc(internal_memavail,pcurr^.size);
+  pcurrsize:=pcurr^.size and sizemask;
+  inc(internal_memavail,pcurrsize);
 { insert the block in it's freelist }
+  pcurr^.size:=pcurr^.size and (not usedmask);
   pcurr^.prev:=nil;
-  s:=pcurr^.size shr blockshr;
+  s:=pcurrsize shr blockshr;
   if s>maxblock then
    s:=0;
   pcurr^.next:=freelists[s];
@@ -447,7 +462,7 @@ begin
    pcurr^.next^.prev:=pcurr;
   freelists[s]:=pcurr;
   p:=nil;
-  SysFreeMem:=pcurr^.size;
+  SysFreeMem:=pcurrsize;
 end;
 
 
@@ -457,7 +472,7 @@ end;
 
 Function SysFreeMemSize(var p : pointer;size : longint):longint;
 var
-  s : longint;
+  pcurrsize,s : longint;
   pcurr : pfreerecord;
 begin
   SysFreeMemSize:=0;
@@ -472,15 +487,16 @@ begin
    HandleError(204);
 { fix p to point to the heaprecord }
   pcurr:=pfreerecord(pointer(p)-sizeof(theaprecord));
-  pcurr^.size:=pcurr^.size and sizemask;
-  inc(internal_memavail,pcurr^.size);
+  pcurrsize:=pcurr^.size and sizemask;
+  inc(internal_memavail,pcurrsize);
 { size check }
   size:=(size+sizeof(theaprecord)+(blocksize-1)) and (not (blocksize-1));
-  if size<>pcurr^.size then
+  if size<>pcurrsize then
    HandleError(204);
 { insert the block in it's freelist }
+  pcurr^.size:=pcurr^.size and (not usedmask);
   pcurr^.prev:=nil;
-  s:=pcurr^.size shr blockshr;
+  s:=pcurrsize shr blockshr;
   if s>maxblock then
    s:=0;
   pcurr^.next:=freelists[s];
@@ -488,7 +504,7 @@ begin
    pcurr^.next^.prev:=pcurr;
   freelists[s]:=pcurr;
   p:=nil;
-  SysFreeMemSize:=pcurr^.size;
+  SysFreeMemSize:=pcurrsize;
 end;
 
 
@@ -524,6 +540,7 @@ var
   foundsize,
   sizeleft,
   s     : longint;
+  wasbeforeheapend : boolean;
   p2    : pointer;
   hp,
   pnew,
@@ -541,6 +558,7 @@ begin
 { fix p to point to the heaprecord }
   pcurr:=pfreerecord(pointer(p)-sizeof(theaprecord));
   currsize:=pcurr^.size and sizemask;
+  wasbeforeheapend:=(pcurr^.size and beforeheapendmask)<>0;
 { is the allocated block still correct? }
   if currsize=size then
    begin
@@ -553,9 +571,16 @@ begin
    { the size is bigger than the previous size, we need to allocated more mem.
      We first check if the blocks after the current block are free. If not we
      simply call getmem/freemem to get the new block }
-     foundsize:=pcurr^.size and sizemask;
+     foundsize:=0;
      hp:=pcurr;
      repeat
+       inc(foundsize,hp^.size and sizemask);
+       { block used or before a heapptr ? }
+       if (hp^.size and beforeheapendmask)<>0 then
+        begin
+          wasbeforeheapend:=true;
+          break;
+        end;
        { get next block }
        hp:=pfreerecord(pointer(hp)+(hp^.size and sizemask));
        { when we're at heapptr then we can stop }
@@ -564,10 +589,8 @@ begin
           inc(foundsize,heapend-heapptr);
           break;
         end;
-       { block used? }
        if (hp^.size and usedmask)<>0 then
         break;
-       inc(foundsize,hp^.size and sizemask);
      until (foundsize>=size);
    { found enough free blocks? }
      if foundsize>=size then
@@ -588,10 +611,10 @@ begin
            end;
           s:=hp^.size and sizemask;
           inc(foundsize,s);
+          { remove block from freelist }
           s:=s shr blockshr;
           if s>maxblock then
            s:=0;
-          { remove block from freelist }
           if assigned(hp^.next) then
            hp^.next^.prev:=hp^.prev;
           if assigned(hp^.prev) then
@@ -599,7 +622,10 @@ begin
           else
            freelists[s]:=hp^.next;
         until (foundsize>=size);
-        pcurr^.size:=foundsize or usedmask;
+        if wasbeforeheapend then
+         pcurr^.size:=foundsize or usedmask or beforeheapendmask
+        else
+         pcurr^.size:=foundsize or usedmask;
       end
      else
       begin
@@ -623,7 +649,7 @@ begin
      if sizeleft>sizeof(tfreerecord) then
       begin
         pnew:=pfreerecord(pointer(pcurr)+size);
-        pnew^.size:=sizeleft;
+        pnew^.size:=sizeleft or (pcurr^.size and beforeheapendmask);
         { insert the block in the freelist }
         pnew^.prev:=nil;
         s:=sizeleft shr blockshr;
@@ -633,9 +659,14 @@ begin
         if assigned(freelists[s]) then
          freelists[s]^.prev:=pnew;
         freelists[s]:=pnew;
+        { fix the size of the current block and leave }
+        pcurr^.size:=size or usedmask;
+      end
+     else
+      begin
+        { fix the size of the current block and leave }
+        pcurr^.size:=size or usedmask or (pcurr^.size and beforeheapendmask);
       end;
-     { fix the size of the current block and leave }
-     pcurr^.size:=size or usedmask;
    end;
   SysReAllocMem:=p;
 end;
@@ -713,7 +744,7 @@ begin
      if sizeleft>sizeof(tfreerecord) then
       begin
         pcurr:=pfreerecord(heapptr);
-        pcurr^.size:=sizeleft;
+        pcurr^.size:=sizeleft or beforeheapendmask;
         { insert the block in the freelist }
         pcurr^.next:=freelists[0];
         pcurr^.prev:=nil;
@@ -752,7 +783,13 @@ end;
 
 {
   $Log$
-  Revision 1.23  1999-11-10 22:29:51  michael
+  Revision 1.24  1999-11-14 21:34:21  peter
+    * fixed reallocmem with a block at the end of an allocated memoryblock,
+      had to introduce a flag for such blocks.
+    * flags are now stored in the first 4 bits instead of the highest bit,
+      this could be done because the sizes of block are always >= 16
+
+  Revision 1.23  1999/11/10 22:29:51  michael
   + Fixed sysreallocmem
 
   Revision 1.22  1999/11/01 13:56:50  peter
