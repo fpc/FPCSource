@@ -461,6 +461,9 @@ implementation
         { Objpas unit? }
         if m_objpas in aktmodeswitches then
           AddUnit('ObjPas');
+        { Macpas unit? }
+        if m_mac in aktmodeswitches then
+          AddUnit('MacPas');
         { Profile unit? Needed for go32v2 only }
         if (cs_profile in aktmoduleswitches) and
            (target_info.system in [system_i386_go32v2,system_i386_watcom]) then
@@ -947,6 +950,10 @@ implementation
          { maybe turn off m_objpas if we are compiling objpas }
          if (current_module.modulename^='OBJPAS') then
            exclude(aktmodeswitches,m_objpas);
+
+         { maybe turn off m_mac if we are compiling macpas }
+         if (current_module.modulename^='MACPAS') then
+           exclude(aktmodeswitches,m_mac);
 
          parse_only:=true;
 
@@ -1516,7 +1523,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.160  2004-07-06 20:23:25  peter
+  Revision 1.161  2004-08-16 22:52:35  olle
+    + Added automatic use of unit macpas under mode macpas
+
+  Revision 1.160  2004/07/06 20:23:25  peter
     * remove unused and not loaded units before linking
 
   Revision 1.159  2004/06/29 21:00:08  peter
