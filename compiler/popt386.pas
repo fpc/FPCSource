@@ -101,7 +101,7 @@ Procedure PeepHoleOptPass1(Asml: PAasmOutput; BlockStart, BlockEnd: Pai);
 {First pass of peepholeoptimizations}
 
 Var
-  l : longint;
+  l{$ifdef go32v2},l1{$endif go32v2} : longint;
   p,hp1,hp2 : pai;
   hp3,hp4: pai;
 
@@ -1945,7 +1945,10 @@ End.
 
 {
   $Log$
-  Revision 1.7  2000-08-04 22:00:52  peter
+  Revision 1.8  2000-08-05 10:35:51  jonas
+    * readded l1 variable (between ifdef go32v2 to avoid hints/notes)
+
+  Revision 1.7  2000/08/04 22:00:52  peter
     * merges from fixes
 
   Revision 1.6  2000/07/31 08:44:05  jonas
