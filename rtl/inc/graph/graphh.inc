@@ -599,7 +599,10 @@ type
 const
 
   { The following table can be used for translating characters from the
-    Ansi charset (ISO8859-1) to the DOS ASCII charset (CP437) }
+    Ansi charset (ISO8859-1) to the DOS ASCII charset (CP437).
+    To use this table, add the following line of code to your program:
+    GraphStringTransTable := @AnsiToASCIITransTable;
+  }
 
   AnsiToASCIITransTable: TCharsetTransTable =
     (#$00, #$01, #$02, #$03, #$04, #$05, #$06, #$07,   // $00 - $07
@@ -635,11 +638,8 @@ const
      '?' , #$a4, #$95, #$a2, #$93, '?' , #$94, #$f6,   // $f0 - $f7
      '?' , #$97, #$a3, #$96, #$81, '?' , '?' , #$98);  // $f8 - $ff
 
-{$IFDEF GO32V2}
+
   GraphStringTransTable: PCharsetTransTable = nil;
-{$ELSE}
-  GraphStringTransTable: PCharsetTransTable = @AnsiToASCIITransTable;
-{$ENDIF}
 
 
 function queryadapterinfo : pmodeinfo;
@@ -731,7 +731,10 @@ Function GetDriverName: string;
 
 {
   $Log$
-  Revision 1.4  2000-06-16 17:06:08  sg
+  Revision 1.5  2000-06-17 11:16:07  sg
+  * The string translation is now deactivated by default on all platforms.
+
+  Revision 1.4  2000/06/16 17:06:08  sg
   * The text functions can now convert the character sets of the given
     strings. By default, for GO32V2 there is no conversion, and for all
     other platforms the strings are converted from ANSI to DOS-ASCII.
