@@ -28,7 +28,7 @@
 
 
 \title{FREE PASCAL}
-\title{Free Pascal 1.0.x Internal documentation}
+\title{Free Pascal 1.0.x Internal documentation\\version 1.0}
 \author{Carl Eric Cod\`{e}re}
 \makeindex
 \begin{document}
@@ -40,7 +40,6 @@
 
 \textbf{TODO:}
 \begin{itemize}
-\item Explain architecture of the symbol table + API
 \item Describe in detail tsymtable, including all methods and fields
 \item Describe in detail procinfo (tprocinfo)
 \item Explain how a symbol is inserted into the symbol table (and how alignment requirements are met)
@@ -50,7 +49,6 @@
 \item Architecture of the assembler generators + API
 \item Architecture of the PPU file and information
 \item Explain systems.pas
-\item Compiler DEFINES
 \item routine parsing and code generation algorithm
 \item (MvdV) OS specific stuff (like hardcoded linker includedirs)
 \end{itemize}
@@ -58,7 +56,7 @@
 \section{Introduction}
 \label{sec:introductionappendix}
 
-This document will describe the internal architecture of the Free Pascal
+This document describes the internal architecture of the Free Pascal
 Compiler version 1.0 release. This document is meant to be used as a guide
 for those who wish to understand how the compiler was created. Most of the
 architecture of the compiler described herein is based on the m68k version
@@ -66,7 +64,7 @@ on the compiler, the i386 version of the compiler ressembles closely the
 m68k version, but there are subtle differences in the different interfaces.
 
 The architecture, and the different passes of the compiler are shown in
-figure \seefig{fig1}.
+figure \seefig{passesfig}.
 
 \begin{figure}
 \ifpdf
@@ -75,8 +73,8 @@ figure \seefig{fig1}.
 \else
 \includegraphics[width=6.45in,height=4.95in]{arch1.eps}
 \fi
-\caption{TTREE structure}
-\label{fig1}
+\caption{compiler overview}
+\label{passesfig}
 \end{figure}
 
 \section{Scanner / Tokenizer}
@@ -90,7 +88,7 @@ input stream cause an error.
 \subsection{Architecture}
 \label{subsec:architectureand}
 
-The general architecture of the scanner is show in figure \seefig{fig2}
+The general architecture of the scanner is shown in figure \ref{fig2}
 
 \begin{figure}
 \ifpdf
@@ -99,12 +97,12 @@ The general architecture of the scanner is show in figure \seefig{fig2}
 \else
 \includegraphics[width=5.87in,height=6.90in]{arch2.eps}
 \fi
-\caption{Possible tree Local compiler switches (tlocalswitches)}
+\caption{scanner interface overview}
 \label{fig2}
 \end{figure}
 
 Several types can be read from the input stream, a string, handled by
-readstring(), a numeric value, handled by readnumeric(), comments , compiler
+\var{readstring()}, a numeric value, handled by \var{readnumeric()}, comments , compiler
 and preprocessor directives.
 
 \subsubsection{Input stream}
@@ -214,6 +212,8 @@ only takes care of the preprocessor part and comments, all the rest is
 passed character per character to the assembler parser via the
 \seef{AsmGetChar}() scanner routine.
 
+\subsubsection{routines}
+
 \begin{function}{AsmGetChar}
 \Declaration
 Function AsmGetChar: Char;
@@ -247,14 +247,16 @@ The tree structure in picture \ref{fig3} will be built in memory, where each
 circle represents an element (a node ) in the tree:
 
 \begin{figure}
+\begin{center}
 \ifpdf
 %\epsfig{file=arch3.png,width=\textwidth}
 \includegraphics{arch3.pdf}
 \else
 \includegraphics[width=3.88in,height=3.65in]{arch3.eps}
 \fi
-\caption{Possible variable flags (tvaroptions)}
+\caption{Example tree structure}
 \label{fig3}
+\end{center}
 \end{figure}
 
 \subsection{Tree types}
@@ -262,7 +264,14 @@ circle represents an element (a node ) in the tree:
 The following tree nodes are possible (of type \textsf{TTreeTyp):}
 
 \begin{longtable}{|l|p{10cm}|}
+\caption{Possible node types (ttreetyp)}\label{tab6}\\
+\hline
+Tree type definition& Description \\
+\hline
+\endfirsthead
 %{|p{125pt}|p{316pt}|}
+\caption{Possible node types (ttreetyp) - continued}\\
+\hline
 \hline
 Tree type definition&
 Description \\
@@ -271,169 +280,166 @@ Description \\
 \hline
 \endfoot
 \textsf{addn}&
-		\textsf{Represents the + operator} \\
+        \textsf{Represents the + operator} \\
 \textsf{muln}&
-		\textsf{Represents the * operator} \\
+        \textsf{Represents the * operator} \\
 \textsf{subn}&
-		\textsf{Represents the }\textsf{\textbf{-}}\textsf{ operator} \\
+        \textsf{Represents the }\textsf{\textbf{-}}\textsf{ operator} \\
 \textsf{divn}&
-		\textsf{Represents the }\textsf{\textbf{div}}\textsf{ operator} \\
+        \textsf{Represents the }\textsf{\textbf{div}}\textsf{ operator} \\
 \textsf{symdifn}&
-		\textsf{Represents the }\textsf{\textbf{><}}\textsf{ operator} \\
+        \textsf{Represents the }\textsf{\textbf{><}}\textsf{ operator} \\
 \textsf{modn}&
-		\textsf{Represents the }\textsf{\textbf{mod}}\textsf{ operator} \\
+        \textsf{Represents the }\textsf{\textbf{mod}}\textsf{ operator} \\
 \textsf{assignn}&
-		\textsf{Represents the }\textsf{\textbf{:=}}\textsf{ operator (assignment)} \\
+        \textsf{Represents the }\textsf{\textbf{:=}}\textsf{ operator (assignment)} \\
 \textsf{loadn}&
-		\textsf{Represents the use of a variable} \\
+        \textsf{Represents the use of a variable} \\
 \textsf{rangen}&
-		\textsf{Represents a numeric range (i.e 0..9)} \\
+        \textsf{Represents a numeric range (i.e 0..9)} \\
 \textsf{ltn}&
-		\textsf{Represents the }\textsf{\textbf{<}}\textsf{ operator} \\
+        \textsf{Represents the }\textsf{\textbf{<}}\textsf{ operator} \\
 \textsf{lten}&
-		\textsf{Represents the }\textsf{\textbf{<=}}\textsf{ operator} \\
+        \textsf{Represents the }\textsf{\textbf{<=}}\textsf{ operator} \\
 \textsf{gtn}&
-		\textsf{Represents the }\textsf{\textbf{>}}\textsf{ operator} \\
+        \textsf{Represents the }\textsf{\textbf{>}}\textsf{ operator} \\
 \textsf{gten}&
-		\textsf{Represents the }\textsf{\textbf{>=}}\textsf{ operator} \\
-\textsf{equaln}& 	
-		\textsf{Represents the = operator} \\
+        \textsf{Represents the }\textsf{\textbf{>=}}\textsf{ operator} \\
+\textsf{equaln}&    
+        \textsf{Represents the = operator} \\
 \textsf{unequaln}&
-		\textsf{Represents the }\textsf{\textbf{<>}}\textsf{ operator} \\
+        \textsf{Represents the }\textsf{\textbf{<>}}\textsf{ operator} \\
 \textsf{inn}&
-		\textsf{Represents the }\textsf{\textbf{in}}\textsf{ operator} \\
+        \textsf{Represents the }\textsf{\textbf{in}}\textsf{ operator} \\
 \textsf{orn}&
-		\textsf{Represents the }\textsf{\textbf{or}}\textsf{ operator} \\
+        \textsf{Represents the }\textsf{\textbf{or}}\textsf{ operator} \\
 \textsf{xorn}&
-		\textsf{Represents the }\textsf{\textbf{xor}}\textsf{ operator} \\
+        \textsf{Represents the }\textsf{\textbf{xor}}\textsf{ operator} \\
 \textsf{shrn}&
-		\textsf{Represents the }\textsf{\textbf{shr}}\textsf{ operator} \\
+        \textsf{Represents the }\textsf{\textbf{shr}}\textsf{ operator} \\
 \textsf{shln}&
-		\textsf{Represents the }\textsf{\textbf{shl}}\textsf{ operator} \\
+        \textsf{Represents the }\textsf{\textbf{shl}}\textsf{ operator} \\
 \textsf{slashn}&
-		\textsf{Represents the / operator} \\
+        \textsf{Represents the / operator} \\
 \textsf{andn}&
-		\textsf{Represents the }\textsf{\textbf{and}}\textsf{ operator} \\
+        \textsf{Represents the }\textsf{\textbf{and}}\textsf{ operator} \\
 \textsf{subscriptn}&
-		\textsf{Represents a field in an object or record} \\
+        \textsf{Represents a field in an object or record} \\
 \textsf{derefn}&
-		\textsf{Represents a pointer reference (such as the }\textsf{\textbf{\ }}\textsf{ operator)} \\
+        \textsf{Represents a pointer reference (such as the }\textsf{\textbf{\^}}\textsf{ operator)} \\
 \textsf{addrn}&
-		\textsf{Represents the }\textsf{\textbf{@}}\textsf{ operator} \\
+        \textsf{Represents the }\textsf{\textbf{@}}\textsf{ operator} \\
 \textsf{doubleaddrn}&
-		\textsf{Represents the }\textsf{\textbf{@@}}\textsf{ operator} \\
+        \textsf{Represents the }\textsf{\textbf{@@}}\textsf{ operator} \\
 \textsf{ordconstn}&
-		\textsf{Represents an ordinal constant} \\
+        \textsf{Represents an ordinal constant} \\
 \textsf{typeconvn}&
-		\textsf{Represents a typecast / type conversion} \\
+        \textsf{Represents a typecast / type conversion} \\
 \textsf{calln}&
-		\textsf{Represents a routine call} \\
+        \textsf{Represents a routine call} \\
 \textsf{callparan}&
-		\textsf{Represents a parameter passed to a routine} \\
+        \textsf{Represents a parameter passed to a routine} \\
 \textsf{realconstn}&
-		\textsf{Represents a floating point constant} \\
+        \textsf{Represents a floating point constant} \\
 \textsf{fixconstn}&
-		\textsf{Represents a fixed point constant} \\
+        \textsf{Represents a fixed point constant} \\
 \textsf{unaryminusn}&
-		\textsf{Represents a sign change (e.g : -)} \\
+        \textsf{Represents a sign change (e.g : -)} \\
 \textsf{asmn}&
-		\textsf{Represents an assembler statement node} \\
+        \textsf{Represents an assembler statement node} \\
 \textsf{vecn}&
-		\textsf{Represents array indexing} \\
+        \textsf{Represents array indexing} \\
 \textsf{pointerconstn}&
-		\textsf{Represents a pointer constant} \\
+        \textsf{Represents a pointer constant} \\
 \textsf{stringconstn}&
-		\textsf{Represents a string constant} \\
+        \textsf{Represents a string constant} \\
 \textsf{funcretn}&
-		\textsf{Represents the return function result variable (not loadn)} \\
+        \textsf{Represents the return function result variable (not loadn)} \\
 \textsf{selfn}&
-		\textsf{Represents the self parameter (when is this parsed!)} \\
+        \textsf{Represents the self parameter} \\
 \textsf{notn}&
-		\textsf{Represents the }\textsf{\textbf{not}}\textsf{ operator} \\
+        \textsf{Represents the }\textsf{\textbf{not}}\textsf{ operator} \\
 \textsf{inlinen}&
-		\textsf{Represents one of the internal routines (writeln,ord, etc.)} \\
+        \textsf{Represents one of the internal routines (writeln,ord, etc.)} \\
 \textsf{niln}&
-		\textsf{Represents the }\textsf{\textbf{nil}}\textsf{ pointer } \\
+        \textsf{Represents the }\textsf{\textbf{nil}}\textsf{ pointer } \\
 \textsf{erron}&
-		\textsf{Represents error in parsing this node (used for error detection and correction)} \\
+        \textsf{Represents error in parsing this node (used for error detection and correction)} \\
 \textsf{typen}&
-		\textsf{Represents a type name (i.e typeof(obj)} \\
+        \textsf{Represents a type name (i.e typeof(obj))} \\
 \textsf{hnewn}&
-		\textsf{Represents the }\textsf{\textbf{new }}\textsf{routine call on objects} \\
+        \textsf{Represents the }\textsf{\textbf{new }}\textsf{routine call on objects} \\
 \textsf{hdisposen}&
-		\textsf{Represents the }\textsf{\textbf{dispose}}\textsf{ routine call on objects} \\
+        \textsf{Represents the }\textsf{\textbf{dispose}}\textsf{ routine call on objects} \\
 \textsf{newn}&
-		\textsf{Represents the }\textsf{\textbf{new}}\textsf{ routine call on non-objects} \\
+        \textsf{Represents the }\textsf{\textbf{new}}\textsf{ routine call on non-objects} \\
 \textsf{simpledisposen}&
-		\textsf{Represents the }\textsf{\textbf{dispose}}\textsf{ routine call on non-objects} \\
+        \textsf{Represents the }\textsf{\textbf{dispose}}\textsf{ routine call on non-objects} \\
 \textsf{setelementn}&
-		\textsf{Represents set elements (i.e : [a..b], [a,b,c]) (non-constant)} \\
+        \textsf{Represents set elements (i.e : [a..b], [a,b,c]) (non-constant)} \\
 \textsf{setconstn}&
-		\textsf{Represents set element constants i.e : [1..9], [1,2,3])} \\
+        \textsf{Represents set element constants i.e : [1..9], [1,2,3])} \\
 \textsf{blockn}&
-		\textsf{Represents a block of statements} \\
+        \textsf{Represents a block of statements} \\
 \textsf{statementn}&
-		\textsf{One statement in a block of nodes} \\
+        \textsf{One statement in a block of nodes} \\
 \textsf{loopn}&
-		\textsf{Represents a loop (for, while, repeat) node} \\
+        \textsf{Represents a loop (for, while, repeat) node} \\
 \textsf{ifn}&
-		\textsf{Represents an }\textsf{\textbf{if}}\textsf{ statement} \\
+        \textsf{Represents an }\textsf{\textbf{if}}\textsf{ statement} \\
 \textsf{breakn}&
-		\textsf{Represents a }\textsf{\textbf{break}}\textsf{ statement} \\
+        \textsf{Represents a }\textsf{\textbf{break}}\textsf{ statement} \\
 \textsf{continuen}&
-		\textsf{Represents a }\textsf{\textbf{continue}}\textsf{ statement} \\
+        \textsf{Represents a }\textsf{\textbf{continue}}\textsf{ statement} \\
 \textsf{repeatn}&
-		\textsf{Represents a }\textsf{\textbf{repeat }}\textsf{statement} \\
+        \textsf{Represents a }\textsf{\textbf{repeat }}\textsf{statement} \\
 \textsf{whilen}&
-		\textsf{Represents a }\textsf{\textbf{while}}\textsf{ statement} \\
+        \textsf{Represents a }\textsf{\textbf{while}}\textsf{ statement} \\
 \textsf{forn}&
-		\textsf{Represents a }\textsf{\textbf{for}}\textsf{ statement} \\
+        \textsf{Represents a }\textsf{\textbf{for}}\textsf{ statement} \\
 \textsf{exitn}&
-		\textsf{Represents an }\textsf{\textbf{exit}}\textsf{ statement} \\
+        \textsf{Represents an }\textsf{\textbf{exit}}\textsf{ statement} \\
 \textsf{withn}&
-		\textsf{Represents a }\textsf{\textbf{with}}\textsf{ statement} \\
+        \textsf{Represents a }\textsf{\textbf{with}}\textsf{ statement} \\
 \textsf{casen}&
-		\textsf{Represents a }\textsf{\textbf{case}}\textsf{ statement} \\
+        \textsf{Represents a }\textsf{\textbf{case}}\textsf{ statement} \\
 \textsf{labeln}&
-		\textsf{Represents a label statement} \\
+        \textsf{Represents a label statement} \\
 \textsf{goton}&
-		\textsf{Represents a }\textsf{\textbf{goto}}\textsf{ statement} \\
+        \textsf{Represents a }\textsf{\textbf{goto}}\textsf{ statement} \\
 \textsf{simplenewn}&
-		\textsf{Represents a }\textsf{\textbf{new}}\textsf{ statement } \\
+        \textsf{Represents a }\textsf{\textbf{new}}\textsf{ statement } \\
 \textsf{tryexceptn}&
-		\textsf{Represents a }\textsf{\textbf{try}}\textsf{ statement} \\
+        \textsf{Represents a }\textsf{\textbf{try}}\textsf{ statement} \\
 \textsf{raisen}&
-		\textsf{Represents a }\textsf{\textbf{raise}}\textsf{ statement} \\
+        \textsf{Represents a }\textsf{\textbf{raise}}\textsf{ statement} \\
 \textsf{\textit{switchesn}}&
-		\textsf{\textit{Unused}} \\
+        \textsf{\textit{Unused}} \\
 \textsf{tryfinallyn}&
-		\textsf{Represents a }\textsf{\textbf{try..finally}}\textsf{ statement} \\
+        \textsf{Represents a }\textsf{\textbf{try..finally}}\textsf{ statement} \\
 \textsf{onn}&
-		\textsf{Represents an }\textsf{\textbf{on..do}}\textsf{ statement} \\
+        \textsf{Represents an }\textsf{\textbf{on..do}}\textsf{ statement} \\
 \textsf{isn}&
-		\textsf{Represents the }\textsf{\textbf{is}}\textsf{ operator} \\
+        \textsf{Represents the }\textsf{\textbf{is}}\textsf{ operator} \\
 \textsf{asn}&
-		\textsf{Represents the }\textsf{\textbf{as}}\textsf{ typecast operator} \\
+        \textsf{Represents the }\textsf{\textbf{as}}\textsf{ typecast operator} \\
 \textsf{caretn}&
-		\textsf{Represents the \  operator} \\
+        \textsf{Represents the \  operator} \\
 \textsf{failn}&
-		\textsf{Represents the }\textsf{\textbf{fail}}\textsf{ statement} \\
+        \textsf{Represents the }\textsf{\textbf{fail}}\textsf{ statement} \\
 \textsf{starstarn}&
-		\textsf{Represents the }\textsf{\textbf{**}}\textsf{ operator (exponentiation)} \\
+        \textsf{Represents the }\textsf{\textbf{**}}\textsf{ operator (exponentiation)} \\
 \textsf{procinlinen}&
-		\textsf{Represents an }\textsf{\textbf{inline}}\textsf{ routine} \\
+        \textsf{Represents an }\textsf{\textbf{inline}}\textsf{ routine} \\
 \textsf{arrayconstrucn}&
-		\textsf{Represents a }\textsf{\textbf{[..]}}\textsf{ statement (array or sets)} \\
+        \textsf{Represents a }\textsf{\textbf{[..]}}\textsf{ statement (array or sets)} \\
 \textsf{arrayconstructrangen}&
-		\textsf{Represents ranges in [..] statements (array or sets)} \\
+        \textsf{Represents ranges in [..] statements (array or sets)} \\
 \textsf{nothingn}&
-		\textsf{Empty node} \\
+        \textsf{Empty node} \\
 \textsf{loadvmtn}&
-		\textsf{Load method table register} \\
+        \textsf{Load method table register} \\
 \hline
-%\end{tabular}
-\caption{Possible parameter types (tvarspez)}
-\label{tab6}
 \end{longtable}
 
 \subsection{Tree structure fields (tree.pas)}
@@ -447,19 +453,19 @@ explained and defined as follows:
 \textsf{TYPE}& & \\
 \xspace pTree = & \^{}  TTree; & \\
 \xspace \textsf{TTree} = & \textbf{RECORD}& \\
- & \textsf{Error : Boolean;}&  \\
- &\textsf{DisposeTyp : TDisposeTyp;}&
+ & \textsf{Error : boolean;}&  Set to TRUE if there was an error parsing this node\\
+ &\textsf{DisposeTyp : tdisposetyp;}&
  \\
- &\textsf{Swaped : Boolean;}&
+ &\textsf{Swaped : boolean;}&
 Set to TRUE if the left and right nodes (fields) of this node have been swaped. \\
- & \textsf{VarStateSet : Boolean;}&
+ & \textsf{VarStateSet : boolean;}&
  \\
- & \textsf{Location : TLocation;}&
+ & \textsf{Location : tlocation;}&
 Location information for this information (cf. Code generator) \\
- & \textsf{Registers32 : Longint;}&
-Number of general purpose registers required to evaluate this node \\
- & \textsf{RegistersFpu : Longint;}&
-Number of floating point registers required to evaluate this node \\
+ & \textsf{Registers32 : longint;}&
+Minimum number of general purpose registers required to evaluate this node \\
+ & \textsf{RegistersFpu : longint;}&
+Minimum number of floating point registers required to evaluate this node \\
  & \textsf{Left : pTree;}&
 LEFT leaf of this node \\
  & \textsf{Right : pTree;}&
@@ -468,11 +474,11 @@ RIGHT leaf of this node \\
 Result type of this node  \par (cf. Type definitions) \\
  & \textsf{FileInfo : TFilePosInfo;}&
 Line number information for this node creation in the original source code (for error management) \\
- & \textsf{LocalSwitches : TLocalSwitches;}&
-Local compiler switches used for code generation \par (Cf. \ref{fig1}) \\
- & \textsf{IsProperty : Boolean;}&
+ & \textsf{LocalSwitches : tlocalswitches;}&
+Local compiler switches used for code generation \par (Cf. \ref{tlocalswitches}) \\
+ & \textsf{IsProperty : boolean;}&
 TRUE if this is a property \\
- & \textsf{TreeType : TTreeTyp;}&
+ & \textsf{TreeType : ttreetyp;}&
 Type of this tree (cf. \ref{tab1}) \\
  & \textsf{END;}&   \\
 \hline
@@ -481,38 +487,41 @@ Type of this tree (cf. \ref{tab1}) \\
 
 \begin{longtable}{|l|l|p{10cm}|}
 % p{126pt}|p{45pt}|p{319pt}|}
+\caption{local compiler switches (tlocalswitches)}\label{tlocalswitches}\\
+\hline
+tlocalswitches & Switch & Description \\
+\hline
+\endfirsthead
 \hline
 tlocalswitches & Switch & Description \\
 \hline
 \endhead
 \hline
 \endfoot
-\textsf{cs{\_}Check{\_}Overflow} 	&  {\{}{\$}Q+{\}}&
-	Code generator should emit overflow checking code  \\
-\textsf{cs{\_}Check{\_}Range}    	&  {\{}{\$}R+{\}}&
-	Code generator should emit range checking code  \\
-\textsf{cs{\_}Check{\_}IO} 	 	&  {\{}{\$}I+{\}}&
-	Code generator should emit I/O checking code \\
-\textsf{cs{\_}Check{\_}Object{\_}Ext} 	&  N/A&
-	Code generator should emit extended object access checks \\
-\textsf{\textit{cs{\_}OmitStackFrame}}	&  $N/A$ &
-	\textit{Code generator should not emit frame{\_}pointer setup code
-	in entry code} \\
-\textsf{cs{\_}Do{\_}Assertion}		& {\{}{\$}C+{\}} & 
-	Code generator supports using the assert inline routine \\
-\textsf{cs{\_}Generate{\_}Rtti} 	& {\{}{\$}M+{\}} &
-	Code generator should emit runtime type information \\
-\textsf{cs{\_}Typed{\_}Addresses} 	& {\{}{\$}T+{\}}&
-	Parser emits typed pointer using the @ operator  \\
-\textsf{cs{\_}Ansistrings}		& {\{}{\$}H+{\}}&
-	Parser creates an \textsf{ansistring} when an unspecified
-	\textsf{String} type is declared instead of the default
-	\textsf{ShortString} \\
-\textsf{cs{\_}Strict{\_}Var{\_}Strings} & {\{}{\$}V+{\}}&
-	String types must be identical (same length) to be compatible \\
+\textsf{cs{\_}check{\_}overflow}    &  {\{}{\$}Q+{\}}&
+    Code generator should emit overflow checking code  \\
+\textsf{cs{\_}check{\_}range}       &  {\{}{\$}R+{\}}&
+    Code generator should emit range checking code  \\
+\textsf{cs{\_}check{\_}IO}      &  {\{}{\$}I+{\}}&
+    Code generator should emit I/O checking code \\
+\textsf{cs{\_}check{\_}object{\_}ext}   &  N/A&
+    Code generator should emit extended object access checks \\
+\textsf{\textit{cs{\_}omitstackframe}}  &  $N/A$ &
+    \textit{Code generator should not emit frame{\_}pointer setup code
+    in entry code} \\
+\textsf{cs{\_}do{\_}assertion}      & {\{}{\$}C+{\}} & 
+    Code generator supports using the assert inline routine \\
+\textsf{cs{\_}generate{\_}rtti}     & {\{}{\$}M+{\}} &
+    Code generator should emit runtime type information \\
+\textsf{cs{\_}typed{\_}addresses}   & {\{}{\$}T+{\}}&
+    Parser emits typed pointer using the @ operator  \\
+\textsf{cs{\_}ansistrings}      & {\{}{\$}H+{\}}&
+    Parser creates an \textsf{ansistring} when an unspecified
+    \textsf{String} type is declared instead of the default
+    \textsf{ShortString} \\
+\textsf{cs{\_}strict{\_}var{\_}strings} & {\{}{\$}V+{\}}&
+    String types must be identical (same length) to be compatible \\
 \hline
-\caption{object definition flags (tobjectoptions)}
-\label{tab8}
 \end{longtable}
 
 \subsubsection{Additional fields}
@@ -527,224 +536,207 @@ done to verify if not reading invalid memory ranges.
 
 \begin{longtable}{|l|p{10cm}|}
 \hline
-Field	& Description \\
+Field   & Description \\
 \hline
 \endhead
 \hline
 \endfoot
 \textsf{\textit{Use{\_}StrConcat : Boolean;}}&
-	\textit{Currently unused (use for optimizations in future versions)} \\
+    \textit{Currently unused (use for optimizations in future versions)} \\
 \hline
 \textsf{String{\_}Typ: TStringType;}&
-	In the case where the + operator is applied on a string, this field indicates the string type. \\
+    In the case where the + operator is applied on a string, this field indicates the string type. \\
 \hline
-\caption{Ordinal types (TBaseType)}
-\label{tab9}
 \end{longtable}
 
 \paragraph{CallParaN}\mbox{}
 
 \begin{longtable}{|l|p{10cm}|}
 \hline
-Field	& Description \\
+Field   & Description \\
 \hline
 \endhead
 \hline
 \endfoot
 \textsf{Is{\_}Colon{\_}Para : Boolean;}&
-	Used for internal routines which can use optional format parameters
-	(using colons). Is set to TRUE if this parameter was preceded by a
-	colon (i.e : :1) \\
+    Used for internal routines which can use optional format parameters
+    (using colons). Is set to TRUE if this parameter was preceded by a
+    colon (i.e : :1) \\
 \textsf{Exact{\_}Match{\_}Found : Boolean;}&
-	Set to TRUE if the parameter type is exactly the same as the one
-	expected by the routine. \\
+    Set to TRUE if the parameter type is exactly the same as the one
+    expected by the routine. \\
 \textsf{ConvLevel1Found : Boolean;}&
-	Set to TRUE if the parameter type requires a level 1 type conversion
-	to conform to the parameter expected by the routine. \\
+    Set to TRUE if the parameter type requires a level 1 type conversion
+    to conform to the parameter expected by the routine. \\
 \textsf{ConvLevel2Found : Boolean;}&
-	Set to TRUE if the parameter type requires a level 2 type conversion
-	to conform to the parameter expected by the routine. \\
+    Set to TRUE if the parameter type requires a level 2 type conversion
+    to conform to the parameter expected by the routine. \\
 \textsf{HighTree : pTree;}&  \\
 \hline
-\caption{Floating point types (TFloatType)}
-\label{tab10}
 \end{longtable}
 
 \paragraph{AssignN}\mbox{}
 
 \begin{longtable}{|l|p{10cm}|}
 \hline
-Field	& Description \\
+Field   & Description \\
 \hline
 \endhead
 \hline
 \endfoot
 \textsf{\textit{AssignTyp : TAssignTyp;}}&
-	\textit{Currently unused (Used to be used for C-like assigns)} \\
+    \textit{Currently unused (Used to be used for C-like assigns)} \\
 \textsf{\textit{Concat{\_}String : Boolean;}}&
-	\textit{Currently unused (use for optimizations in future versions)}\\
+    \textit{Currently unused (use for optimizations in future versions)}\\
 \hline
-\caption{Routine type information (TProcTypeOption)}
 \end{longtable}
 
 \paragraph{LoadN}\mbox{}
 
 \begin{longtable}{|l|p{10cm}|}
 \hline
-Field	& Description \\
+Field   & Description \\
 \hline
 \endhead
 \hline
 \endfoot
 \textsf{SymTableEntry : pSym;}&
-	Symbol table entry for this symbol \\
+    Symbol table entry for this symbol \\
 \textsf{SymTable : pSymTable;}&
-	Symbol table in which this symbol is stored \\
+    Symbol table in which this symbol is stored \\
 \textsf{Is{\_}Absolute : Boolean;}&
-	set to TRUE if this variable is absolute \\
+    set to TRUE if this variable is absolute \\
 \textsf{Is{\_}First : Boolean;}&
-	set to TRUE if this is the first occurrence of the load for this
-	variable (used with the varstate variable for optimizations) \\
+    set to TRUE if this is the first occurrence of the load for this
+    variable (used with the varstate variable for optimizations) \\
 \hline
-\caption{Routine calling convention information (TProcCallOptions)}
-\label{tab12}
 \end{longtable}
 
 \paragraph{CallN}\mbox{}
 
 \begin{longtable}{|l|p{10cm}|}
 \hline
-Field	& Description \\
+Field   & Description \\
 \hline
 \endhead
 \hline
 \endfoot
 \textsf{SymTableProcEntry : pProcSym;}&
-	Symbol table entry for this routine \\
+    Symbol table entry for this routine \\
 \textsf{SymTableProc : pSymTable;}&
-	Symbol table associated with a call (object symbol table or routine
-	symbol table) \\
+    Symbol table associated with a call (object symbol table or routine
+    symbol table) \\
 \textsf{ProcDefinition : pAbstractProcDef;}&
-	Type definition for this routine \\
+    Type definition for this routine \\
 \textsf{MethodPointer : pTree;}&
-	????????? \\
+    ????????? \\
 \textsf{\textit{No{\_}Check : Boolean;}}&
-	\textit{Currently unused} \\
+    \textit{Currently unused} \\
 \textsf{Unit{\_}Specific : Boolean;}&
-	set to TRUE if the routine is imported in a unit specific way (for
-	example: system.writeln()) \\
+    set to TRUE if the routine is imported in a unit specific way (for
+    example: system.writeln()) \\
 \textsf{Return{\_}Value{\_}Used : Boolean}&
-	set to TRUE if the routine is a function and that the return value
-	is not used (in extended syntax parsing - {\$}X+) \\
+    set to TRUE if the routine is a function and that the return value
+    is not used (in extended syntax parsing - {\$}X+) \\
 \textsf{\textit{Static{\_}Call : Boolean;}}&
-	\textit{unused} \\
+    \textit{unused} \\
 \hline
-\caption{Routine options (TProcOptions)}
-\label{tab13}
 \end{longtable}
 
 \paragraph{addrn}\mbox{}
 
 \begin{longtable}{|l|p{10cm}|}
 \hline
-Field	& Description \\
+Field   & Description \\
 \hline
 \endhead
 \hline
 \endfoot
 \textsf{ProcVarLoad : Boolean;}&
-	Set to TRUE if this is a procedural variable call \\
+    Set to TRUE if this is a procedural variable call \\
 \hline
-\caption{String types (TStringType)}
 \end{longtable}
 
 \paragraph{OrdConstN}\mbox{}
 
 \begin{longtable}{|l|p{10cm}|}
 \hline
-Field	& Description \\
+Field   & Description \\
 \hline
 \endhead
 \hline
 \endfoot
 \textsf{Value : Longint;}&
-	The numeric value of this constant node \\
+    The numeric value of this constant node \\
 \hline
-\caption{Possible set types (TSetType)}
 \end{longtable}
 
 \paragraph{RealConstN}\mbox{}
 
 \begin{longtable}{|l|p{10cm}|}
 \hline
-Field	& Description \\
+Field   & Description \\
 \hline
 \endhead
 \hline
 \endfoot
 \textsf{Value{\_}Real : Best{\_}Real;}&
-	The numeric value of this constant node \\
+    The numeric value of this constant node \\
 \textsf{Lab{\_}Real : pAsmLabel;}&
-	The assembler label reference to this constant \\
+    The assembler label reference to this constant \\
 \hline
-\caption{Code generator operand sizes}\label{tab16}
 \end{longtable}
 
 \paragraph{FixConstN}\mbox{}
 
 \begin{longtable}{|l|p{10cm}|}
 \hline
-Field	& Description \\
+Field   & Description \\
 \hline
 \endhead
 \hline
 \endfoot
 \textsf{Value{\_}Fix : Longint;}&
-	The numeric value of this constant node \\
+    The numeric value of this constant node \\
 \hline
-\caption{Required target processor when compiling}
-\label{tab17}
 \end{longtable}
 
 \paragraph{FuncRetN}\mbox{}
 
 \begin{longtable}{|l|p{10cm}|}
 \hline
-Field	& Description \\
+Field   & Description \\
 \hline
 \endhead
 \hline
 \endfoot
 \textsf{FuncRetProcInfo : Pointer; (pProcInfo)}&
-	Pointer to procedure information  \\
+    Pointer to procedure information  \\
 \textsf{RetType : TType;}& Indicates the return type of the function \\
 \textsf{Is{\_}First{\_}FuncRet : Boolean;}&  \\
 \hline
-\caption{General defines for compiling system unit}
-\label{tab18}
 \end{longtable}
 
 \paragraph{SubscriptN}\mbox{}
 
 \begin{longtable}{|l|p{10cm}|}
 \hline
-Field	& Description \\
+Field   & Description \\
 \hline
 \endhead
 \hline
 \endfoot
 \textsf{vs : pVarSym;}&
-	Symbol table entry for this variable (a field of
-	object/class/record) \\
+    Symbol table entry for this variable (a field of
+    object/class/record) \\
 \hline
-\caption{Debugging defines when compiling system unit}
 \end{longtable}
 
 \paragraph{RaiseN}\mbox{}
 
 \begin{longtable}{|l|p{10cm}|}
 \hline
-Field	& Description \\
+Field   & Description \\
 \hline
 \endhead
 \hline
@@ -756,60 +748,57 @@ Field	& Description \\
 
 \begin{longtable}{|l|p{10cm}|}
 \hline
-Field	& Description \\
+Field   & Description \\
 \hline
 \endhead
 \hline
 \endfoot
 \textsf{MemIndex  : Boolean;} & Set to TRUE if Mem[Seg:Ofs] directive is parsed \\
-\textsf{MemSeg 	  : Boolean;} & Set to TRUE if Mem[Seg:Ofs] directive is parsed \\
+\textsf{MemSeg    : Boolean;} & Set to TRUE if Mem[Seg:Ofs] directive is parsed \\
 \textsf{CallUnique: Boolean;} &
-\label{tab21}
 \end{longtable}
 
 \paragraph{StringConstN}\mbox{}
 
 \begin{longtable}{|l|p{10cm}|}
 \hline
-Field	& Description \\
+Field   & Description \\
 \hline
 \endhead
 \hline
 \endfoot
 \textsf{Value{\_}Str : pChar;}    & The constant value of the string \\
-\textsf{Length : Longint;}	  & Length of the string in bytes (or in characters???) \\
+\textsf{Length : Longint;}    & Length of the string in bytes (or in characters???) \\
 \textsf{Lab{\_}Str : pAsmLabel;}  & The assembler label reference to this constant \\
 \textsf{StringType : TStringType;}& The string type (short, long, ansi, wide)
-\label{tab22}
 \end{longtable}
 
 \paragraph{TypeConvN}\mbox{}
 
 \begin{longtable}{|l|p{10cm}|}
 \hline
-Field	& Description \\
+Field   & Description \\
 \hline
 \endhead
 \hline
 \endfoot
 \textsf{ConvType: TConvertType;}& Indicates the conversion type to do \\
 \textsf{Explizit : Boolean;}&
-	set to TRUE if this was an explicit conversion (with explicit
-	typecast, or calling one of the internal conversion routines)
-\label{tab23}
+    set to TRUE if this was an explicit conversion (with explicit
+    typecast, or calling one of the internal conversion routines)
 \end{longtable}
 
 \paragraph{TypeN}\mbox{}
 
 \begin{longtable}{|l|p{10cm}|}
 \hline
-Field	& Description \\
+Field   & Description \\
 \hline
 \endhead
 \hline
 \endfoot
-\textsf{TypeNodeType : pDef;}&  \\
-\textsf{TypeNodeSym : pTypeSym;}& 
+\textsf{TypeNodeType : pDef;}& The type definition for this node  \\
+\textsf{TypeNodeSym : pTypeSym;}& The type symbol information
 \label{tab24}
 \end{longtable}
 
@@ -817,15 +806,15 @@ Field	& Description \\
 
 \begin{longtable}{|l|p{10cm}|}
 \hline
-Field	& Description \\
+Field   & Description \\
 \hline
 \endhead
 \hline
 \endfoot
-\textsf{InlineNumber: Byte;}    &  Indicates the internal routine called (Cgf. code generator) \\
+\textsf{InlineNumber: Byte;}    &  Indicates the internal routine called (Cf. code generator) \\
 \textsf{InlineConst : Boolean;} &
-	One or more of the parameters to this inline routine call contains
-	constant values
+    One or more of the parameters to this inline routine call contains
+    constant values
 \label{tab25}
 \end{longtable}
 
@@ -847,21 +836,21 @@ of the routine which called the inline routine.
 
 \begin{longtable}{|l|p{10cm}|}
 \hline
-Field	& Description \\
+Field   & Description \\
 \hline
 \endhead
 \hline
 \endfoot
 \textsf{InlineTree : pTree;}&
-	The complete tree for this inline procedure \\
+    The complete tree for this inline procedure \\
 \textsf{InlineProcsym : pProcSym;}&
-	Symbol table entry for this procedure \\
+    Symbol table entry for this procedure \\
 \textsf{RetOffset : Longint;}&
-	Return offset in parent routine stack space \\
+    Return offset in parent routine stack space \\
 \textsf{Para{\_}Offset : Longint;}&
-	Parameter start offset in parent routine stack space \\
+    Parameter start offset in parent routine stack space \\
 \textsf{Para{\_}Size : Longint;}&
-	Parameter size in the parent routine stack space
+    Parameter size in the parent routine stack space
 \label{tab26}
 \end{longtable}
 
@@ -869,7 +858,7 @@ Field	& Description \\
 
 \begin{longtable}{|l|p{10cm}|}
 \hline
-Field	& Description \\
+Field   & Description \\
 \hline
 \endhead
 \hline
@@ -883,7 +872,7 @@ Field	& Description \\
 
 \begin{longtable}{|l|p{10cm}|}
 \hline
-Field	& Description \\
+Field   & Description \\
 \hline
 \endhead
 \hline
@@ -897,7 +886,7 @@ Field	& Description \\
 
 \begin{longtable}{|l|p{10cm}|}
 \hline
-Field	& Description \\
+Field   & Description \\
 \hline
 \endhead
 \hline
@@ -913,15 +902,15 @@ set to FALSE if the Self{\_}Register was modified in the asm statement.
 
 \begin{longtable}{|l|p{10cm}|}
 \hline
-Field	& Description \\
+Field   & Description \\
 \hline
 \endhead
 \hline
 \endfoot
 \textsf{Nodes : pCaserecord;}&
-	Tree for each of the possible case in the case statement \\
+    Tree for each of the possible case in the case statement \\
 \textsf{ElseBlock : pTree;}&
-	Else statement block tree
+    Else statement block tree
 \label{tab30}
 \end{longtable}
 
@@ -929,13 +918,13 @@ Field	& Description \\
 
 \begin{longtable}{|l|p{10cm}|}
 \hline
-Field	& Description \\
+Field   & Description \\
 \hline
 \endhead
 \hline
 \endfoot
 \textsf{LabelNr : pAsmLabel;}   & Assembler label associated with this statement \\
-\textsf{ExceptionBlock : ptree;}& ???????? \\
+\textsf{ExceptionBlock : ptree;}& ? \\
 \textsf{LabSym : pLabelSym;}    & Symbol table entry for this label
 \label{tab31}
 \end{longtable}
@@ -944,15 +933,15 @@ Field	& Description \\
 
 \begin{longtable}{|l|p{10cm}|}
 \hline
-Field	& Description \\
+Field   & Description \\
 \hline
 \endhead
 \hline
 \endfoot
 \textsf{WithSymTables : pWithSymTable;} &  \\
-\textsf{TableCount : Longint;}		&  \\
-\textsf{WithReference : pReference;}	&  \\
-\textsf{IsLocal : Boolean;}		& 
+\textsf{TableCount : Longint;}      &  \\
+\textsf{WithReference : pReference;}    &  \\
+\textsf{IsLocal : Boolean;}     & 
 \label{tab32}
 \end{longtable}
 
@@ -960,7 +949,7 @@ Field	& Description \\
 
 \begin{longtable}{|l|p{10cm}|}
 \hline
-Field	& Description \\
+Field   & Description \\
 \hline
 \endhead
 \hline
@@ -974,16 +963,16 @@ Field	& Description \\
 
 \begin{longtable}{|l|p{10cm}|}
 \hline
-Field	& Description \\
+Field   & Description \\
 \hline
 \endhead
 \hline
 \endfoot
-\textsf{CArgs : Boolean;}		&  \\
-\textsf{CArgSwap : Boolean;}		&  \\
-\textsf{ForceVaria : Boolean;}		&  \\
-\textsf{NoVariaAllowed : Boolean;}	&  \\
-\textsf{ConstructorDef : pDef;}		& 
+\textsf{CArgs : Boolean;}       &  \\
+\textsf{CArgSwap : Boolean;}        &  \\
+\textsf{ForceVaria : Boolean;}      &  \\
+\textsf{NoVariaAllowed : Boolean;}  &  \\
+\textsf{ConstructorDef : pDef;}     & 
 \label{tab34}
 \end{longtable}
 
@@ -994,12 +983,9 @@ Field	& Description \\
 \label{subsec:architecturesructord}
 
 The symbol table contains all definitions for all symbols in the compiler.
-It also contains all type
-
-\noindent
-information for all symbols encountered during the parsing process. All
-symbols and definitions are streamable, and are used within PPU files to
-avoid recompiling everything to verify if all symbols are valid.
+It also contains all type information for all symbols encountered during the 
+parsing process. All symbols and definitions are streamable, and are used 
+within PPU files to avoid recompiling everything to verify if all symbols are valid.
 
 There are different types of symbol tables, all of which maybe active at one
 time or another depending on the context of the parser.
@@ -1036,56 +1022,55 @@ linked list of active symbol tables is the \textbf{symtablestack} variable.
 \xspace \textsf{TSymTable} &= \textbf{object} & \\
 & \textsf{Name : pString;}& \\
 & \textsf{DataSize : Longint;}&
-	The total size of all the data in this symbol table (after the data has been aligned). Only valid for certain types of symbol tables. \\
+    The total size of all the data in this symbol table (after the data has been aligned). Only valid for certain types of symbol tables. \\
 & \textsf{DataAlignment : Longint;}& \\
 & \textsf{SymIndex : pIndexArray;}& \\
 & \textsf{DefIndex : pIndexArray;}&  \\
 & \textsf{SymSearch : pDictionary;}& \\
 & \textsf{Next : pSymtable;}&
-	Points to the next symbol table in the linked list of active symbol tables. \\
+    Points to the next symbol table in the linked list of active symbol tables. \\
 & \textsf{DefOwner : pDef;}&
-	The owner definition (only valid in the cases of objects and records, this points to the definition of that object or record). \\
+    The owner definition (only valid in the cases of objects and records, this points to the definition of that object or record). \\
 & \textsf{Address{\_}Fixup : Longint}&  \\
 & \textsf{UnitId : Word;}&  \\
 & \textsf{SymTableLevel : Byte;}&  \\
 & \textsf{SymTableType :TSymTableType;}&
-	Indicates the type of this symbol table (\ref{fig2}). \\
+    Indicates the type of this symbol table (\ref{fig2}). \\
 &\textsf{end;}&  \\
 \hline
 \end{tabular*}
 
-The type of possible symbol tables are shown in the following diagram:
+The type of possible symbol tables are shown in the following table:
 
 \begin{longtable}{|l|p{10cm}|}
 \hline
-Field	& Description \\
+TSymTableType& Description \\
 \hline
 \endhead
 \hline
 \endfoot
-TSymTableType& Description \\
 \textsf{InvalidSymTable}&
-	Default value when the symbol table is created and its type is not defined. Used for debugging purposes \\
+    Default value when the symbol table is created and its type is not defined. Used for debugging purposes \\
 \textsf{WithSymTable}&
-	All symbols accessed in a with statement \\
+    All symbols accessed in a with statement \\
 \textsf{StaticSymTable}&  \\
 \textsf{GlobalSymTable}&  \\
 \textsf{UnitSymTable}&
-	Linked list of units symbol used (all or unit?). The linked list is
-	composed of \textsf{tunitsym} structures. \\
+    Linked list of units symbol used (all or unit?). The linked list is
+    composed of \textsf{tunitsym} structures. \\
 \textsf{ObjectSymTable}&  \\
 \textsf{RecordSymTable}&
-	Contains all symbols within a record statement \\
+    Contains all symbols within a record statement \\
 \textsf{MacroSymTable}&
-	Holds all macros currently in scope. \\
+    Holds all macros currently in scope. \\
 \textsf{LocalSymTable}&
-	Hold symbols for all local variables of a routine \\
+    Hold symbols for all local variables of a routine \\
 \textsf{ParaSymTable}&
-	Holds symbols for all parameters of a routine (the actual parameter declaration symbols) \\
+    Holds symbols for all parameters of a routine (the actual parameter declaration symbols) \\
 \textsf{InlineParaSymTable}&
-	Holds all parameter symbols for the current inline routine \\
+    Holds all parameter symbols for the current inline routine \\
 \textsf{InlineLocalSymTable}&
-	Holds all local symbols for the current inline routine \\
+    Holds all local symbols for the current inline routine \\
 \textsf{Stt{\_}ExceptSymTable}&  \\
 \textsf{StaticPPUSymTable}& 
 \label{tab36}
@@ -1102,6 +1087,7 @@ alignment and sizes of the data and actually creates the data entry in the
 correct segment.
 
 \begin{figure}
+\begin{center}
 \ifpdf
 %\epsfig{file=arch5.png,width=\textwidth}
 \includegraphics{arch5.pdf}
@@ -1109,7 +1095,8 @@ correct segment.
 \includegraphics[width=1.51in,height=5.51in]{arch5.eps}
 \fi
 \label{fig5}
-\caption{Inserting into the tree}
+\caption{Inserting into the symbol table}
+\end{center}
 \end{figure}
 
 \subsection{Symbol table interface}
@@ -1120,7 +1107,7 @@ correct segment.
 \begin{functionl}{Search{\_}a{\_}Symtable}{searchasymtable}
 \Declaration
 Function Search{\_}a{\_}Symtable(Const Symbol:String; \\
-			SymTableType : TSymTableType):pSym;
+            SymTableType : TSymTableType):pSym;
 \Description
 Search for a symbol \textsf{Symbol} in a specified symbol table
 \textsf{SymTableType}. Returns \textsf{NIL} if the symbol table is not
@@ -1182,6 +1169,7 @@ relationship between a symbol entry, a type definition, and the type name
 symbol entry is shown in figure \ref{fig6}.
 
 \begin{figure}
+\begin{center}
 \ifpdf
 \includegraphics{arch6.pdf}
 %\epsfig{file=arch6.png,width=\textwidth}
@@ -1190,6 +1178,7 @@ symbol entry is shown in figure \ref{fig6}.
 \fi
 \label{fig6}
 \caption{relation between symbol entry and type definition and name}
+\end{center}
 \end{figure}
 
 \subsection{Symbol entry types}
@@ -1210,56 +1199,61 @@ of this symbol entry.
 & \textsf{SymOptions : TSymOptions;}& Indicate the access scope of the symbol \\
 & \textsf{FileInfo : tFilePosInfo;}&  \\
 & \textsf{Refs : Longint;}&
-	Indicates how many times this label is refered in the parsed code (is only used with variable and assembler label symbols). \\
+    Indicates how many times this label is refered in the parsed code (is only used with variable and assembler label symbols). \\
 &\textsf{LastRef : pRef;}&  \\
 &\textsf{DefRef : pRef;}&  \\
 &\textsf{LastWritten : pRef;}& \\
-&\textsf{RefCount : Longint;}& \\
-&\textsf{Typ : tSymTyp;}& Indicates the symbol type (Cf. \ref{tab2}(. \\
-&\textsf{IsStabWritten : Boolean;}& \\
+&\textsf{RefCount : Longint;}& Browser information indicating the reference count\\
+&\textsf{Typ : tSymTyp;}& Indicates the symbol type \\
+&\textsf{IsStabWritten : Boolean;}& Set to TRUE if the stabs debugging information has been written for this symbol.\\
 &\textsf{end; }&\\
 \hline 
 \end{tabular*}
 
 \begin{longtable}{|l|p{10cm}|}
+\caption{tsymtyp}\label{tsymtyp}\\
 \hline
-TSymTyp	& Description \\
+TSymTyp & Description \\
+\hline
+\endfirsthead
+\hline
+TSymTyp & Description \\
 \hline
 \endhead
 \hline
 \endfoot
 \textsf{AbstractSym}&
-	This is a special abstract symbol (this should never occur) \\
+    This is a special abstract symbol (this should never occur) \\
 \textsf{VarSym}&
-	This symbol is a variable declaration in the \textsf{var} section, or a \textsf{var} parameter. \\
+    This symbol is a variable declaration in the \textsf{var} section, or a \textsf{var} parameter. \\
 \textsf{TypeSym}&
-	This symbol is a type name \\
+    This symbol is a type name \\
 \textsf{ProcSym}&
-	This symbol is a routine or method name \\
+    This symbol is a routine or method name \\
 \textsf{UnitSym}&
-	This symbol is a unit name \\
+    This symbol is a unit name \\
 \textsf{\textit{ProgramSym}}&
-	\textit{This symbol is the main program name} \\
+    \textit{This symbol is the main program name} \\
 \textsf{ConstSym}&
-	This symbol is a constant \\
+    This symbol is a constant \\
 \textsf{EnumSym}&
-	This symbol is an enumeration symbol (an element in an enumeration) \\
+    This symbol is an enumeration symbol (an element in an enumeration) \\
 \textsf{TypedConstSym}&
-	This symbol is pre-initialized variable (pascal typed constant) \\
+    This symbol is pre-initialized variable (pascal typed constant) \\
 \textsf{ErrorSym}&
-	This symbol is created for error generation \\
+    This symbol is created for error generation \\
 \textsf{SysSym}&
-	This symbol represents an inlined system unit routine \\
+    This symbol represents an inlined system unit routine \\
 \textsf{LabelSym}&
-	This symbol represents a label in a \textsf{label} pascal declaration \\
+    This symbol represents a label in a \textsf{label} pascal declaration \\
 \textsf{AbsoluteSym}&
-	This symbol represents an the symbol following an \textsf{absolute} variable declaration \\
+    This symbol represents an the symbol following an \textsf{absolute} variable declaration \\
 \textsf{PropertySym}&
-	This symbol is a property name \\
+    This symbol is a property name \\
 \textsf{FuncRetSym}&
-	This symbol is the name of the return value for functions \\
+    This symbol is the name of the return value for functions \\
 \textsf{MacroSym}&
-	This symbol is a macro symbol (just like {\#}define in C)
+    This symbol is a macro symbol (just like {\#}define in C)
 \end{longtable}
 
 \subsubsection{label symbol (TLabelSym)}
@@ -1275,11 +1269,11 @@ available for use publicly:
 \xspace pLabelSym = & \^{}  TLabelSym; & \\
 \xspace \textsf{TLabelSym} = & \textbf{Object}(TSym) & \\
 & \textsf{Used : Boolean}&
-	Set to TRUE if this pascal label is used using a \textsf{goto} or in an assembler statement \\
+    Set to TRUE if this pascal label is used using a \textsf{goto} or in an assembler statement \\
 & \textsf{Defined: Boolean}&
-	Set to TRUE if this label has been declared \\
+    Set to TRUE if this label has been declared \\
 & \textsf{Lab : pAsmLabel}&
-	Points to the actual assembler label structure which will be emitted by the code generator \\
+    Points to the actual assembler label structure which will be emitted by the code generator \\
 & \textsf{Code : Pointer}&  \\
 & \textsf{end;}&  \\
 \hline
@@ -1300,9 +1294,9 @@ which is used in the unit symbol table.
 \xspace pUnitSym = & \^{}  TUnitSym; & \\
 \xspace \textsf{TUnitSym} = & \textbf{Object}(TSym) & \\
 & \textsf{UnitSymTable:pUnitSymTable}&
-	Pointer to the global symbol table for that unit, containing entries for each public? symbol in that unit \\
+    Pointer to the global symbol table for that unit, containing entries for each public? symbol in that unit \\
 & \textsf{PrevSym : pUnitSym}&
-	Pointer to previous entry in the linked list \\
+    Pointer to previous entry in the linked list \\
 & \textsf{end;}&  \\
 \hline
 \end{tabular*}
@@ -1320,18 +1314,18 @@ it contains the value of the define (stored as a string).
 \xspace pMacroSym = & \^{}  TMacroSym; & \\
 \xspace \textsf{TMacroSym} = & \textbf{Object}(TSym) & \\
 & \textsf{Defined : Boolean;}&
-	TRUE if the symbol has been defined with a \textsf{{\$}define}
-	directive, or false if it has been undefined with a
-	\textsf{{\$}undef} directive \\
+    TRUE if the symbol has been defined with a \textsf{{\$}define}
+    directive, or false if it has been undefined with a
+    \textsf{{\$}undef} directive \\
 & \textsf{Defined{\_}At{\_}Startup : Boolean;}&
-	TRUE if the symbol is a system wide define \\
+    TRUE if the symbol is a system wide define \\
 & \textsf{Is{\_}Used: Boolean;}&
-	TRUE if the define has been used such as in a \textsf{{\$}ifdef}
-	directive. \\
+    TRUE if the define has been used such as in a \textsf{{\$}ifdef}
+    directive. \\
 & \textsf{BufText : pChar;}&
-	The actual string text of the define \\
+    The actual string text of the define \\
 & \textsf{BufLength : Longint;}&
-	The actual string length of the define \\
+    The actual string length of the define \\
 & \textsf{end;}&  \\
 \hline
 \end{tabular*}
@@ -1358,10 +1352,10 @@ table stack.
 \xspace pProcSym = & \^{}  TProcSym; & \\
 \xspace \textsf{TProcSym} = & \textbf{Object}(TSym) & \\
 & \textsf{Is{\_}Global : Boolean}&
-	Set if the routine is exported by the unit \\
+    Set if the routine is exported by the unit \\
 & \textsf{Definition : pProcDef}&
-	Procedure definition, including parameter information and return
-	values \\
+    Procedure definition, including parameter information and return
+    values \\
 & \textsf{end;}&  \\
 \hline
 \end{tabular*}
@@ -1382,7 +1376,7 @@ definition.
 \xspace pTypeSym = & \^{}  TTypeSym; & \\
 \xspace \textsf{TTypeSym} = & \textbf{Object}(TSym) & \\
 & \textsf{ResType : TType}&
-	Contains base type information as well as the type definition \\
+    Contains base type information as well as the type definition \\
 & \textsf{end;}&  \\
 \hline
 \end{tabular*}
@@ -1400,82 +1394,195 @@ information and optimization information are stored in this symbol type.
 \xspace pVarSym = & \^{}  TVarSym; & \\
 \xspace \textsf{TVarSym} = & \textbf{Object}(TSym) & \\
 & \textsf{Reg: TRegister;}&
-	If the value is a register variable, the \textsf{reg} field will be
-	different then R{\_}NO \\
+    If the value is a register variable, the \textsf{reg} field will be
+    different then R{\_}NO \\
 & \textsf{VarSpez : TVarSpez;}&
-	Indicates the variable type (parameters only) (Cf. \ref{tab4}). \\
+    Indicates the variable type (parameters only) (Cf. \ref{tvarspez}). \\
 & \textsf{Address : Longint;}&
-	In the case where the variable is a routine parameter, this
-	indicates the positive offset from the \textsf{frame{\_}pointer }to
-	access this variable. In the case of a local variable, this field
-	indicates the negative offset from the \textsf{frame{\_}pointer}. to
-	access this variable. \\
+    In the case where the variable is a routine parameter, this
+    indicates the positive offset from the \textsf{frame{\_}pointer }to
+    access this variable. In the case of a local variable, this field
+    indicates the negative offset from the \textsf{frame{\_}pointer}. to
+    access this variable. \\
 & \textsf{LocalVarSym : pVarSym;}&  \\
 & \textsf{VarType : TType;}&
-	Contains base type information as well as the type definition \\
+    Contains base type information as well as the type definition \\
 & \textsf{VarOptions : TVarOptions;}&
-	Flags for this variable (Cf. \ref{tab3}) \\
+    Flags for this variable (Cf. \ref{tvaroptions}) \\
 & \textsf{VarState : TVarState}&
-	Indicates the state of the variable, if it's used or declared \\
+    Indicates the state of the variable, if it's used or declared \\
 & \textsf{end;}&  \\
 \hline
 \end{tabular*}
 
 \begin{longtable}{|l|p{10cm}|}
+\caption{tvaroptions}\label{tvaroptions}\\
+\hline
+TVarOptions & Description \\
+\hline
+\endfirsthead
+\caption{tvaroptions (continued)}\\
 \hline
 TVarOptions & Description \\
 \hline
 \endhead
 \hline
 \endfoot
-\textsf{vo{\_}Regable}&
-	The variable can be put into a hardware general purpose register \\
-\textsf{vo{\_}Is{\_}C{\_}Var}&
-	The variable is imported from a C module \\
-\textsf{vo{\_}Is{\_}External}&
-	The variable is declared external \\
-\textsf{vo{\_}Is{\_}Dll{\_}Var}&
-	The variable is a shared library variable \\
-\textsf{vo{\_}Is{\_}Thread{\_}Var}&
-	The variable is declared as being thread safe \\
-\textsf{vo{\_}FpuRegable}&
-	The variable can be put into a hardware floating point register \\
-\textsf{vo{\_}Is{\_}Local{\_}Copy}&  \\
-\textsf{\textit{vo{\_}Is{\_}Const}}&
-	\textit{unused and useless} \\
-\textsf{vo{\_}Is{\_}Exported}&
-	The variable is declared as exported in a dynamic link library 
+\textsf{vo{\_}regable}&
+    The variable can be put into a hardware general purpose register \\
+\textsf{vo{\_}is{\_}c{\_}var}&
+    The variable is imported from a C module \\
+\textsf{vo{\_}is{\_}external}&
+    The variable is declared external \\
+\textsf{vo{\_}is{\_}Dll{\_}var}&
+    The variable is a shared library variable \\
+\textsf{vo{\_}is{\_}thread{\_}var}&
+    The variable is declared as being thread safe \\
+\textsf{vo{\_}fpuregable}&
+    The variable can be put into a hardware floating point register \\
+\textsf{vo{\_}is{\_}local{\_}copy}&  \\
+\textsf{\textit{vo{\_}is{\_}const}}&
+    \textit{unused and useless} \\
+\textsf{vo{\_}is{\_}exported}&
+    The variable is declared as exported in a dynamic link library 
 \end{longtable}
 
 \begin{longtable}{|l|p{10cm}|}
+\caption{parameter type}\label{tvarspez}\\
+\hline
+TVarSpez & Description \\
+\hline
+\endfirsthead
+\caption{parameter type (continued)}\\
 \hline
 TVarSpez & Description \\
 \hline
 \endhead
 \hline
 \endfoot
-\textsf{vs{\_}Value}&
-	This is a value parameter \\
-\textsf{vs{\_}Const}&
-	This is a constant parameter, property or array \\
-\textsf{vs{\_}Var}&
-	This is a variable parameter
+\textsf{vs{\_}value}&
+    This is a value parameter \\
+\textsf{vs{\_}const}&
+    This is a constant parameter, property or array \\
+\textsf{vs{\_}var}&
+    This is a variable parameter
 \end{longtable}
 
-\subsubsection{property symbol}
+\subsubsection{property symbol (TPropertySym)}
 \label{subsubsec:property}
+
+
+\begin{tabular*}{6.5in}{|l@{\extracolsep{\fill}}lp{8.5cm}|}
+\hline
+\textsf{TYPE}& & \\
+\xspace pPropertySym = & \^{}  TPropertySym; & \\
+\xspace \textsf{TPropertySym} = & \textbf{Object}(TSym) & \\
+& \textsf{propoptions: tpropertyoptions;}&
+    ??? \\
+& \textsf{proptype      : ttype;}&
+    Indicates the type of the property\\
+& \textsf{propoverriden : ppropertysym;}&
+    ??? \\
+& \textsf{indextype     : ttype;}&  \\
+& \textsf{index : longint;}&
+    ???? \\
+& \textsf{default : longint}&
+    ???  \\
+& \textsf{readaccess : psymlist}&
+    ??? \\
+& \textsf{writeaccess : psymlist}&
+    ??? \\
+& \textsf{storedaccess : psymlist}&
+    ??? \\
+& \textsf{end;}&  \\
+\hline
+\end{tabular*}
+
 
 \subsubsection{return value of function symbol}
 \label{subsubsec:return}
 
-\subsubsection{absolute declared variable}
+\subsubsection{absolute declared symbol (TAbsoluteSym)}
 \label{subsubsec:absolute}
+
+This symbol represents a variable declared with the \var{absolute} keyword. The
+\var{address} of the \var{TVarSym} object holds the address of the variable
+in the case of an absolute address variable.
+
+The possible types of absolute symbols, are from an external object
+reference, an absolute address (for certain targets only), or on top
+of another declared variable. For the possible types, \ref{tabsolutetyp}.
+
+\begin{tabular*}{6.5in}{|l@{\extracolsep{\fill}}lp{8.5cm}|}
+\hline
+\textsf{TYPE}& & \\
+\xspace pAbsoluteSym = & \^{}  TAbsoluteSym; & \\
+\xspace \textsf{TAbsoluteSym} = & \textbf{Object}(TVarSym) & \\
+& \textsf{abstyp  : absolutetyp;}&
+    Indicates the type of absolute symbol it is (Cf. \ref{tabsolutetyp}) \\
+& \textsf{absseg  : boolean;}&
+    ???\\
+& \textsf{ref     : psym;}&
+    In case \var{abstyp} is \var{tovar}, this field indicates
+    the symbol which is overlaid with this symbol. Otherwise
+    this field is unused.\\
+& \textsf{asmname : pstring;}&  In case \var{abstyp} is \var{toasm},
+    this field indicates label name for the variable.\\
+\hline
+\end{tabular*}
+
+
+\begin{longtable}{|l|p{10cm}|}
+\caption{possible absolute variable types}\label{tabsolutetyp}\\
+\hline
+tabsolutetyp & Description \\
+\hline
+\endfirsthead
+\hline
+tabsolutetyp & Description \\
+\hline
+\endhead
+\hline
+\endfoot
+\textsf{tovar}&
+    The symbol will be declared on top of another symbol (variable or typed constant)\\
+\textsf{toasm}&
+    The variable is imported from an external module \\
+\textsf{toaddr}&
+    The variable is declared as being at an absolute address \\
+\end{longtable}
+
 
 \subsubsection{typed constant symbol}
 \label{subsubsec:typed}
 
-\subsubsection{constant symbol}
+\subsubsection{constant symbol (TConstSym)}
 \label{subsubsec:constant}
+
+
+This symbol type will contain all constants defined and encountered
+during the parsing. The values of the constants are also set in
+this symbol type entry. 
+
+\begin{tabular*}{6.5in}{|l@{\extracolsep{\fill}}lp{8.5cm}|}
+\hline
+\textsf{TYPE}& & \\
+\xspace pConstSym = & \^{}  TConstSym; & \\
+\xspace \textsf{TConstSym} = & \textbf{Object}(TSym) & \\
+& \textsf{consttype  : ttype;}&
+    Type information for this constant (?). \\
+& \textsf{consttyp : tconsttyp}&
+    Indicates the type of the constant\\
+& \textsf{resstrindex : longint}& If this is a resource
+    string constant, it indicates the index in the resource
+    table \\
+& \textsf{value : longint}&  In certain cases, contains
+    the value of the constant \\
+& \textsf{len : longint}&  
+    \\
+\hline
+\end{tabular*}
+
 
 \subsubsection{enumeration symbol}
 \label{subsubsec:enumeration}
@@ -1483,8 +1590,16 @@ TVarSpez & Description \\
 \subsubsection{program symbol}
 \label{subsubsec:program}
 
+The program symbol type (\var{tprogramsym}) is used to store the name 
+of the program, which is declared using \var{program} in the pascal source. 
+This symbol type is currently unused in FreePascal.
+
 \subsubsection{sys symbol}
 \label{subsubsec:mylabel4}
+
+The \var{tsyssym} symbol type is used to load indexes into the symbol
+table of the internal routines which are inlined directly by the compiler.
+It has a single field, which is the index of the inline routine.
 
 \subsection{Symbol interface}
 \label{subsec:mylabel5}
@@ -1507,9 +1622,9 @@ such information.
 \textsf{TYPE} & &  \\
 \xspace \textsf{TType} = & \textbf{Object} & \\
 &\textsf{Sym : pSym;}&
-	Points to the symbol table of this type \\
+    Points to the symbol table of this type \\
 & \textsf{Def : pDef;}&
-	Points to the actual definition of this type \\
+    Points to the actual definition of this type \\
 &\textsf{end;}&   \\
 \hline
 \end{tabular*}
@@ -1538,28 +1653,28 @@ and can have one of the following symbolic values:
 
 \begin{longtable}{|l|p{10cm}|}
 \hline
-deftype of TDef object	& Description \\
+deftype of TDef object  & Description \\
 \hline
 \endhead
 \hline
 \endfoot
-\textsf{AbstractDef}	&  \\
-\textsf{ArrayDef}	& array type definition \\
-\textsf{RecordDef}	& record type definition \\
-\textsf{PointerDef}	& pointer type definition \\
-\textsf{OrdDef}		& ordinal (numeric value) type definition \\
-\textsf{StringDef}	& string type definition \\
-\textsf{EnumDef}	& enumeration type definition \\
-\textsf{ProcDef}	& procedure type definition \\
-\textsf{ObjectDef}	& object or class type definition \\
-\textsf{ErrorDef}	& error definition (empty, used for error recovery) \\
-\textsf{FileDef}	& file type definition \\
-\textsf{FormalDef}	&  \\
-\textsf{SetDef}		& set type definition \\
-\textsf{ProcVarDef}	& procedure variable type definition \\
-\textsf{FloatDef}	& floating point type definition \\
-\textsf{ClassrefDef}	&  \\
-\textsf{ForwardDef}	&  \\
+\textsf{AbstractDef}    &  \\
+\textsf{ArrayDef}   & array type definition \\
+\textsf{RecordDef}  & record type definition \\
+\textsf{PointerDef} & pointer type definition \\
+\textsf{OrdDef}     & ordinal (numeric value) type definition \\
+\textsf{StringDef}  & string type definition \\
+\textsf{EnumDef}    & enumeration type definition \\
+\textsf{ProcDef}    & procedure type definition \\
+\textsf{ObjectDef}  & object or class type definition \\
+\textsf{ErrorDef}   & error definition (empty, used for error recovery) \\
+\textsf{FileDef}    & file type definition \\
+\textsf{FormalDef}  &  \\
+\textsf{SetDef}     & set type definition \\
+\textsf{ProcVarDef} & procedure variable type definition \\
+\textsf{FloatDef}   & floating point type definition \\
+\textsf{ClassrefDef}    &  \\
+\textsf{ForwardDef} &  \\
 \end{longtable}
 
 \subsubsection{base definition (TDef)}
@@ -1575,26 +1690,26 @@ fields.
 \xspace pDef = & \^{}  TDef; & \\
 \xspace \textsf{TDef} = & \textbf{Object}(TSymTableEntry) & \\
 &\textsf{TypeSym : pTypeSym;}&
-	Pointer to symbol table entry for this type definition \\
+    Pointer to symbol table entry for this type definition \\
 &\textsf{InitTable{\_}Label : pAsmLabel;}&
-	Label to initialization information (required for some complex types) \\
+    Label to initialization information (required for some complex types) \\
 &\textsf{Rtti{\_}Label : pAsmLabel;}&
-	Label to the runtime type information. \\
+    Label to the runtime type information. \\
 &\textsf{NextGlobal : pDef;}&  \\
 &\textsf{PreviousGlobal : pDef;}&  \\
 &\textsf{SaveSize : Longint;}&
-	Size in bytes of the data definition \\
+    Size in bytes of the data definition \\
 &\textsf{DefType : tDefType;}&
-	Indicates the definition type (see \ref{tab5}). \\
+    Indicates the definition type (see table \ref{tab5}). \\
 &\textsf{Has{\_}InitTable : Boolean;}&  \\
 &\textsf{Has{\_}Rtti : Boolean;}&  \\
 &\textsf{Is{\_}Def{\_}Stab{\_}Written : TDefStabStatus}&
-	Can be one of the following states : (\textsf{Not{\_}Written,
-	written, Being{\_}Written}) which indicates if the debug information
-	for this type has been defined or not. \\
+    Can be one of the following states : (\textsf{Not{\_}Written,
+    written, Being{\_}Written}) which indicates if the debug information
+    for this type has been defined or not. \\
 &\textsf{GlobalNb : Longint;}&
-	Internal debug information type signature (each definition has a
-	numeric signature). \\
+    Internal stabs debug information type signature (each type definition has a
+    numeric signature). \\
 &\textsf{end;}&  \\
 \hline
 \end{tabular*}
@@ -1615,11 +1730,11 @@ unit or program.
 \xspace pFileDef = & \^{}  TFileDef; & \\
 \xspace \textsf{TFileDef} = & \textbf{Object}(TDef) & \\
 &\textsf{FileTyp : TFileTyp;}&
-	Indicates what type of file definition it is (\textsf{text},
-	\textsf{untyped} or \textsf{typed}). \\
+    Indicates what type of file definition it is (\textsf{text},
+    \textsf{untyped} or \textsf{typed}). \\
 &\textsf{TypedFileType : TType;}&
-	In the case of a typed file definition, definition of the type of
-	the file \\
+    In the case of a typed file definition, definition of the type of
+    the file \\
 &\textsf{end;}&  \\
 \hline
 \end{tabular*}
@@ -1640,10 +1755,10 @@ pmyobject = \ tmyobject}, while \textsf{tmyobject} has yet to be defined.
 \xspace pForwardDef = & \^{}  TForwardDef; & \\
 \xspace \textsf{TForwardDef} = & \textbf{Object}(TDef) & \\
 &\textsf{toSymName : String;}&
-	The symbol name for this forward declaration (the actual real
-	definition does not exist yet) \\
+    The symbol name for this forward declaration (the actual real
+    definition does not exist yet) \\
 &\textsf{ForwardPos : TFilePosInfo;}&
-	Indicates file position where this forward definition was declared. \\
+    Indicates file position where this forward definition was declared. \\
 &\textsf{end;}&  \\
 \hline
 \end{tabular*}
@@ -1669,10 +1784,10 @@ parsing construct found.
 \xspace pPointerDef = & \^{}  TPointerDef; & \\
 \xspace \textsf{TPointerDef} = & \textbf{Object}(TDef) & \\
 &\textsf{Is{\_}Far : Boolean;}&
-	Used to indicate if this is a far pointer or not (this flag is
-	cpu-specific) \\
+    Used to indicate if this is a far pointer or not (this flag is
+    cpu-specific) \\
 &\textsf{PointerType : TType;}&
-	This indicates to what type definition this pointer points to. \\
+    This indicates to what type definition this pointer points to. \\
 &\textsf{end;}&  \\
 \hline
 \end{tabular*}
@@ -1689,18 +1804,18 @@ the type declaration section.
 \xspace pObjectDef = & \^{}  TObjectDef; & \\
 \xspace \textsf{TObjectDef} = & \textbf{Object}(TDef) & \\
 &\textsf{ChildOf : pObjectDef;}&
-	This is a pointer to the parent object definition. It is set to nil,
-	if this object definition has no parent. \\
+    This is a pointer to the parent object definition. It is set to nil,
+    if this object definition has no parent. \\
 &\textsf{ObjName : pString;}&
-	This is the object name \\
+    This is the object name \\
 &\textsf{SymTable : pSymTable;}&
-	This is a pointer to the symbol table entries within this object. \\
+    This is a pointer to the symbol table entries within this object. \\
 &\textsf{PbjectOptions : TObjectOptions;}&
-	The options for this object, see the following table for the
-	possible options for the object. \\
+    The options for this object, see the following table for the
+    possible options for the object. \\
 &\textsf{VMT{\_}Offset : Longint;}&
-	This is the offset from the start of the object image in memory
-	where the virtual method table is located. \\
+    This is the offset from the start of the object image in memory
+    where the virtual method table is located. \\
 &\textsf{Writing{\_}Class{\_}Record{\_}Stab : Boolean;}&  \\
 &\textsf{end;}&  \\
 \hline
@@ -1714,37 +1829,37 @@ Object Options(TObjectOptions) & Description \\
 \endhead
 \hline
 \endfoot
-\textsf{oo{\_}Is{\_}Class}&
-	This is a delphi styled class declaration, and not a Turbo Pascal
-	object. \\
-\textsf{oo{\_}Is{\_}Forward}&
-	This flag is set to indicate that the object has been declared in a
-	type section, but there is no implementation yet. \\
-\textsf{oo{\_}Has{\_}Virtual}&
-	This object / class contains virtual methods \\
-\textsf{oo{\_}Has{\_}Private}&
-	This object / class contains private fields or methods \\
-\textsf{oo{\_}Has{\_}Protected}&
-	This object / class contains protected fields or methods \\
-\textsf{oo{\_}Has{\_}Constructor}&
-	This object / class has a constructor method \\
-\textsf{oo{\_}Has{\_}Destructor}&
-	This object / class has a destructor method \\
-\textsf{oo{\_}Has{\_}VMT}&
-	This object / class has a virtual method table \\
-\textsf{oo{\_}Has{\_}Msgstr}&
-	This object / class contains one or more message handlers  \\
-\textsf{oo{\_}Has{\_}Msgint}&
-	This object / class contains one or more message handlers  \\
-\textsf{oo{\_}Has{\_}Abstract}&
-	This object / class contains one or more abstract methods \\
-\textsf{oo{\_}Can{\_}Have{\_}Published}&
-	the class has runtime type information, i.e. you can publish
-	properties \\
-\textsf{oo{\_}CPP{\_}Class}&
-	the object/class uses an C++ compatible class layout \\
-\textsf{oo{\_}Interface}&
-	this class is a delphi styled interface
+\textsf{oo{\_}is{\_}class}&
+    This is a delphi styled class declaration, and not a Turbo Pascal
+    object. \\
+\textsf{oo{\_}is{\_}forward}&
+    This flag is set to indicate that the object has been declared in a
+    type section, but there is no implementation yet. \\
+\textsf{oo{\_}has{\_}virtual}&
+    This object / class contains virtual methods \\
+\textsf{oo{\_}has{\_}private}&
+    This object / class contains private fields or methods \\
+\textsf{oo{\_}has{\_}protected}&
+    This object / class contains protected fields or methods \\
+\textsf{oo{\_}has{\_}constructor}&
+    This object / class has a constructor method \\
+\textsf{oo{\_}has{\_}destructor}&
+    This object / class has a destructor method \\
+\textsf{oo{\_}has{\_}vmt}&
+    This object / class has a virtual method table \\
+\textsf{oo{\_}has{\_}msgstr}&
+    This object / class contains one or more message handlers  \\
+\textsf{oo{\_}has{\_}msgint}&
+    This object / class contains one or more message handlers  \\
+\textsf{oo{\_}has{\_}abstract}&
+    This object / class contains one or more abstract methods \\
+\textsf{oo{\_}can{\_}have{\_}published}&
+    the class has runtime type information, i.e. you can publish
+    properties \\
+\textsf{oo{\_}cpp{\_}class}&
+    the object/class uses an C++ compatible class layout \\
+\textsf{oo{\_}interface}&
+    this class is a delphi styled interface
 \end{longtable}
 
 \subsubsection{class reference definition (TClassRefDef)}
@@ -1765,16 +1880,16 @@ generation.
 &\textsf{IsVariant : Boolean;}&  \\
 &\textsf{IsConstructor : Boolean;}&  \\
 &\textsf{RangeNr: Longint;}&
-	Label number associated with the index values when range checking is
-	on \\
+    Label number associated with the index values when range checking is
+    on \\
 &\textsf{LowRange : Longint;}&
-	The lower index range of the array definition \\
+    The lower index range of the array definition \\
 &\textsf{HighRange : Longint;}&
-	The higher index range of the array definition \\
+    The higher index range of the array definition \\
 &\textsf{ElementType : TType;}&
-	The type information for the elements of the array \\
+    The type information for the elements of the array \\
 &\textsf{RangeType : TType;}&
-	The type information for the index ranges of the array \\
+    The type information for the index ranges of the array \\
 &\textsf{IsArrayofConst : Boolean;}&  \\
 &\textsf{end;}& \\
 \hline
@@ -1792,7 +1907,7 @@ is parsed. It contains the symbol table to the elements in the record.
 \xspace pRecordDef = & \^{}  TRecordDef; & \\
 \xspace \textsf{TRecordDef} = & \textbf{Object}(TDef) & \\
 &\textsf{SymTable : PSymTable;}&
-	This is a pointer to the symbol table entries within this record. \\
+    This is a pointer to the symbol table entries within this record. \\
 &\textsf{end;}&  \\
 \hline
 \end{tabular*}
@@ -1811,16 +1926,22 @@ Others are created at compile time, when declared.
 \xspace pOrdDef = & \^{}  TOrdDef; & \\
 \xspace \textsf{TOrdDef} = & \textbf{Object}(TDef) & \\
 &\textsf{Low : Longint;}&
-	The minimum value of this ordinal type \\
+    The minimum value of this ordinal type \\
 &\textsf{High : Longint;}&
-	The maximum value of this ordinal type \\
+    The maximum value of this ordinal type \\
 &\textsf{Typ : TBaseType;}&
-	The type of ordinal value (cf. \ref{fig3}) \\
+    The type of ordinal value (cf. table \ref{tbasetype}) \\
 &\textsf{end;}&  \\
 \hline
 \end{tabular*}
 
 \begin{longtable}{|l|p{10cm}|}
+\caption{Base types}\label{tbasetyp}\\
+\hline
+Base ordinal type (TBaseType) & Description \\
+\hline
+\endfirsthead
+\caption{Base types (continued)}\\
 \hline
 Base ordinal type (TBaseType) & Description \\
 \hline
@@ -1839,9 +1960,9 @@ Base ordinal type (TBaseType) & Description \\
 \textsf{bool16bit}& boolean 16-bit value \\
 \textsf{bool32bit}& boolean 32-bit value \\
 \textsf{\textit{u64bit}}&
-	\textit{unsigned 64-bit value (not fully supported/tested)} \\
+    \textit{unsigned 64-bit value (not fully supported/tested)} \\
 \textsf{s64bit}& signed 64-bit value \\\textsf{\textit{uwidechar}}&
-	\textit{Currently not supported and unused} \\
+    \textit{Currently not supported and unused} \\
 \end{longtable}
 
 \subsubsection{float definition (TFloatDef)}
@@ -1857,12 +1978,17 @@ created and loaded when the compiler starts.
 \xspace pFloatDef = & \^{}  TFloatDef; & \\
 \xspace \textsf{TFloatDef} = & \textbf{Object}(TDef) & \\
 &\textsf{Typ : TFloatType;}&
-	The type of floating point value (cf. \ref{tab6}). \\
+    The type of floating point value (cf. table \ref{tfloattype}). \\
 &\textsf{end;}&  \\
 \hline
 \end{tabular*}
 
 \begin{longtable}{|l|p{10cm}|}
+\caption{Floating point types}\label{tfloattype}\\
+\hline
+Base floating point type (TFloatType) & Description \\
+\hline
+\endfirsthead
 \hline
 Base floating point type (TFloatType) & Description \\
 \hline
@@ -1872,8 +1998,8 @@ Base floating point type (TFloatType) & Description \\
 \textsf{s32real}& IEEE Single precision floating point value \\
 \textsf{s64real}& IEEE Double precision floating point value \\
 \textsf{s80real}&
-		Extended precision floating point value (cpu-specific,
-		usually maps to double) \\
+        Extended precision floating point value (cpu-specific,
+        usually maps to double) \\
 \textsf{s64comp}& 63-bit signed value, using 1 bit for sign indication \\
 \textsf{\textit{f16bit}}& \textit{Unsupported} \\
 \textsf{\textit{f32bit}}& \textit{Unsupported} \\
@@ -1893,22 +2019,28 @@ are used for the actual parsing process.
 \xspace \textsf{TAbstractProcDef} = & \textbf{Object}(TDef) & \\
 &\textsf{SymtableLevel : byte;}&  \\
 &\textsf{Fpu{\_}Used : Byte;}&
-	Number of floating point registers used in this routine  \\
+    Number of floating point registers used in this routine  \\
 &\textsf{RetType : TType;}&
-	Type information for the return value \par (uvoid if it returns nothing) \\
+    Type information for the return value \par (uvoid if it returns nothing) \\
 &\textsf{ProcTypeOption : TProcTypeOption;} &
-	Indicates the type of routine it is (cf \ref{tab7}). \\
+    Indicates the type of routine it is (cf table \ref{tproctypeoption}). \\
 &\textsf{ProcCallOptions : TProcCallOptions;} &
-	Indicates the calling convention of the routine (cf. \ref{tab8}). \\
+    Indicates the calling convention of the routine (cf. table \ref{tproccalloptions}). \\
 &\textsf{ProcOptions : TProcOptions;}&
-	Indicates general procedure options.  \par (cf. \ref{tab9}). \\
+    Indicates general procedure options.  \par (cf. table \ref{tprocoptions}). \\
 &\textsf{Para : pLinkedList;}&
-	This is a linked list of parameters (pparaitem list) \\
+    This is a linked list of parameters (pparaitem list) \\
 &\textsf{end;}&  \\
 \hline
 \end{tabular*}
 
 \begin{longtable}{|l|p{10cm}|}
+\caption{Procedure type options}\label{tproctypeoption}\\
+\hline
+Procedure options  \par (TProcTypeOption)& Description \\
+\hline
+\endfirsthead
+\caption{Procedure type options (continued)}\\
 \hline
 Procedure options  \par (TProcTypeOption)& Description \\
 \hline
@@ -1916,91 +2048,104 @@ Procedure options  \par (TProcTypeOption)& Description \\
 \hline
 \endfoot
 \textsf{poType{\_}ProgInit}&
-	Routine is the program entry point (defined as `\textsf{main}' in
-	the compiler). \\
+    Routine is the program entry point (defined as `\textsf{main}' in
+    the compiler). \\
 \textsf{poType{\_}UnitInit}&
-	Routine is the unit initialization code \par (defined as
-	unitname\textsf{{\_}init} in the compiler \\
+    Routine is the unit initialization code \par (defined as
+    unitname\textsf{{\_}init} in the compiler \\
 \textsf{poType{\_}UnitFinalize}&
-	Routine is the unit exit code \par (defined as
-	unitname\textsf{{\_}finalize} in the compiler) \\
+    Routine is the unit exit code \par (defined as
+    unitname\textsf{{\_}finalize} in the compiler) \\
 \textsf{poType{\_}Constructor}&
-	Routine is an object or class constructor \\
+    Routine is an object or class constructor \\
 \textsf{poType{\_}Destructor}&
-	Routine is an object or class destructor \\
+    Routine is an object or class destructor \\
 \textsf{poType{\_}Operator}&
-	Procedure is an operator \\
+    Procedure is an operator \\
 \end{longtable}
 
 \begin{longtable}{|l|p{10cm}|}
+\caption{Procedure call options}\label{tproccalloptions}\\
+\hline
+call options \par (TProcCallOptions) & Description \\
+\hline
+\endfirsthead
+\caption{Procedure call options (continued)}\\
 \hline
 call options \par (TProcCallOptions) & Description \\
 \hline
 \endhead
 \hline
 \endfoot
-\textsf{poCall{\_}ClearStack}&
-	The routine caller clears the stack upon return \\
-\textsf{poCall{\_}LeftRight}&
-	Send parameters to routine from left to right \\
-\textsf{poCall{\_}Cdecl}&
-	Passing parameters is done using the GCC alignment scheme, passing
-	parameter values is directly copied into the stack space \\
-\textsf{\textit{poCall{\_}Register}}&
-	\textit{unused (Send parameters via registers)} \\
-\textsf{poCall{\_}StdCall}&
-	Passing parameters is done using GCC alignment scheme \\
-\textsf{\textit{poCall{\_}SafeCall}}&
-	\textit{unused} \\
-\textsf{\textit{poCall{\_}PalmOsSyscall}}&
-	\textit{unused} \\
-\textsf{\textit{poCall{\_}System}}&
-	\textit{unused} \\
-\textsf{poCall{\_}Inline}&
-	Routine is an inline assembler macro (not a true call) \\
-\textsf{poCall{\_}InternProc}&
-	System unit code generator helper routine \\
-\textsf{poCall{\_}InternConst}&
-	System unit code generator helper macro routine \\
+\textsf{pocall{\_}clearstack}&
+    The routine caller clears the stack upon return \\
+\textsf{pocall{\_}leftright}&
+    Send parameters to routine from left to right \\
+\textsf{pocall{\_}cdecl}&
+    Passing parameters is done using the GCC alignment scheme, passing
+    parameter values is directly copied into the stack space \\
+\textsf{\textit{pocall{\_}register}}&
+    \textit{unused (Send parameters via registers)} \\
+\textsf{pocall{\_}stdcall}&
+    Passing parameters is done using GCC alignment scheme, standard GCC registers
+    are saved \\
+\textsf{\textit{pocall{\_}safecall}}&
+    Standard GCC registers are saved\\
+\textsf{\textit{pocall{\_}palmsssyscall}}&
+     This is a special syscall macro for embedded system \\
+\textsf{\textit{pocall{\_}system}}&
+    \textit{unused} \\
+\textsf{pocall{\_}inline}&
+    Routine is an inline assembler macro (not a true call) \\
+\textsf{pocall{\_}internproc}&
+    System unit code generator helper routine \\
+\textsf{pocall{\_}internconst}&
+    System unit code generator helper macro routine \\
 \end{longtable}
 
 \begin{longtable}{|l|p{10cm}|}
+\caption{Procedure options}\label{tprocoptions}\\
+\hline
+routine options (TProcOptions) & Description \\
+\hline
+\endfirsthead
+\caption{Procedure options (continued)}\\
 \hline
 routine options (TProcOptions) & Description \\
 \hline
 \endhead
 \hline
 \endfoot
-\textsf{po{\_}ClassMethod}   & This is a class method \\
-\textsf{po{\_}VirtualMethod }& This is a virtual method \\
-\textsf{po{\_}AbstractMethod}& This is an abstract method \\
-\textsf{po{\_}StaticMethod}  & This is a static method \\
-\textsf{po{\_}OverridingMethod}&
-	This is an overriden method (with po{\_}virtual flag usually) \\
-\textsf{po{\_}MethodPointer}&
-	This is a method pointer (not a normal routine pointer) \\
-\textsf{po{\_}ContainsSelf}&
-	self is passed explicitly as a parameter to the method \\
-\textsf{po{\_}Interrupt}&
-	This routine is an interrupt handler \\
-\textsf{po{\_}IOCheck}&
-	IO checking should be done after a call to the procedure \\
-\textsf{po{\_}Assembler}&
-	The routine is in assembler \\
-\textsf{po{\_}MsgStr}&
-	method for string message handling \\
-\textsf{po{\_}MsgInt}&
-	method for int message handling \\
-\textsf{po{\_}Exports}&
-	Routine has export directive  \\
-\textsf{po{\_}External}&
-	Routine is external (in other object or lib) \\
-\textsf{po{\_}SaveStdRegs}&
-	Routine entry should save all registers used by GCC \\
-\textsf{po{\_}SaveRegisters}&
-	Routine entry should save all registers \\
-\textsf{po{\_}OverLoad}&
-	Routine is declared as being overloaded \\
+\textsf{po{\_}classmethod}   & This is a class method \\
+\textsf{po{\_}virtualmethod }& This is a virtual method \\
+\textsf{po{\_}abstractmethod}& This is an abstract method \\
+\textsf{po{\_}staticmethod}  & This is a static method \\
+\textsf{po{\_}overridingmethod}&
+    This is an overriden method (with po{\_}virtual flag usually) \\
+\textsf{po{\_}methodpointer}&
+    This is a method pointer (not a normal routine pointer) \\
+\textsf{po{\_}containsself}&
+    self is passed explicitly as a parameter to the method \\
+\textsf{po{\_}interrupt}&
+    This routine is an interrupt handler \\
+\textsf{po{\_}iocheck}&
+    IO checking should be done after a call to the procedure \\
+\textsf{po{\_}assembler}&
+    The routine is in assembler \\
+\textsf{po{\_}msgstr}&
+    method for string message handling \\
+\textsf{po{\_}msgint}&
+    method for int message handling \\
+\textsf{po{\_}exports}&
+    Routine has export directive  \\
+\textsf{po{\_}external}&
+    Routine is external (in other object or lib) \\
+\textsf{po{\_}savestdregs}&
+    Routine entry should save all registers used by GCC \\
+\textsf{po{\_}saveregisters}&
+    Routine entry should save all registers \\
+\textsf{po{\_}overload}&
+    Routine is declared as being overloaded \\
 \end{longtable}
 
 \subsubsection{procedural variable definition (TProcVarDef)}
@@ -2032,14 +2177,14 @@ routine are populated as required.
 \xspace pProcDef = & \^{}  TProcDef; & \\
 \xspace \textsf{TProcDef} = & \textbf{Object}(TAbstractProcDef) & \\
 &\textsf{ForwardDef : Boolean;}& TRUE if this is a forward definition \\
-&\textsf{InterfaceDef: Boolean;}	&  \\
-&\textsf{ExtNumber : Longint;}		&  \\
-&\textsf{MessageInf : TMessageInf;}	&  \\
-&\textsf{NextOverloaded : pProcDef;}	&  \\
-&\textsf{FileInfo : TFilePosInfo;}	&
-	Position in source code for the declaration of this routine. Used
-	for error management. \\
-&\textsf{Localst : pSymTable;}		& The local variables symbol table \\
+&\textsf{InterfaceDef: Boolean;}    &  \\
+&\textsf{ExtNumber : Longint;}      &  \\
+&\textsf{MessageInf : TMessageInf;} &  \\
+&\textsf{NextOverloaded : pProcDef;}    &  \\
+&\textsf{FileInfo : TFilePosInfo;}  &
+    Position in source code for the declaration of this routine. Used
+    for error management. \\
+&\textsf{Localst : pSymTable;}      & The local variables symbol table \\
 &\textsf{Parast: pSymTable;}& The parameter symbol table \\
 &\textsf{ProcSym : pProcSym;}& Points to owner of this definition \\
 &\textsf{LastRef : pRef;}&  \\
@@ -2049,9 +2194,9 @@ routine are populated as required.
 &\textsf{RefCount : Longint;}&  \\
 &\textsf{{\_}Class : ProbjectDef;}&  \\
 &\textsf{Code : Pointer;}&
-	The actual code for the routine (only for inlined routines) \\
+    The actual code for the routine (only for inlined routines) \\
 &\textsf{UsedRegisters : TRegisterSet;}&
-	The set of registers used in this routine \\
+    The set of registers used in this routine \\
 &\textsf{HasForward : Boolean;}&  \\
 &\textsf{Count: Boolean;}&  \\
 &\textsf{Is{\_}Used : Boolean;}&  \\
@@ -2073,36 +2218,42 @@ length type.
 \xspace pStringDef = & \^{}  TStringDef; & \\
 \xspace \textsf{TStringDef} = & \textbf{Object}(TDef) & \\
 &\textsf{String{\_}Typ : TStringType;}&
-	Indicates the string type definition (cf. \ref{tab10}) \\
+    Indicates the string type definition (cf. \ref{tstringtype}) \\
 &\textsf{Len : Longint;}&
-	This is the maximum length which can have the string \\
+    This is the maximum length which can have the string \\
 &\textsf{end;}& \\
 \hline
 \end{tabular*}
 
 \begin{longtable}{|l|p{10cm}|}
+\caption{string types}\label{tstringtype}\\
+\hline
+String type \par (TStringType) & Description \\
+\hline
+\endfirsthead
+\caption{string types (continued)}\\
 \hline
 String type \par (TStringType) & Description \\
 \hline
 \endhead
 \hline
 \endfoot
-\textsf{st{\_}Default}&
-	Depends on current compiler switches, can either be a
-	st{\_}ShortString or st{\_}AnsiString \\
-\textsf{st{\_}ShortString}&
-	short string (length byte followed by actual ASCII characters (1
-	byte/char)) \\
-\textsf{st{\_}LongString}&
-	long string (length longint followed by actual ASCII characters (1
-	byte/char)) \\
-\textsf{st{\_}AnsiString}&
-	long string garbage collected (pointer to a length, reference count
-	followed by actual ASCII characters (1 byte/char)) \\
-\textsf{\textit{st{\_}WideString}}&
-	\textit{long string garbage collected (pointer to a length,
-	reference count followed by actual unicode characters (1
-	word/char))} \\
+\textsf{st{\_}default}&
+    Depends on current compiler switches, can either be a
+    st{\_}ShortString or st{\_}AnsiString \\
+\textsf{st{\_}shortstring}&
+    short string (length byte followed by actual ASCII characters (1
+    byte/char)) \\
+\textsf{st{\_}longstring}&
+    long string (length longint followed by actual ASCII characters (1
+    byte/char)) \\
+\textsf{st{\_}ansistring}&
+    long string garbage collected (pointer to a length, reference count
+    followed by actual ASCII characters (1 byte/char)) \\
+\textsf{\textit{st{\_}widestring}}&
+    \textit{long string garbage collected (pointer to a length,
+    reference count followed by actual unicode characters (1
+    word/char (utf16)))} \\
 \end{longtable}
 
 \subsubsection{enumeration definition (TEnumDef)}
@@ -2134,7 +2285,7 @@ be attached to the enumeration definition.
 \hline
 \end{tabular*}
 
-\subsubsection{set definition (tsetdef)}
+\subsubsection{set definition (TSetDef)}
 \label{subsubsec:mylabel10}
 
 This definition is created when a set type construct is parsed (\textsf{set
@@ -2146,7 +2297,7 @@ of declaration}).
 \xspace \textsf{pSetDef} &= \^{} \textbf{TSetDef};&  \\
 \xspace \textsf{TSetDef} &= \textbf{object}(TDef) & \\
 &\textsf{SetType : TSetType;}&
-    Indicates the storage type of the set (Cf. \ref{tab11}). \\
+    Indicates the storage type of the set (Cf. table \ref{tsettype}). \\
 &\textsf{ElementType : TType;}&
     Points the type definition and symbol table to the elements in the set. \\
 &\textsf{end;}&  \\
@@ -2154,6 +2305,12 @@ of declaration}).
 \end{tabular*}
 
 \begin{longtable}{|l|p{10cm}|}
+\caption{set types}\label{tsettype}\\
+\hline
+set type (TSetType) & Description \\
+\hline
+\endfirsthead
+\caption{set types (continued)}\\
 \hline
 set type (TSetType) & Description \\
 \hline
@@ -2171,6 +2328,8 @@ set type (TSetType) & Description \\
 
 \subsection{Definition interface}
 \label{subsec:definition}
+
+\subsubsection{routines}
 
 \begin{function}{TDef.Size}
 \Declaration
@@ -2223,31 +2382,31 @@ which modules to recompile.
 &\textsf{Interface{\_}CRC : Longint;}& CRC-32 bit of the interface part of the PPU file \\
 &\textsf{Flags: Longint;}& Unit file flags \\
 &\textsf{Compiled: Boolean;}& TRUE if module is already compiled \\
-&\textsf{Do{\_}Reload : Boolean;}	& TRUE if the PPU file must be reloaded \\
-&\textsf{Do{\_}Assemble : Boolean;}	& Only assemble, don't recompile unit \\
-&\textsf{Sources{\_}Avail : Boolean;}	& TRUE if all sources of module are available \\
-&\textsf{Sources{\_}Checked : Boolean;}	& TRUE if the sources has already been checked \\
-&\textsf{Is{\_}Unit: Boolean;}		& TRUE if this is a unit (otherwise a library or a main program) \\
-&\textsf{In{\_}Compile: Boolean;}	& module is currently being recompiled \\
+&\textsf{Do{\_}Reload : Boolean;}   & TRUE if the PPU file must be reloaded \\
+&\textsf{Do{\_}Assemble : Boolean;} & Only assemble, don't recompile unit \\
+&\textsf{Sources{\_}Avail : Boolean;}   & TRUE if all sources of module are available \\
+&\textsf{Sources{\_}Checked : Boolean;} & TRUE if the sources has already been checked \\
+&\textsf{Is{\_}Unit: Boolean;}      & TRUE if this is a unit (otherwise a library or a main program) \\
+&\textsf{In{\_}Compile: Boolean;}   & module is currently being recompiled \\
 &\textsf{In{\_}Second{\_}Compile: Boolean;}& module is being compiled for second time \\
-&\textsf{In{\_}Second{\_}Load: Boolean;}	& module is being reloaded a second time \\
+&\textsf{In{\_}Second{\_}Load: Boolean;}    & module is being reloaded a second time \\
 &\textsf{In{\_}Implementation : Boolean;}& currently compiling implementation part (units only) \\
-&\textsf{In{\_}Global : Boolean;}	& currently compiling implementation part (units only) \\
+&\textsf{In{\_}Global : Boolean;}   & currently compiling implementation part (units only) \\
 &\textsf{Recompile{\_}Reason : TRecompile{\_}Reason;}& Reason why module should be recompiled \\
-&\textsf{Islibrary : Boolean;}& 		TRUE if this module is a shared library \\
-&\textsf{Map : pUnitMap;}		& Map of all used units for this unit \\
-&\textsf{Unitcount : Word;}		& Internal identifier of unit (for GDB support) \\
-&\textsf{Unit{\_}index : Eord;}		&  \\
-&\textsf{Globalsymtable : Pointer;}	& Symbol table for this module of externally visible symbols \\
-&\textsf{Localsymtable : Pointer;}	& Symbol table for this module of locally visible symbols \\
-&\textsf{Scanner : Pointer;}		& Scanner object pointer \\
-&\textsf{Loaded{\_}From : pModule;}	& Module which referred to this module \\
-&\textsf{Uses{\_}Imports : Boolean;}	& TRUE if this module imports symbols from a shared library \\
-&\textsf{Imports : pLinkedList}		& Linked list of imported symbols \\
-&\textsf{{\_}Exports : pLinkedList;}	& Linked list of exported symbols (libraries only) \\
-&\textsf{SourceFiles : pFileManager;}	& List of all source files for this module \\
+&\textsf{Islibrary : Boolean;}&         TRUE if this module is a shared library \\
+&\textsf{Map : pUnitMap;}       & Map of all used units for this unit \\
+&\textsf{Unitcount : Word;}     & Internal identifier of unit (for GDB support) \\
+&\textsf{Unit{\_}index : Eord;}     &  \\
+&\textsf{Globalsymtable : Pointer;} & Symbol table for this module of externally visible symbols \\
+&\textsf{Localsymtable : Pointer;}  & Symbol table for this module of locally visible symbols \\
+&\textsf{Scanner : Pointer;}        & Scanner object pointer \\
+&\textsf{Loaded{\_}From : pModule;} & Module which referred to this module \\
+&\textsf{Uses{\_}Imports : Boolean;}    & TRUE if this module imports symbols from a shared library \\
+&\textsf{Imports : pLinkedList}     & Linked list of imported symbols \\
+&\textsf{{\_}Exports : pLinkedList;}    & Linked list of exported symbols (libraries only) \\
+&\textsf{SourceFiles : pFileManager;}   & List of all source files for this module \\
 &\textsf{ResourceFiles : TStringContainer;} & List of all resource files for this module \\
-&\textsf{Used{\_}Units : TLinkedList; }	& Information on units used by this module (pused{\_}unit) \\
+&\textsf{Used{\_}Units : TLinkedList; } & Information on units used by this module (pused{\_}unit) \\
 &\textsf{Dependent{\_}Units : TLinkedList;}&  \\
 &\textsf{LocalUnitSearchPath,}& Search path for obtaining module source code \\
 &\textsf{LocalObjectSearchPath,}&  \\
@@ -2275,6 +2434,7 @@ which modules to recompile.
 \label{subsubsec:entry}
 
 \begin{figure}
+\begin{center}
 \ifpdf
 \includegraphics{arch8.pdf}
 %\epsfig{file=arch8.png,width=\textwidth}
@@ -2283,6 +2443,7 @@ which modules to recompile.
 \fi
 \label{fig8}
 \caption{Parser - Scanner flow}
+\end{center}
 \end{figure}
 
 \subsubsection{program or library parsing }
@@ -2323,13 +2484,8 @@ which modules to recompile.
 \subsection{Parser interface}
 \label{subsec:parser}
 
-\subsubsection{Routines}
-\label{subsubsec:routinesnterfaceecla}
+\subsubsection{variables}
 
-\subsubsection{Variables}
-\label{subsubsec:variablesterfaceecla}
-
-\paragraph{General}
 
 \begin{variable}{AktProcSym}
 \Declaration
@@ -2353,8 +2509,6 @@ Var Current{\_}Module : pModule;
 Information on the current module (program, library or unit) being compiled.
 \end{variablel}
 
-\paragraph{Ordinal definitions}
-
 The following variables are default type definitions which are created each
 time compilation begins (default system-unit definitions), these definitions
 should always be valid:
@@ -2363,7 +2517,7 @@ should always be valid:
 \Declaration
 Var VoidDef : pOrdDef;
 \Description
-Pointer to procedure???
+Pointer to nothing type
 \Notes
 This is loaded as a default supported type for the compiler
 \end{variable}
@@ -2449,8 +2603,6 @@ Type definition for a signed 64-bit value (\textsf{int64})
 This is loaded as a default supported type for the compiler
 \end{variable}
 
-\paragraph{floating point definitions}
-
 The following variables are default type definitions which are created each
 time compilation begins (default system-unit definitions), these definitions
 should always be valid:
@@ -2496,9 +2648,6 @@ This is loaded as a default supported type for the compiler. This is
 not supported officially in FPC 1.0
 \end{variable}
 
-\clearpage
-
-\paragraph{String definitions}
 The following variables are default type definitions which are created each
 time compilation begins (default system-unit definitions), these definitions
 should always be valid:
@@ -2557,10 +2706,6 @@ Type definition for an open char array type(\textsf{openchararray})
 This is loaded as a default supported type for the compiler.
 \end{variable}
 
-\clearpage
-
-\paragraph{Pointer definitions}
-
 The following variables are default type definitions which are created each
 time compilation begins (default system-unit definitions), these definitions
 should always be valid:
@@ -2600,8 +2745,6 @@ Var cFormalDef : pFormalDef;
 This is loaded as a default supported type for the compiler
 \end{variable}
 
-\paragraph{Other definitions}
-
 \begin{variable}{cfFileDef}
 \Declaration
 Var cfFileDef : pFileDef;
@@ -2611,6 +2754,8 @@ Var cfFileDef : pFileDef;
 
 \section{The inline assembler parser}
 \label{sec:mylabel6}
+
+To be written.
 
 \section{The code generator}
 \label{sec:mylabel7}
@@ -2624,6 +2769,7 @@ of a linked list, taking as input the node created in the parser and the
 architecture:
 
 \begin{figure}
+\begin{center}
 \ifpdf
 \includegraphics{arch9.pdf}
 %\epsfig{file=arch9.png,width=\textwidth}
@@ -2631,7 +2777,8 @@ architecture:
 \includegraphics[width=5.68in,height=1.76in]{arch9.eps}
 \fi
 \label{fig:fig9}
-\caption{Codegenerator architecture}
+\caption{Code generator architecture}
+\end{center}
 \end{figure}
 
 The code generation is only done when a procedure body is parsed; the
@@ -2903,33 +3050,21 @@ code generator: The registers are defined in a special enumeration called
 tregister. This enumeration contains all possible register defines for the
 target architecture, and a possible definition could be as follows :
 
-% FIXME this should be changed to something more TeXish
+\begin{verbatim}
+tregister = ( { general purpose registers }
+		R_NO,R_D0,R_D1,R_D2,R_D3,R_D4,R_D5,R_D6,R_D7,
+              { address registers }
+		R_A0,R_A1,R_A2,R_A3,R_A4,R_A5,R_A6,R_SP,
+	      { PUSH/PULL- quick and dirty hack }
+	        R_SPPUSH,R_SPPULL,
+	      { misc. and floating point registers }
+		R_CCR,R_FP0,R_FP1,R_FP2,R_FP3,R_FP4,R_FP5,R_FP6,
+		R_FP7,R_FPCR,R_SR,R_SSP,R_DFC,R_SFC,R_VBR,R_FPSR,
+	      { other - not used }
+		R_DEFAULT_SEG
+	     );
 
-\textsf{tregister = (}
-
-\textsf{{\{} general purpose registers {\}} }
-
-\textsf{R{\_}NO,R{\_}D0,R{\_}D1,R{\_}D2,R{\_}D3,R{\_}D4,R{\_}D5,R{\_}D6,R{\_}D7,}
-
-\textsf{{\{} address registers {\}}}
-
-\textsf{R{\_}A0,R{\_}A1,R{\_}A2,R{\_}A3,R{\_}A4,R{\_}A5,R{\_}A6,R{\_}SP,}
-
-\textsf{{\{} PUSH/PULL- quick and dirty hack {\}}}
-
-\textsf{R{\_}SPPUSH,R{\_}SPPULL,}
-
-\textsf{{\{} misc. and floating point registers {\}}}
-
-\textsf{R{\_}CCR,R{\_}FP0,R{\_}FP1,R{\_}FP2,R{\_}FP3,R{\_}FP4,R{\_}FP5,R{\_}FP6,}
-
-\textsf{R{\_}FP7,R{\_}FPCR,R{\_}SR,R{\_}SSP,R{\_}DFC,R{\_}SFC,R{\_}VBR,R{\_}FPSR,}
-
-\textsf{{\{} other - not used {\}}}
-
-\textsf{R{\_}DEFAULT{\_}SEG}
-
-\textsf{);}
+\end{verbatim}
 
 \subsubsection{integer registers}
 \label{subsubsec:integer}
@@ -3041,7 +3176,7 @@ reference locations.
 \subsubsection{Code generator interface}
 \label{subsubsec:mylabel28}
 
-\lstinline!Function NewReference(Const R : TReference) : pReference;!
+%\lstinline!Function NewReference(Const R : TReference) : pReference;!
 
 \begin{procedure}{DisposeReference}
 \Declaration
@@ -3108,8 +3243,6 @@ The following interface routines are used by the code generator to allocate
 and deallocate registers from the different register pools available to code
 generator.
 
-\paragraph{General purpose registers}
-
 \begin{function}{GetRegister32}
 \Declaration
 Function GetRegister32 : TRegister;
@@ -3145,8 +3278,6 @@ Deallocates a general purpose register which was previously allocated with
 \seef{GetRegister32}().
 \end{procedure}
 
-\paragraph{Floating point registers}
-
 \begin{function}{GetFloatRegister}
 \Declaration
 Function GetFloatRegister : TRegister;
@@ -3169,8 +3300,6 @@ Returns TRUE if the register r is actually a floating point register,
 otherwise returns FALSE. This is used when the location is LOC{\_}FPU on
 machines which do not support true floating point registers.
 \end{function}
-
-\paragraph{Address registers}
 
 \begin{function}{GetAdressReg}
 \Declaration
@@ -3196,8 +3325,6 @@ If there is no distinction between address registers, and general purpose
 register in the architecture, this routine may simply verify if this is a
 general purpose register and return TRUE in that case.
 \end{function}
-
-\paragraph{Generic}
 
 \begin{procedure}{UngetRegister}
 \Declaration
@@ -3225,8 +3352,6 @@ procedure restoreusedregisters(Saved : TSaved);
 Restores all saved registers from the stack (or a temporary memory
 location). Free any temporary memory space allocated, if necessary.
 \end{function}
-
-\paragraph{Debugging}
 
 \begin{function}{GetExplicitRegister32}
 \Declaration
@@ -3278,8 +3403,6 @@ on the operating system required alignment.
 \subsubsection{Temporary memory allocator interface (temp{\_}gen.pas)}
 \label{subsubsec:temporary}
 
-\paragraph{volatile / ansistring memory}
-
 \begin{function}{GetTempOfSize}
 \Declaration
 Function GetTempOfSize(Size : Longint) : Longint;
@@ -3329,8 +3452,6 @@ correct offset to access this allocated memory space.
 The return offset always has the required alignment for the target system.
 \end{procedure}
 
-\paragraph{persistent memory}
-
 \begin{function}{GetTempOfSizePersistant}
 \Declaration
 Function GetTempOfSizePersistant(Size : Longint) :Longint;
@@ -3349,8 +3470,6 @@ Frees space allocated as being persistent. This persistent space can then
 later be used and reallocated. \textsf{Pos} is the offset relative to the
 Frame{\_}Pointer of the persistent memory block to free.
 \end{function}
-
-\paragraph{utility routines}
 
 \begin{procedure}{ResetTempGen}
 \Declaration
@@ -3459,14 +3578,14 @@ Operand size enum (\textsf{topsize}) & Description \\
 \endhead
 \hline
 \endfoot
-\textsf{S{\_}B}& 			8-bit integer operand \\
-\textsf{S{\_}W}& 			16-bit integer operand \\
-\textsf{S{\_}L}& 			32-bit integer operand \\
-\textsf{S{\_}Q}& 			64-bit integer operand \\
-\textsf{S{\_}FS}& 			32-bit IEEE 754 Single floating point operand \\
-\textsf{S{\_}FL}& 			64-bit IEEE 754 Double floating point operand \\
-\textsf{S{\_}FX}& 			Extended point floating point operand (cpu-specific) \\
-\textsf{S{\_}CPU}&			A constant equal to one of the previous sizes (natural size of operands) \\
+\textsf{S{\_}B}&            8-bit integer operand \\
+\textsf{S{\_}W}&            16-bit integer operand \\
+\textsf{S{\_}L}&            32-bit integer operand \\
+\textsf{S{\_}Q}&            64-bit integer operand \\
+\textsf{S{\_}FS}&           32-bit IEEE 754 Single floating point operand \\
+\textsf{S{\_}FL}&           64-bit IEEE 754 Double floating point operand \\
+\textsf{S{\_}FX}&           Extended point floating point operand (cpu-specific) \\
+\textsf{S{\_}CPU}&          A constant equal to one of the previous sizes (natural size of operands) \\
 \end{longtable}
 
 The possible operand types for the code generator are as follows (other
@@ -3479,10 +3598,10 @@ Operand type (\textsf{TOpType}) & Description \\
 \endhead
 \hline
 \endfoot
-\textsf{top{\_}None}& 			No operand \\
-\textsf{top{\_}Reg}& 			Operand is a register \\
-\textsf{top{\_}Ref}& 			Operand is a reference (\textsf{treference} type) \\
-\textsf{top{\_}Symbol}& 		Operand is a symbol (reference or label) \\
+\textsf{top{\_}None}&           No operand \\
+\textsf{top{\_}Reg}&            Operand is a register \\
+\textsf{top{\_}Ref}&            Operand is a reference (\textsf{treference} type) \\
+\textsf{top{\_}Symbol}&         Operand is a symbol (reference or label) \\
 \end{longtable}
 
 The architecture specific opcodes are done in an enumeration of type
@@ -3491,8 +3610,8 @@ PowerPC 32-bit architecture is as follows:
 
 \begin{lstlisting}{}
 Type TAsmOp = (a_Add, a_Add_, a_Addo, a_Addo_, a_Addc, a_Addc_, a_Addco,
-	       a_Addco_,a_Adde, a_Adde_, a_Addeo, a_Addeo_, a_Addi,
-	       a_Addic, a_Addic_, a_Addis \ldots
+           a_Addco_,a_Adde, a_Adde_, a_Addeo, a_Addeo_, a_Addi,
+           a_Addic, a_Addic_, a_Addis \ldots
 \end{lstlisting}
 
 \subsubsection{Generic instruction generation interface}
@@ -3501,8 +3620,6 @@ Type TAsmOp = (a_Add, a_Add_, a_Addo, a_Addo_, a_Addc, a_Addc_, a_Addco,
 To independently generate code for different architectures, wrappers for the
 most used instructions in the code generator have been created which are
 totally independent of the target system.
-
-\paragraph{Load / store instructions}
 
 \begin{procedurel}{Emit\_Load\_Loc\_Reg}{EmitLoadLocReg}
 \Declaration
@@ -3550,8 +3667,6 @@ This routine moves a 64-bit integer value stored in memory location
 register \textsf{rh}.
 \end{functionl}
 
-\paragraph{Load address}
-
 \begin{functionl}{Emit{\_}Lea{\_}Loc{\_}Ref}{emitlealocref}
 \Declaration
 Procedure Emit{\_}Lea{\_}Loc{\_}Ref(Const t:TLocation;Const Ref:TReference; FreeTemp:Boolean);
@@ -3571,8 +3686,6 @@ Procedure Emit{\_}Lea{\_}Loc{\_}Reg(const t:TLocation;Reg:TRegister;Freetemp:Boo
 Loads the address of the location \textsf{loc }and stores the result into
 ther target register \textsf{reg}
 \end{functionl}
-
-\paragraph{Label instructions}
 
 \begin{procedure}{GetLabel}
 \Declaration
@@ -3607,8 +3720,6 @@ label.  The label should have been previously allocated with a call to
 \textsf{GetLabel}
 \end{procedure}
 
-\paragraph{Other instructions}
-
 \begin{function}{EmitCall}
 \Declaration
 Procedure EmitCall(Const Routine:String);
@@ -3631,8 +3742,8 @@ Stored, or this reference directly the address to copy to. \par
 Size = Number of bytes to copy \par
 DelSource = TRUE if the source reference should be freed in this routine \par
 LoadRef = TRUE if the source reference contains a pointer to the address we
-	wish to copy to, otherwise the reference itself is the destination
-	location to copy to.
+    wish to copy to, otherwise the reference itself is the destination
+    location to copy to.
 \end{procedure}
 
 \begin{procedurel}{Emit{\_}Flag2Reg}{emitflag2reg}
@@ -3646,8 +3757,8 @@ The operand should be zero extended to the natural register size for the
 target architecture.
 \end{procedurel}
 
-\subsubsection{Instruction generation interface}
-\label{subsubsec:instruction}
+%\subsubsection{Instruction generation interface}
+%\label{subsubsec:instruction}
 
 \section{The assembler output}
 \label{sec:mylabel8}
@@ -3896,13 +4007,15 @@ Exit application with ExitCode value.
 \begin{function}{ParamCount}
 \Declaration
 Function ParamCount : Longint;
+\Description
+This routine is described in the Free Pascal reference manual.
 \end{function}
 
 \begin{procedure}{Randomize}
 \Declaration
 Procedure Randomize;
 \Description
-This routine initializes the built-in random generator with a random value.
+This routine should initialize the built-in random generator with a random value.
 \Notes
 This routine is used by random
 \Algorithm
@@ -3914,7 +4027,7 @@ Randseed := pseudo random 32-bit value
 Function GetHeapStart : Pointer;
 \Description
 This routine should return a pointer to the start of the heap area.
-\Notes
+\Algorithm
 GetHeapStart := address of start of heap.
 \end{function}
 
@@ -3923,15 +4036,19 @@ GetHeapStart := address of start of heap.
 Function GetHeapSize : Longint;
 \Description
 This routine should return the total heap size in bytes
-\Parameters
 \Algorithm
 GetHeapSize := total size of the initial heap area.
 \end{function}
 
 \begin{function}{sbrk}
 \Declaration
-Function SBrk(Size : Longint): Longint;
+Function Sbrk(Size : Longint): Longint;
 \Description
+This routine should grow the heap by the number of bytes specified. If
+the heap cannot be grown it should return -1, otherwise it should return
+a pointer to the newly allocated area.
+\Parameters
+size = Number of bytes to allocate
 \end{function}
 
 \begin{procedurel}{Do{\_}Close}{doclose}
@@ -3943,9 +4060,11 @@ This closes the file specified of the specified handle number.
 handle = file handle of file to close
 \Notes
 This routine should close the specified file.
+\Notes
+This routine should set InoutRes in case of error.
 \end{procedurel}
 
-\begin{functionl}{Do{\_}Erase}{doerase}
+\begin{procedurel}{Do{\_}Erase}{doerase}
 \Declaration
 Procedure Do{\_}Erase(p: pChar);
 \Description
@@ -3953,16 +4072,179 @@ This erases the file specifed by p.
 \Parameters
 p = name of the file to erase
 \Notes
+This routine should set InoutRes in case of error.
+\end{procedurel}
+
+\begin{procedurel}{Do{\_}Truncate}{dotruncate}
+\Declaration
+Procedure Do{\_}Truncate(Handle, FPos : Longint);
+\Description
+This truncates the file at the specified position.
+\Parameters
+handle = file handle of file to truncate
+fpos = file position where the truncate should occur
+\Notes
+This routine should set InoutRes in case of error.
+\end{procedurel}
+
+
+\begin{procedurel}{Do{\_}Rename}{dorename}
+\Declaration
+Procedure Do{\_}Rename(p1, p2 : pchar);
+\Description
+This renames the file specified.
+\Parameters
+p1 = old file name
+p2 = new file name
+\Notes
+This routine should set InoutRes in case of error.
+\end{procedurel}
+
+\begin{functionl}{Do{\_}Write}{dowrite}
+\Declaration
+Function Do{\_}Write(Handle,Addr,Len:Longint):longint;
+\Description
+This writes to the specified file. Returns the number of bytes 
+actually written.
+\Parameters
+handle = file handle of file to write to
+addr = address of buffer containing the data to write
+len = number of bytes to write
+\Notes
+This routine should set InoutRes in case of error.
 \end{functionl}
+
+\begin{functionl}{Do{\_}Read}{doread}
+\Declaration
+Function Do{\_}Read(Handle,Addr,Len:Longint):Longint;
+\Description
+Reads from a file. Returns the number of bytes read.
+\Parameters
+handle = file handle of file to read from
+addr = address of buffer containing the data to read
+len = number of bytes to read
+\Notes
+This routine should set InoutRes in case of error.
+\end{functionl}
+
+\begin{functionl}{Do{\_}FilePos}{dofilepos}
+\Declaration
+function Do{\_}FilePos(Handle: Longint):longint;
+\Description
+Returns the file pointer position
+\Parameters
+handle = file handle of file to get file position on
+\Notes
+This routine should set InoutRes in case of error.
+\end{functionl}
+
+\begin{procedurel}{Do{\_}Seek}{doseek}
+\Declaration
+Procedure Do{\_}Seek(Handle,Pos:Longint);
+\Description
+Set file pointer of file to a new position
+\Parameters
+handle = file handle of file to seek in
+pos = new position of file pointer (from start of file)
+\Notes
+This routine should set InoutRes in case of error.
+\end{procedurel}
+
+\begin{functionl}{Do{\_}Seekend}{doseekend}
+\Declaration
+Function Do{\_}SeekEnd(Handle:Longint): Longint;
+\Description
+Seeks to the end of the file. Returns the
+new file pointer position.
+\Parameters
+handle = file handle of file to seek to end of file
+\Notes
+This routine should set InoutRes in case of error.
+\end{functionl}
+
+\begin{functionl}{Do{\_}FileSize}{dofilesize}
+\Declaration
+Function Do{\_}FileSize(Handle:Longint): Longint;
+\Description
+Returns the filesize in bytes.
+\Parameters
+handle = file handle of file to get the file size
+\Notes
+This routine should set InoutRes in case of error.
+\end{functionl}
+
+\begin{functionl}{Do{\_}IsDevice}{doisdevice}
+\Declaration
+Function Do{\_}ISDevice(Handle:Longint): boolean;
+\Description
+Returns TRUE if the file handle points to a device 
+instead of a file.
+\Parameters
+handle = file handle to gtet status on
+\Notes
+This routine should set InoutRes in case of error.
+\end{functionl}
+
+\begin{procedurel}{Do{\_}Open}{doopen}
+\Declaration
+Procedure Do{\_}Open(var f;p:pchar;flags:longint);
+\Description
+Opens a file in the specified mode, and sets the
+\var{mode} and \var{handle} fields of the \var{f}
+structure parameter.
+\Parameters
+f = pointer to \var{textrec} or \var{filerec} structure
+p = name and path of file to open
+flags = access mode to open the file with
+\Notes
+This routine should set InoutRes in case of error.
+\end{procedurel}
+
+\begin{procedurel}{ChDir}{chdir}
+\Declaration
+Procedure ChDir(Const s: String);[IOCheck];
+\Description
+Changes to the specified directory. . and ..
+should also be supported by this call.
+\Parameters
+s = new directory to change to
+\Notes
+This routine should set InoutRes in case of error.
+\end{procedurel}
+
+
+\begin{procedurel}{MkDir}{mkdir}
+\Declaration
+Procedure MkDir(Const s: String);[IOCheck];
+\Description
+Creates the specified directory.
+\Parameters
+s = name of directory to create
+\Notes
+This routine should set InoutRes in case of error.
+\end{procedurel}
+
+
+\begin{procedurel}{RmDir}{rmdir}
+\Declaration
+Procedure RmDir(Const s: String);[IOCheck];
+\Description
+Removes the specified directory.
+\Parameters
+s = name of directory to remove
+\Notes
+This routine should set InoutRes in case of error.
+\end{procedurel}
+
 
 The following variables should also be defined for each new operating
 system, they are used by external units:
 
 \noindent
-ArgC : The number of command line arguments of the program
+argc : The number of command line arguments of the program
 
 \noindent
-ArgV : A pointer to each of the command line arguments (an array of pchar
+argv : A pointer to each of the command line arguments (an array of pchar
 pointers)
 
 \subsection{CPU specific hooks}
@@ -4245,11 +4527,6 @@ Called by the type conversion generated code of code generator when
 converting a pchar to an ansistring.
 \end{functionl}
 
-% maybe not necessary anymore (since the amount of tables decreased
-% by "macrofying" the procedure definitions)
-\ifpdf
- \clearpage
-\fi
 
 \subsection{Compiler runtime checking}
 \label{subsec:compiler}
@@ -4259,7 +4536,7 @@ converting a pchar to an ansistring.
 
 \begin{procedurel}{Int{\_}StackCheck}{intstackcheck}
 \Declaration
-procedure int{\_}stackcheck (stack{\_}size:longint;
+procedure int{\_}stackcheck (stack{\_}size:longint);
 \Description
 This routine is used to check if there will be a stack overflow when trying
 to allocate stack space from the operating system. The routine must preserve
@@ -4271,12 +4548,11 @@ stack{\_}size = The amount of stack we wish to allocate
 Inserted in the entry code of a routine in the {\{}{\$}S+{\}} state by the code generator
 \Algorithm
 \begin{lstlisting}{}
-if ((StackPointer -- stack{\_}size) < System.StackLimit) then
+if ((StackPointer - stack_size) < System.StackLimit) then
  Throw a Runtime error with error code 202 (stack overflow)
 \end{lstlisting}
 \end{procedurel}
 
-\clearpage
 \subsubsection{FPC{\_}RANGEERROR}
 \label{subsubsec:mylabel52}
 
@@ -4663,7 +4939,6 @@ implementation in suggested.
 \subsection{Memory related}
 \label{subsec:memory}
 
-\clearpage
 \subsubsection{FPC{\_}GETMEM}
 \label{subsubsec:mylabel75}
 
@@ -5290,7 +5565,7 @@ or floating point constant which reduces the size of the final executable.
 The following routines of the system unit are directly inlined by the
 compiler, and generate more efficient code:
 
-\begin{longtable}{|l|p{7cm}|}
+\begin{longtable}{|l|l|}
 \hline
 Prototype& Definition and notes \\
 \hline
@@ -5409,3 +5684,4 @@ routine -- the offset will be wrong).
 
 \printindex
 \end{document}
+
