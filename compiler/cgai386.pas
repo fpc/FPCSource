@@ -3293,15 +3293,25 @@ procedure mov_reg_to_dest(p : ptree; s : topsize; reg : tregister);
                    tostr(N_RSYM)+',0,0,'+tostr(GDB_i386index[R_ESI])))));
 
               if (pdef(aktprocsym^.definition^.retdef) <> pdef(voiddef)) then
-                if ret_in_param(aktprocsym^.definition^.retdef) then
-                  exprasmlist^.concat(new(pai_stabs,init(strpnew(
-                   '"'+aktprocsym^.name+':X*'+aktprocsym^.definition^.retdef^.numberstring+'",'+
-                   tostr(N_PSYM)+',0,0,'+tostr(procinfo.retoffset)))))
-                else
-                  exprasmlist^.concat(new(pai_stabs,init(strpnew(
-                   '"'+aktprocsym^.name+':X'+aktprocsym^.definition^.retdef^.numberstring+'",'+
-                   tostr(N_PSYM)+',0,0,'+tostr(procinfo.retoffset)))));
-
+                begin
+                  if ret_in_param(aktprocsym^.definition^.retdef) then
+                    exprasmlist^.concat(new(pai_stabs,init(strpnew(
+                     '"'+aktprocsym^.name+':X*'+aktprocsym^.definition^.retdef^.numberstring+'",'+
+                     tostr(N_PSYM)+',0,0,'+tostr(procinfo.retoffset)))))
+                  else
+                    exprasmlist^.concat(new(pai_stabs,init(strpnew(
+                     '"'+aktprocsym^.name+':X'+aktprocsym^.definition^.retdef^.numberstring+'",'+
+                     tostr(N_PSYM)+',0,0,'+tostr(procinfo.retoffset)))));
+                  if (m_result in aktmodeswitches) then
+                    if ret_in_param(aktprocsym^.definition^.retdef) then
+                      exprasmlist^.concat(new(pai_stabs,init(strpnew(
+                       '"RESULT:X*'+aktprocsym^.definition^.retdef^.numberstring+'",'+
+                       tostr(N_PSYM)+',0,0,'+tostr(procinfo.retoffset)))))
+                    else
+                      exprasmlist^.concat(new(pai_stabs,init(strpnew(
+                       '"RESULT:X'+aktprocsym^.definition^.retdef^.numberstring+'",'+
+                       tostr(N_PSYM)+',0,0,'+tostr(procinfo.retoffset)))));
+                end;
               mangled_length:=length(aktprocsym^.definition^.mangledname);
               getmem(p,mangled_length+50);
               strpcopy(p,'192,0,0,');
@@ -3349,7 +3359,10 @@ procedure mov_reg_to_dest(p : ptree; s : topsize; reg : tregister);
 end.
 {
   $Log$
-  Revision 1.43  1999-09-15 20:35:38  florian
+  Revision 1.44  1999-09-16 07:58:14  pierre
+   + RESULT pseudo var added in GDB debug info
+
+  Revision 1.43  1999/09/15 20:35:38  florian
     * small fix to operator overloading when in MMX mode
     + the compiler uses now fldz and fld1 if possible
     + some fixes to floating point registers
@@ -3646,7 +3659,7 @@ end.
    * previous log corrected
 
   Revision 1.133  1999/04/21 16:31:38  pierre
-  + TEMPS_NOT_PUSH conditionnal code :
+  + TEMPS_NOT_PUSH conditional code :
     put needed registers into temp space instead of pushing them
 
   Revision 1.132  1999/04/21 09:43:30  peter
@@ -3741,7 +3754,7 @@ end.
     * internal error 10 with ansistrings fixed
 
   Revision 1.106  1999/02/03 09:50:22  pierre
-   * conditionnal code to try to release temp for consts that are not in memory
+   * conditional code to try to release temp for consts that are not in memory
 
   Revision 1.105  1999/02/02 11:47:56  peter
     * fixed ansi2short
