@@ -15,19 +15,22 @@
  **********************************************************************}
 
 {$LINKLIB c}
+{$PACKRECORDS C}
  
-  const
-   InternalDriverName = 'LinuxVGA';
+const
+  InternalDriverName = 'LinuxGGI';
 
-  var SavePtr : Pointer;
+var
+  SavePtr: Pointer;
 
 { ---------------------------------------------------------------------
-   GGI bindings.
+   GGI bindings  [(c) 1999 Sebastian Guenther]
   ---------------------------------------------------------------------}
 
 Const
   { Supported modes }
-  GTEXT             = 0;                { Compatible with VGAlib v1.2 }
+  {(sg) GTEXT deactivated because we need mode #0 as default mode}
+  {GTEXT             = 0;                 Compatible with VGAlib v1.2 }
   G320x200x16       = 1;
   G640x200x16       = 2;
   G640x350x16       = 3;
@@ -88,8 +91,8 @@ Const
   G1600x1200x16M32  = 49;
 
   GLASTMODE         = 49;
-  ModeNames : Array[0..GLastMode] of string [20] = 
-   ('80x40[T]',
+  ModeNames: array[0..GLastMode] of PChar = 
+   ('[]',			{Let GGI choose a default mode}
     'S320x200[GT_4BIT]',
     'S640x200[GT_4BIT]',
     'S640x350[GT_4BIT]',
@@ -144,16 +147,16 @@ type
   TGGIVisual = Pointer;
   TGGIResource = Pointer;
   TGGICoord = record
-    x, y: Integer;
+    x, y: SmallInt;
   end;
   TGGIPixel = LongWord;
   PGGIColor = ^TGGIColor;
   TGGIColor = record
-    r, g, b, a: Integer;
+    r, g, b, a: Word;
   end;
   PGGIClut = ^TGGIClut;
   TGGIClut = record
-    size: Integer;
+    size: SmallInt;
     data: PGGIColor;
   end;
   TGGIGraphType = LongWord;
@@ -167,7 +170,7 @@ type
     dpp: TGGICoord;			// dots per pixel
   end;
 
-Const 
+const 
   libggi = 'ggi';
 function  ggiInit: Integer; cdecl; external libggi;
 procedure ggiExit; cdecl; external libggi;
@@ -177,6 +180,8 @@ function  ggiParseMode(s: PChar; var m: TGGIMode): Integer; cdecl; external libg
 function  ggiSetMode(visual: TGGIVisual; var tm: TGGIMode): Integer; cdecl; external libggi;
 function  ggiGetMode(visual: TGGIVisual; var tm: TGGIMode): Integer; cdecl; external libggi;
 function  ggiCheckMode(visual: TGGIVisual; var tm: TGGIMode): Integer; cdecl; external libggi;
+
+function  ggiMapColor(vis: TGGIVisual; Color: TGGIColor): TGGIPixel; cdecl; external libggi;
 
 function  ggiPutPixel(vis: TGGIVisual; x, y: Integer; pixel: TGGIPixel): Integer; cdecl; external libggi;
 function  ggiGetPixel(vis: TGGIVisual; x, y: Integer; var pixel: TGGIPixel): Integer; cdecl; external libggi;
@@ -190,89 +195,87 @@ function  ggiSetPalette(vis: TGGIVisual; s, len: Integer; var cmap: TGGIColor): 
 
 var
   Visual: TGGIVisual;
-  CurrentMode : TGGIMode;
+  CurrentMode, OldMode: TGGIMode;
+
     
 procedure ggi_savevideostate;
-
 begin
+  ggiGetMode(Visual, OldMode);
 end;
 
 procedure ggi_restorevideostate;
-
-Var mode : TGGIMode;
-
 begin
-  ggiparsemode(@ModeNames[Gtext][1],Mode);
-  ggisetmode(Visual,Mode);
+  ggiSetMode(Visual, OldMode);
 end;
 
 const
-  BgiColors: array[0..15] of LongInt
-    = ($000000, $000080, $008000, $008080,
-       $800000, $800080, $808000, $C0C0C0,
-       $808080, $0000FF, $00FF00, $00FFFF,
-       $FF0000, $FF00FF, $FFFF00, $FFFFFF);
+  BgiColors: array[0..15] of TGGIColor = (
+    (r: $0000; g: $0000; b: $0000; a: 0),
+    (r: $0000; g: $0000; b: $8000; a: 0),
+    (r: $0000; g: $8000; b: $0000; a: 0),
+    (r: $0000; g: $8000; b: $8000; a: 0),
+    (r: $8000; g: $0000; b: $0000; a: 0),
+    (r: $8000; g: $0000; b: $8000; a: 0),
+    (r: $8000; g: $8000; b: $0000; a: 0),
+    (r: $C000; g: $C000; b: $C000; a: 0),
+    (r: $8000; g: $8000; b: $8000; a: 0),
+    (r: $0000; g: $0000; b: $FFFF; a: 0),
+    (r: $0000; g: $FFFF; b: $0000; a: 0),
+    (r: $0000; g: $FFFF; b: $FFFF; a: 0),
+    (r: $FFFF; g: $0000; b: $0000; a: 0),
+    (r: $FFFF; g: $0000; b: $FFFF; a: 0),
+    (r: $FFFF; g: $FFFF; b: $0000; a: 0),
+    (r: $FFFF; g: $FFFF; b: $FFFF; a: 0));
 
 procedure ggi_initmodeproc;
-
-Var
-  ModeName : string[20];
-    
 begin
-  ggiparsemode(@ModeNames[IntCurrentMode][1],CurrentMode);
-  ggisetmode(Visual,CurrentMode);
+  ggiParseMode(ModeNames[IntCurrentMode], CurrentMode);
+  ggiSetMode(Visual, CurrentMode);
 end;
 
-Function ClipCoords (Var X,Y : Integer) : Boolean;
+function ClipCoords(var x, y: Integer): Boolean;
 { Adapt to viewport, return TRUE if still in viewport,
   false if outside viewport}
-  
 begin
-  X:= X + StartXViewPort;
-  Y:= Y + StartYViewPort;
-  ClipCoords:=Not ClipPixels;
-  if ClipCoords then
-    Begin
-    ClipCoords:=(X < StartXViewPort) or (X > (StartXViewPort + ViewWidth));
-    ClipCoords:=ClipCoords or
-               ((Y < StartYViewPort) or (Y > (StartYViewPort + ViewHeight)));
-    ClipCoords:=Not ClipCoords;
-    end;           
-end;  
+  x := x + StartXViewPort;
+  x := y + StartYViewPort;
+  ClipCoords := not ClipPixels;
+  if ClipCoords then begin
+    ClipCoords := (y < StartXViewPort) or (x > (StartXViewPort + ViewWidth));
+    ClipCoords := ClipCoords or
+                  ((y < StartYViewPort) or (y > (StartYViewPort + ViewHeight)));
+    ClipCoords := not ClipCoords;
+  end;
+end;
 
 
-procedure ggi_directpixelproc(X,Y: Integer);
-
-Var Color : Word;
-
+procedure ggi_directpixelproc(X, Y: Integer);
+var
+  Color, CurCol: TGGIPixel;
 begin
+  CurCol := ggiMapColor(Visual, BgiColors[CurrentColor]);
   case CurrentWriteMode of
-    XORPut:
-      begin
-      { getpixel wants local/relative coordinates }
-      Color := GetPixel(x-StartXViewPort,y-StartYViewPort);
-      Color := CurrentColor Xor Color;
+    XORPut: begin
+        { getpixel wants local/relative coordinates }
+        ggiGetPixel(Visual, x-StartXViewPort, y-StartYViewPort, Color);
+        Color := CurCol xor Color;
       end;
-    OrPut: 
-      begin
-      { getpixel wants local/relative coordinates }
-      Color := GetPixel(x-StartXViewPort,y-StartYViewPort);
-      Color := CurrentColor Or Color;
+    OrPut: begin
+        { getpixel wants local/relative coordinates }
+        ggiGetPixel(Visual, x-StartXViewPort, y-StartYViewPort, Color);
+        Color := CurCol or Color;
       end; 
-    AndPut:
-      begin
-      { getpixel wants local/relative coordinates }
-      Color := GetPixel(x-StartXViewPort,y-StartYViewPort);
-      Color := CurrentColor And Color;
+    AndPut: begin
+        { getpixel wants local/relative coordinates }
+        ggiGetPixel(Visual, x-StartXViewPort, y-StartYViewPort, Color);
+        Color := CurCol and Color;
       end; 
     NotPut:
-      begin
-      Color := Not Color;
-      end
-  else
-    Color:=CurrentColor;  
+      Color := not Color;
+    else
+      Color := CurCol;
   end;
-  ggiPutPixel(Visual,x, y, Color);
+  ggiPutPixel(Visual, x, y, Color);
 end;
 
 procedure ggi_putpixelproc(X,Y: Integer; Color: Word);
@@ -395,96 +398,113 @@ end;
 {*                       General routines                               *}
 {************************************************************************}
 
- procedure CloseGraph;
- Begin
-    If not isgraphmode then
-      begin
-        _graphresult := grnoinitgraph;
-        exit
-      end;
-    RestoreVideoState;
-    isgraphmode := false;
- end;
+procedure CloseGraph;
+begin
+  if not IsGraphMode then
+    begin
+    _graphresult := grnoinitgraph;
+    exit
+  end;
+  RestoreVideoState;
+  isgraphmode := false;
+end;
 
-  function QueryAdapterInfo:PModeInfo;
-  { This routine returns the head pointer to the list }
-  { of supported graphics modes.                      }
-  { Returns nil if no graphics mode supported.        }
-  { This list is READ ONLY!                           }
-   var
-    modename : string[20];
+function QueryAdapterInfo:PModeInfo;
+{ This routine returns the head pointer to the list }
+{ of supported graphics modes.                      }
+{ Returns nil if no graphics mode supported.        }
+{ This list is READ ONLY!                           }
+
+var
+  ModeInfo: TGGIMode;
+
+  procedure AddGGIMode(i: Integer);	// i is the mode number
+  var
     mode: TModeInfo;
-    modeinfo : TGGImode;
-    i : longint;
-    
-   begin
-     QueryAdapterInfo := ModeList;
-     { If the mode listing already exists... }
-     { simply return it, without changing    }
-     { anything...                           }
-     if assigned(ModeList) then
-       exit;
-     SaveVideoState:=ggi_savevideostate;
-     RestoreVideoState:=ggi_restorevideostate;  
-     Writeln ('ggiInit');
-     If ggiInit<>0 then
-       begin
-       _graphresult:=grNoInitGraph;
-       exit;
-       end;
-     Writeln ('ggiOPen');  
-     Visual:=ggiOpen(nil, []); // Use default visual  
-     For I:=0 to GLastMode do
-       begin
-       Writeln(' testing mode : ',Modenames[I]);
-       modename:=ModeNames[I]+#0;
-       ggiparsemode(@ModeName[1],modeinfo);
-       If ggiCheckMode(visual,modeinfo)=0 then
-         begin
-         Writeln('OK for mode : ',Modenames[I]);
-         InitMode(Mode);
-         With Mode do
-           begin
-           ModeNumber:=I;
-           ModeName:=ModeNames[i];
-           // Pretend we're VGA always.
-           DriverNumber := VGA;
-           MaxX:=ModeInfo.Visible.X;
-           MaxY:=ModeInfo.Visible.Y;
-           // MaxColor := ModeInfo.colors;
-           MaxColor:=255;
-           PaletteSize := MaxColor;
-           HardwarePages := 0;
-           // necessary hooks ... 
-           DirectPutPixel := @ggi_DirectPixelProc;
-           GetPixel       := @ggi_GetPixelProc;
-           PutPixel       := @ggi_PutPixelProc;
-           SetRGBPalette  := @ggi_SetRGBPaletteProc;
-           GetRGBPalette  := @ggi_GetRGBPaletteProc;
-           ClearViewPort  := @ggi_ClrViewProc;
-           PutImage       := @ggi_PutImageProc;
-           GetImage       := @ggi_GetImageProc;
-           ImageSize      := @ggi_ImageSizeProc;
-           { Add later maybe ? 
-           SetVisualPage  := SetVisualPageProc;
-           SetActivePage  := SetActivePageProc;
-           GetScanLine    := @ggi_GetScanLineProc;
-           Line           := @ggi_LineProc;
-           InternalEllipse:= @ggi_EllipseProc;
-           PatternLine    := @ggi_PatternLineProc;
-           HLine          := @ggi_HLineProc;
-           VLine          := @ggi_VLineProc;
-           }
-           InitMode       := @ggi_InitModeProc;
-           end;
-         AddMode(Mode);
-         end;
-       end;
-   end;
+  begin
+    InitMode(Mode);
+    with Mode do begin
+      ModeNumber := i;
+      ModeName := ModeNames[i];
+      // Pretend we're VGA always.
+      DriverNumber := VGA;
+      MaxX := ModeInfo.Visible.X;
+      MaxY := ModeInfo.Visible.Y;
+      // MaxColor := ModeInfo.colors;
+      MaxColor := 255;
+      PaletteSize := MaxColor;
+      HardwarePages := 0;
+      // necessary hooks ... 
+      DirectPutPixel := @ggi_DirectPixelProc;
+      GetPixel       := @ggi_GetPixelProc;
+      PutPixel       := @ggi_PutPixelProc;
+      SetRGBPalette  := @ggi_SetRGBPaletteProc;
+      GetRGBPalette  := @ggi_GetRGBPaletteProc;
+      ClearViewPort  := @ggi_ClrViewProc;
+      PutImage       := @ggi_PutImageProc;
+      GetImage       := @ggi_GetImageProc;
+      ImageSize      := @ggi_ImageSizeProc;
+      { Add later maybe ? 
+      SetVisualPage  := SetVisualPageProc;
+      SetActivePage  := SetActivePageProc;
+      GetScanLine    := @ggi_GetScanLineProc;
+      Line           := @ggi_LineProc;
+      InternalEllipse:= @ggi_EllipseProc;
+      PatternLine    := @ggi_PatternLineProc;
+      HLine          := @ggi_HLineProc;
+      VLine          := @ggi_VLineProc;
+      }
+      InitMode       := @ggi_InitModeProc;
+    end;
+    AddMode(Mode);
+  end;
+
+var
+  i: Integer;
+  OldMode: TGGIMode;
+begin
+  QueryAdapterInfo := ModeList;
+  { If the mode listing already exists... }
+  { simply return it, without changing    }
+  { anything...                           }
+  if Assigned(ModeList) then
+    exit;
+  SaveVideoState:=ggi_savevideostate;
+  RestoreVideoState:=ggi_restorevideostate;  
+
+  If ggiInit <> 0 then begin
+    _graphresult := grNoInitGraph;
+    exit;
+  end;
+
+  Visual := ggiOpen(nil, []); // Use default visual  
+
+  ggiGetMode(Visual, OldMode);
+  ggiParseMode('', ModeInfo);
+  ggiSetMode(Visual, ModeInfo);
+  ggiGetMode(Visual, ModeInfo);
+  ggiSetMode(Visual, OldMode);
+  AddGGIMode(0);
+
+  for i := 1 to GLastMode do begin
+    // WriteLn('Testing mode: ', ModeNames[i]);
+    ggiParseMode(ModeNames[i], ModeInfo);
+    If ggiCheckMode(visual, ModeInfo) = 0 then begin
+      Writeln('OK for mode: ', ModeNames[i]);
+      AddGGIMode(i);
+    end;
+  end;
+end;
+
 
 {
 $Log$
-Revision 1.3  1999-11-08 20:04:55  sg
+Revision 1.4  1999-11-10 10:54:24  sg
+* Fixed a LOT of bugs:
+* - Default mode should be determined by GGI now
+* - Colors are working (only the 16 standard VGA colors, though)
+
+Revision 1.3  1999/11/08 20:04:55  sg
 * GGI programs must link to libc, or ggiOpen will fail!
 * Changed max length of ModeNames string from 18 to 20 chars
 
