@@ -133,9 +133,9 @@ implementation
                   Consts.concat(Tai_label.Create(lastlabel));
                   case realait of
                     ait_real_32bit :
-                      Consts.concat(Tai_real_32bit.Create(value_real));
+                      Consts.concat(Tai_real_32bit.Create(ts32real(value_real)));
                     ait_real_64bit :
-                      Consts.concat(Tai_real_64bit.Create(value_real));
+                      Consts.concat(Tai_real_64bit.Create(ts64real(value_real)));
                     ait_real_80bit :
                       Consts.concat(Tai_real_80bit.Create(value_real));
                     ait_comp_64bit :
@@ -531,7 +531,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.23  2002-11-25 17:43:17  peter
+  Revision 1.24  2002-12-07 14:10:21  carl
+    * fix warnings by adding explicit typecasts
+
+  Revision 1.23  2002/11/25 17:43:17  peter
     * splitted defbase in defutil,symutil,defcmp
     * merged isconvertable and is_equal into compare_defs(_ext)
     * made operator search faster by walking the list only once
