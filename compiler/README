@@ -7,8 +7,8 @@ If you want to build a m68k version to cross compile from i386 to m68k
 use the batch file
 mppc68k.bat
 
-If you want to modify the compiler, please read first the compiler
-writer's guide (cws.txt) in that directory.
+If you want to compile/modify the compiler, please read first the
+programmers manual.
 
 
 Changes in the syntax or semantic of FPC:
@@ -72,4 +72,4 @@ Changes in the syntax or semantic of FPC:
   14/11/99   makefile.fpc is not available anymore. You must now use fpcmake
              which is available from the utils/. There is also an example
              Makefile.fpc
-                
+
