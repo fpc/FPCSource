@@ -724,7 +724,7 @@ type
   PointerConstructor = function(VMT: pointer; Obj: pointer; Param1: pointer): pointer;
   PointerMethod = function(Obj: pointer; Param1: pointer): pointer;
 
-function CurrentFramePointer: FramePointer;assembler;
+function PreviousFramePointer: FramePointer;assembler;
 asm
 {$ifdef i386}
     movl (%ebp), %eax
@@ -1706,7 +1706,7 @@ VAR I: LongInt;
 BEGIN
    For I := Count DownTo 1 Do
      Begin                   { Down from last item }
-       IF CallPointerLocal(Test,CurrentFramePointer,Items^[I-1])<>NIL THEN
+       IF CallPointerLocal(Test,PreviousFramePointer,Items^[I-1])<>NIL THEN
        Begin          { Test each item }
          LastThat := Items^[I-1];                     { Return item }
          Exit;                                        { Now exit }
@@ -1722,7 +1722,7 @@ FUNCTION TCollection.FirstThat (Test: Pointer): Pointer;
 VAR I: LongInt;
 BEGIN
    For I := 1 To Count Do Begin                       { Up from first item }
-     IF CallPointerLocal(Test,CurrentFramePointer,Items^[I-1])<>NIL THEN
+     IF CallPointerLocal(Test,PreviousFramePointer,Items^[I-1])<>NIL THEN
        Begin          { Test each item }
        FirstThat := Items^[I-1];                      { Return item }
        Exit;                                          { Now exit }
@@ -1835,7 +1835,7 @@ PROCEDURE TCollection.ForEach (Action: Pointer);
 VAR I: LongInt;
 BEGIN
    For I := 1 To Count Do                             { Up from first item }
-    CallPointerLocal(Action,CurrentFramePointer,Items^[I-1]);   { Call with each item }
+    CallPointerLocal(Action,PreviousFramePointer,Items^[I-1]);   { Call with each item }
 END;
 
 {--TCollection--------------------------------------------------------------}
@@ -2684,7 +2684,11 @@ END;
 END.
 {
   $Log$
-  Revision 1.17  1998-12-16 00:22:25  peter
+  Revision 1.18  1998-12-16 21:57:20  peter
+    * fixed currentframe,previousframe
+    + testcall to test the callspec unit
+
+  Revision 1.17  1998/12/16 00:22:25  peter
     * more temp symbols removed
 
   Revision 1.16  1998/12/08 10:11:27  peter
