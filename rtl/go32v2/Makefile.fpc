@@ -14,9 +14,8 @@ units=system objpas strings \
       cpu mmx ucomplex getopts heaptrc lineinfo \
       msmouse charset varutils \
       video mouse keyboard variants vesamode types \
-      sysconst runerrors
-
-rsts=math varutils typinfo classes variants sysconst runerrors
+      sysconst rtlconst dateutils
+rsts=math varutils typinfo classes variants sysconst
 
 [require]
 nortl=y
@@ -168,8 +167,17 @@ varutils$(PPUEXT) : $(OBJPASDIR)/cvarutil.inc $(OBJPASDIR)/varutils.inc \
                     $(OBJPASDIR)/varutilh.inc varutils.pp
         $(COMPILER) -I$(OBJPASDIR) varutils.pp
 
-types$(PPUEXT) : $(OBJPASDIR/types.pp objpas$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
+types$(PPUEXT) : $(OBJPASDIR)/types.pp objpas$(PPUEXT)
         $(COMPILER) $(OBJPASDIR)/types.pp
+
+rtlconst$(PPUEXT) : $(OBJPASDIR)/rtlconst.pp
+        $(COMPILER) $(OBJPASDIR)/rtlconst.pp
+
+sysconst$(PPUEXT) : $(OBJPASDIR)/sysconst.pp objpas$(PPUEXT)
+        $(COMPILER) $(OBJPASDIR)/sysconst.pp
+
+dateutils$(PPUEXT) : $(OBJPASDIR)/dateutils.pp
+        $(COMPILER) $(OBJPASDIR)/dateutils.pp
 
 #
 # Other system-independent RTL Units
@@ -187,8 +195,6 @@ heaptrc$(PPUEXT) : $(INC)/heaptrc.pp system$(PPUEXT)
 lineinfo$(PPUEXT) : $(INC)/lineinfo.pp system$(PPUEXT)
 
 charset$(PPUEXT) : $(INC)/charset.pp system$(PPUEXT)
-
-runerrors$(PPUEXT) : $(INC)/runerrors.pp system$(PPUEXT)
 
 ucomplex$(PPUEXT) : $(INC)/ucomplex.pp math$(PPUEXT) system$(PPUEXT)
 
