@@ -600,6 +600,7 @@ Begin
                               Then
                    {we have "mov %reg1, %reg2; test/or %reg2, %reg2"}
                                 Begin
+                                (*
                                   If GetNextInstruction(hp1, hp2) And
                                      (Pai(hp2)^.typ = ait_labeled_instruction) And
                                      (TRegister(Pai386(p)^.op2) <> R_ESI)
@@ -615,6 +616,7 @@ Begin
                                         continue
                                       End
                                     Else
+                                  *)
                    {change "mov %reg1, %reg2; test/or %reg2, %reg2" to
                     "mov %reg1, %reg2; test/or %reg1, %reg1"}
                                       Begin
@@ -1363,7 +1365,10 @@ End.
 
 {
  $Log$
- Revision 1.7  1998-08-19 16:07:53  jonas
+ Revision 1.8  1998-08-25 14:23:17  florian
+   * patch of Jonas applied
+
+ Revision 1.7  1998/08/19 16:07:53  jonas
    * changed optimizer switches + cleanup of DestroyRefs in daopt386.pas
 
  Revision 1.6  1998/08/10 14:50:14  peter
