@@ -148,10 +148,10 @@ procedure SysInitExecPath;
 var
   i    : longint;
 begin
-  i:=Fpreadlink('/proc/self/exe',@execpathstr,high(execpathstr));
+  execpathstr[0]:=#0;
+  i:=Fpreadlink('/proc/self/exe',@execpathstr[1],high(execpathstr));
   { it must also be an absolute filename, linux 2.0 points to a memory
     location so this will skip that }
-  execpathstr[0]:=#0;
   if (i>0) and (execpathstr[1]='/') then
      execpathstr[0]:=char(i);
 end;
@@ -184,7 +184,10 @@ End.
 
 {
   $Log$
-  Revision 1.17  2004-07-08 21:22:15  daniel
+  Revision 1.18  2004-07-09 22:31:22  peter
+    * fixed execpathstr setting
+
+  Revision 1.17  2004/07/08 21:22:15  daniel
     * Tweaking...
 
   Revision 1.16  2004/07/08 19:45:42  daniel
