@@ -84,14 +84,21 @@ type
 
    ExceptClass = class of Exception;
 
+   EExternal = class(Exception)
+   public
+{$ifdef win32}
+     ExceptionRecord : PExceptionRecord;
+{$endif win32}
+   end;
+
    { integer math exceptions }
-   EInterror    = Class(Exception);
+   EInterror    = Class(EExternal);
    EDivByZero   = Class(EIntError);
    ERangeError  = Class(EIntError);
    EIntOverflow = Class(EIntError);
 
    { General math errors }
-   EMathError  = Class(Exception);
+   EMathError  = Class(EExternal);
    EInvalidOp  = Class(EMathError);
    EZeroDivide = Class(EMathError);
    EOverflow   = Class(EMathError);
@@ -109,12 +116,18 @@ type
        procedure FreeInstance;override;
    end;
 
+   EHeapException = EHeapMemoryError;
+
+   EExternalException = class(EExternal);
    EInvalidPointer  = Class(EHeapMemoryError);
    EOutOfMemory     = Class(EHeapMemoryError);
-   EAccessViolation = Class(Exception);
    EInvalidCast = Class(Exception);
    EVariantError = Class(Exception);
 
+   EAccessViolation = Class(EExternal);
+   EPrivilege = class(EExternal);
+   EStackOverflow = class(EExternal);
+   EControlC = class(EExternal);
 
    { String conversion errors }
    EConvertError = class(Exception);
@@ -123,6 +136,18 @@ type
    EAbort           = Class(Exception);
    EAbstractError   = Class(Exception);
    EAssertionFailed = Class(Exception);
+
+   EPropReadOnly = class(Exception);
+   EPropWriteOnly = class(Exception);
+
+   EIntfCastError = class(Exception);
+   EInvalidContainer = class(Exception);
+   EInvalidInsert = class(Exception);
+
+   EPackageError = class(Exception);
+
+   ESafecallException = class(Exception);
+
 
    { Exception handling routines }
    function ExceptObject: TObject;
@@ -185,7 +210,10 @@ Type
 
 {
   $Log$
-  Revision 1.18  2002-10-07 19:43:24  florian
+  Revision 1.19  2003-01-01 20:58:07  florian
+    + added invalid instruction exception
+
+  Revision 1.18  2002/10/07 19:43:24  florian
     + empty prototypes for the AnsiStr* multi byte functions added
 
   Revision 1.17  2002/09/07 16:01:22  peter

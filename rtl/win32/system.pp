@@ -1316,21 +1316,30 @@ begin
                         res := SysHandleErrorFrame(202, frame, false);
                 STATUS_FLOAT_OVERFLOW :
                         res := SysHandleErrorFrame(205, frame, true);
+                STATUS_FLOAT_DENORMAL_OPERAND,
                 STATUS_FLOAT_UNDERFLOW :
                         res := SysHandleErrorFrame(206, frame, true);
 {excep^.ContextRecord^.FloatSave.StatusWord := excep^.ContextRecord^.FloatSave.StatusWord and $ffffff00;}
+		STATUS_FLOAT_INEXACT_RESULT,
                 STATUS_FLOAT_INVALID_OPERATION,
                 STATUS_FLOAT_STACK_CHECK :
                         res := SysHandleErrorFrame(207, frame, true);
                 STATUS_INTEGER_OVERFLOW :
                         res := SysHandleErrorFrame(215, frame, false);
-                STATUS_ACCESS_VIOLATION,
-                STATUS_FLOAT_DENORMAL_OPERAND :
+                STATUS_ILLEGAL_INSTRUCTION,
+                STATUS_ACCESS_VIOLATION:
                         res := SysHandleErrorFrame(216, frame, true);
-                else begin
-                        if ((excep^.ExceptionRecord^.ExceptionCode and SEVERITY_ERROR) = SEVERITY_ERROR) then
-                                res  :=  SysHandleErrorFrame(217, frame, true);
-                end;
+		STATUS_CONTROL_C_EXIT:
+                        res := SysHandleErrorFrame(217, frame, true);
+                STATUS_PRIVILEGED_INSTRUCTION:
+                  res := SysHandleErrorFrame(218, frame, false);
+                else 
+                  begin
+                    if ((excep^.ExceptionRecord^.ExceptionCode and SEVERITY_ERROR) = SEVERITY_ERROR) then
+                      res  :=  SysHandleErrorFrame(217, frame, true)
+                    else
+                      res := SysHandleErrorFrame(255, frame, true);                  
+                  end;
         end;
         syswin32_i386_exception_handler := res;
 end;
@@ -1519,7 +1528,10 @@ end.
 
 {
   $Log$
-  Revision 1.39  2002-12-24 15:35:15  peter
+  Revision 1.40  2003-01-01 20:56:57  florian
+    + added invalid instruction exception
+
+  Revision 1.39  2002/12/24 15:35:15  peter
     * error code fixes
 
   Revision 1.38  2002/12/07 13:58:45  carl

@@ -32,6 +32,12 @@ uses
 type
   TSystemTime = Windows.TSystemTime;
 
+  EWin32Error = class(Exception)
+  public
+    ErrorCode : DWORD;
+  end;
+
+
 Var
   Win32Platform : Longint;
 
@@ -658,7 +664,10 @@ Finalization
 end.
 {
   $Log$
-  Revision 1.17  2002-12-15 20:24:17  peter
+  Revision 1.18  2003-01-01 20:56:57  florian
+    + added invalid instruction exception
+
+  Revision 1.17  2002/12/15 20:24:17  peter
     * some more C style functions
 
   Revision 1.16  2002/10/02 21:17:03  florian

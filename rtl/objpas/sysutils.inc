@@ -230,8 +230,8 @@ begin
   211 : E:=EAbstractError.Create(SAbstractError);
   215 : E:=EIntOverflow.Create(SIntOverflow);
   216 : E:=EAccessViolation.Create(SAccessViolation);
-// !!!!! 217 : ;
-// !!!!! 218 : ;
+  217 : E:=EPrivilege.Create(SPrivilege);
+  218 : E:=EControlC.Create(SControlC);
   219 : E:=EInvalidCast.Create(SInvalidCast);
   220 : E:=EVariantError.Create(SInvalidVarCast);
   221 : E:=EVariantError.Create(SInvalidVarOp);
@@ -240,8 +240,9 @@ begin
   224 : E:=EVariantError.Create(SVarNotArray);
   225 : E:=EVariantError.Create(SVarArrayBounds);
   227 : E:=EAssertionFailed.Create(SAssertionFailed);
-// !!!!! 228 : ;
-// !!!!! 229 : ;
+  228 : E:=EExternalException.Create(SExternalException);
+  229 : E:=EIntfCastError.Create(SIntfCastError);
+  230 : E:=ESafecallException.Create(SSafecallException);
   else
    E:=Exception.CreateFmt (SUnKnownRunTimeError,[Errno]);
   end;
@@ -374,7 +375,10 @@ end;
 
 {
   $Log$
-  Revision 1.12  2002-10-07 19:43:24  florian
+  Revision 1.13  2003-01-01 20:58:07  florian
+    + added invalid instruction exception
+
+  Revision 1.12  2002/10/07 19:43:24  florian
     + empty prototypes for the AnsiStr* multi byte functions added
 
   Revision 1.11  2002/09/07 16:01:22  peter

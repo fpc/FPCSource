@@ -31,17 +31,20 @@ Const
    SArgumentMissing = 'Missing argument in format "%s"';
    SAssertError = '%s (%s, line %d)';
    SAssertionFailed = 'Assertion failed';
+   SControlC = 'Control-C hit';
    SDiskFull = 'Disk Full';
    SDispatchError = 'No variant method call dispatch';
    SDivByZero = 'Division by zero';
    SEndOfFile = 'Read past end of file';
    SExceptionErrorMessage = 'exception at %p';
+   SExternalException = 'External exception %x';   
    SFileNotAssigned = 'File not assigned';
    SFileNotFound = 'File not found';
    SFileNotOpen = 'File not open';
    SFileNotOpenForInput = 'File not open for input';
    SFileNotOpenForOutput = 'File not open for output';
    SInValidFileName = 'Invalid filename';
+   SIntfCastError = 'Interface not supported';
    SIntOverflow = 'Arithmetic overflow';
    SInvalidArgIndex = 'Invalid argument index in format "%s"';
    SInvalidBoolean = '"%s" is not a valid boolean.';
@@ -60,7 +63,9 @@ Const
    SInvalidVarOp = 'Invalid variant operation';
    SOutOfMemory = 'Out of memory';
    SOverflow = 'Floating point overflow';
+   SPrivilege = 'Privileged instruction';
    SRangeError = 'Range check error';
+   SSafecallException = 'Exception in safecall method';
    STooManyOpenFiles = 'Too many open files';
    SUnKnownRunTimeError = 'Unknown Run-Time error : %3.3d';
    SUnderflow = 'Floating point underflow';
@@ -71,10 +76,12 @@ Const
 
 {
   $Log$
-  Revision 1.7  2002-09-07 16:01:22  peter
+  Revision 1.8  2003-01-01 20:58:07  florian
+    + added invalid instruction exception
+
+  Revision 1.7  2002/09/07 16:01:22  peter
     * old logs removed and tabs fixed
 
   Revision 1.6  2002/01/25 17:42:03  peter
     * interface helpers
-
 }
