@@ -915,6 +915,7 @@ implementation
       var
         hregister : tregister;
         flags     : tresflags;
+        opsize    : topsize;
       begin
          clear_location(pto^.location);
          { byte(boolean) or word(wordbool) or longint(longbool) must
@@ -928,13 +929,14 @@ implementation
            end;
          pto^.location.loc:=LOC_REGISTER;
          del_reference(pfrom^.location.reference);
+         opsize:=def_opsize(pfrom^.resulttype);
          case pfrom^.location.loc of
             LOC_MEM,LOC_REFERENCE :
               begin
-                hregister:=getregister32;
-                exprasmlist^.concat(new(pai386,op_ref_reg(A_MOV,S_L,
+                hregister:=def_getreg(pfrom^.resulttype);
+                exprasmlist^.concat(new(pai386,op_ref_reg(A_MOV,opsize,
                   newreference(pfrom^.location.reference),hregister)));
-                exprasmlist^.concat(new(pai386,op_reg_reg(A_OR,S_L,hregister,hregister)));
+                exprasmlist^.concat(new(pai386,op_reg_reg(A_OR,opsize,hregister,hregister)));
                 flags:=F_NE;
               end;
             LOC_FLAGS :
@@ -945,7 +947,7 @@ implementation
             LOC_REGISTER,LOC_CREGISTER :
               begin
                 hregister:=pfrom^.location.register;
-                exprasmlist^.concat(new(pai386,op_reg_reg(A_OR,S_L,hregister,hregister)));
+                exprasmlist^.concat(new(pai386,op_reg_reg(A_OR,opsize,hregister,hregister)));
                 flags:=F_NE;
               end;
             else
@@ -1103,8 +1105,9 @@ implementation
            second_array_to_pointer,
            second_pointer_to_array,
            second_int_to_int,
-           second_bool_to_int,
            second_int_to_bool,
+           second_bool_to_int, { bool_to_bool }
+           second_bool_to_int,
            second_real_to_real,
            second_int_to_real,
            second_int_to_fix,
@@ -1257,7 +1260,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.62  1999-04-13 18:51:47  florian
+  Revision 1.63  1999-04-15 08:56:25  peter
+    * fixed bool-bool conversion
+
+  Revision 1.62  1999/04/13 18:51:47  florian
     * esi wasn't reloaded after a call to the esi helper procedure, fixed
 
   Revision 1.61  1999/03/05 16:14:20  peter

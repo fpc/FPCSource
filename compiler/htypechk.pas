@@ -89,7 +89,7 @@ implementation
          ((tc_not_possible,tc_not_possible,tc_not_possible,tc_not_possible),
           (tc_not_possible,tc_equal,tc_not_possible,tc_not_possible),
           (tc_not_possible,tc_not_possible,tc_int_2_int,tc_int_2_bool),
-          (tc_not_possible,tc_not_possible,tc_bool_2_int,tc_int_2_bool));
+          (tc_not_possible,tc_not_possible,tc_bool_2_int,tc_bool_2_bool));
 
       var
          b : byte;
@@ -650,7 +650,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.19  1999-03-24 23:17:02  peter
+  Revision 1.20  1999-04-15 08:56:27  peter
+    * fixed bool-bool conversion
+
+  Revision 1.19  1999/03/24 23:17:02  peter
     * fixed bugs 212,222,225,227,229,231,233
 
   Revision 1.18  1999/03/06 17:25:19  peter

@@ -474,11 +474,19 @@ implementation
             (p^.left^.location.loc in [LOC_REFERENCE,LOC_MEM,LOC_CREGISTER]) then
            exit;
          p^.location.loc:=LOC_REGISTER;
-         p^.left:=gentypeconvnode(p^.left,s32bitdef);
          { need if bool to bool !!
-           not very nice !! }
+           not very nice !!
+         p^.left:=gentypeconvnode(p^.left,s32bitdef);
          p^.left^.explizit:=true;
-         firstpass(p^.left);
+         firstpass(p^.left);  }
+         if p^.registers32<1 then
+           p^.registers32:=1;
+      end;
+
+
+    procedure first_bool_to_bool(var p : ptree);
+      begin
+         p^.location.loc:=LOC_REGISTER;
          if p^.registers32<1 then
            p^.registers32:=1;
       end;
@@ -555,8 +563,9 @@ implementation
          first_array_to_pointer,
          first_pointer_to_array,
          first_int_to_int,
-         first_bool_to_int,
          first_int_to_bool,
+         first_bool_to_bool,
+         first_bool_to_int,
          first_real_to_real,
          first_int_to_real,
          first_int_to_fix,
@@ -927,7 +936,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.22  1999-04-08 09:47:31  pierre
+  Revision 1.23  1999-04-15 08:56:24  peter
+    * fixed bool-bool conversion
+
+  Revision 1.22  1999/04/08 09:47:31  pierre
    * warn if uninitilized local vars are used in IS or AS statements
 
   Revision 1.21  1999/03/06 17:25:20  peter
