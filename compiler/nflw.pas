@@ -1284,6 +1284,7 @@ implementation
     function ttryexceptnode.pass_1 : tnode;
       begin
          result:=nil;
+         include(current_procinfo.flags,pi_do_call);
          expectloc:=LOC_VOID;
          firstpass(left);
          { on statements }
@@ -1330,6 +1331,7 @@ implementation
     function ttryfinallynode.det_resulttype:tnode;
       begin
          result:=nil;
+         include(current_procinfo.flags,pi_do_call);
          resulttype:=voidtype;
 
          resulttypepass(left);
@@ -1424,6 +1426,7 @@ implementation
     function tonnode.pass_1 : tnode;
       begin
          result:=nil;
+         include(current_procinfo.flags,pi_do_call);
          expectloc:=LOC_VOID;
          registers32:=0;
          registersfpu:=0;
@@ -1472,7 +1475,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.90  2003-12-08 19:29:21  peter
+  Revision 1.91  2003-12-28 22:51:18  florian
+    + except handling related nodes now include pi_do_call if necessary
+
+  Revision 1.90  2003/12/08 19:29:21  peter
     * copy loopflags
 
   Revision 1.89  2003/12/01 18:44:15  peter
