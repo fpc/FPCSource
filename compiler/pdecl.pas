@@ -1322,7 +1322,6 @@ unit pdecl;
                       oldparse_only:=parse_only;
                       parse_only:=true;
                       parse_proc_dec;
-                      parse_only:=oldparse_only;
                       if idtoken=_MESSAGE then
                         begin
                            { check parameter type }
@@ -1334,12 +1333,14 @@ unit pdecl;
                            do_firstpass(pt);
                            if pt^.treetype=stringconstn then
                              begin
+                                aktclass^.options:=aktclass^.options or oo_hasmsgstr;
                                 aktprocsym^.definition^.options:=
                                   aktprocsym^.definition^.options or pomsgstr;
                                 aktprocsym^.definition^.messageinf.str:=strnew(pt^.value_str);
                              end
                            else if is_constintnode(pt) then
                              begin
+                                aktclass^.options:=aktclass^.options or oo_hasmsgint;
                                 aktprocsym^.definition^.options:=
                                   aktprocsym^.definition^.options or pomsgint;
                                 aktprocsym^.definition^.messageinf.i:=pt^.value;
@@ -1351,6 +1352,7 @@ unit pdecl;
                         end
                       else
                         begin
+{$ifdef OLDOBJECTOPTIONS}
                            case idtoken of
                             _DYNAMIC,
                             _VIRTUAL : begin
@@ -1368,7 +1370,7 @@ unit pdecl;
                                            pooverridingmethod or povirtualmethod;
                                        end;
                            end;
-                           if idtoken=_abstract then
+                           if idtoken=_ABSTRACT then
                              begin
                                 if (aktprocsym^.definition^.options and povirtualmethod)<>0 then
                                   aktprocsym^.definition^.options:=aktprocsym^.definition^.options or poabstractmethod
@@ -1386,7 +1388,11 @@ unit pdecl;
                               aktprocsym^.properties:=aktprocsym^.properties or sp_static;
                               aktprocsym^.definition^.options:=aktprocsym^.definition^.options or postaticmethod;
                             end;
+{$else OLDOBJECTOPTIONS}
+                          parse_object_proc_directives(aktprocsym);
+{$endif def OLDOBJECTOPTIONS}
                         end;
+                      parse_only:=oldparse_only;
                     end;
      _CONSTRUCTOR : begin
                       if actmembertype<>sp_public then
@@ -1394,7 +1400,9 @@ unit pdecl;
                       oldparse_only:=parse_only;
                       parse_only:=true;
                       constructor_head;
-                      parse_only:=oldparse_only;
+{$ifdef OLDOBJECTOPTIONS}
+                      parse_object_proc_directives(aktprocsym);
+{$else OLDOBJECTOPTIONS}
                       case idtoken of
                        _DYNAMIC,
                        _VIRTUAL : begin
@@ -1418,6 +1426,8 @@ unit pdecl;
                                     consume(SEMICOLON);
                                   end;
                       end;
+{$endif def OLDOBJECTOPTIONS}
+                      parse_only:=oldparse_only;
                     end;
       _DESTRUCTOR : begin
                       if there_is_a_destructor then
@@ -1428,7 +1438,9 @@ unit pdecl;
                       oldparse_only:=parse_only;
                       parse_only:=true;
                       destructor_head;
-                      parse_only:=oldparse_only;
+{$ifdef OLDOBJECTOPTIONS}
+                      parse_object_proc_directives(aktprocsym);
+{$else OLDOBJECTOPTIONS}
                       case idtoken of
                        _DYNAMIC,
                        _VIRTUAL : begin
@@ -1444,6 +1456,8 @@ unit pdecl;
                                       pooverridingmethod or povirtualmethod;
                                   end;
                       end;
+{$endif def OLDOBJECTOPTIONS}
+                      parse_only:=oldparse_only;
                     end;
              _END : begin
                       consume(_END);
@@ -1480,11 +1494,17 @@ unit pdecl;
               datasegment^.concat(new(pai_string,init(aktclass^.name^)));
 
               { generate message and dynamic tables }
-              strmessagetable:=genstrmsgtab(aktclass);
-              intmessagetable:=genintmsgtab(aktclass);
+              { why generate those if empty ??? }
+              if (aktclass^.options and oo_hasmsgstr)<>0 then
+                strmessagetable:=genstrmsgtab(aktclass);
+              if (aktclass^.options and oo_hasmsgint)<>0 then
+                intmessagetable:=genintmsgtab(aktclass);
 
               { table for string messages }
-              datasegment^.concat(new(pai_const_symbol,init(lab2str(strmessagetable))));
+              if (aktclass^.options and oo_hasmsgstr)<>0 then
+                datasegment^.concat(new(pai_const_symbol,init(lab2str(strmessagetable))))
+              else
+                datasegment^.concat(new(pai_const,init_32bit(0)));
 
               { interface table }
               datasegment^.concat(new(pai_const,init_32bit(0)));
@@ -1510,7 +1530,10 @@ unit pdecl;
               datasegment^.concat(new(pai_const,init_32bit(0)));
 
               { pointer to dynamic table }
-              datasegment^.concat(new(pai_const_symbol,init(lab2str(intmessagetable))));
+              if (aktclass^.options and oo_hasmsgint)<>0 then
+                datasegment^.concat(new(pai_const_symbol,init(lab2str(intmessagetable))))
+              else
+                datasegment^.concat(new(pai_const,init_32bit(0)));
 
               { pointer to class name string }
               datasegment^.concat(new(pai_const_symbol,init(lab2str(classnamelabel))));
@@ -2193,7 +2216,15 @@ unit pdecl;
 end.
 {
   $Log$
-  Revision 1.101  1999-02-25 21:02:41  peter
+  Revision 1.102  1999-03-05 01:14:26  pierre
+    * bug0198 : call conventions for methods
+      not yet implemented is the control of same calling convention
+      for virtual and child's virtual
+    * msgstr and msgint only created if message was found
+      who implemented this by the way ?
+      it leaks lots of plabels !!!! (check with heaptrc !)
+
+  Revision 1.101  1999/02/25 21:02:41  peter
     * ag386bin updates
     + coff writer
 

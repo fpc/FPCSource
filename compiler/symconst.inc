@@ -81,7 +81,9 @@
        oo_hasconstructor = $80;
        oo_hasdestructor = $100;
        oo_hasvmt        = $200;
-
+       oo_hasmsgstr     = $400;
+       oo_hasmsgint     = $800;
+       
        { options for properties }
        ppo_indexed = $1;
        ppo_defaultproperty = $2;
@@ -95,7 +97,15 @@
 
 {
   $Log$
-  Revision 1.2  1999-02-22 20:13:37  florian
+  Revision 1.3  1999-03-05 01:14:23  pierre
+    * bug0198 : call conventions for methods
+      not yet implemented is the control of same calling convention
+      for virtual and child's virtual
+    * msgstr and msgint only created if message was found
+      who implemented this by the way ?
+      it leaks lots of plabels !!!! (check with heaptrc !)
+
+  Revision 1.2  1999/02/22 20:13:37  florian
     + first implementation of message keyword
 
   Revision 1.1  1999/01/12 14:32:49  peter
