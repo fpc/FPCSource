@@ -24,6 +24,14 @@ uses
 {$ifdef win32}
   windows,
 {$endif win32}
+{$ifdef netwlibc}
+  libc,
+{$else}
+  {$ifdef netware}
+    nwserv,
+  {$endif}
+{$endif}
+
 {$ifdef Unix}
   {$ifdef VER1_0}
     linux,
@@ -1351,6 +1359,12 @@ begin
 end;
 {$endif}
 {$undef DOS}
+{$ifdef netwlibc} {$define netware} {$endif}
+{$ifdef netware}
+begin
+  Delay (10);
+end;  
+{$endif}
 
 procedure RegisterWUtils;
 begin
@@ -1364,7 +1378,10 @@ BEGIN
 END.
 {
   $Log$
-  Revision 1.17  2003-09-27 14:03:45  peter
+  Revision 1.18  2004-09-16 22:08:13  armin
+  * added target netwlibc
+
+  Revision 1.17  2003/09/27 14:03:45  peter
     * fixed for unix
 
   Revision 1.16  2002/09/11 12:10:03  pierre

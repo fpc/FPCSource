@@ -195,6 +195,9 @@ uses
 {$IFDEF OS2}
   DosCalls,
 {$ENDIF OS2}
+{$ifdef netwlibc}
+  Libc,
+{$endif}
   Strings,
   WConsts;
 
@@ -328,6 +331,16 @@ Function GetDosTicks:longint; { returns ticks at 18.2 Hz, just like DOS }
     GetDosTicks:=MemL[$40:$6c];
   end;
 {$endif go32v2}
+{$ifdef netwlibc}
+var
+  tv : TTimeVal;
+  tz : TTimeZone;
+begin
+  fpGetTimeOfDay(tv,tz);
+  GetDosTicks:=((tv.tv_sec mod 86400) div 60)*1092+((tv.tv_Sec mod 60)*1000000+tv.tv_USec) div 549
+end;
+{$endif}
+	      
 
 procedure DisposeRecord(var R: TRecord);
 begin
@@ -957,7 +970,10 @@ end;
 END.
 {
   $Log$
-  Revision 1.10  2003-09-27 14:03:45  peter
+  Revision 1.11  2004-09-16 22:08:13  armin
+  * added target netwlibc
+
+  Revision 1.10  2003/09/27 14:03:45  peter
     * fixed for unix
 
   Revision 1.9  2002/11/22 15:18:24  pierre
