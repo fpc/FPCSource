@@ -1,1 +1,0 @@
-Procedure Bug(B::tBug);
