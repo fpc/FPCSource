@@ -36,14 +36,9 @@ interface
           constructor create(tt : tnodetype;l,r,_t1,_t2 : tnode);virtual;
           destructor destroy;override;
           function getcopy : tnode;override;
-       end;
-
-       tlabelednode = class(tunarynode)
-          labelnr : pasmlabel;
-          exceptionblock : tnode;
-          labsym : plabelsym;
-          destructor destroy;override;
-          function getcopy : tnode;override;
+{$ifdef extdebug}
+          procedure dowrite;override;
+{$endif extdebug}
        end;
 
        twhilerepeatnode = class(tloopnode)
@@ -56,48 +51,70 @@ interface
        end;
 
        tfornode = class(tloopnode)
-          constructor create(l,r,_t1,_t2 : tnode;back : boolean);
+          constructor create(l,r,_t1,_t2 : tnode;back : boolean);virtual;
           function pass_1 : tnode;override;
        end;
 
        texitnode = class(tunarynode)
+          constructor create(l:tnode);virtual;
+          function pass_1 : tnode;override;
+       end;
+
+       tbreaknode = class(tnode)
           constructor create;virtual;
           function pass_1 : tnode;override;
        end;
 
-       tgotonode = class(tlabelednode)
+       tcontinuenode = class(tnode)
           constructor create;virtual;
           function pass_1 : tnode;override;
        end;
 
-       tlabelnode = class(tlabelednode)
-          constructor create;virtual;
+       tgotonode = class(tnode)
+          labelnr : pasmlabel;
+          labsym : plabelsym;
+          constructor create(p : pasmlabel);virtual;
+          function getcopy : tnode;override;
+          function pass_1 : tnode;override;
+       end;
+
+       tlabelnode = class(tunarynode)
+          labelnr : pasmlabel;
+          exceptionblock : tnode;
+          labsym : plabelsym;
+          constructor create(p : pasmlabel;l:tnode);virtual;
+          function getcopy : tnode;override;
           function pass_1 : tnode;override;
        end;
 
        traisenode = class(tbinarynode)
           frametree : tnode;
-          constructor create;virtual;
+          constructor create(l,taddr,tframe:tnode);virtual;
           function getcopy : tnode;override;
           function pass_1 : tnode;override;
        end;
 
        ttryexceptnode = class(tloopnode)
-          constructor create;virtual;
+          constructor create(l,r,_t1 : tnode);virtual;
           function pass_1 : tnode;override;
        end;
 
        ttryfinallynode = class(tbinarynode)
-          constructor create;virtual;
+          constructor create(l,r:tnode);virtual;
           function pass_1 : tnode;override;
        end;
 
        tonnode = class(tbinarynode)
           exceptsymtable : psymtable;
           excepttype : pobjectdef;
-          constructor create;virtual;
+          constructor create(l,r:tnode);virtual;
           function pass_1 : tnode;override;
           function getcopy : tnode;override;
+       end;
+
+       tfailnode = class(tnode)
+          constructor create;virtual;
+          function pass_1: tnode;override;
        end;
 
     { for compatibilty }
@@ -108,15 +125,15 @@ interface
        cifnode : class of tifnode;
        cfornode : class of tfornode;
        cexitnode : class of texitnode;
+       cbreaknode : class of tbreaknode;
+       ccontinuenode : class of tcontinuenode;
        cgotonode : class of tgotonode;
        clabelnode : class of tlabelnode;
        craisenode : class of traisenode;
        ctryexceptnode : class of ttryexceptnode;
        ctryfinallynode : class of ttryfinallynode;
        connode : class of tonnode;
-       { the block node of the current exception block to check gotos }
-       aktexceptblock : tnode;
-
+       cfailnode : class of tfailnode;
 
 implementation
 
@@ -124,7 +141,7 @@ implementation
       globtype,systems,
       cutils,cobjects,verbose,globals,
       symconst,types,htypechk,pass_1,
-      ncon,nmem,nld,ncnv
+      ncon,nmem,nld,ncnv,nbas
 {$ifdef newcg}
       ,tgobj
       ,tgcpu
@@ -176,8 +193,10 @@ implementation
     destructor tloopnode.destroy;
 
       begin
-         t1.free;
-         t2.free;
+         if assigned(t1) then
+          t1.free;
+         if assigned(t2) then
+          t2.free;
          inherited destroy;
       end;
 
@@ -188,31 +207,28 @@ implementation
 
       begin
          p:=tloopnode(inherited getcopy);
-         p.t1:=t1.getcopy;
-         p.t2:=t2.getcopy;
+         if assigned(t1) then
+           p.t1:=t1.getcopy
+         else
+           p.t1:=nil;
+         if assigned(t2) then
+           p.t2:=t2.getcopy
+         else
+           p.t2:=nil;
          getcopy:=p;
       end;
 
-{****************************************************************************
-                                 TTLABELDNODE
-*****************************************************************************}
+{$ifdef extdebug}
+    procedure tloopnode.dowrite;
+      begin
+        inherited dowrite;
+        writenodeindention:=writenodeindention+'    ';
+        writenode(t1);
+        writenode(t2);
+        delete(writenodeindention,1,4);
+      end;
+{$endif extdebug}
 
-   destructor tlabelednode.destroy;
-
-     begin
-     end;
-
-   function tlabelednode.getcopy : tnode;
-
-     var
-        p : tlabelednode;
-
-     begin
-        p:=tlabelednode(inherited getcopy);
-        p.labelnr:=labelnr;
-        p.exceptionblock:=exceptionblock;
-        p.labsym:=labsym;
-     end;
 
 {****************************************************************************
                                TWHILEREPEATNODE
@@ -372,10 +388,8 @@ implementation
               { optimize }
               if tordconstnode(left).value=1 then
                 begin
-                   left.free;
                    hp:=right;
                    right:=nil;
-                   t1.free;
                    { we cannot set p to nil !!! }
                    if assigned(hp) then
                      pass_1:=hp
@@ -384,10 +398,8 @@ implementation
                 end
               else
                 begin
-                   left.free;
                    hp:=t1;
                    t1:=nil;
-                   right.free;
                    { we cannot set p to nil !!! }
                    if assigned(hp) then
                      pass_1:=hp
@@ -418,7 +430,7 @@ implementation
          old_t_times : longint;
          hp : tnode;
       begin
-         pass_1:=nil;
+         result:=nil;
          { Calc register weight }
          old_t_times:=t_times;
          if not(cs_littlesize in aktglobalswitches) then
@@ -430,8 +442,7 @@ implementation
               exit;
            end;
          { save counter var }
-         { tbinarynode should be tassignnode! }
-         t2:=tbinarynode(left).left.getcopy;
+         t2:=tassignmentnode(left).left.getcopy;
 
 {$ifdef newcg}
          tg.cleartempgen;
@@ -543,9 +554,10 @@ implementation
                              TEXITNODE
 *****************************************************************************}
 
-    constructor texitnode.create;
+    constructor texitnode.create(l:tnode);
 
       begin
+        inherited create(exitn,l);
       end;
 
     function texitnode.pass_1 : tnode;
@@ -581,13 +593,48 @@ implementation
 
 
 {*****************************************************************************
+                             TBREAKNODE
+*****************************************************************************}
+
+    constructor tbreaknode.create;
+
+      begin
+        inherited create(breakn);
+      end;
+
+    function tbreaknode.pass_1 : tnode;
+      begin
+        result:=nil;
+      end;
+
+
+{*****************************************************************************
+                             TCONTINUENODE
+*****************************************************************************}
+
+    constructor tcontinuenode.create;
+
+      begin
+        inherited create(continuen);
+      end;
+
+    function tcontinuenode.pass_1 : tnode;
+      begin
+        result:=nil;
+      end;
+
+
+{*****************************************************************************
                              TGOTONODE
 *****************************************************************************}
 
-    constructor tgotonode.create;
+    constructor tgotonode.create(p : pasmlabel);
 
       begin
+        inherited create(goton);
+        labelnr:=p;
       end;
+
 
     function tgotonode.pass_1 : tnode;
       begin
@@ -595,14 +642,31 @@ implementation
          resulttype:=voiddef;
       end;
 
+   function tgotonode.getcopy : tnode;
+
+     var
+        p : tgotonode;
+
+     begin
+        p:=tgotonode(inherited getcopy);
+        p.labelnr:=labelnr;
+        p.labsym:=labsym;
+        result:=p;
+     end;
+
 {*****************************************************************************
                              TLABELNODE
 *****************************************************************************}
 
-    constructor tlabelnode.create;
+    constructor tlabelnode.create(p : pasmlabel;l:tnode);
 
       begin
+        inherited create(labeln,l);
+        labelnr:=p;
+        exceptionblock:=nil;
+        labsym:=nil;
       end;
+
 
     function tlabelnode.pass_1 : tnode;
 
@@ -624,15 +688,28 @@ implementation
       end;
 
 
+   function tlabelnode.getcopy : tnode;
+
+     var
+        p : tlabelnode;
+
+     begin
+        p:=tlabelnode(inherited getcopy);
+        p.labelnr:=labelnr;
+        p.exceptionblock:=exceptionblock;
+        p.labsym:=labsym;
+        result:=p;
+     end;
+
 {*****************************************************************************
                             TRAISENODE
 *****************************************************************************}
 
-    constructor traisenode.create;
+    constructor traisenode.create(l,taddr,tframe:tnode);
 
       begin
-         inherited create(raisen,nil,nil);
-         frametree:=nil;
+         inherited create(raisen,l,taddr);
+         frametree:=tframe;
       end;
 
     function traisenode.getcopy : tnode;
@@ -642,7 +719,10 @@ implementation
 
       begin
          n:=traisenode(inherited getcopy);
-         n.frametree:=frametree;
+         if assigned(frametree) then
+           n.frametree:=frametree.getcopy
+         else
+           n.frametree:=nil;
          getcopy:=n;
       end;
 
@@ -689,9 +769,10 @@ implementation
                              TTRYEXCEPTNODE
 *****************************************************************************}
 
-    constructor ttryexceptnode.create;
+    constructor ttryexceptnode.create(l,r,_t1 : tnode);
 
       begin
+         inherited create(tryexceptn,l,r,_t1,nil);
       end;
 
     function ttryexceptnode.pass_1 : tnode;
@@ -748,9 +829,10 @@ implementation
                            TTRYFINALLYNODE
 *****************************************************************************}
 
-    constructor ttryfinallynode.create;
+    constructor ttryfinallynode.create(l,r:tnode);
 
       begin
+        inherited create(tryfinallyn,l,r);
       end;
 
     function ttryfinallynode.pass_1 : tnode;
@@ -791,10 +873,10 @@ implementation
                                 TONNODE
 *****************************************************************************}
 
-    constructor tonnode.create;
+    constructor tonnode.create(l,r:tnode);
 
       begin
-         inherited create(onn,nil,nil);
+         inherited create(onn,l,r);
          exceptsymtable:=nil;
          excepttype:=nil;
       end;
@@ -808,6 +890,7 @@ implementation
          n:=tonnode(inherited getcopy);
          n.exceptsymtable:=exceptsymtable;
          n.excepttype:=excepttype;
+         result:=n;
       end;
 
     function tonnode.pass_1 : tnode;
@@ -861,6 +944,23 @@ implementation
            end;
       end;
 
+{*****************************************************************************
+                                TONNODE
+*****************************************************************************}
+
+
+    constructor tfailnode.create;
+
+      begin
+         inherited create(failn);
+      end;
+
+    function tfailnode.pass_1 : tnode;
+
+      begin
+         pass_1:=nil;
+      end;
+
 begin
    cwhilerepeatnode:=twhilerepeatnode;
    cifnode:=tifnode;
@@ -872,10 +972,14 @@ begin
    ctryexceptnode:=ttryexceptnode;
    ctryfinallynode:=ttryfinallynode;
    connode:=tonnode;
+   cfailnode:=tfailnode;
 end.
 {
   $Log$
-  Revision 1.5  2000-10-01 19:48:24  peter
+  Revision 1.6  2000-10-14 10:14:50  peter
+    * moehrendorf oct 2000 rewrite
+
+  Revision 1.5  2000/10/01 19:48:24  peter
     * lot of compile updates for cg11
 
   Revision 1.4  2000/09/28 19:49:52  florian

@@ -25,65 +25,75 @@ unit pstatmnt;
 {$i defines.inc}
 
 interface
+    uses
+      tokens,node;
 
-    uses tree;
 
-    { reads a block }
-    function block(islibrary : boolean) : ptree;
+    function statement_block(starttoken : ttoken) : tnode;
 
     { reads an assembler block }
-    function assembler_block : ptree;
+    function assembler_block : tnode;
 
-  implementation
+
+implementation
 
     uses
-       globtype,systems,tokens,
-       cutils,cobjects,globals,fmodule,verbose,cpuinfo,
-       symconst,symtable,aasm,pass_1,types,scanner,
-       htypechk,
-{$ifdef newcg}
-       cgbase,
-{$else}
-       hcodegen,
-{$endif}
-       ppu
-       ,pbase,pexpr,pdecl,cpubase,cpuasm
+       { common }
+       cutils,cobjects,
+       { global }
+       globtype,globals,verbose,
+       systems,cpuinfo,
+       { aasm }
+       cpubase,aasm,
+       { symtable }
+       symconst,symtable,types,
+       ppu,fmodule,
+       { pass 1 }
+       pass_1,htypechk,
+       nbas,nmat,nadd,ncal,nmem,nset,ncnv,ninl,ncon,nld,nflw,
+       { parser }
+       scanner,
+       pbase,pexpr,
 {$ifdef i386}
-       ,tgeni386
   {$ifndef NoRa386Int}
-       ,ra386int
+       ra386int,
   {$endif NoRa386Int}
   {$ifndef NoRa386Att}
-       ,ra386att
+       ra386att,
   {$endif NoRa386Att}
   {$ifndef NoRa386Dir}
-       ,ra386dir
+       ra386dir,
   {$endif NoRa386Dir}
 {$endif i386}
 {$ifdef m68k}
-       ,tgen68k
   {$ifndef NoRa68kMot}
-       ,ra68kmot
+       ra68kmot,
   {$endif NoRa68kMot}
 {$endif m68k}
-{$ifdef alpha}
-       ,tgeni386  { this is a dummy!! }
-{$endif alpha}
-{$ifdef powerpc}
-       ,tgeni386  { this is a dummy!! }
-{$endif powerpc}
+       { codegen }
+{$ifdef newcg}
+       cgbase
+{$else newcg}
+       hcodegen
+  {$ifdef i386}
+       ,tgeni386
+  {$endif i386}
+  {$ifdef m68k}
+       ,tgen68k
+  {$endif m68k}
+{$endif newcg}
        ;
 
 
     const
       statement_level : longint = 0;
 
-    function statement : ptree;forward;
+    function statement : tnode;forward;
 
 
-    function if_statement : ptree;
+    function if_statement : tnode;
       var
-         ex,if_a,else_a : ptree;
+         ex,if_a,else_a : tnode;
       begin
          consume(_IF);
          ex:=comp_expr(true);
@@ -101,10 +111,10 @@ interface
       end;
 
     { creates a block (list) of statements, til the next END token }
-    function statements_til_end : ptree;
+    function statements_til_end : tnode;
 
       var
-         first,last : ptree;
+         first,last : tstatementnode;
 
       begin
          first:=nil;
@@ -112,24 +122,24 @@ interface
            begin
               if first=nil then
                 begin
-                   last:=gennode(statementn,nil,statement);
+                   last:=cstatementnode.create(nil,statement);
                    first:=last;
                 end
               else
                 begin
-                   last^.left:=gennode(statementn,nil,statement);
-                   last:=last^.left;
+                   last.left:=cstatementnode.create(nil,statement);
+                   last:=tstatementnode(last.left);
                 end;
               if not try_to_consume(_SEMICOLON) then
                 break;
               emptystats;
            end;
          consume(_END);
-         statements_til_end:=gensinglenode(blockn,first);
+         statements_til_end:=cblocknode.create(first);
       end;
 
-    function case_statement : ptree;
 
+    function case_statement : tnode;
       var
          { contains the label number of currently parsed case block }
          aktcaselabel : pasmlabel;
@@ -186,7 +196,7 @@ interface
         end;
 
       var
-         code,caseexpr,p,instruc,elseblock : ptree;
+         code,caseexpr,p,instruc,elseblock : tnode;
          hl1,hl2 : TConstExprInt;
          casedeferror : boolean;
 
@@ -197,13 +207,13 @@ interface
          cleartempgen;
          do_firstpass(caseexpr);
          casedeferror:=false;
-         casedef:=caseexpr^.resulttype;
+         casedef:=caseexpr.resulttype;
          if (not assigned(casedef)) or
             not(is_ordinal(casedef)) then
           begin
             CGMessage(type_e_ordinal_expr_expected);
             { create a correct tree }
-            disposetree(caseexpr);
+            caseexpr.free;
             caseexpr:=genordinalconstnode(0,u32bitdef);
             { set error flag so no rangechecks are done }
             casedeferror:=true;
@@ -224,14 +234,14 @@ interface
              do_firstpass(p);
              hl1:=0;
              hl2:=0;
-             if (p^.treetype=rangen) then
+             if (p.nodetype=rangen) then
                begin
                   { type checking for case statements }
-                  if is_subequal(casedef, p^.left^.resulttype) and
-                     is_subequal(casedef, p^.right^.resulttype) then
+                  if is_subequal(casedef, trangenode(p).left.resulttype) and
+                     is_subequal(casedef, trangenode(p).right.resulttype) then
                     begin
-                      hl1:=get_ordinal_value(p^.left);
-                      hl2:=get_ordinal_value(p^.right);
+                      hl1:=get_ordinal_value(trangenode(p).left);
+                      hl2:=get_ordinal_value(trangenode(p).right);
                       if hl1>hl2 then
                         CGMessage(parser_e_case_lower_less_than_upper_bound);
                       if not casedeferror then
@@ -247,14 +257,14 @@ interface
              else
                begin
                   { type checking for case statements }
-                  if not is_subequal(casedef, p^.resulttype) then
+                  if not is_subequal(casedef, p.resulttype) then
                     CGMessage(parser_e_case_mismatch);
                   hl1:=get_ordinal_value(p);
                   if not casedeferror then
                     testrange(casedef,hl1);
                   newcaselabel(hl1,hl1,firstlabel);
                end;
-             disposetree(p);
+             p.free;
              if token=_COMMA then
                consume(_COMMA)
              else
@@ -264,11 +274,10 @@ interface
            consume(_COLON);
 
            { handles instruction block }
-           p:=gensinglenode(labeln,statement);
-           p^.labelnr:=aktcaselabel;
+           p:=clabelnode.create(aktcaselabel,statement);
 
            { concats instruction }
-           instruc:=gennode(statementn,instruc,p);
+           instruc:=cstatementnode.create(instruc,p);
 
            if not((token=_ELSE) or (token=_OTHERWISE) or (token=_END)) then
              consume(_SEMICOLON);
@@ -287,18 +296,18 @@ interface
            end;
          dec(statement_level);
 
-         code:=gencasenode(caseexpr,instruc,root);
+         code:=ccasenode.create(caseexpr,instruc,root);
 
-         code^.elseblock:=elseblock;
+         tcasenode(code).elseblock:=elseblock;
 
          case_statement:=code;
       end;
 
 
-    function repeat_statement : ptree;
+    function repeat_statement : tnode;
 
       var
-         first,last,p_e : ptree;
+         first,last,p_e : tnode;
 
       begin
          consume(_REPEAT);
@@ -309,13 +318,13 @@ interface
            begin
               if first=nil then
                 begin
-                   last:=gennode(statementn,nil,statement);
+                   last:=cstatementnode.create(nil,statement);
                    first:=last;
                 end
               else
                 begin
-                   last^.left:=gennode(statementn,nil,statement);
-                   last:=last^.left;
+                   tstatementnode(last).left:=cstatementnode.create(nil,statement);
+                   last:=tstatementnode(last).left;
                 end;
               if not try_to_consume(_SEMICOLON) then
                 break;
@@ -324,16 +333,16 @@ interface
          consume(_UNTIL);
          dec(statement_level);
 
-         first:=gensinglenode(blockn,first);
+         first:=cblocknode.create(first);
          p_e:=comp_expr(true);
          repeat_statement:=genloopnode(repeatn,p_e,first,nil,false);
       end;
 
 
-    function while_statement : ptree;
+    function while_statement : tnode;
 
       var
-         p_e,p_a : ptree;
+         p_e,p_a : tnode;
 
       begin
          consume(_WHILE);
@@ -344,10 +353,10 @@ interface
       end;
 
 
-    function for_statement : ptree;
+    function for_statement : tnode;
 
       var
-         p_e,tovalue,p_a : ptree;
+         p_e,tovalue,p_a : tnode;
          backward : boolean;
 
       begin
@@ -373,31 +382,31 @@ interface
       end;
 
 
-    function _with_statement : ptree;
+    function _with_statement : tnode;
 
       var
-         right,p : ptree;
+         right,p : tnode;
          i,levelcount : longint;
          withsymtable,symtab : psymtable;
          obj : pobjectdef;
-         hp : ptree;
+         hp : tnode;
       begin
          p:=comp_expr(true);
          do_firstpass(p);
          set_varstate(p,false);
          right:=nil;
          if (not codegenerror) and
-            (p^.resulttype^.deftype in [objectdef,recorddef]) then
+            (p.resulttype^.deftype in [objectdef,recorddef]) then
           begin
-            case p^.resulttype^.deftype of
+            case p.resulttype^.deftype of
              objectdef : begin
-                           obj:=pobjectdef(p^.resulttype);
+                           obj:=pobjectdef(p.resulttype);
                            withsymtable:=new(pwithsymtable,init);
                            withsymtable^.symsearch:=obj^.symtable^.symsearch;
                            withsymtable^.defowner:=obj;
                            symtab:=withsymtable;
-                           if (p^.treetype=loadn) and
-                              (p^.symtable=aktprocsym^.definition^.localst) then
+                           if (p.nodetype=loadn) and
+                              (tloadnode(p).symtable=aktprocsym^.definition^.localst) then
                              pwithsymtable(symtab)^.direct_with:=true;
                            {symtab^.withnode:=p; not yet allocated !! }
                            pwithsymtable(symtab)^.withrefnode:=p;
@@ -408,8 +417,8 @@ interface
                               symtab^.next:=new(pwithsymtable,init);
                               symtab:=symtab^.next;
                               symtab^.symsearch:=obj^.symtable^.symsearch;
-                              if (p^.treetype=loadn) and
-                                 (p^.symtable=aktprocsym^.definition^.localst) then
+                              if (p.nodetype=loadn) and
+                                 (tloadnode(p).symtable=aktprocsym^.definition^.localst) then
                                 pwithsymtable(symtab)^.direct_with:=true;
                               {symtab^.withnode:=p; not yet allocated !! }
                               pwithsymtable(symtab)^.withrefnode:=p;
@@ -421,17 +430,17 @@ interface
                            symtablestack:=withsymtable;
                          end;
              recorddef : begin
-                           symtab:=precorddef(p^.resulttype)^.symtable;
+                           symtab:=precorddef(p.resulttype)^.symtable;
                            levelcount:=1;
                            withsymtable:=new(pwithsymtable,init);
                            withsymtable^.symsearch:=symtab^.symsearch;
                            withsymtable^.next:=symtablestack;
-                              if (p^.treetype=loadn) and
-                                 (p^.symtable=aktprocsym^.definition^.localst) then
+                              if (p.nodetype=loadn) and
+                                 (tloadnode(p).symtable=aktprocsym^.definition^.localst) then
                                 pwithsymtable(withsymtable)^.direct_with:=true;
                               {symtab^.withnode:=p; not yet allocated !! }
                               pwithsymtable(withsymtable)^.withrefnode:=p;
-                           withsymtable^.defowner:=precorddef(p^.resulttype);
+                           withsymtable^.defowner:=precorddef(p.resulttype);
                            symtablestack:=withsymtable;
                         end;
             end;
@@ -474,17 +483,17 @@ interface
       end;
 
 
-    function with_statement : ptree;
+    function with_statement : tnode;
       begin
          consume(_WITH);
          with_statement:=_with_statement;
       end;
 
 
-    function raise_statement : ptree;
+    function raise_statement : tnode;
 
       var
-         p,pobj,paddr,pframe : ptree;
+         p,pobj,paddr,pframe : tnode;
 
       begin
          pobj:=nil;
@@ -507,17 +516,16 @@ interface
               if (block_type<>bt_except) then
                 Message(parser_e_no_reraise_possible);
            end;
-         p:=gennode(raisen,pobj,paddr);
-         p^.frametree:=pframe;
+         p:=craisenode.create(pobj,paddr,pframe);
          raise_statement:=p;
       end;
 
 
-    function try_statement : ptree;
+    function try_statement : tnode;
 
       var
          p_try_block,p_finally_block,first,last,
-         p_default,p_specific,hp : ptree;
+         p_default,p_specific,hp : tnode;
          ot : pobjectdef;
          sym : pvarsym;
          old_block_type : tblock_type;
@@ -540,26 +548,25 @@ interface
            begin
               if first=nil then
                 begin
-                   last:=gennode(statementn,nil,statement);
+                   last:=cstatementnode.create(nil,statement);
                    first:=last;
                 end
               else
                 begin
-                   last^.left:=gennode(statementn,nil,statement);
-                   last:=last^.left;
+                   tstatementnode(last).left:=cstatementnode.create(nil,statement);
+                   last:=tstatementnode(last).left;
                 end;
               if not try_to_consume(_SEMICOLON) then
                 break;
               emptystats;
            end;
-         p_try_block:=gensinglenode(blockn,first);
+         p_try_block:=cblocknode.create(first);
 
          if try_to_consume(_FINALLY) then
            begin
               p_finally_block:=statements_til_end;
-              try_statement:=gennode(tryfinallyn,p_try_block,p_finally_block);
+              try_statement:=ctryfinallynode.create(p_try_block,p_finally_block);
               dec(statement_level);
-
            end
          else
            begin
@@ -643,11 +650,11 @@ interface
                      else
                        consume(_ID);
                      consume(_DO);
-                     hp:=gennode(onn,nil,statement);
+                     hp:=connode.create(nil,statement);
                      if ot^.deftype=errordef then
                        begin
-                          disposetree(hp);
-                          hp:=genzeronode(errorn);
+                          hp.free;
+                          hp:=cerrornode.create;
                        end;
                      if p_specific=nil then
                        begin
@@ -656,20 +663,19 @@ interface
                        end
                      else
                        begin
-                          last^.left:=hp;
-                          last:=last^.left;
+                          tonnode(last).left:=hp;
+                          last:=tonnode(last).left;
                        end;
                      { set the informations }
-                     last^.excepttype:=ot;
-                     last^.exceptsymtable:=exceptsymtable;
-                     last^.disposetyp:=dt_onn;
+                     tonnode(last).excepttype:=ot;
+                     tonnode(last).exceptsymtable:=exceptsymtable;
                      { remove exception symtable }
                      if assigned(exceptsymtable) then
                        dellexlevel;
                      if not try_to_consume(_SEMICOLON) then
                         break;
                      emptystats;
-                   until (token=_END) or(token=_ELSE);
+                   until (token=_END) or (token=_ELSE);
                    if token=_ELSE then
                      { catch the other exceptions }
                      begin
@@ -687,15 +693,15 @@ interface
               dec(statement_level);
 
               block_type:=old_block_type;
-              try_statement:=genloopnode(tryexceptn,p_try_block,p_specific,p_default,false);
+              try_statement:=ctryexceptnode.create(p_try_block,p_specific,p_default);
            end;
       end;
 
 
-    function exit_statement : ptree;
+    function exit_statement : tnode;
 
       var
-         p : ptree;
+         p : tnode;
 
       begin
          consume(_EXIT);
@@ -710,16 +716,16 @@ interface
            end
          else
            p:=nil;
-         p:=gensinglenode(exitn,p);
-         // p^.resulttype:=procinfo^.returntype.def;
-         p^.resulttype:=voiddef;
+         p:=cexitnode.create(p);
+         // p.resulttype:=procinfo^.returntype.def;
+         p.resulttype:=voiddef;
          exit_statement:=p;
       end;
 
 
-    function _asm_statement : ptree;
+    function _asm_statement : tnode;
       var
-        asmstat : ptree;
+        asmstat : tasmnode;
         Marker : Pai;
       begin
          Inside_asm_statement:=true;
@@ -729,11 +735,11 @@ interface
 {$ifdef i386}
   {$ifndef NoRA386Att}
            asmmode_i386_att:
-             asmstat:=ra386att.assemble;
+             asmstat:=tasmnode(ra386att.assemble);
   {$endif NoRA386Att}
   {$ifndef NoRA386Int}
            asmmode_i386_intel:
-             asmstat:=ra386int.assemble;
+             asmstat:=tasmnode(ra386int.assemble);
   {$endif NoRA386Int}
   {$ifndef NoRA386Dir}
            asmmode_i386_direct:
@@ -746,14 +752,14 @@ interface
                     Message(parser_w_inlining_disabled);
                     exclude(aktprocsym^.definition^.proccalloptions,pocall_inline);
                  End;
-               asmstat:=ra386dir.assemble;
+               asmstat:=tasmnode(ra386dir.assemble);
              end;
   {$endif NoRA386Dir}
 {$endif}
 {$ifdef m68k}
   {$ifndef NoRA68kMot}
            asmmode_m68k_mot:
-             asmstat:=ra68kmot.assemble;
+             asmstat:=tasmnode(ra68kmot.assemble);
   {$endif NoRA68kMot}
 {$endif}
          else
@@ -768,7 +774,7 @@ interface
          if try_to_consume(_LECKKLAMMER) then
            begin
               { it's possible to specify the modified registers }
-              asmstat^.object_preserved:=true;
+              include(asmstat.flags,nf_object_preserved);
               if token<>_RECKKLAMMER then
                 repeat
                 { uppercase, because it's a CSTRING }
@@ -785,7 +791,7 @@ interface
                   else if pattern='ESI' then
                     begin
                        usedinproc:=usedinproc or ($80 shr byte(R_ESI));
-                       asmstat^.object_preserved:=false;
+                       exclude(asmstat.flags,nf_object_preserved);
                     end
                   else if pattern='EDI' then
                     usedinproc:=usedinproc or ($80 shr byte(R_EDI))
@@ -812,201 +818,328 @@ interface
          else usedinproc:=$ff;
 {$endif newcg}
 
-{ mark the start and the end of the assembler block for the optimizer }
-
-         If Assigned(AsmStat^.p_asm) Then
+         { mark the start and the end of the assembler block
+           this is needed for the optimizer }
+         If Assigned(AsmStat.p_asm) Then
            Begin
              Marker := New(Pai_Marker, Init(AsmBlockStart));
-             AsmStat^.p_asm^.Insert(Marker);
+             AsmStat.p_asm^.Insert(Marker);
              Marker := New(Pai_Marker, Init(AsmBlockEnd));
-             AsmStat^.p_asm^.Concat(Marker);
+             AsmStat.p_asm^.Concat(Marker);
            End;
          Inside_asm_statement:=false;
-
          _asm_statement:=asmstat;
       end;
 
 
-        function new_dispose_statement : ptree;
-        var
-          p,p2 : ptree;
-          ht : ttoken;
-          again : boolean; { dummy for do_proc_call }
-          destructorname : stringid;
-          sym : psym;
-          classh : pobjectdef;
-          pd,pd2 : pdef;
-          destructorpos,storepos : tfileposinfo;
-          tt : ttreetyp;
-        begin
-          ht:=token;
-          if try_to_consume(_NEW) then
-            tt:=hnewn
-          else
-            begin
-                consume(_DISPOSE);
-                tt:=hdisposen;
-            end;
-          consume(_LKLAMMER);
+    function new_dispose_statement : tnode;
+      var
+        p,p2     : tnode;
+        again    : boolean; { dummy for do_proc_call }
+        destructorname : stringid;
+        sym      : psym;
+        classh   : pobjectdef;
+        pd,pd2   : pdef;
+        destructorpos,
+        storepos : tfileposinfo;
+        is_new   : boolean;
+      begin
+        if try_to_consume(_NEW) then
+          is_new:=true
+        else
+          begin
+            consume(_DISPOSE);
+            is_new:=false;
+          end;
+        consume(_LKLAMMER);
+        p:=comp_expr(true);
+        { calc return type }
+        cleartempgen;
+        do_firstpass(p);
+        set_varstate(p,(not is_new));
+        { constructor,destructor specified }
+        if try_to_consume(_COMMA) then
+          begin
+            { extended syntax of new and dispose }
+            { function styled new is handled in factor }
+            { destructors have no parameters }
+            destructorname:=pattern;
+            destructorpos:=tokenpos;
+            consume(_ID);
 
+            pd:=p.resulttype;
+            if pd=nil then
+             pd:=generrordef;
+            pd2:=pd;
+            if (pd^.deftype<>pointerdef) then
+              begin
+                 Message1(type_e_pointer_type_expected,pd^.typename);
+                 p:=factor(false);
+                 consume(_RKLAMMER);
+                 new_dispose_statement:=cerrornode.create;
+                 exit;
+              end;
+            { first parameter must be an object or class }
+            if ppointerdef(pd)^.pointertype.def^.deftype<>objectdef then
+              begin
+                 Message(parser_e_pointer_to_class_expected);
+                 new_dispose_statement:=factor(false);
+                 consume_all_until(_RKLAMMER);
+                 consume(_RKLAMMER);
+                 exit;
+              end;
+            { check, if the first parameter is a pointer to a _class_ }
+            classh:=pobjectdef(ppointerdef(pd)^.pointertype.def);
+            if classh^.is_class then
+              begin
+                 Message(parser_e_no_new_or_dispose_for_classes);
+                 new_dispose_statement:=factor(false);
+                 consume_all_until(_RKLAMMER);
+                 consume(_RKLAMMER);
+                 exit;
+              end;
+            { search cons-/destructor, also in parent classes }
+            storepos:=tokenpos;
+            tokenpos:=destructorpos;
+            sym:=search_class_member(classh,destructorname);
+            tokenpos:=storepos;
 
-          p:=comp_expr(true);
+            { the second parameter of new/dispose must be a call }
+            { to a cons-/destructor                              }
+            if (not assigned(sym)) or (sym^.typ<>procsym) then
+              begin
+                 if is_new then
+                  Message(parser_e_expr_have_to_be_constructor_call)
+                 else
+                  Message(parser_e_expr_have_to_be_destructor_call);
+                 new_dispose_statement:=cerrornode.create;
+              end
+            else
+              begin
+                if is_new then
+                 p2:=chnewnode.create
+                else
+                 p2:=chdisposenode.create(p);
+                if is_new then
+                  begin
+                    { Constructors can take parameters.}
+                    p2.resulttype:=ppointerdef(pd)^.pointertype.def;
+                    do_member_read(false,sym,p2,pd,again);
+                  end
+                else
+                  begin
+                    if (m_tp in aktmodeswitches) then
+                      begin
+                        { Constructors can take parameters.}
+                        p2.resulttype:=ppointerdef(pd)^.pointertype.def;
+                        do_member_read(false,sym,p2,pd,again);
+                      end
+                    else
+                      begin
+                        p2:=ccallnode.create(pprocsym(sym),srsymtable,p2);
+                        { support dispose(p,done()); }
+                        if try_to_consume(_LKLAMMER) then
+                          begin
+                            if not try_to_consume(_RKLAMMER) then
+                              begin
+                                Message(parser_e_no_paras_for_destructor);
+                                consume_all_until(_RKLAMMER);
+                                consume(_RKLAMMER);
+                              end;
+                          end;
+                      end;
+                  end;
 
-          { calc return type }
-          cleartempgen;
-          do_firstpass(p);
-          set_varstate(p,tt=hdisposen);
+                { we need the real called method }
+                cleartempgen;
+                do_firstpass(p2);
 
-  {var o:Pobject;
-           begin
-               new(o,init);     (*Also a valid new statement*)
-           end;}
-
-          if try_to_consume(_COMMA) then
-            begin
-                   { extended syntax of new and dispose }
-                   { function styled new is handled in factor }
-                   { destructors have no parameters }
-                   destructorname:=pattern;
-                   destructorpos:=tokenpos;
-                   consume(_ID);
-
-                   pd:=p^.resulttype;
-                   if pd=nil then
-                    pd:=generrordef;
-                   pd2:=pd;
-                   if (pd^.deftype<>pointerdef) then
-                     begin
-                        Message1(type_e_pointer_type_expected,pd^.typename);
-                        p:=factor(false);
-                        consume(_RKLAMMER);
-                        new_dispose_statement:=genzeronode(errorn);
-                        exit;
-                     end;
-                   { first parameter must be an object or class }
-                   if ppointerdef(pd)^.pointertype.def^.deftype<>objectdef then
-                     begin
-                        Message(parser_e_pointer_to_class_expected);
-                        new_dispose_statement:=factor(false);
-                        consume_all_until(_RKLAMMER);
-                        consume(_RKLAMMER);
-                        exit;
-                     end;
-                   { check, if the first parameter is a pointer to a _class_ }
-                   classh:=pobjectdef(ppointerdef(pd)^.pointertype.def);
-                   if classh^.is_class then
-                     begin
-                        Message(parser_e_no_new_or_dispose_for_classes);
-                        new_dispose_statement:=factor(false);
-                        consume_all_until(_RKLAMMER);
-                        consume(_RKLAMMER);
-                        exit;
-                     end;
-                   { search cons-/destructor, also in parent classes }
-                   storepos:=tokenpos;
-                   tokenpos:=destructorpos;
-                   sym:=search_class_member(classh,destructorname);
-                   tokenpos:=storepos;
-
-                   { the second parameter of new/dispose must be a call }
-                   { to a cons-/destructor                              }
-                   if (not assigned(sym)) or (sym^.typ<>procsym) then
-                         begin
-                            if tt=hnewn then
-                             Message(parser_e_expr_have_to_be_constructor_call)
-                            else
-                             Message(parser_e_expr_have_to_be_destructor_call);
-                            new_dispose_statement:=genzeronode(errorn);
-                         end
-                   else
-                         begin
-                           p2:=gensinglenode(tt,p);
-                           if ht=_NEW then
-                             begin
-                               { Constructors can take parameters.}
-                               p2^.resulttype:=ppointerdef(pd)^.pointertype.def;
-                               do_member_read(false,sym,p2,pd,again);
-                             end
-                           else
-                             begin
-                               if (m_tp in aktmodeswitches) then
-                                 begin
-                                   { Constructors can take parameters.}
-                                   p2^.resulttype:=ppointerdef(pd)^.pointertype.def;
-                                   do_member_read(false,sym,p2,pd,again);
-                                 end
-                               else
-                                 begin
-                                   p2:=genmethodcallnode(pprocsym(sym),srsymtable,p2);
-                                   { support dispose(p,done()); }
-                                   if try_to_consume(_LKLAMMER) then
-                                     begin
-                                       if not try_to_consume(_RKLAMMER) then
-                                         begin
-                                           Message(parser_e_no_paras_for_destructor);
-                                           consume_all_until(_RKLAMMER);
-                                           consume(_RKLAMMER);
-                                         end;
-                                     end;
-                                 end;
-                             end;
-
-                           { we need the real called method }
-                           cleartempgen;
-                           do_firstpass(p2);
-
-                           if not codegenerror then
-                            begin
-                              if (ht=_NEW) and (p2^.procdefinition^.proctypeoption<>potype_constructor) then
-                                Message(parser_e_expr_have_to_be_constructor_call);
-                              if (ht=_DISPOSE) and (p2^.procdefinition^.proctypeoption<>potype_destructor) then
-                                Message(parser_e_expr_have_to_be_destructor_call);
-
-                              if ht=_NEW then
-                               begin
-                                 p2:=gennode(assignn,getcopy(p),gensinglenode(newn,p2));
-                                 p2^.right^.resulttype:=pd2;
-                               end;
-                            end;
-                           new_dispose_statement:=p2;
-                         end;
-            end
-          else
-            begin
-               if p^.resulttype=nil then
-                p^.resulttype:=generrordef;
-               if (p^.resulttype^.deftype<>pointerdef) then
-                 Begin
-                    Message1(type_e_pointer_type_expected,p^.resulttype^.typename);
-                    new_dispose_statement:=genzeronode(errorn);
-                 end
-               else
+                if not codegenerror then
                  begin
-                    if (ppointerdef(p^.resulttype)^.pointertype.def^.deftype=objectdef) and
-                       (oo_has_vmt in pobjectdef(ppointerdef(p^.resulttype)^.pointertype.def)^.objectoptions) then
-                      Message(parser_w_use_extended_syntax_for_objects);
-                    if (ppointerdef(p^.resulttype)^.pointertype.def^.deftype=orddef) and
-                       (porddef(ppointerdef(p^.resulttype)^.pointertype.def)^.typ=uvoid) then
+                   if is_new then
+                    begin
+                      if (tcallnode(p2).procdefinition^.proctypeoption<>potype_constructor) then
+                        Message(parser_e_expr_have_to_be_constructor_call);
+                      p2:=cassignmentnode.create(p.getcopy,cnewnode.create(p2));
+                      tassignmentnode(p2).right.resulttype:=pd2;
+                    end
+                   else
+                    begin
+                      if (tcallnode(p2).procdefinition^.proctypeoption<>potype_destructor) then
+                        Message(parser_e_expr_have_to_be_destructor_call);
+                    end;
+                 end;
+                new_dispose_statement:=p2;
+              end;
+          end
+        else
+          begin
+             if p.resulttype=nil then
+              p.resulttype:=generrordef;
+             if (p.resulttype^.deftype<>pointerdef) then
+               Begin
+                  Message1(type_e_pointer_type_expected,p.resulttype^.typename);
+                  new_dispose_statement:=cerrornode.create;
+               end
+             else
+               begin
+                  if (ppointerdef(p.resulttype)^.pointertype.def^.deftype=objectdef) and
+                     (oo_has_vmt in pobjectdef(ppointerdef(p.resulttype)^.pointertype.def)^.objectoptions) then
+                    Message(parser_w_use_extended_syntax_for_objects);
+                  if (ppointerdef(p.resulttype)^.pointertype.def^.deftype=orddef) and
+                     (porddef(ppointerdef(p.resulttype)^.pointertype.def)^.typ=uvoid) then
+                    begin
                       if (m_tp in aktmodeswitches) or
                          (m_delphi in aktmodeswitches) then
                        Message(parser_w_no_new_dispose_on_void_pointers)
                       else
                        Message(parser_e_no_new_dispose_on_void_pointers);
+                    end;
 
-                     case ht of
-                        _NEW : new_dispose_statement:=gensinglenode(simplenewn,p);
-                        _DISPOSE : new_dispose_statement:=gensinglenode(simpledisposen,p);
-                     end;
-                 end;
-            end;
-          consume(_RKLAMMER);
+                  if is_new then
+                    new_dispose_statement:=csimplenewdisposenode.create(simplenewn,p)
+                  else
+                    new_dispose_statement:=csimplenewdisposenode.create(simpledisposen,p);
+               end;
+          end;
+        consume(_RKLAMMER);
       end;
 
 
-    function statement_block(starttoken : ttoken) : ptree;
+    function statement : tnode;
+      var
+         p       : tnode;
+         code    : tnode;
+         filepos : tfileposinfo;
+         sr      : plabelsym;
+      label
+         ready;
+      begin
+         filepos:=tokenpos;
+         case token of
+           _GOTO :
+             begin
+                if not(cs_support_goto in aktmoduleswitches)then
+                 Message(sym_e_goto_and_label_not_supported);
+                consume(_GOTO);
+                if (token<>_INTCONST) and (token<>_ID) then
+                  begin
+                     Message(sym_e_label_not_found);
+                     code:=cerrornode.create;
+                  end
+                else
+                  begin
+                     getsym(pattern,true);
+                     consume(token);
+                     if srsym^.typ<>labelsym then
+                       begin
+                          Message(sym_e_id_is_no_label_id);
+                          code:=cerrornode.create;
+                       end
+                     else
+                       begin
+                         code:=cgotonode.create(plabelsym(srsym)^.lab);
+                         tgotonode(code).labsym:=plabelsym(srsym);
+                         { set flag that this label is used }
+                         plabelsym(srsym)^.used:=true;
+                       end;
+                  end;
+             end;
+           _BEGIN :
+             code:=statement_block(_BEGIN);
+           _IF :
+             code:=if_statement;
+           _CASE :
+             code:=case_statement;
+           _REPEAT :
+             code:=repeat_statement;
+           _WHILE :
+             code:=while_statement;
+           _FOR :
+             code:=for_statement;
+           _NEW,
+           _DISPOSE :
+             code:=new_dispose_statement;
+           _WITH :
+             code:=with_statement;
+           _TRY :
+             code:=try_statement;
+           _RAISE :
+             code:=raise_statement;
+           { semicolons,else until and end are ignored }
+           _SEMICOLON,
+           _ELSE,
+           _UNTIL,
+           _END:
+             code:=cnothingnode.create;
+           _FAIL :
+             begin
+                if (aktprocsym^.definition^.proctypeoption<>potype_constructor) then
+                  Message(parser_e_fail_only_in_constructor);
+                consume(_FAIL);
+                code:=cfailnode.create;
+             end;
+           _EXIT :
+             code:=exit_statement;
+           _ASM :
+             code:=_asm_statement;
+           _EOF :
+             Message(scan_f_end_of_file);
+         else
+           begin
+              if (token in [_INTCONST,_ID]) then
+                begin
+                   getsym(pattern,true);
+                   lastsymknown:=true;
+                   lastsrsym:=srsym;
+                   { it is NOT necessarily the owner
+                     it can be a withsymtable !!! }
+                   lastsrsymtable:=srsymtable;
+                   if assigned(srsym) and (srsym^.typ=labelsym) then
+                     begin
+                        consume(token);
+                        consume(_COLON);
+                        { we must preserve srsym to set code later }
+                        sr:=plabelsym(srsym);
+                        if sr^.defined then
+                          Message(sym_e_label_already_defined);
+                        sr^.defined:=true;
+
+                        { statement modifies srsym }
+                        lastsymknown:=false;
+                        { the pointer to the following instruction }
+                        { isn't a very clean way                   }
+                        code:=clabelnode.create(sr^.lab,statement{$ifdef FPCPROCVAR}(){$endif});
+                        sr^.code:=code;
+                        { sorry, but here is a jump the easiest way }
+                        goto ready;
+                     end;
+                end;
+              p:=expr;
+              if not(p.nodetype in [calln,assignn,breakn,inlinen,continuen]) then
+                Message(cg_e_illegal_expression);
+              { specify that we don't use the value returned by the call }
+              { Question : can this be also improtant
+                for inlinen ??
+                it is used for :
+                 - dispose of temp stack space
+                 - dispose on FPU stack }
+              if p.nodetype=calln then
+                exclude(p.flags,nf_return_value_used);
+              code:=p;
+           end;
+         end;
+         ready:
+         if assigned(code) then
+          code.set_tree_filepos(filepos);
+         statement:=code;
+      end;
+
+
+    function statement_block(starttoken : ttoken) : tnode;
 
       var
-         first,last : ptree;
+         first,last : tnode;
          filepos : tfileposinfo;
 
       begin
@@ -1019,13 +1152,13 @@ interface
            begin
               if first=nil then
                 begin
-                   last:=gennode(statementn,nil,statement);
+                   last:=cstatementnode.create(nil,statement);
                    first:=last;
                 end
               else
                 begin
-                   last^.left:=gennode(statementn,nil,statement);
-                   last:=last^.left;
+                   tstatementnode(last).left:=cstatementnode.create(nil,statement);
+                   last:=tstatementnode(last).left;
                 end;
               if (token in [_END,_FINALIZATION]) then
                 break
@@ -1050,270 +1183,15 @@ interface
 
          dec(statement_level);
 
-         last:=gensinglenode(blockn,first);
-         set_tree_filepos(last,filepos);
+         last:=cblocknode.create(first);
+         last.set_tree_filepos(filepos);
          statement_block:=last;
       end;
 
 
-    function statement : ptree;
-
-      var
-         p : ptree;
-         code : ptree;
-         labelnr : pasmlabel;
-         filepos : tfileposinfo;
-         sr : plabelsym;
-
-      label
-         ready;
+    function assembler_block : tnode;
 
       begin
-         filepos:=tokenpos;
-         case token of
-            _GOTO : begin
-                       if not(cs_support_goto in aktmoduleswitches)then
-                        Message(sym_e_goto_and_label_not_supported);
-                       consume(_GOTO);
-                       if (token<>_INTCONST) and (token<>_ID) then
-                         begin
-                            Message(sym_e_label_not_found);
-                            code:=genzeronode(errorn);
-                         end
-                       else
-                         begin
-                            getsym(pattern,true);
-                            consume(token);
-                            if srsym^.typ<>labelsym then
-                              begin
-                                 Message(sym_e_id_is_no_label_id);
-                                 code:=genzeronode(errorn);
-                              end
-                            else
-                              begin
-                                code:=genlabelnode(goton,plabelsym(srsym)^.lab);
-                                code^.labsym:=plabelsym(srsym);
-                                { set flag that this label is used }
-                                plabelsym(srsym)^.used:=true;
-                              end;
-                         end;
-                    end;
-            _BEGIN : code:=statement_block(_BEGIN);
-            _IF    : code:=if_statement;
-            _CASE  : code:=case_statement;
-            _REPEAT : code:=repeat_statement;
-            _WHILE : code:=while_statement;
-            _FOR : code:=for_statement;
-            _NEW,_DISPOSE : code:=new_dispose_statement;
-
-            _WITH : code:=with_statement;
-            _TRY : code:=try_statement;
-            _RAISE : code:=raise_statement;
-            { semicolons,else until and end are ignored }
-            _SEMICOLON,
-            _ELSE,
-            _UNTIL,
-            _END:
-              code:=genzeronode(niln);
-            _FAIL : begin
-                       { internalerror(100); }
-                       if (aktprocsym^.definition^.proctypeoption<>potype_constructor) then
-                        Message(parser_e_fail_only_in_constructor);
-                       consume(_FAIL);
-                       code:=genzeronode(failn);
-                    end;
-            _EXIT : code:=exit_statement;
-            _ASM : begin
-                      code:=_asm_statement;
-                   end;
-            _EOF : begin
-                     Message(scan_f_end_of_file);
-                   end;
-         else
-           begin
-              if (token in [_INTCONST,_ID]) then
-                begin
-                   getsym(pattern,true);
-                   lastsymknown:=true;
-                   lastsrsym:=srsym;
-                   { it is NOT necessarily the owner
-                     it can be a withsymtable !!! }
-                   lastsrsymtable:=srsymtable;
-                   if assigned(srsym) and (srsym^.typ=labelsym) then
-                     begin
-                        consume(token);
-                        consume(_COLON);
-                        { we must preserve srsym to set code later }
-                        sr:=plabelsym(srsym);
-                        if sr^.defined then
-                          Message(sym_e_label_already_defined);
-                        sr^.defined:=true;
-
-                        { statement modifies srsym }
-                        labelnr:=sr^.lab;
-                        lastsymknown:=false;
-                        { the pointer to the following instruction }
-                        { isn't a very clean way                   }
-                        code:=gensinglenode(labeln,statement{$ifdef FPCPROCVAR}(){$endif});
-                        code^.labelnr:=labelnr;
-                        sr^.code:=code;
-                        { sorry, but there is a jump the easiest way }
-                        goto ready;
-                     end;
-                end;
-              p:=expr;
-              if not(p^.treetype in [calln,assignn,breakn,inlinen,
-                continuen]) then
-                Message(cg_e_illegal_expression);
-              { specify that we don't use the value returned by the call }
-              { Question : can this be also improtant
-                for inlinen ??
-                it is used for :
-                 - dispose of temp stack space
-                 - dispose on FPU stack }
-              if p^.treetype=calln then
-                p^.return_value_used:=false;
-              code:=p;
-           end;
-         end;
-         ready:
-         if assigned(code) then
-          set_tree_filepos(code,filepos);
-         statement:=code;
-      end;
-
-    function block(islibrary : boolean) : ptree;
-
-      var
-         funcretsym : pfuncretsym;
-         storepos : tfileposinfo;
-
-      begin
-         { do we have an assembler block without the po_assembler?
-           we should allow this for Delphi compatibility (PFV) }
-         if (token=_ASM) and (m_delphi in aktmodeswitches) then
-           begin
-             include(aktprocsym^.definition^.procoptions,po_assembler);
-             block:=assembler_block;
-             exit;
-           end;
-         if procinfo^.returntype.def<>pdef(voiddef) then
-           begin
-              { if the current is a function aktprocsym is non nil }
-              { and there is a local symtable set }
-              storepos:=tokenpos;
-              tokenpos:=aktprocsym^.fileinfo;
-              funcretsym:=new(pfuncretsym,init(aktprocsym^.name,procinfo));
-              { insert in local symtable }
-              symtablestack^.insert(funcretsym);
-              tokenpos:=storepos;
-              if ret_in_acc(procinfo^.returntype.def) or (procinfo^.returntype.def^.deftype=floatdef) then
-                procinfo^.return_offset:=-funcretsym^.address;
-              procinfo^.funcretsym:=funcretsym;
-              { insert result also if support is on }
-              if (m_result in aktmodeswitches) then
-               begin
-                 procinfo^.resultfuncretsym:=new(pfuncretsym,init('RESULT',procinfo));
-                 symtablestack^.insert(procinfo^.resultfuncretsym);
-               end;
-           end;
-         read_declarations(islibrary);
-
-         { temporary space is set, while the BEGIN of the procedure }
-         if (symtablestack^.symtabletype=localsymtable) then
-           procinfo^.firsttemp_offset := -symtablestack^.datasize
-         else
-           procinfo^.firsttemp_offset := 0;
-
-         { space for the return value }
-         { !!!!!   this means that we can not set the return value
-         in a subfunction !!!!! }
-         { because we don't know yet where the address is }
-         if procinfo^.returntype.def<>pdef(voiddef) then
-           begin
-              if ret_in_acc(procinfo^.returntype.def) or (procinfo^.returntype.def^.deftype=floatdef) then
-              { if (procinfo^.retdef^.deftype=orddef) or
-                 (procinfo^.retdef^.deftype=pointerdef) or
-                 (procinfo^.retdef^.deftype=enumdef) or
-                 (procinfo^.retdef^.deftype=procvardef) or
-                 (procinfo^.retdef^.deftype=floatdef) or
-                 (
-                   (procinfo^.retdef^.deftype=setdef) and
-                   (psetdef(procinfo^.retdef)^.settype=smallset)
-                 ) then  }
-                begin
-                   { the space has been set in the local symtable }
-                   procinfo^.return_offset:=-funcretsym^.address;
-                   if ((procinfo^.flags and pi_operator)<>0) and
-                     assigned(opsym) then
-                     {opsym^.address:=procinfo^.para_offset; is wrong PM }
-                     opsym^.address:=-procinfo^.return_offset;
-                   { eax is modified by a function }
-{$ifndef newcg}
-{$ifdef i386}
-                   usedinproc:=usedinproc or ($80 shr byte(R_EAX));
-
-                   if is_64bitint(procinfo^.returntype.def) then
-                     usedinproc:=usedinproc or ($80 shr byte(R_EDX))
-{$endif}
-{$ifdef m68k}
-                   usedinproc:=usedinproc or ($800 shr word(R_D0));
-
-                   if is_64bitint(procinfo^.retdef) then
-                     usedinproc:=usedinproc or ($800 shr byte(R_D1))
-{$endif}
-{$endif newcg}
-                end;
-           end;
-
-         {Unit initialization?.}
-         if (lexlevel=unit_init_level) and (current_module^.is_unit)
-            or islibrary then
-           begin
-             if (token=_END) then
-                begin
-                   consume(_END);
-                   { We need at least a node, else the entry/exit code is not
-                     generated and thus no PASCALMAIN symbol which we need (PFV) }
-                   if islibrary then
-                    block:=genzeronode(nothingn)
-                   else
-                    block:=nil;
-                end
-              else
-                begin
-                   if token=_INITIALIZATION then
-                     begin
-                        current_module^.flags:=current_module^.flags or uf_init;
-                        block:=statement_block(_INITIALIZATION);
-                     end
-                   else if (token=_FINALIZATION) then
-                     begin
-                        if (current_module^.flags and uf_finalize)<>0 then
-                          block:=statement_block(_FINALIZATION)
-                        else
-                          begin
-                          { can we allow no INITIALIZATION for DLL ??
-                            I think it should work PM }
-                             block:=nil;
-                             exit;
-                          end;
-                     end
-                   else
-                     begin
-                        current_module^.flags:=current_module^.flags or uf_init;
-                        block:=statement_block(_BEGIN);
-                     end;
-                end;
-            end
-         else
-            block:=statement_block(_BEGIN);
-      end;
-
-    function assembler_block : ptree;
-
-      begin
-         read_declarations(false);
          { temporary space is set, while the BEGIN of the procedure }
          if symtablestack^.symtabletype=localsymtable then
            procinfo^.firsttemp_offset := -symtablestack^.datasize
@@ -1376,7 +1254,10 @@ interface
 end.
 {
   $Log$
-  Revision 1.9  2000-10-01 19:48:25  peter
+  Revision 1.10  2000-10-14 10:14:52  peter
+    * moehrendorf oct 2000 rewrite
+
+  Revision 1.9  2000/10/01 19:48:25  peter
     * lot of compile updates for cg11
 
   Revision 1.8  2000/09/24 21:19:50  peter

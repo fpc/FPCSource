@@ -44,11 +44,11 @@ implementation
        globtype,systems,tokens,cpuinfo,
        cutils,cobjects,globals,scanner,
        symconst,aasm,types,verbose,
-       tree,pass_1,
+       { pass 1 }
+       node,pass_1,
+       nmat,nadd,ncal,nmem,nset,ncnv,ninl,ncon,nld,nflw,
        { parser specific stuff }
        pbase,pexpr,
-       { processor specific stuff }
-       cpubase,
        { codegen }
 {$ifdef newcg}
        cgbase,
@@ -69,7 +69,7 @@ implementation
          j : longint;
 {$endif m68k}
          len,base  : longint;
-         p,hp      : ptree;
+         p,hp      : tnode;
          i,l,offset,
          strlength : longint;
          curconstsegment : paasmoutput;
@@ -84,8 +84,8 @@ implementation
 
       procedure check_range;
         begin
-           if ((p^.value>porddef(def)^.high) or
-               (p^.value<porddef(def)^.low)) then
+           if ((tordconstnode(p).value>porddef(def)^.high) or
+               (tordconstnode(p).value<porddef(def)^.low)) then
              begin
                 if (cs_check_range in aktlocalswitches) then
                   Message(parser_e_range_check_error)
@@ -93,13 +93,6 @@ implementation
                   Message(parser_w_range_check_error);
              end;
         end;
-
-(*      function is_po_equal(o1,o2:longint):boolean;
-        begin
-        { assembler does not affect }
-          is_po_equal:=(o1 and not(poassembler))=
-                       (o2 and not(poassembler));
-        end; *)
 
 {$R-}  {Range check creates problem with init_8bit(-1) !!}
       begin
@@ -113,277 +106,273 @@ implementation
                  p:=comp_expr(true);
                  do_firstpass(p);
                  case porddef(def)^.typ of
+                    bool8bit :
+                      begin
+                         if is_constboolnode(p) then
+                           curconstsegment^.concat(new(pai_const,init_8bit(tordconstnode(p).value)))
+                         else
+                           Message(cg_e_illegal_expression);
+                      end;
+                    bool16bit :
+                      begin
+                         if is_constboolnode(p) then
+                           curconstsegment^.concat(new(pai_const,init_16bit(tordconstnode(p).value)))
+                         else
+                           Message(cg_e_illegal_expression);
+                      end;
+                    bool32bit :
+                      begin
+                         if is_constboolnode(p) then
+                           curconstsegment^.concat(new(pai_const,init_32bit(tordconstnode(p).value)))
+                         else
+                           Message(cg_e_illegal_expression);
+                      end;
+                    uchar :
+                      begin
+                         if is_constcharnode(p) then
+                           curconstsegment^.concat(new(pai_const,init_8bit(tordconstnode(p).value)))
+                         else
+                           Message(cg_e_illegal_expression);
+                      end;
+                    uwidechar :
+                      begin
+                         if is_constcharnode(p) then
+                           curconstsegment^.concat(new(pai_const,init_16bit(tordconstnode(p).value)))
+                         else
+                           Message(cg_e_illegal_expression);
+                      end;
                     s8bit,
-                    u8bit : begin
-                               if not is_constintnode(p) then
-                               { is't an int expected }
-                                 Message(cg_e_illegal_expression)
-                               else
-                                 begin
-                                    curconstsegment^.concat(new(pai_const,init_8bit(p^.value)));
-                                    check_range;
-                                 end;
-                            end;
-                    s32bit : begin
-                                if not is_constintnode(p) then
-                                  Message(cg_e_illegal_expression)
-                                else
-                                  begin
-                                     curconstsegment^.concat(new(pai_const,init_32bit(p^.value)));
-                                     check_range;
-                                  end;
-                            end;
-                    u32bit : begin
-                                if not is_constintnode(p) then
-                                  Message(cg_e_illegal_expression)
-                                else
-                                   curconstsegment^.concat(new(pai_const,init_32bit(p^.value)));
-                             end;
-                    bool8bit : begin
-                                  if not is_constboolnode(p) then
-                                    Message(cg_e_illegal_expression);
-                                  curconstsegment^.concat(new(pai_const,init_8bit(p^.value)));
-                               end;
-                    bool16bit : begin
-                                  if not is_constboolnode(p) then
-                                    Message(cg_e_illegal_expression);
-                                  curconstsegment^.concat(new(pai_const,init_16bit(p^.value)));
-                               end;
-                    bool32bit : begin
-                                  if not is_constboolnode(p) then
-                                    Message(cg_e_illegal_expression);
-                                  curconstsegment^.concat(new(pai_const,init_32bit(p^.value)));
-                               end;
-                    uchar : begin
-                                if not is_constcharnode(p) then
-                                  Message(cg_e_illegal_expression);
-                                curconstsegment^.concat(new(pai_const,init_8bit(p^.value)));
-                            end;
-                    uwidechar : begin
-                                if not is_constcharnode(p) then
-                                  Message(cg_e_illegal_expression);
-                                curconstsegment^.concat(new(pai_const,init_16bit(p^.value)));
-                            end;
+                    u8bit :
+                      begin
+                         if is_constintnode(p) then
+                           begin
+                              curconstsegment^.concat(new(pai_const,init_8bit(tordconstnode(p).value)));
+                              check_range;
+                           end
+                         else
+                           Message(cg_e_illegal_expression);
+                      end;
                     u16bit,
-                    s16bit : begin
-                                if not is_constintnode(p) then
-                                  Message(cg_e_illegal_expression);
-                                curconstsegment^.concat(new(pai_const,init_16bit(p^.value)));
-                                check_range;
-                            end;
+                    s16bit :
+                      begin
+                         if is_constintnode(p) then
+                           begin
+                             curconstsegment^.concat(new(pai_const,init_16bit(tordconstnode(p).value)));
+                             check_range;
+                           end
+                         else
+                           Message(cg_e_illegal_expression);
+                     end;
+                    s32bit,
+                    u32bit :
+                      begin
+                         if is_constintnode(p) then
+                           begin
+                              curconstsegment^.concat(new(pai_const,init_32bit(tordconstnode(p).value)));
+                              if porddef(def)^.typ<>u32bit then
+                               check_range;
+                           end
+                         else
+                           Message(cg_e_illegal_expression);
+                      end;
                     s64bit,
                     u64bit:
                       begin
-                         if not is_constintnode(p) then
-                           Message(cg_e_illegal_expression)
-                         else
+                         if is_constintnode(p) then
                            begin
                               {!!!!! hmmm, we can write yet only consts til 2^32-1 :( (FK) }
-                              curconstsegment^.concat(new(pai_const,init_32bit(p^.value)));
+                              curconstsegment^.concat(new(pai_const,init_32bit(tordconstnode(p).value)));
                               curconstsegment^.concat(new(pai_const,init_32bit(0)));
-                           end;
+                           end
+                         else
+                           Message(cg_e_illegal_expression);
                       end;
                     else
                       internalerror(3799);
                  end;
-                 disposetree(p);
+                 p.free;
               end;
          floatdef:
            begin
               p:=comp_expr(true);
               do_firstpass(p);
               if is_constrealnode(p) then
-                value:=p^.value_real
+                value:=trealconstnode(p).value_real
               else if is_constintnode(p) then
-                value:=p^.value
+                value:=tordconstnode(p).value
               else
                 Message(cg_e_illegal_expression);
 
               case pfloatdef(def)^.typ of
-                 s32real : curconstsegment^.concat(new(pai_real_32bit,init(value)));
-                 s64real : curconstsegment^.concat(new(pai_real_64bit,init(value)));
-                 s80real : curconstsegment^.concat(new(pai_real_80bit,init(value)));
-                 s64comp  : curconstsegment^.concat(new(pai_comp_64bit,init(value)));
-                 f32bit : curconstsegment^.concat(new(pai_const,init_32bit(trunc(value*65536))));
-              else internalerror(18);
+                 s32real :
+                   curconstsegment^.concat(new(pai_real_32bit,init(value)));
+                 s64real :
+                   curconstsegment^.concat(new(pai_real_64bit,init(value)));
+                 s80real :
+                   curconstsegment^.concat(new(pai_real_80bit,init(value)));
+                 s64comp :
+                   curconstsegment^.concat(new(pai_comp_64bit,init(value)));
+                 f32bit :
+                   curconstsegment^.concat(new(pai_const,init_32bit(trunc(value*65536))));
+                 else
+                   internalerror(18);
               end;
-              disposetree(p);
+              p.free;
            end;
          classrefdef:
            begin
               p:=comp_expr(true);
               do_firstpass(p);
-              case p^.treetype of
+              case p.nodetype of
                  loadvmtn:
                    begin
-                      if not(pobjectdef(pclassrefdef(p^.resulttype)^.pointertype.def)^.is_related(
+                      if not(pobjectdef(pclassrefdef(p.resulttype)^.pointertype.def)^.is_related(
                         pobjectdef(pclassrefdef(def)^.pointertype.def))) then
                         Message(cg_e_illegal_expression);
                       curconstsegment^.concat(new(pai_const_symbol,init(newasmsymbol(pobjectdef(
-                        pclassrefdef(p^.resulttype)^.pointertype.def)^.vmt_mangledname))));
+                        pclassrefdef(p.resulttype)^.pointertype.def)^.vmt_mangledname))));
                    end;
                  niln:
                    curconstsegment^.concat(new(pai_const,init_32bit(0)));
                  else Message(cg_e_illegal_expression);
               end;
-              disposetree(p);
+              p.free;
            end;
          pointerdef:
            begin
               p:=comp_expr(true);
               do_firstpass(p);
-              if (p^.treetype=typeconvn) and
-                 ((p^.left^.treetype=addrn) or (p^.left^.treetype=niln)) and
-                 is_equal(def,p^.resulttype) then
+              if (p.nodetype=typeconvn) and
+                 (ttypeconvnode(p).left.nodetype in [addrn,niln]) and
+                 is_equal(def,p.resulttype) then
                 begin
-                   hp:=p^.left;
-                   putnode(p);
+                   hp:=ttypeconvnode(p).left;
+                   ttypeconvnode(p).left:=nil;
+                   p.free;
                    p:=hp;
                 end;
               { allows horrible ofs(typeof(TButton)^) code !! }
-              if (p^.treetype=addrn) and (p^.left^.treetype=derefn) then
+              if (p.nodetype=addrn) and
+                 (taddrnode(p).left.nodetype=derefn) then
                 begin
-                   hp:=p^.left^.left;
-                   p^.left^.left:=nil;
-                   disposetree(p);
+                   hp:=tderefnode(taddrnode(p).left).left;
+                   tderefnode(taddrnode(p).left).left:=nil;
+                   p.free;
                    p:=hp;
                 end;
               { nil pointer ? }
-              if p^.treetype=niln then
+              if p.nodetype=niln then
                 curconstsegment^.concat(new(pai_const,init_32bit(0)))
               { maybe pchar ? }
               else
                 if is_char(ppointerdef(def)^.pointertype.def) and
-                   (p^.treetype<>addrn) then
+                   (p.nodetype<>addrn) then
                   begin
                     getdatalabel(ll);
                     curconstsegment^.concat(new(pai_const_symbol,init(ll)));
                     consts^.concat(new(pai_label,init(ll)));
-                    if p^.treetype=stringconstn then
+                    if p.nodetype=stringconstn then
                       begin
-                        len:=p^.length;
+                        len:=tstringconstnode(p).len;
                         { For tp7 the maximum lentgh can be 255 }
                         if (m_tp in aktmodeswitches) and
                            (len>255) then
                          len:=255;
                         getmem(ca,len+2);
-                        move(p^.value_str^,ca^,len+1);
+                        move(tstringconstnode(p).value_str^,ca^,len+1);
                         consts^.concat(new(pai_string,init_length_pchar(ca,len+1)));
                       end
                     else
                       if is_constcharnode(p) then
-                        consts^.concat(new(pai_string,init(char(byte(p^.value))+#0)))
+                        consts^.concat(new(pai_string,init(char(byte(tordconstnode(p).value))+#0)))
                     else
                       Message(cg_e_illegal_expression);
                 end
               else
-                if p^.treetype=addrn then
+                if p.nodetype=addrn then
                   begin
-                    hp:=p^.left;
-                    while assigned(hp) and (hp^.treetype in [subscriptn,vecn]) do
-                      hp:=hp^.left;
-                    if (is_equal(ppointerdef(p^.resulttype)^.pointertype.def,ppointerdef(def)^.pointertype.def) or
-                       (is_equal(ppointerdef(p^.resulttype)^.pointertype.def,voiddef)) or
+                    hp:=taddrnode(p).left;
+                    while assigned(hp) and (hp.nodetype in [subscriptn,vecn]) do
+                      hp:=tbinarynode(hp).left;
+                    if (is_equal(ppointerdef(p.resulttype)^.pointertype.def,ppointerdef(def)^.pointertype.def) or
+                       (is_equal(ppointerdef(p.resulttype)^.pointertype.def,voiddef)) or
                        (is_equal(ppointerdef(def)^.pointertype.def,voiddef))) and
-                       (hp^.treetype=loadn) then
+                       (hp.nodetype=loadn) then
                       begin
-                        do_firstpass(p^.left);
-                        hp:=p^.left;
+                        do_firstpass(taddrnode(p).left);
+                        hp:=taddrnode(p).left;
                         offset:=0;
-                        while assigned(hp) and (hp^.treetype<>loadn) do
+                        while assigned(hp) and (hp.nodetype<>loadn) do
                           begin
-                             case hp^.treetype of
-                               vecn       :
+                             case hp.nodetype of
+                               vecn :
                                  begin
-                                    if (hp^.left^.resulttype^.deftype=stringdef) then
-                                      begin
-                                         { this seems OK for shortstring and ansistrings PM }
-                                         { it is wrong for widestrings !! }
-                                         len:=1;
-                                         base:=0;
-                                      end
-                                    else if (hp^.left^.resulttype^.deftype=arraydef) then
-                                      begin
-                                         len:=parraydef(hp^.left^.resulttype)^.elesize;
-                                         base:=parraydef(hp^.left^.resulttype)^.lowrange;
-                                      end
-                                    else
-                                      Message(cg_e_illegal_expression);
-                                    if is_constintnode(hp^.right) then
-                                      inc(offset,len*(get_ordinal_value(hp^.right)-base))
-                                    else
-                                      Message(cg_e_illegal_expression);
-                                      {internalerror(9779);}
+                                   case tvecnode(hp).left.resulttype^.deftype of
+                                     stringdef :
+                                       begin
+                                          { this seems OK for shortstring and ansistrings PM }
+                                          { it is wrong for widestrings !! }
+                                          len:=1;
+                                          base:=0;
+                                       end;
+                                     arraydef :
+                                       begin
+                                          len:=parraydef(tvecnode(hp).left.resulttype)^.elesize;
+                                          base:=parraydef(tvecnode(hp).left.resulttype)^.lowrange;
+                                       end
+                                     else
+                                       Message(cg_e_illegal_expression);
+                                   end;
+                                   if is_constintnode(tvecnode(hp).right) then
+                                     inc(offset,len*(get_ordinal_value(tvecnode(hp).right)-base))
+                                   else
+                                     Message(cg_e_illegal_expression);
                                  end;
-
-                               subscriptn : inc(offset,hp^.vs^.address)
-                             else
-                               Message(cg_e_illegal_expression);
+                               subscriptn :
+                                 inc(offset,tsubscriptnode(hp).vs^.address)
+                               else
+                                 Message(cg_e_illegal_expression);
                              end;
-                             hp:=hp^.left;
+                             hp:=tbinarynode(hp).left;
                           end;
-                        if hp^.symtableentry^.typ=constsym then
+                        if tloadnode(hp).symtableentry^.typ=constsym then
                           Message(type_e_variable_id_expected);
-                        curconstsegment^.concat(new(pai_const_symbol,initname_offset(hp^.symtableentry^.mangledname,offset)));
-                        (*if token=POINT then
-                          begin
-                             offset:=0;
-                             while token=_POINT do
-                               begin
-                                  consume(_POINT);
-                                  lsym:=pvarsym(precdef(
-                                        ppointerdef(p^.resulttype)^.pointertype.def)^.symtable^.search(pattern));
-                                  if assigned(sym) then
-                                    offset:=offset+lsym^.address
-                                  else
-                                    begin
-                                       Message1(sym_e_illegal_field,pattern);
-                                    end;
-                                  consume(_ID);
-                               end;
-                             curconstsegment^.concat(new(pai_const_symbol_offset,init(
-                               strpnew(p^.left^.symtableentry^.mangledname),offset)));
-                          end
-                        else
-                          begin
-                             curconstsegment^.concat(new(pai_const,init_symbol(
-                               strpnew(p^.left^.symtableentry^.mangledname))));
-                          end;   *)
+                        curconstsegment^.concat(new(pai_const_symbol,initname_offset(tloadnode(hp).symtableentry^.mangledname,offset)));
                       end
                     else
                       Message(cg_e_illegal_expression);
                   end
               else
               { allow typeof(Object type)}
-                if (p^.treetype=inlinen) and
-                   (p^.inlinenumber=in_typeof_x) then
+                if (p.nodetype=inlinen) and
+                   (tinlinenode(p).inlinenumber=in_typeof_x) then
                   begin
-                    if (p^.left^.treetype=typen) then
+                    if (tinlinenode(p).left.nodetype=typen) then
                       begin
                         curconstsegment^.concat(new(pai_const_symbol,
-                          initname(pobjectdef(p^.left^.resulttype)^.vmt_mangledname)));
+                          initname(pobjectdef(tinlinenode(p).left.resulttype)^.vmt_mangledname)));
                       end
                     else
                       Message(cg_e_illegal_expression);
                   end
               else
                 Message(cg_e_illegal_expression);
-              disposetree(p);
+              p.free;
            end;
          setdef:
            begin
               p:=comp_expr(true);
               do_firstpass(p);
-              if p^.treetype=setconstn then
+              if p.nodetype=setconstn then
                 begin
                    { we only allow const sets }
-                   if assigned(p^.left) then
+                   if assigned(tsetconstnode(p).left) then
                      Message(cg_e_illegal_expression)
                    else
                      begin
 {$ifdef i386}
                         for l:=0 to def^.size-1 do
-                          curconstsegment^.concat(new(pai_const,init_8bit(p^.value_set^[l])));
+                          curconstsegment^.concat(new(pai_const,init_8bit(tsetconstnode(p).value_set^[l])));
 {$endif}
 {$ifdef m68k}
                         j:=0;
@@ -391,10 +380,10 @@ implementation
                         { HORRIBLE HACK because of endian       }
                         { now use intel endian for constant sets }
                          begin
-                           curconstsegment^.concat(new(pai_const,init_8bit(p^.value_set^[j+3])));
-                           curconstsegment^.concat(new(pai_const,init_8bit(p^.value_set^[j+2])));
-                           curconstsegment^.concat(new(pai_const,init_8bit(p^.value_set^[j+1])));
-                           curconstsegment^.concat(new(pai_const,init_8bit(p^.value_set^[j])));
+                           curconstsegment^.concat(new(pai_const,init_8bit(tordconstnode(p).value_set^[j+3])));
+                           curconstsegment^.concat(new(pai_const,init_8bit(tordconstnode(p).value_set^[j+2])));
+                           curconstsegment^.concat(new(pai_const,init_8bit(tordconstnode(p).value_set^[j+1])));
+                           curconstsegment^.concat(new(pai_const,init_8bit(tordconstnode(p).value_set^[j])));
                            Inc(j,4);
                          end;
 {$endif}
@@ -402,20 +391,20 @@ implementation
                 end
               else
                 Message(cg_e_illegal_expression);
-              disposetree(p);
+              p.free;
            end;
          enumdef:
            begin
               p:=comp_expr(true);
               do_firstpass(p);
-              if p^.treetype=ordconstn then
+              if p.nodetype=ordconstn then
                 begin
-                  if is_equal(p^.resulttype,def) then
+                  if is_equal(p.resulttype,def) then
                    begin
-                     case p^.resulttype^.size of
-                       1 : curconstsegment^.concat(new(pai_const,init_8bit(p^.value)));
-                       2 : curconstsegment^.concat(new(pai_const,init_16bit(p^.value)));
-                       4 : curconstsegment^.concat(new(pai_const,init_32bit(p^.value)));
+                     case p.resulttype^.size of
+                       1 : curconstsegment^.concat(new(pai_const,init_8bit(tordconstnode(p).value)));
+                       2 : curconstsegment^.concat(new(pai_const,init_16bit(tordconstnode(p).value)));
+                       4 : curconstsegment^.concat(new(pai_const,init_32bit(tordconstnode(p).value)));
                      end;
                    end
                   else
@@ -423,27 +412,27 @@ implementation
                 end
               else
                 Message(cg_e_illegal_expression);
-              disposetree(p);
+              p.free;
            end;
          stringdef:
            begin
               p:=comp_expr(true);
               do_firstpass(p);
               { load strval and strlength of the constant tree }
-              if p^.treetype=stringconstn then
+              if p.nodetype=stringconstn then
                 begin
-                  strlength:=p^.length;
-                  strval:=p^.value_str;
+                  strlength:=tstringconstnode(p).len;
+                  strval:=tstringconstnode(p).value_str;
                 end
               else if is_constcharnode(p) then
                 begin
-                  strval:=pchar(@p^.value);
+                  strval:=pchar(@tordconstnode(p).value);
                   strlength:=1
                 end
               else if is_constresourcestringnode(p) then
                 begin
-                  strval:=pchar(tpointerord(pconstsym(p^.symtableentry)^.value));
-                  strlength:=pconstsym(p^.symtableentry)^.len;
+                  strval:=pchar(tpointerord(pconstsym(tloadnode(p).symtableentry)^.value));
+                  strlength:=pconstsym(tloadnode(p).symtableentry)^.len;
                 end
               else
                 begin
@@ -521,7 +510,7 @@ implementation
                      end;
                  end;
                end;
-              disposetree(p);
+              p.free;
            end;
          arraydef:
            begin
@@ -542,19 +531,19 @@ implementation
                 begin
                    p:=comp_expr(true);
                    do_firstpass(p);
-                   if p^.treetype=stringconstn then
+                   if p.nodetype=stringconstn then
                     begin
-                      len:=p^.length;
+                      len:=tstringconstnode(p).len;
                       { For tp7 the maximum lentgh can be 255 }
                       if (m_tp in aktmodeswitches) and
                          (len>255) then
                        len:=255;
-                      ca:=p^.value_str;
+                      ca:=tstringconstnode(p).value_str;
                     end
                    else
                      if is_constcharnode(p) then
                       begin
-                        ca:=pchar(@p^.value);
+                        ca:=pchar(@tordconstnode(p).value);
                         len:=1;
                       end
                    else
@@ -575,7 +564,7 @@ implementation
                           {Fill the remaining positions with #0.}
                           curconstsegment^.concat(new(pai_const,init_8bit(0)));
                      end;
-                   disposetree(p);
+                   p.free;
                 end
               else
                 begin
@@ -604,43 +593,43 @@ implementation
               do_firstpass(p);
               if codegenerror then
                begin
-                 disposetree(p);
+                 p.free;
                  exit;
                end;
               { convert calln to loadn }
-              if p^.treetype=calln then
+              if p.nodetype=calln then
                begin
-                 if (p^.symtableprocentry^.owner^.symtabletype=objectsymtable) and
-                    (pobjectdef(p^.symtableprocentry^.owner^.defowner)^.is_class) then
-                  hp:=genloadmethodcallnode(pprocsym(p^.symtableprocentry),p^.symtableproc,
-                        getcopy(p^.methodpointer))
+                 if (tcallnode(p).symtableprocentry^.owner^.symtabletype=objectsymtable) and
+                    (pobjectdef(tcallnode(p).symtableprocentry^.owner^.defowner)^.is_class) then
+                  hp:=genloadmethodcallnode(pprocsym(tcallnode(p).symtableprocentry),tcallnode(p).symtableproc,
+                        tcallnode(p).methodpointer.getcopy)
                  else
-                  hp:=genloadcallnode(pprocsym(p^.symtableprocentry),p^.symtableproc);
-                 disposetree(p);
+                  hp:=genloadcallnode(pprocsym(tcallnode(p).symtableprocentry),tcallnode(p).symtableproc);
+                 p.free;
                  do_firstpass(hp);
                  p:=hp;
                  if codegenerror then
                   begin
-                    disposetree(p);
+                    p.free;
                     exit;
                   end;
                end
-              else if (p^.treetype=addrn) and assigned(p^.left) and
-                (p^.left^.treetype=calln) then
+              else if (p.nodetype=addrn) and assigned(taddrnode(p).left) and
+                (taddrnode(p).left.nodetype=calln) then
                 begin
-                   if (p^.left^.symtableprocentry^.owner^.symtabletype=objectsymtable) and
-                      (pobjectdef(p^.left^.symtableprocentry^.owner^.defowner)^.is_class) then
-                    hp:=genloadmethodcallnode(pprocsym(p^.left^.symtableprocentry),
-                    p^.left^.symtableproc,getcopy(p^.left^.methodpointer))
+                   if (tcallnode(taddrnode(p).left).symtableprocentry^.owner^.symtabletype=objectsymtable) and
+                      (pobjectdef(tcallnode(taddrnode(p).left).symtableprocentry^.owner^.defowner)^.is_class) then
+                    hp:=genloadmethodcallnode(pprocsym(tcallnode(taddrnode(p).left).symtableprocentry),
+                    tcallnode(taddrnode(p).left).symtableproc,tcallnode(taddrnode(p).left).methodpointer.getcopy)
                    else
-                    hp:=genloadcallnode(pprocsym(p^.left^.symtableprocentry),
-                      p^.left^.symtableproc);
-                   disposetree(p);
+                    hp:=genloadcallnode(pprocsym(tcallnode(taddrnode(p).left).symtableprocentry),
+                      tcallnode(taddrnode(p).left).symtableproc);
+                   p.free;
                    do_firstpass(hp);
                    p:=hp;
                    if codegenerror then
                     begin
-                       disposetree(p);
+                       p.free;
                        exit;
                     end;
                 end;
@@ -649,34 +638,36 @@ implementation
               do_firstpass(p);
               if codegenerror then
                begin
-                 disposetree(p);
+                 p.free;
                  exit;
                end;
               { remove typeconvn, that will normally insert a lea
                 instruction which is not necessary for us }
-              if p^.treetype=typeconvn then
+              if p.nodetype=typeconvn then
                begin
-                 hp:=p^.left;
-                 putnode(p);
+                 hp:=ttypeconvnode(p).left;
+                 ttypeconvnode(p).left:=nil;
+                 p.free;
                  p:=hp;
                end;
               { remove addrn which we also don't need here }
-              if p^.treetype=addrn then
+              if p.nodetype=addrn then
                begin
-                 hp:=p^.left;
-                 putnode(p);
+                 hp:=taddrnode(p).left;
+                 taddrnode(p).left:=nil;
+                 p.free;
                  p:=hp;
                end;
               { we now need to have a loadn with a procsym }
-              if (p^.treetype=loadn) and
-                 (p^.symtableentry^.typ=procsym) then
+              if (p.nodetype=loadn) and
+                 (tloadnode(p).symtableentry^.typ=procsym) then
                begin
                  curconstsegment^.concat(new(pai_const_symbol,
-                   initname(pprocsym(p^.symtableentry)^.definition^.mangledname)));
+                   initname(pprocsym(tloadnode(p).symtableentry)^.definition^.mangledname)));
                end
               else
                Message(cg_e_illegal_expression);
-              disposetree(p);
+              p.free;
            end;
          { reads a typed constant record }
          recorddef:
@@ -810,7 +801,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.8  2000-09-30 13:23:04  peter
+  Revision 1.9  2000-10-14 10:14:52  peter
+    * moehrendorf oct 2000 rewrite
+
+  Revision 1.8  2000/09/30 13:23:04  peter
     * const array of char and pchar length fixed (merged)
 
   Revision 1.7  2000/09/24 15:06:25  peter

@@ -31,19 +31,20 @@ interface
     uses
       symtable,node,ncal;
 
-    ti386callparanode = class(tcallparanode)
-       procedure secondcallparan(defcoll : pparaitem;
-                push_from_left_to_right,inlined,is_cdecl : boolean;
-                para_alignment,para_offset : longint);virtual;
-    end;
+    type
+       ti386callparanode = class(tcallparanode)
+          procedure secondcallparan(defcoll : pparaitem;
+                   push_from_left_to_right,inlined,is_cdecl : boolean;
+                   para_alignment,para_offset : longint);override;
+       end;
 
-    ti386callnode = class(tcallnode)
-       procedure pass_2;override;
-    end;
+       ti386callnode = class(tcallnode)
+          procedure pass_2;override;
+       end;
 
-    ti386procinlinenode = class(tprocinlinenode)
-       procedure pass_2;override;
-    end;
+       ti386procinlinenode = class(tprocinlinenode)
+          procedure pass_2;override;
+       end;
 
 implementation
 
@@ -61,7 +62,8 @@ implementation
 {$endif GDB}
       hcodegen,temp_gen,pass_2,
       cpubase,cpuasm,
-      cgai386,tgeni386,cg386ld;
+      nmem,nld,
+      cgai386,tgeni386,n386ld,n386util;
 
 {*****************************************************************************
                              TI386CALLPARANODE
@@ -139,7 +141,7 @@ implementation
 
          { push from left to right if specified }
          if push_from_left_to_right and assigned(right) then
-           secondcallparan(right,pparaitem(defcoll^.next),push_from_left_to_right,
+           tcallparanode(right).secondcallparan(pparaitem(defcoll^.next),push_from_left_to_right,
              inlined,is_cdecl,para_alignment,para_offset);
          otlabel:=truelabel;
          oflabel:=falselabel;
@@ -147,7 +149,7 @@ implementation
          getlabel(falselabel);
          secondpass(left);
          { filter array constructor with c styled args }
-         if is_array_constructor(left.resulttype) and left.cargs then
+         if is_array_constructor(left.resulttype) and (nf_cargs in left.flags) then
            begin
              { nothing, everything is already pushed }
            end
@@ -157,8 +159,8 @@ implementation
            begin
               { allow @var }
               inc(pushedparasize,4);
-              if (left.treetype=addrn) and
-                 (not left.procvarload) then
+              if (left.nodetype=addrn) and
+                 (not(nf_procvarload in left.flags)) then
                 begin
                 { always a register }
                   if inlined then
@@ -256,7 +258,7 @@ implementation
          falselabel:=oflabel;
          { push from right to left }
          if not push_from_left_to_right and assigned(right) then
-           secondcallparan(right,pparaitem(defcoll^.next),push_from_left_to_right,
+           tcallparanode(right).secondcallparan(pparaitem(defcoll^.next),push_from_left_to_right,
              inlined,is_cdecl,para_alignment,para_offset);
       end;
 
@@ -265,7 +267,7 @@ implementation
                              TI386CALLNODE
 *****************************************************************************}
 
-    procedure ti386callnode.pass_1;
+    procedure ti386callnode.pass_2;
       var
          unusedregisters : tregisterset;
          usablecount : byte;
@@ -287,11 +289,11 @@ implementation
          i : longint;
          { help reference pointer }
          r : preference;
-         hp : tnode
+         hp : tnode;
          pp : tbinarynode;
          params : tnode;
          inlined : boolean;
-         inlinecode : ptree;
+         inlinecode : tprocinlinenode;
          para_alignment,
          para_offset : longint;
          { instruction for alignement correction }
@@ -318,8 +320,7 @@ implementation
          unusedregisters:=unused;
          usablecount:=usablereg32;
 
-         if (pocall_cdecl in procdefinition^.proccalloptions) or
-            (pocall_stdcall in procdefinition^.proccalloptions) then
+         if ([pocall_cdecl,pocall_cppdecl,pocall_stdcall]*procdefinition^.proccalloptions)<>[] then
           para_alignment:=4
          else
           para_alignment:=target_os.stackalignment;
@@ -333,15 +334,15 @@ implementation
          if (pocall_inline in procdefinition^.proccalloptions) then
            begin
               { make a copy for the next time the procedure is inlined (JM) }
-              left:=getcopy(left);
+              left:=left.getcopy;
               inlined:=true;
-              inlinecode:=right;
+              inlinecode:=tprocinlinenode(right);
               { set it to the same lexical level as the local symtable, becuase
                 the para's are stored there }
               pprocdef(procdefinition)^.parast^.symtablelevel:=aktprocsym^.definition^.localst^.symtablelevel;
               if assigned(params) then
-                inlinecode^.para_offset:=gettempofsizepersistant(inlinecode^.para_size);
-              pprocdef(procdefinition)^.parast^.address_fixup:=inlinecode^.para_offset;
+                inlinecode.para_offset:=gettempofsizepersistant(inlinecode.para_size);
+              pprocdef(procdefinition)^.parast^.address_fixup:=inlinecode.para_offset;
 {$ifdef extdebug}
              Comment(V_debug,
                'inlined parasymtable is at offset '
@@ -351,7 +352,7 @@ implementation
                +tostr(pprocdef(procdefinition)^.parast^.address_fixup)))));
 {$endif extdebug}
               { copy for the next time the procedure is inlined (JM) }
-              right:=getcopy(right);
+              right:=right.getcopy;
               { disable further inlining of the same proc
                 in the args }
               exclude(procdefinition^.proccalloptions,pocall_inline);
@@ -486,18 +487,18 @@ implementation
                 para_offset:=0;
               if not(inlined) and
                  assigned(right) then
-                secondcallparan(params,pparaitem(pabstractprocdef(right.resulttype)^.para^.first),
+                tcallparanode(params).secondcallparan(pparaitem(pabstractprocdef(right.resulttype)^.para^.first),
                   (pocall_leftright in procdefinition^.proccalloptions),inlined,
-                  (pocall_cdecl in procdefinition^.proccalloptions),
+                  (([pocall_cdecl,pocall_cppdecl]*procdefinition^.proccalloptions)<>[]),
                   para_alignment,para_offset)
               else
-                secondcallparan(params,pparaitem(procdefinition^.para^.first),
+                tcallparanode(params).secondcallparan(pparaitem(procdefinition^.para^.first),
                   (pocall_leftright in procdefinition^.proccalloptions),inlined,
-                  (pocall_cdecl in procdefinition^.proccalloptions),
+                  (([pocall_cdecl,pocall_cppdecl]*procdefinition^.proccalloptions)<>[]),
                   para_alignment,para_offset);
            end;
          if inlined then
-           inlinecode^.retoffset:=gettempofsizepersistant(4);
+           inlinecode.retoffset:=gettempofsizepersistant(4);
          if ret_in_param(resulttype) then
            begin
               { This must not be counted for C code
@@ -513,7 +514,7 @@ implementation
 {$endif noAllocEdi}
                    emit_ref_reg(A_LEA,S_L,
                      newreference(funcretref),R_EDI);
-                   r:=new_reference(procinfo^.framepointer,inlinecode^.retoffset);
+                   r:=new_reference(procinfo^.framepointer,inlinecode.retoffset);
                    emit_reg_ref(A_MOV,S_L,R_EDI,r);
 {$ifndef noAllocEdi}
                    ungetregister32(R_EDI);
@@ -528,24 +529,22 @@ implementation
            begin
               { overloaded operator have no symtable }
               { push self }
-              if assigned(symtable) and
-                (symtable^.symtabletype=withsymtable) then
+              if assigned(symtableproc) and
+                (symtableproc^.symtabletype=withsymtable) then
                 begin
                    { dirty trick to avoid the secondcall below }
-                   methodpointer:=genzeronode(callparan);
-                   methodpointer^.location.loc:=LOC_REGISTER;
+                   methodpointer:=ccallparanode.create(nil,nil);
+                   methodpointer.location.loc:=LOC_REGISTER;
 {$ifndef noAllocEDI}
                    getexplicitregister32(R_ESI);
 {$endif noAllocEDI}
-                   methodpointer^.location.register:=R_ESI;
+                   methodpointer.location.register:=R_ESI;
                    { ARGHHH this is wrong !!!
                      if we can init from base class for a child
                      class that the wrong VMT will be
                      transfered to constructor !! }
-                   methodpointer^.resulttype:=
-                     ptree(pwithsymtable(symtable)^.withnode)^.left.resulttype;
-                   { change dispose type !! }
-                   disposetyp:=dt_mbleft_and_method;
+                   methodpointer.resulttype:=
+                     twithnode(pwithsymtable(symtableproc)^.withnode).left.resulttype;
                    { make a reference }
                    new(r);
                    reset_reference(r^);
@@ -558,19 +557,19 @@ implementation
                         r^.offset:=symtable^.datasize;
                         r^.base:=procinfo^.framepointer;
                      end; }
-                   r^:=ptree(pwithsymtable(symtable)^.withnode)^.withreference^;
-                   if ((not ptree(pwithsymtable(symtable)^.withnode)^.islocal) and
-                       (not pwithsymtable(symtable)^.direct_with)) or
-                      pobjectdef(methodpointer^.resulttype)^.is_class then
+                   r^:=twithnode(pwithsymtable(symtableproc)^.withnode).withreference^;
+                   if ((not(nf_islocal in twithnode(pwithsymtable(symtableproc)^.withnode).flags)) and
+                       (not pwithsymtable(symtableproc)^.direct_with)) or
+                      pobjectdef(methodpointer.resulttype)^.is_class then
                      emit_ref_reg(A_MOV,S_L,r,R_ESI)
                    else
                      emit_ref_reg(A_LEA,S_L,r,R_ESI);
                 end;
 
               { push self }
-              if assigned(symtable) and
-                ((symtable^.symtabletype=objectsymtable) or
-                (symtable^.symtabletype=withsymtable)) then
+              if assigned(symtableproc) and
+                ((symtableproc^.symtabletype=objectsymtable) or
+                (symtableproc^.symtabletype=withsymtable)) then
                 begin
                    if assigned(methodpointer) then
                      begin
@@ -584,7 +583,7 @@ implementation
                           end
                         else }
                           begin
-                             case methodpointer^.treetype of
+                             case methodpointer.nodetype of
                                typen:
                                  begin
                                     { direct call to inherited method }
@@ -606,12 +605,12 @@ implementation
 {$ifndef noAllocEDI}
                                          getexplicitregister32(R_ESI);
 {$endif noAllocEDI}
-                                         if not(oo_has_vmt in pobjectdef(methodpointer^.resulttype)^.objectoptions) then
+                                         if not(oo_has_vmt in pobjectdef(methodpointer.resulttype)^.objectoptions) then
                                            emit_const_reg(A_MOV,S_L,0,R_ESI)
                                          else
                                            begin
                                              emit_sym_ofs_reg(A_MOV,S_L,
-                                               newasmsymbol(pobjectdef(methodpointer^.resulttype)^.vmt_mangledname),
+                                               newasmsymbol(pobjectdef(methodpointer.resulttype)^.vmt_mangledname),
                                                0,R_ESI);
                                            end;
                                          { emit_reg(A_PUSH,S_L,R_ESI);
@@ -622,7 +621,7 @@ implementation
                                       loadesi:=false;
 
                                     { a class destructor needs a flag }
-                                    if pobjectdef(methodpointer^.resulttype)^.is_class and
+                                    if pobjectdef(methodpointer.resulttype)^.is_class and
                                        {assigned(aktprocsym) and
                                        (aktprocsym^.definition^.proctypeoption=potype_destructor)}
                                        (procdefinition^.proctypeoption=potype_destructor) then
@@ -632,7 +631,7 @@ implementation
                                       end;
 
                                     if not(is_con_or_destructor and
-                                           pobjectdef(methodpointer^.resulttype)^.is_class and
+                                           pobjectdef(methodpointer.resulttype)^.is_class and
                                            {assigned(aktprocsym) and
                                           (aktprocsym^.definition^.proctypeoption in [potype_constructor,potype_destructor])}
                                            (procdefinition^.proctypeoption in [potype_constructor,potype_destructor])
@@ -643,7 +642,7 @@ implementation
                                     { will be made                                  }
                                     { con- and destructors need a pointer to the vmt }
                                     if is_con_or_destructor and
-                                    not(pobjectdef(methodpointer^.resulttype)^.is_class) and
+                                    not(pobjectdef(methodpointer.resulttype)^.is_class) and
                                     assigned(aktprocsym) then
                                       begin
                                          if not(aktprocsym^.definition^.proctypeoption in
@@ -653,12 +652,12 @@ implementation
                                     { class destructors get there flag above }
                                     { constructor flags ?                    }
                                     if is_con_or_destructor and
-                                        not(pobjectdef(methodpointer^.resulttype)^.is_class and
+                                        not(pobjectdef(methodpointer.resulttype)^.is_class and
                                         assigned(aktprocsym) and
                                         (aktprocsym^.definition^.proctypeoption=potype_destructor)) then
                                       begin
                                          { a constructor needs also a flag }
-                                         if pobjectdef(methodpointer^.resulttype)^.is_class then
+                                         if pobjectdef(methodpointer.resulttype)^.is_class then
                                            push_int(0);
                                          push_int(0);
                                       end;
@@ -674,7 +673,7 @@ implementation
                                     emit_reg(A_PUSH,S_L,R_ESI);
                                     { insert the vmt }
                                     emit_sym(A_PUSH,S_L,
-                                      newasmsymbol(pobjectdef(methodpointer^.resulttype)^.vmt_mangledname));
+                                      newasmsymbol(pobjectdef(methodpointer.resulttype)^.vmt_mangledname));
                                     extended_new:=true;
                                  end;
                                hdisposen:
@@ -687,39 +686,39 @@ implementation
                                     getexplicitregister32(R_ESI);
 {$endif noAllocEDI}
                                     emit_ref_reg(A_LEA,S_L,
-                                      newreference(methodpointer^.location.reference),R_ESI);
-                                    del_reference(methodpointer^.location.reference);
+                                      newreference(methodpointer.location.reference),R_ESI);
+                                    del_reference(methodpointer.location.reference);
                                     emit_reg(A_PUSH,S_L,R_ESI);
                                     emit_sym(A_PUSH,S_L,
-                                      newasmsymbol(pobjectdef(methodpointer^.resulttype)^.vmt_mangledname));
+                                      newasmsymbol(pobjectdef(methodpointer.resulttype)^.vmt_mangledname));
                                  end;
                                else
                                  begin
                                     { call to an instance member }
-                                    if (symtable^.symtabletype<>withsymtable) then
+                                    if (symtableproc^.symtabletype<>withsymtable) then
                                       begin
                                          secondpass(methodpointer);
 {$ifndef noAllocEDI}
                                          getexplicitregister32(R_ESI);
 {$endif noAllocEDI}
-                                         case methodpointer^.location.loc of
+                                         case methodpointer.location.loc of
                                             LOC_CREGISTER,
                                             LOC_REGISTER:
                                               begin
-                                                 emit_reg_reg(A_MOV,S_L,methodpointer^.location.register,R_ESI);
-                                                 ungetregister32(methodpointer^.location.register);
+                                                 emit_reg_reg(A_MOV,S_L,methodpointer.location.register,R_ESI);
+                                                 ungetregister32(methodpointer.location.register);
                                               end;
                                             else
                                               begin
-                                                 if (methodpointer^.resulttype^.deftype=classrefdef) or
-                                                    ((methodpointer^.resulttype^.deftype=objectdef) and
-                                                   pobjectdef(methodpointer^.resulttype)^.is_class) then
+                                                 if (methodpointer.resulttype^.deftype=classrefdef) or
+                                                    ((methodpointer.resulttype^.deftype=objectdef) and
+                                                   pobjectdef(methodpointer.resulttype)^.is_class) then
                                                    emit_ref_reg(A_MOV,S_L,
-                                                     newreference(methodpointer^.location.reference),R_ESI)
+                                                     newreference(methodpointer.location.reference),R_ESI)
                                                  else
                                                    emit_ref_reg(A_LEA,S_L,
-                                                     newreference(methodpointer^.location.reference),R_ESI);
-                                                 del_reference(methodpointer^.location.reference);
+                                                     newreference(methodpointer.location.reference),R_ESI);
+                                                 del_reference(methodpointer.location.reference);
                                               end;
                                          end;
                                       end;
@@ -728,7 +727,7 @@ implementation
                                     if not(po_containsself in procdefinition^.procoptions) then
                                       begin
                                         if (po_classmethod in procdefinition^.procoptions) and
-                                           not(methodpointer^.resulttype^.deftype=classrefdef) then
+                                           not(methodpointer.resulttype^.deftype=classrefdef) then
                                           begin
                                              { class method needs current VMT }
                                              getexplicitregister32(R_ESI);
@@ -741,14 +740,14 @@ implementation
 
                                         { direct call to destructor: remove data }
                                         if (procdefinition^.proctypeoption=potype_destructor) and
-                                           (methodpointer^.resulttype^.deftype=objectdef) and
-                                           (pobjectdef(methodpointer^.resulttype)^.is_class) then
+                                           (methodpointer.resulttype^.deftype=objectdef) and
+                                           (pobjectdef(methodpointer.resulttype)^.is_class) then
                                           emit_const(A_PUSH,S_L,1);
 
                                         { direct call to class constructor, don't allocate memory }
                                         if (procdefinition^.proctypeoption=potype_constructor) and
-                                           (methodpointer^.resulttype^.deftype=objectdef) and
-                                           (pobjectdef(methodpointer^.resulttype)^.is_class) then
+                                           (methodpointer.resulttype^.deftype=objectdef) and
+                                           (pobjectdef(methodpointer.resulttype)^.is_class) then
                                           begin
                                              emit_const(A_PUSH,S_L,0);
                                              emit_const(A_PUSH,S_L,0);
@@ -757,8 +756,8 @@ implementation
                                           begin
                                              { constructor call via classreference => allocate memory }
                                              if (procdefinition^.proctypeoption=potype_constructor) and
-                                                (methodpointer^.resulttype^.deftype=classrefdef) and
-                                                (pobjectdef(pclassrefdef(methodpointer^.resulttype)^.
+                                                (methodpointer.resulttype^.deftype=classrefdef) and
+                                                (pobjectdef(pclassrefdef(methodpointer.resulttype)^.
                                                    pointertype.def)^.is_class) then
                                                 emit_const(A_PUSH,S_L,1);
                                              emit_reg(A_PUSH,S_L,R_ESI);
@@ -768,14 +767,14 @@ implementation
                                     if is_con_or_destructor then
                                       begin
                                          { classes don't get a VMT pointer pushed }
-                                         if (methodpointer^.resulttype^.deftype=objectdef) and
-                                           not(pobjectdef(methodpointer^.resulttype)^.is_class) then
+                                         if (methodpointer.resulttype^.deftype=objectdef) and
+                                           not(pobjectdef(methodpointer.resulttype)^.is_class) then
                                            begin
                                               if (procdefinition^.proctypeoption=potype_constructor) then
                                                 begin
                                                    { it's no bad idea, to insert the VMT }
                                                    emit_sym(A_PUSH,S_L,newasmsymbol(
-                                                     pobjectdef(methodpointer^.resulttype)^.vmt_mangledname));
+                                                     pobjectdef(methodpointer.resulttype)^.vmt_mangledname));
                                                 end
                                               { destructors haven't to dispose the instance, if this is }
                                               { a direct call                                           }
@@ -909,13 +908,13 @@ implementation
                      begin
                        if (((sp_static in aktprocsym^.symoptions) or
                         (po_classmethod in aktprocsym^.definition^.procoptions)) and
-                        ((methodpointer=nil) or (methodpointer^.treetype=typen)))
+                        ((methodpointer=nil) or (methodpointer.nodetype=typen)))
                         or
                         (po_staticmethod in procdefinition^.procoptions) or
                         ((procdefinition^.proctypeoption=potype_constructor) and
                         { esi contains the vmt if we call a constructor via a class ref }
                          assigned(methodpointer) and
-                         (methodpointer^.resulttype^.deftype=classrefdef)
+                         (methodpointer.resulttype^.deftype=classrefdef)
                         ) or
                         { ESI is loaded earlier }
                         (po_classmethod in procdefinition^.procoptions) then
@@ -1133,7 +1132,7 @@ implementation
              (right=nil)) and
             (procdefinition^.proctypeoption=potype_constructor) and
             assigned(methodpointer) and
-            (methodpointer^.treetype=typen) and
+            (methodpointer.nodetype=typen) and
             (aktprocsym^.definition^.proctypeoption=potype_constructor) then
            begin
              emitjmp(C_Z,faillabel);
@@ -1149,7 +1148,7 @@ implementation
            end;
          { we have only to handle the result if it is used, but }
          { ansi/widestrings must be registered, so we can dispose them }
-         if (resulttype<>pdef(voiddef)) and (return_value_used or
+         if (resulttype<>pdef(voiddef)) and ((nf_return_value_used in flags) or
            is_ansistring(resulttype) or is_widestring(resulttype)) then
            begin
               { a contructor could be a function with boolean result }
@@ -1322,15 +1321,15 @@ implementation
                   if (pp.left.location.loc in [LOC_REFERENCE,LOC_MEM]) then
                     ungetiftemp(pp.left.location.reference);
                 { process also all nodes of an array of const }
-                  if pp.left.treetype=arrayconstructn then
+                  if pp.left.nodetype=arrayconstructorn then
                     begin
-                      if assigned(pp.left.left) then
+                      if assigned(tarrayconstructornode(pp.left).left) then
                        begin
                          hp:=pp.left;
                          while assigned(hp) do
                           begin
-                            if (hp.left.location.loc in [LOC_REFERENCE,LOC_MEM]) then
-                              ungetiftemp(hp.left.location.reference);
+                            if (tarrayconstructornode(tunarynode(hp).left).location.loc in [LOC_REFERENCE,LOC_MEM]) then
+                              ungetiftemp(tarrayconstructornode(hp).left.location.reference);
                             hp:=tbinarynode(hp).right;
                           end;
                        end;
@@ -1339,10 +1338,9 @@ implementation
               pp:=tbinarynode(pp.right);
            end;
          if inlined then
-           ungetpersistanttemp(inlinecode^.retoffset);
-         if assigned(inlinecode) then
-           disposetree(inlinecode);
-         disposetree(params);
+           ungetpersistanttemp(inlinecode.retoffset);
+         inlinecode.free;
+         params.free;
 
 
          { from now on the result can be freed normally }
@@ -1350,7 +1348,7 @@ implementation
            persistanttemptonormal(funcretref.offset);
 
          { if return value is not used }
-         if (not return_value_used) and (resulttype<>pdef(voiddef)) then
+         if (not(nf_return_value_used in flags)) and (resulttype<>pdef(voiddef)) then
            begin
               if location.loc in [LOC_MEM,LOC_REFERENCE] then
                 begin
@@ -1384,7 +1382,7 @@ implementation
     procedure ti386procinlinenode.pass_2;
        var st : psymtable;
            oldprocsym : pprocsym;
-           para_size, i : longint;
+           ps, i : longint;
            tmpreg: tregister;
            oldprocinfo : pprocinfo;
            oldinlining_procedure,
@@ -1514,9 +1512,9 @@ implementation
           inlineentrycode:=new(paasmoutput,init);
           inlineexitcode:=new(paasmoutput,init);
           proc_names.init;
-          para_size:=para_size;
+          ps:=para_size;
           make_global:=false; { to avoid warning }
-          genentrycode(inlineentrycode,proc_names,make_global,0,para_size,nostackframe,true);
+          genentrycode(inlineentrycode,proc_names,make_global,0,ps,nostackframe,true);
           exprasmlist^.concatlist(inlineentrycode);
           secondpass(inlinetree);
           genexitcode(inlineexitcode,0,false,true);
@@ -1595,7 +1593,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.1  2000-10-10 17:31:56  florian
+  Revision 1.2  2000-10-14 10:14:48  peter
+    * moehrendorf oct 2000 rewrite
+
+  Revision 1.1  2000/10/10 17:31:56  florian
     * initial revision
 
 }

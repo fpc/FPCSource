@@ -648,6 +648,31 @@ implementation
            end;
       end;
 
+     procedure disposevmttree;
+
+       var
+          symcoll : psymcoll;
+          procdefcoll : pprocdefcoll;
+
+       begin
+          { disposes the above generated tree }
+          symcoll:=wurzel;
+          while assigned(symcoll) do
+            begin
+               wurzel:=symcoll^.next;
+               stringdispose(symcoll^.name);
+               procdefcoll:=symcoll^.data;
+               while assigned(procdefcoll) do
+                 begin
+                    symcoll^.data:=procdefcoll^.next;
+                    dispose(procdefcoll);
+                    procdefcoll:=symcoll^.data;
+                 end;
+               dispose(symcoll);
+               symcoll:=wurzel;
+            end;
+       end;
+
     procedure genvmt(list : paasmoutput;_class : pobjectdef);
 
       procedure do_genvmt(p : pobjectdef);
@@ -729,28 +754,295 @@ implementation
                    symcoll:=symcoll^.next;
                 end;
            end;
-         { disposes the above generated tree }
-         symcoll:=wurzel;
-         while assigned(symcoll) do
-           begin
-              wurzel:=symcoll^.next;
-              stringdispose(symcoll^.name);
-              procdefcoll:=symcoll^.data;
-              while assigned(procdefcoll) do
-                begin
-                   symcoll^.data:=procdefcoll^.next;
-                   dispose(procdefcoll);
-                   procdefcoll:=symcoll^.data;
-                end;
-              dispose(symcoll);
-              symcoll:=wurzel;
-           end;
+         disposevmttree;
       end;
+
+{$ifdef SUPPORT_INTERFACES}
+
+    function  gintfgetvtbllabelname(_class: pobjectdef; intfindex: integer): string;
+      begin
+        gintfgetvtbllabelname:='_$$_'+_class^.objname^+'_$$_'+
+          _class^.implementedinterfaces^.interfaces(intfindex)^.objname^+'_$$_VTBL';
+      end;
+
+    procedure gintfcreatevtbl(_class: pobjectdef; intfindex: integer; rawdata: paasmoutput);
+      var
+        implintf: pimplementedinterfaces;
+        curintf: pobjectdef;
+        count: integer;
+        tmps: string;
+        i: longint;
+      begin
+        implintf:=_class^.implementedinterfaces;
+        curintf:=implintf^.interfaces(intfindex);
+        rawdata^.concat(new(pai_symbol,initname(gintfgetvtbllabelname(_class,intfindex),0)));
+        count:=implintf^.implproccount(intfindex);
+        for i:=1 to count do
+          begin
+            tmps:=implintf^.implprocs(intfindex,i)^.mangledname+'_$$_'+curintf^.objname^;
+            { create wrapper code }
+            cgintfwrapper(implintf^.implprocs(intfindex,i),tmps,implintf^.ioffsets(intfindex)^);
+            { create reference }
+            rawdata^.concat(new(pai_const_symbol,initname(tmps)));
+          end;
+      end;
+
+    procedure gintfgenentry(_class: pobjectdef; intfindex, contintfindex: integer; rawdata: paasmoutput);
+      var
+        implintf: pimplementedinterfaces;
+        curintf: pobjectdef;
+        tmplabel: pasmlabel;
+        i: longint;
+      begin
+        implintf:=_class^.implementedinterfaces;
+        curintf:=implintf^.interfaces(intfindex);
+        { GUID }
+        if curintf^.objecttype in [odt_interfacecom] then
+          begin
+            { label for GUID }
+            getdatalabel(tmplabel);
+            rawdata^.concat(new(pai_label,init(tmplabel)));
+            rawdata^.concat(new(pai_const,init_32bit(curintf^.iidguid.D1)));
+            rawdata^.concat(new(pai_const,init_16bit(curintf^.iidguid.D2)));
+            rawdata^.concat(new(pai_const,init_16bit(curintf^.iidguid.D3)));
+            for i:=Low(curintf^.iidguid.D4) to High(curintf^.iidguid.D4) do
+              rawdata^.concat(new(pai_const,init_8bit(curintf^.iidguid.D4[i])));
+            datasegment^.concat(new(pai_const_symbol,init(tmplabel)));
+          end
+        else
+          begin
+            { nil for Corba interfaces }
+            datasegment^.concat(new(pai_const,init_32bit(0))); { nil }
+          end;
+        { VTable }
+        datasegment^.concat(new(pai_const_symbol,initname(gintfgetvtbllabelname(_class,contintfindex))));
+        { IOffset field }
+        datasegment^.concat(new(pai_const,init_32bit(implintf^.ioffsets(contintfindex)^)));
+        { IIDStr }
+        getdatalabel(tmplabel);
+        rawdata^.concat(new(pai_label,init(tmplabel)));
+        rawdata^.concat(new(pai_const,init_8bit(length(curintf^.iidstr^))));
+        if curintf^.objecttype=odt_interfacecom then
+          rawdata^.concat(new(pai_string,init(upper(curintf^.iidstr^))))
+        else
+          rawdata^.concat(new(pai_string,init(curintf^.iidstr^)));
+        datasegment^.concat(new(pai_const_symbol,init(tmplabel)));
+      end;
+
+    procedure gintfoptimizevtbls(_class: pobjectdef; var implvtbl: tlongintarr);
+      type
+        tcompintfentry = record
+          weight: longint;
+          compintf: longint;
+        end;
+        { Max 1000 interface in the class header interfaces it's enough imho }
+        tcompintfs = {$ifndef tp} packed {$endif} array[1..1000] of tcompintfentry;
+        pcompintfs = ^tcompintfs;
+        tequals    = {$ifndef tp} packed {$endif} array[1..1000] of longint;
+        pequals    = ^tequals;
+      var
+        max: longint;
+        equals: pequals;
+        compats: pcompintfs;
+        i: longint;
+        j: longint;
+        w: longint;
+        cij: boolean;
+        cji: boolean;
+      begin
+        max:=_class^.implementedinterfaces^.count;
+        if max>High(tequals) then
+          Internalerror(200006135);
+        getmem(compats,sizeof(tcompintfentry)*max);
+        getmem(equals,sizeof(longint)*max);
+        fillchar(compats^,sizeof(tcompintfentry)*max,0);
+        fillchar(equals^,sizeof(longint)*max,0);
+        { ismergepossible is a containing relation
+          meaning of ismergepossible(a,b,w) =
+          if implementorfunction map of a is contained implementorfunction map of b
+          imp(a,b) and imp(b,c) => imp(a,c) ; imp(a,b) and imp(b,a) => a == b
+        }
+        { the order is very important for correct allocation }
+        for i:=1 to max do
+          begin
+            for j:=i+1 to max do
+              begin
+                cij:=_class^.implementedinterfaces^.isimplmergepossible(i,j,w);
+                cji:=_class^.implementedinterfaces^.isimplmergepossible(j,i,w);
+                if cij and cji then { i equal j }
+                  begin
+                    { get minimum index of equal }
+                    if equals^[j]=0 then
+                      equals^[j]:=i;
+                  end
+                else if cij then
+                  begin
+                    { get minimum index of maximum weight  }
+                    if compats^[i].weight<w then
+                      begin
+                        compats^[i].weight:=w;
+                        compats^[i].compintf:=j;
+                      end;
+                  end
+                else if cji then
+                  begin
+                    { get minimum index of maximum weight  }
+                    if (compats^[j].weight<w) then
+                      begin
+                        compats^[j].weight:=w;
+                        compats^[j].compintf:=i;
+                      end;
+                  end;
+              end;
+          end;
+        for i:=1 to max do
+          begin
+            if compats^[i].compintf<>0 then
+              implvtbl[i]:=compats^[i].compintf
+            else if equals^[i]<>0 then
+              implvtbl[i]:=equals^[i]
+            else
+              implvtbl[i]:=i;
+          end;
+        freemem(compats,sizeof(tcompintfentry)*max);
+        freemem(equals,sizeof(longint)*max);
+      end;
+
+    procedure gintfwritedata(_class: pobjectdef);
+      var
+        rawdata: taasmoutput;
+        impintfindexes: plongintarr;
+        max: longint;
+        i: longint;
+      begin
+        max:=_class^.implementedinterfaces^.count;
+        getmem(impintfindexes,(max+1)*sizeof(longint));
+
+        gintfoptimizevtbls(_class,impintfindexes^);
+
+        rawdata.init;
+        datasegment^.concat(new(pai_const,init_16bit(max)));
+        { Two pass, one for allocation and vtbl creation }
+        for i:=1 to max do
+          begin
+            if impintfindexes^[i]=i then { if implement itself }
+              begin
+                { allocate a pointer in the object memory }
+                with _class^.symtable^ do
+                  begin
+                    if (alignment>=target_os.size_of_pointer) then
+                      datasize:=align(datasize,alignment)
+                    else
+                      datasize:=align(datasize,target_os.size_of_pointer);
+                    _class^.implementedinterfaces^.ioffsets(i)^:=datasize;
+                    datasize:=datasize+target_os.size_of_pointer;
+                  end;
+                { write vtbl }
+                gintfcreatevtbl(_class,i,@rawdata);
+              end;
+          end;
+        { second pass: for fill interfacetable and remained ioffsets }
+        for i:=1 to max do
+          begin
+            if i<>impintfindexes^[i] then { why execute x:=x ? }
+              with _class^.implementedinterfaces^ do ioffsets(i)^:=ioffsets(impintfindexes^[i])^;
+            gintfgenentry(_class,i,impintfindexes^[i],@rawdata);
+          end;
+        datasegment^.insertlist(@rawdata);
+        rawdata.done;
+        freemem(impintfindexes,(max+1)*sizeof(longint));
+      end;
+
+    function gintfgetcprocdef(_class: pobjectdef; proc: pprocdef;const name: string): pprocdef;
+      var
+        sym: pprocsym;
+        implprocdef: pprocdef;
+      begin
+        implprocdef:=nil;
+        sym:=pprocsym(search_class_member(_class,name));
+        if assigned(sym) and (sym^.typ=procsym) and not (sp_private in sym^.symoptions) then
+          begin
+            implprocdef:=sym^.definition;
+            while assigned(implprocdef) and not equal_paras(proc^.para,implprocdef^.para,false) and
+                  (proc^.proccalloptions<>implprocdef^.proccalloptions) do
+              implprocdef:=implprocdef^.nextoverloaded;
+          end;
+        gintfgetcprocdef:=implprocdef;
+      end;
+
+    procedure gintfdoonintf(intf, _class: pobjectdef; intfindex: longint);
+      var
+        i: longint;
+        proc: pprocdef;
+        procname: string; { for error }
+        mappedname: string;
+        nextexist: pointer;
+        implprocdef: pprocdef;
+      begin
+        for i:=1 to intf^.symtable^.defindex^.count do
+          begin
+            proc:=pprocdef(intf^.symtable^.defindex^.search(i));
+            if proc^.deftype=procdef then
+              begin
+                procname:='';
+                implprocdef:=nil;
+                nextexist:=nil;
+                repeat
+                  mappedname:=_class^.implementedinterfaces^.getmappings(intfindex,proc^.procsym^.name,nextexist);
+                  if procname='' then
+                    procname:=mappedname; { for error messages }
+                  if mappedname<>'' then
+                    implprocdef:=gintfgetcprocdef(_class,proc,mappedname);
+                until assigned(implprocdef) or not assigned(nextexist);
+                if not assigned(implprocdef) then
+                  implprocdef:=gintfgetcprocdef(_class,proc,proc^.procsym^.name);
+                if procname='' then
+                  procname:=proc^.procsym^.name;
+                if assigned(implprocdef) then
+                  _class^.implementedinterfaces^.addimplproc(intfindex,implprocdef)
+                else
+                  Message1(sym_e_id_not_found,procname);
+              end;
+          end;
+      end;
+
+    procedure gintfwalkdowninterface(intf, _class: pobjectdef; intfindex: longint);
+      begin
+        if assigned(intf^.childof) then
+          gintfwalkdowninterface(intf^.childof,_class,intfindex);
+        gintfdoonintf(intf,_class,intfindex);
+      end;
+
+    function genintftable(_class: pobjectdef): pasmlabel;
+      var
+        intfindex: longint;
+        curintf: pobjectdef;
+        intftable: pasmlabel;
+      begin
+        { 1. step collect implementor functions into the implementedinterfaces^.implprocs }
+        for intfindex:=1 to _class^.implementedinterfaces^.count do
+          begin
+            curintf:=_class^.implementedinterfaces^.interfaces(intfindex);
+            gintfwalkdowninterface(curintf,_class,intfindex);
+          end;
+        { 2. step calc required fieldcount and their offsets in the object memory map
+             and write data }
+        getdatalabel(intftable);
+        datasegment^.concat(new(pai_label,init(intftable)));
+        gintfwritedata(_class);
+        _class^.implementedinterfaces^.clearimplprocs; { release temporary information }
+        genintftable:=intftable;
+      end;
+
+{$endif SUPPORT_INTERFACES}
 
 end.
 {
   $Log$
-  Revision 1.6  2000-09-24 21:19:50  peter
+  Revision 1.7  2000-10-14 10:14:47  peter
+    * moehrendorf oct 2000 rewrite
+
+  Revision 1.6  2000/09/24 21:19:50  peter
     * delphi compile fixes
 
   Revision 1.5  2000/09/24 15:06:17  peter

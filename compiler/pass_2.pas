@@ -27,15 +27,21 @@ unit pass_2;
 interface
 
 uses
-  tree;
+   node;
 
+    type
+       tenumflowcontrol = (fc_exit,fc_break,fc_continue);
+       tflowcontrol = set of tenumflowcontrol;
+
+    var
+       flowcontrol : tflowcontrol;
 { produces assembler for the expression in variable p }
 { and produces an assembler node at the end        }
-procedure generatecode(var p : ptree);
+procedure generatecode(var p : tnode);
 
 { produces the actual code }
-function do_secondpass(var p : ptree) : boolean;
-procedure secondpass(var p : ptree);
+function do_secondpass(var p : tnode) : boolean;
+procedure secondpass(var p : tnode);
 
 
 implementation
@@ -44,189 +50,21 @@ implementation
      globtype,systems,
      cobjects,comphook,verbose,globals,fmodule,
      symconst,symtable,types,aasm,scanner,
-     pass_1,hcodegen,temp_gen,cpubase,cpuasm,regvars
-{$ifndef newcg}
-     ,tcflw
-{$endif newcg}
+     pass_1,hcodegen,temp_gen,cpubase,cpuasm,regvars,nflw
 {$ifdef GDB}
      ,gdb
 {$endif}
 {$ifdef i386}
      ,tgeni386,cgai386
-     ,cg386con,cg386mat,cg386cnv,cg386set,cg386add
-     ,cg386mem,cg386cal,cg386ld,cg386flw,cg386inl
 {$endif}
 {$ifdef m68k}
      ,tgen68k,cga68k
-     ,cg68kcon,cg68kmat,cg68kcnv,cg68kset,cg68kadd
-     ,cg68kmem,cg68kcal,cg68kld,cg68kflw,cg68kinl
 {$endif}
      ;
 
 {*****************************************************************************
                               SecondPass
 *****************************************************************************}
-
-    type
-       secondpassproc = procedure(var p : ptree);
-
-    procedure secondnothing(var p : ptree);
-
-      begin
-      end;
-
-    procedure seconderror(var p : ptree);
-
-      begin
-         p^.error:=true;
-         codegenerror:=true;
-      end;
-
-
-    procedure secondstatement(var p : ptree);
-
-      var
-         hp : ptree;
-      begin
-         hp:=p;
-         while assigned(hp) do
-          begin
-            if assigned(hp^.right) then
-             begin
-               cleartempgen;
-               {!!!!!!
-               oldrl:=temptoremove;
-               temptoremove:=new(plinkedlist,init);
-               }
-               secondpass(hp^.right);
-               { !!!!!!!
-                 some temporary data which can't be released elsewhere
-               removetemps(exprasmlist,temptoremove);
-               dispose(temptoremove,done);
-               temptoremove:=oldrl;
-               }
-             end;
-            hp:=hp^.left;
-          end;
-      end;
-
-
-    procedure secondblockn(var p : ptree);
-      begin
-      { do second pass on left node }
-        if assigned(p^.left) then
-         secondpass(p^.left);
-      end;
-
-
-    procedure secondasm(var p : ptree);
-
-        procedure ReLabel(var p:pasmsymbol);
-        begin
-          if p^.proclocal then
-           begin
-             if not assigned(p^.altsymbol) then
-              begin
-                p^.GenerateAltSymbol;
-                UsedAsmSymbolListInsert(p);
-              end;
-             p:=p^.altsymbol;
-           end;
-        end;
-
-      var
-        hp,hp2 : pai;
-        localfixup,parafixup,
-        i : longint;
-        skipnode : boolean;
-      begin
-         if inlining_procedure then
-           begin
-             InitUsedAsmSymbolList;
-             localfixup:=aktprocsym^.definition^.localst^.address_fixup;
-             parafixup:=aktprocsym^.definition^.parast^.address_fixup;
-             hp:=pai(p^.p_asm^.first);
-             while assigned(hp) do
-              begin
-                hp2:=pai(hp^.getcopy);
-                skipnode:=false;
-                case hp2^.typ of
-                  ait_label :
-                     begin
-                       { regenerate the labels by setting altsymbol }
-                       ReLabel(pasmsymbol(pai_label(hp2)^.l));
-                     end;
-                  ait_const_rva,
-                  ait_const_symbol :
-                     begin
-                       ReLabel(pai_const_symbol(hp2)^.sym);
-                     end;
-                  ait_instruction :
-                     begin
-{$ifdef i386}
-                       { fixup the references }
-                       for i:=1 to paicpu(hp2)^.ops do
-                        begin
-                          with paicpu(hp2)^.oper[i-1] do
-                           begin
-                             case typ of
-                               top_ref :
-                                 begin
-                                   case ref^.options of
-                                     ref_parafixup :
-                                       ref^.offsetfixup:=parafixup;
-                                     ref_localfixup :
-                                       ref^.offsetfixup:=localfixup;
-                                   end;
-                                   if assigned(ref^.symbol) then
-                                    ReLabel(ref^.symbol);
-                                 end;
-                               top_symbol :
-                                 begin
-                                   ReLabel(sym);
-                                 end;
-                              end;
-                           end;
-                        end;
-{$endif i386}
-                     end;
-                   ait_marker :
-                     begin
-                     { it's not an assembler block anymore }
-                       if (pai_marker(hp2)^.kind in [AsmBlockStart, AsmBlockEnd]) then
-                        skipnode:=true;
-                     end;
-                   else
-                end;
-                if not skipnode then
-                 exprasmlist^.concat(hp2)
-                else
-                 dispose(hp2,done);
-                hp:=pai(hp^.next);
-              end;
-             { restore used symbols }
-             UsedAsmSymbolListResetAltSym;
-             DoneUsedAsmSymbolList;
-           end
-         else
-           begin
-             { if the routine is an inline routine, then we must hold a copy
-               becuase it can be necessary for inlining later }
-             if (pocall_inline in aktprocsym^.definition^.proccalloptions) then
-               exprasmlist^.concatlistcopy(p^.p_asm)
-             else
-               exprasmlist^.concatlist(p^.p_asm);
-           end;
-         if not p^.object_preserved then
-          begin
-{$ifdef i386}
-            maybe_loadesi;
-{$endif}
-{$ifdef m68k}
-            maybe_loada5;
-{$endif}
-          end;
-       end;
 
 {$ifdef logsecondpass}
      procedure logsecond(const s: string; entry: boolean);
@@ -239,90 +77,7 @@ implementation
      end;
 {$endif logsecondpass}
 
-     procedure secondpass(var p : ptree);
-       const
-         procedures : array[ttreetyp] of secondpassproc =
-            (secondadd,  {addn}
-             secondadd,  {muln}
-             secondadd,  {subn}
-             secondmoddiv,      {divn}
-             secondadd,  {symdifn}
-             secondmoddiv,      {modn}
-             secondassignment,  {assignn}
-             secondload,        {loadn}
-             secondnothing,     {range}
-             secondadd,  {ltn}
-             secondadd,  {lten}
-             secondadd,  {gtn}
-             secondadd,  {gten}
-             secondadd,  {equaln}
-             secondadd,  {unequaln}
-             secondin,    {inn}
-             secondadd,  {orn}
-             secondadd,  {xorn}
-             secondshlshr,      {shrn}
-             secondshlshr,      {shln}
-             secondadd,  {slashn}
-             secondadd,  {andn}
-             secondsubscriptn,  {subscriptn}
-             secondderef,       {derefn}
-             secondaddr,        {addrn}
-             seconddoubleaddr,  {doubleaddrn}
-             secondordconst,    {ordconstn}
-             secondtypeconv,    {typeconvn}
-             secondcalln,       {calln}
-             secondnothing,     {callparan}
-             secondrealconst,   {realconstn}
-             secondfixconst,    {fixconstn}
-             secondunaryminus,  {unaryminusn}
-             secondasm,         {asmn}
-             secondvecn,        {vecn}
-             secondpointerconst, {pointerconstn}
-             secondstringconst, {stringconstn}
-             secondfuncret,     {funcretn}
-             secondselfn,       {selfn}
-             secondnot,  {notn}
-             secondinline,      {inlinen}
-             secondniln,        {niln}
-             seconderror,       {errorn}
-             secondnothing,     {typen}
-             secondhnewn,       {hnewn}
-             secondhdisposen,   {hdisposen}
-             secondnewn,        {newn}
-             secondsimplenewdispose, {simpledisposen}
-             secondsetelement,  {setelementn}
-             secondsetconst,    {setconstn}
-             secondblockn,      {blockn}
-             secondstatement,   {statementn}
-             secondnothing,     {loopn}
-             secondifn,  {ifn}
-             secondbreakn,      {breakn}
-             secondcontinuen,   {continuen}
-             second_while_repeatn, {repeatn}
-             second_while_repeatn, {whilen}
-             secondfor,  {forn}
-             secondexitn,       {exitn}
-             secondwith,        {withn}
-             secondcase,        {casen}
-             secondlabel,       {labeln}
-             secondgoto,        {goton}
-             secondsimplenewdispose, {simplenewn}
-             secondtryexcept,   {tryexceptn}
-             secondraise,       {raisen}
-             secondnothing,     {switchesn}
-             secondtryfinally,  {tryfinallyn}
-             secondon,    {onn}
-             secondis,    {isn}
-             secondas,    {asn}
-             seconderror,       {caretn}
-             secondfail,        {failn}
-             secondadd,  {starstarn}
-             secondprocinline,  {procinlinen}
-             secondarrayconstruct, {arrayconstructn}
-             secondnothing,     {arrayconstructrangen}
-             secondnothing,     {nothingn}
-             secondloadvmt      {loadvmtn}
-             );
+     procedure secondpass(var p : tnode);
 {$ifdef logsecondpass}
       secondnames: array[ttreetyp] of string[13] =
             ('add-addn',  {addn}
@@ -416,7 +171,7 @@ implementation
          prevp : pptree;
 {$endif TEMPREGDEBUG}
       begin
-         if not(p^.error) then
+         if not(nf_error in p.flags) then
           begin
             oldcodegenerror:=codegenerror;
             oldlocalswitches:=aktlocalswitches;
@@ -427,17 +182,18 @@ implementation
             curptree:=@p;
             p^.usableregs:=usablereg32;
 {$endif TEMPREGDEBUG}
-            aktfilepos:=p^.fileinfo;
-            aktlocalswitches:=p^.localswitches;
+            aktfilepos:=p.fileinfo;
+            aktlocalswitches:=p.localswitches;
             codegenerror:=false;
 {$ifdef logsecondpass}
-            logsecond('second'+secondnames[p^.treetype],true);
+            logsecond('second'+secondnames[p.nodetype],true);
 {$endif logsecondpass}
-            procedures[p^.treetype](p);
+            p.pass_2;
 {$ifdef logsecondpass}
-            logsecond('second'+secondnames[p^.treetype],false);
+            logsecond('second'+secondnames[p.nodetype],false);
 {$endif logsecondpass}
-            p^.error:=codegenerror;
+            if codegenerror then
+              include(p.flags,nf_error);
 
             codegenerror:=codegenerror or oldcodegenerror;
             aktlocalswitches:=oldlocalswitches;
@@ -446,9 +202,9 @@ implementation
             curptree:=prevp;
 {$endif TEMPREGDEBUG}
 {$ifdef EXTTEMPREGDEBUG}
-            if p^.usableregs-usablereg32>p^.reallyusedregs then
-              p^.reallyusedregs:=p^.usableregs-usablereg32;
-            if p^.reallyusedregs<p^.registers32 then
+            if p.usableregs-usablereg32>p.reallyusedregs then
+              p.reallyusedregs:=p.usableregs-usablereg32;
+            if p.reallyusedregs<p.registers32 then
               Comment(V_Debug,'registers32 overestimated '+tostr(p^.registers32)+
                 '>'+tostr(p^.reallyusedregs));
 {$endif EXTTEMPREGDEBUG}
@@ -458,10 +214,10 @@ implementation
       end;
 
 
-    function do_secondpass(var p : ptree) : boolean;
+    function do_secondpass(var p : tnode) : boolean;
       begin
          codegenerror:=false;
-         if not(p^.error) then
+         if not(nf_error in p.flags) then
            secondpass(p);
          do_secondpass:=codegenerror;
       end;
@@ -474,7 +230,7 @@ implementation
              pvarsym(p)^.refs:=1;
       end;
 
-    procedure generatecode(var p : ptree);
+    procedure generatecode(var p : tnode);
       begin
          cleartempgen;
          flowcontrol:=[];
@@ -545,7 +301,7 @@ implementation
               do_secondpass(p);
 
               if assigned(procinfo^.def) then
-                procinfo^.def^.fpu_used:=p^.registersfpu;
+                procinfo^.def^.fpu_used:=p.registersfpu;
 
            end;
          procinfo^.aktproccode^.concatlist(exprasmlist);
@@ -555,7 +311,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.8  2000-09-24 15:06:21  peter
+  Revision 1.9  2000-10-14 10:14:51  peter
+    * moehrendorf oct 2000 rewrite
+
+  Revision 1.8  2000/09/24 15:06:21  peter
     * use defines.inc
 
   Revision 1.7  2000/08/27 16:11:51  peter

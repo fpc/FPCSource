@@ -27,23 +27,36 @@ unit Ra386dir;
 interface
 
     uses
-      tree;
+      node;
 
-     function assemble : ptree;
+     function assemble : tnode;
 
   implementation
 
-     uses
-        fmodule,globals,scanner,aasm,cpubase,cpuasm,
-        cutils,cobjects,symconst,symtable,types,verbose,
-{$ifdef NEWCG}
-        cgbase,
+    uses
+       { common }
+       cutils,cobjects,
+       { global }
+       globtype,globals,verbose,
+       systems,cpuinfo,
+       { aasm }
+       cpubase,aasm,
+       { symtable }
+       symconst,symtable,types,
+       { pass 1 }
+       nbas,
+       { parser }
+       scanner,
+       ra386,rautils,
+       { codegen }
+{$ifdef newcg}
+       cgbase
 {$else}
-        hcodegen,
+       hcodegen
 {$endif}
-        rautils,ra386;
+       ;
 
-    function assemble : ptree;
+    function assemble : tnode;
 
       var
          retstr,s,hs : string;
@@ -269,13 +282,16 @@ interface
            end;
          end;
        writeasmline;
-       assemble:=genasmnode(code);
+       assemble:=casmnode.create(code);
      end;
 
 end.
 {
   $Log$
-  Revision 1.4  2000-09-24 15:06:26  peter
+  Revision 1.5  2000-10-14 10:14:52  peter
+    * moehrendorf oct 2000 rewrite
+
+  Revision 1.4  2000/09/24 15:06:26  peter
     * use defines.inc
 
   Revision 1.3  2000/08/27 16:11:52  peter

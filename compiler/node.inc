@@ -49,6 +49,15 @@
       begin
       end;
 
+    procedure tnode.toggleflag(f : tnodeflags);
+
+      begin
+         if f in flags then
+           exclude(flags,f)
+         else
+           include(flags,f);
+      end;
+
     destructor tnode.destroy;
 
       begin
@@ -65,6 +74,8 @@
     function tnode.pass_1 : tnode;
 
       begin
+         pass_1:=nil;
+
          if not(assigned(resulttype)) then
            det_resulttype;
 
@@ -84,10 +95,15 @@
       begin
          ischild:=false;
       end;
+
 {$ifdef EXTDEBUG}
     procedure tnode.dowrite;
+      begin
+        dowritenodetype;
+      end;
 
-      const treetype2str : array[tnodetype] of string[20] = (
+    procedure tnode.dowritenodetype;
+      const nodetype2str : array[tnodetype] of string[20] = (
           'addn',
           'muln',
           'subn',
@@ -123,6 +139,7 @@
           'umminusn',
           'asmn',
           'vecn',
+          'pointerconstn',
           'stringconstn',
           'funcretn',
           'selfn',
@@ -166,11 +183,10 @@
           'arrayconstructn',
           'arrayconstructrangen',
           'nothingn',
-          'loadvmtn',
-          'pointerconstn');
+          'loadvmtn');
 
       begin
-         write(indention,'(',treetype2str[nodetype]);
+         write(writenodeindention,'(',nodetype2str[nodetype]);
       end;
 {$endif EXTDEBUG}
 
@@ -188,15 +204,21 @@
          docompare:=true;
       end;
 
+
     function tnode.getcopy : tnode;
 
       var
          p : tnode;
 
       begin
+         if not(assigned(self)) then
+           begin
+              getcopy:=nil;
+              exit;
+           end;
          { this is quite tricky because we need a node of the current }
          { node type and not one of tnode!                            }
-         p:=tnode(classtype).createforcopy;
+         p:=tnodeclass(classtype).createforcopy;
          p.nodetype:=nodetype;
          p.location:=location;
          p.parent:=parent;
@@ -256,7 +278,10 @@
 
       begin
          p:=tunarynode(inherited getcopy);
-         p.left:=left.getcopy;
+         if assigned(left) then
+           p.left:=left.getcopy
+         else
+           p.left:=nil;
          getcopy:=p;
       end;
 
@@ -266,9 +291,10 @@
       begin
          inherited dowrite;
          writeln(',');
+         writenodeindention:=writenodeindention+'    ';
          writenode(left);
-         writeln(')');
-         dec(byte(indention[0]),2);
+         write(')');
+         delete(writenodeindention,1,4);
       end;
 {$endif}
 
@@ -365,7 +391,10 @@
 
       begin
          p:=tbinarynode(inherited getcopy);
-         p.right:=right.getcopy;
+         if assigned(right) then
+           p.right:=right.getcopy
+         else
+           p.right:=nil;
          getcopy:=p;
       end;
 
@@ -409,6 +438,19 @@
          end;
       end;
 
+{$ifdef extdebug}
+    procedure tbinarynode.dowrite;
+
+      begin
+         inherited dowrite;
+         writeln(',');
+         writenodeindention:=writenodeindention+'    ';
+         writenode(right);
+         write(')');
+         delete(writenodeindention,1,4);
+      end;
+{$endif}
+
 {****************************************************************************
                             TBINOPYNODE
  ****************************************************************************}
@@ -427,9 +469,30 @@
             left.isequal(tbinopnode(p).right) and
             right.isequal(tbinopnode(p).left));
       end;
+
+
+{****************************************************************************
+                                 WRITENODE
+ ****************************************************************************}
+
+{$ifdef EXTDEBUG}
+     procedure writenode(t:tnode);
+     begin
+       if assigned(t) then
+        t.dowrite
+       else
+        write(writenodeindention,'nil');
+       if writenodeindention='' then
+        writeln;
+     end;
+{$endif EXTDEBUG}
+
 {
   $Log$
-  Revision 1.8  2000-10-01 19:48:24  peter
+  Revision 1.9  2000-10-14 10:14:51  peter
+    * moehrendorf oct 2000 rewrite
+
+  Revision 1.8  2000/10/01 19:48:24  peter
     * lot of compile updates for cg11
 
   Revision 1.7  2000/09/29 15:45:23  florian

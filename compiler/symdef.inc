@@ -154,8 +154,10 @@
 
     function tdef.typename:string;
       begin
-        if assigned(typesym) then
-         typename:=Upper(typesym^.name)
+        if assigned(typesym) and not(deftype=procvardef) and
+          assigned(typesym^._realname) and
+          (typesym^._realname^[1]<>'$') then
+         typename:=typesym^._realname^
         else
          typename:=gettypename;
       end;
@@ -2548,12 +2550,12 @@
           str  : string[30];
         end;
       const
-        proccallopts=12;
+        proccallopts=13;
         proccallopt : array[1..proccallopts] of tproccallopt=(
            (mask:pocall_none;         str:''),
            (mask:pocall_clearstack;   str:'ClearStack'),
            (mask:pocall_leftright;    str:'LeftRight'),
-           (mask:pocall_cdecl;        str:'Cdecl'),
+           (mask:pocall_cdecl;        str:'CDecl'),
            (mask:pocall_register;     str:'Register'),
            (mask:pocall_stdcall;      str:'StdCall'),
            (mask:pocall_safecall;     str:'SafeCall'),
@@ -2561,7 +2563,8 @@
            (mask:pocall_system;       str:'System'),
            (mask:pocall_inline;       str:'Inline'),
            (mask:pocall_internproc;   str:'InternProc'),
-           (mask:pocall_internconst;  str:'InternConst')
+           (mask:pocall_internconst;  str:'InternConst'),
+           (mask:pocall_cdecl;        str:'CPPDecl')
         );
       var
         s : string;
@@ -2869,13 +2872,8 @@ Const local_symtable_index : longint = $8001;
            dispose(parast,done);
          if assigned(localst) and (localst^.symtabletype<>staticsymtable) then
            dispose(localst,done);
-{$ifdef CG11}
          if (pocall_inline in proccalloptions) and assigned(code) then
            tnode(code).free;
-{$else}
-         if (pocall_inline in proccalloptions) and assigned(code) then
-           disposetree(ptree(code));
-{$endif}
          if assigned(regvarinfo) then
            dispose(pregvarinfo(regvarinfo));
          if (po_msgstr in procoptions) then
@@ -3085,16 +3083,15 @@ Const local_symtable_index : longint = $8001;
           procname:=Copy(s,1,l-1);
       end;
 
-{$IfDef GDB}
-    function tprocdef.cplusplusmangledname : string;
+    function tprocdef.cplusplusmangledname(const rn : string) : string;
 
       function getcppparaname(p : pdef) : string;
 
         const
            ordtype2str : array[tbasetype] of string[2] = (
              '','','c',
-             'Uc','Us','Ul',
-             'Sc','s','l',
+             'Uc','Us','Ui',
+             'Sc','s','i',
              'b','b','b',
              'Us','x','w');
 
@@ -3118,11 +3115,10 @@ Const local_symtable_index : longint = $8001;
          param : pparaitem;
 
       begin
-         { we need this in lowercase letters! }
-         s := procsym^.name;
+         s := rn;
          if procsym^.owner^.symtabletype=objectsymtable then
            begin
-              s2:=upper(pobjectdef(procsym^.owner^.defowner)^.objname^);
+              s2:=upper(pobjectdef(procsym^.owner^.defowner)^.typesym^.realname);
               case proctypeoption of
                  potype_destructor:
                    s:='_$_'+tostr(length(s2))+s2;
@@ -3133,25 +3129,28 @@ Const local_symtable_index : longint = $8001;
               end;
 
            end
-         else s:=s+'_';
+         else s:=s+'__';
+
+         s:=s+'F';
 
          { concat modifiers }
          { !!!!! }
 
          { now we handle the parameters }
          param := pparaitem(para^.first);
-         while assigned(param) do
-           begin
-              s2:=getcppparaname(param^.paratype.def);
-              if param^.paratyp in [vs_var,vs_out] then
-                s2:='R'+s2;
-              s:=s+s2;
-              param:=pparaitem(param^.next);
-           end;
+         if assigned(param) then
+           while assigned(param) do
+             begin
+                s2:=getcppparaname(param^.paratype.def);
+                if param^.paratyp in [vs_var,vs_out] then
+                  s2:='R'+s2;
+                s:=s+s2;
+                param:=pparaitem(param^.next);
+             end
+         else
+           s:=s+'v';
          cplusplusmangledname:=s;
       end;
-{$EndIf GDB}
-
 
     procedure tprocdef.setmangledname(const s : string);
       begin
@@ -3336,7 +3335,6 @@ Const local_symtable_index : longint = $8001;
          is_publishable:=(po_methodpointer in procoptions);
       end;
 
-
     function tprocvardef.gettypename : string;
       begin
          if assigned(rettype.def) and
@@ -3376,6 +3374,8 @@ Const local_symtable_index : longint = $8001;
         objname:=stringdup(n);
 {$ifdef GDB}
         writing_stabs:=false;
+        classglobalnb:=0;
+        classptrglobalnb:=0;
 {$endif GDB}
      end;
 
@@ -3410,6 +3410,8 @@ Const local_symtable_index : longint = $8001;
            class_tobject:=@self;
 {$ifdef GDB}
          writing_stabs:=false;
+         classglobalnb:=0;
+         classptrglobalnb:=0;
 {$endif GDB}
        end;
 
@@ -3695,12 +3697,14 @@ Const local_symtable_index : longint = $8001;
                 ipd := pd;
                 while assigned(ipd^.nextoverloaded) do ipd := ipd^.nextoverloaded;
                 if (po_virtualmethod in pd^.procoptions) then
-                   begin
-                   lindex := pd^.extnumber;
-                   {doesnt seem to be necessary
-                   lindex := lindex or $80000000;}
-                   virtualind := '*'+tostr(lindex)+';'+ipd^._class^.numberstring+';'
-                   end else virtualind := '.';
+                  begin
+                    lindex := pd^.extnumber;
+                    {doesnt seem to be necessary
+                    lindex := lindex or $80000000;}
+                    virtualind := '*'+tostr(lindex)+';'+ipd^._class^.classnumberstring+';'
+                  end
+                 else
+                  virtualind := '.';
 
                  { used by gdbpas to recognize constructor and destructors }
                  if (pd^.proctypeoption=potype_constructor) then
@@ -3770,11 +3774,13 @@ Const local_symtable_index : longint = $8001;
     function tobjectdef.stabstring : pchar;
       var anc : pobjectdef;
           oldrec : pchar;
-          oldrecsize : longint;
+          storenb, oldrecsize : longint;
           str_end : string;
       begin
         if not (is_class) or writing_stabs then
           begin
+            storenb:=globalnb;
+            globalnb:=classptrglobalnb;
             oldrec := stabrecstring;
             oldrecsize:=stabrecsize;
             stabrecsize:=memsizeinc;
@@ -3788,15 +3794,11 @@ Const local_symtable_index : longint = $8001;
               end;
             {virtual table to implement yet}
             RecOffset := 0;
-            if is_class then
-              inc(globalnb);
             symtable^.foreach({$ifdef FPCPROCVAR}@{$endif}addname);
-            if is_class then
-              dec(globalnb);
             if (oo_has_vmt in objectoptions) then
               if not assigned(childof) or not(oo_has_vmt in childof^.objectoptions) then
                  begin
-                    strpcopy(strend(stabrecstring),'$vf'+numberstring+':'+typeglobalnumber('vtblarray')
+                    strpcopy(strend(stabrecstring),'$vf'+classnumberstring+':'+typeglobalnumber('vtblarray')
                       +','+tostr(vmt_offset*8)+';');
                  end;
             symtable^.foreach({$ifdef FPCPROCVAR}@{$endif}addprocname);
@@ -3806,11 +3808,7 @@ Const local_symtable_index : longint = $8001;
                  while assigned(anc^.childof) and (oo_has_vmt in anc^.childof^.objectoptions) do
                    anc := anc^.childof;
                  { just in case anc = self }
-                 if is_class then
-                   inc(globalnb);
                  str_end:=';~%'+anc^.classnumberstring+';';
-                 if is_class then
-                   dec(globalnb);
               end
             else
               str_end:=';';
@@ -3819,6 +3817,7 @@ Const local_symtable_index : longint = $8001;
             freemem(stabrecstring,stabrecsize);
             stabrecstring := oldrec;
             stabrecsize:=oldrecsize;
+            globalnb:=storenb;
           end
         else
           begin
@@ -3828,30 +3827,50 @@ Const local_symtable_index : longint = $8001;
 
    procedure tobjectdef.set_globalnb;
      begin
-         globalnb :=PGlobalTypeCount^;
+         classglobalnb:=PGlobalTypeCount^;
+         globalnb:=classglobalnb;
          inc(PglobalTypeCount^);
-         { classes need two type numbers }
+         { classes need two type numbers, the globalnb is set to the ptr }
          if is_class then
            begin
-             globalnb :=PGlobalTypeCount^;
+             classptrglobalnb:=PGlobalTypeCount^;
+             globalnb:=classptrglobalnb;
              inc(PglobalTypeCount^);
            end;
      end;
 
    function tobjectdef.classnumberstring : string;
+     var
+       onb : word;
      begin
        if globalnb=0 then
-         begin
-           numberstring;
-         end;
+         numberstring;
        if is_class then
          begin
-           dec(globalnb);
+           onb:=globalnb;
+           globalnb:=classglobalnb;
            classnumberstring:=numberstring;
-           inc(globalnb);
+           globalnb:=onb;
          end
        else
          classnumberstring:=numberstring;
+     end;
+
+   function tobjectdef.classptrnumberstring : string;
+     var
+       onb : word;
+     begin
+       if globalnb=0 then
+         numberstring;
+       if is_class then
+         begin
+           onb:=globalnb;
+           globalnb:=classptrglobalnb;
+           classptrnumberstring:=numberstring;
+           globalnb:=onb;
+         end
+       else
+         classptrnumberstring:=numberstring;
      end;
 
     procedure tobjectdef.concatstabto(asmlist : paasmoutput);
@@ -3868,23 +3887,25 @@ Const local_symtable_index : longint = $8001;
         begin
           if globalnb=0 then
             set_globalnb;
+          { Write the record class itself }
           writing_stabs:=true;
-          dec(globalnb);
-          inherited concatstabto(asmlist);
-          inc(globalnb);
-          writing_stabs:=false;
-          is_def_stab_written:=not_written;
           if assigned(typesym) then
             begin
               st:=typesym^._name;
               typesym^._name:=stringdup(' ');
             end;
+          globalnb:=classglobalnb;
           inherited concatstabto(asmlist);
           if assigned(typesym) then
             begin
               stringdispose(typesym^._name);
               typesym^._name:=st;
             end;
+          globalnb:=classptrglobalnb;
+          writing_stabs:=false;
+          { Write the invisible pointer class }
+          is_def_stab_written:=not_written;
+          inherited concatstabto(asmlist);
         end;
       end;
 {$endif GDB}
@@ -4245,6 +4266,7 @@ Const local_symtable_index : longint = $8001;
          rttilist^.concat(new(pai_const,init_16bit(count)));
 
          { count is used to write nameindex   }
+
          { but we need an offset of the owner }
          { to give each property an own slot  }
          if assigned(childof) and (oo_can_have_published in childof^.objectoptions) then
@@ -4320,7 +4342,10 @@ Const local_symtable_index : longint = $8001;
 
 {
   $Log$
-  Revision 1.21  2000-10-04 23:16:48  pierre
+  Revision 1.22  2000-10-14 10:14:52  peter
+    * moehrendorf oct 2000 rewrite
+
+  Revision 1.21  2000/10/04 23:16:48  pierre
    * object stabs fix (merged)
 
   Revision 1.20  2000/10/01 19:48:25  peter

@@ -34,7 +34,7 @@ interface
           procedure pass_2;override;
        end;
 
-       ti386innode = class(tsetinnode)
+       ti386innode = class(tinnode)
           procedure pass_2;override;
        end;
        ti386casenode = class(tcasenode)
@@ -48,8 +48,9 @@ implementation
       cobjects,verbose,globals,
       symconst,symtable,aasm,types,
       hcodegen,temp_gen,pass_2,
+      ncon,
       cpubase,cpuasm,
-      cgai386,tgeni386;
+      cgai386,tgeni386,n386util;
 
      const
        bytes2Sxx:array[1..8] of Topsize=(S_B,S_W,S_NO,S_L,S_NO,S_NO,S_NO,S_Q);
@@ -176,11 +177,11 @@ implementation
                      (left.resulttype^.deftype=enumdef) and (penumdef(left.resulttype)^.max<=32));
 
          { Can we generate jumps? Possible for all types of sets }
-         genjumps:=(right.treetype=setconstn) and
-                   analizeset(right.value_set,use_small);
+         genjumps:=(right.nodetype=setconstn) and
+                   analizeset(tsetconstnode(right).value_set,use_small);
          { calculate both operators }
          { the complex one first }
-         firstcomplex(p);
+         firstcomplex(self);
          secondpass(left);
          { Only process the right if we are not generating jumps }
          if not genjumps then
@@ -194,8 +195,8 @@ implementation
           exit;
 
          { ofcourse not commutative }
-         if swaped then
-          swaptree(p);
+         if nf_swaped in flags then
+          swapleftright;
 
          if genjumps then
           begin
@@ -348,7 +349,7 @@ implementation
             handle smallsets separate, because it allows faster checks }
             if use_small then
              begin
-               if left.treetype=ordconstn then
+               if left.nodetype=ordconstn then
                 begin
                   location.resflags:=F_NE;
                   case right.location.loc of
@@ -356,12 +357,12 @@ implementation
                      LOC_CREGISTER:
                       begin
                          emit_const_reg(A_TEST,S_L,
-                           1 shl (left.value and 31),right.location.register);
+                           1 shl (tordconstnode(left).value and 31),right.location.register);
                          ungetregister32(right.location.register);
                        end
                   else
                    begin
-                     emit_const_ref(A_TEST,S_L,1 shl (left.value and 31),
+                     emit_const_ref(A_TEST,S_L,1 shl (tordconstnode(left).value and 31),
                        newreference(right.location.reference));
                      del_reference(right.location.reference);
                    end;
@@ -430,13 +431,13 @@ implementation
                   getlabel(l2);
 
                   { Is this treated in firstpass ?? }
-                  if left.treetype=ordconstn then
+                  if left.nodetype=ordconstn then
                     begin
                       hr:=getregister32;
                       left.location.loc:=LOC_REGISTER;
                       left.location.register:=hr;
                       emit_const_reg(A_MOV,S_L,
-                            left.value,hr);
+                            tordconstnode(left).value,hr);
                     end;
                   case left.location.loc of
                      LOC_REGISTER,
@@ -495,11 +496,11 @@ implementation
                 end { of right.location.reference.is_immediate }
                { do search in a normal set which could have >32 elementsm
                  but also used if the left side contains higher values > 32 }
-               else if left.treetype=ordconstn then
+               else if left.nodetype=ordconstn then
                 begin
                   location.resflags:=F_NE;
-                  inc(right.location.reference.offset,left.value shr 3);
-                  emit_const_ref(A_TEST,S_B,1 shl (left.value and 7),
+                  inc(right.location.reference.offset,tordconstnode(left).value shr 3);
+                  emit_const_ref(A_TEST,S_B,1 shl (tordconstnode(left).value and 7),
                     newreference(right.location.reference));
                   del_reference(right.location.reference);
                 end
@@ -548,21 +549,21 @@ implementation
            lesslabel,greaterlabel : pasmlabel;
 
        begin
-         emitlab(_at);
+         emitlab(p^._at);
          { calculate labels for left and right }
-         if (less=nil) then
+         if (p^.less=nil) then
            lesslabel:=elselabel
          else
-           lesslabel:=less^._at;
-         if (greater=nil) then
+           lesslabel:=p^.less^._at;
+         if (p^.greater=nil) then
            greaterlabel:=elselabel
          else
-           greaterlabel:=greater^._at;
+           greaterlabel:=p^.greater^._at;
            { calculate labels for left and right }
          { no range label: }
-         if _low=_high then
+         if p^._low=p^._high then
            begin
-              emit_const_reg(A_CMP,opsize,_low,hregister);
+              emit_const_reg(A_CMP,opsize,p^._low,hregister);
               if greaterlabel=lesslabel then
                 emitjmp(C_NE,lesslabel)
               else
@@ -570,20 +571,20 @@ implementation
                    emitjmp(jmp_le,lesslabel);
                    emitjmp(jmp_gt,greaterlabel);
                 end;
-              emitjmp(C_None,statement);
+              emitjmp(C_None,p^.statement);
            end
          else
            begin
-              emit_const_reg(A_CMP,opsize,_low,hregister);
+              emit_const_reg(A_CMP,opsize,p^._low,hregister);
               emitjmp(jmp_le,lesslabel);
-              emit_const_reg(A_CMP,opsize,_high,hregister);
+              emit_const_reg(A_CMP,opsize,p^._high,hregister);
               emitjmp(jmp_gt,greaterlabel);
-              emitjmp(C_None,statement);
+              emitjmp(C_None,p^.statement);
            end;
-          if assigned(less) then
-           gentreejmp(less);
-          if assigned(greater) then
-           gentreejmp(greater);
+          if assigned(p^.less) then
+           gentreejmp(p^.less);
+          if assigned(p^.greater) then
+           gentreejmp(p^.greater);
       end;
 
       procedure genlinearcmplist(hp : pcaserecord);
@@ -1036,11 +1037,11 @@ implementation
          while assigned(hp) do
            begin
               cleartempgen;
-              secondpass(hp.right);
+              secondpass(tbinarynode(hp).right);
               { don't come back to case line }
               aktfilepos:=exprasmlist^.getlasttaifilepos^;
               emitjmp(C_None,endlabel);
-              hp:=hp.left;
+              hp:=tbinarynode(hp).left;
            end;
          emitlab(elselabel);
          { ...and the else block }
@@ -1060,7 +1061,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.3  2000-09-30 16:08:45  peter
+  Revision 1.4  2000-10-14 10:14:49  peter
+    * moehrendorf oct 2000 rewrite
+
+  Revision 1.3  2000/09/30 16:08:45  peter
     * more cg11 updates
 
   Revision 1.2  2000/09/24 20:17:44  florian

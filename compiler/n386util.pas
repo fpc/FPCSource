@@ -34,19 +34,36 @@ interface
     function maybe_savetotemp(needed : byte;p : tnode;isint64 : boolean) : boolean;
 {$endif TEMPS_NOT_PUSH}
     procedure restore(p : tnode;isint64 : boolean);
+{$ifdef TEMPS_NOT_PUSH}
+    procedure restorefromtemp(p : tnode;isint64 : boolean);
+{$endif TEMPS_NOT_PUSH}
     procedure pushsetelement(p : tnode);
     procedure push_value_para(p:tnode;inlined,is_cdecl:boolean;
                               para_offset:longint;alignment : longint);
+    procedure loadshortstring(source,dest : tnode);
+    procedure loadlongstring(p:tbinarynode);
+    procedure loadansi2short(source,dest : tnode);
 
     procedure maketojumpbool(p : tnode);
     procedure emitoverflowcheck(p:tnode);
     procedure emitrangecheck(p:tnode;todef:pdef);
-    procedure firstcomplex(p : tnode);
+    procedure firstcomplex(p : tbinarynode);
 
 implementation
 
     uses
-      ncon;
+       globtype,globals,systems,verbose,
+       cutils,cobjects,
+       aasm,cpubase,cpuasm,
+{$ifdef GDB}
+       gdb,symconst,
+{$endif GDB}
+       types,
+       ncon,nld,
+       pass_1,pass_2,
+       hcodegen,tgeni386,temp_gen,
+       cgai386;
+
 
 {*****************************************************************************
                            Emit Push Functions
@@ -216,6 +233,43 @@ implementation
          ungetiftemp(href);
 {$endif TEMPS_NOT_PUSH}
       end;
+
+
+{$ifdef TEMPS_NOT_PUSH}
+    procedure restorefromtemp(p : tnode;isint64 : boolean);
+      var
+         hregister :  tregister;
+         href : treference;
+
+      begin
+         hregister:=getregister32;
+         reset_reference(href);
+         href.base:=procinfo^.frame_pointer;
+         href.offset:=p.temp_offset;
+         emit_ref_reg(A_MOV,S_L,href,hregister);
+         if (p.location.loc in [LOC_REGISTER,LOC_CREGISTER]) then
+           begin
+              p.location.register:=hregister;
+              if isint64 then
+                begin
+                   p.location.registerhigh:=getregister32;
+                   href.offset:=p.temp_offset+4;
+                   emit_ref_reg(A_MOV,S_L,p.location.registerhigh);
+                   { set correctly for release ! }
+                   href.offset:=p.temp_offset;
+                end;
+           end
+         else
+           begin
+              reset_reference(p.location.reference);
+              p.location.reference.base:=hregister;
+              { Why is this done? We can never be sure about p^.left
+                because otherwise secondload fails PM
+              set_location(p^.left^.location,p^.location);}
+           end;
+         ungetiftemp(href);
+      end;
+{$endif TEMPS_NOT_PUSH}
 
 
     procedure pushsetelement(p : tnode);
@@ -795,7 +849,7 @@ implementation
         opsize : topsize;
         storepos : tfileposinfo;
       begin
-         if p.error then
+         if nf_error in p.flags then
            exit;
          storepos:=aktfilepos;
          aktfilepos:=p.fileinfo;
@@ -803,7 +857,7 @@ implementation
            begin
               if is_constboolnode(p) then
                 begin
-                   if p.value<>0 then
+                   if tordconstnode(p).value<>0 then
                      emitjmp(C_None,truelabel)
                    else
                      emitjmp(C_None,falselabel);
@@ -1045,41 +1099,224 @@ implementation
 
    { DO NOT RELY on the fact that the tnode is not yet swaped
      because of inlining code PM }
-    procedure firstcomplex(p : tnode);
+    procedure firstcomplex(p : tbinarynode);
       var
          hp : tnode;
       begin
          { always calculate boolean AND and OR from left to right }
-         if (p.treetype in [orn,andn]) and
-            (p.left^.resulttype^.deftype=orddef) and
-            (porddef(p.left^.resulttype)^.typ in [bool8bit,bool16bit,bool32bit]) then
+         if (p.nodetype in [orn,andn]) and
+            (p.left.resulttype^.deftype=orddef) and
+            (porddef(p.left.resulttype)^.typ in [bool8bit,bool16bit,bool32bit]) then
            begin
              { p.swaped:=false}
-             if p.swaped then
+             if nf_swaped in p.flags then
                internalerror(234234);
            end
          else
-           if (p.left^.registers32<p.right^.registers32) and
+           if (p.left.registers32<p.right.registers32) and
            { the following check is appropriate, because all }
            { 4 registers are rarely used and it is thereby   }
            { achieved that the extra code is being dropped   }
            { by exchanging not commutative operators     }
-              (p.right^.registers32<=4) then
+              (p.right.registers32<=4) then
             begin
               hp:=p.left;
               p.left:=p.right;
               p.right:=hp;
-              p.swaped:=not p.swaped;
+              if nf_swaped in p.flags then
+                exclude(p.flags,nf_swaped)
+              else
+                include(p.flags,nf_swaped);
             end;
          {else
            p.swaped:=false; do not modify }
       end;
-{$endif}
+
+{*****************************************************************************
+                           Emit Functions
+*****************************************************************************}
+
+    procedure push_shortstring_length(p:tnode);
+      var
+        hightree : tnode;
+      begin
+        if is_open_string(p.resulttype) then
+         begin
+           getsymonlyin(tloadnode(p).symtable,'high'+pvarsym(tloadnode(p).symtableentry)^.name);
+           hightree:=genloadnode(pvarsym(srsym),tloadnode(p).symtable);
+           firstpass(hightree);
+           secondpass(hightree);
+           push_value_para(hightree,false,false,0,4);
+           hightree.free;
+         end
+        else
+         begin
+           push_int(pstringdef(p.resulttype)^.len);
+         end;
+      end;
+
+{*****************************************************************************
+                           String functions
+*****************************************************************************}
+
+    procedure loadshortstring(source,dest : tnode);
+    {
+      Load a string, handles stringdef and orddef (char) types
+    }
+      begin
+         case source.resulttype^.deftype of
+            stringdef:
+              begin
+                 if (source.nodetype=stringconstn) and
+                   (str_length(source)=0) then
+                   emit_const_ref(
+                      A_MOV,S_B,0,newreference(dest.location.reference))
+                 else
+                   begin
+                     emitpushreferenceaddr(dest.location.reference);
+                     emitpushreferenceaddr(source.location.reference);
+                     push_shortstring_length(dest);
+                     emitcall('FPC_SHORTSTR_COPY');
+                     maybe_loadesi;
+                   end;
+              end;
+            orddef:
+              begin
+                 if source.nodetype=ordconstn then
+                   emit_const_ref(
+                      A_MOV,S_W,tordconstnode(source).value*256+1,newreference(dest.location.reference))
+                 else
+                   begin
+                      { not so elegant (goes better with extra register }
+{$ifndef noAllocEdi}
+                      getexplicitregister32(R_EDI);
+{$endif noAllocEdi}
+                      if (source.location.loc in [LOC_REGISTER,LOC_CREGISTER]) then
+                        begin
+                           emit_reg_reg(A_MOV,S_L,makereg32(source.location.register),R_EDI);
+                           ungetregister(source.location.register);
+                        end
+                      else
+                        begin
+                           emit_ref_reg(A_MOV,S_L,newreference(source.location.reference),R_EDI);
+                           del_reference(source.location.reference);
+                        end;
+                      emit_const_reg(A_SHL,S_L,8,R_EDI);
+                      emit_const_reg(A_OR,S_L,1,R_EDI);
+                      emit_reg_ref(A_MOV,S_W,R_DI,newreference(dest.location.reference));
+{$ifndef noAllocEdi}
+                      ungetregister32(R_EDI);
+{$endif noAllocEdi}
+                   end;
+              end;
+         else
+           CGMessage(type_e_mismatch);
+         end;
+      end;
+
+    procedure loadlongstring(p:tbinarynode);
+    {
+      Load a string, handles stringdef and orddef (char) types
+    }
+      var
+         r : preference;
+
+      begin
+         case p.right.resulttype^.deftype of
+            stringdef:
+              begin
+                 if (p.right.nodetype=stringconstn) and
+                   (str_length(p.right)=0) then
+                   emit_const_ref(A_MOV,S_L,0,newreference(p.left.location.reference))
+                 else
+                   begin
+                     emitpushreferenceaddr(p.left.location.reference);
+                     emitpushreferenceaddr(p.right.location.reference);
+                     push_shortstring_length(p.left);
+                     emitcall('FPC_LONGSTR_COPY');
+                     maybe_loadesi;
+                   end;
+              end;
+            orddef:
+              begin
+                 emit_const_ref(A_MOV,S_L,1,newreference(p.left.location.reference));
+
+                 r:=newreference(p.left.location.reference);
+                 inc(r^.offset,4);
+
+                 if p.right.nodetype=ordconstn then
+                   emit_const_ref(A_MOV,S_B,tordconstnode(p.right).value,r)
+                 else
+                   begin
+                      case p.right.location.loc of
+                         LOC_REGISTER,LOC_CREGISTER:
+                           begin
+                              emit_reg_ref(A_MOV,S_B,p.right.location.register,r);
+                              ungetregister(p.right.location.register);
+                           end;
+                         LOC_MEM,LOC_REFERENCE:
+                           begin
+                              if not(R_EAX in unused) then
+                                emit_reg(A_PUSH,S_L,R_EAX);
+                              emit_ref_reg(A_MOV,S_B,newreference(p.right.location.reference),R_AL);
+                              emit_reg_ref(A_MOV,S_B,R_AL,r);
+
+                              if not(R_EAX in unused) then
+                                emit_reg(A_POP,S_L,R_EAX);
+                              del_reference(p.right.location.reference);
+                           end
+                         else
+                           internalerror(20799);
+                        end;
+                   end;
+              end;
+         else
+           CGMessage(type_e_mismatch);
+         end;
+      end;
+
+
+    procedure loadansi2short(source,dest : tnode);
+      var
+         pushed : tpushed;
+         regs_to_push: byte;
+      begin
+         { Find out which registers have to be pushed (JM) }
+         regs_to_push := $ff;
+         remove_non_regvars_from_loc(source.location,regs_to_push);
+         { Push them (JM) }
+         pushusedregisters(pushed,regs_to_push);
+         case source.location.loc of
+           LOC_REFERENCE,LOC_MEM:
+             begin
+                { Now release the location and registers (see cgai386.pas: }
+                { loadansistring for more info on the order) (JM)          }
+                ungetiftemp(source.location.reference);
+                del_reference(source.location.reference);
+                emit_push_mem(source.location.reference);
+             end;
+           LOC_REGISTER,LOC_CREGISTER:
+             begin
+                emit_reg(A_PUSH,S_L,source.location.register);
+                { Now release the register (JM) }
+                ungetregister32(source.location.register);
+             end;
+         end;
+         push_shortstring_length(dest);
+         emitpushreferenceaddr(dest.location.reference);
+         emitcall('FPC_ANSISTR_TO_SHORTSTR');
+         popusedregisters(pushed);
+         maybe_loadesi;
+      end;
+
 
 end.
 {
   $Log$
-  Revision 1.1  2000-10-01 19:58:40  peter
+  Revision 1.2  2000-10-14 10:14:50  peter
+    * moehrendorf oct 2000 rewrite
+
+  Revision 1.1  2000/10/01 19:58:40  peter
     * new file
 
 }

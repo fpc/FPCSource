@@ -119,9 +119,9 @@ implementation
          { convert array constructors to sets, because there is no other operator
            possible for array constructors }
          if is_array_constructor(left.resulttype) then
-           arrayconstructor_to_set(tarrayconstructnode(left));
+           arrayconstructor_to_set(tarrayconstructornode(left));
          if is_array_constructor(right.resulttype) then
-           arrayconstructor_to_set(tarrayconstructnode(right));
+           arrayconstructor_to_set(tarrayconstructornode(right));
 
          { both left and right need to be valid }
          set_varstate(left,true);
@@ -1232,7 +1232,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.12  2000-10-01 19:48:23  peter
+  Revision 1.13  2000-10-14 10:14:50  peter
+    * moehrendorf oct 2000 rewrite
+
+  Revision 1.12  2000/10/01 19:48:23  peter
     * lot of compile updates for cg11
 
   Revision 1.11  2000/09/30 16:08:45  peter

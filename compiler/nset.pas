@@ -210,7 +210,7 @@ implementation
          { Convert array constructor first to set }
          if is_array_constructor(right.resulttype) then
           begin
-            arrayconstructor_to_set(tarrayconstructnode(right));
+            arrayconstructor_to_set(tarrayconstructornode(right));
             firstpass(right);
             if codegenerror then
              exit;
@@ -503,7 +503,10 @@ implementation
 
       begin
          p:=tcasenode(inherited getcopy);
-         p.elseblock:=elseblock.getcopy;
+         if assigned(elseblock) then
+           p.elseblock:=elseblock.getcopy
+         else
+           p.elseblock:=nil;
          p.nodes:=copycaserecord(nodes);
          getcopy:=p;
       end;
@@ -516,7 +519,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.4  2000-10-01 19:48:25  peter
+  Revision 1.5  2000-10-14 10:14:51  peter
+    * moehrendorf oct 2000 rewrite
+
+  Revision 1.4  2000/10/01 19:48:25  peter
     * lot of compile updates for cg11
 
   Revision 1.3  2000/09/27 18:14:31  florian

@@ -38,7 +38,7 @@ procedure createconstdefs;
 implementation
 
 uses
-  globtype,globals,symconst,tree;
+  globtype,globals,symconst,ninl;
 
 procedure insertinternsyms(p : psymtable);
 {
@@ -255,7 +255,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.5  2000-09-24 15:06:24  peter
+  Revision 1.6  2000-10-14 10:14:52  peter
+    * moehrendorf oct 2000 rewrite
+
+  Revision 1.5  2000/09/24 15:06:24  peter
     * use defines.inc
 
   Revision 1.4  2000/08/27 20:19:39  peter

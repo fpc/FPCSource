@@ -49,6 +49,7 @@ interface
        ti386stringconstnode = class(tstringconstnode)
           procedure pass_2;override;
        end;
+
        ti386setconstnode = class(tsetconstnode)
           procedure pass_2;override;
        end;
@@ -63,7 +64,7 @@ implementation
     uses
       globtype,systems,
       cobjects,verbose,globals,
-      symconst,symtable,aasm,
+      symconst,symtable,aasm,types,
       hcodegen,temp_gen,pass_2,
       cpubase,cpuasm,
       cgai386,tgeni386;
@@ -229,7 +230,7 @@ implementation
       begin
          { for empty ansistrings we could return a constant 0 }
          if is_ansistring(resulttype) and
-            (length=0) then
+            (len=0) then
           begin
             location.loc:=LOC_MEM;
             location.reference.is_immediate:=true;
@@ -241,9 +242,9 @@ implementation
          if not assigned(lab_str) then
            begin
               if is_shortstring(resulttype) then
-               mylength:=length+2
+               mylength:=len+2
               else
-               mylength:=length+1;
+               mylength:=len+1;
               { tries to found an old entry }
               hp1:=pai(consts^.first);
               while assigned(hp1) do
@@ -266,7 +267,7 @@ implementation
                                set the start index to 1 }
                              if is_shortstring(resulttype) then
                               begin
-                                if length<>ord(pai_string(hp1)^.str[0]) then
+                                if len<>ord(pai_string(hp1)^.str[0]) then
                                  same_string:=false;
                                 j:=1;
                               end
@@ -275,7 +276,7 @@ implementation
                              { don't check if the length byte was already wrong }
                              if same_string then
                               begin
-                                for i:=0 to length do
+                                for i:=0 to len do
                                  begin
                                    if pai_string(hp1)^.str[j]<>value_str[i] then
                                     begin
@@ -318,7 +319,7 @@ implementation
                       st_ansistring:
                         begin
                            { an empty ansi string is nil! }
-                           if length=0 then
+                           if len=0 then
                              consts^.concat(new(pai_const,init_32bit(0)))
                            else
                              begin
@@ -326,16 +327,16 @@ implementation
                                 getdatalabel(l2);
                                 consts^.concat(new(pai_label,init(l2)));
                                 consts^.concat(new(pai_const_symbol,init(l1)));
-                                consts^.concat(new(pai_const,init_32bit(length)));
-                                consts^.concat(new(pai_const,init_32bit(length)));
+                                consts^.concat(new(pai_const,init_32bit(len)));
+                                consts^.concat(new(pai_const,init_32bit(len)));
                                 consts^.concat(new(pai_const,init_32bit(-1)));
                                 consts^.concat(new(pai_label,init(l1)));
-                                getmem(pc,length+2);
-                                move(value_str^,pc^,length);
-                                pc[length]:=#0;
+                                getmem(pc,len+2);
+                                move(value_str^,pc^,len);
+                                pc[len]:=#0;
                                 { to overcome this problem we set the length explicitly }
                                 { with the ending null char }
-                                consts^.concat(new(pai_string,init_length_pchar(pc,length+1)));
+                                consts^.concat(new(pai_string,init_length_pchar(pc,len+1)));
                                 { return the offset of the real string }
                                 lab_str:=l2;
                              end;
@@ -343,10 +344,10 @@ implementation
                       st_shortstring:
                         begin
                           { truncate strings larger than 255 chars }
-                          if length>255 then
+                          if len>255 then
                            l:=255
                           else
-                           l:=length;
+                           l:=len;
                           { also length and terminating zero }
                           getmem(pc,l+3);
                           move(value_str^,pc[1],l+1);
@@ -487,7 +488,9 @@ begin
 end.
 {
   $Log$
-  Revision 1.1  2000-09-28 20:48:52  florian
-  *** empty log message ***
+  Revision 1.2  2000-10-14 10:14:48  peter
+    * moehrendorf oct 2000 rewrite
 
+  Revision 1.1  2000/09/28 20:48:52  florian
+  *** empty log message ***
 }

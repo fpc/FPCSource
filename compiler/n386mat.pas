@@ -20,7 +20,7 @@
 
  ****************************************************************************
 }
-unit cg386mat;
+unit n386mat;
 
 {$i defines.inc}
 
@@ -29,21 +29,22 @@ interface
     uses
       node,nmat;
 
-    ti386moddivnode = class(tmoddivnode)
-       procedure pass_2;override;
-    end;
+    type
+      ti386moddivnode = class(tmoddivnode)
+         procedure pass_2;override;
+      end;
 
-    ti386shlshrnode = class(tshlshrnode)
-       procedure pass_2;override;
-    end;
+      ti386shlshrnode = class(tshlshrnode)
+         procedure pass_2;override;
+      end;
 
-    ti386unaryminusnode = class(tunaryminus)
-       procedure pass_2;override;
-    end;
+      ti386unaryminusnode = class(tunaryminusnode)
+         procedure pass_2;override;
+      end;
 
-    ti386notnode = class(tnotnode)
-       procedure pass_2;override;
-    end;
+      ti386notnode = class(tnotnode)
+         procedure pass_2;override;
+      end;
 
 implementation
 
@@ -52,8 +53,9 @@ implementation
       cutils,cobjects,verbose,globals,
       symconst,symtable,aasm,types,
       hcodegen,temp_gen,pass_2,
+      ncon,
       cpubase,cpuasm,
-      cgai386,tgeni386;
+      cgai386,tgeni386,n386util;
 
 {*****************************************************************************
                              TI386MODDIVNODE
@@ -104,7 +106,7 @@ implementation
                 typename:='QWORD'
               else
                 typename:='INT64';
-              if treetype=divn then
+              if nodetype=divn then
                 opname:='DIV_'
               else
                 opname:='MOD_';
@@ -138,8 +140,8 @@ implementation
                 end
               else hreg1:=left.location.register;
 
-                if (treetype=divn) and (right.treetype=ordconstn) and
-                    ispowerof2(right.tordconstnode(value),power) then
+                if (nodetype=divn) and (right.nodetype=ordconstn) and
+                    ispowerof2(tordconstnode(right).value,power) then
                   Begin
                     shrdiv := true;
                     {for signed numbers, the numerator must be adjusted before the
@@ -196,7 +198,7 @@ implementation
                       emit_const_reg(A_SHR,S_L,power,hreg1);
                   End
                 else
-                  if (treetype=modn) and (right.treetype=ordconstn) and
+                  if (nodetype=modn) and (right.nodetype=ordconstn) and
                     ispowerof2(tordconstnode(right).value,power) and Not(is_signed(left.resulttype)) Then
                    {is there a similar trick for MOD'ing signed numbers? (JM)}
                    Begin
@@ -262,7 +264,7 @@ implementation
                    else
                      emit_reg(A_IDIV,S_L,R_EDI);
                    ungetregister32(R_EDI);
-                   if treetype=divn then
+                   if nodetype=divn then
                      begin
                         { if result register is busy then copy }
                         if popeax then
@@ -373,12 +375,12 @@ implementation
                 end;
 
               { shifting by a constant directly coded: }
-              if (right.treetype=ordconstn) then
+              if (right.nodetype=ordconstn) then
                 begin
                    { shrd/shl works only for values <=31 !! }
-                   if right.tordconstnode(value)>31 then
+                   if tordconstnode(right).value>31 then
                      begin
-                        if treetype=shln then
+                        if nodetype=shln then
                           begin
                              emit_reg_reg(A_XOR,S_L,hregisterhigh,
                                hregisterhigh);
@@ -397,7 +399,7 @@ implementation
                      end
                    else
                      begin
-                        if treetype=shln then
+                        if nodetype=shln then
                           begin
                              emit_const_reg_reg(A_SHLD,S_L,tordconstnode(right).value and 31,
                                hregisterlow,hregisterhigh);
@@ -475,7 +477,7 @@ implementation
 
                    { the damned shift instructions work only til a count of 32 }
                    { so we've to do some tricks here                           }
-                   if treetype=shln then
+                   if nodetype=shln then
                      begin
                         getlabel(l1);
                         getlabel(l2);
@@ -561,13 +563,13 @@ implementation
                 hregister1:=left.location.register;
 
               { determine operator }
-              if treetype=shln then
+              if nodetype=shln then
                 op:=A_SHL
               else
                 op:=A_SHR;
 
               { shifting by a constant directly coded: }
-              if (right.treetype=ordconstn) then
+              if (right.nodetype=ordconstn) then
                 begin
                    { l shl 32 should 0 imho, but neither TP nor Delphi do it in this way (FK)
                    if right.value<=31 then
@@ -985,7 +987,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.3  2000-09-30 16:08:45  peter
+  Revision 1.4  2000-10-14 10:14:49  peter
+    * moehrendorf oct 2000 rewrite
+
+  Revision 1.3  2000/09/30 16:08:45  peter
     * more cg11 updates
 
   Revision 1.2  2000/09/24 15:06:18  peter

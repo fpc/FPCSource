@@ -29,9 +29,7 @@ interface
     uses
        cobjects,
        cpuinfo,
-{$ifdef CG11}
        node,
-{$endif}
        symtable;
 
     type
@@ -147,7 +145,6 @@ interface
     { to use on other types                              }
     function is_subequal(def1, def2: pdef): boolean;
 
-{$ifdef CG11}
      type
        tconverttype = (
           tc_equal,
@@ -186,7 +183,6 @@ interface
     function isconvertable(def_from,def_to : pdef;
              var doconv : tconverttype;fromtreetype : tnodetype;
              explicit : boolean) : byte;
-{$endif CG11}
 
     { same as is_equal, but with error message if failed }
     function CheckTypes(def1,def2 : pdef) : boolean;
@@ -235,10 +231,6 @@ implementation
 
     uses
        globtype,globals,
-{$ifndef CG11}
-       htypechk,
-       tree,
-{$endif}
        verbose,symconst,tokens;
 
     var
@@ -1161,7 +1153,6 @@ implementation
         end; { endif assigned ... }
       end;
 
-{$ifdef CG11}
     function assignment_overloaded(from_def,to_def : pdef) : pprocdef;
        var
           passproc : pprocdef;
@@ -1390,7 +1381,7 @@ implementation
                             end
                            else
                             if isconvertable(parraydef(def_from)^.elementtype.def,
-                                             parraydef(def_to)^.elementtype.def,hct,arrayconstructn,false)<>0 then
+                                             parraydef(def_to)^.elementtype.def,hct,arrayconstructorn,false)<>0 then
                              begin
                                doconv:=hct;
                                b:=2;
@@ -1427,7 +1418,7 @@ implementation
                    begin
                      { string constant (which can be part of array constructor)
                        to zero terminated string constant }
-                     if (fromtreetype in [arrayconstructn,stringconstn]) and
+                     if (fromtreetype in [arrayconstructorn,stringconstn]) and
                         is_pchar(def_to) then
                       begin
                         doconv:=tc_cstring_2_pchar;
@@ -1647,7 +1638,7 @@ implementation
          end;
         isconvertable:=b;
       end;
-{$endif CG11}
+
 
     function CheckTypes(def1,def2 : pdef) : boolean;
 
@@ -1678,7 +1669,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.13  2000-10-01 19:48:26  peter
+  Revision 1.14  2000-10-14 10:14:56  peter
+    * moehrendorf oct 2000 rewrite
+
+  Revision 1.13  2000/10/01 19:48:26  peter
     * lot of compile updates for cg11
 
   Revision 1.12  2000/09/30 16:08:46  peter

@@ -511,15 +511,12 @@ implementation
          n.len:=len;
          n.value_str:=getpcharcopy;
          n.lab_str:=lab_str;
+         getcopy:=n;
       end;
 
     function tstringconstnode.pass_1 : tnode;
       begin
          pass_1:=nil;
-{        if cs_ansistrings in aktlocalswitches then
-          resulttype:=cansistringdef
-         else
-          resulttype:=cshortstringdef; }
         case stringtype of
           st_shortstring :
             resulttype:=cshortstringdef;
@@ -616,7 +613,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.7  2000-09-28 19:49:52  florian
+  Revision 1.8  2000-10-14 10:14:50  peter
+    * moehrendorf oct 2000 rewrite
+
+  Revision 1.7  2000/09/28 19:49:52  florian
   *** empty log message ***
 
   Revision 1.6  2000/09/27 20:25:44  florian

@@ -50,11 +50,7 @@ interface
 
        tfuncretnode = class(tnode)
           funcretprocinfo : pointer;
-{$IFDEF NEWST}
-          retsym : Psym;
-{$ELSE}
           rettype : ttype;
-{$ENDIF}
           constructor create;virtual;
           function getcopy : tnode;override;
           function pass_1 : tnode;override;
@@ -65,10 +61,10 @@ interface
           function pass_1 : tnode;override;
        end;
 
-       tarrayconstructnode = class(tbinarynode)
-          constructdef : pdef;
+       tarrayconstructornode = class(tbinarynode)
+          constructordef : pdef;
           constructor create(l,r : tnode);virtual;
-          function getcopy : tnode;
+          function getcopy : tnode;override;
           function pass_1 : tnode;override;
        end;
 
@@ -85,7 +81,7 @@ interface
        cassignmentnode : class of tassignmentnode;
        cfuncretnode : class of tfuncretnode;
        carrayconstructorrangenode : class of tarrayconstructorrangenode;
-       carrayconstructnode : class of tarrayconstructnode;
+       carrayconstructornode : class of tarrayconstructornode;
        ctypenode : class of ttypenode;
 
     function genloadnode(v : pvarsym;st : psymtable) : tloadnode;
@@ -120,11 +116,7 @@ implementation
 
       begin
          n:=cloadnode.create(v,st);
-{$ifdef NEWST}
-         n.resulttype:=v^.definition;
-{$else NEWST}
          n.resulttype:=v^.vartype.def;
-{$endif NEWST}
          genloadnode:=n;
       end;
 
@@ -134,12 +126,7 @@ implementation
 
       begin
          n:=cloadnode.create(v,st);
-{$ifdef NEWST}
-         n.resulttype:=nil; {We don't know which overloaded procedure is
-                              wanted...}
-{$else NEWST}
          n.resulttype:=v^.definition;
-{$endif NEWST}
          genloadcallnode:=n;
       end;
 
@@ -149,12 +136,7 @@ implementation
 
       begin
          n:=cloadnode.create(v,st);
-{$ifdef NEWST}
-         n.resulttype:=nil; {We don't know which overloaded procedure is
-                              wanted...}
-{$else NEWST}
          n.resulttype:=v^.definition;
-{$endif NEWST}
          n.left:=mp;
          genloadmethodcallnode:=n;
       end;
@@ -167,11 +149,7 @@ implementation
 
       begin
          n:=cloadnode.create(sym,st);
-{$ifdef NEWST}
-         n.resulttype:=sym^.definition;
-{$else NEWST}
          n.resulttype:=sym^.typedconsttype.def;
-{$endif NEWST}
          gentypedconstloadnode:=n;
       end;
 
@@ -201,12 +179,14 @@ implementation
          n:=tloadnode(inherited getcopy);
          n.symtable:=symtable;
          n.symtableentry:=symtableentry;
+         result:=n;
       end;
 
     function tloadnode.pass_1 : tnode;
       var
          p1 : tnode;
       begin
+         result:=nil;
          if (symtable^.symtabletype=withsymtable) and
             (pwithsymtable(symtable)^.direct_with) and
             (symtableentry^.typ=varsym) then
@@ -215,7 +195,7 @@ implementation
               p1:=gensubscriptnode(pvarsym(symtableentry),p1);
               left:=nil;
               firstpass(p1);
-              pass_1:=p1;
+              result:=p1;
               exit;
            end;
 
@@ -256,7 +236,7 @@ implementation
                    p1.resulttype:=resulttype;
                  end;
                 left:=nil;
-                pass_1:=p1;
+                result:=p1;
               end;
             constsym:
               begin
@@ -388,6 +368,7 @@ implementation
         hp : tnode;
 {$endif newoptimizations2}
       begin
+         result:=nil;
          { must be made unique }
          if assigned(left) then
            begin
@@ -527,16 +508,13 @@ implementation
       begin
          n:=tfuncretnode(inherited getcopy);
          n.funcretprocinfo:=funcretprocinfo;
-{$ifdef NEWST}
-         n.retsym:=retsym;
-{$else NEWST}
          n.rettype:=rettype;
-{$endif NEWST}
          getcopy:=n;
       end;
 
     function tfuncretnode.pass_1 : tnode;
       begin
+         result:=nil;
          resulttype:=rettype.def;
          location.loc:=LOC_REFERENCE;
          if ret_in_param(rettype.def) or
@@ -546,17 +524,18 @@ implementation
 
 
 {*****************************************************************************
-                           TARRAYCONSTRUCTRANGENODE
+                           TARRAYCONSTRUCTORRANGENODE
 *****************************************************************************}
 
     constructor tarrayconstructorrangenode.create(l,r : tnode);
 
       begin
-         inherited create(arrayconstructn,l,r);
+         inherited create(arrayconstructorrangen,l,r);
       end;
 
     function tarrayconstructorrangenode.pass_1 : tnode;
       begin
+        result:=nil;
         firstpass(left);
         set_varstate(left,true);
         firstpass(right);
@@ -567,32 +546,33 @@ implementation
 
 
 {****************************************************************************
-                            TARRAYCONSTRUCTNODE
+                            TARRAYCONSTRUCTORNODE
 *****************************************************************************}
 
-    constructor tarrayconstructnode.create(l,r : tnode);
+    constructor tarrayconstructornode.create(l,r : tnode);
 
       begin
-         inherited create(arrayconstructn,l,r);
-         constructdef:=nil;
+         inherited create(arrayconstructorn,l,r);
+         constructordef:=nil;
       end;
 
-    function tarrayconstructnode.getcopy : tnode;
+    function tarrayconstructornode.getcopy : tnode;
 
       var
-         n : tarrayconstructnode;
+         n : tarrayconstructornode;
 
       begin
-         n:=tarrayconstructnode(inherited getcopy);
-         n.constructdef:=constructdef;
+         n:=tarrayconstructornode(inherited getcopy);
+         n.constructordef:=constructordef;
+         result:=n;
       end;
 
-    function tarrayconstructnode.pass_1 : tnode;
+    function tarrayconstructornode.pass_1 : tnode;
       var
         pd : pdef;
         thp,
         chp,
-        hp : tarrayconstructnode;
+        hp : tarrayconstructornode;
         len : longint;
         varia : boolean;
 
@@ -621,17 +601,18 @@ implementation
            t.location.loc:=LOC_MEM;
         end;
       begin
+        result:=nil;
       { are we allowing array constructor? Then convert it to a set }
         if not allow_array_constructor then
          begin
-           hp:=tarrayconstructnode(getcopy);
+           hp:=tarrayconstructornode(getcopy);
            arrayconstructor_to_set(hp);
            firstpass(hp);
            pass_1:=hp;
            exit;
          end;
       { only pass left tree, right tree contains next construct if any }
-        pd:=constructdef;
+        pd:=constructordef;
         len:=0;
         varia:=false;
         if assigned(left) then
@@ -701,7 +682,7 @@ implementation
                   end;
                end;
               inc(len);
-              hp:=tarrayconstructnode(hp.right);
+              hp:=tarrayconstructornode(hp.right);
             end;
          { swap the tree for cargs }
            if (nf_cargs in flags) and (not(nf_cargswap in flags)) then
@@ -709,10 +690,10 @@ implementation
               chp:=nil;
               { we need a copy here, because self is destroyed }
               { by firstpass later                             }
-              hp:=tarrayconstructnode(getcopy);
+              hp:=tarrayconstructornode(getcopy);
               while assigned(hp) do
                begin
-                 thp:=tarrayconstructnode(hp.right);
+                 thp:=tarrayconstructornode(hp.right);
                  hp.right:=chp;
                  chp:=hp;
                  hp:=thp;
@@ -750,6 +731,7 @@ implementation
          n:=ttypenode(inherited getcopy);
          n.typenodetype:=typenodetype;
          n.typenodesym:=typenodesym;
+         result:=n;
       end;
 
     function ttypenode.pass_1 : tnode;
@@ -764,12 +746,15 @@ begin
    cassignmentnode:=tassignmentnode;
    cfuncretnode:=tfuncretnode;
    carrayconstructorrangenode:=tarrayconstructorrangenode;
-   carrayconstructnode:=tarrayconstructnode;
+   carrayconstructornode:=tarrayconstructornode;
    ctypenode:=ttypenode;
 end.
 {
   $Log$
-  Revision 1.5  2000-10-01 19:48:24  peter
+  Revision 1.6  2000-10-14 10:14:50  peter
+    * moehrendorf oct 2000 rewrite
+
+  Revision 1.5  2000/10/01 19:48:24  peter
     * lot of compile updates for cg11
 
   Revision 1.4  2000/09/28 19:49:52  florian

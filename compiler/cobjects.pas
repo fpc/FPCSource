@@ -246,7 +246,7 @@ interface
          pos,
          used : longint;
          next : pdynamicblock;
-         data : array[0..1] of byte;
+         data : array[0..high(longint)-20] of byte;
        end;
 
        pdynamicarray = ^tdynamicarray;
@@ -1843,7 +1843,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.14  2000-09-24 21:19:50  peter
+  Revision 1.15  2000-10-14 10:14:46  peter
+    * moehrendorf oct 2000 rewrite
+
+  Revision 1.14  2000/09/24 21:19:50  peter
     * delphi compile fixes
 
   Revision 1.13  2000/09/24 15:06:12  peter

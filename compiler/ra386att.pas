@@ -27,23 +27,35 @@ Unit Ra386att;
 Interface
 
 uses
-  tree;
+  node;
 
-   function assemble: ptree;
+   function assemble: tnode;
 
 
 Implementation
 
-Uses
-  globtype,
-  cutils,cobjects,systems,verbose,globals,
-  fmodule,aasm,types,symconst,symtable,scanner,cpubase,
-{$ifdef NEWCG}
-  cgbase,
+    uses
+       { common }
+       cutils,cobjects,
+       { global }
+       globtype,globals,verbose,
+       systems,cpuinfo,
+       { aasm }
+       cpubase,aasm,
+       { symtable }
+       symconst,symtable,types,
+       { pass 1 }
+       nbas,
+       { parser }
+       scanner,
+       ra386,rautils,
+       { codegen }
+{$ifdef newcg}
+       cgbase
 {$else}
-  hcodegen,
+       hcodegen
 {$endif}
-  rautils,ra386;
+       ;
 
 type
  tasmtoken = (
@@ -1845,7 +1857,7 @@ Begin
 end;
 
 
-Function Assemble: Ptree;
+Function Assemble: tnode;
 Var
   hl         : PAsmLabel;
   commname   : string;
@@ -2074,7 +2086,7 @@ Begin
      curlist^.Concat(new(pai_section,init(sec_code)));
    end;
   { Return the list in an asmnode }
-  assemble:=genasmnode(curlist);
+  assemble:=casmnode.create(curlist);
   Message1(asmr_d_finish_reading,'AT&T');
 end;
 
@@ -2102,7 +2114,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.5  2000-09-24 21:19:51  peter
+  Revision 1.6  2000-10-14 10:14:52  peter
+    * moehrendorf oct 2000 rewrite
+
+  Revision 1.5  2000/09/24 21:19:51  peter
     * delphi compile fixes
 
   Revision 1.4  2000/09/24 15:06:26  peter

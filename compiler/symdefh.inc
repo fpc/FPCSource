@@ -194,6 +194,8 @@
           { and no vmt field for objects without virtuals }
           vmt_offset : longint;
 {$ifdef GDB}
+          classglobalnb,
+          classptrglobalnb : word;
           writing_stabs : boolean;
 {$endif GDB}
           constructor init(const n : string;c : pobjectdef);
@@ -222,6 +224,7 @@
           function stabstring : pchar;virtual;
           procedure set_globalnb;virtual;
           function  classnumberstring : string;
+          function  classptrnumberstring : string;
           procedure concatstabto(asmlist : paasmoutput);virtual;
 {$endif GDB}
           { init/final }
@@ -459,9 +462,9 @@
           procedure load_references;
           function  write_references : boolean;
           function  procname: string;
+          function  cplusplusmangledname(const rn : string) : string;
           { debug }
 {$ifdef GDB}
-          function  cplusplusmangledname : string;
           function  stabstring : pchar;virtual;
           procedure concatstabto(asmlist : paasmoutput);virtual;
 {$endif GDB}
@@ -554,7 +557,10 @@
 
 {
   $Log$
-  Revision 1.10  2000-09-24 15:06:29  peter
+  Revision 1.11  2000-10-14 10:14:53  peter
+    * moehrendorf oct 2000 rewrite
+
+  Revision 1.10  2000/09/24 15:06:29  peter
     * use defines.inc
 
   Revision 1.9  2000/09/19 23:08:03  pierre

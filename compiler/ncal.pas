@@ -40,21 +40,35 @@ interface
           methodpointer : tnode;
           { only the processor specific nodes need to override this }
           { constructor                                             }
-          constructor create(v : pprocsym;st : psymtable);virtual;
+          constructor create(v : pprocsym;st : psymtable; mp : tnode);virtual;
           destructor destroy;override;
+          function getcopy : tnode;override;
           function pass_1 : tnode;override;
        end;
 
+       tcallparaflags = (
+          { flags used by tcallparanode }
+          cpf_exact_match_found,
+          cpf_convlevel1found,
+          cpf_convlevel2found,
+          cpf_is_colon_para
+          );
+
        tcallparanode = class(tbinarynode)
+          callparaflags : set of tcallparaflags;
           hightree : tnode;
           { only the processor specific nodes need to override this }
           { constructor                                             }
           constructor create(expr,next : tnode);virtual;
           destructor destroy;override;
+          function getcopy : tnode;override;
           procedure gen_high_tree(openstring:boolean);
           { tcallparanode doesn't use pass_1 }
           { tcallnode takes care of this     }
           procedure firstcallparan(defcoll : pparaitem;do_count : boolean);virtual;
+          procedure secondcallparan(defcoll : pparaitem;
+                   push_from_left_to_right,inlined,is_cdecl : boolean;
+                   para_alignment,para_offset : longint);virtual;abstract;
        end;
 
        tprocinlinenode = class(tnode)
@@ -101,7 +115,7 @@ interface
     function gencallnode(v : pprocsym;st : psymtable) : tnode;
 
       begin
-         gencallnode:=ccallnode.create(v,st);
+         gencallnode:=ccallnode.create(v,st,nil);
       end;
 
     function gencallparanode(expr,next : tnode) : tnode;
@@ -129,7 +143,9 @@ interface
       begin
          inherited create(callparan,expr,next);
          hightree:=nil;
-         expr.set_file_line(self);
+         if assigned(expr) then
+          expr.set_file_line(self);
+         callparaflags:=[];
       end;
 
     destructor tcallparanode.destroy;
@@ -137,6 +153,21 @@ interface
       begin
          hightree.free;
          inherited destroy;
+      end;
+
+    function tcallparanode.getcopy : tnode;
+
+      var
+         n : tcallparanode;
+
+      begin
+         n:=tcallparanode(inherited getcopy);
+         n.callparaflags:=callparaflags;
+         if assigned(hightree) then
+           n.hightree:=hightree.getcopy
+         else
+           n.hightree:=nil;
+         result:=n;
       end;
 
     procedure tcallparanode.firstcallparan(defcoll : pparaitem;do_count : boolean);
@@ -192,7 +223,7 @@ interface
               { Do we need arrayconstructor -> set conversion, then insert
                 it here before the arrayconstructor node breaks the tree
                 with its conversions of enum->ord }
-              if (left.nodetype=arrayconstructn) and
+              if (left.nodetype=arrayconstructorn) and
                  (defcoll^.paratype.def^.deftype=setdef) then
                 left:=gentypeconvnode(left,defcoll^.paratype.def);
 
@@ -202,7 +233,7 @@ interface
                  if is_array_of_const(defcoll^.paratype.def) then
                   begin
                     if assigned(aktcallprocsym) and
-                       (pocall_cdecl in aktcallprocsym^.definition^.proccalloptions) and
+                       (([pocall_cppdecl,pocall_cdecl]*aktcallprocsym^.definition^.proccalloptions)<>[]) and
                        (po_external in aktcallprocsym^.definition^.procoptions) then
                       include(left.flags,nf_cargs);
                     { force variant array }
@@ -211,7 +242,7 @@ interface
                  else
                   begin
                     include(left.flags,nf_novariaallowed);
-                    tarrayconstructnode(left).constructdef:=parraydef(defcoll^.paratype.def)^.elementtype.def;
+                    tarrayconstructornode(left).constructordef:=parraydef(defcoll^.paratype.def)^.elementtype.def;
                   end;
                end;
 
@@ -234,7 +265,7 @@ interface
                  old_get_para_resulttype:=get_para_resulttype;
                  allow_array_constructor:=true;
                  get_para_resulttype:=false;
-                  if (left.nodetype in [arrayconstructn,typeconvn]) then
+                  if (left.nodetype in [arrayconstructorn,typeconvn]) then
                    firstpass(left);
                  if not assigned(resulttype) then
                    resulttype:=left.resulttype;
@@ -455,14 +486,14 @@ interface
                                  TCALLNODE
  ****************************************************************************}
 
-    constructor tcallnode.create(v : pprocsym;st : psymtable);
+    constructor tcallnode.create(v : pprocsym;st : psymtable; mp : tnode);
 
       begin
          inherited create(calln,nil,nil);
          symtableprocentry:=v;
          symtableproc:=st;
          include(flags,nf_return_value_used);
-         methodpointer:=nil;
+         methodpointer:=mp;
          procdefinition:=nil;
       end;
 
@@ -471,6 +502,21 @@ interface
       begin
          methodpointer.free;
          inherited destroy;
+      end;
+
+    function tcallnode.getcopy : tnode;
+      var
+        n : tcallnode;
+      begin
+        n:=tcallnode(inherited getcopy);
+        n.symtableprocentry:=symtableprocentry;
+        n.symtableproc:=symtableproc;
+        n.procdefinition:=procdefinition;
+        if assigned(methodpointer) then
+         n.methodpointer:=methodpointer.getcopy
+        else
+         n.methodpointer:=nil;
+        result:=n;
       end;
 
     function tcallnode.pass_1 : tnode;
@@ -512,20 +558,20 @@ interface
 
         begin
            { safety check }
-           if not (assigned(def) or assigned(resulttype)) then
+           if not (assigned(def) or assigned(p.resulttype)) then
             begin
               is_equal:=false;
               exit;
             end;
            { all types can be passed to a formaldef }
            is_equal:=(def^.deftype=formaldef) or
-             (types.is_equal(resulttype,def))
+             (types.is_equal(p.resulttype,def))
            { integer constants are compatible with all integer parameters if
              the specified value matches the range }
              or
              (
               (left.nodetype=ordconstn) and
-              is_integer(resulttype) and
+              is_integer(p.resulttype) and
               is_integer(def) and
               (tordconstnode(left).value>=porddef(def)^.low) and
               (tordconstnode(left).value<=porddef(def)^.high)
@@ -535,24 +581,24 @@ interface
            { when searching the correct overloaded procedure   }
              or
              (
-              (def^.deftype=stringdef) and (resulttype^.deftype=stringdef) and
-              (pstringdef(def)^.string_typ=pstringdef(resulttype)^.string_typ)
+              (def^.deftype=stringdef) and (p.resulttype^.deftype=stringdef) and
+              (pstringdef(def)^.string_typ=pstringdef(p.resulttype)^.string_typ)
              )
              or
              (
               (left.nodetype=stringconstn) and
-              (is_ansistring(resulttype) and is_pchar(def))
+              (is_ansistring(p.resulttype) and is_pchar(def))
              )
              or
              (
               (left.nodetype=ordconstn) and
-              (is_char(resulttype) and (is_shortstring(def) or is_ansistring(def)))
+              (is_char(p.resulttype) and (is_shortstring(def) or is_ansistring(def)))
              )
            { set can also be a not yet converted array constructor }
              or
              (
-              (def^.deftype=setdef) and (resulttype^.deftype=arraydef) and
-              (parraydef(resulttype)^.IsConstructor) and not(parraydef(resulttype)^.IsVariant)
+              (def^.deftype=setdef) and (p.resulttype^.deftype=arraydef) and
+              (parraydef(p.resulttype)^.IsConstructor) and not(parraydef(p.resulttype)^.IsVariant)
              )
            { in tp7 mode proc -> procvar is allowed }
              or
@@ -781,7 +827,7 @@ interface
                                begin
                                   if hp^.nextpara^.paratype.def=pt.resulttype then
                                     begin
-                                       include(pt.flags,nf_exact_match_found);
+                                       include(tcallparanode(pt).callparaflags,cpf_exact_match_found);
                                        hp^.nextpara^.argconvtyp:=act_exact;
                                     end
                                   else
@@ -794,8 +840,8 @@ interface
                                  hp^.nextpara^.convertlevel:=isconvertable(pt.resulttype,hp^.nextpara^.paratype.def,
                                      hcvt,tcallparanode(pt).left.nodetype,false);
                                  case hp^.nextpara^.convertlevel of
-                                  1 : include(pt.flags,nf_convlevel1found);
-                                  2 : include(pt.flags,nf_convlevel2found);
+                                  1 : include(tcallparanode(pt).callparaflags,cpf_convlevel1found);
+                                  2 : include(tcallparanode(pt).callparaflags,cpf_convlevel2found);
                                  end;
                                end;
 
@@ -982,7 +1028,7 @@ interface
                         pt:=left;
                         while assigned(pt) do
                           begin
-                             if nf_exact_match_found in pt.flags then
+                             if cpf_exact_match_found in tcallparanode(pt).callparaflags then
                                begin
                                  hp:=procs;
                                  procs:=nil;
@@ -1098,8 +1144,8 @@ interface
                         pt:=left;
                         while assigned(pt) do
                           begin
-                             if (nf_convlevel1found in pt.flags) and
-                               (nf_convlevel2found in pt.flags) then
+                             if (cpf_convlevel1found in tcallparanode(pt).callparaflags) and
+                               (cpf_convlevel2found in tcallparanode(pt).callparaflags) then
                                begin
                                  hp:=procs;
                                  procs:=nil;
@@ -1448,7 +1494,10 @@ interface
 
       begin
          n:=tprocinlinenode(inherited getcopy);
-         n.inlinetree:=inlinetree.getcopy;
+         if assigned(inlinetree) then
+           n.inlinetree:=inlinetree.getcopy
+         else
+           n.inlinetree:=nil;
          n.inlineprocsym:=inlineprocsym;
          n.retoffset:=retoffset;
          n.para_offset:=para_offset;
@@ -1472,7 +1521,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.8  2000-10-01 19:48:24  peter
+  Revision 1.9  2000-10-14 10:14:50  peter
+    * moehrendorf oct 2000 rewrite
+
+  Revision 1.8  2000/10/01 19:48:24  peter
     * lot of compile updates for cg11
 
   Revision 1.7  2000/09/28 19:49:52  florian

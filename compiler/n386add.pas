@@ -27,25 +27,35 @@ unit n386add;
 interface
 
     uses
-       nadd;
+       nadd,cpubase;
 
-    ti386addnode = class(taddnode)
-       procedure pass_2;override;
-       function getresflags(unsigned : boolean) : tresflags;
-       procedure SetResultLocation(cmpop,unsigned : boolean);
-       procedure addstring;
-       procedure addset;
-    end;
+    type
+       ti386addnode = class(taddnode)
+          procedure pass_2;override;
+          function getresflags(unsigned : boolean) : tresflags;
+          procedure SetResultLocation(cmpop,unsigned : boolean);
+          procedure addstring;
+          procedure addset;
+       end;
 
   implementation
+
+    uses
+      globtype,systems,
+      cutils,cobjects,verbose,globals,
+      symconst,symtable,aasm,types,
+      hcodegen,temp_gen,pass_2,
+      cpuasm,
+      node,ncon,nset,
+      cgai386,n386util,tgeni386;
 
     function ti386addnode.getresflags(unsigned : boolean) : tresflags;
 
       begin
          if not(unsigned) then
            begin
-              if swaped then
-                case treetype of
+              if nf_swaped in flags then
+                case nodetype of
                    equaln : getresflags:=F_E;
                    unequaln : getresflags:=F_NE;
                    ltn : getresflags:=F_G;
@@ -54,7 +64,7 @@ interface
                    gten : getresflags:=F_LE;
                 end
               else
-                case treetype of
+                case nodetype of
                    equaln : getresflags:=F_E;
                    unequaln : getresflags:=F_NE;
                    ltn : getresflags:=F_L;
@@ -65,8 +75,8 @@ interface
            end
          else
            begin
-              if swaped then
-                case treetype of
+              if nf_swaped in flags then
+                case nodetype of
                    equaln : getresflags:=F_E;
                    unequaln : getresflags:=F_NE;
                    ltn : getresflags:=F_A;
@@ -75,7 +85,7 @@ interface
                    gten : getresflags:=F_BE;
                 end
               else
-                case treetype of
+                case nodetype of
                    equaln : getresflags:=F_E;
                    unequaln : getresflags:=F_NE;
                    ltn : getresflags:=F_B;
@@ -105,7 +115,7 @@ interface
            begin
               clear_location(location);
               location.loc:=LOC_FLAGS;
-              location.resflags:=getresflags(p,unsigned);
+              location.resflags:=getresflags(unsigned);
            end;
       end;
 
@@ -130,12 +140,12 @@ interface
         regstopush : byte;
       begin
         { string operations are not commutative }
-        if swaped then
+        if nf_swaped in flags then
           swapleftright;
         case pstringdef(left.resulttype)^.string_typ of
            st_ansistring:
              begin
-                case treetype of
+                case nodetype of
                    addn:
                      begin
                         cmpop:=false;
@@ -146,7 +156,7 @@ interface
                         secondpass(right);
                         if pushed then
                           begin
-                             restore(p,false);
+                             restore(self,false);
                              set_location(left.location,location);
                           end;
                         { get the temp location, must be done before regs are
@@ -175,9 +185,9 @@ interface
                    equaln,unequaln:
                      begin
                         cmpop:=true;
-                        if (treetype in [equaln,unequaln]) and
-                           (left.treetype=stringconstn) and
-                           (left.length=0) then
+                        if (nodetype in [equaln,unequaln]) and
+                           (left.nodetype=stringconstn) and
+                           (tstringconstnode(left).len=0) then
                           begin
                              secondpass(right);
                              { release used registers }
@@ -192,9 +202,9 @@ interface
                              ungetiftempansi(left.location.reference);
                              ungetiftempansi(right.location.reference);
                           end
-                        else if (treetype in [equaln,unequaln]) and
-                          (right.treetype=stringconstn) and
-                          (right.length=0) then
+                        else if (nodetype in [equaln,unequaln]) and
+                          (right.nodetype=stringconstn) and
+                          (tstringconstnode(right).len=0) then
                           begin
                              secondpass(left);
                              { release used registers }
@@ -244,11 +254,11 @@ interface
                      end;
                 end;
                { the result of ansicompare is signed }
-               SetResultLocation(cmpop,false,p);
+               SetResultLocation(cmpop,false);
              end;
            st_shortstring:
              begin
-                case treetype of
+                case nodetype of
                    addn:
                      begin
                         cmpop:=false;
@@ -256,7 +266,7 @@ interface
                         { if str_concat is set in expr
                           s:=s+ ... no need to create a temp string (PM) }
 
-                        if (left.treetype<>addn) and not (use_strconcat) then
+                        if (left.nodetype<>addn) and not(nf_use_strconcat in flags) then
                           begin
 
                              { can only reference be }
@@ -304,7 +314,7 @@ interface
                             emitjmp(C_E,l);
                             { no, so add the new character }
                             { is it a constant char? }
-                            if (right.treetype <> ordconstn) then
+                            if (right.nodetype <> ordconstn) then
                               { no, make sure it is in a register }
                               if right.location.loc in [LOC_REFERENCE,LOC_MEM] then
                                 begin
@@ -347,7 +357,7 @@ interface
                             { increase the string length }
                             emit_ref(A_INC,S_B,newreference(left.location.reference));
                             { and store the character at the end of the string }
-                            if (right.treetype <> ordconstn) then
+                            if (right.nodetype <> ordconstn) then
                               begin
                                 { no new_reference(href2) because it's only }
                                 { used once (JM)                            }
@@ -402,9 +412,9 @@ interface
                      begin
                         cmpop:=true;
                         { generate better code for s='' and s<>'' }
-                        if (treetype in [equaln,unequaln]) and
-                           (((left.treetype=stringconstn) and (str_length(left)=0)) or
-                            ((right.treetype=stringconstn) and (str_length(right)=0))) then
+                        if (nodetype in [equaln,unequaln]) and
+                           (((left.nodetype=stringconstn) and (str_length(left)=0)) or
+                            ((right.nodetype=stringconstn) and (str_length(right)=0))) then
                           begin
                              secondpass(left);
                              { are too few registers free? }
@@ -415,7 +425,7 @@ interface
                              { only one node can be stringconstn }
                              { else pass 1 would have evaluted   }
                              { this node                         }
-                             if left.treetype=stringconstn then
+                             if left.nodetype=stringconstn then
                                emit_const_ref(
                                  A_CMP,S_B,0,newreference(right.location.reference))
                              else
@@ -442,7 +452,7 @@ interface
                      end;
                    else CGMessage(type_e_mismatch);
                 end;
-               SetResultLocation(cmpop,true,p);
+               SetResultLocation(cmpop,true);
              end;
           end;
       end;
@@ -464,12 +474,12 @@ interface
         cmpop:=false;
 
         { not commutative }
-        if swaped then
-         swaptree(p);
+        if nf_swaped in flags then
+         swapleftright;
 
         { optimize first loading of a set }
 {$ifdef usecreateset}
-        if (right.treetype=setelementn) and
+        if (right.nodetype=setelementn) and
            not(assigned(right.right)) and
            is_emptyset(left) then
          createset:=true
@@ -492,7 +502,7 @@ interface
 
         { handle operations }
 
-        case treetype of
+        case nodetype of
           equaln,
         unequaln
 {$IfNDef NoSetInclusion}
@@ -504,7 +514,7 @@ interface
                      del_location(right.location);
                      pushusedregisters(pushedregs,$ff);
 {$IfNDef NoSetInclusion}
-                     If (treetype in [equaln, unequaln, lten]) Then
+                     If (nodetype in [equaln, unequaln, lten]) Then
                        Begin
 {$EndIf NoSetInclusion}
                          emitpushreferenceaddr(right.location.reference);
@@ -516,7 +526,7 @@ interface
                          emitpushreferenceaddr(left.location.reference);
                          emitpushreferenceaddr(right.location.reference);
                        End;
-                     Case treetype of
+                     Case nodetype of
                        equaln, unequaln:
 {$EndIf NoSetInclusion}
                          emitcall('FPC_SET_COMP_SETS');
@@ -525,7 +535,7 @@ interface
                          Begin
                            emitcall('FPC_SET_CONTAINS_SETS');
                            { we need a jne afterwards, not a jnbe/jnae }
-                           treetype := equaln;
+                           nodetype := equaln;
                         End;
                      End;
 {$EndIf NoSetInclusion}
@@ -561,30 +571,30 @@ interface
                      gettempofsizereference(32,href);
                      if createset then
                       begin
-                        pushsetelement(right.left);
+                        pushsetelement(tunarynode(right).left);
                         emitpushreferenceaddr(href);
                         emitcall('FPC_SET_CREATE_ELEMENT');
                       end
                      else
                       begin
                       { add a range or a single element? }
-                        if right.treetype=setelementn then
+                        if right.nodetype=setelementn then
                          begin
 {$IfNDef regallocfix}
                            concatcopy(left.location.reference,href,32,false,false);
 {$Else regallocfix}
                            concatcopy(left.location.reference,href,32,true,false);
 {$EndIf regallocfix}
-                           if assigned(right.right) then
+                           if assigned(tbinarynode(right).right) then
                             begin
-                              pushsetelement(right.right);
-                              pushsetelement(right.left);
+                              pushsetelement(tbinarynode(right).right);
+                              pushsetelement(tunarynode(right).left);
                               emitpushreferenceaddr(href);
                               emitcall('FPC_SET_SET_RANGE');
                             end
                            else
                             begin
-                              pushsetelement(right.left);
+                              pushsetelement(tunarynode(right).left);
                               emitpushreferenceaddr(href);
                               emitcall('FPC_SET_SET_BYTE');
                             end;
@@ -631,7 +641,7 @@ interface
                      { The same here }
                      del_location(left.location);
                      emitpushreferenceaddr(left.location.reference);
-                     case treetype of
+                     case nodetype of
                       subn : emitcall('FPC_SET_SUB_SETS');
                    symdifn : emitcall('FPC_SET_SYMDIF_SETS');
                       muln : emitcall('FPC_SET_MUL_SETS');
@@ -665,7 +675,7 @@ interface
          noswap,popeax,popedx,
          pushed,mboverflow,cmpop : boolean;
          op,op2 : tasmop;
-         flags : tresflags;
+         resflags : tresflags;
          otl,ofl : pasmlabel;
          power : longint;
          opsize : topsize;
@@ -692,34 +702,34 @@ interface
       procedure firstjmp64bitcmp;
 
         var
-           oldtreetype : ttreetyp;
+           oldnodetype : tnodetype;
 
         begin
            { the jump the sequence is a little bit hairy }
-           case treetype of
+           case nodetype of
               ltn,gtn:
                 begin
-                   emitjmp(flag_2_cond[getresflags(p,unsigned)],truelabel);
+                   emitjmp(flag_2_cond[getresflags(unsigned)],truelabel);
                    { cheat a little bit for the negative test }
-                   swaped:=not(swaped);
-                   emitjmp(flag_2_cond[getresflags(p,unsigned)],falselabel);
-                   swaped:=not(swaped);
+                   toggleflag(nf_swaped);
+                   emitjmp(flag_2_cond[getresflags(unsigned)],falselabel);
+                   toggleflag(nf_swaped);
                 end;
               lten,gten:
                 begin
-                   oldtreetype:=treetype;
-                   if treetype=lten then
-                     treetype:=ltn
+                   oldnodetype:=nodetype;
+                   if nodetype=lten then
+                     nodetype:=ltn
                    else
-                     treetype:=gtn;
-                   emitjmp(flag_2_cond[getresflags(p,unsigned)],truelabel);
+                     nodetype:=gtn;
+                   emitjmp(flag_2_cond[getresflags(unsigned)],truelabel);
                    { cheat for the negative test }
-                   if treetype=ltn then
-                     treetype:=gtn
+                   if nodetype=ltn then
+                     nodetype:=gtn
                    else
-                     treetype:=ltn;
-                   emitjmp(flag_2_cond[getresflags(p,unsigned)],falselabel);
-                   treetype:=oldtreetype;
+                     nodetype:=ltn;
+                   emitjmp(flag_2_cond[getresflags(unsigned)],falselabel);
+                   nodetype:=oldnodetype;
                 end;
               equaln:
                 emitjmp(C_NE,falselabel);
@@ -732,12 +742,12 @@ interface
 
         begin
            { the jump the sequence is a little bit hairy }
-           case treetype of
+           case nodetype of
               ltn,gtn,lten,gten:
                 begin
                    { the comparisaion of the low dword have to be }
                    {  always unsigned!                            }
-                   emitjmp(flag_2_cond[getresflags(p,true)],truelabel);
+                   emitjmp(flag_2_cond[getresflags(true)],truelabel);
                    emitjmp(C_None,falselabel);
                 end;
               equaln:
@@ -758,14 +768,14 @@ interface
         own procedures }
          case left.resulttype^.deftype of
          stringdef : begin
-                       addstring(p);
+                       addstring;
                        exit;
                      end;
             setdef : begin
                      { normalsets are handled separate }
                        if not(psetdef(left.resulttype)^.settype=smallset) then
                         begin
-                          addset(p);
+                          addset;
                           exit;
                         end;
                      end;
@@ -783,7 +793,7 @@ interface
          is_set:=(left.resulttype^.deftype=setdef);
 
          { calculate the operator which is more difficult }
-         firstcomplex(p);
+         firstcomplex(self);
 
          { handling boolean expressions extra: }
          if is_boolean(left.resulttype) and
@@ -799,11 +809,11 @@ interface
              else
                opsize:=S_L;
              if (cs_full_boolean_eval in aktlocalswitches) or
-                (p^.treetype in
+                (nodetype in
                   [unequaln,ltn,lten,gtn,gten,equaln,xorn]) then
                begin
-                 if left.treetype=ordconstn then
-                  swaptree(p);
+                 if left.nodetype=ordconstn then
+                  swapleftright;
                  if left.location.loc=LOC_JUMP then
                    begin
                       otl:=truelabel;
@@ -822,7 +832,7 @@ interface
                       locjump2reg(left.location,opsize, otl, ofl);
                  end;
                  set_location(location,left.location);
-                 pushed:=maybe_push(right.registers32,p,false);
+                 pushed:=maybe_push(right.registers32,self,false);
                  if right.location.loc=LOC_JUMP then
                    begin
                       otl:=truelabel;
@@ -833,7 +843,7 @@ interface
                  secondpass(right);
                  if pushed then
                    begin
-                      restore(p,false);
+                      restore(self,false);
                       set_location(left.location,location);
                    end;
                  case right.location.loc of
@@ -843,15 +853,15 @@ interface
                       locjump2reg(right.location,opsize,otl,ofl);
                  end;
                  goto do_normal;
-              end
+              end;
 
-             case treetype of
+             case nodetype of
               andn,
                orn : begin
                        clear_location(location);
                        location.loc:=LOC_JUMP;
                        cmpop:=false;
-                       case treetype of
+                       case nodetype of
                         andn : begin
                                   otl:=truelabel;
                                   getlabel(truelabel);
@@ -881,8 +891,8 @@ interface
          else
            begin
               { in case of constant put it to the left }
-              if (left.treetype=ordconstn) then
-               swaptree(p);
+              if (left.nodetype=ordconstn) then
+               swapleftright;
               secondpass(left);
               { this will be complicated as
                a lot of code below assumes that
@@ -901,11 +911,11 @@ interface
                 set_location(location,left.location);
 
               { are too few registers free? }
-              pushed:=maybe_push(right.registers32,p,is_64bitint(left.resulttype));
+              pushed:=maybe_push(right.registers32,self,is_64bitint(left.resulttype));
               secondpass(right);
               if pushed then
                 begin
-                  restore(p,is_64bitint(left.resulttype));
+                  restore(self,is_64bitint(left.resulttype));
                   set_location(left.location,location);
                 end;
 
@@ -954,7 +964,7 @@ interface
                    unsigned := not(is_signed(left.resulttype)) or
                                not(is_signed(right.resulttype));
 {$endif cardinalmulfix}
-                   case treetype of
+                   case nodetype of
                       addn : begin
                                { this is a really ugly hack!!!!!!!!!! }
                                { this could be done later using EDI   }
@@ -963,13 +973,13 @@ interface
                                if is_set then
                                 begin
                                 { adding elements is not commutative }
-                                  if swaped and (left.treetype=setelementn) then
-                                   swaptree;
+                                  if (nf_swaped in flags) and (left.nodetype=setelementn) then
+                                   swapleftright;
                                 { are we adding set elements ? }
-                                  if right.treetype=setelementn then
+                                  if right.nodetype=setelementn then
                                    begin
                                    { no range support for smallsets! }
-                                     if assigned(right.right) then
+                                     if assigned(tsetelementnode(right).right) then
                                       internalerror(43244);
                                    { bts requires both elements to be registers }
                                      if left.location.loc in [LOC_MEM,LOC_REFERENCE] then
@@ -1044,7 +1054,7 @@ interface
                                   mboverflow:=false;
                                   unsigned:=false;
 {$IfNDef NoSetConstNot}
-                                  If (right.treetype = setconstn) then
+                                  If (right.nodetype = setconstn) then
                                     right.location.reference.offset := not(right.location.reference.offset)
                                   Else
 {$EndIf NoNosetConstNot}
@@ -1061,11 +1071,11 @@ interface
            equaln,unequaln : begin
 {$IfNDef NoSetInclusion}
                                If is_set Then
-                                 Case treetype of
+                                 Case nodetype of
                                    lten,gten:
                                      Begin
-                                      If treetype = lten then
-                                        swaptree(p);
+                                      If nodetype = lten then
+                                        swapleftright;
                                       if left.location.loc in [LOC_MEM,LOC_REFERENCE] then
                                         begin
                                          ungetiftemp(left.location.reference);
@@ -1099,8 +1109,8 @@ interface
                                         emit_reg_reg(A_AND,opsize,
                                           right.location.register,left.location.register);
                 {warning: ugly hack ahead: we need a "jne" after the cmp, so
-                 change the treetype from lten/gten to equaln}
-                                      treetype := equaln
+                 change the nodetype from lten/gten to equaln}
+                                      nodetype := equaln
                                      End;
                            {no < or > support for sets}
                                    ltn,gtn: CGMessage(type_e_mismatch);
@@ -1131,10 +1141,10 @@ interface
                  { the location.register will be filled in later (JM) }
                        location.loc:=LOC_REGISTER;
 {$IfNDef NoShlMul}
-                       if right.treetype=ordconstn then
-                        swaptree(p);
-                       If (left.treetype = ordconstn) and
-                          ispowerof2(left.value, power) and
+                       if right.nodetype=ordconstn then
+                        swapleftright;
+                       If (left.nodetype = ordconstn) and
+                          ispowerof2(tordconstnode(left).value, power) and
                           not(cs_check_overflow in aktlocalswitches) then
                          Begin
                            { This release will be moved after the next }
@@ -1199,7 +1209,7 @@ interface
 {$IfNDef NoShlMul}
                         End;
 {$endif NoShlMul}
-                       SetResultLocation(false,true,p);
+                       SetResultLocation(false,true);
                        exit;
                      end;
 
@@ -1273,7 +1283,7 @@ interface
                           swap_location(location,right.location);
 
                           { newly swapped also set swapped flag }
-                          swaped:=not(swaped);
+                          toggleflag(nf_swaped);
                        end;
                    { at this point, location.loc should be LOC_REGISTER }
                    { and location.register should be a valid register   }
@@ -1281,7 +1291,7 @@ interface
 
                     if right.location.loc<>LOC_REGISTER then
                      begin
-                        if (treetype=subn) and swaped then
+                        if (nodetype=subn) and (nf_swaped in flags) then
                           begin
                              if right.location.loc=LOC_CREGISTER then
                                begin
@@ -1309,32 +1319,32 @@ interface
                           end
                         else
                           begin
-                             if (right.treetype=ordconstn) and
+                             if (right.nodetype=ordconstn) and
                                 (op=A_CMP) and
-                                (right.value=0) then
+                                (tordconstnode(right).value=0) then
                                begin
                                   emit_reg_reg(A_TEST,opsize,location.register,
                                     location.register);
                                end
-                             else if (right.treetype=ordconstn) and
+                             else if (right.nodetype=ordconstn) and
                                 (op=A_ADD) and
-                                (right.value=1) and
+                                (tordconstnode(right).value=1) and
                                 not(cs_check_overflow in aktlocalswitches) then
                                begin
                                   emit_reg(A_INC,opsize,
                                     location.register);
                                end
-                             else if (right.treetype=ordconstn) and
+                             else if (right.nodetype=ordconstn) and
                                 (op=A_SUB) and
-                                (right.value=1) and
+                                (tordconstnode(right).value=1) and
                                 not(cs_check_overflow in aktlocalswitches) then
                                begin
                                   emit_reg(A_DEC,opsize,
                                     location.register);
                                end
-                             else if (right.treetype=ordconstn) and
+                             else if (right.nodetype=ordconstn) and
                                 (op=A_IMUL) and
-                                (ispowerof2(right.value,power)) and
+                                (ispowerof2(tordconstnode(right).value,power)) and
                                 not(cs_check_overflow in aktlocalswitches) then
                                begin
                                   emit_const_reg(A_SHL,opsize,power,
@@ -1385,7 +1395,7 @@ interface
                    else
                      begin
                         { when swapped another result register }
-                        if (treetype=subn) and swaped then
+                        if (nodetype=subn) and (nf_swaped in flags) then
                           begin
                              if extra_not then
                                emit_reg(A_NOT,S_L,location.register);
@@ -1395,7 +1405,7 @@ interface
                                swap_location(location,right.location);
                                { newly swapped also set swapped flag }
                                { just to maintain ordering         }
-                               swaped:=not(swaped);
+                               toggleflag(nf_swaped);
                           end
                         else
                           begin
@@ -1444,7 +1454,7 @@ interface
                    ((left.resulttype^.deftype=enumdef) and
                     (left.resulttype^.size=1)) then
                  begin
-                   case treetype of
+                   case nodetype of
                       ltn,lten,gtn,gten,
                       equaln,unequaln :
                                 cmpop:=true;
@@ -1489,7 +1499,7 @@ interface
                      begin
                        swap_location(location,right.location);
                        { newly swapped also set swapped flag }
-                       swaped:=not(swaped);
+                       toggleflag(nf_swaped);
                      end;
 
                    if right.location.loc<>LOC_REGISTER then
@@ -1519,7 +1529,7 @@ interface
                 if ((left.resulttype^.deftype=enumdef) and
                     (left.resulttype^.size=2)) then
                  begin
-                   case treetype of
+                   case nodetype of
                       ltn,lten,gtn,gten,
                       equaln,unequaln :
                                 cmpop:=true;
@@ -1564,7 +1574,7 @@ interface
                      begin
                        swap_location(location,right.location);
                        { newly swapped also set swapped flag }
-                       swaped:=not(swaped);
+                       toggleflag(nf_swaped);
                      end;
 
                    if right.location.loc<>LOC_REGISTER then
@@ -1599,7 +1609,7 @@ interface
                        (porddef(left.resulttype)^.typ=u64bit)) or
                       ((right.resulttype^.deftype=orddef) and
                        (porddef(right.resulttype)^.typ=u64bit));
-                   case treetype of
+                   case nodetype of
                       addn : begin
                                 begin
                                   op:=A_ADD;
@@ -1644,7 +1654,7 @@ interface
                      CGMessage(type_e_mismatch);
                    end;
 
-                   if treetype=muln then
+                   if nodetype=muln then
                      begin
                         { save lcoation, because we change it now }
                         set_location(hloc,location);
@@ -1741,7 +1751,7 @@ interface
                                swap_location(location,right.location);
 
                                { newly swapped also set swapped flag }
-                               swaped:=not(swaped);
+                               toggleflag(nf_swaped);
                             end;
                         { at this point, location.loc should be LOC_REGISTER }
                         { and location.register should be a valid register   }
@@ -1749,7 +1759,7 @@ interface
 
                         if right.location.loc<>LOC_REGISTER then
                           begin
-                             if (treetype=subn) and swaped then
+                             if (nodetype=subn) and (nf_swaped in flags) then
                                begin
                                   if right.location.loc=LOC_CREGISTER then
                                     begin
@@ -1820,14 +1830,14 @@ interface
                              else
                                begin
                                   {
-                                  if (right.treetype=ordconstn) and
+                                  if (right.nodetype=ordconstn) and
                                      (op=A_CMP) and
                                      (right.value=0) then
                                     begin
                                        emit_reg_reg(A_TEST,opsize,location.register,
                                          location.register);
                                     end
-                                  else if (right.treetype=ordconstn) and
+                                  else if (right.nodetype=ordconstn) and
                                      (op=A_IMUL) and
                                      (ispowerof2(right.value,power)) then
                                     begin
@@ -1861,7 +1871,7 @@ interface
                         else
                           begin
                              { when swapped another result register }
-                             if (treetype=subn) and swaped then
+                             if (nodetype=subn) and (nf_swaped in flags) then
                                begin
                                  emit_reg_reg(op,S_L,
                                     location.registerlow,
@@ -1872,7 +1882,7 @@ interface
                                   swap_location(location,right.location);
                                   { newly swapped also set swapped flag }
                                   { just to maintain ordering           }
-                                  swaped:=not(swaped);
+                                  toggleflag(nf_swaped);
                                end
                              else if cmpop then
                                begin
@@ -1937,11 +1947,11 @@ interface
                  begin
                     { real constants to the right, but only if it
                       isn't on the FPU stack, i.e. 1.0 or 0.0! }
-                    if (left.treetype=realconstn) and
+                    if (left.nodetype=realconstn) and
                       (left.location.loc<>LOC_FPU) then
-                      swaptree(p);
+                      swapleftright;
                     cmpop:=false;
-                    case treetype of
+                    case nodetype of
                        addn : op:=A_FADDP;
                        muln : op:=A_FMULP;
                        subn : op:=A_FSUBP;
@@ -1977,7 +1987,7 @@ interface
                            end
                          { left was on the stack => swap }
                          else
-                           swaped:=not(swaped);
+                           toggleflag(nf_swaped);
 
                          { releases the right reference }
                          del_reference(right.location.reference);
@@ -1996,18 +2006,18 @@ interface
                       end
                     { fpu operands are always in the wrong order on the stack }
                     else
-                      swaped:=not(swaped);
+                      toggleflag(nf_swaped);
 
                     { releases the left reference }
                     if (left.location.loc in [LOC_MEM,LOC_REFERENCE]) then
                       del_reference(left.location.reference);
 
                     { if we swaped the tree nodes, then use the reverse operator }
-                    if swaped then
+                    if nf_swaped in flags then
                       begin
-                         if (treetype=slashn) then
+                         if (nodetype=slashn) then
                            op:=A_FDIVRP
-                         else if (treetype=subn) then
+                         else if (nodetype=subn) then
                            op:=A_FSUBRP;
                       end;
                     { to avoid the pentium bug
@@ -2042,31 +2052,31 @@ interface
                            emit_reg_reg(A_MOV,S_L,R_EDI,R_EAX);
                            ungetregister32(R_EDI);
                          end;
-                       if swaped then
+                       if nf_swaped in flags then
                         begin
-                          case treetype of
-                              equaln : flags:=F_E;
-                            unequaln : flags:=F_NE;
-                                 ltn : flags:=F_A;
-                                lten : flags:=F_AE;
-                                 gtn : flags:=F_B;
-                                gten : flags:=F_BE;
+                          case nodetype of
+                              equaln : resflags:=F_E;
+                            unequaln : resflags:=F_NE;
+                                 ltn : resflags:=F_A;
+                                lten : resflags:=F_AE;
+                                 gtn : resflags:=F_B;
+                                gten : resflags:=F_BE;
                           end;
                         end
                        else
                         begin
-                          case treetype of
-                              equaln : flags:=F_E;
-                            unequaln : flags:=F_NE;
-                                 ltn : flags:=F_B;
-                                lten : flags:=F_BE;
-                                 gtn : flags:=F_A;
-                                gten : flags:=F_AE;
+                          case nodetype of
+                              equaln : resflags:=F_E;
+                            unequaln : resflags:=F_NE;
+                                 ltn : resflags:=F_B;
+                                lten : resflags:=F_BE;
+                                 gtn : resflags:=F_A;
+                                gten : resflags:=F_AE;
                           end;
                         end;
                        clear_location(location);
                        location.loc:=LOC_FLAGS;
-                       location.resflags:=flags;
+                       location.resflags:=resflags;
                        cmpop:=false;
                      end
                     else
@@ -2083,7 +2093,7 @@ interface
                  begin
                    cmpop:=false;
                    mmxbase:=mmx_type(left.resulttype);
-                   case treetype of
+                   case nodetype of
                       addn : begin
                                 if (cs_mmx_saturation in aktlocalswitches) then
                                   begin
@@ -2209,14 +2219,14 @@ interface
                        begin
                           swap_location(location,right.location);
                           { newly swapped also set swapped flag }
-                          swaped:=not(swaped);
+                          toggleflag(nf_swaped);
                        end;
                    { at this point, location.loc should be LOC_MMXREGISTER }
                    { and location.register should be a valid register      }
                    { containing the left result                        }
                    if right.location.loc<>LOC_MMXREGISTER then
                      begin
-                        if (treetype=subn) and swaped then
+                        if (nodetype=subn) and (nf_swaped in flags) then
                           begin
                              if right.location.loc=LOC_CMMXREGISTER then
                                begin
@@ -2253,14 +2263,14 @@ interface
                    else
                      begin
                         { when swapped another result register }
-                        if (treetype=subn) and swaped then
+                        if (nodetype=subn) and (nf_swaped in flags) then
                           begin
                              emit_reg_reg(op,S_NO,
                                location.register,right.location.register);
                              swap_location(location,right.location);
                              { newly swapped also set swapped flag }
                              { just to maintain ordering         }
-                             swaped:=not(swaped);
+                             toggleflag(nf_swaped);
                           end
                         else
                           begin
@@ -2277,17 +2287,15 @@ interface
        SetResultLocation(cmpop,unsigned);
     end;
 
-    procedure ti386addnode.pass_2;
-
-      begin
-      end;
-
 begin
    caddnode:=ti386addnode;
 end.
 {
   $Log$
-  Revision 1.5  2000-09-30 16:08:45  peter
+  Revision 1.6  2000-10-14 10:14:47  peter
+    * moehrendorf oct 2000 rewrite
+
+  Revision 1.5  2000/09/30 16:08:45  peter
     * more cg11 updates
 
   Revision 1.4  2000/09/24 15:06:18  peter

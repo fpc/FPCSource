@@ -473,11 +473,7 @@ implementation
      version,verbose,
      types,ppu,
      gendef,fmodule,finput
-{$ifdef CG11}
      ,node
-{$else CG11}
-     ,tree
-{$endif CG11}
      ,cresstr
 {$ifdef newcg}
      ,cgbase
@@ -487,8 +483,8 @@ implementation
 {$ifdef BrowserLog}
      ,browlog
 {$endif BrowserLog}
-     ,cpuasm
      ,scanner
+     ,cpuasm
      ;
 
   var
@@ -2284,7 +2280,9 @@ implementation
 
     constructor tunitsymtable.loadasunit;
       var
+{$ifdef GDB}
         storeGlobalTypeCount : pword;
+{$endif GDB}
         b : byte;
       begin
          unitsym:=nil;
@@ -2882,7 +2880,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.9  2000-10-01 19:48:25  peter
+  Revision 1.10  2000-10-14 10:14:53  peter
+    * moehrendorf oct 2000 rewrite
+
+  Revision 1.9  2000/10/01 19:48:25  peter
     * lot of compile updates for cg11
 
   Revision 1.8  2000/09/24 15:06:29  peter

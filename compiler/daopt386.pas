@@ -1250,8 +1250,6 @@ Procedure DestroyReg(p1: PPaiProp; Reg: TRegister; doIncState:Boolean);
  it's contents are directly modified/overwritten, but because of an indirect
  action (e.g. this register holds the contents of a variable and the value
  of the variable in memory is changed) }
-Var TmpWState, TmpRState: Byte;
-    Counter: TRegister;
 Begin
   Reg := Reg32(Reg);
   { the following happens for fpu registers }
@@ -2359,7 +2357,10 @@ End.
 
 {
   $Log$
-  Revision 1.15  2000-09-30 13:07:23  jonas
+  Revision 1.16  2000-10-14 10:14:47  peter
+    * moehrendorf oct 2000 rewrite
+
+  Revision 1.15  2000/09/30 13:07:23  jonas
     * fixed support for -Or with new features of CSE
 
   Revision 1.14  2000/09/29 23:14:11  jonas

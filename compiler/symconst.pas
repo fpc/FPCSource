@@ -141,7 +141,8 @@ type
     pocall_system,
     pocall_inline,        { Procedure is an assembler macro }
     pocall_internproc,    { Procedure has compiler magic}
-    pocall_internconst    { procedure has constant evaluator intern }
+    pocall_internconst,   { procedure has constant evaluator intern }
+    pocall_cppdecl        { C++ calling conventions }
   );
   tproccalloptions=set of tproccalloption;
 
@@ -280,7 +281,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.7  2000-09-24 15:06:28  peter
+  Revision 1.8  2000-10-14 10:14:52  peter
+    * moehrendorf oct 2000 rewrite
+
+  Revision 1.7  2000/09/24 15:06:28  peter
     * use defines.inc
 
   Revision 1.6  2000/08/21 11:27:44  pierre

@@ -102,8 +102,8 @@
           failn,           {Represents the fail statement.}
           starstarn,       {Represents the ** operator exponentiation }
           procinlinen,     {Procedures that can be inlined }
-          arrayconstructn, {Construction node for [...] parsing}
-          arrayconstructrangen, {Range element to allow sets in array construction tree}
+          arrayconstructorn, {Construction node for [...] parsing}
+          arrayconstructorrangen, {Range element to allow sets in array construction tree}
           { added for optimizations where we cannot suppress }
           nothingn,
           loadvmtn
@@ -122,12 +122,6 @@
          nf_return_value_used,
          nf_static_call,
 
-         { flags used by tcallparanode }
-         nf_exact_match_found,
-         nf_convlevel1found,
-         nf_convlevel2found,
-         nf_is_colon_para,
-
          { flags used by loop nodes }
          nf_backward,  { set if it is a for ... downto ... do loop }
          nf_varstate,  { do we need to parse childs to set var state }
@@ -144,14 +138,14 @@
          nf_islocal,
 
          { tloadnode }
-         nf_absolute,   { 20th }
+         nf_absolute,
          nf_first,
 
          { tassignmentnode }
          nf_concat_string,
 
          { tfuncretnode }
-         nf_is_first_funcret,
+         nf_is_first_funcret, { 20th }
 
          { tarrayconstructnode }
          nf_cargs,
@@ -166,8 +160,14 @@
          nf_inlineconst,
 
          { general }
-         nf_isproperty,  { 30th }
-         nf_varstateset
+         nf_isproperty,
+         nf_varstateset,
+
+         { tasmnode }
+         nf_object_preserved,
+
+         { taddnode }
+         nf_use_strconcat
        );
 
        tnodeflagset = set of tnodeflags;
@@ -197,6 +197,7 @@
           fileinfo : tfileposinfo;
           localswitches : tlocalswitches;
 {$ifdef extdebug}
+          maxfirstpasscount,
           firstpasscount : longint;
 {$endif extdebug}
           list : paasmoutput;
@@ -204,7 +205,10 @@
           { this constructor is only for creating copies of class }
           { the fields are copied by getcopy                      }
           constructor createforcopy;
-          destructor destroy;virtual;
+          destructor destroy;override;
+
+          { toggles the flag }
+          procedure toggleflag(f : tnodeflags);
 
           { the 1.1 code generator may override pass_1 }
           { and it need not to implement det_* then    }
@@ -231,6 +235,7 @@
           { direct, because there is no test for nil, use writenode  }
           { to write a complete tree                                 }
           procedure dowrite;virtual;
+          procedure dowritenodetype;virtual;
 {$endif EXTDEBUG}
           procedure concattolist(l : plinkedlist);virtual;
           function ischild(p : tnode) : boolean;virtual;
@@ -242,15 +247,16 @@
        { one child, you have to use it if you want to use         }
        { true- and falselabel                                     }
        tparentnode = class(tnode)
+{$ifdef newcg}
           falselabel,truelabel : pasmlabel;
+{$endif newcg}
        end;
+
+       tnodeclass = class of tnode;
 
        punarynode = ^tunarynode;
        tunarynode = class(tparentnode)
           left : tnode;
-{$ifdef extdebug}
-          procedure dowrite;override;
-{$endif extdebug}
           constructor create(tt : tnodetype;l : tnode);
           procedure concattolist(l : plinkedlist);override;
           function ischild(p : tnode) : boolean;override;
@@ -259,6 +265,9 @@
           function docompare(p : tnode) : boolean;override;
           function getcopy : tnode;override;
           procedure left_max;
+{$ifdef extdebug}
+          procedure dowrite;override;
+{$endif extdebug}
        end;
 
        pbinarynode = ^tbinarynode;
@@ -273,6 +282,9 @@
           procedure swapleftright;
           function getcopy : tnode;override;
           procedure left_right_max;
+{$ifdef extdebug}
+          procedure dowrite;override;
+{$endif extdebug}
        end;
 
        pbinopnode = ^tbinopnode;
@@ -281,9 +293,19 @@
           function docompare(p : tnode) : boolean;override;
        end;
 
+{$ifdef EXTDEBUG}
+     var
+       writenodeindention : string;
+
+     procedure writenode(t:tnode);
+{$endif EXTDEBUG}
+
 {
   $Log$
-  Revision 1.11  2000-10-01 19:48:24  peter
+  Revision 1.12  2000-10-14 10:14:51  peter
+    * moehrendorf oct 2000 rewrite
+
+  Revision 1.11  2000/10/01 19:48:24  peter
     * lot of compile updates for cg11
 
   Revision 1.10  2000/09/28 19:49:52  florian

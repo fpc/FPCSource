@@ -30,8 +30,8 @@ interface
        node,symtable,cpubase;
 
     type
-       tloadvmtnode = class(tnode)
-          constructor create;virtual;
+       tloadvmtnode = class(tunarynode)
+          constructor create(l : tnode);virtual;
           function pass_1 : tnode;override;
        end;
 
@@ -73,7 +73,7 @@ interface
        tsubscriptnode = class(tunarynode)
           vs : pvarsym;
           constructor create(varsym : psym;l : tnode);virtual;
-          function getcopy : tnode;
+          function getcopy : tnode;override;
           function pass_1 : tnode;override;
        end;
 
@@ -98,7 +98,7 @@ interface
           withreference:preference;
 {$ENDIF NEWST}
           constructor create(symtable : pwithsymtable;l,r : tnode;count : longint);virtual;
-          function getcopy : tnode;
+          function getcopy : tnode;override;
           function pass_1 : tnode;override;
        end;
 
@@ -139,9 +139,6 @@ implementation
       ;
 
     function genselfnode(_class : pdef) : tselfnode;
-
-      var
-         p : tnode;
 
       begin
          genselfnode:=cselfnode.create(_class);
@@ -188,10 +185,10 @@ implementation
                             TLOADVMTNODE
 *****************************************************************************}
 
-    constructor tloadvmtnode.create;
+    constructor tloadvmtnode.create(l : tnode);
 
       begin
-         inherited create(loadvmtn);
+         inherited create(loadvmtn,l);
       end;
 
     function tloadvmtnode.pass_1 : tnode;
@@ -842,6 +839,7 @@ implementation
          p.withsymtable:=withsymtable;
          p.tablecount:=tablecount;
          p.withreference:=withreference;
+         result:=p;
       end;
 
     function twithnode.pass_1 : tnode;
@@ -884,7 +882,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.5  2000-10-01 19:48:24  peter
+  Revision 1.6  2000-10-14 10:14:51  peter
+    * moehrendorf oct 2000 rewrite
+
+  Revision 1.5  2000/10/01 19:48:24  peter
     * lot of compile updates for cg11
 
   Revision 1.4  2000/09/28 19:49:52  florian

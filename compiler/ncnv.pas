@@ -61,7 +61,7 @@ interface
           function first_pchar_to_string : tnode;virtual;
           function first_ansistring_to_pchar : tnode;virtual;
           function first_arrayconstructor_to_set : tnode;virtual;
-          function call_helper(c : tconverttype) : tnode;
+          function first_call_helper(c : tconverttype) : tnode;
        end;
 
        tasnode = class(tbinarynode)
@@ -80,7 +80,7 @@ interface
        cisnode : class of tisnode;
 
     function gentypeconvnode(node : tnode;t : pdef) : ttypeconvnode;
-    procedure arrayconstructor_to_set(var p : tarrayconstructnode);
+    procedure arrayconstructor_to_set(var p : tarrayconstructornode);
 
 implementation
 
@@ -107,7 +107,7 @@ implementation
                     Array constructor to Set Conversion
 *****************************************************************************}
 
-    procedure arrayconstructor_to_set(var p : tarrayconstructnode);
+    procedure arrayconstructor_to_set(var p : tarrayconstructornode);
 
       var
         constp      : tsetconstnode;
@@ -174,24 +174,21 @@ implementation
         constsethi:=0;
         constp:=csetconstnode.create(nil,nil);
         constp.value_set:=constset;
+        buildp:=constp;
         if assigned(p.left) then
          begin
            while assigned(p) do
             begin
               p4:=nil; { will contain the tree to create the set }
-            { split a range into p2 and p3 }
-              if p.left.nodetype=arrayconstructrangen then
+            {split a range into p2 and p3 }
+              if p.left.nodetype=arrayconstructorrangen then
                begin
-                 p2:=tarrayconstructorrangenode(p.left).left;
-                 p3:=tarrayconstructorrangenode(p.left).right;
-                 tarrayconstructorrangenode(p.left).left:=nil;
-                 tarrayconstructorrangenode(p.left).right:=nil;
-               { node is not used anymore }
-                 p.left.free;
+                 p2:=tarrayconstructorrangenode(p.left).left.getcopy;
+                 p3:=tarrayconstructorrangenode(p.left).right.getcopy;
                end
               else
                begin
-                 p2:=p.left;
+                 p2:=p.left.getcopy;
                  p3:=nil;
                end;
               firstpass(p2);
@@ -217,7 +214,6 @@ implementation
                             firstpass(p3);
                           end;
                          }
-
                          if assigned(pd) and not(is_equal(pd,p3.resulttype)) then
                            begin
                               aktfilepos:=p3.fileinfo;
@@ -313,8 +309,8 @@ implementation
                buildp:=caddnode.create(addn,buildp,p4);
             { load next and dispose current node }
               p2:=p;
-              p:=tarrayconstructnode(p.right);
-              tarrayconstructnode(p2).right:=nil;
+              p:=tarrayconstructornode(tarrayconstructornode(p2).right);
+              tarrayconstructornode(p2).right:=nil;
               p2.free;
             end;
           if (pd=nil) then
@@ -331,7 +327,7 @@ implementation
       { set the initial set type }
         constp.resulttype:=new(psetdef,init(pd,constsethi));
       { set the new tree }
-        p:=tarrayconstructnode(buildp);
+        p:=tarrayconstructornode(buildp);
       end;
 
 
@@ -392,8 +388,6 @@ implementation
 
 
     function ttypeconvnode.first_string_to_string : tnode;
-      var
-        t : tnode;
       begin
          first_string_to_string:=nil;
          if pstringdef(resulttype)^.string_typ<>
@@ -689,27 +683,23 @@ implementation
         hp : tnode;
       begin
         first_arrayconstructor_to_set:=nil;
-        if left.nodetype<>arrayconstructn then
+        if left.nodetype<>arrayconstructorn then
          internalerror(5546);
       { remove typeconv node }
         hp:=left;
         left:=nil;
       { create a set constructor tree }
-        // !!!!!!!arrayconstructor_to_set(hp);
-        internalerror(2609001);
-        {$warning FIX ME !!!!!!!!}
+        arrayconstructor_to_set(tarrayconstructornode(hp));
       { now firstpass the set }
         firstpass(hp);
         first_arrayconstructor_to_set:=hp;
       end;
 
-    function ttypeconvnode.call_helper(c : tconverttype) : tnode;
+    function ttypeconvnode.first_call_helper(c : tconverttype) : tnode;
 
-      {$warning FIX ME !!!!!!!!!}
-      {
       const
          firstconvert : array[tconverttype] of pointer = (
-           @ttypeconvnode.first_nothing), {equal}
+           @ttypeconvnode.first_nothing, {equal}
            @ttypeconvnode.first_nothing, {not_possible}
            @ttypeconvnode.first_string_to_string,
            @ttypeconvnode.first_char_to_string,
@@ -735,7 +725,6 @@ implementation
            @ttypeconvnode.first_load_smallset,
            @ttypeconvnode.first_cord_to_pointer
          );
-       }
       type
          tprocedureofobject = function : tnode of object;
 
@@ -748,11 +737,9 @@ implementation
       begin
          { this is a little bit dirty but it works }
          { and should be quite portable too        }
-         // !!!! r.proc:=firstconvert[c];
-         {$warning FIX ME !!!!!}
-         internalerror(2609002);
+         r.proc:=firstconvert[c];
          r.obj:=self;
-         call_helper:=tprocedureofobject(r){$ifdef FPC}();{$endif FPC}
+         first_call_helper:=tprocedureofobject(r){$ifdef FPC}();{$endif FPC}
       end;
 
     function ttypeconvnode.pass_1 : tnode;
@@ -898,7 +885,7 @@ implementation
                   begin
                     if not proc_to_procvar_equal(aprocdef,pprocvardef(resulttype)) then
                      CGMessage2(type_e_incompatible_types,aprocdef^.typename,resulttype^.typename);
-                    pass_1:=call_helper(convtype);
+                    pass_1:=first_call_helper(convtype);
                   end
                  else
                   CGMessage2(type_e_incompatible_types,left.resulttype^.typename,resulttype^.typename);
@@ -918,7 +905,7 @@ implementation
                  is_boolean(left.resulttype) then
                begin
                   convtype:=tc_bool_2_int;
-                  pass_1:=call_helper(convtype);
+                  pass_1:=first_call_helper(convtype);
                   exit;
                end;
               { ansistring to pchar }
@@ -926,7 +913,7 @@ implementation
                  is_ansistring(left.resulttype) then
                begin
                  convtype:=tc_ansistring_2_pchar;
-                 pass_1:=call_helper(convtype);
+                 pass_1:=first_call_helper(convtype);
                  exit;
                end;
               { do common tc_equal cast }
@@ -1078,7 +1065,7 @@ implementation
              exit;
           end;
         if convtype<>tc_equal then
-          pass_1:=call_helper(convtype);
+          pass_1:=first_call_helper(convtype);
       end;
 
 
@@ -1173,7 +1160,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.6  2000-10-01 19:48:24  peter
+  Revision 1.7  2000-10-14 10:14:50  peter
+    * moehrendorf oct 2000 rewrite
+
+  Revision 1.6  2000/10/01 19:48:24  peter
     * lot of compile updates for cg11
 
   Revision 1.5  2000/09/28 19:49:52  florian

@@ -54,9 +54,9 @@ implementation
       cgbase,
 {$endif newcg}
 {$ifdef GDB}
-       gdb,
+      gdb,
 {$endif GDB}
-      comphook,tree,scanner,pbase,ptype,psystem,pmodules,cresstr;
+      comphook,scanner,pbase,ptype,psystem,pmodules,cresstr;
 
 
     procedure initparser;
@@ -594,7 +594,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.6  2000-10-01 19:48:25  peter
+  Revision 1.7  2000-10-14 10:14:51  peter
+    * moehrendorf oct 2000 rewrite
+
+  Revision 1.6  2000/10/01 19:48:25  peter
     * lot of compile updates for cg11
 
   Revision 1.5  2000/09/24 15:06:20  peter

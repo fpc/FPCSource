@@ -29,28 +29,37 @@ interface
     { reads an exports statement in a library }
     procedure read_exports;
 
+
 implementation
 
     uses
-{$ifdef delphi}
-      sysutils,
-{$else}
-      strings,
-{$endif}
-      globtype,systems,tokens,
-      cutils,cobjects,globals,verbose,
-      scanner,symconst,symtable,pbase,
-      export,GenDef,tree,pass_1,pexpr;
+       { common }
+       cutils,cobjects,
+       { global }
+       globtype,globals,tokens,verbose,
+       systems,cpuinfo,
+       { aasm }
+       aasm,
+       { symtable }
+       symconst,symtable,types,
+       { pass 1 }
+       node,pass_1,
+       ncon,
+       { parser }
+       scanner,
+       pbase,pexpr,pdecl,pdecsub,pdecvar,
+       { link }
+       gendef,export
+       ;
+
 
     procedure read_exports;
-
       var
-         hp : pexported_item;
-         DefString:string;
-         ProcName:string;
-         InternalProcName:string;
-         pt : ptree;
-
+         hp        : pexported_item;
+         DefString : string;
+         ProcName  : string;
+         InternalProcName : string;
+         pt        : tnode;
       begin
          DefString:='';
          InternalProcName:='';
@@ -100,15 +109,15 @@ implementation
                              consume(_INDEX);
                              pt:=comp_expr(true);
                              do_firstpass(pt);
-                             if pt^.treetype=ordconstn then
-                               hp^.index:=pt^.value
+                             if pt.nodetype=ordconstn then
+                               hp^.index:=tordconstnode(pt).value
                              else
                                 begin
                                    hp^.index:=0;
                                    consume(_INTCONST);
                                 end;
                              hp^.options:=hp^.options or eo_index;
-                             disposetree(pt);
+                             pt.free;
                              if target_os.id=os_i386_win32 then
                                DefString:=ProcName+'='+InternalProcName+' @ '+tostr(hp^.index)
                              else
@@ -119,15 +128,15 @@ implementation
                              consume(_NAME);
                              pt:=comp_expr(true);
                              do_firstpass(pt);
-                             if pt^.treetype=stringconstn then
-                               hp^.name:=stringdup(strpas(pt^.value_str))
+                             if pt.nodetype=stringconstn then
+                               hp^.name:=stringdup(strpas(tstringconstnode(pt).value_str))
                              else
                                 begin
                                    hp^.name:=stringdup('');
                                    consume(_CSTRING);
                                 end;
                              hp^.options:=hp^.options or eo_name;
-                             disposetree(pt);
+                             pt.free;
                              DefString:=hp^.name^+'='+InternalProcName;
                           end;
                         if (idtoken=_RESIDENT) then
@@ -160,7 +169,10 @@ end.
 
 {
   $Log$
-  Revision 1.5  2000-09-24 21:19:50  peter
+  Revision 1.6  2000-10-14 10:14:51  peter
+    * moehrendorf oct 2000 rewrite
+
+  Revision 1.5  2000/09/24 21:19:50  peter
     * delphi compile fixes
 
   Revision 1.4  2000/09/24 15:06:21  peter
