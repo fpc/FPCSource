@@ -2796,13 +2796,25 @@ implementation
                 if (not assigned(procinfo^.parent) or
                    not assigned(procinfo^.parent^._class)) then
                   begin
-                    if not(is_class(procinfo^._class)) then
-                      st:='v'
+                    if (po_classmethod in aktprocsym^.definition^.procoptions) or
+                       ((po_virtualmethod in aktprocsym^.definition^.procoptions) and
+                        (potype_constructor=aktprocsym^.definition^.proctypeoption)) or
+                       (po_staticmethod in aktprocsym^.definition^.procoptions) then
+                      begin
+                        exprasmlist^.concat(new(pai_stabs,init(strpnew(
+                         '"pvmt:p'+pvmtdef^.numberstring+'",'+
+                         tostr(N_PSYM)+',0,0,'+tostr(procinfo^.selfpointer_offset)))));
+                      end
                     else
-                      st:='p';
-                    exprasmlist^.concat(new(pai_stabs,init(strpnew(
-                     '"$t:'+st+procinfo^._class^.numberstring+'",'+
-                     tostr(N_PSYM)+',0,0,'+tostr(procinfo^.selfpointer_offset)))))
+                      begin
+                        if not(is_class(procinfo^._class)) then
+                          st:='v'
+                        else
+                          st:='p';
+                        exprasmlist^.concat(new(pai_stabs,init(strpnew(
+                         '"$t:'+st+procinfo^._class^.numberstring+'",'+
+                         tostr(N_PSYM)+',0,0,'+tostr(procinfo^.selfpointer_offset)))));
+                      end;
                   end
                 else
                   begin
@@ -2937,7 +2949,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.12  2000-11-22 15:12:06  jonas
+  Revision 1.13  2000-11-28 00:28:07  pierre
+   * stabs fixing
+
+  Revision 1.12  2000/11/22 15:12:06  jonas
     * fixed inline-related problems (partially "merges")
 
   Revision 1.11  2000/11/17 10:30:24  florian

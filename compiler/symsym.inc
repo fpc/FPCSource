@@ -601,7 +601,7 @@
      if assigned(owner) then
       begin
         if (owner^.symtabletype = objectsymtable) then
-         obj := owner^.name^+'__'+name;
+         obj := upper(owner^.name^)+'__'+name;
         { this code was correct only as long as the local symboltable
           of the parent had the same name as the function
           but this is no true anymore !! PM
@@ -2213,7 +2213,10 @@
 
 {
   $Log$
-  Revision 1.13  2000-11-04 14:25:22  florian
+  Revision 1.14  2000-11-28 00:28:07  pierre
+   * stabs fixing
+
+  Revision 1.13  2000/11/04 14:25:22  florian
     + merged Attila's changes for interfaces, not tested yet
 
   Revision 1.12  2000/10/31 22:02:52  peter

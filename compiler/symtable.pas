@@ -1129,6 +1129,20 @@ implementation
            if (symtabletype=unitsymtable) and
               assigned(punitsymtable(@self)^.unitsym) then
              inc(punitsymtable(@self)^.unitsym^.refs);
+
+{$ifdef GDB}
+           { if it is a type, we need the stabs of this type
+             this might be the cause of the class debug problems
+             as TCHILDCLASS.Create did not generate appropriate
+             stabs debug info if TCHILDCLASS wasn't used anywhere else PM }
+           if (hp^.typ=typesym) and make_ref then
+             begin
+               if assigned(ptypesym(hp)^.restype.def) then
+                 pstoreddef(ptypesym(hp)^.restype.def)^.numberstring
+               else
+                 ptypesym(hp)^.isusedinstab:=true;
+             end;
+{$endif GDB}
            { unitsym are only loaded for browsing PM    }
            { this was buggy anyway because we could use }
            { unitsyms from other units in _USES !!      }
@@ -2352,7 +2366,13 @@ implementation
 end.
 {
   $Log$
-  Revision 1.16  2000-11-12 22:17:47  peter
+  Revision 1.17  2000-11-28 00:28:07  pierre
+   * stabs fixing
+
+  Revision 1.1.2.8  2000/11/17 11:14:37  pierre
+   * one more class stabs fix
+
+  Revision 1.16  2000/11/12 22:17:47  peter
     * some realname updates for messages
 
   Revision 1.15  2000/11/06 15:54:15  florian
@@ -2367,6 +2387,9 @@ end.
 
   Revision 1.12  2000/10/31 22:02:52  peter
     * symtable splitted, no real code changes
+
+  Revision 1.1.2.7  2000/10/16 19:43:04  pierre
+   * trying to correct class stabss once more
 
   Revision 1.11  2000/10/15 07:47:53  peter
     * unit names and procedure names are stored mixed case
@@ -2390,6 +2413,9 @@ end.
   Revision 1.5  2000/08/20 14:58:41  peter
     * give fatal if objfpc/delphi mode things are found (merged)
 
+  Revision 1.1.2.6  2000/08/20 14:56:46  peter
+    * give fatal if objfpc/delphi mode things are found
+
   Revision 1.4  2000/08/16 18:33:54  peter
     * splitted namedobjectitem.next into indexnext and listnext so it
       can be used in both lists
@@ -2399,6 +2425,4 @@ end.
     * memdebug/memory patches (merged)
     * only once illegal directive (merged)
 
-  Revision 1.2  2000/07/13 11:32:50  michael
-  + removed logs
 }

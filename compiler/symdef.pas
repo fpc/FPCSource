@@ -4645,8 +4645,7 @@ Const local_symtable_index : longint = $8001;
      var
        onb : word;
      begin
-       if globalnb=0 then
-         numberstring;
+       numberstring;
        if objecttype=odt_class then
          begin
            onb:=globalnb;
@@ -5545,7 +5544,10 @@ Const local_symtable_index : longint = $8001;
 end.
 {
   $Log$
-  Revision 1.13  2000-11-26 18:09:40  florian
+  Revision 1.14  2000-11-28 00:28:06  pierre
+   * stabs fixing
+
+  Revision 1.13  2000/11/26 18:09:40  florian
     * fixed rtti for chars
 
   Revision 1.12  2000/11/19 16:23:35  florian
