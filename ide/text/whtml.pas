@@ -295,6 +295,7 @@ end;
 function TSGMLParser.DocAddTextChar(C: char): boolean;
 begin
   Abstract;
+  DocAddTextChar:=false;
 end;
 
 procedure TSGMLParser.DocAddText(S: string);
@@ -330,6 +331,8 @@ end;
 
 function THTMLParser.DocAddTextChar(C: char): boolean;
 begin
+  { Abstract }
+  DocAddTextChar:=false;
 end;
 
 function THTMLParser.DocDecodeNamedEntity(Name: string; var E: string): boolean;
@@ -682,7 +685,10 @@ end;
 END.
 {
   $Log$
-  Revision 1.4  1999-04-07 21:56:03  peter
+  Revision 1.5  2000-03-21 23:20:47  pierre
+   suppress some warnings by Gabor
+
+  Revision 1.4  1999/04/07 21:56:03  peter
     + object support for browser
     * html help fixes
     * more desktop saving things
