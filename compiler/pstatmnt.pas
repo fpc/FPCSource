@@ -666,6 +666,8 @@ unit pstatmnt;
            begin
               p:=comp_expr(true);
               consume(RKLAMMER);
+              if in_except_block then
+                Message(parser_e_exit_with_argument_not__possible);
               if procinfo.retdef=pdef(voiddef) then
                 Message(parser_e_void_function)
               else
@@ -1276,7 +1278,10 @@ unit pstatmnt;
 end.
 {
   $Log$
-  Revision 1.91  1999-06-30 22:16:22  florian
+  Revision 1.92  1999-07-26 09:42:14  florian
+    * bugs 494-496 fixed
+
+  Revision 1.91  1999/06/30 22:16:22  florian
     * use of is_ordinal checked: often a qword/int64 isn't allowed (case/for ...)
     * small qword problems fixed
 

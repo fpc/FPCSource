@@ -1258,7 +1258,6 @@ unit pmodules;
 
          { reset }
          procprefix:='';
-         in_except_block:=false;
 
          {The program intialization needs an alias, so it can be called
           from the bootstrap code.}
@@ -1352,7 +1351,10 @@ unit pmodules;
 end.
 {
   $Log$
-  Revision 1.133  1999-07-24 00:13:25  peter
+  Revision 1.134  1999-07-26 09:42:11  florian
+    * bugs 494-496 fixed
+
+  Revision 1.133  1999/07/24 00:13:25  peter
     * also number units for program
 
   Revision 1.132  1999/07/23 11:37:48  peter

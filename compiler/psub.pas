@@ -59,6 +59,9 @@ uses
 {$endif GDB}
 {$ifdef i386}
   ,i386base,i386asm
+{$ifdef dummy}
+  end   { avoid the stupid highlighting of the TP IDE }
+{$endif dummy}
   ,tgeni386,cgai386
   {$ifndef NoOpt}
   ,aopt386
@@ -538,8 +541,10 @@ begin
                    else
                     begin
                       consume(COLON);
+                      inc(testcurobject);
                       aktprocsym^.definition^.retdef:=single_type(hs);
                       aktprocsym^.definition^.test_if_fpu_result;
+                      dec(testcurobject);
                     end;
                  end;
     _PROCEDURE : begin
@@ -1836,7 +1841,10 @@ end.
 
 {
   $Log$
-  Revision 1.4  1999-07-11 20:10:24  peter
+  Revision 1.5  1999-07-26 09:42:15  florian
+    * bugs 494-496 fixed
+
+  Revision 1.4  1999/07/11 20:10:24  peter
     * merged
 
   Revision 1.3  1999/07/02 13:02:24  peter

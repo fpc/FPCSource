@@ -55,9 +55,6 @@ unit pbase;
        { true, if only routine headers should be parsed }
        parse_only : boolean;
 
-       { true, if we are in a except block }
-       in_except_block : boolean;
-
        { true, if we should ignore an equal in const x : 1..2=2 }
        ignore_equal : boolean;
 
@@ -202,7 +199,10 @@ end.
 
 {
   $Log$
-  Revision 1.21  1999-04-28 06:02:05  florian
+  Revision 1.22  1999-07-26 09:42:10  florian
+    * bugs 494-496 fixed
+
+  Revision 1.21  1999/04/28 06:02:05  florian
     * changes of Bruessel:
        + message handler can now take an explicit self
        * typinfo fixed: sometimes the type names weren't written

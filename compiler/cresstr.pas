@@ -60,7 +60,7 @@ unit cresstr;
 
       begin
          hash:=0;
-         For I:=0 to Len-1 do // 0 terminated
+         For I:=0 to Len-1 do { 0 terminated }
            begin
            hash:=hash shl 4;
            inc(Hash,Ord(p[i]));
@@ -228,7 +228,10 @@ unit cresstr;
 end.
 {
   $Log$
-  Revision 1.6  1999-07-25 19:27:15  michael
+  Revision 1.7  1999-07-26 09:42:00  florian
+    * bugs 494-496 fixed
+
+  Revision 1.6  1999/07/25 19:27:15  michael
   + Fixed hash computing, now compatible with gnu .mo file
 
   Revision 1.5  1999/07/24 18:35:41  michael

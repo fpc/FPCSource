@@ -690,13 +690,19 @@ do_jmp:
 
       var
          finallylabel,noreraiselabel : pasmlabel;
+         oldaktexitlabel : pasmlabel;
+         oldaktexit2label : pasmlabel;
 
       begin
          { we modify EAX }
          usedinproc:=usedinproc or ($80 shr byte(R_EAX));
-
          getlabel(finallylabel);
          getlabel(noreraiselabel);
+         oldaktexitlabel:=aktexitlabel;
+         oldaktexit2label:=aktexit2label;
+         aktexitlabel:=finallylabel;
+         aktexit2label:=finallylabel;
+
          push_int(1); { Type of stack-frame must be pushed}
          emitcall('FPC_PUSHEXCEPTADDR');
          exprasmlist^.concat(new(pai386,
@@ -727,6 +733,8 @@ do_jmp:
          emitcall('FPC_RERAISE');
          emitlab(noreraiselabel);
          emitcall('FPC_POPADDRSTACK');
+         aktexitlabel:=oldaktexitlabel;
+         aktexit2label:=oldaktexit2label;
       end;
 
 
@@ -752,7 +760,10 @@ do_jmp:
 end.
 {
   $Log$
-  Revision 1.41  1999-07-05 20:13:09  peter
+  Revision 1.42  1999-07-26 09:41:59  florian
+    * bugs 494-496 fixed
+
+  Revision 1.41  1999/07/05 20:13:09  peter
     * removed temp defines
 
   Revision 1.40  1999/06/14 00:43:35  peter
