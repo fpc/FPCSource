@@ -78,7 +78,7 @@ procedure Move(const source;var dest;count:longint);assembler;
        rdx count
      }
      pushq %rbx
-     prefetcht0 (%rsi)	// for more hopefully the hw prefetch will kick in
+     prefetcht0 (%rsi)  // for more hopefully the hw prefetch will kick in
      movq %rdi,%rax
 
      movl %edi,%ecx
@@ -140,10 +140,7 @@ procedure Move(const source;var dest;count:longint);assembler;
      incq %rsi
      loop .Lloop_1
 
-.Lende:
-     sfence
-     popq %rbx
-     ret
+     jmp .Lende
 
      { align destination }
      { This is simpleminded. For bigger blocks it may make sense to align
@@ -165,7 +162,12 @@ procedure Move(const source;var dest;count:longint);assembler;
 .Lsmall_alignment:
      addq %r9,%rdx
      jmp .Lhandle_7
+
+.Lende:
+     sfence
+     popq %rbx
   end;
+
 
 {$define FPC_SYSTEM_HAS_FILLCHAR}
 Procedure FillChar(var x;count:longint;value:byte);assembler;
@@ -180,7 +182,7 @@ Procedure FillChar(var x;count:longint;value:byte);assembler;
     { expand byte value  }
     movzbl %sil,%ecx
     movabs $0x0101010101010101,%rax
-    mul    %rcx		{ with rax, clobbers rdx }
+    mul    %rcx         { with rax, clobbers rdx }
 
     { align dst }
     movl  %edi,%r9d
@@ -191,7 +193,7 @@ Procedure FillChar(var x;count:longint;value:byte);assembler;
      movq %r11,%rcx
      movl $64,%r8d
      shrq $6,%rcx
-     jz	 .Lhandle_tail
+     jz  .Lhandle_tail
 
 .Lloop_64:
      movnti  %rax,(%rdi)
@@ -208,35 +210,37 @@ Procedure FillChar(var x;count:longint;value:byte);assembler;
      { Handle tail in loops. The loops should be faster than hard
         to predict jump tables. }
 .Lhandle_tail:
-     movl	%r11d,%ecx
+     movl       %r11d,%ecx
      andl    $56,%ecx
      jz     .Lhandle_7
-     shrl	$3,%ecx
+     shrl       $3,%ecx
 .Lloop_8:
      movnti  %rax,(%rdi)
      addq    $8,%rdi
      loop    .Lloop_8
 .Lhandle_7:
-     movl	%r11d,%ecx
-     andl	$7,%ecx
+     movl       %r11d,%ecx
+     andl       $7,%ecx
      jz      .Lende
 .Lloop_1:
-     movb 	%al,(%rdi)
-     addq	$1,%rdi
-     loop	.Lloop_1
+     movb       %al,(%rdi)
+     addq       $1,%rdi
+     loop       .Lloop_1
 
-.Lende:
-     movq	%r10,%rax
-     ret
+     jmp .Lende
+
 .Lbad_alignment:
      cmpq $7,%r11
      jbe .Lhandle_7
-     movnti %rax,(%rdi)	(* unaligned store *)
+     movnti %rax,(%rdi) (* unaligned store *)
      movq $8,%r8
      subq %r9,%r8
      addq %r8,%rdi
      subq %r8,%r11
      jmp .Lafter_bad_alignment
+
+.Lende:
+     movq       %r10,%rax
   end;
 
 {$define FPC_SYSTEM_HAS_DECLOCKED}
@@ -300,7 +304,10 @@ const
 
 {
   $Log$
-  Revision 1.6  2004-02-06 15:58:21  florian
+  Revision 1.7  2004-02-23 15:52:15  peter
+    * don't use ret
+
+  Revision 1.6  2004/02/06 15:58:21  florian
     * fixed x86-64 assembler problems
 
   Revision 1.5  2004/02/05 01:16:12  florian
