@@ -195,8 +195,10 @@ unit temp_gen;
                           { the whole block is needed ? }
                           if hp^.size>size then
                             begin
-                               hp^.size:=hp^.size-size;
-                               hp^.pos:=hp^.pos-size;
+                               dec(hp^.size,size);
+                               { the value is <0 so we need to add the size
+                                 instead of sub (PFV) }
+                               inc(hp^.pos,size);
                             end
                           else
                             begin
@@ -629,7 +631,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.12  1999-04-08 23:52:59  pierre
+  Revision 1.13  1999-04-09 08:39:20  peter
+    * fixed reuse position
+
+  Revision 1.12  1999/04/08 23:52:59  pierre
    + tempansilist and gettempansistringreference
 
   Revision 1.11  1999/04/08 20:59:44  florian
