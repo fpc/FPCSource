@@ -1371,7 +1371,11 @@ implementation
                       if psetdef(p^.left^.resulttype)^.settype=smallset then
                         begin
                            if p^.left^.right^.left^.location.loc in [LOC_CREGISTER,LOC_REGISTER] then
-                             hregister:=p^.left^.right^.left^.location.register
+                             { we don't need a mod 32 because this is done automatically  }
+                             { by the bts instruction. For proper checking we would       }
+                             { need a cmp and jmp, but this should be done by the         }
+                             { type cast code which does range checking if necessary (FK) }
+                             hregister:=makereg32(p^.left^.right^.left^.location.register)
                            else
                              begin
 {$ifndef noAllocEdi}
@@ -1507,7 +1511,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.94  2000-02-13 22:46:27  florian
+  Revision 1.95  2000-03-21 16:24:43  florian
+    * fixed bug 881: for the include/exclude instruction sometimes wrong
+      code was generated
+
+  Revision 1.94  2000/02/13 22:46:27  florian
     * fixed an internalerror with writeln
     * fixed arrayconstructor_to_set to force the generation of better code
       and added a more strict type checking
