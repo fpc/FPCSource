@@ -1045,11 +1045,20 @@ type_e_array_required=04033_E_Array type required
 % If you are accessing a variable using an index '[<x>]' then
 % the type must be an array. In FPC mode also a pointer is allowed.
 type_e_interface_type_expected=04034_E_interface type expected, but got "$1"
-type_h_mixed_signed_unsigned=04035_H_Mixing signed expressions and cardinals results in a (slower) 64bit evaluation
-% If you divide/multiply a signed number by a cardinal (or vice versa),
+type_w_mixed_signed_unsigned=04035_W_Mixing signed expressions and cardinals gives a 64bit result
+% If you divide (or calculate the modulus of) a signed expression by a cardinal (or vice versa),
 % or if you have overflow and/or range checking turned on and use an arithmetical
-% expression in which both signed numbers and cardinals appear, then everything has
-% to be evaluated in 64bit which is slower than normal 32bit arithmetics.
+% expression (+, -, *, div, mod) in which both signed numbers and cardinals appear,
+% then everything has to be evaluated in 64bit which is slower than normal
+% 32bit arithmetics. You can avoid this by typecasting one operand so it
+% matches the resulttype of the other one.
+type_w_mixed_signed_unsigned2=04036_W_Mixing signed expressions and cardinals here may cause a range check error
+% If you use a binary operator (and, or, xor) and one of
+% the operands is a cardinal while the other one is a signed expression, then,
+% if range checking is turned on, you may get a range check error because in
+% such a case both operands are converted to cardinal before the operation is
+% carried out. You can avoid this by typecasting one operand so it
+% matches the resulttype of the other one.
 % \end{description}
 #
 # Symtable

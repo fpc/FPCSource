@@ -284,7 +284,8 @@ const
   type_e_no_assign_to_const=04032;
   type_e_array_required=04033;
   type_e_interface_type_expected=04034;
-  type_h_mixed_signed_unsigned=04035;
+  type_w_mixed_signed_unsigned=04035;
+  type_w_mixed_signed_unsigned2=04036;
   sym_e_id_not_found=05000;
   sym_f_internal_error_in_symtablestack=05001;
   sym_e_duplicate_id=05002;
@@ -568,9 +569,9 @@ const
   option_info=11024;
   option_help_pages=11025;
 
-  MsgTxtSize = 31901;
+  MsgTxtSize = 31966;
 
   MsgIdxMax : array[1..20] of longint=(
-    17,59,174,36,41,41,86,14,35,40,
+    17,59,174,37,41,41,86,14,35,40,
     26,1,1,1,1,1,1,1,1,1
   );
