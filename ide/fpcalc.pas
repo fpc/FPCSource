@@ -42,7 +42,9 @@ type
     Status: TCalcState;
     Number: string[MaxDigits];
     Sign: Char;
+    LastOperator,
     _Operator: Char;
+    LastR,
     Operand: extended;
     Memory: extended;
     DispNumber: extended;
@@ -351,10 +353,19 @@ begin
           end;
         '+', '-', '*', '/', '=', '%', #13, '^':
           begin
-            if Status = csValid then
+            if (Key[1]='=') and (Status=csFirst) then
+              begin
+                Status:=csValid;
+                R:=LastR;
+                _Operator:=LastOperator;
+              end
+            else
+              GetDisplay(R);
+            if (Status = csValid)  then
             begin
               Status := csFirst;
-              GetDisplay(R);
+              LastR:=R;
+              LastOperator:=_Operator;
               if Key = '%' then
                 case _Operator of
                   '+', '-': R := Operand * R / 100;
@@ -568,7 +579,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.12  2004-11-08 20:28:25  peter
+  Revision 1.13  2004-12-06 21:24:53  peter
+  repeat last operation when pressing = again
+
+  Revision 1.12  2004/11/08 20:28:25  peter
     * Breakpoints are now deleted when removed from source, disabling is
       still possible from the breakpoint list
     * COMPILER_1_0, FVISION, GABOR defines removed, only support new
