@@ -13,8 +13,6 @@
  **********************************************************************}
 unit crt;
 
-{$mode objfpc}
-
 interface
 
 const
@@ -65,29 +63,31 @@ var
   WindMin: Word;          { Window upper left coordinates }
   WindMax: Word;          { Window lower right coordinates }
   { FPC Specific for large screen support }
-  WinMinX,
-  WinMinY,
-  WinMaxX,
-  WinMaxY  : Longint;
+  WindMinX : Longint;
+  WindMaxX : Longint;
+  WindMinY : Longint;
+  WindMaxY : Longint;
 
 { Interface procedures }
 procedure AssignCrt(var F: Text);
 function KeyPressed: Boolean;
 function ReadKey: Char;
 procedure TextMode(Mode: Integer);
-procedure Window(X1,Y1,X2,Y2: Byte);
-procedure GotoXY(X,Y: Byte);
-function WhereX: Byte;
-function WhereY: Byte;
+procedure Window(X1,Y1,X2,Y2: DWord);
+procedure GotoXY(X,Y: DWord);
+function WhereX: DWord;
+function WhereY: DWord;
 procedure ClrScr;
 procedure ClrEol;
 procedure InsLine;
 procedure DelLine;
 procedure TextColor(Color: Byte);
 procedure TextBackground(Color: Byte);
+
 procedure LowVideo;
 procedure HighVideo;
 procedure NormVideo;
+
 procedure Delay(MS: Word);
 procedure Sound(Hz: Word);
 procedure NoSound;
@@ -101,21 +101,9 @@ procedure cursorbig;
 implementation
 
 uses
-  dos,
   windows;
 
-
 var
-    OutHandle     : THandle;
-    InputHandle   : THandle;
-
-    CursorSaveX   : Longint;
-    CursorSaveY   : Longint;
-
-    ScreenWidth   : Longint;
-    ScreenHeight  : Longint;
-    IsWindowsNT   : Boolean;
-
     SaveCursorSize: Longint;
 
 
@@ -128,63 +116,57 @@ var
                            Low level Routines
 ****************************************************************************}
 
-function GetPlatformID: Longint;
-var OsVersion: TOSVersionInfo;
-begin
-  OsVersion.dwOsVersionInfoSize := SizeOf(OsVersion);
-
-  GetVersionEx(OsVersion);
-
-  Result := OsVersion.dwPlatformID;
-end; { func. GetPlatformID }
-
-
 procedure TurnMouseOff;
 var Mode: DWORD;
 begin
-  if GetConsoleMode(InputHandle, @Mode) then      { Turn the mouse-cursor off }
-    begin
-      Mode := Mode AND cardinal(NOT enable_processed_input)
-                   AND cardinal(NOT enable_mouse_input);
+  if GetConsoleMode(GetStdHandle(STD_INPUT_HANDLE), @Mode) then begin { Turn the mouse-cursor off }
+    Mode := Mode AND cardinal(NOT enable_processed_input)
+      AND cardinal(NOT enable_mouse_input);
 
-      SetConsoleMode(InputHandle, Mode);
-    end; { if }
+    SetConsoleMode(GetStdHandle(STD_INPUT_HANDLE), Mode);
+  end; { if }
 end; { proc. TurnMouseOff }
-
 
 function GetScreenHeight : longint;
 var
   ConsoleInfo: TConsoleScreenBufferinfo;
 begin
-  if not GetConsoleScreenBufferInfo(OutHandle, ConsoleInfo) then
-    begin
+  if (not GetConsoleScreenBufferInfo(GetStdHandle(STD_OUTPUT_HANDLE), ConsoleInfo)) then begin
 {$ifdef SYSTEMDEBUG}
-      Writeln(stderr,'GetScreenHeight failed GetLastError returns ',GetLastError);
-      Halt(1);
+    Writeln(stderr,'GetScreenHeight failed GetLastError returns ',GetLastError);
+    Halt(1);
 {$endif SYSTEMDEBUG}
-      Result:=25;
-    end
-  else
-    Result := ConsoleInfo.dwSize.Y;
+    // ts: this is really silly assumption; imho better: issue a halt
+    GetScreenHeight:=25;
+  end else
+    GetScreenHeight := ConsoleInfo.dwSize.Y;
 end; { func. GetScreenHeight }
-
 
 function GetScreenWidth : longint;
 var
   ConsoleInfo: TConsoleScreenBufferInfo;
 begin
-  if not GetConsoleScreenBufferInfo(OutHandle, ConsoleInfo) then
-    begin
+  if (not GetConsoleScreenBufferInfo(GetStdHandle(STD_OUTPUT_HANDLE), ConsoleInfo)) then begin
 {$ifdef SYSTEMDEBUG}
-      Writeln(stderr,'GetScreenWidth failed GetLastError returns ',GetLastError);
-      Halt(1);
+    Writeln(stderr,'GetScreenWidth failed GetLastError returns ',GetLastError);
+    Halt(1);
 {$endif SYSTEMDEBUG}
-      Result:=80;
-    end
-  else
-    Result := ConsoleInfo.dwSize.X;
+    // ts: this is really silly assumption; imho better: issue a halt
+    GetScreenWidth:=80;
+  end else
+    GetScreenWidth := ConsoleInfo.dwSize.X;
 end; { func. GetScreenWidth }
 
+
+procedure GetScreenCursor(var x : longint; var y : longint);
+var
+  ConsoleInfo : TConsoleScreenBufferInfo;
+begin
+  FillChar(ConsoleInfo, SizeOf(ConsoleInfo), 0);
+  GetConsoleScreenBufferInfo(GetStdHandle(STD_OUTPUT_HANDLE), ConsoleInfo);
+  X := ConsoleInfo.dwCursorPosition.X + 1;
+  Y := ConsoleInfo.dwCursorPosition.Y + 1;
+end;
 
 procedure SetScreenCursor(x,y : longint);
 var
@@ -193,35 +175,8 @@ begin
   FillChar(Curinfo, SizeOf(Curinfo), 0);
   CurInfo.X := X - 1;
   CurInfo.Y := Y - 1;
-
-  SetConsoleCursorPosition(OutHandle, CurInfo);
-
-  CursorSaveX := X - 1;
-  CursorSaveY := Y - 1;
+  SetConsoleCursorPosition(GetStdHandle(STD_OUTPUT_HANDLE), CurInfo);
 end;
-
-
-procedure GetScreenCursor(var x,y : longint);
-begin
-  X := CursorSaveX + 1;
-  Y := CursorSaveY + 1;
-end;
-
-
-{****************************************************************************
-                              Helper Routines
-****************************************************************************}
-
-
-Function FullWin:boolean;
-{
-  Full Screen 80x25? Window(1,1,80,25) is used, allows faster routines
-}
-begin
-  FullWin:=(WinMinX=1) and (WinMinY=1) and
-           (WinMaxX=ScreenWidth) and (WinMaxY=ScreenHeight);
-end;
-
 
 {****************************************************************************
                              Public Crt Functions
@@ -233,137 +188,81 @@ begin
   {!!! Not done yet !!! }
 end;
 
-
 Procedure TextColor(Color: Byte);
-{
-  Switch foregroundcolor
-}
+{ Switch foregroundcolor }
 Begin
   TextAttr:=(Color and $8f) or (TextAttr and $70);
 End;
 
-
-
 Procedure TextBackground(Color: Byte);
-{
-  Switch backgroundcolor
-}
+{ Switch backgroundcolor }
 Begin
   TextAttr:=((Color shl 4) and ($f0 and not Blink)) or (TextAttr and ($0f OR Blink) );
 End;
 
-
-
 Procedure HighVideo;
-{
-  Set highlighted output.
-}
+{ Set highlighted output. }
 Begin
   TextColor(TextAttr Or $08);
 End;
 
-
-
 Procedure LowVideo;
-{
-  Set normal output
-}
+{ Set normal output }
 Begin
   TextColor(TextAttr And $77);
 End;
 
-
-
 Procedure NormVideo;
-{
-  Set normal back and foregroundcolors.
-}
+{ Set normal back and foregroundcolors. }
 Begin
   TextColor(7);
   TextBackGround(0);
 End;
 
-
-Procedure GotoXy(X: Byte; Y: Byte);
-{
-  Go to coordinates X,Y in the current window.
-}
+Procedure GotoXY(X: DWord; Y: DWord);
+{ Go to coordinates X,Y in the current window. }
 Begin
-  If (X>0) and (X<=WinMaxX- WinMinX+1) and
-     (Y>0) and (Y<=WinMaxY-WinMinY+1) Then
-   Begin
-     Inc(X,WinMinX-1);
-     Inc(Y,WinMinY-1);
-     SetScreenCursor(x,y);
-   End;
+  If (X > 0) and (X <= (WindMaxX - WindMinX + 1)) and
+    (Y > 0) and (Y <= (WindMaxY - WindMinY + 1)) Then Begin
+    Inc(X, WindMinX - 1);
+    Inc(Y, WindMinY - 1);
+    SetScreenCursor(x,y);
+  End;
 End;
 
 
-Procedure Window(X1, Y1, X2, Y2: Byte);
+Procedure Window(X1, Y1, X2, Y2: DWord);
 {
   Set screen window to the specified coordinates.
 }
 Begin
-  if (X1>X2) or (X2>ScreenWidth) or
-     (Y1>Y2) or (Y2>ScreenHeight) then
-   exit;
-  WinMinX:=X1;
-  WinMaxX:=X2;
-  WinMinY:=Y1;
-  WinMaxY:=Y2;
+  if (X1 > X2) or (X2 > GetScreenWidth) or
+    (Y1 > Y2) or (Y2 > GetScreenHeight) then
+    exit;
+  WindMinY := Y1;
+  WindMaxY := Y2;
+  WindMinX := X1;
+  WindMaxX := X2;
   WindMin:=((Y1-1) Shl 8)+(X1-1);
   WindMax:=((Y2-1) Shl 8)+(X2-1);
-  GoToXY(1,1);
+  GotoXY(1, 1);
 End;
-
 
 procedure ClrScr;
 var
-  ClipRect: TSmallRect;
-  SrcRect: TSmallRect;
   DestCoor: TCoord;
-  CharInfo: TCharInfo;
+  numChars, x : DWord;
 begin
-  CharInfo.UnicodeChar := 32;
-  CharInfo.Attributes := TextAttr;
+  DestCoor.X := WindMinX - 1;
+  DestCoor.Y := WindMinY - 1;
+  numChars := (WindMaxX - WindMinX + 1) * (WindMaxY - WindMinY + 1);
 
-  SrcRect.Left := WinMinX - 1;
-  SrcRect.Top := WinMinY - 1;
-  SrcRect.Right := WinMaxX - 1;
-  SrcRect.Bottom := WinMaxY - 1;
-  ClipRect := SrcRect;
+  FillConsoleOutputAttribute(GetStdHandle(STD_OUTPUT_HANDLE), TextAttr,
+    numChars, DestCoor, x);
+  FillConsoleOutputCharacter(GetStdHandle(STD_OUTPUT_HANDLE), #32,
+    numChars, DestCoor, x);
 
-  if IsWindowsNT then
-    begin
-      DestCoor.X := -WinMaxX;
-      DestCoor.Y := -WinMaxY;
-
-      ScrollConsoleScreenBuffer(OutHandle, SrcRect, ClipRect,
-                                DestCoor, CharInfo);
-    end
-      else begin      { Win95 seems to have a bug in scrolling, unfortunately }
-             { This routine 3 times copies the bottom 12 lines to the }
-             { top part of the screen. This eventually will clear the }
-             { screen. }
-
-             DestCoor.X := WinMinX - 1;
-             DestCoor.Y := WinMinY - (Succ((WinMaxY - WinMinY) div 2));
-
-             {-------- Scroll 1st part }
-             ScrollConsoleScreenBuffer(OutHandle, SrcRect, ClipRect,
-                                       DestCoor, CharInfo);
-
-
-             {-------- Scroll 2nd part }
-             ScrollConsoleScreenBuffer(OutHandle, SrcRect, ClipRect,
-                                       DestCoor, CharInfo);
-
-             {-------- Scroll 3rd part (last line) }
-             ScrollConsoleScreenBuffer(OutHandle, SrcRect, ClipRect,
-                                       DestCoor, CharInfo);
-           end; { if in Windows95 }
-
-  GotoXY(1,1);
+  GotoXY(1, 1);
 end; { proc. ClrScr }
 
 
@@ -371,46 +270,44 @@ procedure ClrEol;
 {
   Clear from current position to end of line.
 }
-var Temp: Dword;
-    CharInfo: Char;
-    Coord: TCoord;
-    X,Y: Longint;
+var
+  Temp: DWord;
+  CharInfo: Char;
+  Coord: TCoord;
+  X,Y: Longint;
 begin
-  GetScreenCursor(x,y);
+  GetScreenCursor(x, y);
 
   CharInfo := #32;
-  
   Coord.X := X - 1;
   Coord.Y := Y - 1;
 
-  FillConsoleOutputCharacter(OutHandle, CharInfo, WinMaxX - X + 1, Coord, @Temp);
-  FillConsoleOutputAttribute(OutHandle, TextAttr, WinMaxX - X + 1, Coord, @Temp);
+  FillConsoleOutputCharacter(GetStdHandle(STD_OUTPUT_HANDLE), CharInfo, WindMaxX - X + 1,
+    Coord, @Temp);
+  FillConsoleOutputAttribute(GetStdHandle(STD_OUTPUT_HANDLE), TextAttr, WindMaxX - X + 1,
+    Coord, @Temp);
 end;
 
-
-
-Function WhereX: Byte;
+Function WhereX: DWord;
 {
   Return current X-position of cursor.
 }
 var
   x,y : longint;
 Begin
-  GetScreenCursor(x,y);
-  WhereX:=x-WinMinX+1;
+  GetScreenCursor(x, y);
+  WhereX:= x - WindMinX +1;
 End;
 
-
-
-Function WhereY: Byte;
+Function WhereY: DWord;
 {
   Return current Y-position of cursor.
 }
 var
-  x,y : longint;
+  x, y : longint;
 Begin
-  GetScreenCursor(x,y);
-  WhereY:=y-WinMinY+1;
+  GetScreenCursor(x, y);
+  WhereY:= y - WindMinY + 1;
 End;
 
 
@@ -506,7 +403,7 @@ begin
     // Function keys
     $57..$58: inc(Scancode, $2E); // F11 and F12
   end;
-  Result := ScanCode;
+  RemapScanCode := ScanCode;
 end;
 
 
@@ -584,15 +481,12 @@ end;
 
 function ReadKey: char;
 begin
-  repeat
+  while (not KeyPressed) do
     Sleep(1);
-  until KeyPressed;
-
   if SpecialKey then begin
     ReadKey := #0;
     SpecialKey := FALSE;
-  end
-  else begin
+  end else begin
     ReadKey := ScanCode;
     ScanCode := #0;
   end;
@@ -623,7 +517,6 @@ end;
 {****************************************************************************
                           HighLevel Crt Functions
 ****************************************************************************}
-
 procedure removeline(y : longint);
 var
   ClipRect: TSmallRect;
@@ -634,18 +527,21 @@ begin
   CharInfo.UnicodeChar := 32;
   CharInfo.Attributes := TextAttr;
 
-  Y := WinMinY + Y-1;
+  Y := (WindMinY - 1) + (Y - 1) + 1;
 
-  SrcRect.Top := Y - 01;
-  SrcRect.Left := WinMinX - 1;
-  SrcRect.Right := WinMaxX - 1;
-  SrcRect.Bottom := WinMaxY - 1;
+  SrcRect.Top := Y;
+  SrcRect.Left := WindMinX - 1;
+  SrcRect.Right := WindMaxX - 1;
+  SrcRect.Bottom := WindMaxY - 1;
 
-  DestCoor.X := WinMinX - 1;
-  DestCoor.Y := Y - 2;
+  DestCoor.X := WindMinX - 1;
+  DestCoor.Y := Y - 1;
+
   ClipRect := SrcRect;
+  cliprect.top := destcoor.y;
 
-  ScrollConsoleScreenBuffer(OutHandle, SrcRect, ClipRect, DestCoor, CharInfo);
+  ScrollConsoleScreenBuffer(GetStdHandle(STD_OUTPUT_HANDLE), SrcRect, ClipRect,
+    DestCoor, CharInfo);
 end; { proc. RemoveLine }
 
 
@@ -669,18 +565,18 @@ begin
   CharInfo.Attributes := TextAttr;
 
   SrcRect.Top := Y - 1;
-  SrcRect.Left := WinMinX - 1;
-  SrcRect.Right := WinMaxX - 1;
-  SrcRect.Bottom := WinMaxY - 1;
+  SrcRect.Left := WindMinX - 1;
+  SrcRect.Right := WindMaxX - 1;
+  SrcRect.Bottom := WindMaxY - 1 + 1;
 
-  DestCoor.X := WinMinX - 1;
+  DestCoor.X := WindMinX - 1;
   DestCoor.Y := Y;
   ClipRect := SrcRect;
+  ClipRect.Bottom := WindMaxY - 1;
 
-  ScrollConsoleScreenBuffer(OutHandle, SrcRect, ClipRect, DestCoor, CharInfo);
+  ScrollConsoleScreenBuffer(GetStdHandle(STD_OUTPUT_HANDLE), SrcRect, ClipRect,
+    DestCoor, CharInfo);
 end; { proc. InsLine }
-
-
 
 
 {****************************************************************************
@@ -690,29 +586,29 @@ end; { proc. InsLine }
 procedure cursoron;
 var CursorInfo: TConsoleCursorInfo;
 begin
-  GetConsoleCursorInfo(OutHandle, CursorInfo);
+  GetConsoleCursorInfo(GetStdHandle(STD_OUTPUT_HANDLE), CursorInfo);
   CursorInfo.dwSize := SaveCursorSize;
   CursorInfo.bVisible := true;
-  SetConsoleCursorInfo(OutHandle, CursorInfo);
+  SetConsoleCursorInfo(GetStdHandle(STD_OUTPUT_HANDLE), CursorInfo);
 end;
 
 
 procedure cursoroff;
 var CursorInfo: TConsoleCursorInfo;
 begin
-  GetConsoleCursorInfo(OutHandle, CursorInfo);
+  GetConsoleCursorInfo(GetStdHandle(STD_OUTPUT_HANDLE), CursorInfo);
   CursorInfo.bVisible := false;
-  SetConsoleCursorInfo(OutHandle, CursorInfo);
+  SetConsoleCursorInfo(GetStdHandle(STD_OUTPUT_HANDLE), CursorInfo);
 end;
 
 
 procedure cursorbig;
 var CursorInfo: TConsoleCursorInfo;
 begin
-  GetConsoleCursorInfo(OutHandle, CursorInfo);
+  GetConsoleCursorInfo(GetStdHandle(STD_OUTPUT_HANDLE), CursorInfo);
   CursorInfo.dwSize := 100;
   CursorInfo.bVisible := true;
-  SetConsoleCursorInfo(OutHandle, CursorInfo);
+  SetConsoleCursorInfo(GetStdHandle(STD_OUTPUT_HANDLE), CursorInfo);
 end;
 
 
@@ -723,67 +619,59 @@ end;
 var
   CurrX, CurrY : longint;
 
-procedure WriteChar(c:char);
+procedure WriteChar(c : char);
 var
-    Cell    : TCharInfo;
-    BufSize : Coord;                    { Column-row size of source buffer }
-    WritePos: TCoord;                       { Upper-left cell to write from }
-    DestRect: TSmallRect;
+    WritePos: Coord;                       { Upper-left cell to write from }
+    numWritten : DWord;
+    WinAttr : word;
 begin
   Case C of
-   #10 : begin
-           Inc(CurrY);
-         end;
-   #13 : begin
-           CurrX := WinMinX;
-         end; { if }
-   #08 : begin
-           if CurrX > WinMinX then Dec(CurrX);
-         end; { ^H }
-   #07 : begin
-           // MessagBeep(0);
-         end; { ^G }
-     else begin
-            BufSize.X := 01;
-            BufSize.Y := 01;
-
-            WritePos.X := 0;
-            WritePos.Y := 0;
-
-            Cell.UniCodeChar := Ord(c);
-            Cell.Attributes := TextAttr;
-
-            DestRect.Left := (CurrX - 01);
-            DestRect.Top := (CurrY - 01);
-            DestRect.Right := (CurrX - 01);
-            DestRect.Bottom := (CurrY - 01);
-
-            WriteConsoleOutput(OutHandle, @Cell, BufSize, WritePos, DestRect);
-
-            Inc(CurrX);
-          end; { else }
-  end; { case }
-  if CurrX > WinMaxX then
-    begin
-      CurrX := WinMinX;
+    #10 : begin
       Inc(CurrY);
+    end;
+    #13 : begin
+      CurrX := WindMinX;
     end; { if }
-  While CurrY > WinMaxY do
-   begin
-     RemoveLine(1);
-     Dec(CurrY);
-   end; { while }
+    #08 : begin
+      if CurrX > WindMinX then Dec(CurrX);
+    end; { ^H }
+    #07 : begin
+      //MessagBeep(0);
+    end; { ^G }
+    else begin
+      WritePos.X := currX - 1;
+      WritePos.Y := currY - 1;
+
+      WriteConsoleOutputCharacter(GetStdhandle(STD_OUTPUT_HANDLE),
+        @c, 1, writePos, numWritten);
+
+      WinAttr:=TextAttr;
+      WriteConsoleOutputAttribute(GetStdhandle(STD_OUTPUT_HANDLE),
+        @WinAttr, 1, writePos, numWritten);
+
+      Inc(CurrX);
+    end; { else }
+  end; { case }
+  if CurrX > WindMaxX then begin
+    CurrX := WindMinX;
+    Inc(CurrY);
+  end; { if }
+  While CurrY > WindMaxY do begin
+    RemoveLine(1);
+    Dec(CurrY);
+  end; { while }
 end;
 
-
-Function CrtWrite(var f : textrec):integer;
+Function CrtWrite(var f : textrec) : integer;
 var
   i : longint;
 begin
-  GetScreenCursor(CurrX,CurrY);
+  GetScreenCursor(CurrX, CurrY);
+
   for i:=0 to f.bufpos-1 do
-   WriteChar(f.buffer[i]);
-  SetScreenCursor(CurrX,CurrY);
+    WriteChar(f.buffer[i]);
+  SetScreenCursor(CurrX, CurrY);
+
   f.bufpos:=0;
   CrtWrite:=0;
 end;
@@ -793,14 +681,13 @@ Function CrtRead(Var F: TextRec): Integer;
 
   procedure BackSpace;
   begin
-    if (f.bufpos>0) and (f.bufpos=f.bufend) then
-     begin
-       WriteChar(#8);
-       WriteChar(' ');
-       WriteChar(#8);
-       dec(f.bufpos);
-       dec(f.bufend);
-     end;
+    if (f.bufpos>0) and (f.bufpos=f.bufend) then begin
+      WriteChar(#8);
+      WriteChar(' ');
+      WriteChar(#8);
+      dec(f.bufpos);
+      dec(f.bufend);
+    end;
   end;
 
 var
@@ -811,67 +698,60 @@ Begin
   f.bufend:=0;
   repeat
     if f.bufpos>f.bufend then
-     f.bufend:=f.bufpos;
-    SetScreenCursor(CurrX,CurrY);
-    ch:=readkey;
-    case ch of
-    #0 : case readkey of
-          #71 : while f.bufpos>0 do
-                 begin
-                   dec(f.bufpos);
-                   WriteChar(#8);
-                 end;
-          #75 : if f.bufpos>0 then
-                 begin
-                   dec(f.bufpos);
-                   WriteChar(#8);
-                 end;
-          #77 : if f.bufpos<f.bufend then
-                 begin
-                   WriteChar(f.bufptr^[f.bufpos]);
-                   inc(f.bufpos);
-                 end;
-          #79 : while f.bufpos<f.bufend do
-                 begin
-                   WriteChar(f.bufptr^[f.bufpos]);
-                   inc(f.bufpos);
-                 end;
-         end;
-    ^S,
-    #8 : BackSpace;
-    ^Y,
-   #27 : begin
-           f.bufpos:=f.bufend;
-           while f.bufend>0 do
-            BackSpace;
-         end;
-   #13 : begin
-           WriteChar(#13);
-           WriteChar(#10);
-           f.bufptr^[f.bufend]:=#13;
-           f.bufptr^[f.bufend+1]:=#10;
-           inc(f.bufend,2);
-           break;
-         end;
-   #26 : if CheckEOF then
-          begin
-            f.bufptr^[f.bufend]:=#26;
-            inc(f.bufend);
-            break;
+      f.bufend:=f.bufpos;
+      SetScreenCursor(CurrX,CurrY);
+      ch:=readkey;
+      case ch of
+        #0 : case readkey of
+          #71 : while f.bufpos>0 do begin
+            dec(f.bufpos);
+            WriteChar(#8);
           end;
-    else
-     begin
-       if f.bufpos<f.bufsize-2 then
-        begin
+          #75 : if f.bufpos>0 then begin
+            dec(f.bufpos);
+            WriteChar(#8);
+          end;
+          #77 : if f.bufpos<f.bufend then begin
+            WriteChar(f.bufptr^[f.bufpos]);
+            inc(f.bufpos);
+          end;
+          #79 : while f.bufpos<f.bufend do begin
+            WriteChar(f.bufptr^[f.bufpos]);
+            inc(f.bufpos);
+          end;
+        end;
+        ^S,
+      #8 : BackSpace;
+      ^Y,
+      #27 : begin
+        f.bufpos:=f.bufend;
+        while f.bufend>0 do
+          BackSpace;
+      end;
+      #13 : begin
+        WriteChar(#13);
+        WriteChar(#10);
+        f.bufptr^[f.bufend]:=#13;
+        f.bufptr^[f.bufend+1]:=#10;
+        inc(f.bufend,2);
+        break;
+      end;
+      #26 : if CheckEOF then begin
+        f.bufptr^[f.bufend]:=#26;
+        inc(f.bufend);
+        break;
+      end;
+      else begin
+        if f.bufpos<f.bufsize-2 then begin
           f.buffer[f.bufpos]:=ch;
           inc(f.bufpos);
           WriteChar(ch);
         end;
-     end;
-    end;
+      end;
+      end;
   until false;
   f.bufpos:=0;
-  SetScreenCursor(CurrX,CurrY);
+  SetScreenCursor(CurrX, CurrY);
   CrtRead:=0;
 End;
 
@@ -891,17 +771,14 @@ End;
 
 Function CrtOpen(Var F: TextRec): Integer;
 Begin
-  If F.Mode=fmOutput Then
-   begin
-     TextRec(F).InOutFunc:=@CrtWrite;
-     TextRec(F).FlushFunc:=@CrtWrite;
-   end
-  Else
-   begin
-     F.Mode:=fmInput;
-     TextRec(F).InOutFunc:=@CrtRead;
-     TextRec(F).FlushFunc:=@CrtReturn;
-   end;
+  If F.Mode=fmOutput Then begin
+    TextRec(F).InOutFunc:=@CrtWrite;
+    TextRec(F).FlushFunc:=@CrtWrite;
+  end Else begin
+    F.Mode:=fmInput;
+    TextRec(F).InOutFunc:=@CrtRead;
+    TextRec(F).FlushFunc:=@CrtReturn;
+  end;
   TextRec(F).CloseFunc:=@CrtClose;
   CrtOpen:=0;
 End;
@@ -913,78 +790,54 @@ begin
   TextRec(F).OpenFunc:=@CrtOpen;
 end;
 
-
-const
-  conout : pchar = 'CONOUT$';
-
 var
   CursorInfo  : TConsoleCursorInfo;
   ConsoleInfo : TConsoleScreenBufferinfo;
 
+// ts
 begin
   { Initialize the output handles }
-  OutHandle := GetStdHandle(STD_OUTPUT_HANDLE);
-  InputHandle := GetStdHandle(STD_INPUT_HANDLE);
   LastMode := 3;
+
+  SetActiveWindow(0);
 
   {--------------------- Get the cursor size and such -----------------------}
   FillChar(CursorInfo, SizeOf(CursorInfo), 00);
-  GetConsoleCursorInfo(OutHandle, CursorInfo);
+  GetConsoleCursorInfo(GetStdHandle(STD_OUTPUT_HANDLE), CursorInfo);
   SaveCursorSize := CursorInfo.dwSize;
 
   {------------------ Get the current cursor position and attr --------------}
   FillChar(ConsoleInfo, SizeOf(ConsoleInfo), 0);
-  if not GetConsoleScreenBufferInfo(OutHandle, ConsoleInfo) then
-    begin
-      OutHandle:=CreateFile(ConOut, generic_read or generic_write,
-        file_share_read or file_share_write,nil,
-        open_existing,0,0);
-      If (OutHandle=Invalid_handle_value) then
-        begin
-          Writeln(stderr,'No way to get the console handle');
-          Halt(1);
-        end;
-      if not GetConsoleScreenBufferInfo(OutHandle, ConsoleInfo) then
-        begin
-          Writeln(stderr,'No way to get console screen buffer info');
-          Halt(1);
-        end;
-    end;
-  CursorSaveX := ConsoleInfo.dwCursorPosition.X;
-  CursorSaveY := ConsoleInfo.dwCursorPosition.Y;
+  GetConsoleScreenBufferInfo(GetStdHandle(STD_OUTPUT_HANDLE), ConsoleInfo);
+
   TextAttr := ConsoleInfo.wAttributes;
 
   { Load startup values }
-  ScreenWidth := GetScreenWidth;
-  ScreenHeight := GetScreenHeight;
-  IsWindowsNT := (GetPlatformID = VER_PLATFORM_WIN32_NT);
   TurnMouseOff;
 
-  WinMinX:=1;
-  WinMinY:=1;
-  WinMaxX:=ScreenWidth;
-  WinMaxY:=ScreenHeight;
-  WindMax := (ScreenWidth - 1) OR ((ScreenHeight - 1) SHL 8);
+  WindMinX := (ConsoleInfo.srWindow.Left) + 1;
+  WindMinY := (ConsoleInfo.srWindow.Top) + 1;
+  WindMaxX := (ConsoleInfo.srWindow.Right) + 1;
+  WindMaxY := (ConsoleInfo.srWindow.Bottom) + 1;
+
   DoingNumChars := false;
   DoingNumCode := 0;
 
   { Redirect the standard output }
   AssignCrt(Output);
   Rewrite(Output);
-  TextRec(Output).Handle:= OutHandle;
+  TextRec(Output).Handle:= GetStdHandle(STD_OUTPUT_HANDLE);
 
   AssignCrt(Input);
   Reset(Input);
-  TextRec(Input).Handle:= InputHandle;
+  TextRec(Input).Handle:= GetStdHandle(STD_INPUT_HANDLE);
 end. { unit Crt }
 
 {
   $Log$
-  Revision 1.10  2001-06-29 19:43:40  peter
-    * fixed clreol
-
-  Revision 1.9  2001/06/27 20:21:47  peter
-    * support large screens
+  Revision 1.11  2001-07-13 17:43:25  peter
+    * updates from Tomas Schatzl so it works better with w2k virtual
+      consoles
 
   Revision 1.8  2001/04/14 14:05:42  peter
     * fixed for stricter checking
