@@ -332,7 +332,7 @@ interface
           { writes a node for debugging purpose, shouldn't be called }
           { direct, because there is no test for nil, use printnode  }
           { to write a complete tree }
-          procedure printnodeinfo(var t:text);
+          procedure printnodeinfo(var t:text);virtual;
           procedure printnodedata(var t:text);virtual;
           procedure printnodetree(var t:text);virtual;
           procedure concattolist(l : tlinkedlist);virtual;
@@ -741,7 +741,7 @@ implementation
           write(t,', resulttype = "',resulttype.def.gettypename,'"')
         else
           write(t,', resulttype = <nil>');
-        writeln(t,', pos = (',fileinfo.line,',',fileinfo.column,')',
+        write(t,', pos = (',fileinfo.line,',',fileinfo.column,')',
                   ', loc = ',tcgloc2str[location.loc],
                   ', expectloc = ',tcgloc2str[expectloc],
                   ', intregs = ',registersint,
@@ -758,6 +758,7 @@ implementation
       begin
          write(t,printnodeindention,'(');
          printnodeinfo(t);
+         writeln(t);
          printnodeindent;
          printnodedata(t);
          printnodeunindent;
@@ -1095,6 +1096,7 @@ implementation
            printnodeindent;
            hp.printnodeinfo(t);
            printnode(t,hp.left);
+           writeln(t);
            printnodeunindent;
            writeln(t,printnodeindention,')');
            hp:=tbinarynode(hp.right);
@@ -1124,7 +1126,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.93  2004-12-26 16:22:01  peter
+  Revision 1.94  2005-01-03 17:55:57  florian
+    + first batch of patches to support tdef.getcopy fully
+
+  Revision 1.93  2004/12/26 16:22:01  peter
     * fix lineinfo for with blocks
 
   Revision 1.92  2004/12/05 12:28:11  peter

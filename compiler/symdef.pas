@@ -113,6 +113,7 @@ interface
           constructor createuntyped;
           constructor createtyped(const tt : ttype);
           constructor ppuload(ppufile:tcompilerppufile);
+          function getcopy : tstoreddef;override;
           procedure ppuwrite(ppufile:tcompilerppufile);override;
           procedure buildderef;override;
           procedure deref;override;
@@ -130,6 +131,7 @@ interface
           varianttype : tvarianttype;
           constructor create(v : tvarianttype);
           constructor ppuload(ppufile:tcompilerppufile);
+          function getcopy : tstoreddef;override;
           function gettypename:string;override;
           procedure ppuwrite(ppufile:tcompilerppufile);override;
           procedure setsize;
@@ -224,6 +226,7 @@ interface
           constructor create(p : tsymtable);
           constructor ppuload(ppufile:tcompilerppufile);
           destructor destroy;override;
+          function getcopy : tstoreddef;override;
           procedure ppuwrite(ppufile:tcompilerppufile);override;
           procedure buildderef;override;
           procedure deref;override;
@@ -278,6 +281,7 @@ interface
           constructor create(ot : tobjectdeftype;const n : string;c : tobjectdef);
           constructor ppuload(ppufile:tcompilerppufile);
           destructor  destroy;override;
+          function getcopy : tstoreddef;override;
           procedure ppuwrite(ppufile:tcompilerppufile);override;
           function gettypename:string;override;
           procedure buildderef;override;
@@ -373,6 +377,7 @@ interface
           constructor create_from_pointer(const elemt : ttype);
           constructor create(l,h : aint;const t : ttype);
           constructor ppuload(ppufile:tcompilerppufile);
+          function getcopy : tstoreddef;override;
           procedure ppuwrite(ppufile:tcompilerppufile);override;
           function  gettypename:string;override;
           function  getmangledparaname : string;override;
@@ -469,6 +474,7 @@ interface
        tprocvardef = class(tabstractprocdef)
           constructor create(level:byte);
           constructor ppuload(ppufile:tcompilerppufile);
+          function getcopy : tstoreddef;override;
           procedure ppuwrite(ppufile:tcompilerppufile);override;
           procedure buildderef;override;
           procedure deref;override;
@@ -658,6 +664,7 @@ interface
           constructor create_subrange(_basedef:tenumdef;_min,_max:aint);
           constructor ppuload(ppufile:tcompilerppufile);
           destructor destroy;override;
+          function getcopy : tstoreddef;override;
           procedure ppuwrite(ppufile:tcompilerppufile);override;
           procedure buildderef;override;
           procedure deref;override;
@@ -685,6 +692,7 @@ interface
           constructor create(const t:ttype;high : longint);
           constructor ppuload(ppufile:tcompilerppufile);
           destructor  destroy;override;
+          function getcopy : tstoreddef;override;
           procedure ppuwrite(ppufile:tcompilerppufile);override;
           procedure buildderef;override;
           procedure deref;override;
@@ -1326,6 +1334,7 @@ implementation
          savesize:=POINTER_SIZE;
       end;
 
+
     constructor tstringdef.loadansi(ppufile:tcompilerppufile;bits:Tstringbits);
       begin
          inherited ppuloaddef(ppufile);
@@ -1350,6 +1359,7 @@ implementation
          len:=l;
          savesize:=sizeof(aint);
       end;
+
 
     constructor tstringdef.loadansi(ppufile:tcompilerppufile);
 
@@ -1643,6 +1653,7 @@ implementation
          correct_owner_symtable;
       end;
 
+
     constructor tenumdef.create_subrange(_basedef:tenumdef;_min,_max:aint);
       begin
          inherited create;
@@ -1654,7 +1665,7 @@ implementation
          has_jumps:=false;
          firstenum:=basedef.firstenum;
          while assigned(firstenum) and (tenumsym(firstenum).value<>minval) do
-          firstenum:=tenumsym(firstenum).nextenum;
+           firstenum:=tenumsym(firstenum).nextenum;
          correct_owner_symtable;
       end;
 
@@ -1669,6 +1680,22 @@ implementation
          savesize:=ppufile.getaint;
          has_jumps:=false;
          firstenum:=Nil;
+      end;
+
+
+    function tenumdef.getcopy : tstoreddef;
+      begin
+        if assigned(basedef) then
+          result:=tenumdef.create_subrange(basedef,minval,maxval)
+        else
+          begin
+            result:=tenumdef.create;
+            tenumdef(result).minval:=minval;
+            tenumdef(result).maxval:=maxval;
+          end;
+        tenumdef(result).has_jumps:=has_jumps;
+        tenumdef(result).firstenum:=firstenum;
+        tenumdef(result).basedefderef:=basedefderef;
       end;
 
 
@@ -2220,6 +2247,21 @@ implementation
       end;
 
 
+    function tfiledef.getcopy : tstoreddef;
+      begin
+        case filetyp of
+          ft_typed:
+            result:=tfiledef.createtyped(typedfiletype);
+          ft_untyped:
+            result:=tfiledef.createuntyped;
+          ft_text:
+            result:=tfiledef.createtext;
+          else
+            internalerror(2004121201);
+        end;
+      end;
+
+
     procedure tfiledef.buildderef;
       begin
         inherited buildderef;
@@ -2370,6 +2412,12 @@ implementation
          varianttype:=tvarianttype(ppufile.getbyte);
          deftype:=variantdef;
          setsize;
+      end;
+
+
+    function tvariantdef.getcopy : tstoreddef;
+      begin
+        result:=tvariantdef.create(varianttype);
       end;
 
 
@@ -2661,6 +2709,19 @@ implementation
       end;
 
 
+    function tsetdef.getcopy : tstoreddef;
+      begin
+        case settype of
+          smallset:
+            result:=tsetdef.create(elementtype,31);
+          normset:
+            result:=tsetdef.create(elementtype,255);
+          else
+            internalerror(2004121202);
+        end;
+      end;
+
+
     procedure tsetdef.ppuwrite(ppufile:tcompilerppufile);
       begin
          inherited ppuwritedef(ppufile);
@@ -2841,6 +2902,18 @@ implementation
          IsDynamicArray:=boolean(ppufile.getbyte);
          IsVariant:=false;
          IsConstructor:=false;
+      end;
+
+
+    function tarraydef.getcopy : tstoreddef;
+      begin
+        result:=tarraydef.create(lowrange,highrange,rangetype);
+        tarraydef(result).IsConvertedPointer:=IsConvertedPointer;
+        tarraydef(result).IsDynamicArray:=IsDynamicArray;
+        tarraydef(result).IsVariant:=IsVariant;
+        tarraydef(result).IsConstructor:=IsConstructor;
+        tarraydef(result).IsArrayOfConst:=IsArrayOfConst;
+        tarraydef(result)._elementtype:=_elementtype;
       end;
 
 
@@ -3169,6 +3242,13 @@ implementation
          if assigned(symtable) then
            symtable.free;
          inherited destroy;
+      end;
+
+
+    function trecorddef.getcopy : tstoreddef;
+      begin
+        result:=trecorddef.create(symtable.getcopy);
+        trecorddef(result).isunion:=isunion;
       end;
 
 
@@ -4450,6 +4530,34 @@ implementation
       end;
 
 
+    function tprocvardef.getcopy : tstoreddef;
+      begin
+      {
+          { saves a definition to the return type }
+          rettype         : ttype;
+          parast          : tsymtable;
+          paras           : tparalist;
+          proctypeoption  : tproctypeoption;
+          proccalloption  : tproccalloption;
+          procoptions     : tprocoptions;
+          requiredargarea : aint;
+          { number of user visibile parameters }
+          maxparacount,
+          minparacount    : byte;
+{$ifdef i386}
+          fpu_used        : longint;    { how many stack fpu must be empty }
+{$endif i386}
+          funcretloc : array[tcallercallee] of TLocation;
+          has_paraloc_info : boolean; { paraloc info is available }
+
+       tprocvardef = class(tabstractprocdef)
+          constructor create(level:byte);
+          constructor ppuload(ppufile:tcompilerppufile);
+          function getcopy : tstoreddef;override;
+       }
+      end;
+
+
     procedure tprocvardef.ppuwrite(ppufile:tcompilerppufile);
       var
         oldparasymtable,
@@ -4796,21 +4904,45 @@ implementation
 {$endif GDB}
        end;
 
+    destructor tobjectdef.destroy;
+      begin
+         if assigned(symtable) then
+           symtable.free;
+         stringdispose(objname);
+         stringdispose(objrealname);
+         if assigned(iidstr) then
+           stringdispose(iidstr);
+         if assigned(implementedinterfaces) then
+           implementedinterfaces.free;
+         if assigned(iidguid) then
+           dispose(iidguid);
+         inherited destroy;
+      end;
 
-   destructor tobjectdef.destroy;
-     begin
-        if assigned(symtable) then
-          symtable.free;
-        stringdispose(objname);
-        stringdispose(objrealname);
-        if assigned(iidstr) then
-          stringdispose(iidstr);
-        if assigned(implementedinterfaces) then
-          implementedinterfaces.free;
-        if assigned(iidguid) then
-          dispose(iidguid);
-        inherited destroy;
-     end;
+
+    function tobjectdef.getcopy : tstoreddef;
+      begin
+        result:=inherited getcopy;
+      {
+        result:=tobjectdef.create(objecttype,objname^,childof);
+          childofderef  : tderef;
+          objname,
+          objrealname   : pstring;
+          objectoptions : tobjectoptions;
+          { to be able to have a variable vmt position }
+          { and no vmt field for objects without virtuals }
+          vmt_offset : longint;
+{$ifdef GDB}
+          writing_class_record_stab : boolean;
+{$endif GDB}
+          objecttype : tobjectdeftype;
+          iidguid: pguid;
+          iidstr: pstring;
+          lastvtableindex: longint;
+          { store implemented interfaces defs and name mappings }
+          implementedinterfaces: timplementedinterfaces;
+      }
+      end;
 
 
     procedure tobjectdef.ppuwrite(ppufile:tcompilerppufile);
@@ -6189,7 +6321,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.286  2004-12-30 14:36:29  florian
+  Revision 1.287  2005-01-03 17:55:57  florian
+    + first batch of patches to support tdef.getcopy fully
+
+  Revision 1.286  2004/12/30 14:36:29  florian
     * alignment fixes for sparc
 
   Revision 1.285  2004/12/27 15:54:54  florian

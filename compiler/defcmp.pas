@@ -164,6 +164,7 @@ implementation
          hct : tconverttype;
          hd3 : tobjectdef;
          hpd : tprocdef;
+         hpe : tenumsym;
       begin
          eq:=te_incompatible;
          doconv:=tc_not_possible;
@@ -430,16 +431,27 @@ implementation
                       begin
                         hd1:=def_from;
                         while assigned(tenumdef(hd1).basedef) do
-                         hd1:=tenumdef(hd1).basedef;
+                          hd1:=tenumdef(hd1).basedef;
                         hd2:=def_to;
                         while assigned(tenumdef(hd2).basedef) do
-                         hd2:=tenumdef(hd2).basedef;
+                          hd2:=tenumdef(hd2).basedef;
                         if (hd1=hd2) then
-                         begin
-                           eq:=te_convert_l1;
-                           { because of packenum they can have different sizes! (JM) }
-                           doconv:=tc_int_2_int;
-                         end;
+                          begin
+                            eq:=te_convert_l1;
+                            { because of packenum they can have different sizes! (JM) }
+                            doconv:=tc_int_2_int;
+                          end
+                        else
+                          begin
+                            { assignment of an enum symbol to an unique type? }
+                            if (fromtreetype=ordconstn) and
+                              (tenumsym(tenumdef(hd1).firstenum)=tenumsym(tenumdef(hd2).firstenum)) then
+                              begin
+                                { because of packenum they can have different sizes! (JM) }
+                                eq:=te_convert_l1;
+                                doconv:=tc_int_2_int;
+                              end;
+                          end;
                       end;
                    end;
                  orddef :
@@ -1311,7 +1323,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.62  2004-12-05 12:28:10  peter
+  Revision 1.63  2005-01-03 17:55:57  florian
+    + first batch of patches to support tdef.getcopy fully
+
+  Revision 1.62  2004/12/05 12:28:10  peter
     * procvar handling for tp procvar mode fixed
     * proc to procvar moved from addrnode to typeconvnode
     * inlininginfo is now allocated only for inline routines that

@@ -46,6 +46,7 @@ interface
           procedure buildderefimpl;override;
           procedure derefimpl;override;
           function getcopy : tnode;override;
+          procedure printnodeinfo(var t : text);override;
           function pass_1 : tnode;override;
           function det_resulttype:tnode;override;
           procedure mark_write;override;
@@ -567,15 +568,58 @@ implementation
 
 
     function ttypeconvnode.getcopy : tnode;
-
       var
          n : ttypeconvnode;
-
       begin
          n:=ttypeconvnode(inherited getcopy);
          n.convtype:=convtype;
          n.totype:=totype;
          getcopy:=n;
+      end;
+
+    procedure ttypeconvnode.printnodeinfo(var t : text);
+      const
+        convtyp2str : array[tconverttype] of pchar = (
+          'tc_none',
+          'tc_equal',
+          'tc_not_possible',
+          'tc_string_2_string',
+          'tc_char_2_string',
+          'tc_char_2_chararray',
+          'tc_pchar_2_string',
+          'tc_cchar_2_pchar',
+          'tc_cstring_2_pchar',
+          'tc_ansistring_2_pchar',
+          'tc_string_2_chararray',
+          'tc_chararray_2_string',
+          'tc_array_2_pointer',
+          'tc_pointer_2_array',
+          'tc_int_2_int',
+          'tc_int_2_bool',
+          'tc_bool_2_bool',
+          'tc_bool_2_int',
+          'tc_real_2_real',
+          'tc_int_2_real',
+          'tc_real_2_currency',
+          'tc_proc_2_procvar',
+          'tc_arrayconstructor_2_set',
+          'tc_load_smallset',
+          'tc_cord_2_pointer',
+          'tc_intf_2_string',
+          'tc_intf_2_guid',
+          'tc_class_2_intf',
+          'tc_char_2_char',
+          'tc_normal_2_smallset',
+          'tc_dynarray_2_openarray',
+          'tc_pwchar_2_string',
+          'tc_variant_2_dynarray',
+          'tc_dynarray_2_variant',
+          'tc_variant_2_enum',
+          'tc_enum_2_variant'
+        );
+      begin
+        inherited printnodeinfo(t);
+        write(', convtype = ',strpas(convtyp2str[convtype]));
       end;
 
 
@@ -2497,7 +2541,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.169  2004-12-27 16:54:29  peter
+  Revision 1.170  2005-01-03 17:55:57  florian
+    + first batch of patches to support tdef.getcopy fully
+
+  Revision 1.169  2004/12/27 16:54:29  peter
     * also don't call procvar when converting to procvar
 
   Revision 1.168  2004/12/26 16:22:01  peter

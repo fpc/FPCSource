@@ -338,6 +338,7 @@ implementation
         write(t,printnodeindention,'(');
         printnodeindent;
         printnodeinfo(t);
+        writeln(t);
         printnode(t,left);
         printnode(t,right);
         printnode(t,t1);
@@ -1424,7 +1425,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.103  2004-12-26 16:22:01  peter
+  Revision 1.104  2005-01-03 17:55:57  florian
+    + first batch of patches to support tdef.getcopy fully
+
+  Revision 1.103  2004/12/26 16:22:01  peter
     * fix lineinfo for with blocks
 
   Revision 1.102  2004/11/08 22:09:59  peter
