@@ -25,7 +25,7 @@ unit cgobj;
   interface
 
     uses
-       cobjects,aasm,symtable,symconst,cpuasm,cpubase;
+       cobjects,aasm,symtable,symconst,cpuasm,cpubase,cgbase,cpuinfo;
 
     type
        qword = comp;
@@ -48,6 +48,11 @@ unit cgobj;
           procedure g_copyvalueparas(list : paasmoutput;p : pnamedindexobject);
           procedure g_finalizetempansistrings(list : paasmoutput);
 
+          { finalizes data of type t                            }
+          { if is_already_ref is true then the routines assumes }
+          { that r points to the data to finalizes              }
+          procedure g_finalize(list : paasmoutput;t : pdef;const ref : treference;is_already_ref : boolean);
+
           procedure g_entrycode(list : paasmoutput;
             const proc_names : tstringcontainer;make_global : boolean;
             stackframe : longint;var parasize : longint;
@@ -57,35 +62,64 @@ unit cgobj;
             nostackframe,inlined : boolean);
 
           { string helper routines }
-          procedure g_decransiref(const ref : treference);
+          procedure g_decrstrref(list : paasmoutput;const ref : treference;t : pdef);
 
           procedure g_removetemps(list : paasmoutput;p : plinkedlist);
 
           {**********************************}
           { these methods must be overriden: }
-          procedure a_push_reg(list : paasmoutput;r : tregister);virtual;
+
+          { Remarks:
+            * If a method specifies a size you have only to take care
+              of that number of bits, i.e. load_const_reg with OP_8 must
+              only load the lower 8 bit of the specified register
+              the rest of the register can be undefined
+              if  necessary the compiler will call a method
+              to zero or sign extend the register
+            * The a_load_XX_XX with OP_64 needn't to be
+	      implemented for 32 bit
+              processors, the code generator takes care of that
+            * the addr size is for work with the natural pointer
+              size
+            * the procedures without fpu/mm are only for integer usage
+            * normally the first location is the source and the
+              second the destination
+          }
+
           procedure a_call_name(list : paasmoutput;const s : string;
             offset : longint);virtual;
+          procedure a_push_reg(list : paasmoutput;r : tregister);virtual;
 
-          procedure a_load8_const_reg(list : paasmoutput;b : byte;register : tregister);virtual;
-          procedure a_load16_const_reg(list : paasmoutput;w : word;register : tregister);virtual;
-          procedure a_load32_const_reg(list : paasmoutput;l : longint;register : tregister);virtual;
-          procedure a_load64_const_reg(list : paasmoutput;q : qword;register : tregister);virtual;
+          { move instructions }
+          procedure a_load_const_reg(list : paasmoutput;size : tcgsize;a : aword;register : tregister);virtual;
+          procedure a_load_reg_ref(list : paasmoutput;size : tcgsize;register : tregister;const ref : treference);virtual;
+          procedure a_load_ref_reg(list : paasmoutput;size : tcgsize;const ref : treference;register : tregister);virtual;
+          procedure a_load_reg_reg(list : paasmoutput;size : tcgsize;reg1,reg2 : tregister);virtual;
 
-          procedure a_load8_reg_ref(list : paasmoutput;register : tregister;const ref : treference);virtual;
-          procedure a_load16_reg_ref(list : paasmoutput;register : tregister;const ref : treference);virtual;
-          procedure a_load32_reg_ref(list : paasmoutput;register : tregister;const ref : treference);virtual;
-          procedure a_load64_reg_ref(list : paasmoutput;register : tregister;const ref : treference);virtual;
+          {  comparison operations }
+          procedure a_cmp_reg_const_label(list : paasmoutput;size : tcgsize;cmp_op : topcmp;b : byte;reg : tregister;
+	    l : pasmlabel);virtual;
+          procedure a_cmp_reg_reg_label(list : paasmoutput;size : tcgsize;cmp_op : topcmp;reg1,reg2 : tregister;l : pasmlabel);
+          procedure a_cmp_reg_ref_label(list : paasmoutput;size : tcgsize;cmp_op : topcmp;reg : tregister;l : pasmlabel);
+          procedure a_cmp_ref_const_label(list : paasmoutput;size : tcgsize;cmp_op : topcmp;l : longint;reg : tregister;
+	    l : pasmlabel);
 
-          procedure a_load8_ref_reg(list : paasmoutput;const ref : treference;register : tregister);virtual;
-          procedure a_load16_ref_reg(list : paasmoutput;const ref : treference;register : tregister);virtual;
-          procedure a_load32_ref_reg(list : paasmoutput;const ref : treference;register : tregister);virtual;
-          procedure a_load64_ref_reg(list : paasmoutput;const ref : treference;register : tregister);virtual;
-
-          procedure a_loadaddress_ref_reg(list : paasmoutput;ref : treference;r : tregister);virtual;
-
+          procedure a_loadaddress_ref_reg(list : paasmoutput;const ref : treference;r : tregister);virtual;
           procedure g_stackframe_entry(list : paasmoutput;localsize : longint);virtual;
           procedure g_maybe_loadself(list : paasmoutput);virtual;
+          { restores the frame pointer at procedure exit, for the }
+          { i386 it generates a simple leave                      }
+          procedure g_restore_frame_pointer(list : paasmoutput);virtual;
+
+          { some processors like the PPC doesn't allow to change the stack in }
+          { a procedure, so we need to maintain an extra stack for the        }
+          { result values of setjmp in exception code                         }
+          { this two procedures are for pushing an exception value,           }
+          { they can use the scratch registers                                }
+          procedure g_push_exception_value_reg(list : paasmoutput;reg : tregister);virtual;
+          procedure g_push_exception_value_const(list : paasmoutput;reg : tregister);virtual;
+          { that procedure pops a exception value                             }
+          procedure g_pop_exception_value_reg(list : paasmoutput;reg : tregister);virtual;
 
           {********************************************************}
           { these methods can be overriden for extra functionality }
@@ -97,22 +131,26 @@ unit cgobj;
           procedure g_profilecode(list : paasmoutput);virtual;
           procedure g_stackcheck(list : paasmoutput;stackframesize : longint);virtual;
 
-          procedure a_load8_const_ref(list : paasmoutput;b : byte;const ref : treference);virtual;
-          procedure a_load16_const_ref(list : paasmoutput;w : word;const ref : treference);virtual;
-          procedure a_load32_const_ref(list : paasmoutput;l : longint;const ref : treference);virtual;
-          procedure a_load64_const_ref(list : paasmoutput;q : qword;const ref : treference);virtual;
+          procedure a_load_const_ref(list : paasmoutput;size : tcgsize;a : aword;const ref : treference);virtual;
+
           { passing parameters, per default the parameter is pushed }
           { nr gives the number of the parameter (enumerated from   }
           { left to right), this allows to move the parameter to    }
           { register, if the cpu supports register calling          }
           { conventions                                             }
-          procedure a_param_reg(list : paasmoutput;r : tregister;nr : longint);virtual;
-          procedure a_param8_const(list : paasmoutput;b : byte;nr : longint);virtual;
-          procedure a_param16_const(list : paasmoutput;w : word;nr : longint);virtual;
-          procedure a_param32_const(list : paasmoutput;l : longint;nr : longint);virtual;
-          procedure a_param64_const(list : paasmoutput;q : qword;nr : longint);virtual;
+          procedure a_param_reg(list : paasmoutput;size : tcgsize;r : tregister;nr : longint);virtual;
+          procedure a_param_const(list : paasmoutput;size : tcgsize;a : aword;nr : longint);virtual;
+          procedure a_param_ref(list : paasmoutput;size : tcgsize;const r : treference;nr : longint);virtual;
+          procedure a_paramaddr_ref(list : paasmoutput;const r : treference;nr : longint);virtual;
+
           { uses the addr of ref as param, was emitpushreferenceaddr }
           procedure a_param_ref_addr(list : paasmoutput;r : treference;nr : longint);virtual;
+          procedure a_label(list : paasmoutput;l : pasmlabel);virtual;
+
+          { allocates register r by inserting a pai_realloc record }
+          procedure a_reg_alloc(list : paasmoutput;r : tregister);
+          { deallocates register r by inserting a pa_regdealloc record}
+          procedure a_reg_dealloc(list : paasmoutput;r : tregister);
        end;
 
     var
@@ -122,8 +160,11 @@ unit cgobj;
 
     uses
        globals,globtype,options,files,gdb,systems,
-       ppu,cgbase,verbose,types,tgobj,tgcpu
-       ;
+       ppu,verbose,types,tgobj,tgcpu;
+
+{*****************************************************************************
+                            basic functionallity
+******************************************************************************}
 
     constructor tcg.init;
 
@@ -133,6 +174,18 @@ unit cgobj;
     destructor tcg.done;
 
       begin
+      end;
+
+    procedure tcg.a_reg_alloc(list : paasmoutput;r : tregister);
+
+      begin
+         list^.concat(new(pairegalloc,alloc(r)));
+      end;
+
+    procedure tcg.a_reg_dealloc(list : paasmoutput;r : tregister);
+
+      begin
+         list^.concat(new(pairegalloc,dealloc(r)));
       end;
 
 {*****************************************************************************
@@ -158,47 +211,31 @@ unit cgobj;
           for better code generation these methods should be overridden
 ******************************************************************************}
 
-    procedure tcg.a_param_reg(list : paasmoutput;r : tregister;nr : longint);
+    procedure tcg.a_param_reg(list : paasmoutput;size : tcgsize;r : tregister;nr : longint);
 
       begin
          a_push_reg(list,r);
       end;
 
-    procedure tcg.a_param8_const(list : paasmoutput;b : byte;nr : longint);
+    procedure tcg.a_param_const(list : paasmoutput;size : tcgsize;a : aword;nr : longint);
 
       begin
          {!!!!!!!! a_push_const8(list,b); }
       end;
 
-    procedure tcg.a_param16_const(list : paasmoutput;w : word;nr : longint);
-
-      begin
-         {!!!!!!!! a_push_const16(list,w); }
-      end;
-
-    procedure tcg.a_param32_const(list : paasmoutput;l : longint;nr : longint);
-
-      begin
-         {!!!!!!!! a_push_const32(list,l); }
-      end;
-
-    procedure tcg.a_param64_const(list : paasmoutput;q : qword;nr : longint);
-
-      begin
-         {!!!!!!!! a_push_const64(list,q); }
-      end;
-
     procedure tcg.a_param_ref_addr(list : paasmoutput;r : treference;nr : longint);
 
       begin
+         a_reg_alloc(list,scratch_register);
          a_loadaddress_ref_reg(list,r,scratch_register);
-         a_param_reg(list,scratch_register,nr);
+         a_param_reg(list,OS_ADDR,scratch_register,nr);
+         a_reg_dealloc(list,scratch_register);
       end;
 
     procedure tcg.g_stackcheck(list : paasmoutput;stackframesize : longint);
 
       begin
-         a_param32_const(list,stackframesize,1);
+         a_param_const(list,OS_32,stackframesize,1);
          a_call_name_ext(list,'FPC_STACKCHECK',0);
       end;
 
@@ -209,32 +246,13 @@ unit cgobj;
          a_call_name(list,s,offset);
       end;
 
-    procedure tcg.a_load8_const_ref(list : paasmoutput;b : byte;const ref : treference);
+    procedure tcg.a_load_const_ref(list : paasmoutput;size : tcgsize;a : aword;const ref : treference);
 
       begin
-         a_load8_const_reg(list,b,scratch_register);
-         a_load8_reg_ref(list,scratch_register,ref);
-      end;
-
-    procedure tcg.a_load16_const_ref(list : paasmoutput;w : word;const ref : treference);
-
-      begin
-         a_load16_const_reg(list,w,scratch_register);
-         a_load16_reg_ref(list,scratch_register,ref);
-      end;
-
-    procedure tcg.a_load32_const_ref(list : paasmoutput;l : longint;const ref : treference);
-
-      begin
-         a_load32_const_reg(list,l,scratch_register);
-         a_load32_reg_ref(list,scratch_register,ref);
-      end;
-
-    procedure tcg.a_load64_const_ref(list : paasmoutput;q : qword;const ref : treference);
-
-      begin
-         a_load64_const_reg(list,q,scratch_register);
-         a_load64_reg_ref(list,scratch_register,ref);
+         a_reg_alloc(list,scratch_register);
+         a_load_const_reg(list,size,a,scratch_register);
+         a_load_reg_ref(list,size,scratch_register,ref);
+         a_reg_dealloc(list,scratch_register);
       end;
 
 {*****************************************************************************
@@ -256,7 +274,7 @@ unit cgobj;
            begin
               if is_ansistring(hp^.typ) then
                 begin
-                   g_decransiref(hp^.address);
+                   g_decrstrref(list,hp^.address,hp^.typ);
                    tg.ungetiftemp(hp^.address);
                 end;
               hp:=ptemptodestroy(hp^.next);
@@ -264,18 +282,49 @@ unit cgobj;
          tg.popusedregisters(pushedregs);
       end;
 
-    procedure tcg.g_decransiref(const ref : treference);
+    procedure tcg.g_decrstrref(list : paasmoutput;const ref : treference;t : pdef);
+
+      var
+         pushedregs : tpushed;
 
       begin
-         {!!!!!!!!!}
-         { emitpushreferenceaddr(exprasmlist,ref);
-         emitcall('FPC_ANSISTR_DECR_REF',true); }
+         tg.pushusedregisters(pushedregs,$ff);
+         a_param_ref_addr(list,ref,1);
+         if is_ansistring(t) then
+           a_call_name(list,'FPC_ANSISTR_DECR_REF',0)
+         else if is_widestring(t) then
+           a_call_name(list,'FPC_WIDESTR_DECR_REF',0)
+         else internalerror(58993);
+         tg.popusedregisters(pushedregs);
       end;
 
 {*****************************************************************************
                   Code generation for subroutine entry- and exit code
  *****************************************************************************}
 
+    procedure tcg.g_finalize(list : paasmoutput;t : pdef;const ref : treference;is_already_ref : boolean);
+
+      var
+         r : treference;
+
+      begin
+         if is_ansistring(t) or
+           is_widestring(t) then
+           begin
+              g_decrstrref(list,ref,t);
+           end
+         else
+           begin
+              reset_reference(r);
+              r.symbol:=t^.get_inittable_label;
+              a_param_ref_addr(list,r,2);
+              if is_already_ref then
+                a_paramaddr_ref(list,ref,1)
+              else
+                a_param_ref_addr(list,ref,1);
+              a_call_name(list,'FPC_FINALIZE',0);
+           end;
+      end;
     { generates the code for initialisation of local data }
     procedure tcg.g_initialize_data(list : paasmoutput;p : psym);
 
@@ -409,8 +458,8 @@ unit cgobj;
                 begin
                    if (r in registers_saved_on_cdecl) then
                      if (r in (tg.availabletempregsint+
-		               tg.availabletempregsfpu+
-			       tg.availabletempregsmm)) then
+                               tg.availabletempregsfpu+
+                               tg.availabletempregsmm)) then
                        begin
                           if not(r in tg.usedinproc) then
                             a_push_reg(list,r)
@@ -458,9 +507,9 @@ unit cgobj;
                 begin
                    hr.symbol:=newasmsymbol('U_'+target_info.system_unit+'_ISCONSOLE');
                    if apptype=at_cui then
-                     a_load8_const_ref(list,1,hr)
+                     a_load_const_ref(list,OS_8,1,hr)
                    else
-                     a_load8_const_ref(list,0,hr);
+                     a_load_const_ref(list,OS_8,0,hr);
                    dispose(hr.symbol,done);
                 end;
 
@@ -508,7 +557,7 @@ unit cgobj;
               reset_reference(hr);
               hr.offset:=procinfo.retoffset;
               hr.base:=procinfo.framepointer;
-              a_load32_const_ref(list,0,hr);
+              a_load_const_ref(list,OS_32,0,hr);
            end;
 
          _list:=list;
@@ -575,6 +624,7 @@ unit cgobj;
          p : pchar;
   {$endif GDB}
          noreraiselabel : pasmlabel;
+         hr : treference;
 
       begin
          if aktexitlabel^.is_used then
@@ -587,8 +637,10 @@ unit cgobj;
                a_call_name(list,'FPC_DISPOSE_CLASS',0)
              else
                begin
-                  a_load32_const_reg(list,procinfo._class^.vmt_offset,scratch_register);
+                  a_reg_alloc(list,scratch_register);
+                  a_load_const_reg(list,OS_32,procinfo._class^.vmt_offset,scratch_register);
                   a_call_name(list,'FPC_HELP_DESTRUCTOR',0);
+                  a_reg_dealloc(list,scratch_register);
                end;
            end;
 
@@ -610,12 +662,11 @@ unit cgobj;
               getlabel(noreraiselabel);
 
               a_call_name(list,'FPC_POPADDRSTACK',0);
+              a_reg_alloc(list,accumulator);
+              g_pop_exception_value_reg(list,accumulator);
+              a_cmp_reg_const_label(list,OS_32,OC_EQ,0,accumulator,noreraiselabel);
+              a_reg_dealloc(list,accumulator);
 
-              list^.concat(new(pai386,
-                op_reg(A_POP,S_L,R_EAX)));
-              list^.concat(new(pai386,
-                op_reg_reg(A_TEST,S_L,R_EAX,R_EAX)));
-              emitjmp(C_E,noreraiselabel);
               { must be the return value finalized before reraising the exception? }
               if (procinfo.retdef<>pdef(voiddef)) and
                 (procinfo.retdef^.needs_inittable) and
@@ -625,11 +676,11 @@ unit cgobj;
                    reset_reference(hr);
                    hr.offset:=procinfo.retoffset;
                    hr.base:=procinfo.framepointer;
-                   finalize(procinfo.retdef,hr,ret_in_param(procinfo.retdef));
+                   g_finalize(list,procinfo.retdef,hr,ret_in_param(procinfo.retdef));
                 end;
 
               a_call_name(list,'FPC_RERAISE',0);
-              exprasmlist^.concat(new(pai_label,init(noreraiselabel)));
+              a_label(list,noreraiselabel);
            end;
 
          { call __EXIT for main program }
@@ -639,26 +690,29 @@ unit cgobj;
          { handle return value }
          if not(po_assembler in aktprocsym^.definition^.procoptions) then
              if (aktprocsym^.definition^.proctypeoption<>potype_constructor) then
-               handle_return_value(inlined)
+               { handle_return_value(inlined) }
              else
-                 begin
-                     { successful constructor deletes the zero flag }
-                     { and returns self in eax                   }
-                     exprasmlist^.concat(new(pai_label,init(quickexitlabel)));
-                     { eax must be set to zero if the allocation failed !!! }
-                     exprasmlist^.concat(new(pai386,op_reg_reg(A_MOV,S_L,R_ESI,R_EAX)));
-                     exprasmlist^.concat(new(pai386,op_reg_reg(A_OR,S_L,R_EAX,R_EAX)));
-                 end;
+               begin
+                  { return self in EAX }
+                  a_label(list,quickexitlabel);
+                  a_reg_alloc(list,accumulator);
+                  a_load_reg_reg(list,OS_ADDR,self_pointer,accumulator);
+                  a_reg_dealloc(list,self_pointer);
+                  a_label(list,quickexitlabel);
+                  { we can't clear the zero flag because the Alpha     }
+                  { for example doesn't have flags, we have to compare }
+                  { the accu. in the caller                            }
+               end;
 
          { stabs uses the label also ! }
          if aktexit2label^.is_used or
             ((cs_debuginfo in aktmoduleswitches) and not inlined) then
-           exprasmlist^.concat(new(pai_label,init(aktexit2label)));
-         { gives problems for long mangled names }
-         {list^.concat(new(pai_symbol,init(aktprocsym^.definition^.mangledname+'_end')));}
+           a_label(list,aktexit2label);
 
+{$ifdef dummy}
          { should we restore edi ? }
          { for all i386 gcc implementations }
+         {!!!!!!!!!!! I don't know how to handle register saving yet }
          if (po_savestdregs in aktprocsym^.definition^.procoptions) then
            begin
              if (aktprocsym^.definition^.usedregisters and ($80 shr byte(R_EBX)))<>0 then
@@ -673,22 +727,20 @@ unit cgobj;
                aktprocsym^.definition^.usedregisters or not ($80 shr byte(R_EBX));
              }
            end;
-
+{$endif dummy}
          if not(nostackframe) and not inlined then
-             exprasmlist^.concat(new(pai386,op_none(A_LEAVE,S_NO)));
-{$ifdef i386}
+           g_restore_frame_pointer(list);
+         { at last, the return is generated }
+
+         if not inlined then
+           if po_interrupt in aktprocsym^.definition^.procoptions then
+             g_interrupt_stackframe_exit(list)
+         else
+          begin
          { parameters are limited to 65535 bytes because }
          { ret allows only imm16                    }
          if (parasize>65535) and not(pocall_clearstack in aktprocsym^.definition^.proccalloptions) then
           CGMessage(cg_e_parasize_too_big);
-{$endif i386}
-         { at last, the return is generated }
-
-         if not inlined then
-           if (po_interrupt in aktprocsym^.definition^.procoptions) then
-             generate_interrupt_stackframe_exit
-         else
-          begin
           {Routines with the poclearstack flag set use only a ret.}
           { also routines with parasize=0     }
             if (parasize=0) or (pocall_clearstack in aktprocsym^.definition^.proccalloptions) then
@@ -697,7 +749,7 @@ unit cgobj;
              exprasmlist^.concat(new(pai386,op_const(A_RET,S_NO,parasize)));
           end;
 
-         exprasmlist^.concat(new(pai_symbol_end,initname(aktprocsym^.definition^.mangledname)));
+         list^.concat(new(pai_symbol_end,initname(aktprocsym^.definition^.mangledname)));
 
     {$ifdef GDB}
          if (cs_debuginfo in aktmoduleswitches) and not inlined  then
@@ -706,21 +758,21 @@ unit cgobj;
                  if assigned(procinfo._class) then
                    if (not assigned(procinfo.parent) or
                       not assigned(procinfo.parent^._class)) then
-                     exprasmlist^.concat(new(pai_stabs,init(strpnew(
+                     list^.concat(new(pai_stabs,init(strpnew(
                       '"$t:v'+procinfo._class^.numberstring+'",'+
-                      tostr(N_PSYM)+',0,0,'+tostr(procinfo.esi_offset)))))
+                      tostr(N_PSYM)+',0,0,'+tostr(procinfo.selfpointer_offset)))))
                    else
-                     exprasmlist^.concat(new(pai_stabs,init(strpnew(
+                     list^.concat(new(pai_stabs,init(strpnew(
                       '"$t:r'+procinfo._class^.numberstring+'",'+
                       tostr(N_RSYM)+',0,0,'+tostr(GDB_i386index[R_ESI])))));
 
                  if (pdef(aktprocsym^.definition^.retdef) <> pdef(voiddef)) then
                    if ret_in_param(aktprocsym^.definition^.retdef) then
-                     exprasmlist^.concat(new(pai_stabs,init(strpnew(
+                     list^.concat(new(pai_stabs,init(strpnew(
                       '"'+aktprocsym^.name+':X*'+aktprocsym^.definition^.retdef^.numberstring+'",'+
                       tostr(N_PSYM)+',0,0,'+tostr(procinfo.retoffset)))))
                    else
-                     exprasmlist^.concat(new(pai_stabs,init(strpnew(
+                     list^.concat(new(pai_stabs,init(strpnew(
                       '"'+aktprocsym^.name+':X'+aktprocsym^.definition^.retdef^.numberstring+'",'+
                       tostr(N_PSYM)+',0,0,'+tostr(procinfo.retoffset)))));
 
@@ -740,9 +792,8 @@ unit cgobj;
                   +aktprocsym^.definition^.mangledname+'_end'))));}
              end;
     {$endif GDB}
-         exprasmlist:=oldexprasmlist;
-
       end;
+
 {*****************************************************************************
                        some abstract definitions
  ****************************************************************************}
@@ -760,25 +811,7 @@ unit cgobj;
          abstract;
       end;
 
-    procedure tcg.a_load_const8_ref(list : paasmoutput;b : byte;const ref : treference);
-
-      begin
-         abstract;
-      end;
-
-    procedure tcg.a_load_const16_ref(list : paasmoutput;w : word;const ref : treference);
-
-      begin
-         abstract;
-      end;
-
-    procedure tcg.a_load_const32_ref(list : paasmoutput;l : longint;const ref : treference);
-
-      begin
-         abstract;
-      end;
-
-    procedure tcg.a_load_const64_ref(list : paasmoutput;q : qword;const ref : treference);
+    procedure tcg.a_load_const_ref(list : paasmoutput;a : aword;const ref : treference);
 
       begin
          abstract;
@@ -796,7 +829,37 @@ unit cgobj;
          abstract;
       end;
 
+    procedure tcg.g_restore_frame_pointer(list : paasmoutput);
+
+      begin
+         abstract;
+      end;
+
     procedure tcg.a_loadaddress_ref_reg(list : paasmoutput;ref : treference;r : tregister);
+
+      begin
+         abstract;
+      end;
+
+    procedure tcg.g_push_exception_value_reg(list : paasmoutput;reg : tregister);
+
+      begin
+         abstract;
+      end;
+
+    procedure tcg.g_push_exception_value_const(list : paasmoutput;reg : tregister);
+
+      begin
+         abstract;
+      end;
+
+    procedure g_pop_exception_value_reg(list : paasmoutput;reg : tregister);
+
+      begin
+         abstract;
+      end;
+
+    procedure a_param_ref(list : paasmoutput;const r : treference;nr : longint);virtual;
 
       begin
          abstract;
@@ -805,7 +868,10 @@ unit cgobj;
 end.
 {
   $Log$
-  Revision 1.12  1999-08-05 17:10:56  florian
+  Revision 1.13  1999-08-06 13:26:50  florian
+    * more changes ...
+
+  Revision 1.12  1999/08/05 17:10:56  florian
     * some more additions, especially procedure
       exit code generation
 

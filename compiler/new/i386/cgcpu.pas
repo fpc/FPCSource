@@ -43,6 +43,7 @@ unit cgcpu;
           procedure a_load_const64_ref(list : paasmoutput;q : qword;const ref : treference);virtual;
 
           procedure g_stackframe_entry(list : paasmoutput;localsize : longint);virtual;
+          procedure g_restore_frame_pointer(list : paasmoutput);virtual;
           constructor init;
        end;
 
@@ -116,10 +117,18 @@ unit cgcpu;
           abstract;
        end;
 
+     procedure tcg386.g_restore_frame_pointer(list : paasmoutput);
+
+       begin
+          list^.concat(new(pai386,op_none(A_LEAVE,S_NO)));
+       end;
 end.
 {
   $Log$
-  Revision 1.2  1999-08-01 23:19:59  florian
+  Revision 1.3  1999-08-06 13:26:54  florian
+    * more changes ...
+
+  Revision 1.2  1999/08/01 23:19:59  florian
     + make a new makefile using the old compiler makefile
 
   Revision 1.1  1999/08/01 23:11:24  florian

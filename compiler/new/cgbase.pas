@@ -41,6 +41,14 @@ unit cgbase;
                                         { needs to be finalized              }
 
     type
+       TOpCg = (OP_ADD,OP_AND,OP_DIV,OP_IDIV,OP_IMUL,OP_MUL,OP_NEG,OP_NOT,
+                   OP_OR,OP_SAR,OP_SHL,OP_SHR,OP_SUB,OP_XOR);
+
+       TOpCmp = (OC_EQ,OC_GT,OC_LT,OC_GTE,OC_LTE,OC_NE,OC_BE,OC_B,
+                 OC_AE,OC_A);
+
+       TCgSize = (OS_NO,OS_8,OS_16,OS_32,OS_64);
+
        pprocinfo = ^tprocinfo;
        tprocinfo = record
           { pointer to parent in nested procedures }
@@ -99,6 +107,22 @@ unit cgbase;
           address : treference;
           constructor init(const a : treference;p : pdef);
        end;
+
+    const
+       { defines the default address size for a processor }
+       { and defines the natural int size for a processor }
+{$ifdef i386}
+       OS_ADDR = OS_32;
+       OS_INT = OS_32;
+{$endif i386}
+{$ifdef alpha}
+       OS_ADDR = OS_64;
+       OS_INT = OS_64;
+{$endif alpha}
+{$ifdef powerpc}
+       OS_ADDR = OS_32;
+       OS_INT = OS_32;
+{$endif powercc}
 
     var
        { info about the current sub routine }
@@ -397,7 +421,10 @@ unit cgbase;
 end.
 {
   $Log$
-  Revision 1.7  1999-08-05 14:58:10  florian
+  Revision 1.8  1999-08-06 13:26:49  florian
+    * more changes ...
+
+  Revision 1.7  1999/08/05 14:58:10  florian
     * some fixes for the floating point registers
     * more things for the new code generator
 
