@@ -30,7 +30,7 @@ uses
 {$endif win32}
 {$endif NODEBUG}
 {$ifdef IDEHeapTrc}
-  HeapTrc,
+  PPheap,
 {$endif IDEHeapTrc}
 {$ifdef go32v2}
   dpmiexcp,
@@ -480,7 +480,10 @@ BEGIN
 END.
 {
   $Log$
-  Revision 1.14  2002-10-12 19:43:07  hajny
+  Revision 1.15  2002-10-30 22:12:13  pierre
+   * use ppheap with IDEHEAPTRC conditional
+
+  Revision 1.14  2002/10/12 19:43:07  hajny
     * missing HasSignal conditionals added (needed for FPC/2)
 
   Revision 1.13  2002/09/10 12:19:14  pierre
