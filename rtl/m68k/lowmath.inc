@@ -842,7 +842,10 @@ XDEF LONGDIV
    cmp.l       d2,d1      { is divident smaller then divisor ?    }
    bcs         @LDiv7     { yes, return immediately               }
 {;== case 2) divisor has <= 16 significant bits}
-   tst.w       d4
+   move.l      d4,d6      { put divisor in d6 register            }
+   lsr.l       #8,d6      { rotate into low word                  }
+   lsr.l       #8,d6
+   tst.l       d6
    bne         @LDiv3     { divisor has only 16 bits              }
    move.w      d1,d3      { save dividend                         }
    clr.w       d1         { divide dvd.h by dvs                   }
@@ -872,7 +875,7 @@ XDEF LONGDIV
    dbra        d3,@LDiv5
    exg         d0,d1      { put quotient and remainder in their registers}
 @LDiv7:
-   tst.w       d5         { must the remainder be corrected ?     }
+   tst.l       d5         { must the remainder be corrected ?     }
    bpl         @LDiv8
    neg.l       d1         { yes, apply sign                       }
 { the following line would be correct if modulus is defined as in algebra}
@@ -911,8 +914,9 @@ end;
 
 {
   $Log$
-  Revision 1.2  1998-06-05 12:33:16  carl
-    * single_cmp, comparison was reversed!
+  Revision 1.3  1998-07-01 14:28:32  carl
+    * LONGDIV bugfixed with signed and modulo
+    * LONGDIV bugfix when divisor is less then 16 bits
 
   Revision 1.1.1.1  1998/03/25 11:18:44  root
   * Restored version
