@@ -270,11 +270,10 @@ begin
   with Info do
    begin
      ExeCmd[1]:= 'ld -Ur -T $RES $STRIP -o $TMPOBJ';
-     {$ifdef win32}
-     ExeCmd[2]:='nlmconv -m i386nw -T$RES';
-     {$else}
-     ExeCmd[2]:='nlmconv -T$RES';
-     {$endif}
+     if source_info.system<>target_info.system Then
+      ExeCmd[2]:='nlmconv -m i386nw -T$RES'
+     else
+      ExeCmd[2]:='nlmconv -T$RES';
    end;
 end;
 
@@ -548,7 +547,10 @@ initialization
 end.
 {
   $Log$
-  Revision 1.8  2003-04-27 07:29:52  peter
+  Revision 1.9  2003-11-11 16:46:40  marco
+   * minor fix
+
+  Revision 1.8  2003/04/27 07:29:52  peter
     * aktprocdef cleanup, aktprocdef is now always nil when parsing
       a new procdef declaration
     * aktprocsym removed
