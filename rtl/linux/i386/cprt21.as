@@ -32,9 +32,9 @@ _start:
         addl    %esp,%eax
         andl    $0xfffffff8,%esp        /* Align stack */
 
-        movl    %eax,U_SYSLINUX_ENVP    /* Move the environment pointer */
-        movl    %esi,U_SYSLINUX_ARGC    /* Move the argument counter    */
-        movl    %ebx,U_SYSLINUX_ARGV    /* Move the argument pointer    */
+        movl    %eax,U_SYSTEM_ENVP    /* Move the environment pointer */
+        movl    %esi,U_SYSTEM_ARGC    /* Move the argument counter    */
+        movl    %ebx,U_SYSTEM_ARGV    /* Move the argument pointer    */
 
         xorl    %ebp,%ebp
         pushl   %edi
@@ -63,7 +63,7 @@ main:
         .type _haltproc,@function
 _haltproc:
         xorl    %eax,%eax               /* load and save exitcode */
-        movw    U_SYSLINUX_EXITCODE,%ax
+        movw    U_SYSTEM_EXITCODE,%ax
 
         movl    ___fpc_ret,%edx         /* return to libc */
         movl    ___fpc_ret_ebx,%ebx
@@ -87,25 +87,9 @@ ___fpc_ret_ebx:
 
 #
 # $Log$
-# Revision 1.1  2000-07-13 06:30:55  michael
+# Revision 1.2  2000-10-15 09:09:23  peter
+#   * startup code also needed syslinux->system updates
+#
+# Revision 1.1  2000/07/13 06:30:55  michael
 # + Initial import
-#
-# Revision 1.3  2000/01/07 16:41:42  daniel
-#   * copyright 2000
-#
-# Revision 1.2  2000/01/07 16:32:28  daniel
-#   * copyright 2000 added
-#
-# Revision 1.1  1999/05/03 21:29:36  peter
-#   + glibc 2.1 support
-#
-# Revision 1.3  1998/11/04 10:16:25  peter
-#   + xorl ebp,ebp to indicate end of backtrace
-#
-# Revision 1.2  1998/10/14 21:28:46  peter
-#   * initialize fpu so sigfpe is finally generated for fpu errors
-#
-# Revision 1.1  1998/08/12 19:16:09  peter
-#   + loader including libc init and exit
-#
 #

@@ -30,49 +30,30 @@ _start:
         addl    %esp,%eax
         andl    $0xfffffff8,%esp        /* Align stack */
 
-        movl    %eax,U_SYSTEM_ENVP    /* Move the environment pointer */
-        movl    %ecx,U_SYSTEM_ARGC    /* Move the argument counter    */
-        movl    %ebx,U_SYSTEM_ARGV    /* Move the argument pointer    */
+        movl    %eax,U_SYSLINUX_ENVP    /* Move the environment pointer */
+        movl    %ecx,U_SYSLINUX_ARGC    /* Move the argument counter    */
+        movl    %ebx,U_SYSLINUX_ARGV    /* Move the argument pointer    */
 
-        movl    %eax,__environ          /* libc environ */
-
-        pushl   %eax
-        pushl   %ebx
-        pushl   %ecx
-
-        call    __libc_init             /* init libc */
-        movzwl  __fpu_control,%eax
-        pushl   %eax
-        call    __setfpucw
-        addl    $4,%esp
-        pushl   $_fini
-        call    atexit
-        addl    $4,%esp
-        call    _init
-
-        popl    %eax
-        popl    %eax
+        finit                           /* initialize fpu */
+        fwait
+        fldcw   ___fpucw
 
         xorl    %ebp,%ebp
-        call    PASCALMAIN              /* start the program */
+        call    PASCALMAIN
 
-        .globl _haltproc
-        .type _haltproc,@function
+        .globl  _haltproc
+        .type   _haltproc,@function
 _haltproc:
-        xorl    %ebx,%ebx               /* load and save exitcode */
-        movw    U_SYSTEM_EXITCODE,%bx
-        pushl   %ebx
-
-        call    exit                    /* call libc exit, this will */
-                                        /* write the gmon.out */
-
         movl    $1,%eax                 /* exit call */
-        popl    %ebx
+        xorl    %ebx,%ebx
+        movw    U_SYSLINUX_EXITCODE,%bx
         int     $0x80
         jmp     _haltproc
 
 .data
         .align  4
+___fpucw:
+        .long   0x1332
 
         .globl  ___fpc_brk_addr         /* heap management */
         .type   ___fpc_brk_addr,@object
@@ -80,12 +61,9 @@ _haltproc:
 ___fpc_brk_addr:
         .long   0
 
-
 #
 # $Log$
-# Revision 1.2  2000-10-15 09:09:23  peter
+# Revision 1.1  2000-10-15 09:09:24  peter
 #   * startup code also needed syslinux->system updates
 #
-# Revision 1.1  2000/07/13 06:30:55  michael
-# + Initial import
 #

@@ -125,8 +125,10 @@ UNITPREFIX=rtl
 
 ifeq ($(findstring 1.0.,$(FPC_VERSION)),)
 SYSTEMUNIT=system
+PRT0=prt0
 else
 SYSTEMUNIT=syslinux
+PRT0=prt0_10
 endif
 
 # Paths
@@ -1278,8 +1280,8 @@ vpath %$(PASEXT) $(INC) $(PROCINC) $(UNIXINC)
 # Loaders
 #
 
-prt0$(OEXT) : $(CPU_TARGET)/prt0.as
-	$(AS) -o prt0$(OEXT) $(CPU_TARGET)/prt0.as
+prt0$(OEXT) : $(CPU_TARGET)/$(PRT0).as
+	$(AS) -o prt0$(OEXT) $(CPU_TARGET)/$(PRT0).as
 
 gprt0$(OEXT) : $(CPU_TARGET)/gprt0.as
 	$(AS) -o gprt0$(OEXT) $(CPU_TARGET)/gprt0.as

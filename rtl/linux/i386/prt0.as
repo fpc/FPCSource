@@ -30,9 +30,9 @@ _start:
         addl    %esp,%eax
         andl    $0xfffffff8,%esp        /* Align stack */
 
-        movl    %eax,U_SYSLINUX_ENVP    /* Move the environment pointer */
-        movl    %ecx,U_SYSLINUX_ARGC    /* Move the argument counter    */
-        movl    %ebx,U_SYSLINUX_ARGV    /* Move the argument pointer    */
+        movl    %eax,U_SYSTEM_ENVP    /* Move the environment pointer */
+        movl    %ecx,U_SYSTEM_ARGC    /* Move the argument counter    */
+        movl    %ebx,U_SYSTEM_ARGV    /* Move the argument pointer    */
 
         finit                           /* initialize fpu */
         fwait
@@ -46,7 +46,7 @@ _start:
 _haltproc:
         movl    $1,%eax                 /* exit call */
         xorl    %ebx,%ebx
-        movw    U_SYSLINUX_EXITCODE,%bx
+        movw    U_SYSTEM_EXITCODE,%bx
         int     $0x80
         jmp     _haltproc
 
@@ -63,28 +63,9 @@ ___fpc_brk_addr:
 
 #
 # $Log$
-# Revision 1.1  2000-07-13 06:30:55  michael
+# Revision 1.2  2000-10-15 09:09:24  peter
+#   * startup code also needed syslinux->system updates
+#
+# Revision 1.1  2000/07/13 06:30:55  michael
 # + Initial import
-#
-# Revision 1.9  2000/02/08 12:39:48  peter
-#   * removed curbrk
-#
-# Revision 1.8  2000/01/07 16:41:42  daniel
-#   * copyright 2000
-#
-# Revision 1.7  2000/01/07 16:32:28  daniel
-#   * copyright 2000 added
-#
-# Revision 1.6  1999/11/08 23:07:48  peter
-#   * removed aout entries
-#
-# Revision 1.5  1998/11/04 10:16:29  peter
-#   + xorl ebp,ebp to indicate end of backtrace
-#
-# Revision 1.4  1998/10/14 21:28:50  peter
-#   * initialize fpu so sigfpe is finally generated for fpu errors
-#
-# Revision 1.3  1998/08/08 14:42:12  peter
-#   * added missing ___fpc_sbrk and logs
-#
 #
