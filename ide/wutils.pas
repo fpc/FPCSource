@@ -90,6 +90,7 @@ type
   TFastBufStream = object(TBufStream)
     constructor Init (FileName: FNameStr; Mode, Size: Word);
     procedure   Seek(Pos: Longint); virtual;
+    procedure Readline(var s:string;var linecomplete,hasCR : boolean);
   private
     BasePos: longint;
   end;
@@ -189,6 +190,7 @@ const LastStrToIntResult : integer = 0;
       LastStrToCardResult : integer = 0;
       LastHexToCardResult : integer = 0;
       DirSep             : char    = {$ifdef Unix}'/'{$else}'\'{$endif};
+      UseFastBufStreamMethod : boolean = false;
 
 procedure RegisterWUtils;
 
@@ -289,6 +291,7 @@ procedure ReadlnFromStream(Stream: PStream; var S:string;var linecomplete,hasCR 
         if c<>#10 then
           stream^.seek(pos);
       end;
+
     if (c=#10) or eofstream(stream) then
       linecomplete:=true;
     if (c=#10) then
@@ -879,6 +882,76 @@ begin
     end;
 end;
 
+procedure TFastBufStream.Readline(var s:string;var linecomplete,hasCR : boolean);
+  var
+    c : char;
+    i,pos,StartPos : longint;
+    charsInS : boolean;
+  begin
+    linecomplete:=false;
+    c:=#0;
+    i:=0;
+    { this created problems for lines longer than 255 characters
+      now those lines are cutted into pieces without warning PM }
+    { changed implicit 255 to High(S), so it will be automatically extended
+      when longstrings eventually become default - Gabor }
+    if (bufend-bufptr>=High(S)) and (getpos+High(S)<getsize) then
+      begin
+        StartPos:=GetPos;
+        //read(S[1],High(S));
+        system.move(buffer^[bufptr],S[1],High(S));
+        charsInS:=true;
+      end
+    else
+      CharsInS:=false;
+
+    while (not (getpos>=getsize)) and (c<>#10) and (i<High(S)) do
+     begin
+       if CharsInS then
+         c:=s[i+1]
+       else
+         read(c,sizeof(c));
+       if c<>#10 then
+        begin
+          inc(i);
+          if not CharsInS then
+            s[i]:=c;
+        end;
+     end;
+    if CharsInS and (i<>High(S)) then
+      begin
+        if c=#10 then
+          Seek(StartPos+i+1)
+        else
+          Seek(StartPos+i);
+      end;
+    { if there was a CR LF then remove the CR Dos newline style }
+    if (i>0) and (s[i]=#13) then
+      begin
+        dec(i);
+      end;
+    if (c=#13) and (not (getpos>=getsize)) then
+      begin
+        read(c,sizeof(c));
+      end;
+    if (i=High(S)) and not (getpos>=getsize) then
+      begin
+        pos:=getpos;
+        read(c,sizeof(c));
+        if (c=#13) and not (getpos>=getsize) then
+          read(c,sizeof(c));
+        if c<>#10 then
+          seek(pos);
+      end;
+    if (c=#10) or (getpos>=getsize) then
+      linecomplete:=true;
+    if (c=#10) then
+      hasCR:=true;
+    s[0]:=chr(i);
+  end;
+
+
+
 function TTextCollection.Compare(Key1, Key2: Pointer): Sw_Integer;
 var K1: PString absolute Key1;
     K2: PString absolute Key2;
@@ -1289,7 +1362,10 @@ BEGIN
 END.
 {
   $Log$
-  Revision 1.12  2002-09-07 15:40:50  peter
+  Revision 1.13  2002-09-09 06:58:27  pierre
+   + FastBufStream.readline method added
+
+  Revision 1.12  2002/09/07 15:40:50  peter
     * old logs removed and tabs fixed
 
   Revision 1.11  2002/09/06 09:53:53  pierre

@@ -403,7 +403,7 @@ type
       function    GetLastVisibleLine : sw_integer;
     public
       { Storage }
-      function    LoadFromStream(Editor: PCustomCodeEditor; Stream: PStream): boolean; virtual;
+      function    LoadFromStream(Editor: PCustomCodeEditor; Stream: PFastBufStream): boolean; virtual;
       function    SaveToStream(Editor: PCustomCodeEditor; Stream: PStream): boolean; virtual;
       function    SaveAreaToStream(Editor: PCustomCodeEditor; Stream: PStream; StartP,EndP: TPoint): boolean; virtual;
     {$ifdef TP}public{$else}protected{$endif}
@@ -538,7 +538,7 @@ type
    {a}procedure   AdjustSelectionPos(CurPosX, CurPosY: sw_integer; DeltaX, DeltaY: sw_integer);
    {a}procedure   GetContent(ALines: PUnsortedStringCollection); virtual;
    {a}procedure   SetContent(ALines: PUnsortedStringCollection); virtual;
-   {a}function    LoadFromStream(Stream: PStream): boolean; virtual;
+   {a}function    LoadFromStream(Stream: PFastBufStream): boolean; virtual;
    {a}function    SaveToStream(Stream: PStream): boolean; virtual;
    {a}function    SaveAreaToStream(Stream: PStream; StartP,EndP: TPoint): boolean;virtual;
       function    LoadFromFile(const AFileName: string): boolean; virtual;
@@ -2805,7 +2805,7 @@ begin
   Abstract;
 end;
 
-function TCustomCodeEditor.LoadFromStream(Stream: PStream): boolean;
+function TCustomCodeEditor.LoadFromStream(Stream: PFastBufStream): boolean;
 begin
   Abstract;
   LoadFromStream:=false;
@@ -2830,7 +2830,7 @@ begin
 end;
 
 function TCustomCodeEditor.LoadFromFile(const AFileName: string): boolean;
-var S: PBufStream;
+var S: PFastBufStream;
     OK: boolean;
 begin
   New(S, Init(AFileName,stOpenRead,EditorTextBufSize));
@@ -5442,7 +5442,7 @@ end;
 
 procedure TCustomCodeEditor.ReadBlock;
 var FileName: string;
-    S: PBufStream;
+    S: PFastBufStream;
     E: PCodeEditor;
     R: TRect;
 begin
@@ -6621,7 +6621,7 @@ begin
   GetPalette:=@P;
 end;
 
-function TCustomCodeEditorCore.LoadFromStream(Editor: PCustomCodeEditor; Stream: PStream): boolean;
+function TCustomCodeEditorCore.LoadFromStream(Editor: PCustomCodeEditor; Stream: PFastBufStream): boolean;
 var S: string;
     AllLinesComplete,LineComplete,hasCR,OK: boolean;
 begin
@@ -6635,7 +6635,10 @@ begin
    begin
      while OK and (eofstream(Stream)=false) and (GetLineCount<MaxLineCount) do
        begin
-         ReadlnFromStream(Stream,S,LineComplete,hasCR);
+         if UseFastBufStreamMethod then
+           Stream^.Readline(S,LineComplete,hasCR)
+         else
+           ReadlnFromStream(Stream,S,LineComplete,hasCR);
          AllLinesComplete:=AllLinesComplete and LineComplete;
          OK:=OK and (Stream^.Status=stOK);
          if OK then AddLine(S);
@@ -7113,7 +7116,10 @@ end;
 END.
 {
   $Log$
-  Revision 1.29  2002-09-07 15:40:48  peter
+  Revision 1.30  2002-09-09 06:58:28  pierre
+   + FastBufStream.readline method added
+
+  Revision 1.29  2002/09/07 15:40:48  peter
     * old logs removed and tabs fixed
 
   Revision 1.28  2002/09/04 14:02:54  pierre

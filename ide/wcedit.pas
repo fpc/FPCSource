@@ -164,7 +164,7 @@ type
       procedure   PositionChanged; virtual;
       procedure   LimitsChanged; virtual;
       function    IsClipboard: Boolean; virtual;
-      function    LoadFromStream(Stream: PStream): boolean; virtual;
+      function    LoadFromStream(Stream: PFastBufStream): boolean; virtual;
       function    SaveToStream(Stream: PStream): boolean; virtual;
       function    SaveAreaToStream(Stream: PStream; StartP,EndP: TPoint): boolean;virtual;
       destructor  Done; virtual;
@@ -1666,7 +1666,7 @@ begin
   S.Write(HighlightRow,SizeOf(HighlightRow));
 end;*)
 
-function TCodeEditor.LoadFromStream(Stream: PStream): boolean;
+function TCodeEditor.LoadFromStream(Stream: PFastBufStream): boolean;
 var OK: boolean;
 begin
   OK:=Core^.LoadFromStream(@Self,Stream);
@@ -2050,7 +2050,10 @@ end;
 END.
 {
  $Log$
- Revision 1.13  2002-09-07 15:40:47  peter
+ Revision 1.14  2002-09-09 06:58:28  pierre
+  + FastBufStream.readline method added
+
+ Revision 1.13  2002/09/07 15:40:47  peter
    * old logs removed and tabs fixed
 
  Revision 1.12  2002/09/03 11:50:08  pierre
