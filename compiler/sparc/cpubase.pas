@@ -1,8 +1,8 @@
-{******************************************************************************
+{
     $Id$
-    Copyright (c) 1998-2000 by Florian Klaempfl and Peter Vreman
+    Copyright (c) 1998-2002 by Florian Klaempfl
 
-    Contains the base types for the Scalable Processor ARChitecture (SPARC)
+    Contains the base types for the SPARC
 
     This program is free software; you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -17,255 +17,356 @@
     You should have received a copy of the GNU General Public License
     along with this program; if not, write to the Free Software
     Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
- ****************************************************************************}
-unit cpuBase;
+
+ ****************************************************************************
+}
+{ This Unit contains the base types for the PowerPC
+}
+unit cpubase;
 
 {$i fpcdefs.inc}
 
 interface
 
-  uses
-    globals,cutils,cclasses,aasmbase,cpuinfo,cginfo;
+uses
+  strings,cutils,cclasses,aasmbase,cpuinfo,cginfo;
 
-const
-  {Size of the instruction table converted by nasmconv.pas}
-  maxinfolen=8;
-  {Defines the default address size for a processor}
-  OS_ADDR=OS_32;
-  {the natural int size for a processor}
-  OS_INT=OS_32;
-  {the maximum float size for a processor}
-  OS_FLOAT=OS_F64;
-  {the size of a vector register for a processor}
-  OS_VECTOR=OS_M64;
-type
-{$WARNING CPU32 opcodes do not fully include the Ultra SPRAC instruction set.}
-  { don't change the order of these opcodes! }
-  TAsmOp=({$INCLUDE opcode.inc});
-  op2strtable=array[TAsmOp]OF STRING[11];
-CONST
-  FirstOp=Low(TAsmOp);
-  LastOp=High(TAsmOp);
-  std_op2str:op2strtable=({$INCLUDE strinst.inc});
+
 {*****************************************************************************
-                                Operand Sizes
+                                Assembler Opcodes
 *****************************************************************************}
-type
-  TOpSize=(S_NO,
-           S_B,{Byte}
-           S_H,{Half word}
-           S_W,{Word}
-           S_L:=S_W,
-           S_D,{Double Word}
-           S_Q,{Quad word}
-           S_IQ:=S_Q,
-           S_SB,{Signed byte}
-           S_SH,{Signed half word}
-           S_SW,{Signed word}
-           S_SD,{Signed double word}
-           S_SQ,{Signed quad word}
-           S_FS,{Float single word}
-           S_FX:=S_FS,
-           S_FD,{Float double word}
-           S_FQ,{Float quad word}
-           S_NEAR,
-           S_FAR,
-           S_SHORT);
-{*****************************************************************************}
-{                               Conditions                                    }
-{*****************************************************************************}
-type
-  TAsmCond=(C_None,
-    C_A,C_AE,C_B,C_BE,C_C,C_E,C_G,C_GE,C_L,C_LE,C_NA,C_NAE,
-    C_NB,C_NBE,C_NC,C_NE,C_NG,C_NGE,C_NL,C_NLE,C_NO,C_NP,
-    C_NS,C_NZ,C_O,C_P,C_PE,C_PO,C_S,C_Z
-  );
-CONST
-  cond2str:array[TAsmCond] of string[3]=('',
-    'a','ae','b','be','c','e','g','ge','l','le','na','nae',
-    'nb','nbe','nc','ne','ng','nge','nl','nle','no','np',
-    'ns','nz','o','p','pe','po','s','z'
-  );
-  inverse_cond:array[TAsmCond] of TAsmCond=(C_None,
-    C_NA,C_NAE,C_NB,C_NBE,C_NC,C_NE,C_NG,C_NGE,C_NL,C_NLE,C_A,C_AE,
-    C_B,C_BE,C_C,C_E,C_G,C_GE,C_L,C_LE,C_O,C_P,
-    C_S,C_Z,C_NO,C_NP,C_NP,C_P,C_NS,C_NZ
-  );
-CONST
-  CondAsmOps=3;
-  CondAsmOp:array[0..CondAsmOps-1] of TAsmOp=(A_FCMPd, A_JMPL, A_FCMPs);
-  CondAsmOpStr:array[0..CondAsmOps-1] of string[7]=('FCMPd','JMPL','FCMPs');
-{*****************************************************************************}
-{                                 Registers                                   }
-{*****************************************************************************}
-type
-  { enumeration for registers, don't change the order }
-  { it's used by the register size conversions        }
-  TCpuRegister=({$INCLUDE cpuregs.inc});
-  TOldRegister=TCpuRegister;
-  Tnewregister=word;
-  Tsuperregister=byte;
-  Tsubregister=byte;
-  Tregister=record
-    enum:TCpuRegister;
-    number:Tnewregister;
-  end;
-  TRegister64=PACKED RECORD
-  {A type to store register locations for 64 Bit values.}
-     RegLo,RegHi:TRegister;
-  end;
-  treg64=tregister64;{alias for compact code}
-  TRegisterSet=SET OF TCpuRegister;
-  Tsupregset=set of Tsuperregister;
-const
-  R_NO=R_NONE;
-  firstreg = Succ(R_NONE);
-  lastreg  = Pred(R_INTREGISTER);
-{General registers.}
 
-const
-  NR_NONE=$0000;
-  NR_NO=NR_NONE;
-  NR_G0=$0001;
-  NR_G1=$0002;
-  NR_G2=$0003;
-  NR_G3=$0004;
-  NR_G4=$0005;
-  NR_G5=$0006;
-  NR_G6=$0007;
-  NR_G7=$0008;
-  NR_O0=$0100;
-  NR_O1=$0200;
-  NR_O2=$0300;
-  NR_O3=$0400;
-  NR_O4=$0500;
-  NR_O5=$0600;
-  NR_O6=$0700;
-  NR_O7=$0800;
-  NR_L0=$0900;
-  NR_L1=$0A00;
-  NR_L2=$0B00;
-  NR_L3=$0C00;
-  NR_L4=$0D00;
-  NR_L5=$0E00;
-  NR_L6=$0F00;
-  NR_L7=$1000;
-  NR_I0=$1100;
-  NR_I1=$1200;
-  NR_I2=$1300;
-  NR_I3=$1400;
-  NR_I4=$1500;
-  NR_I5=$1600;
-  NR_I6=$1700;
-  NR_I7=$1800;
-{Floating point}
-  NR_F0=$2000;
-  NR_F1=$2000;
-  NR_F2=$2000;
-  NR_F3=$2000;
-  NR_F4=$2000;
-  NR_F5=$2000;
-  NR_F6=$2000;
-  NR_F7=$2000;
-  NR_F8=$2000;
-  NR_F9=$2000;
-  NR_F10=$2000;
-  NR_F11=$2000;
-  NR_F12=$2000;
-  NR_F13=$2000;
-  NR_F14=$2000;
-  NR_F15=$2000;
-  NR_F16=$2000;
-  NR_F17=$2000;
-  NR_F18=$2000;
-  NR_F19=$2000;
-  NR_F20=$2000;
-  NR_F21=$2000;
-  NR_F22=$2000;
-  NR_F23=$2000;
-  NR_F24=$2000;
-  NR_F25=$2000;
-  NR_F26=$2000;
-  NR_F27=$2000;
-  NR_F28=$2000;
-  NR_F29=$2000;
-  NR_F30=$2000;
-  NR_F31=$2000;
-{Coprocessor point}
-  NR_C0=$3000;
-  NR_C1=$3000;
-  NR_C2=$3000;
-  NR_C3=$3000;
-  NR_C4=$3000;
-  NR_C5=$3000;
-  NR_C6=$3000;
-  NR_C7=$3000;
-  NR_C8=$3000;
-  NR_C9=$3000;
-  NR_C10=$3000;
-  NR_C11=$3000;
-  NR_C12=$3000;
-  NR_C13=$3000;
-  NR_C14=$3000;
-  NR_C15=$3000;
-  NR_C16=$3000;
-  NR_C17=$3000;
-  NR_C18=$3000;
-  NR_C19=$3000;
-  NR_C20=$3000;
-  NR_C21=$3000;
-  NR_C22=$3000;
-  NR_C23=$3000;
-  NR_C24=$3000;
-  NR_C25=$3000;
-  NR_C26=$3000;
-  NR_C27=$3000;
-  NR_C28=$3000;
-  NR_C29=$3000;
-  NR_C30=$3000;
-  NR_C31=$3000;
-{ASR}
-  NR_ASR0=$4000;
-  NR_ASR1=$4000;
-  NR_ASR2=$4000;
-  NR_ASR3=$4000;
-  NR_ASR4=$4000;
-  NR_ASR5=$4000;
-  NR_ASR6=$4000;
-  NR_ASR7=$4000;
-  NR_ASR8=$4000;
-  NR_ASR9=$4000;
-  NR_ASR10=$4000;
-  NR_ASR11=$4000;
-  NR_ASR12=$4000;
-  NR_ASR13=$4000;
-  NR_ASR14=$4000;
-  NR_ASR15=$4000;
-  NR_ASR16=$4000;
-  NR_ASR17=$4000;
-  NR_ASR18=$4000;
-  NR_ASR19=$4000;
-  NR_ASR20=$4000;
-  NR_ASR21=$4000;
-  NR_ASR22=$4000;
-  NR_ASR23=$4000;
-  NR_ASR24=$4000;
-  NR_ASR25=$4000;
-  NR_ASR26=$4000;
-  NR_ASR27=$4000;
-  NR_ASR28=$4000;
-  NR_ASR29=$4000;
-  NR_ASR30=$4000;
-  NR_ASR31=$4000;
-{Floating point status/"front of queue" registers}
-  NR_FSR=$5000;
-  NR_FQ=$5001; { was $50001, probably typo (FK) }
-  NR_CSR=$5000;
-  NR_CQ=$5000;
-  NR_PSR=$5000;
-  NR_TBR=$5000;
-  NR_WIM=$5000;
-  NR_Y=$5000;
+    type
+{$WARNING CPU32 opcodes do not fully include the Ultra SPRAC instruction set.}
+      { don't change the order of these opcodes! }
+      TAsmOp=({$INCLUDE opcode.inc});
+
+      {# This should define the array of instructions as string }
+      op2strtable=array[tasmop] of string[11];
+
+    Const
+      {# First value of opcode enumeration }
+      firstop = low(tasmop);
+      {# Last value of opcode enumeration  }
+      lastop  = high(tasmop);
+
+      std_op2str:op2strtable=({$INCLUDE strinst.inc});
+
+{*****************************************************************************
+                                  Registers
+*****************************************************************************}
+
+    type
+      TCpuRegister=(
+        R_NO
+        {General purpose global registers}
+        ,R_G0{This register is usually set to zero and used as a scratch register}
+        ,R_G1,R_G2,R_G3,R_G4,R_G5,R_G6,R_G7
+        {General purpose out registers}
+        ,R_O0,R_O1,R_O2,R_O3,R_O4,R_O5,R_O6
+        ,R_O7{This register is used to save the address of the last CALL instruction}
+        {General purpose local registers}
+        ,R_L0
+        ,R_L1{This register is used to save the Program Counter (PC) after a Trap}
+        ,R_L2{This register is used to save the Program Counter (nPC) after a Trap}
+        ,R_L3,R_L4,R_L5,R_L6,R_L7
+        {General purpose in registers}
+        ,R_I0,R_I1,R_I2,R_I3,R_I4,R_I5,R_I6,R_I7
+        {Floating point registers}
+        ,R_F0,R_F1,R_F2,R_F3,R_F4,R_F5,R_F6,R_F7
+        ,R_F8,R_F9,R_F10,R_F11,R_F12,R_F13,R_F14,R_F15
+        ,R_F16,R_F17,R_F18,R_F19,R_F20,R_F21,R_F22,R_F23
+        ,R_F24,R_F25,R_F26,R_F27,R_F28,R_F29,R_F30,R_F31
+        {Floating point status/"front of queue" registers}
+        ,R_FSR,R_FQ
+        {Coprocessor registers}
+        ,R_C0,R_C1,R_C2,R_C3,R_C4,R_C5,R_C6,R_C7
+        ,R_C8,R_C9,R_C10,R_C11,R_C12,R_C13,R_C14,R_C15
+        ,R_C16,R_C17,R_C18,R_C19,R_C20,R_C21,R_C22,R_C23
+        ,R_C24,R_C25,R_C26,R_C27,R_C28,R_C29,R_C30,R_C31
+        {Coprocessor status/queue registers}
+        ,R_CSR
+        ,R_CQ
+        {Integer Unit control & status registers}
+        ,R_PSR{Processor Status Register : informs upon the program status}
+        ,R_TBR{Trap Base Register : saves the Trap vactor base address}
+        ,R_WIM{Window Invalid Mask : }
+        ,R_Y{Multiply/Devide Register : }
+        {Ancillary State Registers : these are implementation dependent registers and
+        thus, are not specified by the SPARC Reference Manual. I did choose the SUN's
+        implementation according to the Assembler Refernce Manual.(MN)}
+        ,R_ASR0,R_ASR1,R_ASR2,R_ASR3,R_ASR4,R_ASR5,R_ASR6,R_ASR7
+        ,R_ASR8,R_ASR9,R_ASR10,R_ASR11,R_ASR12,R_ASR13,R_ASR14,R_ASR15
+        ,R_ASR16,R_ASR17,R_ASR18,R_ASR19,R_ASR20,R_ASR21,R_ASR22,R_ASR23
+        ,R_ASR24,R_ASR25,R_ASR26,R_ASR27,R_ASR28,R_ASR29,R_ASR30,R_ASR31
+        {The following registers are just used with the new register allocator}
+        ,R_INTREGISTER,R_FLOATREGISTER,R_MMXREGISTER,R_KNIREGISTER
+      );
+
+      TOldRegister=TCpuRegister;
+
+      Tnewregister=word;
+      Tsuperregister=byte;
+      Tsubregister=byte;
+
+      Tregister=record
+        enum:Toldregister;
+        number:Tnewregister;
+      end;
+
+      {# Set type definition for registers }
+      tregisterset = set of Toldregister;
+      Tsupregset=set of Tsuperregister;
+
+      { A type to store register locations for 64 Bit values. }
+      tregister64 = packed record
+        reglo,reghi : tregister;
+      end;
+
+      { alias for compact code }
+      treg64 = tregister64;
+
+
+    Const
+      {# First register in the tregister enumeration }
+      firstreg = low(Toldregister);
+      {# Last register in the tregister enumeration }
+      lastreg  = R_ASR31;
+    type
+      {# Type definition for the array of string of register nnames }
+      treg2strtable = array[firstreg..lastreg] of string[7];
+
+    const
+      std_reg2str:treg2strtable=(
+        '',
+          {general purpose global registers}
+        '%g0','%g1','%g2','%g3','%g4','%g5','%g6','%g7',
+          {general purpose out registers}
+        '%o0','%o1','%o2','%o3','%o4','%o5','%o6','%o7',
+          {general purpose local registers}
+        '%l0','%l1','%l2','%l3','%l4','%l5','%l6','%l7',
+          {general purpose in registers}
+        '%i0','%i1','%i2','%i3','%i4','%i5','%i6','%i7',
+          {floating point registers}
+        '%f0','%f1','%f2','%f3','%f4','%f5','%f6','%f7',
+        '%f8','%f9','%f10','%f11','%f12','%f13','%f14','%f15',
+        '%f16','%f17','%f18','%f19','%f20','%f21','%f22','%f23',
+        '%f24','%f25','%f26','%f27','%f28','%f29','%f30','%f31',
+          {floating point status/"front of queue" registers}
+        '%fSR','%fQ',
+          {coprocessor registers}
+        '%c0','%c1','%c2','%c3','%c4','%c5','%c6','%c7',
+        '%c8','%c9','%c10','%c11','%c12','%c13','%c14','%c15',
+        '%c16','%c17','%c18','%c19','%c20','%c21','%c22','%c23',
+        '%c24','%c25','%c26','%c27','%c28','%c29','%c30','%c31',
+          {coprocessor status/queue registers}
+        '%csr','%cq',
+          {"Program status"/"Trap vactor base address register"/"Window invalid mask"/Y registers}
+        '%psr','%tbr','%wim','%y',
+          {Ancillary state registers}
+        '%asr0','%asr1','%asr2','%asr3','%asr4','%asr5','%asr6','%asr7',
+        '%asr8','%asr9','%asr10','%asr11','%asr12','%asr13','%asr14','%asr15',
+        '%asr16','%asr17','%asr18','%asr19','%asr20','%asr21','%asr22','%asr23',
+        '%asr24','%asr25','%asr26','%asr27','%asr28','%asr29','%asr30','%asr31'
+      );
+
+    {New register coding:}
+
+    {Special registers:}
+    const
+      NR_NO=$0000;  {Invalid register}
+
+    {Normal registers:}
+
+    {General purpose registers:}
+      NR_G0=$0100;
+      NR_G1=$0200;
+      NR_G2=$0300;
+      NR_G3=$0400;
+      NR_G4=$0500;
+      NR_G5=$0600;
+      NR_G6=$0700;
+      NR_G7=$0800;
+      NR_O0=$0900;
+      NR_O1=$0a00;
+      NR_O2=$0b00;
+      NR_O3=$0c00;
+      NR_O4=$0d00;
+      NR_O5=$0e00;
+      NR_O6=$0f00;
+      NR_O7=$1000;
+      NR_L0=$1100;
+      NR_L1=$1200;
+      NR_L2=$1300;
+      NR_L3=$1400;
+      NR_L4=$1500;
+      NR_L5=$1600;
+      NR_L6=$1700;
+      NR_L7=$1800;
+      NR_I0=$1900;
+      NR_I1=$1A00;
+      NR_I2=$1B00;
+      NR_I3=$1C00;
+      NR_I4=$1D00;
+      NR_I5=$1E00;
+      NR_I6=$1F00;
+      NR_I7=$2000;
+{$ifdef dummy}
+    { Floating point }
+      NR_F0=$2000;
+      NR_F1=$2000;
+      NR_F2=$2000;
+      NR_F3=$2000;
+      NR_F4=$2000;
+      NR_F5=$2000;
+      NR_F6=$2000;
+      NR_F7=$2000;
+      NR_F8=$2000;
+      NR_F9=$2000;
+      NR_F10=$2000;
+      NR_F11=$2000;
+      NR_F12=$2000;
+      NR_F13=$2000;
+      NR_F14=$2000;
+      NR_F15=$2000;
+      NR_F16=$2000;
+      NR_F17=$2000;
+      NR_F18=$2000;
+      NR_F19=$2000;
+      NR_F20=$2000;
+      NR_F21=$2000;
+      NR_F22=$2000;
+      NR_F23=$2000;
+      NR_F24=$2000;
+      NR_F25=$2000;
+      NR_F26=$2000;
+      NR_F27=$2000;
+      NR_F28=$2000;
+      NR_F29=$2000;
+      NR_F30=$2000;
+      NR_F31=$2000;
+    { Coprocessor point }
+      NR_C0=$3000;
+      NR_C1=$3000;
+      NR_C2=$3000;
+      NR_C3=$3000;
+      NR_C4=$3000;
+      NR_C5=$3000;
+      NR_C6=$3000;
+      NR_C7=$3000;
+      NR_C8=$3000;
+      NR_C9=$3000;
+      NR_C10=$3000;
+      NR_C11=$3000;
+      NR_C12=$3000;
+      NR_C13=$3000;
+      NR_C14=$3000;
+      NR_C15=$3000;
+      NR_C16=$3000;
+      NR_C17=$3000;
+      NR_C18=$3000;
+      NR_C19=$3000;
+      NR_C20=$3000;
+      NR_C21=$3000;
+      NR_C22=$3000;
+      NR_C23=$3000;
+      NR_C24=$3000;
+      NR_C25=$3000;
+      NR_C26=$3000;
+      NR_C27=$3000;
+      NR_C28=$3000;
+      NR_C29=$3000;
+      NR_C30=$3000;
+      NR_C31=$3000;
+    { ASR }
+      NR_ASR0=$4000;
+      NR_ASR1=$4000;
+      NR_ASR2=$4000;
+      NR_ASR3=$4000;
+      NR_ASR4=$4000;
+      NR_ASR5=$4000;
+      NR_ASR6=$4000;
+      NR_ASR7=$4000;
+      NR_ASR8=$4000;
+      NR_ASR9=$4000;
+      NR_ASR10=$4000;
+      NR_ASR11=$4000;
+      NR_ASR12=$4000;
+      NR_ASR13=$4000;
+      NR_ASR14=$4000;
+      NR_ASR15=$4000;
+      NR_ASR16=$4000;
+      NR_ASR17=$4000;
+      NR_ASR18=$4000;
+      NR_ASR19=$4000;
+      NR_ASR20=$4000;
+      NR_ASR21=$4000;
+      NR_ASR22=$4000;
+      NR_ASR23=$4000;
+      NR_ASR24=$4000;
+      NR_ASR25=$4000;
+      NR_ASR26=$4000;
+      NR_ASR27=$4000;
+      NR_ASR28=$4000;
+      NR_ASR29=$4000;
+      NR_ASR30=$4000;
+      NR_ASR31=$4000;
+    { Floating point status/"front of queue" registers }
+      NR_FSR=$5000;
+      NR_FQ=$5000;
+      NR_CSR=$5000;
+      NR_CQ=$5000;
+      NR_PSR=$5000;
+      NR_TBR=$5000;
+      NR_WIM=$5000;
+      NR_Y=$5000;
+{$endif dummy}
+
+    {Super registers:}
+      RS_NO=$00;
+      RS_O0=$01;
+      RS_O1=$02;
+      RS_O2=$03;
+      RS_O3=$04;
+      RS_O4=$05;
+      RS_O5=$06;
+      RS_O6=$07;
+      RS_O7=$08;
+      RS_L0=$09;
+      RS_L1=$0A;
+      RS_L2=$0B;
+      RS_L3=$0C;
+      RS_L4=$0D;
+      RS_L5=$0E;
+      RS_L6=$0F;
+      RS_L7=$10;
+      RS_I0=$11;
+      RS_I1=$12;
+      RS_I2=$13;
+      RS_I3=$14;
+      RS_I4=$15;
+      RS_I5=$16;
+      RS_I6=$17;
+      RS_I7=$18;
+      RS_G0=$19;
+      RS_G1=$1A;
+      RS_G2=$1B;
+      RS_G3=$1C;
+      RS_G4=$1D;
+      RS_G5=$1E;
+      RS_G6=$1F;
+      RS_G7=$20;
+
+      first_supreg = $01;
+      last_supreg = $20;
+
+      first_imreg = $21;
+      last_imreg = $ff;
+
+    { Subregisters, situation unknown!! }
+      R_SUBWHOLE=$00;
+      R_SUBL=$00;
+
 {Conversion between TCpuRegister and NewRegisters}
   RegEnum2Number:array[TCpuRegister]of cardinal=(
     NR_NO,
@@ -410,121 +511,127 @@ const
     NR_NO,
     NR_NO
   );
-{Superregisters.}
 
-const
-  RS_O0=$01;
-  RS_O1=$02;
-  RS_O2=$03;
-  RS_O3=$04;
-  RS_O4=$05;
-  RS_O5=$06;
-  RS_O6=$07;
-  RS_O7=$08;
-  RS_L0=$09;
-  RS_L1=$0A;
-  RS_L2=$0B;
-  RS_L3=$0C;
-  RS_L4=$0D;
-  RS_L5=$0E;
-  RS_L6=$0F;
-  RS_L7=$10;
-  RS_I0=$11;
-  RS_I1=$12;
-  RS_I2=$13;
-  RS_I3=$14;
-  RS_I4=$15;
-  RS_I5=$16;
-  RS_I6=$17;
-  RS_I7=$18;
-  RS_G0=$19;
-  RS_G1=$1A;
-  RS_G2=$1B;
-  RS_G3=$1C;
-  RS_G4=$1D;
-  RS_G5=$1E;
-  RS_G6=$1F;
-  RS_G7=$20;
+{*****************************************************************************
+                                Conditions
+*****************************************************************************}
 
-  first_supreg = $01;
-  last_supreg = $20;
+    type
+      TAsmCond=(C_None,
+        C_A,C_AE,C_B,C_BE,C_C,C_E,C_G,C_GE,C_L,C_LE,C_NA,C_NAE,
+        C_NB,C_NBE,C_NC,C_NE,C_NG,C_NGE,C_NL,C_NLE,C_NO,C_NP,
+        C_NS,C_NZ,C_O,C_P,C_PE,C_PO,C_S,C_Z
+      );
 
-  first_imreg = $21;
-  last_imreg = $ff;
+    const
+      cond2str:array[TAsmCond] of string[3]=('',
+        'a','ae','b','be','c','e','g','ge','l','le','na','nae',
+        'nb','nbe','nc','ne','ng','nge','nl','nle','no','np',
+        'ns','nz','o','p','pe','po','s','z'
+      );
 
-  {Subregisters; nothing known about.}
-  R_SUBWHOLE=$00;
-  R_SUBL=$00;
+      inverse_cond:array[TAsmCond] of TAsmCond=(C_None,
+        C_NA,C_NAE,C_NB,C_NBE,C_NC,C_NE,C_NG,C_NGE,C_NL,C_NLE,C_A,C_AE,
+        C_B,C_BE,C_C,C_E,C_G,C_GE,C_L,C_LE,C_O,C_P,
+        C_S,C_Z,C_NO,C_NP,C_NP,C_P,C_NS,C_NZ
+      );
 
-type
-  reg2strtable=array[TCpuRegister] OF STRING[7];
-  TCpuReg=array[TCpuRegister]of TRegister;
-const
-  std_reg2str:reg2strtable=({$INCLUDE strregs.inc});
-  CpuReg:TCpuReg=({$INCLUDE registers.inc});
+    const
+      CondAsmOps=3;
+      CondAsmOp:array[0..CondAsmOps-1] of TAsmOp=(
+        A_FCMPd, A_JMPL, A_FCMPs
+      );
+      CondAsmOpStr:array[0..CondAsmOps-1] of string[7]=(
+        'FCMPd','JMPL','FCMPs'
+      );
+
 {*****************************************************************************
                                    Flags
 *****************************************************************************}
-type
-  TResFlags=(
-    F_E,  {Equal}
-    F_NE, {Not Equal}
-    F_G,  {Greater}
-    F_L,  {Less}
-    F_GE, {Greater or Equal}
-    F_LE, {Less or Equal}
-    F_C,  {Carry}
-    F_NC, {Not Carry}
-    F_A,  {Above}
-    F_AE, {Above or Equal}
-    F_B,  {Below}
-    F_BE  {Below or Equal}
-  );
+
+    type
+      TResFlags=(
+        F_E,  {Equal}
+        F_NE, {Not Equal}
+        F_G,  {Greater}
+        F_L,  {Less}
+        F_GE, {Greater or Equal}
+        F_LE, {Less or Equal}
+        F_C,  {Carry}
+        F_NC, {Not Carry}
+        F_A,  {Above}
+        F_AE, {Above or Equal}
+        F_B,  {Below}
+        F_BE  {Below or Equal}
+      );
+
 {*****************************************************************************
                                 Reference
 *****************************************************************************}
-type
-  TRefOptions=(ref_none,ref_parafixup,ref_localfixup,ref_selffixup);
 
-  { since we have no full 32 bit offsets, we need to be able to specify the high
-    and low bits of the address of a symbol                                      }
-  trefsymaddr = (refs_full,refs_hi,refs_lo);
+    type
+      TRefOptions=(ref_none,ref_parafixup,ref_localfixup,ref_selffixup);
 
-  { immediate/reference record }
-  poperreference = ^treference;
-  Preference=^Treference;
-  treference = packed record
-     base,
-     index       : tregister;
-     offset      : LongInt;
-     symbol      : tasmsymbol;
-     symaddr     : trefsymaddr;
-     offsetfixup : LongInt;
-     options     : trefoptions;
-     alignment   : byte;
-  end;
+      { since we have no full 32 bit offsets, we need to be able to specify the high
+        and low bits of the address of a symbol                                      }
+      trefsymaddr = (refs_full,refs_hi,refs_lo);
 
-  { reference record }
-  PParaReference=^TParaReference;
-  TParaReference = packed record
-    Index : TRegister;
-    Offset : longint;
-  end;
+      { reference record }
+      preference = ^treference;
+      treference = packed record
+         { base register, R_NO if none }
+         base,
+         { index register, R_NO if none }
+         index       : tregister;
+         { offset, 0 if none }
+         offset      : longint;
+         { symbol this reference refers to, nil if none }
+         symbol      : tasmsymbol;
+         { used in conjunction with symbols and offsets: refs_full means }
+         { means a full 32bit reference, refs_hi means the upper 16 bits }
+         { and refs_lo the lower 16 bits of the address                   }
+         symaddr     : trefsymaddr;
+         { changed when inlining and possibly in other cases, don't }
+         { set manually                                             }
+         offsetfixup : longint;
+         { used in conjunction with the previous field }
+         options     : trefoptions;
+         { alignment this reference is guaranteed to have }
+         alignment   : byte;
+      end;
+
+      { reference record }
+      pparareference = ^tparareference;
+      tparareference = packed record
+         index       : tregister;
+         offset      : aword;
+      end;
+
+    const
+      symaddr2str: array[trefsymaddr] of string[3] = ('','%hi','%lo');
+
 
 {*****************************************************************************
-                                Operands
+                                Operand
 *****************************************************************************}
-  { Types of operand }
-  toptype=(top_none,top_reg,top_ref,top_const,top_symbol);
-  toper=record
-    ot:LongInt;
-    case typ:toptype of
-      top_none:();
-      top_reg:(reg:tregister);
-      top_ref:(ref:poperreference);
-      top_const:(val:aword);
-      top_symbol:(sym:tasmsymbol;symofs:LongInt);
-  end;
+
+    type
+      toptype=(top_none,top_reg,top_ref,top_const,top_symbol);
+      toper=record
+        ot:LongInt;
+        case typ:toptype of
+          top_none:();
+          top_reg:(reg:tregister);
+          top_ref:(ref:preference);
+          top_const:(val:aword);
+          top_symbol:(sym:tasmsymbol;symofs:LongInt);
+      end;
+
+{*****************************************************************************
+                                Operand Sizes
+*****************************************************************************}
+
+{$ifdef dummy}
 {*****************************************************************************
                              Argument Classification
 *****************************************************************************}
@@ -539,310 +646,373 @@ type
      AC_FPUUP,
      AC_SSE,
      AC_SSEUP);
+{$endif dummy}
 
 {*****************************************************************************
                                Generic Location
 *****************************************************************************}
-type
-  { tparamlocation describes where a parameter for a procedure is stored.
-    References are given from the caller's point of view. The usual TLocation isn't
-    used, because contains a lot of unnessary fields. }
-  TParaLocation=packed record
-    Size:TCGSize;
-    Loc:TCGLoc;
-    sp_fixup:LongInt;
-    CASE TCGLoc OF
-      LOC_REFERENCE:(reference:tparareference);
-            { segment in reference at the same place as in loc_register }
-      LOC_REGISTER,LOC_CREGISTER : (
-        CASE LongInt OF
-          1 : (register,registerhigh : tregister);
-              { overlay a registerlow }
-          2 : (registerlow : tregister);
-              { overlay a 64 Bit register type }
-          3 : (reg64 : tregister64);
-          4 : (register64 : tregister64);
-        );
-      { it's only for better handling }
-      LOC_MMXREGISTER,LOC_CMMXREGISTER : (mmxreg : tregister);
-    end;
 
-    TLocation=packed record
-         loc  : TCGLoc;
+    type
+      { tparamlocation describes where a parameter for a procedure is stored.
+        References are given from the caller's point of view. The usual
+        TLocation isn't used, because contains a lot of unnessary fields.
+      }
+      tparalocation = packed record
          size : TCGSize;
+         { The location type where the parameter is passed, usually
+           LOC_REFERENCE,LOC_REGISTER or LOC_FPUREGISTER
+         }
+         loc  : TCGLoc;
+         { The stack pointer must be decreased by this value before
+           the parameter is copied to the given destination.
+           This allows to "encode" pushes with tparalocation.
+           On the PowerPC, this field is unsed but it is there
+           because several generic code accesses it.
+         }
+         sp_fixup : longint;
          case TCGLoc of
-            LOC_FLAGS : (resflags : tresflags);
-            LOC_CONSTANT : (
+            LOC_REFERENCE : (reference : tparareference);
+            LOC_FPUREGISTER, LOC_CFPUREGISTER, LOC_MMREGISTER, LOC_CMMREGISTER,
+              LOC_REGISTER,LOC_CREGISTER : (
               case longint of
-                1 : (value : AWord);
-                2 : (valuelow, valuehigh:AWord);
-                { overlay a complete 64 Bit value }
-                3 : (valueqword : qword);
-              );
-            LOC_CREFERENCE,
-            LOC_REFERENCE : (reference : treference);
-            { segment in reference at the same place as in loc_register }
-            LOC_REGISTER,LOC_CREGISTER : (
-              case longint of
-                1 : (register,registerhigh,segment : tregister);
+                1 : (register,registerhigh : tregister);
                 { overlay a registerlow }
                 2 : (registerlow : tregister);
                 { overlay a 64 Bit register type }
                 3 : (reg64 : tregister64);
                 4 : (register64 : tregister64);
-              );
-            { it's only for better handling }
-            LOC_MMXREGISTER,LOC_CMMXREGISTER : (mmxreg : tregister);
+            );
       end;
+
+      treglocation = packed record
+        case longint of
+          1 : (register,registerhigh : tregister);
+          { overlay a registerlow }
+          2 : (registerlow : tregister);
+          { overlay a 64 Bit register type }
+          3 : (reg64 : tregister64);
+          4 : (register64 : tregister64);
+       end;
+
+
+      tlocation = packed record
+         size : TCGSize;
+         loc : tcgloc;
+         case tcgloc of
+            LOC_CREFERENCE,LOC_REFERENCE : (reference : treference);
+            LOC_CONSTANT : (
+              case longint of
+{$ifdef FPC_BIG_ENDIAN}
+                1 : (_valuedummy,value : AWord);
+{$else FPC_BIG_ENDIAN}
+                1 : (value : AWord);
+{$endif FPC_BIG_ENDIAN}
+                { can't do this, this layout depends on the host cpu. Use }
+                { lo(valueqword)/hi(valueqword) instead (JM)              }
+                { 2 : (valuelow, valuehigh:AWord);                        }
+                { overlay a complete 64 Bit value }
+                3 : (valueqword : qword);
+              );
+            LOC_FPUREGISTER, LOC_CFPUREGISTER, LOC_MMREGISTER, LOC_CMMREGISTER,
+              LOC_REGISTER,LOC_CREGISTER : (
+                case longint of
+                  1 : (registerlow,registerhigh : tregister);
+                  2 : (register : tregister);
+                  { overlay a 64 Bit register type }
+                  3 : (reg64 : tregister64);
+                  4 : (register64 : tregister64);
+                );
+            LOC_FLAGS : (resflags : tresflags);
+      end;
+
 {*****************************************************************************
                                  Constants
 *****************************************************************************}
 
-const
-  general_registers = [R_G0..R_I7];
-  general_superregisters = [RS_O0..RS_I7];
-  { legend:                                                                }
-  { xxxregs = set of all possibly used registers of that type in the code  }
-  {           generator                                                    }
-  { usableregsxxx = set of all 32bit components of registers that can be   }
-  {           possible allocated to a regvar or using getregisterxxx (this }
-  {           excludes registers which can be only used for parameter      }
-  {           passing on ABI's that define this)                           }
-  { c_countusableregsxxx = amount of registers in the usableregsxxx set    }
-  IntRegs=[R_G0..R_I7];
-  usableregsint=[RS_O0..RS_I7];
-  c_countusableregsint = 24;
-  fpuregs=[R_F0..R_F31];
-  usableregsfpu=[R_F0..R_F31];
-  c_countusableregsfpu=32;
-  mmregs=[];
-  usableregsmm=[];
-  c_countusableregsmm=0;
-  { no distinction on this platform }
-  maxaddrregs = 0;
-  addrregs    = [];
-  usableregsaddr = [];
-  c_countusableregsaddr = 0;
+    const
+      max_operands = 3;
 
+      {# Constant defining possibly all registers which might require saving }
+      ALL_REGISTERS = [R_G0..R_I7];
+      ALL_INTREGISTERS = [1..255];
 
-  firstsaveintreg = RS_O0;
-  lastsaveintreg = RS_I7;
-  firstsavefpureg = R_F0;
-  lastsavefpureg = R_F31;
-  firstsavemmreg = R_NONE;
-  lastsavemmreg = R_NONE;
-  lowsavereg = R_G0;
-  highsavereg = R_I7;
+      general_registers = [R_G0..R_I7];
+      general_superregisters = [RS_O0..RS_I7];
 
-  ALL_REGISTERS = [lowsavereg..highsavereg];
-  ALL_INTREGISTERS = [1..255];
+      {# low and high of the available maximum width integer general purpose }
+      { registers                                                            }
+      LoGPReg = R_G0;
+      HiGPReg = R_I7;
 
-  lvaluelocations = [LOC_REFERENCE,LOC_CFPUREGISTER,
-    LOC_CREGISTER,LOC_MMXREGISTER,LOC_CMMXREGISTER];
+      {# low and high of every possible width general purpose register (same as }
+      { above on most architctures apart from the 80x86)                        }
+      LoReg = R_G0;
+      HiReg = R_I7;
+
+      {# Table of registers which can be allocated by the code generator
+         internally, when generating the code.
+      }
+      { legend:                                                                }
+      { xxxregs = set of all possibly used registers of that type in the code  }
+      {           generator                                                    }
+      { usableregsxxx = set of all 32bit components of registers that can be   }
+      {           possible allocated to a regvar or using getregisterxxx (this }
+      {           excludes registers which can be only used for parameter      }
+      {           passing on ABI's that define this)                           }
+      { c_countusableregsxxx = amount of registers in the usableregsxxx set    }
+
+      maxintregs = 8;
+      intregs = [R_G0..R_I7];
+      usableregsint = [RS_O0..RS_I7];
+      c_countusableregsint = 24;
+
+      maxfpuregs = 8;
+      fpuregs=[R_F0..R_F31];
+      usableregsfpu=[R_F0..R_F31];
+      c_countusableregsfpu=32;
+
+      mmregs     = [];
+      usableregsmm  = [];
+      c_countusableregsmm  = 0;
+
+      { no distinction on this platform }
+      maxaddrregs = 0;
+      addrregs    = [];
+      usableregsaddr = [];
+      c_countusableregsaddr = 0;
+
+      firstsaveintreg = RS_O0;
+      lastsaveintreg = RS_I7;
+      firstsavefpureg = R_F0;
+      lastsavefpureg = R_F31;
+      firstsavemmreg = R_NO;
+      lastsavemmreg = R_NO;
+
+      maxvarregs = 8;
+      varregs : Array [1..maxvarregs] of Tnewregister =
+                (RS_L0,RS_L1,RS_L2,RS_L3,RS_L4,RS_L5,RS_L6,RS_L7);
+
+      maxfpuvarregs = 1;
+      fpuvarregs : Array [1..maxfpuvarregs] of Toldregister =
+                (R_F2);
+
+      {
+      max_param_regs_int = 6;
+      param_regs_int: Array[1..max_param_regs_int] of Toldregister =
+        (R_3,R_4,R_5,R_6,R_7,R_8,R_9,R_10);
+
+      max_param_regs_fpu = 13;
+      param_regs_fpu: Array[1..max_param_regs_fpu] of Toldregister =
+        (R_F1,R_F2,R_F3,R_F4,R_F5,R_F6,R_F7,R_F8,R_F9,R_F10,R_F11,R_F12,R_F13);
+
+      max_param_regs_mm = 13;
+      param_regs_mm: Array[1..max_param_regs_mm] of Toldregister =
+        (R_M1,R_M2,R_M3,R_M4,R_M5,R_M6,R_M7,R_M8,R_M9,R_M10,R_M11,R_M12,R_M13);
+      }
+
+      {# Registers which are defined as scratch and no need to save across
+         routine calls or in assembler blocks.
+      }
+      max_scratch_regs = 2;
+      scratch_regs: Array[1..max_scratch_regs] of Tsuperregister = (RS_O7,RS_G2);
+
+{*****************************************************************************
+                          Default generic sizes
+*****************************************************************************}
+
+      {# Defines the default address size for a processor, }
+      OS_ADDR = OS_32;
+      {# the natural int size for a processor,             }
+      OS_INT = OS_32;
+      {# the maximum float size for a processor,           }
+      OS_FLOAT = OS_F64;
+      {# the size of a vector register for a processor     }
+      OS_VECTOR = OS_M64;
+
 {*****************************************************************************
                                GDB Information
 *****************************************************************************}
-  {# Register indexes for stabs information, when some parameters or variables
-  are stored in registers.
-  Taken from rs6000.h (DBX_REGISTER_NUMBER) from GCC 3.x source code.}
-  stab_regindex:array[TCpuRegister]OF ShortInt=({$INCLUDE stabregi.inc});
-{*************************** generic register names **************************}
-  stack_pointer_reg   = R_O6;
-  NR_STACK_POINTER_REG = NR_O6;
-  RS_STACK_POINTER_REG = RS_O6;
-  frame_pointer_reg   = R_I6;
-  NR_FRAME_POINTER_REG = NR_I6;
-  RS_FRAME_POINTER_REG = RS_I6;
-  {the return_result_reg, is used inside the called function to store its return
-  value when that is a scalar value otherwise a pointer to the address of the
-  result is placed inside it}
-  return_result_reg   = R_I0;
-  NR_RETURN_RESULT_REG = NR_I0;
-  RS_RETURN_RESULT_REG = RS_I0;
-  {the function_result_reg contains the function result after a call to a scalar
-  function othewise it contains a pointer to the returned result}
-  function_result_reg = R_O0;
-  NR_FUNCTION_RESULT_REG = NR_O0;
-  RS_FUNCTION_RESULT_REG = RS_O0;
-  self_pointer_reg  =R_G5;
-  NR_SELF_POINTER_REG = NR_G5;
-{  RS_SELF_POINTER_REG = RS_G5;}
-  {There is no accumulator in the SPARC architecture. There are just families
-  of registers. All registers belonging to the same family are identical except
-  in the "global registers" family where GO is different from the others :
-  G0 gives always 0 when it is red and thows away any value written to it.
-  Nevertheless, scalar routine results are returned onto R_O0.}
-  accumulator     = R_O0;
-  NR_ACCUMULATOR = NR_O0;
-  RS_ACCUMULATOR = RS_O1;
-  accumulatorhigh = R_O1;
-  NR_ACCUMULATORHIGH = NR_O1;
-  RS_ACCUMULATORHIGH = RS_O1;
-  fpu_result_reg  = R_F0;
-  mmresultreg     = R_G0;
 
-{*****************************************************************************}
-{                        GCC /ABI linking information                         }
-{*****************************************************************************}
-  { Registers which must be saved when calling a routine declared as cppdecl,
-    cdecl, stdcall, safecall, palmossyscall. The registers saved should be the ones
-    as defined in the target ABI and / or GCC.
+      {# Register indexes for stabs information, when some
+         parameters or variables are stored in registers.
 
-    This value can be deduced from the CALLED_USED_REGISTERS array in the GCC
-    source.
-  }
-  std_saved_registers=[];
+         Taken from rs6000.h (DBX_REGISTER_NUMBER)
+         from GCC 3.x source code.
+      }
 
-  {  Required parameter alignment when calling a routine declared as stdcall and
-     cdecl. The alignment value should be the one defined by GCC or the target ABI.
-
-     The value of this constant is equal to the constant
-     PARM_BOUNDARY / BITS_PER_UNIT in the GCC source. }
-  std_param_align=4;
-
-  { Registers which are defined as scratch and no need to save across routine
-    calls or in assembler blocks.}
-  ScratchRegsCount=2;
-  scratch_regs:array[1..ScratchRegsCount] OF Tsuperregister=(RS_O7,RS_G2);
-
-  { low and high of the available maximum width integer general purpose
-    registers                                                           }
-  LoGPReg = R_G0;
-  HiGPReg = R_I7;
-
-  { low and high of every possible width general purpose register (same as
-    above on most architctures apart from the 80x86)                       }
-  LoReg = R_G0;
-  HiReg = R_I7;
-
-  cpuflags = [];
-
-  { sizes }
-  pointersize   = 4;
-  extended_size = 8;  { SPARC architecture uses IEEE floating point numbers}
-  mmreg_size = 8;
-  SizePostfix_pointer = S_SW;
+      stab_regindex : array[firstreg..lastreg] of shortint =
+      (
+        0{R_NO}
+        {General purpose global registers}
+        ,1{R_G0}{This register is usually set to zero and used as a scratch register}
+        ,2{R_G1},3{R_G2},4{R_G3},5{R_G4},6{R_G5},7{R_G6},8{R_G7}
+        {General purpose out registers}
+        ,9{R_O0},10{R_O1},11{R_O2},12{R_O3},13{R_O4},14{R_O5},15{R_O6}
+        ,16{R_O7}{This register is used to save the address of the last CALL instruction}
+        {General purpose local registers}
+        ,16{R_L0}
+        ,17{R_L1}{This register is used to save the Program Counter (PC) after a Trap}
+        ,18{R_L2}{This register is used to save the Program Counter (nPC) after a Trap}
+        ,19{R_L3},20{R_L4},21{R_L5},22{R_L6},23{R_L7}
+        {General purpose in registers}
+        ,24{R_I0},25{R_I1},26{R_I2},27{R_I3},28{R_I4},29{R_I5},30{R_I6},31{R_I7}
+        {Floating point registers}
+        ,32{R_F0},33{R_F1},34{R_F2},35{R_F3},36{R_F4},37{R_F5},38{R_F6},39{R_F7}
+        ,40{R_F8},41{R_F9},42{R_F10},43{R_F11},44{R_F12},45{R_F13},46{R_F14},47{R_F15}
+        ,48{R_F16},49{R_F17},50{R_F18},51{R_F19},52{R_F20},53{R_F21},54{R_F22},55{R_F23}
+        ,56{R_F24},57{R_F25},58{R_F26},59{R_F27},60{R_F28},61{R_F29},62{R_F30},63{R_F31}
+        {Floating point status/"front of queue" registers}
+        ,64{R_FSR},65{R_FQ}
+        {Coprocessor registers}
+        ,66{R_C0},67{R_C1},68{R_C2},69{R_C3},70{R_C4},71{R_C5},72{R_C6},73{R_C7}
+        ,74{R_C8},75{R_C9},76{R_C10},77{R_C11},78{R_C12},79{R_C13},80{R_C14},81{R_C15}
+        ,82{R_C16},83{R_C17},84{R_C18},85{R_C19},86{R_C20},87{R_C21},88{R_C22},89{R_C23}
+        ,90{R_C24},91{R_C25},92{R_C26},93{R_C27},94{R_C28},95{R_C29},96{R_C30},98{R_C31}
+        {Coprocessor status/queue registers}
+        ,99{R_CSR}
+        ,100{R_CQ}
+        {Integer Unit control & status registers}
+        ,101{R_PSR}{Processor Status Register : informs upon the program status}
+        ,102{R_TBR}{Trap Base Register : saves the Trap vactor base address}
+        ,103{R_WIM}{Window Invalid Mask : }
+        ,104{R_Y}{Multiply/Devide Register : }
+        {Ancillary State Registers : these are implementation dependent registers and
+        thus, are not specified by the SPARC Reference Manual. I did choose the SUN's
+        implementation according to the Assembler Refernce Manual.(MN)}
+        ,105{R_ASR0},106{R_ASR1},107{R_ASR2},108{R_ASR3},109{R_ASR4},110{R_ASR5},111{R_ASR6},112{R_ASR7}
+        ,113{R_ASR8},114{R_ASR9},115{R_ASR10},116{R_ASR11},117{R_ASR12},118{R_ASR13},119{R_ASR14},120{R_ASR15}
+        ,121{R_ASR16},122{R_ASR17},123{R_ASR18},124{R_ASR19},125{R_ASR20},126{R_ASR21},127{R_ASR22},127{R_ASR23}
+        ,127{R_ASR24},127{R_ASR25},127{R_ASR26},127{R_ASR27},127{R_ASR28},127{R_ASR29},127{R_ASR30},127{R_ASR31}
+      );
 
 
 {*****************************************************************************
-                              Instruction table
+                          Generic Register names
 *****************************************************************************}
 
-{$ifndef NOAG386BIN}
-type
-  tinsentry=packed record
-    opcode  : tasmop;
-    ops     : byte;
-    optypes : array[0..2] of LongInt;
-    code    : array[0..maxinfolen] of char;
-    flags   : LongInt;
-  end;
-  pinsentry=^tinsentry;
+      {# Stack pointer register }
+      NR_STACK_POINTER_REG = NR_O6;
+      RS_STACK_POINTER_REG = RS_O6;
+      {# Frame pointer register }
+      NR_FRAME_POINTER_REG = NR_I6;
+      RS_FRAME_POINTER_REG = RS_I6;
+      {# Register for addressing absolute data in a position independant way,
+         such as in PIC code. The exact meaning is ABI specific. For
+         further information look at GCC source : PIC_OFFSET_TABLE_REGNUM
 
-  TInsTabCache=array[TasmOp] of LongInt;
-  PInsTabCache=^TInsTabCache;
-VAR
-  InsTabCache : PInsTabCache;
-{$endif NOAG386BIN}
+         Taken from GCC rs6000.h
+      }
+{$warning As indicated in rs6000.h, but can't find it anywhere else!}
+      {PIC_OFFSET_REG = R_30;}
+      { the return_result_reg, is used inside the called function to store its return
+      value when that is a scalar value otherwise a pointer to the address of the
+      result is placed inside it }
+      NR_FUNCTION_RETURN_REG = NR_I0;
+      RS_FUNCTION_RETURN_REG = RS_I0;
+      { The high part of 64bit value returned by this function }
+      NR_FUNCTION_RETURNHIGH_REG = NR_I1;
+      RS_FUNCTION_RETURNHIGH_REG = RS_I1;
+      { the FUNCTION_RESULT_REG contains the function result after a call to a scalar
+        function othewise it contains a pointer to the returned result}
+      NR_FUNCTION_RESULT_REG = NR_O0;
+      RS_FUNCTION_RESULT_REG = RS_O0;
+      { The high part of 64bit value returned from a function is available in this register }
+      NR_FUNCTION_RESULTHIGH_REG = NR_O1;
+      RS_FUNCTION_RESULTHIGH_REG = RS_O1;
+
+      FPU_RESULT_REG = R_F0;
+      mmresultreg = R_NO;
+
+{*****************************************************************************
+                       GCC /ABI linking information
+*****************************************************************************}
+
+      {# Registers which must be saved when calling a routine declared as
+         cppdecl, cdecl, stdcall, safecall, palmossyscall. The registers
+         saved should be the ones as defined in the target ABI and / or GCC.
+
+         This value can be deduced from CALLED_USED_REGISTERS array in the
+         GCC source.
+      }
+      std_saved_registers = [];
+
+      {# Required parameter alignment when calling a routine declared as
+         stdcall and cdecl. The alignment value should be the one defined
+         by GCC or the target ABI.
+
+         The value of this constant is equal to the constant
+         PARM_BOUNDARY / BITS_PER_UNIT in the GCC source.
+      }
+      std_param_align = 4;  { for 32-bit version only }
+
+{*****************************************************************************
+                            CPU Dependent Constants
+*****************************************************************************}
+
+
 {*****************************************************************************
                                   Helpers
 *****************************************************************************}
-const
-  maxvarregs=8;
-  VarRegs:array[1..maxvarregs] of tnewregister = (
-             RS_L0,RS_L1,RS_L2,RS_L3,RS_L4,RS_L5,RS_L6,RS_L7
-        );
-  maxfpuvarregs = 8;
-  max_operands = 3;
-  maxintregs = maxvarregs;
-  maxfpuregs = maxfpuvarregs;
-  max_scratch_regs=8;
 
+    function  is_calljmp(o:tasmop):boolean;
 
-function is_calljmp(o:tasmop):boolean;
-function flags_to_cond(CONST f:TResFlags):TAsmCond;
-procedure convert_register_to_enum(var Reg:Tregister);
-function cgsize2subreg(s:Tcgsize):Tsubregister;
+    function  flags_to_cond(const f: TResFlags) : TAsmCond;
+    procedure convert_register_to_enum(var r:Tregister);
+    function cgsize2subreg(s:Tcgsize):Tsubregister;
 
 implementation
 
-  uses
-    verbose;
-  const
-    CallJmpOp=[A_JMPL..A_CBccc];
+    uses
+      verbose;
 
-  function is_calljmp(o:tasmop):boolean;
-    begin
-      if o in CallJmpOp
-      then
-        is_calljmp:=true
-      else
-        is_calljmp:=false;
-    end;
+{*****************************************************************************
+                                  Helpers
+*****************************************************************************}
 
-function flags_to_cond(const f:TResFlags):TAsmCond;
-  CONST
-    flags_2_cond:array[TResFlags]OF TAsmCond=
-    (C_E,C_NE,C_G,C_L,C_GE,C_LE,C_C,C_NC,C_A,C_AE,C_B,C_BE);
-  BEGIN
-    result:=flags_2_cond[f];
-  end;
+    function is_calljmp(o:tasmop):boolean;
+      const
+        CallJmpOp=[A_JMPL..A_CBccc];
+      begin
+        is_calljmp:=(o in CallJmpOp);
+      end;
 
-procedure convert_register_to_enum(var Reg:Tregister);
-  begin
-    with Reg do
-      if(enum=R_INTREGISTER)
-      then
-        if(number<=RegEnum2Number[R_I7])
-        then
-          begin
-            enum:=Low(enum);
-            repeat
-              Inc(enum);
-            until(number=RegEnum2Number[enum])or(enum=High(enum));
-          end
-        else
-          internalerror(200301082);
-  end;
 
-function cgsize2subreg(s:Tcgsize):Tsubregister;
-begin
-  cgsize2subreg:=R_SUBWHOLE;
-end;
+    function flags_to_cond(const f:TResFlags):TAsmCond;
+      const
+        flags_2_cond:array[TResFlags] of TAsmCond=
+          (C_E,C_NE,C_G,C_L,C_GE,C_LE,C_C,C_NC,C_A,C_AE,C_B,C_BE);
+      begin
+        result:=flags_2_cond[f];
+      end;
+
+
+    procedure convert_register_to_enum(var r:Tregister);
+      begin
+        with R do
+          if(enum=R_INTREGISTER) then
+            if(number<=RegEnum2Number[R_I7]) then
+              begin
+                enum:=Low(enum);
+                repeat
+                  Inc(enum);
+                until(number=RegEnum2Number[enum])or(enum=High(enum));
+              end
+            else
+              internalerror(200301082);
+      end;
+
+
+    function cgsize2subreg(s:Tcgsize):Tsubregister;
+      begin
+        cgsize2subreg:=R_SUBWHOLE;
+      end;
+
 end.
 {
   $Log$
-  Revision 1.34  2003-05-28 23:18:31  florian
-    * started to fix and clean up the sparc port
+  Revision 1.35  2003-05-30 23:57:08  peter
+    * more sparc cleanup
+    * accumulator removed, splitted in function_return_reg (called) and
+      function_result_reg (caller)
 
-  Revision 1.33  2003/05/26 22:08:42  mazen
-  + RegEnum2Number to ease handling register pairs
-  * changed convert_register_to_enum to use above
-    array
-
-  Revision 1.32  2003/05/23 21:10:50  florian
-    * fixed sparc compiler compilation
-
-  Revision 1.31  2003/05/22 16:11:22  florian
-    * fixed sparc compilation partially
-
-  Revision 1.30  2003/05/06 14:58:46  mazen
-  - non used constants OT_* removed
-  * some keywords moved lower case
-
-  Revision 1.29  2003/04/29 12:03:52  mazen
-  * TOldRegister isnow just an alias for TCpuRegister
-  * TCpuRegister is used to define cpu register set physically available
-  + CpuRegs array to easially create correspondence between TCpuRegister and TRegister
-
-  Revision 1.28  2003/04/28 09:46:30  mazen
-  + max_scratch_regs variable added because requested by common compiler code
-
-  Revision 1.27  2003/04/23 13:35:39  peter
-    * fix sparc compile
-
-  Revision 1.26  2003/04/23 12:35:35  florian
-    * fixed several issues with powerpc
-    + applied a patch from Jonas for nested function calls (PowerPC only)
-    * ...
 }

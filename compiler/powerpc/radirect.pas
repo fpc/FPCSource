@@ -83,6 +83,7 @@ interface
          srsym,sym : tsym;
          srsymtable : tsymtable;
          code : TAAsmoutput;
+         framereg : tregister;
          i,l : longint;
 
        procedure writeasmline;
@@ -104,6 +105,9 @@ interface
 
      begin
        ende:=false;
+       framereg.enum:=R_INTREGISTER;
+       framereg.number:=NR_STACK_POINTER_REG;
+       convert_register_to_enum(framereg);
        s:='';
        if assigned(current_procdef.funcretsym) and
           is_fpu(current_procdef.rettype.def) then
@@ -191,11 +195,11 @@ interface
                                                     if (tvarsym(sym).reg.enum<>R_NO) then
 // until new regallocator stuff settles down
 //                                                      hs:=gas_reg2str[procinfo.framepointer.enum]
-                                                      hs:=gas_reg2str[STACK_POINTER_REG]
+                                                      hs:=gas_reg2str[framereg.enum]
                                                     else
                                                       hs:=tostr(tvarsym(sym).address)+
 //                                                        '('+gas_reg2str[procinfo.framepointer.enum]+')';
-                                                        '('+gas_reg2str[STACK_POINTER_REG]+')';
+                                                        '('+gas_reg2str[framereg.enum]+')';
                                                  end;
                                             end
                                           else
@@ -217,7 +221,7 @@ interface
                                                     { set offset }
                                                     inc(l,current_procdef.parast.address_fixup);
 //                                                    hs:=tostr(l)+'('+gas_reg2str[procinfo.framepointer.enum]+')';
-                                                    hs:=tostr(l)+'('+gas_reg2str[STACK_POINTER_REG]+')';
+                                                    hs:=tostr(l)+'('+gas_reg2str[framereg.enum]+')';
                                                     if pos(',',s) > 0 then
                                                       tvarsym(sym).varstate:=vs_used;
                                                  end;
@@ -347,7 +351,12 @@ initialization
 end.
 {
   $Log$
-  Revision 1.13  2003-04-27 11:21:36  peter
+  Revision 1.14  2003-05-30 23:57:08  peter
+    * more sparc cleanup
+    * accumulator removed, splitted in function_return_reg (called) and
+      function_result_reg (caller)
+
+  Revision 1.13  2003/04/27 11:21:36  peter
     * aktprocdef renamed to current_procdef
     * procinfo renamed to current_procinfo
     * procinfo will now be stored in current_module so it can be

@@ -48,20 +48,17 @@ unit cpugas;
           begin
             inc(offset,offsetfixup);
             offsetfixup:=0;
-            if base.enum>lastreg then
+            if (base.enum<>R_INTREGISTER) or (index.enum<>R_INTREGISTER) then
               internalerror(200301081);
-            if index.enum>lastreg then
-              internalerror(200301081);
-
             if assigned(symbol) then
               begin
+                 if (base.number<>NR_NO) or (index.number<>NR_NO) then
+                   internalerror(2003052601);
                  GetReferenceString:=symbol.name;
                  if offset>0 then
                    GetReferenceString:=GetReferenceString+'+'+ToStr(offset)
                  else if offset<0 then
                    GetReferenceString:=GetReferenceString+ToStr(offset);
-                 if (base.enum<>R_NONE) or (index.enum<>R_NONE) then
-                   internalerror(2003052601);
                  if symaddr=refs_hi then
                    GetReferenceString:='%hi('+GetReferenceString+')'
                  else if symaddr=refs_lo then
@@ -71,9 +68,9 @@ unit cpugas;
               end
             else
               begin
-                if base.enum<>R_NONE then
+                if base.number<>NR_NO then
                   GetReferenceString:=std_reg2str[base.enum]+'+';
-                if index.enum<>R_NONE then
+                if index.number<>NR_NO then
                   GetReferenceString:=GetReferenceString+std_reg2str[index.enum]+'+';
                 if Offset<>0 then
                    internalerror(2003052603);
@@ -199,7 +196,12 @@ begin
 end.
 {
     $Log$
-    Revision 1.15  2003-05-28 23:18:31  florian
+    Revision 1.16  2003-05-30 23:57:08  peter
+      * more sparc cleanup
+      * accumulator removed, splitted in function_return_reg (called) and
+        function_result_reg (caller)
+
+    Revision 1.15  2003/05/28 23:18:31  florian
       * started to fix and clean up the sparc port
 
     Revision 1.14  2003/05/07 11:55:34  mazen

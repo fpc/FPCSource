@@ -197,7 +197,12 @@ begin
 end.
 {
   $Log$
-  Revision 1.92  2003-05-26 21:17:18  peter
+  Revision 1.93  2003-05-30 23:57:08  peter
+    * more sparc cleanup
+    * accumulator removed, splitted in function_return_reg (called) and
+      function_result_reg (caller)
+
+  Revision 1.92  2003/05/26 21:17:18  peter
     * procinlinenode removed
     * aktexit2label removed, fast exit removed
     + tcallnode.inlined_pass_2 added
@@ -294,7 +299,7 @@ end.
     * old logs removed and tabs fixed
 
   Revision 1.69  2002/09/01 18:43:27  peter
-    * include accumulator in regs_to_push list
+    * include FUNCTION_RETURN_REG in regs_to_push list
 
   Revision 1.68  2002/09/01 12:13:00  peter
     * use a_call_reg

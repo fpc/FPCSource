@@ -42,11 +42,15 @@ Procedure FWaitWarning;
 
 type
   T386Operand=class(TOperand)
+    opsize  : topsize;
+    Procedure SetSize(_size:longint;force:boolean);override;
     Procedure SetCorrectSize(opcode:tasmop);override;
   end;
 
   T386Instruction=class(TInstruction)
     OpOrder : TOperandOrder;
+    opsize  : topsize;
+    constructor Create;
     { Operand sizes }
     procedure AddReferenceSizes;
     procedure SetInstructionOpsize;
@@ -85,7 +89,7 @@ implementation
 uses
   globtype,globals,systems,verbose,
   cpuinfo,
-  itx86att;
+  itx86att,cgx86;
 
 {$define ATTOP}
 {$define INTELOP}
@@ -196,20 +200,27 @@ end;
                               T386Operand
 *****************************************************************************}
 
+Procedure T386Operand.SetSize(_size:longint;force:boolean);
+begin
+  inherited SetSize(_size,force);
+  opsize:=TCGSize2Opsize[size];
+end;
+
+
 Procedure T386Operand.SetCorrectSize(opcode:tasmop);
 begin
   if gas_needsuffix[opcode]=attsufFPU then
     begin
-     case size of
-      S_L : size:=S_FS;
-      S_IQ : size:=S_FL;
+     case opsize of
+      S_L : opsize:=S_FS;
+      S_IQ : opsize:=S_FL;
      end;
     end
   else if gas_needsuffix[opcode]=attsufFPUint then
     begin
-      case size of
-      S_W : size:=S_IS;
-      S_L : size:=S_IL;
+      case opsize of
+        S_W : opsize:=S_IS;
+        S_L : opsize:=S_IL;
       end;
     end;
 end;
@@ -218,6 +229,13 @@ end;
 {*****************************************************************************
                               T386Instruction
 *****************************************************************************}
+
+constructor T386Instruction.Create;
+begin
+  inherited Create;
+  Opsize:=S_NO;
+end;
+
 
 procedure T386Instruction.SwapOperands;
 begin
@@ -242,7 +260,7 @@ begin
   for i:=1to ops do
    begin
    operands[i].SetCorrectSize(opcode);
-   if (operands[i].size=S_NO) then
+   if t386operand(operands[i]).opsize=S_NO then
     begin
       case operands[i].Opr.Typ of
         OPR_REFERENCE :
@@ -265,19 +283,19 @@ begin
                   { if no register then take the opsize (which is available with ATT),
                     if not availble then give an error }
                   if opsize<>S_NO then
-                    operands[i].size:=opsize
+                    t386operand(operands[i]).opsize:=opsize
                   else
                    begin
                      Message(asmr_e_unable_to_determine_reference_size);
                      { recovery }
-                     operands[i].size:=S_L;
+                     t386operand(operands[i]).opsize:=S_L;
                    end;
                 end;
              end
             else
              begin
                if opsize<>S_NO then
-                 operands[i].size:=opsize
+                 t386operand(operands[i]).opsize:=opsize
              end;
           end;
         OPR_SYMBOL :
@@ -292,7 +310,7 @@ begin
                operands[i].opr.ref.symbol:=s;
                operands[i].opr.ref.offset:=so;
              end;
-            operands[i].size:=S_L;
+            t386operand(operands[i]).opsize:=S_L;
           end;
       end;
     end;
@@ -319,20 +337,20 @@ begin
            (operands[1].opr.reg.number<=nlastsreg))) then
         opsize:=S_L
       else
-        opsize:=operands[1].size;
+        opsize:=t386operand(operands[1]).opsize;
     2 :
       begin
         case opcode of
           A_MOVZX,A_MOVSX :
             begin
-              case operands[1].size of
+              case t386operand(operands[1]).opsize of
                 S_W :
-                  case operands[2].size of
+                  case t386operand(operands[2]).opsize of
                     S_L :
                       opsize:=S_WL;
                   end;
                 S_B :
-                  case operands[2].size of
+                  case t386operand(operands[2]).opsize of
                     S_W :
                       opsize:=S_BW;
                     S_L :
@@ -344,13 +362,13 @@ begin
                      32 bit register or memory, so no opsize is correct here PM }
             exit;
           A_OUT :
-            opsize:=operands[1].size;
+            opsize:=t386operand(operands[1]).opsize;
           else
-            opsize:=operands[2].size;
+            opsize:=t386operand(operands[2]).opsize;
         end;
       end;
     3 :
-      opsize:=operands[3].size;
+      opsize:=t386operand(operands[3]).opsize;
   end;
 end;
 
@@ -391,11 +409,11 @@ begin
       begin
         case opsize of
           S_BW :
-            sizeerr:=(operands[1].size<>S_B) or (operands[2].size<>S_W);
+            sizeerr:=(t386operand(operands[1]).opsize<>S_B) or (t386operand(operands[2]).opsize<>S_W);
           S_BL :
-            sizeerr:=(operands[1].size<>S_B) or (operands[2].size<>S_L);
+            sizeerr:=(t386operand(operands[1]).opsize<>S_B) or (t386operand(operands[2]).opsize<>S_L);
           S_WL :
-            sizeerr:=(operands[1].size<>S_W) or (operands[2].size<>S_L);
+            sizeerr:=(t386operand(operands[1]).opsize<>S_W) or (t386operand(operands[2]).opsize<>S_L);
         end;
       end;
    end
@@ -404,8 +422,8 @@ begin
      for i:=1 to ops do
       begin
         if (operands[i].opr.typ<>OPR_CONSTANT) and
-           (operands[i].size in [S_B,S_W,S_L]) and
-           (operands[i].size<>opsize) then
+           (t386operand(operands[i]).opsize in [S_B,S_W,S_L]) and
+           (t386operand(operands[i]).opsize<>opsize) then
          sizeerr:=true;
       end;
    end;
@@ -483,19 +501,21 @@ begin
   else
    begin
      if (Ops=2) and (operands[1].opr.typ=OPR_REGISTER) then
-      siz:=operands[1].size
+      siz:=t386operand(operands[1]).opsize
      else
-      siz:=operands[Ops].size;
+      siz:=t386operand(operands[Ops]).opsize;
      { MOVD should be of size S_LQ or S_QL, but these do not exist PM }
-     if (ops=2) and (operands[1].size<>S_NO) and
-        (operands[2].size<>S_NO) and (operands[1].size<>operands[2].size) then
+     if (ops=2) and
+        (t386operand(operands[1]).opsize<>S_NO) and
+        (t386operand(operands[2]).opsize<>S_NO) and
+        (t386operand(operands[1]).opsize<>t386operand(operands[2]).opsize) then
        siz:=S_NO;
    end;
 
    if ((opcode=A_MOVD)or
        (opcode=A_CVTSI2SS)) and
-      ((operands[1].size=S_NO) or
-       (operands[2].size=S_NO)) then
+      ((t386operand(operands[1]).opsize=S_NO) or
+       (t386operand(operands[2]).opsize=S_NO)) then
      siz:=S_NO;
    { NASM does not support FADD without args
      as alias of FADDP
@@ -636,10 +656,10 @@ begin
        OPR_REFERENCE:
          begin
            ai.loadref(i-1,operands[i].opr.ref);
-           if operands[i].size<>S_NO then
+           if t386operand(operands[i]).opsize<>S_NO then
              begin
                asize:=0;
-               case operands[i].size of
+               case t386operand(operands[i]).opsize of
                    S_B :
                      asize:=OT_BITS8;
                    S_W, S_IS :
@@ -684,7 +704,12 @@ end;
 end.
 {
   $Log$
-  Revision 1.2  2003-05-22 21:33:31  peter
+  Revision 1.3  2003-05-30 23:57:08  peter
+    * more sparc cleanup
+    * accumulator removed, splitted in function_return_reg (called) and
+      function_result_reg (caller)
+
+  Revision 1.2  2003/05/22 21:33:31  peter
     * removed some unit dependencies
 
   Revision 1.1  2003/04/30 15:45:35  florian

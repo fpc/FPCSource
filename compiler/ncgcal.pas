@@ -426,7 +426,8 @@ implementation
           begin
             location_reset(location,LOC_CREFERENCE,OS_ADDR);
             location.reference:=refcountedtemp;
-            r.enum:=accumulator;
+            r.enum:=R_INTREGISTER;
+            r.number:=NR_FUNCTION_RETURN_REG;
             cg.a_reg_alloc(exprasmlist,r);
             cg.a_load_reg_ref(exprasmlist,OS_ADDR,r,location.reference);
             cg.a_reg_dealloc(exprasmlist,r);
@@ -440,10 +441,10 @@ implementation
                 location_reset(location,LOC_FPUREGISTER,def_cgsize(resulttype.def));
 {$ifdef cpufpemu}
                 if cs_fp_emulation in aktmoduleswitches then
-                  location.register.enum := accumulator
-               else
+                  location.register.enum := FUNCTION_RESULT_REG
+                else
 {$endif cpufpemu}
-                location.register.enum:=FPU_RESULT_REG;
+                  location.register.enum:=FPU_RESULT_REG;
 {$ifdef x86}
                 inc(trgcpu(rg).fpuvaroffset);
 {$else x86}
@@ -466,26 +467,26 @@ implementation
 {$ifndef cpu64bit}
                    if cgsize in [OS_64,OS_S64] then
                     begin
-                      {Move the function result to free registers, preferably the
-                       accumulator/accumulatorhigh, so no move is necessary.}
+                      { Move the function result to free registers, preferably the
+                        FUNCTION_RESULT_REG/FUNCTION_RESULTHIGH_REG, so no move is necessary.}
                       r.enum:=R_INTREGISTER;
-                      r.number:=NR_ACCUMULATOR;
+                      r.number:=NR_FUNCTION_RESULT_REG;
                       hregister.enum:=R_INTREGISTER;
-                      hregister.number:=NR_ACCUMULATORHIGH;
+                      hregister.number:=NR_FUNCTION_RESULTHIGH_REG;
 {$ifdef newra}
-                      rg.getexplicitregisterint(exprasmlist,NR_ACCUMULATOR);
-                      rg.getexplicitregisterint(exprasmlist,NR_ACCUMULATORHIGH);
+                      rg.getexplicitregisterint(exprasmlist,NR_FUNCTION_RESULT_REG);
+                      rg.getexplicitregisterint(exprasmlist,NR_FUNCTION_RESULTHIGH_REG);
                       rg.ungetregisterint(exprasmlist,r);
                       rg.ungetregisterint(exprasmlist,hregister);
                       location.registerlow:=rg.getregisterint(exprasmlist,OS_INT);
                       location.registerhigh:=rg.getregisterint(exprasmlist,OS_INT);
 {$else newra}
-                      if RS_ACCUMULATOR in rg.unusedregsint then
-                        location.registerlow:=rg.getexplicitregisterint(exprasmlist,NR_ACCUMULATOR)
+                      if RS_FUNCTION_RESULT_REG in rg.unusedregsint then
+                        location.registerlow:=rg.getexplicitregisterint(exprasmlist,NR_FUNCTION_RESULT_REG)
                       else
                         cg.a_reg_alloc(exprasmlist,r);
-                      if RS_ACCUMULATORHIGH in rg.unusedregsint then
-                        location.registerhigh:=rg.getexplicitregisterint(exprasmlist,NR_ACCUMULATORHIGH)
+                      if RS_FUNCTION_RESULTHIGH_REG in rg.unusedregsint then
+                        location.registerhigh:=rg.getexplicitregisterint(exprasmlist,NR_FUNCTION_RETURNHIGH_REG)
                       else
                         cg.a_reg_alloc(exprasmlist,hregister);
                       { do this after both low,high are allocated, else it is possible that
@@ -502,8 +503,8 @@ implementation
 {$endif cpu64bit}
                     begin
                       {Move the function result to a free register, preferably the
-                       accumulator, so no move is necessary.}
-                      nr:=RS_ACCUMULATOR shl 8 or cgsize2subreg(cgsize);
+                       FUNCTION_RESULT_REG, so no move is necessary.}
+                      nr:=(RS_FUNCTION_RESULT_REG shl 8) or cgsize2subreg(cgsize);
                       r.enum:=R_INTREGISTER;
                       r.number:=nr;
 {$ifdef newra}
@@ -512,7 +513,7 @@ implementation
                       location.register:=rg.getregisterint(exprasmlist,cgsize);
 {$else newra}
                       cg.a_reg_alloc(exprasmlist,r);
-                      if RS_ACCUMULATOR in rg.unusedregsint then
+                      if RS_FUNCTION_RESULT_REG in rg.unusedregsint then
                         location.register:=rg.getexplicitregisterint(exprasmlist,nr)
                       else
                         location.register:=rg.getregisterint(exprasmlist,cgsize);
@@ -640,10 +641,10 @@ implementation
               if (not is_void(resulttype.def)) and
                  (not paramanager.ret_in_param(resulttype.def,procdefinition.proccalloption)) then
                begin
-                 include(regs_to_push_int,RS_ACCUMULATOR);
+                 include(regs_to_push_int,RS_FUNCTION_RESULT_REG);
 {$ifndef cpu64bit}
                  if resulttype.def.size>sizeof(aword) then
-                   include(regs_to_push_int,RS_ACCUMULATORHIGH);
+                   include(regs_to_push_int,RS_FUNCTION_RESULTHIGH_REG);
 {$endif cpu64bit}
                end;
               rg.saveusedintregisters(exprasmlist,pushedint,regs_to_push_int);
@@ -1029,10 +1030,10 @@ implementation
          if (not is_void(resulttype.def)) and
             (not paramanager.ret_in_param(resulttype.def,procdefinition.proccalloption)) then
           begin
-            include(regs_to_push_int,RS_ACCUMULATOR);
+            include(regs_to_push_int,RS_FUNCTION_RESULT_REG);
 {$ifndef cpu64bit}
             if resulttype.def.size>sizeof(aword) then
-              include(regs_to_push_int,RS_ACCUMULATORHIGH);
+              include(regs_to_push_int,RS_FUNCTION_RESULTHIGH_REG);
 {$endif cpu64bit}
           end;
          rg.saveusedintregisters(exprasmlist,pushedint,regs_to_push_int);
@@ -1232,11 +1233,16 @@ begin
 end.
 {
   $Log$
-  Revision 1.77  2003-05-29 10:05:40  jonas
+  Revision 1.78  2003-05-30 23:57:08  peter
+    * more sparc cleanup
+    * accumulator removed, splitted in function_return_reg (called) and
+      function_result_reg (caller)
+
+  Revision 1.77  2003/05/29 10:05:40  jonas
     * free callparatemps created for call-by-reference parameters
 
   Revision 1.76  2003/05/28 23:58:18  jonas
-    * added missing initialization of rg.usedint{in,by}proc
+    * added missing initialization of rg.usedintin,byproc
     * ppc now also saves/restores used fpu registers
     * ncgcal doesn't add used registers to usedby/inproc anymore, except for
       i386
@@ -1478,7 +1484,7 @@ end.
     * several powerpc related stuff fixed
 
   Revision 1.18  2002/09/01 18:43:27  peter
-    * include accumulator in regs_to_push list
+    * include FUNCTION_RETURN_REG in regs_to_push list
 
   Revision 1.17  2002/09/01 12:13:00  peter
     * use a_call_reg

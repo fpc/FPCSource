@@ -52,7 +52,7 @@ Implementation
        scanner,
        rautils,rax86,ag386int,
        { codegen }
-       cgbase
+       cginfo,cgbase,cgobj
        ;
 
 type
@@ -1565,7 +1565,7 @@ Begin
             Message(asmr_e_invalid_operand_type);
            opr.typ:=OPR_REGISTER;
            opr.reg:=tempreg;
-           size:=reg2opsize(opr.reg)
+           SetSize(tcgsize2size[cg.reg_cgsize(opr.reg)],true);
          end;
       end;
 
@@ -1620,7 +1620,7 @@ end;
 Procedure T386IntelInstruction.BuildOpCode;
 var
   PrefixOp,OverrideOp: tasmop;
-  size : topsize;
+  size : tcgsize;
   operandnum : longint;
 Begin
   PrefixOp:=A_None;
@@ -1706,9 +1706,9 @@ Begin
           { load the size in a temp variable, so it can be set when the
             operand is read }
           Case actasmtoken of
-            AS_DWORD : size:=S_L;
-            AS_WORD  : size:=S_W;
-            AS_BYTE  : size:=S_B;
+            AS_DWORD : size:=OS_32;
+            AS_WORD  : size:=OS_16;
+            AS_BYTE  : size:=OS_8;
             AS_QWORD : begin
                           if (opcode=A_FCOM) or
                             (opcode=A_FCOMP) or
@@ -1721,11 +1721,11 @@ Begin
                             (opcode=A_FST) or
                             (opcode=A_FSTP) or
                             (opcode=A_FADD) then
-                            size:=S_FL
+                            size:=OS_F64
                           else
-                            size:=S_IQ;
+                            size:=OS_64;
                        end;
-            AS_TBYTE : size:=S_FX;
+            AS_TBYTE : size:=OS_F80;
           end;
           Consume(actasmtoken);
           if actasmtoken=AS_PTR then
@@ -1961,7 +1961,12 @@ finalization
 end.
 {
   $Log$
-  Revision 1.47  2003-04-30 15:45:35  florian
+  Revision 1.48  2003-05-30 23:57:08  peter
+    * more sparc cleanup
+    * accumulator removed, splitted in function_return_reg (called) and
+      function_result_reg (caller)
+
+  Revision 1.47  2003/04/30 15:45:35  florian
     * merged more x86-64/i386 code
 
   Revision 1.46  2003/04/27 11:21:35  peter

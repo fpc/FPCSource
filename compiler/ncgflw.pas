@@ -893,7 +893,7 @@ implementation
       begin
          cg.a_call_name(exprasmlist,'FPC_POPOBJECTSTACK');
          r.enum:=R_INTREGISTER;
-         r.number:=NR_ACCUMULATOR;
+         r.number:=NR_FUNCTION_RESULT_REG;
          cg.a_param_reg(exprasmlist,OS_ADDR,r,paramanager.getintparaloc(1));
          cg.a_call_name(exprasmlist,'FPC_DESTROYEXCEPTION');
       end;
@@ -1021,7 +1021,7 @@ implementation
               cg.a_call_name(exprasmlist,'FPC_POPSECONDOBJECTSTACK');
 
               r.enum:=R_INTREGISTER;
-              r.number:=NR_ACCUMULATOR;
+              r.number:=NR_FUNCTION_RESULT_REG;
               cg.a_param_reg(exprasmlist, OS_ADDR, r, paramanager.getintparaloc(1));
               cg.a_call_name(exprasmlist,'FPC_DESTROYEXCEPTION');
               { we don't need to restore esi here because reraise never }
@@ -1137,8 +1137,6 @@ implementation
       begin
          location_reset(location,LOC_VOID,OS_NO);
 
-         r.enum:=R_INTREGISTER;
-         r.number:=NR_ACCUMULATOR;
          oldflowcontrol:=flowcontrol;
          flowcontrol:=[];
          objectlibrary.getlabel(nextonlabel);
@@ -1149,6 +1147,8 @@ implementation
          cg.a_call_name(exprasmlist,'FPC_CATCHES');
 
          { is it this catch? No. go to next onlabel }
+         r.enum:=R_INTREGISTER;
+         r.number:=NR_FUNCTION_RESULT_REG;
          cg.a_cmp_const_reg_label(exprasmlist,OS_ADDR,OC_EQ,0,r,nextonlabel);
          ref.symbol:=nil;
          tg.GetTemp(exprasmlist,pointer_size,tt_normal,ref);
@@ -1329,7 +1329,7 @@ implementation
          { the value should now be in the exception handler }
          cg.g_exception_reason_load(exprasmlist,href);
          r.enum:=R_INTREGISTER;
-         r.number:=NR_ACCUMULATOR;
+         r.number:=NR_FUNCTION_RESULT_REG;
          if implicitframe then
            begin
              cg.a_cmp_const_reg_label(exprasmlist,OS_S32,OC_EQ,0,r,endfinallylabel);
@@ -1421,7 +1421,12 @@ begin
 end.
 {
   $Log$
-  Revision 1.65  2003-05-30 18:55:21  jonas
+  Revision 1.66  2003-05-30 23:57:08  peter
+    * more sparc cleanup
+    * accumulator removed, splitted in function_return_reg (called) and
+      function_result_reg (caller)
+
+  Revision 1.65  2003/05/30 18:55:21  jonas
     * fixed several regvar related bugs for non-i386. make cycle with -Or now
       works for ppc
 

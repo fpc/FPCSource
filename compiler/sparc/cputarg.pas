@@ -48,14 +48,17 @@ implementation
 **************************************}
 
       ,CpuGas
-      ,ogcoff
-      ,ogelf
       ;
 
 end.
 {
   $Log$
-  Revision 1.3  2003-05-23 21:10:50  florian
+  Revision 1.4  2003-05-30 23:57:08  peter
+    * more sparc cleanup
+    * accumulator removed, splitted in function_return_reg (called) and
+      function_result_reg (caller)
+
+  Revision 1.3  2003/05/23 21:10:50  florian
     * fixed sparc compiler compilation
 
   Revision 1.2  2002/09/07 15:25:14  peter

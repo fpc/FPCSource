@@ -85,7 +85,7 @@ interface
       OT_FPU0      = $01000800;  { FPU stack register zero  }
       OT_REG_SMASK = $00070000;  { special register operands: these may be treated differently  }
                                  { a mask for the following  }
-      OT_REG_ACCUM = $00211000;  { accumulator: AL, AX or EAX  }
+      OT_REG_ACCUM = $00211000;  { FUNCTION_RETURN_REG: AL, AX or EAX  }
       OT_REG_AL    = $00211001;    { REG_ACCUM | BITSxx  }
       OT_REG_AX    = $00211002;    { ditto  }
       OT_REG_EAX   = $00211004;    { and again  }
@@ -2024,7 +2024,12 @@ implementation
 end.
 {
   $Log$
-  Revision 1.3  2003-05-22 21:33:31  peter
+  Revision 1.4  2003-05-30 23:57:08  peter
+    * more sparc cleanup
+    * accumulator removed, splitted in function_return_reg (called) and
+      function_result_reg (caller)
+
+  Revision 1.3  2003/05/22 21:33:31  peter
     * removed some unit dependencies
 
   Revision 1.2  2002/04/25 16:12:09  florian

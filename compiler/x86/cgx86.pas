@@ -309,9 +309,14 @@ unit cgx86;
 
     class function tcgx86.reg_cgsize(const reg: tregister): tcgsize;
       const
-        regsize_2_cgsize: array[S_B..S_L] of tcgsize = (OS_8,OS_16,OS_32);
+        opsize_2_cgsize: array[topsize] of tcgsize = (OS_NO,
+          OS_8,OS_16,OS_32,OS_NO,OS_NO,OS_NO,
+          OS_32,OS_64,OS_64,
+          OS_F32,OS_F64,OS_F80,OS_F32,OS_F64,OS_NO,OS_NO,
+          OS_NO,OS_NO,OS_NO
+        );
       begin
-        result := regsize_2_cgsize[reg2opsize(reg)];
+        result := opsize_2_cgsize[reg2opsize(reg)];
       end;
 
 
@@ -1941,7 +1946,12 @@ unit cgx86;
 end.
 {
   $Log$
-  Revision 1.47  2003-05-22 21:33:31  peter
+  Revision 1.48  2003-05-30 23:57:08  peter
+    * more sparc cleanup
+    * accumulator removed, splitted in function_return_reg (called) and
+      function_result_reg (caller)
+
+  Revision 1.47  2003/05/22 21:33:31  peter
     * removed some unit dependencies
 
   Revision 1.46  2003/05/16 14:33:31  peter

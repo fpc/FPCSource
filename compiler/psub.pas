@@ -1210,8 +1210,13 @@ begin
 end.
 {
   $Log$
-  Revision 1.119  2003-05-28 23:58:18  jonas
-    * added missing initialization of rg.usedint{in,by}proc
+  Revision 1.120  2003-05-30 23:57:08  peter
+    * more sparc cleanup
+    * accumulator removed, splitted in function_return_reg (called) and
+      function_result_reg (caller)
+
+  Revision 1.119  2003/05/28 23:58:18  jonas
+    * added missing initialization of rg.usedintin,byproc
     * ppc now also saves/restores used fpu registers
     * ncgcal doesn't add used registers to usedby/inproc anymore, except for
       i386

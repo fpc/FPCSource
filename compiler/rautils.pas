@@ -28,7 +28,7 @@ Interface
 
 Uses
   cutils,cclasses,
-  globtype,aasmbase,aasmtai,cpubase,cpuinfo,
+  globtype,aasmbase,aasmtai,cpubase,cpuinfo,cginfo,
   symconst,symbase,symtype,symdef;
 
 Const
@@ -85,14 +85,14 @@ type
   end;
 
   TOperand = class
-    size   : topsize;
     hastype,          { if the operand has typecasted variable }
     hasvar : boolean; { if the operand is loaded with a variable }
+    size   : TCGSize;
     opr    : TOprRec;
     constructor create;
     destructor  destroy;override;
     Procedure BuildOperand;virtual;
-    Procedure SetSize(_size:longint;force:boolean);
+    Procedure SetSize(_size:longint;force:boolean);virtual;
     Procedure SetCorrectSize(opcode:tasmop);virtual;
     Function  SetupResult:boolean;virtual;
     Function  SetupSelf:boolean;
@@ -104,7 +104,6 @@ type
 
   TInstruction = class
     opcode    : tasmop;
-    opsize    : topsize;
     condition : tasmcond;
     ops       : byte;
     labeled   : boolean;
@@ -690,7 +689,7 @@ end;
 
 constructor TOperand.Create;
 begin
-  size:=S_NO;
+  size:=OS_NO;
   hastype:=false;
   hasvar:=false;
   FillChar(Opr,sizeof(Opr),0);
@@ -702,29 +701,30 @@ begin
 end;
 
 
-Procedure TOperand.SetCorrectSize(opcode:tasmop);
-begin
-end;
-
 Procedure TOperand.SetSize(_size:longint;force:boolean);
 begin
   if force or
-     ((size = S_NO) and (_size<=extended_size)) then
+     ((size = OS_NO) and (_size<=extended_size)) then
    Begin
      case _size of
-      1 : size:=S_B;
-      2 : size:=S_W{ could be S_IS};
-      4 : size:=S_L{ could be S_IL or S_FS};
-      8 : size:=S_IQ{ could be S_D or S_FL};
+      1 : size:=OS_8;
+      2 : size:=OS_16{ could be S_IS};
+      4 : size:=OS_32{ could be S_IL or S_FS};
+      8 : size:=OS_64{ could be S_D or S_FL};
      else
       begin
         { extended_size can also be 8, resulting in a
           duplicate label }
         if _size=extended_size then
-          size:=S_FX;
+          size:=OS_F80;
       end;
      end;
    end;
+end;
+
+
+Procedure TOperand.SetCorrectSize(opcode:tasmop);
+begin
 end;
 
 
@@ -1016,7 +1016,6 @@ end;
 constructor TInstruction.create;
 Begin
   Opcode:=A_NONE;
-  Opsize:=S_NO;
   Condition:=C_NONE;
   Ops:=0;
   InitOperands;
@@ -1554,7 +1553,12 @@ end;
 end.
 {
   $Log$
-  Revision 1.61  2003-05-25 08:55:49  peter
+  Revision 1.62  2003-05-30 23:57:08  peter
+    * more sparc cleanup
+    * accumulator removed, splitted in function_return_reg (called) and
+      function_result_reg (caller)
+
+  Revision 1.61  2003/05/25 08:55:49  peter
     * load result using hidden parameter
 
   Revision 1.60  2003/05/15 18:58:53  peter

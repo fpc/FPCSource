@@ -102,6 +102,7 @@
       max_scratch_regs = 1;
       scratch_regs : array[1..max_scratch_regs] of Tsuperregister = (RS_EDI);
 {$endif}
+
 {*****************************************************************************
                                GDB Information
 *****************************************************************************}
@@ -145,34 +146,27 @@
 *****************************************************************************}
 
       {# Stack pointer register }
-      stack_pointer_reg = R_ESP;
       NR_STACK_POINTER_REG = NR_ESP;
       {# Frame pointer register }
-      frame_pointer_reg = R_EBP;
       NR_FRAME_POINTER_REG = NR_EBP;
       {# Register for addressing absolute data in a position independant way,
          such as in PIC code. The exact meaning is ABI specific. For
          further information look at GCC source : PIC_OFFSET_TABLE_REGNUM
       }
-      pic_offset_reg = R_EBX;
-      {# Results are returned in this register (32-bit values) }
-      accumulator   = R_EAX;
-      RS_ACCUMULATOR   = RS_EAX;
-      NR_ACCUMULATOR   = NR_EAX;
-      { The return_result_reg is used inside the called function to store its return
-        value when that is a scalar value otherwise a pointer to the address of the
-        result is placed inside it}
-      return_result_reg = accumulator;
-      RS_RETURN_RESULT_REG = RS_ACCUMULATOR;
-      NR_RETURN_RESULT_REG = NR_ACCUMULATOR;
+      NR_PIC_OFFSET_REG = NR_EBX;
+      { Results are returned in this register (32-bit values) }
+      NR_FUNCTION_RETURN_REG = NR_EAX;
+      RS_FUNCTION_RETURN_REG = RS_EAX;
+      { High part of 64bit return value }
+      NR_FUNCTION_RETURNHIGH_REG = NR_EDX;
+      RS_FUNCTION_RETURNHIGH_REG = RS_EDX;
+      { The value returned from a function is available in this register }
+      NR_FUNCTION_RESULT_REG = NR_FUNCTION_RETURN_REG;
+      RS_FUNCTION_RESULT_REG = RS_FUNCTION_RETURN_REG;
+      { The high part of 64bit value returned from a function is available in this register }
+      NR_FUNCTION_RESULTHIGH_REG = NR_FUNCTION_RETURNHIGH_REG;
+      RS_FUNCTION_RESULTHIGH_REG = RS_FUNCTION_RETURNHIGH_REG;
 
-      {the function_result_reg contains the function result after a call to a scalar
-      function othewise it contains a pointer to the returned result}
-        function_result_reg     =       accumulator;
-      {# Hi-Results are returned in this register (64-bit value high register) }
-      accumulatorhigh = R_EDX;
-      RS_ACCUMULATORHIGH  = RS_EDX;
-      NR_ACCUMULATORHIGH  = NR_EDX;
       { WARNING: don't change to R_ST0!! See comments above implementation of }
       { a_loadfpu* methods in rgcpu (JM)                                      }
       fpu_result_reg = R_ST;
@@ -202,7 +196,12 @@
 
 {
   $Log$
-  Revision 1.3  2003-05-16 14:33:31  peter
+  Revision 1.4  2003-05-30 23:57:08  peter
+    * more sparc cleanup
+    * accumulator removed, splitted in function_return_reg (called) and
+      function_result_reg (caller)
+
+  Revision 1.3  2003/05/16 14:33:31  peter
     * regvar fixes
 
   Revision 1.2  2002/04/25 16:12:09  florian

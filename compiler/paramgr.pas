@@ -236,7 +236,8 @@ unit paramgr;
          result.loc:=LOC_REFERENCE;
          result.size:=OS_ADDR;
          result.sp_fixup:=pointer_size;
-         result.reference.index.enum:=stack_pointer_reg;
+         result.reference.index.enum:=R_INTREGISTER;
+         result.reference.index.number:=NR_STACK_POINTER_REG;
          result.reference.offset:=0;
       end;
 
@@ -246,7 +247,8 @@ unit paramgr;
          result.loc:=LOC_REFERENCE;
          result.size:=OS_ADDR;
          result.sp_fixup:=pointer_size;
-         result.reference.index.enum:=stack_pointer_reg;
+         result.reference.index.enum:=R_INTREGISTER;
+         result.reference.index.number:=NR_STACK_POINTER_REG;
          result.reference.offset:=0;
       end;
 
@@ -265,29 +267,38 @@ unit paramgr;
 {$ifndef cpu64bit}
                if result.size in [OS_64,OS_S64] then
                 begin
-                  result.register64.reghi.enum:=accumulatorhigh;
-                  result.register64.reglo.enum:=accumulator;
+                  result.register64.reghi.enum:=R_INTREGISTER;
+                  result.register64.reghi.number:=NR_FUNCTION_RETURNHIGH_REG;
+                  result.register64.reglo.enum:=R_INTREGISTER;
+                  result.register64.reglo.number:=NR_FUNCTION_RETURN_REG;
                 end
                else
 {$endif cpu64bit}
-               result.register.enum:=accumulator;
+                begin
+                  result.register.enum:=R_INTREGISTER;
+                  result.register.number:=NR_FUNCTION_RETURN_REG;
+                end;
              end;
            floatdef :
              begin
                result.loc := LOC_FPUREGISTER;
 {$ifdef cpufpemu}
                if cs_fp_emulation in aktmoduleswitches then
-                  result.register.enum := accumulator
+                 begin
+                   result.register.enum:=R_INTREGISTER;
+                   result.register.number:=FUNCTION_RETURN_REG;
+                 end
                else
 {$endif cpufpemu}
-                  result.register.enum := FPU_RESULT_REG;
+                 result.register.enum := FPU_RESULT_REG;
              end;
           else
              begin
                 if not ret_in_param(def,calloption) then
                   begin
                     result.loc := LOC_REGISTER;
-                    result.register.enum := accumulator;
+                    result.register.enum:=R_INTREGISTER;
+                    result.register.number:=NR_FUNCTION_RETURN_REG;
                   end
                 else
                    begin
@@ -388,7 +399,12 @@ end.
 
 {
    $Log$
-   Revision 1.38  2003-05-13 15:16:13  peter
+   Revision 1.39  2003-05-30 23:57:08  peter
+     * more sparc cleanup
+     * accumulator removed, splitted in function_return_reg (called) and
+       function_result_reg (caller)
+
+   Revision 1.38  2003/05/13 15:16:13  peter
      * removed ret_in_acc, it's the reverse of ret_in_param
      * fixed ret_in_param for win32 cdecl array
 

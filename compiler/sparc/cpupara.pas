@@ -1,8 +1,8 @@
-{******************************************************************************
+{
     $Id$
-    Copyright (c) 2002 by Florian Klaempfl
+    Copyright (c) 1998-2002 by Florian Klaempfl
 
-    PowerPC specific calling conventions
+    Calling conventions for the SPARC
 
     This program is free software; you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -19,269 +19,296 @@
     Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
  *****************************************************************************}
 unit cpupara;
-{SPARC specific calling conventions are handled by this unit}
-{$INCLUDE fpcdefs.inc}
+
+{$i fpcdefs.inc}
+
 interface
-uses
-  cpubase,
-  symconst,symbase,symtype,symdef,paramgr;
-type
-  TSparcParaManager=class(TParaManager)
-    {Returns a structure giving the information on the storage of the parameter
-    (which must be an integer parameter)
-    @param(nr Parameter number of routine, starting from 1)}
-    function GetIntParaLoc(nr:longint):TParaLocation;override;
-    {Creates location information related to the parameter of the function}
-    procedure create_param_loc_info(p:TAbstractProcDef);override;
-    {Returns the location where the invisible parameter for structured function
-    results will be passed.}
-    function GetFuncRetParaLoc(p:TAbstractProcDef):TParaLocation;override;
-  end;
+
+    uses
+      cpubase,
+      symconst,symbase,symtype,symdef,paramgr;
+
+    type
+      TSparcParaManager=class(TParaManager)
+        {Returns a structure giving the information on the storage of the parameter
+        (which must be an integer parameter)
+        @param(nr Parameter number of routine, starting from 1)}
+        function GetIntParaLoc(nr:longint):TParaLocation;override;
+        {Creates location information related to the parameter of the function}
+        procedure create_param_loc_info(p:TAbstractProcDef);override;
+        {Returns the location where the invisible parameter for structured function
+        results will be passed.}
+        function GetFuncRetParaLoc(p:TAbstractProcDef):TParaLocation;override;
+      end;
+
+
 implementation
-uses
-  verbose,
-  cpuinfo,cginfo,cgbase,
-  defutil;
-function TSparcParaManager.GetIntParaLoc(nr:longint):TParaLocation;
-  begin
-    if nr<1
-    then
-      InternalError(2002100806);
-    FillChar(GetIntParaLoc,SizeOf(TParaLocation),0);
-    Dec(nr);
-    with GetIntParaLoc do
-      if nr<6
-      then{The six first parameters are passed into registers}
-        begin
-          loc:=LOC_REGISTER;
-          register.enum:=ToldRegister(LongInt(R_i0)+nr);
-        end
-      else{The other parameters are passed into the frame}
-        begin
-          loc:=LOC_REFERENCE;
-          reference.index.enum:=frame_pointer_reg;
-          reference.offset:=-68-nr*4;
-        end;
-  end;
-function GetParaLoc(p:TDef):TCGLoc;
-  begin
-{Later, the LOC_REFERENCE is in most cases changed into LOC_REGISTER if
-push_addr_param for the def is true}
-    case p.DefType of
-      OrdDef:
-        GetParaLoc:=LOC_REGISTER;
-      FloatDef:
-        GetParaLoc:=LOC_FPUREGISTER;
-      enumdef:
-        getparaloc:=LOC_REGISTER;
-      pointerdef:
-        getparaloc:=LOC_REGISTER;
-      formaldef:
-        getparaloc:=LOC_REGISTER;
-      classrefdef:
-        getparaloc:=LOC_REGISTER;
-      recorddef:
-        getparaloc:=LOC_REFERENCE;
-      objectdef:
-        if is_object(p)
-        then
-          getparaloc:=LOC_REFERENCE
-        else
-          getparaloc:=LOC_REGISTER;
-      stringdef:
-        if is_shortstring(p) or is_longstring(p)
-        then
-          getparaloc:=LOC_REFERENCE
-        else
-          getparaloc:=LOC_REGISTER;
-      procvardef:
-        if (po_methodpointer in tprocvardef(p).procoptions)
-        then
-          getparaloc:=LOC_REFERENCE
-        else
-          getparaloc:=LOC_REGISTER;
-      filedef:
-        getparaloc:=LOC_REGISTER;
-      arraydef:
-        getparaloc:=LOC_REFERENCE;
-      setdef:
-        if is_smallset(p)
-        then
-          getparaloc:=LOC_REGISTER
-        else
-          getparaloc:=LOC_REFERENCE;
-      variantdef:
-        getparaloc:=LOC_REFERENCE;
-      { avoid problems with errornous definitions }
-      errordef:
-        getparaloc:=LOC_REGISTER;
-      else
-        internalerror(2002071001);
-    end;
-  end;
-procedure TSparcParaManager.create_param_loc_info(p:TAbstractProcDef);
-  var
-    nextintreg,nextfloatreg:tregister;
-    stack_offset:aword;
-    hp:tparaitem;
-    loc:tcgloc;
-    is_64bit:boolean;
-  begin
-    nextintreg.enum:=R_O0;
-    nextfloatreg.enum:=R_F0;
-    stack_offset:=92;
-    hp:=TParaItem(p.para.First);
-    while assigned(hp) do
+
+    uses
+      verbose,
+      cpuinfo,cginfo,cgbase,
+      defutil;
+
+    function TSparcParaManager.GetIntParaLoc(nr:longint):TParaLocation;
       begin
-        loc:=GetParaLoc(hp.paratype.def);
-        case loc of
-          LOC_REGISTER:
+        if nr<1 then
+          InternalError(2002100806);
+        FillChar(GetIntParaLoc,SizeOf(TParaLocation),0);
+        Dec(nr);
+        with GetIntParaLoc do
+         begin
+           { The six first parameters are passed into registers }
+           if nr<6 then
             begin
-              hp.paraloc.size:=def_cgSize(hp.paratype.def);
-              if hp.paraloc.size=OS_NO
-              then
-                hp.paraloc.size:=OS_ADDR;
-              is_64bit:=hp.paraloc.size in [OS_64,OS_S64];
-              if NextIntReg.enum<=ToldRegister(ord(R_i5)-ord(is_64bit))
-              then
-                begin
-                  hp.paraloc.loc:=LOC_REGISTER;
-                  hp.paraloc.registerlow:=NextIntReg;
-                  inc(NextIntReg.enum);
-                  if is_64bit
-                  then
-                    begin
-                      hp.paraloc.registerhigh:=nextintreg;
-                      inc(nextintreg.enum);
-                    end;
-                end
-              else
-                begin
-                  nextintreg.enum:=R_i6;
-                  hp.paraloc.loc:=LOC_REFERENCE;
-                  hp.paraloc.reference.index.enum:=stack_pointer_reg;
-                  hp.paraloc.reference.offset:=stack_offset;
-                  if not is_64bit
-                  then
-                    inc(stack_offset,4)
-                  else
-                    inc(stack_offset,8);
-                end;
+              loc:=LOC_REGISTER;
+              register.enum:=R_INTREGISTER;
+              register.number:=(RS_I0+nr) shl 8;
+            end
+           else
+           { The other parameters are passed into the frame }
+            begin
+              loc:=LOC_REFERENCE;
+              reference.index.enum:=R_INTREGISTER;
+              reference.index.number:=NR_FRAME_POINTER_REG;
+              reference.offset:=-68-nr*4;
             end;
-          LOC_FPUREGISTER:
-            begin
-              if hp.paratyp in [vs_var,vs_out]
-              then
+         end;
+      end;
+
+
+    function GetParaLoc(p:TDef):TCGLoc;
+      begin
+        { Later, the LOC_REFERENCE is in most cases changed into
+          LOC_REGISTER if push_addr_param for the def is true}
+        case p.DefType of
+          OrdDef:
+            GetParaLoc:=LOC_REGISTER;
+          FloatDef:
+            GetParaLoc:=LOC_FPUREGISTER;
+          enumdef:
+            getparaloc:=LOC_REGISTER;
+          pointerdef:
+            getparaloc:=LOC_REGISTER;
+          formaldef:
+            getparaloc:=LOC_REGISTER;
+          classrefdef:
+            getparaloc:=LOC_REGISTER;
+          recorddef:
+            getparaloc:=LOC_REFERENCE;
+          objectdef:
+            if is_object(p) then
+              getparaloc:=LOC_REFERENCE
+            else
+              getparaloc:=LOC_REGISTER;
+          stringdef:
+            if is_shortstring(p) or is_longstring(p) then
+              getparaloc:=LOC_REFERENCE
+            else
+              getparaloc:=LOC_REGISTER;
+          procvardef:
+            if (po_methodpointer in tprocvardef(p).procoptions) then
+              getparaloc:=LOC_REFERENCE
+            else
+              getparaloc:=LOC_REGISTER;
+          filedef:
+            getparaloc:=LOC_REGISTER;
+          arraydef:
+            getparaloc:=LOC_REFERENCE;
+          setdef:
+            if is_smallset(p) then
+              getparaloc:=LOC_REGISTER
+            else
+              getparaloc:=LOC_REFERENCE;
+          variantdef:
+            getparaloc:=LOC_REFERENCE;
+          { avoid problems with errornous definitions }
+          errordef:
+            getparaloc:=LOC_REGISTER;
+          else
+            internalerror(2002071001);
+        end;
+      end;
+
+
+    procedure TSparcParaManager.create_param_loc_info(p:TAbstractProcDef);
+      var
+        nextintreg : tsuperregister;
+        nextfloatreg : toldregister;
+        stack_offset : longint;
+        hp : tparaitem;
+        loc : tcgloc;
+        is_64bit : boolean;
+      begin
+        nextintreg:=RS_O0;
+        nextfloatreg:=R_F0;
+        stack_offset:=92;
+        hp:=TParaItem(p.para.First);
+        while assigned(hp) do
+          begin
+            loc:=GetParaLoc(hp.paratype.def);
+            case loc of
+              LOC_REGISTER:
                 begin
-                  if NextIntReg.enum<=R_O5
-                  then
+                  hp.paraloc.size:=def_cgSize(hp.paratype.def);
+                  if hp.paraloc.size=OS_NO then
+                    hp.paraloc.size:=OS_ADDR;
+                  is_64bit:=(hp.paraloc.size in [OS_64,OS_S64]);
+                  if NextIntReg<=RS_I5-ord(is_64bit) then
                     begin
-                      hp.paraloc.size:=OS_ADDR;
                       hp.paraloc.loc:=LOC_REGISTER;
-                      hp.paraloc.register:=nextintreg;
-                      inc(nextintreg.enum);
+                      hp.paraloc.registerlow.enum:=R_INTREGISTER;
+                      hp.paraloc.registerlow.number:=NextIntReg shl 8;
+                      inc(NextIntReg);
+                      if is_64bit then
+                        begin
+                          hp.paraloc.registerhigh.enum:=R_INTREGISTER;
+                          hp.paraloc.registerhigh.number:=nextintreg shl 8;
+                          inc(nextintreg);
+                        end;
+                    end
+                  else
+                    begin
+                      nextintreg:=RS_I6;
+                      hp.paraloc.loc:=LOC_REFERENCE;
+                      hp.paraloc.reference.index.enum:=R_INTREGISTER;
+                      hp.paraloc.reference.index.number:=NR_STACK_POINTER_REG;
+                      hp.paraloc.reference.offset:=stack_offset;
+                      if not is_64bit then
+                        inc(stack_offset,4)
+                      else
+                        inc(stack_offset,8);
+                    end;
+                end;
+
+              LOC_FPUREGISTER:
+                begin
+                  if hp.paratyp in [vs_var,vs_out] then
+                    begin
+                      if NextIntReg<=RS_O5 then
+                        begin
+                          hp.paraloc.size:=OS_ADDR;
+                          hp.paraloc.loc:=LOC_REGISTER;
+                          hp.paraloc.register.enum:=R_INTREGISTER;
+                          hp.paraloc.register.number:=nextintreg shl 8;
+                          inc(nextintreg);
+                        end
+                      else
+                        begin
+                          {!!!!!!!}
+                          hp.paraloc.size:=def_cgsize(hp.paratype.def);
+                          internalerror(2002071006);
+                        end;
+                    end
+                  else if nextfloatreg<=R_F10 then
+                    begin
+                      hp.paraloc.size:=def_cgsize(hp.paratype.def);
+                      hp.paraloc.loc:=LOC_FPUREGISTER;
+                      hp.paraloc.register.enum:=nextfloatreg;
+                      inc(nextfloatreg);
                     end
                   else
                     begin
                       {!!!!!!!}
                       hp.paraloc.size:=def_cgsize(hp.paratype.def);
-                      internalerror(2002071006);
+                      internalerror(2002071004);
                     end;
-                end
-              else if nextfloatreg.enum<=R_F10 then
-                begin
-                  hp.paraloc.size:=def_cgsize(hp.paratype.def);
-                  hp.paraloc.loc:=LOC_FPUREGISTER;
-                  hp.paraloc.register:=nextfloatreg;
-                  inc(nextfloatreg.enum);
-                end
-              else
-                begin
-                  {!!!!!!!}
-                  hp.paraloc.size:=def_cgsize(hp.paratype.def);
-                  internalerror(2002071004);
                 end;
+
+              LOC_REFERENCE:
+                begin
+                   hp.paraloc.size:=OS_ADDR;
+                   if push_addr_param(hp.paratype.def,p.proccalloption) or (hp.paratyp in [vs_var,vs_out]) then
+                     begin
+                        if nextintreg<=RS_O5 then
+                          begin
+                             hp.paraloc.loc:=LOC_REGISTER;
+                             hp.paraloc.register.enum:=R_INTREGISTER;
+                             hp.paraloc.register.number:=nextintreg shl 8;
+                             inc(nextintreg);
+                          end
+                        else
+                           begin
+                              hp.paraloc.loc:=LOC_REFERENCE;
+                              hp.paraloc.reference.index.enum:=R_INTREGISTER;
+                              hp.paraloc.reference.index.number:=NR_STACK_POINTER_REG;
+                              hp.paraloc.reference.offset:=stack_offset;
+                              inc(stack_offset,4);
+                          end;
+                     end
+                   else
+                     begin
+                        hp.paraloc.loc:=LOC_REFERENCE;
+                        hp.paraloc.reference.index.enum:=R_INTREGISTER;
+                        hp.paraloc.reference.index.number:=NR_STACK_POINTER_REG;
+                        hp.paraloc.reference.offset:=stack_offset;
+                        inc(stack_offset,hp.paratype.def.size);
+                     end;
+                end;
+
+              else
+                internalerror(2002071002);
             end;
-                 LOC_REFERENCE:
-                   begin
-                      hp.paraloc.size:=OS_ADDR;
-                      if push_addr_param(hp.paratype.def,p.proccalloption) or (hp.paratyp in [vs_var,vs_out]) then
-                        begin
-                           if nextintreg.enum<=R_O5 then
-                             begin
-                                hp.paraloc.loc:=LOC_REGISTER;
-                                hp.paraloc.register:=nextintreg;
-                                inc(nextintreg.enum);
-                             end
-                           else
-                              begin
-                                 hp.paraloc.loc:=LOC_REFERENCE;
-                                 hp.paraloc.reference.index.enum:=stack_pointer_reg;
-                                 hp.paraloc.reference.offset:=stack_offset;
-                                 inc(stack_offset,4);
-                             end;
-                        end
-                      else
-                        begin
-                           hp.paraloc.loc:=LOC_REFERENCE;
-                           hp.paraloc.reference.index.enum:=stack_pointer_reg;
-                           hp.paraloc.reference.offset:=stack_offset;
-                           inc(stack_offset,hp.paratype.def.size);
-                        end;
-                   end;
-                 else
-                   internalerror(2002071002);
-        end;
-      hp:=TParaItem(hp.Next);
-    end;
-  end;
-function tSparcParaManager.GetFuncRetParaLoc(p:TAbstractProcDef):TParaLocation;
-  begin
-    with GetFuncRetParaLoc do
-      case p.rettype.def.deftype of
-        orddef,enumdef:
-          begin
-            loc:=LOC_REGISTER;
-            register.enum:=return_result_reg;
-            size:=def_cgsize(p.rettype.def);
-            if size in [OS_S64,OS_64]
-            then
-              RegisterHigh.enum:=R_I1;
+            hp:=TParaItem(hp.Next);
           end;
-        floatdef:
-          begin
-            loc:=LOC_FPUREGISTER;
-            register.enum:=R_F1;
-            size:=def_cgsize(p.rettype.def);
-          end;
-        setdef,
-        variantdef,
-        pointerdef,
-        formaldef,
-        classrefdef,
-        recorddef,
-        objectdef,
-        stringdef,
-        procvardef,
-        filedef,
-        arraydef,
-        errordef:
-          begin
-            loc:=LOC_REFERENCE;
-            reference.index.enum:=frame_pointer_reg;
-            reference.offset:=64;
-            size:=OS_ADDR;
-          end;
-        else
-          internalerror(2002090903);
       end;
-  end;
+
+
+    function tSparcParaManager.GetFuncRetParaLoc(p:TAbstractProcDef):TParaLocation;
+      begin
+        with GetFuncRetParaLoc do
+         begin
+           case p.rettype.def.deftype of
+             orddef,enumdef:
+               begin
+                 loc:=LOC_REGISTER;
+                 register.enum:=R_INTREGISTER;
+                 register.number:=NR_FUNCTION_RETURN_REG;
+                 size:=def_cgsize(p.rettype.def);
+                 if size in [OS_S64,OS_64] then
+                   internalerror(200305309);
+               end;
+             floatdef:
+               begin
+                 loc:=LOC_FPUREGISTER;
+                 register.enum:=R_F1;
+                 size:=def_cgsize(p.rettype.def);
+               end;
+             setdef,
+             variantdef,
+             pointerdef,
+             formaldef,
+             classrefdef,
+             recorddef,
+             objectdef,
+             stringdef,
+             procvardef,
+             filedef,
+             arraydef,
+             errordef:
+               begin
+                 loc:=LOC_REFERENCE;
+                 reference.index.enum:=R_INTREGISTER;
+                 reference.index.number:=NR_FRAME_POINTER_REG;
+                 reference.offset:=64;
+                 size:=OS_ADDR;
+               end;
+             else
+               internalerror(2002090903);
+           end;
+         end;
+      end;
+
 begin
    ParaManager:=TSparcParaManager.create;
 end.
 {
   $Log$
-  Revision 1.16  2003-04-23 13:35:39  peter
+  Revision 1.17  2003-05-30 23:57:08  peter
+    * more sparc cleanup
+    * accumulator removed, splitted in function_return_reg (called) and
+      function_result_reg (caller)
+
+  Revision 1.16  2003/04/23 13:35:39  peter
     * fix sparc compile
 
   Revision 1.15  2003/04/23 12:35:35  florian

@@ -221,6 +221,7 @@ uses
       NR_RTOC = NR_R2;
 
     {Super registers:}
+      RS_NONE=$00;
       RS_R0 = $01; RS_R1 = $02; RS_R2 = $03;
       RS_R3 = $04; RS_R4 = $05; RS_R5 = $06;
       RS_R6 = $07; RS_R7 = $08; RS_R8 = $09;
@@ -380,7 +381,7 @@ uses
         case typ : toptype of
          top_none   : ();
          top_reg    : (reg:tregister);
-         top_ref    : (ref:^treference);
+         top_ref    : (ref:preference);
          top_const  : (val:aword);
          top_symbol : (sym:tasmsymbol;symofs:longint);
          top_bool  :  (b: boolean);
@@ -473,9 +474,6 @@ uses
 
     const
       max_operands = 5;
-
-      lvaluelocations = [LOC_REFERENCE, LOC_CREGISTER, LOC_CFPUREGISTER,
-                         LOC_CMMREGISTER];
 
       {# Constant defining possibly all registers which might require saving }
 {$warning FIX ME !!!!!!!!! }
@@ -591,47 +589,47 @@ uses
 
       }
 
-          stab_regindex : array[firstreg..lastreg] of shortint =
-          (
-           { R_NO }
-           -1,
-           { R0..R7 }
-           0,1,2,3,4,5,6,7,
-           { R8..R15 }
-           8,9,10,11,12,13,14,15,
-           { R16..R23 }
-           16,17,18,19,20,21,22,23,
-           { R24..R32 }
-           24,25,26,27,28,29,30,31,
-           { F0..F7 }
-           32,33,34,35,36,37,38,39,
-           { F8..F15 }
-           40,41,42,43,44,45,46,47,
-           { F16..F23 }
-           48,49,50,51,52,53,54,55,
-           { F24..F31 }
-           56,57,58,59,60,61,62,63,
-           { M0..M7 Multimedia registers are not supported by GCC }
-           -1,-1,-1,-1,-1,-1,-1,-1,
-           { M8..M15 }
-           -1,-1,-1,-1,-1,-1,-1,-1,
-           { M16..M23 }
-           -1,-1,-1,-1,-1,-1,-1,-1,
-           { M24..M31 }
-           -1,-1,-1,-1,-1,-1,-1,-1,
-           { CR }
-           -1,
-           { CR0..CR7 }
-           68,69,70,71,72,73,74,75,
-           { XER }
-           76,
-           { LR }
-           65,
-           { CTR }
-           66,
-           { FPSCR }
-           -1
-        );
+      stab_regindex : array[firstreg..lastreg] of shortint =
+      (
+        { R_NO }
+        -1,
+        { R0..R7 }
+        0,1,2,3,4,5,6,7,
+        { R8..R15 }
+        8,9,10,11,12,13,14,15,
+        { R16..R23 }
+        16,17,18,19,20,21,22,23,
+        { R24..R32 }
+        24,25,26,27,28,29,30,31,
+        { F0..F7 }
+        32,33,34,35,36,37,38,39,
+        { F8..F15 }
+        40,41,42,43,44,45,46,47,
+        { F16..F23 }
+        48,49,50,51,52,53,54,55,
+        { F24..F31 }
+        56,57,58,59,60,61,62,63,
+        { M0..M7 Multimedia registers are not supported by GCC }
+        -1,-1,-1,-1,-1,-1,-1,-1,
+        { M8..M15 }
+        -1,-1,-1,-1,-1,-1,-1,-1,
+        { M16..M23 }
+        -1,-1,-1,-1,-1,-1,-1,-1,
+        { M24..M31 }
+        -1,-1,-1,-1,-1,-1,-1,-1,
+        { CR }
+        -1,
+        { CR0..CR7 }
+        68,69,70,71,72,73,74,75,
+        { XER }
+        76,
+        { LR }
+        65,
+        { CTR }
+        66,
+        { FPSCR }
+        -1
+      );
 
 
 {*****************************************************************************
@@ -639,18 +637,11 @@ uses
 *****************************************************************************}
 
       {# Stack pointer register }
-      stack_pointer_reg = R_1;
       NR_STACK_POINTER_REG = NR_R1;
       RS_STACK_POINTER_REG = RS_R1;
       {# Frame pointer register }
-      frame_pointer_reg = stack_pointer_reg;
       NR_FRAME_POINTER_REG = NR_STACK_POINTER_REG;
       RS_FRAME_POINTER_REG = RS_STACK_POINTER_REG;
-      {# Self pointer register : contains the instance address of an
-         object or class. }
-      self_pointer_reg = R_9;
-      NR_SELF_POINTER_REG = NR_R9;
-      RS_SELF_POINTER_REG = RS_R9;
       {# Register for addressing absolute data in a position independant way,
          such as in PIC code. The exact meaning is ABI specific. For
          further information look at GCC source : PIC_OFFSET_TABLE_REGNUM
@@ -658,28 +649,23 @@ uses
          Taken from GCC rs6000.h
       }
 {$warning As indicated in rs6000.h, but can't find it anywhere else!}
-      pic_offset_reg = R_30;
-      {# Results are returned in this register (32-bit values) }
-      accumulator   = R_3;
-      NR_ACCUMULATOR = NR_R3;
-      RS_ACCUMULATOR = RS_R3;
-  {the return_result_reg, is used inside the called function to store its return
-  value when that is a scalar value otherwise a pointer to the address of the
-  result is placed inside it}
-        return_result_reg               =       accumulator;
-      NR_RETURN_RESULT_REG = NR_ACCUMULATOR;
-      RS_RETURN_RESULT_REG = RS_ACCUMULATOR;
+      NR_PIC_OFFSET_REG = NR_R30;
+      { Results are returned in this register (32-bit values) }
+      NR_FUNCTION_RETURN_REG = NR_R3;
+      RS_FUNCTION_RETURN_REG = RS_R3;
+      { High part of 64bit return value }
+      NR_FUNCTION_RETURNHIGH_REG = NR_R4;
+      RS_FUNCTION_RETURNHIGH_REG = RS_R4;
+      { The value returned from a function is available in this register }
+      NR_FUNCTION_RESULT_REG = NR_FUNCTION_RETURN_REG;
+      RS_FUNCTION_RESULT_REG = RS_FUNCTION_RETURN_REG;
+      { The high part of 64bit value returned from a function is available in this register }
+      NR_FUNCTION_RESULTHIGH_REG = NR_FUNCTION_RETURNHIGH_REG;
+      RS_FUNCTION_RESULTHIGH_REG = RS_FUNCTION_RETURNHIGH_REG;
 
-  {the function_result_reg contains the function result after a call to a scalar
-  function othewise it contains a pointer to the returned result}
-        function_result_reg     =       accumulator;
-      {# Hi-Results are returned in this register (64-bit value high register) }
-      accumulatorhigh = R_4;
-      NR_ACCUMULATORHIGH = NR_R4;
-      RS_ACCUMULATORHIGH = RS_R4;
       { WARNING: don't change to R_ST0!! See comments above implementation of }
       { a_loadfpu* methods in rgcpu (JM)                                      }
-      fpu_result_reg = R_F1;
+      FPU_RESULT_REG = R_F1;
       mmresultreg = R_M0;
 
 {*****************************************************************************
@@ -730,6 +716,7 @@ uses
     procedure create_cond_norm(cond: TAsmCondFlag; cr: byte;var r : TasmCond);
     procedure convert_register_to_enum(var r:Tregister);
     function cgsize2subreg(s:Tcgsize):Tsubregister;
+
 
 implementation
 
@@ -792,7 +779,6 @@ implementation
 
 
     procedure create_cond_norm(cond: TAsmCondFlag; cr: byte;var r : TasmCond);
-
       begin
         r.simple := true;
         r.cond := cond;
@@ -803,64 +789,69 @@ implementation
         end;
       end;
 
+
     procedure convert_register_to_enum(var r:Tregister);
-
-    begin
-      if r.enum = R_INTREGISTER then
-        if (r.number >= NR_NO) and
-           (r.number <= NR_R31) then
-          r.enum := toldregister(r.number shr 8)
-        else
+      begin
+        if r.enum = R_INTREGISTER then
+         if (r.number >= NR_NO) and
+            (r.number <= NR_R31) then
+           r.enum := toldregister(r.number shr 8)
+         else
 {        case r.number of
-          NR_NO: r.enum:= R_NO;
+            NR_NO: r.enum:= R_NO;
 
-          NR_R0: r.enum:= R_0;
-          NR_R1: r.enum:= R_1;
-          NR_R2: r.enum:= R_2;
-          NR_R3: r.enum:= R_3;
-          NR_R4: r.enum:= R_4;
-          NR_R5: r.enum:= R_5;
-          NR_R6: r.enum:= R_6;
-          NR_R7: r.enum:= R_7;
-          NR_R8: r.enum:= R_8;
-          NR_R9: r.enum:= R_9;
-          NR_R10: r.enum:= R_10;
-          NR_R11: r.enum:= R_11;
-          NR_R12: r.enum:= R_12;
-          NR_R13: r.enum:= R_13;
-          NR_R14: r.enum:= R_14;
-          NR_R15: r.enum:= R_15;
-          NR_R16: r.enum:= R_16;
-          NR_R17: r.enum:= R_17;
-          NR_R18: r.enum:= R_18;
-          NR_R19: r.enum:= R_19;
-          NR_R20: r.enum:= R_20;
-          NR_R21: r.enum:= R_21;
-          NR_R22: r.enum:= R_22;
-          NR_R23: r.enum:= R_23;
-          NR_R24: r.enum:= R_24;
-          NR_R25: r.enum:= R_25;
-          NR_R26: r.enum:= R_26;
-          NR_R27: r.enum:= R_27;
-          NR_R28: r.enum:= R_28;
-          NR_R29: r.enum:= R_29;
-          NR_R30: r.enum:= R_30;
-          NR_R31: r.enum:= R_31;
+            NR_R0: r.enum:= R_0;
+            NR_R1: r.enum:= R_1;
+            NR_R2: r.enum:= R_2;
+            NR_R3: r.enum:= R_3;
+            NR_R4: r.enum:= R_4;
+            NR_R5: r.enum:= R_5;
+            NR_R6: r.enum:= R_6;
+            NR_R7: r.enum:= R_7;
+            NR_R8: r.enum:= R_8;
+            NR_R9: r.enum:= R_9;
+            NR_R10: r.enum:= R_10;
+            NR_R11: r.enum:= R_11;
+            NR_R12: r.enum:= R_12;
+            NR_R13: r.enum:= R_13;
+            NR_R14: r.enum:= R_14;
+            NR_R15: r.enum:= R_15;
+            NR_R16: r.enum:= R_16;
+            NR_R17: r.enum:= R_17;
+            NR_R18: r.enum:= R_18;
+            NR_R19: r.enum:= R_19;
+            NR_R20: r.enum:= R_20;
+            NR_R21: r.enum:= R_21;
+            NR_R22: r.enum:= R_22;
+            NR_R23: r.enum:= R_23;
+            NR_R24: r.enum:= R_24;
+            NR_R25: r.enum:= R_25;
+            NR_R26: r.enum:= R_26;
+            NR_R27: r.enum:= R_27;
+            NR_R28: r.enum:= R_28;
+            NR_R29: r.enum:= R_29;
+            NR_R30: r.enum:= R_30;
+            NR_R31: r.enum:= R_31;
         else}
-          internalerror(200301082);
+            internalerror(200301082);
 {        end;}
-    end;
+      end;
+
 
     function cgsize2subreg(s:Tcgsize):Tsubregister;
-
-    begin
-      cgsize2subreg:=R_SUBWHOLE;
-    end;
+      begin
+        cgsize2subreg:=R_SUBWHOLE;
+      end;
 
 end.
 {
   $Log$
-  Revision 1.53  2003-05-30 18:49:59  jonas
+  Revision 1.54  2003-05-30 23:57:08  peter
+    * more sparc cleanup
+    * accumulator removed, splitted in function_return_reg (called) and
+      function_result_reg (caller)
+
+  Revision 1.53  2003/05/30 18:49:59  jonas
     * changed scratchregs from r28-r30 to r29-r31
     * made sure the regvar registers don't overlap with the scratchregs
       anymore
@@ -924,10 +915,10 @@ end.
     + some comments describing the fields of treference
 
   Revision 1.36  2002/11/17 18:26:16  mazen
-  * fixed a compilation bug accmulator-->accumulator, in definition of return_result_reg
+  * fixed a compilation bug accmulator-->FUNCTION_RETURN_REG, in definition of return_result_reg
 
   Revision 1.35  2002/11/17 17:49:09  mazen
-  + return_result_reg and function_result_reg are now used, in all plateforms, to pass functions result between called function and its caller. See the explanation of each one
+  + return_result_reg and FUNCTION_RESULT_REG are now used, in all plateforms, to pass functions result between called function and its caller. See the explanation of each one
 
   Revision 1.34  2002/09/17 18:54:06  jonas
     * a_load_reg_reg() now has two size parameters: source and dest. This

@@ -146,14 +146,14 @@ implementation
                        if hregister.enum<>R_INTREGISTER then
                          internalerror(200301171);
                        { don't save the allocated register else the result will be destroyed later }
-                       rg.saveusedintregisters(exprasmlist,pushed,[RS_ACCUMULATOR]-[hregister.number shr 8]);
+                       rg.saveusedintregisters(exprasmlist,pushed,[RS_FUNCTION_RESULT_REG]-[hregister.number shr 8]);
                        reference_reset_symbol(href,objectlibrary.newasmsymboldata(tvarsym(symtableentry).mangledname),0);
                        cg.a_param_ref(exprasmlist,OS_ADDR,href,paramanager.getintparaloc(1));
                        { the called procedure isn't allowed to change }
                        { any register except EAX                    }
                        cg.a_call_reg(exprasmlist,hregister);
                        r.enum:=R_INTREGISTER;
-                       r.number:=NR_ACCUMULATOR;
+                       r.number:=NR_FUNCTION_RESULT_REG;
                        cg.a_load_reg_reg(exprasmlist,OS_INT,OS_ADDR,r,hregister);
                        rg.restoreusedintregisters(exprasmlist,pushed);
                        cg.a_label(exprasmlist,norelocatelab);
@@ -922,7 +922,12 @@ begin
 end.
 {
   $Log$
-  Revision 1.63  2003-05-30 23:54:08  jonas
+  Revision 1.64  2003-05-30 23:57:08  peter
+    * more sparc cleanup
+    * accumulator removed, splitted in function_return_reg (called) and
+      function_result_reg (caller)
+
+  Revision 1.63  2003/05/30 23:54:08  jonas
     * forgot to commit, a_load_loc_reg change
 
   Revision 1.62  2003/05/26 19:38:28  peter

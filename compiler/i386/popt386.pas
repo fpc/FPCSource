@@ -1376,7 +1376,9 @@ Begin
                              Taicpu(hp2).opcode := A_MOV;
                              Taicpu(hp2).Loadoper(1,Taicpu(hp1).oper[0]);
                              reference_reset_old(tmpref);
-                             tmpRef.base .enum:= STACK_POINTER_REG;
+                             tmpRef.base.enum:=R_INTREGISTER;
+                             tmpRef.base.number:=NR_STACK_POINTER_REG;
+                             convert_register_to_enum(tmpref.base);
                              tmpRef.offset := l;
                              Taicpu(hp2).loadRef(0,tmpRef);
                              hp4 := hp1;
@@ -2058,7 +2060,12 @@ End.
 
 {
   $Log$
-  Revision 1.43  2003-04-27 11:21:35  peter
+  Revision 1.44  2003-05-30 23:57:08  peter
+    * more sparc cleanup
+    * accumulator removed, splitted in function_return_reg (called) and
+      function_result_reg (caller)
+
+  Revision 1.43  2003/04/27 11:21:35  peter
     * aktprocdef renamed to current_procdef
     * procinfo renamed to current_procinfo
     * procinfo will now be stored in current_module so it can be

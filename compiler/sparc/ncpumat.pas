@@ -150,7 +150,7 @@ implementation
              rg.UnGetRegisterInt(exprasmlist,divider);
            end;
        { free used registers }
-        if numerator.enum <> resultreg.enum then
+        if numerator.number <> resultreg.number then
           rg.ungetregisterint(exprasmlist,numerator);
         { set result location }
         location.loc:=LOC_REGISTER;
@@ -479,7 +479,12 @@ begin
 end.
 {
   $Log$
-  Revision 1.7  2003-03-15 22:51:58  mazen
+  Revision 1.8  2003-05-30 23:57:08  peter
+    * more sparc cleanup
+    * accumulator removed, splitted in function_return_reg (called) and
+      function_result_reg (caller)
+
+  Revision 1.7  2003/03/15 22:51:58  mazen
   * remaking sparc rtl compile
 
   Revision 1.6  2003/03/10 21:59:54  mazen

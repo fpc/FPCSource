@@ -49,7 +49,8 @@ Implementation
        { parser }
        scanner,
        itx86att,
-       rax86,rautils
+       rax86,rautils,
+       cginfo,cgobj
        ;
 
 type
@@ -1402,6 +1403,8 @@ var
     end; { end case }
   end;
 
+const
+  regsize_2_size: array[S_B..S_L] of longint = (1,2,4);
 var
   tempreg : tregister;
   hl      : tasmlabel;
@@ -1441,7 +1444,7 @@ Begin
          begin
            opr.typ:=OPR_REGISTER;
            opr.reg:=actasmregister;
-           size:=reg2opsize(actasmregister);
+           SetSize(regsize_2_size[reg2opsize(actasmregister)],true);
            Consume(AS_REGISTER);
          end
         else
@@ -1594,7 +1597,7 @@ Begin
              Message(asmr_e_invalid_operand_type);
            opr.typ:=OPR_REGISTER;
            opr.reg:=tempreg;
-           size:=reg2opsize(opr.reg);
+           SetSize(tcgsize2size[cg.reg_cgsize(opr.reg)],true);
          end
         else
          Message(asmr_e_syn_operand);
@@ -2134,7 +2137,12 @@ finalization
 end.
 {
   $Log$
-  Revision 1.44  2003-05-22 21:32:29  peter
+  Revision 1.45  2003-05-30 23:57:08  peter
+    * more sparc cleanup
+    * accumulator removed, splitted in function_return_reg (called) and
+      function_result_reg (caller)
+
+  Revision 1.44  2003/05/22 21:32:29  peter
     * removed some unit dependencies
 
   Revision 1.43  2003/04/30 15:45:35  florian

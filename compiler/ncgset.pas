@@ -618,7 +618,7 @@ implementation
                   cg.a_call_name(exprasmlist,'FPC_SET_IN_BYTE');
                   { result of value is always one full register }
                   r.enum:=R_INTREGISTER;
-                  r.number:=NR_ACCUMULATOR;
+                  r.number:=NR_FUNCTION_RESULT_REG;
                   cg.a_load_reg_reg(exprasmlist,OS_INT,OS_INT,r,location.register);
                   { release the allocated register  }
                   if not (left.location.loc in [LOC_REGISTER,LOC_CREGISTER]) then
@@ -1121,7 +1121,12 @@ begin
 end.
 {
   $Log$
-  Revision 1.37  2003-05-30 23:49:18  jonas
+  Revision 1.38  2003-05-30 23:57:08  peter
+    * more sparc cleanup
+    * accumulator removed, splitted in function_return_reg (called) and
+      function_result_reg (caller)
+
+  Revision 1.37  2003/05/30 23:49:18  jonas
     * a_load_loc_reg now has an extra size parameter for the destination
       register (properly fixes what I worked around in revision 1.106 of
       ncgutil.pas)

@@ -101,7 +101,12 @@ begin
 end.
 {
   $Log$
-  Revision 1.15  2003-05-23 22:33:48  florian
+  Revision 1.16  2003-05-30 23:57:08  peter
+    * more sparc cleanup
+    * accumulator removed, splitted in function_return_reg (called) and
+      function_result_reg (caller)
+
+  Revision 1.15  2003/05/23 22:33:48  florian
     * fix some small flaws which prevent sparc linux system unit from compiling
     * some reformatting done
 
@@ -133,7 +138,7 @@ end.
   + added debug output on screen with -an command line option
 
   Revision 1.8  2002/11/17 17:49:09  mazen
-  + return_result_reg and function_result_reg are now used, in all plateforms, to pass functions result between called function and its caller. See the explanation of each one
+  + return_result_reg and FUNCTION_RESULT_REG are now used, in all plateforms, to pass functions result between called function and its caller. See the explanation of each one
 
   Revision 1.7  2002/11/14 21:42:08  mazen
   * fixing return value variable address

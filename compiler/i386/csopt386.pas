@@ -363,9 +363,9 @@ Begin {CheckSequence}
   OrgRegResult := False;
   with startRegInfo do
     begin
-      newRegsEncountered := [FRAME_POINTER_REG, STACK_POINTER_REG];
-      new2OldReg[FRAME_POINTER_REG].enum := FRAME_POINTER_REG;
-      new2OldReg[STACK_POINTER_REG].enum := STACK_POINTER_REG;
+      newRegsEncountered := [R_EBP, R_ESP];
+      new2OldReg[R_EBP].enum := R_EBP;
+      new2OldReg[R_ESP].enum := R_ESP;
       oldRegsEncountered := newRegsEncountered;
     end;
 
@@ -1334,7 +1334,7 @@ begin
              (Taicpu(startmod).opcode = A_MOVSX) or
              (Taicpu(startmod).opcode = A_LEA)) and
             (Taicpu(startmod).oper[0].typ = top_ref) and
-            (Taicpu(startmod).oper[0].ref^.base.enum = STACK_POINTER_REG)) or
+            (Taicpu(startmod).oper[0].ref^.base.enum = R_ESP)) or
            not(reg.enum in pTaiprop(hp1.optInfo)^.usedRegs) or
            findRegDealloc(reg,p))) then
         pTaiprop(startMod.optInfo)^.canBeRemoved := true;
@@ -1997,7 +1997,12 @@ End.
 
 {
   $Log$
-  Revision 1.45  2003-05-16 14:33:31  peter
+  Revision 1.46  2003-05-30 23:57:08  peter
+    * more sparc cleanup
+    * accumulator removed, splitted in function_return_reg (called) and
+      function_result_reg (caller)
+
+  Revision 1.45  2003/05/16 14:33:31  peter
     * regvar fixes
 
   Revision 1.44  2003/04/27 11:21:35  peter

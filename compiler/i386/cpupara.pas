@@ -60,7 +60,7 @@ unit cpupara;
         case target_info.system of
           system_i386_win32 :
             begin
-              { Win32 returns small records in the accumulator }
+              { Win32 returns small records in the FUNCTION_RETURN_REG }
               case def.deftype of
                 recorddef :
                   begin
@@ -133,7 +133,12 @@ begin
 end.
 {
   $Log$
-  Revision 1.11  2003-05-13 15:16:13  peter
+  Revision 1.12  2003-05-30 23:57:08  peter
+    * more sparc cleanup
+    * accumulator removed, splitted in function_return_reg (called) and
+      function_result_reg (caller)
+
+  Revision 1.11  2003/05/13 15:16:13  peter
     * removed ret_in_acc, it's the reverse of ret_in_param
     * fixed ret_in_param for win32 cdecl array
 

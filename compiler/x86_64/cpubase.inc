@@ -163,29 +163,26 @@ const
 *****************************************************************************}
 
       {# Stack pointer register }
-      stack_pointer_reg = R_RSP;
       NR_STACK_POINTER_REG = NR_RSP;
       {# Frame pointer register }
-      frame_pointer_reg = R_RBP;
       NR_FRAME_POINTER_REG = NR_RBP;
       { Register for addressing absolute data in a position independant way,
         such as in PIC code. The exact meaning is ABI specific. For
         further information look at GCC source : PIC_OFFSET_TABLE_REGNUM
       }
-      pic_offset_reg = R_EBX;
-      accumulator = R_RAX;
-      RS_ACCUMULATOR = RS_RAX;
-      NR_ACCUMULATOR = NR_RAX;
-      { the return_result_reg, is used inside the called function to store its return
-        value when that is a scalar value otherwise a pointer to the address of the
-        result is placed inside it }
-      return_result_reg   = accumulator;
-      RS_RETURN_RESULT_REG = RS_ACCUMULATOR;
-      NR_RETURN_RESULT_REG = NR_ACCUMULATOR;
-
-      { the function_result_reg contains the function result after a call to a scalar
-        function othewise it contains a pointer to the returned result}
-      function_result_reg = accumulator;
+      NR_PIC_OFFSET_REG = NR_EBX;
+      { Results are returned in this register (32-bit values) }
+      NR_FUNCTION_RETURN_REG = NR_RAX;
+      RS_FUNCTION_RETURN_REG = RS_RAX;
+      { High part of 64bit return value }
+      NR_FUNCTION_RETURNHIGH_REG = NR_NONE;
+      RS_FUNCTION_RETURNHIGH_REG = RS_NONE;
+      { The value returned from a function is available in this register }
+      NR_FUNCTION_RESULT_REG = NR_FUNCTION_RETURN_REG;
+      RS_FUNCTION_RESULT_REG = RS_FUNCTION_RETURN_REG;
+      { The high part of 64bit value returned from a function is available in this register }
+      NR_FUNCTION_RESULTHIGH_REG = NR_FUNCTION_RETURNHIGH_REG;
+      RS_FUNCTION_RESULTHIGH_REG = RS_FUNCTION_RETURNHIGH_REG;
 
       fpu_result_reg = R_ST;
       mmresultreg = R_MM0;
@@ -214,7 +211,12 @@ const
 
 {
   $Log$
-  Revision 1.3  2003-04-30 15:45:35  florian
+  Revision 1.4  2003-05-30 23:57:08  peter
+    * more sparc cleanup
+    * accumulator removed, splitted in function_return_reg (called) and
+      function_result_reg (caller)
+
+  Revision 1.3  2003/04/30 15:45:35  florian
     * merged more x86-64/i386 code
 
   Revision 1.2  2002/04/25 16:12:09  florian

@@ -277,7 +277,7 @@ unit cgobj;
 
          {#
              This routine is used in exception management nodes. It should
-             save the exception reason currently in the accumulator. The
+             save the exception reason currently in the FUNCTION_RETURN_REG. The
              save should be done either to a temp (pointed to by href).
              or on the stack (pushing the value on the stack).
 
@@ -297,7 +297,7 @@ unit cgobj;
          procedure g_exception_reason_save_const(list : taasmoutput; const href : treference; a: aword);virtual;
          {#
              This routine is used in exception management nodes. It should
-             load the exception reason to the accumulator. The saved value
+             load the exception reason to the FUNCTION_RETURN_REG. The saved value
              should either be in the temp. area (pointed to by href , href should
              *NOT* be freed) or on the stack (the value should be popped).
 
@@ -1645,7 +1645,7 @@ unit cgobj;
 
      begin
        r.enum:=R_INTREGISTER;;
-       r.number:=NR_ACCUMULATOR;
+       r.number:=NR_FUNCTION_RETURN_REG;
        a_load_reg_ref(list, OS_S32, r, href);
      end;
 
@@ -1662,7 +1662,7 @@ unit cgobj;
 
      begin
        r.enum:=R_INTREGISTER;
-       r.number:=NR_ACCUMULATOR;
+       r.number:=NR_FUNCTION_RETURN_REG;
        a_load_ref_reg(list, OS_S32, href, r);
      end;
 
@@ -1691,7 +1691,12 @@ finalization
 end.
 {
   $Log$
-  Revision 1.102  2003-05-30 23:49:18  jonas
+  Revision 1.103  2003-05-30 23:57:08  peter
+    * more sparc cleanup
+    * accumulator removed, splitted in function_return_reg (called) and
+      function_result_reg (caller)
+
+  Revision 1.102  2003/05/30 23:49:18  jonas
     * a_load_loc_reg now has an extra size parameter for the destination
       register (properly fixes what I worked around in revision 1.106 of
       ncgutil.pas)

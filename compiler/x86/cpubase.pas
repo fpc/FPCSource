@@ -487,9 +487,6 @@ uses
 
       max_operands = 3;
 
-      lvaluelocations = [LOC_REFERENCE,LOC_CFPUREGISTER,
-        LOC_CREGISTER,LOC_MMXREGISTER,LOC_CMMXREGISTER];
-
       {# Constant defining possibly all registers which might require saving }
       ALL_REGISTERS = [firstreg..lastreg];
       ALL_INTREGISTERS = [1..255];
@@ -715,7 +712,12 @@ implementation
 end.
 {
   $Log$
-  Revision 1.4  2003-04-30 20:53:32  florian
+  Revision 1.5  2003-05-30 23:57:08  peter
+    * more sparc cleanup
+    * accumulator removed, splitted in function_return_reg (called) and
+      function_result_reg (caller)
+
+  Revision 1.4  2003/04/30 20:53:32  florian
     * error when address of an abstract method is taken
     * fixed some x86-64 problems
     * merged some more x86-64 and i386 code
@@ -798,10 +800,10 @@ end.
     + very basic support for float128 type (x86-64 only)
 
   Revision 1.34  2002/11/17 18:26:16  mazen
-  * fixed a compilation bug accmulator-->accumulator, in definition of return_result_reg
+  * fixed a compilation bug accmulator-->FUNCTION_RETURN_REG, in definition of return_result_reg
 
   Revision 1.33  2002/11/17 17:49:08  mazen
-  + return_result_reg and function_result_reg are now used, in all plateforms, to pass functions result between called function and its caller. See the explanation of each one
+  + return_result_reg and FUNCTION_RESULT_REG are now used, in all plateforms, to pass functions result between called function and its caller. See the explanation of each one
 
   Revision 1.32  2002/10/05 12:43:29  carl
     * fixes for Delphi 6 compilation

@@ -269,7 +269,7 @@ implementation
        cg.a_call_name(list,'FPC_PUSHEXCEPTADDR');
 
        r.enum:=R_INTREGISTER;
-       r.number:=NR_ACCUMULATOR;
+       r.number:=NR_FUNCTION_RESULT_REG;
        cg.a_param_reg(list,OS_ADDR,r,paramanager.getintparaloc(1));
        cg.a_call_name(list,'FPC_SETJMP');
 
@@ -290,7 +290,7 @@ implementation
           begin
             cg.g_exception_reason_load(list, href);
             r.enum:=R_INTREGISTER;
-            r.number:=NR_ACCUMULATOR;
+            r.number:=NR_FUNCTION_RESULT_REG;
             cg.a_cmp_const_reg_label(list,OS_S32,OC_EQ,a,r,endexceptlabel);
           end;
      end;
@@ -796,7 +796,8 @@ implementation
 {$endif GDB}
 
                   { this is the easiest case for inlined !! }
-                  r.enum:=stack_pointer_reg;
+                  r.enum:=R_INTREGISTER;
+                  r.number:=NR_STACK_POINTER_REG;
                   if calloption=pocall_inline then
                    reference_reset_base(href,current_procinfo.framepointer,para_offset-pushedparasize)
                   else
@@ -1229,7 +1230,7 @@ implementation
       end;
 
 
-    procedure handle_return_value(list:TAAsmoutput; var uses_acc,uses_acchi,uses_fpu : boolean);
+    procedure load_return_value(list:TAAsmoutput; var uses_acc,uses_acchi,uses_fpu : boolean);
       var
         href : treference;
         hreg,r,r2 : tregister;
@@ -1240,7 +1241,7 @@ implementation
            reference_reset_base(href,current_procinfo.framepointer,current_procinfo.return_offset);
            cgsize:=def_cgsize(current_procdef.rettype.def);
            { Here, we return the function result. In most architectures, the value is
-             passed into the accumulator, but in a windowed architecure like sparc a
+             passed into the FUNCTION_RETURN_REG, but in a windowed architecure like sparc a
              function returns in a register and the caller receives it in an other one }
            case current_procdef.rettype.def.deftype of
              orddef,
@@ -1248,14 +1249,14 @@ implementation
                begin
                  uses_acc:=true;
                  r.enum:=R_INTREGISTER;
-                 r.number:=NR_RETURN_RESULT_REG;
+                 r.number:=NR_FUNCTION_RETURN_REG;
                  cg.a_reg_alloc(list,r);
 {$ifndef cpu64bit}
                  if cgsize in [OS_64,OS_S64] then
                   begin
                     uses_acchi:=true;
                     r2.enum:=R_INTREGISTER;
-                    r2.number:=NR_ACCUMULATORHIGH;
+                    r2.number:=NR_FUNCTION_RETURNHIGH_REG;
                     cg.a_reg_alloc(list,r2);
                     cg64.a_load64_ref_reg(list,href,joinreg64(r,r2));
                   end
@@ -1263,7 +1264,7 @@ implementation
 {$endif cpu64bit}
                   begin
                     hreg.enum:=R_INTREGISTER;
-                    hreg.number:=RS_RETURN_RESULT_REG shl 8 or cgsize2subreg(cgsize);
+                    hreg.number:=(RS_FUNCTION_RETURN_REG shl 8) or cgsize2subreg(cgsize);
                     cg.a_load_ref_reg(list,cgsize,href,hreg);
                   end;
                end;
@@ -1272,10 +1273,10 @@ implementation
                  uses_fpu := true;
 {$ifdef cpufpemu}
                   if cs_fp_emulation in aktmoduleswitches then
-                    r.enum := accumulator
+                    r.enum := FUNCTION_RETURN_REG
                  else
 {$endif cpufpemu}
-                  r.enum:=fpu_result_reg;
+                  r.enum:=FPU_RESULT_REG;
                  cg.a_loadfpu_ref_reg(list,cgsize,href,r);
                end;
              else
@@ -1284,7 +1285,7 @@ implementation
                   begin
                     uses_acc:=true;
                     r.enum:=R_INTREGISTER;
-                    r.number:=NR_RETURN_RESULT_REG;
+                    r.number:=NR_FUNCTION_RETURN_REG;
                     cg.a_reg_alloc(list,r);
 {$ifndef cpu64bit}
                     { Win32 can return records in EAX:EDX }
@@ -1292,7 +1293,7 @@ implementation
                      begin
                        uses_acchi:=true;
                        r2.enum:=R_INTREGISTER;
-                       r2.number:=NR_ACCUMULATORHIGH;
+                       r2.number:=NR_FUNCTION_RETURNHIGH_REG;
                        cg.a_reg_alloc(list,r2);
                        cg64.a_load64_ref_reg(list,href,joinreg64(r,r2));
                      end
@@ -1300,7 +1301,7 @@ implementation
 {$endif cpu64bit}
                      begin
                        hreg.enum:=R_INTREGISTER;
-                       hreg.number:=RS_RETURN_RESULT_REG shl 8 or cgsize2subreg(cgsize);
+                       hreg.number:=RS_FUNCTION_RETURN_REG shl 8 or cgsize2subreg(cgsize);
                        cg.a_load_ref_reg(list,cgsize,href,hreg);
                      end;
                    end
@@ -1629,7 +1630,7 @@ implementation
                 { Success exit }
                 cg.a_label(list,okexitlabel);
                 r.enum:=R_INTREGISTER;
-                r.number:=NR_ACCUMULATOR;
+                r.number:=NR_FUNCTION_RETURN_REG;
                 cg.a_reg_alloc(list,r);
                 { return the self pointer }
                 srsym:=tvarsym(current_procdef.parast.search('self'));
@@ -1641,7 +1642,7 @@ implementation
                 usesacc:=true;
               end
             else
-              handle_return_value(list,usesacc,usesacchi,usesfpu)
+              load_return_value(list,usesacc,usesacchi,usesfpu)
           end;
 
 {$ifdef GDB}
@@ -1782,7 +1783,7 @@ implementation
                                  Inlining
 ****************************************************************************}
 
-    procedure handle_inlined_return_value(list:TAAsmoutput);
+    procedure load_inlined_return_value(list:TAAsmoutput);
       var
         href : treference;
         r,r2 : tregister;
@@ -1793,7 +1794,7 @@ implementation
            reference_reset_base(href,current_procinfo.framepointer,current_procinfo.return_offset);
            cgsize:=def_cgsize(current_procdef.rettype.def);
            { Here, we return the function result. In most architectures, the value is
-             passed into the accumulator, but in a windowed architecure like sparc a
+             passed into the FUNCTION_RETURN_REG, but in a windowed architecure like sparc a
              function returns in a register and the caller receives it in an other one }
            case current_procdef.rettype.def.deftype of
              orddef,
@@ -1817,10 +1818,10 @@ implementation
                begin
 {$ifdef cpufpemu}
                   if cs_fp_emulation in aktmoduleswitches then
-                    r.enum := accumulator
+                    r.enum := FUNCTION_RETURN_REG
                  else
 {$endif cpufpemu}
-                  r.enum:=fpu_result_reg;
+                  r.enum:=FPU_RESULT_REG;
                  cg.a_loadfpu_ref_reg(list,cgsize,href,r);
                end;
              else
@@ -1898,8 +1899,8 @@ implementation
           begin
             if (current_procdef.proctypeoption=potype_constructor) then
              internalerror(200305263);
-//            handle_inlined_return_value(list);
-             handle_return_value(list,usesacc,usesacchi,usesfpu)
+//            load_inlined_return_value(list);
+             load_return_value(list,usesacc,usesacchi,usesfpu)
           end;
 
         cleanup_regvars(list);
@@ -1908,7 +1909,12 @@ implementation
 end.
 {
   $Log$
-  Revision 1.111  2003-05-30 23:49:18  jonas
+  Revision 1.112  2003-05-30 23:57:08  peter
+    * more sparc cleanup
+    * accumulator removed, splitted in function_return_reg (called) and
+      function_result_reg (caller)
+
+  Revision 1.111  2003/05/30 23:49:18  jonas
     * a_load_loc_reg now has an extra size parameter for the destination
       register (properly fixes what I worked around in revision 1.106 of
       ncgutil.pas)
@@ -2116,7 +2122,7 @@ end.
     * pass proccalloption to ret_in_xxx and push_xxx functions
 
   Revision 1.61  2002/11/17 17:49:08  mazen
-  + return_result_reg and function_result_reg are now used, in all plateforms, to pass functions result between called function and its caller. See the explanation of each one
+  + return_result_reg and FUNCTION_RESULT_REG are now used, in all plateforms, to pass functions result between called function and its caller. See the explanation of each one
 
   Revision 1.60  2002/11/17 16:31:56  carl
     * memory optimization (3-4%) : cleanup of tai fields,
