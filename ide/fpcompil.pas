@@ -389,7 +389,7 @@ begin
   if AClass>=V_Info then
     Line:=0;
   MsgLB^.AddItem(New(PCompilerMessage,Init(AClass, Msg, MsgLB^.AddModuleName(Module), Line, Column)));
-  if (@Self=CompilerMessageWindow) and (AClass in [V_fatal,V_Error]) then
+  if (@Self=CompilerMessageWindow) and ((AClass = V_fatal) or (AClass = V_Error)) then
     begin
       if not GetState(sfVisible) then
         Show;
@@ -1255,7 +1255,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.5  2001-10-03 10:21:43  pierre
+  Revision 1.6  2001-11-13 01:58:34  carl
+  * Range check error fix
+
+  Revision 1.5  2001/10/03 10:21:43  pierre
    fix for bug 1487
 
   Revision 1.4  2001/09/18 11:33:26  pierre
