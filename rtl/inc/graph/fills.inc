@@ -94,7 +94,7 @@ type
     var t : graph_int;
   begin
         t:=Trunc(x);
-        If frac(x)>0 then inc(t);
+        If (x > 0) and (frac(x)>0) then inc(t);
         ceil := t;
   end;
 
@@ -103,7 +103,7 @@ type
    var t : graph_int;
   begin
         t:=Trunc(x);
-        If frac(x)<0 then dec(t);
+        If (x < 0) and (frac(x)>0) then dec(t);
         floor := t;
   end;
 
@@ -207,7 +207,11 @@ begin
         for k := 0 to (numpoints-1) do
                 indextable^[k] := k;
         { sort the indextable by points[indextable[k]].y }
+{$ifndef fpc}
         bsort(indextable, numpoints, sizeof(graph_int), compare_ind);
+{$else fpc}
+        bsort(indextable, numpoints, sizeof(graph_int), @compare_ind);
+{$endif fpc}
         { start with empty active edge table }
         activepoints := 0;
         { indextable[k] is the next vertex to process }
@@ -241,7 +245,11 @@ begin
                         inc(k);
                 end;
                 { sort active edges list by active[j].x }
+{$ifndef fpc}
                 bsort(activetable, activepoints, sizeof(edge), compare_active);
+{$else fpc}
+                bsort(activetable, activepoints, sizeof(edge),@compare_active);
+{$endif fpc}
                 j := 0;
                 { draw horizontal segments for scanline y }
                 while (j < activepoints) do begin
@@ -494,7 +502,10 @@ var
 
 {
 $Log$
-Revision 1.3  1999-07-12 13:27:11  jonas
+Revision 1.4  1999-07-12 14:52:52  jonas
+  * fixed procvar syntax error and ceil and floor functions
+
+Revision 1.3  1999/07/12 13:27:11  jonas
   + added Log and Id tags
   * added first FPC support, only VGA works to some extend for now
   * use -dasmgraph to use assembler routines, otherwise Pascal
