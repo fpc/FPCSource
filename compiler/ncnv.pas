@@ -1362,7 +1362,9 @@ implementation
                         { check if the types are related }
                         if (not(tobjectdef(left.resulttype.def).is_related(tobjectdef(resulttype.def)))) and
                            (not(tobjectdef(resulttype.def).is_related(tobjectdef(left.resulttype.def)))) then
-                          CGMessage2(type_w_classes_not_related,left.resulttype.def.typename,resulttype.def.typename);
+                          CGMessage2(type_w_classes_not_related,
+                            FullTypeName(left.resulttype.def,resulttype.def),
+                            FullTypeName(resulttype.def,left.resulttype.def));
                       end;
                    end
 
@@ -2257,7 +2259,9 @@ implementation
                { the operands must be related }
                if not(assigned(tobjectdef(left.resulttype.def).implementedinterfaces) and
                       (tobjectdef(left.resulttype.def).implementedinterfaces.searchintf(right.resulttype.def)<>-1)) then
-                 CGMessage2(type_e_classes_not_related,left.resulttype.def.typename,right.resulttype.def.typename);
+                 CGMessage2(type_e_classes_not_related,
+                    FullTypeName(left.resulttype.def,right.resulttype.def),
+                    FullTypeName(right.resulttype.def,left.resulttype.def))
              end
             { left is an interface }
             else if is_interface(left.resulttype.def) then
@@ -2265,7 +2269,9 @@ implementation
                { the operands must be related }
                if (not(tobjectdef(left.resulttype.def).is_related(tobjectdef(right.resulttype.def)))) and
                   (not(tobjectdef(right.resulttype.def).is_related(tobjectdef(left.resulttype.def)))) then
-                 CGMessage2(type_e_classes_not_related,left.resulttype.def.typename,right.resulttype.def.typename);
+                 CGMessage2(type_e_classes_not_related,
+                    FullTypeName(left.resulttype.def,right.resulttype.def),
+                    FullTypeName(right.resulttype.def,left.resulttype.def));
              end
             else
              CGMessage1(type_e_class_type_expected,left.resulttype.def.typename);
@@ -2342,8 +2348,9 @@ implementation
                   tobjectdef(tclassrefdef(right.resulttype.def).pointertype.def)))) and
                   (not(tobjectdef(tclassrefdef(right.resulttype.def).pointertype.def).is_related(
                   tobjectdef(left.resulttype.def)))) then
-                 CGMessage2(type_e_classes_not_related,left.resulttype.def.typename,
-                            tclassrefdef(right.resulttype.def).pointertype.def.typename);
+                 CGMessage2(type_e_classes_not_related,
+                    FullTypeName(left.resulttype.def,tclassrefdef(right.resulttype.def).pointertype.def),
+                    FullTypeName(tclassrefdef(right.resulttype.def).pointertype.def,left.resulttype.def));
              end
             else
              CGMessage1(type_e_class_type_expected,left.resulttype.def.typename);
@@ -2352,39 +2359,9 @@ implementation
          else if is_interface(right.resulttype.def) then
           begin
             { left is a class }
-            if is_class(left.resulttype.def) then
-             begin
-               { the operands must be related
-                 no, because the class instance could be a child class of the current one which
-                 implements additional interfaces (FK)
-               b:=false;
-               o:=tobjectdef(left.resulttype.def);
-               while assigned(o) do
-                 begin
-                    if assigned(o.implementedinterfaces) and
-                      (o.implementedinterfaces.searchintf(right.resulttype.def)<>-1) then
-                      begin
-                         b:=true;
-                         break;
-                      end;
-                    o:=o.childof;
-                 end;
-                 if not(b) then
-                   CGMessage2(type_e_classes_not_related,left.resulttype.def.typename,right.resulttype.def.typename);
-                 }
-             end
-            { left is an interface }
-            else if is_interface(left.resulttype.def) then
-             begin
-               { the operands must be related
-                 we don't necessarily know how the both interfaces are implemented, so we can't do this check (FK)
-               if (not(tobjectdef(left.resulttype.def).is_related(tobjectdef(right.resulttype.def)))) and
-                  (not(tobjectdef(right.resulttype.def).is_related(tobjectdef(left.resulttype.def)))) then
-                 CGMessage2(type_e_classes_not_related,left.resulttype.def.typename,right.resulttype.def.typename);
-               }
-             end
-            else
-             CGMessage1(type_e_class_type_expected,left.resulttype.def.typename);
+            if not(is_class(left.resulttype.def) or
+                   is_interface(left.resulttype.def)) then
+              CGMessage1(type_e_class_type_expected,left.resulttype.def.typename);
 
             resulttype:=right.resulttype;
 
@@ -2463,7 +2440,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.149  2004-06-20 08:55:29  florian
+  Revision 1.150  2004-06-23 16:22:45  peter
+    * include unit name in error messages when types are the same
+
+  Revision 1.149  2004/06/20 08:55:29  florian
     * logs truncated
 
   Revision 1.148  2004/06/16 20:07:08  florian

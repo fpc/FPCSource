@@ -191,6 +191,7 @@ interface
     procedure globaldef(const s : string;var t:ttype);
     function  findunitsymtable(st:tsymtable):tsymtable;
     procedure duplicatesym(sym:tsym);
+    function  FullTypeName(def,otherdef:tdef):string;
     procedure incompatibletypes(def1,def2:tdef);
 
 {*** Search ***}
@@ -1761,24 +1762,30 @@ implementation
        end;
 
 
-    procedure incompatibletypes(def1,def2:tdef);
+    function FullTypeName(def,otherdef:tdef):string;
       var
         s1,s2 : string;
       begin
+        s1:=def.typename;
+        { When the names are the same try to include the unit name }
+        if assigned(otherdef) and
+           (def.owner.symtabletype in [globalsymtable,staticsymtable]) then
+          begin
+            s2:=otherdef.typename;
+            if upper(s1)=upper(s2) then
+              s1:=def.owner.realname^+'.'+s1;
+          end;
+        FullTypeName:=s1;
+      end;
+
+
+    procedure incompatibletypes(def1,def2:tdef);
+      begin
+        { When there is an errordef there is already an error message show }
         if (def2.deftype=errordef) or
            (def1.deftype=errordef) then
           exit;
-        s1:=def1.typename;
-        s2:=def2.typename;
-        { When the names are the same try to include the unit name }
-        if upper(s1)=upper(s2) then
-          begin
-            if (def1.owner.symtabletype in [globalsymtable,staticsymtable]) then
-              s1:=def1.owner.realname^+'.'+s1;
-            if (def2.owner.symtabletype in [globalsymtable,staticsymtable]) then
-              s2:=def2.owner.realname^+'.'+s2;
-          end;
-        CGMessage2(type_e_incompatible_types,s1,s2);
+        CGMessage2(type_e_incompatible_types,FullTypeName(def1,def2),FullTypeName(def2,def1));
       end;
 
 
@@ -2325,7 +2332,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.150  2004-06-20 08:55:30  florian
+  Revision 1.151  2004-06-23 16:22:45  peter
+    * include unit name in error messages when types are the same
+
+  Revision 1.150  2004/06/20 08:55:30  florian
     * logs truncated
 
   Revision 1.149  2004/06/16 20:07:09  florian

@@ -152,7 +152,7 @@ implementation
        cutils,verbose,globals,
        symtable,
        defutil,defcmp,
-       pass_1,nbas,ncnv,nld,nmem,ncal,nmat,nutils,
+       nbas,ncnv,nld,nmem,ncal,nmat,nutils,
        cgbase,procinfo
        ;
 
@@ -1894,17 +1894,22 @@ implementation
           guess that it is a missing typeconv }
         if hp^.wrongpara.paratyp in [vs_var,vs_out] then
           CGMessagePos2(pt.fileinfo,parser_e_call_by_ref_without_typeconv,
-            pt.resulttype.def.typename,hp^.wrongpara.paratype.def.typename)
+            FullTypeName(pt.resulttype.def,hp^.wrongpara.paratype.def),
+            FullTypeName(hp^.wrongpara.paratype.def,pt.resulttype.def))
         else
-          CGMessagePos3(pt.fileinfo,type_e_wrong_parameter_type,
-            tostr(hp^.wrongparanr),pt.resulttype.def.typename,hp^.wrongpara.paratype.def.typename);
+          CGMessagePos3(pt.fileinfo,type_e_wrong_parameter_type,tostr(hp^.wrongparanr),
+            FullTypeName(pt.resulttype.def,hp^.wrongpara.paratype.def),
+            FullTypeName(hp^.wrongpara.paratype.def,pt.resulttype.def));
       end;
 
 
 end.
 {
   $Log$
-  Revision 1.94  2004-06-20 08:55:29  florian
+  Revision 1.95  2004-06-23 16:22:45  peter
+    * include unit name in error messages when types are the same
+
+  Revision 1.94  2004/06/20 08:55:29  florian
     * logs truncated
 
   Revision 1.93  2004/06/16 20:07:07  florian
