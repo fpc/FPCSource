@@ -808,11 +808,19 @@ begin
   if getLastInstruction(hp,prev) then
     with ppaiprop(prev^.optinfo)^ do
       begin
+{$ifopt r+}
+{$define rangeon}
+{$r-}
+{$endif}
         newOrgRegRState := regs[orgReg].rState +
           ppaiprop(hp^.optinfo)^.regs[newReg].rState - regs[newReg].rstate;
         if writeStateToo then
           newOrgRegWState := regs[orgReg].wState +
             ppaiprop(hp^.optinfo)^.regs[newReg].wState - regs[newReg].wstate;
+{$ifdef rangeon}
+{$undef rangeon}
+{$r+}
+{$endif}
       end
   else
     with ppaiprop(hp^.optinfo)^.regs[newReg] do
@@ -1673,7 +1681,10 @@ End.
 
 {
   $Log$
-  Revision 1.4  2000-11-03 17:53:24  jonas
+  Revision 1.5  2000-11-09 12:34:44  jonas
+    * fixed range check error
+
+  Revision 1.4  2000/11/03 17:53:24  jonas
     * some small improvements
 
   Revision 1.3  2000/11/01 22:53:30  jonas
