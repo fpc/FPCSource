@@ -5,7 +5,7 @@
   Only main TP functions are tested (nothing with Interrupts/Break/Verify).
 }
 {$V-}
-program testdos;
+program tesidos;
 uses dos;
 
 procedure TestInfo;

@@ -4,12 +4,7 @@
 # make all test
 # and printout errors
 
-all : clean allts alltf allto alltest
-	grep -n -i fails log
-
-# returns the error code 
-# of the command line
-# in file retcode
+all : clean all_compilations
 
 ifdef DJGPP
 
@@ -18,86 +13,95 @@ EXEEXT=.exe
 getreturncode : 
 	redir -e $(FILE).log -o $(FILE).log getret $(COMMAND)
 	cp retcode $(FILE).$(RESEXT)
+
 else
 
 EXEEXT=
 getreturncode : 
 	getret $(COMMAND) !> $(FILE).log !2>$(FILE).log
 	cp retcode $(FILE).$(RESEXT)
+	@echo Return code of $(FILE) is $(cat retcode)
 endif
 	
-
-RETCODE=$(wildcard retcode*)
 
 # retcode should be between 0 and 255
 # 256 is for halt
 # 512+doserror if doserror<>0
-ifdef RESFILE
-RETVAL=$(shell cat $(RESFILE))
+# 1024 RESFILE does not exist
+# 2048 RESFILE is not set
+ifndef RESFILE
+RETVAL=2048
 else
-ifdef RETCODE
-RETVAL=$(shell cat retcode)
+ifeq ($(wildcard $(RESFILE)*),$(RESFILE))
+RETVAL=$(shell cat $(RESFILE))
 else
 RETVAL=1024
 endif
 endif
 
-printretcode:
-	echo Return code of $(FILE) is $(RETVAL)
-
 ifeq ($(RETVAL),0)
 testsuccess:
-	echo Test for $(FILE) success (compiles)
-	echo Test for $(FILE) success (compiles) >>log
+	@echo Test for $(FILE) success (compiles)
+	@echo Test for $(FILE) success (compiles) >>log
 else
 testsuccess:
-	echo Test for $(FILE) fails (does not compile) error $(RETVAL)
-	echo Test for $(FILE) fails (does not compile) error $(RETVAL)>>log
-	echo $(FILE) >> faillist
+	@echo Test for $(FILE) fails (does not compile) error $(RETVAL)
+	@echo Test for $(FILE) fails (does not compile) error $(RETVAL)>>log
+	@echo $(FILE) >> ts_list
+	@echo $(FILE) >> faillist
 endif
 	
-ifdef FILE
-ifneq ($wildcard $(FILE).exc),)
-EXERETVAL:=$(shell cat $(FILE).exc)
+ifdef EXCFILE
+ifeq ($(wildcard $(EXCFILE)*),$(EXCFILE))
+EXERETVAL:=$(shell cat $(EXCFILE))
 else
-EXERETVAL=-1
+EXERETVAL=$(EXCFILE) does not exist
 endif
 else
-EXERETVAL=-2
+EXERETVAL=No EXCFILE variable defined
 endif
 
 ifeq ($(EXERETVAL),0)
 testexecsuccess:
-	echo Test for exec $(FILE) success (runs without error)
-	echo Test for $(FILE) success (runs without error) >>log
+	@echo Test for exec $(FILE) success (runs without error)
+	@echo Test for $(FILE) success (runs without error) >>log
 else
 testexecsuccess:
-	echo Test for exec $(FILE) fails exec error $(RETVAL)
-	echo Test for exec $(FILE) fails exec error $(RETVAL)>>log
-	echo $(FILE) >> faillist
+	@echo Test for exec $(FILE) fails exec error $(EXERETVAL)
+	@echo Test for exec $(FILE) fails exec error $(EXERETVAL)>>log
 endif
 	
-ifneq ($(wildcard $(FILE)$(EXEEXT)),)
+ifeq ($(wildcard $(FILE)$(EXEEXT)*),$(FILE)$(EXEEXT))
 testexec:
-	redir -e $(FILE).elg -o$(FILE).elg getret $(FILE)$(EXEEXT)
-	cp retcode $(FILE).exc
-	make testexecsuccess 'FILE=$(FILE)' 
+	@echo Testing $(FILE)$(EXEEXT)
+ifdef NOREDIR
+	getret $(FILE)$(EXEEXT)
+else
+	redir -e $(FILE).elg -o $(FILE).elg getret $(FILE)$(EXEEXT)
+endif
+	cp -f retcode $(FILE).exc
+	$(MAKE) testexecsuccess 'FILE=$(FILE)' 'EXCFILE=$(FILE).exc'
 else
 testexec:
-	echo No exefile $(FILE)$(EXEEXT)
-	make testexecsuccess 'FILE=$(FILE)' 
-	true
+	@echo No exefile $(FILE)$(EXEEXT)
+	@echo $(FILE) >> faillist
 endif
+
+test_exc :
+	@echo $(wildcard $(FILE).exc*)
+	@echo xx$(wildcard $(EXCFILE)*)xx xx$(EXCFILE)xx
+	cat $(FILE).exc
 	
 ifneq ($(RETVAL),0)
 testfail:
-	echo Test for $(FILE) success (does not compile) error $(RETVAL)
-	echo Test for $(FILE) success (does not compile) error $(RETVAL)>> log
+	@echo Test for $(FILE) success (does not compile) error $(RETVAL)
+	@echo Test for $(FILE) success (does not compile) error $(RETVAL)>> log
 else
 testfail:
-	echo Test for $(FILE) fails (does compile and should not)
-	echo Test for $(FILE) fails (does compile and should not) >> log
-	echo $(FILE) >> faillist
+	@echo Test for $(FILE) fails (does compile and should not)
+	@echo Test for $(FILE) fails (does compile and should not) >> log
+	@echo $(FILE) >> tf_list
+	@echo $(FILE) >> faillist
 endif
 	
 ifndef PP
@@ -123,43 +127,104 @@ FILE=ts00001.pp
 endif
 
 testone :
-	make getreturncode 'COMMAND=$(PP) $(OPT) $(FILE).pp' 'RESEXT=$(RESEXT)'
-	make printretcode 'FILE=$(FILE)'
+	$(MAKE) getreturncode 'COMMAND=$(PP) $(OPT) $(FILE).pp' 'RESEXT=$(RESEXT)' 'FILE=$(FILE)'
 
 %.res : %.pp
-	make testone 'FILE=$*' 'RESEXT=res'
-	make testsuccess 'FILE=$*' 'RESFILE=$*.res'
+	$(MAKE) testone 'FILE=$*' 'RESEXT=res'
+	$(MAKE) testsuccess 'FILE=$*' 'RESFILE=$*.res'
 
 %.ref : %.pp
-	make testone 'FILE=$*' 'RESEXT=ref'
-	make testfail 'FILE=$*' 'RESFILE=$*.ref'
+	$(MAKE) testone 'FILE=$*' 'RESEXT=ref'
+	$(MAKE) testfail 'FILE=$*' 'RESFILE=$*.ref'
 
 # exec log files
 # creates two files
 # *.elg log file
 # *.exc exicode of program
 %.elg : %.res
-	make testexec 'FILE=$*'
+	$(MAKE) testexec 'FILE=$*'
+	
+%.eli : %.res
+	$(MAKE) testexec 'FILE=$*' 'NOREDIR=YES'
 	
 allts : $(patsubst %.pp,%.res,$(wildcard ts*.pp))
 
+alltbs : $(patsubst %.pp,%.res,$(wildcard tbs*.pp))
+
 alltest : $(patsubst %.pp,%.res,$(wildcard test*.pp))
+
+alltesi : $(patsubst %.pp,%.res,$(wildcard tesi*.pp))
+
+alltis : $(patsubst %.pp,%.res,$(wildcard tis*.pp))
 
 alltf : $(patsubst %.pp,%.ref,$(wildcard tf*.pp))
 
+alltbf : $(patsubst %.pp,%.ref,$(wildcard tbf*.pp))
+
 allto : $(patsubst %.pp,%.res,$(wildcard to*.pp))
 
-allexec : alltsexec alltestexec
+ifndef TS_FAIL_LIST
+ifeq ($(wildcard ts_fail*),ts_fail)
+TS_FAIL_LIST=$(shell cat ts_fail)
+export TS_FAIL_LIST
+endif
+endif
+
+ifndef TF_FAIL_LIST
+ifeq ($(wildcard tf_fail*),tf_fail)
+TF_FAIL_LIST=$(shell cat tf_fail)
+export TF_FAIL_LIST
+endif
+endif
+
+clean_fail :
+	-rm $(addsuffix .res,$(TS_FAIL_LIST)) 
+	-rm $(addsuffix .ref,$(TF_FAIL_LIST)) 
+	-rm log
+
+again : clean_fail $(addsuffix .res,$(TS_FAIL_LIST)) \
+	$(addsuffix .ref,$(TF_FAIL_LIST)) 
+	grep fails log
+
+all_compilations : allts alltbs alltf alltbf allto alltest alltesi alltis
+	grep fails log
+
+allexec : alltsexec alltbsexec alltestexec
 
 alltestexec: $(patsubst %.pp,%.elg,$(wildcard test*.pp)) 
 
+# these test are interactive
+# no redirection !!!
+alltesiexec: $(patsubst %.pp,%.eli,$(wildcard test*.pp)) 
+
 alltsexec: $(patsubst %.pp,%.elg,$(wildcard ts*.pp)) 
 
-clean :
-	-rm *.re* *.o *.ppu ts*.exe tf*.exe log faillist
+alltbsexec: $(patsubst %.pp,%.elg,$(wildcard tbs*.pp)) 
 
+alltisexec: $(patsubst %.pp,%.eli,$(wildcard tis*.pp)) 
+
+clean :
+	-rm *.re* *.o *.ppu *.elg ts*.exe tf*.exe log faillist ts_fail tf_fail
+
+info :
+	@echo This Makefile allows to test the compiler
+	@echo compilation of 'ts*.pp' should succeed
+	@echo compilation of 'tf*.pp' should fail
+	@echo compilation of 'test*.pp' should succeed
+	@echo 'to*.pp' files should also compile
+	@echo simply run \'make\' to test all compilation
+	@echo run \'make allexec\' to test also if the executables
+	@echo created behave like the should
+	@echo run \'make tesiexec\' to test executables 
+	@echo that require interactive mode
+	@echo To add a test file
+	@echo for 'ts*.pp' the created program should call halt or runerror
+	@echo if the code is wrong
 # $Log$
-# Revision 1.7  1998-10-22 16:41:11  pierre
+# Revision 1.8  1998-10-28 09:52:26  pierre
+#  * see readme.txt
+#
+# Revision 1.7  1998/10/22 16:41:11  pierre
 #   * added two small tests
 #     iocheck inside iocheck
 #     enums inside objects

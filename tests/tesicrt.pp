@@ -4,7 +4,7 @@
   Program to test CRT unit by Mark May.
   Only standard TP functions are tested (except WhereX, WhereY).
 }
-program testcrt;
+program tesicrt;
 
 uses crt;
 var

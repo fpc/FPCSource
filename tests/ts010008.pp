@@ -35,6 +35,7 @@ begin
    o2.name:='1234';
    writeln(o2.name);
    o2.destroy;
+   c2:=tobject2;
    o2:=c2.create;
-   c2.destroy;
+   o2.destroy;
 end.

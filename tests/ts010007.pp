@@ -1,3 +1,8 @@
+{ needed to intercept  GPF (PM) }
+{$ifdef go32v2}
+  uses dpmiexcp;
+{$endif go32v2}
+
 type
    tobject2 = class
       i : longint;
@@ -10,6 +15,7 @@ type
   procedure tobject2.y;
 
     begin
+	Writeln('Procedure y called');
     end;
 
   class procedure tobject2.v;
@@ -36,6 +42,7 @@ type
      object2 : tobject2;
 
 begin
+   a:=tobject2;
    a.x;
    tobject2.x;
    object2:=tobject2.create;
