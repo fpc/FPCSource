@@ -942,6 +942,8 @@ var
          Message(assem_e_16bit_base_in_32bit_segment);
          exit;
        end; { endif }
+       { In this case the size of the reference is not taken into account! }
+       instr.operands[2].size := S_NO;
     end;
 
     With instr do
@@ -2164,11 +2166,14 @@ var
     Repeat
       case actasmtoken of
         AS_ID: Begin
+                  { we must reset the operand size - since only the last field }
+                  { will give us the size of the operand.                      }
+{                  instr.opsize := S_NO;}
                   InitAsmRef(instr);
                   { // var_name.typefield.typefield // }
                   if (varname <> '') then
                   Begin
-                    if not GetVarOffset(varname,actasmpattern,offset) then
+                    if not GetVarOffset(instr,varname,actasmpattern,offset,operandnum) then
                     Begin
                       Message1(assem_e_unknown_id,actasmpattern);
                     end
@@ -2201,7 +2206,7 @@ var
                  {    [ref].typefield.typefield ...                         }
                  {  basetpyename is already set up... now look for fields.  }
                   Begin
-                     if not GetTypeOffset(basetypename,actasmpattern,Offset) then
+                     if not GetTypeOffset(instr,basetypename,actasmpattern,Offset,operandnum) then
                      Begin
                       Message1(assem_e_unknown_id,actasmpattern);
                      end
@@ -3165,6 +3170,9 @@ var
                                   Case actasmtoken of
                                   { // Reference // }
                                   AS_PTR: Begin
+                                           { tell that the instruction was overriden }
+                                           { so we will NEVER override the opsize    }
+                                           instr.operands[operandnum].overriden := TRUE;
                                            initAsmRef(instr);
                                            Consume(AS_PTR);
                                            BuildOperand(instr);
@@ -3368,7 +3376,12 @@ begin
 end.
 {
   $Log$
-  Revision 1.5  1998-08-21 08:45:53  pierre
+  Revision 1.6  1998-08-27 00:42:17  carl
+    * bugfix of leal problem
+    * bugfix of using overrides with record offsets
+    * bugfix if using records to load values
+
+  Revision 1.5  1998/08/21 08:45:53  pierre
     * better line info for asm statements
 
   Revision 1.4  1998/07/14 14:47:00  peter
