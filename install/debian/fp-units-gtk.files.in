@@ -5,7 +5,12 @@
 /usr/lib/fpc/%{fpcversion}/units/linux/gtk.ppu
 
 /usr/lib/fpc/%{fpcversion}/units/linux/glib.o 
+/usr/lib/fpc/%{fpcversion}/units/linux/libglib.a
 /usr/lib/fpc/%{fpcversion}/units/linux/gdk.o 
+/usr/lib/fpc/%{fpcversion}/units/linux/libgdk.a 
 /usr/lib/fpc/%{fpcversion}/units/linux/gtk.o
+/usr/lib/fpc/%{fpcversion}/units/linux/libgtk.a
+
+/usr/lib/libfpgtk.so.*
 
 /usr/share/doc/fp-units-gtk/

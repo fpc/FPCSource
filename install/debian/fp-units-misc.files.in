@@ -1,16 +1,20 @@
 
 /usr/lib/fpc/%{fpcversion}/units/linux/utmp.ppu
 
+/usr/lib/fpc/%{fpcversion}/units/linux/libutmp.a 
 /usr/lib/fpc/%{fpcversion}/units/linux/utmp.o
 
 /usr/lib/fpc/%{fpcversion}/units/linux/systemlog.ppu
 
+/usr/lib/fpc/%{fpcversion}/units/linux/libsystemlog.a 
 /usr/lib/fpc/%{fpcversion}/units/linux/systemlog.o
 
 /usr/lib/fpc/%{fpcversion}/units/linux/gdbint.ppu 
 /usr/lib/fpc/%{fpcversion}/units/linux/gdbcon.ppu
 
+/usr/lib/fpc/%{fpcversion}/units/linux/libgdbcon.a 
 /usr/lib/fpc/%{fpcversion}/units/linux/gdbcon.o 
+/usr/lib/fpc/%{fpcversion}/units/linux/libgdbint.a 
 /usr/lib/fpc/%{fpcversion}/units/linux/gdbint.o
 
 /usr/lib/fpc/%{fpcversion}/units/linux/paszlib/paszlib.ppu 
@@ -32,27 +36,47 @@
 /usr/lib/fpc/%{fpcversion}/units/linux/paszlib/zuncompr.ppu 
 /usr/lib/fpc/%{fpcversion}/units/linux/paszlib/zutil.ppu
 
+/usr/lib/fpc/%{fpcversion}/units/linux/paszlib/libzutil.a 
 /usr/lib/fpc/%{fpcversion}/units/linux/paszlib/zutil.o 
+/usr/lib/fpc/%{fpcversion}/units/linux/paszlib/libzuncompr.a 
 /usr/lib/fpc/%{fpcversion}/units/linux/paszlib/zuncompr.o 
+/usr/lib/fpc/%{fpcversion}/units/linux/paszlib/libzbase.a 
 /usr/lib/fpc/%{fpcversion}/units/linux/paszlib/zbase.o 
+/usr/lib/fpc/%{fpcversion}/units/linux/paszlib/libzinflate.a 
 /usr/lib/fpc/%{fpcversion}/units/linux/paszlib/zinflate.o 
+/usr/lib/fpc/%{fpcversion}/units/linux/paszlib/libzdeflate.a 
 /usr/lib/fpc/%{fpcversion}/units/linux/paszlib/zdeflate.o 
+/usr/lib/fpc/%{fpcversion}/units/linux/paszlib/libzcompres.a 
 /usr/lib/fpc/%{fpcversion}/units/linux/paszlib/zcompres.o 
+/usr/lib/fpc/%{fpcversion}/units/linux/paszlib/libtrees.a 
 /usr/lib/fpc/%{fpcversion}/units/linux/paszlib/trees.o 
+/usr/lib/fpc/%{fpcversion}/units/linux/paszlib/libstrutils.a 
 /usr/lib/fpc/%{fpcversion}/units/linux/paszlib/strutils.o 
+/usr/lib/fpc/%{fpcversion}/units/linux/paszlib/libinfutil.a 
 /usr/lib/fpc/%{fpcversion}/units/linux/paszlib/infutil.o 
+/usr/lib/fpc/%{fpcversion}/units/linux/paszlib/libinftrees.a 
 /usr/lib/fpc/%{fpcversion}/units/linux/paszlib/inftrees.o 
+/usr/lib/fpc/%{fpcversion}/units/linux/paszlib/libinffast.a 
 /usr/lib/fpc/%{fpcversion}/units/linux/paszlib/inffast.o 
+/usr/lib/fpc/%{fpcversion}/units/linux/paszlib/libinfcodes.a 
 /usr/lib/fpc/%{fpcversion}/units/linux/paszlib/infcodes.o 
+/usr/lib/fpc/%{fpcversion}/units/linux/paszlib/libinfblock.a 
 /usr/lib/fpc/%{fpcversion}/units/linux/paszlib/infblock.o 
+/usr/lib/fpc/%{fpcversion}/units/linux/paszlib/libgzio.a 
 /usr/lib/fpc/%{fpcversion}/units/linux/paszlib/gzio.o 
+/usr/lib/fpc/%{fpcversion}/units/linux/paszlib/libcrcasm.a 
 /usr/lib/fpc/%{fpcversion}/units/linux/paszlib/crcasm.o 
+/usr/lib/fpc/%{fpcversion}/units/linux/paszlib/libcrc.a 
 /usr/lib/fpc/%{fpcversion}/units/linux/paszlib/crc.o 
+/usr/lib/fpc/%{fpcversion}/units/linux/paszlib/libadler.a 
 /usr/lib/fpc/%{fpcversion}/units/linux/paszlib/adler.o 
+/usr/lib/fpc/%{fpcversion}/units/linux/paszlib/libpaszlib.a 
 /usr/lib/fpc/%{fpcversion}/units/linux/paszlib/paszlib.o
 
 /usr/lib/fpc/%{fpcversion}/units/linux/ziptypes.ppu 
 /usr/lib/fpc/%{fpcversion}/units/linux/unzip.ppu
 
+/usr/lib/fpc/%{fpcversion}/units/linux/libunzip.a 
 /usr/lib/fpc/%{fpcversion}/units/linux/unzip.o 
+/usr/lib/fpc/%{fpcversion}/units/linux/libziptypes.a 
 /usr/lib/fpc/%{fpcversion}/units/linux/ziptypes.o

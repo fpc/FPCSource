@@ -1,6 +1,7 @@
 
 /usr/lib/fpc/%{fpcversion}/units/linux/zlib.ppu
 
+/usr/lib/fpc/%{fpcversion}/units/linux/libzlib.a 
 /usr/lib/fpc/%{fpcversion}/units/linux/zlib.o
 
 /usr/lib/fpc/%{fpcversion}/units/linux/ncurses.ppu 
@@ -8,8 +9,11 @@
 /usr/lib/fpc/%{fpcversion}/units/linux/ncrt.ppu 
 /usr/lib/fpc/%{fpcversion}/units/linux/ocrt.ppu
 
+/usr/lib/fpc/%{fpcversion}/units/linux/libocrt.a 
 /usr/lib/fpc/%{fpcversion}/units/linux/ocrt.o 
+/usr/lib/fpc/%{fpcversion}/units/linux/libncrt.a 
 /usr/lib/fpc/%{fpcversion}/units/linux/ncrt.o 
+/usr/lib/fpc/%{fpcversion}/units/linux/libncurses.a 
 /usr/lib/fpc/%{fpcversion}/units/linux/ncurses.o
 
 /usr/lib/fpc/%{fpcversion}/units/linux/x.ppu 
@@ -19,4 +23,5 @@
 
 /usr/lib/fpc/%{fpcversion}/units/linux/regexpr.ppu
 
+/usr/lib/fpc/%{fpcversion}/units/linux/libregexpr.a 
 /usr/lib/fpc/%{fpcversion}/units/linux/regexpr.o

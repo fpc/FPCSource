@@ -1,8 +1,8 @@
 The package was originally put together by:
-  Peter Vreman <pfv@cooldown.demon.nl>
+  Peter Vreman <peter@freepascal.org>
 
 From sources obtained from:
-  ftp://tflily.fys.kuleuven.ac.be/pub/fpc/dist/linux/fpc-0.99.13.tar.gz
+  ftp://ftp.freepascal.org/pub/fpc/dist/linux/fpc-0.99.15.tar.gz
 
 The files and libraries are released under the terms of the GNU Library
 General Public License, which can be found in the file

@@ -27,19 +27,18 @@ mysql,postgres,ibase bindings.
 %setup -c
 
 %build
-export FPCDIR=
 NEWPP=`pwd`/compiler/ppc386
 	make compiler_cycle
-	make fcl_all PP=${NEWPP}
-	make api_all PP=${NEWPP}
-	make packages_all PP=${NEWPP}
+	make rtl_clean rtl_smart rtl_shared PP=${NEWPP}
+	make fcl_smart fcl_shared PP=${NEWPP}
+	make api_smart api_shared PP=${NEWPP}
+	make packages_smart packages_shared PP=${NEWPP}
 	make utils_all PP=${NEWPP}
 
 %install
-export FPCDIR=
 NEWPP=`pwd`/compiler/ppc386
 NEWPPUFILES=`pwd`/utils/ppufiles
-INSTALLOPTS=PP=${NEWPP} PPUFILES=${NEWPPUFILES} PREFIXINSTALLDIR=/usr
+INSTALLOPTS="PP=${NEWPP} PPUFILES=${NEWPPUFILES} PREFIXINSTALLDIR=/usr"
 	make compiler_install ${INSTALLOPTS}
 	make rtl_install ${INSTALLOPTS}
 	make fcl_install ${INSTALLOPTS}
@@ -87,6 +86,10 @@ ldconfig
 /usr/bin/h2pas
 /usr/bin/fprcp
 %{fpcdir}
+/usr/lib/libfprtl.so.*
+/usr/lib/libfpfcl.so.*
+/usr/lib/libfpgtk.so.*
+/usr/lib/libfpapi.so.*
 /usr/lib/fpc/lexyacc/yylex.cod 
 /usr/lib/fpc/lexyacc/yyparse.cod
 /usr/man/man1/delp.1
