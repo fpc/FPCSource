@@ -4,11 +4,11 @@
 
 uses
 {$ifdef ver1_0}
-   Linux
+   Linux;
 {$else}
-   Baseunix,
-   unix
-{$endif};
+   Unix,
+   Baseunix;
+{$endif}
 
 
 
@@ -350,9 +350,9 @@ begin
           if (poRunSuspended in Options) then
             sigraise(SIGSTOP);
           if FEnv<>Nil then
-            fpexecve(PChar(PName),Argv,Fenv)
+            fpexecve(PName,Argv,Fenv)
           else
-            fpexecv(Pchar(PName),argv);
+            fpexecv(PName,argv);
           Halt(127);
           end
       Finally
