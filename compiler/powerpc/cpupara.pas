@@ -214,17 +214,18 @@ unit cpupara;
                       if nextintreg.number<=(NR_R10-ord(is_64bit)*(NR_R1-NR_R0))  then
                         begin
                            hp.paraloc.loc:=LOC_REGISTER;
-                           hp.paraloc.registerlow:=nextintreg;
-                           inc(nextintreg.number,NR_R1-NR_R0);
-                           if target_info.abi=abi_powerpc_aix then
-                             inc(stack_offset,4);
-                           if is_64bit then
+		           if is_64bit then
                              begin
                                hp.paraloc.registerhigh:=nextintreg;
                                inc(nextintreg.number,NR_R1-NR_R0);
                                if target_info.abi=abi_powerpc_aix then
                                  inc(stack_offset,4);
                              end;
+                           hp.paraloc.registerlow:=nextintreg;
+                           inc(nextintreg.number,NR_R1-NR_R0);
+                           if target_info.abi=abi_powerpc_aix then
+                             inc(stack_offset,4);
+
                         end
                       else
                          begin
@@ -333,7 +334,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.31  2003-05-24 11:48:40  jonas
+  Revision 1.32  2003-05-30 22:35:03  marco
+   * committed fix that swaps int64 parameters hi and lo.
+
+  Revision 1.31  2003/05/24 11:48:40  jonas
     * added some missing paralocation size settings
 
   Revision 1.30  2003/05/19 12:15:28  florian
