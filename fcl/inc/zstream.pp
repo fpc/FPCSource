@@ -410,7 +410,7 @@ Const OpenStrings : array[TGZOpenMode] of pchar = ('rb','wb');
 
 begin
    FOpenMode:=FileMode;
-   FFile:=gzopen (Pchar(FileName),Openstrings[FileMode]);
+   FFile:=gzopen (PChar(FileName),PBytef(Openstrings[FileMode]));
    If FFile=Nil then
      Raise ezlibError.CreateFmt (SCouldntOpenFIle,[FileName]);
 end;
