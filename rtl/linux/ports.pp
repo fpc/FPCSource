@@ -15,6 +15,8 @@
 
 Unit ports;
 
+{$mode objfpc}
+
 { Implements the 
      port[] portw[] and portl[] 
   constructs using Delphi classes }
