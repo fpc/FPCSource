@@ -2329,6 +2329,18 @@ end;
        list:=list^.next;
        dispose(tmp);
      end;
+{$ifdef newmodes}
+   for c := lowNewDriver to highNewDriver do
+     begin
+       list := newModeList.modeinfo[c];
+       while assigned(list) do
+         begin
+           tmp := list;
+           list:=list^.next;
+           dispose(tmp);
+         end;
+     end;
+{$endif newmodes}
 {$IFDEF DPMI}
   { We had copied the buffer of mode information }
   { and allocated it dynamically... now free it  }
@@ -2391,7 +2403,10 @@ begin
 end;
 {
   $Log$
-  Revision 1.34  2000-06-18 06:11:20  jonas
+  Revision 1.35  2000-06-18 08:11:53  jonas
+    * release memory of newmodeinfo in graphexitproc
+
+  Revision 1.34  2000/06/18 06:11:20  jonas
     + added missing detectMode stuff for -dnewmodes
 
   Revision 1.33  2000/06/17 19:09:22  jonas
