@@ -1002,7 +1002,7 @@ const
           begin
             current_scanner^.skipspace;
             current_scanner^.readstring;
-            if not SetCompileMode(pattern) then
+            if not SetCompileMode(pattern,false) then
              Message1(scan_w_illegal_switch,pattern);
           end;
 
@@ -1436,7 +1436,12 @@ const
 
 {
   $Log$
-  Revision 1.8  2000-09-24 21:33:47  peter
+  Revision 1.9  2000-09-26 10:50:41  jonas
+    * initmodeswitches is changed is you change the compiler mode from the
+      command line (the -S<x> switches didn't work anymore for changing the
+      compiler mode) (merged from fixes branch)
+
+  Revision 1.8  2000/09/24 21:33:47  peter
     * message updates merges
 
   Revision 1.7  2000/09/24 15:06:27  peter

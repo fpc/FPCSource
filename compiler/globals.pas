@@ -245,7 +245,7 @@ interface
     function  GetEnvPChar(const envname:string):pchar;
     procedure FreeEnvPChar(p:pchar);
 
-    Function SetCompileMode(const s:string):boolean;
+    Function SetCompileMode(const s:string; changeInit: boolean):boolean;
 
     procedure InitGlobals;
     procedure DoneGlobals;
@@ -995,7 +995,7 @@ implementation
       {$endif}
 
 
-    Function SetCompileMode(const s:string):boolean;
+    Function SetCompileMode(const s:string; changeInit: boolean):boolean;
       var
         b : boolean;
       begin
@@ -1019,6 +1019,9 @@ implementation
           aktmodeswitches:=gpcmodeswitches
         else
          b:=false;
+        
+        if b and changeInit then
+          initmodeswitches := aktmodeswitches;
 
         if b then
          begin
@@ -1172,7 +1175,12 @@ begin
 end.
 {
   $Log$
-  Revision 1.13  2000-09-24 21:33:46  peter
+  Revision 1.14  2000-09-26 10:50:41  jonas
+    * initmodeswitches is changed is you change the compiler mode from the
+      command line (the -S<x> switches didn't work anymore for changing the
+      compiler mode) (merged from fixes branch)
+
+  Revision 1.13  2000/09/24 21:33:46  peter
     * message updates merges
 
   Revision 1.12  2000/09/24 21:19:50  peter

@@ -705,10 +705,10 @@ begin
               'S' : begin
                       for j:=1 to length(more) do
                        case more[j] of
-                        '2' : SetCompileMode('OBJFPC');
+                        '2' : SetCompileMode('OBJFPC',true);
                         'a' : initlocalswitches:=InitLocalswitches+[cs_do_assertion];
                         'c' : initmoduleswitches:=initmoduleswitches+[cs_support_c_operators];
-                        'd' : SetCompileMode('DELPHI');
+                        'd' : SetCompileMode('DELPHI',true);
                         'e' : begin
                                 SetErrorFlags(more);
                                 break;
@@ -717,8 +717,8 @@ begin
                         'h' : initlocalswitches:=initlocalswitches+[cs_ansistrings];
                         'i' : initmoduleswitches:=initmoduleswitches+[cs_support_inline];
                         'm' : initmoduleswitches:=initmoduleswitches+[cs_support_macro];
-                        'o' : SetCompileMode('TP');
-                        'p' : SetCompileMode('GPC');
+                        'o' : SetCompileMode('TP',true);
+                        'p' : SetCompileMode('GPC',true);
                         's' : initglobalswitches:=initglobalswitches+[cs_constructor_name];
                         't' : initmoduleswitches:=initmoduleswitches+[cs_static_keyword];
                         'v' : Message1(option_obsolete_switch,'-Sv');
@@ -1490,7 +1490,12 @@ end;
 end.
 {
   $Log$
-  Revision 1.10  2000-09-24 21:33:47  peter
+  Revision 1.11  2000-09-26 10:50:41  jonas
+    * initmodeswitches is changed is you change the compiler mode from the
+      command line (the -S<x> switches didn't work anymore for changing the
+      compiler mode) (merged from fixes branch)
+
+  Revision 1.10  2000/09/24 21:33:47  peter
     * message updates merges
 
   Revision 1.9  2000/09/24 15:06:20  peter
