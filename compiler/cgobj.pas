@@ -562,9 +562,7 @@ unit cgobj;
                 break;
              end;
          exclude(unusedscratchregisters,r.number shr 8);
-{$ifndef i386}
-         include(rg.usedintbyproc,r.number shr 8);
-{$endif i386}
+         include(rg.used_in_proc_int,r.number shr 8);
          a_reg_alloc(list,r);
          get_scratch_reg_int:=r;
       end;
@@ -1718,7 +1716,10 @@ finalization
 end.
 {
   $Log$
-  Revision 1.111  2003-06-12 21:11:10  peter
+  Revision 1.112  2003-06-13 21:19:30  peter
+    * current_procdef removed, use current_procinfo.procdef instead
+
+  Revision 1.111  2003/06/12 21:11:10  peter
     * ungetregisterfpu gets size parameter
 
   Revision 1.110  2003/06/12 16:43:07  peter
@@ -1799,7 +1800,7 @@ end.
   + Patch from peter to fix wrong pushing of ansistring function results in open array
 
   Revision 1.92  2003/04/27 11:21:32  peter
-    * aktprocdef renamed to current_procdef
+    * aktprocdef renamed to current_procinfo.procdef
     * procinfo renamed to current_procinfo
     * procinfo will now be stored in current_module so it can be
       cleaned up properly
@@ -1808,7 +1809,7 @@ end.
     * fixed unit implicit initfinal
 
   Revision 1.91  2003/04/27 07:29:50  peter
-    * current_procdef cleanup, current_procdef is now always nil when parsing
+    * current_procinfo.procdef cleanup, current_procdef is now always nil when parsing
       a new procdef declaration
     * aktprocsym removed
     * lexlevel removed, use symtable.symtablelevel instead

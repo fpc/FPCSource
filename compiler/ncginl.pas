@@ -249,7 +249,7 @@ implementation
               LOC_REGISTER :
                 begin
                   if (left.resulttype.def.deftype=classrefdef) or
-                     (po_staticmethod in current_procdef.procoptions) then
+                     (po_staticmethod in current_procinfo.procdef.procoptions) then
                     cg.a_load_reg_reg(exprasmlist,OS_ADDR,OS_ADDR,left.location.register,hregister)
                   else
                    begin
@@ -686,7 +686,10 @@ end.
 
 {
   $Log$
-  Revision 1.36  2003-06-07 18:57:04  jonas
+  Revision 1.37  2003-06-13 21:19:30  peter
+    * current_procdef removed, use current_procinfo.procdef instead
+
+  Revision 1.36  2003/06/07 18:57:04  jonas
     + added freeintparaloc
     * ppc get/freeintparaloc now check whether the parameter regs are
       properly allocated/deallocated (and get an extra list para)
@@ -721,7 +724,7 @@ end.
     * fixed include/exclude for normalsets
 
   Revision 1.28  2003/04/27 11:21:33  peter
-    * aktprocdef renamed to current_procdef
+    * aktprocdef renamed to current_procinfo.procdef
     * procinfo renamed to current_procinfo
     * procinfo will now be stored in current_module so it can be
       cleaned up properly

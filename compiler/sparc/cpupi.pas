@@ -101,7 +101,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.16  2003-05-30 23:57:08  peter
+  Revision 1.17  2003-06-13 21:19:32  peter
+    * current_procdef removed, use current_procinfo.procdef instead
+
+  Revision 1.16  2003/05/30 23:57:08  peter
     * more sparc cleanup
     * accumulator removed, splitted in function_return_reg (called) and
       function_result_reg (caller)
@@ -111,7 +114,7 @@ end.
     * some reformatting done
 
   Revision 1.14  2003/04/27 11:21:36  peter
-    * aktprocdef renamed to current_procdef
+    * aktprocdef renamed to current_procinfo.procdef
     * procinfo renamed to current_procinfo
     * procinfo will now be stored in current_module so it can be
       cleaned up properly

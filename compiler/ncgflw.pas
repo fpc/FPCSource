@@ -1443,7 +1443,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.71  2003-06-09 14:38:52  jonas
+  Revision 1.72  2003-06-13 21:19:30  peter
+    * current_procdef removed, use current_procinfo.procdef instead
+
+  Revision 1.71  2003/06/09 14:38:52  jonas
     * fixed for callparatemp
 
   Revision 1.70  2003/06/09 12:23:30  peter
@@ -1509,7 +1512,7 @@ end.
   + Patch from peter to fix wrong pushing of ansistring function results in open array
 
   Revision 1.56  2003/04/27 11:21:33  peter
-    * aktprocdef renamed to current_procdef
+    * aktprocdef renamed to current_procinfo.procdef
     * procinfo renamed to current_procinfo
     * procinfo will now be stored in current_module so it can be
       cleaned up properly

@@ -367,13 +367,13 @@ implementation
                '"with'+tostr(withlevel)+':'+tostr(symtablestack.getnewtypecount)+
                '=*'+tstoreddef(left.resulttype.def).numberstring+'",'+
                tostr(N_LSYM)+',0,0,'+tostr(withrefnode.location.reference.offset))));
-            mangled_length:=length(current_procdef.mangledname);
+            mangled_length:=length(current_procinfo.procdef.mangledname);
             getmem(pp,mangled_length+50);
             strpcopy(pp,'192,0,0,'+withstartlabel.name);
             if (target_info.use_function_relative_addresses) then
               begin
                 strpcopy(strend(pp),'-');
-                strpcopy(strend(pp),current_procdef.mangledname);
+                strpcopy(strend(pp),current_procinfo.procdef.mangledname);
               end;
             withdebugList.concat(Tai_stabn.Create(strnew(pp)));
           end;
@@ -390,7 +390,7 @@ implementation
            if (target_info.use_function_relative_addresses) then
              begin
                strpcopy(strend(pp),'-');
-               strpcopy(strend(pp),current_procdef.mangledname);
+               strpcopy(strend(pp),current_procinfo.procdef.mangledname);
              end;
             withdebugList.concat(Tai_stabn.Create(strnew(pp)));
             freemem(pp,mangled_length+50);
@@ -470,7 +470,7 @@ implementation
             is_array_of_const(left.resulttype.def) then
           begin
             { cdecl functions don't have high() so we can not check the range }
-            if not(current_procdef.proccalloption in [pocall_cdecl,pocall_cppdecl]) then
+            if not(current_procinfo.procdef.proccalloption in [pocall_cdecl,pocall_cppdecl]) then
              begin
                { Get high value }
                hightree:=load_high_value_node(tvarsym(tloadnode(left).symtableentry));
@@ -955,7 +955,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.61  2003-06-09 16:45:41  jonas
+  Revision 1.62  2003-06-13 21:19:30  peter
+    * current_procdef removed, use current_procinfo.procdef instead
+
+  Revision 1.61  2003/06/09 16:45:41  jonas
     * fixed update_reference_reg_mul() so that it won't modify CREGISTERs
       in a reference
     * cache value of get_mul_size()
@@ -1010,7 +1013,7 @@ end.
   - non used units removed from uses clause
 
   Revision 1.49  2003/04/27 11:21:33  peter
-    * aktprocdef renamed to current_procdef
+    * aktprocdef renamed to current_procinfo.procdef
     * procinfo renamed to current_procinfo
     * procinfo will now be stored in current_module so it can be
       cleaned up properly

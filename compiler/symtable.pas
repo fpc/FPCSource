@@ -2028,7 +2028,8 @@ implementation
            begin
               srsym:=tsym(srsymtable.speedsearch(s,speedvalue));
               if assigned(srsym) and
-                 tstoredsym(srsym).is_visible_for_proc(current_procdef) then
+                 (not assigned(current_procinfo) or
+                  tstoredsym(srsym).is_visible_for_proc(current_procinfo.procdef)) then
                begin
                  searchsym:=true;
                  exit;
@@ -2098,7 +2099,8 @@ implementation
                 end
                else
                 begin
-                  if tstoredsym(sym).is_visible_for_proc(current_procdef) then
+                  if (not assigned(current_procinfo) or
+                      tstoredsym(sym).is_visible_for_proc(current_procinfo.procdef)) then
                    break;
                 end;
              end;
@@ -2143,7 +2145,8 @@ implementation
                    end
                   else
                    begin
-                     if tprocdef(def).is_visible_for_proc(current_procdef) then
+                     if (not assigned(current_procinfo) or
+                         tprocdef(def).is_visible_for_proc(current_procinfo.procdef)) then
                       break;
                    end;
                 end;
@@ -2192,7 +2195,8 @@ implementation
                    end
                   else
                    begin
-                     if tprocdef(def).is_visible_for_proc(current_procdef) then
+                     if (not assigned(current_procinfo) or
+                         tprocdef(def).is_visible_for_proc(current_procinfo.procdef)) then
                       break;
                    end;
                 end;
@@ -2470,7 +2474,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.106  2003-06-09 18:26:27  peter
+  Revision 1.107  2003-06-13 21:19:31  peter
+    * current_procdef removed, use current_procinfo.procdef instead
+
+  Revision 1.106  2003/06/09 18:26:27  peter
     * para can be the same as function name in delphi
 
   Revision 1.105  2003/06/08 11:40:00  peter
@@ -2509,7 +2516,7 @@ end.
     * direct with rewritten to use temprefnode
 
   Revision 1.97  2003/04/27 11:21:34  peter
-    * aktprocdef renamed to current_procdef
+    * aktprocdef renamed to current_procinfo.procdef
     * procinfo renamed to current_procinfo
     * procinfo will now be stored in current_module so it can be
       cleaned up properly
@@ -2518,7 +2525,7 @@ end.
     * fixed unit implicit initfinal
 
   Revision 1.96  2003/04/27 07:29:51  peter
-    * current_procdef cleanup, current_procdef is now always nil when parsing
+    * current_procinfo.procdef cleanup, current_procdef is now always nil when parsing
       a new procdef declaration
     * aktprocsym removed
     * lexlevel removed, use symtable.symtablelevel instead

@@ -1092,7 +1092,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.58  2003-06-12 16:43:07  peter
+  Revision 1.59  2003-06-13 21:19:32  peter
+    * current_procdef removed, use current_procinfo.procdef instead
+
+  Revision 1.58  2003/06/12 16:43:07  peter
     * newra compiles for sparc
 
   Revision 1.57  2003/06/04 20:59:37  mazen
@@ -1146,7 +1149,7 @@ end.
   + NOP after conditional jump instruction to prevent delay slot execution
 
   Revision 1.43  2003/04/27 11:21:36  peter
-    * aktprocdef renamed to current_procdef
+    * aktprocdef renamed to current_procinfo.procdef
     * procinfo renamed to current_procinfo
     * procinfo will now be stored in current_module so it can be
       cleaned up properly

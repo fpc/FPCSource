@@ -1388,7 +1388,7 @@ implementation
               in_sizeof_x:
                 begin
                   set_varstate(left,false);
-                  if paramanager.push_high_param(left.resulttype.def,current_procdef.proccalloption) then
+                  if paramanager.push_high_param(left.resulttype.def,current_procinfo.procdef.proccalloption) then
                    begin
                      hightree:=load_high_value_node(tvarsym(tloadnode(left).symtableentry));
                      if assigned(hightree) then
@@ -2351,7 +2351,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.113  2003-05-31 21:29:04  jonas
+  Revision 1.114  2003-06-13 21:19:30  peter
+    * current_procdef removed, use current_procinfo.procdef instead
+
+  Revision 1.113  2003/05/31 21:29:04  jonas
     * constant evaluation of trunc() and round() now also gives 64 bit
       results
 
@@ -2369,7 +2372,7 @@ end.
     * removed hdisposen,hnewn,selfn
 
   Revision 1.109  2003/04/27 11:21:33  peter
-    * aktprocdef renamed to current_procdef
+    * aktprocdef renamed to current_procinfo.procdef
     * procinfo renamed to current_procinfo
     * procinfo will now be stored in current_module so it can be
       cleaned up properly

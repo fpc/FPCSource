@@ -1710,7 +1710,7 @@ unit cgx86;
                 r.number:=NR_EDX;
                 list.concat(Taicpu.Op_sym_ofs_reg(A_MOV,S_L,pl,0,r));
                 a_call_name(list,target_info.Cprefix+'mcount');
-                include(rg.usedinproc,R_EDX);
+                include(rg.used_in_proc_int,RS_EDX);
              end;
 
            system_i386_go32v2:
@@ -1783,7 +1783,7 @@ unit cgx86;
       r.number:=NR_EBP;
     {$ifdef newra}
       list.concat(tai_regalloc.alloc(r));
-      include(rg.savedbyproc,RS_EBP);
+      include(rg.saved_by_proc_int,RS_EBP);
     {$endif}
       rsp.enum:=R_INTREGISTER;
       rsp.number:=NR_ESP;
@@ -1796,7 +1796,9 @@ unit cgx86;
 
     procedure tcgx86.g_restore_frame_pointer(list : taasmoutput);
 
+    {$ifdef newra}
     var r:Tregister;
+    {$endif}
 
     begin
     {$ifdef newra}
@@ -1812,10 +1814,11 @@ unit cgx86;
       begin
         { Routines with the poclearstack flag set use only a ret }
         { also routines with parasize=0     }
-        if (po_clearstack in current_procdef.procoptions) then
+        if (po_clearstack in current_procinfo.procdef.procoptions) then
          begin
            { complex return values are removed from stack in C code PM }
-           if paramanager.ret_in_param(current_procdef.rettype.def,current_procdef.proccalloption) then
+           if paramanager.ret_in_param(current_procinfo.procdef.rettype.def,
+                                       current_procinfo.procdef.proccalloption) then
              list.concat(Taicpu.Op_const(A_RET,S_NO,4))
            else
              list.concat(Taicpu.Op_none(A_RET,S_NO));
@@ -1847,9 +1850,9 @@ unit cgx86;
       r.number:=NR_EDI;
       list.concat(Taicpu.op_reg(A_PUSH,S_L,r));
     {$ifdef newra}
-      include(rg.savedbyproc,RS_EBX);
-      include(rg.savedbyproc,RS_ESI);
-      include(rg.savedbyproc,RS_EDI);
+      include(rg.saved_by_proc_int,RS_EBX);
+      include(rg.saved_by_proc_int,RS_ESI);
+      include(rg.saved_by_proc_int,RS_EDI);
     {$endif}
     end;
 
@@ -1932,7 +1935,10 @@ unit cgx86;
 end.
 {
   $Log$
-  Revision 1.54  2003-06-12 18:31:18  peter
+  Revision 1.55  2003-06-13 21:19:32  peter
+    * current_procdef removed, use current_procinfo.procdef instead
+
+  Revision 1.54  2003/06/12 18:31:18  peter
     * fix newra cycle for i386
 
   Revision 1.53  2003/06/07 10:24:10  peter
@@ -1977,7 +1983,7 @@ end.
     * merged some more x86-64 and i386 code
 
   Revision 1.43  2003/04/27 11:21:36  peter
-    * aktprocdef renamed to current_procdef
+    * aktprocdef renamed to current_procinfo.procdef
     * procinfo renamed to current_procinfo
     * procinfo will now be stored in current_module so it can be
       cleaned up properly

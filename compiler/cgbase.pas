@@ -351,6 +351,8 @@ implementation
 
 
     procedure tprocinfo.handle_body_start;
+      var
+        paramloc : tparalocation;
       begin
          { temporary space is set, while the BEGIN of the procedure }
          if (symtablestack.symtabletype=localsymtable) then
@@ -365,8 +367,29 @@ implementation
            begin
               if not paramanager.ret_in_param(procdef.rettype.def,procdef.proccalloption) then
                 begin
-                   rg.usedinproc := rg.usedinproc +
-                      getfuncretusedregisters(procdef.rettype.def,procdef.proccalloption);
+                  paramloc:=paramanager.getfuncresultloc(procdef,procdef.proccalloption);
+                  case paramloc.loc of
+                    LOC_FPUREGISTER,
+                    LOC_CFPUREGISTER,
+                    LOC_MMREGISTER,
+                    LOC_CMMREGISTER :
+                      begin
+                        include(rg.used_in_proc_other,paramloc.register.enum);
+                      end;
+                    LOC_REGISTER,LOC_CREGISTER :
+                      begin
+                        if ((paramloc.size in [OS_S64,OS_64]) and
+                           (sizeof(aword) < 8)) then
+                          begin
+                            include(rg.used_in_proc_int,paramloc.registerhigh.number shr 8);
+                            include(rg.used_in_proc_int,paramloc.registerlow.number shr 8);
+                          end
+                        else
+                          include(rg.used_in_proc_int,paramloc.register.number shr 8);
+                      end;
+                    else
+                      internalerror(20020816);
+                  end;
                 end;
            end;
       end;
@@ -548,7 +571,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.55  2003-06-12 16:43:07  peter
+  Revision 1.56  2003-06-13 21:19:30  peter
+    * current_procdef removed, use current_procinfo.procdef instead
+
+  Revision 1.55  2003/06/12 16:43:07  peter
     * newra compiles for sparc
 
   Revision 1.54  2003/06/09 12:23:29  peter
@@ -593,7 +619,7 @@ end.
     * removed hdisposen,hnewn,selfn
 
   Revision 1.45  2003/04/27 11:21:32  peter
-    * aktprocdef renamed to current_procdef
+    * aktprocdef renamed to current_procinfo.procdef
     * procinfo renamed to current_procinfo
     * procinfo will now be stored in current_module so it can be
       cleaned up properly
@@ -602,7 +628,7 @@ end.
     * fixed unit implicit initfinal
 
   Revision 1.44  2003/04/27 07:29:50  peter
-    * current_procdef cleanup, current_procdef is now always nil when parsing
+    * current_procinfo.procdef cleanup, current_procdef is now always nil when parsing
       a new procdef declaration
     * aktprocsym removed
     * lexlevel removed, use symtable.symtablelevel instead

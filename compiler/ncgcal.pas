@@ -96,11 +96,6 @@ implementation
       ncgutil,cgobj,tgobj,regvars,rgobj,rgcpu;
 
 
-    var
-      { Current callnode, this is needed for having a link
-        between the callparanodes and the callnode they belong to }
-      aktcallnode : tcallnode;
-
 {*****************************************************************************
                              TCGCALLPARANODE
 *****************************************************************************}
@@ -378,23 +373,23 @@ implementation
         i : integer;
       begin
         { this routine is itself not nested }
-        if current_procdef.parast.symtablelevel=(tprocdef(procdefinition).parast.symtablelevel) then
+        if current_procinfo.procdef.parast.symtablelevel=(tprocdef(procdefinition).parast.symtablelevel) then
           begin
             reference_reset_base(href,current_procinfo.framepointer,current_procinfo.framepointer_offset);
             cg.a_param_ref(exprasmlist,OS_ADDR,href,paramanager.getintparaloc(exprasmlist,1));
           end
         { one nesting level }
-        else if (current_procdef.parast.symtablelevel=(tprocdef(procdefinition).parast.symtablelevel)-1) then
+        else if (current_procinfo.procdef.parast.symtablelevel=(tprocdef(procdefinition).parast.symtablelevel)-1) then
           begin
             cg.a_param_reg(exprasmlist,OS_ADDR,current_procinfo.framepointer,paramanager.getintparaloc(exprasmlist,1));
           end
         { very complex nesting level ... }
-        else if (current_procdef.parast.symtablelevel>(tprocdef(procdefinition).parast.symtablelevel)) then
+        else if (current_procinfo.procdef.parast.symtablelevel>(tprocdef(procdefinition).parast.symtablelevel)) then
           begin
             hregister:=rg.getaddressregister(exprasmlist);
             reference_reset_base(href,current_procinfo.framepointer,current_procinfo.framepointer_offset);
             cg.a_load_ref_reg(exprasmlist,OS_ADDR,OS_ADDR,href,hregister);
-            i:=current_procdef.parast.symtablelevel;
+            i:=current_procinfo.procdef.parast.symtablelevel;
             while (i>tprocdef(procdefinition).parast.symtablelevel) do
               begin
                 reference_reset_base(href,hregister,current_procinfo.framepointer_offset);
@@ -679,7 +674,7 @@ implementation
            begin
               if (cs_check_io in aktlocalswitches) and
                  (po_iocheck in procdefinition.procoptions) and
-                 not(po_iocheck in current_procdef.procoptions) then
+                 not(po_iocheck in current_procinfo.procdef.procoptions) then
                 begin
                    objectlibrary.getaddrlabel(iolabel);
                    cg.a_label(exprasmlist,iolabel);
@@ -725,10 +720,8 @@ implementation
               { and must make sure it saves its volatile registers before doing a call     }
 {$ifdef i386}
               { give used registers through }
-{$ifndef newra}
-              rg.usedintinproc:=rg.usedintinproc + tprocdef(procdefinition).usedintregisters;
-{$endif}
-              rg.usedinproc:=rg.usedinproc + tprocdef(procdefinition).usedotherregisters;
+              rg.used_in_proc_int:=rg.used_in_proc_int + tprocdef(procdefinition).usedintregisters;
+              rg.used_in_proc_other:=rg.used_in_proc_other + tprocdef(procdefinition).usedotherregisters;
 {$endif i386}
            end
          else
@@ -751,9 +744,8 @@ implementation
 {$endif}
               regs_to_push_other := all_registers;
               rg.saveusedotherregisters(exprasmlist,pushedother,regs_to_push_other);
-{$ifndef newra}
-              rg.usedinproc:=all_registers;
-{$endif}
+              rg.used_in_proc_other:=all_registers;
+
               { no IO check for methods and procedure variables }
               iolabel:=nil;
            end;
@@ -824,7 +816,7 @@ implementation
          if (right=nil) then
            begin
               { push base pointer ?}
-              if (current_procdef.parast.symtablelevel>=normal_function_level) and
+              if (current_procinfo.procdef.parast.symtablelevel>=normal_function_level) and
                  assigned(tprocdef(procdefinition).parast) and
                  ((tprocdef(procdefinition).parast.symtablelevel)>normal_function_level) then
                 push_framepointer;
@@ -1110,15 +1102,15 @@ implementation
            internalerror(200305262);
 
          oldinlining_procedure:=inlining_procedure;
-         oldprocdef:=current_procdef;
+         oldprocdef:=current_procinfo.procdef;
          oldprocinfo:=current_procinfo;
          { we're inlining a procedure }
          inlining_procedure:=true;
 
          { deallocate the registers used for the current procedure's regvars }
-         if assigned(current_procdef.regvarinfo) then
+         if assigned(current_procinfo.procdef.regvarinfo) then
            begin
-             with pregvarinfo(current_procdef.regvarinfo)^ do
+             with pregvarinfo(current_procinfo.procdef.regvarinfo)^ do
                for i := 1 to maxvarregs do
                  if assigned(regvars[i]) then
                    store_regvar(exprasmlist,regvars[i].reg);
@@ -1145,36 +1137,35 @@ implementation
          { create temp procinfo }
          current_procinfo:=cprocinfo.create(nil);
          current_procinfo.procdef:=tprocdef(procdefinition);
-         current_procdef:=current_procinfo.procdef;
 
          { Localsymtable }
-         current_procdef.localst.symtablelevel:=oldprocdef.localst.symtablelevel;
-         if current_procdef.localst.datasize>0 then
+         current_procinfo.procdef.localst.symtablelevel:=oldprocdef.localst.symtablelevel;
+         if current_procinfo.procdef.localst.datasize>0 then
            begin
-             old_local_fixup:=current_procdef.localst.address_fixup;
-             tg.GetTemp(exprasmlist,current_procdef.localst.datasize,tt_persistent,localsref);
+             old_local_fixup:=current_procinfo.procdef.localst.address_fixup;
+             tg.GetTemp(exprasmlist,current_procinfo.procdef.localst.datasize,tt_persistent,localsref);
              if tg.direction>0 then
-               current_procdef.localst.address_fixup:=localsref.offset
+               current_procinfo.procdef.localst.address_fixup:=localsref.offset
              else
-               current_procdef.localst.address_fixup:=localsref.offset+current_procdef.localst.datasize;
+               current_procinfo.procdef.localst.address_fixup:=localsref.offset+current_procinfo.procdef.localst.datasize;
 {$ifdef extdebug}
-             Comment(V_debug,'inlined local symtable ('+tostr(current_procdef.localst.datasize)+' bytes) is at offset '+tostr(current_procdef.localst.address_fixup));
+             Comment(V_debug,'inlined local symtable ('+tostr(current_procinfo.procdef.localst.datasize)+' bytes) is at offset '+tostr(current_procinfo.procdef.localst.address_fixup));
              exprasmList.concat(tai_comment.Create(strpnew(
-               'inlined local symtable ('+tostr(current_procdef.localst.datasize)+' bytes) is at offset '+tostr(current_procdef.localst.address_fixup))));
+               'inlined local symtable ('+tostr(current_procinfo.procdef.localst.datasize)+' bytes) is at offset '+tostr(current_procinfo.procdef.localst.address_fixup))));
 {$endif extdebug}
            end;
 
          { Parasymtable }
-         current_procdef.parast.symtablelevel:=oldprocdef.localst.symtablelevel;
-         if current_procdef.parast.datasize>0 then
+         current_procinfo.procdef.parast.symtablelevel:=oldprocdef.localst.symtablelevel;
+         if current_procinfo.procdef.parast.datasize>0 then
            begin
-             old_para_fixup:=current_procdef.parast.address_fixup;
-             tg.GetTemp(exprasmlist,current_procdef.parast.datasize,tt_persistent,pararef);
-             current_procdef.parast.address_fixup:=pararef.offset;
+             old_para_fixup:=current_procinfo.procdef.parast.address_fixup;
+             tg.GetTemp(exprasmlist,current_procinfo.procdef.parast.datasize,tt_persistent,pararef);
+             current_procinfo.procdef.parast.address_fixup:=pararef.offset;
 {$ifdef extdebug}
-             Comment(V_debug,'inlined para symtable ('+tostr(current_procdef.parast.datasize)+' bytes) is at offset '+tostr(current_procdef.parast.address_fixup));
+             Comment(V_debug,'inlined para symtable ('+tostr(current_procinfo.procdef.parast.datasize)+' bytes) is at offset '+tostr(current_procinfo.procdef.parast.address_fixup));
              exprasmList.concat(tai_comment.Create(strpnew(
-               'inlined para symtable ('+tostr(current_procdef.parast.datasize)+' bytes) is at offset '+tostr(current_procdef.parast.address_fixup))));
+               'inlined para symtable ('+tostr(current_procinfo.procdef.parast.datasize)+' bytes) is at offset '+tostr(current_procinfo.procdef.parast.address_fixup))));
 {$endif extdebug}
            end;
 
@@ -1231,7 +1222,7 @@ implementation
 
          if (cs_check_io in aktlocalswitches) and
             (po_iocheck in procdefinition.procoptions) and
-            not(po_iocheck in current_procdef.procoptions) then
+            not(po_iocheck in current_procinfo.procdef.procoptions) then
            begin
               objectlibrary.getaddrlabel(iolabel);
               cg.a_label(exprasmlist,iolabel);
@@ -1264,8 +1255,8 @@ implementation
 
 {$ifdef i386}
          { give used registers through }
-         rg.usedintinproc:=rg.usedintinproc + tprocdef(procdefinition).usedintregisters;
-         rg.usedinproc:=rg.usedinproc + tprocdef(procdefinition).usedotherregisters;
+         rg.used_in_proc_int:=rg.used_in_proc_int + tprocdef(procdefinition).usedintregisters;
+         rg.used_in_proc_other:=rg.used_in_proc_other + tprocdef(procdefinition).usedotherregisters;
 {$endif i386}
 
          { Initialize for pushing the parameters }
@@ -1311,7 +1302,7 @@ implementation
          inlineexitcode:=TAAsmoutput.Create;
 
          gen_initialize_code(inlineentrycode,true);
-         if po_assembler in current_procdef.procoptions then
+         if po_assembler in current_procinfo.procdef.procoptions then
            inlineentrycode.insert(Tai_marker.Create(asmblockstart));
          exprasmList.concatlist(inlineentrycode);
 
@@ -1333,7 +1324,7 @@ implementation
 
          gen_finalize_code(inlineexitcode,true);
          gen_load_return_value(inlineexitcode,usesacc,usesacchi,usesfpu);
-         if po_assembler in current_procdef.procoptions then
+         if po_assembler in current_procinfo.procdef.procoptions then
            inlineexitcode.concat(Tai_marker.Create(asmblockend));
          exprasmList.concatlist(inlineexitcode);
 
@@ -1345,16 +1336,16 @@ implementation
          exprasmList.concat(Tai_Marker.Create(InlineEnd));
 
          {we can free the local data now, reset also the fixup address }
-         if current_procdef.localst.datasize>0 then
+         if current_procinfo.procdef.localst.datasize>0 then
            begin
              tg.UnGetTemp(exprasmlist,localsref);
-             current_procdef.localst.address_fixup:=old_local_fixup;
+             current_procinfo.procdef.localst.address_fixup:=old_local_fixup;
            end;
          {we can free the para data now, reset also the fixup address }
-         if current_procdef.parast.datasize>0 then
+         if current_procinfo.procdef.parast.datasize>0 then
            begin
              tg.UnGetTemp(exprasmlist,pararef);
-             current_procdef.parast.address_fixup:=old_para_fixup;
+             current_procinfo.procdef.parast.address_fixup:=old_para_fixup;
            end;
          { free return reference }
          if (resulttype.def.size>0) then
@@ -1435,13 +1426,13 @@ implementation
 {$endif GDB}
 
          { restore }
-         current_procdef:=oldprocdef;
+         current_procinfo.procdef:=oldprocdef;
          inlining_procedure:=oldinlining_procedure;
 
          { reallocate the registers used for the current procedure's regvars, }
          { since they may have been used and then deallocated in the inlined  }
          { procedure (JM)                                                     }
-         if assigned(current_procdef.regvarinfo) then
+         if assigned(current_procinfo.procdef.regvarinfo) then
            rg.restoreStateAfterInline(oldregstate);
       end;
 
@@ -1461,7 +1452,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.92  2003-06-12 21:10:50  peter
+  Revision 1.93  2003-06-13 21:19:30  peter
+    * current_procdef removed, use current_procinfo.procdef instead
+
+  Revision 1.92  2003/06/12 21:10:50  peter
     * newra fixes
 
   Revision 1.91  2003/06/12 18:38:45  jonas
@@ -1609,7 +1603,7 @@ end.
   + Patch from peter to fix wrong pushing of ansistring function results in open array
 
   Revision 1.55  2003/04/27 11:21:33  peter
-    * aktprocdef renamed to current_procdef
+    * aktprocdef renamed to current_procinfo.procdef
     * procinfo renamed to current_procinfo
     * procinfo will now be stored in current_module so it can be
       cleaned up properly
@@ -1618,7 +1612,7 @@ end.
     * fixed unit implicit initfinal
 
   Revision 1.54  2003/04/27 07:29:50  peter
-    * current_procdef cleanup, current_procdef is now always nil when parsing
+    * current_procinfo.procdef cleanup, current_procinfo.procdef is now always nil when parsing
       a new procdef declaration
     * aktprocsym removed
     * lexlevel removed, use symtable.symtablelevel instead

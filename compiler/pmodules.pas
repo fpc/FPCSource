@@ -465,15 +465,13 @@ implementation
 
     procedure loadunits;
       var
-         s,sorg : stringid;
-         fn     : string;
-         pu     : tused_unit;
-         hp2    : tmodule;
-         hp3    : tsymtable;
-         oldprocdef : tprocdef;
+         s,sorg  : stringid;
+         fn      : string;
+         pu      : tused_unit;
+         hp2     : tmodule;
+         hp3     : tsymtable;
          unitsym : tunitsym;
       begin
-         oldprocdef:=current_procdef;
          consume(_USES);
 {$ifdef DEBUG}
          test_symtablestack;
@@ -596,7 +594,6 @@ implementation
                 end;
               pu:=tused_unit(pu.next);
            end;
-          current_procdef:=oldprocdef;
       end;
 
 
@@ -724,11 +721,10 @@ implementation
           symtable }
         pd.localst.free;
         pd.localst:=st;
-        { set procinfo and current_procdef }
+        { set procinfo and current_procinfo.procdef }
         current_procinfo:=cprocinfo.create(nil);
         current_module.procinfo:=current_procinfo;
         current_procinfo.procdef:=pd;
-        current_procdef:=pd;
         { return procdef }
         create_main_proc:=pd;
       end;
@@ -1456,7 +1452,10 @@ So, all parameters are passerd into registers in sparc architecture.}
 end.
 {
   $Log$
-  Revision 1.113  2003-06-09 12:23:30  peter
+  Revision 1.114  2003-06-13 21:19:31  peter
+    * current_procdef removed, use current_procinfo.procdef instead
+
+  Revision 1.113  2003/06/09 12:23:30  peter
     * init/final of procedure data splitted from genentrycode
     * use asmnode getposition to insert final at the correct position
       als for the implicit try...finally
@@ -1496,7 +1495,7 @@ end.
     * fix stabs generation for implicit initfinal
 
   Revision 1.103  2003/04/27 11:21:34  peter
-    * aktprocdef renamed to current_procdef
+    * aktprocdef renamed to current_procinfo.procdef
     * procinfo renamed to current_procinfo
     * procinfo will now be stored in current_module so it can be
       cleaned up properly
@@ -1505,7 +1504,7 @@ end.
     * fixed unit implicit initfinal
 
   Revision 1.102  2003/04/27 07:29:50  peter
-    * current_procdef cleanup, current_procdef is now always nil when parsing
+    * current_procinfo.procdef cleanup, current_procdef is now always nil when parsing
       a new procdef declaration
     * aktprocsym removed
     * lexlevel removed, use symtable.symtablelevel instead

@@ -348,12 +348,6 @@ interface
 
 
     var
-       current_procdef : tprocdef;
-
-       aktcallprocdef : tabstractprocdef;  { pointer to the definition of the
-                                             currently called procedure,
-                                             only set/unset in ncal }
-
        generrorsym : tsym;
 
     const
@@ -1891,8 +1885,8 @@ implementation
            exit;
          if (vo_is_self in varoptions) then
            begin
-             if (po_classmethod in current_procdef.procoptions) or
-                (po_staticmethod in current_procdef.procoptions) then
+             if (po_classmethod in current_procinfo.procdef.procoptions) or
+                (po_staticmethod in current_procinfo.procdef.procoptions) then
                begin
                  asmlist.concat(Tai_stabs.Create(strpnew(
                     '"pvmt:p'+tstoreddef(pvmttype.def).numberstring+'",'+
@@ -1900,12 +1894,12 @@ implementation
                end
              else
                begin
-                 if not(is_class(current_procdef._class)) then
+                 if not(is_class(current_procinfo.procdef._class)) then
                    c:='v'
                  else
                    c:='p';
                  asmlist.concat(Tai_stabs.Create(strpnew(
-                    '"$t:'+c+current_procdef._class.numberstring+'",'+
+                    '"$t:'+c+current_procinfo.procdef._class.numberstring+'",'+
                     tostr(N_tsym)+',0,0,'+tostr(adjusted_address))));
                end;
            end
@@ -2662,7 +2656,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.109  2003-06-07 20:26:32  peter
+  Revision 1.110  2003-06-13 21:19:31  peter
+    * current_procdef removed, use current_procinfo.procdef instead
+
+  Revision 1.109  2003/06/07 20:26:32  peter
     * re-resolving added instead of reloading from ppu
     * tderef object added to store deref info for resolving
 
@@ -2700,7 +2697,7 @@ end.
     * vs_hidden replaced by is_hidden boolean
 
   Revision 1.100  2003/04/27 11:21:34  peter
-    * aktprocdef renamed to current_procdef
+    * aktprocdef renamed to current_procinfo.procdef
     * procinfo renamed to current_procinfo
     * procinfo will now be stored in current_module so it can be
       cleaned up properly
@@ -2713,7 +2710,7 @@ end.
       a positive offset relative to the stack/framepointer
 
   Revision 1.98  2003/04/27 07:29:51  peter
-    * current_procdef cleanup, current_procdef is now always nil when parsing
+    * current_procinfo.procdef cleanup, current_procdef is now always nil when parsing
       a new procdef declaration
     * aktprocsym removed
     * lexlevel removed, use symtable.symtablelevel instead

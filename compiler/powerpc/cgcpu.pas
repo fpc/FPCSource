@@ -987,7 +987,7 @@ const
         r.number:=NR_R0;
         a_reg_alloc(list,r);
 
-        if current_procdef.parast.symtablelevel>1 then
+        if current_procinfo.procdef.parast.symtablelevel>1 then
           begin
              r.enum:=R_INTREGISTER;
              r.number:=NR_R11;
@@ -996,9 +996,9 @@ const
 
 
         usesfpr:=false;
-        if not (po_assembler in current_procdef.procoptions) then
+        if not (po_assembler in current_procinfo.procdef.procoptions) then
           for regcounter.enum:=R_F14 to R_F31 do
-            if regcounter.enum in rg.usedbyproc then
+            if regcounter.enum in rg.used_in_proc_other then
               begin
                 usesfpr:= true;
                 firstregfpu:=regcounter;
@@ -1006,10 +1006,10 @@ const
               end;
 
         usesgpr:=false;
-        if not (po_assembler in current_procdef.procoptions) then
+        if not (po_assembler in current_procinfo.procdef.procoptions) then
           for regcounter2:=firstsaveintreg to RS_R31 do
             begin
-              if regcounter2 in rg.usedintbyproc then
+              if regcounter2 in rg.used_in_proc_int then
                 begin
                    usesgpr:=true;
                    firstreggpr.enum := R_INTREGISTER;
@@ -1019,7 +1019,7 @@ const
             end;
 
         { save link register? }
-        if not (po_assembler in current_procdef.procoptions) then
+        if not (po_assembler in current_procinfo.procdef.procoptions) then
           if (pi_do_call in current_procinfo.flags) then
             begin
                { save return address... }
@@ -1033,7 +1033,7 @@ const
             end;
 
         { !!! always allocate space for all registers for now !!! }
-        if not (po_assembler in current_procdef.procoptions) then
+        if not (po_assembler in current_procinfo.procdef.procoptions) then
 {        if usesfpr or usesgpr then }
           begin
              r.enum:=R_INTREGISTER;
@@ -1051,7 +1051,7 @@ const
           inc(localsize,(ord(R_F31)-ord(firstregfpu.enum)+1)*8);
 }
         { !!! always allocate space for all registers for now !!! }
-        if not (po_assembler in current_procdef.procoptions) then
+        if not (po_assembler in current_procinfo.procdef.procoptions) then
           inc(localsize,(31-13+1)*4+(31-14+1)*8);
 
         { align to 16 bytes }
@@ -1099,7 +1099,7 @@ const
              }
              reference_reset_base(href,r,-8);
              for regcounter.enum:=firstregfpu.enum to R_F31 do
-               if regcounter.enum in rg.usedbyproc then
+               if regcounter.enum in rg.used_in_proc_other then
                  begin
                     a_loadfpu_reg_ref(list,OS_F64,regcounter,href);
                     dec(href.offset,8);
@@ -1124,7 +1124,7 @@ const
             reference_reset_base(href,r,-4);
             for regcounter2:=firstsaveintreg to RS_R31 do
               begin
-                if regcounter2 in rg.usedintbyproc then
+                if regcounter2 in rg.used_in_proc_int then
                   begin
                      usesgpr:=true;
                      r.enum := R_INTREGISTER;
@@ -1141,14 +1141,14 @@ const
 }
           end;
 
-        if assigned(current_procdef.parast) then
+        if assigned(current_procinfo.procdef.parast) then
           begin
-            if not (po_assembler in current_procdef.procoptions) then
+            if not (po_assembler in current_procinfo.procdef.procoptions) then
               begin
                 { copy memory parameters to local parast }
                 r.enum:=R_INTREGISTER;
                 r.number:=NR_R12;
-                hp:=tparaitem(current_procdef.para.first);
+                hp:=tparaitem(current_procinfo.procdef.para.first);
                 while assigned(hp) do
                   begin
                     if (hp.paraloc.loc in [LOC_REFERENCE,LOC_CREFERENCE]) then
@@ -1192,7 +1192,7 @@ const
         { now comes the AltiVec context save, not yet implemented !!! }
 
         { if we're in a nested procedure, we've to save R11 }
-        if current_procdef.parast.symtablelevel>2 then
+        if current_procinfo.procdef.parast.symtablelevel>2 then
           begin
              r.enum:=R_INTREGISTER;
              r.number:=NR_R11;
@@ -1223,9 +1223,9 @@ const
         { AltiVec context restore, not yet implemented !!! }
 
         usesfpr:=false;
-        if not (po_assembler in current_procdef.procoptions) then
+        if not (po_assembler in current_procinfo.procdef.procoptions) then
           for regcounter.enum:=R_F14 to R_F31 do
-            if regcounter.enum in rg.usedbyproc then
+            if regcounter.enum in rg.used_in_proc_other then
               begin
                  usesfpr:=true;
                  firstregfpu:=regcounter;
@@ -1233,10 +1233,10 @@ const
               end;
 
         usesgpr:=false;
-        if not (po_assembler in current_procdef.procoptions) then
+        if not (po_assembler in current_procinfo.procdef.procoptions) then
           for regcounter2:=firstsaveintreg to RS_R31 do
             begin
-              if regcounter2 in rg.usedintbyproc then
+              if regcounter2 in rg.used_in_proc_int then
                 begin
                   usesgpr:=true;
                   firstreggpr.enum:=R_INTREGISTER;
@@ -1245,7 +1245,7 @@ const
                 end;
             end;
 
-        if not (po_assembler in current_procdef.procoptions) then
+        if not (po_assembler in current_procinfo.procdef.procoptions) then
           inc(localsize,(31-13+1)*4+(31-14+1)*8);
 
         { align to 16 bytes }
@@ -1272,7 +1272,7 @@ const
                begin
                  reference_reset_base(href,r2,-8);
                  for regcounter.enum := firstregfpu.enum to R_F31 do
-                   if (regcounter.enum in rg.usedbyproc) then
+                   if (regcounter.enum in rg.used_in_proc_other) then
                      begin
                        a_loadfpu_ref_reg(list,OS_F64,href,regcounter);
                        dec(href.offset,8);
@@ -1284,7 +1284,7 @@ const
 
             for regcounter2:=firstsaveintreg to RS_R31 do
               begin
-                if regcounter2 in rg.usedintbyproc then
+                if regcounter2 in rg.used_in_proc_int then
                   begin
                      usesgpr:=true;
                      r.enum := R_INTREGISTER;
@@ -1329,7 +1329,7 @@ const
              r.number:=NR_R1;
              a_op_const_reg(list,OP_ADD,OS_ADDR,tppcprocinfo(current_procinfo).localsize,r);
              { load link register? }
-             if not (po_assembler in current_procdef.procoptions) then
+             if not (po_assembler in current_procinfo.procdef.procoptions) then
                if (pi_do_call in current_procinfo.flags) then
                  begin
                     r.enum:=R_INTREGISTER;
@@ -1358,9 +1358,9 @@ const
 
     begin
       usesfpr:=false;
-      if not (po_assembler in current_procdef.procoptions) then
+      if not (po_assembler in current_procinfo.procdef.procoptions) then
         for regcounter.enum:=R_F14 to R_F31 do
-          if regcounter.enum in rg.usedbyproc then
+          if regcounter.enum in rg.used_in_proc_other then
             begin
                usesfpr:=true;
                firstregfpu:=regcounter;
@@ -1368,10 +1368,10 @@ const
             end;
 
       usesgpr:=false;
-      if not (po_assembler in current_procdef.procoptions) then
+      if not (po_assembler in current_procinfo.procdef.procoptions) then
         for regcounter2:=firstsaveintreg to RS_R31 do
           begin
-            if regcounter2 in rg.usedintbyproc then
+            if regcounter2 in rg.used_in_proc_int then
               begin
                  usesgpr:=true;
                  firstreggpr.enum:=R_INTREGISTER;
@@ -1437,9 +1437,9 @@ const
 
     begin
       usesfpr:=false;
-      if not (po_assembler in current_procdef.procoptions) then
+      if not (po_assembler in current_procinfo.procdef.procoptions) then
         for regcounter.enum:=R_F14 to R_F31 do
-          if regcounter.enum in rg.usedbyproc then
+          if regcounter.enum in rg.used_in_proc_other then
             begin
                usesfpr:=true;
                firstregfpu:=regcounter;
@@ -1447,10 +1447,10 @@ const
             end;
 
       usesgpr:=false;
-      if not (po_assembler in current_procdef.procoptions) then
+      if not (po_assembler in current_procinfo.procdef.procoptions) then
         for regcounter2:=RS_R13 to RS_R31 do
           begin
-            if regcounter2 in rg.usedintbyproc then
+            if regcounter2 in rg.used_in_proc_int then
               begin
                  usesgpr:=true;
                  firstreggpr.enum:=R_INTREGISTER;
@@ -2532,7 +2532,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.107  2003-06-09 14:54:26  jonas
+  Revision 1.108  2003-06-13 21:19:31  peter
+    * current_procdef removed, use current_procinfo.procdef instead
+
+  Revision 1.107  2003/06/09 14:54:26  jonas
     * (de)allocation of registers for parameters is now performed properly
       (and checked on the ppc)
     - removed obsolete allocation of all parameter registers at the start
@@ -2618,7 +2621,7 @@ end.
     * fixed optimizations in a_op_const_reg_reg()
 
   Revision 1.86  2003/04/27 11:21:36  peter
-    * aktprocdef renamed to current_procdef
+    * aktprocdef renamed to current_procinfo.procdef
     * procinfo renamed to current_procinfo
     * procinfo will now be stored in current_module so it can be
       cleaned up properly

@@ -631,8 +631,8 @@ implementation
                           (hsym.varstate=vs_set_but_first_not_passed) then
                         begin
                           if (assigned(hsym.owner) and
-                              assigned(current_procdef) and
-                              (hsym.owner=current_procdef.localst)) then
+                              assigned(current_procinfo) and
+                              (hsym.owner=current_procinfo.procdef.localst)) then
                            begin
                              if (vo_is_funcret in hsym.varoptions) then
                                CGMessage(sym_w_function_result_not_set)
@@ -993,12 +993,15 @@ implementation
 end.
 {
   $Log$
-  Revision 1.63  2003-05-09 17:47:02  peter
+  Revision 1.64  2003-06-13 21:19:30  peter
+    * current_procdef removed, use current_procinfo.procdef instead
+
+  Revision 1.63  2003/05/09 17:47:02  peter
     * self moved to hidden parameter
     * removed hdisposen,hnewn,selfn
 
   Revision 1.62  2003/04/27 11:21:32  peter
-    * aktprocdef renamed to current_procdef
+    * aktprocdef renamed to current_procinfo.procdef
     * procinfo renamed to current_procinfo
     * procinfo will now be stored in current_module so it can be
       cleaned up properly
@@ -1007,7 +1010,7 @@ end.
     * fixed unit implicit initfinal
 
   Revision 1.61  2003/04/27 07:29:50  peter
-    * current_procdef cleanup, current_procdef is now always nil when parsing
+    * current_procinfo.procdef cleanup, current_procdef is now always nil when parsing
       a new procdef declaration
     * aktprocsym removed
     * lexlevel removed, use symtable.symtablelevel instead

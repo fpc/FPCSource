@@ -386,18 +386,18 @@ Procedure RemoveLastDeallocForFuncRes(asmL: TAAsmOutput; p: Tai);
   end;
 
 begin
-    case current_procdef.rettype.def.deftype of
+    case current_procinfo.procdef.rettype.def.deftype of
       arraydef,recorddef,pointerdef,
          stringdef,enumdef,procdef,objectdef,errordef,
          filedef,setdef,procvardef,
          classrefdef,forwarddef:
         DoRemoveLastDeallocForFuncRes(asmL,R_EAX);
       orddef:
-        if current_procdef.rettype.def.size <> 0 then
+        if current_procinfo.procdef.rettype.def.size <> 0 then
           begin
             DoRemoveLastDeallocForFuncRes(asmL,R_EAX);
             { for int64/qword }
-            if current_procdef.rettype.def.size = 8 then
+            if current_procinfo.procdef.rettype.def.size = 8 then
               DoRemoveLastDeallocForFuncRes(asmL,R_EDX);
           end;
     end;
@@ -407,18 +407,18 @@ procedure getNoDeallocRegs(var regs: TRegSet);
 var regCounter: ToldRegister;
 begin
   regs := [];
-    case current_procdef.rettype.def.deftype of
+    case current_procinfo.procdef.rettype.def.deftype of
       arraydef,recorddef,pointerdef,
          stringdef,enumdef,procdef,objectdef,errordef,
          filedef,setdef,procvardef,
          classrefdef,forwarddef:
        regs := [R_EAX];
       orddef:
-        if current_procdef.rettype.def.size <> 0 then
+        if current_procinfo.procdef.rettype.def.size <> 0 then
           begin
             regs := [R_EAX];
             { for int64/qword }
-            if current_procdef.rettype.def.size = 8 then
+            if current_procinfo.procdef.rettype.def.size = 8 then
               regs := regs + [R_EDX];
           end;
     end;
@@ -2018,7 +2018,7 @@ begin
   lolab := 0;
   hilab := 0;
   labdif := 0;
-  labeltable := nil;  
+  labeltable := nil;
 end;
 
 
@@ -2782,7 +2782,10 @@ end.
 
 {
   $Log$
-  Revision 1.52  2003-06-08 18:48:03  jonas
+  Revision 1.53  2003-06-13 21:19:31  peter
+    * current_procdef removed, use current_procinfo.procdef instead
+
+  Revision 1.52  2003/06/08 18:48:03  jonas
     * first small steps towards an oop optimizer
 
   Revision 1.51  2003/06/03 21:09:05  peter
@@ -2796,7 +2799,7 @@ end.
     + tcallnode.inlined_pass_2 added
 
   Revision 1.49  2003/04/27 11:21:35  peter
-    * aktprocdef renamed to current_procdef
+    * aktprocdef renamed to current_procinfo.procdef
     * procinfo renamed to current_procinfo
     * procinfo will now be stored in current_module so it can be
       cleaned up properly

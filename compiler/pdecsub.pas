@@ -93,7 +93,7 @@ implementation
       { Please leave this here, this module should NOT use
         these variables.
         Declaring it as string here results in an error when compiling (PFV) }
-      current_procdef = 'error';
+      current_procinfo = 'error';
 
 
     procedure insert_funcret_para(pd:tabstractprocdef);
@@ -2171,7 +2171,10 @@ const
 end.
 {
   $Log$
-  Revision 1.127  2003-06-05 20:04:43  peter
+  Revision 1.128  2003-06-13 21:19:31  peter
+    * current_procdef removed, use current_procinfo.procdef instead
+
+  Revision 1.127  2003/06/05 20:04:43  peter
     * set po_public also when parsing the object declaration
 
   Revision 1.126  2003/06/02 21:42:05  jonas
@@ -2202,7 +2205,7 @@ end.
     + first changes to make self a hidden parameter
 
   Revision 1.119  2003/04/27 11:21:33  peter
-    * aktprocdef renamed to current_procdef
+    * aktprocdef renamed to current_procinfo.procdef
     * procinfo renamed to current_procinfo
     * procinfo will now be stored in current_module so it can be
       cleaned up properly
@@ -2211,7 +2214,7 @@ end.
     * fixed unit implicit initfinal
 
   Revision 1.118  2003/04/27 07:29:50  peter
-    * current_procdef cleanup, current_procdef is now always nil when parsing
+    * current_procinfo.procdef cleanup, current_procdef is now always nil when parsing
       a new procdef declaration
     * aktprocsym removed
     * lexlevel removed, use symtable.symtablelevel instead

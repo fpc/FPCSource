@@ -77,7 +77,7 @@ implementation
        hregister1,hregister2 : tregister;
        i : longint;
     begin
-       if current_procdef.parast.symtablelevel=(tprocdef(procdefinition).parast.symtablelevel) then
+       if current_procinfo.procdef.parast.symtablelevel=(tprocdef(procdefinition).parast.symtablelevel) then
          begin
             { pass the same framepointer as the current procedure got }
             hregister2.enum:=R_INTREGISTER;
@@ -88,7 +88,7 @@ implementation
          end
          { this is only true if the difference is one !!
            but it cannot be more !! }
-       else if (current_procdef.parast.symtablelevel=(tprocdef(procdefinition).parast.symtablelevel)-1) then
+       else if (current_procinfo.procdef.parast.symtablelevel=(tprocdef(procdefinition).parast.symtablelevel)-1) then
          begin
             { pass the same framepointer as the current procedure got }
             hregister1.enum:=R_INTREGISTER;
@@ -97,7 +97,7 @@ implementation
             hregister2.number:=NR_R11;
             cg.a_load_reg_reg(exprasmlist,OS_32,OS_32,hregister1,hregister2);
          end
-       else if (current_procdef.parast.symtablelevel>(tprocdef(procdefinition).parast.symtablelevel)) then
+       else if (current_procinfo.procdef.parast.symtablelevel>(tprocdef(procdefinition).parast.symtablelevel)) then
          begin
             hregister1:=rg.getregisterint(exprasmlist,OS_ADDR);
             reference_reset_base(href,current_procinfo.framepointer,current_procinfo.framepointer_offset);
@@ -105,7 +105,7 @@ implementation
             { the previous frame pointer is always saved at }
             { previous_framepointer+12 (in the link area)   }
             reference_reset_base(href,hregister1,12);
-            i:=current_procdef.parast.symtablelevel-1;
+            i:=current_procinfo.procdef.parast.symtablelevel-1;
             while (i>tprocdef(procdefinition).parast.symtablelevel) do
               begin
                  cg.a_load_ref_reg(exprasmlist,OS_ADDR,OS_ADDR,href,hregister1);
@@ -125,7 +125,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.17  2003-06-04 11:58:58  jonas
+  Revision 1.18  2003-06-13 21:19:32  peter
+    * current_procdef removed, use current_procinfo.procdef instead
+
+  Revision 1.17  2003/06/04 11:58:58  jonas
     * calculate localsize also in g_return_from_proc since it's now called
       before g_stackframe_entry (still have to fix macos)
     * compilation fixes (cycle doesn't work yet though)
@@ -154,7 +157,7 @@ end.
       nested procedures are declared
 
   Revision 1.10  2003/04/27 11:21:36  peter
-    * aktprocdef renamed to current_procdef
+    * aktprocdef renamed to current_procinfo.procdef
     * procinfo renamed to current_procinfo
     * procinfo will now be stored in current_module so it can be
       cleaned up properly

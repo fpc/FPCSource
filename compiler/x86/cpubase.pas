@@ -544,6 +544,7 @@ uses
     function is_calljmp(o:tasmop):boolean;
     procedure inverse_flags(var f: TResFlags);
     function flags_to_cond(const f: TResFlags) : TAsmCond;
+    function supreg_name(r:Tsuperregister):string;
 
 
 implementation
@@ -663,26 +664,28 @@ implementation
          end;
       end;
 
-{$ifdef unused}
+
     function supreg_name(r:Tsuperregister):string;
-
-    var s:string[4];
-
-    const supreg_names:array[0..last_supreg] of string[4]=
+      const
+        supreg_names:array[0..last_supreg] of string[4]=
           ('INV',
-           'eax','ebx','ecx','edx','esi','edi','ebp','esp',
-           'r8' ,'r9', 'r10','r11','r12','r13','r14','r15');
+           'eax','ebx','ecx','edx','esi','edi','ebp','esp'
+{$ifdef x86_64}
+           ,'r8' ,'r9', 'r10','r11','r12','r13','r14','r15'
+{$endif x86_64}
+           );
+      var
+        s : string[4];
+      begin
+        if r in [0..last_supreg] then
+          supreg_name:=supreg_names[r]
+        else
+          begin
+            str(r,s);
+            supreg_name:='reg'+s;
+          end;
+      end;
 
-    begin
-      if r in [0..last_supreg] then
-        supreg_name:=supreg_names[r]
-      else
-        begin
-          str(r,s);
-          supreg_name:='reg'+s;
-        end;
-    end;
-{$endif unused}
 
     function is_calljmp(o:tasmop):boolean;
       begin
@@ -725,7 +728,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.8  2003-06-12 19:11:34  jonas
+  Revision 1.9  2003-06-13 21:19:33  peter
+    * current_procdef removed, use current_procinfo.procdef instead
+
+  Revision 1.8  2003/06/12 19:11:34  jonas
     - removed ALL_INTREGISTERS (only the one in rgobj is valid)
 
   Revision 1.7  2003/06/03 21:11:09  peter

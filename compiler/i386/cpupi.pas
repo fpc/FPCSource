@@ -58,7 +58,7 @@ unit cpupi;
           begin
             { Make sure the register allocator won't allocate registers
               into ebp }
-            include(rg.usedintinproc,RS_EBP);
+            include(rg.used_in_proc_int,RS_EBP);
             exclude(rg.unusedregsint,RS_EBP);
           end;
       end;
@@ -69,7 +69,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.7  2003-06-12 18:12:49  jonas
+  Revision 1.8  2003-06-13 21:19:31  peter
+    * current_procdef removed, use current_procinfo.procdef instead
+
+  Revision 1.7  2003/06/12 18:12:49  jonas
     * fixed compilation problems
 
   Revision 1.6  2003/06/12 16:43:07  peter
@@ -82,7 +85,7 @@ end.
     * removed some unit dependencies
 
   Revision 1.3  2003/04/27 11:21:35  peter
-    * aktprocdef renamed to current_procdef
+    * aktprocdef renamed to current_procinfo.procdef
     * procinfo renamed to current_procinfo
     * procinfo will now be stored in current_module so it can be
       cleaned up properly

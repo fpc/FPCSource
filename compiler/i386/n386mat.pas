@@ -405,8 +405,8 @@ implementation
                { since it was acquired with getregister), the others also }
                { use both EAX and EDX (JM)                                }
                 begin
-                  include(rg.usedintinproc,RS_EAX);
-                  include(rg.usedintinproc,RS_EDX);
+                  include(rg.used_in_proc_int,RS_EAX);
+                  include(rg.used_in_proc_int,RS_EDX);
                 end;
               location_reset(location,LOC_REGISTER,OS_INT);
               location.register:=hreg1;
@@ -1094,7 +1094,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.57  2003-06-03 21:11:09  peter
+  Revision 1.58  2003-06-13 21:19:31  peter
+    * current_procdef removed, use current_procinfo.procdef instead
+
+  Revision 1.57  2003/06/03 21:11:09  peter
     * cg.a_load_* get a from and to size specifier
     * makeregsize only accepts newregister
     * i386 uses generic tcgnotnode,tcgunaryminus

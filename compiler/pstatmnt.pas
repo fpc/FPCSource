@@ -416,8 +416,8 @@ implementation
               hp:=tunarynode(hp).left;
             if (hp.nodetype=loadn) and
                (
-                (tloadnode(hp).symtable=current_procdef.localst) or
-                (tloadnode(hp).symtable=current_procdef.parast) or
+                (tloadnode(hp).symtable=current_procinfo.procdef.localst) or
+                (tloadnode(hp).symtable=current_procinfo.procdef.parast) or
                 (tloadnode(hp).symtable.symtabletype in [staticsymtable,globalsymtable])
                ) then
              begin
@@ -776,7 +776,7 @@ implementation
       var
         asmstat : tasmnode;
         Marker  : tai;
-        r       : tregister;
+        reg     : tsuperregister;
         found   : boolean;
         hs      : string;
       begin
@@ -801,11 +801,11 @@ implementation
              begin
                if not target_asm.allowdirect then
                  Message(parser_f_direct_assembler_not_allowed);
-               if (current_procdef.proccalloption=pocall_inline) then
+               if (current_procinfo.procdef.proccalloption=pocall_inline) then
                  Begin
                     Message1(parser_w_not_supported_for_inline,'direct asm');
                     Message(parser_w_inlining_disabled);
-                    current_procdef.proccalloption:=pocall_fpccall;
+                    current_procinfo.procdef.proccalloption:=pocall_fpccall;
                  End;
                asmstat:=tasmnode(radirect.assemble);
              end;
@@ -816,20 +816,20 @@ implementation
          { Read first the _ASM statement }
          consume(_ASM);
 
-         { END is read }
+         { END is read, got a list of changed registers? }
          if try_to_consume(_LECKKLAMMER) then
            begin
+             rg.used_in_proc_other:=ALL_OTHERREGISTERS;
              if token<>_RECKKLAMMER then
               begin
                 repeat
                   { it's possible to specify the modified registers }
                   hs:=upper(pattern);
                   found:=false;
-                  for r.enum:=firstreg to lastreg do
-                   if hs=upper(std_reg2str[r.enum]) then
+                  for reg:=first_supreg to last_supreg do
+                   if hs=upper(supreg_name(reg)) then
                     begin
-                      include(rg.usedinproc,r.enum);
-                      include(rg.usedbyproc,r.enum);
+                      include(rg.used_in_proc_int,reg);
                       found:=true;
                       break;
                     end;
@@ -844,8 +844,8 @@ implementation
            end
          else
            begin
-              rg.usedbyproc := ALL_REGISTERS;
-              rg.usedinproc := ALL_REGISTERS;
+              rg.used_in_proc_int:=ALL_INTREGISTERS;
+              rg.used_in_proc_other:=ALL_OTHERREGISTERS;
            end;
 
          { mark the start and the end of the assembler block
@@ -939,7 +939,7 @@ implementation
              code:=cnothingnode.create;
            _FAIL :
              begin
-                if (current_procdef.proctypeoption<>potype_constructor) then
+                if (current_procinfo.procdef.proctypeoption<>potype_constructor) then
                   Message(parser_e_fail_only_in_constructor);
                 consume(_FAIL);
                 code:=call_fail_node;
@@ -1075,12 +1075,12 @@ implementation
         current_procinfo.framepointer.enum:=R_INTREGISTER;
         current_procinfo.framepointer.number:=NR_STACK_POINTER_REG;
         { set the right value for parameters }
-        dec(current_procdef.parast.address_fixup,pointer_size);
+        dec(current_procinfo.procdef.parast.address_fixup,pointer_size);
         { replace all references to parameters in the instructions,
           the parameters can be identified by the parafixup option
           that is set. For normal user coded [ebp+4] this field is not
           set }
-        parafixup:=current_procdef.parast.address_fixup;
+        parafixup:=current_procinfo.procdef.parast.address_fixup;
         hp:=tai(p.p_asm.first);
         while assigned(hp) do
          begin
@@ -1131,8 +1131,8 @@ implementation
         p : tnode;
       begin
          { Rename the funcret so that recursive calls are possible }
-         if not is_void(current_procdef.rettype.def) then
-           symtablestack.rename(current_procdef.resultname,'$hiddenresult');
+         if not is_void(current_procinfo.procdef.rettype.def) then
+           symtablestack.rename(current_procinfo.procdef.resultname,'$hiddenresult');
 
          { force the asm statement }
          if token<>_ASM then
@@ -1149,19 +1149,19 @@ implementation
            - target processor has optional frame pointer save
              (vm, i386, vm only currently)
          }
-         if (po_assembler in current_procdef.procoptions) and
+         if (po_assembler in current_procinfo.procdef.procoptions) and
 {$ifndef powerpc}
             { is this really necessary??? }
-            (current_procdef.parast.datasize=0) and
+            (current_procinfo.procdef.parast.datasize=0) and
 {$endif powerpc}
-            (current_procdef.localst.datasize=current_procdef.rettype.def.size) and
-            (current_procdef.owner.symtabletype<>objectsymtable) and
-            (not assigned(current_procdef.funcretsym) or
-             (tvarsym(current_procdef.funcretsym).refcount<=1)) and
-            not(paramanager.ret_in_param(current_procdef.rettype.def,current_procdef.proccalloption)) then
+            (current_procinfo.procdef.localst.datasize=current_procinfo.procdef.rettype.def.size) and
+            (current_procinfo.procdef.owner.symtabletype<>objectsymtable) and
+            (not assigned(current_procinfo.procdef.funcretsym) or
+             (tvarsym(current_procinfo.procdef.funcretsym).refcount<=1)) and
+            not(paramanager.ret_in_param(current_procinfo.procdef.rettype.def,current_procinfo.procdef.proccalloption)) then
             begin
                { we don't need to allocate space for the locals }
-               current_procdef.localst.datasize:=0;
+               current_procinfo.procdef.localst.datasize:=0;
                current_procinfo.firsttemp_offset:=0;
                { only for cpus with different frame- and stack pointer the code must be changed }
                if (NR_STACK_POINTER_REG<>NR_FRAME_POINTER_REG)
@@ -1175,9 +1175,9 @@ implementation
         { Flag the result as assigned when it is returned in a
           register.
         }
-        if assigned(current_procdef.funcretsym) and
-           (not paramanager.ret_in_param(current_procdef.rettype.def,current_procdef.proccalloption)) then
-          tvarsym(current_procdef.funcretsym).varstate:=vs_assigned;
+        if assigned(current_procinfo.procdef.funcretsym) and
+           (not paramanager.ret_in_param(current_procinfo.procdef.rettype.def,current_procinfo.procdef.proccalloption)) then
+          tvarsym(current_procinfo.procdef.funcretsym).varstate:=vs_assigned;
 
         { because the END is already read we need to get the
           last_endtoken_filepos here (PFV) }
@@ -1189,7 +1189,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.103  2003-06-09 18:27:14  peter
+  Revision 1.104  2003-06-13 21:19:31  peter
+    * current_procdef removed, use current_procinfo.procdef instead
+
+  Revision 1.103  2003/06/09 18:27:14  peter
     * load calln in temprefn in with statement
 
   Revision 1.102  2003/05/23 22:33:48  florian
@@ -1229,7 +1232,7 @@ end.
     * tparamanager.ret_in_acc doesn't return true anymore for a void-def
 
   Revision 1.94  2003/04/27 11:21:34  peter
-    * aktprocdef renamed to current_procdef
+    * aktprocdef renamed to current_procinfo.procdef
     * procinfo renamed to current_procinfo
     * procinfo will now be stored in current_module so it can be
       cleaned up properly
@@ -1238,7 +1241,7 @@ end.
     * fixed unit implicit initfinal
 
   Revision 1.93  2003/04/27 07:29:50  peter
-    * current_procdef cleanup, current_procdef is now always nil when parsing
+    * current_procinfo.procdef cleanup, current_procinfo.procdef is now always nil when parsing
       a new procdef declaration
     * aktprocsym removed
     * lexlevel removed, use symtable.symtablelevel instead

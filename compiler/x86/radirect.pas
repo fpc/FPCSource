@@ -79,22 +79,22 @@ interface
            if s<>'' then
             code.concat(Tai_direct.Create(strpnew(s)));
             { consider it set function set if the offset was loaded }
-           if assigned(current_procdef.funcretsym) and
+           if assigned(current_procinfo.procdef.funcretsym) and
               (pos(retstr,upper(s))>0) then
-             tvarsym(current_procdef.funcretsym).varstate:=vs_assigned;
+             tvarsym(current_procinfo.procdef.funcretsym).varstate:=vs_assigned;
            s:='';
          end;
 
      begin
        ende:=false;
        s:='';
-       if assigned(current_procdef.funcretsym) and
-          is_fpu(current_procdef.rettype.def) then
-         tvarsym(current_procdef.funcretsym).varstate:=vs_assigned;
+       if assigned(current_procinfo.procdef.funcretsym) and
+          is_fpu(current_procinfo.procdef.rettype.def) then
+         tvarsym(current_procinfo.procdef.funcretsym).varstate:=vs_assigned;
        framereg:=current_procinfo.framepointer;
        convert_register_to_enum(framereg);
-       if (not is_void(current_procdef.rettype.def)) then
-         retstr:=upper(tostr(tvarsym(current_procdef.funcretsym).adjusted_address)+'('+gas_reg2str[framereg.enum]+')')
+       if (not is_void(current_procinfo.procdef.rettype.def)) then
+         retstr:=upper(tostr(tvarsym(current_procinfo.procdef.funcretsym).adjusted_address)+'('+gas_reg2str[framereg.enum]+')')
        else
          retstr:='';
        c:=current_scanner.asmgetchar;
@@ -138,23 +138,23 @@ interface
                            FwaitWarning
                           else
                           { access to local variables }
-                          if assigned(current_procdef) then
+                          if assigned(current_procinfo.procdef) then
                             begin
                                { is the last written character an special }
                                { char ?                                   }
                                if (s[length(s)]='%') and
-                                  (not paramanager.ret_in_param(current_procdef.rettype.def,current_procdef.proccalloption)) and
+                                  (not paramanager.ret_in_param(current_procinfo.procdef.rettype.def,current_procinfo.procdef.proccalloption)) and
                                   ((pos('AX',upper(hs))>0) or
                                   (pos('AL',upper(hs))>0)) then
-                                 tvarsym(current_procdef.funcretsym).varstate:=vs_assigned;
+                                 tvarsym(current_procinfo.procdef.funcretsym).varstate:=vs_assigned;
                                if (s[length(s)]<>'%') and
                                  (s[length(s)]<>'$') and
                                  (s[length(s)]<>'.') and
                                  ((s[length(s)]<>'0') or (hs[1]<>'x')) then
                                  begin
-                                    if assigned(current_procdef.localst) and
-                                       (current_procdef.localst.symtablelevel>=normal_function_level) then
-                                      sym:=tsym(current_procdef.localst.search(upper(hs)))
+                                    if assigned(current_procinfo.procdef.localst) and
+                                       (current_procinfo.procdef.localst.symtablelevel>=normal_function_level) then
+                                      sym:=tsym(current_procinfo.procdef.localst.search(upper(hs)))
                                     else
                                       sym:=nil;
                                     if assigned(sym) then
@@ -188,8 +188,8 @@ interface
                                       end
                                     else
                                       begin
-                                         if assigned(current_procdef.parast) then
-                                           sym:=tsym(current_procdef.parast.search(upper(hs)))
+                                         if assigned(current_procinfo.procdef.parast) then
+                                           sym:=tsym(current_procinfo.procdef.parast.search(upper(hs)))
                                          else
                                            sym:=nil;
                                          if assigned(sym) then
@@ -198,7 +198,7 @@ interface
                                                 begin
                                                    l:=tvarsym(sym).address;
                                                    { set offset }
-                                                   inc(l,current_procdef.parast.address_fixup);
+                                                   inc(l,current_procinfo.procdef.parast.address_fixup);
                                                    hs:=tostr(l)+'('+gas_reg2str[framereg.enum]+')';
                                                    if pos(',',s) > 0 then
                                                      tvarsym(sym).varstate:=vs_used;
@@ -214,7 +214,7 @@ interface
                                          uhs:=upper(hs);
                                          if (uhs='__SELF') then
                                            begin
-                                             if assigned(current_procdef._class) then
+                                             if assigned(current_procinfo.procdef._class) then
                                               uhs:='self'
                                              else
                                               begin
@@ -225,7 +225,7 @@ interface
                                          else
                                           if (uhs='__OLDEBP') then
                                            begin
-                                             if current_procdef.parast.symtablelevel>normal_function_level then
+                                             if current_procinfo.procdef.parast.symtablelevel>normal_function_level then
                                               uhs:='parentframe'
                                              else
                                               begin
@@ -236,7 +236,7 @@ interface
                                          else
                                           if uhs='__RESULT' then
                                            begin
-                                             if (not is_void(current_procdef.rettype.def)) then
+                                             if (not is_void(current_procinfo.procdef.rettype.def)) then
                                               uhs:='result'
                                              else
                                               begin
@@ -313,7 +313,7 @@ interface
               '{',';',#10,#13 :
                 begin
                   if pos(retstr,s) > 0 then
-                    tvarsym(current_procdef.funcretsym).varstate:=vs_assigned;
+                    tvarsym(current_procinfo.procdef.funcretsym).varstate:=vs_assigned;
                   writeasmline;
                   c:=current_scanner.asmgetchar;
                 end;
@@ -361,7 +361,10 @@ initialization
 end.
 {
   $Log$
-  Revision 1.6  2003-06-02 21:42:05  jonas
+  Revision 1.7  2003-06-13 21:19:33  peter
+    * current_procdef removed, use current_procinfo.procdef instead
+
+  Revision 1.6  2003/06/02 21:42:05  jonas
     * function results can now also be regvars
     - removed tprocinfo.return_offset, never use it again since it's invalid
       if the result is a regvar
@@ -388,7 +391,7 @@ end.
     * merged more x86-64/i386 code
 
   Revision 1.11  2003/04/27 11:21:36  peter
-    * aktprocdef renamed to current_procdef
+    * aktprocdef renamed to current_procinfo.procdef
     * procinfo renamed to current_procinfo
     * procinfo will now be stored in current_module so it can be
       cleaned up properly
@@ -397,7 +400,7 @@ end.
     * fixed unit implicit initfinal
 
   Revision 1.10  2003/04/27 07:29:52  peter
-    * current_procdef cleanup, current_procdef is now always nil when parsing
+    * current_procinfo.procdef cleanup, current_procinfo.procdef is now always nil when parsing
       a new procdef declaration
     * aktprocsym removed
     * lexlevel removed, use symtable.symtablelevel instead

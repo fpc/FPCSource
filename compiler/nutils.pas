@@ -61,6 +61,7 @@ implementation
       verbose,
       symconst,symsym,symtype,symdef,symtable,
       nbas,ncon,ncnv,nld,nflw,nset,ncal,nadd,nmem,
+      cgbase,
       pass_1;
 
   function foreachnode(var n: tnode; f: foreachnodefunction): boolean;
@@ -165,9 +166,9 @@ implementation
         result:=internalstatements(newstatement,true);
 
         { call fail helper and exit normal }
-        if is_class(current_procdef._class) then
+        if is_class(current_procinfo.procdef._class) then
           begin
-            srsym:=search_class_member(current_procdef._class,'FREEINSTANCE');
+            srsym:=search_class_member(current_procinfo.procdef._class,'FREEINSTANCE');
             if assigned(srsym) and
                (srsym.typ=procsym) then
               begin
@@ -189,13 +190,13 @@ implementation
               internalerror(200305108);
           end
         else
-          if is_object(current_procdef._class) then
+          if is_object(current_procinfo.procdef._class) then
             begin
               { parameter 3 : vmt_offset }
               { parameter 2 : pointer to vmt }
               { parameter 1 : self pointer }
               para:=ccallparanode.create(
-                        cordconstnode.create(current_procdef._class.vmt_offset,s32bittype,false),
+                        cordconstnode.create(current_procinfo.procdef._class.vmt_offset,s32bittype,false),
                     ccallparanode.create(
                         ctypeconvnode.create_explicit(
                             load_vmt_pointer_node,
@@ -253,7 +254,10 @@ end.
 
 {
   $Log$
-  Revision 1.5  2003-05-26 21:17:17  peter
+  Revision 1.6  2003-06-13 21:19:30  peter
+    * current_procdef removed, use current_procinfo.procdef instead
+
+  Revision 1.5  2003/05/26 21:17:17  peter
     * procinlinenode removed
     * aktexit2label removed, fast exit removed
     + tcallnode.inlined_pass_2 added

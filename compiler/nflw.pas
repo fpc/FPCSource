@@ -724,7 +724,7 @@ implementation
              (hp.nodetype=loadn) and
              (
               (tloadnode(hp).symtable.symtablelevel=main_program_level) or
-              (tloadnode(hp).symtable.symtablelevel=current_procdef.parast.symtablelevel)
+              (tloadnode(hp).symtable.symtablelevel=current_procinfo.procdef.parast.symtablelevel)
              ) and
              not(
                  (tloadnode(hp).symtableentry.typ=varsym) and
@@ -857,9 +857,9 @@ implementation
         if assigned(left) then
           begin
             { add assignment to funcretsym }
-            inserttypeconv(left,current_procdef.rettype);
+            inserttypeconv(left,current_procinfo.procdef.rettype);
             left:=cassignmentnode.create(
-                cloadnode.create(current_procdef.funcretsym,current_procdef.funcretsym.owner),
+                cloadnode.create(current_procinfo.procdef.funcretsym,current_procinfo.procdef.funcretsym.owner),
                 left);
             resulttypepass(left);
             set_varstate(left,true);
@@ -1429,7 +1429,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.77  2003-06-07 20:26:32  peter
+  Revision 1.78  2003-06-13 21:19:30  peter
+    * current_procdef removed, use current_procinfo.procdef instead
+
+  Revision 1.77  2003/06/07 20:26:32  peter
     * re-resolving added instead of reloading from ppu
     * tderef object added to store deref info for resolving
 
@@ -1460,7 +1463,7 @@ end.
     * int64s/qwords are allowed as for loop counter on 64 bit CPUs
 
   Revision 1.71  2003/04/27 11:21:33  peter
-    * aktprocdef renamed to current_procdef
+    * aktprocdef renamed to current_procinfo.procdef
     * procinfo renamed to current_procinfo
     * procinfo will now be stored in current_module so it can be
       cleaned up properly
@@ -1469,7 +1472,7 @@ end.
     * fixed unit implicit initfinal
 
   Revision 1.70  2003/04/27 07:29:50  peter
-    * current_procdef cleanup, current_procdef is now always nil when parsing
+    * current_procinfo.procdef cleanup, current_procdef is now always nil when parsing
       a new procdef declaration
     * aktprocsym removed
     * lexlevel removed, use symtable.symtablelevel instead

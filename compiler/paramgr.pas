@@ -137,15 +137,12 @@ unit paramgr;
        end;
 
 
-
-    procedure setparalocs(p : tprocdef);
-    function getfuncretusedregisters(def : tdef;calloption:tproccalloption): tregisterset;
-
     var
        paralocdummy : tparalocation;
        paramanager : tparamanager;
 
-  implementation
+
+implementation
 
     uses
        cpuinfo,globals,systems,
@@ -408,48 +405,6 @@ unit paramgr;
       end;
 
 
-    function getfuncretusedregisters(def : tdef;calloption:tproccalloption): tregisterset;
-      var
-        paramloc : tparalocation;
-        regset : tregisterset;
-      begin
-        regset:=[];
-        getfuncretusedregisters:=[];
-        { if nothing is returned in registers,
-          its useless to continue on in this
-          routine
-        }
-        if paramanager.ret_in_param(def,calloption) then
-          exit;
-        paramloc := paramanager.getfuncresultloc(def,calloption);
-        case paramloc.loc of
-          LOC_FPUREGISTER,
-          LOC_CFPUREGISTER,
-          LOC_MMREGISTER,
-          LOC_CMMREGISTER,
-          LOC_REGISTER,LOC_CREGISTER :
-              begin
-                regset := regset + [paramloc.register.enum];
-                if ((paramloc.size in [OS_S64,OS_64]) and
-                   (sizeof(aword) < 8))
-                then
-                  begin
-                     regset := regset + [paramloc.registerhigh.enum];
-                  end;
-              end;
-          else
-            internalerror(20020816);
-        end;
-        getfuncretusedregisters:=regset;
-      end;
-
-    procedure setparalocs(p : tprocdef);
-
-      var
-         hp : tparaitem;
-
-      begin
-      end;
 
 initialization
   ;
@@ -459,7 +414,10 @@ end.
 
 {
    $Log$
-   Revision 1.44  2003-06-12 21:11:10  peter
+   Revision 1.45  2003-06-13 21:19:30  peter
+     * current_procdef removed, use current_procinfo.procdef instead
+
+   Revision 1.44  2003/06/12 21:11:10  peter
      * ungetregisterfpu gets size parameter
 
    Revision 1.43  2003/06/09 14:54:26  jonas
@@ -498,7 +456,7 @@ end.
      * tparamanager.ret_in_acc doesn't return true anymore for a void-def
 
    Revision 1.36  2003/04/27 11:21:33  peter
-     * aktprocdef renamed to current_procdef
+     * aktprocdef renamed to current_procinfo.procdef
      * procinfo renamed to current_procinfo
      * procinfo will now be stored in current_module so it can be
        cleaned up properly
@@ -507,7 +465,7 @@ end.
      * fixed unit implicit initfinal
 
    Revision 1.35  2003/04/27 07:29:50  peter
-     * current_procdef cleanup, current_procdef is now always nil when parsing
+     * current_procinfo.procdef cleanup, current_procdef is now always nil when parsing
        a new procdef declaration
      * aktprocsym removed
      * lexlevel removed, use symtable.symtablelevel instead

@@ -471,7 +471,7 @@ implementation
             varsym :
               begin
                 if (symtable.symtabletype in [parasymtable,localsymtable]) and
-                   (current_procdef.parast.symtablelevel>symtable.symtablelevel) then
+                   (current_procinfo.procdef.parast.symtablelevel>symtable.symtablelevel) then
                   begin
                     { if the variable is in an other stackframe then we need
                       a register to dereference }
@@ -791,7 +791,7 @@ implementation
          if codegenerror then
            exit;
 
-         
+
         if (is_shortstring(left.resulttype.def)) then
           begin
            if right.resulttype.def.deftype=stringdef then
@@ -1286,7 +1286,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.101  2003-06-08 20:01:53  jonas
+  Revision 1.102  2003-06-13 21:19:30  peter
+    * current_procdef removed, use current_procinfo.procdef instead
+
+  Revision 1.101  2003/06/08 20:01:53  jonas
     * optimized assignments with on the right side a function that returns
       an ansi- or widestring
 
@@ -1341,7 +1344,7 @@ end.
     * removed hdisposen,hnewn,selfn
 
   Revision 1.90  2003/04/27 11:21:33  peter
-    * aktprocdef renamed to current_procdef
+    * aktprocdef renamed to current_procinfo.procdef
     * procinfo renamed to current_procinfo
     * procinfo will now be stored in current_module so it can be
       cleaned up properly
@@ -1350,7 +1353,7 @@ end.
     * fixed unit implicit initfinal
 
   Revision 1.89  2003/04/27 07:29:50  peter
-    * current_procdef cleanup, current_procdef is now always nil when parsing
+    * current_procinfo.procdef cleanup, current_procdef is now always nil when parsing
       a new procdef declaration
     * aktprocsym removed
     * lexlevel removed, use symtable.symtablelevel instead

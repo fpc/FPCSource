@@ -391,9 +391,9 @@ implementation
                    { concat function result to exit }
                    { this is wrong for string or other complex
                      result types !!! }
-                   if {ret_in_acc(current_procdef.rettype.def) and }
-                      (is_ordinal(current_procdef.rettype.def) or
-                       is_smallset(current_procdef.rettype.def)) and
+                   if {ret_in_acc(current_procinfo.procdef.rettype.def) and }
+                      (is_ordinal(current_procinfo.procdef.rettype.def) or
+                       is_smallset(current_procinfo.procdef.rettype.def)) and
                       assigned(hp.right) and
                       assigned(tstatementnode(hp.right).left) and
                       (tstatementnode(hp.right).left.nodetype=exitn) and
@@ -852,7 +852,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.57  2003-06-10 09:10:47  jonas
+  Revision 1.58  2003-06-13 21:19:30  peter
+    * current_procdef removed, use current_procinfo.procdef instead
+
+  Revision 1.57  2003/06/10 09:10:47  jonas
     * patch from Peter to fix tempinfo copying
 
   Revision 1.56  2003/06/09 18:26:46  peter
@@ -898,7 +901,7 @@ end.
     * direct with rewritten to use temprefnode
 
   Revision 1.48  2003/04/27 11:21:33  peter
-    * aktprocdef renamed to current_procdef
+    * aktprocdef renamed to current_procinfo.procdef
     * procinfo renamed to current_procinfo
     * procinfo will now be stored in current_module so it can be
       cleaned up properly

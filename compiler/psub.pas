@@ -133,10 +133,10 @@ implementation
          { do we have an assembler block without the po_assembler?
            we should allow this for Delphi compatibility (PFV) }
          if (token=_ASM) and (m_delphi in aktmodeswitches) then
-          include(current_procdef.procoptions,po_assembler);
+          include(current_procinfo.procdef.procoptions,po_assembler);
 
          { Handle assembler block different }
-         if (po_assembler in current_procdef.procoptions) then
+         if (po_assembler in current_procinfo.procdef.procoptions) then
           begin
             block:=assembler_block;
             exit;
@@ -144,8 +144,8 @@ implementation
 
          {Unit initialization?.}
          if (
-             assigned(current_procdef.localst) and
-             (current_procdef.localst.symtablelevel=main_program_level) and
+             assigned(current_procinfo.procdef.localst) and
+             (current_procinfo.procdef.localst.symtablelevel=main_program_level) and
              (current_module.is_unit)
             ) or
             islibrary then
@@ -198,7 +198,7 @@ implementation
                if symtablestack.symtabletype=localsymtable then
                  symtablestack.foreach_static({$ifdef FPCPROCVAR}@{$endif}initializevars,block);
             end;
-         if (current_procdef.localst.symtablelevel=main_program_level) and
+         if (current_procinfo.procdef.localst.symtablelevel=main_program_level) and
              (not current_module.is_unit) then
            begin
              { there's always a call to FPC_DO_EXIT in the main program }
@@ -241,7 +241,7 @@ implementation
          end;
         writeln(printnodefile);
         writeln(printnodefile,'*******************************************************************************');
-        writeln(printnodefile,current_procdef.fullprocname(false));
+        writeln(printnodefile,current_procinfo.procdef.fullprocname(false));
         writeln(printnodefile,'*******************************************************************************');
         printnode(printnodefile,pd.code);
         close(printnodefile);
@@ -261,16 +261,16 @@ implementation
         tcgprocinfo(current_procinfo).initasmnode:=casmnode.create_get_position;
         addstatement(newstatement,tcgprocinfo(current_procinfo).initasmnode);
 
-        if assigned(current_procdef._class) then
+        if assigned(current_procinfo.procdef._class) then
           begin
             { a constructor needs a help procedure }
-            if (current_procdef.proctypeoption=potype_constructor) then
+            if (current_procinfo.procdef.proctypeoption=potype_constructor) then
               begin
-                if is_class(current_procdef._class) then
+                if is_class(current_procinfo.procdef._class) then
                   begin
                     if (cs_implicit_exceptions in aktmoduleswitches) then
                       include(current_procinfo.flags,pi_needs_implicit_finally);
-                    srsym:=search_class_member(current_procdef._class,'NEWINSTANCE');
+                    srsym:=search_class_member(current_procinfo.procdef._class,'NEWINSTANCE');
                     if assigned(srsym) and
                        (srsym.typ=procsym) then
                       begin
@@ -290,9 +290,9 @@ implementation
                       internalerror(200305108);
                   end
                 else
-                  if is_object(current_procdef._class) then
+                  if is_object(current_procinfo.procdef._class) then
                     begin
-                      htype.setdef(current_procdef._class);
+                      htype.setdef(current_procinfo.procdef._class);
                       htype.setdef(tpointerdef.create(htype));
                       { parameter 3 : vmt_offset }
                       { parameter 2 : address of pointer to vmt,
@@ -300,7 +300,7 @@ implementation
                         that memory was allocated }
                       { parameter 1 : self pointer }
                       para:=ccallparanode.create(
-                                cordconstnode.create(current_procdef._class.vmt_offset,s32bittype,false),
+                                cordconstnode.create(current_procinfo.procdef._class.vmt_offset,s32bittype,false),
                             ccallparanode.create(
                                 ctypeconvnode.create_explicit(
                                     load_vmt_pointer_node,
@@ -330,10 +330,10 @@ implementation
               end;
 
             { maybe call BeforeDestruction for classes }
-            if (current_procdef.proctypeoption=potype_destructor) and
-               is_class(current_procdef._class) then
+            if (current_procinfo.procdef.proctypeoption=potype_destructor) and
+               is_class(current_procinfo.procdef._class) then
               begin
-                srsym:=search_class_member(current_procdef._class,'BEFOREDESTRUCTION');
+                srsym:=search_class_member(current_procinfo.procdef._class,'BEFOREDESTRUCTION');
                 if assigned(srsym) and
                    (srsym.typ=procsym) then
                   begin
@@ -374,13 +374,13 @@ implementation
       begin
         generate_exit_block:=internalstatements(newstatement,true);
 
-        if assigned(current_procdef._class) then
+        if assigned(current_procinfo.procdef._class) then
           begin
             { maybe call AfterConstruction for classes }
-            if (current_procdef.proctypeoption=potype_constructor) and
-               is_class(current_procdef._class) then
+            if (current_procinfo.procdef.proctypeoption=potype_constructor) and
+               is_class(current_procinfo.procdef._class) then
               begin
-                srsym:=search_class_member(current_procdef._class,'AFTERCONSTRUCTION');
+                srsym:=search_class_member(current_procinfo.procdef._class,'AFTERCONSTRUCTION');
                 if assigned(srsym) and
                    (srsym.typ=procsym) then
                   begin
@@ -397,11 +397,11 @@ implementation
               end;
 
             { a destructor needs a help procedure }
-            if (current_procdef.proctypeoption=potype_destructor) then
+            if (current_procinfo.procdef.proctypeoption=potype_destructor) then
               begin
-                if is_class(current_procdef._class) then
+                if is_class(current_procinfo.procdef._class) then
                   begin
-                    srsym:=search_class_member(current_procdef._class,'FREEINSTANCE');
+                    srsym:=search_class_member(current_procinfo.procdef._class,'FREEINSTANCE');
                     if assigned(srsym) and
                        (srsym.typ=procsym) then
                       begin
@@ -423,16 +423,16 @@ implementation
                       internalerror(200305108);
                   end
                 else
-                  if is_object(current_procdef._class) then
+                  if is_object(current_procinfo.procdef._class) then
                     begin
                       { finalize object data }
-                      if current_procdef._class.needs_inittable then
+                      if current_procinfo.procdef._class.needs_inittable then
                         addstatement(newstatement,finalize_data_node(load_self_node));
                       { parameter 3 : vmt_offset }
                       { parameter 2 : pointer to vmt }
                       { parameter 1 : self pointer }
                       para:=ccallparanode.create(
-                                cordconstnode.create(current_procdef._class.vmt_offset,s32bittype,false),
+                                cordconstnode.create(current_procinfo.procdef._class.vmt_offset,s32bittype,false),
                             ccallparanode.create(
                                 ctypeconvnode.create_explicit(
                                     load_vmt_pointer_node,
@@ -461,10 +461,10 @@ implementation
 
         { a constructor needs call destructor (if available) when it
           is not inherited }
-        if assigned(current_procdef._class) and
-           (current_procdef.proctypeoption=potype_constructor) then
+        if assigned(current_procinfo.procdef._class) and
+           (current_procinfo.procdef.proctypeoption=potype_constructor) then
           begin
-            pd:=current_procdef._class.searchdestructor;
+            pd:=current_procinfo.procdef._class.searchdestructor;
             if assigned(pd) then
               begin
                 { if vmt<>0 then call destructor }
@@ -480,9 +480,9 @@ implementation
           begin
             { no constructor }
             { must be the return value finalized before reraising the exception? }
-            if (not is_void(current_procdef.rettype.def)) and
-               (current_procdef.rettype.def.needs_inittable) and
-               (not is_class(current_procdef.rettype.def)) then
+            if (not is_void(current_procinfo.procdef.rettype.def)) and
+               (current_procinfo.procdef.rettype.def.needs_inittable) and
+               (not is_class(current_procinfo.procdef.rettype.def)) then
               finalize_data_node(load_result_node);
           end;
       end;
@@ -523,7 +523,7 @@ implementation
         newblock:=internalstatements(newstatement,true);
         if (pi_needs_implicit_finally in current_procinfo.flags) and
            { but it's useless in init/final code of units }
-           not(current_procdef.proctypeoption in [potype_unitfinalize,potype_unitinit]) then
+           not(current_procinfo.procdef.proctypeoption in [potype_unitfinalize,potype_unitinit]) then
           begin
             addstatement(newstatement,initializecode);
             aktfilepos:=entrypos;
@@ -564,7 +564,6 @@ implementation
 
     procedure tcgprocinfo.generate_code;
       var
-        oldprocdef : tprocdef;
         oldprocinfo : tprocinfo;
         oldaktmaxfpuregisters : longint;
         oldfilepos : tfileposinfo;
@@ -579,12 +578,10 @@ implementation
           exit;
 
         oldprocinfo:=current_procinfo;
-        oldprocdef:=current_procdef;
         oldfilepos:=aktfilepos;
         oldaktmaxfpuregisters:=aktmaxfpuregisters;
 
         current_procinfo:=self;
-        current_procdef:=procdef;
 
         { get new labels }
         aktbreaklabel:=nil;
@@ -596,12 +593,8 @@ implementation
 
         { reset the temporary memory }
         rg.cleartempgen;
-        rg.usedinproc:=[];
-        rg.usedintinproc:=[];
-        rg.usedbyproc:=[];
-      {$ifndef newra}
-        rg.usedintbyproc:=[];
-      {$endif}
+        rg.used_in_proc_int:=[];
+        rg.used_in_proc_other:=[];
 
         { set the start offset to the start of the temp area in the stack }
         tg.setfirsttemp(firsttemp_offset);
@@ -666,11 +659,11 @@ implementation
         { now all the registers used are known }
         { Remove all imaginary registers from the used list.}
 {$ifdef newra}
-        procdef.usedintregisters:=rg.usedintinproc*ALL_INTREGISTERS-rg.savedbyproc;
+        procdef.usedintregisters:=rg.used_in_proc_int*ALL_INTREGISTERS-rg.saved_by_proc_int;
 {$else}
-        procdef.usedintregisters:=rg.usedintinproc;
+        procdef.usedintregisters:=rg.used_in_proc_int;
 {$endif}
-        procdef.usedotherregisters:=rg.usedinproc;
+        procdef.usedotherregisters:=rg.used_in_proc_other;
 
         { save local data (casetable) also in the same file }
         if assigned(aktlocaldata) and
@@ -698,7 +691,6 @@ implementation
         templist.free;
         aktmaxfpuregisters:=oldaktmaxfpuregisters;
         aktfilepos:=oldfilepos;
-        current_procdef:=oldprocdef;
         current_procinfo:=oldprocinfo;
       end;
 
@@ -773,7 +765,7 @@ implementation
          if assigned(code) then
           begin
             { the inline procedure has already got a copy of the tree
-              stored in current_procdef.code }
+              stored in current_procinfo.procdef.code }
             code.free;
             if (procdef.proccalloption<>pocall_inline) then
               procdef.code:=nil;
@@ -783,14 +775,11 @@ implementation
 
     procedure tcgprocinfo.parse_body;
       var
-         oldprocdef : tprocdef;
          oldprocinfo : tprocinfo;
       begin
-         oldprocdef:=current_procdef;
          oldprocinfo:=current_procinfo;
 
          current_procinfo:=self;
-         current_procdef:=procdef;
 
          { calculate the lexical level }
          if procdef.parast.symtablelevel>maxnesting then
@@ -820,9 +809,8 @@ implementation
 
          { reset the temporary memory }
          rg.cleartempgen;
-         rg.usedintinproc:=[];
-         rg.usedinproc:=[];
-         rg.usedbyproc:=[];
+         rg.used_in_proc_int:=[];
+         rg.used_in_proc_other:=[];
 
          { save entry info }
          entrypos:=aktfilepos;
@@ -890,10 +878,9 @@ implementation
     {$endif state_tracking}
 
          { reset to normal non static function }
-         if (current_procdef.parast.symtablelevel=normal_function_level) then
+         if (current_procinfo.procdef.parast.symtablelevel=normal_function_level) then
            allow_only_static:=false;
 
-         current_procdef:=oldprocdef;
          current_procinfo:=oldprocinfo;
       end;
 
@@ -969,7 +956,6 @@ implementation
         end;
 
       var
-        oldprocdef       : tprocdef;
         old_current_procinfo : tprocinfo;
         oldconstsymtable : tsymtable;
         oldselftokenmode,
@@ -979,13 +965,11 @@ implementation
         isnestedproc     : boolean;
       begin
          { save old state }
-         oldprocdef:=current_procdef;
          oldconstsymtable:=constsymtable;
          old_current_procinfo:=current_procinfo;
 
-         { reset current_procdef to nil to be sure that nothing is writing
+         { reset current_procinfo.procdef to nil to be sure that nothing is writing
            to an other procdef }
-         current_procdef:=nil;
          current_procinfo:=nil;
 
          { parse procedure declaration }
@@ -1142,7 +1126,6 @@ implementation
          { Restore old state }
          constsymtable:=oldconstsymtable;
 
-         current_procdef:=oldprocdef;
          current_procinfo:=old_current_procinfo;
       end;
 
@@ -1165,17 +1148,17 @@ implementation
 
         procedure Not_supported_for_inline(t : ttoken);
         begin
-           if (current_procdef.proccalloption=pocall_inline) then
+           if (current_procinfo.procdef.proccalloption=pocall_inline) then
              Begin
                 Message1(parser_w_not_supported_for_inline,tokenstring(t));
                 Message(parser_w_inlining_disabled);
-                current_procdef.proccalloption:=pocall_fpccall;
+                current_procinfo.procdef.proccalloption:=pocall_fpccall;
              End;
         end;
 
       begin
          repeat
-           if not assigned(current_procdef) then
+           if not assigned(current_procinfo) then
              internalerror(200304251);
            case token of
               _LABEL:
@@ -1208,8 +1191,8 @@ implementation
               _EXPORTS:
                 begin
                    Not_supported_for_inline(token);
-                   if not(assigned(current_procdef.localst)) or
-                      (current_procdef.localst.symtablelevel>main_program_level) or
+                   if not(assigned(current_procinfo.procdef.localst)) or
+                      (current_procinfo.procdef.localst.symtablelevel>main_program_level) or
                       (current_module.is_unit) then
                      begin
                         Message(parser_e_syntax_error);
@@ -1268,7 +1251,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.126  2003-06-12 16:43:07  peter
+  Revision 1.127  2003-06-13 21:19:31  peter
+    * current_procdef removed, use current_procinfo.procdef instead
+
+  Revision 1.126  2003/06/12 16:43:07  peter
     * newra compiles for sparc
 
   Revision 1.125  2003/06/09 12:23:30  peter
@@ -1349,7 +1335,7 @@ end.
     * removed hdisposen,hnewn,selfn
 
   Revision 1.107  2003/04/27 11:21:34  peter
-    * aktprocdef renamed to current_procdef
+    * aktprocdef renamed to current_procinfo.procdef
     * procinfo renamed to current_procinfo
     * procinfo will now be stored in current_module so it can be
       cleaned up properly
@@ -1358,7 +1344,7 @@ end.
     * fixed unit implicit initfinal
 
   Revision 1.106  2003/04/27 07:29:50  peter
-    * current_procdef cleanup, current_procdef is now always nil when parsing
+    * current_procinfo.procdef cleanup, current_procdef is now always nil when parsing
       a new procdef declaration
     * aktprocsym removed
     * lexlevel removed, use symtable.symtablelevel instead

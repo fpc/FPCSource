@@ -144,8 +144,8 @@ interface
          if inlining_procedure then
            begin
              objectlibrary.CreateUsedAsmSymbolList;
-             localfixup:=current_procdef.localst.address_fixup;
-             parafixup:=current_procdef.parast.address_fixup;
+             localfixup:=current_procinfo.procdef.localst.address_fixup;
+             parafixup:=current_procinfo.procdef.parast.address_fixup;
              hp:=tai(p_asm.first);
              while assigned(hp) do
               begin
@@ -218,7 +218,7 @@ interface
            begin
              { if the routine is an inline routine, then we must hold a copy
                because it can be necessary for inlining later }
-             if (current_procdef.proccalloption=pocall_inline) then
+             if (current_procinfo.procdef.proccalloption=pocall_inline) then
                exprasmList.concatlistcopy(p_asm)
              else
                exprasmList.concatlist(p_asm);
@@ -316,7 +316,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.36  2003-06-09 18:26:46  peter
+  Revision 1.37  2003-06-13 21:19:30  peter
+    * current_procdef removed, use current_procinfo.procdef instead
+
+  Revision 1.36  2003/06/09 18:26:46  peter
     * remove temptype, use tempinfo.temptype instead
 
   Revision 1.35  2003/06/09 12:20:47  peter
@@ -328,7 +331,7 @@ end.
       temps, but a ttemptype, so you can also create ansistring temps etc
 
   Revision 1.33  2003/04/27 11:21:33  peter
-    * aktprocdef renamed to current_procdef
+    * aktprocdef renamed to current_procinfo.procdef
     * procinfo renamed to current_procinfo
     * procinfo will now be stored in current_module so it can be
       cleaned up properly

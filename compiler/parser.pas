@@ -67,9 +67,7 @@ implementation
          { and no function header                        }
          testcurobject:=0;
 
-         { Symtable }
-         current_procdef:=nil;
-
+         { Current compiled module/proc }
          objectlibrary:=nil;
          current_module:=nil;
          compiled_module:=nil;
@@ -255,7 +253,6 @@ implementation
           olddefaultsymtablestack,
           oldsymtablestack : tsymtable;
           oldaktprocsym    : tprocsym;
-          oldcurrent_procdef    : tprocdef;
           oldoverloaded_operators : toverloaded_operators;
         { cg }
           oldparse_only  : boolean;
@@ -288,6 +285,7 @@ implementation
           oldaktinterfacetype: tinterfacetypes;
           oldaktmodeswitches : tmodeswitches;
           old_compiled_module : tmodule;
+          oldcurrent_procinfo : tprocinfo;
           oldaktdefproccall : tproccalloption;
           oldsourcecodepage : tcodepagestring;
 {$ifdef GDB}
@@ -317,7 +315,7 @@ implementation
             oldsymtablestack:=symtablestack;
             olddefaultsymtablestack:=defaultsymtablestack;
             oldrefsymtable:=refsymtable;
-            oldcurrent_procdef:=current_procdef;
+            oldcurrent_procinfo:=current_procinfo;
             oldaktdefproccall:=aktdefproccall;
             move(overloaded_operators,oldoverloaded_operators,sizeof(toverloaded_operators));
           { save scanner state }
@@ -532,7 +530,7 @@ implementation
                  symtablestack:=oldsymtablestack;
                  defaultsymtablestack:=olddefaultsymtablestack;
                  aktdefproccall:=oldaktdefproccall;
-                 current_procdef:=oldcurrent_procdef;
+                 current_procinfo:=oldcurrent_procinfo;
                  move(oldoverloaded_operators,overloaded_operators,sizeof(toverloaded_operators));
                  aktsourcecodepage:=oldsourcecodepage;
                  aktlocalswitches:=oldaktlocalswitches;
@@ -621,7 +619,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.54  2003-06-12 16:41:51  peter
+  Revision 1.55  2003-06-13 21:19:30  peter
+    * current_procdef removed, use current_procinfo.procdef instead
+
+  Revision 1.54  2003/06/12 16:41:51  peter
     * add inputfile prefix to ppas/link.res
 
   Revision 1.53  2003/05/15 18:58:53  peter
@@ -631,7 +632,7 @@ end.
     * removed some obsolete globals
 
   Revision 1.52  2003/04/27 11:21:33  peter
-    * aktprocdef renamed to current_procdef
+    * aktprocdef renamed to current_procinfo.procdef
     * procinfo renamed to current_procinfo
     * procinfo will now be stored in current_module so it can be
       cleaned up properly
@@ -640,7 +641,7 @@ end.
     * fixed unit implicit initfinal
 
   Revision 1.51  2003/04/27 07:29:50  peter
-    * current_procdef cleanup, current_procdef is now always nil when parsing
+    * current_procinfo.procdef cleanup, current_procdef is now always nil when parsing
       a new procdef declaration
     * aktprocsym removed
     * lexlevel removed, use symtable.symtablelevel instead

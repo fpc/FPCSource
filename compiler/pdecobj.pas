@@ -52,7 +52,7 @@ implementation
       { Please leave this here, this module should NOT use
         these variables.
         Declaring it as string here results in an error when compiling (PFV) }
-      current_procdef = 'error';
+      current_procinfo = 'error';
 
 
     function object_dec(const n : stringid;fd : tobjectdef) : tdef;
@@ -1138,7 +1138,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.66  2003-05-23 14:27:35  peter
+  Revision 1.67  2003-06-13 21:19:30  peter
+    * current_procdef removed, use current_procinfo.procdef instead
+
+  Revision 1.66  2003/05/23 14:27:35  peter
     * remove some unit dependencies
     * current_procinfo changes to store more info
 
@@ -1150,7 +1153,7 @@ end.
     * vs_hidden replaced by is_hidden boolean
 
   Revision 1.63  2003/04/27 11:21:33  peter
-    * aktprocdef renamed to current_procdef
+    * aktprocdef renamed to current_procinfo.procdef
     * procinfo renamed to current_procinfo
     * procinfo will now be stored in current_module so it can be
       cleaned up properly
@@ -1159,7 +1162,7 @@ end.
     * fixed unit implicit initfinal
 
   Revision 1.62  2003/04/27 07:29:50  peter
-    * current_procdef cleanup, current_procdef is now always nil when parsing
+    * current_procinfo.procdef cleanup, current_procdef is now always nil when parsing
       a new procdef declaration
     * aktprocsym removed
     * lexlevel removed, use symtable.symtablelevel instead

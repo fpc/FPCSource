@@ -98,7 +98,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.22  2003-06-02 21:42:05  jonas
+  Revision 1.23  2003-06-13 21:19:32  peter
+    * current_procdef removed, use current_procinfo.procdef instead
+
+  Revision 1.22  2003/06/02 21:42:05  jonas
     * function results can now also be regvars
     - removed tprocinfo.return_offset, never use it again since it's invalid
       if the result is a regvar
@@ -137,7 +140,7 @@ end.
     * call inherited after_header as well
 
   Revision 1.12  2003/04/27 11:21:36  peter
-    * aktprocdef renamed to current_procdef
+    * aktprocdef renamed to current_procinfo.procdef
     * procinfo renamed to current_procinfo
     * procinfo will now be stored in current_module so it can be
       cleaned up properly

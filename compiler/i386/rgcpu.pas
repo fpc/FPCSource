@@ -151,7 +151,7 @@ unit rgcpu;
         begin
           dec(countunusedregsint);
           exclude(unusedregsint,RS_EAX);
-          include(usedintinproc,RS_EAX);
+          include(used_in_proc_int,RS_EAX);
           result.number:=RS_EAX shl 8 or subreg;
 {$ifdef TEMPREGDEBUG}
           reg_user[R_EAX]:=curptree^;
@@ -162,7 +162,7 @@ unit rgcpu;
         begin
           dec(countunusedregsint);
           exclude(unusedregsint,RS_EDX);
-          include(usedintinproc,RS_EDX);
+          include(used_in_proc_int,RS_EDX);
           result.number:=RS_EDX shl 8 or subreg;
 {$ifdef TEMPREGDEBUG}
           reg_user[R_EDX]:=curptree^;
@@ -173,7 +173,7 @@ unit rgcpu;
         begin
           dec(countunusedregsint);
           exclude(unusedregsint,RS_EBX);
-          include(usedintinproc,RS_EBX);
+          include(used_in_proc_int,RS_EBX);
           result.number:=RS_EBX shl 8 or subreg;
 {$ifdef TEMPREGDEBUG}
           reg_user[R_EBX]:=curptree^;
@@ -184,7 +184,7 @@ unit rgcpu;
         begin
           dec(countunusedregsint);
           exclude(unusedregsint,RS_ECX);
-          include(usedintinproc,RS_ECX);
+          include(used_in_proc_int,RS_ECX);
           result.number:=RS_ECX shl 8 or subreg;
 {$ifdef TEMPREGDEBUG}
           reg_user[R_ECX]:=curptree^;
@@ -305,7 +305,7 @@ unit rgcpu;
         r2:Tregister;
 
     begin
-      usedintinproc:=usedintinproc+s;
+      used_in_proc_int:=used_in_proc_int+s;
       for r:=firstsaveintreg to lastsaveintreg do
         begin
           r2.enum:=R_INTREGISTER;
@@ -341,7 +341,7 @@ unit rgcpu;
         hr:Treference;
 
     begin
-      usedinproc:=usedinproc+s;
+      used_in_proc_other:=used_in_proc_other+s;
       for r:=R_MM0 to R_MM6 do
         begin
           pushed[r].pushed:=false;
@@ -517,7 +517,10 @@ end.
 
 {
   $Log$
-  Revision 1.26  2003-06-12 21:12:20  peter
+  Revision 1.27  2003-06-13 21:19:31  peter
+    * current_procdef removed, use current_procinfo.procdef instead
+
+  Revision 1.26  2003/06/12 21:12:20  peter
     * size para for ungetregisterfpu
 
   Revision 1.25  2003/06/03 21:11:09  peter

@@ -77,7 +77,7 @@ implementation
               { walk through all momentary register variables }
               for i:=1 to maxvarregs do
                 begin
-                  with pregvarinfo(current_procdef.regvarinfo)^ do
+                  with pregvarinfo(current_procinfo.procdef.regvarinfo)^ do
                    if ((regvars[i]=nil) or (j>regvars_refs[i])) and (j>0) then
                      begin
                         for k:=maxvarregs-1 downto i do
@@ -118,7 +118,7 @@ implementation
               { walk through all momentary register variables }
               for i:=1 to maxfpuvarregs do
                 begin
-                  with pregvarinfo(current_procdef.regvarinfo)^ do
+                  with pregvarinfo(current_procinfo.procdef.regvarinfo)^ do
                    if ((fpuregvars[i]=nil) or (j>fpuregvars_refs[i])) and (j>0) then
                      begin
                         for k:=maxfpuvarregs-1 downto i do
@@ -164,7 +164,7 @@ implementation
         begin
           new(regvarinfo);
           fillchar(regvarinfo^,sizeof(regvarinfo^),0);
-          current_procdef.regvarinfo := regvarinfo;
+          current_procinfo.procdef.regvarinfo := regvarinfo;
           if (p.registers32<maxvarregs) then
             begin
               parasym:=false;
@@ -180,7 +180,7 @@ implementation
 {$ifndef i386}
               else
                 begin
-                  hp:=tparaitem(current_procdef.para.first);
+                  hp:=tparaitem(current_procinfo.procdef.para.first);
                   while assigned(hp) do
                     begin
                       if (hp.paraloc.loc in [LOC_REGISTER,LOC_FPUREGISTER,
@@ -224,7 +224,7 @@ implementation
                       { call by reference/const ? }
                       if (regvarinfo^.regvars[i].varspez in [vs_var,vs_out]) or
                          ((regvarinfo^.regvars[i].varspez=vs_const) and
-                           paramanager.push_addr_param(regvarinfo^.regvars[i].vartype.def,current_procdef.proccalloption)) then
+                           paramanager.push_addr_param(regvarinfo^.regvars[i].vartype.def,current_procinfo.procdef.proccalloption)) then
                         siz:=OS_32
                       else
                        if (regvarinfo^.regvars[i].vartype.def.deftype in [orddef,enumdef]) and
@@ -241,7 +241,7 @@ implementation
                       regvarinfo^.regvars[i].reg.number:=(varregs[i] shl 8) or cgsize2subreg(siz);
 {$ifdef i386}
                       { procedure uses this register }
-                      include(rg.usedintinproc,varregs[i]);
+                      include(rg.used_in_proc_int,varregs[i]);
 {$endif i386}
                     end
                   else
@@ -319,7 +319,7 @@ implementation
       vsym: tvarsym;
     begin
 {$ifdef i386}
-      regvarinfo := pregvarinfo(current_procdef.regvarinfo);
+      regvarinfo := pregvarinfo(current_procinfo.procdef.regvarinfo);
       if not assigned(regvarinfo) then
         exit;
       if reg.enum=R_INTREGISTER then
@@ -393,7 +393,7 @@ implementation
               reference_reset_base(hr,current_procinfo.framepointer,vsym.adjusted_address);
               if (vsym.varspez in [vs_var,vs_out]) or
                  ((vsym.varspez=vs_const) and
-                   paramanager.push_addr_param(vsym.vartype.def,current_procdef.proccalloption)) then
+                   paramanager.push_addr_param(vsym.vartype.def,current_procinfo.procdef.proccalloption)) then
                 opsize := OS_ADDR
               else
                 opsize := def_cgsize(vsym.vartype.def);
@@ -410,7 +410,7 @@ implementation
               reference_reset_base(hr,current_procinfo.framepointer,vsym.adjusted_address);
               if (vsym.varspez in [vs_var,vs_out]) or
                  ((vsym.varspez=vs_const) and
-                   paramanager.push_addr_param(vsym.vartype.def,current_procdef.proccalloption)) then
+                   paramanager.push_addr_param(vsym.vartype.def,current_procinfo.procdef.proccalloption)) then
                 opsize := OS_ADDR
               else
                 opsize := def_cgsize(vsym.vartype.def);
@@ -426,7 +426,7 @@ implementation
       regvarinfo: pregvarinfo;
       reg_spare : tregister;
     begin
-      regvarinfo := pregvarinfo(current_procdef.regvarinfo);
+      regvarinfo := pregvarinfo(current_procinfo.procdef.regvarinfo);
       if not assigned(regvarinfo) then
         exit;
       if reg.enum=R_INTREGISTER then
@@ -453,7 +453,7 @@ implementation
       i: longint;
       regvarinfo: pregvarinfo;
     begin
-      regvarinfo := pregvarinfo(current_procdef.regvarinfo);
+      regvarinfo := pregvarinfo(current_procinfo.procdef.regvarinfo);
       if not assigned(regvarinfo) then
         exit;
       for i := 1 to maxvarregs do
@@ -472,7 +472,7 @@ implementation
          not(pi_uses_asm in current_procinfo.flags) and
          not(pi_uses_exceptions in current_procinfo.flags) then
         begin
-          regvarinfo := pregvarinfo(current_procdef.regvarinfo);
+          regvarinfo := pregvarinfo(current_procinfo.procdef.regvarinfo);
           { can happen when inlining assembler procedures (JM) }
           if not assigned(regvarinfo) then
             exit;
@@ -573,12 +573,12 @@ implementation
       r,reg : tregister;
     begin
       { can happen when inlining assembler procedures (JM) }
-      if not assigned(current_procdef.regvarinfo) then
+      if not assigned(current_procinfo.procdef.regvarinfo) then
         exit;
       if (cs_regalloc in aktglobalswitches) and
          not(pi_uses_asm in current_procinfo.flags) and
          not(pi_uses_exceptions in current_procinfo.flags) then
-        with pregvarinfo(current_procdef.regvarinfo)^ do
+        with pregvarinfo(current_procinfo.procdef.regvarinfo)^ do
           begin
 {$ifdef i386}
             r.enum:=R_ST0;
@@ -616,7 +616,10 @@ end.
 
 {
   $Log$
-  Revision 1.56  2003-06-07 18:57:04  jonas
+  Revision 1.57  2003-06-13 21:19:31  peter
+    * current_procdef removed, use current_procinfo.procdef instead
+
+  Revision 1.56  2003/06/07 18:57:04  jonas
     + added freeintparaloc
     * ppc get/freeintparaloc now check whether the parameter regs are
       properly allocated/deallocated (and get an extra list para)
@@ -660,7 +663,7 @@ end.
       tg.direction*tvarsym(X).address...
 
   Revision 1.47  2003/04/27 11:21:34  peter
-    * aktprocdef renamed to current_procdef
+    * aktprocdef renamed to current_procinfo.procdef
     * procinfo renamed to current_procinfo
     * procinfo will now be stored in current_module so it can be
       cleaned up properly

@@ -273,10 +273,6 @@ implementation
          if ErrorCount=0 then
            begin
               { assign parameter locations }
-{$ifndef i386}
-              setparalocs(current_procinfo.procdef);
-{$endif i386}
-
               current_procinfo.after_pass1;
 
               { process register variable stuff (JM) }
@@ -304,7 +300,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.56  2003-06-12 16:43:07  peter
+  Revision 1.57  2003-06-13 21:19:30  peter
+    * current_procdef removed, use current_procinfo.procdef instead
+
+  Revision 1.56  2003/06/12 16:43:07  peter
     * newra compiles for sparc
 
   Revision 1.55  2003/06/09 12:23:30  peter
@@ -335,7 +334,7 @@ end.
     * removed hdisposen,hnewn,selfn
 
   Revision 1.49  2003/04/27 11:21:33  peter
-    * aktprocdef renamed to current_procdef
+    * aktprocdef renamed to current_procinfo.procdef
     * procinfo renamed to current_procinfo
     * procinfo will now be stored in current_module so it can be
       cleaned up properly
@@ -344,7 +343,7 @@ end.
     * fixed unit implicit initfinal
 
   Revision 1.48  2003/04/27 07:29:50  peter
-    * current_procdef cleanup, current_procdef is now always nil when parsing
+    * current_procinfo.procdef cleanup, current_procdef is now always nil when parsing
       a new procdef declaration
     * aktprocsym removed
     * lexlevel removed, use symtable.symtablelevel instead

@@ -209,14 +209,14 @@ implementation
                                   location.reference.base:=current_procinfo.framepointer;
                                   location.reference.offset:=tvarsym(symtableentry).adjusted_address;
 
-                                  if (current_procdef.parast.symtablelevel>symtable.symtablelevel) then
+                                  if (current_procinfo.procdef.parast.symtablelevel>symtable.symtablelevel) then
                                     begin
                                        hregister:=rg.getaddressregister(exprasmlist);
                                        { make a reference }
                                        reference_reset_base(href,current_procinfo.framepointer,current_procinfo.framepointer_offset);
                                        cg.a_load_ref_reg(exprasmlist,OS_ADDR,OS_ADDR,href,hregister);
                                        { walk parents }
-                                       i:=current_procdef.parast.symtablelevel-1;
+                                       i:=current_procinfo.procdef.parast.symtablelevel-1;
                                        while (i>symtable.symtablelevel) do
                                          begin
                                             { make a reference }
@@ -953,7 +953,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.70  2003-06-12 16:43:07  peter
+  Revision 1.71  2003-06-13 21:19:30  peter
+    * current_procdef removed, use current_procinfo.procdef instead
+
+  Revision 1.70  2003/06/12 16:43:07  peter
     * newra compiles for sparc
 
   Revision 1.69  2003/06/09 16:41:52  jonas
@@ -1030,7 +1033,7 @@ end.
   + Patch from peter to fix wrong pushing of ansistring function results in open array
 
   Revision 1.54  2003/04/27 11:21:33  peter
-    * aktprocdef renamed to current_procdef
+    * aktprocdef renamed to current_procinfo.procdef
     * procinfo renamed to current_procinfo
     * procinfo will now be stored in current_module so it can be
       cleaned up properly
@@ -1039,7 +1042,7 @@ end.
     * fixed unit implicit initfinal
 
   Revision 1.53  2003/04/27 07:29:50  peter
-    * current_procdef cleanup, current_procdef is now always nil when parsing
+    * current_procinfo.procdef cleanup, current_procdef is now always nil when parsing
       a new procdef declaration
     * aktprocsym removed
     * lexlevel removed, use symtable.symtablelevel instead

@@ -732,10 +732,10 @@ Function TOperand.SetupResult:boolean;
 Begin
   SetupResult:=false;
   { replace by correct offset. }
-  if (not is_void(current_procdef.rettype.def)) then
+  if (not is_void(current_procinfo.procdef.rettype.def)) then
    begin
      if (m_tp7 in aktmodeswitches) and
-        (not paramanager.ret_in_param(current_procdef.rettype.def,current_procdef.proccalloption)) then
+        (not paramanager.ret_in_param(current_procinfo.procdef.rettype.def,current_procinfo.procdef.proccalloption)) then
        begin
          Message(asmr_e_cannot_use_RESULT_here);
          exit;
@@ -750,7 +750,7 @@ end;
 Function TOperand.SetupSelf:boolean;
 Begin
   SetupSelf:=false;
-  if assigned(current_procdef._class) then
+  if assigned(current_procinfo.procdef._class) then
     SetupSelf:=setupvar('self',false)
   else
     Message(asmr_e_cannot_use_SELF_outside_a_method);
@@ -760,7 +760,7 @@ end;
 Function TOperand.SetupOldEBP:boolean;
 Begin
   SetupOldEBP:=false;
-  if current_procdef.parast.symtablelevel>normal_function_level then
+  if current_procinfo.procdef.parast.symtablelevel>normal_function_level then
     SetupOldEBP:=setupvar('parentframe',false)
   else
     Message(asmr_e_cannot_use_OLDEBP_outside_nested_procedure);
@@ -812,25 +812,25 @@ Begin
             begin
               { if we only want the offset we don't have to care
                 the base will be zeroed after ! }
-              if (tvarsym(sym).owner=current_procdef.parast) or
+              if (tvarsym(sym).owner=current_procinfo.procdef.parast) or
                 GetOffset then
                 begin
                   opr.ref.base:=current_procinfo.framepointer;
                 end
               else
                 begin
-                  if (current_procdef.localst.datasize=0) and
+                  if (current_procinfo.procdef.localst.datasize=0) and
                      assigned(current_procinfo.parent) and
-                     (tvarsym(sym).owner=current_procdef.parast) and
-                     (current_procdef.parast.symtablelevel>normal_function_level) then
+                     (tvarsym(sym).owner=current_procinfo.procdef.parast) and
+                     (current_procinfo.procdef.parast.symtablelevel>normal_function_level) then
                     opr.ref.base:=current_procinfo.parent.framepointer
                   else
                     message1(asmr_e_local_para_unreachable,s);
                 end;
               opr.ref.offset:=tvarsym(sym).address;
-              if (current_procdef.parast.symtablelevel=tvarsym(sym).owner.symtablelevel) then
+              if (current_procinfo.procdef.parast.symtablelevel=tvarsym(sym).owner.symtablelevel) then
                 begin
-                  opr.ref.offsetfixup:=current_procdef.parast.address_fixup;
+                  opr.ref.offsetfixup:=current_procinfo.procdef.parast.address_fixup;
                   opr.ref.options:=ref_parafixup;
                 end
               else
@@ -840,7 +840,7 @@ Begin
                 end;
               if (tvarsym(sym).varspez=vs_var) or
                  ((tvarsym(sym).varspez=vs_const) and
-                  paramanager.push_addr_param(tvarsym(sym).vartype.def,current_procdef.proccalloption)) then
+                  paramanager.push_addr_param(tvarsym(sym).vartype.def,current_procinfo.procdef.proccalloption)) then
                 SetSize(pointer_size,false);
             end;
           localsymtable :
@@ -851,23 +851,23 @@ Begin
                 begin
                   { if we only want the offset we don't have to care
                     the base will be zeroed after ! }
-                  if (tvarsym(sym).owner=current_procdef.localst) or
+                  if (tvarsym(sym).owner=current_procinfo.procdef.localst) or
                      GetOffset then
                     opr.ref.base:=current_procinfo.framepointer
                   else
                     begin
-                      if (current_procdef.localst.datasize=0) and
+                      if (current_procinfo.procdef.localst.datasize=0) and
                          assigned(current_procinfo.parent) and
                          (tvarsym(sym).owner=current_procinfo.parent.procdef.localst) and
-                         (current_procdef.parast.symtablelevel>normal_function_level) then
+                         (current_procinfo.procdef.parast.symtablelevel>normal_function_level) then
                         opr.ref.base:=current_procinfo.parent.framepointer
                       else
                         message1(asmr_e_local_para_unreachable,s);
                     end;
                   opr.ref.offset:=tvarsym(sym).address;
-                  if (current_procdef.localst.symtablelevel=tvarsym(sym).owner.symtablelevel) then
+                  if (current_procinfo.procdef.localst.symtablelevel=tvarsym(sym).owner.symtablelevel) then
                     begin
-                      opr.ref.offsetfixup:=current_procdef.localst.address_fixup;
+                      opr.ref.offsetfixup:=current_procinfo.procdef.localst.address_fixup;
                       opr.ref.options:=ref_localfixup;
                     end
                   else
@@ -878,7 +878,7 @@ Begin
                 end;
               if (tvarsym(sym).varspez in [vs_var,vs_out]) or
                  ((tvarsym(sym).varspez=vs_const) and
-                  paramanager.push_addr_param(tvarsym(sym).vartype.def,current_procdef.proccalloption)) then
+                  paramanager.push_addr_param(tvarsym(sym).vartype.def,current_procinfo.procdef.proccalloption)) then
                 SetSize(pointer_size,false);
             end;
         end;
@@ -1284,7 +1284,7 @@ Begin
   base:=Copy(s,1,i-1);
   delete(s,1,i);
   if base='SELF' then
-   st:=current_procdef._class.symtable
+   st:=current_procinfo.procdef._class.symtable
   else
    begin
      asmsearchsym(base,sym,srsymtable);
@@ -1560,7 +1560,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.63  2003-06-06 14:43:29  peter
+  Revision 1.64  2003-06-13 21:19:31  peter
+    * current_procdef removed, use current_procinfo.procdef instead
+
+  Revision 1.63  2003/06/06 14:43:29  peter
     * absolutesym support
 
   Revision 1.62  2003/05/30 23:57:08  peter
@@ -1582,7 +1585,7 @@ end.
       tg.direction*tvarsym(X).address...
 
   Revision 1.58  2003/04/27 11:21:34  peter
-    * aktprocdef renamed to current_procdef
+    * aktprocdef renamed to current_procinfo.procdef
     * procinfo renamed to current_procinfo
     * procinfo will now be stored in current_module so it can be
       cleaned up properly
@@ -1591,7 +1594,7 @@ end.
     * fixed unit implicit initfinal
 
   Revision 1.57  2003/04/27 07:29:51  peter
-    * current_procdef cleanup, current_procdef is now always nil when parsing
+    * current_procinfo.procdef cleanup, current_procinfo.procdef is now always nil when parsing
       a new procdef declaration
     * aktprocsym removed
     * lexlevel removed, use symtable.symtablelevel instead
