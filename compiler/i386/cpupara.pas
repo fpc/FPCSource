@@ -123,8 +123,14 @@ unit cpupara;
         case calloption of
           pocall_internproc :
             result:=[];
+          pocall_compilerproc :
+            begin
+              if pocall_default=pocall_oldfpccall then
+                result:=[RS_EAX,RS_EDX,RS_ECX,RS_ESI,RS_EDI,RS_EBX]
+              else
+                result:=[RS_EAX,RS_EDX,RS_ECX];
+            end;
           pocall_inline,
-          pocall_compilerproc,
           pocall_register,
           pocall_safecall,
           pocall_stdcall,
@@ -243,7 +249,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.24  2003-09-07 22:09:35  peter
+  Revision 1.25  2003-09-08 18:28:51  peter
+    * fix compilerproc for default=oldfpccall
+
+  Revision 1.24  2003/09/07 22:09:35  peter
     * preparations for different default calling conventions
     * various RA fixes
 
