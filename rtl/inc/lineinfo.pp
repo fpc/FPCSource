@@ -552,9 +552,10 @@ begin
              if (stabs[i].nvalue<=addr) and
                 (stabs[i].nvalue>=filestab.nvalue) then
               begin
-                { if same value then the first one
+                { if same value and type then the first one
                   contained the directory PM }
-                if stabs[i].nvalue=filestab.nvalue then
+                if (stabs[i].nvalue=filestab.nvalue) and
+                   (stabs[i].ntype=filestab.ntype) then
                   dirstab:=filestab
                 else
                   fillchar(dirstab,sizeof(tstab),0);
@@ -640,7 +641,10 @@ finalization
 end.
 {
   $Log$
-  Revision 1.2  2000-07-13 11:33:44  michael
+  Revision 1.3  2000-10-14 21:55:07  peter
+    * fixed concatting of source and include filenames (merged)
+
+  Revision 1.2  2000/07/13 11:33:44  michael
   + removed logs
- 
+
 }
