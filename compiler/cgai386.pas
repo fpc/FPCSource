@@ -2287,12 +2287,12 @@ procedure mov_reg_to_dest(p : ptree; s : topsize; reg : tregister);
 
     begin
        if (psym(p)^.typ=varsym) and
+          not((pvarsym(p)^.definition^.deftype=objectdef) and
+            pobjectdef(pvarsym(p)^.definition)^.isclass) and
           pvarsym(p)^.definition^.needs_inittable and
           ((pvarsym(p)^.varspez=vs_value) {or
            (pvarsym(p)^.varspez=vs_const) and
-           not(dont_copy_const_param(pvarsym(p)^.definition))}) and
-          not((pvarsym(p)^.definition^.deftype=objectdef) and
-            pobjectdef(pvarsym(p)^.definition)^.isclass) then
+           not(dont_copy_const_param(pvarsym(p)^.definition))}) then
          begin
             procinfo.flags:=procinfo.flags or pi_needs_implicit_finally;
             reset_reference(hr);
@@ -3118,7 +3118,10 @@ procedure mov_reg_to_dest(p : ptree; s : topsize; reg : tregister);
 end.
 {
   $Log$
-  Revision 1.19  1999-07-29 20:53:58  peter
+  Revision 1.20  1999-08-01 17:17:37  florian
+    * tried to fix a bug with init table
+
+  Revision 1.19  1999/07/29 20:53:58  peter
     * write .size also
 
   Revision 1.18  1999/07/26 12:13:46  florian
