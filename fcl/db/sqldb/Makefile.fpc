@@ -6,20 +6,15 @@
 main=fcl
 
 [target]
-dirs_linux=interbase postgres
-dirs_freebsd=interbase postgres
-dirs_darwin=interbase postgres
-dirs_netbsd=interbase postgres
-dirs_openbsd=interbase postgres
-dirs_win32=interbase postgres
+dirs_linux=interbase postgres mysql
+dirs_freebsd=interbase postgres mysql
+dirs_darwin=interbase postgres mysql
+dirs_netbsd=interbase postgres mysql
+dirs_openbsd=interbase postgres mysql
+dirs_win32=interbase postgres mysql
 units=sqldb
 rsts=sqldb
 
-[clean]
-units=ibas40 ibase60
-
-[require]
-packages=ibase
 
 [compiler]
 options=-S2 

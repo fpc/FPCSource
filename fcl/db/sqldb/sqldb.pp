@@ -229,7 +229,8 @@ ResourceString
   SErrDatabasenAssigned = 'Database not assigned!';
   SErrTransactionnSet = 'Transaction not set';
   SErrNoStatement = 'SQL statement not set';
-
+  SErrNoSelectStatement = 'Cannot open a non-select statement';
+  
 { TSQLConnection }
 
 procedure TSQLConnection.SetTransaction(Value : TSQLTransaction);
@@ -479,7 +480,6 @@ end;
 
 function TSQLQuery.AllocRecord: PChar;
 begin
-//  writeln('AllocRecord, Recordsize:' + inttostr(FRecordSize));
   Result := AllocMem(FRecordSize);
 end;
 
@@ -560,7 +560,7 @@ begin
     PrepareStatement;
     GetStatementType;
     if FStatementType in [stSelect] then
-    begin
+      begin
       PrepareSelect;
       Execute;
       FOpen:=True;
@@ -569,8 +569,9 @@ begin
         CreateFields;
       SetFieldSizes;
       BindFields(True);
-    end
-    else Execute;
+      end
+    else
+      DatabaseError(SErrNoSelectStatement,Self);
   except
     on E:Exception do
       raise;
@@ -629,7 +630,10 @@ end.
 
 {
   $Log$
-  Revision 1.2  2004-09-26 16:56:32  michael
+  Revision 1.3  2004-10-02 14:52:25  michael
+  + Added mysql connection
+
+  Revision 1.2  2004/09/26 16:56:32  michael
   + Further fixes from Joost van der sluis for Postgresql
 
   Revision 1.1  2004/08/31 09:49:47  michael
