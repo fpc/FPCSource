@@ -18,11 +18,26 @@
 { The RTTI is implemented through a series of constants : }
 
 Const 
-  tkLString  = 10;
-  tkWString = 11;
-  tkVariant  = 12;
-  tkArray    = 13;
-  tkRecord   = 14;
+       tkUnknown       = 0;
+       tkInteger       = 1;
+       tkChar          = 2;
+       tkEnumeration   = 3;
+       tkFloat         = 4;
+       tkSet           = 5;
+       tkMethod        = 6;
+       tkSString       = 7;
+       tkString        = tkSString;
+       tkLString       = 8;
+       tkAString       = 9;
+       tkWString       = 10;
+       tkVariant       = 11;
+       tkArray         = 12;
+       tkRecord        = 13;
+       tkInterface     = 14;
+       tkClass         = 15;
+       tkObject        = 16;
+       tkWChar         = 17;
+       tkBool          = 18;
  
 { A record is designed as follows : 
     1    : tkrecord
@@ -71,7 +86,10 @@ TArrayRec = record
 
 { 
   $Log$
-  Revision 1.6  2000-02-09 16:59:31  peter
+  Revision 1.7  2000-06-14 08:52:05  michael
+  + Fixed all constants so they match compiler defined constants
+
+  Revision 1.6  2000/02/09 16:59:31  peter
     * truncated log
 
   Revision 1.5  2000/01/07 16:41:36  daniel
