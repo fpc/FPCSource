@@ -634,7 +634,11 @@ procedure dossearchrec2searchrec(var f : searchrec);
 var
   len : longint;
 begin
-  len:=StrLen(@f.Name);
+  { Check is necessary!! OS/2's VDM doesn't clear the name with #0 if the }
+  { file doesn't exist! (JM)                                              }
+  if dosError = 0 then
+    len:=StrLen(@f.Name)
+  else len := 0;
   Move(f.Name[0],f.Name[1],Len);
   f.Name[0]:=chr(len);
 end;
@@ -1139,10 +1143,13 @@ End;
 end.
 {
   $Log$
-  Revision 1.3  2000-07-14 10:33:09  michael
+  Revision 1.4  2000-07-22 12:24:55  jonas
+    * merged dossearchrec2searchrec() fix from fixes branch
+
+  Revision 1.3  2000/07/14 10:33:09  michael
   + Conditionals fixed
 
   Revision 1.2  2000/07/13 11:33:39  michael
   + removed logs
- 
+
 }
