@@ -148,6 +148,7 @@ implementation
             CGMessage(parser_e_wrong_parameter_size);
             exit;
           end;
+
         { get destination string }
         dest := tcallparanode(left);
 
@@ -155,17 +156,24 @@ implementation
         source := dest;
         while assigned(source.right) do
           source := tcallparanode(source.right);
+
+        { destination parameter must be a normal (not a colon) parameter, this
+          check is needed because str(v:len) also has 2 parameters }
+        if (source=dest) or
+           (cpf_is_colon_para in tcallparanode(dest).callparaflags) then
+          begin
+            CGMessage(parser_e_wrong_parameter_size);
+            exit;
+          end;
+
         is_real := source.resulttype.def.deftype = floatdef;
 
-        if not assigned(dest) or
-           ((dest.left.resulttype.def.deftype<>stringdef) and
+        if ((dest.left.resulttype.def.deftype<>stringdef) and
             not(is_chararray(dest.left.resulttype.def))) or
            not(is_real or
                (source.left.resulttype.def.deftype = orddef)) then
           begin
-            { the parser will give this message already because we }
-            { return an errornode (JM)                             }
-            { CGMessagePos(fileinfo,parser_e_illegal_expression);      }
+            CGMessagePos(fileinfo,parser_e_illegal_expression);
             exit;
           end;
 
@@ -2471,7 +2479,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.160  2005-02-14 17:13:06  peter
+  Revision 1.161  2005-03-16 21:24:43  peter
+    * check parameters of str() better
+
+  Revision 1.160  2005/02/14 17:13:06  peter
     * truncate log
 
   Revision 1.159  2005/02/04 16:30:56  peter
