@@ -42,9 +42,9 @@ const
 
 var
 { Mem[] support }
-  mem  : array[0..$7fffffff] of byte absolute $0;
-  memw : array[0..$7fffffff] of word absolute $0;
-  meml : array[0..$7fffffff] of longint absolute $0;
+  mem  : array[0..$7fffffff] of byte absolute $0:$0;
+  memw : array[0..$7fffffff] of word absolute $0:$0;
+  meml : array[0..$7fffffff] of longint absolute $0:$0;
 { C-compatible arguments and environment }
   argc  : longint;
   argv  : ppchar;
@@ -1228,7 +1228,10 @@ Begin
 End.
 {
   $Log$
-  Revision 1.3  1998-12-28 15:50:45  peter
+  Revision 1.4  1998-12-30 22:17:59  peter
+    * fixed mem decls to use $0:$0
+
+  Revision 1.3  1998/12/28 15:50:45  peter
     + stdout, which is needed when you write something in the system unit
       to the screen. Like the runtime error
 
