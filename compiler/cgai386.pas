@@ -2843,7 +2843,11 @@ procedure mov_reg_to_dest(p : ptree; s : topsize; reg : tregister);
                 begin
                    new(hr);
                    reset_reference(hr^);
-                   hr^.symbol:=newasmsymbol('U_SYSWIN32_ISCONSOLE');
+                   hr^.symbol:=newasmsymbol(
+{$ifdef FPC_USE_CPREFIX}
+              target_os.Cprefix+
+{$endif FPC_USE_CPREFIX}
+                   'U_SYSWIN32_ISCONSOLE');
                    if apptype=at_cui then
                      exprasmlist^.insert(new(paicpu,op_const_ref(A_MOV,S_B,
                        1,hr)))
@@ -3447,7 +3451,12 @@ procedure mov_reg_to_dest(p : ptree; s : topsize; reg : tregister);
 end.
 {
   $Log$
-  Revision 1.60  1999-11-17 17:04:58  pierre
+  Revision 1.61  1999-11-20 01:22:18  pierre
+    + cond FPC_USE_CPREFIX (needs also some RTL changes)
+      this allows to use unit global vars as DLL exports
+      (the underline prefix seems needed by dlltool)
+
+  Revision 1.60  1999/11/17 17:04:58  pierre
    * Notes/hints changes
 
   Revision 1.59  1999/11/15 14:04:00  pierre

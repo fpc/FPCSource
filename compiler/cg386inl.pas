@@ -189,7 +189,11 @@ implementation
           begin
             new(r);
             reset_reference(r^);
-            r^.symbol:=newasmsymbol('U_'+upper(target_info.system_unit)+io[doread]);
+            r^.symbol:=newasmsymbol(
+{$ifdef FPC_USE_CPREFIX}
+              target_os.Cprefix+
+{$endif FPC_USE_CPREFIX}
+            'U_'+upper(target_info.system_unit)+io[doread]);
             emit_ref_reg(A_LEA,S_L,r,R_EDI)
           end;
 
@@ -1428,7 +1432,12 @@ implementation
 end.
 {
   $Log$
-  Revision 1.78  1999-11-09 22:54:45  peter
+  Revision 1.79  1999-11-20 01:22:18  pierre
+    + cond FPC_USE_CPREFIX (needs also some RTL changes)
+      this allows to use unit global vars as DLL exports
+      (the underline prefix seems needed by dlltool)
+
+  Revision 1.78  1999/11/09 22:54:45  peter
     * fixed wrong asm with inc(qword), but not it's not correctly supported
 
   Revision 1.77  1999/11/06 14:34:17  peter

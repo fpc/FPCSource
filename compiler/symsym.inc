@@ -1147,7 +1147,11 @@
                prefix:='_';
            unitsymtable,
            globalsymtable :
-             prefix:='U_'+owner^.name^+'_';
+             prefix:=
+{$ifdef FPC_USE_CPREFIX}
+              target_os.Cprefix+
+{$endif FPC_USE_CPREFIX}
+              'U_'+owner^.name^+'_';
            else
              Message(sym_e_invalid_call_tvarsymmangledname);
          end;
@@ -2188,7 +2192,12 @@
 
 {
   $Log$
-  Revision 1.127  1999-11-17 17:05:04  pierre
+  Revision 1.128  1999-11-20 01:22:20  pierre
+    + cond FPC_USE_CPREFIX (needs also some RTL changes)
+      this allows to use unit global vars as DLL exports
+      (the underline prefix seems needed by dlltool)
+
+  Revision 1.127  1999/11/17 17:05:04  pierre
    * Notes/hints changes
 
   Revision 1.126  1999/11/15 22:00:48  peter

@@ -561,6 +561,9 @@ begin
                      begin
                         { Specific info, which can be used in Makefiles }
                         case More[1] of
+{$ifdef FPC_USE_CPREFIX}
+                          'C' : QuickInfo('use C prefix');
+{$endif FPC_USE_CPREFIX}
                           'S' : begin
                                   case More[2] of
                                    'O' : QuickInfo(source_os.shortname);
@@ -1072,6 +1075,10 @@ begin
   def_symbol('SYSTEMTVARREC');
   def_symbol('INCLUDEOK');
   def_symbol('NEWMM');
+{$ifdef FPC_USE_CPREFIX}
+  { default on next round }
+  def_symbol('FPC_USE_CPREFIX');
+{$endif FPC_USE_CPREFIX}
 
 { some stuff for TP compatibility }
 {$ifdef i386}
@@ -1269,7 +1276,12 @@ end;
 end.
 {
   $Log$
-  Revision 1.36  1999-11-15 17:42:40  pierre
+  Revision 1.37  1999-11-20 01:22:19  pierre
+    + cond FPC_USE_CPREFIX (needs also some RTL changes)
+      this allows to use unit global vars as DLL exports
+      (the underline prefix seems needed by dlltool)
+
+  Revision 1.36  1999/11/15 17:42:40  pierre
    * -g disables reloc section for win32
 
   Revision 1.35  1999/11/12 11:03:50  peter

@@ -102,7 +102,11 @@ implementation
           begin
             new(r);
             reset_reference(r^);
-            r^.symbol:=stringdup('U_'+upper(target_info.system_unit)+io[byte(doread)]);
+            r^.symbol:=stringdup(
+{$ifdef FPC_USE_CPREFIX}
+              target_os.Cprefix+
+{$endif FPC_USE_CPREFIX}
+            'U_'+upper(target_info.system_unit)+io[byte(doread)]);
             exprasmlist^.concat(new(paicpu,op_ref_reg(A_LEA,S_L,r,R_A0)))
           end;
 
@@ -899,7 +903,12 @@ implementation
 end.
 {
   $Log$
-  Revision 1.18  1999-09-16 23:05:51  florian
+  Revision 1.19  1999-11-20 01:22:18  pierre
+    + cond FPC_USE_CPREFIX (needs also some RTL changes)
+      this allows to use unit global vars as DLL exports
+      (the underline prefix seems needed by dlltool)
+
+  Revision 1.18  1999/09/16 23:05:51  florian
     * m68k compiler is again compilable (only gas writer, no assembler reader)
 
   Revision 1.17  1999/08/25 11:59:50  jonas
