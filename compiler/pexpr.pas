@@ -1943,6 +1943,9 @@ implementation
                      if sym.typ=procsym then
                       begin
                         htype.setdef(classh);
+                        if (po_classmethod in current_procinfo.procdef.procoptions) or
+                           (po_staticmethod in current_procinfo.procdef.procoptions) then
+                          htype.setdef(tclassrefdef.create(htype));
                         p1:=ctypenode.create(htype);
                       end;
                      do_member_read(classh,false,sym,p1,again,[nf_inherited,nf_anon_inherited]);
@@ -2475,7 +2478,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.137  2003-11-04 16:42:13  peter
+  Revision 1.138  2003-11-06 15:54:32  peter
+    * fixed calling classmethod for other object from classmethod
+
+  Revision 1.137  2003/11/04 16:42:13  peter
     * assigned(proc()) does not change the calln to loadn
 
   Revision 1.136  2003/10/28 15:36:01  peter

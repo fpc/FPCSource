@@ -1690,60 +1690,50 @@ type
       begin
         selftree:=nil;
 
-        { constructors }
-        if (procdefinition.proctypeoption=potype_constructor) then
-          begin
-            if not(nf_inherited in flags) then
-              begin
-                { push 0 as self when allocation is needed }
-                if (methodpointer.resulttype.def.deftype=classrefdef) or
-                   (nf_new_call in flags) then
-                  selftree:=cpointerconstnode.create(0,voidpointertype)
-                else
-                  begin
-                    if methodpointer.nodetype=typen then
-                      selftree:=load_self_node
-                    else
-                      selftree:=methodpointer.getcopy;
-                  end;
-              end
-            else
-              selftree:=load_self_node;
-          end
+        { inherited }
+        if (nf_inherited in flags) then
+          selftree:=load_self_node
+        else
+          { constructors }
+          if (procdefinition.proctypeoption=potype_constructor) then
+            begin
+              { push 0 as self when allocation is needed }
+              if (methodpointer.resulttype.def.deftype=classrefdef) or
+                 (nf_new_call in flags) then
+                selftree:=cpointerconstnode.create(0,voidpointertype)
+              else
+                begin
+                  if methodpointer.nodetype=typen then
+                    selftree:=load_self_node
+                  else
+                    selftree:=methodpointer.getcopy;
+                end;
+            end
+        else
+          { Calling a static/class method }
+          if (po_classmethod in procdefinition.procoptions) or
+             (po_staticmethod in procdefinition.procoptions) then
+            begin
+              if (procdefinition.deftype<>procdef) then
+                internalerror(200305062);
+              if (oo_has_vmt in tprocdef(procdefinition)._class.objectoptions) then
+                begin
+                  { we only need the vmt, loading self is not required and there is no
+                    need to check for typen, because that will always get the
+                    loadvmtaddrnode added }
+                  selftree:=methodpointer.getcopy;
+                  if methodpointer.resulttype.def.deftype<>classrefdef then
+                    selftree:=cloadvmtaddrnode.create(selftree);
+                end
+              else
+                selftree:=cpointerconstnode.create(0,voidpointertype);
+            end
         else
           begin
-            { Calling a static/class method from a non-static/class method,
-              then we need to load self with the VMT }
-            if (
-                (po_classmethod in procdefinition.procoptions) and
-                not(assigned(current_procinfo.procdef) and
-                    (po_classmethod in current_procinfo.procdef.procoptions))
-               ) or
-               (
-                (po_staticmethod in procdefinition.procoptions) and
-                 not(assigned(current_procinfo.procdef) and
-                     (po_staticmethod in current_procinfo.procdef.procoptions))
-               ) then
-              begin
-                if (procdefinition.deftype<>procdef) then
-                  internalerror(200305062);
-                if (oo_has_vmt in tprocdef(procdefinition)._class.objectoptions) then
-                  begin
-                    if methodpointer.resulttype.def.deftype=classrefdef then
-                      selftree:=methodpointer.getcopy
-                    else
-                      selftree:=cloadvmtaddrnode.create(methodpointer.getcopy);
-                  end
-                else
-                  selftree:=cpointerconstnode.create(0,voidpointertype);
-              end
+            if methodpointer.nodetype=typen then
+              selftree:=load_self_node
             else
-              begin
-                if methodpointer.nodetype=typen then
-                  selftree:=load_self_node
-                else
-                  selftree:=methodpointer.getcopy;
-              end;
+              selftree:=methodpointer.getcopy;
           end;
         result:=selftree;
       end;
@@ -2596,7 +2586,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.204  2003-11-01 16:17:48  peter
+  Revision 1.205  2003-11-06 15:54:32  peter
+    * fixed calling classmethod for other object from classmethod
+
+  Revision 1.204  2003/11/01 16:17:48  peter
     * use explicit typecast when generating the high value
 
   Revision 1.203  2003/10/31 15:52:58  peter
