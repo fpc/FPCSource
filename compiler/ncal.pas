@@ -2119,6 +2119,8 @@ type
 
 
     function tcallnode.pass_1 : tnode;
+      var
+        st : tsymtable;
       begin
          result:=nil;
 
@@ -2126,8 +2128,21 @@ type
          if (procdefinition.proccalloption=pocall_inline) and
             (po_has_inlininginfo in procdefinition.procoptions) then
            begin
-             result:=pass1_inline;
-             exit;
+             { Check if we can inline the procedure when it references proc/var that
+               are not in the globally available }
+             st:=procdefinition.owner;
+             if (st.symtabletype=objectsymtable) then
+               st:=st.defowner.owner;
+             if (pi_inline_local_only in tprocdef(procdefinition).inlininginfo^.flags) and
+                (st.unitid<>0) then
+               begin
+                 Comment(V_lineinfo+V_Debug,'Not inlining "'+tprocdef(procdefinition).procsym.realname+'", references static symtable');
+               end
+             else
+               begin
+                 result:=pass1_inline;
+                 exit;
+               end;
            end;
 
          { calculate the parameter info for the procdef }
@@ -2434,7 +2449,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.270  2004-12-15 19:30:16  peter
+  Revision 1.271  2004-12-15 21:08:15  peter
+    * disable inlining across units when the inline procedure references
+      a variable or procedure in the static symtable
+
+  Revision 1.270  2004/12/15 19:30:16  peter
     * give error when paraloc is not filled in order_parameter
 
   Revision 1.269  2004/12/07 16:11:52  peter

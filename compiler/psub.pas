@@ -959,6 +959,20 @@ implementation
       end;
 
 
+    function checklocalinlining(var n: tnode; arg: pointer): foreachnoderesult;
+      begin
+        result:=fen_false;
+        case n.nodetype of
+          loadn :
+            if tloadnode(n).symtableentry.owner.symtabletype=staticsymtable then
+              result:=fen_norecurse_true;
+          calln :
+            if tcallnode(n).procdefinition.owner.symtabletype=staticsymtable then
+              result:=fen_norecurse_true;
+        end;
+      end;
+
+
     procedure tcgprocinfo.parse_body;
       var
          oldprocinfo : tprocinfo;
@@ -1046,6 +1060,10 @@ implementation
                  include(procdef.procoptions,po_has_inlininginfo);
                  procdef.inlininginfo^.code:=code.getcopy;
                  procdef.inlininginfo^.flags:=current_procinfo.flags;
+                 { References a local var or proc? }
+                 if foreachnodestatic(procdef.inlininginfo^.code,@checklocalinlining,nil) then
+                   include(procdef.inlininginfo^.flags,pi_inline_local_only);
+                 { The blocknode needs to set an exit label }
                  if procdef.inlininginfo^.code.nodetype=blockn then
                    include(procdef.inlininginfo^.code.flags,nf_block_with_exit);
                end;
@@ -1446,7 +1464,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.224  2004-12-15 17:01:28  peter
+  Revision 1.225  2004-12-15 21:08:15  peter
+    * disable inlining across units when the inline procedure references
+      a variable or procedure in the static symtable
+
+  Revision 1.224  2004/12/15 17:01:28  peter
     * fixed crash with -vp
 
   Revision 1.223  2004/12/15 16:00:16  peter

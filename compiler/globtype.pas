@@ -236,7 +236,9 @@ than 255 characters. That's why using Ansi Strings}
          { procedure uses fpu}
          pi_uses_fpu,
          { procedure uses GOT for PIC code }
-         pi_needs_got
+         pi_needs_got,
+         { references local var/proc }
+         pi_inline_local_only
        );
        tprocinfoflags=set of tprocinfoflag;
 
@@ -313,7 +315,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.64  2004-10-31 21:45:03  peter
+  Revision 1.65  2004-12-15 21:08:15  peter
+    * disable inlining across units when the inline procedure references
+      a variable or procedure in the static symtable
+
+  Revision 1.64  2004/10/31 21:45:03  peter
     * generic tlocation
     * move tlocation to cgutils
 
