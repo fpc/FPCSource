@@ -152,7 +152,7 @@ begin
     { this needs a local variable }
     { so the function called itself !! }
     { Writeln('low in stack ');}
-    RunError(202);
+    HandleError(202);
 end;
 {no stack check in system }
 

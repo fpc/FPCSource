@@ -195,7 +195,7 @@ __short_on_stack:
         popl    %ebx
         popl    %eax
   end['EAX','EBX'];
-  RunError(202);
+  HandleError(202);
 end;
 {$endif dummy}
 
@@ -759,7 +759,10 @@ end.
 
 {
   $Log$
-  Revision 1.13  1998-07-13 21:19:15  florian
+  Revision 1.14  1998-07-30 13:27:19  michael
+  + Added support for errorproc. Changed runerror to HandleError
+
+  Revision 1.13  1998/07/13 21:19:15  florian
     * some problems with ansi string support fixed
 
   Revision 1.12  1998/07/07 12:37:28  carl

@@ -136,7 +136,7 @@ begin
             popl %ebx
             popl %eax
   end['EAX','EBX'];
-  RunError(202);
+  HandleError(202);
 end;
 {$I386_ATT}
 
@@ -597,7 +597,10 @@ Begin
 End.
 {
   $Log$
-  Revision 1.7  1998-07-07 12:30:20  carl
+  Revision 1.8  1998-07-30 13:28:33  michael
+  + Added support for errorproc. Changed runerror to HandleError
+
+  Revision 1.7  1998/07/07 12:30:20  carl
     * 2k buffer for stack shecking to permimt correct io
 
   Revision 1.6  1998/07/02 12:26:55  carl
