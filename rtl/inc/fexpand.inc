@@ -64,13 +64,17 @@ const
 {$ENDIF UNIX}
     DriveSep = ':';
 {$IFDEF FPC_FEXPAND_DRIVES}
-    PathStart: longint = 3;
+var
+    PathStart: longint;
 {$ELSE FPC_FEXPAND_DRIVES}
+const
     PathStart = 1;
 {$ENDIF FPC_FEXPAND_DRIVES}
 {$IFDEF FPC_FEXPAND_UNC}
- RootNotNeeded: boolean = false;
+var
+    RootNotNeeded: boolean;
 {$ELSE FPC_FEXPAND_UNC}
+const
  RootNotNeeded = false;
 {$ENDIF FPC_FEXPAND_UNC}
 
@@ -81,6 +85,9 @@ begin
 {$IFDEF FPC_FEXPAND_UNC}
     RootNotNeeded := false;
 {$ENDIF FPC_FEXPAND_UNC}
+{$IFDEF FPC_FEXPAND_DRIVES}
+    PathStart := 3;
+{$ENDIF FPC_FEXPAND_DRIVES}
     if FileNameCaseSensitive then
         Pa := Path
     else
@@ -302,7 +309,10 @@ end;
 
 {
   $Log$
-  Revision 1.9  2002-03-03 15:19:36  carl
+  Revision 1.10  2002-05-14 19:25:24  hajny
+    * fix for bug 1964 merged
+
+  Revision 1.9  2002/03/03 15:19:36  carl
   * fixes unix conversion of slashes
 
   Revision 1.8  2001/04/09 19:28:40  hajny
