@@ -14,7 +14,10 @@
 
  **********************************************************************}
 
+var
+  saveedi : longint;
 asm
+	movl	%edi,saveedi
         movl    p,%edi
         movl    $0xffffffff,%ecx
         xorl    %eax,%eax
@@ -23,12 +26,16 @@ asm
         scasb
         movl    $0xfffffffe,%eax
         subl    %ecx,%eax
-end ['EDI','ECX','EAX'];
+	movl	saveedi,%edi
+end;
 
 
 {
   $Log$
-  Revision 1.3  2002-09-07 16:01:19  peter
+  Revision 1.4  2003-09-08 18:21:37  peter
+    * save edi,esi,ebx
+
+  Revision 1.3  2002/09/07 16:01:19  peter
     * old logs removed and tabs fixed
 
 }

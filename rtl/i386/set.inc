@@ -20,7 +20,10 @@ function fpc_set_load_small(l: fpc_small_set): fpc_normal_set;assembler;[public,
 {
   load a normal set p from a smallset l
 }
+var
+  saveedi : longint;
 asm
+        movl    %edi,saveedi
         movl    __RESULT,%edi
         movl    l,%eax
         stosl
@@ -28,7 +31,8 @@ asm
         movl    $7,%ecx
         rep
         stosl
-end ['EAX','ECX','EDI'];
+        movl    saveedi,%edi
+end;
 
 {$define FPC_SYSTEM_HAS_FPC_SET_CREATE_ELEMENT}
 
@@ -36,11 +40,14 @@ function fpc_set_create_element(b : byte): fpc_normal_set;assembler;[public,alia
 {
   create a new set in p from an element b
 }
+var
+  saveedi : longint;
 asm
 {$ifndef hascompilerproc}
         pushl   %eax
         pushl   %ecx
 {$endif not hascompilerproc}
+        movl    %edi,saveedi
         movl    __RESULT,%edi
         xorl    %eax,%eax
         movl    $8,%ecx
@@ -49,11 +56,12 @@ asm
         leal    -32(%edi),%eax
         movzbl  b,%edi
         btsl    %edi,(%eax)
+        movl    saveedi,%edi
 {$ifndef hascompilerproc}
         popl    %ecx
         popl    %eax
 {$endif hascompilerproc}
-end ['EAX','ECX','EDI'];
+end;
 
 
 {$define FPC_SYSTEM_HAS_FPC_SET_SET_BYTE}
@@ -62,16 +70,22 @@ function fpc_set_set_byte(const source: fpc_normal_set; b : byte): fpc_normal_se
 {
   add the element b to the set pointed by source
 }
+var
+  saveesi,saveedi : longint;
 asm
-       movl $8,%ecx
-       movl source,%esi
-       movl __RESULT,%edi
-       rep
-       movsl
-       leal    -32(%edi),%eax
-       movzbl  b,%edi
-       btsl    %edi,(%eax)
-end ['EAX','ECX','ESI','EDI'];
+        movl    %edi,saveedi
+        movl    %esi,saveesi
+        movl    $8,%ecx
+        movl    source,%esi
+        movl    __RESULT,%edi
+        rep
+        movsl
+        leal    -32(%edi),%eax
+        movzbl  b,%edi
+        btsl    %edi,(%eax)
+        movl    saveedi,%edi
+        movl    saveesi,%esi
+end;
 {$else hascompilerproc}
 function fpc_set_set_byte(b : byte): fpc_normal_set;assembler;[public,alias:'FPC_SET_SET_BYTE'];
 {
@@ -98,16 +112,22 @@ function fpc_set_unset_byte(const source: fpc_normal_set; b : byte): fpc_normal_
 {
   add the element b to the set pointed by source
 }
+var
+  saveesi,saveedi : longint;
 asm
-       movl $8,%ecx
-       movl source,%esi
-       movl __RESULT,%edi
-       rep
-       movsl
-       leal    -32(%edi),%eax
-       movzbl  b,%edi
-       btrl    %edi,(%eax)
-end ['EAX','ECX','ESI','EDI'];
+        movl    %edi,saveedi
+        movl    %esi,saveesi
+        movl    $8,%ecx
+        movl    source,%esi
+        movl    __RESULT,%edi
+        rep
+        movsl
+        leal    -32(%edi),%eax
+        movzbl  b,%edi
+        btrl    %edi,(%eax)
+        movl    saveedi,%edi
+        movl    saveesi,%esi
+end;
 {$else hascompilerproc}
 function fpc_set_unset_byte(b : byte): fpc_normal_set;assembler;[public,alias:'FPC_SET_UNSET_BYTE']; {$ifdef hascompilerproc} compilerproc; {$endif}
 {
@@ -136,7 +156,12 @@ function fpc_set_set_range(const orgset: fpc_normal_set; l,h : byte): fpc_normal
 {
   adds the range [l..h] to the set pointed to by p
 }
+var
+  saveesi,saveedi,saveebx : longint;
 asm
+        movl    %edi,saveedi
+        movl    %esi,saveesi
+        movl    %ebx,saveebx
         movzbl l,%eax               // lowest bit to be set in eax
         movzbl h,%ebx               // highest in ebx
         movl   $8,%ecx              // we have to copy 32 bytes
@@ -179,6 +204,9 @@ asm
         andl   %edx,%ebx            // combine both bitmasks
         orl    %ebx,(%edi)          // store to set
 .Lset_range_done:
+        movl    saveedi,%edi
+        movl    saveesi,%esi
+        movl    saveebx,%ebx
 end;
 
 {$else hascompilerproc}
@@ -235,11 +263,17 @@ function fpc_set_in_byte(const p: fpc_normal_set; b: byte): boolean; assembler; 
   tests if the element b is in the set p the carryflag is set if it present
 }
 asm
+{$ifdef hascompilerproc}
+       movl   p,%edx
+       movzbl b,%eax
+       btl %eax,(%edx)
+{$else hascompilerproc}
        pushl %eax
        movl   p,%edi
        movzbl b,%eax
        btl %eax,(%edi)
        popl %eax
+{$endif hascompilerproc}
 end;
 
 
@@ -253,9 +287,13 @@ procedure fpc_set_add_sets(set1,set2,dest : pointer);assembler;[public,alias:'FP
 {
   adds set1 and set2 into set dest
 }
+var
+  saveesi,saveedi : longint;
 asm
+        movl    %edi,saveedi
+        movl    %esi,saveesi
       movl set1,%esi
-      movl set2,%ebx
+      movl set2,%edx
 {$ifdef hascompilerproc}
       movl __RESULT,%edi
 {$else hascompilerproc}
@@ -264,11 +302,13 @@ asm
       movl $8,%ecx
    .LMADDSETS1:
       lodsl
-      orl (%ebx),%eax
+      orl (%edx),%eax
       stosl
-      addl $4,%ebx
+      addl $4,%edx
       decl %ecx
       jnz .LMADDSETS1
+        movl    saveedi,%edi
+        movl    saveesi,%esi
 end;
 
 
@@ -282,9 +322,13 @@ procedure fpc_set_mul_sets(set1,set2,dest:pointer);assembler;[public,alias:'FPC_
 {
   multiplies (takes common elements of) set1 and set2 result put in dest
 }
+var
+  saveesi,saveedi : longint;
 asm
+        movl    %edi,saveedi
+        movl    %esi,saveesi
       movl set1,%esi
-      movl set2,%ebx
+      movl set2,%edx
 {$ifdef hascompilerproc}
       movl __RESULT,%edi
 {$else hascompilerproc}
@@ -293,11 +337,13 @@ asm
       movl $8,%ecx
   .LMMULSETS1:
       lodsl
-      andl (%ebx),%eax
+      andl (%edx),%eax
       stosl
-      addl $4,%ebx
+      addl $4,%edx
       decl %ecx
       jnz .LMMULSETS1
+        movl    saveedi,%edi
+        movl    saveesi,%esi
 end;
 
 
@@ -311,7 +357,12 @@ procedure fpc_set_sub_sets(set1,set2,dest:pointer);assembler;[public,alias:'FPC_
 {
   computes the diff from set1 to set2 result in dest
 }
+var
+  saveesi,saveedi,saveebx : longint;
 asm
+        movl    %edi,saveedi
+        movl    %esi,saveesi
+        movl    %ebx,saveebx
         movl set1,%esi
         movl set2,%ebx
 {$ifdef hascompilerproc}
@@ -329,6 +380,9 @@ asm
         addl $4,%ebx
         decl %ecx
         jnz .LMSUBSETS1
+        movl    saveedi,%edi
+        movl    saveesi,%esi
+        movl    saveebx,%ebx
 end;
 
 
@@ -342,9 +396,13 @@ procedure fpc_set_symdif_sets(set1,set2,dest:pointer);assembler;[public,alias:'F
 {
    computes the symetric diff from set1 to set2 result in dest
 }
+var
+  saveesi,saveedi : longint;
 asm
+        movl    %edi,saveedi
+        movl    %esi,saveesi
         movl set1,%esi
-        movl set2,%ebx
+        movl set2,%edx
 {$ifdef hascompilerproc}
       movl __RESULT,%edi
 {$else hascompilerproc}
@@ -353,12 +411,13 @@ asm
         movl $8,%ecx
     .LMSYMDIFSETS1:
         lodsl
-        movl (%ebx),%edx
-        xorl %edx,%eax
+        xorl (%edx),%eax
         stosl
-        addl $4,%ebx
+        addl $4,%edx
         decl %ecx
         jnz .LMSYMDIFSETS1
+        movl    saveedi,%edi
+        movl    saveesi,%esi
 end;
 
 
@@ -368,7 +427,11 @@ function fpc_set_comp_sets(const set1,set2: fpc_normal_set): boolean;assembler;[
 {
   compares set1 and set2 zeroflag is set if they are equal
 }
+var
+  saveesi,saveedi : longint;
 asm
+        movl    %edi,saveedi
+        movl    %esi,saveesi
         movl set1,%esi
         movl set2,%edi
         movl $8,%ecx
@@ -387,6 +450,8 @@ asm
 {$ifdef hascompilerproc}
         seteb %al
 {$endif hascompilerproc}
+        movl    saveedi,%edi
+        movl    saveesi,%esi
 end;
 
 
@@ -396,7 +461,11 @@ function fpc_set_contains_sets(const set1,set2: fpc_normal_set): boolean;assembl
 {
   on exit, zero flag is set if set1 <= set2 (set2 contains set1)
 }
+var
+  saveesi,saveedi : longint;
 asm
+        movl    %edi,saveedi
+        movl    %esi,saveesi
         movl set1,%esi
         movl set2,%edi
         movl $8,%ecx
@@ -416,6 +485,8 @@ asm
 {$ifdef hascompilerproc}
         seteb %al
 {$endif hascompilerproc}
+        movl    saveedi,%edi
+        movl    saveesi,%esi
 end;
 
 
@@ -582,7 +653,10 @@ end;
 
 {
   $Log$
-  Revision 1.10  2003-05-26 19:36:46  peter
+  Revision 1.11  2003-09-08 18:21:37  peter
+    * save edi,esi,ebx
+
+  Revision 1.10  2003/05/26 19:36:46  peter
     * fpc_shortstr_concat is now the same for all targets
     * fpc_shortstr_append_shortstr added for optimized code generation
 

@@ -23,7 +23,11 @@
 
 {$define FPC_SYSTEM_HAS_MOVE}
 procedure Move(const source;var dest;count:longint);assembler;
+var
+  saveesi,saveedi : longint;
 asm
+        movl    %edi,saveedi
+        movl    %esi,saveesi
         movl    dest,%edi
         movl    source,%esi
         movl    %edi,%eax
@@ -88,15 +92,17 @@ asm
         movsb
         cld
 .LMoveEnd:
-end ['EAX','EBX','ECX','ESI','EDI'];
+        movl    saveedi,%edi
+        movl    saveesi,%esi
+end;
 
 
 {$define FPC_SYSTEM_HAS_FILLCHAR}
-Procedure FillChar(var x;count:longint;value:byte);
-{ alias seems to be nowhere used? (JM)
-   [public,alias: 'FPC_FILLCHAR']; }
-assembler;
+Procedure FillChar(var x;count:longint;value:byte);assembler;
+var
+  saveedi : longint;
 asm
+        movl    %edi,saveedi
         cld
         movl    x,%edi
         movb    value,%al
@@ -127,12 +133,16 @@ asm
         rep
         stosb
 .LFillEnd:
+        movl    saveedi,%edi
 end;
 
 
 {$define FPC_SYSTEM_HAS_FILLWORD}
 procedure fillword(var x;count : longint;value : word);assembler;
+var
+  saveedi : longint;
 asm
+        movl    %edi,saveedi
         movl    x,%edi
         movl    count,%ecx
 { check for zero or negative count }
@@ -152,12 +162,16 @@ asm
         rep
         stosw
 .LFillWordEnd:
-end ['EAX','ECX','EDX','EDI'];
+        movl    saveedi,%edi
+end;
 
 
 {$define FPC_SYSTEM_HAS_FILLDWORD}
 procedure filldword(var x;count : longint;value : dword);assembler;
+var
+  saveedi : longint;
 asm
+        movl    %edi,saveedi
         movl    x,%edi
         movl    count,%ecx
 { check for zero or negative count }
@@ -168,84 +182,101 @@ asm
         rep
         stosl
 .LFillDWordEnd:
-end ['EAX','ECX','EDX','EDI'];
+        movl    saveedi,%edi
+end;
 
 
 {$define FPC_SYSTEM_HAS_INDEXBYTE}
 function IndexByte(Const buf;len:longint;b:byte):longint; assembler;
+var
+  saveedi : longint;
 asm
+        movl    %edi,saveedi
         xorl    %eax,%eax
         movl    Len,%ecx       // Load len
         movl    Buf,%edi       // Load String
         testl   %ecx,%ecx
         jz      .Lready
         cld
-        movl    %ecx,%ebx      // Copy for easy manipulation
+        movl    %ecx,%edx      // Copy for easy manipulation
         movb    b,%al
         repne
         scasb
         jne     .Lcharposnotfound
         incl    %ecx
-        subl    %ecx,%ebx
-        movl    %ebx,%eax
+        subl    %ecx,%edx
+        movl    %edx,%eax
         jmp     .Lready
 .Lcharposnotfound:
         movl    $-1,%eax
 .Lready:
-end ['EAX','EBX','ECX','EDI'];
+        movl    saveedi,%edi
+end;
 
 
 {$define FPC_SYSTEM_HAS_INDEXWORD}
 function Indexword(Const buf;len:longint;b:word):longint; assembler;
+var
+  saveedi : longint;
 asm
+        movl    %edi,saveedi
         xorl    %eax,%eax
         movl    Len,%ecx       // Load len
         movl    Buf,%edi       // Load String
         testl   %ecx,%ecx
         jz      .Lready
         cld
-        movl    %ecx,%ebx      // Copy for easy manipulation
+        movl    %ecx,%edx      // Copy for easy manipulation
         movw    b,%ax
         repne
         scasw
         jne     .Lcharposnotfound
         incl    %ecx
-        subl    %ecx,%ebx
-        movl    %ebx,%eax
+        subl    %ecx,%edx
+        movl    %edx,%eax
         jmp     .Lready
 .Lcharposnotfound:
         movl    $-1,%eax
 .Lready:
-end ['EAX','EBX','ECX','EDI'];
+        movl    saveedi,%edi
+end;
 
 
 {$define FPC_SYSTEM_HAS_INDEXDWORD}
 function IndexDWord(Const buf;len:longint;b:DWord):longint; assembler;
+var
+  saveedi : longint;
 asm
+        movl    %edi,saveedi
         xorl    %eax,%eax
         movl    Len,%ecx       // Load len
         movl    Buf,%edi       // Load String
         testl   %ecx,%ecx
         jz      .Lready
         cld
-        movl    %ecx,%ebx      // Copy for easy manipulation
+        movl    %ecx,%edx      // Copy for easy manipulation
         movl    b,%eax
         repne
         scasl
         jne     .Lcharposnotfound
         incl    %ecx
-        subl    %ecx,%ebx
-        movl    %ebx,%eax
+        subl    %ecx,%edx
+        movl    %edx,%eax
         jmp     .Lready
 .Lcharposnotfound:
         movl    $-1,%eax
 .Lready:
-end ['EAX','EBX','ECX','EDI'];
+        movl    saveedi,%edi
+end;
 
 
 {$define FPC_SYSTEM_HAS_COMPAREBYTE}
 function CompareByte(Const buf1,buf2;len:longint):longint; assembler;
+var
+  saveesi,saveedi : longint;
 asm
+        movl    %edi,saveedi
+        movl    %esi,saveesi
         cld
         movl    len,%eax
         movl    buf2,%esi       { Load params}
@@ -282,13 +313,20 @@ asm
         movzbl  -1(%edi),%eax      // Compare failing (or equal) position
         subl    %ecx,%eax
 .LCmpbyteExit:
-end ['ECX','EAX','ESI','EDI'];
+        movl    saveedi,%edi
+        movl    saveesi,%esi
+end;
 
 
 
 {$define FPC_SYSTEM_HAS_COMPAREWORD}
 function CompareWord(Const buf1,buf2;len:longint):longint; assembler;
+var
+  saveesi,saveedi,saveebx : longint;
 asm
+        movl    %edi,saveedi
+        movl    %esi,saveesi
+        movl    %ebx,saveebx
         cld
         movl    len,%eax
         movl    buf2,%esi       { Load params}
@@ -335,12 +373,20 @@ asm
         movzwl  -2(%edi),%eax    // Compare failing (or equal) position
         subl    %ecx,%eax        // calculate end result.
 .LCmpwordExit:
-end ['EBX','EDX','ECX','EAX','ESI','EDI'];
+        movl    saveedi,%edi
+        movl    saveesi,%esi
+        movl    saveebx,%ebx
+end;
 
 
 {$define FPC_SYSTEM_HAS_COMPAREDWORD}
 function CompareDWord(Const buf1,buf2;len:longint):longint; assembler;
+var
+  saveesi,saveedi,saveebx : longint;
 asm
+        movl    %edi,saveedi
+        movl    %esi,saveesi
+        movl    %ebx,saveebx
         cld
         movl    len,%eax
         movl    buf2,%esi       { Load params}
@@ -385,12 +431,19 @@ asm
         movzwl  -4(%edi),%eax    // Compare failing (or equal) position
         subl    %ecx,%eax        // calculate end result.
 .LCmpDwordExit:
-end ['EBX','EDX','ECX','EAX','ESI','EDI'];
+        movl    saveedi,%edi
+        movl    saveesi,%esi
+        movl    saveebx,%ebx
+end;
 
 
 {$define FPC_SYSTEM_HAS_INDEXCHAR0}
 function IndexChar0(Const buf;len:longint;b:Char):longint; assembler;
+var
+  saveesi,saveebx : longint;
 asm
+        movl    %esi,saveesi
+        movl    %ebx,saveebx
 // Can't use scasb, or will have to do it twice, think this
 //   is faster for small "len"
         movl    Buf,%esi        // Load address
@@ -414,7 +467,9 @@ asm
         movl    $-1,%ecx        // Not found return -1
 .LFound:
         movl    %ecx,%eax
-end['EAX','EBX','ECX','EDX','ESI'];
+        movl    saveesi,%esi
+        movl    saveebx,%ebx
+end;
 
 
 {****************************************************************************
@@ -1200,35 +1255,36 @@ end;
 function declocked(var l : longint) : boolean;assembler;
 
   asm
-     movl       l,%edi
+     movl       l,%eax
      { this check should be done because a lock takes a lot }
      { of time!                                             }
      cmpb       $0,IsMultithread
      jz         .Ldeclockednolock
      lock
-     decl       (%edi)
+     decl       (%eax)
      jmp        .Ldeclockedend
 .Ldeclockednolock:
-     decl       (%edi);
+     decl       (%eax);
 .Ldeclockedend:
      setzb      %al
-  end ['EDI','EAX'];
+  end;
+
 {$define FPC_SYSTEM_HAS_INCLOCKED}
 procedure inclocked(var l : longint);assembler;
 
   asm
-     movl       l,%edi
+     movl       l,%eax
      { this check should be done because a lock takes a lot }
      { of time!                                             }
      cmpb       $0,IsMultithread
      jz         .Linclockednolock
      lock
-     incl       (%edi)
+     incl       (%eax)
      jmp        .Linclockedend
 .Linclockednolock:
-     incl       (%edi)
+     incl       (%eax)
 .Linclockedend:
-  end ['EDI'];
+  end;
 
 {****************************************************************************
                                   FPU
@@ -1257,7 +1313,10 @@ end;
 
 {
   $Log$
-  Revision 1.45  2003-06-01 14:50:17  jonas
+  Revision 1.46  2003-09-08 18:21:37  peter
+    * save edi,esi,ebx
+
+  Revision 1.45  2003/06/01 14:50:17  jonas
     * fpc_shortstr_append_shortstr has to use high(s1) instead of 255 as
       maxlen
     + ppc version of fpc_shortstr_append_shortstr

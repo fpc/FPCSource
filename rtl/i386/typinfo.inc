@@ -24,8 +24,6 @@
 
 Function CallIntegerFunc(s: Pointer; Address: Pointer; Index, IValue: LongInt): Int64; assembler;
   asm
-     movl S,%esi
-     movl Address,%edi
      // ? Indexed Function
      movl Index,%eax
      testl %eax,%eax
@@ -33,17 +31,15 @@ Function CallIntegerFunc(s: Pointer; Address: Pointer; Index, IValue: LongInt): 
      movl IValue,%eax
      pushl %eax
   .LINoPush:
-     push %esi
+     push s
      // reset EDX for routines that return only EAX
      xorl %edx,%edx
-     call %edi
+     call Address
      // now the result is in EDX:EAX
   end;
 
 Function CallIntegerProc(s : Pointer;Address : Pointer;Value : Integer; INdex,IValue : Longint) : Integer;assembler;
   asm
-     movl S,%esi
-     movl Address,%edi
      // Push value to set
      movl Value,%eax
      pushl %eax
@@ -54,15 +50,13 @@ Function CallIntegerProc(s : Pointer;Address : Pointer;Value : Integer; INdex,IV
      movl IValue,%eax
      pushl %eax
   .LIPNoPush:
-     pushl %esi
-     call %edi
+     pushl s
+     call Address
   end;
 
 Function CallSingleFunc(s : Pointer; Address : Pointer;
   Index, IValue : Longint) : Single; assembler;
   asm
-     movl S,%esi
-     movl Address,%edi
      // ? Indexed Function
      movl Index,%eax
      testl %eax,%eax
@@ -70,16 +64,14 @@ Function CallSingleFunc(s : Pointer; Address : Pointer;
      movl IValue,%eax
      pushl %eax
   .LINoPush:
-     push %esi
-     call %edi
+     pushl s
+     call Address
      //
   end;
 
 Function CallDoubleFunc(s : Pointer; Address : Pointer;
   Index, IValue : Longint) : Double; assembler;
   asm
-     movl S,%esi
-     movl Address,%edi
      // ? Indexed Function
      movl Index,%eax
      testl %eax,%eax
@@ -87,15 +79,13 @@ Function CallDoubleFunc(s : Pointer; Address : Pointer;
      movl IValue,%eax
      pushl %eax
   .LINoPush:
-     push %esi
-     call %edi
+     pushl s
+     call Address
      //
   end;
 
 Function CallExtendedFunc(s : Pointer;Address : Pointer; INdex,IValue : Longint) : Extended;assembler;
   asm
-     movl S,%esi
-     movl Address,%edi
      // ? Indexed Function
      movl Index,%eax
      testl %eax,%eax
@@ -103,15 +93,13 @@ Function CallExtendedFunc(s : Pointer;Address : Pointer; INdex,IValue : Longint)
      movl IValue,%eax
      pushl %eax
   .LINoPush:
-     push %esi
-     call %edi
+     pushl s
+     call Address
      //
   end;
 
 Function CallBooleanFunc(s : Pointer;Address : Pointer; Index,IValue : Longint) : Boolean;assembler;
   asm
-     movl S,%esi
-     movl Address,%edi
      // ? Indexed Function
      movl Index,%eax
      testl %eax,%eax
@@ -119,8 +107,8 @@ Function CallBooleanFunc(s : Pointer;Address : Pointer; Index,IValue : Longint) 
      movl IValue,%eax
      pushl %eax
   .LBNoPush:
-     push %esi
-     call %edi
+     pushl s
+     call Address
   end;
 
 // Assembler Functions can't have short stringreturn values.
@@ -130,8 +118,6 @@ Function CallBooleanFunc(s : Pointer;Address : Pointer; Index,IValue : Longint) 
 Procedure CallSStringFunc(s : Pointer;Address : Pointer; INdex,IValue : Longint;
                         Var Res: Shortstring);assembler;
   asm
-     movl S,%esi
-     movl Address,%edi
      // ? Indexed Function
      movl Index,%eax
      testl %eax,%eax
@@ -141,14 +127,12 @@ Procedure CallSStringFunc(s : Pointer;Address : Pointer; INdex,IValue : Longint;
      // the result is stored in an invisible parameter
      pushl Res
   .LSSNoPush:
-     push %esi
-     call %edi
+     pushl s
+     call Address
   end;
 
 Procedure CallSStringProc(s : Pointer;Address : Pointer;Const Value : ShortString; INdex,IVAlue : Longint);assembler;
   asm
-     movl S,%esi
-     movl Address,%edi
      // Push value to set
      movl Value,%eax
      pushl %eax
@@ -161,13 +145,16 @@ Procedure CallSStringProc(s : Pointer;Address : Pointer;Const Value : ShortStrin
      pushl %eax
   .LSSPNoPush:
      // BUG 2 (push)
-     pushl %esi
-     call %edi
+     pushl s
+     call Address
   end;
 
 {
   $Log$
-  Revision 1.5  2003-03-29 16:55:56  michael
+  Revision 1.6  2003-09-08 18:21:37  peter
+    * save edi,esi,ebx
+
+  Revision 1.5  2003/03/29 16:55:56  michael
   + Patch from Mattias Gaertner for single typeinfo
 
   Revision 1.4  2002/09/07 16:01:19  peter

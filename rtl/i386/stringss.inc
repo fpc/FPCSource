@@ -22,8 +22,11 @@ function strpas(p : pchar) : string;
 
 {$define FPC_UNIT_HAS_STRPCOPY}
 function strpcopy(d : pchar;const s : string) : pchar;assembler;
+var
+  saveesi,saveedi : longint;
 asm
-        pushl   %esi            // Save ESI
+	movl	%edi,saveedi
+	movl    %esi,saveesi
         cld
         movl    s,%esi          // Load Source adress
         movl    d,%edi          // load destination address
@@ -33,12 +36,16 @@ asm
         movsb
         movb    $0,(%edi)
         movl    d,%eax       // return value to EAX
-        popl    %esi
-end ['EDI','EAX','ECX'];
+	movl	saveedi,%edi
+	movl    saveesi,%esi
+end;
 
 {
   $Log$
-  Revision 1.8  2003-07-07 20:22:05  peter
+  Revision 1.9  2003-09-08 18:21:37  peter
+    * save edi,esi,ebx
+
+  Revision 1.8  2003/07/07 20:22:05  peter
     * generic string routines added
 
   Revision 1.7  2002/09/07 16:01:19  peter

@@ -19,7 +19,11 @@
 
 {$define FPC_UNIT_HAS_STRCOPY}
 function strcopy(dest,source : pchar) : pchar;assembler;
+var
+  saveesi,saveedi : longint;
 asm
+        movl    %edi,saveedi
+        movl    %esi,saveesi
         movl    source,%edi
         testl   %edi,%edi
         jz      .LStrCopyDone
@@ -72,12 +76,18 @@ asm
         movb    %al,(%edi)
 .LStrCopyDone:
         movl    dest,%eax
-end ['EAX','EDX','ECX','ESI','EDI'];
+        movl    saveedi,%edi
+        movl    saveesi,%esi
+end;
 
 
 {$define FPC_UNIT_HAS_STRECOPY}
 function strecopy(dest,source : pchar) : pchar;assembler;
+var
+  saveesi,saveedi : longint;
 asm
+        movl    %edi,saveedi
+        movl    %esi,saveesi
         cld
         movl    source,%edi
         movl    $0xffffffff,%ecx
@@ -98,12 +108,18 @@ asm
         movl    dest,%eax
         decl    %edi
         movl    %edi,%eax
-end ['EAX','ECX','ESI','EDI'];
+        movl    %edi,saveedi
+        movl    %esi,saveesi
+end;
 
 
 {$define FPC_UNIT_HAS_STRLCOPY}
 function strlcopy(dest,source : pchar;maxlen : longint) : pchar;assembler;
+var
+  saveesi,saveedi : longint;
 asm
+        movl    %edi,saveedi
+        movl    %esi,saveesi
         movl    source,%esi
         movl    maxlen,%ecx
         movl    dest,%edi
@@ -123,7 +139,9 @@ asm
         stosb                   // add a #0
 .LSTRLCOPY3:
         movl    dest,%eax
-end ['EAX','ECX','ESI','EDI'];
+        movl    saveedi,%edi
+        movl    saveesi,%esi
+end;
 
 
 {$define FPC_UNIT_HAS_STRLEN}
@@ -133,7 +151,10 @@ function strlen(p : pchar) : longint;assembler;
 
 {$define FPC_UNIT_HAS_STREND}
 function strend(p : pchar) : pchar;assembler;
+var
+  saveedi : longint;
 asm
+        movl    %edi,saveedi
         cld
         xorl    %eax,%eax
         movl    p,%edi
@@ -146,13 +167,18 @@ asm
         movl    %edi,%eax
         decl    %eax
 .LStrEndNil:
-end ['EDI','ECX','EAX'];
+        movl    saveedi,%edi
+end;
 
 
 
 {$define FPC_UNIT_HAS_STRCOMP}
 function strcomp(str1,str2 : pchar) : longint;assembler;
+var
+  saveesi,saveedi : longint;
 asm
+        movl    %edi,saveedi
+        movl    %esi,saveesi
         movl    str2,%edi
         movl    $0xffffffff,%ecx
         cld
@@ -167,13 +193,19 @@ asm
         movb    -1(%esi),%al
         movzbl  -1(%edi),%ecx
         subl    %ecx,%eax
-end ['EAX','ECX','ESI','EDI'];
+        movl    saveedi,%edi
+        movl    saveesi,%esi
+end;
 
 
 
 {$define FPC_UNIT_HAS_STRLCOMP}
 function strlcomp(str1,str2 : pchar;l : longint) : longint;assembler;
+var
+  saveesi,saveedi : longint;
 asm
+        movl    %edi,saveedi
+        movl    %esi,saveesi
         movl    str2,%edi
         movl    $0xffffffff,%ecx
         cld
@@ -192,13 +224,19 @@ asm
         movb    -1(%esi),%al
         movzbl  -1(%edi),%ecx
         subl    %ecx,%eax
-end ['EAX','ECX','ESI','EDI'];
+        movl    saveedi,%edi
+        movl    saveesi,%esi
+end;
 
 
 
 {$define FPC_UNIT_HAS_STRICOMP}
 function stricomp(str1,str2 : pchar) : longint;assembler;
+var
+  saveesi,saveedi : longint;
 asm
+        movl    %edi,saveedi
+        movl    %esi,saveesi
         movl    str2,%edi
         movl    $0xffffffff,%ecx
         cld
@@ -213,29 +251,35 @@ asm
         cmpsb
         jz      .LSTRICOMP3     // If last reached then exit
         movzbl  -1(%esi),%eax
-        movzbl  -1(%edi),%ebx
+        movzbl  -1(%edi),%edx
         cmpb    $97,%al
         jb      .LSTRICOMP1
         cmpb    $122,%al
         ja      .LSTRICOMP1
         subb    $0x20,%al
 .LSTRICOMP1:
-        cmpb    $97,%bl
+        cmpb    $97,%dl
         jb      .LSTRICOMP4
-        cmpb    $122,%bl
+        cmpb    $122,%dl
         ja      .LSTRICOMP4
-        subb    $0x20,%bl
+        subb    $0x20,%dl
 .LSTRICOMP4:
-        subl    %ebx,%eax
+        subl    %edx,%eax
         jz      .LSTRICOMP2     // If still equal, compare again
 .LSTRICOMP3:
-end ['EAX','EBX','ECX','ESI','EDI'];
+        movl    saveedi,%edi
+        movl    saveesi,%esi
+end;
 
 
 
 {$define FPC_UNIT_HAS_STRLICOMP}
 function strlicomp(str1,str2 : pchar;l : longint) : longint;assembler;
+var
+  saveesi,saveedi : longint;
 asm
+        movl    %edi,saveedi
+        movl    %esi,saveesi
         movl    str2,%edi
         movl    $0xffffffff,%ecx
         cld
@@ -254,29 +298,35 @@ asm
         cmpsb
         jz      .LSTRLICOMP3    // If last reached, exit
         movzbl  -1(%esi),%eax
-        movzbl  -1(%edi),%ebx
+        movzbl  -1(%edi),%edx
         cmpb    $97,%al
         jb      .LSTRLICOMP1
         cmpb    $122,%al
         ja      .LSTRLICOMP1
         subb    $0x20,%al
 .LSTRLICOMP1:
-        cmpb    $97,%bl
+        cmpb    $97,%dl
         jb      .LSTRLICOMP4
-        cmpb    $122,%bl
+        cmpb    $122,%dl
         ja      .LSTRLICOMP4
-        subb    $0x20,%bl
+        subb    $0x20,%dl
 .LSTRLICOMP4:
-        subl    %ebx,%eax
+        subl    %edx,%eax
         jz      .LSTRLICOMP2
 .LSTRLICOMP3:
-end ['EAX','EBX','ECX','ESI','EDI'];
+        movl    saveedi,%edi
+        movl    saveesi,%esi
+end;
 
 
 
 {$define FPC_UNIT_HAS_STRSCAN}
 function strscan(p : pchar;c : char) : pchar;assembler;
+var
+  saveesi,saveedi : longint;
 asm
+        movl    %edi,saveedi
+        movl    %esi,saveesi
         movl    p,%eax
         xorl    %ecx,%ecx
         testl   %eax,%eax
@@ -390,12 +440,17 @@ asm
 .LSTRSCANNOTFOUND:
         xorl    %eax,%eax
 .LSTRSCAN:
-end ['EAX','ECX','ESI','EDI','EDX'];
+        movl    saveedi,%edi
+        movl    saveesi,%esi
+end;
 
 
 {$define FPC_UNIT_HAS_STRRSCAN}
 function strrscan(p : pchar;c : char) : pchar;assembler;
+var
+  saveedi : longint;
 asm
+        movl    %edi,saveedi
         xorl    %eax,%eax
         movl    p,%edi
         orl     %edi,%edi
@@ -419,12 +474,17 @@ asm
         movl    %edi,%eax
         incl    %eax
 .LSTRRSCAN:
-end ['EAX','ECX','EDI'];
+        movl    saveedi,%edi
+end;
 
 
 {$define FPC_UNIT_HAS_STRUPPER}
 function strupper(p : pchar) : pchar;assembler;
+var
+  saveesi,saveedi : longint;
 asm
+        movl    %edi,saveedi
+        movl    %esi,saveesi
         movl    p,%esi
         orl     %esi,%esi
         jz      .LStrUpperNil
@@ -442,12 +502,18 @@ asm
         jnz     .LSTRUPPER1
 .LStrUpperNil:
         movl    p,%eax
-end ['EAX','ESI','EDI'];
+        movl    saveedi,%edi
+        movl    saveesi,%esi
+end;
 
 
 {$define FPC_UNIT_HAS_STRLOWER}
 function strlower(p : pchar) : pchar;assembler;
+var
+  saveesi,saveedi : longint;
 asm
+        movl    %esi,saveesi
+        movl    %edi,saveedi
         movl    p,%esi
         orl     %esi,%esi
         jz      .LStrLowerNil
@@ -465,11 +531,16 @@ asm
         jnz     .LSTRLOWER1
 .LStrLowerNil:
         movl    p,%eax
-end ['EAX','ESI','EDI'];
+        movl    saveedi,%edi
+        movl    saveesi,%esi
+end;
 
 {
   $Log$
-  Revision 1.8  2003-04-30 16:36:39  florian
+  Revision 1.9  2003-09-08 18:21:37  peter
+    * save edi,esi,ebx
+
+  Revision 1.8  2003/04/30 16:36:39  florian
     + support for generic pchar routines added
     + some basic rtl stuff for x86-64 added
 
