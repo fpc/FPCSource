@@ -1491,59 +1491,130 @@ const   dsFull=0;       {IBM DOCS: "Perform full system shutdown and
 function DosShutdown (Flags: cardinal): cardinal; cdecl;
 
 
-{Usefull constants fo DosQuerySysInfo.}
+{Parameters (system variables) for DosQuerySysInfo.}
 const   svMaxPathLength     = 1;        {Maximum length of a pathname.}
         svMaxTextSessions   = 2;        {Maximum number of text sessions.}
         svMaxPMSessions     = 3;        {Maximum number of PM sessions.}
         svMaxVDMSessions    = 4;        {Maximum number of DOS sessions.}
         svBootDrive         = 5;        {Get the boot drive. (A=1, B=2 etc.)}
-        svDynPriVariation   = 6;
-        svMaxWait           = 7;
-        svMinSlice          = 8;
-        svMaxSlice          = 9;
-        svPageSize          = 10;       {Size of a page. (Always 4096 bytes.)}
-        svMajorVersion      = 11;       {Major version number of kernel:
+        svDynPriVariation   = 6;        {Dynamic priority variation flag
+                                         (0 = absolute priority, 1 means
+                                         dynamic priority).}
+        svMaxWait           = 7;        {Maximum wait time in seconds.}
+        svMinSlice          = 8;        {Minimum time slice in milliseconds.}
+        svMaxSlice          = 9;        {Maximum time slice in milliseconds.}
+        svPageSize          = 10;       {Size of a page (always 4096 bytes for
+                                         x86).}
+        svVersionMajor      = 11;       {Major version number of kernel:
                                          10 for OS/2 1.0 and 1.1,
                                          20 for OS/2 2.0 .. OS/2 4.0.}
-        svMinorVersion      = 12;       {Minor version of kernel:
+        svVersionMinor      = 12;       {Minor version of kernel:
                                          OS/2 2.0: 00, 2.1: 10, 2.11: 11,
                                               3.0: 30, 4.0: 40.}
-        svRevision          = 13;       {Revision of kernel. Until now all
+        svVersionRevision   = 13;       {Revision of kernel. Until now all
                                          OS/2 versions return 0.}
         svMsCount           = 14;       {Uptime in milliseconds.}
         svTimeLow           = 15;       {System time in seconds since
                                          1 January 1970 0:00:00, low dword.}
         svTimeHigh          = 16;       {System time in seconds since
                                          1 January 1970 0:00:00, high dword.}
-        svPhysMem           = 17;       {Amount in bytes of physical memory
+        svTotPhysMem        = 17;       {Amount in bytes of physical memory
                                          in system.}
-        svResMem            = 18;       {Amount in bytes of resident memory
+        svTotResMem         = 18;       {Amount in bytes of resident memory
                                          in system.}
-        svAvailMem          = 19;       {Amount in bytes of available
+        svTotAvailMem       = 19;       {Amount in bytes of available
                                          memory.}
-        svPrMem             = 20;       {Maximum amount of memory the current
+        svMaxPrMem          = 20;       {Maximum amount of memory the current
                                          process can request for its
                                          private use.}
-        svShMem             = 21;       {Maximum amount of memory the current
-                                         process can request for shared
-                                         purposes.}
+        svMaxShMem          = 21;       {Maximum amount of shared memory
+                                         the current process can request.}
         svTimerInterval     = 22;       {Timer interval in tenths of a
                                          millisecond.}
-        svMaxCompLength     = 23;       {Maxmimum length of a component in a
+        svMaxCompLength     = 23;       {Maximum length of a component in a
                                          pathname.}
-        svForegroundSession = 24;       {Returns the session ID of the fore-
-                                         ground session. The presentation
-                                         manager has ID 1.}
-        svForegroundProcess = 25;       {Returns the process ID of the
-                                         current foreground process.}
+        svForegroundFSSession = 24;     {Session ID of the foreground
+                                         full-screen session. Presentation
+                                         Manager and all sessions running under
+                                         PM (including PM, windowed VIO, VDM
+                                         and seamless Win 3.x) return ID 1.}
+        svForegroundProcess = 25;       {Process ID of the current foreground
+                                         process.}
+        svNumProcessors     = 26;       {Number of CPUs in machine - supported
+                                         since WarpServer Advanced SMP.}
+{The following parameters are only supported in WSeB/MCP/eCS
+ or OS/2 Warp 4.0 with FP14 and above.}
+        svMaxHPrMem         = 27;       {Maximum amount of high memory the
+                                         process can request for its private
+                                         use in total (not necessarily at once
+                                         because of potential fragmentation).}
+        svMaxHShMem         = 28;       {Maximum amount of high shared memory
+                                         the process can request.}
+        svMaxProcesses      = 29;       {Maximum number of concurrent processes
+                                         supported.}
+        svVirtualAddressLimit = 30;     {Size of the user address space in MB
+                                         (i.e. the value of the rounded
+                                         VIRTUALADDRESSLIMIT as specified in
+                                         CONFIG.SYS, or the default value of
+                                         512).}
+        svMax               = 30;       {The maximum parameter number
+                                         for WSeB/MCP/eCS.}
 
-{Get one or more system parameters.
+{Aliases for compatibility...}
+        QSV_MAX_PATH_LENGTH = svMaxPathLength;
+        QSV_MAX_TEXT_SESSIONS = svMaxTextSessions;
+        QSV_MAX_PM_SESSIONS = svMaxPMSessions;
+        QSV_MAX_VDM_SESSIONS = svMaxVDMSessions;
+        QSV_BOOT_DRIVE = svBootDrive;
+        QSV_DYN_PRI_VARIATION = svDynPriVariation;
+        QSV_MAX_WAIT = svMaxWait;
+        QSV_MIN_SLICE = svMinSlice;
+        QSV_MAX_SLICE = svMaxSlice;
+        QSV_PAGE_SIZE = svPageSize;
+        svMajorVersion = svVersionMajor;
+        QSV_VERSION_MAJOR = svVersionMajor;
+        svMinorVersion = svVersionMinor;
+        QSV_VERSION_MINOR = svVersionMinor;
+        svRevision = svVersionRevision;
+        QSV_VERSION_REVISION = svVersionRevision;
+        QSV_MS_COUNT = svMsCount;
+        QSV_TIME_LOW = svTimeLow;
+        QSV_TIME_HIGH = svTimeHigh;
+        svPhysMem = svTotPhysMem;
+        QSV_TOTPHYSMEM = svTotPhysMem;
+        svResMem = svTotResMem;
+        QSV_TOTRESMEM = svTotResMem;
+        svAvailMem = svTotAvailMem;
+        QSV_TOTAVAILMEM = svTotAvailMem;
+        svPrMem = svMaxPrMem;
+        svShMem = svMaxShMem;
+        QSV_MAXPRMEM = svMaxPrMem;
+        QSV_MAXSHMEM = svMaxShMem;
+        QSV_TIMER_INTERVAL = svTimerInterval;
+        QSV_MAX_COMP_LENGTH = svMaxCompLength;
+        QSV_FOREGROUND_FS_SESSION = svForegroundFSSession;
+        svForegroundSession = svForegroundFSSession;
+        QSV_FOREGROUND_PROCESS = svForegroundProcess;
+        QSV_NUMPROCESSORS = svNumProcessors;
+        QSV_MAXHPRMEM = svMaxHPrMem;
+        QSV_MAXHSHMEM = svMaxHShMem;
+        QSV_MAXPROCESSES = svMaxProcesses;
+        QSV_VIRTUALADDRESSLIMIT = svVirtualAddressLimit;
+        QSV_MAX = svMax;
+
+{Get one or more system variables.
  First          = First variable to get.
  Last           = Last variable to get.
  Buf            = Receives variables.
- BufSize        - Size of the buffer/}
+ BufSize        = Size of the buffer (every system variable is a cardinal).}
 function DosQuerySysInfo(First,Last:cardinal;var Buf;BufSize:cardinal):cardinal;
                                                                          cdecl;
+type
+    TQSVValues = array [1..svMax] of cardinal;
+    PQSVValues = ^TQSVValues;
+
+function DosQuerySysInfo(First,Last:cardinal;Buf:PQSVValues;
+                                              BufSize:cardinal):cardinal;cdecl;
 
 {Return information about a partitionable disk.}
 function DosPhysicalDisk(Func:cardinal;Buf:pointer;BufSize:cardinal;
@@ -1706,6 +1777,17 @@ const   smShared        = $0001;    {Semaphore is shared.}
                                      thread indefinitely.}
         Sem_Immediate_Return = 0;   {DosRequestMutExSem returns immediately
                                      without blocking the calling thread.}
+(* The following two flag values are only available
+   on Warp 3 FP 29, Warp 4 FP 5 and above. *)
+        dce_AutoReset   = $1000;    {This will cause the (event) semaphore
+                                     to be reset automatically at the time
+                                     it is posted.}
+        dce_PostOne     = $0800;    {This will cause only one thread to be
+                                     posted where multiple threads are
+                                     waiting on an event semaphore created
+                                     with this attribute. dce_PostOne also
+                                     causes the semaphore to be reset
+                                     automatically when it is posted.}
 (* The following just for compatibility. *)
         dcMW_Wait_Any = smMWWaitAny;
         dcMW_Wait_All = smMWWaitAll;
@@ -3229,97 +3311,76 @@ implementation
 function DosCreateThread(var TID:longint;Address:TThreadEntry;
                           aParam:pointer;Flags:longint;
                           StackSize:longint):cardinal; cdecl;
-
 external 'DOSCALLS' index 311;
 
 function DosCreateThread (var TID: cardinal; Address: TThreadEntry;
                           aParam: pointer; Flags: cardinal;
                           StackSize: cardinal): cardinal; cdecl;
-
 external 'DOSCALLS' index 311;
 
 function DosCreateThread(var TID:longint;Address:pointer;
                         AParam:Pointer;Flags,StackSize:longint):cardinal;cdecl;
-
 external 'DOSCALLS' index 311;
 
 function DosCreateThread (var TID: cardinal; Address: pointer;
                  AParam: Pointer; Flags, StackSize: cardinal): cardinal; cdecl;
-
 external 'DOSCALLS' index 311;
 
 function DosSuspendThread (TID:cardinal): cardinal; cdecl;
-
 external 'DOSCALLS' index 238;
 
 function DosResumeThread (TID: cardinal): cardinal; cdecl;
-
 external 'DOSCALLS' index 237;
 
 function DosKillThread (TID: cardinal): cardinal; cdecl;
-
 external 'DOSCALLS' index 111;
 
 function DosWaitThread(var TID:longint;Option:longint):cardinal; cdecl;
-
 external 'DOSCALLS' index 349;
 
 function DosWaitThread (var TID: cardinal; Option: cardinal): cardinal; cdecl;
-
 external 'DOSCALLS' index 349;
 
 function DosEnterCritSec: cardinal; cdecl;
-
 external 'DOSCALLS' index 232;
 
 function DosExitCritSec: cardinal; cdecl;
-
 external 'DOSCALLS' index 233;
 
 procedure DosExit (Action, Result: cardinal); cdecl;
-
 external 'DOSCALLS' index 234;
 
 procedure DosGetInfoBlocks(var ATIB:PThreadInfoBlock;
                            var APIB:PProcessInfoBlock); cdecl;
-
 external 'DOSCALLS' index 312;
 
 procedure DosGetInfoBlocks(PATIB:PPThreadInfoBlock;
                            PAPIB:PPProcessInfoBlock); cdecl;
-
 external 'DOSCALLS' index 312;
 
 procedure DosSleep (MSec: cardinal); cdecl;
-
 external 'DOSCALLS' index 229;
 
 function DosBeep (Freq, MS: cardinal): cardinal; cdecl;
-
 external 'DOSCALLS' index 286;
 
 function DosDebug (DebugBuf: PDbgBuf): cardinal; cdecl;
-
 external 'DOSCALLS' index 317;
 
 function DosDebug (var APDbgBuf: TDbgBuf): cardinal; cdecl;
-
 external 'DOSCALLS' index 317;
 
 function DosExitList (OrderCode: cardinal; Proc: TExitProc): cardinal; cdecl;
-
 external 'DOSCALLS' index 296;
 
 function DosExecPgm (ObjName: PChar; ObjLen: longint; ExecFlag: cardinal;
                      Args, Env: PByteArray; var Res: TResultCodes;
                      FileName:PChar): cardinal; cdecl;
-
 external 'DOSCALLS' index 283;
 
 function DosExecPgm (var ObjName: string; Execflag: cardinal;
                      Args, Env: PByteArray; var Res: TResultCodes;
                      const FileName: string): cardinal;
-
 var T,T2:array[0..255] of char;
 
 begin
@@ -3330,62 +3391,50 @@ end;
 
 function DosWaitChild(Action,Option:longint;var Res:TResultCodes;
                       var TermPID:longint;PID:longint):cardinal; cdecl;
-
 external 'DOSCALLS' index 280;
 
 function DosWaitChild (Action, Option: cardinal; var Res: TResultCodes;
                        var TermPID: cardinal; PID: cardinal): cardinal; cdecl;
-
 external 'DOSCALLS' index 280;
 
 function DosSetPriority (Scope, TrClass: cardinal; Delta: longint;
                                             PortID: cardinal): cardinal; cdecl;
-
 external 'DOSCALLS' index 236;
 
 function DosKillProcess (Action, PID: cardinal): cardinal; cdecl;
-
 external 'DOSCALLS' index 235;
 
 function DosQueryAppType(FileName:PChar;var Flags:longint):cardinal; cdecl;
-
 external 'DOSCALLS' index 323;
 
 function DosQueryAppType (FileName: PChar; var Flags: cardinal): cardinal;
                                                                          cdecl;
-
 external 'DOSCALLS' index 323;
 
 function DosDevConfig (var DevInfo: byte; Item: cardinal): cardinal; cdecl;
-
 external 'DOSCALLS' index 231;
 
 function DosSetFileLocks (Handle: THandle; var Unlock, Lock: TFileLock;
                           Timeout, Flags: cardinal): cardinal; cdecl;
-
 external 'DOSCALLS' index 428;
 
 function DosProtectSetFileLocks (Handle: THandle; var Unlock, Lock: TFileLock;
                                  Timeout, Flags: cardinal;
                                   FileHandleLockID: cardinal): cardinal; cdecl;
-
 external 'DOSCALLS' index 639;
 
 function DosCancelLockRequest (Handle: THandle; var Lock: TFileLock): cardinal;
                                                                          cdecl;
-
 external 'DOSCALLS' index 429;
 
 function DosOpen(FileName:PChar;var Handle,Action:longint;
                  InitSize,Attrib,OpenFlags,FileMode:longint;
                  EA:PEAOp2):cardinal; cdecl;
-
 external 'DOSCALLS' index 273;
 
 function DosOpen (FileName: PChar; var Handle: THandle; var Action: cardinal;
                   InitSize, Attrib, OpenFlags, FileMode: cardinal;
                   EA: PEAOp2): cardinal; cdecl;
-
 external 'DOSCALLS' index 273;
 
 function DosCreate (FileName: PChar; var Handle: THandle;
@@ -3454,14 +3503,12 @@ function DosProtectOpen (FileName: PChar; var Handle: longint;
                          var Action: longint; InitSize, Attrib,
                          OpenFlags, OpenMode: longint; ea: PEAOp2;
                               var FileHandleLockID: cardinal): cardinal; cdecl;
-
 external 'DOSCALLS' index 637;
 
 function DosProtectOpen (FileName: PChar; var Handle: THandle;
                          var Action: cardinal; InitSize, Attrib,
                          OpenFlags, OpenMode: cardinal; ea: PEAOp2;
                               var FileHandleLockID: cardinal): cardinal; cdecl;
-
 external 'DOSCALLS' index 637;
 
 function DosProtectOpen (const FileName: string; var Handle: longint;
@@ -3489,64 +3536,52 @@ begin
 end;
 
 function DosClose (Handle: THandle): cardinal; cdecl;
-
 external 'DOSCALLS' index 257;
 
 function DosProtectClose (Handle: THandle;
                                    FileHandleLockID: cardinal): cardinal; cdecl;
-
 external 'DOSCALLS' index 638;
 
 function DosRead(Handle:longint;var Buffer;Count:longint;
                  var ActCount:longint):cardinal; cdecl;
-
 external 'DOSCALLS' index 281;
 
 function DosRead (Handle: THandle; var Buffer; Count: cardinal;
                   var ActCount: cardinal): cardinal; cdecl;
-
 external 'DOSCALLS' index 281;
 
 function DosProtectRead (Handle: longint; var Buffer; Count: longint;
            var ActCount: longint; FileHandleLockID: cardinal): cardinal; cdecl;
-
 external 'DOSCALLS' index 641;
 
 function DosProtectRead (Handle: THandle; var Buffer; Count: cardinal;
           var ActCount: cardinal; FileHandleLockID: cardinal): cardinal; cdecl;
-
 external 'DOSCALLS' index 641;
 
 function DosWrite(Handle:longint;var Buffer;Count:longint;
                   var ActCount:longint):cardinal; cdecl;
-
 external 'DOSCALLS' index 282;
 
 function DosWrite (Handle: THandle; var Buffer; Count: cardinal;
                    var ActCount: cardinal): cardinal; cdecl;
-
 external 'DOSCALLS' index 282;
 
 function DosProtectWrite (Handle: longint; var Buffer; Count: longint;
                           var ActCount: longint;
                           FileHandleLockID: cardinal): cardinal; cdecl;
-
 external 'DOSCALLS' index 642;
 
 function DosProtectWrite (Handle: THandle; var Buffer; Count: cardinal;
                           var ActCount: cardinal;
                           FileHandleLockID: cardinal): cardinal; cdecl;
-
 external 'DOSCALLS' index 642;
 
 function DosSetFilePtr(Handle:longint;Pos:longint;Method:cardinal;
                        var PosActual:longint):cardinal; cdecl;
-
 external 'DOSCALLS' index 256;
 
 function DosSetFilePtr (Handle: THandle; Pos: longint; Method: cardinal;
                         var PosActual: cardinal): cardinal; cdecl;
-
 external 'DOSCALLS' index 256;
 
 function DosSetFilePtr (Handle: THandle; Pos: longint): cardinal;
@@ -3560,13 +3595,11 @@ end;
 function DosProtectSetFilePtr (Handle: longint; Pos, Method: longint;
                                var PosActual: longint;
                                FileHandleLockID: cardinal): cardinal; cdecl;
-
 external 'DOSCALLS' index 621;
 
 function DosProtectSetFilePtr (Handle: THandle; Pos: longint; Method: cardinal;
                                var PosActual: cardinal;
                                FileHandleLockID: cardinal): cardinal; cdecl;
-
 external 'DOSCALLS' index 621;
 
 function DosProtectSetFilePtr (Handle: THandle; Pos: longint;
@@ -3608,59 +3641,47 @@ begin
 end;
 
 function DosSetFileSize (Handle: THandle; Size: cardinal): cardinal; cdecl;
-
 external 'DOSCALLS' index 272;
 
 function DosProtectSetFileSize (Handle: THandle; Size: cardinal;
                                   FileHandleLockID: cardinal): cardinal; cdecl;
-
 external 'DOSCALLS' index 640;
 
 function DosResetBuffer (Handle: THandle): cardinal; cdecl;
-
 external 'DOSCALLS' index 254;
 
 function DosDupHandle (Handle: THandle; var Duplicate: THandle): cardinal;
                                                                          cdecl;
-
 external 'DOSCALLS' index 260;
 
 function DosQueryFHState(Handle:longint;var FileMode:longint):cardinal; cdecl;
-
 external 'DOSCALLS' index 276;
 
 function DosQueryFHState (Handle: THandle; var FileMode: cardinal): cardinal;
                                                                          cdecl;
-
 external 'DOSCALLS' index 276;
 
 function DosProtectQueryFHState (Handle: THandle; var FileMode: cardinal;
                                   FileHandleLockID: cardinal): cardinal; cdecl;
-
 external 'DOSCALLS' index 645;
 
 function DosSetFHState (Handle: THandle; FileMode: cardinal): cardinal; cdecl;
-
 external 'DOSCALLS' index 221;
 
 function DosProtectSetFHState (Handle: THandle; FileMode: cardinal;
                                   FileHandleLockID: cardinal): cardinal; cdecl;
-
 external 'DOSCALLS' index 644;
 
 function DosQueryHType(Handle:longint;var HandType:longint;
                        var Attr:longint):cardinal; cdecl;
-
 external 'DOSCALLS' index 224;
 
 function DosQueryHType (Handle: THandle; var HandType: cardinal;
                         var Attr: cardinal): cardinal; cdecl;
-
 external 'DOSCALLS' index 224;
 
 function DosEditName (MetaLevel: cardinal; Source, Edit: PChar;
                       Target: PChar; TargetLen: cardinal): cardinal; cdecl;
-
 external 'DOSCALLS' index 261;
 
 function DosEditName (MetaLevel: cardinal; const Source, Edit: string;
@@ -3676,7 +3697,6 @@ begin
 end;
 
 function DosMove(OldFile,NewFile:PChar):cardinal; cdecl;
-
 external 'DOSCALLS' index 271;
 
 function DosMove(const OldFile,NewFile:string):cardinal;
@@ -3690,7 +3710,6 @@ begin
 end;
 
 function DosCopy (OldFile, NewFile: PChar; Option: cardinal): cardinal; cdecl;
-
 external 'DOSCALLS' index 258;
 
 function DosCopy (const OldFile, NewFile: string; Option: cardinal): cardinal;
@@ -3704,7 +3723,6 @@ begin
 end;
 
 function DosDelete(FileName:PChar):cardinal; cdecl;
-
 external 'DOSCALLS' index 259;
 
 function DosDelete(const FileName:string):cardinal;
@@ -3717,7 +3735,6 @@ begin
 end;
 
 function DosForceDelete(FileName:PChar):cardinal; cdecl;
-
 external 'DOSCALLS' index 110;
 
 function DosForceDelete(const FileName:string):cardinal;
@@ -3730,7 +3747,6 @@ begin
 end;
 
 function DosCreateDir(Name:PChar;EA:PEAOp2):cardinal; cdecl;
-
 external 'DOSCALLS' index 270;
 
 function DosCreateDir(Name:PChar):cardinal;
@@ -3758,7 +3774,6 @@ begin
 end;
 
 function DosDeleteDir(Name:PChar):cardinal; cdecl;
-
 external 'DOSCALLS' index 226;
 
 function DosDeleteDir(const Name:string):cardinal;
@@ -3771,20 +3786,16 @@ begin
 end;
 
 function DosSetDefaultDisk(DiskNum:cardinal):cardinal; cdecl;
-
 external 'DOSCALLS' index 220;
 
 procedure DosQueryCurrentDisk(var DiskNum:longint;var Logical:longint); cdecl;
-
 external 'DOSCALLS' index 275;
 
 procedure DosQueryCurrentDisk (var DiskNum: cardinal; var Logical: cardinal);
                                                                          cdecl;
-
 external 'DOSCALLS' index 275;
 
 function DosSetCurrentDir(Name:PChar):cardinal; cdecl;
-
 external 'DOSCALLS' index 255;
 
 function DosSetCurrentDir(const Name:string):cardinal;
@@ -3798,12 +3809,10 @@ end;
 
 function DosQueryCurrentDir(DiskNum:longint;var Buffer;
                             var BufLen:longint):cardinal; cdecl;
-
 external 'DOSCALLS' index 274;
 
 function DosQueryCurrentDir (DiskNum: cardinal; var Buffer;
                              var BufLen: cardinal): cardinal; cdecl;
-
 external 'DOSCALLS' index 274;
 
 function DosQueryCurrentDir (DiskNum: cardinal; var Buffer: string): cardinal;
@@ -3820,21 +3829,18 @@ end;
 function DosDevIOCtl(Handle,Category,Func:longint;var Params;
                      ParamLen:longint;var ParamSize:longint;
                 var Data;DataLen:longint;var DataSize:longint):cardinal; cdecl;
-
 external 'DOSCALLS' index 284;
 
 function DosDevIOCtl (Handle: THandle; Category, Func: cardinal; var Params;
                       ParamLen: cardinal; var ParamSize: cardinal;
                       var Data; DataLen: cardinal; var DataSize: cardinal):
                                                                cardinal; cdecl;
-
 external 'DOSCALLS' index 284;
 
 function DosFindFirst (FileMask: PChar; var Handle: THandle; Attrib: cardinal;
                        AFileStatus: PFileStatus; FileStatusLen: cardinal;
                        var Count: cardinal; InfoLevel: cardinal): cardinal;
                                                                          cdecl;
-
 external 'DOSCALLS' index 264;
 
 function DosFindFirst (const FileMask: string; var Handle: THandle;
@@ -3853,42 +3859,35 @@ end;
 function DosFindNext (Handle: THandle; AFileStatus: PFileStatus;
                       FileStatusLen: cardinal; var Count: cardinal): cardinal;
                                                                          cdecl;
-
 external 'DOSCALLS' index 265;
 
 function DosFindClose (Handle: THandle): cardinal; cdecl;
-
 external 'DOSCALLS' index 263;
 
 function DosQueryFileInfo (Handle: THandle; InfoLevel: cardinal;
                            AFileStatus: PFileStatus;
                                      FileStatusLen: cardinal): cardinal; cdecl;
-
 external 'DOSCALLS' index 279;
 
 function DosProtectQueryFileInfo (Handle: THandle; InfoLevel: cardinal;
                                   AFileStatus: PFileStatus;
                                   FileStatusLen: cardinal;
                                   FileHandleLockID: cardinal): cardinal; cdecl;
-
 external 'DOSCALLS' index 646;
 
 function DosSetFileInfo (Handle: THandle; InfoLevel: cardinal;
                          AFileStatus: PFileStatus;
                          FileStatusLen: cardinal): cardinal; cdecl;
-
 external 'DOSCALLS' index 218;
 
 function DosProtectSetFileInfo (Handle: THandle; InfoLevel: cardinal;
                                 AFileStatus: PFileStatus;
                                 FileStatusLen: cardinal;
                                   FileHandleLockID: cardinal): cardinal; cdecl;
-
 external 'DOSCALLS' index 643;
 
 function DosQueryPathInfo (FileName: PChar; InfoLevel: cardinal;
            AFileStatus: PFileStatus; FileStatusLen: cardinal): cardinal; cdecl;
-
 external 'DOSCALLS' index 223;
 
 function DosQueryPathInfo (const FileName: string; InfoLevel: cardinal;
@@ -3905,41 +3904,35 @@ end;
 function DosSetPathInfo (FileName: PChar; InfoLevel: cardinal;
                          AFileStatus: PFileStatus; FileStatusLen,
                          Options: cardinal): cardinal; cdecl;
-
 external 'DOSCALLS' index 219;
 
 function DosEnumAttribute(RefType:longint;AFile:pointer;
                           Entry:longint;var Buf;BufSize:longint;
                           var Count:longint;InfoLevel:longint):cardinal; cdecl;
-
 external 'DOSCALLS' index 372;
 
 function DosEnumAttribute (RefType: cardinal; AFile: pointer;
                            Entry: cardinal; var Buf; BufSize: cardinal;
                            var Count: cardinal; InfoLevel: cardinal): cardinal;
                                                                          cdecl;
-
 external 'DOSCALLS' index 372;
 
 function DosEnumAttribute (RefType: cardinal; AFile: PChar;
                            Entry: cardinal; var Buf; BufSize: cardinal;
                            var Count: cardinal; InfoLevel: cardinal): cardinal;
                                                                          cdecl;
-
 external 'DOSCALLS' index 372;
 
 function DosEnumAttribute (RefType: cardinal; const AFile: THandle;
                            Entry: cardinal; var Buf; BufSize: cardinal;
                            var Count: cardinal; InfoLevel: cardinal): cardinal;
                                                                          cdecl;
-
 external 'DOSCALLS' index 372;
 
 function DosProtectEnumAttribute (RefType: cardinal; AFile: pointer;
                                   Entry: cardinal; var Buf; BufSize: cardinal;
                                   var Count: cardinal; InfoLevel: cardinal;
                                   FileHandleLockID: cardinal): cardinal; cdecl;
-
 external 'DOSCALLS' index 636;
 
 function DosEnumAttribute (Handle: longint; Entry: longint; var Buf;
@@ -3996,7 +3989,6 @@ begin
 end;
 
 function DosScanEnv(Name:PChar;var Value:PChar):cardinal; cdecl;
-
 external 'DOSCALLS' index 227;
 
 function DosScanEnv(const Name:string;var Value:string):cardinal;
@@ -4012,7 +4004,6 @@ end;
 
 function DosSearchPath (Flag: cardinal; DirList, FileName: PChar;
                         FullName: PChar; FullLen: cardinal): cardinal; cdecl;
-
 external 'DOSCALLS' index 228;
 
 function DosSearchPath (Flag: cardinal; const DirList, FileName: string;
@@ -4029,7 +4020,6 @@ end;
 
 function DosFSAttach (DevName, FileSystem: PChar; var Data: TAttachData;
                       DataLen, Flag: cardinal):cardinal; cdecl;
-
 external 'DOSCALLS' index 269;
 
 function DosFSAttach (const DevName, FileSystem: string; var Data: TAttachData;
@@ -4045,12 +4035,10 @@ end;
 
 function DosQueryFSAttach(DevName:PChar;Ordinal,InfoLevel:longint;
                      var Buffer:TFSQBuffer2;var BufLen:longint):cardinal; cdecl;
-
 external 'DOSCALLS' index 277;
 
 function DosQueryFSAttach (DevName: PChar; Ordinal, InfoLevel: cardinal;
                var Buffer: TFSQBuffer2; var BufLen: cardinal): cardinal; cdecl;
-
 external 'DOSCALLS' index 277;
 
 function DosQueryFSAttach(const DevName:string;Ordinal,InfoLevel:longint;
@@ -4077,7 +4065,6 @@ function DosFSCtl(Data:pointer;DataLen:longint;var ResDataLen:longint;
                   Parms:pointer;ParmsLen:longint;var ResParmsLen:longint;
                   _Function:longint;Route:PChar;
                   Handle,Method:longint):cardinal; cdecl;
-
 external 'DOSCALLS' index 285;
 
 function DosFSCtl (Data: pointer; DataLen: cardinal; var ResDataLen: cardinal;
@@ -4085,7 +4072,6 @@ function DosFSCtl (Data: pointer; DataLen: cardinal; var ResDataLen: cardinal;
                    var ResParmsLen: cardinal; _Function: cardinal;
                    Route: PChar; Handle: THandle; Method: cardinal): cardinal;
                                                                          cdecl;
-
 external 'DOSCALLS' index 285;
 
 function DosFSCtl(Data:pointer;DataLen:longint;var ResDataLen:longint;
@@ -4117,85 +4103,70 @@ end;
 
 function DosQueryFSInfo (DiskNum, InfoLevel: cardinal; var Buffer: TFSInfo;
                          BufLen: cardinal): cardinal; cdecl;
-
 external 'DOSCALLS' index 278;
 
 function DosSetFSInfo (DiskNum, InfoLevel: cardinal; var Buffer: TFSInfo;
                        BufLen: cardinal): cardinal; cdecl;
-
 external 'DOSCALLS' index 222;
 
 function DosQueryVerify(var Enabled:longint):cardinal; cdecl;
-
 external 'DOSCALLS' index 225;
 
 function DosQueryVerify (var Enabled: cardinal): cardinal; cdecl;
-
 external 'DOSCALLS' index 225;
 
 function DosQueryVerify (var Enabled: boolean): cardinal; cdecl;
-
 external 'DOSCALLS' index 225;
 
 function DosSetVerify (Enable: boolean): cardinal; cdecl;
-
 external 'DOSCALLS' index 210;
 
 function DosSetVerify (Enable: cardinal): cardinal; cdecl;
-
 external 'DOSCALLS' index 210;
 
 function DosSetMaxFH (Count: cardinal): cardinal; cdecl;
-
 external 'DOSCALLS' index 209;
 
 function DosSetRelMaxFH(var ReqCount,CurMaxFH:longint):cardinal; cdecl;
-
 external 'DOSCALLS' index 382;
 
 function DosSetRelMaxFH (var ReqCount: longint; var CurMaxFH: cardinal):
                                                                cardinal; cdecl;
-
 external 'DOSCALLS' index 382;
 
 function DosShutDown (Flags: cardinal): cardinal; cdecl;
-
 external 'DOSCALLS' index 415;
 
 function DosQuerySysInfo (First, Last: cardinal; var Buf; BufSize: cardinal):
                                                                cardinal; cdecl;
+external 'DOSCALLS' index 348;
 
+function DosQuerySysInfo(First,Last:cardinal;Buf:PQSVValues;
+                                              BufSize:cardinal):cardinal;cdecl;
 external 'DOSCALLS' index 348;
 
 function DosPhysicalDisk (Func: cardinal; Buf: pointer; BufSize: cardinal;
                           Params: pointer; ParamSize: cardinal): cardinal;
                                                                          cdecl;
-
 external 'DOSCALLS' index 287;
 
 function DosAllocMem (var P: pointer; Size, Flag: cardinal): cardinal; cdecl;
-
 external 'DOSCALLS' index 299;
 
 function DosFreeMem (P: pointer): cardinal; cdecl;
-
 external 'DOSCALLS' index 304;
 
 function DosSetMem (P: pointer; Size, Flag: cardinal): cardinal; cdecl;
-
 external 'DOSCALLS' index 305;
 
 function DosGiveSharedMem (P: pointer; PID, Flag: cardinal): cardinal; cdecl;
-
 external 'DOSCALLS' index 303;
 
 function DosGetSharedMem (P: pointer; Flag: cardinal): cardinal; cdecl;
-
 external 'DOSCALLS' index 302;
 
 function DosGetNamedSharedMem (var P: pointer; Name: PChar; Flag: cardinal):
                                                                cardinal; cdecl;
-
 external 'DOSCALLS' index 301;
 
 function DosGetNamedSharedMem (var P: pointer; const Name: string;
@@ -4210,7 +4181,6 @@ end;
 
 function DosAllocSharedMem (var P: pointer; Name: PChar;
                                         Size, Flag: cardinal): cardinal; cdecl;
-
 external 'DOSCALLS' index 300;
 
 function DosAllocSharedMem (var P: pointer; const Name: string;
@@ -4229,38 +4199,30 @@ begin
 end;
 
 function DosQueryMem(P:pointer;var Size,Flag:longint):cardinal; cdecl;
-
 external 'DOSCALLS' index 306;
 
 function DosQueryMem (P: pointer; var Size, Flag: cardinal): cardinal; cdecl;
-
 external 'DOSCALLS' index 306;
 
 function DosSubAllocMem (Base: pointer; var P: pointer; Size: cardinal):
                                                                cardinal; cdecl;
-
 external 'DOSCALLS' index 345;
 
 function DosSubFreeMem (Base, P: pointer; Size: cardinal): cardinal; cdecl;
-
 external 'DOSCALLS' index 346;
 
 function DosSubSetMem (Base: pointer; Flag, Size: cardinal): cardinal; cdecl;
-
 external 'DOSCALLS' index 344;
 
 function DosSubUnSetMem (Base: pointer): cardinal; cdecl;
-
 external 'DOSCALLS' index 347;
 
 function DosCreateEventSem (Name: PChar; var Handle: THandle;
                             Attr, State: cardinal): cardinal; cdecl;
-
 external 'DOSCALLS' index 324;
 
 function DosCreateEventSem (Name: PChar; var Handle: THandle;
                             Attr: cardinal; State: boolean): cardinal; cdecl;
-
 external 'DOSCALLS' index 324;
 
 function DosCreateEventSem (const Name: string; var Handle: THandle;
@@ -4286,7 +4248,6 @@ begin
 end;
 
 function DosOpenEventSem (Name: PChar; var Handle: THandle): cardinal; cdecl;
-
 external 'DOSCALLS' index 325;
 
 function DosOpenEventSem (const Name: string; var Handle: THandle): cardinal;
@@ -4299,43 +4260,34 @@ begin
 end;
 
 function DosCloseEventSem (Handle: THandle): cardinal; cdecl;
-
 external 'DOSCALLS' index 326;
 
 function DosResetEventSem(Handle:longint;var PostCount:longint):cardinal; cdecl;
-
 external 'DOSCALLS' index 327;
 
 function DosResetEventSem (Handle: THandle; var PostCount: cardinal): cardinal;
                                                                          cdecl;
-
 external 'DOSCALLS' index 327;
 
 function DosPostEventSem (Handle: THandle): cardinal; cdecl;
-
 external 'DOSCALLS' index 328;
 
 function DosWaitEventSem (Handle: THandle; Timeout: cardinal): cardinal; cdecl;
-
 external 'DOSCALLS' index 329;
 
 function DosQueryEventSem(Handle:longint;var Posted:longint):cardinal; cdecl;
-
 external 'DOSCALLS' index 330;
 
 function DosQueryEventSem (Handle: THandle; var Posted: cardinal): cardinal;
                                                                          cdecl;
-
 external 'DOSCALLS' index 330;
 
 function DosCreateMutExSem (Name: PChar; var Handle: THandle;
                             Attr: cardinal; State:boolean): cardinal; cdecl;
-
 external 'DOSCALLS' index 331;
 
 function DosCreateMutExSem (Name: PChar; var Handle: THandle;
                             Attr, State: cardinal): cardinal; cdecl;
-
 external 'DOSCALLS' index 331;
 
 function DosCreateMutExSem (const Name: string; var Handle: THandle;
@@ -4361,7 +4313,6 @@ begin
 end;
 
 function DosOpenMutExSem (Name: PChar; var Handle: THandle): cardinal; cdecl;
-
 external 'DOSCALLS' index 332;
 
 function DosOpenMutExSem (const Name: string; var Handle: THandle): cardinal;
@@ -4374,32 +4325,26 @@ begin
 end;
 
 function DosCloseMutExSem (Handle: THandle): cardinal; cdecl;
-
 external 'DOSCALLS' index 333;
 
 function DosRequestMutExSem (Handle: THandle; Timeout: cardinal): cardinal;
                                                                          cdecl;
-
 external 'DOSCALLS' index 334;
 
 function DosReleaseMutExSem (Handle: THandle): cardinal; cdecl;
-
 external 'DOSCALLS' index 335;
 
 function DosQueryMutExSem(Handle:longint;var PID,TID,Count:longint):cardinal;
                                                                          cdecl;
-
 external 'DOSCALLS' index 336;
 
 function DosQueryMutExSem (Handle: THandle; var PID, TID, Count: cardinal):
                                                                cardinal; cdecl;
-
 external 'DOSCALLS' index 336;
 
 function DosCreateMuxWaitSem (Name: PChar; var Handle: THandle;
                               CSemRec: cardinal; var SemArray: TSemArray;
                               Attr: cardinal): cardinal; cdecl;
-
 external 'DOSCALLS' index 337;
 
 function DosCreateMuxWaitSem (const Name: string; var Handle: THandle;
@@ -4421,7 +4366,6 @@ begin
 end;
 
 function DosOpenMuxWaitSem (Name: PChar; var Handle: THandle): cardinal; cdecl;
-
 external 'DOSCALLS' index 338;
 
 function DosOpenMuxWaitSem (const Name: string; var Handle: THandle): cardinal;
@@ -4434,79 +4378,62 @@ begin
 end;
 
 function DosCloseMuxWaitSem (Handle: THandle): cardinal; cdecl;
-
 external 'DOSCALLS' index 339;
 
 function DosWaitMuxWaitSem(Handle,Timeout:longint;var User:longint):cardinal;
                                                                          cdecl;
-
 external 'DOSCALLS' index 340;
 
 function DosWaitMuxWaitSem (Handle: THandle; Timeout: cardinal;
                                           var User: cardinal): cardinal; cdecl;
-
 external 'DOSCALLS' index 340;
 
 function DosAddMuxWaitSem (Handle: THandle; var SemRec: TSemRecord): cardinal;
                                                                          cdecl;
-
 external 'DOSCALLS' index 341;
 
 function DosDeleteMuxWaitSem (Handle, Sem: THandle): cardinal; cdecl;
-
 external 'DOSCALLS' index 342;
 
 function DosQueryMuxWaitSem(Handle:longint;var CSemRec:longint;
                         var SemRecs:TSemArray;var Attr:longint):cardinal; cdecl;
-
 external 'DOSCALLS' index 343;
 
 function DosQueryMuxWaitSem (Handle: THandle; var CSemRec: cardinal;
                   var SemRecs: TSemArray; var Attr: cardinal): cardinal; cdecl;
-
 external 'DOSCALLS' index 343;
 
 function DosGetDateTime (var Buf: TDateTime): cardinal; cdecl;
-
 external 'DOSCALLS' index 230;
 
 function DosSetDateTime (var Buf: TDateTime): cardinal; cdecl;
-
 external 'DOSCALLS' index 292;
 
 function DosAsyncTimer (MSec: cardinal; HSem: THandle;
                         var TimHandle: THandle): cardinal; cdecl;
-
 external 'DOSCALLS' index 350;
 
 function DosStartTimer (MSec: cardinal; HSem: THandle;
                         var TimHandle: THandle): cardinal; cdecl;
-
 external 'DOSCALLS' index 351;
 
 function DosStopTimer (TimHandle: THandle): cardinal; cdecl;
-
 external 'DOSCALLS' index 290;
 
 function DosTmrQueryFreq(var Freq:longint):cardinal; cdecl;
-
 external 'DOSCALLS' index 362;
 
 function DosTmrQueryFreq (var Freq: cardinal): cardinal; cdecl;
-
 external 'DOSCALLS' index 362;
 
 function DosTmrQueryTime (var Time: comp): cardinal; cdecl;
-
 external 'DOSCALLS' index 363;
 
 function DosTmrQueryTime (var Time: qword): cardinal; cdecl;
-
 external 'DOSCALLS' index 363;
 
 function DosLoadModule (ObjName: PChar; ObjLen: cardinal; DLLName: PChar;
                         var Handle: THandle): cardinal; cdecl;
-
 external 'DOSCALLS' index 318;
 
 function DosLoadModule (var ObjName: string; ObjLen: cardinal;
@@ -4521,12 +4448,10 @@ begin
 end;
 
 function DosFreeModule (Handle: THandle): cardinal; cdecl;
-
 external 'DOSCALLS' index 322;
 
 function DosQueryProcAddr (Handle: THandle; Ordinal: cardinal; ProcName: PChar;
                            var Address: pointer): cardinal; cdecl;
-
 external 'DOSCALLS' index 321;
 
 function DosQueryProcAddr (Handle: THandle; Ordinal: cardinal;
@@ -4546,7 +4471,6 @@ end;
 
 function DosQueryModuleHandle (DLLName: PChar; var Handle: THandle): cardinal;
                                                                          cdecl;
-
 external 'DOSCALLS' index 319;
 
 function DosQueryModuleHandle (const DLLName: string; var Handle: THandle):
@@ -4561,7 +4485,6 @@ end;
 
 function DosQueryModuleName (Handle: THandle; NameLen: cardinal; Name: PChar):
                                                                cardinal; cdecl;
-
 external 'DOSCALLS' index 320;
 
 {function DosQueryModuleName(Handle:longint;var Name:openstring):cardinal;
@@ -4575,12 +4498,10 @@ end;}
 
 function DosQueryProcType(Handle,Ordinal:longint;Name:PChar;
                           var ProcType:longint):cardinal; cdecl;
-
 external 'DOSCALLS' index 586;
 
 function DosQueryProcType (Handle: THandle; Ordinal: cardinal; Name: PChar;
                            var ProcType: cardinal): cardinal; cdecl;
-
 external 'DOSCALLS' index 586;
 
 function DosQueryProcType(Handle,Ordinal:longint;const Name:string;
@@ -4615,41 +4536,33 @@ end;
 
 function DosGetResource (Handle: THandle; ResType, ResName: cardinal;
                                               var P: pointer): cardinal; cdecl;
-
 external 'DOSCALLS' index 352;
 
 function DosFreeResource (P: pointer): cardinal; cdecl;
-
 external 'DOSCALLS' index 353;
 
 function DosQueryResourceSize(Handle,IDT,IDN:longint;var Size:longint):cardinal;
                                                                          cdecl;
-
 external 'DOSCALLS' index 572;
 
 function DosQueryResourceSize (Handle: THandle; IDT, IDN: cardinal;
                                           var Size: cardinal): cardinal; cdecl;
-
 external 'DOSCALLS' index 572;
 
 function DosQueryCtryInfo(Size:longint;var Country:TCountryCode;
                   var Res:TCountryInfo;var ActualSize:longint):cardinal; cdecl;
-
 external 'NLS' index 5;
 
 function DosQueryCtryInfo (Size: cardinal; var Country: TCountryCode;
              var Res: TCountryInfo; var ActualSize: cardinal): cardinal; cdecl;
-
 external 'NLS' index 5;
 
 function DosQueryDBCSEnv (Size: cardinal; var Country: TCountryCode;
                                                   Buf: PChar): cardinal; cdecl;
-
 external 'NLS' index 6;
 
 function DosMapCase (Size: cardinal; var Country: TCountryCode;
                      AString: PChar): cardinal; cdecl;
-
 external 'NLS' index 7;
 
 function DosMapCase (var Country: TCountryCode; var AString: string): cardinal;
@@ -4664,95 +4577,75 @@ end;
 
 function DosQueryCollate(Size:longint;var Country:TCountryCode;
                          buf:PByteArray;var TableLen:longint):cardinal; cdecl;
-
 external 'NLS' index 8;
 
 function DosQueryCollate (Size: cardinal; var Country: TCountryCode;
                      Buf: PByteArray; var TableLen: cardinal): cardinal; cdecl;
-
 external 'NLS' index 8;
 
 function DosQueryCP(Size:longint;CodePages:PWordArray;
                                           var ActSize:longint):cardinal; cdecl;
-
 external 'DOSCALLS' index 291;
 
 function DosQueryCP (Size: cardinal; CodePages: PWordArray;
                                        var ActSize: cardinal): cardinal; cdecl;
-
 external 'DOSCALLS' index 291;
 
 function DosSetProcessCP (CP: cardinal): cardinal; cdecl;
-
 external 'DOSCALLS' index 289;
 
 function DosSetExceptionHandler (var RegRec: TExceptionRegistrationRecord):
                                                                cardinal; cdecl;
-
 external 'DOSCALLS' index 354;
 
 function DosUnsetExceptionHandler (var RegRec: TExceptionRegistrationRecord):
                                                                cardinal; cdecl;
-
 external 'DOSCALLS' index 355;
 
 function DosRaiseException (var Excpt: TExceptionReportRecord): cardinal;
                                                                          cdecl;
-
 external 'DOSCALLS' index 356;
 
 function DosSendSignalException (PID, Exception: cardinal): cardinal; cdecl;
-
 external 'DOSCALLS' index 379;
 
 function DosUnwindException (var Handler: TExceptionRegistrationRecord;
                              TargetIP: pointer;
                           var RepRec: TExceptionReportRecord): cardinal; cdecl;
-
 external 'DOSCALLS' index 357;
 
 function DosSetSignalExceptionFocus(Enable:longint;var Times:longint):cardinal;
                                                                          cdecl;
-
 external 'DOSCALLS' index 378;
 
 function DosSetSignalExceptionFocus (Enable: cardinal;
                                          var Times: cardinal): cardinal; cdecl;
-
 external 'DOSCALLS' index 378;
 
 function DosSetSignalExceptionFocus (Enable: boolean;
                                          var Times: cardinal): cardinal; cdecl;
-
 external 'DOSCALLS' index 378;
 
 function DosEnterMustComplete(var Nesting:longint):cardinal; cdecl;
-
 external 'DOSCALLS' index 380;
 
 function DosEnterMustComplete (var Nesting: cardinal): cardinal; cdecl;
-
 external 'DOSCALLS' index 380;
 
 function DosExitMustComplete(var Nesting:longint):cardinal; cdecl;
-
 external 'DOSCALLS' index 381;
 
 function DosExitMustComplete (var Nesting: cardinal): cardinal; cdecl;
-
 external 'DOSCALLS' index 381;
 
 function DosAcknowledgeSignalException (SignalNum: cardinal): cardinal; cdecl;
-
 external 'DOSCALLS' index 418;
 
 function DosCloseQueue (Handle: THandle): cardinal; cdecl;
-
 external 'QUECALLS' index 11;
 
 function DosCreateQueue (var Handle: THandle; Priority: cardinal;
                          Name: PChar): cardinal; cdecl;
-
 external 'QUECALLS' index 16;
 
 function DosCreateQueue (var Handle: THandle; Priority: cardinal;
@@ -4767,12 +4660,10 @@ end;
 
 function DosOpenQueue(var Parent_PID:longint;var Handle:longint;
                       Name:PChar):cardinal; cdecl;
-
 external 'QUECALLS' index 15;
 
 function DosOpenQueue (var Parent_PID: cardinal; var Handle: THandle;
                        Name: PChar): cardinal; cdecl;
-
 external 'QUECALLS' index 15;
 
 function DosOpenQueue(var Parent_PID:longint;var Handle:longint;
@@ -4799,96 +4690,79 @@ function DosPeekQueue(Handle:longint;var ReqBuffer:TRequestData;
                       var DataLen:longint;var DataPtr:pointer;
                       var Element:longint;Wait:longint;
                       var Priority:byte;ASem:longint):cardinal; cdecl;
-
 external 'QUECALLS' index 13;
 
 function DosPeekQueue (Handle: THandle; var ReqBuffer:TRequestData;
                        var DataLen: cardinal; var DataPtr: pointer;
                        var Element: cardinal; Wait: cardinal;
                        var Priority: byte; ASem: THandle): cardinal; cdecl;
-
 external 'QUECALLS' index 13;
 
 function DosPeekQueue (Handle: THandle; var ReqBuffer: TRequestData;
                        var DataLen: cardinal; var DataPtr: pointer;
                        var Element: cardinal; Wait: boolean;
                        var Priority: byte; ASem: THandle): cardinal; cdecl;
-
 external 'QUECALLS' index 13;
 
 function DosPurgeQueue (Handle: THandle): cardinal; cdecl;
-
 external 'QUECALLS' index 10;
 
 function DosQueryQueue(Handle:longint;var Count:longint):cardinal; cdecl;
-
 external 'QUECALLS' index 12;
 
 function DosQueryQueue (Handle: THandle; var Count: cardinal): cardinal; cdecl;
-
 external 'QUECALLS' index 12;
 
 function DosReadQueue(Handle:longint;var ReqBuffer:TRequestData;
                       var DataLen:longint;var DataPtr:pointer;
                       Element,Wait:longint;var Priority:byte;
                       ASem:longint):cardinal; cdecl;
-
 external 'QUECALLS' index 9;
 
 function DosReadQueue (Handle: THandle; var ReqBuffer: TRequestData;
                        var DataLen: cardinal; var DataPtr: pointer;
                        Element, Wait: cardinal; var Priority: byte;
                        ASem: THandle): cardinal; cdecl;
-
 external 'QUECALLS' index 9;
 
 function DosReadQueue (Handle: THandle; var ReqBuffer: TRequestData;
                        var DataLen: cardinal; var DataPtr: pointer;
                        Element: cardinal; Wait: boolean; var Priority: byte;
                        ASem: THandle): cardinal; cdecl;
-
 external 'QUECALLS' index 9;
 
 function DosWriteQueue (Handle: THandle; Request, DataLen: cardinal;
                         var DataBuf; Priority: cardinal): cardinal; cdecl;
-
 external 'QUECALLS' index 14;
 
 function DosError (Error: cardinal): cardinal; cdecl;
-
 external 'DOSCALLS' index 212;
 
 procedure DosErrClass(Code:longint;var _Class,Action,Locus:longint); cdecl;
-
 external 'DOSCALLS' index 211;
 
 procedure DosErrClass (Code: cardinal; var _Class, Action, Locus: cardinal);
                                                                          cdecl;
-
 external 'DOSCALLS' index 211;
 
 function DosTrueGetMessage (MsgSeg: pointer; Table: PInsertTable;
                             TableSize: cardinal; Buf: PChar;
                             BufSize, MsgNumber: cardinal; FileName: PChar;
                             var MsgSize: cardinal): cardinal; cdecl;
-
 external 'MSG' index 6;
 
 function DosTrueGetMessage (MsgSeg: pointer; Table: PInsertTable;
                             TableSize: longint; Buf: PChar;
                             BufSize, MsgNumber: longint; FileName: PChar;
                             var MsgSize: longint): cardinal; cdecl;
-
 external 'MSG' index 6;
 
 function DosIQueryMessageCP (var Buf; BufSize: cardinal; FileName: PChar;
                      var InfoSize: cardinal; MesSeg: pointer): cardinal; cdecl;
-
 external 'MSG' index 8;
 
 function DosIQueryMessageCP (var Buf; BufSize: longint; FileName: PChar;
                       var InfoSize: longint; MesSeg: pointer): cardinal; cdecl;
-
 external 'MSG' index 8;
 
 procedure MagicHeaderEnd; assembler; forward;
@@ -5024,14 +4898,12 @@ function DosInsertMessage(Table:PInsertTable;TableSize:longint;
                           Message:PChar;SrcMessageSize:longint;
                           Buf:PChar;BufSize:longint;
                           var DstMessageSize:longint):cardinal; cdecl;
-
 external 'MSG' index 4;
 
 function DosInsertMessage (Table: PInsertTable; TableSize: cardinal;
                            Message: PChar; SrcMessageSize: cardinal;
                            Buf: PChar; BufSize: cardinal;
                            var DstMessageSize: cardinal): cardinal; cdecl;
-
 external 'MSG' index 4;
 
 {function DosInsertMessage(Table:array of PString;
@@ -5045,7 +4917,6 @@ function DosInsertMessage(Table:array of PString;
 
 function DosPutMessage (Handle: THandle; Size: cardinal; Buf: PChar): cardinal;
                                                                          cdecl;
-
 external 'MSG' index 5;
 
 function DosPutMessage (Handle: THandle; const Buf: string): cardinal;
@@ -5056,35 +4927,28 @@ end;
 
 function DosStartSession (var AStartData:TStartData;
                           var SesID,PID:longint):cardinal; cdecl;
-
 external 'SESMGR' index 37;
 
 function DosStartSession (var AStartData: TStartData;
                           var SesID, PID: cardinal): cardinal; cdecl;
-
 external 'SESMGR' index 37;
 
 function DosSetSession (SesID: cardinal; var AStatus: TStatusData): cardinal;
                                                                          cdecl;
-
 external 'SESMGR' index 39;
 
 function DosSelectSession (SesID: cardinal): cardinal; cdecl;
-
 external 'SESMGR' index 38;
 
 function DosStopSession (Scope, SesID: cardinal): cardinal; cdecl;
-
 external 'SESMGR' index 40;
 
 function DosCreatePipe (var ReadHandle, WriteHandle: THandle;
                         Size: cardinal): cardinal; cdecl;
-
 external 'DOSCALLS' index 239;
 
 function DosCreateNPipe (Name: PChar; var Handle: THandle; OpenMode, PipeMode,
                        OutBufSize, InBufSize, MSec: cardinal): cardinal; cdecl;
-
 external 'DOSCALLS' index 243;
 
 function DosCreateNPipe (const Name: string; var Handle: THandle; OpenMode,
@@ -5101,14 +4965,12 @@ end;
 function DosCallNPipe(Name:PChar;var Input;InputSize:longint;
                       var Output;OutputSize:longint;var ReadBytes:longint;
                       MSec:longint):cardinal; cdecl;
-
 external 'DOSCALLS' index 240;
 
 function DosCallNPipe (Name: PChar; var Input; InputSize: cardinal;
                        var Output; OutputSize: cardinal;
                        var ReadBytes: cardinal; MSec: cardinal): cardinal;
                                                                          cdecl;
-
 external 'DOSCALLS' index 240;
 
 function DosCallNPipe(const Name:string;var Input;InputSize:longint;
@@ -5136,67 +4998,54 @@ begin
 end;
 
 function DosConnectNPipe (Handle: THandle): cardinal; cdecl;
-
 external 'DOSCALLS' index 241;
 
 function DosDisconnectNPipe (Handle: THandle): cardinal; cdecl;
-
 external 'DOSCALLS' index 242;
 
 function DosPeekNPipe(Handle:longint;var Buffer;BufSize:longint;
                       var ReadBytes:longint;var Avail:TAvailData;
                       var State:longint):cardinal; cdecl;
-
 external 'DOSCALLS' index 244;
 
 function DosPeekNPipe (Handle: THandle; var Buffer; BufSize: cardinal;
                        var ReadBytes: cardinal; var Avail: TAvailData;
                        var State: cardinal): cardinal; cdecl;
-
 external 'DOSCALLS' index 244;
 
 function DosQueryNPHState(Handle:longint;var State:longint):cardinal; cdecl;
-
 external 'DOSCALLS' index 245;
 
 function DosQueryNPHState (Handle: THandle; var State: cardinal): cardinal;
                                                                          cdecl;
-
 external 'DOSCALLS' index 245;
 
 function DosQueryNPipeInfo (Handle: THandle; InfoLevel: cardinal; var Buffer;
                             BufSize: cardinal): cardinal; cdecl;
-
 external 'DOSCALLS' index 248;
 
 function DosQueryNPipeSemState (SemHandle: THandle; var SemArray;
                                 BufSize: cardinal): cardinal; cdecl;
-
 external 'DOSCALLS' index 249;
 
 function DosSetNPHState (Handle: THandle; State: cardinal):cardinal; cdecl;
-
 external 'DOSCALLS' index 250;
 
 function DosSetNPipeSem(PipeHandle,SemHandle: THandle; Key: cardinal):
                                                                cardinal; cdecl;
-
 external 'DOSCALLS' index 251;
 
 function DosTransactNPipe(Handle:longint;var OutBuf;OutSize:longint;
                           var InBuf;InSize:longint;
                           var ReadBytes:longint):cardinal; cdecl;
-
 external 'DOSCALLS' index 252;
 
 function DosTransactNPipe (Handle: THandle; var OutBuf; OutSize: cardinal;
                           var InBuf; InSize: cardinal;
                           var ReadBytes: cardinal): cardinal; cdecl;
-
 external 'DOSCALLS' index 252;
 
 function DosWaitNPipe (Name: PChar; MSec: cardinal): cardinal; cdecl;
-
 external 'DOSCALLS' index 253;
 
 function DosWaitNPipe (const Name: string; MSec: cardinal): cardinal;
@@ -5209,25 +5058,20 @@ begin
 end;
 
 function DosOpenVDD (Name: PChar; var Handle: THandle): cardinal; cdecl;
-
 external 'DOSCALLS' index 308;
 
 function DosRequestVDD (Handle: THandle; SGroup, Cmd: cardinal;
                         InSize: cardinal; var InBuffer;
                         OutSize: cardinal; var OutBuffer): cardinal; cdecl;
-
 external 'DOSCALLS' index 309;
 
 function DosCloseVDD (Handle: THandle): cardinal; cdecl;
-
 external 'DOSCALLS' index 310;
 
 procedure DosSelToFlat; cdecl;
-
 external 'DOSCALLS' index 426;
 
 procedure DosFlatToSel; cdecl;
-
 external 'DOSCALLS' index 425;
 
 {$ASMMODE INTEL}
@@ -5273,11 +5117,9 @@ function FlatToSel (APtr: pointer): cardinal; assembler;
 
 function DosAllocThreadLocalMemory (Count: cardinal; var P: pointer): cardinal;
                                                                          cdecl;
-
 external 'DOSCALLS' index 454;
 
 function DosFreeThreadLocalMemory (P: pointer): cardinal; cdecl;
-
 external 'DOSCALLS' index 455;
 
 function DosQueryRASInfo (Index: cardinal; var PBuffer: pointer): cardinal;
@@ -5298,72 +5140,184 @@ function LogAddEntries (Handle: cardinal; Service: cardinal;
 (* Todo:
 
 function DosRawReadNPipe ...; cdecl;
-
 external 'DOSCALLS' index 246;
 
 function DosRawWriteNPipe ...; cdecl;
-
 external 'DOSCALLS' index 247;
 
 function DosSetCP ...; cdecl;
-
 external 'DOSCALLS' index 288;
 
 function DosDynamicTrace ...; cdecl;
-
 external 'DOSCALLS' index 316;
 
 function DosRegisterPerfCtrs ...; cdecl;
-
 external 'DOSCALLS' index 367;
 
 function DosQueryDOSProperty ...; cdecl;
-
 external 'DOSCALLS' index 373;
 
 function DosSetDOSProperty ...; cdecl;
-
 external 'DOSCALLS' index 374;
 
 function DosProfile ...; cdecl;
-
 external 'DOSCALLS' index 377;
 
 function DosReplaceModule ...; cdecl;
-
 external 'DOSCALLS' index 417;
 
 function DosTIB ...; cdecl;
-
 external 'DOSCALLS' index 419;
 
 function DosOpenChangeNotify ...; cdecl;
-
 external 'DOSCALLS' index 440;
 
 function DosResetChangeNotify ...; cdecl;
-
 external 'DOSCALLS' index 441;
 
 function DosCloseChangeNotify ...; cdecl;
-
 external 'DOSCALLS' index 442;
 
 function DosInitializePorthole ...; cdecl;
-
 external 'DOSCALLS' index 580;
 
 function DosQueryHeaderInfo ...; cdecl;
-
 external 'DOSCALLS' index 582;
 
+WSeB/eCS APIs:
+ Creates a private Read/Write alias or an LDT code segment alias to part
+ of an existing memory object. The alias object is accessible only to the
+ process that created it. The original object must be accessible to the caller
+ of DosAliasMem.
+
+ An alias is removed by calling DosFreeMem with the alias address.
+
+ Although it is possible to create a Read/Write alias to a code segment
+ to allow code modification, this is not recommended. On Pentium processors,
+ and later, pipe-lining techniques used by the processor might allow
+ the processor not to be aware of the modified code, if appropriate
+ pipe-line serialization is not performed by the programmer. For further
+ information see the processor documentation.
+
+ Possible return values:
+     0 No_Error
+     8 Error_Not_Enough_Memory
+    87 Error_Invalid_Parameter
+    95 Error_Interrupt
+ 32798 Error_Crosses_Object_Boundary
+
+pMem   = Pointer to the memory to be aliased. It must be on a page boundary
+         (i.e. aligned to 4 kB), but may specify an address within a memory
+         object.
+Size   = Specifies size in bytes for the memory to alias. The entire range
+         must lie within a single memory object and must be committed
+         if OBJ_SELMAPALL is specified.
+Alias  = Pointer where the address of the aliased memory is returned.
+         The corresponding LDT selector is not explicitly returned but may be
+         calculated by using the Compatibility Mapping Algorithm
+         ((Alias shr 13) or 7).
+Flags  = Combination of the following values:
+            obj_SelMapAll = $800 (Create a Read/Write 32 bit alias
+                                  to the address specified. The entire range
+                                  must be committed, start on page boundary
+                                  and be within the extent of a single memory
+                                  object. An LDT selector is created to map
+                                  the entire range specified. If obj_SelMapAll
+                                  is not specified, then size is rounded up
+                                  to a 4K multiple and the alias created
+                                  inherits the permissions from the pages
+                                  of the original object.)
+            obj_Tile      =  $40  (Obj_Tile may be specified, but currently
+                                   this is enforced whether or not specified.
+                                   This forces LDT selectors to be based
+                                   on 64K boundaries.)
+            sel_Code      =    1  (Marks the LDT alias selector(s)
+                                   Read-Executable code selectors.)
+            sel_Use32     =    2  (Used with obj_SelMapAll, otherwise ignored.
+                                   Marks the first alias LDT selector
+                                   as a 32 bit selector by setting the BIG/C32
+                                   bit.)
+functionDosAliasMem (pMem: pointer; Size: cardinal; var Alias: pointer; Flags: cardinal): cardinal; cdecl;
+external 'DOSCALLS' index 298;
+
+ DosCancelLockRequestL cancels an outstanding DosSetFileLocksL request.
+ If two threads in a process are waiting on a lock file range, and another
+ thread issues DosCancelLockRequestL for that lock file range, then both
+ waiting threads are released.
+ Not all file-system drivers (FSDs) can cancel an outstanding lock request.
+ Local Area Network (LAN) servers cannot cancel an outstanding lock request
+ if they use a version of the operating system prior to OS/2 Version 2.00.
+
+Possible return values:
+     0 No_Error 
+     6 Error_Invalid_Handle 
+    87 Error_Invalid_Parameter 
+   173 Error_Cancel_Violation 
+
+hFile    = File handle used in the DosSetFileLocksL function
+           that is to be cancelled.
+pflLockL = Address of the structure describing the lock request to cancel.
+
+function DosCancelLockRequestL (hFile: THandle; pflLock: PFileLockL): cardinal; cdecl;
+external 'DOSCALLS' index ???;
+
+function DosCancelLockRequestL (hFile: THandle; const Lock: TFileLockL): cardinal; cdecl;
+external 'DOSCALLS' index ???;
+
+DosCreateThread2 
+DosDumpProcess 
+DosForceSystemDump 
+
+functionDosGetProcessorStatus (...): cardinal; cdecl;
+external 'DOSCALLS' index 447;
+
+function DosQueryPageUsage (...): cardinal; cdecl;
+external 'DOSCALLS' index 358;
+
+
+DosSetProcessorStatus = DOSCALLS.448
+DosCreateSpinLock     = DOSCALLS.449
+DosAcquireSpinLock    = DOSCALLS.450
+DosReleaseSpinLock    = DOSCALLS.451
+DosFreeSpinLock       = DOSCALLS.452
+DosListIO 
+DosListIOL 
+DosOpenL 
+DosPerfSystemCall 
+DosProtectOpenL 
+DosProtectSetFileLocksL 
+DosProtectSetFilePrtL 
+DosProtectSetFileSizeL 
+DosQueryABIOSSuport 
+
+functionDosQueryMemState (...): cardinal; cdecl;
+external 'DOSCALLS' index 307;
+
+___ functionDos16QueryModFromCS (...): ...
+external 'DOSCALLS' index 359;
+
+DosQueryModFromEIP 
+
+functionDosQuerySysState (): cardinal; cdecl;
+external 'DOSCALLS' index 368;
+
+DosQueryThreadAffinity 
+DosSetFileLocksL 
+DosSetFilePtrL 
+DosSetFileSizeL 
+DosSetThreadAffinity 
+Dos16SysTrace 
+DosVerifyPidTid 
 *)
 
 
 end.
 {
   $Log$
-  Revision 1.28  2004-09-11 19:35:27  hajny
+  Revision 1.29  2004-11-28 12:37:39  hajny
+    * additional sv* constants and their aliases
+
+  Revision 1.28  2004/09/11 19:35:27  hajny
     * some constants added
 
   Revision 1.27  2004/05/24 19:33:22  hajny
