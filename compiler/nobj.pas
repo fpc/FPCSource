@@ -33,7 +33,7 @@ interface
 {$endif}
        cutils,cclasses,
        globtype,
-       symdef,
+       symdef,symsym,
        aasmbase,aasmtai,
        cpuinfo
        ;
@@ -50,15 +50,16 @@ interface
       tprocdefcoll = record
          data    : tprocdef;
          hidden  : boolean;
+         visible : boolean;
          next    : pprocdefcoll;
       end;
 
-      psymcoll = ^tsymcoll;
-      tsymcoll = record
-         speedvalue : cardinal;
-         name : pstring;
-         data : pprocdefcoll;
-         next : psymcoll;
+      pvmtentry = ^tvmtentry;
+      tvmtentry = record
+         speedvalue   : cardinal;
+         name         : pstring;
+         firstprocdef : pprocdefcoll;
+         next         : pvmtentry;
       end;
 
       tclassheader=class
@@ -89,10 +90,12 @@ interface
         procedure genpubmethodtableentry(p : tnamedindexitem;arg:pointer);
       private
         { vmt }
-        wurzel : psymcoll;
-        nextvirtnumber : integer;
+        firstvmtentry      : pvmtentry;
+        nextvirtnumber     : integer;
         has_constructor,
         has_virtual_method : boolean;
+        procedure newdefentry(vmtentry:pvmtentry;pd:tprocdef;is_visible:boolean);
+        procedure newvmtentry(sym:tprocsym;is_visible:boolean);
         procedure eachsym(sym : tnamedindexitem;arg:pointer);
         procedure disposevmttree;
         procedure writevirtualmethods(List:TAAsmoutput);
@@ -148,7 +151,7 @@ implementation
        strings,
 {$endif}
        globals,verbose,systems,
-       symtable,symconst,symtype,symsym,defcmp,paramgr,
+       symtable,symconst,symtype,defcmp,paramgr,
 {$ifdef GDB}
        gdb,
 {$endif GDB}
@@ -520,60 +523,52 @@ implementation
                VMT
 **************************************}
 
-    procedure tclassheader.eachsym(sym : tnamedindexitem;arg:pointer);
 
+    procedure tclassheader.newdefentry(vmtentry:pvmtentry;pd:tprocdef;is_visible:boolean);
       var
-         procdefcoll : pprocdefcoll;
-         symcoll : psymcoll;
-         _name : string;
-         _speed : cardinal;
+        procdefcoll : pprocdefcoll;
+      begin
+        { generate new entry }
+        new(procdefcoll);
+        procdefcoll^.data:=pd;
+        procdefcoll^.hidden:=false;
+        procdefcoll^.visible:=is_visible;
+        procdefcoll^.next:=vmtentry^.firstprocdef;
+        vmtentry^.firstprocdef:=procdefcoll;
 
-      procedure newdefentry(pd:tprocdef);
-        begin
-           new(procdefcoll);
-           procdefcoll^.data:=pd;
-           procdefcoll^.hidden:=false;
-           procdefcoll^.next:=symcoll^.data;
-           symcoll^.data:=procdefcoll;
+        { give virtual method a number }
+        if (po_virtualmethod in pd.procoptions) then
+          begin
+             pd.extnumber:=nextvirtnumber;
+             inc(nextvirtnumber);
+             has_virtual_method:=true;
+          end;
 
-           { if it's a virtual method }
-           if (po_virtualmethod in pd.procoptions) then
-             begin
-                { then it gets a number ... }
-                pd.extnumber:=nextvirtnumber;
-                { and we inc the number }
-                inc(nextvirtnumber);
-                has_virtual_method:=true;
-             end;
+        if (pd.proctypeoption=potype_constructor) then
+          has_constructor:=true;
+      end;
 
-           if (pd.proctypeoption=potype_constructor) then
-             has_constructor:=true;
 
-           { check, if a method should be overridden }
-           if (pd._class=_class) and
-              (po_overridingmethod in pd.procoptions) then
-             MessagePos1(pd.fileinfo,parser_e_nothing_to_be_overridden,pd.fullprocname(false));
-        end;
+    procedure tclassheader.newvmtentry(sym:tprocsym;is_visible:boolean);
+      var
+        i : cardinal;
+        vmtentry : pvmtentry;
+      begin
+        { generate new vmtentry }
+        new(vmtentry);
+        vmtentry^.speedvalue:=sym.speedvalue;
+        vmtentry^.name:=stringdup(sym.name);
+        vmtentry^.next:=firstvmtentry;
+        vmtentry^.firstprocdef:=nil;
+        firstvmtentry:=vmtentry;
 
-      { creates a new entry in the procsym list }
-      procedure newentry;
+        { inserts all definitions }
+        for i:=1 to sym.procdef_count do
+          newdefentry(vmtentry,sym.procdef[i],is_visible);
+      end;
 
-        var i:cardinal;
 
-        begin
-           { if not, generate a new symbol item }
-           new(symcoll);
-           symcoll^.speedvalue:=sym.speedvalue;
-           symcoll^.name:=stringdup(sym.name);
-           symcoll^.next:=wurzel;
-           symcoll^.data:=nil;
-           wurzel:=symcoll;
-
-           { inserts all definitions }
-           for i:=1 to Tprocsym(sym).procdef_count do
-              newdefentry(Tprocsym(sym).procdef[i]);
-        end;
-
+    procedure tclassheader.eachsym(sym : tnamedindexitem;arg:pointer);
       label
          handlenextdef;
       var
@@ -582,228 +577,234 @@ implementation
          is_visible,
          hasoverloads,
          pdoverload : boolean;
+         procdefcoll : pprocdefcoll;
+         vmtentry : pvmtentry;
+         _name : string;
+         _speed : cardinal;
       begin
-         { put only sub routines into the VMT, and routines
-           that are visible to the current class. Skip private
-           methods in other classes }
-         if (tsym(sym).typ=procsym) then
-           begin
-              { is this symbol visible from the class that we are
-                generating. This will be used to hide the other procdefs.
-                When the symbol is not visible we don't hide the other
-                procdefs, because they can be reused in the next class.
-                The check to skip the invisible methods that are in the
-                list is futher down in the code }
-              is_visible:=tprocsym(sym).is_visible_for_object(_class);
-              { check the current list of symbols }
-              _name:=sym.name;
-              _speed:=sym.speedvalue;
-              symcoll:=wurzel;
-              while assigned(symcoll) do
-               begin
-                 { does the symbol already exist in the list? First
-                   compare speedvalue before doing the string compare to
-                   speed it up a little }
-                 if (_speed=symcoll^.speedvalue) and
-                    (_name=symcoll^.name^) then
+        if (tsym(sym).typ<>procsym) then
+          exit;
+
+        { is this symbol visible from the class that we are
+          generating. This will be used to hide the other procdefs.
+          When the symbol is not visible we don't hide the other
+          procdefs, because they can be reused in the next class.
+          The check to skip the invisible methods that are in the
+          list is futher down in the code }
+        is_visible:=tprocsym(sym).is_visible_for_object(_class);
+        { check the current list of symbols }
+        _name:=sym.name;
+        _speed:=sym.speedvalue;
+        vmtentry:=firstvmtentry;
+        while assigned(vmtentry) do
+         begin
+           { does the symbol already exist in the list? First
+             compare speedvalue before doing the string compare to
+             speed it up a little }
+           if (_speed=vmtentry^.speedvalue) and
+              (_name=vmtentry^.name^) then
+            begin
+              hasoverloads:=(Tprocsym(sym).procdef_count>1);
+              { walk through all defs of the symbol }
+              for i:=1 to Tprocsym(sym).procdef_count do
+                begin
+                 pd:=Tprocsym(sym).procdef[i];
+                 if pd.procsym=sym then
                   begin
-                    hasoverloads:=(Tprocsym(sym).procdef_count>1);
-                    { walk through all defs of the symbol }
-                    for i:=1 to Tprocsym(sym).procdef_count do
+                    pdoverload:=(po_overload in pd.procoptions);
+
+                    { compare with all stored definitions }
+                    procdefcoll:=vmtentry^.firstprocdef;
+                    while assigned(procdefcoll) do
                       begin
-                       pd:=Tprocsym(sym).procdef[i];
-                       if pd.procsym=sym then
-                        begin
-                          pdoverload:=(po_overload in pd.procoptions);
+                         { compare only if the definition is not hidden }
+                         if not procdefcoll^.hidden then
+                          begin
+                            { check that all methods have overload directive }
+                            if not(m_fpc in aktmodeswitches) and
+                               (_class=pd._class) and
+                               (procdefcoll^.data._class=pd._class) and
+                               ((po_overload in pd.procoptions)<>(po_overload in procdefcoll^.data.procoptions)) then
+                              begin
+                                MessagePos1(pd.fileinfo,parser_e_no_overload_for_all_procs,pd.procsym.realname);
+                                { recover }
+                                include(procdefcoll^.data.procoptions,po_overload);
+                                include(pd.procoptions,po_overload);
+                              end;
 
-                          { compare with all stored definitions }
-                          procdefcoll:=symcoll^.data;
-                          while assigned(procdefcoll) do
-                            begin
-                               { compare only if the definition is not hidden }
-                               if not procdefcoll^.hidden then
+                            { check if one of the two methods has virtual }
+                            if (po_virtualmethod in procdefcoll^.data.procoptions) or
+                               (po_virtualmethod in pd.procoptions) then
+                             begin
+                               { if the current definition has no virtual then hide the
+                                 old virtual if the new definition has the same arguments or
+                                 when it has no overload directive and no overloads }
+                               if not(po_virtualmethod in pd.procoptions) then
                                 begin
-                                  { check that all methods have overload directive }
-                                  if not(m_fpc in aktmodeswitches) and
-                                     (_class=pd._class) and
-                                     (procdefcoll^.data._class=pd._class) and
-                                     ((po_overload in pd.procoptions)<>(po_overload in procdefcoll^.data.procoptions)) then
-                                    begin
-                                      MessagePos1(pd.fileinfo,parser_e_no_overload_for_all_procs,pd.procsym.realname);
-                                      { recover }
-                                      include(procdefcoll^.data.procoptions,po_overload);
-                                      include(pd.procoptions,po_overload);
-                                    end;
-
-                                  { check if one of the two methods has virtual }
-                                  if (po_virtualmethod in procdefcoll^.data.procoptions) or
-                                     (po_virtualmethod in pd.procoptions) then
+                                  if procdefcoll^.visible and
+                                     (not(pdoverload or hasoverloads) or
+                                      (compare_paras(procdefcoll^.data.para,pd.para,cp_all,[])>=te_equal)) then
                                    begin
-                                     { if the current definition has no virtual then hide the
-                                       old virtual if the new definition has the same arguments or
-                                       when it has no overload directive and no overloads }
-                                     if not(po_virtualmethod in pd.procoptions) then
+                                     if is_visible then
+                                       procdefcoll^.hidden:=true;
+                                     if (_class=pd._class) and not(po_reintroduce in pd.procoptions) then
+                                       MessagePos1(pd.fileinfo,parser_w_should_use_override,pd.fullprocname(false));
+                                   end;
+                                end
+                               { if both are virtual we check the header }
+                               else if (po_virtualmethod in pd.procoptions) and
+                                       (po_virtualmethod in procdefcoll^.data.procoptions) then
+                                begin
+                                  { new one has not override }
+                                  if is_class(_class) and
+                                     not(po_overridingmethod in pd.procoptions) then
+                                   begin
+                                     { we start a new virtual tree, hide the old }
+                                     if (not(pdoverload or hasoverloads) or
+                                         (compare_paras(procdefcoll^.data.para,pd.para,cp_all,[])>=te_equal)) and
+                                        (procdefcoll^.visible) then
                                       begin
-                                        if tstoredsym(procdefcoll^.data.procsym).is_visible_for_object(pd._class) and
-                                           (not(pdoverload or hasoverloads) or
-                                            (compare_paras(procdefcoll^.data.para,pd.para,cp_all,[])>=te_equal)) then
-                                         begin
-                                           if is_visible then
-                                             procdefcoll^.hidden:=true;
-                                           if (_class=pd._class) and not(po_reintroduce in pd.procoptions) then
-                                             MessagePos1(pd.fileinfo,parser_w_should_use_override,pd.fullprocname(false));
-                                         end;
-                                      end
-                                     { if both are virtual we check the header }
-                                     else if (po_virtualmethod in pd.procoptions) and
-                                             (po_virtualmethod in procdefcoll^.data.procoptions) then
-                                      begin
-                                        { new one has not override }
-                                        if is_class(_class) and
-                                           not(po_overridingmethod in pd.procoptions) then
-                                         begin
-                                           { we start a new virtual tree, hide the old }
-                                           if (not(pdoverload or hasoverloads) or
-                                               (compare_paras(procdefcoll^.data.para,pd.para,cp_all,[])>=te_equal)) and
-                                              (tstoredsym(procdefcoll^.data.procsym).is_visible_for_object(pd._class)) then
-                                            begin
-                                              if is_visible then
-                                                procdefcoll^.hidden:=true;
-                                              if (_class=pd._class) and not(po_reintroduce in pd.procoptions) then
-                                                MessagePos1(pd.fileinfo,parser_w_should_use_override,pd.fullprocname(false));
-                                            end;
-                                         end
-                                        { check if the method to override is visible, check is only needed
-                                          for the current parsed class. Parent classes are already validated and
-                                          need to include all virtual methods including the ones not visible in the
-                                          current class }
-                                        else if (_class=pd._class) and
-                                                (po_overridingmethod in pd.procoptions) and
-                                                (not tstoredsym(procdefcoll^.data.procsym).is_visible_for_object(pd._class)) then
-                                         begin
-                                           { do nothing, the error will follow when adding the entry }
-                                         end
-                                        { same parameters }
-                                        else if (compare_paras(procdefcoll^.data.para,pd.para,cp_all,[])>=te_equal) then
-                                         begin
-                                           { overload is inherited }
-                                           if (po_overload in procdefcoll^.data.procoptions) then
-                                            include(pd.procoptions,po_overload);
-
-                                           { inherite calling convention when it was force and the
-                                             current definition has none force }
-                                           if (po_hascallingconvention in procdefcoll^.data.procoptions) and
-                                              not(po_hascallingconvention in pd.procoptions) then
-                                             begin
-                                               pd.proccalloption:=procdefcoll^.data.proccalloption;
-                                               include(pd.procoptions,po_hascallingconvention);
-                                             end;
-
-                                           { the flags have to match except abstract and override }
-                                           { only if both are virtual !!  }
-                                           if (procdefcoll^.data.proccalloption<>pd.proccalloption) or
-                                               (procdefcoll^.data.proctypeoption<>pd.proctypeoption) or
-                                               ((procdefcoll^.data.procoptions-
-                                                   [po_abstractmethod,po_overridingmethod,po_assembler,po_overload,po_public,po_reintroduce])<>
-                                                (pd.procoptions-[po_abstractmethod,po_overridingmethod,po_assembler,po_overload,po_public,po_reintroduce])) then
-                                              begin
-                                                MessagePos1(pd.fileinfo,parser_e_header_dont_match_forward,pd.fullprocname(false));
-                                                tprocsym(procdefcoll^.data.procsym).write_parameter_lists(pd);
-                                              end;
-
-                                           { error, if the return types aren't equal }
-                                           if not(equal_defs(procdefcoll^.data.rettype.def,pd.rettype.def)) and
-                                              not((procdefcoll^.data.rettype.def.deftype=objectdef) and
-                                               (pd.rettype.def.deftype=objectdef) and
-                                               is_class(procdefcoll^.data.rettype.def) and
-                                               is_class(pd.rettype.def) and
-                                               (tobjectdef(pd.rettype.def).is_related(
-                                                   tobjectdef(procdefcoll^.data.rettype.def)))) then
-                                             Message2(parser_e_overridden_methods_not_same_ret,pd.fullprocname(false),
-                                                      procdefcoll^.data.fullprocname(false));
-
-                                           { now set the number }
-                                           pd.extnumber:=procdefcoll^.data.extnumber;
-                                           { and exchange }
-                                           procdefcoll^.data:=pd;
-                                           goto handlenextdef;
-                                         end
-                                        { different parameters }
-                                        else
-                                         begin
-                                           { when we got an override directive then can search futher for
-                                             the procedure to override.
-                                             If we are starting a new virtual tree then hide the old tree }
-                                           if not(po_overridingmethod in pd.procoptions) and
-                                              not pdoverload then
-                                            begin
-                                              if is_visible then
-                                                procdefcoll^.hidden:=true;
-                                              if (_class=pd._class) and not(po_reintroduce in pd.procoptions) then
-                                                MessagePos1(pd.fileinfo,parser_w_should_use_override,pd.fullprocname(false));
-                                            end;
-                                         end;
-                                      end
-                                     else
-                                      begin
-                                        { the new definition is virtual and the old static, we hide the old one
-                                          if the new defintion has not the overload directive }
-                                        if is_visible and
-                                           ((not(pdoverload or hasoverloads)) or
-                                            (compare_paras(procdefcoll^.data.para,pd.para,cp_all,[])>=te_equal)) then
+                                        if is_visible then
                                           procdefcoll^.hidden:=true;
+                                        if (_class=pd._class) and not(po_reintroduce in pd.procoptions) then
+                                          MessagePos1(pd.fileinfo,parser_w_should_use_override,pd.fullprocname(false));
                                       end;
                                    end
+                                  { same parameters }
+                                  else if (compare_paras(procdefcoll^.data.para,pd.para,cp_all,[])>=te_equal) then
+                                   begin
+                                     { overload is inherited }
+                                     if (po_overload in procdefcoll^.data.procoptions) then
+                                      include(pd.procoptions,po_overload);
+
+                                     { inherite calling convention when it was force and the
+                                       current definition has none force }
+                                     if (po_hascallingconvention in procdefcoll^.data.procoptions) and
+                                        not(po_hascallingconvention in pd.procoptions) then
+                                       begin
+                                         pd.proccalloption:=procdefcoll^.data.proccalloption;
+                                         include(pd.procoptions,po_hascallingconvention);
+                                       end;
+
+                                     { the flags have to match except abstract and override }
+                                     { only if both are virtual !!  }
+                                     if (procdefcoll^.data.proccalloption<>pd.proccalloption) or
+                                         (procdefcoll^.data.proctypeoption<>pd.proctypeoption) or
+                                         ((procdefcoll^.data.procoptions-
+                                             [po_abstractmethod,po_overridingmethod,po_assembler,po_overload,po_public,po_reintroduce])<>
+                                          (pd.procoptions-[po_abstractmethod,po_overridingmethod,po_assembler,po_overload,po_public,po_reintroduce])) then
+                                        begin
+                                          MessagePos1(pd.fileinfo,parser_e_header_dont_match_forward,pd.fullprocname(false));
+                                          tprocsym(procdefcoll^.data.procsym).write_parameter_lists(pd);
+                                        end;
+
+                                     { error, if the return types aren't equal }
+                                     if not(equal_defs(procdefcoll^.data.rettype.def,pd.rettype.def)) and
+                                        not((procdefcoll^.data.rettype.def.deftype=objectdef) and
+                                         (pd.rettype.def.deftype=objectdef) and
+                                         is_class(procdefcoll^.data.rettype.def) and
+                                         is_class(pd.rettype.def) and
+                                         (tobjectdef(pd.rettype.def).is_related(
+                                             tobjectdef(procdefcoll^.data.rettype.def)))) then
+                                       Message2(parser_e_overridden_methods_not_same_ret,pd.fullprocname(false),
+                                                procdefcoll^.data.fullprocname(false));
+
+                                     { check if the method to override is visible, check is only needed
+                                       for the current parsed class. Parent classes are already validated and
+                                       need to include all virtual methods including the ones not visible in the
+                                       current class }
+                                     if (_class=pd._class) and
+                                        (po_overridingmethod in pd.procoptions) and
+                                        (not procdefcoll^.visible) then
+                                       MessagePos1(pd.fileinfo,parser_e_nothing_to_be_overridden,pd.fullprocname(false));
+
+                                     { override old virtual method in VMT }
+                                     pd.extnumber:=procdefcoll^.data.extnumber;
+                                     procdefcoll^.data:=pd;
+                                     if is_visible then
+                                       procdefcoll^.visible:=true;
+
+                                     goto handlenextdef;
+                                   end
+                                  { different parameters }
                                   else
                                    begin
-                                     { both are static, we hide the old one if the new defintion
-                                       has not the overload directive }
-                                     if is_visible and
-                                        ((not pdoverload) or
-                                         (compare_paras(procdefcoll^.data.para,pd.para,cp_all,[])>=te_equal)) then
-                                       procdefcoll^.hidden:=true;
+                                     { when we got an override directive then can search futher for
+                                       the procedure to override.
+                                       If we are starting a new virtual tree then hide the old tree }
+                                     if not(po_overridingmethod in pd.procoptions) and
+                                        not pdoverload then
+                                      begin
+                                        if is_visible then
+                                          procdefcoll^.hidden:=true;
+                                        if (_class=pd._class) and not(po_reintroduce in pd.procoptions) then
+                                          MessagePos1(pd.fileinfo,parser_w_should_use_override,pd.fullprocname(false));
+                                      end;
                                    end;
-                                end; { not hidden }
-                               procdefcoll:=procdefcoll^.next;
-                            end;
+                                end
+                               else
+                                begin
+                                  { the new definition is virtual and the old static, we hide the old one
+                                    if the new defintion has not the overload directive }
+                                  if is_visible and
+                                     ((not(pdoverload or hasoverloads)) or
+                                      (compare_paras(procdefcoll^.data.para,pd.para,cp_all,[])>=te_equal)) then
+                                    procdefcoll^.hidden:=true;
+                                end;
+                             end
+                            else
+                             begin
+                               { both are static, we hide the old one if the new defintion
+                                 has not the overload directive }
+                               if is_visible and
+                                  ((not pdoverload) or
+                                   (compare_paras(procdefcoll^.data.para,pd.para,cp_all,[])>=te_equal)) then
+                                 procdefcoll^.hidden:=true;
+                             end;
+                          end; { not hidden }
+                         procdefcoll:=procdefcoll^.next;
+                      end;
 
-                          { if it isn't saved in the list we create a new entry }
-                          newdefentry(pd);
-                        end;
-                     handlenextdef:
-                     end;
-                    exit;
+                    { new entry is needed, override was not possible }
+                    if (_class=pd._class) and
+                       (po_overridingmethod in pd.procoptions) then
+                      MessagePos1(pd.fileinfo,parser_e_nothing_to_be_overridden,pd.fullprocname(false));
+
+                    { if it isn't saved in the list we create a new entry }
+                    newdefentry(vmtentry,pd,is_visible);
                   end;
-                 symcoll:=symcoll^.next;
+                  handlenextdef:
                end;
-             newentry;
-           end;
+              exit;
+            end;
+           vmtentry:=vmtentry^.next;
+         end;
+        newvmtentry(tprocsym(sym),is_visible);
       end;
 
-     procedure tclassheader.disposevmttree;
 
-       var
-          symcoll : psymcoll;
-          procdefcoll : pprocdefcoll;
-
-       begin
-          { disposes the above generated tree }
-          symcoll:=wurzel;
-          while assigned(symcoll) do
-            begin
-               wurzel:=symcoll^.next;
-               stringdispose(symcoll^.name);
-               procdefcoll:=symcoll^.data;
-               while assigned(procdefcoll) do
-                 begin
-                    symcoll^.data:=procdefcoll^.next;
-                    dispose(procdefcoll);
-                    procdefcoll:=symcoll^.data;
-                 end;
-               dispose(symcoll);
-               symcoll:=wurzel;
-            end;
-       end;
+    procedure tclassheader.disposevmttree;
+      var
+        vmtentry : pvmtentry;
+        procdefcoll : pprocdefcoll;
+      begin
+        { disposes the above generated tree }
+        vmtentry:=firstvmtentry;
+        while assigned(vmtentry) do
+          begin
+            firstvmtentry:=vmtentry^.next;
+            stringdispose(vmtentry^.name);
+            procdefcoll:=vmtentry^.firstprocdef;
+            while assigned(procdefcoll) do
+              begin
+                vmtentry^.firstprocdef:=procdefcoll^.next;
+                dispose(procdefcoll);
+                procdefcoll:=vmtentry^.firstprocdef;
+              end;
+            dispose(vmtentry);
+            vmtentry:=firstvmtentry;
+          end;
+      end;
 
 
     procedure tclassheader.genvmt;
@@ -820,7 +821,7 @@ implementation
         end;
 
       begin
-         wurzel:=nil;
+         firstvmtentry:=nil;
          nextvirtnumber:=0;
 
          has_constructor:=false;
@@ -1180,7 +1181,7 @@ implementation
 
     procedure tclassheader.writevirtualmethods(List:TAAsmoutput);
       var
-         symcoll : psymcoll;
+         vmtentry : pvmtentry;
          procdefcoll : pprocdefcoll;
          i : longint;
       begin
@@ -1188,14 +1189,12 @@ implementation
          { the method                                             }
          for i:=0 to nextvirtnumber-1 do
            begin
-              symcoll:=wurzel;
-
               { walk trough all symbols }
-              while assigned(symcoll) do
+              vmtentry:=firstvmtentry;
+              while assigned(vmtentry) do
                 begin
-
                    { walk trough all methods }
-                   procdefcoll:=symcoll^.data;
+                   procdefcoll:=vmtentry^.firstprocdef;
                    while assigned(procdefcoll) do
                      begin
                         { writes the addresses to the VMT }
@@ -1215,7 +1214,7 @@ implementation
                           end;
                         procdefcoll:=procdefcoll^.next;
                      end;
-                   symcoll:=symcoll^.next;
+                   vmtentry:=vmtentry^.next;
                 end;
            end;
       end;
@@ -1382,7 +1381,10 @@ initialization
 end.
 {
   $Log$
-  Revision 1.74  2004-07-09 22:17:32  peter
+  Revision 1.75  2004-09-13 20:31:07  peter
+    * fixed and cleanup of overriding non-visible methods
+
+  Revision 1.74  2004/07/09 22:17:32  peter
     * revert has_localst patch
     * replace aktstaticsymtable/aktglobalsymtable with current_module
 
