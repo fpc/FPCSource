@@ -3,6 +3,6 @@
 
 INCNAMES=classes.inc classesh.inc bits.inc collect.inc compon.inc filer.inc\
          lists.inc parser.inc persist.inc reader.inc streams.inc stringl.inc\
-         thread.inc writer.inc
+         writer.inc
 
-INCUNITS=classes inifiles ezcgi
+INCUNITS=inifiles ezcgi
