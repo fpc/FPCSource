@@ -38,6 +38,7 @@ type
      private
        CurLinkText: string;
        CurURL: string;
+       CurDoc: string;
        InAnchor: boolean;
      end;
 
@@ -158,7 +159,11 @@ begin
   if Entered then
     begin
       CurLinkText:='';
-      if DocGetTagParam('HREF',CurURL)=false then CurURL:='';
+      if DocGetTagParam('HREF',CurURL)=false then
+      if DocGetTagParam('NAME',CurURL) then
+        CurURL:=CurDoc+'#'+CurURL
+      else
+        CurURL:='';
       CurURL:=Trim(CurURL);
       CurURL:=CompleteURL(GetDocumentBaseURL,CurURL);
     end
@@ -497,6 +502,7 @@ begin
   if Assigned(Doc)=false then Exit;
 
   Doc^.State:=ssProcessing;
+  CurDoc:=Doc^.GetDocumentURL;
   New(F, Init(Doc^.GetDocumentURL));
   if Assigned(F) then
   begin
@@ -505,6 +511,7 @@ begin
     Dispose(F, Done);
   end;
   Doc^.State:=ssScanned;
+  CurDoc:='';
 end;
 
 procedure THTMLFileLinkScanner.ScheduleDoc(const DocumentURL: string);
@@ -530,7 +537,10 @@ end;
 END.
 {
   $Log$
-  Revision 1.1  2001-08-04 11:30:26  peter
+  Revision 1.2  2002-04-11 07:06:31  pierre
+   + recreate the full target of an anchor that only has a NAME field
+
+  Revision 1.1  2001/08/04 11:30:26  peter
     * ide works now with both compiler versions
 
   Revision 1.1.2.1  2000/10/18 21:53:28  pierre
