@@ -355,7 +355,6 @@ type
 
 implementation
 
-
 {*****************************************************************************
                                     Memory debug
 *****************************************************************************}
@@ -2367,7 +2366,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.42  2005-02-28 15:38:38  marco
+  Revision 1.43  2005-03-04 16:49:22  peter
+    * getheapstatus fixes
+
+  Revision 1.42  2005/02/28 15:38:38  marco
    * getFPCheapstatus  (no, FPC HEAP, not FP CHEAP!)
 
   Revision 1.41  2005/02/14 17:13:06  peter

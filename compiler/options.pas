@@ -1781,6 +1781,7 @@ begin
   def_system_macro('NOSAVEREGISTERS');
   def_system_macro('SHORTSTRCOMPAREINREG');
   def_system_macro('HASGETHEAPSTATUS');
+  def_system_macro('HASGETFPCHEAPSTATUS');
 
 { using a case is pretty useless here (FK) }
 { some stuff for TP compatibility }
@@ -2101,7 +2102,10 @@ finalization
 end.
 {
   $Log$
-  Revision 1.168  2005-02-26 15:43:09  florian
+  Revision 1.169  2005-03-04 16:49:22  peter
+    * getheapstatus fixes
+
+  Revision 1.168  2005/02/26 15:43:09  florian
     * userdata in file/textrecs now 32 bytes
 
   Revision 1.167  2005/02/19 18:32:16  florian

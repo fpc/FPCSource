@@ -42,6 +42,12 @@ interface
     var
       internalerrorproc : procedure(i:longint);
 
+{$ifndef HASGETFPCHEAPSTATUS}
+    type
+      TFPCHeapStatus = THeapStatus;
+    function GetFPCHeapStatus:TFPCHeapStatus;
+{$endif HASGETFPCHEAPSTATUS}
+
     {# Returns the minimal value between @var(a) and @var(b) }
     function min(a,b : longint) : longint;{$ifdef USEINLINE}inline;{$endif}
     function min(a,b : int64) : int64;{$ifdef USEINLINE}inline;{$endif}
@@ -145,6 +151,15 @@ implementation
 uses
   strings
   ;
+
+
+{$ifndef HASGETFPCHEAPSTATUS}
+    function GetFPCHeapStatus:TFPCHeapStatus;
+    begin
+      GetHeapStatus(result);
+    end;
+{$endif HASGETFPCHEAPSTATUS}
+
 
     var
       uppertbl,
@@ -1224,7 +1239,10 @@ initialization
 end.
 {
   $Log$
-  Revision 1.49  2005-02-14 17:13:06  peter
+  Revision 1.50  2005-03-04 16:49:22  peter
+    * getheapstatus fixes
+
+  Revision 1.49  2005/02/14 17:13:06  peter
     * truncate log
 
   Revision 1.48  2005/01/20 17:05:53  peter
