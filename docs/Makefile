@@ -97,7 +97,7 @@ endif
 #####################################################################
 
 .PHONY: clean dvi help html ps psdist htmldist pdfdist txtdist \
-        htm txt pdf refex alldist
+        htm txt pdf refex alldist messages
 
 .SUFFIXES: .dvi .tex .ps .txt .pdf
 
@@ -184,6 +184,9 @@ refex.chk:
 	$(MAKE) -C refex tex
 	touch refex.chk
 
+messages: 
+	msg2inc -TE ../compiler/errore.msg messages.tex
+
 units.dvi: units.tex $(CHAPTERS) unitex.chk
 
 ref.dvi: ref.tex refex.chk
@@ -244,13 +247,6 @@ prog.chk: prog.tex
 	touch prog.chk
 
 html: $(HTML)
-
-htm: html
-	makehtm `find . -name '*.html'`
-	zip -q fpcdoc `find . -name '*.htm'` `find . -name '*.gif'`
-	rm `find -name '*.htm'`
-
-htmdist: htm
 
 #####################################################################
 # Installation
@@ -324,7 +320,10 @@ linuxexamples: examples
 
 #
 # $Log$
-# Revision 1.12  1998-09-13 12:42:05  michael
+# Revision 1.13  1998-09-13 19:26:13  michael
+# + Added messages target
+#
+# Revision 1.12  1998/09/13 12:42:05  michael
 # Added error messages and used listings package for program examples
 #
 # Revision 1.11  1998/09/11 12:08:07  michael
