@@ -41,11 +41,13 @@ interface
           { the definition of the procedure to call }
           procdefinition : tabstractprocdef;
           methodpointer  : tnode;
+
           { separately specified resulttype for some compilerprocs (e.g. }
           { you can't have a function with an "array of char" resulttype }
           { the RTL) (JM)                                                }
           restype: ttype;
           restypeset: boolean;
+          
           { only the processor specific nodes need to override this }
           { constructor                                             }
           constructor create(l:tnode; v : tprocsym;st : tsymtable; mp : tnode);virtual;
@@ -616,7 +618,6 @@ implementation
         right:=procvar;
       end;
 
-
     function tcallnode.getcopy : tnode;
       var
         n : tcallnode;
@@ -625,6 +626,8 @@ implementation
         n.symtableprocentry:=symtableprocentry;
         n.symtableproc:=symtableproc;
         n.procdefinition:=procdefinition;
+        n.restype := restype;
+        n.restypeset := restypeset;
         if assigned(methodpointer) then
          n.methodpointer:=methodpointer.getcopy
         else
@@ -1655,7 +1658,10 @@ implementation
           (symtableprocentry = tcallnode(p).symtableprocentry) and
           (symtableproc = tcallnode(p).symtableproc) and
           (procdefinition = tcallnode(p).procdefinition) and
-          (methodpointer = tcallnode(p).methodpointer);
+          (methodpointer.isequal(tcallnode(p).methodpointer)) and
+          ((restypeset and tcallnode(p).restypeset and
+            (is_equal(restype.def,tcallnode(p).restype.def))) or
+           (not restypeset and not tcallnode(p).restypeset));
       end;
 
 {****************************************************************************
@@ -1738,7 +1744,12 @@ begin
 end.
 {
   $Log$
-  Revision 1.47  2001-08-29 12:18:07  jonas
+  Revision 1.48  2001-08-30 15:39:59  jonas
+    * fixed docompare for the fields I added to tcallnode in my previous
+      commit
+    * removed nested comment warning
+
+  Revision 1.47  2001/08/29 12:18:07  jonas
     + new createinternres() constructor for tcallnode to support setting a
       custom resulttype
     * compilerproc typeconversions now set the resulttype from the type
@@ -1754,7 +1765,7 @@ end.
   Revision 1.46  2001/08/28 13:24:46  jonas
     + compilerproc implementation of most string-related type conversions
     - removed all code from the compiler which has been replaced by
-      compilerproc implementations (using {$ifdef hascompilerproc} is not
+      compilerproc implementations (using (ifdef hascompilerproc) is not
       necessary in the compiler)
 
   Revision 1.45  2001/08/26 13:36:39  florian
