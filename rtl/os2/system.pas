@@ -150,45 +150,46 @@ procedure DosGetInfoBlocks (PATIB: PPThreadInfoBlock;
                             external 'DOSCALLS' index 312;
 
 function DosLoadModule (ObjName: PChar; ObjLen: cardinal; DLLName: PChar;
-                                         var Handle: cardinal): longint; cdecl;
+                                        var Handle: cardinal): cardinal; cdecl;
 external 'DOSCALLS' index 318;
 
 function DosQueryProcAddr (Handle, Ordinal: cardinal; ProcName: PChar;
-                                         var Address: pointer): longint; cdecl;
+                                        var Address: pointer): cardinal; cdecl;
 external 'DOSCALLS' index 321;
 
-function DosSetRelMaxFH (var ReqCount, CurMaxFH: longint): longint; cdecl;
+function DosSetRelMaxFH (var ReqCount: longint; var CurMaxFH: cardinal):
+                                                               cardinal; cdecl;
 external 'DOSCALLS' index 382;
 
-function DosSetCurrentDir (Name:PChar): longint; cdecl;
+function DosSetCurrentDir (Name:PChar): cardinal; cdecl;
 external 'DOSCALLS' index 255;
 
-procedure DosQueryCurrentDisk(var DiskNum:longint;var Logical:longint); cdecl;
+procedure DosQueryCurrentDisk(var DiskNum:cardinal;var Logical:cardinal); cdecl;
 external 'DOSCALLS' index 275;
 
-function DosSetDefaultDisk (DiskNum:longint): longint; cdecl;
+function DosSetDefaultDisk (DiskNum:cardinal): cardinal; cdecl;
 external 'DOSCALLS' index 220;
 
 { This is not real prototype, but is close enough }
 { for us (the 2nd parameter is actually a pointer }
 { to a structure).                                }
-function DosCreateDir( Name : pchar; p : pointer): longint; cdecl;
+function DosCreateDir (Name: PChar; P: pointer): cardinal; cdecl;
 external 'DOSCALLS' index 270;
 
-function DosDeleteDir( Name : pchar) : longint; cdecl;
+function DosDeleteDir (Name: PChar): cardinal; cdecl;
 external 'DOSCALLS' index 226;
 
-function DosQueryCurrentDir(DiskNum:longint;var Buffer;
-                            var BufLen:longint):longint; cdecl;
+function DosQueryCurrentDir(DiskNum:cardinal;var Buffer;
+                            var BufLen:cardinal): cardinal; cdecl;
 external 'DOSCALLS' index 274;
 
-function DosMove(OldFile,NewFile:PChar):longint; cdecl;
+function DosMove(OldFile,NewFile:PChar):cardinal; cdecl;
     external 'DOSCALLS' index 271;
 
-function DosDelete(FileName:PChar):longint; cdecl;
+function DosDelete(FileName:PChar):cardinal; cdecl;
     external 'DOSCALLS' index 259;
 
-procedure DosExit(Action, Result: longint); cdecl;
+procedure DosExit(Action, Result: cardinal); cdecl;
     external 'DOSCALLS' index 234;
 
 {This is the correct way to call external assembler procedures.}
@@ -639,11 +640,12 @@ asm
 end ['eax', 'ebx', 'ecx', 'edx'];
 
 const
-    FileHandleCount: longint = 20;
+    FileHandleCount: cardinal = 20;
 
 function Increase_File_Handle_Count: boolean;
 var Err: word;
-    L1, L2: longint;
+    L1: longint;
+    L2: cardinal;
 begin
   L1 := 10;
   if DosSetRelMaxFH (L1, L2) <> 0 then
@@ -668,7 +670,7 @@ procedure do_open(var f;p:pchar;flags:longint);
   when (flags and $10000) there is no check for close (needed for textfiles)
 }
 
-var Action: longint;
+var Action: cardinal;
 
 begin
     allowslash(p);
@@ -854,7 +856,7 @@ end;
 
 procedure ChDir (const S: string);[IOCheck];
 
-var RC: longint;
+var RC: cardinal;
     Buffer: array [0..255] of char;
 
 begin
@@ -906,7 +908,8 @@ begin
     { dir[4]                                           }
     { Get dir from drivenr : 0=default, 1=A etc... }
     l:=255-3;
-    InOutRes:=DosQueryCurrentDir(DriveNr, sof^, l);
+    InOutRes:=longint (DosQueryCurrentDir(DriveNr, sof^, l));
+{$WARNING Result code should be translated in some cases!}
     { Now Dir should be filled with directory in ASCIIZ, }
     { starting from dir[4]                               }
     dir[0]:=#3;
@@ -1079,7 +1082,8 @@ end;
 
 
 function GetFileHandleCount: longint;
-var L1, L2: longint;
+var L1: longint;
+    L2: cardinal;
 begin
     L1 := 0; (* Don't change the amount, just check. *)
     if DosSetRelMaxFH (L1, L2) <> 0 then GetFileHandleCount := 50
@@ -1158,7 +1162,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.44  2003-10-12 18:07:30  hajny
+  Revision 1.45  2003-10-13 21:17:31  hajny
+    * longint to cardinal corrections
+
+  Revision 1.44  2003/10/12 18:07:30  hajny
     * wrong use of Intel syntax
 
   Revision 1.43  2003/10/12 17:59:40  hajny

@@ -60,14 +60,14 @@ const
 procedure DosGetInfoBlocks (PATIB: PPThreadInfoBlock;
               PAPIB: PPProcessInfoBlock); cdecl; external 'DOSCALLS' index 312;
 
-function DosSetPriority (Scope, TrClass, Delta, PortID: longint): longint;
-                                          cdecl; external 'DOSCALLS' index 236;
+function DosSetPriority (Scope, TrClass: cardinal; Delta: longing;
+              PortID: cardinal): longint; cdecl; external 'DOSCALLS' index 236;
 
 procedure DosExit (Action, Result: longint); cdecl;
                                                  external 'DOSCALLS' index 233;
 
-function DosCreateThread (var TID: longint; Address: TThreadEntry;
-         aParam: pointer; Flags: longint; StackSize: longint): longint; cdecl;
+function DosCreateThread (var TID: cardinal; Address: TThreadEntry;
+       aParam: pointer; Flags: cardinal; StackSize: cardinal): longint; cdecl;
                                                  external 'DOSCALLS' index 311;
 
 function DosKillThread (TID: longint): longint; cdecl;
@@ -181,7 +181,7 @@ end;
 
 constructor TThread.Create(CreateSuspended: Boolean);
 var
-  Flags: Integer;
+  Flags: cardinal;
 begin
   inherited Create;
   AddThread (Self);
@@ -194,7 +194,7 @@ begin
    FFinished := true;
    Destroy;
   end else FHandle := FThreadID;
-  IsMultiThread := TRUE;
+  IsMultiThread := true;
   FFatalException := nil;
 end;
 
@@ -240,7 +240,10 @@ end;
 
 {
   $Log$
-  Revision 1.1  2003-10-06 21:01:07  peter
+  Revision 1.2  2003-10-13 21:17:31  hajny
+    * longint to cardinal corrections
+
+  Revision 1.1  2003/10/06 21:01:07  peter
     * moved classes unit to rtl
 
   Revision 1.8  2003/10/06 17:06:55  florian
