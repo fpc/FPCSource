@@ -1,4 +1,9 @@
 CONST
+
+  m640x200x16       = VGALo;
+  m640x400x16       = VGAMed;
+  m640x480x16       = VGAHi;
+
   { VESA Specific video modes. }
   m320x200x32k      = $10D;
   m320x200x64k      = $10E;
