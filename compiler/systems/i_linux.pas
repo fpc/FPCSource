@@ -403,7 +403,7 @@ unit i_linux;
                 localalignmin   : 0;
                 localalignmax   : 4;
                 paraalign       : 4;
-                recordalignmin  : 4;
+                recordalignmin  : 0;
                 recordalignmax  : 4;
                 maxCrecordalign : 4
               );
@@ -522,7 +522,10 @@ initialization
 end.
 {
   $Log$
-  Revision 1.13  2003-09-07 09:08:26  olle
+  Revision 1.14  2003-09-23 17:58:38  peter
+    * recordminalign for sparc 0
+
+  Revision 1.13  2003/09/07 09:08:26  olle
     * reverted last change, linux on powerpc still uses aix abi
 
   Revision 1.12  2003/09/06 10:46:56  olle
