@@ -189,7 +189,7 @@ $(SYSTEMPPU) : syslinux.pp sysconst.inc systypes.inc syscalls.inc $(SYSDEPS)
 
 strings$(PPUEXT) : $(INC)/strings.pp $(INC)/stringsi.inc\
                    $(PROCINC)/strings.inc $(PROCINC)/stringss.inc\
-                   $($(SYSTEMPPU)
+                   $(SYSTEMPPU)
 
 linux$(PPUEXT) : linux.pp strings$(PPUEXT) $(INC)/textrec.inc $(INC)/filerec.inc \
                  syscalls.inc systypes.inc sysconst.inc $(SYSTEMPPU)
@@ -251,7 +251,10 @@ libsclean: fpc_libsclean
 
 #
 # $Log$
-# Revision 1.18  1999-03-22 13:09:10  peter
+# Revision 1.19  1999-04-14 09:07:17  peter
+#   * fixed strings dependency
+#
+# Revision 1.18  1999/03/22 13:09:10  peter
 #   - ipc unit because it crashes on 0.99.10
 #
 # Revision 1.17  1999/03/16 00:47:09  peter
