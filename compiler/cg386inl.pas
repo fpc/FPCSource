@@ -556,6 +556,8 @@ implementation
          hregister : tregister;
          otlabel,oflabel   : plabel;
          oldpushedparasize : longint;
+         oldrl : plinkedlist;
+
       begin
       { save & reset pushedparasize }
          oldpushedparasize:=pushedparasize;
@@ -1001,14 +1003,20 @@ implementation
               end;
             else internalerror(9);
          end;
-      { reset pushedparasize }
+         { remove temp. objects, we don't generate them here }
+         removetemps(exprasmlist,temptoremove);
+         temptoremove^.clear;
+         { reset pushedparasize }
          pushedparasize:=oldpushedparasize;
       end;
 
 end.
 {
   $Log$
-  Revision 1.24  1999-01-21 22:10:39  peter
+  Revision 1.25  1999-02-05 10:56:19  florian
+    * in some cases a writeln of temp. ansistrings cause a memory leak, fixed
+
+  Revision 1.24  1999/01/21 22:10:39  peter
     * fixed array of const
     * generic platform independent high() support
 
