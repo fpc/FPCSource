@@ -43,11 +43,11 @@ procedure CompileResourceFiles;
 implementation
 
 uses
-{$ifdef Delphi}
-  dmisc,
-{$else Delphi}
+{$IFDEF USE_SYSUTILS}
+  SysUtils,
+{$ELSE USE_SYSUTILS}
   dos,
-{$endif Delphi}
+{$ENDIF USE_SYSUTILS}
   Systems,cutils,Globtype,Globals,Verbose,Fmodule,
   Script;
 
@@ -71,8 +71,11 @@ var
   respath,
   srcfilepath : dirstr;
   n       : namestr;
+{$IFDEF USE_SYSUTILS}
+{$ELSE USE_SYSUTILS}
   e       : extstr;
   s,
+{$ENDIF USE_SYSUTILS}
   resobj,
   resbin   : string;
   resfound,
@@ -85,13 +88,21 @@ begin
   if not resfound then
    resfound:=FindExe(target_res.resbin,resbin);
   { get also the path to be searched for the windres.h }
+{$IFDEF USE_SYSUTILS}
+  respath := SplitPath(resbin);
+{$ELSE USE_SYSUTILS}
   fsplit(resbin,respath,n,e);
+{$ENDIF USE_SYSUTILS}
   if (not resfound) and not(cs_link_extern in aktglobalswitches) then
    begin
      Message(exec_e_res_not_found);
      aktglobalswitches:=aktglobalswitches+[cs_link_extern];
    end;
+{$IFDEF USE_SYSUTILS}
+  srcfilepath := SplitPath(current_module.mainsource^);
+{$ELSE USE_SYSUTILS}
   fsplit(current_module.mainsource^,srcfilepath,n,e);
+{$ENDIF USE_SYSUTILS}
   if not path_absolute(fname) then
     fname:=srcfilepath+fname;
   resobj:=ForceExtension(fname,target_info.resobjext);
@@ -103,10 +114,25 @@ begin
   if (target_info.system = system_i386_win32) and
      (srcfilepath<>'') then
     s:=s+' --include '+srcfilepath;
-{ Exec the command }
+{ Execute the command }
   if not (cs_link_extern in aktglobalswitches) then
    begin
      Message1(exec_i_compilingresource,fname);
+{$IFDEF USE_SYSUTILS}
+     try
+       if ExecuteProcess(resbin,s) <> 0 then
+       begin
+         Message(exec_e_error_while_linking);
+         aktglobalswitches:=aktglobalswitches+[cs_link_extern];
+       end;
+     except
+       on E:EOSError do
+       begin
+         Message(exec_e_cant_call_linker);
+         aktglobalswitches:=aktglobalswitches+[cs_link_extern];
+       end
+     end;
+{$ELSE USE_SYSUTILS}
      swapvectors;
      exec(resbin,s);
      swapvectors;
@@ -121,6 +147,7 @@ begin
          Message(exec_e_error_while_linking);
          aktglobalswitches:=aktglobalswitches+[cs_link_extern];
        end;
+{$ENDIF USE_SYSUTILS}
     end;
   { Update asmres when externmode is set }
   if cs_link_extern in aktglobalswitches then
@@ -155,7 +182,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.20  2004-06-20 08:55:29  florian
+  Revision 1.21  2004-10-14 16:38:38  mazen
+  * Merge is complete for this file, cycles !
+
+  Revision 1.20  2004/06/20 08:55:29  florian
     * logs truncated
 
 }
