@@ -21,7 +21,6 @@ begin
   close (f);
   chmod ('test21a',octal (755));
   popen (f,'./test21a arg1 arg2','W');
-  rewrite (f);
   if linuxerror<>0 then 
      writeln ('error from POpen : Linuxerror : ', Linuxerror);
   for i:=1 to 10 do 
