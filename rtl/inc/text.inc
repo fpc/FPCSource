@@ -448,11 +448,14 @@ Begin
 End;
 
 
-Type
-   array00 = array[0..0] Of Char;
-Procedure Write_Array(Len : Longint;var f : TextRec;const p : array00);[Public,Alias:'FPC_WRITE_TEXT_PCHAR_AS_ARRAY'];
+{$ifndef NEWWRITEARRAY}
+type
+  array00=array[0..0] of char;
+{$endif}
+Procedure Write_Array(Len : Longint;var f : TextRec;const s : {$ifdef NEWWRITEARRAY} array of char{$else}array00{$endif});[Public,Alias:'FPC_WRITE_TEXT_PCHAR_AS_ARRAY'];
 var
   ArrayLen : longint;
+  p : pchar;
 Begin
   If (InOutRes<>0) then
    exit;
@@ -461,10 +464,13 @@ Begin
      InOutRes:=105;
      exit;
    end;
+  p:=pchar(@s);
   ArrayLen:=StrLen(p);
+  if ArrayLen>high(s) then
+   ArrayLen:=high(s);
   If Len>ArrayLen Then
    WriteBlanks(f,Len-ArrayLen);
-  WriteBuffer(f,p,ArrayLen);
+  WriteBuffer(f,p^,ArrayLen);
 End;
 
 
@@ -733,14 +739,12 @@ Begin
 End;
 
 
-Procedure Read_String(var f : TextRec;var s : String);[Public,Alias:'FPC_READ_TEXT_'+{$ifdef NEWREADINT}'SHORTSTR'{$else}'STRING'{$endif}];
+Function ReadPCharLen(var f:TextRec;s:pchar;maxlen:longint):longint;
 var
-  maxlen,
   sPos,len : Longint;
   p,startp,maxp : pchar;
 Begin
-{ Delete the string }
-  s:='';
+  ReadPCharLen:=0;
 { Check error and if file is open }
   If (InOutRes<>0) then
    exit;
@@ -751,7 +755,6 @@ Begin
    end;
 { Read maximal until Maxlen is reached }
   sPos:=0;
-  MaxLen:=high(s);
   repeat
     If f.BufPos>=f.BufEnd Then
      begin
@@ -771,12 +774,12 @@ Begin
   { calculate read bytes }
     len:=p-startp;
     inc(f.BufPos,Len);
-    Move(startp^,s[sPos+1],Len);
+    Move(startp^,s[sPos],Len);
     inc(sPos,Len);
   { was it a LF? then leave }
     if (p<maxp) and (p^=#10) then
      begin
-       if (spos>0) and (s[spos]=#13) then
+       if (spos>0) and (s[spos-1]=#13) then
         dec(sPos);
        break;
      end;
@@ -784,166 +787,39 @@ Begin
     if spos=MaxLen then
      break;
   until false;
-{ Set final length }
-  s[0]:=chr(sPos);
+  ReadPCharLen:=spos;
+End;
+
+
+Procedure Read_String(var f : TextRec;var s : String);[Public,Alias:'FPC_READ_TEXT_'+{$ifdef NEWREADINT}'SHORTSTR'{$else}'STRING'{$endif}];
+Begin
+  s[0]:=chr(ReadPCharLen(f,pchar(@s[1]),high(s)));
 End;
 
 
 Procedure Read_PChar(var f : TextRec;var s : PChar);[Public,Alias:'FPC_READ_TEXT_PCHAR_AS_POINTER'];
-var
-  p,maxp,startp,sidx : PChar;
-  len : longint;
 Begin
-{ Delete the string }
-  s^:=#0;
-{ Check error and if file is open }
-  If (InOutRes<>0) then
-   exit;
-  if (f.mode<>fmInput) Then
-   begin
-     InOutRes:=104;
-     exit;
-   end;
-{ Read until #10 is found }
-  sidx:=s;
-  repeat
-    If f.BufPos>=f.BufEnd Then
-     begin
-       FileFunc(f.InOutFunc)(f);
-       If f.BufPos>=f.BufEnd Then
-        break;
-     end;
-    p:=@f.Bufptr^[f.BufPos];
-    maxp:=@f.Bufptr^[f.BufEnd];
-    startp:=p;
-  { search linefeed }
-    while (p<maxp) and (P^<>#10) do
-     inc(p);
-  { calculate read bytes }
-    len:=p-startp;
-    inc(f.BufPos,Len);
-  { update output string, take MaxLen into count }
-    Move(startp^,sidx^,Len);
-    inc(sidx,len);
-  { was it a LF? then leave }
-    if (p<maxp) and (p^=#10) then
-     begin
-       If pchar(p-1)^=#13 Then
-        dec(p);
-       break;
-     end;
-  until false;
-  sidx^:=#0;
+  pchar(s+ReadPCharLen(f,s,$7fffffff))^:=#0;
 End;
 
 
-Procedure Read_Array(var f : TextRec;var s : array00);[Public,Alias:'FPC_READ_TEXT_PCHAR_AS_ARRAY'];
-var
-  p,maxp,startp,sidx : PChar;
-  len : longint;
+Procedure Read_Array(var f : TextRec;var s : {$ifdef NEWWRITEARRAY}array of char{$else}array00{$endif});[Public,Alias:'FPC_READ_TEXT_PCHAR_AS_ARRAY'];
 Begin
-{ Delete the string }
-  s[0]:=#0;
-{ Check error and if file is open }
-  If (InOutRes<>0) then
-   exit;
-  if (f.mode<>fmInput) Then
-   begin
-     InOutRes:=104;
-     exit;
-   end;
-{ Read until #10 is found }
-  sidx:=pchar(@s);
-  repeat
-    If f.BufPos>=f.BufEnd Then
-     begin
-       FileFunc(f.InOutFunc)(f);
-       If f.BufPos>=f.BufEnd Then
-        break;
-     end;
-    p:=@f.Bufptr^[f.BufPos];
-    maxp:=@f.Bufptr^[f.BufEnd];
-    startp:=p;
-  { search linefeed }
-    while (p<maxp) and (P^<>#10) do
-     inc(p);
-  { calculate read bytes }
-    len:=p-startp;
-    inc(f.BufPos,Len);
-  { update output string, take MaxLen into count }
-    Move(startp^,sidx^,Len);
-    inc(sidx,len);
-  { was it a LF? then leave }
-    if (p<maxp) and (p^=#10) then
-     begin
-       If pchar(p-1)^=#13 Then
-        dec(p);
-       break;
-     end;
-  until false;
-  sidx^:=#0;
+  pchar(pchar(@s)+ReadPCharLen(f,pchar(@s),{$ifdef NEWWRITEARRAY}high(s){$else}$7fffffff{$endif}))^:=#0;
 End;
 
 
 Procedure Read_AnsiString(var f : TextRec;var s : AnsiString);[Public,Alias:'FPC_READ_TEXT_'+{$ifdef NEWREADINT}'ANSISTR'{$else}'ANSISTRING'{$endif}];
 var
-  p,maxp,startp,sidx : PChar;
-  maxlen,spos,len : longint;
+  len : longint;
 Begin
 { Delete the string }
   AnsiStr_Decr_ref (Pointer(S));
   { We assign room for 1024 characters totally at random.... }
   Pointer(s):=Pointer(NewAnsiString(1024));
-  MaxLen:=1024;
-{ Check error and if file is open }
-  If (InOutRes<>0) then
-   exit;
-  if (f.mode<>fmInput) Then
-   begin
-     InOutRes:=104;
-     exit;
-   end;
-{ Read until #10 is found }
-  sidx:=pchar(s);
-  spos:=0;
-  repeat
-    If f.BufPos>=f.BufEnd Then
-     begin
-       FileFunc(f.InOutFunc)(f);
-       If f.BufPos>=f.BufEnd Then
-        break;
-     end;
-    p:=@f.Bufptr^[f.BufPos];
-    if SPos+f.BufEnd-f.BufPos>MaxLen then
-     maxp:=@f.BufPtr^[f.BufPos+MaxLen-SPos]
-    else
-     maxp:=@f.Bufptr^[f.BufEnd];
-    startp:=p;
-  { search linefeed }
-    while (p<maxp) and (P^<>#10) do
-     inc(p);
-  { calculate read bytes }
-    len:=p-startp;
-    inc(f.BufPos,Len);
-    Move(startp^,sidx^,Len);
-    inc(sidx,len);
-    inc(spos,len);
-  { was it a LF? then leave }
-    if (p<maxp) and (p^=#10) then
-     begin
-       If pchar(sidx-1)^=#13 Then
-        begin
-          dec(sidx);
-          dec(spos);
-        end;
-       break;
-     end;
-  { Maxlen reached ? }
-    if spos=MaxLen then
-     break;
-  until false;
-  sidx^:=#0;
-  PAnsiRec(Pointer(S)-FirstOff)^.Len:=spos;
+  len:=ReadPCharLen(f,pchar(s),1024);
+  pchar(pchar(s)+len)^:=#0;
+  PAnsiRec(Pointer(S)-FirstOff)^.Len:=len;
 End;
 
 
@@ -1335,7 +1211,11 @@ end;
 
 {
   $Log$
-  Revision 1.44  1999-04-08 15:57:57  peter
+  Revision 1.45  1999-04-26 18:27:26  peter
+    * fixed write array
+    * read array with maxlen
+
+  Revision 1.44  1999/04/08 15:57:57  peter
     + subrange checking for readln()
 
   Revision 1.43  1999/04/07 22:05:18  peter
