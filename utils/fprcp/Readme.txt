@@ -19,7 +19,7 @@ non-numeric constants;
    released to the public domain 1993 was used
 
 files:
-readme.1th   - this file
+readme.txt   - this file
 
 USE_DEMO.BAT |
 DEMO.RC      |
