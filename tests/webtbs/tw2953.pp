@@ -1,26 +1,10 @@
-{ Source provided for Free Pascal Bug Report 2956 }
-{ Submitted by "Marco (Gory Bugs Department)" on  2004-02-08 }
-{ e-mail:  }
+{ Source provided for Free Pascal Bug Report 2953 }
+{ Submitted by "" on  2004-02-07 }
+{ e-mail: Marco }
+{$mode delphi}
 
-{$mode Delphi}
-Uses uw2953;
-
-type
-     localclassfields = class(aclasswithfields)
-                        end;
-     classwithmethod = class
-                        procedure xx;
-                        end;
-
-procedure classwithmethod.xx;
-
-var ll : aclasswithfields;
-
-begin
- writeln(localclassfields(ll).field1);  // goes ok.
- with localclassfields(ll) do           // typecast.
-   writeln(field1);
-end;
+// Next line should give a warning only
+//$IF's are evaluated before $IFDEF's
 
 begin
 end.
