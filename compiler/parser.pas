@@ -123,6 +123,13 @@ implementation
 
     procedure doneparser;
       begin
+         { Reset current compiling info, so destroy routines can't
+           reference the data that might already be destroyed }
+         objectlibrary:=nil;
+         current_module:=nil;
+         compiled_module:=nil;
+         current_procinfo:=nil;
+
          { unload units }
          loaded_units.free;
          usedunits.free;
@@ -698,7 +705,12 @@ implementation
 end.
 {
   $Log$
-  Revision 1.62  2004-03-14 20:08:37  peter
+  Revision 1.63  2004-03-16 16:20:49  peter
+    * reset current_module,current_procinfo so the destroy routines
+      can't access their info anymore, because that can be already
+      destroyed
+
+  Revision 1.62  2004/03/14 20:08:37  peter
     * packrecords fixed for settings from $PACKRECORDS
     * default packrecords now uses value 0 and uses info from aligment
       structure only, initpackrecords removed
