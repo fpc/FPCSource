@@ -129,8 +129,9 @@ var
 ****************************************************************************}
 
 Procedure Move(Var source,dest;count:Longint);
+Procedure FillChar(Var x;count:Longint;Value:Boolean);
 Procedure FillChar(Var x;count:Longint;Value:Char);
-Procedure FillChar(Var x;count:Longint;Value:byte);
+Procedure FillChar(Var x;count:Longint;Value:Byte);
 {$ifndef RTLLITE}
 Procedure FillWord(Var x;count:Longint;Value:Word);
 {$endif RTLLITE}
@@ -431,7 +432,10 @@ const
 
 {
   $Log$
-  Revision 1.48  1999-01-22 12:39:24  pierre
+  Revision 1.49  1999-01-29 09:23:10  pierre
+   * Fillchar(..,..,boolean) added
+
+  Revision 1.48  1999/01/22 12:39:24  pierre
    + added text arg for dump_stack
 
   Revision 1.47  1999/01/11 19:26:53  jonas

@@ -288,6 +288,12 @@ Begin
 End;
 
 
+procedure fillchar(var x;count : longint;value : boolean);
+begin
+  fillchar(x,count,byte(value));
+end;
+
+
 procedure fillchar(var x;count : longint;value : char);
 begin
   fillchar(x,count,byte(value));
@@ -472,7 +478,10 @@ end;
 
 {
   $Log$
-  Revision 1.52  1999-01-22 12:39:23  pierre
+  Revision 1.53  1999-01-29 09:23:09  pierre
+   * Fillchar(..,..,boolean) added
+
+  Revision 1.52  1999/01/22 12:39:23  pierre
    + added text arg for dump_stack
 
   Revision 1.51  1999/01/18 10:05:52  pierre
