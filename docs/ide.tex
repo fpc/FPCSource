@@ -69,11 +69,14 @@ use the long filenames.
 \item [-Cfilename] This option, followed by a filename, tells the IDE to
 read its options from \file{filename}. There should be no whitespace between
 the file name and the \var{-C}.
+\item [-F] use alternative graphic characters. This can be used to run the
+IDE on \linux in an X-term or through a telnet session.
 \item [-R] After starting the IDE, it changes automatically to the directory
 which was active when the IDE exited the last time.
+\item [-S] Disable the mouse. When this option is used, then the mouse is
+disabled, even if a mouse is present.
 \end{description}
-The files given at the command line are loaded into edit
-window automatically.
+The files given at the command line are loaded into edit windows automatically.
 
 \begin{remark}
 Under DOS/Win32, a \var{/} can be used instead of \var{-} to pass a
@@ -123,7 +126,9 @@ or by pressing \key{Alt-X}.
 \section{Navigating in the IDE}
 The IDE can be navigated both with the keyboard and with a mouse, if your
 system has a mouse.
-
+%
+% Using the keyboard
+%
 \subsection{Using the keyboard} 
 All functionality of the IDE is available through use of the keyboard.
 \begin{itemize}
@@ -139,10 +144,18 @@ more information on the menu can be found in \sees{idemenu}
 combination of keys will execute a command immediatly.
 \end{itemize}
 \begin{remark}
-A complete reference of all keyboard shortcuts can be found in
+\begin{itemize}
+\item When working in a \linux X-Term or through a telnet session, the
+keycombination with \key{Alt} may not be available. To remedy this, the 
+\key{Ctrl-Z} combination can be typed first. This means that e.g. \key{Alt-X}
+can be replaced by \key{Ctrl-Z X}.
+\item A complete reference of all keyboard shortcuts can be found in
 \sees{keyshortcuts}.
+\end{itemize}
 \end{remark}
-
+% 
+% Using the mouse
+%
 \subsection{Using the mouse}
 \label{suse:mouseusage}
 If the system is equipped with a mouse, it can be used to work with the
@@ -174,6 +187,24 @@ a \windows machine.
 \end{itemize}
 \end{enumerate}
 \end{remark}
+%
+% Navigating in dialogs
+% 
+\subsection{Navigating in dialogs}
+\label{se:navigatingdialogs}
+Dialogs usually have a lot of elements in them such as buttons, edit fields,
+memo fields, list boxes and so on. To activate one of these fields, it is
+sufficient to:
+\begin{enumerate}
+\item Click on the element with the mouse.
+\item Press the \key{Tab} key till the focus reaches the mouse
+\item Press the highlighted letter in the element's label. If the focus
+is currently on an element that allows to edit, then \key{Alt} should be
+pressed simultaneously with the highlighted letter. For a button, the action
+asociated with the button will then be executed.
+\end{enumerate}
+Inside edit fields, list boxes, memos, navigation is carried out with the
+usual arrow key commands.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Windows
@@ -381,6 +412,8 @@ In the subsequent, all menu entries and their actions are described.
 %
 \subsection{The File menu}
 \label{se:menufile}
+The \menu{File} menu contains all menu items that allow to load and save file, as
+well as to exit the IDE.
 \begin{description}
 \item[New] Opens a new, empty editor window. 
 \item[New from template] Prompts for a template to be used, asks to fill in
@@ -400,26 +433,31 @@ IDE resumes.
 \item[Exit] (\key{ALT-X}) Exits the IDE. If any unsaved files are 
 in the editor, the IDE will ask if these files should be saved.
 \end{description}
+Under the \menu{Exit} menu appear some filenames of recently used files.
+These entries can be used to quickly reload these files in the editor.
+
 %
 % The edit menu
 %
 \subsection{The Edit menu}
 \label{se:menuedit}
+The \menu{Edit} menu contains entries for accessing the clipboard, and
+undoing or redoing editing actions. Most of these functions have shortcut
+keys associated with them.
 \begin{description}
 \item[Undo] (\key{ALT-BkSP})
 Undo the last editing action. The editing actions are stored in a buffer,
 selecting this mechanism will move backwards through this buffer, i.e.
-multiple undo levels are possible.
+multiple undo levels are possible. The selection is not preserved, though.
 \item[Redo] Redo the last action that was previously undone. Redo can redo
 multiple undone actions. 
-\item[Dump undo]
-Clears the undo buffer. After this action, the undo and redo menu will be 
-unavailable till new editing actions have taken place.
-\item[Undo all]
-Undo all actions in the undo buffer. If a new empty file was started, this
-action should clear the window contents again.
-\item[Redo all]
-Redo all editing actions that were undone.
+%\item[Dump undo]
+%Shows the contents of the UNDO list in the messages window.
+%\item[Undo all]
+%Undo all actions in the undo buffer. If a new empty file was started, this
+%action should clear the window contents again.
+%\item[Redo all]
+%Redo all editing actions that were undone.
 \item[Cut] (\key{Shift-DEL}) Copy the current selection to the clipboard
 and delete the selection from the text. Any previous clipboard contents is
 lost after this action. After this action, the clipboard contents can be 
@@ -434,11 +472,25 @@ selection.
 \item[Show clipboard] Opens a window in which the current clipboard contents
 is shown.
 \end{description}
+When running an IDE under \windows, the \menu{Edit} menu has two
+additional entries. The IDE maintains a separate clipboard which does 
+not share its contents with the windows clipboard. To access the Windows
+clipboard, the following two entries are also present:
+\begin{description}
+\item[Copy to Windows] this will copy the selection to the Windows
+clipboard. 
+\item[Paster from windows] this will insert the content of the windows
+clipboard (if it contains text) in the edit window at the current cursor
+position.
+\end{description}
+
 %
 % The Search menu
 %
 \subsection{The Search menu}
 \label{se:menusearch}
+The \menu{Search} menu provides acces to the search and replace dialogs, as well as
+access to the symbol browser of the IDE. 
 \begin{description}
 \item[Find] (\key{Ctrl-Q F}) presents the search dialog. A search text 
 can be entered, and when the dialog is closed, the entered text is searched
@@ -450,16 +502,21 @@ text in the active window.
  using  the same parameters.
 \item[Go to line number] (\key{Alt-G}) prompts for a line number, and
 then jumps to this line number.
+\end{description}
+When the program and units are compiled with browse information, then
+the following menu entries are also enabled:
+\begin{description}
 \item[Find procedure]
 Not yet implemented.
 \item[Objects]
-Not yet implemented.
+Asks for the name of an object and opens a browse window for this object.
 \item[Modules]
-Not yet implemented.
+Asks for the name of a module and opens a browse window for this object.
 \item[Globals]
-Not yet implemented.
+Asks for the name of a global symbol and opens a browse window for this object.
 \item[Symbol]
-Not yet implemented.
+Opens a window with all known symbols, so a symbol can be selected. After
+the symbol is selected, a browse window for that symbol is opened.
 \end{description}
 %
 % The Run menu
@@ -467,7 +524,6 @@ Not yet implemented.
 \subsection{The Run menu}
 \label{se:menurun}
 The \menu{Run} menu contains all entries related to running a program,
-
 \begin{description}
 \item[Run] (\key{Ctrl-F9})
 If the sources were modified, compile the program. If the compile is
@@ -496,7 +552,7 @@ debugged, the debug session is aborted, and the running program is killed.
 %
 \subsection{The Compile menu}
 \label{se:menucompile}
-The Compile menu contains all entries related to compiling a program or
+The \menu{Compile} menu contains all entries related to compiling a program or
 unit.
 \begin{description}
 \item[Compile] (\key{Alt-F9}) Compiles the contents of the active window,
@@ -526,6 +582,8 @@ during the last compile.
 %
 \subsection{The Debug menu}
 \label{se:menudebug}
+The \menu{Debug} menu contains menu entries to aid in debugging a program, such as
+setting breakpoints and watches. 
 \begin{description}
 \item[Output]
 \item[User screen] (\key{Alt-F5}) switches to the screen as it was last
@@ -555,6 +613,8 @@ directly.
 %
 \subsection{The Tools menu}
 \label{se:menutools}
+The \menu{Tools} menu defines some standard tools. If new tools are defined by the
+user, they are appended to this menu as well.
 \begin{description}
 \item[Messages] (\key{F11}) Show the messages window. 
 This window contains the output from one of the tools. For more information,
@@ -572,10 +632,12 @@ Displays the calculator. For more information, see \sees{calculator}
 \sees{asciitable}
 \end{description}
 %
-% The Search menu
+% The Options menu
 %
 \subsection{The Options menu}
 \label{se:menuoptions}
+The \menu{Options} menu is the entry point for all dialogs that are used to set
+options for compiler and IDE, as well as the user preferences.
 \begin{description}
 \item[Mode] Presents a dialog to set the current mode of the compiler. The
 current mode is shown at the right of the menu entry. For more information,
@@ -636,12 +698,14 @@ Save the current options in the default file.
 Saves the current options in an alternate file. A file selection dialog box
 will be presented in which the alternate settings file can be entered.
 \end{description}
+Please note that options are not saved automatically, they should be saved
+explicitly with the \menu{Options|Save} command.
 %
 % The window menu
 %
 \subsection{The Window menu}
 \label{se:menuwindow}
-The Window menu provides access to some window functions. More information
+The \menu{Window} menu provides access to some window functions. More information
 on all these functions can be found in \sees{windows}
 \begin{description}
 \item[Tile]
@@ -672,6 +736,8 @@ Redraws the screen.
 %
 \subsection{The Help menu}
 \label{se:menuhelp}
+The \menu{Help} menu provides entry points to all the help functionality of
+the IDE, as well as the entry to customize the help system.
 \begin{description}
 \item[Contents]
 Shows the help table of contents
@@ -685,55 +751,10 @@ Jumps to the previously visited topic.
 Displays help on using the help system.
 \item[Files]
 Allows to configure the help menu. Here help files can be added to the help
-system.
+system. 
 \item[About]
 Displays information about the IDE. See \sees{about} for more information.
 \end{description}
-
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% The help system
-\section{The help system}
-More information on how to handle the IDE, or about the use of various
-calls in the RTL, explanations regarding the syntax of a pascal statement,
-can be found in the \emph{help system}. The help system is activated
- by pressing F1.
-
-\subsection{Navigating in the help system}
-The help system contains hyperlinks which can be accessed by clicking
-them with the mouse. Alternativly, \key{Tab} and \key{Shift-Tab}
-can be used to move between the different hyperlinks of a page
-and the \key{Enter} key can be used to select them.
-
-The contents of the help system is displayed, if \key{Shift-F1} is
-pressed. To go back to the last help topic, \key{press Alt-F1}. 
-This also works if the help window isn't displayed on the desktop.
-
-\subsection{Working with help files}
-The IDE contains a help system which can display HTML files
-as well as the TPH format known from \tp. The HTML viewer of the 
-help system is limited, it can only handle the most basic HTML files 
-not including graphics, since it is only designed to display the \fpc help 
-files \footnote{...but feel free to improve it and send patches to the 
-\fpc development team...}.
-
-The menu item \menu{Help|Files} permits you to add and delete
-help files.
-
-A new file can be added with the \emph{new} button. The IDE will display
-a prompt, in which the location of the help file should be entered.
-If it is an HTML file, a dialog box will be displayed
-which asks for a title. This title will then be included in the
-contents of help.
-
-A help file can be deleted from the help system (it is \emph{not} deleted 
-from the hard disk) using the \emph{delete} button.
-
-\subsection{The about dialog}
-\label{se:about}
-The \emph{about dialog} (\menu{Help|About...}) shows some information
-about the IDE, such as the version number, the date it was built, what
-compiler and debugger it uses. When reporting bugs about the IDE, please 
-It also contains copyright information.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Editing text
@@ -864,7 +885,7 @@ The list of keywords that can be completed can be maintained here.
 The code completion dialog.
 \htmladdimg{../pics/ide/codecomp.png}
 \end{htmlonly}
-\begin{latexonly}
+[A\begin{latexonly}
 The code completion dialog is shown in \seefig{codecomp}.
 \begin{figure}[ht]
 \caption{The code completion dialog.}\label{fig:codecomp}
@@ -997,7 +1018,9 @@ the search text will be replaced.
 If the dialog is closed with the 'Change All' button, all occurrences of 
 the search text will be replaced.
 
-\subsection{The symbol browser}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% The symbol browser
+\section{The symbol browser}
 \label{se:browser}
 The symbol browser allows to find all occurrences of a symbol. A symbol 
 can be a variable, type, procedure or constant that occurs in your program.
@@ -1296,12 +1319,12 @@ the final reference is of course the GDB manual itself.
 
 \begin{htmlonly}
 The GDB window looks as follows:
-\htmladdimg{../pics/ide/watch.png}
+\htmladdimg{../pics/ide/gdbwin.png}
 \end{htmlonly}
 \begin{latexonly}
 The GDB window is shown in \seefig{gdbwin}.
 \begin{figure}[ht]
-\caption{The call stack window.}\label{fig:gdbwin}
+\caption{The GDB window.}\label{fig:gdbwin}
 \ifpdf
 \epsfig{file=pics/ide/gdbwin.png,width=\textwidth}
 \else
@@ -1310,85 +1333,199 @@ The GDB window is shown in \seefig{gdbwin}.
 \end{figure}
 \end{latexonly}
 
-
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % The tools menu
-\section{The tools menu}
+\section{The Tools menu}
 \label{se:toolsmenu}
-The tools menu provideseasy access to external tools. Further,
-it contains two other probaly helpful tools for programmers: an
-ascii table and a calculator.
+The tools menu provides easy access to external tools. It also has
+three pre-defined tools for programmers: an ASCII table,  a grep tool
+and a calculator. The output of the external tools can be accessed through
+this menu as well.
 
+%
+% The messages window.
+%
 \subsection{The messages window}
 \label{se:toolsmessages}
 The output of the external utilies is redirected by the IDE and it
 will be displayed in the message window. The message window is
 displayed automatically, if an external tool was run. The
-messages window can be also display manual by the selecting the
-menu item \var{Tools|Messages} or by pressing the key \key{F11}.
+messages window can be also displayed manually by the selecting the
+menu item \menu{Tools|Messages} or by pressing the key \key{F11}.
 
-If the output of the tools contains filenames and line numbers,
-you can goto the source line by pressing \key{Enter} or
-double clicking the output line. To trace the source, press
-\key{Space}. The difference between goto and tracking is that
-goto closes the message window while tracking keeps the message
-window active and the source file is displayed only in the background.
-
+\begin{htmlonly}
+The messages window looks as follows:
+\htmladdimg{../pics/ide/messages.png}
+\end{htmlonly}
+\begin{latexonly}
+The messages window is shown in \seefig{messages}.
+\begin{figure}[ht]
+\caption{The messages window.}\label{fig:messages}
+\ifpdf
+\epsfig{file=pics/ide/messages.png,width=\textwidth}
+\else
+\epsfig{file=pics/ide/messages.eps,width=\textwidth}
+\fi
+\end{figure}
+\end{latexonly}
+If the output of the tool contains filenames and line numbers,
+the messages window can be used to navigate the source as in a browse
+window:
+\begin{enumerate}
+\item Pressing \key{Enter} or double clicking the output line will jump
+to the specified source line and close the messages window.
+\item Pressing the space bar will jump to the specified source line, but
+will leave the messages window open, with the focus on it. This allows to
+quickly select another message line with the arrow keys and jump to 
+another location in the sources.
+\end{enumerate}
 The algorithm which extracts the file names and line numbers from
 the tool output is quite sophisticated, but in some cases it may
-fail. In this case, please refer the sources of the IDE.
-
-\subsection{GREP}
+fail\footnote{Suggestions for improvement, or better yet, patches
+that improve the algorithm, are always welcome.}.
+%
+% Grep
+%
+\subsection{Grep}
 \label{se:grep}
-One external tool in the Tools menu is already predefined: an
-menu item to call the \file{grep} utility (\var{Tools|Grep} or
-\key{Shift-F2}). \file{grep} search for a given string in files and
+One external tool in the Tools menu is already predefined: a
+menu item to call the \file{grep} utility (\menu{Tools|Grep} or
+\key{Shift-F2}). \file{Grep} searches for a given string in files and
 returns the lines which contain the string. The search string can
-be even a regular expression (see \sees{regexpr}).
+be even a regular expression. For this menu item to work, the
+\file{grep} program must be installed, since it does not come with \fpc.
 
-\subsection{The ascii table}
+The messages window displayed in \seefig{messages} in the previous 
+section shows the output of a typical \file{grep} session. The messages
+window can be used in combination with \file{grep} to find special
+occurrences in the text.
+
+\file{Grep} supports regular expressions. A regular expression is a 
+string with sepcial characters which describe a whole class of 
+expressions. The command line in \dos or \linux have limited 
+support for regular expressions: enteringa \var{ls *.pas} 
+(or \var{dir *.pas}) to get a list of all pascal files in a
+directory. \file{*.pas} is something similiar to regular expression. 
+It uses a wildcard to describe a whole class of strings: these which 
+end with "\file{.pas}". 
+Regular expressions offer much more: for example \var{[A-Z][0-9]+} 
+describes all strings which begin with a upper case letter followed by
+one or more digits.
+
+It is outside the scope of this manual to describe regular expressions
+in great detail. Users of a \linux system can get more information on grep
+using \var{man grep} on the command-line.
+%
+% The ascii table.
+%
+\subsection{The ASCII table}
 \label{se:asciitable}
-The tools menu provides also an ascii table (\var{Tools|Ascii table},
-it allows you to lookup ascii codes as well as
-inserting chars into the window which was active when calling the
-ascii chart. To get the ascii code of a char move the blocking block
-cursor on this char or click with the mouse on it. To insert a
-char into an editor window, double click it with the mouse
-or press \key{Enter} while the cursor is on it.
+The tools menu provides also an ASCII table (\menu{Tools|Ascii table}),
+The ascii table can be used to look up ASCII codes as well as
+inserting characters into the window which was active when invoking the
+table. To get the ASCII code of a char move the cursor on this char 
+or click with the mouse on it. To insert a
+char into an editor window either:
+\begin{enumerate}
+\item using the mouse, double click it,
+\item using the keyboard,  press \key{Enter} while the cursor is on it.
+\end{enumerate}
+This is especially useful for pasting graphical characters in a constant
+string.
 
+The ASCII table remains active till another window is explicitly activated,
+thus mulptiple characters can be inserted at once.
+\begin{htmlonly}
+The ASCII table looks as follows:
+\htmladdimg{../pics/ide/ascii.png}
+\end{htmlonly}
+\begin{latexonly}
+The ASCII table is shown in \seefig{asciitable}.
+\begin{figure}[ht]
+\caption{The ASCII table.}\label{fig:asciitable}
+\ifpdf
+\epsfig{file=pics/ide/ascii.png}
+\else
+\epsfig{file=pics/ide/ascii.eps}
+\fi
+\end{figure}
+\end{latexonly}
+
+%
+% The calculator
+%
 \subsection{The calculator}
 \label{se:calculator}
-The calculator allows you to do quickly some calculations. It doesn't
-take care of operator precedence, so be careful. For more information
-about the supported operations, see table \seet{calculatorcommands}.
+The calculator allows to do some quick calculations. It is a simple
+calculator, since it does not take care of operator precedence, and
+bracketing of operations is not (yet) supported.
 
-\begin{FPCltable}{p{5cm}lll}{Calculator commands}{calculatorcommands}
-Operation & Button & Key \\
-\hline
+The result of the calculations can not yet be
+pasted into the text, hopefully some future version of the IDE will support
+pasting the result into the text.
+
+\begin{htmlonly}
+The calculator dialog looks as follows:
+\htmladdimg{../pics/ide/calc.png}
+\end{htmlonly}
+\begin{latexonly}
+The calculator dialog is shown in \seefig{calculator}.
+\begin{figure}[ht]
+\caption{The calculator dialog.}\label{fig:calculator}
+\ifpdf
+\epsfig{file=pics/ide/calc.png}
+\else
+\epsfig{file=pics/ide/calc.eps}
+\fi
+\end{figure}
+\end{latexonly}
+The calculator supports all basic mathematical operations such as
+addition, substraction, division and multiplication. They are summarized in
+\seet{calculatorbasic}.
+\begin{FPCltable}{p{8cm}lll}{Advanced calculator commands}{calculatorbasic}
+Operation & Button & Key \\ \hline
 Add two numbers & \var{+} & \key{+} \\
 Subtract two numbers & \var{\-} & \key{\-} \\
 Multiply two numbers & \var{*} & \key{*} \\
 Divide two numbers & \var{/} & \key{/} \\
+Delete the last typed digit & \var{<-} & \key{Backspace} \\
+Delete the display & \var{C} & \key{C} \\
+Change the sign & \var{+\-} & \\
+Do per cent calculation & \var{\%} & \key{\%} \\ \hline
+Get result of operation & \var{=} & \key{Enter} \\ \hline
+\end{FPCltable}
+
+But also more sophisticated mathematical operations such as exponentiation
+and logarithms are supported. The available mathematical calculations are
+shown in \seet{calculatoradvanced}.
+\begin{FPCltable}{p{8cm}lll}{Advanced calculator commands}{calculatoradvanced}
+Operation & Button & Key \\ \hline
 Calculate power & \var{x\^y} & \\
+Calculate the reciproke value & \var{1/x} & \\
+Calculate the square root & \var{sqr} & \\
+Calulate the natural logarithm &  \var{log} & \\
+Square the display contents & \var{x\^2} & \\ \hline.
+\end{FPCltable}
+
+Like many calculators, the calculator in the IDE also supports storing
+a single value in memory, and several operations can be done on this memory
+value. The available operations are listed in \seet{calculatormemory}
+\begin{FPCltable}{p{8cm}lll}{Advanced calculator commands}{calculatormemory}
+Operation & Button & Key \\ \hline
 Add the displayed number to the memory & \var{M+} & \\
 Subtract the displayed number from the memory & \var{M-} & \\
 Move the memory contents to the display & \var{M->} & \\
 Move the display contents to the memory & \var{M<-} & \\
-Exchange display and memory contents & \var{M<->} & \\
-Square the display contents & \var{x\^2} & \\
-Calculate the reciproke value & \var{1/x} & \\
-Calculate the square root & \var{sqr} & \\
-Calulate the natural logarithm &  \var{log} & \\
-Delete the last typed digit & \var{<-} & \key{Backspace} \\
-Delete the display & \var{C} & \key{C} \\
-Change the sign & \var{+\-} & \\
-Get result of operation & \var{=} & \key{Enter} \\
-Do per cent calculation & \var{\%} & \key{\%}
+Exchange display and memory contents & \var{M<->} & \\ \hline
 \end{FPCltable}
-
+%
+% Adding new tools
+%
 \subsection{Adding new tools}
 \label{se:addingtools}
-%%%!!!!!!!!!!!!!!
+The tools menu can be extended with any external program which is command-line
+oriented. The output of such a program will be caught and displayed in the 
+messages window.
 
 \subsection{Meta parameters}
 When specifing the command line for the called tool, meta parameters can
@@ -1412,13 +1549,13 @@ by it's contents before passing the command line to the tool.
 \item[\$NAMEEXT]
 \item[\$NOSWAP]
 \item[\$DRIVE]
-\item[\$PROMPT]
-\item[\$SAVE]
+\item[\$PROMPT] prompt for a program argument.
+\item[\$SAVE] 
 \item[\$SAVE\_ALL]
 \item[\$SAVE\_CUR]
 \item[\$SAVE\_PROMPT]
 \item[\$WRITEMSG]
-\end{description}
+\end{description}	
 
 \subsection{Building your own tool command line dialog box}
 %%%!!!!!!!!!!!!!!
@@ -1547,38 +1684,118 @@ by the browser
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% Trouble shooting
-\section{Trouble shooting}
-%%%!!!!!!!!!!!!!!
+% The help system
+\section{The help system}
 
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% Regular expressions
-\section{Regular expressions}
-\label{se:regexpr}
-A regular expression is a string with sepcial characters which describes 
-a whole class of expressions. You may know this from the command line
-where can enter a \file{ls *.pas} (or \file{dir *.pas}) to get a list
-of all pascal files in a directory. \file{*.pas} is something 
-similiar to regular expression. It uses a wildcard to describe a whole 
-class of strings: these which end with "\file{.pas}". The possibilty 
-of the wildcards in the command line are especially on DOS very limited. 
-Regular expressions offer much more: for example \file{[A-Z][0-9]+} 
-describes all strings which begin with a upper case letter followed by
-one or more digits (you'll understand this regular expression later).
+More information on how to handle the IDE, or about the use of various
+calls in the RTL, explanations regarding the syntax of a pascal statement,
+can be found in the \emph{help system}. The help system is activated
+by pressing \key{F1}.
 
-%%%!!!!!!!!!!
+\subsection{Navigating in the help system}
+The help system contains hyperlinks; these are sensitive locations that
+lead to another topic in the help system. They are marked by a different
+color. The hyperlinks can be activated in 2 ways:
+\begin{enumerate}
+\item by clicking them with the mouse,
+\item by using the \key{Tab} and \key{Shift-Tab} keys to move between 
+the different hyperlinks of a page and the \key{Enter} key can be used 
+to activate them.
+\end{enumerate}
+
+The contents of the help system is displayed, if \key{Shift-F1} is
+pressed. To go back to the previous help topic, press \key{Alt-F1}. 
+This also works if the help window isn't displayed on the desktop; the help
+window will then be activated.
+
+%
+% Working with help files.
+%
+\subsection{Working with help files}
+The IDE contains a help system which can display the following file formats:
+\begin{description}
+\item[TPH] The help format for the Turbo Pascal help viewer.
+\item[INF] The OS/2 help format.
+\item[NG] The NGHelp format.
+\item[HTML] HTML files. 
+The HTML viewer of the  help system is limited, it can only handle the 
+most basic HTML files not including graphics, since it is only designed 
+to display the \fpc help files \footnote{...but feel free to improve it and send patches to the 
+\fpc development team...}.
+\end{description}
+The menu item \menu{Help|Files} permits you to add and delete
+help files.
+\begin{htmlonly}
+The Help files dialog looks as follows:
+\htmladdimg{../pics/ide/helpfils.png}
+\end{htmlonly}
+\begin{latexonly}
+The help files dialog is displayed in \seefig{helpfiles}.
+\begin{figure}[ht]
+\caption{The help files dialog.}\label{fig:helpfiles}
+\ifpdf
+\epsfig{file=pics/ide/helpfils.png,width=\textwidth}
+\else
+\epsfig{file=pics/ide/helpfils.eps,width=\textwidth}
+\fi
+\end{figure}
+\end{latexonly}
+The dialogs lists the files that will be presented in thetable of contents
+window of the help system. Each entry has a small descriptive title and a
+filename next to it. The following actions are available when adding help
+files:
+\begin{description}
+\item[New] Adds a new file. IDE will display a prompt, in which the 
+location of the help file should be entered. 
+
+If the added file is an HTML file, a dialog box will be displayed
+which asks for a title. This title will then be included in the
+contents of help.
+\item[Delete] Deletes the currently highlighted file from the help system.
+It is \emph{not} deleted from the hard disk, only the help system entry is
+removed.
+\item[Cancel] Discards all changes and closes the dialog.
+\item[OK] Saves the changes and closes the dialog.
+\end{description}
+
+The \fpc documentation in HTML format can be added to the IDE's help system,
+this way the documentation can be viewed from within the IDE.
+
+%
+% The about dialog.
+%
+\subsection{The about dialog}
+\label{se:about}
+The \emph{about dialog} (\menu{Help|About...}) shows some information
+about the IDE, such as the version number, the date it was built, what
+compiler and debugger it uses. When reporting bugs about the IDE, please 
+It also contains copyright information.
+
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Keyboard shortcuts
 \section{Keyboard shortcuts}
 \label{se:keyshortcuts}
-
 A lot of keyboard shortcuts used by the IDE are compatible with 
 WordStar and should be well known to Turbo Pascal users.
 
+Below are the following tables:
+\begin{enumerate}
+\item In \seet{shortcutsgeneral} some shortcuts for handling the IDE windows
+and Help are listed.
+\item In \seet{shortcutscompiler} the shortcuts for compiling, running and
+debugging a program are presented.
+\item In \seet{shortcutsnavigation} the navigation keys are described.
+\item In \seet{shortcutsedit} the editing keys are listed.
+\item In \seet{shortcutsblock} lists all block command shortcuts.
+\item In \seet{shortcutsselection} all selection-changing shortcuts are 
+presented.
+\item In \seet{shortcutsmisc} some general shortcuts are presented, 
+which do not fit in the previous categories.
+\end{enumerate}
+
 \begin{FPCltable}{p{5cm}ll}{General}{shortcutsgeneral}
-Command & Key shortcut & Alternative \\
-\hline
+Command & Key shortcut & Alternative \\ \hline
 Help & \key{F1} & \\
 Goto last help topic & \key{Alt-F1} & \\
 Search word at cursor position in help & \key{Ctrl-F1} & \\
@@ -1592,9 +1809,10 @@ Menu & \key{F10} & \\
 Local menu & \key{Alt-F10} & \\
 List of windows & \key{Alt-0} & \\
 Active another window & \key{Alt-<digit>} & \\
-Call \var{GREP} utility & \key{Shift-F2} & \\
+Call \file{grep} utility & \key{Shift-F2} & \\
 Exit IDE & \key{Alt-X} & \\
 \end{FPCltable}
+
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \begin{FPCltable}{p{5cm}ll}{Compiler}{shortcutscompiler}
 Command & Key shortcut & Alternative \\
@@ -1613,8 +1831,9 @@ Compile the active source file & \key{Alt-F9} & \\
 Message & \key{F11} & \\
 Compiler messages & \key{F12} & \\
 \end{FPCltable}
+
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\begin{FPCltable}{p{5cm}ll}{Text navigation}{shortcutstextnavigation}
+\begin{FPCltable}{p{5cm}ll}{Text navigation}{shortcutsnavigation}
 Command & Key shortcut & Alternative \\
 \hline
 Char left & \key{Arrow left} & \key{Ctrl-S} \\
@@ -1647,8 +1866,9 @@ Delete word & \key{Ctrl-T} & \\
 Insert line & \key{Ctrl-N} & \\
 Toggle insert mode & \key{Insert} & \key{Ctrl-V} \\
 \end{FPCltable}
+
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\begin{FPCltable}{p{5cm}ll}{Block commands}{shortcutsblockcommands}
+\begin{FPCltable}{p{5cm}ll}{Block commands}{shortcutsblock}
 Command & Key shortcut & Alternative \\
 \hline
 Goto Beginning of selected text & \key{Ctrl-Q-B} & \\
@@ -1667,13 +1887,14 @@ Insert text from clipboard & \key{Shift-Insert} & \\
 Insert file & \key{Ctrl-K-R} & \\
 Write selected text to file & \key{Ctrl-K-W} & \\
 \end{FPCltable}
+
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\begin{FPCltable}{p{5cm}ll}{Change selection}{changeselection}
+\begin{FPCltable}{p{5cm}ll}{Change selection}{shortcutsselection}
 Command & Key shortcut & Alternative \\
 \hline
 Mark beginning of selected text & \key{Ctrl-K-B} & \\
 Mark end of selected text& \key{Ctrl-K-K} & \\
-Remove selection & \key{Ctrl-K-H} & \\
+Remove selection & \key{Ctrl-K-Y} & \\
 Extend selection one char to the left & \key{Shift-Arrow left} & \\
 Extend selection one char to the right & \key{Shift-Arrow right} & \\
 Extend selection to the beginning of the line & \key{Shift-Pos1} & \\
@@ -1690,8 +1911,9 @@ Extend selection to the beginning of the file & \key{Ctrl-Shift-Pos1} &
 Extend selection to the end of the file & \key{Ctrl-Shift-End} &
 \key{Ctrl-Shift-PageUp} \\
 \end{FPCltable}
+
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\begin{FPCltable}{p{5cm}ll}{Misc. commands}{shortcutsmisccommands}
+\begin{FPCltable}{p{5cm}ll}{Misc. commands}{shortcutsmisc}
 Command & Key shortcut & Alternative \\
 \hline
 Save file & \key{F2} & \key{Ctrl-K-S} \\
@@ -1705,7 +1927,10 @@ Undo & \key{Alt-Backspace} & \\
 \end{FPCltable}
 %
 %  $Log$
-%  Revision 1.1.2.6  2000-11-18 00:06:11  michael
+%  Revision 1.1.2.7  2000-11-19 23:08:32  michael
+%  + Further implementation.
+%
+%  Revision 1.1.2.6  2000/11/18 00:06:11  michael
 %  + Added code templates
 %  + Added syntax highlighting
 %  + Added codecompletion
