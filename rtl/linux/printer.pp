@@ -98,9 +98,9 @@ begin
       halt(127);
      pp:=p;
      pp^:=@lpr[1];
-     pp:=pp+4;
+     inc(pp);
      pp^:=@f[1];
-     pp:=pp+4;
+     inc(pp);
      pp^:=nil;
      Execve(lpr,p,envp);
      { In trouble here ! }
@@ -254,7 +254,10 @@ end.
 
 {
   $Log$
-  Revision 1.3  1998-11-16 10:21:29  peter
+  Revision 1.4  1999-09-08 16:14:43  peter
+    * pointer fixes
+
+  Revision 1.3  1998/11/16 10:21:29  peter
     * fixes for H+
 
   Revision 1.2  1998/05/06 12:35:26  michael

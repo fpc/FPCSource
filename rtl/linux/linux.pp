@@ -725,12 +725,13 @@ var
 begin
   getmem(pp,4*4);
   temp:='/bin/sh'#0'-c'#0+prog+#0;
-  pp^:=@temp[1];
-  p:=pp+4;
+  p:=pp;
+  p^:=@temp[1];
+  inc(p);
   p^:=@temp[9];
-  p:=p+4;
+  inc(p);
   p^:=@temp[12];
-  p:=p+4;
+  inc(p);
   p^:=Nil;
   CreateShellArgV:=pp;
 end;
@@ -746,13 +747,14 @@ var
 begin
   getmem(pp,4*4);
   temp:='/bin/sh'#0'-c'#0+prog+#0;
-  GetMem(PP[0],Length(Temp));
-  Move(@Temp[1],PP[0]^,Length(Temp));
-  p:=pp+SizeOf(Pointer);
+  p:=pp;
+  GetMem(p^,Length(Temp));
+  Move(@Temp[1],p^^,Length(Temp));
+  inc(p);
   p^:=@pp[0][8];
-  p:=p+SizeOf(Pointer);
+  inc(p);
   p^:=@pp[0][11];
-  p:=p+SizeOf(Pointer);
+  inc(p);
   p^:=Nil;
   CreateShellArgV:=pp;
 end;
@@ -907,7 +909,6 @@ begin
   p:=StringToPPChar(ToDo);
   if (p=nil) or (p^=nil) then
    exit;
-
   ExecVE(p^,p,EP);
 end;
 
@@ -1000,6 +1001,8 @@ begin
   WaitPid(pid,@temp,0);{Linuxerror is set there}
   Shell:=temp;{ Return exit status }
 end;
+
+
 
 Function Shell(const Command:AnsiString):Longint;
 {
@@ -1476,7 +1479,6 @@ var
   sr : Syscallregs;
 begin
   if (cmd in [F_GetFd,F_GetFl,F_GetOwn]) then
-
    begin
      sr.reg2:=Fd;
      sr.reg3:=cmd;
@@ -1765,7 +1767,6 @@ end;
 
 
 Function  FRename (OldName,NewName : Pchar) : Boolean;
-
 begin
   FRename:=Sys_rename(OldName,NewName)=0;
   LinuxError:=Errno;
@@ -1773,7 +1774,6 @@ end;
 
 
 Function  FRename (OldName,NewName : String) : Boolean;
-
 begin
   OldName:=OldName+#0;
   NewName:=NewName+#0;
@@ -1826,10 +1826,10 @@ Function  Dup(oldfile:longint;var newfile:longint):Boolean;
 var
   sr : Syscallregs;
 begin
- sr.reg2:=oldfile;
- newfile:=Syscall(Syscall_nr_dup,sr);
- linuxerror:=errno;
- Dup:=(LinuxError=0);
+  sr.reg2:=oldfile;
+  newfile:=Syscall(Syscall_nr_dup,sr);
+  linuxerror:=errno;
+  Dup:=(LinuxError=0);
 end;
 
 
@@ -1842,10 +1842,10 @@ Function Dup(var oldfile,newfile:text):Boolean;
   close_on_exit flag.
 }
 begin
- flush(oldfile);{ We cannot share buffers, so we flush them. }
- textrec(newfile):=textrec(oldfile);
- textrec(newfile).bufptr:=@(textrec(newfile).buffer);{ No shared buffer. }
- Dup:=Dup(textrec(oldfile).handle,textrec(newfile).handle);
+  flush(oldfile);{ We cannot share buffers, so we flush them. }
+  textrec(newfile):=textrec(oldfile);
+  textrec(newfile).bufptr:=@(textrec(newfile).buffer);{ No shared buffer. }
+  Dup:=Dup(textrec(oldfile).handle,textrec(newfile).handle);
 end;
 
 
@@ -1866,11 +1866,11 @@ Function Dup2(oldfile,newfile:longint):Boolean;
 var
   sr : Syscallregs;
 begin
- sr.reg2:=oldfile;
- sr.reg3:=newfile;
- SysCall(Syscall_nr_dup2,sr);
- linuxerror:=errno;
- Dup2:=(LinuxError=0);
+  sr.reg2:=oldfile;
+  sr.reg3:=newfile;
+  SysCall(Syscall_nr_dup2,sr);
+  linuxerror:=errno;
+  Dup2:=(LinuxError=0);
 end;
 
 
@@ -2023,12 +2023,14 @@ end;
 Procedure OpenPipe(var F:Text);
 begin
   case textrec(f).mode of
-   fmoutput : if textrec(f).userdata[1]<>P_OUT then
-               textrec(f).mode:=fmclosed;
-    fminput : if textrec(f).userdata[1]<>P_IN then
-               textrec(f).mode:=fmclosed;
-  else
-   textrec(f).mode:=fmclosed;
+    fmoutput :
+      if textrec(f).userdata[1]<>P_OUT then
+        textrec(f).mode:=fmclosed;
+    fminput :
+      if textrec(f).userdata[1]<>P_IN then
+        textrec(f).mode:=fmclosed;
+    else
+      textrec(f).mode:=fmclosed;
   end;
 end;
 
@@ -2036,13 +2038,15 @@ end;
 Procedure IOPipe(var F:text);
 begin
   case textrec(f).mode of
-   fmoutput : begin
-                { first check if we need something to write, else we may
-                  get a SigPipe when Close() is called (PFV) }
-                if textrec(f).bufpos>0 then
-                 Sys_write(textrec(f).handle,pchar(textrec(f).bufptr),textrec(f).bufpos);
-              end;
-    fminput : textrec(f).bufend:=Sys_read(textrec(f).handle,pchar(textrec(f).bufptr),textrec(f).bufsize);
+    fmoutput :
+      begin
+        { first check if we need something to write, else we may
+          get a SigPipe when Close() is called (PFV) }
+        if textrec(f).bufpos>0 then
+          Sys_write(textrec(f).handle,pchar(textrec(f).bufptr),textrec(f).bufpos);
+      end;
+    fminput :
+      textrec(f).bufend:=Sys_read(textrec(f).handle,pchar(textrec(f).bufptr),textrec(f).bufsize);
   end;
   textrec(f).bufpos:=0;
 end;
@@ -2322,12 +2326,13 @@ begin
       end;
      getmem(pp,sizeof(pchar)*4);
      temp:='/bin/sh'#0'-c'#0+prog+#0;
-     pp^:=@temp[1];
-     p:=pp+sizeof(pchar);
+     p:=pp;
+     p^:=@temp[1];
+     inc(p);
      p^:=@temp[9];
-     p:=p+sizeof(pchar);
+     inc(p);
      p^:=@temp[12];
-     p:=p+sizeof(pchar);
+     inc(p);
      p^:=Nil;
      Execve('/bin/sh',pp,envp);
      halt(127);
@@ -2380,7 +2385,6 @@ var
   pipo : text;
   pid  : longint;
   pl   : ^Longint;
-
 begin
   LinuxError:=0;
   AssignPipe(streamin,pipo);
@@ -2417,19 +2421,20 @@ begin
    end
   else
    begin
-   { we're in the parent}
-   close(pipo);
-   close(pipi);
-   {Save the process ID - needed when closing }
-   pl:=@(textrec(StreamIn).userdata[2]);
-   pl^:=pid;
-   textrec(StreamIn).closefunc:=@PCloseText;
-   {Save the process ID - needed when closing }
-   pl:=@(textrec(StreamOut).userdata[2]);
-   pl^:=pid;
-   textrec(StreamOut).closefunc:=@PCloseText;
+     { we're in the parent}
+     close(pipo);
+     close(pipi);
+     {Save the process ID - needed when closing }
+     pl:=@(textrec(StreamIn).userdata[2]);
+     pl^:=pid;
+     textrec(StreamIn).closefunc:=@PCloseText;
+     {Save the process ID - needed when closing }
+     pl:=@(textrec(StreamOut).userdata[2]);
+     pl^:=pid;
+     textrec(StreamOut).closefunc:=@PCloseText;
    end;
 end;
+
 
 function AssignStream(var StreamIn, StreamOut, StreamErr: Text; const prog: String): LongInt;
 {
@@ -2577,7 +2582,7 @@ Begin
         if strlcomp(@p[1],(ep^),length(p))=0 then
          found:=true
         else
-         ep:=ep+4;
+         inc(ep);
       end;
    end;
   if found then
@@ -2989,10 +2994,10 @@ begin
   while(buf^<>#0) do
    begin
      while (buf^ in [' ',#8,#10]) do
-      buf:=buf+1;
+      inc(buf);
      inc(nr);
      while not (buf^ in [' ',#0,#8,#10]) do
-      buf:=buf+1;
+      inc(buf);
    end;
   getmem(p,nr*4);
   StringToPPChar:=p;
@@ -3007,13 +3012,13 @@ begin
      while (buf^ in [' ',#8,#10]) do
       begin
         buf^:=#0;
-        buf:=buf+1;
+        inc(buf);
       end;
      p^:=buf;
-     p:=p+4;
+     inc(p);
      p^:=nil;
      while not (buf^ in [' ',#0,#8,#10]) do
-      buf:=buf+1;
+      inc(buf);
    end;
 end;
 
@@ -3737,7 +3742,10 @@ End.
 
 {
   $Log$
-  Revision 1.45  1999-08-11 22:02:25  peter
+  Revision 1.46  1999-09-08 16:14:41  peter
+    * pointer fixes
+
+  Revision 1.45  1999/08/11 22:02:25  peter
     * removed old integer versions of localtoepoch and epochtolocal, you
       need to use the word versions instead else you got an overloaded bug
 

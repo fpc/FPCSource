@@ -255,7 +255,7 @@ uses sysutils;
       .LINoPush:
          push %esi
          call %edi
-         // 
+         //
       end;
 
     function CallExtendedProc(s : Pointer;Address : Pointer;Value : Extended; INdex,IVAlue : Longint) : Integer;assembler;
@@ -336,7 +336,7 @@ uses sysutils;
     function GetTypeData(TypeInfo : PTypeInfo) : PTypeData;
 
       begin
-         GetTypeData:=PTypeData(TypeInfo)+2+PByte(TypeInfo+1)^;
+         GetTypeData:=PTypeData(pointer(TypeInfo)+2+PByte(pointer(TypeInfo)+1)^);
       end;
 
     function GetPropInfo(TypeInfo : PTypeInfo;const PropName : string) : PPropInfo;
@@ -354,7 +354,7 @@ uses sysutils;
 
               // the class info rtti the property rtti follows
               // immediatly
-              Result:=PPropInfo(@hp^.UnitName)+Length(hp^.UnitName)+1+SizeOF(Word);
+              Result:=PPropInfo(pointer(@hp^.UnitName)+Length(hp^.UnitName)+1+SizeOF(Word));
               for i:=1 to hp^.PropCount do
                 begin
                    // found a property of that name ?
@@ -362,7 +362,7 @@ uses sysutils;
                      exit;
 
                    // skip to next property
-                   Result:=PPropInfo(@Result^.Name)+byte(Result^.Name[0])+1;
+                   Result:=PPropInfo(pointer(@Result^.Name)+byte(Result^.Name[0])+1);
                 end;
               // parent class
               Typeinfo:=hp^.ParentInfo;
@@ -378,7 +378,7 @@ uses sysutils;
             ptstatic:
               IsStoredProp:=CallBooleanFunc(Instance,PropInfo^.StoredProc,0,0);
             ptvirtual:
-              IsStoredProp:=CallBooleanFunc(Instance,(PPointer(Instance.ClassType)+Longint(PropInfo^.StoredProc))^,0,0);
+              IsStoredProp:=CallBooleanFunc(Instance,ppointer(Pointer(Instance.ClassType)+Longint(PropInfo^.StoredProc))^,0,0);
             ptconst:
               IsStoredProp:=LongBool(PropInfo^.StoredProc);
          end;
@@ -409,7 +409,7 @@ uses sysutils;
         Inc(Longint(PropList),SizeOf(Pointer));
         // Point to TP next propinfo record.
         // Located at Name[Length(Name)+1] !
-        TP:=PPropInfo((@TP^.Name)+PByte(@TP^.Name)^+1);
+        TP:=PPropInfo(pointer(@TP^.Name)+PByte(@TP^.Name)^+1);
         Dec(Count);
         end;
       // recursive call for parent info.
@@ -487,9 +487,7 @@ uses sysutils;
             ptstatic:
               Value:=CallIntegerFunc(Instance,PropInfo^.GetProc,Index,IValue);
             ptvirtual:
-              Value:=CallIntegerFunc(Instance,
-                                     (PPointer(Instance.ClassType)+Longint(PropInfo^.GetProc))^,
-                                     Index,IValue);
+              Value:=CallIntegerFunc(Instance,PPointer(Pointer(Instance.ClassType)+Longint(PropInfo^.GetProc))^,Index,IValue);
          end;
          { cut off unnecessary stuff }
          case GetTypeData(PropInfo^.PropType)^.OrdType of
@@ -506,35 +504,33 @@ uses sysutils;
 
       var
         Index,IValue : Longint;
-	DataSize: Integer;
+        DataSize: Integer;
 
       begin
          { cut off unnecessary stuff }
          case GetTypeData(PropInfo^.PropType)^.OrdType of
             otSWord,otUWord: begin
                 Value:=Value and $ffff;
-	        DataSize := 2;
-	      end;
+                DataSize := 2;
+              end;
             otSByte,otUByte: begin
                 Value:=Value and $ff;
-	        DataSize := 1;
-	    end;
-	   else DataSize := 4;
+                DataSize := 1;
+            end;
+           else DataSize := 4;
          end;
          SetIndexValues(PropInfo,Index,Ivalue);
          case (PropInfo^.PropProcs shr 2) and 3 of
             ptfield:
-	      case DataSize of
-	        1: PByte(Pointer(Instance)+Longint(PropInfo^.SetProc))^:=Byte(Value);
-		2: PWord(Pointer(Instance)+Longint(PropInfo^.SetProc))^:=Word(Value);
+              case DataSize of
+                1: PByte(Pointer(Instance)+Longint(PropInfo^.SetProc))^:=Byte(Value);
+                2: PWord(Pointer(Instance)+Longint(PropInfo^.SetProc))^:=Word(Value);
                 4: PLongint(Pointer(Instance)+Longint(PropInfo^.SetProc))^:=Value;
-	      end;
+              end;
             ptstatic:
               CallIntegerProc(Instance,PropInfo^.SetProc,Value,Index,IValue);
             ptvirtual:
-              CallIntegerProc(Instance,
-                              (PPointer(Instance.ClassType)+Longint(PropInfo^.SetProc))^,
-                              Value,Index,IValue);
+              CallIntegerProc(Instance,PPointer(Pointer(Instance.ClassType)+Longint(PropInfo^.SetProc))^,Value,Index,IValue);
          end;
       end;
 
@@ -557,9 +553,7 @@ uses sysutils;
             ptstatic:
               Value:=Pointer(CallIntegerFunc(Instance,PropInfo^.GetProc,Index,IValue));
             ptvirtual:
-              Value:=Pointer(CallIntegerFunc(Instance,
-                                     (PPointer(Instance.ClassType)+Longint(PropInfo^.GetProc))^,
-                                     Index,IValue));
+              Value:=Pointer(CallIntegerFunc(Instance,PPointer(Pointer(Instance.ClassType)+Longint(PropInfo^.GetProc))^,Index,IValue));
          end;
          GetAstrProp:=Value;
       end;
@@ -578,9 +572,7 @@ uses sysutils;
             ptstatic:
              CallSStringFunc(Instance,PropInfo^.GetProc,Index,IValue,Value);
             ptvirtual:
-             CallSSTringFunc(Instance,
-                                     (PPointer(Instance.ClassType)+Longint(PropInfo^.GetProc))^,
-                                     Index,Ivalue,Value);
+             CallSSTringFunc(Instance,PPointer(Pointer(Instance.ClassType)+Longint(PropInfo^.GetProc))^,Index,Ivalue,Value);
          end;
          GetSStrProp:=Value;
       end;
@@ -614,9 +606,7 @@ uses sysutils;
             ptstatic:
               CallIntegerProc(Instance,PropInfo^.SetProc,Longint(Pointer(Value)),Index,IValue);
             ptvirtual:
-              CallIntegerProc(Instance,
-                              (PPointer(Instance.ClassType)+Longint(PropInfo^.SetProc))^,
-                              Longint(Pointer(Value)),Index,IValue);
+              CallIntegerProc(Instance,PPointer(Pointer(Instance.ClassType)+Longint(PropInfo^.SetProc))^,Longint(Pointer(Value)),Index,IValue);
          end;
       end;
 
@@ -633,9 +623,7 @@ uses sysutils;
             ptstatic:
               CallSStringProc(Instance,PropInfo^.GetProc,Value,Index,IValue);
             ptvirtual:
-              CallSStringProc(Instance,
-                              (PPointer(Instance.ClassType)+Longint(PropInfo^.GetProc))^,
-                              Value,Index,IValue);
+              CallSStringProc(Instance,PPointer(Pointer(Instance.ClassType)+Longint(PropInfo^.GetProc))^,Value,Index,IValue);
          end;
     end;
 
@@ -679,9 +667,7 @@ uses sysutils;
             ptstatic:
               Value:=CallExtendedFunc(Instance,PropInfo^.GetProc,Index,IValue);
             ptvirtual:
-              Value:=CallExtendedFunc(Instance,
-                                     (PPointer(Instance.ClassType)+Longint(PropInfo^.GetProc))^,
-                                     Index,IValue);
+              Value:=CallExtendedFunc(Instance,PPointer(Pointer(Instance.ClassType)+Longint(PropInfo^.GetProc))^,Index,IValue);
          end;
          Result:=Value;
       end;
@@ -714,9 +700,7 @@ uses sysutils;
             ptstatic:
               CallExtendedProc(Instance,PropInfo^.SetProc,Value,Index,IValue);
             ptvirtual:
-              CallExtendedProc(Instance,
-                               (PPointer(Instance.ClassType)+Longint(PropInfo^.GetProc))^,
-                               Value,Index,IValue);
+              CallExtendedProc(Instance,PPointer(Pointer(Instance.ClassType)+Longint(PropInfo^.GetProc))^,Value,Index,IValue);
          end;
       end;
 
@@ -759,10 +743,10 @@ uses sysutils;
        //      If PT^.MinValue<0 then Value:=Ord(Value<>0); {map to 0/1}
        PS:=@PT^.NameList;
        While Value>0 Do
-         begin
-         PS:=PS+PByte(PS)^+1;
-         Dec(Value);
-         end;
+        begin
+          PS:=PShortString(pointer(PS)+PByte(PS)^+1);
+          Dec(Value);
+        end;
        Result:=PS^;
       end;
 
@@ -782,7 +766,7 @@ uses sysutils;
           begin
           If PS^=Name then
             Result:=Count;
-          PS:=PS+PByte(PS)^;
+          PS:=PShortString(pointer(PS)+PByte(PS)^);
           Inc(Count);
           end;
       end;
@@ -791,7 +775,10 @@ end.
 
 {
   $Log$
-  Revision 1.26  1999-09-03 15:39:23  michael
+  Revision 1.27  1999-09-08 16:14:43  peter
+    * pointer fixes
+
+  Revision 1.26  1999/09/03 15:39:23  michael
   * Fixes from Sebastian Guenther
 
   Revision 1.25  1999/08/29 22:21:27  michael

@@ -81,7 +81,7 @@
         begin
            { type of self is class of tobject => it points to the vmt }
            { the parent vmt is saved at offset vmtParent              }
-           classparent:=(pclass(self)+vmtParent)^;
+           classparent:=pclass(pointer(self)+vmtParent)^;
         end;
 
       class function TObject.NewInstance : tobject;
@@ -142,13 +142,13 @@
       class function TObject.ClassInfo : pointer;
 
         begin
-           ClassInfo:=(PPointer(self)+vmtTypeInfo)^;
+           ClassInfo:=ppointer(Pointer(self)+vmtTypeInfo)^;
         end;
 
       class function TObject.ClassName : ShortString;
 
         begin
-           ClassName:=PShortString((PPointer(Self)+vmtClassName)^)^;
+           ClassName:=PShortString((Pointer(Self)+vmtClassName)^)^;
         end;
 
       class function TObject.ClassNameIs(const name : string) : boolean;
@@ -182,7 +182,7 @@
            pdword = ^dword;
 
         begin
-           stringmessagetable:=pstringmessagetable((pdword(Self)+vmtMsgStrPtr)^);
+           stringmessagetable:=pstringmessagetable((pointer(Self)+vmtMsgStrPtr)^);
         end;
 
       procedure TObject.Dispatch(var message);
@@ -210,7 +210,7 @@
            while assigned(vmt) do
              begin
                 // See if we have messages at all in this class.
-                p:=pdword(vmt)+vmtDynamicTable;
+                p:=pointer(vmt)+vmtDynamicTable;
                 If Assigned(p) and (Pdword(p)^<>0) then
                   begin
                   msgtable:=pmsgtable(pdword(P)^+4);
@@ -255,7 +255,7 @@
            vmt:=ClassType;
            while assigned(vmt) do
              begin
-                p:=(pdword(vmt)+vmtMsgStrPtr);
+                p:=(pointer(vmt)+vmtMsgStrPtr);
                 If (P<>Nil) and (PDWord(P)^<>0) then
                   begin
                   count:=pdword(pdword(p)^)^;
@@ -330,7 +330,10 @@
 
 {
   $Log$
-  Revision 1.7  1999-07-11 14:10:48  michael
+  Revision 1.8  1999-09-08 16:14:41  peter
+    * pointer fixes
+
+  Revision 1.7  1999/07/11 14:10:48  michael
   + Adaptes Dispatch(STr) to cope with empty/non-existent message tables
 
   Revision 1.6  1999/07/11 14:05:50  michael

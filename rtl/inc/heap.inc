@@ -594,8 +594,9 @@ begin
 { walk free list }
   repeat
     again:=false;
-    { search the freelist }
-    if assigned(freelist) then
+    { search the freelist, not for blocks that fit heapblocks }
+    if assigned(freelist) and
+       (not(heapblocks) or (size>max_size)) then
      begin
        last:=nil;
        hp:=freelist;
@@ -619,18 +620,18 @@ begin
                     freelist:=hp^.next;
                    { insert in chain }
                    s:=(hpsize-size) div 8;
-                   ppointer(hp+size)^:=blocks^[s];
-                   blocks^[s]:=hp+size;
+                   ppointer(pointer(hp)+size)^:=blocks^[s];
+                   blocks^[s]:=pointer(hp)+size;
                    inc(nblocks^[s]);
                  end
                 else
                  begin
-                   (hp+size)^.size:=hpsize-size;
-                   (hp+size)^.next:=hp^.next;
+                   pfreerecord(pointer(hp)+size)^.size:=hpsize-size;
+                   pfreerecord(pointer(hp)+size)^.next:=hp^.next;
                    if assigned(last) then
-                    last^.next:=hp+size
+                    last^.next:=pointer(hp)+size
                    else
-                    freelist:=hp+size;
+                    freelist:=pointer(hp)+size;
                  end;
               end
              else
@@ -829,7 +830,7 @@ begin
          { but now it can also connect the next block !!}
          if p+pfreerecord(p)^.size=pfreerecord(p)^.next then
           begin
-            pfreerecord(p)^.size:=pfreerecord(p)^.size+pfreerecord(p)^.next^.size;
+            inc(pfreerecord(p)^.size,pfreerecord(p)^.next^.size);
 {$ifdef CHECKHEAP}
             dec(freerecord_list_length);
 {$endif CHECKHEAP}
@@ -841,7 +842,7 @@ begin
      hp:=freelist;
      while assigned(hp) do
       begin
-        if p<hp+hp^.size then
+        if p<pointer(hp)+hp^.size then
          begin
 {$ifdef CHECKHEAP}
            writeln('pointer to dispose at ',hexstr(longint(p),8),' has already been disposed');
@@ -849,11 +850,11 @@ begin
            HandleError(204);
          end;
         { connecting two blocks ? }
-        if hp+hp^.size=p then
+        if pointer(hp)+hp^.size=p then
          begin
            inc(hp^.size,size);
            { connecting also to next block ? }
-           if hp+hp^.size=hp^.next then
+           if pointer(hp)+hp^.size=hp^.next then
             begin
               inc(hp^.size,hp^.next^.size);
 {$ifdef CHECKHEAP}
@@ -862,7 +863,7 @@ begin
               hp^.next:=hp^.next^.next;
             end
            else
-            if (hp^.next<>nil) and (hp+hp^.size>hp^.next) then
+            if (hp^.next<>nil) and (pointer(hp)+hp^.size>hp^.next) then
              begin
 {$ifdef CHECKHEAP}
                writeln('pointer to dispose at ',hexstr(longint(p),8),' is too big !!');
@@ -1098,7 +1099,10 @@ end;
 
 {
   $Log$
-  Revision 1.13  1999-08-20 13:26:20  michael
+  Revision 1.14  1999-09-08 16:14:41  peter
+    * pointer fixes
+
+  Revision 1.13  1999/08/20 13:26:20  michael
   + reverted to previous heap
 
   Revision 1.11  1999/05/31 20:36:34  peter

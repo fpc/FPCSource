@@ -886,7 +886,7 @@ Begin
   while (p^<>nil) do
    begin
      inc(envcnt);
-     p:=p+4
+     inc(p);
    end;
   EnvCount := envcnt
 {$ENDIF}
@@ -913,7 +913,7 @@ Begin
   while (i<Index) and (p^<>nil) do
    begin
      inc(i);
-     p:=p+4;
+     inc(p);
    end;
   if p=nil then
    envstr:=''
@@ -1046,7 +1046,10 @@ End.
 
 {
   $Log$
-  Revision 1.12  1999-07-28 23:18:35  peter
+  Revision 1.13  1999-09-08 16:14:41  peter
+    * pointer fixes
+
+  Revision 1.12  1999/07/28 23:18:35  peter
     * closedir fixes, which now disposes the pdir itself
 
   Revision 1.11  1999/07/24 11:18:11  peter

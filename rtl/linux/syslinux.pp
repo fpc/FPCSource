@@ -136,7 +136,7 @@ Begin
   i:=0;
   while (i<l) and (pp^<>nil) do
    begin
-     pp:=pp+4;
+     inc(pp);
      inc(i);
    end;
   if pp^<>nil then
@@ -724,7 +724,10 @@ End.
 
 {
   $Log$
-  Revision 1.25  1999-07-28 23:18:36  peter
+  Revision 1.26  1999-09-08 16:14:43  peter
+    * pointer fixes
+
+  Revision 1.25  1999/07/28 23:18:36  peter
     * closedir fixes, which now disposes the pdir itself
 
   Revision 1.24  1999/05/17 21:52:42  florian
