@@ -1,3 +1,4 @@
+{ %CPU=i386 }
 { testfdiv variant with GNU AS output forced }
 {$output_format as}
 { This test program deals with the

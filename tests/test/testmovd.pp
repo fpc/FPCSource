@@ -1,3 +1,4 @@
+{ %CPU=i386 }
 { This file tests the movd instruction has this
   instruction does convert 32 bit into 64 bit
   which is not handled by the normal assembler instruction

@@ -1,3 +1,4 @@
+{ %CPU=i386 }
 { This test program deals with the
   the delicate problem of
   non commutative FPU instruction

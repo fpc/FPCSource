@@ -1,3 +1,4 @@
+{ %CPU=i386 }
 { this contains currently only a basic test of mmx support }
 { the following instructions are tested:
    PSUBW
@@ -43,7 +44,7 @@ procedure testmmxword;
   begin
      {$mmx+}
      { Intel: paddw }
-     t1:=c2+c3;  
+     t1:=c2+c3;
      if not(equal(t1,c4)) then
        do_error(1000);
 
@@ -79,6 +80,6 @@ begin
    testmmxword;
    writeln('Test succesful');
    writeln;
-end.   
+end.
 
 

@@ -1,3 +1,4 @@
+{ %CPU=i386 }
 { %NOTE= this test requires that nasm assembler is installed }
 { testfdiv variant with NASM output forced }
 {$ifdef go32v2}
