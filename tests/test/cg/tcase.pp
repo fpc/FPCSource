@@ -173,7 +173,7 @@ procedure TestCmpListTwoInt64;
    failed :boolean;
   begin
     Write('Linear Comparison list without ranges (int64)...');
-    l:=1;
+    l:=3000000;
     s := (int64(l) shl 32);
     failed := true;
     case s of
@@ -358,7 +358,10 @@ end.
 
 {
    $Log$
-   Revision 1.3  2002-09-29 14:37:22  carl
+   Revision 1.4  2002-11-16 15:38:12  peter
+     * fix int64 test
+
+   Revision 1.3  2002/09/29 14:37:22  carl
      * must more 64-bit testing (to detect endian specific problems)
 
    Revision 1.2  2002/09/07 15:40:55  peter
