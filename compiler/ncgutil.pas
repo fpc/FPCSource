@@ -956,7 +956,7 @@ implementation
              cg.g_copyvaluepara_openarray(list,href1,tarraydef(tvarsym(p).vartype.def).elesize)
            else
             begin
-              reference_reset_base(href2,current_procinfo.framepointer,-tvarsym(p).localvarsym.address+tvarsym(p).localvarsym.owner.address_fixup);
+              reference_reset_base(href2,current_procinfo.framepointer,tg.direction*tvarsym(p).localvarsym.address+tvarsym(p).localvarsym.owner.address_fixup);
               if is_shortstring(tvarsym(p).vartype.def) then
                cg.g_copyshortstring(list,href1,href2,tstringdef(tvarsym(p).vartype.def).len,false,true)
               else
@@ -1415,19 +1415,15 @@ implementation
         { initialisizes temp. ansi/wide string data }
         inittempvariables(list);
 
-        { generate copies of call by value parameters }
-        if not(po_assembler in current_procdef.procoptions) then
-          current_procdef.parast.foreach_static({$ifndef TP}@{$endif}copyvalueparas,list);
-
         if assigned(current_procdef.parast) then
           begin
              current_procdef.parast.foreach_static({$ifndef TP}@{$endif}init_paras,list);
 
              if not (po_assembler in current_procdef.procoptions) then
                begin
-                 { move register parameters which aren't regable into memory                                          }
-                 { we do this after init_paras because it saves some code in init_paras if parameters are in register }
-                 { instead in memory                                                                                  }
+                 { move register parameters which aren't regable into memory                               }
+                 { we do this before init_paras because that one calls routines which may overwrite these  }
+                 { registers and it also expects the values to be in memory                                }
                  hp:=tparaitem(current_procdef.para.first);
                  while assigned(hp) do
                    begin
@@ -1469,6 +1465,10 @@ implementation
                    end;
                end;
           end;
+
+        { generate copies of call by value parameters }
+        if not(po_assembler in current_procdef.procoptions) then
+          current_procdef.parast.foreach_static({$ifndef TP}@{$endif}copyvalueparas,list);
 
         if (not inlined) then
          begin
@@ -2005,7 +2005,12 @@ implementation
 end.
 {
   $Log$
-  Revision 1.92  2003-04-27 11:21:33  peter
+  Revision 1.93  2003-04-27 16:30:34  jonas
+    * store register para's to memory before copying the valuepara's, because
+      that one requires them to be there already (and it calls subroutines ->
+      could overwrite those registers)
+
+  Revision 1.92  2003/04/27 11:21:33  peter
     * aktprocdef renamed to current_procdef
     * procinfo renamed to current_procinfo
     * procinfo will now be stored in current_module so it can be
