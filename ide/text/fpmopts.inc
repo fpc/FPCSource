@@ -219,6 +219,7 @@ begin
     Tab^.GrowMode:=0;
     Insert(Tab);
 
+    { conditionnals }
     R2.Copy(TabR); R2.A.Y:=R2.B.Y+1; R2.B.Y:=R2.A.Y+1;
     New(IL, Init(R2, 128));
     IL^.Data^:=ConditionalSwitches^.GetStringItem(0);
@@ -346,10 +347,12 @@ procedure TIDEApp.DoDebuggerSwitch;
 var R,R2: TRect;
     D: PCenterDialog;
     RB1,RB2: PRadioButtons;
+    IL2: PInputLine;
     L,I: longint;
     Items: PSItem;
 begin
-  R.Assign(0,0,46,2+DebugInfoSwitches^.ItemCount+2+ProfileInfoSwitches^.ItemCount+2);
+  R.Assign(0,0,60,2+DebugInfoSwitches^.ItemCount+2
+      +ProfileInfoSwitches^.ItemCount+4);
   New(D, Init(R, 'Debugging/Profiling'));
   with D^ do
   begin
@@ -363,7 +366,7 @@ begin
     RB1^.SetData(L);
     Insert(RB1);
     R2.Copy(R); Inc(R2.A.Y); R2.B.Y:=R2.A.Y+1;
-    Insert(New(PLabel, Init(R2, 'Symbol information', RB1)));
+    Insert(New(PLabel, Init(R2, 'Debugging information', RB1)));
 
     R2.Copy(R); Inc(R2.A.Y,2+DebugInfoSwitches^.ItemCount+2); R2.B.Y:=R2.A.Y+ProfileInfoSwitches^.ItemCount;
     Items:=nil;
@@ -375,6 +378,15 @@ begin
     Insert(RB2);
     R2.Copy(R); Inc(R2.A.Y,6); R2.B.Y:=R2.A.Y+1;
     Insert(New(PLabel, Init(R2, 'Profiling Switches', RB2)));
+
+    {custom }
+    R2.A.Y:=R2.B.Y+2;
+    R2.B.Y:=R2.A.Y+1;
+    New(IL2, Init(R2, 255));
+    IL2^.Data^:=CustomArg[SwitchesMode];
+    Insert(IL2);
+    R2.Move(0,-1);
+    Insert(New(PLabel, Init(R2,'~A~dditional compiler args', IL2)));
   end;
   InsertButtons(D);
   RB1^.Select;
@@ -382,6 +394,7 @@ begin
   begin
     DebugInfoSwitches^.SetCurrSel(RB1^.Value);
     ProfileInfoSwitches^.SetCurrSel(RB2^.Value);
+    CustomArg[SwitchesMode]:=IL2^.Data^;
   end;
   Dispose(D, Done);
 end;
@@ -700,7 +713,10 @@ end;
 
 {
   $Log$
-  Revision 1.11  1999-02-08 10:37:45  peter
+  Revision 1.12  1999-02-08 17:41:34  pierre
+   + CustomArg added to debug dialog
+
+  Revision 1.11  1999/02/08 10:37:45  peter
     + html helpviewer
 
   Revision 1.10  1999/02/06 00:07:47  florian
