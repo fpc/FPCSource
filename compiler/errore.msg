@@ -1338,6 +1338,7 @@ asmr_e_ev_invalid_op=F_Invalid Operator in asm evaluator
 asmr_e_escape_seq_ignored=E_escape sequence ignored: $1
 asmr_e_invalid_symbol_ref=E_Invalid symbol reference
 asmr_w_fwait_emu_prob=W_Fwait can cause emulation problems with emu387
+asmr_w_fadd_to_faddp=W_FADD without operand translated into FADDP
 asmr_w_calling_overload_func=W_Calling an overload function in assembler
 asmr_e_unsupported_symbol_type=E_Unsupported symbol type for operand
 asmr_e_constant_out_of_bounds=E_Constant value out of bounds

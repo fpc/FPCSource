@@ -1096,7 +1096,6 @@ sym_n_private_identifier_not_used=N_Private field $1.$2 is never used
 sym_n_private_identifier_only_set=N_Private field $1.$2 is assigned but never used
 sym_n_private_method_not_used=N_Private method $1.$2 never used
 
-
 sym_e_set_expected=E_Set type expected
 % The variable or expression isn't of type \var{set}. This happens in an
 % \var{in} statement.
@@ -1378,6 +1377,7 @@ asmr_e_ev_invalid_op=F_Invalid Operator in asm evaluator
 asmr_e_escape_seq_ignored=E_escape sequence ignored: $1
 asmr_e_invalid_symbol_ref=E_Invalid symbol reference
 asmr_w_fwait_emu_prob=W_Fwait can cause emulation problems with emu387
+asmr_w_fadd_to_faddp=W_FADD without operand translated into FADDP
 asmr_w_calling_overload_func=W_Calling an overload function in assembler
 asmr_e_unsupported_symbol_type=E_Unsupported symbol type for operand
 asmr_e_constant_out_of_bounds=E_Constant value out of bounds
@@ -1423,7 +1423,6 @@ asmr_e_no_var_type_specified=No type of variable specified
 asmr_w_assembler_code_not_returned_to_text=E_assembler code not returned to text section
 asmr_e_not_directive_or_local_symbol=E_Not a directive or local symbol $1
 asmr_w_using_defined_as_local=E_Using a defined name as a local label
-
 #
 # Assembler/binary writers
 #
@@ -1453,12 +1452,10 @@ asmw_e_invalid_effective_address=E_Asm: Invalid effective address
 asmw_e_immediate_or_reference_expected=E_Asm: Immediate or reference expected
 asmw_e_value_exceeds_bounds=E_Asm: $1 value exceeds bounds $2
 asmw_e_short_jmp_out_of_range=E_Asm: Short jump is out of range $1
-
 #
 # Executing linker/assembler
 #
 asmw_e_undefined_label=E_Asm: Label $1 non d‚fini
-
 
 #
 # Executing linker/assembler
