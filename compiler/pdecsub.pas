@@ -354,7 +354,7 @@ implementation
         srsym   : tsym;
         hs1 : string;
         varspez : Tvarspez;
-        tdefaultvalue : tconstsym;
+        defaultvalue : tconstsym;
         defaultrequired : boolean;
         old_object_option : tsymoptions;
         currparast : tparasymtable;
@@ -389,7 +389,7 @@ implementation
               end
           else
               varspez:=vs_value;
-          tdefaultvalue:=nil;
+          defaultvalue:=nil;
           tt.reset;
           { read identifiers and insert with error type }
           sc.reset;
@@ -461,9 +461,10 @@ implementation
                       if assigned(vs.listnext) then
                         Message(parser_e_default_value_only_one_para);
                       { prefix 'def' to the parameter name }
-                      tdefaultvalue:=ReadConstant('$def'+vs.name,vs.fileinfo);
-                      if assigned(tdefaultvalue) then
-                       tprocdef(pd).parast.insert(tdefaultvalue);
+                      defaultvalue:=ReadConstant('$def'+vs.name,vs.fileinfo);
+                      include(defaultvalue.symoptions,sp_internal);
+                      if assigned(defaultvalue) then
+                       tprocdef(pd).parast.insert(defaultvalue);
                       defaultrequired:=true;
                     end
                    else
@@ -501,7 +502,7 @@ implementation
                    paramanager.push_addr_param(varspez,tt.def,pd.proccalloption) then
                   include(vs.varoptions,vo_regable);
               end;
-             pd.concatpara(nil,tt,vs,tdefaultvalue,false);
+             pd.concatpara(nil,tt,vs,defaultvalue,false);
              vs:=tvarsym(vs.listnext);
            end;
         until not try_to_consume(_SEMICOLON);
@@ -2139,7 +2140,10 @@ const
 end.
 {
   $Log$
-  Revision 1.162  2004-02-13 15:41:24  peter
+  Revision 1.163  2004-02-20 21:54:47  peter
+    * use sp_internal flag to silence unused internal variable
+
+  Revision 1.162  2004/02/13 15:41:24  peter
     * overload directive checking for methods is now done
       when the vmt is generated
 

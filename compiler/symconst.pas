@@ -120,7 +120,8 @@ type
     sp_hint_platform,
     sp_hint_library,
     sp_hint_unimplemented,
-    sp_has_overloaded
+    sp_has_overloaded,
+    sp_internal  { internal symbol, not reported as unused }
   );
   tsymoptions=set of tsymoption;
 
@@ -400,7 +401,10 @@ initialization
 end.
 {
   $Log$
-  Revision 1.74  2004-01-21 14:22:00  florian
+  Revision 1.75  2004-02-20 21:54:47  peter
+    * use sp_internal flag to silence unused internal variable
+
+  Revision 1.74  2004/01/21 14:22:00  florian
     + reintroduce implemented
 
   Revision 1.73  2003/12/19 22:08:44  daniel

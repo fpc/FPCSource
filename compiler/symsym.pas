@@ -1012,7 +1012,7 @@ implementation
         search_procdef_binary_operator:=nil;
         bestpd:=nil;
         bestlev:=0;
-        cdoptions:=[];  
+        cdoptions:=[];
         { variants arguments must match exact, don't allow conversion to variants that
           will then allow things like enum->string, because enum->variant is available
           and select the operator variant->string }
@@ -2323,6 +2323,7 @@ implementation
         prefix : array[trttitype] of string[5]=('$rtti','$init');
       begin
         inherited create(prefix[rt]+n);
+        include(symoptions,sp_internal);
         typ:=rttisym;
         lab:=nil;
         rttityp:=rt;
@@ -2366,7 +2367,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.158  2004-02-13 15:42:21  peter
+  Revision 1.159  2004-02-20 21:54:47  peter
+    * use sp_internal flag to silence unused internal variable
+
+  Revision 1.158  2004/02/13 15:42:21  peter
     * compare_defs_ext has now a options argument
     * fixes for variants
 
