@@ -905,10 +905,15 @@ implementation
                   count_ref := false;
                   must_be_valid := true;
                   firstcallparan(hp,nil);
-                  if codegenerror then exit;
-                  If (hp^.resulttype^.deftype<>stringdef) then
-                    CGMessage(type_e_mismatch);
-{                  firstcallparan(p^.left,nil);}
+                  if codegenerror then
+                    exit;
+                  { if not a stringdef then insert a type conv which
+                    does the other type checking }
+                  If (hp^.left^.resulttype^.deftype<>stringdef) then
+                   begin
+                     hp^.left:=gentypeconvnode(hp^.left,cshortstringdef);
+                     firstpass(hp);
+                   end;
                   { calc registers }
                   left_right_max(p);
                end;
@@ -1078,7 +1083,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.26  1999-04-15 14:10:51  pierre
+  Revision 1.27  1999-04-26 09:32:22  peter
+    * try to convert to string for val()
+
+  Revision 1.26  1999/04/15 14:10:51  pierre
    * fix for bug0238.pp
 
   Revision 1.25  1999/04/15 10:00:35  peter
