@@ -1039,6 +1039,8 @@ Implementation
                     not SmartAsm then
                   begin
                     objectdata.allocsymbol(currpass,Tai_datablock(hp).sym,Tai_datablock(hp).size);
+                    { common/external uses the size for address }
+                    Tai_datablock(hp).sym.address:=Tai_datablock(hp).size;
                     { force to be common/external, must be after setaddress as that would
                       set it to AB_GLOBAL }
                     Tai_datablock(hp).sym.currbind:=AB_COMMON;
@@ -1629,7 +1631,10 @@ Implementation
 end.
 {
   $Log$
-  Revision 1.71  2004-07-01 18:28:54  jonas
+  Revision 1.72  2004-08-24 19:31:44  hajny
+    * binary writer fix for GO32v2 from Peter
+
+  Revision 1.71  2004/07/01 18:28:54  jonas
     + detect assembler errors when using -ap
 
   Revision 1.70  2004/07/01 15:42:53  peter

@@ -605,7 +605,9 @@ const go32v2stub : array[0..2047] of byte=(
            curraddr:=currsec.mempos+currsec.datasize;
            { real address of the symbol }
            symaddr:=p.address;
-           if p.section<>nil then
+           { external/common symbols don't have a fixed memory position yet }
+           if (p.section<>nil) and
+              (p.currbind<>AB_COMMON) then
             inc(symaddr,p.section.mempos);
            { no symbol relocation need inside a section }
            if (p.section=currsec) and
@@ -1784,7 +1786,10 @@ initialization
 end.
 {
   $Log$
-  Revision 1.29  2004-06-20 08:55:30  florian
+  Revision 1.30  2004-08-24 19:31:44  hajny
+    * binary writer fix for GO32v2 from Peter
+
+  Revision 1.29  2004/06/20 08:55:30  florian
     * logs truncated
 
   Revision 1.28  2004/06/16 20:07:09  florian
