@@ -641,19 +641,18 @@ end;
 
 
 
-Procedure TStringList.QuickSort(L, R: Integer);
+Procedure TStringList.QuickSort(L, R: Integer; CompareFn: TStringListSortCompare);
 
-Var I,J : Longint;
-    Pivot : String;
+Var I,J, Pivot : Longint;
 
 begin
   Repeat;
     I:=L;
     J:=R;
-    Pivot:=Flist^[(L+R) div 2].FString;
+    Pivot:=(L+R) div 2;
     Repeat
-      While AnsiCompareText(Flist^[I].Fstring,Pivot)<0 do Inc(I);
-      While AnsiCompareText(Flist^[J].Fstring,Pivot)>0 do Dec(J);
+      While CompareFn(Self, I, Pivot)<0 do Inc(I);
+      While CompareFn(Self, J, Pivot)>0 do Dec(J);
       If I<=J then
         begin
         ExchangeItems(I,J); // No check, indices are correct.
@@ -661,7 +660,7 @@ begin
         Dec(j);
         end;
     until I>J;
-    If L<J then QuickSort(L,J);
+    If L<J then QuickSort(L,J, CompareFn);
     L:=I;
   Until I>=R;
 end;
@@ -955,20 +954,37 @@ begin
 end;
 
 
-Procedure TStringList.Sort;
+Procedure TStringList.CustomSort(CompareFn: TStringListSortCompare);
 
 begin
   If Not Sorted and (FCount>1) then
     begin
     Changing;
-    QuickSOrt(0,FCount-1);
+    QuickSort(0,FCount-1, CompareFn);
     Changed;
     end;
 end;
 
+function StringListAnsiCompare(List: TStringList; Index1, Index: Integer): Integer;
+
+begin
+  Result := AnsiCompareText(List.FList^[Index1].FString,
+    List.FList^[Index1].FString);
+end;
+
+Procedure TStringList.Sort;
+
+begin
+  CustomSort(@StringListAnsiCompare);
+end;
+
 {
   $Log$
-  Revision 1.5  2000-11-22 22:44:39  peter
+  Revision 1.6  2000-12-03 22:35:09  sg
+  * Applied patch by Markus Kaemmerer (merged):
+    - Added support for TStringList.CustomSort
+
+  Revision 1.5  2000/11/22 22:44:39  peter
     * fixed commatext (merged)
 
   Revision 1.4  2000/11/17 13:39:49  sg
