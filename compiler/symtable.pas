@@ -1050,13 +1050,11 @@ implementation
         { make the record size aligned correctly so it can be
           used as elements in an array. For C records we
           use the fieldalignment, because that is updated with the
-          used alignment. For normal records we use minimum from
-          recordalginment or fieldalignment. This is required to
-          be able to override the natural alignment with 'packed' }
+          used alignment. }
         if usefieldalignment=-1 then
           padalign:=fieldalignment
         else
-          padalign:=min(fieldalignment,recordalignment);
+          padalign:=recordalignment;
         datasize:=align(datasize,padalign);
       end;
 
@@ -2316,7 +2314,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.153  2004-08-15 13:30:18  florian
+  Revision 1.154  2004-08-15 15:05:16  peter
+    * fixed padding of records to alignment
+
+  Revision 1.153  2004/08/15 13:30:18  florian
     * fixed alignment of variant records
     * more alignment problems fixed
 

@@ -455,11 +455,7 @@ interface
 {$ifdef i386}
           fpu_used        : byte;    { how many stack fpu must be empty }
 {$endif i386}
-          funcret_paraloc :
-{$ifndef FPC_REQUIRES_PROPER_ALIGNMENT}
-            packed
-{$endif FPC_REQUIRES_PROPER_ALIGNMENT}
-            array[tcallercallee] of tparalocation;
+          funcret_paraloc : array[tcallercallee] of tparalocation;
           has_paraloc_info : boolean; { paraloc info is available }
           constructor create(level:byte);
           constructor ppuload(ppufile:tcompilerppufile);
@@ -6150,7 +6146,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.250  2004-08-14 14:50:42  florian
+  Revision 1.251  2004-08-15 15:05:16  peter
+    * fixed padding of records to alignment
+
+  Revision 1.250  2004/08/14 14:50:42  florian
     * fixed several sparc alignment issues
     + Jonas' inline node patch; non functional yet
 
