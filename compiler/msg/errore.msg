@@ -2067,7 +2067,7 @@ option_code_page_not_available=11039_E_Unknown code page
 # Logo (option -l)
 #
 option_logo=11023_[
-Free Pascal Compiler version $FPCVER [$FPCDATE] for $FPCTARGET
+Free Pascal Compiler version $FPCVERSION [$FPCDATE] for $FPCCPU
 Copyright (c) 1993-2004 by Florian Klaempfl
 ]
 
@@ -2075,10 +2075,10 @@ Copyright (c) 1993-2004 by Florian Klaempfl
 # Info (option -i)
 #
 option_info=11024_[
-Free Pascal Compiler version $FPCVER
+Free Pascal Compiler version $FPCVERSION
 
-Compiler Date  : $FPCDATE
-Compiler Target: $FPCTARGET
+Compiler Date      : $FPCDATE
+Compiler CPU Target: $FPCCPU
 
 Supported targets:
   $OSTARGETS

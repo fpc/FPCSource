@@ -38,7 +38,6 @@
      {$endif}	
   {$endif}
 
-  {$define FPCPROCVAR}
   {$define USEEXCEPT}
 
   {$ifdef cpuarm}
@@ -91,7 +90,11 @@
 
 {
   $Log$
-  Revision 1.45  2004-10-30 15:21:37  florian
+  Revision 1.46  2004-10-31 18:54:24  peter
+    * $fpctarget expands to <cpu>-<os>
+    * allow * in middle of the path to support ../*/units/$fpctarget
+
+  Revision 1.45  2004/10/30 15:21:37  florian
     * fixed generic optimizer
     * enabled generic optimizer for sparc
 

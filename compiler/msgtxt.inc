@@ -694,12 +694,12 @@ const msgtxt : array[0..000156,1..240] of char=(
   '11037_D_Defining symbol $1'#000+
   '11038_D_Undefining symbol $1'#000+
   '11039_E_Unknown code page'#000+
-  '11023_Free Pascal Compiler version $FPCVER [$FPCDATE] for $FPCTARGET'#010+
+  '11023_Free Pascal Compiler version $FPCVERSION [$FPCDATE] for $FPCCPU'#010+
   'Copyright (c) 1993-2004 by Florian Klaempfl'#000+
-  '11024_Free Pascal Compiler versi','on $FPCVER'#010+
+  '11024_Free Pascal Compiler vers','ion $FPCVERSION'#010+
   #010+
-  'Compiler Date  : $FPCDATE'#010+
-  'Compiler Target: $FPCTARGET'#010+
+  'Compiler Date      : $FPCDATE'#010+
+  'Compiler CPU Target: $FPCCPU'#010+
   #010+
   'Supported targets:'#010+
   '  $OSTARGETS'#010+
@@ -708,51 +708,51 @@ const msgtxt : array[0..000156,1..240] of char=(
   'For more information read COPYING.FPC'#010+
   #010+
   'Report bugs,suggestions etc to:'#010+
-  '             ','    bugrep@freepascal.org'#000+
+  '   ','              bugrep@freepascal.org'#000+
   '11025_**0*_put + after a boolean switch option to enable it, - to disa'+
   'ble it'#010+
   '**1a_the compiler doesn'#039't delete the generated assembler file'#010+
   '**2al_list sourcecode lines in assembler file'#010+
-  '**2an_list node info in assem','bler file'#010+
+  '**2an_list node inf','o in assembler file'#010+
   '*L2ap_use pipes instead of creating temporary assembler files'#010+
   '**2ar_list register allocation/release info in assembler file'#010+
   '**2at_list temp allocation/release info in assembler file'#010+
   '**1A<x>_output format:'#010+
-  '**2Adefault_use default a','ssembler'#010+
+  '**2Adefault_use',' default assembler'#010+
   '3*2Aas_assemble using GNU AS'#010+
   '3*2Anasmcoff_coff (Go32v2) file using Nasm'#010+
   '3*2Anasmelf_elf32 (Linux) file using Nasm'#010+
   '3*2Awasm_obj file using Wasm (Watcom)'#010+
   '3*2Anasmobj_obj file using Nasm'#010+
-  '3*2Amasm_obj file using Masm (Microsoft)'#010+
-  '3*2Ata','sm_obj file using Tasm (Borland)'#010+
+  '3*2Amasm_obj file using Masm (Microso','ft)'#010+
+  '3*2Atasm_obj file using Tasm (Borland)'#010+
   '3*2Aelf_elf32 (Linux) using internal writer'#010+
   '3*2Acoff_coff (Go32v2) using internal writer'#010+
   '3*2Apecoff_pecoff (Win32) using internal writer'#010+
   '4*2Aas_assemble using GNU AS'#010+
-  '6*2Aas_Unix o-file using GNU AS'#010+
-  '6*2Agas_G','NU Motorola assembler'#010+
+  '6*2Aas_Unix o-file using GNU AS',#010+
+  '6*2Agas_GNU Motorola assembler'#010+
   '6*2Amit_MIT Syntax (old GAS)'#010+
   '6*2Amot_Standard Motorola assembler'#010+
   'A*2Aas_assemble using GNU AS'#010+
   'P*2Aas_assemble using GNU AS'#010+
   'S*2Aas_assemble using GNU AS'#010+
   '**1b_generate browser info'#010+
-  '**2bl_generate local symbol info'#010+
-  '**1B_b','uild all modules'#010+
+  '**2bl_generate local symbol i','nfo'#010+
+  '**1B_build all modules'#010+
   '**1C<x>_code generation options:'#010+
   '**2Cc<x>_set default calling convention to <x>'#010+
   '**2CD_create also dynamic library (not supported)'#010+
   '**2Ce_Compilation with emulated floating point opcodes'#010+
-  '**2Cf<x>_Select fpu instruction set to',' use to <x>'#010+
+  '**2Cf<x>_Select fpu instruct','ion set to use to <x>'#010+
   '**2Cg_Generate PIC code'#010+
   '**2Ch<n>_<n> bytes heap (between 1023 and 67107840)'#010+
   '**2Ci_IO-checking'#010+
   '**2Cn_omit linking stage'#010+
   '**2Co_check overflow of integer operations'#010+
   '**2Cr_range checking'#010+
-  '**2CR_verify object method call validity'#010+
-  '**2C','s<n>_set stack size to <n>'#010+
+  '**2CR_verify object method call val','idity'#010+
+  '**2Cs<n>_set stack size to <n>'#010+
   '**2Ct_stack checking'#010+
   '**2CX_create also smartlinked library'#010+
   '**1d<x>_defines the symbol <x>'#010+
@@ -760,26 +760,26 @@ const msgtxt : array[0..000156,1..240] of char=(
   '**2Dd<x>_set description to <x>'#010+
   '**2Dv<x>_set DLL version to <x>'#010+
   '*O2Dw_PM application'#010+
-  '**1e<x>_set p','ath to executable'#010+
+  '**1','e<x>_set path to executable'#010+
   '**1E_same as -Cn'#010+
   '**1F<x>_set file names and paths:'#010+
   '**2Fc<x>_sets input codepage to <x>'#010+
   '**2FD<x>_sets the directory where to search for compiler utilities'#010+
   '**2Fe<x>_redirect error output to <x>'#010+
-  '**2FE<x>_set exe/unit output p','ath to <x>'#010+
+  '**2FE<x>_set exe/uni','t output path to <x>'#010+
   '**2Fi<x>_adds <x> to include path'#010+
   '**2Fl<x>_adds <x> to library path'#010+
   '**2FL<x>_uses <x> as dynamic linker'#010+
   '**2Fo<x>_adds <x> to object path'#010+
   '**2Fr<x>_load error message file <x>'#010+
   '**2Fu<x>_adds <x> to unit path'#010+
-  '**2FU<x>_set unit output',' path to <x>, overrides -FE'#010+
+  '**2FU<x>_set u','nit output path to <x>, overrides -FE'#010+
   '*g1g_generate debugger information:'#010+
   '*g2gc_generate checks for pointers'#010+
   '*g2gd_use dbx'#010+
   '*g2gg_use gsym'#010+
   '*g2gh_use heap trace unit (for memory leak debugging)'#010+
-  '*g2gl_use line info unit to show more info for backtraces'#010,
+  '*g2gl_use line info unit to show more info for b','acktraces'#010+
   '*g2gv_generates programs tracable with valgrind'#010+
   '*g2gw_generate dwarf debugging info'#010+
   '**1i_information'#010+
@@ -787,7 +787,7 @@ const msgtxt : array[0..000156,1..240] of char=(
   '**2iV_return compiler version'#010+
   '**2iSO_return compiler OS'#010+
   '**2iSP_return compiler processor'#010+
-  '**2iTO_return target OS',#010+
+  '**2iTO_return',' target OS'#010+
   '**2iTP_return target processor'#010+
   '**1I<x>_adds <x> to include path'#010+
   '**1k<x>_Pass <x> to the linker'#010+
@@ -795,70 +795,70 @@ const msgtxt : array[0..000156,1..240] of char=(
   '**1M<x>_set language mode to <x>'#010+
   '**2Mfpc_free pascal dialect (default)'#010+
   '**2Mobjfpc_switch some Delphi 2 extensions on'#010+
-  '**2Mdelphi_','tries to be Delphi compatible'#010+
+  '*','*2Mdelphi_tries to be Delphi compatible'#010+
   '**2Mtp_tries to be TP/BP 7.0 compatible'#010+
   '**2Mgpc_tries to be gpc compatible'#010+
   '**2Mmacpas_tries to be compatible to the macintosh pascal dialects'#010+
   '**1n_don'#039't read the default config file'#010+
-  '**1o<x>_change the name of t','he executable produced to <x>'#010+
+  '**1o<x>_change the',' name of the executable produced to <x>'#010+
   '**1O<x>_optimizations:'#010+
   '3*2Og_generate smaller code'#010+
   '3*2OG_generate faster code (default)'#010+
   '**2Or_keep certain variables in registers'#010+
   '3*2Ou_enable uncertain optimizations (see docs)'#010+
-  '3*2O1_level 1 optimizations (qui','ck optimizations)'#010+
+  '3*2O1_level 1 optimiza','tions (quick optimizations)'#010+
   '3*2O2_level 2 optimizations (-O1 + slower optimizations)'#010+
   '3*2O3_level 3 optimizations (-O2 repeatedly, max 5 times)'#010+
   '3*2Op<x>_target processor:'#010+
   '3*3Op1_set target processor to 386/486'#010+
-  '3*3Op2_set target processor to Pentium/Pe','ntiumMMX (tm)'#010+
+  '3*3Op2_set target processor to ','Pentium/PentiumMMX (tm)'#010+
   '3*3Op3_set target processor to PPro/PII/c6x86/K6 (tm)'#010+
   '6*2Og_generate smaller code'#010+
   '6*2OG_generate faster code (default)'#010+
   '6*2Ox_optimize maximum (still BUGGY!!!)'#010+
   '6*2O0_set target processor to a MC68000'#010+
-  '6*2O2_set target processor ','to a MC68020+ (default)'#010+
+  '6*2O2_set target ','processor to a MC68020+ (default)'#010+
   '**1pg_generate profile code for gprof (defines FPC_PROFILE)'#010+
   '**1R<x>_assembler reading style:'#010+
   '**2Rdefault_use default assembler'#010+
   '3*2Ratt_read AT&T style assembler'#010+
   '3*2Rintel_read Intel style assembler'#010+
-  '6*2RMOT_read motor','ola style assembler'#010+
+  '6*2RMOT_','read motorola style assembler'#010+
   '**1S<x>_syntax options:'#010+
   '**2S2_same as -Mobjfpc'#010+
   '**2Sc_supports operators like C (*=,+=,/= and -=)'#010+
   '**2Sa_include assertion code.'#010+
   '**2Sd_same as -Mdelphi'#010+
-  '**2Se<x>_compiler stops after the <x> errors (default is 1)'#010+
-  '**2Sg_allo','w LABEL and GOTO'#010+
+  '**2Se<x>_compiler stops after the <x> errors (default is 1)'#010,
+  '**2Sg_allow LABEL and GOTO'#010+
   '**2Sh_Use ansistrings'#010+
   '**2Si_support C++ styled INLINE'#010+
   '**2SI<x>_set interface style to <x>'#010+
   '**3SIcom COM compatible interface (default)'#010+
   '**3SIcorba CORBA compatible interface'#010+
   '**2Sm_support macros like C (global)'#010+
-  '**2So_same as ','-Mtp'#010+
+  '**2S','o_same as -Mtp'#010+
   '**2Sp_same as -Mgpc'#010+
   '**2Ss_constructor name must be init (destructor must be done)'#010+
   '**2St_allow static keyword in objects'#010+
   '**1s_don'#039't call assembler and linker'#010+
   '**2sh_Generate script to link on host'#010+
-  '**2st_Generate script to link on target'#010,
+  '**2st_Generate script to link ','on target'#010+
   '**2sr_Skip register allocation phase (use with -alr)'#010+
   '**1T<x>_Target operating system:'#010+
   '3*2Temx_OS/2 via EMX (including EMX/RSX extender)'#010+
   '3*2Tfreebsd_FreeBSD'#010+
   '3*2Tgo32v2_Version 2 of DJ Delorie DOS extender'#010+
   '3*2Tlinux_Linux'#010+
-  '3*2Tnetbsd_NetBSD'#010+
-  '3*','2Tnetware_Novell Netware Module (clib)'#010+
+  '3*2Tnetbsd','_NetBSD'#010+
+  '3*2Tnetware_Novell Netware Module (clib)'#010+
   '3*2Tnetwlibc_Novell Netware Module (libc)'#010+
   '3*2Topenbsd_OpenBSD'#010+
   '3*2Tos2_OS/2 / eComStation'#010+
   '3*2Tsunos_SunOS/Solaris'#010+
   '3*2Twatcom_Watcom compatible DOS extender'#010+
   '3*2Twdosx_WDOSX DOS extender'#010+
-  '3*2Twin32_Windows',' 32 Bit'#010+
+  '3*2Twin','32_Windows 32 Bit'#010+
   '4*2Tlinux_Linux'#010+
   '6*2Tamiga_Commodore Amiga'#010+
   '6*2Tatari_Atari ST/STe/TT'#010+
@@ -867,8 +867,8 @@ const msgtxt : array[0..000156,1..240] of char=(
   '6*2Tpalmos_PalmOS'#010+
   'A*2Tlinux_Linux'#010+
   'P*2Tdarwin_Darwin and MacOS X on PowerPC'#010+
-  'P*2Tlinux_Linux on PowerPC'#010+
-  'P','*2Tmacos_MacOS (classic) on PowerPC'#010+
+  'P*2Tlinux_Linux on',' PowerPC'#010+
+  'P*2Tmacos_MacOS (classic) on PowerPC'#010+
   'P*2Tmorphos_MorphOS'#010+
   'S*2Tlinux_Linux'#010+
   '**1u<x>_undefines the symbol <x>'#010+
@@ -876,40 +876,40 @@ const msgtxt : array[0..000156,1..240] of char=(
   '**2Un_don'#039't check the unit name'#010+
   '**2Ur_generate release unit files'#010+
   '**2Us_compile a system unit'#010+
-  '**1v<x>_Be verbose. <x','> is a combination of the following letters:'#010+
+  '**1v<x>_Be v','erbose. <x> is a combination of the following letters:'#010+
   '**2*_e : Show errors (default)       d : Show debug info'#010+
   '**2*_w : Show warnings               u : Show unit info'#010+
   '**2*_n : Show notes                  t : Show tried/used files'#010+
-  '**2*_h : Show hints','                  m : Show defined macros'#010+
+  '**2*_h : ','Show hints                  m : Show defined macros'#010+
   '**2*_i : Show general info           p : Show compiled procedures'#010+
   '**2*_l : Show linenumbers            c : Show conditionals'#010+
-  '**2*_a : Show everything             0 : Show nothing (except errors)'#010+
-  '**2','*_b : Show all procedure          r : Rhide/GCC compatibility mod'+
-  'e'#010+
+  '**2*_a : Show everything             0 : Show nothing (except e','rrors'+
+  ')'#010+
+  '**2*_b : Show all procedure          r : Rhide/GCC compatibility mode'#010+
   '**2*_    declarations if an error    x : Executable info (Win32 only)'#010+
   '**2*_    occurs'#010+
   '**1V_write fpcdebug.txt file with lots of debugging info'#010+
-  '3*1W<x>_Win32-like target opti','ons'#010+
+  '3*1W<x>_Win32-like t','arget options'#010+
   '3*2WB<x>_Set Image base to Hexadecimal <x> value'#010+
   '3*2WC_Specify console type application'#010+
   '3*2WD_Use DEFFILE to export functions of DLL or EXE'#010+
   '3*2WF_Specify full-screen type application (OS/2 only)'#010+
-  '3*2WG_Specify graphic type application'#010+
-  '3*','2WN_Do not generate relocation code (necessary for debugging)'#010+
+  '3*2WG_Specify graphic type appl','ication'#010+
+  '3*2WN_Do not generate relocation code (necessary for debugging)'#010+
   '3*2WR_Generate relocation code'#010+
   'P*2WC_Specify console type application (MacOS only)'#010+
   'P*2WG_Specify graphic type application (MacOS only)'#010+
-  'P*2WT_Specify tool type application (MPW to','ol, MacOS only)'#010+
+  'P*2WT_Specify tool type applicati','on (MPW tool, MacOS only)'#010+
   '**1X_executable options:'#010+
   '**2Xc_link with the c library'#010+
   '**2Xd_don'#039't use standard library search path (needed for cross com'+
   'pile)'#010+
   '**2XD_try to link units dynamic          (defines FPC_LINK_DYNAMIC)'#010+
-  '**2XP<x>_prepend the binutils',' names with the prefix <x>'#010+
+  '**2XP<x>_prepend th','e binutils names with the prefix <x>'#010+
   '**2Xr<x>_set library search path to <x> (needed for cross compile)'#010+
   '**2Xs_strip all symbols from executable'#010+
   '**2XS_try to link units static (default) (defines FPC_LINK_STATIC)'#010+
-  '**2Xt_link with static libraries (-stat','ic is passed to linker)'#010+
+  '**2Xt_link with static librar','ies (-static is passed to linker)'#010+
   '**2XX_try to link units smart            (defines FPC_LINK_SMART)'#010+
   '**1*_'#010+
   '**1?_shows this help'#010+

@@ -350,8 +350,8 @@ implementation
 
     procedure WarnNonExistingPath(const path : string);
       begin
-        if assigned({$ifndef FPCPROCVAR}@{$endif}do_comment) then
-          do_comment(V_Hint,'Path "'+path+'" not found');
+        if assigned(do_comment) then
+          do_comment(V_Tried,'Path "'+path+'" not found');
       end;
 
 
@@ -433,11 +433,12 @@ implementation
      var
 {$IFDEF USE_SYSUTILS}
        DT : TDateTime;
+       hsec : word;
 {$ELSE USE_SYSUTILS}
        DT : DateTime;
 {$ENDIF USE_SYSUTILS}
        Year,Month,Day: Word;
-       hour,min,sec,hsec : word;
+       hour,min,sec : word;
      begin
        if t=-1 then
         begin
@@ -468,14 +469,12 @@ implementation
      procedure DefaultReplacements(var s:string);
        begin
          { Replace some macros }
-         Replace(s,'$FPCVER',version_string);
-         Replace(s,'$VERSION',version_string);
-         Replace(s,'$FULLVERSION',full_version_string);
+         Replace(s,'$FPCVERSION',version_string);
+         Replace(s,'$FPCFULLVERSION',full_version_string);
          Replace(s,'$FPCDATE',date_string);
-         Replace(s,'$FPCTARGET',target_cpu_string);
          Replace(s,'$FPCCPU',target_cpu_string);
-         Replace(s,'$TARGET',target_path);
          Replace(s,'$FPCOS',target_path);
+         Replace(s,'$FPCTARGET',target_cpu_string+'-'+target_path);
        end;
 
 
@@ -556,7 +555,7 @@ implementation
         result:=(doserror=0);
         findclose(Info);
 {$ENDIF USE_SYSUTILS}
-        if assigned({$ifndef FPCPROVCAR}@{$endif}do_comment) then
+        if assigned(do_comment) then
          begin
            if Result then
              do_comment(V_Tried,'Searching file '+F+'... found')
@@ -1033,8 +1032,10 @@ implementation
 
    procedure TSearchPathList.AddPath(SrcPath,s:string;addfirst:boolean);
      var
+       staridx,
        j        : longint;
-       hs,hsd,
+       prefix,
+       suffix,
        CurrentDir,
        currPath : string;
        subdirfound : boolean;
@@ -1110,32 +1111,33 @@ implementation
              end;
           end;
          { wildcard adding ? }
-         if pos('*',currpath)>0 then
+         staridx:=pos('*',currpath);
+         if staridx>0 then
           begin
-            if currpath[length(currpath)]=source_info.dirsep then
-             hs:=Copy(currpath,1,length(currPath)-1)
-            else
-             hs:=currpath;
-            hsd:=SplitPath(hs);
+            prefix:=SplitPath(Copy(currpath,1,staridx));
+            suffix:=Copy(currpath,staridx+1,length(currpath));
             subdirfound:=false;
 {$IFDEF USE_SYSUTILS}
-            if findfirst(hs,faDirectory,dir) = 0
-            then repeat
-              if (dir.name<>'.') and
-                  (dir.name<>'..') and
-                  ((dir.attr and faDirectory)<>0) then
-                begin
-                  subdirfound:=true;
-                  currpath:=hsd+dir.name+source_info.dirsep;
-                  hp:=Find(currPath);
-                  if not assigned(hp) then
-                   AddCurrPath;
-                end;
-               if not subdirfound then
-                 WarnNonExistingPath(currpath);
-            until findnext(dir) <> 0;
+            if findfirst(prefix+'*',faDirectory,dir) = 0 then
+              begin
+                repeat
+                  if (dir.name<>'.') and
+                      (dir.name<>'..') and
+                      ((dir.attr and faDirectory)<>0) then
+                    begin
+                      subdirfound:=true;
+                      currpath:=prefix+dir.name+suffix;
+                      if (suffix='') or PathExists(currpath) then
+                        begin
+                          hp:=Find(currPath);
+                          if not assigned(hp) then
+                            AddCurrPath;
+                        end;
+                    end;
+                until findnext(dir) <> 0;
+              end
 {$ELSE USE_SYSUTILS}
-            findfirst(hs,directory,dir);
+            findfirst(prefix+'*',directory,dir);
             while doserror=0 do
              begin
                if (dir.name<>'.') and
@@ -1143,17 +1145,20 @@ implementation
                   ((dir.attr and directory)<>0) then
                 begin
                   subdirfound:=true;
-                  currpath:=hsd+dir.name+source_info.dirsep;
-                  hp:=Find(currPath);
-                  if not assigned(hp) then
-                   AddCurrPath;
+                  currpath:=prefix+dir.name+suffix;
+                  if (suffix='') or PathExists(currpath) then
+                    begin
+                      hp:=Find(currPath);
+                      if not assigned(hp) then
+                        AddCurrPath;
+                    end;
                 end;
                findnext(dir);
-               if not subdirfound then
-                 WarnNonExistingPath(currpath);
              end;
 {$ENDIF USE_SYSUTILS}
             FindClose(dir);
+            if not subdirfound then
+              WarnNonExistingPath(currpath);
           end
          else
           begin
@@ -2129,7 +2134,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.149  2004-10-26 15:11:01  peter
+  Revision 1.150  2004-10-31 18:54:24  peter
+    * $fpctarget expands to <cpu>-<os>
+    * allow * in middle of the path to support ../*/units/$fpctarget
+
+  Revision 1.149  2004/10/26 15:11:01  peter
     * -Ch for heapsize added again
     * __heapsize contains the heapsize
 

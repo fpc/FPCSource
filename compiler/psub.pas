@@ -776,8 +776,8 @@ implementation
             { Free space in temp/registers for parast and localst, must be
               done after gen_entry_code }
             aktfilepos:=exitpos;
-            gen_free_symtable(aktproccode,tlocalsymtable(procdef.localst));
-            gen_free_symtable(aktproccode,tparasymtable(procdef.parast));
+            gen_free_symtable(aktproccode,procdef.localst);
+            gen_free_symtable(aktproccode,procdef.parast);
 
             { The procedure body is finished, we can now
               allocate the registers }
@@ -1403,7 +1403,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.211  2004-10-30 15:21:37  florian
+  Revision 1.212  2004-10-31 18:54:25  peter
+    * $fpctarget expands to <cpu>-<os>
+    * allow * in middle of the path to support ../*/units/$fpctarget
+
+  Revision 1.211  2004/10/30 15:21:37  florian
     * fixed generic optimizer
     * enabled generic optimizer for sparc
 

@@ -332,7 +332,7 @@ implementation
         with current_module do
          setfilename(paramfn^, paramallowoutput);
       end;
-     
+
     procedure dir_libsuffix;
       var
         s : string;
@@ -346,7 +346,7 @@ implementation
         with current_module do
           setfilename(paramfn^, paramallowoutput);
       end;
-      
+
     procedure dir_extension;
       var
         s : string;
@@ -1167,7 +1167,7 @@ implementation
       begin
         inherited CreateName(n);
         is_conditional:=false;
-        proc:={$ifndef FPCPROCVAR}@{$endif}p;
+        proc:=p;
       end;
 
 
@@ -1175,7 +1175,7 @@ implementation
       begin
         inherited CreateName(n);
         is_conditional:=true;
-        proc:={$ifndef FPCPROCVAR}@{$endif}p;
+        proc:=p;
       end;
 
 {****************************************************************************
@@ -3269,7 +3269,7 @@ exit_label:
         AddConditional('IFDEF',directive_turbo, @dir_ifdef);
         AddConditional('IFNDEF',directive_turbo, @dir_ifndef);
         AddConditional('IFOPT',directive_turbo, @dir_ifopt);
-        
+
         { Default Mac directives and conditionals: }
         AddDirective('SETC',directive_mac, @dir_setc);
         AddDirective('DEFINEC',directive_mac, @dir_define);
@@ -3290,7 +3290,11 @@ exit_label:
 end.
 {
   $Log$
-  Revision 1.93  2004-10-25 15:38:41  peter
+  Revision 1.94  2004-10-31 18:54:25  peter
+    * $fpctarget expands to <cpu>-<os>
+    * allow * in middle of the path to support ../*/units/$fpctarget
+
+  Revision 1.93  2004/10/25 15:38:41  peter
     * heap and heapsize removed
     * checkpointer fixes
 

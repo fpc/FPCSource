@@ -1767,7 +1767,7 @@ const
         pd.procoptions:=pd.procoptions+proc_direcdata[p].pooption;
 
         { Call the handler }
-        if pointer({$ifndef FPCPROCVAR}@{$endif}proc_direcdata[p].handler)<>nil then
+        if pointer(proc_direcdata[p].handler)<>nil then
           proc_direcdata[p].handler(pd);
       end;
 
@@ -2259,7 +2259,11 @@ const
 end.
 {
   $Log$
-  Revision 1.197  2004-10-24 20:01:08  peter
+  Revision 1.198  2004-10-31 18:54:24  peter
+    * $fpctarget expands to <cpu>-<os>
+    * allow * in middle of the path to support ../*/units/$fpctarget
+
+  Revision 1.197  2004/10/24 20:01:08  peter
     * remove saveregister calling convention
 
   Revision 1.196  2004/10/24 13:48:50  peter
