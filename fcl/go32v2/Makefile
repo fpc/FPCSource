@@ -26,6 +26,7 @@ override CPU=i386
 
 # Include files
 INC=../inc
+XML=../xml
 PROCINC=../$(CPU)
 
 # Where to place the files
@@ -45,8 +46,9 @@ DEFAULTUNITS=1
 # INCUNITS is defined in makefile.inc
 # They are default units for all platforms.
 include $(INC)/Makefile.inc
+include $(XML)/Makefile.inc
 
-UNITOBJECTS=classes $(INCUNITS)
+UNITOBJECTS=classes $(INCUNITS) $(XMLUNITS)
 EXEOBJECTS=
 
 
@@ -122,7 +124,7 @@ endif
 # Dependencies
 #####################################################################
 
-vpath %$(PASEXT) $(INC)
+vpath %$(PASEXT) $(INC) $(XML)
 
 INCFILES=$(addprefix $(INC)/,$(INCNAMES))
 
@@ -130,12 +132,17 @@ classes$(PPUEXT): $(INCFILES) classes$(PASEXT)
 
 inifiles$(PPUEXT): classes$(PPUEXT) inifiles$(PASEXT)
 
+ezcgi$(PPUEXT): ezcgi$(PASEXT) ezcgi.inc
+
 #
 # $Log$
-# Revision 1.5  1999-05-31 12:47:58  peter
+# Revision 1.6  1999-07-22 16:14:36  peter
+#   + xml
+#
+# Revision 1.5	1999/05/31 12:47:58  peter
 #   * classes unit to unitobjects
 #
-# Revision 1.4  1999/04/22 10:50:44  peter
+# Revision 1.4	1999/04/22 10:50:44  peter
 #   * set target always
 #
 # Revision 1.3	1999/04/08 10:18:48  peter
