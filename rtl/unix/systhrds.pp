@@ -53,7 +53,7 @@ Uses BaseUnix,unix;
 { Include generic overloaded routines }
 {$i thread.inc}
 
-{ Include OS specific parts.
+{ Include OS specific parts. }
 {$i pthread.inc}
 
 {*****************************************************************************
@@ -380,7 +380,10 @@ initialization
 end.
 {
   $Log$
-  Revision 1.18  2003-11-18 22:35:09  marco
+  Revision 1.19  2003-11-18 22:36:12  marco
+   * Last patch was ok, problem was somewhere else. Moved *BSD part of pthreads to freebsd/pthreads.inc
+
+  Revision 1.18  2003/11/18 22:35:09  marco
    * Last patch was ok, problem was somewhere else. Moved *BSD part of pthreads to freebsd/pthreads.inc
 
   Revision 1.17  2003/11/17 10:05:51  marco
