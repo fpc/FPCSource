@@ -37,6 +37,7 @@ var
   CompilerVersion : string;
   PPFile : string;
   TestName : string;
+  Note : string;
 
 const
   ResLogfile  : string[32] = 'log';
@@ -269,6 +270,7 @@ begin
      Verbose(V_Error,'Can''t open '+fn);
      exit;
    end;
+  Note:='';
   while not eof(t) do
    begin
      readln(t,s);
@@ -310,6 +312,12 @@ begin
               else
                if GetEntry('INTERACTIVE') then
                 r.IsInteractive:=true
+              else
+               if GetEntry('NOTE') then
+                begin
+                  Note:='Note: '+res;
+                  Verbose(V_Normal,Note);
+                end
               else
                Verbose(V_Error,'Unknown entry: '+s);
             end;
@@ -381,7 +389,8 @@ begin
    args:=args+' '+Config.NeedOptions;
   args:=args+' '+ppfile;
   Verbose(V_Debug,'Executing '+compilerbin+' '+args);
-  ExecuteRedir(CompilerBin,args,'',OutName,'');
+  { also get the output from as and ld that writes to stderr sometimes }
+  ExecuteRedir(CompilerBin,args,'',OutName,OutName);
   Verbose(V_Debug,'Exitcode '+ToStr(ExecuteResult));
   { Shoud the compile fail ? }
   if Config.ShouldFail then
@@ -394,9 +403,13 @@ begin
      else
       begin
         AddLog(FailLogFile,TestName);
+        if Note<>'' then
+          AddLog(FailLogFile,Note);
         AddLog(ResLogFile,'Failed, compilation successfull '+PPFile);
         AddLog(LongLogFile,'>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>');
         AddLog(LongLogFile,'Failed, compilation successfull '+PPFile);
+        if Note<>'' then
+          AddLog(LongLogFile,Note);
         CopyFile(OutName,LongLogFile,true);
       end;
    end
@@ -405,9 +418,13 @@ begin
      if ExecuteResult<>0 then
       begin
         AddLog(FailLogFile,TestName);
+        if Note<>'' then
+          AddLog(FailLogFile,Note);
         AddLog(ResLogFile,'Failed to compile '+PPFile);
         AddLog(LongLogFile,'>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>');
         AddLog(LongLogFile,'Failed to compile '+PPFile);
+        if Note<>'' then
+          AddLog(LongLogFile,Note);
         CopyFile(OutName,LongLogFile,true);
         Verbose(V_Abort,'Exitcode: '+ToStr(ExecuteResult)+' (expected 0)');
       end
@@ -464,7 +481,7 @@ var
     writeln('  -E            execute test also');
     writeln('  -A            include ALL tests');
     writeln('  -G            include graph tests');
-    writeln('  -G            include known bug tests');
+    writeln('  -K            include known bug tests');
     writeln('  -I            include interactive tests');
     halt(1);
   end;
@@ -604,7 +621,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.9  2001-07-04 11:23:39  florian
+  Revision 1.10  2001-07-31 09:00:16  pierre
+   + %Note= comment added
+
+  Revision 1.9  2001/07/04 11:23:39  florian
     * spelling mistake fixed
 
   Revision 1.8  2001/06/02 00:41:36  peter
