@@ -67,13 +67,6 @@ interface
             ,asmmode_powerpc_direct
        );
 
-       { IMPORTANT NOTE:
-         the integer value of this enum is stored in PPU
-         files to recognize the target, so if you add new targets
-         allways add them at end PM
-         FURTHERMORE : Make sure that this branch values, are
-         consistant with the main branch version always.
-       }
      { IMPORTANT NOTE:
        the integer value of this enum is stored in PPU
        files to recognize the target, so if you add new targets
@@ -111,7 +104,7 @@ interface
        );
 
        tasm = (as_none
-            ,as_i386_as,as_i386_as_aout,as_i386_asw,as_i386_aswdosx, 
+             ,as_i386_as,as_i386_as_aout,as_i386_asw,as_i386_aswdosx, 
               as_i386_nasmcoff,as_i386_nasmwin32,as_i386_nasmwdosx, 
               as_i386_nasmelf,as_i386_nasmobj,
               as_i386_tasm,as_i386_masm,
@@ -687,7 +680,10 @@ finalization
 end.
 {
   $Log$
-  Revision 1.37  2002-04-07 10:20:15  carl
+  Revision 1.38  2002-04-14 16:56:30  carl
+  - remove duplicate comment
+
+  Revision 1.37  2002/04/07 10:20:15  carl
   + added SPARC targets
   + added VM target
 
