@@ -856,7 +856,11 @@ end;
 ******************************************************************************}
 
 
-Var
+{$ifdef HASTHREADVAR}
+threadvar
+{$else HASTHREADVAR}
+var
+{$endif HASTHREADVAR}
   LastDosExitCode: word;
 
 
@@ -1502,7 +1506,7 @@ end;
   End;
 
 
- Function EnvStr(Index: Integer): String;
+ Function EnvStr(Index: longint): String;
   Begin
     EnvStr:='';
   End;
@@ -1608,7 +1612,10 @@ End.
 
 {
   $Log$
-  Revision 1.5  2004-02-09 12:03:16  michael
+  Revision 1.6  2004-02-15 21:26:37  hajny
+    * overloaded ExecuteProcess added, EnvStr param changed to longint
+
+  Revision 1.5  2004/02/09 12:03:16  michael
   + Switched to single interface in dosh.inc
 
   Revision 1.4  2002/09/07 16:01:16  peter

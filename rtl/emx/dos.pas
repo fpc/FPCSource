@@ -92,12 +92,17 @@ Type
                 execwinflags=(efdefault,efminimize,efmaximize,effullscreen,
                               efwindowed);
 
+{OS/2 specific functions}
+
+function exec(path:pathstr;runflags:execrunflags;winflags:execwinflags;
+              const comline:comstr):longint;
+
+function GetEnvPChar (EnvVar: string): PChar;
+
+
 const
 (* For compatibility with VP/2, used for runflags in Exec procedure. *)
     ExecFlags: cardinal = ord (efwait);
-
-var
-  dosexitcode:word;
 
 implementation
 
@@ -323,12 +328,19 @@ begin
   end ['eax','ebx','ecx','edx','esi','edi'];
 end;
 
+{$ifdef HASTHREADVAR}
+threadvar
+{$else HASTHREADVAR}
+var
+{$endif HASTHREADVAR}
+  LastDosExitCode: longint;
+
 procedure exec(const path:pathstr;const comline:comstr);
 
 {Execute a program.}
 
 begin
-    dosexitcode:=word(exec(path,execrunflags(ExecFlags),efdefault,comline));
+  LastDosExitCode := Exec (Path, ExecRunFlags (ExecFlags), efdefault, comline);
 end;
 
 function exec(path:pathstr;runflags:execrunflags;winflags:execwinflags;
@@ -477,6 +489,14 @@ begin
      a system function I ever wrote!}
 end;
 
+
+function DosExitCode: word;
+
+begin
+  DosExitCode := LastDosExitCode and $FFFF;
+end;
+
+
 function dosversion:word;assembler;
 
 {Returns DOS version in DOS and OS/2 version in OS/2}
@@ -485,16 +505,16 @@ asm
     call syscall
 end ['eax'];
 
-procedure GetDate (var Year, Month, Day, DayOfWeek: word);
+procedure GetDate (var Year, Month, MDay, WDay: word);
 
 begin
     asm
         movb $0x2a, %ah
         call syscall
         xorb %ah, %ah
-        movl DayOfWeek, %edi
+        movl WDay, %edi
         stosw
-        movl Day, %edi
+        movl MDay, %edi
         movb %dl, %al
         stosw
         movl Month, %edi
@@ -512,12 +532,12 @@ procedure SetDate (Year, Month, Day: word);
 var DT: TDateTime;
 begin
     if os_mode = osOS2 then
-begin
-  DosGetDateTime (DT);
-  DT.Year := Year;
-  DT.Month := byte (Month);
-  DT.Day := byte (Day);
-  DosSetDateTime (DT);
+        begin
+            DosGetDateTime (DT);
+            DT.Year := Year;
+            DT.Month := byte (Month);
+            DT.Day := byte (Day);
+            DosSetDateTime (DT);
         end
     else
         asm
@@ -1010,40 +1030,40 @@ const
 {$UNDEF FPC_FEXPAND_DRIVES}
 {$UNDEF FPC_FEXPAND_UNC}
 
-procedure packtime(var d:datetime;var time:longint);
+procedure PackTime (var T: DateTime; var P: longint);
 
 var zs:longint;
 
 begin
-    time:=-1980;
-    time:=time+d.year and 127;
-    time:=time shl 4;
-    time:=time+d.month;
-    time:=time shl 5;
-    time:=time+d.day;
-    time:=time shl 16;
-    zs:=d.hour;
-    zs:=zs shl 6;
-    zs:=zs+d.min;
-    zs:=zs shl 5;
-    zs:=zs+d.sec div 2;
-    time:=time+(zs and $ffff);
+    P := -1980;
+    P := P + T.Year and 127;
+    P := P shl 4;
+    P := P + T.Month;
+    P := P shl 5;
+    P := P + T.Day;
+    P := P shl 16;
+    zs:= T.hour;
+    zs:= zs shl 6;
+    zs:= zs + T.Min;
+    zs:= zs shl 5;
+    zs:= zs + T.Sec div 2;
+    P := P + (zs and $ffff);
 end;
 
-procedure unpacktime (time:longint;var d:datetime);
+procedure unpacktime (P: longint; var T: DateTime);
 
 begin
-    d.sec:=(time and 31) * 2;
-    time:=time shr 5;
-    d.min:=time and 63;
-    time:=time shr 6;
-    d.hour:=time and 31;
-    time:=time shr 5;
-    d.day:=time and 31;
-    time:=time shr 5;
-    d.month:=time and 15;
-    time:=time shr 4;
-    d.year:=time+1980;
+    T.Sec := (P and 31) * 2;
+    P := P shr 5;
+    T.Min := P and 63;
+    P := P shr 6;
+    T.Hour := P and 31;
+    P := P shr 5;
+    T.Day := P and 31;
+    P := P shr 5;
+    T.Month := P and 15;
+    P := P shr 4;
+    T.Year := P + 1980;
 end;
 
 procedure getfattr(var f;var attr : word);
@@ -1165,14 +1185,36 @@ var
   oldexit : pointer;
 
 
+{******************************************************************************
+                             --- Not Supported ---
+******************************************************************************}
+
+procedure Keep (ExitCode: word);
+begin
+end;
+
+procedure GetIntVec (IntNo: byte; var Vector: pointer);
+begin
+end;
+
+procedure SetIntVec (IntNo: byte; Vector: pointer);
+begin
+end;
+
+
+
 begin
  oldexit:=exitproc;
  exitproc:=@doneenvironment;
  InitEnvironment;
+ LastDosExitCode := 0;
 end.
 {
   $Log$
-  Revision 1.9  2004-02-09 12:03:16  michael
+  Revision 1.10  2004-02-15 21:26:37  hajny
+    * overloaded ExecuteProcess added, EnvStr param changed to longint
+
+  Revision 1.9  2004/02/09 12:03:16  michael
   + Switched to single interface in dosh.inc
 
   Revision 1.8  2003/12/26 22:20:44  hajny

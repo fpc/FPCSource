@@ -255,6 +255,7 @@ begin
   Result:=StrPas(beos.Getenv(PChar(EnvVar)));
 end;
 
+
 function ExecuteProcess (const Path: AnsiString; const ComLine: AnsiString):
                                                                        integer;
 
@@ -275,6 +276,27 @@ begin
   ExecuteProcess := beos.shell (CommandLine);
 end;
 
+
+function ExecuteProcess (const Path: AnsiString;
+                                  const ComLine: array of AnsiString): integer;
+
+{$WARNING Should be probably changed according to the Unix version}
+var 
+  CommandLine: AnsiString;
+  I: integer;
+
+begin
+  Commandline := '';
+  for I := 0 to High (ComLine) do
+   if Pos (' ', ComLine [I]) <> 0 then
+    CommandLine := CommandLine + ' ' + '"' + ComLine [I] + '"'
+   else
+    CommandLine := CommandLine + ' ' + Comline [I];
+  ExecuteProcess := ExecuteProcess (Path, CommandLine);
+end;
+
+
+
 {****************************************************************************
                               Initialization code
 ****************************************************************************}
@@ -287,7 +309,10 @@ Finalization
 end.
 {
   $Log$
-  Revision 1.8  2004-01-20 23:09:14  hajny
+  Revision 1.9  2004-02-15 21:26:37  hajny
+    * overloaded ExecuteProcess added, EnvStr param changed to longint
+
+  Revision 1.8  2004/01/20 23:09:14  hajny
     * ExecuteProcess fixes, ProcessID and ThreadID added
 
   Revision 1.7  2003/11/26 20:00:19  florian
