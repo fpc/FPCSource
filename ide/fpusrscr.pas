@@ -22,6 +22,13 @@ uses
 {$ifdef win32}
   windows,
 {$endif win32}
+{$ifdef Unix}
+  {$ifdef VER1_0}
+    linux,
+  {$else}
+    unix,
+  {$endif}
+{$endif}
   video,Objects;
 
 type
@@ -122,6 +129,8 @@ type
       ConsHeight, ConsWidth,
       ConsCursorX, ConsCursorY : byte;
       ConsVideoBufSize : longint;
+      ConsTio : termios;
+      ConsTioValid : boolean;
     end;
 {$endif}
 
@@ -171,13 +180,6 @@ uses
   {$ifdef FPC}
     {$ifdef GO32V2}
     ,Dpmiexcp, Go32
-    {$endif}
-    {$ifdef Unix}
-      {$ifdef VER1_0}
-        ,linux
-      {$else}
-        ,unix
-      {$endif}
     {$endif}
   {$endif}
     ,Drivers,App
@@ -736,8 +738,8 @@ end;
 
 procedure TLinuxScreen.GetCursorPos(var P: TPoint);
 begin
-  P.X:=ConsCursorX;
-  P.Y:=ConsCursorY;
+  P.X:=ConsCursorX+1;
+  P.Y:=ConsCursorY+1;
 end;
 
 
@@ -788,6 +790,7 @@ begin
       ConsCursorY:=0;
       ConsVideoBuf:=nil;
     end;
+  ConsTioValid:=TCGetAttr(1,ConsTio);
 end;
 
 
@@ -800,13 +803,15 @@ begin
     end
   else if (TTyfd<>-1) then
     begin
-      fdSeek(TTYFd, 4, Seek_Set);
+      fdSeek(TTYFd, 2, Seek_Set);
+      fdWrite(TTYFd, ConsCursorX, sizeof(byte));
+      fdWrite(TTYFd, ConsCursorY, sizeof(byte));
       fdWrite(TTYFd, ConsVideoBuf^,ConsVideoBufSize);
-      fdWrite(TTYFd, ConsCursorX, sizeof(word));
-      fdWrite(TTYFd, ConsCursorY, sizeof(word));
       { FreeMem(ConsVideoBuf,ConsVideoBufSize);
       ConsVideoBuf:=nil; }
     end;
+  If ConsTioValid then
+    TCSetAttr(1,TCSANOW,ConsTio);
 end;
 
 procedure TLinuxScreen.SwitchBackToIDEScreen;
@@ -1221,7 +1226,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.19  2002-09-13 07:17:33  pierre
+  Revision 1.20  2002-09-13 08:15:06  pierre
+   * fix cursor position for linux vcsa support
+
+  Revision 1.19  2002/09/13 07:17:33  pierre
    + use vcsa for linux console
 
   Revision 1.18  2002/09/07 21:04:42  carl
