@@ -36,16 +36,16 @@ interface
 
     type
       TTarget=(
-        t_linux,t_go32v2,t_win32,t_os2,t_freebsd
+        t_linux,t_go32v2,t_win32,t_os2,t_freebsd,t_beos
       );
 
     const
       TargetStr : array[TTarget] of string=(
-        'linux','go32v2','win32','os2','freebsd'
+        'linux','go32v2','win32','os2','freebsd','beos'
       );
 
       TargetSuffix : array[TTarget] of string=(
-        '_linux','_go32v2','_win32','_os2','_freebsd'
+        '_linux','_go32v2','_win32','_os2','_freebsd','_beos'
       );
 
 
@@ -1202,7 +1202,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.5  2001-02-22 21:11:24  peter
+  Revision 1.6  2001-06-02 19:20:24  peter
+    * beos target added
+
+  Revision 1.5  2001/02/22 21:11:24  peter
     * fpcdir detection added
     * fixed loading of variables in fpcmake itself
 
