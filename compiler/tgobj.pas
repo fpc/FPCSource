@@ -357,7 +357,7 @@ unit tgobj;
                if not(hp^.temptype in temptypes) then
                 begin
 {$ifdef EXTDEBUG}
-                  Comment(V_Debug,'temp managment : (Freetemp) temp at pos '+tostr(pos)+ ' has wrong type !');
+                  Comment(V_Warning,'temp managment : (Freetemp) temp at pos '+tostr(pos)+ ' has wrong type !');
 {$endif}
                   exit;
                 end;
@@ -442,7 +442,7 @@ unit tgobj;
              hp := hp^.next;
            end;
 {$ifdef EXTDEBUG}
-         Comment(V_Warning,'temp managment : SizeOfTemp temp at pos '+tostr(ref.offset)+ ' not found !');
+         Comment(V_Debug,'temp managment : SizeOfTemp temp at pos '+tostr(ref.offset)+ ' not found !');
 {$endif}
       end;
 
@@ -503,7 +503,10 @@ finalization
 end.
 {
   $Log$
-  Revision 1.13  2002-08-24 18:35:04  peter
+  Revision 1.14  2002-09-01 12:14:53  peter
+    * fixed some wrong levels in extdebug comments
+
+  Revision 1.13  2002/08/24 18:35:04  peter
     * when reusing a block also update the temptype instead of forcing it
       to tt_normal
 
