@@ -1165,31 +1165,27 @@ unit globals;
         description:='Compiled by FPC '+version_string+' - '+target_cpu_string;
 
       { Init values }
-{$ifdef i386}
-        initoptprocessor:=Class386;
+        initmodeswitches:=fpcmodeswitches;
         initlocalswitches:=[];
         initmoduleswitches:=[cs_extsyntax,cs_browser];
         initglobalswitches:=[cs_check_unit_name,cs_link_static];
-        initmodeswitches:=fpcmodeswitches;
+{$ifdef i386}
+        initoptprocessor:=Class386;
         initpackenum:=4;
         initpackrecords:=packrecord_2;
         initoutputformat:=target_asm.id;
         initasmmode:=asmmode_i386_att;
-        initdefines.init;
 {$else not i386}
   {$ifdef m68k}
         initoptprocessor:=MC68000;
-        initlocalswitches:=[];
-        initmoduleswitches:=[cs_extsyntax,cs_browser,cs_fp_emulation];
-        initglobalswitches:=[cs_check_unit_name,cs_link_static];
-        initmodeswitches:=fpcmodeswitches;
+        include(initmoduleswitches,cs_fp_emulation);
         initpackenum:=4;
         initpackrecords:=packrecord_2;
         initoutputformat:=as_m68k_as;
         initasmmode:=asmmode_m68k_mot;
-        initdefines.init;
   {$endif m68k}
 {$endif i386}
+        initdefines.init;
 
       { memory sizes, will be overriden by parameter or default for target
         in options or init_parser }
@@ -1210,7 +1206,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.14  1999-07-23 16:05:19  peter
+  Revision 1.15  1999-08-03 17:09:35  florian
+    * the alpha compiler can be compiled now
+
+  Revision 1.14  1999/07/23 16:05:19  peter
     * alignment is now saved in the symtable
     * C alignment added for records
     * PPU version increased to solve .12 <-> .13 probs

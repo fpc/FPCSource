@@ -1613,6 +1613,9 @@ begin
     {$endif atari}
   {$endif amiga}
 {$endif m68k}
+{$ifdef alpha}
+  default_os(target_alpha_linux);
+{$endif i386}
 end;
 
 
@@ -1621,7 +1624,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.86  1999-08-03 15:52:00  michael
+  Revision 1.87  1999-08-03 17:09:43  florian
+    * the alpha compiler can be compiled now
+
+  Revision 1.86  1999/08/03 15:52:00  michael
   * changed shortname for linux alpha
 
   Revision 1.85  1999/08/03 13:50:19  michael

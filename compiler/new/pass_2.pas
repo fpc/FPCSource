@@ -391,15 +391,17 @@ implementation
                                   include(tg.usedinproc,varregs[i]);
                                end;
                              nextreg:
+{$ifdef i386}
                                { dummy }
                                regsize:=S_W;
+{$endif i386}
                           end;
                         if (status.verbosity and v_debug)=v_debug then
                           begin
                              for i:=1 to maxvarregs do
                                begin
                                   if assigned(regvars[i]) then
-                                   Message3(cg_d_register_weight,reg2str(regvars[i]^.reg),
+                                    Message3(cg_d_register_weight,reg2str(regvars[i]^.reg),
                                            tostr(regvars[i]^.refs),regvars[i]^.name);
                                end;
                           end;
@@ -423,7 +425,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.3  1999-08-03 00:30:36  florian
+  Revision 1.4  1999-08-03 17:09:46  florian
+    * the alpha compiler can be compiled now
+
+  Revision 1.3  1999/08/03 00:30:36  florian
     * again a fix for the alpha
 
   Revision 1.2  1999/08/03 00:28:03  florian

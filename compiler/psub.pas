@@ -76,7 +76,10 @@ uses
   { parser specific stuff }
   ,pbase,pdecl,pexpr,pstatmnt
 {$ifdef newcg}
-  ,tgcpu,convtree,cgobj
+  ,tgcpu,convtree,cgobj,tgeni386  { for the new code generator tgeni386 is only a dummy }
+{$ifndef i386}
+  ,cpubase
+{$endif i386}
 {$endif newcg}
   ;
 
@@ -1904,7 +1907,10 @@ end.
 
 {
   $Log$
-  Revision 1.7  1999-08-02 21:29:01  florian
+  Revision 1.8  1999-08-03 17:09:42  florian
+    * the alpha compiler can be compiled now
+
+  Revision 1.7  1999/08/02 21:29:01  florian
     * the main branch psub.pas is now used for
       newcg compiler
 

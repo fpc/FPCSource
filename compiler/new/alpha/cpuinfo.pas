@@ -4,7 +4,7 @@
     Copyright (c) 1999 by the Free Pascal development team
 
     Basic Processor information
-    
+
     See the file COPYING.FPC, included in this distribution,
     for details about the copyright.
 
@@ -20,8 +20,12 @@ Interface
 
 Type
    { Architecture word - Native unsigned type }
+{$ifdef FPC}
    AWord = Qword;
-   
+{$else FPC}
+   AWord = Longint;
+{$endif FPC}
+
 Const
    { Size of native extended type }
    extended_size = 16;

@@ -90,13 +90,13 @@ Type
               R_F30,R_F31);
 
   TRegisterset = Set of TRegister;
-  
+
 { Constants describing the registers }
 
-Const  
+Const
   Firstreg = R_0;
   LastReg = R_F31;
-  
+
   stack_pointer = R_30;
   frame_pointer = R_15;
   self_pointer  = R_16;
@@ -167,8 +167,6 @@ Type
            top_symbol : (sym:pasmsymbol;symofs:longint);
         end;
 
-
-
 Const
   { offsets for the integer and floating point registers }
   INT_REG = 0;
@@ -178,7 +176,7 @@ Const
   OQ_CHOPPED_ROUNDING            = $01;  { /C }
   OQ_ROUNDING_MODE_DYNAMIC       = $02;  { /D }
   OQ_ROUND_TOWARD_MINUS_INFINITY = $04;  { /M }
-  OQ_INEXACT_RSULT_ENABLE        = $08;  { /I }
+  OQ_INEXACT_RESULT_ENABLE        = $08; { /I }
   OQ_SOFTWARE_COMPLETION_ENABLE  = $10;  { /S }
   OQ_FLOATING_UNDERFLOW_ENABLE   = $20;  { /U }
   OQ_INTEGER_OVERFLOW_ENABLE     = $40;  { /V }
@@ -189,8 +187,22 @@ procedure reset_reference(var ref : treference);
 function new_reference(base : tregister;offset : longint) : preference;
 procedure disposereference(var r : preference);
 
+function reg2str(r : tregister) : string;
 
 implementation
+
+uses
+   verbose;
+
+function reg2str(r : tregister) : string;
+
+  begin
+     if r in [R_0..R_31] then
+       reg2str:='R'+tostr(longint(r)-longint(R_0))
+     else if r in [R_F0..R_F31] then
+       reg2str:='F'+tostr(longint(r)-longint(R_F0))
+     else internalerror(38991);
+  end;
 
 procedure reset_reference(var ref : treference);
 begin
@@ -219,7 +231,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.4  1999-08-03 15:52:40  michael
+  Revision 1.5  1999-08-03 17:09:48  florian
+    * the alpha compiler can be compiled now
+
+  Revision 1.4  1999/08/03 15:52:40  michael
   * Additional changes
 
   Revision 1.3  1999/08/03 00:35:54  michael

@@ -62,6 +62,10 @@ unit pstatmnt;
        ,ra68kmot
   {$endif NoRa68kMot}
 {$endif m68k}
+{$ifdef alpha}
+       ,cpubase,cpuasm
+       ,tgeni386
+{$endif alpha}
        ;
 
 
@@ -1284,7 +1288,10 @@ unit pstatmnt;
 end.
 {
   $Log$
-  Revision 1.93  1999-08-02 21:28:59  florian
+  Revision 1.94  1999-08-03 17:09:39  florian
+    * the alpha compiler can be compiled now
+
+  Revision 1.93  1999/08/02 21:28:59  florian
     * the main branch psub.pas is now used for
       newcg compiler
 

@@ -48,7 +48,6 @@ unit nmem;
     uses
        cobjects,aasm,cgbase,cgobj,types,verbose,tgobj,tgcpu
 {$I cpuunit.inc}
-{$I tempgen.inc}
        ;
 
 {****************************************************************************
@@ -131,6 +130,7 @@ unit nmem;
 {$endif i386}
                     else
                       begin
+{$ifdef i386}
                          symtabletype:=symtable^.symtabletype;
                          { in case it is a register variable: }
                          if pvarsym(symtableentry)^.reg<>R_NO then
@@ -254,6 +254,7 @@ unit nmem;
                               reset_reference(location.reference);
                               location.reference.base:=hregister;
                           end;
+{$endif i386}
                       end;
                  end;
               procsym:
@@ -271,7 +272,10 @@ unit nmem;
 end.
 {
   $Log$
-  Revision 1.3  1999-08-02 17:14:08  florian
+  Revision 1.4  1999-08-03 17:09:45  florian
+    * the alpha compiler can be compiled now
+
+  Revision 1.3  1999/08/02 17:14:08  florian
     + changed the temp. generator to an object
 
   Revision 1.2  1999/08/01 18:22:35  florian

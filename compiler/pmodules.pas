@@ -44,6 +44,11 @@ unit pmodules;
 {$ifdef m68k}
        ,m68k
 {$endif}
+{$ifdef newcg}
+{$ifndef i386}
+       ,cpubase
+{$endif}
+{$endif newcg}
        ,scanner,pbase,psystem,pdecl,psub,parser;
 
 
@@ -178,6 +183,10 @@ unit pmodules;
             target_i386_OS2:
               ;
 {$endif i386}
+{$ifdef alpha}
+            target_alpha_linux:
+              ;
+{$endif alpha}
 {$ifdef m68k}
             target_m68k_Mac:
               bsssegment^.concat(new(pai_datablock,init_global('HEAP',4)));
@@ -187,16 +196,15 @@ unit pmodules;
          else
            bsssegment^.concat(new(pai_datablock,init_global('HEAP',heapsize)));
          end;
-{$ifdef i386}
-         datasegment^.concat(new(pai_symbol,initname_global('HEAPSIZE',4)));
-         datasegment^.concat(new(pai_const,init_32bit(heapsize)));
-{$endif i386}
 {$ifdef m68k}
          if target_info.target<>target_m68k_PalmOS then
            begin
               datasegment^.concat(new(pai_symbol,init_global('HEAP_SIZE')));
               datasegment^.concat(new(pai_const,init_32bit(heapsize)));
            end;
+{$else m68k}
+         datasegment^.concat(new(pai_symbol,initname_global('HEAPSIZE',4)));
+         datasegment^.concat(new(pai_const,init_32bit(heapsize)));
 {$endif m68k}
       end;
 
@@ -204,6 +212,10 @@ unit pmodules;
     procedure inserttargetspecific;
       begin
         case target_info.target of
+{$ifdef alpha}
+          target_alpha_linux:
+            ;
+{$endif alpha}
 {$ifdef i386}
           target_i386_GO32V2 :
             begin
@@ -1352,7 +1364,10 @@ unit pmodules;
 end.
 {
   $Log$
-  Revision 1.136  1999-08-02 17:17:10  florian
+  Revision 1.137  1999-08-03 17:09:38  florian
+    * the alpha compiler can be compiled now
+
+  Revision 1.136  1999/08/02 17:17:10  florian
     * small changes for the new code generator
 
   Revision 1.135  1999/07/29 20:54:04  peter

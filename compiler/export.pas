@@ -151,6 +151,10 @@ begin
     target_m68k_Linux :
       exportlib:=new(pexportlib,Init);
 {$endif m68k}
+{$ifdef alpha}
+    target_m68k_Linux :
+      exportlib:=new(pexportlib,Init);
+{$endif m68k}
     else
       exportlib:=new(pexportlib,Init);
   end;
@@ -160,7 +164,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.4  1998-11-30 09:43:09  pierre
+  Revision 1.5  1999-08-03 17:09:34  florian
+    * the alpha compiler can be compiled now
+
+  Revision 1.4  1998/11/30 09:43:09  pierre
     * some range check bugs fixed (still not working !)
     + added DLL writing support for win32 (also accepts variables)
     + TempAnsi for code that could be used for Temporary ansi strings

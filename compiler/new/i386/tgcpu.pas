@@ -48,8 +48,6 @@ unit tgcpu;
 
     var
        tg : ttgobji386;
-       reg_pushes : array[R_EAX..R_MM6] of longint;
-       is_reg_var : array[R_EAX..R_MM6] of boolean;
 
   implementation
 
@@ -74,7 +72,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.2  1999-08-02 23:13:24  florian
+  Revision 1.3  1999-08-03 17:09:50  florian
+    * the alpha compiler can be compiled now
+
+  Revision 1.2  1999/08/02 23:13:24  florian
     * more changes to compile for the Alpha
 
   Revision 1.1  1999/08/02 17:14:14  florian

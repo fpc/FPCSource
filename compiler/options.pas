@@ -964,12 +964,12 @@ begin
 {$endif Delphi}
 {$ifdef i386}
   option:=new(poption386,Init);
-{$else}
-  {$ifdef m68k}
-    option:=new(poption68k,Init);
-  {$else}
-    option:=new(poption,Init);
-  {$endif}
+{$endif}
+{$ifdef m68k}
+  option:=new(poption68k,Init);
+{$endif}
+{$ifdef alpha}
+  option:=new(poption,Init);
 {$endif}
 { Load messages }
   if (cmd='') and (paramcount=0) then
@@ -999,6 +999,9 @@ begin
 {$ifdef m68k}
   def_symbol('CPU68');
 {$endif}
+{$ifdef ALPHA}
+  def_symbol('ALPHA');
+{$endif}
 
 { get default messagefile }
 {$ifdef Delphi}
@@ -1016,8 +1019,12 @@ begin
    begin
 {$ifdef i386}
      ppccfg:='ppc386.cfg';
-{$else}
+{$endif i386}
+{$ifdef m68k}
      ppccfg:='ppc.cfg';
+{$endif}
+{$ifdef alpha}
+     ppccfg:='ppcalpha.cfg';
 {$endif}
    end;
 
@@ -1144,7 +1151,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.7  1999-08-02 23:13:19  florian
+  Revision 1.8  1999-08-03 17:09:36  florian
+    * the alpha compiler can be compiled now
+
+  Revision 1.7  1999/08/02 23:13:19  florian
     * more changes to compile for the Alpha
 
   Revision 1.6  1999/07/23 22:56:27  michael

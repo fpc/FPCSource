@@ -60,9 +60,7 @@ unit parser;
 {$endif UseExcept}
 {$ifdef newcg}
       cgobj,
-  {$ifdef i386}
       cgcpu,
-  {$endif i386}
 {$endif newcg}
       comphook,tree,scanner,pbase,pdecl,psystem,pmodules,cresstr;
 
@@ -298,6 +296,9 @@ unit parser;
 {$ifdef i386}
          cg:=new(pcg386,init);
 {$endif i386}
+{$ifdef alpha}
+         cg:=new(pcgalpha,init);
+{$endif alpha}
 {$endif newcg}
 
          { If the compile level > 1 we get a nice "unit expected" error
@@ -471,7 +472,10 @@ unit parser;
 end.
 {
   $Log$
-  Revision 1.79  1999-08-01 23:36:40  florian
+  Revision 1.80  1999-08-03 17:09:37  florian
+    * the alpha compiler can be compiled now
+
+  Revision 1.79  1999/08/01 23:36:40  florian
     * some changes to compile the new code generator
 
   Revision 1.78  1999/07/24 16:22:18  michael

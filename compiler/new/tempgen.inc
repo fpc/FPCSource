@@ -25,5 +25,5 @@
 {$ifdef i386}
 ,tgeni386
 {$else}
-,tgencpu
+,tgcpu
 {$endif i386}
