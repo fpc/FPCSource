@@ -171,10 +171,13 @@ help:
 # Compiler
 #######################################
 
-.PHONY: compiler_cycle
+.PHONY: compiler_cycle compiler_fpcexe
 
 compiler_cycle:
         $(MAKE) -C compiler cycle
+
+compiler_fpcexe:
+        $(MAKE) -C compiler fpcexe
 
 
 #######################################
@@ -302,6 +305,7 @@ endif
         $(MAKE) fcl_$(ALLTARGET) $(BUILDOPTS)
         $(MAKE) packages_$(ALLTARGET) $(BUILDOPTS)
         $(MAKE) utils_all $(BUILDOPTS)
+        $(MAKE) compiler_fpcexe $(BUILDOPTS)
 ifdef IDE
         $(MAKE) ide_full $(BUILDOPTS)
 endif
