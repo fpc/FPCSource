@@ -520,16 +520,14 @@ implementation
                if codegenerror then
                  exit;
 {$ifndef NODIRECTWITH}
-               if (p^.left^.treetype=loadn) and
-                  (p^.left^.symtable=aktprocsym^.definition^.localst) then
-                  begin
-                     symtable:=p^.withsymtable;
-                     for i:=1 to p^.tablecount do
-                       begin
-                         symtable^.direct_with:=true;
-                         symtable^.withnode:=p;
-                         symtable:=pwithsymtable(symtable^.next);
-                       end;
+               symtable:=p^.withsymtable;
+               for i:=1 to p^.tablecount do
+                 begin
+                    if (p^.left^.treetype=loadn) and
+                       (p^.left^.symtable=aktprocsym^.definition^.localst) then
+                      symtable^.direct_with:=true;
+                    symtable^.withnode:=p;
+                    symtable:=pwithsymtable(symtable^.next);
                   end;
 {$endif ndef NODIRECTWITH}
                firstpass(p^.right);
@@ -551,7 +549,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.8  1999-01-21 16:41:08  pierre
+  Revision 1.9  1999-01-22 12:18:34  pierre
+   * with bug introduced with DIRECTWITH removed
+
+  Revision 1.8  1999/01/21 16:41:08  pierre
    * fix for constructor inside with statements
 
   Revision 1.7  1998/12/30 22:15:59  peter
