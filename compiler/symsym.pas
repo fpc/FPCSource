@@ -177,7 +177,6 @@ interface
           localvarsym   : tvarsym;
           highvarsym    : tvarsym;
           defaultconstsym : tsym;
-          vartype       : ttype;
           varoptions    : tvaroptions;
           reg           : tregister; { if reg<>R_NO, then the variable is an register variable }
           varspez       : tvarspez;  { sets the type of access }
@@ -204,7 +203,12 @@ interface
           function  stabstring : pchar;override;
           procedure concatstabto(asmlist : taasmoutput);override;
 {$endif GDB}
-       end;
+         private
+          procedure setvartype(const newtype: ttype);
+          _vartype       : ttype;
+         public
+          property vartype: ttype read _vartype write setvartype;
+      end;
 
        tpropertysym = class(tstoredsym)
           propoptions   : tpropertyoptions;
@@ -1593,17 +1597,6 @@ implementation
          refs:=0;
          varstate:=vs_used;
          varoptions:=[];
-         { can we load the value into a register ? }
-         if tstoreddef(tt.def).is_intregable then
-           include(varoptions,vo_regable)
-         else
-           exclude(varoptions,vo_regable);
-
-         if tstoreddef(tt.def).is_fpuregable then
-           include(varoptions,vo_fpuregable)
-         else
-           exclude(varoptions,vo_fpuregable);
-         reg.enum:=R_NO;
       end;
 
 
@@ -1634,7 +1627,7 @@ implementation
          localvarsym:=nil;
          highvarsym:=nil;
          defaultconstsym:=nil;
-         ppufile.gettype(vartype);
+         ppufile.gettype(_vartype);
          ppufile.getsmallset(varoptions);
          if (vo_is_C_var in varoptions) then
            _mangledname:=stringdup(ppufile.getstring);
@@ -1882,6 +1875,22 @@ implementation
            inherited concatstabto(asmlist);
       end;
 {$endif GDB}
+
+    procedure tvarsym.setvartype(const newtype: ttype);
+      begin
+        _vartype := newtype;
+         { can we load the value into a register ? }
+        if tstoreddef(vartype.def).is_intregable then
+           include(varoptions,vo_regable)
+         else
+           exclude(varoptions,vo_regable);
+
+         if tstoreddef(vartype.def).is_fpuregable then
+           include(varoptions,vo_fpuregable)
+         else
+           exclude(varoptions,vo_fpuregable);
+         reg.enum:=R_NO;
+      end;
 
 
 {****************************************************************************
@@ -2588,7 +2597,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.104  2003-05-15 18:58:53  peter
+  Revision 1.105  2003-05-30 13:35:10  jonas
+    * the vartype field of tvarsym is now a property, because is_XXXregable
+      must be updated when the vartype is changed
+
+  Revision 1.104  2003/05/15 18:58:53  peter
     * removed selfpointer_offset, vmtpointer_offset
     * tvarsym.adjusted_address
     * address in localsymtable is now in the real direction
