@@ -1951,10 +1951,10 @@ implementation
            variantdef :
              begin
                if (fromtreetype=niln) then
-                begin
-                  doconv:=tc_equal;
-                  b:=1;
-                end;
+                 begin
+                   doconv:=tc_equal;
+                   b:=1;
+                 end;
              end;
 
            formaldef :
@@ -1970,8 +1970,16 @@ implementation
                  end;
              end;
         end;
+        { if we didn't find an appropriate type conversion yet, we try the overloaded := operator  }
+        { This is done for variants only yet, maybe we should do this for other types as well (FK) }
+        if (b=0) and ((def_from.deftype in [variantdef]) or (def_to.deftype in [variantdef])) then
+          begin
+             if internal_assignment_overloaded(def_from,def_to,overload_procs)<>nil then
+               b:=2;
+          end;
         overloaded_assignment_isconvertable :=b;
       end;
+
 
     function CheckTypes(def1,def2 : tdef) : boolean;
 
@@ -2004,7 +2012,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.19  2002-10-06 21:02:17  peter
+  Revision 1.20  2002-10-07 09:49:42  florian
+    * overloaded :=-operator is now searched when looking for possible
+      variant type conversions
+
+  Revision 1.19  2002/10/06 21:02:17  peter
     * fixed limit checking for qword
 
   Revision 1.18  2002/10/06 15:08:59  peter
