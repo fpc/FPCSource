@@ -94,6 +94,7 @@ end;
    var
     ptrlong : longint;
     VESAPtr : ^TVESAInfo;
+    st : string[4];
     regs : TDPMIRegisters;
 {$ifndef fpc}
     ModeSel: word;
@@ -129,7 +130,8 @@ end;
    { block in the DS slector space (JM)                                     }
     dosmemget(RealSeg,0,VesaPtr^,SizeOf(TVESAInfo));
 {$endif fpc}
-    if VESAPtr^.Signature <> 'VESA' then
+    St:=Vesaptr^.signature;
+    if st<>'VESA' then
      begin
 {$ifdef logging}
          LogLn('No VESA detected.');
@@ -1947,7 +1949,10 @@ end;
 
 {
 $Log$
-Revision 1.4  1999-11-30 02:25:15  carl
+Revision 1.5  1999-12-02 22:34:14  pierre
+ * avoid FPC problem in array of char comp
+
+Revision 1.4  1999/11/30 02:25:15  carl
   * GetPixVESA16 bugfix with read segment.
 
 Revision 1.3  1999/11/28 12:18:39  jonas
