@@ -518,7 +518,10 @@ begin
                     'h' :
                        begin
                          val(copy(more,j+1,length(more)-j),heapsize,code);
-                         if (code<>0) or (heapsize>=67107840) or (heapsize<1024) then
+                         if (code<>0) or
+{$WARNING Is the upper limit for heapsize needed / useful?}
+{                                      (heapsize>=67107840) or   }
+                                                           (heapsize<1024) then
                           IllegalPara(opt);
                          break;
                        end;
@@ -1702,7 +1705,7 @@ begin
   def_symbol('FPC_HAS_TYPE_SINGLE');
 {$endif}
 {$ifdef m68k}
-  def_symbol('CPUM68K');
+  def_symbol('CPU68K');
   def_symbol('CPU32');
 {$endif}
 {$ifdef ALPHA}
@@ -1983,8 +1986,8 @@ finalization
 end.
 {
   $Log$
-  Revision 1.111  2003-10-17 21:05:27  olle
-    * compiler now defines cpum68k instead of cpu68k (as is used in rtl)
+  Revision 1.112  2003-10-18 09:14:18  hajny
+    * upper limit for heapsize removed
 
   Revision 1.110  2003/10/14 00:30:48  florian
     + some code for PIC support added
