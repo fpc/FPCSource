@@ -283,20 +283,21 @@ begin
       getvolnum := V;
   end else
     getvolnum := drive-1;}
+  getvolnum := -1;
 end;
 
 
 function diskfree(drive : byte) : int64;
-VAR Buf                 : ARRAY [0..255] OF CHAR;
+{VAR Buf                 : ARRAY [0..255] OF CHAR;
     TotalBlocks         : WORD;
     SectorsPerBlock     : WORD;
     availableBlocks     : WORD;
     totalDirectorySlots : WORD;
     availableDirSlots   : WORD;
     volumeisRemovable   : WORD;
-    volumeNumber        : LONGINT;
+    volumeNumber        : LONGINT;}
 begin
-  volumeNumber := getvolnum (drive);
+  // volumeNumber := getvolnum (drive);
   (*
   if volumeNumber >= 0 then
   begin
@@ -821,7 +822,15 @@ end;
 end.
 {
   $Log$
-  Revision 1.2  2004-09-12 20:51:22  armin
+  Revision 1.3  2004-09-19 20:06:37  armin
+  * removed get/free video buf from video.pp
+  * implemented sockets
+  * basic library support
+  * threadvar memory leak removed
+  * fixes (ide now starts and editor is usable)
+  * support for lineinfo
+
+  Revision 1.2  2004/09/12 20:51:22  armin
   * added keyboard and video
   * a lot of fixes
 

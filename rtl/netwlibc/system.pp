@@ -66,33 +66,43 @@ CONST
    sLineBreak = LineEnding;
    DefaultTextLineBreakStyle : TTextLineBreakStyle = tlbsCRLF;
 
-TYPE
+type
    TNWCheckFunction = procedure (var code : longint);
+   TDLL_Process_Entry_Hook = function (dllparam : longint) : longbool;
+   TDLL_Entry_Hook = procedure (dllparam : longint);
 
 VAR
-   ArgC   : INTEGER;
-   ArgV   : ppchar;
-   NetwareCheckFunction    : TNWCheckFunction;
-   NetwareMainThreadGroupID: longint;
-   NetwareCodeStartAddress : dword;
+   ArgC                : INTEGER;
+   ArgV                : ppchar;
+   NetwareCheckFunction: TNWCheckFunction;
+   NWLoggerScreen      : pointer = nil;
+
+const
+  Dll_Process_Attach_Hook : TDLL_Process_Entry_Hook = nil;
+  Dll_Process_Detach_Hook : TDLL_Entry_Hook = nil;
+  Dll_Thread_Attach_Hook  : TDLL_Entry_Hook = nil;
+  Dll_Thread_Detach_Hook  : TDLL_Entry_Hook = nil;
+  envp : ppchar = nil;
 
 
-CONST
-   envp   : ppchar = nil;
 
-
-
-{type
-  TSysCloseAllRemainingSemaphores = procedure;
+type
+  //TSysCloseAllRemainingSemaphores = procedure;
   TSysReleaseThreadVars = procedure;
   TSysSetThreadDataAreaPtr = function (newPtr:pointer):pointer;
 
-procedure NWSysSetThreadFunctions (crs:TSysCloseAllRemainingSemaphores;
+procedure NWSysSetThreadFunctions (atv:TSysReleaseThreadVars;
                                    rtv:TSysReleaseThreadVars;
-				   stdata:TSysSetThreadDataAreaPtr);
-}
+                                   stdata:TSysSetThreadDataAreaPtr);
 
-procedure __ConsolePrintf (s :string);
+
+procedure __ConsolePrintf (s :shortstring);
+procedure __EnterDebugger; cdecl;
+
+function NWGetCodeStart : pointer;  // needed for Lineinfo
+function NWGetCodeLength : dword;
+function NWGetDataStart : pointer;
+function NWGetDataLength : dword;
 
 implementation
 { Indicate that stack checking is taken care by OS}
@@ -107,25 +117,24 @@ implementation
 {$define INCLUDED_FROM_SYSTEM}
 {$I libc.pp}
 
-
 var
-  HeapAllocResourceTag,HeapListAllocResourceTag : rtag_t;
-  NLMHandle : pointer;
-  {$ifdef StdErrToConsole}
-  NWLoggerScreen : Tscr;
+  {$ifdef autoHeapRelease}
+  HeapListAllocResourceTag,
   {$endif}
-  {CloseAllRemainingSemaphores : TSysCloseAllRemainingSemaphores = nil;
+  HeapAllocResourceTag : rtag_t;
+  NLMHandle : pointer;
   ReleaseThreadVars : TSysReleaseThreadVars = nil;
+  AllocateThreadVars: TSysReleaseThreadVars = nil;
   SetThreadDataAreaPtr : TSysSetThreadDataAreaPtr = nil;
 
-procedure NWSysSetThreadFunctions (crs:TSysCloseAllRemainingSemaphores;
+procedure NWSysSetThreadFunctions (atv:TSysReleaseThreadVars;
                                    rtv:TSysReleaseThreadVars;
-				   stdata:TSysSetThreadDataAreaPtr);
+                                   stdata:TSysSetThreadDataAreaPtr);
 begin
-  CloseAllRemainingSemaphores := crs;
+  AllocateThreadVars := atv;
   ReleaseThreadVars := rtv;
   SetThreadDataAreaPtr := stdata;
-end;}
+end;
 
 
 procedure PASCALMAIN;external name 'PASCALMAIN';
@@ -144,19 +153,17 @@ var SigTermHandlerActive : boolean;
 
 Procedure system_exit;
 begin
-  __ConsolePrintf ('system_exit');
-  //if assigned (CloseAllRemainingSemaphores) then CloseAllRemainingSemaphores;
-  //if assigned (ReleaseThreadVars) then ReleaseThreadVars;
+  //__ConsolePrintf ('system_exit');
+  if assigned (ReleaseThreadVars) then ReleaseThreadVars;
 
   {$ifdef autoHeapRelease}
-  FreeSbrkMem;            { free memory allocated by heapmanager }
+  FreeSbrkMem;              { free memory allocated by heapmanager }
   {$endif}
-  __ConsolePrintf ('Heap mem released');
 
   if not SigTermHandlerActive then
   begin
-    //if ExitCode <> 0 Then   { otherwise we dont see runtime-errors }
-    //  _SetAutoScreenDestructionMode (false);
+    if Erroraddr <> nil then   { otherwise we dont see runtime-errors }
+      SetScreenMode (0);
 
     _exit (ExitCode);
   end;
@@ -173,12 +180,12 @@ procedure int_stackcheck(stack_size:Cardinal);[saveregisters,public,alias:'FPC_S
   called when trying to get local stack if the compiler directive $S
   is set this function must preserve all registers
 
-  With a 2048 byte safe area used to write to StdIo without crossing
-  the stack boundary
+  With a 5k byte safe area used to write to StdIo and some libc
+  functions without crossing the stack boundary
 }
 begin
   if StackErr then exit;  // avoid recursive calls
-  if stackavail > stack_size + 2048 THEN EXIT;
+  if stackavail > stack_size + 5120 then exit;  // we really need that much, at least on nw6.5
   StackErr := true;
   HandleError (202);
 end;
@@ -349,7 +356,6 @@ end;
 
 function SysOSAlloc(size: ptrint): pointer;
 begin
-  writeln ('Alloc ',size,' bytes');
   SysOSAlloc := _Alloc(size,HeapAllocResourceTag);
 end;
 
@@ -388,14 +394,15 @@ BEGIN
     Sys_EROFS,
    Sys_EEXIST,
    Sys_EACCES : Inoutres:=5;
-  Sys_EBUSY   : Inoutres:=162;
+  Sys_EBUSY   : Inoutres:=162
+  else begin
+    Writeln (stderr,'NW2PASErr: unknown error ',err);
+    libc_perror('NW2PASErr');
+    Inoutres := Err;
+  end;
   end;
 END;
 
-{FUNCTION errno : LONGINT;
-BEGIN
-  errno := ___errno^;
-END;}
 
 procedure Errno2Inoutres;
 begin
@@ -462,6 +469,7 @@ begin
   else
     SetFileError (res);
   do_write := res;
+  NXThreadYield;
 end;
 
 function do_read(h:thandle;addr:pointer;len : longint) : longint;
@@ -477,6 +485,7 @@ begin
   ELSE
     SetFileError (res);
   do_read := res;
+  NXThreadYield;
 end;
 
 
@@ -629,14 +638,16 @@ Begin
      exit;
    end;
 { real open call }
+  ___errno^ := 0;
   FileRec(f).Handle := open(p,oflags,438);
-  if FileRec(f).Handle < 0 then
+  { open somtimes returns > -1 but errno was set }
+  if (___errno^ <> 0) or (longint(FileRec(f).Handle) < 0) then
     if (___errno^=Sys_EROFS) and ((OFlags and O_RDWR)<>0) then
     begin  // i.e. for cd-rom
       Oflags:=Oflags and not(O_RDWR);
       FileRec(f).Handle := open(p,oflags,438);
     end;
-  if FileRec(f).Handle < 0 then
+  if (___errno^ <> 0) or (longint(FileRec(f).Handle) < 0) then
     Errno2Inoutres
   else
     InOutRes := 0;
@@ -755,9 +766,6 @@ end;
                            Text File Handling
 *****************************************************************************}
 
-{ should we consider #26 as the  end of a file ? }
-{?? $DEFINE EOF_CTRLZ}
-
 {$i text.inc}
 
 {*****************************************************************************
@@ -806,12 +814,11 @@ begin
 end;
 
 procedure getdir(drivenr : byte;var dir : shortstring);
-VAR P : ARRAY [0..255] OF CHAR;
+var P : array [0..255] of CHAR;
     i : LONGINT;
 begin
   P[0] := #0;
-  //getcwd (@P, SIZEOF (P));
-  getcwdpath(@P,nil,0);
+  getcwdpath(@P,nil,0);   // getcwd does not return volume, getcwdpath does
   i := libc_strlen (P);
   if i > 0 then
   begin
@@ -826,7 +833,7 @@ begin
     if (i > 0) then
       if i = Length (dir) then dir := dir + '/' else
       if dir [i+1] <> '/' then insert ('/',dir,i+1);
-  END ELSE
+  end else
     InOutRes := 1;
 end;
 
@@ -849,35 +856,68 @@ procedure InitFPU;assembler;
   Netware >= 4.0 }
 
 function CheckFunction : longint; CDECL; [public,alias: '_NonAppCheckUnload'];
+var oldPtr : pointer;
 begin
-  __ConsolePrintf ('CheckFunction');
+  //__ConsolePrintf ('CheckFunction');
   if assigned (NetwareCheckFunction) then
   begin
-    { this function is called without clib context, to allow clib
-      calls, we set the thread group id before calling the
-      user-function }
-    //oldTG := _SetThreadGroupID (NetwareMainThreadGroupID);
-    { to allow use of threadvars, we simply set the threadvar-memory
-      from the main thread }
-    //if assigned (SetThreadDataAreaPtr) then
-    //  oldPtr := SetThreadDataAreaPtr (NIL);  { nil means main threadvars }
+    if assigned (SetThreadDataAreaPtr) then
+      oldPtr := SetThreadDataAreaPtr (NIL);  { nil means main thread }
+
     result := 0;
     NetwareCheckFunction (result);
-//    if assigned (SetThreadDataAreaPtr) then
-//      SetThreadDataAreaPtr (oldPtr);
 
-//    _SetThreadGroupID (oldTG);
+    if assigned (SetThreadDataAreaPtr) then
+      SetThreadDataAreaPtr (oldPtr);
+
   end else
     result := 0;
 end;
 
 
-procedure __ConsolePrintf (s : string);
+procedure __ConsolePrintf (s : shortstring);
 begin
   if length(s) > 252 then
     byte(s[0]) := 252;
   s := s + #13#10#0;
+  if NWLoggerScreen = nil then
+    NWLoggerScreen := getnetwarelogger;
   screenprintf (NWLoggerScreen,@s[1]);
+end;
+
+
+procedure __EnterDebugger;cdecl;external '!netware' name 'EnterDebugger';
+
+var NWUts : Tutsname;
+
+procedure getCodeAddresses;
+begin
+  if uname(NWUts) < 0 then
+    FillChar(NWuts,sizeof(NWUts),0);
+end;
+
+function NWGetCodeStart : pointer;
+begin
+  NWGetCodeStart := NWUts.codeoffset;
+  NXThreadYield;
+end;
+
+function NWGetCodeLength : dword;
+begin
+  NWGetCodeLength := NWUts.codelength;
+  NXThreadYield;
+end;
+
+function NWGetDataStart : pointer;
+begin
+  NWGetDataStart := NWUts.dataoffset;
+  NXThreadYield;
+end;
+
+function NWGetDataLength : dword;
+begin
+  NWGetDataLength := NWUts.datalength;
+  NXThreadYield;
 end;
 
 
@@ -900,6 +940,7 @@ Begin
   end;
   F.BufPos:=0;
   ConsoleWrite := 0;
+  NXThreadYield;
 End;
 
 
@@ -931,9 +972,18 @@ end;
   called if the program exits i.e. with halt.
   Halt (or _exit) can not be called from this callback procedure }
 procedure TermSigHandler (Sig:longint); CDecl;
+var oldPtr : pointer;
 begin
+  { Threadvar Pointer will not be valid because the signal
+    handler is called by netware with a differnt thread. To avoid
+    problems in the exit routines, we set the data of the main thread
+    here }
+  if assigned (SetThreadDataAreaPtr) then
+    oldPtr := SetThreadDataAreaPtr (NIL);  { nil means main thread }
   SigTermHandlerActive := true;  { to avoid that system_exit calls _exit }
   do_exit;                       { calls finalize units }
+  if assigned (SetThreadDataAreaPtr) then
+    SetThreadDataAreaPtr (oldPtr);
 end;
 
 
@@ -961,12 +1011,64 @@ begin
   {$endif}
 end;
 
-procedure nlm_main (_ArgC : LONGINT; _ArgV : ppchar); cdecl; [public,alias: 'main'];
+// this is called by main.as, setup args and call PASCALMAIN
+procedure nlm_main (_ArgC : LONGINT; _ArgV : ppchar); cdecl; [public,alias: '_FPC_NLM_Entry'];
 BEGIN
   ArgC := _ArgC;
   ArgV := _ArgV;
+  isLibrary := false;
   PASCALMAIN;
+  do_exit;    // currently not needed
 END;
+
+function _DLLMain (hInstDLL:pointer; fdwReason:dword; DLLParam:longint):longbool; cdecl;
+[public, alias : '_FPC_DLL_Entry'];
+var res : longbool;
+begin
+  __ConsolePrintf ('_FPC_DLL_Entry called');
+  _DLLMain := false;
+  isLibrary := true;
+  case fdwReason of
+    DLL_ACTUAL_DLLMAIN  : _DLLMain := true;
+    DLL_NLM_STARTUP     : begin
+                            //__ConsolePrintf ('DLL_NLM_STARTUP');
+                            if assigned(Dll_Process_Attach_Hook) then
+                            begin
+                              res:=Dll_Process_Attach_Hook(DllParam);
+                              if not res then
+                                exit(false);
+                            end;
+                            PASCALMAIN;
+                            _DLLMain := true;
+                          end;
+    DLL_NLM_SHUTDOWN    : begin
+                            //__ConsolePrintf ('DLL_NLM_SHUTDOWN');
+                            TermSigHandler(0);
+                            _DLLMain := true;
+                          end;
+     { standard DllMain() messages...  }
+    DLL_THREAD_ATTACH,
+    DLL_PROCESS_ATTACH  : begin
+                            //__ConsolePrintf ('DLL_PROCESS/THREAD_ATTACH');
+                            if assigned(AllocateThreadVars) then
+                              AllocateThreadVars;
+                            if assigned(Dll_Thread_Attach_Hook) then
+                              Dll_Thread_Attach_Hook(DllParam);
+
+                            _DLLMain := true;
+                          end;
+    DLL_THREAD_DETACH,
+    DLL_PROCESS_DETACH  : begin
+                            //__ConsolePrintf ('DLL_PROCESS/THREAD_DETACH');
+                            if assigned(Dll_Thread_Detach_Hook) then
+                              Dll_Thread_Detach_Hook(DllParam);
+                            if assigned(ReleaseThreadVars) then
+                              ReleaseThreadVars;
+                            _DLLMain := true;
+                          end;
+  end;
+end;
+
 
 
 {*****************************************************************************
@@ -974,6 +1076,7 @@ END;
 *****************************************************************************}
 
 Begin
+  getCodeAddresses;
   StackBottom := SPtr - StackLength;
   SigTermHandlerActive := false;
   NetwareCheckFunction := nil;
@@ -982,12 +1085,15 @@ Begin
   {$endif}
   CheckFunction;  // avoid check function to be removed by the linker
 
-  envp := ____environ^;  // nxGetEnviron;
+  envp := ____environ^;
   NLMHandle := getnlmhandle;
+  { allocate resource tags to see what kind of memory i forgot to release }
   HeapAllocResourceTag :=
     AllocateResourceTag(NLMHandle,'Heap Memory',AllocSignature);
+  {$ifdef autoHeapRelease}
   HeapListAllocResourceTag :=
     AllocateResourceTag(NLMHandle,'Heap Memory List',AllocSignature);
+  {$endif}
   Signal (SIGTERM, @TermSigHandler);
 
 { Setup heap }
@@ -997,14 +1103,11 @@ Begin
 { Reset IO Error }
   InOutRes:=0;
 
-(* This should be changed to a real value during *)
-(* thread driver initialization if appropriate.  *)
-  ThreadID := 1;
+  ThreadID := dword(pthread_self);
 
   SysInitStdIO;
 
 {Delphi Compatible}
-  IsLibrary := FALSE;
   IsConsole := TRUE;
   ExitCode  := 0;
 {$ifdef HASVARIANT}
@@ -1013,7 +1116,15 @@ Begin
 End.
 {
   $Log$
-  Revision 1.2  2004-09-12 20:51:22  armin
+  Revision 1.3  2004-09-19 20:06:37  armin
+  * removed get/free video buf from video.pp
+  * implemented sockets
+  * basic library support
+  * threadvar memory leak removed
+  * fixes (ide now starts and editor is usable)
+  * support for lineinfo
+
+  Revision 1.2  2004/09/12 20:51:22  armin
   * added keyboard and video
   * a lot of fixes
 

@@ -147,24 +147,28 @@ Function FileLock (Handle,FOffset,FLen : Longint) : Longint;
 begin
   {$warning FileLock not implemented}
   //FileLock := _lock (Handle,FOffset,FLen);
+  FileLock := -1;
 end;
 
 Function FileLock (Handle : Longint; FOffset,FLen : Int64) : Longint;
 begin
   {$warning need to add 64bit FileLock call }
   //FileLock := FileLock (Handle, longint(FOffset),longint(FLen));
+  FileLock := -1;
 end;
 
 Function FileUnlock (Handle,FOffset,FLen : Longint) : Longint;
 begin
   //FileUnlock := _unlock (Handle,FOffset,FLen);
   {$warning FileUnLock not implemented}
+  FileUnlock := -1;
 end;
 
 Function FileUnlock (Handle : Longint; FOffset,FLen : Int64) : Longint;
 begin
   {$warning need to add 64bit FileUnlock call }
   //FileUnlock := FileUnlock (Handle, longint(FOffset),longint(FLen));
+  FileUnlock := -1;
 end;
 
 Function FileAge (Const FileName : String): Longint;
@@ -255,57 +259,6 @@ begin
   end;
 end;
 
-
-
-(*
-Function FindFirst (Const Path : String; Attr : Longint; Var Rslt : TSearchRec) : Longint;
-begin
-  IF path = '' then
-    exit (18);
-  Rslt.FindData.DirP := opendir (pchar(Path));
-  IF Rslt.FindData.DirP = NIL THEN
-    exit (18);
-  //!!IF attr <> faAnyFile THEN
-  //!!  _SetReaddirAttribute (Rslt.FindData.DirP, attr);
-  Rslt.FindData.Magic := $AD01;
-  Rslt.FindData.EntryP := readdir (Rslt.FindData.DirP);
-  if Rslt.FindData.EntryP = nil then
-  begin
-    closedir (Rslt.FindData.DirP);
-    Rslt.FindData.DirP := NIL;
-    result := 18;
-  end else
-  begin
-    find_setfields (Rslt);
-    result := 0;
-  end;
-end;
-
-
-Function FindNext (Var Rslt : TSearchRec) : Longint;
-
-begin
-  if Rslt.FindData.Magic <> $AD01 then
-    exit (18);
-  Rslt.FindData.EntryP := readdir (Rslt.FindData.DirP);
-  if Rslt.FindData.EntryP = nil then
-    exit (18);
-  find_setfields (Rslt);
-  result := 0;
-end;
-
-
-Procedure FindClose (Var F : TSearchrec);
-begin
-  if F.FindData.Magic = $AD01 then
-  begin
-    if F.FindData.DirP <> nil then
-      closedir (F.FindData.DirP);
-    F.FindData.Magic := 0;
-    F.FindData.DirP := NIL;
-    F.FindData.EntryP := NIL;
-  end;
-end;*)
 function findfirst(const path : string;attr : longint;var Rslt : TsearchRec) : longint;
 var
   path0 : string;
@@ -382,7 +335,7 @@ end;
 
 Function FileGetDate (Handle : Longint) : Longint;
 Var Info : TStat;
-    _PTM  : PTM;
+    _PTM : PTM;
 begin
   If fstat(Handle,Info) <> 0 then
     Result:=-1
@@ -521,7 +474,7 @@ Begin
   else
    DiskSize:=-1;}
   DiskSize := -1;
-  ConsolePrintf ('warning: fpc sysutils.disksize not implemented'#13#10);
+  __ConsolePrintf ('warning: fpc sysutils.disksize not implemented'#13#10);
   {$warning DiskSize not implemented (does it make sense ?) }
 End;
 
@@ -616,7 +569,7 @@ end;
 function SysErrorMessage(ErrorCode: Integer): String;
 
 begin
-  Result:='';  // StrError(ErrorCode);
+  Result:='';  // only found perror that prints the message
 end;
 
 {****************************************************************************
@@ -685,7 +638,15 @@ end.
 {
 
   $Log$
-  Revision 1.2  2004-09-12 20:51:22  armin
+  Revision 1.3  2004-09-19 20:06:37  armin
+  * removed get/free video buf from video.pp
+  * implemented sockets
+  * basic library support
+  * threadvar memory leak removed
+  * fixes (ide now starts and editor is usable)
+  * support for lineinfo
+
+  Revision 1.2  2004/09/12 20:51:22  armin
   * added keyboard and video
   * a lot of fixes
 

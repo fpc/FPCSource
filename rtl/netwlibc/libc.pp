@@ -1964,7 +1964,7 @@ type
         nlmrevision      : longint;
         nlmtimer         : time_t;               // module's date and time stamp in UTC
         nlmcommandline   : Pchar;
-        nlmmessagecount  : size_t;
+        nlmmessagecount  : dword;
         nlmmessagetable  : ^Pchar;
         nlmname          : array[0..35] of char;
         nlmloadpath      : array[0..255] of char;
@@ -1979,9 +1979,9 @@ type
         nodename         : array[0..15] of char;
         treename         : array[0..95] of char; // name of NDS tree
         codeoffset       : pointer;
-        codelength       : size_t;
+        codelength       : dword;
         dataoffset       : pointer;
-        datalength       : size_t;
+        datalength       : dword;
         reserved4        : array[0..27] of longint;
      end;
 
@@ -2082,10 +2082,9 @@ type
 
 { data...  }
 
-  var
-     in6addr_any : in6_addr;cvar;external;
-
-     in6addr_loopback : in6_addr;cvar;external;
+//  var
+//     in6addr_any : in6_addr;cvar;external;
+//     in6addr_loopback : in6_addr;cvar;external;
 
 
 function inet_addr(_string:Pchar):dword;cdecl;external libc_nlm name 'inet_addr';
@@ -3570,6 +3569,10 @@ function putstring(_string:Pchar):longint;cdecl;external libc_nlm name 'putstrin
 function screenprintf(_para1:scr_t; _para2:Pchar; args:array of const):longint;cdecl;external libc_nlm name 'screenprintf';
 {$endif}
 function screenprintf(_para1:scr_t; _para2:Pchar):longint;cdecl;external libc_nlm name 'screenprintf';
+function screenprintfL1(_para1:scr_t; _para2:Pchar; l1:longint):longint;cdecl;external libc_nlm name 'screenprintf';
+function screenprintfL2(_para1:scr_t; _para2:Pchar; l1,l2:longint):longint;cdecl;external libc_nlm name 'screenprintf';
+function screenprintfL3(_para1:scr_t; _para2:Pchar; l1,l2,l3:longint):longint;cdecl;external libc_nlm name 'screenprintf';
+
 function setscreenmode(mode:dword):longint;cdecl;external libc_nlm name 'setscreenmode';
 
 function renamescreen(name:Pchar):longint;cdecl;external libc_nlm name 'renamescreen';
@@ -5612,22 +5615,19 @@ function NXCondTimedWait(cond:PNXCond_t; mutex:PNXMutex_t; interval:dword):longi
 
 //  assert.h
 
-procedure _assert(_para1:Pchar; _para2:Pchar; _para3:Pchar; _para4:longint);cdecl;external libc_nlm name '_assert';
-{ modifications to behavior of assert()        }
-{ assert() prints but returns -1               }
-{ (value returned for no assertion)            }
-{ assert() aborts (normal, default action)     }
-{ assert() prints and drops into the debugger  }
-type
-   action_code =  Longint;
-Const
-  __IGNORE = -(1);
-  __NOERR = 0;
-  __ABORT = 1;
-  __DEBUGGER = 2;
+procedure _assert(_para1,_para2, _para3:Pchar; ActionCode:longint);cdecl;external libc_nlm name '_assert';
+procedure FpAssert(_para1,_para2, _para3:Pchar; ActionCode:longint);cdecl;external libc_nlm name '_assert';
 
-function assert_action(_para1:action_code):longint;cdecl;external libc_nlm name 'assert_action';
-function _assert_expr(_para1:longint; _para2:Pchar; _para3:Pchar; _para4:Pchar; _para5:longint):longint;cdecl;external libc_nlm name '_assert_expr';
+type
+   Taction_code =  Longint;
+Const                         // modifications to behavior of assert()
+  __IGNORE = -(1);            // assert() prints but returns -1
+  __NOERR = 0;                // (value returned for no assertion)
+  __ABORT = 1;                // assert() aborts (normal, default action)
+  __DEBUGGER = 2;             // assert() prints and drops into the debugger
+
+function assert_action(_para1:Taction_code):longint;cdecl;external libc_nlm name 'assert_action';
+function _assert_expr(_para1:longint; _para2,_para3,_para4:Pchar; _para5:longint):longint;cdecl;external libc_nlm name '_assert_expr';
 
 // nks/unix.h
 
@@ -5856,8 +5856,7 @@ function send_ncp(session:longint; requestCode:longint; sendFragCount:longint; s
 
 
 // ctype.h
-  var
-     __ctype : array of byte;cvar;external;
+//  var __ctype : array of byte;cvar;external;
 { standard prototypes...  }
 
 function isalnum(_para1:longint):longint;cdecl;external libc_nlm name 'isalnum';
@@ -7584,11 +7583,11 @@ type
      end;
 
 (** unsupported pragma#pragma pack()*)
-{const }  var
-     ___nan_float : double;cvar;external;
-{const }     ___huge_float : double;cvar;external;
-{const }     ___huge_double : double;cvar;external;
-{const }     ___huge_long_double : double;cvar;external;
+//var
+//  ___nan_float : double;cvar;external;
+//  ___huge_float : double;cvar;external;
+//  ___huge_double : double;cvar;external;
+//  ___huge_long_double : double;cvar;external;
 
 function acos(_para1:double):double;cdecl;external libc_nlm name 'acos';
 function asin(_para1:double):double;cdecl;external libc_nlm name 'asin';
@@ -9052,8 +9051,7 @@ type
    Putf8_t = ^utf8_t;
    utf8_t = byte;
    PPutf8_t = ^Putf8_t;
-  var
-     __utf8width : array of byte;cvar;external;
+// var __utf8width : array of byte;cvar;external;
 { prototypes...  }
 
 

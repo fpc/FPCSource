@@ -1,10 +1,11 @@
 {
     $Id$
     This file is part of the Free Pascal run time library.
-    Copyright (c) 2002 by Peter Vreman,
-    member of the Free Pascal development team.
+    Copyright (c) 2002-2004 by the Free Pascal development team.
 
-    netware (pthreads) threading support implementation
+    netware (pthreads) threading support implementation, most of
+    this is copied from the linux implementation because netware
+    libc also provides pthreads
 
     See the file COPYING.FPC, included in this distribution,
     for details about the copyright.
@@ -20,8 +21,6 @@ unit systhrds;
 interface
 {$S-}
 
-//Procedure SetCThreadManager;
-
 { Posix compliant definition }
 
 uses Libc;
@@ -30,7 +29,7 @@ type
   PRTLCriticalSection = Ppthread_mutex_t;
   TRTLCriticalSection = pthread_mutex_t;
 
-
+{$define DISABLE_NO_THREAD_MANAGER}
 {$i threadh.inc}
 
 implementation
@@ -49,6 +48,8 @@ implementation
 {$ifdef HASTHREADVAR}
     const
       threadvarblocksize : dword = 0;
+      thredvarsmainthread: pointer = nil; // to free the threadvars in the signal handler
+
 
     var
       TLSKey : pthread_key_t;
@@ -79,13 +80,30 @@ implementation
         //DataIndex:=Pointer(Fpmmap(nil,threadvarblocksize,3,MAP_PRIVATE+MAP_ANONYMOUS,-1,0));
         FillChar(DataIndex^,threadvarblocksize,0);
         pthread_setspecific(tlskey,dataindex);
+        if thredvarsmainthread = nil then
+          thredvarsmainthread := dataindex;
+        {$ifdef DEBUG_MT}
+        __ConsolePrintf ('SysAllocateThreadVars');
+        {$endif}
       end;
 
 
     procedure SysReleaseThreadVars;
       begin
+        {$ifdef DEBUG_MT}
+        __ConsolePrintf ('SysReleaseThreadVars');
+        {$endif}
         _Free (pthread_getspecific(tlskey));
       end;
+
+    function SetThreadDataAreaPtr (newPtr:pointer):pointer;
+    begin
+      SetThreadDataAreaPtr := pthread_getspecific(tlskey);  // return current
+      if newPtr = nil then                                  // if nil
+        newPtr := thredvarsmainthread;                      // set main thread vars
+      pthread_setspecific(tlskey,newPtr);
+    end;
+
 
 { Include OS independent Threadvar initialization }
 {$i threadvr.inc}
@@ -110,6 +128,9 @@ implementation
       begin
         { Release Threadvars }
 {$ifdef HASTHREADVAR}
+{$ifdef DEBUG_MT}
+        __ConsolePrintf('DoneThread, releasing threadvars');
+{$endif DEBUG_MT}
         SysReleaseThreadVars;
 {$endif HASTHREADVAR}
       end;
@@ -129,8 +150,7 @@ implementation
 {$endif DEBUG_MT}
       begin
 {$ifdef DEBUG_MT}
-        s := 'New thread started, initing threadvars'#10;
-        fpwrite(0,s[1],length(s));
+        __ConsolePrintf('New thread started, initing threadvars');
 {$endif DEBUG_MT}
 {$ifdef HASTHREADVAR}
         { Allocate local thread vars, this must be the first thing,
@@ -139,8 +159,7 @@ implementation
 {$endif HASTHREADVAR}
         { Copy parameter to local data }
 {$ifdef DEBUG_MT}
-        s := 'New thread started, initialising ...'#10;
-        fpwrite(0,s[1],length(s));
+        __ConsolePrintf ('New thread started, initialising ...');
 {$endif DEBUG_MT}
         ti:=pthreadinfo(param)^;
         dispose(pthreadinfo(param));
@@ -148,7 +167,7 @@ implementation
         InitThread(ti.stklen);
         { Start thread function }
 {$ifdef DEBUG_MT}
-        writeln('Jumping to thread function');
+        __ConsolePrintf('Jumping to thread function');
 {$endif DEBUG_MT}
         ThreadMain:=pointer(ti.f(ti.p));
         DoneThread;
@@ -164,7 +183,7 @@ implementation
         thread_attr : pthread_attr_t;
       begin
 {$ifdef DEBUG_MT}
-        writeln('Creating new thread');
+        __ConsolePrintf('Creating new thread');
 {$endif DEBUG_MT}
         { Initialize multithreading if not done }
         if not IsMultiThread then
@@ -184,7 +203,7 @@ implementation
         ti^.stklen:=stacksize;
         { call pthread_create }
 {$ifdef DEBUG_MT}
-        writeln('Starting new thread');
+        __ConsolePrintf('Starting new thread');
 {$endif DEBUG_MT}
         pthread_attr_init(@thread_attr);
         pthread_attr_setinheritsched(@thread_attr, PTHREAD_EXPLICIT_SCHED);
@@ -216,17 +235,18 @@ implementation
     function  SysSuspendThread (threadHandle : dword) : dword;
     begin
       {$Warning SuspendThread needs to be implemented}
+      SysSuspendThread := $0FFFFFFFF;
     end;
 
     function  SysResumeThread  (threadHandle : dword) : dword;
     begin
       {$Warning ResumeThread needs to be implemented}
+      SysResumeThread := $0FFFFFFFF;
     end;
 
     procedure SysThreadSwitch;  {give time to other threads}
     begin
-      {extern int pthread_yield (void) __THROW;}
-      {$Warning ThreadSwitch needs to be implemented}
+      pthread_yield;
     end;
 
     function  SysKillThread (threadHandle : dword) : dword;
@@ -248,13 +268,15 @@ implementation
 
     function  SysThreadSetPriority (threadHandle : dword; Prio: longint): boolean; {-15..+15, 0=normal}
     begin
-      {$Warning ThreadSetPriority needs to be implemented}
+      {priority is ignored on netware}
+      SysThreadSetPriority := true;
     end;
 
 
     function  SysThreadGetPriority (threadHandle : dword): Integer;
     begin
-      {$Warning ThreadGetPriority needs to be implemented}
+      {priority is ignored on netware}
+      SysThreadGetPriority := 0;
     end;
 
     function  SysGetCurrentThreadId : dword;
@@ -471,10 +493,22 @@ initialization
   ThVarAllocResourceTag := AllocateResourceTag(getnlmhandle,'Threadvar Memory',AllocSignature);
   {$endif}
   SetNWThreadManager;
+  NWSysSetThreadFunctions (@SysAllocateThreadVars,
+                           @SysReleaseThreadVars,
+                           @SetThreadDataAreaPtr);
+
 end.
 {
   $Log$
-  Revision 1.1  2004-09-05 20:58:47  armin
+  Revision 1.2  2004-09-19 20:06:37  armin
+  * removed get/free video buf from video.pp
+  * implemented sockets
+  * basic library support
+  * threadvar memory leak removed
+  * fixes (ide now starts and editor is usable)
+  * support for lineinfo
+
+  Revision 1.1  2004/09/05 20:58:47  armin
   * first rtl version for netwlibc
 
 }

@@ -29,8 +29,28 @@ uses
 
 var
   MaxVideoBufSize : DWord;
-  VideoBufAllocated: boolean;
   ScreenHandle : scr_t;
+  CursorIsHidden : boolean;
+
+
+procedure SysSetCursorType(NewType: Word);
+begin
+   if newType=crHidden then
+   begin
+     Libc.DisableInputCursor (ScreenHandle);
+     cursorIsHidden := true;
+   end else
+   begin
+     cursorIsHidden := false;
+     case NewType of
+       crUnderline: Libc.SetCursorStyle (ScreenHandle,CURSOR_NORMAL);
+       crHalfBlock: Libc.SetCursorStyle (ScreenHandle,CURSOR_TOP);
+       crBlock    : Libc.SetCursorStyle (ScreenHandle,CURSOR_BLOCK);
+     end;
+     Libc.EnableInputCursor (ScreenHandle);
+   end;
+end;
+
 
 procedure SysInitVideo;
 VAR height,width,x,y : WORD;
@@ -51,37 +71,25 @@ begin
   GetOutputCursorPosition(ScreenHandle,y,x);
   CursorX := x;
   CursorY := y;
-  //_GetCursorShape (startline,endline);
-  {if not ConsoleCursorInfo.bvisible then
-    CursorLines:=0
-  else
-    CursorLines:=ConsoleCursorInfo.dwSize;}
-
+(* done in video.inc
   { allocate back buffer }
   MaxVideoBufSize:= ScreenWidth * ScreenHeight * 2;
   VideoBufSize   := ScreenWidth * ScreenHeight * 2;
 
   GetMem(VideoBuf,MaxVideoBufSize);
   GetMem(OldVideoBuf,MaxVideoBufSize);
-  VideoBufAllocated := true;
-
+*)
   {grab current screen contents}
-  Libc.SaveFullScreen (ScreenHandle,VideoBuf);
-  Move (VideoBuf^, OldVideoBuf^, MaxVideoBufSize);
-  LockUpdateScreen := 0;
+//  Libc.SaveFullScreen (ScreenHandle,VideoBuf);
+//  Move (VideoBuf^, OldVideoBuf^, MaxVideoBufSize);
+//  LockUpdateScreen := 0;
+  SysSetCursorType (crBlock);
 end;
 
 
 procedure SysDoneVideo;
 begin
   SetCursorType(crUnderLine);
-  if videoBufAllocated then
-  begin
-    FreeMem(VideoBuf,MaxVideoBufSize);
-    FreeMem(OldVideoBuf,MaxVideoBufSize);
-    videoBufAllocated := false;
-  end;
-  VideoBufSize:=0;
 end;
 
 
@@ -90,16 +98,21 @@ begin
   SysGetCapabilities:=cpColor or cpChangeCursor;
 end;
 
-
 procedure SysSetCursorPos(NewCursorX, NewCursorY: Word);
 begin
-  Libc.GetOutputCursorPosition(ScreenHandle,NewCursorY,NewCursorX);
+  Libc.PositionInputCursor(ScreenHandle,NewCursorY,NewCursorX);
 end;
+
 
 
 function SysGetCursorType: Word;
 var style : word;
 begin
+  if cursorIsHidden then
+  begin
+    SysGetCursorType := crHidden;
+    exit;
+  end;
   Libc.GetCursorStyle (ScreenHandle,style);
   case style of
     //CURSOR_NORMAL : SysGetCursorType := crUnderline;
@@ -109,28 +122,18 @@ begin
   else
     SysGetCursorType := crUnderline;
   end;
-  {crHidden ?}
-end;
-
-
-procedure SysSetCursorType(NewType: Word);
-begin
-   if newType=crHidden then
-     Libc.DisableInputCursor (ScreenHandle)
-   else
-     begin
-        case NewType of
-           crUnderline: Libc.SetCursorStyle (ScreenHandle,CURSOR_NORMAL);
-           crHalfBlock: Libc.SetCursorStyle (ScreenHandle,CURSOR_TOP);
-           crBlock    : Libc.SetCursorStyle (ScreenHandle,CURSOR_BLOCK);
-        end;
-        Libc.EnableInputCursor (ScreenHandle);
-     end;
 end;
 
 
 procedure SysUpdateScreen(Force: Boolean);
 begin
+  {$ifdef debug}
+  if VideoBuf = nil then
+  begin
+    __ConsolePrintf ('Fatal: Video buff accessed after DoneVideo');
+    exit;
+  end;
+  {$endif}
   if (LockUpdateScreen<>0) or (VideoBufSize = 0) then
    exit;
   if not force then
@@ -191,7 +194,7 @@ Const
 
 
 initialization
-  VideoBufAllocated := false;
+  VideoBuf := nil;
   VideoBufSize := 0;
   ScreenHandle := Libc.getscreenhandle;
   SetVideoDriver (SysVideoDriver);
