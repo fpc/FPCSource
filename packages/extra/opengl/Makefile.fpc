@@ -4,7 +4,7 @@
 
 [package]
 name=opengl
-version=1.9.2
+version=1.9.4
 
 [require]
 packages_linux=x11

@@ -3,7 +3,7 @@
 #
 [package]
 name=tcl
-version=1.9.2
+version=1.9.4
 
 [target]
 units=tcl80

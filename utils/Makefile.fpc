@@ -4,7 +4,7 @@
 
 [package]
 name=utils
-version=1.9.2
+version=1.9.4
 
 [target]
 dirs=fpcm tply h2pas fprcp dxegen fpdoc
