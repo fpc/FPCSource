@@ -544,6 +544,7 @@ Begin
          {$ELSE}
            closedir(pdir(f.dirptr));
          {$ENDIF}
+         Dispose(pdir(f.dirptr)^.buf);
          Dispose(pdir(f.dirptr));
          end;
       End;
@@ -1043,7 +1044,10 @@ End.
 
 {
   $Log$
-  Revision 1.7  1999-01-28 12:10:42  michael
+  Revision 1.8  1999-01-28 12:54:13  michael
+  + Fixed memory leak in findfirst/findnext
+
+  Revision 1.7  1999/01/28 12:10:42  michael
   + Fixed findclose bug
 
   Revision 1.6  1998/11/23 12:32:31  peter
