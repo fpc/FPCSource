@@ -75,9 +75,9 @@ implementation
     uses
       cutils,cclasses,
       verbose,globals,globtype,systems,
-      symtype,symdef,types,
+      symconst,symtype,symdef,types,
       pass_1,
-      nflw,tgcpu,hcodegen
+      ncal,nflw,tgcpu,hcodegen
 {$ifdef newcg}
       ,cgbase
 {$endif}
@@ -150,6 +150,8 @@ implementation
          firstpass(right);
          if (not (cs_extsyntax in aktmoduleswitches)) and
             assigned(right.resulttype) and
+            not((right.nodetype=calln) and
+                (tcallnode(right).procdefinition^.proctypeoption=potype_constructor)) and
             (right.resulttype<>pdef(voiddef)) then
            CGMessage(cg_e_illegal_expression);
          if codegenerror then
@@ -265,6 +267,8 @@ implementation
                    firstpass(hp.right);
                    if (not (cs_extsyntax in aktmoduleswitches)) and
                       assigned(hp.right.resulttype) and
+                      not((hp.right.nodetype=calln) and
+                          (tcallnode(hp.right).procdefinition^.proctypeoption=potype_constructor)) and
                       (hp.right.resulttype<>pdef(voiddef)) then
                      CGMessage(cg_e_illegal_expression);
                    {if codegenerror then
@@ -345,7 +349,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.7  2000-12-31 11:14:10  jonas
+  Revision 1.8  2001-02-05 20:45:49  peter
+    * fixed buf 1364
+
+  Revision 1.7  2000/12/31 11:14:10  jonas
     + implemented/fixed docompare() mathods for all nodes (not tested)
     + nopt.pas, nadd.pas, i386/n386opt.pas: optimized nodes for adding strings
       and constant strings/chars together
