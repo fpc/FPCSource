@@ -61,7 +61,7 @@ interface
       TTarget=(
         t_linux,t_go32v2,t_win32,t_os2,t_freebsd,t_beos,t_netbsd,
         t_amiga,t_atari, t_sunos, t_qnx, t_netware, t_openbsd,t_wdosx,
-        t_palmos,t_macos,t_darwin,t_emx
+        t_palmos,t_macos,t_darwin,t_emx,t_watcom
       );
       TTargetSet=set of TTarget;
 
@@ -77,13 +77,13 @@ interface
       TargetStr : array[TTarget] of string=(
         'linux','go32v2','win32','os2','freebsd','beos','netbsd',
         'amiga','atari','sunos', 'qnx', 'netware','openbsd','wdosx',
-        'palmos','macos','darwin','emx'
+        'palmos','macos','darwin','emx','watcom'
       );
 
       TargetSuffix : array[TTarget] of string=(
         '_linux','_go32v2','_win32','_os2','_freebsd','_beos','_netbsd',
         '_amiga','_atari','_sunos', '_qnx', '_netware','_openbsd','_wdosx',
-        '_palmos','_macos','_darwin','_emx'
+        '_palmos','_macos','_darwin','_emx','_watcom'
       );
 
       TargetCpuPossible : array[TTarget,TCpu] of boolean = (
@@ -105,7 +105,8 @@ interface
         { palmos }  ( false, true,  false, false, false ),
         { macos }   ( false, false, true,  false, false ),
         { macosx }  ( false, false, true,  false, false ),
-        { emx }     ( true,  false, false, false, false )
+        { emx }     ( true,  false, false, false, false ),
+	{ watcom }  ( true,  false, false, false ,false )
       );
 
     type
@@ -1555,7 +1556,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.33  2003-09-27 13:00:30  peter
+  Revision 1.34  2003-09-30 09:10:28  marco
+   * watcom support
+
+  Revision 1.33  2003/09/27 13:00:30  peter
     * fixed for unix
 
   Revision 1.32  2003/05/20 23:54:45  florian
