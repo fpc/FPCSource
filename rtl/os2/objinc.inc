@@ -137,13 +137,16 @@ asm
     call syscall
     movl $0, %eax
     jnc .LSetFSize1
-    dec eax
+    decl %eax
 .LSetFSize1:
 end;
 
 {
   $Log$
-  Revision 1.7  2000-06-06 17:10:36  hajny
+  Revision 1.8  2000-06-12 17:26:29  hajny
+    * little mistyping in SetFileSize
+
+  Revision 1.7  2000/06/06 17:10:36  hajny
     * moving file ptr to the end in SetFileSize
 
   Revision 1.6  2000/06/05 18:55:54  hajny
