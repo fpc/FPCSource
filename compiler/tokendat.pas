@@ -21,12 +21,18 @@
 
  ****************************************************************************
 }
+{$ifdef TP}
 program tokendat;
 
 uses    tokens,globtype;
 
+{$define IncludeTokens}
+{$define IncludeCreateTokenIndex}
+{$endif TP}
+
+{$ifdef IncludeTokens}
 const
-  tokeninfo:array[ttoken] of tokenrec=(
+  arraytokeninfo:array[ttoken] of tokenrec=(
       (str:''              ;special:true ;keyword:m_none),
     { Operators which can be overloaded }
       (str:'+'             ;special:true ;keyword:m_none),
@@ -198,6 +204,7 @@ const
       (str:'INITIALIZATION';special:false;keyword:m_initfinal),
       (str:'RESOURCESTRING';special:false;keyword:m_class)
   );
+{$endif IncludeTokens}
 
 {Header is designed both to identify the file and to display a nice
  message when you use the type command on it.
@@ -208,6 +215,8 @@ Explanation:
 #13#10  Needed to display dos prompt on next line.
 #26     End of file. Causes type to stop reading the file.
 }
+
+{$ifdef IncludeCreateTokenIndex}
 
 procedure create_tokenidx;
 
@@ -220,15 +229,17 @@ begin
   fillchar(tokenidx^,sizeof(tokenidx^),0);
   for t:=low(ttoken) to high(ttoken) do
    begin
-     if not tokeninfo[t].special then
+     if not arraytokeninfo[t].special then
       begin
-        if ord(tokenidx^[length(tokeninfo[t].str),tokeninfo[t].str[1]].first)=0 then
-         tokenidx^[length(tokeninfo[t].str),tokeninfo[t].str[1]].first:=t;
-        tokenidx^[length(tokeninfo[t].str),tokeninfo[t].str[1]].last:=t;
+        if ord(tokenidx^[length(arraytokeninfo[t].str),arraytokeninfo[t].str[1]].first)=0 then
+         tokenidx^[length(arraytokeninfo[t].str),arraytokeninfo[t].str[1]].first:=t;
+        tokenidx^[length(arraytokeninfo[t].str),arraytokeninfo[t].str[1]].last:=t;
       end;
    end;
 end;
+{$endif IncludeCreateTokenIndex}
 
+{$ifdef TP}
 const   headerstr:string[length(tokheader)]=tokheader;
 
 var f:file;
@@ -251,3 +262,6 @@ begin
     close(f);
     dispose(tokenidx);
 end.
+
+{$endif TP}
+

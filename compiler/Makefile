@@ -275,23 +275,23 @@ msg: msgtxt.inc
 
 # Make only the compiler
 ifndef COMPLETE
-$(EXENAME) : $(wildcard *.pas) $(wildcard *.inc) msg tokens.dat
+$(EXENAME) : $(wildcard *.pas) $(wildcard *.inc) msg 
 	$(COMPILER) pp.pas
 	$(EXECPPAS)
 	$(MOVE) $(PPEXENAME) $(EXENAME)
 else
-$(EXENAME) : $(wildcard *.pas) $(wildcard *.inc) msg tokens.dat
-	$(COMPILER) $(LOCALOPT) pp.pas
+$(EXENAME) : $(wildcard *.pas) $(wildcard *.inc) msg 
+	$(COMPILER) pp.pas
 	$(EXECPPAS)
-	$(COMPILER) $(LOCALOPT) pp.pas
+	$(COMPILER) pp.pas
 	$(EXECPPAS)
-	$(COMPILER) $(LOCALOPT) pp.pas
+	$(COMPILER) pp.pas
 	$(EXECPPAS)
 	$(MOVE) $(PPEXENAME) $(EXENAME)
 endif
 
 tokens.dat : $(wildcard *.pas) $(wildcard *.inc)
-	$(COMPILER) $(LOCALOPT) tokendat.pas
+	$(COMPILER) tokendat.pas
 	./tokendat
 
 # This target remakes the units with the currently made version
@@ -403,7 +403,11 @@ $(M68KEXENAME): $(PASFILES) $(INCFILES)
 
 #
 # $Log$
-# Revision 1.36  1999-09-02 18:47:41  daniel
+# Revision 1.37  1999-09-03 08:37:34  pierre
+#   *  tokens.dat only used for TP, and also removed from
+#      compiler dependencies
+#
+# Revision 1.36  1999/09/02 18:47:41  daniel
 #   * Could not compile with TP, some arrays moved to heap
 #   * NOAG386BIN default for TP
 #   * AG386* files were not compatible with TP, fixed.

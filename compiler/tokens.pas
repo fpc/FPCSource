@@ -25,6 +25,7 @@ interface
 uses
   globtype;
 
+
 const
   tokenidlen=14;
   tokheader=#8'Free Pascal Compiler -- Token data'#13#10#26;
@@ -226,23 +227,41 @@ var tokeninfo:ptokenarray;
 procedure inittokens;
 procedure donetokens;
 
+{$ifndef TP}
+{$define IncludeTokens}
+
+{$i tokendat.pas}
+
+{$endif not TP}
+
 implementation
 
 uses    globals;
 
+{$ifndef TP}
+{$undef IncludeTokens}
+{$define IncludeCreateTokenIndex}
+{$i tokendat.pas}
+{$endif not TP}
+
 procedure inittokens;
 
-var f:file;
+{$ifdef TP}
+var
+    f:file;
     header:string;
     a:longint;
+{$endif TP}
 
 begin
+{$ifdef TP}
     assign(f,exepath+'tokens.dat');
     reset(f,1);
     {We are not sure that the msg file is loaded!}
     if ioresult<>0 then
         begin
             close(f);
+            { Very nice indeed !!! PM }
             writeln('Fatal: File tokens.dat not found.');
             halt(3);
         end;
@@ -260,19 +279,32 @@ begin
     new(tokenidx);
     blockread(f,tokenidx^,sizeof(tokenidx^));
     close(f);
+{$else not TP}
+  tokeninfo:=@arraytokeninfo;
+  new(tokenidx);
+  create_tokenidx;
+{$endif not TP}
 end;
 
 procedure donetokens;
 
 begin
+{$ifdef TP}
     dispose(tokeninfo);
+{$else TP}
+    tokeninfo:=nil;
+{$endif TP}
     dispose(tokenidx);
 end;
 
 end.
 {
   $Log$
-  Revision 1.12  1999-09-02 18:47:49  daniel
+  Revision 1.13  1999-09-03 08:37:34  pierre
+    *  tokens.dat only used for TP, and also removed from
+       compiler dependencies
+
+  Revision 1.12  1999/09/02 18:47:49  daniel
     * Could not compile with TP, some arrays moved to heap
     * NOAG386BIN default for TP
     * AG386* files were not compatible with TP, fixed.
