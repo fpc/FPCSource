@@ -432,13 +432,15 @@ implementation
          if not(assigned(def1)) or not(assigned(def2)) then
            exit;
          { check for method pointer }
-         ismethod:=assigned(def1.owner) and
-                   (def1.owner.symtabletype=objectsymtable);
-                   { I think methods of objects are also not compatible }
-                   { with procedure variables! (FK)
-                   and
-                   assigned(def1.owner.defowner) and
-                   (tobjectdef(def1.owner.defowner)^.is_class); }
+         if def1.deftype=procvardef then
+          begin
+            ismethod:=(po_methodpointer in def1.procoptions);
+          end
+         else
+          begin
+            ismethod:=assigned(def1.owner) and
+                      (def1.owner.symtabletype=objectsymtable);
+          end;
          if (ismethod and not (po_methodpointer in def2.procoptions)) or
             (not(ismethod) and (po_methodpointer in def2.procoptions)) then
           begin
@@ -1921,7 +1923,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.61  2002-01-06 12:08:16  peter
+  Revision 1.62  2002-01-06 21:50:44  peter
+    * proc_to_procvar_equal fixed for procvar-procvar
+
+  Revision 1.61  2002/01/06 12:08:16  peter
     * removed uauto from orddef, use new range_to_basetype generating
       the correct ordinal type for a range
 
