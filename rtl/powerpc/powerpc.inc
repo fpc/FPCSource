@@ -159,7 +159,7 @@ end;
 
 {$define FPC_SYSTEM_HAS_MOVE}
 
-procedure Move(const source;var dest;count:longint);assembler;
+procedure Move(const source;var dest;count:longint);[public, alias: 'FPC_MOVE'];assembler;
 asm
           {  count <= 0 ?  }
           cmpwi   cr0,r5,0
@@ -1004,7 +1004,10 @@ end;
 
 {
   $Log$
-  Revision 1.56  2003-11-23 17:34:27  jonas
+  Revision 1.57  2003-12-07 13:29:02  jonas
+    + added FPC_MOVE alias to move for open array support
+
+  Revision 1.56  2003/11/23 17:34:27  jonas
     * fixed some label names
 
   Revision 1.55  2003/11/15 19:01:27  florian
