@@ -14,9 +14,10 @@ units=$(SYSTEMUNIT) objpas strings baseunix \
       $(LINUXUNIT) unix initc \
       dos crt objects printer \
       sysutils typinfo math varutils \
-      cpu mmx charset ucomplex getopts heaptrc lineinfo \
+       charset ucomplex getopts heaptrc lineinfo \
       errors sockets gpm ipc terminfo \
-      video mouse keyboard console serial variants types systhrds sysctl
+      video mouse keyboard  serial variants types systhrds sysctl
+units_netbsd_i386=mmx cpu
 rsts=math varutils typinfo
 
 [require]
