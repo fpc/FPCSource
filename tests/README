@@ -47,3 +47,5 @@ testset.pp        test set functions
 testheap.pp       test heap functions
 teststr.pp        test string functions and speed
 testaoc.pp        test Array of construct.
+testansi.pp       test ansistrings
+testrtti.pp       test RTTI generation and typinfo unit.
