@@ -43,7 +43,8 @@ interface
 implementation
 
     uses
-      cobjects,verbose,globals,systems,
+      globtype,systems,
+      cobjects,verbose,globals,
       symtable,aasm,types,
       hcodegen,temp_gen,pass_2,
       m68k,cga68k,tgen68k;
@@ -96,7 +97,7 @@ implementation
 
               gettempofsizereference(target_os.size_of_pointer,p^.location.reference);
               emitpushreferenceaddr(exprasmlist,p^.location.reference);
-              
+
               emitcall('FPC_GETMEM',true);
 {!!!!!!!}
 (*              if ppointerdef(p^.resulttype)^.definition^.needs_inittable then
@@ -595,7 +596,7 @@ implementation
                    emit_bounds_check(hp^,ind);
                 end;
            end;
- 
+
          { ------------------------ HANDLE INDEXING ----------------------- }
          { In Motorola 680x0 mode, displacement can only be of 64K max.     }
          { Therefore instead of doing a direct displacement, we must first  }
@@ -724,7 +725,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.9  1998-11-25 19:12:55  pierre
+  Revision 1.10  1998-12-11 00:03:06  peter
+    + globtype,tokens,version unit splitted from globals
+
+  Revision 1.9  1998/11/25 19:12:55  pierre
     * var:=new(pointer_type) support added
 
   Revision 1.8  1998/10/14 11:28:21  florian

@@ -30,24 +30,22 @@ unit pexports;
   implementation
 
     uses
-{* Changes made by Ozerski 23.10.1998}
-       cobjects,globals,scanner,symtable,pbase,verbose,
-       export,GenDef,Strings;
-{* End changes}
+      globtype,systems,tokens,
+      strings,cobjects,globals,verbose,
+      scanner,symtable,pbase,
+      export,GenDef;
 
     procedure read_exports;
 
       var
          hp : pexported_item;
          code : word;
-{* Changes made by Ozerski 23.10.1998}
          DefString:string;
          ProcName:string;
          InternalProcName:string;
       begin
          DefString:='';
          InternalProcName:='';
-{* End changes}
          consume(_EXPORTS);
          while true do
            begin
@@ -137,7 +135,10 @@ end.
 
 {
   $Log$
-  Revision 1.5  1998-11-30 13:26:25  pierre
+  Revision 1.6  1998-12-11 00:03:31  peter
+    + globtype,tokens,version unit splitted from globals
+
+  Revision 1.5  1998/11/30 13:26:25  pierre
     * the code for ordering the exported procs/vars was buggy
     + added -WB to force binding (Ozerski way of creating DLL)
       this is off by default as direct writing of .edata section seems

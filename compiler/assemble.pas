@@ -25,7 +25,7 @@ unit assemble;
 interface
 
 uses
-  dos,cobjects,globals,aasm;
+  dos,cobjects,globtype,globals,aasm;
 
 const
 {$ifdef tp}
@@ -533,7 +533,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.32  1998-11-06 09:46:46  pierre
+  Revision 1.33  1998-12-11 00:02:45  peter
+    + globtype,tokens,version unit splitted from globals
+
+  Revision 1.32  1998/11/06 09:46:46  pierre
    * assemble failure increments status errorcount again !!
 
   Revision 1.31  1998/10/26 22:23:28  peter

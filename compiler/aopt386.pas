@@ -25,13 +25,17 @@ Unit aopt386;
 
 Interface
 
-Uses aasm;
+Uses
+  aasm;
 
 Procedure Optimize(AsmL: PAasmOutput);
 
 Implementation
 
-Uses globals, i386, DAOpt386, POpt386, CSOpt386;
+Uses
+  globtype,
+  globals,i386,DAOpt386,POpt386,CSOpt386;
+
 
 Procedure Optimize(AsmL: PAasmOutput);
 Var BlockEnd: Pai;
@@ -59,7 +63,10 @@ End.
 
 {
  $Log$
- Revision 1.22  1998-08-19 16:07:57  jonas
+ Revision 1.23  1998-12-11 00:02:43  peter
+   + globtype,tokens,version unit splitted from globals
+
+ Revision 1.22  1998/08/19 16:07:57  jonas
    * changed optimizer switches + cleanup of DestroyRefs in daopt386.pas
 
  Revision 1.21  1998/08/06 19:40:29  jonas

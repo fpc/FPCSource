@@ -42,7 +42,8 @@ interface
 implementation
 
     uses
-      cobjects,verbose,globals,systems,
+      globtype,systems,
+      cobjects,verbose,globals,
       symtable,aasm,types,
       hcodegen,htypechk,temp_gen,pass_1
 {$ifdef i386}
@@ -482,7 +483,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.3  1998-10-19 08:55:10  pierre
+  Revision 1.4  1998-12-11 00:03:55  peter
+    + globtype,tokens,version unit splitted from globals
+
+  Revision 1.3  1998/10/19 08:55:10  pierre
     * wrong stabs info corrected once again !!
     + variable vmt offset with vmt field only if required
       implemented now !!!

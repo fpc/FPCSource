@@ -84,7 +84,7 @@ procedure DoneVerbose;
 implementation
 uses
   files,comphook,
-  globals;
+  version,globals;
 
 var
   redirexitsave : pointer;
@@ -429,7 +429,10 @@ end.
 
 {
   $Log$
-  Revision 1.30  1998-12-02 16:23:38  jonas
+  Revision 1.31  1998-12-11 00:04:04  peter
+    + globtype,tokens,version unit splitted from globals
+
+  Revision 1.30  1998/12/02 16:23:38  jonas
     * changed "if longintvar in set" to case or "if () or () .." statements
     * tree.pas: changed inlinenumber (and associated constructor/vars) to a byte
 

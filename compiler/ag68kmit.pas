@@ -43,7 +43,8 @@ unit ag68kmit;
    implementation
 
     uses
-      dos,globals,systems,cobjects,m68k,
+      globtype,systems,
+      dos,globals,cobjects,m68k,
       strings,files,verbose
 {$ifdef GDB}
       ,gdb
@@ -55,8 +56,11 @@ unit ag68kmit;
 
     var
 {$ifdef GDB}
-      n_line  : byte;     { different types of source lines }
+      n_line       : byte;     { different types of source lines }
+      linecount,
       includecount : longint;
+      funcname     : pchar;
+      stabslastfileinfo : tfileposinfo;
 {$endif}
       lastsec    : tsection; { last section type written }
       lastsecidx,
@@ -661,7 +665,10 @@ ait_stab_function_name : funcname:=pai_stab_function_name(hp)^.str;
 end.
 {
   $Log$
-  Revision 1.17  1998-11-30 09:42:57  pierre
+  Revision 1.18  1998-12-11 00:02:40  peter
+    + globtype,tokens,version unit splitted from globals
+
+  Revision 1.17  1998/11/30 09:42:57  pierre
     * some range check bugs fixed (still not working !)
     + added DLL writing support for win32 (also accepts variables)
     + TempAnsi for code that could be used for Temporary ansi strings

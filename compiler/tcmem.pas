@@ -43,7 +43,8 @@ interface
 implementation
 
     uses
-      cobjects,verbose,globals,systems,
+      globtype,systems,
+      cobjects,verbose,globals,
       symtable,aasm,types,
       hcodegen,htypechk,pass_1
 {$ifdef i386}
@@ -507,7 +508,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.4  1998-11-25 19:12:53  pierre
+  Revision 1.5  1998-12-11 00:03:57  peter
+    + globtype,tokens,version unit splitted from globals
+
+  Revision 1.4  1998/11/25 19:12:53  pierre
     * var:=new(pointer_type) support added
 
   Revision 1.3  1998/09/26 15:03:05  florian

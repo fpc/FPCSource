@@ -29,7 +29,7 @@ unit tree;
   interface
 
     uses
-       cobjects,globals,symtable,aasm
+       globtype,cobjects,symtable,aasm
 {$ifdef i386}
        ,i386
 {$endif}
@@ -336,7 +336,8 @@ unit tree;
   implementation
 
     uses
-       systems,verbose,files,types;
+       systems,
+       globals,verbose,files,types;
 
 
     function getnode : ptree;
@@ -1655,7 +1656,10 @@ unit tree;
 end.
 {
   $Log$
-  Revision 1.57  1998-12-04 10:18:13  florian
+  Revision 1.58  1998-12-11 00:04:02  peter
+    + globtype,tokens,version unit splitted from globals
+
+  Revision 1.57  1998/12/04 10:18:13  florian
     * some stuff for procedures of object added
     * bug with overridden virtual constructors fixed (reported by Italo Gomes)
 

@@ -39,7 +39,8 @@ interface
 implementation
 
    uses
-      cobjects,verbose,globals,systems,
+      globtype,systems,tokens,
+      cobjects,verbose,globals,
       symtable,aasm,types,
       hcodegen,htypechk,pass_1
 {$ifdef i386}
@@ -955,7 +956,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.11  1998-12-04 10:18:12  florian
+  Revision 1.12  1998-12-11 00:03:53  peter
+    + globtype,tokens,version unit splitted from globals
+
+  Revision 1.11  1998/12/04 10:18:12  florian
     * some stuff for procedures of object added
     * bug with overridden virtual constructors fixed (reported by Italo Gomes)
 

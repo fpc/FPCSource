@@ -44,7 +44,8 @@ unit ag68kgas;
    implementation
 
     uses
-      dos,globals,systems,m68k,
+      globtype,systems,
+      dos,globals,m68k,
       strings,files,verbose
 {$ifdef GDB}
       ,gdb
@@ -56,8 +57,11 @@ unit ag68kgas;
 
     var
 {$ifdef GDB}
-      n_line  : byte;     { different types of source lines }
+      n_line       : byte;     { different types of source lines }
+      linecount,
       includecount : longint;
+      funcname     : pchar;
+      stabslastfileinfo : tfileposinfo;
 {$endif}
       lastsec    : tsection; { last section type written }
       lastsecidx,
@@ -249,8 +253,6 @@ unit ag68kgas;
     var
       curr_n    : byte;
       infile    : pinputfile;
-      funcname  : pchar;
-      linecount : longint;
 
       procedure tm68kgasasmlist.WriteFileLineInfo(var fileinfo : tfileposinfo);
         begin
@@ -699,7 +701,10 @@ ait_stab_function_name : funcname:=pai_stab_function_name(hp)^.str;
 end.
 {
   $Log$
-  Revision 1.20  1998-11-12 11:19:35  pierre
+  Revision 1.21  1998-12-11 00:02:39  peter
+    + globtype,tokens,version unit splitted from globals
+
+  Revision 1.20  1998/11/12 11:19:35  pierre
    * fix for first line of function break
 
   Revision 1.19  1998/10/29 11:35:36  florian

@@ -30,6 +30,7 @@ unit files;
   interface
 
     uses
+       globtype,
        cobjects,globals,ppu;
 
     const
@@ -1054,7 +1055,10 @@ unit files;
 end.
 {
   $Log$
-  Revision 1.78  1998-12-04 10:18:07  florian
+  Revision 1.79  1998-12-11 00:03:14  peter
+    + globtype,tokens,version unit splitted from globals
+
+  Revision 1.78  1998/12/04 10:18:07  florian
     * some stuff for procedures of object added
     * bug with overridden virtual constructors fixed (reported by Italo Gomes)
 

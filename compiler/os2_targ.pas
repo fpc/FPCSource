@@ -47,7 +47,7 @@ type
 
 implementation
 
-uses    dos,strings,globals,link,files;
+uses    globtype,dos,strings,globals,link,files;
 
 const   profile_flag:boolean=false;
 
@@ -329,7 +329,10 @@ end.
 
 {
   $Log$
-  Revision 1.5  1998-10-16 14:20:53  daniel
+  Revision 1.6  1998-12-11 00:03:25  peter
+    + globtype,tokens,version unit splitted from globals
+
+  Revision 1.5  1998/10/16 14:20:53  daniel
   * Faster keyword scanning.
   * Import library and smartlink library in one file.
 

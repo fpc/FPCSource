@@ -36,7 +36,8 @@ unit ag68kmpw;
   implementation
 
     uses
-      dos,globals,systems,cobjects,m68k,
+      globtype,systems,
+      dos,globals,cobjects,m68k,
       strings,files,verbose
 {$ifdef GDB}
       ,gdb
@@ -580,7 +581,10 @@ ait_labeled_instruction :
 end.
 {
   $Log$
-  Revision 1.7  1998-11-12 11:19:39  pierre
+  Revision 1.8  1998-12-11 00:02:42  peter
+    + globtype,tokens,version unit splitted from globals
+
+  Revision 1.7  1998/11/12 11:19:39  pierre
    * fix for first line of function break
 
   Revision 1.6  1998/10/29 11:35:39  florian

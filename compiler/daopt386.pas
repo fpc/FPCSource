@@ -30,11 +30,9 @@ Unit DAOpt386;
 
 Interface
 
-Uses AAsm, CObjects
-  {$ifdef i386}
-    ,i386
-  {$endif}
-  ;
+Uses
+  GlobType,
+  CObjects,Aasm,i386;
 
 
 Type
@@ -2085,7 +2083,10 @@ End.
 
 {
  $Log$
- Revision 1.30  1998-12-02 16:23:39  jonas
+ Revision 1.31  1998-12-11 00:03:13  peter
+   + globtype,tokens,version unit splitted from globals
+
+ Revision 1.30  1998/12/02 16:23:39  jonas
    * changed "if longintvar in set" to case or "if () or () .." statements
    * tree.pas: changed inlinenumber (and associated constructor/vars) to a byte
 

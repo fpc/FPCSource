@@ -31,11 +31,10 @@ Procedure PeepHoleOptPass2(AsmL: PAasmOutput);
 
 Implementation
 
-Uses globals, systems, verbose, hcodegen
-   {$ifdef i386}
-     ,i386, DAOpt386
-   {$endif i386}
-     ;
+Uses
+  globtype,systems,
+  globals,verbose,hcodegen,
+  i386,DAOpt386;
 
 Function RegUsedAfterInstruction(Reg: TRegister; p: Pai; Var UsedRegs: TRegSet): Boolean;
 Begin
@@ -1555,7 +1554,10 @@ End.
 
 {
  $Log$
- Revision 1.26  1998-12-09 18:16:13  jonas
+ Revision 1.27  1998-12-11 00:03:35  peter
+   + globtype,tokens,version unit splitted from globals
+
+ Revision 1.26  1998/12/09 18:16:13  jonas
    * corrected small syntax error in part between {ifdef ver0_99_11}
    + added fistp/fild optimization between {ifdef ver0_99_11}
 
@@ -1565,7 +1567,7 @@ End.
 
  Revision 1.24  1998/11/26 15:41:45  jonas
    + change "setxx mem; movb mem, reg8" to "setxx reg8" if mem is a local
-     variable/parameter or function result (between {$ifdef ver0_99_11})
+     variable/parameter or function result (between $ifdef ver0_99_11)
 
  Revision 1.23  1998/11/03 16:26:09  jonas
    * "call x;jmp y" optimization not done anymore for P6 and equivalents

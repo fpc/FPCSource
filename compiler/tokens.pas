@@ -19,6 +19,11 @@
     Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
  ****************************************************************************
 }
+unit tokens;
+interface
+
+uses
+  globtype;
 
 const
   tokenidlen=14;
@@ -183,7 +188,7 @@ type
   end;
 
 const
-  tokens:array[ttoken] of tokenrec=(
+  tokeninfo:array[ttoken] of tokenrec=(
     { Operators which can be overloaded }
       (str:'+'             ;special:true ;keyword:m_none),
       (str:'-'             ;special:true ;keyword:m_none),
@@ -262,7 +267,7 @@ const
       (str:'CVAR'          ;special:false;keyword:m_none),
       (str:'ELSE'          ;special:false;keyword:m_all),
       (str:'EXIT'          ;special:false;keyword:m_all),
-      (str:'FAIL'          ;special:false;keyword:m_none), { only set within constructors  PM }
+      (str:'FAIL'          ;special:false;keyword:m_none), { only set within constructors PM }
       (str:'FILE'          ;special:false;keyword:m_all),
       (str:'GOTO'          ;special:false;keyword:m_all),
       (str:'NAME'          ;special:false;keyword:m_none),
@@ -334,35 +339,12 @@ const
       (str:'INITIALIZATION';special:false;keyword:m_class)
   );
 
+implementation
+
+end.
 {
   $Log$
-  Revision 1.7  1998-11-27 14:50:54  peter
-    + open strings, $P switch support
-
-  Revision 1.6  1998/11/13 15:40:33  pierre
-    + added -Se in Makefile cvstest target
-    + lexlevel cleanup
-      normal_function_level main_program_level and unit_init_level defined
-    * tins_cache grown to A_EMMS (gave range check error in asm readers)
-      (test added in code !)
-    * -Un option was wrong
-    * _FAIL and _SELF only keyword inside
-      constructors and methods respectively
-
-  Revision 1.5  1998/11/10 10:09:19  peter
-    * va_list -> array of const
-
-  Revision 1.4  1998/11/09 11:44:42  peter
-    + va_list for printf support
-
-  Revision 1.3  1998/10/16 14:21:05  daniel
-  * Faster keyword scanning.
-  * Import library and smartlink library in one file.
-
-  Revision 1.2  1998/09/30 12:12:30  peter
-    * fixed far,near which are not keywords
-
-  Revision 1.1  1998/09/26 17:45:47  peter
-    + idtoken and only one token table
+  Revision 1.1  1998-12-11 00:04:02  peter
+    + globtype,tokens,version unit splitted from globals
 
 }

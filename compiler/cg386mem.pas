@@ -43,7 +43,8 @@ interface
 implementation
 
     uses
-      cobjects,verbose,globals,systems,
+      globtype,systems,
+      cobjects,verbose,globals,
       symtable,aasm,types,
       hcodegen,temp_gen,pass_2,
       i386,cgai386,tgeni386;
@@ -94,7 +95,7 @@ implementation
 
               gettempofsizereference(target_os.size_of_pointer,p^.location.reference);
               emitpushreferenceaddr(exprasmlist,p^.location.reference);
-              
+
               emitcall('FPC_GETMEM',true);
               if ppointerdef(p^.resulttype)^.definition^.needs_inittable then
                 begin
@@ -743,7 +744,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.21  1998-12-10 09:47:18  florian
+  Revision 1.22  1998-12-11 00:02:55  peter
+    + globtype,tokens,version unit splitted from globals
+
+  Revision 1.21  1998/12/10 09:47:18  florian
     + basic operations with int64/qord (compiler with -dint64)
     + rtti of enumerations extended: names are now written
 

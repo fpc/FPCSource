@@ -64,7 +64,8 @@ Var
 Implementation
 
 uses
-  Script,globals,systems,verbose
+  globtype,systems,
+  script,globals,verbose
 {$ifdef i386}
   ,win_targ
 {$endif}
@@ -531,7 +532,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.41  1998-12-01 23:39:46  pierre
+  Revision 1.42  1998-12-11 00:03:19  peter
+    + globtype,tokens,version unit splitted from globals
+
+  Revision 1.41  1998/12/01 23:39:46  pierre
    * postprocessexec for win32 changed
 
   Revision 1.40  1998/12/01 12:51:20  peter

@@ -32,7 +32,8 @@ interface
 implementation
 
     uses
-      cobjects,verbose,globals,systems,files,
+      globtype,systems,
+      cobjects,verbose,globals,files,
       symtable,aasm,types,
       hcodegen,temp_gen,pass_2,
       i386,cgai386,tgeni386,cg386ld,cg386cal;
@@ -970,7 +971,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.20  1998-11-27 14:50:32  peter
+  Revision 1.21  1998-12-11 00:02:50  peter
+    + globtype,tokens,version unit splitted from globals
+
+  Revision 1.20  1998/11/27 14:50:32  peter
     + open strings, $P switch support
 
   Revision 1.19  1998/11/26 13:10:40  peter

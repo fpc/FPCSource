@@ -44,7 +44,8 @@ interface
 implementation
 
     uses
-      cobjects,verbose,globals,systems,
+      globtype,systems,
+      cobjects,verbose,globals,
       symtable,aasm,types,
       hcodegen,temp_gen,pass_2,
       m68k,cga68k,tgen68k;
@@ -778,7 +779,10 @@ do_jmp:
 end.
 {
   $Log$
-  Revision 1.7  1998-10-14 11:28:19  florian
+  Revision 1.8  1998-12-11 00:03:02  peter
+    + globtype,tokens,version unit splitted from globals
+
+  Revision 1.7  1998/10/14 11:28:19  florian
     * emitpushreferenceaddress gets now the asmlist as parameter
     * m68k version compiles with -duseansistrings
 

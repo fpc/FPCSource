@@ -45,7 +45,7 @@ Unit Ra68kMot;
 Interface
 
 Uses
-  m68k,tree;
+  globtype,m68k,tree;
 
    function assemble: ptree;
 
@@ -2178,7 +2178,10 @@ Begin
 end.
 {
   $Log$
-  Revision 1.6  1998-10-13 16:50:19  pierre
+  Revision 1.7  1998-12-11 00:03:45  peter
+    + globtype,tokens,version unit splitted from globals
+
+  Revision 1.6  1998/10/13 16:50:19  pierre
     * undid some changes of Peter that made the compiler wrong
       for m68k (I had to reinsert some ifdefs)
     * removed several memory leaks under m68k

@@ -32,7 +32,8 @@ procedure createconstdefs;
 
 implementation
 
-uses globals,tree;
+uses
+  globtype,globals,tree;
 
 procedure insertinternsyms(p : psymtable);
 {
@@ -252,7 +253,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.13  1998-12-10 09:47:25  florian
+  Revision 1.14  1998-12-11 00:03:40  peter
+    + globtype,tokens,version unit splitted from globals
+
+  Revision 1.13  1998/12/10 09:47:25  florian
     + basic operations with int64/qord (compiler with -dint64)
     + rtti of enumerations extended: names are now written
 

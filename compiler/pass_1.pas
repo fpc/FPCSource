@@ -36,7 +36,8 @@ interface
 implementation
 
     uses
-      cobjects,verbose,systems,globals,
+      globtype,systems,
+      cobjects,verbose,globals,
       aasm,symtable,types,
       hcodegen,htypechk,
       tcadd,tccal,tccnv,tccon,tcflw,
@@ -366,7 +367,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.98  1998-11-23 17:49:03  pierre
+  Revision 1.99  1998-12-11 00:03:27  peter
+    + globtype,tokens,version unit splitted from globals
+
+  Revision 1.98  1998/11/23 17:49:03  pierre
    * ansistring support in extdebug code
 
   Revision 1.97  1998/11/05 14:26:47  peter

@@ -25,7 +25,7 @@ unit cga68k;
   interface
 
     uses
-       cobjects,tree,m68k,aasm,symtable;
+       globtype,cobjects,tree,m68k,aasm,symtable;
 
     procedure emitl(op : tasmop;var l : plabel);
     procedure emit_reg_reg(i : tasmop;s : topsize;reg1,reg2 : tregister);
@@ -48,6 +48,7 @@ unit cga68k;
     procedure maybe_loada5;
     procedure emit_bounds_check(hp: treference; index: tregister);
     procedure loadstring(p:ptree);
+    procedure decransiref(const ref : treference);
 
     procedure floatload(t : tfloattype;const ref : treference; var location:tlocation);
     { return a float op_size from a floatb type  }
@@ -70,6 +71,9 @@ unit cga68k;
     { generate the exit code for a procedure. }
     procedure genexitcode(list : paasmoutput;parasize:longint;
                           nostackframe,inlined:boolean);
+
+    procedure removetemps(list : paasmoutput;p : plinkedlist);
+    procedure releasedata(p : plinkedlist);
 
 {$ifdef test_dest_loc}
 const   { used to avoid temporary assignments }
@@ -134,7 +138,7 @@ procedure mov_reg_to_dest(p : ptree; s : topsize; reg : tregister);
          emitpushreferenceaddr(exprasmlist,ref);
          emitcall('FPC_ANSISTR_DECR_REF',true);
       end;
-      
+
     procedure loadstring(p:ptree);
       begin
         case p^.right^.resulttype^.deftype of
@@ -602,7 +606,7 @@ begin
       if (cs_debuginfo in aktmoduleswitches) then
          list^.insert(new(pai_force_line,init));
 {$endif GDB}
-      
+
     { omit stack frame ? }
     if procinfo.framepointer=stack_pointer then
         begin
@@ -1354,10 +1358,48 @@ end;
 
 {$endif test_dest_loc}
 
+    procedure removetemps(list : paasmoutput;p : plinkedlist);
+
+      var
+         hp : ptemptodestroy;
+
+      begin
+         hp:=ptemptodestroy(p^.first);
+         while assigned(hp) do
+           begin
+              if is_ansistring(hp^.typ) then
+                begin
+                   emitpushreferenceaddr(list,hp^.address);
+                   list^.concat(new(pai68k,
+                     op_csymbol(A_JSR,S_NO,newcsymbol('FPC_ANSISTR_DECR_REF',0))));
+                   if not (cs_compilesystem in aktmoduleswitches) then
+                     concat_external('FPC_ANSISTR_DECR_REF',EXT_NEAR);
+                end;
+              hp:=ptemptodestroy(hp^.next);
+           end;
+      end;
+
+    procedure releasedata(p : plinkedlist);
+
+      var
+         hp : ptemptodestroy;
+
+      begin
+         hp:=ptemptodestroy(p^.first);
+         while assigned(hp) do
+           begin
+              ungetiftemp(hp^.address);
+              hp:=ptemptodestroy(hp^.next);
+           end;
+      end;
+
 end.
 {
   $Log$
-  Revision 1.30  1998-11-30 09:43:05  pierre
+  Revision 1.31  1998-12-11 00:03:09  peter
+    + globtype,tokens,version unit splitted from globals
+
+  Revision 1.30  1998/11/30 09:43:05  pierre
     * some range check bugs fixed (still not working !)
     + added DLL writing support for win32 (also accepts variables)
     + TempAnsi for code that could be used for Temporary ansi strings

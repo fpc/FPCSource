@@ -53,7 +53,7 @@ Interface
   {$R-} { needed for the in [] }
 {$endif}
 uses
-  tree,i386;
+  globtype,tree,i386;
 
    function assemble: ptree;
 
@@ -3517,7 +3517,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.17  1998-12-08 23:03:46  jonas
+  Revision 1.18  1998-12-11 00:03:43  peter
+    + globtype,tokens,version unit splitted from globals
+
+  Revision 1.17  1998/12/08 23:03:46  jonas
     * allow constant offsets for go32v2 in assembler blocks
 
   Revision 1.16  1998/12/02 16:23:36  jonas

@@ -39,7 +39,8 @@ interface
 implementation
 
     uses
-      cobjects,verbose,globals,systems,
+      globtype,systems,
+      cobjects,verbose,globals,
       aasm,types,
       hcodegen,temp_gen,pass_2,
       m68k,cga68k,tgen68k,cg68kld;
@@ -1062,7 +1063,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.16  1998-11-13 15:40:15  pierre
+  Revision 1.17  1998-12-11 00:02:58  peter
+    + globtype,tokens,version unit splitted from globals
+
+  Revision 1.16  1998/11/13 15:40:15  pierre
     + added -Se in Makefile cvstest target
     + lexlevel cleanup
       normal_function_level main_program_level and unit_init_level defined

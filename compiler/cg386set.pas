@@ -34,7 +34,8 @@ interface
 implementation
 
     uses
-      cobjects,verbose,globals,systems,
+      globtype,systems,
+      cobjects,verbose,globals,
       symtable,aasm,types,
       hcodegen,temp_gen,pass_2,
       i386,cgai386,tgeni386;
@@ -787,7 +788,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.19  1998-10-09 08:56:25  pierre
+  Revision 1.20  1998-12-11 00:02:56  peter
+    + globtype,tokens,version unit splitted from globals
+
+  Revision 1.19  1998/10/09 08:56:25  pierre
     * several memory leaks fixed
 
   Revision 1.18  1998/10/08 17:17:14  pierre

@@ -136,7 +136,8 @@ unit types;
 
   implementation
 
-    uses verbose,aasm;
+    uses
+      globtype,verbose,aasm;
 
 
     function equal_paras(def1,def2 : pdefcoll;value_equal_const : boolean) : boolean;
@@ -1047,7 +1048,10 @@ unit types;
 end.
 {
   $Log$
-  Revision 1.41  1998-12-10 09:47:33  florian
+  Revision 1.42  1998-12-11 00:04:03  peter
+    + globtype,tokens,version unit splitted from globals
+
+  Revision 1.41  1998/12/10 09:47:33  florian
     + basic operations with int64/qord (compiler with -dint64)
     + rtti of enumerations extended: names are now written
 

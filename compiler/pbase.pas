@@ -25,7 +25,7 @@ unit pbase;
   interface
 
     uses
-       cobjects,globals,symtable;
+       cobjects,tokens,globals,symtable;
 
     const
        { forward types should only be possible inside  }
@@ -93,14 +93,14 @@ unit pbase;
 
     function tokenstring(i : ttoken):string;
       begin
-        tokenstring:=tokens[i].str;
+        tokenstring:=tokeninfo[i].str;
       end;
 
     { consumes token i, write error if token is different }
     procedure consume(i : ttoken);
       begin
         if (token<>i) and (idtoken<>i) then
-          Message2(scan_f_syn_expected,tokens[i].str,tokens[token].str)
+          Message2(scan_f_syn_expected,tokeninfo[i].str,tokeninfo[token].str)
         else
           begin
             if token=_END then
@@ -180,7 +180,10 @@ end.
 
 {
   $Log$
-  Revision 1.17  1998-09-26 17:45:31  peter
+  Revision 1.18  1998-12-11 00:03:29  peter
+    + globtype,tokens,version unit splitted from globals
+
+  Revision 1.17  1998/09/26 17:45:31  peter
     + idtoken and only one token table
 
   Revision 1.16  1998/09/23 15:39:08  pierre

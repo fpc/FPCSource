@@ -53,7 +53,7 @@ unit win_targ;
   implementation
 
     uses
-       aasm,files,strings,globals,cobjects,systems,verbose
+       aasm,files,strings,globtype,globals,cobjects,systems,verbose
 {$ifdef GDB}
        ,gdb
 {$endif}
@@ -413,20 +413,20 @@ unit win_targ;
          last_index:=0;
       end;
 
-    
-    
+
+
     procedure texportlibwin32.exportvar(hp : pexported_item);
       begin
          { same code used !! PM }
          exportprocedure(hp);
       end;
-      
-    
+
+
     procedure texportlibwin32.exportprocedure(hp : pexported_item);
-    
+
       { must be ordered at least for win32 !! }
       var hp2 : pexported_item;
-    
+
     begin
         hp2:=pexported_item(current_module^._exports^.first);
         { first test the index value }
@@ -460,7 +460,7 @@ unit win_targ;
              hp^.name:=stringdup(hp^.sym^.name);
              hp^.options:=hp^.options or eo_name;
           end;
-          
+
         { now place in correct order }
         hp2:=pexported_item(current_module^._exports^.first);
         while assigned(hp2) and
@@ -485,8 +485,8 @@ unit win_targ;
         else
           current_module^._exports^.concat(hp);
     end;
-    
-    
+
+
     procedure texportlibwin32.generatelib;
 
       var
@@ -499,7 +499,7 @@ unit win_targ;
          tempexport : plinkedlist;
          address_table,name_table_pointers,
          name_table,ordinal_table : paasmoutput;
-         
+
       begin
          ordinal_max:=0;
          ordinal_min:=$7FFFFFFF;
@@ -530,7 +530,7 @@ unit win_targ;
          current_index:=ordinal_base;
          { we must also count the holes !! }
          entries:=ordinal_max-ordinal_base+1;
-         
+
          exportssection^.concat(new(pai_section,init(sec_edata)));
          { export flags }
          exportssection^.concat(new(pai_const,init_32bit(0)));
@@ -617,7 +617,7 @@ unit win_targ;
                 end;
               hp:=pexported_item(current_module^._exports^.first);;
            end;
-         
+
 
 
          { write the export adress table }
@@ -636,7 +636,7 @@ unit win_targ;
               inc(current_index);
               hp:=pexported_item(hp^.next);
            end;
-         
+
          exportssection^.concatlist(address_table);
          exportssection^.concatlist(name_table_pointers);
          exportssection^.concatlist(ordinal_table);
@@ -696,7 +696,10 @@ unit win_targ;
 end.
 {
   $Log$
-  Revision 1.18  1998-12-02 10:26:13  pierre
+  Revision 1.19  1998-12-11 00:04:06  peter
+    + globtype,tokens,version unit splitted from globals
+
+  Revision 1.18  1998/12/02 10:26:13  pierre
     * writing of .edata was wrong for indexes above number of exported items
     * importing by index only did not work !
 

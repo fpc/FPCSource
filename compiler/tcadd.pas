@@ -32,7 +32,8 @@ interface
 implementation
 
     uses
-      cobjects,verbose,globals,systems,
+      globtype,systems,tokens,
+      cobjects,verbose,globals,
       symtable,aasm,types,
       hcodegen,htypechk,pass_1
 {$ifdef i386}
@@ -134,7 +135,7 @@ implementation
                  slashn:
                    t:=gencallnode(overloaded_operators[slash],nil);
                  ltn:
-                   t:=gencallnode(overloaded_operators[globals.lt],nil);
+                   t:=gencallnode(overloaded_operators[tokens.lt],nil);
                  gtn:
                    t:=gencallnode(overloaded_operators[gt],nil);
                  lten:
@@ -950,7 +951,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.16  1998-12-10 09:47:31  florian
+  Revision 1.17  1998-12-11 00:03:51  peter
+    + globtype,tokens,version unit splitted from globals
+
+  Revision 1.16  1998/12/10 09:47:31  florian
     + basic operations with int64/qord (compiler with -dint64)
     + rtti of enumerations extended: names are now written
 

@@ -38,7 +38,8 @@ unit ag68kmot;
   implementation
 
     uses
-      dos,globals,systems,cobjects,m68k,
+      globtype,systems,
+      dos,globals,cobjects,m68k,
       strings,files,verbose
 {$ifdef GDB}
       ,gdb
@@ -541,7 +542,10 @@ ait_labeled_instruction :
 end.
 {
   $Log$
-  Revision 1.15  1998-11-30 09:42:58  pierre
+  Revision 1.16  1998-12-11 00:02:41  peter
+    + globtype,tokens,version unit splitted from globals
+
+  Revision 1.15  1998/11/30 09:42:58  pierre
     * some range check bugs fixed (still not working !)
     + added DLL writing support for win32 (also accepts variables)
     + TempAnsi for code that could be used for Temporary ansi strings

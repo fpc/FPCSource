@@ -34,7 +34,8 @@ interface
 implementation
 
     uses
-      cobjects,verbose,globals,systems,
+      globtype,systems,
+      cobjects,verbose,globals,
       symtable,aasm,types,
       hcodegen,temp_gen,pass_2,
       m68k,cga68k,tgen68k;
@@ -814,7 +815,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.7  1998-10-15 12:41:19  pierre
+  Revision 1.8  1998-12-11 00:03:08  peter
+    + globtype,tokens,version unit splitted from globals
+
+  Revision 1.7  1998/10/15 12:41:19  pierre
     * last memory leaks found when compiler
       a native atari compiler fixed
 

@@ -46,7 +46,8 @@ unit pexpr;
   implementation
 
     uses
-       cobjects,globals,scanner,aasm,pass_1,systems,
+       globtype,systems,tokens,
+       cobjects,globals,scanner,aasm,pass_1,
        hcodegen,types,verbose,strings
        { parser specific stuff }
        ,pbase,pdecl
@@ -1927,7 +1928,10 @@ unit pexpr;
 end.
 {
   $Log$
-  Revision 1.77  1998-12-04 10:18:09  florian
+  Revision 1.78  1998-12-11 00:03:32  peter
+    + globtype,tokens,version unit splitted from globals
+
+  Revision 1.77  1998/12/04 10:18:09  florian
     * some stuff for procedures of object added
     * bug with overridden virtual constructors fixed (reported by Italo Gomes)
 

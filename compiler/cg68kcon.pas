@@ -40,6 +40,7 @@ interface
 implementation
 
     uses
+      globtype,systems,
       cobjects,verbose,globals,
       symtable,aasm,types,
       hcodegen,temp_gen,pass_2,
@@ -137,16 +138,20 @@ implementation
     procedure secondstringconst(var p : ptree);
       var
          hp1 : pai;
-         l1,
+         l1,l2,
          lastlabel   : plabel;
          pc          : pchar;
          same_string : boolean;
-         i           : longint;
+         i,mylength  : longint;
       begin
          lastlabel:=nil;
          { const already used ? }
          if not assigned(p^.lab_str) then
            begin
+              if is_shortstring(p^.resulttype) then
+               mylength:=p^.length+2
+              else
+               mylength:=p^.length+1;
               { tries to found an old entry }
               hp1:=pai(consts^.first);
               while assigned(hp1) do
@@ -162,7 +167,7 @@ implementation
                         { typed consts have no leading length or   }
                         { they have no trailing zero               }
                         if (hp1^.typ=ait_string) and (lastlabel<>nil) and
-                          (pai_string(hp1)^.len=p^.length+2) then
+                           (pai_string(hp1)^.len=mylength) then
                           begin
                              same_string:=true;
                              for i:=0 to p^.length do
@@ -199,18 +204,22 @@ implementation
                              consts^.concat(new(pai_const,init_32bit(0)))
                            else
                              begin
-                                getlabel(l1);
+                                getdatalabel(l1);
+                                getdatalabel(l2);
+                                consts^.concat(new(pai_label,init(l2)));
                                 consts^.concat(new(pai_const,init_symbol(strpnew(lab2str(l1)))));
                                 consts^.concat(new(pai_const,init_32bit(p^.length)));
                                 consts^.concat(new(pai_const,init_32bit(p^.length)));
                                 consts^.concat(new(pai_const,init_32bit(-1)));
                                 consts^.concat(new(pai_label,init(l1)));
-                                getmem(pc,p^.length+1);
-                                move(p^.value_str^,pc^,p^.length+1);
+                                getmem(pc,p^.length+2);
+                                move(p^.value_str^,pc^,p^.length);
                                 pc[p^.length]:=#0;
                                 { to overcome this problem we set the length explicitly }
                                 { with the ending null char }
                                 consts^.concat(new(pai_string,init_length_pchar(pc,p^.length+1)));
+                                { return the offset of the real string }
+                                p^.lab_str:=l2;
                              end;
                         end;
                       st_shortstring:
@@ -224,9 +233,9 @@ implementation
                               getmem(pc,p^.length+3);
                               move(p^.value_str^,pc[1],p^.length+1);
                               pc[0]:=chr(p^.length);
-                              pc[p^.length+1]:=#0;
                               { to overcome this problem we set the length explicitly }
                               { with the ending null char }
+                              pc[p^.length+1]:=#0;
                               consts^.concat(new(pai_string,init_length_pchar(pc,p^.length+2)));
                             end;
                         end;
@@ -245,49 +254,99 @@ implementation
 
     procedure secondsetconst(var p : ptree);
       var
-         lastlabel : plabel;
-         i : longint;
+         hp1         : pai;
+         lastlabel   : plabel;
+         i           : longint;
+         neededtyp   : tait;
       begin
 {$ifdef SMALLSETORD}
+        { small sets are loaded as constants }
         if psetdef(p^.resulttype)^.settype=smallset then
          begin
            p^.location.loc:=LOC_MEM;
            p^.location.reference.isintvalue:=true;
-           p^.location.reference.offset:=p^.value_set^[0];
-         end
-        else
-         begin
-           getdatalabel(lastlabel);
-           p^.lab_set:=lastlabel;
-           if (cs_smartlink in aktmoduleswitches) then
-            consts^.concat(new(pai_cut,init));
-           consts^.concat(new(pai_label,init(duplabel(lastlabel))));
-           for i:=0 to 31 do
-             consts^.concat(new(pai_const,init_8bit(p^.value_set^[i])));
-           clear_reference(p^.location.reference);
-           p^.location.reference.symbol:=stringdup(lab2str(p^.lab_set));
-           p^.location.loc:=LOC_MEM;
+           p^.location.reference.offset:=plongint(p^.value_set)^;
+           exit;
          end;
-{$else}
-        getdatalabel(lastlabel);
-        p^.lab_set:=lastlabel;
-        if (cs_smartlink in aktmoduleswitches) then
-         consts^.concat(new(pai_cut,init));
-        consts^.concat(new(pai_label,init(lastlabel)));
+{$endif}
         if psetdef(p^.resulttype)^.settype=smallset then
-         begin
-           move(p^.value_set^,i,sizeof(longint));
-           consts^.concat(new(pai_const,init_32bit(i)));
-         end
+         neededtyp:=ait_const_32bit
         else
-         begin
-           for i:=0 to 31 do
-             consts^.concat(new(pai_const,init_8bit(p^.value_set^[i])));
-         end;
+         neededtyp:=ait_const_8bit;
+        lastlabel:=nil;
+        { const already used ? }
+        if not assigned(p^.lab_set) then
+          begin
+             { tries to found an old entry }
+             hp1:=pai(consts^.first);
+             while assigned(hp1) do
+               begin
+                  if hp1^.typ=ait_label then
+                    lastlabel:=pai_label(hp1)^.l
+                  else
+                    begin
+                      if (lastlabel<>nil) and (hp1^.typ=neededtyp) then
+                        begin
+                          if (hp1^.typ=ait_const_8bit) then
+                           begin
+                             { compare normal set }
+                             i:=0;
+                             while assigned(hp1) and (i<32) do
+                              begin
+                                if pai_const(hp1)^.value<>p^.value_set^[i] then
+                                 break;
+                                inc(i);
+                                hp1:=pai(hp1^.next);
+                              end;
+                             if i=32 then
+                              begin
+                                { found! }
+                                p^.lab_set:=lastlabel;
+                                break;
+                              end;
+                             { leave when the end of consts is reached, so no
+                               hp1^.next is done }
+                             if not assigned(hp1) then
+                              break;
+                           end
+                          else
+                           begin
+                             { compare small set }
+                             if plongint(p^.value_set)^=pai_const(hp1)^.value then
+                              begin
+                                { found! }
+                                p^.lab_set:=lastlabel;
+                                break;
+                              end;
+                           end;
+                        end;
+                      lastlabel:=nil;
+                    end;
+                  hp1:=pai(hp1^.next);
+               end;
+             { :-(, we must generate a new entry }
+             if not assigned(p^.lab_set) then
+               begin
+                 getdatalabel(lastlabel);
+                 p^.lab_set:=lastlabel;
+                 if (cs_smartlink in aktmoduleswitches) then
+                  consts^.concat(new(pai_cut,init));
+                 consts^.concat(new(pai_label,init(lastlabel)));
+                 if psetdef(p^.resulttype)^.settype=smallset then
+                  begin
+                    move(p^.value_set^,i,sizeof(longint));
+                    consts^.concat(new(pai_const,init_32bit(i)));
+                  end
+                 else
+                  begin
+                    for i:=0 to 31 do
+                      consts^.concat(new(pai_const,init_8bit(p^.value_set^[i])));
+                  end;
+               end;
+          end;
         clear_reference(p^.location.reference);
         p^.location.reference.symbol:=stringdup(lab2str(p^.lab_set));
         p^.location.loc:=LOC_MEM;
-{$endif SMALLSETORD}
       end;
 
 
@@ -302,11 +361,13 @@ implementation
          p^.location.reference.offset:=0;
       end;
 
-
 end.
 {
   $Log$
-  Revision 1.4  1998-11-06 09:47:29  pierre
+  Revision 1.5  1998-12-11 00:03:01  peter
+    + globtype,tokens,version unit splitted from globals
+
+  Revision 1.4  1998/11/06 09:47:29  pierre
    * problem of const with ansi fixed
 
   Revision 1.3  1998/11/05 12:02:37  peter

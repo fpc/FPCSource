@@ -327,7 +327,7 @@ type
 implementation
 
 uses
-  strings,verbose,systems;
+  strings,verbose,systems,globtype;
 
 {****************************************************************************
                              TAI
@@ -916,7 +916,10 @@ uses
 end.
 {
   $Log$
-  Revision 1.26  1998-12-01 23:36:31  pierre
+  Revision 1.27  1998-12-11 00:02:37  peter
+    + globtype,tokens,version unit splitted from globals
+
+  Revision 1.26  1998/12/01 23:36:31  pierre
    * zero padded alignment was buggy
 
   Revision 1.25  1998/11/30 09:42:52  pierre

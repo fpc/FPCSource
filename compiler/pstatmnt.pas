@@ -39,7 +39,8 @@ unit pstatmnt;
   implementation
 
     uses
-       strings,cobjects,globals,files,verbose,systems,
+       globtype,systems,tokens,
+       strings,cobjects,globals,files,verbose,
        symtable,aasm,pass_1,types,scanner,hcodegen,ppu
        ,pbase,pexpr,pdecl
 {$ifdef i386}
@@ -1224,7 +1225,10 @@ unit pstatmnt;
 end.
 {
   $Log$
-  Revision 1.51  1998-12-10 09:47:24  florian
+  Revision 1.52  1998-12-11 00:03:37  peter
+    + globtype,tokens,version unit splitted from globals
+
+  Revision 1.51  1998/12/10 09:47:24  florian
     + basic operations with int64/qord (compiler with -dint64)
     + rtti of enumerations extended: names are now written
 

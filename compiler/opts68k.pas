@@ -34,7 +34,7 @@ type
 implementation
 
 uses
-  systems,globals;
+  globtype,systems,globals;
 
 procedure toption68k.interpret_proc_specific_options(const opt:string);
 var
@@ -71,7 +71,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.6  1998-10-13 13:10:21  peter
+  Revision 1.7  1998-12-11 00:03:23  peter
+    + globtype,tokens,version unit splitted from globals
+
+  Revision 1.6  1998/10/13 13:10:21  peter
     * new style for m68k/i386 infos and enums
 
   Revision 1.5  1998/09/25 09:57:09  peter

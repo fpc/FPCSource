@@ -35,7 +35,7 @@ type
 implementation
 
 uses
-  systems,globals;
+  globtype,systems,globals;
 
 procedure toption386.interpret_proc_specific_options(const opt:string);
 var
@@ -97,7 +97,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.14  1998-11-12 09:00:26  michael
+  Revision 1.15  1998-12-11 00:03:22  peter
+    + globtype,tokens,version unit splitted from globals
+
+  Revision 1.14  1998/11/12 09:00:26  michael
   * Fixed syntax error
 
   Revision 1.13  1998/11/11 20:11:39  jonas

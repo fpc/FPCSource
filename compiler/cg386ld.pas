@@ -35,7 +35,8 @@ interface
 implementation
 
     uses
-      cobjects,verbose,globals,systems,
+      globtype,systems,
+      cobjects,verbose,globals,
       symtable,aasm,types,
       hcodegen,temp_gen,pass_2,
       cgai386,tgeni386,cg386cnv;
@@ -726,7 +727,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.37  1998-12-10 09:47:17  florian
+  Revision 1.38  1998-12-11 00:02:51  peter
+    + globtype,tokens,version unit splitted from globals
+
+  Revision 1.37  1998/12/10 09:47:17  florian
     + basic operations with int64/qord (compiler with -dint64)
     + rtti of enumerations extended: names are now written
 

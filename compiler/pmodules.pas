@@ -36,9 +36,9 @@ unit pmodules;
   implementation
 
     uses
-       cobjects,comphook,systems,globals,
-       symtable,aasm,files,
-       hcodegen,verbose,
+       globtype,version,systems,tokens,
+       cobjects,comphook,globals,verbose,files,
+       symtable,aasm,hcodegen,
        link,assemble,import,export,gendef,ppu
 {$ifdef i386}
        ,i386
@@ -1228,7 +1228,10 @@ unit pmodules;
 end.
 {
   $Log$
-  Revision 1.88  1998-12-08 10:18:11  peter
+  Revision 1.89  1998-12-11 00:03:34  peter
+    + globtype,tokens,version unit splitted from globals
+
+  Revision 1.88  1998/12/08 10:18:11  peter
     + -gh for heaptrc unit
 
   Revision 1.87  1998/12/01 23:40:53  pierre

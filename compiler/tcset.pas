@@ -35,7 +35,8 @@ interface
 implementation
 
     uses
-      cobjects,verbose,globals,systems,
+      globtype,systems,
+      cobjects,verbose,globals,
       symtable,aasm,types,
       hcodegen,htypechk,pass_1
 {$ifdef i386}
@@ -233,7 +234,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.3  1998-11-13 10:17:06  peter
+  Revision 1.4  1998-12-11 00:03:58  peter
+    + globtype,tokens,version unit splitted from globals
+
+  Revision 1.3  1998/11/13 10:17:06  peter
     + constant eval for in
 
   Revision 1.2  1998/10/06 20:49:13  peter

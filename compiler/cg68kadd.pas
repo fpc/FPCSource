@@ -31,7 +31,8 @@ interface
 implementation
 
     uses
-      cobjects,verbose,globals,systems,
+      globtype,systems,
+      cobjects,verbose,globals,
       symtable,aasm,types,
       temp_gen,hcodegen,pass_2,
       m68k,cga68k,tgen68k;
@@ -1280,7 +1281,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.14  1998-10-20 15:09:23  florian
+  Revision 1.15  1998-12-11 00:02:57  peter
+    + globtype,tokens,version unit splitted from globals
+
+  Revision 1.14  1998/10/20 15:09:23  florian
     + binary operators for ansi strings
 
   Revision 1.13  1998/10/20 08:06:43  pierre

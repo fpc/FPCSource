@@ -28,7 +28,9 @@ function CheckSwitch(switch,state:char):boolean;
 
 
 implementation
-uses globals,verbose,files,systems;
+uses
+  globtype,systems,
+  globals,verbose,files;
 
 {****************************************************************************
                           Main Switches Parsing
@@ -164,7 +166,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.17  1998-11-27 14:50:46  peter
+  Revision 1.18  1998-12-11 00:03:47  peter
+    + globtype,tokens,version unit splitted from globals
+
+  Revision 1.17  1998/11/27 14:50:46  peter
     + open strings, $P switch support
 
   Revision 1.16  1998/10/13 16:50:22  pierre

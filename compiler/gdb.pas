@@ -25,10 +25,11 @@ unit gdb;
   interface
 
     uses
+      globtype,
 {$ifdef i386}
        i386,
 {$endif i386}
-       strings,cobjects,globals,aasm;
+      strings,cobjects,globals,aasm;
 
     {stab constants }
 Const
@@ -256,7 +257,10 @@ end.
 
 {
   $Log$
-  Revision 1.4  1998-11-12 11:19:45  pierre
+  Revision 1.5  1998-12-11 00:03:16  peter
+    + globtype,tokens,version unit splitted from globals
+
+  Revision 1.4  1998/11/12 11:19:45  pierre
    * fix for first line of function break
 
   Revision 1.3  1998/09/22 17:13:45  pierre

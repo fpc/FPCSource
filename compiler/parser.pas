@@ -45,9 +45,9 @@ unit parser;
   implementation
 
     uses
-      cobjects,comphook,systems,globals,
-      hcodegen,verbose, { leave this order, else hcodegen.message will be used !! }
-      symtable,files,aasm,
+      globtype,version,tokens,systems,
+      cobjects,comphook,globals,verbose,
+      symtable,files,aasm,hcodegen,
       assemble,link,script,gendef,
 {$ifdef UseBrowser}
       browser,
@@ -424,7 +424,10 @@ unit parser;
 end.
 {
   $Log$
-  Revision 1.62  1998-12-01 12:51:21  peter
+  Revision 1.63  1998-12-11 00:03:26  peter
+    + globtype,tokens,version unit splitted from globals
+
+  Revision 1.62  1998/12/01 12:51:21  peter
     * fixed placing of ppas.sh and link.res when using -FE
 
   Revision 1.61  1998/11/10 10:09:11  peter

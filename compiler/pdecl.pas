@@ -25,7 +25,7 @@ unit pdecl;
   interface
 
     uses
-      globals,symtable;
+      globtype,tokens,globals,symtable;
 
     var
        { pointer to the last read type symbol, (for "forward" }
@@ -2124,7 +2124,10 @@ unit pdecl;
 end.
 {
   $Log$
-  Revision 1.88  1998-11-30 09:43:20  pierre
+  Revision 1.89  1998-12-11 00:03:30  peter
+    + globtype,tokens,version unit splitted from globals
+
+  Revision 1.88  1998/11/30 09:43:20  pierre
     * some range check bugs fixed (still not working !)
     + added DLL writing support for win32 (also accepts variables)
     + TempAnsi for code that could be used for Temporary ansi strings

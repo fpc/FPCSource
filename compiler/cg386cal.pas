@@ -39,7 +39,8 @@ interface
 implementation
 
     uses
-      cobjects,verbose,globals,systems,
+      globtype,systems,
+      cobjects,verbose,globals,
       aasm,types,
 {$ifdef GDB}
       gdb,
@@ -95,17 +96,17 @@ implementation
                            end;
                stringdef : begin
                              if is_open_string(defcoll^.data) then
-			       begin
-			         if is_open_string(p^.left^.resulttype) then
-				  begin
+                               begin
+                                 if is_open_string(p^.left^.resulttype) then
+                                  begin
                                     r:=new_reference(highframepointer,highoffset+4);
                                     exprasmlist^.concat(new(pai386,op_ref_reg(A_MOV,S_L,r,R_EDI)));
                                     hreg:=R_EDI;
                                     len:=-2;
-				  end
-				 else 
+                                  end
+                                 else
                                   len:=pstringdef(p^.left^.resulttype)^.len
-			       end
+                               end
                              else
                              { passing a string to an array of char }
                                begin
@@ -1626,7 +1627,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.52  1998-12-10 14:39:29  florian
+  Revision 1.53  1998-12-11 00:02:47  peter
+    + globtype,tokens,version unit splitted from globals
+
+  Revision 1.52  1998/12/10 14:39:29  florian
     * bug with p(const a : ansistring) fixed
     * duplicate constant ansistrings were handled wrong, fixed
 

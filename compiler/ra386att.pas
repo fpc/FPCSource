@@ -50,7 +50,7 @@ Unit Ra386att;
 Interface
 
 uses
-  i386,tree;
+  globtype,i386,tree;
 
    function assemble: ptree;
 
@@ -3969,7 +3969,10 @@ end.
 
 {
   $Log$
-  Revision 1.25  1998-12-09 13:23:40  jonas
+  Revision 1.26  1998-12-11 00:03:42  peter
+    + globtype,tokens,version unit splitted from globals
+
+  Revision 1.25  1998/12/09 13:23:40  jonas
     * replaced two "in [A_...]" constructs I had missed before
     * for shrd/shld: "if operands[1].operandtype = OPR_CONSTANT" instead of
       "if operands[3].operandtype ..."

@@ -40,7 +40,8 @@ interface
 implementation
 
     uses
-      cobjects,verbose,globals,systems,
+      globtype,systems,
+      cobjects,verbose,globals,
       symtable,aasm,types,
       hcodegen,temp_gen,pass_2,
       i386,cgai386,tgeni386;
@@ -372,7 +373,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.25  1998-12-10 14:39:30  florian
+  Revision 1.26  1998-12-11 00:02:49  peter
+    + globtype,tokens,version unit splitted from globals
+
+  Revision 1.25  1998/12/10 14:39:30  florian
     * bug with p(const a : ansistring) fixed
     * duplicate constant ansistrings were handled wrong, fixed
 

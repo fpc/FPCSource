@@ -53,7 +53,8 @@ Unit AsmUtils;
 Interface
 
 Uses
-  symtable,aasm,hcodegen,verbose,systems,globals,files,strings,
+  globtype,systems,
+  symtable,aasm,hcodegen,verbose,globals,files,strings,
   cobjects,
 {$ifdef i386}
   i386;
@@ -1787,7 +1788,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.15  1998-11-17 00:26:11  peter
+  Revision 1.16  1998-12-11 00:02:44  peter
+    + globtype,tokens,version unit splitted from globals
+
+  Revision 1.15  1998/11/17 00:26:11  peter
     * fixed for $H+
 
   Revision 1.14  1998/11/05 23:48:17  peter

@@ -32,7 +32,8 @@ interface
 implementation
 
     uses
-      cobjects,verbose,globals,systems,
+      globtype,systems,
+      cobjects,verbose,globals,
       aasm,types,symtable,
       hcodegen,temp_gen,pass_2,
       m68k,cga68k,tgen68k,cg68kld,cg68kcal;
@@ -898,7 +899,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.14  1998-11-05 12:02:38  peter
+  Revision 1.15  1998-12-11 00:03:03  peter
+    + globtype,tokens,version unit splitted from globals
+
+  Revision 1.14  1998/11/05 12:02:38  peter
     * released useansistring
     * removed -Sv, its now available in fpc modes
 

@@ -35,7 +35,8 @@ interface
 implementation
 
     uses
-      cobjects,verbose,globals,systems,
+      globtype,systems,
+      cobjects,verbose,globals,
       symtable,aasm,types,
       hcodegen,temp_gen,pass_2,
       m68k,cga68k,tgen68k;
@@ -448,7 +449,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.3  1998-10-13 16:50:10  pierre
+  Revision 1.4  1998-12-11 00:03:05  peter
+    + globtype,tokens,version unit splitted from globals
+
+  Revision 1.3  1998/10/13 16:50:10  pierre
     * undid some changes of Peter that made the compiler wrong
       for m68k (I had to reinsert some ifdefs)
     * removed several memory leaks under m68k

@@ -28,6 +28,7 @@ unit scanner;
   interface
 
     uses
+       globtype,version,tokens,
        cobjects,globals,verbose,comphook,files;
 
     const
@@ -128,6 +129,7 @@ implementation
 {*****************************************************************************
                               Helper routines
 *****************************************************************************}
+
     type
       tokenidxrec=record
         first,last : ttoken;
@@ -139,22 +141,6 @@ implementation
       { use any special name that is an invalid file name to avoid problems }
       macro_special_name = '____Macro____';
 
-{$ifdef new__is_keyword}
-    function encode(const s:string):longint;
-
-    var i,result:longint;
-
-    begin
-        result:=0;
-        for i:=1 to 6 do
-            begin
-                if length(s)<i then
-                    break;
-                result:=result*32+byte(s[i])-65;
-            end;
-        encode:=result;
-    end;
-{$endif new__is_keyword}
 
     procedure create_tokenidx;
     { create an index with the first and last token for every possible token
@@ -164,19 +150,16 @@ implementation
       begin
         for t:=low(ttoken) to high(ttoken) do
          begin
-           if not tokens[t].special then
+           if not tokeninfo[t].special then
             begin
-              if ord(tokenidx[length(tokens[t].str)].first)=0 then
-               tokenidx[length(tokens[t].str)].first:=t;
-              tokenidx[length(tokens[t].str)].last:=t;
-              {$ifdef new__is_keyword}
-              tokens[t].encoded:=encode(tokens[t].str);
-              {$endif new__is_keyword}
+              if ord(tokenidx[length(tokeninfo[t].str)].first)=0 then
+               tokenidx[length(tokeninfo[t].str)].first:=t;
+              tokenidx[length(tokeninfo[t].str)].last:=t;
             end;
          end;
       end;
 
-{$ifndef new__is_keyword}
+
     function is_keyword(const s:string):boolean;
       var
         low,high,mid : longint;
@@ -191,36 +174,14 @@ implementation
         while low<high do
          begin
            mid:=(high+low+1) shr 1;
-           if pattern<tokens[ttoken(mid)].str then
+           if pattern<tokeninfo[ttoken(mid)].str then
             high:=mid-1
            else
             low:=mid;
          end;
-        is_keyword:=(pattern=tokens[ttoken(high)].str) and
-                    (tokens[ttoken(high)].keyword in aktmodeswitches);
+        is_keyword:=(pattern=tokeninfo[ttoken(high)].str) and
+                    (tokeninfo[ttoken(high)].keyword in aktmodeswitches);
       end;
-{$else}
-
-    function is_keyword(const s:string):boolean;
-      var
-        encoded,low,high,mid : longint;
-      begin
-        encoded:=encode(s);
-        low:=ord(tokenidx[length(s)].first);
-        high:=ord(tokenidx[length(s)].last);
-        while low<high do
-         begin
-           mid:=(high+low+1) shr 1;
-           if encoded<tokens[ttoken(mid)].encoded then
-            high:=mid-1
-           else
-            low:=mid;
-         end;
-        is_keyword:=(encoded=tokens[ttoken(high)].encoded) and
-                    ((length(s)<6) or (pattern=tokens[Ttoken(high)].str)) and
-                    (tokens[ttoken(high)].keyword in aktmodeswitches);
-      end;
-{$endif new__is_keyword}
 
 
 {*****************************************************************************
@@ -949,10 +910,6 @@ implementation
         m       : longint;
         mac     : pmacrosym;
         asciinr : string[3];
-{$ifdef new__is_keyword}
-        encoded : longint;
-        p       : ^byte;
-{$endif}
       label
          exit_label;
       begin
@@ -1012,38 +969,19 @@ implementation
          { keyword or any other known token ? }
            if length(pattern) in [2..tokenidlen] then
             begin
-              {$ifdef new__is_keyword}
-              encoded:=0;
-              p:=@pattern[1];
-              l:=1;
-              while (length(pattern)>=l) and (l<7) do
-                begin
-                    encoded:=encoded*32+p^-65;
-                    inc(p);
-                    inc(l);
-                end;
-              {$endif new__is_keyword}
               low:=ord(tokenidx[length(pattern)].first);
               high:=ord(tokenidx[length(pattern)].last);
               while low<high do
                begin
                  mid:=(high+low+1) shr 1;
-                 {$ifndef new__is_keyword}
-                 if pattern<tokens[ttoken(mid)].str then
-                 {$else}
-                 if encoded<tokens[ttoken(mid)].encoded then
-                 {$endif new__is_keyword}
+                 if pattern<tokeninfo[ttoken(mid)].str then
                   high:=mid-1
                  else
                   low:=mid;
                end;
-             {$ifndef new__is_token}
-              if pattern=tokens[ttoken(high)].str then
-             {$else}
-              if encoded=tokens[ttoken(high)].encoded then
-             {$endif new__is_token}
+              if pattern=tokeninfo[ttoken(high)].str then
                begin
-                 if tokens[ttoken(high)].keyword in aktmodeswitches then
+                 if tokeninfo[ttoken(high)].keyword in aktmodeswitches then
                   token:=ttoken(high);
                  idtoken:=ttoken(high);
                end;
@@ -1548,7 +1486,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.68  1998-11-16 15:41:44  peter
+  Revision 1.69  1998-12-11 00:03:46  peter
+    + globtype,tokens,version unit splitted from globals
+
+  Revision 1.68  1998/11/16 15:41:44  peter
     * tp7 didn't like my ifopt H+ :(
 
   Revision 1.67  1998/11/16 12:18:06  peter

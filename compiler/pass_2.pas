@@ -41,7 +41,8 @@ procedure secondpass(var p : ptree);
 implementation
 
    uses
-     cobjects,verbose,comphook,systems,globals,files,
+     globtype,systems,
+     cobjects,verbose,comphook,globals,files,
      symtable,types,aasm,scanner,
      pass_1,hcodegen,temp_gen
 {$ifdef GDB}
@@ -497,7 +498,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.10  1998-11-18 15:44:14  peter
+  Revision 1.11  1998-12-11 00:03:28  peter
+    + globtype,tokens,version unit splitted from globals
+
+  Revision 1.10  1998/11/18 15:44:14  peter
     * VALUEPARA for tp7 compatible value parameters
 
   Revision 1.9  1998/11/13 15:40:21  pierre

@@ -34,6 +34,7 @@ unit ptconst;
   implementation
 
     uses
+       globtype,systems,tokens,
        cobjects,globals,scanner,aasm,tree,pass_1,
        hcodegen,types,verbose
        { parser specific stuff }
@@ -58,7 +59,6 @@ unit ptconst;
          p,hp      : ptree;
          i,l,offset,
          strlength : longint;
-         lsym      : pvarsym;
          ll        : plabel;
          s         : string;
          ca        : pchar;
@@ -647,7 +647,10 @@ unit ptconst;
 end.
 {
   $Log$
-  Revision 1.30  1998-11-27 14:34:42  peter
+  Revision 1.31  1998-12-11 00:03:41  peter
+    + globtype,tokens,version unit splitted from globals
+
+  Revision 1.30  1998/11/27 14:34:42  peter
     * give error when string[0] decl is found
 
   Revision 1.29  1998/11/23 18:26:44  pierre

@@ -88,7 +88,7 @@ var
   f       : text;
   line,i  : longint;
   ptxt    : pchar;
-  s       : string;
+  s,s1    : string;
   buf     : pointer;
 begin
   getmem(buf,bufsize);
@@ -133,8 +133,17 @@ begin
         if i>0 then
          begin
            {txt}
-           move(s[i+1],ptxt^,length(s)-i);
-           inc(ptxt,length(s)-i);
+           s1:=Copy(s,i+1,255);
+           { support <lf> for empty lines }
+           if s1='<lf>' then
+            begin
+              s1:='';
+              { update the msgsize also! }
+              dec(msgsize,4);
+            end;
+           {txt}
+           move(s1[1],ptxt^,length(s1));
+           inc(ptxt,length(s1));
            ptxt^:=#0;
            inc(ptxt);
          end;
@@ -248,7 +257,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.5  1998-09-16 16:41:42  peter
+  Revision 1.6  1998-12-11 00:03:20  peter
+    + globtype,tokens,version unit splitted from globals
+
+  Revision 1.5  1998/09/16 16:41:42  peter
     * merged fixes
 
   Revision 1.3.2.1  1998/09/16 16:11:04  peter

@@ -33,7 +33,8 @@ interface
 implementation
 
     uses
-      cobjects,verbose,globals,systems,
+      globtype,systems,
+      cobjects,verbose,globals,
       symtable,aasm,types,
       hcodegen,temp_gen,pass_2,
       i386,cgai386,tgeni386;
@@ -1638,7 +1639,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.33  1998-12-10 11:16:00  florian
+  Revision 1.34  1998-12-11 00:02:46  peter
+    + globtype,tokens,version unit splitted from globals
+
+  Revision 1.33  1998/12/10 11:16:00  florian
     + some basic operations with qwords and int64 added: +, xor, and, or;
       the register allocation works fine
 

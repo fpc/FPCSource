@@ -35,7 +35,8 @@ interface
 implementation
 
     uses
-      cobjects,verbose,globals,systems,
+      globtype,systems,
+      cobjects,verbose,globals,
       symtable,aasm,types,
       hcodegen,temp_gen,pass_2,
       i386,cgai386,tgeni386;
@@ -534,7 +535,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.12  1998-11-26 21:45:29  jonas
+  Revision 1.13  1998-12-11 00:02:52  peter
+    + globtype,tokens,version unit splitted from globals
+
+  Revision 1.12  1998/11/26 21:45:29  jonas
     - removed A_CLTD opcode (use A_CDQ instead)
     * changed cbw, cwde and cwd to cbtw, cwtl and cwtd in att_op2str array
     * in daopt386: adapted AsmInstr array to reflect changes + fixed line too long

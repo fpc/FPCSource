@@ -85,6 +85,9 @@ unit tgeni386;
 
 implementation
 
+    uses
+      globtype;
+
     procedure pushusedregisters(var pushed : tpushed;b : byte);
 
       var
@@ -366,7 +369,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.13  1998-10-21 08:40:03  florian
+  Revision 1.14  1998-12-11 00:03:59  peter
+    + globtype,tokens,version unit splitted from globals
+
+  Revision 1.13  1998/10/21 08:40:03  florian
     + ansistring operator +
     + $h and string[n] for n>255 added
     * small problem with TP fixed
