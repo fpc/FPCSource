@@ -47,8 +47,11 @@ The following constants are userd when handling this array:
 
 FBuffercount : The number of buffers allocated, minus one.
 FRecordCount : The number of buffers that is actually filled in.
-FActiveBuffer : The index of the active record.
-FCurrentRecord : The current record in the underlaying dataset.
+FActiveBuffer : The index of the active record in TDataset
+FCurrentRecord : The index of the supposedly active record in the underlaying
+                 dataset (ie. the index in the last call to SetToInternalRecord)
+                 call CursopPosChanged to reset FCurrentRecord if the active
+                 record in the underlaying dataset has changed
 
 So the following picture follows from this:
 
