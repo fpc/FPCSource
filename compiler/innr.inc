@@ -17,17 +17,17 @@ const
    in_hi_word = 2;
    in_lo_long = 3;
    in_hi_long = 4;
-   { to be able to compile with ord intern or not }
-   in_ord_char = 5;
    in_ord_x = 5;
    in_length_string = 6;
    in_chr_byte = 7;
+{$ifdef VER0_99_5}   
    in_inc_byte = 8;
    in_inc_word = 9;
    in_inc_dword = 10;
    in_dec_byte = 11;
    in_dec_word = 12;
    in_dec_dword = 13;
+{$endif}   
    in_write_x = 14;
    in_writeln_x = 15;
    in_read_x = 16;
@@ -59,48 +59,8 @@ const
 
 {
   $Log$
-  Revision 1.5  1998-07-24 22:16:57  florian
-    * internal error 10 together with array access fixed. I hope
-      that's the final fix.
+  Revision 1.6  1998-08-20 12:59:56  peter
+    - removed obsolete in_*
 
-  Revision 1.4  1998/05/01 16:38:44  florian
-    * handling of private and protected fixed
-    + change_keywords_to_tp implemented to remove
-      keywords which aren't supported by tp
-    * break and continue are now symbols of the system unit
-    + widestring, longstring and ansistring type released
-
-  Revision 1.3  1998/04/14 23:27:03  florian
-    + exclude/include with constant second parameter added
-
-  Revision 1.2  1998/04/08 16:58:02  pierre
-    * several bugfixes
-      ADD ADC and AND are also sign extended
-      nasm output OK (program still crashes at end
-      and creates wrong assembler files !!)
-      procsym types sym in tdef removed !!
-
-  Revision 1.1.1.1  1998/03/25 11:18:12  root
-  * Restored version
-
-  Revision 1.2  1998/02/24 16:50:03  peter
-    * stackframe ommiting generated 'ret $-4'
-    + timer.pp bp7 version
-    * innr.inc are now the same files
-
-  Revision 1.3  1998/01/26 11:59:37  michael
-  + Added log at the end
-
-  revision 1.2
-  date: 1997/12/01 12:08:04;  author: michael;  state: Exp;  lines: +8 -17
-  + added copyright reference header.
-  ----------------------------
-  revision 1.1
-  date: 1997/11/27 08:33:46;  author: michael;  state: Exp;
-  Initial revision
-  ----------------------------
-  revision 1.1.1.1
-  date: 1997/11/27 08:33:46;  author: michael;  state: Exp;  lines: +0 -0
-  FPC RTL CVS start
 }
 

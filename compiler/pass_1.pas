@@ -3867,17 +3867,6 @@ unit pass_1;
                          end;
                     end;
                end;
-             in_dec_dword,
-             in_dec_word,
-             in_dec_byte,
-             in_inc_dword,
-             in_inc_word,
-             in_inc_byte :
-               begin
-                  p^.resulttype:=voiddef;
-                  if p^.left^.location.loc<>LOC_REFERENCE then
-                    Message(cg_e_illegal_expression);
-               end;
             in_inc_x,
             in_dec_x:
               begin
@@ -5259,7 +5248,10 @@ unit pass_1;
 end.
 {
   $Log$
-  Revision 1.59  1998-08-20 09:26:39  pierre
+  Revision 1.60  1998-08-20 12:59:57  peter
+    - removed obsolete in_*
+
+  Revision 1.59  1998/08/20 09:26:39  pierre
     + funcret setting in underproc testing
       compile with _dTEST_FUNCRET
 
