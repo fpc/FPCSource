@@ -349,7 +349,6 @@ interface
     procedure ti386addnode.second_addstring;
 
       var
-        cmpop      : boolean;
       {$ifdef newra}
         r          : Tregister;
         i          : Tsuperregister;
@@ -367,7 +366,6 @@ interface
                 case nodetype of
                    ltn,lten,gtn,gten,equaln,unequaln :
                      begin
-                       cmpop := true;
                      {$ifndef newra}
                        rg.saveusedintregisters(exprasmlist,pushed,VOLATILE_INTREGISTERS);
                      {$endif newra}
@@ -394,7 +392,7 @@ interface
                        location_freetemp(exprasmlist,right.location);
                      end;
                 end;
-                set_result_location(cmpop,true);
+                set_result_location(true,true);
              end;
            else
              { rest should be handled in first pass (JM) }
@@ -1633,7 +1631,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.73  2003-07-06 15:31:21  daniel
+  Revision 1.74  2003-08-03 20:19:43  daniel
+    - Removed cmpop from Ti386addnode.second_addstring
+
+  Revision 1.73  2003/07/06 15:31:21  daniel
     * Fixed register allocator. *Lots* of fixes.
 
   Revision 1.72  2003/06/17 16:51:30  peter
