@@ -26,8 +26,6 @@ unit ncgcal;
 
 interface
 
-{ $define AnsiStrRef}
-
     uses
       cpubase,
       globtype,
@@ -130,17 +128,11 @@ implementation
          secondpass(left);
 
          { Allocate (temporary) paralocation }
-{$ifdef usetempparaloc}
          tempparaloc:=paraitem.paraloc[callerside];
          if tempparaloc.loc=LOC_REGISTER then
            paramanager.alloctempregs(exprasmlist,tempparaloc)
          else
            paramanager.allocparaloc(exprasmlist,tempparaloc);
-{$else}
-         tempparaloc:=paraitem.paraloc[callerside];
-         paramanager.allocparaloc(exprasmlist,tempparaloc);
-{$endif usetempparaloc}
-
 
          { handle varargs first, because defcoll is not valid }
          if (nf_varargs_para in flags) then
@@ -605,10 +597,8 @@ implementation
            ppn:=tcgcallparanode(left);
            while assigned(ppn) do
              begin
-{$ifdef usetempparaloc}
                if ppn.tempparaloc.loc=LOC_REGISTER then
                  paramanager.freeparaloc(exprasmlist,ppn.tempparaloc);
-{$endif usetempparaloc}
                paramanager.freeparaloc(exprasmlist,ppn.paraitem.paraloc[callerside]);
                ppn:=tcgcallparanode(ppn.right);
              end;
@@ -771,9 +761,7 @@ implementation
                 (po_leftright in procdefinition.procoptions),procdefinition.proccalloption,
                  para_alignment,0);
 
-{$ifdef usetempparaloc}
              pushparas;
-{$endif}
            end;
          aktcallnode:=oldaktcallnode;
 
@@ -1343,7 +1331,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.109  2003-09-03 15:55:00  peter
+  Revision 1.110  2003-09-04 15:39:58  peter
+    * released useparatemp
+
+  Revision 1.109  2003/09/03 15:55:00  peter
     * NEWRA branch merged
 
   Revision 1.108.2.4  2003/09/01 21:02:55  peter

@@ -108,9 +108,7 @@ unit paramgr;
           { Return the location of the low and high part of a 64bit parameter }
           procedure splitparaloc64(const locpara:tparalocation;var loclopara,lochipara:tparalocation);virtual;
 
-{$ifdef usetempparaloc}
           procedure alloctempregs(list: taasmoutput;var locpara:tparalocation);virtual;
-{$endif usetempparaloc}
        end;
 
 
@@ -326,7 +324,6 @@ implementation
       end;
 
 
-{$ifdef usetempparaloc}
     procedure tparamanager.alloctempregs(list: taasmoutput;var locpara:tparalocation);
       begin
         if locpara.loc<>LOC_REGISTER then
@@ -341,7 +338,6 @@ implementation
 {$endif cpu64bit}
           locpara.register:=rg.getregisterint(list,locpara.size);
       end;
-{$endif usetempparaloc}
 
 
 initialization
@@ -352,7 +348,10 @@ end.
 
 {
    $Log$
-   Revision 1.51  2003-09-03 15:55:01  peter
+   Revision 1.52  2003-09-04 15:39:58  peter
+     * released useparatemp
+
+   Revision 1.51  2003/09/03 15:55:01  peter
      * NEWRA branch merged
 
    Revision 1.50.2.1  2003/08/29 17:28:59  peter
