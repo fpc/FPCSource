@@ -395,26 +395,25 @@ implementation
                 end;
               del_reference(p^.left^.location.reference);
               p^.location.reference.base:=getregister32;
+
               exprasmlist^.concat(new(pai386,op_ref_reg(A_MOV,S_L,
                 newreference(p^.left^.location.reference),
                 p^.location.reference.base)));
 
               if is_ansistring(p^.left^.resulttype) then
-                begin
-                   { in ansistrings S[1] is pchar(S)[0] !! }
-                   dec(p^.location.reference.offset);
-                   { this is necessary for ansistrings with constant index }
-                   dec(p^.left^.location.reference.offset);
-                end
+                { in ansistrings S[1] is pchar(S)[0] !! }
+                dec(p^.location.reference.offset)
               else
                 begin
                    { in widestrings S[1] is pwchar(S)[0] !! }
                    dec(p^.location.reference.offset,2);
-                   { this is necessary for ansistrings with constant index }
-                   dec(p^.left^.location.reference.offset,2);
                    exprasmlist^.concat(new(pai386,op_const_reg(A_SHL,S_L,
-                     2,p^.location.reference.base)));
+                     1,p^.location.reference.base)));
                 end;
+
+              { we've also to keep left up-to-date, because it is used   }
+              { if a constant array index occurs, subject to change (FK) }
+              set_location(p^.left^.location,p^.location);
            end
          else
            set_location(p^.location,p^.left^.location);
@@ -443,9 +442,33 @@ implementation
                      end
                    else
                      begin
-                        { range checking for open arrays }
+                        { range checking for open arrays !!!! }
                      end;
+                end
+              else if (p^.left^.resulttype^.deftype=stringdef) then
+                begin
+                   if (p^.right^.value=0) and not(is_shortstring(p^.left^.resulttype)) then
+                     CGMessage(cg_e_can_access_element_zero);
+
+                   case pstringdef(p^.left^.resulttype)^.string_typ of
+                      st_ansistring:
+                        begin
+                        end;
+
+                      st_shortstring:
+                        begin
+                        end;
+
+                      st_longstring:
+                        begin
+                        end;
+
+                      st_widestring:
+                        begin
+                        end;
+                   end;
                 end;
+
               inc(p^.left^.location.reference.offset,
                   get_mul_size*p^.right^.value);
               if p^.memseg then
@@ -677,7 +700,12 @@ implementation
 end.
 {
   $Log$
-  Revision 1.15  1998-10-12 09:49:53  florian
+  Revision 1.16  1998-10-21 11:44:42  florian
+    + check for access to index 0 of long/wide/ansi strings added,
+      gives now an error
+    * problem with access to contant index of ansistrings fixed
+
+  Revision 1.15  1998/10/12 09:49:53  florian
     + support of <procedure var type>:=<pointer> in delphi mode added
 
   Revision 1.14  1998/10/02 07:20:37  florian
