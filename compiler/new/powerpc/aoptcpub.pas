@@ -31,7 +31,7 @@ Unit aoptcpub; { Assembler OPTimizer CPU specific Base }
 
 { enable the following define if memory references can have a scaled index }
 
-{$define RefsHaveScale}
+{ define RefsHaveScale}
 
 { enable the following define if memory references can have a segment }
 { override                                                            }
@@ -117,7 +117,10 @@ End.
 
 {
  $Log$
- Revision 1.2  2000-01-07 01:14:57  peter
+ Revision 1.3  2000-03-26 16:38:27  jonas
+   + basic properties
+
+ Revision 1.2  2000/01/07 01:14:57  peter
    * updated copyright to 2000
 
  Revision 1.1  1999/11/09 22:57:09  peter
