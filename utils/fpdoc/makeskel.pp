@@ -97,9 +97,12 @@ begin
     WriteLn(f, '-->');
     WriteLn(f);
     WriteLn(f, '<module name="', Result.Name, '">');
-    WriteLn(f, '<short></short>');
-    WriteLn(f, '<descr>');
-    WriteLn(f, '</descr>');
+    if not UpdateMode then
+      begin
+      WriteLn(f, '<short></short>');
+      WriteLn(f, '<descr>');
+      WriteLn(f, '</descr>');
+      end;
     end 
   else if WriteThisNode(Result) then
     begin
@@ -325,7 +328,10 @@ end.
 
 {
   $Log$
-  Revision 1.10  2004-08-28 18:15:14  michael
+  Revision 1.11  2004-08-28 18:18:59  michael
+  + Do not write descr nodes for module when updating
+
+  Revision 1.10  2004/08/28 18:15:14  michael
   + Check whether outputfile not in inputfilenames
 
   Revision 1.9  2004/08/28 18:04:06  michael
