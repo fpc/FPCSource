@@ -40,6 +40,10 @@ unit cobjects;
 {$endif}
       ;
 
+    const   hasharraysize = 253; {The size of a hasharray should be a prime
+                                  number for better spreading of nodes in
+                                  the array!! (DM)}
+
     type
        pstring = ^string;
 
@@ -148,6 +152,35 @@ unit cobjects;
           procedure clear;
        end;
 
+        Pnamed_object=^Tnamed_object;
+        Pdictionary=^Tdictionary;
+        Pdictionaryhasharray=^Tdictionaryhasharray;
+
+        Tdictionaryhasharray=array[0..hasharraysize-1] of Pnamed_object;
+
+        Tcallback = procedure(p:Pnamed_object);
+
+        Tdictionary=object
+            root:Pnamed_object;
+            hasharray:Pdictionaryhasharray;
+            constructor init(usehash:boolean);
+            procedure clear;virtual;
+            procedure foreach(proc2call:Tcallback);
+            function insert(obj:Pnamed_object):Pnamed_object;virtual;
+            function search(const s:string):Pnamed_object;
+            function speedsearch(const s:string;
+             speedvalue:longint):Pnamed_object;virtual;
+            destructor done;virtual;
+        end;
+
+        Tnamed_object=object
+            name:Pstring;
+            left,right:Pnamed_object;
+            speedvalue:longint;
+            owner:Pdictionary;
+            constructor init(const n:string);
+            destructor done;virtual;
+        end;
 
 {$ifdef BUFFEREDFILE}
        { this is implemented to allow buffered binary I/O }
@@ -269,6 +302,44 @@ unit cobjects;
 
   implementation
 
+{$ifdef FPC}
+    function getspeedvalue(const s : string) : longint;
+      var
+        p1,p2:^byte;
+      begin
+        p1:=@s;
+        longint(p2):=longint(p1)+p1^+1;
+        inc(longint(p1));
+        getspeedvalue:=0;
+        while p1<>p2 do
+         begin
+           inc(getspeedvalue,p1^);
+           inc(longint(p1));
+         end;
+      end;
+{$else}
+    function getspeedvalue(const s : string) : longint;
+      type
+        ptrrec=record
+          ofs,seg:word;
+        end;
+      var
+        l,w   : longint;
+        p1,p2 : ^byte;
+      begin
+        p1:=@s;
+        ptrrec(p2).seg:=ptrrec(p1).seg;
+        ptrrec(p2).ofs:=ptrrec(p1).ofs+p1^+1;
+        inc(p1);
+        l:=0;
+        while p1<>p2 do
+         begin
+           l:=l+p1^;
+           inc(p1);
+         end;
+        getspeedvalue:=l;
+      end;
+{$endif}
 
     function pchar2pstring(p : pchar) : pstring;
       var
@@ -755,6 +826,199 @@ end;
         empty:=(first=nil);
       end;
 
+{****************************************************************************
+                               TNAMED_OBJECT
+ ****************************************************************************}
+
+constructor Tnamed_object.init(const n:string);
+
+begin
+    left:=nil;
+    right:=nil;
+    name:=stringdup(n);
+    speedvalue:=getspeedvalue(n);
+end;
+
+destructor Tnamed_object.done;
+
+begin
+    stringdispose(name);
+end;
+
+{****************************************************************************
+                               TDICTIONARY
+ ****************************************************************************}
+
+constructor Tdictionary.init(usehash:boolean);
+
+begin
+    root:=nil;
+    hasharray:=nil;
+    if usehash then
+        begin
+            new(hasharray);
+            fillchar(hasharray^,sizeof(hasharray^),0);
+        end;
+end;
+
+procedure Tdictionary.clear;
+
+var w:longint;
+
+begin
+    {remove no entry from a withsymtable as it is only a pointer to the
+     recorddef  or objectdef symtable }
+    { remove all entry from a symbol table }
+    if assigned(root) then
+        dispose(root,done);
+    if assigned(hasharray) then
+        for w:=0 to hasharraysize-1 do
+            if assigned(hasharray^[w]) then
+                begin
+                    dispose(hasharray^[w],done);
+                    hasharray^[w]:=nil;
+                end;
+end;
+
+procedure Tdictionary.foreach(proc2call:Tcallback);
+
+    procedure a(p:Pnamed_object);
+
+    { must be preorder, because it's used by reading in }
+    { a PPU file                                        }
+
+    begin
+        proc2call(p);
+        if assigned(p^.left) then
+            a(p^.left);
+        if assigned(p^.right) then
+            a(p^.right);
+    end;
+
+var i:longint;
+
+begin
+    if assigned(hasharray) then
+        begin
+            for i:=0 to hasharraysize-1 do
+                if assigned(hasharray^[i]) then
+                    a(hasharray^[i]);
+        end
+    else
+        if assigned(root) then
+            a(root);
+end;
+
+
+function Tdictionary.insert(obj:Pnamed_object):Pnamed_object;
+
+    function _insert(var osym:Pnamed_object):Pnamed_object;
+
+    {To prevent TP from allocating temp space for temp strings, we allocate
+     some temp strings manually. We can use two temp strings, plus a third
+     one that TP adds, where TP alone needs five temp strings!. Storing
+     these on the heap saves even more, totally 1016 bytes per recursion!}
+
+    var s1,s2:^string;
+
+    begin
+        if osym=nil then
+            begin
+                osym:=obj;
+                _insert:=osym;
+            end
+        { first check speedvalue, to allow a fast insert }
+        else
+            if osym^.speedvalue>obj^.speedvalue then
+                _insert:=_insert(osym^.right)
+            else
+                if osym^.speedvalue<obj^.speedvalue then
+                    _insert:=_insert(osym^.left)
+                else
+                    begin
+                        new(s1);
+                        new(s2);
+                        s1^:=osym^.name^;
+                        s2^:=obj^.name^;
+                        if s1^>s2^ then
+                            begin
+                                dispose(s2);
+                                dispose(s1);
+                                _insert:=_insert(osym^.right);
+                            end
+                        else
+                            if s1^<s2^ then
+                                begin
+                                    dispose(s2);
+                                    dispose(s1);
+                                    _insert:=_insert(osym^.left);
+                                end
+                            else
+                                begin
+                                    dispose(s2);
+                                    dispose(s1);
+                                    _insert:=osym;
+                                end;
+                    end;
+    end;
+
+begin
+    obj^.owner:=@self;
+    obj^.speedvalue:=getspeedvalue(obj^.name^);
+    if assigned(hasharray) then
+        insert:=_insert(hasharray^[obj^.speedvalue mod hasharraysize])
+    else
+        insert:=_insert(root);
+end;
+
+
+function Tdictionary.search(const s:string):Pnamed_object;
+
+begin
+    search:=speedsearch(s,getspeedvalue(s));
+end;
+
+function Tdictionary.speedsearch(const s:string;
+                                 speedvalue:longint):Pnamed_object;
+
+var hp:Pnamed_object;
+
+begin
+    if assigned(hasharray) then
+        hp:=hasharray^[speedvalue mod hasharraysize]
+    else
+        hp:=root;
+        while assigned(hp) do
+            begin
+                if speedvalue>hp^.speedvalue then
+                    hp:=hp^.left
+                else
+                    if speedvalue<hp^.speedvalue then
+                        hp:=hp^.right
+                    else
+                        begin
+                            if (hp^.name^=s) then
+                                begin
+                                    speedsearch:=hp;
+                                    exit;
+                                end
+                            else
+                                if s>hp^.name^ then
+                                    hp:=hp^.left
+                                else
+                                    hp:=hp^.right;
+                        end;
+            end;
+        speedsearch:=nil;
+end;
+
+destructor Tdictionary.done;
+
+begin
+    clear;
+    if assigned(hasharray) then
+        dispose(hasharray);
+end;
 
 {$ifdef BUFFEREDFILE}
 
@@ -1144,7 +1408,12 @@ end;
 end.
 {
   $Log$
-  Revision 1.16  1998-11-04 10:11:37  peter
+  Revision 1.17  1999-01-19 11:00:33  daniel
+  + Tdictionary object:  Tsymtable will become object(TTdictionary) in the
+    future
+  + Tnamed_item object:  Tsym will become object(Tnamed_item) in the future
+
+  Revision 1.16  1998/11/04 10:11:37  peter
     * ansistring fixes
 
   Revision 1.15  1998/10/19 18:04:40  peter
