@@ -41,29 +41,93 @@ uses
        { output }
        ogbase,ogmap,ogcoff;
 
+{ An LX executable is called a module; it can be either an executable
+  or a DLL.
+  
+  A module consists of objects. In other executable formats, these
+  are usually called sections.
+  
+  Objects consist of pages.
+  
+  The objects are numbered, numbers do not have any special meaning. The
+  pages of the object are loaded into memory with the access rights specified
+  the object table entry. (DM)}
+
+
+{ For the operating system the object numbers have no special meaning.
+  However, for Free Pascal generated executables, I define: (DM)}
+
+const	code_object	= 0;
+	data_object	= 1;
+	bss_object	= 2;
+	stack_object	= 3;
+	heap_object	= 4;
+
 type    Tlxheader = packed record
 	    magic:word;				{'LX'}
-	    byteorder:byte;			{0 = little 1 = big endian}
-	    wordorder:byte;
-	    cpu_type:word;
-	    os_type:word;
-	    module_version:cardinal;
-	    module_flags:cardinal;
-	    module_page_count:cardinal;
-	    eip_object,eip:cardinal;
-	    esp_object,esp:cardinal;
-	    page_size,page_shift:cardinal;
+	    byteorder:byte;			{0 = little 1 = big endian.}
+	    wordorder:byte;			{0 = little 1 = big endian.}
+	    format_level:cardinal;		{Nothing else than LX level
+						 0 has ever been defined.}
+	    cpu_type:word;			{1 = 286, 2 = 386, 3 = 486,
+						 4 = pentium.}
+	    os_type:word;			{1 = OS/2, 2 = Windows,
+						 3 = Siemens MS-Dos 4.0,
+						 4 = Windows 386.}
+	    module_version:cardinal;		{Version of executable,
+						 defined by user.}
+	    module_flags:cardinal;		{Flags.}
+	    module_page_count:cardinal;		{Amount of pages in module.}
+	    eip_object,eip:cardinal;		{Initial EIP, object nr and
+						 offset within object.}
+	    esp_object,esp:cardinal;		{Initial ESP, object nr and
+						 offset within object.}
+	    page_size,page_shift:cardinal;	{Page size, in bytes and
+						 1 << pageshift.}
 	    fixup_sect_size:cardinal;
 	    fixup_sect_checksum:cardinal;
 	    loader_sect_size:cardinal;
 	    loader_sect_chksum:cardinal;
-	    object_table_offset:cardinal;
-	    object_count:cardinal;
-	    object_pagetable_ofs:cardinal;
+	    object_table_offset:cardinal;	{Location of object table.}
+	    object_count:cardinal;		{Amount of objects in module.}
+	    object_pagetable_ofs:cardinal;	{Location of object page
+						 table.}
 	    object_iterpages_ofs:cardinal;
-	    resource_table_ofs:cardinal;
-	    resource_count:cardinal;
-	    
+	    resource_table_ofs:cardinal;	{Location of resource table.}
+	    resource_count:cardinal;		{Amount of resources in
+						 resource table.}
+	    resid_name_tbl_ofs:cardinal;
+	    entry_table_offset:cardinal;
+	    module_dir_offset:cardinal;
+	    module_dir_count:cardinal;
+	    fixup_pagetab_ofs:cardinal;
+	    fixup_recrab_ofs:cardinal;
+	    import_modtab_ofs:cardinal;
+	    import_modtab_count:cardinal;
+	    data_pages_offset:cardinal;
+	    preload_page_count:cardinal;
+	    nonresid_table_ofs:cardinal;
+	    nonresid_table_len:cardinal;
+	    nonresid_tbl_chksum:cardinal;
+	    auto_ds_object_no:cardinal;		{Not used by OS/2.}
+	    debug_info_offset:cardinal;
+	    inst_preload_count:cardinal;
+	    inst_demand_count:cardinal;
+	    heapsize:cardinal;			{Only used for 16-bit programs.}
+	end;
+	
+	Tlxobject_flags = (ofreadable,ofwriteable,ofexecutable,ofresource,
+			   ofdiscardable,ofshared,ofpreload,ofinvalid,
+			   ofzerofilled);
+	Tlxobject_flag_set = set of Tlxobject_flags;
+	
+	Tlxobject_table_entry = packed record
+	    virtual_size:cardinal;
+	    reloc_base_addr:cardinal;
+	    object_flags:Tlxobject_flag_set;
+	    page_table_index:cardinal;
+	    page_count:cardinal;
+	    reserved:cardinal;
 	end;
 
 	Tlxexeoutput = class(texeoutput)
@@ -85,7 +149,7 @@ type    Tlxheader = packed record
          procedure GenerateExecutable(const fn:string);override;
        end;
 
-       tlxlinker = class(tinternallinker)
+       Tlxlinker = class(tinternallinker)
          constructor create;override;
        end;
 
@@ -244,123 +308,30 @@ uses
       end;
 
 
-    function Tlxexeoutput.writedata:boolean;
-{      var
-        datapos,
-        secsymidx,
-        i         : longint;
-        hstab     : coffstab;
-        gotreloc  : boolean;
-        sec       : TSection;
-        header    : coffheader;
-        optheader : coffoptheader;
-        sechdr    : coffsechdr;
-        empty     : array[0..15] of byte;
-        hp        : pdynamicblock;
-        objdata   : TAsmObjectData;
-        hsym      : tasmsymbol;}
-      begin
-(*        result:=false;
-        FCoffSyms:=TDynamicArray.Create(symbolresize);
-        FCoffStrs:=TDynamicArray.Create(strsresize);
-        { Stub }
-        if not win32 then
-         FWriter.write(go32v2stub,sizeof(go32v2stub));
-        { COFF header }
-        fillchar(header,sizeof(header),0);
-        header.mach:=$14c;
-        header.nsects:=nsects;
-        header.sympos:=sympos;
-        header.syms:=nsyms;
-        header.opthdr:=sizeof(coffoptheader);
-        header.flag:=COFF_FLAG_AR32WR or COFF_FLAG_EXE or COFF_FLAG_NORELOCS or COFF_FLAG_NOLINES;
-        FWriter.write(header,sizeof(header));
-        { Optional COFF Header }
-        fillchar(optheader,sizeof(optheader),0);
-        optheader.magic:=$10b;
-        optheader.tsize:=sections[sec_code].memsize;
-        optheader.dsize:=sections[sec_data].memsize;
-        optheader.bsize:=sections[sec_bss].memsize;
-        hsym:=tasmsymbol(globalsyms.search('start'));
-        if not assigned(hsym) then
-         begin
-           Comment(V_Error,'Entrypoint "start" not defined');
-           exit;
-         end;
-        optheader.entry:=hsym.address;
-        optheader.text_start:=sections[sec_code].mempos;
-        optheader.data_start:=sections[sec_data].mempos;
-        FWriter.write(optheader,sizeof(optheader));
-        { Section headers }
-        for sec:=low(TSection) to high(TSection) do
-         if sections[sec].available then
-          begin
-            fillchar(sechdr,sizeof(sechdr),0);
-            move(target_asm.secnames[sec][1],sechdr.name,length(target_asm.secnames[sec]));
-            if not win32 then
-             begin
-               sechdr.rvaofs:=sections[sec].mempos;
-               sechdr.vsize:=sections[sec].mempos;
-             end
-            else
-             begin
-               if sec=sec_bss then
-                sechdr.vsize:=sections[sec].memsize;
-             end;
-            if sec=sec_bss then
-             sechdr.datasize:=sections[sec].memsize
-            else
-             begin
-               sechdr.datasize:=sections[sec].datasize;
-               sechdr.datapos:=sections[sec].datapos;
-             end;
-            sechdr.nrelocs:=0;
-            sechdr.relocpos:=0;
-            sechdr.flags:=sections[sec].flags;
-            FWriter.write(sechdr,sizeof(sechdr));
-          end;
-        { Sections }
-        for sec:=low(TSection) to high(TSection) do
-         if sections[sec].available then
-          begin
-            { update objectfiles }
-            objdata:=TAsmObjectData(objdatalist.first);
-            while assigned(objdata) do
-             begin
-               if assigned(objdata.sects[sec]) and
-                  assigned(objdata.sects[sec].data) then
-                begin
-                  WriteZeros(objdata.sects[sec].dataalignbytes);
-                  hp:=objdata.sects[sec].data.firstblock;
-                  while assigned(hp) do
-                   begin
-                     FWriter.write(hp^.data,hp^.used);
-                     hp:=hp^.next;
-                   end;
-                end;
-               objdata:=TAsmObjectData(objdata.next);
-             end;
-          end;
-        { Optional symbols }
-        if not(cs_link_strip in aktglobalswitches) then
-         begin
-           { Symbols }
-           write_symbols;
-           { Strings }
-           i:=FCoffStrs.size+4;
-           FWriter.write(i,4);
-           hp:=FCoffStrs.firstblock;
-           while assigned(hp) do
-            begin
-              FWriter.write(hp^.data,hp^.used);
-              hp:=hp^.next;
-            end;
-         end;
-        { Release }
-        FCoffStrs.Free;
-        FCoffSyms.Free;
-        result:=true;*)
-      end;
+function Tlxexeoutput.writedata:boolean;
+
+var header:Tlxheader;
+    hsym:Tasmsymbol;
+
+begin
+    result:=false;
+    fillchar(header,sizeof(header),0);
+    header.magic:=$584c;		{'LX'}
+    header.cpu_type:=2;			{Intel 386}
+    header.os_type:=1;			{OS/2}
+    {Set the initial EIP.}
+    header.eip_object:=code_object;
+    if not assigned(hsym) then
+	begin
+	    comment(V_Error,'Entrypoint "start" not defined');
+	    exit;
+	end;
+    header.eip:=hsym.address-sections[sec_code].mempos;
+    {Set the initial ESP.}
+    header.esp_object:=stack_object;
+    Fwriter.write(header,sizeof(header));
+    result:=true;
+end;
 
 
     procedure Tlxexeoutput.GenerateExecutable(const fn:string);
@@ -401,7 +372,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.1  2002-07-08 19:22:22  daniel
+  Revision 1.2  2002-07-11 15:23:25  daniel
+  * Continued work on LX header
+
+  Revision 1.1  2002/07/08 19:22:22  daniel
   + OS/2 lx format support: Copied ogcoff and started to modify it
 
 }
