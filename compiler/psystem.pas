@@ -181,7 +181,7 @@ begin
   cformaldef:=pformaldef(globaldef('formal'));
   voiddef:=porddef(globaldef('void'));
   cchardef:=porddef(globaldef('char'));
-  cwidechardef:=porddef(globaldef('char'));
+  cwidechardef:=porddef(globaldef('widechar'));
   cshortstringdef:=pstringdef(globaldef('shortstring'));
   clongstringdef:=pstringdef(globaldef('longstring'));
   cansistringdef:=pstringdef(globaldef('ansistring'));
@@ -263,7 +263,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.12  2001-03-22 00:10:58  florian
+  Revision 1.13  2001-03-25 12:40:00  florian
+    * cwidechar was loaded with a chardef, fixed
+
+  Revision 1.12  2001/03/22 00:10:58  florian
     + basic variant type support in the compiler
 
   Revision 1.11  2000/12/07 17:19:43  jonas
