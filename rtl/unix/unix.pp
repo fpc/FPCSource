@@ -213,7 +213,6 @@ function AssignStream(var StreamIn, StreamOut, StreamErr: Text; const prog: Stri
 {$ifndef BSD}
 Function  GetDomainName:String;
 Function  GetHostName:String;
-Function  Sysinfo(var Info:TSysinfo):Boolean;
 {$endif}
 
 {**************************
@@ -2009,7 +2008,10 @@ End.
 
 {
   $Log$
-  Revision 1.34  2003-09-16 20:52:24  marco
+  Revision 1.35  2003-09-16 21:46:27  marco
+   * small fixes, checking things on linux
+
+  Revision 1.34  2003/09/16 20:52:24  marco
    * small cleanups. Mostly killing of already commented code in unix etc
 
   Revision 1.33  2003/09/16 16:13:56  marco
