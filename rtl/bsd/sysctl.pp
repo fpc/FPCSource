@@ -83,9 +83,15 @@ TYPE    CtlNameRec = Record
 // function is not implemented
 //
 
+{$ifdef FPC_USE_LIBC}
+function FPsysctl (Name: pchar; namelen:cuint; oldp:pointer;oldlenp:psize_t; newp:pointer;newlen:size_t):cint; external name 'sysctl';
+function FPsysctlbyname (Name: pchar; oldp:pointer;oldlenp:psize_t; newp:pointer;newlen:size_t):cint; external name 'sysctlbyname';
+function FPsysctlnametomib (Name: pchar;mibp:plongint;sizep:psize_t):cint; external name 'sysctltomib';
+{$else}
 function FPsysctl (Name: pchar; namelen:cuint; oldp:pointer;oldlenp:psize_t; newp:pointer;newlen:size_t):cint;
 function FPsysctlbyname (Name: pchar; oldp:pointer;oldlenp:psize_t; newp:pointer;newlen:size_t):cint;
 function FPsysctlnametomib (Name: pchar; mibp:plongint;sizep:psize_t):cint;
+{$endif}
 
 Implementation
 
@@ -93,11 +99,7 @@ Implementation
 Uses Syscall;
 {$ENDIF}
 
-{$ifdef FPC_USE_LIBC}
-function FPsysctl (Name: pchar; namelen:cuint; oldp:pointer;oldlenp:psize_t; newp:pointer;newlen:size_t):cint; external name 'sysctl';
-function FPsysctlbyname (Name: pchar; oldp:pointer;oldlenp:psize_t; newp:pointer;newlen:size_t):cint; external name 'sysctlbyname';
-function FPsysctlnametomib (Name: pchar;mibp:plongint;sizep:psize_t):cint; external name 'sysctltomib';
-{$else}
+{$ifndef FPC_USE_LIBC}
 {$ifdef FreeBSD}
 CONST  syscall_nr___sysctl                    = 202;
 {$endif}
@@ -152,7 +154,10 @@ end.
 
 {
   $Log$
-  Revision 1.7  2004-03-04 22:15:16  marco
+  Revision 1.8  2004-11-21 17:49:28  marco
+   * libc fixes
+
+  Revision 1.7  2004/03/04 22:15:16  marco
    * UnixType changes. Please report problems to me.
 
   Revision 1.6  2003/12/30 12:26:21  marco
