@@ -605,7 +605,10 @@ unit pexpr;
                  procsym:
                    begin
                       p1:=genmethodcallnode(pprocsym(sym),srsymtable,p1);
-                      do_proc_call(getaddr,again,p1,pd);
+                      do_proc_call(getaddr or
+                        (getprocvar and
+                        proc_to_procvar_equal(getprocvardef,pprocsym(sym)^.definition))
+                        ,again,p1,pd);
                       { now we know the real method e.g. we can check for }
                       { a class method                                    }
                       if isclassref and ((p1^.procdefinition^.options and (poclassmethod or poconstructor))=0) then
@@ -1320,7 +1323,10 @@ unit pexpr;
                                                     ((aktprocsym^.definition^.options and poclassmethod)<>0);
                                     p1:=gencallnode(pprocsym(srsym),srsymtable);
                                     p1^.unit_specific:=unit_specific;
-                                    do_proc_call(getaddr,again,p1,pd);
+                                    do_proc_call(getaddr or
+                                      (getprocvar and
+                                      proc_to_procvar_equal(getprocvardef,pprocsym(srsym)^.definition)),
+                                      again,p1,pd);
                                     if possible_error and
                                        ((p1^.procdefinition^.options and poclassmethod)=0) then
                                      Message(parser_e_only_class_methods);
@@ -1689,7 +1695,7 @@ unit pexpr;
                     consume(token);
 {                    if pred_level=high(Toperator_precedence) then }
                     if pred_level=opmultiply then
-                        p2:=factor(getprocvar)
+                        p2:=factor(false)
                     else
                         p2:=sub_expr(succ(pred_level),true);
                     p1:=gennode(tok2node[oldt],p1,p2);
@@ -1835,7 +1841,10 @@ unit pexpr;
 end.
 {
   $Log$
-  Revision 1.38  1998-08-18 14:17:09  pierre
+  Revision 1.39  1998-08-18 16:48:48  pierre
+    * bug for -So proc assignment to p^rocvar fixed
+
+  Revision 1.38  1998/08/18 14:17:09  pierre
     * bug about assigning the return value of a function to
       a procvar fixed : warning
       assigning a proc to a procvar need @ in FPC mode !!
