@@ -1207,6 +1207,9 @@ unit pstatmnt;
                   dec(aktprocsym^.definition^.parast^.call_offset,target_os.size_of_pointer);
                   dec(procinfo.call_offset,target_os.size_of_pointer);
               end;
+          { force the asm statement }
+            if token<>_ASM then
+             consume(_ASM);
             assembler_block:=_asm_statement;
           { becuase the END is already read we need to get the
             last_endtoken_filepos here (PFV) }
@@ -1216,7 +1219,10 @@ unit pstatmnt;
 end.
 {
   $Log$
-  Revision 1.47  1998-10-30 16:20:22  peter
+  Revision 1.48  1998-11-05 23:43:24  peter
+    * fixed assembler directive and then not an ASM statement
+
+  Revision 1.47  1998/10/30 16:20:22  peter
     * fixed dispose(destructor) crash when destructor didn't exists
 
   Revision 1.46  1998/10/20 08:06:53  pierre
