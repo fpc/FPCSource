@@ -553,7 +553,7 @@ program install;
   constructor tinstalldialog.init;
     const
        width = 76;
-       height = 20;
+       height = 21;
        x1 = (79-width) div 2;
        y1 = (23-height) div 2;
        x2 = x1+width;
@@ -1154,7 +1154,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.17  2000-02-23 17:17:56  peter
+  Revision 1.18  2000-02-24 17:47:47  peter
+    * last fixes for 0.99.14a release
+
+  Revision 1.17  2000/02/23 17:17:56  peter
     * write ppc386.cfg for all found targets
 
   Revision 1.16  2000/02/06 12:59:39  peter

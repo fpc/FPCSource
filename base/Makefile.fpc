@@ -245,7 +245,7 @@ endif
         $(DELTREE) $(INSTALLERBUILDDIR)
 
 installersrc:
-        $(COPYTREE) fpinst $(INSTALLERBUILDDIR)
+        $(COPYTREE) $(CVSINSTALL)/fpinst $(INSTALLERBUILDDIR)
         $(MAKE) -C $(INSTALLERBUILDDIR) zipsourceinstall
         $(DELTREE) $(INSTALLERBUILDDIR)
 
@@ -367,14 +367,10 @@ docsrc:
 # Demos
 ##########################################################################
 
-.PHONY: demo demoinstall
+.PHONY: demozip
 
-demoinstall:
-        $(COPYTREE) $(CVSINSTALL)/demo $(PREFIXINSTALLDIR)
-
-demo:
-        $(MAKE) fpc_zipinstall ZIPTARGET=demoinstall ZIPNAME=demo
-
+demozip:
+        $(MAKE) -C $(CVSINSTALL)/demo zipsourceinstall ZIPNAME=demo
 
 
 ##########################################################################
@@ -390,7 +386,7 @@ sourcebase:
         $(COPY) rtl/Makefile* $(SOURCEINSTALLDIR)/rtl
         $(COPY) packages/Makefile* $(SOURCEINSTALLDIR)/packages
 
-zipsource:
+sourcezip:
         $(MAKE) fpc_zipinstall ZIPTARGET=sourcebase ZIPNAME=basesrc
         $(MAKE) compiler_zipsourceinstall
         $(MAKE) rtl_zipsourceinstall

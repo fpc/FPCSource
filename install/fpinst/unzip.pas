@@ -3318,6 +3318,7 @@ BEGIN
    inuse := FALSE;    {Not yet in use!}
    lastusedtime := 0; {Not yet used}
   {$endif}
+  if inuse then; { to remove warning }
   SetUnZipReportProc ( NIL );
   SetUnZipQuestionProc ( NIL );
   SetNoRecurseDirs ( FALSE );
@@ -3330,7 +3331,10 @@ BEGIN
 END.
 {
   $Log$
-  Revision 1.4  2000-01-26 21:49:33  peter
+  Revision 1.5  2000-02-24 17:47:47  peter
+    * last fixes for 0.99.14a release
+
+  Revision 1.4  2000/01/26 21:49:33  peter
     * install.pas compilable by FPC again
     * removed some notes from unzip.pas
     * support installer creation under linux (install has name conflict)

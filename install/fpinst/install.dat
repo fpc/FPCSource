@@ -3,7 +3,7 @@
 #
 # Install file for Go32v2/Win32/OS2
 #
-title=Free Pascal Compiler 0.99.14
+title=Free Pascal Compiler 0.99.14a
 version=0.99.14
 
 #
@@ -21,8 +21,10 @@ cfgfile=ppc386.cfg
 filecheck=*go32.zip
 package=basego32.zip,~B~asic system for Go32v2 (required)
 package=asldgo32.zip,GNU ~L~inker and GNU Assembler for Go32v2 (required)
+package=idego32.zip,~I~DE with integrated debugger/compiler (BETA)
+package=utilgo32.zip,~E~xtra Utilities
+package=makego32.zip,GNU ~U~tilities (needed for Makefile usage)
 package=gdbgo32.zip,GNU ~D~ebugger for Go32v2
-package=utilgo32.zip,GNU ~U~tilities (needed by Makefiles)
 package=ufclgo32.zip,~F~ree Component Libary (FCL)
 package=uapigo32.zip,~A~PI units (needed by FV)
 package=ubasgo32.zip,Basic ~u~nits (needed by FCL)
@@ -41,8 +43,10 @@ cfgfile=ppc386.cfg
 filecheck=*w32.zip
 package=basew32.zip,~B~asic system for Win32 (required)
 package=asldw32.zip,GNU ~L~inker and GNU Assembler for Win32 (required)
+package=idew32.zip,~I~DE with integrated debugger/compiler (BETA)
+package=utilw32.zip,~E~xtra Utilities
+package=makew32.zip,GNU ~U~tilities (needed for Makefile usage)
 package=gdbw32.zip,GNU ~D~ebugger for Win32
-package=utilw32.zip,GNU ~U~tilities (for makefiles)
 package=ufclw32.zip,~F~ree Component Libary (FCL)
 package=uapiw32.zip,~A~PI units (needed by FV)
 package=ubasw32.zip,~B~asic units (needed by FCL)
