@@ -107,6 +107,7 @@ var
   internal_memavail  : longint;
   internal_heapsize  : longint;
   freelists          : tfreelists;
+  before_heapend_block : pfreerecord;
 {$ifdef SYSTEMDEBUG}
   freecount : tfreecount;
 {$endif SYSTEMDEBUG}
@@ -564,6 +565,9 @@ begin
        { It's already added in the previous iteration, we only go to the }
        { next heap record after this check (JM)                          }
        pcurr^.size:=pcurrsize or beforeheapendmask;
+       { keep track of the block that lies before the current heapend }
+       if (pointer(pcurr)+pcurrsize+sizeof(tfreerecord) >= heapend) then
+         before_heapend_block := pcurr;
        break;
      end;
     { get next block }
@@ -619,9 +623,9 @@ type
 var
   proc  : heaperrorproc;
   pcurr : pfreerecord;
-  again : boolean;
   s,s1,maxs1,
   sizeleft : longint;
+  again : boolean;
 {$ifdef BESTMATCH}
   pbest : pfreerecord;
 {$endif}
@@ -671,7 +675,11 @@ begin
         { set end flag if we do not have enough room to add
           another tfreerecord behind }
         if (heapptr+size+sizeof(tfreerecord)>=heapend) then
-         pheaprecord(sysgetmem)^.size:=size or (usedmask or beforeheapendmask)
+         begin
+           pheaprecord(sysgetmem)^.size:=size or (usedmask or beforeheapendmask)
+           { keep track of the block that lies before the current heapend }
+           before_heapend_block := sysgetmem;
+         end  
         else
          pheaprecord(sysgetmem)^.size:=size or usedmask;
         inc(sysgetmem,sizeof(theaprecord));
@@ -774,6 +782,12 @@ begin
         pcurr:=pfreerecord(pointer(pcurr)+size);
         { inherit the beforeheapendmask }
         pcurr^.size:=sizeleft or (pheaprecord(sysgetmem)^.size and beforeheapendmask);
+        { the block we return does not lie before any heapend anymore (there's now }
+        { a block after it)                                                        }
+        pheaprecord(sysgetmem)^.size := pheaprecord(sysgetmem)^.size and not(beforeheapendmask);
+        { keep track of the block that lies before the current heapend }
+        if (pointer(pcurr)+(pcurr^.size and sizemask)+sizeof(tfreerecord) >= heapend) then
+          before_heapend_block := pcurr;
         { insert the block in the freelist }
         pcurr^.prev:=nil;
         s1:=sizeleft shr blockshr;
@@ -810,7 +824,11 @@ begin
      begin
        sysgetmem:=heapptr;
        if (heapptr+size+sizeof(tfreerecord)>=heapend) then
-        pheaprecord(sysgetmem)^.size:=size or (usedmask or beforeheapendmask)
+        begin
+          pheaprecord(sysgetmem)^.size:=size or (usedmask or beforeheapendmask);
+          { keep track of the block that lies before the current heapend }
+          before_heapend_block := sysgetmem;
+        end
        else
         pheaprecord(sysgetmem)^.size:=size or usedmask;
        inc(sysgetmem,sizeof(theaprecord));
@@ -1043,7 +1061,12 @@ begin
 {$endif SYSTEMDEBUG}
         until (foundsize>=size);
         if wasbeforeheapend then
-         pcurr^.size:=foundsize or usedmask or beforeheapendmask
+         begin
+           pcurr^.size:=foundsize or usedmask or beforeheapendmask;
+           { keep track of the block that lies before the current heapend }
+           if (pointer(pcurr)+foundsize+sizeof(tfreerecord) >= heapend) then
+             before_heapend_block := pcurr;
+         end
         else
          pcurr^.size:=foundsize or usedmask;
       end
@@ -1069,6 +1092,11 @@ begin
       begin
         pnew:=pfreerecord(pointer(pcurr)+size);
         pnew^.size:=sizeleft or (pcurr^.size and beforeheapendmask);
+        { keep track of the block that lies before the current heapend }
+        if (pointer(pnew)+(pnew^.size and sizemask)+sizeof(tfreerecord) >= heapend) then
+          before_heapend_block := pnew;
+        { pcurr does not lie before the heapend anymore }
+        pcurr^.size := pcurr^.size and not(beforeheapendmask);
         { insert the block in the freelist }
         pnew^.prev:=nil;
         s:=sizeleft shr blockshr;
@@ -1203,6 +1231,12 @@ begin
   if heapend=newpos then
    begin
      heapend:=newpos+size;
+     { the block that was marked as "before heapend" is no longer right before the heapend }
+     if assigned(before_heapend_block) then
+       begin
+         before_heapend_block^.size := before_heapend_block^.size and not(beforeheapendmask);
+         before_heapend_block := nil;
+       end;
    end
   else
    begin
@@ -1212,6 +1246,7 @@ begin
       begin
         pcurr:=pfreerecord(heapptr);
         pcurr^.size:=sizeleft or beforeheapendmask;
+        { keep track of the block that lies before the current heapend }
         { insert the block in the freelist }
         s1:=sizeleft shr blockshr;
         if s1>maxblock then
@@ -1228,6 +1263,9 @@ begin
      { now set the new heapptr,heapend to the new block }
      heapptr:=newpos;
      heapend:=newpos+size;
+     { no block lies before the current heapend, and the one that lay before }
+     { the previous one will remain before a heapend indefinitely            }
+     before_heapend_block := nil;
    end;
 { set the total new heap size }
   inc(internal_memavail,size);
@@ -1281,6 +1319,7 @@ begin
 {$ifdef SYSTEMDEBUG}
   FillChar(FreeCount,sizeof(TFreeCount),0);
 {$endif SYSTEMDEBUG}
+  before_heapend_block := nil;
   internal_heapsize:=GetHeapSize;
   internal_memavail:=internal_heapsize;
   HeapOrg:=GetHeapStart;
@@ -1291,7 +1330,11 @@ end;
 
 {
   $Log$
-  Revision 1.25  2003-12-15 21:39:16  daniel
+  Revision 1.26  2004-01-29 22:45:25  jonas
+    * improved beforeheapend inheritance (remove flag again when possible,
+      sometimes resulting in more opportunities for TryConcatFreeRecord)
+
+  Revision 1.25  2003/12/15 21:39:16  daniel
     * Small microoptimization
 
   Revision 1.24  2003/10/02 14:03:24  marco
