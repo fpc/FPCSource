@@ -176,7 +176,7 @@ unit i_linux;
             resext       : '.res';
             resobjext    : '.or';
             sharedlibext : '.so';
-            staticlibext : '.s';
+            staticlibext : '.a';
             staticlibprefix : 'libp';
             sharedlibprefix : 'lib';
             sharedClibext : '.so';
@@ -215,7 +215,6 @@ unit i_linux;
             stacksize    : 32*1024*1024;
             DllScanSupported:false;
             use_function_relative_addresses : true;
-            { abi_powerpc_sysv doesn't work yet }
             abi : abi_powerpc_aix;
           );
 
@@ -515,7 +514,10 @@ initialization
 end.
 {
   $Log$
-  Revision 1.15  2003-10-03 22:09:49  peter
+  Revision 1.16  2003-12-11 19:06:21  florian
+    * staticlib extension for powerpc fixed
+
+  Revision 1.15  2003/10/03 22:09:49  peter
     * removed paraalign
 
   Revision 1.14  2003/09/23 17:58:38  peter
