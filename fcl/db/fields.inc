@@ -121,6 +121,18 @@ begin
   Inherited Destroy;
 end;
 
+procedure TFieldDefs.Add(const AName: string; ADataType: TFieldType);
+
+begin
+  Add(AName,ADatatype,0,False);
+end;
+
+procedure TFieldDefs.Add(const AName: string; ADataType: TFieldType; ASize : Word);
+
+begin
+  Add(AName,ADatatype,ASize,False);
+end;
+
 procedure TFieldDefs.Add(const AName: string; ADataType: TFieldType; ASize: Word;
   ARequired: Boolean);
 
@@ -202,6 +214,12 @@ procedure TFieldDefs.Update;
 
 begin
   FDataSet.UpdateFieldDefs;
+end;
+
+Function TFieldDefs.AddFieldDef : TFieldDef;
+
+begin
+  Result:=TFieldDef.Create(Self,'',ftUnknown,0,False,FItems.Count+1);
 end;
 
 { ---------------------------------------------------------------------
@@ -1788,7 +1806,10 @@ end;
 
 {
   $Log$
-  Revision 1.9  2004-02-25 16:29:26  michael
+  Revision 1.10  2004-03-25 20:43:39  michael
+  Some compatibility additions
+
+  Revision 1.9  2004/02/25 16:29:26  michael
   + Added AsInteger to TField. Maps to AsLongint for now
 
   Revision 1.8  2003/09/14 13:22:14  michael

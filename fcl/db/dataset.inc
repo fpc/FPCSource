@@ -1229,9 +1229,33 @@ end;
 
 Procedure TDataset.GetFieldList(List: TList; const FieldNames: string);
 
+  Function NextName(Var S : String) : String;
+  
+  Var
+    P : integer;
+  
+  begin
+    P:=Pos(';',S);
+    If (P=0) then
+      P:=Length(S)+1;
+    Result:=Copy(S,1,P-1);   
+    system.Delete(S,1,P);
+  end;
 
+var
+  F: TField;
+  Names,N : String;
+  
 begin
-
+  Names:=FieldNames;
+  N:=Nextname(Names);
+  while (N<>'') do
+    begin
+    F:=FieldByName(N);
+    If Assigned(List) then
+      List.Add(F);
+    N:=NextName(Names);
+    end;
 end;
 
 Procedure TDataset.GetFieldNames(List: TStrings);
@@ -1695,7 +1719,10 @@ end;
 
 {
   $Log$
-  Revision 1.11  2004-01-05 21:21:38  michael
+  Revision 1.12  2004-03-25 20:43:39  michael
+  Some compatibility additions
+
+  Revision 1.11  2004/01/05 21:21:38  michael
   + Fix in setbuflistsize for when Value=-1
 
   Revision 1.10  2003/11/09 21:23:10  michael

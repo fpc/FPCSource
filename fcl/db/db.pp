@@ -96,6 +96,9 @@ type
       ftDateTime: (DateTime: TDateTimeAlias);
   end;
 
+  TFieldAttribute = (faHiddenCol, faReadonly, faRequired, faLink, faUnNamed, faFixed);
+  TFieldAttributes = set of TFieldAttribute;
+
   TFieldDef = class(TComponent)
   Private
     FDataType : TFieldType;
@@ -105,19 +108,22 @@ type
     FRequired : Boolean;
     FSize : Word;
     FName : String;
+    FAttributes : TFieldAttributes;
     Function GetFieldClass : TFieldClass;
   public
     constructor Create(AOwner: TFieldDefs; const AName: string;
       ADataType: TFieldType; ASize: Word; ARequired: Boolean; AFieldNo: Longint);
     destructor Destroy; override;
     function CreateField(AOwner: TComponent): TField;
-    property InternalCalcField: Boolean read FInternalCalcField write FInternalCalcField;
-    property DataType: TFieldType read FDataType;
     property FieldClass: TFieldClass read GetFieldClass;
     property FieldNo: Longint read FFieldNo;
-    property Name: string read FName;
-    property Precision: Longint read FPrecision write FPrecision;
+    property InternalCalcField: Boolean read FInternalCalcField write FInternalCalcField;
     property Required: Boolean read FRequired;
+  Published  
+    property Attributes: TFieldAttributes read FAttributes write FAttributes default [];
+    property Name: string read FName write FName; // Must move to TNamedItem
+    property DataType: TFieldType read FDataType;
+    property Precision: Longint read FPrecision write FPrecision;
     property Size: Word read FSize;
   end;
 
@@ -128,19 +134,23 @@ type
     FDataSet: TDataSet;
     FItems: TList;
     FUpdated: Boolean;
+    FHiddenFields : Boolean;
     function GetCount: Longint;
     function GetItem(Index: Longint): TFieldDef;
   public
     constructor Create(ADataSet: TDataSet);
     destructor Destroy; override;
-    procedure Add(const AName: string; ADataType: TFieldType; ASize: Word;
-      ARequired: Boolean);
+    procedure Add(const AName: string; ADataType: TFieldType; ASize: Word; ARequired: Boolean);
+    procedure Add(const AName: string; ADataType: TFieldType; ASize: Word);
+    procedure Add(const AName: string; ADataType: TFieldType);
+    Function AddFieldDef : TFieldDef;
     procedure Assign(FieldDefs: TFieldDefs);
     procedure Clear;
     function Find(const AName: string): TFieldDef;
     function IndexOf(const AName: string): Longint;
     procedure Update;
     property Count: Longint read GetCount;
+    Property HiddenFields : Boolean Read FHiddenFields Write FHiddenFields;
     property Items[Index: Longint]: TFieldDef read GetItem; default;
   end;
 
@@ -1477,7 +1487,10 @@ end.
 
 {
   $Log$
-  Revision 1.14  2004-03-19 23:19:51  michael
+  Revision 1.15  2004-03-25 20:43:39  michael
+  Some compatibility additions
+
+  Revision 1.14  2004/03/19 23:19:51  michael
   + Corrected the Fields property.
 
   Revision 1.13  2004/02/25 16:29:26  michael
