@@ -68,8 +68,8 @@ interface
          cs_load_objpas_unit,
          cs_load_gpc_unit,
          { optimizer }
-         cs_regalloc,cs_uncertainopts,cs_littlesize,cs_optimize,
-         cs_fastoptimize, cs_slowoptimize,cs_align,
+         cs_regalloc,cs_no_regalloc,cs_uncertainopts,cs_littlesize,
+         cs_optimize,cs_fastoptimize,cs_slowoptimize,cs_align,
          { browser }
          cs_browser_log,
          { debugger }
@@ -211,7 +211,13 @@ implementation
 end.
 {
   $Log$
-  Revision 1.34  2002-10-16 19:01:43  peter
+  Revision 1.35  2003-03-08 08:59:07  daniel
+    + $define newra will enable new register allocator
+    + getregisterint will return imaginary registers with $newra
+    + -sr switch added, will skip register allocation so you can see
+      the direct output of the code generator before register allocation
+
+  Revision 1.34  2002/10/16 19:01:43  peter
     + $IMPLICITEXCEPTIONS switch to turn on/off generation of the
       implicit exception frames for procedures with initialized variables
       and for constructors. The default is on for compatibility

@@ -39,9 +39,11 @@ unit rgcpu;
           fpuvaroffset : byte;
 
           { to keep the same allocation order as with the old routines }
+{$ifndef newra}
           function getregisterint(list:Taasmoutput;size:Tcgsize):Tregister;override;
           procedure ungetregisterint(list:Taasmoutput;r:Tregister); override;
           function getexplicitregisterint(list:Taasmoutput;r:Tnewregister):Tregister;override;
+{$endif newra}
 
           function getregisterfpu(list: taasmoutput) : tregister; override;
           procedure ungetregisterfpu(list: taasmoutput; r : tregister); override;
@@ -160,6 +162,7 @@ unit rgcpu;
 {                               trgcpu                                   }
 {************************************************************************}
 
+{$ifndef newra}
     function trgcpu.getregisterint(list:Taasmoutput;size:Tcgsize):Tregister;
 
     var subreg:Tsubregister;
@@ -262,6 +265,7 @@ unit rgcpu;
         end;
       result:=inherited getexplicitregisterint(list,r);
     end;
+{$endif newra}
 
 
     function trgcpu.getregisterfpu(list: taasmoutput) : tregister;
@@ -511,7 +515,13 @@ end.
 
 {
   $Log$
-  Revision 1.13  2003-03-07 21:57:53  daniel
+  Revision 1.14  2003-03-08 08:59:07  daniel
+    + $define newra will enable new register allocator
+    + getregisterint will return imaginary registers with $newra
+    + -sr switch added, will skip register allocation so you can see
+      the direct output of the code generator before register allocation
+
+  Revision 1.13  2003/03/07 21:57:53  daniel
     * Improved getregisterint
 
   Revision 1.12  2003/02/19 22:00:16  daniel

@@ -483,8 +483,13 @@ unit rgobj;
       subreg:=cgsize2subreg(size);
       result:=getregistergenint(list,
                                 subreg,
+{$ifdef newra}
+                                first_imreg,
+                                last_imreg,
+{$else}
                                 first_supreg,
                                 last_supreg,
+{$endif}
                                 usedintbyproc,
                                 usedintinproc,
                                 unusedregsint,
@@ -645,7 +650,11 @@ unit rgobj;
          countunusedregsint:=countusableregsint;
          countunusedregsfpu:=countusableregsfpu;
          countunusedregsmm:=countusableregsmm;
+     {$ifdef newra}
+         unusedregsint:=[0..255];
+     {$else}
          unusedregsint:=usableregsint;
+     {$endif}
          unusedregsfpu:=usableregsfpu;
          unusedregsmm:=usableregsmm;
       end;
@@ -1208,7 +1217,13 @@ end.
 
 {
   $Log$
-  Revision 1.25  2003-02-26 20:50:45  daniel
+  Revision 1.26  2003-03-08 08:59:07  daniel
+    + $define newra will enable new register allocator
+    + getregisterint will return imaginary registers with $newra
+    + -sr switch added, will skip register allocation so you can see
+      the direct output of the code generator before register allocation
+
+  Revision 1.25  2003/02/26 20:50:45  daniel
     * Fixed ungetreference
 
   Revision 1.24  2003/02/19 22:39:56  daniel

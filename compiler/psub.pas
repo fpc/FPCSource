@@ -362,15 +362,18 @@ implementation
                 aktprocdef.usedotherregisters:=rg.usedinproc;
                 procinfo.aktproccode.insertlist(procinfo.aktentrycode);
                 procinfo.aktproccode.concatlist(procinfo.aktexitcode);
+                if not(cs_no_regalloc in aktglobalswitches) then
+                  begin
 {$ifdef i386}
-                procinfo.aktproccode.convert_registers;
+                    procinfo.aktproccode.convert_registers;
 {$endif}                
 {$ifndef NoOpt}
-                if (cs_optimize in aktglobalswitches) and
-                { do not optimize pure assembler procedures }
-                   ((procinfo.flags and pi_is_assembler)=0)  then
-                  optimize(procinfo.aktproccode);
+                    if (cs_optimize in aktglobalswitches) and
+                    { do not optimize pure assembler procedures }
+                       ((procinfo.flags and pi_is_assembler)=0)  then
+                      optimize(procinfo.aktproccode);
 {$endif NoOpt}
+                  end;
                 { save local data (casetable) also in the same file }
                 if assigned(procinfo.aktlocaldata) and
                    (not procinfo.aktlocaldata.empty) then
@@ -848,7 +851,13 @@ implementation
 end.
 {
   $Log$
-  Revision 1.92  2003-02-19 22:00:14  daniel
+  Revision 1.93  2003-03-08 08:59:07  daniel
+    + $define newra will enable new register allocator
+    + getregisterint will return imaginary registers with $newra
+    + -sr switch added, will skip register allocation so you can see
+      the direct output of the code generator before register allocation
+
+  Revision 1.92  2003/02/19 22:00:14  daniel
     * Code generator converted to new register notation
     - Horribily outdated todo.txt removed
 

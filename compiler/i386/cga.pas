@@ -153,10 +153,9 @@ implementation
 
     procedure emit_reg_reg(i : tasmop;s : topsize;reg1,reg2 : tregister);
       begin
-         convert_register_to_enum(reg1);
-         convert_register_to_enum(reg2);
-         if (reg1.enum<>reg2.enum) or (i<>A_MOV) then
-           exprasmList.concat(Taicpu.Op_reg_reg(i,s,reg1,reg2));
+         if not ((reg1.enum=R_INTREGISTER) and (reg2.enum<>R_INTREGISTER) and
+            (reg1.number=reg2.number) and (i=A_MOV)) then
+           exprasmlist.concat(Taicpu.op_reg_reg(i,s,reg1,reg2));
       end;
 
     procedure emit_const_reg_reg(i : tasmop;s : topsize;c : longint;reg1,reg2 : tregister);
@@ -177,7 +176,13 @@ implementation
 end.
 {
   $Log$
-  Revision 1.36  2003-02-19 22:00:15  daniel
+  Revision 1.37  2003-03-08 08:59:07  daniel
+    + $define newra will enable new register allocator
+    + getregisterint will return imaginary registers with $newra
+    + -sr switch added, will skip register allocation so you can see
+      the direct output of the code generator before register allocation
+
+  Revision 1.36  2003/02/19 22:00:15  daniel
     * Code generator converted to new register notation
     - Horribily outdated todo.txt removed
 

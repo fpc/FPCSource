@@ -120,6 +120,9 @@ uses
                   {Number of first and last superregister.}
                   first_supreg    = $01;
                   last_supreg     = $10;
+                  {Number of first and last imaginary register.}
+                  first_imreg     = $12;
+                  last_imreg      = $ff;
                   
      {Sub register numbers:}
                   R_SUBL        = $00;      {Like AL}
@@ -530,7 +533,11 @@ uses
 
       maxintregs = 4;
       intregs = [R_EAX..R_BL];
+{$ifdef newra}
+      usableregsint = [first_imreg..last_imreg];
+{$else}
       usableregsint = [RS_EAX,RS_EBX,RS_ECX,RS_EDX];
+{$endif}
       c_countusableregsint = 4;
 
       maxfpuregs = 8;
@@ -619,8 +626,13 @@ uses
       {# Self pointer register : contains the instance address of an
          object or class. }
       self_pointer_reg  = R_ESI;
+{$ifdef newra}
+      RS_SELF_POINTER_REG  = $11;
+      NR_SELF_POINTER_REG  = $1103;
+{$else}
       RS_SELF_POINTER_REG  = RS_ESI;
       NR_SELF_POINTER_REG  = NR_ESI;
+{$endif}
       {# Register for addressing absolute data in a position independant way,
          such as in PIC code. The exact meaning is ABI specific. For
          further information look at GCC source : PIC_OFFSET_TABLE_REGNUM
@@ -787,7 +799,13 @@ implementation
 end.
 {
   $Log$
-  Revision 1.42  2003-02-19 22:00:15  daniel
+  Revision 1.43  2003-03-08 08:59:07  daniel
+    + $define newra will enable new register allocator
+    + getregisterint will return imaginary registers with $newra
+    + -sr switch added, will skip register allocation so you can see
+      the direct output of the code generator before register allocation
+
+  Revision 1.42  2003/02/19 22:00:15  daniel
     * Code generator converted to new register notation
     - Horribily outdated todo.txt removed
 

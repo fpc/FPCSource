@@ -769,11 +769,6 @@ implementation
         { we need ATT order }
         SetOperandOrder(op_att);
 
-        if (oper[0].typ=top_reg) and (oper[0].reg.enum>lastreg) then
-          internalerror(200301081);
-        if (oper[1].typ=top_reg) and (oper[1].reg.enum>lastreg) then
-          internalerror(200301081);
-
         if ((ops=2) and
            (oper[0].typ=top_reg) and
            (oper[1].typ=top_reg) and
@@ -1949,7 +1944,13 @@ implementation
 end.
 {
   $Log$
-  Revision 1.13  2003-02-25 07:41:54  daniel
+  Revision 1.14  2003-03-08 08:59:07  daniel
+    + $define newra will enable new register allocator
+    + getregisterint will return imaginary registers with $newra
+    + -sr switch added, will skip register allocation so you can see
+      the direct output of the code generator before register allocation
+
+  Revision 1.13  2003/02/25 07:41:54  daniel
     * Properly fixed reversed operands bug
 
   Revision 1.12  2003/02/19 22:00:15  daniel

@@ -52,7 +52,7 @@ interface
       sysutils,
 {$endif}
       cutils,globtype,globals,systems,cclasses,
-      fmodule,finput,verbose,cpuinfo
+      fmodule,finput,verbose,cpuinfo,ag386int
       ;
 
     const
@@ -217,41 +217,47 @@ interface
 
     procedure T386NasmAssembler.WriteReference(var ref : treference);
       var
-        first : boolean;
+        first,no_s,no_b,no_i : boolean;
       begin
         with ref do
          begin
-           if segment.enum>lastreg then
-              internalerror(200301081);
-           if base.enum>lastreg then
-              internalerror(200301081);
-           if index.enum>lastreg then
-              internalerror(200301081);
+           no_s:=(segment.enum=R_NO) or ((segment.enum=R_INTREGISTER) and (segment.number=NR_NO));
+           no_b:=(base.enum=R_NO) or ((base.enum=R_INTREGISTER) and (base.number=NR_NO));
+           no_i:=(index.enum=R_NO) or ((index.enum=R_INTREGISTER) and (index.number=NR_NO));
            AsmWrite('[');
            first:=true;
            inc(offset,offsetfixup);
            offsetfixup:=0;
-           if segment.enum<>R_NO then
-            AsmWrite(std_reg2str[segment.enum]+':');
+           if not no_s then
+            if segment.enum=R_INTREGISTER then
+              asmwrite(intel_regname(segment.number))
+            else
+              asmwrite(std_reg2str[segment.enum]+':');
            if assigned(symbol) then
             begin
               AsmWrite(symbol.name);
               first:=false;
             end;
-           if (base.enum<>R_NO) then
+           if not no_b then
             begin
               if not(first) then
                AsmWrite('+')
               else
                first:=false;
-              AsmWrite(int_nasmreg2str[base.enum]);
+            if base.enum=R_INTREGISTER then
+              asmwrite(intel_regname(base.number))
+            else
+              asmwrite(int_nasmreg2str[base.enum]);
             end;
-           if (index.enum<>R_NO) then
+           if not no_i then
              begin
                if not(first) then
                  AsmWrite('+')
                else
                  first:=false;
+              if index.enum=R_INTREGISTER then
+                asmwrite(intel_regname(index.number))
+              else
                AsmWrite(int_nasmreg2str[index.enum]);
                if scalefactor<>0 then
                  AsmWrite('*'+tostr(scalefactor));
@@ -278,9 +284,10 @@ interface
         case o.typ of
           top_reg :
             begin
-              if o.reg.enum>lastreg then
-                internalerror(200301081);
-              AsmWrite(int_nasmreg2str[o.reg.enum]);
+              if o.reg.enum=R_INTREGISTER then
+                asmwrite(intel_regname(o.reg.number))
+              else
+                asmwrite(int_nasmreg2str[o.reg.enum]);
             end;
           top_const :
             begin
@@ -324,9 +331,10 @@ interface
         case o.typ of
           top_reg :
             begin
-              if o.reg.enum>lastreg then
-                internalerror(200301081);
-              AsmWrite(int_nasmreg2str[o.reg.enum]);
+              if o.reg.enum=R_INTREGISTER then
+                asmwrite(intel_regname(o.reg.number))
+              else
+                asmwrite(int_nasmreg2str[o.reg.enum]);
             end;
           top_ref :
             WriteReference(o.ref^);
@@ -908,7 +916,13 @@ initialization
 end.
 {
   $Log$
-  Revision 1.30  2003-01-08 18:43:57  daniel
+  Revision 1.31  2003-03-08 08:59:07  daniel
+    + $define newra will enable new register allocator
+    + getregisterint will return imaginary registers with $newra
+    + -sr switch added, will skip register allocation so you can see
+      the direct output of the code generator before register allocation
+
+  Revision 1.30  2003/01/08 18:43:57  daniel
    * Tregister changed into a record
 
   Revision 1.29  2002/12/24 18:10:34  peter

@@ -855,6 +855,10 @@ begin
                      initglobalswitches:=initglobalswitches-[cs_link_on_target]
                    else if more='t' then
                      initglobalswitches:=initglobalswitches+[cs_link_on_target]
+{$ifdef newra}
+                   else if more='r' then
+                     initglobalswitches:=initglobalswitches+[cs_no_regalloc]
+{$endif newra}
                    else if more<>'' then
                      IllegalPara(opt);
                  end;
@@ -1889,7 +1893,13 @@ finalization
 end.
 {
   $Log$
-  Revision 1.91  2002-12-06 16:56:58  peter
+  Revision 1.92  2003-03-08 08:59:07  daniel
+    + $define newra will enable new register allocator
+    + getregisterint will return imaginary registers with $newra
+    + -sr switch added, will skip register allocation so you can see
+      the direct output of the code generator before register allocation
+
+  Revision 1.91  2002/12/06 16:56:58  peter
     * only compile cs_fp_emulation support when cpufpuemu is defined
     * define cpufpuemu for m68k only
 

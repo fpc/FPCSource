@@ -99,6 +99,7 @@ interface
       );
 
      function intel_regnum_search(const s:string):Tnewregister;
+     function intel_regname(const r:Tnewregister):string;
 
 
   implementation
@@ -883,6 +884,39 @@ ait_stab_function_name : ;
           intel_regnum_search:=NR_NO;
      end;
 
+    function intel_regname(const r:Tnewregister):string;
+
+    var i:byte;
+        nr:string[3];
+        sub:char;
+
+    begin
+      intel_regname:='';
+      for i:=0 to regname_count-1 do
+        if r=intel_regname2regnum[i].number then
+            intel_regname:=intel_regname2regnum[i].name;
+      {If not found, generate a systematic name.}
+      if intel_regname='' then
+        begin
+          str(r shr 8,nr);
+          case r and $ff of
+            R_SUBL:
+              sub:='l';
+            R_SUBH:
+              sub:='h';
+            R_SUBW:
+              sub:='w';
+            R_SUBD:
+              sub:='d';
+            R_SUBQ:
+              sub:='q';
+          else
+            internalerror(200303081);
+          end;
+          intel_regname:='reg'+nr+sub;
+        end;
+    end;
+
 {*****************************************************************************
                                   Initialize
 *****************************************************************************}
@@ -932,7 +966,13 @@ initialization
 end.
 {
   $Log$
-  Revision 1.33  2003-02-19 22:00:15  daniel
+  Revision 1.34  2003-03-08 08:59:07  daniel
+    + $define newra will enable new register allocator
+    + getregisterint will return imaginary registers with $newra
+    + -sr switch added, will skip register allocation so you can see
+      the direct output of the code generator before register allocation
+
+  Revision 1.33  2003/02/19 22:00:15  daniel
     * Code generator converted to new register notation
     - Horribily outdated todo.txt removed
 
