@@ -283,7 +283,7 @@ begin
       S:=StrPas(LineP);
       ParamS:=NGDecompressStr(S);
       CallPointerLocal(LineEnumProc,PreviousFramePointer,@ParamS);
-      Inc(longint(LineP),length(S)+1);
+      Inc(Ptrint(LineP),length(S)+1);
     end;
     if Assigned(LinkEnumProc) and (SeeAlsoOfs>0) then
     begin
@@ -297,8 +297,8 @@ begin
         LR.Name:=S;
         Move(NextLinkOfsPtr^,LR.FilePos,4);
         CallPointerLocal(LinkEnumProc,PreviousFramePointer,@LR);
-        Inc(longint(NextLinkNamePtr),length(S)+1);
-        Inc(longint(NextLinkOfsPtr),4);
+        Inc(Ptrint(NextLinkNamePtr),length(S)+1);
+        Inc(Ptrint(NextLinkOfsPtr),4);
       end;
     end;
   end;
@@ -520,7 +520,10 @@ end;
 END.
 {
   $Log$
-  Revision 1.3  2002-09-07 15:40:50  peter
+  Revision 1.4  2004-05-03 21:12:54  peter
+    * 64bit fixes
+
+  Revision 1.3  2002/09/07 15:40:50  peter
     * old logs removed and tabs fixed
 
 }

@@ -881,6 +881,7 @@ end;
 function GetAsmReservedWordCount: integer;
 begin
   GetAsmReservedWordCount:=ord(lastop) - ord(firstop)
+{$ifndef x86_64}
 {$ifndef powerpc}
 {$ifndef arm}
     + CondAsmOps*(ord(high(TasmCond))-ord(low(TasmCond)));
@@ -892,6 +893,7 @@ begin
 {$else powerpc}
    + CondAsmOps*(ord(high(TAsmCondFlag))-ord(low(TAsmCondFlag)));
 {$endif powerpc}
+{$endif x86_64}
 end;
 
 
@@ -2066,7 +2068,7 @@ begin
       else if Editor^.GetModified and (Editor^.Core^.GetBindingCount=1) then
         begin
           PA[1]:=@AFileName;
-          longint(PA[2]):={Editor^.ChangedLine}-1;
+          Ptrint(PA[2]):={Editor^.ChangedLine}-1;
           EditorDialog(edChangedOnloading,@PA);
         end;
    end;
@@ -4580,7 +4582,10 @@ end;
 END.
 {
   $Log$
-  Revision 1.43  2004-03-20 22:02:41  florian
+  Revision 1.44  2004-05-03 21:12:54  peter
+    * 64bit fixes
+
+  Revision 1.43  2004/03/20 22:02:41  florian
     * compilation on arm fixed
 
   Revision 1.42  2003/05/07 21:33:22  peter

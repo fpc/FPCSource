@@ -1778,7 +1778,7 @@ begin
   if GetModified and (Core^.GetBindingCount=1) then
     begin
       PA[1]:=@FileName;
-      longint(PA[2]):=Core^.GetChangedLine;
+      Ptrint(PA[2]):=Core^.GetChangedLine;
       EditorDialog(edChangedOnloading,@PA);
     end;
   Core^.OnDiskLoadTime:=Cardinal(GetFileTime(FileName));
@@ -2071,7 +2071,10 @@ end;
 END.
 {
  $Log$
- Revision 1.18  2003-06-19 15:20:29  pierre
+ Revision 1.19  2004-05-03 21:12:54  peter
+   * 64bit fixes
+
+ Revision 1.18  2003/06/19 15:20:29  pierre
   * add explicit typecast to OnDiskLoadTime assignments
 
  Revision 1.17  2002/12/18 16:10:01  pierre
