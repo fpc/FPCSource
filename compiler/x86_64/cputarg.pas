@@ -52,7 +52,7 @@ implementation
 **************************************}
 
     {$ifndef NOAGX86_64ATT}
-      ,agx64att
+      ,agx86att
     {$endif}
 
       ,ogcoff
@@ -62,7 +62,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.3  2002-09-07 15:25:15  peter
+  Revision 1.4  2003-04-30 15:45:35  florian
+    * merged more x86-64/i386 code
+
+  Revision 1.3  2002/09/07 15:25:15  peter
     * old logs removed and tabs fixed
 
   Revision 1.2  2002/07/25 22:55:34  florian

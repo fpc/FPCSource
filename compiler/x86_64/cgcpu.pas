@@ -55,6 +55,7 @@ unit cgcpu;
          srcref,dstref : treference;
          swap : boolean;
 
+{!!!
          procedure maybepushecx;
          begin
            if not(R_ECX in rg.unusedregsint) then
@@ -64,8 +65,10 @@ unit cgcpu;
              end
            else rg.getexplicitregisterint(list,R_ECX);
          end;
+}
 
       begin
+{!!!
          if (not loadref) and
             ((len<=8) or
              (not(cs_littlesize in aktglobalswitches ) and (len<=12))) then
@@ -166,6 +169,7 @@ unit cgcpu;
            end;
          if delsource then
           tg.ungetiftemp(list,source);
+}
       end;
 begin
   cg:=tcgx86_64.create;
@@ -173,7 +177,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.3  2003-01-05 13:36:54  florian
+  Revision 1.4  2003-04-30 15:45:35  florian
+    * merged more x86-64/i386 code
+
+  Revision 1.3  2003/01/05 13:36:54  florian
     * x86-64 compiles
     + very basic support for float128 type (x86-64 only)
 

@@ -286,7 +286,7 @@ unit i_linux;
 
        system_x86_64_linux_info : tsysteminfo =
           (
-            system       : system_i386_LINUX;
+            system       : system_x86_64_LINUX;
             name         : 'Linux for x86-64';
             shortname    : 'linux';
             flags        : [];
@@ -435,7 +435,7 @@ initialization
 {$endif CPU86_64}
 {$ifdef CPUALPHA}
   {$ifdef linux}
-    set_source_info(system_sparc_linux_info);
+    set_source_info(system_alpha_linux_info);
   {$endif linux}
 {$endif CPUALPHA}
 {$ifdef CPUSPARC}
@@ -446,7 +446,10 @@ initialization
 end.
 {
   $Log$
-  Revision 1.4  2003-02-06 22:36:55  mazen
+  Revision 1.5  2003-04-30 15:45:35  florian
+    * merged more x86-64/i386 code
+
+  Revision 1.4  2003/02/06 22:36:55  mazen
   * fixing bug related to errornous program main entry stack frame
 
   Revision 1.3  2003/01/11 16:35:15  marco

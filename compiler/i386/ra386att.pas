@@ -48,7 +48,7 @@ Implementation
        nbas,
        { parser }
        scanner,
-       ra386,agx86att,rautils
+       rax86,agx86att,rautils
        ;
 
 type
@@ -2133,7 +2133,10 @@ finalization
 end.
 {
   $Log$
-  Revision 1.42  2003-04-25 12:04:31  florian
+  Revision 1.43  2003-04-30 15:45:35  florian
+    * merged more x86-64/i386 code
+
+  Revision 1.42  2003/04/25 12:04:31  florian
     * merged agx64att and ag386att to x86/agx86att
 
   Revision 1.41  2003/04/21 20:05:10  peter

@@ -50,7 +50,7 @@ Implementation
        rgobj,
        { register allocator }
        scanner,
-       rautils,ra386,ag386int,
+       rautils,rax86,ag386int,
        { codegen }
        cgbase
        ;
@@ -1961,7 +1961,10 @@ finalization
 end.
 {
   $Log$
-  Revision 1.46  2003-04-27 11:21:35  peter
+  Revision 1.47  2003-04-30 15:45:35  florian
+    * merged more x86-64/i386 code
+
+  Revision 1.46  2003/04/27 11:21:35  peter
     * aktprocdef renamed to current_procdef
     * procinfo renamed to current_procinfo
     * procinfo will now be stored in current_module so it can be

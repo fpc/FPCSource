@@ -2,7 +2,7 @@
     $Id$
     Copyright (c) 1998-2002 by Carl Eric Codere and Peter Vreman
 
-    Handles the common i386 assembler reader routines
+    Handles the common x86 assembler reader routines
 
     This program is free software; you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -20,7 +20,10 @@
 
  ****************************************************************************
 }
-unit Ra386;
+{
+  Contains the common x86 (i386 and x86-64) assembler reader routines.
+}
+unit rax86;
 
 {$i fpcdefs.inc}
 
@@ -680,7 +683,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.30  2003-04-25 12:04:31  florian
+  Revision 1.1  2003-04-30 15:45:35  florian
+    * merged more x86-64/i386 code
+
+  Revision 1.30  2003/04/25 12:04:31  florian
     * merged agx64att and ag386att to x86/agx86att
 
   Revision 1.29  2003/02/19 22:00:16  daniel

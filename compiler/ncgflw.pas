@@ -809,8 +809,11 @@ implementation
                   cg.a_jmp_always(exprasmlist,aktexit2label);
                   r.enum:=R_INTREGISTER;
                   r.number:=NR_ACCUMULATOR;
+{$ifndef cpu64bit}
                   hreg.enum:=R_INTREGISTER;
                   hreg.number:=NR_ACCUMULATORHIGH;
+{$endif cpu64bit}
+
                   if allocated_acc then
                     cg.a_reg_dealloc(exprasmlist,r);
 {$ifndef cpu64bit}
@@ -1531,7 +1534,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.57  2003-04-29 07:29:14  michael
+  Revision 1.58  2003-04-30 15:45:35  florian
+    * merged more x86-64/i386 code
+
+  Revision 1.57  2003/04/29 07:29:14  michael
   + Patch from peter to fix wrong pushing of ansistring function results in open array
 
   Revision 1.56  2003/04/27 11:21:33  peter
