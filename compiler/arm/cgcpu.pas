@@ -443,7 +443,12 @@ unit cgcpu;
             not(is_pc(ref.index))
            ) or
            (ref.offset<-4095) or
-           (ref.offset>4095) then
+           (ref.offset>4095) or
+           ((oppostfix in [PF_SB,PF_H,PF_SH]) and
+            ((ref.offset<-255) or
+             (ref.offset>255)
+            )
+           ) then
           begin
             { check consts distance }
 
@@ -729,7 +734,7 @@ unit cgcpu;
             { restore int registers and return }
             reference_reset(ref);
             ref.index:=NR_FRAME_POINTER_REG;
--            list.concat(setoppostfix(taicpu.op_ref_regset(A_LDM,ref,rg.used_in_proc_int-[RS_R0..RS_R3]+[RS_R11,RS_R13,RS_R15]),PF_EA));
+            list.concat(setoppostfix(taicpu.op_ref_regset(A_LDM,ref,rg.used_in_proc_int-[RS_R0..RS_R3]+[RS_R11,RS_R13,RS_R15]),PF_EA));
           end;
       end;
 
@@ -744,7 +749,10 @@ unit cgcpu;
       var
         b : byte;
         tmpref : treference;
+        instr : taicpu;
       begin
+        if ref.addressmode<>AM_OFFSET then
+          internalerror(200309071);
         tmpref:=ref;
         { Be sure to have a base register }
         if (tmpref.base=NR_NO) then
@@ -760,12 +768,23 @@ unit cgcpu;
            ((tmpref.base<>NR_NO) and (tmpref.index<>NR_NO)) then
           fixref(list,tmpref);
 
-        if ref.index<>NR_NO then
+        if tmpref.index<>NR_NO then
           begin
+            {!!!!!!!}
           end
-{        else
-          list.concat(taicpu.op_reg_reg(A_MOV,r,));
-          ref.signindex<0 then }
+        else
+          begin
+            if tmpref.offset>0 then
+              list.concat(taicpu.op_reg_reg_const(A_ADD,r,tmpref.base,tmpref.offset))
+            else if tmpref.offset<0 then
+              list.concat(taicpu.op_reg_reg_const(A_SUB,r,tmpref.base,-tmpref.offset))
+            else
+              begin
+                instr:=taicpu.op_reg_reg(A_MOV,r,tmpref.base);
+                rg.add_move_instruction(instr);
+                list.concat(instr);
+              end;
+          end;
       end;
 
 
@@ -1093,7 +1112,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.17  2003-09-06 16:45:51  florian
+  Revision 1.18  2003-09-09 12:53:40  florian
+    * some assembling problems fixed
+    * improved loadaddr_ref_reg
+
+  Revision 1.17  2003/09/06 16:45:51  florian
     * fixed exit code (no preindexed addressing mode in LDM)
 
   Revision 1.16  2003/09/06 11:21:50  florian

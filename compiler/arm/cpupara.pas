@@ -242,7 +242,7 @@ unit cpupara;
                         end
                       else
                          begin
-                            nextintreg := RS_R4;
+                            nextintreg:=RS_R4;
                             paraloc.loc:=LOC_REFERENCE;
                             paraloc.reference.index:=NR_STACK_POINTER_REG;
                             paraloc.reference.offset:=stack_offset;
@@ -258,7 +258,7 @@ unit cpupara;
                       if nextfloatreg<=RS_F3 then
                         begin
                            paraloc.loc:=LOC_FPUREGISTER;
-                           paraloc.register:=nextfloatreg;
+                           paraloc.register:=newreg(R_FPUREGISTER,nextfloatreg,R_SUBWHOLE);
                            inc(nextfloatreg);
                         end
                       else
@@ -328,7 +328,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.5  2003-09-05 23:57:01  florian
+  Revision 1.6  2003-09-09 12:53:40  florian
+    * some assembling problems fixed
+    * improved loadaddr_ref_reg
+
+  Revision 1.5  2003/09/05 23:57:01  florian
     * arm is working again as before the new register naming scheme was implemented
 
   Revision 1.4  2003/09/04 00:15:29  florian
