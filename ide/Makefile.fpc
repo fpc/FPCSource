@@ -24,6 +24,7 @@ unitdir=compiler
 
 [require]
 packages=fv gdbint regexpr
+libc=y
 
 [default]
 fpcdir=..
@@ -226,7 +227,10 @@ clean_compiler:
 
 #
 # $Log$
-# Revision 1.19  2004-01-05 23:29:35  marco
+# Revision 1.20  2004-04-12 18:16:15  florian
+#   * i386 compilation on debian biarch fixed
+#
+# Revision 1.19  2004/01/05 23:29:35  marco
 #  * fixed a few makefiles version numbers
 #
 # Revision 1.18  2003/11/01 22:45:29  marco
