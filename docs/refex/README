@@ -99,3 +99,5 @@ ex93.pp contains an example of the Hash function.
 ex94.pp contains an example of the SetResourceStringValue function.
 ex95.pp contains an example of the SetResourceStrings function.
 ex96.pp contains an example of the Assigned function.
+ex97.pp contains an example of the StringOfChar function.
+ex98.pp contains an example of the exitproc function.
