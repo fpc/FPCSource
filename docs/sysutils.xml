@@ -7113,6 +7113,98 @@ Exceptions that occur during the destruction of <var>Obj</var> are not
 caught.
 </errors>
 </element>
+
+<element name="GetTempDir">
+<short>Return name of system's temporary directory</short>
+<descr>
+<p>
+<var>GetTempDir</var> returns the temporary directory of the system. If
+<var>Global</var> is <var>True</var> (the default value) it returns the 
+system temporary directory, if it is <var>False</var> then a directory 
+private to the user is returned. The returned name will end with a 
+directory delimiter character.
+</p>
+<p>
+These directories may be the same. No guarantee is made that this directory
+exists or is writeable by the user.
+</p>
+<p>
+The <link id="OnGetTempDir"/> handler may be set to provide custom handling
+of this routine: One could implement callbacks which take into consideration 
+frameworks like KDE or GNOME, and return a different value from the default
+system implementation.
+</p>
+</descr>
+<errors>
+On error, an empty string is returned.
+</errors>
+<seealso>
+<link id="OnGetTempDir"/>
+<link id="GetTempFileName"/>
+</seealso>
+</element>
+
+<element name="GetTempFileName">
+<short>Return the name of a temporary file.</short>
+<descr>
+<p>
+<var>GetTempFileName</var> returns the name of a temporary file in directory
+<var>Dir</var>. The name of the file starts with <var>Prefix</var>.
+</p>
+<p>
+If <var>Dir</var> is empty, the value returned by <var>GetTempDir</var> is
+used, and if <var>Prefix</var> is empty, 'TMP' is used.
+</p>
+<p>
+The <link id="OnGetTempFile"/> handler may be set to provide custom handling
+of this routine: One could implement callbacks which take into consideration
+frameworks like KDE or GNOME, and return a different value from the default
+system implementation.
+</p>
+</descr>
+<errors>
+On error, an empty string is returned.
+</errors>
+<seealso>
+<link id="GetTempDir"/>
+<link id="OnGetTempFile"/>
+</seealso>
+</element>
+
+<element name="OnGetTempDir">
+<short>Handler for <link id="#rtl.sysutils.GetTempDir">GetTempDir</link> function.</short>
+<descr>
+<var>OnGetTempDir</var> can be used to provide custom behaviour for the
+<link id="GetTempDir"/> function. Note that the returned name should have a
+trailing directory delimiter character.
+</descr>
+<seealso>
+<link id="GetTempDir"/>
+<link id="OnGetTempFile"/>
+</seealso>
+</element>
+
+<element name="OnGetTempFile">
+<short>Handler for <link id="#rtl.sysutils.GetTempFileName">GetTempFileName</link> function.</short>
+<descr>
+<var>OnGetTempDir</var> can be used to provide custom behaviour for the
+<link id="GetTempFileName"/> function. Note that the values for
+<var>Prefix</var> and <var>Dir</var> should be observed.
+</descr>
+<seealso>
+<link id="OnGetTempDir"/>
+<link id="GetTempFileName"/>
+</seealso>
+</element>
+
+<element name="TGetTempDirEvent">
+<short>Function prototype for <link id="#rtl.sysutils.OnGetTempDir">OnGetTempDir</link> handler.</short>
+</element>
+
+<element name="TGetTempFileEvent">
+<short>Function prototype for <link id="#rtl.sysutils.OnGetTempFile">OnGetTempFile</link> handler.</short>
+</element>
+
 </module>
 </package>
 </fpdoc-descriptions>
