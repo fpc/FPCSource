@@ -239,12 +239,25 @@ var
     function cond2str(op: tasmop; c: tasmcond): string;
     { note: no checking is performed whether the given combination of }
     { conditions is valid                                             }
-    var tempstr: string;
+    var
+      tempstr: string;
     begin
       tempstr:=#9;
       case c.simple of
-        false: cond2str := tempstr+gas_op2str[op]+#9+tostr(c.bo)+','+
-                           tostr(c.bi);
+        false:
+          begin
+            cond2str := tempstr+gas_op2str[op];
+            case c.dirhint of
+              DH_None:;
+              DH_Minus:
+                cond2str:=cond2str+'-';
+              DH_Plus:
+                cond2str:=cond2str+'+';
+              else
+                internalerror(2003112901);
+            end;
+            cond2str:=cond2str+#9+tostr(c.bo)+','+tostr(c.bi)+',';
+          end;
         true:
           if (op >= A_B) and (op <= A_BCLRL) then
             case c.cond of
@@ -255,12 +268,24 @@ var
               else
                 begin
                   tempstr := tempstr+'b'+asmcondflag2str[c.cond]+
-                              branchmode(op)+#9;
+                              branchmode(op);
+                  case c.dirhint of
+                    DH_None:
+                      tempstr:=tempstr+#9;
+                    DH_Minus:
+                      tempstr:=tempstr+('-'+#9);
+                    DH_Plus:
+                      tempstr:=tempstr+('+'+#9);
+                    else
+                      internalerror(2003112901);
+                  end;
                   case c.cond of
                     C_LT..C_NU:
-                      cond2str := tempstr+gas_regname(newreg(R_SPECIALREGISTER,c.cr,R_SUBNONE)); // *** R_SUBWHOLE ???
-                    C_T..C_DZF:
+                      cond2str := tempstr+gas_regname(newreg(R_SPECIALREGISTER,c.cr,R_SUBWHOLE));
+                    C_T,C_F,C_DNZT,C_DNZF,C_DZT,C_DZF:
                       cond2str := tempstr+tostr(c.crbit);
+                    else
+                      cond2str := tempstr;
                   end;
                 end;
             end
@@ -292,7 +317,12 @@ var
              A_BL,A_BLA:
                s:=#9+gas_op2str[op]+#9'.';
              else
-               s:=cond2str(op,taicpu(hp).condition)+',';
+               begin
+                 s:=cond2str(op,taicpu(hp).condition);
+                 if (s[length(s)] <> #9) and 
+                    (taicpu(hp).ops>0) then
+                   s := s + ',';
+               end;
           end;
           if (taicpu(hp).oper[0]^.typ <> top_none) then
             s:=s+getopstr_jmp(taicpu(hp).oper[0]^);
@@ -1318,7 +1348,7 @@ var
             id           : as_powerpc_mpw;
             idtxt  : 'MPW';
             asmbin : 'PPCAsm';
-            asmcmd : '';
+            asmcmd : '-case on $ASM -o $OBJ';
             supported_target : system_any; { what should I write here ?? }
             outputbinary: false;
             allowdirect : true;
@@ -1337,7 +1367,11 @@ initialization
 end.
 {
   $Log$
-  Revision 1.28  2003-11-12 16:05:40  florian
+  Revision 1.29  2004-01-12 00:08:03  olle
+    * gen of conditional instr updated according to agppcgas
+    * gen of PPCAsm command fixed
+
+  Revision 1.28  2003/11/12 16:05:40  florian
     * assembler readers OOPed
     + typed currency constants
     + typed 128 bit float constants if the CPU supports it
