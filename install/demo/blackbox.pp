@@ -148,6 +148,7 @@ begin
   Writeln ('Beam exited at : (',x-dx,',',y-dy,',',z-dz,')');
 end;
 
+{
 Procedure DumpCube ;
 
 Var x,y,z : longint;
@@ -159,6 +160,7 @@ begin
         if Cube[x,y,z]<>0 then
           writeln ('Atom at (',x,',',y,',',z,')');
 end;
+}
 
 begin
   FillCube;
@@ -187,7 +189,10 @@ end.
 
 {
   $Log$
-  Revision 1.2  1998-09-11 10:55:20  peter
+  Revision 1.3  2000-02-22 03:14:17  alex
+  fixed the warning
+
+  Revision 1.2  1998/09/11 10:55:20  peter
     + header+log
 
 }
