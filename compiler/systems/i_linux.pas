@@ -445,10 +445,19 @@ initialization
     set_source_info(system_sparc_linux_info);
   {$endif linux}
 {$endif CPUSPARC}
+{$ifdef CPUPOWERPC}
+  {$ifdef linux}
+    set_source_info(system_powerpc_linux_info); 
+  {$endif linux}
+{$endif CPUPOWERPC}
+
 end.
 {
   $Log$
-  Revision 1.7  2003-05-19 12:15:28  florian
+  Revision 1.8  2003-05-31 18:14:06  jonas
+    * add default system for ppc
+
+  Revision 1.7  2003/05/19 12:15:28  florian
     * fixed calling sequence for subroutines using the aix abi
 
   Revision 1.6  2003/05/18 15:15:59  florian
