@@ -120,6 +120,7 @@ type
   TFPBrushStyle = (bsClear, bsSolid, bsDiagonal, bsFDiagonal, bsCross, bsDiagCross,
                    bsHorizontal, bsVertical, bsImage, bsPattern);
   TBrushPattern = array[0..PatternBitCount-1] of TPenPattern;
+  PBrushPattern = ^TBrushPattern;
 
   TFPCustomBrush = class (TFPCanvasHelper)
   private
