@@ -313,14 +313,16 @@ begin
   { add objectfiles, start with prt0 always }
   if prtobj<>'' then
    LinkRes.AddFileName(FindObjectFile(prtobj));
-  { try to add crti and crtbegin, they are normally not required, but
-    adding can sometimes be usefull }
-  s:=librarysearchpath.FindFile('crtbegin.o',found)+'crtbegin.o';
-  if found then
-   LinkRes.AddFileName(s);
-  s:=librarysearchpath.FindFile('crti.o',found)+'crti.o';
-  if found then
-   LinkRes.AddFileName(s);
+  { try to add crti and crtbegin if linking to C }
+  if linklibc then
+   begin
+     s:=librarysearchpath.FindFile('crtbegin.o',found)+'crtbegin.o';
+     if found then
+      LinkRes.AddFileName(s);
+     s:=librarysearchpath.FindFile('crti.o',found)+'crti.o';
+     if found then
+      LinkRes.AddFileName(s);
+   end;
   { main objectfiles }
   while not ObjectFiles.Empty do
    begin
@@ -329,12 +331,15 @@ begin
       LinkRes.AddFileName(s);
    end;
   { objects which must be at the end }
-  s:=librarysearchpath.FindFile('crtend.o',found)+'crtend.o';
-  if found then
-   LinkRes.AddFileName(s);
-  s:=librarysearchpath.FindFile('crtn.o',found)+'crtn.o';
-  if found then
-   LinkRes.AddFileName(s);
+  if linklibc then
+   begin
+     s:=librarysearchpath.FindFile('crtend.o',found)+'crtend.o';
+     if found then
+      LinkRes.AddFileName(s);
+     s:=librarysearchpath.FindFile('crtn.o',found)+'crtn.o';
+     if found then
+      LinkRes.AddFileName(s);
+   end;
   LinkRes.Add(')');
 
   { Write staticlibraries }
@@ -472,7 +477,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.13  2000-03-12 08:24:03  daniel
+  Revision 1.14  2000-03-21 21:36:52  peter
+    * only include crtbegin when linking to libc
+
+  Revision 1.13  2000/03/12 08:24:03  daniel
     * Modification for new symtable
 
   Revision 1.12  2000/03/02 13:12:37  daniel
