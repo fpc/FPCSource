@@ -34,9 +34,9 @@
 {$endif HASTHREADVAR}
 
 { don't use FPU registervariables on the i386 }
-{$ifdef i386}
+{$ifdef CPUI386}
   {$maxfpuregisters 0}
-{$endif i386}
+{$endif CPUI386}
 
 { needed for insert,delete,readln }
 {$P+}
@@ -69,7 +69,7 @@ Type
 {$endif}
   Integer  = SmallInt;
 
-{$ifdef i386}
+{$ifdef CPUI386}
   StrLenInt = LongInt;
 
   {$define DEFAULT_EXTENDED}
@@ -82,9 +82,9 @@ Type
   ValSInt = Longint;
   ValUInt = Cardinal;
   ValReal = Extended;
-{$endif i386}
+{$endif CPUI386}
 
-{$ifdef x86_64}
+{$ifdef CPUX86_64}
   StrLenInt = LongInt;
 
   {$define DEFAULT_EXTENDED}
@@ -97,9 +97,9 @@ Type
   ValSInt = Longint;
   ValUInt = Cardinal;
   ValReal = Extended;
-{$endif x86_64}
+{$endif CPUX86_64}
 
-{$ifdef m68k}
+{$ifdef CPUM68K}
   StrLenInt = Longint;
 
   ValSInt = Longint;
@@ -118,9 +118,9 @@ Type
     { then support double type.       }
     {$define SUPPORT_DOUBLE}
   {$ENDIF}
-{$endif}
+{$endif CPUM68K}
 
-{$ifdef powerpc}
+{$ifdef CPUPOWERPC}
   StrLenInt = LongInt;
 
   {$define DEFAULT_DOUBLE}
@@ -134,9 +134,9 @@ Type
 
   { map comp to int64, but this doesn't mean to compile the comp support in! }
   Comp = Int64;
-{$endif powerpc}
+{$endif CPUPOWERPC}
 
-{$ifdef sparc}
+{$ifdef CPUSPARC}
   StrLenInt = LongInt;
 
   {$define DEFAULT_DOUBLE}
@@ -150,7 +150,7 @@ Type
 
   { map comp to int64, but this doesn't mean to compile the comp support in! }
   Comp = Int64;
-{$endif sparc}
+{$endif CPUSPARC}
 
 { Zero - terminated strings }
   PChar               = ^Char;
@@ -161,8 +161,7 @@ Type
   PAnsiChar           = ^TAnsiChar;
   PPAnsiChar          = ^PAnsiChar;
 
-// UCS4Char            = type LongWord;
-  UCS4Char            = LongWord;
+  UCS4Char            = type LongWord;
   PUCS4Char           = ^UCS4Char;
   TUCS4CharArray      = array[0..$effffff] of UCS4Char;
   PUCS4CharArray      = ^TUCS4CharArray;
@@ -171,8 +170,7 @@ Type
 {$endif VER1_0}
 
 
-//  UTF8String          = type ansistring;
-  UTF8String          = ansistring;
+  UTF8String          = type ansistring;
   PUTF8String         = ^UTF8String;
 
 {$ifndef HASCURRENCY}
@@ -667,7 +665,11 @@ const
 
 {
   $Log$
-  Revision 1.62  2002-12-21 17:20:27  florian
+  Revision 1.63  2003-01-13 14:37:11  florian
+    * cpu defines fixed
+    * ... = type ...; stuff reactived, should work now with 1.1
+
+  Revision 1.62  2002/12/21 17:20:27  florian
     + some types for D6 compatibility added
 
   Revision 1.61  2002/12/15 22:33:12  peter
