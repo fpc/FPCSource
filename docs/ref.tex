@@ -1089,25 +1089,23 @@ as of version 0.9.7. This permits the code generator to make a number
 of code generation optimizations.
 
 The code generator does not generate any stack frame (entry and exit
-code for the routine) if it contains no local variables. In the case
-of functions, ordinal values must be returned in the accumulator. In
-the case of floating point values, these depend on the target processor
-and emulation options.
+code for the routine) if it contains no local variables and no
+parameters. In the case of functions, ordinal values must be returned
+in the accumulator. In the case of floating point values, these depend
+on the target processor and emulation options.
 
 \emph{ Remark: } Before version 0.99.1, \fpc did not support
 reference to variables by their names in the assembler parts of your code.
 
-\emph{ Remark: } Currently, the \var{Assembler} directive has not the
-same effect as in Turbo Pascal, so beware! In \fpc, parameters are
-treated normally, which is not the case in Turbo Pascal. Furthermore,
-the stack frame will be omitted if there are no local variables, in this
-case if the assembly routine has any parameters, they will be referenced
-directly via the stack pointer. This is \em{ NOT} like Turbo Pascal where
-the stack frame is only omitted if there are no parameters \em{ and } no
-local variables. Therefore, if your assembly routines will modify the stack
-pointer, such as when pushing or popping values on the stack, the
-\var{Assembler} keyword should not be used. Instead, use a normal procedure
-with \var{Asm} blocks.
+\emph{ Remark: } From version 0.99.1 to 0.99.5 (\emph{excluding}
+FPC 0.99.5a), the \var{Assembler} directive did not have the
+same effect as in Turbo Pascal, so beware! The stack frame would be
+omitted if there were no local variables, in this case if the assembly
+routine had any parameters, they would be referenced directly via the stack
+pointer. This was \emph{ NOT} like Turbo Pascal where the stack frame is only
+omitted if there are no parameters \emph{ and } no local variables. As
+stated earlier, starting from version 0.99.5a, \fpc now has the same
+behaviour as Turbo Pascal.
 
 \section{Modifiers}
 \fpc doesn't support all Turbo Pascal modifiers, but
