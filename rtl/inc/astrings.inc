@@ -406,8 +406,8 @@ begin
           { Reallocation is needed... }
           Temp:=Pointer(NewAnsiString(L));
           if Length(S)>0 then
-            Move (Pointer(S)^,Temp^,Length(S)+1);
-          ansistr_decr_ref (Pointer(S));
+            Move(Pointer(S)^,Temp^,L);
+          ansistr_decr_ref(Pointer(S));
           Pointer(S):=Temp;
        end;
       { Force nil termination in case it gets shorter }
@@ -785,7 +785,13 @@ end;
 
 {
   $Log$
-  Revision 1.28  1999-06-09 23:00:16  peter
+  Revision 1.29  1999-06-14 00:47:33  peter
+    * merged
+
+  Revision 1.28.2.1  1999/06/14 00:39:07  peter
+    * setlength finally fixed when l < length(s)
+
+  Revision 1.28  1999/06/09 23:00:16  peter
     * small ansistring fixes
     * val_ansistr_sint destsize changed to longint
     * don't write low/hi ascii with -al

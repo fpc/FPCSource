@@ -671,6 +671,7 @@ do_jmp:
               push_int (-1);
               emitcall('FPC_CATCHES');
               secondpass(p^.t1);
+              emitcall('FPC_POPOBJECTSTACK');
            end
          else
            emitcall('FPC_RERAISE');
@@ -713,6 +714,7 @@ do_jmp:
          exprasmlist^.concat(new(pai386,op_ref(A_PUSH,S_L,
            newreference(ref))));
          emitcall('FPC_DESTROYEXCEPTION');
+         emitcall('FPC_POPOBJECTSTACK');
 
          { clear some stuff }
          ungetiftemp(ref);
@@ -793,7 +795,13 @@ do_jmp:
 end.
 {
   $Log$
-  Revision 1.39  1999-05-27 19:44:12  peter
+  Revision 1.40  1999-06-14 00:43:35  peter
+    * merged
+
+  Revision 1.39.2.1  1999/06/14 00:39:29  peter
+    * don't pop object stack in catches, because it's needed for reraise
+
+  Revision 1.39  1999/05/27 19:44:12  peter
     * removed oldasm
     * plabel -> pasmlabel
     * -a switches to source writing automaticly
