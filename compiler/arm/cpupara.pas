@@ -180,8 +180,8 @@ unit cpupara;
            if nextintreg<=NR_R3 then
              begin
                 paraloc.loc:=LOC_REGISTER;
-                paraloc.register:=nextintreg;
-                inc(nextintreg,NR_R1-NR_R0);
+                paraloc.register:=newreg(R_INTREGISTER,nextintreg,R_SUBWHOLE);;
+                inc(nextintreg);
              end
            else
               begin
@@ -234,10 +234,10 @@ unit cpupara;
                            paraloc.loc:=LOC_REGISTER;
 		           if is_64bit then
                              begin
-                               paraloc.registerhigh:=nextintreg;
+                               paraloc.registerhigh:=newreg(R_INTREGISTER,nextintreg,R_SUBWHOLE);;
                                inc(nextintreg);
                              end;
-                           paraloc.registerlow:=nextintreg;
+                           paraloc.registerlow:=newreg(R_INTREGISTER,nextintreg,R_SUBWHOLE);;
                            inc(nextintreg);
                         end
                       else
@@ -328,7 +328,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.4  2003-09-04 00:15:29  florian
+  Revision 1.5  2003-09-05 23:57:01  florian
+    * arm is working again as before the new register naming scheme was implemented
+
+  Revision 1.4  2003/09/04 00:15:29  florian
     * first bunch of adaptions of arm compiler for new register type
 
   Revision 1.3  2003/08/27 00:27:56  florian

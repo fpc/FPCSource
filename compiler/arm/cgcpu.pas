@@ -694,8 +694,6 @@ unit cgcpu;
 
 
     procedure tcgarm.g_stackframe_entry(list : taasmoutput;localsize : longint);
-      var
-        rip,rsp,rfp : tregister;
       begin
         LocalSize:=align(LocalSize,4);
 
@@ -705,7 +703,7 @@ unit cgcpu;
 
         list.concat(taicpu.op_reg_reg(A_MOV,NR_R12,NR_STACK_POINTER_REG));
         { restore int registers and return }
-        list.concat(setoppostfix(taicpu.op_reg_regset(A_STM,rsp,rg.used_in_proc_int-[RS_R0..RS_R3]+[RS_R11,RS_R12,RS_R15]),PF_FD));
+        list.concat(setoppostfix(taicpu.op_reg_regset(A_STM,NR_STACK_POINTER_REG,rg.used_in_proc_int-[RS_R0..RS_R3]+[RS_R11,RS_R12,RS_R15]),PF_FD));
 
         list.concat(taicpu.op_reg_reg_const(A_SUB,NR_FRAME_POINTER_REG,NR_R12,4));
         a_reg_alloc(list,NR_R12);
@@ -800,7 +798,7 @@ unit cgcpu;
             if ref.index<>NR_NO then
               begin
                 list.concat(taicpu.op_reg_reg_reg(A_ADD,tmpreg,ref.base,tmpreg));
-                rg.ungetregister(list,ref.base);
+                rg.ungetregisterint(list,ref.base);
                 ref.base:=tmpreg;
               end
             else
@@ -816,7 +814,6 @@ unit cgcpu;
         ref.offset:=0;
         ref.symbol:=nil;
       end;
-
 
 
     procedure tcgarm.g_concatcopy(list : taasmoutput;const source,dest : treference;len : aword; delsource,loadref : boolean);
@@ -1085,7 +1082,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.14  2003-09-04 21:07:03  florian
+  Revision 1.15  2003-09-05 23:57:01  florian
+    * arm is working again as before the new register naming scheme was implemented
+
+  Revision 1.14  2003/09/04 21:07:03  florian
     * ARM compiler compiles again
 
   Revision 1.13  2003/09/04 00:15:29  florian

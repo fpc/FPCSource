@@ -84,11 +84,11 @@ unit agarmgas;
             inc(offset,offsetfixup);
 
 {$ifdef extdebug}
-            if base=NR_NO then
-              internalerror(200308292);
+            // if base=NR_NO then
+            //   internalerror(200308292);
 
-            if ((index<>NR_NO) or (shiftmode<>SM_None)) and ((offset<>0) or (symbol<>nil)) then
-              internalerror(200308293);
+            // if ((index<>NR_NO) or (shiftmode<>SM_None)) and ((offset<>0) or (symbol<>nil)) then
+            //   internalerror(200308293);
 {$endif extdebug}
 
             if assigned(symbol) then
@@ -117,7 +117,10 @@ unit agarmgas;
 
                      if shiftmode<>SM_None then
                        s:=s+' ,'+gas_shiftmode2str[shiftmode]+' #'+tostr(shiftimm);
-                  end;
+                  end
+                else if offset<>0 then
+                  s:=s+', #'+tostr(offset);
+
                 case addressmode of
                   AM_OFFSET:
                     s:=s+']';
@@ -213,7 +216,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.9  2003-09-04 00:15:29  florian
+  Revision 1.10  2003-09-05 23:57:01  florian
+    * arm is working again as before the new register naming scheme was implemented
+
+  Revision 1.9  2003/09/04 00:15:29  florian
     * first bunch of adaptions of arm compiler for new register type
 
   Revision 1.8  2003/09/03 19:10:30  florian

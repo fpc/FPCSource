@@ -84,31 +84,10 @@ unit cpubase;
       tregisterindex=0..{$i rarmnor.inc}-1;
 
     const
-      { Super registers: }
-      RS_NONE=$00;
-      RS_R0 = $01;  RS_R1 = $02; RS_R2 = $03;
-      RS_R3 = $04;  RS_R4 = $05; RS_R5 = $06;
-      RS_R6 = $07;  RS_R7 = $08; RS_R8 = $09;
-      RS_R9 = $0A;  RS_R10 = $0B; RS_R11 = $0C;
-      RS_R12 = $0D; RS_R13 = $0E; RS_R14 = $0F;
-      RS_R15 = $10;
+      { Available Superregisters }
+      {$i rarmsup.inc}
+
       RS_PC = RS_R15;
-
-      RS_F0=$00;
-      RS_F1=$01;
-      RS_F2=$02;
-      RS_F3=$03;
-      RS_F4=$04;
-      RS_F5=$05;
-      RS_F6=$06;
-      RS_F7=$07;
-
-      RS_D0 = $01;  RS_D1 = $02; RS_D2 = $03;
-      RS_D3 = $04;  RS_D4 = $05; RS_D5 = $06;
-      RS_D6 = $07;  RS_D7 = $08; RS_D8 = $09;
-      RS_D9 = $0A;  RS_D10 = $0B; RS_D11 = $0C;
-      RS_D12 = $0D; RS_D13 = $0E; RS_D14 = $0F;
-      RS_D15 = $10;
 
       { No Subregisters }
       R_SUBWHOLE = R_SUBNONE;
@@ -121,7 +100,7 @@ unit cpubase;
 
       { Integer Super registers first and last }
 {$warning Supreg shall be $00-$1f}
-      first_int_supreg = RS_R3;
+      first_int_supreg = RS_R0;
       last_int_supreg = RS_R15;
 
       first_int_imreg = $20;
@@ -537,6 +516,7 @@ unit cpubase;
 
     function cgsize2subreg(s:Tcgsize):Tsubregister;
       begin
+        cgsize2subreg:=R_SUBWHOLE;
       end;
 
 
@@ -549,7 +529,12 @@ unit cpubase;
 
 
     procedure inverse_flags(var f: TResFlags);
+      const
+        inv_flags: array[TResFlags] of TResFlags =
+          (F_NE,F_NE,F_CC,F_CS,F_PL,F_MI,F_VC,F_VS,F_LS,F_HI,
+          F_LT,F_GE,F_LE,F_GT);
       begin
+        f:=inv_flags[f];
       end;
 
 
@@ -635,7 +620,10 @@ unit cpubase;
 end.
 {
   $Log$
-  Revision 1.13  2003-09-04 21:07:03  florian
+  Revision 1.14  2003-09-05 23:57:01  florian
+    * arm is working again as before the new register naming scheme was implemented
+
+  Revision 1.13  2003/09/04 21:07:03  florian
     * ARM compiler compiles again
 
   Revision 1.12  2003/09/04 00:15:29  florian
