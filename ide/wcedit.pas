@@ -726,6 +726,7 @@ end;
 
 procedure TCodeEditorCore.AddGroupedAction(AAction : byte);
 begin
+  if (UndoList=nil) or (not StoreUndo) then Exit;
   if Assigned(UndoList^.CurrentGroupedAction) then
     inc(UndoList^.GroupLevel)
   else
@@ -737,6 +738,7 @@ end;
 
 procedure TCodeEditorCore.CloseGroupedAction(AAction : byte);
 begin
+  if (UndoList=nil) or (not StoreUndo) then Exit;
   dec(UndoList^.GroupLevel);
   if UndoList^.GroupLevel=0 then
     begin
@@ -2044,7 +2046,10 @@ end;
 END.
 {
  $Log$
- Revision 1.8  2002-04-16 08:27:01  pierre
+ Revision 1.9  2002-04-20 20:27:44  pierre
+  * avoid considering grouped action if StoreUnfo is false
+
+ Revision 1.8  2002/04/16 08:27:01  pierre
   * fix for bug report 1869
 
  Revision 1.7  2002/01/25 14:15:35  pierre
