@@ -237,6 +237,7 @@ unit cpupara;
                 end;
               { make sure all alignment bytes are 0 as well }
               fillchar(paraloc,sizeof(paraloc),0);
+              paraloc.Alignment:=4;
               case loc of
                  LOC_REGISTER:
                    begin
@@ -357,7 +358,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.47  2003-10-01 20:34:49  peter
+  Revision 1.48  2003-10-08 14:11:36  mazen
+  + Alignement field added to TParaLocation (=4 as 32 bits archs)
+
+  Revision 1.47  2003/10/01 20:34:49  peter
     * procinfo unit contains tprocinfo
     * cginfo renamed to cgbase
     * moved cgmessage to verbose

@@ -239,13 +239,8 @@ type
            LOC_REFERENCE,LOC_REGISTER or LOC_FPUREGISTER
          }
          loc  : TCGLoc;
-         { The stack pointer must be decreased by this value before
-           the parameter is copied to the given destination.
-           This allows to "encode" pushes with tparalocation.
-           On the PowerPC, this field is unsed but it is there
-           because several generic code accesses it.
-         }
-         sp_fixup : longint;
+         {Word alignment on stack 4 --> 32 bit}
+         Alignment:Byte;
          case TCGLoc of
             LOC_REFERENCE : (reference : tparareference; low_in_reg: boolean; lowreg : tregister);
             LOC_FPUREGISTER, LOC_CFPUREGISTER, LOC_MMREGISTER, LOC_CMMREGISTER,
@@ -605,7 +600,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.52  2003-10-01 20:34:50  peter
+  Revision 1.53  2003-10-08 14:11:36  mazen
+  + Alignement field added to TParaLocation (=4 as 32 bits archs)
+
+  Revision 1.52  2003/10/01 20:34:50  peter
     * procinfo unit contains tprocinfo
     * cginfo renamed to cgbase
     * moved cgmessage to verbose

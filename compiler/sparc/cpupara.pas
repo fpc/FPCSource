@@ -159,7 +159,8 @@ implementation
         hp:=TParaItem(p.para.First);
         while assigned(hp) do
           begin
-            fillchar(paraloc,sizeof(tparalocation),0);
+            fillchar(paraloc,sizeof(paraloc),0);
+            paraloc.Alignment:=4;
             if push_addr_param(hp.paratyp,hp.paratype.def,p.proccalloption) or (hp.paratyp in [vs_var,vs_out]) then
               paraloc.size:=OS_ADDR
             else
@@ -293,7 +294,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.31  2003-10-01 20:34:50  peter
+  Revision 1.32  2003-10-08 14:11:36  mazen
+  + Alignement field added to TParaLocation (=4 as 32 bits archs)
+
+  Revision 1.31  2003/10/01 20:34:50  peter
     * procinfo unit contains tprocinfo
     * cginfo renamed to cgbase
     * moved cgmessage to verbose
