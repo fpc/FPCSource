@@ -16,17 +16,23 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 
  ****************************************************************************}
+{$ifndef winsock}
 unit pmwsock;
+{$endif}
 
-Interface
-
+{$PACKRECORDS 1}
 {$MACRO ON}
+Interface
 
 Uses OS2Def;
 
 // The new type to be used in all instances which refer to sockets.
 type
   TSocket=Cardinal;
+
+type
+  PLongint=^Longint;
+  PCardinal=^Cardinal;
 
 // Select uses arrays of TSockets.  These macros manipulate such
 // arrays.  FD_SETSIZE may be defined by the user before including
@@ -37,22 +43,25 @@ type
 const
   FD_SETSIZE = 64;
 
-//#pragma pack(4)
 type
-  fd_set=record
+  fdset=record
     fd_count: Word;                             // how many are SET?
     fd_array: Array[0..FD_SETSIZE-1] of TSocket; // an array of TSockets
   end;
-//#pragma pack()
+  TFDSet = fdset;
+  PFDSet = ^fdset;
 
-Function __WSAFDIsSet(a: TSocket;var b: fd_set): Longint; cdecl;
+
+Function __WSAFDIsSet(a: TSocket;var b: fdset): Longint; cdecl;
+    external 'PMWSock' name '__WSAFDIsSet';
+Function __WSAFDIsSet_(s:TSocket; var FDSet:TFDSet): Longint; cdecl;
     external 'PMWSock' name '__WSAFDIsSet';
 
-Function FD_ISSET(a: TSocket;var b: fd_set): Longint; cdecl;
+Function FD_ISSET(a: TSocket;var b: fdset): Longint; cdecl;
     external 'PMWSock' name '__WSAFDIsSet';
 
-Procedure FD_CLR(ASocket: TSocket; var aset: fd_set);
-Procedure FDSET(ASocket: TSocket; var FDSet: fd_set);
+Procedure FD_CLR(ASocket: TSocket; var aset: fdset);
+Procedure FD_SET(Socket:TSocket; var FDSet:TFDSet);
 
 // Structure used in select() call, taken from the BSD file sys/time.h.
 type
@@ -61,8 +70,21 @@ type
     tv_usec: LongInt;   // and microseconds
   end;
 
+  TTimeVal = timeval;
+  PTimeVal = ^TTimeVal;
+
+  { found no reference to this type in c header files and here. AlexS }
+  { minutes west of Greenwich  }
+  { type of dst correction  }
+  timezone = record
+    tz_minuteswest : longint;
+    tz_dsttime : longint;
+  end;
+       TTimeZone = timezone;
+       PTimeZone = ^TTimeZone;
+
 // Operations on timevals.
-// * NB: timercmp does not work for >= or <=.
+// timercmp does not work for >= or <=.
 
 Function timerisset(tvp: timeval): Boolean;
 //Function timercmp(tvp, uvp, cmp);
@@ -83,10 +105,6 @@ const
   IOC_IN          = $80000000;         // copy in parameters
   IOC_INOUT       = IOC_IN or IOC_OUT; // 0x20000000 distinguishes new &
                                        // old ioctl's
-{$define _IOR(x,y,t):=(IOC_OUT or ((Longint (sizeof(t)) and IOCPARM_MASK) shl 16) or (x shl 8) or y)}
-
-{$define _IOW(x,y,t):=(IOC_IN or ((Longint(sizeof(t)) and IOCPARM_MASK) shl 16) or (x shl 8) or y)}
-
 const
   // get # bytes to read
   FIONREAD=(IOC_OUT or ((Longint (sizeof(Cardinal)) and IOCPARM_MASK) shl 16) or (Ord('f') shl 8) or 127);
@@ -118,10 +136,12 @@ type
     h_aliases: PPChar;         // alias list
     h_addrtype: LongInt;       // host address type
     h_length: LongInt;         // length of address
-    h_addr_list: PPChar;       // list of addresses from name server
-{$define h_addr:=h_addr_list[0]}   // address, for backward compatiblity
+    case byte of
+       0: (h_addr_list: ppchar); // list of addresses from name server
+       1: (h_addr: ppchar)       // address, for backward compatiblity
   end;
   phostent=^hostent;
+  THostEnt = hostent;
 
 // It is assumed here that a network number
 // fits in 32 bits.
@@ -133,13 +153,16 @@ type
     n_net: Cardinal;                     // network #
   End;
   pnetent=^netent;
+  TNetEnt = netent;
 
+type
   servent=record
     s_name: PChar;                      // official service name
     s_aliases: PPChar;                  // alias list
     s_port: LongInt;                    // port #
     s_proto: PChar;                     // protocol to use
   end;
+  TServEnt = servent;
   pservent=^servent;
 
   protoent=record
@@ -147,6 +170,7 @@ type
     p_aliases: PPChar;                  // alias list
     p_proto: LongInt;                   // protocol #
   end;
+  TProtoEnt = protoent;
   pprotoent=^protoent;
 
 // Constants and structures defined by the internet system,
@@ -222,6 +246,8 @@ type
     2:(s_un_w:record s_w1,s_w2: Word; end;);
     3:(s_addr: Cardinal);
   end;
+  TInAddr = in_addr;
+  PInAddr = ^TInAddr;
 
 {$define s_addr:=in_addr.S_addr} // can be used for most tcp & ip code
 {$define s_host:=in_addr.S_un_b.s_b2} // host on imp
@@ -229,7 +255,6 @@ type
 {$define s_imp:=in_addr.S_un_w.s_w2} // imp
 {$define s_impno:=in_addr.S_un_b.s_b4} // imp #
 {$define s_lh:=in_addr.S_un_b.s_b3} // logical host
-
 
 // Definitions of bits in internet address integers.
 // On subnets, the decomposition of addresses to host and net parts
@@ -260,18 +285,28 @@ const
 // Socket address, internet style.
 
 Type
-    sockaddr_in=Record
-                      sin_family:Integer;
-                      sin_port:Word;
-                      sin_addr:in_addr;
-                      sin_zero:Array[0..7] of Char;
-    End;
+  sockaddr_in=Record
+    case integer of
+    0 : ( (* equals to sockaddr_in, size is 16 byte *)
+      sin_family : SmallInt;                (* 2 byte *)
+      sin_port : Word;                   (* 2 byte *)
+      sin_addr : TInAddr;                   (* 4 byte *)
+      sin_zero : array[0..8-1] of char;     (* 8 byte *)
+      );
+    1 : ((* equals to sockaddr, size is 16 byte *)
+      sa_family : Smallint; (* 2 byte *)
+      sa_data : array[0..14-1] of char;    (* 14 byte *)
+      );
+    end;
+    TSockAddrIn = sockaddr_in;
+    PSockAddrIn = ^TSockAddrIn;
+    TSockAddr = sockaddr_in;
+    PSockAddr = ^TSockAddr;
 
 const
     WSADESCRIPTION_LEN      =256;
     WSASYS_STATUS_LEN       =128;
 
-//#pragma pack(4)
 Type
     WSAData=Record
                wVersion:Word;
@@ -280,18 +315,33 @@ Type
                szSystemStatus: array[0..WSASYS_STATUS_LEN] of Char;
                iMaxSockets:Word;
                iMaxUdpDg:Word;
+               // in OS/2 no such entry
+     //          pad1 : SmallInt;              { 2 byte, ofs 394 } { ensure right packaging }
                lpVendorInfo:PChar;
     End;
     PWSADATA=^WSAData;
     LPWSADATA=^WSAData;
-
-//#pragma pack()
-
+    TWSAData = WSADATA;
 
 // Options for use with [gs]etsockopt at the IP level.
 
 Const
     IP_OPTIONS      =1;  // set/get IP per-packet options
+
+    IP_MULTICAST_IF = 2;
+    IP_MULTICAST_TTL = 3;
+    IP_MULTICAST_LOOP = 4;
+    IP_ADD_MEMBERSHIP = 5;
+    IP_DROP_MEMBERSHIP = 6;
+    IP_DEFAULT_MULTICAST_TTL = 1;
+    IP_DEFAULT_MULTICAST_LOOP = 1;
+    IP_MAX_MEMBERSHIPS = 20;
+
+type
+  ip_mreq = record
+    imr_multiaddr : in_addr;
+    imr_interface : in_addr;
+  end;
 
 // Definitions related to sockets: types, address families, options,
 // taken from the BSD file sys/socket.h.
@@ -336,10 +386,39 @@ Const
     SO_ERROR        =$1007;          // get error status and clear
     SO_TYPE         =$1008;          // get socket type
 
+    {
+     Options for connect and disconnect data and options.  Used only by
+     non-TCP/IP transports such as DECNet, OSI TP4, etc.
+    }
+    SO_CONNDATA = $7000;
+    SO_CONNOPT = $7001;
+    SO_DISCDATA = $7002;
+    SO_DISCOPT = $7003;
+    SO_CONNDATALEN = $7004;
+    SO_CONNOPTLEN = $7005;
+    SO_DISCDATALEN = $7006;
+    SO_DISCOPTLEN = $7007;
+
+       {
+         Option for opening sockets for synchronous access.
+       }
+    SO_OPENTYPE = $7008;
+    SO_SYNCHRONOUS_ALERT = $10;
+    SO_SYNCHRONOUS_NONALERT = $20;
+
+       {
+         Other NT-specific options.
+       }
+    SO_MAXDG = $7009;
+    SO_MAXPATHDG = $700A;
+    SO_UPDATE_ACCEPT_CONTEXT = $700B;
+    SO_CONNECT_TIME = $700C;
+
 // TCP options.
 
 Const
-    TCP_NODELAY     =$0001;
+    TCP_NODELAY    = $0001;
+    TCP_BSDURGENT  = $7000;
 
 // Address families.
 
@@ -364,7 +443,15 @@ Const
     AF_APPLETALK    =16;              // AppleTalk
     AF_NETBIOS      =17;              // NetBios-style addresses
 
-    AF_MAX          =18;
+
+    { FireFox }
+    AF_FIREFOX = 19;
+    { Somebody is using this! }
+    AF_UNKNOWN1 = 20;
+    { Banyan }
+    AF_BAN = 21;
+
+    AF_MAX          =22;
 
 // Structure used by kernel to store most
 // addresses.
@@ -382,6 +469,9 @@ Type
         sp_family:Word;                 // address family
         sp_protocol:Word;               // protocol
     End;
+
+    TSockProto = sockproto;
+    PSockProto = ^TSockProto;
 
 
 // Protocol families, same as address families for now.
@@ -406,15 +496,21 @@ Const
     PF_HYLINK       =AF_HYLINK;
     PF_APPLETALK    =AF_APPLETALK;
 
-    PF_MAX          =AF_MAX;
+    PF_FIREFOX = AF_FIREFOX;
+    PF_UNKNOWN1 = AF_UNKNOWN1;
+    PF_BAN = AF_BAN;
+    PF_MAX = AF_MAX;
+
 
 // Structure used for manipulating linger option.
 
 Type
-    linger=Record
-        l_onoff:LongInt;                // option on/off
-        l_linger:LongInt;               // linger time
-    End;
+  linger=Record
+    l_onoff:LongInt;                // option on/off
+    l_linger:LongInt;               // linger time
+  End;
+  TLinger = linger;
+  PLinger = ^TLinger;
 
 // Level number for (get/set)sockopt() to apply to socket itself.
 
@@ -433,6 +529,7 @@ Const
 // Define constant based on rfc883, used by gethostbyxxxx() calls.
 
      MAXGETHOSTSTRUCT =1024;
+     MAXHOSTNAMELEN = MAXGETHOSTSTRUCT;
 
 // Define flags to be used with the WSAAsyncSelect() call.
 
@@ -497,6 +594,7 @@ Const
      WSAEDQUOT               =(WSABASEERR+69);
      WSAESTALE               =(WSABASEERR+70);
      WSAEREMOTE              =(WSABASEERR+71);
+     WSAEDISCON = WSABASEERR + 101;
 
 // Extended Windows Sockets error constant definitions
 
@@ -581,12 +679,40 @@ Const
      ESTALE                  =WSAESTALE;
      EREMOTE                 =WSAEREMOTE;
 
+     TF_DISCONNECT = $01;
+     TF_REUSE_SOCKET = $02;
+     TF_WRITE_BEHIND = $04;
+
+       {
+         Options for use with [gs]etsockopt at the IP level.
+       }
+       IP_TTL = 7;
+       IP_TOS = 8;
+       IP_DONTFRAGMENT = 9;
+
+    type
+       _TRANSMIT_FILE_BUFFERS = record
+          Head : Pointer;
+          HeadLength : Cardinal;
+          Tail : Pointer;
+          TailLength : Cardinal;
+       end;
+       TRANSMIT_FILE_BUFFERS = _TRANSMIT_FILE_BUFFERS;
+       TTransmitFileBuffers = _TRANSMIT_FILE_BUFFERS;
+       PTransmitFileBuffers = ^TTransmitFileBuffers;
+
 // Socket function prototypes
 
 Function accept(s: TSocket; Var addr; Var addrlen: LongInt): TSocket; cdecl;
     external 'PMWSock' name 'accept';
+Function accept(s:TSocket; addr: PSockAddr; addrlen : PLongint) : TSocket; cdecl;
+    external 'PMWSock' name 'accept';
+Function accept(s:TSocket; addr: PSockAddr; var addrlen : Longint) : TSocket; cdecl;
+    external 'PMWSock' name 'accept';
 
 Function bind(s: TSocket; Const addr; namelen: LongInt): LongInt; cdecl;
+    external 'PMWSock' name 'bind';
+Function bind(s:TSocket; addr: PSockaddr;namelen: Longint): Longint; cdecl;
     external 'PMWSock' name 'bind';
 
 Function closesocket(s: TSocket): LongInt; cdecl;
@@ -594,8 +720,14 @@ Function closesocket(s: TSocket): LongInt; cdecl;
 
 Function connect(s: TSocket; Const name: sockaddr; namelen: LongInt): LongInt; cdecl;
     external 'PMWSock' name 'connect';
+Function connect(s:TSocket; addr:PSockAddr; namelen: Longint): Longint; cdecl;
+    external 'PMWSock' name 'connect';
 
 Function ioctlsocket(s: TSocket; cmd: LongInt; Var argp: Cardinal): LongInt; cdecl;
+    external 'PMWSock' name 'ioctlsocket';
+Function ioctlsocket(s: TSocket; cmd: longint; var arg:longint): Longint; cdecl;
+    external 'PMWSock' name 'ioctlsocket';
+Function ioctlsocket(s: TSocket; cmd: longint; argp: PCardinal): Longint; cdecl;
     external 'PMWSock' name 'ioctlsocket';
 
 Function getpeername(s: TSocket; Var name: sockaddr; Var nameLen: LongInt): LongInt; cdecl;
@@ -606,6 +738,8 @@ Function getsockname(s: TSocket;Var name: sockaddr; Var namelen: LongInt): LongI
 
 Function getsockopt(s: TSocket; level, optname: LongInt;Var optval; Var optlen: LongInt): LongInt; cdecl;
     external 'PMWSock' name 'getsockopt';
+Function getsockopt(s: TSocket; level: Longint; optname: Longint; optval:pchar;var optlen: Longint): Longint; cdecl;
+    external 'PMWSock' name 'getsockopt';
 
 Function htonl(hostlong: Cardinal): Cardinal; cdecl;
     external 'PMWSock' name 'htonl';
@@ -613,10 +747,12 @@ Function htonl(hostlong: Cardinal): Cardinal; cdecl;
 Function htons(hostshort: Word): Word; cdecl;
     external 'PMWSock' name 'htons';
 
-Function inet_addr(Const cp: PChar): Cardinal; cdecl;
+Function inet_addr(cp: pchar): Cardinal; cdecl;
     external 'PMWSock' name 'inet_addr';
 
 Function inet_ntoa(Var _in: in_addr): PChar; cdecl;
+    external 'PMWSock' name 'inet_ntoa';
+Function inet_ntoa(i: PInAddr): pchar; cdecl;
     external 'PMWSock' name 'inet_ntoa';
 
 Function listen(s: TSocket; backlog: LongInt): LongInt; cdecl;
@@ -630,13 +766,24 @@ Function ntohs(netshort: Word): Word; cdecl;
 
 Function recv(s: TSocket;Var Buf; len, flags: LongInt): LongInt; cdecl;
     external 'PMWSock' name 'recv';
+Function recv(s: TSocket; buf:pchar; len: Longint; flags: Longint): Longint; cdecl;
+    external 'PMWSock' name 'recv';
 
 Function recvfrom(s: TSocket; Var Buf: PChar; len, flags:LongInt;
                          Var from: sockaddr; Var fromLen: LongInt): LongInt; cdecl;
     external 'PMWSock' name 'recvfrom';
+Function recvfrom(s: TSocket; buf:pchar; len: Longint; flags: Longint;
+                         from: PSockAddr; fromlen: Longint): Longint; cdecl;
+    external 'PMWSock' name 'recvfrom';
+Function recvfrom(s: TSocket; var buf; len: Longint; flags: Longint;
+                         Const from: TSockAddr; var fromlen: Longint): Longint; cdecl;
+    external 'PMWSock' name 'recvfrom';
 
-Function select(nfds: LongInt; Var readfds, writefds, exceptfds: fd_set;
+Function select(nfds: LongInt; Var readfds, writefds, exceptfds: fdset;
                        Const timeout: timeval): LongInt; cdecl;
+    external 'PMWSock' name 'select';
+Function select(nfds: Longint; readfds, writefds, exceptfds : PFDSet;
+                       timeout: PTimeVal): Longint; cdecl;
     external 'PMWSock' name 'select';
 
 Function send(s: TSocket; Const Buf: PChar; len, flags: LongInt): LongInt; cdecl;
@@ -645,9 +792,12 @@ Function send(s: TSocket; Const Buf: PChar; len, flags: LongInt): LongInt; cdecl
 Function sendto(s: TSocket; Const Buf: PChar; len, flags: LongInt;
                     Const _to: sockaddr; tolen: LongInt): LongInt; cdecl;
     external 'PMWSock' name 'sendto';
+Function sendto(s: TSocket; buf: pchar; len: Longint; flags: Longint;
+                    toaddr: PSockAddr; tolen: Longint): Longint; cdecl;
+    external 'PMWSock' name 'sendto';
 
-Function setsockopt(s: TSocket; level, optname: LongInt;
-                           Const optval: PChar; optlen: LongInt): LongInt; cdecl;
+Function setsockopt(s: TSocket; level: Longint; optname: Longint;
+                           optval: pchar; optlen: Longint): Longint; cdecl;
     external 'PMWSock' name 'setsockopt';
 
 Function shutdown(s: TSocket; how: LongInt): LongInt; cdecl;
@@ -658,25 +808,25 @@ Function socket(af, typ, protocol: LongInt): TSocket; cdecl;
 
 // Database function prototypes
 
-Function gethostbyaddr(Var addr: PChar; len, typ: LongInt): phostent; cdecl;
+Function gethostbyaddr(addr: pchar; len: Longint; t: Longint): PHostEnt; cdecl;
     external 'PMWSock' name 'gethostbyaddr';
 
-Function gethostbyname(Const name: PChar): phostent; cdecl;
+Function gethostbyname(name: pchar): PHostEnt;stdcall; cdecl;
     external 'PMWSock' name 'gethostbyname';
 
-Function gethostname(Const name: PChar; namelen: LongInt): LongInt; cdecl;
+Function gethostname(name: pchar; namelen: Longint): Longint; cdecl;
     external 'PMWSock' name 'gethostname';
 
-Function getservbyport(port: LongInt;Const proto: PChar): pservent; cdecl;
+Function getservbyport(port: Longint; proto: pchar): PServEnt; cdecl;
     external 'PMWSock' name 'getservbyport';
 
-Function getservbyname(Const name, proto: PChar): pservent; cdecl;
+Function getservbyname(name: pchar; proto: pchar): PServEnt; cdecl;
     external 'PMWSock' name 'getservbyname';
 
 Function getprotobynumber(proto: LongInt): pprotoent; cdecl;
     external 'PMWSock' name 'getprotobynumber';
 
-Function getprotobyname(Const name: PChar): pprotoent; cdecl;
+Function getprotobyname(name: pchar): PProtoEnt; cdecl;
     external 'PMWSock' name 'getprotobyname';
 
 // Microsoft Windows Extension function prototypes
@@ -705,39 +855,37 @@ Function WSASetBlockingHook(lpBlockFunc: Pointer): Pointer; cdecl;
 Function WSACancelBlockingCall: LongInt; cdecl;
     external 'PMWSock' name 'WSACancelBlockingCall';
 
-Function WSAAsyncGetServByName(ahWnd: HWND; wMsg: Cardinal;
-                                      Const name, proto: PChar;
-                                      Var Buf: PChar;
-                                      buflen: LongInt): Cardinal; cdecl;
+Function WSAAsyncGetServByName(hWnd: HWND; wMsg: Cardinal;
+                                     name: pchar; proto: pchar;
+                                     buf: pchar;
+                                     buflen: Longint): Cardinal; cdecl;
     external 'PMWSock' name 'WSAAsyncGetServByName';
 
-Function WSAAsyncGetServByPort(ahWnd: HWND; wMsg: Cardinal;
-                                      port: LongInt;
-                                      Const proto: PChar;
-                                      Var Buf: PChar;
-                                      buflen: LongInt): Cardinal; cdecl;
+Function WSAAsyncGetServByPort(hWnd: HWND; wMsg: Cardinal;
+                                      port: Longint;
+                                      proto: pchar; buf: pchar;
+                                      buflen: Longint): Cardinal; cdecl;
     external 'PMWSock' name 'WSAAsyncGetServByPort';
 
-Function WSAAsyncGetProtoByName(ahWnd: HWND; wMsg: Cardinal;
-                                       Const name: PChar;
-                                       Var Buf: PChar;
-                                       buflen: LongInt): Cardinal; cdecl;
+Function WSAAsyncGetProtoByName(hWnd: HWND; wMsg: Cardinal;
+                                       name: pchar; buf: pchar;
+                                       buflen: Longint): Cardinal; cdecl;
     external 'PMWSock' name 'WSAAsyncGetProtoByName';
 
-Function WSAAsyncGetProtoByNumber(ahWnd: HWND; wMsg: Cardinal;
-                                         number:LongInt;
-                                         Var Buf: PChar;
-                                         buflen: LongInt): Cardinal; cdecl;
+Function WSAAsyncGetProtoByNumber(hWnd: HWND; wMsg: Cardinal;
+                                         number: Longint;
+                                         buf: pchar;
+                                         buflen: Longint): Cardinal; cdecl;
     external 'PMWSock' name 'WSAAsyncGetProtoByNumber';
 
-Function WSAAsyncGetHostByName(ahWnd: HWND; wMsg: Cardinal;
-                                      Const name: PChar;
-                                      Var Buf: PChar; buflen: LongInt): Cardinal; cdecl;
+Function WSAAsyncGetHostByName(hWnd: HWND; wMsg: Cardinal;
+                                      name: pchar; buf: pchar;
+                                      buflen: Longint): Cardinal; cdecl;
     external 'PMWSock' name 'WSAAsyncGetHostByName';
 
-Function WSAAsyncGetHostByAddr(ahWnd: HWND; wMsg: Cardinal;
-                                      Const addr: PChar; len, typ: LongInt;
-                                      Var Buf: PChar; buflen:LongInt): Cardinal; cdecl;
+Function WSAAsyncGetHostByAddr(hWnd: HWND; wMsg: Cardinal;
+                                      addr: pchar; len: Longint; t: Longint;
+                                      buf: pchar; buflen: Longint): Cardinal; cdecl;
     external 'PMWSock' name 'WSAAsyncGetHostByAddr';
 
 Function WSACancelAsyncRequest(hAsyncTaskHandle: Cardinal): LongInt; cdecl;
@@ -752,44 +900,67 @@ Function WSAAsyncSelect(s: TSocket; ahWnd: HWND; wMsg: Cardinal; lEvent: LongInt
 // WSAMAKEASYNCREPLY is intended for use by the Windows Sockets implementation
 // when constructing the response to a WSAAsyncGetXByY() routine.
 
-(*
-#define WSAMAKEASYNCREPLY(buflen,error)     MAKELONG(buflen,error)
-/*
- * WSAMAKESELECTREPLY is intended for use by the Windows Sockets implementation
- * when constructing the response to WSAAsyncSelect().
- */
-#define WSAMAKESELECTREPLY(event,error)     MAKELONG(event,error)
-/*
- * WSAGETASYNCBUFLEN is intended for use by the Windows Sockets application
- * to extract the buffer length from the lParam in the response
- * to a WSAGetXByY().
- */
-#define WSAGETASYNCBUFLEN(lParam)           LOUSHORT(lParam)
-/*
- * WSAGETASYNCERROR is intended for use by the Windows Sockets application
- * to extract the error code from the lParam in the response
- * to a WSAGetXByY().
- */
-#define WSAGETASYNCERROR(lParam)            HIUSHORT(lParam)
-/*
- * WSAGETSELECTEVENT is intended for use by the Windows Sockets application
- * to extract the event code from the lParam in the response
- * to a WSAAsyncSelect().
- */
-#define WSAGETSELECTEVENT(lParam)           LOUSHORT(lParam)
-/*
- * WSAGETSELECTERROR is intended for use by the Windows Sockets application
- * to extract the error code from the lParam in the response
- * to a WSAAsyncSelect().
- */
-#define WSAGETSELECTERROR(lParam)           HIUSHORT(lParam)
-*)
+Function WSAMakeAsyncReply(Buflen,Error:Word):dword;
+// Seems to be error in rtl\win32\winsock.pp
+Function WSAMakeSyncReply(Buflen,Error:Word):dword;
 
-Procedure FD_ZERO(var aset: fd_set);
+// WSAMAKESELECTREPLY is intended for use by the Windows Sockets implementation
+// when constructing the response to WSAAsyncSelect().
+
+Function WSAMakeSelectReply(Event,Error:Word):dword;
+
+// WSAGETASYNCBUFLEN is intended for use by the Windows Sockets application
+// to extract the buffer length from the lParam in the response
+// to a WSAGetXByY().
+
+Function WSAGetAsyncBuflen(Param:dword):Word;
+
+//
+// WSAGETASYNCERROR is intended for use by the Windows Sockets application
+// to extract the error code from the lParam in the response
+// to a WSAGetXByY().
+
+Function WSAGetAsyncError(Param:dword):Word;
+
+// WSAGETSELECTEVENT is intended for use by the Windows Sockets application
+// to extract the event code from the lParam in the response
+// to a WSAAsyncSelect().
+
+Function WSAGetSelectEvent(Param:dword):Word;
+
+// WSAGETSELECTERROR is intended for use by the Windows Sockets application
+// to extract the error code from the lParam in the response
+// to a WSAAsyncSelect().
+
+Function WSAGetSelectError(Param:dword):Word;
+
+Procedure FD_ZERO(var aset: fdset);
+
+// Following functions not found in PMWSock
+{
+    function WSARecvEx(s:TSocket;var buf; len:tOS_INT; flags:ptOS_INT):tOS_INT;stdcall;
+      external winsockdll name 'WSARecvEx';
+    function TransmitFile(hSocket:TSocket; hFile:THandle; nNumberOfBytesToWrite:dword;
+                          nNumberOfBytesPerSend:DWORD; lpOverlapped:POverlapped;
+                          lpTransmitBuffers:PTransmitFileBuffers; dwReserved:dword):Bool;stdcall;
+                          external winsockdll name 'TransmitFile';
+
+    function AcceptEx(sListenSocket,sAcceptSocket:TSocket;
+                      lpOutputBuffer:Pointer; dwReceiveDataLength,dwLocalAddressLength,
+                      dwRemoteAddressLength:dword; var lpdwBytesReceived:dword;
+                      lpOverlapped:POverlapped):Bool;stdcall;
+                      external winsockdll name 'AcceptEx';
+
+    procedure GetAcceptExSockaddrs(lpOutputBuffer:Pointer;
+                                   dwReceiveDataLength,dwLocalAddressLength,dwRemoteAddressLength:dword;
+                                   var LocalSockaddr:TSockAddr; var LocalSockaddrLength:tOS_INT;
+                                   var RemoteSockaddr:TSockAddr; var RemoteSockaddrLength:tOS_INT);stdcall;
+                                   external winsockdll name 'GetAcceptExSockaddrs';
+}
 
 Implementation
 
-Procedure FD_CLR(ASocket: TSocket; var aset: fd_set);
+Procedure FD_CLR(ASocket: TSocket; var aset: fdset);
 var
   I: Cardinal;
 begin
@@ -808,18 +979,58 @@ begin
   end;
 end;
 
-Procedure FD_ZERO(var aset: fd_set);
+Procedure FD_ZERO(var aset: fdset);
 Begin
   aset.fd_count:=0;
 End;
 
-procedure FDSET(ASocket: TSocket; var FDSet: fd_set);
+procedure FD_SET(Socket: TSocket; var FDSet: tfdset);
 begin
   if FDSet.fd_count < FD_SETSIZE then
   begin
-    FDSet.fd_array[FDSet.fd_count] := ASocket;
+    FDSet.fd_array[FDSet.fd_count] := Socket;
     Inc(FDSet.fd_count);
   end;
+end;
+
+Function MAKELONG(a,b : longint) : LONGINT;
+begin
+  MAKELONG:=LONGINT((WORD(a)) or ((CARDINAL(WORD(b))) shl 16));
+end;
+
+Function WSAMakeAsyncReply(Buflen,Error:Word):dword;
+begin
+  WSAMakeAsyncReply:=MakeLong(Buflen, Error);
+end;
+
+Function WSAMakeSyncReply(Buflen,Error:Word):dword;
+begin
+  WSAMakeSyncReply:=WSAMakeAsyncReply(Buflen,Error);
+end;
+
+Function WSAMakeSelectReply(Event,Error:Word):dword;
+begin
+  WSAMakeSelectReply:=MakeLong(Event,Error);
+end;
+
+Function WSAGetAsyncBuflen(Param:dword):Word;
+begin
+  WSAGetAsyncBuflen:=lo(Param);
+end;
+
+Function WSAGetAsyncError(Param:dword):Word;
+begin
+  WSAGetAsyncError:=hi(Param);
+end;
+
+Function WSAGetSelectEvent(Param:dword):Word;
+begin
+  WSAGetSelectEvent:=lo(Param);
+end;
+
+Function WSAGetSelectError(Param:dword):Word;
+begin
+  WSAGetSelectError:=hi(Param);
 end;
 
 Function timerisset(tvp: timeval): Boolean;
@@ -845,7 +1056,11 @@ end.
 
 {
 $Log$
-Revision 1.1  2003-04-04 12:02:21  yuri
+Revision 1.2  2003-08-15 10:53:43  yuri
++ Winsock unit added
+* PMWSock unit updated (to be less or more compitilbe with win32 winsock)
+
+Revision 1.1  2003/04/04 12:02:21  yuri
 + Initial import
 
 }
