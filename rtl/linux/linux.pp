@@ -2557,7 +2557,7 @@ Begin
    Begin
      If (DotPos=256) and (Path[i]='.') Then
       begin
-        while (i>0) and (Path[i]='.') do
+        while (i>1) and (Path[i-1]='.') do
          dec(i);
         DotPos:=i;
       end;
@@ -2935,7 +2935,10 @@ End.
 
 {
   $Log$
-  Revision 1.3  2000-09-04 19:38:13  peter
+  Revision 1.4  2000-09-04 20:17:53  peter
+    * fixed previous commit (merged)
+
+  Revision 1.3  2000/09/04 19:38:13  peter
     * fsplit with .. fix from Thomas (merged)
 
   Revision 1.2  2000/07/13 11:33:48  michael

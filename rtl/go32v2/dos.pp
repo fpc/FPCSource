@@ -769,7 +769,7 @@ begin
          Begin
             If (Path[i]='.') Then
               begin
-                 while (i>0) and (Path[i]='.') do
+                 while (i>1) and (Path[i-1]='.') do
                   dec(i);
                  DotPos:=i;
                  break;
@@ -1137,7 +1137,10 @@ End;
 end.
 {
   $Log$
-  Revision 1.7  2000-09-04 19:38:12  peter
+  Revision 1.8  2000-09-04 20:17:53  peter
+    * fixed previous commit (merged)
+
+  Revision 1.7  2000/09/04 19:38:12  peter
     * fsplit with .. fix from Thomas (merged)
 
   Revision 1.6  2000/08/04 21:45:39  peter
