@@ -286,6 +286,9 @@ Fixed bugs:
   bug0225.pp   Sigsegv when run with range checks on open arrays    OK 0.99.11 (PFV)
   bug0227.pp   external var does strange things when declared in localsymtable OK 0.99.11 (PFV)
   bug0229.pp   consts > 255 are truncated (should work in -S2,-Sd)  OK 0.99.11 (PFV)
+  bug0230.pp   several strange happen on the ln function: ln(0): no
+               FPE and writeln can't write non numeric values
+               Gives out an exception on compiling because of zero div OK 0.99.11 (PM)
   bug0231.pp   Problem with comments                                OK 0.99.11 (PFV)
   bug0233.pp   Problem with enum sets in args                       OK 0.99.11 (PFV)
   bug0234.pp   New with void pointer                                OK 0.99.11 (PM)
@@ -296,6 +299,8 @@ Fixed bugs:
   bug0240.pp   Problems with larges value is case statements        OK 0.99.11 (FK)
   bug0241.pp   Problem with importing function from a DLL with .drv suffix ! OK 0.99.11 (PM)
   bug0242.pp   Crash when passing a procedure to formal parameter   OK 0.99.11 (PM)
+  bug0247.pp   var with initial value not supprted (Delphi var x : integer = 5;)
+               allowed in -Sd mode OK 0.99.11 (PM)
 
 Unproducable bugs:
 ------------------
@@ -324,13 +329,15 @@ Unfixed bugs:
 bug0226.pp   Asm, offset of var is not allowed as constant
 bug0228.pp   Asm, wrong warning for size
 
-bug0230.pp   several strange happen on the ln function: ln(0): no
-             FPE and writeln can't write non numeric values
 bug0232.pp   const. procedure variables need a special syntax
              if they use calling specification modifiers
 bug0237.pp   Can't have sub procedures with names defined in interface
 bug0243.pp   Arguments of functions are computed from right to left this
              is against pascal convention
+             but only BP respects this convention Delphi and GPC also
+             use right to left pushing !!
+
 bug0244.pp   nested procedures can't have same name as global ones
 bug0245.pp   assigning pointers to address of consts is allowed (refused by BP !) 
 bug0246.pp   const para can be changed without error
+bug0248.pp   Wrong assembler code accepted by new assembler reader 
