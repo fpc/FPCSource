@@ -43,6 +43,31 @@ var
                        Misc. System Dependent Functions
 *****************************************************************************}
 
+{$ifdef I386}
+{ this should be defined in i386 directory !! PM }
+const
+  fpucw : word = $1332;
+  FPU_Invalid = 1;
+  FPU_Denormal = 2;
+  FPU_DivisionByZero = 4;
+  FPU_Overflow = 8;
+  FPU_Underflow = $10;
+  FPU_StackUnderflow = $20;
+  FPU_StackOverflow = $40;
+
+{$endif I386}
+
+Procedure ResetFPU;
+begin
+{$ifdef I386}
+  asm
+    fninit
+    fldcw   fpucw
+  end;
+{$endif I386}
+end;
+
+
 procedure prthaltproc;external name '_haltproc';
 
 Procedure System_exit;
@@ -514,36 +539,18 @@ begin
   dir:=thedir
 end;
 
+{$ifdef linux}
+{*****************************************************************************
+                             Thread Handling
+*****************************************************************************}
+
+{ include threading stuff, this is os independend part }
+{$I thread.inc}
+{$endif linux}
 
 {*****************************************************************************
                          SystemUnit Initialization
 *****************************************************************************}
-
-
-{$ifdef I386}
-{ this should be defined in i386 directory !! PM }
-const
-  fpucw : word = $1332;
-  FPU_Invalid = 1;
-  FPU_Denormal = 2;
-  FPU_DivisionByZero = 4;
-  FPU_Overflow = 8;
-  FPU_Underflow = $10;
-  FPU_StackUnderflow = $20;
-  FPU_StackOverflow = $40;
-
-{$endif I386}
-
-Procedure ResetFPU;
-begin
-{$ifdef I386}
-  asm
-    fninit
-    fldcw   fpucw
-  end;
-{$endif I386}
-end;
-
 
 {$ifdef BSD}
  procedure SignalToRunerror(Sig: longint; SigContext: SigContextRec;someptr:pointer); cdecl;
@@ -724,7 +731,10 @@ End.
 
 {
   $Log$
-  Revision 1.17  2001-09-30 21:10:20  peter
+  Revision 1.18  2001-10-14 13:33:21  peter
+    * start of thread support for linux
+
+  Revision 1.17  2001/09/30 21:10:20  peter
     * erase(directory) returns now 2 to be tp compatible
 
   Revision 1.16  2001/08/05 12:24:20  peter

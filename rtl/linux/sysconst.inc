@@ -32,9 +32,9 @@ Const
   Open_NDelay    = Open_NonBlock;
   Open_Sync      = 1 shl 12;
   Open_Direct    = 4 shl 12;
-  Open_LargeFile = 1 shl 15; 
-  Open_Directory = 2 shl 15; 
-  Open_NoFollow  = 4 shl 15; 
+  Open_LargeFile = 1 shl 15;
+  Open_Directory = 2 shl 15;
+  Open_NoFollow  = 4 shl 15;
   { The waitpid uses the following options:}
   Wait_NoHang   = 1;
   Wait_UnTraced = 2;
@@ -88,10 +88,25 @@ Const
 
   {Constansts Termios/Ioctl (used in Do_IsDevice) }
   IOCtl_TCGETS=$5401; // TCGETS is also in termios.inc, but the sysunix needs only this
-  
+
+  {Checked for BSD using Linuxthreads port}
+  { cloning flags }
+  CSIGNAL       = $000000ff; // signal mask to be sent at exit
+  CLONE_VM      = $00000100; // set if VM shared between processes
+  CLONE_FS      = $00000200; // set if fs info shared between processes
+  CLONE_FILES   = $00000400; // set if open files shared between processes
+  CLONE_SIGHAND = $00000800; // set if signal handlers shared
+  CLONE_PID     = $00001000; // set if pid shared
+type
+  TCloneFunc=function(args:pointer):longint;cdecl;
+
+
 {
   $Log$
-  Revision 1.4  2001-06-02 00:31:30  peter
+  Revision 1.5  2001-10-14 13:33:20  peter
+    * start of thread support for linux
+
+  Revision 1.4  2001/06/02 00:31:30  peter
     * merge unix updates from the 1.0 branch, mostly related to the
       solaris target
 

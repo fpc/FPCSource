@@ -34,18 +34,6 @@ var
       Process
 ********************}
 const
-  {Checked for BSD using Linuxthreads port}
-  { cloning flags }
-  CSIGNAL       = $000000ff; // signal mask to be sent at exit
-  CLONE_VM      = $00000100; // set if VM shared between processes
-  CLONE_FS      = $00000200; // set if fs info shared between processes
-  CLONE_FILES   = $00000400; // set if open files shared between processes
-  CLONE_SIGHAND = $00000800; // set if signal handlers shared
-  CLONE_PID     = $00001000; // set if pid shared
-type
-  TCloneFunc=function(args:pointer):longint;cdecl;
-
-const
   { For getting/setting priority }
   Prio_Process = 0;
   Prio_PGrp    = 1;
@@ -379,7 +367,7 @@ Function NanoSleep(const req : timespec;var rem : timespec) : longint;
 
 Function  IOCtl(Handle,Ndx: Longint;Data: Pointer):boolean;
 Function  TCGetAttr(fd:longint;var tios:TermIOS):boolean;
-Function  TCSetAttr(fd:longint;OptAct:longint;var tios:TermIOS):boolean;
+Function  TCSetAttr(fd:longint;OptAct:longint;const tios:TermIOS):boolean;
 Procedure CFSetISpeed(var tios:TermIOS;speed:Longint);
 Procedure CFSetOSpeed(var tios:TermIOS;speed:Longint);
 Procedure CFMakeRaw(var tios:TermIOS);
@@ -1916,7 +1904,7 @@ end;
 
 
 
-Function TCSetAttr(fd:longint;OptAct:longint;var tios:TermIOS):boolean;
+Function TCSetAttr(fd:longint;OptAct:longint;const tios:TermIOS):boolean;
 var
   nr:longint;
 begin
@@ -2934,7 +2922,10 @@ End.
 
 {
   $Log$
-  Revision 1.16  2001-09-17 21:36:31  peter
+  Revision 1.17  2001-10-14 13:33:21  peter
+    * start of thread support for linux
+
+  Revision 1.16  2001/09/17 21:36:31  peter
     * merged fixes
 
   Revision 1.15  2001/08/12 18:05:19  peter

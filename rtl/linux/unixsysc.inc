@@ -29,87 +29,6 @@ begin
 End;
 
 
-function clone(func:TCloneFunc;sp:pointer;flags:longint;args:pointer):longint;
-begin
-  if (pointer(func)=nil) or (sp=nil) then
-   begin
-     LinuxError:=Sys_EInval;
-     exit(-1); // give an error result
-   end;
-{$ifdef i386}
-  asm
-        { Insert the argument onto the new stack. }
-        movl    sp,%ecx
-        subl    $8,%ecx
-        movl    args,%eax
-        movl    %eax,4(%ecx)
-
-        { Save the function pointer as the zeroth argument.
-          It will be popped off in the child in the ebx frobbing below. }
-        movl    func,%eax
-        movl    %eax,0(%ecx)
-
-        { Do the system call }
-        pushl   %ebx
-        movl    flags,%ebx
-        movl    SysCall_nr_clone,%eax
-        int     $0x80
-        popl    %ebx
-        test    %eax,%eax
-        jnz     .Lclone_end
-
-        { We're in the new thread }
-        subl    %ebp,%ebp       { terminate the stack frame }
-        call    *%ebx
-        { exit process }
-        movl    %eax,%ebx
-        movl    $1,%eax
-        int     $0x80
-
-.Lclone_end:
-        movl    %eax,__RESULT
-  end;
-{$endif i386}
-{$ifdef m68k}
-  { No yet translated, my m68k assembler is too weak for such things PM }
-(*
-  asm
-        { Insert the argument onto the new stack. }
-        movl    sp,%ecx
-        subl    $8,%ecx
-        movl    args,%eax
-        movl    %eax,4(%ecx)
-
-        { Save the function pointer as the zeroth argument.
-          It will be popped off in the child in the ebx frobbing below. }
-        movl    func,%eax
-        movl    %eax,0(%ecx)
-
-        { Do the system call }
-        pushl   %ebx
-        movl    flags,%ebx
-        movl    SysCall_nr_clone,%eax
-        int     $0x80
-        popl    %ebx
-        test    %eax,%eax
-        jnz     .Lclone_end
-
-        { We're in the new thread }
-        subl    %ebp,%ebp       { terminate the stack frame }
-        call    *%ebx
-        { exit process }
-        movl    %eax,%ebx
-        movl    $1,%eax
-        int     $0x80
-
-.Lclone_end:
-        movl    %eax,__RESULT
-  end;
-  *)
-{$endif m68k}
-end;
-
-
 Procedure Execve(path:pathstr;args:ppchar;ep:ppchar);
 {
   Replaces the current program by the program specified in path,
@@ -966,7 +885,10 @@ end;
 
 {
   $Log$
-  Revision 1.4  2001-07-15 11:57:16  peter
+  Revision 1.5  2001-10-14 13:33:20  peter
+    * start of thread support for linux
+
+  Revision 1.4  2001/07/15 11:57:16  peter
     * merged m68k updates
 
   Revision 1.3  2001/06/03 20:19:09  peter

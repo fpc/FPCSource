@@ -18,6 +18,25 @@
 {$define newsignal}
 
 {$I systemh.inc}
+
+{$ifdef linux}
+type
+   { the fields of this record are os dependent  }
+   { and they shouldn't be used in a program     }
+   { only the type TCriticalSection is important }
+   TCriticalSection = packed record
+      DebugInfo : pointer;
+      LockCount : longint;
+      RecursionCount : longint;
+      OwningThread : DWord;
+      LockSemaphore : DWord;
+      Reserved : DWord;
+   end;
+
+{ include threading stuff }
+{$i threadh.inc}
+{$endif linux}
+
 {$I heaph.inc}
 
 {$ifdef m68k}
@@ -54,7 +73,10 @@ var
 
 {
   $Log$
-  Revision 1.10  2001-06-27 21:37:39  peter
+  Revision 1.11  2001-10-14 13:33:21  peter
+    * start of thread support for linux
+
+  Revision 1.10  2001/06/27 21:37:39  peter
     * v10 merges
 
   Revision 1.9  2001/06/18 14:26:16  jonas

@@ -42,8 +42,8 @@ Const
   { The waitpid uses the following options:}
   Wait_NoHang   = 1;
   Wait_UnTraced = 2;
-  Wait_Any      = -1; 
-  Wait_MyPGRP   = 0;  
+  Wait_Any      = -1;
+  Wait_MyPGRP   = 0;
   { Constants to check stat.mode -  checked all STAT constants with BSD}
   STAT_IFMT   = $f000; {00170000 }
   STAT_IFSOCK = $c000; {0140000 }
@@ -55,12 +55,12 @@ Const
   STAT_IFIFO  = $1000; {0010000 }
   STAT_ISUID  = $0800; {0004000 }
   STAT_ISGID  = $0400; {0002000 }
-  STAT_ISVTX  = $0200; {0001000} 
+  STAT_ISVTX  = $0200; {0001000}
   { Constants to check permissions all }
-  STAT_IRWXO = $7;         
-  STAT_IROTH = $4;         
-  STAT_IWOTH = $2;         
-  STAT_IXOTH = $1;         
+  STAT_IRWXO = $7;
+  STAT_IROTH = $4;
+  STAT_IWOTH = $2;
+  STAT_IXOTH = $1;
 
   STAT_IRWXG = STAT_IRWXO shl 3;
   STAT_IRGRP = STAT_IROTH shl 3;
@@ -92,10 +92,23 @@ Const
   {Constansts Termios/Ioctl (used in Do_IsDevice) }
   IOCtl_TCGETS=$5401; // TCGETS is also in termios.inc, but the sysunix needs only this
 
+  {Checked for BSD using Linuxthreads port}
+  { cloning flags }
+  CSIGNAL       = $000000ff; // signal mask to be sent at exit
+  CLONE_VM      = $00000100; // set if VM shared between processes
+  CLONE_FS      = $00000200; // set if fs info shared between processes
+  CLONE_FILES   = $00000400; // set if open files shared between processes
+  CLONE_SIGHAND = $00000800; // set if signal handlers shared
+  CLONE_PID     = $00001000; // set if pid shared
+type
+  TCloneFunc=function(args:pointer):longint;cdecl;
 
 {
   $Log$
-  Revision 1.4  2001-06-19 08:34:16  marco
+  Revision 1.5  2001-10-14 13:33:20  peter
+    * start of thread support for linux
+
+  Revision 1.4  2001/06/19 08:34:16  marco
    * Peter didn't merge the FreeBSD directory when he merged the Unix one. Fixed
 
   Revision 1.3  2001/01/23 20:37:14  marco
