@@ -65,7 +65,12 @@ Function GetServiceByPort(Port : Word;Const Proto : String; Var E : TServiceEntr
 Implementation
 
 uses 
-  linux,sockets,sysutils;
+{$ifdef VER1_0}
+   Linux,
+{$else}
+   Unix,
+{$endif}
+   sockets,sysutils;
 
 {$i hs.inc}
 
