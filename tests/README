@@ -1,7 +1,7 @@
 This directory contains a testsuite for the Free Pascal Compiler.
 
 Tests starting with 'ts' have to compile and execute.
-Tests starting with 'tf' will crash the compiler.
+Tests starting with 'tf' will throw an error when compiling.
 
 You can use the batch files to do all tests. testall.bat will compile all
 tests.
@@ -10,8 +10,21 @@ template1.bat is a template for compiling tests that have to run and
 execute.
 
 template2.bat is a template for compiling tests that should crash the
-compiler. The test is considered passed if the compiler crashes or reports
-an error.
+compiler. The test is considered passed if the compiler reports
+an error (crashes aren't allowed).
 
 
+Test files
+----------
+ts010000.pp       tests properties
+ts010001.pp       tests class references (class of)
+ts010002.pp       common Delphi object model test
+ts010003.pp       tests the crt unit colors
+ts010004.pp       tests forward classes
+ts010005.pp       tests method overriding
+ts010006.pp       tests libraries
 
+
+ts10100.pp        tests for delphi object model
+-
+ts101xx.pp

@@ -6,15 +6,13 @@ echo Compiling NAME...
 ppc386 NAME >nul
 if errorlevel 1 goto comfailed
 echo compilation of NAME : PASSED
-name >nul
-if errorlevel 1 goto runfailed
+NAME >nul
+if errorlevel 0 goto runpassed
+echo execution of NAME : FAILED
+goto end
+:runpassed
 echo execution of NAME : PASSED
 goto end
-:runfailed
-echo execution of NAME : FAILED
 :comfailed
 echo Compilation of NAME : FAILED
 :end
-
-
-
