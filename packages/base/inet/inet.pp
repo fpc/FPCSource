@@ -526,20 +526,31 @@ end;
 Function ShortHostToNet (Host : Word) : Word;
 
 begin
-  ShortHostToNet:=lo(host)*256+Hi(Host);
+  {$IFDEF FPC_BIG_ENDIAN}
+   shorthosttonet:=host;
+  {$else}
+   ShortHostToNet:=lo(host)*256+Hi(Host);
+  {$endif}
 end;
 
 Function ShortNetToHost (Net : Word) : Word;
 
 begin
+  {$IFDEF FPC_BIG_ENDIAN}
+   shortnettohost:=net;
+  {$else}
   ShortNetToHost:=lo(Net)*256+Hi(Net);
+  {$endif}
 end;
 
 end.
 
 
    $Log$
-   Revision 1.5  2004-04-13 09:04:55  marco
+   Revision 1.6  2004-11-01 21:01:29  marco
+    * more endian fixes
+
+   Revision 1.5  2004/04/13 09:04:55  marco
     * small typo fix from Mischi
 
    Revision 1.4  2004/04/10 15:37:57  marco
