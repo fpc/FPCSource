@@ -30,12 +30,19 @@ unit cpunode;
 
     uses
        n386bas,n386ld,n386add,n386cal,n386con,n386flw,n386mat,n386mem,
-       n386set,n386inl;
+       n386set,n386inl,n386opt;
 
 end.
 {
   $Log$
-  Revision 1.1  2000-10-15 09:39:37  peter
+  Revision 1.2  2000-12-31 11:14:11  jonas
+    + implemented/fixed docompare() mathods for all nodes (not tested)
+    + nopt.pas, nadd.pas, i386/n386opt.pas: optimized nodes for adding strings
+      and constant strings/chars together
+    * n386add.pas: don't copy temp strings (of size 256) to another temp string
+      when adding
+
+  Revision 1.1  2000/10/15 09:39:37  peter
     * moved cpu*.pas to i386/
     * renamed n386 to common cpunode
 

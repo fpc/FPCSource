@@ -72,6 +72,7 @@ interface
           function getcopy : tnode;override;
           procedure insertintolist(l : tnodelist);override;
           function pass_1 : tnode;override;
+          function docompare(p: tnode): boolean; override;
        end;
 
     var
@@ -524,6 +525,27 @@ implementation
       begin
       end;
 
+    function casenodesequal(n1,n2: pcaserecord): boolean;
+    begin
+      casenodesequal :=
+        (not assigned(n1) and not assigned(n2)) or
+        (assigned(n1) and assigned(n2) and
+         (n1^._low = n2^._low) and
+         (n1^._high = n2^._high) and
+         { the rest of the fields don't matter for equality (JM) }
+         casenodesequal(n1^.less,n2^.less) and
+         casenodesequal(n1^.greater,n2^.greater))
+    end;
+
+
+    function tcasenode.docompare(p: tnode): boolean;
+      begin
+        docompare :=
+          inherited docompare(p) and
+          casenodesequal(nodes,tcasenode(p).nodes) and
+          elseblock.isequal(tcasenode(p).elseblock);
+      end;
+
 begin
    csetelementnode:=tsetelementnode;
    cinnode:=tinnode;
@@ -532,7 +554,14 @@ begin
 end.
 {
   $Log$
-  Revision 1.10  2000-12-18 17:44:26  jonas
+  Revision 1.11  2000-12-31 11:14:11  jonas
+    + implemented/fixed docompare() mathods for all nodes (not tested)
+    + nopt.pas, nadd.pas, i386/n386opt.pas: optimized nodes for adding strings
+      and constant strings/chars together
+    * n386add.pas: don't copy temp strings (of size 256) to another temp string
+      when adding
+
+  Revision 1.10  2000/12/18 17:44:26  jonas
     * more int64 case fixes
 
   Revision 1.9  2000/11/29 00:30:34  florian

@@ -1,4 +1,4 @@
-{
+ {
     $Id$
     Copyright (c) 1999-2000 by Florian Klaempfl
 
@@ -184,6 +184,7 @@
           'procinlinen',
           'arrayconstructn',
           'arrayconstructrangen',
+          'addoptn',
           'nothingn',
           'loadvmtn');
 
@@ -195,9 +196,15 @@
     function tnode.isequal(p : tnode) : boolean;
 
       begin
-         isequal:=assigned(p) and (p.nodetype=nodetype) and
-           (flags*flagsequal=p.flags*flagsequal) and
-           docompare(p);
+         isequal:=
+           (not assigned(self) and not assigned(p)) or
+           (assigned(self) and assigned(p) and
+            { optimized subclasses have the same nodetype as their        }
+            { superclass (for compatibility), so also check the classtype (JM) }
+            (p.classtype=classtype) and
+            (p.nodetype=nodetype) and
+            (flags*flagsequal=p.flags*flagsequal) and
+            docompare(p));
       end;
 
     function tnode.docompare(p : tnode) : boolean;
@@ -399,7 +406,8 @@
     function tbinarynode.docompare(p : tnode) : boolean;
 
       begin
-         docompare:=left.isequal(tbinarynode(p).left) and
+         docompare:=
+           inherited docompare(p) and
            right.isequal(tbinarynode(p).right);
       end;
 
@@ -488,6 +496,7 @@
 
       begin
          docompare:=(inherited docompare(p)) or
+           { if that's in the flags, is p then always a tbinopnode (?) (JM) }
            ((nf_swapable in flags) and
             left.isequal(tbinopnode(p).right) and
             right.isequal(tbinopnode(p).left));
@@ -512,7 +521,14 @@
 
 {
   $Log$
-  Revision 1.13  2000-11-29 00:30:34  florian
+  Revision 1.14  2000-12-31 11:14:11  jonas
+    + implemented/fixed docompare() mathods for all nodes (not tested)
+    + nopt.pas, nadd.pas, i386/n386opt.pas: optimized nodes for adding strings
+      and constant strings/chars together
+    * n386add.pas: don't copy temp strings (of size 256) to another temp string
+      when adding
+
+  Revision 1.13  2000/11/29 00:30:34  florian
     * unused units removed from uses clause
     * some changes for widestrings
 

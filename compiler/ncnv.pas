@@ -63,6 +63,7 @@ interface
           function first_arrayconstructor_to_set : tnode;virtual;
           function first_class_to_intf : tnode;virtual;
           function first_call_helper(c : tconverttype) : tnode;
+          function docompare(p: tnode) : boolean; override;
        end;
 
        tasnode = class(tbinarynode)
@@ -1188,6 +1189,12 @@ implementation
          resulttype:=pclassrefdef(right.resulttype)^.pointertype.def;
       end;
 
+    function ttypeconvnode.docompare(p: tnode) : boolean;
+      begin
+        docompare :=
+          inherited docompare(p) and
+          (convtype = ttypeconvnode(p).convtype);
+      end;
 
 begin
    ctypeconvnode:=ttypeconvnode;
@@ -1196,7 +1203,14 @@ begin
 end.
 {
   $Log$
-  Revision 1.15  2000-12-08 12:41:01  jonas
+  Revision 1.16  2000-12-31 11:14:10  jonas
+    + implemented/fixed docompare() mathods for all nodes (not tested)
+    + nopt.pas, nadd.pas, i386/n386opt.pas: optimized nodes for adding strings
+      and constant strings/chars together
+    * n386add.pas: don't copy temp strings (of size 256) to another temp string
+      when adding
+
+  Revision 1.15  2000/12/08 12:41:01  jonas
     * fixed bug in sign extension patch
 
   Revision 1.14  2000/12/07 17:19:42  jonas

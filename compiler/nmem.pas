@@ -77,6 +77,7 @@ interface
           constructor create(varsym : psym;l : tnode);virtual;
           function getcopy : tnode;override;
           function pass_1 : tnode;override;
+          function docompare(p: tnode): boolean; override;
        end;
 
        tvecnode = class(tbinarynode)
@@ -97,6 +98,7 @@ interface
           destructor destroy;override;
           function getcopy : tnode;override;
           function pass_1 : tnode;override;
+          function docompare(p: tnode): boolean; override;
        end;
 
     function gensubscriptnode(varsym : pvarsym;l : tnode) : tsubscriptnode;
@@ -615,6 +617,13 @@ implementation
            end;
       end;
 
+    function tsubscriptnode.docompare(p: tnode): boolean;
+      begin
+        docompare :=
+          inherited docompare(p) and
+          (vs = tsubscriptnode(p).vs);
+      end;
+
 
 {*****************************************************************************
                                TVECNODE
@@ -869,11 +878,38 @@ implementation
            end;
       end;
 
+    function twithnode.docompare(p: tnode): boolean;
+      begin
+        docompare :=
+          inherited docompare(p) and
+          (withsymtable = twithnode(p).withsymtable) and
+          (tablecount = twithnode(p).tablecount);
+      end;
 
+begin
+  cloadvmtnode := tloadvmtnode;
+  chnewnode := thnewnode;
+  cnewnode := tnewnode;
+  chdisposenode := thdisposenode;
+  csimplenewdisposenode := tsimplenewdisposenode;
+  caddrnode := taddrnode;
+  cdoubleaddrnode := tdoubleaddrnode;
+  cderefnode := tderefnode;
+  csubscriptnode := tsubscriptnode;
+  cvecnode := tvecnode;
+  cselfnode := tselfnode;
+  cwithnode := twithnode;
 end.
 {
   $Log$
-  Revision 1.13  2000-12-25 00:07:26  peter
+  Revision 1.14  2000-12-31 11:14:11  jonas
+    + implemented/fixed docompare() mathods for all nodes (not tested)
+    + nopt.pas, nadd.pas, i386/n386opt.pas: optimized nodes for adding strings
+      and constant strings/chars together
+    * n386add.pas: don't copy temp strings (of size 256) to another temp string
+      when adding
+
+  Revision 1.13  2000/12/25 00:07:26  peter
     + new tlinkedlist class (merge of old tstringqueue,tcontainer and
       tlinkedlist objects)
 

@@ -39,6 +39,7 @@ interface
           constructor create(v : bestreal;def : pdef);virtual;
           function getcopy : tnode;override;
           function pass_1 : tnode;override;
+          function docompare(p: tnode) : boolean; override;
        end;
 
        tfixconstnode = class(tnode)
@@ -46,6 +47,7 @@ interface
           constructor create(v : longint;def : pdef);virtual;
           function getcopy : tnode;override;
           function pass_1 : tnode;override;
+          function docompare(p: tnode) : boolean; override;
        end;
 
        tordconstnode = class(tnode)
@@ -53,6 +55,7 @@ interface
           constructor create(v : tconstexprint;def : pdef);virtual;
           function getcopy : tnode;override;
           function pass_1 : tnode;override;
+          function docompare(p: tnode) : boolean; override;
        end;
 
        tpointerconstnode = class(tnode)
@@ -60,6 +63,7 @@ interface
           constructor create(v : tpointerord;def : pdef);virtual;
           function getcopy : tnode;override;
           function pass_1 : tnode;override;
+          function docompare(p: tnode) : boolean; override;
        end;
 
        tstringconstnode = class(tnode)
@@ -74,6 +78,7 @@ interface
           function getcopy : tnode;override;
           function pass_1 : tnode;override;
           function getpcharcopy : pchar;
+          function docompare(p: tnode) : boolean; override;
        end;
 
        tsetconstnode = class(tunarynode)
@@ -83,6 +88,7 @@ interface
           destructor destroy;override;
           function getcopy : tnode;override;
           function pass_1 : tnode;override;
+          function docompare(p: tnode) : boolean; override;
        end;
 
        tnilnode = class(tnode)
@@ -297,7 +303,12 @@ implementation
         p1:=nil;
         case p^.consttyp of
           constint :
-            p1:=genordinalconstnode(p^.value,s32bitdef);
+            if (p^.value >= -maxlongint-1) and (p^.value <= maxlongint) then
+              p1:=genordinalconstnode(p^.value,s32bitdef)
+            else if (p^.value > maxlongint) and (p^.value <= int64(maxlongint)+int64(maxlongint)+int64(1)) then
+              p1:=genordinalconstnode(p^.value,u32bitdef)
+            else
+              p1:=genordinalconstnode(p^.value,cs64bitdef);
           conststring :
             begin
               len:=p^.len;
@@ -368,6 +379,12 @@ implementation
            location.loc:=LOC_MEM;
       end;
 
+    function trealconstnode.docompare(p: tnode): boolean;
+      begin
+        docompare :=
+          inherited docompare(p) and
+          (value_real = trealconstnode(p).value_real);
+      end;
 
 {*****************************************************************************
                              TFIXCONSTNODE
@@ -399,6 +416,12 @@ implementation
          location.loc:=LOC_MEM;
       end;
 
+    function tfixconstnode.docompare(p: tnode): boolean;
+      begin
+        docompare :=
+          inherited docompare(p) and
+          (value_fix = tfixconstnode(p).value_fix);
+      end;
 
 {*****************************************************************************
                               TORDCONSTNODE
@@ -431,6 +454,12 @@ implementation
          location.loc:=LOC_MEM;
       end;
 
+    function tordconstnode.docompare(p: tnode): boolean;
+      begin
+        docompare :=
+          inherited docompare(p) and
+          (value = tordconstnode(p).value);
+      end;
 
 {*****************************************************************************
                             TPOINTERCONSTNODE
@@ -461,6 +490,12 @@ implementation
          location.loc:=LOC_MEM;
       end;
 
+    function tpointerconstnode.docompare(p: tnode): boolean;
+      begin
+        docompare :=
+          inherited docompare(p) and
+          (value = tpointerconstnode(p).value);
+      end;
 
 {*****************************************************************************
                              TSTRINGCONSTNODE
@@ -584,6 +619,16 @@ implementation
          getpcharcopy:=pc;
       end;
 
+    function tstringconstnode.docompare(p: tnode): boolean;
+      begin
+        docompare :=
+          inherited docompare(p) and
+          (len = tstringconstnode(p).len) and
+          { Don't compare the pchars, since they may contain null chars }
+          { Since all equal constant strings are replaced by the same   }
+          { label, the following compare should be enough (JM)          }
+          (lab_str = tstringconstnode(p).lab_str);
+      end;
 
 {*****************************************************************************
                              TSETCONSTNODE
@@ -634,6 +679,24 @@ implementation
          location.loc:=LOC_MEM;
       end;
 
+    function tsetconstnode.docompare(p: tnode): boolean;
+      var
+        i: 0..31;
+      begin
+        if inherited docompare(p) then
+          begin
+            for i := 0 to 31 do
+              if (value_set^[i] <> tsetconstnode(p).value_set^[i]) then
+                begin
+                  docompare := false;
+                  exit
+                end;
+            docompare := true;
+          end
+        else
+          docompare := false;
+      end;
+
 {*****************************************************************************
                                TNILNODE
 *****************************************************************************}
@@ -662,7 +725,14 @@ begin
 end.
 {
   $Log$
-  Revision 1.14  2000-12-16 15:58:48  jonas
+  Revision 1.15  2000-12-31 11:14:10  jonas
+    + implemented/fixed docompare() mathods for all nodes (not tested)
+    + nopt.pas, nadd.pas, i386/n386opt.pas: optimized nodes for adding strings
+      and constant strings/chars together
+    * n386add.pas: don't copy temp strings (of size 256) to another temp string
+      when adding
+
+  Revision 1.14  2000/12/16 15:58:48  jonas
     * genintconstnode now returns cardinals instead of int64 constants if possible
 
   Revision 1.13  2000/12/15 13:26:01  jonas

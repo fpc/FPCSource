@@ -267,8 +267,13 @@ interface
                         secondpass(left);
                         { if str_concat is set in expr
                           s:=s+ ... no need to create a temp string (PM) }
+                        { the tempstring can also come from a typeconversion }
+                        { or a function result, so simply check for a        }
+                        { temp of 256 bytes(JM)                                          }
 
-                        if (left.nodetype<>addn) and not(nf_use_strconcat in flags) then
+                        if not(istemp(left.location.reference) and
+                               (getsizeoftemp(left.location.reference) = 256)) and
+                           not(nf_use_strconcat in flags) then
                           begin
 
                              { can only reference be }
@@ -2289,7 +2294,14 @@ begin
 end.
 {
   $Log$
-  Revision 1.8  2000-12-25 00:07:32  peter
+  Revision 1.9  2000-12-31 11:14:11  jonas
+    + implemented/fixed docompare() mathods for all nodes (not tested)
+    + nopt.pas, nadd.pas, i386/n386opt.pas: optimized nodes for adding strings
+      and constant strings/chars together
+    * n386add.pas: don't copy temp strings (of size 256) to another temp string
+      when adding
+
+  Revision 1.8  2000/12/25 00:07:32  peter
     + new tlinkedlist class (merge of old tstringqueue,tcontainer and
       tlinkedlist objects)
 

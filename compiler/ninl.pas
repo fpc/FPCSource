@@ -37,6 +37,9 @@ interface
           constructor create(number : byte;is_const:boolean;l : tnode);virtual;
           function getcopy : tnode;override;
           function pass_1 : tnode;override;
+          function docompare(p: tnode): boolean; override;
+
+
        end;
 
     var
@@ -1486,12 +1489,28 @@ implementation
 {$maxfpuregisters default}
 {$endif fpc}
 
+    function tinlinenode.docompare(p: tnode): boolean;
+      begin
+        docompare :=
+          inherited docompare(p) and
+          (inlinenumber = tinlinenode(p).inlinenumber);
+      end;
+      
+
+
 begin
    cinlinenode:=tinlinenode;
 end.
 {
   $Log$
-  Revision 1.21  2000-12-25 00:07:26  peter
+  Revision 1.22  2000-12-31 11:14:10  jonas
+    + implemented/fixed docompare() mathods for all nodes (not tested)
+    + nopt.pas, nadd.pas, i386/n386opt.pas: optimized nodes for adding strings
+      and constant strings/chars together
+    * n386add.pas: don't copy temp strings (of size 256) to another temp string
+      when adding
+
+  Revision 1.21  2000/12/25 00:07:26  peter
     + new tlinkedlist class (merge of old tstringqueue,tcontainer and
       tlinkedlist objects)
 

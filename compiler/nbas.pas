@@ -47,6 +47,7 @@ interface
           destructor destroy;override;
           function getcopy : tnode;override;
           function pass_1 : tnode;override;
+          function docompare(p: tnode): boolean; override;
        end;
 
        tstatementnode = class(tbinarynode)
@@ -329,6 +330,12 @@ implementation
          procinfo^.flags:=procinfo^.flags or pi_uses_asm;
       end;
 
+    function tasmnode.docompare(p: tnode): boolean;
+      begin
+        { comparing of asmlists is not implemented (JM) }
+        docompare := false;
+      end;
+
 begin
    cnothingnode:=tnothingnode;
    cerrornode:=terrornode;
@@ -338,7 +345,14 @@ begin
 end.
 {
   $Log$
-  Revision 1.6  2000-12-25 00:07:26  peter
+  Revision 1.7  2000-12-31 11:14:10  jonas
+    + implemented/fixed docompare() mathods for all nodes (not tested)
+    + nopt.pas, nadd.pas, i386/n386opt.pas: optimized nodes for adding strings
+      and constant strings/chars together
+    * n386add.pas: don't copy temp strings (of size 256) to another temp string
+      when adding
+
+  Revision 1.6  2000/12/25 00:07:26  peter
     + new tlinkedlist class (merge of old tstringqueue,tcontainer and
       tlinkedlist objects)
 

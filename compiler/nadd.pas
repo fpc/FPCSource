@@ -55,7 +55,7 @@ implementation
       hcodegen,
 {$endif newcg}
       htypechk,pass_1,
-      nmat,ncnv,nld,ncon,nset,
+      nmat,ncnv,nld,ncon,nset,nopt,
       cpubase;
 
 
@@ -428,13 +428,11 @@ implementation
                  if nodetype=addn then
                    begin
                      left:=gentypeconvnode(left,cshortstringdef);
-                     right:=gentypeconvnode(right,cshortstringdef);
                      firstpass(left);
-                     firstpass(right);
-                     { here we call STRCOPY }
-                     procinfo^.flags:=procinfo^.flags or pi_do_call;
-                     calcregisters(self,0,0,0);
-                     location.loc:=LOC_MEM;
+                     hp := genaddsstringcharoptnode(self);
+                     firstpass(hp);
+                     pass_1 := hp;
+                     exit;
                    end
                  else
                    calcregisters(self,1,0,0);
@@ -770,19 +768,25 @@ implementation
                 end
               else
                 begin
-                   if not(is_shortstring(rd))
-{$ifdef newoptimizations2}
-{$ifdef i386}
-                      { shortstring + char handled seperately  (JM) }
-                      and (not(cs_optimize in aktglobalswitches) or
-                           (nodetype <> addn) or not(is_char(rd)))
-{$endif i386}
-{$endif newoptimizations2}
-                    then
-                      right:=gentypeconvnode(right,cshortstringdef);
+                   if canbeaddsstringcharoptnode(self) then
+                     begin
+                       hp := genaddsstringcharoptnode(self);
+                       firstpass(hp);
+                       pass_1 := hp;
+                       exit;
+                     end;
+                   if canbeaddsstringcsstringoptnode(self) then
+                     begin
+                       hp := genaddsstringcsstringoptnode(self);
+                       firstpass(hp);
+                       pass_1 := hp;
+                       exit;
+                     end;
                    if not(is_shortstring(ld)) then
                      left:=gentypeconvnode(left,cshortstringdef);
-                   resulttype:=cshortstringdef;
+                   if not(is_shortstring(rd)) then
+                      right:=gentypeconvnode(right,cshortstringdef);
+                   resulttype:=left.resulttype;
                    { this is only for add, the comparisaion is handled later }
                    location.loc:=LOC_MEM;
                 end;
@@ -798,14 +802,6 @@ implementation
                 calcregisters(self,0,0,0)
               else
                 calcregisters(self,1,0,0);
-{$ifdef newoptimizations2}
-{$ifdef i386}
-              { not always necessary, only if it is not a constant char and }
-              { not a regvar, but don't know how to check this here (JM)    }
-              if is_char(rd) then
-                inc(registers32);
-{$endif i386}
-{$endif newoptimizations2}
               convdone:=true;
            end
          else
@@ -1213,7 +1209,14 @@ begin
 end.
 {
   $Log$
-  Revision 1.19  2000-12-16 15:55:32  jonas
+  Revision 1.20  2000-12-31 11:14:10  jonas
+    + implemented/fixed docompare() mathods for all nodes (not tested)
+    + nopt.pas, nadd.pas, i386/n386opt.pas: optimized nodes for adding strings
+      and constant strings/chars together
+    * n386add.pas: don't copy temp strings (of size 256) to another temp string
+      when adding
+
+  Revision 1.19  2000/12/16 15:55:32  jonas
     + warning when there is a chance to get a range check error because of
       automatic type conversion to u32bit
     * arithmetic operations with a cardinal and a signed operand are carried

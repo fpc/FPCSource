@@ -37,6 +37,7 @@ interface
           constructor create(v : psym;st : psymtable);virtual;
           function getcopy : tnode;override;
           function pass_1 : tnode;override;
+          function docompare(p: tnode): boolean; override;
        end;
 
        { different assignment types }
@@ -47,6 +48,7 @@ interface
           constructor create(l,r : tnode);virtual;
           function getcopy : tnode;override;
           function pass_1 : tnode;override;
+          function docompare(p: tnode): boolean; override;
        end;
 
        tfuncretnode = class(tnode)
@@ -55,6 +57,7 @@ interface
           constructor create;virtual;
           function getcopy : tnode;override;
           function pass_1 : tnode;override;
+          function docompare(p: tnode): boolean; override;
        end;
 
        tarrayconstructorrangenode = class(tbinarynode)
@@ -67,6 +70,7 @@ interface
           constructor create(l,r : tnode);virtual;
           function getcopy : tnode;override;
           function pass_1 : tnode;override;
+          function docompare(p: tnode): boolean; override;
        end;
 
        ttypenode = class(tnode)
@@ -75,6 +79,7 @@ interface
           constructor create(t : pdef;sym:ptypesym);virtual;
           function getcopy : tnode;override;
           function pass_1 : tnode;override;
+          function docompare(p: tnode): boolean; override;
        end;
 
     var
@@ -325,6 +330,13 @@ implementation
          end;
       end;
 
+    function tloadnode.docompare(p: tnode): boolean;
+      begin
+        docompare :=
+          inherited docompare(p) and
+          (symtableentry = tloadnode(p).symtableentry) and
+          (symtable = tloadnode(p).symtable);
+      end;
 
 {*****************************************************************************
                              TASSIGNMENTNODE
@@ -474,6 +486,12 @@ implementation
 {$endif SUPPORT_MMX}
       end;
 
+    function tassignmentnode.docompare(p: tnode): boolean;
+      begin
+        docompare :=
+          inherited docompare(p) and
+          (assigntype = tassignmentnode(p).assigntype);
+      end;
 
 {*****************************************************************************
                                  TFUNCRETNODE
@@ -508,6 +526,14 @@ implementation
            registers32:=1;
       end;
 
+    function tfuncretnode.docompare(p: tnode): boolean;
+      begin
+        docompare :=
+          inherited docompare(p) and
+          (funcretprocinfo = tfuncretnode(p).funcretprocinfo) and
+          (rettype.def = tfuncretnode(p).rettype.def) and
+          (rettype.sym = tfuncretnode(p).rettype.sym);
+      end;
 
 {*****************************************************************************
                            TARRAYCONSTRUCTORRANGENODE
@@ -694,6 +720,12 @@ implementation
          postprocess(self);
       end;
 
+    function tarrayconstructornode.docompare(p: tnode): boolean;
+      begin
+        docompare :=
+          inherited docompare(p) and
+          (constructordef = tarrayconstructornode(p).constructordef);
+      end;
 
 {*****************************************************************************
                               TTYPENODE
@@ -726,6 +758,13 @@ implementation
          { do nothing, resulttype is already set }
       end;
 
+    function ttypenode.docompare(p: tnode): boolean;
+      begin
+        docompare :=
+          inherited docompare(p) and
+          (typenodetype = ttypenode(p).typenodetype) and
+          (typenodesym = ttypenode(p).typenodesym);
+      end;
 
 begin
    cloadnode:=tloadnode;
@@ -737,7 +776,14 @@ begin
 end.
 {
   $Log$
-  Revision 1.9  2000-11-29 00:30:33  florian
+  Revision 1.10  2000-12-31 11:14:10  jonas
+    + implemented/fixed docompare() mathods for all nodes (not tested)
+    + nopt.pas, nadd.pas, i386/n386opt.pas: optimized nodes for adding strings
+      and constant strings/chars together
+    * n386add.pas: don't copy temp strings (of size 256) to another temp string
+      when adding
+
+  Revision 1.9  2000/11/29 00:30:33  florian
     * unused units removed from uses clause
     * some changes for widestrings
 

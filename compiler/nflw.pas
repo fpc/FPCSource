@@ -41,6 +41,7 @@ interface
 {$ifdef extdebug}
           procedure dowrite;override;
 {$endif extdebug}
+          function docompare(p: tnode): boolean; override;
        end;
 
        twhilerepeatnode = class(tloopnode)
@@ -78,6 +79,7 @@ interface
           constructor create(p : pasmlabel);virtual;
           function getcopy : tnode;override;
           function pass_1 : tnode;override;
+          function docompare(p: tnode): boolean; override;
        end;
 
        tlabelnode = class(tunarynode)
@@ -87,6 +89,7 @@ interface
           constructor create(p : pasmlabel;l:tnode);virtual;
           function getcopy : tnode;override;
           function pass_1 : tnode;override;
+          function docompare(p: tnode): boolean; override;
        end;
 
        traisenode = class(tbinarynode)
@@ -95,6 +98,7 @@ interface
           function getcopy : tnode;override;
           procedure insertintolist(l : tnodelist);override;
           function pass_1 : tnode;override;
+          function docompare(p: tnode): boolean; override;
        end;
 
        ttryexceptnode = class(tloopnode)
@@ -114,11 +118,13 @@ interface
           destructor destroy;override;
           function pass_1 : tnode;override;
           function getcopy : tnode;override;
+          function docompare(p: tnode): boolean; override;
        end;
 
        tfailnode = class(tnode)
           constructor create;virtual;
           function pass_1: tnode;override;
+          function docompare(p: tnode): boolean; override;
        end;
 
     { for compatibilty }
@@ -227,6 +233,13 @@ implementation
       end;
 {$endif extdebug}
 
+    function tloopnode.docompare(p: tnode): boolean;
+      begin
+        docompare :=
+          inherited docompare(p) and
+          t1.isequal(tloopnode(p).t1) and
+          t2.isequal(tloopnode(p).t2);
+      end;
 
 {****************************************************************************
                                TWHILEREPEATNODE
@@ -652,6 +665,11 @@ implementation
         result:=p;
      end;
 
+    function tgotonode.docompare(p: tnode): boolean;
+      begin
+        docompare := false;
+      end;
+
 {*****************************************************************************
                              TLABELNODE
 *****************************************************************************}
@@ -698,6 +716,11 @@ implementation
         p.labsym:=labsym;
         result:=p;
      end;
+
+    function tlabelnode.docompare(p: tnode): boolean;
+      begin
+        docompare := false;
+      end;
 
 {*****************************************************************************
                             TRAISENODE
@@ -764,6 +787,11 @@ implementation
                end;
               left_right_max;
            end;
+      end;
+
+    function traisenode.docompare(p: tnode): boolean;
+      begin
+        docompare := false;
       end;
 
 
@@ -952,8 +980,14 @@ implementation
            end;
       end;
 
+    function tonnode.docompare(p: tnode): boolean;
+      begin
+        docompare := false;
+      end;
+
+
 {*****************************************************************************
-                                TONNODE
+                                TFAILNODE
 *****************************************************************************}
 
 
@@ -968,6 +1002,13 @@ implementation
       begin
          pass_1:=nil;
       end;
+
+    function tfailnode.docompare(p: tnode): boolean;
+      begin
+        docompare := false;
+      end;
+
+
 
 begin
    cwhilerepeatnode:=twhilerepeatnode;
@@ -984,7 +1025,14 @@ begin
 end.
 {
   $Log$
-  Revision 1.11  2000-11-29 00:30:33  florian
+  Revision 1.12  2000-12-31 11:14:10  jonas
+    + implemented/fixed docompare() mathods for all nodes (not tested)
+    + nopt.pas, nadd.pas, i386/n386opt.pas: optimized nodes for adding strings
+      and constant strings/chars together
+    * n386add.pas: don't copy temp strings (of size 256) to another temp string
+      when adding
+
+  Revision 1.11  2000/11/29 00:30:33  florian
     * unused units removed from uses clause
     * some changes for widestrings
 
