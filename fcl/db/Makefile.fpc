@@ -12,7 +12,7 @@ dirs_freebsd=mysql interbase
 dirs_netbsd=mysql interbase
 dirs_openbsd=mysql interbase
 dirs_win32=mysql interbase
-units=db ddg_ds ddg_rec
+units=db ddg_ds ddg_rec dbwhtml
 exampledirs=tests
 
 [compiler]
