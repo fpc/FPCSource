@@ -10,6 +10,10 @@ units=pastree pscanner pparser paswrite
 
 [compiler]
 options=-S2h
+targetdir=../$(OS_TARGET)
 
 [install]
 fpcpackage=y
+
+[default]
+fpcdir=../..
