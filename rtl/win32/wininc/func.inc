@@ -572,7 +572,7 @@ function ShowCursor(bShow:WINBOOL):longint; external 'user32' name 'ShowCursor';
 function SetCursorPos(X:longint; Y:longint):WINBOOL; external 'user32' name 'SetCursorPos';
 function SetCursor(hCursor:HCURSOR):HCURSOR; external 'user32' name 'SetCursor';
 function GetCursorPos(lpPoint:LPPOINT):WINBOOL; external 'user32' name 'GetCursorPos';
-function ClipCursor(var lpRect:RECT):WINBOOL; external 'user32' name 'ClipCursor';
+function ClipCursor(lpRect:LPRECT):WINBOOL; external 'user32' name 'ClipCursor';
 function GetClipCursor(lpRect:LPRECT):WINBOOL; external 'user32' name 'GetClipCursor';
 function GetCursor:HCURSOR; external 'user32' name 'GetCursor';
 function CreateCaret(hWnd:HWND; hBitmap:HBITMAP; nWidth:longint; nHeight:longint):WINBOOL; external 'user32' name 'CreateCaret';
@@ -2331,7 +2331,10 @@ end;
 
 {
   $Log$
-  Revision 1.17  2002-12-27 18:13:38  peter
+  Revision 1.18  2003-01-02 22:07:00  peter
+    * missing items
+
+  Revision 1.17  2002/12/27 18:13:38  peter
     * fix ChoosePixelFormat
 
   Revision 1.16  2002/12/15 20:24:17  peter

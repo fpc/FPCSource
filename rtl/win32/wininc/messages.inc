@@ -1057,6 +1057,9 @@
      WM_MENUSELECT = 287;
      WM_MOUSEACTIVATE = 33;
      WM_MOUSEMOVE = 512;
+     WM_MOUSEWHEEL = 522;
+     WM_MOUSEHOVER = 673;
+     WM_MOUSELEAVE = 675;
      WM_MOVE = 3;
      WM_MOVING = 534;
      WM_NCACTIVATE = 134;
@@ -1147,7 +1150,7 @@
      WM_KEYFIRST = 256;
      WM_KEYLAST = 264;
      WM_MOUSEFIRST = 512;
-     WM_MOUSELAST = 521;
+     WM_MOUSELAST = 522;
 
 Type
 
@@ -1189,7 +1192,10 @@ Type
 
 {
   $Log$
-  Revision 1.4  2002-11-04 12:17:42  marco
+  Revision 1.5  2003-01-02 22:07:00  peter
+    * missing items
+
+  Revision 1.4  2002/11/04 12:17:42  marco
    * Added some of the tmsg/tmessage records.
 
   Revision 1.3  2002/09/07 16:01:31  peter

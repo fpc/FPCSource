@@ -212,11 +212,19 @@
      TANIMATIONINFO = ANIMATIONINFO;
      PANIMATIONINFO = ^ANIMATIONINFO;
 
+     POINT = record
+          x : LONG;
+          y : LONG;
+       end;
+     LPPOINT = ^POINT;
+     tagPOINT = POINT;
+     TPOINT = POINT;
+     PPOINT = ^POINT;
+
      RECT = record
-          left : LONG;
-          top : LONG;
-          right : LONG;
-          bottom : LONG;
+          case Integer of
+             0: (Left,Top,Right,Bottom : Longint);
+             1: (TopLeft,BottomRight : TPoint);
        end;
      LPRECT = ^RECT;
      _RECT = RECT;
@@ -463,15 +471,6 @@
      _FIXED = FIXED;
      TFIXED = FIXED;
      PFIXED = ^FIXED;
-
-     POINT = record
-          x : LONG;
-          y : LONG;
-       end;
-     LPPOINT = ^POINT;
-     tagPOINT = POINT;
-     TPOINT = POINT;
-     PPOINT = ^POINT;
 
      POINTFX = record
           x : FIXED;
@@ -7015,7 +7014,10 @@ type
 
 {
   $Log$
-  Revision 1.19  2002-12-15 20:24:17  peter
+  Revision 1.20  2003-01-02 22:07:00  peter
+    * missing items
+
+  Revision 1.19  2002/12/15 20:24:17  peter
     * some more C style functions
 
   Revision 1.18  2002/12/12 17:34:35  peter
