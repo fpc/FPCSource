@@ -548,7 +548,16 @@ end;
 
 function TraceMemSize(p:pointer):ptrint;
 var
-  l : ptrint;
+  pp : pheap_mem_info;
+begin
+  pp:=pheap_mem_info(p-sizeof(theap_mem_info));
+  TraceMemSize:=pp^.size;
+end;
+
+
+function TraceFreeMem(p:pointer):ptrint;
+var
+  l  : ptrint;
   pp : pheap_mem_info;
 begin
   pp:=pheap_mem_info(p-sizeof(theap_mem_info));
@@ -556,23 +565,12 @@ begin
   dec(l,sizeof(theap_mem_info)+pp^.extra_info_size);
   if add_tail then
    dec(l,sizeof(ptrint));
-  TraceMemSize:=l;
-end;
-
-
-function TraceFreeMem(p:pointer):ptrint;
-var
-  size : ptrint;
-  pp : pheap_mem_info;
-begin
-  pp:=pheap_mem_info(p-sizeof(theap_mem_info));
-  size:=TraceMemSize(p);
   { this can never happend normaly }
-  if pp^.size>size then
+  if pp^.size>l then
    begin
-     dump_wrong_size(pp,size,ptext^);
+     dump_wrong_size(pp,l,ptext^);
 {$ifdef EXTRA}
-     dump_wrong_size(pp,size,error_file);
+     dump_wrong_size(pp,l,error_file);
 {$endif EXTRA}
    end;
   TraceFreeMem:=TraceFreeMemSize(p,pp^.size);
@@ -718,14 +716,6 @@ var
    edata : longword; external name 'edata';
 {$endif go32v2}
 
-{$ifdef win32}
-var
-   { I found no symbol for start of text section :(
-     so we usee the _mainCRTStartup which should be
-     in wprt0.ow or wdllprt0.ow PM }
-   text_begin : longword;external name '_mainCRTStartup';
-   data_end : longword;external name '__data_end__';
-{$endif}
 
 procedure CheckPointer(p : pointer);[saveregisters,public, alias : 'FPC_CHECKPOINTER'];
 var
@@ -1142,7 +1132,10 @@ finalization
 end.
 {
   $Log$
-  Revision 1.31  2004-06-20 09:24:40  peter
+  Revision 1.32  2004-09-16 07:21:08  michael
+  Fix tracememsize for ansistrings (From Peter)
+
+  Revision 1.31  2004/06/20 09:24:40  peter
   fixed go32v2 compile
 
   Revision 1.30  2004/06/17 16:16:13  peter
