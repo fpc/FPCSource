@@ -586,7 +586,7 @@ begin
 end;
 
 
-Function ValAnsiSignedInt64 (DestSize: longint; Const S : AnsiString; Var Code : ValSInt): Int64; [public, alias:'FPC_VAL_INT64_ANSISTR'];
+Function ValAnsiSignedInt64 (Const S : AnsiString; Var Code : ValSInt): Int64; [public, alias:'FPC_VAL_INT64_ANSISTR'];
 Var
   SS : ShortString;
 begin
@@ -726,7 +726,11 @@ end;
 
 {
   $Log$
-  Revision 1.11  2001-05-27 14:28:44  florian
+  Revision 1.12  2001-07-04 12:17:09  jonas
+    * removed DestSize parameter from declaration of ValAnsiSignedInt64
+      (merged)
+
+  Revision 1.11  2001/05/27 14:28:44  florian
     + made the ref. couting MT safe
 
   Revision 1.10  2001/04/13 18:06:07  peter
