@@ -217,13 +217,10 @@ Sys_EDQUOT      = 122;  { Quota exceeded }
 
 {
   $Log$
-  Revision 1.3  2002-03-11 19:10:33  peter
+  Revision 1.4  2002-09-07 16:01:27  peter
+    * old logs removed and tabs fixed
+
+  Revision 1.3  2002/03/11 19:10:33  peter
     * Regenerated with updated fpcmake
-
-  Revision 1.2  2000/09/18 13:14:50  marco
-   * Global Linux +bsd to (rtl/freebsd rtl/unix rtl/linux structure)
-
-  Revision 1.2  2000/07/13 11:33:48  michael
-  + removed logs
 
 }

@@ -195,7 +195,7 @@ var
 Begin
   { verify if the filename is actually a directory }
   { if so return error and do nothing, as defined  }
-  { by POSIX					   }
+  { by POSIX                                       }
   if sys_stat(p,fileinfo)<0 then
    begin
      Errno2Inoutres;
@@ -273,7 +273,7 @@ End;
 Procedure Do_Seek(Handle,Pos:Longint);
 Begin
   If sys_lseek(Handle, pos, SEEK_SET)<0 Then
-   Errno2Inoutres 
+   Errno2Inoutres
   Else
    InOutRes:=0;
 End;
@@ -282,7 +282,7 @@ Function Do_SeekEnd(Handle:Longint): Longint;
 begin
   Do_SeekEnd:=sys_lseek(Handle,0,SEEK_END);
   If Do_SeekEnd<0 Then
-   Errno2Inoutres 
+   Errno2Inoutres
   Else
    InOutRes:=0;
 end;
@@ -458,7 +458,7 @@ begin
       Errno2Inoutres;
       Exit
      End
-    Else 
+    Else
      InOutRes:=0;
   repeat
     tmp := dummy+'.'+#0;
@@ -468,7 +468,7 @@ begin
         Errno2Inoutres;
         Exit
       End
-    Else 
+    Else
       InOutRes:=0;
     tmp:=dummy+'..'+#0;
     { open directory stream }
@@ -490,7 +490,7 @@ begin
           Errno2Inoutres;
           Exit
         End
-      Else 
+      Else
         InOutRes:=0;
       { found the entry for this directory name }
       if (cwdinfo.st_dev=thisdir.st_dev) and (cwdinfo.st_ino=thisdir.st_ino) then
@@ -509,7 +509,7 @@ begin
         Errno2Inoutres;
         Exit
       End
-    Else 
+    Else
       InOutRes:=0;
     thedir:=name+thedir;
     dummy:=dummy+'../';
@@ -649,7 +649,10 @@ End.
 *)
 {
  $Log$
- Revision 1.3  2002-08-20 12:50:22  marco
+ Revision 1.4  2002-09-07 16:01:26  peter
+   * old logs removed and tabs fixed
+
+ Revision 1.3  2002/08/20 12:50:22  marco
   * New errno handling. Should be libc compatible.
 
  Revision 1.2  2002/08/10 13:42:36  marco
@@ -664,51 +667,5 @@ End.
 
  Revision 1.1.2.16  2002/02/15 18:13:35  carl
  * bugfix for paramstr(0)
-
- Revision 1.1.2.15  2001/12/03 03:15:15  carl
- * update readdir prototype
-
- Revision 1.1.2.14  2001/09/27 02:24:43  carl
- * correct problem with getting paramstr(0) when in root
-
- Revision 1.1.2.13  2001/08/15 01:05:22  carl
- + add do_truncate()
-
- Revision 1.1.2.12  2001/08/13 09:38:12  carl
- * changed prototype of sys_readdir
- * bugfix of problems of changing signs with errno!
-
- Revision 1.1.2.11  2001/08/13 05:55:43  carl
- - removed some debug code
-
- Revision 1.1.2.10  2001/08/08 02:01:03  carl
- * bugfix of getdir() with root
-
- Revision 1.1.2.9  2001/08/03 02:00:26  carl
- + hack :(... for heap management.
- + correct I/O bug (to test) should be also updated in linux
-
- Revision 1.1.2.8  2001/07/21 19:20:52  carl
- + getdir() implemented
- + MAX_ARGS define now used
-
- Revision 1.1.2.7  2001/07/14 04:18:39  carl
- + started debugging getdir()
-
- Revision 1.1.2.6  2001/07/08 04:46:43  carl
- * correct parameter calls to sigaction
-
- Revision 1.1.2.5  2001/07/08 00:38:04  carl
- + updates
-
- Revision 1.1.2.3  2001/07/06 11:59:58  carl
- * renamed some defines
- * correct includes
-
- Revision 1.1.2.2  2001/07/06 11:42:28  carl
- * modified for more compliance
-
- Revision 1.1.2.1  2001/07/06 11:22:18  carl
- + add files for POSIX
 
 }

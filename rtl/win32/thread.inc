@@ -268,7 +268,10 @@ procedure LeaveCriticalSection(var cs : TRTLCriticalSection);
 
 {
   $Log$
-  Revision 1.9  2002-07-28 20:43:50  florian
+  Revision 1.10  2002-09-07 16:01:29  peter
+    * old logs removed and tabs fixed
+
+  Revision 1.9  2002/07/28 20:43:50  florian
     * several fixes for linux/powerpc
     * several fixes to MT
 
@@ -278,21 +281,4 @@ procedure LeaveCriticalSection(var cs : TRTLCriticalSection);
   Revision 1.7  2002/03/28 16:31:35  armin
   + initialize threadvars defined local in units
 
-  Revision 1.6  2001/10/23 21:51:03  peter
-    * criticalsection renamed to rtlcriticalsection for kylix compatibility
-
-  Revision 1.5  2001/10/09 02:38:39  carl
-  * bugfix #1639 (IsMultiThread varialbe setting)
-
-  Revision 1.4  2001/01/26 21:02:21  florian
-  *** empty log message ***
-
-  Revision 1.3  2001/01/26 16:38:03  florian
-  *** empty log message ***
-
-  Revision 1.2  2001/01/24 21:47:38  florian
-    + more MT stuff added
-
-  Revision 1.1  2001/01/01 19:06:36  florian
-    + initial release
 }

@@ -726,7 +726,7 @@ begin
    end;
 { search the path }
   fsearch:='';
-  
+
   for i:=1 to length(path) do
    if path[i]='/' then
     path[i]:='\';
@@ -734,12 +734,12 @@ begin
   for i:=1 to length(dirlist) do
    if dirlist[i]='/' then
     dirlist[i]:='\';
-  { bugfix here : Win98SE returns a path, when the name is NULL! }  
+  { bugfix here : Win98SE returns a path, when the name is NULL! }
   { so if the name of the file to search is '' then simply exit  }
   { immediately (WinNT behavior is correct).                     }
   if name='' then
     exit;
-    
+
   { allow slash as backslash }
   StringToPchar(name);
   StringToPchar(ext);
@@ -1018,41 +1018,13 @@ begin
 end.
 {
   $Log$
-  Revision 1.13  2002-07-06 11:48:09  carl
+  Revision 1.14  2002-09-07 16:01:28  peter
+    * old logs removed and tabs fixed
+
+  Revision 1.13  2002/07/06 11:48:09  carl
   + fsearch bugfix for Win9X systems
 
   Revision 1.12  2002/05/16 19:32:57  carl
   * fix range check error
-
-  Revision 1.11  2001/11/23 01:35:09  carl
-  * Range check error fix
-
-  Revision 1.10  2001/11/23 00:36:26  carl
-  * updated behavior of some routines to conform to docs
-
-  Revision 1.9  2001/06/13 22:21:53  hajny
-    + platform specific information
-
-  Revision 1.8  2001/03/16 20:09:58  hajny
-    * universal FExpand
-
-  Revision 1.7  2000/12/18 17:28:58  jonas
-    * fixed range check errors
-
-  Revision 1.6  2000/09/06 20:47:34  peter
-    * removed previous fsplit() patch as it's not the correct behaviour for
-      LFNs. The code showing the bug could easily be adapted (merged)
-
-  Revision 1.5  2000/09/04 20:17:54  peter
-    * fixed previous commit (merged)
-
-  Revision 1.4  2000/09/04 19:38:13  peter
-    * fsplit with .. fix from Thomas (merged)
-
-  Revision 1.3  2000/08/24 19:02:36  peter
-    * fsearch checks if file exists first (merged)
-
-  Revision 1.2  2000/07/13 11:33:57  michael
-  + removed logs
 
 }

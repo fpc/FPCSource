@@ -5731,44 +5731,13 @@ const
 
 {
   $Log$
-  Revision 1.5  2002-05-09 08:31:43  carl
+  Revision 1.6  2002-09-07 16:01:30  peter
+    * old logs removed and tabs fixed
+
+  Revision 1.5  2002/05/09 08:31:43  carl
   * Merges from Fixes branch
 
   Revision 1.1.2.5  2002/01/20 23:24:20  pierre
    + add ANTIALIASED_QUALITY bug report 1695
-
-  Revision 1.1.2.4  2001/09/04 01:26:59  carl
-  + added missing PFD_ flags
-
-  Revision 1.1.2.3  2001/04/16 23:08:21  pierre
-   * fixes for bug 1473
-
-  Revision 1.1.2.2  2001/02/09 23:09:21  peter
-    * fixed bugs 1398,1399,1400
-
-  Revision 1.1.2.1  2000/12/30 22:39:59  peter
-    * added cds_fullscreen
-
-  Revision 1.1  2000/07/13 06:31:23  michael
-  + Initial import
-
-  Revision 1.6  2000/06/11 07:04:58  peter
-    * Windows unit has now more Delphi compatibile functions
-    * placed the external functions only in the interface
-
-  Revision 1.5  2000/03/14 10:20:19  michael
-  + Added constants and types for Delphi compatibility
-
-  Revision 1.4  2000/02/09 16:59:35  peter
-    * truncated log
-
-  Revision 1.3  2000/01/07 16:41:54  daniel
-    * copyright 2000
-
-  Revision 1.2  2000/01/07 16:32:35  daniel
-    * copyright 2000 added
-
-  Revision 1.1  1999/09/16 13:38:22  peter
-    * windows unit include moved to wininc/
 
 }

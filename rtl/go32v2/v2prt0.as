@@ -935,71 +935,9 @@ ___PROXY_LEN:
 
 /*
   $Log$
-  Revision 1.4  2002-02-03 09:51:41  peter
+  Revision 1.5  2002-09-07 16:01:19  peter
+    * old logs removed and tabs fixed
+
+  Revision 1.4  2002/02/03 09:51:41  peter
     * merged winxp fixes
 
-  Revision 1.3  2001/08/21 13:12:22  florian
-    * reverted to previous version
-
-  Revision 1.1  2000/07/13 06:30:40  michael
-  + Initial import
-
-  Revision 1.15  2000/07/11 09:37:55  pierre
-   * get it to compile with AS v 2.10
-
-  Revision 1.14  2000/05/18 06:40:52  pierre
-   * avoid FPU exception on startup if no coprocessor and loaded from another DPMI program
-
-  Revision 1.13  2000/04/06 13:05:15  pierre
-   * bug fix for 915, hopefully
-
-  Revision 1.12  2000/02/28 11:17:48  pierre
-   * remove Jonas unnecessary (but correct) code
-
-  Revision 1.11  2000/02/27 11:21:17  pierre
-   * Enormous bug in mouse fix fixed
-
-  Revision 1.10  2000/02/23 12:46:11  jonas
-    * restored my fix (CVS screwed up the previous versinos because of wrong line
-       breaks)
-
-  Revision 1.7  2000/02/16 13:24:55  pierre
-   * Mouse crash bug fixed !!!
-
-  Revision 1.6  1999/07/10 23:17:15  pierre
-   merged from fixes branch
-
-  Revision 1.5.2.1  1999/07/10 23:15:02  pierre
-   * fixes problem with putenv.c
-
-  Revision 1.5  1999/03/01 15:40:53  peter
-    * use external names
-    * removed all direct assembler modes
-
-  Revision 1.4  1999/02/19 12:25:37  pierre
-    + ___v2prt0_rmcb_regs in text section for Windows NT
-    + catch of calls into zero page for Windows 95
-      (creates Run Time error 216 or SIGILL exception
-      if dpmiexcp is loaded !)
-
-  Revision 1.3  1999/01/05 10:44:59  pierre
-   * suppressed fwaits to avoid FPU not present exceptions
-
-  Revision 1.2  1998/12/21 14:14:21  pierre
-  added some c vars needed to avoid loading od crt1.o
-
-  Revision 1.1  1998/12/21 13:07:03  peter
-    * use -FE
-
-  Revision 1.4  1998/10/14 21:28:45  peter
-    * initialize fpu so sigfpe is finally generated for fpu errors
-
-  Revision 1.3  1998/08/19 10:56:35  pierre
-    + added some special code for C interface
-      to avoid loading of crt1.o or dpmiexcp.o from the libc.a
-
-  Revision 1.2  1998/05/22 00:39:38  peter
-    * go32v1, go32v2 recompiles with the new objects
-    * remake3 works again with go32v2
-    - removed some "optimizes" from daniel which were wrong
-*/

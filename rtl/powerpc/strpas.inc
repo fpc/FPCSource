@@ -50,7 +50,10 @@ end ['R0','R3','R4','R10','R11','CR0','CTR'];
 
 {
   $Log$
-  Revision 1.5  2002-08-18 22:11:10  florian
+  Revision 1.6  2002-09-07 16:01:26  peter
+    * old logs removed and tabs fixed
+
+  Revision 1.5  2002/08/18 22:11:10  florian
     * fixed remaining assembler errors
 
   Revision 1.4  2002/08/18 21:37:48  florian
@@ -60,17 +63,4 @@ end ['R0','R3','R4','R10','R11','CR0','CTR'];
     * various fixes, mostly changing the names of the modifies registers to
       upper case since that seems to be required by the compiler
 
-  Revision 1.2  2001/09/28 13:23:44  jonas
-    * small optimization
-
-  Revision 1.1  2001/09/27 15:30:29  jonas
-    * conversion to compilerproc and to structure used by i386 rtl
-    * some bugfixes
-    * powerpc.inc is almost complete (only fillchar/word/dword, get_frame etc
-      and the class helpers are still needed
-    - removed unnecessary register saving in set.inc (thanks to compilerproc)
-    * use registers reserved for parameters as much as possible instead of
-      those reserved for local vars (since those have to be saved by the
-      called anyway, while the ones for local vars have to be saved by the
-      callee)
 }

@@ -601,30 +601,7 @@ initialization
 end.
 {
   $Log$
-  Revision 1.6  2001-11-19 13:56:57  jonas
-      * fixed libvga_ClrViewProc (it didn't reset the coords to (0,0))
-        (merged)
-
-  Revision 1.5  2001/04/13 23:49:48  peter
-    * fixes for the stricter compiler
-
-  Revision 1.4  2001/01/21 20:21:40  marco
-   * Rename fest II. Rtl OK
-
-  Revision 1.3  2000/10/12 09:38:34  peter
-    * renamed to be 8.3
-
-  Revision 1.2  2000/09/18 13:14:50  marco
-   * Global Linux +bsd to (rtl/freebsd rtl/unix rtl/linux structure)
-
-  Revision 1.4  2000/08/25 12:31:05  jonas
-    * fixed problem with messed-up terminal after exiting (merged from
-      fixes branch)
-
-  Revision 1.3  2000/07/31 12:30:54  jonas
-    * You can now set colors > 15 (merged from fixes branch)
-
-  Revision 1.2  2000/07/13 11:33:48  michael
-  + removed logs
+  Revision 1.7  2002-09-07 16:01:27  peter
+    * old logs removed and tabs fixed
 
 }

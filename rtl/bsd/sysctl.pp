@@ -23,9 +23,9 @@ Interface
 {$Packrecords C}
 type psize_t=^size_t;
 
-{ 
+{
  * Copyright (c) 1989, 1993
- *	The Regents of the University of California.  All rights reserved.
+ *      The Regents of the University of California.  All rights reserved.
  *
  * This code is derived from software contributed to Berkeley by
  * Mike Karels at Berkeley Software Design, Inc.
@@ -40,8 +40,8 @@ type psize_t=^size_t;
  *    documentation and/or other materials provided with the distribution.
  * 3. All advertising materials mentioning features or use of this software
  *    must display the following acknowledgement:
- *	This product includes software developed by the University of
- *	California, Berkeley and its contributors.
+ *      This product includes software developed by the University of
+ *      California, Berkeley and its contributors.
  * 4. Neither the name of the University nor the names of its contributors
  *    may be used to endorse or promote products derived from this software
  *    without specific prior written permission.
@@ -58,15 +58,15 @@ type psize_t=^size_t;
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- *	@(#)sysctl.h	8.1 (Berkeley) 6/2/93
+ *      @(#)sysctl.h    8.1 (Berkeley) 6/2/93
  * $FreeBSD: src/sys/sys/sysctl.h,v 1.81.2.8 2002/03/17 11:08:38 alfred Exp $
  }
 
 
 TYPE    CtlNameRec = Record
-		      Name: ansistring; {String[LongestStringInCtlNames]}
-		      CtlType:cint;
-		      end;	
+                      Name: ansistring; {String[LongestStringInCtlNames]}
+                      CtlType:cint;
+                      end;
 
 
 {$I sysctlh.inc}
@@ -92,53 +92,56 @@ CONST  syscall_nr___sysctl                    = 202;
 function sys_sysctl (Name: pchar; namelen:cuint; oldp:pointer;oldlenp:psize_t; newp:pointer;newlen:size_t):cint;
 
 Begin
-	if (name[0] <> chr(CTL_USER)) Then
-	   exit(do_syscall(syscall_nr___sysctl,longint(name), namelen, longint(oldp), longint(oldlenp), longint(newp), longint(newlen)))
-	else
-	 Exit(0);
+        if (name[0] <> chr(CTL_USER)) Then
+           exit(do_syscall(syscall_nr___sysctl,longint(name), namelen, longint(oldp), longint(oldlenp), longint(newp), longint(newlen)))
+        else
+         Exit(0);
 End;
 
 function sys_sysctlbyname (Name: pchar; oldp:pointer;oldlenp:psize_t; newp:pointer;newlen:size_t):cint;
 Var
-	name2oid_oid 	: array[0..1] of cint;
-	real_oid     	: array[0..CTL_MAXNAME+1] of cint;
-	error 	     	: cint;
-	oidlen 		: size_t;
+        name2oid_oid    : array[0..1] of cint;
+        real_oid        : array[0..CTL_MAXNAME+1] of cint;
+        error           : cint;
+        oidlen          : size_t;
 Begin
-	name2oid_oid[0] := 0;	{This is magic & undocumented! }
-	name2oid_oid[1] := 3;
+        name2oid_oid[0] := 0;   {This is magic & undocumented! }
+        name2oid_oid[1] := 3;
 
-	oidlen := sizeof(real_oid);
-	error := sys_sysctl(@name2oid_oid, 2, @real_oid, @oidlen, name,
-		       strlen(name));
-	if (error < 0)  Then
-		Exit(error);
-	oidlen := Oidlen DIV sizeof (cint);
-	error := sys_sysctl(@real_oid, oidlen, oldp, oldlenp, newp, newlen);
-	exit(error);
+        oidlen := sizeof(real_oid);
+        error := sys_sysctl(@name2oid_oid, 2, @real_oid, @oidlen, name,
+                       strlen(name));
+        if (error < 0)  Then
+                Exit(error);
+        oidlen := Oidlen DIV sizeof (cint);
+        error := sys_sysctl(@real_oid, oidlen, oldp, oldlenp, newp, newlen);
+        exit(error);
 End;
 
 function sys_sysctlnametomib (Name: pchar; mibp:plongint;sizep:psize_t):cint;
-Var	oid   : array[0..1] OF cint;
-	error : cint;
+Var     oid   : array[0..1] OF cint;
+        error : cint;
 
 Begin
-	oid[0] := 0;
-	oid[1] := 3;
-	sizep^:=sizep^*sizeof(cint);
-	error := sys_sysctl(@oid, 2, mibp, sizep, name, strlen(name));
-	sizep^ := sizep^ div sizeof (cint);
-        
-	if (error < 0)  Then
-		Exit (error);
-	sys_sysctlnametomib:=0;
+        oid[0] := 0;
+        oid[1] := 3;
+        sizep^:=sizep^*sizeof(cint);
+        error := sys_sysctl(@oid, 2, mibp, sizep, name, strlen(name));
+        sizep^ := sizep^ div sizeof (cint);
+
+        if (error < 0)  Then
+                Exit (error);
+        sys_sysctlnametomib:=0;
 End;
 
 end.
 
-{ 
+{
   $Log$
-  Revision 1.2  2002-08-19 12:29:11  marco
+  Revision 1.3  2002-09-07 16:01:17  peter
+    * old logs removed and tabs fixed
+
+  Revision 1.2  2002/08/19 12:29:11  marco
    * First working POSIX *BSD system unit.
 
   Revision 1.1  2002/08/08 11:39:30  marco

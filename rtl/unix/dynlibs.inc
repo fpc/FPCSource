@@ -4,7 +4,7 @@
     Copyright (c) 1999-2000 by the Free Pascal development team
 
     Implement OS-dependent part of dynamic library loading.
-    
+
     See the file COPYING.FPC, included in this distribution,
     for details about the copyright.
 
@@ -56,10 +56,7 @@ end;
 
 {
   $Log$
-  Revision 1.1  2000-09-18 13:14:50  marco
-   * Global Linux +bsd to (rtl/freebsd rtl/unix rtl/linux structure)
-
-  Revision 1.1  2000/08/18 19:15:34  michael
-  + Implemented loading of dynamical libraries
+  Revision 1.2  2002-09-07 16:01:27  peter
+    * old logs removed and tabs fixed
 
 }

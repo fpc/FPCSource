@@ -57,11 +57,11 @@ type
   BLENDFUNCTION = _BLENDFUNCTION;
 
   _WIN_CERTIFICATE =  Packed Record
-		       dwLength 	: DWord;
-		       wRevision	: Word;
-		       wCertificateType	: Word;
-		       bCertificate	: Array[0..0] of Byte;
-		      End;
+                       dwLength         : DWord;
+                       wRevision        : Word;
+                       wCertificateType : Word;
+                       bCertificate     : Array[0..0] of Byte;
+                      End;
   TWinCertificate = _WIN_CERTIFICATE;
   PWinCertificate = ^TWinCertificate;
 
@@ -912,22 +912,11 @@ function HResultFromNT(x : Longint) : HRESULT;
 
 {
   $Log$
-  Revision 1.7  2002-03-23 20:13:53  marco
+  Revision 1.8  2002-09-07 16:01:31  peter
+    * old logs removed and tabs fixed
+
+  Revision 1.7  2002/03/23 20:13:53  marco
    * Some macro functions fixed. Didn't commit win32platform first because
       of mandatory init.
 
-  Revision 1.6  2001/12/10 12:31:15  jonas
-    * fixed GetDiskFreeSpaceEx* declarations (merged)
-
-  Revision 1.5  2001/08/19 09:27:52  florian
-    + a lot of constants added
-
-  Revision 1.4  2001/07/30 21:06:06  peter
-    * added SetWaitableTimer
-
-  Revision 1.3  2001/07/30 12:02:51  marco
-   * Added WinCertificate
-
-  Revision 1.2  2000/07/13 11:34:00  michael
-  + removed logs
 }

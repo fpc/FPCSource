@@ -243,7 +243,7 @@
 {$endif}
 
      UCHAR = byte;
-     WCHAR = System.wchar;	{Now in Systemh}
+     WCHAR = System.wchar;      {Now in Systemh}
 
      UINT   = cardinal;
      ULONG  = cardinal;
@@ -944,29 +944,11 @@ type
 
 {
   $Log$
-  Revision 1.9  2002-07-16 13:52:14  florian
+  Revision 1.10  2002-09-07 16:01:30  peter
+    * old logs removed and tabs fixed
+
+  Revision 1.9  2002/07/16 13:52:14  florian
     * LARGE_INT and ULARGE_INT types fixed
     * LONGLONG defined properly
-
-  Revision 1.8  2001/07/30 14:35:13  marco
-   * wchar now system.wchar
-
-  Revision 1.7  2001/07/30 14:08:57  marco
-   * plpstr and plpwstr added
-
-  Revision 1.6  2001/06/27 21:37:39  peter
-    * v10 merges
-
-  Revision 1.5  2000/12/18 17:28:58  jonas
-    * fixed range check errors
-
-  Revision 1.4  2000/10/11 16:05:56  peter
-    * stdcall for callbacks (merged)
-
-  Revision 1.3  2000/08/16 18:35:19  peter
-    * removed word=word declaration
-
-  Revision 1.2  2000/07/13 11:33:58  michael
-  + removed logs
 
 }

@@ -131,15 +131,10 @@ type
 
 {
   $Log$
-  Revision 1.6  2002-07-29 17:50:02  florian
+  Revision 1.7  2002-09-07 16:01:20  peter
+    * old logs removed and tabs fixed
+
+  Revision 1.6  2002/07/29 17:50:02  florian
     + added register location description for ppc
-
-  Revision 1.5  2001/06/03 20:19:09  peter
-    * FSStat to StatFS
-    * StatFS structure to TStatFS
-
-  Revision 1.4  2001/06/02 00:31:30  peter
-    * merge unix updates from the 1.0 branch, mostly related to the
-      solaris target
 
 }

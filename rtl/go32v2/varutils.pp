@@ -40,15 +40,8 @@ end.
 
 {
   $Log$
-  Revision 1.2  2001-08-19 21:02:01  florian
-    * fixed and added a lot of stuff to get the Jedi DX( headers
-      compiled
-
-  Revision 1.1  2000/08/29 18:21:58  michael
-  + new include files
-
-  Revision 1.1  2000/08/29 18:20:13  michael
-  + new include files
+  Revision 1.3  2002-09-07 16:01:19  peter
+    * old logs removed and tabs fixed
 
 }
 

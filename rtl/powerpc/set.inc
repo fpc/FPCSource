@@ -523,7 +523,10 @@ end;
 
 {
   $Log$
-  Revision 1.14  2002-08-18 22:11:10  florian
+  Revision 1.15  2002-09-07 16:01:26  peter
+    * old logs removed and tabs fixed
+
+  Revision 1.14  2002/08/18 22:11:10  florian
     * fixed remaining assembler errors
 
   Revision 1.13  2002/08/18 21:37:48  florian
@@ -536,47 +539,5 @@ end;
   Revision 1.11  2002/07/28 20:43:49  florian
     * several fixes for linux/powerpc
     * several fixes to MT
-
-  Revision 1.10  2001/09/28 13:27:02  jonas
-    * use rlwnm instead of slw, because, although the programming
-      environments manual states otherwise, slw uses the whole contents of
-      the register instead of bits 27-31 as shift count (rlwnm doesn't)
-    * fixed generation of offset inside normal sets where bits have to be
-      inserted
-
-  Revision 1.9  2001/09/27 15:30:29  jonas
-    * conversion to compilerproc and to structure used by i386 rtl
-    * some bugfixes
-    * powerpc.inc is almost complete (only fillchar/word/dword, get_frame etc
-      and the class helpers are still needed
-    - removed unnecessary register saving in set.inc (thanks to compilerproc)
-    * use registers reserved for parameters as much as possible instead of
-      those reserved for local vars (since those have to be saved by the
-      called anyway, while the ones for local vars have to be saved by the
-      callee)
-
-  Revision 1.8  2001/07/07 12:46:12  jonas
-    * some small bugfixes and cache optimizations
-
-  Revision 1.7  2001/03/03 13:54:26  jonas
-    * changed 'bdnzeq  cr0' to 'bdnzt  cr0*4+eq'
-
-  Revision 1.6  2000/10/07 14:42:16  jonas
-    * Fixed small error and did a small optimization
-
-  Revision 1.5  2000/09/26 14:22:13  jonas
-    * one more bug corrected
-
-  Revision 1.4  2000/09/26 14:19:04  jonas
-    * fixed several small bugs
-    * fixed several typo's in the comments
-
-  Revision 1.3  2000/09/22 10:03:18  jonas
-    + implementation for FPC_SET_SET_RANGE
-    * changed some routines so they never read data from after the actual
-      set (could cause sigsegv's if the set is at the end of the heap)
-
-  Revision 1.2  2000/07/13 11:33:56  michael
-  + removed logs
 
 }

@@ -75,8 +75,7 @@ end;
 
 {
   $Log$
-  Revision 1.1  2001-10-28 14:08:57  jonas
-    + initial implementation, complete, not tested
-
+  Revision 1.2  2002-09-07 16:01:26  peter
+    * old logs removed and tabs fixed
 
 }

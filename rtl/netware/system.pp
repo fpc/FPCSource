@@ -33,7 +33,12 @@ interface
 {$I systemh.inc}
 
 {Platform specific information}
-const LineEnding = #13#10; LFNSupport = false; { ??? - that's how it was declared in dos.pp! } DirectorySeparator = '\'; DriveSeparator = ':'; PathSeparator = ';';
+const
+ LineEnding = #13#10;
+ LFNSupport = false; { ??? - that's how it was declared in dos.pp! }
+ DirectorySeparator = '\';
+ DriveSeparator = ':';
+ PathSeparator = ';';
 { FileNameCaseSensitive is defined separately below!!! }
 
 type
@@ -62,7 +67,7 @@ CONST
 
    sLineBreak = LineEnding;
    DefaultTextLineBreakStyle : TTextLineBreakStyle = tlbsCRLF;
-   
+
 TYPE
    TNWCheckFunction = procedure (var code : longint);
 
@@ -72,19 +77,21 @@ VAR
    NetwareCheckFunction    : TNWCheckFunction;
    NetwareMainThreadGroupID: longint;
 
-CONST   
+CONST
    envp   : ppchar = nil;   {dummy to make heaptrc happy}
-   
-   
+
+
 PROCEDURE ConsolePrintf (FormatStr : PCHAR; Param : LONGINT); CDecl;
 PROCEDURE ConsolePrintf3 (FormatStr : PCHAR; P1,P2,P3 : LONGINT);  CDecl;
 PROCEDURE ConsolePrintf (FormatStr : PCHAR);  CDecl;
-   
+
 
 implementation
-{ Indicate that stack checking is taken care by OS}{$DEFINE NO_GENERIC_STACK_CHECK}
+{ Indicate that stack checking is taken care by OS}
+{$DEFINE NO_GENERIC_STACK_CHECK}
 
-{ include system independent routines }{$I system.inc}
+{ include system independent routines }
+{$I system.inc}
 
 { some declarations for Netware API calls }
 {$I nwsys.inc}
@@ -92,11 +99,13 @@ implementation
 
 {procedure setup_arguments;
 begin
-end;}
+end;
+}
 
 {procedure setup_environment;
 begin
-end;}
+end;
+}
 
 
 
@@ -143,7 +152,7 @@ begin
   begin
     if ExitCode <> 0 Then   { otherwise we dont see runtime-errors }
       PressAnyKeyToContinue;
-  
+
     _exit (ExitCode);
   end;
 end;
@@ -153,8 +162,12 @@ end;
 *****************************************************************************}
 procedure int_stackcheck(stack_size:longint);[public,alias:'FPC_STACKCHECK'];
 {
-  called when trying to get local stack if the compiler directive $S  is set this function must preserve esi !!!! because esi is set by  the calling proc for methods it must preserve all registers !!
-  With a 2048 byte safe area used to write to StdIo without crossing  the stack boundary
+  called when trying to get local stack if the compiler directive $S
+  is set this function must preserve esi !!!! because esi is set by
+  the calling proc for methods it must preserve all registers !!
+
+  With a 2048 byte safe area used to write to StdIo without crossing
+  the stack boundary
 }
 begin
   IF _stackavail > stack_size + 2048 THEN EXIT;
@@ -246,7 +259,7 @@ begin
     end;
     inc (HeapSbrkLastUsed);
     HeapSbrkBlockList^[HeapSbrkLastUsed] := P;
-  end; 
+  end;
 end;
 
 
@@ -261,7 +274,7 @@ begin
     HeapSbrkAllocated := 0;
     HeapSbrkLastUsed := 0;
     HeapSbrkBlockList := nil;
-  end;    
+  end;
 end;
 
 { include standard heap management }
@@ -711,7 +724,7 @@ var oldTG : longint;
     oldPtr: pointer;
 begin
   oldTG := _SetThreadGroupID (NetwareMainThreadGroupID); { this is only needed for nw 3.11 }
-  
+
   { _GetThreadDataAreaPtr will not be valid because the signal
     handler is called by netware with a differnt thread. To avoid
     problems in the exit routines, we set the data of the main thread
@@ -729,7 +742,8 @@ end;
                          SystemUnit Initialization
 *****************************************************************************}
 
-Begin   StackBottom := SPtr - StackLength;
+Begin
+   StackBottom := SPtr - StackLength;
 {$ifdef MT}
   { the exceptions use threadvars so do this _before_ initexceptions }
   AllocateThreadVars;
@@ -737,7 +751,7 @@ Begin   StackBottom := SPtr - StackLength;
   SigTermHandlerActive := false;
   NetwareCheckFunction := nil;
   NetwareMainThreadGroupID := _GetThreadGroupID;
-  
+
   _Signal (_SIGTERM, @TermSigHandler);
 
 { Setup heap }
@@ -752,16 +766,17 @@ Begin   StackBottom := SPtr - StackLength;
   OpenStdIO(Input,fmInput,StdInputHandle);
   OpenStdIO(Output,fmOutput,StdOutputHandle);
   OpenStdIO(StdOut,fmOutput,StdOutputHandle);
-  
+
   {$ifdef StdErrToConsole}
   AssignStdErrConsole(StdErr);
   {$else}
   OpenStdIO(StdErr,fmOutput,StdErrorHandle);
   {$endif}
-  
+
 { Setup environment and arguments }
   {Setup_Environment;
-  Setup_Arguments;}
+  Setup_Arguments;
+}
 { Reset IO Error }
   InOutRes:=0;
   {Delphi Compatible}
@@ -771,7 +786,10 @@ Begin   StackBottom := SPtr - StackLength;
 End.
 {
   $Log$
-  Revision 1.13  2002-07-01 16:29:05  peter
+  Revision 1.14  2002-09-07 16:01:21  peter
+    * old logs removed and tabs fixed
+
+  Revision 1.13  2002/07/01 16:29:05  peter
     * sLineBreak changed to normal constant like Kylix
 
   Revision 1.12  2002/04/15 18:47:34  carl
@@ -794,25 +812,5 @@ End.
 
   Revision 1.7  2002/03/17 17:57:33  armin
   + threads and winsock2 implemented
-
-  Revision 1.5  2001/06/18 14:26:16  jonas
-    * move platform independent constant declarations after inclusion of
-      systemh.inc
-
-  Revision 1.4  2001/06/13 22:20:11  hajny
-    + platform specific information
-
-  Revision 1.3  2001/04/16 18:39:50  florian
-    * updates from Armin commited
-
-  Revision 1.2  2001/04/11 14:17:00  florian
-    * added logs, fixed email address of Armin, it is
-      diehl@nordrhein.de
-
-  Revision 1.1  2001/04/11 14:14:12  florian
-    * initial commit, thanks to Armin Diehl (diehl@nordrhein.de)
-
-  Revision 1.2  2000/07/13 11:33:56  michael
-  + removed logs
 
 }

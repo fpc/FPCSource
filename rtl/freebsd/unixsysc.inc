@@ -638,8 +638,10 @@ begin
      sa.handler.sh:=handler;
      FillChar(sa.sa_mask,sizeof(sigset),#0);
      sa.sa_flags := 0;
-{     if (sigintr and signum) =0 then {restart behaviour needs libc}
-      sa.sa_flags :=sa.sa_flags or SA_RESTART;}
+{     if (sigintr and signum) =0 then
+ {restart behaviour needs libc}
+      sa.sa_flags :=sa.sa_flags or SA_RESTART;
+}
      sigaction(signum,@sa,@osa);
      if ErrNo<>0 then
       signal:=NIL
@@ -652,34 +654,34 @@ end;
 
 function  Clone(func:TCloneFunc;sp:pointer;flags:longint;args:pointer):longint; assembler;
 asm
-	pushl	%esi
-	movl	12(%ebp), %esi	// get stack addr
-	subl	$4, %esi
-	movl	20(%ebp), %eax	// get __arg
-	movl	%eax, (%esi)
-	subl	$4, %esi
-	movl	8(%ebp), %eax	// get __fn
-	movl	%eax, (%esi)
-	pushl	16(%ebp)
-	pushl	%esi
-	mov	syscall_nr_rfork, %eax
-	int     $0x80                  // call actualsyscall
-	jb 	.L2
-	test    %edx, %edx
-	jz	.L1
-	movl	%esi,%esp
-	popl	%eax
-	call	%eax
-	addl	$8, %esp
-        call	halt		// Does not return
-.L2:	
-	mov	%eax,ErrNo
-	mov	$-1,%eax
-	jmp     .L1
-//	jmp	PIC_PLT(HIDENAME(cerror))
+        pushl   %esi
+        movl    12(%ebp), %esi  // get stack addr
+        subl    $4, %esi
+        movl    20(%ebp), %eax  // get __arg
+        movl    %eax, (%esi)
+        subl    $4, %esi
+        movl    8(%ebp), %eax   // get __fn
+        movl    %eax, (%esi)
+        pushl   16(%ebp)
+        pushl   %esi
+        mov     syscall_nr_rfork, %eax
+        int     $0x80                  // call actualsyscall
+        jb      .L2
+        test    %edx, %edx
+        jz      .L1
+        movl    %esi,%esp
+        popl    %eax
+        call    %eax
+        addl    $8, %esp
+        call    halt            // Does not return
+.L2:
+        mov     %eax,ErrNo
+        mov     $-1,%eax
+        jmp     .L1
+//      jmp     PIC_PLT(HIDENAME(cerror))
 .L1:
-	addl	$8, %esp
-	popl	%esi
+        addl    $8, %esp
+        popl    %esi
 end;
 
 {$packrecords C}
@@ -687,38 +689,38 @@ end;
 TYPE uint=CARDINAL;
 
 CONST
-        I386_GET_LDT	=0;
-        I386_SET_LDT	=1;
-				{ I386_IOPL }
-        I386_GET_IOPERM	=3;
-        I386_SET_IOPERM	=4;
-				{ xxxxx }
-        I386_VM86	=6;
+        I386_GET_LDT    =0;
+        I386_SET_LDT    =1;
+                                { I386_IOPL }
+        I386_GET_IOPERM =3;
+        I386_SET_IOPERM =4;
+                                { xxxxx }
+        I386_VM86       =6;
 
 {
 type i386_ldt_args = record
-	int	start : longint;
-	union	descriptor *descs;
-	int	num;
-	end; 
+        int     start : longint;
+        union   descriptor *descs;
+        int     num;
+        end;
 }
 type
  i386_ioperm_args = record
-	start	 : uint;
-	length   : uint;
-	enable	 : longint;
-	end;
+        start    : uint;
+        length   : uint;
+        enable   : longint;
+        end;
 
 
     i386_vm86_args = record
-	sub_op   : longint;		{ sub-operation to perform }
-	sub_args : pchar;		{ args }
-	end;
+        sub_op   : longint;             { sub-operation to perform }
+        sub_args : pchar;               { args }
+        end;
 
    sysarch_args     = record
-     		     	op    : longint;
-   			parms : pchar;
-   		       end;
+                        op    : longint;
+                        parms : pchar;
+                       end;
 
 {
 int i386_get_ldt __P((int, union descriptor *, int));
@@ -733,9 +735,9 @@ int i386_clr_watch __P((int watchnum, struct dbreg * d));
 
 Function IOPerm(From,Num:CARDINAL;Value:Longint):boolean;
 
-var sg : i386_ioperm_args; 
+var sg : i386_ioperm_args;
     sa : sysarch_args;
-    
+
 begin
   sg.start:=From;
   sg.length:=Num;
@@ -765,32 +767,28 @@ End;
 Function Alarm(Sec: Longint):Longint;
 
 Var it,oitv : Itimerval;
-    
+
 Begin
-//	register struct itimerval *itp = &it;
-  
- it.it_interval.sec:=0; 
+//      register struct itimerval *itp = &it;
+
+ it.it_interval.sec:=0;
  it.it_interval.usec:=0;
- it.it_value.sec:=sec; 
+ it.it_value.sec:=sec;
  it.it_value.usec:=0;
  If SetITimer(ITIMER_REAL,it,oitv)<0 Then
    Exit(-1);
- 
+
  if oitv.it_value.usec<>0 Then
    Inc(oitv.it_value.sec);
  Alarm:=oitv.it_value.sec;
-End; 
+End;
 
 {
   $Log$
-  Revision 1.4  2002-05-06 09:35:09  marco
+  Revision 1.5  2002-09-07 16:01:18  peter
+    * old logs removed and tabs fixed
+
+  Revision 1.4  2002/05/06 09:35:09  marco
    * Some stuff from 1.0.x ported
-
-  Revision 1.3  2001/06/19 08:59:01  marco
-   * Fixes from Unix merge and changes of socketh.inc
-
-  Revision 1.2  2001/06/02 00:31:30  peter
-    * merge unix updates from the 1.0 branch, mostly related to the
-      solaris target
 
 }

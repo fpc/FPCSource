@@ -188,16 +188,7 @@ end;
 
 {
   $Log$
-  Revision 1.5  2001-11-08 12:56:47  michael
-  + Replaced OSDirSeparator with PathDelim
+  Revision 1.6  2002-09-07 16:01:22  peter
+    * old logs removed and tabs fixed
 
-  Revision 1.4  2001/01/21 20:21:40  marco
-   * Rename fest II. Rtl OK
-
-  Revision 1.3  2000/11/13 14:41:20  marco
-   * Unix renamefest for defines
-
-  Revision 1.2  2000/07/13 11:33:51  michael
-  + removed logs
- 
 }

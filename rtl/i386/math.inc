@@ -197,21 +197,7 @@
 
 {
   $Log$
-  Revision 1.7  2001-12-26 21:03:56  peter
-    * merged fixes from 1.0.x
+  Revision 1.8  2002-09-07 16:01:19  peter
+    * old logs removed and tabs fixed
 
-  Revision 1.6  2001/07/30 21:38:54  peter
-    * m68k updates merged
-
-  Revision 1.1.2.3  2001/07/29 23:56:28  carl
-  - removed internamth define (always internal)
-
-  Revision 1.1.2.2  2001/04/16 10:56:13  peter
-    * fixes for stricter compiler
-
-  Revision 1.1.2.1  2001/04/03 20:33:01  marco
-   * Quickfixed trunc to int64 for Sebastian.
-
-  Revision 1.1  2000/07/13 06:30:42  michael
-  + Initial import
 }

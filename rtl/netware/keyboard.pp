@@ -13,7 +13,7 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 
  **********************************************************************}
-{ 2001/04/16 armin: first version for netware 
+{ 2001/04/16 armin: first version for netware
   2002/03/03 armin: changes for fpc 1.1 }
 unit Keyboard;
 interface
@@ -85,7 +85,7 @@ Const
       TranslateKeyEvent : Nil;
       TranslateKeyEventUnicode : Nil;
     );
-    
+
 begin
   KeyboardInitialized := false;
   PendingKeyEvent := 0;
@@ -94,8 +94,11 @@ end.
 
 {
   $Log$
-  Revision 1.3  2002-03-08 19:02:59  armin
+  Revision 1.4  2002-09-07 16:01:20  peter
+    * old logs removed and tabs fixed
+
+  Revision 1.3  2002/03/08 19:02:59  armin
   Changes for new style (TKeyboardDriver record)
 
-  
+
 }

@@ -851,45 +851,11 @@ end. { unit Crt }
 
 {
   $Log$
-  Revision 1.16  2002-01-19 11:56:34  peter
+  Revision 1.17  2002-09-07 16:01:28  peter
+    * old logs removed and tabs fixed
+
+  Revision 1.16  2002/01/19 11:56:34  peter
     * fixed clrscr for small windows
     * no turnoffmouse
-
-  Revision 1.15  2001/09/17 21:31:44  peter
-    * enhanced key fix (merged)
-
-  Revision 1.14  2001/08/05 12:23:57  peter
-    * fixed for new input_record
-
-  Revision 1.13  2001/08/01 18:01:20  peter
-    * WChar fix to compile also with 1.0.x
-
-  Revision 1.12  2001/07/30 15:00:54  marco
-   * Fixed unicode reference from word to widechar
-
-  Revision 1.11  2001/07/13 17:43:25  peter
-    * updates from Tomas Schatzl so it works better with w2k virtual
-      consoles
-
-  Revision 1.8  2001/04/14 14:05:42  peter
-    * fixed for stricter checking
-
-  Revision 1.7  2001/04/10 21:28:36  peter
-    * removed warnigns
-
-  Revision 1.6  2001/01/03 21:01:50  florian
-    * fixed the repeat key bug introduced by my last patch
-
-  Revision 1.5  2000/12/15 13:16:30  jonas
-    * fixed range check errors
-
-  Revision 1.4  2000/12/09 13:27:41  florian
-    * web bug 1228 fixed (keypressed ate too muck keys)
-
-  Revision 1.3  2000/09/10 20:17:56  peter
-    * fixed alt-<key>
-
-  Revision 1.2  2000/07/13 11:33:56  michael
-  + removed logs
 
 }

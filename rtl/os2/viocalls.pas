@@ -1150,13 +1150,7 @@ end.
 
 {
   $Log$
-  Revision 1.2  2000-09-24 21:21:28  hajny
-    * TVioCursorInfo enhanced, VioScroll* updated
-
-  Revision 1.1  2000/07/13 06:31:07  michael
-  + Initial import
-
-  Revision 1.7  2000/01/09 21:01:59  hajny
-    * cdecl added
+  Revision 1.3  2002-09-07 16:01:25  peter
+    * old logs removed and tabs fixed
 
 }

@@ -522,13 +522,7 @@ begin
 end.
 {
   $Log$
-  Revision 1.3  2001-06-19 20:46:07  hajny
-    * platform specific constants moved after systemh.inc, BeOS omission corrected
-
-  Revision 1.2  2001/06/13 22:20:10  hajny
-    + platform specific information
-
-  Revision 1.1  2001/06/02 19:26:03  peter
-    * BeOS target!
+  Revision 1.4  2002-09-07 16:01:17  peter
+    * old logs removed and tabs fixed
 
 }

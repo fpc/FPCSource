@@ -50,7 +50,6 @@ Lexit:
         ret
 /*
   $Log$
-  Revision 1.2  2001-04-08 16:49:42  florian
-    * fixed a wrong prefix
+  Revision 1.3  2002-09-07 16:01:18  peter
+    * old logs removed and tabs fixed
 
-*/

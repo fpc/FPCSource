@@ -38,7 +38,7 @@ Uses Windows;
     shellapi.h -  SHELL.DLL functions, types, and definitions
     Copyright (c) Microsoft Corporation. All rights reserved.             }
 
-Type   HDROP	= THandle;
+Type   HDROP    = THandle;
        UINT_PTR = ^UINT;
        DWORD_PTR= ^DWORD;
        pHICON   = ^HICON;
@@ -81,7 +81,7 @@ Function DragQueryFile(arg1 : HDROP; arg2 : UINT;arg3 : LPSTR ; arg4 : UINT):UIN
 Function DragQueryFile(arg1 : HDROP; arg2 : UINT;arg3 : LPWSTR; arg4 : UINT):UINT;external 'shell32.dll' name 'DragQueryFileW';
 {$endif}
 Function DragQueryPoint(arg1 : HDROP; arg2 :LPPOINT):BOOL; external 'shell32.dll' name 'DragQueryPoint';
-Procedure DragFinish(arg1 : HDROP); 			external 'shell32.dll' name 'DragFinish';
+Procedure DragFinish(arg1 : HDROP);                     external 'shell32.dll' name 'DragFinish';
 Procedure DragAcceptFiles(hwnd : HWND;arg2: BOOL);      external 'shell32.dll' name 'DragAcceptFiles';
 
 Function ShellExecuteA(HWND: hwnd;lpOperation : LPCSTR ; lpFile : LPCSTR ; lpParameters : LPCSTR; lpDirectory:  LPCSTR; nShowCmd:LONGINT):HInst; external 'shell32.dll' name 'ShellExecuteA';
@@ -134,12 +134,12 @@ Type
     { init with sizeof(DRAGINFO)  }
 
        _DRAGINFOA = Record
-            	     uSize 	 : UINT;
-            	     pt 	 : POINT;
-            	     fNC 	 : BOOL;
-            	     lpFileList  : LPSTR;
-            	     grfKeyState : DWORD;
-         	   end;
+                     uSize       : UINT;
+                     pt          : POINT;
+                     fNC         : BOOL;
+                     lpFileList  : LPSTR;
+                     grfKeyState : DWORD;
+                   end;
        DRAGINFOA   = _DRAGINFOA;
        TDRAGINFOA  = _DRAGINFOA;
        LPDRAGINFOA = ^_DRAGINFOA;
@@ -147,9 +147,9 @@ Type
     { init with sizeof(DRAGINFO)  }
 
        _DRAGINFOW = Record
-            	     uSize       : UINT;
-            	     pt 	 : POINT;
-            	     fNC         : BOOL;
+                     uSize       : UINT;
+                     pt          : POINT;
+                     fNC         : BOOL;
                      lpFileList  : LPWSTR;
                      grfKeyState : DWORD;
                     end;

@@ -899,43 +899,7 @@ End.
 
 {
   $Log$
-  Revision 1.11  2001-12-26 21:03:57  peter
-    * merged fixes from 1.0.x
-
-  Revision 1.10  2001/09/22 11:17:13  peter
-    * Fixed passing of command without parameters to Exec() to not include
-      a space after the executable name
-
-  Revision 1.9  2001/07/30 21:38:55  peter
-    * m68k updates merged
-
-  Revision 1.8  2001/07/12 12:42:39  marco
-   * Fixes to the FreeBSD compability of the datetime patches
-
-  Revision 1.7  2001/07/12 07:20:05  michael
-  + Added setdate/time/datetime functions
-
-  Revision 1.6  2001/06/03 20:19:09  peter
-    * FSStat to StatFS
-    * StatFS structure to TStatFS
-
-  Revision 1.5  2001/06/02 00:31:30  peter
-    * merge unix updates from the 1.0 branch, mostly related to the
-      solaris target
-
-  Revision 1.4  2001/05/06 14:23:21  peter
-    * fixed adddisk
-
-  Revision 1.3  2001/01/21 20:21:40  marco
-   * Rename fest II. Rtl OK
-
-  Revision 1.2  2000/09/18 13:14:50  marco
-   * Global Linux +bsd to (rtl/freebsd rtl/unix rtl/linux structure)
-
-  Revision 1.3  2000/07/14 10:33:10  michael
-  + Conditionals fixed
-
-  Revision 1.2  2000/07/13 11:33:48  michael
-  + removed logs
+  Revision 1.12  2002-09-07 16:01:27  peter
+    * old logs removed and tabs fixed
 
 }

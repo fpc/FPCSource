@@ -51,7 +51,10 @@ ___fpc_brk_addr:
         .long   0
 /*
   $Log$
-  Revision 1.8  2002-08-31 21:29:57  florian
+  Revision 1.9  2002-09-07 16:01:20  peter
+    * old logs removed and tabs fixed
+
+  Revision 1.8  2002/08/31 21:29:57  florian
     * several PC related fixes
 
   Revision 1.7  2002/08/31 16:13:12  florian

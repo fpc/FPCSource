@@ -62,13 +62,7 @@ end;
 
 {
   $Log$
-  Revision 1.2  2000-09-29 21:51:00  jonas
-    * fixed compiling error
-
-  Revision 1.1  2000/08/23 21:04:55  hajny
-    + OS/2 implementation
-
-  Revision 1.1  2000/08/18 19:15:34  michael
-  + Implemented loading of dynamical libraries
+  Revision 1.3  2002-09-07 16:01:24  peter
+    * old logs removed and tabs fixed
 
 }

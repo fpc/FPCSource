@@ -24,7 +24,7 @@
 }
 
 function S_ISDIR(m : mode_t): boolean;
-      
+
 begin
  S_ISDIR:=((m and %001111000000000000) = %100000000000000);
 end;
@@ -38,7 +38,7 @@ function S_ISBLK(m : mode_t): boolean;
 begin
  S_ISBLK:=((m and %001111000000000000) = %110000000000000);
 end;
-    
+
 function S_ISREG(m : mode_t): boolean;
 begin
  S_ISREG:=((m and %001111000000000000) = %1000000000000000);
@@ -48,7 +48,7 @@ function S_ISFIFO(m : mode_t): boolean;
 begin
  S_ISFIFO:=((m and %001111000000000000) = %1000000000000);
 end;
-    
+
 function wifexited(status : cint): cint;
 begin
  wifexited:=cint((status AND %1111111) =0);
@@ -56,12 +56,12 @@ end;
 
 function wexitstatus(status : cint): cint;
 begin
- wexitstatus:=(status and %1111111) shl 8;  	
+ wexitstatus:=(status and %1111111) shl 8;
 end;
 
 function wstopsig(status : cint): cint;
 begin
- wstopsig:=(status and %1111111) shl 8;  	
+ wstopsig:=(status and %1111111) shl 8;
 end;
 
 function wifsignaled(status : cint): cint;
@@ -71,7 +71,10 @@ end;
 
 {
   $Log$
-  Revision 1.1  2002-08-19 12:29:11  marco
+  Revision 1.2  2002-09-07 16:01:17  peter
+    * old logs removed and tabs fixed
+
+  Revision 1.1  2002/08/19 12:29:11  marco
    * First working POSIX *BSD system unit.
 
 

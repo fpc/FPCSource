@@ -677,16 +677,7 @@ end;
 
 {
   $Log$
-  Revision 1.5  2001-12-26 21:03:57  peter
-    * merged fixes from 1.0.x
-
-  Revision 1.4  2001/01/18 22:09:09  michael
-  + Merged fixes from fixbranch - file modes
-
-  Revision 1.3  2000/12/16 15:57:16  jonas
-    * removed 64bit evaluations when range checking is on
-
-  Revision 1.2  2000/07/13 11:33:50  michael
-  + removed logs
+  Revision 1.6  2002-09-07 16:01:22  peter
+    * old logs removed and tabs fixed
 
 }

@@ -1732,10 +1732,7 @@ end.
 
 {
   $Log$
-  Revision 1.1  2000-07-13 06:31:05  michael
-  + Initial import
-
-  Revision 1.9  2000/01/09 21:01:59  hajny
-    * cdecl added
+  Revision 1.2  2002-09-07 16:01:24  peter
+    * old logs removed and tabs fixed
 
 }

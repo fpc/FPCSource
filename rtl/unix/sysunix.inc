@@ -169,7 +169,7 @@ end ['EAX'];
 {$ifdef m68k}
 {$define fpc_getheapsize_ok}
 asm
-	move.l   _HEAPSIZE,d0
+        move.l   _HEAPSIZE,d0
 end ['D0'];
 {$endif m68k}
 {$ifdef powerpc}
@@ -785,7 +785,10 @@ End.
 
 {
   $Log$
-  Revision 1.28  2002-09-02 19:46:37  florian
+  Revision 1.29  2002-09-07 16:01:27  peter
+    * old logs removed and tabs fixed
+
+  Revision 1.28  2002/09/02 19:46:37  florian
     * fixed line breaks
 
   Revision 1.27  2002/08/31 21:29:57  florian
@@ -815,72 +818,5 @@ End.
 
   Revision 1.19  2002/03/11 19:10:33  peter
     * Regenerated with updated fpcmake
-
-  Revision 1.18  2001/10/14 13:33:21  peter
-    * start of thread support for linux
-
-  Revision 1.17  2001/09/30 21:10:20  peter
-    * erase(directory) returns now 2 to be tp compatible
-
-  Revision 1.16  2001/08/05 12:24:20  peter
-    * m68k merges
-
-  Revision 1.15  2001/07/16 19:51:36  marco
-   * A small note, copied from the Solaris patch. Do_close needs errnotoiores?
-
-  Revision 1.14  2001/07/15 11:57:16  peter
-    * merged m68k updates
-
-  Revision 1.13  2001/07/13 22:05:09  peter
-    * cygwin updates
-
-  Revision 1.12  2001/06/02 19:24:49  peter
-    * chdir rte 2 mapped to 3
-
-  Revision 1.11  2001/06/02 00:31:31  peter
-    * merge unix updates from the 1.0 branch, mostly related to the
-      solaris target
-
-  Revision 1.10  2001/04/23 20:33:31  peter
-    * also install sig handlers for sigill,sigbus
-
-  Revision 1.9  2001/04/13 22:39:05  peter
-    * removed warning
-
-  Revision 1.8  2001/04/12 17:53:43  peter
-    * fixed usage of already release memory in getdir
-
-  Revision 1.7  2001/03/21 21:08:20  hajny
-    * GetDir fixed
-
-  Revision 1.6  2001/03/16 20:09:58  hajny
-    * universal FExpand
-
-  Revision 1.5  2001/02/20 21:31:12  peter
-    * chdir,mkdir,rmdir with empty string fixed
-
-  Revision 1.4  2000/12/17 14:00:57  peter
-    * removed debug writelns
-
-  Revision 1.3  2000/10/09 16:35:51  marco
-   * Fixed the first (of many) ioctls that make building the IDE hard.
-
-  Revision 1.2  2000/09/18 13:14:51  marco
-   * Global Linux +bsd to (rtl/freebsd rtl/unix rtl/linux structure)
-
-  Revision 1.6  2000/09/11 13:48:08  marco
-   * FreeBSD support and removal of old sighandler
-
-  Revision 1.5  2000/08/13 08:43:45  peter
-    * don't check for directory in do_open (merged)
-
-  Revision 1.4  2000/08/05 18:33:51  peter
-    * paramstr(0) fix for linux 2.0 kernels (merged)
-
-  Revision 1.3  2000/07/14 10:33:10  michael
-  + Conditionals fixed
-
-  Revision 1.2  2000/07/13 11:33:49  michael
-  + removed logs
 
 }

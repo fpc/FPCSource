@@ -38,8 +38,8 @@ type
 }
 { The following are records for system calls BSD updated }
   dirent = packed record
-    ino    : cardinal;		{ This is not inode number, but "a number
-				  unique for each file on a filesystem"}
+    ino    : cardinal;          { This is not inode number, but "a number
+                                  unique for each file on a filesystem"}
     reclen : word;
     d_type,
     namlen : byte;
@@ -54,7 +54,7 @@ type
             loc,                { offset in current buffer }
             size  : cardinal;   { amount of data returned by getdirentries}
             buf   : pdirent;    { data buffer, actually a pchar}
-            len   : longint;    { size of data buffer 	}
+            len   : longint;    { size of data buffer   }
             seek,               { magic cookie returned by getdirentries}
             rewind: cardinal;   { magic cookie for rewinding}
             flags : longint;    { flags for readdir }
@@ -79,41 +79,41 @@ type
  Stat =record {BSD version}
         dev        :  dev_t;            { inode's device }
         ino        :  cardinal;         { inode's number }
-        mode, 				{ inode protection mode }
-        nlink	   :  word;             { number of hard links }
-        uid,				{ user ID of the file's owner }
-        gid,				{ group ID of the file's group }
-        dev_t	   :  cardinal;		{ device type }
-	atime,                          { time of last access }
-	atime_nsec,         		{ nsec of last access }
-	mtime,	           		{ time of last data modification }
-	mtime_nsec,         		{ nsec of last data modification }
-	ctime,            		{ time of last file status change }
-	ctime_nsec : longint;      	{ nsec of last file status change }
-	size,           		{ file size, in bytes }
-	blocks     : Int64;		{ blocks allocated for file }
-	blksze,         		{ optimal blocksize for I/O }
-	flags,          		{ user defined flags for file }
-	filegen    : cardinal;		{ file generation number }
-	lspare	   : longint;
-	qspare     : array[0..1] of int64;
+        mode,                           { inode protection mode }
+        nlink      :  word;             { number of hard links }
+        uid,                            { user ID of the file's owner }
+        gid,                            { group ID of the file's group }
+        dev_t      :  cardinal;         { device type }
+        atime,                          { time of last access }
+        atime_nsec,                     { nsec of last access }
+        mtime,                          { time of last data modification }
+        mtime_nsec,                     { nsec of last data modification }
+        ctime,                          { time of last file status change }
+        ctime_nsec : longint;           { nsec of last file status change }
+        size,                           { file size, in bytes }
+        blocks     : Int64;             { blocks allocated for file }
+        blksze,                         { optimal blocksize for I/O }
+        flags,                          { user defined flags for file }
+        filegen    : cardinal;          { file generation number }
+        lspare     : longint;
+        qspare     : array[0..1] of int64;
        end;
 
   PStat=^Stat;
   TStat=Stat;
 
   TStatfs = packed record
-    spare2,	       { place holder}
-    bsize,	       { fundamental block size}
+    spare2,            { place holder}
+    bsize,             { fundamental block size}
     iosize,            { optimal block size }
     blocks,            {  total blocks}
     bfree,             { blocks free}
     bavail,            { block available for mortal users}
-    files,	       { Total file nodes}
-    ffree	   : longint;    { file nodes free}
-    fsid	   : array[0..1] of longint;
-    fowner	   : longint; {mounter uid}
-    ftype	   : longint;
+    files,             { Total file nodes}
+    ffree          : longint;    { file nodes free}
+    fsid           : array[0..1] of longint;
+    fowner         : longint; {mounter uid}
+    ftype          : longint;
     fflags         : longint; {copy of mount flags}
     spare          : array [0..1] of longint; { For later use }
     fstypename     : array[0..15] of char;
@@ -154,34 +154,16 @@ type
   TUTSName=UTSName;
 
   ITimerVal= Record
-	      It_Interval,
-	      It_Value      : TimeVal; 
+              It_Interval,
+              It_Value      : TimeVal;
              end;
 
 {
   $Log$
-  Revision 1.8  2002-05-06 10:49:59  marco
+  Revision 1.9  2002-09-07 16:01:18  peter
+    * old logs removed and tabs fixed
+
+  Revision 1.8  2002/05/06 10:49:59  marco
    * setitimer for 1.1
 
-  Revision 1.7  2001/06/19 08:59:01  marco
-   * Fixes from Unix merge and changes of socketh.inc
-
-  Revision 1.6  2001/06/19 08:34:16  marco
-   * Peter didn't merge the FreeBSD directory when he merged the Unix one. Fixed
-
-  Revision 1.5  2001/01/20 16:52:37  marco
-   * Grr, timeval and timespec were both wrong, and I fixed only one. Now
-  done.
-
-  Revision 1.4  2001/01/20 16:42:49  marco
-   * Fixed the timeval
-
-  Revision 1.3  2000/10/26 23:00:12  peter
-    * fixes merges
-
-  Revision 1.2  2000/09/18 13:42:35  marco
-   * FreeBSD support into 1.1
-
-  Revision 1.4  2000/09/11 14:38:10  marco
-   * 14 april version killed, and replaced by newer fixes branch version
 }

@@ -23,20 +23,12 @@ asm
         scasb
         movl    $0xfffffffe,%eax
         subl    %ecx,%eax
-end ['EDI','ECX','EAX']; 
+end ['EDI','ECX','EAX'];
 
 
 {
   $Log$
-  Revision 1.2  2001-03-05 17:10:04  jonas
-    * moved implementations of strlen and strpas to separate include files
-      (they were duplicated in i386.inc and strings.inc/stringss.inc)
-    * strpas supports 'nil' pchars again (returns an empty string)
-      (both merged)
-
-  Revision 1.1.2.1  2001/03/05 16:56:01  jonas
-    * moved implementations of strlen and strpas to separate include files
-      (they were duplicated in i386.inc and strings.inc/stringss.inc)
-    * strpas supports 'nil' pchars again (returns an empty string)
+  Revision 1.3  2002-09-07 16:01:19  peter
+    * old logs removed and tabs fixed
 
 }

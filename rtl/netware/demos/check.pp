@@ -9,10 +9,10 @@
     This program is distributed in the hope that it will be useful,
     but WITHOUT ANY WARRANTY; without even the implied warranty of
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
-    
+
     Demonstrates the use of the check-function provided by the RTL
  **********************************************************************}
- 
+
 {$MODE OBJFPC}
 {$Description Demo CheckFunction for FreePascal Netware-RTL}
 {$Version 1.0.0}
@@ -46,9 +46,12 @@ end.
 
 {
   $Log$
-  Revision 1.1  2002-03-30 09:12:15  armin
+  Revision 1.2  2002-09-07 16:01:21  peter
+    * old logs removed and tabs fixed
+
+  Revision 1.1  2002/03/30 09:12:15  armin
   + demo for netware check-funcktion
 
- 
+
 }
- 
+

@@ -1337,7 +1337,10 @@ const
 
 {
   $Log$
-  Revision 1.18  2002-09-02 06:07:16  michael
+  Revision 1.19  2002-09-07 16:01:22  peter
+    * old logs removed and tabs fixed
+
+  Revision 1.18  2002/09/02 06:07:16  michael
   + Fix for formatbuf not applied correct
 
   Revision 1.17  2002/08/29 10:04:48  michael
@@ -1364,32 +1367,4 @@ const
       instead of direct comparisons of low/high values of orddefs because
       qword is a special case
 
-  Revision 1.13  2001/09/20 14:38:41  michael
-   Implemented missing StringReplace function
-
-  Revision 1.12  2001/08/01 21:44:20  peter
-  Revision 1.1.2.9  2001/09/20 14:35:34  michael
-   Implemented missing StringReplace function
-
-  Revision 1.1.2.8  2001/08/14 20:06:23  carl
-  -* replace ifdef linux -> ifdef unix
-
-  Revision 1.1.2.7  2001/08/01 21:45:22  peter
-    * fix thousend separator when no decimal separator is available
-    * allow precision to be left away like %10.n
-
-  Revision 1.11  2001/01/18 22:09:09  michael
-  + Merged fixes from fixbranch - file modes
-
-  Revision 1.10  2000/12/16 15:58:18  jonas
-    * removed warnings about possible range check errors
-
-  Revision 1.9  2000/12/07 21:58:30  michael
-  + Merged lastdelimiter from fixbranch
-
-  Revision 1.8  2000/12/06 22:55:29  michael
-  + Merged format fix from fixbranch
-
-  Revision 1.1.2.4  2000/12/07 21:48:57  michael
-  + Added LastDelimiter function
 }

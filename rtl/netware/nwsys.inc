@@ -112,7 +112,7 @@ FUNCTION _write  (FileNo : LONGINT; BufP : POINTER; Len : LONGINT) : LONGINT; CD
 FUNCTION _read   (FileNo : LONGINT; BufP : POINTER; Len : LONGINT) : LONGINT; CDECL; EXTERNAL NlmLib NAME 'read';
 FUNCTION _filelength (filedes : LONGINT) : LONGINT; CDECL; EXTERNAL NlmLib NAME 'filelength';
 
-TYPE 
+TYPE
   NWModifyStructure =
     RECORD
        MModifyName            : PCHAR;
@@ -133,20 +133,20 @@ TYPE
        MMaximumSpace          : LONGINT;
        MLastUpdatedInSeconds  : LONGINT
      END;
-     
+
 CONST MModifyNameBit                 = $0001;
       MFileAtrributesBit             = $0002;
       MCreateDateBit                 = $0004;
       MCreateTimeBit                 = $0008;
       MOwnerIDBit                    = $0010;
-      MLastArchivedDateBit           = $0020; 
+      MLastArchivedDateBit           = $0020;
       MLastArchivedTimeBit           = $0040;
       MLastArchivedIDBit             = $0080;
       MLastUpdatedDateBit            = $0100;
       MLastUpdatedTimeBit            = $0200;
       MLastUpdatedIDBit              = $0400;
       MLastAccessedDateBit           = $0800;
-      MInheritanceRestrictionMaskBit = $1000; 
+      MInheritanceRestrictionMaskBit = $1000;
       MMaximumSpaceBit               = $2000;
       MLastUpdatedInSecondsBit       = $4000;
 
@@ -340,7 +340,10 @@ PROCEDURE _Signal (Sig : longint; SigFunc : pointer);  CDECL; EXTERNAL Clib NAME
 
 {
   $Log$
-  Revision 1.6  2002-04-01 15:20:08  armin
+  Revision 1.7  2002-09-07 16:01:20  peter
+    * old logs removed and tabs fixed
+
+  Revision 1.6  2002/04/01 15:20:08  armin
   + unload module no longer shows: Module did not release...
   + check-function will no longer be removed when smartlink is on
 
@@ -348,13 +351,6 @@ PROCEDURE _Signal (Sig : longint; SigFunc : pointer);  CDECL; EXTERNAL Clib NAME
   + support check-function for netware
 
   Revision 1.4  2002/03/08 19:06:47  armin
-  	* Additional routines needed for MT
-
-  Revision 1.3  2001/04/16 18:39:50  florian
-    * updates from Armin commited
-
-  Revision 1.2  2001/04/11 14:17:00  florian
-    * added logs, fixed email address of Armin, it is
-      diehl@nordrhein.de
+        * Additional routines needed for MT
 
 }

@@ -371,7 +371,10 @@ end;
 
 {
   $Log$
-  Revision 1.10  2002-07-16 13:57:39  florian
+  Revision 1.11  2002-09-07 16:01:22  peter
+    * old logs removed and tabs fixed
+
+  Revision 1.10  2002/07/16 13:57:39  florian
     * raise takes now a void pointer as at and frame address
       instead of a longint, fixed
 
@@ -381,24 +384,4 @@ end;
   Revision 1.8  2002/01/25 16:23:03  peter
     * merged filesearch() fix
 
-  Revision 1.7  2001/10/22 21:40:55  peter
-    * InterLocked routines added
-
-  Revision 1.6  2001/08/19 21:02:02  florian
-    * fixed and added a lot of stuff to get the Jedi DX( headers
-      compiled
-
-  Revision 1.5  2001/08/12 22:11:48  peter
-    * freeandnil added
-
-  Revision 1.4  2001/06/03 15:18:01  peter
-    * eoutofmemory and einvalidpointer fix
-
-  Revision 1.3  2000/11/23 11:04:26  sg
-  * Protected some Move()'s by 'if' clauses so that the Move won't be
-    executed when the length would be 0. Otherwise, the corresponding
-    routines might get an RTE when compiled with $R+.
-
-  Revision 1.2  2000/08/20 15:46:46  peter
-    * sysutils.pp moved to target and merged with disk.inc, filutil.inc
 }

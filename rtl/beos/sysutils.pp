@@ -258,10 +258,7 @@ Finalization
 end.
 {
   $Log$
-  Revision 1.2  2001-06-03 15:18:01  peter
-    * eoutofmemory and einvalidpointer fix
-
-  Revision 1.1  2001/06/02 19:26:03  peter
-    * BeOS target!
+  Revision 1.3  2002-09-07 16:01:17  peter
+    * old logs removed and tabs fixed
 
 }

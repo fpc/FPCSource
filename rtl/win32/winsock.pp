@@ -882,24 +882,13 @@ unit winsock;
 end.
 {
   $Log$
-  Revision 1.8  2002-08-12 14:18:53  florian
+  Revision 1.9  2002-09-07 16:01:29  peter
+    * old logs removed and tabs fixed
+
+  Revision 1.8  2002/08/12 14:18:53  florian
     * ioctlselect overloaded to take a longint is second parameter
 
   Revision 1.7  2002/01/19 11:58:20  peter
     * more functions from webbugs
 
-  Revision 1.6  2001/10/15 15:09:51  jonas
-    * error constants must be longints, not cardinals
-
-  Revision 1.5  2001/06/06 21:58:24  peter
-    * Win32 fixes for Makefile so it doesn't require sh.exe
-
-  Revision 1.4  2001/04/10 21:26:00  peter
-    * fixed argument names
-
-  Revision 1.3  2000/12/18 17:28:58  jonas
-    * fixed range check errors
-
-  Revision 1.2  2000/07/13 11:33:58  michael
-  + removed logs
 }

@@ -172,9 +172,7 @@ Procedure CallSStringProc(s : Pointer;Address : Pointer;Const Value : ShortStrin
 
 {
   $Log$
-  Revision 1.1  2001-10-28 14:08:37  jonas
-    + initial implementation, still needs changes for self pointer register
-
-  Revision 1.3  2001/10/20 17:25:22  peter
+  Revision 1.2  2002-09-07 16:01:26  peter
+    * old logs removed and tabs fixed
 
 }

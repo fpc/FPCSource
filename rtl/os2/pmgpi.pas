@@ -1228,9 +1228,7 @@ function GpiPolygons(hps,ulCount : cardinal;var paplgn : POLYGON;flOptions,flMod
 end.
 {
   $Log$
-  Revision 1.2  2000-07-14 10:33:11  michael
-  + Conditionals fixed
+  Revision 1.3  2002-09-07 16:01:25  peter
+    * old logs removed and tabs fixed
 
-  Revision 1.1  2000/07/13 06:31:06  michael
-  + Initial import
 }

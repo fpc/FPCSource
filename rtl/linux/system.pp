@@ -30,25 +30,7 @@ Implementation
 
 {
   $Log$
-  Revision 1.1  2000-10-15 08:19:49  peter
-    * system unit rename for 1.1 branch
-
-  Revision 1.7  2000/09/18 13:14:50  marco
-   * Global Linux +bsd to (rtl/freebsd rtl/unix rtl/linux structure)
-
-  Revision 1.6  2000/09/11 13:48:08  marco
-   * FreeBSD support and removal of old sighandler
-
-  Revision 1.5  2000/08/13 08:43:45  peter
-    * don't check for directory in do_open (merged)
-
-  Revision 1.4  2000/08/05 18:33:51  peter
-    * paramstr(0) fix for linux 2.0 kernels (merged)
-
-  Revision 1.3  2000/07/14 10:33:10  michael
-  + Conditionals fixed
-
-  Revision 1.2  2000/07/13 11:33:49  michael
-  + removed logs
+  Revision 1.2  2002-09-07 16:01:20  peter
+    * old logs removed and tabs fixed
 
 }

@@ -18,20 +18,20 @@ unit sysall;
 
   interface
 
-  { include common definitions } 
+  { include common definitions }
   {$I common.inc}
 
   { include trap number definitions }
   {$I systraps.inc}
 
   {$I sysmgr.inc}
-  
+
   implementation
 
 end.
 {
   $Log$
-  Revision 1.2  2000-07-13 11:33:55  michael
-  + removed logs
- 
+  Revision 1.3  2002-09-07 16:01:26  peter
+    * old logs removed and tabs fixed
+
 }

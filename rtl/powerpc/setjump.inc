@@ -28,7 +28,10 @@ procedure longjmp(var S : jmp_buf;value : longint);assembler;[Public, alias : 'F
 
 {
   $Log$
-  Revision 1.4  2002-08-31 14:27:40  florian
+  Revision 1.5  2002-09-07 16:01:26  peter
+    * old logs removed and tabs fixed
+
+  Revision 1.4  2002/08/31 14:27:40  florian
     + public and alias directive added to *jmp
 
   Revision 1.3  2002/08/10 17:14:36  jonas

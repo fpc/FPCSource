@@ -364,7 +364,7 @@ unit winsock2;
        SO_ERROR = $1007;
        { get socket type  }
        SO_TYPE = $1008;
-       
+
        { WinSock 2 extension -- new option }
        SO_GROUP_ID       = $2001;      { ID of a socket group }
        SO_GROUP_PRIORITY = $2002;      { the relative priority within a group }
@@ -373,7 +373,7 @@ unit winsock2;
        SO_PROTOCOL_INFOW = $2005;      { WSAPROTOCOL_INFOW structure }
        SO_PROTOCOL_INFO  = SO_PROTOCOL_INFOW;
        PVD_CONFIG        = $3001;      { configuration info for service provider }
-       
+
 
        {
          Options for connect and disconnect data and options.  Used only by
@@ -414,13 +414,13 @@ unit winsock2;
        AF_UNSPEC = 0;
        {
         * Although  AF_UNSPEC  is  defined for backwards compatibility, using
-	* AF_UNSPEC for the "af" parameter when creating a socket is STRONGLY
-	* DISCOURAGED.    The  interpretation  of  the  "protocol"  parameter
-	* depends  on the actual address family chosen.  As environments grow
-	* to  include  more  and  more  address families that use overlapping
-	* protocol  values  there  is  more  and  more  chance of choosing an
-	* undesired address family when AF_UNSPEC is used. }
-       
+        * AF_UNSPEC for the "af" parameter when creating a socket is STRONGLY
+        * DISCOURAGED.    The  interpretation  of  the  "protocol"  parameter
+        * depends  on the actual address family chosen.  As environments grow
+        * to  include  more  and  more  address families that use overlapping
+        * protocol  values  there  is  more  and  more  chance of choosing an
+        * undesired address family when AF_UNSPEC is used. }
+
        { local to host (pipes, portals)  }
        AF_UNIX = 1;
        { internetwork: UDP, TCP, etc.  }
@@ -886,7 +886,7 @@ unit winsock2;
          end;
        LPWSAPROTOCOL_INFOA = ^TWSAPROTOCOL_INFOA;
        PWSAPROTOCOL_INFOA  = ^TWSAPROTOCOL_INFOA;
-       
+
 
        TWSAPROTOCOL_INFOW = record
             dwServiceFlags1 : DWORD;
@@ -974,13 +974,13 @@ unit winsock2;
        IOC_WS2 = $08000000;
        IOC_PROTOCOL = $10000000;
        IOC_VENDOR = $18000000;
-       
+
     { WinSock 2 extension -- manifest constants for SIO_TRANSLATE_HANDLE ioctl }
 
     const
        TH_NETDEV = $00000001;
        TH_TAPI   = $00000002;
-       
+
     {  Microsoft Windows Extended data types required for the functions to
        convert   back  and  forth  between  binary  and  string  forms  of
        addresses.  }
@@ -994,15 +994,15 @@ unit winsock2;
     type
        TBLOB = record
          cbSize : u_long;
-	 pBlobData:ARRAY[0..0] OF POINTER;  {???}
+         pBlobData:ARRAY[0..0] OF POINTER;  {???}
        end;
        PBLOB = ^TBLOB;
-       
+
     { Service Install Flags }
 
     const
        SERVICE_MULTIPLE = $00000001;
-       
+
     { & Name Spaces  }
        NS_ALL = 0;
        NS_SAP = 1;
@@ -1021,11 +1021,11 @@ unit winsock2;
        NS_NIS = 41;
        NS_NISPLUS = 42;
        NS_WRQ = 50;
-       
+
     {  Resolution flags for WSAGetAddressByName().
        Note these are also used by the 1.1 API GetAddressByName, so
        leave them around. }
-       
+
        RES_UNUSED_1 = $00000001;
        RES_FLUSH_CACHE = $00000002;
 
@@ -1072,7 +1072,7 @@ unit winsock2;
          end;
        PSOCKET_ADDRESS = ^TSOCKET_ADDRESS;
        LPSOCKET_ADDRESS = ^TSOCKET_ADDRESS;
-       
+
     { CSAddr Information }
 
        TCSADDR_INFO = record
@@ -1095,7 +1095,7 @@ unit winsock2;
          end;
        LPSOCKET_ADDRESS_LIST = ^TSOCKET_ADDRESS_LIST;
        PSOCKET_ADDRESS_LIST = ^TSOCKET_ADDRESS_LIST;
-    
+
     { Address Family/Protocol Tuples }
 
        TAFPROTOCOLS = record
@@ -1104,7 +1104,7 @@ unit winsock2;
          end;
        PAFPROTOCOLS = ^TAFPROTOCOLS;
        LPAFPROTOCOLS = ^TAFPROTOCOLS;
-    
+
     { Client Query API Typedefs }
     { The comparators }
 
@@ -1192,16 +1192,16 @@ unit winsock2;
     { Return flags }
     { }
        RESULT_IS_ALIAS = $0001;
-       
+
     { Service Address Registration and Deregistration Data Types. }
 
     type
 
-       TWSAESETSERVICEOP = 
+       TWSAESETSERVICEOP =
           (RNRSERVICE_REGISTER := 0,RNRSERVICE_DEREGISTER, RNRSERVICE_DELETE);
        PWSAESETSERVICEOP = ^TWSAESETSERVICEOP;
        LPWSAESETSERVICEOP = ^TWSAESETSERVICEOP;
-       
+
     { Service Installation/Removal Data Types. }
 
        TWSANSClassInfoA = record
@@ -1297,23 +1297,23 @@ unit winsock2;
        PWSANAMESPACE_INFO = PWSANAMESPACE_INFOA;
        LPWSANAMESPACE_INFO = LPWSANAMESPACE_INFOA;
 {$endif}
-       
+
     { WinSock 2 extensions -- data types for the condition function in
       WSAAccept() and overlapped I/O completion routine. }
-       
+
     type
-      TWSAOVERLAPPED_COMPLETION_ROUTINE = 
+      TWSAOVERLAPPED_COMPLETION_ROUTINE =
         function  (dwError,cbTransferred : longint;
-	           lpOverlapped          : PWSAOVERLAPPED;
-		   dwFlags               : longint) : longint; 
-	    {$ifdef netware} cdecl; {$else} stdcall; {$endif}
-		   
+                   lpOverlapped          : PWSAOVERLAPPED;
+                   dwFlags               : longint) : longint;
+            {$ifdef netware} cdecl; {$else} stdcall; {$endif}
+
       TCONDITIONPROC =
         function (lpCallerId, lpCallerData : PWSABUF;
-		  lpSQOS, lpGQOS           : PQOS;
-		  lpCalleeId, lpCalleeData : PWSABUF;
-		  g                        : PGROUP;
-		  dwCallbackData           : dword) : longint;
+                  lpSQOS, lpGQOS           : PQOS;
+                  lpCalleeId, lpCalleeData : PWSABUF;
+                  g                        : PGROUP;
+                  dwCallbackData           : dword) : longint;
             {$ifdef netware} cdecl; {$else} stdcall; {$endif}
 
 {--------------------------------------------------------------------}
@@ -1333,7 +1333,7 @@ unit winsock2;
      SECURITY_PROTOCOL_TLS = 2;
 
   { There are three interesting authentication types }
-  { CLIENT -	Client initiates a SSL connection.  }
+  { CLIENT -    Client initiates a SSL connection.  }
   { SERVER - Listener set up to listen for incoming SSL conns, (Server sends it's cert during auth) }
   { MUTUAL is SSL Server requesting client authentication, (Server asks for client cert inaddition to sending it's cert) }
   { optval is a DWORD defined as }
@@ -1400,7 +1400,7 @@ unit winsock2;
        end;
      LPFAST_RECV_OPT = ^TFASTRECV_OP;
      PFAST_RECV_OPT = ^TFASTRECV_OP;
-     
+
   { Winsock 2 applications that want to use SSL need to define WS_SSL }
   type
      time_t = dword;
@@ -1505,7 +1505,7 @@ unit winsock2;
 
   type
      sslrsaencrypthook = record
-          func : function (arg:pointer; blockType:longint; dest:Pchar; destlen:Plongint; src:Pchar; 
+          func : function (arg:pointer; blockType:longint; dest:Pchar; destlen:Plongint; src:Pchar;
                        srclen:longint):longint; cdecl;
           arg : pointer;
        end;
@@ -1522,7 +1522,7 @@ unit winsock2;
 
   type
      Tsslrsadecrypthook = record
-          func : function (arg:pointer; blockType:longint; dest:Pchar; destlen:Plongint; src:Pchar; 
+          func : function (arg:pointer; blockType:longint; dest:Pchar; destlen:Plongint; src:Pchar;
                        srclen:longint):longint; cdecl;
           arg : pointer;
        end;
@@ -1674,7 +1674,7 @@ unit winsock2;
 
   type
      Ttlsrsaencrypthook = record
-          func : function (arg:pointer; blockType:longint; dest:Pchar; destlen:Plongint; src:Pchar; 
+          func : function (arg:pointer; blockType:longint; dest:Pchar; destlen:Plongint; src:Pchar;
                        srclen:longint):longint; cdecl;
           arg : pointer;
        end;
@@ -1692,7 +1692,7 @@ unit winsock2;
 
   type
      Ttlsrsadecrypthook = record
-          func : function (arg:pointer; blockType:longint; dest:Pchar; destlen:Plongint; src:Pchar; 
+          func : function (arg:pointer; blockType:longint; dest:Pchar; destlen:Plongint; src:Pchar;
                        srclen:longint):longint; cdecl;
           arg : pointer;
        end;
@@ -1728,24 +1728,24 @@ unit winsock2;
         WAIT_FAILED            = $FFFFFFFF;
         MAXIMUM_WAIT_OBJECTS   = 64;
         WAIT_IO_COMPLETION     = $000000C0;
-	
+
   { This file contains proposed extensions to the Winsock 2 specification to }
-  { support Novell's implementation of namespace providers. }	
-  
+  { support Novell's implementation of namespace providers. }
+
   {___[ Manifest constants ]________________________________________________________________________ }
   { Proposed output flag for deregistered services }
   const
-     RESULT_IS_DEREGISTERED = $0002;  
-  { Proposed output flag for containers }	
-     RESULT_IS_CONTAINER = $0004;  
-     
+     RESULT_IS_DEREGISTERED = $0002;
+  { Proposed output flag for containers }
+     RESULT_IS_CONTAINER = $0004;
+
   { Values used to indicate an attribute list in the blob }
   { blob contains ASCII strings }
 
      WS_ATTRLIST_ASCII = $b10bea1a;
   { blob contains UNICODE strings }
      WS_ATTRLIST_UNICODE = $b10bea10;
-  {	Name Spaces }
+  {     Name Spaces }
   { Extends definitions in WINSOCK2.H }
      NS_BINDERY = 4;
      NS_SLP = 5;
@@ -1759,7 +1759,7 @@ unit winsock2;
      REG_BOOL = 11;
   { Keyword with no value }
      REG_KEYWORD = 12;
-     
+
   {___[ Type definitions ]__________________________________________________________________________ }
 
     type
@@ -1780,11 +1780,11 @@ unit winsock2;
        LPWSABLOBATTRLIST = ^TWSABlobAttrList;
        PWSABLOBATTRLIST = ^TWSABlobAttrList;
 {$endif netware}
-		  
+
 {--------------------------------------------------------------------}
 
     { Socket function prototypes  }
-   const       
+   const
     {$ifndef netware}
     winsockdll      = 'ws2_32.dll';
     _fn_bind        = 'bind';
@@ -1965,7 +1965,7 @@ unit winsock2;
                                    var RemoteSockaddr:TSockAddr; var RemoteSockaddrLength:tOS_INT);stdcall;
                                    external winsockdll name 'GetAcceptExSockaddrs';
     {$endif}
-    
+
     function WSAMakeSyncReply(Buflen,Error:Word):dword;
     function WSAMakeSelectReply(Event,Error:Word):dword;
     function WSAGetAsyncBuflen(Param:dword):Word;
@@ -1979,22 +1979,22 @@ unit winsock2;
 
     function MAKELONG(a,b : longint) : LONGINT;
     function MAKEWORD(a,b : longint) : WORD;
-    
+
     { WinSock 2 API new function prototypes }
-    
+
     function WSAAccept(s: TSocket; addr:PSockAddr; addrlen : ptOS_INT;
                        lpfnCondition : TCONDITIONPROC;
-		       dwCallbackData: dword) : longint;
+                       dwCallbackData: dword) : longint;
       {$ifdef Netware}cdecl;{$else}stdcall;{$endif} external winsockdll name 'WSAAccept';
-      
+
     function WSAAccept(s: TSocket; addr:PSockAddr; var addrlen:longint;
                        lpfnCondition : TCONDITIONPROC;
-		       dwCallbackData: dword) : longint;
+                       dwCallbackData: dword) : longint;
       {$ifdef Netware}cdecl;{$else}stdcall;{$endif} external winsockdll name 'WSAAccept';
-      
+
     function WSACloseEvent (hEvent : TWSAEVENT) : longint;
       {$ifdef Netware}cdecl;{$else}stdcall;{$endif} external winsockdll name 'WSACloseEvent';
-      
+
     function WSAconnect (s:TSocket; var name:TSockAddr;
                          namelen: tOS_INT;
                          lpCallerData, lpCaleeData : PWSABUF;
@@ -2004,175 +2004,175 @@ unit winsock2;
     function WSAconnect (s:TSocket; name:PSockAddr;
                          namelen: tOS_INT;
                          lpCallerData, lpCaleeData : PWSABUF;
-                         lpSQOS, lpGQOS : PQOS) : tOS_INT; 
+                         lpSQOS, lpGQOS : PQOS) : tOS_INT;
       {$ifdef Netware}cdecl;{$else}stdcall;{$endif} external winsockdll name 'WSAConnect';
- 
+
     {$ifndef netware}
     function WSADuplicateSocket (s:TSocket; dwProcessId:dword; lpProtoInfo: PWSAPROTOCOL_INFOA) : longint;
       {$ifdef Netware}cdecl;{$else}stdcall;{$endif} external winsockdll name 'WSADuplicateSocketA';
     {$endif}
-    
+
     function WSAEnumNetworkEvents(s:TSocket;hEventObject:TWSAEVENT;lpNetworkEvents:PWSANETWORKEVENTS): longint;
     {$ifdef Netware}cdecl;{$else}stdcall;{$endif} external winsockdll name 'WSAEnumNetworkEvents';
-    
-    function WSAEnumProtocols (lpiProtocols:LPINT; 
+
+    function WSAEnumProtocols (lpiProtocols:LPINT;
                                lpProtocolBuffer:PWSAPROTOCOL_INFOA;
-			       var lpdwBufferLength : dword) : longint;
+                               var lpdwBufferLength : dword) : longint;
     {$ifdef Netware}cdecl;{$else}stdcall;{$endif} external winsockdll name 'WSAEnumProtocolsA';
-    
+
     function WSAEventSelect(s:TSocket; hEventObject: TWSAEvent;lNetworkEvents:longint):longint;
     {$ifdef Netware}cdecl;{$else}stdcall;{$endif} external winsockdll name 'WSAEventSelect';
-    
+
     function WSAGetOverlappedResult (s:TSocket;
                                      lpOverlapped:PWSAOVERLAPPED;
                                      lpcbTransfer : LPDWORD;
-				     fWait        : BOOL;
-				     lpdwFlags    : LPDWORD) : longint;
+                                     fWait        : BOOL;
+                                     lpdwFlags    : LPDWORD) : longint;
     {$ifdef Netware}cdecl;{$else}stdcall;{$endif} external winsockdll name 'WSAGetOverlappedResult';
-    
+
     function WSAGetQOSByName(s:TSocket; lpQOSName: LPWSABUF; lpQOS:PQOS) : longint;
     {$ifdef Netware}cdecl;{$else}stdcall;{$endif} external winsockdll name 'WSAGetQOSByName';
-    
+
     function WSAHtonl(s:TSocket; hostlong:u_long;lpnetlong:pu_long):longint;
     {$ifdef Netware}cdecl;{$else}stdcall;{$endif} external winsockdll name 'WSAHtonl';
-    
+
     function WSAHtonl(s:TSocket; hostlong:u_long;var lpnetlong:u_long):longint;
     {$ifdef Netware}cdecl;{$else}stdcall;{$endif} external winsockdll name 'WSAHtonl';
-    
+
     function WSAHtons(s:TSocket; hostshort:u_short;lpnetshort:pu_short):longint;
     {$ifdef Netware}cdecl;{$else}stdcall;{$endif} external winsockdll name 'WSAHtons';
-    
+
     function WSAHtons(s:TSocket; hostshort:u_short;var lpnetshort:u_short):longint;
     {$ifdef Netware}cdecl;{$else}stdcall;{$endif} external winsockdll name 'WSAHtons';
-    
+
     function WSAIoctl(s:TSocket;dwIoControlCode:dword;
                       lpvInBuffer:pointer; cbInBuffer:dword;
-		      lpvOutBuffer:pointer; cbOutBuffer:dword;
-		      lpcbBytesReturned:LPDWORD;
-		      lpOverlapped:PWSAOVERLAPPED;
-		      lpCompletionRoutine:TWSAOVERLAPPED_COMPLETION_ROUTINE):longint;
+                      lpvOutBuffer:pointer; cbOutBuffer:dword;
+                      lpcbBytesReturned:LPDWORD;
+                      lpOverlapped:PWSAOVERLAPPED;
+                      lpCompletionRoutine:TWSAOVERLAPPED_COMPLETION_ROUTINE):longint;
     {$ifdef Netware}cdecl;{$else}stdcall;{$endif} external winsockdll name 'WSAIoctl';
-    
+
     function WSAIoctl(s:TSocket;dwIoControlCode:dword;
                       var lpvInBuffer; cbInBuffer:dword;
-		      var lpvOutBuffer; cbOutBuffer:dword;
-		      var lpcbBytesReturned:DWORD;
-		      lpOverlapped:PWSAOVERLAPPED;
-		      lpCompletionRoutine:TWSAOVERLAPPED_COMPLETION_ROUTINE):longint;
+                      var lpvOutBuffer; cbOutBuffer:dword;
+                      var lpcbBytesReturned:DWORD;
+                      lpOverlapped:PWSAOVERLAPPED;
+                      lpCompletionRoutine:TWSAOVERLAPPED_COMPLETION_ROUTINE):longint;
     {$ifdef Netware}cdecl;{$else}stdcall;{$endif} external winsockdll name 'WSAIoctl';
-		      
+
     function WSAJoinLeaf(s:TSocket; name: PSockAddr; namelen:longint;
                          lpCallerData,lpCalleeData:PWSABUF;
-			 lpSQOS, lpGQOS : PQOS; dwFlags:dword):longint;
+                         lpSQOS, lpGQOS : PQOS; dwFlags:dword):longint;
     {$ifdef Netware}cdecl;{$else}stdcall;{$endif} external winsockdll name 'WSAJoinLeaf';
-    
+
     function WSANtohl(s:TSocket;netlong:u_long;lphostlong:pu_long):longint;
     {$ifdef Netware}cdecl;{$else}stdcall;{$endif} external winsockdll name 'WSANtohl';
-    
+
     function WSANtohl(s:TSocket;netlong:u_long;var hostlong:u_long):longint;
     {$ifdef Netware}cdecl;{$else}stdcall;{$endif} external winsockdll name 'WSANtohl';
-    
+
     function WSANtohs(s:TSocket;netshort:u_short;lphostshort:pu_short):longint;
     {$ifdef Netware}cdecl;{$else}stdcall;{$endif} external winsockdll name 'WSANtohs';
-    
+
     function WSANtohs(s:TSocket;netshort:u_short;var hostshort:u_short):longint;
     {$ifdef Netware}cdecl;{$else}stdcall;{$endif} external winsockdll name 'WSANtohs';
-    
+
     function WSARecv(s:TSocket;buf:pchar; dwBufferCount:dword;
                      lpNumberOfBytesRecvd,lpFlags : LPDWORD;
-		     lpOverlapped:PWSAOVERLAPPED;
-		     lpCompletionRoutine:TWSAOVERLAPPED_COMPLETION_ROUTINE):longint;
+                     lpOverlapped:PWSAOVERLAPPED;
+                     lpCompletionRoutine:TWSAOVERLAPPED_COMPLETION_ROUTINE):longint;
     {$ifdef Netware}cdecl;{$else}stdcall;{$endif} external winsockdll name 'WSARecv';
-    
+
     function WSARecv(s:TSocket;var buf; dwBufferCount:dword;
                      var lpNumberOfBytesRecvd,lpFlags : DWORD;
-		     lpOverlapped:PWSAOVERLAPPED;
-		     lpCompletionRoutine:TWSAOVERLAPPED_COMPLETION_ROUTINE):longint;
+                     lpOverlapped:PWSAOVERLAPPED;
+                     lpCompletionRoutine:TWSAOVERLAPPED_COMPLETION_ROUTINE):longint;
     {$ifdef Netware}cdecl;{$else}stdcall;{$endif} external winsockdll name 'WSARecv';
-    
+
     function WSARecvDisconnect(s:TSocket;lpInboundDisconnectData:PWSABUF):longint;
     {$ifdef Netware}cdecl;{$else}stdcall;{$endif} external winsockdll name 'WSARecvDisconnect';
-    
+
     function WSARecvDisconnect(s:TSocket;var InboundDisconnectData:TWSABUF):longint;
     {$ifdef Netware}cdecl;{$else}stdcall;{$endif} external winsockdll name 'WSARecvDisconnect';
-    
+
     function WSARecvFrom(s:TSocket;buf:pchar; dwBufferCount:dword;
                      lpNumberOfBytesRecvd,lpFlags : LPDWORD;
-		     lpFrom: PSockaddr;
-		     lpFromlen: PDWORD;
-		     lpOverlapped:PWSAOVERLAPPED;
-		     lpCompletionRoutine:TWSAOVERLAPPED_COMPLETION_ROUTINE):longint;
+                     lpFrom: PSockaddr;
+                     lpFromlen: PDWORD;
+                     lpOverlapped:PWSAOVERLAPPED;
+                     lpCompletionRoutine:TWSAOVERLAPPED_COMPLETION_ROUTINE):longint;
     {$ifdef Netware}cdecl;{$else}stdcall;{$endif} external winsockdll name 'WSARecvFrom';
-    
+
     function WSARecvFrom(s:TSocket;var buf; dwBufferCount:dword;
                      var lpNumberOfBytesRecvd,lpFlags : DWORD;
-		     var lpFrom: TSockaddr;
-		     var lpFromlen: DWORD;
-		     lpOverlapped:PWSAOVERLAPPED;
-		     lpCompletionRoutine:TWSAOVERLAPPED_COMPLETION_ROUTINE):longint;
+                     var lpFrom: TSockaddr;
+                     var lpFromlen: DWORD;
+                     lpOverlapped:PWSAOVERLAPPED;
+                     lpCompletionRoutine:TWSAOVERLAPPED_COMPLETION_ROUTINE):longint;
     {$ifdef Netware}cdecl;{$else}stdcall;{$endif} external winsockdll name 'WSARecvFrom';
-    
+
     function WSAResetEvent(hEvent:TWSAEVENT):BOOL;
     {$ifdef Netware}cdecl;{$else}stdcall;{$endif} external winsockdll name 'WSAResetEvent';
 
     function WSASend(s:TSocket;buf:pchar;len:dword;
                      NumberOfBytesSent:PDWORD; Flags:dword;
-		     lpOverlapped:PWSAOVERLAPPED;
-		     lpCompletionRoutine:TWSAOVERLAPPED_COMPLETION_ROUTINE):longint;
+                     lpOverlapped:PWSAOVERLAPPED;
+                     lpCompletionRoutine:TWSAOVERLAPPED_COMPLETION_ROUTINE):longint;
     {$ifdef Netware}cdecl;{$else}stdcall;{$endif} external winsockdll name 'WSASend';
-    
+
     function WSASend(s:TSocket;var buf;len:dword;
                      var NumberOfBytesSent: DWORD; Flags:dword;
-		     lpOverlapped:PWSAOVERLAPPED;
-		     lpCompletionRoutine:TWSAOVERLAPPED_COMPLETION_ROUTINE):longint;
+                     lpOverlapped:PWSAOVERLAPPED;
+                     lpCompletionRoutine:TWSAOVERLAPPED_COMPLETION_ROUTINE):longint;
     {$ifdef Netware}cdecl;{$else}stdcall;{$endif} external winsockdll name 'WSASend';
 
     function WSASendDisconnect(s:TSocket;lpOutboundDisconnectData:PWSABUF):longint;
     {$ifdef Netware}cdecl;{$else}stdcall;{$endif} external winsockdll name 'WSASendDisconnect';
-    
+
     function WSASendTo(s:TSocket;buf:pchar;len:dword;
                        NumberOfBytesSent:LPDWORD;
-		       Flags:dword;
-		       lpTo: PSockaddr;
-		       iToLen:dword;
-		       lpOverlapped:PWSAOVERLAPPED;
-		       lpCompletionRoutine:TWSAOVERLAPPED_COMPLETION_ROUTINE):longint;
+                       Flags:dword;
+                       lpTo: PSockaddr;
+                       iToLen:dword;
+                       lpOverlapped:PWSAOVERLAPPED;
+                       lpCompletionRoutine:TWSAOVERLAPPED_COMPLETION_ROUTINE):longint;
     {$ifdef Netware}cdecl;{$else}stdcall;{$endif} external winsockdll name 'WSASendTo';
-    
+
     function WSASendTo(s:TSocket;var buf;len:dword;
                        var NumberOfBytesSent:DWORD;
-		       Flags:dword;
-		       var lpTo: TSockaddr;
-		       iToLen:dword;
-		       lpOverlapped:PWSAOVERLAPPED;
-		       lpCompletionRoutine:TWSAOVERLAPPED_COMPLETION_ROUTINE):longint;
+                       Flags:dword;
+                       var lpTo: TSockaddr;
+                       iToLen:dword;
+                       lpOverlapped:PWSAOVERLAPPED;
+                       lpCompletionRoutine:TWSAOVERLAPPED_COMPLETION_ROUTINE):longint;
     {$ifdef Netware}cdecl;{$else}stdcall;{$endif} external winsockdll name 'WSASendTo';
-		       
+
     function WSASetEvent(hEvent:TWSAEVENT):BOOL;
     {$ifdef Netware}cdecl;{$else}stdcall;{$endif} external winsockdll name 'WSASetEvent';
-    
+
     function WSASocket(af,typ,proto:tOS_INT;
                        lpProtocolInfo:PWSAPROTOCOL_INFO;
-		       g : TGROUP; Flags:dword):longint;
+                       g : TGROUP; Flags:dword):longint;
     {$ifdef Netware}cdecl;{$else}stdcall;{$endif} external winsockdll name 'WSASocketA';
-    
+
     function WSAWaitForMultipleEvents(cEvents:dword;
                                       lphEvents:pointer; {IN const WSAEVENT FAR * lphEvents,}
-				      fWaitAll:BOOL; dwTimeout:dword; fAlertable:BOOL):longint;
+                                      fWaitAll:BOOL; dwTimeout:dword; fAlertable:BOOL):longint;
     {$ifdef Netware}cdecl;{$else}stdcall;{$endif} external winsockdll name 'WSAWaitForMultipleEvents';
-    
+
     function WSAAddressToString(addr:PSockAddr; len:dword;
                                ProtocolInfo:PWSAPROTOCOL_INFO;
-			       lpszAddressString:pchar;
-			       lpdwAddressStringLength:lpdword):longint;
+                               lpszAddressString:pchar;
+                               lpdwAddressStringLength:lpdword):longint;
     {$ifdef Netware}cdecl;{$else}stdcall;{$endif} external winsockdll name 'WSAAddressToStringA';
-    
+
     function WSAAddressToString(var addr:TSockAddr; len:dword;
                                ProtocolInfo:PWSAPROTOCOL_INFO;
-			       lpszAddressString:pchar;
-			       var lpdwAddressStringLength:dword):longint;
+                               lpszAddressString:pchar;
+                               var lpdwAddressStringLength:dword):longint;
     {$ifdef Netware}cdecl;{$else}stdcall;{$endif} external winsockdll name 'WSAAddressToStringA';
-			       
+
     function WSAStringToAddress (AddressString  : pchar;
                                  AddressFamily  : longint;
                                  lpProtocolInfo : PWSAPROTOCOL_INFOA;
@@ -2186,59 +2186,59 @@ unit winsock2;
                                  lpAddress      : PSOCKADDR;
                              VAR lpAddressLength: LONGINT) : longint;
     {$ifdef Netware}cdecl;{$else}stdcall;{$endif}external winsockdll name 'WSAStringToAddressA';
-    
+
     function WSALookupServiceBegin(lpqsRestrictions:PWSAQUERYSET;
                                     ControlFlags:dword;lphLookup:PHandle):longint;
     {$ifdef Netware}cdecl;{$else}stdcall;{$endif}external winsockdll name 'WSALookupServiceBeginA';
-    
+
     function WSALookupServiceBegin(var Restrictions:TWSAQUERYSET;
                                     ControlFlags:dword;var hLookup:THandle):longint;
     {$ifdef Netware}cdecl;{$else}stdcall;{$endif}external winsockdll name 'WSALookupServiceBeginA';
-    
+
     function WSALookupServiceNext(hLookup:THandle;ControlFlags:dword;
                                    lpdwBufferLength:LPDWORD;
-				   lpqsResults:PWSAQUERYSET):longint;
+                                   lpqsResults:PWSAQUERYSET):longint;
     {$ifdef Netware}cdecl;{$else}stdcall;{$endif}external winsockdll name 'WSALookupServiceNextA';
-				   
+
     function WSAInstallServiceClass(lpServiceClassInfo:PWSASERVICECLASSINFO):longint;
     {$ifdef Netware}cdecl;{$else}stdcall;{$endif}external winsockdll name 'WSAInstallServiceClassA';
-    
+
     function WSARemoveServiceClass(lpServiceClassId:PGUID):longint;
     {$ifdef Netware}cdecl;{$else}stdcall;{$endif}external winsockdll name 'WSARemoveServiceClass';
-    
+
     function WSAGetServiceClassInfo(lpProviderId,lpServiceClassId:PGUID;
                                      lpdwBufSize:LPDWORD;
                                      lpServiceClassInfo:PWSASERVICECLASSINFO):longint;
     {$ifdef Netware}cdecl;{$else}stdcall;{$endif}external winsockdll name 'WSAGetServiceClassInfoA';
-    
+
     function WSAGetServiceClassInfo(var ProviderId,ServiceClassId:TGUID;
                                     var BufSize:DWORD;
                                     var ServiceClassInfo:TWSASERVICECLASSINFO):longint;
     {$ifdef Netware}cdecl;{$else}stdcall;{$endif}external winsockdll name 'WSAGetServiceClassInfoA';
-    
+
     function WSAEnumNameSpaceProviders(lpdwBufferLength:LPDWORD;lpnspBuffer:PWSANAMESPACE_INFO):longint;
     {$ifdef Netware}cdecl;{$else}stdcall;{$endif}external winsockdll name 'WSAEnumNameSpaceProvidersA';
-    
+
     function WSAEnumNameSpaceProviders(var BufferLength:DWORD;var Buffer:TWSANAMESPACE_INFO):longint;
     {$ifdef Netware}cdecl;{$else}stdcall;{$endif}external winsockdll name 'WSAEnumNameSpaceProvidersA';
 
     function WSAGetServiceClassNameByClassId(lpServiceClassId:PGUID;lpszServiceClassName:pchar;buflen:PDWORD):longint;
     {$ifdef Netware}cdecl;{$else}stdcall;{$endif}external winsockdll name 'WSAGetServiceClassNameByClassIdA';
-    
+
     function WSAGetServiceClassNameByClassId(var lpServiceClassId:TGUID;lpszServiceClassName:pchar;var buflen:DWORD):longint;
     {$ifdef Netware}cdecl;{$else}stdcall;{$endif}external winsockdll name 'WSAGetServiceClassNameByClassIdA';
-    
+
     function WSASetService(lpqsRegInfo:PWSAQUERYSET;essoperation:TWSAESETSERVICEOP;flags:dword):longint;
     {$ifdef Netware}cdecl;{$else}stdcall;{$endif}external winsockdll name 'WSASetServiceA';
-    
+
    {$ifndef Netware}
     function WSAProviderConfigChange(lpNotificationHandle:LPHANDLE;
                        lpOverlapped:PWSAOVERLAPPED;
-		       lpCompletionRoutine:TWSAOVERLAPPED_COMPLETION_ROUTINE):longint;
+                       lpCompletionRoutine:TWSAOVERLAPPED_COMPLETION_ROUTINE):longint;
     {$ifdef Netware}cdecl;{$else}stdcall;{$endif}external winsockdll name 'WSAProviderConfigChange';
    {$endif}
-    
-    
+
+
 
   implementation
 
@@ -2338,7 +2338,7 @@ unit winsock2;
          FDSet.fd_count:=0;
       end;
 
-    {$ifdef netware}  
+    {$ifdef netware}
       {windows has connect and accept in ws2_32.dll, netware has not, they
        are defines as macros in ws2nlm.h}
     function connect(s:TSocket; addr:PSockAddr; namelen:tOS_INT):tOS_INT;
@@ -2350,17 +2350,17 @@ unit winsock2;
     begin
       connect := WSAConnect (s,name,namelen,nil,nil,nil,nil);
     end;
-    
+
     function accept(s:TSocket; addr: PSockAddr; addrlen : ptOS_INT) : TSocket;
     begin
       accept := WSAAccept (s,addr,addrlen,nil,0);
     end;
-    
+
     function accept(s:TSocket; addr: PSockAddr; var addrlen : tOS_INT) : TSocket;
     begin
       accept := WSAAccept (s,addr,addrlen,nil,0);
     end;
-    
+
 
     {$endif}
 

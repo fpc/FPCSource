@@ -1166,9 +1166,7 @@
 
 {
   $Log$
-  Revision 1.3  2001-08-19 09:27:51  florian
-    + a lot of constants added
+  Revision 1.4  2002-09-07 16:01:31  peter
+    * old logs removed and tabs fixed
 
-  Revision 1.2  2000/07/13 11:33:59  michael
-    + removed logs
 }

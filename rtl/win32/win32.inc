@@ -53,7 +53,7 @@ const
    FILE_BEGIN = 0;
    FILE_CURRENT = 1;
    FILE_END = 2;
-   
+
    { GetFileType  }
    FILE_TYPE_UNKNOWN = 0;
    FILE_TYPE_DISK = 1;
@@ -126,26 +126,10 @@ type
 
 {
   $Log$
-  Revision 1.8  2002-05-09 08:28:23  carl
+  Revision 1.9  2002-09-07 16:01:29  peter
+    * old logs removed and tabs fixed
+
+  Revision 1.8  2002/05/09 08:28:23  carl
   * Merges from Fixes branch
-
-  Revision 1.7  2001/12/02 17:21:25  peter
-    * merged fixes from 1.0
-
-  Revision 1.6  2001/07/30 14:53:17  marco
-   * whcar now in system.
-
-  Revision 1.5  2001/05/02 10:25:23  marco
-   * LPSystemTime added.
-
-  Revision 1.4  2001/05/02 10:18:04  marco
-   * Added plpwstr, plpstr. Moved lpwstr to the system unit (though the win32
-  part). Delphi has it that way.
-
-  Revision 1.3  2000/12/19 11:59:12  michael
-  * Fixes from Peter
-
-  Revision 1.2  2000/07/13 11:33:58  michael
-  + removed logs
 
 }

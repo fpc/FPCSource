@@ -183,13 +183,7 @@
 
 {
   $Log$
-  Revision 1.2  2001-10-23 21:51:03  peter
-    * criticalsection renamed to rtlcriticalsection for kylix compatibility
-
-  Revision 1.1  2001/10/17 10:27:47  marco
-   * Moved to unix/ since there is nothing linux specific about it.
-
-  Revision 1.1  2001/10/14 13:33:20  peter
-    * start of thread support for linux
+  Revision 1.3  2002-09-07 16:01:28  peter
+    * old logs removed and tabs fixed
 
 }

@@ -41,10 +41,11 @@ end.
 
 {
   $Log$
-  Revision 1.3  2002-07-28 20:43:47  florian
+  Revision 1.4  2002-09-07 16:01:17  peter
+    * old logs removed and tabs fixed
+
+  Revision 1.3  2002/07/28 20:43:47  florian
     * several fixes for linux/powerpc
     * several fixes to MT
 
-  Revision 1.2  2000/07/13 11:33:38  michael
-  + removed logs
 }

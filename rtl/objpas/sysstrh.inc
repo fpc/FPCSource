@@ -110,7 +110,10 @@ function BCDToInt(Value: integer): integer;
 
 {
   $Log$
-  Revision 1.11  2002-01-24 18:33:58  peter
+  Revision 1.12  2002-09-07 16:01:22  peter
+    * old logs removed and tabs fixed
+
+  Revision 1.11  2002/01/24 18:33:58  peter
     * overload for lowercase()
 
   Revision 1.10  2002/01/24 12:33:54  jonas
@@ -127,32 +130,5 @@ function BCDToInt(Value: integer): integer;
     * is_in_limit() moved from ncal to types unit, should always be used
       instead of direct comparisons of low/high values of orddefs because
       qword is a special case
-
-  Revision 1.9  2001/09/20 14:42:34  michael
-  + Implemented missing StringReplace function
-
-  Revision 1.6  2000/12/09 10:39:50  florian
-    * fixed merging problem
-
-  Revision 1.1.2.3  2001/09/20 14:35:34  michael
-   Implemented missing StringReplace function
-
-  Revision 1.1.2.2  2000/12/07 21:48:58  michael
-  + Added LastDelimiter function
-
-  Revision 1.1.2.1  2000/08/09 19:31:03  peter
-    * int64 updates from Marco
-
-  Revision 1.5  2000/12/07 21:58:30  michael
-  + Merged lastdelimiter from fixbranch
-
-  Revision 1.4  2000/08/13 17:55:38  michael
-  + Added some missing functions needed for variant support
-
-  Revision 1.3  2000/08/09 07:48:05  marco
-   * Uncommented some int64 functions, now that int64 support is ok
-
-  Revision 1.2  2000/07/13 11:33:51  michael
-  + removed logs
 
 }

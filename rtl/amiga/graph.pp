@@ -6,7 +6,7 @@ unit Graph;
 
   This units mimics some parts of borland's graph unit for
   Amiga.
-  
+
   You have to use crt for readln, readkey and stuff like
   that for your programs. When the show is over you should
   just press a key or hit return to close everything down.
@@ -136,7 +136,7 @@ const
   grIOerror        = -12;
   grInvalidFont    = -13;
   grInvalidFontNum = -14;
-  
+
 Type
   FillPatternType = array[1..8] of byte;
 
@@ -212,8 +212,8 @@ Type
   ---------------------------------------------------------------------}
 
 { Retrieving coordinates }
-function  GetX: Integer;                                        
-function  GetY: Integer;                                        
+function  GetX: Integer;
+function  GetY: Integer;
 
 { Pixel-oriented routines }
 procedure PutPixel(X, Y: Integer; Pixel: Word);
@@ -463,12 +463,12 @@ begin
    SetRast(CurrentRastPort,Black);
 end;
 
-function GetX: Integer;                                 
+function GetX: Integer;
 begin
   GetX := CurX;
 end;
 
-function GetY: Integer;                                 
+function GetY: Integer;
 begin
   GetY := CurY;
 end;
@@ -791,7 +791,7 @@ begin
 end.
 
   $Log$
-  Revision 1.2  2000-07-13 11:33:37  michael
-  + removed logs
- 
+  Revision 1.3  2002-09-07 16:01:16  peter
+    * old logs removed and tabs fixed
+
 }

@@ -152,23 +152,7 @@ end.
 
 {
   $Log$
-  Revision 1.5  2001-11-05 09:06:40  jonas
-      * fixed TUnixSockAddr (array from 0..108 -> 0..107) (merged)
-
-  Revision 1.4  2001/06/02 00:31:31  peter
-    * merge unix updates from the 1.0 branch, mostly related to the
-      solaris target
-
-  Revision 1.3  2001/01/21 20:21:40  marco
-   * Rename fest II. Rtl OK
-
-  Revision 1.2  2000/09/18 13:14:51  marco
-   * Global Linux +bsd to (rtl/freebsd rtl/unix rtl/linux structure)
-
-  Revision 1.3  2000/09/11 14:05:31  marco
-   * FreeBSD support and removed old signalhandling
-
-  Revision 1.2  2000/07/13 11:33:49  michael
-  + removed logs
+  Revision 1.6  2002-09-07 16:01:27  peter
+    * old logs removed and tabs fixed
 
 }

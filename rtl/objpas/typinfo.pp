@@ -1151,40 +1151,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.13  2002-04-04 18:32:59  peter
+  Revision 1.14  2002-09-07 16:01:22  peter
+    * old logs removed and tabs fixed
+
+  Revision 1.13  2002/04/04 18:32:59  peter
     * merged getpropinfo fix
-
-  Revision 1.12  2001/08/04 11:03:42  peter
-    * moved i386 specific code to include file
-
-  Revision 1.11  2001/07/29 13:50:44  peter
-    * merged updates from v10
-
-  Revision 1.9  2001/07/06 14:56:06  peter
-    * merged more D5/D6 stuff from v10
-
-  Revision 1.8  2001/06/27 21:37:38  peter
-    * v10 merges
-
-  Revision 1.7  2001/02/15 22:40:22  sg
-  * Fixed SetOrdProp for class instance properties (merged from fixbranch)
-
-  Revision 1.6  2000/12/13 23:28:17  sg
-  * Merged bugfix for bug 1273 from fixbranch
-  * Fixed typo in SetFloatProp
-  * Rewrote GetStrProp, now all AnsiString will be correctly
-    reference counted
-
-  Revision 1.5  2000/11/25 18:36:55  sg
-  * (Final) fix for AnsiString reference counter problem in SetStrProp
-
-  Revision 1.4  2000/11/04 16:28:26  florian
-    * interfaces support
-
-  Revision 1.3  2000/07/17 08:37:58  sg
-  * Fixed GetEnumValue (bug #1049, reported by Neil Graham)
-
-  Revision 1.2  2000/07/13 11:33:52  michael
-  + removed logs
 
 }

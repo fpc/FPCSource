@@ -252,16 +252,13 @@ begin
 end.
 {
   $Log$
-  Revision 1.5  2002-03-16 12:01:24  peter
+  Revision 1.6  2002-09-07 16:01:19  peter
+    * old logs removed and tabs fixed
+
+  Revision 1.5  2002/03/16 12:01:24  peter
     * femms added
 
   Revision 1.4  2002/03/16 11:51:50  peter
     * sse and 3dnow extensions from Michail added
-
-  Revision 1.3  2000/12/16 15:58:18  jonas
-    * removed warnings about possible range check errors
-
-  Revision 1.2  2000/07/13 11:33:41  michael
-  + removed logs
 
 }

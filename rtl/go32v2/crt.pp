@@ -830,21 +830,7 @@ end.
 
 {
   $Log$
-  Revision 1.5  2001-02-27 15:46:48  jonas
-    * fixed web bug 1345 (merged)
+  Revision 1.6  2002-09-07 16:01:18  peter
+    * old logs removed and tabs fixed
 
-  Revision 1.4  2000/10/31 23:39:30  pierre
-   * fix for bug 1152 (merged)
-
-  Revision 1.1.2.2  2000/10/31 09:32:16  pierre
-   * fix for bug1152
-
-  Revision 1.3  2000/07/31 14:07:43  jonas
-  Revision 1.1.2.1  2000/07/31 14:05:58  jonas
-    * fixed web bug 1037 (disable linking of ctrl-c to exception handler,
-      ctrl-break still works fine then) (merged from fixes)
-
-  Revision 1.2  2000/07/13 11:33:39  michael
-  + removed logs
- 
 }

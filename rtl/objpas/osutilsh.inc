@@ -19,10 +19,7 @@ Function GetEnvironmentVariable(Const EnvVar : String) : String;
 
 {
   $Log$
-  Revision 1.2  2001-02-20 22:14:39  peter
-    * new file
-
-  Revision 1.1.2.1  2001/02/20 21:15:14  michael
-  + Added GetEnvironmentVariable function
+  Revision 1.3  2002-09-07 16:01:22  peter
+    * old logs removed and tabs fixed
 
 }

@@ -4204,39 +4204,10 @@ external 'DOSCALLS' index 582;
 end.
 {
   $Log$
-  Revision 1.11  2002-07-07 18:03:22  hajny
+  Revision 1.12  2002-09-07 16:01:24  peter
+    * old logs removed and tabs fixed
+
+  Revision 1.11  2002/07/07 18:03:22  hajny
     * 1st part of corrections/additions by Yuri Prokushev
-
-  Revision 1.10  2001/05/20 18:40:32  hajny
-    * merging Carl's fixes from the fixes branch
-
-  Revision 1.9  2001/01/27 18:31:38  hajny
-    * Another bunch of compatibility additions
-
-  Revision 1.8  2001/01/23 20:28:05  hajny
-    + DosAllocThreadLocalMemory
-
-  Revision 1.7  2001/01/14 18:59:13  hajny
-    * more compatibility changes (semaphores)
-
-  Revision 1.6  2000/12/21 21:12:43  hajny
-    * TThreadEntry corrected (needed for FCL)
-
-  Revision 1.5  2000/10/26 20:07:19  hajny
-    * DosDevIOCtl prototype fixed, cdecl removed in DosSetFilePtr helper declaration
-
-  Revision 1.4  2000/10/08 18:40:18  hajny
-    * wrong index for DosSelToFlat, DosFlatToSel
-
-  Revision 1.3  2000/09/28 19:57:22  hajny
-    * SelToFlat correction (still not OK probably)
-
-  Revision 1.2  2000/07/14 10:33:10  michael
-  + Conditionals fixed
-  Revision 1.1.2.1  2000/09/28 19:52:23  hajny
-    * SelToFlat correction (still not OK probably)
-
-  Revision 1.1  2000/07/13 06:31:04  michael
-  + Initial import
 
 }

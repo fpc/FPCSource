@@ -453,50 +453,14 @@ end ['R0','R9','R10','CR0','CR1'];
 
 {
   $Log$
-  Revision 1.12  2002-09-06 16:58:43  jonas
+  Revision 1.13  2002-09-07 16:01:26  peter
+    * old logs removed and tabs fixed
+
+  Revision 1.12  2002/09/06 16:58:43  jonas
     * fixed wrong references (used r0 as base register)
 
   Revision 1.11  2002/08/10 17:14:36  jonas
     * various fixes, mostly changing the names of the modifies registers to
       upper case since that seems to be required by the compiler
-
-  Revision 1.10  2001/09/28 13:25:04  jonas
-    * fixed wrong alignment code (sometimes we aligned to multiple of 8
-      instead of the desired multiple of 4)
-
-  Revision 1.9  2001/09/27 15:30:29  jonas
-    * conversion to compilerproc and to structure used by i386 rtl
-    * some bugfixes
-    * powerpc.inc is almost complete (only fillchar/word/dword, get_frame etc
-      and the class helpers are still needed
-    - removed unnecessary register saving in set.inc (thanks to compilerproc)
-    * use registers reserved for parameters as much as possible instead of
-      those reserved for local vars (since those have to be saved by the
-      called anyway, while the ones for local vars have to be saved by the
-      callee)
-
-  Revision 1.8  2001/07/21 15:51:50  jonas
-    * fixed small bug in stricomp
-
-  Revision 1.7  2001/07/07 12:46:12  jonas
-    * some small bugfixes and cache optimizations
-
-  Revision 1.6  2001/02/23 14:05:33  jonas
-    * optimized strcopy/strecopy
-
-  Revision 1.5  2001/02/11 17:59:14  jonas
-    * fixed bug in strscan
-
-  Revision 1.4  2001/02/11 12:15:03  jonas
-    * some small optimizations and bugfixes
-
-  Revision 1.3  2001/02/10 16:09:43  jonas
-   + implemented all missing routines and changed reg allocation to follow ABI
-
-  Revision 1.2  2001/02/10 12:28:22  jonas
-    * fixed some bugs, simplified/optimized already implemented routines and code some more
-
-  Revision 1.1  2000/11/05 17:17:08  jonas
-    + first implementation, not yet finished
 
 }

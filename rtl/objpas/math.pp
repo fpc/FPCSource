@@ -973,27 +973,7 @@ end;
 end.
 {
   $Log$
-  Revision 1.6  2001-12-20 03:51:44  carl
-  * Corrected prototype of frexp() and added routine (taken fron genmath.inc)
-    tested against Delphi 3
-
-  Revision 1.5  2001/06/04 18:45:58  peter
-    * added constant
-
-  Revision 1.4  2000/07/30 10:01:04  sg
-  * Made some modifications suggested by Markus Kaemmerer:
-    - MaxTanh is now the exact value Ln(MaxExtended)/2
-    - The 'for' loops in MinValue and MaxValue can start with the second
-      element instead of the first one
-    - Added more overloaded versions of Min and Max functions
-
-  Revision 1.3  2000/07/29 18:07:45  sg
-  * Applied patches by Markus Kaemmerer:
-    - Added ranges of the IEEE floating point types, including denormals
-    - in sincos function: The arguments are of type Extended, so they
-      need 't' as size suffix in FPU instructions, and not 'l'!
-
-  Revision 1.2  2000/07/13 11:33:51  michael
-  + removed logs
+  Revision 1.7  2002-09-07 16:01:22  peter
+    * old logs removed and tabs fixed
 
 }

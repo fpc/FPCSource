@@ -31,10 +31,7 @@ function InterLockedExchangeAdd (var Target: integer;Source : integer) : Integer
 
 {
   $Log$
-  Revision 1.2  2001-10-22 21:40:55  peter
-    * InterLocked routines added
-
-  Revision 1.1  2001/08/22 21:19:16  florian
-    + some new stuff of D6/Kylix added
+  Revision 1.3  2002-09-07 16:01:22  peter
+    * old logs removed and tabs fixed
 
 }

@@ -41,32 +41,14 @@ end ['R0','R4','R10','CR0','CTR'];
 
 {
   $Log$
-  Revision 1.6  2002-09-06 16:58:43  jonas
+  Revision 1.7  2002-09-07 16:01:26  peter
+    * old logs removed and tabs fixed
+
+  Revision 1.6  2002/09/06 16:58:43  jonas
     * fixed wrong references (used r0 as base register)
 
   Revision 1.5  2002/08/10 17:14:36  jonas
     * various fixes, mostly changing the names of the modifies registers to
       upper case since that seems to be required by the compiler
-
-  Revision 1.4  2001/09/27 15:30:29  jonas
-    * conversion to compilerproc and to structure used by i386 rtl
-    * some bugfixes
-    * powerpc.inc is almost complete (only fillchar/word/dword, get_frame etc
-      and the class helpers are still needed
-    - removed unnecessary register saving in set.inc (thanks to compilerproc)
-    * use registers reserved for parameters as much as possible instead of
-      those reserved for local vars (since those have to be saved by the
-      called anyway, while the ones for local vars have to be saved by the
-      callee)
-
-  Revision 1.3  2001/07/07 12:46:12  jonas
-    * some small bugfixes and cache optimizations
-
-  Revision 1.2  2001/02/11 12:15:03  jonas
-    * some small optimizations and bugfixes
-
-  Revision 1.1  2001/02/10 16:10:32  jonas
-    * initial implementation: everything implemented, nothing tested
-
 
 }

@@ -267,24 +267,10 @@ end;
 
 {
   $Log$
-  Revision 1.5  2002-02-04 21:29:34  michael
+  Revision 1.6  2002-09-07 16:01:20  peter
+    * old logs removed and tabs fixed
+
+  Revision 1.5  2002/02/04 21:29:34  michael
   + merged missing sendto/rcvfrom functions
-
-  Revision 1.4  2001/06/10 08:51:44  peter
-    * forgotten file for the const to var fixes
-
-  Revision 1.3  2001/06/04 11:43:51  peter
-    * Formal const to var fixes
-    * Hexstr(int64) added
-
-  Revision 1.2  2001/06/02 00:31:30  peter
-    * merge unix updates from the 1.0 branch, mostly related to the
-      solaris target
-
-  Revision 1.2  2000/09/18 13:14:50  marco
-   * Global Linux +bsd to (rtl/freebsd rtl/unix rtl/linux structure)
-
-  Revision 1.2  2000/09/11 14:05:31  marco
-   * FreeBSD support and removed old signalhandling
 
 }

@@ -71,23 +71,10 @@ Const
 
 {
   $Log$
-  Revision 1.6  2002-01-25 17:42:03  peter
+  Revision 1.7  2002-09-07 16:01:22  peter
+    * old logs removed and tabs fixed
+
+  Revision 1.6  2002/01/25 17:42:03  peter
     * interface helpers
 
-  Revision 1.5  2001/08/19 21:02:02  florian
-    * fixed and added a lot of stuff to get the Jedi DX( headers
-      compiled
-
-  Revision 1.4  2000/08/30 06:50:49  michael
-  + Merged changes from fixes
-
-  Revision 1.3  2000/08/13 17:55:38  michael
-  + Added some missing functions needed for variant support
-
-  Revision 1.2  2000/07/13 11:33:51  michael
-  + removed logs
-
-  Revision 1.1.2.1  2000/08/22 19:21:48  michael
-  + Implemented syserrormessage. Made dummies for go32v2 and OS/2
-  * Changed linux/errors.pp so it uses pchars for storage.
 }

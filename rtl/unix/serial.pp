@@ -215,23 +215,10 @@ end.
 
 {
   $Log$
-  Revision 1.6  2002-08-06 13:31:50  sg
+  Revision 1.7  2002-09-07 16:01:27  peter
+    * old logs removed and tabs fixed
+
+  Revision 1.6  2002/08/06 13:31:50  sg
   * serial ports are now set to raw mode
-
-  Revision 1.5  2001/01/21 20:21:40  marco
-   * Rename fest II. Rtl OK
-
-  Revision 1.4  2000/12/28 20:50:04  peter
-    * merged fixes from 1.0.x
-
-  Revision 1.3  2000/10/10 14:12:36  sg
-  * Some cosmetic improvements (no changes in interface, only within the
-    source itself (comments etc.)
-
-  Revision 1.2  2000/09/18 13:14:51  marco
-   * Global Linux +bsd to (rtl/freebsd rtl/unix rtl/linux structure)
-
-  Revision 1.2  2000/07/13 11:33:49  michael
-  + removed logs
 
 }

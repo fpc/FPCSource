@@ -4,15 +4,15 @@
 
 
      Copyright (c) 2000 Apple Computer, Inc. All rights reserved.
-    
+
      @APPLE_LICENSE_HEADER_START@
-     
+
      The contents of this file constitute Original Code as defined in and
      are subject to the Apple Public Source License Version 1.1 (the
      "License").  You may not use this file except in compliance with the
      License.  Please obtain a copy of the License at
      http://www.apple.com/publicsource and read it before using this file.
-     
+
      This Original Code and all software distributed under the License are
      distributed on an "AS IS" basis, WITHOUT WARRANTY OF ANY KIND, EITHER
      EXPRESS OR IMPLIED, AND APPLE HEREBY DISCLAIMS ALL SUCH WARRANTIES,
@@ -20,15 +20,15 @@
      FITNESS FOR A PARTICULAR PURPOSE OR NON-INFRINGEMENT.  Please see the
      License for the specific language governing rights and limitations
      under the License.
-     
+
      @APPLE_LICENSE_HEADER_END@
     }
   { Copyright (c) 1992, 1995-1999 Apple Computer, Inc. All Rights Reserved  }
   {
-    
+
      The NEXTSTEP Software License Agreement specifies the terms
      and conditions for redistribution.
-    
+
     }
 
   const
@@ -205,7 +205,7 @@
   { 163 is old setdomainname  }
   { 164 is obsolete pcfs_mount  }
      sys_nr_quotactl = 165;
-  { 166 is obsolete exportfs	 }
+  { 166 is obsolete exportfs     }
      sys_nr_mount = 167;
   { 168 is obsolete ustat  }
   { 169 is unused  }
@@ -309,7 +309,10 @@ v     sys_nr_mlockall = 324;
 
 {
   $Log$
-  Revision 1.2  2002-09-06 18:35:59  jonas
+  Revision 1.3  2002-09-07 16:01:17  peter
+    * old logs removed and tabs fixed
+
+  Revision 1.2  2002/09/06 18:35:59  jonas
     * implemented most syscalls, except readdir because the getdents
       syscall is declared obsolete in Darwin...
 

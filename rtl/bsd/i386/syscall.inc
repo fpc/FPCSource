@@ -20,7 +20,7 @@
 
  ****************************************************************************
 
-These functions are the same over all three BSDs, except that some have a 
+These functions are the same over all three BSDs, except that some have a
 32-bit Errno, and some a 16-bit}
 
 {$ifdef NetBSD}
@@ -36,11 +36,11 @@ procedure actualsyscall; assembler; {inline requires a dummy push IIRC}
          jb .LErrorcode
          ret
 .LErrorcode:
-	 {$ifdef ErrnoWord}
+         {$ifdef ErrnoWord}
           movw  %ax,Errno
-	 {$else}
+         {$else}
           movl %eax,Errno
-	 {$endif}
+         {$endif}
        mov $-1,%eax
    end;
 

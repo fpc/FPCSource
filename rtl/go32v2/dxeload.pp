@@ -98,16 +98,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.5  2002-04-27 07:58:23  peter
+  Revision 1.6  2002-09-07 16:01:18  peter
+    * old logs removed and tabs fixed
+
+  Revision 1.5  2002/04/27 07:58:23  peter
     * fixed 2gb limit
-
-  Revision 1.4  2001/07/23 09:52:38  marco
-   * Fixed an unnecessary memleak.
-
-  Revision 1.3  2000/12/16 15:57:52  jonas
-    * avoid the longint + cardinal to int64 conversion (merged Pierre's patch)
-
-  Revision 1.2  2000/07/13 11:33:40  michael
-  + removed logs
 
 }

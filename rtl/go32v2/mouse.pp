@@ -775,7 +775,10 @@ Begin
 end.
 {
   $Log$
-  Revision 1.6  2002-05-09 08:42:24  carl
+  Revision 1.7  2002-09-07 16:01:18  peter
+    * old logs removed and tabs fixed
+
+  Revision 1.6  2002/05/09 08:42:24  carl
   * Merges from Fixes branch
 
   Revision 1.1.2.6  2002/04/12 12:01:48  pierre
@@ -783,20 +786,5 @@ end.
 
   Revision 1.1.2.5  2002/01/08 16:34:52  pierre
    a working callback for XP
-
-  Revision 1.1.2.4  2001/12/20 08:36:07  pierre
-   * one more try to fix mouse for XP
-
-  Revision 1.1.2.3  2001/12/17 15:21:17  pierre
-   * resotre all registers in NT realmode callback for XP
-
-  Revision 1.1.2.2  2001/09/21 23:53:48  michael
-  + Added mouse driver support.
-
-  Revision 1.1.2.1  2001/01/30 21:52:01  peter
-    * moved api utils to rtl
-
-  Revision 1.1  2001/01/13 11:03:58  peter
-    * API 2 RTL commit
 
 }

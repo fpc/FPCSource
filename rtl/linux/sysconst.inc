@@ -103,11 +103,7 @@ type
 
 {
   $Log$
-  Revision 1.5  2001-10-14 13:33:20  peter
-    * start of thread support for linux
-
-  Revision 1.4  2001/06/02 00:31:30  peter
-    * merge unix updates from the 1.0 branch, mostly related to the
-      solaris target
+  Revision 1.6  2002-09-07 16:01:19  peter
+    * old logs removed and tabs fixed
 
 }

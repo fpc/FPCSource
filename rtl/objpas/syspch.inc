@@ -117,20 +117,10 @@ end ;
 
 {
   $Log$
-  Revision 1.5  2002-08-01 16:53:14  jonas
+  Revision 1.6  2002-09-07 16:01:22  peter
+    * old logs removed and tabs fixed
+
+  Revision 1.5  2002/08/01 16:53:14  jonas
     * fix for StrPas() by Sergey Korshunoff <seyko@comail.ru> (merged)
 
-  Revision 1.4  2001/07/30 10:21:09  sg
-  * Two moves with a string as target are now only exectuted if the number of
-    bytes to move is greater than 0. This prevents RTE201's when compiled
-    with range checks enabled.
-
-  Revision 1.3  2000/11/23 11:04:26  sg
-  * Protected some Move()'s by 'if' clauses so that the Move won't be
-    executed when the length would be 0. Otherwise, the corresponding
-    routines might get an RTE when compiled with $R+.
-
-  Revision 1.2  2000/07/13 11:33:51  michael
-  + removed logs
- 
 }

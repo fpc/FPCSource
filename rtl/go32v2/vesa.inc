@@ -2733,27 +2733,7 @@ Const
 
 {
   $Log$
-  Revision 1.8  2001-10-07 11:47:36  jonas
-    * fixed multiple page support (bug1536?) (merged)
-
-  Revision 1.7  2001/09/10 16:15:52  jonas
-    * merged windows mode saving stuff from fixes branch
-
-  Revision 1.6  2000/12/16 15:57:17  jonas
-    * removed 64bit evaluations when range checking is on
-
-  Revision 1.5  2000/08/12 12:27:13  jonas
-    + setallpalette hook
-    + setallpalette implemented for standard vga and VESA 2.0+
-
-  Revision 1.4  2000/08/01 06:03:13  jonas
-    * set _graphresult to grnotdetected if the vesa setmode interrupt
-      call returns an error (merged from fixes branch)
-
-  Revision 1.3  2000/07/16 07:08:22  jonas
-    * fixed wrongly matched comment pair for log section
-
-  Revision 1.2  2000/07/13 11:33:41  michael
-  + removed logs
+  Revision 1.9  2002-09-07 16:01:19  peter
+    * old logs removed and tabs fixed
 
 }

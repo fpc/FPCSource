@@ -304,10 +304,7 @@ end.
 
 {
   $Log$
-  Revision 1.2  2001-01-14 22:20:00  peter
-    * slightly optimized event handling (merged)
-
-  Revision 1.1  2001/01/13 11:03:59  peter
-    * API 2 RTL commit
+  Revision 1.3  2002-09-07 16:01:29  peter
+    * old logs removed and tabs fixed
 
 }

@@ -25,13 +25,13 @@
 *****************************************************************************}
 
 Procedure Do_SysCall( callnr:longint;var regs : SysCallregs );assembler;
-{ 
+{
   This function puts the registers in place, does the call, and then
   copies back the registers as they are after the SysCall.
 }
 {$ifdef powerpc}
 {$define fpc_syscall_ok}
-asm 
+asm
 { load the registers... }
   lwz  r5, 12(r4)
   lwz  r6, 16(r4)
@@ -39,7 +39,7 @@ asm
   lwz  r8, 24(r4)
   lwz  r9, 28(r4)
   mr   r0, r3
-  lwz  r3, 4(r4)      
+  lwz  r3, 4(r4)
   stw  r4, regs
   lwz  r4, 8(r4)
 { Go ! }
@@ -109,8 +109,8 @@ begin
       lastcnt:=0;
       writeln(sys_nr_txt[lastcall],debugtxt,lasteax);
       end;
-    end;  
-{$endif}  
+    end;
+{$endif}
 end;
 
 
@@ -155,7 +155,7 @@ end;
 Function Sys_Open(f:pchar;flags:longint;mode:integer):longint;
 var
   regs : SysCallregs;
-Begin 
+Begin
   regs.reg2:=longint(f);
   regs.reg3:=flags;
   regs.reg4:=mode;
@@ -165,9 +165,9 @@ End;
 
 Function Sys_Close(f:longint):longint;
 var
-  regs : SysCallregs;   
+  regs : SysCallregs;
 begin
-  regs.reg2:=f;  
+  regs.reg2:=f;
   Sys_Close:=SysCall(SysCall_nr_close,regs);
 end;
 
@@ -195,11 +195,11 @@ begin
   regs.reg3:=longint(buffer);
   regs.reg4:=count;
   Sys_Read:=SysCall(SysCall_nr_read,regs);
-end;  
+end;
 
 
 Function Sys_Write(f:longint;buffer:pchar;count:longint):longint;
-var  
+var
   regs : SysCallregs;
 begin
   regs.reg2:=f;
@@ -210,12 +210,12 @@ end;
 
 
 Function Sys_Unlink(Filename:pchar):longint;
-var  
+var
   regs : SysCallregs;
 begin
   regs.reg2:=longint(filename);
   Sys_Unlink:=SysCall(SysCall_nr_unlink,regs);
-end;  
+end;
 
 
 Function Sys_fstat(fd : longint;var Info:stat):Longint;
@@ -242,7 +242,7 @@ Function Sys_Stat(Filename:pchar;var Buffer: stat):longint;
 {
    We need this for getcwd
 }
-var  
+var
   regs : SysCallregs;
 begin
   regs.reg2:=longint(filename);
@@ -267,7 +267,7 @@ Function Sys_ReadLink(name,linkname:pchar;maxlen:longint):longint;
 var
   regs : SysCallRegs;
 begin
-  regs.reg2:=longint(name);   
+  regs.reg2:=longint(name);
   regs.reg3:=longint(linkname);
   regs.reg4:=maxlen;
   Sys_ReadLink:=SysCall(Syscall_nr_readlink,regs);
@@ -294,7 +294,7 @@ begin
   regs.reg2:=longint(filename);
   regs.reg3:=mode;
   Sys_MkDir:=SysCall(SysCall_nr_mkdir,regs);
-end; 
+end;
 
 
 Function Sys_Rmdir(Filename:pchar):longint;
@@ -303,7 +303,7 @@ var
 begin
   regs.reg2:=longint(filename);
   Sys_Rmdir:=SysCall(SysCall_nr_rmdir,regs);
-end; 
+end;
 
 {*****************************************************************************
         --- Process:Process & program handling - related calls ---
@@ -339,7 +339,7 @@ Procedure SigAction(Signum:longint;Act,OldAct:PSigActionRec );
 }
 
 Var
-  sr : Syscallregs;  
+  sr : Syscallregs;
 begin
   sr.reg2:=Signum;
   sr.reg3:=Longint(act);
@@ -353,8 +353,8 @@ end;
 (*=================== MOVED from syslinux.inc ========================*)
 
 Function Sys_FTruncate(Handle,Pos:longint):longint;  //moved from sysunix.inc Do_Truncate
-var  
-  sr : syscallregs;   
+var
+  sr : syscallregs;
 begin
   sr.reg2:=Handle;
   sr.reg3:=Pos;
@@ -395,13 +395,16 @@ var
 begin
   sr.reg2:=Handle;
   sr.reg3:=Ndx;
-  sr.reg4:=Longint(Data);   
+  sr.reg4:=Longint(Data);
   Sys_IOCtl:=SysCall(Syscall_nr_ioctl,sr);
 end;
 
 {
   $Log$
-  Revision 1.1  2002-09-06 18:35:59  jonas
+  Revision 1.2  2002-09-07 16:01:17  peter
+    * old logs removed and tabs fixed
+
+  Revision 1.1  2002/09/06 18:35:59  jonas
     * implemented most syscalls, except readdir because the getdents
       syscall is declared obsolete in Darwin...
 

@@ -3,10 +3,10 @@
     This file is part of the Free Pascal run time library.
     Copyright (c) 1999-2000 by the Free Pascal development team.
 
-    This is a prototype file to show all function that need to be implemented 
+    This is a prototype file to show all function that need to be implemented
     for a new operating system (provided the processor specific
     function are already implemented !)
- 
+
     See the file COPYING.FPC, included in this distribution,
     for details about the copyright.
 
@@ -82,7 +82,7 @@ end;
 function paramcount : longint;
 begin
   {paramcount := argc - 1;}
-  paramcount:=0; 
+  paramcount:=0;
 end;
 
 { argument number l }
@@ -146,7 +146,7 @@ end;
 
 {****************************************************************************
                         Low level File Routines
-       All these functions can set InOutRes on errors 
+       All these functions can set InOutRes on errors
  ****************************************************************************}
 
 { close a file from the handle value }
@@ -285,28 +285,16 @@ Begin
   OpenStdIO(StdErr,fmOutput,StdErrorHandle);
 { Setup environment and arguments }
   Setup_Environment;
-  Setup_Arguments; 
+  Setup_Arguments;
 { Reset IO Error }
   InOutRes:=0;
 End.
 {
   $Log$
-  Revision 1.7  2002-04-21 15:55:14  carl
+  Revision 1.8  2002-09-07 16:01:27  peter
+    * old logs removed and tabs fixed
+
+  Revision 1.7  2002/04/21 15:55:14  carl
   + initialize some global variables
 
-  Revision 1.6  2001/06/19 20:46:56  hajny
-    * platform specific constants moved after systemh.inc, BeOS omission corrected
-
-  Revision 1.5  2001/06/13 22:21:53  hajny
-    + platform specific information
-
-  Revision 1.4  2001/03/25 11:06:35  hajny
-    * GetDir fixed
-
-  Revision 1.3  2001/03/16 20:42:44  hajny
-    * universal FExpand
-
-  Revision 1.2  2000/07/13 11:33:56  michael
-  + removed logs
- 
 }

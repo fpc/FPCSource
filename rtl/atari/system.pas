@@ -757,75 +757,7 @@ end.
 
 {
   $Log$
-  Revision 1.3  2001-06-19 20:46:07  hajny
-    * platform specific constants moved after systemh.inc, BeOS omission corrected
-
-  Revision 1.2  2001/06/13 22:22:59  hajny
-    + platform specific information
-
-  Revision 1.1  2001/03/16 20:01:47  hajny
-    + system unit name change
-
-  Revision 1.2  2000/07/14 10:30:58  michael
-  +
-
-  Revision 1.1  2000/07/13 06:30:30  michael
-  + Initial import
-
-  Revision 1.14  2000/01/07 16:41:29  daniel
-    * copyright 2000
-
-  Revision 1.13  2000/01/07 16:32:23  daniel
-    * copyright 2000 added
-
-  Revision 1.12  1999/09/10 15:40:33  peter
-    * fixed do_open flags to be > $100, becuase filemode can be upto 255
-
-  Revision 1.11  1999/01/18 10:05:48  pierre
-   + system_exit procedure added
-
-  Revision 1.10  1998/12/28 15:50:43  peter
-    + stdout, which is needed when you write something in the system unit
-      to the screen. Like the runtime error
-
-  Revision 1.9  1998/09/14 10:48:02  peter
-    * FPC_ names
-    * Heap manager is now system independent
-
-  Revision 1.8  1998/07/15 12:11:59  carl
-    * hmmm... can't remember! :(...
-
-  Revision 1.5  1998/07/13 12:34:13  carl
-    + Error2InoutRes implemented
-    * do_read was doing a wrong os call!
-    * do_open was not pushing the right values
-    * DosDir was pushing the wrong params on the stack
-    * do_close would never works, was pushing a longint instead of word
-
-  Revision 1.4  1998/07/02 12:39:27  carl
-    * IOCheck for mkdir,chdir and rmdir, just like in TP
-
-  Revision 1.3  1998/07/01 14:40:20  carl
-    + new stack checking implemented
-    + IOCheck for chdir , getdir , mkdir and rmdir
-
-  Revision 1.1.1.1  1998/03/25 11:18:47  root
-  * Restored version
-
-  Revision 1.8  1998/02/23 02:27:39  carl
-    * make it link correctly
-
-  Revision 1.7  1998/02/06 16:33:02  carl
-    * oops... commited wrong file
-    + do_open is now standard with other platforms
-
-  Revision 1.5  1998/01/31 19:32:51  carl
-    - removed incorrect $define
-
-  Revision 1.4  1998/01/27 10:55:45  peter
-    * Word Handles from -1 -> $ffff
-
-  Revision 1.3  1998/01/25 22:44:14  peter
-    * Using uniform layout
+  Revision 1.4  2002-09-07 16:01:16  peter
+    * old logs removed and tabs fixed
 
 }

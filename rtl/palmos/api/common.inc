@@ -35,11 +35,11 @@ ACCOMPANYING THE COMPACT DISK.
 
  -------------------------------------------------------------------
   FileName:
-    	     Common.inc
+             Common.inc
 
   Description:
-    	     Common include file for all Pilot routines.
-    	     Contains elementary data types
+             Common include file for all Pilot routines.
+             Contains elementary data types
 
   History:
      10/19/94  RM - Created by Ron Marianetti
@@ -103,7 +103,7 @@ ACCOMPANYING THE COMPACT DISK.
        { Function types }
        ProcPtr = function : Long;cdecl;
   $Log$
-  Revision 1.2  2000-07-13 11:33:55  michael
-  + removed logs
- 
+  Revision 1.3  2002-09-07 16:01:26  peter
+    * old logs removed and tabs fixed
+
 }

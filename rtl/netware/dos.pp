@@ -858,17 +858,7 @@ end;
 end.
 {
   $Log$
-  Revision 1.4  2001-06-13 22:20:11  hajny
-    + platform specific information
-
-  Revision 1.3  2001/04/16 18:39:50  florian
-    * updates from Armin commited
-
-  Revision 1.2  2001/04/11 14:17:00  florian
-    * added logs, fixed email address of Armin, it is
-      diehl@nordrhein.de
-
-  Revision 1.1  2001/04/11 14:14:12  florian
-    * initial commit, thanks to Armin Diehl (diehl@nordrhein.de)
+  Revision 1.5  2002-09-07 16:01:20  peter
+    * old logs removed and tabs fixed
 
 }

@@ -380,31 +380,13 @@ end.
 
 {
   $Log$
-  Revision 1.10  2002-01-25 17:41:25  peter
+  Revision 1.11  2002-09-07 16:01:22  peter
+    * old logs removed and tabs fixed
+
+  Revision 1.10  2002/01/25 17:41:25  peter
     * delphi compatible array types
 
   Revision 1.9  2002/01/06 21:59:13  peter
     * regenerated
 
-  Revision 1.8  2001/10/22 21:19:33  peter
-    * LoadResString, PResStringRec, TResStringRec compatibility added
-
-  Revision 1.7  2001/08/19 21:02:02  florian
-    * fixed and added a lot of stuff to get the Jedi DX( headers
-      compiled
-
-  Revision 1.6  2001/08/01 21:43:11  peter
-    * generate error for closefile
-
-  Revision 1.5  2000/12/16 15:58:18  jonas
-    * removed warnings about possible range check errors
-
-  Revision 1.4  2000/11/13 14:41:20  marco
-   * Unix renamefest for defines
-
-  Revision 1.3  2000/07/14 10:33:10  michael
-  + Conditionals fixed
-
-  Revision 1.2  2000/07/13 11:33:51  michael
-  + removed logs
 }

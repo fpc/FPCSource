@@ -8,11 +8,11 @@ UNIT Console;
    for details about the copyright.
 
    Header conversions (with IOCTL macro expansion) for FreeBSD 4.2's
-   sys/fbio.h sys/consio.h sys/kbdio.h (together these three form 
-	machine/console.h) and
+   sys/fbio.h sys/consio.h sys/kbdio.h (together these three form
+        machine/console.h) and
    machine/mouse.h
 
-   Converted to use in a future FreeBSD API to get the IDE running on 
+   Converted to use in a future FreeBSD API to get the IDE running on
    the physical console with mousesupport.
 
    As soon as cross unit inlining is ready, all functions should be made
@@ -30,22 +30,22 @@ interface
 {I tried to keep original types as much as possible, only "int" is converted
 to longint because INT is a standard function in TP/FPC}
 
-TYPE 
+TYPE
      uchar = char;
      uint  = dword;
      u_int = uint;
      ushort= word;
      short = integer;
-     long  = dword;		{?}
-     size_t= longint;		{Dunno sure, but it is 32-bit}
-     caddr_t= longint;		{idem}
-     vm_offset_t=dword;		{idem}
+     long  = dword;             {?}
+     size_t= longint;           {Dunno sure, but it is 32-bit}
+     caddr_t= longint;          {idem}
+     vm_offset_t=dword;         {idem}
 
 {----------------------------- sys/fbio.h ----------------------------------}
 
 {
  * Copyright (c) 1992, 1993
- *	The Regents of the University of California.  All rights reserved.
+ *      The Regents of the University of California.  All rights reserved.
  *
  * This code is derived from software developed by the Computer Systems
  * Engineering group at Lawrence Berkeley Laboratory under DARPA
@@ -61,8 +61,8 @@ TYPE
  *    documentation and/or other materials provided with the distribution.
  * 3. All advertising materials mentioning features or use of this software
  *    must display the following acknowledgement:
- *	This product includes software developed by the University of
- *	California, Berkeley and its contributors.
+ *      This product includes software developed by the University of
+ *      California, Berkeley and its contributors.
  * 4. Neither the name of the University nor the names of its contributors
  *    may be used to endorse or promote products derived from this software
  *    without specific prior written permission.
@@ -79,7 +79,7 @@ TYPE
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- *	@(#)fbio.h	8.2 (Berkeley) 10/30/93
+ *      @(#)fbio.h      8.2 (Berkeley) 10/30/93
  *
  * $FreeBSD: src/sys/sys/fbio.h,v 1.9.2.1 2000/05/05 09:16:16 nyan Exp $
  }
@@ -94,51 +94,51 @@ TYPE
 
 CONST
 
-        	FBTYPE_SUN1BW		=0;	{ multibus mono }
-        	FBTYPE_SUN1COLOR	=1;	{ multibus color }
-        	FBTYPE_SUN2BW		=2;	{ memory mono }
-        	FBTYPE_SUN2COLOR	=3;	{ color w/rasterop chips }
-        	FBTYPE_SUN2GP		=4;	{ GP1/GP2 }
-        	FBTYPE_SUN5COLOR	=5;	{ RoadRunner accelerator }
-        	FBTYPE_SUN3COLOR	=6;	{ memory color }
-        	FBTYPE_MEMCOLOR		=7;	{ memory 24-bit }
-        	FBTYPE_SUN4COLOR	=8;	{ memory color w/overlay }
+                FBTYPE_SUN1BW           =0;     { multibus mono }
+                FBTYPE_SUN1COLOR        =1;     { multibus color }
+                FBTYPE_SUN2BW           =2;     { memory mono }
+                FBTYPE_SUN2COLOR        =3;     { color w/rasterop chips }
+                FBTYPE_SUN2GP           =4;     { GP1/GP2 }
+                FBTYPE_SUN5COLOR        =5;     { RoadRunner accelerator }
+                FBTYPE_SUN3COLOR        =6;     { memory color }
+                FBTYPE_MEMCOLOR         =7;     { memory 24-bit }
+                FBTYPE_SUN4COLOR        =8;     { memory color w/overlay }
 
-        	FBTYPE_NOTSUN1		=9;	{ reserved for customer }
-        	FBTYPE_NOTSUN2		=10;	{ reserved for customer }
-        	FBTYPE_NOTSUN3		=11;	{ reserved for customer }
+                FBTYPE_NOTSUN1          =9;     { reserved for customer }
+                FBTYPE_NOTSUN2          =10;    { reserved for customer }
+                FBTYPE_NOTSUN3          =11;    { reserved for customer }
 
-        	FBTYPE_SUNFAST_COLOR	=12;	{ accelerated 8bit }
-        	FBTYPE_SUNROP_COLOR	=13;	{ MEMCOLOR with rop h/w }
-        	FBTYPE_SUNFB_VIDEO	=14;	{ Simple video mixing }
-        	FBTYPE_RESERVED5	=15;	{ reserved, do not use }
-        	FBTYPE_RESERVED4	=16;	{ reserved, do not use }
-        	FBTYPE_RESERVED3	=17;	{ reserved, do not use }
-        	FBTYPE_RESERVED2	=18;	{ reserved, do not use }
-        	FBTYPE_RESERVED1	=19;	{ reserved, do not use }
+                FBTYPE_SUNFAST_COLOR    =12;    { accelerated 8bit }
+                FBTYPE_SUNROP_COLOR     =13;    { MEMCOLOR with rop h/w }
+                FBTYPE_SUNFB_VIDEO      =14;    { Simple video mixing }
+                FBTYPE_RESERVED5        =15;    { reserved, do not use }
+                FBTYPE_RESERVED4        =16;    { reserved, do not use }
+                FBTYPE_RESERVED3        =17;    { reserved, do not use }
+                FBTYPE_RESERVED2        =18;    { reserved, do not use }
+                FBTYPE_RESERVED1        =19;    { reserved, do not use }
 
-        	FBTYPE_MDA		=20;
-        	FBTYPE_HERCULES		=21;
-        	FBTYPE_CGA		=22;
-        	FBTYPE_EGA		=23;
-        	FBTYPE_VGA		=24;
-        	FBTYPE_PC98		=25;
-        	FBTYPE_TGA		=26;
+                FBTYPE_MDA              =20;
+                FBTYPE_HERCULES         =21;
+                FBTYPE_CGA              =22;
+                FBTYPE_EGA              =23;
+                FBTYPE_VGA              =24;
+                FBTYPE_PC98             =25;
+                FBTYPE_TGA              =26;
 
-        	FBTYPE_LASTPLUSONE	=27;	{ max number of fbs (change as add) }
+                FBTYPE_LASTPLUSONE      =27;    { max number of fbs (change as add) }
 
 {
  * Frame buffer descriptor as returned by FBIOGTYPE.
  }
 
 type fbtype = record
-		fb_type   : longint;	{ as defined above }
-		fb_height : longint;	{ in pixels }
-		fb_width  : longint;	{ in pixels }
-		fb_depth  : longint;	{ bits per pixel }
-		fb_cmsize : longint;	{ size of color map (entries) }
-		fb_size   : longint;	{ total size in bytes }
-	       end;
+                fb_type   : longint;    { as defined above }
+                fb_height : longint;    { in pixels }
+                fb_width  : longint;    { in pixels }
+                fb_depth  : longint;    { bits per pixel }
+                fb_cmsize : longint;    { size of color map (entries) }
+                fb_size   : longint;    { total size in bytes }
+               end;
 
 Function FBIOGTYPE(fd:longint;var param1 : fbtype):boolean;
 
@@ -147,13 +147,13 @@ Function FBIOGTYPE(fd:longint;var param1 : fbtype):boolean;
  * (used for gp1) -- unsupported.
  }
 type  fbinfo = record
-		fb_physaddr   : longint;	{ physical frame buffer address }
-		fb_hwwidth    : longint;	{ fb board width }
-		fb_hwheight   : longint;	{ fb board height }
-		fb_addrdelta  : longint;	{ phys addr diff between boards }
-		fb_ropaddr    : ^uchar;		{ fb virtual addr }
-		fb_unit       : longint;	{ minor devnum of fb }
-		end;
+                fb_physaddr   : longint;        { physical frame buffer address }
+                fb_hwwidth    : longint;        { fb board width }
+                fb_hwheight   : longint;        { fb board height }
+                fb_addrdelta  : longint;        { phys addr diff between boards }
+                fb_ropaddr    : ^uchar;         { fb virtual addr }
+                fb_unit       : longint;        { minor devnum of fb }
+                end;
 
 Function FBIOGINFO(fd:longint;var param1 : fbinfo):boolean;
 
@@ -162,12 +162,12 @@ type
  * Color map I/O.
  }
        fbcmap = record
-		index   : longint;		{ first element (0 origin) }
-		count   : longint;		{ number of elements }
-		red  	: ^uchar;		{ red color map elements }
-		green	: ^uchar;		{ green color map elements }
-		blue	: ^uchar;		{ blue color map elements }
-		end;
+                index   : longint;              { first element (0 origin) }
+                count   : longint;              { number of elements }
+                red     : ^uchar;               { red color map elements }
+                green   : ^uchar;               { green color map elements }
+                blue    : ^uchar;               { blue color map elements }
+                end;
 
 Function FBIOPUTCMAP(fd:longint;var param1 : fbcmap):boolean;
 Function FBIOGETCMAP(fd:longint;var param1 : fbcmap):boolean;
@@ -176,28 +176,28 @@ Function FBIOGETCMAP(fd:longint;var param1 : fbcmap):boolean;
  * Set/get attributes.
  }
 const
-        	FB_ATTR_NDEVSPECIFIC	=8;	{ no. of device specific values }
-        	FB_ATTR_NEMUTYPES	=4;	{ no. of emulation types }
+                FB_ATTR_NDEVSPECIFIC    =8;     { no. of device specific values }
+                FB_ATTR_NEMUTYPES       =4;     { no. of emulation types }
 
 type  fbsattr = record
-		flags:longint;			{ flags; see below }
-		emu_type : longint;		{ emulation type (-1 if unused) }
-		dev_specific : array[0..FB_ATTR_NDEVSPECIFIC-1] of longint;	{ catchall }
-	       end;
+                flags:longint;                  { flags; see below }
+                emu_type : longint;             { emulation type (-1 if unused) }
+                dev_specific : array[0..FB_ATTR_NDEVSPECIFIC-1] of longint;     { catchall }
+               end;
 const
-        	FB_ATTR_AUTOINIT	=1;	{ emulation auto init flag }
-        	FB_ATTR_DEVSPECIFIC	=2;	{ dev. specific stuff valid flag }
+                FB_ATTR_AUTOINIT        =1;     { emulation auto init flag }
+                FB_ATTR_DEVSPECIFIC     =2;     { dev. specific stuff valid flag }
 
 type   fbgattr = record
-	   	real_type : longint;		{ real device type }
-		owner 	  : longint;			{ PID of owner, 0 if myself }
-		_fbtype   : fbtype;		{ fbtype info for real device }
-		sattr     : fbsattr;		{ see above }
-		emu_types : array [0..FB_ATTR_NEMUTYPES-1] OF Longint;	{ possible emulations }
-						{ (-1 if unused) }
-		end;
+                real_type : longint;            { real device type }
+                owner     : longint;                    { PID of owner, 0 if myself }
+                _fbtype   : fbtype;             { fbtype info for real device }
+                sattr     : fbsattr;            { see above }
+                emu_types : array [0..FB_ATTR_NEMUTYPES-1] OF Longint;  { possible emulations }
+                                                { (-1 if unused) }
+                end;
 
-{	FBIOSATTR	_IOW('F', 5, struct fbsattr) -- unsupported }
+{       FBIOSATTR       _IOW('F', 5, struct fbsattr) -- unsupported }
 
 Function FBIOGATTR(fd:longint;var param1 : fbgattr):boolean;
 
@@ -206,8 +206,8 @@ Function FBIOGATTR(fd:longint;var param1 : fbgattr):boolean;
  }
 
 const
-        	FBVIDEO_OFF		=0;
-        	FBVIDEO_ON		=1;
+                FBVIDEO_OFF             =0;
+                FBVIDEO_ON              =1;
 
 Function FBIOSVIDEO(fd:longint;var param1 : longint):boolean;
 Function FBIOGVIDEO(fd:longint;var param1 : longint):boolean;
@@ -217,31 +217,31 @@ Function FBIOGVIDEO(fd:longint;var param1 : longint):boolean;
  * interface that smells like VMS, but there it is....
  }
 type fbcurpos = record
-		x : short;
-		y : short;
-		end;
+                x : short;
+                y : short;
+                end;
 
 
 
      fbcursor = record
-		_set     : short;		{ flags; see below }
-		enable  : short;		{ nonzero => cursor on, 0 => cursor off }
-		_pos     : fbcurpos;	{ position on display }
-		hot     : fbcurpos;	{ hot-spot within cursor }
-		cmap    : fbcmap;	{ cursor color map }
-		_size   : fbcurpos;	{ number of valid bits in image & mask }
-		image   : caddr_t;		{ cursor image bits }
-		mask    : caddr_t;		{ cursor mask bits }
-	       end;
+                _set     : short;               { flags; see below }
+                enable  : short;                { nonzero => cursor on, 0 => cursor off }
+                _pos     : fbcurpos;    { position on display }
+                hot     : fbcurpos;     { hot-spot within cursor }
+                cmap    : fbcmap;       { cursor color map }
+                _size   : fbcurpos;     { number of valid bits in image & mask }
+                image   : caddr_t;              { cursor image bits }
+                mask    : caddr_t;              { cursor mask bits }
+               end;
 
 const
-        	FB_CUR_SETCUR	=$01;	{ set on/off (i.e., obey fbcursor.enable) }
-        	FB_CUR_SETPOS	=$02;	{ set position }
-        	FB_CUR_SETHOT	=$04;	{ set hot-spot }
-        	FB_CUR_SETCMAP	=$08;	{ set cursor color map }
-        	FB_CUR_SETSHAPE	=$10;	{ set size & bits }
-        	FB_CUR_SETALL	=(FB_CUR_SETCUR OR FB_CUR_SETPOS OR FB_CUR_SETHOT OR
-			 FB_CUR_SETCMAP OR FB_CUR_SETSHAPE);
+                FB_CUR_SETCUR   =$01;   { set on/off (i.e., obey fbcursor.enable) }
+                FB_CUR_SETPOS   =$02;   { set position }
+                FB_CUR_SETHOT   =$04;   { set hot-spot }
+                FB_CUR_SETCMAP  =$08;   { set cursor color map }
+                FB_CUR_SETSHAPE =$10;   { set size & bits }
+                FB_CUR_SETALL   =(FB_CUR_SETCUR OR FB_CUR_SETPOS OR FB_CUR_SETHOT OR
+                         FB_CUR_SETCMAP OR FB_CUR_SETSHAPE);
 
 { controls for cursor attributes & shape (including position) }
 Function FBIOSCURSOR(fd:longint;var param1 : fbcursor):boolean;
@@ -257,259 +257,259 @@ Function FBIOGCURMAX(fd:longint;var param1 : fbcurpos):boolean;
 { The new style frame buffer ioctls. }
 
 CONST
-         V_INFO_COLOR	=(1 SHL 0);
-         V_INFO_GRAPHICS	=(1 SHL 1);
-         V_INFO_LINEAR	=(1 SHL 2);
-         V_INFO_VESA	=(1 SHL 3);
+         V_INFO_COLOR   =(1 SHL 0);
+         V_INFO_GRAPHICS        =(1 SHL 1);
+         V_INFO_LINEAR  =(1 SHL 2);
+         V_INFO_VESA    =(1 SHL 3);
          V_INFO_MM_OTHER  =(-1);
-         V_INFO_MM_TEXT	 =0;
+         V_INFO_MM_TEXT  =0;
          V_INFO_MM_PLANAR =1;
          V_INFO_MM_PACKED =2;
          V_INFO_MM_DIRECT =3;
-         V_INFO_MM_CGA	 =100;
-         V_INFO_MM_HGC	 =101;
-         V_INFO_MM_VGAX	 =102;
+         V_INFO_MM_CGA   =100;
+         V_INFO_MM_HGC   =101;
+         V_INFO_MM_VGAX  =102;
 
 TYPE
 { video mode information block }
   video_info = record
-     			vi_mode		: longint;	{ mode number, see below }
-    			vi_flags	: longint;
-    			vi_width	: longint;
-    			vi_height	: longint;
-    			vi_cwidth	: longint;
-    			vi_cheight	: longint;
-    			vi_depth	: longint;
-    			vi_planes	: longint;
-    			vi_window	: uint;	{ physical address }
-    			vi_window_size	: size_t;
-    			vi_window_gran  : size_t;
-    			vi_buffer	: uint;	{ physical address }
-    			vi_buffer_size  : size_t;
-    			vi_mem_model	: longint;
+                        vi_mode         : longint;      { mode number, see below }
+                        vi_flags        : longint;
+                        vi_width        : longint;
+                        vi_height       : longint;
+                        vi_cwidth       : longint;
+                        vi_cheight      : longint;
+                        vi_depth        : longint;
+                        vi_planes       : longint;
+                        vi_window       : uint; { physical address }
+                        vi_window_size  : size_t;
+                        vi_window_gran  : size_t;
+                        vi_buffer       : uint; { physical address }
+                        vi_buffer_size  : size_t;
+                        vi_mem_model    : longint;
     { for MM_PACKED and MM_DIRECT only }
-    			vi_pixel_size	: longint;	{ in bytes }
+                        vi_pixel_size   : longint;      { in bytes }
     { for MM_DIRECT only }
-    			vi_pixel_fields	: array[0..3] of longint;	{ RGB and reserved fields }
-    			vi_pixel_fsizes	: array[0..3] of longint;
+                        vi_pixel_fields : array[0..3] of longint;       { RGB and reserved fields }
+                        vi_pixel_fsizes : array[0..3] of longint;
     { reserved }
-    			vi_reserved	: array[0..63] of uchar;
-			end;
+                        vi_reserved     : array[0..63] of uchar;
+                        end;
 
-	video_info_t = video_info;
+        video_info_t = video_info;
 const
-         KD_OTHER	=0;		{ unknown }
-         KD_MONO		=1;		{ monochrome adapter }
-         KD_HERCULES	=2;		{ hercules adapter }
-         KD_CGA		=3;		{ color graphics adapter }
-         KD_EGA		=4;		{ enhanced graphics adapter }
-         KD_VGA		=5;		{ video graphics adapter }
-         KD_PC98		=6;		{ PC-98 display }
-         KD_TGA		=7;		{ TGA }
-         V_ADP_COLOR	=(1 SHL 0);
+         KD_OTHER       =0;             { unknown }
+         KD_MONO                =1;             { monochrome adapter }
+         KD_HERCULES    =2;             { hercules adapter }
+         KD_CGA         =3;             { color graphics adapter }
+         KD_EGA         =4;             { enhanced graphics adapter }
+         KD_VGA         =5;             { video graphics adapter }
+         KD_PC98                =6;             { PC-98 display }
+         KD_TGA         =7;             { TGA }
+         V_ADP_COLOR    =(1 SHL 0);
          V_ADP_MODECHANGE=(1 SHL 1);
-         V_ADP_STATESAVE	=(1 SHL 2);
-         V_ADP_STATELOAD	=(1 SHL 3);
-         V_ADP_FONT	=(1 SHL 4);
-         V_ADP_PALETTE	=(1 SHL 5);
-         V_ADP_BORDER	=(1 SHL 6);
-         V_ADP_VESA	=(1 SHL 7);
-         V_ADP_PROBED	=(1 SHL 16);
+         V_ADP_STATESAVE        =(1 SHL 2);
+         V_ADP_STATELOAD        =(1 SHL 3);
+         V_ADP_FONT     =(1 SHL 4);
+         V_ADP_PALETTE  =(1 SHL 5);
+         V_ADP_BORDER   =(1 SHL 6);
+         V_ADP_VESA     =(1 SHL 7);
+         V_ADP_PROBED   =(1 SHL 16);
          V_ADP_INITIALIZED=(1 SHL 17);
          V_ADP_REGISTERED =(1 SHL 18);
 
 { adapter infromation block }
 type  video_adapter  = record
-    			va_index		: longint;
-    			va_type			: longint;
-    			va_name			: pchar;
-    			va_unit			: longint;
-    			va_minor		: longint;
-    			va_flags		: longint;
-    			va_io_base		: longint;
-    			va_io_size		: longint;
-    			va_crtc_addr		: longint;
-    			va_mem_base		: longint;
-    			va_mem_size		: longint;
-    			va_window		: vm_offset_t;	{ virtual address }
-    			va_window_size		: size_t;
-    			va_window_gran		: size_t;
-   			va_window_orig		: uint;
-    			va_buffer		: vm_offset_t;	{ virtual address }
-    			va_buffer_size		: size_t;
-    			va_initial_mode		: longint;
-    			va_initial_bios_mode	: longint;
-    			va_mode			: longint;
-    			va_info			: video_info;
-    			va_line_width		: longint;
-    			va_disp_start : record
-    					  x : longint;
-					  y : longint;
-					 end;
-			va_token      : pointer;
-			end;
+                        va_index                : longint;
+                        va_type                 : longint;
+                        va_name                 : pchar;
+                        va_unit                 : longint;
+                        va_minor                : longint;
+                        va_flags                : longint;
+                        va_io_base              : longint;
+                        va_io_size              : longint;
+                        va_crtc_addr            : longint;
+                        va_mem_base             : longint;
+                        va_mem_size             : longint;
+                        va_window               : vm_offset_t;  { virtual address }
+                        va_window_size          : size_t;
+                        va_window_gran          : size_t;
+                        va_window_orig          : uint;
+                        va_buffer               : vm_offset_t;  { virtual address }
+                        va_buffer_size          : size_t;
+                        va_initial_mode         : longint;
+                        va_initial_bios_mode    : longint;
+                        va_mode                 : longint;
+                        va_info                 : video_info;
+                        va_line_width           : longint;
+                        va_disp_start : record
+                                          x : longint;
+                                          y : longint;
+                                         end;
+                        va_token      : pointer;
+                        end;
 
-	video_adapter_t = video_adapter;
+        video_adapter_t = video_adapter;
 
-       video_adapter_info = record 
-    			va_index		: longint;
-    			va_type			: longint;
-    			va_name			: array[0..15] of char;
-    			va_unit			: longint;
-    			va_flags		: longint;
-    			va_io_base		: longint;
-    			va_io_size		: longint;
-    			va_crtc_addr		: longint;
-    			va_mem_base		: longint;
-    			va_mem_size		: longint;
-    			va_window		: uint;		{ virtual address }
-    			va_window_size		: size_t;
-    			va_window_gran		: size_t;
-    			va_unused0		: uint;
-    			va_buffer_size		: size_t;
-    			va_initial_mode		: longint;
-    			va_initial_bios_mode	: longint;
-    			va_mode			: longint;
-    			va_line_width		: longint;
-    			va_disp_start : record
-    					  x : longint;
-					  y : longint;
-					 end;
-			va_window_orig :  uint;
+       video_adapter_info = record
+                        va_index                : longint;
+                        va_type                 : longint;
+                        va_name                 : array[0..15] of char;
+                        va_unit                 : longint;
+                        va_flags                : longint;
+                        va_io_base              : longint;
+                        va_io_size              : longint;
+                        va_crtc_addr            : longint;
+                        va_mem_base             : longint;
+                        va_mem_size             : longint;
+                        va_window               : uint;         { virtual address }
+                        va_window_size          : size_t;
+                        va_window_gran          : size_t;
+                        va_unused0              : uint;
+                        va_buffer_size          : size_t;
+                        va_initial_mode         : longint;
+                        va_initial_bios_mode    : longint;
+                        va_mode                 : longint;
+                        va_line_width           : longint;
+                        va_disp_start : record
+                                          x : longint;
+                                          y : longint;
+                                         end;
+                        va_window_orig :  uint;
     { reserved }
-    			va_reserved : array[0..63] OF uchar;
-			end;
-	video_adapter_info_t = video_adapter_info;
+                        va_reserved : array[0..63] OF uchar;
+                        end;
+        video_adapter_info_t = video_adapter_info;
 
 CONST
 { some useful video adapter index }
-         V_ADP_PRIMARY	=0;
-         V_ADP_SECONDARY	=1;
+         V_ADP_PRIMARY  =0;
+         V_ADP_SECONDARY        =1;
 
 { video mode numbers }
 
-         M_B40x25	=0;	{ black & white 40 columns }
-         M_C40x25	=1;	{ color 40 columns }
-         M_B80x25	=2;	{ black & white 80 columns }
-         M_C80x25	=3;	{ color 80 columns }
-         M_BG320		=4;	{ black & white graphics 320x200 }
-         M_CG320		=5;	{ color graphics 320x200 }
-         M_BG640		=6;	{ black & white graphics 640x200 hi-res }
+         M_B40x25       =0;     { black & white 40 columns }
+         M_C40x25       =1;     { color 40 columns }
+         M_B80x25       =2;     { black & white 80 columns }
+         M_C80x25       =3;     { color 80 columns }
+         M_BG320                =4;     { black & white graphics 320x200 }
+         M_CG320                =5;     { color graphics 320x200 }
+         M_BG640                =6;     { black & white graphics 640x200 hi-res }
          M_EGAMONO80x25  =7;       { ega-mono 80x25 }
-         M_CG320_D	=13;	{ ega mode D }
-         M_CG640_E	=14;	{ ega mode E }
-         M_EGAMONOAPA	=15;	{ ega mode F }
-         M_CG640x350	=16;	{ ega mode 10 }
-         M_ENHMONOAPA2	=17;	{ ega mode F with extended memory }
-         M_ENH_CG640	=18;	{ ega mode 10* }
+         M_CG320_D      =13;    { ega mode D }
+         M_CG640_E      =14;    { ega mode E }
+         M_EGAMONOAPA   =15;    { ega mode F }
+         M_CG640x350    =16;    { ega mode 10 }
+         M_ENHMONOAPA2  =17;    { ega mode F with extended memory }
+         M_ENH_CG640    =18;    { ega mode 10* }
          M_ENH_B40x25    =19;      { ega enhanced black & white 40 columns }
          M_ENH_C40x25    =20;      { ega enhanced color 40 columns }
          M_ENH_B80x25    =21;      { ega enhanced black & white 80 columns }
          M_ENH_C80x25    =22;      { ega enhanced color 80 columns }
-         M_VGA_C40x25	=23;	{ vga 8x16 font on color }
-         M_VGA_C80x25	=24;	{ vga 8x16 font on color }
-         M_VGA_M80x25	=25;	{ vga 8x16 font on mono }
+         M_VGA_C40x25   =23;    { vga 8x16 font on color }
+         M_VGA_C80x25   =24;    { vga 8x16 font on color }
+         M_VGA_M80x25   =25;    { vga 8x16 font on mono }
 
-         M_VGA11		=26;	{ vga 640x480 2 colors }
-         M_BG640x480	=26;
-         M_VGA12		=27;	{ vga 640x480 16 colors }
-         M_CG640x480	=27;
-         M_VGA13		=28;	{ vga 320x200 256 colors }
-         M_VGA_CG320	=28;
+         M_VGA11                =26;    { vga 640x480 2 colors }
+         M_BG640x480    =26;
+         M_VGA12                =27;    { vga 640x480 16 colors }
+         M_CG640x480    =27;
+         M_VGA13                =28;    { vga 320x200 256 colors }
+         M_VGA_CG320    =28;
 
-         M_VGA_C80x50	=30;	{ vga 8x8 font on color }
-         M_VGA_M80x50	=31;	{ vga 8x8 font on color }
-         M_VGA_C80x30	=32;	{ vga 8x16 font on color }
-         M_VGA_M80x30	=33;	{ vga 8x16 font on color }
-         M_VGA_C80x60	=34;	{ vga 8x8 font on color }
-         M_VGA_M80x60	=35;	{ vga 8x8 font on color }
-         M_VGA_CG640	=36;	{ vga 640x400 256 color }
-         M_VGA_MODEX	=37;	{ vga 320x240 256 color }
+         M_VGA_C80x50   =30;    { vga 8x8 font on color }
+         M_VGA_M80x50   =31;    { vga 8x8 font on color }
+         M_VGA_C80x30   =32;    { vga 8x16 font on color }
+         M_VGA_M80x30   =33;    { vga 8x16 font on color }
+         M_VGA_C80x60   =34;    { vga 8x8 font on color }
+         M_VGA_M80x60   =35;    { vga 8x8 font on color }
+         M_VGA_CG640    =36;    { vga 640x400 256 color }
+         M_VGA_MODEX    =37;    { vga 320x240 256 color }
 
-         M_VGA_C90x25	=40;	{ vga 8x16 font on color }
-         M_VGA_M90x25	=41;	{ vga 8x16 font on mono }
-         M_VGA_C90x30	=42;	{ vga 8x16 font on color }
-         M_VGA_M90x30	=43;	{ vga 8x16 font on mono }
-         M_VGA_C90x43	=44;	{ vga 8x8 font on color }
-         M_VGA_M90x43	=45;	{ vga 8x8 font on mono }
-         M_VGA_C90x50	=46;	{ vga 8x8 font on color }
-         M_VGA_M90x50	=47;	{ vga 8x8 font on mono }
-         M_VGA_C90x60	=48;	{ vga 8x8 font on color }
-         M_VGA_M90x60	=49;	{ vga 8x8 font on mono }
+         M_VGA_C90x25   =40;    { vga 8x16 font on color }
+         M_VGA_M90x25   =41;    { vga 8x16 font on mono }
+         M_VGA_C90x30   =42;    { vga 8x16 font on color }
+         M_VGA_M90x30   =43;    { vga 8x16 font on mono }
+         M_VGA_C90x43   =44;    { vga 8x8 font on color }
+         M_VGA_M90x43   =45;    { vga 8x8 font on mono }
+         M_VGA_C90x50   =46;    { vga 8x8 font on color }
+         M_VGA_M90x50   =47;    { vga 8x8 font on mono }
+         M_VGA_C90x60   =48;    { vga 8x8 font on color }
+         M_VGA_M90x60   =49;    { vga 8x8 font on mono }
 
-         M_ENH_B80x43	=$70;	{ ega black & white 80x43 }
-         M_ENH_C80x43	=$71;	{ ega color 80x43 }
+         M_ENH_B80x43   =$70;   { ega black & white 80x43 }
+         M_ENH_C80x43   =$71;   { ega color 80x43 }
 
-         M_PC98_80x25		=98;	{ PC98 text 80x25 }
-         M_PC98_80x30		=99;	{ PC98 text 80x30 }
-         M_PC98_EGC640x400	=100;	{ PC98 graphic 640x400 16 colors }
-         M_PC98_PEGC640x400	=101;	{ PC98 graphic 640x400 256 colors }
-         M_PC98_PEGC640x480	=102;	{ PC98 graphic 640x480 256 colors }
+         M_PC98_80x25           =98;    { PC98 text 80x25 }
+         M_PC98_80x30           =99;    { PC98 text 80x30 }
+         M_PC98_EGC640x400      =100;   { PC98 graphic 640x400 16 colors }
+         M_PC98_PEGC640x400     =101;   { PC98 graphic 640x400 256 colors }
+         M_PC98_PEGC640x480     =102;   { PC98 graphic 640x480 256 colors }
 
-         M_HGC_P0	=$e0;	{ hercules graphics - page 0 @ B0000 }
-         M_HGC_P1	=$e1;	{ hercules graphics - page 1 @ B8000 }
-         M_MCA_MODE	=$ff;	{ monochrome adapter mode }
+         M_HGC_P0       =$e0;   { hercules graphics - page 0 @ B0000 }
+         M_HGC_P1       =$e1;   { hercules graphics - page 1 @ B8000 }
+         M_MCA_MODE     =$ff;   { monochrome adapter mode }
 
-         M_TEXT_80x25	=200;	{ generic text modes }
-         M_TEXT_80x30	=201;
-         M_TEXT_80x43	=202;
-         M_TEXT_80x50	=203;
-         M_TEXT_80x60	=204;
-         M_TEXT_132x25	=205;
-         M_TEXT_132x30	=206;
-         M_TEXT_132x43	=207;
-         M_TEXT_132x50	=208;
-         M_TEXT_132x60	=209;
+         M_TEXT_80x25   =200;   { generic text modes }
+         M_TEXT_80x30   =201;
+         M_TEXT_80x43   =202;
+         M_TEXT_80x50   =203;
+         M_TEXT_80x60   =204;
+         M_TEXT_132x25  =205;
+         M_TEXT_132x30  =206;
+         M_TEXT_132x43  =207;
+         M_TEXT_132x50  =208;
+         M_TEXT_132x60  =209;
 
-         M_VESA_BASE		=$100;	{ VESA mode number base }
-         M_VESA_CG640x400	=$100;	{ 640x400, 256 color }
-         M_VESA_CG640x480	=$101;	{ 640x480, 256 color }
-         M_VESA_800x600		=$102;	{ 800x600, 16 color }
-         M_VESA_CG800x600	=$103;	{ 800x600, 256 color }
-         M_VESA_1024x768		=$104;	{ 1024x768, 16 color }
-         M_VESA_CG1024x768	=$105;	{ 1024x768, 256 color }
-         M_VESA_1280x1024	=$106;	{ 1280x1024, 16 color }
-         M_VESA_CG1280x1024	=$107;	{ 1280x1024, 256 color }
-         M_VESA_C80x60		=$108;	{ 8x8 font }
-         M_VESA_C132x25		=$109;	{ 8x16 font }
-         M_VESA_C132x43		=$10a;	{ 8x14 font }
-         M_VESA_C132x50		=$10b;	{ 8x8 font }
-         M_VESA_C132x60		=$10c;	{ 8x8 font }
-         M_VESA_32K_320		=$10d;	{ 320x200, 5:5:5 }
-         M_VESA_64K_320		=$10e;	{ 320x200, 5:6:5 }
-         M_VESA_FULL_320		=$10f;	{ 320x200, 8:8:8 }
-         M_VESA_32K_640		=$110;	{ 640x480, 5:5:5 }
-         M_VESA_64K_640		=$111;	{ 640x480, 5:6:5 }
-         M_VESA_FULL_640		=$112;	{ 640x480, 8:8:8 }
-         M_VESA_32K_800		=$113;	{ 800x600, 5:5:5 }
-         M_VESA_64K_800		=$114;	{ 800x600, 5:6:5 }
-         M_VESA_FULL_800		=$115;	{ 800x600, 8:8:8 }
-         M_VESA_32K_1024		=$116;	{ 1024x768, 5:5:5 }
-         M_VESA_64K_1024		=$117;	{ 1024x768, 5:6:5 }
-         M_VESA_FULL_1024	=$118;	{ 1024x768, 8:8:8 }
-         M_VESA_32K_1280		=$119;	{ 1280x1024, 5:5:5 }
-         M_VESA_64K_1280		=$11a;	{ 1280x1024, 5:6:5 }
-         M_VESA_FULL_1280	=$11b;	{ 1280x1024, 8:8:8 }
-         M_VESA_MODE_MAX		=$1ff;
+         M_VESA_BASE            =$100;  { VESA mode number base }
+         M_VESA_CG640x400       =$100;  { 640x400, 256 color }
+         M_VESA_CG640x480       =$101;  { 640x480, 256 color }
+         M_VESA_800x600         =$102;  { 800x600, 16 color }
+         M_VESA_CG800x600       =$103;  { 800x600, 256 color }
+         M_VESA_1024x768                =$104;  { 1024x768, 16 color }
+         M_VESA_CG1024x768      =$105;  { 1024x768, 256 color }
+         M_VESA_1280x1024       =$106;  { 1280x1024, 16 color }
+         M_VESA_CG1280x1024     =$107;  { 1280x1024, 256 color }
+         M_VESA_C80x60          =$108;  { 8x8 font }
+         M_VESA_C132x25         =$109;  { 8x16 font }
+         M_VESA_C132x43         =$10a;  { 8x14 font }
+         M_VESA_C132x50         =$10b;  { 8x8 font }
+         M_VESA_C132x60         =$10c;  { 8x8 font }
+         M_VESA_32K_320         =$10d;  { 320x200, 5:5:5 }
+         M_VESA_64K_320         =$10e;  { 320x200, 5:6:5 }
+         M_VESA_FULL_320                =$10f;  { 320x200, 8:8:8 }
+         M_VESA_32K_640         =$110;  { 640x480, 5:5:5 }
+         M_VESA_64K_640         =$111;  { 640x480, 5:6:5 }
+         M_VESA_FULL_640                =$112;  { 640x480, 8:8:8 }
+         M_VESA_32K_800         =$113;  { 800x600, 5:5:5 }
+         M_VESA_64K_800         =$114;  { 800x600, 5:6:5 }
+         M_VESA_FULL_800                =$115;  { 800x600, 8:8:8 }
+         M_VESA_32K_1024                =$116;  { 1024x768, 5:5:5 }
+         M_VESA_64K_1024                =$117;  { 1024x768, 5:6:5 }
+         M_VESA_FULL_1024       =$118;  { 1024x768, 8:8:8 }
+         M_VESA_32K_1280                =$119;  { 1280x1024, 5:5:5 }
+         M_VESA_64K_1280                =$11a;  { 1280x1024, 5:6:5 }
+         M_VESA_FULL_1280       =$11b;  { 1280x1024, 8:8:8 }
+         M_VESA_MODE_MAX                =$1ff;
 
 type
-	video_display_start = record
-			x  :longint;
-			y : longint;
-			end;
+        video_display_start = record
+                        x  :longint;
+                        y : longint;
+                        end;
 
-	video_display_start_t= video_display_start;
+        video_display_start_t= video_display_start;
 
-	video_color_palette = record
-			index : longint;		{ first element (zero-based) }
-			count : longint;		{ number of elements }
-			red   : ^uchar;		{ red }
-			green : ^uchar;		{ green }
-			blue  : ^uchar;		{ blue }
-			transparent : ^uchar;	{ may be NULL }
-			end;
+        video_color_palette = record
+                        index : longint;                { first element (zero-based) }
+                        count : longint;                { number of elements }
+                        red   : ^uchar;         { red }
+                        green : ^uchar;         { green }
+                        blue  : ^uchar;         { blue }
+                        transparent : ^uchar;   { may be NULL }
+                        end;
 
-	video_color_palette_t = video_color_palette;
+        video_color_palette_t = video_color_palette;
 
 { adapter info. }
 Function FBIO_ADAPTER(fd:longint;var param1 : longint):boolean;
@@ -973,7 +973,7 @@ Function SW_VESA_64K_1024(fd:longint):boolean;
 Function SW_VESA_FULL_1024(fd:longint):boolean;
 Function SW_VESA_32K_1280(fd:longint):boolean;
 Function SW_VESA_64K_1280(fd:longint):boolean;
-Function SW_VESA_FULL_1280(fd:longint):boolean;    
+Function SW_VESA_FULL_1280(fd:longint):boolean;
 
 {----------------------------- sys/kbio.h ----------------------------------}
 
@@ -991,13 +991,13 @@ const   K_RAW           =0;             { keyboard returns scancodes}
         K_CODE          =2;             { keyboard returns keycodes}
 
 {After each IOCTL value, I've put the type of the parameters to be passed:
-     @int -> pass a pointer to an int. 
+     @int -> pass a pointer to an int.
       int -> pass pointer(int)
       -   -> nothing
-@keymap_t -> pass a pointer to a keymap_t 
+@keymap_t -> pass a pointer to a keymap_t
  etc.
 }
- 
+
 Function KDGKBMODE(fd:longint;var param1 : longint):boolean;
 Function KDSKBMODE(fd:longint;param1 : longint):boolean;
 
@@ -1050,7 +1050,7 @@ Function KDSETLED(fd:longint;param1 : longint):boolean;
 Function KDSETRAD(fd:longint;param1 : longint):boolean;
 
 { see console.h for the definition of the following ioctl}
-{$ifndef definconsole}          
+{$ifndef definconsole}
 Function KDRASTER(fd:longint;var param1 : scr_size_t):boolean;
 
 {$endif}
@@ -1058,7 +1058,7 @@ Function KDRASTER(fd:longint;var param1 : scr_size_t):boolean;
 TYPE
 { get keyboard information}
   keyboard_info = Record
-                        kb_index : longint;     { kbdio index#} 
+                        kb_index : longint;     { kbdio index#}
                         kb_name  : array[0..15] of char;        { driver name}
                         kb_unit  : longint;     { unit#}
                         kb_type  : longint;     { KB_84, KB_101, KB_OTHER,...}
@@ -1221,7 +1221,7 @@ Function GIO_DEADKEYMAP(fd:longint;var param1 : accentmap_t):boolean;
 Function PIO_DEADKEYMAP(fd:longint;var param1 : accentmap_t):boolean;
 Function GIO_KEYMAPENT(fd:longint;var param1 : keyarg_t):boolean;
 Function PIO_KEYMAPENT(fd:longint;var param1 : keyarg_t):boolean;
-        
+
 { flags set to the return value in the KD_XLATE mode}
 Const
         NOKEY           =$100;          { no key pressed marker}
@@ -1272,95 +1272,95 @@ function KEYFLAGS(c:longint):longint;
 
 { mouse status block }
 
-type 
+type
  mousestatus = record
-	         flags    : longint;		{ state change flags }
-        	 button   : longint;		{ button status }
-	         obutton  : longint;		{ previous button status }
-	         dx       : longint;		{ x movement }
-	         dy       : longint;		{ y movement }
-	         dz       : longint;		{ z movement }
-		end;
-	
+                 flags    : longint;            { state change flags }
+                 button   : longint;            { button status }
+                 obutton  : longint;            { previous button status }
+                 dx       : longint;            { x movement }
+                 dy       : longint;            { y movement }
+                 dz       : longint;            { z movement }
+                end;
+
  mousestatus_t = mousestatus;
 
-CONST 
+CONST
 
 { button }
-       MOUSE_BUTTON1DOWN	=$0001;	{ left }
-       MOUSE_BUTTON2DOWN	=$0002;	{ middle }
-       MOUSE_BUTTON3DOWN	=$0004;	{ right }
-       MOUSE_BUTTON4DOWN	=$0008;
-       MOUSE_BUTTON5DOWN	=$0010;
-       MOUSE_BUTTON6DOWN	=$0020;
-       MOUSE_BUTTON7DOWN	=$0040;
-       MOUSE_BUTTON8DOWN	=$0080;
-       MOUSE_MAXBUTTON		=31;
-       MOUSE_STDBUTTONS		=$0007;		{ buttons 1-3 }
-       MOUSE_EXTBUTTONS		=$7ffffff8;	{ the others (28 of them!) }
-       MOUSE_BUTTONS		=(MOUSE_STDBUTTONS or MOUSE_EXTBUTTONS);
+       MOUSE_BUTTON1DOWN        =$0001; { left }
+       MOUSE_BUTTON2DOWN        =$0002; { middle }
+       MOUSE_BUTTON3DOWN        =$0004; { right }
+       MOUSE_BUTTON4DOWN        =$0008;
+       MOUSE_BUTTON5DOWN        =$0010;
+       MOUSE_BUTTON6DOWN        =$0020;
+       MOUSE_BUTTON7DOWN        =$0040;
+       MOUSE_BUTTON8DOWN        =$0080;
+       MOUSE_MAXBUTTON          =31;
+       MOUSE_STDBUTTONS         =$0007;         { buttons 1-3 }
+       MOUSE_EXTBUTTONS         =$7ffffff8;     { the others (28 of them!) }
+       MOUSE_BUTTONS            =(MOUSE_STDBUTTONS or MOUSE_EXTBUTTONS);
 
 { flags }
-       MOUSE_STDBUTTONSCHANGED	=MOUSE_STDBUTTONS;
-       MOUSE_EXTBUTTONSCHANGED	=MOUSE_EXTBUTTONS;
-       MOUSE_BUTTONSCHANGED	=MOUSE_BUTTONS;
-       MOUSE_POSCHANGED		=$80000000;
+       MOUSE_STDBUTTONSCHANGED  =MOUSE_STDBUTTONS;
+       MOUSE_EXTBUTTONSCHANGED  =MOUSE_EXTBUTTONS;
+       MOUSE_BUTTONSCHANGED     =MOUSE_BUTTONS;
+       MOUSE_POSCHANGED         =$80000000;
 
 type
   mousehw =record
-	 buttons : longint;		{ -1 if unknown }
-	 iftype  : longint;		{ MOUSE_IF_XXX }
-	 _type    : longint;		{ mouse/track ball/pad... }
-	 model   : longint;		{ I/F dependent model ID: MOUSE_MODEL_XXX }
-	 hwid    : longint;		{ I/F dependent hardware ID}
-				 { for the PS/2 mouse, it will be PSM_XXX_ID  }
+         buttons : longint;             { -1 if unknown }
+         iftype  : longint;             { MOUSE_IF_XXX }
+         _type    : longint;            { mouse/track ball/pad... }
+         model   : longint;             { I/F dependent model ID: MOUSE_MODEL_XXX }
+         hwid    : longint;             { I/F dependent hardware ID}
+                                 { for the PS/2 mouse, it will be PSM_XXX_ID  }
           end;
-          
-   mousehw_t  = mousehw;     
+
+   mousehw_t  = mousehw;
 
 const
 
 { iftype }
-       MOUSE_IF_UNKNOWN		=(-1);
-       MOUSE_IF_SERIAL		=0;
-       MOUSE_IF_BUS		=1;
-       MOUSE_IF_INPORT		=2;
-       MOUSE_IF_PS2		=3;
-       MOUSE_IF_SYSMOUSE	=4;
-       MOUSE_IF_USB		=5;
+       MOUSE_IF_UNKNOWN         =(-1);
+       MOUSE_IF_SERIAL          =0;
+       MOUSE_IF_BUS             =1;
+       MOUSE_IF_INPORT          =2;
+       MOUSE_IF_PS2             =3;
+       MOUSE_IF_SYSMOUSE        =4;
+       MOUSE_IF_USB             =5;
 
 { type }
-       MOUSE_UNKNOWN		=(-1);	{ should be treated as a mouse }
-       MOUSE_MOUSE		=0;
-       MOUSE_TRACKBALL		=1;
-       MOUSE_STICK		=2;
-       MOUSE_PAD		=3;
+       MOUSE_UNKNOWN            =(-1);  { should be treated as a mouse }
+       MOUSE_MOUSE              =0;
+       MOUSE_TRACKBALL          =1;
+       MOUSE_STICK              =2;
+       MOUSE_PAD                =3;
 
 { model }
-       MOUSE_MODEL_UNKNOWN		=(-1);
-       MOUSE_MODEL_GENERIC		=0;
-       MOUSE_MODEL_GLIDEPOINT		=1;
-       MOUSE_MODEL_NETSCROLL		=2;
-       MOUSE_MODEL_NET			=3;
-       MOUSE_MODEL_INTELLI		=4;
-       MOUSE_MODEL_THINK		=5;
-       MOUSE_MODEL_EASYSCROLL		=6;
-       MOUSE_MODEL_MOUSEMANPLUS		=7;
-       MOUSE_MODEL_KIDSPAD		=8;
-       MOUSE_MODEL_VERSAPAD		=9;
-       MOUSE_MODEL_EXPLORER		=10;
-       MOUSE_MODEL_4D			=11;
-       MOUSE_MODEL_4DPLUS		=12;
+       MOUSE_MODEL_UNKNOWN              =(-1);
+       MOUSE_MODEL_GENERIC              =0;
+       MOUSE_MODEL_GLIDEPOINT           =1;
+       MOUSE_MODEL_NETSCROLL            =2;
+       MOUSE_MODEL_NET                  =3;
+       MOUSE_MODEL_INTELLI              =4;
+       MOUSE_MODEL_THINK                =5;
+       MOUSE_MODEL_EASYSCROLL           =6;
+       MOUSE_MODEL_MOUSEMANPLUS         =7;
+       MOUSE_MODEL_KIDSPAD              =8;
+       MOUSE_MODEL_VERSAPAD             =9;
+       MOUSE_MODEL_EXPLORER             =10;
+       MOUSE_MODEL_4D                   =11;
+       MOUSE_MODEL_4DPLUS               =12;
 
 type  mousemode = record
-	      	    protocol    : longint;		{ MOUSE_PROTO_XXX }
-	    	    rate        : longint;		{ report rate (per sec), -1 if unknown }
-		    resolution  : longint;		{ MOUSE_RES_XXX, -1 if unknown }
-		    accelfactor : longint;		{ accelation factor (must be 1 or greater) }
-		    level       : longint;		{ driver operation level }
-		    packetsize  : longint;		{ the length of the data packet }
-		    syncmask    : array[0..1] of uchar; { sync. data bits in the header byte }
-		  end;
+                    protocol    : longint;              { MOUSE_PROTO_XXX }
+                    rate        : longint;              { report rate (per sec), -1 if unknown }
+                    resolution  : longint;              { MOUSE_RES_XXX, -1 if unknown }
+                    accelfactor : longint;              { accelation factor (must be 1 or greater) }
+                    level       : longint;              { driver operation level }
+                    packetsize  : longint;              { the length of the data packet }
+                    syncmask    : array[0..1] of uchar; { sync. data bits in the header byte }
+                  end;
 
 type mousemode_t = mousemode;
 
@@ -1376,42 +1376,42 @@ type mousemode_t = mousemode;
  *   PS/2
  }
  const
- 
-       MOUSE_PROTO_UNKNOWN	=(-1);
-       MOUSE_PROTO_MS		=0;	{ Microsoft Serial, 3 bytes }
-       MOUSE_PROTO_MSC		=1;	{ Mouse Systems, 5 bytes }
-       MOUSE_PROTO_LOGI		=2;	{ Logitech, 3 bytes }
-       MOUSE_PROTO_MM		=3;	{ MM series, 3 bytes }
-       MOUSE_PROTO_LOGIMOUSEMAN =4;	{ Logitech MouseMan 3/4 bytes }
-       MOUSE_PROTO_BUS		=5;	{ MS/Logitech bus mouse }
-       MOUSE_PROTO_INPORT	=6;	{ MS/ATI InPort mouse }
-       MOUSE_PROTO_PS2		=7;	{ PS/2 mouse, 3 bytes }
-       MOUSE_PROTO_HITTAB	=8;	{ Hitachi Tablet 3 bytes }
-       MOUSE_PROTO_GLIDEPOINT	=9;	{ ALPS GlidePoint, 3/4 bytes }
-       MOUSE_PROTO_INTELLI	=10;	{ MS IntelliMouse, 4 bytes }
-       MOUSE_PROTO_THINK	=11;	{ Kensignton Thinking Mouse, 3/4 bytes }
-       MOUSE_PROTO_SYSMOUSE	=12;	{ /dev/sysmouse }
-       MOUSE_PROTO_X10MOUSEREM	=13;	{ X10 MouseRemote, 3 bytes }
-       MOUSE_PROTO_KIDSPAD	=14;	{ Genius Kidspad }
-       MOUSE_PROTO_VERSAPAD	=15;	{ Interlink VersaPad, 6 bytes }
 
-       MOUSE_RES_UNKNOWN	=(-1);
-       MOUSE_RES_DEFAULT	=0;
-       MOUSE_RES_LOW		=(-2);
-       MOUSE_RES_MEDIUMLOW	=(-3);
-       MOUSE_RES_MEDIUMHIGH	=(-4);
-       MOUSE_RES_HIGH		=(-5);
+       MOUSE_PROTO_UNKNOWN      =(-1);
+       MOUSE_PROTO_MS           =0;     { Microsoft Serial, 3 bytes }
+       MOUSE_PROTO_MSC          =1;     { Mouse Systems, 5 bytes }
+       MOUSE_PROTO_LOGI         =2;     { Logitech, 3 bytes }
+       MOUSE_PROTO_MM           =3;     { MM series, 3 bytes }
+       MOUSE_PROTO_LOGIMOUSEMAN =4;     { Logitech MouseMan 3/4 bytes }
+       MOUSE_PROTO_BUS          =5;     { MS/Logitech bus mouse }
+       MOUSE_PROTO_INPORT       =6;     { MS/ATI InPort mouse }
+       MOUSE_PROTO_PS2          =7;     { PS/2 mouse, 3 bytes }
+       MOUSE_PROTO_HITTAB       =8;     { Hitachi Tablet 3 bytes }
+       MOUSE_PROTO_GLIDEPOINT   =9;     { ALPS GlidePoint, 3/4 bytes }
+       MOUSE_PROTO_INTELLI      =10;    { MS IntelliMouse, 4 bytes }
+       MOUSE_PROTO_THINK        =11;    { Kensignton Thinking Mouse, 3/4 bytes }
+       MOUSE_PROTO_SYSMOUSE     =12;    { /dev/sysmouse }
+       MOUSE_PROTO_X10MOUSEREM  =13;    { X10 MouseRemote, 3 bytes }
+       MOUSE_PROTO_KIDSPAD      =14;    { Genius Kidspad }
+       MOUSE_PROTO_VERSAPAD     =15;    { Interlink VersaPad, 6 bytes }
+
+       MOUSE_RES_UNKNOWN        =(-1);
+       MOUSE_RES_DEFAULT        =0;
+       MOUSE_RES_LOW            =(-2);
+       MOUSE_RES_MEDIUMLOW      =(-3);
+       MOUSE_RES_MEDIUMHIGH     =(-4);
+       MOUSE_RES_HIGH           =(-5);
 
 type  mousedata = record
-	len : longint;		{ # of data in the buffer }
-	buf : array [0..15] of longint;		{ data buffer }
-	end;
-	
+        len : longint;          { # of data in the buffer }
+        buf : array [0..15] of longint;         { data buffer }
+        end;
+
  mousedata_t=mousedata;
- 
+
  mousevar  = record
- 	       _var : array[0..15] of longint;
- 	       end;
+               _var : array[0..15] of longint;
+               end;
 
 type mousevar_t = mousevar;
 
@@ -1436,83 +1436,83 @@ Function MOUSE_GETHWID(fd:longint;var param1 : longint):boolean;
 const
 
 { magic numbers in var[0] }
-       MOUSE_VARS_PS2_SIG	= $00325350;	{ 'PS2' }
-       MOUSE_VARS_BUS_SIG	= $00535542;	{ 'BUS' }
-       MOUSE_VARS_INPORT_SIG	= $00504e49;	{ 'INP' }
+       MOUSE_VARS_PS2_SIG       = $00325350;    { 'PS2' }
+       MOUSE_VARS_BUS_SIG       = $00535542;    { 'BUS' }
+       MOUSE_VARS_INPORT_SIG    = $00504e49;    { 'INP' }
 
 { Microsoft Serial mouse data packet }
-       MOUSE_MSS_PACKETSIZE	= 3;
-       MOUSE_MSS_SYNCMASK	= $40;
-       MOUSE_MSS_SYNC		= $40;
-       MOUSE_MSS_BUTTONS	= $30;
-       MOUSE_MSS_BUTTON1DOWN	= $20;	{ left }
-       MOUSE_MSS_BUTTON2DOWN	= $00;	{ no middle button }
-       MOUSE_MSS_BUTTON3DOWN	= $10;	{ right }
+       MOUSE_MSS_PACKETSIZE     = 3;
+       MOUSE_MSS_SYNCMASK       = $40;
+       MOUSE_MSS_SYNC           = $40;
+       MOUSE_MSS_BUTTONS        = $30;
+       MOUSE_MSS_BUTTON1DOWN    = $20;  { left }
+       MOUSE_MSS_BUTTON2DOWN    = $00;  { no middle button }
+       MOUSE_MSS_BUTTON3DOWN    = $10;  { right }
 
 { Logitech MouseMan data packet (M+ protocol) }
-       MOUSE_LMAN_BUTTON2DOWN	= $20;	{ middle button, the 4th byte }
+       MOUSE_LMAN_BUTTON2DOWN   = $20;  { middle button, the 4th byte }
 
 { ALPS GlidePoint extention (variant of M+ protocol) }
-       MOUSE_ALPS_BUTTON2DOWN	= $20;	{ middle button, the 4th byte }
-       MOUSE_ALPS_TAP		= $10;	{ `tapping' action, the 4th byte }
+       MOUSE_ALPS_BUTTON2DOWN   = $20;  { middle button, the 4th byte }
+       MOUSE_ALPS_TAP           = $10;  { `tapping' action, the 4th byte }
 
 { Kinsington Thinking Mouse extention (variant of M+ protocol) }
-       MOUSE_THINK_BUTTON2DOWN = $20;	{ lower-left button, the 4th byte }
-       MOUSE_THINK_BUTTON4DOWN = $10;	{ lower-right button, the 4th byte }
+       MOUSE_THINK_BUTTON2DOWN = $20;   { lower-left button, the 4th byte }
+       MOUSE_THINK_BUTTON4DOWN = $10;   { lower-right button, the 4th byte }
 
 { MS IntelliMouse (variant of MS Serial) }
        MOUSE_INTELLI_PACKETSIZE  = 4;
-       MOUSE_INTELLI_BUTTON2DOWN = $10;	{ middle button in the 4th byte }
+       MOUSE_INTELLI_BUTTON2DOWN = $10; { middle button in the 4th byte }
 
 { Mouse Systems Corp. mouse data packet }
-       MOUSE_MSC_PACKETSIZE	= 5;
-       MOUSE_MSC_SYNCMASK	= $f8;
-       MOUSE_MSC_SYNC		= $80;
-       MOUSE_MSC_BUTTONS	= $07;
-       MOUSE_MSC_BUTTON1UP	= $04;	{ left }
-       MOUSE_MSC_BUTTON2UP	= $02;	{ middle }
-       MOUSE_MSC_BUTTON3UP	= $01;	{ right }
-       MOUSE_MSC_MAXBUTTON	= 3;
+       MOUSE_MSC_PACKETSIZE     = 5;
+       MOUSE_MSC_SYNCMASK       = $f8;
+       MOUSE_MSC_SYNC           = $80;
+       MOUSE_MSC_BUTTONS        = $07;
+       MOUSE_MSC_BUTTON1UP      = $04;  { left }
+       MOUSE_MSC_BUTTON2UP      = $02;  { middle }
+       MOUSE_MSC_BUTTON3UP      = $01;  { right }
+       MOUSE_MSC_MAXBUTTON      = 3;
 
 { MM series mouse data packet }
-       MOUSE_MM_PACKETSIZE	= 3;
-       MOUSE_MM_SYNCMASK	= $e0;
-       MOUSE_MM_SYNC		= $80;
-       MOUSE_MM_BUTTONS		= $07;
-       MOUSE_MM_BUTTON1DOWN	= $04;	{ left }
-       MOUSE_MM_BUTTON2DOWN	= $02;	{ middle }
-       MOUSE_MM_BUTTON3DOWN	= $01;	{ right }
-       MOUSE_MM_XPOSITIVE	= $10;
-       MOUSE_MM_YPOSITIVE	= $08;
+       MOUSE_MM_PACKETSIZE      = 3;
+       MOUSE_MM_SYNCMASK        = $e0;
+       MOUSE_MM_SYNC            = $80;
+       MOUSE_MM_BUTTONS         = $07;
+       MOUSE_MM_BUTTON1DOWN     = $04;  { left }
+       MOUSE_MM_BUTTON2DOWN     = $02;  { middle }
+       MOUSE_MM_BUTTON3DOWN     = $01;  { right }
+       MOUSE_MM_XPOSITIVE       = $10;
+       MOUSE_MM_YPOSITIVE       = $08;
 
 { PS/2 mouse data packet }
-       MOUSE_PS2_PACKETSIZE	= 3;
-       MOUSE_PS2_SYNCMASK	= $c8;
-       MOUSE_PS2_SYNC		= $08;
-       MOUSE_PS2_BUTTONS	= $07;	{ = $03 for 2 button mouse }
-       MOUSE_PS2_BUTTON1DOWN	= $01;	{ left }
-       MOUSE_PS2_BUTTON2DOWN	= $04;	{ middle }
-       MOUSE_PS2_BUTTON3DOWN	= $02;	{ right }
-       MOUSE_PS2_TAP		= MOUSE_PS2_SYNC; { GlidePoint (PS/2) `tapping'
-					        * Yes! this is the same bit 
-						* as SYNC!
-					 	}
+       MOUSE_PS2_PACKETSIZE     = 3;
+       MOUSE_PS2_SYNCMASK       = $c8;
+       MOUSE_PS2_SYNC           = $08;
+       MOUSE_PS2_BUTTONS        = $07;  { = $03 for 2 button mouse }
+       MOUSE_PS2_BUTTON1DOWN    = $01;  { left }
+       MOUSE_PS2_BUTTON2DOWN    = $04;  { middle }
+       MOUSE_PS2_BUTTON3DOWN    = $02;  { right }
+       MOUSE_PS2_TAP            = MOUSE_PS2_SYNC; { GlidePoint (PS/2) `tapping'
+                                                * Yes! this is the same bit
+                                                * as SYNC!
+                                                }
 
-       MOUSE_PS2_XNEG		= $10;
-       MOUSE_PS2_YNEG		= $20;
-       MOUSE_PS2_XOVERFLOW	= $40;
-       MOUSE_PS2_YOVERFLOW	= $80;
+       MOUSE_PS2_XNEG           = $10;
+       MOUSE_PS2_YNEG           = $20;
+       MOUSE_PS2_XOVERFLOW      = $40;
+       MOUSE_PS2_YOVERFLOW      = $80;
 
 { Logitech MouseMan+ (PS/2) data packet (PS/2++ protocol) }
-       MOUSE_PS2PLUS_SYNCMASK	= $48;
-       MOUSE_PS2PLUS_SYNC	= $48;
-       MOUSE_PS2PLUS_ZNEG	= $08;	{ sign bit }
-       MOUSE_PS2PLUS_BUTTON4DOWN = $10;	{ 4th button on MouseMan+ }
+       MOUSE_PS2PLUS_SYNCMASK   = $48;
+       MOUSE_PS2PLUS_SYNC       = $48;
+       MOUSE_PS2PLUS_ZNEG       = $08;  { sign bit }
+       MOUSE_PS2PLUS_BUTTON4DOWN = $10; { 4th button on MouseMan+ }
        MOUSE_PS2PLUS_BUTTON5DOWN = $20;
 
 { IBM ScrollPoint (PS/2) also uses PS/2++ protocol }
-       MOUSE_SPOINT_ZNEG	= $80;	{ sign bits }
-       MOUSE_SPOINT_WNEG	= $08;
+       MOUSE_SPOINT_ZNEG        = $80;  { sign bits }
+       MOUSE_SPOINT_WNEG        = $08;
 
 { MS IntelliMouse (PS/2) data packet }
        MOUSE_PS2INTELLI_PACKETSIZE = 4;
@@ -1521,41 +1521,41 @@ const
        MOUSE_PS2INTELLI_BUTTON5DOWN = $80;
 
 { MS IntelliMouse Explorer (PS/2) data packet (variation of IntelliMouse) }
-       MOUSE_EXPLORER_ZNEG   	  = $08;	{ sign bit }
+       MOUSE_EXPLORER_ZNEG        = $08;        { sign bit }
 { IntelliMouse Explorer has additional button data in the fourth byte }
        MOUSE_EXPLORER_BUTTON4DOWN = $10;
        MOUSE_EXPLORER_BUTTON5DOWN = $20;
 
 { Interlink VersaPad (serial I/F) data packet }
-       MOUSE_VERSA_PACKETSIZE	= 6;
-       MOUSE_VERSA_IN_USE	= $04;
-       MOUSE_VERSA_SYNCMASK	= $c3;
-       MOUSE_VERSA_SYNC		= $c0;
-       MOUSE_VERSA_BUTTONS	= $30;
-       MOUSE_VERSA_BUTTON1DOWN	= $20;	{ left }
-       MOUSE_VERSA_BUTTON2DOWN	= $00;	{ middle }
-       MOUSE_VERSA_BUTTON3DOWN	= $10;	{ right }
-       MOUSE_VERSA_TAP		= $08;
+       MOUSE_VERSA_PACKETSIZE   = 6;
+       MOUSE_VERSA_IN_USE       = $04;
+       MOUSE_VERSA_SYNCMASK     = $c3;
+       MOUSE_VERSA_SYNC         = $c0;
+       MOUSE_VERSA_BUTTONS      = $30;
+       MOUSE_VERSA_BUTTON1DOWN  = $20;  { left }
+       MOUSE_VERSA_BUTTON2DOWN  = $00;  { middle }
+       MOUSE_VERSA_BUTTON3DOWN  = $10;  { right }
+       MOUSE_VERSA_TAP          = $08;
 
 { Interlink VersaPad (PS/2 I/F) data packet }
-       MOUSE_PS2VERSA_PACKETSIZE	= 6;
-       MOUSE_PS2VERSA_IN_USE		= $10;
-       MOUSE_PS2VERSA_SYNCMASK		= $e8;
-       MOUSE_PS2VERSA_SYNC		= $c8;
-       MOUSE_PS2VERSA_BUTTONS		= $05;
-       MOUSE_PS2VERSA_BUTTON1DOWN	= $04;	{ left }
-       MOUSE_PS2VERSA_BUTTON2DOWN	= $00;	{ middle }
-       MOUSE_PS2VERSA_BUTTON3DOWN	= $01;	{ right }
-       MOUSE_PS2VERSA_TAP		= $02;
+       MOUSE_PS2VERSA_PACKETSIZE        = 6;
+       MOUSE_PS2VERSA_IN_USE            = $10;
+       MOUSE_PS2VERSA_SYNCMASK          = $e8;
+       MOUSE_PS2VERSA_SYNC              = $c8;
+       MOUSE_PS2VERSA_BUTTONS           = $05;
+       MOUSE_PS2VERSA_BUTTON1DOWN       = $04;  { left }
+       MOUSE_PS2VERSA_BUTTON2DOWN       = $00;  { middle }
+       MOUSE_PS2VERSA_BUTTON3DOWN       = $01;  { right }
+       MOUSE_PS2VERSA_TAP               = $02;
 
 { A4 Tech 4D Mouse (PS/2) data packet }
-       MOUSE_4D_PACKETSIZE		= 3;	
-       MOUSE_4D_WHEELBITS		= $f0;
+       MOUSE_4D_PACKETSIZE              = 3;
+       MOUSE_4D_WHEELBITS               = $f0;
 
 { A4 Tech 4D+ Mouse (PS/2) data packet }
-       MOUSE_4DPLUS_PACKETSIZE		= 3;	
-       MOUSE_4DPLUS_ZNEG		= $04;	{ sign bit }
-       MOUSE_4DPLUS_BUTTON4DOWN		= $08;
+       MOUSE_4DPLUS_PACKETSIZE          = 3;
+       MOUSE_4DPLUS_ZNEG                = $04;  { sign bit }
+       MOUSE_4DPLUS_BUTTON4DOWN         = $08;
 
 { sysmouse extended data packet }
 {
@@ -1565,28 +1565,28 @@ const
  * as at the level 0.  There are additional three bytes which shows
  * `dz' and the states of additional buttons.  `dz' is expressed as the
  * sum of the byte 5 and 6 which contain signed seven bit values.
- * The states of the button 4 though 10 are in the bit 0 though 6 in 
+ * The states of the button 4 though 10 are in the bit 0 though 6 in
  * the byte 7 respectively: 1 indicates the button is up.
  }
-       MOUSE_SYS_PACKETSIZE	= 8;
-       MOUSE_SYS_SYNCMASK	= $f8;
-       MOUSE_SYS_SYNC		= $80;
-       MOUSE_SYS_BUTTON1UP	= $04;	{ left, 1st byte }
-       MOUSE_SYS_BUTTON2UP	= $02;	{ middle, 1st byte }
-       MOUSE_SYS_BUTTON3UP	= $01;	{ right, 1st byte }
-       MOUSE_SYS_BUTTON4UP	= $0001;	{ 7th byte }
-       MOUSE_SYS_BUTTON5UP	= $0002;
-       MOUSE_SYS_BUTTON6UP	= $0004;
-       MOUSE_SYS_BUTTON7UP	= $0008;
-       MOUSE_SYS_BUTTON8UP	= $0010;
-       MOUSE_SYS_BUTTON9UP	= $0020;
-       MOUSE_SYS_BUTTON10UP	= $0040;
-       MOUSE_SYS_MAXBUTTON	= 10;
-       MOUSE_SYS_STDBUTTONS	= $07;
-       MOUSE_SYS_EXTBUTTONS	= $7f;	{ the others }
+       MOUSE_SYS_PACKETSIZE     = 8;
+       MOUSE_SYS_SYNCMASK       = $f8;
+       MOUSE_SYS_SYNC           = $80;
+       MOUSE_SYS_BUTTON1UP      = $04;  { left, 1st byte }
+       MOUSE_SYS_BUTTON2UP      = $02;  { middle, 1st byte }
+       MOUSE_SYS_BUTTON3UP      = $01;  { right, 1st byte }
+       MOUSE_SYS_BUTTON4UP      = $0001;        { 7th byte }
+       MOUSE_SYS_BUTTON5UP      = $0002;
+       MOUSE_SYS_BUTTON6UP      = $0004;
+       MOUSE_SYS_BUTTON7UP      = $0008;
+       MOUSE_SYS_BUTTON8UP      = $0010;
+       MOUSE_SYS_BUTTON9UP      = $0020;
+       MOUSE_SYS_BUTTON10UP     = $0040;
+       MOUSE_SYS_MAXBUTTON      = 10;
+       MOUSE_SYS_STDBUTTONS     = $07;
+       MOUSE_SYS_EXTBUTTONS     = $7f;  { the others }
 
 { Mouse remote socket }
-       _PATH_MOUSEREMOTE	='/var/run/MouseRemote';
+       _PATH_MOUSEREMOTE        ='/var/run/MouseRemote';
 
 
 {fbio IOCTL numbers}
@@ -1832,19 +1832,19 @@ begin
   begin
    name:=ttyname(fd);
    if Copy(name,1,8)<>'/dev/tty' then
-    physicalconsole:=false		{isatty is true, but not /dev/tty. 
-					   Could be /dev/pts support, but
-					   I reserve the case}	
+    physicalconsole:=false              {isatty is true, but not /dev/tty.
+                                           Could be /dev/pts support, but
+                                           I reserve the case}
    else
     begin
-     if name[9]='v' then			{ttyv is phys console. see /etc/ttys}
+     if name[9]='v' then                        {ttyv is phys console. see /etc/ttys}
       physicalconsole:=true
      else
-      physicalconsole:=false;	
+      physicalconsole:=false;
     end;
   end
  else
-  physicalconsole:=false;	{Not a tty, then I don't know what it is}
+  physicalconsole:=false;       {Not a tty, then I don't know what it is}
 end;
 
 {other macros (not IOCTL)}

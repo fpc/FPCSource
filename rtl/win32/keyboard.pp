@@ -820,7 +820,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.8  2002-07-17 07:28:21  pierre
+  Revision 1.9  2002-09-07 16:01:28  peter
+    * old logs removed and tabs fixed
+
+  Revision 1.8  2002/07/17 07:28:21  pierre
    * avoid constant evaluation problems if cycling with -Cr
 
   Revision 1.7  2002/05/09 08:28:23  carl
@@ -828,28 +831,5 @@ end.
 
   Revision 1.2.2.5  2002/01/25 23:12:38  pierre
    * fix bugs from web 1602
-
-  Revision 1.2.2.4  2001/09/21 21:20:43  michael
-  + Added support for keyboard driver.
-  + Added DefaultTranslateKeyEvent,DefaultTranslateKeyEventUnicode
-  + PendingKeyEvent variable no longer public. Handling of this variable is
-    now done entirely by global functions. System dependent code should not
-    need it, it is set automatically.
-  + InitVideo DoneVideo will check whether the keyboard is initialized or not.
-
-  Revision 1.2.2.3  2001/08/05 12:24:37  peter
-    * fixed for new input_record
-
-  Revision 1.2.2.2  2001/02/05 15:30:06  pierre
-   * fix compiliing with -dDEBUG
-
-  Revision 1.2.2.1  2001/01/30 21:52:03  peter
-    * moved api utils to rtl
-
-  Revision 1.2  2001/01/14 22:20:00  peter
-    * slightly optimized event handling (merged)
-
-  Revision 1.1  2001/01/13 11:03:59  peter
-    * API 2 RTL commit
 
 }

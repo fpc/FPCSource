@@ -59,7 +59,7 @@ end;
 
 {
   $Log$
-  Revision 1.1  2001-10-22 21:40:55  peter
-    * InterLocked routines added
+  Revision 1.2  2002-09-07 16:01:19  peter
+    * old logs removed and tabs fixed
 
 }

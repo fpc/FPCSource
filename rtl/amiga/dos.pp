@@ -1713,58 +1713,8 @@ End.
 
 {
   $Log$
-  Revision 1.3  2001-11-23 00:25:39  carl
-  * updated behavior of some routines to conform to docs
-
-  Revision 1.1.2.2  2001/07/24 07:32:25  pierre
-   * Use FreeMem on untyped pointer instead of dispose
-
-  Revision 1.1.2.1  2001/03/27 03:12:57  carl
-  + more routines are implemented (from Nils - thanks!)
-  ? Is the problem with illegal memory read fixed?
-
-  Revision 1.8  1998/08/19 14:52:52  carl
-    * SearchRec was not aligned!! so BOUM!...
-
-  Revision 1.7  1998/08/17 12:30:42  carl
-    * FExpand removes dot characters
-    * Findfirst single/double dot expansion
-    + SetFtime implemented
-
-  Revision 1.6  1998/08/13 13:18:45  carl
-    * FSearch bugfix
-    * FSplit bugfix
-    + GetFAttr,SetFAttr and GetFTime accept dos dir separators
-
-  Revision 1.5  1998/08/04 13:37:10  carl
-    * bugfix of findfirst, was not convberting correctl backslahes
-
-       History (Nils Sjoholm):
-       10.02.1998  First version for Amiga.
-                   Just GetDate and GetTime.
-
-       11.02.1998  Added AmigaToDt and DtToAmiga
-                   Changed GetDate and GetTime to
-                   use AmigaToDt and DtToAmiga.
-
-                   Added DiskSize and DiskFree.
-                   They are using a string as arg
-                   have to try to fix that.
-
-       12.02.1998  Added Fsplit and FExpand.
-                   Cleaned up the unit and removed
-                   stuff that was not used yet.
-
-       13.02.1998  Added CToPas and PasToC and removed
-                   the uses of strings.
-
-       14.02.1998  Removed AmigaToDt and DtToAmiga
-                   from public area.
-                   Added deviceids and devicenames
-                   arrays so now diskfree and disksize
-                   is compatible with dos.
-
-
+  Revision 1.4  2002-09-07 16:01:16  peter
+    * old logs removed and tabs fixed
 
 }
 

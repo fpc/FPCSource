@@ -655,7 +655,10 @@ Finalization
 end.
 {
   $Log$
-  Revision 1.14  2002-05-09 08:28:23  carl
+  Revision 1.15  2002-09-07 16:01:29  peter
+    * old logs removed and tabs fixed
+
+  Revision 1.14  2002/05/09 08:28:23  carl
   * Merges from Fixes branch
 
   Revision 1.13  2002/03/24 19:26:49  marco
@@ -663,45 +666,5 @@ end.
 
   Revision 1.12  2002/01/25 16:23:04  peter
     * merged filesearch() fix
-
-  Revision 1.11  2001/12/11 23:10:18  carl
-  * Range check error fix
-
-  Revision 1.10  2001/10/25 21:23:49  peter
-    * added 64bit fileseek
-
-  Revision 1.9  2001/06/03 15:18:01  peter
-    * eoutofmemory and einvalidpointer fix
-
-  Revision 1.8  2001/05/20 12:08:36  peter
-    * fixed filesearch
-
-  Revision 1.7  2001/04/16 10:57:05  peter
-    * stricter compiler fixes
-
-  Revision 1.6  2001/02/20 22:14:19  peter
-    * merged getenvironmentvariable
-
-  Revision 1.5  2000/12/18 17:28:58  jonas
-    * fixed range check errors
-
-  Revision 1.4  2000/09/19 23:57:57  pierre
-   * bug fix for 1041 (merged)
-
-  Revision 1.3  2000/08/29 18:01:52  michael
-  Merged syserrormsg fix
-
-  Revision 1.2  2000/08/20 15:46:46  peter
-    * sysutils.pp moved to target and merged with disk.inc, filutil.inc
-
-  Revision 1.1.2.3  2000/08/22 19:21:49  michael
-  + Implemented syserrormessage. Made dummies for go32v2 and OS/2
-  * Changed linux/errors.pp so it uses pchars for storage.
-
-  Revision 1.1.2.2  2000/08/20 15:40:03  peter
-    * syserrormessage function added
-
-  Revision 1.1.2.1  2000/08/20 15:08:32  peter
-    * forgot the add command :(
 
 }

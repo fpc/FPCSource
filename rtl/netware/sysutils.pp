@@ -481,7 +481,10 @@ end.
 {
 
   $Log$
-  Revision 1.6  2002-04-01 10:47:31  armin
+  Revision 1.7  2002-09-07 16:01:21  peter
+    * old logs removed and tabs fixed
+
+  Revision 1.6  2002/04/01 10:47:31  armin
   makefile.fpc for netware
   stderr to netware console
   free all memory (threadvars and heap) to avoid error message while unloading nlm
@@ -489,49 +492,4 @@ end.
   Revision 1.5  2002/03/08 19:10:14  armin
   * added 64 bit fileseek (currently only 32 bit supported)
 
-  Revision 1.4  2001/06/03 15:18:01  peter
-    * eoutofmemory and einvalidpointer fix
-
-  Revision 1.3  2001/04/16 18:39:50  florian
-    * updates from Armin commited
-
-  Revision 1.2  2001/04/11 14:17:00  florian
-    * added logs, fixed email address of Armin, it is
-      diehl@nordrhein.de
-
-  Revision 1.1  2001/04/11 14:14:12  florian
-    * initial commit, thanks to Armin Diehl (diehl@nordrhein.de)
-
-  Revision 1.8  2001/02/20 22:19:38  peter
-    * always test before commiting after merging, linux -> unix change
-
-  Revision 1.7  2001/02/20 22:14:19  peter
-    * merged getenvironmentvariable
-
-  Revision 1.6  2001/01/21 20:21:40  marco
-   * Rename fest II. Rtl OK
-
-  Revision 1.5  2000/12/28 20:50:04  peter
-    * merged fixes from 1.0.x
-
-  Revision 1.4  2000/12/18 14:01:42  jonas
-    * fixed constant range error
-
-  Revision 1.3  2000/11/28 20:06:12  michael
-  + merged fix for findfirst/findnext/findclose
-
-  Revision 1.2  2000/09/18 13:14:51  marco
-   * Global Linux +bsd to (rtl/freebsd rtl/unix rtl/linux structure)
-
-  Revision 1.3  2000/08/29 17:58:13  michael
-  Merged syserrormsg fix
-
-  Revision 1.2  2000/08/20 15:46:46  peter
-    * sysutils.pp moved to target and merged with disk.inc, filutil.inc
-  Revision 1.1.2.2  2000/11/28 20:01:22  michael
-    + Fixed findfirst/findnext/findclose
-
-  Revision 1.1.2.1  2000/09/14 13:38:26  marco
-    * Moved from Linux dir. now start of generic unix dir, from which the
-      really exotic features should be moved to the target specific dirs.
 }

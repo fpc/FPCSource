@@ -125,27 +125,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.4  2002-03-03 21:08:33  hajny
+  Revision 1.5  2002-09-07 16:01:24  peter
+    * old logs removed and tabs fixed
+
+  Revision 1.4  2002/03/03 21:08:33  hajny
     * SysPollKeyEvent fixed
-
-  Revision 1.3  2001/09/21 21:33:36  michael
-  + Merged driver support from fixbranch
-
-  Revision 1.2.2.2  2001/09/21 21:20:43  michael
-  + Added support for keyboard driver.
-  + Added DefaultTranslateKeyEvent,DefaultTranslateKeyEventUnicode
-  + PendingKeyEvent variable no longer public. Handling of this variable is
-    now done entirely by global functions. System dependent code should not
-    need it, it is set automatically.
-  + InitVideo DoneVideo will check whether the keyboard is initialized or not.
-
-  Revision 1.2.2.1  2001/01/30 21:52:02  peter
-    * moved api utils to rtl
-
-  Revision 1.2  2001/01/13 12:01:07  hajny
-    * ErrorHandler correction
-
-  Revision 1.1  2001/01/13 11:03:58  peter
-    * API 2 RTL commit
 
 }

@@ -13,7 +13,7 @@ Var errno : Longint;
 FUNCTION FileOpen (Var FileName: AsciiZ; Mode: Word): THandle;
 
 Var LinuxMode : longint;
-    
+
 BEGIN
   LinuxMode:=0;
   if Mode=stCreate then
@@ -70,10 +70,10 @@ FUNCTION SetFileSize (Handle: THandle; FileSize: LongInt): Word;
 {$IFNDEF BSD}
 Var sr : syscallregs;
 {$ENDIF}
-{$IFDEF DOSSETFILE1}  
+{$IFDEF DOSSETFILE1}
     Actual, Buf: LongInt;
 {$ENDIF}
-   
+
 BEGIN
  {$IFDEF BSD}
   Do_Syscall(Syscall_Nr_ftruncate,handle,filesize,0); {0 -> offset =64 bit}
@@ -82,28 +82,22 @@ BEGIN
   sr.reg3:=FileSize;
   Syscall(syscall_nr_fTruncate,sr);
  {$ENDIF}
-  If Errno=0 then  
+  If Errno=0 then
     SetFileSize:=0
   else
     SetFileSize:=103;
-{$IFDEF DOSSETFILE1}  
+{$IFDEF DOSSETFILE1}
    If (Actual = FileSize) Then Begin                  { No position error }
      Actual := FileWrite(Handle, Pointer(@Buf), 0,Actual);   { Truncate the file }
      If (Actual <> -1) Then SetFileSize := 0 Else     { No truncate error }
        SetFileSize := 103;                            { File truncate error }
    End Else SetFileSize := 103;                       { File truncate error }
-{$ENDIF}   
+{$ENDIF}
 END;
 
 {
   $Log$
-  Revision 1.2  2000-09-18 13:14:51  marco
-   * Global Linux +bsd to (rtl/freebsd rtl/unix rtl/linux structure)
+  Revision 1.3  2002-09-07 16:01:27  peter
+    * old logs removed and tabs fixed
 
-  Revision 1.3  2000/09/11 14:05:31  marco
-   * FreeBSD support and removed old signalhandling
-
-  Revision 1.2  2000/07/13 11:33:49  michael
-  + removed logs
- 
 }

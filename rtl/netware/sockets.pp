@@ -151,7 +151,7 @@ Uses Unix;
    {$I nwsock.inc}
  {$else}
    {$I linsock.inc}
- {$endif}  
+ {$endif}
 {$endif}
 
 {$i sockets.inc}
@@ -160,19 +160,7 @@ end.
 
 {
   $Log$
-  Revision 1.1  2001-04-16 18:39:50  florian
-    * updates from Armin commited
+  Revision 1.2  2002-09-07 16:01:21  peter
+    * old logs removed and tabs fixed
 
-  Revision 1.3  2001/01/21 20:21:40  marco
-   * Rename fest II. Rtl OK
-
-  Revision 1.2  2000/09/18 13:14:51  marco
-   * Global Linux +bsd to (rtl/freebsd rtl/unix rtl/linux structure)
-
-  Revision 1.3  2000/09/11 14:05:31  marco
-   * FreeBSD support and removed old signalhandling
-
-  Revision 1.2  2000/07/13 11:33:49  michael
-  + removed logs
- 
 }

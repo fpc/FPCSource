@@ -1573,7 +1573,10 @@ end.
 
 {
   $Log$
-  Revision 1.30  2002-08-26 13:49:18  pierre
+  Revision 1.31  2002-09-07 16:01:29  peter
+    * old logs removed and tabs fixed
+
+  Revision 1.30  2002/08/26 13:49:18  pierre
    * fix bug report 2086
 
   Revision 1.29  2002/07/28 20:43:49  florian
@@ -1597,90 +1600,5 @@ end.
 
   Revision 1.23  2002/01/25 16:23:03  peter
     * merged filesearch() fix
-
-  Revision 1.22  2001/12/02 17:21:25  peter
-    * merged fixes from 1.0
-
-  Revision 1.21  2001/11/08 16:16:54  florian
-    + beginning of variant dispatching
-
-  Revision 1.20  2001/11/07 13:05:16  michael
-  + Fixed Append() bug. Appending non-existing file now gives an error
-
-  Revision 1.19  2001/10/23 21:51:03  peter
-    * criticalsection renamed to rtlcriticalsection for kylix compatibility
-
-  Revision 1.18  2001/10/09 02:37:29  carl
-  * bugfix #1639 (IsMultiThread varialbe setting)
-
-  Revision 1.17  2001/08/19 21:02:02  florian
-    * fixed and added a lot of stuff to get the Jedi DX8 headers
-      compiled
-
-  Revision 1.16  2001/07/30 20:53:50  peter
-    * fixed getdir() that was broken when a directory on a different drive
-      was asked
-
-  Revision 1.15  2001/06/30 18:55:48  hajny
-    * GetDir fix for inaccessible drives
-
-  Revision 1.14  2001/06/18 14:26:16  jonas
-    * move platform independent constant declarations after inclusion of
-      systemh.inc
-
-  Revision 1.13  2001/06/13 22:20:11  hajny
-    + platform specific information
-
-  Revision 1.12  2001/06/10 17:56:57  hajny
-    * errno changed to a threadvar if MT enabled
-
-  Revision 1.11  2001/06/07 21:16:30  peter
-    * fixed empty arguments
-
-  Revision 1.10  2001/06/01 22:23:21  peter
-    * same argument parsing -"abc" becomes -abc. This is compatible with
-      delphi and with unix shells (merged)
-
-  Revision 1.9  2001/03/21 23:29:40  florian
-    + sLineBreak and misc. stuff for Kylix compatiblity
-
-  Revision 1.8  2001/03/21 21:08:20  hajny
-    * GetDir fixed
-
-  Revision 1.7  2001/03/16 20:09:58  hajny
-    * universal FExpand
-
-  Revision 1.6  2001/02/20 21:31:12  peter
-    * chdir,mkdir,rmdir with empty string fixed
-
-  Revision 1.5  2001/01/26 16:38:03  florian
-  *** empty log message ***
-
-  Revision 1.4  2001/01/24 21:47:38  florian
-    + more MT stuff added
-
-  Revision 1.3  2001/01/05 15:44:35  florian
-    * some stuff for MT
-
-  Revision 1.2  2000/12/18 17:28:58  jonas
-    * fixed range check errors
-
-  Revision 1.1  2000/10/15 08:19:49  peter
-    * system unit rename for 1.1 branch
-
-  Revision 1.6  2000/10/13 12:01:52  peter
-    * fixed exception callback
-
-  Revision 1.5  2000/10/11 16:05:55  peter
-    * stdcall for callbacks (merged)
-
-  Revision 1.4  2000/09/11 20:19:28  florian
-    * complete exception handling provided by Thomas Schatzl
-
-  Revision 1.3  2000/09/04 19:36:59  peter
-    * new heapalloc calls, patch from Thomas Schatzl
-
-  Revision 1.2  2000/07/13 11:33:58  michael
-  + removed logs
 
 }

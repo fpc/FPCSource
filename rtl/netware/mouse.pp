@@ -115,16 +115,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.2  2002-03-08 19:04:36  armin
+  Revision 1.3  2002-09-07 16:01:20  peter
+    * old logs removed and tabs fixed
+
+  Revision 1.2  2002/03/08 19:04:36  armin
   make it compilable with fpc 1.1
-
-  Revision 1.1  2001/04/16 18:39:50  florian
-    * updates from Armin commited
-
-  Revision 1.2  2001/01/21 20:21:40  marco
-   * Rename fest II. Rtl OK
-
-  Revision 1.1  2001/01/13 11:03:58  peter
-    * API 2 RTL commit
 
 }

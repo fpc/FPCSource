@@ -1181,7 +1181,10 @@ procedure inclocked(var l : longint);assembler;
 
 {
   $Log$
-  Revision 1.28  2002-09-03 15:43:36  peter
+  Revision 1.29  2002-09-07 16:01:19  peter
+    * old logs removed and tabs fixed
+
+  Revision 1.28  2002/09/03 15:43:36  peter
     * add alias for fpc_dispose_class so it can be called from
       fpc_help_fail_class
 
@@ -1211,74 +1214,4 @@ procedure inclocked(var l : longint);assembler;
   Revision 1.20  2002/03/30 14:52:04  carl
   * cause runtime error 203 on failed class creation
 
-  Revision 1.19  2001/12/03 21:39:19  peter
-    * freemem(var) -> freemem(value)
-
-  Revision 1.18  2001/10/09 02:43:58  carl
-  * bugfix #1639 (IsMultiThread varialbe setting)
-
-  Revision 1.17  2001/08/30 15:43:14  jonas
-    * converted adding/comparing of strings to compileproc. Note that due
-      to the way the shortstring helpers for i386 are written, they are
-      still handled by the old code (reason: fpc_shortstr_compare returns
-      results in the flags instead of in eax and fpc_shortstr_concat
-      has wierd parameter conventions). The compilerproc stuff should work
-      fine with the generic implementations though.
-    * removed some nested comments warnings
-
-  Revision 1.16  2001/08/29 19:49:04  jonas
-    * some fixes in compilerprocs for chararray to string conversions
-    * conversion from string to chararray is now also done via compilerprocs
-
-  Revision 1.15  2001/08/28 13:24:47  jonas
-    + compilerproc implementation of most string-related type conversions
-    - removed all code from the compiler which has been replaced by
-      compilerproc implementations (using (ifdef hascompilerproc) is not
-      necessary in the compiler)
-
-  Revision 1.14  2001/08/01 15:00:09  jonas
-    + "compproc" helpers
-    * renamed several helpers so that their name is the same as their
-      "public alias", which should facilitate the conversion of processor
-      specific code in the code generator to processor independent code
-    * some small fixes to the val_ansistring and val_widestring helpers
-      (always immediately exit if the source string is longer than 255
-       chars)
-    * fixed fpc_dynarray_high and fpc_dynarray_length if the dynarray is
-      still nil (used to crash, now return resp -1 and 0)
-
-  Revision 1.13  2001/07/08 21:00:18  peter
-    * various widestring updates, it works now mostly without charset
-      mapping supported
-
-  Revision 1.12  2001/05/31 22:42:56  florian
-    * some fixes for widestrings and variants
-
-  Revision 1.11  2001/04/21 12:18:09  peter
-    * add nop after popa (merged)
-
-  Revision 1.9  2001/04/08 13:19:28  jonas
-    * optimized FPC_HELP_CONSTRUCTOR a bit
-
-  Revision 1.8  2001/03/05 17:10:04  jonas
-    * moved implementations of strlen and strpas to separate include files
-      (they were duplicated in i386.inc and strings.inc/stringss.inc)
-    * strpas supports 'nil' pchars again (returns an empty string)
-      (both merged)
-
-  Revision 1.7  2001/03/04 17:31:34  jonas
-    * fixed all implementations of strpas
-
-  Revision 1.5  2000/11/12 23:23:34  florian
-    * interfaces basically running
-
-  Revision 1.4  2000/11/07 23:42:21  florian
-    + AfterConstruction and BeforeDestruction implemented
-    + TInterfacedObject implemented
-
-  Revision 1.3  2000/07/14 10:33:09  michael
-  + Conditionals fixed
-
-  Revision 1.2  2000/07/13 11:33:41  michael
-  + removed logs
 }

@@ -151,20 +151,7 @@ type sigset_t = cardinal;
 
 {
   $Log$
-  Revision 1.2  2000-09-18 13:42:35  marco
-   * FreeBSD support into 1.1
-
-  Revision 1.2  2000/09/11 14:38:10  marco
-   * 14 april version killed, and replaced by newer fixes branch version
-
-  Revision 1.1.2.1  2000/09/10 16:18:41  marco
-  initial version
-
-  Revision 1.2  2000/03/31 23:11:23  pierre
-   * TSigAction Context param is the full record not a pointer
-
-  Revision 1.1  2000/03/31 13:24:28  jonas
-    * signal handling using sigaction when compiled with -dnewsignal
-      (allows multiple signals to be received in one run)
+  Revision 1.3  2002-09-07 16:01:17  peter
+    * old logs removed and tabs fixed
 
 }

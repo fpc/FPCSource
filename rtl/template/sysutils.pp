@@ -258,7 +258,7 @@ Finalization
 end.
 {
   $Log$
-  Revision 1.1  2001-06-02 19:45:32  peter
-    * added empty template
+  Revision 1.2  2002-09-07 16:01:27  peter
+    * old logs removed and tabs fixed
 
 }

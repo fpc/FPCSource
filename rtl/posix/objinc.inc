@@ -87,7 +87,7 @@ BEGIN
   if result = -1 then
     BytesMoved := 0
   else
-    BytesMoved := result; 
+    BytesMoved := result;
   FileWrite:=Errno;
   DosStreamError:=Errno;
 END;
@@ -130,10 +130,10 @@ END;
 
 {
  $Log$
- Revision 1.2  2002-08-10 13:42:36  marco
-  * Fixes Posix dir copied to devel branch
+ Revision 1.3  2002-09-07 16:01:26  peter
+   * old logs removed and tabs fixed
 
- Revision 1.1.2.1  2001/08/13 05:54:54  carl
- + objects unit implementation based on POSIX
+ Revision 1.2  2002/08/10 13:42:36  marco
+  * Fixes Posix dir copied to devel branch
 
 }

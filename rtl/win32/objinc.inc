@@ -185,13 +185,7 @@ END;
 
 {
   $Log$
-  Revision 1.4  2001-04-16 10:57:05  peter
-    * stricter compiler fixes
-
-  Revision 1.3  2000/12/18 17:28:58  jonas
-    * fixed range check errors
-
-  Revision 1.2  2000/07/13 11:33:57  michael
-  + removed logs
+  Revision 1.5  2002-09-07 16:01:29  peter
+    * old logs removed and tabs fixed
 
 }

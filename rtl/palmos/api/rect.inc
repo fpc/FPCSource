@@ -26,7 +26,7 @@
   procedure RctGetIntersection(r1:RectanglePtr; r2:RectanglePtr; r3:RectanglePtr);systrap sysTrapRctGetIntersection;
 
   $Log$
-  Revision 1.2  2000-07-13 11:33:55  michael
-  + removed logs
- 
+  Revision 1.3  2002-09-07 16:01:26  peter
+    * old logs removed and tabs fixed
+
 }

@@ -245,7 +245,10 @@ finalization
 end.
 {
   $Log$
-  Revision 1.8  2002-07-17 07:28:21  pierre
+  Revision 1.9  2002-09-07 16:01:29  peter
+    * old logs removed and tabs fixed
+
+  Revision 1.8  2002/07/17 07:28:21  pierre
    * avoid constant evaluation problems if cycling with -Cr
 
   Revision 1.7  2002/02/04 21:41:15  michael
@@ -253,27 +256,5 @@ end.
 
   Revision 1.6  2002/02/04 21:29:34  michael
   + merged missing sendto/rcvfrom functions
-
-  Revision 1.5  2001/06/06 21:58:24  peter
-    * Win32 fixes for Makefile so it doesn't require sh.exe
-
-  Revision 1.1.2.5  2002/02/04 21:39:31  michael
-  + Fixed syntax
-
-  Revision 1.1.2.4  2002/02/04 21:25:28  michael
-  + Added missing sendto/rcvfrom functions
-
-  Revision 1.1.2.3  2001/06/06 22:00:40  peter
-    * Win32 fixes
-
-  Revision 1.4  2000/07/28 08:43:46  sg
-  * Applied patch by Markus Kaemmerer: Fixes fdRead and fdWrite
-
-  Revision 1.3  2000/07/28 06:34:53  sg
-  * Applied patch to "Connect" by Markus Kaemmerer: WinSock.Connect returns
-    zero when it succeeded, and not vice versa.
-
-  Revision 1.2  2000/07/13 11:33:58  michael
-  + removed logs
 
 }

@@ -1217,7 +1217,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.18  2002-07-11 16:00:05  hajny
+  Revision 1.19  2002-09-07 16:01:24  peter
+    * old logs removed and tabs fixed
+
+  Revision 1.18  2002/07/11 16:00:05  hajny
     * FindFirst fix (invalid attribute bits masked out)
 
   Revision 1.17  2002/07/07 18:00:48  hajny
@@ -1225,111 +1228,5 @@ end.
 
   Revision 1.16  2002/03/03 11:19:20  hajny
     * GetEnv rewritten to assembly - 3x faster now
-
-  Revision 1.15  2001/11/23 00:35:02  carl
-  * updated behavior of some routines to conform to docs (completely taken from fixes branch)
-
-  Revision 1.1.2.14  2001/11/23 00:33:17  carl
-  * updated behavior of some routines to conform to docs
-
-  Revision 1.1.2.13  2001/11/20 03:32:09  carl
-  * range check errors fixes
-
-  Revision 1.1.2.12  2001/10/05 01:36:18  carl
-  * corrected assembler syntax error
-
-  Revision 1.1.2.11  2001/06/06 01:30:04  carl
-  + small modification from go32v2 LFN version (fsplit)
-  * now support / but returns always \ (as it should) (fsplit)
-
-  Revision 1.1.2.10  2001/05/21 20:51:43  hajny
-    * silly mistyping corrected
-
-  Revision 1.1.2.9  2001/05/20 18:55:12  hajny
-    * fix for Carl's Exec modification
-
-  Revision 1.1.2.8  2001/05/20 15:05:02  hajny
-    DiskSize/DiskFree EMX mode corrections
-
-  Revision 1.1.2.7  2001/05/14 19:22:53  carl
-  + More DosError results
-  * GetFattr handle bug
-  * SetFTime handle bug
-  * Passing the environment in exec() now works
-  * Correct flags set with exec()
-  * Buffer overflow for setftime()
-  * Fixed a bug that i added with my last commit, environment pointers under OS/2 were not always setup correctly.
-
-  Revision 1.1.2.6  2001/05/12 03:11:39  carl
-  * fix of environment pointer under real OS/2
-  * fix problems with _findfirst() , _findnext() under plain DOS
-  - remove all syscalls which are either unsupported in OS/2 or untested in EMX
-    (some of them i did test myself, and they crashed under plain DOS)
-
-  Revision 1.1.2.5  2001/04/10 18:54:50  hajny
-    * better check for FindClose
-
-  Revision 1.1.2.4  2001/03/11 19:07:14  hajny
-    * merging FExpand and Find* fixes
-
-  Revision 1.1.2.3  2001/02/04 02:01:29  hajny
-    * direct asm removing, DosGetInfoBlocks change merged
-
-  Revision 1.1.2.2  2000/11/05 22:21:06  hajny
-    * more FExpand fixes
-
-  Revision 1.1.2.1  2000/10/28 16:59:50  hajny
-    * many FExpand fixes plus merging corrections made by Jonas in the main branch
-
-  Revision 1.1  2000/07/13 06:31:04  michael
-  + Initial import
-
-  Revision 1.28  2000/07/06 18:57:40  hajny
-    * SetFTime for OS/2 mode corrected
-
-  Revision 1.27  2000/06/05 18:50:55  hajny
-    * SetDate, SetTime corrected
-
-  Revision 1.26  2000/06/01 18:38:46  hajny
-    * warning about SetDate added (TODO)
-
-  Revision 1.25  2000/05/28 18:20:16  hajny
-    * DiskFree/DiskSize updated
-
-  Revision 1.24  2000/05/21 16:06:38  hajny
-    + FSearch and Find* reworked
-
-  Revision 1.23  2000/04/18 20:30:02  hajny
-    * FSearch with given path corrected
-
-  Revision 1.22  2000/03/12 18:32:17  hajny
-    * missing parentheses added
-
-  Revision 1.21  2000/03/05 19:00:37  hajny
-    * DiskFree, DiskSize - int64 result, fix for osDPMI mode
-
-  Revision 1.20  2000/02/09 16:59:33  peter
-    * truncated log
-
-  Revision 1.19  2000/01/09 20:51:03  hajny
-    * FPK changed to FPC
-
-  Revision 1.18  2000/01/07 16:41:45  daniel
-    * copyright 2000
-
-  Revision 1.17  1999/10/13 12:21:56  daniel
-  * OS/2 compiler works again.
-
-  Revision 1.16  1999/09/13 18:21:02  hajny
-    * again didn't manage to read docu for DosFindFirst properly :-(
-
-  Revision 1.15  1999/09/13 17:56:26  hajny
-    * another correction to FSearch fix - mistyping
-
-  Revision 1.14  1999/09/13 17:35:15  hajny
-    * little addition/correction to FSearch fix
-
-  Revision 1.13  1999/09/09 09:20:43  hajny
-    * FSearch under OS/2 fixed
 
 }

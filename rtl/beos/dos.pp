@@ -502,96 +502,9 @@ End;
 
 {
   $Log$
-  Revision 1.2  2001-06-19 20:46:07  hajny
-    * platform specific constants moved after systemh.inc, BeOS omission corrected
+  Revision 1.3  2002-09-07 16:01:17  peter
+    * old logs removed and tabs fixed
 
-  Revision 1.1  2001/06/02 19:26:03  peter
-    * BeOS target!
-
-  Revision 1.5  2000/01/07 16:41:29  daniel
-    * copyright 2000
-
-  Revision 1.4  2000/01/07 16:32:23  daniel
-    * copyright 2000 added
-
-  Revision 1.3  1999/01/22 16:22:09  pierre
-   * Daniel removal of findclose reverted
-
-  Revision 1.2  1999/01/22 10:07:02  daniel
-  - Findclose removed: This is TP incompatible!!
-
-  Revision 1.1  1998/12/21 13:07:02  peter
-    * use -FE
-
-  Revision 1.19  1998/11/23 13:53:59  peter
-    * more fexpand fixes from marco van de voort
-
-  Revision 1.18  1998/11/23 12:48:02  peter
-    * fexpand('o:') fixed to return o:\ (from the mailinglist)
-
-  Revision 1.17  1998/11/22 09:33:21  florian
-    * fexpand bug (temp. strings were too shoort) fixed, was reported
-      by Marco van de Voort
-
-  Revision 1.16  1998/11/17 09:37:41  pierre
-   * explicit conversion from word dosreg.ax to integer doserror
-
-  Revision 1.15  1998/11/01 20:27:18  peter
-    * fixed some doserror settings
-
-  Revision 1.14  1998/10/22 15:05:28  pierre
-   * fsplit adapted to long filenames
-
-  Revision 1.13  1998/09/16 16:47:24  peter
-    * merged fixes
-
-  Revision 1.11.2.2  1998/09/16 16:16:04  peter
-    * go32v1 compiles again
-
-  Revision 1.12  1998/09/11 12:46:44  pierre
-    * range check problem with LFN attr removed
-
-  Revision 1.11.2.1  1998/09/11 12:38:41  pierre
-    * conversion from LFN attr to Dos attr did not respect range checking
-
-  Revision 1.11  1998/08/28 10:45:58  peter
-    * fixed path buffer in findfirst
-
-  Revision 1.10  1998/08/27 10:30:48  pierre
-    * go32v1 RTL did not compile (LFNsupport outside go32v2 defines !)
-      I renamed tb_selector to tb_segment because
-        it is a real mode segment as opposed to
-        a protected mode selector
-      Fixed it for go32v1 (remove the $E0000000 offset !)
-
-  Revision 1.9  1998/08/26 10:04:01  peter
-    * new lfn check from mailinglist
-    * renamed win95 -> LFNSupport
-    + tb_selector, tb_offset for easier access to transferbuffer
-
-  Revision 1.8  1998/08/16 20:39:49  peter
-    + LFN Support
-
-  Revision 1.7  1998/08/16 09:12:13  michael
-  Corrected fexpand behaviour.
-
-  Revision 1.6  1998/08/05 21:01:50  michael
-  applied bugfix from maillist to fsearch
-
-  Revision 1.5  1998/05/31 14:18:13  peter
-    * force att or direct assembling
-    * cleanup of some files
-
-  Revision 1.4  1998/05/22 00:39:22  peter
-    * go32v1, go32v2 recompiles with the new objects
-    * remake3 works again with go32v2
-    - removed some "optimizes" from daniel which were wrong
-
-  Revision 1.3  1998/05/21 19:30:47  peter
-    * objects compiles for linux
-    + assign(pchar), assign(char), rename(pchar), rename(char)
-    * fixed read_text_as_array
-    + read_text_as_pchar which was not yet in the rtl
 }
 
 

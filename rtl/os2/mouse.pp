@@ -410,16 +410,7 @@ Begin
 end.
 {
   $Log$
-  Revision 1.2  2001-09-22 00:01:42  michael
-  + Merged driver support for mouse from fixbranch
-
-  Revision 1.1.2.2  2001/09/21 23:53:48  michael
-  + Added mouse driver support.
-
-  Revision 1.1.2.1  2001/01/30 21:52:02  peter
-    * moved api utils to rtl
-
-  Revision 1.1  2001/01/13 11:03:58  peter
-    * API 2 RTL commit
+  Revision 1.3  2002-09-07 16:01:24  peter
+    * old logs removed and tabs fixed
 
 }

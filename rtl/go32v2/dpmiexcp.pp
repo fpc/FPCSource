@@ -1545,14 +1545,13 @@ end;
 {$endif IN_SYSTEM}
 {
   $Log$
-  Revision 1.9  2002-02-03 09:51:41  peter
+  Revision 1.10  2002-09-07 16:01:18  peter
+    * old logs removed and tabs fixed
+
+  Revision 1.9  2002/02/03 09:51:41  peter
     * merged winxp fixes
 
   Revision 1.8  2002/01/25 16:23:03  peter
     * merged filesearch() fix
-
-  Revision 1.7  2001/11/24 14:42:19  carl
-  * completely moerged (except for smartlink option) from fixes branch
-
 
 }

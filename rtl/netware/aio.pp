@@ -10,7 +10,7 @@
     This program is distributed in the hope that it will be useful,
     but WITHOUT ANY WARRANTY; without even the implied warranty of
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
-    
+
     First Version of AIO, currently UNTESTED, i have to write some samples
     to test it.
 
@@ -24,9 +24,9 @@ const
 
 {$PACKRECORDS C}
 
-  
-{---------------------------------------------------------------------------- 
-      Predefined hardware types for use with the AIOAcquirePort function.      
+
+{----------------------------------------------------------------------------
+      Predefined hardware types for use with the AIOAcquirePort function.
  ---------------------------------------------------------------------------- }
 
 const
@@ -34,10 +34,10 @@ const
    AIO_ARTIC_TYPE = 2;
    AIO_WNIM_TYPE = 3;
 
-{---------------------------------------------------------------------------- 
-      Function completion code status values.                                  
-                                                                               
-      Note that all error statuses are negative values.                        
+{----------------------------------------------------------------------------
+      Function completion code status values.
+
+      Note that all error statuses are negative values.
  ---------------------------------------------------------------------------- }
    AIO_SUCCESS = 0;
    AIO_BAD_HANDLE = -(1);
@@ -59,8 +59,8 @@ const
 { 'NYSA'  }
    ASYNCIOSignature = $4E595341;
 
-{---------------------------------------------------------------------------- 
-      Definitions for use with the AIOSetExternalControl function.             
+{----------------------------------------------------------------------------
+      Definitions for use with the AIOSetExternalControl function.
  ---------------------------------------------------------------------------- }
    AIO_EXTERNAL_CONTROL          = 1;
    AIO_EXTCTRL_DTR               = 1;
@@ -75,9 +75,9 @@ const
    AIO_HARDWARE_FLOW_CONTROL_ON  = 2;
    AIO_FLOW_CONTROL_CHARACTERS   = 4;
    AIO_SET_DEADMAN_TIMER         = 5;
-   
-{---------------------------------------------------------------------------- 
-      Definitions for use with the AIOGetExternalStatus function.              
+
+{----------------------------------------------------------------------------
+      Definitions for use with the AIOGetExternalStatus function.
  ---------------------------------------------------------------------------- }
    AIO_EXTSTA_RI    = $00000001;
    AIO_EXTSTA_DCD   = $00000008;
@@ -85,35 +85,35 @@ const
    AIO_EXTSTA_CTS   = $00000020;
    AIO_EXTSTA_BREAK = $00000080;
 
-{---------------------------------------------------------------------------- 
-      Definitions for use with the AIOFlushBuffers function.                   
+{----------------------------------------------------------------------------
+      Definitions for use with the AIOFlushBuffers function.
  ---------------------------------------------------------------------------- }
    AIO_FLUSH_WRITE_BUFFER = 1;
    AIO_FLUSH_READ_BUFFER  = 2;
 
-{---------------------------------------------------------------------------- 
-      Definitions for use with the AIOReadStatus function.                     
+{----------------------------------------------------------------------------
+      Definitions for use with the AIOReadStatus function.
  ---------------------------------------------------------------------------- }
    AIO_RECEIVE_ACTIVE = 0;
    AIO_RECEIVE_FULL   = 1;
 
-{---------------------------------------------------------------------------- 
-      Definitions for use with the AIOWriteStatus function.                    
+{----------------------------------------------------------------------------
+      Definitions for use with the AIOWriteStatus function.
  ---------------------------------------------------------------------------- }
    AIO_TRANSMIT_IDLE   = 0;
    AIO_TRANSMIT_ACTIVE = 1;
    AIO_TRANSMIT_XOFFED = 2;
 
-{---------------------------------------------------------------------------- 
-      Definitions for use with the AIOAcquirePort function.                    
+{----------------------------------------------------------------------------
+      Definitions for use with the AIOAcquirePort function.
  ---------------------------------------------------------------------------- }
    AIO_HARDWARE_TYPE_WILDCARD = -(1);
    AIO_BOARD_NUMBER_WILDCARD  = -(1);
    AIO_PORT_NUMBER_WILDCARD   = -(1);
 
 
-{---------------------------------------------------------------------------- 
-      Definitions for use with the AIOConfigurePort function.                  
+{----------------------------------------------------------------------------
+      Definitions for use with the AIOConfigurePort function.
  ---------------------------------------------------------------------------- }
 { BitRate  }
    AIO_BAUD_50       = 0;
@@ -156,9 +156,9 @@ const
    AIO_HARDWARE_FLOWCONTROL_OFF = 0;
    AIO_HARDWARE_FLOWCONTROL_ON  = 2;
    AIO_DROPOUT_VALUE            = $FF;
-   
-{---------------------------------------------------------------------------- 
-      Definitions for use with AIOPORTCAPABILITIES structure.                  
+
+{----------------------------------------------------------------------------
+      Definitions for use with AIOPORTCAPABILITIES structure.
  ---------------------------------------------------------------------------- }
 
 type
@@ -182,7 +182,7 @@ type
         miscCapabilities   : LONGINT;    { miscellaneous capability flags }
         minReadBufferSize  : LONGINT;    { minimum length of receive buffer }
         maxReadBufferSize  : LONGINT;    { maximum length of receive buffer }
-        minWriteBufferSize : LONGINT;    { minimum length of transmit buffer } 
+        minWriteBufferSize : LONGINT;    { minimum length of transmit buffer }
         maxWriteBufferSize : LONGINT;    { maximum length of transmit buffer }
         minDeadmanTime     : WORD;       { minimum deadman time (seconds) }
         maxDeadmanTime     : WORD;       { maximum deadman time (seconds) }
@@ -228,8 +228,8 @@ const
    AIO_NO_STRUCT_DATA_RETURNED = 2;
 
 
-{---------------------------------------------------------------------------- 
-      Definitions for use with the AIOGetPortsRollCall function.               
+{----------------------------------------------------------------------------
+      Definitions for use with the AIOGetPortsRollCall function.
  ---------------------------------------------------------------------------- }
 
 type
@@ -264,8 +264,8 @@ const
    AIO_INITIAL                    = 0;
    AIO_SUCCESSOR                  = 1;
 
-{---------------------------------------------------------------------------- 
-      Definitions for use with the AIOGetPortConfiguration function.           
+{----------------------------------------------------------------------------
+      Definitions for use with the AIOGetPortConfiguration function.
  ---------------------------------------------------------------------------- }
 
 type
@@ -329,7 +329,7 @@ type
         byteData     : array[0..1] of BYTE;
      end;
 
-{---------------------------------------------------------------------------- 
+{----------------------------------------------------------------------------
     Definitions for use with the AIOGetStatistics function.
   ---------------------------------------------------------------------------- }
 
@@ -368,8 +368,8 @@ type
      end;
 
 
-{---------------------------------------------------------------------------- 
-      Definitions for use with AIOGetDriverList function.                      
+{----------------------------------------------------------------------------
+      Definitions for use with AIOGetDriverList function.
  ---------------------------------------------------------------------------- }
 
    PAIODRIVERLISTENTRY = ^TAIODRIVERLISTENTRY;
@@ -388,8 +388,8 @@ type
 const
    AIO_DRIVER_LIST_GET_FIRST = -(1);
 
-{---------------------------------------------------------------------------- 
-      Definitions for use with AIOGetBoardList function.                       
+{----------------------------------------------------------------------------
+      Definitions for use with AIOGetBoardList function.
  ---------------------------------------------------------------------------- }
 type
 
@@ -409,8 +409,8 @@ type
 const
    AIO_BOARD_LIST_GET_FIRST = -(1);
 
-{---------------------------------------------------------------------------- 
-      Definitions for use with AIOSetControlData function.                     
+{----------------------------------------------------------------------------
+      Definitions for use with AIOSetControlData function.
  ---------------------------------------------------------------------------- }
 {  byte length of control data structure }
 type
@@ -422,8 +422,8 @@ type
      end;
 
 
-{---------------------------------------------------------------------------- 
-      Definitions for use with AIOGetFirstPortInfo and AIOGetNextPortInfo      
+{----------------------------------------------------------------------------
+      Definitions for use with AIOGetFirstPortInfo and AIOGetNextPortInfo
  ---------------------------------------------------------------------------- }
 
    PAIOPORTSEARCH = ^TAIOPORTSEARCH;
@@ -434,29 +434,29 @@ type
         reserved  : array[0..5] of longint;
      end;
 
-{---------------------------------------------------------------------------- 
-      Definition of AIO functions.                                             
+{----------------------------------------------------------------------------
+      Definition of AIO functions.
  ---------------------------------------------------------------------------- }
 
 {function with var params to be added... }
 
 function AIOAcquirePort(hardwareType:Plongint; boardNumber:Plongint; portNumber:Plongint; portHandle:Plongint):longint;cdecl;external External_library name 'AIOAcquirePort';
 function AIOAcquirePortWithRTag(hardwareType:Plongint; boardNumber:Plongint; portNumber:Plongint; portHandle:Plongint; RTag:longint):longint;cdecl;external External_library name 'AIOAcquirePortWithRTag';
-function AIOConfigurePort(portHandle:longint; bitRate:byte; dataBits:byte; stopBits:byte; parityMode:byte; 
+function AIOConfigurePort(portHandle:longint; bitRate:byte; dataBits:byte; stopBits:byte; parityMode:byte;
            flowCtrlMode:byte):longint;cdecl;external External_library name 'AIOConfigurePort';
 function AIOFlushBuffers(portHandle:longint; flushFlag:WORD):longint;cdecl;external External_library name 'AIOFlushBuffers';
 function AIOGetBoardList(hardwareType:longint; boardIndex:longint; pBoardList:PAIOBOARDLIST):longint;cdecl;external External_library name 'AIOGetBoardList';
 function AIOGetDriverList(lastHardwareType:longint; pDriverList:PAIODRIVERLIST):longint;cdecl;external External_library name 'AIOGetDriverList';
 function AIOGetExternalStatus(portHandle:longint; extStatus:PLongint; chgdExtStatus:PLongint):longint;cdecl;external External_library name 'AIOGetExternalStatus';
-function AIOGetFirstPortInfo(hardwareType:longint; boardNumber:longint; portNumber:longint; portSearchP:PAIOPORTSEARCH; portInfoP:PAIOPORTINFO; 
+function AIOGetFirstPortInfo(hardwareType:longint; boardNumber:longint; portNumber:longint; portSearchP:PAIOPORTSEARCH; portInfoP:PAIOPORTINFO;
            capabilitiesP:PAIOPORTCAPABILITIES; dvrCapabilitiesP:PAIODVRCAPABILITIES; NLMModuleNameP:Pchar):longint;cdecl;external External_library name 'AIOGetFirstPortInfo';
 function AIOGetNextPortInfo(portSearchP:PAIOPORTSEARCH; portInfoP:PAIOPORTINFO; capabilitiesP:PAIOPORTCAPABILITIES; dvrCapabilitiesP:PAIODVRCAPABILITIES; NLMModuleNameP:Pchar):longint;cdecl;external External_library name 'AIOGetNextPortInfo';
-function AIOGetName_FirstPortInfo(hardwareType:longint; boardNumber:longint; portNumber:longint; portSearchP:PAIOPORTSEARCH; portInfoP:PAIOPORTINFO; 
+function AIOGetName_FirstPortInfo(hardwareType:longint; boardNumber:longint; portNumber:longint; portSearchP:PAIOPORTSEARCH; portInfoP:PAIOPORTINFO;
            capabilitiesP:PAIOPORTCAPABILITIES; dvrCapabilitiesP:PAIODVRCAPABILITIES; NLMModuleNameP:Pchar):longint;cdecl;external External_library name 'AIOGetName_FirstPortInfo';
 function AIOGetName_NextPortInfo(portSearchP:PAIOPORTSEARCH; portInfoP:PAIOPORTINFO; capabilitiesP:PAIOPORTCAPABILITIES; dvrCapabilitiesP:PAIODVRCAPABILITIES; NLMModuleNameP:Pchar):longint;cdecl;external External_library name 'AIOGetName_NextPortInfo';
 function AIOGetPortCapability(portHandle:longint; pCapabilities:PAIOPORTCAPABILITIES; pDvrCapabilities:PAIODVRCAPABILITIES):longint;cdecl;external External_library name 'AIOGetPortCapability';
 function AIOGetPortConfiguration(portHandle:longint; pPortConfig:PAIOPORTCONFIG; pDvrConfig:PAIODVRCONFIG):longint;cdecl;external External_library name 'AIOGetPortConfiguration';
-function AIOGetPortStatus(portHandle:longint; writeCount:PLongint; writeState:PWORD; readCount:PLongint; readState:PWORD; 
+function AIOGetPortStatus(portHandle:longint; writeCount:PLongint; writeState:PWORD; readCount:PLongint; readState:PWORD;
            extStatus:PLongint; chgdExtStatus:PLongint):longint;cdecl;external External_library name 'AIOGetPortStatus';
 function AIOGetReadBufferSize(portHandle:longint; readSize:PLongint):longint;cdecl;external External_library name 'AIOGetReadBufferSize';
 function AIOGetPortStatistics(portHandle:longint; pPortStatistics:PAIOPORTSTATISTICS; pDvrStatistics:PAIODVRSTATISTICS):longint;cdecl;external External_library name 'AIOGetPortStatistics';
@@ -482,8 +482,11 @@ end.
 
 {
   $Log$
-  Revision 1.1  2002-03-19 19:33:36  armin
+  Revision 1.2  2002-09-07 16:01:20  peter
+    * old logs removed and tabs fixed
+
+  Revision 1.1  2002/03/19 19:33:36  armin
   + fist version of aio added
 
- 
+
 }

@@ -101,7 +101,7 @@ Type
     c_line   : char;
     c_cc     : array[0..NCCS-1] of byte;
     c_ispeed,
-    c_ospeed : cardinal; 
+    c_ospeed : cardinal;
   end;
   TTermios=Termios;
 {$PACKRECORDS Default}

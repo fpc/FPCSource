@@ -3,18 +3,18 @@
     This file is part of the Free Pascal run time library.
     Copyright (c) 1999-2000 by the Free Pascal development team
     Copyright (c) 2001 Armin Diehl
-		
+
     This unit implements the startup code for a netware nlm. It must be the first object file
     linked. Currently the 'old-style', similar to novell's prelude.obj is used. With the newer
     way (novells nwpre.obj) i only got abends. Dont know what's different in novells nwpre.
-		    
+
     See the file COPYING.FPC, included in this distribution,
     for details about the copyright.
-			    
+
     This program is distributed in the hope that it will be useful,
     but WITHOUT ANY WARRANTY; without even the implied warranty of
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
-					
+
 **********************************************************************}
 
 unit nwpre;
@@ -26,7 +26,7 @@ interface
                     It always abends in TerminateNLM, so i am using the old style
   2001/04/15 armin: Added comments, S-
                     Removed dead code }
-		    
+
 {$DEFINE OldPrelude}
 
 FUNCTION _Prelude (NLMHandle               : LONGINT;
@@ -44,9 +44,9 @@ implementation
 
 {$S-}
 
-FUNCTION _TerminateNLM  (NLMInformation          : POINTER; 
+FUNCTION _TerminateNLM  (NLMInformation          : POINTER;
                          threadID, status        : LONGINT) : LONGINT; CDECL; EXTERNAL;
-			 
+
 FUNCTION _SetupArgV_411 (MainProc                : POINTER) : LONGINT; CDECL; EXTERNAL;
 
 FUNCTION _StartNLM      (NLMHandle               : LONGINT;
@@ -75,7 +75,7 @@ CONST TRADINIONAL_NLM_INFO_SIGNATURE = 0;
 {$IFDEF OldPrelude}
 CONST NLMID : LONGINT = 0;
 {$ELSE}
-TYPE 
+TYPE
   kNLMInfoT =
   PACKED RECORD
     Signature      : ARRAY [0..3] OF CHAR;  // LONG
@@ -91,7 +91,7 @@ CONST NLM_INFO_SIGNATURE             = 'NLMI';  // 0x494d3c3e;
        (Signature      : NLM_INFO_SIGNATURE;
         Flavor         : TRADINIONAL_FLAVOR;    // 0
         Version        : LIBERTY_VERSION;       // 1
-        LongDoubleSize : 8; 
+        LongDoubleSize : 8;
         wchar_tSize    : 2);
 {$ENDIF}
 
@@ -138,11 +138,11 @@ BEGIN
              readRoutineP,
              customDataOffset,
              customDataSize,
-	     {$IFDEF OldPrelude}
-	     @NLMID,
-	     {$ELSE}
+             {$IFDEF OldPrelude}
+             @NLMID,
+             {$ELSE}
              @kNLMInfo,
-	     {$ENDIF}
+             {$ENDIF}
              @_cstart_);
 END;
 
@@ -152,14 +152,10 @@ END;
 end.
 {
   $Log$
-  Revision 1.4  2002-03-17 17:57:33  armin
+  Revision 1.5  2002-09-07 16:01:20  peter
+    * old logs removed and tabs fixed
+
+  Revision 1.4  2002/03/17 17:57:33  armin
   + threads and winsock2 implemented
-
-  Revision 1.3  2001/04/16 18:39:50  florian
-    * updates from Armin commited
-
-  Revision 1.2  2001/04/11 14:17:00  florian
-    * added logs, fixed email address of Armin, it is
-      diehl@nordrhein.de
 
 }

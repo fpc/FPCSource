@@ -44,41 +44,41 @@ type
  Stat =record {BSD version}
         dev        :  dev_t;            { inode's device }
         ino        :  cardinal;         { inode's number }
-        mode, 				{ inode protection mode }
-        nlink	   :  word;             { number of hard links }
-        uid,				{ user ID of the file's owner }
-        gid,				{ group ID of the file's group }
-        dev_t	   :  cardinal;		{ device type }
-	atime,                          { time of last access }
-	atime_nsec,         		{ nsec of last access }
-	mtime,	           		{ time of last data modification }
-	mtime_nsec,         		{ nsec of last data modification }
-	ctime,            		{ time of last file status change }
-	ctime_nsec : longint;      	{ nsec of last file status change }
-	size,           		{ file size, in bytes }
-	blocks     : Int64;		{ blocks allocated for file }
-	blksze,         		{ optimal blocksize for I/O }
-	flags,          		{ user defined flags for file }
-	filegen    : cardinal;		{ file generation number }
-	lspare	   : longint;
-	qspare     : array[0..1] of int64;
+        mode,                           { inode protection mode }
+        nlink      :  word;             { number of hard links }
+        uid,                            { user ID of the file's owner }
+        gid,                            { group ID of the file's group }
+        dev_t      :  cardinal;         { device type }
+        atime,                          { time of last access }
+        atime_nsec,                     { nsec of last access }
+        mtime,                          { time of last data modification }
+        mtime_nsec,                     { nsec of last data modification }
+        ctime,                          { time of last file status change }
+        ctime_nsec : longint;           { nsec of last file status change }
+        size,                           { file size, in bytes }
+        blocks     : Int64;             { blocks allocated for file }
+        blksze,                         { optimal blocksize for I/O }
+        flags,                          { user defined flags for file }
+        filegen    : cardinal;          { file generation number }
+        lspare     : longint;
+        qspare     : array[0..1] of int64;
        end;
 
   PStat=^Stat;
   TStat=Stat;
 
   TStatfs = packed record
-    spare2,	       { place holder}
-    bsize,	       { fundamental block size}
+    spare2,            { place holder}
+    bsize,             { fundamental block size}
     iosize,            { optimal block size }
     blocks,            {  total blocks}
     bfree,             { blocks free}
     bavail,            { block available for mortal users}
-    files,	       { Total file nodes}
-    ffree	   : longint;    { file nodes free}
-    fsid	   : array[0..1] of longint;
-    fowner	   : longint; {mounter uid}
-    ftype	   : longint;
+    files,             { Total file nodes}
+    ffree          : longint;    { file nodes free}
+    fsid           : array[0..1] of longint;
+    fowner         : longint; {mounter uid}
+    ftype          : longint;
     fflags         : longint; {copy of mount flags}
     spare          : array [0..1] of longint; { For later use }
     fstypename     : array[0..15] of char;
@@ -119,13 +119,16 @@ type
   TUTSName=UTSName;
 
   ITimerVal= Record
-	      It_Interval,
-	      It_Value      : TimeVal; 
+              It_Interval,
+              It_Value      : TimeVal;
              end;
 
 {
   $Log$
-  Revision 1.1  2002-09-06 18:35:59  jonas
+  Revision 1.2  2002-09-07 16:01:17  peter
+    * old logs removed and tabs fixed
+
+  Revision 1.1  2002/09/06 18:35:59  jonas
     * implemented most syscalls, except readdir because the getdents
       syscall is declared obsolete in Darwin...
 

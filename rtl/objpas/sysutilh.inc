@@ -182,57 +182,10 @@ Type
 
 {
   $Log$
-  Revision 1.16  2002-01-25 17:42:03  peter
+  Revision 1.17  2002-09-07 16:01:22  peter
+    * old logs removed and tabs fixed
+
+  Revision 1.16  2002/01/25 17:42:03  peter
     * interface helpers
 
-  Revision 1.15  2001/11/07 14:58:24  michael
-  + Added PathDelim,DriveDelim,PathSep; Removed PathSeparator
-
-  Revision 1.14  2001/10/23 21:51:03  peter
-    * criticalsection renamed to rtlcriticalsection for kylix compatibility
-
-  Revision 1.13  2001/08/22 21:19:16  florian
-    + some new stuff of D6/Kylix added
-
-  Revision 1.12  2001/08/22 14:11:28  florian
-    + HexDisplayPrefix added
-
-  Revision 1.11  2001/08/19 21:02:02  florian
-    * fixed and added a lot of stuff to get the Jedi DX8 headers
-      compiled
-
-  Revision 1.10  2001/08/12 22:11:48  peter
-    * freeandnil added
-
-  Revision 1.9  2001/06/03 15:18:01  peter
-    * eoutofmemory and einvalidpointer fix
-
-  Revision 1.8  2001/02/20 22:14:19  peter
-    * merged getenvironmentvariable
-
-  Revision 1.7  2001/01/18 22:09:09  michael
-  + Merged fixes from fixbranch - file modes
-
-  Revision 1.6  2000/12/07 09:15:18  florian
-    + tintegerset added
-
-  Revision 1.5  2000/09/24 21:55:07  peter
-    * ttextrec,tfilerec added (merged)
-
-  Revision 1.4  2000/08/30 18:29:34  hajny
-    * OS/2 fix - datih.inc moved to the beginning
-
-  Revision 1.3  2000/08/29 17:56:32  michael
-  Merged syserrormsg fix
-
-  Revision 1.2  2000/08/20 15:46:46  peter
-    * sysutils.pp moved to target and merged with disk.inc, filutil.inc
-
-  Revision 1.1.2.2  2000/08/22 19:21:48  michael
-  + Implemented syserrormessage. Made dummies for go32v2 and OS/2
-  * Changed linux/errors.pp so it uses pchars for storage.
-
-  Revision 1.1.2.1  2000/08/20 15:07:36  peter
-    * sysutils.pp moved into target specific directory and merged
-      disk.inc and filutil.inc in it
 }

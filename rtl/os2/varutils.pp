@@ -40,9 +40,8 @@ end.
 
 {
   $Log$
-  Revision 1.1  2000-08-30 08:56:54  michael
-  + Added varutils.pp
-
+  Revision 1.2  2002-09-07 16:01:25  peter
+    * old logs removed and tabs fixed
 
 }
 

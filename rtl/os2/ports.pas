@@ -146,19 +146,7 @@ end.
 
 {
   $Log$
-  Revision 1.1  2000-07-13 06:31:07  michael
-  + Initial import
-
-  Revision 1.4  2000/01/07 16:41:50  daniel
-    * copyright 2000
-
-  Revision 1.3  2000/01/02 17:37:42  hajny
-    * warning notes added
-
-  Revision 1.2  2000/01/02 17:13:12  hajny
-    * it might even work now ;-)
-
-  Revision 1.1  2000/01/02 16:05:36  hajny
-    + initial OS/2 release
+  Revision 1.2  2002-09-07 16:01:25  peter
+    * old logs removed and tabs fixed
 
 }

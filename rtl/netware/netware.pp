@@ -165,11 +165,8 @@ end;
 end.
 {
   $Log$
-  Revision 1.1  2001-04-16 18:39:50  florian
-    * updates from Armin commited
-
-  Revision 1.1  1999/02/19 15:37:26  peter
-    + init
+  Revision 1.2  2002-09-07 16:01:20  peter
+    * old logs removed and tabs fixed
 
 }
 

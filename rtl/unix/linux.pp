@@ -3032,7 +3032,10 @@ End.
 
 {
   $Log$
-  Revision 1.22  2002-08-06 13:30:46  sg
+  Revision 1.23  2002-09-07 16:01:27  peter
+    * old logs removed and tabs fixed
+
+  Revision 1.22  2002/08/06 13:30:46  sg
   * replaced some Longints with Cardinals, to mach the C headers
   * updated the termios record
 
@@ -3041,96 +3044,5 @@ End.
 
   Revision 1.20  2002/01/02 12:22:54  marco
    * Removed ifdef arround getepoch.
-
-  Revision 1.19  2001/12/26 21:03:57  peter
-    * merged fixes from 1.0.x
-
-  Revision 1.18  2001/11/30 07:16:41  marco
-   * TTYname fix from Maarten Beekers. Apparantly accidentally not commited the first time.
-
-  Revision 1.17  2001/10/14 13:33:20  peter
-    * start of thread support for linux
-
-  Revision 1.16  2001/09/17 21:36:31  peter
-    * merged fixes
-
-  Revision 1.15  2001/08/12 18:08:59  peter
-    * Range check fix with epoch (merged)
-
-  Revision 1.14  2001/07/16 20:27:30  marco
-   * Some small detail fixes for Solaris
-
-  Revision 1.13  2001/07/12 12:42:39  marco
-   * Fixes to the FreeBSD compability of the datetime patches
-
-  Revision 1.12  2001/07/12 07:20:05  michael
-  + Added setdate/time/datetime functions
-
-  Revision 1.11  2001/07/10 18:04:37  peter
-    * merged textfile, readlink and concat ansistring fixes
-
-  Revision 1.10  2001/06/03 20:19:09  peter
-    * FSStat to StatFS
-    * StatFS structure to TStatFS
-
-  Revision 1.9  2001/06/02 00:31:30  peter
-    * merge unix updates from the 1.0 branch, mostly related to the
-      solaris target
-
-  Revision 1.7  2001/04/19 12:57:33  marco
-   * Readlink uncommented for FreeBSD.
-
-  Revision 1.6  2001/04/13 22:37:21  peter
-    * remove warning
-
-  Revision 1.5  2001/03/27 11:47:25  michael
-  + Fixed F_[G,S]etOwn constants. By Alexander Sychev
-
-  Revision 1.4  2001/03/17 16:04:37  hajny
-    * FExpand omission fixed
-
-  Revision 1.3  2001/03/16 20:09:58  hajny
-    * universal FExpand
-
-  Revision 1.2  2001/01/22 07:25:10  marco
-   * IOPERM for FreeBSD. Port routines moved from linsysca to Unix again .
-
-  Revision 1.1  2001/01/21 20:21:41  marco
-   * Rename fest II. Rtl OK
-
-  Revision 1.6  2000/12/28 20:42:12  peter
-    * ttyname fix from the mailinglist (merged)
-
-  Revision 1.5  2000/10/26 22:51:12  peter
-    * nano sleep (merged)
-
-  Revision 1.4  2000/10/11 13:59:16  marco
-   * FreeBSD TermIOS support and minor changes to some related files.
-
-  Revision 1.3  2000/10/10 12:02:35  marco
-   * Terminal stuff of Linux moved to separate file. I think it is too
-       much to do with ifdefs.
-
-  Revision 1.2  2000/09/18 13:14:50  marco
-   * Global Linux +bsd to (rtl/freebsd rtl/unix rtl/linux structure)
-
-  Revision 1.7  2000/09/12 08:51:43  marco
-   * fixed some small problems left from merging. (waitpid has now last param longint)
-
-  Revision 1.6  2000/09/11 14:05:31  marco
-   * FreeBSD support and removed old signalhandling
-
-  Revision 1.5  2000/09/06 20:47:34  peter
-    * removed previous fsplit() patch as it's not the correct behaviour for
-      LFNs. The code showing the bug could easily be adapted (merged)
-
-  Revision 1.4  2000/09/04 20:17:53  peter
-    * fixed previous commit (merged)
-
-  Revision 1.3  2000/09/04 19:38:13  peter
-    * fsplit with .. fix from Thomas (merged)
-
-  Revision 1.2  2000/07/13 11:33:48  michael
-  + removed logs
 
 }

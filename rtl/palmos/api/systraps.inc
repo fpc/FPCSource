@@ -35,13 +35,13 @@ ACCOMPANYING THE COMPACT DISK.
 
  -------------------------------------------------------------------
   FileName:
-    	     SysTraps.inc
+             SysTraps.inc
 
   Description:
-    	     Pilot Traps
+             Pilot Traps
 
   History:
-    	     6/13/95	RM	- Created by Ron Marianetti
+             6/13/95    RM      - Created by Ron Marianetti
              8/05/98    converted to pascal by Florian Klaempfl
 }
   const
@@ -466,17 +466,17 @@ ACCOMPANYING THE COMPACT DISK.
 
   const
      { Pilot specific TRAP instruction numbers }
-     { For soft breakpoints		 }
+     { For soft breakpoints              }
      sysDbgBreakpointTrapNum = 0;
 
-     { For compiled breakpoints			 }
+     { For compiled breakpoints                  }
      sysDbgTrapNum = 8;
 
      { Trap dispatcher }
      sysDispatchTrapNum = 15;
 
   $Log$
-  Revision 1.2  2000-07-13 11:33:55  michael
-  + removed logs
- 
+  Revision 1.3  2002-09-07 16:01:26  peter
+    * old logs removed and tabs fixed
+
 }

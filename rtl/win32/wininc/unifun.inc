@@ -494,13 +494,10 @@ end;
 
 {
   $Log$
-  Revision 1.4  2002-01-19 11:58:22  peter
+  Revision 1.5  2002-09-07 16:01:32  peter
+    * old logs removed and tabs fixed
+
+  Revision 1.4  2002/01/19 11:58:22  peter
     * more functions from webbugs
 
-  Revision 1.3  2000/10/11 16:05:56  peter
-    * stdcall for callbacks (merged)
-
-  Revision 1.2  2000/07/13 11:34:03  michael
-  + removed logs
- 
 }

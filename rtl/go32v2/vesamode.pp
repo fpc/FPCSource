@@ -245,7 +245,7 @@ initialization
 end.
 {
   $Log$
-  Revision 1.2  2001-10-12 16:04:45  peter
-    * video fixes (merged)
+  Revision 1.3  2002-09-07 16:01:19  peter
+    * old logs removed and tabs fixed
 
 }

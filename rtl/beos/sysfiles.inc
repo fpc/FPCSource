@@ -15,4 +15,4 @@ function sys_read (handle:longint;buffer:pointer;len:longint;var a:longint):long
 function sys_write (handle:longint;buffer:pointer;len:longint;var a:longint):longint; cdecl; external name 'sys_write';
 function sys_lseek (handle:longint;pos:int64;whence:longint): int64; cdecl; external name 'sys_lseek';
 
-      
+

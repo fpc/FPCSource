@@ -950,58 +950,13 @@ end.
 
 {
   $Log$
-  Revision 1.16  2002-07-11 16:00:05  hajny
+  Revision 1.17  2002-09-07 16:01:25  peter
+    * old logs removed and tabs fixed
+
+  Revision 1.16  2002/07/11 16:00:05  hajny
     * FindFirst fix (invalid attribute bits masked out)
 
   Revision 1.15  2002/01/25 16:23:03  peter
     * merged filesearch() fix
-
-  Revision 1.14  2001/12/16 19:08:20  hajny
-    * uses DosCalls replaced with direct declarations
-
-  Revision 1.13  2001/10/25 21:23:49  peter
-    * added 64bit fileseek
-
-  Revision 1.12  2001/06/03 15:18:01  peter
-    * eoutofmemory and einvalidpointer fix
-
-  Revision 1.11  2001/05/21 20:50:19  hajny
-    * silly mistyping corrected
-
-  Revision 1.10  2001/05/20 18:40:33  hajny
-    * merging Carl's fixes from the fixes branch
-
-  Revision 1.9  2001/02/21 21:23:38  hajny
-    * GetEnvironmentVariable now really merged
-
-  Revision 1.8  2001/02/20 22:14:19  peter
-    * merged getenvironmentvariable
-
-  Revision 1.7  2001/01/13 11:10:59  hajny
-    * FileCreate and GetLocalTime fixed
-
-  Revision 1.6  2000/10/15 20:44:18  hajny
-    * FindClose correction
-
-  Revision 1.5  2000/09/29 21:49:41  jonas
-    * removed warnings
-
-  Revision 1.4  2000/08/30 06:30:55  michael
-  + Merged syserrormsg fix
-
-  Revision 1.3  2000/08/25 17:23:56  hajny
-    * Sharing mode error fixed
-
-  Revision 1.2  2000/08/20 15:46:46  peter
-    * sysutils.pp moved to target and merged with disk.inc, filutil.inc
-  Revision 1.1.2.3  2000/08/25 17:20:57  hajny
-    * Sharing mode error fixed
-
-  Revision 1.1.2.2  2000/08/22 19:21:48  michael
-  + Implemented syserrormessage. Made dummies for go32v2 and OS/2
-  * Changed linux/errors.pp so it uses pchars for storage.
-
-  Revision 1.1.2.1  2000/08/20 15:08:32  peter
-    * forgot the add command :(
 
 }

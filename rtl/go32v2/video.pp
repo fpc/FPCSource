@@ -318,36 +318,8 @@ initialization
 end.
 {
   $Log$
-  Revision 1.5  2001-10-12 16:04:45  peter
-    * video fixes (merged)
-
-  Revision 1.4  2001/10/06 22:28:24  michael
-  + Merged video mode selection/setting system
-
-  Revision 1.3  2001/09/21 19:50:18  michael
-  + Merged driver support from fixbranch
-
-
-  Revision 1.2  2001/05/09 19:53:28  peter
-    * removed asm for copy, use dosmemput (merged)
-
-  Revision 1.1.2.5  2001/10/06 22:23:40  michael
-  + Better video mode selection/setting system
-
-  Revision 1.1.2.4  2001/09/21 18:42:08  michael
-  + Implemented support for custom video drivers.
-
-  Revision 1.1.2.3  2001/05/06 21:54:23  carl
-  * bugfix of Windows NT double exception crash
-
-  Revision 1.1.2.2  2001/04/16 10:56:13  peter
-    * fixes for stricter compiler
-
-  Revision 1.1.2.1  2001/01/30 21:52:01  peter
-    * moved api utils to rtl
-
-  Revision 1.1  2001/01/13 11:03:58  peter
-    * API 2 RTL commit
+  Revision 1.6  2002-09-07 16:01:19  peter
+    * old logs removed and tabs fixed
 
 }
 

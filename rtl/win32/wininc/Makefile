@@ -159,16 +159,6 @@ unidef.inc : unifun.inc unidef.sed
 
 #
 # $Log$
-# Revision 1.1  2000-07-13 06:31:22  michael
-# + Initial import
-#
-# Revision 1.3  2000/01/07 16:41:53  daniel
-#   * copyright 2000
-#
-# Revision 1.2  2000/01/07 16:32:35  daniel
-#   * copyright 2000 added
-#
-# Revision 1.1  1999/09/16 13:38:22  peter
-#   * windows unit include moved to wininc/
-#
+# Revision 1.2  2002-09-07 16:01:29  peter
+#   * old logs removed and tabs fixed
 #

@@ -581,7 +581,10 @@ end;
 
 {
   $Log$
-  Revision 1.12  2002-09-07 13:14:04  florian
+  Revision 1.13  2002-09-07 16:01:19  peter
+    * old logs removed and tabs fixed
+
+  Revision 1.12  2002/09/07 13:14:04  florian
     * hopefully final fix for ppc syscall BTW: The regX numbering is somehow messy
 
   Revision 1.11  2002/09/03 21:37:54  florian
@@ -602,12 +605,5 @@ end;
   Revision 1.6  2002/07/28 20:43:48  florian
     * several fixes for linux/powerpc
     * several fixes to MT
-
-  Revision 1.5  2001/10/14 13:33:20  peter
-    * start of thread support for linux
-
-  Revision 1.4  2001/06/02 00:31:30  peter
-    * merge unix updates from the 1.0 branch, mostly related to the
-      solaris target
 
 }

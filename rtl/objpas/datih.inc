@@ -106,10 +106,7 @@ Procedure GetLocalTime(var SystemTime: TSystemTime);
 
 {
   $Log$
-  Revision 1.4  2001-11-14 23:00:17  michael
-  + First working variant support
-
-  Revision 1.3  2000/08/20 15:46:46  peter
-    * sysutils.pp moved to target and merged with disk.inc, filutil.inc
+  Revision 1.5  2002-09-07 16:01:22  peter
+    * old logs removed and tabs fixed
 
 }

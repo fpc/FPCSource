@@ -2619,7 +2619,10 @@ end.
 
 {
   $Log$
-  Revision 1.5  2002-07-28 20:43:49  florian
+  Revision 1.6  2002-09-07 16:01:28  peter
+    * old logs removed and tabs fixed
+
+  Revision 1.5  2002/07/28 20:43:49  florian
     * several fixes for linux/powerpc
     * several fixes to MT
 
@@ -2632,6 +2635,4 @@ end.
   Revision 1.2  2002/02/26 10:30:01  marco
    * Merged objidl.idl translation. Most of wtypes.idl also included. Size slightly     increased.
 
-  Revision 1.1  2001/08/19 21:02:02  florian
-    * fixed and added a lot of stuff to get the Jedi DX8 headers      compiled
 }

@@ -2227,32 +2227,13 @@ begin
 end.
 {
   $Log$
-  Revision 1.9  2002-01-06 15:37:20  florian
+  Revision 1.10  2002-09-07 16:01:28  peter
+    * old logs removed and tabs fixed
+
+  Revision 1.9  2002/01/06 15:37:20  florian
     * log fixed
 
   Revision 1.8  2002/01/06 15:23:42  florian
     * SetRGBColor with cached pens fixed
 
-  Revision 1.7  2001/06/06 17:20:22  jonas
-    * fixed wrong typed constant procvars in preparation of my fix which will
-      disallow them in FPC mode (plus some other unmerged changes since
-      LAST_MERGE)
-
-  Revision 1.6  2001/04/16 10:57:05  peter
-    * stricter compiler fixes
-
-  Revision 1.5  2000/12/19 11:59:12  michael
-  * Fixes from Peter
-
-  Revision 1.4  2000/11/14 19:45:08  florian
-    * child window destruction fixed
-
-  Revision 1.3  2000/10/21 18:20:17  florian
-    * a lot of small changes:
-       - setlength is internal
-       - win32 graph unit extended
-       ....
-
-  Revision 1.2  2000/07/13 11:33:57  michael
-  + removed logs
 }

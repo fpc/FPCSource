@@ -486,11 +486,6 @@ ___djgpp_hw_lock_end:
 
 /*
    $Log$
-   Revision 1.4  2001-08-22 20:49:18  peter
-     * regenerated
+   Revision 1.5  2002-09-07 16:01:18  peter
+     * old logs removed and tabs fixed
 
-   Revision 1.3  2001/08/19 21:02:01  florian
-     * fixed and added a lot of stuff to get the Jedi DX( headers
-       compiled
-
-*/

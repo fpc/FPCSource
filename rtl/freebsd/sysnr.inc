@@ -318,21 +318,13 @@ syscall_nr_getdirentries                =196;
 
 {
   $Log$
-  Revision 1.6  2002-08-19 12:32:34  marco
+  Revision 1.7  2002-09-07 16:01:18  peter
+    * old logs removed and tabs fixed
+
+  Revision 1.6  2002/08/19 12:32:34  marco
    * again fixes.
 
   Revision 1.5  2002/05/06 09:35:09  marco
    * Some stuff from 1.0.x ported
 
-  Revision 1.4  2001/01/22 07:25:10  marco
-   * IOPERM for FreeBSD. Port routines moved from linsysca to Unix again .
-
-  Revision 1.3  2000/10/26 23:00:12  peter
-    * fixes merges
-
-  Revision 1.2  2000/09/18 13:42:35  marco
-   * FreeBSD support into 1.1
-
-  Revision 1.4  2000/09/11 14:38:10  marco
-   * 14 april version killed, and replaced by newer fixes branch version
 }

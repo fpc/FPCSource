@@ -199,30 +199,11 @@ type
 
 {
   $Log$
-  Revision 1.5  2002-07-28 20:43:48  florian
+  Revision 1.6  2002-09-07 16:01:19  peter
+    * old logs removed and tabs fixed
+
+  Revision 1.5  2002/07/28 20:43:48  florian
     * several fixes for linux/powerpc
     * several fixes to MT
-
-  Revision 1.4  2001/06/27 21:37:38  peter
-    * v10 merges
-
-  Revision 1.3  2001/04/04 22:50:59  peter
-    * use div instead of / in constant
-
-  Revision 1.2  2000/09/11 14:05:31  marco
-   * FreeBSD support and removed old signalhandling
-
-  Revision 1.1.2.1  2000/09/10 16:17:25  marco
-   * added (moved from sockets.pp and i386/signal.inc)
-
-  Revision 1.1  2000/07/13 06:30:55  michael
-  + Initial import
-
-  Revision 1.2  2000/03/31 23:11:23  pierre
-   * TSigAction Context param is the full record not a pointer
-
-  Revision 1.1  2000/03/31 13:24:28  jonas
-    * signal handling using sigaction when compiled with -dnewsignal
-      (allows multiple signals to be received in one run)
 
 }

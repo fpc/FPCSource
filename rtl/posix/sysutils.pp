@@ -231,7 +231,7 @@ end;
 
 
 
-type 
+type
   PDOSSearchRec = ^SearchRec;
 
 Function FindFirst (Const Path : String; Attr : Longint; Var Rslt : TSearchRec) : Longint;
@@ -266,7 +266,7 @@ begin
      Rslt.ExcludeAttr := not p^.Attr;
      Rslt.Size := p^.Size;
      FindFirst := 0;
-   end;   
+   end;
 end;
 
 
@@ -293,7 +293,7 @@ begin
      Rslt.ExcludeAttr := not p^.Attr;
      Rslt.Size := p^.Size;
      FindNext := 0;
-   end;     
+   end;
 end;
 
 
@@ -303,7 +303,7 @@ Var
   p : PDOSSearchRec;
 
 begin
-  p:=PDOSSearchRec(f.FindHandle); 
+  p:=PDOSSearchRec(f.FindHandle);
   if not assigned(p) then
        exit;
   Dos.FindClose(p^);
@@ -533,7 +533,10 @@ Finalization
 end.
 {
     $Log$
-    Revision 1.2  2002-08-10 13:42:36  marco
+    Revision 1.3  2002-09-07 16:01:26  peter
+      * old logs removed and tabs fixed
+
+    Revision 1.2  2002/08/10 13:42:36  marco
      * Fixes Posix dir copied to devel branch
 
     Revision 1.1.2.5  2002/04/28 07:28:43  carl
@@ -544,12 +547,5 @@ end.
 
     Revision 1.1.2.3  2002/01/22 07:41:11  michael
     + Fixed FileSearch bug in Win32 and made FIleSearch platform independent
-
-    Revision 1.1.2.2  2001/09/29 20:16:53  carl
-    * bugfix of read/write wrong address was passed as parameter
-
-    Revision 1.1.2.1  2001/08/15 01:07:07  carl
-    + first version of sysutils
-
 
 }

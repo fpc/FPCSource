@@ -52,7 +52,6 @@ _haltproc:
 
 #
 # $Log$
-# Revision 1.1  2001-06-03 15:13:43  peter
-#   * dllprt0 stub added
-#
+# Revision 1.2  2002-09-07 16:01:20  peter
+#   * old logs removed and tabs fixed
 #

@@ -75,7 +75,7 @@ program pmdemo1;
  end.
 {
   $Log$
-  Revision 1.2  2000-07-13 11:33:53  michael
-  + removed logs
- 
+  Revision 1.3  2002-09-07 16:01:25  peter
+    * old logs removed and tabs fixed
+
 }

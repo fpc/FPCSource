@@ -105,7 +105,7 @@ Begin
  sys_open:=do_syscall(syscall_nr_open,longint(path),longint(flags),longint(mode));
 End;
 
-function sys_close(fd : cint): cint;  
+function sys_close(fd : cint): cint;
 
 begin
  sys_close:=do_syscall(syscall_nr_close,fd);
@@ -182,7 +182,7 @@ end;
 
 const DIRBLKSIZ=1024;
 
- 
+
 function sys_opendir(const dirname : pchar): pdir;  [public, alias : 'FPC_SYSC_OPENDIR'];
 
 var
@@ -259,8 +259,8 @@ end;
 var
     FinalEntry     : pdirent;
     novalid        : boolean;
-    Reclen	   : Longint;
-    CurEntry	   : PDirent;
+    Reclen         : Longint;
+    CurEntry       : PDirent;
 
 begin
  if (dirp^.dd_buf=nil) or (dirp^.dd_loc=0) THEN
@@ -269,7 +269,7 @@ begin
    (dirp^.dd_rewind>=(longint(dirp^.dd_buf)+dirblksiz)) then  {no more entries left?}
   Begin
     if readbuffer=0 then        {succesful read?}
-     Exit(NIL);			{No more data}
+     Exit(NIL);                 {No more data}
   End;
  FinalEntry:=NIL;
  CurEntry:=nil;
@@ -343,7 +343,7 @@ begin
   Sys_FStat:=do_SysCall(syscall_nr_fstat,fd,longint(@sb));
 end;
 
-{$ifdef NewReaddir} 
+{$ifdef NewReaddir}
 {$I readdir.inc}
 {$endif}
 
@@ -362,7 +362,7 @@ Begin
 End;
 
 {
-function sys_execve(const path : pathstr; const argv : ppchar; const envp: ppchar): cint; 
+function sys_execve(const path : pathstr; const argv : ppchar; const envp: ppchar): cint;
 }
 {
   Replaces the current program by the program specified in path,
@@ -527,7 +527,10 @@ end;
 
 {
  $Log$
- Revision 1.2  2002-08-21 07:03:16  marco
+ Revision 1.3  2002-09-07 16:01:17  peter
+   * old logs removed and tabs fixed
+
+ Revision 1.2  2002/08/21 07:03:16  marco
   * Fixes from Tuesday.
 
  Revision 1.1  2002/08/19 12:29:11  marco
@@ -543,24 +546,5 @@ end;
      NetBSD may need some fixes to stat record and ftruncate and lseek.
      It is all close together, and it should be doable to have just one copy
      of these for *BSD.
-
- Revision 1.1.2.5  2001/12/09 03:31:50  carl
- + wifsignaled() added
-
- Revision 1.1.2.4  2001/12/03 03:13:30  carl
- * fix ftruncate prototype
- * fix rename prototype
- * change readdir / closedir prototype
-
- Revision 1.1.2.3  2001/11/30 03:50:43  carl
- + int -> cint
- + missing prototypes added
-
- Revision 1.1.2.2  2001/11/28 03:08:29  carl
- * int -> cint
- + several other stuff renamed
-
- Revision 1.1.2.1  2001/08/15 00:15:04  carl
- - renamed
 
 }

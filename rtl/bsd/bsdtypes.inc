@@ -1,7 +1,7 @@
 {
     $Id$
     Copyright (c) 2000-2002 by Marco van de Voort
-    
+
     Some non POSIX BSD types used internally in the system unit.
 
     This program is free software; you can redistribute it and/or modify
@@ -42,7 +42,10 @@ Type
 
 {
  $Log$
- Revision 1.1  2002-08-19 12:29:11  marco
+ Revision 1.2  2002-09-07 16:01:17  peter
+   * old logs removed and tabs fixed
+
+ Revision 1.1  2002/08/19 12:29:11  marco
   * First working POSIX *BSD system unit.
 
 

@@ -200,13 +200,7 @@ unit winmouse;
   end.
 {
   $Log$
-  Revision 1.3  2000-10-21 18:20:17  florian
-    * a lot of small changes:
-       - setlength is internal
-       - win32 graph unit extended
-       ....
-
-  Revision 1.2  2000/07/13 11:33:58  michael
-  + removed logs
+  Revision 1.4  2002-09-07 16:01:29  peter
+    * old logs removed and tabs fixed
 
 }

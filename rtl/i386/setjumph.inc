@@ -2,7 +2,7 @@
     $Id$
     This file is part of the Free Pascal run time library.
     Copyright (c) 1998 the Free Pascal development team
-    
+
     SetJmp/Longjmp declarations
 
     See the file COPYING.FPC, included in this distribution,
@@ -26,7 +26,7 @@ Procedure longjmp (Var S : Jmp_buf; value : longint);
 
 {
   $Log$
-  Revision 1.2  2000-07-13 11:33:42  michael
-  + removed logs
- 
+  Revision 1.3  2002-09-07 16:01:19  peter
+    * old logs removed and tabs fixed
+
 }

@@ -335,7 +335,7 @@ begin
         begin
           if InACS then
             begin
-              res:=res+ACSOut+Attr2Ansi(LastAttr,0);                    
+              res:=res+ACSOut+Attr2Ansi(LastAttr,0);
               InACS:=false;
             end;
           res:=res+ch;
@@ -824,63 +824,12 @@ initialization
 end.
 {
   $Log$
-  Revision 1.11  2002-07-06 16:50:17  marco
+  Revision 1.12  2002-09-07 16:01:28  peter
+    * old logs removed and tabs fixed
+
+  Revision 1.11  2002/07/06 16:50:17  marco
    * Fix for corrupt color-attr after some ACS-mode changes. (Pierre, Strassbourg
       meeting)
-
-  Revision 1.10  2001/10/13 13:00:31  michael
-  + Removed defaultmode field from driver
-
-  Revision 1.9  2001/10/06 22:28:25  michael
-  + Merged video mode selection/setting system
-
-  Revision 1.8  2001/09/21 19:50:19  michael
-  + Merged driver support from fixbranch
-
-  Revision 1.7  2001/08/30 20:55:08  peter
-    * v10 merges
-
-  Revision 1.6  2001/08/01 21:42:05  peter
-    * m68k warning fix (merged)
-
-  Revision 1.5  2001/07/31 19:33:46  peter
-     * make tchattr record endian dependant (merged)
-
-  Revision 1.4  2001/07/30 21:38:55  peter
-    * m68k updates merged
-
-  Revision 1.2.2.9  2001/10/06 22:23:41  michael
-  + Better video mode selection/setting system
-
-  Revision 1.2.2.8  2001/09/21 18:42:09  michael
-  + Implemented support for custom video drivers.
-
-  Revision 1.2.2.7  2001/08/28 12:23:15  pierre
-   * set skipped to true if changing line and force is false to avoid problems if terminal reports less columns as available
-
-  Revision 1.2.2.6  2001/08/01 10:50:59  pierre
-   * avoid warning for m68k cpu
-
-  Revision 1.2.2.5  2001/07/30 23:34:51  pierre
-   * make tchattr record endian dependant
-
-  Revision 1.2.2.4  2001/07/29 20:25:18  pierre
-   * fix wrong deref in generic compare code
-
-  Revision 1.2.2.3  2001/07/13 14:49:08  pierre
-   + implement videobuf comparaison for non i386 cpus
-
-  Revision 1.2.2.2  2001/01/30 22:23:44  peter
-    * unix back to linux
-
-  Revision 1.3  2001/07/13 22:05:09  peter
-    * cygwin updates
-
-  Revision 1.2  2001/01/21 20:21:41  marco
-   * Rename fest II. Rtl OK
-
-  Revision 1.1  2001/01/13 11:03:58  peter
-    * API 2 RTL commit
 
 }
 

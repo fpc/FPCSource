@@ -914,10 +914,7 @@ end;
 
 {
   $Log$
-  Revision 1.3  2000-07-14 10:33:10  michael
-  + Conditionals fixed
+  Revision 1.4  2002-09-07 16:01:20  peter
+    * old logs removed and tabs fixed
 
-  Revision 1.2  2000/07/13 11:33:50  michael
-  + removed logs
- 
 }

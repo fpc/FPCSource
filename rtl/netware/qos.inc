@@ -12,7 +12,7 @@
     This program is distributed in the hope that it will be useful,
     but WITHOUT ANY WARRANTY; without even the implied warranty of
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
-    
+
  **********************************************************************}
 
     { This module defines the Quality of Service structures and types used
@@ -253,12 +253,12 @@
      packets when a flow's shaper queue limit is reached.
 
      DropMethod -
-     	QOS_SHAPER_DROP_FROM_HEAD - Drop packets from
-     		the head of the queue until the new packet can be
-     		accepted into the shaper under the current limit.  This
-     		behavior is the default.
-     	QOS_SHAPER_DROP_INCOMING - Drop the incoming,
-     		limit-offending packet.
+        QOS_SHAPER_DROP_FROM_HEAD - Drop packets from
+                the head of the queue until the new packet can be
+                accepted into the shaper under the current limit.  This
+                behavior is the default.
+        QOS_SHAPER_DROP_INCOMING - Drop the incoming,
+                limit-offending packet.
 
     }
 

@@ -4,7 +4,7 @@
     Copyright (c) 1999-2000 by the Free Pascal development team
 
     File utility calls
-    
+
     See the file COPYING.FPC, included in this distribution,
     for details about the copyright.
 
@@ -14,10 +14,10 @@
 
  **********************************************************************}
 
-Type 
-  THandle = Longint; 
+Type
+  THandle = Longint;
 
-Type 
+Type
   TSearchRec = Record
     Time : Longint;
     Size : Int64;
@@ -26,23 +26,23 @@ Type
     ExcludeAttr : Longint;
     FindHandle : THandle;
 {$ifdef Win32}
-    FindData : TWin32FindData;   
+    FindData : TWin32FindData;
 {$endif}
-{$ifdef netware} 
-    FindData : TNetwareFindData; 
+{$ifdef netware}
+    FindData : TNetwareFindData;
 {$endif}
   end;
 
-Const 
+Const
   { File attributes }
-  faReadOnly  = $00000001; 
+  faReadOnly  = $00000001;
   faHidden    = $00000002;
   faSysFile   = $00000004;
   faVolumeId  = $00000008;
   faDirectory = $00000010;
   faArchive   = $00000020;
   faAnyFile   = $0000003f;
-  
+
   { File open modes }
   fmOpenRead       = $0000;
   fmOpenWrite      = $0001;
@@ -53,12 +53,12 @@ Const
   fmShareDenyWrite = $0020;
   fmShareDenyRead  = $0030;
   fmShareDenyNone  = $0040;
-            
-  { File seek origins }    
+
+  { File seek origins }
   fsFromBeginning = 0;
   fsFromCurrent   = 1;
   fsFromEnd       = 2;
-    
+
 Function FileOpen (Const FileName : string; Mode : Integer) : Longint;
 Function FileCreate (Const FileName : String) : Longint;
 Function FileRead (Handle : Longint; Var Buffer; Count : longint) : Longint;
@@ -83,16 +83,7 @@ Function FileSearch (Const Name, DirList : String) : String;
 
 {
   $Log$
-  Revision 1.5  2001-10-25 21:23:49  peter
-    * added 64bit fileseek
+  Revision 1.6  2002-09-07 16:01:22  peter
+    * old logs removed and tabs fixed
 
-  Revision 1.4  2001/04/16 18:34:46  florian
-    * updates from Armin commited
-
-  Revision 1.3  2001/01/18 22:09:09  michael
-  + Merged fixes from fixbranch - file modes
-
-  Revision 1.2  2000/07/13 11:33:51  michael
-  + removed logs
- 
 }

@@ -111,48 +111,10 @@ type
 
 {
   $Log$
-  Revision 1.6  2002-05-06 09:35:09  marco
+  Revision 1.7  2002-09-07 16:01:17  peter
+    * old logs removed and tabs fixed
+
+  Revision 1.6  2002/05/06 09:35:09  marco
    * Some stuff from 1.0.x ported
 
-  Revision 1.5  2001/10/14 13:33:20  peter
-    * start of thread support for linux
-
-  Revision 1.4  2001/06/19 08:34:16  marco
-   * Peter didn't merge the FreeBSD directory when he merged the Unix one. Fixed
-
-  Revision 1.3  2001/01/23 20:37:14  marco
-   * Serial.pp in makefile, Open_Noccty added to sysconst.inc
-
-  Revision 1.2  2000/09/18 13:42:35  marco
-   * FreeBSD support into 1.1
-
-  Revision 1.4  2000/09/11 14:38:10  marco
-   * 14 april version killed, and replaced by newer fixes branch version
-
-  Revision 1.1  2000/07/13 06:30:33  michael
-  + Initial import
-
-  Revision 1.5  2000/04/10 15:46:52  marco
-   * worked all day. probably a lot changed
-
-  Revision 1.3  2000/02/03 17:05:13  marco
-   * fixes and updates due to linux unit porting
-
-  Revision 1.2  2000/02/02 16:35:29  marco
-   * Checked stat constants
-
-  Revision 1.1  2000/02/02 15:41:28  marco
-   * initial BSD version.
-
-  Revision 1.4  2000/01/07 16:41:41  daniel
-    * copyright 2000
-
-  Revision 1.3  2000/01/07 16:32:28  daniel
-    * copyright 2000 added
-
-  Revision 1.2  1998/05/06 12:38:22  michael
-  + Removed log from before restored version.
-
-  Revision 1.1.1.1  1998/03/25 11:18:43  root
-  * Restored version
 }

@@ -5,7 +5,7 @@
     Parts Copyright (c) 1999-2000 by the Free Pascal development team
 
     Interface unit for PalmOS calls
-    
+
     See the file COPYING.FPC, included in this distribution,
     for details about the copyright.
 
@@ -688,7 +688,7 @@ implementation
 end.
 {
   $Log$
-  Revision 1.2  2000-07-13 11:33:54  michael
-  + removed logs
- 
+  Revision 1.3  2002-09-07 16:01:25  peter
+    * old logs removed and tabs fixed
+
 }

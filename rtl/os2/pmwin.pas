@@ -2970,34 +2970,7 @@ const
 end.
 {
   $Log$
-  Revision 1.4  2001-05-20 18:40:34  hajny
-    * merging Carl's fixes from the fixes branch
-
-  Revision 1.3  2000/09/03 19:01:14  hajny
-    + pmerr merged into PMWin
-
-  Revision 1.1.2.1  2000/09/03 18:23:12  hajny
-    + pmerr merged into PMWin
-
-  Revision 1.1  2000/07/13 06:31:06  michael
-  + Initial import
-
-  Revision 1.11  2000/02/09 16:59:33  peter
-    * truncated log
-
-  Revision 1.10  2000/01/09 20:48:04  hajny
-    * FPK changed to FPC
-
-  Revision 1.9  2000/01/07 16:41:49  daniel
-    * copyright 2000
-
-  Revision 1.8  2000/01/07 16:32:33  daniel
-    * copyright 2000 added
-
-  Revision 1.7  1999/08/10 14:20:52  hajny
-    * compatibility updates
-
-  Revision 1.6  1999/08/04 15:51:05  hajny
-    * merging changes by RB and DM :-(
+  Revision 1.5  2002-09-07 16:01:25  peter
+    * old logs removed and tabs fixed
 
 }

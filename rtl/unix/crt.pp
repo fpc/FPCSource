@@ -1682,31 +1682,10 @@ Finalization
 End.
 {
   $Log$
-  Revision 1.9  2002-05-31 13:37:24  marco
+  Revision 1.10  2002-09-07 16:01:27  peter
+    * old logs removed and tabs fixed
+
+  Revision 1.9  2002/05/31 13:37:24  marco
    * more Renamefest
-
-  Revision 1.8  2001/12/26 21:03:57  peter
-    * merged fixes from 1.0.x
-
-  Revision 1.7  2001/07/30 21:53:53  peter
-    * reset winminx,winminy to 1
-
-  Revision 1.6  2001/06/27 20:21:46  peter
-    * support large screens
-
-  Revision 1.5  2001/03/21 16:07:03  jonas
-    * fixed problems when using together with graph (web bugs 1225 and 1441)
-
-  Revision 1.4  2001/01/21 20:21:40  marco
-   * Rename fest II. Rtl OK
-
-  Revision 1.3  2000/09/18 13:38:13  marco
-   Small fix
-
-  Revision 1.2  2000/09/18 13:14:50  marco
-   * Global Linux +bsd to (rtl/freebsd rtl/unix rtl/linux structure)
-
-  Revision 1.2  2000/07/13 11:33:47  michael
-  + removed logs
 
 }

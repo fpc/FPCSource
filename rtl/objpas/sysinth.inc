@@ -4,7 +4,7 @@
     Copyright (c) 1999-2000 by the Free Pascal development team
 
     International settings for Sysutils unit.
-    
+
     See the file COPYING.FPC, included in this distribution,
     for details about the copyright.
 
@@ -16,69 +16,69 @@
 
 {
   All the variables presented here must be set by the InitInternational
-  routine. They must be set to match the 'local' settings, although 
+  routine. They must be set to match the 'local' settings, although
   most have an initial value.
-  
-  
+
+
   These routines are OS-dependent.
 }
 
 { ---------------------------------------------------------------------
-    Upper/lowercase translations 
+    Upper/lowercase translations
   ---------------------------------------------------------------------}
 
 type
    TCaseTranslationTable = array[0..255] of char;
 
 var
-   { Tables with upper and lowercase forms of character sets. 
+   { Tables with upper and lowercase forms of character sets.
      MUST be initialized with the correct code-pages }
    UpperCaseTable: TCaseTranslationTable;
    LowerCaseTable: TCaseTranslationTable;
-  
+
 { ---------------------------------------------------------------------
     Date formatting settings
   ---------------------------------------------------------------------}
 
-Const 
+Const
 
    { Character to be put between date, month and year }
    DateSeparator: char = '-';
 
    { Format used for short date notation }
    ShortDateFormat: string = 'd/m/y';
-   
+
    { Format used for long date notation }
    LongDateFormat: string = 'dd" "mmmm" "yyyy';
-   
-   
+
+
    { Short names of months. }
    ShortMonthNames: array[1..12] of string[128] =
      ('Jan','Feb','Mar','Apr','May','Jun',
       'Jul','Aug','Sep','Oct','Nov','Dec');
-      
-   { Long names of months. }   
+
+   { Long names of months. }
    LongMonthNames: array[1..12] of string[128] =
      ('January','February','March','April','May','June',
       'July','August','September','October','November','December');
-   
-   { Short names of days }   
+
+   { Short names of days }
    ShortDayNames: array[1..7] of string[128] =
      ('Sun','Mon','Tue','Wed','Thu','Fri','Sat');
-     
-   { Full names of days }  
+
+   { Full names of days }
    LongDayNames: array[1..7] of string[128] =
      ('Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday');
-  
+
    { Format used for short time notation }
    ShortTimeFormat: string[128] = 'hh:nn';
-   
+
    { Format used for long time notation }
    LongTimeFormat: string[128] = 'hh:nn:ss';
-   
+
    { Character to be put between hours and minutes }
    TimeSeparator: char = ':';
-   
+
    { String to indicate AM time when using 12 hour clock. }
    TimeAMString: string[7] = 'AM';
 
@@ -90,23 +90,23 @@ Const
 { ---------------------------------------------------------------------
     Number formatting constants
   ---------------------------------------------------------------------}
-  
+
 
   { Character that comes between integer and fractional part of a number }
   DecimalSeparator : Char = '.';
-  
+
   { Character that is put every 3 numbers in a currency }
   ThousandSeparator : Char = ',';
-  
+
   { Number of decimals to use when formatting a currency.  }
   CurrencyDecimals : Byte = 2;
-  
+
   { Format to use when formatting currency :
-    0 = $1 
-    1 = 1$ 
+    0 = $1
+    1 = 1$
     2 = $ 1
     3 = 1 $
-    4 = Currency string replaces decimal indicator. e.g. 1$50 
+    4 = Currency string replaces decimal indicator. e.g. 1$50
    }
   CurrencyFormat : Byte = 1;
 
@@ -124,16 +124,13 @@ Const
     10 = $ 1-
    }
   NegCurrFormat : Byte = 5;
-  
+
   { Currency notation. Default is $ for dollars. }
   CurrencyString : String[7] = '$';
 
 {
   $Log$
-  Revision 1.3  2000-10-02 07:34:41  michael
-  + Merged memory leak fix from fixbranch
+  Revision 1.4  2002-09-07 16:01:22  peter
+    * old logs removed and tabs fixed
 
-  Revision 1.2  2000/07/13 11:33:51  michael
-  + removed logs
- 
 }

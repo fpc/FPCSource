@@ -4,7 +4,7 @@
     Copyright (c) 1999-2000 by the Free Pascal development team
 
     Interface and OS-dependent part of variant support
-       
+
     See the file COPYING.FPC, included in this distribution,
     for details about the copyright.
 
@@ -40,11 +40,8 @@ end.
 
 {
   $Log$
-  Revision 1.1  2000-09-18 13:14:51  marco
-   * Global Linux +bsd to (rtl/freebsd rtl/unix rtl/linux structure)
-
-  Revision 1.1  2000/08/29 18:20:13  michael
-  + new include files
+  Revision 1.2  2002-09-07 16:01:28  peter
+    * old logs removed and tabs fixed
 
 }
 

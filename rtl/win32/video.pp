@@ -40,7 +40,7 @@ begin
     About the ConsoleCursorInfo record: There are 3 possible
     structures in it that can be regarded as the 'screen':
     - dwsize   : contains the cols & row in current screen buffer.
-    - srwindow : Coordinates (relative to buffer) of upper left 
+    - srwindow : Coordinates (relative to buffer) of upper left
                  & lower right corners of visible console.
     - dmMaximumWindowSize : Maximal size of Screen buffer.
     The first implementation of video used srWindow. After some
@@ -335,44 +335,8 @@ initialization
 end.
 {
   $Log$
-  Revision 1.7  2001-10-06 22:28:24  michael
-  + Merged video mode selection/setting system
-
-  Revision 1.6  2001/09/21 19:50:19  michael
-  + Merged driver support from fixbranch
-
-  Revision 1.5  2001/08/01 18:01:20  peter
-    * WChar fix to compile also with 1.0.x
-
-  Revision 1.4  2001/07/30 15:01:12  marco
-   * Fixed wchar=word to widechar conversion
-
-  Revision 1.3  2001/06/13 18:32:55  peter
-    * fixed crash within donevideo (merged)
-
-  Revision 1.2  2001/04/10 21:28:36  peter
-    * removed warnigns
-
-  Revision 1.1.2.6  2001/10/06 22:23:41  michael
-  + Better video mode selection/setting system
-
-  Revision 1.1.2.5  2001/09/21 18:42:09  michael
-  + Implemented support for custom video drivers.
-
-  Revision 1.1.2.4  2001/06/12 22:34:20  pierre
-   * avoid crash at exit of IDE
-
-  Revision 1.1.2.3  2001/04/10 20:33:04  peter
-    * remove some warnings
-
-  Revision 1.1.2.2  2001/04/02 13:29:41  pierre
-   * avoid crash if DoneVideo called twice
-
-  Revision 1.1.2.1  2001/01/30 21:52:03  peter
-    * moved api utils to rtl
-
-  Revision 1.1  2001/01/13 11:03:59  peter
-    * API 2 RTL commit
+  Revision 1.8  2002-09-07 16:01:29  peter
+    * old logs removed and tabs fixed
 
 }
 

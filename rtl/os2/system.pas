@@ -1021,7 +1021,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.22  2002-07-01 16:29:05  peter
+  Revision 1.23  2002-09-07 16:01:25  peter
+    * old logs removed and tabs fixed
+
+  Revision 1.22  2002/07/01 16:29:05  peter
     * sLineBreak changed to normal constant like Kylix
 
   Revision 1.21  2002/04/21 15:54:20  carl
@@ -1035,65 +1038,5 @@ end.
 
   Revision 1.18  2002/02/10 13:46:20  hajny
     * heap management corrected (heap_brk)
-
-  Revision 1.17  2001/11/15 18:49:43  hajny
-    * DefaultTextLineBreakStyle misplacing corrected
-
-  Revision 1.16  2001/10/23 21:51:03  peter
-    * criticalsection renamed to rtlcriticalsection for kylix compatibility
-
-  Revision 1.15  2001/06/19 20:46:07  hajny
-    * platform specific constants moved after systemh.inc, BeOS omission corrected
-
-  Revision 1.14  2001/06/13 22:21:53  hajny
-    + platform specific information
-
-  Revision 1.13  2001/05/20 18:40:32  hajny
-    * merging Carl's fixes from the fixes branch
-
-  Revision 1.12  2001/04/20 19:05:11  hajny
-    * setne operand size fixed
-
-  Revision 1.11  2001/03/21 23:29:40  florian
-    + sLineBreak and misc. stuff for Kylix compatiblity
-
-  Revision 1.10  2001/03/21 21:08:20  hajny
-    * GetDir fixed
-
-  Revision 1.9  2001/03/10 09:57:51  hajny
-    * FExpand without IOResult change, remaining direct asm removed
-
-  Revision 1.8  2001/02/20 21:31:12  peter
-    * chdir,mkdir,rmdir with empty string fixed
-
-  Revision 1.7  2001/02/04 01:57:52  hajny
-    * direct asm removing
-
-  Revision 1.6  2001/02/01 21:30:01  hajny
-    * MT support completion
-
-  Revision 1.5  2001/01/23 20:38:59  hajny
-    + beginning of the OS/2 version
-
-  Revision 1.4  2000/11/13 21:23:38  hajny
-    * ParamStr (0) fixed
-
-  Revision 1.3  2000/11/11 23:12:39  hajny
-    * stackcheck alias corrected
-
-  Revision 1.2  2000/10/15 20:43:10  hajny
-    * ChDir correction, unit name changed
-
-  Revision 1.1  2000/10/15 08:19:49  peter
-    * system unit rename for 1.1 branch
-
-  Revision 1.3  2000/09/29 21:49:41  jonas
-    * removed warnings
-
-  Revision 1.2  2000/07/14 10:33:11  michael
-  + Conditionals fixed
-
-  Revision 1.1  2000/07/13 06:31:07  michael
-  + Initial import
 
 }

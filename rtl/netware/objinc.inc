@@ -68,7 +68,7 @@ BEGIN
   IF NewPos = -1 THEN
     SetFilePos:=Errno
   ELSE
-    SetFilePos := 0;    
+    SetFilePos := 0;
 END;
 
 FUNCTION FileClose (Handle: THandle): Word;
@@ -83,5 +83,5 @@ BEGIN
   if _chsize (Handle, FileSize) = -1 then
     SetFileSize := Errno
   else
-    SetFileSize := 0;    
+    SetFileSize := 0;
 END;

@@ -206,16 +206,7 @@ end;
 end.
 {
   $Log$
-  Revision 1.4  2001-01-21 20:21:40  marco
-   * Rename fest II. Rtl OK
+  Revision 1.5  2002-09-07 16:01:27  peter
+    * old logs removed and tabs fixed
 
-  Revision 1.3  2000/11/22 22:44:08  peter
-    * fixed gpmevent
-
-  Revision 1.2  2000/09/18 13:14:50  marco
-   * Global Linux +bsd to (rtl/freebsd rtl/unix rtl/linux structure)
-
-  Revision 1.2  2000/07/13 11:33:48  michael
-  + removed logs
- 
 }

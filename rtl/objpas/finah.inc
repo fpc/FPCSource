@@ -22,37 +22,25 @@
 }
 
 Const
-  DirSeparators : set of char = ['/','\'];  
-   
+  DirSeparators : set of char = ['/','\'];
+
 
 function ChangeFileExt(const FileName, Extension: string): string;
 function ExtractFilePath(const FileName: string): string;
 function ExtractFileDrive(const FileName: string): string;
 function ExtractFileName(const FileName: string): string;
-function ExtractFileExt(const FileName: string): string; 
+function ExtractFileExt(const FileName: string): string;
 function ExtractFileDir(Const FileName : string): string;
 function ExpandFileName (Const FileName : string): String;
 function ExpandUNCFileName (Const FileName : string): String;
 function ExtractRelativepath (Const BaseName,DestNAme : String): String;
 Procedure DoDirSeparators (Var FileName : String);
 Function SetDirSeparators (Const FileName : String) : String;
-Function GetDirs (Var DirName : String; Var Dirs : Array of pchar) : Longint; 
+Function GetDirs (Var DirName : String; Var Dirs : Array of pchar) : Longint;
 
 {
   $Log$
-  Revision 1.6  2001-11-08 12:56:48  michael
-  + Replaced OSDirSeparator with PathDelim
+  Revision 1.7  2002-09-07 16:01:22  peter
+    * old logs removed and tabs fixed
 
-  Revision 1.5  2001/11/07 14:58:24  michael
-  + Added PathDelim,DriveDelim,PathSep; Removed PathSeparator
-
-  Revision 1.4  2001/11/07 13:57:26  michael
-  + Added PathSeparator and OSDirSeparator
-
-  Revision 1.3  2000/11/13 14:41:20  marco
-   * Unix renamefest for defines
-
-  Revision 1.2  2000/07/13 11:33:51  michael
-  + removed logs
- 
 }

@@ -809,7 +809,7 @@ end;
 
 {
   $Log$
-  Revision 1.2  2001-06-02 00:34:22  peter
-    * sunos file
+  Revision 1.3  2002-09-07 16:01:26  peter
+    * old logs removed and tabs fixed
 
 }

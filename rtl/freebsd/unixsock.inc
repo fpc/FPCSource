@@ -192,7 +192,10 @@ end;
 
 {
  $Log$
- Revision 1.5  2002-02-05 07:54:34  marco
+ Revision 1.6  2002-09-07 16:01:18  peter
+   * old logs removed and tabs fixed
+
+ Revision 1.5  2002/02/05 07:54:34  marco
   * Fixed typo
 
 

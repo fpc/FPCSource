@@ -77,27 +77,13 @@ end.
 
 {
   $Log$
-  Revision 1.3  2002-08-28 06:35:30  pierre
+  Revision 1.4  2002-09-07 16:01:18  peter
+    * old logs removed and tabs fixed
+
+  Revision 1.3  2002/08/28 06:35:30  pierre
    * merge kbPhys patch from fixes branch
 
   Revision 1.1.2.3  2002/07/13 12:22:03  pierre
    * added kbPhys flag
-
-  Revision 1.2  2001/09/21 21:33:35  michael
-  + Merged driver support from fixbranch
-
-  Revision 1.1.2.2  2001/09/21 21:20:43  michael
-  + Added support for keyboard driver.
-  + Added DefaultTranslateKeyEvent,DefaultTranslateKeyEventUnicode
-  + PendingKeyEvent variable no longer public. Handling of this variable is
-    now done entirely by global functions. System dependent code should not
-    need it, it is set automatically.
-  + InitVideo DoneVideo will check whether the keyboard is initialized or not.
-
-  Revision 1.1.2.1  2001/01/30 21:52:01  peter
-    * moved api utils to rtl
-
-  Revision 1.1  2001/01/13 11:03:57  peter
-    * API 2 RTL commit
 
 }

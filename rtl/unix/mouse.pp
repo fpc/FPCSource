@@ -364,37 +364,7 @@ end.
 
 {
   $Log$
-  Revision 1.6  2001-12-02 17:21:25  peter
-    * merged fixes from 1.0
-
-  Revision 1.5  2001/09/22 00:01:43  michael
-  + Merged driver support for mouse from fixbranch
-
-  Revision 1.4  2001/09/17 21:36:31  peter
-    * merged fixes
-
-  Revision 1.2.2.6  2001/09/21 23:53:48  michael
-  + Added mouse driver support.
-
-  Revision 1.2.2.5  2001/09/06 09:05:08  pierre
-   * fix NOGPM code
-
-  Revision 1.2.2.4  2001/09/06 08:33:34  pierre
-   * fix NOGPM cond to not include gpm unit
-
-  Revision 1.2.2.3  2001/08/05 12:25:55  peter
-    * fix possible range check errors
-
-  Revision 1.2.2.2  2001/01/30 22:23:44  peter
-    * unix back to linux
-
-  Revision 1.3  2001/08/05 12:24:20  peter
-    * m68k merges
-
-  Revision 1.2  2001/01/21 20:21:40  marco
-   * Rename fest II. Rtl OK
-
-  Revision 1.1  2001/01/13 11:03:58  peter
-    * API 2 RTL commit
+  Revision 1.7  2002-09-07 16:01:27  peter
+    * old logs removed and tabs fixed
 
 }

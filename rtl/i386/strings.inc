@@ -451,22 +451,7 @@ end ['EAX','ESI','EDI'];
 
 {
   $Log$
-  Revision 1.6  2001-03-05 17:10:04  jonas
-    * moved implementations of strlen and strpas to separate include files
-      (they were duplicated in i386.inc and strings.inc/stringss.inc)
-    * strpas supports 'nil' pchars again (returns an empty string)
-      (both merged)
-
-  Revision 1.5  2001/02/17 11:34:00  jonas
-    * fixed bug in strscan (returned nil instead of strend for #0) and made it 40% faster
-
-  Revision 1.4  2001/02/10 16:08:46  jonas
-    * fixed non-working alignment code
-
-  Revision 1.3  2001/01/21 10:12:32  marco
-   * Some register allocation fixes. for stricomp and strilcomp
-
-  Revision 1.2  2000/07/13 11:33:42  michael
-  + removed logs
+  Revision 1.7  2002-09-07 16:01:19  peter
+    * old logs removed and tabs fixed
 
 }

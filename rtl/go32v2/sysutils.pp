@@ -724,7 +724,10 @@ Finalization
 end.
 {
   $Log$
-  Revision 1.9  2002-05-09 08:42:24  carl
+  Revision 1.10  2002-09-07 16:01:19  peter
+    * old logs removed and tabs fixed
+
+  Revision 1.9  2002/05/09 08:42:24  carl
   * Merges from Fixes branch
 
   Revision 1.8  2002/01/25 16:23:03  peter
@@ -732,28 +735,5 @@ end.
 
   Revision 1.7  2002/01/19 11:57:55  peter
     * merged fixes
-
-  Revision 1.6  2001/10/25 21:23:49  peter
-    * added 64bit fileseek
-
-  Revision 1.5  2001/06/03 15:18:01  peter
-    * eoutofmemory and einvalidpointer fix
-
-  Revision 1.4  2001/02/20 22:14:19  peter
-    * merged getenvironmentvariable
-
-  Revision 1.3  2000/08/30 06:29:19  michael
-  + Merged syserrormsg fix
-
-
-    Revision 1.2  2000/08/20 15:46:46  peter
-    * sysutils.pp moved to target and merged with disk.inc, filutil.inc
-
-    Revision 1.1.2.2  2000/08/22 19:21:48  michael
-    + Implemented syserrormessage. Made dummies for go32v2 and OS/2
-    * Changed linux/errors.pp so it uses pchars for storage.
-
-    Revision 1.1.2.1  2000/08/20 15:08:32  peter
-      * forgot the add command :(
 
 }

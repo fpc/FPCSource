@@ -25,7 +25,7 @@ type
     { and system dependant                                  }
 
     cint8  = shortint;
-    cuint8 = byte; 
+    cuint8 = byte;
     cuint16= word;
     cint16 = smallint;
     cint32 = longint;
@@ -35,23 +35,23 @@ type
     cuint64= qword;
 {$endif}
 
-    cint   = longint;  		{ minimum range is : 32-bit    }
-    cuint  = Cardinal;		{ minimum range is : 32-bit    }
-    clong  = longint;		
-    culong = Cardinal;		
-    	
-    dev_t    = cuint32;         { used for device numbers      }
-    gid_t    = cuint32;      	{ used for group IDs           }
-    ino_t    = clong;          	{ used for file serial numbers }
-    mode_t   = cuint32;		{ used for file attributes     }
-    nlink_t  = cuint32;		{ used for link counts         }
-    off_t    = cint64;   	{ used for file sizes          }
-    pid_t    = cint32;          { used as process identifier   }
-    size_t   = cuint32;   	{ as definied in the C standard}
-    ssize_t  = cint32;          { used by function for returning number of bytes }
-    uid_t    = cuint32;      	{ used for user ID type        }
+    cint   = longint;           { minimum range is : 32-bit    }
+    cuint  = Cardinal;          { minimum range is : 32-bit    }
+    clong  = longint;
+    culong = Cardinal;
 
-    time_t   = clong;		{ used for returning the time  }
+    dev_t    = cuint32;         { used for device numbers      }
+    gid_t    = cuint32;         { used for group IDs           }
+    ino_t    = clong;           { used for file serial numbers }
+    mode_t   = cuint32;         { used for file attributes     }
+    nlink_t  = cuint32;         { used for link counts         }
+    off_t    = cint64;          { used for file sizes          }
+    pid_t    = cint32;          { used as process identifier   }
+    size_t   = cuint32;         { as definied in the C standard}
+    ssize_t  = cint32;          { used by function for returning number of bytes }
+    uid_t    = cuint32;         { used for user ID type        }
+
+    time_t   = clong;           { used for returning the time  }
     socklen_t= cuint32;
 
 CONST
@@ -59,5 +59,5 @@ CONST
     ARG_MAX  = (256*1024);   {4096}  { Maximum number of argument size     }
     NAME_MAX = 255;          {14}    { Maximum number of bytes in filename }
     PATH_MAX = 1024;         {255}    { Maximum number of bytes in pathname }
-     	
-    SYS_NMLN = 32; 	     {BSD utsname struct limit}
+
+    SYS_NMLN = 32;           {BSD utsname struct limit}

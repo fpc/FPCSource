@@ -2299,7 +2299,10 @@ end;
 
 {
   $Log$
-  Revision 1.8  2002-09-03 10:26:11  pierre
+  Revision 1.9  2002-09-07 16:01:31  peter
+    * old logs removed and tabs fixed
+
+  Revision 1.8  2002/09/03 10:26:11  pierre
    * fix for bug 1779 merged
 
   Revision 1.1.2.9  2002/09/03 10:22:03  pierre
@@ -2319,57 +2322,5 @@ end;
 
   Revision 1.1.2.5  2002/01/19 11:48:20  peter
     * more functions added from webbugs
-
-  Revision 1.1.2.4  2001/06/12 22:27:32  pierre
-   * fix web bug 1520
-
-  Revision 1.1.2.3  2001/02/09 23:09:21  peter
-    * fixed bugs 1398,1399,1400
-
-  Revision 1.1.2.2  2001/02/01 23:49:02  pierre
-   * fix for bug 1375
-
-  Revision 1.1.2.1  2000/07/15 21:16:38  pierre
-   * DdeCallBack is only a prototype
-
-  Revision 1.1  2000/07/13 06:31:24  michael
-  + Initial import
-
-  Revision 1.11  2000/06/29 06:46:37  michael
-  + Added ddecallack
-
-  Revision 1.10  2000/06/15 19:56:12  pierre
-   * fix for bug 969: missing DDE functions
-
-  Revision 1.9  2000/06/15 11:26:58  pierre
-    * avoid lines longer than 255 chars
-    + add smartlink on by default, if not version 0.99.14
-    * some functions not present in win95 DLL's are now only inserted if
-      smartlink is on.
-
-  Revision 1.8  2000/06/11 07:04:59  peter
-    * Windows unit has now more Delphi compatibile functions
-    * placed the external functions only in the interface
-
-  Revision 1.7  2000/05/25 12:57:22  pierre
-   + DdeFreeStringHandle was missing
-
-  Revision 1.6  2000/03/19 20:29:06  marco
-   * some stuff for JCL
-
-  Revision 1.5  2000/02/09 16:59:35  peter
-    * truncated log
-
-  Revision 1.4  2000/01/07 16:41:55  daniel
-    * copyright 2000
-
-  Revision 1.3  2000/01/07 16:32:36  daniel
-    * copyright 2000 added
-
-  Revision 1.2  1999/10/26 09:38:51  pierre
-   + some Delphi overload added
-
-  Revision 1.1  1999/09/16 13:38:22  peter
-    * windows unit include moved to wininc/
 
 }

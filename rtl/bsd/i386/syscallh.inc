@@ -32,9 +32,12 @@ function Do_SysCall(sysnr,param1,param2,param3,param4,param5:LONGINT):longint;  
 function Do_SysCall(sysnr,param1,param2,param3,param4,param5,param6:LONGINT):longint;  external name 'FPC_DOSYS6';
 function Do_SysCall(sysnr,param1,param2,param3,param4,param5,param6,param7:LONGINT):longint;   external name 'FPC_DOSYS7';
 
-{ 
+{
   $Log$
-  Revision 1.1  2002-08-20 08:28:14  marco
+  Revision 1.2  2002-09-07 16:01:17  peter
+    * old logs removed and tabs fixed
+
+  Revision 1.1  2002/08/20 08:28:14  marco
    * Updates for new errno scheme.
 
 

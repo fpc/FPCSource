@@ -16,10 +16,10 @@
 begin
 asm
         movl    p,%esi
-        movl    $1,%ecx  
+        movl    $1,%ecx
         testl   %esi,%esi
-        movl    %esi,%eax   
-        jz      .LStrPasDone 
+        movl    %esi,%eax
+        jz      .LStrPasDone
         movl    __RESULT,%edi
         leal    3(%esi),%edx
         andl    $-4,%edx
@@ -92,10 +92,7 @@ end;
 
 {
   $Log$
-  Revision 1.1  2001-03-05 17:10:04  jonas
-    * moved implementations of strlen and strpas to separate include files
-      (they were duplicated in i386.inc and strings.inc/stringss.inc)
-    * strpas supports 'nil' pchars again (returns an empty string)
-      (both merged)
+  Revision 1.2  2002-09-07 16:01:19  peter
+    * old logs removed and tabs fixed
 
 }

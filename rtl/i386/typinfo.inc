@@ -153,14 +153,7 @@ Procedure CallSStringProc(s : Pointer;Address : Pointer;Const Value : ShortStrin
 
 {
   $Log$
-  Revision 1.3  2001-10-20 17:25:22  peter
-    * reset %edx in getordprop so functions returning only %eax don't
-      generate rangecheck errors
-
-  Revision 1.2  2001/08/04 11:03:42  peter
-    * moved i386 specific code to include file
-
-  Revision 1.1.2.1  2001/08/02 23:31:13  pierre
-   * cpu specific code moved into include and translated to m68k cpu
+  Revision 1.4  2002-09-07 16:01:19  peter
+    * old logs removed and tabs fixed
 
 }

@@ -15,19 +15,19 @@
 
 {$packrecords C}
 const
-  SI_PAD_SIZE	= ((128/sizeof(longint)) - 3);
+  SI_PAD_SIZE   = ((128/sizeof(longint)) - 3);
 
 type
   tfpreg = record
-	  significand: array[0..3] of word;
-	  exponent: word;
+          significand: array[0..3] of word;
+          exponent: word;
   end;
 
   pfpstate = ^tfpstate;
   tfpstate = record
-	   cw, sw, tag, ipoff, cssel, dataoff, datasel: cardinal;
-	   st: array[0..7] of tfpreg;
-	   status: cardinal;
+           cw, sw, tag, ipoff, cssel, dataoff, datasel: cardinal;
+           st: array[0..7] of tfpreg;
+           status: cardinal;
   end;
 
   PSigContextRec = ^SigContextRec;
@@ -141,7 +141,7 @@ end;
 
 {
   $Log$
-  Revision 1.2  2000-07-13 11:33:49  michael
-  + removed logs
- 
+  Revision 1.3  2002-09-07 16:01:20  peter
+    * old logs removed and tabs fixed
+
 }

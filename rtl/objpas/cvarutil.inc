@@ -547,20 +547,10 @@ end;
 
 {
   $Log$
-  Revision 1.6  2002-07-01 16:25:10  peter
+  Revision 1.7  2002-09-07 16:01:22  peter
+    * old logs removed and tabs fixed
+
+  Revision 1.6  2002/07/01 16:25:10  peter
     * currency updates
-
-  Revision 1.5  2001/11/17 10:29:48  florian
-    * make cycle for win32 fixed
-
-  Revision 1.4  2001/11/15 22:33:14  michael
-  + Real/Boolean support added, Start of string support
-
-  Revision 1.3  2001/11/14 23:00:17  michael
-  + First working variant support
-
-  Revision 1.2  2001/08/19 21:02:02  florian
-    * fixed and added a lot of stuff to get the Jedi DX( headers
-      compiled
 
 }

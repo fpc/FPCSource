@@ -270,7 +270,10 @@ end ['R0','R3','F0','F1','F2','F3'];
 
 {
   $Log$
-  Revision 1.10  2002-08-18 22:11:10  florian
+  Revision 1.11  2002-09-07 16:01:26  peter
+    * old logs removed and tabs fixed
+
+  Revision 1.10  2002/08/18 22:11:10  florian
     * fixed remaining assembler errors
 
   Revision 1.9  2002/08/18 21:37:48  florian
@@ -293,14 +296,4 @@ end ['R0','R3','F0','F1','F2','F3'];
     * several fixes for linux/powerpc
     * several fixes to MT
 
-  Revision 1.3  2001/12/02 16:19:45  jonas
-    * fpu results are returned in fr1, not fr0
-
-  Revision 1.2  2001/10/30 17:18:14  jonas
-    * fixed fpc_int64_to_double and fpc_int64_to_double (fpc_int64_to_double
-      is now mostly tested and should work fine, fpc_qword_to_double should
-      work too since it's almost the same)
-
-  Revision 1.1  2001/10/28 14:09:13  jonas
-    + initial implementation, lots of things still missing
 }

@@ -103,16 +103,7 @@ end.
 
 {
   $Log$
-  Revision 1.3  2001-06-13 22:21:53  hajny
-    + platform specific information
+  Revision 1.4  2002-09-07 16:01:25  peter
+    * old logs removed and tabs fixed
 
-  Revision 1.2  2001/03/21 21:17:58  hajny
-    * system unit name change corrections
-
-  Revision 1.1  2001/03/16 20:01:48  hajny
-    + system unit name change
-
-  Revision 1.2  2000/07/13 11:33:54  michael
-  + removed logs
- 
 }

@@ -105,22 +105,7 @@ if setjmp(exitjmpbuf)=0 then
 end.
 {
   $Log$
-  Revision 1.6  2001-09-30 21:46:34  peter
-    * merged consolemode fix
-
-  Revision 1.5  2001/09/22 11:15:31  peter
-    * merged v10 version for exit fixes
-
-  Revision 1.1.2.4  2001/09/19 15:23:39  pierre
-   * work for newer cygwin version
-
-  Revision 1.1.2.3  2001/04/23 01:15:44  carl
-  - removed unused and useless ifdef
-
-  Revision 1.1.2.2  2001/04/02 13:30:14  pierre
-   * Remove call to C exit procedure as it does not return anymore
-
-  Revision 1.1.2.1  2000/12/30 17:49:48  peter
-    * update std handles after initializing c
+  Revision 1.7  2002-09-07 16:01:28  peter
+    * old logs removed and tabs fixed
 
 }

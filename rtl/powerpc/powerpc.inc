@@ -952,7 +952,10 @@ end ['R3','R10'];
 
 {
   $Log$
-  Revision 1.17  2002-08-31 21:29:57  florian
+  Revision 1.18  2002-09-07 16:01:26  peter
+    * old logs removed and tabs fixed
+
+  Revision 1.17  2002/08/31 21:29:57  florian
     * several PC related fixes
 
   Revision 1.16  2002/08/31 16:08:36  florian
@@ -985,35 +988,4 @@ end ['R3','R10'];
   Revision 1.8  2002/07/26 15:45:56  florian
     * changed multi threading define: it's MT instead of MTRTL
 
-  Revision 1.7  2001/09/28 13:28:49  jonas
-    * small changes to move (different count values trigger the selection of
-      moving bytes instead dwords/doubles and move dcbt instruction)
-    + implemented fillchar (untested)
-
-  Revision 1.6  2001/09/27 15:30:29  jonas
-    * conversion to compilerproc and to structure used by i386 rtl
-    * some bugfixes
-    * powerpc.inc is almost complete (only fillchar/word/dword, get_frame etc
-      and the class helpers are still needed
-    - removed unnecessary register saving in set.inc (thanks to compilerproc)
-    * use registers reserved for parameters as much as possible instead of
-      those reserved for local vars (since those have to be saved by the
-      called anyway, while the ones for local vars have to be saved by the
-      callee)
-
-  Revision 1.5  2001/07/07 12:46:12  jonas
-    * some small bugfixes and cache optimizations
-
-  Revision 1.4  2001/03/03 13:53:36  jonas
-    * fixed small bug in move
-
-  Revision 1.3  2001/03/02 13:24:10  jonas
-    + new, complete implementation of move procedure (including support for
-      overlapping regions)
-
-  Revision 1.2  2001/02/11 17:59:46  jonas
-    * implemented several more procedures
-
-  Revision 1.1  2000/07/27 07:32:12  jonas
-    + initial version by Casey Duncan (not yet thoroughly debugged or complete)
 }

@@ -190,35 +190,11 @@ Const
   );
 
 Begin
-  SetMouseDriver(SysMouseDriver);  
+  SetMouseDriver(SysMouseDriver);
 end.
 {
   $Log$
-  Revision 1.5  2001-09-22 00:01:43  michael
-  + Merged driver support for mouse from fixbranch
-
-  Revision 1.4  2001/08/05 12:23:57  peter
-    * fixed for new input_record
-
-  Revision 1.3  2001/04/10 21:28:36  peter
-    * removed warnigns
-
-  Revision 1.2.2.4  2001/09/21 23:53:48  michael
-  + Added mouse driver support.
-
-  Revision 1.2.2.3  2001/08/05 12:24:37  peter
-    * fixed for new input_record
-
-  Revision 1.2.2.2  2001/04/10 20:33:04  peter
-    * remove some warnings
-
-  Revision 1.2.2.1  2001/01/30 21:52:03  peter
-    * moved api utils to rtl
-
-  Revision 1.2  2001/01/14 22:20:00  peter
-    * slightly optimized event handling (merged)
-
-  Revision 1.1  2001/01/13 11:03:59  peter
-    * API 2 RTL commit
+  Revision 1.6  2002-09-07 16:01:29  peter
+    * old logs removed and tabs fixed
 
 }

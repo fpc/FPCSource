@@ -1529,7 +1529,10 @@ Begin
 End.
 {
   $Log$
-  Revision 1.19  2002-07-01 16:29:05  peter
+  Revision 1.20  2002-09-07 16:01:19  peter
+    * old logs removed and tabs fixed
+
+  Revision 1.19  2002/07/01 16:29:05  peter
     * sLineBreak changed to normal constant like Kylix
 
   Revision 1.18  2002/05/05 10:23:54  peter
@@ -1543,46 +1546,5 @@ End.
 
   Revision 1.15  2002/03/11 19:10:33  peter
     * Regenerated with updated fpcmake
-
-  Revision 1.14  2001/10/28 17:43:51  peter
-    * add trtlcriticalsection type
-
-  Revision 1.13  2001/08/12 17:57:54  peter
-    * map sharing violation to rte 5
-
-  Revision 1.12  2001/06/30 18:55:48  hajny
-    * GetDir fix for inaccessible drives
-
-  Revision 1.11  2001/06/18 14:26:16  jonas
-    * move platform independent constant declarations after inclusion of
-      systemh.inc
-
-  Revision 1.10  2001/06/13 22:21:53  hajny
-    + platform specific information
-
-  Revision 1.9  2001/06/07 21:16:30  peter
-    * fixed empty arguments
-
-  Revision 1.8  2001/06/01 22:23:21  peter
-    * same argument parsing -"abc" becomes -abc. This is compatible with
-      delphi and with unix shells (merged)
-
-  Revision 1.7  2001/03/21 23:29:40  florian
-    + sLineBreak and misc. stuff for Kylix compatiblity
-
-  Revision 1.6  2001/03/21 21:08:20  hajny
-    * GetDir fixed
-
-  Revision 1.5  2001/03/16 20:09:58  hajny
-    * universal FExpand
-
-  Revision 1.4  2001/02/20 21:31:12  peter
-    * chdir,mkdir,rmdir with empty string fixed
-
-  Revision 1.3  2000/08/13 19:23:26  peter
-    * fixed double declared ___exit() (merged)
-
-  Revision 1.2  2000/07/13 11:33:40  michael
-  + removed logs
 
 }

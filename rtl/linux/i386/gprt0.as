@@ -78,9 +78,6 @@ ___fpc_brk_addr:
 
 #
 # $Log$
-# Revision 1.2  2000-10-15 09:09:23  peter
-#   * startup code also needed syslinux->system updates
-#
-# Revision 1.1  2000/07/13 06:30:55  michael
-# + Initial import
+# Revision 1.3  2002-09-07 16:01:20  peter
+#   * old logs removed and tabs fixed
 #

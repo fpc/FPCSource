@@ -226,18 +226,18 @@ end;
 
 Const
   // Debian system; contains location of timezone file.
-  TimeZoneLocationFile = '/etc/timezone'; 
+  TimeZoneLocationFile = '/etc/timezone';
   // SuSE has link in /usr/lib/zoneinfo/localtime to /etc/localtime
   // RedHat uses /etc/localtime
-  TimeZoneFile = '/usr/lib/zoneinfo/localtime'; 
-  AltTimeZoneFile = '/etc/localtime'; 
-  
+  TimeZoneFile = '/usr/lib/zoneinfo/localtime';
+  AltTimeZoneFile = '/etc/localtime';
+
 function GetTimezoneFile:string;
 var
   f,len : longint;
   s : string;
   info : stat;
-  
+
 begin
   GetTimezoneFile:='';
   f:=fdopen(TimeZoneLocationFile,Open_RdOnly);
@@ -251,10 +251,10 @@ begin
     fdclose(f);
     GetTimezoneFile:=s;
     end
-  // Try SuSE  
+  // Try SuSE
   else if fstat(TimeZoneFile,info) then
     GetTimeZoneFile:=TimeZoneFile
-  // Try RedHat  
+  // Try RedHat
   else If fstat(AltTimeZoneFile,Info) then
       GetTimeZoneFile:=AltTimeZoneFile;
 end;
@@ -286,10 +286,7 @@ end;
 
 {
   $Log$
-  Revision 1.2  2000-09-18 13:14:51  marco
-   * Global Linux +bsd to (rtl/freebsd rtl/unix rtl/linux structure)
+  Revision 1.3  2002-09-07 16:01:28  peter
+    * old logs removed and tabs fixed
 
-  Revision 1.2  2000/07/13 11:33:49  michael
-  + removed logs
- 
 }

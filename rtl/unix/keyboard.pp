@@ -1505,81 +1505,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.10  2002-03-03 13:23:51  peter
+  Revision 1.11  2002-09-07 16:01:27  peter
+    * old logs removed and tabs fixed
+
+  Revision 1.10  2002/03/03 13:23:51  peter
     * adjust backspace sequence so it works according to the latest
       XFree xterms and linux consoles
-
-  Revision 1.9  2001/10/12 16:03:15  peter
-    * pollkey fixes (merged)
-
-  Revision 1.8  2001/09/21 21:33:36  michael
-  + Merged driver support from fixbranch
-
-  Revision 1.7  2001/08/30 20:55:08  peter
-    * v10 merges
-
-  Revision 1.6  2001/08/04 11:05:21  peter
-    * unpush key fix
-
-  Revision 1.4  2001/06/27 21:37:38  peter
-    * v10 merges
-
-  Revision 1.3  2001/04/10 23:35:02  peter
-    * fixed argument name
-    * merged fixes
-
-  Revision 1.2.2.5  2001/03/27 12:38:10  pierre
-   + RestoreStartMode function
-
-  Revision 1.2.2.4  2001/03/27 11:41:03  pierre
-   * fix the special handler case to avoid waiting for one more char
-
-  Revision 1.2.2.3  2001/03/24 22:38:46  pierre
-   * fix bug with AltGr keys
-
-  Revision 1.2.2.11  2001/09/21 21:20:43  michael
-  + Added support for keyboard driver.
-  + Added DefaultTranslateKeyEvent,DefaultTranslateKeyEventUnicode
-  + PendingKeyEvent variable no longer public. Handling of this variable is
-    now done entirely by global functions. System dependent code should not
-    need it, it is set automatically.
-  + InitVideo DoneVideo will check whether the keyboard is initialized or not.
-
-  Revision 1.2.2.10  2001/08/28 12:27:10  pierre
-   * second change to the char restore into InBuf array in ReadKey function
-
-  Revision 1.2.2.9  2001/08/03 14:46:50  pierre
-   * push the unused char at correct location into syskeypressed buffer
-
-  Revision 1.2.2.8  2001/08/02 13:23:55  pierre
-   * avoid several keys to be read and cause overflows
-
-  Revision 1.2.2.7  2001/06/17 22:56:24  pierre
-  * preserve KDGKBMETA
-
-  Revision 1.2.2.6  2001/04/10 23:22:25  peter
-    * merged fixes
-    * fixed argument name
-
-  Revision 1.2.2.5  2001/03/27 12:38:10  pierre
-   + RestoreStartMode function
-
-  Revision 1.2.2.4  2001/03/27 11:41:03  pierre
-   * fix the special handler case to avoid waiting for one more char
-
-  Revision 1.2.2.3  2001/03/24 22:38:46  pierre
-   * fix bug with AltGr keys
-
-  Revision 1.2.2.2  2001/01/30 22:23:44  peter
-    * unix back to linux
-
-  Revision 1.2.2.1  2001/01/30 21:52:02  peter
-    * moved api utils to rtl
-
-  Revision 1.2  2001/01/21 20:21:40  marco
-   * Rename fest II. Rtl OK
-
-  Revision 1.1  2001/01/13 11:03:58  peter
-    * API 2 RTL commit
 
 }

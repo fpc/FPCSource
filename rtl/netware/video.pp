@@ -14,7 +14,7 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 
  **********************************************************************}
-{ 2001/04/16 armin: first version for netware 
+{ 2001/04/16 armin: first version for netware
   2002/02/26 armin: changes for current fpc }
 unit Video;
 interface
@@ -199,7 +199,7 @@ Const
   SetCursorType     : @SysSetCursorType;
   GetCapabilities   : @SysGetCapabilities
 );
-						
+
 
 
 initialization

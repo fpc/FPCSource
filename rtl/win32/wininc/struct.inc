@@ -5016,13 +5016,13 @@
           case longint of
               0 : (hIcon : HICON);
               1 : (pszIcon : LPCTSTR;
-          	   pszCaption : LPCTSTR;
+                   pszCaption : LPCTSTR;
                    nPages : UINT;
                    case longint of
                       0 : (nStartPage : UINT);
-          	      1 : (pStartPage : LPCTSTR;
+                      1 : (pStartPage : LPCTSTR;
                            case longint of
-          	              0 : (ppsp : LPCPROPSHEETPAGE);
+                              0 : (ppsp : LPCPROPSHEETPAGE);
                               1 : (phpage : ^HPROPSHEETPAGE;
                                    pfnCallback : PFNPROPSHEETCALLBACK;
                                    case longint of
@@ -7013,7 +7013,10 @@ type
 
 {
   $Log$
-  Revision 1.13  2002-07-16 13:52:14  florian
+  Revision 1.14  2002-09-07 16:01:32  peter
+    * old logs removed and tabs fixed
+
+  Revision 1.13  2002/07/16 13:52:14  florian
     * LARGE_INT and ULARGE_INT types fixed
     * LONGLONG defined properly
 
@@ -7022,32 +7025,5 @@ type
 
   Revision 1.11  2002/01/19 11:58:21  peter
     * more functions from webbugs
-
-  Revision 1.10  2001/08/19 09:27:52  florian
-    + a lot of constants added
-
-  Revision 1.9  2001/08/04 10:25:46  peter
-    * fixed input_record to be more delphi compatible
-
-  Revision 1.8  2001/07/30 14:23:15  marco
-   * Added finddataw
-
-  Revision 1.7  2001/06/13 08:57:01  marco
-   * Fixed va_list to be a pchar.
-
-  Revision 1.6  2001/04/04 17:58:36  florian
-    * TGUID definition is now imported from the system unit
-
-  Revision 1.5  2000/12/18 17:28:58  jonas
-    * fixed range check errors
-
-  Revision 1.4  2000/11/21 08:49:14  jonas
-    * workaround for the "hicon: hicon" bug (merged from fixes branch)
-
-  Revision 1.3  2000/10/11 16:05:56  peter
-    * stdcall for callbacks (merged)
-
-  Revision 1.2  2000/07/13 11:34:01  michael
-  + removed logs
 
 }

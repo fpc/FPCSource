@@ -53,7 +53,7 @@ begin
   {$endif DEBUG_MT}
 end;
 
-type ltvInitEntry = 
+type ltvInitEntry =
   record
     varaddr : pdword;
     size    : longint;
@@ -74,10 +74,10 @@ type TltvInitTablesTable =
     count : dword;
     tables: array [1..32767] of pltvInitEntry;
   end;
-  
+
 var
   ThreadvarTablesTable : TltvInitTablesTable; external name 'FPC_LOCALTHREADVARTABLES';
-  
+
 procedure init_all_unit_threadvars; [public,alias: 'FPC_INITIALIZELOCALTHREADVARS'];
 var i : integer;
 begin
@@ -369,7 +369,10 @@ end;
 
 {
   $Log$
-  Revision 1.4  2002-04-01 15:20:08  armin
+  Revision 1.5  2002-09-07 16:01:21  peter
+    * old logs removed and tabs fixed
+
+  Revision 1.4  2002/04/01 15:20:08  armin
   + unload module no longer shows: Module did not release...
   + check-function will no longer be removed when smartlink is on
 

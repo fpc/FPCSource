@@ -361,31 +361,13 @@ end;
 
 {
   $Log$
-  Revision 1.8  2002-07-07 18:04:39  hajny
+  Revision 1.9  2002-09-07 16:01:25  peter
+    * old logs removed and tabs fixed
+
+  Revision 1.8  2002/07/07 18:04:39  hajny
     * correction by Yuri Prokushev
 
   Revision 1.7  2002/03/28 16:34:29  armin
   + initialize threadvars defined local in units
-
-  Revision 1.6  2001/10/23 21:51:03  peter
-    * criticalsection renamed to rtlcriticalsection for kylix compatibility
-
-  Revision 1.5  2001/10/09 02:42:05  carl
-  * bugfix #1639 (IsMultiThread varialbe setting)
-
-  Revision 1.4  2001/02/04 01:53:58  hajny
-    * HandleError instead of RunError
-
-  Revision 1.3  2001/02/01 21:30:01  hajny
-    * MT support completion
-
-  Revision 1.2  2001/01/27 18:28:52  hajny
-    * OS/2 implementation of threads almost finished
-
-  Revision 1.1  2001/01/23 20:38:59  hajny
-    + beginning of the OS/2 version
-
-  Revision 1.1  2001/01/01 19:06:36  florian
-    + initial release
 
 }

@@ -4,7 +4,7 @@
     Copyright (c) 1999-2000 by the Free Pascal development team
 
     This file implements english error message strings
-    
+
     See the file COPYING.FPC, included in this distribution,
     for details about the copyright.
 
@@ -22,21 +22,21 @@
 Const
 
    { Error messages for exceptions }
-   
+
    SAccessDenied = 'Zugriff verweigert';
    SDiskFull = 'Plattenspeichermedium voll';
-   SEndOfFile = 'Lesezugriff hinter Dateiende'; 
+   SEndOfFile = 'Lesezugriff hinter Dateiende';
    SInValidFileName = 'UngÅltiger Dateiname';
    SInvalidInput = 'UngÅltige Eingabe';
    SInvalidPointer = 'UngÅltiger Zeigeroperation';
    SOutOfMemory = 'Speicher voll';
    STooManyOpenFiles = 'Zu viele offene Dateien';
    SUnKnownRunTimeError = 'Unbekannter Laufzeitfehler : %3.3d';
-   SFileNotFound = 'Datei nicht gefunden';   
-   
+   SFileNotFound = 'Datei nicht gefunden';
+
 {
   $Log$
-  Revision 1.2  2000-07-13 11:33:51  michael
-  + removed logs
- 
+  Revision 1.3  2002-09-07 16:01:22  peter
+    * old logs removed and tabs fixed
+
 }

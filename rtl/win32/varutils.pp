@@ -72,16 +72,7 @@ end.
 
 {
   $Log$
-  Revision 1.2  2001-08-19 21:02:02  florian
-    * fixed and added a lot of stuff to get the Jedi DX( headers
-      compiled
+  Revision 1.3  2002-09-07 16:01:29  peter
+    * old logs removed and tabs fixed
 
-  Revision 1.1  2000/08/29 18:16:22  michael
-  + new include files
-
-  Revision 1.2  2000/08/29 17:35:55  michael
-  + Compiles on win32 also now
-
-  Revision 1.1  2000/08/29 08:23:14  michael
-  + Initial implementation of varutils
 }

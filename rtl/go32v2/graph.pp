@@ -2708,28 +2708,7 @@ begin
 end.
 {
   $Log$
-  Revision 1.8  2001-09-10 16:15:52  jonas
-    * merged windows mode saving stuff from fixes branch
-
-  Revision 1.7  2001/06/06 17:20:22  jonas
-    * fixed wrong typed constant procvars in preparation of my fix which will
-      disallow them in FPC mode (plus some other unmerged changes since
-      LAST_MERGE)
-
-  Revision 1.6  2001/04/14 14:05:42  peter
-    * fixed for stricter checking
-
-  Revision 1.5  2000/12/16 15:57:17  jonas
-    * removed 64bit evaluations when range checking is on
-
-  Revision 1.4  2000/11/11 15:57:54  jonas
-    * fixed web bug 1166 (merged)
-
-  Revision 1.3  2000/08/12 12:27:13  jonas
-    + setallpalette hook
-    + setallpalette implemented for standard vga and VESA 2.0+
-
-  Revision 1.2  2000/07/13 11:33:40  michael
-  + removed logs
+  Revision 1.9  2002-09-07 16:01:18  peter
+    * old logs removed and tabs fixed
 
 }

@@ -885,45 +885,10 @@ end;
 
 {
   $Log$
-  Revision 1.6  2002-03-05 20:04:25  michael
+  Revision 1.7  2002-09-07 16:01:20  peter
+    * old logs removed and tabs fixed
+
+  Revision 1.6  2002/03/05 20:04:25  michael
   + Patch from Sebastian for FCNTL call
-
-  Revision 1.5  2001/10/14 13:33:20  peter
-    * start of thread support for linux
-
-  Revision 1.4  2001/07/15 11:57:16  peter
-    * merged m68k updates
-
-  Revision 1.3  2001/06/03 20:19:09  peter
-    * FSStat to StatFS
-    * StatFS structure to TStatFS
-
-  Revision 1.2  2001/06/02 00:31:30  peter
-    * merge unix updates from the 1.0 branch, mostly related to the
-      solaris target
-
-  Revision 1.6  2001/01/22 07:25:10  marco
-   * IOPERM for FreeBSD. Port routines moved from unixsysc to Unix again .
-
-  Revision 1.5  2000/12/28 20:50:04  peter
-    * merged fixes from 1.0.x
-
-  Revision 1.4  2000/10/26 22:51:12  peter
-    * nano sleep (merged)
-
-  Revision 1.3  2000/10/02 17:57:37  peter
-    * removed warning (merged)
-
-  Revision 1.2  2000/09/18 13:14:50  marco
-   * Global Linux +bsd to (rtl/freebsd rtl/unix rtl/linux structure)
-
-  Revision 1.4  2000/09/12 08:51:43  marco
-   * fixed some small problems left from merging. (waitpid has now last param longint)
-
-  Revision 1.3  2000/09/11 14:05:31  marco
-   * FreeBSD support and removed old signalhandling
-
-  Revision 1.2  2000/07/13 11:33:48  michael
-  + removed logs
 
 }
