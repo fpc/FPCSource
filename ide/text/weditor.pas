@@ -17,7 +17,7 @@
 unit WEditor;
 
 interface
-
+{$tes}
 uses
   Dos,Objects,Drivers,Views,Menus,Commands,
   WUtils;
@@ -165,7 +165,7 @@ type
       EndsWithComment : boolean;
       BeginsWithDirective,
       EndsWithDirective : boolean;
-      {BeginCommentType,}EndCommentType : byte;
+      BeginCommentType,EndCommentType : byte;
     end;
 
     PLineCollection = ^TLineCollection;
@@ -4280,11 +4280,6 @@ var
 var CurLine: Sw_integer;
     Line,NextLine,PrevLine,OldLine: PLine;
 begin
-{$ifdef TEST_PARTIAL_SYNTAX}
-  If ((Flags and efSyntaxHighlight)<>0) and (LastSyntaxedLine<FromLine)
-     and (FromLine<GetLineCount) then
-    FromLine:=UpdateAttrsRange(LastSyntaxedLine,FromLine,Attrs);
-{$endif TEST_PARTIAL_SYNTAX}
   if ((Flags and efSyntaxHighlight)=0) or (FromLine>=GetLineCount) then
   begin
     SetLineFormat(FromLine,'');
@@ -4296,7 +4291,13 @@ begin
     UpdateIndicator;
     Exit;
   end;
-  CurLine:=FromLine;
+{$ifdef TEST_PARTIAL_SYNTAX}
+  If ((Flags and efSyntaxHighlight)<>0) and (LastSyntaxedLine<FromLine)
+     and (FromLine<GetLineCount) then
+    CurLine:=LastSyntaxedLine
+  else
+{$endif TEST_PARTIAL_SYNTAX}
+    CurLine:=FromLine;
   if CurLine>0 then PrevLine:=Lines^.At(CurLine-1) else PrevLine:=nil;
   repeat
     Line:=Lines^.At(CurLine);
@@ -4319,6 +4320,7 @@ begin
     Line^.BeginsWithAsm:=InAsm;
     Line^.BeginsWithComment:=InComment;
     Line^.BeginsWithDirective:=InDirective;
+    Line^.BeginCommentType:=CurrentCommentType;
     LineText:=GetLineText(CurLine);
     Format:=CharStr(chr(coTextColor),length(LineText));
     LastCC:=ccWhiteSpace;
@@ -4351,16 +4353,28 @@ begin
          (OldLine^.EndsWithComment=Line^.EndsWithComment) and
          (OldLine^.EndsWithAsm=Line^.EndsWithAsm) and
          (OldLine^.EndsWithDirective=Line^.EndsWithDirective) and }
+{$ifdef TEST_PARTIAL_SYNTAX}
+         (CurLine>=FromLine) and
+{$endif TEST_PARTIAL_SYNTAX}
          (NextLine^.BeginsWithAsm=Line^.EndsWithAsm) and
          (NextLine^.BeginsWithComment=Line^.EndsWithComment) and
          (NextLine^.BeginsWithDirective=Line^.EndsWithDirective) and
+         (NextLine^.BeginCommentType=Line^.EndCommentType) and
          (NextLine^.Format<>nil) then
        Break;
 {$ifdef TEST_PARTIAL_SYNTAX}
-    if not SyntaxComplete then
-      if ((Attrs and attrForceFull)=0) and
-         (CurLine>Delta.Y+Size.Y) then
+    if (CurLine<GetLineCount ) and
+       ((Attrs and attrForceFull)=0) and
+       (CurLine>Delta.Y+Size.Y) then
+      begin
+        If SyntaxComplete then
+          begin
+            SyntaxComplete:=false;
+            UpdateIndicator;
+          end;
+        LastSyntaxedLine:=CurLine-1;
         break;
+      end;
 {$endif TEST_PARTIAL_SYNTAX}
     PrevLine:=Line;
   until false;
@@ -5482,7 +5496,12 @@ end;
 END.
 {
   $Log$
-  Revision 1.71  2000-01-06 17:47:26  pierre
+  Revision 1.72  2000-01-07 00:19:30  pierre
+    * forgot CommentLineType check to see if we need to update format
+      on next line
+    * some changes for TEST_PARTIAL_SYNTAX still does notwork :(
+
+  Revision 1.71  2000/01/06 17:47:26  pierre
    * avoid to resyntax whole source in unnecessary cases
 
   Revision 1.70  2000/01/05 17:35:50  pierre
