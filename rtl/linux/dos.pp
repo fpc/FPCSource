@@ -515,8 +515,9 @@ Type
     LastUsed : LongInt;
   End;
 Var
-  RtlFindRecs   : Array[0..RtlFindSize-1] of RtlFindRecType;
+  RtlFindRecs   : Array[1..RtlFindSize] of RtlFindRecType;
   CurrSearchNum : LongInt;
+
 
 Procedure FindClose(Var f: SearchRec);
 {
@@ -532,8 +533,8 @@ Begin
        if (RtlFindRecs[i].SearchNum=f.SearchNum) then
         break;
        inc(i);
-     until (i>=RtlFindSize);
-     If i<RtlFindSize Then
+     until (i>RtlFindSize);
+     If i<=RtlFindSize Then
       Begin
         RtlFindRecs[i].SearchNum:=0;
         if f.dirptr>0 then
@@ -598,9 +599,9 @@ Var
   Found       : Boolean;
 Begin
   BestMatch:=0;
-  i:=0;
+  i:=1;
   Found:=False;
-  While (i < RtlFindSize) And (Not Found) Do
+  While (i <= RtlFindSize) And (Not Found) Do
    Begin
      If (RtlFindRecs[i].SearchNum = 0) Then
       Begin
@@ -638,7 +639,7 @@ Begin
   If f.SearchType=0 Then
    Begin
      ArrayPos:=0;
-     For i:=0 to RtlFindSize-1 Do
+     For i:=1 to RtlFindSize Do
       Begin
         If RtlFindRecs[i].SearchNum = f.SearchNum Then
          ArrayPos:=i;
@@ -1041,7 +1042,10 @@ End.
 
 {
   $Log$
-  Revision 1.4  1998-11-04 10:15:54  peter
+  Revision 1.5  1998-11-05 14:24:08  peter
+    * findfirst fix from the mailinglist
+
+  Revision 1.4  1998/11/04 10:15:54  peter
     * don't use getmem in startup (necessary for heaptrc)
 
   Revision 1.3  1998/05/06 12:35:26  michael
