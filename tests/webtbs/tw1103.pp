@@ -1,4 +1,4 @@
-{$MODE OBJFPC }
+{$ifdef fpc}{$MODE OBJFPC }{$endif}
 type
   TestRec = record
     fString  : AnsiString;
@@ -9,7 +9,7 @@ type
 
 function GetGroupInfo: TestRec;
 begin
-  fillchar(Result, Sizeof(Result), 0);
+//  fillchar(Result, Sizeof(Result), 0);
   Result.fRetAddr := 0;
 end;
 
@@ -18,6 +18,11 @@ begin
   Result := GetGroupInfo;
 end;
 
+procedure p;
 begin
   SelectGroup;
+end;
+
+begin
+  p;
 end.
