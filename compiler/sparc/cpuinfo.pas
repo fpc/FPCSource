@@ -28,6 +28,7 @@ uses
 type
 {# Natural integer register type and size for the target machine }
   AWord=Longword;
+  AInt = Longint;
   PAWord=^AWord;
 { the ordinal type used when evaluating constant integer expressions }
   TConstExprInt=int64;
@@ -89,7 +90,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.12  2003-12-01 18:43:32  peter
+  Revision 1.13  2004-02-27 11:44:48  mazen
+  + added AInt support
+
+  Revision 1.12  2003/12/01 18:43:32  peter
     * s128real type is not compatible with s80real
 
   Revision 1.11  2003/11/28 13:09:07  mazen
