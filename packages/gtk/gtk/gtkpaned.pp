@@ -75,10 +75,10 @@ procedure gtk_paned_pack1(paned:PGtkPaned; child:PGtkWidget; resize:gboolean; sh
 procedure gtk_paned_pack2(paned:PGtkPaned; child:PGtkWidget; resize:gboolean; shrink:gboolean);cdecl;external gtkdll name 'gtk_paned_pack2';
 procedure gtk_paned_set_position(paned:PGtkPaned; position:gint);cdecl;external gtkdll name 'gtk_paned_set_position';
 procedure gtk_paned_set_handle_size(paned:PGtkPaned; size:guint16);cdecl;external gtkdll name 'gtk_paned_set_handle_size';
-procedure gtk_paned_set_gutter_size(paned:PGtkPaned; size:guint16);cdecl;external gtkdll name 'gtk_paned_set_gutter_size';
 {$ifndef gtkwin}
-procedure gtk_paned_compute_position(paned:PGtkPaned; allocation:gint; child1_req:gint; child2_req:gint);cdecl;external gtkdll name 'gtk_paned_compute_position';
+procedure gtk_paned_set_gutter_size(paned:PGtkPaned; size:guint16);cdecl;external gtkdll name 'gtk_paned_set_gutter_size';
 {$endif}
+procedure gtk_paned_compute_position(paned:PGtkPaned; allocation:gint; child1_req:gint; child2_req:gint);cdecl;external gtkdll name 'gtk_paned_compute_position';
 
 {$endif read_interface}
 
@@ -164,7 +164,10 @@ end;
 
 {
   $Log$
-  Revision 1.1  1999-11-24 23:36:36  peter
+  Revision 1.2  2000-05-02 17:52:16  peter
+    * win32 fix
+
+  Revision 1.1  1999/11/24 23:36:36  peter
     * moved to packages dir
 
   Revision 1.9  1999/10/06 17:42:49  peter
