@@ -106,15 +106,15 @@
             fldl        8(%ebp)
             fldl2e
             fmulp
-            fstcww      .LCW1
-            fstcww      .LCW2
+            fstcw      .LCW1
+            fstcw      .LCW2
             fwait
             andw        $0xf3ff,.LCW2
             orw $0x0400,.LCW2
-            fldcww      .LCW2
+            fldcw      .LCW2
             fldl        %st(0)
             frndint
-            fldcww      .LCW1
+            fldcw      .LCW1
             fxch        %st(1)
             fsub        %st(1),%st
             f2xm1
@@ -347,15 +347,15 @@
             fldt        8(%ebp)
             fldl2e
             fmulp
-            fstcww      .LCW1
-            fstcww      .LCW2
+            fstcw      .LCW1
+            fstcw      .LCW2
             fwait
             andw        $0xf3ff,.LCW2
             orw $0x0400,.LCW2
-            fldcww      .LCW2
+            fldcw      .LCW2
             fld         %st(0)
             frndint
-            fldcww      .LCW1
+            fldcw      .LCW1
             fxch        %st(1)
             fsub        %st(1),%st
             f2xm1
@@ -634,7 +634,13 @@
 
 {
   $Log$
-  Revision 1.8  1998-09-01 17:36:18  peter
+  Revision 1.9  1998-09-11 17:38:49  pierre
+     merge for fixes branch
+
+  Revision 1.8.2.1  1998/09/11 17:37:25  pierre
+    * correction respective to stricter as v2.9.1 syntax
+
+  Revision 1.8  1998/09/01 17:36:18  peter
     + internconst
 
   Revision 1.7  1998/08/25 08:49:05  florian

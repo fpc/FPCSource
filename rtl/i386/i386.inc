@@ -220,7 +220,7 @@ asm
      { esi contains the vmt }
      pushl %esi
      { call newinstance (class method!) }
-     call 16(%esi)
+     call *16(%esi)
      { newinstance returns a pointer to the new created }
      { instance in eax                                  }
      { load esi and insert self                         }
@@ -245,7 +245,7 @@ asm
      { push self }
      pushl %esi
      { call freeinstance }
-     call 20(%edi)
+     call *20(%edi)
 .LDISPOSE_CLASS1:
      { load self }
      movl 8(%ebp),%esi
@@ -752,7 +752,13 @@ end;
 
 {
   $Log$
-  Revision 1.19  1998-09-01 17:36:17  peter
+  Revision 1.20  1998-09-11 17:38:48  pierre
+     merge for fixes branch
+
+  Revision 1.19.2.1  1998/09/11 17:37:24  pierre
+    * correction respective to stricter as v2.9.1 syntax
+
+  Revision 1.19  1998/09/01 17:36:17  peter
     + internconst
 
   Revision 1.18  1998/08/11 00:04:47  peter
