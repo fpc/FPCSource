@@ -1246,10 +1246,12 @@ Begin
   Result := TextToFloat(PChar(S), Value, fvDouble);
 End;
 
+{$ifdef FPC_HAS_TYPE_EXTENDED}
 Function TryStrToFloat(Const S : String; Var Value: Extended): Boolean;
 Begin
   Result := TextToFloat(PChar(S), Value);
 End;
+{$endif FPC_HAS_TYPE_EXTENDED}
 
 Function FloatToStr(Value: Extended): String;
 Begin
@@ -2335,7 +2337,10 @@ const
 
 {
   $Log$
-  Revision 1.25  2005-01-16 17:53:27  michael
+  Revision 1.26  2005-01-17 18:38:48  peter
+    * extended overload disabled for powerpc
+
+  Revision 1.25  2005/01/16 17:53:27  michael
   + Patch from Colin Western to implemenet TryStrToFLoat
 
   Revision 1.24  2004/12/26 13:04:30  peter

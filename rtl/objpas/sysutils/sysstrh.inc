@@ -141,7 +141,9 @@ Function StrToFloat(Const S : String) : Extended;
 Function StrToFloatDef(Const S: String; Const Default: Extended): Extended;
 Function TryStrToFloat(Const S : String; Var Value: Single): Boolean;
 Function TryStrToFloat(Const S : String; Var Value: Double): Boolean;
+{$ifdef FPC_HAS_TYPE_EXTENDED}
 Function TryStrToFloat(Const S : String; Var Value: Extended): Boolean;
+{$endif FPC_HAS_TYPE_EXTENDED}
 Function TextToFloat(Buffer: PChar; Var Value: Extended): Boolean;
 Function TextToFloat(Buffer: PChar; Var Value; ValueType: TFloatValue): Boolean;
 Function FloatToText(Buffer: PChar; Value: Extended; format: TFloatFormat; Precision, Digits: Integer): Longint;
@@ -198,7 +200,10 @@ function BCDToInt(Value: integer): integer;
 
 {
   $Log$
-  Revision 1.12  2005-01-16 17:53:27  michael
+  Revision 1.13  2005-01-17 18:38:48  peter
+    * extended overload disabled for powerpc
+
+  Revision 1.12  2005/01/16 17:53:27  michael
   + Patch from Colin Western to implemenet TryStrToFLoat
 
   Revision 1.11  2004/12/19 17:55:38  michael
