@@ -165,15 +165,18 @@ asm
 	jmp .Lexit
 
 .LFPC_STRCMP_NEG:
-        movl        $1, %eax
-        movl        $-1, %ecx
-        cmovbl      %ecx, %eax
+        movq        $1, %rax
+        movq        $-1, %rcx
+        cmovbq      %rcx, %rax
 .Lexit:
 end;
 
 {
   $Log$
-  Revision 1.4  2004-05-01 23:55:18  peter
+  Revision 1.5  2004-11-02 15:34:10  florian
+    * fixed strcomp
+
+  Revision 1.4  2004/05/01 23:55:18  peter
     * replace strlenint with sizeint
 
   Revision 1.3  2004/02/18 22:00:59  peter
