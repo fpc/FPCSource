@@ -285,7 +285,7 @@ implementation
                               { the div (JM)                                        }
                               hreg1 := R_EAX;
                             end;
-                        if not popedx then
+                        if not popedx and (hreg1 <> R_EDX) then
                           ungetregister(R_EDX);
                      end
                    else
@@ -300,10 +300,11 @@ implementation
                            emit_reg_reg(A_MOV,S_L,R_EDX,hreg1)
                          else
                            Begin
-                             ungetregister32(hreg1);
+                             if hreg1 <> R_EDX then
+                               ungetregister32(hreg1);
                              hreg1 := R_EDX
                            End;
-                         if not popeax then
+                         if not popeax and (hreg1 <> R_EAX)then
                            ungetregister(R_EAX);
                        end;
                    if popeax then
@@ -994,7 +995,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.5  2000-10-31 22:02:56  peter
+  Revision 1.6  2000-11-20 14:05:50  jonas
+    * fixed bug in my changes to fix the regalloc info for div/mod ("merged")
+
+  Revision 1.5  2000/10/31 22:02:56  peter
     * symtable splitted, no real code changes
 
   Revision 1.4  2000/10/19 16:26:52  jonas
