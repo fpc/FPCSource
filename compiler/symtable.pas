@@ -1822,11 +1822,17 @@ implementation
            (sym^.typ <> funcretsym) then
            begin
               hsym:=search_class_member(procinfo^._class,sym^.name);
-              { but private ids can be reused }
               if assigned(hsym) and
+                { delphi allows to reuse the names of properties }
+                { in parameter lists of methods                  }
+                not(
+                 (hsym^.typ<>propertysym) or
+                 (m_delphi in aktmodeswitches)
+                ) and
+                { also private ids can be reused }
                 (not(sp_private in hsym^.symoptions) or
                  (hsym^.owner^.defowner^.owner^.symtabletype<>unitsymtable)) then
-                DuplicateSym(hsym);
+                 DuplicateSym(hsym);
            end;
          { check for duplicate field id in inherited classes }
          if (sym^.typ=varsym) and
@@ -2793,7 +2799,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.80  2000-03-01 13:56:31  pierre
+  Revision 1.81  2000-03-20 09:34:33  florian
+    * in delphi mode: method parameters can now have the same name as parameters
+
+  Revision 1.80  2000/03/01 13:56:31  pierre
    * fix for bug 840
 
   Revision 1.79  2000/03/01 00:03:10  pierre
