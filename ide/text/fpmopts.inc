@@ -476,8 +476,72 @@ begin
 end;
 
 procedure TIDEApp.Preferences;
+var R,R2: TRect;
+    D: PCenterDialog;
+    RB1 : PRadioButtons;
+    CountModes : integer;
+    hp : pvideomodelist;
+    items : PSItem;
+    videomode : tvideomode;
+    i,modevalue : longint;
+    
+
+  function ToStr(l : longint) : string;
+
+    var
+       s : string;
+
+    begin
+       str(l,s);
+       ToStr:=s;
+    end;
+
+  const
+     color2str : array[false..true] of string = ('in b/w','in color');
+    
 begin
-  NotImplemented;
+  GetVideoMode(videomode);
+  CountModes:=0;
+  i:=0;
+  modevalue:=0;
+  R.Assign(0,0,64,18);
+  New(D, Init(R, 'Preferences'));
+  with D^ do
+  begin
+     hp:=video.modes;
+     items:=nil;
+     r2.assign(2,3,24,17);
+     while assigned(hp) do
+       begin          
+          items:=NewSItem(ToStr(hp^.col)+'x'+ToStr(hp^.row)+' '+color2str[hp^.color],items);
+          if (hp^.col=videomode.col) and (hp^.row=videomode.row) and
+            (hp^.color=videomode.color) then
+            modevalue:=i;
+          inc(CountModes);
+          { we can't display an infinite number of modes }
+          if CountModes>=r.b.y-r.a.y+1 then
+            break;
+          inc(i);
+          hp:=hp^.next;
+       end;
+     modevalue:=CountModes-modevalue-1;
+     new(rb1,init(r2,items));     
+     insert(rb1);
+     rb1^.value:=modevalue;
+
+     r2.move(0,-1);r2.b.y:=r2.a.y+1;
+     insert(new(plabel,init(r2,'~V~ideo mode',rb1)));
+  end;
+  InsertButtons(D);
+  if Desktop^.ExecView(D)=cmOK then
+   begin
+      { change video mode ? }
+      if rb1^.value<>modevalue then
+        begin
+            
+        end;
+   end;
+  Dispose(D, Done);
 end;
 
 procedure TIDEApp.EditorOptions(Editor: PEditor);
@@ -515,7 +579,7 @@ begin
     CB^.Value:=EFlags;
     Insert(CB);
     R2.Move(0,-1); R2.B.Y:=R2.A.Y+1;
-    Insert(New(PLabel, Init(R2, 'Editor options', CB)));
+    Insert(New(PLabel, Init(R2, '~E~ditor options', CB)));
 
     R.Move(0,(R.B.Y-R.A.Y)+1); R.B.Y:=R.A.Y+1;
     R2.Copy(R); Inc(R2.A.Y); R2.B.Y:=R2.A.Y;
@@ -827,7 +891,10 @@ end;
 
 {
   $Log$
-  Revision 1.19  1999-03-12 01:14:00  peter
+  Revision 1.20  1999-03-14 22:18:16  florian
+    + options/preferences dialog added, without function yet
+
+  Revision 1.19  1999/03/12 01:14:00  peter
     * flag if trytoopen should look for other extensions
     + browser tab in the tools-compiler
 
