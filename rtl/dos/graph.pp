@@ -351,13 +351,16 @@ procedure graphdefaults;
          aktlineinfo.linestyle:=solidln;
          aktlineinfo.thickness:=normwidth;
 
-         { FÅllmuster }
-         aktfillsettings.color:=white;
-         aktfillsettings.pattern:=solidfill;
 
          { Zeichenfarbe }
          aktcolor:=(white shl 24)+(white shl 16)+(white shl 8)+white;
          aktbackcolor:=black;
+
+         { FÅllmuster }
+         setfillstyle(solidfill,white);
+         { necessary to load patternbuffer !! (PM)
+         aktfillsettings.color:=white;
+         aktfillsettings.pattern:=solidfill;      }
 
          { Viewport setzen }
          aktviewport.clip:=true;
@@ -533,11 +536,11 @@ begin
   aktlineinfo.linestyle:=solidln;
   aktlineinfo.thickness:=normwidth;
   case aktfillsettings.pattern of
-     0 : begin
+     emptyfill : begin
            aktcolor:=aktbackcolor;
            for y:=y1 to y2 do line(x1,y,x2,y);
          end;
-     1 : begin
+     solidfill : begin
            aktcolor:=aktfillsettings.color;
            for y:=y1 to y2 do line(x1,y,x2,y);
          end;
@@ -831,7 +834,10 @@ end.
 
 {
   $Log$
-  Revision 1.5  1998-09-16 16:47:25  peter
+  Revision 1.6  1998-10-22 09:44:57  pierre
+   * PatternBuffer was not set on entry !!
+
+  Revision 1.5  1998/09/16 16:47:25  peter
     * merged fixes
 
   Revision 1.4.2.1  1998/09/16 16:15:41  peter
