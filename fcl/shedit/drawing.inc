@@ -71,7 +71,7 @@ begin
   end;
 
   // Redraw all lines with changed SH flags
-  FWidget.InvalidateRect(line, 0, FWidget.PageWidth, (CurLine - line) + 1);
+  FWidget.InvalidateRect(0, line, FWidget.PageWidth, (CurLine - line) + 1);
 end;
 
 
@@ -258,7 +258,11 @@ end;
 
 {
   $Log$
-  Revision 1.10  2000-02-10 18:11:30  sg
+  Revision 1.11  2000-02-10 18:20:23  sg
+  * Really fixed the bug in "ChangeInLine" now: Not only width and height
+    were swapped before, but x and y too...
+
+  Revision 1.10  2000/02/10 18:11:30  sg
   * Fixed operand order for InvalidateRect in "ChangeInLine"
 
   Revision 1.9  2000/01/31 19:23:37  sg
