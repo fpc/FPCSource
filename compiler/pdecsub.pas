@@ -800,12 +800,8 @@ end;
 
 procedure pd_interrupt;
 begin
-{$ifndef i386}
-  Message(parser_w_proc_interrupt_ignored);
-{$else i386}
   if lexlevel<>normal_function_level then
     Message(parser_e_dont_nest_interrupt);
-{$endif i386}
 end;
 
 procedure pd_abstract;
@@ -1936,7 +1932,10 @@ const
 end.
 {
   $Log$
-  Revision 1.50  2002-04-19 15:46:02  peter
+  Revision 1.51  2002-04-20 15:27:05  carl
+  - remove ifdef i386 define
+
+  Revision 1.50  2002/04/19 15:46:02  peter
     * mangledname rewrite, tprocdef.mangledname is now created dynamicly
       in most cases and not written to the ppu
     * add mangeledname_prefix() routine to generate the prefix of
