@@ -19,7 +19,7 @@ Program cjpeg;
   works regardless of which command line style is used. }
 
 {$I jconfig.inc}
-
+{$undef PPM_SUPPORTED}
 
 uses
   jmorecfg,
@@ -32,7 +32,6 @@ uses
   JcAPImin, JcAPIstd, JcParam,
 {$ifdef TARGA_SUPPORTED}  rdtarga, {$endif}
 {$ifdef BMP_SUPPORTED}  rdbmp, {$endif}
-{$ifdef PPM_SUPPORTED}  rdppm, {$endif}
 {$ifdef EXT_SWITCH}  rdswitch, {$endif}
   {cderror,}
   jdeferr;
@@ -74,7 +73,11 @@ begin
   if JFREAD(fptr, @c, 1) <> 1 then
     ERREXIT(j_common_ptr(cinfo), JERR_INPUT_EMPTY);
 
+{$ifndef delphi_stream}
   Seek(fptr^, 0);        { Nomssi: probably not portable }
+{$else}
+  Fptr^.Seek(0,0);
+{$endif}
   if (IOresult <> 0) then
     ERREXIT(j_common_ptr(cinfo), JERR_UNGETC_FAILED);
   GetFirstChar := c;
