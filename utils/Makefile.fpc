@@ -7,7 +7,7 @@ name=utils
 version=1.0.6
 
 [target]
-dirs=fpcm tply h2pas fprcp dxegen
+dirs=fpcm tply h2pas fprcp dxegen fpdoc
 programs=ppdep ptop rstconv data2inc delp bin2obj postw32
 dirs_win32=fpmc
 
