@@ -329,7 +329,11 @@ implementation
                   else
                     t := cpointerconstnode.create(lv-rv,left.resulttype);
                 muln :
-                  t:=genintconstnode(lv*rv);
+                  if (torddef(ld).typ <> u64bit) or
+                     (torddef(rd).typ <> u64bit) then
+                    t:=genintconstnode(lv*rv)
+                  else
+                    t:=genintconstnode(int64(qword(lv)*qword(rv)));
                 xorn :
                   t:=cordconstnode.create(lv xor rv,left.resulttype,true);
                 orn :
@@ -1426,7 +1430,8 @@ implementation
           end;
 
         { can we use a shift instead of a mul? }
-        if (right.nodetype = ordconstn) and
+        if not (cs_check_overflow in aktlocalswitches) and
+           (right.nodetype = ordconstn) and
            ispowerof2(tordconstnode(right).value,power) then
           begin
             tordconstnode(right).value := power;
@@ -1869,7 +1874,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.99  2003-10-28 15:35:18  peter
+  Revision 1.100  2003-12-09 21:17:04  jonas
+    + support for evaluating qword constant expressions (both arguments have
+      to be a qword, constants have to be explicitly typecasted to qword)
+
+  Revision 1.99  2003/10/28 15:35:18  peter
     * compare longint-cardinal also makes types wider
 
   Revision 1.98  2003/10/21 18:16:13  peter

@@ -115,6 +115,9 @@ implementation
          if codegenerror then
            exit;
 
+         rd:=torddef(right.resulttype.def);
+         ld:=torddef(left.resulttype.def);
+
          { check for division by zero }
          if is_constintnode(right) then
            begin
@@ -131,9 +134,17 @@ implementation
 
                  case nodetype of
                    modn:
-                     t:=genintconstnode(lv mod rv);
+                     if (torddef(ld).typ <> u64bit) or
+                        (torddef(rd).typ <> u64bit) then
+                       t:=genintconstnode(lv mod rv)
+                     else
+                       t:=genintconstnode(int64(qword(lv) mod qword(rv)));
                    divn:
-                     t:=genintconstnode(lv div rv);
+                     if (torddef(ld).typ <> u64bit) or
+                        (torddef(rd).typ <> u64bit) then
+                       t:=genintconstnode(lv div rv)
+                     else
+                       t:=genintconstnode(int64(qword(lv) div qword(rv)));
                  end;
                  result:=t;
                  exit;
@@ -147,9 +158,6 @@ implementation
               result:=t;
               exit;
            end;
-
-         rd:=torddef(right.resulttype.def);
-         ld:=torddef(left.resulttype.def);
 
          { if one operand is a cardinal and the other is a positive constant, convert the }
          { constant to a cardinal as well so we don't have to do a 64bit division (JM)    }
@@ -831,7 +839,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.53  2003-10-08 19:19:45  peter
+  Revision 1.54  2003-12-09 21:17:04  jonas
+    + support for evaluating qword constant expressions (both arguments have
+      to be a qword, constants have to be explicitly typecasted to qword)
+
+  Revision 1.53  2003/10/08 19:19:45  peter
     * set_varstate cleanup
 
   Revision 1.52  2003/10/01 20:34:49  peter
