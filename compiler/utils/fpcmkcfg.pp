@@ -124,8 +124,8 @@ end;
 Procedure ProcessCommandline;
 
 Var
-  I,P,l : Integer;
-  T,S : String;
+  I : Integer;
+  S : String;
 
   Function GetOptArg : String;
 
@@ -206,6 +206,7 @@ begin
   Assign(Fout,OutputFileName);
   Rewrite(FOut);
   Try
+    RCount:=0;
     For I:=0 to Cfg.Count-1 do
       begin
       S:=Cfg[i];
@@ -230,7 +231,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.2  2005-02-14 17:13:10  peter
+  Revision 1.3  2005-03-25 21:21:30  jonas
+    * fixeed uninitialised variable
+    - removed unused local variables
+
+  Revision 1.2  2005/02/14 17:13:10  peter
     * truncate log
 
   Revision 1.1  2005/02/05 10:25:30  peter
