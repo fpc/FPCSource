@@ -589,6 +589,7 @@ implementation
     procedure second_chararray_to_string(var pto,pfrom : ptree;convtyp : tconverttype);
       var
          pushed : tpushed;
+         regstopush: byte;
          l : longint;
       begin
          { calc the length of the array }
@@ -606,15 +607,19 @@ implementation
                   l:=255;
                 end;
                gettempofsizereference(pto^.resulttype^.size,pto^.location.reference);
-               pushusedregisters(pushed,$ff);
+               { we've also to release the registers ... }
+               { Yes, but before pushusedregisters since that one resets unused! }
+               { This caused web bug 1073 (JM)                                   }
+               regstopush := $ff;
+               remove_non_regvars_from_loc(pfrom^.location,regstopush);
+               pushusedregisters(pushed,regstopush);
                if l>=pto^.resulttype^.size then
                  push_int(pto^.resulttype^.size-1)
                else
                  push_int(l);
-               { we've also to release the registers ... }
-               del_reference(pfrom^.location.reference);
                { ... here only the temp. location is released }
                emit_push_lea_loc(pfrom^.location,true);
+               del_reference(pfrom^.location.reference);
                emitpushreferenceaddr(pto^.location.reference);
                emitcall('FPC_CHARARRAY_TO_SHORTSTR');
                maybe_loadesi;
@@ -624,10 +629,12 @@ implementation
              begin
                gettempansistringreference(pto^.location.reference);
                decrstringref(cansistringdef,pto^.location.reference);
-               release_loc(pfrom^.location);
-               pushusedregisters(pushed,$ff);
+               regstopush := $ff;
+               remove_non_regvars_from_loc(pfrom^.location,regstopush);
+               pushusedregisters(pushed,regstopush);
                push_int(l);
                emitpushreferenceaddr(pfrom^.location.reference);
+               release_loc(pfrom^.location);
                emitpushreferenceaddr(pto^.location.reference);
                emitcall('FPC_CHARARRAY_TO_ANSISTR');
                popusedregisters(pushed);
@@ -1527,7 +1534,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.2  2000-07-13 11:32:33  michael
+  Revision 1.3  2000-07-28 09:09:10  jonas
+    * fixed web bug1073 (merged from fixes branch)
+
+  Revision 1.2  2000/07/13 11:32:33  michael
   + removed logs
 
 }
