@@ -317,12 +317,21 @@ Fixed bugs:
                method has a virtual overload                        OK 0.99.12 (PM)
   bug0261.pp   problems for assignment overloading                  OK 0.99.12a (PM)
   bug0264.pp   methodpointer bugs                                   OK 0.99.12b (FK)
+  bug0266.pp   linux crt write cuts 256 char                        OK 0.99.13 (PFV)
   bug0267.pp   parameters after methodpointer are wrong             OK 0.99.12b (FK)
+  bug0268.pp   crash with exceptions                                OK 0.99.13 (FK)
   bug0269.pp   wrong linenumber for repeat until when type mismatch OK 0.99.12b (PM)
+  bug0270.pp   unexpected eof in tp mode with (* and directives     OK 0.99.13 (PFV)
+  bug0273.pp   small array pushing to array of char procedure is wrong OK 0.99.13 (PFV)
   bug0276.pp   Asm, intel reference parsing incompatibility         OK 0.99.13 (PFV)
   bug0278.pp   (* in conditional code is handled wrong for tp,delphi OK 0.99.13 (PFV)
   bug0280.pp   problem with object finalization.                    OK 0.99.13 (FK)
   bug0282.pp   long mangledname problem with -Aas                   OK 0.99.13 (PFV)
+  bug0283.pp   bug in constant char comparison evaluation           OK 0.99.13 (PFV)
+  bug0285.pp   Asm, TYPE not support in intel mode                  OK 0.99.13 (PFV)
+  bug0286.pp   #$08d not allowed as Char constant                   OK 0.99.13 (PFV)
+  bug0287.pp   (true > false) not supported                         OK 0.99.13 (PFV)
+  bug0288.pp   crash with virtual method in except part             OK 0.99.13 (PFV)
 
 Unproducable bugs:
 ------------------
@@ -360,18 +369,11 @@ bug0252.pp   typecasting not possible within typed const
 bug0262.pp   problems with virtual and overloaded methods
 bug0263.pp   export directive is not necessary in delphi anymore
 bug0265.pp   nested proc with for-counter in other lex level
-bug0266.pp   write cuts 256 char
-bug0268.pp   crash with exceptions
-bug0270.pp   unexpected eof in tp mode with (* and directives
 bug0271.pp   abstract methods can't be assigned to methodpointers
 bug0272.pp   No error issued if wrong parameter in function inside a second function
-bug0273.pp   small array pushing to array of char procedure is wrong
 bug0274.pp   @(proc) is not allowed
 bug0275.pp   too many warnings
 bug0277.pp   typecasting with const not possible
 bug0279.pp   crash with ansistring and new(^ansistring)
 bug0281.pp   dup id checking with property is wrong
-bug0283.pp   wrong file position with dup id in other unit
-bug0284.pp   bug in constant char comparison evaluation
-bug0285.pp   Asm, TYPE not support in intel mode
-bug0286.pp   #$08d not allowed as Char constant
+bug0284.pp   wrong file position with dup id in other unit
