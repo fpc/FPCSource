@@ -121,6 +121,7 @@ type
       function  ToggleFileLine(FileName: String;LineNr : Longint) : boolean;
       procedure Update;
       procedure ShowBreakpoints(W : PFPWindow);
+      function  FindBreakpointAt(Editor : PSourceEditor; Line : longint) : PBreakpoint;
       procedure AdaptBreakpoints(Editor : PSourceEditor; Pos, Change : longint);
       procedure ShowAllBreakpoints;
     end;
@@ -1714,6 +1715,22 @@ begin
         AtFree(I);
       Dec(I);
     end;
+end;
+
+function TBreakpointCollection.FindBreakpointAt(Editor : PSourceEditor; Line : longint) : PBreakpoint;
+
+  function IsAtLine(P : PBreakpoint) : boolean;{$ifndef FPC}far;{$endif}
+  begin
+    If assigned(P^.FileName) and
+       (OSFileName(FExpand(P^.FileName^))=OSFileName(FExpand(Editor^.FileName))) and
+       (Line=P^.Line) then
+      IsAtLine:=true
+    else
+      IsAtLine:=false;
+  end;
+
+begin
+  FindBreakpointAt:=FirstThat(@IsAtLine);
 end;
 
 procedure TBreakpointCollection.ShowAllBreakpoints;
@@ -3557,7 +3574,10 @@ end.
 
 {
   $Log$
-  Revision 1.41  2002-12-16 09:05:28  pierre
+  Revision 1.42  2002-12-16 15:15:40  pierre
+   * Added TBreakpointCollection.FindBreakpointAt method
+
+  Revision 1.41  2002/12/16 09:05:28  pierre
    * sanity ceck in ToggleFileLine method
 
   Revision 1.40  2002/02/09 02:04:46  pierre
