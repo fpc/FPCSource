@@ -42,6 +42,12 @@ const
      FPBaseName = 'fpm68k';
   {$endif cpui386}
 {$endif m68k}
+{$ifdef powerpc}
+  {$ifdef cpui386}
+    {$define USE_SPECIAL_BASENAME}
+     FPBaseName = 'fpppc';
+  {$endif powerpc}
+{$endif m68k}
 {$ifdef i386}
   {$ifdef cpu68k}
     {$define USE_SPECIAL_BASENAME}
@@ -467,7 +473,10 @@ implementation
 END.
 {
   $Log$
-  Revision 1.11  2002-11-28 12:52:14  pierre
+  Revision 1.12  2002-11-30 01:53:02  pierre
+   + cross-powerpc specific filenames
+
+  Revision 1.11  2002/11/28 12:52:14  pierre
    * cross cpu IDE use different config/ini and cfg files
 
   Revision 1.10  2002/09/11 13:12:42  pierre
