@@ -38,8 +38,6 @@ unit cpupara;
           function push_addr_param(def : tdef;calloption : tproccalloption) : boolean;override;
           function getintparaloc(list: taasmoutput; nr : longint) : tparalocation;override;
           procedure freeintparaloc(list: taasmoutput; nr : longint); override;
-          procedure allocparaloc(list: taasmoutput; const loc: tparalocation);
-          procedure freeparaloc(list: taasmoutput; const loc: tparalocation);
           procedure create_param_loc_info(p : tabstractprocdef);override;
           function getfuncretparaloc(p : tabstractprocdef) : tparalocation;override;
        end;
@@ -90,24 +88,6 @@ unit cpupara;
              r.number := NR_R2+nr*(NR_R1-NR_R0);
              rg.ungetregisterint(list,r);
            end;
-      end;
-
-
-    procedure tppcparamanager.allocparaloc(list: taasmoutput; const loc: tparalocation);
-      begin
-        if (loc.size in [OS_64,OS_S64]) and
-           (loc.loc in [LOC_REGISTER,LOC_CREGISTER])  then
-          rg.getexplicitregisterint(list,loc.registerhigh.number);
-        inherited allocparaloc(list,loc);
-      end;
-
-
-    procedure tppcparamanager.freeparaloc(list: taasmoutput; const loc: tparalocation);
-      begin
-        if (loc.size in [OS_64,OS_S64]) and
-           (loc.loc in [LOC_REGISTER,LOC_CREGISTER])  then
-          rg.ungetregisterint(list,loc.registerhigh);
-        inherited allocparaloc(list,loc);
       end;
 
 
@@ -391,7 +371,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.38  2003-06-17 16:34:44  jonas
+  Revision 1.39  2003-06-17 17:27:08  jonas
+    - removed allocparaloc/freeparaloc, generic ones are ok now
+
+  Revision 1.38  2003/06/17 16:34:44  jonas
     * lots of newra fixes (need getfuncretparaloc implementation for i386)!
     * renamed all_intregisters to volatile_intregisters and made it
       processor dependent
