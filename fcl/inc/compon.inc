@@ -16,6 +16,10 @@
 {*                             TComponent                                   *}
 {****************************************************************************}
 
+Type 
+  Longrec = Record
+    Hi,lo : word;
+    end;
 
 Function  TComponent.GetComponent(AIndex: Integer): TComponent;
 
@@ -23,7 +27,7 @@ begin
   If not assigned(FComponents) then 
     Result:=Nil
   else
-    Result:=FComponents[Aindex];
+    Result:=TComponent(FComponents.Items[Aindex]);
 end;
 
 
@@ -31,7 +35,7 @@ Function  TComponent.GetComponentCount: Integer;
 
 begin
   If not assigned(FComponents) then 
-    result:=Nil 
+    result:=0 
   else
     Result:=FComponents.Count;
 end;
@@ -43,7 +47,7 @@ begin
   If Assigned(FOwner) and Assigned(FOwner.FComponents) then
     Result:=FOWner.FComponents.IndexOf(Self)
   else
-    Result:=-1:    
+    Result:=-1;   
 end;
 
 
@@ -100,7 +104,7 @@ begin
   If Value>=Count then value:=count-1;
   If Value<>Temp then
     begin
-    FOWner.FComponents.Delete(i);
+    FOWner.FComponents.Delete(Temp);
     FOwner.FComponents.Insert(Value,Self);
     end;
 end;
@@ -140,8 +144,8 @@ Var Ancestor : TComponent;
     Temp : longint;
     
 begin
-  Temp:=Nil;
-  Ancestor:=TCOmponent(TFiler.Ancestor);
+  Temp:=0;
+  Ancestor:=TComponent(Filer.Ancestor);
   If Assigned(Ancestor) then Temp:=Ancestor.FDesignInfo;
   Filer.Defineproperty('left',readleft,writeleft,
                        longrec(FDesignInfo).Lo<>Longrec(temp).Lo);
@@ -199,10 +203,10 @@ Procedure TComponent.Notification(AComponent: TComponent;
 Var Runner : Longint;
 
 begin
-  If (Operation=opRemove) and Assigend(FFreeNotifies) then 
+  If (Operation=opRemove) and Assigned(FFreeNotifies) then 
     begin
-    FreeNotifies.Remove(AComponent);
-    If FreeNotifies.Count=0 then
+    FFreeNotifies.Remove(AComponent);
+    If FFreeNotifies.Count=0 then
       begin
       FFreeNotifies.Free;
       FFreenotifies:=Nil;
@@ -232,7 +236,7 @@ begin
     Include(FCOmponentState,csAncestor);
   if Assigned(FComponents) then
     For Runner:=0 To FComponents.Count do
-      TComponent(FComponents[i]).SetAncestor(Value);
+      TComponent(FComponents[Runner]).SetAncestor(Value);
 end;
 
 
@@ -247,7 +251,7 @@ begin
     Exclude(FComponentSTate,csDesigning);
   if Assigned(FComponents) then
     For Runner:=0 To FComponents.Count do
-      TComponent(FComponents[i]).SetDesigning(Value);
+      TComponent(FComponents[Runner]).SetDesigning(Value);
 end;
 
 
@@ -313,7 +317,7 @@ begin
 //!!      raise EComponentError.Createfmt(SDuplicatename[newname])
       runerror(255);
   If (csDesigning in FComponentState) and (FOwner<>Nil) then
-    FOWner.ValidateRename(AComponent,Curname,Newname);
+    FOwner.ValidateRename(AComponent,Curname,Newname);
 end;
 
 
@@ -354,8 +358,8 @@ begin
     begin
     For Runner:=0 To FFreeNotifies.Count-1 do
       TComponent(FFreeNotifies[Runner]).Notification (self,opRemove);
-    FreeNotifies.Free;
-    FreeNotifies:=Nil;
+    FFreeNotifies.Free;
+    FFreeNotifies:=Nil;
     end;
   Destroying;
   DestroyComponents;
@@ -372,7 +376,7 @@ begin
   While assigned(FComponents) do 
     begin
     aComponent:=FComponents.Last;
-    Remove(aComponenent);
+    Remove(aComponent);
     Acomponent.Destroy;
     end;
 end;
@@ -398,7 +402,7 @@ Var I : longint;
 begin
   Result:=Nil;
   If (AName='') or Not assigned(FComponents) then exit;
-  For i:=0 to FComponent.Count-1 do
+  For i:=0 to FComponents.Count-1 do
     if TComponent(FComponents[I]).Name=AName then
       begin
       Result:=TComponent(FComponents[I]);
@@ -474,7 +478,10 @@ end;
 
 {
   $Log$
-  Revision 1.2  1998-08-22 10:41:35  michael
+  Revision 1.3  1998-08-23 21:11:03  michael
+  + Fixed some small errors
+
+  Revision 1.2  1998/08/22 10:41:35  michael
   + Initial implementation
 
   Revision 1.1  1998/05/04 14:30:11  michael
