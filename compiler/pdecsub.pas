@@ -823,8 +823,8 @@ implementation
                       else
                        begin
                           if (
-                              not(is_interface(pd._class)) and
-                              pd.forwarddef
+                              parse_only and
+                              not(is_interface(pd._class))
                              ) or
                              (m_repeat_forward in aktmodeswitches) then
                           begin
@@ -2238,7 +2238,10 @@ const
 end.
 {
   $Log$
-  Revision 1.179  2004-05-23 19:06:26  peter
+  Revision 1.180  2004-05-23 20:54:39  peter
+    * fixed 3114
+
+  Revision 1.179  2004/05/23 19:06:26  peter
     * expect : after function when it is a forwarddef
 
   Revision 1.178  2004/05/12 13:21:09  karoly
