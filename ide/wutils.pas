@@ -131,9 +131,11 @@ function IntToStr(L: longint): string;
 function IntToStrL(L: longint; MinLen: sw_integer): string;
 function IntToStrZ(L: longint; MinLen: sw_integer): string;
 function StrToInt(const S: string): longint;
+function StrToCard(const S: string): cardinal;
 function FloatToStr(D: Double; Decimals: byte): string;
 function FloatToStrL(D: Double; Decimals: byte; MinLen: byte): string;
 function HexToInt(S: string): longint;
+function HexToCard(S: string): cardinal;
 function IntToHex(L: longint; MinLen: integer): string;
 function GetStr(P: PString): string;
 function GetPChar(P: PChar): string;
@@ -182,6 +184,8 @@ procedure GiveUpTimeSlice;
 
 const LastStrToIntResult : integer = 0;
       LastHexToIntResult : integer = 0;
+      LastStrToCardResult : integer = 0;
+      LastHexToCardResult : integer = 0;
       DirSep             : char    = {$ifdef Unix}'/'{$else}'\'{$endif};
 
 procedure RegisterWUtils;
@@ -444,6 +448,15 @@ begin
   StrToInt:=L;
 end;
 
+function StrToCard(const S: string): cardinal;
+var L: cardinal;
+    C: integer;
+begin
+  Val(S,L,C); if C<>0 then L:=-1;
+  LastStrToCardResult:=C;
+  StrToCard:=L;
+end;
+
 function HexToInt(S: string): longint;
 var L,I: longint;
     C: char;
@@ -462,6 +475,23 @@ begin
   HexToInt:=L;
 end;
 
+function HexToCard(S: string): cardinal;
+var L,I: cardinal;
+    C: char;
+const HexNums: string[16] = '0123456789ABCDEF';
+begin
+  S:=Trim(S); L:=0; I:=1; LastHexToCardResult:=0;
+  while (I<=length(S)) and (LastHexToCardResult=0) do
+  begin
+    C:=Upcase(S[I]);
+    if C in['0'..'9','A'..'F'] then
+    begin
+      L:=L*16+(Pos(C,HexNums)-1);
+    end else LastHexToCardResult:=I;
+    Inc(I);
+  end;
+  HexToCard:=L;
+end;
 
 function IntToHex(L: longint; MinLen: integer): string;
 const HexNums : string[16] = '0123456789ABCDEF';
@@ -1239,7 +1269,10 @@ BEGIN
 END.
 {
   $Log$
-  Revision 1.7  2002-03-22 16:43:27  pierre
+  Revision 1.8  2002-04-02 13:23:02  pierre
+   + HextToCard StrToCard new functions
+
+  Revision 1.7  2002/03/22 16:43:27  pierre
    * avoid that constructor is proposed for code complete if const is given
 
   Revision 1.6  2002/03/20 13:48:31  pierre
