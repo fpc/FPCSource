@@ -1754,6 +1754,41 @@ const CrtAddress: word = 0;
     isgraphmode := false;
  end;
 
+ procedure LoadFont8x8;
+
+   var
+      r : registers;
+      x,y,c : longint;
+      data : array[0..127,0..7] of byte;
+
+   begin
+      r.ah:=$11;
+      r.al:=$30;
+      r.bh:=1;
+      RealIntr($10,r);
+      dosmemget(r.es,r.bp,data,sizeof(data));
+      for c:=0 to 127 do
+        for y:=0 to 7 do
+          for x:=0 to 7 do
+            if (data[c,y] and ($80 shr x))<>0 then
+              DefaultFontData[chr(c),y,x]:=1
+            else
+              DefaultFontData[chr(c),y,x]:=0;
+      { second part }
+      r.ah:=$11;
+      r.al:=$30;
+      r.bh:=0;
+      RealIntr($10,r);
+      dosmemget(r.es,r.bp,data,sizeof(data));
+      for c:=0 to 127 do
+        for y:=0 to 7 do
+          for x:=0 to 7 do
+            if (data[c,y] and ($80 shr x))<>0 then
+              DefaultFontData[chr(c+128),y,x]:=1
+            else
+              DefaultFontData[chr(c+128),y,x]:=0;
+   end;
+
   function QueryAdapterInfo:PModeInfo;
   { This routine returns the head pointer to the list }
   { of supPorted graphics modes.                      }
@@ -2190,7 +2225,7 @@ const CrtAddress: word = 0;
              mode.SetVisualPage := {$ifdef fpc}@{$endif}SetVisualVESA;
              mode.SetActivePage := {$ifdef fpc}@{$endif}SetActiveVESA;
              mode.hline := {$ifdef fpc}@{$endif}HLineVESA256;
-             mode.vline := {$ifdef fpc}@{$endif}VLineVESA256;
+             //!!!!! mode.vline := {$ifdef fpc}@{$endif}VLineVESA256;
              mode.XAspect := 10000;
              mode.YAspect := 10000;
              AddMode(mode);
@@ -2295,7 +2330,7 @@ const CrtAddress: word = 0;
              mode.InitMode := {$ifdef fpc}@{$endif}Init1024x768x256;
              mode.SetVisualPage := {$ifdef fpc}@{$endif}SetVisualVESA;
              mode.SetActivePage := {$ifdef fpc}@{$endif}SetActiveVESA;
-             mode.vline := {$ifdef fpc}@{$endif}VLineVESA256;
+             //!!!!! mode.vline := {$ifdef fpc}@{$endif}VLineVESA256;
              mode.hline := {$ifdef fpc}@{$endif}HLineVESA256;
              mode.XAspect := 10000;
              mode.YAspect := 10000;
@@ -2401,7 +2436,7 @@ const CrtAddress: word = 0;
              mode.GetRGBPalette := {$ifdef fpc}@{$endif}GetVESARGBPalette;
              mode.SetVisualPage := {$ifdef fpc}@{$endif}SetVisualVESA;
              mode.SetActivePage := {$ifdef fpc}@{$endif}SetActiveVESA;
-             mode.vline := {$ifdef fpc}@{$endif}VLineVESA256;
+             //!!!!! mode.vline := {$ifdef fpc}@{$endif}VLineVESA256;
              mode.hline := {$ifdef fpc}@{$endif}HLineVESA256;
              mode.XAspect := 10000;
              mode.YAspect := 10000;
@@ -2464,7 +2499,10 @@ const CrtAddress: word = 0;
 
 {
 $Log$
-Revision 1.1  1999-11-08 11:15:21  peter
+Revision 1.2  1999-11-11 14:05:21  florian
+  + support font loaded from BIOS
+
+Revision 1.1  1999/11/08 11:15:21  peter
   * move graph.inc to the target dir
 
 Revision 1.26  1999/11/05 12:18:23  jonas
