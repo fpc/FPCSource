@@ -509,7 +509,10 @@ implementation
 uses
   Video,Strings,Keyboard,Validate,
   globtype,Tokens,Version,
-  cpubase,ra386,
+  cpubase,
+{$ifdef I386}
+   ra386,
+{$endif I386}
 {$ifdef USE_EXTERNAL_COMPILER}
    fpintf, { superseeds version_string of version unit }
 {$endif USE_EXTERNAL_COMPILER}
@@ -4364,7 +4367,10 @@ end;
 END.
 {
   $Log$
-  Revision 1.35  2002-09-13 22:28:08  pierre
+  Revision 1.36  2002-09-19 22:15:45  pierre
+   * fix compilation failure for m68k target
+
+  Revision 1.35  2002/09/13 22:28:08  pierre
    * Update copyright
 
   Revision 1.34  2002/09/12 22:07:46  pierre
