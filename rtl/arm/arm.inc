@@ -33,7 +33,7 @@ end;
 ****************************************************************************}
 
 {$define FPC_SYSTEM_HAS_GET_FRAME}
-function get_frame:pointer;assembler;{$ifdef SYSTEMINLINE}inline;{$endif}
+function get_frame:pointer;assembler;nostackframe;{$ifdef SYSTEMINLINE}inline;{$endif}
 asm
   mov    r0,r11
 end ['R0'];
@@ -119,7 +119,10 @@ end;
 
 {
   $Log$
-  Revision 1.9  2005-01-05 15:21:14  florian
+  Revision 1.10  2005-01-05 15:59:02  florian
+    + added nostackframe directive to get_frame
+
+  Revision 1.9  2005/01/05 15:21:14  florian
     * fillchar fixed; it's used now
 
   Revision 1.8  2005/01/04 16:46:38  florian
