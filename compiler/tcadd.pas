@@ -109,6 +109,7 @@ implementation
          { overloaded operator ? }
          if (p^.treetype=starstarn) or
             (ld^.deftype=recorddef) or
+            (ld^.deftype=arraydef) or
             { <> and = are defined for classes }
             ((ld^.deftype=objectdef) and
              (not(pobjectdef(ld)^.isclass) or
@@ -116,6 +117,7 @@ implementation
              )
             ) or
             (rd^.deftype=recorddef) or
+            (rd^.deftype=arraydef) or
             { <> and = are defined for classes }
             ((rd^.deftype=objectdef) and
              (not(pobjectdef(rd)^.isclass) or
@@ -1094,7 +1096,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.34  1999-06-02 10:11:52  florian
+  Revision 1.34.2.1  1999-06-17 12:35:23  pierre
+   * allow array binary operator overloading if not with orddef
+
+  Revision 1.34  1999/06/02 10:11:52  florian
     * make cycle fixed i.e. compilation with 0.99.10
     * some fixes for qword
     * start of register calling conventions
