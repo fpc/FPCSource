@@ -78,7 +78,7 @@ specific processor ABI. It is overriden for each CPU target.
     procedure g_flags2reg(list:TAasmOutput;Size:TCgSize;CONST f:tresflags;reg:TRegister);override;
     procedure g_overflowCheck(List:TAasmOutput;const p:TNode);override;
     procedure g_stackframe_entry(list:TAasmOutput;localsize:LongInt);override;
-    procedure g_restore_all_registers(list:TAasmOutput;selfused,accused,acchiused:boolean);override;
+    procedure g_restore_all_registers(list:TAasmOutput;accused,acchiused:boolean);override;
     procedure g_restore_frame_pointer(list:TAasmOutput);override;
     procedure g_restore_standard_registers(list:taasmoutput;usedinproc:Tsupregset);override;
     procedure g_return_from_proc(list:TAasmOutput;parasize:aword);override;
@@ -983,7 +983,7 @@ after execution of that instruction is the called function stack pointer}
     with list do
       concat(Taicpu.Op_reg_const_reg(A_SAVE,r,-LocalSize,r));
   end;
-procedure TCgSparc.g_restore_all_registers(list:TaasmOutput;selfused,accused,acchiused:boolean);
+procedure TCgSparc.g_restore_all_registers(list:TaasmOutput;accused,acchiused:boolean);
   begin
     {$warning FIX ME TCgSparc.g_restore_all_registers}
   end;
@@ -1449,7 +1449,10 @@ BEGIN
 END.
 {
   $Log$
-  Revision 1.48  2003-05-07 15:04:30  mazen
+  Revision 1.49  2003-05-22 16:11:22  florian
+    * fixed sparc compilation partially
+
+  Revision 1.48  2003/05/07 15:04:30  mazen
   * invalid genrated code for CASE statement fixed
 
   Revision 1.47  2003/05/06 20:25:20  mazen

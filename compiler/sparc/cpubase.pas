@@ -289,11 +289,19 @@ const
   RS_I5=$16;
   RS_I6=$17;
   RS_I7=$18;
+  RS_G0=$19;
+  RS_G1=$1A;
+  RS_G2=$1B;
+  RS_G3=$1C;
+  RS_G4=$1D;
+  RS_G5=$1E;
+  RS_G6=$1F;
+  RS_G7=$20;
 
   first_supreg = $01;
-  last_supreg = $18;
+  last_supreg = $20;
 
-  first_imreg = $19;
+  first_imreg = $21;
   last_imreg = $ff;
 
   {Subregisters; nothing known about.}
@@ -584,11 +592,11 @@ VAR
 *****************************************************************************}
 const
   maxvarregs=30;
-  VarRegs:array[1..maxvarregs]OF TCpuRegister=(
-             R_G0,R_G1,R_G2,R_G3,R_G4,R_G5,R_G6,R_G7,
-             R_O0,R_O1,R_O2,R_O3,R_O4,R_O5,{R_R14=R_SP}R_O7,
-             R_L0,R_L1,R_L2,R_L3,R_L4,R_L5,R_L6,R_L7,
-             R_I0,R_I1,R_I2,R_I3,R_I4,R_I5,{R_R30=R_FP}R_I7
+  VarRegs:array[1..maxvarregs] of tnewregister = (
+             RS_G0,RS_G1,RS_G2,RS_G3,RS_G4,RS_G5,RS_G6,RS_G7,
+             RS_O0,RS_O1,RS_O2,RS_O3,RS_O4,RS_O5,{RS_R14=RS_SP}RS_O7,
+             RS_L0,RS_L1,RS_L2,RS_L3,RS_L4,RS_L5,RS_L6,RS_L7,
+             RS_I0,RS_I1,RS_I2,RS_I3,RS_I4,RS_I5,{RS_R30=RS_FP}RS_I7
         );
   maxfpuvarregs = 8;
   max_operands = 3;
@@ -670,7 +678,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.30  2003-05-06 14:58:46  mazen
+  Revision 1.31  2003-05-22 16:11:22  florian
+    * fixed sparc compilation partially
+
+  Revision 1.30  2003/05/06 14:58:46  mazen
   - non used constants OT_* removed
   * some keywords moved lower case
 

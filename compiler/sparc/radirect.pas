@@ -59,14 +59,11 @@ interface
        { constants }
        aggas,cpubase,globtype
        ;
-Procedure FWaitWarning;
-begin
-  if (target_info.system=system_i386_GO32V2) and (cs_fp_emulation in aktmoduleswitches) then
-   Message(asmr_w_fwait_emu_prob);
-end;
+
     function assemble : tnode;
 
       var
+         uhs,
          retstr,s,hs : string;
          c : char;
          ende : boolean;
@@ -139,8 +136,6 @@ end;
                                   else
                                     Message(asmr_w_using_defined_as_local);
                               end
-                            else if upper(hs)='FWAIT' then
-                             FwaitWarning
                             else
                             { access to local variables }
                             if assigned(current_procdef) then
@@ -148,7 +143,7 @@ end;
                                  { is the last written character an special }
                                  { char ?                                   }
                                  if (s[length(s)]='%') and
-                                    paramanager.ret_in_acc(current_procdef.rettype.def,current_procdef.proccalloption) and
+                                    (not paramanager.ret_in_param(current_procdef.rettype.def,current_procdef.proccalloption)) and
                                     ((pos('AX',upper(hs))>0) or
                                     (pos('AL',upper(hs))>0)) then
                                    tvarsym(current_procdef.funcretsym).varstate:=vs_assigned;
@@ -208,70 +203,104 @@ end;
                                                        tvarsym(sym).varstate:=vs_used;
                                                   end;
                                              end
-                                      { I added that but it creates a problem in line.ppi
-                                      because there is a local label wbuffer and
-                                      a static variable WBUFFER ...
-                                      what would you decide, florian ?}
-                                      else
-
+                                        end
+                                   end
+                                 else
+                                   begin
+                                      uhs:=upper(hs);
+                                      if (uhs='__SELF') then
                                         begin
-                                           searchsym(upper(hs),sym,srsymtable);
-                                           if assigned(sym) and (sym.owner.symtabletype in [globalsymtable,staticsymtable]) then
-                                             begin
-                                               case sym.typ of
-                                                 varsym :
-                                                   begin
-                                                     Message2(asmr_h_direct_global_to_mangled,hs,tvarsym(sym).mangledname);
-                                                     hs:=tvarsym(sym).mangledname;
-                                                     inc(tvarsym(sym).refs);
-                                                   end;
-                                                 typedconstsym :
-                                                   begin
-                                                     Message2(asmr_h_direct_global_to_mangled,hs,ttypedconstsym(sym).mangledname);
-                                                     hs:=ttypedconstsym(sym).mangledname;
-                                                   end;
-                                                 procsym :
-                                                   begin
-                                                     { procs can be called or the address can be loaded }
-                                                     if ((pos('CALL',upper(s))>0) or (pos('LEA',upper(s))>0)) then
-                                                      begin
-                                                        if assigned(tprocsym(sym).first_procdef) then
-                                                          Message1(asmr_w_direct_global_is_overloaded_func,hs);
-                                                        Message2(asmr_h_direct_global_to_mangled,hs,tprocsym(sym).first_procdef.mangledname);
-                                                        hs:=tprocsym(sym).first_procdef.mangledname;
-                                                      end;
-                                                   end;
-                                                 else
-                                                   Message(asmr_e_wrong_sym_type);
-                                               end;
-                                             end
-                                           else if upper(hs)='__SELF' then
-                                             begin
-                                                if assigned(current_procdef._class) then
-                                                  hs:=tostr(current_procinfo.selfpointer_offset)+
-                                                      '('+std_reg2str[current_procinfo.framepointer.enum]+')'
-                                                else
-                                                 Message(asmr_e_cannot_use_SELF_outside_a_method);
-                                             end
-                                           else if upper(hs)='__RESULT' then
-                                             begin
-                                                if (not is_void(current_procdef.rettype.def)) then
-                                                  hs:=retstr
-                                                else
-                                                  Message(asmr_e_void_function);
-                                             end
-                                           else if upper(hs)='__OLDEBP' then
-                                             begin
-                                                { complicate to check there }
-                                                { we do it: }
-                                                if current_procdef.parast.symtablelevel>normal_function_level then
-                                                  hs:=tostr(current_procinfo.framepointer_offset)+
-                                                    '('+std_reg2str[current_procinfo.framepointer.enum]+')'
-                                                else
-                                                  Message(asmr_e_cannot_use_OLDEBP_outside_nested_procedure);
-                                             end;
+                                          if assigned(current_procdef._class) then
+                                           uhs:='self'
+                                          else
+                                           begin
+                                             Message(asmr_e_cannot_use_SELF_outside_a_method);
+                                             uhs:='';
                                            end;
-                                        end;
+                                        end
+                                      else
+                                       if (uhs='__OLDEBP') then
+                                         begin
+                                           if current_procdef.parast.symtablelevel>normal_function_level then
+                                            uhs:='parentframe'
+                                           else
+                                            begin
+                                              Message(asmr_e_cannot_use_OLDEBP_outside_nested_procedure);
+                                              uhs:='';
+                                            end;
+                                         end
+                                       else
+                                         if uhs='__RESULT' then
+                                           begin
+                                             if (not is_void(current_procdef.rettype.def)) then
+                                              uhs:='result'
+                                             else
+                                              begin
+                                                Message(asmr_e_void_function);
+                                                uhs:='';
+                                              end;
+                                           end;
+
+                                       if uhs<>'' then
+                                         searchsym(upper(hs),sym,srsymtable)
+                                       else
+                                         sym:=nil;
+
+                                         if assigned(sym) then
+                                           begin
+                                             case sym.owner.symtabletype of
+                                               globalsymtable,
+                                               staticsymtable :
+                                                 begin
+                                                   case sym.typ of
+                                                     varsym :
+                                                       begin
+                                                         Message2(asmr_h_direct_global_to_mangled,hs,tvarsym(sym).mangledname);
+                                                         hs:=tvarsym(sym).mangledname;
+                                                         inc(tvarsym(sym).refs);
+                                                       end;
+                                                     typedconstsym :
+                                                       begin
+                                                         Message2(asmr_h_direct_global_to_mangled,hs,ttypedconstsym(sym).mangledname);
+                                                         hs:=ttypedconstsym(sym).mangledname;
+                                                       end;
+                                                     procsym :
+                                                       begin
+                                                         { procs can be called or the address can be loaded }
+                                                         if ((pos('CALL',upper(s))>0) or (pos('LEA',upper(s))>0)) then
+                                                          begin
+                                                            if tprocsym(sym).procdef_count>1 then
+                                                              Message1(asmr_w_direct_global_is_overloaded_func,hs);
+                                                            Message2(asmr_h_direct_global_to_mangled,hs,tprocsym(sym).first_procdef.mangledname);
+                                                            hs:=tprocsym(sym).first_procdef.mangledname;
+                                                          end;
+                                                       end;
+                                                     else
+                                                       Message(asmr_e_wrong_sym_type);
+                                                   end;
+                                                 end;
+                                               parasymtable,
+                                               localsymtable :
+                                                 begin
+                                                   case sym.typ of
+                                                     varsym :
+                                                       begin
+                                                         hs:=tostr(tvarsym(sym).adjusted_address)+
+                                                             '('+std_reg2str[framereg.enum]+')';
+                                                         inc(tvarsym(sym).refs);
+                                                       end;
+                                                     typedconstsym :
+                                                       begin
+                                                         Message2(asmr_h_direct_global_to_mangled,hs,ttypedconstsym(sym).mangledname);
+                                                         hs:=ttypedconstsym(sym).mangledname;
+                                                       end;
+                                                     else
+                                                       Message(asmr_e_wrong_sym_type);
+                                                   end;
+                                                 end;
+                                              end;
+                                           end;
+                                      end;
                                    end;
                               end;
                             s:=s+hs;
@@ -314,7 +343,10 @@ initialization
 end.
 {
   $Log$
-  Revision 1.7  2003-04-27 11:21:36  peter
+  Revision 1.8  2003-05-22 16:11:22  florian
+    * fixed sparc compilation partially
+
+  Revision 1.7  2003/04/27 11:21:36  peter
     * aktprocdef renamed to current_procdef
     * procinfo renamed to current_procinfo
     * procinfo will now be stored in current_module so it can be
