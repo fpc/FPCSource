@@ -606,7 +606,9 @@ unit og386cff;
         { when the offset is not 0 then write a relocation, take also the
           hdrstab into account with the offset }
         if reloc then
-          if DLLSource then
+          if DLLSource and RelocSection then
+          { avoid relocation in the .stab section
+            because it ends up in the .reloc section instead }
             sects[sec_stab]^.addsectionreloc(sects[sec_stab]^.len-4,s,relative_rva)
           else
             sects[sec_stab]^.addsectionreloc(sects[sec_stab]^.len-4,s,relative_false);
@@ -656,7 +658,9 @@ unit og386cff;
         { when the offset is not 0 then write a relocation, take also the
           hdrstab into account with the offset }
         if reloc then
-          if DLLSource then
+          if DLLSource and RelocSection then
+          { avoid relocation in the .stab section
+            because it ends up in the .reloc section instead }
             sects[sec_stab]^.addsymreloc(sects[sec_stab]^.len-4,ps,relative_rva)
           else
             sects[sec_stab]^.addsymreloc(sects[sec_stab]^.len-4,ps,relative_false);
@@ -677,7 +681,11 @@ unit og386cff;
               if (r^.symbol^.typ=AS_LOCAL) then
                rel.sym:=2*sects[r^.symbol^.section]^.secidx
               else
-               rel.sym:=r^.symbol^.idx+initsym;
+               begin
+                 if r^.symbol^.idx=-1 then
+                   internalerror(4321);
+                 rel.sym:=r^.symbol^.idx+initsym;
+               end;
             end
            else if r^.section<>sec_none then
             rel.sym:=2*sects[r^.section]^.secidx
@@ -985,7 +993,10 @@ unit og386cff;
 end.
 {
   $Log$
-  Revision 1.21  2000-03-10 09:15:54  pierre
+  Revision 1.22  2000-03-10 16:05:28  pierre
+   * check that symbol is in object
+
+  Revision 1.21  2000/03/10 09:15:54  pierre
    * rva relocation bug fixed
 
   Revision 1.20  2000/03/09 14:29:47  pierre
