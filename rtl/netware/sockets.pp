@@ -51,222 +51,6 @@ Implementation
 {******************************************************************************
                           Basic Socket Functions
 ******************************************************************************}
-(***
-Function fpsocket(Domain,SocketType,Protocol:Longint):Longint;
-begin
-  fpSocket:=WinSock.Socket(Domain,SocketType,ProtoCol);
-  if fpSocket<0 then
-    fpSocketError:=WSAGetLastError
-  else
-    fpSocketError:=0;
-end;
-
-Function fpCloseSocket(s:cint):Longint;
-var i : longint;
-begin
-  i := Winsock.CloseSocket (s);
-  if i <> 0 then
-  begin
-    SocketError:=WSAGetLastError;
-    fpCloseSocket := i;
-  end else
-  begin
-    fpCloseSocket := 0;
-    SocketError := 0;
-  end;
-end;
-
-Function fpSend(s:cint;const Buf;BufLen,Flags:Longint):Longint;
-begin
-  fpSend:=WinSock.Send(s,Buf,BufLen,Flags);
-  if fpSend<0 then
-    SocketError:=WSAGetLastError
-  else
-    SocketError:=0;
-end;
-
-Function fpSendTo(s:cint;Const Buf;BufLen,Flags:Longint;Var Addr; AddrLen : Longint):Longint;
-begin
-  // Dubious construct, this should be checked.
-  fpSendTo:=WinSock.SendTo(s,Buf,BufLen,Flags,Winsock.TSockAddr(Addr),AddrLen);
-  if fpSendTo<0 then
-    SocketError:=WSAGetLastError
-  else
-    SocketError:=0;
-end;
-
-Function fpRecv(S:cint;Var Buf;BufLen,Flags:Longint):Longint;
-begin
-  fpRecv:=WinSock.Recv(Sock,Buf,BufLen,Flags);
-  if fpRecv<0 then
-    SocketError:=WSAGetLastError
-  else
-    SocketError:=0;
-end;
-
-
-Function fpRecvFrom(s:cint; buf: pointer; len: size_t; flags: cint; from : psockaddr; fromlen : psocklen):ssize_t;
-begin
-  fpRecvFrom:=WinSock.RecvFrom(s,Buf,len,flags,Winsock.TSockAddr(from^),FromLen^);
-  if fpRecvFrom<0 then
-    SocketError:=WSAGetLastError
-  else
-    SocketError:=0;
-end;
-
-
-function fpbind (s:cint; addrx : psockaddr; addrlen : tsocklen):cint;
-
-begin
-  fpbind:=WinSock.Bind(S,WinSock.PSockAddr(Addrx),AddrLen);
-  if fpbind<0 then
-       SocketError:=WSAGetLastError
-  else
-       SocketError:=0;
-end;
-
-Function Listen(Sock,MaxConnect:Longint):Boolean;
-
-  var
-     l : longint;
-
-begin
-  l:=WinSock.Listen(Sock,MaxConnect);
-  if l<0 then
-    begin
-       SocketError:=WSAGetLastError;
-       Listen:=false;
-    end
-  else
-    begin
-       SocketError:=0;
-       Listen:=true;
-    end;
-end;
-
-Function Accept(Sock:Longint;Var Addr;Var Addrlen:Longint):Longint;
-begin
-  Accept:=WinSock.Accept(Sock,WinSock.PSockAddr(@Addr),plongint(@AddrLen));
-  if Accept<0 then
-    SocketError:=WSAGetLastError
-  else
-    SocketError:=0;
-end;
-
-Function Connect(Sock:Longint;Const Addr;Addrlen:Longint):Boolean;
-
-begin
-  Connect:=WinSock.Connect(Sock,@WinSock.TSockAddr(Addr),AddrLen)=0;
-  if not Connect then
-    SocketError:=WSAGetLastError
-  else
-    SocketError:=0;
-end;
-
-Function Shutdown(Sock:Longint;How:Longint):Longint;
-begin
-  ShutDown:=WinSock.ShutDown(Sock,How);
-  if ShutDown<0 then
-    SocketError:=WSAGetLastError
-  else
-    SocketError:=0;
-end;
-
-Function GetSocketName(Sock:Longint;Var Addr;Var Addrlen:Longint):Longint;
-begin
-  GetSocketName:=WinSock.GetSockName(Sock,WinSock.TSockAddr(Addr),AddrLen);
-  if GetSocketName<0 then
-    SocketError:=WSAGetLastError
-  else
-    SocketError:=0;
-end;
-
-Function GetPeerName(Sock:Longint;Var Addr;Var Addrlen:Longint):Longint;
-begin
-  GetPeerName:=WinSock.GetPeerName(Sock,WinSock.TSockAddr(Addr),AddrLen);
-  if GetPeerName<0 then
-    SocketError:=WSAGetLastError
-  else
-    SocketError:=0;
-end;
-
-Function SetSocketOptions(Sock,Level,OptName:Longint;Const OptVal;optlen:longint):Longint;
-begin
-  SetSocketOptions:=WinSock.SetSockOpt(Sock,Level,OptName,pchar(@OptVal),OptLen);
-  if SetSocketOptions<0 then
-    SocketError:=WSAGetLastError
-  else
-    SocketError:=0;
-end;
-
-Function GetSocketOptions(Sock,Level,OptName:Longint;Var OptVal;Var optlen:longint):Longint;
-begin
-  GetSocketOptions:=WinSock.GetSockOpt(Sock,Level,OptName,OptVal,OptLen);
-  if GetSocketOptions<0 then
-    SocketError:=WSAGetLastError
-  else
-    SocketError:=0;
-end;
-
-Function SocketPair(Domain,SocketType,Protocol:Longint;var Pair:TSockArray):Longint;
-begin
-  // SocketPair:=SocketCall(Socket_Sys_SocketPair,Domain,SocketType,Protocol,longint(@Pair),0,0);
-end;
-
-
-{ mimic the linux fdWrite/fdRead calls for the file/text socket wrapper }
-function fdWrite(handle : longint;Const bufptr;size : dword) : dword;
-begin
-  fdWrite := dword(WinSock.send(handle, bufptr, size, 0));
-  if fdWrite = dword(SOCKET_ERROR) then
-  begin
-    SocketError := WSAGetLastError;
-    fdWrite := 0;
-  end
-  else
-    SocketError := 0;
-end;
-
-function fdRead(handle : longint;var bufptr;size : dword) : dword;
-  var
-     d : dword;
-
-  begin
-     if ioctlsocket(handle,FIONREAD,@d) = SOCKET_ERROR then
-       begin
-         SocketError:=WSAGetLastError;
-         fdRead:=0;
-         exit;
-       end;
-     if d>0 then
-       begin
-         if size>d then
-           size:=d;
-         fdRead := dword(WinSock.recv(handle, bufptr, size, 0));
-         if fdRead = dword(SOCKET_ERROR) then
-         begin
-           SocketError:= WSAGetLastError;
-           fdRead := 0;
-         end else
-           SocketError:=0;
-       end
-     else
-       SocketError:=0;
-  end;
-
-
-{$i sockets.inc}
-
-{ winsocket stack needs an init. and cleanup code }
-var
-  wsadata : twsadata;
-
-initialization
-  WSAStartUp($2,wsadata);
-finalization
-  WSACleanUp;
-end.
-***)
 
 function fpsocket 	(domain:cint; xtype:cint; protocol: cint):cint;
 begin
@@ -430,6 +214,7 @@ end;
 
 function fpsocketpair  (d:cint; xtype:cint; protocol:cint; sv:pcint):cint; 
 begin
+  fpsocketpair := -1;
 end;
 
 Function CloseSocket(Sock:Longint):Longint;
@@ -501,6 +286,7 @@ end;
 Function SocketPair(Domain,SocketType,Protocol:Longint;var Pair:TSockArray):Longint;
 begin
   // SocketPair:=SocketCall(Socket_Sys_SocketPair,Domain,SocketType,Protocol,longint(@Pair),0,0);a
+  SocketPair := -1;
 end;
 
 
@@ -599,7 +385,10 @@ finalization
 end.
 {
   $Log$
-  Revision 1.5  2004-07-30 15:05:25  armin
+  Revision 1.6  2004-09-18 23:45:43  armin
+  * make winsock more compatible to win32 version
+
+  Revision 1.5  2004/07/30 15:05:25  armin
   make netware rtl compilable under 1.9.5
 
   Revision 1.4  2003/03/25 18:17:54  armin

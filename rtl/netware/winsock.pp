@@ -13,27 +13,16 @@
     but WITHOUT ANY WARRANTY; without even the implied warranty of
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 
- **********************************************************************
- For NetWare 4.11 you must install winsock-support (i.e. nw4wsock.exe)
+ ************************************************************************
+ For NetWare 4.11 you have to install winsock-support (i.e. nw4wsock.exe)
  NetWare >= 5.0 contains winsock support by default
- **********************************************************************}
+ ************************************************************************}
 
 {$PACKRECORDS 1}
 {$R-}
 
 unit winsock;
-{ ifndef VER0_99_14}
-{ ifndef NO_SMART_LINK}
-{ define support_smartlink}
-{ endif}
-{ endif}
 
-
-{ ifdef support_smartlink}
-{ smartlink on}
-{ endif}
-
-{$smartlink off}  {for now, there seems to be a problem with fpc or the linker !}
 {$mode objfpc}
 
   interface
@@ -41,9 +30,8 @@ unit winsock;
     const
        {
          Default maximium number of sockets.
-         this does not
-         mean that the underlying Windows Sockets implementation has to
-         support that many!
+         this does not mean that the underlying netware
+         Sockets implementation has to support that many!
        }
        FD_SETSIZE = 64;
 
@@ -52,7 +40,7 @@ unit winsock;
        tOS_UINT = DWord;
        ptOS_INT = ^tOS_INT;
        ptOS_UINT = ^tOS_UINT;
-    
+
        u_char = char;
        u_short = word;
        u_int = tOS_UINT;
@@ -60,7 +48,7 @@ unit winsock;
        pu_long = ^u_long;
        pu_short = ^u_short;
        plongint = ^longint;
-       TSocket = u_long;
+       TSocket = longint;
        BOOL    = boolean;
        LPINT   = ^integer;
        LPDWORD = ^dword;
@@ -99,16 +87,6 @@ unit winsock;
 
        TTimeVal = timeval;
        PTimeVal = ^TTimeVal;
-
-       { found no reference to this type in c header files and here. AlexS }
-       { minutes west of Greenwich  }
-       { type of dst correction  }
-       timezone = record
-          tz_minuteswest : longint;
-          tz_dsttime : longint;
-       end;
-       TTimeZone = timezone;
-       PTimeZone = ^TTimeZone;
 
     const
        IOCPARM_MASK = $7f;
@@ -154,15 +132,11 @@ unit winsock;
          fits in an unsigned long -- someday that won't be true!
        }
        netent = record
-          { official name of net  }
-          n_name : ^char;
-          { alias list  }
-          n_aliases : ^pchar;
-          { net address type  }
-          n_addrtype : SmallInt;
-          n_pad1 : SmallInt;    { ensure right packaging }
-          { network #  }
-          n_net : u_long;
+          n_name : ^char;        // official name of net
+          n_aliases : ^pchar;    // alias list
+          n_addrtype : SmallInt; // net address type
+          n_pad1 : SmallInt;     // ensure right packaging
+          n_net : u_long;        // network #
        end;
        TNetEnt = netent;
        PNetEnt = ^TNetEnt;
@@ -270,9 +244,9 @@ unit winsock;
 	          sa_family : SmallInt;                       (* 2 byte *)
                   sa_data : array[0..13] of char;             (* 14 byte *)
                  );
-	
+
          end;
-         
+
        TSockAddrIn = sockaddr_in;
        PSockAddrIn = ^TSockAddrIn;
        TSockAddr = sockaddr_in;
@@ -335,7 +309,7 @@ unit winsock;
        taken from the BSD file sys/socket.h.
     }
     const
-       INVALID_SOCKET = u_long(not(1));
+       INVALID_SOCKET = longint(not(1));
        SOCKET_ERROR = -1;
        SOCK_STREAM = 1;
        SOCK_DGRAM = 2;
@@ -1069,8 +1043,6 @@ unit winsock;
        SERVICE_TYPE_VALUE_OBJECTID = SERVICE_TYPE_VALUE_OBJECTIDA;
 {$endif}
 
-{$ifndef __CSADDR_DEFINED__}
-{$define __CSADDR_DEFINED__}
     { SockAddr Information }
     type
 
@@ -1091,7 +1063,6 @@ unit winsock;
          end;
        PCSADDR_INFO  = ^TCSADDR_INFO;
        LPCSADDR_INFO = ^TCSADDR_INFO;
-{$endif}
 
     { Address list returned via SIO_ADDRESS_LIST_QUERY }
 
@@ -1196,9 +1167,9 @@ unit winsock;
        LUP_RES_SERVICE = $8000;
        LUP_FLUSHCACHE = $1000;
        LUP_FLUSHPREVIOUS = $2000;
-    { }
+
     { Return flags }
-    { }
+
        RESULT_IS_ALIAS = $0001;
 
     { Service Address Registration and Deregistration Data Types. }
@@ -1759,14 +1730,9 @@ unit winsock;
      NS_SLP = 5;
   { Predefined BLOB Value Types }
   { Extends Predefined Value Types in winnt.h }
-  { }
-  {#define REG_SZ                   ( 1 )   // Unicode NULL terminated string }
-  {#define REG_BINARY               ( 3 )   // Free form binary }
-  {#define REG_DWORD                ( 4 )   // 32-bit number }
-  { Boolian value; TRUE or FALSE }
-     REG_BOOL = 11;
-  { Keyword with no value }
-     REG_KEYWORD = 12;
+
+     REG_BOOL    = 11;  // Boolean value; TRUE or FALSE }
+     REG_KEYWORD = 12;  // Keyword with no value
 
   {___[ Type definitions ]__________________________________________________________________________ }
 
@@ -1851,6 +1817,16 @@ unit winsock;
     _fn_getprotobyname   = 'WS2_32_getprotobyname';
     {$endif}
 
+{
+Winsock types all buffers as pchar (char *), modern POSIX does it the ANSI
+C way with pointer (void *). If the pointer overloaded version doesn't exist,
+a "pointer" will be passed to the "var" version. (bug 3142).
+So if there are var/const versions:
+- To keep ported unix code working, there must be "pointer" variants (ANSI)
+- To keep Delphi/ported C Winsock code working there must be pchar variants
+	(K&R)
+IOW, there _must_ be 3 versions then: var/const, pchar and pointer}
+
     {$ifdef netware}
     function accept(s:TSocket; addr: PSockAddr; addrlen : ptOS_INT) : TSocket;
     function accept(s:TSocket; addr: PSockAddr; var addrlen : tOS_INT) : TSocket;
@@ -1859,23 +1835,23 @@ unit winsock;
     function accept(s:TSocket; addr: PSockAddr; var addrlen : tOS_INT) : TSocket;stdcall;external winsockdll name 'accept';
     {$endif}
     function bind(s:TSocket; addr: PSockaddr;namelen:tOS_INT):tOS_INT;{$ifdef Netware}cdecl;{$else}stdcall;{$endif}external winsockdll name _fn_Bind;
-    function bind(s:TSocket; var addr: TSockaddr;namelen:tOS_INT):tOS_INT;{$ifdef Netware}cdecl;{$else}stdcall;{$endif}external winsockdll name _fn_Bind;
+    function bind(s:TSocket; const addr: TSockaddr;namelen:tOS_INT):tOS_INT;{$ifdef Netware}cdecl;{$else}stdcall;{$endif}external winsockdll name _fn_Bind;
     function closesocket(s:TSocket):tOS_INT;{$ifdef Netware}cdecl;{$else}stdcall;{$endif}external winsockdll name _fn_closesocket;
     {$ifdef netware}
     function connect(s:TSocket; addr:PSockAddr; namelen:tOS_INT):tOS_INT;
-    function connect(s:TSocket; var name:TSockAddr; namelen:tOS_INT):tOS_INT;
+    function connect(s:TSocket; Const name:TSockAddr; namelen:tOS_INT):tOS_INT;
     {$else}
-    function connect(s:TSocket; addr:PSockAddr; namelen:tOS_INT):tOS_INT;
-      stdcall;external winsockdll name 'connect';
-    function connect(s:TSocket; var name:TSockAddr; namelen:tOS_INT):tOS_INT;
-      stdcall;external winsockdll name 'connect';
+    function connect(s:TSocket; addr:PSockAddr; namelen:tOS_INT):tOS_INT; stdcall;external winsockdll name 'connect';
+    function connect(s:TSocket; Const name:TSockAddr; namelen:tOS_INT):tOS_INT; stdcall;external winsockdll name 'connect';
     {$endif}
 
-    function ioctlsocket(s:TSocket; cmd:longint; var arg:u_long):tOS_INT;{$ifdef Netware}cdecl;{$else}stdcall;{$endif}external winsockdll name _fn_ioctlsocket; { really a c-long }
-    function ioctlsocket(s:TSocket; cmd:longint; argp:pu_long):tOS_INT;{$ifdef Netware}cdecl;{$else}stdcall;{$endif}external winsockdll name _fn_ioctlsocket; { really a c-long }
+    function ioctlsocket(s:TSocket; cmd:longint; var arg:u_long):tOS_INT;{$ifdef Netware}cdecl;{$else}stdcall;{$endif}external winsockdll name _fn_ioctlsocket;
+    function ioctlsocket(s:TSocket; cmd:longint; var arg:longint):tOS_INT;{$ifdef Netware}cdecl;{$else}stdcall;{$endif}external winsockdll name _fn_ioctlsocket;
+    function ioctlsocket(s:TSocket; cmd:longint; argp:pu_long):tOS_INT;{$ifdef Netware}cdecl;{$else}stdcall;{$endif}external winsockdll name _fn_ioctlsocket;
     function getpeername(s:TSocket; var name:TSockAddr;var namelen:tOS_INT):tOS_INT;{$ifdef Netware}cdecl;{$else}stdcall;{$endif} external winsockdll name _fn_getpeername;
     function getsockname(s:TSocket; var name:TSockAddr;var namelen:tOS_INT):tOS_INT;{$ifdef Netware}cdecl;{$else}stdcall;{$endif} external winsockdll name _fn_getpeername;
     function getsockopt(s:TSocket; level:tOS_INT; optname:tOS_INT; optval:pchar;var optlen:tOS_INT):tOS_INT;{$ifdef Netware}cdecl;{$else}stdcall;{$endif} external winsockdll name _fn_getsockopt;
+    function getsockopt(s:TSocket; level:tOS_INT; optname:tOS_INT; optval:pointer;var optlen:tOS_INT):tOS_INT;{$ifdef Netware}cdecl;{$else}stdcall;{$endif} external winsockdll name _fn_getsockopt;
     function getsockopt(s:TSocket; level:tOS_INT; optname:tOS_INT;var optval;var optlen:tOS_INT):tOS_INT;{$ifdef Netware}cdecl;{$else}stdcall;{$endif} external winsockdll name _fn_getsockopt;
     function htonl(hostlong:u_long):u_long;{$ifdef Netware}cdecl;{$else}stdcall;{$endif}external winsockdll name _fn_htonl;
     function htons(hostshort:u_short):u_short;{$ifdef Netware}cdecl;{$else}stdcall;{$endif}external winsockdll name _fn_htons;
@@ -1889,28 +1865,25 @@ unit winsock;
     {$endif}
 
     function recv(s:TSocket;buf:pchar; len:tOS_INT; flags:tOS_INT):tOS_INT;{$ifdef Netware}cdecl;{$else}stdcall;{$endif}external winsockdll name _fn_recv;
+    function recv(s:TSocket;buf:pointer; len:tOS_INT; flags:tOS_INT):tOS_INT;{$ifdef Netware}cdecl;{$else}stdcall;{$endif}external winsockdll name _fn_recv;
     function recv(s:TSocket;var buf; len:tOS_INT; flags:tOS_INT):tOS_INT;{$ifdef Netware}cdecl;{$else}stdcall;{$endif}external winsockdll name _fn_recv;
     function recvfrom(s:TSocket;buf:pchar; len:tOS_INT; flags:tOS_INT;from:PSockAddr; fromlen:ptOS_INT):tOS_INT;{$ifdef Netware}cdecl;{$else}stdcall;{$endif} external winsockdll name _fn_recvfrom;
-    function recvfrom(s:TSocket;var buf; len:tOS_INT; flags:tOS_INT;var from:TSockAddr; var fromlen:tOS_INT):tOS_INT;{$ifdef Netware}cdecl;{$else}stdcall;{$endif} external winsockdll name _fn_recvfrom;
-    function select(nfds:tOS_INT; readfds,writefds,exceptfds : PFDSet;timeout: PTimeVal):tOS_INT;{$ifdef Netware}cdecl;{$else}stdcall;{$endif}
-      external winsockdll name _fn_select;
-    function send(s:TSocket;const buf; len:tOS_INT; flags:tOS_INT):tOS_INT;{$ifdef Netware}cdecl;{$else}stdcall;{$endif}
-      external winsockdll name _fn_send;
-    function sendto(s:TSocket; buf:pchar; len:tOS_INT; flags:tOS_INT;var toaddr:TSockAddr; tolen:tOS_INT):tOS_INT;{$ifdef Netware}cdecl;{$else}stdcall;{$endif}
+    function recvfrom(s:TSocket;buf:pointer; len:tOS_INT; flags:tOS_INT;from:PSockAddr; fromlen:ptOS_INT):tOS_INT;{$ifdef Netware}cdecl;{$else}stdcall;{$endif} external winsockdll name _fn_recvfrom;
+    function recvfrom(s:TSocket;var buf; len:tOS_INT; flags:tOS_INT;Const from:TSockAddr; var fromlen:tOS_INT):tOS_INT;{$ifdef Netware}cdecl;{$else}stdcall;{$endif} external winsockdll name _fn_recvfrom;
+    function select(nfds:tOS_INT; readfds,writefds,exceptfds : PFDSet;timeout: PTimeVal):tOS_INT;{$ifdef Netware}cdecl;{$else}stdcall;{$endif} external winsockdll name _fn_select;
+    function send(s:TSocket;const buf; len:tOS_INT; flags:tOS_INT):tOS_INT;{$ifdef Netware}cdecl;{$else}stdcall;{$endif} external winsockdll name _fn_send;
+    function send(s:TSocket;buf : pchar; len:tOS_INT; flags:tOS_INT):tOS_INT;{$ifdef Netware}cdecl;{$else}stdcall;{$endif} external winsockdll name _fn_send;
+    function send(s:TSocket;buf : pointer; len:tOS_INT; flags:tOS_INT):tOS_INT;{$ifdef Netware}cdecl;{$else}stdcall;{$endif} external winsockdll name _fn_send;
+    function sendto(s:TSocket; buf:pchar; len:tOS_INT; flags:tOS_INT;toaddr:PSockAddr; tolen:tOS_INT):tOS_INT;{$ifdef Netware}cdecl;{$else}stdcall;{$endif} external winsockdll name _fn_sendto;
+    function sendto(s:TSocket; buf:pointer; len:tOS_INT; flags:tOS_INT;toaddr:PSockAddr; tolen:tOS_INT):tOS_INT;{$ifdef Netware}cdecl;{$else}stdcall;{$endif} external winsockdll name _fn_sendto;
+    function sendto(s:TSocket; const buf; len:tOS_INT; flags:tOS_INT;Const toaddr:TSockAddr; tolen:tOS_INT):tOS_INT;{$ifdef Netware}cdecl;{$else}stdcall;{$endif}
       external winsockdll name _fn_sendto;
-    function sendto(s:TSocket; const buf; len:tOS_INT; flags:tOS_INT;var toaddr:TSockAddr; tolen:tOS_INT):tOS_INT;{$ifdef Netware}cdecl;{$else}stdcall;{$endif}
-      external winsockdll name _fn_sendto;  
-      
-    function setsockopt(s:TSocket; level:tOS_INT; optname:tOS_INT; optval:pchar; optlen:tOS_INT):tOS_INT;{$ifdef Netware}cdecl;{$else}stdcall;{$endif}
-      external winsockdll name _fn_setsockopt;
-    function setsockopt(s:TSocket; level:tOS_INT; optname:tOS_INT; var optval; optlen:tOS_INT):tOS_INT;{$ifdef Netware}cdecl;{$else}stdcall;{$endif}
-      external winsockdll name _fn_setsockopt;
-    function setsockopt(s:TSocket; level:tOS_INT; optname:tOS_INT; optval:pointer; optlen:tOS_INT):tOS_INT;{$ifdef Netware}cdecl;{$else}stdcall;{$endif}
-      external winsockdll name _fn_setsockopt;
-    function shutdown(s:TSocket; how:tOS_INT):tOS_INT;{$ifdef Netware}cdecl;{$else}stdcall;{$endif}
-      external winsockdll name _fn_shutdown;
-    function socket(af:tOS_INT; t:tOS_INT; protocol:tOS_INT):TSocket;{$ifdef Netware}cdecl;{$else}stdcall;{$endif}
-      external winsockdll name _fn_socket;
+
+    function setsockopt(s:TSocket; level:tOS_INT; optname:tOS_INT; optval:pchar; optlen:tOS_INT):tOS_INT;{$ifdef Netware}cdecl;{$else}stdcall;{$endif} external winsockdll name _fn_setsockopt;
+    function setsockopt(s:TSocket; level:tOS_INT; optname:tOS_INT; Const optval; optlen:tOS_INT):tOS_INT;{$ifdef Netware}cdecl;{$else}stdcall;{$endif} external winsockdll name _fn_setsockopt;
+    function setsockopt(s:TSocket; level:tOS_INT; optname:tOS_INT; optval:pointer; optlen:tOS_INT):tOS_INT;{$ifdef Netware}cdecl;{$else}stdcall;{$endif} external winsockdll name _fn_setsockopt;
+    function shutdown(s:TSocket; how:tOS_INT):tOS_INT;{$ifdef Netware}cdecl;{$else}stdcall;{$endif} external winsockdll name _fn_shutdown;
+    function socket(af:tOS_INT; t:tOS_INT; protocol:tOS_INT):TSocket;{$ifdef Netware}cdecl;{$else}stdcall;{$endif} external winsockdll name _fn_socket;
 
     { Database function prototypes  }
     function gethostbyaddr(addr:pchar; len:tOS_INT; t:tOS_INT): PHostEnt;{$ifdef Netware}cdecl;{$else}stdcall;{$endif}external winsockdll name _fn_gethostbyaddr;
@@ -1953,14 +1926,8 @@ unit winsock;
     function WSARecvEx(s:TSocket;var buf; len:tOS_INT; flags:ptOS_INT):tOS_INT;stdcall;
       external winsockdll name 'WSARecvEx';
     {$endif}
-    function __WSAFDIsSet(s:TSocket; var FDSet:TFDSet):Bool;{$ifdef Netware}cdecl;{$else}stdcall;{$endif}
-      external winsockdll name '__WSAFDIsSet';
-    function __WSAFDIsSet_(s:TSocket; var FDSet:TFDSet):tOS_INT;{$ifdef Netware}cdecl;{$else}stdcall;{$endif}
-      external winsockdll name '__WSAFDIsSet';
-
-    function FD_ISSET(s:TSocket; var FDSet:TFDSet):Bool;{$ifdef Netware}cdecl;{$else}stdcall;{$endif}
-      external winsockdll name '__WSAFDIsSet';
-
+    function __WSAFDIsSet(s:TSocket; var FDSet:TFDSet):Bool;{$ifdef Netware}cdecl;{$else}stdcall;{$endif} external winsockdll name '__WSAFDIsSet';
+    function __WSAFDIsSet_(s:TSocket; var FDSet:TFDSet):tOS_INT;{$ifdef Netware}cdecl;{$else}stdcall;{$endif} external winsockdll name '__WSAFDIsSet';
 
     {$ifndef netware}
     function TransmitFile(hSocket:TSocket; hFile:THandle; nNumberOfBytesToWrite:dword;
@@ -1988,7 +1955,7 @@ unit winsock;
     function WSAGetSelectEvent(Param:dword):Word;
     function WSAGetSelectError(Param:dword):Word;
     procedure FD_CLR(Socket:TSocket; var FDSet:TFDSet);
-    {function FD_ISSET(Socket:TSocket; var FDSet:TFDSet):Boolean;}
+    function FD_ISSET(Socket:TSocket; var FDSet:TFDSet):Boolean;
     procedure FD_SET(Socket:TSocket; var FDSet:TFDSet);
     procedure FD_ZERO(var FDSet:TFDSet);
 
@@ -2010,7 +1977,7 @@ unit winsock;
     function WSACloseEvent (hEvent : TWSAEVENT) : longint;
       {$ifdef Netware}cdecl;{$else}stdcall;{$endif} external winsockdll name 'WSACloseEvent';
 
-    function WSAconnect (s:TSocket; var name:TSockAddr;
+    function WSAconnect (s:TSocket; Const name:TSockAddr;
                          namelen: tOS_INT;
                          lpCallerData, lpCaleeData : PWSABUF;
                          lpSQOS, lpGQOS : PQOS) : tOS_INT;
@@ -2099,6 +2066,12 @@ unit winsock;
                      lpCompletionRoutine:TWSAOVERLAPPED_COMPLETION_ROUTINE):longint;
     {$ifdef Netware}cdecl;{$else}stdcall;{$endif} external winsockdll name 'WSARecv';
 
+    function WSARecv(s:TSocket;buf:pointer; dwBufferCount:dword;
+                     lpNumberOfBytesRecvd,lpFlags : LPDWORD;
+                     lpOverlapped:PWSAOVERLAPPED;
+                     lpCompletionRoutine:TWSAOVERLAPPED_COMPLETION_ROUTINE):longint;
+    {$ifdef Netware}cdecl;{$else}stdcall;{$endif} external winsockdll name 'WSARecv';
+
     function WSARecv(s:TSocket;var buf; dwBufferCount:dword;
                      var lpNumberOfBytesRecvd,lpFlags : DWORD;
                      lpOverlapped:PWSAOVERLAPPED;
@@ -2112,6 +2085,14 @@ unit winsock;
     {$ifdef Netware}cdecl;{$else}stdcall;{$endif} external winsockdll name 'WSARecvDisconnect';
 
     function WSARecvFrom(s:TSocket;buf:pchar; dwBufferCount:dword;
+                     lpNumberOfBytesRecvd,lpFlags : LPDWORD;
+                     lpFrom: PSockaddr;
+                     lpFromlen: PDWORD;
+                     lpOverlapped:PWSAOVERLAPPED;
+                     lpCompletionRoutine:TWSAOVERLAPPED_COMPLETION_ROUTINE):longint;
+    {$ifdef Netware}cdecl;{$else}stdcall;{$endif} external winsockdll name 'WSARecvFrom';
+
+    function WSARecvFrom(s:TSocket;buf:pointer; dwBufferCount:dword;
                      lpNumberOfBytesRecvd,lpFlags : LPDWORD;
                      lpFrom: PSockaddr;
                      lpFromlen: PDWORD;
@@ -2136,6 +2117,12 @@ unit winsock;
                      lpCompletionRoutine:TWSAOVERLAPPED_COMPLETION_ROUTINE):longint;
     {$ifdef Netware}cdecl;{$else}stdcall;{$endif} external winsockdll name 'WSASend';
 
+    function WSASend(s:TSocket;buf:pointer;len:dword;
+                     NumberOfBytesSent:PDWORD; Flags:dword;
+                     lpOverlapped:PWSAOVERLAPPED;
+                     lpCompletionRoutine:TWSAOVERLAPPED_COMPLETION_ROUTINE):longint;
+    {$ifdef Netware}cdecl;{$else}stdcall;{$endif} external winsockdll name 'WSASend';
+
     function WSASend(s:TSocket;var buf;len:dword;
                      var NumberOfBytesSent: DWORD; Flags:dword;
                      lpOverlapped:PWSAOVERLAPPED;
@@ -2146,6 +2133,15 @@ unit winsock;
     {$ifdef Netware}cdecl;{$else}stdcall;{$endif} external winsockdll name 'WSASendDisconnect';
 
     function WSASendTo(s:TSocket;buf:pchar;len:dword;
+                       NumberOfBytesSent:LPDWORD;
+                       Flags:dword;
+                       lpTo: PSockaddr;
+                       iToLen:dword;
+                       lpOverlapped:PWSAOVERLAPPED;
+                       lpCompletionRoutine:TWSAOVERLAPPED_COMPLETION_ROUTINE):longint;
+    {$ifdef Netware}cdecl;{$else}stdcall;{$endif} external winsockdll name 'WSASendTo';
+
+    function WSASendTo(s:TSocket;buf:pointer;len:dword;
                        NumberOfBytesSent:LPDWORD;
                        Flags:dword;
                        lpTo: PSockaddr;
@@ -2331,10 +2327,10 @@ unit winsock;
            end;
       end;
 
-    {function FD_ISSET(Socket:TSocket; var FDSet:TFDSet):Boolean;
+    function FD_ISSET(Socket:TSocket; var FDSet:TFDSet):Boolean;
     begin
        FD_ISSET:=__WSAFDIsSet(Socket,FDSet);
-    end;}
+    end;
 
     procedure FD_SET(Socket:TSocket; var FDSet:TFDSet);
     var i : integer;
@@ -2351,24 +2347,23 @@ unit winsock;
     end;
 
     procedure FD_ZERO(var FDSet:TFDSet);
-    var i : integer;
     begin
-      for i := 0 to high (FDSet.fd_array) do
-        FDSet.fd_array[i] := INVALID_SOCKET;
-      FDSet.fd_count:=0;
+      fillchar(FDSet,sizeof(FDSet),0);
+      {FDSet.fd_count:=0;}
     end;
 
     {$ifdef netware}
       {windows has connect and accept in ws2_32.dll, netware has not, they
        are defined as macros in ws2nlm.h }
+
     function connect(s:TSocket; addr:PSockAddr; namelen:tOS_INT):tOS_INT;
     begin
       connect := WSAConnect (s,addr,namelen,nil,nil,nil,nil);
     end;
 
-    function connect(s:TSocket; var name:TSockAddr; namelen:tOS_INT):tOS_INT; //cdecl;external winsockdll name 'WSAConnect';
+    function connect(s:TSocket; Const name:TSockAddr; namelen:tOS_INT):tOS_INT; //cdecl;external winsockdll name 'WSAConnect';
     begin
-      connect := WSAConnect (s,name,namelen,nil,nil,nil,nil);
+      connect := WSAConnect (s,@name,namelen,nil,nil,nil,nil);
     end;
 
     function accept(s:TSocket; addr: PSockAddr; addrlen : ptOS_INT) : TSocket;
@@ -2378,7 +2373,7 @@ unit winsock;
 
     function accept(s:TSocket; addr: PSockAddr; var addrlen : tOS_INT) : TSocket;
     begin
-      accept := WSAAccept (s,addr,addrlen,nil,0);
+      accept := WSAAccept (s,addr,@addrlen,nil,0);
     end;
 
 
@@ -2414,11 +2409,11 @@ unit winsock;
       begin
         Result := __WSAStartup(wVersionRequired,WSAData);
         if Result = 0 then WSAstartupData := WSAData;
-        Writeln (stderr,'WSAStartup called');
+        {Writeln (stderr,'WSAStartup called');}
       end else
       begin
         result := 0;
-        Writeln (stderr,'WSAStartup should be called only once !');
+        {Writeln (stderr,'WSAStartup should be called only once !');}
       end;
     end;
 
@@ -2430,7 +2425,10 @@ finalization
 end.
 {
   $Log$
-  Revision 1.3  2003-10-25 23:42:35  hajny
+  Revision 1.4  2004-09-18 23:45:43  armin
+  * make winsock more compatible to win32 version
+
+  Revision 1.3  2003/10/25 23:42:35  hajny
     * THandle in sysutils common using System.THandle
 
   Revision 1.2  2003/03/30 12:35:43  armin
