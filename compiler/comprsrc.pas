@@ -21,6 +21,7 @@
  ****************************************************************************
 }
 unit comprsrc;
+
 interface
 
 procedure CompileResourceFiles;
@@ -102,7 +103,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.2  1999-01-06 12:56:01  peter
+  Revision 1.3  1999-01-06 14:38:09  michael
+  + Fixed wrong unit name.
+
+  Revision 1.2  1999/01/06 12:56:01  peter
     * fixed typo :(
 
   Revision 1.1  1999/01/06 12:39:46  peter
