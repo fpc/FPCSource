@@ -1012,11 +1012,7 @@ implementation
          if assigned(labsym) and
             assigned(labsym.code) and
             (exceptionblock<>tlabelnode(labsym.code).exceptionblock) then
-           begin
-             writeln('goto exceptblock: ',exceptionblock);
-             writeln('label exceptblock: ',tlabelnode(labsym.code).exceptionblock);
-             CGMessage(cg_e_goto_inout_of_exception_block);
-           end;
+           CGMessage(cg_e_goto_inout_of_exception_block);
       end;
 
 
@@ -1475,7 +1471,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.95  2004-03-18 16:19:03  peter
+  Revision 1.96  2004-05-23 15:04:13  peter
+    * remvoe writeln
+
+  Revision 1.95  2004/03/18 16:19:03  peter
     * fixed operator overload allowing for pointer-string
     * replaced some type_e_mismatch with more informational messages
 
