@@ -3,6 +3,8 @@
 { e-mail: danny_milo@yahoo.com }
 program itest;
 
+{$mode delphi}
+
 var
   err : boolean;
   
