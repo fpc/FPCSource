@@ -305,7 +305,7 @@ scan_w_appname_not_support=02060_W_APPNAME is only supported for PalmOS
 #
 # Parser
 #
-# 03174 is the last used one
+# 03179 is the last used one
 #
 % \section{Parser messages}
 % This section lists all parser messages. The parser takes care of the
@@ -813,9 +813,9 @@ parser_e_ill_msg_param=03144_E_Message handlers can take only one call by ref. p
 % Parameters are declared as call by reference using the \var{var}-directive
 parser_e_duplicate_message_label=03145_E_Duplicate message label: "$1"
 % A label for a message is used twice in one object/class
-parser_e_self_in_non_message_handler=03146_E_Self can be only an explicit parameter in message handlers
-% The self parameter can be passed only explicitly in a method which
-% is declared as message method handler.
+parser_e_self_in_non_message_handler=03146_E_Self can only be an explicit parameter in message handlers or class methods
+% The self parameter can only be passed explicitly to a method which
+% is declared as message method handler or which is a class method.
 parser_e_threadvars_only_sg=03147_E_Threadvars can be only static or global
 % Threadvars must be static or global, you can't declare a thread
 % local to a procedure. Local variables are always local to a thread,
@@ -927,6 +927,9 @@ parser_e_varargs_need_cdecl_and_external=03178_E_VarArgs directive without CDecl
 % The varargs directive can only be used with procedures or functions
 % that are declared with CDecl and External directives. The varargs directive
 % is only meant to provide a compatible interface to C functions like printf.
+parser_e_self_call_by_value=03179_E_Self must be a normal (call-by-value) parameter
+% You can't declare self as a const or var parameter, it must always be
+% a call-by-value parameter
 % \end{description}
 #
 # Type Checking
@@ -1473,7 +1476,7 @@ asmr_e_invalid_opcode_and_operand=07048_E_Invalid combination of opcode and oper
 asmr_e_syn_operand=07049_E_Assembler syntax error in operand
 asmr_e_syn_constant=07050_E_Assembler syntax error in constant
 asmr_e_invalid_string_expression=07051_E_Invalid String expression
-asmr_w_const32bit_for_address=07052_bit constant created for address
+asmr_w_const32bit_for_address=07052_W_constant with symbol $1 for not 32bit address
 asmr_e_unknown_opcode=07053_E_Unrecognized opcode $1
 asmr_e_invalid_or_missing_opcode=07054_E_Invalid or missing opcode
 asmr_e_invalid_prefix_and_opcode=07055_E_Invalid combination of prefix and opcode: $1
@@ -1610,7 +1613,7 @@ execinfo_x_stackcommit=09034_X_Stack space commited: $1 bytes
 #
 # Unit loading
 #
-# 10039 is the last used one
+# 10041 is the last used one
 #
 # BeginOfTeX
 % \section{Unit loading messages.}
@@ -2008,6 +2011,7 @@ option_help_pages=11025_[
 6*2TATARI_Atari ST/STe/TT
 6*2TMACOS_Macintosh m68k
 6*2TLINUX_Linux-68k
+6*2TPALMOS_PalmOS
 **1*_
 **1?_shows this help
 **1h_shows this help without waiting

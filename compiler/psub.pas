@@ -603,6 +603,10 @@ implementation
          parse_proc_directives(pdflags);
          dec(lexlevel);
 
+      { explicit "self" parameters are not allowed for normal procedures (JM) }
+         if (po_containsself in aktprocsym.definition.procoptions) then
+           Message(parser_e_self_in_non_message_handler);
+
       { hint directives, these can be separated by semicolons here,
         that need to be handled here with a loop (PFV) }
          while try_consume_hintdirective(aktprocsym.symoptions) do
@@ -841,7 +845,17 @@ implementation
 end.
 {
   $Log$
-  Revision 1.36  2001-08-26 13:36:46  florian
+  Revision 1.37  2001-09-10 10:26:26  jonas
+    * fixed web bug 1593
+    * writing of procvar headers is more complete (mention var/const/out for
+      paras, add "of object" if applicable)
+    + error if declaring explicit self para as var/const
+    * fixed mangled name of procedures which contain an explicit self para
+    * parsing para's should be slightly faster because mangled name of
+      procedure is only updated once instead of after parsing each para
+      (all merged from fixes)
+
+  Revision 1.36  2001/08/26 13:36:46  florian
     * some cg reorganisation
     * some PPC updates
 

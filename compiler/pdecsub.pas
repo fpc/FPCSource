@@ -107,6 +107,8 @@ implementation
         defaultrequired:=false;
         { parsing a proc or procvar ? }
         is_procvar:=(aktprocdef.deftype=procvardef);
+        if not is_procvar then
+          hs2:=tprocdef(aktprocdef).mangledname;
         consume(_LKLAMMER);
         { Delphi/Kylix supports nonsense like }
         { procedure p();                      }
@@ -136,6 +138,8 @@ implementation
              (is_procvar or
               (assigned(procinfo^._class) and is_class(procinfo^._class))) then
             begin
+              if varspez <> vs_value then
+                 CGMessage(parser_e_self_call_by_value);
               if not is_procvar then
                begin
 {$ifndef UseNiceNames}
@@ -148,19 +152,26 @@ implementation
                  vs.varspez:=vs_var;
                { insert the sym in the parasymtable }
                  tprocdef(aktprocdef).parast.insert(vs);
-                 include(aktprocdef.procoptions,po_containsself);
                  inc(procinfo^.selfpointer_offset,vs.address);
                end;
+              { must also be included for procvars to allow the proc2procvar }
+              { type conversions (po_containsself is in po_comp) (JM)        }
+              include(aktprocdef.procoptions,po_containsself);
               consume(idtoken);
               consume(_COLON);
               single_type(tt,hs1,false);
-              aktprocdef.concatpara(tt,vs_value,nil);
+              { this must be call-by-value, but we generate already an }
+              { an error above if that's not the case (JM)             }
+              aktprocdef.concatpara(tt,varspez,nil);
               { check the types for procedures only }
               if not is_procvar then
                CheckTypes(tt.def,procinfo^._class);
             end
           else
             begin
+             { necessary to be able to catch this error later on in psub.pas }
+             if (idtoken = _SELF) then
+               include(aktprocdef.procoptions,po_containsself);
              { read identifiers }
                sc:=consume_idlist;
 {$ifdef fixLeaksOnError}
@@ -250,8 +261,6 @@ implementation
 {$endif UseNiceNames}
                   tt:=cformaltype;
                 end;
-               if not is_procvar then
-                hs2:=tprocdef(aktprocdef).mangledname;
                storetokenpos:=akttokenpos;
                while not sc.empty do
                 begin
@@ -303,9 +312,9 @@ implementation
                akttokenpos:=storetokenpos;
             end;
           { set the new mangled name }
-          if not is_procvar then
-            tprocdef(aktprocdef).setmangledname(hs2);
         until not try_to_consume(_SEMICOLON);
+        if not is_procvar then
+          tprocdef(aktprocdef).setmangledname(hs2);
         dec(testcurobject);
         consume(_RKLAMMER);
       end;
@@ -1922,7 +1931,17 @@ const
 end.
 {
   $Log$
-  Revision 1.36  2001-08-26 13:36:45  florian
+  Revision 1.37  2001-09-10 10:26:26  jonas
+    * fixed web bug 1593
+    * writing of procvar headers is more complete (mention var/const/out for
+      paras, add "of object" if applicable)
+    + error if declaring explicit self para as var/const
+    * fixed mangled name of procedures which contain an explicit self para
+    * parsing para's should be slightly faster because mangled name of
+      procedure is only updated once instead of after parsing each para
+      (all merged from fixes)
+
+  Revision 1.36  2001/08/26 13:36:45  florian
     * some cg reorganisation
     * some PPC updates
 

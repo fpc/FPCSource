@@ -3116,14 +3116,18 @@ implementation
         s:='(';
         while assigned(hp) do
          begin
-           if assigned(hp.paratype.def.typesym) then
-             s:=s+hp.paratype.def.typesym.realname
-           else if hp.paratyp=vs_var then
+           if hp.paratyp=vs_var then
              s:=s+'var'
            else if hp.paratyp=vs_const then
              s:=s+'const'
            else if hp.paratyp=vs_out then
              s:=s+'out';
+           if assigned(hp.paratype.def.typesym) then
+             begin
+               if hp.paratyp in [vs_var,vs_const,vs_out] then
+                 s := s + ' ';
+               s:=s+hp.paratype.def.typesym.realname;
+             end;
            { default value }
            if assigned(hp.defaultvalue) then
             begin
@@ -3957,14 +3961,18 @@ implementation
 
 
     function tprocvardef.gettypename : string;
+      var
+        s: string;
       begin
          if assigned(rettype.def) and
             (rettype.def<>voidtype.def) then
-           gettypename:='<procedure variable type of function'+demangled_paras+
-             ':'+rettype.def.gettypename+';'+proccalloption2str+'>'
+           s:='<procedure variable type of function'+demangled_paras+
+             ':'+rettype.def.gettypename
          else
-           gettypename:='<procedure variable type of procedure'+demangled_paras+
-             ';'+proccalloption2str+'>';
+           s:='<procedure variable type of procedure';
+         if po_methodpointer in procoptions then
+           s := s+' of object';
+         gettypename := s+';'+proccalloption2str+'>';
       end;
 
 
@@ -5400,7 +5408,17 @@ implementation
 end.
 {
   $Log$
-  Revision 1.48  2001-09-03 15:18:38  jonas
+  Revision 1.49  2001-09-10 10:26:27  jonas
+    * fixed web bug 1593
+    * writing of procvar headers is more complete (mention var/const/out for
+      paras, add "of object" if applicable)
+    + error if declaring explicit self para as var/const
+    * fixed mangled name of procedures which contain an explicit self para
+    * parsing para's should be slightly faster because mangled name of
+      procedure is only updated once instead of after parsing each para
+      (all merged from fixes)
+
+  Revision 1.48  2001/09/03 15:18:38  jonas
     * aded missing reset of labels of rttitablesym and inittablesym labels
 
   Revision 1.47  2001/09/02 21:18:28  peter
