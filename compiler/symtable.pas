@@ -2838,6 +2838,8 @@ implementation
 {$endif Delphi}
 
    procedure InitSymtable;
+     var
+       token : ttoken;
      begin
 {$ifndef Delphi}
 {$ifdef TP}
@@ -2900,7 +2902,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.90  2000-05-11 09:40:12  pierre
+  Revision 1.91  2000-05-12 05:59:57  pierre
+   * * get it to compile with Delphi by Kovacs Attila Zoltan
+
+  Revision 1.90  2000/05/11 09:40:12  pierre
     * some DBX changes but it still does not work !
 
   Revision 1.89  2000/05/03 14:34:05  pierre

@@ -34,6 +34,9 @@ unit ptconst;
   implementation
 
     uses
+{$ifdef Delphi}
+       sysutils,
+{$endif Delphi}
        globtype,systems,tokens,
        cobjects,globals,scanner,
        symconst,aasm,types,verbose,
@@ -797,7 +800,10 @@ unit ptconst;
 end.
 {
   $Log$
-  Revision 1.65  2000-05-11 09:15:15  pierre
+  Revision 1.66  2000-05-12 06:02:01  pierre
+   * * get it to compile with Delphi by Kovacs Attila Zoltan
+
+  Revision 1.65  2000/05/11 09:15:15  pierre
     + add a warning if a const string is longer than the
       length of the string type
 

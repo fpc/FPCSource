@@ -168,7 +168,8 @@ N_BINCL to N_EINCL
         Comment(V_Info,'count =  '+tostr(dbx_counter^));
         Comment(V_Info,'addr = '+tostr(longint(dbx_counter)));
 {$EndIf ExtDebugDbx }
-          for i:=0 to strlen(st) do
+          i:=0;
+          while i<=strlen(st) do
             begin
                if st[i] = '"' then
                  if do_count then exit
@@ -185,6 +186,7 @@ N_BINCL to N_EINCL
                         dec(i);
                      end;
                  end;
+               inc(i);
             end;
        end;
      end;
@@ -249,7 +251,10 @@ end.
 
 {
   $Log$
-  Revision 1.16  2000-05-11 09:40:11  pierre
+  Revision 1.17  2000-05-12 05:57:34  pierre
+   * * get it to compile with Delphi by Kovacs Attila Zoltan
+
+  Revision 1.16  2000/05/11 09:40:11  pierre
     * some DBX changes but it still does not work !
 
   Revision 1.15  2000/02/09 13:22:52  peter

@@ -37,8 +37,8 @@ unit globals;
       linux,
 {$endif}
 {$ifdef Delphi4}
-      dmisc,
       sysutils,
+      dmisc,
 {$else}
       strings,dos,
 {$endif}
@@ -1398,7 +1398,7 @@ implementation
            s:=strpas(hp);
            i:=pos('=',s);
            len:=strlen(hp);
-           if upper(copy(s,1,i-1))=upcase(envname) then
+           if upper(copy(s,1,i-1))=upper(envname) then
             begin
               GetMem(p2,len-length(envname));
               Move(hp[i],p2^,len-length(envname));
@@ -1568,7 +1568,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.61  2000-05-11 09:37:25  pierre
+  Revision 1.62  2000-05-12 05:55:04  pierre
+   * * get it to compile with Delphi by Kovacs Attila Zoltan
+
+  Revision 1.61  2000/05/11 09:37:25  pierre
    * do not use upcase for strings, reported by Kovacs Attila Zoltan
 
   Revision 1.60  2000/05/04 20:46:17  peter
