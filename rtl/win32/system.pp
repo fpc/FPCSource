@@ -899,12 +899,12 @@ end;
                          System Dependent Exit code
 *****************************************************************************}
 
-  procedure install_exception_handlers;forward;
-  procedure remove_exception_handlers;forward;
-  procedure PascalMain;stdcall;external name 'PASCALMAIN';
-  procedure fpc_do_exit;stdcall;external name 'FPC_DO_EXIT';
-  Procedure ExitDLL(Exitcode : longint); forward;
-  procedure asm_exit; stdcall;external name 'asm_exit';
+procedure install_exception_handlers;forward;
+procedure remove_exception_handlers;forward;
+procedure PascalMain;stdcall;external name 'PASCALMAIN';
+procedure fpc_do_exit;stdcall;external name 'FPC_DO_EXIT';
+Procedure ExitDLL(Exitcode : longint); forward;
+procedure asm_exit(Exitcode : longint);external name 'asm_exit';
 
 Procedure system_exit;
 begin
@@ -920,12 +920,9 @@ begin
      { what about Input and Output ?? PM }
    end;
   remove_exception_handlers;
+  
   { call exitprocess, with cleanup as required }
-  asm
-    xorl %eax, %eax
-    movw exitcode,%ax
-    call asm_exit
-  end;
+  asm_exit(exitcode);
 end;
 
 var
@@ -1621,7 +1618,10 @@ end.
 
 {
   $Log$
-  Revision 1.64  2004-12-05 14:36:38  hajny
+  Revision 1.65  2004-12-12 11:53:47  florian
+    * remove inline assembler for calling asm_exit
+
+  Revision 1.64  2004/12/05 14:36:38  hajny
     + GetProcessID added
 
   Revision 1.63  2004/11/04 09:32:31  peter
