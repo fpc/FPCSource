@@ -133,7 +133,6 @@ interface
 
 {$ifdef win32}
   {$undef NotImplemented}
-  {$define GDB_USES_PTID}
   {$LINKLIB gdb}
   {$ifdef GDB_HAS_SIM}
     {$LINKLIB sim}
@@ -246,7 +245,6 @@ type
   procedure set_ui_file_write(stream : pui_file;write : ui_file_write_ftype);cdecl;external;
 
 
-{$ifdef GDB_USES_PTID}
   type
 
   (* struct ptid
@@ -266,7 +264,6 @@ type
       lwp : longint{ C long};
       tid : longint{ C long};
      end;
-{$endif}
 
 {$ifdef win32}
 
@@ -378,23 +375,22 @@ type
   end;
 
 
-function  GDBVersion : string;
+const
+  use_gdb_file : boolean = false;
 
 var
   curr_gdb : pgdbinterface;
-
-const
-  use_gdb_file : boolean = false;
-var
   gdb_file : text;
-{$ifdef GDB_USES_PTID}
   inferior_ptid : tinferior_ptid;cvar;external;
-{$else}
-  inferior_pid : longint;cvar;external;
-{$endif}
+
+function  GDBVersion : string;
+function  inferior_pid : longint;
+
 {$ifdef GDB_V6}
-type ui_out = pointer;
-var  uiout : ui_out;cvar;external;
+type
+  ui_out = pointer;
+var
+  uiout : ui_out;cvar;external;
 function cli_out_new (stream : pui_file):ui_out;cdecl;external;
 {$endif}
 
@@ -404,9 +400,7 @@ function cli_out_new (stream : pui_file):ui_out;cdecl;external;
   procedure reload_fs;
 {$endif go32v2}
 
-{$ifdef GDB_USES_PTID}
-function inferior_pid : longint;
-{$endif}
+
 
 implementation
 
@@ -1380,12 +1374,12 @@ begin
    end;
 end;
 
-{$ifdef GDB_USES_PTID}
+
 function inferior_pid : longint;
 begin
   inferior_pid:=inferior_ptid.pid;
 end;
-{$endif}
+
 
 procedure proc_remove_foreign(pid:longint);cdecl;public;
 begin
@@ -2270,13 +2264,7 @@ end;
 procedure tgdbinterface.EndSession(code:longint);
 begin
   Debuggee_started:=false;
-{$ifdef Go32v2}
-{$ifdef GDB_USES_PTID}
   inferior_ptid.pid:=0;
-{$else}
-  inferior_pid:=0;
-{$endif}
-{$endif}
   DoEndSession(code);
   if assigned(signal_name) then
     strdispose(signal_name);
@@ -2466,7 +2454,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.21  2004-11-05 12:30:27  peter
+  Revision 1.22  2004-11-05 17:57:04  peter
+    * inferior ptid enabled by default
+
+  Revision 1.21  2004/11/05 12:30:27  peter
   fixed win32 libraries
 
   Revision 1.20  2004/11/04 23:58:08  peter
