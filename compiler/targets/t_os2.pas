@@ -523,8 +523,6 @@ end;
             cpu          : i386;
             unit_env     : 'OS2UNITS';
             extradefines : '';
-            sharedlibext : '.ao2';
-            staticlibext : '.ao2';
             sourceext    : '.pas';
             pasext       : '.pp';
             exeext       : '.exe';
@@ -537,8 +535,14 @@ end;
             objext       : '.oo2';
             resext       : '.res';
             resobjext    : '.oor';
+            sharedlibext : '.ao2';
+            staticlibext : '.ao2';
             staticlibprefix : '';
             sharedlibprefix : '';
+            sharedClibext : 'dll';
+            staticClibext : '.a';
+            staticClibprefix : '';
+            sharedClibprefix : '';
             Cprefix      : '_';
             newline      : #13#10;
             dirsep       : '\';
@@ -586,7 +590,12 @@ initialization
 end.
 {
   $Log$
-  Revision 1.10  2001-09-17 21:29:16  peter
+  Revision 1.11  2001-09-18 11:32:00  michael
+  * Fixes win32 linking problems with import libraries
+  * LINKLIB Libraries are now looked for using C file extensions
+  * get_exepath fix
+
+  Revision 1.10  2001/09/17 21:29:16  peter
     * merged netbsd, fpu-overflow from fixes branch
 
   Revision 1.9  2001/08/07 18:47:15  peter

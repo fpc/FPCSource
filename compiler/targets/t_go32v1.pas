@@ -201,8 +201,6 @@ end;
             cpu          : i386;
             unit_env     : 'GO32V1UNITS';
             extradefines : 'DPMI';
-            sharedlibext : '.dll';
-            staticlibext : '.a';
             sourceext    : '.pp';
             pasext       : '.pas';
             exeext       : '';      { No .exe, the linker only output a.out ! }
@@ -215,8 +213,14 @@ end;
             objext       : '.o1';
             resext       : '.res';
             resobjext    : '.o1r';
+            sharedlibext : '.dll';
+            staticlibext : '.a';
             staticlibprefix : '';
             sharedlibprefix : '';
+            sharedClibext : '.dll';
+            staticClibext : '.a';
+            staticClibprefix : '';
+            sharedClibprefix : '';
             Cprefix      : '_';
             newline      : #13#10;
             dirsep       : '\';
@@ -262,7 +266,12 @@ initialization
 end.
 {
   $Log$
-  Revision 1.10  2001-09-17 21:29:16  peter
+  Revision 1.11  2001-09-18 11:32:00  michael
+  * Fixes win32 linking problems with import libraries
+  * LINKLIB Libraries are now looked for using C file extensions
+  * get_exepath fix
+
+  Revision 1.10  2001/09/17 21:29:16  peter
     * merged netbsd, fpu-overflow from fixes branch
 
   Revision 1.9  2001/08/19 11:22:24  peter

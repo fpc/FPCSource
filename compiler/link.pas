@@ -57,11 +57,11 @@ Type
        Constructor Create;virtual;
        Destructor Destroy;override;
        procedure AddModuleFiles(hp:tmodule);
-       function  FindObjectFile(s : string;const unitpath:string) : string;
-       function  FindLibraryFile(s:string;const ext:string;var found : boolean) : string;
        Procedure AddObject(const S,unitpath : String);
        Procedure AddStaticLibrary(const S : String);
        Procedure AddSharedLibrary(S : String);
+       Procedure AddStaticCLibrary(const S : String);
+       Procedure AddSharedCLibrary(S : String);
        Function  FindUtil(const s:string):String;
        Function  DoExec(const command,para:string;showinfo,useshell:boolean):boolean;
      { Virtuals }
@@ -76,6 +76,9 @@ Type
 var
   CLinker : array[tld] of TLinkerClass;
   Linker  : TLinker;
+
+function FindObjectFile(s : string;const unitpath:string) : string;
+function FindLibraryFile(s:string;const prefix,ext:string;var foundfile : string) : boolean;
 
 procedure RegisterLinker(t:tld;c:TLinkerClass);
 procedure InitLinker;
@@ -92,6 +95,92 @@ uses
 {$endif Delphi}
   cutils,globtype,
   script,globals,verbose,ppu;
+
+
+{*****************************************************************************
+                                   Helpers
+*****************************************************************************}
+
+{ searches an object file }
+function FindObjectFile(s:string;const unitpath:string) : string;
+var
+  found : boolean;
+  foundfile : string;
+  s1 : string;
+begin
+  findobjectfile:='';
+  if s='' then
+   exit;
+  if pos('.',s)=0 then
+   s:=s+target_info.objext;
+  s1:=FixFileName(s);
+  if FileExists(s1) then
+   begin
+     Findobjectfile:=ScriptFixFileName(s);
+     exit;
+   end;
+  { find object file
+     1. specified unit path (if specified)
+     2. cwd
+     3. unit search path
+     4. local object path
+     5. global object path
+     6. exepath }
+  found:=false;
+  if unitpath<>'' then
+   found:=FindFile(s,unitpath,foundfile);
+  if (not found) then
+   found:=FindFile(s,'.'+source_info.DirSep,foundfile);
+  if (not found) then
+   found:=UnitSearchPath.FindFile(s,foundfile);
+  if (not found) then
+   found:=current_module.localobjectsearchpath.FindFile(s,foundfile);
+  if (not found) then
+   found:=objectsearchpath.FindFile(s,foundfile);
+  if (not found) then
+   found:=FindFile(s,exepath,foundfile);
+  if not(cs_link_extern in aktglobalswitches) and (not found) then
+   Message1(exec_w_objfile_not_found,s);
+  findobjectfile:=ScriptFixFileName(foundfile);
+end;
+
+
+{ searches an library file }
+function FindLibraryFile(s:string;const prefix,ext:string;var foundfile : string) : boolean;
+var
+  found : boolean;
+begin
+  findlibraryfile:=false;
+  foundfile:=s;
+  if s='' then
+   exit;
+  { add prefix 'lib' }
+  if (prefix<>'') and (Copy(s,1,length(prefix))<>prefix) then
+   s:=prefix+s;
+  { add extension }
+  if (ext<>'') and (Copy(s,length(s)-length(ext)+1,length(ext))<>ext) then
+   s:=s+ext;
+  if FileExists(s) then
+   begin
+     foundfile:=ScriptFixFileName(s);
+     FindLibraryFile:=true;
+     exit;
+   end;
+  { find libary
+     1. cwd
+     2. local libary dir
+     3. global libary dir
+     4. exe path of the compiler }
+  found:=FindFile(s,'.'+source_info.DirSep,foundfile);
+  if (not found) then
+   found:=current_module.locallibrarysearchpath.FindFile(s,foundfile);
+  if (not found) then
+   found:=librarysearchpath.FindFile(s,foundfile);
+  if (not found) then
+   found:=FindFile(s,exepath,foundfile);
+  foundfile:=ScriptFixFileName(foundfile);
+  findlibraryfile:=found;
+end;
 
 
 {*****************************************************************************
@@ -208,9 +297,9 @@ begin
      while not linkotherofiles.empty do
       AddObject(linkotherofiles.Getusemask(mask),path^);
      while not linkotherstaticlibs.empty do
-      AddStaticLibrary(linkotherstaticlibs.Getusemask(mask));
+      AddStaticCLibrary(linkotherstaticlibs.Getusemask(mask));
      while not linkothersharedlibs.empty do
-      AddSharedLibrary(linkothersharedlibs.Getusemask(mask));
+      AddSharedCLibrary(linkothersharedlibs.Getusemask(mask));
    end;
 end;
 
@@ -245,83 +334,6 @@ begin
 end;
 
 
-{ searches an object file }
-function TLinker.FindObjectFile(s:string;const unitpath:string) : string;
-var
-  found : boolean;
-  foundfile : string;
-  s1 : string;
-begin
-  findobjectfile:='';
-  if s='' then
-   exit;
-  if pos('.',s)=0 then
-   s:=s+target_info.objext;
-  s1:=FixFileName(s);
-  if FileExists(s1) then
-   begin
-     Findobjectfile:=ScriptFixFileName(s);
-     exit;
-   end;
-  { find object file
-     1. specified unit path (if specified)
-     2. cwd
-     3. unit search path
-     4. local object path
-     5. global object path
-     6. exepath }
-  found:=false;
-  if unitpath<>'' then
-   found:=FindFile(s,unitpath,foundfile);
-  if (not found) then
-   found:=FindFile(s,'.'+DirSep,foundfile);
-  if (not found) then
-   found:=UnitSearchPath.FindFile(s,foundfile);
-  if (not found) then
-   found:=current_module.localobjectsearchpath.FindFile(s,foundfile);
-  if (not found) then
-   found:=objectsearchpath.FindFile(s,foundfile);
-  if (not found) then
-   found:=FindFile(s,exepath,foundfile);
-  if not(cs_link_extern in aktglobalswitches) and (not found) then
-   Message1(exec_w_objfile_not_found,s);
-  findobjectfile:=ScriptFixFileName(foundfile);
-end;
-
-
-{ searches an library file }
-function TLinker.FindLibraryFile(s:string;const ext:string;var found : boolean) : string;
-var
-  foundfile : string;
-begin
-  found:=false;
-  findlibraryfile:='';
-  if s='' then
-   exit;
-  if pos('.',s)=0 then
-   s:=s+ext;
-  if FileExists(s) then
-   begin
-     found:=true;
-     FindLibraryFile:=ScriptFixFileName(s);
-     exit;
-   end;
-  { find libary
-     1. cwd
-     2. local libary dir
-     3. global libary dir
-     4. exe path of the compiler }
-  found:=FindFile(s,'.'+DirSep,foundfile);
-  if (not found) then
-   found:=current_module.locallibrarysearchpath.FindFile(s,foundfile);
-  if (not found) then
-   found:=librarysearchpath.FindFile(s,foundfile);
-  if (not found) then
-   found:=FindFile(s,exepath,foundfile);
-  findlibraryfile:=ScriptFixFileName(foundfile);
-end;
-
-
 Procedure TLinker.AddObject(const S,unitpath : String);
 begin
   ObjectFiles.Concat(FindObjectFile(s,unitpath));
@@ -350,7 +362,36 @@ var
 begin
   if s='' then
    exit;
-  ns:=FindLibraryFile(s,target_info.staticlibext,found);
+  found:=FindLibraryFile(s,target_info.staticlibprefix,target_info.staticlibext,ns);
+  if not(cs_link_extern in aktglobalswitches) and (not found) then
+   Message1(exec_w_libfile_not_found,s);
+  StaticLibFiles.Concat(ns);
+end;
+
+
+Procedure TLinker.AddSharedCLibrary(S:String);
+begin
+  if s='' then
+   exit;
+{ remove prefix 'lib' }
+  if Copy(s,1,length(target_info.sharedclibprefix))=target_info.sharedclibprefix then
+   Delete(s,1,length(target_info.sharedclibprefix));
+{ remove extension if any }
+  if Copy(s,length(s)-length(target_info.sharedclibext)+1,length(target_info.sharedclibext))=target_info.sharedclibext then
+   Delete(s,length(s)-length(target_info.sharedclibext)+1,length(target_info.sharedclibext)+1);
+{ ready to be added }
+  SharedLibFiles.Concat(S);
+end;
+
+
+Procedure TLinker.AddStaticCLibrary(const S:String);
+var
+  ns : string;
+  found : boolean;
+begin
+  if s='' then
+   exit;
+  found:=FindLibraryFile(s,target_info.staticclibprefix,target_info.staticclibext,ns);
   if not(cs_link_extern in aktglobalswitches) and (not found) then
    Message1(exec_w_libfile_not_found,s);
   StaticLibFiles.Concat(ns);
@@ -492,7 +533,12 @@ initialization
 end.
 {
   $Log$
-  Revision 1.23  2001-09-17 21:29:11  peter
+  Revision 1.24  2001-09-18 11:30:48  michael
+  * Fixes win32 linking problems with import libraries
+  * LINKLIB Libraries are now looked for using C file extensions
+  * get_exepath fix
+
+  Revision 1.23  2001/09/17 21:29:11  peter
     * merged netbsd, fpu-overflow from fixes branch
 
   Revision 1.22  2001/08/30 20:13:53  peter

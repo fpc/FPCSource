@@ -69,7 +69,7 @@ implementation
             begin
               S:=current_module.linkOtherSharedLibs.Getusemask(link_allways);
               if not DLLScanner.scan(s) then
-               KeepShared.Insert(s);
+               KeepShared.Concat(s);
             end;
            DLLscanner.Free;
            { Recreate import section }
@@ -1339,7 +1339,12 @@ implementation
 end.
 {
   $Log$
-  Revision 1.46  2001-09-13 14:47:47  michael
+  Revision 1.47  2001-09-18 11:30:48  michael
+  * Fixes win32 linking problems with import libraries
+  * LINKLIB Libraries are now looked for using C file extensions
+  * get_exepath fix
+
+  Revision 1.46  2001/09/13 14:47:47  michael
   + Committed patch from peter
 
   Revision 1.45  2001/08/26 13:36:46  florian

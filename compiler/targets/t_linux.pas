@@ -485,8 +485,6 @@ end;
             cpu          : i386;
             unit_env     : 'LINUXUNITS';
             extradefines : 'UNIX';
-            sharedlibext : '.so';
-            staticlibext : '.a';
             sourceext    : '.pp';
             pasext       : '.pas';
             exeext       : '';
@@ -499,8 +497,14 @@ end;
             objext       : '.o';
             resext       : '.res';
             resobjext    : '.or';
+            sharedlibext : '.so';
+            staticlibext : '.a';
             staticlibprefix : 'libp';
             sharedlibprefix : 'lib';
+            sharedClibext : '.so';
+            staticClibext : '.a';
+            staticClibprefix : 'lib';
+            sharedClibprefix : 'lib';
             Cprefix      : '';
             newline      : #10;
             dirsep       : '/';
@@ -551,8 +555,6 @@ end;
             short_name   : 'LINUX';
             unit_env     : 'LINUXUNITS';
             extradefines : 'UNIX';
-            sharedlibext : '.so';
-            staticlibext : '.a';
             sourceext    : '.pp';
             pasext       : '.pas';
             exeext       : '';
@@ -565,8 +567,14 @@ end;
             objext       : '.o';
             resext       : '.res';
             resobjext    : '.or';
+            sharedlibext : '.so';
+            staticlibext : '.a';
             staticlibprefix : 'libp';
             sharedlibprefix : 'lib';
+            sharedClibext : '.so';
+            staticClibext : '.a';
+            staticClibprefix : 'lib';
+            sharedClibprefix : 'lib';
             Cprefix      : '';
             newline      : #10;
             dirsep       : '/';
@@ -603,8 +611,6 @@ end;
             short_name   : 'LINUX';
             unit_env     : '';
             extradefines : 'UNIX';
-            sharedlibext : '.so';
-            staticlibext : '.s';
             sourceext    : '.pp';
             pasext       : '.pas';
             exeext       : '';
@@ -617,8 +623,14 @@ end;
             objext       : '.o';
             resext       : '.res';
             resobjext    : '.or';
+            sharedlibext : '.so';
+            staticlibext : '.s';
             staticlibprefix : 'libp';
             sharedlibprefix : 'lib';
+            sharedClibext : '.so';
+            staticClibext : '.a';
+            staticClibprefix : 'lib';
+            sharedClibprefix : 'lib';
             Cprefix      : '';
             newline      : #10;
             dirsep       : '/';
@@ -653,8 +665,6 @@ end;
             short_name   : 'LINUX';
             unit_env     : 'LINUXUNITS';
             extradefines : 'UNIX';
-            sharedlibext : '.so';
-            staticlibext : '.a';
             sourceext    : '.pp';
             pasext       : '.pas';
             exeext       : '';
@@ -667,8 +677,14 @@ end;
             objext       : '.o';
             resext       : '.res';
             resobjext    : '.or';
+            sharedlibext : '.so';
+            staticlibext : '.a';
             staticlibprefix : 'libp';
             sharedlibprefix : 'lib';
+            sharedClibext : '.so';
+            staticClibext : '.a';
+            staticClibprefix : 'lib';
+            sharedClibprefix : 'lib';
             Cprefix      : '';
             newline      : #10;
             dirsep       : '/';
@@ -723,7 +739,12 @@ initialization
 end.
 {
   $Log$
-  Revision 1.12  2001-09-17 21:29:16  peter
+  Revision 1.13  2001-09-18 11:32:00  michael
+  * Fixes win32 linking problems with import libraries
+  * LINKLIB Libraries are now looked for using C file extensions
+  * get_exepath fix
+
+  Revision 1.12  2001/09/17 21:29:16  peter
     * merged netbsd, fpu-overflow from fixes branch
 
   Revision 1.11  2001/08/07 18:47:15  peter

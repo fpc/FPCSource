@@ -190,6 +190,9 @@ begin
    DoneCompiler;
 { inits which need to be done before the arguments are parsed }
   InitSystems;
+  { globals depends on source_info so it must be after systems }
+  InitGlobals;
+  { verbose depends on exe_path and must be after globals }
   InitVerbose;
 {$ifdef BrowserLog}
   InitBrowserLog;
@@ -197,7 +200,6 @@ begin
 {$ifdef BrowserCol}
   do_initSymbolInfo;
 {$endif BrowserCol}
-  InitGlobals;
   inittokens;
   InitSymtable;
   CompilerInited:=true;
@@ -328,7 +330,12 @@ end;
 end.
 {
   $Log$
-  Revision 1.21  2001-05-06 14:49:16  peter
+  Revision 1.22  2001-09-18 11:30:47  michael
+  * Fixes win32 linking problems with import libraries
+  * LINKLIB Libraries are now looked for using C file extensions
+  * get_exepath fix
+
+  Revision 1.21  2001/05/06 14:49:16  peter
     * ppu object to class rewrite
     * move ppu read and write stuff to fppu
 

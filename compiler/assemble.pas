@@ -246,18 +246,18 @@ Implementation
          begin
            { the path exists, now we clean only all the .o and .s files }
            { .o files }
-           findfirst(s+dirsep+'*'+target_info.objext,anyfile,dir);
+           findfirst(s+source_info.dirsep+'*'+target_info.objext,anyfile,dir);
            while (doserror=0) do
             begin
-              RemoveFile(s+dirsep+dir.name);
+              RemoveFile(s+source_info.dirsep+dir.name);
               findnext(dir);
             end;
            findclose(dir);
            { .s files }
-           findfirst(s+dirsep+'*'+target_info.asmext,anyfile,dir);
+           findfirst(s+source_info.dirsep+'*'+target_info.asmext,anyfile,dir);
            while (doserror=0) do
             begin
-              RemoveFile(s+dirsep+dir.name);
+              RemoveFile(s+source_info.dirsep+dir.name);
               findnext(dir);
             end;
            findclose(dir);
@@ -1550,7 +1550,12 @@ Implementation
 end.
 {
   $Log$
-  Revision 1.27  2001-09-17 21:29:10  peter
+  Revision 1.28  2001-09-18 11:30:47  michael
+  * Fixes win32 linking problems with import libraries
+  * LINKLIB Libraries are now looked for using C file extensions
+  * get_exepath fix
+
+  Revision 1.27  2001/09/17 21:29:10  peter
     * merged netbsd, fpu-overflow from fixes branch
 
   Revision 1.26  2001/08/30 20:57:09  peter

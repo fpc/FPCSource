@@ -669,7 +669,7 @@ implementation
              end
            else
              path:=current_scanner.inputfile.path^;
-           found:=FindFile(name+ext,path+';.'+DirSep,foundfile);
+           found:=FindFile(name+ext,path+';.'+source_info.DirSep,foundfile);
            if (not found) then
             found:=current_module.localincludesearchpath.FindFile(name+ext,foundfile);
            if (not found) then
@@ -2602,7 +2602,12 @@ exit_label:
 end.
 {
   $Log$
-  Revision 1.21  2001-07-30 20:59:27  peter
+  Revision 1.22  2001-09-18 11:30:48  michael
+  * Fixes win32 linking problems with import libraries
+  * LINKLIB Libraries are now looked for using C file extensions
+  * get_exepath fix
+
+  Revision 1.21  2001/07/30 20:59:27  peter
     * m68k updates from v10 merged
 
   Revision 1.20  2001/07/15 11:56:21  peter

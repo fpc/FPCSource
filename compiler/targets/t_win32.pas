@@ -787,15 +787,7 @@ begin
      While not SharedLibFiles.Empty do
       begin
         S:=SharedLibFiles.GetFirst;
-        if pos('.',s)=0 then
-          { we never directly link a DLL
-            its allways through an import library PM }
-          { libraries created by C compilers have .a extensions }
-          s2:=s+'.a'{ target_os.sharedlibext }
-        else
-          s2:=s;
-        s2:=FindLibraryFile(s2,'',found);
-        if found then
+        if FindLibraryFile(s,target_info.staticClibprefix,target_info.staticClibext,s2) then
           begin
             LinkRes.Add(GetShortName(s2));
             continue;
@@ -1222,13 +1214,13 @@ end;
           1. Current dir
           2. Library Path
           3. windir,windir/system,windir/system32 }
-        Found:=FindFile(s,'.'+DirSep,founddll);
+        Found:=FindFile(s,'.'+source_info.DirSep,founddll);
         if (not found) then
          Found:=librarysearchpath.FindFile(s,founddll);
         if (not found) then
          begin
            sysdir:=FixPath(GetEnv('windir'),false);
-           Found:=FindFile(s,sysdir+';'+sysdir+'system'+DirSep+';'+sysdir+'system32'+DirSep,founddll);
+           Found:=FindFile(s,sysdir+';'+sysdir+'system'+source_info.DirSep+';'+sysdir+'system32'+source_info.DirSep,founddll);
          end;
         if (not found) then
          begin
@@ -1411,10 +1403,16 @@ function tDLLScannerWin32.GetEdata(HeaderEntry:cardinal):longbool;
 function tDLLScannerWin32.scan(const binname:string):longbool;
  var
   OldFileMode:longint;
+  foundimp : string;
  begin
    Scan:=false;
+  { is there already an import library the we will use that one }
+  if FindLibraryFile(binname,target_info.staticClibprefix,target_info.staticClibext,foundimp) then
+   exit;
+  { check if we can find the dll }
   if not FindDll(DLLName(binname),impname) then
    exit;
+  { read the dll file }
   assign(f,impname);
   OldFileMode:=filemode;
   filemode:=0;
@@ -1459,8 +1457,6 @@ function tDLLScannerWin32.scan(const binname:string):longbool;
             cpu          : i386;
             unit_env     : 'WIN32UNITS';
             extradefines : 'MSWINDOWS';
-            sharedlibext : '.dll';
-            staticlibext : '.aw';
             sourceext    : '.pp';
             pasext       : '.pas';
             exeext       : '.exe';
@@ -1473,8 +1469,14 @@ function tDLLScannerWin32.scan(const binname:string):longbool;
             objext       : '.ow';
             resext       : '.rc';
             resobjext    : '.owr';
+            sharedlibext : '.dll';
+            staticlibext : '.aw';
             staticlibprefix : 'libp';
             sharedlibprefix : '';
+            sharedClibext : '.dll';
+            staticClibext : '.a';
+            staticClibprefix : 'lib';
+            sharedClibprefix : '';
             Cprefix      : '_';
             newline      : #13#10;
             dirsep       : '\';
@@ -1525,7 +1527,12 @@ initialization
 end.
 {
   $Log$
-  Revision 1.17  2001-09-17 21:29:16  peter
+  Revision 1.18  2001-09-18 11:32:00  michael
+  * Fixes win32 linking problems with import libraries
+  * LINKLIB Libraries are now looked for using C file extensions
+  * get_exepath fix
+
+  Revision 1.17  2001/09/17 21:29:16  peter
     * merged netbsd, fpu-overflow from fixes branch
 
   Revision 1.16  2001/09/13 14:47:19  michael

@@ -51,16 +51,6 @@ interface
       globtype,version,systems;
 
     const
-{$ifdef unix}
-       DirSep = '/';
-{$else}
-  {$ifdef amiga}
-       DirSep = '/';
-  {$else}
-       DirSep = '\';
-  {$endif}
-{$endif}
-
 {$ifdef Splitheap}
        testsplit : boolean = false;
 {$endif Splitheap}
@@ -481,7 +471,7 @@ implementation
 
     Function RemoveDir(d:string):boolean;
       begin
-        if d[length(d)]=DirSep then
+        if d[length(d)]=source_info.DirSep then
          Delete(d,length(d),1);
         {$I-}
          rmdir(d);
@@ -535,7 +525,7 @@ implementation
         j:=length(Hstr);
         while (j>0) and (Hstr[j]<>'.') do
          begin
-           if hstr[j]=DirSep then
+           if hstr[j]=source_info.DirSep then
             j:=0
            else
             dec(j);
@@ -756,17 +746,17 @@ implementation
           end;
          { fix pathname }
          if CurrPath='' then
-          CurrPath:='.'+DirSep
+          CurrPath:='.'+source_info.DirSep
          else
           begin
             CurrPath:=FixPath(FExpand(CurrPath),false);
             if (CurrentDir<>'') and (Copy(CurrPath,1,length(CurrentDir))=CurrentDir) then
-             CurrPath:='.'+DirSep+Copy(CurrPath,length(CurrentDir)+1,255);
+             CurrPath:='.'+source_info.DirSep+Copy(CurrPath,length(CurrentDir)+1,255);
           end;
          { wildcard adding ? }
          if pos('*',currpath)>0 then
           begin
-            if currpath[length(currpath)]=dirsep then
+            if currpath[length(currpath)]=source_info.dirsep then
              hs:=Copy(currpath,1,length(CurrPath)-1)
             else
              hs:=currpath;
@@ -778,7 +768,7 @@ implementation
                   (dir.name<>'..') and
                   ((dir.attr and directory)<>0) then
                 begin
-                  currpath:=hsd+dir.name+dirsep;
+                  currpath:=hsd+dir.name+source_info.dirsep;
                   hp:=Find(currPath);
                   if not assigned(hp) then
                    AddCurrPath;
@@ -1318,6 +1308,8 @@ implementation
 
    procedure InitGlobals;
      begin
+        get_exepath;
+
       { set global switches }
         do_build:=false;
         do_release:=false;
@@ -1390,9 +1382,8 @@ implementation
         apptype:=app_cui;
      end;
 
-begin
-  get_exepath;
 {$ifdef EXTDEBUG}
+begin
   {$ifdef FPC}
     EntryMemUsed:=system.HeapSize-MemAvail;
   {$endif FPC}
@@ -1400,7 +1391,12 @@ begin
 end.
 {
   $Log$
-  Revision 1.42  2001-09-17 21:29:11  peter
+  Revision 1.43  2001-09-18 11:30:47  michael
+  * Fixes win32 linking problems with import libraries
+  * LINKLIB Libraries are now looked for using C file extensions
+  * get_exepath fix
+
+  Revision 1.42  2001/09/17 21:29:11  peter
     * merged netbsd, fpu-overflow from fixes branch
 
   Revision 1.41  2001/08/19 11:22:22  peter

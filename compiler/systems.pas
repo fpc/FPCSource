@@ -171,8 +171,6 @@ interface
           cpu          : ttargetcpu;
           unit_env     : string[12];
           extradefines : string[40];
-          sharedlibext : string[10];
-          staticlibext,
           sourceext,
           pasext,
           exeext,
@@ -185,8 +183,14 @@ interface
           objext,
           resext,
           resobjext    : string[4];
+          sharedlibext : string[10];
+          staticlibext,
           staticlibprefix : string[4];
           sharedlibprefix : string[4];
+          sharedClibext : string[10];
+          staticClibext,
+          staticClibprefix : string[4];
+          sharedClibprefix : string[4];
           Cprefix      : string[2];
           newline      : string[2];
           dirsep       : char;
@@ -647,7 +651,12 @@ finalization
 end.
 {
   $Log$
-  Revision 1.26  2001-09-17 21:29:13  peter
+  Revision 1.27  2001-09-18 11:30:48  michael
+  * Fixes win32 linking problems with import libraries
+  * LINKLIB Libraries are now looked for using C file extensions
+  * get_exepath fix
+
+  Revision 1.26  2001/09/17 21:29:13  peter
     * merged netbsd, fpu-overflow from fixes branch
 
   Revision 1.25  2001/08/30 20:57:10  peter

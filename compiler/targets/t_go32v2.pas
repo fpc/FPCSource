@@ -365,8 +365,6 @@ end;
             cpu          : i386;
             unit_env     : 'GO32V2UNITS';
             extradefines : 'DPMI';
-            sharedlibext : '.dll';
-            staticlibext : '.a';
             sourceext    : '.pp';
             pasext       : '.pas';
             exeext       : '.exe';
@@ -379,8 +377,14 @@ end;
             objext       : '.o';
             resext       : '.res';
             resobjext    : '.or';
+            sharedlibext : '.dll';
+            staticlibext : '.a';
             staticlibprefix : '';
             sharedlibprefix : '';
+            sharedClibext : '.dll';
+            staticClibext : '.a';
+            staticClibprefix : '';
+            sharedClibprefix : '';
             Cprefix      : '_';
             newline      : #13#10;
             dirsep       : '\';
@@ -426,7 +430,12 @@ initialization
 end.
 {
   $Log$
-  Revision 1.13  2001-09-17 21:29:16  peter
+  Revision 1.14  2001-09-18 11:32:00  michael
+  * Fixes win32 linking problems with import libraries
+  * LINKLIB Libraries are now looked for using C file extensions
+  * get_exepath fix
+
+  Revision 1.13  2001/09/17 21:29:16  peter
     * merged netbsd, fpu-overflow from fixes branch
 
   Revision 1.12  2001/08/30 20:08:23  peter
