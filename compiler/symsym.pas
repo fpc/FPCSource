@@ -865,7 +865,7 @@ implementation
               if (p^.def.procsym=self) and
                  (p^.def.forwarddef) then
                 begin
-                   MessagePos1(fileinfo,sym_e_forward_not_resolved,p^.def.fullprocname);
+                   MessagePos1(p^.def.fileinfo,sym_e_forward_not_resolved,p^.def.fullprocname);
                    { Turn futher error messages off }
                    p^.def.forwarddef:=false;
                 end;
@@ -2504,7 +2504,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.69  2002-10-05 12:43:29  carl
+  Revision 1.70  2002-10-13 21:33:37  peter
+    * give correct fileposition for undefined forward procs
+
+  Revision 1.69  2002/10/05 12:43:29  carl
     * fixes for Delphi 6 compilation
      (warning : Some features do not work under Delphi)
 
