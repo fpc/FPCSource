@@ -27,7 +27,7 @@ Don't forget the BGIPATH of InitGraph.
 
 program makemaze;
 
-{$apptype GUI}
+{apptype GUI, disabled, there are too many writes PM }
 
 uses
  {$ifdef Win32}
@@ -497,7 +497,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.2  2001-11-11 21:09:49  marco
+  Revision 1.3  2002-04-11 19:48:44  pierre
+   * don't use GUI apptype as there are writes
+
+  Revision 1.2  2001/11/11 21:09:49  marco
    * Gameunit, Fpctris and samegame  fixed for win32 GUI
 
   Revision 1.1  2001/05/03 21:39:33  peter
@@ -505,5 +508,5 @@ end.
 
   Revision 1.2  2000/07/13 11:33:08  michael
   + removed logs
- 
+
 }
