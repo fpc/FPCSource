@@ -269,7 +269,9 @@ end;
 
 {$ifndef DISABLE_NO_THREAD_MANAGER}
 
-Resourcestring
+{ resourcestrings are not supported by the system unit,
+  they are in the objpas unit and not available for fpc/tp modes }
+const
   SNoThreads = 'This binary has no thread support compiled in.';
   SRecompileWithThreads = 'Recompile the application with a thread-driver in the program uses clause before other units using thread.';
 
@@ -481,7 +483,10 @@ end;
 
 {
   $Log$
-  Revision 1.20  2005-02-06 11:20:52  peter
+  Revision 1.21  2005-02-07 17:36:54  peter
+  can't use resourcestrings in the system unit
+
+  Revision 1.20  2005/02/06 11:20:52  peter
     * threading in system unit
     * removed systhrds unit
 
