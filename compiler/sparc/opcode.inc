@@ -1,5 +1,5 @@
 {******************************************************************************
-	$Id$
+        $Id$
  *****************************************************************************}
 A_NONE,
 A_ABCD,
@@ -47,7 +47,7 @@ A_FsTOi,A_FdTOi,A_FqTOi,
 A_FsTOd,A_FsTOq,
 A_FdTOs,A_FdTOq,
 A_FqTOd,A_FqTOs,
-A_MOVs,A_NEGs,A_FABSs,
+A_FMOVs,A_FNEGs,A_FABSs,
 A_FSQRTs,A_FSQRTd,A_FSQRTq,
 A_FADDs,A_FADDd,A_FADDq,
 A_FSUBs,A_FSUBd,A_FSUBq,
@@ -67,17 +67,20 @@ A_set,
 A_skipz,A_skipnz,
 A_tst
 {
-	$Log$
-	Revision 1.6  2003-05-06 20:23:44  mazen
-	* A_BI ==> A_BL (bi ==> bl) instructions renamed
+        $Log$
+        Revision 1.7  2003-06-01 01:03:53  peter
+          * FMOVs fixed
 
-	Revision 1.5  2003/01/20 20:15:44  mazen
-	* A_CMPrs --> A_FCMPs and A_CMPd --> A_FCMPd
-	
-	Revision 1.4  2002/11/10 17:49:14  mazen
-	* A_RET --> A_RETT (RET from Trap)
-	
-	Revision 1.3  2002/10/17 14:48:34  mazen
-	* branch instructions are now contigous
-	
+        Revision 1.6  2003/05/06 20:23:44  mazen
+        * A_BI ==> A_BL (bi ==> bl) instructions renamed
+
+        Revision 1.5  2003/01/20 20:15:44  mazen
+        * A_CMPrs --> A_FCMPs and A_CMPd --> A_FCMPd
+
+        Revision 1.4  2002/11/10 17:49:14  mazen
+        * A_RET --> A_RETT (RET from Trap)
+
+        Revision 1.3  2002/10/17 14:48:34  mazen
+        * branch instructions are now contigous
+
 }
