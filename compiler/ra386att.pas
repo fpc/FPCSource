@@ -1451,11 +1451,11 @@ const
           Begin
             if numops = 3 then
               Begin
-                if (operands[3].operandtype = OPR_CONSTANT) and
-                   (operands[3].val <= $ff) then
+                if (operands[1].operandtype = OPR_CONSTANT) and
+                   (operands[1].val <= $ff) then
                   Begin
-                    operands[3].opinfo := ao_imm8;
-                    operands[3].size := S_B;
+                    operands[1].opinfo := ao_imm8;
+                    operands[1].size := S_B;
                   end;
               end
             else
@@ -2062,7 +2062,7 @@ const
      3: Begin
              { only imul, shld and shrd  }
              { middle must be a register }
-           if (instruc in [A_SHLD,A_SHRD]) and
+           if (instruc = A_SHLD) Or (instruc = A_SHRD) and
               (instr.operands[2].operandtype = OPR_REGISTER) then
              Begin
                case instr.operands[2].size of
@@ -2115,7 +2115,7 @@ const
                end; { end case }
              end
              else
-             if (instruc in [A_IMUL]) and (instr.operands[3].operandtype
+             if (instruc = A_IMUL) and (instr.operands[3].operandtype
                = OPR_REGISTER) then
              Begin
                case instr.operands[3].size of
@@ -3969,7 +3969,12 @@ end.
 
 {
   $Log$
-  Revision 1.24  1998-12-08 23:03:48  jonas
+  Revision 1.25  1998-12-09 13:23:40  jonas
+    * replaced two "in [A_...]" constructs I had missed before
+    * for shrd/shld: "if operands[1].operandtype = OPR_CONSTANT" instead of
+      "if operands[3].operandtype ..."
+
+  Revision 1.24  1998/12/08 23:03:48  jonas
     * allow constant offsets for go32v2 in assembler blocks
 
   Revision 1.23  1998/12/02 16:23:33  jonas
