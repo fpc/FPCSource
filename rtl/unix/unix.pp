@@ -18,6 +18,7 @@ Interface
 
 Uses UnixUtil,BaseUnix;
 
+{$define POSIXWORKAROUND}
 { Get Types and Constants }
 {$i sysconst.inc}
 {$ifdef FreeBSD}
@@ -749,7 +750,11 @@ var
 
 begin { Changes as above }
   if command='' then exit(1); 
+  {$ifdef FreeBSD}
   ign.sa_handler:=TSigAction(SIG_IGN);
+  {$else}
+  ign.sa_handler:=SignalHandler(SIG_IGN);
+  {$endif}
   fpsigemptyset(ign.sa_mask);
   ign.sa_flags:=0;
   fpsigaction(SIGINT, @ign, @intact);
@@ -1728,7 +1733,10 @@ End.
 
 {
   $Log$
-  Revision 1.64  2004-02-14 18:22:15  marco
+  Revision 1.65  2004-02-14 21:12:14  marco
+   * provisorische fix voor Michael's problemen
+
+  Revision 1.64  2004/02/14 18:22:15  marco
    * fpsystem, and some FPC_USE_LIBC fixes. (FreeBSD needs systypes.inc, also when FPC_USE_LIBC, it only contains types like statfs
 
   Revision 1.63  2004/02/13 10:50:22  marco
