@@ -424,6 +424,7 @@
       begin
          p:=tunarynode(inherited getcopy);
          p.left:=left.getcopy;
+         getcopy:=p;
       end;
 
 {$ifdef extdebug}
@@ -532,6 +533,7 @@
       begin
          p:=tbinarynode(inherited getcopy);
          p.right:=right.getcopy;
+         getcopy:=p;
       end;
 
     function tbinarynode.isbinaryoverloaded(var t : tnode) : boolean;
@@ -673,7 +675,10 @@
       end;
 {
   $Log$
-  Revision 1.6  2000-09-28 19:49:52  florian
+  Revision 1.7  2000-09-29 15:45:23  florian
+    * make cycle fixed
+
+  Revision 1.6  2000/09/28 19:49:52  florian
   *** empty log message ***
 
   Revision 1.5  2000/09/27 18:14:31  florian

@@ -161,8 +161,11 @@ implementation
        globtype,systems,
        cutils,cobjects,verbose,globals,
        symconst,
-       types,pass_1,cpubase,ncnv,nld,
+       types,pass_1,cpubase,
+{$ifdef cg11}
+       ncnv,nld,
        nmem,ncal,
+{$endif cg11}
 {$ifdef newcg}
        cgbase
 {$else}
@@ -2173,7 +2176,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.9  2000-09-28 19:49:51  florian
+  Revision 1.10  2000-09-29 15:45:23  florian
+    * make cycle fixed
+
+  Revision 1.9  2000/09/28 19:49:51  florian
   *** empty log message ***
 
   Revision 1.8  2000/09/27 18:14:31  florian
