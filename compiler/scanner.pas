@@ -809,6 +809,11 @@ implementation
                     if found=1 then
                      found:=2;
                   end;
+            '(' : begin
+                    readchar;
+                    if c='*' then
+                     skipoldtpcomment;
+                  end;
            else
             found:=0;
            end;
@@ -1570,7 +1575,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.74  1999-03-11 10:46:29  daniel
+  Revision 1.75  1999-03-16 21:00:27  peter
+    * fixed old tp comment behaviour within directives
+
+  Revision 1.74  1999/03/11 10:46:29  daniel
   * Reverted C styled comments
 
   Revision 1.73  1999/03/02 22:49:35  peter
