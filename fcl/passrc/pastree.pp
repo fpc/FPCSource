@@ -1159,7 +1159,10 @@ begin
         begin
         T.Text:=Temp;
         For J:=0 to T.Count-1 do
-          S.Add('  '+T[J]+';');
+          if J=T.Count-1 then
+            S.Add('  '+T[J]+';')
+          else
+            S.Add('  '+T[J])
         end
       else
         S.Add('  '+Temp+';');
@@ -1261,6 +1264,8 @@ begin
     else
       Result:=VarType.Name;
     Result:=Result+Modifiers;
+    if (Value<>'') then
+      Result:=Result+' = '+Value;
     end
   else
     Result:=Value;
@@ -1392,7 +1397,10 @@ end.
 
 {
   $Log$
-  Revision 1.4  2004-07-23 23:42:02  michael
+  Revision 1.5  2004-07-24 00:03:13  michael
+  + Fixed getdeclaration of TPasRecordType (semicolons not/wrongly placed)
+
+  Revision 1.4  2004/07/23 23:42:02  michael
   + Worked around bug in compiler that finalizes constants in subroutines
 
   Revision 1.3  2004/07/23 21:43:54  michael
