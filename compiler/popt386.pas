@@ -1561,14 +1561,34 @@ Begin
     end;
 end;
 
+{$ifdef foldArithOps}
+Function IsArithOp(opcode: TAsmOp): Boolean;
+Begin
+  IsArithOp := False;
+  Case opcode Of
+    A_ADD,A_SUB,A_OR,A_XOR,A_AND,A_SHL,A_SHR,A_SAR: IsArithOp := True
+  End;
+End;
+{$endif foldArithOps}
+
+
 Procedure PeepHoleOptPass2(AsmL: PAasmOutput; BlockStart, BlockEnd: Pai);
 
 var
   p,hp1,hp2: pai;
+{$ifdef foldArithOps}
+  UsedRegs, TmpUsedRegs: TRegSet;
+{$endif foldArithOps}
 Begin
   P := BlockStart;
+{$ifdef foldArithOps}
+  UsedRegs := [];
+{$endif foldArithOps}
   While (P <> BlockEnd) Do
     Begin
+{$ifdef foldArithOps}
+      UpdateUsedRegs(UsedRegs, Pai(p^.next));
+{$endif foldArithOps}
       Case P^.Typ Of
         Ait_Instruction:
           Begin
@@ -1612,7 +1632,43 @@ Begin
                       Dispose(p, Done);
                       p := hp1;
                       Continue;
-                    End;
+                    End
+{$ifdef foldArithOps}
+                  Else If (Paicpu(p)^.oper[0].typ = top_ref) And
+                    GetNextInstruction(p,hp1) And
+                    (hp1^.typ = ait_instruction) And
+                    IsArithOp(Paicpu(hp1)^.opcode) And
+                    (Paicpu(hp1)^.oper[0].typ in [top_reg,top_const]) And
+                    (Paicpu(hp1)^.oper[1].typ = top_reg) And
+                    (Paicpu(hp1)^.oper[1].reg = Paicpu(p)^.oper[1].reg) And
+                    GetNextInstruction(hp1,hp2) And
+                    (hp2^.typ = ait_instruction) And
+                    (Paicpu(hp2)^.opcode = A_MOV) And
+                    (Paicpu(hp2)^.oper[0].typ = top_reg) And
+                    (Paicpu(hp2)^.oper[0].reg = Paicpu(p)^.oper[1].reg) And
+                    (Paicpu(hp2)^.oper[1].typ = top_ref) Then
+                   Begin
+                     TmpUsedRegs := UsedRegs;
+                     UpdateUsedRegs(TmpUsedRegs,Pai(hp1^.next));
+                     If (RefsEqual(Paicpu(hp2)^.oper[1].ref^, Paicpu(p)^.oper[0].ref^) And
+                         Not(RegUsedAfterInstruction(Reg32(Paicpu(p)^.oper[1].reg),
+                              hp2, TmpUsedRegs)))
+                       Then
+  { change   mov            (ref), reg            }
+  {          add/sub/or/... reg2/$const, reg      }
+  {          mov            (reg), ref            }
+  {          # relaese reg                        }
+  { to       add/sub/or/... reg2/$const, (ref)    }
+                     Begin
+                       Paicpu(hp1)^.LoadRef(1,newreference(Paicpu(p)^.oper[0].ref^));
+                       AsmL^.Remove(p);
+                       AsmL^.Remove(hp2);
+                       Dispose(p,done);
+                       Dispose(hp2,Done);
+                       p := hp1
+                     End;
+                   End;
+{$endif foldArithOps}
                 End;
               A_MOVZX:
                 Begin
@@ -1672,7 +1728,12 @@ End.
 
 {
  $Log$
- Revision 1.70  1999-11-21 13:09:41  jonas
+ Revision 1.71  1999-11-27 23:47:55  jonas
+   + change "mov var,reg; add/shr/... x,reg; mov reg,var" to
+     "add/shr/... x,var" (if x is a const or reg, suggestion from Peter)
+     Enable with -dfoldArithOps
+
+ Revision 1.70  1999/11/21 13:09:41  jonas
    * fixed some missed optimizations because 8bit regs were not always
      taken into account
 
