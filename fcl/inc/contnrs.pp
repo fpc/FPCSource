@@ -172,7 +172,7 @@ begin
   if OwnsObjects then
     begin
     O:=GetItem(Index);
-    FreeAndNil(O);
+    O.Free;
     end;
   Put(Index,Pointer(AObject));
 end;
@@ -505,7 +505,10 @@ end.
 
 {
   $Log$
-  Revision 1.8  2004-12-22 15:33:24  peter
+  Revision 1.9  2004-12-24 09:18:38  michael
+  + Changed FreeAndNil to simple free (From Mattias Gaertner)
+
+  Revision 1.8  2004/12/22 15:33:24  peter
     * fixed compile
 
   Revision 1.7  2004/12/22 12:05:41  michael
