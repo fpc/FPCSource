@@ -514,7 +514,7 @@ end;
 
 function SysMemSize(p:pointer):longint;
 begin
-  SysMemSize:=(pheaprecord(pointer(p)-sizeof(theaprecord))^.size-sizeof(theaprecord)) and sizemask;
+  SysMemSize:=(pheaprecord(pointer(p)-sizeof(theaprecord))^.size and sizemask)-sizeof(theaprecord);
 end;
 
 
@@ -783,7 +783,10 @@ end;
 
 {
   $Log$
-  Revision 1.26  1999-12-13 21:04:46  peter
+  Revision 1.27  1999-12-16 19:11:49  peter
+    * fixed sysmemsize which did the and sizemask wrong
+
+  Revision 1.26  1999/12/13 21:04:46  peter
     * fixed getmem call with wrong size from reallocmem
 
   Revision 1.25  1999/12/01 22:57:31  peter
