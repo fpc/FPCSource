@@ -56,6 +56,8 @@ begin
   waitpid(-1, nil, WNOHANG);
 end;
 
+const zeroset :sigset = (0,0,0,0);
+
 procedure InitThreads;
 var
   Act, OldAct: PSigActionRec;
@@ -76,7 +78,7 @@ begin
     fillchar(Act^.sa_mask,sizeof(sigset_t),#0);
   {$else}
     Act^.handler.sh := @SIGCHLDHandler;
-    Act^.sa_mask := 0; 
+    Act^.sa_mask := zeroset; 
   {$endif}
   Act^.sa_flags := SA_NOCLDSTOP {or SA_NOMASK or SA_RESTART};
 			//Do not block all signals ??. Don't need if SA_NOMASK in flags
@@ -290,7 +292,10 @@ end;
 
 {
   $Log$
-  Revision 1.7  2002-10-24 12:47:54  marco
+  Revision 1.8  2002-11-17 21:09:44  marco
+   * 16byte sigset
+
+  Revision 1.7  2002/10/24 12:47:54  marco
    * Fix emptying sa_mask
 
   Revision 1.6  2002/09/07 15:15:24  peter
