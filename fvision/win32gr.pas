@@ -42,7 +42,7 @@ var
   lastir : INPUT_RECORD;
 
 const
-  LastChar : char = #0;
+  StoredChar : boolean = false;
 
 
 const
@@ -313,28 +313,63 @@ var
   ir : INPUT_RECORD;
   NumWritten : longint;
   vKey : byte;
+  ach, ch : array[0..1] of char;
   IsExtended : boolean;
 begin
   fvisioncharmessagehandler:=0;
   if (AMessage = WM_CHAR) then
     begin
-      if LastChar<>#0 then
+      if StoredChar then
         begin
-          Writeln('char ',chr(wparam and $ff),' $',hexstr(wparam,2));
-          Lastir.Event.KeyEvent.AsciiChar:=chr(wparam and $ff);
+          ach[0]:=chr(wparam and $ff);
+          ach[1]:=#0;
+          CharToOem(@ach,@ch);
+{$ifdef DEBUG}
+          Write('key ',hexstr(lastir.Event.KeyEvent.wVirtualKeyCode,2));
+          if lastir.Event.KeyEvent.bKeyDown then
+            writeln(' pressed')
+          else
+            writeln(' released');
+          Writeln('char ',ach[0],'(',ch[0],')',' $',hexstr(wparam,2));
+{$endif DEBUG}
+          Lastir.Event.KeyEvent.AsciiChar:=ch[0];
           WriteConsoleInput(InputHandle,lastir,1,NumWritten);
-          LastChar:=#0;
+          StoredChar:=false;
         end
       else
         begin
+{$ifdef DEBUG}
           Writeln('char ',chr(wparam and $ff),' $',hexstr(wparam,2),' ignored');
+{$endif DEBUG}
+          ach[0]:=chr(wparam and $ff);
+          ach[1]:=#0;
+          CharToOem(@ach,@ch);
+{$ifdef DEBUG}
+          Write('key ',hexstr(lastir.Event.KeyEvent.wVirtualKeyCode,2));
+          if lastir.Event.KeyEvent.bKeyDown then
+            writeln(' pressed')
+          else
+            writeln(' released');
+          Writeln('char ',ach[0],'(',ch[0],')',' $',hexstr(wparam,2));
+{$endif DEBUG}
+          Lastir.Event.KeyEvent.AsciiChar:=ch[0];
+          WriteConsoleInput(InputHandle,lastir,1,NumWritten);
+          StoredChar:=false;
         end;
       exit;
     end;
-  if LastChar<>#0 then
+  if StoredChar then
     begin
+{$ifdef DEBUG}
+          Write('key ',hexstr(lastir.Event.KeyEvent.wVirtualKeyCode,2));
+          if lastir.Event.KeyEvent.bKeyDown then
+            writeln(' pressed')
+          else
+            writeln(' released');
+          Writeln('char ',ach[0],'(',ch[0],')',' $',hexstr(wparam,2));
+{$endif DEBUG}
       WriteConsoleInput(InputHandle,lastir,1,NumWritten);
-      LastChar:=#0;
+      StoredChar:=false;
     end;
   fillchar(ir,sizeof(ir),#0);
   ir.EventType:=KEY_EVENT;
@@ -354,7 +389,7 @@ begin
             ((wVirtualKeyCode>=VK_A) and (wVirtualKeyCode<=VK_Z)) then
               AsciiChar:=chr(ord(AsciiChar) + ord('a')-ord('A'));
           if bKeyDown then
-            LastChar:=AsciiChar;
+            StoredChar:=true;
         end;
       case vKey of
         VK_SHIFT :
@@ -393,8 +428,19 @@ begin
         end;
       dwControlKeyState:=StoredControlKeyState;
     end;
-  if Lastchar=#0 then
-    WriteConsoleInput(InputHandle,ir,1,NumWritten)
+  if not StoredChar then
+    begin
+{$ifdef DEBUG}
+      Write('key ',hexstr(ir.Event.KeyEvent.wVirtualKeyCode,2));
+      if ir.Event.KeyEvent.bKeyDown then
+        writeln(' pressed')
+      else
+        writeln(' released');
+{$endif DEBUG}
+      WriteConsoleInput(InputHandle,ir,1,NumWritten);
+      { still copy for use for special keys not registered }
+      Lastir:=ir;
+    end
   else
     Lastir:=ir;
 end;
@@ -445,7 +491,10 @@ end.
 
 {
   $Log$
-  Revision 1.2  2002-05-28 19:12:26  pierre
+  Revision 1.3  2002-05-29 19:34:27  pierre
+   * fix other keys
+
+  Revision 1.2  2002/05/28 19:12:26  pierre
    * fix fvisioncharmessage
 
   Revision 1.1  2002/05/24 09:35:20  pierre
