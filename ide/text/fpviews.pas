@@ -78,6 +78,7 @@ type
     PFPHelpWindow = ^TFPHelpWindow;
     TFPHelpWindow = object(THelpWindow)
       constructor Init(var Bounds: TRect; ATitle: TTitleStr; ASourceFileID: word; AContext: THelpCtx; ANumber: Integer);
+      destructor  Done;virtual;
       procedure   InitHelpView; virtual;
       procedure   Show; virtual;
       procedure   Hide; virtual;
@@ -1019,6 +1020,13 @@ begin
   inherited Init(Bounds,ATitle,ASourceFileID,AContext,ANumber);
   HelpCtx:=hcHelpWindow;
   HideOnClose:=true;
+end;
+
+destructor TFPHelpWindow.Done;
+begin
+  if HelpWindow=@Self then
+    HelpWindow:=nil;
+  Inherited Done;
 end;
 
 procedure TFPHelpWindow.InitHelpView;
@@ -2855,7 +2863,10 @@ end;
 END.
 {
   $Log$
-  Revision 1.49  1999-11-25 00:25:43  pierre
+  Revision 1.50  1999-12-16 16:55:52  pierre
+   * fix of web bug 756
+
+  Revision 1.49  1999/11/25 00:25:43  pierre
    * add Status when loading/saving files
 
   Revision 1.48  1999/11/22 16:02:12  pierre
