@@ -1913,6 +1913,9 @@ implementation
                               else
                                 internalerror(2004101010);
                             end;
+                            { Allocate register already, to prevent first allocation to be
+                              inside a loop }
+                            cg.a_reg_sync(list,localloc.register);
                           end
                         else
 {$endif NOT OLDREGVARS}
@@ -2219,7 +2222,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.227  2004-10-13 21:12:51  peter
+  Revision 1.228  2004-10-14 17:54:06  peter
+    * add reg_sync when regvars are allocated to fix first use in
+      loop
+
+  Revision 1.227  2004/10/13 21:12:51  peter
     * -Or fixes for open array
 
   Revision 1.226  2004/10/11 15:48:15  peter
