@@ -1311,7 +1311,10 @@ implementation
                    end;
               end;
             in_pi:
-              emit_none(A_FLDPI,S_NO);
+              begin
+                emit_none(A_FLDPI,S_NO);
+                inc(fpuvaroffset);
+              end;
             in_sin_extended,
             in_arctan_extended,
             in_abs_extended,
@@ -1401,7 +1404,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.70  1999-09-15 20:35:38  florian
+  Revision 1.71  1999-09-16 07:52:37  pierre
+    * FLDPI must increment fpuvaroffset
+
+  Revision 1.70  1999/09/15 20:35:38  florian
     * small fix to operator overloading when in MMX mode
     + the compiler uses now fldz and fld1 if possible
     + some fixes to floating point registers
@@ -1777,4 +1783,3 @@ end.
     * splitted cgi386
 
 }
-
