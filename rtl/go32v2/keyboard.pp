@@ -36,7 +36,7 @@ begin
   realintr($16,regs);
   if (regs.al=$e0) and (regs.ah<>0) then
    regs.al:=0;
-  SysGetKeyEvent:=regs.ax or ((mem[$40:$17] and $f) shl 16);
+  SysGetKeyEvent:=(kbPhys shl 24) or regs.ax or ((mem[$40:$17] and $f) shl 16);
 end;
 
 
@@ -50,7 +50,7 @@ begin
    exit(0);
   if (regs.al=$e0) and (regs.ah<>0) then
    regs.al:=0;
-  SysPollKeyEvent:=regs.ax or ((mem[$40:$17] and $f) shl 16);
+  SysPollKeyEvent:=(kbPhys shl 24) or regs.ax or ((mem[$40:$17] and $f) shl 16);
 end;
 
 
@@ -68,16 +68,22 @@ Const
     PollKeyEvent : @SysPollKeyEvent;
     GetShiftState : @SysGetShiftState;
     TranslateKeyEvent : Nil;
-    TranslateKeyEventUnicode : Nil; 
+    TranslateKeyEventUnicode : Nil;
   );
 
-begin 
+begin
   SetKeyBoardDriver(SysKeyBoardDriver);
 end.
 
 {
   $Log$
-  Revision 1.2  2001-09-21 21:33:35  michael
+  Revision 1.3  2002-08-28 06:35:30  pierre
+   * merge kbPhys patch from fixes branch
+
+  Revision 1.1.2.3  2002/07/13 12:22:03  pierre
+   * added kbPhys flag
+
+  Revision 1.2  2001/09/21 21:33:35  michael
   + Merged driver support from fixbranch
 
   Revision 1.1.2.2  2001/09/21 21:20:43  michael
