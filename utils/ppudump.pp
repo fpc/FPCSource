@@ -222,18 +222,20 @@ begin
 end;
 
 
-procedure readderef(const s:string);
+function readderef(const s:string):boolean;
 type
   tdereftype = (derefnil,derefaktrecordindex,derefaktstaticindex,derefunit,derefrecord,derefindex);
 var
   b : tdereftype;
 begin
+  readderef:=true;
   repeat
     b:=tdereftype(ppufile^.getbyte);
     case b of
       derefnil :
         begin
           writeln('nil');
+          readderef:=false;
           break;
         end;
       derefaktrecordindex :
@@ -264,68 +266,169 @@ begin
 end;
 
 
-procedure readdefref;
+function readdefref:boolean;
 begin
-  readderef('Definition');
+  readdefref:=readderef('Definition');
 end;
 
 
-procedure readsymref;
+function readsymref:boolean;
 begin
-  readderef('Symbol');
+  readsymref:=readderef('Symbol');
 end;
 
 
 procedure read_abstract_proc_def;
 type
+  tproccalloption=(pocall_none,
+    pocall_clearstack,    { Use IBM flat calling convention. (Used by GCC.) }
+    pocall_leftright,     { Push parameters from left to right }
+    pocall_cdecl,         { procedure uses C styled calling }
+    pocall_register,      { procedure uses register (fastcall) calling }
+    pocall_stdcall,       { procedure uses stdcall call }
+    pocall_safecall,      { safe call calling conventions }
+    pocall_palmossyscall, { procedure is a PalmOS system call }
+    pocall_system,
+    pocall_inline,        { Procedure is an assembler macro }
+    pocall_internproc,    { Procedure has compiler magic}
+    pocall_internconst    { procedure has constant evaluator intern }
+  );
+  tproccalloptions=set of tproccalloption;
+  tproctypeoption=(potype_none,
+    potype_proginit,     { Program initialization }
+    potype_unitinit,     { unit initialization }
+    potype_unitfinalize, { unit finalization }
+    potype_constructor,  { Procedure is a constructor }
+    potype_destructor,   { Procedure is a destructor }
+    potype_operator      { Procedure defines an operator }
+  );
+  tproctypeoptions=set of tproctypeoption;
+  tprocoption=(po_none,
+    po_classmethod,       { class method }
+    po_virtualmethod,     { Procedure is a virtual method }
+    po_abstractmethod,    { Procedure is an abstract method }
+    po_staticmethod,      { static method }
+    po_overridingmethod,  { method with override directive }
+    po_methodpointer,     { method pointer, only in procvardef, also used for 'with object do' }
+    po_containsself,      { self is passed explicit to the compiler }
+    po_interrupt,         { Procedure is an interrupt handler }
+    po_iocheck,           { IO checking should be done after a call to the procedure }
+    po_assembler,         { Procedure is written in assembler }
+    po_msgstr,            { method for string message handling }
+    po_msgint,            { method for int message handling }
+    po_exports,           { Procedure has export directive (needed for OS/2) }
+    po_external,          { Procedure is external (in other object or lib)}
+    po_savestdregs,       { save std regs cdecl and stdcall need that ! }
+    po_saveregisters      { save all registers }
+  );
+  tprocoptions=set of tprocoption;
+type
+  tproccallopt=record
+    mask : tproccalloption;
+    str  : string[30];
+  end;
+  tproctypeopt=record
+    mask : tproctypeoption;
+    str  : string[30];
+  end;
   tprocopt=record
-    mask : longint;
+    mask : tprocoption;
     str  : string[30];
   end;
 const
-  procopts=24;
+  proccallopts=12;
+  proccallopt : array[1..proccallopts] of tproccallopt=(
+     (mask:pocall_none;         str:''),
+     (mask:pocall_clearstack;   str:'ClearStack'),
+     (mask:pocall_leftright;    str:'LeftRight'),
+     (mask:pocall_cdecl;        str:'Cdecl'),
+     (mask:pocall_register;     str:'Register'),
+     (mask:pocall_stdcall;      str:'StdCall'),
+     (mask:pocall_safecall;     str:'SafeCall'),
+     (mask:pocall_palmossyscall;str:'PalmOSSysCall'),
+     (mask:pocall_system;       str:'System'),
+     (mask:pocall_inline;       str:'Inline'),
+     (mask:pocall_internproc;   str:'InternProc'),
+     (mask:pocall_internconst;  str:'InternConst')
+  );
+  proctypeopts=6;
+  proctypeopt : array[1..proctypeopts] of tproctypeopt=(
+     (mask:potype_proginit;    str:'ProgInit'),
+     (mask:potype_unitinit;    str:'UnitInit'),
+     (mask:potype_unitfinalize;str:'UnitFinalize'),
+     (mask:potype_constructor; str:'Constructor'),
+     (mask:potype_destructor;  str:'Destructor'),
+     (mask:potype_operator;    str:'Operator')
+  );
+  procopts=16;
   procopt : array[1..procopts] of tprocopt=(
-     (mask:1;        str:'Exception handler'),
-     (mask:2;        str:'Virtual Method'),
-     (mask:4;        str:'Stack is not cleared'),
-     (mask:8;        str:'Constructor'),
-     (mask:$10;      str:'Destructor'),
-     (mask:$20;      str:'Internal Procedure'),
-     (mask:$40;      str:'Exported Procedure'),
-     (mask:$80;      str:'I/O-Checking'),
-     (mask:$100;     str:'Abstract method'),
-     (mask:$200;     str:'Interrupt Handler'),
-     (mask:$400;     str:'Inline Procedure'),
-     (mask:$800;     str:'Assembler Procedure'),
-     (mask:$1000;    str:'Overloaded Operator'),
-     (mask:$2000;    str:'External Procedure'),
-     (mask:$4000;    str:'Parameters from left to right'),
-     (mask:$8000;    str:'Main Program'),
-     (mask:$10000;   str:'Static Method'),
-     (mask:$20000;   str:'Method with Override Directive'),
-     (mask:$40000;   str:'Class Method'),
-     (mask:$80000;   str:'Unit Initialisation'),
-     (mask:$100000;  str:'Method Pointer'),
-     (mask:$200000;  str:'C Declaration'),
-     (mask:$400000;  str:'PalmOS Syscall'),
-     (mask:$800000;  str:'Has internal Constant Function')
+     (mask:po_classmethod;     str:'ClassMethod'),
+     (mask:po_virtualmethod;   str:'VirtualMethod'),
+     (mask:po_abstractmethod;  str:'AbstractMethod'),
+     (mask:po_staticmethod;    str:'StaticMethod'),
+     (mask:po_overridingmethod;str:'OverridingMethod'),
+     (mask:po_methodpointer;   str:'MethodPointer'),
+     (mask:po_containsself;    str:'ContainsSelf'),
+     (mask:po_interrupt;       str:'Interrupt'),
+     (mask:po_iocheck;         str:'IOCheck'),
+     (mask:po_assembler;       str:'Assembler'),
+     (mask:po_msgstr;          str:'MsgStr'),
+     (mask:po_msgint;          str:'MsgInt'),
+     (mask:po_exports;         str:'Exports'),
+     (mask:po_external;        str:'External'),
+     (mask:po_savestdregs;     str:'SaveStdRegs'),
+     (mask:po_saveregisters;   str:'SaveRegisters')
   );
   tvarspez : array[0..2] of string[5]=('Value','Const','Var  ');
 var
-  procoptions,
+  proctypeoption  : tproctypeoption;
+  proccalloptions : tproccalloptions;
+  procoptions     : tprocoptions;
   i,params : longint;
-  first  : boolean;
+  first    : boolean;
 begin
   write(space,'      Return type : ');
   readdefref;
   writeln(space,'         Fpu used : ',ppufile^.getbyte);
-  procoptions:=ppufile^.getlongint;
-  if procoptions<>0 then
+  proctypeoption:=tproctypeoption(ppufile^.getlongint);
+  if proctypeoption<>potype_none then
+   begin
+     write(space,'       TypeOption : ');
+     first:=true;
+     for i:=1to proctypeopts do
+      if (proctypeopt[i].mask=proctypeoption) then
+       begin
+         if first then
+           first:=false
+         else
+           write(', ');
+         write(proctypeopt[i].str);
+       end;
+     writeln;
+   end;
+  ppufile^.getsmallset(proccalloptions);
+  if procoptions<>[] then
+   begin
+     write(space,'      CallOptions : ');
+     first:=true;
+     for i:=1to proccallopts do
+      if (proccallopt[i].mask in proccalloptions) then
+       begin
+         if first then
+           first:=false
+         else
+           write(', ');
+         write(proccallopt[i].str);
+       end;
+     writeln;
+   end;
+  ppufile^.getsmallset(procoptions);
+  if procoptions<>[] then
    begin
      write(space,'          Options : ');
      first:=true;
      for i:=1to procopts do
-      if (procoptions and procopt[i].mask)<>0 then
+      if (procopt[i].mask in procoptions) then
        begin
          if first then
            first:=false
@@ -353,36 +456,47 @@ end;
 
 procedure readcommonsym(const s:string);
 type
+  tsymoption=(sp_none,
+    sp_public,
+    sp_private,
+    sp_published,
+    sp_protected,
+    sp_forwarddef,
+    sp_static,
+    sp_primary_typesym    { this is for typesym, to know who is the primary symbol of a def }
+  );
+  tsymoptions=set of tsymoption;
   tsymopt=record
-    mask : longint;
+    mask : tsymoption;
     str  : string[30];
   end;
 const
-  symopts=6;
+  symopts=7;
   symopt : array[1..symopts] of tsymopt=(
-     (mask:1;        str:'Public'),
-     (mask:2;        str:'Private'),
-     (mask:4;        str:'Published'),
-     (mask:8;        str:'Protected'),
-     (mask:$10;      str:'ForwardDef'),
-     (mask:$20;      str:'Static')
+     (mask:sp_public;         str:'Public'),
+     (mask:sp_private;        str:'Private'),
+     (mask:sp_published;      str:'Published'),
+     (mask:sp_protected;      str:'Protected'),
+     (mask:sp_forwarddef;     str:'ForwardDef'),
+     (mask:sp_static;         str:'Static'),
+     (mask:sp_primary_typesym;str:'PrimaryTypeSym')
   );
 var
-  symoptions,
+  symoptions : tsymoptions;
   i      : longint;
   first  : boolean;
 begin
   writeln(space,'** Symbol Nr. ',ppufile^.getword,' **');
   writeln(space,s,ppufile^.getstring);
-  symoptions:=ppufile^.getbyte;
-  if symoptions<>0 then
+  ppufile^.getsmallset(symoptions);
+  if symoptions<>[] then
    begin
      write(space,'    File Pos: ');
      readposinfo;
      write(space,'     Options: ');
      first:=true;
      for i:=1to symopts do
-      if (symoptions and symopt[i].mask)<>0 then
+      if (symopt[i].mask in symoptions) then
        begin
          if first then
            first:=false
@@ -409,6 +523,16 @@ end;
 ****************************************************************************}
 
 procedure readsymbols;
+
+  procedure readpropsymlist;
+  begin
+    repeat
+      if not readsymref then
+       break;
+      write(space,'                ');
+    until false;
+  end;
+
 Const
   vo_is_C_var = 2;
 Type
@@ -517,7 +641,7 @@ begin
              readdefref;
              write  (space,' DefinitionSym: ');
              readsymref;
-             i:=getbyte;
+             i:=getlongint;
              writeln(space,'       Options: ',i);
              if (i and vo_is_C_var)<>0 then
               writeln(space,'   Mangledname: ',getstring);
@@ -584,12 +708,12 @@ begin
              writeln(space,'     Options: ',getlongint);
              writeln(space,'       Index: ',getlongint);
              writeln(space,'     Default: ',getlongint);
-             write(space,'   Read symbol: ');
-             readsymref;
+             write  (space,'   Read symbol: ');
+             readpropsymlist;
              write  (space,'  Write symbol: ');
-             readsymref;
+             readpropsymlist;
              write  (space,' Stored symbol: ');
-             readsymref;
+             readpropsymlist;
              write  (space,'   Read Definition: ');
              readdefref;
              write  (space,'  Write Definition: ');
@@ -1267,7 +1391,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.7  1999-08-13 21:25:35  peter
+  Revision 1.8  1999-08-15 10:47:14  peter
+    * updates for new options
+
+  Revision 1.7  1999/08/13 21:25:35  peter
     * updated flags
 
   Revision 1.6  1999/07/27 23:45:29  peter

@@ -37,7 +37,11 @@ type
 {$endif Test_Double_checksum}
 
 const
+{$ifdef newcg}
+  CurrentPPUVersion=100;
+{$else newcg}
   CurrentPPUVersion=17;
+{$endif newcg}
 
 { buffer sizes }
   maxentrysize = 1024;
@@ -204,6 +208,8 @@ type
     function  getlongint:longint;
     function  getreal:ppureal;
     function  getstring:string;
+    procedure getnormalset(var b);
+    procedure getsmallset(var b);
     function  skipuntilentry(untilb:byte):boolean;
   {write}
     function  create:boolean;
@@ -217,6 +223,8 @@ type
     procedure putlongint(l:longint);
     procedure putreal(d:ppureal);
     procedure putstring(s:string);
+    procedure putnormalset(var b);
+    procedure putsmallset(var b);
   end;
 
 implementation
@@ -652,6 +660,18 @@ begin
 end;
 
 
+procedure tppufile.getsmallset(var b);
+begin
+  getdata(b,4);
+end;
+
+
+procedure tppufile.getnormalset(var b);
+begin
+  getdata(b,32);
+end;
+
+
 function tppufile.skipuntilentry(untilb:byte):boolean;
 var
   b : byte;
@@ -868,11 +888,26 @@ begin
 end;
 
 
+procedure tppufile.putsmallset(var b);
+begin
+  putdata(b,4);
+end;
+
+
+procedure tppufile.putnormalset(var b);
+begin
+  putdata(b,32);
+end;
+
+
 end.
 {
   $Log$
-  Revision 1.3  1999-07-27 23:46:55  peter
-    * version 17 ppu
+  Revision 1.4  1999-08-15 10:47:12  peter
+    * updates for new options
+
+  Revision 1.37  1999/08/02 23:13:20  florian
+    * more changes to compile for the Alpha
 
   Revision 1.36  1999/07/23 16:05:25  peter
     * alignment is now saved in the symtable
