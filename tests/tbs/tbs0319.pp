@@ -14,6 +14,26 @@ type
     procedure p2;
   end;
 
+ o = class
+       nonsense  :string;
+       procedure flup(nonsense:string);
+     end;
+
+ o2 = class
+       nonsense  :longint;
+       procedure flup(nonsense:longint);
+     end;
+
+procedure o.flup(nonsense:string);
+begin
+end;
+
+
+procedure o2.flup(nonsense:longint);
+begin
+end;
+
+
 procedure cl.p1;
 var
   k : longint;
