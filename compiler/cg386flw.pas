@@ -367,11 +367,11 @@ implementation
          emitjmp(C_None,l3);
 
          { this is the break label: }
-         emitlab(aktbreaklabel);
          ungetregister32(cmp32);
-
          if temptovalue then
            ungetiftemp(temp1);
+
+         emitlab(aktbreaklabel);
 
          aktcontinuelabel:=oldclabel;
          aktbreaklabel:=oldblabel;
@@ -1206,7 +1206,11 @@ do_jmp:
 end.
 {
   $Log$
-  Revision 1.70  2000-02-29 23:58:19  pierre
+  Revision 1.71  2000-04-16 08:08:44  jonas
+    * release register used in for-loop before end label (for better
+      optimizations)
+
+  Revision 1.70  2000/02/29 23:58:19  pierre
     Use $GOTO ON
 
   Revision 1.69  2000/02/10 23:44:42  florian
