@@ -212,18 +212,16 @@ end;
 
 {$ifndef ver1_0}
 function fpdup(fh:longint):longint;
-var
-  fn : longint;
 begin
   if not dup(fh,fpdup) then
    fpdup:=-1;
 end;
 
-function fpdup2(fh:longint):longint;
-var
-  fn : longint;
+function fpdup2(fh,nh:longint):longint;
 begin
-  if not dup2(fh,fpdup2) then
+  if dup2(fh,nh) then
+   fpdup2:=0
+  else
    fpdup2:=-1;
 end;
 {$endif ver1_0}
@@ -970,7 +968,10 @@ finalization
 End.
 {
   $Log$
-  Revision 1.5  2003-09-29 14:36:59  peter
+  Revision 1.6  2003-10-14 08:29:29  peter
+    * go32v2 fixed
+
+  Revision 1.5  2003/09/29 14:36:59  peter
     * win32 fixed
 
   Revision 1.4  2003/09/27 14:03:45  peter
