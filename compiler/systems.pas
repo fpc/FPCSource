@@ -34,7 +34,7 @@ unit systems;
 
        tasm = (as_o
        {$ifdef i386}
-              ,as_nasmcoff, as_nasmelf, as_nasmobj, as_tasm, as_masm
+              ,as_asw,as_nasmcoff, as_nasmelf, as_nasmobj, as_tasm, as_masm
        {$endif}
        {$ifdef m68k}
               ,as_gas,as_mit,as_mot
@@ -246,6 +246,15 @@ implementation
             comment : '# '
           )
 {$ifdef i386}
+          ,(
+            id     : as_asw;
+            idtxt  : 'ASW';
+            asmbin : 'asw';
+            asmcmd : '-D -o $OBJ $ASM';
+            externals : false;
+            labelprefix : '.L';
+            comment : '# '
+          )
           ,(
             id     : as_nasmcoff;
             idtxt  : 'NASMCOFF';
@@ -487,7 +496,7 @@ implementation
             exeext      : '.exe';
             os          : os_Win32;
             link        : link_ldw;
-            assem       : as_o
+            assem       : as_asw
           ),
           (
             target      : target_Amiga;
@@ -628,7 +637,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.13  1998-05-27 00:20:33  peter
+  Revision 1.14  1998-05-29 13:24:45  peter
+    + asw assembler
+
+  Revision 1.13  1998/05/27 00:20:33  peter
     * some scanner optimizes
     * automaticly aout2exe for go32v1
     * fixed dynamiclinker option which was added at the wrong place
