@@ -135,6 +135,7 @@ BEGIN
   InitRedir;
 {$ifndef NODEBUG}
   InitBreakpoints;
+  InitWatches;
 {$endif}
   InitReservedWords;
   InitHelpFiles;
@@ -188,13 +189,17 @@ BEGIN
 {$ifndef NODEBUG}
   DoneDebugger;
   DoneBreakpoints;
+  DoneWatches;
 {$endif}
 
   StreamError:=nil;
 END.
 {
   $Log$
-  Revision 1.27  1999-06-29 22:43:12  peter
+  Revision 1.28  1999-07-10 01:24:11  pierre
+   + First implementation of watches window
+
+  Revision 1.27  1999/06/29 22:43:12  peter
     * try to add extensions to params
 
   Revision 1.26  1999/06/28 23:31:14  pierre

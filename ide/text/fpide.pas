@@ -70,6 +70,7 @@ type
       procedure DoToggleBreak;
       procedure DoShowCallStack;
       procedure DoShowBreakpointList;
+      procedure DoShowWatches;
       procedure DoAddWatch;
 
       procedure DoInformation;
@@ -249,11 +250,12 @@ begin
       NewItem('~U~ser screen','Alt+F5', kbAltF5, cmUserScreen, hcUserScreen,
       NewItem('~B~reakpoint','Ctrl+F8', kbCtrlF8, cmToggleBreakpoint, hcToggleBreakpoint,
       NewItem('~C~all stack','Ctrl+F3', kbCtrlF3, cmStack, hcStack,
-      NewItem('Add ~W~atch','', kbNoKey, cmAddWatch, hcAddWatch,
+      NewItem('~A~dd Watch','Ctrl+F7', kbCtrlF7, cmAddWatch, hcAddWatch,
+      NewItem('~W~atches','', kbNoKey, cmWatches, hcWatches,
       NewItem('Breakpoint ~L~ist','', kbNoKey, cmBreakpointList, hcBreakpointList,
       NewLine(
       NewItem('~G~DB window','', kbNoKey, cmOpenGDBWindow, hcOpenGDBWindow,
-      nil))))))))),
+      nil)))))))))),
     NewSubMenu('~T~ools', hcToolsMenu, NewMenu(
       NewItem('~M~essages', 'F11', kbF11, cmToolsMessages, hcToolsMessages,
       NewItem('Goto ~n~ext','Alt+F8', kbAltF8, cmToolsMsgNext, hcToolsMsgNext,
@@ -425,6 +427,7 @@ begin
              cmToggleBreakpoint : DoToggleBreak;
              cmStack         : DoShowCallStack;
              cmBreakpointList : DoShowBreakpointList;
+             cmWatches       :  DoShowWatches;
              cmAddWatch      :  DoAddWatch;
              cmOpenGDBWindow : DoOpenGDBWindow;
            { -- Options menu -- }
@@ -763,7 +766,10 @@ end;
 END.
 {
   $Log$
-  Revision 1.31  1999-06-29 22:50:14  peter
+  Revision 1.32  1999-07-10 01:24:17  pierre
+   + First implementation of watches window
+
+  Revision 1.31  1999/06/29 22:50:14  peter
     * more fixes from gabor
 
   Revision 1.30  1999/06/28 19:32:20  peter

@@ -150,7 +150,8 @@ begin
     hcDebugMenu     : S:='Debug Program';
     hcToggleBreakpoint : S:='Toggles Breakpoint';
     hcOpenGDBWindow : S:='Open direct window to GDB';
-    hcAddWatch      : S:='Add a new watch';
+    hcAddWatch      : S:='Add a new expression to watch';
+    hcWatches       : S:='Open the Watches Window';
     hcStack         : S:='Show calling stack';
     hcBreakpointList : S:='Edit breakpoints';
     hcToolsMenu     : S:='User installed tools';
@@ -385,7 +386,10 @@ end;
 END.
 {
   $Log$
-  Revision 1.17  1999-06-30 23:58:14  pierre
+  Revision 1.18  1999-07-10 01:24:16  pierre
+   + First implementation of watches window
+
+  Revision 1.17  1999/06/30 23:58:14  pierre
     + BreakpointsList Window implemented
       with Edit/New/Delete functions
     + Individual breakpoint dialog with support for all types

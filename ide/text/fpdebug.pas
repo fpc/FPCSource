@@ -38,6 +38,7 @@ type
     procedure AnnotateError;
     procedure InsertBreakpoints;
     procedure RemoveBreakpoints;
+    procedure ReadWatches;
     procedure ResetBreakpointsValues;
     procedure DoDebuggerScreen;virtual;
     procedure DoUserScreen;virtual;
@@ -132,8 +133,8 @@ type
       procedure   HandleEvent(var Event: TEvent); virtual;
       procedure   Update; virtual;
       destructor  Done; virtual;
-    end;                                                                                                                                                                                                                                                       
-                                                                                                                                                                                                                                                               
+    end;
+
     PBreakpointItemDialog = ^TBreakpointItemDialog;
 
     TBreakpointItemDialog = object(TCenterDialog)
@@ -148,6 +149,68 @@ type
       IgnoreIL  : PInputLine;
     end;
 
+    PWatch = ^TWatch;
+    TWatch =  Object(TObject)
+      constructor Init(s : string);
+      procedure rename(s : string);
+      procedure Get_new_value;
+      destructor done;virtual;
+    private
+      expr : pstring;
+      last_value,current_value : pchar;
+    end;
+
+    PWatchesCollection = ^TWatchesCollection;
+    TWatchesCollection = Object(TCollection)
+      constructor Init;
+      procedure Insert(Item: Pointer); virtual;
+      function  At(Index: Integer): PWatch;
+      procedure Update;
+    private
+      MaxW : integer;
+    end;
+
+    PWatchesListBox = ^TWatchesListBox;
+    TWatchesListBox = object(THSListBox)
+      Transparent : boolean;
+      MaxWidth    : Sw_integer;
+      constructor Init(var Bounds: TRect; AHScrollBar, AVScrollBar: PScrollBar);
+      (* procedure   AddWatch(P: PWatch); virtual; *)
+      procedure   Update(AMaxWidth : integer);
+      function    GetIndentedText(Item,Indent,MaxLen: Sw_Integer): String; virtual;
+      function    GetLocalMenu: PMenu;virtual;
+      (* procedure   Clear; virtual;
+      procedure   TrackSource; virtual;*)
+      procedure   EditNew; virtual;
+      procedure   EditCurrent; virtual;
+      procedure   DeleteCurrent; virtual;
+      (*procedure   ToggleCurrent; *)
+      procedure   Draw; virtual;
+      procedure   HandleEvent(var Event: TEvent); virtual;
+      (* constructor Load(var S: TStream);
+      procedure   Store(var S: TStream); *)
+      destructor  Done; virtual;
+    end;
+
+    PWatchItemDialog = ^TWatchItemDialog;
+
+    TWatchItemDialog = object(TCenterDialog)
+      constructor Init(AWatch: PWatch);
+      function    Execute: Word; virtual;
+    private
+      Watch : PWatch;
+      NameIL  : PInputLine;
+      TextST : PAdvancedStaticText;
+    end;
+
+    PWatchesWindow = ^TWatchesWindow;
+    TWatchesWindow = Object(TDlgWindow)
+      WLB : PWatchesListBox;
+      Constructor Init;
+      procedure Update; virtual;
+      destructor  Done; virtual;
+    end;
+
 const
      BreakpointTypeStr : Array[BreakpointType] of String[9]
        = ( 'function','file-line','watch','awatch','rwatch','invalid' );
@@ -157,6 +220,7 @@ const
 var
   Debugger             : PDebugController;
   BreakpointCollection : PBreakpointCollection;
+  WatchesCollection    : PwatchesCollection;
 
 procedure InitDebugger;
 procedure DoneDebugger;
@@ -164,6 +228,8 @@ procedure InitGDBWindow;
 procedure DoneGDBWindow;
 procedure InitBreakpoints;
 procedure DoneBreakpoints;
+procedure InitWatches;
+procedure DoneWatches;                                                                                                                                                                                                                                         
 
 implementation
 
@@ -188,6 +254,7 @@ begin
   SetArgs(GetRunParameters);
   Debugger:=@self;
   InsertBreakpoints;
+  ReadWatches;
 end;
 
 procedure TDebugController.InsertBreakpoints;
@@ -198,6 +265,16 @@ procedure TDebugController.InsertBreakpoints;
 
 begin
   BreakpointCollection^.ForEach(@DoInsert);
+end;
+
+procedure TDebugController.ReadWatches;
+  procedure DoRead(PB : PWatch);
+  begin
+    PB^.Get_new_value;
+  end;
+
+begin
+  WatchesCollection^.ForEach(@DoRead);
 end;
 
 
@@ -259,7 +336,7 @@ procedure TDebugController.CommandEnd(const s:string);
 begin
   if assigned(GDBWindow) and (in_command=0) then
     begin
-      { We should do somethnig special for errors !! }
+      { We should do something special for errors !! }
       If StrLen(GetError)>0 then
         GDBWindow^.WriteErrorText(GetError);
       GDBWindow^.WriteOutputText(GetOutput);
@@ -300,6 +377,7 @@ var
 begin
   BreakIndex:=stop_breakpoint_number;
   Desktop^.Lock;
+  { 0 based line count in Editor }
   if Line>0 then
     dec(Line);
   if (fn=LastFileName) then
@@ -310,6 +388,7 @@ begin
           W^.Editor^.SetCurPtr(0,Line);
           W^.Editor^.TrackCursor(true);
           W^.Editor^.SetHighlightRow(Line);
+          ReadWatches;
           if Not assigned(GDBWindow) or not GDBWindow^.GetState(sfActive) then
             W^.Select;
           InvalidSourceLine:=false;
@@ -324,6 +403,7 @@ begin
         begin
           W^.Editor^.SetHighlightRow(Line);
           W^.Editor^.TrackCursor(true);
+          ReadWatches;
           if Not assigned(GDBWindow) or not GDBWindow^.GetState(sfActive) then
             W^.Select;
           LastSource:=W;
@@ -346,6 +426,7 @@ begin
               W:=TryToOpenFile(nil,fn,0,Line,true);
               W^.Editor^.SetHighlightRow(Line);
               W^.Editor^.TrackCursor(true);
+              ReadWatches;
               if Not assigned(GDBWindow) or not GDBWindow^.GetState(sfActive) then
                 W^.Select;
               LastSource:=W;
@@ -357,7 +438,7 @@ begin
   Desktop^.UnLock;
   if BreakIndex>0 then
     begin
-      PB:=BreakpointCollection^.GetGDB(stop_breakpoint_number);
+      PB:=BreakpointCollection^.GetGDB(BreakIndex);
       { For watch we should get old and new value !! }
       if (Not assigned(GDBWindow) or not GDBWindow^.GetState(sfActive)) and
          (PB^.typ<>bt_file_line) and (PB^.typ<>bt_function) then
@@ -419,7 +500,6 @@ procedure TDebugController.DoUserScreen;
 begin
   MyApp.ShowUserScreen;
 end;
-
 
 {****************************************************************************
                                  TBreakpoint
@@ -733,11 +813,10 @@ end;
 
 constructor TBreakpointListBox.Init(var Bounds: TRect; AHScrollBar, AVScrollBar: PScrollBar);
 begin
-  inherited Init(Bounds,1,AHScrollBar, AVScrollBar);                                                                                                                                                                                                           
-  GrowMode:=gfGrowLoX+gfGrowHiX+gfGrowHiY;                                                                                                                                                                                                                     
-  (* New(ModuleNames, Init(50,100)); *)
-  NoSelection:=true;                                                                                                                                                                                                                                           
-end;                                                                                                                                                                                                                                                           
+  inherited Init(Bounds,1,AHScrollBar, AVScrollBar);
+  GrowMode:=gfGrowLoX+gfGrowHiX+gfGrowHiY;
+  NoSelection:=true;
+end;
 
 function TBreakpointListBox.GetLocalMenu: PMenu;
 var M: PMenu;
@@ -798,7 +877,7 @@ begin
         if not DontClear then
           ClearEvent(Event);
       end;
-  end;                                                                                                                                                                                                                                                         
+  end;
   inherited HandleEvent(Event);
 end;
 
@@ -808,18 +887,18 @@ begin
   if List=nil then New(List, Init(20,20));
   W:=length(P^.GetText(255));
   if W>MaxWidth then
-  begin                                                                                                                                                                                                                                                        
-    MaxWidth:=W;                                                                                                                                                                                                                                               
+  begin
+    MaxWidth:=W;
     if HScrollBar<>nil then
-       HScrollBar^.SetRange(0,MaxWidth);                                                                                                                                                                                                                       
+       HScrollBar^.SetRange(0,MaxWidth);
   end;
   List^.Insert(P);
   SetRange(List^.Count);
   if Focused=List^.Count-1-1 then
      FocusItem(List^.Count-1);
   DrawView;
-end;                                                                                                                                                                                                                                                           
-                                                                                                                                                                                                                                                               
+end;
+
 (* function TBreakpointListBox.AddModuleName(const Name: string): PString;
 var P: PString;                                                                                                                                                                                                                                                
 begin
@@ -829,7 +908,7 @@ begin
     P:=nil;                                                                                                                                                                                                                                                    
   AddModuleName:=P;
 end;  *)
-                                                                                                                                                                                                                                                               
+
 function TBreakpointListBox.GetText(Item,MaxLen: Sw_Integer): String;
 var P: PBreakpointItem;
     S: string;                                                                                                                                                                                                                                                 
@@ -841,7 +920,7 @@ end;
                                                                                                                                                                                                                                                                
 procedure TBreakpointListBox.Clear;
 begin                                                                                                                                                                                                                                                          
-  if assigned(List) then                                                                                                                                                                                                                                       
+  if assigned(List) then
     Dispose(List, Done);
   List:=nil;
   MaxWidth:=0;
@@ -850,12 +929,12 @@ begin
   SetRange(0); DrawView;
   Message(Application,evBroadcast,cmClearLineHighlights,@Self);
 end;
-                                                                                                                                                                                                                                                               
+
 procedure TBreakpointListBox.TrackSource;
 var W: PSourceWindow;
     P: PBreakpointItem;
     R: TRect;
-    Row,Col: sw_integer;
+    (* Row,Col: sw_integer; *)
 begin
   (*Message(Application,evBroadcast,cmClearLineHighlights,@Self);
   if Range=0 then Exit;*)
@@ -889,7 +968,7 @@ procedure TBreakpointListBox.ToggleCurrent;
 var W: PSourceWindow;
     P: PBreakpointItem;
     b : boolean;
-    Row,Col: sw_integer;
+    (* Row,Col: sw_integer; *)
 begin
   if Range=0 then Exit;
   P:=List^.At(Focused);
@@ -914,9 +993,8 @@ begin
 end;
 
 procedure TBreakpointListBox.EditCurrent;
-var W: PSourceWindow;
-    P: PBreakpointItem;
-    Row,Col: sw_integer;
+var
+  P: PBreakpointItem;
 begin
   if Range=0 then Exit;
   P:=List^.At(Focused);
@@ -926,9 +1004,8 @@ begin
 end;
 
 procedure TBreakpointListBox.DeleteCurrent;
-var W: PSourceWindow;
-    P: PBreakpointItem;
-    Row,Col: sw_integer;
+var
+  P: PBreakpointItem;
 begin
   if Range=0 then Exit;
   P:=List^.At(Focused);
@@ -939,9 +1016,8 @@ begin
 end;
 
 procedure TBreakpointListBox.EditNew;
-var W: PSourceWindow;
-    P: PBreakpoint;
-    Row,Col: sw_integer;
+var
+  P: PBreakpoint;
 begin
   P:=New(PBreakpoint,Init_Empty);
   if Application^.ExecuteDialog(New(PBreakpointItemDialog,Init(P)),nil)<>cmCancel then
@@ -952,7 +1028,7 @@ begin
   else
     dispose(P,Done);
 end;
-                                                                                                                                                                                                                                                               
+
 procedure TBreakpointListBox.Draw;
 var
   I, J, Item: Sw_Integer;
@@ -967,36 +1043,36 @@ begin
   if (Owner<>nil) then TC:=ord(Owner^.GetColor(6)) else TC:=0;
   if State and (sfSelected + sfActive) = (sfSelected + sfActive) then
   begin                                                                                                                                                                                                                                                        
-    NormalColor := GetColor(1);                                                                                                                                                                                                                                
+    NormalColor := GetColor(1);
     FocusedColor := GetColor(3);
     SelectedColor := GetColor(4);
   end else
   begin
     NormalColor := GetColor(2);
-    SelectedColor := GetColor(4);                                                                                                                                                                                                                              
+    SelectedColor := GetColor(4);
   end;
-  if Transparent then                                                                                                                                                                                                                                          
+  if Transparent then
     begin MT(NormalColor); MT(SelectedColor); end;                                                                                                                                                                                                             
-  if NoSelection then                                                                                                                                                                                                                                          
+  if NoSelection then
      SelectedColor:=NormalColor;
   if HScrollBar <> nil then Indent := HScrollBar^.Value
   else Indent := 0;
   ColWidth := Size.X div NumCols + 1;                                                                                                                                                                                                                          
   for I := 0 to Size.Y - 1 do                                                                                                                                                                                                                                  
   begin
-    for J := 0 to NumCols-1 do                                                                                                                                                                                                                                 
+    for J := 0 to NumCols-1 do
     begin
       Item := J*Size.Y + I + TopItem;
-      CurCol := J*ColWidth;                                                                                                                                                                                                                                    
+      CurCol := J*ColWidth;
       if (State and (sfSelected + sfActive) = (sfSelected + sfActive)) and                                                                                                                                                                                     
         (Focused = Item) and (Range > 0) then
       begin
         Color := FocusedColor;
         SetCursor(CurCol+1,I);
         SCOff := 0;
-      end                                                                                                                                                                                                                                                      
+      end
       else if (Item < Range) and IsSelected(Item) then
-      begin                                                                                                                                                                                                                                                    
+      begin
         Color := SelectedColor;                                                                                                                                                                                                                                
         SCOff := 2;                                                                                                                                                                                                                                            
       end
@@ -1004,7 +1080,7 @@ begin
       begin                                                                                                                                                                                                                                                    
         Color := NormalColor;                                                                                                                                                                                                                                  
         SCOff := 4;
-      end;                                                                                                                                                                                                                                                     
+      end;
       MoveChar(B[CurCol], ' ', Color, ColWidth);                                                                                                                                                                                                               
       if Item < Range then
       begin
@@ -1060,9 +1136,7 @@ var R,R2: TRect;
     HSB,VSB: PScrollBar;
     ST: PStaticText;
     S: String;
-    W,H : Sw_integer;
-    X   : Sw_integer;
-    X1,X2,X3: Sw_integer;
+    X,X1 : Sw_integer;
 const White = 15;
 begin
   Desktop^.GetExtent(R); R.A.Y:=R.B.Y-18;
@@ -1104,7 +1178,7 @@ begin
   X1:=X1+X;
   R.A.X:=X1-3;R.B.X:=X1+7;
   Insert(New(PButton, Init(R, '~D~elete', cmDelete, bfNormal)));
-  BreakLB^.Select;                                                                                                                                                                                                                                  
+  BreakLB^.Select;
   Update;
   BreakpointsWindow:=@self;
 end;
@@ -1295,6 +1369,470 @@ begin
 end;
 
 {****************************************************************************
+                         TWatch
+****************************************************************************}
+
+      constructor TWatch.Init(s : string);
+        begin
+          expr:=NewStr(s);
+          last_value:=nil;
+          current_value:=nil;
+          Get_new_value;
+        end;
+
+      procedure TWatch.rename(s : string);
+        begin
+          if assigned(expr) then
+            begin
+              if GetStr(expr)=S then
+                exit;
+              DisposeStr(expr);
+            end;
+          expr:=NewStr(s);
+          if assigned(last_value) then
+            StrDispose(last_value);
+          last_value:=nil;
+          if assigned(current_value) then
+            StrDispose(current_value);
+          current_value:=nil;
+          Get_new_value;
+        end;
+
+      procedure TWatch.Get_new_value;
+        var p,q : pchar;
+            i : longint;
+            last_removed : boolean;
+        begin
+          If not assigned(Debugger) then
+            exit;
+          if assigned(last_value) then
+            strdispose(last_value);
+          last_value:=current_value;
+          Debugger^.Command('p '+GetStr(expr));
+          p:=strnew(Debugger^.GetOutput);
+          if assigned(p) and (p[0]='$') then
+            q:=StrPos(p,'=');
+          if not assigned(q) then
+            q:=p;
+          i:=strlen(q);
+          if q[i-1]=#10 then
+            begin
+              q[i-1]:=#0;
+              last_removed:=true;
+            end
+          else
+            last_removed:=false;
+          current_value:=strnew(q);
+          if last_removed then
+            q[i-1]:=#10;
+          strdispose(p);
+        end;
+
+      destructor TWatch.Done;
+        begin
+          if assigned(expr) then
+            disposestr(expr);
+          if assigned(last_value) then
+            strdispose(last_value);
+          if assigned(current_value) then
+            strdispose(current_value);
+          inherited done;
+        end;
+
+{****************************************************************************
+                         TWatchesCollection
+****************************************************************************}
+
+      constructor TWatchesCollection.Init;
+        begin
+          inherited Init(10,10);
+        end;
+
+      procedure TWatchesCollection.Insert(Item: Pointer);
+       begin
+         PWatch(Item)^.Get_new_value;
+         Inherited Insert(Item);
+         Update;
+       end;
+
+      procedure TWatchesCollection.Update;
+        var
+         W,W1 : integer;
+         procedure GetMax(P : PWatch);
+           begin
+              if assigned(P^.Current_value) then
+               begin
+                 W1:=StrLen(P^.Current_value)+2+Length(GetStr(P^.expr));
+                 if W1>W then
+                  W:=W1;
+               end;
+           end;
+        begin
+          W:=0;
+          ForEach(@GetMax);
+          MaxW:=W;
+          If assigned(WatchesWindow) then
+            WatchesWindow^.WLB^.Update(MaxW);
+        end;
+
+      function  TWatchesCollection.At(Index: Integer): PWatch;
+        begin
+          At:=Inherited At(Index);
+        end;
+
+{****************************************************************************
+                         TWatchesListBox
+****************************************************************************}
+
+    (* PWatchesListBox = ^TWatchesListBox;
+    TWatchesListBox = object(THSListBox)
+      MaxWidth    : Sw_integer; *)
+constructor TWatchesListBox.Init(var Bounds: TRect; AHScrollBar, AVScrollBar: PScrollBar);
+  begin
+    inherited Init(Bounds,1,AHScrollBar,AVScrollBar);
+    If assigned(List) then
+      dispose(list,done);
+    List:=WatchesCollection;
+  end;
+
+procedure TWatchesListBox.Update(AMaxWidth : integer);
+begin
+  MaxWidth:=AMaxWidth;
+  if HScrollBar<>nil then
+    HScrollBar^.SetRange(0,MaxWidth);
+  SetRange(List^.Count);
+  if Focused=List^.Count-1-1 then
+     FocusItem(List^.Count-1);
+  DrawView;
+end;
+
+function    TWatchesListBox.GetIndentedText(Item,Indent,MaxLen: Sw_Integer): String;
+var
+  PW : PWatch;
+  ValOffset : Sw_integer;
+  S : String;
+begin
+  PW:=WatchesCollection^.At(Item);
+  ValOffset:=Length(GetStr(PW^.Expr))+2;
+  if Indent<ValOffset then
+    begin
+      if not assigned(PW^.current_value) then
+        S:=' '+GetStr(PW^.Expr)+' <Unknown value>'
+      else if not assigned(PW^.last_value) or
+        (strcomp(PW^.Last_value,PW^.Current_value)=0) then
+        S:=' '+GetStr(PW^.Expr)+' '+StrPas(PW^.Current_value)
+      else
+        S:='!'+GetStr(PW^.Expr)+'!'+StrPas(PW^.Current_value);
+      GetIndentedText:=Copy(S,Indent,MaxLen);
+    end
+  else
+   begin
+      if not assigned(PW^.Current_value) or
+         (StrLen(PW^.Current_value)<Indent-Valoffset) then
+        S:=''
+      else
+        S:=StrPas(@(PW^.Current_Value[Indent-Valoffset]));
+      GetIndentedText:=Copy(S,1,MaxLen);
+   end;
+end;
+
+      (* function    TWatchesListBox.GetLocalMenu: PMenu;virtual;
+      procedure   TWatchesListBox.Clear; virtual;
+      procedure   TWatchesListBox.TrackSource; virtual;
+      procedure   TWatchesListBox.EditNew; virtual;
+      procedure   TWatchesListBox.EditCurrent; virtual;
+      procedure   TWatchesListBox.DeleteCurrent; virtual;
+      procedure   TWatchesListBox.ToggleCurrent; *)
+
+procedure TWatchesListBox.EditCurrent;
+var
+  P: PWatch;
+begin
+  if Range=0 then Exit;
+  P:=WatchesCollection^.At(Focused);
+  if P=nil then Exit;
+  Application^.ExecuteDialog(New(PWatchItemDialog,Init(P)),nil);
+  WatchesCollection^.Update;
+end;
+
+procedure TWatchesListBox.DeleteCurrent;
+var
+  P: PWatch;
+begin
+  if Range=0 then Exit;
+  P:=WatchesCollection^.At(Focused);
+  if P=nil then Exit;
+  WatchesCollection^.free(P);
+  WatchesCollection^.Update;
+end;
+
+procedure TWatchesListBox.EditNew;
+var
+  P: PWatch;
+begin
+  P:=New(PWatch,Init(''));
+  if Application^.ExecuteDialog(New(PWatchItemDialog,Init(P)),nil)<>cmCancel then
+    begin
+      WatchesCollection^.Insert(P);
+      WatchesCollection^.Update;
+    end
+  else
+    dispose(P,Done);
+end;
+
+procedure   TWatchesListBox.Draw;
+var
+  I, J, Item: Sw_Integer;
+  NormalColor, SelectedColor, FocusedColor, Color: Word;
+  ColWidth, CurCol, Indent: Integer;
+  B: TDrawBuffer;
+  Text: String;
+  SCOff: Byte;
+  TC: byte;
+procedure MT(var C: word); begin if TC<>0 then C:=(C and $ff0f) or (TC and $f0); end;
+begin
+  if (Owner<>nil) then TC:=ord(Owner^.GetColor(6)) else TC:=0;
+  if State and (sfSelected + sfActive) = (sfSelected + sfActive) then
+  begin
+    NormalColor := GetColor(1);
+    FocusedColor := GetColor(3);
+    SelectedColor := GetColor(4);
+  end else
+  begin
+    NormalColor := GetColor(2);
+    SelectedColor := GetColor(4);
+  end;
+  if Transparent then
+    begin MT(NormalColor); MT(SelectedColor); end;
+  (* if NoSelection then
+     SelectedColor:=NormalColor;*)
+  if HScrollBar <> nil then Indent := HScrollBar^.Value
+  else Indent := 0;
+  ColWidth := Size.X div NumCols + 1;
+  for I := 0 to Size.Y - 1 do
+  begin
+    for J := 0 to NumCols-1 do
+    begin
+      Item := J*Size.Y + I + TopItem;
+      CurCol := J*ColWidth;
+      if (State and (sfSelected + sfActive) = (sfSelected + sfActive)) and
+        (Focused = Item) and (Range > 0) then
+      begin
+        Color := FocusedColor;
+        SetCursor(CurCol+1,I);
+        SCOff := 0;
+      end
+      else if (Item < Range) and IsSelected(Item) then
+      begin
+        Color := SelectedColor;
+        SCOff := 2;
+      end
+      else
+      begin
+        Color := NormalColor;
+        SCOff := 4;
+      end;
+      MoveChar(B[CurCol], ' ', Color, ColWidth);
+      if Item < Range then
+      begin
+        (* Text := GetText(Item, ColWidth + Indent);
+        Text := Copy(Text,Indent,ColWidth); *)
+        Text:=GetIndentedText(Item,Indent,ColWidth);
+        MoveStr(B[CurCol+1], Text, Color);
+        if ShowMarkers then
+        begin
+          WordRec(B[CurCol]).Lo := Byte(SpecialChars[SCOff]);
+          WordRec(B[CurCol+ColWidth-2]).Lo := Byte(SpecialChars[SCOff+1]);
+        end;
+      end;
+      MoveChar(B[CurCol+ColWidth-1], #179, GetColor(5), 1);
+    end;
+    WriteLine(0, I, Size.X, 1, B);
+  end;
+end;
+
+function TWatchesListBox.GetLocalMenu: PMenu;
+var M: PMenu;
+begin
+  if (Owner<>nil) and (Owner^.GetState(sfModal)) then M:=nil else
+  M:=NewMenu(
+    NewItem('~E~dit watch','',kbNoKey,cmEdit,hcNoContext,
+    NewItem('~N~ew watch','',kbNoKey,cmNew,hcNoContext,
+    NewItem('~D~elete watch','',kbNoKey,cmDelete,hcNoContext,
+    nil))));
+  GetLocalMenu:=M;
+end;
+
+procedure   TWatchesListBox.HandleEvent(var Event: TEvent);
+var DontClear: boolean;
+begin
+  case Event.What of
+    evKeyDown :
+      begin
+        DontClear:=false;
+        case Event.KeyCode of
+          kbEnter :
+            Message(@Self,evCommand,cmEdit,nil);
+          kbIns :
+            Message(@Self,evCommand,cmNew,nil);
+          kbDel :
+            Message(@Self,evCommand,cmDelete,nil);
+        else
+          DontClear:=true;
+        end;
+        if not DontClear then
+          ClearEvent(Event);
+      end;
+    evBroadcast :
+      case Event.Command of
+        cmListItemSelected :
+          if Event.InfoPtr=@Self then
+            Message(@Self,evCommand,cmEdit,nil);
+      end;
+    evCommand :
+      begin
+        DontClear:=false;
+        case Event.Command of
+          cmEdit :
+              EditCurrent;
+          cmDelete :
+              DeleteCurrent;
+          cmNew :
+              EditNew;
+          else
+            DontClear:=true;
+        end;
+        if not DontClear then
+          ClearEvent(Event);
+      end;
+  end;
+  inherited HandleEvent(Event);
+end;                                                                                                                                                                                                                                                           
+                                                                                                                                                                                                                                                               
+      (* constructor TWatchesListBox.Load(var S: TStream);
+      procedure   TWatchesListBox.Store(var S: TStream); *)
+      destructor  TWatchesListBox.Done;
+        begin
+          List:=nil;
+          inherited Done;
+        end;
+
+{****************************************************************************
+                         TWatchesWindow
+****************************************************************************}
+
+  Constructor TWatchesWindow.Init;
+    var
+      R : trect;
+    begin
+      Desktop^.GetExtent(R);
+      R.A.Y:=R.B.Y-5;
+      inherited Init(R, 'Watches', wnNoNumber);
+      GetExtent(R);
+      HelpCtx:=hcWatches;
+      R.Grow(-1,-1);
+      New(WLB,Init(R,nil,nil));
+      WLB^.GrowMode:=gfGrowHiX+gfGrowHiY;
+      WLB^.Transparent:=true;
+      Insert(WLB);
+      If assigned(WatchesWindow) then
+        dispose(WatchesWindow,done);
+      WatchesWindow:=@Self;
+    end;
+
+  procedure TWatchesWindow.Update;
+    begin
+      WatchesCollection^.Update;
+      Draw;
+    end;
+
+  Destructor TWatchesWindow.Done;
+    begin
+      WatchesWindow:=nil;
+      Dispose(WLB,done);
+      inherited done;
+    end;
+    
+
+{****************************************************************************
+                         TWatchItemDialog
+****************************************************************************}
+    (* TWatchItemDialog = object(TCenterDialog)
+      constructor Init(AWatch: PWatch);
+      function    Execute: Word; virtual;
+    private
+      Watch : PWatch;
+      NameIL  : PInputLine;
+      TextST : PAdvancedStaticText;
+      CurrentIL: PLabel;
+      LastIL    : PLabel;
+    end;  *)
+
+constructor TWatchItemDialog.Init(AWatch: PWatch);
+var R,R2: TRect;
+begin
+  R.Assign(0,0,50,10);
+  inherited Init(R,'Edit Watch');
+  Watch:=AWatch;
+
+  GetExtent(R); R.Grow(-3,-2);
+  Inc(R.A.Y); R.B.Y:=R.A.Y+1; R.B.X:=R.A.X+36;
+  New(NameIL, Init(R, 255)); Insert(NameIL);
+  R2.Copy(R); R2.Move(-1,-1);
+  Insert(New(PLabel, Init(R2, '~E~xpression to watch', NameIL)));
+  GetExtent(R);
+  R.Grow(-1,-1);
+  R.A.Y:=R.A.Y+3;
+  R.B.X:=R.A.X+36;
+  TextST:=New(PAdvancedStaticText, Init(R, 'Watch values'));
+  Insert(TextST);
+
+  InsertButtons(@Self);
+
+  NameIL^.Select;
+end;
+
+function TWatchItemDialog.Execute: Word;
+var R: word;
+    S1,S2: string;
+    err: word;
+    L: longint;
+begin
+  S1:=GetStr(Watch^.expr);
+  NameIL^.SetData(S1);
+
+  if assigned(Watch^.Current_value) then
+    S1:=StrPas(Watch^.Current_value)
+  else
+    S1:='';
+
+  if assigned(Watch^.Last_value) then
+    S2:=StrPas(Watch^.Last_value)
+  else
+    S2:='';
+
+  if assigned(Watch^.Last_value) and
+     assigned(Watch^.Current_value) and
+     (strcomp(Watch^.Last_value,Watch^.Current_value)=0) then
+    S1:='Current value: '+#13+S1
+  else
+    S1:='Current value: '+#13+S1+#13+
+        'Previous value: '+#13+S2;
+
+  TextST^.SetText(S1);
+
+  R:=inherited Execute;
+  if R=cmOK then
+  begin
+    NameIL^.GetData(S1);
+    If assigned(Watch^.Expr) then
+          DisposeStr(Watch^.Expr);
+    Watch^.expr:=NewStr(S1);
+  end;
+  Execute:=R;
+end;
+
+{****************************************************************************
                          Init/Final
 ****************************************************************************}
 
@@ -1369,11 +1907,25 @@ begin
   BreakpointCollection:=nil;
 end;
 
+procedure InitWatches;
+begin
+  New(WatchesCollection,init);
+end;
+
+procedure DoneWatches;
+begin
+  Dispose(WatchesCollection,Done);
+  WatchesCollection:=nil;
+end;
+
 end.
 
 {
   $Log$
-  Revision 1.19  1999-06-30 23:58:12  pierre
+  Revision 1.20  1999-07-10 01:24:14  pierre
+   + First implementation of watches window
+
+  Revision 1.19  1999/06/30 23:58:12  pierre
     + BreakpointsList Window implemented
       with Edit/New/Delete functions
     + Individual breakpoint dialog with support for all types

@@ -61,14 +61,47 @@ begin
     end;
 end;
 
-procedure TIDEApp.DoAddWatch;
+procedure TIDEApp.DoShowWatches;
 begin
-  NotImplemented;
+  If assigned(WatchesWindow) then
+    begin
+      WatchesWindow^.Update;
+      WatchesWindow^.MakeFirst;
+    end
+  else
+    begin
+      New(WatchesWindow,Init);
+      Desktop^.Insert(WatchesWindow);
+    end;
+end;
+
+procedure TIDEApp.DoAddWatch;
+var
+  P: PWatch;
+  EditorWindow : PSourceWindow;
+  S : string;
+begin
+  EditorWindow:=FirstEditorWindow;
+  If assigned(EditorWindow) then
+    S:=LowerCaseStr(EditorWindow^.Editor^.GetCurrentWord)
+  else
+    S:='';
+  P:=New(PWatch,Init(S));
+  if ExecuteDialog(New(PWatchItemDialog,Init(P)),nil)<>cmCancel then
+    begin
+      WatchesCollection^.Insert(P);
+      WatchesCollection^.Update;
+    end
+  else
+    dispose(P,Done);
 end;
 
 {
   $Log$
-  Revision 1.5  1999-06-30 23:58:17  pierre
+  Revision 1.6  1999-07-10 01:24:19  pierre
+   + First implementation of watches window
+
+  Revision 1.5  1999/06/30 23:58:17  pierre
     + BreakpointsList Window implemented
       with Edit/New/Delete functions
     + Individual breakpoint dialog with support for all types

@@ -62,6 +62,7 @@ begin
     hcBrowserWindow: S:=PBrowserWindow(P)^.GetTitle(MaxLen);
     hcMessagesWindow:S:=PMessagesWindow(P)^.GetTitle(MaxLen);
     hcGDBWindow,
+    hcWatches,
     hcBreakpointListWindow :
       S:=PWindow(P)^.GetTitle(MaxLen);
   else S:='???? - '+PWindow(P)^.GetTitle(MaxLen);
@@ -159,7 +160,10 @@ end;
 
 {
   $Log$
-  Revision 1.10  1999-06-30 23:58:18  pierre
+  Revision 1.11  1999-07-10 01:24:20  pierre
+   + First implementation of watches window
+
+  Revision 1.10  1999/06/30 23:58:18  pierre
     + BreakpointsList Window implemented
       with Edit/New/Delete functions
     + Individual breakpoint dialog with support for all types

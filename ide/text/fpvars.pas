@@ -50,6 +50,7 @@ const ClipboardWindow  : PClipboardWindow = nil;
       ProgramInfoWindow: PProgramInfoWindow = nil;
       GDBWindow        : PGDBWindow = nil;
       BreakpointsWindow : PBreakpointsWindow = nil;
+      WatchesWindow    : PWatchesWindow = nil;
       UserScreenWindow : PScreenWindow = nil;
       HeapView         : PFPHeapView = nil;
       HelpFiles        : WUtils.PUnsortedStringCollection = nil;
@@ -82,7 +83,10 @@ implementation
 END.
 {
   $Log$
-  Revision 1.18  1999-06-30 23:58:19  pierre
+  Revision 1.19  1999-07-10 01:24:21  pierre
+   + First implementation of watches window
+
+  Revision 1.18  1999/06/30 23:58:19  pierre
     + BreakpointsList Window implemented
       with Edit/New/Delete functions
     + Individual breakpoint dialog with support for all types

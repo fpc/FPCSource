@@ -118,6 +118,7 @@ const
      cmSymbol            = 235;
      cmStack             = 236;
      cmBreakpointList    = 237;
+     cmWatches           = 238;
 
      cmNotImplemented    = 1000;
      cmNewFromTemplate   = 1001;
@@ -280,6 +281,7 @@ const
      hcToggleBreakpoint  = hcShift+cmToggleBreakpoint;
      hcEvaluate          = hcShift+cmEvaluate;
      hcAddWatch          = hcShift+cmAddWatch;
+     hcWatches           = hcShift+cmWatches;
      hcGrep              = hcShift+cmGrep;
      hcStack             = hcShift+cmStack;
      hcBreakPointList    = hcShift+cmBreakpointList;
@@ -333,7 +335,10 @@ implementation
 END.
 {
   $Log$
-  Revision 1.20  1999-06-30 23:58:11  pierre
+  Revision 1.21  1999-07-10 01:24:13  pierre
+   + First implementation of watches window
+
+  Revision 1.20  1999/06/30 23:58:11  pierre
     + BreakpointsList Window implemented
       with Edit/New/Delete functions
     + Individual breakpoint dialog with support for all types
