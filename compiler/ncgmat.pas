@@ -331,7 +331,8 @@ implementation
                   objectlibrary.getlabel(hl);
                   cg.a_cmp_const_reg_label(exprasmlist,OS_INT,OC_NE,0,hdenom,hl);
                   paraloc1:=paramanager.getintparaloc(pocall_default,1);
-                  cg.a_param_const(exprasmlist,OS_S32,200,paraloc1,false);
+                  paramanager.allocparaloc(exprasmlist,paraloc1);
+                  cg.a_param_const(exprasmlist,OS_S32,200,paraloc1);
                   paramanager.freeparaloc(exprasmlist,paraloc1);
                   cg.a_call_name(exprasmlist,'FPC_HANDLERROR');
                   cg.a_label(exprasmlist,hl);
@@ -501,7 +502,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.22  2003-12-03 23:13:20  peter
+  Revision 1.23  2003-12-06 01:15:22  florian
+    * reverted Peter's alloctemp patch; hopefully properly
+
+  Revision 1.22  2003/12/03 23:13:20  peter
     * delayed paraloc allocation, a_param_*() gets extra parameter
       if it needs to allocate temp or real paralocation
     * optimized/simplified int-real loading

@@ -72,10 +72,10 @@ unit cg64f32;
         procedure a_op64_loc_reg(list : taasmoutput;op:TOpCG;const l : tlocation;reg : tregister64);override;
         procedure a_op64_const_ref(list : taasmoutput;op:TOpCG;value : qword;const ref : treference);override;
 
-        procedure a_param64_reg(list : taasmoutput;reg : tregister64;var locpara : tparalocation;alloctemp:boolean);override;
-        procedure a_param64_const(list : taasmoutput;value : qword;var locpara : tparalocation;alloctemp:boolean);override;
-        procedure a_param64_ref(list : taasmoutput;const r : treference;var locpara : tparalocation;alloctemp:boolean);override;
-        procedure a_param64_loc(list : taasmoutput;const l : tlocation;var locpara : tparalocation;alloctemp:boolean);override;
+        procedure a_param64_reg(list : taasmoutput;reg : tregister64;const locpara : tparalocation);override;
+        procedure a_param64_const(list : taasmoutput;value : qword;const locpara : tparalocation);override;
+        procedure a_param64_ref(list : taasmoutput;const r : treference;const locpara : tparalocation);override;
+        procedure a_param64_loc(list : taasmoutput;const l : tlocation;const locpara : tparalocation);override;
 
         {# This routine tries to optimize the a_op64_const_reg operation, by
            removing superfluous opcodes. Returns TRUE if normal processing
@@ -452,43 +452,31 @@ unit cg64f32;
       end;
 
 
-    procedure tcg64f32.a_param64_reg(list : taasmoutput;reg : tregister64;var locpara : tparalocation;alloctemp:boolean);
+    procedure tcg64f32.a_param64_reg(list : taasmoutput;reg : tregister64;const locpara : tparalocation);
       var
         tmplochi,tmploclo: tparalocation;
       begin
-        if alloctemp then
-          paramanager.alloctempparaloc(list,locpara)
-        else
-          paramanager.allocparaloc(list,locpara);
         paramanager.splitparaloc64(locpara,tmploclo,tmplochi);
-        cg.a_param_reg(list,OS_32,reg.reghi,tmplochi,false);
-        cg.a_param_reg(list,OS_32,reg.reglo,tmploclo,false);
+        cg.a_param_reg(list,OS_32,reg.reghi,tmplochi);
+        cg.a_param_reg(list,OS_32,reg.reglo,tmploclo);
       end;
 
 
-    procedure tcg64f32.a_param64_const(list : taasmoutput;value : qword;var locpara : tparalocation;alloctemp:boolean);
+    procedure tcg64f32.a_param64_const(list : taasmoutput;value : qword;const locpara : tparalocation);
       var
         tmplochi,tmploclo: tparalocation;
       begin
-        if alloctemp then
-          paramanager.alloctempparaloc(list,locpara)
-        else
-          paramanager.allocparaloc(list,locpara);
         paramanager.splitparaloc64(locpara,tmploclo,tmplochi);
-        cg.a_param_const(list,OS_32,hi(value),tmplochi,false);
-        cg.a_param_const(list,OS_32,lo(value),tmploclo,false);
+        cg.a_param_const(list,OS_32,hi(value),tmplochi);
+        cg.a_param_const(list,OS_32,lo(value),tmploclo);
       end;
 
 
-    procedure tcg64f32.a_param64_ref(list : taasmoutput;const r : treference;var locpara : tparalocation;alloctemp:boolean);
+    procedure tcg64f32.a_param64_ref(list : taasmoutput;const r : treference;const locpara : tparalocation);
       var
         tmprefhi,tmpreflo : treference;
         tmploclo,tmplochi : tparalocation;
       begin
-        if alloctemp then
-          paramanager.alloctempparaloc(list,locpara)
-        else
-          paramanager.allocparaloc(list,locpara);
         paramanager.splitparaloc64(locpara,tmploclo,tmplochi);
         tmprefhi:=r;
         tmpreflo:=r;
@@ -496,22 +484,22 @@ unit cg64f32;
           inc(tmpreflo.offset,4)
         else
           inc(tmprefhi.offset,4);
-        cg.a_param_ref(list,OS_32,tmprefhi,tmplochi,false);
-        cg.a_param_ref(list,OS_32,tmpreflo,tmploclo,false);
+        cg.a_param_ref(list,OS_32,tmprefhi,tmplochi);
+        cg.a_param_ref(list,OS_32,tmpreflo,tmploclo);
       end;
 
 
-    procedure tcg64f32.a_param64_loc(list : taasmoutput;const l:tlocation;var locpara : tparalocation;alloctemp:boolean);
+    procedure tcg64f32.a_param64_loc(list : taasmoutput;const l:tlocation;const locpara : tparalocation);
       begin
         case l.loc of
           LOC_REGISTER,
           LOC_CREGISTER :
-            a_param64_reg(list,l.register64,locpara,alloctemp);
+            a_param64_reg(list,l.register64,locpara);
           LOC_CONSTANT :
-            a_param64_const(list,l.valueqword,locpara,alloctemp);
+            a_param64_const(list,l.valueqword,locpara);
           LOC_CREFERENCE,
           LOC_REFERENCE :
-            a_param64_ref(list,l.reference,locpara,alloctemp);
+            a_param64_ref(list,l.reference,locpara);
           else
             internalerror(200203287);
         end;
@@ -773,7 +761,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.53  2003-12-03 23:13:19  peter
+  Revision 1.54  2003-12-06 01:15:22  florian
+    * reverted Peter's alloctemp patch; hopefully properly
+
+  Revision 1.53  2003/12/03 23:13:19  peter
     * delayed paraloc allocation, a_param_*() gets extra parameter
       if it needs to allocate temp or real paralocation
     * optimized/simplified int-real loading

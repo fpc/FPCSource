@@ -292,7 +292,8 @@ implementation
             (not tpointerdef(left.resulttype.def).is_far) then
           begin
             paraloc1:=paramanager.getintparaloc(pocall_default,1);
-            cg.a_param_reg(exprasmlist, OS_ADDR,location.reference.base,paraloc1,false);
+            paramanager.allocparaloc(exprasmlist,paraloc1);
+            cg.a_param_reg(exprasmlist, OS_ADDR,location.reference.base,paraloc1);
             paramanager.freeparaloc(exprasmlist,paraloc1);
             { FPC_CHECKPOINTER uses saveregisters }
             cg.a_call_name(exprasmlist,'FPC_CHECKPOINTER');
@@ -345,7 +346,8 @@ implementation
                 not(cs_compilesystem in aktmoduleswitches) then
               begin
                 paraloc1:=paramanager.getintparaloc(pocall_default,1);
-                cg.a_param_reg(exprasmlist, OS_ADDR,location.reference.base,paraloc1,false);
+                paramanager.allocparaloc(exprasmlist,paraloc1);
+                cg.a_param_reg(exprasmlist, OS_ADDR,location.reference.base,paraloc1);
                 paramanager.freeparaloc(exprasmlist,paraloc1);
                 { FPC_CHECKPOINTER uses saveregisters }
                 cg.a_call_name(exprasmlist,'FPC_CHECKPOINTER');
@@ -361,7 +363,8 @@ implementation
                 not(cs_compilesystem in aktmoduleswitches) then
               begin
                 paraloc1:=paramanager.getintparaloc(pocall_default,1);
-                cg.a_param_reg(exprasmlist, OS_ADDR,location.reference.base,paraloc1,false);
+                paramanager.allocparaloc(exprasmlist,paraloc1);
+                cg.a_param_reg(exprasmlist, OS_ADDR,location.reference.base,paraloc1);
                 paramanager.freeparaloc(exprasmlist,paraloc1);
                 { FPC_CHECKPOINTER uses saveregisters }
                 cg.a_call_name(exprasmlist,'FPC_CHECKPOINTER');
@@ -554,8 +557,10 @@ implementation
             begin
                paraloc1:=paramanager.getintparaloc(pocall_default,1);
                paraloc2:=paramanager.getintparaloc(pocall_default,2);
-               cg.a_param_loc(exprasmlist,right.location,paraloc2,false);
-               cg.a_param_loc(exprasmlist,left.location,paraloc1,false);
+               paramanager.allocparaloc(exprasmlist,paraloc2);
+               cg.a_param_loc(exprasmlist,right.location,paraloc2);
+               paramanager.allocparaloc(exprasmlist,paraloc1);
+               cg.a_param_loc(exprasmlist,left.location,paraloc1);
                paramanager.freeparaloc(exprasmlist,paraloc1);
                paramanager.freeparaloc(exprasmlist,paraloc2);
                cg.allocexplicitregisters(exprasmlist,R_INTREGISTER,paramanager.get_volatile_registers_int(pocall_default));
@@ -615,7 +620,8 @@ implementation
               if (cs_check_range in aktlocalswitches) then
                 begin
                    paraloc1:=paramanager.getintparaloc(pocall_default,1);
-                   cg.a_param_reg(exprasmlist,OS_ADDR,location.reference.base,paraloc1,false);
+                   paramanager.allocparaloc(exprasmlist,paraloc1);
+                   cg.a_param_reg(exprasmlist,OS_ADDR,location.reference.base,paraloc1);
                    paramanager.freeparaloc(exprasmlist,paraloc1);
                    cg.allocexplicitregisters(exprasmlist,R_INTREGISTER,paramanager.get_volatile_registers_int(pocall_default));
                    cg.a_call_name(exprasmlist,'FPC_'+upper(tstringdef(left.resulttype.def).stringtypname)+'_CHECKZERO');
@@ -694,10 +700,12 @@ implementation
                            begin
                               paraloc1:=paramanager.getintparaloc(pocall_default,1);
                               paraloc2:=paramanager.getintparaloc(pocall_default,2);
-                              cg.a_param_const(exprasmlist,OS_INT,tordconstnode(right).value,paraloc2,false);
+                              paramanager.allocparaloc(exprasmlist,paraloc2);
+                              cg.a_param_const(exprasmlist,OS_INT,tordconstnode(right).value,paraloc2);
                               href:=location.reference;
                               dec(href.offset,7);
-                              cg.a_param_ref(exprasmlist,OS_INT,href,paraloc1,false);
+                              paramanager.allocparaloc(exprasmlist,paraloc1);
+                              cg.a_param_ref(exprasmlist,OS_INT,href,paraloc1);
                               paramanager.freeparaloc(exprasmlist,paraloc1);
                               paramanager.freeparaloc(exprasmlist,paraloc2);
                               cg.allocexplicitregisters(exprasmlist,R_INTREGISTER,paramanager.get_volatile_registers_int(pocall_default));
@@ -826,10 +834,12 @@ implementation
                            begin
                               paraloc1:=paramanager.getintparaloc(pocall_default,1);
                               paraloc2:=paramanager.getintparaloc(pocall_default,2);
-                              cg.a_param_reg(exprasmlist,OS_INT,right.location.register,paraloc2,false);
+                              paramanager.allocparaloc(exprasmlist,paraloc2);
+                              cg.a_param_reg(exprasmlist,OS_INT,right.location.register,paraloc2);
                               href:=location.reference;
                               dec(href.offset,7);
-                              cg.a_param_ref(exprasmlist,OS_INT,href,paraloc1,false);
+                              paramanager.allocparaloc(exprasmlist,paraloc1);
+                              cg.a_param_ref(exprasmlist,OS_INT,href,paraloc1);
                               paramanager.freeparaloc(exprasmlist,paraloc1);
                               paramanager.freeparaloc(exprasmlist,paraloc2);
                               cg.allocexplicitregisters(exprasmlist,R_INTREGISTER,paramanager.get_volatile_registers_int(pocall_default));
@@ -868,7 +878,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.82  2003-12-03 23:13:20  peter
+  Revision 1.83  2003-12-06 01:15:22  florian
+    * reverted Peter's alloctemp patch; hopefully properly
+
+  Revision 1.82  2003/12/03 23:13:20  peter
     * delayed paraloc allocation, a_param_*() gets extra parameter
       if it needs to allocate temp or real paralocation
     * optimized/simplified int-real loading

@@ -133,9 +133,6 @@ uses
   {$ifdef profile}
     profile,
   {$endif profile}
-  {$ifdef heaptrc}
-    ppheap,
-  {$endif heaptrc}
   {$ifdef EXTDEBUG}
     checkmem,
   {$endif EXTDEBUG}
@@ -193,6 +190,9 @@ end;
 begin
   oldexit:=exitproc;
   exitproc:=@myexit;
+{$ifdef extheaptrc}
+  keepreleased:=true;
+{$endif extheaptrc}
   SetFPUExceptionMask([exInvalidOp, exDenormalized, exZeroDivide,
                         exOverflow, exUnderflow, exPrecision]);
 { Call the compiler with empty command, so it will take the parameters }
@@ -200,7 +200,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.27  2003-09-06 16:47:24  florian
+  Revision 1.28  2003-12-06 01:15:22  florian
+    * reverted Peter's alloctemp patch; hopefully properly
+
+  Revision 1.27  2003/09/06 16:47:24  florian
     + support of NaN and Inf in the compiler as values of real constants
 
   Revision 1.26  2003/09/05 17:41:12  florian

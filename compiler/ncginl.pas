@@ -188,20 +188,24 @@ implementation
        maketojumpbool(exprasmlist,tcallparanode(left).left,lr_load_regvars);
        cg.a_label(exprasmlist,falselabel);
        { erroraddr }
-       cg.a_param_reg(exprasmlist,OS_ADDR,NR_FRAME_POINTER_REG,paraloc4,false);
+       paramanager.allocparaloc(exprasmlist,paraloc4);
+       cg.a_param_reg(exprasmlist,OS_ADDR,NR_FRAME_POINTER_REG,paraloc4);
        { lineno }
-       cg.a_param_const(exprasmlist,OS_INT,aktfilepos.line,paraloc3,false);
+       paramanager.allocparaloc(exprasmlist,paraloc3);
+       cg.a_param_const(exprasmlist,OS_INT,aktfilepos.line,paraloc3);
        { filename string }
        hp2:=cstringconstnode.createstr(current_module.sourcefiles.get_file_name(aktfilepos.fileindex),st_shortstring);
        firstpass(tnode(hp2));
        secondpass(tnode(hp2));
        if codegenerror then
           exit;
-       cg.a_paramaddr_ref(exprasmlist,hp2.location.reference,paraloc2,false);
+       paramanager.allocparaloc(exprasmlist,paraloc2);
+       cg.a_paramaddr_ref(exprasmlist,hp2.location.reference,paraloc2);
        hp2.free;
        { push msg }
        secondpass(tcallparanode(tcallparanode(left).right).left);
-       cg.a_paramaddr_ref(exprasmlist,tcallparanode(tcallparanode(left).right).left.location.reference,paraloc1,false);
+       paramanager.allocparaloc(exprasmlist,paraloc1);
+       cg.a_paramaddr_ref(exprasmlist,tcallparanode(tcallparanode(left).right).left.location.reference,paraloc1);
        { call }
        paramanager.freeparaloc(exprasmlist,paraloc1);
        paramanager.freeparaloc(exprasmlist,paraloc2);
@@ -652,7 +656,10 @@ end.
 
 {
   $Log$
-  Revision 1.48  2003-12-03 23:13:20  peter
+  Revision 1.49  2003-12-06 01:15:22  florian
+    * reverted Peter's alloctemp patch; hopefully properly
+
+  Revision 1.48  2003/12/03 23:13:20  peter
     * delayed paraloc allocation, a_param_*() gets extra parameter
       if it needs to allocate temp or real paralocation
     * optimized/simplified int-real loading

@@ -356,7 +356,8 @@ interface
                          end
                        else
                          begin
-                           cg.a_paramaddr_ref(exprasmlist,left.location.reference,paraloc2,false);
+                           paramanager.allocparaloc(exprasmlist,paraloc2);
+                           cg.a_paramaddr_ref(exprasmlist,left.location.reference,paraloc2);
                          end;
                        secondpass(right);
                        location_release(exprasmlist,right.location);
@@ -367,18 +368,21 @@ interface
                          end
                        else
                          begin
-                           cg.a_paramaddr_ref(exprasmlist,right.location.reference,paraloc1,false);
+                           paramanager.allocparaloc(exprasmlist,paraloc1);
+                           cg.a_paramaddr_ref(exprasmlist,right.location.reference,paraloc1);
                          end;
                        { push parameters }
                        if paraloc1.loc=LOC_REGISTER then
                          begin
                            cg.ungetregister(exprasmlist,hregister2);
-                           cg.a_param_reg(exprasmlist,OS_ADDR,hregister2,paraloc2,false);
+                           paramanager.allocparaloc(exprasmlist,paraloc2);
+                           cg.a_param_reg(exprasmlist,OS_ADDR,hregister2,paraloc2);
                          end;
                        if paraloc2.loc=LOC_REGISTER then
                          begin
                            cg.ungetregister(exprasmlist,hregister1);
-                           cg.a_param_reg(exprasmlist,OS_ADDR,hregister1,paraloc1,false);
+                           paramanager.allocparaloc(exprasmlist,paraloc1);
+                           cg.a_param_reg(exprasmlist,OS_ADDR,hregister1,paraloc1);
                          end;
                        paramanager.freeparaloc(exprasmlist,paraloc1);
                        paramanager.freeparaloc(exprasmlist,paraloc2);
@@ -1491,7 +1495,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.87  2003-12-03 23:13:20  peter
+  Revision 1.88  2003-12-06 01:15:23  florian
+    * reverted Peter's alloctemp patch; hopefully properly
+
+  Revision 1.87  2003/12/03 23:13:20  peter
     * delayed paraloc allocation, a_param_*() gets extra parameter
       if it needs to allocate temp or real paralocation
     * optimized/simplified int-real loading

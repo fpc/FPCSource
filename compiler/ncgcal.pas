@@ -35,6 +35,7 @@ interface
        tcgcallparanode = class(tcallparanode)
        private
           tempparaloc : tparalocation;
+          procedure allocate_tempparaloc;
           procedure push_addr_para;
           procedure push_value_para;
        public
@@ -98,12 +99,22 @@ implementation
                              TCGCALLPARANODE
 *****************************************************************************}
 
+    procedure tcgcallparanode.allocate_tempparaloc;
+      begin
+         { Allocate (temporary) paralocation }
+         tempparaloc:=paraitem.paraloc[callerside];
+         if (tempparaloc.loc in [LOC_REGISTER,LOC_FPUREGISTER,LOC_MMREGISTER]) then
+           paramanager.alloctempregs(exprasmlist,tempparaloc)
+      end;
+
+
     procedure tcgcallparanode.push_addr_para;
       begin
         if not(left.location.loc in [LOC_CREFERENCE,LOC_REFERENCE]) then
           internalerror(200304235);
         location_release(exprasmlist,left.location);
-        cg.a_paramaddr_ref(exprasmlist,left.location.reference,tempparaloc,true);
+        allocate_tempparaloc;
+        cg.a_paramaddr_ref(exprasmlist,left.location.reference,tempparaloc);
         inc(tcgcallnode(aktcallnode).pushedparasize,POINTER_SIZE);
       end;
 
@@ -126,6 +137,7 @@ implementation
         if left.resulttype.def.deftype=floatdef then
          begin
            location_release(exprasmlist,left.location);
+           allocate_tempparaloc;
 {$ifdef i386}
            if tempparaloc.loc<>LOC_REFERENCE then
              internalerror(200309291);
@@ -168,7 +180,7 @@ implementation
                            dec(href.offset,2);
                            dec(size,2);
                          end;
-                        cg.a_param_ref(exprasmlist,cgsize,href,tempparaloc,true);
+                        cg.a_param_ref(exprasmlist,cgsize,href,tempparaloc);
                       end;
                    end
                  else
@@ -203,6 +215,7 @@ implementation
                   aktcallnode.procdefinition.proccalloption) then
             begin
               location_release(exprasmlist,left.location);
+              allocate_tempparaloc;
 {$ifdef i386}
               if tempparaloc.loc<>LOC_REFERENCE then
                 internalerror(200309292);
@@ -236,14 +249,16 @@ implementation
                     if cgsize in [OS_64,OS_S64] then
                      begin
                        inc(tcgcallnode(aktcallnode).pushedparasize,8);
-                       cg64.a_param64_loc(exprasmlist,left.location,tempparaloc,true);
+                       allocate_tempparaloc;
+                       cg64.a_param64_loc(exprasmlist,left.location,tempparaloc);
                        location_release(exprasmlist,left.location);
                      end
                     else
                      begin
                        location_release(exprasmlist,left.location);
+                       allocate_tempparaloc;
                        inc(tcgcallnode(aktcallnode).pushedparasize,align(tcgsize2size[tempparaloc.size],tempparaloc.alignment));
-                       cg.a_param_loc(exprasmlist,left.location,tempparaloc,true);
+                       cg.a_param_loc(exprasmlist,left.location,tempparaloc);
                      end;
                   end;
 {$ifdef SUPPORT_MMX}
@@ -251,6 +266,7 @@ implementation
                 LOC_CMMXREGISTER:
                   begin
                      location_release(exprasmlist,left.location);
+                     allocate_tempparaloc;
                      inc(tcgcallnode(aktcallnode).pushedparasize,8);
                      cg.a_parammm_reg(exprasmlist,left.location.register);
                   end;
@@ -274,12 +290,6 @@ implementation
             not(assigned(paraitem.parasym) or
                 (nf_varargs_para in flags)) then
            internalerror(200304242);
-
-         { Initialize temporary paralocation, only reset register
-           value for register parameters }
-         tempparaloc:=paraitem.paraloc[callerside];
-         if (tempparaloc.loc in [LOC_REGISTER,LOC_FPUREGISTER,LOC_MMREGISTER]) then
-           tempparaloc.register:=NR_NO;
 
          { Skip nothingn nodes which are used after disabling
            a parameter }
@@ -327,7 +337,8 @@ implementation
                     begin
                       inc(tcgcallnode(aktcallnode).pushedparasize,POINTER_SIZE);
                       location_release(exprasmlist,left.location);
-                      cg.a_param_loc(exprasmlist,left.location,tempparaloc,true);
+                      allocate_tempparaloc;
+                      cg.a_param_loc(exprasmlist,left.location,tempparaloc);
                     end
                   else
                     push_addr_para;
@@ -1116,7 +1127,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.143  2003-12-03 23:13:20  peter
+  Revision 1.144  2003-12-06 01:15:22  florian
+    * reverted Peter's alloctemp patch; hopefully properly
+
+  Revision 1.143  2003/12/03 23:13:20  peter
     * delayed paraloc allocation, a_param_*() gets extra parameter
       if it needs to allocate temp or real paralocation
     * optimized/simplified int-real loading

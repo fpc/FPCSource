@@ -83,7 +83,6 @@ unit paramgr;
             @param(loc Parameter location)
           }
           procedure allocparaloc(list: taasmoutput; const loc: tparalocation); virtual;
-          procedure alloctempparaloc(list: taasmoutput;var locpara:tparalocation);virtual;
 
           {# free a parameter location allocated with allocparaloc
 
@@ -113,6 +112,7 @@ unit paramgr;
           { Return the location of the low and high part of a 64bit parameter }
           procedure splitparaloc64(const locpara:tparalocation;var loclopara,lochipara:tparalocation);virtual;
 
+          procedure alloctempregs(list: taasmoutput;var locpara:tparalocation);virtual;
        end;
 
 
@@ -320,39 +320,6 @@ implementation
       end;
 
 
-    procedure tparamanager.alloctempparaloc(list: taasmoutput;var locpara:tparalocation);
-      begin
-        case locpara.loc of
-          LOC_REFERENCE:
-            begin
-              { no temp needed by default }
-            end;
-          LOC_REGISTER:
-            begin
-{$ifndef cpu64bit}
-              if locpara.size in [OS_64,OS_S64] then
-                begin
-                  locpara.registerlow:=cg.getintregister(list,OS_32);
-                  locpara.registerhigh:=cg.getintregister(list,OS_32);
-                end
-              else
-{$endif cpu64bit}
-                locpara.register:=cg.getintregister(list,locpara.size);
-            end;
-          LOC_FPUREGISTER:
-            begin
-              locpara.register:=cg.getfpuregister(list,locpara.size);
-            end;
-          LOC_MMREGISTER:
-            begin
-              locpara.register:=cg.getfpuregister(list,locpara.size);
-            end;
-          else
-            internalerror(200308123);
-        end;
-      end;
-
-
     procedure tparamanager.freeparaloc(list: taasmoutput; const loc: tparalocation);
       begin
         case loc.loc of
@@ -408,6 +375,35 @@ implementation
       end;
 
 
+    procedure tparamanager.alloctempregs(list: taasmoutput;var locpara:tparalocation);
+      begin
+        case locpara.loc of
+          LOC_REGISTER:
+            begin
+{$ifndef cpu64bit}
+              if locpara.size in [OS_64,OS_S64] then
+                begin
+                  locpara.registerlow:=cg.getintregister(list,OS_32);
+                  locpara.registerhigh:=cg.getintregister(list,OS_32);
+                end
+              else
+{$endif cpu64bit}
+                locpara.register:=cg.getintregister(list,locpara.size);
+            end;
+          LOC_FPUREGISTER:
+            begin
+              locpara.register:=cg.getfpuregister(list,locpara.size);
+            end;
+          LOC_MMREGISTER:
+            begin
+              locpara.register:=cg.getfpuregister(list,locpara.size);
+            end;
+          else
+            internalerror(200308123);
+        end;
+      end;
+
+
     function tparamanager.create_inline_paraloc_info(p : tabstractprocdef):longint;
       var
         hp : tparaitem;
@@ -454,7 +450,10 @@ end.
 
 {
    $Log$
-   Revision 1.66  2003-12-03 23:13:20  peter
+   Revision 1.67  2003-12-06 01:15:22  florian
+     * reverted Peter's alloctemp patch; hopefully properly
+
+   Revision 1.66  2003/12/03 23:13:20  peter
      * delayed paraloc allocation, a_param_*() gets extra parameter
        if it needs to allocate temp or real paralocation
      * optimized/simplified int-real loading

@@ -62,10 +62,10 @@ unit cgx86;
         { left to right), this allows to move the parameter to    }
         { register, if the cpu supports register calling          }
         { conventions                                             }
-        procedure a_param_reg(list : taasmoutput;size : tcgsize;r : tregister;var locpara : tparalocation;alloctemp:boolean);override;
-        procedure a_param_const(list : taasmoutput;size : tcgsize;a : aword;var locpara : tparalocation;alloctemp:boolean);override;
-        procedure a_param_ref(list : taasmoutput;size : tcgsize;const r : treference;var locpara : tparalocation;alloctemp:boolean);override;
-        procedure a_paramaddr_ref(list : taasmoutput;const r : treference;var locpara : tparalocation;alloctemp:boolean);override;
+        procedure a_param_reg(list : taasmoutput;size : tcgsize;r : tregister;const locpara : tparalocation);override;
+        procedure a_param_const(list : taasmoutput;size : tcgsize;a : aword;const locpara : tparalocation);override;
+        procedure a_param_ref(list : taasmoutput;size : tcgsize;const r : treference;const locpara : tparalocation);override;
+        procedure a_paramaddr_ref(list : taasmoutput;const r : treference;const locpara : tparalocation);override;
 
         procedure a_call_name(list : taasmoutput;const s : string);override;
         procedure a_call_reg(list : taasmoutput;reg : tregister);override;
@@ -488,7 +488,7 @@ unit cgx86;
     { we implement the following routines because otherwise we can't }
     { instantiate the class since it's abstract                      }
 
-    procedure tcgx86.a_param_reg(list : taasmoutput;size : tcgsize;r : tregister;var locpara : tparalocation;alloctemp:boolean);
+    procedure tcgx86.a_param_reg(list : taasmoutput;size : tcgsize;r : tregister;const locpara : tparalocation);
       begin
         check_register_size(size,r);
         if (locpara.loc=LOC_REFERENCE) and
@@ -514,11 +514,11 @@ unit cgx86;
             end;
           end
         else
-          inherited a_param_reg(list,size,r,locpara,alloctemp);
+          inherited a_param_reg(list,size,r,locpara);
       end;
 
 
-    procedure tcgx86.a_param_const(list : taasmoutput;size : tcgsize;a : aword;var locpara : tparalocation;alloctemp:boolean);
+    procedure tcgx86.a_param_const(list : taasmoutput;size : tcgsize;a : aword;const locpara : tparalocation);
 
       begin
         if (locpara.loc=LOC_REFERENCE) and
@@ -539,11 +539,11 @@ unit cgx86;
             end;
           end
         else
-          inherited a_param_const(list,size,a,locpara,alloctemp);
+          inherited a_param_const(list,size,a,locpara);
       end;
 
 
-    procedure tcgx86.a_param_ref(list : taasmoutput;size : tcgsize;const r : treference;var locpara : tparalocation;alloctemp:boolean);
+    procedure tcgx86.a_param_ref(list : taasmoutput;size : tcgsize;const r : treference;const locpara : tparalocation);
 
       var
         pushsize : tcgsize;
@@ -577,11 +577,11 @@ unit cgx86;
             end;
           end
         else
-          inherited a_param_ref(list,size,r,locpara,alloctemp);
+          inherited a_param_ref(list,size,r,locpara);
       end;
 
 
-    procedure tcgx86.a_paramaddr_ref(list : taasmoutput;const r : treference;var locpara : tparalocation;alloctemp:boolean);
+    procedure tcgx86.a_paramaddr_ref(list : taasmoutput;const r : treference;const locpara : tparalocation);
       var
         tmpreg : tregister;
       begin
@@ -612,7 +612,7 @@ unit cgx86;
               end;
           end
         else
-          inherited a_paramaddr_ref(list,r,locpara,alloctemp);
+          inherited a_paramaddr_ref(list,r,locpara);
       end;
 
 
@@ -1751,7 +1751,10 @@ unit cgx86;
 end.
 {
   $Log$
-  Revision 1.88  2003-12-03 23:13:20  peter
+  Revision 1.89  2003-12-06 01:15:23  florian
+    * reverted Peter's alloctemp patch; hopefully properly
+
+  Revision 1.88  2003/12/03 23:13:20  peter
     * delayed paraloc allocation, a_param_*() gets extra parameter
       if it needs to allocate temp or real paralocation
     * optimized/simplified int-real loading
