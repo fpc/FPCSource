@@ -1,4 +1,4 @@
-{ %cpu=i386,x86_64 }
+{ %cpu=i386 }
 
 { Source provided for Free Pascal Bug Report 3460 }
 { Submitted by "Danny Milosavljevic" on  2004-12-22 }
