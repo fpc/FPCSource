@@ -1583,6 +1583,7 @@ Implementation
         addlist(datasegment);
         addlist(consts);
         addlist(rttilist);
+        addlist(picdata);
         if assigned(resourcestringlist) then
           addlist(resourcestringlist);
         addlist(bsssegment);
@@ -1659,7 +1660,12 @@ Implementation
 end.
 {
   $Log$
-  Revision 1.63  2004-03-02 00:36:33  olle
+  Revision 1.64  2004-03-02 17:32:12  florian
+    * make cycle fixed
+    + pic support for darwin
+    + support of importing vars from shared libs on darwin implemented
+
+  Revision 1.63  2004/03/02 00:36:33  olle
     * big transformation of Tai_[const_]Symbol.Create[data]name*
 
   Revision 1.62  2004/02/27 10:21:05  florian

@@ -33,6 +33,7 @@ interface
     type
        tcgloadnode = class(tloadnode)
           procedure pass_2;override;
+          procedure generate_picvaraccess;virtual;
        end;
 
        tcgassignmentnode = class(tassignmentnode)
@@ -63,6 +64,13 @@ implementation
 {*****************************************************************************
                              SecondLoad
 *****************************************************************************}
+
+    procedure tcgloadnode.generate_picvaraccess;
+      begin
+        location.reference.base:=current_procinfo.got;
+        location.reference.symbol:=objectlibrary.newasmsymbol(tvarsym(symtableentry).mangledname+'@GOT',AB_EXTERNAL,AT_DATA);
+      end;
+
 
     procedure tcgloadnode.pass_2;
       var
@@ -121,15 +129,24 @@ implementation
                   { DLL variable }
                   else if (vo_is_dll_var in tvarsym(symtableentry).varoptions) then
                     begin
-                       hregister:=cg.getaddressregister(exprasmlist);
-                       location.reference.symbol:=objectlibrary.newasmsymbol(tvarsym(symtableentry).mangledname,AB_EXTERNAL,AT_DATA);
-                       cg.a_load_ref_reg(exprasmlist,OS_ADDR,OS_ADDR,location.reference,hregister);
-                       reference_reset_base(location.reference,hregister,0);
+                      if target_info.system=system_powerpc_darwin then
+                        begin
+                          generate_picvaraccess;
+                          if not(pi_needs_got in current_procinfo.flags) then
+                            internalerror(200403022);
+                        end
+                      else
+                        begin
+                          hregister:=cg.getaddressregister(exprasmlist);
+                          location.reference.symbol:=objectlibrary.newasmsymbol(tvarsym(symtableentry).mangledname,AB_EXTERNAL,AT_DATA);
+                          cg.a_load_ref_reg(exprasmlist,OS_ADDR,OS_ADDR,location.reference,hregister);
+                          reference_reset_base(location.reference,hregister,0);
+                        end;
                     end
                   { external variable }
                   else if (vo_is_external in tvarsym(symtableentry).varoptions) then
                     begin
-                       location.reference.symbol:=objectlibrary.newasmsymbol(tvarsym(symtableentry).mangledname,AB_EXTERNAL,AT_DATA);
+                      location.reference.symbol:=objectlibrary.newasmsymbol(tvarsym(symtableentry).mangledname,AB_EXTERNAL,AT_DATA);
                     end
                   { thread variable }
                   else if (vo_is_thread_var in tvarsym(symtableentry).varoptions) then
@@ -226,8 +243,9 @@ implementation
                                 begin
                                   if cs_create_pic in aktmoduleswitches then
                                     begin
-                                      location.reference.base:=current_procinfo.got;
-                                      location.reference.symbol:=objectlibrary.newasmsymbol(tvarsym(symtableentry).mangledname+'@GOT',AB_EXTERNAL,AT_DATA);
+                                      generate_picvaraccess;
+                                      if not(pi_needs_got in current_procinfo.flags) then
+                                        internalerror(200403023);
                                     end
                                   else
                                     location.reference.symbol:=objectlibrary.newasmsymbol(tvarsym(symtableentry).mangledname,AB_EXTERNAL,AT_DATA);
@@ -908,7 +926,12 @@ begin
 end.
 {
   $Log$
-  Revision 1.113  2004-03-02 00:36:33  olle
+  Revision 1.114  2004-03-02 17:32:12  florian
+    * make cycle fixed
+    + pic support for darwin
+    + support of importing vars from shared libs on darwin implemented
+
+  Revision 1.113  2004/03/02 00:36:33  olle
     * big transformation of Tai_[const_]Symbol.Create[data]name*
 
   Revision 1.112  2004/02/27 10:21:05  florian

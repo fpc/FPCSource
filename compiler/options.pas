@@ -500,6 +500,8 @@ begin
                          IllegalPara(opt);
                        break;
                      end;
+                    'g' :
+                      include(initmoduleswitches,cs_create_pic);
                     'h' :
                        begin
                          val(copy(more,j+1,length(more)-j),heapsize,code);
@@ -1125,8 +1127,6 @@ begin
                              rlinkpath:=Copy(more,2,length(More)-1);
                              More:='';
                           end;
-                    'p' :
-                      include(initmoduleswitches,cs_create_pic);
                     'S' :
                       begin
                         def_symbol('FPC_LINK_STATIC');
@@ -1999,7 +1999,12 @@ finalization
 end.
 {
   $Log$
-  Revision 1.125  2004-02-22 12:04:04  florian
+  Revision 1.126  2004-03-02 17:32:12  florian
+    * make cycle fixed
+    + pic support for darwin
+    + support of importing vars from shared libs on darwin implemented
+
+  Revision 1.125  2004/02/22 12:04:04  florian
     + nx86set added
     * some more x86-64 fixes
 

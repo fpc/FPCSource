@@ -154,14 +154,15 @@ implementation
          end;
         { align code segment }
         codeSegment.concat(Tai_align.Create(aktalignment.procalign));
-       { Insert start and end of sections }
+        { Insert start and end of sections }
         fixseg(codesegment,sec_code);
         fixseg(datasegment,sec_data);
         fixseg(bsssegment,sec_bss);
-      { we should use .rdata section for these two no ? }
-      { .rdata is a read only data section (PM) }
+        { we should use .rdata section for these two no ?
+          .rdata is a read only data section (PM) }
         fixseg(rttilist,sec_data);
         fixseg(consts,sec_data);
+        fixseg(picdata,sec_data);
         if assigned(resourcestringlist) then
           fixseg(resourcestringlist,sec_data);
 {$ifdef GDB}
@@ -1438,7 +1439,12 @@ implementation
 end.
 {
   $Log$
-  Revision 1.141  2004-03-02 00:36:33  olle
+  Revision 1.142  2004-03-02 17:32:12  florian
+    * make cycle fixed
+    + pic support for darwin
+    + support of importing vars from shared libs on darwin implemented
+
+  Revision 1.141  2004/03/02 00:36:33  olle
     * big transformation of Tai_[const_]Symbol.Create[data]name*
 
   Revision 1.140  2004/02/26 16:16:38  peter

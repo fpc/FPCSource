@@ -334,6 +334,8 @@ implementation
                   registersint:=1;
                 if ([vo_is_thread_var,vo_is_dll_var]*tvarsym(symtableentry).varoptions)<>[] then
                   registersint:=1;
+                if (target_info.system=system_powerpc_darwin) and (vo_is_dll_var in tvarsym(symtableentry).varoptions) then
+                  include(current_procinfo.flags,pi_needs_got);
                 { call to get address of threadvar }
                 if (vo_is_thread_var in tvarsym(symtableentry).varoptions) then
                   include(current_procinfo.flags,pi_do_call);
@@ -1122,7 +1124,12 @@ begin
 end.
 {
   $Log$
-  Revision 1.124  2004-02-20 22:15:26  peter
+  Revision 1.125  2004-03-02 17:32:12  florian
+    * make cycle fixed
+    + pic support for darwin
+    + support of importing vars from shared libs on darwin implemented
+
+  Revision 1.124  2004/02/20 22:15:26  peter
     * fixed compiler err
 
   Revision 1.123  2004/02/20 21:55:59  peter

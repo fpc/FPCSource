@@ -79,8 +79,9 @@ unit procinfo;
 
           { register containing currently the got }
           got : tregister;
+          gotlabel : tasmlabel;
 
-          { Holds the reference used to store alll saved registers. }
+          { Holds the reference used to store all saved registers. }
           save_regs_ref : treference;
 
           { label to leave the sub routine }
@@ -144,6 +145,7 @@ implementation
         reference_reset(save_regs_ref);
         { labels }
         objectlibrary.getlabel(aktexitlabel);
+        objectlibrary.getlabel(gotlabel);
       end;
 
 
@@ -181,7 +183,12 @@ implementation
 end.
 {
   $Log$
-  Revision 1.13  2004-02-27 10:21:05  florian
+  Revision 1.14  2004-03-02 17:32:12  florian
+    * make cycle fixed
+    + pic support for darwin
+    + support of importing vars from shared libs on darwin implemented
+
+  Revision 1.13  2004/02/27 10:21:05  florian
     * top_symbol killed
     + refaddr to treference added
     + refsymbol to treference added

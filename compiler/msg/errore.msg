@@ -2073,6 +2073,8 @@ option_help_pages=11025_[
 **1C<x>_code generation options:
 **2CD_create also dynamic library (not supported)
 **2Ce_Compilation with emulated floating point opcodes
+**2Cf_Select fpu instruction set to use
+**2Cg_Generate PIC code
 **2Ch<n>_<n> bytes heap (between 1023 and 67107840)
 **2Ci_IO-checking
 **2Cn_omit linking stage
@@ -2236,7 +2238,7 @@ P*1T<x>_Target operating system:
 P*2Tdarwin_Darwin and MacOS X on PowerPC
 P*2Tlinux_Linux on PowerPC
 P*2Tmacos_MacOS (classic) on PowerPC
-P*2Tmorphos_MorphOS 
+P*2Tmorphos_MorphOS
 **1*_
 **1?_shows this help
 **1h_shows this help without waiting

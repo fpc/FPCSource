@@ -492,6 +492,13 @@ var
                AsmLn;
              end;
 
+           ait_indirect_symbol :
+             begin
+               AsmWrite(#9'.indirect_symbol'#9);
+               AsmWrite(tai_const_symbol(hp).sym.name);
+               AsmLn;
+             end;
+
            ait_const_rva :
              begin
                AsmWrite(#9'.rva'#9);
@@ -781,6 +788,9 @@ var
              else if tai_marker(hp).kind=InlineEnd then
                dec(InlineLevel);
 
+           ait_non_lazy_symbol_pointer:
+             AsmWriteLn('.non_lazy_symbol_pointer');
+
            else
              internalerror(10000);
          end;
@@ -846,6 +856,7 @@ var
       WriteTree(datasegment);
       WriteTree(consts);
       WriteTree(rttilist);
+      WriteTree(picdata);
       Writetree(resourcestringlist);
       WriteTree(bsssegment);
       Writetree(importssection);
@@ -868,7 +879,12 @@ var
 end.
 {
   $Log$
-  Revision 1.46  2004-02-22 16:51:50  peter
+  Revision 1.47  2004-03-02 17:32:12  florian
+    * make cycle fixed
+    + pic support for darwin
+    + support of importing vars from shared libs on darwin implemented
+
+  Revision 1.46  2004/02/22 16:51:50  peter
     * tf_need_symbol_size added
 
   Revision 1.45  2004/01/24 18:12:40  florian

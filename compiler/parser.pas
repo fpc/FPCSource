@@ -252,6 +252,9 @@ implementation
          withdebuglist:=taasmoutput.create;
          consts:=taasmoutput.create;
          rttilist:=taasmoutput.create;
+         picdata:=taasmoutput.create;
+         if target_info.system=system_powerpc_darwin then
+           picdata.concat(tai_simple.create(ait_non_lazy_symbol_pointer));
          ResourceStringList:=Nil;
          importssection:=nil;
          exportssection:=nil;
@@ -280,6 +283,7 @@ implementation
          withdebuglist.free;
          consts.free;
          rttilist.free;
+         picdata.free;
          if assigned(ResourceStringList) then
           ResourceStringList.free;
          if assigned(importssection) then
@@ -325,6 +329,7 @@ implementation
           oldexports,
           oldresource,
           oldrttilist,
+          oldpicdata,
           oldresourcestringlist,
           oldbsssegment,
           olddatasegment,
@@ -402,6 +407,7 @@ implementation
             oldwithdebuglist:=withdebuglist;
             oldconsts:=consts;
             oldrttilist:=rttilist;
+            oldpicdata:=picdata;
             oldexprasmlist:=exprasmlist;
             oldimports:=importssection;
             oldexports:=exportssection;
@@ -585,6 +591,7 @@ implementation
                  exportssection:=oldexports;
                  resourcesection:=oldresource;
                  rttilist:=oldrttilist;
+                 picdata:=oldpicdata;
                  resourcestringlist:=oldresourcestringlist;
                  { object data }
                  ResourceStrings:=OldResourceStrings;
@@ -691,7 +698,12 @@ implementation
 end.
 {
   $Log$
-  Revision 1.60  2004-02-04 22:15:15  daniel
+  Revision 1.61  2004-03-02 17:32:12  florian
+    * make cycle fixed
+    + pic support for darwin
+    + support of importing vars from shared libs on darwin implemented
+
+  Revision 1.60  2004/02/04 22:15:15  daniel
     * Rtti generation moved to ncgutil
     * Assmtai usage of symsym removed
     * operator overloading cleanup up

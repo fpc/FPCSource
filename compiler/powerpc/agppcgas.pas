@@ -130,7 +130,11 @@ unit agppcgas;
                 s :='';
               s := s+'(';
               if assigned(symbol) then
-                s:= s+symbol.name;
+                begin
+                  s:=s+symbol.name;
+                  if assigned(relsymbol) then
+                    s:=s+'-'+relsymbol.name;
+                end;
             end;
           if offset<0 then
            s:=s+tostr(offset)
@@ -138,9 +142,9 @@ unit agppcgas;
            if (offset>0) then
             begin
               if assigned(symbol) then
-               s:=s+'+'+tostr(offset)
+                s:=s+'+'+tostr(offset)
               else
-               s:=s+tostr(offset);
+                s:=s+tostr(offset);
             end;
 
            if (refaddr in [addr_lo,addr_hi]) then
@@ -154,13 +158,13 @@ unit agppcgas;
              begin
                 if offset=0 then
                   begin
-                       if assigned(symbol) then
-                         begin
-                           if target_info.system <> system_powerpc_darwin then
-                             s:=s+'+0'
-                         end
-                       else
-                         s:=s+'0';
+                    if assigned(symbol) then
+                      begin
+                        if target_info.system <> system_powerpc_darwin then
+                          s:=s+'+0'
+                      end
+                    else
+                      s:=s+'0';
                   end;
                 s:=s+'('+gas_regname(base)+')';
              end
@@ -192,7 +196,7 @@ unit agppcgas;
               internalerror(200402262);
             hs:=o.ref^.symbol.name;
             if o.ref^.offset>0 then
-             hs:=hs+'+'+tostr(o.ref^.offset)
+              hs:=hs+'+'+tostr(o.ref^.offset)
             else
              if o.ref^.offset<0 then
               hs:=hs+tostr(o.ref^.offset);
@@ -269,7 +273,7 @@ unit agppcgas;
               else
                 internalerror(2003112901);
             end;
-            cond2str:=cond2str+#9+tostr(c.bo)+','+tostr(c.bi)+',';
+            cond2str:=cond2str+#9+tostr(c.bo)+','+tostr(c.bi);
           end;
         true:
           if (op >= A_B) and (op <= A_BCLRL) then
@@ -375,7 +379,12 @@ begin
 end.
 {
   $Log$
-  Revision 1.41  2004-02-27 10:21:05  florian
+  Revision 1.42  2004-03-02 17:32:12  florian
+    * make cycle fixed
+    + pic support for darwin
+    + support of importing vars from shared libs on darwin implemented
+
+  Revision 1.41  2004/02/27 10:21:05  florian
     * top_symbol killed
     + refaddr to treference added
     + refsymbol to treference added

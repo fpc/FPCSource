@@ -232,6 +232,7 @@ interface
                 case hp2.typ of
                   ait_label :
                      ReLabel(tasmsymbol(tai_label(hp2).l));
+                  ait_indirect_symbol,
                   ait_const_rva,
                   ait_const_symbol :
                      ReLabel(tai_const_symbol(hp2).sym);
@@ -474,7 +475,12 @@ begin
 end.
 {
   $Log$
-  Revision 1.57  2004-02-27 19:30:23  jonas
+  Revision 1.58  2004-03-02 17:32:12  florian
+    * make cycle fixed
+    + pic support for darwin
+    + support of importing vars from shared libs on darwin implemented
+
+  Revision 1.57  2004/02/27 19:30:23  jonas
     * fixed relsymbol copy/paste bug
 
   Revision 1.56  2004/02/27 10:21:05  florian

@@ -202,15 +202,15 @@ implementation
         if refcount=0 then
           inherited freeinstance;
       end;
-      
+
 
     function tsymtable.getcopy:tsymtable;
       begin
         inc(refcount);
         result:=self;
       end;
-      
-      
+
+
 {$ifdef EXTDEBUG}
     procedure tsymtable.dumpsym(p : TNamedIndexItem;arg:pointer);
       begin
@@ -283,10 +283,9 @@ implementation
 
 
     function tsymtable.search(const s : stringid) : tsymentry;
-
-    begin
-      search:=speedsearch(s,getspeedvalue(s));
-    end;
+      begin
+        search:=speedsearch(s,getspeedvalue(s));
+      end;
 
 
     function tsymtable.speedsearch(const s : stringid;speedvalue : cardinal) : tsymentry;
@@ -334,7 +333,12 @@ implementation
 end.
 {
   $Log$
-  Revision 1.19  2004-02-04 22:15:15  daniel
+  Revision 1.20  2004-03-02 17:32:12  florian
+    * make cycle fixed
+    + pic support for darwin
+    + support of importing vars from shared libs on darwin implemented
+
+  Revision 1.19  2004/02/04 22:15:15  daniel
     * Rtti generation moved to ncgutil
     * Assmtai usage of symsym removed
     * operator overloading cleanup up

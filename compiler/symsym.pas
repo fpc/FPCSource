@@ -41,11 +41,7 @@ interface
        ;
 
     type
-{************************************************
-                   TSym
-***********************************************}
-
-       { this object is the base for all symbol objects }
+       { this class is the base for all symbol objects }
        tstoredsym = class(tsym)
        protected
           _mangledname : pstring;
@@ -2254,7 +2250,12 @@ implementation
 end.
 {
   $Log$
-  Revision 1.162  2004-03-02 00:36:33  olle
+  Revision 1.163  2004-03-02 17:32:12  florian
+    * make cycle fixed
+    + pic support for darwin
+    + support of importing vars from shared libs on darwin implemented
+
+  Revision 1.162  2004/03/02 00:36:33  olle
     * big transformation of Tai_[const_]Symbol.Create[data]name*
 
   Revision 1.161  2004/02/24 16:12:39  peter

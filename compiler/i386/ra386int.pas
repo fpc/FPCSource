@@ -1296,7 +1296,7 @@ Unit Ra386int;
                    if GotStar then
                     Message(asmr_e_only_add_relocatable_symbol);
                    if not assigned(oper.opr.ref.symbol) then
-                    oper.opr.ref.symbol:=objectlibrary.newasmsymbol(tempstr)
+                    oper.opr.ref.symbol:=objectlibrary.newasmsymbol(tempstr,AB_EXTERNAL,AT_FUNCTION)
                    else
                     Message(asmr_e_cant_have_multiple_relocatable_symbols);
                  end;
@@ -1977,7 +1977,12 @@ begin
 end.
 {
   $Log$
-  Revision 1.70  2004-03-02 00:36:33  olle
+  Revision 1.71  2004-03-02 17:32:12  florian
+    * make cycle fixed
+    + pic support for darwin
+    + support of importing vars from shared libs on darwin implemented
+
+  Revision 1.70  2004/03/02 00:36:33  olle
     * big transformation of Tai_[const_]Symbol.Create[data]name*
 
   Revision 1.69  2004/01/14 23:39:05  florian

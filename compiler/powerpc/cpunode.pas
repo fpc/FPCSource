@@ -46,13 +46,19 @@ unit cpunode;
        { this not really a node }
        nppcobj,
        nppcmat,
-       nppccnv
+       nppccnv,
+       nppcld
        ;
 
 end.
 {
   $Log$
-  Revision 1.17  2003-12-10 01:10:25  florian
+  Revision 1.18  2004-03-02 17:32:12  florian
+    * make cycle fixed
+    + pic support for darwin
+    + support of importing vars from shared libs on darwin implemented
+
+  Revision 1.17  2003/12/10 01:10:25  florian
     + initial interface support added
 
   Revision 1.16  2003/04/24 11:24:00  florian

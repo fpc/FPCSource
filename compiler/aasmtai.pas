@@ -84,10 +84,15 @@ interface
 {$ifdef m68k}
           ait_labeled_instruction,
 {$endif m68k}
-          ait_cut, { used to split into tiny assembler files }
+          { used to split into tiny assembler files }
+          ait_cut,
           ait_regalloc,
           ait_tempalloc,
-          ait_marker { used to mark assembler blocks and inlined functions }
+          { used to mark assembler blocks and inlined functions }
+          ait_marker,
+          { special symbols for darwin pic code }
+          ait_indirect_symbol,
+          ait_non_lazy_symbol_pointer
           );
 
     const
@@ -135,7 +140,9 @@ interface
           'cut',
           'regalloc',
           'tempalloc',
-          'marker'
+          'marker',
+          'indirect_symbol',
+          'non_lazy_symbol_pointer'
           );
 
     type
@@ -194,8 +201,6 @@ interface
 
 { ait_* types which do not have line information (and hence which are of type
   tai, otherwise, they are of type tailineinfo }
-{ ait_* types which do not have line information (and hence which are of type
-  tai, otherwise, they are of type tailineinfo }
       SkipLineInfo =[ait_label,
                      ait_regalloc,ait_tempalloc,
 {$ifdef GDB}
@@ -203,7 +208,8 @@ interface
 {$endif GDB}
                   ait_cut,ait_marker,ait_align,ait_section,ait_comment,
                   ait_const_8bit,ait_const_16bit,ait_const_32bit,
-                  ait_real_32bit,ait_real_64bit,ait_real_80bit,ait_comp_64bit,ait_real_128bit
+                  ait_real_32bit,ait_real_64bit,ait_real_80bit,ait_comp_64bit,ait_real_128bit,
+                  ait_non_lazy_symbol_pointer
                   ];
 
 
@@ -243,6 +249,9 @@ interface
         procedure ppuwrite(ppufile:tcompilerppufile);override;
        end;
 
+       tai_simple = class(tai)
+         constructor create(_typ : taitype);
+       end;
 
        taiclass = class of tai;
 
@@ -350,13 +359,15 @@ interface
           procedure ppuwrite(ppufile:tcompilerppufile);override;
        end;
 
+
        tai_const_symbol = class(tailineinfo)
           sym    : tasmsymbol;
-          offset : longint;
+          offset : aint;
           constructor Create(_sym:tasmsymbol);
-          constructor Create_offset(_sym:tasmsymbol;ofs:longint);
+          constructor Create_offset(_sym:tasmsymbol;ofs:aint);
           constructor Create_rva(_sym:tasmsymbol);
-          constructor Createname(const name:string;_symtyp:Tasmsymtype;ofs:longint);
+          constructor Create_indirect(_sym:tasmsymbol);
+          constructor Createname(const name:string;_symtyp:Tasmsymtype;ofs:aint);
           constructor Createname_rva(const name:string);
           constructor ppuload(t:taitype;ppufile:tcompilerppufile);override;
           procedure ppuwrite(ppufile:tcompilerppufile);override;
@@ -386,6 +397,7 @@ interface
           procedure ppuwrite(ppufile:tcompilerppufile);override;
        end;
 
+
        { Generates an extended float (80 bit real) }
        tai_real_80bit = class(tai)
           value : ts80real;
@@ -394,7 +406,8 @@ interface
           procedure ppuwrite(ppufile:tcompilerppufile);override;
        end;
 
-       { Generates an extended float (128 bit real) }
+
+       { Generates an float128 (128 bit real) }
        tai_real_128bit = class(tai)
           value : ts128real;
           constructor Create(_value : ts128real);
@@ -552,6 +565,8 @@ interface
       debuglist,withdebuglist,consts,
       importssection,exportssection,
       resourcesection,rttilist,
+      { data used by pic code }
+      picdata,
       resourcestringlist         : taasmoutput;
 
     function ppuloadai(ppufile:tcompilerppufile):tai;
@@ -676,6 +691,17 @@ implementation
       begin
         inherited ppuwrite(ppufile);
         ppufile.putposinfo(fileinfo);
+      end;
+
+
+{****************************************************************************
+                              TAI_SIMPLE
+ ****************************************************************************}
+
+    constructor tai_simple.create(_typ : taitype);
+      begin
+        inherited create;
+        typ:=_typ;
       end;
 
 
@@ -948,6 +974,7 @@ implementation
          sym.increfs;
       end;
 
+
     constructor tai_const_symbol.Create_rva(_sym:tasmsymbol);
       begin
          inherited Create;
@@ -958,6 +985,18 @@ implementation
          sym.increfs;
       end;
 
+
+    constructor tai_const_symbol.Create_indirect(_sym:tasmsymbol);
+      begin
+         inherited Create;
+         typ:=ait_indirect_symbol;
+         sym:=_sym;
+         offset:=0;
+         { update sym info }
+         sym.increfs;
+      end;
+
+
     constructor tai_const_symbol.Createname(const name:string;_symtyp:Tasmsymtype;ofs:longint);
       begin
          inherited Create;
@@ -967,6 +1006,7 @@ implementation
          { update sym info }
          sym.increfs;
       end;
+
 
     constructor tai_const_symbol.Createname_rva(const name:string);
       begin
@@ -1960,7 +2000,12 @@ implementation
 end.
 {
   $Log$
-  Revision 1.75  2004-03-02 00:36:32  olle
+  Revision 1.76  2004-03-02 17:32:12  florian
+    * make cycle fixed
+    + pic support for darwin
+    + support of importing vars from shared libs on darwin implemented
+
+  Revision 1.75  2004/03/02 00:36:32  olle
     * big transformation of Tai_[const_]Symbol.Create[data]name*
 
   Revision 1.74  2004/02/27 12:13:15  daniel
