@@ -290,7 +290,7 @@ echotime:
 
 ppuclean:
         -$(DEL) *$(OEXT) *$(PPUEXT) *$(RSTEXT) *$(ASMEXT) *$(STATICLIBEXT) *$(SHAREDLIBEXT) *$(PPLEXT)
-        -$(DEL) $(addsuffix /*$(PPUEXT),$(UNIT_DIR))
+        -$(DEL) $(addsuffix /*$(PPUEXT),$(COMPILER_UNITDIR))
 
 execlean :
         -$(DEL) ppc386$(EXEEXT) ppcaxp$(EXEEXT) ppc68k$(EXEEXT) ppcppc$(EXEEXT) ppcsparc$(EXEEXT) $(EXENAME)
