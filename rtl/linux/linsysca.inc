@@ -116,7 +116,7 @@ begin
 end;
 
 
-Function WaitPid(Pid:longint;Status:pointer;Options:Integer):Longint;
+Function WaitPid(Pid:longint;Status:pointer;Options:Longint):Longint;
 {
   Waits until a child with PID Pid exits, or returns if it is exited already.
   Any resources used by the child are freed.
@@ -1193,7 +1193,10 @@ end;
 
 {
   $Log$
-  Revision 1.3  2000-09-11 14:05:31  marco
+  Revision 1.4  2000-09-12 08:51:43  marco
+   * fixed some small problems left from merging. (waitpid has now last param longint)
+
+  Revision 1.3  2000/09/11 14:05:31  marco
    * FreeBSD support and removed old signalhandling
 
   Revision 1.2  2000/07/13 11:33:48  michael

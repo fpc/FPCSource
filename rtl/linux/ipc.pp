@@ -260,8 +260,9 @@ Const
 
 function ipccall(Call,First,Second,Third : Longint; P : Pointer) : longint;
 
+{$ifndef bsd}
 Var SR : SysCallRegs;
-
+{$endif}
 begin
  {$IFNDEF bsd}
   SR.Reg2:=Call;
@@ -371,7 +372,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.2  2000-07-13 11:33:48  michael
+  Revision 1.3  2000-09-12 08:51:43  marco
+   * fixed some small problems left from merging. (waitpid has now last param longint)
+
+  Revision 1.2  2000/07/13 11:33:48  michael
   + removed logs
  
 }

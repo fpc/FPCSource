@@ -469,7 +469,7 @@ Function  Fork:longint;
 {Clone for FreeBSD is copied from the LinuxThread port, and rfork based}
 function  Clone(func:TCloneFunc;sp:pointer;flags:longint;args:pointer):longint;
 Procedure ExitProcess(val:longint);
-Function  WaitPid(Pid:longint;Status:pointer;Options:Integer):Longint;
+Function  WaitPid(Pid:longint;Status:pointer;Options:longint):Longint;
 Procedure Nice(N:integer);
 {$ifdef bsd}
 Function  GetPriority(Which,Who:longint):longint;
@@ -2799,7 +2799,10 @@ End.
 
 {
   $Log$
-  Revision 1.6  2000-09-11 14:05:31  marco
+  Revision 1.7  2000-09-12 08:51:43  marco
+   * fixed some small problems left from merging. (waitpid has now last param longint)
+
+  Revision 1.6  2000/09/11 14:05:31  marco
    * FreeBSD support and removed old signalhandling
 
 
