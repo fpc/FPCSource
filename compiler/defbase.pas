@@ -84,6 +84,8 @@ interface
       orddefs, false otherwise                                              }
     function is_in_limit(def_from,def_to : tdef) : boolean;
 
+    function is_in_limit_value(val_from:TConstExprInt;def_from,def_to : tdef) : boolean;
+
 {*****************************************************************************
                               Array helper functions
  *****************************************************************************}
@@ -640,10 +642,29 @@ implementation
            end;
          fromqword := torddef(def_from).typ = u64bit;
          toqword := torddef(def_to).typ = u64bit;
-         is_in_limit:=((not(fromqword xor toqword) and
-                        (torddef(def_from).low>=torddef(def_to).low) and
-                        (torddef(def_from).high<=torddef(def_to).high)) or
-                       (toqword and not is_signed(def_from)));
+         is_in_limit:=(toqword and is_signed(def_from)) or
+                      ((not fromqword) and
+                       (torddef(def_from).low>=torddef(def_to).low) and
+                       (torddef(def_from).high<=torddef(def_to).high));
+      end;
+
+
+    function is_in_limit_value(val_from:TConstExprInt;def_from,def_to : tdef) : boolean;
+
+      begin
+         if (def_from.deftype <> orddef) and
+            (def_to.deftype <> orddef) then
+           internalerror(200210062);
+         if (torddef(def_to).typ = u64bit) then
+          begin
+            is_in_limit_value:=((TConstExprUInt(val_from)>=TConstExprUInt(torddef(def_to).low)) and
+                                (TConstExprUInt(val_from)<=TConstExprUInt(torddef(def_to).high)));
+          end
+         else
+          begin;
+            is_in_limit_value:=((val_from>=torddef(def_to).low) and
+                                (val_from<=torddef(def_to).high));
+          end;
       end;
 
 
@@ -1075,14 +1096,16 @@ implementation
            if (def1.deftype=orddef) and (def2.deftype=orddef) then
              begin
                 case torddef(def1).typ of
-                u8bit,u16bit,u32bit,
-                s8bit,s16bit,s32bit:
-                  b:=((torddef(def1).typ=torddef(def2).typ) and
-                   (torddef(def1).low=torddef(def2).low) and
-                   (torddef(def1).high=torddef(def2).high));
-                uvoid,uchar,uwidechar,
-                bool8bit,bool16bit,bool32bit:
-                  b:=(torddef(def1).typ=torddef(def2).typ);
+                  u8bit,u16bit,u32bit,u64bit,
+                  s8bit,s16bit,s32bit,s64bit:
+                    b:=((torddef(def1).typ=torddef(def2).typ) and
+                        (torddef(def1).low=torddef(def2).low) and
+                        (torddef(def1).high=torddef(def2).high));
+                  uvoid,uchar,uwidechar,
+                  bool8bit,bool16bit,bool32bit:
+                    b:=(torddef(def1).typ=torddef(def2).typ);
+                  else
+                    internalerror(200210061);
                 end;
              end
          else
@@ -1981,7 +2004,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.18  2002-10-06 15:08:59  peter
+  Revision 1.19  2002-10-06 21:02:17  peter
+    * fixed limit checking for qword
+
+  Revision 1.18  2002/10/06 15:08:59  peter
     * only check for forwarddefs the definitions that really belong to
       the current procsym
 

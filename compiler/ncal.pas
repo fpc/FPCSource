@@ -1433,8 +1433,7 @@ implementation
               (tbinarynode(p).left.nodetype=ordconstn) and
               is_integer(p.resulttype.def) and
               is_integer(def) and
-              (tordconstnode(p.left).value>=torddef(def).low) and
-              (tordconstnode(p.left).value<=torddef(def).high)
+              is_in_limit_value(tordconstnode(p.left).value,p.resulttype.def,def)
              )
            { to support ansi/long/wide strings in a proper way }
            { string and string[10] are assumed as equal }
@@ -2632,7 +2631,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.104  2002-10-05 15:15:45  peter
+  Revision 1.105  2002-10-06 21:02:17  peter
+    * fixed limit checking for qword
+
+  Revision 1.104  2002/10/05 15:15:45  peter
     * Write unknwon compiler proc using Comment and only in Extdebug
 
   Revision 1.103  2002/10/05 12:43:25  carl
