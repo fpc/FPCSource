@@ -52,6 +52,7 @@ const
    in_continue          = 40;
    in_assert_x_y        = 41;
    in_addr_x            = 42;
+   in_typeinfo_x        = 43;
 
 { Internal constant functions }
    in_const_trunc      = 100;
@@ -77,7 +78,7 @@ const
    in_pi               = 121;
    in_abs_extended     = 122;
    in_sqr_extended     = 123;
-   in_sqrt_extended    = 124; 
+   in_sqrt_extended    = 124;
    in_arctan_extended  = 125;
    in_ln_extended      = 126;
    in_sin_extended     = 127;
@@ -99,7 +100,10 @@ const
 
 {
   $Log$
-  Revision 1.2  2000-07-13 11:33:44  michael
+  Revision 1.3  2000-07-19 20:03:19  florian
+    + in_typeinfo_x added
+
+  Revision 1.2  2000/07/13 11:33:44  michael
   + removed logs
- 
+
 }
