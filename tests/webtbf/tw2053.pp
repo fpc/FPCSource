@@ -11,13 +11,13 @@ type
 
   TMyRecord = record
     mr_sglDummy1: array[0..3] of Single;
-    mr_lDummy2  : Longint;
+    mr_lDummy2  : ptrint;
     mr_iDummy3  : Integer;
     mr_iDummy4  : Integer;
   end;
 
 {  TMyRecordArray = array[Integer] of TMyRecord;} { Error }
-  TMyRecordArray = array[Longint] of TMyRecord; { OK }
+  TMyRecordArray = array[Ptrint] of TMyRecord; { OK }
   PMyRecordArray = ^TMyRecordArray;
 
 var
@@ -28,8 +28,8 @@ begin
   GetMem(pArray, 50 * SizeOf(TMyRecord));
   Assert(Assigned(pArray));
 
-  WriteLn('pArray = ', Longint(pArray));
-  WriteLn('@(pArray^[0]) = ', Longint(@(pArray^[0])));
+  WriteLn('pArray = ', ptrint(pArray));
+  WriteLn('@(pArray^[0]) = ', ptrint(@(pArray^[0])));
   pArray^[0].mr_lDummy2 := 0;
 
   FreeMem(pArray, 50 * SizeOf(TMyRecord));
@@ -38,7 +38,10 @@ end.
 
 {
    $Log$
-   Revision 1.4  2002-10-15 15:48:25  carl
+   Revision 1.5  2004-11-01 22:31:12  peter
+     * use ptrint
+
+   Revision 1.4  2002/10/15 15:48:25  carl
     - remove Pierre's diff.
 
    Revision 1.3  2002/10/15 06:38:29  pierre
