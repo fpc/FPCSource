@@ -111,6 +111,7 @@ unit cgx86;
         procedure g_interrupt_stackframe_entry(list : taasmoutput);override;
         procedure g_interrupt_stackframe_exit(list : taasmoutput;selfused,accused,acchiused:boolean);override;
         procedure g_profilecode(list : taasmoutput);override;
+        procedure g_stackpointer_alloc(list : taasmoutput;localsize : longint);override;
         procedure g_stackframe_entry(list : taasmoutput;localsize : longint);override;
         procedure g_restore_frame_pointer(list : taasmoutput);override;
         procedure g_return_from_proc(list : taasmoutput;parasize : aword);override;
@@ -1440,14 +1441,12 @@ unit cgx86;
       end;
 
 
-    procedure tcgx86.g_stackframe_entry(list : taasmoutput;localsize : longint);
+    procedure tcgx86.g_stackpointer_alloc(list : taasmoutput;localsize : longint);
       var
         href : treference;
         i : integer;
         again : tasmlabel;
       begin
-        list.concat(Taicpu.Op_reg(A_PUSH,S_L,R_EBP));
-        list.concat(Taicpu.Op_reg_reg(A_MOV,S_L,R_ESP,R_EBP));
         if localsize>0 then
          begin
 {$ifndef NOTARGETWIN32}
@@ -1484,6 +1483,15 @@ unit cgx86;
 {$endif NOTARGETWIN32}
             list.concat(Taicpu.Op_const_reg(A_SUB,S_L,localsize,R_ESP));
          end;
+      end;
+
+
+    procedure tcgx86.g_stackframe_entry(list : taasmoutput;localsize : longint);
+      begin
+        list.concat(Taicpu.Op_reg(A_PUSH,S_L,R_EBP));
+        list.concat(Taicpu.Op_reg_reg(A_MOV,S_L,R_ESP,R_EBP));
+        if localsize>0 then
+          g_stackpointer_alloc(list,localsize);
       end;
 
 
@@ -1672,7 +1680,11 @@ unit cgx86;
 end.
 {
   $Log$
-  Revision 1.23  2002-11-25 18:43:34  carl
+  Revision 1.24  2002-12-24 15:56:50  peter
+    * stackpointer_alloc added for adjusting ESP. Win32 needs
+      this for the pageprotection
+
+  Revision 1.23  2002/11/25 18:43:34  carl
    - removed the invalid if <> checking (Delphi is strange on this)
    + implemented abstract warning on instance creation of class with
       abstract methods.

@@ -79,12 +79,31 @@ unit cpupara;
 
     function ti386paramanager.push_addr_param(def : tdef;calloption : tproccalloption) : boolean;
       begin
-        if ((target_info.system=system_i386_win32) and
-            (calloption=pocall_stdcall) and
-            (def.deftype=recorddef) and (def.size<=8)) then
-         result:=false
-        else
-         result:=inherited push_addr_param(def,calloption);
+        case target_info.system of
+          system_i386_win32 :
+            begin
+              case def.deftype of
+                recorddef :
+                  begin
+                    if (calloption=pocall_stdcall) and (def.size<=8) then
+                     begin  
+                       result:=false;
+                       exit;
+                     end;  
+                  end;
+                arraydef :
+                  begin
+                    if (tarraydef(def).highrange>=tarraydef(def).lowrange) and
+                       (calloption in [pocall_cdecl,pocall_cppdecl]) then
+                     begin  
+                       result:=false;
+                       exit;
+                     end;  
+                  end;     
+              end;    
+            end;
+        end;   
+        result:=inherited push_addr_param(def,calloption);
       end;
 
     function ti386paramanager.getintparaloc(nr : longint) : tparalocation;
@@ -111,7 +130,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.6  2002-12-17 22:19:33  peter
+  Revision 1.7  2002-12-24 15:56:50  peter
+    * stackpointer_alloc added for adjusting ESP. Win32 needs
+      this for the pageprotection
+
+  Revision 1.6  2002/12/17 22:19:33  peter
     * fixed pushing of records>8 bytes with stdcall
     * simplified hightree loading
 

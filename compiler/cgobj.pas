@@ -375,6 +375,11 @@ unit cgobj;
              behavior does nothing, should be overriden as required.
           }
           procedure g_profilecode(list : taasmoutput);virtual;
+          {# Emits instruction for allocating @var(size) bytes at the stackpointer
+
+             @param(size Number of bytes to allocate)
+          }
+          procedure g_stackpointer_alloc(list : taasmoutput;size : longint);virtual; abstract;
           {# Emits instruction for allocating the locals in entry
              code of a routine. This is one of the first
              routine called in @var(genentrycode).
@@ -1620,7 +1625,11 @@ finalization
 end.
 {
   $Log$
-  Revision 1.68  2002-12-20 18:14:04  peter
+  Revision 1.69  2002-12-24 15:56:50  peter
+    * stackpointer_alloc added for adjusting ESP. Win32 needs
+      this for the pageprotection
+
+  Revision 1.68  2002/12/20 18:14:04  peter
     * removed some runerror and writeln
 
   Revision 1.67  2002/12/14 15:02:03  carl

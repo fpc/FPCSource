@@ -719,7 +719,7 @@ implementation
                   size:=align(tfloatdef(p.resulttype.def).size,alignment);
                   inc(pushedparasize,size);
                   if calloption<>pocall_inline then
-                   cg.a_op_const_reg(exprasmlist,OP_SUB,size,STACK_POINTER_REG);
+                   cg.g_stackpointer_alloc(exprasmlist,size);
 {$ifdef GDB}
                   if (cs_debuginfo in aktmoduleswitches) and
                      (exprasmList.first=exprasmList.last) then
@@ -781,7 +781,7 @@ implementation
               { push on stack }
               size:=align(p.resulttype.def.size,alignment);
               inc(pushedparasize,size);
-              cg.a_op_const_reg(exprasmlist,OP_SUB,size,STACK_POINTER_REG);
+              cg.g_stackpointer_alloc(exprasmlist,size);
               reference_reset_base(href,STACK_POINTER_REG,0);
               cg.g_concatcopy(exprasmlist,p.location.reference,href,size,false,false);
             end
@@ -1338,8 +1338,7 @@ function returns in a register and the caller receives it in an other one}
         inittempvariables(list);
 
         { generate copies of call by value parameters }
-        if not(po_assembler in aktprocdef.procoptions) and
-           not(aktprocdef.proccalloption in [pocall_cdecl,pocall_cppdecl,pocall_palmossyscall,pocall_system]) then
+        if not(po_assembler in aktprocdef.procoptions) then
           aktprocdef.parast.foreach_static({$ifndef TP}@{$endif}copyvalueparas,list);
 
         if assigned(aktprocdef.parast) then
@@ -1494,7 +1493,7 @@ function returns in a register and the caller receives it in an other one}
               else
                 parasize:=aktprocdef.parast.datasize+procinfo.para_offset-4;
               if stackframe<>0 then
-                cg.a_op_const_reg(stackalloclist,OP_SUB,stackframe,procinfo.framepointer);
+                cg.g_stackpointer_alloc(stackalloclist,stackframe);
             end
            else
 {$endif powerpc}
@@ -1720,8 +1719,7 @@ function returns in a register and the caller receives it in an other one}
           registers saved on the stack }
         if ((po_saveregisters in aktprocdef.procoptions) or
             (po_savestdregs in aktprocdef.procoptions)) and
-           not(po_assembler in aktprocdef.procoptions) and
-           not(aktprocdef.proccalloption in [pocall_cdecl,pocall_cppdecl,pocall_palmossyscall,pocall_system]) then
+           not(po_assembler in aktprocdef.procoptions) then
           aktprocdef.parast.foreach_static({$ifndef TP}@{$endif}removevalueparas,list);
 
         { for the save all registers we can simply use a pusha,popa which
@@ -1902,7 +1900,11 @@ function returns in a register and the caller receives it in an other one}
 end.
 {
   $Log$
-  Revision 1.70  2002-12-05 14:39:21  florian
+  Revision 1.71  2002-12-24 15:56:50  peter
+    * stackpointer_alloc added for adjusting ESP. Win32 needs
+      this for the pageprotection
+
+  Revision 1.70  2002/12/05 14:39:21  florian
     * added missing then, Carl did you really a make fullcycle :) ?
 
   Revision 1.69  2002/12/03 22:13:39  carl
