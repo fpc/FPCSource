@@ -2110,7 +2110,8 @@ type
          { if this is a call to a method calc the registers }
          if (methodpointer<>nil) then
            begin
-              firstpass(methodpointer);
+              if methodpointer.nodetype<>typen then
+                firstpass(methodpointer);
 
               { if we are calling the constructor }
               if procdefinition.proctypeoption in [potype_constructor] then
@@ -2371,7 +2372,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.136  2003-04-11 15:51:04  peter
+  Revision 1.137  2003-04-11 16:02:05  peter
+    * don't firstpass typen
+
+  Revision 1.136  2003/04/11 15:51:04  peter
     * support subscript,vec for setting methodpointer varstate
 
   Revision 1.135  2003/04/10 17:57:52  peter
