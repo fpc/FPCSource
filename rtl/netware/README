@@ -1,9 +1,13 @@
     News
     ====
-    
+
     2001/04/16 armin:
      - implemented CRT and SYSUTILS
      - nwimp/convertimp to convert .imp files to unix
+    2001/05/26 armin:
+     - successfuly compiled binutils for win32 under linux. Patched nlmconv
+       for win32 available. This makes it possible to use FPC to create NLM's
+       unter win32.
 
 
 
@@ -11,93 +15,106 @@
     =======
 
     Currently generating NetWare-NLM's only work under Linux. (may be under bsd also)
-    This is because nlmconv from binutils does not work with i.e. win32 coff object files. 
+    This is because nlmconv from binutils does not work with i.e. win32 coff object files.
     It works fine with ELF-Objects.
-    
-    
+
+
     Binutils with netware-support needed
     ====================================
-    
+
     You need a version of binutils compiled with netware-support. (nlmconv has to be present)
-    Unfortunately in the Linux distibutions this component of the binutils is not included 
-    so you have to compile it. So download the latest stable binutils package from your 
-    favourite GNU mirror, decompress it ('tar xfz binutils-x.yy.z.tar.gz' on unices 
-    with GNU tar), change to the binutils-x.yy.z directory and configure: 
-    
+    Unfortunately in the Linux distibutions this component of the binutils is not included
+    so you have to compile it. So download the latest stable binutils package from your
+    favourite GNU mirror, decompress it ('tar xfz binutils-x.yy.z.tar.gz' on unices
+    with GNU tar), change to the binutils-x.yy.z directory and configure:
+
       ./configure --prefix=/usr --enable-shared --enable-targets=i386-netware,i386-linux
-    
+
     I used the prefix /usr because thats the default location on redhat (thats what I'm using)
-    
+
     and use
-    
-      make 
+
+      make
       make install
-    
+
     to build and install binutils. To check that netware is supported by the version of binutils
     installed, use ld --version. The emulation 'i386nw' must be present. Also check that nlmconv
     is present and can be started without specifying the complete path of nlmconv.
-    
-    You can find more information and a binary version of binutils with netware-support for 
+
+    You can find more information and a binary version of binutils with netware-support for
     linux on:
            http://home.sch.bme.hu/~keresztg/novell/howto/NLM-Linux-HOWTO.html.
-    
-    
+
+    Binutils-2.11 for win32 with netware support and a patched nlmconv
+    that supports "copyright" are available from:
+           http://home.t-online.de/home/armin-diehl/fpcnw
+      or
+           http://members.tripod.de/adiehl/fpcnw
+
+
     Building the freepascal runtime-library for netware
     ===================================================
-    
-    Install the current fpc sources from ftp.freepascal.org and change to the directory 
-    rtl/netware under the freepascal sourcetree. Verify the path of your units in 
+
+    Install the current fpc sources from ftp.freepascal.org and change to the directory
+    rtl/netware under the freepascal sourcetree. Verify the path of your units in
     Makefile. The default is /usr/lib/fpc/1.1/units/netware/rtl.
     Compile and install the rtl with
-    
+
       make install
-      
+
+    on win32 you can use the script compile.cmd. You need to adjust the
+    destination directory in the script.
+
     Settings and needed files to compile for netware
     ================================================
-    
+
     Edit your /etc/ppc386.cfg and add the rtl source path for netware. This are my settings,
     you may paste it to your ppc386.cfg:
-    
+
 #IFDEF Netware
   -Fu/usr/lib/fpc/1.1/units/netware/rtl
   -Fl/usr/lib/fpc/1.1/units/netware/rtl
 #ENDIF
-    
+
     This adds the search path for the rtl-units as well as for the needed import-files.
     You can use the import files from the rtl/netware directory, they are automaticly
     installed. If you want to use import files from novell, be aware that you have to
     convert the files to unix format (i.e. with dos2unix).
-    
+
     Building the first nlm
     ======================
-    
+
     Ok, now you have installed all needed files, try the following program and compile it
     with
-    
+
       ppc386 -Tnetware hello.pas
-      
+
     PROGRAM Hello;
     {$Description The FreePascal HelloWorld for Netware}
     {$Version 1.0.0}
-    
+    {$Copyright Copyright (c) 2001 The FreePascal Development Team}
+    {$Screenname The Pascal Hello World for Netware}
+
     BEGIN
       WriteLn ('This is open source ! FreePascal for netware');
     END.
-    
+
     Hints on using freepascal for nlm's
     ===================================
 
-    - Compiler Switches
-      -----------------
+    - Compiler Switches for Netware
+      -----------------------------
       The following compiler-swiches are supported for NetWare:
       $DESCRIPTION    : NLM-Description, will be displayed at load-time
       $M              : For Stack-Size. Heap-Size will be ignored
       $VERSION x.x.x  : Sets Major, Minor and Revision, Revision 0 is nothing, 1=a, 2=b ...
+      $COPYRIGHT      : Sets Copyright, needs a patched nlmconv, patch is
+                        available at the location for binutils-win32 shown
+                        above.
+      $SCREENNAME     : Sets the screen-name (i.e. shown in ctrl-esc screen)
+      $THREADNAME     : Sets the thread name (dont use names that are to long
+                        for netware, that will prevent your nlm from loading)
 
-      Sorry, Displaying copyright does not work with nlmconv from gnu bunutils. There is a patch
-      available for nlmconv but currently there is no compiler switch in fpc. Implementing the
-      compiler switch is on my todo list. This is also valid for the screen-name.
-      
     - Exports
       -------
 
@@ -109,7 +126,7 @@
       exports bla name 'bla';
 
       Be aware that without Name 'bla' this will be exported in upper-case.
-      
+
     - Netware import (.imp) files
       ---------------------------
 
@@ -117,65 +134,66 @@
       searching import files via the specified library path (-Fl). If you plan to use
       import files from novell be aware that they have to be converted from CR/LF to
       LF only. The script 'convertimp' in rtl/netware/nwimp will do that.
-      If a module name is specified in an import, the module is automaticly 
+      If a module name is specified in an import, the module is automaticly
       declared as autoload by FreePascal.
-      
+
       I.e. the following declaration needs nlmlib.imp and sets nlmlib.nlm as autoload:
-      
+
         FUNCTION rmdir (path : PCHAR) : LONGINT; CDECL; EXTERNAL 'nlmlib.nlm' NAME 'rmdir';
-	
+
       while the following declaration only imports the symbol without autoloading:
-      
-      	FUNCTION rmdir (path : PCHAR) : LONGINT; CDECL; EXTERNAL;
-	
+
+        FUNCTION rmdir (path : PCHAR) : LONGINT; CDECL; EXTERNAL;
+
       If nlmlib.nlm is not loaded while loading yout nlm, you will get an error abount
-      unknown symbols. 
-      
+      unknown symbols.
+
 
     - Debugging
       ---------
-      
+
       Thats currently a problem. There is no source level debugger available. The only way
       to debug is using the netware internal debugger or nwdbg. nwdbg is a debugger on
       assembler level written by Jan Beulich. Symbols are supported. You can get nwdbg for
       netware 4.11,5.0 or 5.1 at developer.novell.com.
-      
+
       I read about plans to adapt gdb to current netware versions. As soon as i have news
       about gdb i will change this document.
-      
+
     - Netware SDK
       -----------
-      
-      Delphi declarations for the multiplattform api is available at 
-      http://developer.novell.com. You can download the sdk after registering as a developer.
-      The files are designed for win32 so they will not work off the box. I think changing
-      the dll-name to the corrosponding nlm-name will work.
+
+      Delphi declarations for the multiplattform api is available at
+      http://developer.novell.com. You can download the sdk after registering
+      as a developer.
+      The files are designed for win32 so they will not work off the box.
+      I think changing the dll-name to the corrosponding nlm-name will work.
       i.e. in calwin32.imp the following declaration:
-      
+
         function NWAbortServicingQueueJob2;  StdCall; external 'calwin32.dll' index 231;
-      
+
        has to be changed to
-       
+
         function NWAbortServicingQueueJob2;  CDecl; external 'calwin32.nlm';
-      
+
     - FreePascal RTL
       --------------
-      
+
       Currently the following units are available for netware:
-      
+
         - SYSTEM
-	- CRT
-	- DOS
-	- SYSUTILS
-	- STRINGS
-	- KEYBOARD
-	- VIDEO
-	- MATH
-	- TYPINFO
-	- OBJECTS
-	- GETOPTS
-	- HEAPTRC
-	- VARUTILS
-	- CPU
-	- MMX
-	
+        - CRT
+        - DOS
+        - SYSUTILS
+        - STRINGS
+        - KEYBOARD
+        - VIDEO
+        - MATH
+        - TYPINFO
+        - OBJECTS
+        - GETOPTS
+        - HEAPTRC
+        - VARUTILS
+        - CPU
+        - MMX
+
