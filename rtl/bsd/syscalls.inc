@@ -38,109 +38,64 @@ paste to and AS source). Ultimately I hope to design something like this}
                    ret
 }
 
+{
 procedure actualsyscall; cdecl; EXTERNAL NAME '_actualsyscall';
+}
 
-function Do_SysCall(sysnr:LONGINT):longint;
+ procedure _actualsyscall; assembler;
+    asm
+         int $0x80
+         jb .LErrorcode
+         xor %ebx,%ebx
+         ret
+.LErrorcode:
+	 mov %eax,%ebx
+         mov $-1,%eax
+   end['EAX','EBX','ECX','EDX','ESI','EDI'];
 
-var retval:longint;
 
-begin
- asm
+function Do_SysCall(sysnr:LONGINT):longint; assembler;
+
+asm
   movl  sysnr,%eax
   call  actualsyscall
-  mov   %eax,Retval
- end;
- if RetVal<0 then
-   begin
-     ErrNo:=-RetVal;
-     do_syscall:=-1;
-   end
-  else
-   begin
-     do_syscall:=Retval;
-     errno:=0
-   end;
+  movw  %bx,Errno
 end;
 
-function Do_SysCall(sysnr,param1:LONGINT):longint;
+function Do_SysCall(sysnr,param1:LONGINT):longint; assembler;
 
-var retval:longint;
+asm
+  movl  sysnr,%eax
+  pushl Param1
+  call  actualsyscall
+  addl  $4,%esp
+  movw  %bx,Errno
+end;
 
-begin
+function Do_SysCall(sysnr:longint;param1:longint):longint; assembler;
+
  asm
   movl  sysnr,%eax
   pushl Param1
   call  actualsyscall
   addl  $4,%esp
-  mov   %eax,Retval
+  movw  %bx,Errno
  end;
- if RetVal<0 then
-   begin
-     ErrNo:=-RetVal;
-     do_syscall:=-1;
-   end
-  else
-   begin
-     do_syscall:=Retval;
-     errno:=0
-   end;
-end;
 
 
-function Do_SysCall(sysnr:longint;param1:integer):longint;
+function Do_SysCall(sysnr,param1,param2:LONGINT):longint; assembler;
 
-var retval:longint;
-
-begin
- asm
-  movl  sysnr,%eax
-  pushw Param1
-  call  actualsyscall
-  addl  $2,%esp
-  mov   %eax,Retval
- end;
- if RetVal<0 then
-   begin
-     ErrNo:=-RetVal;
-     do_syscall:=-1;
-   end
-  else
-   begin
-     do_syscall:=Retval;
-     errno:=0
-   end;
-end;
-
-
-function Do_SysCall(sysnr,param1,param2:LONGINT):longint;
-
-var retval:longint;
-
-begin
  asm
    movl  sysnr,%eax
    pushl param2
    pushl Param1
    call  actualsyscall
    addl  $8,%esp
-   mov   %eax,Retval
- end;
- if RetVal<0 then
-   begin
-     ErrNo:=-RetVal;
-     do_syscall:=-1;
-   end
-  else
-   begin
-     do_syscall:=Retval;
-     errno:=0
-   end;
+   movw  %bx,Errno
  end;
 
-function Do_SysCall(sysnr,param1,param2,param3:LONGINT):longint;
-var retval:longint;
+function Do_SysCall(sysnr,param1,param2,param3:LONGINT):longint; assembler;
 
-begin
  asm
    movl  sysnr,%eax
    pushl param3
@@ -148,52 +103,25 @@ begin
    pushl Param1
    call  actualsyscall
    addl  $12,%esp
-   mov   %eax,Retval
+   movw  %bx,Errno
  end;
- if RetVal<0 then
-   begin
-     ErrNo:=-RetVal;
-     do_syscall:=-1;
-   end
-  else
-   begin
-     do_syscall:=Retval;
-     errno:=0
-   end;
-end;
 
-function Do_SysCall(sysnr,param1,param2:longint;param3:word):longint;
-var retval:longint;
+function Do_SysCall(sysnr,param1,param2:longint;param3:integer):longint; assembler;
 
-begin
  asm
    movl  sysnr,%eax
    pushw param3
    pushl param2
    pushl Param1
    call  actualsyscall
-   addl  $12,%esp
-   mov   %eax,Retval
- end;
- if RetVal<0 then
-   begin
-     ErrNo:=-RetVal;
-     do_syscall:=-1;
-   end
-  else
-   begin
-     do_syscall:=Retval;
-     errno:=0
-   end;
+   addl  $10,%esp
+   movw  %bx,Errno
 end;
 
 
-function Do_SysCall(sysnr,param1,param2,param3,param4:LONGINT):longint;
+function Do_SysCall(sysnr,param1,param2,param3,param4:LONGINT):longint; assembler;
 
-var retval:longint;
-
-begin
- asm
+asm
    movl  sysnr,%eax
    pushl param4
    pushl param3
@@ -201,26 +129,12 @@ begin
    pushl Param1
    call  actualsyscall
    addl  $16,%esp
-   mov   %eax,Retval
- end;
- if RetVal<0 then
-   begin
-     ErrNo:=-RetVal;
-     do_syscall:=-1;
-   end
-  else
-   begin
-     do_syscall:=Retval;
-     errno:=0
-   end;
- end;
+   movw  %bx,Errno
+end;
 
 
-function Do_SysCall(sysnr,param1,param2,param3,param4,param5:LONGINT):longint;
+function Do_SysCall(sysnr,param1,param2,param3,param4,param5:LONGINT):longint;  assembler;
 
-var retval:longint;
-
-begin
  asm
    movl  sysnr,%eax
    pushl param5
@@ -230,26 +144,12 @@ begin
    pushl Param1
    call  actualsyscall
    addl  $20,%esp
-   mov   %eax,Retval
- end;
- if RetVal<0 then
-   begin
-     ErrNo:=-RetVal;
-     do_syscall:=-1;
-   end
-  else
-   begin
-     do_syscall:=Retval;
-     errno:=0
-   end;
+   movw  %bx,Errno
  end;
 
-function Do_SysCall(sysnr,param1,param2,param3,param4,param5,param6,param7:LONGINT):longint;
+function Do_SysCall(sysnr,param1,param2,param3,param4,param5,param6,param7:LONGINT):longint;  assembler;
 
-var retval:longint;
-
-begin
- asm
+asm
    movl  sysnr,%eax
    pushl param7
    pushl param6
@@ -260,19 +160,8 @@ begin
    pushl Param1
    call  actualsyscall
    addl  $28,%esp
-   mov   %eax,Retval
- end;
- if RetVal<0 then
-   begin
-     ErrNo:=-RetVal;
-     do_syscall:=-1;
-   end
-  else
-   begin
-     do_syscall:=Retval;
-     errno:=0
-   end;
- end;
+   movw  %bx,Errno
+end;
 
 Function Sys_Time:longint;
 
@@ -305,14 +194,36 @@ begin
  sys_close:=do_syscall(syscall_nr_close,f);
 end;
 
+{
 Function Sys_Lseek(F:longint;Off:longint;Whence:longint):longint;
 
 var returnvalue64 : array[0..1] of longint;
 
-begin {Lseek's offset is 64-bit, the highword  is the 0}
- do_syscall(syscall_nr_lseek,@returnvalue64,F,Off,0,Whence);
+begin
+ {Lseek's offset is 64-bit, the highword  is the 0}
+ do_syscall(syscall_nr_lseek,longint(@returnvalue64),F,Off,0,Whence);
  sys_lseek:=returnvalue64[0];
 end;
+
+}
+
+Function Sys_Lseek(F:longint;Off:longint;Whence:longint):longint; assembler;
+
+{this one is special for the return value being 64-bit..}
+
+ asm
+  pushl Whence
+  pushl $0      // high dword
+  pushl Off
+  pushl $0
+  pushl F
+  pushl $0      // Your guess is as good as mine.
+  pushl $0xc7   // Actual lseek syscall number.
+  movl  $0xc6,%eax
+  call  actualsyscall
+  addl  $28,%esp
+  mov   %ebx,Errno
+ end;
 
 Function Sys_Read(f:longint;buffer:pchar;count:longint):longint;
 
@@ -432,18 +343,18 @@ end;
 Function Sys_ReadDir(p:pdir):pdirent;
 {Different from Linux, Readdir on BSD is based on Getdents, due to the
 missing of the readdir syscall.
-Getdents requires the buffer to be larger than the blocksize. 
+Getdents requires the buffer to be larger than the blocksize.
 This usually the sectorsize =512 bytes, but maybe tapedrives and harddisks
 with blockmode have this higher?}
 
 var
-    retval 	   : longint;
-    getdentsbuffer : array[0..4095] of byte; 
-       
+    retval         : longint;
+    getdentsbuffer : array[0..4095] of byte;
+
 begin
 
  retval:=do_syscall(syscall_nr_getdents,longint(p^.fd),longint(@getdentsbuffer),512 {sizeof(getdentsbuffer)});
- move(getdentsbuffer,p^.buf^,sizeof(dirent)); 
+ move(getdentsbuffer,p^.buf^,sizeof(dirent));
   if retval=0 then
    sys_readdir:=nil
   else
@@ -472,7 +383,10 @@ end;
 
 {
   $Log$
-  Revision 1.13  2000-04-10 15:46:52  marco
+  Revision 1.14  2000-04-14 17:04:13  marco
+   * Working!
+
+  Revision 1.13  2000/04/10 15:46:52  marco
    * worked all day. probably a lot changed
 
   Revision 1.11  2000/04/05 13:58:40  marco
@@ -502,7 +416,7 @@ end;
 
   Revision 1.3  2000/02/02 18:07:27  marco
    * Ported except for readdir which is 200 lines C code in FBSD linux
-  	emulator
+        emulator
 
   Revision 1.2  2000/02/02 16:35:10  marco
    * Ported more functions. Half done now.
@@ -511,3 +425,4 @@ end;
    * Initial BSD version. Still needs a lot of work.
 
 }
+
