@@ -243,11 +243,14 @@ Uses
 Const AsmInstr: Array[tasmop] Of TAsmInstrucProp = (
   {A_<NONE>} (Ch: (C_All, C_None, C_None)), { new }
   {A_LOCK} (Ch: (C_None, C_None, C_None)),
-  {A_REP} (Ch: (C_RWECX, C_RFlags, C_None)),
-  {A_REPE} (Ch: (C_RWECX, C_RFlags, C_None)),
-  {A_REPNE} (Ch: (C_RWECX, C_RFlags, C_None)),
-  {A_REPNZ} (Ch: (C_WECX, C_RWFLAGS, C_None)), { new }
-  {A_REPZ} (Ch: (C_WECX, C_RWFLAGS, C_None)), { new }
+ { the repCC instructions don't write to the flags themselves, but since  }
+ { they loop as long as CC is not fulfilled, it's possible that after the }
+ { repCC instructions the flags have changed                              }
+  {A_REP} (Ch: (C_RWECX, C_RWFlags, C_None)),
+  {A_REPE} (Ch: (C_RWECX, C_RWFlags, C_None)),
+  {A_REPNE} (Ch: (C_RWECX, C_RWFlags, C_None)),
+  {A_REPNZ} (Ch: (C_RWECX, C_RWFLAGS, C_None)), { new }
+  {A_REPZ} (Ch: (C_RWECX, C_RWFLAGS, C_None)), { new }
   {A_SEGCS} (Ch: (C_None, C_None, C_None)), { new }
   {A_SEGES} (Ch: (C_None, C_None, C_None)), { new }
   {A_SEGDS} (Ch: (C_None, C_None, C_None)), { new }
@@ -291,10 +294,10 @@ Const AsmInstr: Array[tasmop] Of TAsmInstrucProp = (
   {A_DAA} (Ch: (C_MEAX, C_None, C_None)),
   {A_DAS} (Ch: (C_MEAX, C_None, C_None)),
   {A_DEC} (Ch: (C_Mop1, C_WFlags, C_None)),
-  {A_DIV} (Ch: (C_RWEAX, C_WEDX, C_WFlags)),
+  {A_DIV} (Ch: (C_RWEAX, C_WEDX, C_WFlags)), {handled separately, because modifies more than three things}
   {A_EMMS} (Ch: (C_FPU, C_None, C_None)), { new }
   {A_ENTER} (Ch: (C_RWESP, C_None, C_None)),
-  {A_EQU} (Ch: (C_None, C_None, C_None)), { new }
+  {A_EQU} (Ch: (C_ALL, C_None, C_None)), { new }
   {A_F2XM1} (Ch: (C_FPU, C_None, C_None)),
   {A_FABS} (Ch: (C_FPU, C_None, C_None)),
   {A_FADD} (Ch: (C_FPU, C_None, C_None)),
@@ -349,8 +352,8 @@ Const AsmInstr: Array[tasmop] Of TAsmInstrucProp = (
   {A_FLDLN2} (Ch: (C_FPU, C_None, C_None)),
   {A_FLDPI} (Ch: (C_FPU, C_None, C_None)),
   {A_FLDZ} (Ch: (C_FPU, C_None, C_None)),
-  {A_FMUL} (Ch: (C_FPU, C_None, C_None)),
-  {A_FMULP} (Ch: (C_FPU, C_None, C_None)),
+  {A_FMUL} (Ch: (C_ROp1, C_FPU, C_None)),
+  {A_FMULP} (Ch: (C_ROp1, C_FPU, C_None)),
   {A_FNCLEX} (Ch: (C_FPU, C_None, C_None)),
   {A_FNDISI} (Ch: (C_FPU, C_None, C_None)),
   {A_FNENI} (Ch: (C_FPU, C_None, C_None)),
@@ -377,10 +380,10 @@ Const AsmInstr: Array[tasmop] Of TAsmInstrucProp = (
   {A_FSTENV} (Ch: (C_Wop1, C_None, C_None)),
   {A_FSTP} (Ch: (C_Wop1, C_FPU, C_None)),
   {A_FSTSW} (Ch: (C_Wop1, C_None, C_None)),
-  {A_FSUB} (Ch: (C_FPU, C_None, C_None)),
-  {A_FSUBP} (Ch: (C_FPU, C_None, C_None)),
-  {A_FSUBR} (Ch: (C_FPU, C_None, C_None)),
-  {A_FSUBRP} (Ch: (C_FPU, C_None, C_None)),
+  {A_FSUB} (Ch: (C_ROp1, C_FPU, C_None)),
+  {A_FSUBP} (Ch: (C_ROp1, C_FPU, C_None)),
+  {A_FSUBR} (Ch: (C_ROp1, C_FPU, C_None)),
+  {A_FSUBRP} (Ch: (C_ROp1, C_FPU, C_None)),
   {A_FTST} (Ch: (C_FPU, C_None, C_None)),
   {A_FUCOM} (Ch: (C_None, C_None, C_None)), {changes fpu status word}
   {A_FUCOMI} (Ch: (C_WFLAGS, C_None, C_None)), { new }
@@ -396,13 +399,13 @@ Const AsmInstr: Array[tasmop] Of TAsmInstrucProp = (
   {A_HLT} (Ch: (C_None, C_None, C_None)),
   {A_IBTS} (Ch: (C_All, C_None, C_None)), { new }
   {A_ICEBP} (Ch: (C_All, C_None, C_None)), { new }
-  {A_IDIV} (Ch: (C_RWEAX, C_WEDX, C_WFlags)),
+  {A_IDIV} (Ch: (C_RWEAX, C_WEDX, C_WFlags)), {handled separately, because modifies more than three things}
   {A_IMUL} (Ch: (C_RWEAX, C_WEDX, C_WFlags)), {handled separately, because several forms exist}
   {A_IN} (Ch: (C_Wop2, C_Rop1, C_None)),
   {A_INC} (Ch: (C_Mop1, C_WFlags, C_None)),
-  {A_INSB} (Ch: (C_WMemEDI, C_RWEDI, C_None)), { new }
-  {A_INSD} (Ch: (C_WMemEDI, C_RWEDI, C_None)), { new }
-  {A_INSW} (Ch: (C_WMemEDI, C_RWEDI, C_None)), { new }
+  {A_INSB} (Ch: (C_WMemEDI, C_RWEDI, C_REDX)), { new }
+  {A_INSD} (Ch: (C_WMemEDI, C_RWEDI, C_REDX)), { new }
+  {A_INSW} (Ch: (C_WMemEDI, C_RWEDI, C_REDX)), { new }
   {A_INT} (Ch: (C_All, C_None, C_None)), {don't know value of any register}
   {A_INT01} (Ch: (C_All, C_None, C_None)), { new }
   {A_INT1} (Ch: (C_All, C_None, C_None)), { new }
@@ -450,7 +453,7 @@ Const AsmInstr: Array[tasmop] Of TAsmInstrucProp = (
   {A_MOVSW} (Ch: (C_All, C_None, C_None)), { new }
   {A_MOVSX} (Ch: (C_Wop2, C_Rop1, C_None)),
   {A_MOVZX} (Ch: (C_Wop2, C_Rop1, C_None)),
-  {A_MUL} (Ch: (C_RWEAX, C_WEDX, C_WFlags)),
+  {A_MUL} (Ch: (C_RWEAX, C_WEDX, C_WFlags)), {handled separately, because modifies more than three things}
   {A_NEG} (Ch: (C_Mop1, C_None, C_None)),
   {A_NOP} (Ch: (C_None, C_None, C_None)),
   {A_NOT} (Ch: (C_Mop1, C_WFlags, C_None)),
@@ -2113,30 +2116,40 @@ Begin
                             End;
                         End;
                       End;
+                  End;
                 End;
-              End;
+              A_DIV, A_IDIV, A_MUL:
+                Begin
+                  ReadOp(Curprop, Pai386(p)^.oper[0]);
+                  ReadReg(CurProp,R_EAX);
+                  If (Pai386(p)^.OpCode = A_IDIV) or
+                     (Pai386(p)^.OpCode = A_DIV) Then
+                    ReadReg(CurProp,R_EDX);
+                  DestroyReg(CurProp, R_EAX)
+                End;
               A_IMUL:
                 Begin
-                  ReadOp(CurProp, Pai386(p)^.oper[0]);
-                  ReadOp(CurProp, Pai386(p)^.oper[1]);
+                  ReadOp(CurProp,Pai386(p)^.oper[0]);
+                  ReadOp(CurProp,Pai386(p)^.oper[1]);
                   If (Pai386(p)^.oper[2].typ = top_none) Then
-                     If (Pai386(p)^.oper[1].typ = top_none) Then
-                         Begin
-                           DestroyReg(CurProp, R_EAX);
-                           DestroyReg(CurProp, R_EDX)
-                         End
-                       Else
-{$ifdef arithopt}
-                         AddInstr2OpContents(Pai386(p), Pai386(p)^.oper[1])
-{$else arithopt}
-                         DestroyOp(p, Pai386(p)^.oper[1])
-{$endif arithopt}
+                    If (Pai386(p)^.oper[1].typ = top_none) Then
+                      Begin
+                        ReadReg(CurProp,R_EAX);
+                        DestroyReg(CurProp, R_EAX);
+                        DestroyReg(CurProp, R_EDX)
+                      End
+                    Else
+            {$ifdef arithopt}
+                      AddOp2RegContents(Pai386(p), Pai386(p)^.oper[1])
+            {$else arithopt}
+                      DestroyOp(p, Pai386(p)^.oper[1])
+            {$endif arithopt}
                   Else
-{$ifdef arithopt}
-                    AddInstr2OpContents(Pai386(p), Pai386(p)^.oper[2]);
-{$else arithopt}
+            {$ifdef arithopt}
+                    AddOp2RegContents(Pai386(p), Pai386(p)^.oper[2]);
+            {$else arithopt}
                     DestroyOp(p, Pai386(p)^.oper[2]);
-{$endif arithopt}
+            {$endif arithopt}
                 End;
               A_XOR:
                 Begin
@@ -2337,7 +2350,10 @@ End.
 
 {
  $Log$
- Revision 1.55  1999-08-12 14:36:03  peter
+ Revision 1.56  1999-08-18 13:25:54  jonas
+   * minor fixes regarding the reading of operands
+
+ Revision 1.55  1999/08/12 14:36:03  peter
    + KNI instructions
 
  Revision 1.54  1999/08/05 15:01:52  jonas
