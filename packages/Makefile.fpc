@@ -13,8 +13,8 @@ dirs_go32v2=uncgi gdbint paszlib unzip regexpr
 dirs_os2=uncgi paszlib unzip regexpr
 dirs_freebsd=zlib ncurses x11 gtk syslog \
            inet uncgi \
-           mysql ibase postgres \
-           opengl forms svgalib ggi \
+           mysql ibase postgres oracle \
+           opengl forms svgalib ggi libpng libgd \
            utmp paszlib gdbint cmem regexpr unzip
 
 [install]
