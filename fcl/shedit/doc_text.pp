@@ -65,6 +65,8 @@ type
 
   TTextDoc = class
   protected
+    RefCount: LongInt;
+    FLineEnding: String;
     FModified: Boolean;
     FLineWidth,
     FLineCount: LongInt;
@@ -79,13 +81,19 @@ type
   public
     constructor Create;
     destructor Destroy; override;
+    procedure AddRef;
+    procedure Release;
     procedure Clear;
+    procedure LoadFromStream(AStream: TStream);
     procedure LoadFromFile(const filename: String);
+    procedure SaveToStream(AStream: TStream);
+    procedure SaveToFile(const filename: String);
 
     procedure InsertLine(BeforeLine: Integer; const s: String);
     procedure AddLine(const s: String);
     procedure RemoveLine(LineNumber: Integer);
 
+    property LineEnding: String read FLineEnding write FLineEnding;
     property Modified: Boolean read FModified write SetModified;
     property LineWidth: Integer read FLineWidth;
     property LineCount: Integer read FLineCount;
@@ -106,15 +114,35 @@ uses Strings;
 constructor TTextDoc.Create;
 begin
   FModified := false;
+{$IFDEF Linux}
+  LineEnding := #10;
+{$ELSE}
+  LineEnding := #13#10;
+{$ENDIF}
   FLines := nil;
   FLineCount := 0;
   FLineWidth := 0;
   FViewInfos := TCollection.Create(TViewInfo);
+  RefCount := 1;
 end;
 
 destructor TTextDoc.Destroy;
 begin
   Clear;
+  FViewInfos.Free;
+end;
+
+procedure TTextDoc.AddRef;
+begin
+  Inc(RefCount);
+end;
+
+procedure TTextDoc.Release;
+begin
+  ASSERT(RefCount > 0);
+  Dec(RefCount);
+  if RefCount = 0 then
+    Self.Free;
 end;
 
 procedure TTextDoc.Clear;
@@ -123,8 +151,8 @@ var
 begin
   for i := 0 to FLineCount - 1 do
     StrDispose(FLines^[i].s);
-  if assigned(FLines) then
-   FreeMem(FLines);
+  if Assigned(FLines) then
+    FreeMem(FLines);
 
   FLineCount:=0;
   FLineWidth:=0;
@@ -178,19 +206,15 @@ begin
   Modified := True;
 end;
 
-procedure TTextDoc.LoadFromFile(const filename: String);
-var
-  f: Text;
-  s, s2: String;
-  i: Integer;
-begin
-  Clear;
-  Assign(f, filename);
-  Reset(f);
-  while not eof(f) do begin
-    ReadLn(f, s);
+procedure TTextDoc.LoadFromStream(AStream: TStream);
+
+  procedure ProcessLine(const s: String);
+  var
+    s2: String;
+    i: Integer;
+  begin
     // Expand tabs to spaces
-    s2 := '';
+    SetLength(s2, 0);
     for i := 1 to Length(s) do
       if s[i] = #9 then begin
         repeat s2 := s2 + ' ' until (Length(s2) mod 8) = 0;
@@ -198,7 +222,55 @@ begin
         s2 := s2 + s[i];
     AddLine(s2);
   end;
-  Close(f);
+
+var
+  read: LongInt;
+  buf: Char;
+  s: String;
+begin
+  Clear;
+  SetLength(s, 0);
+  while True do begin
+    read := AStream.Read(buf, 1);
+    if read <= 0 then break;
+    if buf = #10 then begin
+      ProcessLine(s);
+      SetLength(s, 0);
+    end else
+      s := s + buf;
+  end;
+  if Length(s) > 0 then
+    ProcessLine(s);
+end;
+
+procedure TTextDoc.LoadFromFile(const filename: String);
+var
+  stream: TFileStream;
+begin
+  stream := TFileStream.Create(filename, fmOpenRead);
+  LoadFromStream(stream);
+  stream.Free;
+end;
+
+procedure TTextDoc.SaveToStream(AStream: TStream);
+var
+  i: Integer;
+begin
+  for i := 0 to FLineCount - 2 do begin
+    AStream.Write(FLines^[i].s, FLines^[i].len);
+    AStream.Write(FLineEnding, Length(FLineEnding));
+  end;
+  if FLineCount > 0 then
+    AStream.Write(FLines^[FLineCount - 1].s, FLines^[FLineCount - 1].len);
+end;
+
+procedure TTextDoc.SaveToFile(const filename: String);
+var
+  stream: TFileStream;
+begin
+  stream := TFileStream.Create(filename, fmCreate);
+  SaveToStream(stream);
+  stream.Free;
 end;
 
 procedure TTextDoc.SetModified(AModified: Boolean);
@@ -261,7 +333,16 @@ end.
 
 {
   $Log$
-  Revision 1.8  2000-01-08 12:08:58  sg
+  Revision 1.9  2000-01-31 19:22:16  sg
+  * Added support for loading from streams
+    (NOTE: The new loading code is very slow at the moment)
+  * Added saving support
+  * The line ending to use (CR/LF, LF...) can now be specified
+  * The last line of a document isn't written with a line ending, this
+    preserves the original structure of a previously loaded file
+  * Fixed memory leaks
+
+  Revision 1.8  2000/01/08 12:08:58  sg
   * Set the upper bound of TLineArray to max. possible value so that this
     unit works correctly with activated range checks
 
