@@ -997,6 +997,15 @@ implementation
                      begin
                        doconv:=tc_variant_2_interface;
                        eq:=te_convert_l1;
+                     end
+                   { ugly, but delphi allows it }
+                   else if (eq=te_incompatible) and
+                     (def_from.deftype=orddef) and
+                     (m_delphi in aktmodeswitches) and
+                     (cdo_explicit in cdoptions) then
+                     begin
+                       doconv:=tc_int_2_int;
+                       eq:=te_convert_l1;
                      end;
                  end;
              end;
@@ -1366,7 +1375,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.66  2005-01-10 22:10:26  peter
+  Revision 1.67  2005-02-02 19:04:31  florian
+    * <class/interface>(<any ord. type>) in delphi mode allowed
+
+  Revision 1.66  2005/01/10 22:10:26  peter
     * widestring patches from Alexey Barkovoy
 
   Revision 1.65  2005/01/07 21:14:21  florian
