@@ -1834,9 +1834,13 @@ implementation
              if assigned(srsym) then
                begin
                  topclass:=nil;
+                 { use the class from withsymtable only when it is
+                   defined in this unit }
                  if (srsymtable.symtabletype=withsymtable) and
                     assigned(srsymtable.defowner) and
-                    (srsymtable.defowner.deftype=objectdef) then
+                    (srsymtable.defowner.deftype=objectdef) and
+                    (srsymtable.defowner.owner.symtabletype in [globalsymtable,staticsymtable]) and
+                    (srsymtable.defowner.owner.unitid=0) then
                    topclass:=tobjectdef(srsymtable.defowner)
                  else
                    begin
@@ -2337,8 +2341,6 @@ implementation
 ****************************************************************************}
 
    procedure InitSymtable;
-     var
-       token : ttoken;
      begin
         { Reset symbolstack }
         registerdef:=false;
@@ -2373,7 +2375,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.140  2004-02-24 16:12:39  peter
+  Revision 1.141  2004-02-26 16:16:19  peter
+    * check if withsymtable.defowner is in the current unit
+
+  Revision 1.140  2004/02/24 16:12:39  peter
     * operator overload chooses rewrite
     * overload choosing is now generic and moved to htypechk
 
