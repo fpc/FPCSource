@@ -121,17 +121,10 @@ implementation
       end;
 
 
-procedure TSparctypeconvnode.second_real_to_real;
-  begin
-    inherited second_real_to_real;
-    { work around bug in some powerpc processors where doubles aren't }
-    { properly converted to singles                                   }
-    if(tfloatdef(left.resulttype.def).typ = s64real)and
-      (tfloatdef(resulttype.def).typ = s32real)
-    then
-      {$WARNING FIXME what really should be done?}
-      exprasmlist.concat(taicpu.op_reg_reg(A_FADDs,location.register,location.register));
-  end;
+    procedure TSparctypeconvnode.second_real_to_real;
+      begin
+        inherited second_real_to_real;
+      end;
 
 
 procedure TSparctypeconvnode.second_int_to_bool;
@@ -258,7 +251,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.17  2003-06-04 20:59:37  mazen
+  Revision 1.18  2003-09-14 21:36:01  peter
+    * remove ppc code
+
+  Revision 1.17  2003/06/04 20:59:37  mazen
   + added size of destination in code gen methods
   + making g_overflowcheck declaration same as
     ancestor's method declaration
