@@ -68,7 +68,7 @@ None.
 <link id="BaseName"/>
 <link id="#rtl.unix.FExpand"/>
 </seealso>
-<example file="linuxex/ex47"/>
+<example file="unutilex/ex47"/>
 </element>
 
 <!-- function Visibility: default -->
@@ -103,7 +103,7 @@ None.
 <link id="#rtl.baseunix.FpExecve"/>
 <link id="#rtl.unix.Execv"/>
 </seealso>
-<example file="linuxex/ex70"/>
+<example file="unutilex/ex70"/>
 </element>
 
 <!-- function Visibility: default -->
@@ -151,7 +151,7 @@ None.
 <link id="DirName"/>
 <link id="#rtl.unix.FExpand"/>
 </seealso>
-<example file="linuxex/ex48"/>
+<example file="unutilex/ex48"/>
 </element>
 
 <!-- function Visibility: default -->
@@ -174,7 +174,7 @@ None.
 <link id="#rtl.unix.FSearch"/>
 <link id="#rtl.unix.FExpand"/>
 </seealso>
-<example file="linuxex/ex69"/>
+<example file="unutilex/ex69"/>
 </element>
 
 <!-- function Visibility: default -->
@@ -191,7 +191,7 @@ In case the file was not opened, then -1 is returned.
 <seealso>
 <link id="#rtl.baseunix.fpSelect"/>
 </seealso>
-<example file="linuxex/ex34"/>
+<example file="unutilex/ex34"/>
 </element>
 
 <!-- procedure Visibility: default -->
@@ -208,7 +208,7 @@ None.
 <seealso>
 <link id="#rtl.unix.FSearch"/>
 </seealso>
-<example file="linuxex/ex67"/>
+<example file="unutilex/ex67"/>
 </element>
 
 <!-- function Visibility: default -->
@@ -227,7 +227,7 @@ None
 <link id="#rtl.unix.GetTime"/>
 <link id="#rtl.unix.GetDate"/> 
 </seealso>
-<example file="linuxex/ex4"/>
+<example file="unutilex/ex4"/>
 </element>
 
 <!-- procedure Visibility: default -->
@@ -251,7 +251,7 @@ None
 <link id="#rtl.unix.GetTime"/>
 <link id="#rtl.unix.GetDate"/> 
 </seealso>
-<example file="linuxex/ex3"/>
+<example file="unutilex/ex3"/>
 </element>
 
 <!-- procedure Visibility: default -->

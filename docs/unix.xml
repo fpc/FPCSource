@@ -1214,7 +1214,7 @@ no errors
 <seealso>
 <link id="GetTime"/>
 </seealso>
-<example file="linuxex/ex1"/>
+<example file="unixex/ex1"/>
 </element>
 
 <!-- procedure Visibility: default -->
@@ -1242,7 +1242,7 @@ None
 <link id="GetDate"/>
 <link id="GetDateTime"/>
 </seealso>
-<example file="linuxex/ex5"/>
+<example file="unixex/ex5"/>
 </element>
 
 <!-- procedure Visibility: default -->
@@ -1267,7 +1267,7 @@ None
 <link id="GetDateTime"/>
 <link id="SetTime"/>
 </seealso>
-<example file="linuxex/ex6"/>
+<example file="unixex/ex6"/>
 </element>
 
 <!-- procedure Visibility: default -->
@@ -1288,7 +1288,7 @@ None
 <link id="SetDate"/>
 <link id="SetTime"/>
 </seealso>
-<example file="linuxex/ex60"/>
+<example file="unixex/ex60"/>
 </element>
 
 <!-- function Visibility: default -->
@@ -1394,7 +1394,7 @@ None.
 <link id="Shell"/>
 <link id="FreeShellArgV"/>
 </seealso>
-<example file="linuxex/ex61"/>
+<example file="unixex/ex61"/>
 </element>
 
 <!-- procedure Visibility: default -->
@@ -1455,7 +1455,7 @@ A compononent of the path has no search permission.</dd>
 <link id="Execlp"/>
 <link id="#rtl.baseunix.FpFork">FpFork</link>
 </seealso>
-<example file="linuxex/ex8"/>
+<example file="unixex/ex8"/>
 </element>
 
 <!-- function Visibility: default -->
@@ -1501,7 +1501,7 @@ A compononent of the path has no search permission.</dd>
 <link id="Execlp"/>
 <link id="#rtl.baseunix.FpFork">FpFork</link>
 </seealso>
-<example file="linuxex/ex9"/>
+<example file="unixex/ex9"/>
 </element>
 
 <element name="Execl">
@@ -1542,7 +1542,7 @@ A compononent of the path has no search permission.</dd>
 <link id="Execlp"/>
 <link id="#rtl.baseunix.FpFork">FpFork</link>
 </seealso>
-<example file="linuxex/ex10"/>
+<example file="unixex/ex10"/>
 </element>
 
 <!-- function Visibility: default -->
@@ -1585,7 +1585,7 @@ A compononent of the path has no search permission.</dd>
 <link id="Execlp"/>
 <link id="#rtl.baseunix.FpFork">FpFork</link>
 </seealso>
-<example file="linuxex/ex11"/>
+<example file="unixex/ex11"/>
 </element>
 
 <!-- function Visibility: default -->
@@ -1624,7 +1624,7 @@ A compononent of the path has no search permission.</dd>
 <link id="Execl"/>
 <link id="#rtl.baseunix.FpFork">FpFork</link>
 </seealso>
-<example file="linuxex/ex12"/>
+<example file="unixex/ex12"/>
 </element>
 
 <!-- function Visibility: default -->
@@ -1666,7 +1666,7 @@ A compononent of the path has no search permission.</dd>
 <link id="FpExeclp"/>
 <link id="#rtl.baseunix.FpFork">FpFork</link>
 </seealso>
-<example file="linuxex/ex11"/>
+<example file="unixex/ex11"/>
 </element>
 
 <!-- function Visibility: default -->
@@ -1708,7 +1708,7 @@ A compononent of the path has no search permission.</dd>
 <link id="FpExeclp"/>
 <link id="#rtl.baseunix.FpFork">FpFork</link>
 </seealso>
-<example file="linuxex/ex77"/>
+<example file="unixex/ex77"/>
 </element>
 
 <!-- function Visibility: default -->
@@ -1747,7 +1747,7 @@ A compononent of the path has no search permission.</dd>
 <link id="FpExecl"/>
 <link id="#rtl.baseunix.FpFork">FpFork</link>
 </seealso>
-<example file="linuxex/ex76"/>
+<example file="unixex/ex76"/>
 </element>
 
 <!-- function Visibility: default -->
@@ -1787,7 +1787,7 @@ A compononent of the path has no search permission.</dd>
 <link id="FpExeclp"/>
 <link id="#rtl.baseunix.FpFork">FpFork</link>
 </seealso>
-<example file="linuxex/ex8"/>
+<example file="unixex/ex8"/>
 </element>
 
 <!-- function Visibility: default -->
@@ -1827,7 +1827,7 @@ A compononent of the path has no search permission.</dd>
 <link id="FpExeclp"/>
 <link id="#rtl.baseunix.FpFork">FpFork</link>
 </seealso>
-<example file="linuxex/ex79"/>
+<example file="unixex/ex79"/>
 </element>
 
 <!-- function Visibility: default -->
@@ -1867,7 +1867,7 @@ A compononent of the path has no search permission.</dd>
 <link id="FpExeclp"/>
 <link id="#rtl.baseunix.FpFork">FpFork</link>
 </seealso>
-<example file="linuxex/ex79"/>
+<example file="unixex/ex79"/>
 </element>
 
 <!-- function Visibility: default -->
@@ -1889,7 +1889,7 @@ Extended error information is returned by the <link id="#rtl.baseunix.fpGetErrno
 <link id="#rtl.baseunix.FpFork">FpFork</link>
 <link id="#rtl.baseunix.fpexecve">FpExecve</link>
 </seealso>
-<example file="linuxex/ex56"/>
+<example file="unixex/ex56"/>
 </element>
 
 <!-- function Visibility: default -->
@@ -1911,7 +1911,7 @@ Errors are reported in LinuxError.
 <link id="#rtl.baseunix.FpFork">FpFork</link>
 <link id="#rtl.baseunix.fpexecve">FpExecve</link>
 </seealso>
-<example file="linuxex/ex80"/>
+<example file="unixex/ex80"/>
 </element>
 
 <!-- function Visibility: default -->
@@ -2094,7 +2094,7 @@ Extended error information is returned by the <link id="#rtl.baseunix.fpGetErrno
 <link id="StatFS"/>
 <link id="FpLStat"/>
 </seealso>
-<example file="linuxex/ex91"/>
+<example file="unixex/ex91"/>
 </element>
 
 <!-- function Visibility: default -->
@@ -2128,7 +2128,7 @@ Extended error information is returned by the <link id="#rtl.baseunix.fpGetErrno
 <link id="#rtl.baseunix.FpStat"/>
 <link id="FpLStat"/>
 </seealso>
-<example file="linuxex/ex91"/>
+<example file="unixex/ex91"/>
 </element>
 
 <!-- function Visibility: default -->
@@ -2235,7 +2235,7 @@ extended error information is returned by the <link id="#rtl.baseunix.fpGetErrno
 <link id="POpen"/>
 <link id="#rtl.baseunix.FpMkFifo"/>
 </seealso>
-<example file="linuxex/ex36"/>
+<example file="unixex/ex36"/>
 </element>
 
 <!-- function Visibility: default -->
@@ -2262,7 +2262,7 @@ Errors  are essentially those of the Execve, Dup and AssignPipe commands.
 <link id="AssignPipe"/>
 <link id="PClose"/>
 </seealso>
-<example file="linuxex/ex37"/>
+<example file="unixex/ex37"/>
 </element>
 
 <!-- function Visibility: default -->
@@ -2315,7 +2315,7 @@ Other errors include the ones by the fork and exec programs
 <link id="AssignPipe"/>
 <link id="POpen"/>
 </seealso>
-<example file="linuxex/ex38"/>
+<example file="unixex/ex38"/>
 </element>
 
 <!-- function Visibility: default -->
@@ -2331,7 +2331,7 @@ None.
 <seealso>
 <link id="GetHostName"/>
 </seealso>
-<example file="linuxex/ex39"/>
+<example file="unixex/ex39"/>
 </element>
 
 <!-- function Visibility: default -->
@@ -2347,7 +2347,7 @@ None.
 <seealso>
 <link id="GetDomainName"/>
 </seealso>
-<example file="linuxex/ex40"/>
+<example file="unixex/ex40"/>
 </element>
 
 
@@ -2361,7 +2361,7 @@ eliminating directory references such as . and .. from the result.
 <errors>
 None
 </errors>
-<example file="linuxex/ex45"/>
+<example file="unixex/ex45"/>
 </element>
 
 <!-- function Visibility: default -->
@@ -2393,7 +2393,7 @@ An empty string if no such file was found.
 <link id="FExpand"/>
 <link id="#rtl.unixutil.FNMatch"/>
 </seealso>
-<example file="linuxex/ex46"/>
+<example file="unixex/ex46"/>
 </element>
 
 <!-- function Visibility: default -->
@@ -2420,7 +2420,7 @@ Returns nil on error, and extended error information is returned by the <link id
 <seealso>
 <link id="GlobFree"/>
 </seealso>
-<example file="linuxex/ex49"/>
+<example file="unixex/ex49"/>
 </element>
 
 <!-- procedure Visibility: default -->
@@ -2455,7 +2455,7 @@ None.
 <link id="#rtl.baseunix.FpKill"/>
 <link id="#rtl.baseunix.FpGetPid"/>
 </seealso>
-<example file="linuxex/ex65"/>
+<example file="unixex/ex65"/>
 </element>
 
 <!-- function Visibility: default -->
@@ -2535,7 +2535,7 @@ by fd is open for writing.</dd>
 <seealso>
 <link id="FpMUnMap"/>
 </seealso>
-<example file="linuxex/ex66"/>
+<example file="unixex/ex66"/>
 </element>
 
 <!-- function Visibility: default -->
@@ -2613,7 +2613,7 @@ do a priority increase.</dd>
 <link id="FpGetPriority"/>
 <link id="FpSetPriority"/>
 </seealso>
-<example file="linuxex/ex15"/>
+<example file="unixex/ex15"/>
 </element>
 
 <!-- function Visibility: default -->
@@ -2724,7 +2724,7 @@ function.
 <link id="#rtl.baseunix.FpFStat"/>
 <link id="StatFS"/>
 </seealso>
-<example file="linuxex/ex29"/>
+<example file="unixex/ex29"/>
 </element>
 
 
@@ -2781,7 +2781,7 @@ symbolic link, i.e. a symbolic link, whose expansion points to itself.
 <link id="#rtl.baseunix.FpUnLink"/>
 <link id="FpReadLink"/>
 </seealso>
-<example file="linuxex/ex22"/>
+<example file="unixex/ex22"/>
 </element>
 
 <!-- function Visibility: default -->
@@ -2829,7 +2829,7 @@ function.
 <seealso>
 <link id="FpSymLink"/>
 </seealso>
-<example file="linuxex/ex62"/>
+<example file="unixex/ex62"/>
 </element>
 
 <!-- function Visibility: default -->

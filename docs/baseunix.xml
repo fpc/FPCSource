@@ -1996,7 +1996,7 @@ None
 <seealso>
 <link id="fpChmod"/>
 </seealso>
-<example file="linuxex/ex27"/>
+<example file="bunixex/ex27"/>
 </element>
 
 <!-- function Visibility: default -->
@@ -2046,7 +2046,7 @@ entry.</dd>
 <link id="#rtl.unix.fpSymLink"/>
 <link id="fpUnLink"/>
 </seealso>
-<example file="linuxex/ex21"/>
+<example file="bunixex/ex21"/>
 </element>
 
 <!-- function Visibility: default -->
@@ -2131,7 +2131,7 @@ symbolic link, i.e. a symbolic link, whose expansion points to itself.</dd>
 <link id="fpChown"/>
 <link id="fpAccess"/>
 </seealso>
-<example file="linuxex/ex23"/>
+<example file="bunixex/ex23"/>
 </element>
 
 <!-- function Visibility: default -->
@@ -2174,7 +2174,7 @@ symbolic link, i.e. a symbolic link, whose expansion points to itself.</dd>
 <link id="fpChmod"/>
 <link id="fpAccess"/>
 </seealso>
-<example file="linuxex/ex24"/>
+<example file="bunixex/ex24"/>
 </element>
 
 <!-- function Visibility: default -->
@@ -2209,7 +2209,7 @@ Other errors may occur, but aren't documented.
 <link id="fpChown"/>
 <link id="fpAccess"/>
 </seealso>
-<example file="linuxex/ex25"/>
+<example file="bunixex/ex25"/>
 </element>
 
 <!-- function Visibility: default -->
@@ -2242,7 +2242,7 @@ In case the function fails, the following return values are possible:
 <link id="#rtl.unix.POpen"/>
 <link id="fpMkFifo"/>
 </seealso>
-<example file="linuxex/ex36"/>
+<example file="bunixex/ex36"/>
 </element>
 
 <!-- function Visibility: default -->
@@ -2280,7 +2280,7 @@ A negative value can be one of the following error codes:
 <seealso>
 <link id="fpDup2"/>
 </seealso>
-<example file="linuxex/ex31"/>
+<example file="bunixex/ex31"/>
 </element>
 
 <!-- function Visibility: default -->
@@ -2318,7 +2318,7 @@ In case of error, the following error codes can be reported:
 <seealso>
 <link id="fpDup"/>
 </seealso>
-<example file="linuxex/ex32"/>
+<example file="bunixex/ex32"/>
 </element>
 
 <!-- function Visibility: default -->
@@ -2357,11 +2357,11 @@ alarm was due to be delivered, or zero if there was none. A negative value
 indicates an error.
 </p>
 </descr>
-<example file="linuxex/ex59"/>
 <seealso>
 <link id="fpSigAction"/>
 <link id="fpPause"/>
 </seealso>
+<example file="bunixex/ex59"/>
 </element>
 
 <!-- function Visibility: default -->
@@ -2402,7 +2402,7 @@ If the function returns without error, the return value is zero.
 <link id="fpAlarm"/>
 <link id="fpNanoSleep"/>
 </seealso>
-<example file="linuxex/ex73"/>
+<example file="bunixex/ex73"/>
 </element>
 
 <!-- function Visibility: default -->
@@ -2417,7 +2417,7 @@ None.
 <seealso>
 <link id="FpGetPPid"/>
 </seealso>
-<example file="linuxex/ex16"/>
+<example file="bunixex/ex16"/>
 </element>
 
 <!-- function Visibility: default -->
@@ -2432,7 +2432,7 @@ None.
 <seealso>
 <link id="FpGetPid"/>
 </seealso>
-<example file="linuxex/ex16"/>
+<example file="bunixex/ex16"/>
 </element>
 
 <!-- function Visibility: default -->
@@ -2452,7 +2452,7 @@ None.
 <link id="FpGetPPid"/>
 <link id="fpSetUID"/>
 </seealso>
-<example file="linuxex/ex17"/>
+<example file="bunixex/ex17"/>
 </element>
 
 <!-- function Visibility: default -->
@@ -2473,7 +2473,7 @@ None.
 <link id="fpSetUID"/>
 <link id="FpSetGid"/>
 </seealso>
-<example file="linuxex/ex17"/>
+<example file="bunixex/ex17"/>
 </element>
 
 <!-- function Visibility: default -->
@@ -2494,7 +2494,7 @@ None.
 <link id="fpSetUID"/>
 <link id="FpSetGid"/>
 </seealso>
-<example file="linuxex/ex18"/>
+<example file="bunixex/ex18"/>
 </element>
 
 <!-- function Visibility: default -->
@@ -2515,7 +2515,7 @@ None.
 <link id="fpSetUID"/>
 <link id="FpSetGid"/>
 </seealso>
-<example file="linuxex/ex18"/>
+<example file="bunixex/ex18"/>
 </element>
 
 <!-- function Visibility: default -->
@@ -2759,7 +2759,7 @@ A compononent of the path has no search permission.</dd>
 <link id="fpExecv"/>
 <link id="fpFork"/>
 </seealso>
-<example file="linuxex/ex7"/>
+<example file="bunixex/ex7"/>
 </element>
 
 <!-- function Visibility: default -->
@@ -2795,7 +2795,7 @@ A compononent of the path has no search permission.</dd>
 <link id="fpExecve"/>
 <link id="fpFork"/>
 </seealso>
-<example file="linuxex/ex8"/>
+<example file="bunixex/ex8"/>
 </element>
 
 <!-- function Visibility: default -->
@@ -2971,7 +2971,7 @@ Extended error information can be retrieved using <link id="fpGetErrno"/>.
 <link id="FpCloseDir"/>
 <link id="FpReadDir"/>
 </seealso>
-<example file="linuxex/ex35"/>
+<example file="bunixex/ex35"/>
 </element>
 
 <!-- function Visibility: default -->
@@ -3093,7 +3093,7 @@ Extended error information can be retrieved using <link id="fpGetErrno"/>.
 <link id="FpFTruncate"/>
 <link id="FpLSeek"/>
 </seealso>
-<example file="linuxex/ex19"/>
+<example file="bunixex/ex19"/>
 </element>
 
 <!-- function Visibility: default -->
@@ -3276,7 +3276,7 @@ Extended error information can be retrieved using <link id="fpGetErrno"/>.
 <link id="FpStat"/>
 <link id="#rtl.unix.FpLStat"/>
 </seealso>
-<example file="linuxex/ex28"/>
+<example file="bunixex/ex28"/>
 </element>
 
 <!-- function Visibility: default -->
@@ -3303,7 +3303,7 @@ Extended error information can be retrieved using <link id="fpGetErrno"/>.
 <link id="FpStat"/>
 <link id="#rtl.unix.FpLStat"/>
 </seealso>
-<example file="linuxex/ex28"/>
+<example file="bunixex/ex28"/>
 </element>
 
 <!-- function Visibility: default -->
@@ -3351,7 +3351,7 @@ dangling symbolic link.</dd>
 <link id="FpChown"/>
 <link id="FpChmod"/>
 </seealso>
-<example file="linuxex/ex26"/>
+<example file="bunixex/ex26"/>
 </element>
 
 <!-- function Visibility: default -->
@@ -3403,7 +3403,7 @@ Extended error information can be retrieved using <link id="fpGetErrno"/>.
 <link id="FpFTruncate"/>
 <link id="FpLSeek"/>
 </seealso>
-<example file="linuxex/ex20"/>
+<example file="bunixex/ex20"/>
 </element>
 
 <!-- function Visibility: default -->
@@ -3477,7 +3477,7 @@ stored in <var>tloc</var>, if it is specified.
 On error, -1 is returned. Extended error information can be retrieved using
 <link id="fpGetErrno"/>.
 </errors>
-<example file="linuxex/ex1"/>
+<example file="bunixex/ex1"/>
 </element>
 
 <!-- function Visibility: default -->
@@ -3561,7 +3561,7 @@ Extended error information can be retrieved using <link id="fpGetErrno"/>.
 <link id="FpSigSuspend"/>
 <link id="FpKill"/>
 </seealso>
-<example file="linuxex/ex57"/>
+<example file="bunixex/ex57"/>
 </element>
 
 <!-- function Visibility: default -->
@@ -3641,7 +3641,7 @@ Extended error information can be retrieved using <link id="fpGetErrno"/>.
 <link id="fpFD_Set"/> 
 <link id="fpFD_IsSet"/>
 </seealso>
-<example file="linuxex/ex33"/>
+<example file="bunixex/ex33"/>
 </element>
 
 <!-- function Visibility: default -->
@@ -3659,7 +3659,7 @@ For more information on this, see various manual pages under linux.
 <errors>
 Extended error information can be retrieved using <link id="fpGetErrno"/>.
 </errors>
-<example file="linuxex/ex54"/>
+<example file="bunixex/ex54"/>
 </element>
 
 <!-- function Visibility: default -->
@@ -3686,7 +3686,7 @@ Extended error information can be retrieved using <link id="fpGetErrno"/>.
 <link id="FpPause"/>
 <link id="FpAlarm"/>
 </seealso>
-<example file="linuxex/ex72"/>
+<example file="bunixex/ex72"/>
 </element>
 
 <!-- function Visibility: default -->
@@ -3705,7 +3705,7 @@ A PChar is returned to accomodate for strings longer than 255 bytes,
 <errors>
 None.
 </errors>
-<example file="linuxex/ex41"/>
+<example file="bunixex/ex41"/>
 </element>
 
 <!-- function Visibility: default -->
@@ -3748,7 +3748,7 @@ Other errors may occur, but aren't documented.
 <link id="FpChown"/>
 <link id="FpAccess"/>
 </seealso>
-<example file="linuxex/ex25"/>
+<example file="bunixex/ex25"/>
 </element>
 
 
@@ -3778,7 +3778,7 @@ Extended error information can be retrieved using <link id="fpGetErrno"/>.
 <link id="FpSigAction"/>
 <link id="FpKill"/>
 </seealso>
-<example file="linuxex/ex58"/>
+<example file="bunixex/ex58"/>
 </element>
 
 
@@ -4088,7 +4088,7 @@ symbolic link. If so it returns <var>True</var>
 <link id="FpS_ISDIR"/>
 <link id="FpS_ISSOCK"/>
 </seealso>
-<example file="linuxex/ex53"/>
+<example file="bunixex/ex53"/>
 </element>
 
 <!-- function Visibility: default -->

@@ -1189,10 +1189,10 @@ The function returns the number of seconds till the previously scheduled
 alarm was due to be delivered, or zero if there was none.
 </p>
 </descr>
-<example file="olinuxex/ex59"/>
 <seealso>
 <link id="SigAction"/>
 </seealso>
+<example file="olinuxex/ex59"/>
 </element>
 
 <element name="AssignPipe">
@@ -2642,7 +2642,7 @@ A PChar is returned to accomodate for strings longer than 255 bytes,
 <errors>
 None.
 </errors>
-<example file="linuxex/ex41"/>
+<example file="olinuxex/ex41"/>
 </element>
 
 
