@@ -1,0 +1,584 @@
+#
+#   $Id$
+#   This file is part of the Free Pascal run time library.
+#   Copyright (c) 1996-98 by Michael van Canneyt
+#
+#   Makefile for the Free Pascal Documentation
+#
+#   See the file COPYING.FPC, included in this distribution,
+#   for details about the copyright.
+#
+#   This program is distributed in the hope that it will be useful,
+#   but WITHOUT ANY WARRANTY; without even the implied warranty of
+#   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+#
+
+[package]
+name=fpdocs
+version=1.9.6
+
+[require]
+nortl=y
+
+[install]
+#fpcpackage=y
+
+[default]
+fpcdir=..
+rule=help
+
+[rules]
+# Debugging the install, that will only copy the .tex to index.html
+# so a make html and make install goes quickly
+#INSTALLDEBUG=1
+
+# Which docs to build by default
+ifndef DOCS
+DOCS = user rtl ref prog fpdoc chart
+endif
+
+# Can be 'report','book', 'html', 'hevea', 'ts3' 'ts4'
+ifdef USEHEVEA
+PREAMBLETYPE = hevea
+else
+ifdef USEL2H
+PREAMBLETYPE = html
+else
+PREAMBLETYPE = report
+endif
+endif
+
+# Locate FPDoc
+ifndef CROSSCOMPILE
+ifndef FPDOC
+ifneq ($(wildcard ../utils/fpdoc/fpdoc),)
+FPDOC=../utils/fpdoc/fpdoc
+else
+FPDOC=fpdoc
+endif
+endif
+endif
+
+ifndef FPCSRCDIR
+FPCSRCDIR=..
+endif
+
+# Use Ascii mode ? (i.e. no pics in produced HTML ?)
+ifndef ASCIIMODE
+ASCIIMODE=NO
+endif
+
+
+#######################################################################
+# LaTeX Program definitions
+#######################################################################
+
+# Latex itself
+ifndef LATEX
+LATEX = latex
+endif
+# DVI to PS converter
+ifndef DVIPS
+DVIPS=dvips
+endif
+# DVI to TXT converter
+ifndef DVITXT
+DVITXT=dvi2tty -w132
+endif
+# PDF converter
+ifndef PDFLATEX
+PDFLATEX=pdflatex
+endif
+# Makeindex programma
+ifndef MAKEINDEX
+MAKEINDEX=makeindex
+endif
+
+#######################################################################
+# Latex2html conversion.
+#######################################################################
+ifdef USEL2H
+# Command to use.
+ifndef LATEX2HTML
+LATEX2HTML = /usr/bin/latex2html
+endif
+# Default options for converter
+ifndef LATEX2HTMLOPTS
+LATEX2HTMLOPTS = -no_reuse -up_url "../fpctoc.html"\
+                 -up_title "Free Pascal manuals"\
+                 -html_version 4.0 -split 3
+endif
+ifeq ($(ASCIIMODE),YES)
+LATEX2HTMLOPTS+=-ascii_mode
+endif
+endif # USEL2H
+
+#######################################################################
+# HEVEA conversion.
+#######################################################################
+ifdef USEHEVEA
+# Hevea conversion.
+ifndef HEVEA
+HEVEA = /usr/bin/hevea
+endif
+ifeq ($(ASCIIMODE),YES)
+HEVEAOPTS+=-text
+endif
+endif # USEHEVEA
+
+# tmpdir
+export TMP=/tmp
+#
+
+
+PS = $(addsuffix .ps, $(DOCS))
+HTML = $(addsuffix .html, $(DOCS))
+DVI = $(addsuffix .dvi, $(DOCS))
+TXT = $(addsuffix .txt, $(DOCS))
+PDF = $(addsuffix .pdf, $(DOCS))
+TOC = $(addsuffix .toc, $(DOCS))
+AUX = $(addsuffix .aux, $(DOCS))
+LOG = $(addsuffix .log, $(DOCS))
+LOT = $(addsuffix .lot, $(DOCS))
+OUT = $(addsuffix .out, $(DOCS))
+
+
+#####################################################################
+# Conversion from types
+#####################################################################
+
+.PHONY: clean dvi help html ps psdist htmldist htmdist htdist pdfdist \
+        txtdist htm txt pdf refex alldist messages onechap gtk \
+        user ref prog rtl
+
+.SUFFIXES: .dvi .tex .ps .txt .pdf
+
+# default show help
+
+.dvi.ps:
+        $(DVIPS) $<
+
+.tex.dvi:
+        -rm $*.aux $*.idx  $*.ilg  $*.ind  $*.log  $*.out  $*.toc $*.tmp $*.xref $*.4ht
+        $(LATEX) $*
+        -$(MAKEINDEX) $*
+        $(LATEX) $*
+        -$(MAKEINDEX) $*
+        $(LATEX) $*
+
+.dvi.txt:
+        $(DVITXT) -o $*.txt  $*.dvi
+
+.tex.pdf:
+        -rm $*.aux $*.idx  $*.ilg  $*.ind  $*.log  $*.out  $*.toc $*.tmp $*.xref $*.4ht
+        $(PDFLATEX) $*
+        -$(MAKEINDEX) $*
+        $(PDFLATEX) $*
+        -$(MAKEINDEX) $*
+        $(PDFLATEX) $*
+
+$(TXT) : %.txt: %.dvi
+
+$(DVI) : %.dvi: %.tex
+
+$(PDF) : %.pdf: %.tex
+
+
+#####################################################################
+# Targets
+#####################################################################
+
+help:
+        @echo 'Possible targets :'
+        @echo ' dvi           : Make documentation using latex.'
+        @echo ' ps            : Make documentation using latex and dvips.'
+        @echo ' html          : Make HTML documentation using default converter.'
+        @echo ' hevea         : Make HTML documentation using hevea'
+        @echo ' l2h           : Make HTML documentation using latex2html'
+        @echo ' 4ht           : Make HTML documentation using tex4ht'
+        @echo ' pdf           : Make documentation using pdflatex'
+        @echo ' txt           : dvi, convert to text using dvi2tty'
+        @echo ' htm           : Convert .html to .htm files, zip result'
+        @echo ' clean         : Clean up the mess.'
+        @echo ' examples      : Comple all generic examples'
+        @echo ' linuxexamples : Compile all examples for linux'
+        @echo ' dosexamples   : Compile all examples for dos'
+        @echo ' execute       : Execute examples (DOS/Windows/OS/2 only)'
+        @echo ' htmldist      : html, and rchive result.'
+        @echo ' psdist        : ps, and archive result.'
+        @echo ' pdfdist       : pdf, and archive result.'
+
+clean:
+        -rm -f preamble.inc date.inc messages.inc
+        -rm -f *.4tc *.4ct *.css *.lg *.tmp *.xref
+        -rm -rf $(DOCS)
+        -rm -f $(TOC) $(LOG) $(DVI) $(PDF) $(AUX) $(OUT) $(PS) $(HTML) *.i* $(LOT) $(TXT)
+# Styles
+        -rm -f $(notdir $(wildcard styles/*))
+
+distclean: clean cleanexamples
+        -rm -f *.tar.gz *.zip
+
+#####################################################################
+# Include files
+#####################################################################
+
+date.inc:
+        @echo \\date\{`date +'%B %Y'`\} > date.inc
+
+preamble.inc:
+        cp -f preamble.$(PREAMBLETYPE) preamble.inc
+
+../compiler/msg2inc$(EXEEXT):
+	$(MAKE) -C ../compiler msg2inc
+
+messages.inc: ../compiler/msg2inc$(EXEEXT) ../compiler/msg/errore.msg
+        ../compiler/msg2inc -TE ../compiler/msg/errore.msg messages.inc
+
+# Local copy of the required styles
+syntax.sty: styles/syntax.sty
+        cp $(wildcard styles/*.*) .
+
+# Default includes needed for all docs
+INCLUDES=date.inc preamble.inc syntax.sty
+
+
+#####################################################################
+# Tex from XML
+#####################################################################
+
+# Where is System.pp located
+SYSTEMUNITDIR=$(OS_SOURCE)
+ifeq ($(findstring bsd,$(OS_SOURCE)),)
+override SYSTEMUNITDIR=bsd
+endif
+ifeq ($(findstring darwin,$(OS_SOURCE)),)
+override SYSTEMUNITDIR=bsd
+endif
+
+FCLOPTS=--package=fcl --descr=classes.xml --input='$(FPCSRCDIR)/rtl/$(HOSTOS)/classes.pp -Fi$(FPCSRCDIR)/rtl/objpas/classes'
+
+fcl.inc: classes.xml
+        $(FPDOC) --output=fcl.inc $(FCLOPTS) --format=latex
+
+RTLOPTS=--package=rtl --descr=rtl.xml
+ifndef CURRENTXMLONLY
+XMLUNITS=sysutils strutils dateutils systhrds strings mouse keyboard \
+         crt video dos sockets objects heaptrc mmx ipc printer typinfo \
+         ports getopts emu387 dxeload go32 gpm graph oldlinux baseunix \
+         unixtype unix classes unixutil x86 dynlibs linux math system\
+         objpas dateutils rtl
+RTLXML=$(addsuffix .xml,$(XMLUNITS))
+RTLOPTS+= --descr=strutils.xml --input="../rtl/objpas/strutils.pp"
+RTLOPTS+= --descr=systhrds.xml --input="../rtl/unix/systhrds.pp -Fi../rtl/inc"
+RTLOPTS+= --descr=sysutils.xml --input="../rtl/unix/sysutils.pp -Fi../rtl/objpas/sysutils -Fi../rtl/inc"
+RTLOPTS+= --descr=strings.xml --input="../rtl/inc/strings.pp -Fi../rtl/i386 -Fi../rtl/inc"
+RTLOPTS+= --descr=mouse.xml --input="../rtl/unix/mouse.pp -Fi../rtl/inc"
+RTLOPTS+= --descr=keyboard.xml --input="../rtl/unix/keyboard.pp -Fi../rtl/inc"
+RTLOPTS+= --descr=crt.xml --input="../rtl/unix/crt.pp -Fi../rtl/inc"
+RTLOPTS+= --descr=video.xml --input="../rtl/unix/video.pp -Fi../rtl/inc"
+RTLOPTS+= --descr=dos.xml --input="../rtl/unix/dos.pp -Fi../rtl/inc -dcpui386"
+RTLOPTS+= --descr=sockets.xml --input="-dver1_0 ../rtl/unix/sockets.pp -Fi../rtl/inc -Fi../rtl/$(HOSTOS)"
+RTLOPTS+= --descr=objects.xml --input="../rtl/inc/objects.pp -Fi../rtl/i386 -Fi../rtl/$(HOSTOS)"
+RTLOPTS+= --descr=heaptrc.xml --input="../rtl/inc/heaptrc.pp -Fi../rtl/i386 -Fi../rtl/$(HOSTOS)"
+RTLOPTS+= --descr=mmx.xml --input="../rtl/i386/mmx.pp -Fi../rtl/$(HOSTOS)"
+RTLOPTS+= --descr=ipc.xml --input="../rtl/unix/ipc.pp -Fi../rtl/$(HOSTOS)"
+RTLOPTS+= --descr=printer.xml --input="../rtl/unix/printer.pp -Fi../rtl/$(HOSTOS) -Fi../rtl/inc"
+RTLOPTS+= --descr=typinfo.xml --input="../rtl/objpas/typinfo.pp -Fi../rtl/$(HOSTOS)"
+RTLOPTS+= --descr=ports.xml --input="../rtl/unix/ports.pp -Fi../rtl/$(HOSTOS)"
+RTLOPTS+= --descr=getopts.xml --input="../rtl/inc/getopts.pp -Fi../rtl/$(HOSTOS)"
+RTLOPTS+= --descr=emu387.xml --input="../rtl/go32v2/emu387.pp -Fi../rtl/i386"
+RTLOPTS+= --descr=dxeload.xml --input="../rtl/go32v2/dxeload.pp -Fi../rtl/i386"
+RTLOPTS+= --descr=go32.xml --input="../rtl/go32v2/go32.pp -Fi../rtl/i386"
+RTLOPTS+= --descr=gpm.xml --input="-dVER1_0 ../rtl/unix/gpm.pp -Fi../rtl/i386"
+RTLOPTS+= --descr=graph.xml --input="../rtl/unix/graph.pp -Fi../rtl/i386 -Fi../rtl/inc/graph"
+RTLOPTS+= --descr=oldlinux.xml --input="../rtl/unix/oldlinux.pp -Fi../rtl/linux -Fi../rtl/unix"
+RTLOPTS+= --descr=unixtype.xml --input="../rtl/unix/unixtype.pp -Fi../rtl/unix -Fi../rtl/linux -Fi../rtl/linux/i386"
+RTLOPTS+= --descr=baseunix.xml --input="../rtl/linux/baseunix.pp -Fi../rtl/unix -Fi../rtl/linux -Fi../rtl/linux/i386"
+RTLOPTS+= --descr=unix.xml  --input="../rtl/unix/unix.pp -Fi../rtl/unix -Fi../rtl/linux -Fi../rtl/linux/i386"
+RTLOPTS+= --descr=classes.xml --input='$(FPCSRCDIR)/rtl/$(HOSTOS)/classes.pp -Fi$(FPCSRCDIR)/rtl/objpas/classes'
+RTLOPTS+= --descr=unixutil.xml --input="../rtl/unix/unixutil.pp"
+RTLOPTS+= --descr=x86.xml --input="../rtl/unix/x86.pp"
+RTLOPTS+= --descr=dynlibs.xml --input="../rtl/inc/dynlibs.pp -Fi../rtl/unix"
+RTLOPTS+= --descr=linux.xml --input="../rtl/unix/linux.pp -Fi../rtl/linux -Fi../rtl/unix"
+RTLOPTS+= --descr=math.xml --input="../rtl/objpas/math.pp -Fi../rtl/i386 -dFPC_HAS_TYPE_EXTENDED"
+RTLOPTS+= --descr=system.xml --input="-dfpdocsystem -dHASGETHEAPSTATUS -dSUPPORT_DOUBLE ../rtl/$(SYSTEMUNITDIR)/system.pp -Fi../rtl/unix -Fi../rtl/inc -Fi../rtl/i386 -dCPU32 -dHASVARIANT -dFPC_HAS_TYPE_EXTENDED -dHASWIDECHAR"
+RTLOPTS+=--descr=objpas.xml --input="-dHASINTF ../rtl/objpas/objpas.pp"
+RTLOPTS+=--descr=dateutils.xml --input="../rtl/objpas/dateutils.pp -Fi../rtl/objpas"
+else
+RTLXML=dateutils.xml
+RTLOPTS+=--descr=dateutils.xml --input="../rtl/objpas/dateutils.pp -Fi../rtl/objpas"
+endif
+
+rtl.inc: $(RTLXML)
+        $(FPDOC) --output=rtl.inc $(RTLOPTS) --format=latex
+
+
+#####################################################################
+# DVI files
+#####################################################################
+
+ref.dvi: ref.tex $(INCLUDES)
+
+prog.dvi: prog.tex $(INCLUDES)
+
+user.dvi: user.tex $(INCLUDES) messages.inc
+
+fpdoc.dvi: fpdoc.tex $(INCLUDES)
+
+fcl.dvi: fcl.tex fcl.inc $(INCLUDES)
+
+chart.dvi: chart.tex
+
+
+ref.pdf: ref.tex $(INCLUDES)
+
+user.pdf: user.tex $(INCLUDES) messages.inc
+
+prog.pdf: prog.tex $(INCLUDES)
+
+onechap.pdf: onechap.tex $(INCLUDES)
+
+onechap.dvi: onechap.tex $(INCLUDES)
+
+fpdoc.pdf: fpdoc.tex $(INCLUDES)
+
+fcl.pdf: fcl.tex fcl.inc $(INCLUDES)
+
+chart.pdf: chart.tex
+
+rtl.dvi: rtl.tex rtl.inc $(INCLUDES)
+
+rtl.pdf: rtl.tex rtl.inc $(INCLUDES)
+
+dvi : $(DVI)
+
+txt : dvi $(TXT)
+
+ps : dvi $(PS)
+
+pdf : $(PDF)
+
+all : dvi ps pdf txt html
+
+
+#######################################################################
+# HTML creation
+#######################################################################
+
+.PHONY: htex user prog onechap ref internal html hevea
+
+ifdef INSTALLDEBUG
+#######################################################################
+# Installation debugging
+$(HTML):
+        mkdir $@
+        cp $@.tex $@/index.html
+html: $(HTML)
+else
+#######################################################################
+# Automatic selection. Default tex4ht
+ifdef USEHEVEA
+include Makefile.hev
+else
+ifdef USEL2H
+include Makefile.l2h
+else
+include Makefile.4ht
+endif  # USEL2H
+endif  # USEHEVEA
+endif  # INSTALLDEBUG
+#######################################################################
+# Targets to force using a specific tool.
+hevea:
+        $(MAKE) html USEHEVEA=1
+l2h:
+        $(MAKE) html USEL2H=1
+4ht:
+        $(MAKE) html USETEX4HT=1
+
+fcl: fcl/index.html
+
+fcl/index.html: classes.xml
+        $(FPDOC) $(FCLOPTS) --format=html --output=fcl
+
+rtl: rtl/index.html
+
+rtl/index.html: $(RTLXML)
+        $(FPDOC) $(RTLOPTS) --format=html --output=rtl
+
+#####################################################################
+# GTK Articles
+#####################################################################
+
+GTKPDF=$(addsuffix .pdf,$(addprefix gtk, 1 2 3 4 5))
+
+gtk: $(GTKPDF)
+
+gtk1.pdf: gtk1.tex
+
+gtk2.pdf: gtk2.tex
+
+gtk3.pdf: gtk3.tex
+
+gtk4.pdf: gtk4.tex
+
+gtk5.pdf: gtk5.tex
+
+
+#####################################################################
+# Installation
+#####################################################################
+
+.PHONY: pdfinstall psinstall dviinstall txtinstall
+
+pdfinstall: pdf
+        install -d -m 755 $(INSTALL_DOCDIR)
+        cp $(PDF) $(INSTALL_DOCDIR)
+
+psinstall: ps
+        install -d -m 755 $(INSTALL_DOCDIR)
+        cp $(PS) $(INSTALL_DOCDIR)
+
+dviinstall: dvi
+        install -d -m 755 $(INSTALL_DOCDIR)
+        cp $(DVI) $(INSTALL_DOCDIR)
+
+txtinstall: txt
+        install -d -m 755 $(INSTALL_DOCDIR)
+        cp $(TXT) $(INSTALL_DOCDIR)
+
+htmlinstall: html
+        install -d -m 755 $(INSTALL_DOCDIR)
+        cp fpctoc.html $(INSTALL_DOCDIR)
+        cp -R buttons $(INSTALL_DOCDIR)
+        cp -R pics $(INSTALL_DOCDIR)
+        cp -R $(HTML) $(INSTALL_DOCDIR)
+        find $(INSTALL_DOCDIR) -name 'CVS' -or -name '*.eps' | xargs -n1 rm -rf
+
+install:
+        @echo Choose install from:
+        @echo pdfinstall,htmlinstall,htmldosinstall
+        @exit
+
+#####################################################################
+# Archives
+#####################################################################
+
+psdist:
+        $(MAKE) zipinstall ZIPTARGET=psinstall
+
+pdftar:
+        $(MAKE) zipinstall ZIPTARGET=pdfinstall UNIXHier=1 USETAR=y
+
+pdfzip:
+        $(MAKE) zipinstall ZIPTARGET=pdfinstall UNIXHier= USEZIP=y
+
+dvidist:
+        $(MAKE) zipinstall ZIPTARGET=dviinstall
+
+txtdist:
+        $(MAKE) zipinstall ZIPTARGET=txtinstall
+
+htmltar:
+        $(MAKE) zipinstall ZIPTARGET=htmlinstall USETAR=y
+
+htmlzip:
+        $(MAKE) zipinstall ZIPTARGET=htmlinstall UNIXHier= USEZIP=y
+
+pdfdist: pdfzip pdftar
+
+htmldist: htmlzip htmltar
+
+alldist: dvidist psdist txtdist pdfdist htmldist
+
+#####################################################################
+# Zips of htmls
+#####################################################################
+
+DOCPREFIX=doc
+BASEDIR=$(shell pwd)
+
+# html only, no htm
+
+#####################################################################
+# Examples
+#####################################################################
+
+examples:
+        $(MAKE) -C crtex
+        $(MAKE) -C dosex
+        $(MAKE) -C optex
+        $(MAKE) -C mathex
+        $(MAKE) -C printex
+        $(MAKE) -C progex
+        $(MAKE) -C refex
+        $(MAKE) -C stringex
+        $(MAKE) -C objectex
+        $(MAKE) -C sysutex
+        $(MAKE) -C typinfex
+        $(MAKE) -C kbdex
+
+cleanexamples:
+        $(MAKE) -C crtex clean
+        $(MAKE) -C dosex clean
+        $(MAKE) -C optex clean
+        $(MAKE) -C mathex clean
+        $(MAKE) -C printex clean
+        $(MAKE) -C progex clean
+        $(MAKE) -C refex clean
+        $(MAKE) -C stringex clean
+        $(MAKE) -C objectex clean
+        $(MAKE) -C sysutex clean
+        $(MAKE) -C typinfex clean
+        $(MAKE) -C kbdex clean
+
+dosexamples: examples
+        $(MAKE) -C go32ex
+        $(MAKE) -C mouseex
+
+linuxexamples: examples
+        $(MAKE) -C linuxex
+        $(MAKE) -C sockex
+        $(MAKE) -C ipcex
+
+execute:
+        $(MAKE) -C dosex all
+        $(MAKE) -C dosex execute
+        $(MAKE) -C refex all
+        $(MAKE) -C refex execute
+        $(MAKE) -C mathex all
+        $(MAKE) -C mathex execute
+        $(MAKE) -C stringex all
+        $(MAKE) -C stringex execute
+        $(MAKE) -C objectex all
+        $(MAKE) -C objectex execute
+        $(MAKE) -C sysutex all
+        $(MAKE) -C sysutex execute
+        $(MAKE) -C typinfex all
+        $(MAKE) -C typinfex execute
+
+
+#
+# $Log$
+# Revision 1.1  2005-01-09 20:14:33  peter
+#   * build messages.inc from errore.msg
+#   * new zip and tar targets
+#   * use fpcmake generated Makefile
+#
+# Revision 1.38  2004/12/30 13:48:53  michael
+# + Fixed warnings, completed dateutils
+#
+# Revision 1.37  2004/12/22 08:47:31  marco
+#  * bsd system unit location fix. Hope it works for Darwin too
+#
+# Revision 1.36  2004/12/21 22:58:24  michael
+# + Added dateutils functions
+#
+# Revision 1.35  2004/12/19 20:20:16  peter
+#   * includes variable instead of target to prevent always rebuilding
+#   * also build fcl.pdf
+#
+# Revision 1.34  2004/12/15 22:14:14  michael
+# + Make targets fixed (hopefully)
+#
