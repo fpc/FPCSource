@@ -37,6 +37,11 @@ CPU=i386
 #CPU=m68k
 endif
 
+# Use smartlinking ?
+ifndef SMARTLINK
+SMARTLINK=NO
+endif
+
 # Name of library ?
 # If this is set, all units will be put in the same library.
 # If it is empty (default), the units will be left in separate files.
@@ -129,9 +134,14 @@ endif
 
 # Define Linux Units
 SYSTEMPPU=syslinux$(PPUEXT)
-OBJECTS=strings linux objpas sysutils math\
+OBJECTS=strings linux objpas sysutils math \
 	dos crt objects printer \
-	getopts errors sockets graph\
+	getopts errors sockets graph
+
+# Which units may be placed in the shared lib file
+SHAREDLIBFILES=syslinux strings linux objpas sysutils math \
+	dos crt objects printer \
+	getopts errors sockets
 
 # Extra Syslinux Depends
 ifeq ($(LINK_TO_C),YES)
@@ -168,7 +178,7 @@ endif
 
 # Add Prefix and Suffixes
 OBJLOADERS=$(addsuffix $(OEXT), $(LOADERS))
-PPUOBJECTS=$(addsuffix $(PPUEXT), $(OBJECTS))
+PPUOBJECTS=$(SYSTEMPPU) $(addsuffix $(PPUEXT), $(OBJECTS))
 
 .PHONY : all install clean \
 	 libs libsclean \
@@ -176,12 +186,14 @@ PPUOBJECTS=$(addsuffix $(PPUEXT), $(OBJECTS))
 
 all : $(OBJLOADERS) $(PPUOBJECTS)
 
-install : all
+install :
+	make clean
+	make all
 	$(MKDIR) $(UNITINSTALLDIR)
 	$(INSTALL) *$(PPUEXT) *$(OEXT) $(UNITINSTALLDIR)
 
 clean :
-	-$(DEL) *$(OEXT) *$(ASMEXT) *$(PPUEXT) *.PPS log
+	-$(DEL) *.sl/ *$(OEXT) *$(ASMEXT) *$(PPUEXT) *.PPS log
 
 #####################################################################
 # Files
@@ -258,8 +270,7 @@ errors$(PPUEXT) : errors.pp strings$(PPUEXT) $(SYSTEMPPU)
 dos$(PPUEXT) : $(DOSDEPS) $(SYSTEMPPU)
 	$(PP) $(OPT) dos $(REDIR)
 
-crt$(PPUEXT) : crt.pp $(INC)/textrec.inc $(INC)/filerec.inc linux$(PPUEXT)\
-	       $(SYSTEMPPU)
+crt$(PPUEXT) : crt.pp $(INC)/textrec.inc linux$(PPUEXT) $(SYSTEMPPU)
 	$(PP) $(OPT) crt $(REDIR)
 
 objects$(PPUEXT) : $(INC)/objects.pp objinc.inc $(SYSTEMPPU)
@@ -286,21 +297,33 @@ getopts$(PPUEXT) : $(INC)/getopts.pp $(SYSTEMPPU)
 # Libs
 #####################################################################
 
-libs	: all libfpc$(LIBEXT)
+staticlib:
+	make clean
+	make all SMARTLINK=YES LIBNAME=fpc LIBTYPE=static
 
-libfpc.so:
-	$(PPUMOVE) -o fpc *.ppu
+sharedlib:
+	make clean
+	make all
+	$(PPUMOVE) -o fpc $(SHAREDLIBFILES)
 
-libfpc.a:
-	$(PPUMOVE) -s -o fpc *.ppu
+staticlibinstall: staticlib
+	$(MKDIR) $(STATIC_LIBINSTALLDIR)
+	$(MKDIR) $(STATIC_UNITINSTALLDIR)
+	$(INSTALLEXE) libfpc.a $(STATIC_LIBINSTALLDIR)
+	$(INSTALL) *$(PPUEXT) *.o $(STATIC_UNITINSTALLDIR)
 
-libinstall : libs
-	$(INSTALLEXE) libfpc$(LIBEXT) $(LIBINSTALLDIR)
-	$(INSTALL) *$(PPLEXT) $(UNITINSTALLDIR)
+sharedlibinstall: sharedlib
+	$(MKDIR) $(SHARED_LIBINSTALLDIR)
+	$(MKDIR) $(SHARED_UNITINSTALLDIR)
+	$(INSTALLEXE) libfpc.so $(SHARED_LIBINSTALLDIR)
+	$(INSTALL) *$(PPUEXT) *.o $(SHARED_UNITINSTALLDIR)
 	ldconfig
-	
+
+libinstall: staticlibinstall sharedlibinstall
+
 libsclean : clean
 	-$(DEL) *.a *.so *$(PPLEXT)
+
 
 #####################################################################
 # Default targets
@@ -310,7 +333,10 @@ include $(CFG)/makefile.def
 
 #
 # $Log$
-# Revision 1.19  1998-08-17 09:30:00  peter
+# Revision 1.20  1998-08-18 08:35:06  peter
+#   * updated for new lib options
+#
+# Revision 1.19  1998/08/17 09:30:00  peter
 #   * libtype/libname is by default off
 #
 # Revision 1.18  1998/08/16 10:22:57  michael
