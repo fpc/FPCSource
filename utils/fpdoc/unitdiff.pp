@@ -193,8 +193,10 @@ begin
     TranslateDocStrings(DocLang);
     end;  
   if (cmdLineAction<>ActionHelp) and (InputFile1='') and (InputFile2='') then
-    Writeln(StdErr,SErrNoInputFile)
-  else if (InputFile2='') and (CmdLineAction<>ActionList) then
+  begin
+    Writeln(StdErr,SErrNoInputFile);
+    cmdLineAction := actionHelp;
+  end else if (InputFile2='') and (CmdLineAction<>ActionList) then
     begin
     Writeln(StdErr,SWarnAssumingList);
     CmdLineAction:=ActionList;
@@ -334,7 +336,10 @@ end.
 
 {
   $Log$
-  Revision 1.3  2004-11-15 18:03:28  michael
+  Revision 1.4  2005-01-01 19:56:29  armin
+  * fixed access violation without file on command line
+
+  Revision 1.3  2004/11/15 18:03:28  michael
   + Faster inserts by sorting after all elements were parsed (suggestion by Mattias Gaertner)
 
   Revision 1.2  2004/11/14 21:20:31  michael
