@@ -17,6 +17,7 @@
 {$R- no range checking }
 
     type
+{$ifdef ENDIAN_LITTLE}
        tqwordrec = packed record
 {$ifdef ENDIAN_LITTLE}       
          low : dword;
@@ -30,6 +31,13 @@
 {$endif not ENDIAN_BIG}
 {$endif not ENDIAN_LITTLE}
        end;
+{$endif ENDIAN_LITTLE}
+{$ifdef ENDIAN_BIG}
+       tqwordrec = packed record
+         high : dword;
+         low : dword;
+       end;
+{$endif ENDIAN_BIG}
 
     function count_leading_zeros(q : qword) : longint;
 
@@ -604,7 +612,10 @@
 
 {
   $Log$
-  Revision 1.18  2003-05-12 07:19:04  jonas
+  Revision 1.19  2003-05-12 11:16:21  florian
+    * qword division fixed (MSB/LSB problem)
+
+  Revision 1.18  2003/05/12 07:19:04  jonas
     * fixed for big endian systems (since Florian doesn't seem to want to
       commit this fix :)
 
