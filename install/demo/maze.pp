@@ -444,8 +444,8 @@ begin
   readln(maxrun);
   if maxrun <= 0 then
     maxrun := 65535;  { infinite }
-  j := screenwidth / blockwidth;
-  k := screenheight / blockwidth;
+  j := Real(screenwidth) / blockwidth;
+  k := Real(screenheight) / blockwidth;
   if j = int(j) then
     j := j - 1;
   if k = int(k) then
