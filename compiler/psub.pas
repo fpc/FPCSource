@@ -688,8 +688,8 @@ begin
    while assigned(parast^.symindex^.first) and (lastps<>psym(parast^.symindex^.first)) do
      begin
        ps:=psym(parast^.symindex^.first);
-       while assigned(ps^.next) and (psym(ps^.next)<>lastps) do
-         ps:=psym(ps^.next);
+       while assigned(ps^.indexnext) and (psym(ps^.indexnext)<>lastps) do
+         ps:=psym(ps^.indexnext);
        ps^.owner:=st;
        { recalculate the corrected offset }
        { the really_insert_in_data procedure
@@ -2087,7 +2087,12 @@ end.
 
 {
   $Log$
-  Revision 1.8  2000-08-13 12:54:56  peter
+  Revision 1.9  2000-08-16 18:33:54  peter
+    * splitted namedobjectitem.next into indexnext and listnext so it
+      can be used in both lists
+    * don't allow "word = word" type definitions (merged)
+
+  Revision 1.8  2000/08/13 12:54:56  peter
     * class member decl wrong then no other error after it
     * -vb has now also line numbering
     * -vb is also used for interface/implementation different decls and

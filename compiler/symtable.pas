@@ -1590,7 +1590,7 @@ implementation
          while assigned(pd) do
            begin
               pd^.write;
-              pd:=pdef(pd^.next);
+              pd:=pdef(pd^.indexnext);
            end;
       { write end of definitions }
          current_ppu^.writeentry(ibenddefs);
@@ -1612,7 +1612,7 @@ implementation
          while assigned(pd) do
            begin
               pd^.write;
-              pd:=psym(pd^.next);
+              pd:=psym(pd^.indexnext);
            end;
        { end of symbols }
          current_ppu^.writeentry(ibendsyms);
@@ -1629,21 +1629,21 @@ implementation
         while assigned(hs) do
          begin
            hs^.prederef;
-           hs:=psym(hs^.next);
+           hs:=psym(hs^.indexnext);
          end;
         { deref the definitions }
         hp:=pdef(defindex^.first);
         while assigned(hp) do
          begin
            hp^.deref;
-           hp:=pdef(hp^.next);
+           hp:=pdef(hp^.indexnext);
          end;
         { deref the symbols }
         hs:=psym(symindex^.first);
         while assigned(hs) do
          begin
            hs^.deref;
-           hs:=psym(hs^.next);
+           hs:=psym(hs^.indexnext);
          end;
       end;
 
@@ -1667,9 +1667,9 @@ implementation
             { this is used to insert case variant into the main
               record }
             psymt^.datasize:=ps^.address+offset;
-            nps:=pvarsym(ps^.next);
+            nps:=pvarsym(ps^.indexnext);
             symindex^.deleteindex(ps);
-            ps^.next:=nil;
+            ps^.indexnext:=nil;
             ps^.left:=nil;
             ps^.right:=nil;
             psymt^.insert(ps);
@@ -1678,9 +1678,9 @@ implementation
         pd:=pdef(defindex^.first);
         while assigned(pd) do
           begin
-            npd:=pdef(pd^.next);
+            npd:=pdef(pd^.indexnext);
             defindex^.deleteindex(pd);
-            pd^.next:=nil;
+            pd^.indexnext:=nil;
             pd^.left:=nil;
             pd^.right:=nil;
             psymt^.registerdef(pd);
@@ -2244,7 +2244,7 @@ implementation
              l:=sym^.getpushsize;
              sym^.address:=datasize;
              datasize:=align(datasize+l,dataalignment);
-             sym:=pvarsym(sym^.next);
+             sym:=pvarsym(sym^.indexnext);
           end;
       end;
 
@@ -2265,7 +2265,7 @@ implementation
                  find_at_offset:=sym;
                  exit;
                end;
-             sym:=pvarsym(sym^.next);
+             sym:=pvarsym(sym^.indexnext);
           end;
       end;
 
@@ -2980,7 +2980,12 @@ implementation
 end.
 {
   $Log$
-  Revision 1.3  2000-08-08 19:28:57  peter
+  Revision 1.4  2000-08-16 18:33:54  peter
+    * splitted namedobjectitem.next into indexnext and listnext so it
+      can be used in both lists
+    * don't allow "word = word" type definitions (merged)
+
+  Revision 1.3  2000/08/08 19:28:57  peter
     * memdebug/memory patches (merged)
     * only once illegal directive (merged)
 

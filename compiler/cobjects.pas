@@ -220,11 +220,15 @@ unit cobjects;
        { namedindexobject for use with dictionary and indexarray }
        Pnamedindexobject=^Tnamedindexobject;
        Tnamedindexobject=object
+       { indexarray }
          indexnr    : longint;
+         indexnext  : Pnamedindexobject;
+       { dictionary }
          _name      : Pstring;
-         next,
          left,right : Pnamedindexobject;
          speedvalue : longint;
+       { singlelist }
+         listnext   : Pnamedindexobject;
          constructor init;
          constructor initname(const n:string);
          destructor  done;virtual;
@@ -1325,24 +1329,28 @@ constructor Tnamedindexobject.init;
 begin
   { index }
   indexnr:=-1;
-  next:=nil;
+  indexnext:=nil;
   { dictionary }
   left:=nil;
   right:=nil;
   _name:=nil;
   speedvalue:=-1;
+  { list }
+  listnext:=nil;
 end;
 
 constructor Tnamedindexobject.initname(const n:string);
 begin
   { index }
   indexnr:=-1;
-  next:=nil;
+  indexnext:=nil;
   { dictionary }
   left:=nil;
   right:=nil;
   speedvalue:=-1;
   _name:=stringdup(n);
+  { list }
+  listnext:=nil;
 end;
 
 destructor Tnamedindexobject.done;
@@ -1801,7 +1809,7 @@ end;
         while assigned(hp) do
          begin
            hp2:=hp;
-           hp:=hp^.next;
+           hp:=hp^.listnext;
            dispose(hp2,done);
          end;
         first:=nil;
@@ -1814,9 +1822,9 @@ end;
         if not assigned(first) then
          first:=p
         else
-         last^.next:=p;
+         last^.listnext:=p;
         last:=p;
-        p^.next:=nil;
+        p^.listnext:=nil;
       end;
 
 
@@ -2036,16 +2044,16 @@ end;
            dec(i);
            if (i>0) and assigned(data^[i]) then
             begin
-              data^[i]^.next:=data^[p^.indexnr]^.next;
+              data^[i]^.indexnext:=data^[p^.indexnr]^.indexnext;
               break;
             end;
          end;
         if i=0 then
-         first:=p^.next;
+         first:=p^.indexnext;
         data^[p^.indexnr]:=nil;
         { clear entry }
         p^.indexnr:=-1;
-        p^.next:=nil;
+        p^.indexnext:=nil;
       end;
 
 
@@ -2078,7 +2086,7 @@ end;
            dec(i);
            if (i>0) and assigned(data^[i]) then
             begin
-              data^[i]^.next:=p;
+              data^[i]^.indexnext:=p;
               break;
             end;
          end;
@@ -2091,12 +2099,12 @@ end;
            inc(i);
            if (i<=count) and assigned(data^[i]) then
             begin
-              p^.next:=data^[i];
+              p^.indexnext:=data^[i];
               exit;
             end;
          end;
         if i>count then
-         p^.next:=nil;
+         p^.indexnext:=nil;
       end;
 
 
@@ -2484,7 +2492,12 @@ end;
 end.
 {
   $Log$
-  Revision 1.8  2000-08-13 08:41:57  peter
+  Revision 1.9  2000-08-16 18:33:53  peter
+    * splitted namedobjectitem.next into indexnext and listnext so it
+      can be used in both lists
+    * don't allow "word = word" type definitions (merged)
+
+  Revision 1.8  2000/08/13 08:41:57  peter
     * fixed typo in tsinglelist.clear (merged)
 
   Revision 1.7  2000/08/12 15:34:22  peter

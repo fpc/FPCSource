@@ -1254,10 +1254,10 @@ end;
        end;
        if assigned(dc^.paratype.def) then
          CurName:=CurName+GetDefinitionStr(dc^.paratype.def);
-       if dc^.next<>nil then
+       if dc^.indexnext<>nil then
          CurName:=', '+CurName;
        Name:=CurName+Name;
-       dc:=pparaitem(dc^.next);
+       dc:=pparaitem(dc^.indexnext);
        Inc(Count);
      end;
     GetAbsProcParmDefStr:=Name;
@@ -1571,7 +1571,7 @@ end;
           end;
         if Assigned(Symbol) then
           Owner^.Insert(Symbol);
-        sym:=psym(sym^.next);
+        sym:=psym(sym^.indexnext);
       end;
   end;
 
@@ -2094,7 +2094,12 @@ begin
 end.
 {
   $Log$
-  Revision 1.3  2000-07-13 12:08:24  michael
+  Revision 1.4  2000-08-16 18:33:53  peter
+    * splitted namedobjectitem.next into indexnext and listnext so it
+      can be used in both lists
+    * don't allow "word = word" type definitions (merged)
+
+  Revision 1.3  2000/07/13 12:08:24  michael
   + patched to 1.1.0 with former 1.09patch from peter
 
   Revision 1.2  2000/07/13 11:32:32  michael

@@ -713,7 +713,7 @@ implementation
                   if tok2node[i].tok=optoken then
                     begin
                       ld:=pvarsym(pf^.parast^.symindex^.first)^.vartype.def;
-                      rd:=pvarsym(pf^.parast^.symindex^.first^.next)^.vartype.def;
+                      rd:=pvarsym(pf^.parast^.symindex^.first^.indexnext)^.vartype.def;
                       dd:=pf^.rettype.def;
                       isoperatoracceptable:=
                         tok2node[i].op_overloading_supported and
@@ -1132,7 +1132,12 @@ implementation
 end.
 {
   $Log$
-  Revision 1.3  2000-08-07 11:31:04  jonas
+  Revision 1.4  2000-08-16 18:33:53  peter
+    * splitted namedobjectitem.next into indexnext and listnext so it
+      can be used in both lists
+    * don't allow "word = word" type definitions (merged)
+
+  Revision 1.3  2000/08/07 11:31:04  jonas
     * fixed bug in type conversions between enum subranges (it didn't take
       the packenum directive into account)
     + define PACKENUMFIXED symbol in options.pas

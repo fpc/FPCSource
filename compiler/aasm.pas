@@ -1085,7 +1085,7 @@ uses
               reset;
               inusedlist:=false;
             end;
-           hp:=pasmsymbol(hp^.next);
+           hp:=pasmsymbol(hp^.listnext);
          end;
       end;
 
@@ -1102,7 +1102,7 @@ uses
               altsymbol:=nil;
               inusedlist:=false;
             end;
-           hp:=pasmsymbol(hp^.next);
+           hp:=pasmsymbol(hp^.listnext);
          end;
       end;
 
@@ -1121,7 +1121,7 @@ uses
                  not(bind in [AB_EXTERNAL,AB_COMMON]) then
                Message1(asmw_e_undefined_label,name);
             end;
-           hp:=pasmsymbol(hp^.next);
+           hp:=pasmsymbol(hp^.listnext);
          end;
       end;
 
@@ -1180,7 +1180,12 @@ uses
 end.
 {
   $Log$
-  Revision 1.8  2000-08-12 19:14:58  peter
+  Revision 1.9  2000-08-16 18:33:53  peter
+    * splitted namedobjectitem.next into indexnext and listnext so it
+      can be used in both lists
+    * don't allow "word = word" type definitions (merged)
+
+  Revision 1.8  2000/08/12 19:14:58  peter
     * ELF writer works now also with -g
     * ELF writer is default again for linux
 

@@ -267,7 +267,7 @@ unit pdecl;
                            if not sc^.empty then
                             Comment(V_Error,'default value only allowed for one parameter');
                            sc^.insert_with_tokeninfo(s,hpos);
-			   { prefix 'def' to the parameter name }
+                           { prefix 'def' to the parameter name }
                            pdefaultvalue:=ReadConstant('def'+s,hpos);
                            if assigned(pdefaultvalue) then
                             pprocdef(aktprocdef)^.parast^.insert(pdefaultvalue);
@@ -839,8 +839,8 @@ unit pdecl;
                 begin
                    consume(_EQUAL);
                    sym:=readconstant(name,filepos);
-		   if assigned(sym) then
-		    symtablestack^.insert(sym);
+                   if assigned(sym) then
+                    symtablestack^.insert(sym);
                    consume(_SEMICOLON);
                 end;
 
@@ -1084,12 +1084,19 @@ unit pdecl;
            { no old type reused ? Then insert this new type }
            if not assigned(newtype) then
             begin
-              read_type(tt,typename);
+              { insert the new type first with an errordef, so that
+                referencing the type before it's really set it
+                will give an error (PFV) }
+              tt.setdef(generrordef);
               storetokenpos:=tokenpos;
-              tokenpos:=defpos;
               newtype:=new(ptypesym,init(typename,tt));
               symtablestack^.insert(newtype);
+              tokenpos:=defpos;
               tokenpos:=storetokenpos;
+              { read the type definition }
+              read_type(tt,typename);
+              { update the definition of the type }
+              newtype^.restype:=tt;
             end;
            if assigned(newtype^.restype.def) and
               (newtype^.restype.def^.deftype=procvardef) then
@@ -1275,7 +1282,12 @@ unit pdecl;
 end.
 {
   $Log$
-  Revision 1.8  2000-08-13 13:11:28  peter
+  Revision 1.9  2000-08-16 18:33:53  peter
+    * splitted namedobjectitem.next into indexnext and listnext so it
+      can be used in both lists
+    * don't allow "word = word" type definitions (merged)
+
+  Revision 1.8  2000/08/13 13:11:28  peter
     * put defaultpara values in parast and changed the name to
       'def<Parameter name>'
 

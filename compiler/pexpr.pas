@@ -579,7 +579,7 @@ unit pexpr;
                       else
                        hs1:=hs;
                       p2:=gencallparanode(genloadnode(hs1,hs1^.owner),p2);
-                      hs:=pvarsym(hs^.next);
+                      hs:=pvarsym(hs^.indexnext);
                     end;
                  end
                 else
@@ -2208,7 +2208,12 @@ _LECKKLAMMER : begin
 end.
 {
   $Log$
-  Revision 1.4  2000-08-16 13:06:06  florian
+  Revision 1.5  2000-08-16 18:33:53  peter
+    * splitted namedobjectitem.next into indexnext and listnext so it
+      can be used in both lists
+    * don't allow "word = word" type definitions (merged)
+
+  Revision 1.4  2000/08/16 13:06:06  florian
     + support of 64 bit integer constants
 
   Revision 1.3  2000/08/04 22:00:52  peter

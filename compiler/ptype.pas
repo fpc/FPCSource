@@ -172,10 +172,19 @@ uses
             tt.setdef(generrordef);
             exit;
           end;
+         { type sym ? }
          if (srsym^.typ<>typesym) then
           begin
             Message(type_e_type_id_expected);
             tt.setdef(generrordef);
+            exit;
+          end;
+         { Types are first defined with an error def before assigning
+           the real type so check if it's an errordef. if so then
+           give an error }
+         if (ptypesym(srsym)^.restype.def=generrordef) then
+          begin
+            Message(sym_e_error_in_type_def);
             exit;
           end;
          { Only use the definitions for system/current unit, becuase
@@ -1597,7 +1606,12 @@ uses
 end.
 {
   $Log$
-  Revision 1.5  2000-08-06 14:17:15  peter
+  Revision 1.6  2000-08-16 18:33:54  peter
+    * splitted namedobjectitem.next into indexnext and listnext so it
+      can be used in both lists
+    * don't allow "word = word" type definitions (merged)
+
+  Revision 1.5  2000/08/06 14:17:15  peter
     * overload fixes (merged)
 
   Revision 1.4  2000/07/30 17:04:43  peter
