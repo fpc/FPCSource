@@ -19,7 +19,7 @@
     Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 
  ****************************************************************************}
-UNIT ncpucall;
+unit ncpucall;
 {$INCLUDE fpcdefs.inc}
 interface
 uses
@@ -36,11 +36,8 @@ set when generating function prologue in cgcpu.tcgSPARC.g_stackframe_entry}
 implementation
 uses
   systems,
-  cutils,verbose,globals,
+  cutils,verbose,
   paramgr,
-{$ifdef GDB}
-  gdb,
-{$endif GDB}
   cgbase,
   nmem,nld,ncnv,
   cgobj,tgobj,rgobj,rgcpu,cgcpu,cpupi;
@@ -66,7 +63,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.7  2003-02-04 21:50:54  mazen
+  Revision 1.8  2003-02-05 22:44:55  mazen
+  * making UNIT lower case.
+
+  Revision 1.7  2003/02/04 21:50:54  mazen
   * fixing internal errors related to notn when compiling RTL
 
   Revision 1.6  2003/01/22 22:30:03  mazen
