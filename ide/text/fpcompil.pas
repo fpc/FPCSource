@@ -150,7 +150,8 @@ begin
   if ClassS<>'' then
    ClassS:=RExpand(ClassS,0)+': ';
   if assigned(Module) and
-     (TClass<=V_ShowFile) and (status.currentsource<>'') and (status.currentline>0) then
+     (TClass<=V_ShowFile)
+     {and (status.currentsource<>'') and (status.currentline>0)} then
     begin
       if Row>0 then
        begin
@@ -451,6 +452,7 @@ begin
 
 
 
+
      CompilerMessageWindow^.AddMessage(Level,S,status.currentsourcepath+status.currentsource,
        status.currentline,status.currentcolumn);
      { update info messages }
@@ -459,6 +461,7 @@ begin
 {$ifdef redircompiler}
       RedirEnableAll;
 {$endif}                                                                                                                                                                                                                                                       
+
 
 
 
@@ -742,7 +745,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.36  1999-09-07 11:32:13  pierre
+  Revision 1.37  1999-09-09 14:19:16  pierre
+   * status should not be present in TCompilerMessage.GetText
+
+  Revision 1.36  1999/09/07 11:32:13  pierre
     * fix for Linux ./ prepended to ppas.sh
     * Build add '-B' option
     * if linkAfter is set, get errors from linker
