@@ -66,12 +66,7 @@ unit Graph;
   SetTextStyle
   FillPoly
   FloodFill
-  GetArcCoords
-  Arc
   SetAspectRatio
-  PieSlice
-  Sector
-
 
   (please remove what you implement fom this list)
 }
@@ -1277,13 +1272,32 @@ end;
 
 { Nonlinearly bounded primitives
 }
+
+Var LastArcCoords : ArcCoordsType;
+
+
+procedure SetArcCoords (X,y,xradius,yradius,Stangle,endangle : integer);   
+
+begin
+  LastArcCoords.X:=X;
+  LastArccOords.y:=y;
+  Lastarccoords.xstart:=x+round(xradius*cos(stangle*pi/180));
+  Lastarccoords.ystart:=y-round(yradius*sin(stangle*pi/180));
+  LastArccoords.xend:=x+round(xradius*cos(endangle*pi/180));
+  LastArccoords.yend:=y-round(yradius*sin(endangle*pi/180));
+end;
+
+
 procedure GetArcCoords(var ArcCoords: ArcCoordsType);   
 
 begin
+  ArcCoords:=LastArcCoords;
 end;
 
 procedure Arc(X, Y: Integer; StAngle, EndAngle, Radius: Word);
+
 begin
+ Ellipse (X,y,stangle,endangle,Radius,radius);
 end;
 
 procedure Circle(X, Y: Integer; Radius: Word);
@@ -1294,12 +1308,44 @@ end;
 
 procedure Ellipse(X, Y: Integer;
   StAngle, EndAngle: Word; XRadius, YRadius : Word);
+
+Var I : longint;
+    tmpang : real;
+    
 begin
+ SetArcCoords (X,Y,xradius,yradius,Stangle,EndAngle);
+ For i:= StAngle To EndAngle Do
+  Begin
+   tmpAng:= i*Pi/180;
+   curX:= X + Round (xRadius*Cos (tmpAng));
+   curY:= Y - Round (YRadius*Sin (tmpAng));
+   PutPixel (curX, curY, TheColor);
+  End;
 end;
 
 procedure FillEllipse(X, Y: Integer; XRadius, YRadius : Word);
+
+Var I,tmpcolor : longint;
+    tmpang : real;
+    tmpx,tmpy : Integer;
+    
 begin
-  Bar(X - XRadius, Y - YRadius, X + XRadius, Y + YRadius);
+ tmpcolor:=Thecolor;
+ SetColor(TheFillColor);
+ For i:= 0 to 180 Do
+  Begin
+   tmpAng:= i*Pi/180;
+   curX:= Round (xRadius*Cos (tmpAng));
+   curY:= Round (YRadius*Sin (tmpAng));
+   tmpX:= X - curx;
+   tmpy:= Y + cury;
+   curx:=x+curx;
+   cury:=y-cury;
+   Line (curX, curY,tmpx,tmpy);
+   PutPixel (curx,cury,tmpcolor);
+   PutPixel (tmpx,tmpy,tmpcolor);
+  End;
+  SetColor(tmpcolor);
 end;
 
 procedure SetAspectRatio(Xasp, Yasp: Word);
@@ -1307,12 +1353,47 @@ begin
 end;
 
 procedure PieSlice(X, Y: Integer; StAngle, EndAngle, Radius: Word);
-begin
+
+Var   i,tmpcolor: Word;
+      ac : arccoordstype;
+      
+Begin
+ tmpcolor:=thecolor;
+ setcolor(thefillcolor);
+ For i:= 0 To Radius Do
+  Arc (X, Y, StAngle, EndAngle, i);
+ setcolor(tmpcolor);
+ { Border using current color}
+ arc (X,y,stangle,endangle,Radius);
+ getarccoords(ac);
+ Line (x,y,ac.xstart,ac.ystart);
+ Line (x,y,ac.xend,ac.yend);
 end;
 
 procedure Sector(X, Y: Integer;
   StAngle, EndAngle, XRadius, YRadius: Word);
+
+Var I,tmpcolor : longint;
+    tmpang : real;
+    tmpx,tmpy : Integer;
+    
 begin
+ tmpcolor:=Thecolor;
+ SetColor(TheFillColor);
+ For i:= stangle to endangle Do
+  Begin
+   tmpAng:= i*Pi/180;
+   curX:= Round (xRadius*Cos (tmpAng));
+   curY:= Round (YRadius*Sin (tmpAng));
+   tmpX:= X - curx;
+   tmpy:= Y + cury;
+   curx:=x+curx;
+   cury:=y-cury;
+   Line (curX, curY,tmpx,tmpy);
+   PutPixel (curx,cury,tmpcolor);
+   PutPixel (tmpx,tmpy,tmpcolor);
+  End;
+  SetColor(tmpcolor);
 end;
 
 { Color routines
@@ -1422,7 +1503,10 @@ end.
 
 {
   $Log$
-  Revision 1.3  1998-08-10 09:01:58  michael
+  Revision 1.4  1998-08-12 13:25:33  michael
+  + added arc,ellipse,fillelipse,sector,pieslice
+
+  Revision 1.3  1998/08/10 09:01:58  michael
   + Added some functions to improve compatibility
 
   Revision 1.2  1998/05/12 10:42:47  peter
