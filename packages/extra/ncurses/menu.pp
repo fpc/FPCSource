@@ -64,6 +64,9 @@ uses ncurses;
 
 {$include eti.inc}
 
+  const
+    libmenu = 'menu';
+
   type
      Menu_Options = longint;
      Item_Options = longint;
@@ -156,25 +159,25 @@ uses ncurses;
 
   const
   { Define keys  }
-     REQ_LEFT_ITEM = KEY_MAX + 1;
-     REQ_RIGHT_ITEM = KEY_MAX + 2;
-     REQ_UP_ITEM = KEY_MAX + 3;
-     REQ_DOWN_ITEM = KEY_MAX + 4;
-     REQ_SCR_ULINE = KEY_MAX + 5;
-     REQ_SCR_DLINE = KEY_MAX + 6;
-     REQ_SCR_DPAGE = KEY_MAX + 7;
-     REQ_SCR_UPAGE = KEY_MAX + 8;
-     REQ_FIRST_ITEM = KEY_MAX + 9;
-     REQ_LAST_ITEM = KEY_MAX + 10;
-     REQ_NEXT_ITEM = KEY_MAX + 11;
-     REQ_PREV_ITEM = KEY_MAX + 12;
-     REQ_TOGGLE_ITEM = KEY_MAX + 13;
-     REQ_CLEAR_PATTERN = KEY_MAX + 14;
-     REQ_BACK_PATTERN = KEY_MAX + 15;
-     REQ_NEXT_MATCH = KEY_MAX + 16;
-     REQ_PREV_MATCH = KEY_MAX + 17;
-     MIN_MENU_COMMAND = KEY_MAX + 1;
-     MAX_MENU_COMMAND = KEY_MAX + 17;
+     REQ_LEFT_ITEM      = KEY_MAX + 1;
+     REQ_RIGHT_ITEM     = KEY_MAX + 2;
+     REQ_UP_ITEM        = KEY_MAX + 3;
+     REQ_DOWN_ITEM      = KEY_MAX + 4;
+     REQ_SCR_ULINE      = KEY_MAX + 5;
+     REQ_SCR_DLINE      = KEY_MAX + 6;
+     REQ_SCR_DPAGE      = KEY_MAX + 7;
+     REQ_SCR_UPAGE      = KEY_MAX + 8;
+     REQ_FIRST_ITEM     = KEY_MAX + 9;
+     REQ_LAST_ITEM      = KEY_MAX + 10;
+     REQ_NEXT_ITEM      = KEY_MAX + 11;
+     REQ_PREV_ITEM      = KEY_MAX + 12;
+     REQ_TOGGLE_ITEM    = KEY_MAX + 13;
+     REQ_CLEAR_PATTERN  = KEY_MAX + 14;
+     REQ_BACK_PATTERN   = KEY_MAX + 15;
+     REQ_NEXT_MATCH     = KEY_MAX + 16;
+     REQ_PREV_MATCH     = KEY_MAX + 17;
+     MIN_MENU_COMMAND   = KEY_MAX + 1;
+     MAX_MENU_COMMAND   = KEY_MAX + 17;
   {
      Some AT&T code expects MAX_COMMAND to be out-of-band not
      just for menu commands but for forms ones as well.
@@ -261,12 +264,12 @@ uses ncurses;
 
 {const External_library=''; Setup as you need!}
 
-  function menu_items(_para1:pMENU):ppITEM;cdecl;external;
-  function current_item(_para1:pMENU):pITEM;cdecl;external;
-  function new_item(_para1:pchar; _para2:pchar):pITEM;cdecl;external;
-  function new_menu(_para1:ppITEM):pMENU;cdecl;external;
-  function item_opts(_para1:pITEM):Item_Options;cdecl;external;
-  function menu_opts(_para1:pMENU):Menu_Options;cdecl;external;
+  function menu_items(_para1:pMENU):ppITEM;cdecl;external libmenu;
+  function current_item(_para1:pMENU):pITEM;cdecl;external libmenu;
+  function new_item(_para1:pchar; _para2:pchar):pITEM;cdecl;external libmenu;
+  function new_menu(_para1:ppITEM):pMENU;cdecl;external libmenu;
+  function item_opts(_para1:pITEM):Item_Options;cdecl;external libmenu;
+  function menu_opts(_para1:pMENU):Menu_Options;cdecl;external libmenu;
 (*
   function item_init(_para1:pMENU):Menu_Hook;
     begin
@@ -285,59 +288,59 @@ uses ncurses;
        { You must implemented this function }
     end;
 *)
-  function menu_sub(_para1:pMENU):pWINDOW;cdecl;external;
-  function menu_win(_para1:pMENU):pWINDOW;cdecl;external;
-  function item_description(_para1:pITEM):pchar;cdecl;external;
-  function item_name(_para1:pITEM):pchar;cdecl;external;
-  function menu_mark(_para1:pMENU):pchar;cdecl;external;
-  function menu_request_name(_para1:longint):pchar;cdecl;external;
-  function menu_pattern(_para1:pMENU):pchar;cdecl;external;
-  function menu_userptr(_para1:pMENU):pointer;cdecl;external;
-  function item_userptr(_para1:pITEM):pointer;cdecl;external;
-  function menu_back(_para1:pMENU):chtype;cdecl;external;
-  function menu_fore(_para1:pMENU):chtype;cdecl;external;
-  function menu_grey(_para1:pMENU):chtype;cdecl;external;
-  function free_item(_para1:pITEM):longint;cdecl;external;
-  function free_menu(_para1:pMENU):longint;cdecl;external;
-  function item_count(_para1:pMENU):longint;cdecl;external;
-  function item_index(_para1:pITEM):longint;cdecl;external;
-  function item_opts_off(_para1:pITEM; _para2:Item_Options):longint;cdecl;external;
-  function item_opts_on(_para1:pITEM; _para2:Item_Options):longint;cdecl;external;
-  function menu_driver(_para1:pMENU; _para2:longint):longint;cdecl;external;
-  function menu_opts_off(_para1:pMENU; _para2:Menu_Options):longint;cdecl;external;
-  function menu_opts_on(_para1:pMENU; _para2:Menu_Options):longint;cdecl;external;
-  function menu_pad(_para1:pMENU):longint;cdecl;external;
-  function pos_menu_cursor(_para1:pMENU):longint;cdecl;external;
-  function post_menu(_para1:pMENU):longint;cdecl;external;
-  function scale_menu(_para1:pMENU; _para2:plongint; _para3:plongint):longint;cdecl;external;
-  function set_current_item(menu:pMENU; item:pITEM):longint;cdecl;external;
-{  function set_item_init(_para1:pMENU; _para2:Menu_Hook):longint;cdecl;external;}
-  function set_item_opts(_para1:pITEM; _para2:Item_Options):longint;cdecl;external;
-{  function set_item_term(_para1:pMENU; _para2:Menu_Hook):longint;cdecl;external;}
-  function set_item_userptr(_para1:pITEM; _para2:pointer):longint;cdecl;external;
-  function set_item_value(_para1:pITEM; _para2:bool):longint;cdecl;external;
-  function set_menu_back(_para1:pMENU; _para2:chtype):longint;cdecl;external;
-  function set_menu_fore(_para1:pMENU; _para2:chtype):longint;cdecl;external;
-  function set_menu_format(_para1:pMENU; _para2:longint; _para3:longint):longint;cdecl;external;
-  function set_menu_grey(_para1:pMENU; _para2:chtype):longint;cdecl;external;
-{  function set_menu_init(_para1:pMENU; _para2:Menu_Hook):longint;cdecl;external;}
-  function set_menu_items(_para1:pMENU; _para2:ppITEM):longint;cdecl;external;
-  function set_menu_mark(_para1:pMENU; _para2:pchar):longint;cdecl;external;
-  function set_menu_opts(_para1:pMENU; _para2:Menu_Options):longint;cdecl;external;
-  function set_menu_pad(_para1:pMENU; _para2:longint):longint;cdecl;external;
-  function set_menu_pattern(_para1:pMENU; _para2:pchar):longint;cdecl;external;
-  function set_menu_sub(_para1:pMENU; _para2:pWINDOW):longint;cdecl;external;
-{  function set_menu_term(_para1:pMENU; _para2:Menu_Hook):longint;cdecl;external;}
-  function set_menu_userptr(_para1:pMENU; _para2:pointer):longint;cdecl;external;
-  function set_menu_win(_para1:pMENU; _para2:pWINDOW):longint;cdecl;external;
-  function set_top_row(_para1:pMENU; _para2:longint):longint;cdecl;external;
-  function top_row(_para1:pMENU):longint;cdecl;external;
-  function unpost_menu(_para1:pMENU):longint;cdecl;external;
-  function menu_request_by_name(_para1:pchar):longint;cdecl;external;
-  function set_menu_spacing(_para1:pMENU; _para2:longint; _para3:longint; _para4:longint):longint;cdecl;external;
-  function menu_spacing(_para1:pMENU; _para2:plongint; _para3:plongint; _para4:plongint):longint;cdecl;external;
-  function item_value(_para1:pITEM):bool;cdecl;external;
-  function item_visible(_para1:pITEM):bool;cdecl;external;
+  function menu_sub(_para1:pMENU):pWINDOW;cdecl;external libmenu;
+  function menu_win(_para1:pMENU):pWINDOW;cdecl;external libmenu;
+  function item_description(_para1:pITEM):pchar;cdecl;external libmenu;
+  function item_name(_para1:pITEM):pchar;cdecl;external libmenu;
+  function menu_mark(_para1:pMENU):pchar;cdecl;external libmenu;
+  function menu_request_name(_para1:longint):pchar;cdecl;external libmenu;
+  function menu_pattern(_para1:pMENU):pchar;cdecl;external libmenu;
+  function menu_userptr(_para1:pMENU):pointer;cdecl;external libmenu;
+  function item_userptr(_para1:pITEM):pointer;cdecl;external libmenu;
+  function menu_back(_para1:pMENU):chtype;cdecl;external libmenu;
+  function menu_fore(_para1:pMENU):chtype;cdecl;external libmenu;
+  function menu_grey(_para1:pMENU):chtype;cdecl;external libmenu;
+  function free_item(_para1:pITEM):longint;cdecl;external libmenu;
+  function free_menu(_para1:pMENU):longint;cdecl;external libmenu;
+  function item_count(_para1:pMENU):longint;cdecl;external libmenu;
+  function item_index(_para1:pITEM):longint;cdecl;external libmenu;
+  function item_opts_off(_para1:pITEM; _para2:Item_Options):longint;cdecl;external libmenu;
+  function item_opts_on(_para1:pITEM; _para2:Item_Options):longint;cdecl;external libmenu;
+  function menu_driver(_para1:pMENU; _para2:longint):longint;cdecl;external libmenu;
+  function menu_opts_off(_para1:pMENU; _para2:Menu_Options):longint;cdecl;external libmenu;
+  function menu_opts_on(_para1:pMENU; _para2:Menu_Options):longint;cdecl;external libmenu;
+  function menu_pad(_para1:pMENU):longint;cdecl;external libmenu;
+  function pos_menu_cursor(_para1:pMENU):longint;cdecl;external libmenu;
+  function post_menu(_para1:pMENU):longint;cdecl;external libmenu;
+  function scale_menu(_para1:pMENU; _para2:plongint; _para3:plongint):longint;cdecl;external libmenu;
+  function set_current_item(menu:pMENU; item:pITEM):longint;cdecl;external libmenu;
+{  function set_item_init(_para1:pMENU; _para2:Menu_Hook):longint;cdecl;external libmenu;}
+  function set_item_opts(_para1:pITEM; _para2:Item_Options):longint;cdecl;external libmenu;
+{  function set_item_term(_para1:pMENU; _para2:Menu_Hook):longint;cdecl;external libmenu;}
+  function set_item_userptr(_para1:pITEM; _para2:pointer):longint;cdecl;external libmenu;
+  function set_item_value(_para1:pITEM; _para2:bool):longint;cdecl;external libmenu;
+  function set_menu_back(_para1:pMENU; _para2:chtype):longint;cdecl;external libmenu;
+  function set_menu_fore(_para1:pMENU; _para2:chtype):longint;cdecl;external libmenu;
+  function set_menu_format(_para1:pMENU; _para2:longint; _para3:longint):longint;cdecl;external libmenu;
+  function set_menu_grey(_para1:pMENU; _para2:chtype):longint;cdecl;external libmenu;
+{  function set_menu_init(_para1:pMENU; _para2:Menu_Hook):longint;cdecl;external libmenu;}
+  function set_menu_items(_para1:pMENU; _para2:ppITEM):longint;cdecl;external libmenu;
+  function set_menu_mark(_para1:pMENU; _para2:pchar):longint;cdecl;external libmenu;
+  function set_menu_opts(_para1:pMENU; _para2:Menu_Options):longint;cdecl;external libmenu;
+  function set_menu_pad(_para1:pMENU; _para2:longint):longint;cdecl;external libmenu;
+  function set_menu_pattern(_para1:pMENU; _para2:pchar):longint;cdecl;external libmenu;
+  function set_menu_sub(_para1:pMENU; _para2:pWINDOW):longint;cdecl;external libmenu;
+{  function set_menu_term(_para1:pMENU; _para2:Menu_Hook):longint;cdecl;external libmenu;}
+  function set_menu_userptr(_para1:pMENU; _para2:pointer):longint;cdecl;external libmenu;
+  function set_menu_win(_para1:pMENU; _para2:pWINDOW):longint;cdecl;external libmenu;
+  function set_top_row(_para1:pMENU; _para2:longint):longint;cdecl;external libmenu;
+  function top_row(_para1:pMENU):longint;cdecl;external libmenu;
+  function unpost_menu(_para1:pMENU):longint;cdecl;external libmenu;
+  function menu_request_by_name(_para1:pchar):longint;cdecl;external libmenu;
+  function set_menu_spacing(_para1:pMENU; _para2:longint; _para3:longint; _para4:longint):longint;cdecl;external libmenu;
+  function menu_spacing(_para1:pMENU; _para2:plongint; _para3:plongint; _para4:plongint):longint;cdecl;external libmenu;
+  function item_value(_para1:pITEM):bool;cdecl;external libmenu;
+  function item_visible(_para1:pITEM):bool;cdecl;external libmenu;
 (*
   procedure menu_format(_para1:pMENU; _para2:plongint; _para3:plongint);
     begin
