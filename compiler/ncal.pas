@@ -2,7 +2,6 @@
     $Id$
     Copyright (c) 1998-2000 by Florian Klaempfl
 
-    Type checking and register allocation for add nodes
 
     This program is free software; you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -37,15 +36,56 @@ unit ncal;
           { the definition of the procedure to call }
           procdefinition : pabstractprocdef;
           methodpointer : tnode;
-          constructor create(v : pprocsym;st : psymtable);
+          { only the processor specific nodes need to override this }
+          { constructor                                             }
+          constructor create(v : pprocsym;st : psymtable);virtual;
        end;
 
+       tcallparanode = class(tbinarynode)
+          hightree : tnode;
+          { only the processor specific nodes need to override this }
+          { constructor                                             }
+          constructor create(expr,next : tnode);virtual;
+          destructor destroy;override;
+       end;
+
+    function gencallparanode(expr,next : tnode) : tnode;
     function gencallnode(v : pprocsym;st : psymtable) : tnode;
 
     var
        ccallnode : class of tcallnode;
+       ccallparanode : class of tcallparanode;
 
   implementation
+
+{****************************************************************************
+                             TCALLPARANODE
+ ****************************************************************************}
+
+    function gencallparanode(expr,next : tnode) : tnode;
+
+      begin
+         gencallparanode:=ccallparanode.create(expr,next);
+      end;
+
+    constructor tcallparanode.create(expr,next : tnode);
+
+      begin
+         inherited create(callparan,expr,next);
+         hightree:=nil;
+         expr.set_file_line(self);
+      end;
+
+    destructor tcallparanode.destroy;
+
+      begin
+         hightree.free;
+         inherited destroy;
+      end;
+
+{****************************************************************************
+                                 TCALLNODE
+ ****************************************************************************}
 
     function gencallnode(v : pprocsym;st : psymtable) : tnode;
 
@@ -66,10 +106,14 @@ unit ncal;
 
 begin
    ccallnode:=tcallnode;
+   ccallparanode:=tcallparanode;
 end.
 {
   $Log$
-  Revision 1.1  2000-09-20 20:52:16  florian
+  Revision 1.2  2000-09-20 21:52:38  florian
+    * removed a lot of errors
+
+  Revision 1.1  2000/09/20 20:52:16  florian
     * initial revision
 
 }

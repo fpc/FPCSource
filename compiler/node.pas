@@ -24,16 +24,25 @@ unit node;
 
   interface
 
+    uses
+       globtype,globals,cobjects,aasm,cpubase,symtable,
+       tokens;
+
     {$I nodeh.inc}
 
   implementation
+
+    uses
+       htypechk,ncal,hcodegen,verbose;
 
     {$I node.inc}
 
 end.
 {
   $Log$
-  Revision 1.1  2000-08-26 12:27:35  florian
-    * initial release
+  Revision 1.2  2000-09-20 21:52:38  florian
+    * removed a lot of errors
 
+  Revision 1.1  2000/08/26 12:27:35  florian
+    * initial release
 }

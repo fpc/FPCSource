@@ -171,7 +171,19 @@
          nf_callunique,
          nf_swapable,    { tbinop operands can be swaped }
          nf_swaped,      { tbinop operands are swaped    }
-         nf_error
+         nf_error,
+
+         { flags used by tcallnode }
+         nf_no_check,
+         nf_unit_specific,
+         nf_return_value_used,
+         nf_static_call,
+
+         { flags used by tcallparanode }
+         nf_exact_match_found,
+         nf_convlevel1found,
+         nf_convlevel2found,
+         nf_is_colon_para
          );
 
        tnodeflagset = set of tnodeflags;
@@ -179,7 +191,7 @@
     const
        { contains the flags which must be equal for the equality }
        { of nodes                                                }
-       flagsequal : tnodeflagset = [nf_error];
+       flagsequal : tnodeflagset = [nf_error,nf_static_call];
 
     type
        { later (for the newcg) tnode will inherit from tlinkedlist_item }
@@ -191,7 +203,7 @@
           varstateset : boolean;
           { the parent node of this is node    }
           { this field is set by concattolist  }
-          parent : pnode;
+          parent : tnode;
           { there are some properties about the node stored }
           flags : tnodeflagset;
           { the number of registers needed to evalute the node }
@@ -206,8 +218,8 @@
           firstpasscount : longint;
 {$endif extdebug}
           list : paasmoutput;
-          constructor init(tt : tnodetype);virtual;
-          destructor done;virtual;
+          constructor create(tt : tnodetype);virtual;
+          destructor destroy;virtual;
 
           { the 1.1 code generator may override pass_1 }
           { and it need not to implement det_* then    }
@@ -215,12 +227,12 @@
           { 2.0: runs det_resulttype and det_temp                           }
           function pass_1 : tnode;virtual;
           { dermines the resulttype of the node }
-          procedure det_resulttype;virtual;
+          procedure det_resulttype;virtual;abstract;
           { dermines the number of necessary temp. locations to evaluate
             the node }
-          procedure det_temp;virtual;
+          procedure det_temp;virtual;abstract;
 
-          procedure secondpass;virtual;
+          procedure pass_2;virtual;abstract;
 
           { comparing of nodes }
           function isequal(p : tnode) : boolean;
@@ -234,45 +246,55 @@
 {$endif EXTDEBUG}
           procedure concattolist(l : plinkedlist);virtual;
           function ischild(p : tnode) : boolean;virtual;
+          procedure set_file_line(from : tnode);
+          procedure set_tree_filepos(const filepos : tfileposinfo);
        end;
 
        { this node is the anchestor for all nodes with at least   }
        { one child, you have to use it if you want to use         }
        { true- and falselabel                                     }
-       tparentnode = class(tnode);
-          falselabel,truelabel : plabel;
+       tparentnode = class(tnode)
+          falselabel,truelabel : pasmlabel;
        end;
 
        punarynode = ^tunarynode;
        tunarynode = class(tparentnode)
           left : tnode;
 {$ifdef extdebug}
-          procedure dowrite;virtual;
+          procedure dowrite;override;
 {$endif extdebug}
-          constructor init(tt : tnodetype;l : tnode);virtual
-          procedure concattolist(l : plinkedlist);virtual;
-          function ischild(p : tnode) : boolean;virtual;
-          procedure det_resulttype;virtual;
-          procedure det_temp;virtual;
+          constructor create(tt : tnodetype;l : tnode);virtual;
+          procedure concattolist(l : plinkedlist);override;
+          function ischild(p : tnode) : boolean;override;
+          procedure det_resulttype;override;
+          procedure det_temp;override;
+          function docompare(p : tnode) : boolean;override;
        end;
 
        pbinarynode = ^tbinarynode;
        tbinarynode = class(tunarynode)
           right : tnode;
-          constructor init(tt : tnodetype;l,r : pnode);virtual;
-          procedure concattolist(l : plinkedlist);virtual;
-          function ischild(p : pnode) : boolean;virtual;
-          procedure det_resulttype;virtual;
-          procedure det_temp;virtual;
+          constructor create(tt : tnodetype;l,r : tnode);virtual;
+          procedure concattolist(l : plinkedlist);override;
+          function ischild(p : tnode) : boolean;override;
+          procedure det_resulttype;override;
+          procedure det_temp;override;
+          function docompare(p : tnode) : boolean;override;
+          procedure swapleftright;
+          function isbinaryoverloaded(var t : tnode) : boolean;
        end;
 
        pbinopnode = ^tbinopnode;
        tbinopnode = class(tbinarynode)
-          constructor init(tt : tnodetype;l,r : pnode);virtual;
+          constructor create(tt : tnodetype;l,r : tnode);virtual;
+          function docompare(p : tnode) : boolean;override;
        end;
 {
   $Log$
-  Revision 1.1  2000-08-26 12:27:04  florian
+  Revision 1.2  2000-09-20 21:52:38  florian
+    * removed a lot of errors
+
+  Revision 1.1  2000/08/26 12:27:04  florian
     * initial release
 
 }
