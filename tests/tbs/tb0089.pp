@@ -1,4 +1,5 @@
 { %TARGET=go32v2,linux }
+{ %SKIPEMU=qemu-arm }
 
 { Old file: tbs0105.pp }
 { typecasts are now ignored problem (NOT A bugs)         OK 0.99.1 }

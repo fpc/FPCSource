@@ -1,3 +1,5 @@
+{ %SKIPEMU=qemu-arm }
+
 { Source provided for Free Pascal Bug Report 1152 }
 { Submitted by "Dirk Verwiebe" on  2000-09-30 }
 { e-mail: dirk@verwiebe.de }
