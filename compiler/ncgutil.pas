@@ -1564,10 +1564,12 @@ implementation
         else
           cg.g_restore_frame_pointer(list);
 {$endif}
+{$ifdef x86}
         { at last, the return is generated }
         if (po_interrupt in current_procinfo.procdef.procoptions) then
           cg.g_interrupt_stackframe_exit(list,usesacc,usesacchi)
         else
+{$endif x86}
           begin
             if current_procinfo.procdef.proccalloption in clearstack_pocalls then
               begin
@@ -1579,6 +1581,13 @@ implementation
               retsize:=current_procinfo.para_stack_size;
             cg.g_return_from_proc(list,retsize);
           end;
+        if usesacchi then
+          begin
+            cg.a_reg_dealloc(list,NR_FUNCTION_RETURN64_LOW_REG);
+            cg.a_reg_dealloc(list,NR_FUNCTION_RETURN64_HIGH_REG);
+          end
+        else if usesacc then
+          cg.a_reg_dealloc(list,NR_FUNCTION_RETURN_REG);
       end;
 
 
@@ -2048,7 +2057,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.179  2003-12-26 13:19:16  florian
+  Revision 1.180  2003-12-28 21:57:43  jonas
+    * fixed procedures declared as "interrupt" for non-x86
+
+  Revision 1.179  2003/12/26 13:19:16  florian
     * rtl and compiler compile with -Cfsse2
 
   Revision 1.178  2003/12/26 00:32:21  florian
