@@ -580,20 +580,20 @@ end;
 
 {$ifndef FPC_SYSTEM_HAS_FPC_SHORTSTR_COMPARE}
 
-function fpc_shortstr_compare(const dstr,sstr:shortstring) : longint;[public,alias:'FPC_SHORTSTR_COMPARE']; {$ifdef hascompilerproc} compilerproc; {$endif}
+function fpc_shortstr_compare(const left,right:shortstring) : longint;[public,alias:'FPC_SHORTSTR_COMPARE']; {$ifdef hascompilerproc} compilerproc; {$endif}
 var
    s1,s2,max,i : byte;
    d : longint;
 begin
-  s1:=length(dstr);
-  s2:=length(sstr);
+  s1:=length(left);
+  s2:=length(right);
   if s1<s2 then
     max:=s1
   else
     max:=s2;
   for i:=1 to max do
     begin
-     d:=byte(sstr[i])-byte(dstr[i]);
+     d:=byte(left[i])-byte(right[i]);
      if d>0 then
        exit(1)
      else if d<0 then
@@ -965,7 +965,10 @@ end;
 
 {
   $Log$
-  Revision 1.56  2003-05-13 20:52:50  peter
+  Revision 1.57  2003-05-16 22:40:11  florian
+    * fixed generic shortstr_compare
+
+  Revision 1.56  2003/05/13 20:52:50  peter
     * extra check for self and empty objects
 
   Revision 1.55  2003/05/13 19:18:08  peter

@@ -880,14 +880,14 @@ end;
 
 
 {$define FPC_SYSTEM_HAS_FPC_SHORTSTR_COMPARE}
-function fpc_shortstr_compare(const dstr,sstr:shortstring): longint; [public,alias:'FPC_SHORTSTR_COMPARE']; {$ifdef hascompilerproc} compilerproc; {$endif}
+function fpc_shortstr_compare(const left,right:shortstring): longint; [public,alias:'FPC_SHORTSTR_COMPARE']; {$ifdef hascompilerproc} compilerproc; {$endif}
 begin
   asm
         cld
         xorl    %ebx,%ebx
         xorl    %eax,%eax
-        movl    sstr,%esi
-        movl    dstr,%edi
+        movl    right,%esi
+        movl    left,%edi
         movb    (%esi),%al
         movb    (%edi),%bl
         movl    %eax,%edx
@@ -1171,7 +1171,10 @@ end;
 
 {
   $Log$
-  Revision 1.41  2003-03-26 00:19:10  peter
+  Revision 1.42  2003-05-16 22:40:11  florian
+    * fixed generic shortstr_compare
+
+  Revision 1.41  2003/03/26 00:19:10  peter
     * ifdef HAS_GENERICCONSTRUCTOR
 
   Revision 1.40  2003/03/17 14:30:11  peter

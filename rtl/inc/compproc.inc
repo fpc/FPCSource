@@ -43,7 +43,7 @@ Procedure fpc_freemem(p:pointer);compilerproc;
 procedure fpc_Shortstr_SetLength(var s:shortstring;len:StrLenInt); compilerproc;
 function fpc_shortstr_to_shortstr(len:longint; const sstr: shortstring): shortstring; compilerproc;
 function fpc_shortstr_concat(const s1,s2:shortstring): shortstring; compilerproc;
-function fpc_shortstr_compare(const dstr,sstr:shortstring) : longint; compilerproc;
+function fpc_shortstr_compare(const left,right:shortstring) : longint; compilerproc;
 
 function fpc_pchar_to_shortstr(p:pchar):shortstring; compilerproc;
 function fpc_pchar_length(p:pchar):longint; compilerproc;
@@ -290,7 +290,10 @@ function fpc_qword_to_double(q: qword): double; compilerproc;
 
 {
   $Log$
-  Revision 1.41  2003-05-13 19:18:08  peter
+  Revision 1.42  2003-05-16 22:40:11  florian
+    * fixed generic shortstr_compare
+
+  Revision 1.41  2003/05/13 19:18:08  peter
     * fpc_help_fail compilerproc
     * fpc_new_class, fpc_dispose_class not needed by latest compiler
 
