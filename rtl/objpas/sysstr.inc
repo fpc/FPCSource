@@ -926,7 +926,7 @@ Begin
           If P<>-1 then
              While (P>1) and (Result[P]='0') do
                begin
-               Delete(Result,P,1);
+               system.Delete(Result,P,1);
                Dec(P);
                end;
           end
@@ -1129,7 +1129,10 @@ const
 
 {
   $Log$
-  Revision 1.18  1999-05-28 20:08:20  michael
+  Revision 1.19  1999-05-30 07:53:15  michael
+  + Small fix. Delete not recognised without system in front of it  ?
+
+  Revision 1.18  1999/05/28 20:08:20  michael
   * too may fixes to list
 
   Revision 1.17  1999/04/08 11:31:03  peter
