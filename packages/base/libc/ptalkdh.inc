@@ -34,7 +34,7 @@ const
    TALK_VERSION = 1;
    LEAVE_INVITE = 0;
    LOOK_UP = 1;
-   DELETE = 2;
+   __DELETE = 2;
    ANNOUNCE = 3;
    SUCCESS = 0;
    NOT_HERE = 1;
