@@ -72,13 +72,13 @@ End;
 
 function fpc_variant_to_dynarray(const v : variant;typeinfo : pointer) : pointer;compilerproc;
   begin
-{$warning TODO fpc_variant_to_dynarray}  
+{$warning TODO fpc_variant_to_dynarray}
     result:=nil;
   end;
 
 function fpc_dynarray_to_variant(const v : variant;typeinfo : pointer) : pointer;compilerproc;
   begin
-{$warning TODO fpc_dynarray_to_variant}  
+{$warning TODO fpc_dynarray_to_variant}
     result:=nil;
   end;
 
@@ -601,7 +601,10 @@ procedure initvariantmanager;
 
 {
   $Log$
-  Revision 1.17  2004-05-31 20:25:04  peter
+  Revision 1.18  2004-08-18 21:03:35  florian
+    * sparc uses wait4 as well
+
+  Revision 1.17  2004/05/31 20:25:04  peter
     * removed warnings
 
   Revision 1.16  2003/12/10 01:36:39  florian

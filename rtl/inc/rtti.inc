@@ -215,7 +215,7 @@ begin
       begin
         Intf_Decr_Ref(PPointer(Data)^);
 	PPointer(Data)^:=nil;
-      end;	
+      end;
 {$endif HASINTF}
     tkDynArray:
       fpc_dynarray_decr_ref(PPointer(Data)^,TypeInfo);
@@ -381,7 +381,10 @@ procedure fpc_finalize_array(data,typeinfo : pointer;count,size : longint); [Pub
 
 {
   $Log$
-  Revision 1.13  2004-07-02 21:21:09  peter
+  Revision 1.14  2004-08-18 21:03:35  florian
+    * sparc uses wait4 as well
+
+  Revision 1.13  2004/07/02 21:21:09  peter
     * decr ref doesn't reset pointer
     * finalize resets pointer for astring,wstring
 

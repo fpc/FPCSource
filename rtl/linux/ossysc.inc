@@ -307,6 +307,10 @@ End;
 {$define WAIT4}
 {$endif CPUx86_64}
 
+{$ifdef CPUSPARC}
+{$define WAIT4}
+{$endif CPUSPARC}
+
 
 function Fpwaitpid(pid : pid_t; stat_loc : pcint; options: cint): pid_t; [public, alias : 'FPC_SYSC_WAITPID'];
 {
@@ -539,7 +543,10 @@ end;
 
 {
  $Log$
- Revision 1.28  2004-05-31 20:25:04  peter
+ Revision 1.29  2004-08-18 21:03:35  florian
+   * sparc uses wait4 as well
+
+ Revision 1.28  2004/05/31 20:25:04  peter
    * removed warnings
 
  Revision 1.27  2004/05/31 14:31:57  peter
