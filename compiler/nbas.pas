@@ -90,12 +90,6 @@ interface
 
        ttempcreatenode = class;
 
-       ttemplocation = record
-         case loc: tcgloc of
-           LOC_REFERENCE: (ref: treference);
-           LOC_REGISTER:  (reg: tregister);
-       end;
-
        { to allow access to the location by temp references even after the temp has }
        { already been disposed and to make sure the coherency between temps and     }
        { temp references is kept after a getcopy                                    }
@@ -110,7 +104,7 @@ interface
          may_be_in_reg              : boolean;
          valid                      : boolean;
          nextref_set_hookoncopy_nil : boolean;
-         loc                        : ttemplocation;
+         location                   : tlocation;
        end;
 
        { a node which will create a (non)persistent temp of a given type with a given  }
@@ -686,7 +680,7 @@ implementation
           { temp must fit a single register }
           (tstoreddef(_restype.def).is_fpuregable or
            (tstoreddef(_restype.def).is_intregable and
-            (_size<=TCGSize2Size[OS_INT]))) and
+            (_size<=TCGSize2Size[OS_64]))) and
           { size of register operations must be known }
           (def_cgsize(_restype.def)<>OS_NO) and
           { no init/final needed }
@@ -873,15 +867,23 @@ implementation
     function ttemprefnode.pass_1 : tnode;
       begin
         expectloc := LOC_REFERENCE;
-        if tempinfo^.may_be_in_reg then
+        if not tempinfo^.restype.def.needs_inittable and
+           tempinfo^.may_be_in_reg then
           begin
-            if (tempinfo^.temptype = tt_persistent) then
+            if tempinfo^.restype.def.deftype=floatdef then
               begin
-                { !!tell rgobj this register is now a regvar, so it can't be freed!! }
-                expectloc := LOC_CREGISTER
+                if (tempinfo^.temptype = tt_persistent) then
+                  expectloc := LOC_CFPUREGISTER
+                else
+                  expectloc := LOC_FPUREGISTER;
               end
             else
-              expectloc := LOC_REGISTER;
+              begin
+                if (tempinfo^.temptype = tt_persistent) then
+                  expectloc := LOC_CREGISTER
+                else
+                  expectloc := LOC_REGISTER;
+              end;
           end;
         result := nil;
       end;
@@ -1024,7 +1026,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.91  2004-11-28 19:16:53  jonas
+  Revision 1.92  2004-12-03 16:04:47  peter
+    * use tlocation for tempnodes
+
+  Revision 1.91  2004/11/28 19:16:53  jonas
     * fixed check for regvar-ability of tempnodes
 
   Revision 1.90  2004/11/21 17:54:59  peter

@@ -365,8 +365,6 @@ interface
 *****************************************************************************}
 
     procedure tcgtempcreatenode.pass_2;
-      var
-        cgsize: tcgsize;
       begin
         location_reset(location,LOC_VOID,OS_NO);
 
@@ -377,38 +375,40 @@ interface
         { get a (persistent) temp }
         if tempinfo^.restype.def.needs_inittable then
           begin
-            tg.GetTempTyped(exprasmlist,tempinfo^.restype.def,tempinfo^.temptype,tempinfo^.loc.ref);
-            tempinfo^.loc.loc := LOC_REFERENCE;
+            location_reset(tempinfo^.location,LOC_REFERENCE,def_cgsize(tempinfo^.restype.def));
+            tg.GetTempTyped(exprasmlist,tempinfo^.restype.def,tempinfo^.temptype,tempinfo^.location.reference);
           end
         else if tempinfo^.may_be_in_reg then
           begin
-            cgsize := def_cgsize(tempinfo^.restype.def);
-            if tempinfo^.restype.def.deftype <> floatdef then
+            if tempinfo^.restype.def.deftype=floatdef then
               begin
-                if (TCGSize2Size[cgsize]>TCGSize2Size[OS_INT]) then
-                  internalerror(2004020202);
-                tempinfo^.loc.reg := cg.getintregister(exprasmlist,cgsize);
                 if (tempinfo^.temptype = tt_persistent) then
-                  begin
-                    { !!tell rgobj this register is now a regvar, so it can't be freed!! }
-                    tempinfo^.loc.loc := LOC_CREGISTER
-                  end
+                  location_reset(tempinfo^.location,LOC_CFPUREGISTER,def_cgsize(tempinfo^.restype.def))
                 else
-                  tempinfo^.loc.loc := LOC_REGISTER;
+                  location_reset(tempinfo^.location,LOC_FPUREGISTER,def_cgsize(tempinfo^.restype.def));
+                tempinfo^.location.register:=cg.getfpuregister(exprasmlist,tempinfo^.location.size);
               end
             else
               begin
-                tempinfo^.loc.reg := cg.getfpuregister(exprasmlist,cgsize);
                 if (tempinfo^.temptype = tt_persistent) then
-                  tempinfo^.loc.loc := LOC_CFPUREGISTER
+                  location_reset(tempinfo^.location,LOC_CREGISTER,def_cgsize(tempinfo^.restype.def))
                 else
-                  tempinfo^.loc.loc := LOC_FPUREGISTER;
+                  location_reset(tempinfo^.location,LOC_REGISTER,def_cgsize(tempinfo^.restype.def));
+{$ifndef cpu64bit}
+                if tempinfo^.location.size in [OS_64,OS_S64] then
+                  begin
+                    tempinfo^.location.register64.reglo:=cg.getintregister(exprasmlist,OS_32);
+                    tempinfo^.location.register64.reghi:=cg.getintregister(exprasmlist,OS_32);
+                  end
+                else
+{$endif cpu64bit}
+                  tempinfo^.location.register:=cg.getintregister(exprasmlist,tempinfo^.location.size);
               end;
           end
         else
           begin
-            tg.GetTemp(exprasmlist,size,tempinfo^.temptype,tempinfo^.loc.ref);
-            tempinfo^.loc.loc := LOC_REFERENCE;
+            location_reset(tempinfo^.location,LOC_REFERENCE,def_cgsize(tempinfo^.restype.def));
+            tg.GetTemp(exprasmlist,size,tempinfo^.temptype,tempinfo^.location.reference);
           end;
         tempinfo^.valid := true;
       end;
@@ -423,28 +423,9 @@ interface
         { check if the temp is valid }
         if not tempinfo^.valid then
           internalerror(200108231);
-        case tempinfo^.loc.loc of
-          LOC_REFERENCE:
-            begin
-              { set the temp's location }
-              location_reset(location,LOC_REFERENCE,def_cgsize(tempinfo^.restype.def));
-              location.reference := tempinfo^.loc.ref;
-              inc(location.reference.offset,offset);
-            end;
-          LOC_REGISTER,
-          LOC_CREGISTER,
-          LOC_FPUREGISTER,
-          LOC_CFPUREGISTER:
-            begin
-              if offset <> 0 then
-                internalerror(2004020205);
-              { LOC_CREGISTER, not LOC_REGISTER, otherwise we can't assign anything to it }
-              location_reset(location,tempinfo^.loc.loc,def_cgsize(tempinfo^.restype.def));
-              location.register := tempinfo^.loc.reg;
-            end;
-          else
-            internalerror(2004020204);
-        end;
+        location:=tempinfo^.location;
+        if tempinfo^.location.loc=LOC_REFERENCE then
+          inc(location.reference.offset,offset);
       end;
 
 
@@ -453,13 +434,13 @@ interface
         { check if the temp is valid }
         if not tempinfo^.valid then
           internalerror(200306081);
-        if (tempinfo^.loc.loc = LOC_REGISTER) then
+        if (tempinfo^.location.loc<>LOC_REFERENCE) then
           internalerror(2004020203);
         if (tempinfo^.temptype = tt_persistent) then
-          tg.ChangeTempType(exprasmlist,tempinfo^.loc.ref,tt_normal);
-        tg.ungettemp(exprasmlist,tempinfo^.loc.ref);
-        tempinfo^.loc.ref := ref;
-        tg.ChangeTempType(exprasmlist,tempinfo^.loc.ref,tempinfo^.temptype);
+          tg.ChangeTempType(exprasmlist,tempinfo^.location.reference,tt_normal);
+        tg.ungettemp(exprasmlist,tempinfo^.location.reference);
+        tempinfo^.location.reference := ref;
+        tg.ChangeTempType(exprasmlist,tempinfo^.location.reference,tempinfo^.temptype);
         { adapt location }
         location.reference := ref;
         inc(location.reference.offset,offset);
@@ -474,22 +455,30 @@ interface
       begin
         location_reset(location,LOC_VOID,OS_NO);
 
-        case tempinfo^.loc.loc of
+        case tempinfo^.location.loc of
           LOC_REFERENCE:
             begin
               if release_to_normal then
-                tg.ChangeTempType(exprasmlist,tempinfo^.loc.ref,tt_normal)
+                tg.ChangeTempType(exprasmlist,tempinfo^.location.reference,tt_normal)
               else
-                tg.UnGetTemp(exprasmlist,tempinfo^.loc.ref);
+                tg.UnGetTemp(exprasmlist,tempinfo^.location.reference);
             end;
           LOC_CREGISTER,
           LOC_REGISTER:
             begin
               { make sure the register allocator doesn't reuse the }
               { register e.g. in the middle of a loop              }
-              cg.a_reg_sync(exprasmlist,tempinfo^.loc.reg);
+{$ifndef cpu64bit}
+              if tempinfo^.location.size in [OS_64,OS_S64] then
+                begin
+                  cg.a_reg_sync(exprasmlist,tempinfo^.location.register64.reghi);
+                  cg.a_reg_sync(exprasmlist,tempinfo^.location.register64.reglo);
+                end
+{$endif cpu64bit}
+              else
+                cg.a_reg_sync(exprasmlist,tempinfo^.location.register);
               if release_to_normal then
-                tempinfo^.loc.loc := LOC_REGISTER;
+                tempinfo^.location.loc := LOC_REGISTER;
             end;
         end;
       end;
@@ -506,7 +495,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.72  2004-12-02 19:26:15  peter
+  Revision 1.73  2004-12-03 16:04:47  peter
+    * use tlocation for tempnodes
+
+  Revision 1.72  2004/12/02 19:26:15  peter
     * disable pass2inline
 
   Revision 1.71  2004/11/11 19:31:33  peter
