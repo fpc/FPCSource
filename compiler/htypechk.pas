@@ -355,8 +355,19 @@ implementation
              else
                begin
                   inc(tcallnode(ht).symtableprocentry^.refs);
-                  tcallnode(ht).left:=gencallparanode(tbinarynode(t).right,
-                                                      gencallparanode(tbinarynode(t).left,nil));
+                  { we need copies, because the originals will be destroyed when we give a }
+                  { changed node back to firstpass! (JM)                                   }
+                  if assigned(tbinarynode(t).left) then
+                    if assigned(tbinarynode(t).right) then
+                      tcallnode(ht).left :=
+                        gencallparanode(tbinarynode(t).right.getcopy,
+                                          gencallparanode(tbinarynode(t).left.getcopy,nil))
+                    else
+                      tcallnode(ht).left :=
+                        gencallparanode(nil,gencallparanode(tbinarynode(t).left.getcopy,nil))
+                  else if assigned(tbinarynode(t).right) then
+                         gencallparanode(tbinarynode(t).right.getcopy,
+                                           gencallparanode(nil,nil));
                   if t.nodetype=unequaln then
                     ht:=cnotnode.create(ht);
                   firstpass(ht);
@@ -887,7 +898,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.16  2000-11-13 11:30:54  florian
+  Revision 1.17  2000-11-28 14:04:03  jonas
+    * fixed operator overloading problems
+
+  Revision 1.16  2000/11/13 11:30:54  florian
     * some bugs with interfaces and NIL fixed
 
   Revision 1.15  2000/11/12 22:20:37  peter
