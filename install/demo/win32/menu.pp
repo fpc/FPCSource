@@ -335,10 +335,14 @@ Begin
     End;
 End.
 
-{   $Log$
-{   Revision 1.5  1999-08-10 08:20:49  michael
-{   + Enhancements by Göran Andersson
 {
+  $Log$
+  Revision 1.6  1999-08-10 08:21:45  michael
+  + Log keyword placement correction.
+
+  Revision 1.5  1999/08/10 08:20:49  michael
+   + Enhancements by Göran Andersson
+
   Revision 1.4  1999/07/16 12:20:57  michael
   + Added saving in fixed file
 
