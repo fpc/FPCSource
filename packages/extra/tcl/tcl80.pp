@@ -26,9 +26,11 @@ unit Tcl80;
 {$ASMMODE INTEL}
 
 {$IFNDEF WIN32}
-  {$LINKLIB c}
-  {$LINKLIB m}
-  {$define USE_C}
+  {$IFNDEF OS2}
+    {$LINKLIB c}
+    {$LINKLIB m}
+    {$define USE_C}
+  {$ENDIF}
 {$ENDIF}
 
 {$PACKRECORDS C}
