@@ -21,7 +21,7 @@
 var
   fpc_system_lock : byte;external name 'fpc_system_lock';
 
-function InterLockedDecrement (var Target: longint) : longint; assembler;
+function InterLockedDecrement (var Target: longint) : longint; assembler; nostackframe;
 asm
   { usually, we shouldn't lock here so saving the stack frame for these extra intructions is
     worse the effort, especially while waiting :)
@@ -125,7 +125,10 @@ end;
 
 {
   $Log$
-  Revision 1.4  2005-02-14 17:13:31  peter
+  Revision 1.5  2005-03-12 18:45:15  florian
+    * InterlockedDecrement fixed
+
+  Revision 1.4  2005/02/14 17:13:31  peter
     * truncate log
 
 }
