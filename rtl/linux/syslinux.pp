@@ -93,6 +93,7 @@ Begin
   asm
         jmp     _haltproc
   end;
+{$else}
 {$endif}
 End;
 
@@ -155,13 +156,16 @@ End;
                               Heap Management
 *****************************************************************************}
 
-{ ___brk_addr is defined and allocated in prt1.as }
+{ ___fpc_brk_addr is defined and allocated in prt1.as }
 
 Function Get_Brk_addr : longint;assembler;
 {$ifdef i386}
 asm
         movl    ___fpc_brk_addr,%eax
 end ['EAX'];
+{$else}
+asm
+end;
 {$endif}
 
 
@@ -171,6 +175,9 @@ asm
         movl    NewAddr,%eax
         movl    %eax,___fpc_brk_addr
 end ['EAX'];
+{$else}
+asm
+end;
 {$endif}
 
 {$ASMMODE ATT}
@@ -677,7 +684,10 @@ End.
 
 {
   $Log$
-  Revision 1.11  1998-08-11 08:30:37  michael
+  Revision 1.12  1998-08-12 14:01:37  michael
+  + Small m68k fixes
+
+  Revision 1.11  1998/08/11 08:30:37  michael
   + Fixed paramstr() - sometimes there are no 255 characters available.
 
   Revision 1.10  1998/07/30 13:26:15  michael
