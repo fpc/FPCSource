@@ -7,4 +7,5 @@ Function fpLstat(path:pchar;Info:pstat):cint;
 Function fpLstat(Filename: PathStr;Info:pstat):cint;
 Function fpSymlink(oldname,newname:pchar):cint;
 Function fpReadLink(name,linkname:pchar;maxlen:size_t):cint;
+Function fpReadLink(name:PathStr):PathStr;
 
