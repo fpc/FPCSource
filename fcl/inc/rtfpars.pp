@@ -1075,7 +1075,7 @@ end.
 
 {
   $Log$
-  Revision 1.2  2000-07-13 11:33:00  michael
-  + removed logs
- 
+  Revision 1.3  2002-09-07 15:15:25  peter
+    * old logs removed and tabs fixed
+
 }

@@ -360,7 +360,7 @@ begin
     begin
       { Each collection item needs its own ListBegin/ListEnd tag, or else the
         reader wouldn't be able to know where an item ends and where the next
-	one starts }
+        one starts }
       WriteListBegin;
       WriteProperties(Value.Items[i]);
       WriteListEnd;
@@ -391,10 +391,10 @@ begin
       begin
         CurAncestor := TComponent(FAncestorList[i]);
         if UpperCase(CurAncestor.Name) = s then
-	begin
-	  Ancestor := CurAncestor;
-	  break;
-	end;
+        begin
+          Ancestor := CurAncestor;
+          break;
+        end;
       end;
     end;
 
@@ -596,7 +596,7 @@ var
   SavedPropPath, Name: String;
   Int64Value, DefInt64Value: Int64;
   BoolValue, DefBoolValue: boolean;
-  
+
 begin
 
   if (not Assigned(PPropInfo(PropInfo)^.SetProc)) or
@@ -619,28 +619,28 @@ begin
 
         if Value <> DefValue then
         begin
-	  Driver.BeginProperty(FPropPath + PPropInfo(PropInfo)^.Name);
+          Driver.BeginProperty(FPropPath + PPropInfo(PropInfo)^.Name);
           case PropType^.Kind of
             tkInteger:
-      	      begin
-		// Check if this integer has a string identifier
-		IntToIdentFn := FindIntToIdent(PPropInfo(PropInfo)^.PropType);
-		if Assigned(IntToIdentFn) and IntToIdentFn(Value, Ident) then
-	          // Integer can be written a human-readable identifier
-	          WriteIdent(Ident)
-		else
-	          // Integer has to be written just as number
-	          WriteInteger(Value);
-	      end;
-    	    tkChar:
+              begin
+                // Check if this integer has a string identifier
+                IntToIdentFn := FindIntToIdent(PPropInfo(PropInfo)^.PropType);
+                if Assigned(IntToIdentFn) and IntToIdentFn(Value, Ident) then
+                  // Integer can be written a human-readable identifier
+                  WriteIdent(Ident)
+                else
+                  // Integer has to be written just as number
+                  WriteInteger(Value);
+              end;
+            tkChar:
               WriteChar(Chr(Value));
-    	    tkSet:
-	      Driver.WriteSet(Value, GetTypeData(PropType)^.CompType);
-    	    tkEnumeration:
+            tkSet:
+              Driver.WriteSet(Value, GetTypeData(PropType)^.CompType);
+            tkEnumeration:
               WriteIdent(GetEnumName(PropType, Value));
           end;
-	  Driver.EndProperty;
-	end;
+          Driver.EndProperty;
+        end;
       end;
     tkFloat:
       begin
@@ -651,9 +651,9 @@ begin
           DefFloatValue := 0;
         if FloatValue <> DefFloatValue then
         begin
-	  Driver.BeginProperty(FPropPath + PPropInfo(PropInfo)^.Name);
+          Driver.BeginProperty(FPropPath + PPropInfo(PropInfo)^.Name);
           WriteFloat(FloatValue);
-	  Driver.EndProperty;
+          Driver.EndProperty;
         end;
       end;
     tkMethod:
@@ -673,7 +673,7 @@ begin
             Driver.WriteMethodName(FLookupRoot.MethodName(MethodValue.Code))
           else
             Driver.WriteMethodName('');
-	  Driver.EndProperty;
+          Driver.EndProperty;
         end;
       end;
     tkSString, tkLString, tkAString, tkWString:
@@ -689,7 +689,7 @@ begin
         begin
           Driver.BeginProperty(FPropPath + PPropInfo(PropInfo)^.Name);
           WriteString(StrValue);
-	  Driver.EndProperty;
+          Driver.EndProperty;
         end;
       end;
   {!!!: tkVariant:}
@@ -702,76 +702,76 @@ begin
           if Assigned(AncestorObj) then
             if Assigned(ObjValue) and
               (TComponent(AncestorObj).Owner = FRootAncestor) and
-    	      (TComponent(ObjValue).Owner = Root) and
+              (TComponent(ObjValue).Owner = Root) and
               (UpperCase(TComponent(AncestorObj).Name) = UpperCase(TComponent(ObjValue).Name)) then
               AncestorObj := ObjValue
-	    else
-	      AncestorObj := nil;
-	end else
+            else
+              AncestorObj := nil;
+        end else
           AncestorObj := nil;
 
-	if not Assigned(ObjValue) then
-	begin
-	  if ObjValue <> AncestorObj then
-	  begin
-	    Driver.BeginProperty(FPropPath + PPropInfo(PropInfo)^.Name);
-	    Driver.WriteIdent('NIL');
-	    Driver.EndProperty;
-	  end
-	end else if ObjValue.InheritsFrom(TPersistent) then
+        if not Assigned(ObjValue) then
+        begin
+          if ObjValue <> AncestorObj then
+          begin
+            Driver.BeginProperty(FPropPath + PPropInfo(PropInfo)^.Name);
+            Driver.WriteIdent('NIL');
+            Driver.EndProperty;
+          end
+        end else if ObjValue.InheritsFrom(TPersistent) then
           if ObjValue.InheritsFrom(TComponent) then
           begin
-	    Component := TComponent(ObjValue);
-	    if ObjValue <> AncestorObj then
-    	    begin
-	      { Determine the correct name of the component this property contains }
+            Component := TComponent(ObjValue);
+            if ObjValue <> AncestorObj then
+            begin
+              { Determine the correct name of the component this property contains }
               if Component.Owner = LookupRoot then
-        	Name := Component.Name
+                Name := Component.Name
               else if Component = LookupRoot then
-        	Name := 'Owner'
+                Name := 'Owner'
               else if Assigned(Component.Owner) and (Length(Component.Owner.Name) > 0)
-        	and (Length(Component.Name) > 0) then
-        	Name := Component.Owner.Name + '.' + Component.Name
+                and (Length(Component.Name) > 0) then
+                Name := Component.Owner.Name + '.' + Component.Name
               else if Length(Component.Name) > 0 then
-        	Name := Component.Name + '.Owner'
+                Name := Component.Name + '.Owner'
               else
-		SetLength(Name, 0);
+                SetLength(Name, 0);
 
               if Length(Name) > 0 then
               begin
-		Driver.BeginProperty(FPropPath + PPropInfo(PropInfo)^.Name);
-        	WriteIdent(Name);
-		Driver.EndProperty;
+                Driver.BeginProperty(FPropPath + PPropInfo(PropInfo)^.Name);
+                WriteIdent(Name);
+                Driver.EndProperty;
               end;
-	    end;
+            end;
           end else if ObjValue.InheritsFrom(TCollection) then
           begin
-    	    if (not HasAncestor) or (not CollectionsEqual(TCollection(ObjValue),
+            if (not HasAncestor) or (not CollectionsEqual(TCollection(ObjValue),
               TCollection(GetOrdProp(Ancestor, PropInfo)))) then
-	    begin
-	      Driver.BeginProperty(FPropPath + PPropInfo(PropInfo)^.Name);
+            begin
+              Driver.BeginProperty(FPropPath + PPropInfo(PropInfo)^.Name);
               SavedPropPath := FPropPath;
               try
-        	SetLength(FPropPath, 0);
-        	WriteCollection(TCollection(ObjValue));
+                SetLength(FPropPath, 0);
+                WriteCollection(TCollection(ObjValue));
               finally
-        	FPropPath := SavedPropPath;
-		Driver.EndProperty;
+                FPropPath := SavedPropPath;
+                Driver.EndProperty;
               end;
-    	    end;
+            end;
           end else
           begin
-    	    SavedAncestor := Ancestor;
-    	    SavedPropPath := FPropPath;
-    	    try
+            SavedAncestor := Ancestor;
+            SavedPropPath := FPropPath;
+            try
               FPropPath := FPropPath + PPropInfo(PropInfo)^.Name + '.';
               if HasAncestor then
-        	Ancestor := TPersistent(GetOrdProp(Ancestor, PropInfo));
+                Ancestor := TPersistent(GetOrdProp(Ancestor, PropInfo));
               WriteProperties(TPersistent(ObjValue));
-    	    finally
+            finally
               Ancestor := SavedAncestor;
               FPropPath := SavedPropPath;
-    	    end;
+            end;
           end;
       end;
     tkInt64:
@@ -785,7 +785,7 @@ begin
         begin
           Driver.BeginProperty(FPropPath + PPropInfo(PropInfo)^.Name);
           WriteInteger(Int64Value);
-       	  Driver.EndProperty;
+          Driver.EndProperty;
         end;
       end;
     tkBool:
@@ -823,19 +823,13 @@ end;}
 
 {
   $Log$
-  Revision 1.5  2002-09-04 13:33:58  michael
+  Revision 1.6  2002-09-07 15:15:26  peter
+    * old logs removed and tabs fixed
+
+  Revision 1.5  2002/09/04 13:33:58  michael
    Fix from Mattias Gaertner, boolean streaming now respects default
 
   Revision 1.4  2002/09/03 06:02:57  michael
   + Applied patch from Matthias Gaertner to stream booleans
 
-  Revision 1.3  2000/12/21 09:10:16  sg
-  Merged from fixbranch:
-  * Applied bugfix by Mattias Gaertner for TWriter.WriteProperty
-    (writing of NIL object instanced caused an invalid access)
-  * Optimized some 'is'/InheritsFrom occurencies
-
-  Revision 1.2  2000/07/13 11:33:01  michael
-  + removed logs
- 
 }

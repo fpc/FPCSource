@@ -22,7 +22,7 @@ begin
         Writeln('Found ',ProcedureParams.Count,' parameters of type ',ODBCParamTypeNames[Pt],' :');
          For I:=0 to ProcedureParams.Count-1 do
           Writeln(ProcedureParams[i]);
-        end;  
+        end;
     finally
       ProcedureParams.Free;
     end;

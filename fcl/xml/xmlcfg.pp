@@ -244,13 +244,7 @@ end;
 end.
 {
   $Log$
-  Revision 1.4  2001-04-10 23:22:05  peter
-    * merged fixes
-
-  Revision 1.3  2000/07/29 14:52:24  sg
-  * Modified the copyright notice to remove ambiguities
-
-  Revision 1.2  2000/07/13 11:33:07  michael
-  + removed logs
+  Revision 1.5  2002-09-07 15:15:29  peter
+    * old logs removed and tabs fixed
 
 }

@@ -24,7 +24,7 @@ begin
   With F do
     begin
     Write(Name:12,BufType:5,'  ');
-    If IsNull then  
+    If IsNull then
       Writeln('(Null)')
     else
       Case BufType of

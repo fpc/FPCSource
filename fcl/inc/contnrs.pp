@@ -11,7 +11,7 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 
  **********************************************************************}
-{$ifdef fpc} 
+{$ifdef fpc}
 {$mode objfpc}
 {$endif}
 unit contnrs;
@@ -497,7 +497,10 @@ end.
 
 {
   $Log$
-  Revision 1.5  2002-08-09 09:48:28  michael
+  Revision 1.6  2002-09-07 15:15:24  peter
+    * old logs removed and tabs fixed
+
+  Revision 1.5  2002/08/09 09:48:28  michael
     + mode directive added plus some types fixed
 
   Revision 1.4  2002/08/09 09:44:33  michael

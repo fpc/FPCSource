@@ -68,7 +68,7 @@ type
   DOMString = String;
 {$ELSE}
   DOMString = WideString;
-{$ENDIF} 
+{$ENDIF}
 
 
 // -------------------------------------------------------
@@ -80,24 +80,24 @@ const
 
   // DOM Level 1 exception codes:
 
-  INDEX_SIZE_ERR              = 1;	// index or size is negative, or greater than the allowed value
-  DOMSTRING_SIZE_ERR          = 2;	// Specified range of text does not fit into a DOMString
-  HIERARCHY_REQUEST_ERR       = 3;	// node is inserted somewhere it does not belong
-  WRONG_DOCUMENT_ERR          = 4;	// node is used in a different document than the one that created it (that does not support it)
-  INVALID_CHARACTER_ERR       = 5;	// invalid or illegal character is specified, such as in a name
-  NO_DATA_ALLOWED_ERR         = 6;	// data is specified for a node which does not support data
-  NO_MODIFICATION_ALLOWED_ERR = 7;	// an attempt is made to modify an object where modifications are not allowed
-  NOT_FOUND_ERR               = 8;	// an attempt is made to reference a node in a context where it does not exist
-  NOT_SUPPORTED_ERR           = 9;	// implementation does not support the type of object requested
-  INUSE_ATTRIBUTE_ERR         = 10;	// an attempt is made to add an attribute that is already in use elsewhere
+  INDEX_SIZE_ERR              = 1;      // index or size is negative, or greater than the allowed value
+  DOMSTRING_SIZE_ERR          = 2;      // Specified range of text does not fit into a DOMString
+  HIERARCHY_REQUEST_ERR       = 3;      // node is inserted somewhere it does not belong
+  WRONG_DOCUMENT_ERR          = 4;      // node is used in a different document than the one that created it (that does not support it)
+  INVALID_CHARACTER_ERR       = 5;      // invalid or illegal character is specified, such as in a name
+  NO_DATA_ALLOWED_ERR         = 6;      // data is specified for a node which does not support data
+  NO_MODIFICATION_ALLOWED_ERR = 7;      // an attempt is made to modify an object where modifications are not allowed
+  NOT_FOUND_ERR               = 8;      // an attempt is made to reference a node in a context where it does not exist
+  NOT_SUPPORTED_ERR           = 9;      // implementation does not support the type of object requested
+  INUSE_ATTRIBUTE_ERR         = 10;     // an attempt is made to add an attribute that is already in use elsewhere
 
   // DOM Level 2 exception codes:
 
-  INVALID_STATE_ERR	      = 11;	// an attempt is made to use an object that is not, or is no longer, usable
-  SYNTAX_ERR		      = 12;	// invalid or illegal string specified
-  INVALID_MODIFICATION_ERR    = 13;	// an attempt is made to modify the type of the underlying object
-  NAMESPACE_ERR               = 14;	// an attempt is made to create or change an object in a way which is incorrect with regard to namespaces
-  INVALID_ACCESS_ERR          = 15;	// parameter or operation is not supported by the underlying object
+  INVALID_STATE_ERR           = 11;     // an attempt is made to use an object that is not, or is no longer, usable
+  SYNTAX_ERR                  = 12;     // invalid or illegal string specified
+  INVALID_MODIFICATION_ERR    = 13;     // an attempt is made to modify the type of the underlying object
+  NAMESPACE_ERR               = 14;     // an attempt is made to create or change an object in a way which is incorrect with regard to namespaces
+  INVALID_ACCESS_ERR          = 15;     // parameter or operation is not supported by the underlying object
 
 
 type
@@ -1504,38 +1504,10 @@ end.
 
 {
   $Log$
-  Revision 1.9  2002-03-01 10:02:38  sg
+  Revision 1.10  2002-09-07 15:15:29  peter
+    * old logs removed and tabs fixed
+
+  Revision 1.9  2002/03/01 10:02:38  sg
   * Fixed read access method for TDOMAttr.Value
 
-  Revision 1.8  2001/12/17 20:25:25  sg
-  * Use WideStrings when not using FPC 1.0.x
-
-  Revision 1.7  2001/05/06 21:37:39  sg
-  * Fixed two bugs reported by Florian:
-    - TDOMText.SplitText didn't set the result value
-    - Fixed TDOMNode_WithChildren.InsertBefore, which didn't link the new
-      node correctly into the node list
-
-  Revision 1.6  2001/03/08 19:37:12  michael
-  + Merged changes from fixbranch
-
-  Revision 1.5  2000/09/12 14:07:58  sg
-  * Added fields "StylesheetType" and "StylesheetHRef" to TXMLDocument
-
-  Revision 1.4  2000/07/29 14:52:24  sg
-  Revision 1.1.2.3  2001/01/23 17:46:06  sg
-  * Added fields "StylesheetType" and "StylesheetHRef" to TXMLDocument
-    (backport from main branch)
-
-  Revision 1.1.2.2  2000/07/29 14:20:54  sg
-  * Modified the copyright notice to remove ambiguities
-
-  Revision 1.3  2000/07/25 09:20:08  sg
-  * Fixed some small bugs
-    - some methods where 'virtual' instead of 'override' in dom.pp
-    - corrections regaring wether NodeName or NodeValue is used, for
-      some node types (Entity, EntityReference)
-
-  Revision 1.2  2000/07/13 11:33:07  michael
-  + removed logs
 }

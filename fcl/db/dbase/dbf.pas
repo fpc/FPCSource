@@ -10,7 +10,7 @@ uses
 {$else}
   Windows, Messages, SysUtils, Classes, Graphics, Controls, Forms, Dialogs,
   Db,  DsgnIntf, ExptIntf;
-{$endif}  
+{$endif}
 // If you got a compilation error here or asking for dsgntf.pas, then just add
 // this file in your project:
 // dsgnintf.pas in 'C:\Program Files\Borland\Delphi5\Source\Toolsapi\dsgnintf.pas'
@@ -32,7 +32,7 @@ const
   DirSeparator = '/';
 {$else}
   DirSeparator = '\';
-{$endif}  
+{$endif}
 
 //====================================================================
 // Delphi is a bit to permissive for me,  I mean protected doesn't work within
@@ -394,8 +394,8 @@ type
 {$else}
     procedure AddIndex(const AnIndexName, IndexFields: String; Options: TIndexOptions);
     procedure AddIndex(const AnIndexName, IndexFields: String; Options: TIndexOptions; const DescFields: String);
- 
-{$endif}    
+
+{$endif}
 {$endif}
     procedure CloseIndexFile(const IndexFileName: string);
     procedure OpenIndexFile(AnIndexName:string);
@@ -412,7 +412,7 @@ type
     procedure Translate(Src, Dest: PChar; ToOem: Boolean); override; {virtual}
 {$else}
     function Translate(Src, Dest: PChar; ToOem: Boolean): Integer; override; {virtual}
-{$endif}  
+{$endif}
 {$endif}
     procedure ClearCalcFields(Buffer : PChar); override;
   protected
@@ -733,11 +733,11 @@ begin
     RecordSize:=_DataHdr.RecordSize;
     lRecordCount:=CalcRecordCount;
     if _DataHdr.RecordCount <> lRecordCount then begin
-{$ifndef fpc}    
+{$ifndef fpc}
       ShowMessage('Invalid Record Count,'+^M+
       'RecordCount in Hdr : '+IntToStr(_DataHdr.RecordCount)+^M+
       'expected : '+IntToStr(lRecordCount));
-{$endif}      
+{$endif}
       _DataHdr.RecordCount := lRecordCount;
     end;
   end;
@@ -1224,7 +1224,7 @@ begin
   _DataHdr.Year := SystemTime.Year - 1900;
   _DataHdr.Month := SystemTime.Month;
   _DataHdr.Day := SystemTime.Day;
-{$endif}  
+{$endif}
   Stream.Seek(0,soFromBeginning);
   Stream.WriteBuffer (_DataHdr, SizeOf(_DataHdr));
   _DataHdr.RecordCount := CalcRecordCount;
@@ -1312,7 +1312,7 @@ begin
     end else begin
 {$ifndef fpc}
       lPath:=extractfilepath(Application.Exename)+_RunTimePath;
-{$else}      
+{$else}
       lPath:=extractfilepath(paramstr(0))+_RunTimePath;
 {$endif}
     end;
@@ -1405,10 +1405,10 @@ begin
     Dbf._dbfFile.SetFieldData(Field.FieldNo-1,
       ftInteger,@MemoRecno,@pDbfRecord(TDbf(Field.DataSet).ActiveBuffer)^.deletedflag);
     // seems not bad
-{$ifndef fpc}    
+{$ifndef fpc}
     // FPC doesn't allow to call protected methods ?!!
     Dbf.SetModified(true);
-{$endif}    
+{$endif}
     // but would that be better
     //if not (State in [dsCalcFields, dsFilter, dsNewValue]) then begin
     //  DataEvent(deFieldChange, Longint(Field));
@@ -1530,7 +1530,7 @@ begin
     Result := Boolean(PChar(Ptr)[0]);
 {$else}
     Result := (Pchar(ptr)[0]<>#0);
-{$endif}    
+{$endif}
     if Result and (Buffer <> nil) then
       Move(PChar(Ptr)[1], Buffer^, Field.DataSize);
   end;
@@ -1659,7 +1659,7 @@ procedure TDbf.InternalHandleException; {override virtual abstract from TDataset
 begin
 {$ifndef fpc}
   Application.HandleException(Self);
-{$endif}  
+{$endif}
 end;
 
 procedure TDbf.InternalInitFieldDefs; {override virtual abstract from TDataset}
@@ -1975,7 +1975,7 @@ end;
 procedure TDbf.AddIndex(const AnIndexName, IndexFields: String; Options: TIndexOptions);
 
 begin
-  AddIndex(indexName,IndexFields,options,'');  
+  AddIndex(indexName,IndexFields,options,'');
 end;
 {$endif}
 
@@ -2004,9 +2004,9 @@ begin
   lIndex:=TIndex.Create(lIndexFile,0,true);
 {$ifndef fpc}
   lIndex.InitFieldDef(_DbfFile,Fields);
-{$else}  
+{$else}
   lIndex.InitFieldDef(_DbfFile,IndexFields);
-{$endif}  
+{$endif}
   with lIndex._NdxHdr do begin
     startpage:=1;
     nbPage:=1;
@@ -2018,11 +2018,11 @@ begin
     keyreclen:=lindex._FieldLen+8;
     Unique:=0;
     KeyDesc[0]:=' ';
-{$ifndef fpc}    
+{$ifndef fpc}
     StrLCopy(KeyDesc,PChar(UpperCase(Fields)),255);
-{$else}    
+{$else}
     StrLCopy(KeyDesc,PChar(UpperCase(IndexFields)),255);
-{$endif}    
+{$endif}
   end;
   lindex._IndexFile._Seek(lindex._RootPage);
   lindex._IndexFile.Stream.Write(lindex._NdxHdr,SizeOf(lindex._NdxHdr));

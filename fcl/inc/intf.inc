@@ -114,7 +114,10 @@
 
 {
   $Log$
-  Revision 1.1  2002-07-16 13:32:51  florian
+  Revision 1.2  2002-09-07 15:15:24  peter
+    * old logs removed and tabs fixed
+
+  Revision 1.1  2002/07/16 13:32:51  florian
     + skeleton for TInterfaceList added
 
 }

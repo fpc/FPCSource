@@ -132,7 +132,7 @@ end.
 
 {
   $Log$
-  Revision 1.1  2000-10-03 20:33:22  sg
-  * Added new Units "htmwrite" and "xhtml"
+  Revision 1.2  2002-09-07 15:15:29  peter
+    * old logs removed and tabs fixed
 
 }

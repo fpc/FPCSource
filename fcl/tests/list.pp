@@ -11,7 +11,7 @@ const a1 : pchar = '0';
       a7 : pchar = '6';
       a8 : pchar = '7';
       a9 : pchar = '8';
-      a10 : pchar = '9'; 
+      a10 : pchar = '9';
 
 Var List : TList;
     StartMem,Runner : longint;
@@ -23,12 +23,12 @@ Type PByte = ^Byte;
 begin
   Result:=PByte(p1)^-PByte(P2)^;
 end;
-    
-Procedure DumpMem;    
+
+Procedure DumpMem;
 
 begin
   Writeln ('    Memavail : ',memavail,' (=',StartMem-Memavail,' Bytes lost).')
-end; 
+end;
 
 Procedure DumpList;
 
@@ -38,7 +38,7 @@ begin
   Write ('Count/Capacity : ',List.Count,'/',List.Capacity);dumpmem;
   If List.Count>0 then
     begin
-    For i:=0 to List.Count-1 do 
+    For i:=0 to List.Count-1 do
       if assigned(List.items[I]) then write (Pchar(List.items[i])) else write ('*');
     Writeln;
     end;
@@ -97,7 +97,7 @@ begin
   List.Free;
   DumpMem;
 end.  $Log$
-end.  Revision 1.2  2000-07-13 11:33:04  michael
-end.  + removed logs
-end. 
+end.  Revision 1.3  2002-09-07 15:15:28  peter
+end.    * old logs removed and tabs fixed
+end.
 }

@@ -406,11 +406,7 @@ end.
 
 {
   $Log$
-  Revision 1.3  2001-10-19 03:42:52  carl
-  * Replace byte -> Integer for environment variable scanning
-    (since AnsiString is on) Bug report #1647
+  Revision 1.4  2002-09-07 15:15:24  peter
+    * old logs removed and tabs fixed
 
-  Revision 1.2  2000/07/13 11:32:59  michael
-  + removed logs
- 
 }

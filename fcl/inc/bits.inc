@@ -380,27 +380,11 @@ end;
 
 {
   $Log$
-  Revision 1.7  2002-07-16 14:00:55  florian
+  Revision 1.8  2002-09-07 15:15:24  peter
+    * old logs removed and tabs fixed
+
+  Revision 1.7  2002/07/16 14:00:55  florian
     * raise takes now a void pointer as at and frame address
       instead of a longint, fixed
 
-  Revision 1.6  2001/02/02 23:51:27  peter
-    * bit field to cardinal instead of longint
-
-  Revision 1.5  2000/11/17 13:39:49  sg
-  * Extended Error methods so that exceptions are raised from the caller's
-    address instead of the Error method
-
-  Revision 1.4  2000/10/15 10:04:39  peter
-    + Capitalization of TBits interface fixed; CheckBitIndex now checks for
-      size (merged)
-
-  Revision 1.3  2000/10/15 09:27:48  peter
-    + Added some index checking. Centralized error handling (merged)
-
-  Revision 1.2  2000/07/13 11:32:58  michael
-  + removed logs
-
-  Revision 1.1  2000/07/13 06:31:29  michael
-  + Initial import
 }

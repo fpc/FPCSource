@@ -440,29 +440,14 @@ end;
 
 {
   $Log$
-  Revision 1.8  2002-08-16 10:04:58  michael
+  Revision 1.9  2002-09-07 15:15:24  peter
+    * old logs removed and tabs fixed
+
+  Revision 1.8  2002/08/16 10:04:58  michael
   + Notify correctly implemented
 
   Revision 1.7  2002/07/16 14:00:55  florian
     * raise takes now a void pointer as at and frame address
       instead of a longint, fixed
-
-  Revision 1.6  2001/12/03 21:39:58  peter
-    * seek(int64) overload only for 1.1 compiler
-
-  Revision 1.5  2001/07/17 22:07:29  sg
-  * Added performance improvements suggested by Mattias Gaertner
-    - list grows in steps of 25% if size >= 128
-    - list shrinks by 50% if size drops below a quarter of the capacity
-
-  Revision 1.4  2000/11/17 13:39:49  sg
-  * Extended Error methods so that exceptions are raised from the caller's
-    address instead of the Error method
-
-  Revision 1.3  2000/09/14 18:39:31  michael
-  + Fixed setcapacity
-
-  Revision 1.2  2000/07/13 11:32:59  michael
-  + removed logs
 
 }

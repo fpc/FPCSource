@@ -274,10 +274,7 @@ const
 
 {
   $Log$
-  Revision 1.3  2000-12-23 22:55:29  sg
-  * Added SUnknownPropertyType
+  Revision 1.4  2002-09-07 15:15:24  peter
+    * old logs removed and tabs fixed
 
-  Revision 1.2  2000/07/13 11:32:59  michael
-  + removed logs
- 
 }

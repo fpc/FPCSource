@@ -14,10 +14,10 @@ Program server;
  **********************************************************************}
 
 {
-  TInetServer server program. This will listen on port 4100 till 
-  a client connects. You can connect by running the 'isockcli' or 
+  TInetServer server program. This will listen on port 4100 till
+  a client connects. You can connect by running the 'isockcli' or
   'dsockcli -i' programs in another terminal.
-} 
+}
 
 uses ssockets;
 
@@ -26,7 +26,7 @@ const
 
 Type
   TINetServerApp = Class(TObject)
-  Private 
+  Private
     FServer : TInetServer;
   Public
     Constructor Create(Port : longint);
@@ -34,11 +34,11 @@ Type
     Procedure OnConnect (Sender : TObject; Data : TSocketStream);
     Procedure Run;
   end;
-    
+
 Constructor TInetServerApp.Create(Port : longint);
 
 begin
-  FServer:=TINetServer.Create(Port);  
+  FServer:=TINetServer.Create(Port);
   FServer.OnConnect:=@OnConnect;
 end;
 
@@ -53,13 +53,13 @@ Procedure TInetServerApp.OnConnect (Sender : TObject; Data : TSocketStream);
 
 Var Buf : ShortString;
     Count : longint;
-    
+
 begin
-  Repeat 
+  Repeat
     Count:=Data.Read(Buf[1],255);
     SetLength(Buf,Count);
     Write('Server got : ',Buf);
-  Until (Count=0) or (Pos('QUIT',Buf)<>0);    
+  Until (Count=0) or (Pos('QUIT',Buf)<>0);
   Data.Free;
   FServer.StopAccepting;
 end;
@@ -69,10 +69,10 @@ Procedure TInetServerApp.Run;
 begin
   FServer.StartAccepting;
 end;
-      
-Var 
+
+Var
   Application : TInetServerApp;
-  
+
 begin
   Application:=TInetServerApp.Create(ThePort);
   Application.Run;
@@ -81,7 +81,7 @@ end.
 
 {
   $Log$
-  Revision 1.2  2000-07-13 11:33:04  michael
-  + removed logs
- 
+  Revision 1.3  2002-09-07 15:15:28  peter
+    * old logs removed and tabs fixed
+
 }

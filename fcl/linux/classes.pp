@@ -55,13 +55,7 @@ finalization
 end.
 {
   $Log$
-  Revision 1.4  2001-04-08 11:26:03  peter
-    * update so it can be compiled by both 1.0.x and 1.1
-
-  Revision 1.3  2001/01/21 20:45:09  marco
-   * Rename fest II  FCL version.
-
-  Revision 1.2  2000/07/13 11:33:01  michael
-  + removed logs
+  Revision 1.5  2002-09-07 15:15:27  peter
+    * old logs removed and tabs fixed
 
 }

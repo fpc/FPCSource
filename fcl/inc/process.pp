@@ -25,10 +25,10 @@ Uses Classes,
      Linux,
 {$else}
      unix,
-{$endif}     
-{$else}          
+{$endif}
+{$else}
      Windows,
-{$endif}     
+{$endif}
      SysUtils;
 
 Type
@@ -93,13 +93,13 @@ Type
     hStdOutput: THandle;
     hStdError: THandle;
   end;
-   
+
   PSecurityAttributes = ^TSecurityAttributes;
   TSecurityAttributes = Record
-    nlength : Integer; 
+    nlength : Integer;
     lpSecurityDescriptor : Pointer;
     BinheritHandle : Boolean;
-  end;  
+  end;
 
 Const piInheritablePipe : TSecurityAttributes = (
                            nlength:SizeOF(TSecurityAttributes);
@@ -115,9 +115,9 @@ Type
 
   TProcess = Class (TComponent)
   Private
-{$ifndef unix}  
+{$ifndef unix}
     FAccess : Cardinal;
-{$endif}    
+{$endif}
     FApplicationName : string;
     FChildErrorStream : TOutPutPipeStream;
     FChildInputSTream : TInputPipeStream;
@@ -169,7 +169,7 @@ Type
     procedure SetEnvironment(const Value: TStrings);
 {$ifdef unix}
     function PeekLinuxExitStatus: Boolean;
-{$endif}    
+{$endif}
   Public
     Constructor Create (AOwner : TComponent);override;
     Destructor Destroy; override;
@@ -259,14 +259,14 @@ var FreedStreams: TList;
   procedure FreeStream(var AnObject: TObject);
 
   begin
-    if FreedStreams.IndexOf(AnObject)<0 then 
+    if FreedStreams.IndexOf(AnObject)<0 then
       begin
       FreedStreams.Add(AnObject);
       AnObject.Free;
       end;
     AnObject:=nil;
   end;
-                              
+
 begin
   FreedStreams:=TList.Create;
   try
@@ -517,7 +517,7 @@ Procedure CommandToList(S : String; List : TStrings);
      While (WEnd<=Length(S)) and (S[Wend] in WhiteSpace) do
        inc(Wend);
      Delete(S,1,WEnd-1);
-     
+
   end;
 
 Var
@@ -806,7 +806,7 @@ begin
     FStartupInfo.dwFlags:=FStartupInfo.dwFlags and not Startf_UseShowWindow;
 {$ifndef unix}
   FStartupInfo.wShowWindow:=SWC[Value];
-{$endif}  
+{$endif}
 end;
 
 Procedure TProcess.SetWindowColumns (Value : Cardinal);
@@ -917,31 +917,7 @@ end;
 end.
 {
   $Log$
-  Revision 1.12  2001-12-15 20:01:16  michael
-  + Applied FreeStreams fix from Mattias Gaertner
-
-  Revision 1.11  2001/12/15 19:53:37  michael
-  + Removed DWord and THandle
-
-  Revision 1.10  2001/12/14 07:53:32  michael
-    - Removed trect as well.
-
-  Revision 1.9  2001/12/13 18:34:59  michael
-    * Removed TPoint declaration, it conflicts with classes definition
-
-  Revision 1.8  2001/12/11 11:15:15  marco
-   * ifdef linux -> Unix fix
-
-  Revision 1.7  2001/11/24 20:43:56  carl
-  * fix compilation problems under non-linux systems
-
-  Revision 1.6  2001/11/08 13:01:06  michael
-  + Fixed win32 compile
-
-  Revision 1.5  2001/11/05 21:45:35  michael
-  + unix/linux unit name conflict
-
-  Revision 1.4  2001/11/05 21:07:08  michael
-  + Added header and mode switch
+  Revision 1.13  2002-09-07 15:15:25  peter
+    * old logs removed and tabs fixed
 
 }

@@ -1,9 +1,9 @@
-{   $Id$     
-    
+{   $Id$
+
     Copyright (c) 2000 by Pavel Stingl
 
     Interbase testing program
-    
+
     See the file COPYING.FPC, included in this distribution,
     for details about the copyright.
 
@@ -30,27 +30,27 @@ begin
   Database := TIBDatabase.Create(nil);
   Trans    := TIBTransaction.Create(nil);
   Query    := TIBQuery.Create(nil);
-  
+
   Database.DatabaseName := 'test.gdb';
   Database.UserName     := 'sysdba';
   Database.Password     := 'masterkey';
   Database.Transaction  := Trans;
   Trans.Action          := caRollback;
   Trans.Active          := True;
-  
-  
+
+
   Write('Opening database... Database.Connected = ');
   Database.Open;
   WriteLn(Database.Connected);
-  
+
   // Assigning database to dataset
   Query.Database := Database;
-  
+
   Query.SQL.Add('select * from fpdev');
   Query.Open;
-  
+
   WriteLn;
-  
+
   while not Query.EOF do
   begin
     for x := 0 to Query.FieldCount - 2 do
@@ -58,10 +58,10 @@ begin
     WriteLn(Query.Fields[Query.FieldCount - 1].AsString);
     Query.Next;
   end;
-  
+
   WriteLn;
-  
-  
+
+
   try
     WriteLn('Trying to insert new record to table fpdev');
     Query.Close;
@@ -78,11 +78,11 @@ begin
       Trans.RollbackRetaining;
     end;
   end;
-  
+
   WriteLn;
-  
+
   Trans.Commit;
-  
+
   Write('Closing database... Database.Connected = ');
   Database.Close;
   WriteLn(Database.Connected);
@@ -90,10 +90,7 @@ end.
 
 {
   $Log$
-  Revision 1.3  2000-12-02 15:21:47  michael
-  + Merged from the fixbranch
+  Revision 1.4  2002-09-07 15:15:23  peter
+    * old logs removed and tabs fixed
 
-  Revision 1.2  2000/07/13 11:32:57  michael
-  + removed logs
- 
 }

@@ -7,7 +7,7 @@ uses sysutils,fileinfo;
 
 Var version : TFileVersionInfo;
     I : longint;
-    
+
 begin
   Version:=TFileVErsionInfo.create(Nil);
   Version.FileName:=paramstr(1);
@@ -29,7 +29,7 @@ begin
     free;
     end;
 end.  $Log$
-end.  Revision 1.2  2000-07-13 11:33:04  michael
-end.  + removed logs
-end. 
+end.  Revision 1.3  2002-09-07 15:15:28  peter
+end.    * old logs removed and tabs fixed
+end.
 }

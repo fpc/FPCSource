@@ -19,13 +19,13 @@
   function TStream.GetPosition: Int64;
 
     begin
-       Result:=Seek(0,soCurrent);
+       Result:=Seek(0,soFromCurrent);
     end;
 
   procedure TStream.SetPosition(Pos: Int64);
 
     begin
-       Seek(pos,soBeginning);
+       Seek(pos,soFromBeginning);
     end;
 
   procedure TStream.SetSize64(NewSize: Int64);
@@ -42,8 +42,8 @@
 
     begin
        p:=GetPosition;
-       GetSize:=Seek(0,soEnd);
-       Seek(p,soBeginning);
+       GetSize:=Seek(0,soFromEnd);
+       Seek(p,soFromBeginning);
     end;
 
   procedure TStream.SetSize(NewSize: Longint);
@@ -82,7 +82,7 @@
       if CurrClass<>nil then
        begin
          CurrSeek:=@Self.Seek;
-         TStreamSeek:=@TStream(@CurrClass).Seek;
+         TStreamSeek:=@TStream(CurrClass).Seek;
          if TMethod(TStreamSeek).Code=TMethod(CurrSeek).Code then
           CurrSeek:=nil;
        end;
@@ -99,7 +99,7 @@
       if (Offset<Low(longint)) or
          (Offset>High(longint)) then
         raise ERangeError.Create(SRangeError);
-      Result:=Seek(longint(Offset),ord(Origin));
+      Seek(longint(Offset),ord(Origin));
     end;
 
 {$else seek64bit}
@@ -631,8 +631,8 @@ procedure TMemoryStream.LoadFromFile(const FileName: string);
 Var S : TFileStream;
 
 begin
-  S:=TFileStream.Create (FileName,fmOpenRead);
   Try
+    S:=TFileStream.Create (FileName,fmOpenRead);
     LoadFromStream(S);
   finally
     S.free;
@@ -696,8 +696,8 @@ begin
   Result:=Length(FDataString)-FPosition;
   If Result>Count then Result:=Count;
   // This supposes FDataString to be of type AnsiString !
-  Move (Pchar(FDataString)[FPosition],Buffer,Result);
-  FPosition:=FPosition+Result;
+  Move (Pchar(FDataString)[FPosition],Buffer,Count);
+  FPosition:=FPosition+Count;
 end;
 
 
@@ -784,22 +784,8 @@ end;
 
 {
   $Log$
-  Revision 1.12  2002-04-25 19:14:13  sg
-  * Fixed TStringStream.ReadString
-
-  Revision 1.11  2002/12/18 16:45:33  peter
-    * set function result in TStream.Seek(int64) found by Mattias Gaertner
-
-  Revision 1.10  2002/12/18 16:35:59  peter
-    * fix crash in Seek()
-
-  Revision 1.9  2002/12/18 15:51:52  michael
-  + Hopefully fixed some issues with int64 seek
-
-  Revision 1.8  2002/10/22 09:38:39  michael
-  + Fixed TmemoryStream.LoadFromStream, reported by Mattias Gaertner
-
-  Revision 1.7  2002/09/07 15:15:25  peter
+  Revision 1.7  2002-09-07 15:15:25  peter
     * old logs removed and tabs fixed
 
  }
+

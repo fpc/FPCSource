@@ -105,7 +105,7 @@ var
   flags: Byte;
   InSel: Boolean;
   LastCol: Char;
-  LineWithSpace: String;	// used for virtual whitespace expanding
+  LineWithSpace: String;        // used for virtual whitespace expanding
 
 begin
 
@@ -180,13 +180,13 @@ begin
     // Handle current selection
     if FSel.IsValid then
       if (LineNumber > FSel.OStartY) and (LineNumber < FSel.OEndY) then begin
-	ASSERT(smem > StrLen(OrigStr) + 2);
+        ASSERT(smem > StrLen(OrigStr) + 2);
         s[0] := LF_Escape;
         s[1] := Chr(shSelected);
         StrCopy(@s[2], OrigStr);
       end else if OrigStr[0] = #0 then begin
         if LineNumber = FSel.OStartY then begin
-	  ASSERT(smem >= 3);
+          ASSERT(smem >= 3);
           s[0] := LF_Escape;
           s[1] := Chr(shSelected);
           s[2] := #0;
@@ -198,7 +198,7 @@ begin
         i := 0;
         cx := 0;
         if LineNumber > FSel.OStartY then begin
-	  ASSERT(smem >= 2);
+          ASSERT(smem >= 2);
           s[0] := LF_Escape;
           s[1] := Chr(shSelected);
           InSel := True;
@@ -207,11 +207,11 @@ begin
           InSel := False;
         LastCol := Chr(shDefault);
         while True do begin
-	  ASSERT(i <= StrLen(s2));
+          ASSERT(i <= StrLen(s2));
           if s2[i] = LF_Escape then begin
             LastCol := s2[i + 1];
             if not InSel then begin
-	      ASSERT(smem > spos + 1);
+              ASSERT(smem > spos + 1);
               s[spos] := LF_Escape;
               s[spos + 1] := LastCol;
               Inc(spos, 2);
@@ -220,7 +220,7 @@ begin
           end else begin
             if InSel then begin
               if (LineNumber = FSel.OEndY) and (cx = FSel.OEndX) then begin
-	        ASSERT(smem > spos + 1);
+                ASSERT(smem > spos + 1);
                 s[spos] := LF_Escape;
                 s[spos + 1] := LastCol;
                 Inc(spos, 2);
@@ -228,21 +228,21 @@ begin
               end;
             end else
               if (LineNumber = FSel.OStartY) and (cx = FSel.OStartX) then begin
-	        ASSERT(smem > spos + 1);
+                ASSERT(smem > spos + 1);
                 s[spos] := LF_Escape;
                 s[spos + 1] := Chr(shSelected);
                 Inc(spos, 2);
                 InSel := True;
               end;
             if s2[i] = #0 then break;    // only exit of 'while' loop!
-	    ASSERT(smem > spos);
+            ASSERT(smem > spos);
             s[spos] := s2[i];
             Inc(spos);
             Inc(i);
             Inc(cx);
           end;
         end;
-	ASSERT(smem > spos);
+        ASSERT(smem > spos);
         s[spos] := #0;
         StrDispose(s2);
       end;
@@ -259,7 +259,7 @@ end;
 
 {
   $Log$
-  Revision 1.2  2000-07-13 11:33:02  michael
-  + removed logs
- 
+  Revision 1.3  2002-09-07 15:15:28  peter
+    * old logs removed and tabs fixed
+
 }

@@ -45,9 +45,7 @@ Const
   SNotInEditState = 'Operation not allowed, dataset "%s" is not in an edit state.';
 {
   $Log$
-  Revision 1.3  2000-12-24 12:45:19  peter
-    * merges from 1.0.x branch
+  Revision 1.4  2002-09-07 15:15:23  peter
+    * old logs removed and tabs fixed
 
-  Revision 1.2  2000/07/13 11:32:56  michael
-  + removed logs
 }

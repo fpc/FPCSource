@@ -23,10 +23,7 @@ begin
 end;
 {
   $Log$
-  Revision 1.3  2000-07-22 12:27:48  jonas
-    * added missing "open comment braces" for the log section
-
-  Revision 1.2  2000/07/13 11:32:58  michael
-  + removed logs
+  Revision 1.4  2002-09-07 15:15:24  peter
+    * old logs removed and tabs fixed
 
 }

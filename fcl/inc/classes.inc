@@ -1189,35 +1189,13 @@ end;
 
 {
   $Log$
-  Revision 1.9  2002-07-16 13:32:51  florian
+  Revision 1.10  2002-09-07 15:15:24  peter
+    * old logs removed and tabs fixed
+
+  Revision 1.9  2002/07/16 13:32:51  florian
     + skeleton for TInterfaceList added
 
   Revision 1.8  2002/01/06 21:54:49  peter
     * action classes added
 
-  Revision 1.7  2001/04/10 23:24:51  peter
-    * merged fixes
-
-  Revision 1.6  2001/03/08 19:39:25  michael
-  + Merged fixes
-
-  Revision 1.5  2000/10/15 09:27:48  peter
-    + Added some index checking. Centralized error handling (merged)
-
-  Revision 1.4  2000/10/13 12:33:23  sg
-  * Some small cosmetic changes and minor fixes
-
-  Revision 1.1.2.4  2000/12/13 10:16:33  michael
-  + Applied patch from Mattias Gaertner, bug 1292
-
-  Revision 1.1.2.3  2000/12/11 09:29:59  michael
-  + Fix from Mattias Gaertner
-
-  Revision 1.1.2.2  2000/10/13 10:48:10  sg
-
-  Revision 1.3  2000/07/22 14:55:56  sg
-  * Fixed some DFM parser bugs
-
-  Revision 1.2  2000/07/13 11:32:59  michael
-  + removed logs
 }

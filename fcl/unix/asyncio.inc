@@ -17,14 +17,14 @@ var
   i: Integer;
 begin
   With IOData do
-    begin 
+    begin
     HighestHandle := -1;
     for i := max downto 0 do
       if FD_IsSet(i, ReadMap) or FD_IsSet(i, WriteMap) then begin
         HighestHandle := i;
         break;
       end;
-    end;  
+    end;
 end;
 
 function TAsyncIOManager.GetHandleAsync(AHandle: Integer): Boolean;
@@ -112,7 +112,7 @@ begin
     FD_Clr(AHandle, IOdata.ReadMap);
     if AHandle = HighestHandle then
       CalcHighestHandle(AHandle);
-  end;  
+  end;
 end;
 
 function TAsyncIOManager.GetReadHandler(AHandle: Integer): TAsyncIONotify;
@@ -159,20 +159,7 @@ end;
 
 {
   $Log$
-  Revision 1.2  2000-10-26 22:30:21  peter
-    * freebsd update
-    * classes.rst
-
-  Revision 1.1.2.1  2000/10/25 12:36:24  marco
-   * Split up Freebsd/Unix/Linux for Fixes FCL
-
-  Revision 1.1  2000/07/13 06:31:32  michael
-  + Initial import
-
-  Revision 1.2  2000/07/09 11:48:24  sg
-  * Implemented methods for reading event handlers
-
-  Revision 1.1  2000/02/18 23:14:10  michael
-  + Initial implementation
+  Revision 1.3  2002-09-07 15:15:28  peter
+    * old logs removed and tabs fixed
 
 }

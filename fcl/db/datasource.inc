@@ -11,7 +11,7 @@ begin
 end;
 
 
-Destructor TDataLink.Destroy; 
+Destructor TDataLink.Destroy;
 
 begin
   Factive:=False;
@@ -21,8 +21,8 @@ begin
   Inherited Destroy;
 end;
 
-  
-Procedure TDataLink.ActiveChanged; 
+
+Procedure TDataLink.ActiveChanged;
 
 begin
 end;
@@ -48,21 +48,21 @@ begin
 end;
 
 
-Procedure TDataLink.CheckBrowseMode; 
+Procedure TDataLink.CheckBrowseMode;
 
 begin
 end;
 
 Function TDataLink.CalcFirstRecord(Index : Integer) : Integer;
 
-{ recalculates index of first record in buffer, 
+{ recalculates index of first record in buffer,
   and returns number of record scrolled.}
 
-Var 
+Var
    A,              // Index of active record in buffer
-   F,              // Index of current first record in buffer 
+   F,              // Index of current first record in buffer
    L : Integer;    // index of Last (for us) record in buffer;
- 
+
 begin
   A:=DataSource.DataSet.FActiveRecord;
   F:=FFirstRecord+Index;
@@ -75,67 +75,67 @@ begin
 end;
 
 
-Procedure TDataLink.DataEvent(Event: TDataEvent; Info: Longint); 
+Procedure TDataLink.DataEvent(Event: TDataEvent; Info: Longint);
 
 
 begin
   Case Event of
-    deFieldChange, 
-    deRecordChange : 
+    deFieldChange,
+    deRecordChange :
       If Not FUpdatingRecord then
         RecordChanged(TField(Info));
-    deDataSetChange: 
+    deDataSetChange:
       begin
       SetActive(DataSource.DataSet.Active);
       CalcFirstRecord(Info);
       DatasetChanged;
       end;
-    deDataSetScroll: 
+    deDataSetScroll:
       DatasetScrolled(CalcFirstRecord(Info));
-    deLayoutChange: 
+    deLayoutChange:
       begin
       CalcFirstRecord(Info);
       LayoutChanged;
       end;
-    deUpdateRecord: 
+    deUpdateRecord:
       UpdateRecord;
-    deUpdateState: 
+    deUpdateState:
       CheckActiveAndEditing;
     deCheckBrowseMode:
       CheckBrowseMode;
-    deFocusControl: 
+    deFocusControl:
       FocusControl(TFieldRef(Info));
-  end;     
+  end;
 end;
 
 
-Procedure TDataLink.DataSetChanged; 
+Procedure TDataLink.DataSetChanged;
 
 begin
   RecordChanged(Nil);
 end;
 
 
-Procedure TDataLink.DataSetScrolled(Distance: Integer); 
+Procedure TDataLink.DataSetScrolled(Distance: Integer);
 
 begin
   DataSetChanged;
 end;
 
 
-Procedure TDataLink.EditingChanged; 
+Procedure TDataLink.EditingChanged;
 
 begin
 end;
 
 
-Procedure TDataLink.FocusControl(Field: TFieldRef); 
+Procedure TDataLink.FocusControl(Field: TFieldRef);
 
 begin
 end;
 
 
-Function TDataLink.GetActiveRecord: Integer; 
+Function TDataLink.GetActiveRecord: Integer;
 
 begin
   Result:=Dataset.FActiveRecord;
@@ -148,28 +148,28 @@ begin
 end;
 
 
-Function TDataLink.GetBOF: Boolean; 
+Function TDataLink.GetBOF: Boolean;
 
 begin
   Result:=DataSet.BOF
 end;
 
 
-Function TDataLink.GetBufferCount: Integer; 
+Function TDataLink.GetBufferCount: Integer;
 
 begin
   Result:=FBufferCount;
 end;
 
 
-Function TDataLink.GetEOF: Boolean; 
+Function TDataLink.GetEOF: Boolean;
 
 begin
   Result:=DataSet.EOF
 end;
 
 
-Function TDataLink.GetRecordCount: Integer; 
+Function TDataLink.GetRecordCount: Integer;
 
 Var D : TDataSet;
 
@@ -180,34 +180,34 @@ begin
 end;
 
 
-Procedure TDataLink.LayoutChanged; 
+Procedure TDataLink.LayoutChanged;
 
 begin
   DataSetChanged;
 end;
 
 
-Function TDataLink.MoveBy(Distance: Integer): Integer; 
+Function TDataLink.MoveBy(Distance: Integer): Integer;
 
 begin
   DataSet.MoveBy(Distance);
 end;
 
 
-Procedure TDataLink.RecordChanged(Field: TField); 
+Procedure TDataLink.RecordChanged(Field: TField);
 
 begin
 end;
 
 
-Procedure TDataLink.SetActiveRecord(Value: Integer); 
+Procedure TDataLink.SetActiveRecord(Value: Integer);
 
 begin
   Dataset.FActiveRecord:=Value;
 end;
 
 
-Procedure TDataLink.SetBufferCount(Value: Integer); 
+Procedure TDataLink.SetBufferCount(Value: Integer);
 
 begin
   If FBUfferCount<>Value then
@@ -240,7 +240,7 @@ begin
   end;
 end;
 
-Procedure TDatalink.SetReadOnly(Value : Boolean); 
+Procedure TDatalink.SetReadOnly(Value : Boolean);
 
 begin
   If FReadOnly<>Value then
@@ -250,7 +250,7 @@ begin
     end;
 end;
 
-Procedure TDataLink.UpdateData; 
+Procedure TDataLink.UpdateData;
 
 begin
 end;
@@ -263,7 +263,7 @@ begin
   If Not FReadOnly then
     DataSource.Edit;
   // Triggered event will set FEditing
-  Result:=FEditing;  
+  Result:=FEditing;
 end;
 
 
@@ -283,8 +283,8 @@ end;
 { ---------------------------------------------------------------------
     TDetailDataLink
   ---------------------------------------------------------------------}
-  
-Function TDetailDataLink.GetDetailDataSet: TDataSet; 
+
+Function TDetailDataLink.GetDetailDataSet: TDataSet;
 
 begin
 end;
@@ -300,38 +300,38 @@ begin
 end;
 
 
-destructor TMasterDataLink.Destroy; 
+destructor TMasterDataLink.Destroy;
 
 begin
   inherited Destroy;
 end;
-  
-
-Procedure TMasterDataLink.ActiveChanged; 
-
-begin
-end;
 
 
-Procedure TMasterDataLink.CheckBrowseMode; 
+Procedure TMasterDataLink.ActiveChanged;
 
 begin
 end;
 
 
-Function TMasterDataLink.GetDetailDataSet: TDataSet; 
+Procedure TMasterDataLink.CheckBrowseMode;
 
 begin
 end;
 
 
-Procedure TMasterDataLink.LayoutChanged; 
+Function TMasterDataLink.GetDetailDataSet: TDataSet;
 
 begin
 end;
 
 
-Procedure TMasterDataLink.RecordChanged(Field: TField); 
+Procedure TMasterDataLink.LayoutChanged;
+
+begin
+end;
+
+
+Procedure TMasterDataLink.RecordChanged(Field: TField);
 
 begin
 end;
@@ -345,8 +345,8 @@ end;
 { ---------------------------------------------------------------------
     TDatasource
   ---------------------------------------------------------------------}
-    
-Constructor TDataSource.Create(AOwner: TComponent); 
+
+Constructor TDataSource.Create(AOwner: TComponent);
 
 begin
   Inherited Create(AOwner);
@@ -356,12 +356,12 @@ begin
 end;
 
 
-Destructor TDataSource.Destroy; 
+Destructor TDataSource.Destroy;
 
 begin
   FOnStateCHange:=Nil;
   Dataset:=Nil;
-  With FDataLinks do 
+  With FDataLinks do
     While Count>0 do
       TDatalink(Items[Count - 1]).DataSource:=Nil;
   FDatalinks.Free;
@@ -387,7 +387,7 @@ end;
 procedure TDatasource.DistributeEvent(Event: TDataEvent; Info: Longint);
 
 
-Var 
+Var
   i : Longint;
 
 begin
@@ -396,11 +396,11 @@ begin
     For I:=0 to Count-1 do
       With TDatalink(Items[i]) do
         If Not VisualControl Then
-          DataEvent(Event,Info); 
+          DataEvent(Event,Info);
     For I:=0 to Count-1 do
       With TDatalink(Items[i]) do
         If VisualControl Then
-          DataEvent(Event,Info); 
+          DataEvent(Event,Info);
     end;
 end;
 
@@ -420,7 +420,7 @@ begin
     FDataset.UnRegisterDataSource(Self);
   If ADataset<>Nil Then
     ADataset.RegisterDatasource(Self);
-  FDataSet:=ADataset;  
+  FDataSet:=ADataset;
   ProcessEvent(deUpdateState,0);
 end;
 
@@ -442,7 +442,7 @@ end;
 Procedure TDatasource.DoStateChange;
 
 begin
-  If Assigned(OnStateChange) Then 
+  If Assigned(OnStateChange) Then
     OnStateChange(Self);
 end;
 
@@ -450,7 +450,7 @@ end;
 Procedure TDatasource.DoUpdateData;
 
 begin
-  If Assigned(OnUpdateData) Then 
+  If Assigned(OnUpdateData) Then
     OnUpdateData(Self);
 end;
 
@@ -459,22 +459,22 @@ procedure TDatasource.UnregisterDataLink(DataLink: TDataLink);
 
 begin
   FDatalinks.Remove(Datalink);
-  If Dataset<>Nil then 
+  If Dataset<>Nil then
     Dataset.SetBufListSize(DataLink.BufferCount);
 end;
 
 
 procedure TDataSource.ProcessEvent(Event : TDataEvent; Info : longint);
 
-Const 
-  OnDataChangeEvents = [deRecordChange, deDataSetChange, 
-                           deDataSetScroll, 
+Const
+  OnDataChangeEvents = [deRecordChange, deDataSetChange,
+                           deDataSetScroll,
                            deLayoutChange,deUpdateState];
 
 Var
   NeedDataChange : Boolean;
   FLastState : TdataSetState;
-  
+
 begin
   // Special UpdateState handling.
   If Event=deUpdateState then
@@ -484,20 +484,20 @@ begin
     If Assigned(Dataset) then
       FState:=Dataset.State
     else
-      FState:=dsInactive;  
-    // Don't do events if nothing changed.  
-    If FState<>FlastState then 
-      exit;  
+      FState:=dsInactive;
+    // Don't do events if nothing changed.
+    If FState<>FlastState then
+      exit;
     end
   else
-    NeedDataChange:=True;  
+    NeedDataChange:=True;
   DistributeEvent(Event,Info);
   // Extra handlers
   If Not (csDestroying in ComponentState) then
     begin
     If (Event=deUpdateState) then
       DoStateChange;
-    If (Event in OnDataChangeEvents) and 
+    If (Event in OnDataChangeEvents) and
        NeedDataChange Then
       DoDataChange(Nil);
     If (Event = deFieldChange) Then

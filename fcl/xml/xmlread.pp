@@ -268,7 +268,7 @@ var
   end;
 
 var
-  StrDel: array[0..1] of Char;	// String delimiter
+  StrDel: array[0..1] of Char;  // String delimiter
 begin
   if (buf[0] <> '''') and (buf[0] <> '"') then
     RaiseExc('Expected quotation marks');
@@ -429,7 +429,7 @@ begin
       if CheckFor('[') then
       begin
         ParseDoctypeDecls;
-	SkipWhitespace;
+        SkipWhitespace;
       end;
       ExpectString('>');
     end;
@@ -736,7 +736,7 @@ var
       while (i > 0) and (s[i] in WhitespaceChars) do
         Dec(i);
       if i > 0 then
-	NewElem.AppendChild(doc.CreateTextNode(s));
+        NewElem.AppendChild(doc.CreateTextNode(s));
       Result := True;
     end else
       Result := False;
@@ -960,14 +960,14 @@ procedure TXMLReader.ResolveEntities(RootNode: TDOMNode);
       if Assigned(NextSibling) and (NextSibling.NodeType = TEXT_NODE) then
       begin
         TDOMCharacterData(PrevSibling).AppendData(
-	  TDOMCharacterData(NextSibling).Data);
-	RootNode.RemoveChild(NextSibling);
+          TDOMCharacterData(NextSibling).Data);
+        RootNode.RemoveChild(NextSibling);
       end
     end else
       if Assigned(NextSibling) and (NextSibling.NodeType = TEXT_NODE) then
       begin
         TDOMCharacterData(NextSibling).InsertData(0, Replacement);
-	RootNode.RemoveChild(EntityNode);
+        RootNode.RemoveChild(EntityNode);
       end else
         RootNode.ReplaceChild(Doc.CreateTextNode(Replacement), EntityNode);
   end;
@@ -981,15 +981,15 @@ begin
     NextSibling := Node.NextSibling;
     if Node.NodeType = ENTITY_REFERENCE_NODE then
       if Node.NodeName = 'amp' then
-	ReplaceEntityRef(Node, '&')
+        ReplaceEntityRef(Node, '&')
       else if Node.NodeName = 'apos' then
-	ReplaceEntityRef(Node, '''')
+        ReplaceEntityRef(Node, '''')
       else if Node.NodeName = 'gt' then
-	ReplaceEntityRef(Node, '>')
+        ReplaceEntityRef(Node, '>')
       else if Node.NodeName = 'lt' then
         ReplaceEntityRef(Node, '<')
       else if Node.NodeName = 'quot' then
-	ReplaceEntityRef(Node, '"');
+        ReplaceEntityRef(Node, '"');
     Node := NextSibling;
   end;
 end;
@@ -1117,17 +1117,7 @@ end.
 
 {
   $Log$
-  Revision 1.5  2000-10-14 09:41:45  sg
-  * Fixed typo in previous fix. (forgot closing bracket. Oops.)
+  Revision 1.6  2002-09-07 15:15:29  peter
+    * old logs removed and tabs fixed
 
-  Revision 1.4  2000/10/14 09:40:44  sg
-  * Extended the "Unmatching element end tag" exception, now the expected
-    tag name is included in the message string.
-
-  Revision 1.3  2000/07/29 14:52:25  sg
-  * Modified the copyright notice to remove ambiguities
-
-  Revision 1.2  2000/07/13 11:33:07  michael
-  + removed logs
- 
 }

@@ -11,7 +11,7 @@ Var M : TMemorystream;
     StartKey : ideacryptkey;
     EnKey,DeKey : ideakey;
     I,J : longint;
-    
+
 begin
   M:=TMemoryStream.create;
   // generate some phoney key;
@@ -22,7 +22,7 @@ begin
   ES:=TIDeaEncryptStream.Create(EnKey,M);
   For I:=1 to 65 do
     ES.Write(I,SizeOf(I));
-  Writeln ('Position after Write : ',ES.Position);  
+  Writeln ('Position after Write : ',ES.Position);
   ES.Flush;
   Writeln ('Size of memory stream : ',M.Size);
   M.Seek(0,soFromBeginning);
@@ -32,13 +32,13 @@ begin
   For I:=1 to 65 do
     begin
     DS.Read(J,SizeOf(J));
-    If J<>I then 
+    If J<>I then
       Writeln ('Error; Read : ',J);
     end;
-  Writeln ('Position after Reading : ',DS.Position);  
+  Writeln ('Position after Reading : ',DS.Position);
   DS.destroy;
 end.  $Log$
-end.  Revision 1.2  2000-07-13 11:33:05  michael
-end.  + removed logs
-end. 
+end.  Revision 1.3  2002-09-07 15:15:28  peter
+end.    * old logs removed and tabs fixed
+end.
 }

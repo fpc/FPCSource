@@ -28,14 +28,7 @@ end;
 
 {
   $Log$
-  Revision 1.6  2001-02-26 04:57:38  hajny
-    * correction of a previously introduced bug
+  Revision 1.7  2002-09-07 15:15:27  peter
+    * old logs removed and tabs fixed
 
-  Revision 1.1.2.2  2001/01/28 18:41:07  hajny
-    * error checking added
-
-  Revision 1.1.2.1  2000/10/28 16:56:43  hajny
-    + real (ansistring) implementation
-
- 
 }

@@ -4,7 +4,7 @@ uses classes;
 
 Var Stream : TFileStream;
     S,T : String;
-   
+
 begin
   S:='ABCDEFGHIJKLMNOPQRSTUVWXYZ';
   T:=S;
@@ -21,7 +21,7 @@ begin
   If Stream.ReadByte<>1 then  Writeln ('First byte not 1');
   If Stream.ReadWord<>2 then  Writeln ('First word not 2');
   If Stream.ReadDWord<>3 then Writeln ('First DWord not 3');
-  If Stream.Read(T[1],Length(S))<>Length(S) then 
+  If Stream.Read(T[1],Length(S))<>Length(S) then
     Writeln ('Couldn''t read string.');
   Writeln ('Second pass.');
   Stream.WriteByte  (1);
@@ -39,19 +39,19 @@ begin
   If Stream.ReadByte<>1 then  Writeln ('First byte not 1');
   If Stream.ReadWord<>2 then  Writeln ('First word not 2');
   If Stream.ReadDWord<>3 then Writeln ('First DWord not 3');
-  If Stream.Read(T[1],Length(S))<>Length(S) then 
+  If Stream.Read(T[1],Length(S))<>Length(S) then
     Writeln ('Couldn''t read string.');
   If Stream.ReadByte<>1 then  Writeln ('Second byte not 1');
   If Stream.ReadWord<>2 then  Writeln ('Second word not 2');
   If Stream.ReadDWord<>3 then Writeln ('Second DWord not 3');
-  If Stream.Read(T[1],Length(S))<>Length(S) then 
+  If Stream.Read(T[1],Length(S))<>Length(S) then
     Writeln ('Couldn''t read string.');
   Writeln ('Stream Size is : ',Stream.Size);
   Writeln ('Stream Position is : ',Stream.Position);
   Stream.Free;
 end.
   $Log$
-  Revision 1.2  2000-07-13 11:33:04  michael
-  + removed logs
- 
+  Revision 1.3  2002-09-07 15:15:28  peter
+    * old logs removed and tabs fixed
+
 }

@@ -48,16 +48,10 @@ finalization
 end.
 {
   $Log$
-  Revision 1.5  2002-02-10 13:38:14  hajny
+  Revision 1.6  2002-09-07 15:15:27  peter
+    * old logs removed and tabs fixed
+
+  Revision 1.5  2002/02/10 13:38:14  hajny
     * DosCalls dependency removed to avoid type redefinitions
 
-  Revision 1.4  2000/12/19 00:43:07  hajny
-    + FCL made compilable under OS/2
-
-  Revision 1.3  2000/08/25 17:32:16  hajny
-    * Cosmetic change (OS/2 instead of win32 in header)
-
-  Revision 1.2  2000/07/13 11:33:01  michael
-  + removed logs
- 
 }

@@ -211,16 +211,7 @@ begin
 end;
 {
   $Log$
-  Revision 1.5  2001-10-09 02:17:45  carl
-  * bugfix #1639 (IsMultiThread varialbe setting)
-
-  Revision 1.4  2001/04/17 17:36:17  peter
-    * fixed for stricter argument checking
-
-  Revision 1.3  2000/07/25 11:27:35  jonas
-    * fixed missing comment openers for log section
-
-  Revision 1.2  2000/07/13 11:33:07  michael
-  + removed logs
+  Revision 1.6  2002-09-07 15:15:29  peter
+    * old logs removed and tabs fixed
 
 }

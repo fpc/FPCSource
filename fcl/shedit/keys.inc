@@ -463,7 +463,7 @@ begin
 
   if ShortcutFound then begin
     // WriteLn(shortcut.Action.Descr);
-    shortcut.Action.Method;	// Execute associated action
+    shortcut.Action.Method;     // Execute associated action
     // Handle the selection extending
     case shortcut.Action.SelectionAction of
       selNothing: ;
@@ -482,7 +482,7 @@ begin
     if (KeyCode <= 255) and (ShiftState * [ssCtrl, ssAlt] = []) then
       ExecKey(Chr(KeyCode), False)
     else
-      Result := False;		// Key has not been processed
+      Result := False;          // Key has not been processed
 
   EndSelectionChange;
   AdjustRangeToCursor;
@@ -491,7 +491,7 @@ end;
 
 {
   $Log$
-  Revision 1.2  2000-07-13 11:33:02  michael
-  + removed logs
- 
+  Revision 1.3  2002-09-07 15:15:28  peter
+    * old logs removed and tabs fixed
+
 }

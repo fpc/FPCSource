@@ -15,31 +15,31 @@ Program Client;
 
 {
   TUnixSocket client program. Before running this, run either
-  'socksvr', or 'dsocksvr' in another terminal 
+  'socksvr', or 'dsocksvr' in another terminal
   or in the  background.
 }
 
 uses ssockets;
-        
-var 
+
+var
   S : String;
   i : longint;
-  
+
 begin
   S:='This is a textstring sent by the client'#10;
   With TUnixSocket.Create('ServerSoc') do
     begin
     For I:=1 to 10 do
-      Write(S[1],Length(S));      
-    S:='QUIT'#10;  
+      Write(S[1],Length(S));
+    S:='QUIT'#10;
     Write(S[1],Length(S));
-    Free;  
+    Free;
     end;
 end.
 
 {
   $Log$
-  Revision 1.2  2000-07-13 11:33:04  michael
-  + removed logs
- 
+  Revision 1.3  2002-09-07 15:15:28  peter
+    * old logs removed and tabs fixed
+
 }

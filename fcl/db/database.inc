@@ -1,11 +1,11 @@
 {
     $Id$
     This file is part of the Free Pascal run time library.
-    Copyright (c) 1999-2000 by Michael Van Canneyt, member of the 
+    Copyright (c) 1999-2000 by Michael Van Canneyt, member of the
     Free Pascal development team
 
     TDatabase and related objects implementation
-    
+
     See the file COPYING.FPC, included in this distribution,
     for details about the copyright.
 
@@ -32,7 +32,7 @@ begin
   If Connected Then
     DatabaseError(SConnected,Self);
 end;
-  
+
 procedure TDataBase.Loaded;
 
 begin
@@ -44,7 +44,7 @@ procedure TDataBase.SetConnected (Value : boolean);
 begin
   If Value<>FConnected then
     begin
-    If Value then 
+    If Value then
       DoInternalConnect
     else
       begin
@@ -88,7 +88,7 @@ procedure TDatabase.CloseDataSets;
 Var I : longint;
 
 begin
-  If Assigned(FDatasets) then 
+  If Assigned(FDatasets) then
     begin
     For I:=FDatasets.Count-1 downto 0 do
       TDBDataset(FDatasets[i]).Close;
@@ -100,7 +100,7 @@ procedure TDatabase.RemoveDataSets;
 Var I : longint;
 
 begin
-  If Assigned(FDatasets) then 
+  If Assigned(FDatasets) then
     For I:=FDataSets.Count-1 downto 0 do
       TDBDataset(FDataSets[i]).Database:=Nil;
 end;
@@ -169,13 +169,13 @@ begin
       FDatabase.UnregisterDataset(Self);
     If Value<>Nil Then
       Value.RegisterDataset(Self);
-    FDatabase:=Value; 
+    FDatabase:=Value;
     end;
-end;  
+end;
 
 {
   $Log$
-  Revision 1.2  2000-07-13 11:32:56  michael
-  + removed logs
- 
+  Revision 1.3  2002-09-07 15:15:22  peter
+    * old logs removed and tabs fixed
+
 }

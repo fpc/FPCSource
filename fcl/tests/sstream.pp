@@ -4,7 +4,7 @@ uses classes;
 
 Var Stream : TStringStream;
     S,T : AnsiString;
-   
+
 begin
   S:='ABCDEFGHIJKLMNOPQRSTUVWXYZ';
   T:=S;
@@ -32,7 +32,7 @@ begin
   If Stream.ReadWord<>2 then  Writeln ('First word not 2');
   If Stream.ReadDWord<>3 then Writeln ('First Word not 3');
   T:=Stream.ReadString(Length(S));
-  If Length(T)<>Length(S) then 
+  If Length(T)<>Length(S) then
     Writeln ('Couldn''t read string.');
   Stream.WriteByte  (1);
   Stream.WriteWord  (2);

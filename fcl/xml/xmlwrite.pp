@@ -412,22 +412,7 @@ end.
 
 {
   $Log$
-  Revision 1.6  2001-06-07 14:38:44  jonas
-    * fixed wrong procvar syntax (patches from Peter)
+  Revision 1.7  2002-09-07 15:15:29  peter
+    * old logs removed and tabs fixed
 
-  Revision 1.5  2000/10/03 20:16:31  sg
-  * Now writes Processing Instructions and a stylesheet link, if set
-
-  Revision 1.4  2000/07/29 14:52:25  sg
-  * Modified the copyright notice to remove ambiguities
-
-  Revision 1.3  2000/07/25 09:20:08  sg
-  * Fixed some small bugs
-    - some methods where 'virtual' instead of 'override' in dom.pp
-    - corrections regaring wether NodeName or NodeValue is used, for
-      some node types (Entity, EntityReference)
-
-  Revision 1.2  2000/07/13 11:33:08  michael
-  + removed logs
- 
 }

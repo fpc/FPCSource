@@ -47,14 +47,14 @@ Constructor TIOStream.Create(IOSType : TiosType);
 
 begin
 {$ifdef win32}
-  Case IOSType of 
+  Case IOSType of
     iosOutput : FType:=Stdoutputhandle;
     iosInput : FType:=Stdinputhandle;
     iosError : FType:=StdErrorHandle;
   end;
 {$else}
   FType:=Ord(IOSType);
-{$endif}  
+{$endif}
   Inherited Create(Ftype);
 end;
 
@@ -120,7 +120,7 @@ end.
 
 {
   $Log$
-  Revision 1.2  2000-07-13 11:32:59  michael
-  + removed logs
- 
+  Revision 1.3  2002-09-07 15:15:24  peter
+    * old logs removed and tabs fixed
+
 }

@@ -15,7 +15,7 @@ type
                           end;
 
   Pinteger = ^Integer;
-  
+
   TMySQLDataset = class(TDataSet)
   private
     FSQL: TStrings;
@@ -204,7 +204,7 @@ begin
      Result := False;
 
      CurBuf := ActiveBuffer;
-     
+
      FC := mysql_num_fields(FMYSQLRES);
      for I := 0 to FC-1 do
      begin
@@ -219,7 +219,7 @@ begin
                   Result := PChar(buffer)^ <> #0
                else
                    Result := True;
-               break; 
+               break;
           end
           else
               Inc(CurBuf, MySQLDataSize(fld.ftype, fld.length));
@@ -269,7 +269,7 @@ begin
                begin
                     BookmarkData := FCurrentRecord;
                     BookmarkFlag := bfCurrent;
-               end;               
+               end;
           end
           else
               if (Result = grError) and (DoCheck) then
@@ -297,7 +297,7 @@ begin
      FCurrentRecord := -1;
 
      DoClose;
-    
+
      if DefaultFields then
         DestroyFields;
 end;
@@ -545,7 +545,7 @@ begin
           field := mysql_fetch_field_direct(FMYSQLRES, I);
           CT := MySQLWriteFieldData(field.ftype, field.length, row^, Buffer);
           Inc(Buffer, CT);
-          Inc(row); 
+          Inc(row);
      end;
 end;
 
@@ -580,7 +580,7 @@ function TMySQLDataset.MySQLWriteFieldData(AType: enum_field_types;
 var
   VI: Integer;
   VF: Double;
-  VD: TDateTime;  
+  VD: TDateTime;
 begin
      Result := 0;
      case AType of
@@ -592,7 +592,7 @@ begin
                  VI := StrToInt(Source)
               else
                   VI := 0;
-              Move(VI, Dest^, Result);              
+              Move(VI, Dest^, Result);
          end;
        FIELD_TYPE_DECIMAL, FIELD_TYPE_FLOAT, FIELD_TYPE_DOUBLE:
          begin
@@ -790,10 +790,7 @@ end;
 
 end.
   $Log$
-  Revision 1.1  2001-01-24 22:19:04  peter
-    * mysql units moved to mysql/ dir
+  Revision 1.2  2002-09-07 15:15:23  peter
+    * old logs removed and tabs fixed
 
-  Revision 1.2  2000/07/13 11:32:56  michael
-  + removed logs
- 
 }

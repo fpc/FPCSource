@@ -42,9 +42,9 @@ type
 
   PCacheSlot = ^TCacheSlot;
   TCacheSlot = record
-    Prev, Next: PCacheSlot;	// -> double-linked list
-    Data: Pointer;		// The custom data associated with this element
-    Index: Integer;		// The array index of this slot
+    Prev, Next: PCacheSlot;     // -> double-linked list
+    Data: Pointer;              // The custom data associated with this element
+    Index: Integer;             // The array index of this slot
   end;
 
   PCacheSlotArray = ^TCacheSlotArray;
@@ -69,18 +69,18 @@ type
     procedure SetMRUSlot(ASlot: PCacheSlot);
     procedure SetSlotCount(ACount: Integer);
   protected
-    FSlotCount: Integer;	// Number of cache elements
+    FSlotCount: Integer;        // Number of cache elements
     FSlots: PCacheSlotArray;
-    FMRUSlot,			// First slot in MRU-sorted list
-      FLRUSlot: PCacheSlot;	// Last slot in MRU-sorted list
+    FMRUSlot,                   // First slot in MRU-sorted list
+      FLRUSlot: PCacheSlot;     // Last slot in MRU-sorted list
   public
     constructor Create(ASlotCount: Integer);
     destructor Destroy; override;
 
-    function Add(AData: Pointer): Integer;		// Checks for duplicates
-    function AddNew(AData: Pointer): Integer;		// No duplicate checks
-    function FindSlot(AData: Pointer): PCacheSlot;	// nil => not found
-    function IndexOf(AData: Pointer): Integer;		// -1 => not found
+    function Add(AData: Pointer): Integer;              // Checks for duplicates
+    function AddNew(AData: Pointer): Integer;           // No duplicate checks
+    function FindSlot(AData: Pointer): PCacheSlot;      // nil => not found
+    function IndexOf(AData: Pointer): Integer;          // -1 => not found
     procedure Remove(AData: Pointer);
 
     // Accesses to the "Data" array will be reflected by the MRU list!
@@ -162,7 +162,7 @@ begin
 
       if Assigned(OnFreeSlot) then
         for i := ACount to SlotCount - 1 do
-	  OnFreeSlot(Self, i);
+          OnFreeSlot(Self, i);
 
       while (MRUSlot^.Index >= ACount) and Assigned(MRUSlot^.Next) do
         FMRUSlot := MRUSlot^.Next;
@@ -176,11 +176,11 @@ begin
       while Assigned(Slot) do
       begin
         if Slot^.Index >= ACount then
-	begin
-	  Slot^.Prev^.Next := Slot^.Next;
-	  if Assigned(Slot^.Next) then
-	    Slot^.Next^.Prev := Slot^.Prev;
-	end;
+        begin
+          Slot^.Prev^.Next := Slot^.Next;
+          if Assigned(Slot^.Next) then
+            Slot^.Next^.Prev := Slot^.Prev;
+        end;
         Slot := Slot^.Next;
       end;
 
@@ -192,10 +192,10 @@ begin
       for i := SlotCount to ACount - 1 do
         with FSlots^[i] do
         begin
-	  Prev := @FSlots^[i + 1];
-	  Next := @FSlots^[i - 1];
-	  Data := nil;
-	  Index := i;
+          Prev := @FSlots^[i + 1];
+          Next := @FSlots^[i - 1];
+          Data := nil;
+          Index := i;
         end;
       LRUSlot^.Next := @FSlots^[ACount - 1];
       FSlots^[ACount - 1].Prev := LRUSlot;
@@ -328,7 +328,7 @@ end.
 
 {
   $Log$
-  Revision 1.2  2000-07-13 11:32:58  michael
-  + removed logs
- 
+  Revision 1.3  2002-09-07 15:15:24  peter
+    * old logs removed and tabs fixed
+
 }

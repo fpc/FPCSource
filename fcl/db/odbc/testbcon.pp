@@ -21,7 +21,7 @@ procedure TApp.GetParams(Sender: TObject; ListIn, ListOut: TStrings);
 Var
   S : String;
   i : integer;
-  
+
 begin
   Writeln('Input parameters were :');
   With ListIN do

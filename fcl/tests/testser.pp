@@ -565,7 +565,7 @@ procedure testserial(O : TComponent);
 
 Var W : TTextwriter;
     S : TStream;
-    
+
 begin
   Writeln(stderr,'Creating stream');
   S:=TIOstream.Create(iosOutput);
@@ -591,7 +591,7 @@ begin
   testSerial(o);
 end.
   $Log$
-  Revision 1.2  2000-07-13 11:33:05  michael
-  + removed logs
- 
+  Revision 1.3  2002-09-07 15:15:28  peter
+    * old logs removed and tabs fixed
+
 }

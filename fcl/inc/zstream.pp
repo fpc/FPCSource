@@ -448,13 +448,7 @@ end;
 end.
 {
   $Log$
-  Revision 1.4  2001-01-29 21:52:17  peter
-    * New FPCMake update
-
-  Revision 1.3  2000/11/13 15:46:55  marco
-   * Unix renamefest for defines.
-
-  Revision 1.2  2000/07/13 11:33:01  michael
-  + removed logs
+  Revision 1.5  2002-09-07 15:15:26  peter
+    * old logs removed and tabs fixed
 
 }

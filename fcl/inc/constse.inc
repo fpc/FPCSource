@@ -275,19 +275,7 @@ const
 
 {
   $Log$
-  Revision 1.6  2001-12-17 20:17:38  sg
-  *Fixed some typos
-
-  Revision 1.5  2001/10/28 17:16:44  peter
-    * int64 file functions added
-
-  Revision 1.4  2000/12/23 22:54:50  sg
-  * Fixed SUnknownPropertyType
-
-  Revision 1.3  2000/12/22 22:39:36  peter
-    * added missing sunknownpropertytype
-
-  Revision 1.2  2000/07/13 11:32:59  michael
-  + removed logs
+  Revision 1.7  2002-09-07 15:15:24  peter
+    * old logs removed and tabs fixed
 
 }

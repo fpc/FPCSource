@@ -57,7 +57,7 @@ const
  dtNoWait = 1;
 
 
-procedure DosGetInfoBlocks (PATIB: PPThreadInfoBlock; 
+procedure DosGetInfoBlocks (PATIB: PPThreadInfoBlock;
               PAPIB: PPProcessInfoBlock); cdecl; external 'DOSCALLS' index 312;
 
 function DosSetPriority (Scope, TrClass, Delta, PortID: longint): longint;
@@ -231,16 +231,10 @@ end;
 
 {
   $Log$
-  Revision 1.5  2002-02-10 13:38:14  hajny
+  Revision 1.6  2002-09-07 15:15:27  peter
+    * old logs removed and tabs fixed
+
+  Revision 1.5  2002/02/10 13:38:14  hajny
     * DosCalls dependency removed to avoid type redefinitions
 
-  Revision 1.4  2001/10/09 02:21:00  carl
-  * bugfix #1639 (IsMultiThread varialbe setting)
-
-  Revision 1.3  2000/12/19 00:43:07  hajny
-    + FCL made compilable under OS/2
-
-  Revision 1.2  2000/07/13 11:33:02  michael
-  + removed logs
- 
 }

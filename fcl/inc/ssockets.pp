@@ -515,34 +515,10 @@ end.
 
 {
   $Log$
-  Revision 1.11  2002-05-31 11:31:46  marco
+  Revision 1.12  2002-09-07 15:15:25  peter
+    * old logs removed and tabs fixed
+
+  Revision 1.11  2002/05/31 11:31:46  marco
    * 1.0.x Renamefest for FCL. Fixed some oddities in 1.1 too
 
-  Revision 1.10  2001/12/17 21:03:55  sg
-  * Fixed merging mistake of my last commit :/
-
-  Revision 1.9  2001/12/17 20:21:35  sg
-  * Some cosmetic improvements (fixed wrong method visibilities etc.)
-  * TSocketStream now closes the underlying file handle upon destruction
-
-  Revision 1.8  2001/11/24 20:59:13  carl
-  * fix compilation problems for version 1.0.x branch
-
-  Revision 1.7  2001/11/20 18:53:29  peter
-    * overload fix
-
-  Revision 1.6  2001/04/20 18:50:00  marco
-   * FreeVSD fixy
-
-  Revision 1.5  2001/04/08 11:26:03  peter
-    * update so it can be compiled by both 1.0.x and 1.1
-
-  Revision 1.4  2001/01/21 20:45:09  marco
-   * Rename fest II  FCL version.
-
-  Revision 1.3  2000/11/17 13:40:53  sg
-  * Fixed header and log section
-
-  Revision 1.2  2000/07/13 11:33:00  michael
-  + removed logs
 }

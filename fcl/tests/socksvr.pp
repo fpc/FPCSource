@@ -14,10 +14,10 @@ Program server;
  **********************************************************************}
 
 {
-  TUnixServerApp server program. This will listen on a socket till 
-  a client connects. You can connect by running the 'dsockcli' or 
+  TUnixServerApp server program. This will listen on a socket till
+  a client connects. You can connect by running the 'dsockcli' or
   'sockcli' programs in another terminal.
-} 
+}
 
 uses ssockets;
 
@@ -26,7 +26,7 @@ const
 
 Type
   TUnixServerApp = Class(TObject)
-  Private 
+  Private
     FServer : TUnixServer;
   Public
     Constructor Create(SockName : String);
@@ -34,11 +34,11 @@ Type
     Procedure OnConnect (Sender : TObject; Data : TSocketStream);
     Procedure Run;
   end;
-    
+
 Constructor TUnixServerApp.Create(SockName : String);
 
 begin
-  FServer:=TUnixServer.Create(SockName);  
+  FServer:=TUnixServer.Create(SockName);
   FServer.OnConnect:=@OnConnect;
 end;
 
@@ -53,13 +53,13 @@ Procedure TUnixServerApp.OnConnect (Sender : TObject; Data : TSocketStream);
 
 Var Buf : ShortString;
     Count : longint;
-    
+
 begin
-  Repeat 
+  Repeat
     Count:=Data.Read(Buf[1],255);
     SetLength(Buf,Count);
     Write('Server got : ',Buf);
-  Until (Count=0) or (Pos('QUIT',Buf)<>0);    
+  Until (Count=0) or (Pos('QUIT',Buf)<>0);
   Data.Free;
   FServer.StopAccepting;
 end;
@@ -69,10 +69,10 @@ Procedure TUnixServerApp.Run;
 begin
   FServer.StartAccepting;
 end;
-      
-Var 
+
+Var
   Application : TUnixServerApp;
-  
+
 begin
   Application:=TUnixServerApp.Create(SPath);
   Application.Run;
@@ -81,7 +81,7 @@ end.
 
 {
   $Log$
-  Revision 1.2  2000-07-13 11:33:04  michael
-  + removed logs
- 
+  Revision 1.3  2002-09-07 15:15:28  peter
+    * old logs removed and tabs fixed
+
 }

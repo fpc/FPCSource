@@ -415,16 +415,7 @@ END.
 
 {
   $Log$
-  Revision 1.5  2000-08-04 21:48:29  peter
-    * forgot some conflicts :(
+  Revision 1.6  2002-09-07 15:15:24  peter
+    * old logs removed and tabs fixed
 
-  Revision 1.4  2000/08/04 21:47:29  peter
-    * applied patch from Paul te Bokkel (merged)
-
-  Revision 1.3  2000/07/14 19:47:36  michael
-  + Fixed out parameter
-
-  Revision 1.2  2000/07/13 11:32:59  michael
-  + removed logs
- 
 }

@@ -284,48 +284,7 @@ end;
 
 {
   $Log$
-  Revision 1.5  2001-10-09 02:27:17  carl
-  * bugfix #1639 (IsMultiThread varialbe setting)
-
-  Revision 1.4  2001/04/08 11:26:03  peter
-    * update so it can be compiled by both 1.0.x and 1.1
-
-  Revision 1.3  2001/01/21 20:45:09  marco
-   * Rename fest II  FCL version.
-
-  Revision 1.2  2000/10/26 22:30:21  peter
-    * freebsd update
-    * classes.rst
-
-  Revision 1.1.2.1  2000/10/17 13:47:43  marco
-   * Copy of fcl/linux dir with adapted makefiles to ease FreeBSD 1.0.2
-  packaging
-
-  Revision 1.1  2000/07/13 06:33:44  michael
-  + Initial import
-
-  Revision 1.9  2000/05/17 18:31:18  peter
-    * fixed for new sigactionrec
-
-  Revision 1.8  2000/01/07 01:24:34  peter
-    * updated copyright to 2000
-
-  Revision 1.7  2000/01/06 01:20:33  peter
-    * moved out of packages/ back to topdir
-
-  Revision 1.1  2000/01/03 19:33:09  peter
-    * moved to packages dir
-
-  Revision 1.5  1999/10/27 10:40:30  peter
-    * fixed threadproc decl
-
-  Revision 1.4  1999/08/28 09:32:26  peter
-    * readded header/log
-
-  Revision 1.2  1999/05/31 12:47:59  peter
-    * classes unit to unitobjects
-
-  Revision 1.1  1999/05/30 10:46:42  peter
-    * start of tthread for linux,win32
+  Revision 1.6  2002-09-07 15:15:24  peter
+    * old logs removed and tabs fixed
 
 }

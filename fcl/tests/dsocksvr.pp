@@ -14,14 +14,14 @@ Program server;
  **********************************************************************}
 
 {
-  Dual server program. This will listen on port 4100 till 
-  a client connects if '-i' is on the command-line. 
-  Otherwise it will open a unix socket. You can connect by 
-  running the 'sockcli' or 'dsockcli' programs in another 
+  Dual server program. This will listen on port 4100 till
+  a client connects if '-i' is on the command-line.
+  Otherwise it will open a unix socket. You can connect by
+  running the 'sockcli' or 'dsockcli' programs in another
   terminal.
-  
+
   specifying -b on the command-line will disable blocking.
-} 
+}
 
 uses sysutils,ssockets,getopts;
 
@@ -29,12 +29,12 @@ const
   ThePort=4100;
   TheSocket = 'ServerSoc';
 
-Var 
+Var
   DoInet,NonBlocking : boolean;
-  
+
 Type
   TServerApp = Class(TObject)
-  Private 
+  Private
     FCalls : longint;
     FServer : TSocketServer;
   Public
@@ -45,18 +45,18 @@ Type
     Procedure OnIdle(Sender : TObject);
     Procedure Run;
   end;
-    
+
 Constructor TServerApp.Create(Port : longint);
 
 begin
-  FServer:=TINetServer.Create(Port);  
+  FServer:=TINetServer.Create(Port);
   FServer.OnConnect:=@OnConnect;
 end;
 
 Constructor TServerApp.Create(Socket : String);
 
 begin
-  FServer:=TUnixServer.Create(Socket);  
+  FServer:=TUnixServer.Create(Socket);
   FServer.OnConnect:=@OnConnect;
 end;
 
@@ -71,13 +71,13 @@ Procedure TServerApp.OnConnect (Sender : TObject; Data : TSocketStream);
 
 Var Buf : ShortString;
     Count : longint;
-    
+
 begin
-  Repeat 
+  Repeat
     Count:=Data.Read(Buf[1],255);
     SetLength(Buf,Count);
     Write('Server got : ',Buf);
-  Until (Count=0) or (Pos('QUIT',Buf)<>0);    
+  Until (Count=0) or (Pos('QUIT',Buf)<>0);
   Data.Free;
   FServer.StopAccepting;
 end;
@@ -97,38 +97,38 @@ begin
   else If FServer is TINetServer Then
     Writeln ('port : ',(FServer as TInetServer).port);
   If NonBlocking then
-    begin  
+    begin
     FServer.SetNonBlocking;
     FServer.OnIdle:=@OnIdle;
     end;
   FServer.StartAccepting;
 end;
-      
-Var 
+
+Var
   Application : TServerApp;
   c : char;
-    
+
 begin
   DoInet:=False;
   NonBlocking:=False;
-  repeat 
+  repeat
     c:=getopt('ib');
     case c of
     'b' : NonBlocking:=True;
     'i' : DoInet:=True;
     end;
-  until c=EndOfOptions;  
+  until c=EndOfOptions;
   If DoInet then
     Application:=TServerApp.Create(ThePort)
   else
-    Application:=TServerApp.Create(TheSocket);  
+    Application:=TServerApp.Create(TheSocket);
   Application.Run;
   Application.Free;
 end.
 
 {
   $Log$
-  Revision 1.2  2000-07-13 11:33:04  michael
-  + removed logs
- 
+  Revision 1.3  2002-09-07 15:15:28  peter
+    * old logs removed and tabs fixed
+
 }

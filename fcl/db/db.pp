@@ -76,14 +76,14 @@ type
     ftBoolean, ftFloat, ftDate, ftTime, ftDateTime,
     ftBytes, ftVarBytes, ftAutoInc, ftBlob, ftMemo, ftGraphic,
     ftFmtMemo, ftParadoxOle, ftDBaseOle, ftTypedBinary, ftCursor);
-}    
-    
-  TFieldType = (ftUnknown, ftString, ftSmallint, ftInteger, ftWord, 
-    ftBoolean, ftFloat, ftCurrency, ftBCD, ftDate,  ftTime, ftDateTime, 
-    ftBytes, ftVarBytes, ftAutoInc, ftBlob, ftMemo, ftGraphic, ftFmtMemo, 
-    ftParadoxOle, ftDBaseOle, ftTypedBinary, ftCursor, ftFixedChar, 
-    ftWideString, ftLargeint, ftADT, ftArray, ftReference, 
-    ftDataSet, ftOraBlob, ftOraClob, ftVariant, ftInterface, 
+}
+
+  TFieldType = (ftUnknown, ftString, ftSmallint, ftInteger, ftWord,
+    ftBoolean, ftFloat, ftCurrency, ftBCD, ftDate,  ftTime, ftDateTime,
+    ftBytes, ftVarBytes, ftAutoInc, ftBlob, ftMemo, ftGraphic, ftFmtMemo,
+    ftParadoxOle, ftDBaseOle, ftTypedBinary, ftCursor, ftFixedChar,
+    ftWideString, ftLargeint, ftADT, ftArray, ftReference,
+    ftDataSet, ftOraBlob, ftOraClob, ftVariant, ftInterface,
     ftIDispatch, ftGuid, ftTimeStamp, ftFMTBcd);
 
   TFieldDef = class(TComponent)
@@ -1202,43 +1202,43 @@ type
 Const
   Fieldtypenames : Array [TFieldType] of String[15] =
     (
-      'Unknown', 
-      'String', 
-      'Smallint', 
-      'Integer', 
-      'Word', 
-      'Boolean', 
-      'Float', 
-      'Currency', 
-      'BCD', 
-      'Date',  
-      'Time', 
-      'DateTime', 
-      'Bytes', 
-      'VarBytes', 
-      'AutoInc', 
-      'Blob', 
-      'Memo', 
-      'Graphic', 
-      'FmtMemo', 
-      'ParadoxOle', 
-      'DBaseOle', 
-      'TypedBinary', 
-      'Cursor', 
-      'FixedChar', 
-      'WideString', 
-      'Largeint', 
-      'ADT', 
-      'Array', 
-      'Reference', 
-      'DataSet', 
-      'OraBlob', 
-      'OraClob', 
-      'Variant', 
-      'Interface', 
-      'IDispatch', 
-      'Guid', 
-      'TimeStamp', 
+      'Unknown',
+      'String',
+      'Smallint',
+      'Integer',
+      'Word',
+      'Boolean',
+      'Float',
+      'Currency',
+      'BCD',
+      'Date',
+      'Time',
+      'DateTime',
+      'Bytes',
+      'VarBytes',
+      'AutoInc',
+      'Blob',
+      'Memo',
+      'Graphic',
+      'FmtMemo',
+      'ParadoxOle',
+      'DBaseOle',
+      'TypedBinary',
+      'Cursor',
+      'FixedChar',
+      'WideString',
+      'Largeint',
+      'ADT',
+      'Array',
+      'Reference',
+      'DataSet',
+      'OraBlob',
+      'OraClob',
+      'Variant',
+      'Interface',
+      'IDispatch',
+      'Guid',
+      'TimeStamp',
       'FMTBcd'
     );
     { 'Unknown',
@@ -1457,16 +1457,7 @@ end.
 
 {
   $Log$
-  Revision 1.5  2001-01-18 22:10:07  michael
-  + Fixes to make dbase working merged from fixbranch
+  Revision 1.6  2002-09-07 15:15:23  peter
+    * old logs removed and tabs fixed
 
-  Revision 1.4  2000/12/24 12:45:19  peter
-    * merges from 1.0.x branch
-
-  Revision 1.3  2000/09/02 09:36:36  sg
-  * Changed all occurences of TAbstractReader to TReader, as FCL streaming
-    is source compatible to VCL streaming now (for quite a while, BTW)
-
-  Revision 1.2  2000/07/13 11:32:56  michael
-  + removed logs
 }

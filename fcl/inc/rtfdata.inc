@@ -769,10 +769,7 @@ Const rtfKey : Array [0..281] of TRTFKey =
 
 {
   $Log$
-  Revision 1.3  2001-05-07 11:23:01  jonas
-    * fix for stricter typed constant records (from Peter)
+  Revision 1.4  2002-09-07 15:15:25  peter
+    * old logs removed and tabs fixed
 
-  Revision 1.2  2000/07/13 11:33:00  michael
-  + removed logs
- 
 }

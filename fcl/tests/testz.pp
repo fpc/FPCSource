@@ -6,10 +6,10 @@ Var F : TFileStream;
     C : TCompressionStream;
     D : TDeCompressionStream;
     I,J : longint;
-     
+
 begin
    Writeln ('Start Writing');
-   F:=TFileStream.Create('ztest.dat',FMCreate); 
+   F:=TFileStream.Create('ztest.dat',FMCreate);
    Writeln ('Created filestream');
    C:=TCompressionStream.Create(cldefault,F);
    Writeln ('Created Compressionstream. Writing');
@@ -19,7 +19,7 @@ begin
    C.Free;
    writeln ('freed CompressionStream');
    Writeln ('Start Reading');
-   F:=TFileStream.Create('ztest.dat',FMOpenRead); 
+   F:=TFileStream.Create('ztest.dat',FMOpenRead);
    Writeln ('Created filestream');
    D:=TDeCompressionStream.Create(F);
    Writeln ('Created Decompressionstream. Reading...');
@@ -32,7 +32,7 @@ begin
    D.Free;
    writeln ('freed CompressionStream');
 end.  $Log$
-end.  Revision 1.2  2000-07-13 11:33:05  michael
-end.  + removed logs
-end. 
+end.  Revision 1.3  2002-09-07 15:15:28  peter
+end.    * old logs removed and tabs fixed
+end.
 }

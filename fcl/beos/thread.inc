@@ -93,11 +93,7 @@ end;
 
 {
   $Log$
-  Revision 1.2  2001-10-09 02:28:28  carl
-  * bugfix #1639 (IsMultiThread varialbe setting)
+  Revision 1.3  2002-09-07 15:15:22  peter
+    * old logs removed and tabs fixed
 
-  Revision 1.1  2001/09/28 02:19:13  carl
-  + beos target
-
- 
 }

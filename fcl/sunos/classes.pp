@@ -43,7 +43,7 @@ finalization
 end.
 {
   $Log$
-  Revision 1.1  2001-12-10 02:34:27  carl
-  + initial version
+  Revision 1.2  2002-09-07 15:15:28  peter
+    * old logs removed and tabs fixed
 
 }

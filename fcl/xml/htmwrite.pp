@@ -375,15 +375,7 @@ end.
 
 {
   $Log$
-  Revision 1.3  2001-06-07 14:38:44  jonas
-    * fixed wrong procvar syntax (patches from Peter)
-
-  Revision 1.2  2000/10/15 15:31:26  sg
-  * Improved whitespace handling (entity references as first child of an
-    element is now handled as indicator to stop the insertion of automatic
-    linefeeds. Until now this was only the case with text nodes.)
-
-  Revision 1.1  2000/10/03 20:33:22  sg
-  * Added new Units "htmwrite" and "xhtml"
+  Revision 1.4  2002-09-07 15:15:29  peter
+    * old logs removed and tabs fixed
 
 }

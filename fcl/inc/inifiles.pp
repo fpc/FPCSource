@@ -72,7 +72,8 @@ type
     function KeyByName(AName: string): TIniFileKey;
   public
     destructor Destroy; override;
-    procedure Clear;override;
+    procedure Clear;
+override;
     property Items[Index: integer]: TIniFileKey read GetItem; default;
   end;
 
@@ -786,23 +787,13 @@ end.
 
 {
   $Log$
-  Revision 1.5  2002-08-13 06:51:06  michael
+  Revision 1.6  2002-09-07 15:15:24  peter
+    * old logs removed and tabs fixed
+
+  Revision 1.5  2002/08/13 06:51:06  michael
   + Fixed memory leak reported by A. Chuchko (bug report 2079)
 
   Revision 1.4  2002/06/13 17:28:41  michael
   + Destructor was not freeing all memory. This is now fixed.
 
-  Revision 1.3  2000/11/26 22:43:02  michael
-  + Merged fix from fixes branch
-
-
-  Revision 1.1.2.1  2000/11/26 22:41:26  michael
-  + Fix for addition of empty ident/value by Jean-Pierre Planas
-
-  Revision 1.2  2000/07/13 11:32:59  michael
-  + removed logs
-
-  Revision 1.1  2000/07/13 06:31:30  michael
-  + Initial import
-  
 }

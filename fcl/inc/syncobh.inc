@@ -60,10 +60,7 @@ type
 
 {
   $Log$
-  Revision 1.3  2001-04-13 18:02:57  peter
-    * added missing twaitresult type
-
-  Revision 1.2  2000/07/13 11:33:01  michael
-  + removed logs
+  Revision 1.4  2002-09-07 15:15:26  peter
+    * old logs removed and tabs fixed
 
 }

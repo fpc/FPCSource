@@ -203,7 +203,7 @@ procedure TTextDoc.RemoveLine(LineNumber: Integer);
 var
   i: Integer;
 begin
-  SetLength(FLines^[LineNumber].s, 0);	// Free the string for this line
+  SetLength(FLines^[LineNumber].s, 0);  // Free the string for this line
   ReAllocMem(FLines, (FLineCount - 1) * SizeOf(TLine));
   if LineNumber < FLineCount - 1 then
     Move(FLines^[LineNumber + 1], FLines^[LineNumber],(FLineCount - LineNumber - 1) * SizeOf(TLine));
@@ -228,8 +228,8 @@ procedure TTextDoc.LoadFromStream(AStream: TStream);
       if s[i] = #9 then
       begin
         repeat
-	  s2 := s2 + ' '
-	until (Length(s2) mod 8) = 0;
+          s2 := s2 + ' '
+        until (Length(s2) mod 8) = 0;
       end else
         s2 := s2 + s[i];
     AddLine(s2);
@@ -269,16 +269,16 @@ begin
       if (buffer[i] = #13) or (buffer[i] = #10) then
       begin
         LineLength := i - LastEndOfLine;
-	SetLength(line, LineLength);
-	if LineLength > 0 then
-	  Move(buffer[LastEndOfLine], line[1], LineLength);
+        SetLength(line, LineLength);
+        if LineLength > 0 then
+          Move(buffer[LastEndOfLine], line[1], LineLength);
 
-	ProcessLine(line);
+        ProcessLine(line);
 
-	if ((buffer[i] = #13) and (buffer[i + 1] = #10)) or
-	   ((buffer[i] = #10) and (buffer[i + 1] = #13)) then
-	  Inc(i);
-	LastEndOfLine := i + 1;
+        if ((buffer[i] = #13) and (buffer[i + 1] = #10)) or
+           ((buffer[i] = #10) and (buffer[i + 1] = #13)) then
+          Inc(i);
+        LastEndOfLine := i + 1;
       end;
       Inc(i);
     end;
@@ -410,10 +410,7 @@ end.
 
 {
   $Log$
-  Revision 1.3  2000-11-13 15:46:55  marco
-   * Unix renamefest for defines.
+  Revision 1.4  2002-09-07 15:15:28  peter
+    * old logs removed and tabs fixed
 
-  Revision 1.2  2000/07/13 11:33:02  michael
-  + removed logs
- 
 }

@@ -9,7 +9,7 @@ uses Db, Classes, DDG_Rec;
 type
 
   PInteger =  ^Integer;
-  
+
   // Bookmark information record to support TDataset bookmarks:
   PDDGBookmarkInfo = ^TDDGBookmarkInfo;
   TDDGBookmarkInfo = record
@@ -328,7 +328,7 @@ begin
   TFieldDef.Create(FieldDefs, 'DateTimeField', ftDateTime, 0, false, 6);
   TFieldDef.Create(FieldDefs, 'TimeField',ftTime, 0, false, 7);
   TFieldDef.Create(FieldDefs, 'DateField',ftDate, 0, false, 8);
-  TFieldDef.Create(FieldDefs, 'Booleanfield',ftboolean, 0, False, 9); 
+  TFieldDef.Create(FieldDefs, 'Booleanfield',ftboolean, 0, False, 9);
 end;
 
 procedure TDDGDataSet.InternalLast;
@@ -401,14 +401,14 @@ begin
       FileClose(HFile);
     end
    else
- }  
+ }
       DatabaseError('Could not open table');
   end;
   // open data file
   FileMode := fmOpenReadWrite;
   Writeln ('OPening data file');
   AssignFile(FDataFile, FTableName);
-  Reset(FDataFile);  
+  Reset(FDataFile);
   try
     writeln ('Loading index file');
     FIndexList.LoadFromFile(FIdxName); // initialize index TList from file
@@ -528,7 +528,7 @@ end;
 
 end.
   $Log$
-  Revision 1.2  2000-07-13 11:32:56  michael
-  + removed logs
- 
+  Revision 1.3  2002-09-07 15:15:23  peter
+    * old logs removed and tabs fixed
+
 }

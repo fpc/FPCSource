@@ -23,8 +23,7 @@ begin
 end;
 {
   $Log$
-  Revision 1.1  2001-09-28 02:19:09  carl
-  + beos target
-
+  Revision 1.2  2002-09-07 15:15:22  peter
+    * old logs removed and tabs fixed
 
 }

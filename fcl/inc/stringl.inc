@@ -1035,36 +1035,10 @@ end;
 
 {
   $Log$
-  Revision 1.11  2002-07-17 11:52:01  florian
+  Revision 1.12  2002-09-07 15:15:25  peter
+    * old logs removed and tabs fixed
+
+  Revision 1.11  2002/07/17 11:52:01  florian
     * at and frame addresses in raise statements changed to pointer; fixed
-
-  Revision 1.10  2001/05/20 12:10:03  peter
-    * fixed setcommatext
-
-  Revision 1.9  2001/04/13 18:03:28  peter
-    * commatext fixes
-
-  Revision 1.8  2001/04/10 23:24:51  peter
-    * merged fixes
-
-  Revision 1.7  2001/02/23 22:24:08  michael
-  + Fixed sorting of stringslist
-
-  Revision 1.6  2000/12/03 22:35:09  sg
-  * Applied patch by Markus Kaemmerer (merged):
-    - Added support for TStringList.CustomSort
-
-  Revision 1.5  2000/11/22 22:44:39  peter
-    * fixed commatext (merged)
-
-  Revision 1.4  2000/11/17 13:39:49  sg
-  * Extended Error methods so that exceptions are raised from the caller's
-    address instead of the Error method
-
-  Revision 1.3  2000/11/13 15:46:55  marco
-   * Unix renamefest for defines.
-
-  Revision 1.2  2000/07/13 11:33:01  michael
-  + removed logs
 
 }

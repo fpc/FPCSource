@@ -1776,19 +1776,7 @@ end;
 
 {
   $Log$
-  Revision 1.6  2001-04-10 23:28:23  peter
-    * merged fixes
+  Revision 1.7  2002-09-07 15:15:23  peter
+    * old logs removed and tabs fixed
 
-  Revision 1.5  2001/01/18 22:10:07  michael
-  + Fixes to make dbase working merged from fixbranch
-
-  Revision 1.4  2000/12/24 12:45:19  peter
-    * merges from 1.0.x branch
-
-  Revision 1.3  2000/09/02 09:36:36  sg
-  * Changed all occurences of TAbstractReader to TReader, as FCL streaming
-    is source compatible to VCL streaming now (for quite a while, BTW)
-
-  Revision 1.2  2000/07/13 11:32:56  michael
-  + removed logs
 }

@@ -310,19 +310,10 @@ end.
 
 {
   $Log$
-  Revision 1.5  2002-01-19 11:54:52  peter
+  Revision 1.6  2002-09-07 15:15:24  peter
+    * old logs removed and tabs fixed
+
+  Revision 1.5  2002/01/19 11:54:52  peter
     * fixed wrong getmem
-
-  Revision 1.4  2001/09/21 12:52:54  sg
-  * Evaluates all 3 i18n environment variables: LC_ALL, LC_MESSAGES, LANG
-  * Now takes sublanguage specifiers into account: When the language is set
-    to xx_YY, then the catalogue for xx will be loaded first, and then the
-    catalogue for sublanguage xx_YY will be loaded and applied as well.
-
-  Revision 1.3  2000/11/23 10:19:31  sg
-  * optimized the string translation process a little bit
-
-  Revision 1.2  2000/07/13 11:32:59  michael
-  + removed logs
 
 }

@@ -31,23 +31,7 @@ Type
 
 {
   $Log$
-  Revision 1.4  2001-04-08 11:26:03  peter
-    * update so it can be compiled by both 1.0.x and 1.1
-
-  Revision 1.3  2001/01/21 20:45:09  marco
-   * Rename fest II  FCL version.
-
-  Revision 1.2  2000/10/26 22:30:21  peter
-    * freebsd update
-    * classes.rst
-
-  Revision 1.1.2.1  2000/10/25 12:36:24  marco
-   * Split up Freebsd/Unix/Linux for Fixes FCL
-
-  Revision 1.1  2000/07/13 06:31:32  michael
-  + Initial import
-
-  Revision 1.1  2000/02/18 23:14:10  michael
-  + Initial implementation
+  Revision 1.5  2002-09-07 15:15:29  peter
+    * old logs removed and tabs fixed
 
 }

@@ -112,30 +112,7 @@ end;
 
 {
   $Log$
-  Revision 1.1  2001-09-05 14:30:04  marco
-   * NetBSD fcl makefile fixes. Plain copy from FreeBSD
-
-  Revision 1.4  2001/04/08 11:26:03  peter
-    * update so it can be compiled by both 1.0.x and 1.1
-
-  Revision 1.3  2001/01/21 20:45:09  marco
-   * Rename fest II  FCL version.
-
-  Revision 1.2  2000/10/26 22:30:21  peter
-    * freebsd update
-    * classes.rst
-
-  Revision 1.1.2.1  2000/10/17 13:47:43  marco
-   * Copy of fcl/linux dir with adapted makefiles to ease FreeBSD 1.0.2
-  packaging
-
-  Revision 1.1  2000/07/13 06:33:44  michael
-  + Initial import
-
-  Revision 1.5  2000/02/15 22:03:38  sg
-  * Inserted wrong copyright notice ;)  Fixed.
-
-  Revision 1.4  2000/02/15 21:57:51  sg
-  * Added copyright notice and CVS log tags where necessary
+  Revision 1.2  2002-09-07 15:15:27  peter
+    * old logs removed and tabs fixed
 
 }

@@ -1448,7 +1448,10 @@ function LineStart(Buffer, BufPos: PChar): PChar;
 
 {
   $Log$
-  Revision 1.21  2002-07-16 13:32:51  florian
+  Revision 1.22  2002-09-07 15:15:24  peter
+    * old logs removed and tabs fixed
+
+  Revision 1.21  2002/07/16 13:32:51  florian
     + skeleton for TInterfaceList added
 
   Revision 1.20  2002/07/15 18:35:04  florian
@@ -1459,58 +1462,5 @@ function LineStart(Buffer, BufPos: PChar): PChar;
 
   Revision 1.18  2002/01/06 21:54:49  peter
     * action classes added
-
-  Revision 1.17  2001/12/03 21:39:58  peter
-    * seek(int64) overload only for 1.1 compiler
-
-  Revision 1.16  2001/11/24 20:41:04  carl
-  * fix Peter's problems with compiling under version 1.0
-
-  Revision 1.15  2001/11/20 18:53:29  peter
-    * overload fix
-
-  Revision 1.14  2001/10/29 19:38:13  michael
-  + Added TRect definition
-
-  Revision 1.13  2001/10/28 17:16:44  peter
-    * int64 file functions added
-
-  Revision 1.12  2001/10/23 21:51:02  peter
-    * criticalsection renamed to rtlcriticalsection for kylix compatibility
-
-  Revision 1.11  2001/08/12 22:10:36  peter
-    * some interface updates for 1.1
-
-  Revision 1.10  2001/05/14 21:17:24  florian
-    * TGUID and IUnknown is defined in the system unit by
-      1.1 and above
-
-  Revision 1.9  2001/04/13 18:03:51  peter
-    * added tthread.destroy override
-
-  Revision 1.8  2001/02/09 20:38:28  sg
-  Merges from Fixbranch:
-  * Extended TRect type to have TopLeft and BottomRight fields as well
-  * Added "Driver" property to TReader
-
-  Revision 1.7  2001/02/02 23:51:27  peter
-    * bit field to cardinal instead of longint
-
-  Revision 1.6  2000/12/03 22:35:09  sg
-  * Applied patch by Markus Kaemmerer (merged):
-    - Added support for TStringList.CustomSort
-
-  Revision 1.5  2000/11/13 15:46:55  marco
-   * Unix renamefest for defines.
-
-  Revision 1.4  2000/10/15 10:04:39  peter
-    + Capitalization of TBits interface fixed; CheckBitIndex now checks for
-      size (merged)
-
-  Revision 1.3  2000/08/15 04:10:38  peter
-    * delphi compatibility fix
-
-  Revision 1.2  2000/07/13 11:32:59  michael
-  + removed logs
 
 }

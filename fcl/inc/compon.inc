@@ -231,7 +231,7 @@ begin
   If (Operation=opRemove) and Assigned(FFreeNotifies) then
     begin
     FFreeNotifies.Remove(AComponent);
-	    If FFreeNotifies.Count=0 then
+            If FFreeNotifies.Count=0 then
       begin
       FFreeNotifies.Free;
       FFreenotifies:=Nil;
@@ -533,19 +533,13 @@ end;
 
 {
   $Log$
-  Revision 1.6  2002-01-09 10:40:24  michael
+  Revision 1.7  2002-09-07 15:15:24  peter
+    * old logs removed and tabs fixed
+
+  Revision 1.6  2002/01/09 10:40:24  michael
   + re-enabled Top/Left property writing
 
   Revision 1.5  2002/01/06 21:54:50  peter
     * action classes added
-
-  Revision 1.4  2001/12/03 21:39:58  peter
-    * seek(int64) overload only for 1.1 compiler
-
-  Revision 1.3  2001/01/08 18:36:01  sg
-  * Applied bugfix for bug #1330 (merged)
-
-  Revision 1.2  2000/07/13 11:32:59  michael
-  + removed logs
 
 }

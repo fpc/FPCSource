@@ -10,7 +10,7 @@ Var
   I,Count : longint;
   F : Text;
   Buf : Array[1..1024*4] of byte;
-  
+
 begin
   Assign(F,FN);
   Rewrite(F);
@@ -23,7 +23,7 @@ begin
       begin
       Inc(Count);
       For I:=0 to FieldCount-1 do
-        With Fields[i] do 
+        With Fields[i] do
           Writeln(F,FieldName:20,' : ',AsString);
       Writeln(F,StringOfChar('=',72));
       Next;

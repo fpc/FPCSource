@@ -5,7 +5,7 @@
     Copyright (c) 1999-2000 by Michael Van Canneyt
 
     OS/2 specific part of pipe stream.
-    
+
     See the file COPYING.FPC, included in this distribution,
     for details about the copyright.
 
@@ -28,13 +28,7 @@ begin
 end;
 {
   $Log$
-  Revision 1.4  2000-12-19 00:43:07  hajny
-    + FCL made compilable under OS/2
+  Revision 1.5  2002-09-07 15:15:27  peter
+    * old logs removed and tabs fixed
 
-  Revision 1.3  2000/08/25 17:33:44  hajny
-    * Made compilable again (missing bracket at the begin of logs)
-
-  Revision 1.2  2000/07/13 11:33:01  michael
-  + removed logs
- 
 }

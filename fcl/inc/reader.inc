@@ -74,13 +74,13 @@ begin
       ValueType := NextValue;
       case ValueType of
         vaInt8:
-	  AChildPos := ReadInt8;
-	vaInt16:
-	  AChildPos := ReadInt16;
+          AChildPos := ReadInt8;
+        vaInt16:
+          AChildPos := ReadInt16;
         vaInt32:
-	  AChildPos := ReadInt32;
-	else
-	  raise EReadError.Create(SInvalidPropertyValue);
+          AChildPos := ReadInt32;
+        else
+          raise EReadError.Create(SInvalidPropertyValue);
       end;
     end;
   end;
@@ -131,7 +131,7 @@ begin
     vaIdent:
       begin
         Read(i, 1);
-	SetLength(Result, i);
+        SetLength(Result, i);
         Read(Pointer(@Result[1])^, i);
       end;
     vaNil:
@@ -273,7 +273,7 @@ begin
       begin
         while NextValue <> vaNull do
           SkipValue;
-	ReadValue;
+        ReadValue;
       end;
     vaInt8:
       SkipBytes(1);
@@ -296,15 +296,15 @@ begin
       begin
         while NextValue <> vaNull do
         begin
-	  { Skip the order value if present }
+          { Skip the order value if present }
           if NextValue in [vaInt8, vaInt16, vaInt32] then
-	    SkipValue;
+            SkipValue;
           SkipBytes(1);
           while NextValue <> vaNull do
-	    SkipProperty;
-	  ReadValue;
+            SkipProperty;
+          ReadValue;
         end;
-	ReadValue;
+        ReadValue;
       end;
     vaSingle:
       SkipBytes(Sizeof(Single));
@@ -528,7 +528,7 @@ begin
       for i := Count - 1 downto 0 do
         with TPropFixup(Items[i]) do
           if (FInstance = Fixup.FInstance) and
-	    (FPropInfo = Fixup.FPropInfo) then
+            (FPropInfo = Fixup.FPropInfo) then
           begin
             Free;
             Delete(i);
@@ -636,7 +636,7 @@ begin
     while not EndOfList do
     begin
       if FDriver.NextValue in [vaInt8, vaInt16, vaInt32] then
-        ReadInteger;		{ Skip order value }
+        ReadInteger;            { Skip order value }
       Item := Collection.Add;
       ReadListBegin;
       while not EndOfList do
@@ -681,28 +681,28 @@ begin
     if not Assigned(Result) then
       try
         if ffInherited in Flags then
-	begin
+        begin
           { Try to locate the existing ancestor component }
 
-	  if Assigned(FLookupRoot) then
-	    Result := FLookupRoot.FindComponent(Name)
-	  else
-	    Result := nil;
+          if Assigned(FLookupRoot) then
+            Result := FLookupRoot.FindComponent(Name)
+          else
+            Result := nil;
 
-	  if not Assigned(Result) then
-	  begin
-	    if Assigned(FOnAncestorNotFound) then
-	      FOnAncestorNotFound(Self, Name,
-	        FindComponentClass(CompClassName), Result);
-	    if not Assigned(Result) then
-	      raise EReadError.CreateFmt(SAncestorNotFound, [Name]);
-	  end;
+          if not Assigned(Result) then
+          begin
+            if Assigned(FOnAncestorNotFound) then
+              FOnAncestorNotFound(Self, Name,
+                FindComponentClass(CompClassName), Result);
+            if not Assigned(Result) then
+              raise EReadError.CreateFmt(SAncestorNotFound, [Name]);
+          end;
 
           Parent := Result.GetParentComponent;
           if not Assigned(Parent) then
-	    Parent := Root;
-	end else
-	begin
+            Parent := Root;
+        end else
+        begin
           Result := nil;
           ComponentClass := FindComponentClass(CompClassName);
           if Assigned(FOnCreateComponent) then
@@ -711,20 +711,20 @@ begin
           begin
             NewComponent := TComponent(ComponentClass.NewInstance);
             if ffInline in Flags then
-	      NewComponent.FComponentState :=
-	        NewComponent.FComponentState + [csLoading, csInline];
+              NewComponent.FComponentState :=
+                NewComponent.FComponentState + [csLoading, csInline];
             NewComponent.Create(Owner);
 
-	    { Don't set Result earlier because else we would come in trouble
-	      with the exception recover mechanism! (Result should be NIL if
-	      an error occured) }
+            { Don't set Result earlier because else we would come in trouble
+              with the exception recover mechanism! (Result should be NIL if
+              an error occured) }
             Result := NewComponent;
           end;
           Include(Result.FComponentState, csLoading);
-	end;
+        end;
       except
         if not Recover(Result) then
-	  raise;
+          raise;
       end;
 
     if Assigned(Result) then
@@ -733,36 +733,36 @@ begin
         if not (ffInherited in Flags) then
           try
             Result.SetParentComponent(Parent);
-	    if Assigned(FOnSetName) then
-	      FOnSetName(Self, Result, Name);
-	    Result.Name := Name;
+            if Assigned(FOnSetName) then
+              FOnSetName(Self, Result, Name);
+            Result.Name := Name;
             if Assigned(FindGlobalComponent) and
               (FindGlobalComponent(Name) = Result) then
               Include(Result.FComponentState, csInline);
           except
             if not Recover(Result) then
-	      raise;
+              raise;
           end;
         if not Assigned(Result) then
-	  exit;
+          exit;
         if csInline in Result.ComponentState then
           FLookupRoot := Result;
 
-	{ Read the component state }
+        { Read the component state }
         Include(Result.FComponentState, csReading);
         Result.ReadState(Self);
         Exclude(Result.FComponentState, csReading);
 
         if ffChildPos in Flags then
-	  Parent.SetChildOrder(Result, ChildPos);
+          Parent.SetChildOrder(Result, ChildPos);
 
         { Add component to list of loaded components, if necessary }
-	if (not ((ffInherited in Flags) or (csInline in Result.ComponentState))) or
-	  (FLoaded.IndexOf(Result) < 0) then
-	  FLoaded.Add(Result);
+        if (not ((ffInherited in Flags) or (csInline in Result.ComponentState))) or
+          (FLoaded.IndexOf(Result) < 0) then
+          FLoaded.Add(Result);
       except
         if ((ffInherited in Flags) or Assigned(Component)) then
-	  Result.Free;
+          Result.Free;
         raise;
       end;
   finally
@@ -920,30 +920,30 @@ begin
       while True do
       begin
         NextPos := StrScan(DotPos, '.');
-	if Assigned(NextPos) then
-  	  FPropName := Copy(String(DotPos), 1, Integer(NextPos - DotPos))
+        if Assigned(NextPos) then
+          FPropName := Copy(String(DotPos), 1, Integer(NextPos - DotPos))
         else
-	begin
-	  FPropName := DotPos;
-	  break;
-	end;
-	DotPos := NextPos + 1;
+        begin
+          FPropName := DotPos;
+          break;
+        end;
+        DotPos := NextPos + 1;
 
         PropInfo := GetPropInfo(Instance.ClassInfo, FPropName);
         if not Assigned(PropInfo) then
-	  PropertyError;
+          PropertyError;
 
         if PropInfo^.PropType^.Kind = tkClass then
           Obj := TObject(GetOrdProp(Instance, PropInfo))
-	else
-	  Obj := nil;
+        else
+          Obj := nil;
 
         if not Obj.InheritsFrom(TPersistent) then
-	begin
-	  { All path elements must be persistent objects! }
-	  FDriver.SkipValue;
+        begin
+          { All path elements must be persistent objects! }
+          FDriver.SkipValue;
           raise EReadError.Create(SInvalidPropertyPath);
-	end;
+        end;
         Instance := TPersistent(Obj);
       end;
 
@@ -956,18 +956,18 @@ begin
         Instance.DefineProperties(Self);
         FCanHandleExcepts := True;
         if Length(FPropName) > 0 then
-	  PropertyError;
+          PropertyError;
       end;
     except
       on e: Exception do
       begin
         SetLength(Name, 0);
         if AInstance.InheritsFrom(TComponent) then
-	  Name := TComponent(AInstance).Name;
+          Name := TComponent(AInstance).Name;
         if Length(Name) = 0 then
-	  Name := AInstance.ClassName;
+          Name := AInstance.ClassName;
         raise EReadError.CreateFmt(SPropertyException,
-	  [Name, DotSep, Path, e.Message]);
+          [Name, DotSep, Path, e.Message]);
       end;
     end;
   except
@@ -1020,7 +1020,7 @@ begin
       begin
         CheckValue(vaSet);
         SetOrdProp(Instance, PropInfo,
-	  FDriver.ReadSet(GetTypeData(PropType)^.CompType));
+          FDriver.ReadSet(GetTypeData(PropType)^.CompType));
       end;
     tkMethod:
       if FDriver.NextValue = vaNil then
@@ -1032,7 +1032,7 @@ begin
         Method.Code := FindMethod(Root, ReadIdent);
         Method.Data := Root;
         if Assigned(Method.Code) then
-	  SetMethodProp(Instance, PropInfo, Method);
+          SetMethodProp(Instance, PropInfo, Method);
       end;
     tkSString, tkLString, tkAString, tkWString:
       SetStrProp(Instance, PropInfo, ReadString);
@@ -1081,22 +1081,22 @@ begin
 
         if not (csDesigning in Result.ComponentState) then
         begin
-	  Result.FComponentState :=
-	    Result.FComponentState + [csLoading, csReading];
+          Result.FComponentState :=
+            Result.FComponentState + [csLoading, csReading];
 
           if Assigned(FindGlobalComponent) then
           begin
-	    { We need an unique name }
+            { We need an unique name }
             i := 0;
-	    { Don't use Result.Name directly, as this would influence
-	      FindGlobalComponent in successive loop runs }
+            { Don't use Result.Name directly, as this would influence
+              FindGlobalComponent in successive loop runs }
             ResultName := CompName;
             while Assigned(FindGlobalComponent(ResultName)) do
             begin
               Inc(i);
               ResultName := CompName + '_' + IntToStr(i);
             end;
-	    Result.Name := ResultName;
+            Result.Name := ResultName;
           end else
             Result.Name := '';
         end;
@@ -1113,17 +1113,17 @@ begin
         if FLoaded.IndexOf(FRoot) < 0 then
           FLoaded.Add(FRoot);
         FOwner := FRoot;
-	FRoot.FComponentState := FRoot.FComponentState + [csLoading, csReading];
+        FRoot.FComponentState := FRoot.FComponentState + [csLoading, csReading];
         FRoot.ReadState(Self);
         Exclude(FRoot.FComponentState, csReading);
 
         if not Assigned(GlobalLoaded) then
           for i := 0 to FLoaded.Count - 1 do
-	    TComponent(FLoaded[i]).Loaded;
+            TComponent(FLoaded[i]).Loaded;
 
       finally
         if not Assigned(GlobalLoaded) then
-	  FLoaded.Free;
+          FLoaded.Free;
         FLoaded := nil;
       end;
       GlobalFixupReferences;
@@ -1267,21 +1267,7 @@ end;
 
 {
   $Log$
-  Revision 1.5  2001-07-14 13:19:05  sg
-  * Simplified TBinaryObjectReader.ReadString
-  * TReader.ReadComponent now uses ComponentClass.NewInstance for creating
-    a new component instance
+  Revision 1.6  2002-09-07 15:15:25  peter
+    * old logs removed and tabs fixed
 
-  Revision 1.4  2001/03/08 19:32:22  michael
-  Fixes merged
-
-  Revision 1.3  2000/12/21 09:08:09  sg
-  * Applied bugfixes by Mattias Gaertner for TBinaryObjectReader.ReadSet
-    (uninitialized result and missing bit shifting) and
-    TReader.ReadRootComponent (finding an unique component name)
-    (merged from fixbranch)
-
-  Revision 1.2  2000/07/13 11:33:00  michael
-  + removed logs
- 
 }
