@@ -672,7 +672,7 @@ Function FileDateToDateTime (Filedate : Longint) : TDateTime;
 Var Date,Time : Word;
 
 begin
-  Date:=FileDate shl 16;
+  Date:=FileDate shr 16;
   Time:=FileDate and $ffff;
   Result:=EncodeDate((Date shr 9) + 1980,(Date shr 5) and 15, Date and 31) +
           EncodeTime(Time shr 11, (Time shr 5) and 63, (Time and 31) shl 1,0);
@@ -680,7 +680,10 @@ end;
 
 {
   $Log$
-  Revision 1.18  1999-11-06 14:41:30  peter
+  Revision 1.19  1999-11-29 16:59:27  pierre
+   * fix for form bug 719
+
+  Revision 1.18  1999/11/06 14:41:30  peter
     * truncated log
 
   Revision 1.17  1999/10/28 09:52:29  peter
