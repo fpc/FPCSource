@@ -26,8 +26,8 @@ Interface
 
 Uses Aasm;
 
-Procedure PeepHoleOptPass1(AsmL: PAasmOutput);
-Procedure PeepHoleOptPass2(AsmL: PAasmOutput);
+Procedure PeepHoleOptPass1(AsmL: PAasmOutput; BlockStart, BlockEnd: Pai);
+Procedure PeepHoleOptPass2(AsmL: PAasmOutput; BlockStart, BlockEnd: Pai);
 
 Implementation
 
@@ -42,7 +42,7 @@ Begin
   RegUsedAfterInstruction := Reg in UsedRegs
 End;
 
-Procedure PeepHoleOptPass1(Asml: PAasmOutput);
+Procedure PeepHoleOptPass1(Asml: PAasmOutput; BlockStart, BlockEnd: Pai);
 {First pass of peepholeoptimizations}
 
 Var
@@ -79,7 +79,7 @@ Var
 
   Begin
     If (hp^.lab^.nb >= LoLab) and
-       (hp^.lab^.nb <= HiLab) and   {range check, necessary?}
+       (hp^.lab^.nb <= HiLab) and   {range check, a jump can go past an assembler block!}
        Assigned(LTable^[hp^.lab^.nb-LoLab].PaiObj) Then
       Begin
         p1 := LTable^[hp^.lab^.nb-LoLab].PaiObj; {the jump's destination}
@@ -100,9 +100,9 @@ Var
   End;
 
 Begin
-  P := Pai(AsmL^.First);
+  P := BlockStart;
   UsedRegs := [];
-  While Assigned(P) Do
+  While (P <> BlockEnd) Do
     Begin
       UpDateUsedRegs(UsedRegs, Pai(p^.next));
       Case P^.Typ Of
@@ -1476,13 +1476,13 @@ Begin
     end;
 end;
 
-Procedure PeepHoleOptPass2(AsmL: PAasmOutput);
+Procedure PeepHoleOptPass2(AsmL: PAasmOutput; BlockStart, BlockEnd: Pai);
 
 var
   p,hp1,hp2: pai;
 Begin
-  P := Pai(AsmL^.First);
-  While Assigned(p) Do
+  P := BlockStart;
+  While (P <> BlockEnd) Do
     Begin
       Case P^.Typ Of
         Ait_Instruction:
@@ -1590,7 +1590,10 @@ End.
 
 {
  $Log$
- Revision 1.33  1998-12-23 15:16:21  jonas
+ Revision 1.34  1998-12-29 18:48:17  jonas
+   + optimize pascal code surrounding assembler blocks
+
+ Revision 1.33  1998/12/23 15:16:21  jonas
    * change "inc x/dec x; test x, x"  to "add 1, x/sub 1,x" because inc and dec
      don't affect the carry flag (test does). This *doesn't* fix the problem with
     cardinal, that's a cg issue.

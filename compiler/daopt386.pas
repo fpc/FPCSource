@@ -62,14 +62,15 @@ Function RegModifiedByInstruction(Reg: TRegister; p1: Pai): Boolean;
 
 Function GetNextInstruction(Current: Pai; Var Next: Pai): Boolean;
 Function GetLastInstruction(Current: Pai; Var Last: Pai): Boolean;
+Procedure SkipHead(var P: Pai);
 
 Procedure UpdateUsedRegs(Var UsedRegs: TRegSet; p: Pai);
 Function RegsEquivalent(OldReg, NewReg: TRegister; Var RegInfo: TRegInfo; OpAct: TopAction): Boolean;
 Function InstructionsEquivalent(p1, p2: Pai; Var RegInfo: TRegInfo): Boolean;
 Function OpsEqual(typ: Longint; op1, op2: Pointer): Boolean;
 
-Procedure DFAPass1(AsmL: PAasmOutput);
-Function DFAPass2(AsmL: PAasmOutput): Pai;
+Function DFAPass1(AsmL: PAasmOutput; BlockStart: Pai): Pai;
+Function DFAPass2(AsmL: PAasmOutput; BlockStart, BlockEnd: Pai): Boolean;
 Procedure ShutDownDFA;
 
 Function FindLabel(L: PLabel; Var hp: Pai): Boolean;
@@ -611,17 +612,19 @@ Var
 
 {************************ Create the Label table ************************}
 
-Procedure FindLoHiLabels(AsmL: PAasmOutput; Var LowLabel, HighLabel, LabelDif: Longint);
+Function FindLoHiLabels(AsmL: PAasmOutput; Var LowLabel, HighLabel, LabelDif: Longint; BlockStart: Pai): Pai;
 {Walks through the paasmlist to find the lowest and highest label number;
  Since 0.9.3: also removes unused labels}
 Var LabelFound: Boolean;
-    P{, hp1}: Pai;
+    P: Pai;
 Begin
   LabelFound := False;
   LowLabel := MaxLongint;
   HighLabel := 0;
-  P := Pai(AsmL^.first);
-  While Assigned(p) Do
+  P := BlockStart;
+  While Assigned(P) And
+        ((P^.typ <> Ait_Marker) Or
+         (Pai_Marker(P)^.Kind <> AsmBlockStart)) Do
     Begin
       If (Pai(p)^.typ = ait_label) Then
         If (Pai_Label(p)^.l^.is_used)
@@ -643,6 +646,7 @@ Begin
             End};
       GetNextInstruction(p, p);
     End;
+  FindLoHiLabels := p;
   If LabelFound
     Then LabelDif := HighLabel+1-LowLabel
     Else LabelDif := 0;
@@ -672,7 +676,7 @@ Begin
 End;
 
 Procedure BuildLabelTableAndFixRegAlloc(AsmL: PAasmOutput; Var LabelTable: PLabelTable; LowLabel: Longint;
-            Var LabelDif: Longint);
+            Var LabelDif: Longint; BlockStart, BlockEnd: Pai);
 {Builds a table with the locations of the labels in the paasmoutput.
  Also fixes some RegDeallocs like "# %eax released; push (%eax)"}
 Var p, hp1, hp2: Pai;
@@ -688,8 +692,8 @@ Begin
 {$EndIf TP}
             GetMem(LabelTable, LabelDif*SizeOf(TLabelTableItem));
             FillChar(LabelTable^, LabelDif*SizeOf(TLabelTableItem), 0);
-            p := pai(AsmL^.first);
-            While Assigned(p) Do
+            p := BlockStart;
+            While (P <> BlockEnd) Do
               Begin
                 Case p^.typ Of
                   ait_Label:
@@ -1048,12 +1052,13 @@ Begin
        (Pai_Marker(Current)^.Kind = NoPropInfoStart) Then
       Begin
         While Assigned(Current) And
-              Not((Current^.typ = ait_Marker) And
-                  (Pai_Marker(Current)^.Kind = NoPropInfoEnd)) Do
-          Current := Pai(Current^.Next)
+              ((Current^.typ <> ait_Marker) Or
+               (Pai_Marker(Current)^.Kind <> NoPropInfoEnd)) Do
+          Current := Pai(Current^.Next);
       End;
   Until Not(Assigned(Current)) Or
-        (Current^.typ <> ait_Marker);
+        (Current^.typ <> ait_Marker) Or
+        (Pai_Marker(Current)^.Kind <> NoPropInfoEnd);
   Next := Current;
   If Assigned(Current) And
      Not((Current^.typ In SkipInstr) or
@@ -1083,12 +1088,13 @@ Begin
        (Pai_Marker(Current)^.Kind = NoPropInfoEnd) Then
       Begin
         While Assigned(Current) And
-              Not((Current^.typ = ait_Marker) And
-                  (Pai_Marker(Current)^.Kind = NoPropInfoStart)) Do
+              ((Current^.typ <> ait_Marker) Or
+               (Pai_Marker(Current)^.Kind <> NoPropInfoStart)) Do
           Current := Pai(Current^.previous);
       End;
   Until Not(Assigned(Current)) Or
-        (Current^.typ <> ait_Marker);
+        (Current^.typ <> ait_Marker) Or
+        (Pai_Marker(Current)^.Kind <> NoPropInfoStart);
  Last := Current;
   If Assigned(Current) And
      Not((Current^.typ In SkipInstr) or
@@ -1102,6 +1108,28 @@ Begin
       End;
 End;
 
+Procedure SkipHead(var P: Pai);
+Var OldP: Pai;
+Begin
+  Repeat
+    OldP := P;
+    If (P^.typ in SkipInstr) Then
+      GetNextInstruction(P, P)
+    Else If ((P^.Typ = Ait_Marker) And
+        (Pai_Marker(P)^.Kind = NoPropInfoStart)) Then
+   {a marker of the NoPropInfoStart can4t be the first instruction of a
+    paasmoutput list}
+      GetNextInstruction(Pai(P^.Previous),P);
+    If (P^.Typ = Ait_Marker) And
+       (Pai_Marker(P)^.Kind = AsmBlockStart) Then
+      Begin
+        P := Pai(P^.Next);
+        While (P^.typ <> Ait_Marker) Or
+              (Pai_Marker(P)^.Kind <> AsmBlockEnd) Do
+          P := Pai(P^.Next)
+      End;
+    Until P = OldP
+End;
 {******************* The Data Flow Analyzer functions ********************}
 
 Procedure UpdateUsedRegs(Var UsedRegs: TRegSet; p: Pai);
@@ -1561,18 +1589,21 @@ Begin
   End;
 End;
 
-Procedure DFAPass1(AsmL: PAasmOutput);
-{gathers the RegAlloc data... still need to think about where to store it}
+Function DFAPass1(AsmL: PAasmOutput; BlockStart: Pai): Pai;
+{gathers the RegAlloc data... still need to think about where to store it to
+ avoid global vars}
+Var BlockEnd: Pai;
 Begin
-  FindLoHiLabels(AsmL, LoLab, HiLab, LabDif);
-  BuildLabelTableAndFixRegAlloc(AsmL, LTable, LoLab, LabDif);
+  BlockEnd := FindLoHiLabels(AsmL, LoLab, HiLab, LabDif, BlockStart);
+  BuildLabelTableAndFixRegAlloc(AsmL, LTable, LoLab, LabDif, BlockStart, BlockEnd);
+  DFAPass1 := BlockEnd;
 End;
 
-Function DoDFAPass2(
+Procedure DoDFAPass2(
 {$Ifdef StateDebug}
 AsmL: PAasmOutput;
 {$endif statedebug}
-First: Pai): Pai;
+BlockStart, BlockEnd: Pai);
 {Analyzes the Data Flow of an assembler list. Starts creating the reg
  contents for the instructions starting with p. Returns the last pai which has
  been processed}
@@ -1588,23 +1619,22 @@ Var
     TmpRef: TReference;
     TmpReg: TRegister;
 Begin
-  p := First;
+  p := BlockStart;
   UsedRegs := [];
   UpdateUsedregs(UsedRegs, p);
-  If (First^.typ in SkipInstr) Then
+  If (BlockStart^.typ in SkipInstr) Then
     GetNextInstruction(p, p);
-  First := p;
+  BlockStart := p;
   InstrCnt := 1;
   FillChar(NrOfInstrSinceLastMod, SizeOf(NrOfInstrSinceLastMod), 0);
-  While Assigned(p) Do
+  While (P <> BlockEnd) Do
     Begin
-      DoDFAPass2 := p;
 {$IfDef TP}
       New(CurProp);
 {$Else TP}
       CurProp := @PaiPropBlock^[InstrCnt];
 {$EndIf TP}
-      If (p <> First)
+      If (p <> BlockStart)
         Then
           Begin
 {$ifdef JumpAnal}
@@ -2002,7 +2032,7 @@ Begin
     End;
 End;
 
-Function InitDFAPass2(AsmL: PAasmOutput): Boolean;
+Function InitDFAPass2(AsmL: PAasmOutput; BlockStart, BlockEnd: Pai): Boolean;
 {reserves memory for the PPaiProps in one big memory block when not using
  TP, returns False if not enough memory is available for the optimizer in all
  cases}
@@ -2010,11 +2040,10 @@ Var p: Pai;
     Count: Longint;
 {    TmpStr: String; }
 Begin
-  P := Pai(AsmL^.First);
-  If (p^.typ in SkipInstr) Then
-    GetNextInstruction(p, p);
+  P := BlockStart;
+  SkipHead(P);
   NrOfPaiObjs := 0;
-  While Assigned(P) Do
+  While (P <> BlockEnd) Do
     Begin
 {$IfDef JumpAnal}
       Case P^.Typ Of
@@ -2056,9 +2085,8 @@ Begin
     Begin
       InitDFAPass2 := True;
       GetMem(PaiPropBlock, NrOfPaiObjs*(((SizeOf(TPaiProp)+3)div 4)*4));
-      p := Pai(AsmL^.First);
-      If (p^.typ in SkipInstr) Then
-        GetNextInstruction(p, p);
+      p := BlockStart;
+      SkipHead(p);
       For Count := 1 To NrOfPaiObjs Do
         Begin
           PaiPropBlock^[Count].LineSave := p^.fileinfo.line;
@@ -2070,15 +2098,18 @@ Begin
  {$EndIf TP}
 End;
 
-Function DFAPass2(AsmL: PAasmOutPut): Pai;
+Function DFAPass2(AsmL: PAasmOutPut; BlockStart, BlockEnd: Pai): Boolean;
 Begin
-  If InitDFAPass2(AsmL)
-    Then DFAPass2 := DoDFAPass2(
+  If InitDFAPass2(AsmL, BlockStart, BlockEnd) Then
+    Begin
+      DoDFAPass2(
 {$ifdef statedebug}
- asml,
+         asml,
 {$endif statedebug}
-    Pai(AsmL^.First))
-    Else DFAPass2 := Nil;
+         BlockStart, BlockEnd);
+      DFAPass2 := True
+    End
+  Else DFAPass2 := False;
 End;
 
 Procedure ShutDownDFA;
@@ -2091,7 +2122,10 @@ End.
 
 {
  $Log$
- Revision 1.33  1998-12-17 16:37:38  jonas
+ Revision 1.34  1998-12-29 18:48:19  jonas
+   + optimize pascal code surrounding assembler blocks
+
+ Revision 1.33  1998/12/17 16:37:38  jonas
    + extra checks in RegsEquivalent so some more optimizations can be done (which
      where disabled by the second fix from revision 1.22)
 

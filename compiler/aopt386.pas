@@ -38,32 +38,52 @@ Uses
 
 
 Procedure Optimize(AsmL: PAasmOutput);
-Var BlockEnd: Pai;
+Var BlockStart, BlockEnd: Pai;
 Begin
 {setup labeltable, always necessary}
-  DFAPass1(AsmL);
-{peephole optimizations}
-  PeepHoleOptPass1(AsmL);
-  PeepHoleOptPass1(AsmL);
-{data flow analyzer}
-  If (cs_slowoptimize in aktglobalswitches) Then
+  BlockStart := Pai(AsmL^.First);
+  BlockEnd := DFAPass1(AsmL, BlockStart);
+{Blockend now either contains an ait_marker with Kind = AsmBlockStart, or nil}
+  While Assigned(BlockStart) Do
     Begin
-      BlockEnd := DFAPass2(AsmL);
-      If BlockEnd <> Nil Then
+{peephole optimizations}
+      PeepHoleOptPass1(AsmL, BlockStart, BlockEnd);
+      PeepHoleOptPass1(AsmL, BlockStart, BlockEnd);
+{data flow analyzer}
+      If (cs_slowoptimize in aktglobalswitches) Then
+        Begin
+          If DFAPass2(AsmL, BlockStart, BlockEnd) Then
 {common subexpression elimination}
-        CSE(AsmL, Pai(AsmL^.First), BlockEnd);
-    End;
+            CSE(AsmL, BlockStart, BlockEnd);
+        End;
 {more peephole optimizations}
-  PeepHoleOptPass2(AsmL);
+      PeepHoleOptPass2(AsmL, BlockStart, BlockEnd);
 {dispose labeltabel}
-  ShutDownDFA;
+      ShutDownDFA;
+
+      If Assigned(BlockEnd) And
+         GetNextInstruction(BlockEnd, BlockStart) Then
+       {we stopped at an assmbler block, so skip it}
+        Begin
+          While GetNextInstruction(BlockStart, BlockStart) And
+                ((BlockStart^.Typ <> Ait_Marker) Or
+                 (Pai_Marker(Blockstart)^.Kind <> AsmBlockEnd)) Do;
+          If GetNextInstruction(BlockStart, BlockStart) Then
+            BlockEnd := DFAPass1(AsmL, BlockStart)
+          Else BlockStart := Nil
+        End
+      Else BlockStart := Nil;
+   End;
 End;
 
 End.
 
 {
  $Log$
- Revision 1.23  1998-12-11 00:02:43  peter
+ Revision 1.24  1998-12-29 18:48:23  jonas
+   + optimize pascal code surrounding assembler blocks
+
+ Revision 1.23  1998/12/11 00:02:43  peter
    + globtype,tokens,version unit splitted from globals
 
  Revision 1.22  1998/08/19 16:07:57  jonas

@@ -254,7 +254,7 @@ unit aasm;
           constructor init_end;
        end;
 
-       TMarker = (NoPropInfoStart, NoPropInfoEnd);
+       TMarker = (NoPropInfoStart, NoPropInfoEnd, AsmBlockStart, AsmBlockEnd);
        pai_marker = ^tai_marker;
        tai_marker = object(tai)
          Kind: TMarker;
@@ -912,7 +912,10 @@ uses
 end.
 {
   $Log$
-  Revision 1.28  1998-12-16 00:27:16  peter
+  Revision 1.29  1998-12-29 18:48:24  jonas
+    + optimize pascal code surrounding assembler blocks
+
+  Revision 1.28  1998/12/16 00:27:16  peter
     * removed some obsolete version checks
 
   Revision 1.27  1998/12/11 00:02:37  peter

@@ -680,6 +680,7 @@ unit pstatmnt;
     function _asm_statement : ptree;
       var
         asmstat : ptree;
+        Marker : Pai;
       begin
          if (aktprocsym^.definition^.options and poinline)<>0 then
            Begin
@@ -762,6 +763,16 @@ unit pstatmnt;
               consume(RECKKLAMMER);
            end
          else usedinproc:=$ff;
+
+{ mark the start and the end of the assembler block for the optimizer }
+
+         If Assigned(AsmStat^.p_asm) Then
+           Begin
+             Marker := New(Pai_Marker, Init(AsmBlockStart));
+             AsmStat^.p_asm^.Insert(Marker);
+             Marker := New(Pai_Marker, Init(AsmBlockEnd));
+             AsmStat^.p_asm^.Concat(Marker);
+           End;
          _asm_statement:=asmstat;
       end;
 
@@ -1236,6 +1247,7 @@ unit pstatmnt;
           { force the asm statement }
             if token<>_ASM then
              consume(_ASM);
+            Procinfo.Flags := ProcInfo.Flags Or pi_is_assembler;
             assembler_block:=_asm_statement;
           { becuase the END is already read we need to get the
             last_endtoken_filepos here (PFV) }
@@ -1245,7 +1257,10 @@ unit pstatmnt;
 end.
 {
   $Log$
-  Revision 1.56  1998-12-23 22:52:56  peter
+  Revision 1.57  1998-12-29 18:48:15  jonas
+    + optimize pascal code surrounding assembler blocks
+
+  Revision 1.56  1998/12/23 22:52:56  peter
     * fixed new(x) crash if x contains an error
 
   Revision 1.55  1998/12/16 12:30:59  jonas

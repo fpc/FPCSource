@@ -240,10 +240,9 @@ Var Cnt, Cnt2: Longint;
     TmpState: Byte;
 Begin
   p := First;
-  If (p^.typ in (SkipInstr+[ait_marker])) Then
-    GetNextInstruction(p, p);
+  SkipHead(p);
   First := p;
-  While Assigned(p) Do
+  While (p <> Last) Do
     Begin
       Case p^.typ Of
         ait_instruction:
@@ -264,7 +263,8 @@ Begin
                       Begin {destination is always a register in this case}
                         With PPaiProp(p^.fileinfo.line)^.Regs[Reg32(Tregister(Pai386(p)^.op2))] Do
                           Begin
-                            If GetLastInstruction (p, hp1) Then
+                            If GetLastInstruction (p, hp1) And
+                              (hp1^.typ <> ait_marker) Then
 {so we don't try to check a sequence when p is the first instruction of the block}
                                If CheckSequence(p, TRegister(Pai386(p)^.op2), Cnt, RegInfo) And
                                   (Cnt > 0)
@@ -498,7 +498,7 @@ End;
 
 Procedure RemoveInstructs(AsmL: PAasmOutput; First, Last: Pai);
 {Removes the marked instructions and disposes the PPaiProps of the other
- instructions, restoring theirline number}
+ instructions, restoring their line number}
 Var p, hp1: Pai;
 {$IfDef TP}
     TmpLine: Longint;
@@ -506,10 +506,9 @@ Var p, hp1: Pai;
     InstrCnt: Longint;
 Begin
   p := First;
-  If (p^.typ in (SkipInstr + [ait_marker])) Then
-    GetNextInstruction(p, p);
+  SkipHead(P);
   InstrCnt := 1;
-  While Assigned(p) Do
+  While (p <> Last) Do
     Begin
 {$ifndef noinstremove}
       If PPaiProp(p^.fileinfo.line)^.CanBeRemoved
@@ -553,7 +552,10 @@ End.
 
 {
  $Log$
- Revision 1.17  1998-12-17 16:37:39  jonas
+ Revision 1.18  1998-12-29 18:48:22  jonas
+   + optimize pascal code surrounding assembler blocks
+
+ Revision 1.17  1998/12/17 16:37:39  jonas
    + extra checks in RegsEquivalent so some more optimizations can be done (which
      where disabled by the second fix from revision 1.22)
 

@@ -42,7 +42,8 @@ unit hcodegen;
        pi_C_import  = $10;      { set, if the procedure is an external C function }
        pi_uses_exceptions = $20;{ set, if the procedure has a try statement => }
                                 { no register variables                        }
-
+       pi_is_assembler = $40;   { set if the procedure is declared as ASSEMBLER
+                                  => don't optimize}
     type
        pprocinfo = ^tprocinfo;
        tprocinfo = record
@@ -354,7 +355,10 @@ end.
 
 {
   $Log$
-  Revision 1.23  1998-11-27 14:50:38  peter
+  Revision 1.24  1998-12-29 18:48:18  jonas
+    + optimize pascal code surrounding assembler blocks
+
+  Revision 1.23  1998/11/27 14:50:38  peter
     + open strings, $P switch support
 
   Revision 1.22  1998/11/16 12:12:21  peter
