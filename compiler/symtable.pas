@@ -1900,7 +1900,8 @@ implementation
         current_ppu^.writeentry(ibmodulename);
 
         writesourcefiles;
-
+        writeusedmacros;
+        
         writeusedunit;
 
       { write the objectfiles and libraries that come for this unit,
@@ -1934,6 +1935,8 @@ implementation
 {$endif GDB}
 
         current_ppu^.writeentry(ibendimplementation);
+        { all after doesn't affect crc }
+        current_ppu^.do_crc:=false;
 
          { write static symtable
            needed for local debugging of unit functions }
@@ -1943,7 +1946,6 @@ implementation
       { write all browser section }
         if (current_module^.flags and uf_has_browser)<>0 then
          begin
-           current_ppu^.do_crc:=false; { doesn't affect crc }
            write_browser;
            pu:=pused_unit(current_module^.used_units.first);
            while assigned(pu) do
@@ -1952,7 +1954,6 @@ implementation
               pu:=pused_unit(pu^.next);
             end;
            current_ppu^.writeentry(ibendbrowser);
-           current_ppu^.do_crc:=true;
          end;
         if ((current_module^.flags and uf_local_browser)<>0) and
            assigned(current_module^.localsymtable) then
@@ -2194,6 +2195,7 @@ implementation
                macros^.insert(mac);
              end;
            mac^.defined:=true;
+           mac^.defined_at_startup:=true;
         end;
 
 
@@ -2217,6 +2219,7 @@ implementation
            getmem(mac^.buftext,mac^.buflen);
            move(value[1],mac^.buftext^,mac^.buflen);
            mac^.defined:=true;
+           mac^.defined_at_startup:=true;
         end;
 
 
@@ -2350,7 +2353,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.43  1999-08-27 10:39:24  pierre
+  Revision 1.44  1999-08-31 15:46:21  pierre
+    * do_crc must be false for all browser stuff
+    + tmacrosym defined_at_startup set in def_macro and set_macro
+
+  Revision 1.43  1999/08/27 10:39:24  pierre
    * uf_local_browser made problem when computing interface CRC
 
   Revision 1.42  1999/08/13 21:33:13  peter
