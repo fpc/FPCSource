@@ -333,11 +333,11 @@ Implementation
         if cs_link_on_target in aktglobalswitches then
          begin
            { If linking on target, don't add any path PM }
-           FindAssembler:=AddExtension(target_asm.asmbin,target_info.exeext);
+           FindAssembler:=utilsprefix+AddExtension(target_asm.asmbin,target_info.exeext);
            exit;
          end
         else
-         UtilExe:=AddExtension(target_asm.asmbin,source_info.exeext);
+         UtilExe:=utilsprefix+AddExtension(target_asm.asmbin,source_info.exeext);
         if lastas<>ord(target_asm.id) then
          begin
            lastas:=ord(target_asm.id);
@@ -1661,7 +1661,10 @@ Implementation
 end.
 {
   $Log$
-  Revision 1.56  2003-09-30 19:54:23  peter
+  Revision 1.57  2003-10-03 14:16:48  marco
+   * -XP<prefix> support
+
+  Revision 1.56  2003/09/30 19:54:23  peter
     * better link on target support
 
   Revision 1.55  2003/09/23 17:56:05  peter

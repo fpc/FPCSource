@@ -410,7 +410,7 @@ begin
   Replace(cmdstr,'$STATIC',StaticStr);
   Replace(cmdstr,'$STRIP',StripStr);
 {  Replace(cmdstr,'$DYNLINK',DynLinkStr);}
-  success:=DoExec(FindUtil(BinStr),CmdStr,true,false);
+  success:=DoExec(FindUtil(utilsprefix+BinStr),CmdStr,true,false);
 
 { Remove ReponseFile }
   if (success) and not(cs_link_extern in aktglobalswitches) then
@@ -438,14 +438,14 @@ begin
   Replace(cmdstr,'$EXE',current_module.sharedlibfilename^);
   Replace(cmdstr,'$OPT',Info.ExtraOptions);
   Replace(cmdstr,'$RES',outputexedir+Info.ResName);
-  success:=DoExec(FindUtil(binstr),cmdstr,true,false);
+  success:=DoExec(FindUtil(utilsprefix+binstr),cmdstr,true,false);
 
 { Strip the library ? }
   if success and (cs_link_strip in aktglobalswitches) then
    begin
      SplitBinCmd(Info.DllCmd[2],binstr,cmdstr);
      Replace(cmdstr,'$EXE',current_module.sharedlibfilename^);
-     success:=DoExec(FindUtil(binstr),cmdstr,true,false);
+     success:=DoExec(FindUtil(utilsprefix+binstr),cmdstr,true,false);
    end;
 
 { Remove ReponseFile }
@@ -470,7 +470,10 @@ initialization
 end.
 {
   $Log$
-  Revision 1.5  2003-04-27 07:29:52  peter
+  Revision 1.6  2003-10-03 14:16:48  marco
+   * -XP<prefix> support
+
+  Revision 1.5  2003/04/27 07:29:52  peter
     * aktprocdef cleanup, aktprocdef is now always nil when parsing
       a new procdef declaration
     * aktprocsym removed

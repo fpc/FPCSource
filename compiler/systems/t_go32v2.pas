@@ -235,7 +235,7 @@ begin
   Replace(cmdstr,'$RES',maybequoted(outputexedir+Info.ResName));
   Replace(cmdstr,'$STRIP',StripStr);
   Replace(cmdstr,'$SCRIPT','--script='+maybequoted(outputexedir+Info.ScriptName));
-  success:=DoExec(FindUtil(BinStr),cmdstr,true,false);
+  success:=DoExec(FindUtil(utilsprefix+BinStr),cmdstr,true,false);
 
 { Remove ReponseFile }
   if (success) and not(cs_link_extern in aktglobalswitches) then
@@ -362,7 +362,10 @@ initialization
 end.
 {
   $Log$
-  Revision 1.2  2003-04-26 09:16:08  peter
+  Revision 1.3  2003-10-03 14:16:48  marco
+   * -XP<prefix> support
+
+  Revision 1.2  2003/04/26 09:16:08  peter
     * .o files belonging to the unit are first searched in the same dir
       as the .ppu
 

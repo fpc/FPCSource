@@ -137,6 +137,8 @@ interface
 
        { directory where the utils can be found (options -FD) }
        utilsdirectory : dirstr;
+       { targetname specific prefix used by these utils (options -XP<path>) }
+       utilsprefix    : dirstr; 
 
        { some flags for global compiler switches }
        do_build,
@@ -1609,6 +1611,7 @@ implementation
 
       { Utils directory }
         utilsdirectory:='';
+	utilsprefix:='';
 
       { Search Paths }
         librarysearchpath:=TSearchPathList.Create;
@@ -1704,7 +1707,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.105  2003-10-02 21:16:18  peter
+  Revision 1.106  2003-10-03 14:16:48  marco
+   * -XP<prefix> support
+
+  Revision 1.105  2003/10/02 21:16:18  peter
     * delphi and tp7 mode use intel asm by default
 
   Revision 1.104  2003/10/01 20:34:48  peter

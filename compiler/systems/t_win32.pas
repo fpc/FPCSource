@@ -1007,7 +1007,7 @@ begin
   AppTypeStr:='';
   ImageBaseStr:='';
   StripStr:='';
-  AsBinStr:=FindUtil('as');
+  AsBinStr:=FindUtil(utilsprefix+'as');
   if RelocSection then
    { Using short form to avoid problems with 128 char limitation under Dos. }
    RelocStr:='-b base.$$$';
@@ -1043,7 +1043,7 @@ begin
           end
         else
           Replace(cmdstr,'$DEF','');
-        success:=DoExec(FindUtil(binstr),cmdstr,(i=1),false);
+        success:=DoExec(FindUtil(utilsprefix+binstr),cmdstr,(i=1),false);
         if not success then
          break;
       end;
@@ -1087,7 +1087,7 @@ begin
   AppTypeStr:='';
   ImageBaseStr:='';
   StripStr:='';
-  AsBinStr:=FindUtil('as');
+  AsBinStr:=FindUtil(utilsprefix+'as');
   if RelocSection then
    { Using short form to avoid problems with 128 char limitation under Dos. }
    RelocStr:='-b base.$$$';
@@ -1123,7 +1123,7 @@ begin
           end
         else
           Replace(cmdstr,'$DEF','');
-        success:=DoExec(FindUtil(binstr),cmdstr,(i=1),false);
+        success:=DoExec(FindUtil(utilsprefix+binstr),cmdstr,(i=1),false);
         if not success then
          break;
       end;
@@ -1252,7 +1252,7 @@ begin
        cmdstr:=cmdstr+' --version '+dllversion;
      cmdstr:=cmdstr+' --input '+maybequoted(fn);
      cmdstr:=cmdstr+' --stack '+tostr(stacksize);
-     DoExec(FindUtil('postw32'),cmdstr,false,false);
+     DoExec(FindUtil(utilsprefix+'postw32'),cmdstr,false,false);
      postprocessexecutable:=true;
      exit;
    end;
@@ -1626,7 +1626,10 @@ initialization
 end.
 {
   $Log$
-  Revision 1.20  2003-10-02 21:17:08  peter
+  Revision 1.21  2003-10-03 14:16:48  marco
+   * -XP<prefix> support
+
+  Revision 1.20  2003/10/02 21:17:08  peter
     * use as,ld,ar instead of asw,ldw,arw for win32
 
   Revision 1.19  2003/09/30 20:10:12  peter

@@ -1116,6 +1116,10 @@ begin
                         include(initglobalswitches,cs_link_shared);
                         LinkTypeSetExplicitly:=true;
                       end;
+                    'P' : Begin
+			     utilsprefix:=Copy(more,2,length(More)-1);
+			     More:='';
+                          End;
                     'S' :
                       begin
                         def_symbol('FPC_LINK_STATIC');
@@ -1974,7 +1978,10 @@ finalization
 end.
 {
   $Log$
-  Revision 1.106  2003-09-17 21:37:07  olle
+  Revision 1.107  2003-10-03 14:16:48  marco
+   * -XP<prefix> support
+
+  Revision 1.106  2003/09/17 21:37:07  olle
     + added command line option for language mode -M<x>
 
   Revision 1.105  2003/09/14 21:33:11  peter

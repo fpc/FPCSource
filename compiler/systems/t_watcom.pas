@@ -155,7 +155,7 @@ begin
   Replace(cmdstr,'$OPT',Info.ExtraOptions);
   Replace(cmdstr,'$RES',maybequoted(outputexedir+Info.ResName));
   Replace(cmdstr,'$STRIP',StripStr);
-  success:=DoExec(FindUtil(BinStr),cmdstr,true,false);
+  success:=DoExec(FindUtil(utilsprefix+BinStr),cmdstr,true,false);
 
 { Remove ReponseFile }
   if (success) and not(cs_link_extern in aktglobalswitches) then
@@ -179,7 +179,10 @@ initialization
 end.
 {
   $Log$
-  Revision 1.2  2003-09-30 08:39:50  michael
+  Revision 1.3  2003-10-03 14:16:48  marco
+   * -XP<prefix> support
+
+  Revision 1.2  2003/09/30 08:39:50  michael
   + Patch from Wiktor Sywula for watcom support
 
   Revision 1.1  2003/09/06 10:01:11  florian

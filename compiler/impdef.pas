@@ -175,7 +175,7 @@ procedure CreateTempDir(const s:string);
  end;
 procedure call_as(const name:string);
  begin
-  exec(as_name,'-o '+name+'o '+name);
+  exec(utilsprefix+as_name,'-o '+name+'o '+name);
  end;
 procedure call_ar;
  var
@@ -190,7 +190,7 @@ procedure call_ar;
   GetFAttr(f,attr);
   If DOSError=0 then
    erase(f);
-  exec(ar_name,'rs '+impname+' '+path+dirsep+'*.swo');
+  exec(utilsprefix+ar_name,'rs '+impname+' '+path+dirsep+'*.swo');
   cleardir(path,'*.sw');
   cleardir(path,'*.swo');
   {$i-}
@@ -478,7 +478,10 @@ end.
 
 {
   $Log$
-  Revision 1.11  2003-10-02 21:17:08  peter
+  Revision 1.12  2003-10-03 14:16:48  marco
+   * -XP<prefix> support
+
+  Revision 1.11  2003/10/02 21:17:08  peter
     * use as,ld,ar instead of asw,ldw,arw for win32
 
   Revision 1.10  2002/10/05 12:43:24  carl
