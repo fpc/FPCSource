@@ -130,11 +130,10 @@ implementation
             if not assigned(p^.left) then
              begin
                case p^.inlinenumber of
-            in_const_pi : begin
-                            hp:=genrealconstnode(pi);
-                          end;
-               else
-                 internalerror(89);
+                 in_const_pi :
+                   hp:=genrealconstnode(pi);
+                 else
+                   internalerror(89);
                end;
              end
             else
@@ -162,120 +161,136 @@ implementation
                    CGMessage(cg_e_illegal_expression);
                end;
                case p^.inlinenumber of
-         in_const_trunc : begin
-                            if isreal then
-                              begin
-                                 if (vr>=2147483648.0) or (vr<=-2147483649.0) then
-                                   begin
-                                      CGMessage(parser_e_range_check_error);
-                                      hp:=genordinalconstnode(1,s32bitdef)
-                                   end
-                                 else
-                                   hp:=genordinalconstnode(trunc(vr),s32bitdef)
-                              end
-                            else
-                             hp:=genordinalconstnode(trunc(vl),s32bitdef);
-                          end;
-         in_const_round : begin
-                            if isreal then
-                              begin
-                                 if (vr>=2147483647.5) or (vr<=-2147483648.5) then
-                                   begin
-                                      CGMessage(parser_e_range_check_error);
-                                      hp:=genordinalconstnode(1,s32bitdef)
-                                   end
-                                 else
-                                   hp:=genordinalconstnode(round(vr),s32bitdef)
-                              end
-                            else
-                             hp:=genordinalconstnode(round(vl),s32bitdef);
-                          end;
-          in_const_frac : begin
-                            if isreal then
-                             hp:=genrealconstnode(frac(vr))
-                            else
-                             hp:=genrealconstnode(frac(vl));
-                          end;
-           in_const_int : begin
-                            if isreal then
-                             hp:=genrealconstnode(int(vr))
-                            else
-                             hp:=genrealconstnode(int(vl));
-                          end;
-           in_const_abs : begin
-                            if isreal then
-                             hp:=genrealconstnode(abs(vr))
-                            else
-                             hp:=genordinalconstnode(abs(vl),p^.left^.resulttype);
-                          end;
-           in_const_sqr : begin
-                            if isreal then
-                             hp:=genrealconstnode(sqr(vr))
-                            else
-                             hp:=genordinalconstnode(sqr(vl),p^.left^.resulttype);
-                          end;
-           in_const_odd : begin
-                            if isreal then
-                             CGMessage(type_e_integer_expr_expected)
-                            else
-                             hp:=genordinalconstnode(byte(odd(vl)),booldef);
-                          end;
-     in_const_swap_word : begin
-                            if isreal then
-                             CGMessage(type_e_integer_expr_expected)
-                            else
-                             hp:=genordinalconstnode((vl and $ff) shl 8+(vl shr 8),p^.left^.resulttype);
-                          end;
-     in_const_swap_long : begin
-                            if isreal then
-                             CGMessage(type_e_mismatch)
-                            else
-                             hp:=genordinalconstnode((vl and $ffff) shl 16+(vl shr 16),p^.left^.resulttype);
-                          end;
-           in_const_ptr : begin
-                            if isreal then
-                             CGMessage(type_e_mismatch)
-                            else
-                             hp:=genordinalconstnode((vl2 shl 16) or vl,voidpointerdef);
-                          end;
-          in_const_sqrt : begin
-                            if isreal then
-                             hp:=genrealconstnode(sqrt(vr))
-                            else
-                             hp:=genrealconstnode(sqrt(vl));
-                          end;
-        in_const_arctan : begin
-                            if isreal then
-                             hp:=genrealconstnode(arctan(vr))
-                            else
-                             hp:=genrealconstnode(arctan(vl));
-                          end;
-           in_const_cos : begin
-                            if isreal then
-                             hp:=genrealconstnode(cos(vr))
-                            else
-                             hp:=genrealconstnode(cos(vl));
-                          end;
-           in_const_sin : begin
-                            if isreal then
-                             hp:=genrealconstnode(sin(vr))
-                            else
-                             hp:=genrealconstnode(sin(vl));
-                          end;
-           in_const_exp : begin
-                            if isreal then
-                             hp:=genrealconstnode(exp(vr))
-                            else
-                             hp:=genrealconstnode(exp(vl));
-                          end;
-            in_const_ln : begin
-                            if isreal then
-                             hp:=genrealconstnode(ln(vr))
-                            else
-                             hp:=genrealconstnode(ln(vl));
-                          end;
-               else
-                 internalerror(88);
+                 in_const_trunc :
+                   begin
+                     if isreal then
+                       begin
+                          if (vr>=2147483648.0) or (vr<=-2147483649.0) then
+                            begin
+                               CGMessage(parser_e_range_check_error);
+                               hp:=genordinalconstnode(1,s32bitdef)
+                            end
+                          else
+                            hp:=genordinalconstnode(trunc(vr),s32bitdef)
+                       end
+                     else
+                      hp:=genordinalconstnode(trunc(vl),s32bitdef);
+                   end;
+                 in_const_round :
+                   begin
+                     if isreal then
+                       begin
+                          if (vr>=2147483647.5) or (vr<=-2147483648.5) then
+                            begin
+                               CGMessage(parser_e_range_check_error);
+                               hp:=genordinalconstnode(1,s32bitdef)
+                            end
+                          else
+                            hp:=genordinalconstnode(round(vr),s32bitdef)
+                       end
+                     else
+                      hp:=genordinalconstnode(round(vl),s32bitdef);
+                   end;
+                 in_const_frac :
+                   begin
+                     if isreal then
+                      hp:=genrealconstnode(frac(vr))
+                     else
+                      hp:=genrealconstnode(frac(vl));
+                   end;
+                 in_const_int :
+                   begin
+                     if isreal then
+                      hp:=genrealconstnode(int(vr))
+                     else
+                      hp:=genrealconstnode(int(vl));
+                   end;
+                 in_const_abs :
+                   begin
+                     if isreal then
+                      hp:=genrealconstnode(abs(vr))
+                     else
+                      hp:=genordinalconstnode(abs(vl),p^.left^.resulttype);
+                   end;
+                 in_const_sqr :
+                   begin
+                     if isreal then
+                      hp:=genrealconstnode(sqr(vr))
+                     else
+                      hp:=genordinalconstnode(sqr(vl),p^.left^.resulttype);
+                   end;
+                 in_const_odd :
+                   begin
+                     if isreal then
+                      CGMessage(type_e_integer_expr_expected)
+                     else
+                      hp:=genordinalconstnode(byte(odd(vl)),booldef);
+                   end;
+                 in_const_swap_word :
+                   begin
+                     if isreal then
+                      CGMessage(type_e_integer_expr_expected)
+                     else
+                      hp:=genordinalconstnode((vl and $ff) shl 8+(vl shr 8),p^.left^.resulttype);
+                   end;
+                 in_const_swap_long :
+                   begin
+                     if isreal then
+                      CGMessage(type_e_mismatch)
+                     else
+                      hp:=genordinalconstnode((vl and $ffff) shl 16+(vl shr 16),p^.left^.resulttype);
+                   end;
+                 in_const_ptr :
+                   begin
+                     if isreal then
+                      CGMessage(type_e_mismatch)
+                     else
+                      hp:=genordinalconstnode((vl2 shl 16) or vl,voidpointerdef);
+                   end;
+                 in_const_sqrt :
+                   begin
+                     if isreal then
+                      hp:=genrealconstnode(sqrt(vr))
+                     else
+                      hp:=genrealconstnode(sqrt(vl));
+                   end;
+                 in_const_arctan :
+                   begin
+                     if isreal then
+                      hp:=genrealconstnode(arctan(vr))
+                     else
+                      hp:=genrealconstnode(arctan(vl));
+                   end;
+                 in_const_cos :
+                   begin
+                     if isreal then
+                      hp:=genrealconstnode(cos(vr))
+                     else
+                      hp:=genrealconstnode(cos(vl));
+                   end;
+                 in_const_sin :
+                   begin
+                     if isreal then
+                      hp:=genrealconstnode(sin(vr))
+                     else
+                      hp:=genrealconstnode(sin(vl));
+                   end;
+                 in_const_exp :
+                   begin
+                     if isreal then
+                      hp:=genrealconstnode(exp(vr))
+                     else
+                      hp:=genrealconstnode(exp(vl));
+                   end;
+                 in_const_ln :
+                   begin
+                     if isreal then
+                      hp:=genrealconstnode(ln(vr))
+                     else
+                      hp:=genrealconstnode(ln(vl));
+                   end;
+                 else
+                   internalerror(88);
                end;
              end;
             disposetree(p);
@@ -285,8 +300,11 @@ implementation
          else
           begin
             case p^.inlinenumber of
-             in_lo_long,in_hi_long,
-             in_lo_word,in_hi_word:
+
+             in_lo_long,
+             in_hi_long,
+             in_lo_word,
+             in_hi_word:
                begin
                   if p^.registers32<1 then
                     p^.registers32:=1;
@@ -296,7 +314,7 @@ implementation
                     begin
                        p^.resulttype:=u16bitdef;
                        if (m_tp in aktmodeswitches) or
-                         (m_delphi in aktmodeswitches) then
+                          (m_delphi in aktmodeswitches) then
                          CGMessage(type_w_maybe_wrong_hi_lo);
                     end;
                   p^.location.loc:=LOC_REGISTER;
@@ -318,6 +336,7 @@ implementation
                        end;
                     end;
                end;
+
              in_sizeof_x:
                begin
                  if push_high_param(p^.left^.resulttype) then
@@ -337,6 +356,7 @@ implementation
                  p^.resulttype:=s32bitdef;
                  p^.location.loc:=LOC_REGISTER;
                end;
+
              in_typeof_x:
                begin
                   if p^.registers32<1 then
@@ -344,6 +364,7 @@ implementation
                   p^.location.loc:=LOC_REGISTER;
                   p^.resulttype:=voidpointerdef;
                end;
+
              in_ord_x:
                begin
                   if (p^.left^.treetype=ordconstn) then
@@ -401,6 +422,7 @@ implementation
                          end;
                     end;
                end;
+
              in_chr_byte:
                begin
                   hp:=gentypeconvnode(p^.left,cchardef);
@@ -409,6 +431,7 @@ implementation
                   p^.explizit:=true;
                   firstpass(p);
                end;
+
              in_length_string:
                begin
                   if is_ansistring(p^.left^.resulttype) then
@@ -446,11 +469,13 @@ implementation
                        p:=hp;
                     end;
                end;
+
              in_assigned_x:
                begin
                   p^.resulttype:=booldef;
                   p^.location.loc:=LOC_FLAGS;
                end;
+
              in_pred_x,
              in_succ_x:
                begin
@@ -477,9 +502,10 @@ implementation
                          end;
                     end;
                end;
-            in_inc_x,
-            in_dec_x:
-              begin
+
+             in_inc_x,
+             in_dec_x:
+               begin
                  p^.resulttype:=voiddef;
                  if assigned(p^.left) then
                    begin
@@ -517,7 +543,8 @@ implementation
                    end
                  else
                    CGMessage(type_e_mismatch);
-              end;
+               end;
+
              in_read_x,
              in_readln_x,
              in_write_x,
@@ -570,69 +597,60 @@ implementation
                                   begin
                                     isreal:=false;
                                     case hp^.left^.resulttype^.deftype of
-                                      filedef : begin
-                                                { only allowed as first parameter }
-                                                  if assigned(hp^.right) then
-                                                   CGMessage(type_e_cant_read_write_type);
-                                                end;
-                                    stringdef : begin
-                                                  { generate the high() value for the shortstring }
-                                                  if (not dowrite) and
-                                                     is_shortstring(hp^.left^.resulttype) then
-                                                    gen_high_tree(hp,true);
-                                                end;
-                                   pointerdef : begin
-                                                  if not is_equal(ppointerdef(hp^.left^.resulttype)^.definition,cchardef) then
-                                                    CGMessage(type_e_cant_read_write_type);
-                                                end;
-                                     floatdef : begin
-                                                  isreal:=true;
-                                                end;
-                                       orddef : begin
-                                                  case porddef(hp^.left^.resulttype)^.typ of
-                                                     uchar,
-                                                     u32bit,
-                                                     s32bit,
-                                                     s64bitint,
-                                                     u64bit:
-                                                       ;
-
-                                               u8bit,s8bit,
-                                             u16bit,s16bit : if dowrite then
-                                                              hp^.left:=gentypeconvnode(hp^.left,s32bitdef);
-                                                  bool8bit,
-                                       bool16bit,bool32bit : if dowrite then
-                                                              hp^.left:=gentypeconvnode(hp^.left,booldef)
-                                                             else
-                                                              CGMessage(type_e_cant_read_write_type);
-                                                  else
-                                                    CGMessage(type_e_cant_read_write_type);
-                                                  end;
-                                                end;
-                                     arraydef : begin
-                                                  if not((parraydef(hp^.left^.resulttype)^.lowrange=0) and
-                                                         is_equal(parraydef(hp^.left^.resulttype)^.definition,cchardef)) then
-                                                   begin
-                                                   { but we convert only if the first index<>0,
-                                                     because in this case we have a ASCIIZ string }
-                                                     if dowrite and
-                                                        (parraydef(hp^.left^.resulttype)^.lowrange<>0) and
-                                                        (parraydef(hp^.left^.resulttype)^.definition^.deftype=orddef) and
-                                                        (porddef(parraydef(hp^.left^.resulttype)^.definition)^.typ=uchar) then
-                                                       hp^.left:=gentypeconvnode(hp^.left,cshortstringdef)
-                                                     else
-                                                       CGMessage(type_e_cant_read_write_type);
-                                                   end;
-                                                end;
-                                    else
-                                      CGMessage(type_e_cant_read_write_type);
+                                      filedef :
+                                        begin
+                                          { only allowed as first parameter }
+                                          if assigned(hp^.right) then
+                                            CGMessage(type_e_cant_read_write_type);
+                                        end;
+                                      stringdef :
+                                        begin
+                                          { generate the high() value for the shortstring }
+                                          if (not dowrite) and
+                                             is_shortstring(hp^.left^.resulttype) then
+                                            gen_high_tree(hp,true);
+                                        end;
+                                      pointerdef :
+                                        begin
+                                          if not is_pchar(hp^.left^.resulttype) then
+                                            CGMessage(type_e_cant_read_write_type);
+                                        end;
+                                      floatdef :
+                                        begin
+                                          isreal:=true;
+                                        end;
+                                      orddef :
+                                        begin
+                                          case porddef(hp^.left^.resulttype)^.typ of
+                                            uchar,
+                                            u32bit,s32bit,
+                                            u64bit,s64bitint:
+                                              ;
+                                            u8bit,s8bit,
+                                            u16bit,s16bit :
+                                              if dowrite then
+                                                hp^.left:=gentypeconvnode(hp^.left,s32bitdef);
+                                            bool8bit,
+                                            bool16bit,
+                                            bool32bit :
+                                              if dowrite then
+                                                hp^.left:=gentypeconvnode(hp^.left,booldef)
+                                              else
+                                                CGMessage(type_e_cant_read_write_type);
+                                            else
+                                              CGMessage(type_e_cant_read_write_type);
+                                          end;
+                                        end;
+                                      arraydef :
+                                        begin
+                                          if not is_chararray(hp^.left^.resulttype) then
+                                            CGMessage(type_e_cant_read_write_type);
+                                        end;
+                                      else
+                                        CGMessage(type_e_cant_read_write_type);
                                     end;
 
                                     { some format options ? }
-{$ifndef NOCOLONCHECK}
-                                    { commented
-                                       because supposes reverse order of parameters
-                                          PM : now restored PM }
                                     if hp^.is_colon_para then
                                       begin
                                          if hp^.right^.is_colon_para then
@@ -668,8 +686,6 @@ implementation
                                         { do the checking for the colon'd arg }
                                         hp:=length_para;
                                       end;
-{$endif ndef NOCOLONCHECK}
-
                                   end;
                                  hp:=hp^.right;
                               end;
@@ -683,6 +699,7 @@ implementation
                        left_right_max(p);
                     end;
                end;
+
             in_settextbuf_file_x :
               begin
                  { warning here p^.left is the callparannode
@@ -700,8 +717,10 @@ implementation
                  p:=hp;
                  firstpass(p);
               end;
+
              { the firstpass of the arg has been done in firstcalln ? }
-             in_reset_typedfile,in_rewrite_typedfile :
+             in_reset_typedfile,
+             in_rewrite_typedfile :
                begin
                   procinfo.flags:=procinfo.flags or pi_do_call;
                   { to be sure the right definition is loaded }
@@ -709,6 +728,7 @@ implementation
                   firstpass(p^.left);
                   p^.resulttype:=voiddef;
                end;
+
              in_str_x_string :
                begin
                   procinfo.flags:=procinfo.flags or pi_do_call;
@@ -726,6 +746,9 @@ implementation
                   count_ref:=true;
                   p^.left^.right:=nil;
                   firstcallparan(p^.left,nil);
+                  { remove warning when result is passed }
+                  if (p^.left^.left^.treetype=funcretn) then
+                   procinfo.funcret_is_valid:=true;
                   must_be_valid:=true;
                   p^.left^.right:=hp;
                   firstcallparan(p^.left^.right,nil);
@@ -750,28 +773,25 @@ implementation
 
                   isreal:=false;
                   case hp^.resulttype^.deftype of
-                   orddef : begin
-                              case porddef(hp^.left^.resulttype)^.typ of
-
-                                 u32bit,
-                                 s32bit,
-                                 s64bitint,
-                                 u64bit:
-                                   ;
-
-                                 u8bit,s8bit,
-                                 u16bit,s16bit:
-                                   hp^.left:=gentypeconvnode(hp^.left,s32bitdef);
-
-                              else
-                                CGMessage(type_e_integer_or_real_expr_expected);
-                              end;
-                            end;
-                 floatdef : begin
-                              isreal:=true;
-                            end;
-                  else
-                    CGMessage(type_e_integer_or_real_expr_expected);
+                    orddef :
+                      begin
+                        case porddef(hp^.left^.resulttype)^.typ of
+                          u32bit,s32bit,
+                          s64bitint,u64bit:
+                            ;
+                          u8bit,s8bit,
+                          u16bit,s16bit:
+                            hp^.left:=gentypeconvnode(hp^.left,s32bitdef);
+                          else
+                            CGMessage(type_e_integer_or_real_expr_expected);
+                        end;
+                      end;
+                    floatdef :
+                      begin
+                        isreal:=true;
+                      end;
+                    else
+                      CGMessage(type_e_integer_or_real_expr_expected);
                   end;
 
                   { some format options ? }
@@ -808,6 +828,7 @@ implementation
                   { calc registers }
                   left_right_max(p);
                end;
+
 {$IfnDef OLDVAL}
              in_val_x :
                begin
@@ -848,9 +869,13 @@ implementation
                   must_be_valid:=false;
                   count_ref:=true;
                   hpp^.right:=nil;
-                 {hpp = destination}
+                  {hpp = destination}
                   firstcallparan(hpp,nil);
-                  if codegenerror then exit;
+                  if codegenerror then
+                    exit;
+                  { remove warning when result is passed }
+                  if (hpp^.left^.treetype=funcretn) then
+                   procinfo.funcret_is_valid:=true;
                   hpp^.right := hp;
                   if (hpp^.left^.location.loc<>LOC_REFERENCE) then
                     CGMessage(type_e_variable_id_expected)
@@ -874,9 +899,10 @@ implementation
                   left_right_max(p);
                end;
 {$EndIf OLDVAL}
-            in_include_x_y,
-            in_exclude_x_y:
-              begin
+
+             in_include_x_y,
+             in_exclude_x_y:
+               begin
                  p^.resulttype:=voiddef;
                  if assigned(p^.left) then
                    begin
@@ -886,6 +912,9 @@ implementation
 {$ifdef SUPPORT_MMX}
                       p^.registersmmx:=p^.left^.registersmmx;
 {$endif SUPPORT_MMX}
+                      { remove warning when result is passed }
+                      if (p^.left^.left^.treetype=funcretn) then
+                       procinfo.funcret_is_valid:=true;
                       { first param must be var }
                       if (p^.left^.left^.location.loc<>LOC_REFERENCE) and
                          (p^.left^.left^.location.loc<>LOC_CREGISTER) then
@@ -913,8 +942,10 @@ implementation
                    end
                  else
                    CGMessage(type_e_mismatch);
-              end;
-             in_low_x,in_high_x:
+               end;
+
+             in_low_x,
+             in_high_x:
                begin
                   if p^.left^.treetype in [typen,loadn,subscriptn] then
                     begin
@@ -1019,8 +1050,8 @@ implementation
                end;
 
               else
-                internalerror(8);
-              end;
+               internalerror(8);
+             end;
             end;
            { generate an error if no resulttype is set }
            if not assigned(p^.resulttype) then
@@ -1033,7 +1064,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.22  1999-03-26 00:05:48  peter
+  Revision 1.23  1999-04-08 10:16:48  peter
+    * funcret_valid flag is set for inline functions
+
+  Revision 1.22  1999/03/26 00:05:48  peter
     * released valintern
     + deffile is now removed when compiling is finished
     * ^( compiles now correct
