@@ -304,10 +304,11 @@ Fixed bugs:
   bug0247.pp   var with initial value not supprted (Delphi var x : integer = 5;)
                allowed in -Sd mode OK 0.99.11 (PM)
   bug0248.pp   Asm, Wrong assembler code accepted by new assembler reader OK 0.99.11 (PFV)
+  bug0249.pp   procedure of object cannot be assigned to property.  OK 0.99.11 (PFV)
   bug0250.pp   error with Ansistrings and loops.                    OK 0.99.11 (PFV)
   bug0251.pp   typed const are not aligned correctly                OK 0.99.11 (PM)
   bug0253.pp   problem with overloaded procedures and forward       OK 0.99.11 (PFV)
-  
+
 
 Unproducable bugs:
 ------------------
@@ -343,6 +344,6 @@ bug0237.pp   Can't have sub procedures with names defined in interface
 bug0244.pp   nested procedures can't have same name as global ones
 bug0245.pp   assigning pointers to address of consts is allowed (refused by BP !)
 bug0246.pp   const para can be changed without error
-bug0249.pp   procedure of object cannot be assigned to property.
 bug0252.pp   typecasting not possible within typed const
 bug0254.pp   problem of endless loop if string at end of main file without new line.
+bug0255.pp   internal error 10 with in and function calls
