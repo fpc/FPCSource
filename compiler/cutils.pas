@@ -215,8 +215,8 @@ uses
 
     Function SwapInt64(x : int64): int64;{$ifdef USEINLINE}inline;{$endif}
       Begin
-        result:=swaplong(hi(x));
-        result:=result or (swaplong(lo(x)) shl 32);
+        result:=swaplong(longint(hi(x)));
+        result:=result or (swaplong(longint(lo(x))) shl 32);
       End;
 
 
@@ -736,7 +736,7 @@ uses
           maybequoted:=s;
       end;
 
-    
+
     function DePascalQuote(var s: string): Boolean;
       var
         destPos, sourcePos, len: Integer;
@@ -769,9 +769,9 @@ uses
               inc(destPos);
               t[destPos] := ch;
             end;
-        end; 
+        end;
     end;
-    
+
 
     function pchar2pstring(p : pchar) : pstring;
       var
@@ -1234,7 +1234,10 @@ initialization
 end.
 {
   $Log$
-  Revision 1.43  2004-09-13 20:26:45  peter
+  Revision 1.44  2004-09-21 20:32:40  peter
+    * range check error in swapint64
+
+  Revision 1.43  2004/09/13 20:26:45  peter
     * for-loop variable access removed
 
   Revision 1.42  2004/08/31 21:44:18  olle
