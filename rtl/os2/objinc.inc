@@ -1,0 +1,182 @@
+{
+	$Id$
+	This file is part of the Free Pascal run time library.
+	Copyright (c) 1993-98 by the Free Pascal development team.
+
+	Includefile for objects.pp implementing OS-dependent file routines
+	for Go32V1
+
+	See the file COPYING.FPC, included in this distribution,
+	for details about the copyright.
+
+	This program is distributed in the hope that it will be useful,
+	but WITHOUT ANY WARRANTY; without even the implied warranty of
+	MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+
+ **********************************************************************
+}
+
+{This is the correct way to call external assembler procedures.}
+procedure syscall;external name '___SYSCALL';
+
+{---------------------------------------------------------------------------}
+{  FileClose -> Platforms OS2              - Not checked                    }
+{---------------------------------------------------------------------------}
+FUNCTION FileClose(Handle: THandle): word;
+begin
+   asm
+	  xor  %bx,%bx
+	  movw handle,%bx
+	  movb $0x3e,%ah
+	  call syscall
+   end;
+   FileClose := 0;
+end;
+
+{---------------------------------------------------------------------------}
+{  FileOpen -> Platforms OS2              - Checked 05May1998 CEC           }
+{  Returns 0 on failure                                                     }
+{---------------------------------------------------------------------------}
+
+FUNCTION FileOpen (Var FileName: AsciiZ; Mode: Word): THandle;
+var
+ AMode: word;
+begin
+  if Mode=stCreate then
+	Begin
+	  AMode:=$8302;
+	end
+  else
+	Begin
+	  Case (Mode and 3) of
+	   0 : AMode:=$8001;
+	   1 : AMode:=$8404;
+	   2 : AMode:=$8404;
+	  end;
+	end;
+   asm
+	 xorl  %eax, %eax
+	 movw  %ax, DosStreamError
+	 movl  FileName, %ebx
+	 movw  $0xff02, %ax
+	 movw  AMode, %cx
+	 call  syscall
+	 jnc   .Lexit1
+	 movw  %ax, DosStreamError                        { Hold Error  }
+	 xorl  %eax, %eax                                 { Open Failed }
+   .Lexit1:
+	 movw  %ax, __RESULT
+   END;
+end;
+
+
+{***************************************************************************}
+{  DosSetFilePtr -> Platforms OS2          - Checked 05May1998 CEC          }
+{***************************************************************************}
+FUNCTION SetFilePos (Handle: THandle; Pos: LongInt; MoveType: Word;
+Var Actual: LongInt): Word;
+Var
+ val : longint;
+BEGIN
+  asm
+	 movw MoveType, %ax;                              { Load move type }
+	 movb $0x42, %ah;
+	 movl pos, %edx;                              { Load file position }
+	 movw Handle, %bx;                              { Load file handle }
+	 call syscall
+	 jc .Lexit4
+	 movl    %eax,val                               { Update new position }
+	 xorl %eax, %eax;
+   .Lexit4:
+	 movw %ax, DosStreamError                         { OS2 error returned }
+   .Lend:
+   END;
+   Actual := val;
+   SetFilePos := DosStreamError;                   { Return any error }
+END;
+
+
+{---------------------------------------------------------------------------}
+{  FileRead -> Platforms OS2              - Checked 05May1998 CEC           }
+{---------------------------------------------------------------------------}
+FUNCTION FileRead (Handle: THandle; Var Buf; Count: Sw_Word;
+Var Actual: Sw_Word): Word;
+BEGIN
+  asm
+	 movl count,%ecx
+	 movl buf,%edx
+	 xorl %ebx,%ebx
+	 movw handle,%bx
+	 movb $0x3f,%ah
+	 call syscall
+	 jnc .LDOSREAD1
+	 movw %ax,DosStreamError
+	 xorl %eax,%eax
+  .LDOSREAD1:
+  end;
+  Actual:=Count;
+  FileRead:=DosStreamError;
+end;
+
+
+{---------------------------------------------------------------------------}
+{  FileWrite -> Platforms OS2              - Checked 05May1998 CEC          }
+{---------------------------------------------------------------------------}
+FUNCTION FileWrite (Handle: THandle; Var Buf; Count: Sw_Word; Var Actual: Sw_Word): Word;
+BEGIN
+  Actual:=0;
+  asm
+	 movl Count,%ecx
+	 movl buf,%edx
+	 xorl %ebx,%ebx
+	 movw Handle,%bx
+	 movb $0x40,%ah
+	 call syscall
+	 jnc .LDOSWRITE1
+	 movw %ax,DosStreamError
+  .LDOSWRITE1:
+  end;
+  Actual:=Count;
+  FileWrite:=DosStreamError;
+end;
+
+
+{---------------------------------------------------------------------------}
+{  SetFileSize -> Platforms OS2          - Not Checked                      }
+{---------------------------------------------------------------------------}
+FUNCTION SetFileSize (Handle: THandle; FileSize: LongInt): Word;
+VAR Actual, Buf: LongInt;
+BEGIN
+   SetFilePos(Handle,FileSize,0,Actual);
+   If (Actual = FileSize) Then
+	Begin
+	  Actual := FileWrite(Handle, Pointer(@Buf), 0,Actual);   { Truncate the file }
+	  If (Actual <> -1) Then
+	   SetFileSize := 0
+	  Else
+	   SetFileSize := 103;                            { File truncate error }
+	End
+   Else
+	SetFileSize := 103;                       { File truncate error }
+END;
+
+{
+  $Log$
+  Revision 1.1  1999-03-26 14:23:14  daniel
+  + Added. Better late than never.
+
+  Revision 1.1  1998/12/21 13:07:02  peter
+	* use -FE
+
+  Revision 1.4  1998/07/06 12:26:19  carl
+	* Glurbl.... now work perfectly! Do not change :)
+
+  Revision 1.3  1998/07/02 12:25:27  carl
+	* NOTHING would work, FileOpen is now correct!!
+
+  Revision 1.2  1998/05/31 14:18:18  peter
+	* force att or direct assembling
+	* cleanup of some files
+
+}
+
