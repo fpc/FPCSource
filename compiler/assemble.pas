@@ -156,7 +156,7 @@ interface
         procedure emitlineinfostabs(nidx,line : longint);
         procedure emitstabs(s:string);
         procedure WriteFileLineInfo(var fileinfo : tfileposinfo);
-        procedure StartFileLineInfo;
+        procedure StartFileLineInfo(sec:tsection);
         procedure EndFileLineInfo;
 {$endif}
         function  MaybeNextList(var hp:Tai):boolean;
@@ -887,12 +887,18 @@ Implementation
       end;
 
 
-    procedure TInternalAssembler.StartFileLineInfo;
+    procedure TInternalAssembler.StartFileLineInfo(sec:tsection);
       var
         fileinfo : tfileposinfo;
       begin
         FillChar(stabslastfileinfo,sizeof(stabslastfileinfo),0);
-        n_line:=n_bssline;
+        case sec of
+         sec_code : n_line:=n_textline;
+         sec_data : n_line:=n_dataline;
+          sec_bss : n_line:=n_bssline;
+        else
+         n_line:=n_bssline;
+        end;
         funcname:=nil;
         linecount:=1;
         includecount:=0;
@@ -1390,7 +1396,7 @@ Implementation
         objectalloc.reseTSections;
         objectalloc.seTSection(sec_code);
 {$ifdef GDB}
-        StartFileLineInfo;
+        StartFileLineInfo(sec_code);
 {$endif GDB}
         { start with list 1 }
         currlistidx:=1;
@@ -1416,7 +1422,7 @@ Implementation
       { Pass 2 }
         currpass:=2;
 {$ifdef GDB}
-        StartFileLineInfo;
+        StartFileLineInfo(sec_code);
 {$endif GDB}
         { start with list 1 }
         currlistidx:=1;
@@ -1486,7 +1492,7 @@ Implementation
            objectalloc.reseTSections;
            objectalloc.seTSection(starTSec);
 {$ifdef GDB}
-           StartFileLineInfo;
+           StartFileLineInfo(startsec);
 {$endif GDB}
            TreePass1(hp);
 {$ifdef GDB}
@@ -1506,7 +1512,7 @@ Implementation
            objectoutput.startobjectfile(Objfile);
            objectdata.defaulTSection(starTSec);
 {$ifdef GDB}
-           StartFileLineInfo;
+           StartFileLineInfo(startsec);
 {$endif GDB}
            hp:=TreePass2(hp);
 {$ifdef GDB}
@@ -1660,7 +1666,11 @@ Implementation
 end.
 {
   $Log$
-  Revision 1.66  2004-03-22 09:28:34  michael
+  Revision 1.67  2004-05-21 22:43:36  peter
+    * set correct n_line type when starting new .o file by passing
+      the current section type
+
+  Revision 1.66  2004/03/22 09:28:34  michael
   + Patch from peter for stack overflow
 
   Revision 1.65  2004/03/15 21:50:09  peter
