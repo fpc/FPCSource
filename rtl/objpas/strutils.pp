@@ -151,7 +151,7 @@ end;
 Function AnsiContainsText(const AText, ASubText: string): Boolean;
 
 begin
-  NotYetImplemented(' AnsiContainsText');
+  AnsiContainsText:=Pos(ASubText,AText)<>0;
 end;
 
 
@@ -159,7 +159,7 @@ end;
 Function AnsiStartsText(const ASubText, AText: string): Boolean;
 
 begin
-  NotYetImplemented(' AnsiStartsText');
+  Result:=Copy(AText,1,Length(AsubText))=ASubText;
 end;
 
 
@@ -167,7 +167,7 @@ end;
 Function AnsiEndsText(const ASubText, AText: string): Boolean;
 
 begin
-  NotYetImplemented(' AnsiEndsText');
+ result:=Copy(AText,Length(AText)-Length(ASubText)+1,Length(ASubText))=asubtext;
 end;
 
 
@@ -626,3 +626,10 @@ begin
 end;
 
 end.
+
+{
+  $Log$
+  Revision 1.3  2004-03-18 16:55:47  marco
+   * more simple implementations done, based on copy() Largely untested
+
+}
