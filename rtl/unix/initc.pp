@@ -24,6 +24,8 @@ type libcint   = longint;
 function fpgetCerrno:libcint; 
 procedure fpsetCerrno(err:libcint); 
 
+property cerrno:libcint read fpgetCerrno write fpsetcerrno;
+
 implementation
 // hasn't been divided up in .inc's, because I first want to see hoe
 // this idea works out.
@@ -75,7 +77,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.5  2003-12-10 14:59:49  marco
+  Revision 1.6  2003-12-10 17:06:19  marco
+   * property support used.
+
+  Revision 1.5  2003/12/10 14:59:49  marco
    * NetBSD supported added based on Sparc and define name changed to something more sensible
 
   Revision 1.4  2003/12/10 11:24:25  marco
