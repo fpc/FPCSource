@@ -19,12 +19,12 @@
     *********************************************************************
 }
 
-function WideUpperCase(const s : WideString) : WideString;
-function WideLowerCase(const s : WideString) : WideString;
-function WideCompareStr(const s1, s2 : WideString) : PtrInt;
-function WideSameStr(const s1, s2 : WideString) : Boolean;
-function WideCompareText(const s1, s2 : WideString) : PtrInt;
-function WideSameText(const s1, s2 : WideString) : Boolean;
+function WideUpperCase(const s : WideString) : WideString;{$ifdef SYSUTILSINLINE}inline;{$endif}
+function WideLowerCase(const s : WideString) : WideString;{$ifdef SYSUTILSINLINE}inline;{$endif}
+function WideCompareStr(const s1, s2 : WideString) : PtrInt;{$ifdef SYSUTILSINLINE}inline;{$endif}
+function WideSameStr(const s1, s2 : WideString) : Boolean;{$ifdef SYSUTILSINLINE}inline;{$endif}
+function WideCompareText(const s1, s2 : WideString) : PtrInt;{$ifdef SYSUTILSINLINE}inline;{$endif}
+function WideSameText(const s1, s2 : WideString) : Boolean;{$ifdef SYSUTILSINLINE}inline;{$endif}
 
 Function WideFormat (Const Fmt : WideString; const Args : Array of const) : WideString;
 Function WideFormatBuf (Var Buffer; BufLen : Cardinal;
@@ -35,7 +35,11 @@ Procedure WideFmtStr(Var Res: WideString; Const Fmt : WideString; Const args: Ar
 
 {
   $Log$
-  Revision 1.5  2005-03-06 18:28:23  florian
+  Revision 1.6  2005-03-12 14:56:22  florian
+    + added Ansi* routines to widestring manager
+    * made them using OS calls on windows
+
+  Revision 1.5  2005/03/06 18:28:23  florian
     + WideFormatBuf and WideFmtStr implemented
 
   Revision 1.4  2005/02/26 15:00:14  florian

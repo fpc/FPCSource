@@ -12,6 +12,11 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 
  **********************************************************************}
+{ Using inlining for small system functions/wrappers }
+{$ifdef HASINLINE}
+  {$inline on}
+  {$define SYSUTILSINLINE}
+{$endif}
 
   { Read date & Time function declarations }
   {$i osutilsh.inc}
@@ -232,7 +237,11 @@ Type
 
 {
   $Log$
-  Revision 1.13  2005-02-14 17:13:31  peter
+  Revision 1.14  2005-03-12 14:56:22  florian
+    + added Ansi* routines to widestring manager
+    * made them using OS calls on windows
+
+  Revision 1.13  2005/02/14 17:13:31  peter
     * truncate log
 
   Revision 1.12  2005/02/03 18:40:02  florian

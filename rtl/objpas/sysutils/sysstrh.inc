@@ -87,18 +87,18 @@ function CompareMem(P1, P2: Pointer; Length: cardinal): Boolean;
 function CompareText(const S1, S2: string): integer;
 function SameText(const s1,s2:String):Boolean;
 
-function AnsiUpperCase(const s: string): string;
-function AnsiLowerCase(const s: string): string;
-function AnsiCompareStr(const S1, S2: string): integer;
-function AnsiCompareText(const S1, S2: string): integer;
-function AnsiSameText(const s1,s2:String):Boolean;
-function AnsiSameStr(const s1,s2:String):Boolean;
-function AnsiStrComp(S1, S2: PChar): integer;
-function AnsiStrIComp(S1, S2: PChar): integer;
-function AnsiStrLComp(S1, S2: PChar; MaxLen: cardinal): integer;
-function AnsiStrLIComp(S1, S2: PChar; MaxLen: cardinal): integer;
-function AnsiStrLower(Str: PChar): PChar;
-function AnsiStrUpper(Str: PChar): PChar;
+function AnsiUpperCase(const s: string): string;{$ifdef SYSUTILSINLINE}inline;{$endif}
+function AnsiLowerCase(const s: string): string;{$ifdef SYSUTILSINLINE}inline;{$endif}
+function AnsiCompareStr(const S1, S2: string): integer;{$ifdef SYSUTILSINLINE}inline;{$endif}
+function AnsiCompareText(const S1, S2: string): integer;{$ifdef SYSUTILSINLINE}inline;{$endif}
+function AnsiSameText(const s1,s2:String):Boolean;{$ifdef SYSUTILSINLINE}inline;{$endif}
+function AnsiSameStr(const s1,s2:String):Boolean;{$ifdef SYSUTILSINLINE}inline;{$endif}
+function AnsiStrComp(S1, S2: PChar): integer;{$ifdef SYSUTILSINLINE}inline;{$endif}
+function AnsiStrIComp(S1, S2: PChar): integer;{$ifdef SYSUTILSINLINE}inline;{$endif}
+function AnsiStrLComp(S1, S2: PChar; MaxLen: cardinal): integer;{$ifdef SYSUTILSINLINE}inline;{$endif}
+function AnsiStrLIComp(S1, S2: PChar; MaxLen: cardinal): integer;{$ifdef SYSUTILSINLINE}inline;{$endif}
+function AnsiStrLower(Str: PChar): PChar;{$ifdef SYSUTILSINLINE}inline;{$endif}
+function AnsiStrUpper(Str: PChar): PChar;{$ifdef SYSUTILSINLINE}inline;{$endif}
 function AnsiLastChar(const S: string): PChar;
 function AnsiStrLastChar(Str: PChar): PChar;
 
@@ -202,7 +202,11 @@ function BCDToInt(Value: integer): integer;
 
 {
   $Log$
-  Revision 1.15  2005-02-14 17:13:31  peter
+  Revision 1.16  2005-03-12 14:56:22  florian
+    + added Ansi* routines to widestring manager
+    * made them using OS calls on windows
+
+  Revision 1.15  2005/02/14 17:13:31  peter
     * truncate log
 
   Revision 1.14  2005/02/06 09:38:45  florian

@@ -1022,6 +1022,84 @@ function Win32CompareTextWideString(const s1, s2 : WideString) : PtrInt;
   end;
 
 
+function Win32AnsiUpperCase(const s: string): string;
+  begin
+    if length(s)>0 then
+      begin
+        result:=s;
+        UniqueString(result);
+        CharUpperBuff(pchar(result),length(result));
+      end
+    else
+      result:='';
+  end;
+
+
+function Win32AnsiLowerCase(const s: string): string;
+  begin
+    if length(s)>0 then
+      begin
+        result:=s;
+        UniqueString(result);
+        CharLowerBuff(pchar(result),length(result));
+      end
+    else
+      result:='';
+  end;
+
+
+function Win32AnsiCompareStr(const S1, S2: string): PtrInt;
+  begin
+    result:=CompareString(LOCALE_USER_DEFAULT,0,pchar(s1),length(s1),
+      pchar(s2),length(s2))-2;
+  end;
+
+
+function Win32AnsiCompareText(const S1, S2: string): PtrInt;
+  begin
+    result:=CompareString(LOCALE_USER_DEFAULT,NORM_IGNORECASE,pchar(s1),length(s1),
+      pchar(s2),length(s2))-2;
+  end;
+
+
+function Win32AnsiStrComp(S1, S2: PChar): PtrInt;
+  begin
+    result:=CompareString(LOCALE_USER_DEFAULT,0,s1,-1,s2,-1)-2;
+  end;
+
+
+function Win32AnsiStrIComp(S1, S2: PChar): PtrInt;
+  begin
+    result:=CompareString(LOCALE_USER_DEFAULT,NORM_IGNORECASE,s1,-1,s2,-1)-2;
+  end;
+
+
+function Win32AnsiStrLComp(S1, S2: PChar; MaxLen: PtrUInt): PtrInt;
+  begin
+    result:=CompareString(LOCALE_USER_DEFAULT,0,s1,maxlen,s2,maxlen)-2;
+  end;
+
+
+function Win32AnsiStrLIComp(S1, S2: PChar; MaxLen: PtrUInt): PtrInt;
+  begin
+    result:=CompareString(LOCALE_USER_DEFAULT,NORM_IGNORECASE,s1,maxlen,s2,maxlen)-2;
+  end;
+
+
+function Win32AnsiStrLower(Str: PChar): PChar;
+  begin
+    CharLower(str);
+    result:=str;
+  end;
+
+
+function Win32AnsiStrUpper(Str: PChar): PChar;
+  begin
+    CharUpper(str);
+    result:=str;
+  end;
+
+
 { there is a similiar procedure in the system unit which inits the fields which
   are relevant already for the system unit }
 procedure InitWin32Widestrings;
@@ -1051,7 +1129,11 @@ Finalization
 end.
 {
   $Log$
-  Revision 1.44  2005-03-10 19:12:28  florian
+  Revision 1.45  2005-03-12 14:56:22  florian
+    + added Ansi* routines to widestring manager
+    * made them using OS calls on windows
+
+  Revision 1.44  2005/03/10 19:12:28  florian
     * applied fix from Vincent to fix make cyle crash on P4 with WinXP SP2
 
   Revision 1.43  2005/03/02 21:10:08  florian

@@ -198,29 +198,31 @@ end;
 {   these functions rely on the character set loaded by the OS                 }
 {==============================================================================}
 
-
-function AnsiUpperCase(const s: string): string;
-var len, i: integer;
+function GenericAnsiUpperCase(const s: string): string;
+  var 
+    len, i: integer;
 begin
-len := length(s);
-SetLength(result, len);
-for i := 1 to len do
-   result[i] := UpperCaseTable[ord(s[i])];
-end ;
+  len := length(s);
+  SetLength(result, len);
+  for i := 1 to len do
+     result[i] := UpperCaseTable[ord(s[i])];
+end;
 
-function AnsiLowerCase(const s: string): string;
-var len, i: integer;
+
+function GenericAnsiLowerCase(const s: string): string;
+  var 
+    len, i: integer;
 begin
-len := length(s);
-SetLength(result, len);
-for i := 1 to len do
-   result[i] := LowerCaseTable[ord(s[i])];
-end ;
+  len := length(s);
+  SetLength(result, len);
+  for i := 1 to len do
+     result[i] := LowerCaseTable[ord(s[i])];
+end;
 
-function AnsiCompareStr(const S1, S2: string): integer;
 
-Var I,L1,L2 : Longint;
-
+function GenericAnsiCompareStr(const S1, S2: string): PtrInt;
+  Var 
+    I,L1,L2 : SizeInt;
 begin
   Result:=0;
   L1:=Length(S1);
@@ -235,9 +237,9 @@ begin
     Result:=L1-L2;
 end;
 
-function AnsiCompareText(const S1, S2: string): integer;
-Var I,L1,L2 : Longint;
-
+function GenericAnsiCompareText(const S1, S2: string): PtrInt;
+  Var 
+    I,L1,L2 : SizeInt;
 begin
   Result:=0;
   L1:=Length(S1);
@@ -252,19 +254,19 @@ begin
     Result:=L1-L2;
 end;
 
-function AnsiSameText(const s1,s2:String):Boolean;
+function AnsiSameText(const s1,s2:String):Boolean;{$ifdef SYSUTILSINLINE}inline;{$endif}
 
 begin
  AnsiSameText:=AnsiCompareText(S1,S2)=0;
 end;
 
-function AnsiSameStr(const s1,s2:String):Boolean;
+function AnsiSameStr(const s1,s2:String):Boolean;{$ifdef SYSUTILSINLINE}inline;{$endif}
 
 begin
   AnsiSameStr:=AnsiCompareStr(S1,S2)=0;
 end;
 
-function AnsiStrComp(S1, S2: PChar): integer;
+function GenericAnsiStrComp(S1, S2: PChar): PtrInt;
 
 begin
   Result:=0;
@@ -286,7 +288,8 @@ begin
   Until (Result<>0) or ((S1[0]=#0) or (S2[0]=#0))
 end;
 
-function AnsiStrIComp(S1, S2: PChar): integer;
+
+function GenericAnsiStrIComp(S1, S2: PChar): PtrInt;
 
 begin
   Result:=0;
@@ -308,7 +311,8 @@ begin
   Until (Result<>0) or ((S1[0]=#0) or (S2[0]=#0))
 end;
 
-function AnsiStrLComp(S1, S2: PChar; MaxLen: cardinal): integer;
+
+function GenericAnsiStrLComp(S1, S2: PChar; MaxLen: PtrUInt): PtrInt;
 
 Var I : cardinal;
 
@@ -333,9 +337,10 @@ begin
     Inc(S2);
     Inc(I);
   Until (Result<>0) or ((S1[0]=#0) or (S2[0]=#0)) or (I=MaxLen)
-end ;
+end;
 
-function AnsiStrLIComp(S1, S2: PChar; MaxLen: cardinal): integer;
+
+function GenericAnsiStrLIComp(S1, S2: PChar; MaxLen: PtrUInt): PtrInt;
 
 Var I : cardinal;
 
@@ -360,20 +365,22 @@ begin
     Inc(S2);
     Inc(I);
   Until (Result<>0) or ((S1[0]=#0) or (S2[0]=#0)) or (I=MaxLen)
-end ;
+end;
 
-function AnsiStrLower(Str: PChar): PChar;
+
+function GenericAnsiStrLower(Str: PChar): PChar;
 begin
 result := Str;
 if Str <> Nil then begin
    while Str^ <> #0 do begin
       Str^ := LowerCaseTable[byte(Str^)];
       Str := Str + 1;
-      end ;
-   end ;
-end ;
+      end;
+   end;
+end;
 
-function AnsiStrUpper(Str: PChar): PChar;
+
+function GenericAnsiStrUpper(Str: PChar): PChar;
 begin
 result := Str;
 if Str <> Nil then begin
@@ -398,6 +405,67 @@ begin
   result:=StrEnd(Str);
   Dec(Result);
 end ;
+
+
+function AnsiUpperCase(const s: string): string;{$ifdef SYSUTILSINLINE}inline;{$endif}
+  begin
+    result:=widestringmanager.UpperAnsiStringProc(s);
+  end;
+  
+  
+function AnsiLowerCase(const s: string): string;{$ifdef SYSUTILSINLINE}inline;{$endif}
+  begin
+    result:=widestringmanager.LowerAnsiStringProc(s);
+  end;
+  
+  
+function AnsiCompareStr(const S1, S2: string): integer;{$ifdef SYSUTILSINLINE}inline;{$endif}
+  begin
+    result:=widestringmanager.CompareStrAnsiStringProc(s1,s2);
+  end;
+  
+  
+function AnsiCompareText(const S1, S2: string): integer;{$ifdef SYSUTILSINLINE}inline;{$endif}
+  begin
+    result:=widestringmanager.CompareTextAnsiStringProc(s1,s2);
+  end;
+  
+  
+function AnsiStrComp(S1, S2: PChar): integer;{$ifdef SYSUTILSINLINE}inline;{$endif}
+  begin
+    result:=widestringmanager.StrCompAnsiStringProc(s1,s2);
+  end;
+
+  
+function AnsiStrIComp(S1, S2: PChar): integer;{$ifdef SYSUTILSINLINE}inline;{$endif}
+  begin
+    result:=widestringmanager.StrICompAnsiStringProc(s1,s2);
+  end;
+
+  
+function AnsiStrLComp(S1, S2: PChar; MaxLen: cardinal): integer;{$ifdef SYSUTILSINLINE}inline;{$endif}
+  begin
+    result:=widestringmanager.StrLCompAnsiStringProc(s1,s2,maxlen);
+  end;
+
+  
+function AnsiStrLIComp(S1, S2: PChar; MaxLen: cardinal): integer;{$ifdef SYSUTILSINLINE}inline;{$endif}
+  begin
+    result:=widestringmanager.StrLICompAnsiStringProc(s1,s2,maxlen);
+  end;
+
+  
+function AnsiStrLower(Str: PChar): PChar;{$ifdef SYSUTILSINLINE}inline;{$endif}
+  begin
+    result:=widestringmanager.StrLowerAnsiStringProc(Str);
+  end;
+  
+  
+function AnsiStrUpper(Str: PChar): PChar;{$ifdef SYSUTILSINLINE}inline;{$endif}
+  begin
+    result:=widestringmanager.StrUpperAnsiStringProc(Str);
+  end;
+
 
 {==============================================================================}
 {  End of Ansi functions                                                       }
@@ -2009,7 +2077,11 @@ const
 
 {
   $Log$
-  Revision 1.32  2005-03-01 19:23:03  jonas
+  Revision 1.33  2005-03-12 14:56:22  florian
+    + added Ansi* routines to widestring manager
+    * made them using OS calls on windows
+
+  Revision 1.32  2005/03/01 19:23:03  jonas
     * fixed newstr() and disposestr()
 
   Revision 1.31  2005/02/28 11:12:17  jonas

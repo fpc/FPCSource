@@ -60,10 +60,21 @@ Type
     CompUTF8 : function(p1,p2:PUTF8String) : shortint;
     CompUCS2 : function(p1,p2:PUCS2Char) : shortint;
     CompUCS4 : function(p1,p2:PUC42Char) : shortint;
-}
+}    
     CompareWideStringProc : function(const s1, s2 : WideString) : PtrInt;
     CompareTextWideStringProc : function(const s1, s2 : WideString): PtrInt;
     CharLengthPCharProc : function(const Str: PChar): PtrInt;
+    
+    UpperAnsiStringProc : function(const s : ansistring) : ansistring;
+    LowerAnsiStringProc : function(const s : ansistring) : ansistring;
+    CompareStrAnsiStringProc : function(const S1, S2: ansistring): PtrInt;
+    CompareTextAnsiStringProc : function(const S1, S2: ansistring): PtrInt;
+    StrCompAnsiStringProc : function(S1, S2: PChar): PtrInt;
+    StrICompAnsiStringProc : function(S1, S2: PChar): PtrInt;  
+    StrLCompAnsiStringProc : function(S1, S2: PChar; MaxLen: PtrUInt): PtrInt;  
+    StrLICompAnsiStringProc : function(S1, S2: PChar; MaxLen: PtrUInt): PtrInt;
+    StrLowerAnsiStringProc : function(Str: PChar): PChar;
+    StrUpperAnsiStringProc : function(Str: PChar): PChar;
   end;
 
 
@@ -85,7 +96,11 @@ Procedure SetWideStringManager (Const New : TWideStringManager; Var Old: TWideSt
 
 {
   $Log$
-  Revision 1.5  2005-02-26 15:00:14  florian
+  Revision 1.6  2005-03-12 14:56:22  florian
+    + added Ansi* routines to widestring manager
+    * made them using OS calls on windows
+
+  Revision 1.5  2005/02/26 15:00:14  florian
     + WideSameStr
 
   Revision 1.4  2005/02/26 10:21:17  florian

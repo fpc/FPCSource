@@ -20,37 +20,37 @@
 }
 
 
-function WideUpperCase(const s : WideString) : WideString;
+function WideUpperCase(const s : WideString) : WideString;{$ifdef SYSUTILSINLINE}inline;{$endif}
   begin
     result:=widestringmanager.UpperWideStringProc(s);
   end;
 
 
-function WideLowerCase(const s : WideString) : WideString;
+function WideLowerCase(const s : WideString) : WideString;{$ifdef SYSUTILSINLINE}inline;{$endif}
   begin
     result:=widestringmanager.LowerWideStringProc(s);
   end;
 
 
-function WideCompareStr(const s1, s2 : WideString) : PtrInt;
+function WideCompareStr(const s1, s2 : WideString) : PtrInt;{$ifdef SYSUTILSINLINE}inline;{$endif}
   begin
     result:=widestringmanager.CompareWideStringProc(s1,s2);
   end;
 
 
-function WideSameStr(const s1, s2 : WideString) : Boolean;
+function WideSameStr(const s1, s2 : WideString) : Boolean;{$ifdef SYSUTILSINLINE}inline;{$endif}
   begin
     result:=widestringmanager.CompareWideStringProc(s1,s2)=0;
   end;
 
 
-function WideCompareText(const s1, s2 : WideString) : PtrInt;
+function WideCompareText(const s1, s2 : WideString) : PtrInt;{$ifdef SYSUTILSINLINE}inline;{$endif}
   begin
     result:=widestringmanager.CompareTextWideStringProc(s1,s2);
   end;
   
   
-function WideSameText(const s1, s2 : WideString) : Boolean;
+function WideSameText(const s1, s2 : WideString) : Boolean;{$ifdef SYSUTILSINLINE}inline;{$endif}
   begin
     result:=widestringmanager.CompareTextWideStringProc(s1,s2)=0;
   end;
@@ -97,7 +97,11 @@ Procedure WideFmtStr(Var Res: WideString; Const Fmt : WideString; Const args: Ar
 
 {
   $Log$
-  Revision 1.6  2005-03-06 18:28:23  florian
+  Revision 1.7  2005-03-12 14:56:22  florian
+    + added Ansi* routines to widestring manager
+    * made them using OS calls on windows
+
+  Revision 1.6  2005/03/06 18:28:23  florian
     + WideFormatBuf and WideFmtStr implemented
 
   Revision 1.5  2005/02/26 15:00:14  florian
