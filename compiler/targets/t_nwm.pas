@@ -21,16 +21,19 @@
 
     First Implementation 10 Sept 2000 Armin Diehl
 
-    Currently generating NetWare-NLM's only work under Linux. This is
-    because nlmconf from binutils does not work with i.e. win32 coff
-    object files. It works fine with ELF-Objects.
+    Currently generating NetWare-NLM's only work under Linux and win32. 
+    (see http://home.arcor.de/armin.diehl/fpcnw for binutils working
+    with win32) while not included in fpc-releases.
 
     The following compiler-swiches are supported for NetWare:
     $DESCRIPTION    : NLM-Description, will be displayed at load-time
     $M              : For Stack-Size, Heap-Size will be ignored
     $VERSION x.x.x  : Sets Major, Minor and Revision
+    $SCREENNAME     : Sets the ScreenName
+    $THREADNAME     : Sets cirrent threadname
 
-    Sorry, Displaying copyright does not work with nlmconv from gnu bunutils.
+    Sorry, Displaying copyright does not work with nlmconv from gnu bunutils
+    but there is a patch available.
 
     Exports will be handled like in win32:
     procedure bla;
@@ -43,7 +46,7 @@
 
     The path to the import-Files (from netware-sdk, see developer.novell.com)
     must be specified by the library-path. All external modules are defined
-    as autoload.
+    as autoload. (Note: the import-files have to be in unix-format for exe2nlm)
 
     i.e. Procedure ConsolePrintf (p:pchar); cdecl; external 'clib.nlm';
     sets IMPORT @clib.imp and MODULE clib.
@@ -53,16 +56,16 @@
        make all
 
     Debugging is currently only possible at assembler level with nwdbg, written
-    by Jan Beulich. Nwdbg supports symbols but it's not a source-level
-    debugger. You can get nwdbg from developer.novell.com. To enter the
-    debugger from your program, define "EnterDebugger" as external cdecl and
-    call it. Int3 will not work with Netware 5.
+    by Jan Beulich. (or with my modified RDebug) Nwdbg supports symbols but it's 
+    not a source-level debugger. You can get nwdbg from developer.novell.com. 
+    To enter the debugger from your program, call _EnterDebugger (defined in unit system).
 
     A sample program:
 
     Program Hello;
     (*$DESCRIPTION HelloWorldNlm*)
-    (*$VERSION 1.2.2*)
+    (*$VERSION 1.2.3*)
+    (*$ScreenName Hello*)
     (*$M 8192,8192*)
     begin
       writeLn ('hello world');
@@ -73,7 +76,11 @@
 
     ToDo:
       - No duplicate imports and autoloads
-      - Screen and Thread-Names
+      - No debug symbols
+      - libc support (needs new target)
+      - prelude support (needs new compiler switch)
+      - make threadvars in the compiler working
+      - a lot of additional units from nwsdk
 
 ****************************************************************************
 }
@@ -361,12 +368,21 @@ begin
         S:=lower (StaticLibFiles.GetFirst);
         if s<>'' then
          begin
-           i:=Pos(target_info.staticlibext,S);
-           if i>0 then
-            Delete(S,i,255);
-           S := S + '.imp';
-           librarysearchpath.FindFile(S,s);
-           LinkRes.Add('IMPORT @'+s);
+	   {ad: that's a hack !
+	    whith -XX we get the .a files as static libs (in addition to the
+	    imported libraries}
+	   if (pos ('.a',s) <> 0) OR (pos ('.A', s) <> 0) then
+	   begin
+	     LinkRes.Add ('INPUT '+FindObjectFile(s,'')); 
+	   end else
+	   begin
+             i:=Pos(target_info.staticlibext,S);
+             if i>0 then
+               Delete(S,i,255);
+             S := S + '.imp';
+             librarysearchpath.FindFile(S,s);
+             LinkRes.Add('IMPORT @'+s);
+	   end;
          end
       end;
    end;
@@ -387,7 +403,7 @@ begin
            s2:=s;
            i:=Pos(target_info.sharedlibext,S);
            if i>0 then
-            Delete(S,i,255);
+             Delete(S,i,255);
            S := S + '.imp';
            librarysearchpath.FindFile(S,s);
            LinkRes.Add('IMPORT @'+s);
@@ -541,7 +557,10 @@ initialization
 end.
 {
   $Log$
-  Revision 1.14  2002-03-04 17:54:59  peter
+  Revision 1.15  2002-03-19 20:23:57  armin
+  + smart linking now works with netware
+
+  Revision 1.14  2002/03/04 17:54:59  peter
     * allow oridinal labels again
 
   Revision 1.13  2002/03/03 13:00:39  hajny
