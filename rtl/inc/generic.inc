@@ -604,15 +604,15 @@ var
    s1,s2,max,i : byte;
    d : longint;
 begin
-  s1:=length(right);
-  s2:=length(left);
+  s1:=length(left);
+  s2:=length(right);
   if s1<s2 then
     max:=s1
   else
     max:=s2;
   for i:=1 to max do
     begin
-     d:=byte(right[i])-byte(left[i]);
+     d:=byte(left[i])-byte(right[i]);
      if d>0 then
        exit(1)
      else if d<0 then
@@ -1225,7 +1225,10 @@ end;
 
 {
   $Log$
-  Revision 1.77  2004-05-02 00:31:03  peter
+  Revision 1.78  2004-05-02 15:15:45  peter
+    * fix arguments for shortstr_compare
+
+  Revision 1.77  2004/05/02 00:31:03  peter
     * fixed compile with 1.0.x
 
   Revision 1.76  2004/05/01 23:55:18  peter
