@@ -15,7 +15,9 @@
 
  **********************************************************************}
 program msg2inc;
-uses strings;
+uses
+  crc,
+  strings;
 
 const
   version='0.99.14';
@@ -203,23 +205,39 @@ end;
 procedure WriteEnumFile(const fn,typename:string);
 var
   t : text;
-  i : longint;
+{$ifdef DEBUGCRC}
+  t2 : text;
+{$endif DEBUGCRC}
+  i,crcvalue : longint;
   p : pchar;
+  s : string;
   start : boolean;
 begin
+  crcvalue:=longint($ffffffff);
   writeln('Writing enumfile '+fn);
 {Open textfile}
   assign(t,fn);
   rewrite(t);
+{$ifdef DEBUGCRC}
+  assign(t2,'crc.tst');
+  rewrite(t2);
+  Writeln(t2,crcvalue);
+{$endif DEBUGCRC}
   writeln(t,'type t',typename,'=(');
 {Parse buffer in msgbuf and create indexs}
   p:=enumtxt;
   start:=true;
-  for i:=1to enumsize do
+  for i:=1 to enumsize do
    begin
      if start then
       begin
         write(t,'  ');
+        s:=UpCase(strpas(p));
+        crcvalue:=UpdateCRC32(crcvalue,@s[1],length(s));
+{$ifdef DEBUGCRC}
+        Writeln(t2,s);
+        Writeln(t2,crcvalue);
+{$endif DEBUGCRC}
         start:=false;
       end;
      if p^=#0 then
@@ -228,12 +246,19 @@ begin
         start:=true;
       end
      else
-      write(t,p^);
+      begin
+        write(t,p^);
+      end;
      inc(p);
    end;
   writeln(t,'end',typename);
   writeln(t,');');
+  writeln(t,'const');
+  writeln(t,'  MsgCRCValue : longint = ',crcvalue,';');
   close(t);
+{$ifdef DEBUGCRC}
+  close(t2);
+{$endif DEBUGCRC}
 end;
 
 
@@ -752,7 +777,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.5  2000-02-09 13:23:11  peter
+  Revision 1.6  2000-05-15 13:14:48  pierre
+   + calculate a CRC value for enums
+
+  Revision 1.5  2000/02/09 13:23:11  peter
     * log truncated
 
   Revision 1.4  2000/01/27 11:29:15  peter
