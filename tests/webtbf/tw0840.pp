@@ -1,5 +1,4 @@
-{$mode TP}
-
+{ %Fail }
 program tb0840;
 
 uses uw0840a;
