@@ -124,51 +124,50 @@ interface
         op : TAsmOp;
       begin
         case aktfputype of
-           fpu_fpa,
-           fpu_fpa10,
-           fpu_fpa11:
-             begin
-               { we will see what instruction set we'll use on the arm for FP
-               pass_left_right;
-               if (nf_swaped in flags) then
-                 swapleftright;
+          fpu_fpa,
+          fpu_fpa10,
+          fpu_fpa11:
+            begin
+              pass_left_right;
+              if (nf_swaped in flags) then
+                swapleftright;
 
-               case nodetype of
-                 addn :
-                   op:=A_FADDs;
-                 muln :
-                   op:=A_FMULs;
-                 subn :
-                   op:=A_FSUBs;
-                 slashn :
-                   op:=A_FDIVs;
-                 else
-                   internalerror(200306014);
-               end;
+              case nodetype of
+                addn :
+                  op:=A_ADF;
+                muln :
+                  op:=A_MUF;
+                subn :
+                  op:=A_SUF;
+                slashn :
+                  op:=A_FDV;
+                else
+                  internalerror(200308313);
+              end;
 
-               { force fpureg as location, left right doesn't matter
-                 as both will be in a fpureg }
-               location_force_fpureg(exprasmlist,left.location,true);
-               location_force_fpureg(exprasmlist,right.location,(left.location.loc<>LOC_CFPUREGISTER));
+              { force fpureg as location, left right doesn't matter
+                as both will be in a fpureg }
+              location_force_fpureg(exprasmlist,left.location,true);
+              location_force_fpureg(exprasmlist,right.location,(left.location.loc<>LOC_CFPUREGISTER));
 
-               location_reset(location,LOC_FPUREGISTER,def_cgsize(resulttype.def));
-               if left.location.loc<>LOC_CFPUREGISTER then
-                 location.register:=left.location.register
-               else
-                 location.register:=right.location.register;
+              location_reset(location,LOC_FPUREGISTER,def_cgsize(resulttype.def));
+              if left.location.loc<>LOC_CFPUREGISTER then
+                location.register:=left.location.register
+              else
+                location.register:=right.location.register;
 
-               exprasmlist.concat(taicpu.op_reg_reg_reg(op,
-                  left.location.register,right.location.register,location.register));
+              exprasmlist.concat(taicpu.op_reg_reg_reg(op,
+                 left.location.register,right.location.register,location.register));
 
-               release_reg_left_right;
-               }
-               location.loc:=LOC_FPUREGISTER;
-             end;
-           fpu_soft:
-             { this case should be handled already by pass1 }
-             internalerror(200308252);
-           else
-             internalerror(200308251);
+              release_reg_left_right;
+
+              location.loc:=LOC_FPUREGISTER;
+            end;
+          fpu_soft:
+            { this case should be handled already by pass1 }
+            internalerror(200308252);
+          else
+            internalerror(200308251);
         end;
       end;
 
@@ -279,7 +278,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.2  2003-08-25 23:20:38  florian
+  Revision 1.3  2003-09-01 09:54:57  florian
+    *  results of work on arm port last weekend
+
+  Revision 1.2  2003/08/25 23:20:38  florian
     + started to implement FPU support for the ARM
     * fixed a lot of other things
 

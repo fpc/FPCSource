@@ -107,7 +107,15 @@ implementation
 
 
     procedure tarmtypeconvnode.second_int_to_real;
+      var
+        instr : taicpu;
       begin
+        location_reset(location,LOC_FPUREGISTER,def_cgsize(resulttype.def));
+        location_force_reg(exprasmlist,left.location,OS_32,true);
+        location.register:=rg.getregisterfpu(exprasmlist,location.size);
+        instr:=taicpu.op_reg_reg(A_FLT,location.register,left.location.register);
+        { set precision? }
+        exprasmlist.concat(instr);
       end;
 
 
@@ -176,7 +184,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.2  2003-08-25 23:20:38  florian
+  Revision 1.3  2003-09-01 09:54:57  florian
+    *  results of work on arm port last weekend
+
+  Revision 1.2  2003/08/25 23:20:38  florian
     + started to implement FPU support for the ARM
     * fixed a lot of other things
 

@@ -95,12 +95,6 @@ unit cgcpu;
 
         procedure a_load_store(list:taasmoutput;op: tasmop;reg:tregister;
                     ref: treference);
-
-        { creates the correct branch instruction for a given combination }
-        { of asmcondflags and destination addressing mode                }
-        procedure a_jmp(list: taasmoutput; op: tasmop;
-                        c: tasmcond; l: tasmlabel);
-
      end;
 
      tcg64farm = class(tcg64f32)
@@ -119,11 +113,13 @@ unit cgcpu;
                             A_DIVWU,A_DIVW, A_MULLW,A_MULLW,A_NONE,A_NONE,
                             A_ORIS,A_NONE, A_NONE,A_NONE,A_SUBIS,A_XORIS);
 
-      TOpCmp2AsmCond: Array[topcmp] of TAsmCondFlag = (C_NONE,C_EQ,C_GT,
-                           C_LT,C_GE,C_LE,C_NE,C_LE,C_LT,C_GE,C_GT);
     }
 
-   function is_shifter_const(d : dword;var imm_shift : byte) : boolean;
+    const
+      OpCmp2AsmCond : Array[topcmp] of TAsmCond = (C_NONE,C_EQ,C_GT,
+                           C_LT,C_GE,C_LE,C_NE,C_LE,C_LT,C_GE,C_GT);
+
+    function is_shifter_const(d : dword;var imm_shift : byte) : boolean;
 
   implementation
 
@@ -251,7 +247,14 @@ unit cgcpu;
 
      procedure tcgarm.a_op_reg_reg(list : taasmoutput; Op: TOpCG; size: TCGSize; src, dst: TRegister);
        begin
-         a_op_reg_reg_reg(list,op,OS_32,src,dst,dst);
+         case op of
+           OP_NEG:
+             list.concat(taicpu.op_reg_reg_const(A_RSB,dst,src,0));
+           OP_NOT:
+             list.concat(taicpu.op_reg_reg(A_MVN,dst,src));
+           else
+             a_op_reg_reg_reg(list,op,OS_32,src,dst,dst);
+         end;
        end;
 
 
@@ -305,10 +308,20 @@ unit cgcpu;
             end
           else
             begin
-               tmpreg := rg.getregisterint(list,size);
-               a_load_const_reg(list,size,a,tmpreg);
-               a_op_reg_reg_reg(list,op,size,tmpreg,src,dst);
-               rg.ungetregisterint(list,tmpreg);
+              { there could be added some more sophisticated optimizations }
+              if (op in [OP_MUL,OP_IMUL]) and (a=1) then
+                a_load_reg_reg(list,size,size,src,dst)
+              else if (op in [OP_MUL,OP_IMUL]) and (a=0) then
+                a_load_const_reg(list,size,0,dst)
+              else if (op in [OP_IMUL]) and (a=-1) then
+                a_op_reg_reg(list,OP_NEG,size,src,dst)
+              else
+                begin
+                  tmpreg := rg.getregisterint(list,size);
+                  a_load_const_reg(list,size,a,tmpreg);
+                  a_op_reg_reg_reg(list,op,size,tmpreg,src,dst);
+                  rg.ungetregisterint(list,tmpreg);
+                end;
             end;
        end;
 
@@ -320,32 +333,29 @@ unit cgcpu;
          tmpreg : tregister;
        begin
          case op of
-           OP_NEG:
-             list.concat(taicpu.op_reg_reg(op_reg_reg_opcg2asmop[op],dst,dst));
-           OP_NOT:
-             list.concat(taicpu.op_reg_reg(A_MVN,dst,dst));
+           OP_NEG,OP_NOT,
            OP_DIV,OP_IDIV:
              internalerror(200308281);
            OP_SHL:
              begin
                shifterop_reset(so);
-               so.rs:=src2;
+               so.rs:=src1;
                so.shiftertype:=SO_LSL;
-               list.concat(taicpu.op_reg_reg_shifterop(A_MOV,dst,src1,so));
+               list.concat(taicpu.op_reg_reg_shifterop(A_MOV,dst,src2,so));
              end;
            OP_SHR:
              begin
                shifterop_reset(so);
-               so.rs:=src2;
+               so.rs:=src1;
                so.shiftertype:=SO_LSR;
-               list.concat(taicpu.op_reg_reg_shifterop(A_MOV,dst,src1,so));
+               list.concat(taicpu.op_reg_reg_shifterop(A_MOV,dst,src2,so));
              end;
            OP_SAR:
              begin
                shifterop_reset(so);
-               so.rs:=src2;
-               so.shiftertype:=SO_LSL;
-               list.concat(taicpu.op_reg_reg_shifterop(A_MOV,dst,src1,so));
+               so.rs:=src1;
+               so.shiftertype:=SO_ASR;
+               list.concat(taicpu.op_reg_reg_shifterop(A_MOV,dst,src2,so));
              end;
            OP_IMUL,
            OP_MUL:
@@ -522,7 +532,7 @@ unit cgcpu;
        var
          oppostfix:toppostfix;
        begin
-         case ToSize of
+         case FromSize of
            { signed integer registers }
            OS_8:
              oppostfix:=PF_B;
@@ -603,6 +613,7 @@ unit cgcpu;
 
      procedure tcgarm.a_loadfpu_reg_reg(list: taasmoutput; size: tcgsize; reg1, reg2: tregister);
        begin
+         list.concat(taicpu.op_reg_reg(A_MVF,reg2,reg1));
        end;
 
 
@@ -617,15 +628,39 @@ unit cgcpu;
 
 
      {  comparison operations }
-     procedure tcgarm.a_cmp_const_reg_label(list : taasmoutput;size : tcgsize;cmp_op : topcmp;a : aword;reg : tregister;
-       l : tasmlabel);
-       begin
-       end;
+    procedure tcgarm.a_cmp_const_reg_label(list : taasmoutput;size : tcgsize;cmp_op : topcmp;a : aword;reg : tregister;
+      l : tasmlabel);
+      var
+        tmpreg : tregister;
+        b : byte;
+      begin
+        if reg.enum=R_INTREGISTER then
+          begin
+            if is_shifter_const(a,b) then
+              list.concat(taicpu.op_reg_const(A_CMN,reg,a))
+            { CMN reg,0 and CMN reg,$80000000 are different from CMP reg,$ffffffff
+              and CMP reg,$7fffffff regarding the flags according to the ARM manual }
+            else if is_shifter_const(not(a),b) and (a<>$7fffffff) and (a<>$ffffffff) then
+              list.concat(taicpu.op_reg_const(A_CMN,reg,not(a)))
+            else
+              begin
+                tmpreg:=rg.getregisterint(list,size);
+                a_load_const_reg(list,size,a,tmpreg);
+                list.concat(taicpu.op_reg_reg(A_CMP,reg,tmpreg));
+                rg.ungetregisterint(list,tmpreg);
+              end
+          end
+        else
+          internalerror(200308131);
+        a_jmp_cond(list,cmp_op,l);
+      end;
 
 
-     procedure tcgarm.a_cmp_reg_reg_label(list : taasmoutput;size : tcgsize;cmp_op : topcmp;reg1,reg2 : tregister;l : tasmlabel);
-       begin
-       end;
+    procedure tcgarm.a_cmp_reg_reg_label(list : taasmoutput;size : tcgsize;cmp_op : topcmp;reg1,reg2 : tregister;l : tasmlabel);
+      begin
+        list.concat(taicpu.op_reg_reg(A_CMP,reg2,reg1));
+        a_jmp_cond(list,cmp_op,l);
+      end;
 
 
      procedure tcgarm.a_jmp_always(list : taasmoutput;l: tasmlabel);
@@ -645,151 +680,204 @@ unit cgcpu;
        end;
 
 
-     procedure tcgarm.g_flags2reg(list: taasmoutput; size: TCgSize; const f: TResFlags; reg: TRegister);
-       begin
-       end;
+    procedure tcgarm.g_flags2reg(list: taasmoutput; size: TCgSize; const f: TResFlags; reg: TRegister);
+      var
+        ai : taicpu;
+      begin
+        ai:=Taicpu.op_reg_const(A_MOV,reg,1);
+        ai.setcondition(flags_to_cond(f));
+        list.concat(ai);
+        ai:=Taicpu.op_reg_const(A_MOV,reg,0);
+        ai.setcondition(inverse_cond[flags_to_cond(f)]);
+        list.concat(ai);
+      end;
 
 
-     procedure tcgarm.g_copyvaluepara_openarray(list : taasmoutput;const ref, lenref:treference;elesize:integer);
-       begin
-       end;
+    procedure tcgarm.g_copyvaluepara_openarray(list : taasmoutput;const ref, lenref:treference;elesize:integer);
+      begin
+      end;
 
 
-     procedure tcgarm.g_stackframe_entry(list : taasmoutput;localsize : longint);
-       var
-         rip,rsp,rfp : tregister;
-         instr : taicpu;
-       begin
-         rsp.enum:=R_INTREGISTER;
-         rsp.number:=NR_STACK_POINTER_REG;
-         a_reg_alloc(list,rsp);
+    procedure tcgarm.g_stackframe_entry(list : taasmoutput;localsize : longint);
+      var
+        rip,rsp,rfp : tregister;
+        instr : taicpu;
+      begin
+        LocalSize:=align(LocalSize,4);
 
-         rfp.enum:=R_INTREGISTER;
-         rfp.number:=NR_FRAME_POINTER_REG;
-         a_reg_alloc(list,rfp);
+        rsp.enum:=R_INTREGISTER;
+        rsp.number:=NR_STACK_POINTER_REG;
+        a_reg_alloc(list,rsp);
 
-         rip.enum:=R_INTREGISTER;
-         rip.number:=NR_R12;
-         a_reg_alloc(list,rip);
+        rfp.enum:=R_INTREGISTER;
+        rfp.number:=NR_FRAME_POINTER_REG;
+        a_reg_alloc(list,rfp);
 
-         list.concat(taicpu.op_reg_reg(A_MOV,rip,rsp));
-         { restore int registers and return }
-         instr:=taicpu.op_reg_regset(A_STM,rsp,rg.used_in_proc_int-[RS_R0..RS_R4]+[RS_R11,RS_R12,RS_R15]);
-         instr.oppostfix:=PF_FD;
-         list.concat(instr);
+        rip.enum:=R_INTREGISTER;
+        rip.number:=NR_R12;
+        a_reg_alloc(list,rip);
 
-         list.concat(taicpu.op_reg_reg_const(A_SUB,rfp,rip,4));
-         a_reg_alloc(list,rip);
+        list.concat(taicpu.op_reg_reg(A_MOV,rip,rsp));
+        { restore int registers and return }
+        instr:=taicpu.op_reg_regset(A_STM,rsp,rg.used_in_proc_int-[RS_R0..RS_R3]+[RS_R11,RS_R12,RS_R15]);
+        instr.oppostfix:=PF_FD;
+        list.concat(instr);
 
-         { allocate necessary stack size }
-         list.concat(taicpu.op_reg_reg_const(A_SUB,rsp,rsp,4));
-       end;
+        list.concat(taicpu.op_reg_reg_const(A_SUB,rfp,rip,4));
+        a_reg_alloc(list,rip);
 
-
-     procedure tcgarm.g_return_from_proc(list : taasmoutput;parasize : aword);
-       var
-         r1,r2 : tregister;
-         instr : taicpu;
-       begin
-         if (current_procinfo.framepointer.number=NR_STACK_POINTER_REG) then
-           begin
-             r1.enum:=R_INTREGISTER;
-             r1.number:=NR_R15;
-             r2.enum:=R_INTREGISTER;
-             r2.number:=NR_R14;
-
-             list.concat(taicpu.op_reg_reg(A_MOV,r1,r2));
-           end
-         else
-           begin
-             r1.enum:=R_INTREGISTER;
-             r1.number:=NR_R11;
-             { restore int registers and return }
-             instr:=taicpu.op_reg_regset(A_LDM,r1,rg.used_in_proc_int-[RS_R0..RS_R4]+[RS_R11,RS_R13,RS_R15]);
-             instr.oppostfix:=PF_EA;
-             list.concat(instr);
-           end;
-       end;
+        { allocate necessary stack size }
+        list.concat(taicpu.op_reg_reg_const(A_SUB,rsp,rsp,LocalSize));
+      end;
 
 
-     procedure tcgarm.g_restore_frame_pointer(list : taasmoutput);
-       begin
-       end;
+    procedure tcgarm.g_return_from_proc(list : taasmoutput;parasize : aword);
+      var
+        r1,r2 : tregister;
+        instr : taicpu;
+      begin
+        if (current_procinfo.framepointer.number=NR_STACK_POINTER_REG) then
+          begin
+            r1.enum:=R_INTREGISTER;
+            r1.number:=NR_R15;
+            r2.enum:=R_INTREGISTER;
+            r2.number:=NR_R14;
+
+            list.concat(taicpu.op_reg_reg(A_MOV,r1,r2));
+          end
+        else
+          begin
+            r1.enum:=R_INTREGISTER;
+            r1.number:=NR_R11;
+            { restore int registers and return }
+            instr:=taicpu.op_reg_regset(A_LDM,r1,rg.used_in_proc_int-[RS_R0..RS_R3]+[RS_R11,RS_R13,RS_R15]);
+            instr.oppostfix:=PF_EA;
+            list.concat(instr);
+          end;
+      end;
 
 
-     procedure tcgarm.a_loadaddr_ref_reg(list : taasmoutput;const ref : treference;r : tregister);
-       begin
-       end;
+    procedure tcgarm.g_restore_frame_pointer(list : taasmoutput);
+      begin
+         { the frame pointer on the ARM is restored while the ret is executed }
+      end;
 
 
-     procedure tcgarm.g_concatcopy(list : taasmoutput;const source,dest : treference;len : aword; delsource,loadref : boolean);
-       begin
-       end;
+    procedure tcgarm.a_loadaddr_ref_reg(list : taasmoutput;const ref : treference;r : tregister);
+      begin
+      end;
 
 
-     procedure tcgarm.g_overflowcheck(list: taasmoutput; const l: tlocation; def: tdef);
-       begin
-       end;
+    procedure tcgarm.g_concatcopy(list : taasmoutput;const source,dest : treference;len : aword; delsource,loadref : boolean);
+      begin
+      end;
 
 
-     procedure tcgarm.g_save_standard_registers(list : taasmoutput; usedinproc : Tsupregset);
-       begin
-       end;
+    procedure tcgarm.g_overflowcheck(list: taasmoutput; const l: tlocation; def: tdef);
+      begin
+      end;
 
 
-     procedure tcgarm.g_restore_standard_registers(list : taasmoutput; usedinproc : Tsupregset);
-       begin
-       end;
+    procedure tcgarm.g_save_standard_registers(list : taasmoutput; usedinproc : Tsupregset);
+      begin
+        { we support only ARM standard calling conventions so this procedure has no use on the ARM }
+      end;
 
 
-     procedure tcgarm.g_save_all_registers(list : taasmoutput);
-       begin
-       end;
+    procedure tcgarm.g_restore_standard_registers(list : taasmoutput; usedinproc : Tsupregset);
+      begin
+        { we support only ARM standard calling conventions so this procedure has no use on the ARM }
+      end;
 
 
-     procedure tcgarm.g_restore_all_registers(list : taasmoutput;accused,acchiused:boolean);
-       begin
-       end;
+    procedure tcgarm.g_save_all_registers(list : taasmoutput);
+      begin
+        { we support only ARM standard calling conventions so this procedure has no use on the ARM }
+      end;
 
 
-     procedure tcgarm.a_jmp_cond(list : taasmoutput;cond : TOpCmp;l: tasmlabel);
-       begin
-       end;
+    procedure tcgarm.g_restore_all_registers(list : taasmoutput;accused,acchiused:boolean);
+      begin
+        { we support only ARM standard calling conventions so this procedure has no use on the ARM }
+      end;
 
 
-     { contains the common code of a_load_reg_ref and a_load_ref_reg }
-     procedure tcgarm.a_load_store(list:taasmoutput;op: tasmop;reg:tregister;
-                 ref: treference);
-       begin
-       end;
+    procedure tcgarm.a_jmp_cond(list : taasmoutput;cond : TOpCmp;l: tasmlabel);
+      var
+        ai : taicpu;
+      begin
+        ai:=Taicpu.Op_sym(A_B,l);
+        ai.SetCondition(OpCmp2AsmCond[cond]);
+        ai.is_jmp:=true;
+        list.concat(ai);
+      end;
 
 
-     { creates the correct branch instruction for a given combination }
-     { of asmcondflags and destination addressing mode                }
-     procedure tcgarm.a_jmp(list: taasmoutput; op: tasmop;
-                     c: tasmcond; l: tasmlabel);
-       begin
-       end;
+    { contains the common code of a_load_reg_ref and a_load_ref_reg }
+    procedure tcgarm.a_load_store(list:taasmoutput;op: tasmop;reg:tregister;
+                ref: treference);
+      begin
+      end;
 
 
-     procedure tcg64farm.a_op64_reg_reg(list : taasmoutput;op:TOpCG;regsrc,regdst : tregister64);
-       begin
-       end;
+    procedure tcg64farm.a_op64_reg_reg(list : taasmoutput;op:TOpCG;regsrc,regdst : tregister64);
+      var
+        tmpreg : tregister;
+        instr : taicpu;
+      begin
+        case op of
+          OP_NEG:
+            begin
+              instr:=taicpu.op_reg_reg_const(A_RSB,regdst.reglo,regsrc.reglo,0);
+              instr.oppostfix:=PF_S;
+              list.concat(instr);
+              list.concat(taicpu.op_reg_reg_const(A_RSC,regdst.reghi,regsrc.reghi,0));
+            end;
+          else
+            a_op64_reg_reg_reg(list,op,regsrc,regdst,regdst);
+        end;
+      end;
 
 
-     procedure tcg64farm.a_op64_const_reg(list : taasmoutput;op:TOpCG;value : qword;reg : tregister64);
-       begin
-       end;
+    procedure tcg64farm.a_op64_const_reg(list : taasmoutput;op:TOpCG;value : qword;reg : tregister64);
+      begin
+        a_op64_const_reg_reg(list,op,value,reg,reg);
+      end;
 
 
-     procedure tcg64farm.a_op64_const_reg_reg(list: taasmoutput;op:TOpCG;value : qword;regsrc,regdst : tregister64);
-       begin
-       end;
+    procedure tcg64farm.a_op64_const_reg_reg(list: taasmoutput;op:TOpCG;value : qword;regsrc,regdst : tregister64);
+      begin
+      end;
 
 
-     procedure tcg64farm.a_op64_reg_reg_reg(list: taasmoutput;op:TOpCG;regsrc1,regsrc2,regdst : tregister64);
-       begin
-       end;
+    procedure tcg64farm.a_op64_reg_reg_reg(list: taasmoutput;op:TOpCG;regsrc1,regsrc2,regdst : tregister64);
+      var
+        instr : taicpu;
+      begin
+        case op of
+          OP_AND,OP_OR,OP_XOR:
+            begin
+              cg.a_op_reg_reg_reg(list,op,OS_32,regsrc1.reglo,regsrc2.reglo,regdst.reglo);
+              cg.a_op_reg_reg_reg(list,op,OS_32,regsrc1.reghi,regsrc2.reghi,regdst.reghi);
+            end;
+          OP_ADD:
+            begin
+              instr:=taicpu.op_reg_reg_reg(A_ADD,regdst.reglo,regsrc1.reglo,regsrc2.reglo);
+              instr.oppostfix:=PF_S;
+              list.concat(instr);
+              list.concat(taicpu.op_reg_reg_reg(A_ADC,regdst.reghi,regsrc1.reghi,regsrc2.reghi));
+            end;
+          OP_SUB:
+            begin
+              instr:=taicpu.op_reg_reg_reg(A_SUB,regdst.reglo,regsrc2.reglo,regsrc1.reglo);
+              instr.oppostfix:=PF_S;
+              list.concat(instr);
+              list.concat(taicpu.op_reg_reg_reg(A_SBC,regdst.reghi,regsrc2.reghi,regsrc1.reghi));
+            end;
+          else
+            internalerror(2003083101);
+        end;
+      end;
 
 
 begin
@@ -798,7 +886,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.8  2003-08-29 21:36:28  florian
+  Revision 1.9  2003-09-01 09:54:57  florian
+    *  results of work on arm port last weekend
+
+  Revision 1.8  2003/08/29 21:36:28  florian
     * fixed procedure entry/exit code
     * started to fix reference handling
 
