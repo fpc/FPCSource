@@ -22,7 +22,7 @@
 
  ****************************************************************************
 }
-unit t_fbsd;
+unit t_bsd;
 
 {$i fpcdefs.inc}
 
@@ -36,24 +36,24 @@ implementation
     verbose,systems,globtype,globals,
     symconst,script,
     fmodule,aasmbase,aasmtai,aasmcpu,cpubase,symsym,symdef,
-    import,export,link,i_fbsd;
+    import,export,link,i_bsd;
 
   type
-    timportlibfreebsd=class(timportlib)
+    timportlibbsd=class(timportlib)
       procedure preparelib(const s:string);override;
       procedure importprocedure(aprocdef:tprocdef;const module:string;index:longint;const name:string);override;
       procedure importvariable(vs:tvarsym;const name,module:string);override;
       procedure generatelib;override;
     end;
 
-    texportlibfreebsd=class(texportlib)
+    texportlibbsd=class(texportlib)
       procedure preparelib(const s : string);override;
       procedure exportprocedure(hp : texported_item);override;
       procedure exportvar(hp : texported_item);override;
       procedure generatelib;override;
     end;
 
-    tlinkerfreebsd=class(texternallinker)
+    tlinkerbsd=class(texternallinker)
     private
       Glibc2,
       Glibc21,
@@ -71,12 +71,12 @@ implementation
                                TIMPORTLIBLINUX
 *****************************************************************************}
 
-procedure timportlibfreebsd.preparelib(const s : string);
+procedure timportlibbsd.preparelib(const s : string);
 begin
 end;
 
 
-procedure timportlibfreebsd.importprocedure(aprocdef:tprocdef;const module:string;index:longint;const name:string);
+procedure timportlibbsd.importprocedure(aprocdef:tprocdef;const module:string;index:longint;const name:string);
 begin
   { insert sharedlibrary }
   current_module.linkothersharedlibs.add(SplitName(module),link_allways);
@@ -90,7 +90,7 @@ begin
 end;
 
 
-procedure timportlibfreebsd.importvariable(vs:tvarsym;const name,module:string);
+procedure timportlibbsd.importvariable(vs:tvarsym;const name,module:string);
 begin
   { insert sharedlibrary }
   current_module.linkothersharedlibs.add(SplitName(module),link_allways);
@@ -100,7 +100,7 @@ begin
 end;
 
 
-procedure timportlibfreebsd.generatelib;
+procedure timportlibbsd.generatelib;
 begin
 end;
 
@@ -109,12 +109,12 @@ end;
                                TEXPORTLIBLINUX
 *****************************************************************************}
 
-procedure texportlibfreebsd.preparelib(const s:string);
+procedure texportlibbsd.preparelib(const s:string);
 begin
 end;
 
 
-procedure texportlibfreebsd.exportprocedure(hp : texported_item);
+procedure texportlibbsd.exportprocedure(hp : texported_item);
 var
   hp2 : texported_item;
 begin
@@ -151,14 +151,14 @@ begin
 end;
 
 
-procedure texportlibfreebsd.exportvar(hp : texported_item);
+procedure texportlibbsd.exportvar(hp : texported_item);
 begin
   hp.is_var:=true;
   exportprocedure(hp);
 end;
 
 
-procedure texportlibfreebsd.generatelib;
+procedure texportlibbsd.generatelib;
 var
   hp2 : texported_item;
 begin
@@ -192,14 +192,14 @@ end;
                                   TLINKERLINUX
 *****************************************************************************}
 
-Constructor TLinkerFreeBSD.Create;
+Constructor TLinkerBSD.Create;
 begin
   Inherited Create;
   LibrarySearchPath.AddPath('/lib;/usr/lib;/usr/X11R6/lib',true);
 end;
 
 
-procedure TLinkerFreeBSD.SetDefaultInfo;
+procedure TLinkerBSD.SetDefaultInfo;
 {
   This will also detect which libc version will be used
 }
@@ -249,7 +249,7 @@ begin
 end;
 
 
-Function TLinkerFreeBSD.WriteResponseFile(isdll:boolean) : Boolean;
+Function TLinkerBSD.WriteResponseFile(isdll:boolean) : Boolean;
 Var
   linkres      : TLinkRes;
   i            : longint;
@@ -405,7 +405,7 @@ begin
 end;
 
 
-function TLinkerFreeBSD.MakeExecutable:boolean;
+function TLinkerBSD.MakeExecutable:boolean;
 var
   binstr,
   cmdstr  : string;
@@ -457,7 +457,7 @@ begin
 end;
 
 
-Function TLinkerFreeBSD.MakeSharedLibrary:boolean;
+Function TLinkerBSD.MakeSharedLibrary:boolean;
 var
   binstr,
   cmdstr  : string;
@@ -499,26 +499,36 @@ end;
 
 initialization
 {$ifdef i386}
-  RegisterExternalLinker(system_i386_FreeBSD_info,TLinkerFreeBSD);
-  RegisterExternalLinker(system_i386_NetBSD_info,TLinkerFreeBSD);
-  RegisterImport(system_i386_freebsd,timportlibfreebsd);
-  RegisterExport(system_i386_freebsd,texportlibfreebsd);
+  RegisterExternalLinker(system_i386_FreeBSD_info,TLinkerBSD);
+  RegisterExternalLinker(system_i386_NetBSD_info,TLinkerBSD);
+  RegisterImport(system_i386_freebsd,timportlibbsd);
+  RegisterExport(system_i386_freebsd,texportlibbsd);
   RegisterTarget(system_i386_freebsd_info);
-  RegisterImport(system_i386_netbsd,timportlibfreebsd);
-  RegisterExport(system_i386_netbsd,texportlibfreebsd);
+  RegisterImport(system_i386_netbsd,timportlibbsd);
+  RegisterExport(system_i386_netbsd,texportlibbsd);
   RegisterTarget(system_i386_netbsd_info);
 {$endif i386}
 {$ifdef m68k}
-//  RegisterExternalLinker(system_m68k_FreeBSD_info,TLinkerFreeBSD);
-  RegisterExternalLinker(system_m68k_NetBSD_info,TLinkerFreeBSD);
-  RegisterImport(system_m68k_netbsd,timportlibfreebsd);
-  RegisterExport(system_m68k_netbsd,texportlibfreebsd);
+//  RegisterExternalLinker(system_m68k_FreeBSD_info,TLinkerBSD);
+  RegisterExternalLinker(system_m68k_NetBSD_info,TLinkerBSD);
+  RegisterImport(system_m68k_netbsd,timportlibbsd);
+  RegisterExport(system_m68k_netbsd,texportlibbsd);
   RegisterTarget(system_m68k_netbsd_info);
 {$endif m68k}
+{$ifdef powerpc}
+//  RegisterExternalLinker(system_m68k_FreeBSD_info,TLinkerBSD);
+  RegisterExternalLinker(system_powerpc_darwin_info,TLinkerBSD);
+  RegisterImport(system_powerpc_darwin,timportlibbsd);
+  RegisterExport(system_powerpc_darwin,texportlibbsd);
+  RegisterTarget(system_powerpc_darwin_info);
+{$endif powerpc}
 end.
 {
   $Log$
-  Revision 1.5  2003-04-27 07:29:52  peter
+  Revision 1.1  2003-05-20 23:54:00  florian
+    + basic darwin support added
+
+  Revision 1.5  2003/04/27 07:29:52  peter
     * aktprocdef cleanup, aktprocdef is now always nil when parsing
       a new procdef declaration
     * aktprocsym removed

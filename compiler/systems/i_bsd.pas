@@ -22,7 +22,7 @@
 { This unit implements support information structures for FreeBSD/NetBSD.
   OpenBSD and Darwin must be added still.}
 
-unit i_fbsd;
+unit i_bsd;
 
   interface
 
@@ -222,6 +222,71 @@ unit i_fbsd;
             use_function_relative_addresses : true
           );
 
+       system_powerpc_darwin_info  : tsysteminfo =
+          (
+            system       : system_powerpc_darwin;
+            name         : 'Darwin for PowerPC';
+            shortname    : 'Darwin';
+            flags        : [tf_under_development];
+            cpu          : cpu_powerpc;
+            unit_env     : 'BSDUNITS';
+            extradefines : 'UNIX;BSD;HASUNIX';
+            sourceext    : '.pp';
+            pasext       : '.pas';
+            exeext       : '';
+            defext       : '.def';
+            scriptext    : '.sh';
+            smartext     : '.sl';
+            unitext      : '.ppu';
+            unitlibext   : '.ppl';
+            asmext       : '.s';
+            objext       : '.o';
+            resext       : '.res';
+            resobjext    : '.or';
+            sharedlibext : '.so';
+            staticlibext : '.a';
+            staticlibprefix : 'libp';
+            sharedlibprefix : 'lib';
+            sharedClibext : '.so';
+            staticClibext : '.a';
+            staticClibprefix : 'lib';
+            sharedClibprefix : 'lib';
+            Cprefix      : '';
+            newline      : #10;
+            dirsep       : '/';
+            files_case_relevent : true;
+            assem        : as_gas;
+            assemextern  : as_gas;
+            link         : nil;
+            linkextern   : nil;
+            ar           : ar_gnu_ar;
+            res          : res_none;
+            script       : script_unix;
+            endian       : endian_big;
+            alignment    :
+              (
+                procalign       : 16;
+                loopalign       : 4;
+                jumpalign       : 0;
+                constalignmin   : 0;
+                constalignmax   : 1;
+                varalignmin     : 0;
+                varalignmax     : 1;
+                localalignmin   : 0;
+                localalignmax   : 1;
+                paraalign       : 4;
+                recordalignmin  : 0;
+                recordalignmax  : 2;
+                maxCrecordalign : 4
+              );
+            first_parm_offset : 8;
+            heapsize    : 256*1024;
+            stacksize   : 262144;
+            DllScanSupported:false;
+            use_function_relative_addresses : true;
+            abi : abi_powerpc_aix;
+          );
+
   implementation
 
 initialization
@@ -238,10 +303,18 @@ initialization
      set_source_info(system_m68k_NetBSD_info);
   {$endif NetBSD}
 {$endif cpu68}
+{$ifdef cpupowerpc}
+  {$ifdef Darwin}
+     set_source_info(system_powerpc_darwin_info);
+  {$endif Darwin}
+{$endif cpu68}
 end.
 {
   $Log$
-  Revision 1.2  2003-01-11 16:35:15  marco
+  Revision 1.1  2003-05-20 23:54:00  florian
+    + basic darwin support added
+
+  Revision 1.2  2003/01/11 16:35:15  marco
    * HASUNIX defined for now.
 
   Revision 1.1  2002/09/06 15:03:51  carl

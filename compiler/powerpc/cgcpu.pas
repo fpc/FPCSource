@@ -101,6 +101,8 @@ unit cgcpu;
 
         procedure g_stackframe_entry_sysv(list : taasmoutput;localsize : longint);
         procedure g_return_from_proc_sysv(list : taasmoutput;parasize : aword);
+        procedure g_stackframe_entry_aix(list : taasmoutput;localsize : longint);
+        procedure g_return_from_proc_aix(list : taasmoutput;parasize : aword);
         procedure g_stackframe_entry_mac(list : taasmoutput;localsize : longint);
         procedure g_return_from_proc_mac(list : taasmoutput;parasize : aword);
 
@@ -921,11 +923,13 @@ const
     procedure tcgppc.g_stackframe_entry(list : taasmoutput;localsize : longint);
 
       begin
-        case target_info.system of
-          system_powerpc_macos:
+        case target_info.abi of
+          abi_powerpc_macos:
             g_stackframe_entry_mac(list,localsize);
-          system_powerpc_linux:
-            g_stackframe_entry_sysv(list,localsize)
+          abi_powerpc_sysv:
+            g_stackframe_entry_sysv(list,localsize);
+          abi_powerpc_aix:
+            g_stackframe_entry_aix(list,localsize);
           else
             internalerror(2204001);
         end;
@@ -934,14 +938,22 @@ const
     procedure tcgppc.g_return_from_proc(list : taasmoutput;parasize : aword);
 
       begin
-        case target_info.system of
-          system_powerpc_macos:
+        case target_info.abi of
+          abi_powerpc_macos:
             g_return_from_proc_mac(list,parasize);
-          system_powerpc_linux:
-            g_return_from_proc_sysv(list,parasize)
+          abi_powerpc_sysv:
+            g_return_from_proc_sysv(list,parasize);
+          abi_powerpc_aix:
+            g_return_from_proc_aix(list,parasize);
           else
             internalerror(2204001);
         end;
+      end;
+
+
+    procedure tcgppc.g_stackframe_entry_aix(list : taasmoutput;localsize : longint);
+      begin
+         g_stackframe_entry_sysv(list,localsize);
       end;
 
 
@@ -1149,6 +1161,13 @@ const
              list.concat(taicpu.op_reg_ref(A_STW,r,href));
           end;
       end;
+
+
+    procedure tcgppc.g_return_from_proc_aix(list : taasmoutput;parasize : aword);
+      begin
+         g_return_from_proc_sysv(list,parasize);
+      end;
+
 
     procedure tcgppc.g_return_from_proc_sysv(list : taasmoutput;parasize : aword);
 
@@ -2392,7 +2411,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.93  2003-05-15 22:14:42  florian
+  Revision 1.94  2003-05-20 23:54:00  florian
+    + basic darwin support added
+
+  Revision 1.93  2003/05/15 22:14:42  florian
     * fixed last commit, changing lastsaveintreg to r31 caused some strange problems
 
   Revision 1.92  2003/05/15 21:37:00  florian

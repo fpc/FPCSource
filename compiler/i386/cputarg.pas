@@ -39,8 +39,8 @@ implementation
     {$ifndef NOTARGETLINUX}
       ,t_linux
     {$endif}
-    {$ifndef NOTARGETFREEBSD}
-      ,t_fbsd
+    {$ifndef NOTARGETBSD}
+      ,t_bsd
     {$endif}
     {$ifndef NOTARGETSUNOS}
       ,t_sunos
@@ -88,7 +88,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.11  2003-04-25 12:04:31  florian
+  Revision 1.12  2003-05-20 23:54:00  florian
+    + basic darwin support added
+
+  Revision 1.11  2003/04/25 12:04:31  florian
     * merged agx64att and ag386att to x86/agx86att
 
   Revision 1.10  2003/03/23 23:33:10  hajny

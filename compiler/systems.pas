@@ -109,7 +109,7 @@ interface
              target_i386_openbsd,       { 24 }
              target_m68k_openbsd,       { 25 }
              system_x86_64_linux,       { 26 }
-             system_powerpc_macosx,     { 27 }
+             system_powerpc_darwin,     { 27 }
              system_i386_EMX            { 28 }
        );
 
@@ -147,7 +147,9 @@ interface
             ,script_dos,script_unix,script_amiga
        );
 
-       tabi = (abi_default,abi_powerpc_sysv,abi_powerpc_aix);
+       tabi = (abi_default
+            ,abi_powerpc_sysv,abi_powerpc_aix,abi_powerpc_macos
+       );
 
 {*****************************************************************************
                                Structures
@@ -681,7 +683,10 @@ finalization
 end.
 {
   $Log$
-  Revision 1.61  2003-05-18 15:15:59  florian
+  Revision 1.62  2003-05-20 23:54:00  florian
+    + basic darwin support added
+
+  Revision 1.61  2003/05/18 15:15:59  florian
     + added abi field to tsysteminfo
 
   Revision 1.60  2003/03/23 23:21:42  hajny

@@ -42,6 +42,9 @@ implementation
     {$ifndef NOTARGETMACOS}
       ,t_macos
     {$endif}
+    {$ifndef NOTARGETDARWIN}
+      ,t_bsd
+    {$endif}
 
 {**************************************
              Assemblers
@@ -58,7 +61,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.5  2002-08-20 21:40:44  florian
+  Revision 1.6  2003-05-20 23:54:00  florian
+    + basic darwin support added
+
+  Revision 1.5  2002/08/20 21:40:44  florian
     + target macos for ppc added
     + frame work for mpw assembler output
 
