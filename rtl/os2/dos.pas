@@ -224,7 +224,7 @@ begin
     FStat.DateLastWrite := Hi (Time);
     FStat.TimeLastAccess := Lo (Time);
     FStat.TimeLastWrite := Lo (Time);
-    RC := DosSetFileInfo (FileRec (F).Handle, ilStandard, FStat,
+    RC := DosSetFileInfo (FileRec (F).Handle, ilStandard, @FStat,
                                                                SizeOf (FStat));
   end;
   DosError := integer (RC);
@@ -317,7 +317,7 @@ begin
     end ['eax','ebx','ecx','edx','esi','edi'];
 
     //Not clear how to use
-    exec:=DosExecPgm(ObjName, RunFlags, Args, Env, Res, Path);
+    exec:=DosExecPgm(ObjName, cardinal (RunFlags), Args, Env, Res, Path);
 
     freemem(args,ArgsSize);
     FreeMem(env, envc*sizeof(pchar)+16384);
@@ -699,7 +699,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.29  2003-10-25 22:45:37  hajny
+  Revision 1.30  2003-10-25 23:55:22  hajny
+    * Exec fix
+
+  Revision 1.29  2003/10/25 22:45:37  hajny
     * file handling related fixes
 
   Revision 1.28  2003/10/05 22:06:43  hajny
