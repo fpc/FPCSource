@@ -25,13 +25,8 @@ unit tgeni386;
   interface
 
     uses
-       cobjects,globals,tree,hcodegen,verbose,files,aasm
-{$ifdef i386}
-       ,i386base,i386asm
-{$ifdef dummy}
-       end
-{$endif}
-{$endif}
+       cobjects,globals,tree,hcodegen,verbose,files,aasm,
+       cpubase,cpuasm
        ;
 
     type
@@ -472,7 +467,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.28  1999-08-02 17:17:11  florian
+  Revision 1.29  1999-08-04 00:23:48  florian
+    * renamed i386asm and i386base to cpuasm and cpubase
+
+  Revision 1.28  1999/08/02 17:17:11  florian
     * small changes for the new code generator
 
   Revision 1.27  1999/06/09 23:22:39  peter

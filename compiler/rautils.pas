@@ -27,13 +27,7 @@ Uses
   strings,
   cobjects,
   globtype,systems,verbose,globals,files,
-  symconst,symtable,aasm,hcodegen
-{$ifdef i386}
-  ,i386base,i386asm
-{$endif}
-{$ifdef m68k}
-  ,m68k
-{$endif}
+  symconst,symtable,aasm,hcodegen,cpubase,cpuasm
   ;
 
 Const
@@ -1384,7 +1378,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.21  1999-08-03 22:03:12  peter
+  Revision 1.22  1999-08-04 00:23:28  florian
+    * renamed i386asm and i386base to cpuasm and cpubase
+
+  Revision 1.21  1999/08/03 22:03:12  peter
     * moved bitmask constants to sets
     * some other type/const renamings
 

@@ -44,18 +44,17 @@ implementation
      globtype,systems,
      cobjects,comphook,verbose,globals,files,
      symconst,symtable,types,aasm,scanner,
-     pass_1,hcodegen,temp_gen
+     pass_1,hcodegen,temp_gen,cpubase,cpuasm
 {$ifdef GDB}
      ,gdb
 {$endif}
 {$ifdef i386}
-     ,i386base,i386asm
      ,tgeni386,cgai386
      ,cg386con,cg386mat,cg386cnv,cg386set,cg386add
      ,cg386mem,cg386cal,cg386ld,cg386flw,cg386inl
 {$endif}
 {$ifdef m68k}
-     ,m68k,tgen68k,cga68k
+     ,tgen68k,cga68k
      ,cg68kcon,cg68kmat,cg68kcnv,cg68kset,cg68kadd
      ,cg68kmem,cg68kcal,cg68kld,cg68kflw,cg68kinl
 {$endif}
@@ -539,7 +538,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.27  1999-08-03 22:02:55  peter
+  Revision 1.28  1999-08-04 00:23:10  florian
+    * renamed i386asm and i386base to cpuasm and cpubase
+
+  Revision 1.27  1999/08/03 22:02:55  peter
     * moved bitmask constants to sets
     * some other type/const renamings
 

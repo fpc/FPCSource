@@ -41,13 +41,12 @@ implementation
       aasm,symtable,types,
       hcodegen,htypechk,
       tcadd,tccal,tccnv,tccon,tcflw,
-      tcinl,tcld,tcmat,tcmem,tcset
+      tcinl,tcld,tcmat,tcmem,tcset,cpubase,cpuasm
 {$ifdef i386}
-      ,i386base,i386asm
       ,tgeni386
 {$endif}
 {$ifdef m68k}
-      ,m68k,tgen68k
+      ,tgen68k
 {$endif}
       ;
 
@@ -368,7 +367,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.102  1999-05-27 19:44:42  peter
+  Revision 1.103  1999-08-04 00:23:09  florian
+    * renamed i386asm and i386base to cpuasm and cpubase
+
+  Revision 1.102  1999/05/27 19:44:42  peter
     * removed oldasm
     * plabel -> pasmlabel
     * -a switches to source writing automaticly

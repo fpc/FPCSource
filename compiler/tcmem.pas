@@ -46,14 +46,7 @@ implementation
       globtype,systems,
       cobjects,verbose,globals,
       symconst,symtable,aasm,types,
-      hcodegen,htypechk,pass_1
-{$ifdef i386}
-      ,i386base
-{$endif}
-{$ifdef m68k}
-      ,m68k
-{$endif}
-      ;
+      hcodegen,htypechk,pass_1,cpubase;
 
 {*****************************************************************************
                             FirstLoadVMT
@@ -596,7 +589,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.22  1999-08-03 22:03:35  peter
+  Revision 1.23  1999-08-04 00:23:44  florian
+    * renamed i386asm and i386base to cpuasm and cpubase
+
+  Revision 1.22  1999/08/03 22:03:35  peter
     * moved bitmask constants to sets
     * some other type/const renamings
 

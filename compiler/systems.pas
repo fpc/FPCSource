@@ -63,7 +63,7 @@ unit systems;
        );
 
        ttargetflags = (tf_none,
-            tf_supports_stack_checking,tf_need_export
+            tf_supports_stack_checking,tf_need_export,tf_needs_isconsole
        );
 
      const
@@ -1626,7 +1626,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.88  1999-08-03 22:03:23  peter
+  Revision 1.89  1999-08-04 00:23:32  florian
+    * renamed i386asm and i386base to cpuasm and cpubase
+
+  Revision 1.88  1999/08/03 22:03:23  peter
     * moved bitmask constants to sets
     * some other type/const renamings
 

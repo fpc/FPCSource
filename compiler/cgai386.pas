@@ -26,10 +26,7 @@ unit cgai386;
 
     uses
        cobjects,tree,
-       i386base,i386asm,
-{$ifdef dummy}
-       end { to get correct syntax highlighting }
-{$endif dummy}
+       cpubase,cpuasm,
        symconst,symtable,aasm,win_targ;
 
 {$define TESTGETTEMP to store const that
@@ -3140,7 +3137,10 @@ procedure mov_reg_to_dest(p : ptree; s : topsize; reg : tregister);
 end.
 {
   $Log$
-  Revision 1.23  1999-08-03 22:02:49  peter
+  Revision 1.24  1999-08-04 00:22:55  florian
+    * renamed i386asm and i386base to cpuasm and cpubase
+
+  Revision 1.23  1999/08/03 22:02:49  peter
     * moved bitmask constants to sets
     * some other type/const renamings
 

@@ -27,17 +27,7 @@ unit hcodegen;
     uses
       cobjects,
       tokens,verbose,
-      aasm,symtable
-{$ifdef i386}
-      ,i386base
-{$endif}
-{$ifdef m68k}
-      ,m68k
-{$endif}
-{$ifdef alpha}
-      ,cpubase
-{$endif}
-      ;
+      aasm,symtable,cpubase;
 
     const
        pi_uses_asm  = $1;       { set, if the procedure uses asm }
@@ -301,7 +291,10 @@ end.
 
 {
   $Log$
-  Revision 1.36  1999-08-01 23:09:26  michael
+  Revision 1.37  1999-08-04 00:23:02  florian
+    * renamed i386asm and i386base to cpuasm and cpubase
+
+  Revision 1.36  1999/08/01 23:09:26  michael
   * procbase -> cpubase
 
   Revision 1.35  1999/08/01 23:04:49  michael

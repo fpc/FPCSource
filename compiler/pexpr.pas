@@ -53,20 +53,11 @@ unit pexpr;
 {$ifndef newcg}
        tccal,
 {$endif newcg}
-       pass_1
+       pass_1,
        { parser specific stuff }
-       ,pbase,pdecl
+       pbase,pdecl,
        { processor specific stuff }
-{$ifdef i386}
-       ,i386base
-{$endif}
-{$ifdef m68k}
-       ,m68k
-{$endif}
-{$ifdef alpha}
-       ,cpubase,cpuinfo
-{$endif}
-       ;
+       cpubase,cpuinfo;
 
     const
       allow_type : boolean = true;
@@ -2070,7 +2061,10 @@ unit pexpr;
 end.
 {
   $Log$
-  Revision 1.129  1999-08-03 22:02:59  peter
+  Revision 1.130  1999-08-04 00:23:12  florian
+    * renamed i386asm and i386base to cpuasm and cpubase
+
+  Revision 1.129  1999/08/03 22:02:59  peter
     * moved bitmask constants to sets
     * some other type/const renamings
 

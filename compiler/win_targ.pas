@@ -56,12 +56,10 @@ unit win_targ;
   implementation
 
     uses
-       aasm,files,strings,globtype,globals,cobjects,systems,verbose
+       aasm,files,strings,globtype,globals,cobjects,systems,verbose,
+       cpubase,cpuasm
 {$ifdef GDB}
        ,gdb
-{$endif}
-{$ifdef i386}
-       ,i386base,i386asm
 {$endif}
        ;
 
@@ -728,7 +726,10 @@ unit win_targ;
 end.
 {
   $Log$
-  Revision 1.30  1999-07-29 20:54:11  peter
+  Revision 1.31  1999-08-04 00:23:50  florian
+    * renamed i386asm and i386base to cpuasm and cpubase
+
+  Revision 1.30  1999/07/29 20:54:11  peter
     * write .size also
 
   Revision 1.29  1999/07/22 16:12:28  peter

@@ -37,19 +37,13 @@ unit ptconst;
        globtype,systems,tokens,
        cobjects,globals,scanner,
        symconst,aasm,types,verbose,
-       tree,pass_1
+       tree,pass_1,
        { parser specific stuff }
-       ,pbase,pexpr
+       pbase,pexpr,
        { processor specific stuff }
-{$ifdef i386}
-       ,i386base
-{$endif}
-{$ifdef m68k}
-       ,m68k
-{$endif}
+       cpubase,
        { codegen }
-       ,hcodegen,hcgdata
-       ;
+       hcodegen,hcgdata;
 
 
     { this procedure reads typed constants }
@@ -707,7 +701,10 @@ unit ptconst;
 end.
 {
   $Log$
-  Revision 1.49  1999-08-03 22:03:08  peter
+  Revision 1.50  1999-08-04 00:23:21  florian
+    * renamed i386asm and i386base to cpuasm and cpubase
+
+  Revision 1.49  1999/08/03 22:03:08  peter
     * moved bitmask constants to sets
     * some other type/const renamings
 

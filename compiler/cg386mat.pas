@@ -39,7 +39,7 @@ implementation
       cobjects,verbose,globals,
       symconst,symtable,aasm,types,
       hcodegen,temp_gen,pass_2,
-      i386base,i386asm,
+      cpubase,cpuasm,
 {$ifdef dummy}
       end  { this overcomes the annoying highlighting problem in my TP IDE,
              the IDE assumes i386asm start a asm block (FK) }
@@ -930,7 +930,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.28  1999-08-03 22:02:45  peter
+  Revision 1.29  1999-08-04 00:22:51  florian
+    * renamed i386asm and i386base to cpuasm and cpubase
+
+  Revision 1.28  1999/08/03 22:02:45  peter
     * moved bitmask constants to sets
     * some other type/const renamings
 

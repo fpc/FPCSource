@@ -52,7 +52,7 @@ uses
   strings,globals,verbose,files,
   scanner,aasm,tree,types,
   import,gendef,
-  hcodegen,temp_gen,pass_1
+  hcodegen,temp_gen,pass_1,cpubase,cpuasm
 {$ifndef NOPASS2}
   ,pass_2
 {$endif}
@@ -60,10 +60,6 @@ uses
   ,gdb
 {$endif GDB}
 {$ifdef i386}
-  ,i386base,i386asm
-{$ifdef dummy}
-  end   { avoid the stupid highlighting of the TP IDE }
-{$endif dummy}
   ,tgeni386
 {$ifndef newcg}
   ,cgai386
@@ -73,15 +69,12 @@ uses
   {$endif}
 {$endif}
 {$ifdef m68k}
-  ,m68k,tgen68k,cga68k
+  ,tgen68k,cga68k
 {$endif}
   { parser specific stuff }
   ,pbase,pdecl,pexpr,pstatmnt
 {$ifdef newcg}
   ,tgcpu,convtree,cgobj,tgeni386  { for the new code generator tgeni386 is only a dummy }
-{$ifndef i386}
-  ,cpubase
-{$endif i386}
 {$endif newcg}
   ;
 
@@ -2040,7 +2033,10 @@ end.
 
 {
   $Log$
-  Revision 1.9  1999-08-03 22:03:05  peter
+  Revision 1.10  1999-08-04 00:23:20  florian
+    * renamed i386asm and i386base to cpuasm and cpubase
+
+  Revision 1.9  1999/08/03 22:03:05  peter
     * moved bitmask constants to sets
     * some other type/const renamings
 

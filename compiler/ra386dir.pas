@@ -32,9 +32,8 @@ unit Ra386dir;
   implementation
 
      uses
-        files,hcodegen,globals,scanner,aasm
-        ,i386base,i386asm
-        ,cobjects,symconst,symtable,types,verbose,
+        files,hcodegen,globals,scanner,aasm,cpubase,cpuasm,
+        cobjects,symconst,symtable,types,verbose,
         rautils,ra386;
 
     function assemble : ptree;
@@ -291,7 +290,10 @@ unit Ra386dir;
 end.
 {
   $Log$
-  Revision 1.22  1999-08-03 22:03:11  peter
+  Revision 1.23  1999-08-04 00:23:26  florian
+    * renamed i386asm and i386base to cpuasm and cpubase
+
+  Revision 1.22  1999/08/03 22:03:11  peter
     * moved bitmask constants to sets
     * some other type/const renamings
 

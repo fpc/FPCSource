@@ -35,14 +35,8 @@ implementation
       globtype,systems,tokens,
       cobjects,verbose,globals,
       symconst,symtable,aasm,types,
-      hcodegen,htypechk,pass_1
-{$ifdef i386}
-      ,i386base
-{$endif}
-{$ifdef m68k}
-      ,m68k
-{$endif}
-      ,tccnv
+      hcodegen,htypechk,pass_1,
+      cpubase,tccnv
       ;
 
 {*****************************************************************************
@@ -1117,7 +1111,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.38  1999-08-03 22:03:24  peter
+  Revision 1.39  1999-08-04 00:23:33  florian
+    * renamed i386asm and i386base to cpuasm and cpubase
+
+  Revision 1.38  1999/08/03 22:03:24  peter
     * moved bitmask constants to sets
     * some other type/const renamings
 

@@ -30,17 +30,7 @@ unit tree;
 
     uses
        globtype,cobjects,
-       symconst,symtable,aasm
-{$ifdef i386}
-       ,i386base
-{$endif}
-{$ifdef m68k}
-       ,m68k
-{$endif}
-{$ifdef alpha}
-       ,alpha
-{$endif}
-       ;
+       symconst,symtable,aasm,cpubase;
 
     type
        pconstset = ^tconstset;
@@ -1731,7 +1721,10 @@ unit tree;
 end.
 {
   $Log$
-  Revision 1.85  1999-08-03 22:03:40  peter
+  Revision 1.86  1999-08-04 00:23:49  florian
+    * renamed i386asm and i386base to cpuasm and cpubase
+
+  Revision 1.85  1999/08/03 22:03:40  peter
     * moved bitmask constants to sets
     * some other type/const renamings
 

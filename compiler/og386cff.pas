@@ -69,8 +69,7 @@ unit og386cff;
 
     uses
        cobjects,
-       systems,i386base,aasm,
-       og386;
+       systems,cpubase,aasm,og386;
 
     type
        preloc = ^treloc;
@@ -946,7 +945,10 @@ unit og386cff;
 end.
 {
   $Log$
-  Revision 1.9  1999-07-03 00:27:02  peter
+  Revision 1.10  1999-08-04 00:23:05  florian
+    * renamed i386asm and i386base to cpuasm and cpubase
+
+  Revision 1.9  1999/07/03 00:27:02  peter
     * better smartlinking support
 
   Revision 1.8  1999/06/03 16:39:09  pierre

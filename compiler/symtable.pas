@@ -36,16 +36,8 @@ unit symtable;
        globtype,globals,tokens,systems,verbose,
        symconst,
        aasm
-{$ifdef i386}
-       ,i386base
-{$endif}
-{$ifdef m68k}
-       ,m68k
-{$endif}
-{$ifdef alpha}
        ,cpubase
        ,cpuinfo
-{$endif}
 {$ifdef GDB}
        ,gdb
 {$endif}
@@ -2343,7 +2335,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.35  1999-08-03 22:03:22  peter
+  Revision 1.36  1999-08-04 00:23:31  florian
+    * renamed i386asm and i386base to cpuasm and cpubase
+
+  Revision 1.35  1999/08/03 22:03:22  peter
     * moved bitmask constants to sets
     * some other type/const renamings
 

@@ -42,8 +42,7 @@ unit ag386int;
     uses
       strings,
       globtype,globals,systems,cobjects,
-      files,verbose
-      ,i386base,i386asm
+      files,verbose,cpubase,cpuasm
 {$ifdef GDB}
       ,gdb
 {$endif GDB}
@@ -628,7 +627,10 @@ ait_stab_function_name : ;
 end.
 {
   $Log$
-  Revision 1.50  1999-07-22 09:37:31  florian
+  Revision 1.51  1999-08-04 00:22:36  florian
+    * renamed i386asm and i386base to cpuasm and cpubase
+
+  Revision 1.50  1999/07/22 09:37:31  florian
     + resourcestring implemented
     + start of longstring support
 

@@ -39,14 +39,7 @@ implementation
     uses
       cobjects,verbose,globals,systems,
       symconst,symtable,aasm,types,
-      hcodegen,pass_1
-{$ifdef i386}
-      ,i386base
-{$endif}
-{$ifdef m68k}
-      ,m68k
-{$endif}
-      ;
+      hcodegen,pass_1,cpubase;
 
 {*****************************************************************************
                              FirstRealConst
@@ -126,7 +119,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.7  1999-08-03 22:03:29  peter
+  Revision 1.8  1999-08-04 00:23:38  florian
+    * renamed i386asm and i386base to cpuasm and cpubase
+
+  Revision 1.7  1999/08/03 22:03:29  peter
     * moved bitmask constants to sets
     * some other type/const renamings
 

@@ -32,9 +32,7 @@ Procedure CSE(AsmL: PAasmOutput; First, Last: Pai);
 Implementation
 
 Uses
-  CObjects, verbose, hcodegen, globals
-  ,i386base,i386asm
-  ,DAOpt386;
+  CObjects, verbose, hcodegen, globals,cpubase,cpuasm,DAOpt386;
 
 {
 Function PaiInSequence(P: Pai; Const Seq: TContent): Boolean;
@@ -555,7 +553,10 @@ End.
 
 {
  $Log$
- Revision 1.22  1999-06-03 15:45:08  jonas
+ Revision 1.23  1999-08-04 00:22:58  florian
+   * renamed i386asm and i386base to cpuasm and cpubase
+
+ Revision 1.22  1999/06/03 15:45:08  jonas
    * sequences are now checked only once (previously, some long ones were
      checked once completely and then several times partially)
 

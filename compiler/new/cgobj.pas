@@ -25,9 +25,7 @@ unit cgobj;
   interface
 
     uses
-       cobjects,aasm,symtable
-{$I cpuunit.inc}
-       ;
+       cobjects,aasm,symtable,symconst,cpuasm,cpubase;
 
     type
        qword = comp;
@@ -308,7 +306,7 @@ unit cgobj;
                   list^.insert(new(pai_align,init(4)));
           end;
          { save registers on cdecl }
-         if ((aktprocsym^.definition^.options and pocdecl)<>0) then
+         if (po_savestdregs in aktprocsym^.definition^.procoptions) then
            begin
               for r:=firstreg to lastreg do
                 begin
@@ -330,20 +328,20 @@ unit cgobj;
             begin
                CGMessage(cg_d_stackframe_omited);
                nostackframe:=true;
-               if (aktprocsym^.definition^.options and (pounitinit or poproginit or pounitfinalize)<>0) then
+               if (aktprocsym^.definition^.proctypeoption in [potype_unitinit,potype_proginit,potype_unitfinalize]) then
                  parasize:=0
                else
                  parasize:=aktprocsym^.definition^.parast^.datasize+procinfo.call_offset-pointersize;
             end
           else
             begin
-               if (aktprocsym^.definition^.options and (pounitinit or poproginit or pounitfinalize)<>0) then
+               if (aktprocsym^.definition^.proctypeoption in [potype_unitinit,potype_proginit,potype_unitfinalize]) then
                  parasize:=0
                else
                  parasize:=aktprocsym^.definition^.parast^.datasize+procinfo.call_offset-pointersize*2;
                nostackframe:=false;
 
-               if (aktprocsym^.definition^.options and pointerrupt)<>0 then
+               if (po_interrupt in aktprocsym^.definition^.procoptions) then
                  g_interrupt_stackframe_entry(list);
 
                g_stackframe_entry(list,stackframe);
@@ -355,7 +353,7 @@ unit cgobj;
 
          if cs_profile in aktmoduleswitches then
            g_profilecode(@initcode);
-          if (not inlined) and ((aktprocsym^.definition^.options and poproginit)<>0) then
+          if (not inlined) and (aktprocsym^.definition^.proctypeoption in [potype_unitinit]) then
             begin
 
               { needs the target a console flags ? }
@@ -417,7 +415,7 @@ unit cgobj;
            end;
 
          { generate copies of call by value parameters }
-         if (aktprocsym^.definition^.options and poassembler=0) then
+         if (po_assembler in aktprocsym^.definition^.procoptions) then
            begin
   {$ifndef VALUEPARA}
               aktprocsym^.definition^.parast^.foreach({$ifdef FPC}@{$endif FPC}_copyopenarrays);
@@ -676,7 +674,10 @@ unit cgobj;
 end.
 {
   $Log$
-  Revision 1.9  1999-08-02 23:13:21  florian
+  Revision 1.10  1999-08-04 00:23:52  florian
+    * renamed i386asm and i386base to cpuasm and cpubase
+
+  Revision 1.9  1999/08/02 23:13:21  florian
     * more changes to compile for the Alpha
 
   Revision 1.8  1999/08/02 17:14:07  florian

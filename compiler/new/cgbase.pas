@@ -25,9 +25,7 @@ unit cgbase;
   interface
 
     uses
-       globtype,cobjects,aasm,symtable,verbose,tree
-{$I cpuunit.inc}
-       ;
+       globtype,cobjects,aasm,symtable,verbose,tree,cpuasm,cpubase;
 
     const
        pi_uses_asm  = $1;       { set, if the procedure uses asm }
@@ -395,7 +393,10 @@ unit cgbase;
 end.
 {
   $Log$
-  Revision 1.5  1999-08-01 18:22:32  florian
+  Revision 1.6  1999-08-04 00:23:51  florian
+    * renamed i386asm and i386base to cpuasm and cpubase
+
+  Revision 1.5  1999/08/01 18:22:32  florian
    * made it again compilable
 
   Revision 1.4  1999/01/23 23:29:45  florian

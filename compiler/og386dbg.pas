@@ -28,9 +28,7 @@ unit og386dbg;
 
   interface
     uses
-       systems,i386base,
-       aasm,
-       og386;
+       systems,aasm,cpubase,og386;
 
     type
        pdbgoutput = ^tdbgoutput;
@@ -182,7 +180,10 @@ unit og386dbg;
 end.
 {
   $Log$
-  Revision 1.4  1999-07-03 00:29:53  peter
+  Revision 1.5  1999-08-04 00:23:06  florian
+    * renamed i386asm and i386base to cpuasm and cpubase
+
+  Revision 1.4  1999/07/03 00:29:53  peter
     * new link writing to the ppu, one .ppu is needed for all link types,
       static (.o) is now always created also when smartlinking is used
 

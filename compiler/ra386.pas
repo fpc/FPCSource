@@ -24,9 +24,7 @@ Unit Ra386;
 interface
 
 uses
-  aasm,
-  i386base,
-  RAUtils;
+  aasm,cpubase,RAUtils;
 
 { Parser helpers }
 function is_prefix(t:tasmop):boolean;
@@ -54,8 +52,7 @@ type
 implementation
 
 uses
-  globtype,systems,globals,verbose,
-  i386asm;
+  globtype,systems,globals,verbose,cpuasm;
 
 
 {*****************************************************************************
@@ -341,7 +338,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.7  1999-05-27 19:44:55  peter
+  Revision 1.8  1999-08-04 00:23:23  florian
+    * renamed i386asm and i386base to cpuasm and cpubase
+
+  Revision 1.7  1999/05/27 19:44:55  peter
     * removed oldasm
     * plabel -> pasmlabel
     * -a switches to source writing automaticly

@@ -34,8 +34,7 @@ Implementation
 Uses
   globtype,systems,
   globals,verbose,hcodegen,
-  i386base,i386asm,
-  DAOpt386;
+  cpubase,cpuasm,DAOpt386;
 
 Function RegUsedAfterInstruction(Reg: TRegister; p: Pai; Var UsedRegs: TRegSet): Boolean;
 Begin
@@ -1525,7 +1524,10 @@ End.
 
 {
  $Log$
- Revision 1.59  1999-08-03 17:13:28  jonas
+ Revision 1.60  1999-08-04 00:23:16  florian
+   * renamed i386asm and i386base to cpuasm and cpubase
+
+ Revision 1.59  1999/08/03 17:13:28  jonas
    * fix for sar/shr-shl optimization
 
  Revision 1.58  1999/07/30 18:17:55  jonas

@@ -68,8 +68,7 @@ unit og386elf;
   interface
 
     uses
-       cobjects,
-       og386,i386base,aasm;
+       cobjects,og386,cpubase,aasm;
 
     type
        preloc = ^treloc;
@@ -839,7 +838,10 @@ unit og386elf;
 end.
 {
   $Log$
-  Revision 1.1  1999-05-01 13:24:24  peter
+  Revision 1.2  1999-08-04 00:23:07  florian
+    * renamed i386asm and i386base to cpuasm and cpubase
+
+  Revision 1.1  1999/05/01 13:24:24  peter
     * merged nasm compiler
     * old asm moved to oldasm/
 

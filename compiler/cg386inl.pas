@@ -36,7 +36,7 @@ implementation
       cobjects,verbose,globals,files,
       symconst,symtable,aasm,types,
       hcodegen,temp_gen,pass_1,pass_2,
-      i386base,i386asm,
+      cpubase,cpuasm,
       cgai386,tgeni386,cg386cal;
 
 
@@ -1313,7 +1313,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.64  1999-08-03 22:02:42  peter
+  Revision 1.65  1999-08-04 00:22:47  florian
+    * renamed i386asm and i386base to cpuasm and cpubase
+
+  Revision 1.64  1999/08/03 22:02:42  peter
     * moved bitmask constants to sets
     * some other type/const renamings
 

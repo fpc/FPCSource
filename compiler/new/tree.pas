@@ -29,9 +29,7 @@ unit tree;
   interface
 
     uses
-       globtype,cobjects,symtable,aasm
-{$I cpuunit.inc}
-       ;
+       symconst,globtype,cobjects,symtable,aasm,cpuasm,cpubase;
 
     type
        pconstset = ^tconstset;
@@ -1902,7 +1900,10 @@ unit tree;
 end.
 {
   $Log$
-  Revision 1.10  1999-08-02 17:14:12  florian
+  Revision 1.11  1999-08-04 00:23:59  florian
+    * renamed i386asm and i386base to cpuasm and cpubase
+
+  Revision 1.10  1999/08/02 17:14:12  florian
     + changed the temp. generator to an object
 
   Revision 1.9  1999/08/01 23:19:58  florian

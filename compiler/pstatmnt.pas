@@ -42,9 +42,8 @@ unit pstatmnt;
        globtype,systems,tokens,
        strings,cobjects,globals,files,verbose,
        symconst,symtable,aasm,pass_1,types,scanner,hcodegen,ppu
-       ,pbase,pexpr,pdecl
+       ,pbase,pexpr,pdecl,cpubase,cpuasm
 {$ifdef i386}
-       ,i386base,i386asm
        ,tgeni386
   {$ifndef NoRa386Int}
        ,ra386int
@@ -63,8 +62,7 @@ unit pstatmnt;
   {$endif NoRa68kMot}
 {$endif m68k}
 {$ifdef alpha}
-       ,cpubase,cpuasm
-       ,tgeni386
+       ,tgeni386  { this is a dummy!! }
 {$endif alpha}
        ;
 
@@ -1290,7 +1288,10 @@ unit pstatmnt;
 end.
 {
   $Log$
-  Revision 1.95  1999-08-03 22:03:03  peter
+  Revision 1.96  1999-08-04 00:23:19  florian
+    * renamed i386asm and i386base to cpuasm and cpubase
+
+  Revision 1.95  1999/08/03 22:03:03  peter
     * moved bitmask constants to sets
     * some other type/const renamings
 

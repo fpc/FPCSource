@@ -25,9 +25,7 @@ unit cgcpu;
   interface
 
     uses
-       cgobj,aasm
-{$i cpuunit.inc}
-       ;
+       cgobj,aasm,cpuasm,cpubase;
 
     type
        pcgalpha = ^tcgalpha;
@@ -124,7 +122,10 @@ unit cgcpu;
 end.
 {
   $Log$
-  Revision 1.1  1999-08-03 22:39:46  florian
+  Revision 1.2  1999-08-04 00:24:00  florian
+    * renamed i386asm and i386base to cpuasm and cpubase
+
+  Revision 1.1  1999/08/03 22:39:46  florian
     * initial revision
 
   Revision 1.2  1999/08/01 23:19:59  florian

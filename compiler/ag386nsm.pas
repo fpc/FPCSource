@@ -43,8 +43,7 @@ unit ag386nsm;
     uses
       strings,
       globtype,globals,systems,cobjects,
-      files,verbose
-      ,i386base,i386asm
+      files,verbose,cpubase,cpuasm
 {$ifdef GDB}
       ,gdb
 {$endif GDB}
@@ -603,7 +602,10 @@ ait_stab_function_name : ;
 end.
 {
   $Log$
-  Revision 1.47  1999-08-01 18:28:10  florian
+  Revision 1.48  1999-08-04 00:22:37  florian
+    * renamed i386asm and i386base to cpuasm and cpubase
+
+  Revision 1.47  1999/08/01 18:28:10  florian
     * modifications for the new code generator
 
   Revision 1.46  1999/07/22 09:37:33  florian

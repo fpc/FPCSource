@@ -31,8 +31,7 @@ unit ag386bin;
   interface
 
     uses
-       i386base,
-       cobjects,aasm,files,assemble;
+       cpubase,cobjects,aasm,files,assemble;
 
     type
       togtype=(og_none,og_dbg,og_coff,og_pecoff);
@@ -79,7 +78,7 @@ unit ag386bin;
     uses
        strings,
        globtype,globals,systems,verbose,
-       i386asm,
+       cpuasm,
 {$ifdef GDB}
        gdb,
 {$endif}
@@ -906,7 +905,10 @@ unit ag386bin;
 end.
 {
   $Log$
-  Revision 1.21  1999-08-01 18:28:09  florian
+  Revision 1.22  1999-08-04 00:22:35  florian
+    * renamed i386asm and i386base to cpuasm and cpubase
+
+  Revision 1.21  1999/08/01 18:28:09  florian
     * modifications for the new code generator
 
   Revision 1.20  1999/07/31 12:33:11  peter

@@ -25,17 +25,7 @@ unit temp_gen;
   interface
 
     uses
-{$ifdef i386}
-      i386base,i386asm,
-{$endif i386}
-{$ifdef m68k}
-      m68k,
-{$endif m68k}
-{$ifdef alpha}
-      cpubase,
-      cpuinfo,
-{$endif m68k}
-       cobjects,globals,tree,hcodegen,verbose,files,aasm;
+      cpubase,cpuinfo,cobjects,globals,tree,hcodegen,verbose,files,aasm;
 
     type
       ttemptype = (tt_none,tt_free,tt_normal,tt_persistant,tt_ansistring,tt_freeansistring,tt_widestring,tt_freewidestring);
@@ -530,7 +520,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.33  1999-08-02 00:34:06  michael
+  Revision 1.34  1999-08-04 00:23:46  florian
+    * renamed i386asm and i386base to cpuasm and cpubase
+
+  Revision 1.33  1999/08/02 00:34:06  michael
   * alpha has no index
 
   Revision 1.32  1999/06/09 23:00:13  peter

@@ -168,7 +168,7 @@ uses
   {$endif gdb}
   {$ifdef i386}
         {$O opts386}
-        {$O i386base}
+        {$O cpubase}
         {$O cgai386}
         {$O tgeni386}
         {$O cg386add}
@@ -271,7 +271,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.44  1999-06-02 22:44:13  pierre
+  Revision 1.45  1999-08-04 00:23:18  florian
+    * renamed i386asm and i386base to cpuasm and cpubase
+
+  Revision 1.44  1999/06/02 22:44:13  pierre
    * previous wrong log corrected
 
   Revision 1.43  1999/06/02 22:25:44  pierre

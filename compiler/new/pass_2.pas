@@ -43,12 +43,11 @@ implementation
    uses
      globtype,systems,
      cobjects,verbose,comphook,globals,files,
-     symtable,types,aasm,scanner,
-     pass_1,tgobj,cgbase,cgobj,tgcpu
+     symconst,symtable,types,aasm,scanner,
+     pass_1,tgobj,cgbase,cgobj,tgcpu,cpuasm,cpubase
 {$ifdef GDB}
      ,gdb
 {$endif}
-{$i cpuunit.inc}
      ;
    type
        perrornode = ^terrornode;
@@ -181,7 +180,7 @@ implementation
       var
          i,j,k : longint;
       begin
-         if (pvarsym(p)^.typ=varsym) and ((pvarsym(p)^.var_options and vo_regable)<>0) then
+         if (pvarsym(p)^.typ=varsym) and (vo_regable in pvarsym(p)^.varoptions) then
            begin
               { walk through all momentary register variables }
               for i:=1 to maxvarregs do
@@ -261,10 +260,10 @@ implementation
                    }
                    if assigned(aktprocsym) then
                      begin
-                       if (aktprocsym^.definition^.options and
-                        (poconstructor+podestructor{+poinline}+pointerrupt)=0) and
-                        ((procinfo.flags and pi_do_call)=0) and
-                        (lexlevel>=normal_function_level) then
+                       if not(aktprocsym^.definition^.proctypeoption in [potype_constructor,potype_destructor]) and
+                          not(po_interrupt in aktprocsym^.definition^.procoptions) and
+                          ((procinfo.flags and pi_do_call)=0) and
+                          (lexlevel>=normal_function_level) then
                        begin
                          { use ESP as frame pointer }
                          procinfo.framepointer:=stack_pointer;
@@ -408,7 +407,7 @@ implementation
                      end;
                 end;
               if assigned(aktprocsym) and
-                 ((aktprocsym^.definition^.options and poinline)<>0) then
+                 (pocall_inline in aktprocsym^.definition^.proccalloptions) then
                 make_const_global:=true;
               do_secondpass(p);
 
@@ -425,7 +424,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.4  1999-08-03 17:09:46  florian
+  Revision 1.5  1999-08-04 00:23:58  florian
+    * renamed i386asm and i386base to cpuasm and cpubase
+
+  Revision 1.4  1999/08/03 17:09:46  florian
     * the alpha compiler can be compiled now
 
   Revision 1.3  1999/08/03 00:30:36  florian

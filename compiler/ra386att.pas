@@ -37,9 +37,8 @@ Implementation
 Uses
   globtype,
   strings,cobjects,systems,verbose,globals,
-  files,aasm,types,symconst,symtable,scanner,hcodegen
-  ,i386base
-  ,rautils,ra386;
+  files,aasm,types,symconst,symtable,scanner,hcodegen,
+  cpubase,rautils,ra386;
 
 type
  tasmtoken = (
@@ -1955,7 +1954,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.55  1999-08-03 22:03:09  peter
+  Revision 1.56  1999-08-04 00:23:25  florian
+    * renamed i386asm and i386base to cpuasm and cpubase
+
+  Revision 1.55  1999/08/03 22:03:09  peter
     * moved bitmask constants to sets
     * some other type/const renamings
 

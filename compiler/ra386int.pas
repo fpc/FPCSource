@@ -38,9 +38,8 @@ Implementation
 Uses
   globtype,
   strings,cobjects,systems,verbose,globals,
-  files,aasm,types,scanner,hcodegen,symtable
-  ,i386base
-  ,rautils,ra386;
+  files,aasm,types,scanner,hcodegen,symtable,cpubase,
+  rautils,ra386;
 
 
 type
@@ -1670,7 +1669,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.41  1999-07-24 11:17:16  peter
+  Revision 1.42  1999-08-04 00:23:27  florian
+    * renamed i386asm and i386base to cpuasm and cpubase
+
+  Revision 1.41  1999/07/24 11:17:16  peter
     * suffix parsing for at&t fixed for things like movsbl
     * string constants are now handle correctly and also allowed in
       constant expressions

@@ -37,19 +37,8 @@ unit pmodules;
        cobjects,comphook,globals,verbose,files,
        symconst,symtable,aasm,hcodegen,
        link,assemble,import,export,gendef,ppu,comprsrc,
-       cresstr
-{$ifdef i386}
-       ,i386base,i386asm
-{$endif}
-{$ifdef m68k}
-       ,m68k
-{$endif}
-{$ifdef newcg}
-{$ifndef i386}
-       ,cpubase
-{$endif}
-{$endif newcg}
-       ,scanner,pbase,psystem,pdecl,psub,parser;
+       cresstr,cpubase,cpuasm,
+       scanner,pbase,psystem,pdecl,psub,parser;
 
 
     procedure create_objectfile;
@@ -1364,7 +1353,10 @@ unit pmodules;
 end.
 {
   $Log$
-  Revision 1.138  1999-08-03 22:03:02  peter
+  Revision 1.139  1999-08-04 00:23:15  florian
+    * renamed i386asm and i386base to cpuasm and cpubase
+
+  Revision 1.138  1999/08/03 22:03:02  peter
     * moved bitmask constants to sets
     * some other type/const renamings
 

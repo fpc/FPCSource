@@ -44,11 +44,7 @@ implementation
       gdb,
 {$endif GDB}
       hcodegen,temp_gen,pass_2,
-      i386base,i386asm,
-{$ifdef dummy}
-      end  { this overcomes the annoying highlighting problem in my TP IDE,
-             the IDE assumes i386asm start a asm block (FK) }
-{$endif}
+      cpubase,cpuasm,
       cgai386,tgeni386,cg386ld;
 
 {*****************************************************************************
@@ -1176,7 +1172,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.95  1999-08-03 22:02:34  peter
+  Revision 1.96  1999-08-04 00:22:41  florian
+    * renamed i386asm and i386base to cpuasm and cpubase
+
+  Revision 1.95  1999/08/03 22:02:34  peter
     * moved bitmask constants to sets
     * some other type/const renamings
 

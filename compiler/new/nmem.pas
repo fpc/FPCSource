@@ -46,9 +46,8 @@ unit nmem;
   implementation
 
     uses
-       cobjects,aasm,cgbase,cgobj,types,verbose,tgobj,tgcpu
-{$I cpuunit.inc}
-       ;
+       cobjects,aasm,cgbase,cgobj,types,verbose,tgobj,tgcpu,symconst,
+       cpubase,cpuasm;
 
 {****************************************************************************
                                  TLOADNODE
@@ -111,7 +110,7 @@ unit nmem;
                  begin
                     hregister:=R_NO;
                     { C variable }
-                    if (pvarsym(symtableentry)^.var_options and vo_is_C_var)<>0 then
+                    if (vo_is_C_var in pvarsym(symtableentry)^.varoptions) then
                       begin
                          location.reference.symbol:=newasmsymbol(symtableentry^.mangledname);
                       end
@@ -272,7 +271,10 @@ unit nmem;
 end.
 {
   $Log$
-  Revision 1.4  1999-08-03 17:09:45  florian
+  Revision 1.5  1999-08-04 00:23:56  florian
+    * renamed i386asm and i386base to cpuasm and cpubase
+
+  Revision 1.4  1999/08/03 17:09:45  florian
     * the alpha compiler can be compiled now
 
   Revision 1.3  1999/08/02 17:14:08  florian

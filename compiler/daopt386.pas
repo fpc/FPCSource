@@ -33,12 +33,9 @@ Interface
 Uses
   GlobType,
   CObjects,Aasm,
-  i386base,i386asm
-  ;
-
+  cpubase,cpuasm;
 
 Type
-
   TRegArray = Array[R_EAX..R_BL] of TRegister;
   TRegSet = Set of R_EAX..R_BL;
   TRegInfo = Record
@@ -2238,7 +2235,10 @@ End.
 
 {
  $Log$
- Revision 1.52  1999-08-02 14:35:21  jonas
+ Revision 1.53  1999-08-04 00:22:59  florian
+   * renamed i386asm and i386base to cpuasm and cpubase
+
+ Revision 1.52  1999/08/02 14:35:21  jonas
    * bugfix in DestroyRefs
 
  Revision 1.51  1999/08/02 12:12:53  jonas

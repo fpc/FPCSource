@@ -49,8 +49,7 @@ unit ag386att;
 {$endif Delphi}
       strings,
       globtype,globals,systems,
-      files,verbose
-      ,i386base,i386asm
+      files,verbose,cpubase,cpuasm
 {$ifdef GDB}
       ,gdb
 {$endif GDB}
@@ -832,7 +831,10 @@ unit ag386att;
 end.
 {
   $Log$
-  Revision 1.7  1999-07-30 12:26:07  peter
+  Revision 1.8  1999-08-04 00:22:34  florian
+    * renamed i386asm and i386base to cpuasm and cpubase
+
+  Revision 1.7  1999/07/30 12:26:07  peter
     * write .size only for linux
 
   Revision 1.6  1999/07/29 20:53:56  peter

@@ -25,10 +25,7 @@ unit gdb;
   interface
 
     uses
-      globtype,
-{$ifdef i386}
-      i386base,
-{$endif i386}
+      globtype,cpubase,
       strings,cobjects,globals,aasm;
 
     {stab constants }
@@ -257,7 +254,10 @@ end.
 
 {
   $Log$
-  Revision 1.11  1999-05-27 19:44:27  peter
+  Revision 1.12  1999-08-04 00:23:01  florian
+    * renamed i386asm and i386base to cpuasm and cpubase
+
+  Revision 1.11  1999/05/27 19:44:27  peter
     * removed oldasm
     * plabel -> pasmlabel
     * -a switches to source writing automaticly

@@ -40,12 +40,11 @@ implementation
       globtype,systems,
       cobjects,verbose,globals,
       aasm,symtable,types,
-      cgbase
+      cgbase,cpuasm,cpubase
       { not yet converted:
       htypechk,tcadd,tccal,tccnv,tccon,tcflw,
       tcinl,tcld,tcmat,tcmem,tcset
       }
-      {$I cpuunit.inc}
       ;
 
 {*****************************************************************************
@@ -222,7 +221,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.4  1999-08-01 18:22:36  florian
+  Revision 1.5  1999-08-04 00:23:57  florian
+    * renamed i386asm and i386base to cpuasm and cpubase
+
+  Revision 1.4  1999/08/01 18:22:36  florian
    * made it again compilable
 
   Revision 1.3  1999/01/23 23:29:48  florian

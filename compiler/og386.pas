@@ -34,7 +34,7 @@ unit og386;
        dos,
 {$endif Delphi}
        owbase,owar,
-       systems,i386base,aasm;
+       systems,cpubase,aasm;
 
     type
        tsecsize = array[tsection] of longint;
@@ -278,7 +278,10 @@ unit og386;
 end.
 {
   $Log$
-  Revision 1.10  1999-07-18 10:19:56  florian
+  Revision 1.11  1999-08-04 00:23:04  florian
+    * renamed i386asm and i386base to cpuasm and cpubase
+
+  Revision 1.10  1999/07/18 10:19:56  florian
     * made it compilable with Dlephi 4 again
     + fixed problem with large stack allocations on win32
 

@@ -58,7 +58,8 @@ unit pdecl;
     uses
        cobjects,scanner,
        symconst,aasm,tree,pass_1,strings,
-       files,types,verbose,systems,import
+       files,types,verbose,systems,import,
+       cpubase
 {$ifndef newcg}
        ,tccnv
 {$endif newcg}
@@ -68,12 +69,6 @@ unit pdecl;
        { parser specific stuff }
        ,pbase,ptconst,pexpr,psub,pexports
        { processor specific stuff }
-{$ifdef i386}
-       ,i386base
-{$endif}
-{$ifdef m68k}
-       ,m68k
-{$endif}
        { codegen }
        ,hcodegen,hcgdata
        ;
@@ -2390,7 +2385,10 @@ unit pdecl;
 end.
 {
   $Log$
-  Revision 1.139  1999-08-03 22:02:56  peter
+  Revision 1.140  1999-08-04 00:23:11  florian
+    * renamed i386asm and i386base to cpuasm and cpubase
+
+  Revision 1.139  1999/08/03 22:02:56  peter
     * moved bitmask constants to sets
     * some other type/const renamings
 
