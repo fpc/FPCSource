@@ -387,7 +387,7 @@ implementation
               floatdef :
                 begin
                   location_reset(location,LOC_FPUREGISTER,def_cgsize(resulttype.def));
-                  location.register:=R_ST;
+                  location.register:=fpu_result_reg;
 {$ifdef x86}
                   inc(trgcpu(rg).fpuvaroffset);
 {$endif x86}
@@ -1542,7 +1542,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.26  2002-11-15 01:58:51  peter
+  Revision 1.27  2002-11-16 15:34:30  florian
+    * generic location for float results
+
+  Revision 1.26  2002/11/15 01:58:51  peter
     * merged changes from 1.0.7 up to 04-11
       - -V option for generating bug report tracing
       - more tracing for option parsing
