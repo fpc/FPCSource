@@ -30,3 +30,5 @@ case .................. testcase.pp    tests case statements with byte and word
                                        sized decision variables
                         testcas2.pp    tests case with sub enum types
 Arrays ................ testarr1.pp    small test for open arrays with classes
+Enumerations .......... testenm1.pp    tests assignments of subrange
+                                       enumerations
