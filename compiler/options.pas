@@ -390,6 +390,7 @@ begin
                       while j <= length(more) Do
                         Begin
                           case more[j] of
+                            'a' : Simplify_ppu:=true;
                             'h' :
                                begin
                                  val(copy(more,j+1,length(more)-j),heapsize,code);
@@ -1183,7 +1184,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.15  1999-08-25 22:51:00  pierre
+  Revision 1.16  1999-08-27 10:45:03  pierre
+   options -Ca sets simply_ppu to true
+
+  Revision 1.15  1999/08/25 22:51:00  pierre
    * remove trailing space in cfg files
 
   Revision 1.14  1999/08/16 15:35:26  pierre

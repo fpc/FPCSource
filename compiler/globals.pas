@@ -173,6 +173,11 @@ unit globals;
        DLLsource : boolean = false;
        DLLImageBase : pstring = nil;
 
+       { used to set all registers used for each global function
+         this should dramatically decrease the number of
+         recompilations needed PM }
+       simplify_ppu : boolean = false;
+       
        { should we allow non static members ? }
        allow_only_static : boolean = false;
 
@@ -1242,7 +1247,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.20  1999-08-19 13:02:12  pierre
+  Revision 1.21  1999-08-27 10:45:00  pierre
+   options -Ca sets simply_ppu to true
+
+  Revision 1.20  1999/08/19 13:02:12  pierre
     + label faillabel added for _FAIL support
 
   Revision 1.19  1999/08/16 15:35:21  pierre
