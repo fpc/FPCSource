@@ -20,7 +20,7 @@ uses
 
 const
   version='1.00';
-{$ifdef linux}
+{$ifdef unix}
   eollen=1;
 {$else}
   eollen=2;
@@ -805,7 +805,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.6  2000-10-09 14:54:27  jonas
+  Revision 1.7  2001-09-29 23:13:32  carl
+  * updated for UNIX compatiblity
+
+  Revision 1.6  2000/10/09 14:54:27  jonas
     * fixed another range check error (merged from fixes branch)
 
   Revision 1.5  2000/09/30 13:13:22  peter
