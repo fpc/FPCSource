@@ -16,17 +16,18 @@
 {****************************************************************************}
 
 const
- Priorities: array [TThreadPriority] of word = ($100, $200, $207, $20F, $217
-  $21F, $300);
+ Priorities: array [TThreadPriority] of word = ($100, $200, $207, $20F, $217,
+                                                                   $21F, $300);
+ ThreadCount: longint = 0;
 
 
-procedure AddThread;
+procedure AddThread (T: TThread);
 begin
  Inc (ThreadCount);
 end;
 
 
-procedure RemoveThread;
+procedure RemoveThread (T: TThread);
 begin
  Dec (ThreadCount);
 end;
@@ -89,9 +90,10 @@ begin
 end;
 
 
-function ThreadProc(Thread: TThread): Integer; cdecl;
+function ThreadProc(Args: pointer): Integer; cdecl;
 var
   FreeThread: Boolean;
+  Thread: TThread absolute Args;
 begin
   Thread.Execute;
   FreeThread := Thread.FFreeOnTerminate;
@@ -109,7 +111,7 @@ begin
   inherited Create;
   AddThread (Self);
   FSuspended := CreateSuspended;
-  Flags := dtStack_Committed;
+  Flags := dtStack_Commited;
   if FSuspended then Flags := Flags or dtSuspended;
   if DosCreateThread (FThreadID, @ThreadProc, pointer (Self), Flags, 16384)
                                                                       <> 0 then
@@ -159,7 +161,28 @@ end;
 
 {
   $Log$
-  Revision 1.2  2000-07-13 11:33:02  michael
-  + removed logs
- 
+  Revision 1.1.2.1  2000-12-19 00:44:06  hajny
+    + FCL made compilable under OS/2
+
+  Revision 1.1  2000/07/13 06:33:44  michael
+  + Initial import
+
+  Revision 1.5  2000/04/01 10:45:52  hajny
+    OS/2 implementation started
+
+  Revision 1.4  2000/01/07 01:24:34  peter
+    * updated copyright to 2000
+
+  Revision 1.3  2000/01/06 01:20:34  peter
+    * moved out of packages/ back to topdir
+
+  Revision 1.1  2000/01/03 19:33:09  peter
+    * moved to packages dir
+
+  Revision 1.1  1999/05/30 10:46:43  peter
+    * start of tthread for linux,win32
+
+  Revision 1.2  1999/04/08 10:18:57  peter
+    * makefile updates
+
 }

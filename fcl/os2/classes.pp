@@ -24,6 +24,7 @@ unit Classes;
 interface
 
 uses
+  DosCalls, (* Needed here (i.e. before SysUtils) to avoid type clashes. *)
   strings,
   sysutils;
 
@@ -32,7 +33,6 @@ uses
 implementation
 
 uses
-  doscalls,
   typinfo;
 
 { OS - independent class implementations are in /inc directory. }
@@ -47,7 +47,10 @@ finalization
 end.
 {
   $Log$
-  Revision 1.1.2.1  2000-08-25 17:30:36  hajny
+  Revision 1.1.2.2  2000-12-19 00:44:06  hajny
+    + FCL made compilable under OS/2
+
+  Revision 1.1.2.1  2000/08/25 17:30:36  hajny
     * Cosmetic change (OS/2 instead of win32 in header)
 
   Revision 1.1  2000/07/13 06:33:44  michael
