@@ -8,3 +8,4 @@
 /usr/lib/fpc/%{fpcversion}/units/%{fpctarget}/libpng
 
 /usr/bin/fd2pascal
+/usr/share/man/man1/fd2pascal.1
