@@ -5118,16 +5118,18 @@ implementation
              end
            else
              begin
-                if not(po_virtualmethod in tprocdef(proc.def).procoptions) then
+                if not assigned(proc.procdef) then
+                  internalerror(200310074);
+                if not(po_virtualmethod in tprocdef(proc.procdef).procoptions) then
                   begin
-                     rttiList.concat(Tai_const_symbol.Createname(tprocdef(proc.def).mangledname));
+                     rttiList.concat(Tai_const_symbol.Createname(tprocdef(proc.procdef).mangledname));
                      typvalue:=1;
                   end
                 else
                   begin
                      { virtual method, write vmt offset }
                      rttiList.concat(Tai_const.Create_32bit(
-                       tprocdef(proc.def)._class.vmtmethodoffset(tprocdef(proc.def).extnumber)));
+                       tprocdef(proc.procdef)._class.vmtmethodoffset(tprocdef(proc.procdef).extnumber)));
                      typvalue:=2;
                   end;
              end;
@@ -5913,7 +5915,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.173  2003-10-06 22:23:41  florian
+  Revision 1.174  2003-10-07 16:06:30  peter
+    * tsymlist.def renamed to tsymlist.procdef
+    * tsymlist.procdef is now only used to store the procdef
+
+  Revision 1.173  2003/10/06 22:23:41  florian
     + added basic olevariant support
 
   Revision 1.172  2003/10/05 21:21:52  peter

@@ -38,7 +38,6 @@ implementation
       cutils,cclasses,
       globals,verbose,systems,tokens,
       symconst,symbase,symsym,symtable,defutil,defcmp,
-      cgbase,
       node,nld,nmem,ncon,ncnv,ncal,pass_1,
       scanner,
       pbase,pexpr,pdecsub,pdecvar,ptype
@@ -89,14 +88,13 @@ implementation
 
         { convert a node tree to symlist and return the last
           symbol }
-        function parse_symlist(pl:tsymlist):boolean;
+        function parse_symlist(pl:tsymlist;var def:tdef):boolean;
           var
             idx : longint;
             sym : tsym;
-            def : tdef;
             st  : tsymtable;
           begin
-            parse_symlist:=true;
+            result:=true;
             def:=nil;
             if token=_ID then
              begin
@@ -118,7 +116,7 @@ implementation
                else
                 begin
                   Message1(parser_e_illegal_field_or_method,pattern);
-                  parse_symlist:=false;
+                  result:=false;
                 end;
                consume(_ID);
                repeat
@@ -146,21 +144,26 @@ implementation
                                   else
                                     begin
                                       Message1(sym_e_illegal_field,pattern);
-                                      parse_symlist:=false;
+                                      result:=false;
                                     end;
                                 end;
                               end
                              else
                               begin
                                 Message1(sym_e_illegal_field,pattern);
-                                parse_symlist:=false;
+                                result:=false;
                               end;
                            end
                           else
                            begin
                              Message(cg_e_invalid_qualifier);
-                             parse_symlist:=false;
+                             result:=false;
                            end;
+                        end
+                       else
+                        begin
+                          Message(cg_e_invalid_qualifier);
+                          result:=false;
                         end;
                        consume(_ID);
                      end;
@@ -177,7 +180,7 @@ implementation
                          else
                           begin
                             Message(cg_e_invalid_qualifier);
-                            parse_symlist:=false;
+                            result:=false;
                           end;
                        until not try_to_consume(_COMMA);
                        consume(_RECKKLAMMER);
@@ -185,7 +188,7 @@ implementation
                    else
                      begin
                        Message(parser_e_ill_property_access_sym);
-                       parse_symlist:=false;
+                       result:=false;
                        break;
                      end;
                  end;
@@ -194,9 +197,8 @@ implementation
             else
              begin
                Message(parser_e_ill_property_access_sym);
-               parse_symlist:=false;
+               result:=false;
              end;
-            pl.def:=def;
           end;
 
         var
@@ -208,8 +210,7 @@ implementation
            s : string;
            tt : ttype;
            arraytype : ttype;
-           pp : Tprocdef;
-           pd : tprocdef;
+           def : tdef;
            pt : tnode;
            propname : stringid;
            sc : tsinglelist;
@@ -375,7 +376,7 @@ implementation
            if try_to_consume(_READ) then
             begin
               p.readaccess.clear;
-              if parse_symlist(p.readaccess) then
+              if parse_symlist(p.readaccess,def) then
                begin
                  sym:=p.readaccess.firstsym^.sym;
                  case sym.typ of
@@ -386,14 +387,15 @@ implementation
                        { Insert hidden parameters }
                        calc_parast(readprocdef);
                        { search procdefs matching readprocdef }
-                       pd:=Tprocsym(sym).search_procdef_bypara(readprocdef.para,p.proptype.def,true,false);
-                       if not(assigned(pd)) then
+                       p.readaccess.procdef:=Tprocsym(sym).search_procdef_bypara(readprocdef.para,p.proptype.def,true,false);
+                       if not assigned(p.readaccess.procdef) then
                          Message(parser_e_ill_property_access_sym);
-                       p.readaccess.setdef(pd);
                      end;
                    varsym :
                      begin
-                       if compare_defs(p.readaccess.def,p.proptype.def,nothingn)>=te_equal then
+                       if not assigned(def) then
+                         internalerror(200310071);
+                       if compare_defs(def,p.proptype.def,nothingn)>=te_equal then
                         begin
                           { property parameters are allowed if this is
                             an indexed property, because the index is then
@@ -404,7 +406,7 @@ implementation
                            Message(parser_e_ill_property_access_sym);
                         end
                        else
-                        CGMessage2(type_e_incompatible_types,p.readaccess.def.typename,p.proptype.def.typename);
+                        CGMessage2(type_e_incompatible_types,def.typename,p.proptype.def.typename);
                      end;
                    else
                      Message(parser_e_ill_property_access_sym);
@@ -414,7 +416,7 @@ implementation
            if try_to_consume(_WRITE) then
             begin
               p.writeaccess.clear;
-              if parse_symlist(p.writeaccess) then
+              if parse_symlist(p.writeaccess,def) then
                begin
                  sym:=p.writeaccess.firstsym^.sym;
                  case sym.typ of
@@ -429,14 +431,15 @@ implementation
                        { Insert hidden parameters }
                        calc_parast(writeprocdef);
                        { search procdefs matching writeprocdef }
-                       pd:=Tprocsym(sym).search_procdef_bypara(writeprocdef.para,writeprocdef.rettype.def,true,false);
-                       if not(assigned(pd)) then
+                       p.writeaccess.procdef:=Tprocsym(sym).search_procdef_bypara(writeprocdef.para,writeprocdef.rettype.def,true,false);
+                       if not assigned(p.writeaccess.procdef) then
                          Message(parser_e_ill_property_access_sym);
-                       p.writeaccess.setdef(pd);
                      end;
                    varsym :
                      begin
-                       if compare_defs(p.writeaccess.def,p.proptype.def,nothingn)>=te_equal then
+                       if not assigned(def) then
+                         internalerror(200310072);
+                       if compare_defs(def,p.proptype.def,nothingn)>=te_equal then
                         begin
                           { property parameters are allowed if this is
                             an indexed property, because the index is then
@@ -447,7 +450,7 @@ implementation
                            Message(parser_e_ill_property_access_sym);
                         end
                        else
-                        CGMessage2(type_e_incompatible_types,p.readaccess.def.typename,p.proptype.def.typename);
+                        CGMessage2(type_e_incompatible_types,def.typename,p.proptype.def.typename);
                      end;
                    else
                      Message(parser_e_ill_property_access_sym);
@@ -467,22 +470,22 @@ implementation
                     { as stored true                    }
                     if idtoken<>_DEFAULT then
                      begin
-                       if parse_symlist(p.storedaccess) then
+                       if parse_symlist(p.storedaccess,def) then
                         begin
                           sym:=p.storedaccess.firstsym^.sym;
                           case sym.typ of
                             procsym :
                               begin
-                                 pp:=Tprocsym(sym).search_procdef_nopara_boolret;
-                                 if assigned(pp) then
-                                   p.storedaccess.setdef(pp)
-                                 else
+                                 p.storedaccess.procdef:=Tprocsym(sym).search_procdef_nopara_boolret;
+                                 if not assigned(p.storedaccess.procdef) then
                                    message(parser_e_ill_property_storage_sym);
                               end;
                             varsym :
                               begin
+                                if not assigned(def) then
+                                  internalerror(200310073);
                                 if (ppo_hasparameters in p.propoptions) or
-                                   not(is_boolean(p.storedaccess.def)) then
+                                   not(is_boolean(def)) then
                                  Message(parser_e_stored_property_must_be_boolean);
                               end;
                             else
@@ -1155,7 +1158,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.68  2003-10-02 21:15:12  peter
+  Revision 1.69  2003-10-07 16:06:30  peter
+    * tsymlist.def renamed to tsymlist.procdef
+    * tsymlist.procdef is now only used to store the procdef
+
+  Revision 1.68  2003/10/02 21:15:12  peter
     * support nil as default value
     * when no default property is allowed don't check default value
 

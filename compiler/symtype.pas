@@ -143,14 +143,13 @@ interface
       end;
 
       tsymlist = class
-        def      : tdef;
-        defderef : tderef;
+        procdef  : tdef;
+        procdefderef : tderef;
         firstsym,
         lastsym  : psymlistitem;
         constructor create;
         destructor  destroy;override;
         function  empty:boolean;
-        procedure setdef(p:tdef);
         procedure addsym(slt:tsltype;p:tsym);
         procedure addsymderef(slt:tsltype;const d:tderef);
         procedure addconst(slt:tsltype;v:longint);
@@ -366,7 +365,7 @@ implementation
 
     constructor tsymlist.create;
       begin
-        def:=nil; { needed for procedures }
+        procdef:=nil; { needed for procedures }
         firstsym:=nil;
         lastsym:=nil;
       end;
@@ -396,13 +395,7 @@ implementation
          end;
         firstsym:=nil;
         lastsym:=nil;
-        def:=nil;
-      end;
-
-
-    procedure tsymlist.setdef(p:tdef);
-      begin
-        def:=p;
+        procdef:=nil;
       end;
 
 
@@ -469,7 +462,7 @@ implementation
         hpn : psymlistitem;
       begin
         hp:=tsymlist.create;
-        hp.def:=def;
+        hp.procdef:=procdef;
         hp2:=firstsym;
         while assigned(hp2) do
          begin
@@ -491,7 +484,7 @@ implementation
       var
         hp : psymlistitem;
       begin
-        def:=tdef(defderef.resolve);
+        procdef:=tdef(procdefderef.resolve);
         hp:=firstsym;
         while assigned(hp) do
          begin
@@ -865,7 +858,11 @@ finalization
 end.
 {
   $Log$
-  Revision 1.27  2003-09-14 12:58:29  peter
+  Revision 1.28  2003-10-07 16:06:30  peter
+    * tsymlist.def renamed to tsymlist.procdef
+    * tsymlist.procdef is now only used to store the procdef
+
+  Revision 1.27  2003/09/14 12:58:29  peter
     * give IE when st is not assigned in deref
 
   Revision 1.26  2003/06/25 18:31:23  peter

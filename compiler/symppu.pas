@@ -179,7 +179,7 @@ implementation
         p   : tsymlist;
       begin
         p:=tsymlist.create;
-        getderef(p.defderef);
+        getderef(p.procdefderef);
         repeat
           slt:=tsltype(getbyte);
           case slt of
@@ -344,7 +344,7 @@ implementation
       var
         hp : psymlistitem;
       begin
-        putderef(p.def,p.defderef);
+        putderef(p.procdef,p.procdefderef);
         hp:=p.firstsym;
         while assigned(hp) do
          begin
@@ -405,7 +405,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.19  2003-06-07 20:26:32  peter
+  Revision 1.20  2003-10-07 16:06:30  peter
+    * tsymlist.def renamed to tsymlist.procdef
+    * tsymlist.procdef is now only used to store the procdef
+
+  Revision 1.19  2003/06/07 20:26:32  peter
     * re-resolving added instead of reloading from ppu
     * tderef object added to store deref info for resolving
 
