@@ -40,6 +40,7 @@ unit cpupi;
           maxpushedparasize : aword;
 
           constructor create(aparent:tprocinfo);override;
+          procedure handle_body_start;override;
           procedure after_pass1;override;
           procedure allocate_push_parasize(size: longint);override;
           function calc_stackframe_size:longint;override;
@@ -63,25 +64,32 @@ unit cpupi;
          localsize:=0;
       end;
 
-    procedure tppcprocinfo.after_pass1;
+
+    procedure tppcprocinfo.handle_body_start;
       var
          ofs : aword;
       begin
+        if not(po_assembler in procdef.procoptions) then
+          begin
+            case target_info.abi of
+              abi_powerpc_aix:
+                ofs:=align(maxpushedparasize+LinkageAreaSizeAIX,16);
+              abi_powerpc_sysv:
+                ofs:=align(maxpushedparasize+LinkageAreaSizeSYSV,16);
+            end;
+            inc(procdef.parast.address_fixup,ofs);
+            procdef.localst.address_fixup:=procdef.parast.address_fixup+procdef.parast.datasize;
+          end;
+        inherited handle_body_start;
+      end;
+
+
+    procedure tppcprocinfo.after_pass1;
+      begin
          if not(po_assembler in procdef.procoptions) then
            begin
-             case target_info.abi of
-               abi_powerpc_aix:
-                 ofs:=align(maxpushedparasize+LinkageAreaSizeAIX,16);
-               abi_powerpc_sysv:
-                 ofs:=align(maxpushedparasize+LinkageAreaSizeSYSV,16);
-             end;
-             inc(procdef.parast.address_fixup,ofs);
-             // inc(selfpointer_offset,ofs);
-             // inc(vmtpointer_offset,ofs);
              if cs_asm_source in aktglobalswitches then
                aktproccode.insert(Tai_comment.Create(strpnew('Parameter copies start at: r1+'+tostr(procdef.parast.address_fixup))));
-
-             procdef.localst.address_fixup:=procdef.parast.address_fixup+procdef.parast.datasize;
 
              if cs_asm_source in aktglobalswitches then
                aktproccode.insert(Tai_comment.Create(strpnew('Locals start at: r1+'+tostr(procdef.localst.address_fixup))));
@@ -119,7 +127,13 @@ begin
 end.
 {
   $Log$
-  Revision 1.25  2003-08-08 15:52:50  olle
+  Revision 1.26  2003-08-16 14:26:44  jonas
+    * set correct localsymtable fixup already in handle_body_start instead
+      of in after_pass1, as it's necessary to get the correct offsets for
+      the calleeside paralocs (and those are now setup in the generic
+      handle_body_start)
+
+  Revision 1.25  2003/08/08 15:52:50  olle
     * merged macos entry/exit code generation into the general one.
 
   Revision 1.24  2003/07/06 20:25:03  jonas
