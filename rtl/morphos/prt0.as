@@ -26,10 +26,14 @@ _start:
 	stw 31,60(1)
 	stw 0,68(1)
 
+	/* Save Stackpointer */
+	lis 4,OriginalStkPtr@ha
+	stw 1,OriginalStkPtr@l(4)
+
 	/* Get ExecBase */
-	lwz	3,4(0)
-	lis	4,_ExecBase@ha
-	stw	3,_ExecBase@l(4)
+	lwz 3,4(0)
+	lis 4,_ExecBase@ha
+	stw 3,_ExecBase@l(4)
 
 	/* ARGC & ARGV and ENVP STUFF MISSING!!! */
 	/* AFAIK there is no such thing as ENVP on MorphOS, just like */
@@ -38,6 +42,12 @@ _start:
 	/* System unit. */
 
 	bl	PASCALMAIN
+
+	.globl	_haltproc
+_haltproc:
+	/* Restore Stackpointer */	
+	lis 4,OriginalStkPtr@ha
+	lwz 1,OriginalStkPtr@l(4)
 
 	lwz 11,0(1)
 	lwz 0,4(11)
@@ -55,6 +65,11 @@ SysBase:
 _ExecBase:
 	.long	0
 
+   .globl	OriginalStkPtr
+	.align	4
+OriginalStkPtr:
+	.long	0
+
 	/* This is needed to be a proper MOS ABox executable */
 	/* This symbol _MUST NOT_ be stripped out from the executable */
    /* or else... */
@@ -66,7 +81,10 @@ __abox__:
 
 /*
   $Log$
-  Revision 1.5  2004-04-21 03:24:55  karoly
+  Revision 1.6  2004-05-01 15:08:57  karoly
+    + haltproc added, saving/restoring stackpointer added
+
+  Revision 1.5  2004/04/21 03:24:55  karoly
    * rewritten to be similar to GCC startup code
 
   Revision 1.4  2004/04/09 04:02:43  karoly
