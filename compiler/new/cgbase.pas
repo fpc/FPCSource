@@ -93,6 +93,9 @@ unit cgbase;
           { true, if the procedure should be exported (only OS/2) }
           exported : boolean;
 
+          { true, if we can not use fast exit code }
+          no_fast_exit : boolean;
+
           { code for the current procedure }
           aktproccode,aktentrycode,
           aktexitcode,aktlocaldata : paasmoutput;
@@ -512,7 +515,10 @@ unit cgbase;
 end.
 {
   $Log$
-  Revision 1.15  2000-01-07 01:14:52  peter
+  Revision 1.16  2000-02-17 14:48:36  florian
+     * updated to use old firstpass
+
+  Revision 1.15  2000/01/07 01:14:52  peter
     * updated copyright to 2000
 
   Revision 1.14  1999/12/24 22:47:42  jonas

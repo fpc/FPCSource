@@ -38,89 +38,89 @@ unit tgobj;
        tpushed = array[firstreg..lastreg] of boolean;
        tsaved = array[firstreg..lastreg] of longint;
 
-      ttemptype = (tt_none,tt_free,tt_normal,tt_persistant,tt_ansistring,tt_freeansistring,tt_widestring,tt_freewidestring);
-      ttemptypeset = set of ttemptype;
+       ttemptype = (tt_none,tt_free,tt_normal,tt_persistant,tt_ansistring,tt_freeansistring,tt_widestring,tt_freewidestring);
+       ttemptypeset = set of ttemptype;
 
-      ptemprecord = ^ttemprecord;
-      ttemprecord = record
-         temptype   : ttemptype;
-         pos    : longint;
-         size       : longint;
-         next       : ptemprecord;
-         nextfree   : ptemprecord; { for faster freeblock checking }
-{$ifdef EXTDEBUG}
-         posinfo,
-         releaseposinfo : tfileposinfo;
-{$endif}
-      end;
+       ptemprecord = ^ttemprecord;
+       ttemprecord = record
+          temptype   : ttemptype;
+          pos    : longint;
+          size       : longint;
+          next       : ptemprecord;
+          nextfree   : ptemprecord; { for faster freeblock checking }
+ {$ifdef EXTDEBUG}
+          posinfo,
+          releaseposinfo : tfileposinfo;
+ {$endif}
+       end;
 
-      ttgobj = object
-         unusedregsint,availabletempregsint : tregisterset;
-         unusedregsfpu,availabletempregsfpu : tregisterset;
-         unusedregsmm,availabletempregsmm : tregisterset;
-         countusableregsint,
-	 countusableregsfpu,
-	 countusableregsmm : byte;
-         c_countusableregsint,
-         c_countusableregsfpu,
-         c_countusableregsmm : byte;
+       ttgobj = object
+          unusedregsint,availabletempregsint : tregisterset;
+          unusedregsfpu,availabletempregsfpu : tregisterset;
+          unusedregsmm,availabletempregsmm : tregisterset;
+          countusableregsint,
+  	  countusableregsfpu,
+ 	  countusableregsmm : byte;
+          c_countusableregsint,
+          c_countusableregsfpu,
+          c_countusableregsmm : byte;
 
-         usedinproc : tregisterset;
+          usedinproc : tregisterset;
 
-         reg_pushes : array[firstreg..lastreg] of longint;
-         is_reg_var : array[firstreg..lastreg] of boolean;
-         { contains all temps }
-         templist      : ptemprecord;
-         { contains all free temps using nextfree links }
-         tempfreelist  : ptemprecord;
-         { Offsets of the first/last temp }
-         firsttemp,
-         lasttemp      : longint;
-         constructor init;
-         { generates temporary variables }
-         procedure resettempgen;
-         procedure setfirsttemp(l : longint);
-         function gettempsize : longint;
-         function newtempofsize(size : longint) : longint;
-         function gettempofsize(size : longint) : longint;
-         { special call for inlined procedures }
-         function gettempofsizepersistant(size : longint) : longint;
-         { for parameter func returns }
-         procedure normaltemptopersistant(pos : longint);
-         procedure persistanttemptonormal(pos : longint);
-         procedure ungetpersistanttemp(pos : longint);
-         procedure gettempofsizereference(l : longint;var ref : treference);
-         function istemp(const ref : treference) : boolean;virtual;
-         procedure ungetiftemp(const ref : treference);
-         function ungetiftempansi(const ref : treference) : boolean;
-         function gettempansistringreference(var ref : treference):boolean;
+          reg_pushes : array[firstreg..lastreg] of longint;
+          is_reg_var : array[firstreg..lastreg] of boolean;
+          { contains all temps }
+          templist      : ptemprecord;
+          { contains all free temps using nextfree links }
+          tempfreelist  : ptemprecord;
+          { Offsets of the first/last temp }
+          firsttemp,
+          lasttemp      : longint;
+          constructor init;
+          { generates temporary variables }
+          procedure resettempgen;
+          procedure setfirsttemp(l : longint);
+          function gettempsize : longint;
+          function newtempofsize(size : longint) : longint;
+          function gettempofsize(size : longint) : longint;
+          { special call for inlined procedures }
+          function gettempofsizepersistant(size : longint) : longint;
+          { for parameter func returns }
+          procedure normaltemptopersistant(pos : longint);
+          procedure persistanttemptonormal(pos : longint);
+          procedure ungetpersistanttemp(pos : longint);
+          procedure gettempofsizereference(l : longint;var ref : treference);
+          function istemp(const ref : treference) : boolean;virtual;
+          procedure ungetiftemp(const ref : treference);
+          function ungetiftempansi(const ref : treference) : boolean;
+          function gettempansistringreference(var ref : treference):boolean;
 
-         { the following methods must be overriden }
-         function getregisterint : tregister;virtual;
-         procedure ungetregisterint(r : tregister);virtual;
-         { tries to allocate the passed register, if possible }
-         function getexplicitregisterint(r : tregister) : tregister;virtual;
+          { the following methods must be overriden }
+          function getregisterint : tregister;virtual;
+          procedure ungetregisterint(r : tregister);virtual;
+          { tries to allocate the passed register, if possible }
+          function getexplicitregisterint(r : tregister) : tregister;virtual;
 
-         procedure ungetregister(r : tregister);virtual;
+          procedure ungetregister(r : tregister);virtual;
 
-         procedure cleartempgen;virtual;
-         procedure del_reference(const ref : treference);virtual;
-         procedure del_locref(const location : tlocation);virtual;
-         procedure del_location(const l : tlocation);virtual;
+          procedure cleartempgen;virtual;
+          procedure del_reference(const ref : treference);virtual;
+          procedure del_locref(const location : tlocation);virtual;
+          procedure del_location(const l : tlocation);virtual;
 
-         { pushs and restores registers }
-         procedure pushusedregisters(var pushed : tpushed;b : byte);virtual;
-         procedure popusedregisters(const pushed : tpushed);virtual;
+          { pushs and restores registers }
+          procedure pushusedregisters(var pushed : tpushed;b : byte);virtual;
+          procedure popusedregisters(const pushed : tpushed);virtual;
 
-         { saves and restores used registers to temp. values }
-         procedure saveusedregisters(var saved : tsaved;b : byte);virtual;
-         procedure restoreusedregisters(const saved : tsaved);virtual;
+          { saves and restores used registers to temp. values }
+          procedure saveusedregisters(var saved : tsaved;b : byte);virtual;
+          procedure restoreusedregisters(const saved : tsaved);virtual;
 
-         procedure clearregistercount;virtual;
-         procedure resetusableregisters;virtual;
-      private
-         function ungettemp(pos:longint;allowtype:ttemptype):ttemptype;
-      end;
+          procedure clearregistercount;virtual;
+          procedure resetusableregisters;virtual;
+       private
+          function ungettemp(pos:longint;allowtype:ttemptype):ttemptype;
+       end;
 
   implementation
 
@@ -692,7 +692,10 @@ unit tgobj;
 end.
 {
   $Log$
-  Revision 1.9  2000-01-07 01:14:55  peter
+  Revision 1.10  2000-02-17 14:48:36  florian
+     * updated to use old firstpass
+
+  Revision 1.9  2000/01/07 01:14:55  peter
     * updated copyright to 2000
 
   Revision 1.8  1999/10/14 14:57:54  florian

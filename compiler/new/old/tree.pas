@@ -2147,7 +2147,10 @@ unit tree;
 end.
 {
   $Log$
-  Revision 1.20  2000-01-07 01:14:55  peter
+  Revision 1.1  2000-02-17 14:48:36  florian
+     * updated to use old firstpass
+
+  Revision 1.20  2000/01/07 01:14:55  peter
     * updated copyright to 2000
 
   Revision 1.19  1999/12/22 22:27:41  peter
