@@ -690,6 +690,9 @@ procedure TDataSet.SetBufferCount(const AValue: Longint);
 Var
   ShiftCount: Integer;
 begin
+{$ifdef dsdebug}
+  Writeln('in SetBufferCount(',AValue,')');
+{$endif}
   If (FBufferCount=AValue) Then 
     exit;
   If AValue<FRecordCount Then 
@@ -1461,9 +1464,15 @@ var
   i, j, MaxValue: Integer;
   DataLink: TDataLink;
 begin
+{$ifdef dsdebug}
+  Writeln('Recalculating buffer list size - check cursor');
+{$endif}    
   If Not IsCursorOpen Then 
     Exit;
-  MaxValue := 0;
+{$ifdef dsdebug}
+  Writeln('Recalculating buffer list size');
+{$endif}    
+  MaxValue := DefaultBufferCount;
   for i := 0 to FDataSources.Count - 1 do
     for j := 0 to TDataSource(FDataSources[i]).DataLinks.Count - 1 do
       begin
@@ -1471,6 +1480,9 @@ begin
       if DataLink.BufferCount>MaxValue then
         MaxValue:=DataLink.BufferCount;
       end;
+{$ifdef dsdebug}
+   Writeln('calling Setbuffercount');
+{$endif}    
   SetBufferCount(MaxValue); //SetBufListSize(MaxValue);
 end;
 
@@ -1672,7 +1684,10 @@ end;
 
 {
   $Log$
-  Revision 1.7  2003-02-20 19:25:19  michael
+  Revision 1.8  2003-05-06 12:08:52  michael
+  + fixed dataset opening buffer issues
+
+  Revision 1.7  2003/02/20 19:25:19  michael
   + Fixes from Jesus Reyes
 
   Revision 1.6  2002/09/07 15:15:22  peter
