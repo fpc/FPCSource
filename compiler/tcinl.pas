@@ -451,6 +451,10 @@ implementation
                     end
                   else
                     begin
+                       { otherwise you get a crash if you try ord on an expression containing }
+                       { an undeclared variable (JM)                                          }
+                       if not assigned(p^.left^.resulttype) then
+                         exit;
                        if (p^.left^.resulttype^.deftype=orddef) then
                          if (porddef(p^.left^.resulttype)^.typ in [uchar,bool8bit]) then
                            begin
@@ -1295,7 +1299,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.68  2000-02-17 15:39:29  jonas
+  Revision 1.69  2000-02-18 13:52:38  jonas
+    * fixed crash when using undeclared variable in ord construct
+
+  Revision 1.68  2000/02/17 15:39:29  jonas
     * fixed crashing bug when trying to write an undefined fp var with
       formatting parameters
 
