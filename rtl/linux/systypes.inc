@@ -93,7 +93,7 @@ type
   end;
   PStatFS=^TStatFS;
 
-  fdSet=array[0..7] of longint;{=256 bits}
+  fdSet=array[0..31] of longint;{=1024 bits}
   pfdset=^fdset;
   TFDSet=fdset;
 
@@ -126,7 +126,10 @@ type
 
 {
   $Log$
-  Revision 1.8  2003-05-15 22:50:50  jonas
+  Revision 1.9  2003-07-08 14:18:40  peter
+    * fdset changed to 1024 bits
+
+  Revision 1.8  2003/05/15 22:50:50  jonas
     * the stat type is processor-dependent
     * the dev_t tpye is processor dependent. Don't use it in the stat type
       however, as that one is also used at a time where dev_t is already
