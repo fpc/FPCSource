@@ -282,7 +282,9 @@ implementation
               consume(_LKLAMMER);
               in_args:=true;
               p1:=comp_expr(true);
-              if p1.nodetype<>typen then
+              if p1.nodetype=typen then
+                ttypenode(p1).allowed:=true
+              else
                 begin
                    p1.destroy;
                    p1:=cerrornode.create;
@@ -1069,7 +1071,7 @@ implementation
                                begin
                                  if procinfo^._class.is_related(tobjectdef(htype.def)) then
                                   begin
-                                    p1:=ctypenode.create(htype);
+                                    p1:=nil;
                                     { search also in inherited methods }
                                     repeat
                                       srsym:=tvarsym(tobjectdef(htype.def).symtable.search(pattern));
@@ -1090,7 +1092,7 @@ implementation
                                begin
                                  { allows @TObject.Load }
                                  { also allows static methods and variables }
-                                 p1:=ctypenode.create(htype);
+                                 p1:=nil;
                                  { TP allows also @TMenu.Load if Load is only }
                                  { defined in an anchestor class              }
                                  srsym:=tvarsym(search_class_member(tobjectdef(htype.def),pattern));
@@ -2311,7 +2313,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.33  2001-05-19 12:23:59  peter
+  Revision 1.34  2001-05-19 21:15:53  peter
+    * allow typenodes for typeinfo and typeof
+    * tp procvar fixes for properties
+
+  Revision 1.33  2001/05/19 12:23:59  peter
     * fixed crash with auto dereferencing
 
   Revision 1.32  2001/05/09 19:52:51  peter
