@@ -33,7 +33,7 @@ uses
   getopts;
 
 const
-  Version   = 'Version 0.99.13';
+  Version   = 'Version 0.99.15';
   Title     = 'PPU-Mover';
   Copyright = 'Copyright (c) 1998-2000 by the Free Pascal Development Team';
 
@@ -67,6 +67,7 @@ Type
 Var
   ArBin,LDBin,StripBin,
   OutputFile,
+  OutputFileForLink,  { the name of the output file needed when linking }
   DestPath,
   PPLExt,
   LibExt      : string;
@@ -201,14 +202,13 @@ var
   n : namestr;
   d : dirstr;
   e : extstr;
-  i : word;
 begin
 { create the temp dir first }
   fsplit(libfn,d,n,e);
   {$I-}
    mkdir(n+'.sl');
   {$I+}
-  i:=ioresult;
+  if ioresult<>0 then;
 { Extract }
   if Shell(arbin+' x '+libfn)<>0 then
    Error('Fatal: Error running '+arbin,true);
@@ -234,7 +234,6 @@ Var
   b,
   untilb : byte;
   l,m    : longint;
-  i      : word;
   f      : file;
   s      : string;
 begin
@@ -354,13 +353,13 @@ begin
 { just add a new entry with the new lib }
   if MakeStatic then
    begin
-     outppu^.putstring(outputfile);
+     outppu^.putstring(outputfileforlink);
      outppu^.putlongint(link_static);
      outppu^.writeentry(iblinkunitstaticlibs)
    end
   else
    begin
-     outppu^.putstring(outputfile);
+     outppu^.putstring(outputfileforlink);
      outppu^.putlongint(link_shared);
      outppu^.writeentry(iblinkunitsharedlibs);
    end;
@@ -391,7 +390,7 @@ begin
       assign(f,'ppumove.$$$');
       rename(f,PPUFn);
      {$I+}
-     i:=ioresult;
+     if ioresult<>0 then;
    end;
 { the end }
   If Not Quiet then
@@ -468,6 +467,10 @@ begin
    end;
   If Err then
    Error('Fatal: Library building stage failed.',true);
+{ fix permission to 644, so it's not 755 }
+{$ifdef Linux}
+  ChMod(OutputFile,420);
+{$endif}
 { Rename to the destpath }
   if DestPath<>'' then
    begin
@@ -533,11 +536,6 @@ begin
   GetMem (Buffer,Bufsize);
   If Buffer=Nil then
    Error('Error: could not allocate memory for buffer.',true);
-{ fix filename }
-{$ifdef linux}
-  if Copy(OutputFile,1,3)<>'lib' then
-   OutputFile:='lib'+OutputFile;
-{$endif}
 end;
 
 
@@ -567,7 +565,23 @@ begin
    LibExt:=SharedLibExt;
   if OutputFile='' then
    OutPutFile:=Paramstr(OptInd);
+{ fix filename }
+{$ifdef linux}
+  if Copy(OutputFile,1,3)<>'lib' then
+   OutputFile:='lib'+OutputFile;
+  { For linux skip replacing the extension if a full .so.X.X if specified }
+  i:=pos('.so.',Outputfile);
+  if i<>0 then
+   OutputFileForLink:=Copy(Outputfile,4,i-4)
+  else
+   begin
+     OutputFile:=ForceExtension(OutputFile,LibExt);
+     OutputFileForLink:=Copy(Outputfile,4,length(Outputfile)-length(LibExt)-4);
+   end;
+{$else}
   OutputFile:=ForceExtension(OutputFile,LibExt);
+  OutputFileForLink:=OutputFile;
+{$endif}
 { Open BatchFile }
   if Batch then
    begin
@@ -596,7 +610,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.9  2000-02-09 16:44:15  peter
+  Revision 1.10  2000-05-17 18:30:57  peter
+    * libname fixes for linux
+
+  Revision 1.9  2000/02/09 16:44:15  peter
     * log truncated
 
   Revision 1.8  2000/01/07 16:46:04  daniel
