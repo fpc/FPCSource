@@ -79,6 +79,8 @@ Type
     Procedure ListItem(Const AText : String);
     Procedure DefinitionItem(Const Aname,AText : String); Virtual;
     Procedure WriteList(ListType : TListType; List : TStrings);
+  Protected
+    Property Stream : TStream Read FStream;
   end;
   
 Const
@@ -316,7 +318,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.1  2003-10-01 20:49:29  michael
+  Revision 1.2  2003-10-01 21:05:39  michael
+  + Stream property is now protected
+
+  Revision 1.1  2003/10/01 20:49:29  michael
   + Initial implementation
 
 }
