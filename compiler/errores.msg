@@ -769,8 +769,21 @@ type_e_mismatch=E_desconcordancia de tipo
 % \item You are calling a function or procedure with parameters that are
 % incompatible with the parameters in the function or procedure definition.
 % \end{itemize}
-type_e_incompatible_types=E_Tipos incompatibles: cogi¢ $1 esperado $2
+type_e_incompatible_types=E_Tipos incompatibles: cogi¢ "$1" esperado "$2"
 % There is no conversion possible between the two types
+% Another possiblity is that they are declared in different
+% declarations:
+% \begin{verbatim}
+% Var
+%    A1 : Array[1..10] Of Integer;
+%    A2 : Array[1..10] Of Integer;
+%
+% Begin
+%    A1:=A2; { This statement gives also this error, it
+%              is due the strict type checking of pascal }
+% End.
+type_e_not_equal_types=E_Desconcuerdo de tipos entre $1 y $2
+% The types are not equal
 type_e_integer_expr_expected=E_espression entera esperada
 % The compiler expects an expression of type integer, but gets a different
 % type.
@@ -845,6 +858,9 @@ type_e_wrong_type_in_array_constructor=E_Tipo err¢neo en constructor de array
 type_e_wrong_parameter_type=E_Tipo incompatible para el arg. #$1: Cogi¢ $2, esperado $3
 % You are trying to pass an invalid type for the specified parameter.
 % \end{description}
+type_e_no_method_and_procedure_not_compatible=E_M‚todo (variable) y Procedure (variable) no son compatibles
+% You can't assign a method to a procedure variable or a procedure to a
+% method pointer.
 
 #
 # Symtable
@@ -929,10 +945,11 @@ sym_w_function_result_not_set=W_El resultado de la funci¢n no parece estar puest
 % or procedures that contain assembler blocks.
 sym_e_illegal_field=E_Identificador de campo de record desconocido $1
 % The field doesn't exist in the record definition.
-sym_n_uninitialized_local_variable=W_Variable local $1 no parace ser inicializada
-% This message is displayed if the compiler thinks that a variable will
+sym_n_uninitialized_local_variable=W_La variable local $1 no parace ser inicializada
+sym_n_uninitialized_variable=W_Variable $1 does not seem to be initialized
+% These messages are displayed if the compiler thinks that a variable will
 % be used (i.e. appears in the right-hand-side of an expression) when it
-% wasn't initialized first (i.e. appeared in the right-hand side of an
+% wasn't initialized first (i.e. appeared in the left-hand side of an
 % assigment)
 sym_e_id_no_member=E_identifier idents no member $1
 % When using the extended syntax of \var{new}, you must specify the constructor
@@ -1119,8 +1136,7 @@ asmr_e_error_converting_hexadecimal=E_Error convirtiendo hexadecimal $1
 asmr_h_direct_global_to_mangled=H_$1 traducido a $2
 asmr_w_direct_global_is_overloaded_func=W_$1 esta asociado a una funci¢n sobrecargada
 asmr_e_cannot_use_SELF_outside_a_method=E_No se puede usar SELF fuera de un m‚todo
-asmr_e_cannot_use___SELF_outside_methode=E_No se puede usar __SELF fuera de un m‚todo
-asmr_e_cannot_use___OLDEBP_outside_nested_procedure=E_No se puede usar __OLDEBP fuera un procedure anidado
+asmr_e_cannot_use_OLDEBP_outside_nested_procedure=E_No se puede usar OLDEBP fuera de un procedure anidado
 asmr_e_void_function=W_Procedures no pueden devolver ning£n valor en c¢digo asm
 asmr_e_SEG_not_supported=E_SEG no soportado
 asmr_e_size_suffix_and_dest_dont_match=E_Tama¤o de sufijo y destinaci¢n o tama¤o del origen no concuerdan
@@ -1367,16 +1383,18 @@ option_no_debug_support_recompile_fpc=H_Prueba recompilando con -dGDB
 % It is possible to have a compiler executable that doesn't support
 % the generation of debugging info. If you use such an executable with the
 % \var{-g} switch, this warning will be displayed.
-option_obsolete_switch=W_Estas usando el conmutador obsoleto $1
+option_obsolete_switch=E_Estas usando el conmutador obsoleto $1
 % this warns you when you use a switch that is not needed/supported anymore.
 % It is recommended that you remove the switch to overcome problems in the
 % future, when the switch meaning may change.
-%
-option_obsolete_switch_use_new=W_Est s usando el conmutador obsoleto $1, porfavor usa $2
+option_obsolete_switch_use_new=E_Est s usando el conmutador obsoleto $1, porfavor usa $2
 % this warns you when you use a switch that is not supported anymore. You
 % must now use the second switch instead.
 % It is recommended that you change the switch to overcome problems in the
 % future, when the switch meaning may change.
+option_switch_bin_to_src_assembler=N_Cambi ndo a ensamblador de escritura de c¢digo fuente por defecto
+% this notifies you that the assembler has been changed because you used the
+% -a switch which can't be used with a binary assembler writer.
 # EndOfTeX
 #
 # Logo (option -l)
@@ -1496,7 +1514,7 @@ ol089=3*2Ao_fichero coff usando GNU AS
 ol090=3*2Anasmcoff_fichero coff usando Nasm
 ol091=3*2Anasmelf_fichero elf32 (linux) usando Nasm
 ol092=3*2Anasmobj_obj usando Nasm
-ol093=3*2Amasm_obj usando Masm (Mircosoft)
+ol093=3*2Amasm_obj usando Masm (Microsoft)
 ol094=3*2Atasm_obj usando Tasm (Borland/Inprise)
 ol095=3*1R<x>_tipo de lectura de ensamblador
 ol096=3*2Ratt_lee ensamblador estilo AT&T
