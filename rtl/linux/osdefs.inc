@@ -20,7 +20,9 @@
 
  ****************************************************************************}
 
-{$define usestime}              // Use stime() syscall instead of settimeofday
+{$ifndef cpux86_64}
+  {$define usestime}              // Use stime() syscall instead of settimeofday
+{$endif}
 {$define oldreaddir}            // Keep using readdir system call instead
                                 // of userland getdents stuff.
 {$define usedomain}             // Allow uname with "domain" entry.
@@ -32,7 +34,10 @@
 
 {
   $Log$
-  Revision 1.2  2005-02-14 17:13:30  peter
+  Revision 1.3  2005-02-14 17:29:06  peter
+    * no stime for x86_64
+
+  Revision 1.2  2005/02/14 17:13:30  peter
     * truncate log
 
   Revision 1.1  2005/02/13 21:47:56  peter
