@@ -63,7 +63,7 @@ implementation
            { lets try to generate it allways }
            if (cs_check_range in aktlocalswitches)  and
              { with $R+ explicit type conversations in TP aren't range checked! }
-             (not(p^.explizit) or not(cs_tp_compatible in aktmoduleswitches)) and
+             (not(p^.explizit) {or not(cs_tp_compatible in aktmoduleswitches)}) and
              ((porddef(p1)^.low>porddef(p2)^.low) or
              (porddef(p1)^.high<porddef(p2)^.high) or
              (porddef(p1)^.typ=u32bit) or
@@ -205,7 +205,7 @@ implementation
            (porddef(p^.resulttype)^.high<porddef(hp^.resulttype)^.high)) then
            begin
               if (cs_check_range in aktlocalswitches) and
-                 (not(p^.explizit) or not(cs_tp_compatible in aktmoduleswitches)) then
+                 (not(p^.explizit) {or not(cs_tp_compatible in aktmoduleswitches)}) then
               porddef(p^.resulttype)^.genrangecheck;
               if porddef(hp^.resulttype)^.typ=s32bit then
                 begin
@@ -246,7 +246,7 @@ implementation
               else internalerror(6);
 
               if (cs_check_range in aktlocalswitches) and
-                 (not(p^.explizit) or not(cs_tp_compatible in aktmoduleswitches)) then
+                 (not(p^.explizit) {or not(cs_tp_compatible in aktmoduleswitches)}) then
               Begin
               new(hpp);
               reset_reference(hpp^);
@@ -1376,7 +1376,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.2  1998-09-04 08:41:45  peter
+  Revision 1.2.2.1  1998-09-11 12:08:57  pierre
+    * removed explicit range_check was buggy
+
+  Revision 1.2  1998/09/04 08:41:45  peter
     * updated some error messages
 
   Revision 1.1  1998/09/01 09:07:09  peter

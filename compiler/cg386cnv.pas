@@ -64,7 +64,7 @@ implementation
          { lets try to generate it allways }
          if (cs_check_range in aktlocalswitches)  and
            { with $R+ explicit type conversations in TP aren't range checked! }
-           (not(p^.explizit) or not(cs_tp_compatible in aktmoduleswitches)) and
+           (not(p^.explizit) {or not(cs_tp_compatible in aktmoduleswitches)}) and
            ((porddef(p1)^.low>porddef(p2)^.low) or
            (porddef(p1)^.high<porddef(p2)^.high) or
            (porddef(p1)^.typ=u32bit) or
@@ -163,7 +163,7 @@ implementation
          { problems with enums !! }
          if (cs_check_range in aktlocalswitches)  and
            { with $R+ explicit type conversations in TP aren't range checked! }
-           (not(p^.explizit) or not(cs_tp_compatible in aktmoduleswitches)) and
+           (not(p^.explizit) {or not(cs_tp_compatible in aktmoduleswitches)}) and
            (p^.resulttype^.deftype=orddef) and
            (hp^.resulttype^.deftype=orddef) then
            begin
@@ -1252,7 +1252,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.17  1998-09-04 08:41:38  peter
+  Revision 1.17.2.1  1998-09-11 12:08:54  pierre
+    * removed explicit range_check was buggy
+
+  Revision 1.17  1998/09/04 08:41:38  peter
     * updated some error messages
 
   Revision 1.16  1998/09/03 17:39:03  florian
