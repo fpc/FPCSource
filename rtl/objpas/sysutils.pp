@@ -54,9 +54,8 @@ interface
           fhelpcontext : longint;
         public
           constructor create(const msg : string);
-//!! No array of const yet.
-//          constructor createfmt(const msg; const args : array of const);
-          constructor createres(indent : longint);
+          constructor createfmt(const msg : string; const args : array of const);
+          constructor createres(ident : longint);
           { !!!! }
           property helpcontext : longint read fhelpcontext write fhelpcontext;
           property message : string read fmessage write fmessage;
@@ -64,12 +63,29 @@ interface
 
        exceptclass = class of exception;
 
-       { math. exceptions }
-       einterror = class(exception);
-       edivbyzero = class(einterror);
-       erangeerror = class(einterror);
-       eintoverflow = class(einterror);
-       ematherror = class(exception);
+       { integer math exceptions }
+       EInterror    = Class(Exception);
+       EDivByZero   = Class(EIntError);
+       ERangeError  = Class(EIntError);
+       EIntOverflow = Class(EIntError);
+
+       { General math errors }
+       EMathError  = Class(Exception);
+       EInvalidOp  = Class(EMathError);
+       EZeroDivide = Class(EMathError);
+       EOverflow   = Class(EMathError);
+       EUnderflow  = Class(EMathError);
+       
+       { Run-time and I/O Errors }
+       EInOutError = class(Exception)
+         public
+         ErrorCode : Longint;
+         end;
+       EInvalidPointer = Class(Exception);
+       EOutOfMemory    = Class(Exception);
+       
+       econverterror = class(exception);
+
 
 
   { Read date & Time function declarations }
@@ -89,6 +105,18 @@ interface
 
 
   implementation
+  
+  { Read message string definitions }
+  { 
+   Add a language with IFDEF LANG_NAME
+   just befor the final ELSE. This way English will always be the default.
+  }
+
+  {$IFDEF LANG_GERMAN}
+  {$i strg.inc} // Does not exist yet !!
+  {$ELSE}
+  {$i stre.inc}
+  {$ENDIF}
 
   { Read filename handling functions implementation }
 
@@ -113,15 +141,16 @@ interface
          {!!!!!}
       end;
 
-{
-    constructor exception.createfmt(const msg; const args : array of const);
+
+    constructor exception.createfmt(const msg : string; const args : array of const);
 
       begin
          inherited create;
+         fmessage:=Format(msg,args);
       end;
-}
 
-    constructor exception.createres(indent : longint);
+
+    constructor exception.createres(ident : longint);
 
       begin
          inherited create;
@@ -148,6 +177,39 @@ begin
 end;
 
 
+Var OutOfMemory : EOutOfMemory;
+    InValidPointer : EInvalidPointer;
+    
+
+Procedure RunErrorToExcept (ErrNo : Longint; Address : Pointer);
+
+Var E : Exception;
+    S : String;
+    
+begin
+  Case Errno of
+   1 : E:=OutOfMemory;
+   //!! ?? 2 is a 'file not found error' ??
+   2 : E:=InvalidPointer;
+   3,4,5,100,101,106 : { I/O errors }
+     begin
+     Case Errno of
+       3 : S:=SInvalidFileName;
+       4 : S:=STooManyOpenFiles;
+       5 : S:=SAccessDenied;
+       100 : S:=SEndOfFile;
+       101 : S:=SDiskFull;
+       106 : S:=SInvalidInput;
+     end;
+     E:=EinOutError.Create (S);
+     EInoutError(E).ErrorCode:=IOresult; // Clears InOutRes !!
+     end;
+  else
+   E:=Exception.CreateFmt (SUnKnownRunTimeError,[Errno]);
+  end;
+  Raise E {at Address};
+end;
+
 Procedure InitExceptions;
 {
   Must install uncaught exception handler (ExceptProc)
@@ -155,7 +217,11 @@ Procedure InitExceptions;
   (e.g: SIGSEGV -> ESegFault or so.)
 }
 begin
-  ExceptProc:=@CatchUnhandledException;   
+  ExceptProc:=@CatchUnhandledException;
+  // Create objects that may have problems when there is no memory.
+  OutOfMemory:=EOutOfMemory.Create(SOutOfMemory);
+  InvalidPointer:=EInvalidPointer.Create(SInvalidPointer);
+  ErrorProc:=@RunErrorToExcept;
 end;
 
 
@@ -165,7 +231,10 @@ begin
 end.
 {
     $Log$
-    Revision 1.10  1998-09-24 23:45:27  peter
+    Revision 1.11  1998-10-01 16:04:11  michael
+    + Added RTL error handling
+
+    Revision 1.10  1998/09/24 23:45:27  peter
       * updated for auto objpas loading
 
     Revision 1.9  1998/09/24 16:13:49  michael
