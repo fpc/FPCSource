@@ -2,9 +2,10 @@
 { Submitted by "Alexey Barkovoy" on  2004-10-05 }
 { e-mail: clootie@ixbt.com }
 program Project1;
-{$APPTYPE CONSOLE}
+
 {$MODE DELPHI}
 {$INLINE ON}
+
 uses
   uw3340;
 

@@ -2,7 +2,7 @@
 { Submitted by "Marek Mauder" on  2004-12-29 }
 { e-mail: pentar@seznam.cz }
 program ErrorGen;
-{$APPTYPE CONSOLE}
+
 {$ifdef fpc}{$mode delphi}{$endif}
 type
   TEnum = (
