@@ -46,9 +46,22 @@ Begin
   FpUtime:=FpUtime(pchar(path),times);
 End;
 
+{
 Function  FpGetcwd (path:AnsiString; siz:TSize):AnsiString;
 Begin
   FpGetcwd:=ansistring(pchar(FpGetcwd(pchar(path),siz)));
+End;
+}
+Function  FpGetcwd :AnsiString;
+
+Var
+  Buf : Array[0..PATH_MAX+1]  of char;
+Begin 
+  Buf[PATH_MAX+1]:=#0; 
+  If FpGetcwd(pchar(Buf[0]),PATH_MAX)=Nil then
+    FpGetcwd:=''
+  else  
+    FpGetcwd:=Buf;
 End;
 
 Function  FpExecve (path : AnsiString; argv : ppchar; envp: ppchar): cInt;
@@ -339,6 +352,12 @@ begin
   fpSelect:=fpSelect(T,p);
 end;
 
+function  FpWaitPid (pid : TPid; Var Status : cInt; Options : cint) : TPid;
+
+begin
+  fpWaitPID:=fpWaitPID(Pid,@Status,Options);
+end;
+
 Function fpReadLink(Name:ansistring):ansistring;
 {
   Read a link (where it points to)
@@ -361,7 +380,10 @@ end;
 
 {
  $Log$
- Revision 1.14  2004-11-19 13:15:14  marco
+ Revision 1.15  2004-11-23 08:40:34  michael
+ + Added overloaded functions
+
+ Revision 1.14  2004/11/19 13:15:14  marco
   * external rework. Mostly done.
 
  Revision 1.13  2004/11/14 12:21:08  marco

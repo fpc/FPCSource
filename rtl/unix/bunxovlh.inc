@@ -21,7 +21,7 @@ Function  FpMkfifo  (path : AnsiString; Mode : TMode): cInt;
 Function  FpChmod   (path : AnsiString; Mode : TMode): cInt;
 Function  FpChown   (path : AnsiString; owner : TUid; group : TGid): cInt;
 Function  FpUtime   (path : AnsiString; times : putimbuf): cInt;
-Function  FpGetcwd  (path:AnsiString; siz:TSize):AnsiString;
+Function  FpGetcwd : AnsiString;
 Function  FpExecve  (path : AnsiString; argv : ppchar; envp: ppchar): cInt;
 Function  FpExecv   (path : AnsiString; argv : ppchar): cInt;
 Function  FpOpendir (dirname : AnsiString): pDir;
@@ -39,6 +39,7 @@ Function  FpRename  (old  : AnsiString;newpath: AnsiString): cInt;
 Function  FpStat    (path: AnsiString; var buf : stat): cInt;
 Function  FpStat    (path: String; var buf : stat): cInt;
 Function  FpAccess  (pathname : AnsiString; aMode : cInt): cInt; 
+function  FpWaitPid (pid : TPid; Var Status : cInt; Options : cint) : TPid;
 
 Function  FPFStat   (var F:Text;Var Info:stat):Boolean;
 Function  FPFStat   (var F:File;Var Info:stat):Boolean;
@@ -92,7 +93,10 @@ Function  wtermsig     (Status : cInt): cInt;
 Function fpReadLink(Name:ansistring):ansistring;
 {
  $Log$
- Revision 1.5  2004-11-14 12:21:08  marco
+ Revision 1.6  2004-11-23 08:40:34  michael
+ + Added overloaded functions
+
+ Revision 1.5  2004/11/14 12:21:08  marco
   * moved some calls from unix to baseunix. Darwin untested.
 
  Revision 1.4  2003/12/30 12:24:01  marco
