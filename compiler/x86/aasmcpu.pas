@@ -31,8 +31,8 @@ unit aasmcpu;
 interface
 
     uses
-      cclasses,globtype,globals,verbose,
-      cpuinfo,cpubase,
+      globtype,globals,verbose,
+      cpubase,
       cgbase,cgutils,
       symtype,
       aasmbase,aasmtai;
@@ -259,7 +259,7 @@ interface
          function  InsEnd:longint;
          procedure create_ot;
          function  Matches(p:PInsEntry):longint;
-         function  calcsize(p:PInsEntry):longint;
+         function  calcsize(p:PInsEntry):shortint;
          procedure gencode(objdata:TAsmObjectData);
          function  NeedAddrPrefix(opidx:byte):boolean;
          procedure Swapoperands;
@@ -1534,11 +1534,11 @@ implementation
       end;
 
 
-    function taicpu.calcsize(p:PInsEntry):longint;
+    function taicpu.calcsize(p:PInsEntry):shortint;
       var
         codes : pchar;
         c     : byte;
-        len     : longint;
+        len     : shortint;
         ea_data : ea;
       begin
         len:=0;
@@ -2025,6 +2025,8 @@ implementation
                 end;
               end;
           end;
+        { Special cases that can't be decoded from the InsChanges flags }
+        operation_type_table^[A_IMUL,1]:=operand_readwrite;
       end;
 
 
@@ -2117,7 +2119,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.64  2004-12-12 10:50:34  florian
+  Revision 1.65  2004-12-19 21:34:09  peter
+    * A_IMUL readwrite operand 1
+
+  Revision 1.64  2004/12/12 10:50:34  florian
     * fixed operand size calculation for sse operands
     + all nasm assembler targets to help page output added
 
