@@ -3,6 +3,9 @@
     This file is part of the Free Pascal run time library.
     Copyright (c) 1993,97 by the Free Pascal development team
 
+    FileRec record definition
+
+
     See the file COPYING.FPC, included in this distribution,
     for details about the copyright.
 
@@ -12,110 +15,108 @@
 
  **********************************************************************}
 
+{
+  This file contains the definition of the filerec record.
+  It is put separately, so it is available outside the system
+  unit without sacrificing TP compatibility.
+}
+
+{$ifndef VER0_99_5}
+  {$ifndef VER0_99_6}
+    {$define UNIFORM_FILEREC}
+  {$endif}
+{$endif}
+
+
+{$ifdef UNIFORM_FILEREC}
+
+
 const
-{$ifdef linux}
   filerecnamelength = 255;
-{$endif}
-{$ifdef Win32}
+type
+  FileRec = Packed Record
+    Handle,
+    Mode,
+    RecSize   : longint;
+    _private  : array[1..32] of byte;
+    UserData  : array[1..16] of byte;
+    name      : array[0..filerecnamelength] of char;
+  End;
+
+
+{$else UNIFORM_FILEREC}
+
+
+{**********************************
+   Old style for 0.99.5/0.99.6
+**********************************}
+
+const
+  {$ifdef linux}
     filerecnamelength = 255;
-{$endif}
-{$ifdef MACOS}
+  {$endif}
+  {$ifdef Win32}
     filerecnamelength = 255;
-{$endif}
-{$ifdef AMIGA}
+  {$endif}
+  {$ifdef MACOS}
     filerecnamelength = 255;
-{$endif}
-{$ifdef OS2}
+  {$endif}
+  {$ifdef AMIGA}
+    filerecnamelength = 255;
+  {$endif}
+  {$ifdef OS2}
     filerecnamelength = 79;
-{$endif}
-{$ifdef GO32V2}
+  {$endif}
+  {$ifdef GO32V2}
     filerecnamelength = 79;
-{$endif GO32V2}
-{$ifdef GO32V1}
+  {$endif GO32V2}
+  {$ifdef GO32V1}
     filerecnamelength = 79;
-{$endif Go32v1}
-{$ifdef ATARI}
+  {$endif Go32v1}
+  {$ifdef ATARI}
     filerecnamelength = 79;
-{$endif}
+  {$endif}
 
 Type
 {$PACKRECORDS 2}
   FileRec = Record
-{$ifdef win32}
+  {$ifdef win32}
      handle    : longint;
-{$endif win32}
-{$ifdef amiga}
+  {$endif win32}
+  {$ifdef amiga}
      handle    : longint;
-{$endif amiga}
-{$ifdef macos}
+  {$endif amiga}
+  {$ifdef macos}
      handle    : longint;
-{$endif macos}
-{$ifdef linux}
+  {$endif macos}
+  {$ifdef linux}
      handle    : word;
-{$endif}
-{$ifdef go32v1}
+  {$endif}
+  {$ifdef go32v1}
      handle    : word;
-{$endif go32v1}
-{$ifdef go32v2}
+  {$endif go32v1}
+  {$ifdef go32v2}
      handle    : word;
-{$endif go32v2}
-{$ifdef atari}
+  {$endif go32v2}
+  {$ifdef atari}
      handle    : word;
-{$endif atari}
-{$ifdef os2}
+  {$endif atari}
+  {$ifdef os2}
      handle    : word;
-{$endif os2}
+  {$endif os2}
     Mode      : word;
     RecSize   : word;
     _private  : array[1..26] of byte;
     UserData  : array[1..16] of byte;
     name      : array[0..filerecnamelength] of char;
   End;
+{$endif UNIFORM_FILEREC}
 
 {
   $Log$
-  Revision 1.3  1998-05-21 11:55:59  carl
+  Revision 1.4  1998-09-04 18:16:13  peter
+    * uniform filerec/textrec (with recsize:longint and name:0..255)
+
+  Revision 1.3  1998/05/21 11:55:59  carl
    * works with all OS
-
-  Revision 1.1.1.1  1998/03/25 11:18:43  root
-  * Restored version
-
-  Revision 1.7  1998/02/05 12:08:54  pierre
-    * added packrecords to about dword alignment
-      for structures used in dos calls
-
-  Revision 1.6  1998/01/26 12:00:21  michael
-  + Added log at the end
-
-
-  
-  Working file: rtl/inc/filerec.inc
-  description:
-  ----------------------------
-  revision 1.5
-  date: 1998/01/06 00:29:32;  author: michael;  state: Exp;  lines: +20 -19
-  Implemented a system independent sequence of reset/rewrite/append fileopenfunc etc system \n (from Peter Vreman)
-  ----------------------------
-  revision 1.4
-  date: 1997/12/01 12:08:03;  author: michael;  state: Exp;  lines: +13 -0
-  + added copyright reference header.
-  ----------------------------
-  revision 1.3
-  date: 1997/11/28 18:56:18;  author: pierre;  state: Exp;  lines: +2 -1
-    bug fix     in ifdef win32
-  ----------------------------
-  revision 1.2
-  date: 1997/11/27 22:49:04;  author: florian;  state: Exp;  lines: +7 -0
-  - CPU.PP added
-  - some bugs in DOS fixed (espsecially for go32v1)
-  - the win32 system unit is now compilable
-  ----------------------------
-  revision 1.1
-  date: 1997/11/27 08:33:46;  author: michael;  state: Exp;
-  Initial revision
-  ----------------------------
-  revision 1.1.1.1
-  date: 1997/11/27 08:33:46;  author: michael;  state: Exp;  lines: +0 -0
-  FPC RTL CVS start
-  =============================================================================
 }

@@ -1,7 +1,10 @@
 {
     $Id$
     This file is part of the Free Pascal run time library.
-    Copyright (c) 1993,97 by the Free Pascal development team
+    Copyright (c) 1993-98 by the Free Pascal development team
+
+    Textrec record definition
+
 
     See the file COPYING.FPC, included in this distribution,
     for details about the copyright.
@@ -18,8 +21,46 @@
   unit without sacrificing TP compatibility.
 }
 
-Const
+{$ifndef VER0_99_5}
+  {$ifndef VER0_99_6}
+    {$define UNIFORM_TEXTREC}
+  {$endif}
+{$endif}
 
+
+{$ifdef UNIFORM_TEXTREC}
+
+
+const
+  TextRecNameLength = 255;
+type
+  TextBuf = array[0..255] of char;
+  TextRec = Packed Record
+    Handle,
+    Mode,
+    bufsize,
+    _private,
+    bufpos,
+    bufend    : longint;
+    bufptr    : ^textbuf;
+    openfunc,
+    inoutfunc,
+    flushfunc,
+    closefunc : pointer;
+    UserData  : array[1..16] of byte;
+    name      : array[0..textrecnamelength] of char;
+    buffer    : textbuf;
+  End;
+
+
+{$else UNIFORM_TEXTREC}
+
+
+{**********************************
+   Old style for 0.99.5/0.99.6
+**********************************}
+
+Const
 {$ifdef linux}
   textrecnamelength = 255;
 {$endif}
@@ -74,8 +115,6 @@ type
 {$ifdef os2}
      handle    : word;
 {$endif os2}
-
-
      mode      : word;
      bufsize,
      _private,
@@ -86,20 +125,18 @@ type
      inoutfunc,
      flushfunc,
      closefunc : pointer;
-     userdata  : array[1..16] of byte; 
+     userdata  : array[1..16] of byte;
      name      : array[0..textrecnamelength] of char;
      buffer    : textbuf;
   end;
 
+{$endif UNIFORM_TEXTREC}
+
 {
   $Log$
-  Revision 1.3  1998-05-21 15:37:19  carl
+  Revision 1.4  1998-09-04 18:16:15  peter
+    * uniform filerec/textrec (with recsize:longint and name:0..255)
+
+  Revision 1.3  1998/05/21 15:37:19  carl
    + working version now ok
-
-  Revision 1.2  1998/05/12 10:42:45  peter
-    * moved getopts to inc/, all supported OS's need argc,argv exported
-    + strpas, strlen are now exported in the systemunit
-    * removed logs
-    * removed $ifdef ver_above
-
 }

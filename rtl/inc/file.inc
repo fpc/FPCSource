@@ -49,7 +49,7 @@ begin
 end;
 
 
-Procedure Rewrite(var f:File;l:Word);[IOCheck];
+Procedure Rewrite(var f:File;l:Longint);[IOCheck];
 {
   Create file f with recordsize of l
 }
@@ -65,7 +65,7 @@ Begin
 End;
 
 
-Procedure Reset(var f:File;l:Word);[IOCheck];
+Procedure Reset(var f:File;l:Longint);[IOCheck];
 {
   Open file f with recordsize of l and filemode
 }
@@ -319,7 +319,10 @@ End;
 
 {
   $Log$
-  Revision 1.6  1998-07-19 19:55:32  michael
+  Revision 1.7  1998-09-04 18:16:12  peter
+    * uniform filerec/textrec (with recsize:longint and name:0..255)
+
+  Revision 1.6  1998/07/19 19:55:32  michael
   + fixed rename. Changed p to p^
 
   Revision 1.5  1998/07/02 12:15:39  carl

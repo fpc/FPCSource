@@ -339,9 +339,9 @@ Procedure Str (Const SI : ShortInt; Len : longint; Var S : AnsiString);
 Procedure Assign(Var f:File;const Name:string);
 Procedure Assign(Var f:File;p:pchar);
 Procedure Assign(Var f:File;c:char);
-Procedure Rewrite(Var f:File;l:Word);
+Procedure Rewrite(Var f:File;l:Longint);
 Procedure Rewrite(Var f:File);
-Procedure Reset(Var f:File;l:Word);
+Procedure Reset(Var f:File;l:Longint);
 Procedure Reset(Var f:File);
 Procedure Close(Var f:File);
 Procedure BlockWrite(Var f:File;Var Buf;Count:Longint;Var Result:Longint);
@@ -440,7 +440,10 @@ Procedure halt;
 
 {
   $Log$
-  Revision 1.25  1998-09-01 17:36:22  peter
+  Revision 1.26  1998-09-04 18:16:14  peter
+    * uniform filerec/textrec (with recsize:longint and name:0..255)
+
+  Revision 1.25  1998/09/01 17:36:22  peter
     + internconst
 
   Revision 1.24  1998/08/11 21:39:08  peter

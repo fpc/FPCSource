@@ -30,15 +30,16 @@ Unit SysLinux;
 Interface
 
 {$ifdef m68k}
-    { used for single computations }
-    const BIAS4 = $7f-1;
+{ used for single computations }
+const
+  BIAS4 = $7f-1;
 {$endif}
 
 {$I systemh.inc}
 {$I heaph.inc}
 
 const
-  UnusedHandle    = $ffff;
+  UnusedHandle    = -1;
   StdInputHandle  = 0;
   StdOutputHandle = 1;
   StdErrorHandle  = 2;
@@ -120,7 +121,6 @@ Var
   pp     : ppchar;
 {$else}
   b      : Array[0..255] of Char;
-
 {$endif}
 Begin
 {$ifdef crtlib}
@@ -689,7 +689,10 @@ End.
 
 {
   $Log$
-  Revision 1.13  1998-08-14 11:59:41  carl
+  Revision 1.14  1998-09-04 18:16:16  peter
+    * uniform filerec/textrec (with recsize:longint and name:0..255)
+
+  Revision 1.13  1998/08/14 11:59:41  carl
     + m68k fixes
 
   Revision 1.12  1998/08/12 14:01:37  michael
