@@ -35,12 +35,6 @@ _start:
 	lis 4,_ExecBase@ha
 	stw 3,_ExecBase@l(4)
 
-	/* ARGC & ARGV and ENVP STUFF MISSING!!! */
-	/* AFAIK there is no such thing as ENVP on MorphOS, just like */
-	/* on AmigaOS. One must use dos.library calls to query environment */
-	/* variables, so this should be handled by pascal code inside */
-	/* System unit. */
-
 	bl	PASCALMAIN
 
 	.globl	_haltproc
@@ -81,7 +75,10 @@ __abox__:
 
 /*
   $Log$
-  Revision 1.6  2004-05-01 15:08:57  karoly
+  Revision 1.7  2004-05-13 01:15:42  karoly
+    - removed comment about argc/argv, made it work another way
+
+  Revision 1.6  2004/05/01 15:08:57  karoly
     + haltproc added, saving/restoring stackpointer added
 
   Revision 1.5  2004/04/21 03:24:55  karoly
