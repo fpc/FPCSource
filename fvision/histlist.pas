@@ -225,6 +225,10 @@ PROCEDURE AdvanceStringPtr;
 VAR P: PHistRec;
 BEGIN
    While (CurString <> Nil) Do Begin
+     If (cardinal(CurString) >= cardinal(HistoryBlock) + HistoryUsed) Then Begin{ Last string check }
+       CurString := Nil;                              { Clear current string }
+       Exit;                                          { Now exit }
+     End;
      Inc(PChar(CurString), PByte(CurString)^+1);      { Move to next string }
      If (cardinal(CurString) >= cardinal(HistoryBlock) + HistoryUsed) Then Begin{ Last string check }
        CurString := Nil;                              { Clear current string }
@@ -232,6 +236,8 @@ BEGIN
      End;
      P := PHistRec(CurString);                        { Transfer record ptr }
      Inc(PChar(CurString), 2);                        { Move to string }
+     if (P^.Zero<>0) then
+       RunError(215);
      If (P^.Id = CurId) Then Exit;                    { Found the string }
    End;
 END;
@@ -387,9 +393,9 @@ end;
 {  LoadHistory -> Platforms DOS/DPMI/WIN/NT/OS2 - Updated 30Sep99 LdB       }
 {---------------------------------------------------------------------------}
 PROCEDURE LoadHistory (Var S: TStream);
-VAR Size: Word;
+VAR Size: sw_Word;
 BEGIN
-   S.Read(Size, 2);                                   { Read history size }
+   S.Read(Size, sizeof(sw_Word));                     { Read history size }
    If (HistoryBlock <> Nil) Then Begin                { History initialized }
      If (Size <= HistorySize) Then Begin
        S.Read(HistoryBlock^, Size);                   { Read the history }
@@ -402,11 +408,11 @@ END;
 {  StoreHistory -> Platforms DOS/DPMI/WIN/NT/OS2 - Updated 30Sep99 LdB      }
 {---------------------------------------------------------------------------}
 PROCEDURE StoreHistory (Var S: TStream);
-VAR Size: Word;
+VAR Size: sw_Word;
 BEGIN
    If (HistoryBlock = Nil) Then Size := 0 Else        { No history data }
      Size := HistoryUsed;                             { Size of history data }
-   S.Write(Size, 2);                                  { Write history size }
+   S.Write(Size, sizeof(sw_Word));                    { Write history size }
    If (Size > 0) Then S.Write(HistoryBlock^, Size);   { Write history data }
 END;
 
@@ -414,7 +420,10 @@ END.
 
 {
  $Log$
- Revision 1.7  2002-06-03 20:07:44  pierre
+ Revision 1.8  2002-06-10 11:51:08  pierre
+  * render history load/store compatible with older fvnew lib
+
+ Revision 1.7  2002/06/03 20:07:44  pierre
   * DeleteString was moving to much memory
 
  Revision 1.6  2002/05/24 09:30:33  pierre
