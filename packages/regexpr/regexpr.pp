@@ -1,7 +1,7 @@
 {
     $Id$
     This file is part of the Free Pascal run time library.
-    Copyright (c) 1999-2000 by the Free Pascal development team
+    Copyright (c) 2000 by Florian Klaempfl
 
     This unit implements basic regular expression support
 
@@ -14,6 +14,16 @@
 
  **********************************************************************}
 { $define DEBUG}
+{
+  TODO:
+     - correct backtracking, for example in (...)*
+     - | support
+     - getting substrings and using substrings with \1 etc.
+     - test ^  and $
+     - newline handling in DOS?
+     - locals dependend upper/lowercase routines
+     - extend the interface
+}
 unit regexpr;
 
   interface
@@ -24,7 +34,8 @@ unit regexpr;
     type
        tcharset = set of char;
        tregexprentrytype = (ret_charset,ret_or,ret_startpattern,
-          ret_illegalend,ret_backtrace);
+          ret_endpattern,ret_illegalend,ret_backtrace,ret_startline,
+          ret_endline);
 
        pregexprentry = ^tregexprentry;
        tregexprentry = record
@@ -246,13 +257,15 @@ unit regexpr;
             end;
          end;
 
-       function parseregexpr(elsepath : pregexprentry) : pregexprentry;
+       function parseregexpr(next,elsepath : pregexprentry) : pregexprentry;
 
          var
             hp,hp2,ep : pregexprentry;
             cs : tcharset;
+            chaining : ^pregexprentry;
 
          begin
+            chaining:=nil;
             parseregexpr:=nil;
             if error then
               exit;
@@ -262,6 +275,7 @@ unit regexpr;
             ep^.typ:=ret_charset;
             ep^.chars:=[];
             ep^.elsepath:=elsepath;
+            elsepath:=ep;
             while true do
               begin
                  if error then
@@ -270,7 +284,17 @@ unit regexpr;
                     '(':
                        begin
                           inc(currentpos);
-                          parseregexpr:=parseregexpr(ep);
+                          new(hp2);
+                          doregister(hp2);
+                          hp2^.typ:=ret_charset;
+                          hp2^.chars:=[];
+                          hp2^.elsepath:=next;
+                          hp:=parseregexpr(hp2,ep);
+                          if assigned(chaining) then
+                            chaining^:=hp
+                          else
+                            parseregexpr:=hp;
+                          chaining:=@hp2^.elsepath;
                           if currentpos^<>')' then
                             begin
                                error:=true;
@@ -280,21 +304,44 @@ unit regexpr;
                        end;
                     '|':
                        begin
+{$ifdef DEBUG}
+                          writeln('Creating backtrace entry');
+{$endif DEBUG}
                           inc(currentpos);
                           if currentpos^=#0 then
                             begin
                                error:=true;
                                exit;
                             end;
-                          ep^.typ:=ret_backtrace;
-                          ep^.elsepath:=parseregexpr(elsepath);
-                          ep^.next:=parseregexpr;
-                          parseregexpr:=ep;
+                          new(hp);
+                          doregister(hp);
+                          hp^.typ:=ret_backtrace;
+                          // hp^.elsepath:=parseregexpr(elsepath);
+                          hp^.next:=parseregexpr;
+                          parseregexpr:=hp;
+                          exit;
                        end;
                     ')':
                        exit;
+                    '^':
+                       begin
+                          inc(currentpos);
+                          new(hp);
+                          doregister(hp);
+                          hp^.typ:=ret_startline;
+                          hp^.elsepath:=ep;
+                          // hp^.next:=parseregexpr(ep);
+                       end;
+                    '$':
+                       begin
+                          inc(currentpos);
+                          new(hp);
+                          doregister(hp);
+                          hp^.typ:=ret_endline;
+                          hp^.elsepath:=ep;
+                          // hp^.next:=parseregexpr(ep);
+                       end;
                     #0:
-
                        exit;
                     else
                       begin
@@ -309,8 +356,13 @@ unit regexpr;
                                   doregister(hp);
                                   hp^.typ:=ret_charset;
                                   hp^.chars:=cs;
-                                  hp^.elsepath:=parseregexpr(ep);
+                                  hp^.elsepath:=next;
                                   hp^.next:=hp;
+                                  if assigned(chaining) then
+                                    chaining^:=hp
+                                  else
+                                    parseregexpr:=hp;
+                                  chaining:=@hp^.elsepath;
                                end;
                             '+':
                                begin
@@ -322,21 +374,37 @@ unit regexpr;
                                   hp^.typ:=ret_charset;
                                   hp2^.typ:=ret_charset;
                                   hp^.chars:=cs;
-                                  hp^.elsepath:=ep;
-                                  hp^.next:=hp2;
                                   hp2^.chars:=cs;
-                                  hp2^.elsepath:=parseregexpr(ep);
+                                  hp^.elsepath:=elsepath;
+                                  hp^.next:=hp2;
+                                  hp2^.elsepath:=next;
                                   hp2^.next:=hp2;
+                                  if assigned(chaining) then
+                                    chaining^:=hp
+                                  else
+                                    parseregexpr:=hp;
+                                  chaining:=@hp2^.elsepath;
                                end;
                             '?':
                                begin
                                   inc(currentpos);
                                   new(hp);
+                                  { this is a dummy }
+                                  new(hp2);
                                   doregister(hp);
+                                  doregister(hp2);
                                   hp^.typ:=ret_charset;
                                   hp^.chars:=cs;
-                                  hp^.elsepath:=parseregexpr(ep);
-                                  hp^.next:=hp^.elsepath;
+                                  hp^.next:=hp2;
+                                  hp^.elsepath:=hp2;
+                                  hp2^.typ:=ret_charset;
+                                  hp2^.chars:=[];
+                                  hp2^.elsepath:=next;
+                                  if assigned(chaining) then
+                                    chaining^:=hp
+                                  else
+                                    parseregexpr:=hp;
+                                  chaining:=@hp2^.elsepath;
                                end;
                             else
                                begin
@@ -344,11 +412,15 @@ unit regexpr;
                                   doregister(hp);
                                   hp^.typ:=ret_charset;
                                   hp^.chars:=cs;
-                                  hp^.elsepath:=ep;
-                                  hp^.next:=parseregexpr(ep);
+                                  hp^.elsepath:=elsepath;
+                                  hp^.next:=next;
+                                  if assigned(chaining) then
+                                    chaining^:=hp
+                                  else
+                                    parseregexpr:=hp;
+                                  chaining:=@hp^.next;
                                end;
                          end;
-                         parseregexpr:=hp;
                       end;
                  end;
               end;
@@ -363,14 +435,16 @@ unit regexpr;
           if regexpr=nil then
             exit;
           first:=nil;
+          if (ref_singleline in flags) and (ref_multiline in flags) then
+            exit;
           currentpos:=regexpr;
           new(endp);
           doregister(endp);
           endp^.typ:=ret_illegalend;
           GenerateRegExprEngine.flags:=flags;
-          GenerateRegExprEngine.Data:=parseregexpr(endp);
+          GenerateRegExprEngine.Data:=parseregexpr(nil,endp);
           GenerateRegExprEngine.DestroyList:=first;
-          if error then
+          if error or (currentpos^<>#0) then
             DestroyRegExprEngine(GenerateRegExprEngine);
        end;
 
@@ -402,38 +476,81 @@ unit regexpr;
             dosearch:=false;
             while true do
               begin
-                 if regexpr^.typ=ret_backtrace then
-                   begin
-                      if dosearch(regexpr^.next,pos) then
-                        begin
-                           dosearch:=true;
-                           exit;
-                        end
-                      else if dosearch(regexpr^.elsepath,pos) then
-                        begin
-                           dosearch:=true;
-                           exit;
-                        end
-                      else
-                        exit;
-                   end;
-                 if (pos^ in regexpr^.chars) or
-                   ((ref_caseinsensitive in regexprengine.flags) and
-                    (upcase(pos^) in regexpr^.chars)) then
-                   begin
+                 writeln(byte(regexpr^.typ));
+                 case regexpr^.typ of
+                    ret_endline:
+                      begin
+                         if ref_multiline in regexprengine.flags then
+                           begin
+                              if ((pos+1)^ in [#10,#0]) then
+                                regexpr:=regexpr^.next
+                              else
+                                regexpr:=regexpr^.elsepath;
+                           end
+                         else
+                           begin
+                              if (pos+1)^=#0 then
+                                regexpr:=regexpr^.next
+                              else
+                                regexpr:=regexpr^.elsepath;
+                           end;
+                      end;
+                    ret_startline:
+                      begin
+                         if ref_multiline in regexprengine.flags then
+                           begin
+                              if (pos=p) or ((pos-1)^=#10) then
+                                regexpr:=regexpr^.next
+                              else
+                                regexpr:=regexpr^.elsepath;
+                           end
+                         else
+                           begin
+                              if pos=p then
+                                regexpr:=regexpr^.next
+                              else
+                                regexpr:=regexpr^.elsepath;
+                           end;
+                      end;
+                    ret_charset:
+                      begin
+                         if (pos^ in regexpr^.chars) or
+                           ((ref_caseinsensitive in regexprengine.flags) and
+                            (upcase(pos^) in regexpr^.chars)) then
+                           begin
 {$ifdef DEBUG}
-                      writeln('Found matching: ',pos^);
+                              writeln('Found matching: ',pos^);
 {$endif DEBUG}
-                      regexpr:=regexpr^.next;
-                      inc(pos);
-                   end
-                 else
-                   begin
+                              regexpr:=regexpr^.next;
+                              inc(pos);
+                           end
+                         else
+                           begin
 {$ifdef DEBUG}
-                      writeln('Found unmatching: ',pos^);
+                              writeln('Found unmatching: ',pos^);
 {$endif DEBUG}
-                      regexpr:=regexpr^.elsepath;
-                   end;
+                              regexpr:=regexpr^.elsepath;
+                           end;
+                      end;
+                    ret_backtrace:
+                      begin
+{$ifdef DEBUG}
+                         writeln('Starting backtrace');
+{$endif DEBUG}
+                         if dosearch(regexpr^.next,pos) then
+                           begin
+                              dosearch:=true;
+                              exit;
+                           end
+                         else if dosearch(regexpr^.elsepath,pos) then
+                           begin
+                              dosearch:=true;
+                              exit;
+                           end
+                         else
+                           exit;
+                      end;
+                 end;
                  lastpos:=pos;
                  if regexpr=nil then
                    begin
@@ -477,7 +594,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.2  2000-03-14 22:57:51  florian
+  Revision 1.3  2000-03-19 16:20:44  florian
+    * some improvements
+
+  Revision 1.2  2000/03/14 22:57:51  florian
     + added flags
     + support of case insensitive search
 
