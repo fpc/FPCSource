@@ -2200,8 +2200,36 @@ implementation
            _MINUS :
              begin
                consume(_MINUS);
-               p1:=sub_expr(oppower,false);
-               p1:=cunaryminusnode.create(p1);
+               if (token = _INTCONST) then
+                  begin
+                    { ugly hack, but necessary to be able to parse }
+                    { -9223372036854775808 as int64 (JM)           }
+                    pattern := '-'+pattern;
+                    p1:=sub_expr(oppower,false);
+                    {  -1 ** 4 should be - (1 ** 4) and not
+                       (-1) ** 4
+                       This was the reason of tw0869.pp test failure PM }
+                    if p1.nodetype=starstarn then
+                      begin
+                        if tbinarynode(p1).left.nodetype=ordconstn then
+                          begin
+                            tordconstnode(tbinarynode(p1).left).value:=-tordconstnode(tbinarynode(p1).left).value;
+                            p1:=cunaryminusnode.create(p1);
+                          end
+                        else if tbinarynode(p1).left.nodetype=realconstn then
+                          begin
+                            trealconstnode(tbinarynode(p1).left).value_real:=-trealconstnode(tbinarynode(p1).left).value_real;
+                            p1:=cunaryminusnode.create(p1);
+                          end
+                        else
+                          internalerror(20021029);
+                      end;
+                  end
+               else
+                 begin
+                   p1:=sub_expr(oppower,false);
+                   p1:=cunaryminusnode.create(p1);
+                 end;
              end;
 
            _OP_NOT :
@@ -2497,7 +2525,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.144  2003-12-08 22:35:28  peter
+  Revision 1.145  2003-12-29 17:19:35  jonas
+    * integrated hack from 1.0.x so we can parse low(int64) as int64 instead
+      of as double (in 1.0.x, it was necessary for low(longint))
+
+  Revision 1.144  2003/12/08 22:35:28  peter
     * again procvar fixes
 
   Revision 1.143  2003/11/29 16:19:54  peter
