@@ -1,0 +1,23 @@
+2002-05-02.10:20:36 [BUILD] del wc.fpascal.exe
+2002-05-02.10:20:36 [BUILD] e:\freepascal\bin\win32\ppc386 -owc.fpascal.exe wc.fpascal
+Free Pascal Compiler version 1.0.4 [2000/12/30] for i386
+ Copyright (c) 1993-2000 by Florian Klaempfl
+ Target OS: Win32 for i386
+ Compiling wc.fpascal
+ wc.fpascal(12,2) Note: Local variable TMP not used
+ wc.fpascal(13,2) Note: Local variable TMPPOS not used
+ wc.fpascal(14,2) Note: Local variable CH not used
+ Linking wc.fpascal.exe
+ 43 Lines compiled, 1.9 sec
+[RUN] wc.fpascal.exe 500 -- OK
+[RUN] wc.fpascal.exe 500 -- OK
+[RUN] wc.fpascal.exe 500 -- OK
+[RUN] wc.fpascal.exe 1000 -- OK
+[RUN] wc.fpascal.exe 1000 -- OK
+[RUN] wc.fpascal.exe 1000 -- OK
+[RUN] wc.fpascal.exe 1500 -- OK
+[RUN] wc.fpascal.exe 1500 -- OK
+[RUN] wc.fpascal.exe 1500 -- OK
+[RUN] wc.fpascal.exe 2000 -- OK
+[RUN] wc.fpascal.exe 2000 -- OK
+[RUN] wc.fpascal.exe 2000 -- OK

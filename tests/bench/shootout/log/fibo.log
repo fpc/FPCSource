@@ -1,0 +1,17 @@
+2002-04-05.20:33:15 [BUILD] del fibo.fpascal.exe
+2002-04-05.20:33:16 [BUILD] e:\freepascal\bin\win32\ppc386 -ofibo.fpascal.exe fibo.fpascal
+Free Pascal Compiler version 1.0.4 [2000/12/30] for i386
+ Copyright (c) 1993-2000 by Florian Klaempfl
+ Target OS: Win32 for i386
+ Compiling fibo.fpascal
+ Linking fibo.fpascal.exe
+ 23 Lines compiled, 1.7 sec
+[RUN] fibo.fpascal.exe 8 -- OK
+[RUN] fibo.fpascal.exe 8 -- OK
+[RUN] fibo.fpascal.exe 8 -- OK
+[RUN] fibo.fpascal.exe 24 -- OK
+[RUN] fibo.fpascal.exe 24 -- OK
+[RUN] fibo.fpascal.exe 24 -- OK
+[RUN] fibo.fpascal.exe 32 -- OK
+[RUN] fibo.fpascal.exe 32 -- OK
+[RUN] fibo.fpascal.exe 32 -- OK

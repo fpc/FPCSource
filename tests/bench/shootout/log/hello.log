@@ -1,0 +1,23 @@
+2002-04-05.23:32:45 [BUILD] del hello.fpascal.exe
+2002-04-05.23:32:45 [BUILD] e:\freepascal\bin\win32\ppc386 -ohello.fpascal.exe hello.fpascal
+Free Pascal Compiler version 1.0.4 [2000/12/30] for i386
+ Copyright (c) 1993-2000 by Florian Klaempfl
+ Target OS: Win32 for i386
+ Compiling hello.fpascal
+ Linking hello.fpascal.exe
+ 6 Lines compiled, 1.2 sec
+[RUN] hello.fpascal.exe (1 time) -- OK
+[RUN] hello.fpascal.exe (1 time) -- OK
+[RUN] hello.fpascal.exe (1 time) -- OK
+[RUN] hello.fpascal.exe (50 times) -- OK
+[RUN] hello.fpascal.exe (50 times) -- OK
+[RUN] hello.fpascal.exe (50 times) -- OK
+[RUN] hello.fpascal.exe (100 times) -- OK
+[RUN] hello.fpascal.exe (100 times) -- OK
+[RUN] hello.fpascal.exe (100 times) -- OK
+[RUN] hello.fpascal.exe (150 times) -- OK
+[RUN] hello.fpascal.exe (150 times) -- OK
+[RUN] hello.fpascal.exe (150 times) -- OK
+[RUN] hello.fpascal.exe (200 times) -- OK
+[RUN] hello.fpascal.exe (200 times) -- OK
+[RUN] hello.fpascal.exe (200 times) -- OK

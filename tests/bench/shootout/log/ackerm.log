@@ -1,0 +1,23 @@
+2002-04-05.18:19:44 [BUILD] del ackermann.fpascal.exe
+2002-04-05.18:19:44 [BUILD] e:\freepascal\bin\win32\ppc386 -oackermann.fpascal.exe ackermann.fpascal
+Free Pascal Compiler version 1.0.4 [2000/12/30] for i386
+ Copyright (c) 1993-2000 by Florian Klaempfl
+ Target OS: Win32 for i386
+ Compiling ackermann.fpascal
+ Linking ackermann.fpascal.exe
+ 22 Lines compiled, 1.9 sec
+[RUN] ackermann.fpascal.exe 4 -- OK
+[RUN] ackermann.fpascal.exe 4 -- OK
+[RUN] ackermann.fpascal.exe 4 -- OK
+[RUN] ackermann.fpascal.exe 5 -- OK
+[RUN] ackermann.fpascal.exe 5 -- OK
+[RUN] ackermann.fpascal.exe 5 -- OK
+[RUN] ackermann.fpascal.exe 6 -- OK
+[RUN] ackermann.fpascal.exe 6 -- OK
+[RUN] ackermann.fpascal.exe 6 -- OK
+[RUN] ackermann.fpascal.exe 7 -- OK
+[RUN] ackermann.fpascal.exe 7 -- OK
+[RUN] ackermann.fpascal.exe 7 -- OK
+[RUN] ackermann.fpascal.exe 8 -- OK
+[RUN] ackermann.fpascal.exe 8 -- OK
+[RUN] ackermann.fpascal.exe 8 -- OK
