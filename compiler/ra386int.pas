@@ -2009,8 +2009,62 @@ var
 
 
 
+  Procedure GetRecordOffsetSize(const expr: string;var offset:longint;var size:longint);
+  {*********************************************************************}
+  { PROCEDURE GetRecordOffsetSize                                       }
+  {  Description: This routine builds up a record offset after a AS_DOT }
+  {  token is encountered.                                              }
+  {   On entry actasmtoken should be equal to AS_DOT                    }
+  {*********************************************************************}
+  { EXIT CONDITION:  On exit the routine should point to either the     }
+  {       AS_COMMA or AS_SEPARATOR token.                               }
+  { Warning: This is called recursively.                                }
+  {*********************************************************************}
+  var
+    toffset,tsize : longint;
+  Begin
+    offset:=0;
+    size:=0;
+    Consume(AS_DOT);
+    if actasmtoken = AS_ID then
+      Begin
+        if not GetTypeOffsetSize(expr,actasmpattern,toffset,tsize) and
+           not GetVarOffsetSize(expr,actasmpattern,toffset,tsize) then
+         begin
+           Message(assem_e_syntax_error);
+           toffset:=0;
+           tsize:=0;
+         end;
+        inc(offset,toffset);
+        size:=tsize;
+        Consume(AS_ID);
+        case actasmtoken of
+          AS_SEPARATOR,
+          AS_COMMA      : exit;
+          AS_DOT        : begin
+                            GetRecordOffsetSize(expr,toffset,tsize);
+                            inc(offset,toffset);
+                            size:=tsize;
+                          end;
 
-
+        else
+          Begin
+            Message(assem_e_syntax_error);
+            repeat
+              consume(actasmtoken)
+            until (actasmtoken = AS_SEPARATOR) or (actasmtoken = AS_COMMA);
+            exit;
+          end;
+        end;
+      end
+    else
+      Begin
+        Message(assem_e_syntax_error);
+        repeat
+          consume(actasmtoken)
+        until (actasmtoken = AS_SEPARATOR) or (actasmtoken = AS_COMMA);
+      end;
+  end;
 
 
   Function BuildRefExpression: longint;
@@ -2030,7 +2084,7 @@ var
   {*********************************************************************}
   var tempstr: string;
       expr: string;
-    l : longint;
+    l,k : longint;
     errorflag : boolean;
   Begin
     errorflag := FALSE;
@@ -2106,14 +2160,24 @@ var
                   end;
       AS_ID:
                 Begin
-                  if NOT SearchIConstant(actasmpattern,l) then
-                  Begin
-                    Message1(assem_e_invalid_const_symbol,actasmpattern);
-                    l := 0;
-                  end;
-                  str(l, tempstr);
-                  expr := expr + tempstr;
-                  Consume(AS_ID);
+                  tempstr:=actasmpattern;
+                  consume(AS_ID);
+                  if actasmtoken=AS_DOT then
+                   begin
+                     GetRecordOffsetSize(tempstr,l,k);
+                     str(l, tempstr);
+                     expr := expr + tempstr;
+                   end
+                  else
+                   begin
+                     if SearchIConstant(actasmpattern,l) then
+                      begin
+                        str(l, tempstr);
+                        expr := expr + tempstr;
+                      end
+                     else
+                      Message1(assem_e_invalid_const_symbol,actasmpattern);
+                   end;
                 end;
       AS_INTNUM:  Begin
                    expr := expr + actasmpattern;
@@ -2174,6 +2238,7 @@ var
   var
     firstpass: boolean;
     offset: longint;
+    tsize,toffset : longint;
     basetypename : string;
   Begin
     basetypename := '';
@@ -2191,12 +2256,13 @@ var
                   { // var_name.typefield.typefield // }
                   if (varname <> '') then
                   Begin
-                    if not GetVarOffset(instr,varname,actasmpattern,offset,operandnum) then
+                    if GetVarOffsetSize(varname,actasmpattern,toffset,tsize) then
                     Begin
-                      Message1(assem_e_unknown_id,actasmpattern);
+                      Inc(instr.operands[operandnum].ref.offset,tOffset);
+                      SetOperandSize(instr,operandnum,tsize);
                     end
                     else
-                      Inc(instr.operands[operandnum].ref.offset,Offset);
+                      Message1(assem_e_unknown_id,actasmpattern);
                   end
                   else
                  {    [ref].var_name.typefield.typefield ...                }
@@ -2224,12 +2290,13 @@ var
                  {    [ref].typefield.typefield ...                         }
                  {  basetpyename is already set up... now look for fields.  }
                   Begin
-                     if not GetTypeOffset(instr,basetypename,actasmpattern,Offset,operandnum) then
+                     if GetTypeOffsetSize(basetypename,actasmpattern,tOffset,Tsize) then
                      Begin
-                      Message1(assem_e_unknown_id,actasmpattern);
+                       Inc(instr.operands[operandnum].ref.offset,tOffset);
+                       SetOperandSize(instr,operandnum,Tsize);
                      end
                      else
-                       Inc(instr.operands[operandnum].ref.offset,Offset);
+                      Message1(assem_e_unknown_id,actasmpattern);
                   end;
                   Consume(AS_ID);
                  { Take care of index register on this variable }
@@ -2287,7 +2354,7 @@ var
   {*********************************************************************}
   var expr: string;
       tempstr: string;
-      l : longint;
+      l,k : longint;
       errorflag: boolean;
   Begin
     errorflag := FALSE;
@@ -2350,14 +2417,24 @@ var
                   expr := expr + '|';
                 end;
       AS_ID:    Begin
-                  if NOT SearchIConstant(actasmpattern,l) then
-                  Begin
-                    Message1(assem_e_invalid_const_symbol,actasmpattern);
-                    l := 0;
-                  end;
-                  str(l, tempstr);
-                  expr := expr + tempstr;
-                  Consume(AS_ID);
+                  tempstr:=actasmpattern;
+                  consume(AS_ID);
+                  if actasmtoken=AS_DOT then
+                   begin
+                     GetRecordOffsetSize(tempstr,l,k);
+                     str(l, tempstr);
+                     expr := expr + tempstr;
+                   end
+                  else
+                   begin
+                     if SearchIConstant(actasmpattern,l) then
+                      begin
+                        str(l, tempstr);
+                        expr := expr + tempstr;
+                      end
+                     else
+                      Message1(assem_e_invalid_const_symbol,actasmpattern);
+                   end;
                 end;
       AS_INTNUM:  Begin
                    expr := expr + actasmpattern;
@@ -3395,7 +3472,13 @@ begin
 end.
 {
   $Log$
-  Revision 1.9  1998-10-13 16:50:17  pierre
+  Revision 1.10  1998-11-05 23:48:27  peter
+    * recordtype.field support in constant expressions
+    * fixed imul for oa_imm8 which was not allowed
+    * fixed reading of local typed constants
+    * fixed comment reading which is not any longer a separator
+
+  Revision 1.9  1998/10/13 16:50:17  pierre
     * undid some changes of Peter that made the compiler wrong
       for m68k (I had to reinsert some ifdefs)
     * removed several memory leaks under m68k

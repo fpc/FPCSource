@@ -568,7 +568,8 @@ unit i386;
          (i : A_IMUL;ops : 3;oc : $69;eb : ao_none;m : Modrm or af_reverseregregmem;o1 : ao_imm16 or ao_imm32;
            o2 : ao_wordreg or ao_mem;o3 : ao_wordreg),
          (i : A_IMUL;ops : 2;oc : $6b;eb : ao_none;m : Modrm or imulKludge;o1 : ao_imm8s;o2 : ao_wordreg;o3 : 0),
-         (i : A_IMUL;ops : 2;oc : $69;eb : ao_none;m : Modrm or imulKludge;o1 : ao_imm16 or ao_imm32;o2 : ao_wordreg;o3 : 0),
+         (i : A_IMUL;ops : 2;oc : $69;eb : ao_none;m : Modrm or imulKludge;o1 : ao_imm8 or ao_imm16 or ao_imm32;
+           o2 : ao_wordreg;o3 : 0),
          (i : A_DIV;ops : 1;oc : $f6;eb : 6;m : af_w or Modrm;o1 : ao_reg or ao_mem;o2 : 0;o3 : 0),
          (i : A_DIV;ops : 2;oc : $f6;eb : 6;m : af_w or Modrm;o1 : ao_reg or ao_mem;o2 : ao_acc;o3 : 0),
          (i : A_IDIV;ops : 1;oc : $f6;eb : 7;m : af_w or Modrm;o1 : ao_reg or ao_mem;o2 : 0;o3 : 0),
@@ -1724,7 +1725,13 @@ unit i386;
 end.
 {
   $Log$
-  Revision 1.14  1998-10-28 00:08:47  peter
+  Revision 1.15  1998-11-05 23:48:20  peter
+    * recordtype.field support in constant expressions
+    * fixed imul for oa_imm8 which was not allowed
+    * fixed reading of local typed constants
+    * fixed comment reading which is not any longer a separator
+
+  Revision 1.14  1998/10/28 00:08:47  peter
     + leal procsym,eax is now allowed
     + constants are now handled also when starting an expression
     + call *pointer is now allowed

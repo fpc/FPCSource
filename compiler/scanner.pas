@@ -1479,8 +1479,7 @@ exit_label:
          case c of
           '{' : begin
                   skipcomment;
-                  lastasmgetchar:=c;
-                  asmgetchar:=';';
+                  asmgetchar:=c;
                   exit;
                 end;
           '/' : begin
@@ -1488,11 +1487,13 @@ exit_label:
                   if c='/' then
                    begin
                      skipdelphicomment;
-                     asmgetchar:=';';
+                     asmgetchar:=c;
                    end
                   else
-                   asmgetchar:='/';
-                  lastasmgetchar:=c;
+                   begin
+                     asmgetchar:='/';
+                     lastasmgetchar:=c;
+                   end;
                   exit;
                 end;
           '(' : begin
@@ -1500,11 +1501,13 @@ exit_label:
                   if c='*' then
                    begin
                      skipoldtpcomment;
-                     asmgetchar:=';';
+                     asmgetchar:=c;
                    end
                   else
-                   asmgetchar:='(';
-                  lastasmgetchar:=c;
+                   begin
+                     asmgetchar:='(';
+                     lastasmgetchar:=c;
+                   end;
                   exit;
                 end;
          else
@@ -1519,7 +1522,13 @@ begin
 end.
 {
   $Log$
-  Revision 1.65  1998-11-03 11:35:02  peter
+  Revision 1.66  1998-11-05 23:48:29  peter
+    * recordtype.field support in constant expressions
+    * fixed imul for oa_imm8 which was not allowed
+    * fixed reading of local typed constants
+    * fixed comment reading which is not any longer a separator
+
+  Revision 1.65  1998/11/03 11:35:02  peter
     * don't check for endif if error
 
   Revision 1.64  1998/10/21 20:16:05  peter

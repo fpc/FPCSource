@@ -1575,7 +1575,6 @@ const
        end;
      { ------------------------------------------------------------------- }
 
-
     { copy them to local variables }
     { for faster access            }
     optyp1:=operands[1].opinfo;
@@ -2419,6 +2418,62 @@ const
   end;
 
 
+  Procedure GetRecordOffsetSize(const expr: string;var offset:longint;var size:longint);
+  {*********************************************************************}
+  { PROCEDURE GetRecordOffsetSize                                       }
+  {  Description: This routine builds up a record offset after a AS_DOT }
+  {  token is encountered.                                              }
+  {   On entry actasmtoken should be equal to AS_DOT                    }
+  {*********************************************************************}
+  { EXIT CONDITION:  On exit the routine should point to either the     }
+  {       AS_COMMA or AS_SEPARATOR token.                               }
+  { Warning: This is called recursively.                                }
+  {*********************************************************************}
+  var
+    toffset,tsize : longint;
+  Begin
+    offset:=0;
+    size:=0;
+    Consume(AS_DOT);
+    if actasmtoken = AS_ID then
+      Begin
+        if not GetTypeOffsetSize(expr,actasmpattern,toffset,tsize) and
+           not GetVarOffsetSize(expr,actasmpattern,toffset,tsize) then
+         begin
+           Message(assem_e_syntax_error);
+           toffset:=0;
+           tsize:=0;
+         end;
+        inc(offset,toffset);
+        size:=tsize;
+        Consume(AS_ID);
+        case actasmtoken of
+          AS_SEPARATOR,
+          AS_COMMA      : exit;
+          AS_DOT        : begin
+                            GetRecordOffsetSize(expr,toffset,tsize);
+                            inc(offset,toffset);
+                            size:=tsize;
+                          end;
+
+        else
+          Begin
+            Message(assem_e_syntax_error);
+            repeat
+              consume(actasmtoken)
+            until (actasmtoken = AS_SEPARATOR) or (actasmtoken = AS_COMMA);
+            exit;
+          end;
+        end;
+      end
+    else
+      Begin
+        Message(assem_e_syntax_error);
+        repeat
+          consume(actasmtoken)
+        until (actasmtoken = AS_SEPARATOR) or (actasmtoken = AS_COMMA);
+      end;
+  end;
 
 
   Function BuildExpression: longint;
@@ -2437,7 +2492,7 @@ const
   {*********************************************************************}
   var expr: string;
       tempstr: string;
-      l : longint;
+      l,k : longint;
       errorflag: boolean;
   Begin
     errorflag := FALSE;
@@ -2498,15 +2553,26 @@ const
                   expr := expr + '|';
                 end;
       AS_ID:    Begin
-                  if NOT SearchIConstant(actasmpattern,l) then
-                  Begin
-                    Message1(assem_e_invalid_const_symbol,actasmpattern);
-                    l := 0;
+                  tempstr:=actasmpattern;
+                  previous_was_id:=TRUE;
+                  consume(AS_ID);
+                  if actasmtoken=AS_DOT then
+                   begin
+                     GetRecordOffsetSize(tempstr,l,k);
+                     str(l, tempstr);
+                     expr := expr + tempstr;
+                   end
+                  else
+                   begin
+                     if SearchIConstant(actasmpattern,l) then
+                      begin
+                        str(l, tempstr);
+                        expr := expr + tempstr;
+                      end
+                     else
+                      Message1(assem_e_invalid_const_symbol,actasmpattern);
+                   end;
                   end;
-                  str(l, tempstr);
-                  expr := expr + tempstr;
-                  Consume(AS_ID);
-                end;
       AS_INTNUM:  Begin
                    expr := expr + actasmpattern;
                    Consume(AS_INTNUM);
@@ -2739,7 +2805,7 @@ const
   {*********************************************************************}
   var tempstr: string;
       expr: string;
-    l : longint;
+    l,k : longint;
     errorflag : boolean;
   Begin
     errorflag := FALSE;
@@ -2806,14 +2872,24 @@ const
                   end;
       AS_ID:
                 Begin
-                  if NOT SearchIConstant(actasmpattern,l) then
-                  Begin
-                    Message1(assem_e_invalid_const_symbol,actasmpattern);
-                    l := 0;
-                  end;
-                  str(l, tempstr);
-                  expr := expr + tempstr;
-                  Consume(AS_ID);
+                  tempstr:=actasmpattern;
+                  consume(AS_ID);
+                  if actasmtoken=AS_DOT then
+                   begin
+                     GetRecordOffsetSize(tempstr,l,k);
+                     str(l, tempstr);
+                     expr := expr + tempstr;
+                   end
+                  else
+                   begin
+                     if SearchIConstant(actasmpattern,l) then
+                      begin
+                        str(l, tempstr);
+                        expr := expr + tempstr;
+                      end
+                     else
+                      Message1(assem_e_invalid_const_symbol,actasmpattern);
+                   end;
                 end;
       AS_INTNUM:  Begin
                    expr := expr + actasmpattern;
@@ -2879,8 +2955,11 @@ const
      Case actasmtoken of
         { // (reg ... // }
         AS_REGISTER: Begin
-                        instr.operands[operandnum].ref.base :=
-                           findregister(actasmpattern);
+                       { Check if there is already a base (mostly ebp,esp) than this is
+                         not allowed,becuase it will give crashing code }
+                        if instr.operands[operandnum].ref.base<>R_NO then
+                         Message(assem_e_cannot_index_relative_var);
+                        instr.operands[operandnum].ref.base := findregister(actasmpattern);
                         Consume(AS_REGISTER);
                         { can either be a register or a right parenthesis }
                          { // (reg)       // }
@@ -3046,75 +3125,6 @@ const
   end;
 
 
-  Procedure BuildRecordOffset(const expr: string; var Instr: TInstruction);
-  {*********************************************************************}
-  { PROCEDURE BuildRecordOffset                                         }
-  {  Description: This routine builds up a record offset after a AS_DOT }
-  {  token is encountered.                                              }
-  {   On entry actasmtoken should be equal to AS_DOT                    }
-  {*********************************************************************}
-  { EXIT CONDITION:  On exit the routine should point to either the     }
-  {       AS_COMMA or AS_SEPARATOR token.                               }
-  { Warning: This is called recursively.                                }
-  {*********************************************************************}
-  var offset: longint;
-  Begin
-    Consume(AS_DOT);
-    if actasmtoken = AS_ID then
-      Begin
-        if GetTypeOffset(instr,expr,actasmpattern,offset,operandnum) then
-         begin
-          instr.operands[operandnum].ref.offset := instr.operands[operandnum].ref.offset + offset;
-          Consume(AS_ID);
-          case actasmtoken of
-            AS_SEPARATOR,AS_COMMA: exit;
-            { one level deeper }
-            AS_DOT: BuildRecordOffset(expr,instr);
-           else
-            Begin
-               Message(assem_e_syntax_error);
-               repeat
-                 consume(actasmtoken)
-               until (actasmtoken = AS_SEPARATOR) or (actasmtoken = AS_COMMA);
-               exit;
-            end;
-           end;
-         end
-        else
-        if GetVarOffset(instr,expr,actasmpattern,offset,operandnum) then
-         begin
-          instr.operands[operandnum].ref.offset := instr.operands[operandnum].ref.offset + offset;
-          Consume(AS_ID);
-          case actasmtoken of
-            AS_SEPARATOR,AS_COMMA: exit;
-            { one level deeper }
-            AS_DOT: BuildRecordOffset(expr,instr);
-           else
-            Begin
-               Message(assem_e_syntax_error);
-               repeat
-                 consume(actasmtoken)
-               until (actasmtoken = AS_SEPARATOR) or (actasmtoken = AS_COMMA);
-               exit;
-            end;
-           end;
-         end
-        else
-         Begin
-            Message(assem_e_syntax_error);
-         end;
-      end
-    else
-     Begin
-       Message(assem_e_syntax_error);
-       repeat
-         consume(actasmtoken)
-       until (actasmtoken = AS_SEPARATOR) or (actasmtoken = AS_COMMA);
-     end;
-  end;
-
-
-
   Procedure BuildOperand(var instr: TInstruction);
   {*********************************************************************}
   { EXIT CONDITION:  On exit the routine should point to either the     }
@@ -3125,6 +3135,8 @@ const
     expr: string;
     lab: Pasmlabel;
     hl: plabel;
+    tsize,
+    toffset : longint;
   Begin
    tempstr := '';
    expr := '';
@@ -3271,7 +3283,7 @@ const
                           Message1(assem_e_unknown_id,actasmpattern);
                       end;
                      { constant expression? }
-                     if instr.operands[operandnum].operandtype=OPR_CONSTANT then
+                     if (instr.operands[operandnum].operandtype=OPR_CONSTANT) then
                       instr.operands[operandnum].val := BuildExpression
                      else
                       begin
@@ -3284,7 +3296,9 @@ const
                                         BuildReference(instr);
                                       end;
                            AS_DOT :  Begin
-                                      BuildRecordOffset(expr,instr);
+                                       GetRecordOffsetSize(expr,toffset,tsize);
+                                       inc(instr.operands[operandnum].ref.offset,toffset);
+                                       SetOperandSize(instr,operandnum,tsize);
                                      end;
                            AS_SEPARATOR,AS_COMMA: ;
                         else
@@ -3875,7 +3889,13 @@ end.
 
 {
   $Log$
-  Revision 1.17  1998-10-28 21:34:39  peter
+  Revision 1.18  1998-11-05 23:48:26  peter
+    * recordtype.field support in constant expressions
+    * fixed imul for oa_imm8 which was not allowed
+    * fixed reading of local typed constants
+    * fixed comment reading which is not any longer a separator
+
+  Revision 1.17  1998/10/28 21:34:39  peter
     * fixed some opsize
 
   Revision 1.16  1998/10/28 00:08:48  peter
