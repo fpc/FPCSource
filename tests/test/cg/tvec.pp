@@ -15,14 +15,9 @@
 { DEFINES:                                                       }
 {****************************************************************}
 { REMARKS:                                                       }
-{   Missing tests : LOC_JUMP, LOC_FLAGS                          }
-{                   location                                     }
-{                   openarray tests                              }
-{                                                                }
-{                                                                }
-{                                                                }
+{   Missing tests : openarray tests                              }
 {****************************************************************}
-program tvecn;
+program tvec;
 
 
 { things to test :                                 }
@@ -83,6 +78,7 @@ type
   { call multiply in calculating offset }
   pbigoddarray = ^bigoddarray;
   bigoddarray  = array[min_big_odd_array..max_big_odd_array] of toddelement;
+  boolarray = array[boolean] of boolean;
 
 
 var
@@ -93,7 +89,7 @@ var
  globaloddarray : bigoddarray;
  globalindex : longint;
  globalansi : ansistring;
-
+ globalboolarray : boolarray;
 
    { this routine clears all arrays     }
    { without calling secondvecn() first }
@@ -105,6 +101,7 @@ var
       FillChar(globalbignegarray,sizeof(globalbignegarray),0);
       FillChar(globalbigarray,sizeof(globalbigarray),0);
       FillChar(globaloddarray,sizeof(globaloddarray),0);
+      FillChar(globalboolarray,sizeof(globalboolarray),0);
      end;
 
 
@@ -119,17 +116,32 @@ var
    var
     i : longint;
     passed : boolean;
+    b1: boolean;
+    b2: boolean;
+    p : pointer;
    begin
     passed := true;
     ClearGlobalArrays;
     Write('Testing subscriptn() global variables...');
 
-
-    { RIGHT : LOC_JUMP ??????      }
+    { RIGHT : LOC_JUMP             }
     { (current) : LOC_MEM (symbol) }
+    b1 := true;
+    b2 := false;
+    globalboolarray[b1 or b2] := TRUE;
+    if globalboolarray[true] <> TRUE then
+     passed := false;
 
-    { RIGHT : LOC_FLAGS??????      }
+    { RIGHT : LOC_FLAGS            }
     { (current) : LOC_MEM (symbol) }
+    { IF ASSIGNED DOES NOT HAVE    }
+    { A RESULT IN FLAGS THIS WILL  }
+    { NOT WORK (LOC_FLAGS = OK)    }
+    { for FPC v1.0.x               }
+    p:= nil;
+    globalboolarray[assigned(p)]:=true;
+    if globalboolarray[false] <> true then
+      passed := false;
 
 
 
@@ -229,8 +241,11 @@ var
     localbignegarray : pbignegarray;
     localbigarray : pbigarray;
     localindex : longint;
+    localboolarray: boolarray;
     i : longint;
     passed : boolean;
+    b1, b2: boolean;
+    p : pointer;
    begin
     Write('Testing subscriptn() local variables...');
     new(localsmallnegarray);
@@ -244,14 +259,26 @@ var
     FillChar(localbignegarray^,sizeof(bignegarray),0);
     FillChar(localbignegarray^,sizeof(bignegarray),0);
     FillChar(localbigarray^,sizeof(bigarray),0);
+    FillChar(localboolarray, sizeof(localboolarray),0);
 
-    { RIGHT : LOC_JUMP ??????      }
+    { RIGHT : LOC_JUMP             }
     { (current) : LOC_MEM (symbol) }
+    b1 := true;
+    b2 := true;
+    localboolarray[b1 and b2] := TRUE;
+    if localboolarray[true] <> TRUE then
+     passed := false;
 
-    { RIGHT : LOC_FLAGS??????      }
+    { RIGHT : LOC_FLAGS            }
     { (current) : LOC_MEM (symbol) }
-
-
+    { IF ASSIGNED DOES NOT HAVE    }
+    { A RESULT IN FLAGS THIS WILL  }
+    { NOT WORK (LOC_FLAGS = OK)    }
+    { for FPC v1.0.x               }
+    p := nil;
+    localboolarray[assigned(p)]:=true;
+    if localboolarray[false] <> true then
+      passed := false;
 
     { RIGHT : LOC_REFERENCE        }
     { (current) : LOC_MEM () }
@@ -379,7 +406,10 @@ var
    { right right : index constant }
    { With -Or switch only         }
 
-
+var
+ i: integer;
+ b1,b2: boolean;
+ p: pointer;
 begin
   globalansi := 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
   testarrayglobal;
@@ -391,7 +421,10 @@ end.
 
 {
   $Log$
-  Revision 1.1  2001-06-29 02:02:10  carl
+  Revision 1.2  2001-06-30 00:48:37  carl
+  + added LOC_FLAGS and LOC_JUMP tests (still missing open array tests)
+
+  Revision 1.1  2001/06/29 02:02:10  carl
   + add array indexing test suite (incomplete)
 
 }
