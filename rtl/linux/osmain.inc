@@ -432,7 +432,7 @@ begin
 {$ifdef usegetcwd}
  if Fpgetcwd(@tmp,10240+512)<>NIL then
   dir:=pchar(@tmp)
- else 
+ else
   begin
     dir:='';
     writeln(geterrno);
@@ -515,6 +515,9 @@ begin
   FillChar(act, sizeof(SigActionRec),0);
   { initialize handler                    }
   act.sa_handler := signalhandler(@SignalToRunError);
+{$ifdef CPUARM}
+  act.sa_flags:=4;
+{$endif CPUARM}
   FpSigAction(SIGFPE,@act,@oldact);
   FpSigAction(SIGSEGV,@act,@oldact);
   FpSigAction(SIGBUS,@act,@oldact);
@@ -581,7 +584,10 @@ end;
 
 {
  $Log$
- Revision 1.13  2004-03-10 20:35:33  peter
+ Revision 1.14  2004-03-27 14:33:45  florian
+   * tell sigaction to pass siginfo on arm
+
+ Revision 1.13  2004/03/10 20:35:33  peter
    * call _haltproc instead of exit(). This is required for libc linking
 
  Revision 1.12  2004/01/01 14:19:55  marco
