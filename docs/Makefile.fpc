@@ -15,7 +15,7 @@
 
 [package]
 name=fpdocs
-version=1.9.6
+version=1.9.7
 
 [require]
 nortl=y
@@ -561,7 +561,10 @@ execute:
 
 #
 # $Log$
-# Revision 1.1  2005-01-09 20:14:33  peter
+# Revision 1.2  2005-01-10 22:49:56  armin
+# * updated makefile.fpc versions to 1.9.7, regenerated makefiles
+#
+# Revision 1.1  2005/01/09 20:14:33  peter
 #   * build messages.inc from errore.msg
 #   * new zip and tar targets
 #   * use fpcmake generated Makefile

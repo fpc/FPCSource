@@ -6,7 +6,7 @@ packages=fcl gtk
 
 [package]
 name=fpgtk
-version=1.9.6
+version=1.9.7
 
 [target]
 units=fpglib fpgtk fpgtkext

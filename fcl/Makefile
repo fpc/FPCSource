@@ -228,7 +228,7 @@ UNITSDIR:=$(wildcard $(FPCDIR)/units/$(OS_TARGET))
 endif
 PACKAGESDIR:=$(wildcard $(FPCDIR) $(FPCDIR)/packages/base $(FPCDIR)/packages/extra)
 override PACKAGE_NAME=fcl
-override PACKAGE_VERSION=1.9.6
+override PACKAGE_VERSION=1.9.7
 ifneq ($(findstring 1.0.,$(FPC_VERSION)),)
 CLASSES10=classes
 endif
