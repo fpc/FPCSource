@@ -1,17 +1,28 @@
 program TestKBD;
 {$X+}
 
+{$IFNDEF OS2}
+ Sorry, this code is for OS/2 only...
+{$ENDIF}
+
 uses
-{$IFDEF FPK}
+{$IFDEF FPC}
  KbdCalls;
 {$ELSE}
- Os2Base, Os2Def;
+ {$IFDEF VIRTUALPASCAL}
+ Os2Base;
+ {$ELSE}
+  {$IFDEF SPEED}
+ BseSub;
+  {$ELSE}
+ Os2Subs;
+  {$ENDIF}
+ {$ENDIF}
 {$ENDIF}
 
 function ExtKeyPressed: boolean;       (* 'key' is here as well e.g. a shift *)
 var
- C: char;
-{$IFDEF VIRTUALPASCAL}
+{$IFNDEF VER70} (* patched Borland Pascal *)
  KI: KbdKeyInfo;
  K: KbdInfo;
 {$ELSE}
@@ -23,14 +34,16 @@ begin
  B := false;
  K.cb := SizeOf (K);
  KbdGetStatus (K, 0);
-{ FillChar (KI, SizeOf (KI), 0);
- KbdCharIn (KI, IO_NOWAIT, 0);}
- ExtKeyPressed :=
-{ (KI.chScan <> 0) and (KI.chScan and $80 = 0) or }
-                                                    (K.fsState and $FF0F <> 0);
+ KbdPeek (KI, 0);
+ if (KI.fbStatus and $FE <> 0) or (K.fsState and $FF0F <> 0) then
+ begin
+  ExtKeyPressed := true;
+  if KI.fbStatus and $FE <> 0 then KbdCharIn (KI, IO_NOWAIT, 0);
+ end else ExtKeyPressed := false;
 end;
 
 begin
- WriteLn ('Press any _shift_ (or Alt, Ctrl etc.) key to continue ...');
+ repeat until not (ExtKeyPressed);
+ WriteLn (#13#10'Press _any_ key to continue (including shifts etc.) ...');
  repeat until ExtKeyPressed;
 end.

@@ -7,8 +7,12 @@ unit bsedev;
 
   interface
   
-    uses
-       os2def;
+type
+(* The following line is only due to problems with cardinal *)
+(* arithmetics and should be removed as soon as possible.   *)
+ cardinal = longint;
+ PCardinal = ^cardinal;
+ PByte = ^byte;
 
     const
        IOCTL_ASYNC = $0001;
@@ -23,6 +27,8 @@ unit bsedev;
        IOCTL_GENERAL = $000B;
        ASYNC_SETBAUDRATE = $0041;
        ASYNC_SETLINECTRL = $0042;
+       ASYNC_EXTSETBAUDRATE = $0043;
+       ASYNC_SETEXTBAUDRATE = $0043;
        ASYNC_TRANSMITIMM = $0044;
        ASYNC_SETBREAKOFF = $0045;
        ASYNC_SETMODEMCTRL = $0046;
@@ -32,6 +38,8 @@ unit bsedev;
        ASYNC_SETDCBINFO = $0053;
        ASYNC_GETBAUDRATE = $0061;
        ASYNC_GETLINECTRL = $0062;
+       ASYNC_EXTGETBAUDRATE = $0063;
+       ASYNC_GETEXTBAUDRATE = $0063;
        ASYNC_GETCOMMSTATUS = $0064;
        ASYNC_GETLINESTATUS = $0065;
        ASYNC_GETMODEMOUTPUT = $0066;
@@ -213,8 +221,8 @@ unit bsedev;
 
     type
        DCBINFO = record
-          usWriteTimeout : USHORT;
-          usReadTimeout : USHORT;
+          usWriteTimeout : word;
+          usReadTimeout : word;
           fbCtlHndShake : BYTE;
           fbFlowReplace : BYTE;
           fbTimeout : BYTE;
@@ -242,29 +250,29 @@ unit bsedev;
 
     type
        BIOSPARAMETERBLOCK = record
-          usBytesPerSector : USHORT;
+          usBytesPerSector : word;
           bSectorsPerCluster : BYTE;
-          usReservedSectors : USHORT;
+          usReservedSectors : word;
           cFATs : BYTE;
-          cRootEntries : USHORT;
-          cSectors : USHORT;
+          cRootEntries : word;
+          cSectors : word;
           bMedia : BYTE;
-          usSectorsPerFAT : USHORT;
-          usSectorsPerTrack : USHORT;
-          cHeads : USHORT;
-          cHiddenSectors : ULONG;
-          cLargeSectors : ULONG;
+          usSectorsPerFAT : word;
+          usSectorsPerTrack : word;
+          cHeads : word;
+          cHiddenSectors : cardinal;
+          cLargeSectors : cardinal;
           abReserved : array[0..6-1] of BYTE;
-          cCylinders : USHORT;
+          cCylinders : word;
           bDeviceType : BYTE;
-          fsDeviceAttr : USHORT;
+          fsDeviceAttr : word;
        end;
 
        PBIOSPARAMETERBLOCK = ^BIOSPARAMETERBLOCK;
 
        SCREENGROUP = record
-          idScreenGrp : USHORT;
-          fTerminate : USHORT;
+          idScreenGrp : word;
+          fTerminate : word;
        end;
 
        PSCREENGROUP = ^SCREENGROUP;
@@ -277,9 +285,9 @@ unit bsedev;
        PFRAME = ^FRAME;
 
        KBDTYPE = record
-          usType : USHORT;
-          reserved1 : USHORT;
-          reserved2 : USHORT;
+          usType : word;
+          reserved1 : word;
+          reserved2 : word;
        end;
 
        PKBDTYPE = ^KBDTYPE;
@@ -310,21 +318,21 @@ unit bsedev;
 {$PACKRECORDS 1}
 
        RXQUEUE = record
-          cch : USHORT;
-          cb : USHORT;
+          cch : word;
+          cb : word;
        end;
 
        PRXQUEUE = ^RXQUEUE;
 
        DEVICEPARAMETERBLOCK = record
-          reserved1 : USHORT;
-          cCylinders : USHORT;
-          cHeads : USHORT;
-          cSectorsPerTrack : USHORT;
-          reserved2 : USHORT;
-          reserved3 : USHORT;
-          reserved4 : USHORT;
-          reserved5 : USHORT;
+          reserved1 : word;
+          cCylinders : word;
+          cHeads : word;
+          cSectorsPerTrack : word;
+          reserved2 : word;
+          reserved3 : word;
+          reserved4 : word;
+          reserved5 : word;
        end;
 
        PDEVICEPARAMETERBLOCK = ^DEVICEPARAMETERBLOCK;
@@ -332,23 +340,23 @@ unit bsedev;
 {$PACKRECORDS 2}
 
        PTRDRAWFUNCTION = record
-          usReturnCode : USHORT;
+          usReturnCode : word;
           pfnDraw : pointer;
           {!!!!!!!! pfnDraw : PFN; }
-          pchDataSeg : PCH;
+          pchDataSeg : pointer;
        end;
 
        PPTRDRAWFUNCTION = ^PTRDRAWFUNCTION;
 
        PTRDRAWADDRESS = record
-          reserved : USHORT;
+          reserved : word;
           ptrdfnc : PTRDRAWFUNCTION;
        end;
 
        PPTRDRAWADDRESS = ^PTRDRAWADDRESS;
 
        SHIFTSTATE = record
-          fsState : USHORT;
+          fsState : word;
           fNLS : BYTE;
        end;
 
@@ -374,56 +382,56 @@ unit bsedev;
 
     type
        HOTKEY = record
-          fsHotKey : USHORT;
-          uchScancodeMake : UCHAR;
-          uchScancodeBreak : UCHAR;
-          idHotKey : USHORT;
+          fsHotKey : word;
+          uchScancodeMake : byte;
+          uchScancodeBreak : byte;
+          idHotKey : word;
        end;
 
        PHOTKEY = ^HOTKEY;
 
        MONITORPOSITION = record
-          fPosition : USHORT;
-          index : USHORT;
-          pbInBuf : ULONG;
-          offOutBuf : USHORT;
+          fPosition : word;
+          index : word;
+          pbInBuf : cardinal;
+          offOutBuf : word;
        end;
 
        PMONITORPOSITION = ^MONITORPOSITION;
 
        RATEDELAY = record
-          usDelay : USHORT;
-          usRate : USHORT;
+          usDelay : word;
+          usRate : word;
        end;
 
        PRATEDELAY = ^RATEDELAY;
 
        CODEPAGEINFO = record
           pbTransTable : PBYTE;
-          idCodePage : USHORT;
-          idTable : USHORT;
+          idCodePage : word;
+          idTable : word;
        end;
 
        PCODEPAGEINFO = ^CODEPAGEINFO;
 
        CPID = record
-          idCodePage : USHORT;
-          Reserved : USHORT;
+          idCodePage : word;
+          Reserved : word;
        end;
 
        PCPID = ^CPID;
 
        LDTADDRINFO = record
-          pulPhysAddr : PULONG;
-          cb : USHORT;
+          pulPhysAddr : PCardinal;
+          cb : word;
        end;
 
        PLDTADDRINFO = ^LDTADDRINFO;
 
        PTRDRAWDATA = record
-          cb : USHORT;
-          usConfig : USHORT;
-          usFlag : USHORT;
+          cb : word;
+          usConfig : word;
+          usFlag : word;
        end;
 
 {$PACKRECORDS NORMAL}

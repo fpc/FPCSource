@@ -68,8 +68,6 @@ Coding style:
 interface
 {***************************************************************************}
 
-uses    strings;
-
 {$ifdef FPK}
     {$packrecords 1}
 {$endif FPK}
@@ -78,6 +76,7 @@ uses    strings;
 const
 {return codes / error constants}
     NO_ERROR                        =  0;
+    Error_Invalid_Parameter         = 87;
     ERROR_VIO_INVALID_MASK          =349;
     ERROR_VIO_PTR                   =350;
     ERROR_VIO_APTR                  =351;
@@ -1097,4 +1096,3 @@ external 'EMXWRAP' index 30;
 {external 'PMVIOP' index 30;}
 
 end.
-

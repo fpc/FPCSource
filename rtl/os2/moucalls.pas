@@ -67,8 +67,6 @@ Coding style:
 interface
 {***************************************************************************}
 
-uses    strings;
-
 {$ifdef FPK}
     {$packrecords 1}
 {$endif FPK}
@@ -77,6 +75,7 @@ const
 {return codes / error constants (those marked with * shouldn't occur under
 normal conditions)}
     NO_ERROR                        =  0;
+    Error_Invalid_Parameter         = 87;
     ERROR_SEM_TIMEOUT               =121;
     ERROR_MOUSE_NO_DEVICE           =385;
     ERROR_MOUSE_INV_HANDLE          =386; {*}
@@ -461,7 +460,7 @@ MouHandle is the mouse device handle from a previous MouOpen call.}
     14-12     Background color
     11        Intensity
     10-8      Foreground color
-    7-0       Character}
+    7-0       Character
 * For other custom displays and for the extended modes of the EGA attachment,
   it is possible to set the display to modes that require multiple bit planes.
   In these cases, the area sized by the row and column limits must be repeated
@@ -1084,4 +1083,3 @@ external 'MOUCALLS' index 10;
 
 
 end.
-

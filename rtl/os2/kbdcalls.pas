@@ -67,8 +67,6 @@ Coding style:
 interface
 {***************************************************************************}
 
-uses    strings;
-
 {$ifdef FPK}
     {$packrecords 1}
 {$endif FPK}
@@ -76,57 +74,58 @@ uses    strings;
 const
 {return codes / error constants (those marked with * shouldn't occur under
 normal conditions)}
-    NO_ERROR                        =  0;
-    ERROR_SEM_TIMEOUT               =121;
-    ERROR_KBD_PARAMETER             =373;
-    ERROR_KBD_NO_DEVICE             =374; {*}
-    ERROR_KBD_INVALID_IOWAIT        =375; {*}
-    ERROR_KBD_INVALID_LENGTH        =376;
-    ERROR_KBD_INVALID_ECHO_MASK     =377;
-    ERROR_KBD_INVALID_INPUT_MASK    =378;
-    ERROR_KBD_SMG_ONLY              =407; {*}
-    ERROR_KBD_INVALID_ASCIIZ        =408;
-    ERROR_KBD_INVALID_MASK          =409;
-    ERROR_KBD_REGISTER              =410;
-    ERROR_KBD_DEREGISTER            =411;
-    ERROR_KBD_INVALID_HANDLE        =439;
-    ERROR_KBD_NO_MORE_HANDLE        =440;
-    ERROR_KBD_CANNOT_CREATE_KCB     =441;
-    ERROR_KBD_CODEPAGE_LOAD_INCOMPL =442; {*}
-    ERROR_KBD_INVALID_CODEPAGE_ID   =443; {*}
-    ERROR_KBD_NO_CODEPAGE_SUPPORT   =444; {*}
-    ERROR_KBD_FOCUS_REQUIRED        =445;
-    ERROR_KBD_FOCUS_ALREADY_ACTIVE  =446; {*}
-    ERROR_KBD_KEYBOARD_BUSY         =447;
-    ERROR_KBD_INVALID_CODEPAGE      =448;
-    ERROR_KBD_UNABLE_TO_FOCUS       =449; {*}
-    ERROR_KBD_DETACHED              =464;
-    ERROR_KBD_NO_CONSOLE            =500; {*}
-    ERROR_KBD_EXTENDED_SG           =504;
+    No_Error                        =  0;
+    Error_Invalid_Parameter         = 87;
+    Error_Sem_TimeOut               =121;
+    Error_Kbd_Parameter             =373;
+    Error_Kbd_No_Device             =374; {*}
+    Error_Kbd_Invalid_IOWait        =375; {*}
+    Error_Kbd_Invalid_Length        =376;
+    Error_Kbd_Invalid_Echo_Mask     =377;
+    Error_Kbd_Invalid_Input_Mask    =378;
+    Error_Kbd_Smg_Only              =407; {*}
+    Error_Kbd_Invalid_ASCIIZ        =408;
+    Error_Kbd_Invalid_Mask          =409;
+    Error_Kbd_Register              =410;
+    Error_Kbd_Deregister            =411;
+    Error_Kbd_Invalid_Handle        =439;
+    Error_Kbd_No_more_Handle        =440;
+    Error_Kbd_Cannot_Create_KCB     =441;
+    Error_Kbd_Codepage_Load_Incompl =442; {*}
+    Error_Kbd_Invalid_CodePage_ID   =443; {*}
+    Error_Kbd_No_CodePage_Support   =444; {*}
+    Error_Kbd_Focus_Required        =445;
+    Error_Kbd_Focus_Already_Active  =446; {*}
+    Error_Kbd_Keyboard_Busy         =447;
+    Error_Kbd_Invalid_CodePage      =448;
+    Error_Kbd_Unable_To_Focus       =449; {*}
+    Error_Kbd_Detached              =464;
+    Error_Kbd_No_Console            =500; {*}
+    Error_Kbd_Extended_SG           =504;
 
 {FnMask}
-    KR_KBDCHARIN        =$00000001;
-    KR_KBDPEEK          =$00000002;
-    KR_KBDFLUSHBUFFER   =$00000004;
-    KR_KBDGETSTATUS     =$00000008;
-    KR_KBDSETSTATUS     =$00000010;
-    KR_KBDSTRINGIN      =$00000020;
-    KR_KBDOPEN          =$00000040;
-    KR_KBDCLOSE         =$00000080;
-    KR_KBDGETFOCUS      =$00000100;
-    KR_KBDFREEFOCUS     =$00000200;
-    KR_KBDGETCP         =$00000400;
-    KR_KBDSETCP         =$00000800;
-    KR_KBDXLATE         =$00001000;
-    KR_KBDSETCUSTXT     =$00002000;
+    kr_KbdCharIn        =$00000001;
+    kr_KbdPeek          =$00000002;
+    kr_KbdFlushBuffer   =$00000004;
+    kr_KbdGetStatus     =$00000008;
+    kr_KbdSetStatus     =$00000010;
+    kr_KbdStringIn      =$00000020;
+    kr_KbdOpen          =$00000040;
+    kr_KbdClose         =$00000080;
+    kr_KbdGetFocus      =$00000100;
+    kr_KbdFreeFocus     =$00000200;
+    kr_KbdGetCP         =$00000400;
+    kr_KbdSetCP         =$00000800;
+    kr_KbdXLate         =$00001000;
+    kr_KbdSetCustXT     =$00002000;
 
 {WaitFlag}
-    IO_WAIT     =0;
+    IO_Wait     =0;
         {KbdCharIn: wait for a character if one is not available}
         {KbdGetFocus: wait for the focus}
         {KbdStringIn: in binary input mode, wait until CharBuf is full, in    }
         {             ASCII input mode wait until a carriage return is pressed}
-    IO_NOWAIT   =1;
+    IO_NoWait   =1;
         {KbdCharIn: immediate return if no character is available}
         {KbdGetFocus: do not wait for the focus}
         {KbdStringIn: send an immediate return if no characters are available,}
@@ -134,46 +133,46 @@ normal conditions)}
         {             length); not supported in ASCII input mode              }
 
 {TKbdInfo.fsMask}
-    KEYBOARD_ECHO_ON            =$0001; {echo is on}
-    KEYBOARD_ECHO_OFF           =$0002; {echo is off}
-    KEYBOARD_BINARY_MODE        =$0004; {binary mode is on}
-    KEYBOARD_ASCII_MODE         =$0008; {ASCII mode is on}
-    KEYBOARD_MODIFY_STATE       =$0010; {shift state is modified}
-    KEYBOARD_MODIFY_INTERIM     =$0020; {interim character flags are modified}
-    KEYBOARD_MODIFY_TURNAROUND  =$0040; {turn-around character is modified}
-    KEYBOARD_2B_TURNAROUND      =$0080; {length of the turn-around character  }
+    Keyboard_Echo_On            =$0001; {echo is on}
+    Keyboard_Echo_Off           =$0002; {echo is off}
+    Keyboard_Binary_Mode        =$0004; {binary mode is on}
+    Keyboard_ASCII_Mode         =$0008; {ASCII mode is on}
+    Keyboard_Modify_State       =$0010; {shift state is modified}
+    Keyboard_Modify_Interim     =$0020; {interim character flags are modified}
+    Keyboard_Modify_TurnAround  =$0040; {turn-around character is modified}
+    Keyboard_2B_TurnAround      =$0080; {length of the turn-around character  }
                                         {(meaningful only if                  }
-                                        {KEYBOARD_MODIFY_TURNAROUND bit is on)}
-    KEYBOARD_SHIFT_REPORT       =$0100; {shift return is on}
+                                        {Keyboard_Modify_TurnAround bit is on)}
+    Keyboard_Shift_Report       =$0100; {shift return is on}
 
 {TKbdInfo.fsState/TKbdKeyInfo.fsState/TKbdTrans.fsState}
-    KBDSTF_RIGHTSHIFT           =$0001;
-    KBDSTF_LEFTSHIFT            =$0002;
-    KBDSTF_CONTROL              =$0004;
-    KBDSTF_ALT                  =$0008;
-    KBDSTF_SCROLLLOCK_ON        =$0010;
-    KBDSTF_NUMLOCK_ON           =$0020;
-    KBDSTF_CAPSLOCK_ON          =$0040;
-    KBDSTF_INSERT_ON            =$0080;
-    KBDSTF_LEFTCONTROL          =$0100;
-    KBDSTF_LEFTALT              =$0200;
-    KBDSTF_RIGHTCONTROL         =$0400;
-    KBDSTF_RIGHTALT             =$0800;
-    KBDSTF_SCROLLLOCK           =$1000;
-    KBDSTF_NUMLOCK              =$2000;
-    KBDSTF_CAPSLOCK             =$4000;
-    KBDSTF_SYSREQ               =$8000;
+    KbdStF_RightShift           =$0001;
+    KbdStF_LeftShift            =$0002;
+    KbdStF_Control              =$0004;
+    KbdStF_Alt                  =$0008;
+    KbdStF_ScrollLock_On        =$0010;
+    KbdStF_Numlock_On           =$0020;
+    KbdStF_Capslock_On          =$0040;
+    KbdStF_Insert_On            =$0080;
+    KbdStF_LeftControl          =$0100;
+    KbdStF_LeftAlt              =$0200;
+    KbdStF_RightControl         =$0400;
+    KbdStF_RightAlt             =$0800;
+    KbdStF_ScrollLock           =$1000;
+    KbdStF_NumLock              =$2000;
+    KbdStF_CapsLock             =$4000;
+    KbdStF_SysReq               =$8000;
 
 {TKbdTrans.fbStatus}
-    KBDTRF_SHIFT_KEY_IN         =$01;   {shift status returned}
+    KbdTrF_Shift_Key_In         =$01;   {shift status returned}
                                         {without character    }
-    KBDTRF_EXTENDED_KEY_IN      =$02;   {extended key code }
+    KbdTrF_Extended_Key_In      =$02;   {extended key code }
                                         {from the keyboard,}
                                         {not a character   }
-    KBDTRF_CONVERSION_REQUEST   =$20;   {immediate conversion}
+    KbdTrF_Conversion_Request   =$20;   {immediate conversion}
                                         {requested           }
-    KBDTRF_FINAL_CHAR_IN        =$40;   {either $40 or $80 or both}
-    KBDTRF_INTERIM_CHAR_IN      =$80;   {must be present          }
+    KbdTrF_Final_Char_In        =$40;   {either $40 or $80 or both}
+    KbdTrF_Interim_Char_In      =$80;   {must be present          }
 
 {TKbdHWID.idKbd}
     Keyboard_Undetermined   =$0000; {undetermined keyboard type}
@@ -200,15 +199,15 @@ type
         case boolean of
         false:(
         chScan:byte;    {scan Code received from the keyboard}
-        fbStatus:byte;  {state of the keystroke event, see KBDTRF_*}
+        fbStatus:byte;  {state of the keystroke event, see KbdTrF_* constants}
         bNlsShift:byte; {NLS shift status (always 0?)}
-        fsState:word;   {shift key status, see KBDSTF_*}
+        fsState:word;   {shift key status, see KbdStF_* constants}
         Time:cardinal); {time stamp indicating when a key was pressed,}
                         {specified in milliseconds from the time      }
                         {the system was started                       }
         true:(
-        chScan2:char;   (* should be chScan and bNlsShift, but this *)
-        fbStatus2:byte; (* construct is unsupported currently       *)
+        chScan2:char;   (* should be chScan, fbStatus and bNlsShift,   *)
+        fbStatus2:byte; (* but this construct is unsupported currently *)
         bNlsShift2:char);
     end;
     PKbdKeyInfo=^TKbdKeyInfo;
@@ -260,7 +259,7 @@ type
                             {               $AB54 = 88 and 89 Key Enhanced    }
                             {                        Keyboards                }
                             {               $AB85 = 122 Key Enhanced Keyboard }
-                            {- see KEYBOARD_* constants                       }
+                            {- see Keyboard_* constants                       }
         usReserved1,        {reserved, returned set to zero (secondary ID?)}
         usReserved2:word;   {reserved, returned set to zero}
     end;
@@ -280,9 +279,10 @@ type
             case boolean of
             false:(
             chScan,         {scan Code received from the keyboard}
-            fbStatus,       {state of the keystroke event, see KBDTRF_*}
+            fbStatus,       {state of the keystroke event,}
+                            {see KbdTrF_* constants       }
             bNlsShift:byte; {NLS shift status (always 0?)}
-            fsState:word;   {shift key status, see KBDSTF_*}
+            fsState:word;   {shift key status, see KbdStF_* constants}
             Time:cardinal;  {time stamp indicating when a key was pressed,}
                             {specified in milliseconds from the time      }
                             {the system was started                       }
@@ -1230,12 +1230,12 @@ a dynamic link entry point name of a routine that receives control when any of
 the registered functions are called. Maximum length is 32 bytes, FnMask - see
 KR_* constants}
 {Possible return codes:
-    0         NO_ERROR
-    408       ERROR_KBD_INVALID_ASCIIZ
-    409       ERROR_KBD_INVALID_MASK
-    410       ERROR_KBD_REGISTER
-    464       ERROR_KBD_DETACHED
-    504       ERROR_KBD_EXTENDED_SG}
+    0         No_Error
+    408       Error_Kbd_Invalid_ASCIIZ
+    409       Error_Kbd_Invalid_Mask
+    410       Error_Kbd_Register
+    464       Error_Kbd_Detached
+    504       Error_Kbd_Extended_SG}
 {Remarks:
 * There can be only one KbdRegister call outstanding for each session without
   an intervening KbdDeRegister. KbdDeRegister must be issued by the same
@@ -1246,32 +1246,32 @@ function KbdRegister(ModuleName,ProcName:string;FnMask:cardinal):word;
 {Deregister a keyboard subsystem previously registered within a session - only
 the process that issued the KbdRegister may issue KbdDeRegister.}
 {Possible return codes:
-    0         NO_ERROR
-    411       ERROR_KBD_DEREGISTER
-    464       ERROR_KBD_DETACHED
-    504       ERROR_KBD_EXTENDED_SG}
+    0         No_Error
+    411       Error_Kbd_Deregister
+    464       Error_Kbd_Detached
+    504       Error_Kbd_Extended_SG}
 function KbdDeRegister:word;
 
 {Return a character data record from the keyboard.}
-{Key - see TKbdKeyInfo record type, WaitFlag - see IO_WAIT and IO_NOWAIT
+{Key - see TKbdKeyInfo record type, WaitFlag - see IO_Wait and IO_NoWait
 constants, KbdHandle is the default keyboard (0) or a logical keyboard.}
 {Possible return codes are:
-    0         NO_ERROR
-    375       ERROR_KBD_INVALID_IOWAIT
-    439       ERROR_KBD_INVALID_HANDLE
-    445       ERROR_KBD_FOCUS_REQUIRED
-    447       ERROR_KBD_KEYBOARD_BUSY
-    464       ERROR_KBD_DETACHED
-    504       ERROR_KBD_EXTENDED_SG}
+    0         No_Error
+    375       Error_Kbd_Invalid_IOWait
+    439       Error_Kbd_Invalid_Handle
+    445       Error_Kbd_Focus_Required
+    447       Error_Kbd_Keyboard_Busy
+    464       Error_Kbd_Detached
+    504       Error_Kbd_Extended_SG}
 {Remarks:
 * On an enhanced keyboard, the secondary enter key returns the normal
-  character 0DH and a scan code of E0H.
+  character 0Dh and a scan code of E0h.
 * Double-byte character codes (DBCS) require two function calls to obtain the
   entire code.
 * If shift report is set with KbdSetStatus, the CharData record returned
   reflects changed shift information only.
 * Extended ASCII codes are identified with the status byte, bit 1 on and the
-  ASCII character code being either 00H or E0H. Both conditions must be
+  ASCII character code being either 00h or E0h. Both conditions must be
   satisfied for the character to be an extended keystroke.  For extended
   ASCII codes, the scan code byte returned is the second code (extended
   code). Usually the extended ASCII code is the scan code of the primary key
@@ -1288,21 +1288,21 @@ without removing it from the buffer.}
 {Key - see TKbdKeyInfo record type, KbdHandle is the default keyboard (0)
 or a logical keyboard.}
 {Possible return codes are:
-    0         NO_ERROR
-    439       ERROR_KBD_INVALID_HANDLE
-    445       ERROR_KBD_FOCUS_REQUIRED
-    447       ERROR_KBD_KEYBOARD_BUSY
-    464       ERROR_KBD_DETACHED
-    504       ERROR_KBD_EXTENDED_SG}
+    0         No_Error
+    439       Error_Kbd_Invalid_Handle
+    445       Error_Kbd_Focus_Required
+    447       Error_Kbd_Keyboard_Busy
+    464       Error_Kbd_Detached
+    504       Error_Kbd_Extended_SG}
 {Remarks:
 * On an enhanced keyboard, the secondary enter key returns the normal
-  character 0DH and a scan code of E0H.
+  character 0Dh and a scan code of E0h.
 * Double-byte character codes (DBCS) require two function calls to obtain the
   entire code.
 * If shift report is set with KbdSetStatus the CharData record returned,
   reflects changed shift information only.
 * Extended ASCII codes are identified with the status byte, bit 1 on and the
-  ASCII character code being either 00H or E0H. Both conditions must be
+  ASCII character code being either 00h or E0h. Both conditions must be
   satisfied for the character to be an extended keystroke. For extended
   ASCII codes, the scan code byte returned is the second code (extended
   code). Usually the extended ASCII code is the scan code of the primary key
@@ -1316,15 +1316,15 @@ function KbdPeek(var Key:TKbdKeyInfo;KbdHandle:word):word;
 
 {Read a character string (character codes only) from the keyboard.}
 {CharBuf is a buffer for returned characters, LenInOut - see TStringInBuf
-record type, WaitFlag - see IO_WAIT and IO_NOWAIT constants, KbdHandle is the
+record type, WaitFlag - see IO_Wait and IO_NoWait constants, KbdHandle is the
 default keyboard (0) or a logical keyboard.}
 {Possible return codes are:
-    0         NO_ERROR
-    375       ERROR_KBD_INVALID_IOWAIT
-    439       ERROR_KBD_INVALID_HANDLE
-    445       ERROR_KBD_FOCUS_REQUIRED
-    464       ERROR_KBD_DETACHED
-    504       ERROR_KBD_EXTENDED_SG}
+    0         No_Error
+    375       Error_Kbd_Invalid_IOWait
+    439       Error_Kbd_Invalid_Handle
+    445       Error_Kbd_Focus_Required
+    464       Error_Kbd_Detached
+    504       Error_Kbd_Extended_SG}
 {Remarks:
 * The character strings may be optionally echoed on the display if echo mode
   is set. When echo is on each character is echoed as it is read from the
@@ -1332,7 +1332,7 @@ default keyboard (0) or a logical keyboard.}
   KbdSetStatus and KbdGetStatus for more information.
 * The default input mode is ASCII. In ASCII mode, 2-byte character codes only
   return in complete form. An extended ASCII code is returned in a 2-byte
-  string. The first byte is 0DH or E0H and the next byte is an extended code.
+  string. The first byte is 0Dh or E0h and the next byte is an extended code.
 * In input mode (binary, ASCII), the following returns can be set and
   retrieved with KbdSetStatus and KbdGetStatus:
     Turnaround Character
@@ -1355,12 +1355,12 @@ function KbdStringIn(CharBuf:PChar;LenInOutP:PStringInBuf;WaitFlag:word;
 {Clear the keystroke buffer.}
 {KbdHandle is the default keyboard (0) or a logical keyboard.}
 {Possible return codes are:
-    0         NO_ERROR
-    439       ERROR_KBD_INVALID_HANDLE
-    445       ERROR_KBD_FOCUS_REQUIRED
-    447       ERROR_KBD_KEYBOARD_BUSY
-    464       ERROR_KBD_DETACHED
-    504       ERROR_KBD_EXTENDED_SG}
+    0         No_Error
+    439       Error_Kbd_Invalid_Handle
+    445       Error_Kbd_Focus_Required
+    447       Error_Kbd_Keyboard_Busy
+    464       Error_Kbd_Detached
+    504       Error_Kbd_Extended_SG}
 {Remarks:
 * KbdFlushBuffer completes when the handle has access to the physical
   keyboard (focus), or is equal to zero and no other handle has the focus.}
@@ -1370,15 +1370,15 @@ function KbdFlushBuffer(KbdHandle:word):word;
 {Status - see TKbdInfo record type, KbdHandle is the default keyboard (0) or
 a logical keyboard.}
 {Possible return codes are:
-    0         NO_ERROR
-    376       ERROR_KBD_INVALID_LENGTH
-    377       ERROR_KBD_INVALID_ECHO_MASK
-    378       ERROR_KBD_INVALID_INPUT_MASK
-    439       ERROR_KBD_INVALID_HANDLE
-    445       ERROR_KBD_FOCUS_REQUIRED
-    447       ERROR_KBD_KEYBOARD_BUSY
-    464       ERROR_KBD_DETACHED
-    504       ERROR_KBD_EXTENDED_SG}
+    0         No_Error
+    376       Error_Kbd_Invalid_length
+    377       Error_Kbd_Invalid_Echo_Mask
+    378       Error_Kbd_Invalid_Input_Mask
+    439       Error_Kbd_Invalid_Handle
+    445       Error_Kbd_Focus_Required
+    447       Error_Kbd_Keyboard_Busy
+    464       Error_Kbd_Detached
+    504       Error_Kbd_Extended_SG}
 {Remarks:
 * Shift return (bit 8 in sysstate) must be disabled in ASCII mode.
 * KbdSetStatus is ignored for a Vio-windowed application.}
@@ -1388,19 +1388,19 @@ function KbdSetStatus(var Status:TKbdInfo;KbdHandle:word):word;
 {Status - see TKbdInfo record type, KbdHandle is the default keyboard (0) or
 a logical keyboard.}
 {Possible return codes:
-    0         NO_ERROR
-    376       ERROR_KBD_INVALID_LENGTH
-    439       ERROR_KBD_INVALID_HANDLE
-    445       ERROR_KBD_FOCUS_REQUIRED
-    447       ERROR_KBD_KEYBOARD_BUSY
-    464       ERROR_KBD_DETACHED
-    504       ERROR_KBD_EXTENDED_SG}
+    0         No_Error
+    376       Error_Kbd_Invalid_Length
+    439       Error_Kbd_Invalid_Handle
+    445       Error_Kbd_Focus_Required
+    447       Error_Kbd_Keyboard_Busy
+    464       Error_Kbd_Detached
+    504       Error_Kbd_Extended_SG}
 {Remarks:
 * The initial state of the keyboard is established by the system at
   application load time. Some default states may be modified by the
   application through KbdSetStatus. KbdGetStatus returns only those keyboard
   parameters initially set by KbdSetStatus. The returned parameters are:
-  Input Mode, Interim Character Flags, Shift State, Echo State, Turnaround
+  Input Mode, Interim Character Flags, Shift State, Echo State, TurnAround
   Character
 * KbdGetStatus completes only when the handle has access to the physical
   keyboard (focus) or the handle is 0 and no other handle has the focus.}
@@ -1413,13 +1413,13 @@ application's data area, must be equivalent to one of the code-page IDs
 specified on the CONFIG.SYS CODEPAGE= statement or 0, an error results
 otherwise, KbdHandle is the default keyboard (0) or a logical keyboard.}
 {Possible return codes:
-    0         NO_ERROR
-    439       ERROR_KBD_INVALID_HANDLE
-    445       ERROR_KBD_FOCUS_REQUIRED
-    447       ERROR_KBD_KEYBOARD_BUSY
-    448       ERROR_KBD_INVALID_CODEPAGE
-    464       ERROR_KBD_DETACHED
-    504       ERROR_KBD_EXTENDED_SG}
+    0         No_Error
+    439       Error_Kbd_Invalid_Handle
+    445       Error_Kbd_Focus_Required
+    447       Error_Kbd_Keyboard_Busy
+    448       Error_Kbd_Invalid_CodePage
+    464       Error_Kbd_Detached
+    504       Error_Kbd_Extended_SG}
 {Remarks:
 * Keyboard code page support is not available without the DEVINFO=KBD
   statement in the CONFIG.SYS file.}
@@ -1431,13 +1431,13 @@ page for a specified keyboard handle in CodePage, it is one of the code page
 IDs specified in the CONFIG.SYS CODEPAGE= statement or 0000. KbdHandle is
 the default keyboard (0) or a logical keyboard.}
 {Possible return codes:
-    0         NO_ERROR
-    373       ERROR_KBD_PARAMETER
-    439       ERROR_KBD_INVALID_HANDLE
-    445       ERROR_KBD_FOCUS_REQUIRED
-    447       ERROR_KBD_KEYBOARD_BUSY
-    464       ERROR_KBD_DETACHED
-    504       ERROR_KBD_EXTENDED_SG}
+    0         No_Error
+    373       Error_Kbd_Parameter
+    439       Error_Kbd_Invalid_Handle
+    445       Error_Kbd_Focus_Required
+    447       Error_Kbd_Keyboard_Busy
+    464       Error_Kbd_Detached
+    504       Error_Kbd_Extended_SG}
 {Remarks:
 * CodePage is set to the currently active keyboard code page. A value of 0
   indicates the code page translation table in use is the ROM code page
@@ -1447,11 +1447,11 @@ function KbdGetCp(Reserved:cardinal;var CodePage:word;KbdHandle:word):word;
 {Create a new logical keyboard.}
 {Handle for the new logical keyboard returned in KbdHandle.}
 {Possible return codes:
-    0         NO_ERROR
-    440       ERROR_KBD_NO_MORE_HANDLE
-    441       ERROR_KBD_CANNOT_CREATE_KCB
-    464       ERROR_KBD_DETACHED
-    504       ERROR_KBD_EXTENDED_SG}
+    0         No_Error
+    440       Error_Kbd_No_More_Handle
+    441       Error_Kbd_Cannot_Create_KCB
+    464       Error_Kbd_Detached
+    504       Error_Kbd_Extended_SG}
 {Remarks:
 * KbdOpen blocks while another thread has the keyboard focus (by way of
   KbdGetFocus) until the thread with the focus issues KbdFreeFocus.
@@ -1465,10 +1465,10 @@ function KbdOpen(var KbdHandle:word):word;
 {Close the existing logical keyboard identified by the keyboard handle}
 {KbdHandle is the default keyboard (0) or a logical keyboard}
 {Possible return codes:
-    0         NO_ERROR
-    439       ERROR_KBD_INVALID_HANDLE
-    464       ERROR_KBD_DETACHED
-    504       ERROR_KBD_EXTENDED_SG}
+    0         No_Error
+    439       Error_Kbd_Invalid_Handle
+    464       Error_Kbd_Detached
+    504       Error_Kbd_Extended_SG}
 {Remarks:
 * KbdClose blocks while another thread has the keyboard focus (by way of
   KbdGetFocus) until the thread with the focus issues KbdFreeFocus.
@@ -1483,21 +1483,21 @@ function KbdClose(KbdHandle:word):word;
 {Bind the logical keyboard to the physical keyboard.}
 {KbdHandle is the default keyboard (0) or a logical keyboard}
 {Possible return codes:
-    0         NO_ERROR
-    439       ERROR_KBD_INVALID_HANDLE
-    445       ERROR_KBD_FOCUS_REQUIRED
-    464       ERROR_KBD_DETACHED
-    504       ERROR_KBD_EXTENDED_SG}
+    0         No_Error
+    439       Error_Kbd_Invalid_Handle
+    445       Error_Kbd_Focus_Required
+    464       Error_Kbd_Detached
+    504       Error_Kbd_Extended_SG}
 function KbdGetFocus(WaitFlag,KbdHandle:word):word;
 
 {Free the logical-to-physical keyboard bond created by KbdGetFocus.}
 {KbdHandle is the default keyboard (0) or a logical keyboard}
 {Possible return codes:
-    0         NO_ERROR
-    439       ERROR_KBD_INVALID_HANDLE
-    445       ERROR_KBD_FOCUS_REQUIRED
-    464       ERROR_KBD_DETACHED
-    504       ERROR_KBD_EXTENDED_SG}
+    0         No_Error
+    439       Error_Kbd_Invalid_Handle
+    445       Error_Kbd_Focus_Required
+    464       Error_Kbd_Detached
+    504       Error_Kbd_Extended_SG}
 {Remarks:
 * KbdFreeFocus may be replaced by issuing KbdRegister. Unlike other keyboard
   subsystem functions, the replaced KbdFreeFocus is called only if there is
@@ -1505,11 +1505,11 @@ function KbdGetFocus(WaitFlag,KbdHandle:word):word;
 function KbdFreeFocus(KbdHandle:word):word;
 
 {Synchronize access from a keyboard subsystem to the keyboard device driver.}
-{WaitFlag - see IO_WAIT and IO_NOWAIT constants (wait / don't wait for access
+{WaitFlag - see IO_Wait and IO_NoWait constants (wait / don't wait for access
 to the device driver.}
 {Possible return codes:
-    0         NO_ERROR
-    121       ERROR_SEM_TIMEOUT}
+    0         No_Error
+    121       Error_Sem_TimeOut}
 {Remarks:
 * KbdSynch blocks all other threads within a session until return from the
   subsystem to the router. To ensure proper synchronization, KbdSynch should
@@ -1520,9 +1520,9 @@ function KbdSynch (WaitFlag:word):word;
 
 {Raise the priority of the foreground keyboard's thread.}
 {Possible return codes:
-    0         NO_ERROR
-    447       ERROR_KBD_KEYBOARD_BUSY
-    504       ERROR_KBD_EXTENDED_SG}
+    0         No_Error
+    447       Error_Kbd_Keyboard_Busy
+    504       Error_Kbd_Extended_SG}
 {Remarks:
 * KbdSetFgnd marks the current process that owns the keyboard. Threads in
   this process receive a priority boost. The previous foreground keyboard
@@ -1535,14 +1535,14 @@ function KbdSetFgnd:word;
 {HWID is a pointer to the caller's data area, see TKbdHWID, KbdHandle is the
 default keyboard (0) or a logical keyboard.}
 {Possible return codes:
-    0         NO_ERROR
-    373       ERROR_KBD_PARAMETER
-    447       ERROR_KBD_KEYBOARD_BUSY
-    464       ERROR_KBD_DETACHED
-    504       ERROR_KBD_EXTENDED_SG}
+    0         No_Error
+    373       Error_Kbd_Parameter
+    447       Error_Kbd_Keyboard_Busy
+    464       Error_Kbd_Detached
+    504       Error_Kbd_Extended_SG}
 {Remarks:
 * In past OS/2 releases, all keyboards could be supported by knowing the
-  hardware family information available with keyboard IOCTL 77H. However,
+  hardware family information available with keyboard IOCTL 77h. However,
   with the addition of the 122-key keyboard, recognition was not containable
   by hardware family information alone. The 122-key keyboard has a number of
   differences from other keyboards. Therefore, applications performing
@@ -1560,12 +1560,12 @@ function KbdSetHWID(HWIDP:PKbdHWID;KbdHandle:word):word;
 {TransData - see TKbdTransData, KbdHandle is the default keyboard (0) or a
 logical keyboard.}
 {Possible return codes:
-    0         NO_ERROR
-    439       ERROR_KBD_INVALID_HANDLE
-    445       ERROR_KBD_FOCUS_REQUIRED
-    447       ERROR_KBD_KEYBOARD_BUSY
-    464       ERROR_KBD_DETACHED
-    504       ERROR_KBD_EXTENDED_SG}
+    0         No_Error
+    439       Error_Kbd_Invalid_Handle
+    445       Error_Kbd_Focus_Required
+    447       Error_Kbd_Keyboard_Busy
+    464       Error_Kbd_Detached
+    504       Error_Kbd_Extended_SG}
 {Remarks:
 * It may take several calls to complete a translation because of accent key
   combinations, or other complex operations.
@@ -1584,14 +1584,14 @@ for a specified handle (the format of the translation table is documented in
 the Set Code Page IOCTL 50h), KbdHandle is the default keyboard (0) or a
 logical keyboard.}
 {Possible return codes:
-    0         NO_ERROR
-    377       ERROR_KBD_INVALID_ECHO_MASK
-    378       ERROR_KBD_INVALID_INPUT_MASK
-    439       ERROR_KBD_INVALID_HANDLE
-    445       ERROR_KBD_FOCUS_REQUIRED
-    447       ERROR_KBD_KEYBOARD_BUSY
-    464       ERROR_KBD_DETACHED
-    504       ERROR_KBD_EXTENDED_SG}
+    0         No_Error
+    377       Error_Kbd_Invalid_Echo_Mask
+    378       Error_Kbd_Invalid_Input_Mask
+    439       Error_Kbd_Invalid_Handle
+    445       Error_Kbd_Focus_Required
+    447       Error_Kbd_Keyboard_Busy
+    464       Error_Kbd_Detached
+    504       Error_Kbd_Extended_SG}
 {Remarks:
 * The translate table must be maintained in the caller's memory. No copy of
   the translate table is made by KbdSetCustXt.
@@ -1730,4 +1730,3 @@ external 'EMXWRAP' index 201;
 
 end.
 
-

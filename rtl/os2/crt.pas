@@ -11,6 +11,8 @@
 
 unit crt;
 
+{$ASMMODE ATT}
+
 interface
 
 uses dos;
@@ -185,9 +187,9 @@ begin
                 movw 8(%ebp),%bx
                 shrw $4,%bx
                 cmpb $2,%bl
-                jne crtsetmode_a1
+                jne .L_crtsetmode_a1
                 decw %ax
-            crtsetmode_a1:
+            .L_crtsetmode_a1:
                 mov $0x30,%bl
                 int $0x10
             end;
@@ -203,9 +205,9 @@ begin
                 and $15,%bl
                 mov $1,%ax
                 cmp $1,%bl
-                jne crtsetmode_b1
+                jne .L_crtsetmode_b1
                 mov $3,%al
-            crtsetmode_b1:
+            .L_crtsetmode_b1:
                 int $0x10
             {Use alternate print-screen function.}
                 mov $0x12,%ah
@@ -608,7 +610,8 @@ begin
                             asm
                                 movw $0x1300,%ax
                                 movb $0,%bh
-                                movb U_CRT_TEXTATTR,%bl
+                                movb TEXTATTR,%bl
+{                                movb U_CRT_TEXTATTR,%bl }
                                 movb y,%dh
                                 movb x,%dl
                                 movw n,%cx
@@ -843,7 +846,8 @@ begin
             asm
                 mov $0x0f,%ah
                 int $0x10
-                mov %al,_MODE
+{                mov %al,_MODE }
+                mov %al,MODE
             end;
             case mode of
                 0,1:
