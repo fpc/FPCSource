@@ -23,20 +23,25 @@ Interface
 {$define read_interface}
 {$undef read_implementation}
 
-Uses Windows;
+Uses Windows,types;
 
-{$ifndef DO_NO_IMPORTS}
-//import "unknwn.idl";
-//import "wtypes.idl";
-{$ENDIF}
+
+{ extra types }
+type
+{$ifndef ver1_0}
+   TOleChar = Types.TOleChar;
+   POleStr = Types.POleStr;
+   PPOleStr = Types.PPOleStr;
+   TBStr = POleStr;
+   PBStr = ^TBStr;
+   TOleEnum = type LongWord;
+{$endif ver1_0}
 
 {Glue types, should be linked to the proper windows unit types}
-
-TYPE Size_t              = DWord;       {??, probably, like Unix, typecastable to pointer?!?}
+TYPE
+     Size_t              = DWord;       {??, probably, like Unix, typecastable to pointer?!?}
      OleChar             = WChar;
      LPOLESTR            = ^OLECHAR;
-     polestr             = Pwidechar;
-
 
      // bit flags for IExternalConnection
 CONST
@@ -2650,7 +2655,11 @@ end.
 
 {
   $Log$
-  Revision 1.9  2003-09-17 15:06:36  peter
+  Revision 1.10  2003-10-05 19:10:31  florian
+    * fixed some delphi compatibilty issues
+    * improved makefile dependencies
+
+  Revision 1.9  2003/09/17 15:06:36  peter
     * stdcall patch
 
   Revision 1.8  2002/12/12 17:52:35  peter

@@ -129,7 +129,7 @@ messages$(PPUEXT): messages.pp $(SYSTEMUNIT)$(PPUEXT)
 
 ole2$(PPUEXT) : ole2.pp windows$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
 
-activex$(PPUEXT) : activex.pp $(WININC)/objbase.inc windows$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
+activex$(PPUEXT) : activex.pp $(WININC)/objbase.inc windows$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT) types$(PPUEXT)
 
 opengl32$(PPUEXT) : opengl32.pp windows$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
 

@@ -1345,7 +1345,7 @@ windows$(PPUEXT) : windows.pp $(WINDOWS_SOURCE_FILES) $(SYSTEMUNIT)$(PPUEXT)
 messages$(PPUEXT): messages.pp $(SYSTEMUNIT)$(PPUEXT)
 	$(COMPILER) -I$(WININC) messages.pp
 ole2$(PPUEXT) : ole2.pp windows$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
-activex$(PPUEXT) : activex.pp $(WININC)/objbase.inc windows$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
+activex$(PPUEXT) : activex.pp $(WININC)/objbase.inc windows$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT) types$(PPUEXT)
 opengl32$(PPUEXT) : opengl32.pp windows$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
 winsock$(PPUEXT) : winsock.pp windows$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
 sockets$(PPUEXT) : sockets.pp windows$(PPUEXT) winsock$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT) \
