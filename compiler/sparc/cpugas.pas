@@ -128,7 +128,7 @@ VAR
        { These are probably not correctly handled under GAS }
        { should be replaced by coding the segment override  }
        { directly! - DJGPP FAQ                              }
-         if segment<>R_NO then
+         if segment<>R_NONE then
           s:=gas_reg2str[segment]+':'
          else
           s:='';
@@ -144,9 +144,9 @@ VAR
              else
               s:=s+tostr(offset);
            end
-         else if (index=R_NO) and (base=R_NO) and not assigned(symbol) then
+         else if (index=R_NONE) and (base=R_NONE) and not assigned(symbol) then
            s:=s+'0';
-         if (index<>R_NO) and (base=R_NO) then
+         if (index<>R_NONE) and (base=R_NONE) then
           begin
             s:=s+'(,'+gas_reg2str[index];
             if scalefactor<>0 then
@@ -155,10 +155,10 @@ VAR
              s:=s+')';
           end
          else
-          if (index=R_NO) and (base<>R_NO) then
+          if (index=R_NONE) and (base<>R_NONE) then
            s:=s+'('+gas_reg2str[base]+')'
           else
-           if (index<>R_NO) and (base<>R_NO) then
+           if (index<>R_NONE) and (base<>R_NONE) then
             begin
               s:=s+'('+gas_reg2str[base]+','+gas_reg2str[index];
               if scalefactor<>0 then

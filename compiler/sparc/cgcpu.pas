@@ -37,55 +37,57 @@ USES
   node,symconst;
 TYPE
   tcgSPARC=CLASS(tcg)
-    PROCEDURE a_param_reg(list:TAasmOutput;size:tcgsize;r:tregister;CONST LocPara:TParaLocation);OVERRIDE;
+		FreeParamRegSet:TRegisterSet;
+		constructor Create;
 {This method is used to pass a parameter, which is located in a register, to a
-routine. It should push/send the parameter to the routine, as required by the
+routine. It should give the parameter to the routine, as required by the
 specific processor ABI. It is overriden for each CPU target.
   Size : is the size of the operand in the register
   r    : is the register source of the operand
   nr   : is number of that parameter in the routine parameters list starting
          from one from left to right}
-    PROCEDURE a_param_const(list:TAasmOutput;size:tcgsize;a:aword;CONST LocPara:TParaLocation);OVERRIDE;
-    PROCEDURE a_param_ref(list:TAasmOutput;size:tcgsize;CONST r:TReference;CONST LocPara:TParaLocation);OVERRIDE;
-    PROCEDURE a_paramaddr_ref(list:TAasmOutput;CONST r:TReference;CONST LocPara:TParaLocation);OVERRIDE;
-    PROCEDURE a_call_name(list:TAasmOutput;CONST s:string);OVERRIDE;
-    PROCEDURE a_call_ref(list:TAasmOutput;CONST ref:TReference);OVERRIDE;
-    PROCEDURE a_op_const_reg(list:TAasmOutput;Op:TOpCG;a:AWord;reg:TRegister);OVERRIDE;
-    PROCEDURE a_op_const_ref(list:TAasmOutput;Op:TOpCG;size:TCGSize;a:AWord;CONST ref:TReference);OVERRIDE;
-    PROCEDURE a_op_reg_reg(list:TAasmOutput;Op:TOpCG;size:TCGSize;src, dst:TRegister);OVERRIDE;
-    PROCEDURE a_op_ref_reg(list:TAasmOutput;Op:TOpCG;size:TCGSize;CONST ref:TReference;reg:TRegister);OVERRIDE;
-    PROCEDURE a_op_reg_ref(list:TAasmOutput;Op:TOpCG;size:TCGSize;reg:TRegister;CONST ref:TReference);OVERRIDE;
-    PROCEDURE a_op_const_reg_reg(list:TAasmOutput;op:TOpCg;size:tcgsize;a:aword;src, dst:tregister);OVERRIDE;
-    PROCEDURE a_op_reg_reg_reg(list:TAasmOutput;op:TOpCg;size:tcgsize;src1, src2, dst:tregister);OVERRIDE;
+    procedure a_param_reg(list:TAasmOutput;size:tcgsize;r:tregister;const LocPara:TParaLocation);override;
+    PROCEDURE a_param_const(list:TAasmOutput;size:tcgsize;a:aword;CONST LocPara:TParaLocation);override;
+    PROCEDURE a_param_ref(list:TAasmOutput;size:tcgsize;CONST r:TReference;CONST LocPara:TParaLocation);override;
+    PROCEDURE a_paramaddr_ref(list:TAasmOutput;CONST r:TReference;CONST LocPara:TParaLocation);override;
+    PROCEDURE a_call_name(list:TAasmOutput;CONST s:string);override;
+    PROCEDURE a_call_ref(list:TAasmOutput;CONST ref:TReference);override;
+    PROCEDURE a_op_const_reg(list:TAasmOutput;Op:TOpCG;a:AWord;reg:TRegister);override;
+    PROCEDURE a_op_const_ref(list:TAasmOutput;Op:TOpCG;size:TCGSize;a:AWord;CONST ref:TReference);override;
+    PROCEDURE a_op_reg_reg(list:TAasmOutput;Op:TOpCG;size:TCGSize;src, dst:TRegister);override;
+    PROCEDURE a_op_ref_reg(list:TAasmOutput;Op:TOpCG;size:TCGSize;CONST ref:TReference;reg:TRegister);override;
+    PROCEDURE a_op_reg_ref(list:TAasmOutput;Op:TOpCG;size:TCGSize;reg:TRegister;CONST ref:TReference);override;
+    PROCEDURE a_op_const_reg_reg(list:TAasmOutput;op:TOpCg;size:tcgsize;a:aword;src, dst:tregister);override;
+    PROCEDURE a_op_reg_reg_reg(list:TAasmOutput;op:TOpCg;size:tcgsize;src1, src2, dst:tregister);override;
         { move instructions }
-    PROCEDURE a_load_const_reg(list:TAasmOutput;size:tcgsize;a:aword;reg:tregister);OVERRIDE;
-    PROCEDURE a_load_const_ref(list:TAasmOutput;size:tcgsize;a:aword;CONST ref:TReference);OVERRIDE;
-    PROCEDURE a_load_reg_ref(list:TAasmOutput;size:tcgsize;reg:tregister;CONST ref:TReference);OVERRIDE;
-    PROCEDURE a_load_ref_reg(list:TAasmOutput;size:tcgsize;CONST ref:TReference;reg:tregister);OVERRIDE;
-    PROCEDURE a_load_reg_reg(list:TAasmOutput;fromsize,size:tcgsize;reg1,reg2:tregister);OVERRIDE;
-    PROCEDURE a_loadaddr_ref_reg(list:TAasmOutput;CONST ref:TReference;r:tregister);OVERRIDE;
+    PROCEDURE a_load_const_reg(list:TAasmOutput;size:tcgsize;a:aword;reg:tregister);override;
+    PROCEDURE a_load_const_ref(list:TAasmOutput;size:tcgsize;a:aword;CONST ref:TReference);override;
+    PROCEDURE a_load_reg_ref(list:TAasmOutput;size:tcgsize;reg:tregister;CONST ref:TReference);override;
+    PROCEDURE a_load_ref_reg(list:TAasmOutput;size:tcgsize;CONST ref:TReference;reg:tregister);override;
+    PROCEDURE a_load_reg_reg(list:TAasmOutput;fromsize,size:tcgsize;reg1,reg2:tregister);override;
+    PROCEDURE a_loadaddr_ref_reg(list:TAasmOutput;CONST ref:TReference;r:tregister);override;
         { fpu move instructions }
-    PROCEDURE a_loadfpu_reg_reg(list:TAasmOutput;reg1, reg2:tregister);OVERRIDE;
-    PROCEDURE a_loadfpu_ref_reg(list:TAasmOutput;size:tcgsize;CONST ref:TReference;reg:tregister);OVERRIDE;
-    PROCEDURE a_loadfpu_reg_ref(list:TAasmOutput;size:tcgsize;reg:tregister;CONST ref:TReference);OVERRIDE;
+    PROCEDURE a_loadfpu_reg_reg(list:TAasmOutput;reg1, reg2:tregister);override;
+    PROCEDURE a_loadfpu_ref_reg(list:TAasmOutput;size:tcgsize;CONST ref:TReference;reg:tregister);override;
+    PROCEDURE a_loadfpu_reg_ref(list:TAasmOutput;size:tcgsize;reg:tregister;CONST ref:TReference);override;
         { vector register move instructions }
-    PROCEDURE a_loadmm_reg_reg(list:TAasmOutput;reg1, reg2:tregister);OVERRIDE;
-    PROCEDURE a_loadmm_ref_reg(list:TAasmOutput;CONST ref:TReference;reg:tregister);OVERRIDE;
-    PROCEDURE a_loadmm_reg_ref(list:TAasmOutput;reg:tregister;CONST ref:TReference);OVERRIDE;
-    PROCEDURE a_parammm_reg(list:TAasmOutput;reg:tregister);OVERRIDE;
+    PROCEDURE a_loadmm_reg_reg(list:TAasmOutput;reg1, reg2:tregister);override;
+    PROCEDURE a_loadmm_ref_reg(list:TAasmOutput;CONST ref:TReference;reg:tregister);override;
+    PROCEDURE a_loadmm_reg_ref(list:TAasmOutput;reg:tregister;CONST ref:TReference);override;
+    PROCEDURE a_parammm_reg(list:TAasmOutput;reg:tregister);override;
         {  comparison operations }
-    PROCEDURE a_cmp_const_reg_label(list:TAasmOutput;size:tcgsize;cmp_op:topcmp;a:aword;reg:tregister;l:tasmlabel);OVERRIDE;
-    PROCEDURE a_cmp_const_ref_label(list:TAasmOutput;size:tcgsize;cmp_op:topcmp;a:aword;CONST ref:TReference;l:tasmlabel);OVERRIDE;
-    PROCEDURE a_cmp_reg_reg_label(list:TAasmOutput;size:tcgsize;cmp_op:topcmp;reg1,reg2:tregister;l:tasmlabel);OVERRIDE;
-    PROCEDURE a_cmp_ref_reg_label(list:TAasmOutput;size:tcgsize;cmp_op:topcmp;CONST ref:TReference;reg:tregister;l:tasmlabel);OVERRIDE;
-    PROCEDURE a_jmp_cond(list:TAasmOutput;cond:TOpCmp;l:tasmlabel);{ OVERRIDE;}
-    PROCEDURE a_jmp_flags(list:TAasmOutput;CONST f:TResFlags;l:tasmlabel);OVERRIDE;
-    PROCEDURE g_flags2reg(list:TAasmOutput;Size:TCgSize;CONST f:tresflags;reg:TRegister);OVERRIDE;
+    PROCEDURE a_cmp_const_reg_label(list:TAasmOutput;size:tcgsize;cmp_op:topcmp;a:aword;reg:tregister;l:tasmlabel);override;
+    PROCEDURE a_cmp_const_ref_label(list:TAasmOutput;size:tcgsize;cmp_op:topcmp;a:aword;CONST ref:TReference;l:tasmlabel);override;
+    PROCEDURE a_cmp_reg_reg_label(list:TAasmOutput;size:tcgsize;cmp_op:topcmp;reg1,reg2:tregister;l:tasmlabel);override;
+    PROCEDURE a_cmp_ref_reg_label(list:TAasmOutput;size:tcgsize;cmp_op:topcmp;CONST ref:TReference;reg:tregister;l:tasmlabel);override;
+    PROCEDURE a_jmp_cond(list:TAasmOutput;cond:TOpCmp;l:tasmlabel);{ override;}
+    PROCEDURE a_jmp_flags(list:TAasmOutput;CONST f:TResFlags;l:tasmlabel);override;
+    PROCEDURE g_flags2reg(list:TAasmOutput;Size:TCgSize;CONST f:tresflags;reg:TRegister);override;
     procedure g_stackframe_entry(list:TAasmOutput;localsize:LongInt);override;
     procedure g_restore_frame_pointer(list:TAasmOutput);override;
     procedure g_return_from_proc(list:TAasmOutput;parasize:aword);override;
-    PROCEDURE g_concatcopy(list:TAasmOutput;CONST source,dest:TReference;len:aword;delsource,loadref:boolean);OVERRIDE;
-    class function reg_cgsize(CONST reg:tregister):tcgsize;OVERRIDE;
+    PROCEDURE g_concatcopy(list:TAasmOutput;CONST source,dest:TReference;len:aword;delsource,loadref:boolean);override;
+    class function reg_cgsize(CONST reg:tregister):tcgsize;override;
   PRIVATE
     PROCEDURE sizes2load(s1:tcgsize;s2:topsize;var op:tasmop;var s3:topsize);
     PROCEDURE floatload(list:TAasmOutput;t:tcgsize;CONST ref:TReference);
@@ -94,10 +96,10 @@ specific processor ABI. It is overriden for each CPU target.
     PROCEDURE floatstoreops(t:tcgsize;var op:tasmop;var s:topsize);
   END;
   TCg64fSPARC=class(tcg64f32)
-    PROCEDURE a_op64_ref_reg(list:TAasmOutput;op:TOpCG;CONST ref:TReference;reg:TRegister64);OVERRIDE;
-    PROCEDURE a_op64_reg_reg(list:TAasmOutput;op:TOpCG;regsrc,regdst:TRegister64);OVERRIDE;
-    PROCEDURE a_op64_const_reg(list:TAasmOutput;op:TOpCG;value:qWord;regdst:TRegister64);OVERRIDE;
-    PROCEDURE a_op64_const_ref(list:TAasmOutput;op:TOpCG;value:qWord;CONST ref:TReference);OVERRIDE;
+    PROCEDURE a_op64_ref_reg(list:TAasmOutput;op:TOpCG;CONST ref:TReference;reg:TRegister64);override;
+    PROCEDURE a_op64_reg_reg(list:TAasmOutput;op:TOpCG;regsrc,regdst:TRegister64);override;
+    PROCEDURE a_op64_const_reg(list:TAasmOutput;op:TOpCG;value:qWord;regdst:TRegister64);override;
+    PROCEDURE a_op64_const_ref(list:TAasmOutput;op:TOpCG;value:qWord;CONST ref:TReference);override;
     PROCEDURE get_64bit_ops(op:TOpCG;var op1,op2:TAsmOp);
   END;
 CONST
@@ -109,6 +111,22 @@ USES
   globtype,globals,verbose,systems,cutils,
   symdef,symsym,defbase,paramgr,
   rgobj,tgobj,rgcpu;
+function GetFreeParamReg(var FreeParamRegSet:TRegisterSet):TRegister;
+	begin
+		if FreeParamRegSet=[]
+		then
+			exit(R_NONE);
+		GetFreeParamReg:=R_O0;
+		repeat
+			GetFreeParamReg:=Succ(GetFreeParamReg);
+		until GetFreeParamReg in FreeParamRegSet;
+		Exclude(FreeParamRegSet,GetFreeParamReg);
+	end;
+constructor tcgSPARC.Create;
+	begin
+		inherited Create;
+		FreeParamRegSet:=[R_O0..R_O5];
+	end;
     { we implement the following routines because otherwise we can't }
     { instantiate the class since it's abstract                      }
 PROCEDURE tcgSPARC.a_param_reg(list:TAasmOutput;size:tcgsize;r:tregister;CONST LocPara:TParaLocation);
@@ -125,15 +143,19 @@ PROCEDURE tcgSPARC.a_param_const(list:TAasmOutput;size:tcgsize;a:aword;CONST Loc
       InternalError(2002032213);
     List.Concat(taicpu.op_const(A_LD,S_L,a));
   END;
-PROCEDURE tcgSPARC.a_param_ref(list:TAasmOutput;size:tcgsize;CONST r:TReference;CONST LocPara:TParaLocation);
-  VAR
-    tmpreg:TRegister;
-  BEGIN
-    IF((Size=OS_32)AND(Size=OS_S32))
-    THEN
-      InternalError(2002032214);
-    list.concat(taicpu.op_ref(A_LD,S_L,r));
-  END;
+procedure tcgSPARC.a_param_ref(list:TAasmOutput;size:tcgsize;const r:TReference;const LocPara:TParaLocation);
+	var
+		tmpreg:TRegister;
+	begin
+		if((Size=OS_32)and(Size=OS_S32))
+		then
+			InternalError(2002032214);
+		tmpReg:=GetFreeParamReg(FreeParamRegSet);
+		if tmpReg=R_NONE
+		then
+			InternalError(200210030020);
+		list.concat(taicpu.op_ref_reg(A_LD,S_L,r,tmpReg));
+  end;
 PROCEDURE tcgSPARC.a_paramaddr_ref(list:TAasmOutput;CONST r:TReference;CONST LocPara:TParaLocation);
   VAR
     tmpreg:TRegister;
@@ -1082,7 +1104,10 @@ BEGIN
 END.
 {
   $Log$
-  Revision 1.8  2002-10-01 21:35:58  mazen
+  Revision 1.9  2002-10-02 22:20:28  mazen
+  + out registers allocator for the first 6 scalar parameters which must be passed into %o0..%o5
+
+  Revision 1.8  2002/10/01 21:35:58  mazen
   + procedures exiting prologue added and stack frame now restored in the delay slot of the return (JMPL) instruction
 
   Revision 1.7  2002/10/01 21:06:29  mazen

@@ -131,14 +131,14 @@ uses
     constructor tai_align.create(b: byte);
       begin
         inherited create(b);
-        reg := R_NO;
+        reg := R_NONE;
       end;
 
 
     constructor tai_align.create_op(b: byte; _op: byte);
       begin
         inherited create_op(b,_op);
-        reg := R_NO;
+        reg := R_NONE;
       end;
 
 
@@ -187,7 +187,7 @@ uses
       begin
          { default order is att }
          FOperandOrder:=op_att;
-         {segprefix:=R_NO;}{This may be only for I386 architecture!}
+         {segprefix:=R_NONE;}{This may be only for I386 architecture!}
          opsize:=_size;
 {$ifndef NOAG386BIN}
          insentry:=nil;
@@ -586,10 +586,10 @@ begin
               ot:=OT_MEMORY or opsize_2_type[i,opsize]
             else
               ot:=OT_MEMORY or (ot and OT_SIZE_MASK);
-            if (ref^.base=R_NO) and (ref^.index=R_NO) then
+            if (ref^.base=R_NONE) and (ref^.index=R_NONE) then
               ot:=ot or OT_MEM_OFFS;
           { fix scalefactor }
-            if (ref^.index=R_NO) then
+            if (ref^.index=R_NONE) then
              ref^.scalefactor:=0
             else
              if (ref^.scalefactor=0) then
@@ -821,7 +821,7 @@ begin
      if m=100 then
       begin
         InsSize:=calcsize(insentry);
-        {if (segprefix<>R_NO) then
+        {if (segprefix<>R_NONE) then
          inc(InsSize);}{No segprefix!}
         { For opsize if size if forced }
         if (insentry^.flags and (IF_SB or IF_SW or IF_SD))<>0 then
@@ -905,8 +905,8 @@ begin
    begin
      i:=oper[opidx].ref^.index;
      b:=oper[opidx].ref^.base;
-     if not(i in [R_NO,R_EAX,R_EBX,R_ECX,R_EDX,R_EBP,R_ESP,R_ESI,R_EDI]) or
-        not(b in [R_NO,R_EAX,R_EBX,R_ECX,R_EDX,R_EBP,R_ESP,R_ESI,R_EDI]) then
+     if not(i in [R_NONE,R_EAX,R_EBX,R_ECX,R_EDX,R_EBP,R_ESP,R_ESI,R_EDI]) or
+        not(b in [R_NONE,R_EAX,R_EBX,R_ECX,R_EDX,R_EBP,R_ESP,R_ESI,R_EDI]) then
       begin
         NeedAddrPrefix:=true;
         exit;
@@ -947,14 +947,14 @@ end;
 function process_ea(const input:toper;var output:ea;rfield:longint):boolean;
 {const
   regs : array[0..63] of tregister=(
-    R_MM0, R_EAX, R_AX, R_AL, R_XMM0, R_NO, R_NO, R_NO,
-    R_MM1, R_ECX, R_CX, R_CL, R_XMM1, R_NO, R_NO, R_NO,
-    R_MM2, R_EDX, R_DX, R_DL, R_XMM2, R_NO, R_NO, R_NO,
-    R_MM3, R_EBX, R_BX, R_BL, R_XMM3, R_NO, R_NO, R_NO,
-    R_MM4, R_ESP, R_SP, R_AH, R_XMM4, R_NO, R_NO, R_NO,
-    R_MM5, R_EBP, R_BP, R_CH, R_XMM5, R_NO, R_NO, R_NO,
-    R_MM6, R_ESI, R_SI, R_DH, R_XMM6, R_NO, R_NO, R_NO,
-    R_MM7, R_EDI, R_DI, R_BH, R_XMM7, R_NO, R_NO, R_NO
+    R_MM0, R_EAX, R_AX, R_AL, R_XMM0, R_NONE, R_NONE, R_NONE,
+    R_MM1, R_ECX, R_CX, R_CL, R_XMM1, R_NONE, R_NONE, R_NONE,
+    R_MM2, R_EDX, R_DX, R_DL, R_XMM2, R_NONE, R_NONE, R_NONE,
+    R_MM3, R_EBX, R_BX, R_BL, R_XMM3, R_NONE, R_NONE, R_NONE,
+    R_MM4, R_ESP, R_SP, R_AH, R_XMM4, R_NONE, R_NONE, R_NONE,
+    R_MM5, R_EBP, R_BP, R_CH, R_XMM5, R_NONE, R_NONE, R_NONE,
+    R_MM6, R_ESI, R_SI, R_DH, R_XMM6, R_NONE, R_NONE, R_NONE,
+    R_MM7, R_EDI, R_DI, R_BH, R_XMM7, R_NONE, R_NONE, R_NONE
   );}
 var
   j     : longint;
@@ -992,7 +992,7 @@ begin
   o:=input.ref^.offset+input.ref^.offsetfixup;
   sym:=input.ref^.symbol;
 { it's direct address }
-  if (b=R_NO) and (i=R_NO) then
+  if (b=R_NONE) and (i=R_NONE) then
    begin
      { it's a pure offset }
      output.sib_present:=false;
@@ -1003,18 +1003,18 @@ begin
   { it's an indirection }
    begin
      { 16 bit address? }
-{     if not((i in [R_NO,R_EAX,R_EBX,R_ECX,R_EDX,R_EBP,R_ESP,R_ESI,R_EDI]) and
-            (b in [R_NO,R_EAX,R_EBX,R_ECX,R_EDX,R_EBP,R_ESP,R_ESI,R_EDI])) then
+{     if not((i in [R_NONE,R_EAX,R_EBX,R_ECX,R_EDX,R_EBP,R_ESP,R_ESI,R_EDI]) and
+            (b in [R_NONE,R_EAX,R_EBX,R_ECX,R_EDX,R_EBP,R_ESP,R_ESI,R_EDI])) then
       Message(asmw_e_16bit_not_supported);}
 {$ifdef OPTEA}
      { make single reg base }
-     if (b=R_NO) and (s=1) then
+     if (b=R_NONE) and (s=1) then
       begin
         b:=i;
-        i:=R_NO;
+        i:=R_NONE;
       end;
      { convert [3,5,9]*EAX to EAX+[2,4,8]*EAX }
-{     if (b=R_NO) and
+{     if (b=R_NONE) and
         (((s=2) and (i<>R_ESP)) or
           (s=3) or (s=5) or (s=9)) then
       begin
@@ -1029,7 +1029,7 @@ begin
       end;}
 {$endif}
      { wrong, for various reasons }
-{     if (i=R_ESP) or ((s<>1) and (s<>2) and (s<>4) and (s<>8) and (i<>R_NO)) then
+{     if (i=R_ESP) or ((s<>1) and (s<>2) and (s<>4) and (s<>8) and (i<>R_NONE)) then
       exit;}
      { base }
 {     case b of
@@ -1038,7 +1038,7 @@ begin
        R_EDX : base:=2;
        R_EBX : base:=3;
        R_ESP : base:=4;
-       R_NO,
+       R_NONE,
        R_EBP : base:=5;
        R_ESI : base:=6;
        R_EDI : base:=7;
@@ -1051,7 +1051,7 @@ begin
        R_ECX : index:=1;
        R_EDX : index:=2;
        R_EBX : index:=3;
-       R_NO  : index:=4;
+       R_NONE  : index:=4;
        R_EBP : index:=5;
        R_ESI : index:=6;
        R_EDI : index:=7;
@@ -1067,7 +1067,7 @@ begin
      else
       exit;
      end;
-     if (b=R_NO) or
+     if (b=R_NONE) or
         ((b<>R_EBP) and (o=0) and (sym=nil)) then
       md:=0
      else
@@ -1075,12 +1075,12 @@ begin
        md:=1
       else
        md:=2;
-     if (b=R_NO) or (md=2) then
+     if (b=R_NONE) or (md=2) then
       output.bytes:=4
      else
       output.bytes:=md;}
      { SIB needed ? }
-{     if (i=R_NO) and (b<>R_ESP) then
+{     if (i=R_NONE) and (b<>R_ESP) then
       begin
         output.sib_present:=false;
         output.modrm:=(md shl 6) or (rfield shl 3) or base;

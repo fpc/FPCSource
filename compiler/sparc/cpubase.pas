@@ -242,6 +242,7 @@ TYPE
   TRegisterSet=SET OF TRegister;
   reg2strtable=ARRAY[tregister] OF STRING[6];
 CONST
+  R_NO=R_NONE;
   firstreg = low(tregister);
   lastreg  = high(tregister);
   std_reg2str:reg2strtable=({$INCLUDE strregs.inc});
@@ -580,7 +581,10 @@ FUNCTION flags_to_cond(CONST f:TResFlags):TAsmCond;
 END.
 {
   $Log$
-  Revision 1.9  2002-10-01 21:06:29  mazen
+  Revision 1.10  2002-10-02 22:20:28  mazen
+  + out registers allocator for the first 6 scalar parameters which must be passed into %o0..%o5
+
+  Revision 1.9  2002/10/01 21:06:29  mazen
   attinst.inc --> strinst.inc
 
   Revision 1.8  2002/09/30 19:12:14  mazen

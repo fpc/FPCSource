@@ -7,7 +7,10 @@
 { Licence                : GPL                                                }
 { Bug report             : mazen.neifer.01@supaero.org                        }
 {*****************************************************************************}
-R_NO
+{
+    $Id$
+}
+R_NONE
 {General purpose global registers}
 ,R_G0{This register is usually set to zero and used as a scratch register}
 ,R_G1,R_G2,R_G3,R_G4,R_G5,R_G6,R_G7
@@ -48,3 +51,9 @@ implementation according to the Assembler Refernce Manual.(MN)}
 ,R_ASR8,R_ASR9,R_ASR10,R_ASR11,R_ASR12,R_ASR13,R_ASR14,R_ASR15
 ,R_ASR16,R_ASR17,R_ASR18,R_ASR19,R_ASR20,R_ASR21,R_ASR22,R_ASR23
 ,R_ASR24,R_ASR25,R_ASR26,R_ASR27,R_ASR28,R_ASR29,R_ASR30,R_ASR31
+{
+  $Log$
+  Revision 1.2  2002-10-02 22:20:28  mazen
+  + out registers allocator for the first 6 scalar parameters which must be passed into %o0..%o5
+
+}
