@@ -24,6 +24,8 @@ interface
 
 uses SysUtils, Classes, DB;
 
+type TSchemaType = (stNoSchema, stTables, stSysTables, stProcedures, stColumns, stProcedureParams, stIndexes, stPackages);
+
 type
   TSQLConnection = class;
   TSQLTransaction = class;
@@ -83,9 +85,10 @@ type
     procedure CommitRetaining(trans : TSQLHandle); virtual; abstract;
     procedure RollBackRetaining(trans : TSQLHandle); virtual; abstract;
     procedure UpdateIndexDefs(var IndexDefs : TIndexDefs;TableName : string); virtual;
+    function GetSchemaInfoSQL(SchemaType : TSchemaType; SchemaObjectName, SchemaPattern : string) : string; virtual;
   public
-    destructor Destroy; override;
     property Handle: Pointer read GetHandle;
+    destructor Destroy; override;
   published
     property Password : string read FPassword write FPassword;
     property Transaction : TSQLTransaction read FTransaction write SetTransaction;
@@ -142,6 +145,7 @@ type
     FReadOnly            : boolean;
     FUpdateMode          : TUpdateMode;
     FusePrimaryKeyAsKey  : Boolean;
+//    FSchemaInfo          : TSchemaInfo;
 
     procedure FreeStatement;
     procedure PrepareStatement;
@@ -164,17 +168,17 @@ type
     procedure SetDatabase(Value : TDatabase); override;
     procedure InternalAddRecord(Buffer: Pointer; AAppend: Boolean); override;
     procedure InternalClose; override;
-    procedure InternalDelete; override;
     procedure InternalHandleException; override;
     procedure InternalInitFieldDefs; override;
     procedure InternalOpen; override;
     function  GetCanModify: Boolean; override;
     Function GetSQLStatementType(SQL : String) : TStatementType; virtual;
-    function ApplyRecUpdate : boolean; override;
+    function ApplyRecUpdate(UpdateKind : TUpdateKind) : boolean; override;
   public
     procedure ExecSQL; virtual;
     constructor Create(AOwner : TComponent); override;
     destructor Destroy; override;
+    procedure SetSchemaInfo( SchemaType : TSchemaType; SchemaObjectName, SchemaPattern : string); virtual;
   published
     // redeclared data set properties
     property Active;
@@ -212,6 +216,7 @@ type
     property IndexDefs : TIndexDefs read GetIndexDefs;
     property UpdateMode : TUpdateMode read FUpdateMode write SetUpdateMode;
     property UsePrimaryKeyAsKey : boolean read FUsePrimaryKeyAsKey write SetUsePrimaryKeyAsKey;
+//    property SchemaInfo : TSchemaInfo read FSchemaInfo default stNoSchema;
   end;
 
 implementation
@@ -282,6 +287,13 @@ begin
   else
     Result := field.asstring;
   end; {case}
+end;
+
+
+function TSQLConnection.GetSchemaInfoSQL( SchemaType : TSchemaType; SchemaObjectName, SchemaPattern : string) : string;
+
+begin
+  DatabaseError(SMetadataUnavailable);
 end;
 
 
@@ -465,11 +477,6 @@ begin
   FIsEOF := False;
 //  FRecordSize := 0;
   inherited internalclose;
-end;
-
-procedure TSQLQuery.InternalDelete;
-begin
-  // not implemented - sql dataset
 end;
 
 procedure TSQLQuery.InternalHandleException;
@@ -703,10 +710,6 @@ begin
   Setlength(S,PE-P);
   Move(P^,S[1],(PE-P));
   result := (DataBase as TSQLConnection).StrToStatementType(s);
-{  S:=Lowercase(s);
-  For t:=stselect to strollback do
-    if (S=StatementTokens[t]) then
-      Exit(t);}
 end;
 
 procedure TSQLQuery.SetReadOnly(AValue : Boolean);
@@ -738,49 +741,105 @@ begin
     (DataBase as TSQLConnection).UpdateIndexDefs(FIndexDefs,FTableName);
 end;
 
-function TSQLQuery.ApplyRecUpdate : boolean;
+function TSQLQuery.ApplyRecUpdate(UpdateKind : TUpdateKind) : boolean;
 
-var r,x,f     : integer;
-    fieldsstr,
-    v : string;
-    modify_query : tsqlquery;
+var
     sql_tables : string;
-    sql_set    : string;
-    sql_where  : string;
     s : string;
 
-begin
-  Result := False;
-  sql_tables := FTableName;
-  sql_set := '';
-  sql_where := '';
-  for x := 0 to Fields.Count -1 do
-    begin
+  procedure UpdateWherePart(var sql_where : string;x : integer);
+  
+  begin
     if (pfInKey in Fields[x].ProviderFlags) or
        ((FUpdateMode = upWhereAll) and (pfInWhere in Fields[x].ProviderFlags)) or
        ((FUpdateMode = UpWhereChanged) and (pfInWhere in Fields[x].ProviderFlags) and (fields[x].value <> fields[x].oldvalue)) then
       begin
       // This should be converted to something like GetAsSQLText, but better wait until variants (oldvalue) are working for strings
       s := fields[x].oldvalue; // This directly int the line below raises a variant-error
-      sql_where := sql_where + '(' + fields[x].DisplayName + '=' + s + ') and ';
+      sql_where := sql_where + '(' + fields[x].FieldName + '=' + s + ') and ';
       end;
-      
-    if (pfInUpdate in Fields[x].ProviderFlags) then
-      if ord(ActiveBuffer[(Fields[x].Fieldno-1) div 8]) and (1 shl ((Fields[x].Fieldno-1) mod 8)) > 0 then // check for null
-        sql_set := sql_set + fields[x].DisplayName + '=' + (Database as TSQLConnection).GetAsSQLText(nil) + ','
-      else
-        sql_set := sql_set + fields[x].DisplayName + '=' + (Database as TSQLConnection).GetAsSQLText(fields[x]) + ',';
-    end;
+  end;
 
-  setlength(sql_set,length(sql_set)-1);
-  setlength(sql_where,length(sql_where)-5);
+  function ModifyRecQuery : string;
 
+  var x          : integer;
+      sql_set    : string;
+      sql_where  : string;
+
+  begin
+    sql_tables := FTableName;
+    sql_set := '';
+    sql_where := '';
+    for x := 0 to Fields.Count -1 do
+      begin
+      UpdateWherePart(sql_where,x);
+
+      if (pfInUpdate in Fields[x].ProviderFlags) then
+        if fields[x].IsNull then // check for null
+          sql_set := sql_set + fields[x].FieldName + '=' + (Database as TSQLConnection).GetAsSQLText(nil) + ','
+        else
+          sql_set := sql_set + fields[x].FieldName + '=' + (Database as TSQLConnection).GetAsSQLText(fields[x]) + ',';
+      end;
+
+    setlength(sql_set,length(sql_set)-1);
+    setlength(sql_where,length(sql_where)-5);
+    result := 'update ' + sql_tables + ' set ' + sql_set + ' where ' + sql_where;
+
+  end;
+
+  function InsertRecQuery : string;
+
+  var x          : integer;
+      sql_fields : string;
+      sql_values : string;
+
+  begin
+    sql_tables := FTableName;
+    sql_fields := '';
+    sql_values := '';
+    for x := 0 to Fields.Count -1 do
+      begin
+      if not fields[x].IsNull then
+        begin
+        sql_fields := sql_fields + fields[x].DisplayName + ',';
+        sql_values := sql_values + (Database as TSQLConnection).GetAsSQLText(fields[x]) + ',';
+        end;
+      end;
+    setlength(sql_fields,length(sql_fields)-1);
+    setlength(sql_values,length(sql_values)-1);
+
+    result := 'insert into ' + sql_tables + ' (' + sql_fields + ') values (' + sql_values + ')';
+  end;
+
+  function DeleteRecQuery : string;
+
+  var x          : integer;
+      sql_where  : string;
+
+  begin
+    sql_tables := FTableName;
+
+    sql_where := '';
+    for x := 0 to Fields.Count -1 do
+      UpdateWherePart(sql_where,x);
+
+    setlength(sql_where,length(sql_where)-5);
+
+    result := 'delete from ' + sql_tables + ' where ' + sql_where;
+  end;
+
+begin
+  Result := False;
   with tsqlquery.Create(nil) do
     begin
     DataBase := self.Database;
     transaction := self.transaction;
     sql.clear;
-    s := 'update ' + sql_tables + ' set ' + sql_set + ' where ' + sql_where;
+    case UpdateKind of
+      ukModify : s := ModifyRecQuery;
+      ukInsert : s := InsertRecQuery;
+      ukDelete : s := DeleteRecQuery;
+    end; {case}
     sql.add(s);
     ExecSQL;
     Result := true;
@@ -816,11 +875,23 @@ begin
   FUpdateMode := AValue;
 end;
 
+procedure TSQLQuery.SetSchemaInfo( SchemaType : TSchemaType; SchemaObjectName, SchemaPattern : string);
+
+begin
+  SQL.Clear;
+  SQL.Add((DataBase as tsqlconnection).GetSchemaInfoSQL(SchemaType, SchemaObjectName, SchemaPattern));
+end;
+
+
 end.
 
 {
   $Log$
-  Revision 1.12  2005-01-24 10:52:43  michael
+  Revision 1.13  2005-02-07 11:23:41  joost
+    - implemented TSQLQuery.SetSchemaInfo
+    - added support for delete and insert
+
+  Revision 1.12  2005/01/24 10:52:43  michael
     * Patch from Joost van der Sluis
     - Made it possible to run 'show' queries for MySQL
 
