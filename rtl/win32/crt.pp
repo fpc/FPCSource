@@ -789,7 +789,7 @@ begin
             DestRect.Right := (CurrX - 01);
             DestRect.Bottom := (CurrY - 01);
 
-            WriteConsoleOutput(OutHandle, Cell, BufSize, WritePos, @DestRect);
+            WriteConsoleOutput(OutHandle, @Cell, BufSize, WritePos, DestRect);
 
             Inc(CurrX);
           end; { else }
@@ -1007,7 +1007,11 @@ end. { unit Crt }
 
 {
   $Log$
-  Revision 1.15  2000-04-14 12:14:39  pierre
+  Revision 1.16  2000-06-11 07:04:58  peter
+    * Windows unit has now more Delphi compatibile functions
+    * placed the external functions only in the interface
+
+  Revision 1.15  2000/04/14 12:14:39  pierre
    * try to get it to work if output is redirected
 
   Revision 1.14  2000/02/26 14:57:17  florian

@@ -13,24 +13,17 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 
  **********************************************************************}
-
 unit windows;
-
-{$define windows_include_files}
-
-  interface
+interface
 
 {$define read_interface}
 {$undef read_implementation}
-
-{$message starting interface of windows unit }
 
 {$i base.inc}
 {$i errors.inc}
 {$i defines.inc}
 {$i messages.inc}
 {$i struct.inc}
-{$i redef.inc}
 {$i ascfun.inc}
 {$i unifun.inc}
 {$ifdef UNICODE}
@@ -39,8 +32,9 @@ unit windows;
 {$i ascdef.inc}
 {$endif UNICODE}
 {$i func.inc}
+{$i redef.inc}
 
-  implementation
+implementation
 
 {$undef read_interface}
 {$define read_implementation}
@@ -58,31 +52,16 @@ unit windows;
 {$i ascdef.inc}
 {$endif UNICODE}
 {$i func.inc}
-
-  procedure InitializeCriticalSection(var CriticalSection : TRTLCriticalSection); external 'kernel32' name 'InitializeCriticalSection';
-  procedure EnterCriticalSection(var CriticalSection : TRTLCriticalSection); external 'kernel32' name 'EnterCriticalSection';
-  procedure LeaveCriticalSection(var CriticalSection : TRTLCriticalSection); external 'kernel32' name 'LeaveCriticalSection';
-  procedure DeleteCriticalSection(var CriticalSection : TRTLCriticalSection); external 'kernel32' name 'DeleteCriticalSection';
-
-{MvdV: JCL templates}
-function GetTimeZoneInformation(var TimeZoneInformation:TTimeZoneInformation):DWORD;  external 'kernel32' name 'GetTimeZoneInformation';
-function FileTimeToLocalFileTime(const lpFileTime:TFILETIME; var LocalFileTime :TFILETIME):WINBOOL; external 'kernel32' name 'FileTimeToLocalFileTime';
-function FileTimeToSystemTime(const lpFileTime:TFILETIME; var lpSystemTime:TSYSTEMTIME):WINBOOL; external 'kernel32' name 'FileTimeToSystemTime';
-function DosDateTimeToFileTime(wFatDate:WORD; wFatTime:WORD; var lpFileTime:tFILETIME):WINBOOL; external 'kernel32' name 'DosDateTimeToFileTime';
-function SystemTimeToFileTime(const lSystemTime:tSYSTEMTIME;var FileTime:tFILETIME):WINBOOL;external 'kernel32' name 'SystemTimeToFileTime';
-function GetStringTypeExA(Locale:LCID; dwInfoType:DWORD; lpSrcStr:LPCSTR;cchSrc:longint;var CharType:WORD):WINBOOL; external 'kernel32' name 'GetStringTypeExA';
-
-{MvdV: Lazarus mwedit templates}
-function ExtTextOut(_para1:HDC; _para2:longint; _para3:longint; _para4:UINT; _para5:pRECT;
-             _para6:lpcstr; _para7:UINT; _para8:pointer):WINBOOL; external 'gdi32' name 'ExtTextOutA';
-function SetScrollInfo(_para1:HWND; _para2:longint; const _para3:TSCROLLINFO; _para4:WINBOOL):longint; external 'user32' name 'SetScrollInfo';
-// function PtInRect(var lprc:TRECT; pt:TPOINT):WINBOOL; external 'user32' name 'PtInRect';
-
+{$i redef.inc}
 
 end.
 {
   $Log$
-  Revision 1.11  2000-05-17 11:00:29  marco
+  Revision 1.12  2000-06-11 07:04:58  peter
+    * Windows unit has now more Delphi compatibile functions
+    * placed the external functions only in the interface
+
+  Revision 1.11  2000/05/17 11:00:29  marco
    * JCL alias
 
   Revision 1.10  2000/04/22 19:51:08  marco

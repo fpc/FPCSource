@@ -14,60 +14,38 @@
 
  **********************************************************************}
 
-{$ifndef windows_include_files}
-{$define read_interface}
-{$define read_implementation}
-{$endif not windows_include_files}
+{
+  Defines.h
 
+  Windows32 API definitions
 
-{$ifndef windows_include_files}
+  Copyright (C) 1996, 1997 Free Software Foundation, Inc.
 
-unit defines;
+  Author: Scott Christley <scottc@net-community.com>
 
-{  Automatically converted by H2PAS.EXE from defines.h
-   Utility made by Florian Klaempfl 25th-28th september 96
-   Improvements made by Mark A. Malakanov 22nd-25th may 97
-   Further improvements by Michael Van Canneyt, April 1998
-   define handling and error recovery by Pierre Muller, June 1998 }
+  This file is part of the Windows32 API Library.
 
+  This library is free software; you can redistribute it and/or
+  modify it under the terms of the GNU Library General Public
+  License as published by the Free Software Foundation; either
+  version 2 of the License, or (at your option) any later version.
 
-  interface
+  This library is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+  Library General Public License for more details.
 
-  { C default packing is dword }
+  If you are interested in a warranty or support for this source code,
+  contact Scott Christley <scottc@net-community.com> for more information.
 
-{$PACKRECORDS 4}
-  {
-     Defines.h
-
-     Windows32 API definitions
-
-     Copyright (C) 1996, 1997 Free Software Foundation, Inc.
-
-     Author: Scott Christley <scottc@net-community.com>
-
-     This file is part of the Windows32 API Library.
-
-     This library is free software; you can redistribute it and/or
-     modify it under the terms of the GNU Library General Public
-     License as published by the Free Software Foundation; either
-     version 2 of the License, or (at your option) any later version.
-
-     This library is distributed in the hope that it will be useful,
-     but WITHOUT ANY WARRANTY; without even the implied warranty of
-     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-     Library General Public License for more details.
-
-     If you are interested in a warranty or support for this source code,
-     contact Scott Christley <scottc@net-community.com> for more information.
-
-     License along with this library; see the file COPYING.LIB.
-     If not, write to the Free Software Foundation,
-     59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
-   }
-
-{$endif not windows_include_files}
+  License along with this library; see the file COPYING.LIB.
+  If not, write to the Free Software Foundation,
+  59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
+}
 
 {$ifdef read_interface}
+
+{$PACKRECORDS C}
 
   { was #define dname def_expr }
   function UNICODE_NULL : WCHAR;
@@ -5118,7 +5096,7 @@ unit defines;
   { Severity values }
     SEVERITY_SUCCESS = 0;
     SEVERITY_ERROR = 1;
-          
+
  { Variant type codes (wtypes.h).
     Some, not all though }
     VT_EMPTY           = 0;
@@ -5152,21 +5130,6 @@ const
 
 {$endif read_interface}
 
-
-{$ifndef windows_include_files}
-  implementation
-
-    uses
-{$ifdef UNICODE}
-      unidef,
-{$else not UNICODE}
-      ascdef,
-{$endif UNICODE}
-      func;
-
-    const External_library='kernel32'; {Setup as you need!}
-
-{$endif not windows_include_files}
 
 {$ifdef read_implementation}
     { was #define dname def_expr }
@@ -5750,12 +5713,13 @@ const
 
 {$endif read_implementation}
 
-{$ifndef windows_include_files}
-end.
-{$endif not windows_include_files}
 {
   $Log$
-  Revision 1.5  2000-03-14 10:20:19  michael
+  Revision 1.6  2000-06-11 07:04:58  peter
+    * Windows unit has now more Delphi compatibile functions
+    * placed the external functions only in the interface
+
+  Revision 1.5  2000/03/14 10:20:19  michael
   + Added constants and types for Delphi compatibility
 
   Revision 1.4  2000/02/09 16:59:35  peter

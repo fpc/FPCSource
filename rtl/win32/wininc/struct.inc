@@ -14,65 +14,38 @@
 
  **********************************************************************}
 
-{$ifndef windows_include_files}
-{$define read_interface}
-{$define read_implementation}
-{$endif not windows_include_files}
+{
+  Structures.h
 
+  Declarations for all the Windows32 API Structures
 
-{$ifndef windows_include_files}
+  Copyright (C) 1996 Free Software Foundation, Inc.
 
-unit struct;
+  Author:  Scott Christley <scottc@net-community.com>
+  Date: 1996
 
-{  Automatically converted by H2PAS.EXE from structures.h
-   Utility made by Florian Klaempfl 25th-28th september 96
-   Improvements made by Mark A. Malakanov 22nd-25th may 97
-   Further improvements by Michael Van Canneyt, April 1998
-   define handling and error recovery by Pierre Muller, June 1998 }
+  This file is part of the Windows32 API Library.
 
+  This library is free software; you can redistribute it and/or
+  modify it under the terms of the GNU Library General Public
+  License as published by the Free Software Foundation; either
+  version 2 of the License, or (at your option) any later version.
 
-  interface
+  This library is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+  Library General Public License for more details.
 
-   uses
-      base,defines;
+  If you are interested in a warranty or support for this source code,
+  contact Scott Christley <scottc@net-community.com> for more information.
 
-{$endif not windows_include_files}
+  You should have received a copy of the GNU Library General Public
+  License along with this library; see the file COPYING.LIB.
+  If not, write to the Free Software Foundation,
+  59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
+}
 
 {$ifdef read_interface}
-
-  { C default packing is dword }
-
-{$PACKRECORDS 4}
-  {
-     Structures.h
-
-     Declarations for all the Windows32 API Structures
-
-     Copyright (C) 1996 Free Software Foundation, Inc.
-
-     Author:  Scott Christley <scottc@net-community.com>
-     Date: 1996
-
-     This file is part of the Windows32 API Library.
-
-     This library is free software; you can redistribute it and/or
-     modify it under the terms of the GNU Library General Public
-     License as published by the Free Software Foundation; either
-     version 2 of the License, or (at your option) any later version.
-
-     This library is distributed in the hope that it will be useful,
-     but WITHOUT ANY WARRANTY; without even the implied warranty of
-     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-     Library General Public License for more details.
-
-     If you are interested in a warranty or support for this source code,
-     contact Scott Christley <scottc@net-community.com> for more information.
-
-     You should have received a copy of the GNU Library General Public
-     License along with this library; see the file COPYING.LIB.
-     If not, write to the Free Software Foundation,
-     59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
-   }
 
   type
 
@@ -519,7 +492,7 @@ unit struct;
        X,
        Y : SmallInt;
        end;
-       
+
 
      POINTS = record
           x : SHORT;
@@ -682,6 +655,7 @@ unit struct;
        end;
      LPLOGFONT = ^LOGFONT;
      TLOGFONT = LOGFONT;
+     TLOGFONTA = LOGFONT;
      PLOGFONT = ^LOGFONT;
 
      {CHOOSEFONT = record conflicts with ChosseFont function }
@@ -986,6 +960,7 @@ unit struct;
      _CONSOLE_CURSOR_INFO = CONSOLE_CURSOR_INFO;
      TCONSOLECURSORINFO = CONSOLE_CURSOR_INFO;
      PCONSOLECURSORINFO = ^CONSOLE_CURSOR_INFO;
+     TCURSORINFO = CONSOLE_CURSOR_INFO;
 
      COORD = record
           X : SHORT;
@@ -1765,6 +1740,9 @@ unit struct;
        end;
      LPDEVMODE = ^DEVMODE;
      _devicemode = DEVMODE;
+     devicemode = DEVMODE;
+     tdevicemode = DEVMODE;
+     tdevicemodeA = DEVMODE;
      TDEVMODE = DEVMODE;
      PDEVMODE = ^DEVMODE;
 
@@ -1878,6 +1856,7 @@ unit struct;
           fwType : DWORD;
        end;
      TDOCINFO = DOCINFO;
+     TDOCINFOA = DOCINFO;
      PDOCINFO = ^DOCINFO;
 
      DRAGLISTINFO = record
@@ -2094,6 +2073,7 @@ unit struct;
      LPLOGCOLORSPACE = ^LOGCOLORSPACE;
      tagLOGCOLORSPACE = LOGCOLORSPACE;
      TLOGCOLORSPACE = LOGCOLORSPACE;
+     TLOGCOLORSPACEA = LOGCOLORSPACE;
      PLOGCOLORSPACE = ^LOGCOLORSPACE;
 
      EMRCREATECOLORSPACE = record
@@ -3892,6 +3872,7 @@ unit struct;
      LPCMENUITEMINFO = ^MENUITEMINFO;
      tagMENUITEMINFO = MENUITEMINFO;
      TMENUITEMINFO = MENUITEMINFO;
+     TMENUITEMINFOA = MENUITEMINFO;
      PMENUITEMINFO = ^MENUITEMINFO;
 
      MENUITEMTEMPLATE = record
@@ -4178,6 +4159,7 @@ unit struct;
        end;
      LPMSGBOXPARAMS = ^MSGBOXPARAMS;
      TMSGBOXPARAMS = MSGBOXPARAMS;
+     TMSGBOXPARAMSA = MSGBOXPARAMS;
      PMSGBOXPARAMS = ^MSGBOXPARAMS;
 
      MSGFILTER = record
@@ -4268,7 +4250,9 @@ unit struct;
      LPNETRESOURCE = ^NETRESOURCE;
      _NETRESOURCE = NETRESOURCE;
      TNETRESOURCE = NETRESOURCE;
+     TNETRESOURCEA = NETRESOURCE;
      PNETRESOURCE = ^NETRESOURCE;
+     PNETRESOURCEA = ^NETRESOURCE;
 
      NEWCPLINFO = record
           dwSize : DWORD;
@@ -4335,15 +4319,6 @@ unit struct;
      tagNM_LISTVIEW = NM_LISTVIEW;
      TNMLISTVIEW = NM_LISTVIEW;
      PNMLISTVIEW = ^NM_LISTVIEW;
-
-{$ifndef windows_include_files}
-{ already in defines.pp file }
-     TREEITEM = record
-       end;
-     HTREEITEM = ^TREEITEM;
-     TTREEITEM = TREEITEM;
-     PTREEITEM = ^TREEITEM;
-{$endif windows_include_files}
 
      TV_ITEM = record
           mask : UINT;
@@ -6111,6 +6086,7 @@ unit struct;
      PWIN32_FIND_DATA = ^WIN32_FIND_DATA;
      _WIN32_FIND_DATA = WIN32_FIND_DATA;
      TWIN32FINDDATA = WIN32_FIND_DATA;
+     TWIN32FINDDATAA = WIN32_FIND_DATA;
      PWIN32FINDDATA = ^WIN32_FIND_DATA;
 
      WIN32_STREAM_ID = record
@@ -6151,6 +6127,7 @@ unit struct;
      LPWNDCLASS = ^WNDCLASS;
      _WNDCLASS = WNDCLASS;
      TWNDCLASS = WNDCLASS;
+     TWNDCLASSA = WNDCLASS;
      PWNDCLASS = ^WNDCLASS;
 
      WNDCLASSEX = record
@@ -6170,6 +6147,7 @@ unit struct;
      LPWNDCLASSEX = ^WNDCLASSEX;
      _WNDCLASSEX = WNDCLASSEX;
      TWNDCLASSEX = WNDCLASSEX;
+     TWNDCLASSEXA = WNDCLASSEX;
      PWNDCLASSEX = ^WNDCLASSEX;
 
      CONNECTDLGSTRUCT = record
@@ -6194,6 +6172,7 @@ unit struct;
      LPDISCDLGSTRUCT = ^DISCDLGSTRUCT;
      _DISCDLGSTRUCT = DISCDLGSTRUCT;
      TDISCDLGSTRUCT = DISCDLGSTRUCT;
+     TDISCDLGSTRUCTA = DISCDLGSTRUCT;
      PDISCDLGSTRUCT = ^DISCDLGSTRUCT;
 
      NETINFOSTRUCT = record
@@ -6464,7 +6443,7 @@ unit struct;
      PIMAGEDOSHEADER = ^IMAGE_DOS_HEADER;
 
   { Variant support }
-  
+
   TVarType = Word;
   PVariant = ^TVariant;
 
@@ -6473,7 +6452,7 @@ unit struct;
   This is part of the variant definition used by Windows API not that Borland
   TVarRec one which is already partially implemented.
   Needed for some COM objects }
-  
+
   TVariant = record
     vt: TVarType;
     wReserved1: Word;
@@ -6515,10 +6494,6 @@ type
 
 {$endif read_interface}
 
-
-{$ifndef windows_include_files}
-  implementation
-{$endif not windows_include_files}
 
 {$ifdef read_implementation}
 
@@ -6982,16 +6957,15 @@ type
        a.flag0:=a.flag0 or ((__fAckReq shl bp_DDEUP_fAckReq) and bm_DDEUP_fAckReq);
     end;
 
-
 {$endif read_implementation}
 
-
-{$ifndef windows_include_files}
-end.
-{$endif not windows_include_files}
 {
   $Log$
-  Revision 1.5  2000-03-14 10:20:18  michael
+  Revision 1.6  2000-06-11 07:04:59  peter
+    * Windows unit has now more Delphi compatibile functions
+    * placed the external functions only in the interface
+
+  Revision 1.5  2000/03/14 10:20:18  michael
   + Added constants and types for Delphi compatibility
 
   Revision 1.4  2000/02/09 16:59:36  peter

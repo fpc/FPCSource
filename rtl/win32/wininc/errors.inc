@@ -14,76 +14,47 @@
 
  **********************************************************************}
 
-{$ifndef windows_include_files}
-{$define read_interface}
-{$define read_implementation}
-{$endif not windows_include_files}
+{
+
+  Errors.h
 
 
-{$ifndef windows_include_files}
-
-unit errors;
-
-{  Automatically converted by H2PAS.EXE from errors.h
-   Utility made by Florian Klaempfl 25th-28th september 96
-   Improvements made by Mark A. Malakanov 22nd-25th may 97
-
-   Further improvements by Michael Van Canneyt, April 1998
-
-   define handling and error recovery by Pierre Muller, June 1998 }
+  Windows32 API error codes
 
 
-  interface
-
-{$endif not windows_include_files}
-
-  { C default packing is dword }
-
-{$PACKRECORDS 4}
-  {
-
-     Errors.h
+  Copyright (C) 1996 Free Software Foundation, Inc.
 
 
-     Windows32 API error codes
+  Author: Scott Christley <scottc@net-community.com>
 
 
-     Copyright (C) 1996 Free Software Foundation, Inc.
+  This file is part of the Windows32 API Library.
 
 
-     Author: Scott Christley <scottc@net-community.com>
+  This library is free software; you can redistribute it and/or
+  modify it under the terms of the GNU Library General Public
+  License as published by the Free Software Foundation; either
+  version 2 of the License, or (at your option) any later version.
 
 
-     This file is part of the Windows32 API Library.
+  This library is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+  Library General Public License for more details.
 
 
-     This library is free software; you can redistribute it and/or
-     modify it under the terms of the GNU Library General Public
-     License as published by the Free Software Foundation; either
-     version 2 of the License, or (at your option) any later version.
+  If you are interested in a warranty or support for this source code,
+  contact Scott Christley <scottc@net-community.com> for more information.
 
 
-     This library is distributed in the hope that it will be useful,
-     but WITHOUT ANY WARRANTY; without even the implied warranty of
-     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-     Library General Public License for more details.
+  You should have received a copy of the GNU Library General Public
+  License along with this library; see the file COPYING.LIB.
+  If not, write to the Free Software Foundation,
 
+  59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
+}
 
-     If you are interested in a warranty or support for this source code,
-     contact Scott Christley <scottc@net-community.com> for more information.
-
-
-     You should have received a copy of the GNU Library General Public
-     License along with this library; see the file COPYING.LIB.
-     If not, write to the Free Software Foundation,
-
-     59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
-   }
-{$ifndef _GNU_H_WINDOWS32_ERROR}
-{$define _GNU_H_WINDOWS32_ERROR}
-{ C++ extern C conditionnal removed }
-  { __cplusplus  }
-  { Numerical order  }
+{$ifdef read_interface}
 
   const
      LZERROR_UNKNOWNALG = -(8);
@@ -754,23 +725,16 @@ unit errors;
      ERROR_REC_NON_EXISTENT = 4005;
      ERROR_RPL_NOT_ALLOWED = 4006;
      {ERROR_NO_BROWSER_SERVERS_FOUND = 6118; already above }
-{ C++ end of extern C conditionnal removed }
-  { __cplusplus  }
-{$endif}
-  { _GNU_H_WINDOWS32_ERROR  }
 
-{$ifndef windows_include_files}
-  implementation
+{$endif read_interface}
 
-{ const External_library='kernel32'; not needed }
-
-
-end.
-
-{$endif windows_include_files}
 {
   $Log$
-  Revision 1.4  2000-02-09 16:59:35  peter
+  Revision 1.5  2000-06-11 07:04:59  peter
+    * Windows unit has now more Delphi compatibile functions
+    * placed the external functions only in the interface
+
+  Revision 1.4  2000/02/09 16:59:35  peter
     * truncated log
 
   Revision 1.3  2000/01/07 16:41:55  daniel

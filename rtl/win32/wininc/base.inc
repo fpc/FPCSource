@@ -14,61 +14,44 @@
 
  **********************************************************************}
 
-{$ifndef windows_include_files}
-{$define read_interface}
-{$define read_implementation}
-{$endif not windows_include_files}
+{
+  Base.h
 
+  Base definitions
 
-{$ifndef windows_include_files}
+  Copyright (C) 1996, 1997 Free Software Foundation, Inc.
 
-unit base;
-interface
+  Author: Scott Christley <scottc@net-community.com>
 
-{$endif not windows_include_files}
+  This file is part of the Windows32 API Library.
+
+  This library is free software; you can redistribute it and/or
+  modify it under the terms of the GNU Library General Public
+  License as published by the Free Software Foundation; either
+  version 2 of the License, or (at your option) any later version.
+
+  This library is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+  Library General Public License for more details.
+
+  If you are interested in a warranty or support for this source code,
+  contact Scott Christley <scottc@net-community.com> for more information.
+
+  You should have received a copy of the GNU Library General Public
+  License along with this library; see the file COPYING.LIB.
+  If not, write to the Free Software Foundation,
+  59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
+}
 
 {$ifdef read_interface}
 
-  { C default packing is dword }
+{$PACKRECORDS C}
 
-{$PACKRECORDS 4}
-  {
-     Base.h
-
-     Base definitions
-
-     Copyright (C) 1996, 1997 Free Software Foundation, Inc.
-
-     Author: Scott Christley <scottc@net-community.com>
-
-     This file is part of the Windows32 API Library.
-
-     This library is free software; you can redistribute it and/or
-     modify it under the terms of the GNU Library General Public
-     License as published by the Free Software Foundation; either
-     version 2 of the License, or (at your option) any later version.
-
-     This library is distributed in the hope that it will be useful,
-     but WITHOUT ANY WARRANTY; without even the implied warranty of
-     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-     Library General Public License for more details.
-
-     If you are interested in a warranty or support for this source code,
-     contact Scott Christley <scottc@net-community.com> for more information.
-
-     You should have received a copy of the GNU Library General Public
-     License along with this library; see the file COPYING.LIB.
-     If not, write to the Free Software Foundation,
-     59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
-   }
-
-{$ifndef VER0_99_10}
   const
      NULL = nil;
-{$endif}
 
   type
-
      ATOM = word;
 
      WINBOOL = longbool;
@@ -87,6 +70,8 @@ interface
      WINT  = longint;
      LONG  = longint;
      DWORD = cardinal;
+
+     PINTEGER = ^longint;
 
      LONGLONG  = double;
      PLONGLONG = ^LONGLONG;
@@ -698,10 +683,6 @@ type
 {$endif read_interface}
 
 
-{$ifndef windows_include_files}
-  implementation
-{$endif not windows_include_files}
-
 {$ifdef read_implementation}
 
   { was #define dname(params) def_expr }
@@ -957,14 +938,13 @@ type
 
 {$endif read_implementation}
 
-
-{$ifndef windows_include_files}
-end.
-{$endif not windows_include_files}
-
 {
   $Log$
-  Revision 1.6  2000-03-20 11:42:46  pierre
+  Revision 1.7  2000-06-11 07:04:58  peter
+    * Windows unit has now more Delphi compatibile functions
+    * placed the external functions only in the interface
+
+  Revision 1.6  2000/03/20 11:42:46  pierre
    + WINT = longint to avoid errors
 
   Revision 1.5  2000/02/09 16:59:35  peter
