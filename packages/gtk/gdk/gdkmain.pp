@@ -199,7 +199,7 @@ procedure gdk_gc_set_clip_region(gc:PGdkGC; region:PGdkRegion);cdecl;external gd
 procedure gdk_gc_set_subwindow(gc:PGdkGC; mode:TGdkSubwindowMode);cdecl;external gdkdll name 'gdk_gc_set_subwindow';
 procedure gdk_gc_set_exposures(gc:PGdkGC; exposures:gint);cdecl;external gdkdll name 'gdk_gc_set_exposures';
 procedure gdk_gc_set_line_attributes(gc:PGdkGC; line_width:gint; line_style:TGdkLineStyle; cap_style:TGdkCapStyle; join_style:TGdkJoinStyle);cdecl;external gdkdll name 'gdk_gc_set_line_attributes';
-procedure gdk_gc_set_dashes(gc:PGdkGC;dash_offset:gint;dashlist:array of gchar;n:gint);cdecl;external gdkdll name 'gdk_gc_set_dashes';
+procedure gdk_gc_set_dashes(gc:PGdkGC;dash_offset:gint;dashlist:array of gint8;n:gint);cdecl;external gdkdll name 'gdk_gc_set_dashes';
 procedure gdk_gc_copy(dst_gc:PGdkGC; src_gc:PGdkGC);cdecl;external gdkdll name 'gdk_gc_copy';
 function  gdk_pixmap_new(window:PGdkWindow; width:gint; height:gint; depth:gint):PGdkPixmap;cdecl;external gdkdll name 'gdk_pixmap_new';
 function  gdk_bitmap_create_from_data(window:PGdkWindow; data:Pgchar; width:gint; height:gint):PGdkBitmap;cdecl;external gdkdll name 'gdk_bitmap_create_from_data';
@@ -389,7 +389,10 @@ procedure gdk_threads_leave;cdecl;external gdkdll name 'gdk_threads_leave';
 
 {
   $Log$
-  Revision 1.2  2000-07-13 11:33:19  michael
+  Revision 1.3  2001-01-08 21:51:11  peter
+    * fixed gdk_gc_set_dashes declaration to use array of int8
+
+  Revision 1.2  2000/07/13 11:33:19  michael
   + removed logs
- 
+
 }
