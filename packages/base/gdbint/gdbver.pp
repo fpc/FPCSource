@@ -21,8 +21,8 @@ const
 {$endif}
   { This variable should be change with
     change in GDB CVS PM }
-  Current_cvs_version : longint = 502;
-  Max_version_length = 25;
+  Current_cvs_version : longint = 503;
+  Max_version_length = 255;
 
 var
   v5_version : array[0..0] of char;external name ver_name;
@@ -31,6 +31,7 @@ var
   subver_str : string;
   i, version_number,
   subversion_number : longint;
+  subsubversion_number : longint;
   error : word;
   only_ver : boolean;
 
@@ -52,6 +53,17 @@ begin
           inc(i);
         end;
       val(subver_str,subversion_number,error);
+      inc(i);
+      subver_str:='';
+      while version[i] in ['0'..'9'] do
+        begin
+          subver_str:=subver_str+version[i];
+          inc(i);
+        end;
+      val(subver_str,subsubversion_number,error);
+      { 5.02.90 is a pretest of 5.03.. PM }
+      if subsubversion_number>=90 then
+        inc(subversion_number);
       if (error=0) and (subversion_number>=0) and
          (subversion_number<=99) then
         version_number:=version_number*100+subversion_number;
@@ -77,7 +89,10 @@ end.
 
 {
   $Log$
-  Revision 1.3  2002-09-10 12:17:15  pierre
+  Revision 1.4  2002-12-02 13:59:16  pierre
+   convert 5.02.90 into 5.03
+
+  Revision 1.3  2002/09/10 12:17:15  pierre
    * avoid RTE 201
 
   Revision 1.2  2002/09/07 15:42:52  peter
