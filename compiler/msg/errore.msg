@@ -1233,6 +1233,9 @@ sym_b_param_list=05039_B_Found declaration: $1
 % listed, with their parameter lists.
 sym_e_segment_too_large=05040_E_Data segment too large (max. 2GB)
 % You get this when you declare an array whose size exceeds the 2GB limit.
+sym_e_no_matching_implementation_found=05041_E_No matching implementation for interface method "$1" found
+% There was no matching method found which could implement the interface
+% method. Check argument types and result type of the methods.
 % \end{description}
 #
 # Codegenerator

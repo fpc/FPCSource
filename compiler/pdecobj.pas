@@ -764,27 +764,34 @@ implementation
            end;
         end;
 
+      procedure handleimplementedinterface(implintf : tobjectdef);
+
+        begin
+            if not is_interface(implintf) then
+              begin
+                 Message1(type_e_interface_type_expected,implintf.typename);
+                 exit;
+              end;
+            if aktclass.implementedinterfaces.searchintf(implintf)<>-1 then
+              Message1(sym_e_duplicate_id,implintf.name)
+            else
+              aktclass.implementedinterfaces.addintf(implintf);
+        end;
+
       procedure readimplementedinterfaces;
         var
-          implintf: tobjectdef;
           tt      : ttype;
         begin
-          while try_to_consume(_COMMA) do begin
-            id_type(tt,pattern,false);
-            implintf:=tobjectdef(tt.def);
-            if (tt.def.deftype<>objectdef) then begin
-              Message1(type_e_interface_type_expected,tt.def.typename);
-              Continue; { omit }
+          while try_to_consume(_COMMA) do
+            begin
+               id_type(tt,pattern,false);
+               if (tt.def.deftype<>objectdef) then
+                 begin
+                    Message1(type_e_interface_type_expected,tt.def.typename);
+                    continue;
+                 end;
+               handleimplementedinterface(tobjectdef(tt.def));
             end;
-            if not is_interface(implintf) then begin
-              Message1(type_e_interface_type_expected,implintf.typename);
-              Continue; { omit }
-            end;
-            if aktclass.implementedinterfaces.searchintf(tt.def)<>-1 then
-              Message1(sym_e_duplicate_id,tt.def.name)
-            else
-              aktclass.implementedinterfaces.addintf(tt.def);
-          end;
         end;
 
       procedure readinterfaceiid;
@@ -810,7 +817,10 @@ implementation
 
 
       procedure readparentclasses;
+        var
+           hp : tobjectdef;
         begin
+           hp:=nil;
            { reads the parent class }
            if token=_LKLAMMER then
              begin
@@ -821,7 +831,7 @@ implementation
                    (childof.deftype<>objectdef) then
                  begin
                    if assigned(childof) then
-                    Message1(type_e_class_type_expected,childof.typename);
+                     Message1(type_e_class_type_expected,childof.typename);
                    childof:=nil;
                    aktclass:=tobjectdef.create(classtype,n,nil);
                  end
@@ -831,9 +841,19 @@ implementation
                      isn't allowed }
                    case classtype of
                       odt_class:
-                        if not(is_class(childof)) and
-                          not(is_interface(childof)) then
-                          Message(parser_e_mix_of_classes_and_objects);
+                        if not(is_class(childof)) then
+                          begin
+                             if is_interface(childof) then
+                               begin
+                                  { we insert the interface after the child
+                                    is set, see below
+                                  }
+                                  hp:=childof;
+                                  childof:=class_tobject;
+                               end
+                             else
+                               Message(parser_e_mix_of_classes_and_objects);
+                          end;
                       odt_interfacecorba,
                       odt_interfacecom:
                         if not(is_interface(childof)) then
@@ -861,7 +881,11 @@ implementation
                    else
                     aktclass:=tobjectdef.create(classtype,n,childof);
                    if aktclass.objecttype=odt_class then
-                    readimplementedinterfaces;
+                     begin
+                        if assigned(hp) then
+                          handleimplementedinterface(hp);
+                        readimplementedinterfaces;
+                     end;
                  end;
                 consume(_RKLAMMER);
              end
@@ -1133,7 +1157,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.47  2002-07-20 11:57:55  florian
+  Revision 1.48  2002-08-09 07:33:02  florian
+    * a couple of interface related fixes
+
+  Revision 1.47  2002/07/20 11:57:55  florian
     * types.pas renamed to defbase.pas because D6 contains a types
       unit so this would conflicts if D6 programms are compiled
     + Willamette/SSE2 instructions to assembler added

@@ -33,9 +33,9 @@ unit paramgr;
        symtype,symdef;
 
     type
-       {# This class defines some methods to take care of routine 
+       {# This class defines some methods to take care of routine
           parameters. It should be overriden for each new processor
-       }   
+       }
        tparamanager = class
           {# Returns true if the return value can be put in accumulator }
           function ret_in_acc(def : tdef) : boolean;virtual;
@@ -47,27 +47,29 @@ unit paramgr;
 
           function push_high_param(def : tdef) : boolean;virtual;
 
-          {# Returns true if a parameter is too large to copy and only 
+          {# Returns true if a parameter is too large to copy and only
             the address is pushed
           }
           function push_addr_param(def : tdef) : boolean;virtual;
           {# Returns a structure giving the information on
              the storage of the parameter (which must be
              an integer parameter)
-             
+
              @param(nr Parameter number of routine, starting from 1)
-          }   
+          }
           function getintparaloc(nr : longint) : tparalocation;virtual;abstract;
           procedure create_param_loc_info(p : tabstractprocdef);virtual;abstract;
 
-          {# 
+          {#
             Returns the location where the invisible parameter for structured
             function results will be passed.
           }
           function getfuncretloc(p : tabstractprocdef) : tparalocation;virtual;abstract;
-          { Returns the self pointer for the give procdef
-          function getfuncretloc(p : tabstractprocdef) : tparalocation;virtual;abstract;
+          { Returns the self pointer location for the given tabstractprocdef,
+            when the stack frame is already created. This is used by the code
+            generating the wrappers for implemented interfaces.
           }
+          function getselflocation(p : tabstractprocdef) : tparalocation;virtual;abstract;
        end;
 
     procedure setparalocs(p : tprocdef);
@@ -173,7 +175,10 @@ end.
 
 {
    $Log$
-   Revision 1.8  2002-08-06 20:55:21  florian
+   Revision 1.9  2002-08-09 07:33:02  florian
+     * a couple of interface related fixes
+
+   Revision 1.8  2002/08/06 20:55:21  florian
      * first part of ppc calling conventions fix
 
    Revision 1.7  2002/08/05 18:27:48  carl

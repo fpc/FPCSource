@@ -41,6 +41,7 @@ unit cpupara;
        ti386paramanager = class(tparamanager)
           function getintparaloc(nr : longint) : tparalocation;override;
           procedure create_param_loc_info(p : tabstractprocdef);override;
+          function getselflocation(p : tabstractprocdef) : tparalocation;override;
        end;
 
   implementation
@@ -60,13 +61,22 @@ unit cpupara;
          }
       end;
 
+    function ti386paramanager.getselflocation(p : tabstractprocdef) : tparalocation;
+      begin
+         getselflocation.loc:=LOC_REFERENCE;
+         getselflocation.reference.index:=R_ESP;
+         getselflocation.reference.offset:=4;
+      end;
 
 begin
    paramanager:=ti386paramanager.create;
 end.
 {
   $Log$
-  Revision 1.2  2002-07-11 14:41:32  florian
+  Revision 1.3  2002-08-09 07:33:04  florian
+    * a couple of interface related fixes
+
+  Revision 1.2  2002/07/11 14:41:32  florian
     * start of the new generic parameter handling
 
   Revision 1.1  2002/07/07 09:52:33  florian

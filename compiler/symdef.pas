@@ -2561,7 +2561,7 @@ implementation
     function tformaldef.gettypename : string;
 
       begin
-         gettypename:='Var';
+         gettypename:='<Formal type>';
       end;
 
 {***************************************************************************
@@ -3251,7 +3251,11 @@ implementation
              begin
                if hp.paratyp in [vs_var,vs_const,vs_out] then
                  s := s + ' ';
-               s:=s+hp.paratype.def.typesym.realname;
+               hs:=hp.paratype.def.typesym.realname;
+               if hs[1]<>'$' then
+                 s:=s+hp.paratype.def.typesym.realname
+               else
+                 s:=s+hp.paratype.def.gettypename;
              end;
            { default value }
            if assigned(hp.defaultvalue) then
@@ -4135,7 +4139,7 @@ implementation
          if objecttype in [odt_interfacecom,odt_interfacecorba] then
            begin
               isiidguidvalid:=boolean(ppufile.getbyte);
-              ppufile.putguid(iidguid);
+              ppufile.getguid(iidguid);
               iidstr:=stringdup(ppufile.getstring);
               lastvtableindex:=ppufile.getlongint;
            end;
@@ -4356,7 +4360,7 @@ implementation
      end;*)
 
     procedure Tobjectdef._searchdestructor(sym:Tnamedindexitem;arg:pointer);
-    
+
     begin
         { if we found already a destructor, then we exit }
         if (sd=nil) and (Tsym(sym).typ=procsym) then
@@ -5486,7 +5490,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.85  2002-07-23 09:51:24  daniel
+  Revision 1.86  2002-08-09 07:33:03  florian
+    * a couple of interface related fixes
+
+  Revision 1.85  2002/07/23 09:51:24  daniel
   * Tried to make Tprocsym.defs protected. I didn't succeed but the cleanups
     are worth comitting.
 

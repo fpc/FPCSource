@@ -107,15 +107,6 @@ procedure ti386classheader.cgintfwrapper(asmlist: TAAsmoutput; procdef: tprocdef
       Internalerror(200006139);
   end;
 
-  procedure adjustselfvalue(ioffset: longint);
-  var
-    href : treference;
-  begin
-    { sub $ioffset,offset(%esp) }
-    reference_reset_base(href,R_ESP,getselfoffsetfromsp(procdef));
-    emit_const_ref(A_SUB,S_L,ioffset,href);
-  end;
-
   procedure getselftoeax(offs: longint);
   var
     href : treference;
@@ -183,7 +174,7 @@ begin
    exprasmList.concat(Tai_symbol.Createname(labelname,0));
 
   { set param1 interface to self  }
-  adjustselfvalue(ioffset);
+  adjustselfvalue(procdef,ioffset);
 
   { case 1 or 2 }
   if (po_clearstack in procdef.procoptions) then
@@ -197,7 +188,7 @@ begin
       else { case 1 }
         cg.a_call_name(exprasmlist,procdef.mangledname);
       { restore param1 value self to interface }
-      adjustselfvalue(-ioffset);
+      adjustselfvalue(procdef,-ioffset);
     end
   { case 3 }
   else if [po_virtualmethod,po_saveregisters]*procdef.procoptions=[po_virtualmethod,po_saveregisters] then
@@ -237,7 +228,10 @@ initialization
 end.
 {
   $Log$
-  Revision 1.12  2002-07-16 15:34:21  florian
+  Revision 1.13  2002-08-09 07:33:04  florian
+    * a couple of interface related fixes
+
+  Revision 1.12  2002/07/16 15:34:21  florian
     * exit is now a syssym instead of a keyword
 
   Revision 1.11  2002/07/01 18:46:33  peter

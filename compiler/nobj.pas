@@ -28,7 +28,7 @@ unit nobj;
 interface
 
     uses
-       cutils,cclasses,
+       cutils,cclasses,cpuinfo,
        symdef,aasmbase,aasmtai,aasmcpu;
 
     type
@@ -99,6 +99,11 @@ interface
         procedure gintfdoonintf(intf: tobjectdef; intfindex: longint);
         procedure gintfwalkdowninterface(intf: tobjectdef; intfindex: longint);
       protected
+        { adjusts the self value with ioffset when casting a interface
+          to a class
+        }
+        procedure adjustselfvalue(procdef: tprocdef;ioffset: aword);virtual;
+        { generates the wrapper for a call to a method via an interface }
         procedure cgintfwrapper(asmlist: TAAsmoutput; procdef: tprocdef; const labelname: string; ioffset: longint);virtual;abstract;
       public
         constructor create(c:tobjectdef);
@@ -135,11 +140,11 @@ implementation
        strings,
 {$endif}
        globtype,globals,verbose,
-       symtable,symconst,symtype,symsym,defbase,
+       symtable,symconst,symtype,symsym,defbase,paramgr,
 {$ifdef GDB}
        gdb,
 {$endif GDB}
-       cpuinfo
+       cpubase,cgbase,cginfo,cgobj,rgobj
        ;
 
 
@@ -793,7 +798,7 @@ implementation
         proccount:=implintf.implproccount(intfindex);
         for i:=1 to proccount do
           begin
-            tmps:=implintf.implprocs(intfindex,i).mangledname+'_$_'+curintf.objname^;
+            tmps:=mangledname_prefix('WRPR',_class.owner)+_class.objname^+'_$_'+curintf.objname^+'_$_'+implintf.implprocs(intfindex,i).mangledname;
             { create wrapper code }
             cgintfwrapper(rawcode,implintf.implprocs(intfindex,i),tmps,implintf.ioffsets(intfindex)^);
             { create reference }
@@ -1031,7 +1036,7 @@ implementation
                 if assigned(implprocdef) then
                   _class.implementedinterfaces.addimplproc(intfindex,implprocdef)
                 else
-                  Message1(sym_e_id_not_found,procname);
+                  Message1(sym_e_no_matching_implementation_found,proc.fullprocnamewithret);
               end;
           end;
       end;
@@ -1263,13 +1268,35 @@ implementation
          dataSegment.concat(Tai_symbol_end.Createname(_class.vmt_mangledname));
       end;
 
+  procedure tclassheader.adjustselfvalue(procdef: tprocdef;ioffset: aword);
+    var
+      href : treference;
+      l : tparalocation;
+    begin
+      l:=paramanager.getselflocation(procdef);
+      case l.loc of
+        LOC_REGISTER:
+          cg.a_op_const_reg(exprasmlist,OP_SUB,ioffset,l.register);
+        LOC_REFERENCE:
+          begin
+             reference_reset_base(href,l.reference.index,l.reference.offset);
+             cg.a_op_const_ref(exprasmlist,OP_SUB,OS_ADDR,ioffset,href);
+          end
+        else
+          internalerror(2002080801);
+      end;
+    end;
+
 
 initialization
   cclassheader:=tclassheader;
 end.
 {
   $Log$
-  Revision 1.22  2002-07-20 11:57:55  florian
+  Revision 1.23  2002-08-09 07:33:01  florian
+    * a couple of interface related fixes
+
+  Revision 1.22  2002/07/20 11:57:55  florian
     * types.pas renamed to defbase.pas because D6 contains a types
       unit so this would conflicts if D6 programms are compiled
     + Willamette/SSE2 instructions to assembler added

@@ -1863,9 +1863,9 @@ implementation
             if (right.nodetype=typen) then
              begin
                if tobjectdef(left.resulttype.def).isiidguidvalid then
-                right:=cguidconstnode.create(tobjectdef(left.resulttype.def).iidguid)
+                 right:=cguidconstnode.create(tobjectdef(left.resulttype.def).iidguid)
                else
-                internalerror(200206282);
+                 internalerror(200206282);
                resulttypepass(right);
              end;
           end
@@ -1893,7 +1893,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.65  2002-07-29 21:23:42  florian
+  Revision 1.66  2002-08-09 07:33:01  florian
+    * a couple of interface related fixes
+
+  Revision 1.65  2002/07/29 21:23:42  florian
     * more fixes for the ppc
     + wrappers for the tcnvnode.first_* stuff introduced
 
