@@ -354,6 +354,8 @@ unit tree;
     function is_constboolnode(p : ptree) : boolean;
     function is_constrealnode(p : ptree) : boolean;
     function is_constcharnode(p : ptree) : boolean;
+    function is_constresourcestringnode(p : ptree) : boolean;
+
     function str_length(p : ptree) : longint;
     function is_emptyset(p : ptree):boolean;
 
@@ -2035,6 +2037,15 @@ unit tree;
          is_constboolnode:=(p^.treetype=ordconstn) and is_boolean(p^.resulttype);
       end;
 
+
+    function is_constresourcestringnode(p : ptree) : boolean;
+      begin
+        is_constresourcestringnode:=(p^.treetype=loadn) and
+                                    (p^.symtableentry^.typ=constsym) and
+                                    (pconstsym(p^.symtableentry)^.consttyp=constresourcestring);
+      end;
+
+
     function str_length(p : ptree) : longint;
 
       begin
@@ -2110,7 +2121,11 @@ unit tree;
 end.
 {
   $Log$
-  Revision 1.119  2000-04-25 14:43:37  jonas
+  Revision 1.120  2000-05-17 17:10:06  peter
+    * add support for loading of typed const strings with resourcestrings,
+      made the loading also a bit more generic
+
+  Revision 1.119  2000/04/25 14:43:37  jonas
     - disabled "string_var := string_var + ... " and "string_var + char_var"
       optimizations (were only active with -dnewoptimizations) because of
       several internal issues

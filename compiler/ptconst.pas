@@ -36,6 +36,8 @@ unit ptconst;
     uses
 {$ifdef Delphi}
        sysutils,
+{$else}
+       strings,
 {$endif Delphi}
        globtype,systems,tokens,
        cobjects,globals,scanner,
@@ -76,6 +78,7 @@ unit ptconst;
          obj       : pobjectdef;
          symt      : psymtable;
          value     : bestreal;
+         strval    : pchar;
 
       procedure check_range;
         begin
@@ -413,107 +416,94 @@ unit ptconst;
            begin
               p:=comp_expr(true);
               do_firstpass(p);
-              { first take care of prefixes for long and ansi strings }
-              case pstringdef(def)^.string_typ of
-                 st_shortstring:
-                   begin
-                      if p^.treetype=stringconstn then
+              { load strval and strlength of the constant tree }
+              if p^.treetype=stringconstn then
+                begin
+                  strlength:=p^.length;
+                  strval:=p^.value_str;
+                end
+              else if is_constcharnode(p) then
+                begin
+                  strval:=pchar(@p^.value);
+                  strlength:=1
+                end
+              else if is_constresourcestringnode(p) then
+                begin
+                  strval:=pchar(pconstsym(p^.symtableentry)^.value);
+                  strlength:=pconstsym(p^.symtableentry)^.len;
+                end
+              else
+                begin
+                  Message(cg_e_illegal_expression);
+                  strlength:=-1;
+                end;
+              if strlength>=0 then
+               begin
+                 case pstringdef(def)^.string_typ of
+                   st_shortstring:
+                     begin
+                       if strlength>=def^.size then
                         begin
-                           if p^.length>=def^.size then
-                             begin
-                               message2(parser_w_string_too_long,strpas(p^.value_str),tostr(def^.size-1));
-                               strlength:=def^.size-1;
-                             end
-                           else
-                             strlength:=p^.length;
-                           curconstsegment^.concat(new(pai_const,init_8bit(strlength)));
-                           { this can also handle longer strings }
-                           getmem(ca,strlength+1);
-                           move(p^.value_str^,ca^,strlength);
-                           ca[strlength]:=#0;
-                           curconstsegment^.concat(new(pai_string,init_length_pchar(ca,strlength)));
-                        end
-                      else if is_constcharnode(p) then
-                        begin
-                           curconstsegment^.concat(new(pai_string,init(#1+char(byte(p^.value)))));
-                           strlength:=1;
-                        end
-                      else Message(cg_e_illegal_expression);
-
-                      if def^.size>strlength then
-                        begin
-                           getmem(ca,def^.size-strlength);
-                           { def^.size contains also the leading length, so we }
-                           { we have to subtract one                       }
-                           fillchar(ca[0],def^.size-strlength-1,' ');
-                           ca[def^.size-strlength-1]:=#0;
-                           { this can also handle longer strings }
-                           curconstsegment^.concat(new(pai_string,init_length_pchar(ca,def^.size-strlength-1)));
+                          message2(parser_w_string_too_long,strpas(strval),tostr(def^.size-1));
+                          strlength:=def^.size-1;
                         end;
-                   end;
+                       curconstsegment^.concat(new(pai_const,init_8bit(strlength)));
+                       { this can also handle longer strings }
+                       getmem(ca,strlength+1);
+                       move(strval^,ca^,strlength);
+                       ca[strlength]:=#0;
+                       curconstsegment^.concat(new(pai_string,init_length_pchar(ca,strlength)));
+                       { fillup with spaces if size is shorter }
+                       if def^.size>strlength then
+                        begin
+                          getmem(ca,def^.size-strlength);
+                          { def^.size contains also the leading length, so we }
+                          { we have to subtract one                       }
+                          fillchar(ca[0],def^.size-strlength-1,' ');
+                          ca[def^.size-strlength-1]:=#0;
+                          { this can also handle longer strings }
+                          curconstsegment^.concat(new(pai_string,init_length_pchar(ca,def^.size-strlength-1)));
+                        end;
+                     end;
 {$ifdef UseLongString}
-                 st_longstring:
-                   begin
-                     if is_constcharnode(p) then
-                      strlength:=1
-                     else
-                      strlength:=p^.length;
-                     { first write the maximum size }
-                     curconstsegment^.concat(new(pai_const,init_32bit(strlength)))));
-                     { fill byte }
-                     curconstsegment^.concat(new(pai_const,init_8bit(0)));
-                     if p^.treetype=stringconstn then
-                       begin
-                         getmem(ca,strlength+1);
-                         move(p^.value_str^,ca^,strlength);
-                         ca[strlength]:=#0;
-                         generate_pascii(consts,ca,strlength);
-                       end
-                     else if is_constcharnode(p) then
-                       begin
-                          consts^.concat(new(pai_const,init_8bit(p^.value)));
-                       end
-                     else Message(cg_e_illegal_expression);
-                     curconstsegment^.concat(new(pai_const,init_8bit(0)));
-                   end;
+                   st_longstring:
+                     begin
+                       { first write the maximum size }
+                       curconstsegment^.concat(new(pai_const,init_32bit(strlength)))));
+                       { fill byte }
+                       curconstsegment^.concat(new(pai_const,init_8bit(0)));
+                       getmem(ca,strlength+1);
+                       move(strval^,ca^,strlength);
+                       ca[strlength]:=#0;
+                       generate_pascii(consts,ca,strlength);
+                       curconstsegment^.concat(new(pai_const,init_8bit(0)));
+                     end;
 {$endif UseLongString}
-                 st_ansistring:
-                   begin
-                      { an empty ansi string is nil! }
-                      if (p^.treetype=stringconstn) and (p^.length=0) then
-                        curconstsegment^.concat(new(pai_const,init_32bit(0)))
-                      else
-                        begin
-                           if is_constcharnode(p) then
-                            strlength:=1
-                           else
-                            strlength:=p^.length;
-                           getdatalabel(ll);
-                           curconstsegment^.concat(new(pai_const_symbol,init(ll)));
-                           { first write the maximum size }
-                           consts^.concat(new(pai_const,init_32bit(strlength)));
-                           { second write the real length }
-                           consts^.concat(new(pai_const,init_32bit(strlength)));
-                           { redondent with maxlength but who knows ... (PM) }
-                           { third write use count (set to -1 for safety ) }
-                           consts^.concat(new(pai_const,init_32bit(-1)));
-                           consts^.concat(new(pai_label,init(ll)));
-                           if p^.treetype=stringconstn then
-                             begin
-                               getmem(ca,strlength+1);
-                               move(p^.value_str^,ca^,strlength);
-                               ca[strlength]:=#0;
-                               consts^.concat(new(pai_string,init_length_pchar(ca,strlength)));
-                             end
-                           else if is_constcharnode(p) then
-                             begin
-                                consts^.concat(new(pai_const,init_8bit(p^.value)));
-                             end
-                           else Message(cg_e_illegal_expression);
-                           consts^.concat(new(pai_const,init_8bit(0)));
-                        end;
-                   end;
-              end;
+                   st_ansistring:
+                     begin
+                        { an empty ansi string is nil! }
+                        if (strlength=0) then
+                          curconstsegment^.concat(new(pai_const,init_32bit(0)))
+                        else
+                          begin
+                            getdatalabel(ll);
+                            curconstsegment^.concat(new(pai_const_symbol,init(ll)));
+                            { first write the maximum size }
+                            consts^.concat(new(pai_const,init_32bit(strlength)));
+                            { second write the real length }
+                            consts^.concat(new(pai_const,init_32bit(strlength)));
+                            { redondent with maxlength but who knows ... (PM) }
+                            { third write use count (set to -1 for safety ) }
+                            consts^.concat(new(pai_const,init_32bit(-1)));
+                            consts^.concat(new(pai_label,init(ll)));
+                            getmem(ca,strlength+1);
+                            move(strval^,ca^,strlength);
+                            ca[strlength]:=#0;
+                            consts^.concat(new(pai_string,init_length_pchar(ca,strlength)));
+                          end;
+                     end;
+                 end;
+               end;
               disposetree(p);
            end;
          arraydef:
@@ -800,7 +790,11 @@ unit ptconst;
 end.
 {
   $Log$
-  Revision 1.66  2000-05-12 06:02:01  pierre
+  Revision 1.67  2000-05-17 17:10:06  peter
+    * add support for loading of typed const strings with resourcestrings,
+      made the loading also a bit more generic
+
+  Revision 1.66  2000/05/12 06:02:01  pierre
    * * get it to compile with Delphi by Kovacs Attila Zoltan
 
   Revision 1.65  2000/05/11 09:15:15  pierre
