@@ -3190,7 +3190,8 @@ procedure mov_reg_to_dest(p : ptree; s : topsize; reg : tregister);
         exprasmlist^.insert(new(pai_label,init(aktexitlabel)));
 
       { call the destructor help procedure }
-      if (aktprocsym^.definition^.proctypeoption=potype_destructor) then
+      if (aktprocsym^.definition^.proctypeoption=potype_destructor) and
+         assigned(procinfo^._class) then
         begin
           if procinfo^._class^.is_class then
             begin
@@ -3446,7 +3447,10 @@ procedure mov_reg_to_dest(p : ptree; s : topsize; reg : tregister);
 end.
 {
   $Log$
-  Revision 1.55  1999-10-21 16:41:38  florian
+  Revision 1.56  1999-10-25 12:18:11  peter
+    * fixed bug 301
+
+  Revision 1.55  1999/10/21 16:41:38  florian
     * problems with readln fixed: esi wasn't restored correctly when
       reading ordinal fields of objects futher the register allocation
       didn't take care of the extra register when reading ordinal values
