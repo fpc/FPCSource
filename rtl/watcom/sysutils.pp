@@ -782,6 +782,26 @@ begin
   Result := DosExitCode;
 end;
 
+
+function ExecuteProcess (const Path: AnsiString;
+                                  const ComLine: array of AnsiString): integer;
+
+var 
+  CommandLine: AnsiString;
+  I: integer;
+
+begin
+  Commandline := '';
+  for I := 0 to High (ComLine) do
+   if Pos (' ', ComLine [I]) <> 0 then
+    CommandLine := CommandLine + ' ' + '"' + ComLine [I] + '"'
+   else
+    CommandLine := CommandLine + ' ' + Comline [I];
+  ExecuteProcess := ExecuteProcess (Path, CommandLine);
+end;
+
+
+
 {*************************************************************************
                                    Sleep (copied from crt.Delay)
 *************************************************************************}
@@ -861,7 +881,10 @@ end.
 
 {
   $Log$
-  Revision 1.4  2004-01-20 23:12:49  hajny
+  Revision 1.5  2004-02-15 21:36:10  hajny
+    * overloaded ExecuteProcess added, EnvStr param changed to longint
+
+  Revision 1.4  2004/01/20 23:12:49  hajny
     * ExecuteProcess fixes, ProcessID and ThreadID added
 
   Revision 1.3  2003/12/15 15:57:49  peter

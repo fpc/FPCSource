@@ -167,7 +167,11 @@ End;
                                --- Exec ---
 ******************************************************************************}
 
+{$ifdef HASTHREADVAR}
+threadvar
+{$else HASTHREADVAR}
 var
+{$endif HASTHREADVAR}
   lastdosexitcode : word;
 
 procedure exec(const path : pathstr;const comline : comstr);
@@ -892,7 +896,7 @@ begin
 end;
 
 
-function envstr(index : integer) : string;
+function EnvStr (Index: longint): string;
 begin
   if (index<=0) or (index>envcount) then
    begin
@@ -947,7 +951,10 @@ end.
 
 {
   $Log$
-  Revision 1.5  2004-02-09 12:03:16  michael
+  Revision 1.6  2004-02-15 21:36:10  hajny
+    * overloaded ExecuteProcess added, EnvStr param changed to longint
+
+  Revision 1.5  2004/02/09 12:03:16  michael
   + Switched to single interface in dosh.inc
 
   Revision 1.4  2003/10/18 09:18:29  hajny

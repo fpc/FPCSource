@@ -309,7 +309,11 @@ type
    function CloseHandle(h : TWin32Handle) : longint;
      stdcall; external 'kernel32' name 'CloseHandle';
 
+{$ifdef HASTHREADVAR}
+threadvar
+{$else HASTHREADVAR}
 var
+{$endif HASTHREADVAR}
   lastdosexitcode : longint;
 
 procedure exec(const path : pathstr;const comline : comstr);
@@ -851,7 +855,7 @@ begin
 end;
 
 
-Function  EnvStr(index: integer): string;
+Function EnvStr (Index: longint): string;
 var
    hp,p : pchar;
    count,i : longint;
@@ -956,7 +960,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.23  2004-02-09 12:03:16  michael
+  Revision 1.24  2004-02-15 21:36:10  hajny
+    * overloaded ExecuteProcess added, EnvStr param changed to longint
+
+  Revision 1.23  2004/02/09 12:03:16  michael
   + Switched to single interface in dosh.inc
 
   Revision 1.22  2004/01/06 00:58:35  florian

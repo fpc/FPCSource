@@ -93,10 +93,7 @@ const
 (* For compatibility with VP/2, used for runflags in Exec procedure. *)
     ExecFlags: cardinal = ord (efwait);
 
-var
-    dosexitcodevar:word;
-
-{$I dosh.inc}
+{$i dosh.inc}
 
 {OS/2 specific functions}
 
@@ -160,14 +157,21 @@ begin
   DosError := integer (RC);
 end;
 
-procedure exec(const path:pathstr;const comline:comstr);
+{$ifdef HASTHREADVAR}
+threadvar
+{$else HASTHREADVAR}
+var
+{$endif HASTHREADVAR}
+  LastDosExitCode: longint;
+
+procedure exec (const path:pathstr;const comline:comstr);
 {Execute a program.}
 begin
-  dosexitcodevar:=word(exec(path,execrunflags(ExecFlags),efdefault,comline));
+  LastDosExitCode := Exec (Path, ExecRunFlags (ExecFlags), efDefault, ComLine);
 end;
 
-function exec(path:pathstr;runflags:execrunflags;winflags:execwinflags;
-              const comline:comstr):longint;
+function Exec (path:pathstr;runflags:execrunflags;winflags:execwinflags;
+               const comline:comstr): longint;
 {Execute a program. More suitable for OS/2 than the exec above.}
 var args:Pbytearray;
     env:Pbytearray;
@@ -256,6 +260,13 @@ begin
     {Phew! That's it. This was the most sophisticated procedure to call
      a system function I ever wrote!}
 end;
+
+
+function DosExitCode: word;
+begin
+  DosExitCode := LastDosExitCode and $FFFF;
+end;
+
 
 function dosversion:word;
 {Returns OS/2 version}
@@ -425,7 +436,7 @@ begin
   envcount:=envc;
 end;
 
-function envstr(index : integer) : string;
+function envstr (index : longint) : string;
 
 var hp:Pchar;
 
@@ -628,30 +639,32 @@ begin
   DosError := integer (RC);
 end;
 
-function DosExitCode: word;
-begin
-  DosExitCode:=dosexitcodevar;
-end;
 
-Procedure Intr(intno: byte; var regs: registers);
-begin
-end;
 
-Procedure MSDos(var regs: registers);
+{******************************************************************************
+                             --- Not Supported ---
+******************************************************************************}
+
+procedure Keep (ExitCode: word);
 begin
 end;
 
-Procedure GetIntVec(intno: byte; var vector: pointer);
+procedure GetIntVec (IntNo: byte; var Vector: pointer);
 begin
 end;
 
-Procedure SetIntVec(intno: byte; vector: pointer);
+procedure SetIntVec (IntNo: byte; Vector: pointer);
 begin
 end;
 
-Procedure Keep(exitcode: word);
+procedure Intr (IntNo: byte; var Regs: Registers);
 begin
 end;
+
+procedure MsDos (var Regs: Registers);
+begin
+end;
+
 
 function  GetShortName(var p : String) : boolean;
 begin
@@ -661,12 +674,20 @@ end;
 function  GetLongName(var p : String) : boolean;
 begin
   GetLongName:=true;
+{$WARNING EA .longname support should be probably added here}
 end;
 
+
+
+begin
+ LastDosExitCode := 0;
 end.
 {
   $Log$
-  Revision 1.35  2004-02-15 08:02:44  yuri
+  Revision 1.36  2004-02-15 21:34:06  hajny
+    * overloaded ExecuteProcess added, EnvStr param changed to longint
+
+  Revision 1.35  2004/02/15 08:02:44  yuri
   * fixes for dosh.inc
   * Executeprocess iverloaded function
   * updated todo

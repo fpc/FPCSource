@@ -944,18 +944,25 @@ begin
  raise E;
 end;
 
-function ExecuteProcess(Const Path: AnsiString; Const ComLine: Array of AnsiString):integer;
 
-Var
-  CommandLine : AnsiString;
-  i : Integer;
+function ExecuteProcess (const Path: AnsiString;
+                                  const ComLine: array of AnsiString): integer;
 
-Begin
-  Commandline:='';
-  For i:=0 to high(ComLine) Do
-   Commandline:=CommandLine+' '+Comline[i];
-  ExecuteProcess:=ExecuteProcess(Path,CommandLine);
-End;
+var 
+  CommandLine: AnsiString;
+  I: integer;
+
+begin
+  Commandline := '';
+  for I := 0 to High (ComLine) do
+   if Pos (' ', ComLine [I]) <> 0 then
+    CommandLine := CommandLine + ' ' + '"' + ComLine [I] + '"'
+   else
+    CommandLine := CommandLine + ' ' + Comline [I];
+  ExecuteProcess := ExecuteProcess (Path, CommandLine);
+end;
+
+
 
 {****************************************************************************
                               Initialization code
@@ -970,7 +977,10 @@ end.
 
 {
   $Log$
-  Revision 1.41  2004-02-15 08:02:44  yuri
+  Revision 1.42  2004-02-15 21:36:10  hajny
+    * overloaded ExecuteProcess added, EnvStr param changed to longint
+
+  Revision 1.41  2004/02/15 08:02:44  yuri
   * fixes for dosh.inc
   * Executeprocess iverloaded function
   * updated todo

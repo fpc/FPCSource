@@ -105,7 +105,7 @@ function  GetLongName(var p : String) : boolean;
 
 {Environment}
 Function  EnvCount: longint;
-Function  EnvStr(index: integer): string;
+Function  EnvStr (Index: longint): string;
 Function  GetEnv(envvar: string): string;
 
 {Misc}

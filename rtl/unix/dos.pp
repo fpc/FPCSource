@@ -223,7 +223,11 @@ End;
                                --- Exec ---
 ******************************************************************************}
 
+{$ifdef HASTHREADVAR}
+threadvar
+{$else HASTHREADVAR}
 var
+{$endif HASTHREADVAR}
   LastDosExitCode: word;
 
 Procedure Exec (Const Path: PathStr; Const ComLine: ComStr);
@@ -683,7 +687,7 @@ End;
 
 
 
-Function EnvStr(Index: Integer): String;
+Function EnvStr (Index: longint): String;
 Var
   i : longint;
   p : ppchar;
@@ -824,7 +828,10 @@ End.
 
 {
   $Log$
-  Revision 1.25  2004-02-09 17:01:28  marco
+  Revision 1.26  2004-02-15 21:36:10  hajny
+    * overloaded ExecuteProcess added, EnvStr param changed to longint
+
+  Revision 1.25  2004/02/09 17:01:28  marco
    * fixes to get it working under FreeBSD, and probably Linux too
 
   Revision 1.24  2004/02/09 12:03:16  michael

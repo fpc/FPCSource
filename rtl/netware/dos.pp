@@ -134,7 +134,11 @@ End;
                                --- Exec ---
 ******************************************************************************}
 
+{$ifdef HASTHREADVAR}
+threadvar
+{$else HASTHREADVAR}
 var
+{$endif HASTHREADVAR}
   lastdosexitcode : word;
 
 procedure exec(const path : pathstr;const comline : comstr);
@@ -691,7 +695,7 @@ begin
 end;
 
 
-function envstr(index : integer) : string;
+function envstr (index: longint) : string;
 begin
   envstr := '';   {is there a netware function to do that ?????}
   ConsolePrintf ('warning: fpc dos.envstr not implemented'#13#10,0);
@@ -746,7 +750,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.7  2004-02-09 12:03:16  michael
+  Revision 1.8  2004-02-15 21:34:06  hajny
+    * overloaded ExecuteProcess added, EnvStr param changed to longint
+
+  Revision 1.7  2004/02/09 12:03:16  michael
   + Switched to single interface in dosh.inc
 
   Revision 1.6  2003/03/25 18:17:54  armin
