@@ -500,15 +500,24 @@ End;
       Assert() support.
 *****************************************************************************}
 
-Procedure do_assert (Const Name : string; LineNo : Longint); [Public,Alias : 'FPC_DO_ASSERT'];
+Procedure do_assert (Const Name,Msg : string; LineNo : Longint); [Public,Alias : 'FPC_DO_ASSERT'];
 
 begin
-  writeln (stderr,'Assertion failed in ',Name,', line ',LineNo,'.');
+  If msg='' then
+    write (stderr,'Assertion failed. ')
+  else
+    write (stderr,msg);
+  writeln (stderr,'(File : ',name,', line ',LineNo,'.');
+  flush (stderr);
+  runerror (227);
 end;
 
 {
   $Log$
-  Revision 1.22  1998-07-23 13:08:41  michael
+  Revision 1.23  1998-07-23 19:53:20  michael
+  + Adapted assert to Delphi format
+
+  Revision 1.22  1998/07/23 13:08:41  michael
   + Implemented DO_ASSERT function.
 
   Revision 1.21  1998/07/15 12:09:35  carl
