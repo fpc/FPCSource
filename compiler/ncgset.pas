@@ -593,7 +593,7 @@ implementation
                else if left.nodetype=ordconstn then
                 begin
                   { use location.register as scratch register here }
-                  if (source_info.endian = target_info.endian) then
+                  if (target_info.endian = endian_little) then
                     inc(right.location.reference.offset,tordconstnode(left).value shr 3)
                   else
                     { adjust for endianess differences }
@@ -1121,7 +1121,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.35  2003-05-23 21:10:50  florian
+  Revision 1.36  2003-05-24 19:48:49  jonas
+    * fixed tcginnode endian bug again, but correcty this time :)
+
+  Revision 1.35  2003/05/23 21:10:50  florian
     * fixed sparc compiler compilation
 
   Revision 1.34  2003/05/23 19:52:28  jonas
