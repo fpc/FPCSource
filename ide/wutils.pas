@@ -1327,6 +1327,7 @@ procedure GiveUpTimeSlice;
 {$ifdef DOS}
 var r: registers;
 begin
+  Intr ($28, R); (* This is supported everywhere. *)
   r.ax:=$1680;
   intr($2f,r);
 end;
@@ -1378,7 +1379,10 @@ BEGIN
 END.
 {
   $Log$
-  Revision 1.19  2004-12-19 13:55:42  florian
+  Revision 1.20  2004-12-19 20:31:16  hajny
+    * GiveUpTimeSlice for Dos improved for better cooperation with some TSRs on plain DOS
+
+  Revision 1.19  2004/12/19 13:55:42  florian
     * x86_64 compilation fixed
 
   Revision 1.18  2004/09/16 22:08:13  armin
