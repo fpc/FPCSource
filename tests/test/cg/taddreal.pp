@@ -24,6 +24,12 @@
 {  LOC_FPU                                                      }
 {  LOC_REFERENCE / LOC_MEM                                      }
 {$E+}
+procedure fail;
+begin
+  Fail;
+  halt(1);
+end;
+
 
  Procedure RealTestSub;
  var
@@ -48,7 +54,7 @@
     result := false;
   WriteLn('Result (0.0) :',j);
   if not result then
-    WriteLn('Failure.')
+    Fail
   else
     WriteLn('Success.');
  end;
@@ -73,7 +79,7 @@
      result := false;
    WriteLn('Result (212.5) :',i);
    if not result then
-    WriteLn('Failure.')
+    Fail
    else
     WriteLn('Success.');
  end;
@@ -100,7 +106,7 @@
     result := false;
   WriteLn('Result (-1200.0) :',i);
   if not result then
-    WriteLn('Failure.')
+    Fail
   else
     WriteLn('Success.');
  end;
@@ -130,7 +136,7 @@
     result := false;
   WriteLn('Result (-0.1001) :',j);
   if not result then
-    WriteLn('Failure.')
+    Fail
   else
     WriteLn('Success.');
  end;
@@ -166,7 +172,7 @@
   if not (trunc(i) = trunc(1000.0)) then
     result := false;
   if not result then
-    WriteLn('Failure.')
+    Fail
   else
     WriteLn('Success.');
  end;
@@ -186,7 +192,7 @@
   if (trunc(i) <> trunc(1000.0)) then
     result := false;
   if not result then
-    WriteLn('Failure.')
+    Fail
   else
     WriteLn('Success.');
  end;
@@ -213,7 +219,7 @@
   if trunc(i) < trunc(999.0) then
     result := false;
   if not result then
-    WriteLn('Failure.')
+    Fail
   else
     WriteLn('Success.');
  end;
@@ -239,7 +245,7 @@
   if trunc(i) > trunc(999.0) then
     result := false;
   if not result then
-    WriteLn('Failure.')
+    Fail
   else
     WriteLn('Success.');
  end;
@@ -260,7 +266,10 @@ end.
 
 {
   $Log$
-  Revision 1.3  2001-07-31 01:55:23  carl
+  Revision 1.4  2002-03-05 21:55:11  carl
+  * Adapted for automated testing
+
+  Revision 1.3  2001/07/31 01:55:23  carl
   * corrected comparing value for real
 
   Revision 1.2  2001/06/12 01:12:34  carl

@@ -126,6 +126,7 @@ const
    else
      begin
        WriteLn('Failure.');
+       Halt(1);
        Err:=true;
      end;
  end;
@@ -639,7 +640,10 @@ end.
 
 {
   $Log$
-  Revision 1.4  2001-10-20 17:26:13  peter
+  Revision 1.5  2002-03-05 21:55:11  carl
+  * Adapted for automated testing
+
+  Revision 1.4  2001/10/20 17:26:13  peter
     * several fixes to run also with kylix
 
   Revision 1.3  2001/06/24 22:30:19  carl

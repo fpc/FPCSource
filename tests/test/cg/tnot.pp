@@ -46,6 +46,18 @@ begin
   getbyteboolval := TRUE;
 end;
 
+procedure test(value, required: longint);
+begin
+  if value <> required then
+    begin
+      writeln('Got ',value,' instead of ',required);
+      halt(1);
+    end
+  else
+    writeln('Passed!');
+end;
+
+
 
 var
  longres :  longint;
@@ -67,20 +79,15 @@ Begin
    longres := $7F7F7F7F;
    longres := not longres;
    Write('Value should be $80808080...');
-   if longres = $80808080 then
-      WriteLn('Success.')
-   else
-      WriteLn('Failure.');
+   test(longres,$80808080);
 
    { CURRENT NODE : REGISTER }
    { LEFT NODE : REGISTER    }
    WriteLn('(current) : LOC_REGISTER; (left) : LOC_REGISTER');
    longres := not getintres;
    Write('Value should be $8080...');
-   if longres = $FFFF8080 then
-      WriteLn('Success.')
-   else
-      WriteLn('Failure.');
+   test(longres, $FFFF8080);
+
    WriteLn('----------------------------- BOOLEAN -----------------------------------');
 
    { CURRENT NODE : LOC_REGISTER }
@@ -89,36 +96,24 @@ Begin
    byteboolval := TRUE;
    byteboolres := not byteboolval;
    Write('Value should be FALSE...');
-   if byteboolres = FALSE then
-      WriteLn('Success.')
-   else
-      WriteLn('Failure.');
+   test(ord(byteboolres),0);
 
    wordboolval := TRUE;
    wordboolres := not wordboolval;
    Write('Value should be FALSE...');
-   if wordboolres = FALSE then
-      WriteLn('Success.')
-   else
-      WriteLn('Failure.');
+   test(longint(wordboolres),0);
 
    longboolval := TRUE;
    longboolres := not longboolval;
    Write('Value should be FALSE...');
-   if longboolres = FALSE then
-      WriteLn('Success.')
-   else
-      WriteLn('Failure.');
+   test(longint(longboolres),0);
 
    { CURRENT NODE : LOC_REGISTER }
    { LEFT NODE :  LOC_REGISTER  }
    WriteLn('(current) : LOC_REGISTER; (left) : LOC_REGISTER');
    longboolres := not getbyteboolval;
    Write('Value should be FALSE...');
-   if longboolres = FALSE then
-      WriteLn('Success.')
-   else
-      WriteLn('Failure.');
+   test(longint(longboolres),0);
 
    { CURRENT NODE : LOC_FLAGS }
    { LEFT NODE :  LOC_FLAGS  }
@@ -127,10 +122,7 @@ Begin
    byteboolres := TRUE;
    byteboolres:= not ((intres = 1));
    Write('Value should be FALSE...');
-   if byteboolres = FALSE then
-      WriteLn('Success.')
-   else
-      WriteLn('Failure.');
+   test(ord(byteboolres),0);
 
   { !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! }
   { CURRENT_NODE : LOC_JUMP }
@@ -148,20 +140,14 @@ Begin
    int64res := $7F7F7F7F;
    int64res := not int64res;
    Write('Value should be $80808080...');
-   if int64res = $80808080 then
-      WriteLn('Success.')
-   else
-      WriteLn('Failure.');
+   test(int64res and $FFFFFFFF,$80808080);
 
    { CURRENT NODE : REGISTER }
    { LEFT NODE : REGISTER    }
    WriteLn('(current) : LOC_REGISTER; (left) : LOC_REGISTER');
    int64res := not (word(getintres));
    Write('Value should be $8080...');
-   if int64res = $00008080 then
-      WriteLn('Success.')
-   else
-      WriteLn('Failure.');
+   test(int64res and $FFFFFFFF,$00008080);
 {$ENDIF}
 end.
 

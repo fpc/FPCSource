@@ -8,6 +8,11 @@
   type cardinal = longint;
 {$endif}
 
+procedure fail;
+begin
+  Fail;
+  halt(1);
+end;
 
 
 procedure CardinalTestAdd;
@@ -36,7 +41,7 @@ begin
  if i <> 30000 then
   result := false;
  if not result then
-  WriteLn('Failure.')
+  Fail
  else
   WriteLn('Success.');
 end;
@@ -65,7 +70,7 @@ begin
  if i <> 800 then
   result := false;
  if not result then
-  WriteLn('Failure.')
+  Fail
  else
   WriteLn('Success.');
 end;
@@ -112,7 +117,7 @@ begin
  if i <> 10000000 then
    result := false;
  if not result then
-  WriteLn('Failure.')
+  Fail
  else
   WriteLn('Success.');
 end;
@@ -141,7 +146,7 @@ begin
  if i <> $FFFFFFFF then
    result := false;
  if not result then
-  WriteLn('Failure.')
+  Fail
  else
   WriteLn('Success.');
 end;
@@ -171,7 +176,7 @@ Begin
  if i <> $FFFFFFFF then
    result := false;
  if not result then
-  WriteLn('Failure.')
+  Fail
  else
   WriteLn('Success.');
 end;
@@ -212,7 +217,7 @@ Begin
  if i <> 0 then
    result := false;
  if not result then
-  WriteLn('Failure.')
+  Fail
  else
   WriteLn('Success.');
 end;
@@ -233,7 +238,7 @@ Begin
  if j = i then
   result := false;
  if not result then
-  WriteLn('Failure.')
+  Fail
  else
   WriteLn('Success.');
 end;
@@ -255,7 +260,7 @@ Begin
  if j <> i then
   result := false;
  if not result then
-  WriteLn('Failure.')
+  Fail
  else
   WriteLn('Success.');
 end;
@@ -285,10 +290,10 @@ begin
     if result then
       WriteLn('Success.')
     else
-      WriteLn('Failure.');
+      Fail;
   end
  else
-  WriteLn('Failure.');
+  Fail;
 {$endif}
 end;
 
@@ -319,10 +324,10 @@ begin
     if result then
       WriteLn('Success.')
     else
-      WriteLn('Failure.');
+      Fail;
   end
  else
-  WriteLn('Failure.');
+  Fail;
 {$endif}
 end;
 

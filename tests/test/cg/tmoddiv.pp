@@ -44,6 +44,17 @@ function getint64cnt: int64;
  end;
 
   {$ENDIF}
+  
+procedure test(value, required: longint);
+begin
+  if value <> required then
+    begin
+      writeln('Got ',value,' instead of ',required);
+      halt(1);
+    end
+  else
+    writeln('Passed!');
+end;
 
 var
  longres : longint;
@@ -63,20 +74,14 @@ begin
   longres := 24;
   longres := longres div 4;
   Write('Value should be 6...');
-  if longres = 6 then
-    WriteLn('Success.')
-  else
-    WriteLn('Failure.');
+  test(longres, 6);
 
   { RIGHT : power of 2 ordconstn   }
   { LEFT : LOC_REFERENCE           }
   longres := 24;
   longres := longres mod 4;
   Write('Value should be 0...');
-  if longres = 0 then
-    WriteLn('Success.')
-  else
-    WriteLn('Failure.');
+  test(longres, 0);
 
 
   WriteLn('(left) : LOC_REFERENCE; (right) : LOC_REFERENCE');
@@ -86,10 +91,7 @@ begin
   longcnt := -13;
   longres := longres div longcnt;
   Write('Value should be -10...');
-  if longres = -10 then
-    WriteLn('Success.')
-  else
-    WriteLn('Failure.');
+  test(longres, -10);
 
   { RIGHT : LOC_REFERENCE      }
   { LEFT : LOC_REFERENCE       }
@@ -97,10 +99,7 @@ begin
   longcnt := -13;
   longres := longres mod longcnt;
   Write('Value should be 10...');
-  if longres = 10 then
-    WriteLn('Success.')
-  else
-    WriteLn('Failure.');
+  test(longres, 10);
 
   WriteLn('(left) : LOC_REFERENCE; (right) : LOC_REGISTER');
   { RIGHT : LOC_REGISTER       }
@@ -108,40 +107,28 @@ begin
   longres := -11111111;
   longres := longres div getlongcnt;
   Write('Value should be 1111111...');
-  if longres = 1111111 then
-    WriteLn('Success.')
-  else
-    WriteLn('Failure.');
+  test(longres, 1111111);
 
   { RIGHT : LOC_REGISTER       }
   { LEFT : LOC_REFERENCE       }
   longres := -1111111;
   longres := longres mod getlongcnt;
   Write('Value should be -1...');
-  if longres = -1 then
-    WriteLn('Success.')
-  else
-    WriteLn('Failure.');
+  test(longres, -1);
 
   { RIGHT : LOC_REFERENCE }
   { LEFT : LOC_REGISTER   }
   longcnt := 2;
   longres := getlongcnt div longcnt;
   Write('Value should be -5...');
-  if longres = -5 then
-    WriteLn('Success.')
-  else
-    WriteLn('Failure.');
+  test(longres, -5);
 
   { RIGHT : LOC_REFERENCE }
   { LEFT : LOC_REGISTER   }
   longcnt := 3;
   longres := getlongcnt mod longcnt;
   Write('Value should be -1...');
-  if longres = -1 then
-    WriteLn('Success.')
-  else
-    WriteLn('Failure.');
+  test(longres, -1);
 
   { special tests for results }
   Writeln('special numeric values tests...');
@@ -149,30 +136,21 @@ begin
   longcnt := $80000000;
   longres := longres div longcnt;
   Write('Value should be 0...');
-  if longres = 0 then
-    WriteLn('Success.')
-  else
-    WriteLn('Failure.');
+  test(longres, 0);
 
   Writeln('special numeric values tests...');
   longres := $7FFFFFFF;
   longcnt := $80000000;
   longres := longcnt div longres;
   Write('Value should be -1...');
-  if longres = -1 then
-    WriteLn('Success.')
-  else
-    WriteLn('Failure.');
+  test(longres, -1);
 
   Writeln('special numeric values tests...');
   cardinalcnt := $80000;
   cardinalres := $12345;
   cardinalres := cardinalcnt div cardinalres;
   Write('Value should be 7...');
-  if cardinalres = 7 then
-    WriteLn('Success.')
-  else
-    WriteLn('Failure.');
+  test(cardinalres, 7);
 
 {$IFDEF FPC}
   WriteLn('------------------- CARDINAL -----------------------');
@@ -182,30 +160,20 @@ begin
   cardinalcnt := $80000000;
   cardinalres := cardinalres div cardinalcnt;
   Write('Value should be 0...');
-  if cardinalres = 0 then
-    WriteLn('Success.')
-  else
-    WriteLn('Failure.');
+  test(cardinalres, 0);
 
   Writeln('special numeric values tests...');
   cardinalres := $7FFFFFFF;
   cardinalcnt := $80000000;
   cardinalres := cardinalcnt div cardinalres;
   Write('Value should be 1...');
-  if cardinalres = 1 then
-    WriteLn('Success.')
-  else
-    WriteLn('Failure.');
+  test(cardinalres, 1);
 
   Writeln('special numeric values tests...');
   cardinalcnt := $80000;
   cardinalres := $12345;
   cardinalres := cardinalcnt div cardinalres;
-  Write('Value should be 7...');
-  if cardinalres = 7 then
-    WriteLn('Success.')
-  else
-    WriteLn('Failure.');
+  test(cardinalres, 7);
 
   WriteLn('(left) : LOC_REFERENCE; (right) : ordinal constant');
   { RIGHT : power of 2 ordconstn   }
@@ -213,20 +181,14 @@ begin
   cardinalres := 24;
   cardinalres := cardinalres div 4;
   Write('Value should be 6...');
-  if cardinalres = 6 then
-    WriteLn('Success.')
-  else
-    WriteLn('Failure.');
+  test(cardinalres, 6);
 
   { RIGHT : power of 2 ordconstn   }
   { LEFT : LOC_REFERENCE           }
   cardinalres := 24;
   cardinalres := cardinalres mod 4;
   Write('Value should be 0...');
-  if cardinalres = 0 then
-    WriteLn('Success.')
-  else
-    WriteLn('Failure.');
+  test(cardinalres, 0);
 
 
   WriteLn('(left) : LOC_REFERENCE; (right) : LOC_REFERENCE');
@@ -236,10 +198,7 @@ begin
   cardinalcnt := 13;
   cardinalres := cardinalres div cardinalcnt;
   Write('Value should be 10...');
-  if cardinalres = 10 then
-    WriteLn('Success.')
-  else
-    WriteLn('Failure.');
+  test(cardinalres, 10);
 
   { RIGHT : LOC_REFERENCE      }
   { LEFT : LOC_REFERENCE       }
@@ -247,10 +206,7 @@ begin
   cardinalcnt := 13;
   cardinalres := cardinalres mod cardinalcnt;
   Write('Value should be 10...');
-  if cardinalres = 10 then
-    WriteLn('Success.')
-  else
-    WriteLn('Failure.');
+  test(cardinalres, 10);
 
   WriteLn('(left) : LOC_REFERENCE; (right) : LOC_REGISTER');
   { RIGHT : LOC_REGISTER       }
@@ -258,40 +214,28 @@ begin
   cardinalres := 11111111;
   cardinalres := cardinalres div getcardinalcnt;
   Write('Value should be 1111111...');
-  if cardinalres = 1111111 then
-    WriteLn('Success.')
-  else
-    WriteLn('Failure.');
+  test(cardinalres, 1111111);
 
   { RIGHT : LOC_REGISTER       }
   { LEFT : LOC_REFERENCE       }
   cardinalres := 1111111;
   cardinalres := cardinalres mod getcardinalcnt;
   Write('Value should be 1...');
-  if cardinalres = 1 then
-    WriteLn('Success.')
-  else
-    WriteLn('Failure.');
+  test(cardinalres, 1);
 
   { RIGHT : LOC_REFERENCE }
   { LEFT : LOC_REGISTER   }
   cardinalcnt := 2;
   cardinalres := getcardinalcnt div cardinalcnt;
   Write('Value should be 5...');
-  if cardinalres = 5 then
-    WriteLn('Success.')
-  else
-    WriteLn('Failure.');
+  test(cardinalres, 5);
 
   { RIGHT : LOC_REFERENCE }
   { LEFT : LOC_REGISTER   }
   cardinalcnt := 3;
   cardinalres := getcardinalcnt mod cardinalcnt;
   Write('Value should be 1...');
-  if cardinalres = 1 then
-    WriteLn('Success.')
-  else
-    WriteLn('Failure.');
+  test(cardinalres, 1);
 
   WriteLn('--------------------- INT64 ------------------------');
   { special tests for results }
@@ -300,39 +244,27 @@ begin
   int64cnt := $80000000 shl 32;
   int64res := int64res div int64cnt;
   Write('Value should be 0...');
-  if int64res = 0 then
-    WriteLn('Success.')
-  else
-    WriteLn('Failure.');
+  test(int64res and $FFFFFFFF, 0);
 
   Writeln('special numeric values tests...');
   int64res := $7FFFFFFF shl 32;
   int64cnt := $80000000 shl 32;
   int64res := int64cnt div int64res;
   Write('Value should be -1...');
-  if int64res = -1 then
-    WriteLn('Success.')
-  else
-    WriteLn('Failure.');
+  test(int64res and $FFFFFFFF, -1);
 
   int64res := $7FFFFFFF;
   int64cnt := $80000000;
   int64res := int64res div int64cnt;
   Write('Value should be 0...');
-  if int64res = 0 then
-    WriteLn('Success.')
-  else
-    WriteLn('Failure.');
+  test(int64res and $FFFFFFFF, 0);
 
   Writeln('special numeric values tests...');
   int64res := $7FFFFFFF;
   int64cnt := $80000000;
   int64res := int64cnt div int64res;
   Write('Value should be -1...');
-  if int64res = -1 then
-    WriteLn('Success.')
-  else
-    WriteLn('Failure.');
+  test(int64res and $FFFFFFFF, -1);
 
   WriteLn('(left) : LOC_REFERENCE; (right) : ordinal constant');
   { RIGHT : power of 2 ordconstn   }
@@ -340,20 +272,14 @@ begin
   int64res := 24;
   int64res := int64res div 4;
   Write('Value should be 6...');
-  if int64res = 6 then
-    WriteLn('Success.')
-  else
-    WriteLn('Failure.');
+  test(int64res and $FFFFFFFF, 6);
 
   { RIGHT : power of 2 ordconstn   }
   { LEFT : LOC_REFERENCE           }
   int64res := 24;
   int64res := int64res mod 4;
   Write('Value should be 0...');
-  if int64res = 0 then
-    WriteLn('Success.')
-  else
-    WriteLn('Failure.');
+  test(int64res and $FFFFFFFF, 0);
 
 
   WriteLn('(left) : LOC_REFERENCE; (right) : LOC_REFERENCE');
@@ -363,10 +289,7 @@ begin
   int64cnt := -13;
   int64res := int64res div int64cnt;
   Write('Value should be -10...');
-  if int64res = -10 then
-    WriteLn('Success.')
-  else
-    WriteLn('Failure.');
+  test(int64res and $FFFFFFFF, -10);
 
   { RIGHT : LOC_REFERENCE      }
   { LEFT : LOC_REFERENCE       }
@@ -374,10 +297,7 @@ begin
   int64cnt := -13;
   int64res := int64res mod int64cnt;
   Write('Value should be 10...');
-  if int64res = 10 then
-    WriteLn('Success.')
-  else
-    WriteLn('Failure.');
+  test(int64res and $FFFFFFFF, 10);
 
   WriteLn('(left) : LOC_REFERENCE; (right) : LOC_REGISTER');
   { RIGHT : LOC_REGISTER       }
@@ -385,40 +305,28 @@ begin
   int64res := -11111111;
   int64res := int64res div getint64cnt;
   Write('Value should be 1111111...');
-  if int64res = 1111111 then
-    WriteLn('Success.')
-  else
-    WriteLn('Failure.');
+  test(int64res and $FFFFFFFF, 1111111);
 
   { RIGHT : LOC_REGISTER       }
   { LEFT : LOC_REFERENCE       }
   int64res := -1111111;
   int64res := int64res mod getint64cnt;
   Write('Value should be -1...');
-  if int64res = -1 then
-    WriteLn('Success.')
-  else
-    WriteLn('Failure.');
+  test(int64res and $FFFFFFFF, -1);
 
   { RIGHT : LOC_REFERENCE }
   { LEFT : LOC_REGISTER   }
   int64cnt := 2;
   int64res := getint64cnt div int64cnt;
   Write('Value should be -5...');
-  if int64res = -5 then
-    WriteLn('Success.')
-  else
-    WriteLn('Failure.');
+  test(int64res and $FFFFFFFF, -5);
 
   { RIGHT : LOC_REFERENCE }
   { LEFT : LOC_REGISTER   }
   int64cnt := 3;
   int64res := getint64cnt mod int64cnt;
   Write('Value should be -1...');
-  if int64res = -1 then
-    WriteLn('Success.')
-  else
-    WriteLn('Failure.');
+  test(int64res and $FFFFFFFF, -1);
 
 {$ENDIF}
 end.

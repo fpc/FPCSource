@@ -28,6 +28,16 @@ Program tshlshr;
 {     - LOC_REFERENCE / LOC_MEM                      }
 {     - LOC_REGISTER                                 }
 {----------------------------------------------------}
+procedure test(value, required: longint);
+begin
+  if value <> required then
+    begin
+      writeln('Got ',value,' instead of ',required);
+      halt(1);
+    end
+  else
+    writeln('Passed!');
+end;
 
 
 var
@@ -47,48 +57,32 @@ Begin
    longres:=1;
    longres := longres shl 15;
    Write('(SHL) Value should be 32768...');
-   if longres = 32768 then
-     WriteLn('Success.')
-   else
-     WriteLn('Failure.');
+   test(longres, 32768);
+   
    longres:=-1;
    longres := longres shl 15;
    Write('(SHL) Value should be -32768...');
-   if longres = -32768 then
-     WriteLn('Success.')
-   else
-     WriteLn('Failure.');
+   test(longres, -32768);
+
    longres:=1;
    longres := longres shl 33;
    Write('(SHL) Value should be 2...');
-   if longres = 2 then
-     WriteLn('Success.')
-   else
-     WriteLn('Failure.');
+   test(longres, 2);
 
    longres:=$8000;
    longres := longres shr 15;
    Write('(SHR) Value should be 1...');
-   if longres = 1 then
-     WriteLn('Success.')
-   else
-     WriteLn('Failure.');
+   test(longres, 1);
 
    longres:=-1;
    longres := longres shr 15;
    Write('(SHR) Value should be 131071...');
-   if longres = 131071 then
-     WriteLn('Success.')
-   else
-     WriteLn('Failure.');
+   test(longres, 131071);
 
    longres:=$FFFF;
    longres := longres shr 33;
    Write('(SHR) Value should be 32767...');
-   if longres = 32767 then
-     WriteLn('Success.')
-   else
-     WriteLn('Failure.');
+   test(longres, 32767);
 
    { left : LOC_REFERENCE }
    { right : LOC_REFERENCE }
@@ -98,54 +92,37 @@ Begin
    longcnt := -2;
    longres:=longres shl longcnt ;
    Write('(SHL) Value should be 1073741824...');
-   if longres = 1073741824 then
-     WriteLn('Success.')
-   else
-     WriteLn('Failure.');
+   test(longres, 1073741824);
 
    longres:=1;
    longcnt:=15;
    longres := longres shl longcnt;
    Write('(SHL) Value should be 32768...');
-   if longres = 32768 then
-     WriteLn('Success.')
-   else
-     WriteLn('Failure.');
+   test(longres, 32768);
 
    longres:=-1;
    longcnt := 15;
    longres := longres shl longcnt;
    Write('(SHL) Value should be -32768...');
-   if longres = -32768 then
-     WriteLn('Success.')
-   else
-     WriteLn('Failure.');
+   test(longres, -32768);
 
    longres := 1;
    longcnt := -2;
    longres:=longres shr longcnt ;
    Write('(SHR) Value should be 0...');
-   if longres = 0 then
-     WriteLn('Success.')
-   else
-     WriteLn('Failure.');
+   test(longres, 0);
 
    longres:=32768;
    longcnt:=15;
    longres := longres shr longcnt;
    Write('(SHR) Value should be 1...');
-   if longres = 1 then
-     WriteLn('Success.')
-   else
-     WriteLn('Failure.');
+   test(longres, 1);
+
    longres:=-1;
    longcnt := 15;
    longres := longres shl longcnt;
    Write('(SHR) Value should be -32768...');
-   if longres = -32768 then
-     WriteLn('Success.')
-   else
-     WriteLn('Failure.');
+   test(longres, -32768);
 
    { left : LOC_REFERENCE }
    { right : LOC_REGISRER }
@@ -154,75 +131,51 @@ Begin
    bytecnt := -2;
    longres:=longres shl bytecnt ;
    Write('(SHL) Value should be 1073741824...');
-   if longres = 1073741824 then
-     WriteLn('Success.')
-   else
-     WriteLn('Failure.');
+   test(longres, 1073741824);
 
    longres:=1;
    bytecnt:=15;
    longres := longres shl bytecnt;
    Write('(SHL) Value should be 32768...');
-   if longres = 32768 then
-     WriteLn('Success.')
-   else
-     WriteLn('Failure.');
+   test(longres, 32768);
 
    longres:=-1;
    bytecnt := 15;
    longres := longres shl bytecnt;
    Write('(SHL) Value should be -32768...');
-   if longres = -32768 then
-     WriteLn('Success.')
-   else
-     WriteLn('Failure.');
+   test(longres, -32768);
 
    longres := 1;
    bytecnt := -2;
    longres:=longres shr bytecnt ;
    Write('(SHR) Value should be 0...');
-   if longres = 0 then
-     WriteLn('Success.')
-   else
-     WriteLn('Failure.');
+   test(longres, 0);
 
    longres:=32768;
    bytecnt:=15;
    longres := longres shr bytecnt;
    Write('(SHR) Value should be 1...');
-   if longres = 1 then
-     WriteLn('Success.')
-   else
-     WriteLn('Failure.');
+   test(longres, 1);
 
    longres:=-1;
    bytecnt := 15;
    longres := longres shr bytecnt;
    Write('(SHR) Value should be 131071...');
-   if longres = 131071 then
-     WriteLn('Success.')
-   else
-     WriteLn('Failure.');
+   test(longres, 131071);
 
    WriteLn('(left) : LOC_REGISTER; (right) : LOC_REGISTER');
    byteres := 1;
    bytecnt := 2;
    byteres := byteres shl bytecnt;
    Write('(SHL) Value should be 4...');
-   if longres = 4 then
-     WriteLn('Success.')
-   else
-     WriteLn('Failure.');
+   test(byteres, 4);
 
 
    byteres := 4;
    bytecnt := 2;
    byteres := byteres shr bytecnt;
    Write('(SHR) Value should be 1...');
-   if longres = 1 then
-     WriteLn('Success.')
-   else
-     WriteLn('Failure.');
+   test(byteres, 1);
 
 {$IFDEF FPC}
    WriteLn('------------------------------  INT64  --------------------------------');
@@ -232,35 +185,23 @@ Begin
    int64res:=1;
    int64res := int64res shl 15;
    Write('(SHL) Value should be 32768...');
-   if int64res = 32768 then
-     WriteLn('Success.')
-   else
-     WriteLn('Failure.');
+   test(int64res and $FFFFFFFF, 32768);
 
    int64res:=-1;
    int64res := int64res shl 15;
    Write('(SHL) Value should be -32768...');
-   if int64res = -32768 then
-     WriteLn('Success.')
-   else
-     WriteLn('Failure.');
+   test(int64res and $FFFFFFFF, -32768);
 
 
    int64res:=1;
    int64res := int64res shl 65;
    Write('(SHL) Value should be 2...');
-   if int64res = 2 then
-     WriteLn('Success.')
-   else
-     WriteLn('Failure.');
+   test(int64res and $FFFFFFFF, 2);
 
    int64res:=$8000;
    int64res := int64res shr 15;
    Write('(SHR) Value should be 1...');
-   if int64res = 1 then
-     WriteLn('Success.')
-   else
-     WriteLn('Failure.');
+   test(int64res and $FFFFFFFF, 1);
 
 {   int64res:=-1;
    int64res := int64res shr 15;
@@ -268,10 +209,7 @@ Begin
    int64res:=$FFFF;
    int64res := int64res shr 65;
    Write('(SHR) Value should be 0...');
-   if int64res = 0 then
-     WriteLn('Success.')
-   else
-     WriteLn('Failure.');
+   test(int64res and $FFFFFFFF, 0);
 
    { left : LOC_REFERENCE }
    { right : LOC_REFERENCE }
@@ -280,57 +218,39 @@ Begin
    int64cnt := -2;
    int64res:=int64res shl int64cnt ;
    Write('(SHL) Value should be 1073741824...');
-   if int64res = 1073741824 then
-     WriteLn('Success.')
-   else
-     WriteLn('Failure.');
+   test(int64res and $FFFFFFFF, 1073741824);
 
    int64res:=1;
    int64cnt:=15;
    int64res := int64res shl int64cnt;
    Write('(SHL) Value should be 32768...');
-   if int64res = 32768 then
-     WriteLn('Success.')
-   else
-     WriteLn('Failure.');
+   test(int64res and $FFFFFFFF, 32768);
 
 
    int64res:=-1;
    int64cnt := 15;
    int64res := int64res shl int64cnt;
    Write('(SHL) Value should be -32768...');
-   if int64res = -32768 then
-     WriteLn('Success.')
-   else
-     WriteLn('Failure.');
+   test(int64res and $FFFFFFFF, -32768);
 
 
    int64res := 1;
    int64cnt := -2;
    int64res:=int64res shr int64cnt ;
    Write('(SHR) Value should be 0...');
-   if int64res = 0 then
-     WriteLn('Success.')
-   else
-     WriteLn('Failure.');
+   test(int64res and $FFFFFFFF, 0);
 
    int64res:=32768;
    int64cnt:=15;
    int64res := int64res shr int64cnt;
    Write('(SHR) Value should be 1...');
-   if int64res = 1 then
-     WriteLn('Success.')
-   else
-     WriteLn('Failure.');
+   test(int64res and $FFFFFFFF, 1);
 
    int64res:=-1;
    int64cnt := 15;
    int64res := int64res shl int64cnt;
    Write('(SHR) Value should be -32768...');
-   if int64res = -32768 then
-     WriteLn('Success.')
-   else
-     WriteLn('Failure.');
+   test(int64res and $FFFFFFFF, -32768);
 
    { left : LOC_REFERENCE }
    { right : LOC_REGISRER }
@@ -339,50 +259,35 @@ Begin
    bytecnt := -2;
    int64res:=int64res shl bytecnt ;
    Write('(SHL) Value should be 1073741824...');
-   if int64res = 1073741824 then
-     WriteLn('Success.')
-   else
-     WriteLn('Failure.');
+   test(int64res and $FFFFFFFF, 1073741824);
 
 
    int64res:=1;
    bytecnt:=15;
    int64res := int64res shl bytecnt;
    Write('(SHL) Value should be 32768...');
-   if int64res = 32768 then
-     WriteLn('Success.')
-   else
-     WriteLn('Failure.');
+   test(int64res and $FFFFFFFF, 32768);
 
 
    int64res:=-1;
    bytecnt := 15;
    int64res := int64res shl bytecnt;
    Write('(SHL) Value should be -32768...');
-   if int64res = -32768 then
-     WriteLn('Success.')
-   else
-     WriteLn('Failure.');
+   test(int64res and $FFFFFFFF, -32768);
 
 
    int64res := 1;
    bytecnt := -2;
    int64res:=int64res shr bytecnt ;
    Write('(SHR) Value should be 0...');
-   if int64res = 0 then
-     WriteLn('Success.')
-   else
-     WriteLn('Failure.');
+   test(int64res and $FFFFFFFF, 0);
 
 
    int64res:=32768;
    bytecnt:=15;
    int64res := int64res shr bytecnt;
    Write('(SHR) Value should be 1...');
-   if int64res = 1 then
-     WriteLn('Success.')
-   else
-     WriteLn('Failure.');
+   test(int64res and $FFFFFFFF, 1);
 {   int64res:=-1;
    bytecnt := 15;
    int64res := int64res shr bytecnt;
@@ -391,3 +296,9 @@ Begin
 {$ENDIF}
 end.
 
+{
+  $Log$
+  Revision 1.3  2002-03-05 21:56:32  carl
+  * Adapted for automated testing
+
+}

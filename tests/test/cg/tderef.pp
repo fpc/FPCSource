@@ -22,6 +22,11 @@ type
   pbyte = ^byte;
 
 
+procedure fail;
+begin
+  Fail;
+  halt(1);
+end;
 
 
 var
@@ -53,12 +58,15 @@ Begin
  if passed then
    WriteLn('Success.')
  else
-   WriteLn('Failure.');
+   Fail;
 end.
 
 {
    $Log$
-   Revision 1.1  2001-06-30 02:02:06  carl
+   Revision 1.2  2002-03-05 21:56:02  carl
+   * Adapted for automated testing
+
+   Revision 1.1  2001/06/30 02:02:06  carl
    + secondderef()
 
 }

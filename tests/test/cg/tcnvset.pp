@@ -71,6 +71,13 @@ type
 type
   tnormalset = set of tbigenum;
   tsmallset = set of tsmallenum;
+  
+procedure fail;
+begin
+  Fail;
+  halt(1);
+end;
+  
 
 
   procedure SmallSet2NormalSet;
@@ -95,7 +102,7 @@ type
     if op2 <> [A_BCS,A_MOVE] then
       passed := false;
     if not passed then
-       WriteLn('Failure,')
+       Fail
     else
        WriteLn('Success.');
    end;
@@ -108,7 +115,10 @@ end.
 {
 
  $Log$
- Revision 1.1  2001-06-24 23:01:22  carl
+ Revision 1.2  2002-03-05 21:55:42  carl
+ * Adapted for automated testing
+
+ Revision 1.1  2001/06/24 23:01:22  carl
  + completed small set -. normal set conversion tests
 
 

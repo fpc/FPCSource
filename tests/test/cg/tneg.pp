@@ -30,6 +30,23 @@ Program tneg;
 {     - LOC_FPU                                      }
 {----------------------------------------------------}
 
+procedure test(value, required: longint);
+begin
+  if value <> required then
+    begin
+      writeln('Got ',value,' instead of ',required);
+      halt(1);
+    end
+  else
+    writeln('Passed!');
+end;
+
+procedure fail;
+ begin
+   writeln('Failure.');
+   halt(1);
+ end;
+
 
   function getreal: real;
    begin
@@ -50,20 +67,14 @@ Begin
    longval := 1;
    longval := - longval;
    Write('Value should be -1...');
-   if longval = -1 then
-      WriteLn('Success.')
-   else
-      WriteLn('Failure.');
+   test(longval, -1);
 
    { CURRENT NODE : REGISTER }
    { LEFT NODE: REGISTER     }
    byteval := 2;
    longval := - byteval;
    Write('Value should be -2...');
-   if longval = -2 then
-      WriteLn('Success.')
-   else
-      WriteLn('Failure.');
+   test(longval, -2);
 
    { CURRENT NODE: LOC_FPU }
    { LEFT NODE : LOC_REFERENCE }
@@ -71,9 +82,9 @@ Begin
    realval := - realval;
    Write('Value should 1.0...');
    if realval - 1.0 = 0.0 then
-      WriteLn('Success.')
+      WriteLn('Passed!')
    else
-      WriteLn('Failure');
+      Fail;
 
    { LEFT NODE : LOC_FPU }
    { CURRENT NODE : LOC_FPU }
@@ -81,9 +92,9 @@ Begin
    realval := -(getreal*(realval));
    Write('Value should 1.0...');
    if realval - 1.0 = 0.0 then
-      WriteLn('Success.')
+      WriteLn('Passed!')
    else
-      WriteLn('Failure');
+      Fail;
 
 {$IFDEF FPC}
    WriteLn('------------------------------  INT64  --------------------------------');
@@ -92,20 +103,14 @@ Begin
    int64val := 1;
    int64val := - int64val;
    Write('Value should be -1...');
-   if int64val = -1 then
-      WriteLn('Success.')
-   else
-      WriteLn('Failure.');
+   test(int64val and $FFFFFFFF, -1);
 
    { CURRENT NODE : REGISTER }
    { LEFT NODE: REGISTER     }
    byteval := 2;
    int64val := - byteval;
    Write('Value should be -2...');
-   if int64val = -2 then
-      WriteLn('Success.')
-   else
-      WriteLn('Failure.');
+   test(int64val and $FFFFFFFF, -2);
 {$ENDIF}
 end.
 

@@ -13,6 +13,12 @@ TYPE
 {$ENDIF}
 
 
+procedure fail;
+begin
+  WriteLn('Failure.');
+  halt(1);
+end;
+
 { ---------------------------- BOOLEAN TEST ----------------------------- }
 {                              secondadd()                                }
 { ----------------------------------------------------------------------- }
@@ -50,10 +56,10 @@ begin
     if result then
       WriteLn('Success.')
     else
-      WriteLn('Failure.');
+      Fail;
   end
  else
-   WriteLn('Failure.');
+   Fail;
 
  { WORDBOOL AND WORDBOOL }
  result := true;
@@ -82,10 +88,10 @@ begin
     if result then
       WriteLn('Success.')
     else
-      WriteLn('Failure.');
+      Fail;
   end
  else
-   WriteLn('Failure.');
+   Fail;
 
  { LONGBOOL AND LONGBOOL }
  result := true;
@@ -114,10 +120,10 @@ begin
     if result then
       WriteLn('Success.')
     else
-      WriteLn('Failure.');
+      Fail;
   end
  else
-   WriteLn('Failure.');
+   Fail;
 end;
 
 
@@ -154,10 +160,10 @@ begin
     if result then
       WriteLn('Success.')
     else
-      WriteLn('Failure.');
+      Fail;
   end
  else
-   WriteLn('Failure.');
+   Fail;
 
  { WORDBOOL AND WORDBOOL }
  result := false;
@@ -184,10 +190,10 @@ begin
     if result then
       WriteLn('Success.')
     else
-      WriteLn('Failure.');
+      Fail;
   end
  else
-   WriteLn('Failure.');
+   Fail;
 
  { LONGBOOL AND LONGBOOL }
  result := false;
@@ -216,10 +222,10 @@ begin
     if result then
       WriteLn('Success.')
     else
-      WriteLn('Failure.');
+      Fail;
   end
  else
-   WriteLn('Failure.');
+   Fail;
 end;
 
 
@@ -253,14 +259,14 @@ begin
  bb2 := true;
  if bb1 xor bb2 then
   begin
-     WriteLn('Failure.');
+     Fail;
   end
  else
   begin
     if result then
       WriteLn('Success.')
     else
-      WriteLn('Failure.');
+      Fail;
   end;
 
  { WORDBOOL XOR WORDBOOL }
@@ -285,14 +291,14 @@ begin
  wb2 := true;
  if wb1 xor wb2 then
   begin
-      WriteLn('Failure.');
+      Fail;
   end
  else
    begin
     if result then
       WriteLn('Success.')
     else
-      WriteLn('Failure.');
+      Fail;
    end;
 
  { LONGBOOL XOR LONGBOOL }
@@ -319,14 +325,14 @@ begin
  lb2 := true;
  if lb1 xor lb2 then
   begin
-      WriteLn('Failure.');
+      Fail;
   end
  else
    begin
      if result then
        WriteLn('Success.')
      else
-       WriteLn('Failure.');
+       Fail;
    end;
 end;
 
@@ -359,10 +365,10 @@ Begin
     if result then
       WriteLn('Success.')
     else
-      WriteLn('Failure.');
+      Fail;
   end
  else
-   WriteLn('Failure.');
+   Fail;
  { WORDBOOL = WORDBOOL }
  result := true;
  Write('wordbool = wordbool test...');
@@ -383,10 +389,10 @@ Begin
     if result then
       WriteLn('Success.')
     else
-      WriteLn('Failure.');
+      Fail;
   end
  else
-   WriteLn('Failure.');
+   Fail;
  Write('wordbool conversion to boolean...');
  result := TRUE;
  move(values,lb1,sizeof(lb1));
@@ -395,7 +401,7 @@ Begin
  if result then
     WriteLn('Success.')
  else
-    WriteLn('Failure.');
+    Fail;
  { LONGBOOL = LONGBOOL }
  result := true;
  Write('longbool = longbool test...');
@@ -416,10 +422,10 @@ Begin
     if result then
       WriteLn('Success.')
     else
-      WriteLn('Failure.');
+      Fail;
   end
  else
-   WriteLn('Failure.');
+   Fail;
  Write('longbool conversion to boolean...');
  result := TRUE;
  move(values,lb1,sizeof(lb1));
@@ -428,7 +434,7 @@ Begin
  if result then
     WriteLn('Success.')
  else
-    WriteLn('Failure.');
+    Fail;
 end;
 
 
@@ -458,14 +464,14 @@ Begin
  bb2 := false;
  if bb1 <> bb2 then
   begin
-      WriteLn('Failure.');
+      Fail;
   end
  else
   begin
    if result then
      WriteLn('Success.')
    else
-     WriteLn('Failure.');
+     Fail;
   end;
  { WORDBOOL <> WORDBOOL }
  result := true;
@@ -486,14 +492,14 @@ Begin
  wb2 := false;
  if wb1 <> wb2 then
   begin
-      WriteLn('Failure.');
+      Fail;
   end
  else
   begin
    if result then
      WriteLn('Success.')
    else
-     WriteLn('Failure.');
+     Fail;
   end;
  { LONGBOOL <> LONGBOOL }
  result := true;
@@ -514,14 +520,14 @@ Begin
  lb2 := false;
  if lb1 <> lb2 then
   begin
-      WriteLn('Failure.');
+      Fail;
   end
  else
   begin
    if result then
      WriteLn('Success.')
    else
-     WriteLn('Failure.');
+     Fail;
   end;
 
 end;
@@ -563,7 +569,10 @@ end.
 
 {
   $Log$
-  Revision 1.2  2001-07-27 02:55:35  carl
+  Revision 1.3  2002-03-05 21:54:52  carl
+  * Adapted for automated testing
+
+  Revision 1.2  2001/07/27 02:55:35  carl
   + more complex testing
 
   Revision 1.1  2001/05/19 11:51:50  peter

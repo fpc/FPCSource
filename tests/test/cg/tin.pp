@@ -73,6 +73,18 @@ type
 type
   tnormalset = set of tbigenum;
   tsmallset = set of tsmallenum;
+  
+  
+  procedure checkpassed(passed : boolean);
+   begin
+    if passed then
+      WriteLn('Passed!')
+    else
+      begin
+        WriteLn('Failure.');
+        Halt(1);
+      end;
+   end;
 
 { The following cases are possible                                  }
 {     jump table usage                                              }
@@ -124,10 +136,7 @@ type
      op3 := [DF];
      if not (DB in (op2+op3)) then
        passed := false;
-     if passed then
-        WriteLn('Success.')
-     else
-        WriteLn('Failure.');
+     checkpassed(passed);  
    end;
 
 
@@ -165,10 +174,7 @@ type
       passed := false;
      { LEFT : LOC_REGISTER                        }
      { RIGHT : range constant set (carry flag)    }
-     if passed then
-        WriteLn('Success.')
-     else
-        WriteLn('Failure.');
+     checkpassed(passed);  
    end;
 
   { returns result in register }
@@ -207,10 +213,7 @@ type
      if not (A_MOVE in op1) then
        passed := false;
 
-     if passed then
-        WriteLn('Success.')
-     else
-        WriteLn('Failure.');
+     checkpassed(passed);  
    end;
 
 
@@ -241,10 +244,7 @@ type
      if not (getop in [A_BFSET,A_MOVE,A_ASL..A_BCC]) then
        passed := false;
 
-     if passed then
-        WriteLn('Success.')
-     else
-        WriteLn('Failure.');
+     checkpassed(passed);  
    end;
 
 
@@ -258,7 +258,10 @@ end.
 {
 
   $Log$
-  Revision 1.1  2001-06-25 01:34:03  carl
+  Revision 1.2  2002-03-05 21:56:02  carl
+  * Adapted for automated testing
+
+  Revision 1.1  2001/06/25 01:34:03  carl
   + secondin() node testing
 
 
