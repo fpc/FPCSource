@@ -35,6 +35,7 @@ asm
         decb    %al
         jz      .LDoRecordInit
         decb    %al
+        jz      .LDoClassInit
         decb    %al
         jz      .LDoObjectInit
         decb    %al
@@ -126,6 +127,7 @@ asm
         decb    %al
         jz      .LDoRecordFinal
         decb    %al
+        jz      .LDoClassFinal
         decb    %al
         jz      .LDoObjectFinal
         decb    %al
@@ -218,6 +220,7 @@ asm
         decb    %al
         jz      .LDoRecordAddRef
         decb    %al
+        jz      .LDoClassAddRef
         decb    %al
         jz      .LDoObjectAddRef
         decb    %al
@@ -303,6 +306,7 @@ asm
         decb    %al
         jz      .LDoRecordDecRef
         decb    %al
+        jz      .LDoClassDecRef
         decb    %al
         jz      .LDoObjectDecRef
         decb    %al
@@ -371,7 +375,10 @@ end;
 
 {
   $Log$
-  Revision 1.16  1999-03-01 15:40:58  peter
+  Revision 1.17  1999-07-31 22:27:28  michael
+  Object finalization data fixed
+
+  Revision 1.16  1999/03/01 15:40:58  peter
     * use external names
     * removed all direct assembler modes
 
