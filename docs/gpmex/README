@@ -1,0 +1,7 @@
+These are the example programs that appear in the FPC documentation.
+ 
+Units guide, chapter on GPM unit :
+
+Example programs
+gpmex.pp  demonstrates the basic usage of the gpm unit.
+
