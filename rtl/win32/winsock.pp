@@ -42,7 +42,7 @@ unit winsock;
        TSocket = u_long;
 
        { there is already a procedure called FD_SET, so this
-         record was renamed (FK) } 
+         record was renamed (FK) }
        fdset = record
           fd_count : u_int;
           fd_array : array[0..(FD_SETSIZE)-1] of TSocket;
@@ -67,29 +67,29 @@ unit winsock;
        end;
        TTimeZone = timezone;
        PTimeZoen = ^TTimeZone;
-          
+
     const
        IOCPARM_MASK = $7f;
        IOC_VOID = $20000000;
        IOC_OUT = $40000000;
        IOC_IN = $80000000;
        IOC_INOUT = IOC_IN or IOC_OUT;
-       FIONREAD = IOC_OUT or 
+       FIONREAD = IOC_OUT or
          ((4 and IOCPARM_MASK) shl 16) or
          (101 shl 8) or 127;
-       FIONBIO = IOC_IN or 
+       FIONBIO = IOC_IN or
          ((4 and IOCPARM_MASK) shl 16) or
          (101 shl 8) or 126;
-       FIOASYNC     = IOC_IN or 
+       FIOASYNC     = IOC_IN or
          ((4 and IOCPARM_MASK) shl 16) or
          (101 shl 8) or 125;
        {
          Structures returned by network data base library, taken from the
          BSD file netdb.h.  All addresses are supplied in host order, and
-         returned in network order (suitable for use in system calls).       
+         returned in network order (suitable for use in system calls).
          Slight modifications for differences between Linux and winsock.h
       }
-    type    
+    type
        hostent = record
           { official name of host  }
           h_name: pchar;
@@ -136,7 +136,7 @@ unit winsock;
        end;
        TServEnt = servent;
        PServEnt = ^TServEnt;
-      
+
        protoent = record
           { official protocol name  }
           p_name : ^char;
@@ -188,7 +188,7 @@ unit winsock;
        IPPORT_BIFFUDP = 512;
        IPPORT_WHOSERVER = 513;
        IPPORT_ROUTESERVER = 520;
-       IPPORT_RESERVED = 1024; 
+       IPPORT_RESERVED = 1024;
 
     const
        IMPLINK_IP = 155;
@@ -214,15 +214,13 @@ unit winsock;
        PInAddr = ^TInAddr;
 
        sockaddr_in = record
+          sin_family : u_short;
           case integer of
-             0 : (
-                  sin_family : u_short;
-                  sin_port : u_short;
+             0 : (sin_port : u_short;
                   sin_addr : TInAddr;
                   sin_zero : array[0..7] of char;
                  );
-             1 : (sin_family : u_short;
-                  sin_data : array[0..13] of char;
+             1 : (sin_data : array[0..13] of char;
                  );
          end;
        TSockAddrIn = sockaddr_in;
@@ -261,7 +259,7 @@ unit winsock;
           iMaxUdpDg : word;
           lpVendorInfo : pchar;
        end;
-       TWSAData = WSADATA; 
+       TWSAData = WSADATA;
        PWSAData = TWSAData;
 
     const
@@ -407,8 +405,8 @@ unit winsock;
        AF_FIREFOX = 19;
        { Somebody is using this! }
        AF_UNKNOWN1 = 20;
-       { Banyan }  
-       AF_BAN = 21;              
+       { Banyan }
+       AF_BAN = 21;
 
        AF_MAX = 22;
 
@@ -422,7 +420,7 @@ unit winsock;
           sp_protocol : u_short;
        end;
        TSockProto = sockproto;
-       PSockProto = ^TSockProto; 
+       PSockProto = ^TSockProto;
 
     const
        {
@@ -462,7 +460,7 @@ unit winsock;
           l_linger : u_short;
        end;
        TLinger = linger;
-       PLinger = ^TLinger; 
+       PLinger = ^TLinger;
 
     const
        {
@@ -638,8 +636,8 @@ unit winsock;
        TF_REUSE_SOCKET = $02;
        TF_WRITE_BEHIND = $04;
 
-       { 
-         Options for use with [gs]etsockopt at the IP level. 
+       {
+         Options for use with [gs]etsockopt at the IP level.
        }
        IP_TTL = 7;
        IP_TOS = 8;
@@ -691,7 +689,7 @@ unit winsock;
     function getservbyname(name:pchar; proto:pchar):PServEnt;stdcall;
     function getprotobynumber(proto:longint):PProtoEnt;stdcall;
     function getprotobyname(name:pchar):PProtoEnt;stdcall;
- 
+
     { Microsoft Windows Extension function prototypes  }
     function WSAStartup(wVersionRequired:word;var WSAData:TWSADATA):longint;stdcall;
     function WSACleanup:longint;stdcall;
@@ -701,14 +699,14 @@ unit winsock;
     function WSAUnhookBlockingHook:longint;stdcall;
     function WSASetBlockingHook(lpBlockFunc:TFarProc):TFarProc;stdcall;
     function WSACancelBlockingCall:longint;stdcall;
-    function WSAAsyncGetServByName(hWnd:HWND; wMsg:u_int; name:pchar; proto:pchar; buf:pchar; 
+    function WSAAsyncGetServByName(hWnd:HWND; wMsg:u_int; name:pchar; proto:pchar; buf:pchar;
                                    buflen:longint):THandle;stdcall;
-    function WSAAsyncGetServByPort(hWnd:HWND; wMsg:u_int; port:longint; proto:pchar; buf:pchar; 
+    function WSAAsyncGetServByPort(hWnd:HWND; wMsg:u_int; port:longint; proto:pchar; buf:pchar;
                                    buflen:longint):THandle;stdcall;
     function WSAAsyncGetProtoByName(hWnd:HWND; wMsg:u_int; name:pchar; buf:pchar; buflen:longint):THandle;stdcall;
     function WSAAsyncGetProtoByNumber(hWnd:HWND; wMsg:u_int; number:longint; buf:pchar; buflen:longint):THandle;stdcall;
     function WSAAsyncGetHostByName(hWnd:HWND; wMsg:u_int; name:pchar; buf:pchar; buflen:longint):THandle;stdcall;
-    function WSAAsyncGetHostByAddr(hWnd:HWND; wMsg:u_int; addr:pchar; len:longint; t:longint; 
+    function WSAAsyncGetHostByAddr(hWnd:HWND; wMsg:u_int; addr:pchar; len:longint; t:longint;
                                    buf:pchar; buflen:longint):THandle;stdcall;
     function WSACancelAsyncRequest(hAsyncTaskHandle:THandle):longint;stdcall;
     function WSAAsyncSelect(s:TSocket; hWnd:HWND; wMsg:u_int; lEvent:longint):longint;stdcall;
@@ -742,7 +740,7 @@ unit winsock;
     procedure FD_ZERO(var FDSet:TFDSet);
 
   implementation
-   
+
     const
        winsockdll = 'wsock32.dll';
 
@@ -793,7 +791,7 @@ unit winsock;
     function getservbyname(name:pchar; proto:pchar):PServEnt;stdcall;external winsockdll name 'getservbyname';
     function getprotobynumber(proto:longint):PProtoEnt;stdcall;external winsockdll name 'getprotobynumber';
     function getprotobyname(name:pchar):PProtoEnt;stdcall;external winsockdll name 'getprotobyname';
- 
+
     { Microsoft Windows Extension function prototypes  }
     function WSAStartup(wVersionRequired:word;var WSAData:TWSADATA):longint;stdcall;
       external winsockdll name 'WSAStartup';
@@ -804,9 +802,9 @@ unit winsock;
     function WSAUnhookBlockingHook:longint;stdcall;external winsockdll name 'WSAUnhookBlockingHook';
     function WSASetBlockingHook(lpBlockFunc:TFarProc):TFarProc;stdcall;external winsockdll name 'WSASetBlockingHook';
     function WSACancelBlockingCall:longint;stdcall;external winsockdll name 'WSACancelBlockingCall';
-    function WSAAsyncGetServByName(hWnd:HWND; wMsg:u_int; name:pchar; proto:pchar; buf:pchar; 
+    function WSAAsyncGetServByName(hWnd:HWND; wMsg:u_int; name:pchar; proto:pchar; buf:pchar;
                                    buflen:longint):THandle;stdcall;external winsockdll name 'WSAAsyncGetServByName';
-    function WSAAsyncGetServByPort(hWnd:HWND; wMsg:u_int; port:longint; proto:pchar; buf:pchar; 
+    function WSAAsyncGetServByPort(hWnd:HWND; wMsg:u_int; port:longint; proto:pchar; buf:pchar;
                                    buflen:longint):THandle;stdcall;external winsockdll name 'WSAAsyncGetServByPort';
     function WSAAsyncGetProtoByName(hWnd:HWND; wMsg:u_int; name:pchar; buf:pchar; buflen:longint):THandle;stdcall;
       external winsockdll name 'WSAAsyncGetProtoByName';
@@ -814,10 +812,10 @@ unit winsock;
       external winsockdll name 'WSAAsyncGetProtoByNumber';
     function WSAAsyncGetHostByName(hWnd:HWND; wMsg:u_int; name:pchar; buf:pchar; buflen:longint):THandle;stdcall;
       external winsockdll name 'WSAAsyncGetHostByName';
-    function WSAAsyncGetHostByAddr(hWnd:HWND; wMsg:u_int; addr:pchar; len:longint; t:longint; 
+    function WSAAsyncGetHostByAddr(hWnd:HWND; wMsg:u_int; addr:pchar; len:longint; t:longint;
                                    buf:pchar; buflen:longint):THandle;stdcall;
-                                   external winsockdll name 'WSAAsyncGetHostByAddr';      
-    function WSACancelAsyncRequest(hAsyncTaskHandle:THandle):longint;stdcall; 
+                                   external winsockdll name 'WSAAsyncGetHostByAddr';
+    function WSACancelAsyncRequest(hAsyncTaskHandle:THandle):longint;stdcall;
       external winsockdll name 'WSACancelAsyncRequest';
     function WSAAsyncSelect(s:TSocket; hWnd:HWND; wMsg:u_int; lEvent:longint):longint;stdcall;
       external winsockdll name 'WSAAsyncSelect';
@@ -929,7 +927,10 @@ unit winsock;
 end.
 {
   $Log$
-  Revision 1.5  2000-02-09 16:59:35  peter
+  Revision 1.6  2000-02-20 20:34:02  florian
+    * dub id fixed
+
+  Revision 1.5  2000/02/09 16:59:35  peter
     * truncated log
 
   Revision 1.4  2000/01/07 16:41:53  daniel
