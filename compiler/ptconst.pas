@@ -845,7 +845,7 @@ implementation
                       p.free;
                       if string2guid(s,tmpguid) then
                         begin
-                          curconstSegment.concat(Tai_const.Create_32bit(tmpguid.D1));
+                          curconstSegment.concat(Tai_const.Create_32bit(longint(tmpguid.D1)));
                           curconstSegment.concat(Tai_const.Create_16bit(tmpguid.D2));
                           curconstSegment.concat(Tai_const.Create_16bit(tmpguid.D3));
                           for i:=Low(tmpguid.D4) to High(tmpguid.D4) do
@@ -1081,7 +1081,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.98  2005-01-08 14:05:31  florian
+  Revision 1.99  2005-01-09 15:05:29  peter
+    * fix interface vtbl optimization
+    * replace ugly pointer construct of ioffset()
+
+  Revision 1.98  2005/01/08 14:05:31  florian
     * typed dyn. array constants can be only nil pointer
 
   Revision 1.97  2004/12/05 12:28:11  peter

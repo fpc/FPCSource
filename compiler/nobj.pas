@@ -889,7 +889,7 @@ implementation
               tostr(i)+'_$_'+
               implintf.implprocs(intfindex,i).mangledname);
             { create wrapper code }
-            cgintfwrapper(rawcode,implintf.implprocs(intfindex,i),tmps,implintf.ioffsets(intfindex)^);
+            cgintfwrapper(rawcode,implintf.implprocs(intfindex,i),tmps,implintf.ioffsets(intfindex));
             { create reference }
             rawdata.concat(Tai_const.Createname(tmps,AT_FUNCTION,0));
           end;
@@ -927,7 +927,7 @@ implementation
         { VTable }
         dataSegment.concat(Tai_const.Createname(gintfgetvtbllabelname(contintfindex),AT_DATA,0));
         { IOffset field }
-        dataSegment.concat(Tai_const.Create_32bit(implintf.ioffsets(contintfindex)^));
+        dataSegment.concat(Tai_const.Create_32bit(implintf.ioffsets(contintfindex)));
         { IIDStr }
         objectlibrary.getdatalabel(tmplabel);
         rawdata.concat(tai_align.create(const_align(sizeof(aint))));
@@ -956,9 +956,7 @@ implementation
         max: longint;
         equals: pequals;
         compats: pcompintfs;
-        i: longint;
-        j: longint;
-        w: longint;
+        w,i,j,k: longint;
         cij: boolean;
         cji: boolean;
       begin
@@ -1007,15 +1005,27 @@ implementation
                   end;
               end;
           end;
+        { Reset, no replacements by default }
         for i:=1 to max do
-          begin
-            if compats^[i].compintf<>0 then
-              implvtbl[i]:=compats^[i].compintf
-            else if equals^[i]<>0 then
-              implvtbl[i]:=equals^[i]
-            else
-              implvtbl[i]:=i;
-          end;
+          implvtbl[i]:=i;
+        { Replace vtbls when equal or compat, repeat
+          until there are no replacements possible anymore. This is
+          needed for the cases like:
+            First loop: 2->3, 3->1
+            Second loop: 2->1 (because 3 was replaced with 1)
+        }
+        repeat
+          k:=0;
+          for i:=1 to max do
+            begin
+              if compats^[implvtbl[i]].compintf<>0 then
+                implvtbl[i]:=compats^[implvtbl[i]].compintf
+              else if equals^[implvtbl[i]]<>0 then
+                implvtbl[i]:=equals^[implvtbl[i]]
+              else
+                inc(k);
+            end;
+        until k=max;
         freemem(compats,sizeof(tcompintfentry)*max);
         freemem(equals,sizeof(longint)*max);
       end;
@@ -1045,7 +1055,7 @@ implementation
                 with tobjectsymtable(_class.symtable) do
                   begin
                     datasize:=align(datasize,min(sizeof(aint),fieldalignment));
-                    _class.implementedinterfaces.ioffsets(i)^:=datasize;
+                    _class.implementedinterfaces.setioffsets(i,datasize);
                     inc(datasize,sizeof(aint));
                   end;
                 { write vtbl }
@@ -1055,9 +1065,8 @@ implementation
         { second pass: for fill interfacetable and remained ioffsets }
         for i:=1 to max do
           begin
-            if i<>impintfindexes[i] then { why execute x:=x ? }
-              with _class.implementedinterfaces do
-                ioffsets(i)^:=ioffsets(impintfindexes[i])^;
+            if impintfindexes[i]<>i then
+              _class.implementedinterfaces.setioffsets(i,_class.implementedinterfaces.ioffsets(impintfindexes[i]));
             gintfgenentry(i,impintfindexes[i],rawdata);
           end;
         dataSegment.concatlist(rawdata);
@@ -1405,7 +1414,11 @@ initialization
 end.
 {
   $Log$
-  Revision 1.84  2004-12-26 20:16:44  peter
+  Revision 1.85  2005-01-09 15:05:29  peter
+    * fix interface vtbl optimization
+    * replace ugly pointer construct of ioffset()
+
+  Revision 1.84  2004/12/26 20:16:44  peter
     * also compare procoptions and proctype when searching interface
       implementations
 

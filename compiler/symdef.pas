@@ -246,8 +246,20 @@ interface
        end;
 
        tprocdef = class;
-
+       tobjectdef = class;
        timplementedinterfaces = class;
+
+       timplintfentry = class(TNamedIndexItem)
+         intf         : tobjectdef;
+         intfderef    : tderef;
+         ioffset      : longint;
+         implintf     : longint;
+         namemappings : tdictionary;
+         procdefs     : TIndexArray;
+         constructor create(aintf: tobjectdef);
+         constructor create_deref(const d:tderef);
+         destructor  destroy; override;
+       end;
 
        tobjectdef = class(tabstractrecorddef)
        private
@@ -324,14 +336,15 @@ interface
           function  count: longint;
           function  interfaces(intfindex: longint): tobjectdef;
           function  interfacesderef(intfindex: longint): tderef;
-          function  ioffsets(intfindex: longint): plongint;
+          function  ioffsets(intfindex: longint): longint;
+          procedure setioffsets(intfindex,iofs:longint);
           function  searchintf(def: tdef): longint;
           procedure addintf(def: tdef);
 
           procedure buildderef;
           procedure deref;
           { add interface reference loaded from ppu }
-          procedure addintf_deref(const d:tderef);
+          procedure addintf_deref(const d:tderef;iofs:longint);
 
           procedure clearmappings;
           procedure addmappings(intfindex: longint; const name, newname: string);
@@ -1854,7 +1867,7 @@ implementation
          end;
 {$ifdef cpurequiresproperalignment}
          rttilist.concat(Tai_align.Create(4));
-{$endif cpurequiresproperalignment}          
+{$endif cpurequiresproperalignment}
          rttiList.concat(Tai_const.Create_32bit(min));
          rttiList.concat(Tai_const.Create_32bit(max));
          if assigned(basedef) then
@@ -2023,7 +2036,7 @@ implementation
           rttiList.concat(Tai_const.Create_8bit(byte(trans[typ])));
 {$ifdef cpurequiresproperalignment}
          rttilist.concat(Tai_align.Create(4));
-{$endif cpurequiresproperalignment}          
+{$endif cpurequiresproperalignment}
           rttiList.concat(Tai_const.Create_32bit(longint(low)));
           rttiList.concat(Tai_const.Create_32bit(longint(high)));
         end;
@@ -4877,8 +4890,7 @@ implementation
              for i:=1 to implintfcount do
                begin
                   ppufile.getderef(d);
-                  implementedinterfaces.addintf_deref(d);
-                  implementedinterfaces.ioffsets(i)^:=ppufile.getlongint;
+                  implementedinterfaces.addintf_deref(d,ppufile.getlongint);
                end;
            end
          else
@@ -4973,7 +4985,7 @@ implementation
               for i:=1 to implintfcount do
                 begin
                    ppufile.putderef(implementedinterfaces.interfacesderef(i));
-                   ppufile.putlongint(implementedinterfaces.ioffsets(i)^);
+                   ppufile.putlongint(implementedinterfaces.ioffsets(i));
                 end;
            end;
 
@@ -5932,23 +5944,11 @@ implementation
       end;
 
 
-    type
-      timplintfentry = class(TNamedIndexItem)
-        intf: tobjectdef;
-        intfderef : tderef;
-        ioffs: longint;
-        namemappings: tdictionary;
-        procdefs: TIndexArray;
-        constructor create(aintf: tobjectdef);
-        constructor create_deref(const d:tderef);
-        destructor  destroy; override;
-      end;
-
     constructor timplintfentry.create(aintf: tobjectdef);
       begin
         inherited create;
         intf:=aintf;
-        ioffs:=-1;
+        ioffset:=-1;
         namemappings:=nil;
         procdefs:=nil;
       end;
@@ -5959,7 +5959,7 @@ implementation
         inherited create;
         intf:=nil;
         intfderef:=d;
-        ioffs:=-1;
+        ioffset:=-1;
         namemappings:=nil;
         procdefs:=nil;
       end;
@@ -6008,10 +6008,16 @@ implementation
         interfacesderef:=timplintfentry(finterfaces.search(intfindex)).intfderef;
       end;
 
-    function  timplementedinterfaces.ioffsets(intfindex: longint): plongint;
+    function  timplementedinterfaces.ioffsets(intfindex: longint): longint;
       begin
         checkindex(intfindex);
-        ioffsets:=@timplintfentry(finterfaces.search(intfindex)).ioffs;
+        ioffsets:=timplintfentry(finterfaces.search(intfindex)).ioffset;
+      end;
+
+    procedure timplementedinterfaces.setioffsets(intfindex,iofs:longint);
+      begin
+        checkindex(intfindex);
+        timplintfentry(finterfaces.search(intfindex)).ioffset:=iofs;
       end;
 
     function  timplementedinterfaces.searchintf(def: tdef): longint;
@@ -6046,9 +6052,13 @@ implementation
             intf:=tobjectdef(intfderef.resolve);
       end;
 
-    procedure timplementedinterfaces.addintf_deref(const d:tderef);
+    procedure timplementedinterfaces.addintf_deref(const d:tderef;iofs:longint);
+      var
+        hintf : timplintfentry;
       begin
-        finterfaces.insert(timplintfentry.create_deref(d));
+        hintf:=timplintfentry.create_deref(d);
+        hintf.ioffset:=iofs;
+        finterfaces.insert(hintf);
       end;
 
     procedure timplementedinterfaces.addintf(def: tdef);
@@ -6321,7 +6331,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.287  2005-01-03 17:55:57  florian
+  Revision 1.288  2005-01-09 15:05:29  peter
+    * fix interface vtbl optimization
+    * replace ugly pointer construct of ioffset()
+
+  Revision 1.287  2005/01/03 17:55:57  florian
     + first batch of patches to support tdef.getcopy fully
 
   Revision 1.286  2004/12/30 14:36:29  florian

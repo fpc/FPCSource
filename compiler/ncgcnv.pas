@@ -471,7 +471,7 @@ interface
                 begin
                    cg.a_op_const_reg(exprasmlist,OP_ADD,OS_ADDR,
                      hd.implementedinterfaces.ioffsets(
-                       hd.implementedinterfaces.searchintf(resulttype.def))^,location.register);
+                       hd.implementedinterfaces.searchintf(resulttype.def)),location.register);
                    break;
                 end;
               hd:=hd.childof;
@@ -567,7 +567,11 @@ end.
 
 {
   $Log$
-  Revision 1.71  2004-12-26 20:09:35  peter
+  Revision 1.72  2005-01-09 15:05:29  peter
+    * fix interface vtbl optimization
+    * replace ugly pointer construct of ioffset()
+
+  Revision 1.71  2004/12/26 20:09:35  peter
     * typecast float to non-float needs a move to memory
 
   Revision 1.70  2004/12/25 12:29:08  florian
