@@ -112,7 +112,7 @@ Type
     Function IsLoadConstReg(p: pai): Boolean; Virtual;
     Function IsStoreRegMem(p: pai): Boolean; Virtual;
 
-    Function a_load_reg_reg(reg1, reg2: TRegister);
+    Function a_load_reg_reg(reg1, reg2: TRegister): paicpu; virtual;
   End;
 
 { ************************************************************************* }
@@ -729,9 +729,9 @@ Begin
     (PInstr(p)^.oper[StoreDst].typ = top_ref);
 End;
 
-Function TAOptBaseCpu.a_load_reg_reg(reg1, reg2: TRegister): PInstr;
+Function TAOptBaseCpu.a_load_reg_reg(reg1, reg2: TRegister): paicpu;
 Begin
-  a_load_reg_Reg := New(PInstr,Op_Reg_Reg(A_MOV, S_L, reg1, reg2)
+  a_load_reg_Reg := New(paicpu,Op_Reg_Reg(A_MOV, S_L, reg1, reg2))
 End;
 
 
@@ -739,7 +739,10 @@ End.
 
 {
  $Log$
- Revision 1.5  1999-08-25 12:00:19  jonas
+ Revision 1.6  1999-09-08 15:05:43  jonas
+   * some small changes so the new optimizer is again compilable
+
+ Revision 1.5  1999/08/25 12:00:19  jonas
    * changed pai386, paippc and paiapha (same for tai*) to paicpu (taicpu)
 
  Revision 1.4  1999/08/23 14:41:14  jonas
