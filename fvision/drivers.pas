@@ -128,7 +128,11 @@ USES
    {$ENDIF}
 
    {$IFDEF OS_LINUX}
-     unix,
+     {$ifdef VER1_0}
+       linux,
+     {$else}
+       unix,
+     {$endif}
      {$DEFINE Use_API}
    {$ENDIF}
 
@@ -3015,7 +3019,10 @@ BEGIN
 END.
 {
  $Log$
- Revision 1.5  2001-05-03 22:32:52  pierre
+ Revision 1.6  2001-05-04 08:42:55  pierre
+  * some corrections for linux
+
+ Revision 1.5  2001/05/03 22:32:52  pierre
   new bunch of changes, displays something for dos at least
 
  Revision 1.4  2001/04/10 21:57:55  pierre

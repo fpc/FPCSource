@@ -171,6 +171,10 @@ PROCEDURE SecondsToTime (Sd: LongInt; Var Hour24, Minute, Second: Word);
 
 {$ENDIF}
 
+{$ifdef OS_LINUX}
+  USES Dos;
+{$endif OS_LINUX}
+
 {***************************************************************************}
 {                            INTERFACE ROUTINES                             }
 {***************************************************************************}
@@ -298,6 +302,11 @@ BEGIN
    DosSetDateTime(DT);                                { Set the time }
 END;
 {$ENDIF}
+{$ifdef OS_LINUX}
+BEGIN
+ {settime is dummy in Linux}
+END;
+{$endif OS_LINUX}
 
 {---------------------------------------------------------------------------}
 {  GetTime -> Platforms DOS/DPMI/WIN/NT/OS2 - Updated 06Nov97 LdB           }
@@ -400,6 +409,11 @@ BEGIN
    Sec100 := DT.Hundredths;                           { Transfer hundredths }
 END;
 {$ENDIF}
+{$ifdef OS_LINUX}
+BEGIN
+  Dos.GetTime(Hour,Minute,Second,Sec100);
+END;
+{$endif OS_LINUX}
 
 {---------------------------------------------------------------------------}
 {  MinutesToTime -> Platforms DOS/DPMI/WIN/NT/OS2 - Updated 19Jun97 LdB     }
@@ -424,7 +438,10 @@ END.
 
 {
  $Log$
- Revision 1.2  2000-08-24 12:00:22  marco
+ Revision 1.3  2001-05-04 08:42:56  pierre
+  * some corrections for linux
+
+ Revision 1.2  2000/08/24 12:00:22  marco
   * CVS log and ID tags
 
 

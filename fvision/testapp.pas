@@ -33,8 +33,7 @@ PROGRAM TestApp;
 { ****************************** END REMARK *** Leon de Boer, 06Nov99 * }
 
 {$I Platform.inc}
-
-USES
+  USES
      {$IFDEF OS_OS2} Os2Def, os2PmApi, Drivers, {$ENDIF}
      Objects, Views, Menus, Dialogs, App,             { Standard GFV units }
      Gadgets;
@@ -156,7 +155,6 @@ BEGIN
 
    MyApp.Init;                                        { Initialize app }
 
-   {$IFDEF OS_WINDOWS}
    { Create a basic window with static text and radio }
    { buttons. The buttons should be orange and white  }
    R.Assign(5, 1, 35, 16);                            { Assign area }
@@ -229,7 +227,6 @@ BEGIN
      Desktop^.Insert(P);                              { Insert dialog }
    End;
    MyApp.Run;                                         { Run the app }
-   {$ENDIF}
    {$IFDEF OS_OS2}
    while (MyApp.EndState = 0)
    AND WinGetMsg(Anchor, Message, 0, 0, 0) Do Begin
@@ -247,7 +244,10 @@ END.
 
 {
  $Log$
- Revision 1.2  2000-08-24 12:00:22  marco
+ Revision 1.3  2001-05-04 08:42:55  pierre
+  * some corrections for linux
+
+ Revision 1.2  2000/08/24 12:00:22  marco
   * CVS log and ID tags
 
 

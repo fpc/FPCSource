@@ -814,7 +814,7 @@ BEGIN
    CreateWindowNow(swp_Show);                         { Create app window }
    {$ENDIF}
    {$ENDIF}
-   {$IFNDEF OS_DOS}                                   { WIN/NT/OS2 CODE }
+   {$IFNDEF NO_WINDOW}                                { WIN/NT/OS2 CODE }
    AppWindow := HWindow;                              { Set app window handle }
    Size.X := ScreenWidth;                             { Set x size value }
    Size.Y := ScreenHeight;                            { Set y size value }
@@ -845,7 +845,7 @@ BEGIN
    For I := 0 To 15 Do DeleteObject(ColBrush[I]);     { Delete brushes }
    For I := 0 To 15 Do DeleteObject(ColPen[I]);       { Delete pens }
   {$ENDIF}
-  {$IFNDEF OS_DOS}                                    { WIN/NT/OS2 CODE }
+  {$IFNDEF NO_WINDOW}                                 { WIN/NT/OS2 CODE }
    AppWindow := 0;                                    { Zero app window handle }
   {$ENDIF}
 END;
@@ -1325,7 +1325,10 @@ END;
 END.
 {
  $Log$
- Revision 1.5  2001-05-03 22:32:52  pierre
+ Revision 1.6  2001-05-04 08:42:54  pierre
+  * some corrections for linux
+
+ Revision 1.5  2001/05/03 22:32:52  pierre
   new bunch of changes, displays something for dos at least
 
  Revision 1.4  2001/04/10 21:57:55  pierre

@@ -419,7 +419,7 @@ TYPE
          Client   : HWnd;                             { Client handle }
          Ps       : HPs;                              { Paint structure }
          {$ENDIF}
-         {$IFNDEF OS_DOS}                             { WIN/NT/OS2 DATA ONLY }
+         {$IFNDEF NO_WINDOW}                          { WIN/NT/OS2 DATA ONLY }
          FrameSize: Integer;                          { Frame size (X) }
          CaptSize : Integer;                          { Caption size (Y) }
          HWindow  : HWnd;                             { Window handle }
@@ -1769,7 +1769,7 @@ END;
 {---------------------------------------------------------------------------}
 FUNCTION TView.TextWidth (Txt: String): Integer;
 VAR I: Integer; S: String;
-{$IFNDEF OS_DOS} P: Pointer; Wnd: HWnd; {$ENDIF}
+{$IFNDEF NO_WINDOW} P: Pointer; Wnd: HWnd; {$ENDIF}
 {$IFDEF OS_WINDOWS} ODc: HDc; M: TSize; {$ENDIF}
 {$IFDEF OS_OS2} OPs: HPs; Pt: Array [0..3] Of PointL; {$ENDIF}
 BEGIN
@@ -5449,9 +5449,9 @@ END;
 {  GraphLine -> Platforms DOS/DPMI/WIN/NT/OS2 - Updated 22Sep99 LdB         }
 {---------------------------------------------------------------------------}
 PROCEDURE TView.GraphLine (X1, Y1, X2, Y2: Integer; Colour: Byte);
-VAR {$IFDEF OS_DOS} ViewPort: ViewPortType; {$ENDIF}  { DOS/DPMI VARIABLES }
-    {$IFDEF OS_WINDOWS} I: Word; ODc: hDc; {$ENDIF}   { WIN/NT VARIABLES }
-    {$IFDEF OS_OS2} I: LongInt; Lp: PointL; OPs: HPs; {$ENDIF}{ OS2 VARIABLES }
+{$IFDEF OS_DOS} VAR ViewPort: ViewPortType; {$ENDIF}  { DOS/DPMI VARIABLES }
+    {$IFDEF OS_WINDOWS}VAR I: Word; ODc: hDc; {$ENDIF}   { WIN/NT VARIABLES }
+    {$IFDEF OS_OS2}VAR I: LongInt; Lp: PointL; OPs: HPs; {$ENDIF}{ OS2 VARIABLES }
 BEGIN
    {$IFDEF OS_DOS}                                    { DOS/DPMI CODE }
    GetViewSettings(ViewPort, TextModeGFV);            { Get viewport settings }
@@ -5522,9 +5522,9 @@ BEGIN
 END;
 
 PROCEDURE TView.GraphRectangle (X1, Y1, X2, Y2: Integer; Colour: Byte);
-VAR {$IFDEF OS_DOS} ViewPort: ViewPortType; {$ENDIF}
-    {$IFDEF OS_WINDOWS} I: Word; ODc: hDc; {$ENDIF}
-    {$IFDEF OS_OS2} Lp: PointL; OPs: HPs; {$ENDIF}
+{$IFDEF OS_DOS}VAR ViewPort: ViewPortType; {$ENDIF}
+{$IFDEF OS_WINDOWS}VAR I: Word; ODc: hDc; {$ENDIF}
+{$IFDEF OS_OS2}VAR Lp: PointL; OPs: HPs; {$ENDIF}
 BEGIN
    {$IFDEF OS_DOS}                                    { DOS/DPMI CODE }
    If (TextModeGFV <> TRUE) Then Begin                { GRAPHICS MODE GFV }
@@ -5807,8 +5807,15 @@ BEGIN
      then begin
        P := @TDrawBuffer(Buf);                          { Set draw buffer ptr }
        L := 0;                                          { Set buffer position }
-       X := X + Origin.X;
-       Y := Y + Origin.Y;
+     If (X >= 0) AND (Y >= 0) AND ((GOptions and (goGraphical or goGraphView))=0) Then Begin
+       X := RawOrigin.X+X*FontWidth;                    { X position }
+       Y := RawOrigin.Y+Y*FontHeight;                   { Y position }
+     End Else Begin
+       X := RawOrigin.X + Abs(X);
+       Y := RawOrigin.Y + Abs(Y);
+     End;
+       X := X DIV SysFontWidth;
+       Y := Y DIV SysFontHeight;
      For J := 1 To H Do Begin                         { For each line }
        K := X;                                        { Reset x position }
        For I := 0 To (W-1) Do Begin                   { For each character }
@@ -5908,8 +5915,15 @@ BEGIN
    {$ifdef Use_API}
      then begin
        P := @TDrawBuffer(Buf);                          { Set draw buffer ptr }
-       X := X + Origin.X;
-       Y := Y + Origin.Y;
+     If (X >= 0) AND (Y >= 0) AND ((GOptions and (goGraphical or goGraphView))=0) Then Begin
+       X := RawOrigin.X+X*FontWidth;                    { X position }
+       Y := RawOrigin.Y+Y*FontHeight;                   { Y position }
+     End Else Begin
+       X := RawOrigin.X + Abs(X);
+       Y := RawOrigin.Y + Abs(Y);
+     End;
+       X := X DIV SysFontWidth;
+       Y := Y DIV SysFontHeight;
      For J := 1 To H Do Begin                         { For each line }
        K := X;                                        { Reset x position }
        For I := 0 To (W-1) Do Begin                   { For each character }
@@ -6047,7 +6061,7 @@ BEGIN
 
 
      {$IFDEF Use_API}
-     If (X >= 0) AND (Y >= 0) Then Begin
+     If (X >= 0) AND (Y >= 0) AND ((GOptions and goGraphView)=0) Then Begin
        X := RawOrigin.X+X*FontWidth;                    { X position }
        Y := RawOrigin.Y+Y*FontHeight;                   { Y position }
      End Else Begin
@@ -6058,7 +6072,7 @@ BEGIN
        Tiy := Y DIV SysFontHeight;
        For Ti := 1 To length(Str) Do Begin
          VideoBuf^[((Tiy * Drivers.ScreenWidth)+Tix)] := (GetColor(Color) shl 8) or Ord(Str[Ti]);
-         Tix := Tix + SysFontWidth;
+         Inc(Tix);
        end;
        UpdateScreen(false);
      {$ELSE not Use_API}
@@ -6180,7 +6194,7 @@ BEGIN
      Fc := Col AND $0F;                               { Foreground colour }
      Bc := Col AND $F0 SHR 4;                         { Background colour }
      FillChar(S[1], 255, C);                          { Fill the string }
-     If (X >= 0) AND (Y >= 0) Then Begin
+     If (X >= 0) AND (Y >= 0) AND ((GOptions and (goGraphical or goGraphView))=0) Then Begin
        X := RawOrigin.X+X*FontWidth;                    { X position }
        Y := RawOrigin.Y+Y*FontHeight;                   { Y position }
      End Else Begin
@@ -6784,7 +6798,10 @@ END.
 
 {
  $Log$
- Revision 1.5  2001-05-03 22:32:52  pierre
+ Revision 1.6  2001-05-04 08:42:56  pierre
+  * some corrections for linux
+
+ Revision 1.5  2001/05/03 22:32:52  pierre
   new bunch of changes, displays something for dos at least
 
  Revision 1.4  2001/04/10 21:57:56  pierre

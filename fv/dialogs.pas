@@ -262,7 +262,7 @@ TYPE
 {                 TCluster OBJECT - CLUSTER ANCESTOR OBJECT                 }
 {---------------------------------------------------------------------------}
 TYPE
-   {$IFNDEF OS_DOS}                                   { WIN/NT/OS2 CODE }
+   {$IFNDEF NO_WINDOW}                                { WIN/NT/OS2 CODE }
    TWndArray = Array [0..32000] Of HWnd;              { Window handle array }
    PWndArray = ^TWndArray;                            { Ptr to handle array }
    {$ENDIF}
@@ -273,7 +273,7 @@ TYPE
          Value     : LongInt;                         { Bit value }
          EnableMask: LongInt;                         { Mask enable bits }
          Strings   : TStringCollection;               { String collection }
-         {$IFNDEF OS_DOS}                             { WIN/NT/OS2 DATA }
+         {$IFNDEF NO_WINDOW}                          { WIN/NT/OS2 DATA }
          WndHandles: PWndArray;                       { Window handle array }
          {$ENDIF}
       CONSTRUCTOR Init (Var Bounds: TRect; AStrings: PSItem);
@@ -703,6 +703,7 @@ USES HistList;                                        { Standard GFV unit }
 {                 LEFT AND RIGHT ARROW CHARACTER CONSTANTS                  }
 {---------------------------------------------------------------------------}
 {$IFDEF OS_DOS} CONST LeftArr = #17; RightArr = #16; {$ENDIF}
+{$IFDEF OS_LINUX} CONST LeftArr = #17; RightArr = #16; {$ENDIF}
 {$IFDEF OS_WINDOWS} CONST LeftArr = #$AB; RightArr = #$BB; {$ENDIF}
 {$IFDEF OS_OS2} CONST LeftArr = #17; RightArr = #16; {$ENDIF}
 
@@ -738,6 +739,7 @@ BEGIN
          {$IFDEF BIT_32}                              { 32 BIT CODE }
          LongInt(P) := GetProp(Wnd, ViewPtr);         { Fetch cluster ptr }
          {$ENDIF}
+         {$ifndef NO_WINDOW}
          If (P <> Nil) AND (P^.WndHandles <> Nil)     { Cluster/handles valid }
          Then Begin
            If (P^.State AND sfFocused = 0) Then       { We have not focus }
@@ -760,6 +762,7 @@ BEGIN
                P^.DrawView;                           { Redraw partial view }
              End;
            End;
+           {$endif NO_WINDOW}
          End;
        End Else
          TvClusterMsgHandler := TvViewMsgHandler(Wnd,
@@ -1833,7 +1836,7 @@ END;
 {---------------------------------------------------------------------------}
 PROCEDURE TCluster.DrawFocus;
 BEGIN
-   {$IFNDEF OS_DOS}                                   { WIN/NT/OS2 CODE }
+   {$IFNDEF NO_WINDOW}                                { WIN/NT/OS2 CODE }
    If (WndHandles <> Nil) Then                        { Valid window handles }
      If (State AND sfFocused <> 0) Then Begin         { View is focused }
        If (Sel >= 0) AND (Sel < Strings.Count) Then
@@ -1891,7 +1894,7 @@ VAR I, J, K, Cur, Col: Integer; CNorm, CSel, CDis, Color: Word; B: TDrawBuffer;
     Tb, SCOff: Byte;
 {$IFNDEF OS_DOS} S: String; P: PString; Q: PChar; {$ENDIF}
 BEGIN
-   {$IFDEF OS_DOS}                                    { DOS/DPMI CODE }
+   {$IFDEF NO_WINDOW}                                 { DOS/DPMI CODE }
    CNorm := GetColor($0301);                          { Normal colour }
    CSel := GetColor($0402);                           { Selected colour }
    CDis := GetColor($0505);                           { Disabled colour }
@@ -3216,7 +3219,10 @@ END;
 END.
 {
  $Log$
- Revision 1.4  2001-05-03 22:32:52  pierre
+ Revision 1.5  2001-05-04 08:42:54  pierre
+  * some corrections for linux
+
+ Revision 1.4  2001/05/03 22:32:52  pierre
   new bunch of changes, displays something for dos at least
 
  Revision 1.3  2001/04/10 21:29:55  pierre
