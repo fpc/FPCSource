@@ -21,7 +21,9 @@ interface
       dos,
 {$ifdef Unix}
   {$ifdef VER1_0}
+  {$ifdef linux}
       linux,
+  {$endif}
   {$else}
       unix,
   {$endif}
@@ -1002,6 +1004,7 @@ implementation
         if hs='' then
          begin
 {$ifdef UNIX}
+{$ifndef beos}
            if FileExists('/usr/local/bin/ppc386') then
             begin
               s:=ExtractFilePath(ReadLink('/usr/local/bin/ppc386'));
@@ -1025,6 +1028,7 @@ implementation
                   end;
                end;
             end;
+{$endif}
 {$else UNIX}
            hs:=ExtractFilePath(FSearch('ppc386.exe',getenv('PATH')));
            if hs<>'' then
@@ -1326,7 +1330,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.13  2001-08-22 20:45:19  peter
+  Revision 1.14  2001-09-29 19:47:50  carl
+  * make it work for BeOS
+
+  Revision 1.13  2001/08/22 20:45:19  peter
     * firstword added
     * pathexist fix to include sysfile
 
