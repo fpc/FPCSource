@@ -147,17 +147,17 @@ asm
         dcbt    0,r4
         mtctr   r5
         subi    r4,r4,1
-        subi    r0,r3,1
+        subi    r10,r3,1
 LStrlCopyLoop:
-        lbzu    r10,1(r4)
-        cmpli   r10,0
-        stbu    r10,1(r0)
+        lbzu    r0,1(r4)
+        cmpli   r0,0
+        stbu    r0,1(r10)
         bdnzf   cr0*4+eq, LStrlCopyLoop
         { if we stopped because we copied a #0, we're done }
         beq     LStrlCopyDone
         { otherwise add the #0 }
-        li      r10,0
-        stb     r10,1(r0)
+        li      r0,0
+        stb     r0,1(r10)
 LStrlCopyDone:
 end ['R0','R4','R10','CR0'];
 
@@ -190,16 +190,16 @@ function strcomp(str1,str2 : pchar) : longint;assembler;
 {      in r3                                                                }
 asm
         { use r0 instead of r3 for str1 since r3 contains result }
-        subi    r0,r3,1
+        subi    r9,r3,1
         subi    r4,r4,1
 LStrCompLoop:
         { load next chars }
-        lbzu    r9,1(r0)
+        lbzu    r0,1(r9)
         { check if one is zero }
-        cmpli   cr1,r9,0
+        cmpli   cr1,r0,0
         lbzu    r10,1(r4)
         { calculate difference }
-        sub.    r3,r9,r10
+        sub.    r3,r0,r10
         { if chars not equal, we're ready }
         bne     LStrCompDone
         { if they are equal and one is zero, then the other one is zero too }
@@ -220,19 +220,19 @@ asm
         dcbt    0,r3
         { use r0 instead of r3 for str1 since r3 contains result }
         cmpl    r5,0
-        subi    r0,r3,1
+        subi    r9,r3,1
         li      r3,0
         beq     LStrlCompDone
         mtctr   r5
         subi    r4,r4,1
 LStrlCompLoop:
         { load next chars }
-        lbzu    r9,1(r0)
+        lbzu    r0,1(r9)
         { check if one is zero }
-        cmpli   cr1,r9,0
+        cmpli   cr1,r0,0
         lbzu    r10,1(r4)
         { calculate difference }
-        sub.    r3,r9,r10
+        sub.    r3,r0,r10
         { if chars not equal, we're ready }
         bne     LStrlCompDone
         { if they are equal and one is zero, then the other one is zero too }
@@ -315,32 +315,32 @@ asm
         dcbt    0,r3
         { use r0 instead of r3 for str1 since r3 contains result }
         cmpl    r5,0
-        subi    r0,r3,1
+        subi    r9,r3,1
         li      r3,0
         beq-    LStrlCompDone
         mtctr   r5
         subi    r4,r4,1
 LStriCompLoop:
         { load next chars }
-        lbzu    r9,1(r0)
+        lbzu    r0,1(r9)
         { check if one is zero }
-        cmpli   cr1,r9,0
+        cmpli   cr1,r0,0
         lbzu    r10,1(r4)
         { calculate difference }
-        sub.    r3,r9,r10
+        sub.    r3,r0,r10
         { if chars are equal, no further test is necessary }
-        beq+    LStriCompEqual
+        beq     LStriCompEqual
 
         { see stricomp for explanation }
         li       r8,0
         li       r5,0
 
-        subic    r3,r9,'A'
+        subic    r3,r0,'A'
         addme    r8,r8
         subic    r3,r10,'A'
         addme    r5,r5
 
-        subfic   r3,r9,'Z'
+        subfic   r3,r0,'Z'
         andi     r8,r8,0x020
         subfe    r7,r7,r7
         subfic   r3,r10,'Z'
@@ -349,11 +349,11 @@ LStriCompLoop:
 
         and      r8,r8,r7
         and      r5,r5,r24
-        add      r9,r9,r8
+        add      r0,r0,r8
         add      r10,r10,r5
 
         { compare again }
-        sub.     r3,r9,r10
+        sub.     r3,r0,r10
         bne      LStrCompDone
 LStriCompEqual:
         { if they are equal and one is zero, then the other one is zero too }
@@ -453,7 +453,10 @@ end ['R0','R9','R10','CR0','CR1'];
 
 {
   $Log$
-  Revision 1.11  2002-08-10 17:14:36  jonas
+  Revision 1.12  2002-09-06 16:58:43  jonas
+    * fixed wrong references (used r0 as base register)
+
+  Revision 1.11  2002/08/10 17:14:36  jonas
     * various fixes, mostly changing the names of the modifies registers to
       upper case since that seems to be required by the compiler
 

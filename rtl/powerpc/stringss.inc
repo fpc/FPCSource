@@ -22,26 +22,29 @@ function strpas(p : pchar) : string; assembler;
 function strpcopy(d : pchar;const s : string) : pchar;assembler;
 asm
         { get length  }
-        lbz     r10,0(r4)
+        lbz     r0,0(r4)
         { put in counter }
-        cmpli   r10,0
-        mtctr   r10
-        subi    r0,r3,1
+        cmpli   r0,0
+        mtctr   r0
+        subi    r10,r3,1
         beq     LStrPCopyEmpty
 LStrPCopyLoop:
         { copy everything }
-        lbzu    r10,1(r4)
-        stbu    r10,1(r0)
+        lbzu    r0,1(r4)
+        stbu    r0,1(r10)
         bdnz    LStrPCopyLoop
         { add terminating #0 }
-        li      r10,0
+        li      r0,0
 LStrPCopyEmpty:
-        stb     r10,1(r0)
+        stb     r0,1(r10)
 end ['R0','R4','R10','CR0','CTR'];
 
 {
   $Log$
-  Revision 1.5  2002-08-10 17:14:36  jonas
+  Revision 1.6  2002-09-06 16:58:43  jonas
+    * fixed wrong references (used r0 as base register)
+
+  Revision 1.5  2002/08/10 17:14:36  jonas
     * various fixes, mostly changing the names of the modifies registers to
       upper case since that seems to be required by the compiler
 
