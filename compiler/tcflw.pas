@@ -458,6 +458,7 @@ implementation
               if (p^.left^.resulttype^.deftype<>objectdef) or
                  not(pobjectdef(p^.left^.resulttype)^.is_class) then
                 CGMessage(type_e_mismatch);
+              set_varstate(p^.left,true);
               if codegenerror then
                exit;
               { insert needed typeconvs for addr,frame }
@@ -632,7 +633,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.37  2000-04-24 11:11:50  peter
+  Revision 1.38  2000-06-02 21:14:34  pierre
+   * fix for tbs/tbs0318.pp bug
+
+  Revision 1.37  2000/04/24 11:11:50  peter
     * backtraces for exceptions are now only generated from the place of the
       exception
     * frame is also pushed for exceptions
