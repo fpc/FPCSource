@@ -331,7 +331,7 @@ var
   AutoSelect: Boolean;
   Action: MenuAction;
   Ch: Char;
-  Result: Word;
+  Res: Word;
   ItemShown, P: PMenuItem;
 {$ifdef WinClipSupported}
   PPW: PMenuItem;
@@ -433,7 +433,7 @@ end;
 
 begin
   AutoSelect := False; E.What:=evNothing;
-  Result := 0;
+  Res := 0;
   ItemShown := nil;
 {$ifdef WinClipSupported}
   PPW:=SearchMenuItem(Menu,cmPasteWin);
@@ -541,7 +541,7 @@ begin
             P := TopMenu^.HotKey(E.KeyCode);
             if (P <> nil) and CommandEnabled(P^.Command) then
             begin
-              Result := P^.Command;
+              Res := P^.Command;
               Action := DoReturn;
             end
           end else
@@ -577,16 +577,16 @@ begin
           R.B := Owner^.Size;
           if Size.Y = 1 then Dec(R.A.X);
           Target := TopMenu^.NewSubView(R, SubMenu, @Self);
-          Result := Owner^.ExecView(Target);
+          Res := Owner^.ExecView(Target);
           Dispose(Target, Done);
-        end else if Action = DoSelect then Result := Command;
-    if (Result <> 0) and CommandEnabled(Result) then
+        end else if Action = DoSelect then Res := Command;
+    if (Res <> 0) and CommandEnabled(Res) then
     begin
       Action := DoReturn;
       ClearEvent(E);
     end
     else
-      Result := 0;
+      Res := 0;
   until Action = DoReturn;
  end;
   if E.What <> evNothing then
@@ -597,7 +597,7 @@ begin
     Current := nil;
     DrawView;
   end;
-  Execute := Result;
+  Execute := Res;
 end;
 
 function TAdvancedMenuPopup.NewSubView(var Bounds: TRect; AMenu: PMenu;
@@ -613,7 +613,7 @@ var
   AutoSelect: Boolean;
   Action: MenuAction;
   Ch: Char;
-  Result: Word;
+  Res: Word;
   ItemShown, P: PMenuItem;
   Target: PMenuView;
   R: TRect;
@@ -711,7 +711,7 @@ end;
 
 begin
   AutoSelect := False; E.What:=evNothing;
-  Result := 0;
+  Res := 0;
   ItemShown := nil;
   Current := Menu^.Default;
   MouseActive := False;
@@ -791,7 +791,7 @@ begin
             P := TopMenu^.HotKey(E.KeyCode);
             if (P <> nil) and CommandEnabled(P^.Command) then
             begin
-              Result := P^.Command;
+              Res := P^.Command;
               Action := DoReturn;
             end
           end else
@@ -827,16 +827,16 @@ begin
           R.B := Owner^.Size;
           if Size.Y = 1 then Dec(R.A.X);
           Target := TopMenu^.NewSubView(R, SubMenu, @Self);
-          Result := Owner^.ExecView(Target);
+          Res := Owner^.ExecView(Target);
           Dispose(Target, Done);
-        end else if Action = DoSelect then Result := Command;
-    if (Result <> 0) and CommandEnabled(Result) then
+        end else if Action = DoSelect then Res := Command;
+    if (Res <> 0) and CommandEnabled(Res) then
     begin
       Action := DoReturn;
       ClearEvent(E);
     end
     else
-      Result := 0;
+      Res := 0;
   until Action = DoReturn;
  end;
   if E.What <> evNothing then
@@ -847,7 +847,7 @@ begin
     Current := nil;
     DrawView;
   end;
-  Execute := Result;
+  Execute := Res;
 end;
 
 constructor TAdvancedMenuBar.Init(var Bounds: TRect; AMenu: PMenu);
@@ -946,7 +946,7 @@ var
   AutoSelect: Boolean;
   Action: MenuAction;
   Ch: Char;
-  Result: Word;
+  Res: Word;
   ItemShown, P: PMenuItem;
   Target: PMenuView;
   R: TRect;
@@ -1040,7 +1040,7 @@ end;
 
 begin
   AutoSelect := False; E.What:=evNothing;
-  Result := 0;
+  Res := 0;
   ItemShown := nil;
   Current := Menu^.Default;
   MouseActive := False;
@@ -1120,7 +1120,7 @@ begin
             P := TopMenu^.HotKey(E.KeyCode);
             if (P <> nil) and CommandEnabled(P^.Command) then
             begin
-              Result := P^.Command;
+              Res := P^.Command;
               Action := DoReturn;
             end
           end else
@@ -1156,16 +1156,16 @@ begin
           R.B := Owner^.Size;
           if Size.Y = 1 then Dec(R.A.X);
           Target := TopMenu^.NewSubView(R, SubMenu, @Self);
-          Result := Owner^.ExecView(Target);
+          Res := Owner^.ExecView(Target);
           Dispose(Target, Done);
-        end else if Action = DoSelect then Result := Command;
-    if (Result <> 0) and CommandEnabled(Result) then
+        end else if Action = DoSelect then Res := Command;
+    if (Res <> 0) and CommandEnabled(Res) then
     begin
       Action := DoReturn;
       ClearEvent(E);
     end
     else
-      Result := 0;
+      Res := 0;
   until Action = DoReturn;
  end;
   if E.What <> evNothing then
@@ -1176,7 +1176,7 @@ begin
     Current := nil;
     DrawView;
   end;
-  Execute := Result;
+  Execute := Res;
 end;
 
 procedure TAdvancedStaticText.SetText(S: string);
@@ -2552,7 +2552,10 @@ end;
 END.
 {
   $Log$
-  Revision 1.14  2005-02-14 17:13:19  peter
+  Revision 1.15  2005-04-04 16:16:09  peter
+    * use res instead of result
+
+  Revision 1.14  2005/02/14 17:13:19  peter
     * truncate log
 
 }
