@@ -595,6 +595,8 @@
             if (i>0) then
               getinterfaceentry:=Res;
           end;
+          if (getinterfaceentry=nil)and not(classparent=nil) then
+            getinterfaceentry:=classparent.getinterfaceentry(iid)
         end;
 
       class function TObject.getinterfaceentrybystr(const iidstr : string) : pinterfaceentry;
@@ -615,6 +617,8 @@
             if (i>0) then
               getinterfaceentrybystr:=Res;
           end;
+          if (getinterfaceentrybystr=nil)and not(classparent=nil) then
+            getinterfaceentrybystr:=classparent.getinterfaceentrybystr(iidstr)
         end;
 
       class function TObject.getinterfacetable : pinterfacetable;
@@ -691,7 +695,10 @@
 
 {
   $Log$
-  Revision 1.32  2003-05-01 08:05:23  florian
+  Revision 1.33  2003-07-19 11:19:07  michael
+  + fix from Ivan Shikhalev for QueryInterface to return ancestor methods
+
+  Revision 1.32  2003/05/01 08:05:23  florian
     * started to make the rtl 64 bit save by introducing SizeInt and SizeUInt (similar to size_t of C)
 
   Revision 1.31  2003/03/17 20:55:58  peter
