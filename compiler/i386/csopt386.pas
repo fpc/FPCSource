@@ -289,7 +289,6 @@ begin
       (ref.index = R_NO)));
 end;
 
-
 {checks whether the current instruction sequence (starting with p) and the
  one between StartMod and EndMod of Reg are the same. If so, the number of
  instructions that match is stored in Found and true is returned, otherwise
@@ -338,9 +337,9 @@ var
 Var hp2, hp3{, EndMod},highPrev, orgPrev: Pai;
     {Cnt,} OldNrOfMods: Longint;
     startRegInfo, OrgRegInfo, HighRegInfo: TRegInfo;
-    regModified: array[R_NO..R_EDI] of boolean;
+    regModified: array[R_NO..R_EDI] of boolean; 
     HighFound, OrgRegFound: Byte;
-    RegCounter, regCounter2, tmpreg: TRegister;
+    RegCounter, regCounter2, tmpreg, base, index: TRegister;
     OrgRegResult: Boolean;
     TmpResult: Boolean;
     {TmpState: Byte;}
@@ -379,27 +378,34 @@ Begin {CheckSequence}
                                   { old  new }
              InstructionsEquivalent(hp2, hp3, RegInfo) Do
         Begin
-          if (hp3^.typ = ait_instruction) and
-             ((paicpu(hp3)^.opcode = A_MOV) or
-              (paicpu(hp3)^.opcode = A_MOVZX) or
-              (paicpu(hp3)^.opcode = A_MOVSX)) and
-             (paicpu(hp3)^.oper[1].typ = top_reg) and
-             not(regInOp(paicpu(hp3)^.oper[1].reg,
-                   paicpu(hp3)^.oper[0])) then
+            if not checkingPrevSequences and
+               (hp3^.typ = ait_instruction) and
+               ((paicpu(hp3)^.opcode = A_MOV) or
+                (paicpu(hp3)^.opcode = A_MOVZX) or
+                (paicpu(hp3)^.opcode = A_MOVSX)) and
+               (paicpu(hp3)^.oper[1].typ = top_reg) and
+               not(regInOp(paicpu(hp3)^.oper[1].reg,
+                     paicpu(hp3)^.oper[0])) then
             begin
               tmpreg := reg32(paicpu(hp3)^.oper[1].reg);
               regInfo.lastReload[tmpreg] := hp3;
               case paicpu(hp3)^.oper[0].typ of
                 top_ref:
                   begin
-                  if regModified[reg32(paicpu(hp3)^.oper[0].ref^.base)] then
-                    with ppaiprop(hp3^.optinfo)^.regs[tmpreg] do
-                      if nrOfMods > (oldNrOfMods - found) then
-                        oldNrOfMods := found + nrOfMods;
-                  if regModified[reg32(paicpu(hp3)^.oper[0].ref^.index)] then
-                    with ppaiprop(hp3^.optinfo)^.regs[tmpreg] do
-                      if nrOfMods > (oldNrOfMods - found) then
-                        oldNrOfMods := found + nrOfMods;
+                    base := reg32(paicpu(hp3)^.oper[0].ref^.base);
+                    index := reg32(paicpu(hp3)^.oper[0].ref^.index);
+                    if (found <> 0) and
+                       ((base = R_NO) or
+                        regModified[base] or
+                        (base = procinfo^.framepointer) or
+                        (assigned(procinfo^._class) and (base = R_ESI))) and
+                       ((index = R_NO) or
+                        regModified[index] or
+                        (assigned(procinfo^._class) and (index = R_ESI))) and
+                        not(regInRef(tmpReg,paicpu(hp3)^.oper[0].ref^)) then
+                      with ppaiprop(hp3^.optinfo)^.regs[tmpreg] do
+                        if nrOfMods > (oldNrOfMods - found) then
+                          oldNrOfMods := found + nrOfMods;
                   end;
                 top_reg:
                   if regModified[reg32(paicpu(hp3)^.oper[0].reg)] then
@@ -411,7 +417,6 @@ Begin {CheckSequence}
           for regCounter2 := R_EAX to R_EDI do
             regModified[regCounter2] := regModified[regCounter2] or
               regModifiedByInstruction(regCounter2,hp3);
-
           GetNextInstruction(hp2, hp2);
           GetNextInstruction(hp3, hp3);
           Inc(Found);
@@ -1285,7 +1290,7 @@ procedure DoCSE(AsmL: PAasmOutput; First, Last: Pai; findPrevSeqs, doSubOpts: bo
 {marks the instructions that can be removed by RemoveInstructs. They're not
  removed immediately because sometimes an instruction needs to be checked in
  two different sequences}
-var cnt, cnt2, orgNrOfMods: longint;
+var cnt, cnt2, cnt3, orgNrOfMods: longint;
     p, hp1, hp2, prevSeq, prevSeq_next: Pai;
     hp3, hp4: pai;
     hp5 : pai;
@@ -1318,10 +1323,8 @@ Begin
                        Begin
                         With PPaiProp(p^.OptInfo)^.Regs[Reg32(Paicpu(p)^.oper[1].reg)] Do
                           Begin
-                            if assigned(startmod) and
-                               (startmod = p)then
-                              orgNrOfMods := ppaiprop(startmod^.optinfo)^.
-                                regs[reg32(paicpu(p)^.oper[1].reg)].nrOfMods
+                            if (startmod = p) then
+                              orgNrOfMods := nrOfMods
                             else
                               orgNrOfMods := 0;
                             If (p = StartMod) And
@@ -1356,7 +1359,7 @@ Begin
                                    Cnt2 := 1;
                                    While Cnt2 <= Cnt Do
                                      Begin
-(*                                       If not(regInInstruction(Paicpu(hp2)^.oper[1].reg, p)) and
+                                       If not(regInInstruction(Paicpu(hp2)^.oper[1].reg, p)) and
                                           not(ppaiprop(p^.optinfo)^.canBeRemoved) then
                                          begin
                                            if (p^.typ = ait_instruction) And
@@ -1384,9 +1387,9 @@ Begin
                                                  end
 {$endif noremove}
                                              end
-                                         end *)
+                                         end
 {$ifndef noremove}
-{                                       else }
+                                       else
                                          PPaiProp(p^.OptInfo)^.CanBeRemoved := True
 {$endif noremove}
                                        ; Inc(Cnt2);
@@ -1681,7 +1684,10 @@ End.
 
 {
   $Log$
-  Revision 1.5  2000-11-09 12:34:44  jonas
+  Revision 1.6  2000-11-14 12:17:34  jonas
+    * fixed some bugs in checksequence
+
+  Revision 1.5  2000/11/09 12:34:44  jonas
     * fixed range check error
 
   Revision 1.4  2000/11/03 17:53:24  jonas
