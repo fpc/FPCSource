@@ -210,8 +210,8 @@ end;
                                 Move / Fill
 ****************************************************************************}
 
+{$ifndef FPC_SYSTEM_HAS_MOVE}
 {$define FPC_SYSTEM_HAS_MOVE}
-
 procedure Move(const source;var dest;count:longint);[public, alias: 'FPC_MOVE'];assembler;
 asm
           {  count <= 0 ?  }
@@ -433,8 +433,10 @@ asm
           bdnz    .LMoveBytesLoop
 .LMoveDone:
 end;
+{$endif FPC_SYSTEM_HAS_MOVE}
 
 
+{$ifndef FPC_SYSTEM_HAS_FILLCHAR}
 {$define FPC_SYSTEM_HAS_FILLCHAR}
 
 Procedure FillChar(var x;count:longint;value:byte);assembler;
@@ -569,8 +571,10 @@ asm
         bdnz      .LFillCharVerySmallLoop
 .LFillCharDone:
 end;
+{$endif FPC_SYSTEM_HAS_FILLCHAR}
 
 
+{$ifndef FPC_SYSTEM_HAS_FILLDWORD}
 {$define FPC_SYSTEM_HAS_FILLDWORD}
 procedure filldword(var x;count : longint;value : dword);
 assembler;
@@ -589,8 +593,10 @@ asm
                 bdnz    .LFillDWordLoop
 .LFillDWordEnd:
 end;
+{$endif FPC_SYSTEM_HAS_FILLDWORD}
 
 
+{$ifndef FPC_SYSTEM_HAS_INDEXBYTE}
 {$define FPC_SYSTEM_HAS_INDEXBYTE}
 function IndexByte(const buf;len:longint;b:byte):longint; assembler;
 { input: r3 = buf, r4 = len, r5 = b                   }
@@ -614,8 +620,10 @@ asm
                 sub     r3,r10,r0
 .LIndexByteDone:
 end;
+{$endif FPC_SYSTEM_HAS_INDEXBYTE}
 
 
+{$ifndef FPC_SYSTEM_HAS_INDEXWORD}
 {$define FPC_SYSTEM_HAS_INDEXWORD}
 function IndexWord(const buf;len:longint;b:word):longint; assembler;
 { input: r3 = buf, r4 = len, r5 = b                   }
@@ -640,8 +648,10 @@ asm
                 srawi   r3,r3,1
 .LIndexWordDone:
 end;
+{$endif FPC_SYSTEM_HAS_INDEXWORD}
 
 
+{$ifndef FPC_SYSTEM_HAS_INDEXDWORD}
 {$define FPC_SYSTEM_HAS_INDEXDWORD}
 function IndexDWord(const buf;len:longint;b:DWord):longint; assembler;
 { input: r3 = buf, r4 = len, r5 = b                   }
@@ -666,7 +676,10 @@ asm
                 srawi   r3,r3,2
 .LIndexDWordDone:
 end;
+{$endif FPC_SYSTEM_HAS_INDEXDWORD}
 
+
+{$ifndef FPC_SYSTEM_HAS_COMPAREBYTE}
 {$define FPC_SYSTEM_HAS_COMPAREBYTE}
 function CompareByte(const buf1,buf2;len:longint):longint; assembler;
 { input: r3 = buf1, r4 = buf2, r5 = len                           }
@@ -692,7 +705,10 @@ asm
         bdnzt   cr0*4+eq, .LCompByteLoop
 .LCompByteDone:
 end;
+{$endif FPC_SYSTEM_HAS_COMPAREBYTE}
 
+
+{$ifndef FPC_SYSTEM_HAS_COMPAREWORD}
 {$define FPC_SYSTEM_HAS_COMPAREWORD}
 function CompareWord(const buf1,buf2;len:longint):longint; assembler;
 { input: r3 = buf1, r4 = buf2, r5 = len                           }
@@ -718,8 +734,10 @@ asm
         bdnzt   cr0*4+eq, .LCompWordLoop
 .LCompWordDone:
 end;
+{$endif FPC_SYSTEM_HAS_COMPAREWORD}
 
 
+{$ifndef FPC_SYSTEM_HAS_COMPAREDWORD}
 {$define FPC_SYSTEM_HAS_COMPAREDWORD}
 function CompareDWord(const buf1,buf2;len:longint):longint; assembler;
 { input: r3 = buf1, r4 = buf2, r5 = len                           }
@@ -745,7 +763,10 @@ asm
         bdnzt   cr0*4+eq, .LCompDWordLoop
 .LCompDWordDone:
 end;
+{$endif FPC_SYSTEM_HAS_COMPAREDWORD}
 
+
+{$ifndef FPC_SYSTEM_HAS_INDEXCHAR0}
 {$define FPC_SYSTEM_HAS_INDEXCHAR0}
 function IndexChar0(const buf;len:longint;b:Char):longint; assembler;
 { input: r3 = buf, r4 = len, r5 = b                         }
@@ -772,13 +793,15 @@ asm
         sub     r3,r9,r0
 .LIndexChar0Done:
 end;
+{$endif FPC_SYSTEM_HAS_INDEXCHAR0}
 
 
 {****************************************************************************
                                  String
 ****************************************************************************}
 
-{$define FPC_SYSTEM_HAS_FPC_SHORTSTR_COPY}
+{$ifndef FPC_SYSTEM_HAS_FPC_SHORTSTR_ASSIGN}
+{$define FPC_SYSTEM_HAS_FPC_SHORTSTR_ASSIGN}
 function fpc_shortstr_to_shortstr(len:longint; const sstr: shortstring): shortstring; [public,alias: 'FPC_SHORTSTR_TO_SHORTSTR']; compilerproc;
 assembler;
 { input: r3: pointer to result, r4: len, r5: sstr }
@@ -807,7 +830,6 @@ asm
 end;
 
 
-{$define FPC_SYSTEM_HAS_FPC_SHORTSTR_ASSIGN}
 {$ifdef interncopy}
 procedure fpc_shortstr_assign(len:longint;sstr,dstr:pointer);[public,alias:'FPC_SHORTSTR_ASSIGN'];
 {$else}
@@ -838,8 +860,10 @@ asm
         bdnz    .LShortStrCopyLoop2
 .LShortStrCopyDone2:
 end;
+{$endif FPC_SYSTEM_HAS_FPC_SHORTSTR_ASSIGN}
 
 
+{$ifndef FPC_SYSTEM_HAS_FPC_SHORTSTR_APPEND_SHORTSTR}
 {$define FPC_SYSTEM_HAS_FPC_SHORTSTR_APPEND_SHORTSTR}
 
 procedure fpc_shortstr_append_shortstr(var s1: shortstring; const s2: shortstring); compilerproc;
@@ -881,6 +905,7 @@ asm
       bdnz    .LShortStrAppendLoop
 .LShortStrAppendDone:
 end;
+{$endif FPC_SYSTEM_HAS_FPC_SHORTSTR_APPEND_SHORTSTR}
 
 (*
 {$define FPC_SYSTEM_HAS_FPC_SHORTSTR_COMPARE}
@@ -942,15 +967,20 @@ LShortStrCompareDone:
 end;
 *)
 
+
+{$ifndef FPC_SYSTEM_HAS_FPC_PCHAR_TO_SHORTSTR}
 {$define FPC_SYSTEM_HAS_FPC_PCHAR_TO_SHORTSTR}
 function fpc_pchar_to_shortstr(p:pchar):shortstring;[public,alias:'FPC_PCHAR_TO_SHORTSTR']; compilerproc;
 assembler;
 {$include strpas.inc}
+{$endif FPC_SYSTEM_HAS_FPC_PCHAR_TO_SHORTSTR}
 
 
+{$ifndef FPC_SYSTEM_HAS_FPC_PCHAR_LENGTH}
 {$define FPC_SYSTEM_HAS_FPC_PCHAR_LENGTH}
 function fpc_pchar_length(p:pchar):longint;assembler;[public,alias:'FPC_PCHAR_LENGTH']; {$ifdef hascompilerproc} compilerproc; {$endif}
 {$include strlen.inc}
+{$endif FPC_SYSTEM_HAS_FPC_PCHAR_LENGTH}
 
 
 {$define FPC_SYSTEM_HAS_GET_FRAME}
@@ -1061,7 +1091,14 @@ end;
 
 {
   $Log$
-  Revision 1.64  2004-01-10 00:16:20  jonas
+  Revision 1.65  2004-01-11 11:10:07  jonas
+    + cgeneric.inc: implementations of rtl routines based on libc
+    * system.inc: include cgeneric.inc before powerpc.inc/i386.inc/... if
+      FPC_USE_LIBC is defined
+    * powerpc.inc, i386.inc: check whether the routines they implement aren't
+      implemented yet in another include file (cgeneric.inc)
+
+  Revision 1.64  2004/01/10 00:16:20  jonas
     * fixed mtfsb0 instruction for assembler reader/writer
     * fixed initialisation of fpscr register to avoid spurious SIGPFE's
       (uses mtfsb0 instruction, so added extra define in options.pas to avoid

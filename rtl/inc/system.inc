@@ -81,6 +81,11 @@ Procedure Rewrite(var f : TypedFile); [INTERNPROC: In_Rewrite_TypedFile];
                     Include processor specific routines
 ****************************************************************************}
 
+{$ifdef FPC_USE_LIBC}
+{ prefer libc implementations over our own, as they're most likely faster }
+{$i libcproc.inc}
+{$endif FPC_USE_LIBC}
+
 {$ifdef cpui386}
   {$ifdef SYSPROCDEFINED}
     {$Error Can't determine processor type !}
@@ -859,7 +864,14 @@ end;
 
 {
   $Log$
-  Revision 1.49  2004-01-02 17:21:50  jonas
+  Revision 1.50  2004-01-11 11:10:07  jonas
+    + cgeneric.inc: implementations of rtl routines based on libc
+    * system.inc: include cgeneric.inc before powerpc.inc/i386.inc/... if
+      FPC_USE_LIBC is defined
+    * powerpc.inc, i386.inc: check whether the routines they implement aren't
+      implemented yet in another include file (cgeneric.inc)
+
+  Revision 1.49  2004/01/02 17:21:50  jonas
     + fpc_cpuinit procedure to allow cpu/fpu initialisation before any unit
       initialises
     + fpu exceptions for invalid operations and division by zero enabled for

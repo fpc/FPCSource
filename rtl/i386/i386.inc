@@ -31,6 +31,7 @@ asm
   ret
 end;
 
+{$ifndef FPC_SYSTEM_HAS_MOVE}
 {$define FPC_SYSTEM_HAS_MOVE}
 procedure Move(const source;var dest;count:longint);assembler;
 var
@@ -111,8 +112,10 @@ asm
         movl    saveedi,%edi
         movl    saveesi,%esi
 end;
+{$endif FPC_SYSTEM_HAS_MOVE}
 
 
+{$ifndef FPC_SYSTEM_HAS_FILLCHAR}
 {$define FPC_SYSTEM_HAS_FILLCHAR}
 Procedure FillChar(var x;count:longint;value:byte);assembler;
 var
@@ -157,8 +160,10 @@ asm
 .LFillEnd:
         movl    saveedi,%edi
 end;
+{$endif FPC_SYSTEM_HAS_FILLCHAR}
 
 
+{$ifndef FPC_SYSTEM_HAS_FILLWORD}
 {$define FPC_SYSTEM_HAS_FILLWORD}
 procedure fillword(var x;count : longint;value : word);assembler;
 var
@@ -192,8 +197,10 @@ asm
 .LFillWordEnd:
         movl    saveedi,%edi
 end;
+{$endif FPC_SYSTEM_HAS_FILLWORD}
 
 
+{$ifndef FPC_SYSTEM_HAS_FILLDWORD}
 {$define FPC_SYSTEM_HAS_FILLDWORD}
 procedure filldword(var x;count : longint;value : dword);assembler;
 var
@@ -218,8 +225,10 @@ asm
 .LFillDWordEnd:
         movl    saveedi,%edi
 end;
+{$endif FPC_SYSTEM_HAS_FILLDWORD}
 
 
+{$ifndef FPC_SYSTEM_HAS_INDEXBYTE}
 {$define FPC_SYSTEM_HAS_INDEXBYTE}
 function IndexByte(Const buf;len:longint;b:byte):longint; assembler;
 var
@@ -249,8 +258,10 @@ asm
         movl    saveedi,%edi
         movl    saveebx,%ebx
 end;
+{$endif FPC_SYSTEM_HAS_FILLDWORD}
 
 
+{$ifndef FPC_SYSTEM_HAS_INDEXWORD}
 {$define FPC_SYSTEM_HAS_INDEXWORD}
 function Indexword(Const buf;len:longint;b:word):longint; assembler;
 var
@@ -280,8 +291,10 @@ asm
         movl    saveedi,%edi
         movl    saveebx,%ebx
 end;
+{$endif FPC_SYSTEM_HAS_INDEXWORD}
 
 
+{$ifndef FPC_SYSTEM_HAS_INDEXDWORD}
 {$define FPC_SYSTEM_HAS_INDEXDWORD}
 function IndexDWord(Const buf;len:longint;b:DWord):longint; assembler;
 var
@@ -317,8 +330,10 @@ asm
         movl    saveedi,%edi
         movl    saveebx,%ebx
 end;
+{$endif FPC_SYSTEM_HAS_INDEXDWORD}
 
 
+{$ifndef FPC_SYSTEM_HAS_COMPAREBYTE}
 {$define FPC_SYSTEM_HAS_COMPAREBYTE}
 function CompareByte(Const buf1,buf2;len:longint):longint; assembler;
 var
@@ -371,9 +386,11 @@ asm
         movl    saveedi,%edi
         movl    saveesi,%esi
 end;
+{$endif FPC_SYSTEM_HAS_COMPAREBYTE}
 
 
 
+{$ifndef FPC_SYSTEM_HAS_COMPAREWORD}
 {$define FPC_SYSTEM_HAS_COMPAREWORD}
 function CompareWord(Const buf1,buf2;len:longint):longint; assembler;
 var
@@ -438,8 +455,10 @@ asm
         movl    saveesi,%esi
         movl    saveebx,%ebx
 end;
+{$endif FPC_SYSTEM_HAS_COMPAREWORD}
 
 
+{$ifndef FPC_SYSTEM_HAS_COMPAREDWORD}
 {$define FPC_SYSTEM_HAS_COMPAREDWORD}
 function CompareDWord(Const buf1,buf2;len:longint):longint; assembler;
 var
@@ -502,8 +521,10 @@ asm
         movl    saveesi,%esi
         movl    saveebx,%ebx
 end;
+{$endif FPC_SYSTEM_HAS_COMPAREDWORD}
 
 
+{$ifndef FPC_SYSTEM_HAS_INDEXCHAR0}
 {$define FPC_SYSTEM_HAS_INDEXCHAR0}
 function IndexChar0(Const buf;len:longint;b:Char):longint; assembler;
 var
@@ -542,6 +563,7 @@ asm
         movl    saveesi,%esi
         movl    saveebx,%ebx
 end;
+{$endif FPC_SYSTEM_HAS_INDEXCHAR0}
 
 
 {****************************************************************************
@@ -874,6 +896,7 @@ end;
                                  String
 ****************************************************************************}
 
+{$ifndef FPC_SYSTEM_HAS_FPC_SHORTSTR_ASSIGN}
 {$define FPC_SYSTEM_HAS_FPC_SHORTSTR_ASSIGN}
 
 function fpc_shortstr_to_shortstr(len:longint; const sstr: shortstring): shortstring; [public,alias: 'FPC_SHORTSTR_TO_SHORTSTR']; {$ifdef hascompilerproc} compilerproc; {$endif}
@@ -909,6 +932,7 @@ begin
         movsb
   end ['ESI','EDI','EAX','ECX'];
 end;
+
 
 {$ifdef interncopy}
 procedure fpc_shortstr_assign(len:longint;sstr,dstr:pointer);[public,alias:'FPC_SHORTSTR_ASSIGN'];
@@ -951,7 +975,10 @@ begin
         popl    %eax
   end ['ESI','EDI'];
 end;
+{$endif FPC_SYSTEM_HAS_FPC_SHORTSTR_ASSIGN}
 
+
+{$ifndef FPC_SYSTEM_HAS_FPC_SHORTSTR_CONCAT}
 {$define FPC_SYSTEM_HAS_FPC_SHORTSTR_CONCAT}
 
 function fpc_shortstr_concat(const s1,s2:shortstring):shortstring;{$ifdef hascompilerproc}compilerproc;{$endif}
@@ -1009,8 +1036,10 @@ begin
         movsb
   end ['EBX','ECX','EAX','ESI','EDI'];
 end;
+{$endif FPC_SYSTEM_HAS_FPC_SHORTSTR_CONCAT}
 
 
+{$ifndef FPC_SYSTEM_HAS_FPC_SHORTSTR_APPEND_SHORTSTR}
 {$define FPC_SYSTEM_HAS_FPC_SHORTSTR_APPEND_SHORTSTR}
 
 {$ifdef hascompilerproc}
@@ -1090,8 +1119,10 @@ begin
   end ['EBX','ECX','EAX','ESI','EDI'];
 end;
 {$endif hascompilerproc}
+{$endif FPC_SYSTEM_HAS_FPC_SHORTSTR_APPEND_SHORTSTR}
 
 
+{$ifndef FPC_SYSTEM_HAS_FPC_SHORTSTR_COMPARE}
 {$define FPC_SYSTEM_HAS_FPC_SHORTSTR_COMPARE}
 function fpc_shortstr_compare(const left,right:shortstring): longint; [public,alias:'FPC_SHORTSTR_COMPARE']; {$ifdef hascompilerproc} compilerproc; {$endif}
 begin
@@ -1140,15 +1171,21 @@ begin
 .LStrCmp3:
   end ['EDX','ECX','EBX','EAX','ESI','EDI'];
 end;
+{$endif FPC_SYSTEM_HAS_FPC_SHORTSTR_COMPARE}
 
 
+{$ifndef FPC_SYSTEM_HAS_FPC_PCHAR_TO_SHORTSTR}
 {$define FPC_SYSTEM_HAS_FPC_PCHAR_TO_SHORTSTR}
 function fpc_pchar_to_shortstr(p:pchar):shortstring;assembler;[public,alias:'FPC_PCHAR_TO_SHORTSTR']; {$ifdef hascompilerproc} compilerproc; {$endif}
 {$include strpas.inc}
+{$endif FPC_SYSTEM_HAS_FPC_PCHAR_TO_SHORTSTR}
 
+
+{$ifndef FPC_SYSTEM_HAS_FPC_PCHAR_LENGTH}
 {$define FPC_SYSTEM_HAS_FPC_PCHAR_LENGTH}
 function fpc_pchar_length(p:pchar):longint;assembler;[public,alias:'FPC_PCHAR_LENGTH']; {$ifdef hascompilerproc} compilerproc; {$endif}
 {$include strlen.inc}
+{$endif FPC_SYSTEM_HAS_FPC_PCHAR_LENGTH}
 
 
 {$define FPC_SYSTEM_HAS_GET_FRAME}
@@ -1418,7 +1455,14 @@ end;
 
 {
   $Log$
-  Revision 1.57  2004-01-02 17:22:14  jonas
+  Revision 1.58  2004-01-11 11:10:07  jonas
+    + cgeneric.inc: implementations of rtl routines based on libc
+    * system.inc: include cgeneric.inc before powerpc.inc/i386.inc/... if
+      FPC_USE_LIBC is defined
+    * powerpc.inc, i386.inc: check whether the routines they implement aren't
+      implemented yet in another include file (cgeneric.inc)
+
+  Revision 1.57  2004/01/02 17:22:14  jonas
     + fpc_cpuinit procedure to allow cpu/fpu initialisation before any unit
       initialises
     + fpu exceptions for invalid operations and division by zero enabled for
