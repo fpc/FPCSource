@@ -139,6 +139,20 @@ function Min(a, b: Extended): Extended;
 function Max(a, b: Extended): Extended;
 {$endif FPC_HAS_TYPE_EXTENDED}
 
+
+// Sign functions
+Type
+  TValueSign = -1..1;
+  
+const
+  NegativeValue = Low(TValueSign);
+  ZeroValue = 0;
+  PositiveValue = High(TValueSign);
+      
+function Sign(const AValue: Integer): TValueSign; overload;
+function Sign(const AValue: Int64): TValueSign; overload;
+function Sign(const AValue: Double): TValueSign; overload;
+        
 { angle conversion }
 
 function degtorad(deg : float) : float;
@@ -292,6 +306,41 @@ begin
   Raise EInvalidArgument.Create(SInvalidArgument);
 end;
 
+
+function Sign(const AValue: Integer): TValueSign; 
+
+begin
+  If Avalue<0 then
+    Result:=NegativeValue
+  else If Avalue>0 then
+    Result:=PositiveValue
+  else
+    Result:=ZeroValue;
+end;
+
+function Sign(const AValue: Int64): TValueSign; 
+
+begin
+  If Avalue<0 then
+    Result:=NegativeValue
+  else If Avalue>0 then
+    Result:=PositiveValue
+  else
+    Result:=ZeroValue;
+end;
+
+function Sign(const AValue: Double): TValueSign;
+
+begin
+  If Avalue<0.0 then
+    Result:=NegativeValue
+  else If Avalue>0.0 then
+    Result:=PositiveValue
+  else
+    Result:=ZeroValue;
+end;
+        
+
 function degtorad(deg : float) : float;
 
   begin
@@ -360,14 +409,10 @@ procedure sincos(theta : float;var sinus,cosinus : float);
     cosinus:=cos(theta);
   end;
 
-{ Sign, ArcSin and ArcCos from Arjan van Dijk (arjan.vanDijk@User.METAIR.WAU.NL) }
 
-function sign(x : float) : float;
-begin
-  if      x > 0 then sign :=  1.0
-  else if x < 0 then sign := -1.0
-  else               sign :=  0.0;
-end;
+
+{ ArcSin and ArcCos from Arjan van Dijk (arjan.vanDijk@User.METAIR.WAU.NL) }
+
 
 function arcsin(x : float) : float;
 begin
@@ -1019,7 +1064,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.14  2003-10-29 19:10:07  jonas
+  Revision 1.15  2003-11-09 21:52:54  michael
+  + Added missing sign functions
+
+  Revision 1.14  2003/10/29 19:10:07  jonas
     * fixed arctan2
 
   Revision 1.13  2003/10/26 15:58:05  florian
