@@ -854,7 +854,7 @@ ait_stab_function_name : ;
             id     : as_i386_wasm;
             idtxt  : 'WASM';
             asmbin : 'wasm';
-            asmcmd : '$ASM -5s -fpc -fp3 -ms -zq -Fo=$OBJ';
+            asmcmd : '$ASM -6s -fpc -fp6 -ms -zq -Fo=$OBJ';
             supported_target : system_any; { what should I write here ?? }
             outputbinary: false;
             allowdirect : true;
@@ -875,7 +875,10 @@ initialization
 end.
 {
   $Log$
-  Revision 1.40  2003-09-30 08:39:50  michael
+  Revision 1.41  2003-10-18 09:16:45  hajny
+    * Watcom patch by Wiktor Sywula
+
+  Revision 1.40  2003/09/30 08:39:50  michael
   + Patch from Wiktor Sywula for watcom support
 
   Revision 1.39  2003/09/23 17:56:06  peter
