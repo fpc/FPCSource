@@ -459,22 +459,26 @@ implementation
            else
             begin
               { 64bit to 64bit }
-              if (l.loc=LOC_REGISTER) or
-                 ((l.loc=LOC_CREGISTER) and maybeconst) then
+              if ((l.loc=LOC_CREGISTER) and maybeconst) then
                begin
                  hregister:=l.register64.reglo;
                  hregisterhi:=l.register64.reghi;
+                 const_location := true;
                end
               else
                begin
                  hregister:=cg.getintregister(list,OS_INT);
                  hregisterhi:=cg.getintregister(list,OS_INT);
+                 const_location := false;
                end;
               hreg64.reglo:=hregister;
               hreg64.reghi:=hregisterhi;
               { load value in new register }
               cg64.a_load64_loc_reg(list,l,hreg64);
-              location_reset(l,LOC_REGISTER,dst_size);
+              if not const_location then
+                location_reset(l,LOC_REGISTER,dst_size)
+              else
+                location_reset(l,LOC_CREGISTER,dst_size);
               l.register64.reglo:=hregister;
               l.register64.reghi:=hregisterhi;
             end;
@@ -2286,7 +2290,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.247  2004-12-05 12:28:11  peter
+  Revision 1.248  2004-12-11 01:03:01  jonas
+    * fixed int64 regvar bug in location_force_register
+
+  Revision 1.247  2004/12/05 12:28:11  peter
     * procvar handling for tp procvar mode fixed
     * proc to procvar moved from addrnode to typeconvnode
     * inlininginfo is now allocated only for inline routines that
