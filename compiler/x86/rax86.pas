@@ -279,7 +279,7 @@ begin
                  begin
                    if ((opcode<>A_MOVD) and
                        (opcode<>A_CVTSI2SS)) then
-                     operands[i].size:=operands[operand2].size;
+                     t386operand(operands[i]).opsize:=t386operand(operands[operand2]).opsize;
                  end
                else
                 begin
@@ -716,7 +716,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.5  2003-06-07 10:23:50  peter
+  Revision 1.6  2003-06-20 12:57:15  pierre
+   * fix a bug preventing correct reading of intel 'mov [edi],al'
+
+  Revision 1.5  2003/06/07 10:23:50  peter
     * 32bit operands need ofcourse 32bit size
 
   Revision 1.4  2003/05/31 16:22:28  peter
