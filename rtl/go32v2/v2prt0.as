@@ -935,9 +935,13 @@ ___PROXY_LEN:
 
 /*
   $Log$
-  Revision 1.5  2002-09-07 16:01:19  peter
+  Revision 1.6  2002-09-08 09:16:15  jonas
+    * added closing of comment for logs to avoid warning
+
+  Revision 1.5  2002/09/07 16:01:19  peter
     * old logs removed and tabs fixed
 
   Revision 1.4  2002/02/03 09:51:41  peter
     * merged winxp fixes
 
+*/

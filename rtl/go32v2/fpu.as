@@ -50,6 +50,10 @@ Lexit:
         ret
 /*
   $Log$
-  Revision 1.3  2002-09-07 16:01:18  peter
+  Revision 1.4  2002-09-08 09:16:15  jonas
+    * added closing of comment for logs to avoid warning
+
+  Revision 1.3  2002/09/07 16:01:18  peter
     * old logs removed and tabs fixed
 
+*/
