@@ -24,15 +24,45 @@
 { This file is still a dummy,
   it should use ioctl to get information about resizing of windows }
 
+uses
+{$ifdef VER1_0}
+  linux;
+{$else}
+  unix;
+{$endif}
+
 Const
   SystemEventActive : Boolean = false;
 
+type
+  TWinSize = record
+    ws_row, ws_col, ws_xpixel, ws_ypixel : smallint;
+  end;
+
+
+var
+  lastxsize,lastysize : longint;
 
 procedure InitSystemMsg;
+var
+  WinSize : TWinSize;
 begin
   If SystemEventActive then
     exit;
   { Code to enable size tracking should go here }
+  PendingSystemHead:=@PendingSystemEvent;
+  PendingSystemTail:=@PendingSystemEvent;
+  PendingSystemEvents:=0;
+  FillChar(LastSystemEvent,sizeof(TSystemEvent),0);
+  FillChar(WinSize,sizeof(WinSize),0);
+  ioctl(stdinputhandle,TIOCGWINSZ,@winsize);
+  LastXSize:=WinSize.ws_row;
+  LastYSize:=WinSize.ws_col;
+  If LastXSize=0 then
+    LastXSize:=80;
+  If LastYSize=0 then
+    LastYSize:=25;
+
   SystemEventActive:=true;
 end;
 
@@ -47,22 +77,58 @@ end;
 
 procedure GetSystemEvent(var SystemEvent: TSystemEvent);
 begin
-  PollSystemEvent(SystemEvent);
+  if PendingSystemEvents=0 then
+    PollSystemEvent(SystemEvent);
+  if PendingSystemEvents=0 then
+    exit;
+  SystemEvent:=PendingSystemHead^;
+  inc(PendingSystemHead);
+  if longint(PendingSystemHead)=longint(@PendingSystemEvent)+sizeof(PendingSystemEvent) then
+   PendingSystemHead:=@PendingSystemEvent;
+  dec(PendingSystemEvents);
+  LastSystemEvent:=SystemEvent;
 end;
+
 
 function PollSystemEvent(var SystemEvent: TSystemEvent):boolean;
 var
   CloseState : word;
+  WinSize : TWinSize;
 begin
   SystemEvent.typ:=SysNothing;
   if not SystemEventActive then
     exit(false);
-  PollSystemEvent:=false;
+  if PendingSystemEvents>0 then
+   begin
+     SystemEvent:=PendingSystemHead^;
+     PollSystemEvent:=true;
+   end
+  else
+   begin
+     FillChar(WinSize,sizeof(WinSize),0);
+     ioctl(stdinputhandle,TIOCGWINSZ,@winsize);
+     if (winsize.ws_col<>0) and (winsize.ws_row<>0) and
+        ((winsize.ws_row<>lastxsize) or (winsize.ws_col<>lastysize)) then
+       begin
+         SystemEvent.typ:=SysResize;
+         SystemEvent.x:=WinSize.ws_row;
+         SystemEvent.y:=WinSize.ws_col;
+         PutSystemEvent(SystemEvent);
+         LastXSize:=WinSize.ws_row;
+         LastYSize:=WinSize.ws_col;
+         PollSystemEvent:=true;
+       end
+     else
+       PollSystemEvent:=false;
+    end;
 end;
 
 {
   $Log$
-  Revision 1.1  2002-05-21 11:59:57  pierre
+  Revision 1.2  2002-06-07 14:15:10  pierre
+   * add window resizing support for unix
+
+  Revision 1.1  2002/05/21 11:59:57  pierre
    + system messages unit added
 
 }

@@ -196,18 +196,21 @@ FOR FPC THESE ARE THE TRANSLATIONS
   {$UNDEF OS_DOS}
   {$DEFINE OS_LINUX}
   {$DEFINE OS_UNIX}
+  {$DEFINE HasSysMsgUnit}
 {$ENDIF}
 
 {$IFDEF FreeBSD}
   {$UNDEF OS_DOS}
   {$DEFINE OS_FREEBSD}
   {$DEFINE OS_UNIX}
+  {$DEFINE HasSysMsgUnit}
 {$ENDIF}
 
 {$IFDEF NETBSD}
   {$UNDEF OS_DOS}
   {$DEFINE OS_NETBSD}
   {$DEFINE OS_UNIX}
+  {$DEFINE HasSysMsgUnit}
 {$ENDIF}
 
 
@@ -400,7 +403,10 @@ FOR FPC THESE ARE THE TRANSLATIONS
 
 {
  $Log$
- Revision 1.8  2002-06-02 08:32:51  marco
+ Revision 1.9  2002-06-07 14:15:10  pierre
+  * add window resizing support for unix
+
+ Revision 1.8  2002/06/02 08:32:51  marco
   * renamefest
 
  Revision 1.7  2002/05/21 12:02:02  pierre
