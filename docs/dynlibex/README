@@ -1,0 +1,6 @@
+These are the example programs that appear in the FPC documentation.
+ 
+Units guide, chapter on dynlibs unit :
+
+subs.pp   : library used in dynlibs function.
+plsubs.pp : example to show loading of libraries.
