@@ -369,9 +369,17 @@ implementation
                      end
                    else
                      begin
-                       { member call, load self }
-                       location_reset(selfloc,LOC_REGISTER,OS_ADDR);
-                       selfloc.register:=cg.g_load_self(exprasmlist);
+                       { normal member call, load self. Not for classes
+                         when we call the constructor }
+                       if not(
+                              is_class(methodpointer.resulttype.def) and
+                              (procdefinition.proctypeoption=potype_constructor) and
+                              (aktprocdef.proctypeoption<>potype_constructor)
+                             ) then
+                        begin
+                          location_reset(selfloc,LOC_REGISTER,OS_ADDR);
+                          selfloc.register:=cg.g_load_self(exprasmlist);
+                        end;
                      end;
 
                    if (procdefinition.proctypeoption in [potype_constructor,potype_destructor]) then
@@ -1415,7 +1423,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.46  2003-04-21 20:03:32  peter
+  Revision 1.47  2003-04-22 09:49:44  peter
+    * do not load self when calling a non-inherited class constructor
+
+  Revision 1.46  2003/04/21 20:03:32  peter
     * forgot to copy vmtrefaddr to selfrefaddr when self=vmt
 
   Revision 1.45  2003/04/21 13:53:16  jonas
