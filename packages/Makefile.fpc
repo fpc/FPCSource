@@ -16,6 +16,8 @@ dirs_netbsd=zlib ncurses x11 gtk syslog \
            opengl forms svgalib ggi libpng libgd \
            utmp paszlib gdbint cmem regexpr unzip asyncio bfd gdbm
 dirs_beos=paszlib regexpr
+dirs_qnx=paszlib regexpr
+dirs_sunos=paszlib regexpr
 dirs_os2=uncgi paszlib unzip regexpr
 dirs_freebsd=zlib ncurses x11 gtk syslog \
            inet uncgi \

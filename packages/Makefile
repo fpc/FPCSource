@@ -180,6 +180,12 @@ endif
 ifeq ($(OS_TARGET),netbsd)
 override TARGET_DIRS+=zlib ncurses x11 gtk syslog inet uncgi mysql ibase postgres oracle opengl forms svgalib ggi libpng libgd utmp paszlib gdbint cmem regexpr unzip asyncio bfd gdbm
 endif
+ifeq ($(OS_TARGET),sunos)
+override TARGET_DIRS+=paszlib regexpr
+endif
+ifeq ($(OS_TARGET),qnx)
+override TARGET_DIRS+=paszlib regexpr
+endif
 override INSTALL_FPCPACKAGE=y
 ifdef REQUIRE_UNITSDIR
 override UNITSDIR+=$(REQUIRE_UNITSDIR)
@@ -1033,6 +1039,14 @@ TARGET_DIRS_UNZIP=1
 TARGET_DIRS_ASYNCIO=1
 TARGET_DIRS_BFD=1
 TARGET_DIRS_GDBM=1
+endif
+ifeq ($(OS_TARGET),sunos)
+TARGET_DIRS_PASZLIB=1
+TARGET_DIRS_REGEXPR=1
+endif
+ifeq ($(OS_TARGET),qnx)
+TARGET_DIRS_PASZLIB=1
+TARGET_DIRS_REGEXPR=1
 endif
 ifdef TARGET_DIRS_ZLIB
 zlib_all:
