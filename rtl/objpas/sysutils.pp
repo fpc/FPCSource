@@ -16,6 +16,8 @@ unit sysutils;
 
   interface
 
+  uses dos; { should become platform independent }
+
     type
        { some helpful data types }
 
@@ -44,7 +46,7 @@ unit sysutils;
           constructor createfmt(const msg; const args : array of const);
           constructor createres(indent : longint);
           { !!!! }
-          property helcontext : longint read fhelpcontext write fhelpcontext;
+          property helpcontext : longint read fhelpcontext write fhelpcontext;
           property message : string read fmessage write fmessage;
        end;
 
@@ -56,7 +58,33 @@ unit sysutils;
 
        ematherror = class(exception);
 
+
+  { Read date & Time function declarations }
+  {$i datih.inc}
+  
+  { Read String Handling functions declaration }
+  {$i sysstrh.inc}
+  
+  { Read pchar handling functions declration }
+  {$i syspchh.inc}
+
+  { Read filename handling functions declaration } 
+  {$i finah.inc}
+
+
   implementation
+
+  { Read filename handling functions implementation } 
+  {$i fina.inc}
+
+  { Read date & Time function implementations }
+  {$i dati.inc}
+  
+  { Read String Handling functions implementation }
+  {$i sysstr.inc}
+  
+  { Read pchar handling functions implementation }
+  {$i syspch.inc}
 
     constructor texception.create(const msg : string);
 
@@ -84,8 +112,11 @@ end.
 
 {
     $Log$
-    Revision 1.1  1998-03-25 11:18:49  root
-    Initial revision
+    Revision 1.2  1998-04-10 15:18:21  michael
+    Added a lot of functions donated by GertJan Schouten
+
+    Revision 1.1.1.1  1998/03/25 11:18:49  root
+    * Restored version
 
     Revision 1.1  1998/02/05 11:11:32  michael
     + moved to objpas directory
