@@ -578,10 +578,10 @@ Function  Dup(var oldfile,newfile:file):Boolean;
 Function  Dup2(oldfile,newfile:longint):Boolean;
 Function  Dup2(var oldfile,newfile:text):Boolean;
 Function  Dup2(var oldfile,newfile:file):Boolean;
-{
+
 Function  Select(N:longint;readfds,writefds,exceptfds:PFDSet;TimeOut:PTimeVal):longint;
 Function  Select(N:longint;readfds,writefds,exceptfds:PFDSet;TimeOut:Longint):longint;
-}
+
 Function  SelectText(var T:Text;TimeOut :PTimeVal):Longint;
 
 {**************************
@@ -2661,7 +2661,7 @@ Function IOCtl(Handle,Ndx: Longint;Data: Pointer):boolean;
 }
 
 begin
-  IOCtl:=Do_Syscall(54,handle,ndx,data);
+  IOCtl:=Do_Syscall(54,handle,ndx,longint(data))=0;
  LinuxError:=Errno;
 end;
 
@@ -3645,7 +3645,10 @@ End.
 
 {
   $Log$
-  Revision 1.6  2000-03-02 15:33:20  marco
+  Revision 1.7  2000-03-16 16:19:28  marco
+   * fixes that made ppc386 -h working
+
+  Revision 1.6  2000/03/02 15:33:20  marco
    * fixed some types and errors that needed longint(@ typecasting.
 
   Revision 1.5  2000/03/01 20:04:38  marco
