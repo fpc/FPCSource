@@ -1150,6 +1150,66 @@ end;
 
 {$endif ndef FPC_SYSTEM_HAS_INT_STR_LONGWORD}
 
+{$ifndef FPC_SYSTEM_HAS_INT_STR_INT64}
+
+procedure int_str(l : int64;var s : string);
+var
+  value: int64;
+  negative: boolean;
+
+  begin
+     negative := false;
+     s:='';
+     { Workaround: }
+     if l=int64($8000000000000000) then
+       begin
+         s:='-9223372036854775808';
+         exit;
+       end; 
+     { handle case where l = 0 }
+     if l = 0 then
+       begin
+         s:='0';
+         exit;
+       end;
+     If l < 0 then
+       begin
+         negative := true;
+         value:=abs(l);
+       end
+     else
+         value:=l;
+     { handle non-zero case }
+     while value>0 do
+       begin
+         s:=char((value mod 10)+ord('0'))+s;
+         value := value div 10;
+       end;
+     if negative then
+       s := '-' + s;
+  end;
+
+{$endif ndef FPC_SYSTEM_HAS_INT_STR_INT64}
+
+{$ifndef FPC_SYSTEM_HAS_INT_STR_QWORD}
+
+procedure int_str(l : qword;var s : string);
+begin
+  s:='';
+  if l = 0 then
+  begin
+    s := '0';
+    exit;
+  end;
+  while l>0 do
+    begin
+       s:=char(ord('0')+(l mod 10))+s;
+       l:=l div 10;
+    end;
+end;
+
+{$endif ndef FPC_SYSTEM_HAS_INT_STR_QWORD}
+
 {$ifndef FPC_SYSTEM_HAS_SYSRESETFPU}
 
 procedure SysResetFpu;
@@ -1161,7 +1221,10 @@ end;
 
 {
   $Log$
-  Revision 1.74  2004-05-01 15:26:33  jonas
+  Revision 1.75  2004-05-01 20:52:50  peter
+    * ValSInt fixed for 64 bit
+
+  Revision 1.74  2004/05/01 15:26:33  jonas
     * use some more string routines from libc if FPC_USE_LIBC is used
 
   Revision 1.73  2004/04/29 19:50:13  peter

@@ -378,40 +378,17 @@ end;
 
 {$ifndef CPU64}
 
-    procedure int_qword_str(value : qword;var s : string);
-      var
-         hs : string;
-      begin
-         hs:='';
-         repeat
-           hs:=chr(longint(value mod qword(10))+48)+hs;
-           value:=value div qword(10);
-         until value=0;
-         s:=hs;
-      end;
-
-
   procedure fpc_shortstr_qword(v : qword;len : longint;var s : shortstring);[public,alias:'FPC_SHORTSTR_QWORD']; {$ifdef hascompilerproc} compilerproc; {$endif}
     begin
-       int_qword_str(v,s);
+       int_str(v,s);
        if length(s)<len then
          s:=space(len-length(s))+s;
     end;
 
 
   procedure fpc_shortstr_int64(v : int64;len : longint;var s : shortstring);[public,alias:'FPC_SHORTSTR_INT64'];  {$ifdef hascompilerproc} compilerproc; {$endif}
-    var
-       hs : shortstring;
-       q : qword;
     begin
-       if v<0 then
-         begin
-            q:=qword(-v);
-            int_qword_str(q,hs);
-            s:='-'+hs;
-         end
-       else
-         int_qword_str(qword(v),s);
+       int_str(v,s);
        if length(s)<len then
          s:=space(len-length(s))+s;
     end;
@@ -482,7 +459,7 @@ var
   ss : shortstring;
   maxlen : StrLenInt;
 begin
-  int_qword_str(v,ss);
+  int_str(v,ss);
   if length(ss)<len then
     ss:=space(len-length(ss))+ss;
   if length(ss)<high(a)+1 then
@@ -497,16 +474,8 @@ procedure fpc_chararray_int64(v : int64;len : StrLenInt;var a : array of char);{
 var
   ss : shortstring;
   maxlen : StrLenInt;
-  q : qword;
 begin
-  if v<0 then
-    begin
-      q:=qword(-v);
-      int_qword_str(q,ss);
-      ss:='-'+ss;
-    end
-  else
-   int_qword_str(qword(v),ss);
+  int_str(v,ss);
   if length(ss)<len then
     ss:=space(len-length(ss))+ss;
   if length(ss)<high(a)+1 then
@@ -893,7 +862,10 @@ end;
 
 {
   $Log$
-  Revision 1.28  2004-04-29 18:59:43  peter
+  Revision 1.29  2004-05-01 20:52:50  peter
+    * ValSInt fixed for 64 bit
+
+  Revision 1.28  2004/04/29 18:59:43  peter
     * str() helpers now also use valint/valuint
     * int64/qword helpers disabled for cpu64
 

@@ -94,8 +94,6 @@ Type
   {$define SUPPORT_EXTENDED}
   {$define SUPPORT_COMP}
 
-  ValSInt = Longint;
-  ValUInt = Cardinal;
   ValReal = Extended;
 {$endif CPUI386}
 
@@ -107,14 +105,10 @@ Type
   {$define SUPPORT_EXTENDED}
   {$define SUPPORT_COMP}
 
-  ValSInt = Longint;
-  ValUInt = Cardinal;
   ValReal = Extended;
 {$endif CPUX86_64}
 
 {$ifdef CPUM68K}
-  ValSInt = Longint;
-  ValUInt = Cardinal;
   ValReal = Real;
 
   { Comp type does not exist on fpu }
@@ -139,8 +133,6 @@ Type
 
   {$define FPC_INCLUDE_SOFTWARE_INT64_TO_DOUBLE}
 
-  ValSInt = Longint;
-  ValUInt = Cardinal;
   ValReal = Double;
 
   { map comp to int64, but this doesn't mean we compile the comp support in! }
@@ -154,8 +146,6 @@ Type
   {$define SUPPORT_SINGLE}
   {$define SUPPORT_DOUBLE}
 
-  ValSInt = Longint;
-  ValUInt = Cardinal;
   ValReal = Double;
 
   { map comp to int64, but this doesn't mean we compile the comp support in! }
@@ -189,6 +179,8 @@ Type
   SizeUInt = QWord;
   PtrInt = Int64;
   PtrUInt = QWord;
+  ValSInt = int64;
+  ValUInt = qword;
 {$endif CPU64}
 
 {$ifdef CPU32}
@@ -198,6 +190,8 @@ Type
   SizeUInt = DWord;
   PtrInt = Longint;
   PtrUInt = DWord;
+  ValSInt = Longint;
+  ValUInt = Cardinal;
 {$endif CPU32}
 
 { Zero - terminated strings }
@@ -737,7 +731,10 @@ const
 
 {
   $Log$
-  Revision 1.89  2004-04-29 18:59:43  peter
+  Revision 1.90  2004-05-01 20:52:50  peter
+    * ValSInt fixed for 64 bit
+
+  Revision 1.89  2004/04/29 18:59:43  peter
     * str() helpers now also use valint/valuint
     * int64/qword helpers disabled for cpu64
 

@@ -210,8 +210,10 @@ Procedure fpc_Read_Text_Char(var f : Text; var c : char); compilerproc;
 Procedure fpc_Read_Text_SInt(var f : Text; var l :ValSInt); compilerproc;
 Procedure fpc_Read_Text_UInt(var f : Text; var u :ValUInt); compilerproc;
 Procedure fpc_Read_Text_Float(var f : Text; var v :ValReal); compilerproc;
+{$ifndef CPU64}
 Procedure fpc_Read_Text_QWord(var f : text; var q : qword); compilerproc;
 Procedure fpc_Read_Text_Int64(var f : text; var i : int64); compilerproc;
+{$endif CPU64}
 
 {$ifdef FPC_INCLUDE_SOFTWARE_MOD_DIV}
 function fpc_div_dword(n,z : dword) : dword; compilerproc;
@@ -328,7 +330,10 @@ function fpc_qword_to_double(q: qword): double; compilerproc;
 
 {
   $Log$
-  Revision 1.54  2004-04-29 19:50:13  peter
+  Revision 1.55  2004-05-01 20:52:50  peter
+    * ValSInt fixed for 64 bit
+
+  Revision 1.54  2004/04/29 19:50:13  peter
     * x86-64 fixes
 
   Revision 1.53  2004/04/29 18:59:43  peter

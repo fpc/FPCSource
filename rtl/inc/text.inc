@@ -1011,7 +1011,7 @@ Function fpc_Read_Text_SInt(var f : Text):ValSInt;[Public,Alias:'FPC_READ_TEXT_S
 {$endif hascompilerproc}
 var
   hs   : String;
-  code : Longint;
+  code : longint;
 Begin
 {$ifdef hascompilerproc}
   l:=0;
@@ -1148,6 +1148,8 @@ begin
 end;
 
 
+{$ifndef cpu64}
+
 {$ifdef hascompilerproc}
 procedure fpc_Read_Text_QWord(var f : text; var q : qword); iocheck; [public,alias:'FPC_READ_TEXT_QWORD']; compilerproc;
 {$else hascompilerproc}
@@ -1242,6 +1244,8 @@ Begin
    InOutRes:=106;
 End;
 
+{$endif CPU64}
+
 
 {*****************************************************************************
                                Initializing
@@ -1269,7 +1273,10 @@ end;
 
 {
   $Log$
-  Revision 1.22  2004-04-29 18:59:43  peter
+  Revision 1.23  2004-05-01 20:52:50  peter
+    * ValSInt fixed for 64 bit
+
+  Revision 1.22  2004/04/29 18:59:43  peter
     * str() helpers now also use valint/valuint
     * int64/qword helpers disabled for cpu64
 
