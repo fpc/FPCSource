@@ -63,7 +63,7 @@ begin
    if ioresult<>0 then
      exit;
 { load the header }
-   blockread(f,@dh,sizeof(dxe_header),i);
+   blockread(f,dh,sizeof(dxe_header),i);
    if (i<>sizeof(dxe_header)) or (dh.magic<>DXE_MAGIC) then
      begin
         close(f);
@@ -96,7 +96,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.4  2000-02-09 16:59:28  peter
+  Revision 1.5  2000-05-29 05:32:50  jonas
+    * should compile again
+
+  Revision 1.4  2000/02/09 16:59:28  peter
     * truncated log
 
   Revision 1.3  2000/01/07 16:41:31  daniel

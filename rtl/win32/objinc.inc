@@ -172,7 +172,7 @@ BEGIN
    SetFilePos(Handle,FileSize,0,Actual);
    If (Actual = FileSize) Then
     Begin
-      Actual := FileWrite(Handle, Pointer(@Buf), 0,Actual);   { Truncate the file }
+      Actual := FileWrite(Handle, Buf, 0,Actual);   { Truncate the file }
       If (Actual <> -1) Then
        SetFileSize := 0
       Else
@@ -184,7 +184,10 @@ END;
 
 {
   $Log$
-  Revision 1.5  2000-02-09 16:59:34  peter
+  Revision 1.6  2000-05-29 05:32:51  jonas
+    * should compile again
+
+  Revision 1.5  2000/02/09 16:59:34  peter
     * truncated log
 
   Revision 1.4  2000/01/07 16:41:52  daniel
