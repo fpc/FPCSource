@@ -907,6 +907,9 @@ const
      EXCEPTION_NONCONTINUABLE = $1;
      EXCEPTION_STACK_OVERFLOW = $c00000fd;
      EXCEPTION_INVALID_DISPOSITION = $c0000026;
+     EXCEPTION_ILLEGAL_INSTRUCTION = $C000001D;
+     EXCEPTION_IN_PAGE_ERROR = $C0000006;
+
      ExceptionContinueExecution = 0;
      ExceptionContinueSearch = 1;
   type
@@ -1020,6 +1023,9 @@ type pexception_record = ^exception_record;
          EXCEPTION_STACK_OVERFLOW :
            HandleErrorFrame(202,frame);
          {EXCEPTION_INVALID_DISPOSITION = $c0000026;}
+         EXCEPTION_ILLEGAL_INSTRUCTION,
+         EXCEPTION_IN_PAGE_ERROR,
+         EXCEPTION_SINGLE_STEP : HandleErrorFrame(217,frame)
          end;
     end;
 
@@ -1180,7 +1186,10 @@ end.
 
 {
   $Log$
-  Revision 1.61  2000-03-10 09:21:11  pierre
+  Revision 1.62  2000-03-16 20:42:26  michael
+  + Added more system exception handling afte T. Schatzl remark
+
+  Revision 1.61  2000/03/10 09:21:11  pierre
     * ExitDLL fixed : uses now SetJmp LongJmp
     * System_exit unloads the exception hanlder before leaving
 
