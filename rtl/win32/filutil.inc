@@ -158,6 +158,7 @@ begin
   f.size:=F.FindData.NFileSizeLow;
   f.attr:=F.FindData.dwFileAttributes;
   f.Name:=StrPas(@F.FindData.cFileName);
+  Result:=0;
 end;
 
 Function FindFirst (Const Path : String; Attr : Longint; Var Rslt : TSearchRec) : Longint;
@@ -426,7 +427,10 @@ end;
 
 {
   $Log$
-  Revision 1.10  1999-04-20 11:36:13  peter
+  Revision 1.11  1999-08-18 08:38:42  michael
+  * Fixed bug 533, in findmatch
+
+  Revision 1.10  1999/04/20 11:36:13  peter
     * compatibility fixes
 
   Revision 1.9  1999/04/08 12:23:09  peter
