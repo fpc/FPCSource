@@ -610,6 +610,32 @@ implementation
               secondpass(p^.right);
               if is_pushed then
                 restore(p);
+              { here we change the location of p^.right
+                and the update was forgotten so it
+                led to wrong code in emitrangecheck later PM
+                so make range check before }
+
+              if cs_check_range in aktlocalswitches then
+               begin
+                 if p^.left^.resulttype^.deftype=arraydef then
+                   begin
+                     if is_open_array(p^.left^.resulttype) then
+                      begin
+                        reset_reference(href);
+                        parraydef(p^.left^.resulttype)^.genrangecheck;
+                        href.symbol:=newasmsymbol(parraydef(p^.left^.resulttype)^.getrangecheckstring);
+                        href.offset:=4;
+                        getsymonlyin(p^.left^.symtable,'high'+pvarsym(p^.left^.symtableentry)^.name);
+                        hightree:=genloadnode(pvarsym(srsym),p^.left^.symtable);
+                        firstpass(hightree);
+                        secondpass(hightree);
+                        emit_mov_loc_ref(hightree^.location,href);
+                        disposetree(hightree);
+                      end;
+                     emitrangecheck(p^.right,p^.left^.resulttype);
+                   end;
+               end;
+               
               case p^.right^.location.loc of
                  LOC_REGISTER:
                    begin
@@ -660,27 +686,14 @@ implementation
                        end;
                        exprasmlist^.concat(tai);
                     end;
-              end;
+                end;
 
             { produce possible range check code: }
               if cs_check_range in aktlocalswitches then
                begin
                  if p^.left^.resulttype^.deftype=arraydef then
                    begin
-                     if is_open_array(p^.left^.resulttype) then
-                      begin
-                        reset_reference(href);
-                        parraydef(p^.left^.resulttype)^.genrangecheck;
-                        href.symbol:=newasmsymbol(parraydef(p^.left^.resulttype)^.getrangecheckstring);
-                        href.offset:=4;
-                        getsymonlyin(p^.left^.symtable,'high'+pvarsym(p^.left^.symtableentry)^.name);
-                        hightree:=genloadnode(pvarsym(srsym),p^.left^.symtable);
-                        firstpass(hightree);
-                        secondpass(hightree);
-                        emit_mov_loc_ref(hightree^.location,href);
-                        disposetree(hightree);
-                      end;
-                     emitrangecheck(p^.right,p^.left^.resulttype);
+                     { done defore (PM) }
                    end
                  else if (p^.left^.resulttype^.deftype=stringdef) then
                    begin
@@ -869,7 +882,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.32  1999-03-24 23:16:53  peter
+  Revision 1.33  1999-03-26 11:43:26  pierre
+   * bug0236 fixed
+
+  Revision 1.32  1999/03/24 23:16:53  peter
     * fixed bugs 212,222,225,227,229,231,233
 
   Revision 1.31  1999/02/25 21:02:29  peter
