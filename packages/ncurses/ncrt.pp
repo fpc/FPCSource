@@ -24,7 +24,22 @@ Unit nCrt;
 }
 Interface
 
-Uses Unix,ncurses;
+Uses
+{$ifdef freebsd}
+  {$ifdef ver1_0}
+    linux,
+  {$else}
+    unix,
+  {$endif}
+{$endif}
+{$ifdef linux}
+  {$ifdef ver1_0}
+    linux,
+  {$else}
+    unix,
+  {$endif}
+{$endif}
+  ncurses;
 
 {$i ncrt.inc}
 
@@ -38,7 +53,10 @@ Begin
 End. { of Unit nCrt }
 {
   $Log$
-  Revision 1.4  2001-01-21 21:38:52  marco
+  Revision 1.5  2001-04-08 12:27:55  peter
+    * made it compilable with both 1.0.x and 1.1
+
+  Revision 1.4  2001/01/21 21:38:52  marco
    * renamefest in packages
 
   Revision 1.3  2000/08/29 05:51:09  michael
@@ -46,5 +64,5 @@ End. { of Unit nCrt }
 
   Revision 1.2  2000/07/13 11:33:27  michael
   + removed logs
- 
+
 }

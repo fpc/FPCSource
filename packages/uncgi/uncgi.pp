@@ -9,13 +9,22 @@ unit uncgi;
 interface
 uses
   strings
-{$ifdef Unix}
- ,Unix
+{$ifdef ver1_0}
+  {$ifdef linux}
+    ,Linux
+  {$endif}
+  {$ifdef freebsd}
+    ,Linux
+  {$endif}
+{$else}
+  {$ifdef Unix}
+    ,Unix
+  {$endif}
 {$endif}
 {$IFDEF OS2}
- , DosCalls
+  ,DosCalls
 {$ENDIF OS2}
- ;
+  ;
 
 {***********************************************************************}
 
@@ -427,7 +436,10 @@ end.
 {
   HISTORY
   $Log$
-  Revision 1.5  2001-01-23 20:54:18  hajny
+  Revision 1.6  2001-04-08 12:27:55  peter
+    * made it compilable with both 1.0.x and 1.1
+
+  Revision 1.5  2001/01/23 20:54:18  hajny
     * OS/2 GetEnv correction
 
   Revision 1.4  2001/01/21 21:38:52  marco
@@ -438,5 +450,5 @@ end.
 
   Revision 1.2  2000/07/13 11:33:32  michael
   + removed logs
- 
+
 }

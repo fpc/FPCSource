@@ -3,7 +3,12 @@ unit Utmp;
 interface
 
 uses
-  Unix;
+{$ifdef ver1_0}
+  Linux
+{$else}
+  Unix
+{$endif}
+  ;
 
 const
   Device_name_length = 12;
@@ -241,7 +246,7 @@ var
     S : Stat;
 
   begin
-    Unix.FStat(Utmp_file, S);
+    FStat(Utmp_file, S);
     Number_of_utmp_entries := S.Size div System.SizeOf(tLL_Utmp);
   end;
 
@@ -319,10 +324,13 @@ begin
   Set_search_parameters(Include,DefaultLoginType);
 end.
   $Log$
-  Revision 1.3  2001-01-21 21:38:52  marco
+  Revision 1.4  2001-04-08 12:27:55  peter
+    * made it compilable with both 1.0.x and 1.1
+
+  Revision 1.3  2001/01/21 21:38:52  marco
    * renamefest in packages
 
   Revision 1.2  2000/07/13 11:33:33  michael
   + removed logs
- 
+
 }

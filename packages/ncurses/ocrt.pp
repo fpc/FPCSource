@@ -148,7 +148,15 @@ Unit oCrt;
 }
 Interface
 
-Uses Unix,ncurses,panel,menu;
+Uses
+{$ifdef linux}
+  {$ifdef ver1_0}
+    linux,
+  {$else}
+    unix,
+  {$endif}
+{$endif}
+  ncurses,panel,menu;
 
 Const
 
@@ -2931,7 +2939,7 @@ Begin
       key := readkey;
       xkey := 0;
       case key of
-	 #0 : xkey := ord(readkey);
+         #0 : xkey := ord(readkey);
          ^F : xkey := nKeyHome;
          ^L : xkey := nKeyEnd;
          #9,
@@ -2940,7 +2948,7 @@ Begin
          else menu_driver(pm,ord(key));
       end;
       case xkey of
-	 nKeyHome : menu_driver(pm,REQ_FIRST_ITEM);
+         nKeyHome : menu_driver(pm,REQ_FIRST_ITEM);
          nKeyEnd  : menu_driver(pm,REQ_LAST_ITEM);
          nKeyRight,
          nKeyDown : menu_driver(pm,REQ_NEXT_ITEM);
@@ -3258,7 +3266,10 @@ End. { of Unit oCrt }
 
 {
   $Log$
-  Revision 1.5  2001-01-21 21:38:52  marco
+  Revision 1.6  2001-04-08 12:27:55  peter
+    * made it compilable with both 1.0.x and 1.1
+
+  Revision 1.5  2001/01/21 21:38:52  marco
    * renamefest in packages
 
   Revision 1.4  2000/08/29 05:51:09  michael

@@ -21,7 +21,13 @@ Program fd2pascal;
 
 { $Id$ }
 
-Uses Unix;
+uses
+{$ifdef ver1_0}
+  Linux
+{$else}
+  Unix
+{$endif}
+  ;
 
 Const RevString = '$Revision$';
   NrOptions = 4;
@@ -1118,10 +1124,13 @@ begin
   EmitFooter;
   CloseOutFile;
 end.  $Log$
-end.  Revision 1.3  2001-01-21 21:38:52  marco
+end.  Revision 1.4  2001-04-08 12:27:55  peter
+end.    * made it compilable with both 1.0.x and 1.1
+end.
+end.  Revision 1.3  2001/01/21 21:38:52  marco
 end.   * renamefest in packages
 end.
 end.  Revision 1.2  2000/07/13 11:33:11  michael
 end.  + removed logs
-end. 
+end.
 }
