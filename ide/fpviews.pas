@@ -3792,6 +3792,7 @@ begin
   R2.Move(0,1);
   Insert(New(PStaticText, Init(R2, ^C'Version '+VersionStr
     {$ifdef FPC}+' '+{$i %date%}{$endif}
+    {$ifdef FVISION}+' FV'{$endif}
     )));
   R2.Move(0,1);
   Insert(New(PStaticText, Init(R2, FormatStrStr2(^C'(%s %s)',label_about_compilerversion,Version_String))));
@@ -4208,7 +4209,10 @@ end;
 END.
 {
   $Log$
-  Revision 1.15  2002-04-17 11:10:13  pierre
+  Revision 1.16  2002-05-24 21:15:31  pierre
+   * add FV suffix in About dialog if using FVision library
+
+  Revision 1.15  2002/04/17 11:10:13  pierre
    * fix last commit for corss compilation fir 1.1 IDE from 1.0.6
 
   Revision 1.14  2002/04/16 18:12:35  carl
