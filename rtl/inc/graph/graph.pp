@@ -605,6 +605,9 @@ procedure SetFillPattern(Pattern: FillPatternType; Color: word);
  procedure MoveRel(Dx, Dy: Integer);
  procedure MoveTo(X,Y: Integer);
 
+ procedure SetDirectVideo(DirectAccess: boolean);
+ function GetDirectVideo: boolean;
+
  { -------------------- Color/Palette ------------------------------- }
  procedure SetBkColor(ColorNum: Word);
  function  GetColor: Word;
@@ -757,6 +760,7 @@ var
   DriverName: String;
   DirectColor : Boolean ; { Is it a direct color mode? }
   ModeList : PModeInfo;
+  DirectVideo : Boolean;  { Direct access to video memory? }
 
 
 
@@ -1909,12 +1913,7 @@ end;
   { overridable routines.                                  }
   {********************************************************}
    Begin
-    InstalledFonts := 0;
-    { Install standard fonts }
-    InstallUserFont('TRIP');
-    InstallUserFont('LITT');
-    InstallUserFont('SANS');
-    InstallUserFont('GOTH');
+    DirectVideo := TRUE;  { By default use fastest access possible }
     ArcCall.X := 0;
     ArcCall.Y := 0;
     ArcCall.XStart := 0;
@@ -2572,6 +2571,18 @@ end;
   end;
 
 
+ procedure SetDirectVideo(DirectAccess: boolean);
+  begin
+    DirectVideo := DirectAccess;
+  end;
+
+ function GetDirectVideo: boolean;
+  begin
+    GetDirectVideo := DirectVideo;
+  end;
+
+
+
 var
  ExitSave: pointer;
 
@@ -2582,6 +2593,13 @@ begin
  { This must be called at startup... because GetGraphMode may }
  { be called even when not in graph mode.                     }
  QueryAdapterInfo;
+ { Install standard fonts }
+ { This is done BEFORE startup... }
+ InstalledFonts := 0;
+ InstallUserFont('TRIP');
+ InstallUserFont('LITT');
+ InstallUserFont('SANS');
+ InstallUserFont('GOTH');
  { This installs an exit procedure which cleans up the mode list...}
  ExitSave := ExitProc;
  ExitProc := @CleanMode;
