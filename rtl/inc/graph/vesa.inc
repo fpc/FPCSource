@@ -277,7 +277,7 @@ end;
   end;
 
 
-  function getModeInfo(var ModeInfo: TVESAModeInfo;mode:word):boolean;assembler;
+  function getVESAModeInfo(var ModeInfo: TVESAModeInfo;mode:word):boolean;assembler;
    asm
      mov ax,4F01h
      mov cx,mode
@@ -1706,6 +1706,9 @@ end;
   begin
     SaveSupported := FALSE;
     SavePtr := nil;
+{$ifdef logging}
+        LogLn('Get the video mode...');
+{$endif logging}
     { Get the video mode }
     asm
       mov  ah,0fh
@@ -1718,6 +1721,9 @@ end;
 {$endif fpc}
       mov  [VideoMode], al
     end;
+{$ifdef logging}
+        LogLn('Prepare to save VESA video state');
+{$endif logging}
     { Prepare to save video state...}
     asm
       mov  ax, 4F04h       { get buffer size to save state }
@@ -1736,6 +1742,13 @@ end;
       mov  [SaveSupported],TRUE
      @notok:
     end;
+    regs.eax := $4f04;
+    regs.edx := $0000;
+    regs.ecx := $000F;
+    RealIntr($10, regs);
+    StateSize := word(regs.ebx);
+    if byte(regs.eax) = $4f then
+      SaveSupported := TRUE;
     if SaveSupported then
       begin
 {$ifdef logging}
@@ -1841,11 +1854,12 @@ end;
     end;
     { Prepare to save video state...}
     asm
-      mov  ax, 1C00h       { get buffer size to save state }
-      mov  cx, 00000111b   { Save DAC / Data areas / Hardware states }
+      mov  ax, 4f04h       { get buffer size to save state }
+      mov  cx, 00001111b   { Save DAC / Data areas / Hardware states }
+      mov  dx, 00h
       int  10h
       mov  [StateSize], bx
-      cmp  al,01ch
+      cmp  al,04fh
       jnz  @notok
       mov  [SaveSupported],TRUE
      @notok:
@@ -1922,7 +1936,10 @@ end;
 
 {
 $Log$
-Revision 1.19  1999-10-24 03:37:15  carl
+Revision 1.20  1999-10-24 15:50:23  carl
+  * Bugfix in TP mode SaveStateVESA
+
+Revision 1.19  1999/10/24 03:37:15  carl
   + GetPixVESA16 (not tested yet...)
 
 Revision 1.18  1999/09/28 13:56:31  jonas
