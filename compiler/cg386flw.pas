@@ -602,7 +602,7 @@ do_jmp:
                 begin
                    getaddrlabel(a);
                    emitlab(a);
-                   emit_const(A_PUSH,S_L,0);
+                   emit_reg(A_PUSH,S_L,R_EBP);
                    emit_sym(A_PUSH,S_L,a);
                 end;
               { push object }
@@ -1237,7 +1237,10 @@ do_jmp:
 end.
 {
   $Log$
-  Revision 1.4  2000-08-13 08:41:07  peter
+  Revision 1.5  2000-08-29 18:41:02  peter
+    * push ebp instead of 0 for raise without address
+
+  Revision 1.4  2000/08/13 08:41:07  peter
     * restore labels when error in except block (merged)
 
   Revision 1.3  2000/07/21 15:14:02  jonas
