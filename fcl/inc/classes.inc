@@ -739,7 +739,6 @@ procedure ObjectBinaryToText(Input, Output: TStream);
       ext: Extended;
 
     begin
-      OutStr('(' + IntToStr(Ord(Valuetype)) + ') ');
       case ValueType of
         vaList: begin
             OutStr('(');
@@ -1183,7 +1182,10 @@ end;
 
 {
   $Log$
-  Revision 1.1.2.3  2000-12-11 09:29:59  michael
+  Revision 1.1.2.4  2000-12-13 10:16:33  michael
+  + Applied patch from Mattias Gaertner, bug 1292
+
+  Revision 1.1.2.3  2000/12/11 09:29:59  michael
   + Fix from Mattias Gaertner
 
   Revision 1.1.2.2  2000/10/13 10:48:10  sg
