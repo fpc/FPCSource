@@ -2427,14 +2427,17 @@
     procedure tabstractprocdef.write;
       var
         hp : pparaitem;
+	oldintfcrc : boolean;
       begin
          inherited write;
          rettype.write;
+	 oldintfcrc:=current_ppu^.do_interface_crc;
          current_ppu^.do_interface_crc:=false;
          writebyte(fpu_used);
          writelong(ord(proctypeoption));
          writesmallset(proccalloptions);
          writesmallset(procoptions);
+	 current_ppu^.do_interface_crc:=oldintfcrc;
          writeword(maxparacount);
          hp:=pparaitem(para^.first);
          while assigned(hp) do
@@ -2475,8 +2478,9 @@
 
     function tabstractprocdef.demangled_paras : string;
       var
-        s : string;
+        hs,s : string;
         hp : pparaitem;
+	hpc : pconstsym;
       begin
         s:='(';
         hp:=pparaitem(para^.last);
@@ -2490,6 +2494,37 @@
              s:=s+'const'
            else if hp^.paratyp=vs_out then
              s:=s+'out';
+	   { default value }
+	   if assigned(hp^.defaultvalue) then
+	    begin
+	      hpc:=pconstsym(hp^.defaultvalue);
+	      hs:='';
+	      case hpc^.consttyp of
+	        conststring,
+		constresourcestring :
+		  hs:=+strpas(pchar(hpc^.value));
+		constreal :
+  	          str(pbestreal(hpc^.value)^,hs);
+		constord,
+		constpointer :
+		  hs:=tostr(hpc^.value);
+		constbool :
+		  begin
+		    if hpc^.value<>0 then
+		     hs:='TRUE'
+		    else
+		     hs:='FALSE';
+		  end;
+		constnil :
+		  hs:='nil';
+		constchar :
+		  hs:=chr(hpc^.value);
+		constset :
+		  hs:='<set>';      
+              end;  
+	      if hs<>'' then
+	       s:=s+'="'+hs+'"';
+	    end;
            hp:=pparaitem(hp^.previous);
            if assigned(hp) then
             s:=s+',';
@@ -2641,8 +2676,13 @@
             (po_exports in procoptions) then
            deffile.AddExport(mangledname);
 
-         parast:=nil;
-         localst:=nil;
+         new(parast,loadas(parasymtable));
+         parast^.defowner:=@self;
+         {new(localst,loadas(localsymtable));
+         localst^.defowner:=@self;
+         parast^.next:=localst;
+	 localst^.next:=owner;}
+	 
          forwarddef:=false;
          interfacedef:=false;
          hasforward:=false;
@@ -2842,8 +2882,11 @@ Const local_symtable_index : longint = $8001;
 
 
     procedure tprocdef.write;
+      var
+        oldintfcrc : boolean;
       begin
          inherited write;
+	 oldintfcrc:=current_ppu^.do_interface_crc;
          current_ppu^.do_interface_crc:=false;
    { set all registers to used for simplified compilation PM }
          if simplify_ppu then
@@ -2870,7 +2913,7 @@ Const local_symtable_index : longint = $8001;
          writeword(usedregisters);
 {$endif}
 {$endif newcg}
-         current_ppu^.do_interface_crc:=true;
+	 current_ppu^.do_interface_crc:=oldintfcrc;
          writestring(mangledname);
          writelong(extnumber);
          if (proctypeoption<>potype_operator) then
@@ -2897,6 +2940,24 @@ Const local_symtable_index : longint = $8001;
                }
            end;
          current_ppu^.writeentry(ibprocdef);
+	 
+         { Save the para and local symtable, for easier reading
+	   save both always, they don't influence the interface crc }
+         oldintfcrc:=current_ppu^.do_interface_crc;
+         current_ppu^.do_interface_crc:=false;
+         if not assigned(parast) then
+	  begin
+            parast:=new(psymtable,init(parasymtable));
+	    parast^.defowner:=@self;
+	  end;
+         parast^.writeas;
+         {if not assigned(localst) then
+	  begin
+            localst:=new(psymtable,init(localsymtable));
+	    localst^.defowner:=@self;
+	  end;  
+         localst^.writeas;}
+         current_ppu^.do_interface_crc:=oldintfcrc;
       end;
 
 
@@ -2961,10 +3022,23 @@ Const local_symtable_index : longint = $8001;
 
 
     procedure tprocdef.deref;
+      var
+	oldsymtablestack,
+        oldlocalsymtable : psymtable;
       begin
          inherited deref;
          resolvedef(pdef(nextoverloaded));
          resolvedef(pdef(_class));
+         { parast }
+	 oldsymtablestack:=symtablestack; 
+         oldlocalsymtable:=aktlocalsymtable;
+         aktlocalsymtable:=parast;
+         parast^.deref;
+	 {symtablestack:=parast;
+         aktlocalsymtable:=localst;
+         localst^.deref;}
+         aktlocalsymtable:=oldlocalsymtable;
+	 symtablestack:=oldsymtablestack; 
       end;
 
 
@@ -4178,7 +4252,11 @@ Const local_symtable_index : longint = $8001;
 
 {
   $Log$
-  Revision 1.8  2000-08-08 19:28:57  peter
+  Revision 1.9  2000-08-13 13:06:37  peter
+    * store parast always for procdef (browser needs still update)
+    * add default parameter value to demangledpara
+
+  Revision 1.8  2000/08/08 19:28:57  peter
     * memdebug/memory patches (merged)
     * only once illegal directive (merged)
 
