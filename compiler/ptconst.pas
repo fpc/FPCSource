@@ -683,6 +683,7 @@ implementation
                    consume(_LKLAMMER);
                    aktpos:=0;
                    srsym := tsym(trecorddef(t.def).symtable.symindex.first);
+                   recsym := nil;
                    while token<>_RKLAMMER do
                      begin
                         s:=pattern;
@@ -764,7 +765,8 @@ implementation
                  if assigned(srsym) and
                     { don't complain if there only come other variant parts }
                     { after the last initialized field                      }
-                    (tvarsym(srsym).address > tvarsym(recsym).address) then
+                    ((recsym=nil) or
+                     (tvarsym(srsym).address > tvarsym(recsym).address)) then
                    Message1(parser_h_skipped_fields_after,s);
 
                  for i:=1 to t.def.size-aktpos do
@@ -889,7 +891,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.28  2001-07-30 20:59:27  peter
+  Revision 1.29  2001-07-30 21:39:26  peter
+    * declare fpu in rtl for m68k linux
+
+  Revision 1.28  2001/07/30 20:59:27  peter
     * m68k updates from v10 merged
 
   Revision 1.27  2001/07/08 21:00:15  peter
