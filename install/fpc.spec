@@ -1,7 +1,7 @@
 Name: fpc
-Version: 1.9.5
+Version: 1.9.6
 Release: 0
-ExclusiveArch: i386 i586 i686 ppc
+ExclusiveArch: i386 i586 i686 ppc amd64
 Copyright: GPL
 Group: Development/Languages
 Source: %{name}-%{version}-src.tar.gz
