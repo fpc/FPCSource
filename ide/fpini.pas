@@ -140,7 +140,7 @@ end;
 procedure CheckINIFile;
 var IniDir,CurDir: DirStr;
     INI: PINIFile;
-const Btns : array[1..2] of longstring = (btn_config_copyexisting,btn_config_createnew);
+const Btns : array[1..2] of string = (btn_config_copyexisting,btn_config_createnew);
 begin
   IniDir:=DirOf(IniFileName); CurDir:=GetCurDir;
   if CompareText(IniDir,CurDir)<>0 then
@@ -622,7 +622,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.4  2002-04-02 14:06:50  pierre
+  Revision 1.5  2002-08-13 07:12:08  pierre
+   * use normal strings for ChoiceBox function
+
+  Revision 1.4  2002/04/02 14:06:50  pierre
    * avoid a problem if resetting debuggee redirection
 
   Revision 1.3  2001/08/12 00:04:50  pierre

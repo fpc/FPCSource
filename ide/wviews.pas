@@ -210,7 +210,7 @@ procedure WarningBox(const S: string; Params: pointer);
 procedure InformationBox(const S: string; Params: pointer);
 function  OKCancelBox(const S: string; Params: pointer): word;
 function  ConfirmBox(const S: string; Params: pointer; CanCancel: boolean): word;
-function  ChoiceBox(const S: string; Params: pointer; Buttons: array of longstring; CanCancel: boolean): word;
+function  ChoiceBox(const S: string; Params: pointer; Buttons: array of string; CanCancel: boolean): word;
 
 procedure ShowMessage(Msg: string);
 procedure HideMessage;
@@ -1548,7 +1548,7 @@ begin
      b2i(CanCancel)*mfCancelButton+b2i(not CanCancel)*mfCantCancel);
 end;
 
-function ChoiceBox(const S: string; Params: pointer; Buttons: array of longstring; CanCancel: boolean): word;
+function ChoiceBox(const S: string; Params: pointer; Buttons: array of string; CanCancel: boolean): word;
 var BtnMask,M: longint;
     I,BtnCount: integer;
 begin
@@ -2495,7 +2495,10 @@ end;
 END.
 {
   $Log$
-  Revision 1.3  2002-04-12 08:59:00  pierre
+  Revision 1.4  2002-08-13 07:12:08  pierre
+   * use normal strings for ChoiceBox function
+
+  Revision 1.3  2002/04/12 08:59:00  pierre
    + new function OKCancelBox added
 
   Revision 1.2  2001/08/05 02:01:49  peter
