@@ -20,6 +20,8 @@
 
  ****************************************************************************
 }
+{# Some helpers for the code generator.
+}
 unit cgbase;
 
 {$i fpcdefs.inc}
@@ -58,6 +60,9 @@ unit cgbase;
        pi_needs_implicit_finally = $80;
 
     type
+       {# This object gives information on the current routine being
+          compiled.
+       }   
        pprocinfo = ^tprocinfo;
        tprocinfo = object
           {# pointer to parent in nested procedures }
@@ -66,19 +71,22 @@ unit cgbase;
           _class : tobjectdef;
           {# the definition of the routine itself }
           procdef : tprocdef;
-          {# frame pointer offset??? }
+          {# offset from frame pointer to get parent frame pointer reference
+             (used in nested routines only)
+          }
           framepointer_offset : longint;
-          { self pointer offset???? }
+          {# offset from frame pointer to get self reference }
           selfpointer_offset : longint;
           {# result value offset in stack (functions only) }
           return_offset : longint;
           {# firsttemp position }
           firsttemp_offset : longint;
-          {# parameter offset in stack }
+          {# offset from frame pointer to parameters }
           para_offset : longint;
 
           {# some collected informations about the procedure
-             see pi_xxxx above                               }
+             see pi_xxxx constants above                               
+          }
           flags : longint;
 
           {# register used as frame pointer }
@@ -113,13 +121,28 @@ unit cgbase;
              or classes are used. It holds the location where
              temporary storage of the setjmp result is stored.
              
-             This reference can be nil, if the result is instead
+             This reference can be unused, if the result is instead
              saved on the stack.
           }
           exception_result_ref :treference;
-
-          aktproccode,aktentrycode,
-          aktexitcode,aktlocaldata : taasmoutput;
+          {# Holds the reference used to store alll saved registers.
+          
+             This is used on systems which do not have direct stack
+             operations (such as the PowerPC), it is unused on other
+             systems
+          }
+          save_regs_ref : treference;
+          {# The code for the routine itself, excluding entry and
+             exit code. This is a linked list of tai classes.
+          }   
+          aktproccode : taasmoutput;
+          {# The code for the routine entry code.
+          }
+          aktentrycode: taasmoutput;
+          {# The code for the routine exit code.
+          }
+          aktexitcode: taasmoutput;
+          aktlocaldata : taasmoutput;
           constructor init;
           destructor done;
        end;
@@ -180,9 +203,12 @@ unit cgbase;
     procedure codegen_newmodule;
     procedure codegen_newprocedure;
 
-    {# From a definition return the abstract code generator size (@var(tcgsize) enum). It is
+    {# From a definition return the abstract code generator size enum. It is
        to note that the value returned can be @var(OS_NO) }
     function def_cgsize(def: tdef): tcgsize;
+    {# From a constant numeric value, return the abstract code generator
+       size.
+    }   
     function int_cgsize(const l: aword): tcgsize;
 
     {# return the inverse condition of opcmp }
@@ -554,7 +580,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.20  2002-08-04 19:06:41  carl
+  Revision 1.21  2002-08-05 18:27:48  carl
+    + more more more documentation
+    + first version include/exclude (can't test though, not enough scratch for i386 :()...
+
+  Revision 1.20  2002/08/04 19:06:41  carl
     + added generic exception support (still does not work!)
     + more documentation
 

@@ -45,34 +45,39 @@ interface
                           Basic type functions
  *****************************************************************************}
 
-    {# Returns true, if def defines an ordinal type }
+    {# Returns true, if definition defines an ordinal type }
     function is_ordinal(def : tdef) : boolean;
 
-    {# Returns the min. value of the type }
+    {# Returns the minimal integer value of the type }
     function get_min_value(def : tdef) : TConstExprInt;
 
-    {# Returns basetype of the specified range }
+    {# Returns basetype of the specified integer range }
     function range_to_basetype(low,high:TConstExprInt):tbasetype;
 
-    {# Returns true, if def defines an ordinal type }
+    {# Returns true, if definition defines an integer type }
     function is_integer(def : tdef) : boolean;
 
-    {# Returns true if p is a boolean }
+    {# Returns true if definition is a boolean }
     function is_boolean(def : tdef) : boolean;
 
-    {# Returns true if p is a char }
+    {# Returns true if definition is a char 
+    
+       This excludes the unicode char.
+    }
     function is_char(def : tdef) : boolean;
 
-    {# Returns true if p is a widechar }
+    {# Returns true if definition is a widechar }
     function is_widechar(def : tdef) : boolean;
 
-    {# Returns true if p is a void}
+    {# Returns true if definition is a void}
     function is_void(def : tdef) : boolean;
 
-    {# Returns true if p is a smallset def }
+    {# Returns true if definition is a smallset}
     function is_smallset(p : tdef) : boolean;
 
-    {# Returns true, if def defines a signed data type (only for ordinal types) }
+    {# Returns true, if def defines a signed data type 
+       (only for ordinal types) 
+    }
     function is_signed(def : tdef) : boolean;
 
     {# Returns true whether def_from's range is comprised in def_to's if both are
@@ -91,13 +96,13 @@ interface
     }
     function is_zero_based_array(p : tdef) : boolean;
 
-    {# Returns true if p points to an open array def }
+    {# Returns true if p points to an open array definition }
     function is_open_array(p : tdef) : boolean;
 
-    {# Returns true if p points to a dynamic array def }
+    {# Returns true if p points to a dynamic array definition }
     function is_dynamic_array(p : tdef) : boolean;
 
-    {# Returns true, if p points to an array of const def }
+    {# Returns true, if p points to an array of const definition }
     function is_array_constructor(p : tdef) : boolean;
 
     {# Returns true, if p points to a variant array }
@@ -124,19 +129,19 @@ interface
                           String helper functions
  *****************************************************************************}
 
-    {# Returns true if p points to an open string def }
+    {# Returns true if p points to an open string type }
     function is_open_string(p : tdef) : boolean;
 
-    {# Returns true if p is an ansi string def }
+    {# Returns true if p is an ansi string type }
     function is_ansistring(p : tdef) : boolean;
 
-    {# Returns true if p is a long string def }
+    {# Returns true if p is a long string type }
     function is_longstring(p : tdef) : boolean;
 
-    {# returns true if p is a wide string def }
+    {# returns true if p is a wide string type }
     function is_widestring(p : tdef) : boolean;
 
-    {# Returns true if p is a short string def }
+    {# Returns true if p is a short string type }
     function is_shortstring(p : tdef) : boolean;
 
     {# Returns true if p is a pchar def }
@@ -148,7 +153,7 @@ interface
     {# Returns true if p is a voidpointer def }
     function is_voidpointer(p : tdef) : boolean;
 
-    {# Returns true, if definition is float }
+    {# Returns true, if definition is a float }
     function is_fpu(def : tdef) : boolean;
 
     {# Returns true, if def is a currency type }
@@ -215,16 +220,16 @@ interface
 
     function equal_constsym(sym1,sym2:tconstsym):boolean;
 
+    { if acp is cp_all the var const or nothing are considered equal }
+    type
+      compare_type = ( cp_none, cp_value_equal_const, cp_all);
+
     {# true, if two parameter lists are equal
       if acp is cp_none, all have to match exactly
       if acp is cp_value_equal_const call by value
       and call by const parameter are assumed as
       equal
     }
-    { if acp is cp_all the var const or nothing are considered equal }
-    type
-      compare_type = ( cp_none, cp_value_equal_const, cp_all);
-
     function equal_paras(paralist1,paralist2 : tlinkedlist; acp : compare_type) : boolean;
 
 
@@ -1268,22 +1273,22 @@ implementation
           assignment_overloaded:=nil;
           if not assigned(overloaded_operators[_ASSIGNMENT]) then
             exit;
-	
+    
           { look for an exact match first }
-	  assignment_overloaded:=overloaded_operators[_ASSIGNMENT].
-	   search_procdef_byretdef_by1paradef(to_def,from_def,dm_exact);
-	  if assigned(assignment_overloaded) then
-	    exit;
+      assignment_overloaded:=overloaded_operators[_ASSIGNMENT].
+       search_procdef_byretdef_by1paradef(to_def,from_def,dm_exact);
+      if assigned(assignment_overloaded) then
+        exit;
 
           { .... then look for an equal match }
-	  assignment_overloaded:=overloaded_operators[_ASSIGNMENT].
-	   search_procdef_byretdef_by1paradef(to_def,from_def,dm_equal);
-	  if assigned(assignment_overloaded) then
-	    exit;
+      assignment_overloaded:=overloaded_operators[_ASSIGNMENT].
+       search_procdef_byretdef_by1paradef(to_def,from_def,dm_equal);
+      if assigned(assignment_overloaded) then
+        exit;
 
           {  .... then for convert level 1 }
-	  assignment_overloaded:=overloaded_operators[_ASSIGNMENT].
-	   search_procdef_byretdef_by1paradef(to_def,from_def,dm_convertl1);
+      assignment_overloaded:=overloaded_operators[_ASSIGNMENT].
+       search_procdef_byretdef_by1paradef(to_def,from_def,dm_convertl1);
        end;
 
 
@@ -1881,7 +1886,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.2  2002-07-23 09:51:22  daniel
+  Revision 1.3  2002-08-05 18:27:48  carl
+    + more more more documentation
+    + first version include/exclude (can't test though, not enough scratch for i386 :()...
+
+  Revision 1.2  2002/07/23 09:51:22  daniel
   * Tried to make Tprocsym.defs protected. I didn't succeed but the cleanups
     are worth comitting.
 

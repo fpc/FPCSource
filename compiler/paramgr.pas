@@ -19,7 +19,8 @@
     Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
  ****************************************************************************
 }
-{
+{# Parameter passing manager. Used to manage how
+   parameters are passed to routines.
 }
 unit paramgr;
 
@@ -32,22 +33,35 @@ unit paramgr;
        symtype,symdef;
 
     type
+       {# This class defines some methods to take care of routine 
+          parameters. It should be overriden for each new processor
+       }   
        tparamanager = class
-          { Returns true if the return value can be put in accumulator }
+          {# Returns true if the return value can be put in accumulator }
           function ret_in_acc(def : tdef) : boolean;virtual;
 
-          { Returns true if uses a parameter as return value (???) }
+          {# Returns true if the return value is actually a parameter
+             pointer.
+          }
           function ret_in_param(def : tdef) : boolean;virtual;
 
           function push_high_param(def : tdef) : boolean;virtual;
 
-          { Returns true if a parameter is too large to copy and only the address is pushed
+          {# Returns true if a parameter is too large to copy and only 
+            the address is pushed
           }
           function push_addr_param(def : tdef) : boolean;virtual;
+          {# Returns a structure giving the information on
+             the storage of the parameter (which must be
+             an integer parameter)
+             
+             @param(nr Parameter number of routine, starting from 1)
+          }   
           function getintparaloc(nr : longint) : tparalocation;virtual;abstract;
           procedure create_param_loc_info(p : tabstractprocdef);virtual;abstract;
 
-          { Returns the location where the invisible parameter for structured
+          {# 
+            Returns the location where the invisible parameter for structured
             function results will be passed.
           }
           function getfuncretloc(p : tabstractprocdef) : tparalocation;virtual;abstract;
@@ -154,7 +168,11 @@ end.
 
 {
    $Log$
-   Revision 1.6  2002-07-30 20:50:43  florian
+   Revision 1.7  2002-08-05 18:27:48  carl
+     + more more more documentation
+     + first version include/exclude (can't test though, not enough scratch for i386 :()...
+
+   Revision 1.6  2002/07/30 20:50:43  florian
      * the code generator knows now if parameters are in registers
 
    Revision 1.5  2002/07/26 21:15:39  florian

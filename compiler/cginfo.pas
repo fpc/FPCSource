@@ -31,10 +31,8 @@ interface
 
     type
        {# Generic opcodes, which must be supported by all processors 
-          The order of this table should not be changed, since table
-          lookups are used in the different CPU code generators!
        }   
-       TOpCg =
+       topcg =
        (
           OP_NONE,
           OP_ADD,       { simple addition          }
@@ -109,7 +107,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.14  2002-08-04 19:06:41  carl
+  Revision 1.15  2002-08-05 18:27:48  carl
+    + more more more documentation
+    + first version include/exclude (can't test though, not enough scratch for i386 :()...
+
+  Revision 1.14  2002/08/04 19:06:41  carl
     + added generic exception support (still does not work!)
     + more documentation
 

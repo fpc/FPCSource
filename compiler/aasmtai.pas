@@ -121,6 +121,7 @@ interface
           constructor Create;
        end;
 
+       {# Generates an assembler string } 
        tai_string = class(tai)
           str : pchar;
           { extra len so the string can contain an \0 }
@@ -131,7 +132,7 @@ interface
           destructor Destroy;override;
        end;
 
-       { generates a common label }
+       {# Generates a common label }
        tai_symbol = class(tai)
           is_global : boolean;
           sym : tasmsymbol;
@@ -149,19 +150,21 @@ interface
           constructor Createname(const _name : string);
        end;
 
+       {# Generates an assembler label } 
        tai_label = class(tai)
           is_global : boolean;
           l : tasmlabel;
           constructor Create(_l : tasmlabel);
        end;
 
+       {# Directly output data to final assembler file }
        tai_direct = class(tai)
           str : pchar;
           constructor Create(_str : pchar);
           destructor Destroy; override;
        end;
 
-       { to insert a comment into the generated assembler file }
+       {# Generates an assembler comment }
        tai_asm_comment = class(tai)
           str : pchar;
           constructor Create(_str : pchar);
@@ -169,14 +172,14 @@ interface
        end;
 
 
-       { Insert a section/segment directive }
+       {# Generates a section / segment directive }
        tai_section = class(tai)
           sec : TSection;
           constructor Create(s : TSection);
        end;
 
 
-       { generates an uninitializised data block }
+       {# Generates an uninitializised data block }
        tai_datablock = class(tai)
           is_global : boolean;
           sym  : tasmsymbol;
@@ -186,7 +189,7 @@ interface
        end;
 
 
-       { generates a long integer (32 bit) }
+       {# Generates a long integer (32 bit) }
        tai_const = class(tai)
           value : longint;
           constructor Create_32bit(_value : longint);
@@ -205,31 +208,35 @@ interface
           constructor Createname_rva(const name:string);
        end;
 
-       { generates a single (32 bit real) }
+       {# Generates a single float (32 bit real) }
        tai_real_32bit = class(tai)
           value : ts32real;
           constructor Create(_value : ts32real);
        end;
 
-       { generates a double (64 bit real) }
+       {# Generates a double float (64 bit real) }
        tai_real_64bit = class(tai)
           value : ts64real;
           constructor Create(_value : ts64real);
        end;
 
-       { generates an extended (80 bit real) }
+       {# Generates an extended float (80 bit real) }
        tai_real_80bit = class(tai)
           value : ts80real;
           constructor Create(_value : ts80real);
        end;
 
-       { generates an comp (integer over 64 bits) }
+       {# Generates a comp int (integer over 64 bits) 
+         
+          This is Intel 80x86 specific, and is not
+          really supported on other processors.
+       }
        tai_comp_64bit = class(tai)
           value : ts64comp;
           constructor Create(_value : ts64comp);
        end;
 
-       { insert a cut to split into several smaller files }
+       {# Insert a cut to split assembler into several smaller files }
        tai_cut = class(tai)
           place : tcutplace;
           constructor Create;
@@ -237,7 +244,7 @@ interface
           constructor Create_end;
        end;
 
-       { insert a marker for assembler and inline blocks }
+       {# Insert a marker for assembler and inline blocks }
        tai_marker = class(tai)
          Kind: TMarker;
          Constructor Create(_Kind: TMarker);
@@ -258,14 +265,21 @@ interface
          constructor dealloc(r : tregister);
       end;
 
+      {# Class template for assembler instructions
+      }
       taicpu_abstract = class(tai)
+        {# Condition flags for instruction }
         condition : TAsmCond;
+        {# Number of operands to instruction }
         ops       : longint;
+        {# Operands of instruction }
         oper      : array[0..max_operands-1] of toper;
+        {# Actual opcode of instruction }
         opcode    : tasmop;
 {$ifdef i386}
         segprefix : tregister;
 {$endif i386}
+        {# true if instruction is a jmp }
         is_jmp    : boolean; { is this instruction a jump? (needed for optimizer) }
         Constructor Create(op : tasmop);
         Destructor Destroy;override;
@@ -278,7 +292,7 @@ interface
         procedure SetCondition(const c:TAsmCond);
       end;
 
-      { alignment for operator }
+      {# alignment for operator }
       tai_align_abstract = class(tai)
          buf       : array[0..63] of char; { buf used for fill }
          aligntype : byte;   { 1 = no align, 2 = word align, 4 = dword align }
@@ -969,7 +983,11 @@ uses
 end.
 {
   $Log$
-  Revision 1.1  2002-07-01 18:46:20  peter
+  Revision 1.2  2002-08-05 18:27:48  carl
+    + more more more documentation
+    + first version include/exclude (can't test though, not enough scratch for i386 :()...
+
+  Revision 1.1  2002/07/01 18:46:20  peter
     * internal linker
     * reorganized aasm layer
 

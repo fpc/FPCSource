@@ -25,6 +25,11 @@
 {# @abstract(Abstract code generator unit)
    Abstreact code generator unit. This contains the base class
    to implement for all new supported processors.
+   
+   WARNING: None of the routines implemented in these modules,
+   or their descendants, should use the temp. allocator, as
+   these routines may be called inside genentrycode, and the
+   stack frame is already setup!
 }
 unit cgobj;
 
@@ -108,7 +113,7 @@ unit cgobj;
 
              @param(size size of the operand in the register)
              @param(r register source of the operand)
-             @param(nr parameter number (starting from one) of routine (from left to right))
+             @param(locpara where the parameter will be stored)
           }
           procedure a_param_reg(list : taasmoutput;size : tcgsize;r : tregister;const locpara : tparalocation);virtual;
           {# Pass a parameter, which is a constant, to a routine.
@@ -117,7 +122,7 @@ unit cgobj;
 
              @param(size size of the operand in constant)
              @param(a value of constant to send)
-             @param(nr parameter number (starting from one) of routine (from left to right))
+             @param(locpara where the parameter will be stored)
           }
           procedure a_param_const(list : taasmoutput;size : tcgsize;a : aword;const locpara : tparalocation);virtual;
           {# Pass the value of a parameter, which is located in memory, to a routine.
@@ -126,7 +131,7 @@ unit cgobj;
 
              @param(size size of the operand in constant)
              @param(r Memory reference of value to send)
-             @param(nr parameter number (starting from one) of routine (from left to right))
+             @param(locpara where the parameter will be stored)
           }
           procedure a_param_ref(list : taasmoutput;size : tcgsize;const r : treference;const locpara : tparalocation);virtual;
           {# Pass the value of a parameter, which can be located either in a register or memory location,
@@ -136,9 +141,12 @@ unit cgobj;
 
              @param(l location of the operand to send)
              @param(nr parameter number (starting from one) of routine (from left to right))
+             @param(locpara where the parameter will be stored)
           }
           procedure a_param_loc(list : taasmoutput;const l : tlocation;const locpara : tparalocation);
-          {# Pass the address of a reference to a routine.
+          {# Pass the address of a reference to a routine. This routine
+             will calculate the address of the reference, and pass this
+             calculated address as a parameter.
 
              A generic version is provided.
 
@@ -327,6 +335,8 @@ unit cgobj;
              the runtime library. The default behavior
              does not need to be modified, as it is generic
              for all platforms.
+             
+             @param(stackframesize Number of bytes which will be allocated on the stack)
           }
           procedure g_stackcheck(list : taasmoutput;stackframesize : longint);virtual;
 
@@ -340,7 +350,7 @@ unit cgobj;
           procedure g_rangecheck(list: taasmoutput; const p: tnode;
             const todef: tdef); virtual;
 
-          { generates overflow checking code for a node }
+          {# Generates overflow checking code for a node }
           procedure g_overflowcheck(list: taasmoutput; const p: tnode); virtual; abstract;
 
           {**********************************}
@@ -364,9 +374,23 @@ unit cgobj;
              behavior does nothing, should be overriden as required.
           }
           procedure g_profilecode(list : taasmoutput);virtual;
+          {# Emits instruction for allocating the locals in entry
+             code of a routine. This is one of the first
+             routine called in @var(genentrycode).
+             
+             @param(localsize Number of bytes to allocate as locals)
+          }
           procedure g_stackframe_entry(list : taasmoutput;localsize : longint);virtual; abstract;
-          { restores the frame pointer at procedure exit }
+          {# Emits instructiona for restoring the frame pointer 
+             at routine exit. For some processors, this routine
+             may do nothing at all.
+          }
           procedure g_restore_frame_pointer(list : taasmoutput);virtual; abstract;
+          {# Emits instructions for returning from a subroutine.
+             Should also restore the stack. 
+             
+             @param(parasize  Number of bytes of parameters to deallocate from stack)   
+          }
           procedure g_return_from_proc(list : taasmoutput;parasize : aword);virtual; abstract;
           procedure g_call_constructor_helper(list : taasmoutput);virtual;
           procedure g_call_destructor_helper(list : taasmoutput);virtual;
@@ -1498,7 +1522,11 @@ finalization
 end.
 {
   $Log$
-  Revision 1.42  2002-08-04 19:08:21  carl
+  Revision 1.43  2002-08-05 18:27:48  carl
+    + more more more documentation
+    + first version include/exclude (can't test though, not enough scratch for i386 :()...
+
+  Revision 1.42  2002/08/04 19:08:21  carl
     + added generic exception support (still does not work!)
     + more documentation
 

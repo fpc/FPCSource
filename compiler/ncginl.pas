@@ -39,7 +39,7 @@ interface
           procedure second_predsucc;virtual;
           procedure second_incdec;virtual;
           procedure second_typeinfo;virtual;
-          procedure second_includeexclude;virtual; abstract;
+          procedure second_includeexclude;virtual; 
           procedure second_pi; virtual;
           procedure second_arctan_real; virtual;
           procedure second_abs_real; virtual;
@@ -445,7 +445,6 @@ implementation
 {*****************************************************************************
                      INCLUDE/EXCLUDE GENERIC HANDLING
 *****************************************************************************}
-(*
       procedure tcginlinenode.second_IncludeExclude;
         var
          scratch_reg : boolean;
@@ -455,7 +454,9 @@ implementation
          pushedregs : TMaybesave;
          cgop : topcg;
          addrreg, hregister2: tregister;
-         {!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!}
+         use_small : boolean;
+         cgsize : tcgsize;
+         href : treference;
         begin
           location_copy(location,left.location);
           secondpass(tcallparanode(left).left);
@@ -509,16 +510,16 @@ implementation
               
               case tcallparanode(tcallparanode(left).right).left.location.loc of
                  LOC_CREGISTER,
-                 LOC_REGISTER
+                 LOC_REGISTER:
                    begin
                      cg.a_load_reg_reg(exprasmlist,OS_INT,
-                       tcallparanode(tcallparanode(left).right).left.location.loc.register),hregister);
+                       tcallparanode(tcallparanode(left).right).left.location.register,hregister);
                    end;
                  LOC_REFERENCE:
                    begin
                      cgsize := def_cgsize(tcallparanode(tcallparanode(left).right).left.resulttype.def);
                      cg.a_load_ref_reg(exprasmlist,cgsize,
-                       tcallparanode(tcallparanode(left).right).left.location.loc.reference),hregister);
+                       tcallparanode(tcallparanode(left).right).left.location.reference,hregister);
                    end;
                else
                  internalerror(20020727);
@@ -540,14 +541,14 @@ implementation
                      if inlinenumber=in_include_x_y then
                        begin
                          cg.a_op_reg_ref(exprasmlist, OP_OR, OS_32, hregister2, 
-                         tcallparanode(left).left.location.loc.reference);
+                         tcallparanode(left).left.location.reference);
                        end
                      else
                        begin
                          cg.a_op_reg_reg(exprasmlist, OP_NOT, OS_32, hregister2, 
                          hregister2);
                          cg.a_op_reg_ref(exprasmlist, OP_AND, OS_32, hregister2, 
-                         tcallparanode(left).left.location.loc.reference);
+                         tcallparanode(left).left.location.reference);
                        end;
                       
                     end
@@ -561,9 +562,10 @@ implementation
                        set value : LOC_REFERENCE
                   }
                   { hregister contains the bitnumber (div 32 to get the correct offset) }
-                  cg.a_op_const_reg(exprasmlist, OP_SHR, OS_INT, 5, hregister);
+                  cg.a_op_const_reg(exprasmlist, OP_SHR, 5, hregister);
+                  addrreg := cg.get_scratch_reg_address(exprasmlist);
                   { calculate the correct address of the operand }
-                  cg.a_loadaddr_ref_reg(exprasmlist, tcallparanode(left).left.location.loc.reference,addrreg);
+                  cg.a_loadaddr_ref_reg(exprasmlist, tcallparanode(left).left.location.reference,addrreg);
                   cg.a_op_reg_reg(exprasmlist, OP_ADD, OS_INT, hregister, addrreg);
                   reference_reset_base(href,addrreg,0);
                   
@@ -573,15 +575,17 @@ implementation
                        end
                      else
                        begin
-                         cg.a_op_reg_reg(exprasmlist, OP_NOT, OS_32, hregister2, 
-                         hregister2);
+                         cg.a_op_reg_reg(exprasmlist, OP_NOT, OS_32, hregister2, hregister2);
                          cg.a_op_reg_ref(exprasmlist, OP_AND, OS_32, hregister2, href);
                        end;
                        
-                  end;
-                  
+                  cg.free_scratch_reg(exprasmlist, addrreg);
+                end;
+                cg.free_scratch_reg(exprasmlist,hregister);
+                rg.ungetregisterint(exprasmlist,hregister2); 
+            end;
         end;
-*)
+
 {*****************************************************************************
                             FLOAT GENERIC HANDLING
 *****************************************************************************}
@@ -637,7 +641,11 @@ end.
 
 {
   $Log$
-  Revision 1.9  2002-08-04 19:06:41  carl
+  Revision 1.10  2002-08-05 18:27:48  carl
+    + more more more documentation
+    + first version include/exclude (can't test though, not enough scratch for i386 :()...
+
+  Revision 1.9  2002/08/04 19:06:41  carl
     + added generic exception support (still does not work!)
     + more documentation
 

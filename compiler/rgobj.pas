@@ -23,6 +23,11 @@
 
 {$i fpcdefs.inc}
 
+{# @abstract(Abstract register allocator unit)
+   This unit contains services to allocate, free
+   references and registers which are used by
+   the code generator.
+}
 unit rgobj;
 
   interface
@@ -90,7 +95,11 @@ unit rgobj;
              is no more free registers which can be allocated
           }
           function getregisterint(list: taasmoutput) : tregister; virtual;
-          {# Free a general purpose register }
+          {# Free a general purpose register
+          
+             @param(r register to free)
+
+          }
           procedure ungetregisterint(list: taasmoutput; r : tregister); virtual;
 
           {# Allocate a floating point register 
@@ -99,7 +108,11 @@ unit rgobj;
              is no more free registers which can be allocated
           }
           function getregisterfpu(list: taasmoutput) : tregister; virtual;
-          {# Free a floating point register }
+          {# Free a floating point register 
+          
+             @param(r register to free)
+
+          }
           procedure ungetregisterfpu(list: taasmoutput; r : tregister); virtual;
 
           function getregistermm(list: taasmoutput) : tregister; virtual;
@@ -117,32 +130,66 @@ unit rgobj;
           }
           function getaddressregister(list: taasmoutput): tregister; virtual;
           procedure ungetaddressregister(list: taasmoutput; r: tregister); virtual;
-          { the following must only be called for address and integer }
-          { registers, otherwise the result is undefined              }
+          {# Verify if the specified register is an address or
+             general purpose register. Returns TRUE if @var(reg)
+             is an adress register.
+             
+             This routine should only be used to check on 
+             general purpose or address register. It will
+             not work on multimedia or floating point
+             registers
+             
+             @param(reg register to verify)
+          }   
           function isaddressregister(reg: tregister): boolean; virtual;
 
-          {# tries to allocate the passed register, if possible }
+          {# Tries to allocate the passed register, if possible 
+          
+             @param(r specific register to allocate)
+          }
           function getexplicitregisterint(list: taasmoutput; r : tregister) : tregister;virtual;
 
-          {# deallocate any kind of register }
+          {# Deallocate any kind of register }
           procedure ungetregister(list: taasmoutput; r : tregister); virtual;
 
-          {# deallocate any kind of register }
+          {# Deallocate all registers which are allocated
+             in the specified reference. On most systems,
+             this will free the base and index registers
+             of the specified reference.
+             
+             @param(ref reference which must have its registers freed)
+          }
           procedure ungetreference(list: taasmoutput; const ref : treference); virtual;
 
-          {# reset the register allocator information (usable registers etc) }
+          {# Reset the register allocator information (usable registers etc) }
           procedure cleartempgen;virtual;
 
-          {# convert a register to a specified register size, and return that register size }
+          {# Convert a register to a specified register size, and return that register size }
           function makeregsize(reg: tregister; size: tcgsize): tregister; virtual;
 
 
           {# saves register variables (restoring happens automatically) }
           procedure saveregvars(list: taasmoutput; const s: tregisterset);
 
-          {# saves and restores used registers }
+          {# Saves in temporary references (allocated via the temp. allocator)
+             the registers defined in @var(s). The registers are only saved
+             if they are currently in use, otherwise they are left as is.
+             
+             On processors which have instructions which manipulate the stack,
+             this routine should be overriden for performance reasons.
+             
+             @param(list)   List to add the instruction to
+             @param(saved)  Array of saved register information
+             @param(s)      Registers which might require saving
+          }
           procedure saveusedregisters(list: taasmoutput;
             var saved : tpushedsaved;const s: tregisterset);virtual;
+          {# Restores the registers which were saved with a call
+             to @var(saveusedregisters).
+             
+             On processors which have instructions which manipulate the stack,
+             this routine should be overriden for performance reasons.
+          }
           procedure restoreusedregisters(list: taasmoutput;
             const saved : tpushedsaved);virtual;
 
@@ -176,10 +223,13 @@ unit rgobj;
        end;
 
      const
-       { this value is used in tsaved, if the register isn't saved }
+       {# This value is used in tsaved. If the array value is equal 
+          to this, then this means that this register is not used.
+       }
        reg_not_saved = $7fffffff;
 
      var
+       {# This is the class instance used to access the register allocator class }
        rg: trgobj;
 
      { trerefence handling }
@@ -892,7 +942,11 @@ end.
 
 {
   $Log$
-  Revision 1.14  2002-08-04 19:06:41  carl
+  Revision 1.15  2002-08-05 18:27:48  carl
+    + more more more documentation
+    + first version include/exclude (can't test though, not enough scratch for i386 :()...
+
+  Revision 1.14  2002/08/04 19:06:41  carl
     + added generic exception support (still does not work!)
     + more documentation
 
