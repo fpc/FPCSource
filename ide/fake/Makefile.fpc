@@ -2,15 +2,8 @@
 #   Makefile.fpc for Fake compiler/gdb
 #
 
-[rules]
-all:
-        $(MAKE) -C compiler all
-        $(MAKE) -C gdb all
+[targets]
+dirs=compiler gdb
 
-clean :
-        $(MAKE) -C compiler clean
-        $(MAKE) -C gdb clean
-
-install:
-        $(MAKE) -C compiler install
-        $(MAKE) -C gdb install
+[sections]
+none=1

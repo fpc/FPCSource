@@ -7,9 +7,12 @@ programs=fp
 
 [dirs]
 fpcdir=../..
-unitdir=../../fv ../../api $(COMPUNITDIR) $(GDBUNITDIR)
+unitdir=$(COMPUNITDIR) $(GDBUNITDIR)
 objdir=$(GDBOBJDIR)
 libdir=$(GDBLIBDIR)
+
+[packages]
+packages=api fv
 
 [libs]
 libgcc=1
@@ -30,9 +33,9 @@ GDBINT=gdbint
 endif
 
 ifeq ($(GDB),1)
-override GDBUNITDIR+=../../$(GDBINT)
-GDBLIBDIR+=../../$(GDBINT)/libgdb/$(OS_TARGET)
-GDBOBJDIR+=../../$(GDBINT)/libgdb/$(OS_TARGET)
+override GDBUNITDIR+=$(PACKAGEDIR)/$(GDBINT)
+GDBLIBDIR+=$(PACKAGEDIR)/$(GDBINT)/libgdb/$(OS_TARGET)
+GDBOBJDIR+=$(PACKAGEDIR)/$(GDBINT)/libgdb/$(OS_TARGET)
 ifeq ($(OS_TARGET),go32v2)
 ifneq ($(DJDIR),)
 GDBLIBDIR+=$(DJDIR)/lib
@@ -49,26 +52,26 @@ endif
 fp$(EXEEXT): $(wildcard *.pas) $(wildcard *.inc)
 
 gdb:
-	$(MAKE) all GDB=1
+        $(MAKE) all GDB=1
 
 full:
-	$(MAKE) all FULL=1 NEEDOPT=-Sg
+        $(MAKE) all FULL=1 NEEDOPT=-Sg
 
 fullgdb:
-	$(MAKE) all FULL=1 GDB=1 NEEDOPT=-Sg
+        $(MAKE) all FULL=1 GDB=1 NEEDOPT=-Sg
 
 # This is necessary because we don't have all units separate in the
 # units targets
-clean : testfpcmake fpc_cleanall
+clean: fpc_cleanall
 
 #
 # Installation
 #
 install: fpc_install
-	$(INSTALL) $(wildcard *.pt) $(wildcard *.tdf) readme.txt $(BININSTALLDIR)
+        $(INSTALL) $(wildcard *.pt) $(wildcard *.tdf) readme.txt $(BININSTALLDIR)
 
 #
 # Misc
 #
 clean_compiler:
-	$(MAKE) -C ../../compiler clean
+        $(MAKE) -C ../../compiler clean

@@ -2,41 +2,29 @@
 #   Makefile.fpc for FP IDE
 #
 
+[targets]
+dirs=fake text
+
+[sections]
+none=1
+
 [rules]
 .PHONY: gdb full fullgdb clean_compiler
 
 all:
-	$(MAKE) -C text all
+        $(MAKE) -C text all
 
 gdb:
-	$(MAKE) -C text all GDB=1
+        $(MAKE) -C text all GDB=1
 
 full:
-	$(MAKE) -C text all FULL=1 "NEEDOPT+=-Sg -dGDB -dBROWSERCOL"
+        $(MAKE) -C text all FULL=1 "NEEDOPT+=-Sg -dGDB -dBROWSERCOL"
 
 fullgdb:
-	$(MAKE) -C text all FULL=1 GDB=1 "NEEDOPT+=-Sg -dGDB -dBROWSERCOL"
-
-# This is necessary because we don't have all units separate in the
-# units targets
-clean:
-	$(MAKE) -C fake clean
-	$(MAKE) -C text clean
-
-
-#
-# Installation
-#
-install:
-	$(MAKE) -C fake install
-	$(MAKE) -C fake install
-
-zipinstall:
-	$(MAKE) -C fake zipinstall
-	$(MAKE) -C fake zipinstall
+        $(MAKE) -C text all FULL=1 GDB=1 "NEEDOPT+=-Sg -dGDB -dBROWSERCOL"
 
 #
 # Misc
 #
 clean_compiler:
-	make -C ../../compiler clean
+        make -C ../../compiler clean
