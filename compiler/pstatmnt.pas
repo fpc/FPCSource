@@ -436,7 +436,7 @@ implementation
                  htype:=p.resulttype
                else
                  htype.setdef(tpointerdef.create(p.resulttype));
-               loadp:=ctempcreatenode.create(htype,POINTER_SIZE,tt_persistent);
+               loadp:=ctempcreatenode.create_reg(htype,POINTER_SIZE,tt_persistent);
                resulttypepass(loadp);
                if hasimplicitderef then
                 begin
@@ -1087,7 +1087,15 @@ implementation
 end.
 {
   $Log$
-  Revision 1.126  2004-01-22 17:24:49  peter
+  Revision 1.127  2004-02-03 16:46:51  jonas
+    + support to store ttempcreate/ref/deletenodes in registers
+    * put temps for withnodes and some newnodes in registers
+     Note: this currently only works because calling ungetregister()
+       multiple times for the same register doesn't matter. We need again
+       a way to specify that a register is currently a regvar and as such
+       should not be freed when you call ungetregister() on it.
+
+  Revision 1.126  2004/01/22 17:24:49  peter
     * except is also an end of block token
     * after a label don't try to parse a statement when the next token
       is an end token

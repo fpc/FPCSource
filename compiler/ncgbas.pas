@@ -337,6 +337,8 @@ interface
 *****************************************************************************}
 
     procedure tcgtempcreatenode.pass_2;
+      var
+        cgsize: tcgsize;
       begin
         location_reset(location,LOC_VOID,OS_NO);
 
@@ -346,9 +348,37 @@ interface
 
         { get a (persistent) temp }
         if tempinfo^.restype.def.needs_inittable then
-          tg.GetTempTyped(exprasmlist,tempinfo^.restype.def,tempinfo^.temptype,tempinfo^.ref)
+          begin
+            tg.GetTempTyped(exprasmlist,tempinfo^.restype.def,tempinfo^.temptype,tempinfo^.loc.ref);
+            tempinfo^.loc.loc := LOC_REFERENCE;
+          end
+        else if may_be_in_reg then
+          begin
+            cgsize := def_cgsize(tempinfo^.restype.def);
+            if (OS_INT = OS_S32) then
+              begin
+                if not(cgsize in [OS_8,OS_16,OS_32,OS_S8,OS_S16,OS_S32]) then
+                  internalerror(2004020202);
+              end
+            else
+              begin
+                if not(cgsize in [OS_8,OS_16,OS_32,OS_64,OS_S8,OS_S16,OS_S32,OS_S64]) then
+                  internalerror(2004020202);
+              end;
+            tempinfo^.loc.reg := cg.getintregister(exprasmlist,cgsize);
+            if (tempinfo^.temptype = tt_persistent) then
+              begin
+                { !!tell rgobj this register is now a regvar, so it can't be freed!! }
+                tempinfo^.loc.loc := LOC_CREGISTER
+              end
+            else
+              tempinfo^.loc.loc := LOC_REGISTER;
+          end
         else
-          tg.GetTemp(exprasmlist,size,tempinfo^.temptype,tempinfo^.ref);
+          begin
+            tg.GetTemp(exprasmlist,size,tempinfo^.temptype,tempinfo^.loc.ref);
+            tempinfo^.loc.loc := LOC_REFERENCE;
+          end;
         tempinfo^.valid := true;
       end;
 
@@ -362,10 +392,26 @@ interface
         { check if the temp is valid }
         if not tempinfo^.valid then
           internalerror(200108231);
-        { set the temp's location }
-        location_reset(location,LOC_REFERENCE,def_cgsize(tempinfo^.restype.def));
-        location.reference := tempinfo^.ref;
-        inc(location.reference.offset,offset);
+        case tempinfo^.loc.loc of
+          LOC_REFERENCE:
+            begin
+              { set the temp's location }
+              location_reset(location,LOC_REFERENCE,def_cgsize(tempinfo^.restype.def));
+              location.reference := tempinfo^.loc.ref;
+              inc(location.reference.offset,offset);
+            end;
+          LOC_REGISTER,
+          LOC_CREGISTER:
+            begin
+              if offset <> 0 then
+                internalerror(2004020205);
+              { LOC_CREGISTER, not LOC_REGISTER, otherwise we can't assign anything to it }
+              location_reset(location,tempinfo^.loc.loc,def_cgsize(tempinfo^.restype.def));
+              location.register := tempinfo^.loc.reg;
+            end;
+          else
+            internalerror(2004020204);
+        end;
       end;
 
 
@@ -374,11 +420,13 @@ interface
         { check if the temp is valid }
         if not tempinfo^.valid then
           internalerror(200306081);
+        if (tempinfo^.loc.loc = LOC_REGISTER) then
+          internalerror(2004020203);
         if (tempinfo^.temptype = tt_persistent) then
-          tg.ChangeTempType(exprasmlist,tempinfo^.ref,tt_normal);
-        tg.ungettemp(exprasmlist,tempinfo^.ref);
-        tempinfo^.ref := ref;
-        tg.ChangeTempType(exprasmlist,tempinfo^.ref,tempinfo^.temptype);
+          tg.ChangeTempType(exprasmlist,tempinfo^.loc.ref,tt_normal);
+        tg.ungettemp(exprasmlist,tempinfo^.loc.ref);
+        tempinfo^.loc.ref := ref;
+        tg.ChangeTempType(exprasmlist,tempinfo^.loc.ref,tempinfo^.temptype);
         { adapt location }
         location.reference := ref;
         inc(location.reference.offset,offset);
@@ -393,10 +441,25 @@ interface
       begin
         location_reset(location,LOC_VOID,OS_NO);
 
-        if release_to_normal then
-          tg.ChangeTempType(exprasmlist,tempinfo^.ref,tt_normal)
-        else
-          tg.UnGetTemp(exprasmlist,tempinfo^.ref);
+        case tempinfo^.loc.loc of
+          LOC_REFERENCE:
+            begin
+              if release_to_normal then
+                tg.ChangeTempType(exprasmlist,tempinfo^.loc.ref,tt_normal)
+              else
+                tg.UnGetTemp(exprasmlist,tempinfo^.loc.ref);
+            end;
+          LOC_REGISTER:
+            begin
+              if release_to_normal then
+                tempinfo^.loc.loc := LOC_REGISTER
+              else
+                begin
+                  { !!tell rgobj this register is no longer a regvar!! }
+                  cg.ungetregister(exprasmlist,tempinfo^.loc.reg);
+                end;
+            end;
+        end;
       end;
 
 
@@ -411,7 +474,15 @@ begin
 end.
 {
   $Log$
-  Revision 1.51  2003-11-07 15:58:32  florian
+  Revision 1.52  2004-02-03 16:46:51  jonas
+    + support to store ttempcreate/ref/deletenodes in registers
+    * put temps for withnodes and some newnodes in registers
+     Note: this currently only works because calling ungetregister()
+       multiple times for the same register doesn't matter. We need again
+       a way to specify that a register is currently a regvar and as such
+       should not be freed when you call ungetregister() on it.
+
+  Revision 1.51  2003/11/07 15:58:32  florian
     * Florian's culmutative nr. 1; contains:
       - invalid calling conventions for a certain cpu are rejected
       - arm softfloat calling conventions

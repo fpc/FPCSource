@@ -370,7 +370,7 @@ implementation
 
             { since the input/output variables are threadvars loading them into
               a temp once is faster. Create a temp which will hold a pointer to the file }
-            filetemp := ctempcreatenode.create(voidpointertype,voidpointertype.def.size,tt_persistent);
+            filetemp := ctempcreatenode.create_reg(voidpointertype,voidpointertype.def.size,tt_persistent);
             addstatement(newstatement,filetemp);
 
             { make sure the resulttype of the temp (and as such of the }
@@ -2374,7 +2374,15 @@ begin
 end.
 {
   $Log$
-  Revision 1.128  2004-02-02 20:41:59  florian
+  Revision 1.129  2004-02-03 16:46:51  jonas
+    + support to store ttempcreate/ref/deletenodes in registers
+    * put temps for withnodes and some newnodes in registers
+     Note: this currently only works because calling ungetregister()
+       multiple times for the same register doesn't matter. We need again
+       a way to specify that a register is currently a regvar and as such
+       should not be freed when you call ungetregister() on it.
+
+  Revision 1.128  2004/02/02 20:41:59  florian
     + added prefetch(const mem) support
 
   Revision 1.127  2004/01/26 16:12:28  daniel

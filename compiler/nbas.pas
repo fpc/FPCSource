@@ -90,6 +90,12 @@ interface
 
        ttempcreatenode = class;
 
+       ttemplocation = record
+         case loc: tcgloc of
+           LOC_REFERENCE: (ref: treference);
+           LOC_REGISTER:  (reg: tregister);
+       end;
+         
        { to allow access to the location by temp references even after the temp has }
        { already been disposed and to make sure the coherency between temps and     }
        { temp references is kept after a getcopy                                    }
@@ -98,12 +104,12 @@ interface
          { set to the copy of a tempcreate pnode (if it gets copied) so that the }
          { refs and deletenode can hook to this copy once they get copied too    }
          hookoncopy                 : ptempinfo;
-         ref                        : treference;
          restype                    : ttype;
          temptype                   : ttemptype;
+         owner                      : ttempcreatenode;
          valid                      : boolean;
          nextref_set_hookoncopy_nil : boolean;
-         owner                      : ttempcreatenode;
+         loc                        : ttemplocation;
        end;
 
        { a node which will create a (non)persistent temp of a given type with a given  }
@@ -111,14 +117,16 @@ interface
        ttempcreatenode = class(tnode)
           size: longint;
           tempinfo: ptempinfo;
+          may_be_in_reg: boolean;
           { * persistent temps are used in manually written code where the temp }
           { be usable among different statements and where you can manually say }
           { when the temp has to be freed (using a ttempdeletenode)             }
           { * non-persistent temps are mostly used in typeconversion helpers,   }
           { where the node that receives the temp becomes responsible for       }
-          { freeing it. In this last case, you should use only one reference    }
+          { freeing it. In this last case, you must use only one reference      }
           { to it and *not* generate a ttempdeletenode                          }
           constructor create(const _restype: ttype; _size: longint; _temptype: ttemptype); virtual;
+          constructor create_reg(const _restype: ttype; _size: longint; _temptype: ttemptype); virtual;
           constructor ppuload(t:tnodetype;ppufile:tcompilerppufile);override;
           procedure ppuwrite(ppufile:tcompilerppufile);override;
           procedure buildderefimpl;override;
@@ -660,6 +668,12 @@ implementation
                           TEMPCREATENODE
 *****************************************************************************}
 
+    constructor ttempcreatenode.create_reg(const _restype: ttype; _size: longint; _temptype: ttemptype);
+      begin
+        create(_restype,_size,_temptype);
+        may_be_in_reg:=true;
+      end;
+
     constructor ttempcreatenode.create(const _restype: ttype; _size: longint; _temptype: ttemptype);
       begin
         inherited create(tempcreaten);
@@ -669,6 +683,7 @@ implementation
         tempinfo^.restype := _restype;
         tempinfo^.temptype := _temptype;
         tempinfo^.owner:=self;
+        may_be_in_reg:=false;
       end;
 
     function ttempcreatenode.getcopy: tnode;
@@ -677,6 +692,7 @@ implementation
       begin
         n := ttempcreatenode(inherited getcopy);
         n.size := size;
+        n.may_be_in_reg := may_be_in_reg;
 
         new(n.tempinfo);
         fillchar(n.tempinfo^,sizeof(n.tempinfo^),0);
@@ -704,6 +720,7 @@ implementation
         inherited ppuload(t,ppufile);
 
         size:=ppufile.getlongint;
+        may_be_in_reg:=boolean(ppufile.getbyte);
         new(tempinfo);
         fillchar(tempinfo^,sizeof(tempinfo^),0);
         ppufile.gettype(tempinfo^.restype);
@@ -716,6 +733,7 @@ implementation
       begin
         inherited ppuwrite(ppufile);
         ppufile.putlongint(size);
+        ppufile.putbyte(byte(may_be_in_reg));
         ppufile.puttype(tempinfo^.restype);
         ppufile.putbyte(byte(tempinfo^.temptype));
       end;
@@ -751,6 +769,7 @@ implementation
         result :=
           inherited docompare(p) and
           (ttempcreatenode(p).size = size) and
+          (ttempcreatenode(p).may_be_in_reg = may_be_in_reg) and
           equal_defs(ttempcreatenode(p).tempinfo^.restype.def,tempinfo^.restype.def);
       end;
 
@@ -983,7 +1002,15 @@ begin
 end.
 {
   $Log$
-  Revision 1.75  2004-01-26 16:12:27  daniel
+  Revision 1.76  2004-02-03 16:46:51  jonas
+    + support to store ttempcreate/ref/deletenodes in registers
+    * put temps for withnodes and some newnodes in registers
+     Note: this currently only works because calling ungetregister()
+       multiple times for the same register doesn't matter. We need again
+       a way to specify that a register is currently a regvar and as such
+       should not be freed when you call ungetregister() on it.
+
+  Revision 1.75  2004/01/26 16:12:27  daniel
     * reginfo now also only allocated during register allocation
     * third round of gdb cleanups: kick out most of concatstabto
 

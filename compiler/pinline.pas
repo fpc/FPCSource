@@ -240,7 +240,7 @@ implementation
                   if is_new then
                    begin
                      { create temp for result }
-                     temp := ctempcreatenode.create(p.resulttype,p.resulttype.def.size,tt_persistent);
+                     temp := ctempcreatenode.create_reg(p.resulttype,p.resulttype.def.size,tt_persistent);
                      addstatement(newstatement,temp);
 
                      { create call to fpc_getmem }
@@ -734,7 +734,15 @@ implementation
 end.
 {
   $Log$
-  Revision 1.26  2004-01-22 16:44:35  peter
+  Revision 1.27  2004-02-03 16:46:51  jonas
+    + support to store ttempcreate/ref/deletenodes in registers
+    * put temps for withnodes and some newnodes in registers
+     Note: this currently only works because calling ungetregister()
+       multiple times for the same register doesn't matter. We need again
+       a way to specify that a register is currently a regvar and as such
+       should not be freed when you call ungetregister() on it.
+
+  Revision 1.26  2004/01/22 16:44:35  peter
     * fixed allocation of dimension buffer for setlength(dynarr)
 
   Revision 1.25  2003/11/29 16:19:54  peter
