@@ -94,7 +94,7 @@ interface
         { os2 }     ( true,  false, false, false, false ),
         { freebsd } ( true,  true,  false, false, false ),
         { beos }    ( true,  false, false, false, false ),
-        { netbsd }  ( true,  true,  false, false, false ),
+        { netbsd }  ( true,  true,  true,  true, false ),
         { amiga }   ( false, true,  false, false, false ),
         { atari }   ( false, true,  false, false, false ),
         { sunos }   ( true,  false, false, true,  false ),
@@ -1556,7 +1556,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.34  2003-09-30 09:10:28  marco
+  Revision 1.35  2004-01-05 17:45:02  marco
+   * netbsd patches
+
+  Revision 1.34  2003/09/30 09:10:28  marco
    * watcom support
 
   Revision 1.33  2003/09/27 13:00:30  peter
