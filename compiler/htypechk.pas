@@ -917,6 +917,11 @@ implementation
                         CGMessagePos(hp.fileinfo,type_e_no_assign_to_const);
                        exit;
                      end;
+                   else
+                     begin
+                       CGMessagePos(hp.fileinfo,type_e_variable_id_expected);
+                       exit;
+                     end;
                  end;
                end;
              else
@@ -974,7 +979,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.38  2001-11-02 22:58:01  peter
+  Revision 1.39  2001-11-08 21:55:36  marco
+   * Fix from Peter. Fixes a hang when ptop's upperstr procedure is converted
+     to ansistrings
+
+  Revision 1.38  2001/11/02 22:58:01  peter
     * procsym definition rewrite
 
   Revision 1.37  2001/10/20 20:30:21  peter
