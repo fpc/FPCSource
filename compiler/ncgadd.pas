@@ -140,6 +140,10 @@ interface
             cg.a_loadfpu_loc_reg(exprasmlist,left.location,tmpreg);
             location_reset(left.location,LOC_FPUREGISTER,left.location.size);
             left.location.register := tmpreg;
+{$ifdef x86}
+            { left operand is now on top of the stack, instead of the right one! }
+            toggleflag(nf_swaped);
+{$endif x86}
           end;
       end;
 
@@ -789,7 +793,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.44  2005-02-15 19:53:41  florian
+  Revision 1.45  2005-03-01 21:28:50  jonas
+    * fixed web bug 3533
+
+  Revision 1.44  2005/02/15 19:53:41  florian
     * don't generate overflow results if they aren't necessary
     * fixed op_reg_reg_reg_reg on arm
 
