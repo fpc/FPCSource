@@ -85,8 +85,8 @@ end;
 {$ifndef FPC_SYSTEM_HAS_FILLWORD}
 procedure fillword(var x;count : SizeInt;value : word);
 type
-  longintarray = array [0..maxlongint div 4] of longint;
-  wordarray    = array [0..maxlongint div 2] of word;
+  longintarray = array [0..maxlongint div 4-1] of longint;
+  wordarray    = array [0..maxlongint div 2-1] of word;
 var
   i,v : longint;
 begin
@@ -1245,7 +1245,10 @@ end;
 
 {
   $Log$
-  Revision 1.83  2004-10-24 20:01:41  peter
+  Revision 1.84  2004-11-02 08:46:50  florian
+    * fixed array sizes
+
+  Revision 1.83  2004/10/24 20:01:41  peter
     * saveregisters calling convention is obsolete
 
   Revision 1.82  2004/10/14 17:39:33  florian
