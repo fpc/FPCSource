@@ -23,7 +23,6 @@ Interface
   remove the next define.
 }
 
-{$DEFINE MOUSECHECK}
 
 {initializes the mouse with the default values for the current screen mode}
   Function InitMouse:Boolean;
@@ -122,9 +121,7 @@ end;
 
 Procedure ShowMouse;
 begin
-{$IFDEF MOUSECHECK}
   If (Not MouseFound) Then Exit;
-{$ENDIF}
   asm
         movl    $1,%eax
         pushl   %ebp
@@ -135,9 +132,7 @@ end;
 
 Procedure HideMouse;
 begin
-{$IFDEF MOUSECHECK}
   If (Not MouseFound) Then Exit;
-{$ENDIF}
   asm
         movl    $2,%eax
         pushl   %ebp
@@ -148,9 +143,7 @@ end;
 
 Procedure GetMouseState(var x,y,buttons:Longint);
 begin
-{$IFDEF MOUSECHECK}
   If (Not MouseFound) Then Exit;
-{$ENDIF}
   asm
         movl    $3,%eax
         pushl   %ebp
@@ -169,9 +162,7 @@ end;
 
 Function LPressed:Boolean;
 Begin
-{$IFDEF MOUSECHECK}
   If (Not MouseFound) Then Exit;
-{$ENDIF}
   asm
         movl    $3,%eax
         pushl   %ebp
@@ -185,9 +176,7 @@ end;
 
 Function RPressed:Boolean;
 Begin
-{$IFDEF MOUSECHECK}
   If (Not MouseFound) Then Exit;
-{$ENDIF}
   asm
         movl    $3,%eax
         pushl   %ebp
@@ -202,9 +191,7 @@ end;
 
 Function MPressed:Boolean;
 Begin
-{$IFDEF MOUSECHECK}
   If (Not MouseFound) Then Exit;
-{$ENDIF}
   asm
         movl    $3,%eax
         pushl   %ebp
@@ -219,9 +206,7 @@ end;
 
 Procedure SetMousePos(x,y:Longint);
 Begin
-{$IFDEF MOUSECHECK}
   If (Not MouseFound) Then Exit;
-{$ENDIF}
   asm
         movl    $4,%eax
         movl    x,%ecx
@@ -234,9 +219,7 @@ End;
 
 Function GetLastButtonPress(Button: Longint;var x,y:Longint):Longint;
 Begin
-{$IFDEF MOUSECHECK}
   If (Not MouseFound) Then Exit;
-{$ENDIF}
   asm
         movl    $5,%eax
         movl    button,%ebx
@@ -257,9 +240,7 @@ end;
 
 Function GetLastButtonRelease (button : Longint; var x,y:Longint): Longint;
 begin
-{$IFDEF MOUSECHECK}
   If (Not MouseFound) Then Exit;
-{$ENDIF}
   asm
         movl    $6,%eax
         movl    button,%ebx
@@ -280,9 +261,7 @@ end;
 
 Procedure SetMouseXRange (Min,Max:Longint);
 begin
-{$IFDEF MOUSECHECK}
   If (Not MouseFound) Then Exit;
-{$ENDIF}
   asm
         movl    $7,%eax
         movl    min,%ecx
@@ -295,9 +274,7 @@ end;
 
 Procedure SetMouseYRange (min,max:Longint);
 begin
-{$IFDEF MOUSECHECK}
   If (Not MouseFound) Then Exit;
-{$ENDIF}
   asm
         movl    $8,%eax
         movl    min,%ecx
@@ -310,18 +287,14 @@ end;
 
 Procedure SetMouseWindow(x1,y1,x2,y2:Longint);
 Begin
-{$IFDEF MOUSECHECK}
   If (Not MouseFound) Then Exit;
-{$ENDIF}
   SetMouseXRange(x1,x2);
   SetMouseYRange(y1,y2);
 End;
 
 Procedure SetMouseShape(ForeColor,BackColor,Ascii:Byte);
 Begin
-{$IFDEF MOUSECHECK}
   If (Not MouseFound) Then Exit;
-{$ENDIF}
   asm
         xorl    %ebx,%ebx
         movl    $0xa,%eax
@@ -339,9 +312,7 @@ End;
 
 Procedure SetMouseAscii(Ascii:byte);
 Begin
-{$IFDEF MOUSECHECK}
   If (Not MouseFound) Then Exit;
-{$ENDIF}
   asm
         xorl    %ebx,%ebx
         movl    $0xa,%eax
@@ -356,9 +327,7 @@ End;
 
 Procedure SetMouseHideWindow(x1,y1,x2,y2:Longint);
 Begin
-{$IFDEF MOUSECHECK}
   If (Not MouseFound) Then Exit;
-{$ENDIF}
   asm
         movl    $0x0010,%eax
         movl    x1,%ecx
@@ -373,9 +342,7 @@ End;
 
 Procedure SetMouseSpeed(Horizontal,Vertical:Longint);
 Begin
-{$IFDEF MOUSECHECK}
   If (Not MouseFound) Then Exit;
-{$ENDIF}
   asm
         movl    $0x0f,%eax
         movl    Horizontal,%ecx
@@ -391,7 +358,10 @@ Begin
 End.
 {
   $Log$
-  Revision 1.3  2002-09-07 16:01:18  peter
+  Revision 1.4  2002-09-07 21:30:00  carl
+    - removed mousecheck define
+
+  Revision 1.3  2002/09/07 16:01:18  peter
     * old logs removed and tabs fixed
 
 }
