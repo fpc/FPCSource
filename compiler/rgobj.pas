@@ -73,6 +73,7 @@ unit rgobj;
           { aren't currently allocated to a regvar. The "unusedregsxxx"  }
           { contain all registers of type "xxx" that aren't currenly     }
           { allocated                                                    }
+          lastintreg:Tsuperregister;
           unusedregsint,usableregsint:Tsupregset;
           unusedregsfpu,usableregsfpu : tregisterset;
           unusedregsmm,usableregsmm : tregisterset;
@@ -347,6 +348,7 @@ unit rgobj;
        usedbyproc:=[];
        t_times := 0;
        resetusableregisters;
+       lastintreg:=0;
 {$ifdef TEMPREGDEBUG}
        fillchar(reg_user,sizeof(reg_user),0);
        fillchar(reg_releaser,sizeof(reg_releaser),0);
@@ -387,21 +389,28 @@ unit rgobj;
         r:Tregister;
 
     begin
-      for i:=lowreg to highreg do
-        begin
-          if i in unusedregs then
-            begin
-              exclude(unusedregs,i);
-              include(fusedinproc,i);
-              include(fusedbyproc,i);
-              dec(countunusedregs);
-              r.enum:=R_INTREGISTER;
-              r.number:=i shl 8 or subreg;
-              list.concat(tai_regalloc.alloc(r));
-              result:=r;
-              exit;
-            end;
-        end;
+      if not (lastintreg in [lowreg..highreg]) then
+        lastintreg:=lowreg;
+      i:=lastintreg;
+      repeat
+        if i=highreg then
+          i:=lowreg
+        else
+          inc(i);
+        if i in unusedregs then
+          begin
+            exclude(unusedregs,i);
+            include(fusedinproc,i);
+            include(fusedbyproc,i);
+            dec(countunusedregs);
+            r.enum:=R_INTREGISTER;
+            r.number:=i shl 8 or subreg;
+            list.concat(Tai_regalloc.alloc(r));
+            result:=r;
+            lastintreg:=i;
+            exit;
+          end;
+      until i=lastintreg;
       internalerror(10);
     end;
 
@@ -1217,7 +1226,10 @@ end.
 
 {
   $Log$
-  Revision 1.26  2003-03-08 08:59:07  daniel
+  Revision 1.27  2003-03-08 10:53:48  daniel
+    * Created newra version of secondmul in n386add.pas
+
+  Revision 1.26  2003/03/08 08:59:07  daniel
     + $define newra will enable new register allocator
     + getregisterint will return imaginary registers with $newra
     + -sr switch added, will skip register allocation so you can see
