@@ -55,11 +55,13 @@ begin
     last:=P;
     end;
   R:=RM;
-  While (R<>Nil) and (R^.enum<P^.Enum) do
+  While (R<>Nil) and (UpCase(R^.enum)>UpCase(P^.Enum)) do
     begin
-    P^.Prev:=R;
-    R:=R^.next;
+      P^.Prev:=R;
+      R:=R^.next;
     end;
+  if assigned(R) and (UpCase(R^.Enum)=UpCase(P^.Enum)) then
+    Writeln('Error ',R^.Enum,' duplicate');
   P^.Next:=R;
   If R<>Nil then
     R^.Prev:=P;
@@ -68,6 +70,22 @@ begin
   else
     RM:=P;
   NewMsg:=P;
+end;
+
+Procedure PrintList(const name : string;R : PMsg);
+var
+  P : PMsg;
+  f : text;
+begin
+  P:=R;
+  Assign(f,name);
+  Rewrite(f);
+  while assigned(P) do
+    begin
+      Writeln(f,UpCase(P^.Enum));
+      P:=P^.Next;
+    end;
+  Close(f);
 end;
 
 Procedure Usage;
@@ -125,6 +143,9 @@ end;
 
 Procedure ShowDiff (POrg,PDiff : PMsg);
 
+Var P : PMsg;
+    count,orgcount,diffcount : longint;
+
 Procedure NotFound (Org : Boolean; P : PMsg);
 
 begin
@@ -132,22 +153,26 @@ begin
     If Org Then
       Writeln ('Not found in ',DiffFileName,' : ',Enum,' ',OrgFileName,'(',Line,')')
     else
-      Writeln ('Extra in ',DiffFileName,'(',line,') : ',enum)
+      Writeln ('Extra in ',DiffFileName,'(',line,') : ',enum);
+  if org then
+    inc(orgcount)
+  else
+    inc(diffcount);
 end;
 
-Var P : PMsg;
-    count : longint;
 begin
+  orgcount:=0;
+  diffcount:=0;
   count:=0;
   While (Porg<>Nil) and (PDiff<>Nil) do
     begin
 //    Writeln (POrg^.enum,'<=>',PDiff^.Enum);
-    If Porg^.Enum<PDiff^.Enum then
+    If UpCase(Porg^.Enum)>UpCase(PDiff^.Enum) then
       begin
       NotFound (True,Porg);
       POrg:=POrg^.Next
       end
-    else If POrg^.enum=PDiff^.Enum  then
+    else If UpCase(POrg^.enum)=UpCase(PDiff^.Enum)  then
       begin
       inc(count);
       POrg^.Equivalent:=PDiff;
@@ -171,16 +196,19 @@ begin
      NotFound(False,PDiff);
      PDiff:=PDiff^.Next;
      end;
-   Writeln(count,' messages found in both files');
+   Writeln(count,' messages found in common to both files');
+   Writeln(orgcount,' messages only in ',OrgFileName);
+   Writeln(diffcount,' messages only in ',DiffFileName);
 end;
 
 procedure WriteReorderedFile(FileName : string;orgnext,diffnext : PMsg);
   var t,t2,t3 : text;
-      i,i2,i3 : longint;
+      i,i2,i3,ntcount : longint;
       s,s3 : string;
       CurrentMsg : PMsg;
       nextdiffkept : pmsg;
   begin
+     ntcount:=0;
      Assign(t,FileName);
      Rewrite(t);
      Writeln(t,'%%% Reordering of ',DiffFileName,' respective to ',OrgFileName);
@@ -197,26 +225,29 @@ procedure WriteReorderedFile(FileName : string;orgnext,diffnext : PMsg);
      While not eof(t2) do
        begin
           while assigned(orgnext) and assigned(nextdiffkept) and
-             (orgnext^.enum<>nextdiffkept^.enum) and not(eof(t3)) do
+             (UpCase(orgnext^.enum)<>UpCase(nextdiffkept^.enum)) and not(eof(t3)) do
              begin
-                { Insert a new error msg with the english comments }
-                while i3<orgnext^.line do
+                if not assigned(orgnext^.equivalent) then
                   begin
-                     readln(t3,s3);
-                     inc(i3);
+                    { Insert a new error msg with the english comments }
+                    while i3<orgnext^.line do
+                      begin
+                         readln(t3,s3);
+                         inc(i3);
+                      end;
+                         writeln(t,s3);
+                         inc(i);
+                         readln(t3,s3);
+                         inc(i3);
+                    while (s3<>'') and (s3[1] in ['#','%']) do
+                      begin
+                         writeln(t,s3);
+                         inc(i);
+                         readln(t3,s3);
+                         inc(i3);
+                      end;
+                    Writeln('New error ',orgnext^.enum,' added');
                   end;
-                     writeln(t,s3);
-                     inc(i);
-                     readln(t3,s3);
-                     inc(i3);
-                while (s3<>'') and (s3[1] in ['#','%']) do
-                  begin
-                     writeln(t,s3);
-                     inc(i);
-                     readln(t3,s3);
-                     inc(i3);
-                  end;
-                Writeln('New error ',orgnext^.enum,' added');
                 orgnext:=orgnext^.filenext;
              end;
           if s='' then
@@ -232,6 +263,11 @@ procedure WriteReorderedFile(FileName : string;orgnext,diffnext : PMsg);
                     if diffnext^.equivalent<>orgnext then
                       Writeln('Problem inside WriteReorderedFile');
                     Writeln(t,s);
+                    if diffnext^.Equivalent^.Text=diffnext^.Text then
+                      begin
+                        Writeln(diffnext^.Enum,': ',DiffFileName,'(',i2,') not translated');
+                        inc(ntcount);
+                      end;
                     s:='';
                     inc(i);
                     readln(t2,s);
@@ -243,8 +279,6 @@ procedure WriteReorderedFile(FileName : string;orgnext,diffnext : PMsg);
                          readln(t2,s);
                          inc(i2);
                       end;
-                    if diffnext^.Equivalent^.Text=diffnext^.Text then
-                      Writeln(diffnext^.Enum,': ',DiffFileName,'(',i2,') not translated');
                     Diffnext:=Diffnext^.FileNext;
                     nextdiffkept:=diffnext;
                     while assigned(nextdiffkept) and (nextdiffkept^.equivalent=nil) do
@@ -284,18 +318,24 @@ procedure WriteReorderedFile(FileName : string;orgnext,diffnext : PMsg);
      Close(t);
      Close(t2);
      Close(t3);
+     Writeln(ntcount,' not translated items found');
   end;
 
 begin
   ProcessOptions;
   ProcessFile(OrgFileName,orgroot,orgfirst);
   ProcessFile(DiffFileName,diffRoot,difffirst);
+  PrintList('Org.lst',OrgRoot);
+  PrintList('Diff.lst',DiffRoot);
   ShowDiff (OrgRoot,DiffRoot);
   WriteReorderedFile('new.msg',orgfirst,difffirst);
 end.
 {
   $Log$
-  Revision 1.9  2000-02-09 13:23:11  peter
+  Revision 1.10  2000-05-11 13:37:37  pierre
+   * ordering bugs fixed
+
+  Revision 1.9  2000/02/09 13:23:11  peter
     * log truncated
 
   Revision 1.8  2000/01/07 01:15:01  peter
