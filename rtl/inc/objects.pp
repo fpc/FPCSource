@@ -727,6 +727,7 @@ CONST
 {                        STREAM REGISTRATION RECORDS                        }
 {---------------------------------------------------------------------------}
 
+{$ifndef VER0_99_8}
 CONST
    RCollection: TStreamRec = (
      ObjType: 50;
@@ -757,6 +758,7 @@ CONST
      VmtLink: Ofs(TypeOf(TStrListMaker)^);
      Load: Nil;
      Store: @TStrListMaker.Store);
+{$endif VER0_99_8}
 
 {<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>}
                                 IMPLEMENTATION
@@ -2679,9 +2681,11 @@ END;
 {---------------------------------------------------------------------------}
 PROCEDURE RegisterObjects;
 BEGIN
+{$ifndef VER0_99_8}
    RegisterType(RCollection);                         { Register object }
    RegisterType(RStringCollection);                   { Register object }
    RegisterType(RStrCollection);                      { Register object }
+{$endif}
 END;
 
 {---------------------------------------------------------------------------}
@@ -2722,7 +2726,10 @@ END;
 END.
 {
   $Log$
-  Revision 1.11  1998-11-12 11:45:09  peter
+  Revision 1.12  1998-11-12 11:54:50  peter
+    * fixed for 0.99.8
+
+  Revision 1.11  1998/11/12 11:45:09  peter
     + released object registration
 
   Revision 1.10  1998/10/23 16:51:18  pierre
