@@ -5,6 +5,9 @@
 [package]
 main=fcl
 
+[require]
+packages=paszlib
+
 [target]
 units=fpimgcmn fpimage pngcomn fpreadpng  fpreadxpm  fpwritexpm 
 examples=imgconv

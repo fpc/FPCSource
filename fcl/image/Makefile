@@ -865,135 +865,161 @@ else
 TAROPT=vz
 TAREXT=.tar.gz
 endif
-override REQUIRE_PACKAGES=rtl 
+override REQUIRE_PACKAGES=rtl paszlib
 ifeq ($(OS_TARGET),linux)
 ifeq ($(CPU_TARGET),i386)
 REQUIRE_PACKAGES_RTL=1
+REQUIRE_PACKAGES_PASZLIB=1
 endif
 endif
 ifeq ($(OS_TARGET),linux)
 ifeq ($(CPU_TARGET),m68k)
 REQUIRE_PACKAGES_RTL=1
+REQUIRE_PACKAGES_PASZLIB=1
 endif
 endif
 ifeq ($(OS_TARGET),linux)
 ifeq ($(CPU_TARGET),powerpc)
 REQUIRE_PACKAGES_RTL=1
+REQUIRE_PACKAGES_PASZLIB=1
 endif
 endif
 ifeq ($(OS_TARGET),linux)
 ifeq ($(CPU_TARGET),sparc)
 REQUIRE_PACKAGES_RTL=1
+REQUIRE_PACKAGES_PASZLIB=1
 endif
 endif
 ifeq ($(OS_TARGET),linux)
 ifeq ($(CPU_TARGET),x86_64)
 REQUIRE_PACKAGES_RTL=1
+REQUIRE_PACKAGES_PASZLIB=1
 endif
 endif
 ifeq ($(OS_TARGET),go32v2)
 ifeq ($(CPU_TARGET),i386)
 REQUIRE_PACKAGES_RTL=1
+REQUIRE_PACKAGES_PASZLIB=1
 endif
 endif
 ifeq ($(OS_TARGET),win32)
 ifeq ($(CPU_TARGET),i386)
 REQUIRE_PACKAGES_RTL=1
+REQUIRE_PACKAGES_PASZLIB=1
 endif
 endif
 ifeq ($(OS_TARGET),os2)
 ifeq ($(CPU_TARGET),i386)
 REQUIRE_PACKAGES_RTL=1
+REQUIRE_PACKAGES_PASZLIB=1
 endif
 endif
 ifeq ($(OS_TARGET),freebsd)
 ifeq ($(CPU_TARGET),i386)
 REQUIRE_PACKAGES_RTL=1
+REQUIRE_PACKAGES_PASZLIB=1
 endif
 endif
 ifeq ($(OS_TARGET),freebsd)
 ifeq ($(CPU_TARGET),m68k)
 REQUIRE_PACKAGES_RTL=1
+REQUIRE_PACKAGES_PASZLIB=1
 endif
 endif
 ifeq ($(OS_TARGET),beos)
 ifeq ($(CPU_TARGET),i386)
 REQUIRE_PACKAGES_RTL=1
+REQUIRE_PACKAGES_PASZLIB=1
 endif
 endif
 ifeq ($(OS_TARGET),netbsd)
 ifeq ($(CPU_TARGET),i386)
 REQUIRE_PACKAGES_RTL=1
+REQUIRE_PACKAGES_PASZLIB=1
 endif
 endif
 ifeq ($(OS_TARGET),netbsd)
 ifeq ($(CPU_TARGET),m68k)
 REQUIRE_PACKAGES_RTL=1
+REQUIRE_PACKAGES_PASZLIB=1
 endif
 endif
 ifeq ($(OS_TARGET),amiga)
 ifeq ($(CPU_TARGET),m68k)
 REQUIRE_PACKAGES_RTL=1
+REQUIRE_PACKAGES_PASZLIB=1
 endif
 endif
 ifeq ($(OS_TARGET),atari)
 ifeq ($(CPU_TARGET),m68k)
 REQUIRE_PACKAGES_RTL=1
+REQUIRE_PACKAGES_PASZLIB=1
 endif
 endif
 ifeq ($(OS_TARGET),sunos)
 ifeq ($(CPU_TARGET),i386)
 REQUIRE_PACKAGES_RTL=1
+REQUIRE_PACKAGES_PASZLIB=1
 endif
 endif
 ifeq ($(OS_TARGET),sunos)
 ifeq ($(CPU_TARGET),sparc)
 REQUIRE_PACKAGES_RTL=1
+REQUIRE_PACKAGES_PASZLIB=1
 endif
 endif
 ifeq ($(OS_TARGET),qnx)
 ifeq ($(CPU_TARGET),i386)
 REQUIRE_PACKAGES_RTL=1
+REQUIRE_PACKAGES_PASZLIB=1
 endif
 endif
 ifeq ($(OS_TARGET),netware)
 ifeq ($(CPU_TARGET),i386)
 REQUIRE_PACKAGES_RTL=1
+REQUIRE_PACKAGES_PASZLIB=1
 endif
 endif
 ifeq ($(OS_TARGET),openbsd)
 ifeq ($(CPU_TARGET),i386)
 REQUIRE_PACKAGES_RTL=1
+REQUIRE_PACKAGES_PASZLIB=1
 endif
 endif
 ifeq ($(OS_TARGET),openbsd)
 ifeq ($(CPU_TARGET),m68k)
 REQUIRE_PACKAGES_RTL=1
+REQUIRE_PACKAGES_PASZLIB=1
 endif
 endif
 ifeq ($(OS_TARGET),wdosx)
 ifeq ($(CPU_TARGET),i386)
 REQUIRE_PACKAGES_RTL=1
+REQUIRE_PACKAGES_PASZLIB=1
 endif
 endif
 ifeq ($(OS_TARGET),palmos)
 ifeq ($(CPU_TARGET),m68k)
 REQUIRE_PACKAGES_RTL=1
+REQUIRE_PACKAGES_PASZLIB=1
 endif
 endif
 ifeq ($(OS_TARGET),macos)
 ifeq ($(CPU_TARGET),powerpc)
 REQUIRE_PACKAGES_RTL=1
+REQUIRE_PACKAGES_PASZLIB=1
 endif
 endif
 ifeq ($(OS_TARGET),darwin)
 ifeq ($(CPU_TARGET),powerpc)
 REQUIRE_PACKAGES_RTL=1
+REQUIRE_PACKAGES_PASZLIB=1
 endif
 endif
 ifeq ($(OS_TARGET),emx)
 ifeq ($(CPU_TARGET),i386)
 REQUIRE_PACKAGES_RTL=1
+REQUIRE_PACKAGES_PASZLIB=1
 endif
 endif
 ifdef REQUIRE_PACKAGES_RTL
@@ -1020,6 +1046,32 @@ endif
 endif
 ifdef UNITDIR_RTL
 override COMPILER_UNITDIR+=$(UNITDIR_RTL)
+endif
+endif
+ifdef REQUIRE_PACKAGES_PASZLIB
+PACKAGEDIR_PASZLIB:=$(firstword $(subst /Makefile.fpc,,$(strip $(wildcard $(addsuffix /paszlib/Makefile.fpc,$(PACKAGESDIR))))))
+ifneq ($(PACKAGEDIR_PASZLIB),)
+ifneq ($(wildcard $(PACKAGEDIR_PASZLIB)/$(OS_TARGET)),)
+UNITDIR_PASZLIB=$(PACKAGEDIR_PASZLIB)/$(OS_TARGET)
+else
+UNITDIR_PASZLIB=$(PACKAGEDIR_PASZLIB)
+endif
+ifdef CHECKDEPEND
+$(PACKAGEDIR_PASZLIB)/$(FPCMADE):
+	$(MAKE) -C $(PACKAGEDIR_PASZLIB) $(FPCMADE)
+override ALLDEPENDENCIES+=$(PACKAGEDIR_PASZLIB)/$(FPCMADE)
+endif
+else
+PACKAGEDIR_PASZLIB=
+UNITDIR_PASZLIB:=$(subst /Package.fpc,,$(strip $(wildcard $(addsuffix /paszlib/Package.fpc,$(UNITSDIR)))))
+ifneq ($(UNITDIR_PASZLIB),)
+UNITDIR_PASZLIB:=$(firstword $(UNITDIR_PASZLIB))
+else
+UNITDIR_PASZLIB=
+endif
+endif
+ifdef UNITDIR_PASZLIB
+override COMPILER_UNITDIR+=$(UNITDIR_PASZLIB)
 endif
 endif
 ifndef NOCPUDEF
