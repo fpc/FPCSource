@@ -260,9 +260,9 @@ HOSTOS=$(OS_SOURCE)
 # Classes.pp is in rtl/unix/ for several targets
 ifneq ($(findstring $(OS_SOURCE),linux freebsd darwin netbsd openbsd),)
 CLASSESUNITDIR=unix
-#else
+else
 CLASSESUNITDIR=$(OS_SOURCE)
-#endif
+endif
 
 FCLOPTS=--package=fcl --descr=classes.xml --input='$(FPCSRCDIR)/rtl/$(OS_SOURCE)/classes.pp -Fi$(FPCSRCDIR)/rtl/objpas/classes'
 
@@ -566,7 +566,10 @@ execute:
 
 #
 # $Log$
-# Revision 1.6  2005-02-11 16:25:37  peter
+# Revision 1.7  2005-02-11 16:26:38  peter
+#   * fix previous commit
+#
+# Revision 1.6  2005/02/11 16:25:37  peter
 #   * classes in unix dir
 #
 # Revision 1.5  2005/02/07 21:05:58  michael

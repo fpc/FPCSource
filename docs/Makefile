@@ -1584,7 +1584,9 @@ endif
 HOSTOS=$(OS_SOURCE)
 ifneq ($(findstring $(OS_SOURCE),linux freebsd darwin netbsd openbsd),)
 CLASSESUNITDIR=unix
+else
 CLASSESUNITDIR=$(OS_SOURCE)
+endif
 FCLOPTS=--package=fcl --descr=classes.xml --input='$(FPCSRCDIR)/rtl/$(OS_SOURCE)/classes.pp -Fi$(FPCSRCDIR)/rtl/objpas/classes'
 fcl.inc: classes.xml
 	$(FPDOC) --output=fcl.inc $(FCLOPTS) --format=latex
