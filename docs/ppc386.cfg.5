@@ -92,12 +92,12 @@ encountered, after which normal processing is resumed.
 .IP \fIExample\fP
 #IFDEF VER0_99_12
 .br
-\-Up/usr/lib/fpc/0.99.12/linuxunits
+\-Fu/usr/lib/fpc/0.99.12/rtl
 .br
 #ENDIF
 .br
 .PP
-In the above example, /usr/lib/fpc/0.99.12/linuxunits will be added to
+In the above example, /usr/lib/fpc/0.99.12/rtl will be added to
 the path if you're compiling with version 0.99.12 of the compiler.
 .RE
 
@@ -115,11 +115,11 @@ encountered, after which normal processing is resumed.
 .IP \fIExample\fP
 #IFNDEF VER0_99_12
 .br
--Up/usr/lib/fpc/0.99.13/linuxunits
+-Fu/usr/lib/fpc/0.99.13/rtl
 .br
 #ENDIF
 .PP
-In the above example, /usr/lib/fpc/0.99.13/linuxunits will be added to
+In the above example, /usr/lib/fpc/0.99.13/rtl will be added to
 the path if you're NOT compiling with version 0.99.12 of the compiler.
 .RE
 .IP \fI#ELSE\fP
@@ -139,18 +139,18 @@ encountered, after which normal processing is resumed.
 
 #IFDEF VER0_99_12
 .br
--Up/usr/lib/fpc/0.99.13/linuxunits
+-Fu/usr/lib/fpc/0.99.12/rtl
 .br
 #ELSE
 .br
--Up/usr/lib/fpc/0.99.12/linuxunits
+-Fu/usr/lib/fpc/0.99.13/rtl
 .br
 #ENDIF
 .br
 .PP
-In the above example, /usr/lib/fpc/0.99.12/linuxunits will be added to
+In the above example, /usr/lib/fpc/0.99.12/rtl will be added to
 the path if you're compiling with version 0.99.12 of the compiler,
-otherwise \file{/usr/lib/fpc/0.99.13/linuxunits will be added to the path.
+otherwise /usr/lib/fpc/0.99.13/rtl will be added to the path.
 .RE
 .IP \fI#ENDIF\fP
 .RS
