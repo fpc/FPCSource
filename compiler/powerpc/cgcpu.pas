@@ -1110,6 +1110,42 @@ const
           end;
       end;
 
+    const
+      macosLinkageAreaSize = 24;
+      registerSaveAreaMaxSize = 19*4 + 18*8;
+
+    procedure save_fp_regs(list : taasmoutput);
+
+     var regcounter: TRegister;
+         href : treference;
+         offset: integer;
+
+    begin
+      offset:= 0;
+      for regcounter := R_F14 to R_F31 do
+        begin
+          offset:= offset - 8;
+          reference_reset_base(href, STACK_POINTER_REG, offset);
+          list.concat(taicpu.op_reg_ref(A_STFD, regcounter, href));
+        end;
+    end;
+
+    procedure restore_fp_regs(list : taasmoutput);
+
+     var regcounter: TRegister;
+         href : treference;
+         offset: integer;
+
+    begin
+      offset:= 0;
+      for regcounter := R_F14 to R_F31 do
+        begin
+          offset:= offset - 8;
+          reference_reset_base(href, STACK_POINTER_REG, offset);
+          list.concat(taicpu.op_reg_ref(A_LFD, regcounter, href));
+        end;
+    end;
+
     procedure tcgppc.g_stackframe_entry_mac(list : taasmoutput;localsize : longint);
  { generated the entry code of a procedure/function. Note: localsize is the }
  { sum of the size necessary for local variables and the maximum possible   }
@@ -1129,28 +1165,36 @@ const
         { allocate registers containing reg parameters }
         for regcounter := R_3 to R_10 do
           a_reg_alloc(list,regcounter);
+
         { save return address... }
         list.concat(taicpu.op_reg_reg(A_MFSPR,R_0,R_LR));
         { ... in caller's frame }
         reference_reset_base(href,STACK_POINTER_REG,8);
         list.concat(taicpu.op_reg_ref(A_STW,R_0,href));
         a_reg_dealloc(list,R_0);
+
         { save floating-point registers }
         { !!! has to be optimized: only save registers that are used }
-        a_call_name(list,'_savef14');
+        save_fp_regs(list);
+        (* a_call_name(list,'_savef14'); *)
         { save gprs in gpr save area }
         { !!! has to be optimized: only save registers that are used }
         reference_reset_base(href,STACK_POINTER_REG,-220);
         list.concat(taicpu.op_reg_ref(A_STMW,R_13,href));
+
         { save the CR if necessary ( !!! always done currently ) }
         a_reg_alloc(list,R_0);
         list.concat(taicpu.op_reg_reg(A_MFSPR,R_0,R_CR));
         reference_reset_base(href,stack_pointer_reg,LA_CR);
         list.concat(taicpu.op_reg_ref(A_STW,R_0,href));
         a_reg_dealloc(list,R_0);
+
         { save pointer to incoming arguments }
         list.concat(taicpu.op_reg_reg_const(A_ORI,R_31,STACK_POINTER_REG,0));
+
+        (*
         a_reg_alloc(list,R_12);
+
         { 0 or 8 based on SP alignment }
         list.concat(taicpu.op_reg_reg_const_const_const(A_RLWINM,
           R_12,STACK_POINTER_REG,0,28,28));
@@ -1159,7 +1203,16 @@ const
           -localsize));
         { establish new alignment }
         list.concat(taicpu.op_reg_reg_reg(A_STWUX,STACK_POINTER_REG,STACK_POINTER_REG,R_12));
+
         a_reg_dealloc(list,R_12);
+        *)
+
+        { allocate stack frame }
+        localsize:= align(localsize + macosLinkageAreaSize + registerSaveAreaMaxSize, 16);
+        reference_reset_base(href,R_1,-localsize);
+        a_load_store(list,A_STWU,R_1,href);
+
+
         { now comes the AltiVec context save, not yet implemented !!! }
       end;
 
@@ -1176,14 +1229,31 @@ const
 
         { restore SP }
         list.concat(taicpu.op_reg_reg_const(A_ORI,STACK_POINTER_REG,R_31,0));
+
+        { restore the CR if necessary ( !!! always done currently ) }
+        a_reg_alloc(list,R_0);
+        list.concat(taicpu.op_reg_reg(A_MTSPR,R_0,R_CR));
+        reference_reset_base(href,stack_pointer_reg,LA_CR);
+        list.concat(taicpu.op_reg_ref(A_LWZ,R_0,href));
+        a_reg_dealloc(list,R_0);
         { restore gprs }
         reference_reset_base(href,STACK_POINTER_REG,-220);
         list.concat(taicpu.op_reg_ref(A_LMW,R_13,href));
         { restore return address ... }
         reference_reset_base(href,STACK_POINTER_REG,8);
         list.concat(taicpu.op_reg_ref(A_LWZ,R_0,href));
+
+        (*
         { ... and return from _restf14 }
         list.concat(taicpu.op_sym_ofs(A_B,objectlibrary.newasmsymbol('_restf14'),0));
+        *)
+
+        { restore fp registers }
+        restore_fp_regs(list);
+
+        { return to caller }
+        list.concat(taicpu.op_reg_reg(A_MTSPR,R_0,R_LR));
+        list.concat(taicpu.op_none(A_BLR));
       end;
 
 
@@ -1700,7 +1770,12 @@ begin
 end.
 {
   $Log$
-  Revision 1.61  2002-10-19 12:50:36  olle
+  Revision 1.62  2002-10-19 23:51:48  olle
+    * macos stack frame size computing updated
+    + macos epilogue: control register now restored
+    * macos prologue and epilogue: fp reg now saved and restored
+
+  Revision 1.61  2002/10/19 12:50:36  olle
     * reorganized prologue and epilogue routines
 
   Revision 1.60  2002/10/02 21:49:51  florian
