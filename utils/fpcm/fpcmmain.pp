@@ -47,8 +47,18 @@ interface
 {$define NO_UNIX_UNIT}
 {$endif}
 
+{$ifdef OS2}
+  {$define LIMIT83}
+{$endif}
+{$ifdef EMX}
+  {$define LIMIT83}
+{$endif}
+{$ifdef GO32V2}
+  {$define LIMIT83}
+{$endif}
+
     const
-      Version='1.1';
+      Version='1.9.8';
       Title='FPCMake Version '+Version;
       TitleDate=Title+' ['+{$ifdef fpc}{$i %DATE}{$else}'n/a'{$endif}+']';
 
@@ -56,14 +66,14 @@ interface
       TCpu=(
         c_i386,c_m68k,c_powerpc,c_sparc,c_x86_64,c_arm
       );
-      TCpuSet=set of TCpu;
 
-      TTarget=(
-        t_linux,t_go32v2,t_win32,t_os2,t_freebsd,t_beos,t_netbsd,
-        t_amiga,t_atari, t_sunos, t_qnx, t_netware, t_openbsd,t_wdosx,
-        t_palmos,t_macos,t_darwin,t_emx,t_watcom,t_morphos,t_netwlibc
+      TOS=(
+        o_linux,o_go32v2,o_win32,o_os2,o_freebsd,o_beos,o_netbsd,
+        o_amiga,o_atari, o_sunos, o_qnx, o_netware, o_openbsd,o_wdosx,
+        o_palmos,o_macos,o_darwin,o_emx,o_watcom,o_morphos,o_netwlibc
       );
-      TTargetSet=set of TTarget;
+
+      TTargetSet=array[tcpu,tos] of boolean;
 
     const
       CpuStr : array[TCpu] of string=(
@@ -74,19 +84,20 @@ interface
         '_i386','_m68k','_powerpc','_sparc','_x86_64','_arm'
       );
 
-      TargetStr : array[TTarget] of string=(
+      OSStr : array[TOS] of string=(
         'linux','go32v2','win32','os2','freebsd','beos','netbsd',
         'amiga','atari','sunos', 'qnx', 'netware','openbsd','wdosx',
         'palmos','macos','darwin','emx','watcom','morphos','netwlibc'
       );
 
-      TargetSuffix : array[TTarget] of string=(
+      OSSuffix : array[TOS] of string=(
         '_linux','_go32v2','_win32','_os2','_freebsd','_beos','_netbsd',
         '_amiga','_atari','_sunos', '_qnx', '_netware','_openbsd','_wdosx',
         '_palmos','_macos','_darwin','_emx','_watcom','_morphos','_netwlibc'
       );
 
-      TargetCpuPossible : array[TTarget,TCpu] of boolean = (
+      { This table is kept OS,Cpu because it is easier to maintain (PFV) }
+      OSCpuPossible : array[TOS,TCpu] of boolean = (
         { os          i386    m68k  ppc    sparc  x86_64 arm }
         { linux }   ( true,  true,  true,  true,  true,  true),
         { go32v2 }  ( true,  false, false, false, false, false),
@@ -108,7 +119,7 @@ interface
         { emx }     ( true,  false, false, false, false, false),
         { watcom }  ( true,  false, false, false ,false, false),
         { morphos } ( false, false, true,  false ,false, false),
-	{ netwlibc }( true,  false, false, false, false, false)
+        { netwlibc }( true,  false, false, false, false, false)
       );
 
     type
@@ -150,7 +161,7 @@ interface
         property Dictionary:TKeyValue read FDictionary;
       end;
 
-      TTargetRequireList = array[ttarget,tcpu] of TStringList;
+      TTargetRequireList = array[tcpu,tos] of TStringList;
 
       TFPCMakeVerbose = (FPCMakeError, FPCMakeInfo, FPCMakeDebug);
 
@@ -166,20 +177,18 @@ interface
         FUsesLCL,
         FIsPackage      : boolean;
         FPackageName,
-        FPackageVersion,
-        FPackageTargets : string;
+        FPackageVersion : string;
         FRequireList    : TTargetRequireList;
         FVariables      : TKeyValue;
         FIncludeTargets : TTargetSet;
-        FIncludeCpus    : TCpuSet;
         procedure Init;
         procedure ParseSec(p:TDictionaryItem);
         procedure PrintSec(p:TDictionaryItem);
         procedure PrintDic(p:TDictionaryItem);
         function  GetSec(const AName:string):TDictionaryItem;
-        procedure LoadRequiredPackage(t:TTarget;c:TCpu;const ReqName,ReqVersion:string);
-        procedure LoadRequiredDir(t:TTarget;c:TCpu;const MainPack,currdir,subdir:string);
-        procedure LoadRequires(t:Ttarget;c:TCpu;FromFPCMake:TFPCMake);
+        procedure LoadRequiredPackage(c:TCpu;t:TOS;const ReqName,ReqVersion:string);
+        procedure LoadRequiredDir(c:TCpu;t:TOS;const MainPack,currdir,subdir:string);
+        procedure LoadRequires(c:TCpu;t:TOS;FromFPCMake:TFPCMake);
         function  CopySection(Sec:TFPCMakeSection;Secname:string):TFPCMakeSection;
       protected
         VerboseIdent : string;
@@ -193,13 +202,16 @@ interface
         procedure LoadMakefileFPC;
         procedure LoadPackageSection;
         procedure LoadRequireSection;
-        function  GetTargetRequires(t:TTarget;c:TCpu):TStringList;
+        function  GetTargetRequires(c:TCpu;t:TOS):TStringList;
         function  CheckLibcRequire:boolean;
         procedure CreateExportSection;
         procedure AddFPCDefaultVariables;
         procedure AddLCLDefaultVariables;
         function  SubstVariables(const s:string):string;
         function  GetVariable(const inivar:string;dosubst:boolean):string;
+        function  GetTargetVariable(c:TCPU;t:TOS;const inivar:string;dosubst:boolean):string;
+        function  HasVariable(const inivar:string):boolean;
+        function  HasTargetVariable(const inivar:string):boolean;
         function  SetVariable(const inivar,value:string;add:boolean):string;
         procedure Print;
         property Section[const s:string]:TDictionaryItem read GetSec;default;
@@ -214,7 +226,6 @@ interface
         property CommentChars:TSysCharSet read FCommentChars write FCommentChars;
         property EmptyLines:Boolean read FEmptyLines write FEmptyLines;
         property IncludeTargets:TTargetSet read FIncludeTargets write FIncludeTargets;
-        property IncludeCpus:TCpuSet read FIncludeCpus write FIncludeCpus;
       end;
 
     function posidx(const substr,s : string;idx:integer):integer;
@@ -587,13 +598,13 @@ implementation
 
     procedure TFPCMake.Init;
       var
-        t : ttarget;
+        t : tos;
         c : tcpu;
       begin
         FSections:=TDictionary.Create;
-        for t:=low(ttarget) to high(ttarget) do
-         for c:=low(tcpu) to high(tcpu) do
-          FRequireList[t,c]:=TStringList.Create;
+        for c:=low(tcpu) to high(tcpu) do
+         for t:=low(tos) to high(tos) do
+          FRequireList[c,t]:=TStringList.Create;
         FVariables:=TKeyValue.Create;
         FCommentChars:=[';','#'];
         FEmptyLines:=false;
@@ -602,8 +613,7 @@ implementation
         FPackageVersion:='';
         FPackageSec:=nil;
         FExportSec:=nil;
-        FIncludeTargets:=[low(TTarget)..high(TTarget)];
-        FIncludeCpus:=[low(TCpu)..high(TCpu)];
+        FillChar(FIncludeTargets,sizeof(FIncludeTargets),true);
         VerboseIdent:='';
         FUsesLCL:=false;
       end;
@@ -611,13 +621,13 @@ implementation
 
     destructor TFPCMake.Destroy;
       var
-        t : ttarget;
+        t : tos;
         c : tcpu;
       begin
         FSections.Free;
-        for t:=low(ttarget) to high(ttarget) do
-         for c:=low(tcpu) to high(tcpu) do
-          FRequireList[t,c].Free;
+        for c:=low(tcpu) to high(tcpu) do
+         for t:=low(tos) to high(tos) do
+          FRequireList[c,t].Free;
         FVariables.Free;
       end;
 
@@ -726,9 +736,14 @@ implementation
       var
         hslst : string;
         hs : string;
-        t  : TTarget;
+        hcpu,htarget : string;
+        t  : TOs;
+        c  : TCpu;
+        i  : integer;
+        targetset : boolean;
       begin
-        FIncludeTargets:=[];
+        FillChar(FIncludeTargets,sizeof(FIncludeTargets),0);
+        targetset:=false;
         hslst:=s;
         repeat
           hs:=LowerCase(GetToken(hslst,','));
@@ -737,22 +752,67 @@ implementation
           { target 'all' includes all targets }
           if hs='all' then
            begin
-             for t:=low(TTarget) to high(TTarget) do
-              include(FIncludeTargets,t);
+             for c:=low(TCpu) to high(TCpu) do
+              for t:=low(TOs) to high(TOs) do
+               if OSCpuPossible[t,c] then
+                FIncludeTargets[c,t]:=true;
+             targetset:=true;
              break;
            end;
-          for t:=low(TTarget) to high(TTarget) do
-           if hs=TargetStr[t] then
-            include(FIncludeTargets,t);
+          { full cpu-target specified? }
+          i:=pos('-',hs);
+          if i>0 then
+            begin
+              hcpu:=copy(hs,1,i-1);
+              htarget:=copy(hs,i+1,length(hs)-i);
+              for c:=low(TCpu) to high(TCpu) do
+                begin
+                  if hcpu=CpuStr[c] then
+                    begin
+                      for t:=low(TOs) to high(TOs) do
+                        begin
+                          if htarget=OSStr[t] then
+                            begin
+                              if OSCpuPossible[t,c] then
+                                begin
+                                  FIncludeTargets[c,t]:=true;
+                                  targetset:=true;
+                                end;
+                              break;
+                            end;
+                        end;
+                      break;
+                    end;
+                end;
+            end
+          else
+            begin
+              for c:=low(TCpu) to high(TCpu) do
+                begin
+                  for t:=low(TOS) to high(TOS) do
+                    begin
+                      if hs=OSStr[t] then
+                        begin
+                          if OSCpuPossible[t,c] then
+                            begin
+                              FIncludeTargets[c,t]:=true;
+                              targetset:=true;
+                            end;
+                          break;
+                        end;
+                    end;
+                end;
+            end;
         until false;
-        if FIncludeTargets=[] then
-         raise Exception.Create(s_no_targets_set)
+        if not targetset then
+          raise Exception.Create(s_no_targets_set)
         else
          begin
            hs:='';
-           for t:=low(TTarget) to high(TTarget) do
-            if t in FIncludeTargets then
-             AddToken(hs,TargetStr[t],' ');
+           for c:=low(TCpu) to high(TCpu) do
+            for t:=low(TOs) to high(TOs) do
+             if FIncludeTargets[c,t] then
+              AddToken(hs,CpuStr[c]+'-'+OSStr[t],' ');
            Verbose(FPCMakeDebug,Format(s_targets_info,[hs]));
          end;
       end;
@@ -761,7 +821,7 @@ implementation
     procedure TFPCMake.LoadPackageSection;
       var
         hs,s : string;
-        t : TTarget;
+        t : TOS;
       begin
         { Get package info from package section }
         FPackageSec:=TFPCMakeSection(FSections['package']);
@@ -787,20 +847,6 @@ implementation
            if FPackageVersion='' then
             Raise Exception.Create(s_no_package_version);
            FIsPackage:=true;
-           { optional targets }
-           FPackageTargets:='';
-           s:=LowerCase(FPackageSec['targets']);
-           repeat
-             hs:=GetToken(s,' ');
-             if hs='' then
-              break;
-             for t:=low(TTarget) to high(TTarget) do
-              if hs=TargetStr[t] then
-               begin
-                 AddToken(FPackageTargets,hs,' ');
-                 break;
-               end;
-           until false;
            { Set the ExportSec }
            FExportSec:=TFPCMakeSection(FSections[Lowercase(FPackageName)]);
          end;
@@ -809,7 +855,7 @@ implementation
 
     procedure TFPCMake.CreateExportSection;
       var
-        t : TTarget;
+        t : TOS;
         c : TCpu;
       begin
         { Don't create a section twice }
@@ -824,15 +870,15 @@ implementation
         FExportSec.AddKey('name',FPackageName);
         FExportSec.AddKey('version',FPackageVersion);
         { Add required packages }
-        for t:=low(TTarget) to high(TTarget) do
-         for c:=low(TCpu) to high(TCpu) do
-          FExportSec.AddKey('require'+TargetSuffix[t]+CpuSuffix[c],FPackageSec['require'+TargetSuffix[t]+CpuSuffix[c]]);
+        for c:=low(TCpu) to high(TCpu) do
+         for t:=low(TOS) to high(TOS) do
+          FExportSec.AddKey('require'+CpuSuffix[c]+OSSuffix[t],FPackageSec['require'+CpuSuffix[c]+OSSuffix[t]]);
         { Unit dir }
         {FExportSec.AddKey('unitdir','$(UNITSDIR)/'+Lowercase(PackageName));}
       end;
 
 
-    procedure TFPCMake.LoadRequiredPackage(t:TTarget;c:TCpu;const ReqName,ReqVersion:string);
+    procedure TFPCMake.LoadRequiredPackage(c:TCpu;t:TOS;const ReqName,ReqVersion:string);
 
         function TryFile(const fn:string):boolean;
         var
@@ -853,7 +899,7 @@ implementation
              if (ReqVersion<>'') and (ReqFPCMake.PackageVersion<ReqVersion) then
               raise Exception.Create(Format(s_wrong_package_version,[ReqVersion,ReqFPCMake.PackageVersion]));
              { First load the requirements of this package }
-             LoadRequires(t,c,ReqFPCMake);
+             LoadRequires(c,t,ReqFPCMake);
              { Get a copy of the package section }
              CopySection(ReqFPCMake.PackageSec,ReqName+'_package');
              { Get a copy of the export section }
@@ -871,7 +917,13 @@ implementation
         s : string;
       begin
         { Force the current target }
-        SetVariable('TARGET',TargetStr[t],false);
+        SetVariable('OSTARGET',OSStr[t],false);
+        SetVariable('CPUTARGET',CpuStr[c],false);
+{$ifdef LIMIT83}
+        SetVariable('FULLTARGET',OSStr[t],false);
+{$else}
+        SetVariable('FULLTARGET',CpuStr[c]+'-'+OSStr[t],false);
+{$endif}
         { Check for Makefile.fpc }
         s:=SubstVariables('$(addsuffix /'+ReqName+'/Makefile.fpc,$(FPCDIR)) $(addsuffix /'+ReqName+'/Makefile.fpc,$(PACKAGESDIR)) $(addsuffix /'+ReqName+'/Makefile.fpc,$(REQUIRE_PACKAGESDIR))');
         Verbose(FPCMakeDebug,'Package "'+ReqName+'": Looking for Makefile.fpc: "'+s+'"');
@@ -884,11 +936,11 @@ implementation
         s:=SubstVariables('$(firstword $(wildcard '+s+'))');
         if TryFile(s) then
          exit;
-        Raise Exception.Create(Format(s_package_not_found,[TargetStr[t],Reqname]));
+        Raise Exception.Create(Format(s_package_not_found,[OSStr[t],Reqname]));
       end;
 
 
-    procedure TFPCMake.LoadRequiredDir(t:TTarget;c:TCpu;const MainPack,currdir,subdir:string);
+    procedure TFPCMake.LoadRequiredDir(c:TCpu;t:TOS;const MainPack,currdir,subdir:string);
         var
           ReqFPCMake : TFPCMake;
           s : string;
@@ -916,13 +968,10 @@ implementation
              exit;
            end;
           { Load the requirements of this package }
-          LoadRequires(t,c,ReqFPCMake);
+          LoadRequires(c,t,ReqFPCMake);
           { Add the current requirements to our parents requirements }
-          s:=Trim(ReqFPCMake.GetVariable('require_packages',true)+' '+
-                  ReqFPCMake.GetVariable('require_packages'+cpusuffix[c],true)+' '+
-                  ReqFPCMake.GetVariable('require_packages'+targetsuffix[t],true)+' '+
-                  ReqFPCMake.GetVariable('require_packages'+targetsuffix[t]+cpusuffix[c],true));
-          SetVariable('require_packages'+targetsuffix[t]+cpusuffix[c],s,true);
+          s:=ReqFPCMake.GetTargetVariable(c,t,'require_packages',true);
+          SetVariable('require_packages'+OSSuffix[t]+cpusuffix[c],s,true);
           if ReqFPCMake.GetVariable('require_libc',false)<>'' then
            SetVariable('require_libc','y',false);
           { Free }
@@ -931,7 +980,7 @@ implementation
         end;
 
 
-    procedure TFPCMake.LoadRequires(t:Ttarget;c:TCpu;FromFPCMake:TFPCMake);
+    procedure TFPCMake.LoadRequires(c:TCpu;t:TOS;FromFPCMake:TFPCMake);
       var
         s,
         ReqDir,
@@ -940,11 +989,8 @@ implementation
         i,j : integer;
       begin
         { packages }
-        s:=Trim(FromFPCMake.GetVariable('require_packages',true)+' '+
-                FromFPCMake.GetVariable('require_packages'+CpuSuffix[c],true)+' '+
-                FromFPCMake.GetVariable('require_packages'+TargetSuffix[t],true)+' '+
-                FromFPCMake.GetVariable('require_packages'+TargetSuffix[t]+CpuSuffix[c],true));
-        Verbose(FPCMakeDebug,'Required packages for '+TargetStr[t]+'-'+CpuStr[c]+': '+s);
+        s:=FromFPCMake.GetTargetVariable(c,t,'require_packages',true);
+        Verbose(FPCMakeDebug,'Required packages for '+OSStr[t]+'-'+CpuStr[c]+': '+s);
         repeat
           reqname:=GetToken(s,' ');
           if reqname='' then
@@ -963,60 +1009,28 @@ implementation
           { We only use lowercase names }
           ReqName:=Lowercase(ReqName);
           { Already loaded ? }
-         if (RequireList[t,c].IndexOf(ReqName)=-1) then
+         if (RequireList[c,t].IndexOf(ReqName)=-1) then
            begin
-             LoadRequiredPackage(t,c,ReqName,ReqVersion);
-             RequireList[t,c].Add(ReqName);
+             LoadRequiredPackage(c,t,ReqName,ReqVersion);
+             RequireList[c,t].Add(ReqName);
            end;
         until false;
         { sub dirs }
-        s:=Trim(FromFPCMake.GetVariable('target_dirs',true)+' '+
-                FromFPCMake.GetVariable('target_dirs'+CpuSuffix[c],true)+' '+
-                FromFPCMake.GetVariable('target_dirs'+TargetSuffix[t],true)+' '+
-                FromFPCMake.GetVariable('target_dirs'+TargetSuffix[t]+CpuSuffix[c],true));
-        Verbose(FPCMakeDebug,'Required dirs for '+TargetStr[t]+'-'+CpuStr[c]+': '+s);
+        s:=FromFPCMake.GetTargetVariable(c,t,'target_dirs',true);
+        Verbose(FPCMakeDebug,'Required dirs for '+CpuStr[c]+'-'+OSStr[t]+': '+s);
         repeat
           reqdir:=GetToken(s,' ');
           if reqdir='' then
            break;
-          LoadRequiredDir(t,c,FromFPCMake.FPackageName,ExtractFilePath(FromFPCMake.FFileName),ReqDir)
+          LoadRequiredDir(c,t,FromFPCMake.FPackageName,ExtractFilePath(FromFPCMake.FFileName),ReqDir)
         until false;
       end;
 
 
     procedure TFPCMake.LoadRequireSection;
-
-        function CheckVar(const s:string):boolean;
-        var
-          t : ttarget;
-          c : tcpu;
-        begin
-          result:=false;
-          if GetVariable(s,false)<>'' then
-           begin
-             result:=true;
-             exit;
-           end;
-          for t:=low(ttarget) to high(ttarget) do
-           if t in FIncludeTargets then
-            begin
-              if GetVariable(s+targetsuffix[t],false)<>'' then
-               begin
-                 result:=true;
-                 exit;
-               end;
-              for c:=low(tcpu) to high(tcpu) do
-               if (TargetCpuPossible[t,c]) and (c in FIncludeCpus) then
-                begin
-                  result:=true;
-                  exit;
-                end;
-            end;
-        end;
-
       var
         s : string;
-        t : ttarget;
+        t : tos;
         c : tcpu;
       begin
         { Check FPCMake version }
@@ -1027,31 +1041,28 @@ implementation
           to compile }
         s:=GetVariable('require_packages',false);
         if (GetVariable('require_nortl',false)='') and
-           (CheckVar('target_programs') or
-            CheckVar('target_units') or
-            CheckVar('target_examples')) and
+           (HasTargetVariable('target_programs') or
+            HasTargetVariable('target_units') or
+            HasTargetVariable('target_examples')) and
            (Pos('rtl(',s)=0) and (getvariable('package_name',false)<>'rtl') then
          begin
            s:='rtl '+s;
            SetVariable('require_packages',s,false);
          end;
         { Load recursively all required packages starting with this Makefile.fpc }
-        for t:=low(TTarget) to high(TTarget) do
-         if t in FIncludeTargets then
-          begin
-            for c:=low(TCpu) to high(TCpu) do
-             if (TargetCpuPossible[t,c]) and (c in FIncludeCpus) then
-              LoadRequires(t,c,self);
-          end;
+        for c:=low(TCpu) to high(TCpu) do
+          for t:=low(Tos) to high(Tos) do
+            if FIncludeTargets[c,t] then
+              LoadRequires(c,t,self);
       end;
 
 
-    function TFPCMake.GetTargetRequires(t:TTarget;c:TCpu):TStringList;
+    function TFPCMake.GetTargetRequires(c:TCpu;t:Tos):TStringList;
       var
         ReqSec  : TFPCMakeSection;
         ReqList : TStringList;
 
-        procedure AddReqSec(t:TTarget;c:TCpu;Sec:TFPCMakeSection);
+        procedure AddReqSec(c:TCpu;t:Tos;Sec:TFPCMakeSection);
         var
           s,
           ReqName : string;
@@ -1060,8 +1071,8 @@ implementation
         begin
           s:=Sec['packages']+' '+
              Sec['packages'+CpuSuffix[c]]+' '+
-             Sec['packages'+TargetSuffix[t]]+' '+
-             Sec['packages'+TargetSuffix[t]+CpuSuffix[c]];
+             Sec['packages'+OSSuffix[t]]+' '+
+             Sec['packages'+OSSuffix[t]+CpuSuffix[c]];
           repeat
             ReqName:=GetToken(s,' ');
             if ReqName='' then
@@ -1076,7 +1087,7 @@ implementation
              begin
                RSec:=TFPCMakeSection(FSections[ReqName+'_require']);
                if assigned(RSec) then
-                AddReqSec(t,c,RSec);
+                AddReqSec(c,t,RSec);
                ReqList.Add(ReqName);
              end;
           until false;
@@ -1086,7 +1097,7 @@ implementation
         ReqList:=TStringList.Create;
         ReqSec:=TFPCMakeSection(FSections['require']);
         if assigned(ReqSec) then
-         AddReqSec(t,c,ReqSec);
+         AddReqSec(c,t,ReqSec);
         GetTargetRequires:=ReqList;
       end;
 
@@ -1095,7 +1106,7 @@ implementation
       var
         i : integer;
         RSec : TFPCMakeSection;
-        t : ttarget;
+        t : tos;
         c : tcpu;
       begin
         Result:=false;
@@ -1104,15 +1115,13 @@ implementation
            Result:=true;
            exit;
          end;
-        for t:=low(ttarget) to high(ttarget) do
-         if t in FIncludeTargets then
-          begin
-            for c:=low(tcpu) to high(tcpu) do
-             if (TargetCpuPossible[t,c]) and (c in FIncludeCpus) then
+        for c:=low(tcpu) to high(tcpu) do
+          for t:=low(tos) to high(tos) do
+            if FIncludeTargets[c,t] then
               begin
-                for i:=0 to RequireList[t,c].Count-1 do
+                for i:=0 to RequireList[c,t].Count-1 do
                  begin
-                   RSec:=TFPCMakeSection(FSections[RequireList[t,c][i]+'_require']);
+                   RSec:=TFPCMakeSection(FSections[RequireList[c,t][i]+'_require']);
                    if assigned(RSec) then
                     begin
                       if RSec['libc']<>'' then
@@ -1122,8 +1131,7 @@ implementation
                        end;
                     end;
                  end;
-             end;
-          end;
+              end;
       end;
 
 
@@ -1210,7 +1218,7 @@ implementation
          SetVariable('PACKAGESDIR','$(FPCDIR)/packages/base $(FPCDIR)/packages/extra',false);
         { UNITSDIR }
         if GetVariable('UNITSDIR',false)='' then
-         SetVariable('UNITSDIR','$(FPCDIR)/units/$(TARGET)',false);
+         SetVariable('UNITSDIR','$(FPCDIR)/units/$(FULLTARGET)',false);
         { BASEDIR }
         SetVariable('BASEDIR',GetCurrentDir,false);
       end;
@@ -1464,6 +1472,45 @@ implementation
       end;
 
 
+    function TFPCMake.GetTargetVariable(c:TCPU;t:TOS;const inivar:string;dosubst:boolean):string;
+      begin
+        result:=Trim(GetVariable(inivar,dosubst)+' '+
+                     GetVariable(inivar+cpusuffix[c],dosubst)+' '+
+                     GetVariable(inivar+OSSuffix[t],dosubst)+' '+
+                     GetVariable(inivar+CpuSuffix[c]+OSSuffix[t],dosubst)+' '+
+                     GetVariable(inivar+OSSuffix[t]+cpusuffix[c],dosubst));
+      end;
+
+
+    function TFPCMake.HasVariable(const inivar:string):boolean;
+      begin
+        Result:=(GetVariable(IniVar,false)<>'');
+      end;
+
+
+    function TFPCMake.HasTargetVariable(const inivar:string):boolean;
+      var
+        c:TCPU;
+        t:TOS;
+      begin
+        result:=false;
+        for c:=low(tcpu) to high(tcpu) do
+          for t:=low(tos) to high(tos) do
+           if FIncludeTargets[c,t] then
+             begin
+               if (GetVariable(inivar,false)<>'') or
+                  (GetVariable(inivar+cpusuffix[c],false)<>'') or
+                  (GetVariable(inivar+OSSuffix[t],false)<>'') or
+                  (GetVariable(inivar+CpuSuffix[c]+OSSuffix[t],false)<>'') or
+                  (GetVariable(inivar+OSSuffix[t]+cpusuffix[c],false)<>'') then
+                 begin
+                   result:=true;
+                   exit;
+                 end;
+              end;
+      end;
+
+
     function TFPCMake.SetVariable(const inivar,value:string;add:boolean):string;
       var
         Sec : TFPCMakeSection;
@@ -1562,7 +1609,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.43  2004-09-04 21:24:43  armin
+  Revision 1.44  2005-01-10 20:33:09  peter
+    * use cpu-os style
+
+  Revision 1.43  2004/09/04 21:24:43  armin
   * added target netwlibc
 
   Revision 1.42  2004/07/11 18:58:19  peter

@@ -87,7 +87,8 @@ program fpcmake;
         CurrFPCMake : TFPCMakeConsole;
         CurrMakefile : TMakefileWriter;
         s,s2,Subdirs : string;
-        t : ttarget;
+        c : tcpu;
+        t : tos;
       begin
         Show(V_Default,'Processing '+fn);
         CurrFPCMake:=nil;
@@ -102,30 +103,31 @@ program fpcmake;
 //          CurrFPCMake.Print;
 
           { Add the subdirs }
-          subdirs:=CurrFPCMake.GetVariable('target_dirs',true);
-          for t:=low(ttarget) to high(ttarget) do
-           if t in CurrFPCMake.IncludeTargets then
-            begin
-              s2:=CurrFPCMake.GetVariable('target_dirs'+targetsuffix[t],true);
-              repeat
-                s:=GetToken(s2,' ');
-                if s='' then
-                 break;
-                AddTokenNoDup(subdirs,s,' ');
-              until false;
-            end;
-          AddToken(subdirs,CurrFPCMake.GetVariable('target_exampledirs',true),' ');
-          for t:=low(ttarget) to high(ttarget) do
-           if t in CurrFPCMake.IncludeTargets then
-            begin
-              s2:=CurrFPCMake.GetVariable('target_exampledirs'+targetsuffix[t],true);
-              repeat
-                s:=GetToken(s2,' ');
-                if s='' then
-                 break;
-                AddTokenNoDup(subdirs,s,' ');
-              until false;
-            end;
+          subdirs:='';
+          for c:=low(tcpu) to high(tcpu) do
+           for t:=low(tos) to high(tos) do
+            if CurrFPCMake.IncludeTargets[c,t] then
+             begin
+               s2:=CurrFPCMake.GetTargetVariable(c,t,'target_dirs',true);
+               repeat
+                 s:=GetToken(s2,' ');
+                 if s='' then
+                  break;
+                 AddTokenNoDup(subdirs,s,' ');
+               until false;
+             end;
+          for c:=low(tcpu) to high(tcpu) do
+           for t:=low(tos) to high(tos) do
+            if CurrFPCMake.IncludeTargets[c,t] then
+             begin
+               s2:=CurrFPCMake.GetTargetVariable(c,t,'target_exampledirs',true);
+               repeat
+                 s:=GetToken(s2,' ');
+                 if s='' then
+                  break;
+                 AddTokenNoDup(subdirs,s,' ');
+               until false;
+             end;
 
           { Write Makefile }
           CurrMakefile:=TMakefileWriter.Create(CurrFPCMake,ExtractFilePath(fn)+'Makefile');
@@ -264,7 +266,7 @@ begin
 { Reset }
   ParaMode:=m_Makefile;
   ParaVerboseLevel:=v_default;
-  ParaTargets:=LowerCase({$I %FPCTARGETOS});
+  ParaTargets:=LowerCase({$I %FPCTARGETCPU})+'-'+LowerCase({$I %FPCTARGETOS});
 { Parse options }
   repeat
     c:=Getopt (ShortOpts);
@@ -292,7 +294,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.10  2004-12-05 11:18:04  hajny
+  Revision 1.11  2005-01-10 20:33:09  peter
+    * use cpu-os style
+
+  Revision 1.10  2004/12/05 11:18:04  hajny
     * do not report '-?' as illegal option
 
   Revision 1.9  2004/04/01 12:16:31  olle

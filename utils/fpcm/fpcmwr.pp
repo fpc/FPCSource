@@ -86,8 +86,6 @@ interface
         procedure AddPhony(const s:string);
         procedure WritePhony;
         procedure AddTargetDirs(const inivar:string);
-        function  CheckTargetVariable(const inivar:string):boolean;
-        function  CheckVariable(const inivar:string):boolean;
         procedure AddDefaultTools;
         procedure AddMakefileTargets;
         procedure OptimizeSections;
@@ -276,101 +274,24 @@ implementation
       end;
 
 
-    function TMakefileWriter.CheckTargetVariable(const inivar:string):boolean;
-      var
-        t : TTarget;
-        c : TCpu;
-      begin
-        result:=false;
-        if FInput.GetVariable(IniVar,false)<>'' then
-         begin
-           result:=true;
-           exit;
-         end;
-        for t:=low(TTarget) to high(TTarget) do
-         if (t in FInput.IncludeTargets) and
-            (FInput.GetVariable(IniVar+TargetSuffix[t],false)<>'') then
-          begin
-            result:=true;
-            exit;
-          end;
-        for c:=low(TCpu) to high(TCpu) do
-         if (c in FInput.IncludeCpus) and
-            (FInput.GetVariable(IniVar+CpuSuffix[c],false)<>'') then
-          begin
-            result:=true;
-            exit;
-          end;
-      end;
-
-
-    function TMakefileWriter.CheckVariable(const inivar:string):boolean;
-      begin
-        Result:=(FInput.GetVariable(IniVar,false)<>'');
-      end;
-
-
     procedure TMakefileWriter.AddTargetVariable(const inivar:string);
       var
         s : string;
-        T : TTarget;
+        T : TOs;
         C : TCpu;
-        firsttarget,
-        firstcpu : boolean;
       begin
-        s:=FInput.GetVariable(IniVar,false);
-        if s<>'' then
-         FOutput.Add('override '+FixVariable(IniVar)+'+='+s);
-        for t:=low(TTarget) to high(TTarget) do
-         if t in FInput.IncludeTargets then
-          begin
-            firsttarget:=true;
-            firstcpu:=true;
-            s:=FInput.GetVariable(IniVar+TargetSuffix[t],false);
-            if s<>'' then
-             begin
-               if firsttarget then
-                begin
-                  firsttarget:=false;
-                  FOutput.Add('ifeq ($(OS_TARGET),'+TargetStr[t]+')');
-                end;
-               FOutput.Add('override '+FixVariable(IniVar)+'+='+s);
-             end;
-            for c:=low(TCpu) to high(TCpu) do
-             if (TargetCpuPossible[t,c]) and (c in FInput.IncludeCpus) then
+        for c:=low(TCpu) to high(TCpu) do
+          for t:=low(TOS) to high(TOS) do
+            if FInput.IncludeTargets[c,t] then
               begin
-                s:=FInput.GetVariable(IniVar+TargetSuffix[t]+CpuSuffix[c],false);
+                s:=FInput.GetTargetVariable(c,t,IniVar,false);
                 if s<>'' then
-                 begin
-                   if firsttarget then
-                    begin
-                      firsttarget:=false;
-                      FOutput.Add('ifeq ($(OS_TARGET),'+TargetStr[t]+')');
-                    end;
-                   if firstcpu then
-                    begin
-                      firstcpu:=false;
-                      FOutput.Add('ifeq ($(CPU_TARGET),'+CpuStr[c]+')');
-                    end;
-                   FOutput.Add('override '+FixVariable(IniVar)+'+='+s);
-                 end;
+                  begin
+                    FOutput.Add('ifeq ($(FULL_TARGET),'+CPUStr[c]+'-'+OSStr[t]+')');
+                    FOutput.Add('override '+FixVariable(IniVar)+'+='+s);
+                    FOutput.Add('endif');
+                  end;
               end;
-            if not firstcpu then
-             FOutput.Add('endif');
-            if not firsttarget then
-             FOutput.Add('endif');
-          end;
-         for c:=low(TCpu) to high(TCpu) do
-          if (c in FInput.IncludeCpus) then
-           begin
-             s:=FInput.GetVariable(IniVar+CpuSuffix[c],false);
-             if s<>'' then
-              begin
-                FOutput.Add('ifeq ($(CPU_TARGET),'+CpuStr[c]+')');
-                FOutput.Add('override '+FixVariable(IniVar)+'+='+s);
-                FOutput.Add('endif');
-              end;
-           end;
       end;
 
 
@@ -412,64 +333,21 @@ implementation
 
       var
         s : string;
-        T : TTarget;
-        c : TCpu;
-        firsttarget,
-        firstcpu : boolean;
+        T : TOs;
+        C : TCpu;
       begin
-        result:='';
-        s:=FInput.GetVariable(IniVar,false);
-        addtokens(s);
-        for t:=low(TTarget) to high(TTarget) do
-         if t in FInput.IncludeTargets then
-          begin
-            firsttarget:=true;
-            firstcpu:=true;
-            s:=FInput.GetVariable(IniVar+TargetSuffix[t],false);
-            if s<>'' then
-             begin
-               if firsttarget then
-                begin
-                  firsttarget:=false;
-                  FOutput.Add('ifeq ($(OS_TARGET),'+TargetStr[t]+')');
-                end;
-               addtokens(s);
-             end;
-            for c:=low(TCpu) to high(TCpu) do
-             if (TargetCpuPossible[t,c]) and (c in FInput.IncludeCpus) then
+        for c:=low(TCpu) to high(TCpu) do
+          for t:=low(TOS) to high(TOS) do
+            if FInput.IncludeTargets[c,t] then
               begin
-                s:=FInput.GetVariable(IniVar+TargetSuffix[t]+CpuSuffix[c],false);
+                s:=FInput.GetTargetVariable(c,t,IniVar,false);
                 if s<>'' then
-                 begin
-                   if firsttarget then
-                    begin
-                      firsttarget:=false;
-                      FOutput.Add('ifeq ($(OS_TARGET),'+TargetStr[t]+')');
-                    end;
-                   if firstcpu then
-                    begin
-                      firstcpu:=false;
-                      FOutput.Add('ifeq ($(CPU_TARGET),'+CpuStr[c]+')');
-                    end;
-                   addtokens(s);
-                 end;
+                  begin
+                    FOutput.Add('ifeq ($(FULL_TARGET),'+CpuStr[c]+'-'+OSStr[t]+')');
+                    AddTokens(s);
+                    FOutput.Add('endif');
+                  end;
               end;
-            if not firstcpu then
-             FOutput.Add('endif');
-            if not firsttarget then
-             FOutput.Add('endif');
-          end;
-         for c:=low(TCpu) to high(TCpu) do
-          if (c in FInput.IncludeCpus) then
-           begin
-             s:=FInput.GetVariable(IniVar+CpuSuffix[c],false);
-             if s<>'' then
-              begin
-                FOutput.Add('ifeq ($(CPU_TARGET),'+CpuStr[c]+')');
-                addtokens(s);
-                FOutput.Add('endif');
-              end;
-           end;
       end;
 
 
@@ -549,21 +427,21 @@ implementation
           { include target dirs, but not for info and targets that
             call other targets with a only extra settings, if the
             section was not included, then still process the targets }
-          if CheckTargetVariable('target_dirs') and
+          if FInput.HasTargetVariable('target_dirs') and
              (not(rule in [r_info,r_shared,r_smart,r_debug,r_release,r_zipdistinstall,r_distinstall]) or
               not FHasSection[Rule2Sec[rule]]) then
            begin
-             if CheckVariable('default_dir') then
+             if FInput.HasVariable('default_dir') then
               hs:=hs+' $(addsuffix _'+rule2str[rule]+',$(DEFAULT_DIR))'
              else
               if not(rule in [r_sourceinstall,r_zipinstall,r_zipsourceinstall,
                               r_makefiles]) or
-                 not(CheckVariable('package_name')) then
+                 not(FInput.HasVariable('package_name')) then
                hs:=hs+' $(addsuffix _'+rule2str[rule]+',$(TARGET_DIRS))';
            end;
           { include cleaning of example dirs }
           if (rule=r_clean) and
-             CheckTargetVariable('target_exampledirs') then
+             FInput.HasTargetVariable('target_exampledirs') then
            hs:=hs+' $(addsuffix _'+rule2str[rule]+',$(TARGET_EXAMPLEDIRS))';
           { Add the rule }
           AddPhony(Rule2Str[Rule]);
@@ -654,8 +532,8 @@ implementation
           FOutput.Add(packdirvar+':=$(firstword $(subst /Makefile.fpc,,$(strip $(wildcard $(addsuffix /'+pack+'/Makefile.fpc,$(PACKAGESDIR))))))');
           FOutput.Add('ifneq ($('+packdirvar+'),)');
           { Create unit dir, check if os dependent dir exists }
-          FOutput.Add('ifneq ($(wildcard $('+packdirvar+')/units/$(FULL_TARGET)),)');
-          FOutput.Add(unitdirvar+'=$('+packdirvar+')/units/$(FULL_TARGET)');
+          FOutput.Add('ifneq ($(wildcard $('+packdirvar+')/units/$(TARGETSUFFIX)),)');
+          FOutput.Add(unitdirvar+'=$('+packdirvar+')/units/$(TARGETSUFFIX)');
           FOutput.Add('else');
           FOutput.Add(unitdirvar+'=$('+packdirvar+')');
           FOutput.Add('endif');
@@ -685,37 +563,32 @@ implementation
       var
         i  : integer;
         reqs,req,prefix : string;
-        t : Ttarget;
+        t : TOS;
         c : TCpu;
         sl : TStringList;
       begin
         prefix:='REQUIRE_PACKAGES_';
         reqs:='';
         { Add target defines }
-        for t:=low(ttarget) to high(ttarget) do
-         if t in FInput.IncludeTargets then
-          begin
-            for c:=low(tcpu) to high(tcpu) do
-             if (TargetCpuPossible[t,c]) and (c in FInput.IncludeCpus) then
+        for c:=low(tcpu) to high(tcpu) do
+          for t:=low(tos) to high(tos) do
+            if FInput.IncludeTargets[c,t] then
               begin
-                sl:=FInput.GetTargetRequires(t,c);
+                sl:=FInput.GetTargetRequires(c,t);
                 { show info }
-                FInput.Verbose(FPCMakeInfo,TargetStr[t]+'-'+CpuStr[c]+' requires: '+sl.CommaText);
+                FInput.Verbose(FPCMakeInfo,CpuStr[c]+'-'+OSStr[t]+' requires: '+sl.CommaText);
                 if sl.count>0 then
                  begin
-                   FOutput.Add('ifeq ($(OS_TARGET),'+TargetStr[t]+')');
-                   FOutput.Add('ifeq ($(CPU_TARGET),'+CpuStr[c]+')');
+                   FOutput.Add('ifeq ($(FULL_TARGET),'+CPUStr[c]+'-'+OSStr[t]+')');
                    for i:=0 to sl.count-1 do
                     begin
                       FOutput.Add(prefix+VarName(sl[i])+'=1');
                       AddTokenNoDup(reqs,sl[i],' ');
                     end;
                    FOutput.Add('endif');
-                   FOutput.Add('endif');
                  end;
                 sl.Free;
               end;
-          end;
         { Add all require packages }
         repeat
           req:=GetToken(reqs,' ');
@@ -747,14 +620,14 @@ implementation
     procedure TMakefileWriter.AddMakefileTargets;
       var
         s : string;
-        t : Ttarget;
+        c : TCpu;
+        t : Tos;
       begin
         s:='';
-        for t:=low(ttarget) to high(ttarget) do
-         if t in FInput.IncludeTargets then
-          begin
-            AddToken(s,TargetStr[t],' ');
-          end;
+        for c:=low(tcpu) to high(tcpu) do
+         for t:=low(tos) to high(tos) do
+          if FInput.IncludeTargets[c,t] then
+           AddToken(s,CpuStr[c]+'-'+OSStr[t],' ');
         FOutput.Add('MAKEFILETARGETS='+s);
       end;
 
@@ -769,28 +642,28 @@ implementation
            FHasSection[sec_zipinstall]:=false;
            FHasSection[sec_distinstall]:=false;
          end;
-        FHasSection[sec_libs]:=CheckVariable('lib_name');
+        FHasSection[sec_libs]:=FInput.HasVariable('lib_name');
         { Remove unused sections for targets }
         SkippedSecs:=0;
-        if (not CheckTargetVariable('target_units')) then
+        if (not FInput.HasTargetVariable('target_units')) then
          begin
            inc(SkippedSecs);
            FHasSection[sec_units]:=false;
          end;
-        if (not CheckTargetVariable('target_programs')) then
+        if (not FInput.HasTargetVariable('target_programs')) then
          begin
            inc(SkippedSecs);
            FHasSection[sec_exes]:=false;
          end;
-        if (not CheckTargetVariable('target_examples')) then
+        if (not FInput.HasTargetVariable('target_examples')) then
          begin
            inc(SkippedSecs);
            { example dirs also requires the fpc_examples target, because
              it also depends on the all target }
-           if (not CheckTargetVariable('target_exampledirs')) then
+           if (not FInput.HasTargetVariable('target_exampledirs')) then
             FHasSection[sec_examples]:=false;
          end;
-        if (not CheckTargetVariable('target_loaders')) then
+        if (not FInput.HasTargetVariable('target_loaders')) then
          begin
            inc(SkippedSecs);
            FHasSection[sec_loaders]:=false;
@@ -800,15 +673,15 @@ implementation
         if SkippedSecs=4 then
          begin
            FHasSection[sec_compile]:=false;
-           if (not CheckTargetVariable('package_name')) and
-              (not CheckTargetVariable('install_units')) and
-              (not CheckTargetVariable('install_files')) and
-              (not CheckTargetVariable('install_createpackagefpc')) then
+           if (not FInput.HasTargetVariable('package_name')) and
+              (not FInput.HasTargetVariable('install_units')) and
+              (not FInput.HasTargetVariable('install_files')) and
+              (not FInput.HasTargetVariable('install_createpackagefpc')) then
             FHasSection[sec_install]:=false;
            { Package.fpc also needs to be cleaned }
-           if (not CheckTargetVariable('clean_units')) and
-              (not CheckTargetVariable('clean_files')) and
-              (not CheckTargetVariable('install_createpackagefpc')) then
+           if (not FInput.HasTargetVariable('clean_units')) and
+              (not FInput.HasTargetVariable('clean_files')) and
+              (not FInput.HasTargetVariable('install_createpackagefpc')) then
             FHasSection[sec_clean]:=false;
          end;
       end;
@@ -825,7 +698,7 @@ implementation
            Add('#');
            Add('# Don''t edit, this file is generated by '+TitleDate);
            Add('#');
-           if CheckVariable('default_rule') then
+           if FInput.HasVariable('default_rule') then
             Add('default: '+FInput.GetVariable('default_rule',false))
            else
             Add('default: all');
@@ -836,13 +709,13 @@ implementation
            { Add automatic detect sections }
            AddIniSection('osdetect');
            { Forced target }
-           if CheckVariable('require_target') then
+           if FInput.HasVariable('require_target') then
             Add('override OS_TARGET='+FInput.GetVariable('require_target',false))
-           else if CheckVariable('default_target') then
+           else if FInput.HasVariable('default_target') then
             Add('override OS_TARGET_DEFAULT='+FInput.GetVariable('default_target',false));
-           if CheckVariable('require_cpu') then
+           if FInput.HasVariable('require_cpu') then
             Add('override CPU_TARGET='+FInput.GetVariable('require_cpu',false))
-           else if CheckVariable('default_cpu') then
+           else if FInput.HasVariable('default_cpu') then
             Add('override CPU_TARGET_DEFAULT='+FInput.GetVariable('default_cpu',false));
            { FPC Detection }
            AddVariable('default_fpcdir');
@@ -854,7 +727,7 @@ implementation
            AddVariable('package_version');
            AddVariable('package_targets');
            { Directory of main package }
-           if CheckVariable('package_main') then
+           if FInput.HasVariable('package_main') then
              AddMainPackage(FInput.GetVariable('package_main',false));
            { LCL rules }
            if FInput.UsesLCL then
@@ -975,7 +848,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.35  2004-11-01 17:17:33  olle
+  Revision 1.36  2005-01-10 20:33:09  peter
+    * use cpu-os style
+
+  Revision 1.35  2004/11/01 17:17:33  olle
     * __missing_command will now have the name of the missing command appended.
 
   Revision 1.34  2004/10/30 12:36:48  peter
