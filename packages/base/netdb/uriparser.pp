@@ -198,7 +198,9 @@ begin
     else if s[i] in [':', '@'] then
       break;
 
-  if LastValidPos > 0 then
+  if (LastValidPos > 0) and 
+     (Length(S)>LastValidPos) and 
+     (S[LastValidPos+1]<>'/') then
   begin
     Result.Path := Unescape(Copy(s, LastValidPos, Length(s)));
     s := Copy(s, 1, LastValidPos - 1);
