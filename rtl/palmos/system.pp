@@ -98,13 +98,21 @@ Procedure system_exit;
 begin
 end;
 
+function GetProcessID: SizeUInt;
+begin
+ GetProcessID := 1;
+end;
+
 begin
    ExitCode:=0;
 end.
 
 {
   $Log$
-  Revision 1.5  2004-09-03 19:26:52  olle
+  Revision 1.6  2004-12-05 18:57:05  hajny
+    + GetProcessID added
+
+  Revision 1.5  2004/09/03 19:26:52  olle
     + added maxExitCode to all System.pp
     * constrained error code to be below maxExitCode in RunError et. al.
 
