@@ -2255,6 +2255,5 @@ terminfo$(PPUEXT) : terminfo.pp unix$(PPUEXT)
 callspec$(PPUEXT) : $(INC)/callspec.pp $(SYSTEMUNIT)$(PPUEXT)
 cmem$(PPUEXT) : $(INC)/cmem.pp $(SYSTEMUNIT)$(PPUEXT)
 cthreads$(PPUEXT) : $(UNIXINC)/cthreads.pp $(SYSTEMUNIT)$(PPUEXT) systhrds$(PPUEXT)
-gpm$(PPUEXT): $(UNIXINC)/gpm.pp unix$(PPUEXT) baseunix$(PPUEXT) sockets$(PPUEXT)
-	$(COMPILER) -Sg $(UNIXINC)/gpm.pp
+gpm$(PPUEXT): gpm.pp unix$(PPUEXT) baseunix$(PPUEXT) sockets$(PPUEXT)
 ctypes$(PPUEXT) :  $(INC)/ctypes.pp $(SYSTEMUNIT)$(PPUEXT)

@@ -332,14 +332,14 @@ begin
     gpm_get_console:='';
 end;
 
-procedure gpm_winch_hook(signum:longint);cdecl;
+procedure gpm_winch_hook(signum:longint;SigInfo: PSigInfo; SigContext: PSigContext);cdecl;
 
 var win:winsize;
 
 begin
-  if (signalhandler(SIG_IGN)<>gpm_saved_winch_hook.sa_handler) and
-     (signalhandler(SIG_DFL)<>gpm_saved_winch_hook.sa_handler) then
-    gpm_saved_winch_hook.sa_handler(signum);
+  if (sigactionhandler(SIG_IGN)<>gpm_saved_winch_hook.sa_handler) and
+     (sigactionhandler(SIG_DFL)<>gpm_saved_winch_hook.sa_handler) then
+    gpm_saved_winch_hook.sa_handler(signum,nil,nil);
   if fpioctl(gpm_consolefd,TIOCGWINSZ,@win)=-1 then
     exit;
   if (win.ws_col=0) or (win.ws_row=0) then
@@ -351,7 +351,7 @@ begin
   gpm_my:=win.ws_row - gpm_zerobased;
 end;
 
-procedure gpm_suspend_hook(signum:longint);cdecl;
+procedure gpm_suspend_hook(signum:longint;SigInfo: PSigInfo; SigContext: PSigContext);cdecl;
 
 var conn:Tgpmconnect;
     old_sigset,new_sigset:Tsigset;
@@ -566,11 +566,11 @@ begin
       if gpm_flag then
         begin
          { Install suspend hook }
-         sa.sa_handler:=signalhandler(SIG_IGN);
+         sa.sa_handler:=sigactionhandler(SIG_IGN);
          fpsigaction(SIGTSTP,@sa,@gpm_saved_suspend_hook);
 
          {if signal was originally ignored, job control is not supported}
-         if gpm_saved_suspend_hook.sa_handler<>signalhandler(SIG_IGN) then
+         if gpm_saved_suspend_hook.sa_handler<>sigactionhandler(SIG_IGN) then
            begin
             sa.sa_flags:=SA_NOMASK;
             sa.sa_handler:=@gpm_suspend_hook;
@@ -954,7 +954,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.14  2004-11-21 11:28:21  peter
+  Revision 1.4  2005-01-30 18:00:28  peter
+    * move gpm.pp to linux
+
+  Revision 1.14  2004/11/21 11:28:21  peter
     * fixed bootstrap with 1.0.10 and 1.9.4
 
   Revision 1.13  2004/11/06 20:06:19  peter
