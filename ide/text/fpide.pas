@@ -416,6 +416,7 @@ procedure TIDEApp.Idle;
 begin
   inherited Idle;
   Message(Application,evIdle,0,nil);
+  GiveUpTimeSlice;
 end;
 
 procedure TIDEApp.GetEvent(var Event: TEvent);
@@ -854,7 +855,10 @@ end;
 END.
 {
   $Log$
-  Revision 1.45  1999-12-10 13:02:05  pierre
+  Revision 1.46  1999-12-17 15:07:01  florian
+    + TIDEApp.Idle does always call GiveUpTimeSlice
+
+  Revision 1.45  1999/12/10 13:02:05  pierre
   + VideoMode save/restore
 
   Revision 1.44  1999/11/25 00:26:49  pierre
