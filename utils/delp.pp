@@ -235,7 +235,7 @@ begin
       begin
         if MatchesMask(Dir.Name,hp^.mask) then
          begin
-           EraseFile(Dir.Name);
+           EraseFile(BaseDir+Dir.Name);
            inc(hp^.Files);
            inc(hp^.Size,Dir.Size);
            break;
@@ -266,7 +266,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.4  2002-02-27 16:32:08  carl
+  Revision 1.5  2002-03-02 23:21:32  carl
+  * small bugfix, was never prepending path to files, so they were never actually deleted!
+
+  Revision 1.4  2002/02/27 16:32:08  carl
   + make it work on other platforms
   + added OS/2 masks
   - remove log
