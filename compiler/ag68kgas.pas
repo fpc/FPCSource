@@ -20,29 +20,31 @@
     Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 
  ****************************************************************************
-
-  What's to do:
-    o Verify if this actually work as indirect mode with name of variables
-    o write lines numbers and file names to output file
-    o generate debugging informations
 }
+{ R- Necessary for the in [] }
+{$ifdef TP}
+  {$N+,E+,R-}
+{$endif}
 unit ag68kgas;
 
     interface
 
-    uses aasm,assemble;
+    uses cobjects,aasm,assemble;
 
     type
       pm68kgasasmlist=^tm68kgasasmlist;
       tm68kgasasmlist = object(tasmlist)
         procedure WriteTree(p:paasmoutput);virtual;
         procedure WriteAsmList;virtual;
+{$ifdef GDB}
+        procedure WriteFileLineInfo(var fileinfo : tfileposinfo);
+{$endif}
       end;
 
    implementation
 
     uses
-      dos,globals,systems,cobjects,m68k,
+      dos,globals,systems,m68k,
       strings,files,verbose
 {$ifdef GDB}
       ,gdb
@@ -220,10 +222,75 @@ unit ag68kgas;
       ait_const2str:array[ait_const_32bit..ait_const_8bit] of string[8]=
         (#9'.long'#9,'',#9'.short'#9,#9'.byte'#9);
 
-      ait_section2str : array[tsection] of string[6]=
-       ('','.text','.data','.bss','.idata');
+    function ait_section2str(s:tsection):string;
+    begin
+      case s of
+        sec_code : ait_section2str:='.text';
+        sec_data : ait_section2str:='.data';
+         sec_bss : ait_section2str:='.bss';
+      else
+       ait_section2str:='';
+      end;
+      LastSec:=s;
+    end;
+
+{$ifdef GDB}
+    var
+      curr_n    : byte;
+      infile    : pinputfile;
+      funcname  : pchar;
+      linecount : longint;
+
+      procedure tm68kgasasmlist.WriteFileLineInfo(var fileinfo : tfileposinfo);
+        begin
+          if not (cs_debuginfo in aktmoduleswitches) then
+           exit;
+        { file changed ? (must be before line info) }
+          if lastfileindex<>fileinfo.fileindex then
+           begin
+             infile:=current_module^.sourcefiles.get_file(fileinfo.fileindex);
+             if includecount=0 then
+              curr_n:=n_sourcefile
+             else
+              curr_n:=n_includefile;
+             if (infile^.path^<>'') then
+              begin
+                AsmWriteLn(#9'.stabs "'+lower(BsToSlash(FixPath(infile^.path^)))+'",'+
+                  tostr(curr_n)+',0,0,'+'Ltext'+ToStr(IncludeCount));
+              end;
+             AsmWriteLn(#9'.stabs "'+lower(FixFileName(infile^.name^))+'",'+
+               tostr(curr_n)+',0,0,'+'Ltext'+ToStr(IncludeCount));
+             AsmWriteLn('Ltext'+ToStr(IncludeCount)+':');
+             inc(includecount);
+             lastfileindex:=fileinfo.fileindex;
+           end;
+        { line changed ? }
+          if (fileinfo.line<>lastline) and (fileinfo.line<>0) then
+           begin
+             if (n_line=n_textline) and assigned(funcname) and
+                (target_os.use_function_relative_addresses) then
+              begin
+                AsmWriteLn(target_asm.labelprefix+'l'+tostr(linecount)+':');
+                AsmWrite(#9'.stabn '+tostr(n_line)+',0,'+tostr(fileinfo.line)+','+
+                           target_asm.labelprefix+'l'+tostr(linecount)+' - ');
+                AsmWritePChar(FuncName);
+                AsmLn;
+                inc(linecount);
+              end
+             else
+              AsmWriteLn(#9'.stabd'#9+tostr(n_line)+',0,'+tostr(fileinfo.line));
+             lastline:=fileinfo.line;
+           end;
+        end;
+{$endif GDB}
+
 
     procedure tm68kgasasmlist.WriteTree(p:paasmoutput);
+    type
+      twowords=record
+        word1,word2:word;
+      end;
+      textendedarray = array[0..9] of byte; { last longint will be and $ffff }
     var
       hp        : pai;
       ch        : char;
@@ -231,19 +298,9 @@ unit ag68kgas;
       s         : string;
       pos,l,i   : longint;
       found     : boolean;
-{$ifdef GDB}
-      curr_n    : byte;
-      infile    : pinputfile;
-      funcname  : pchar;
-      linecount : longint;
-{$endif GDB}
     begin
       if not assigned(p) then
        exit;
-{$ifdef GDB}
-      funcname:=nil;
-      linecount:=1;
-{$endif GDB}
       hp:=pai(p^.first);
       while assigned(hp) do
        begin
@@ -253,44 +310,7 @@ unit ag68kgas;
           begin
             if not (hp^.typ in  [ait_external,ait_stabn,ait_stabs,
                    ait_label,ait_cut,ait_align,ait_stab_function_name]) then
-             begin
-             { file changed ? (must be before line info) }
-               if lastfileindex<>hp^.fileinfo.fileindex then
-                begin
-                  infile:=current_module^.sourcefiles.get_file(hp^.fileinfo.fileindex);
-                  if includecount=0 then
-                   curr_n:=n_sourcefile
-                  else
-                   curr_n:=n_includefile;
-                  if (infile^.path^<>'') then
-                   begin
-                     AsmWriteLn(#9'.stabs "'+lower(BsToSlash(FixPath(infile^.path^)))+'",'+
-                       tostr(curr_n)+',0,0,'+'Ltext'+ToStr(IncludeCount));
-                   end;
-                  AsmWriteLn(#9'.stabs "'+lower(FixFileName(infile^.name^))+'",'+
-                    tostr(curr_n)+',0,0,'+'Ltext'+ToStr(IncludeCount));
-                  AsmWriteLn('Ltext'+ToStr(IncludeCount)+':');
-                  inc(includecount);
-                  lastfileindex:=hp^.fileinfo.fileindex;
-                end;
-             { line changed ? }
-               if (hp^.fileinfo.line<>lastline) and (hp^.fileinfo.line<>0) then
-                begin
-                  if (n_line=n_textline) and assigned(funcname) and
-                     (target_os.use_function_relative_addresses) then
-                   begin
-                     AsmWriteLn(target_asm.labelprefix+'l'+tostr(linecount)+':');
-                     AsmWrite(#9'.stabn '+tostr(n_line)+',0,'+tostr(hp^.fileinfo.line)+','+
-                                target_asm.labelprefix+'l'+tostr(linecount)+' - ');
-                     AsmWritePChar(FuncName);
-                     AsmLn;
-                     inc(linecount);
-                   end
-                  else
-                   AsmWriteLn(#9'.stabd'#9+tostr(n_line)+',0,'+tostr(hp^.fileinfo.line));
-                  lastline:=hp^.fileinfo.line;
-                end;
-             end;
+              WriteFileLineInfo(hp^.fileinfo);
           end;
 {$endif GDB}
 
@@ -310,7 +330,7 @@ unit ag68kgas;
                        if pai_section(hp)^.sec<>sec_none then
                         begin
                           AsmLn;
-                          AsmWrite(ait_section2str[pai_section(hp)^.sec]);
+                          AsmWrite(ait_section2str(pai_section(hp)^.sec));
                           if pai_section(hp)^.idataidx>0 then
                            AsmWrite('$'+tostr(pai_section(hp)^.idataidx));
                           AsmLn;
@@ -532,8 +552,10 @@ ait_labeled_instruction : begin
 ait_stab_function_name : funcname:=pai_stab_function_name(hp)^.str;
 {$endif GDB}
            ait_cut : begin
-                     { create only a new file when the last is not empty }
-                       if AsmSize>0 then
+                     { only reset buffer if nothing has changed }
+                       if AsmSize=AsmStartSize then
+                        AsmClear
+                       else
                         begin
                           AsmClose;
                           DoAssemble;
@@ -546,11 +568,27 @@ ait_stab_function_name : funcname:=pai_stab_function_name(hp)^.str;
                            begin
                              lastsec:=pai_section(hp^.next)^.sec;
                              lastsecidx:=pai_section(hp^.next)^.idataidx;
+{$ifdef GDB}
+                             { this is needed for line info in data }
+                             case pai_section(hp^.next)^.sec of
+                              sec_code : n_line:=n_textline;
+                              sec_data : n_line:=n_dataline;
+                               sec_bss : n_line:=n_bssline;
+                             end;
+{$endif GDB}
                            end;
                           hp:=pai(hp^.next);
                         end;
+{$ifdef GDB}
+                       { force write of filename }
+                       lastfileindex:=0;
+                       includecount:=0;
+                       funcname:=nil;
+                       WriteFileLineInfo(hp^.fileinfo);
+{$endif GDB}
                        if lastsec<>sec_none then
-                         AsmWriteLn(ait_section2str[lastsec,lastsecidx]);
+                         AsmWriteLn(ait_section2str(lastsec));
+                       AsmStartSize:=AsmSize;
                      end;
          else
           internalerror(10000);
@@ -559,24 +597,23 @@ ait_stab_function_name : funcname:=pai_stab_function_name(hp)^.str;
        end;
     end;
 
+
     procedure tm68kgasasmlist.WriteAsmList;
     var
       p:dirstr;
       n:namestr;
       e:extstr;
+{$ifdef GDB}
+      fileinfo : tfileposinfo;
+{$endif GDB}
+
     begin
 {$ifdef EXTDEBUG}
       if assigned(current_module^.mainsource) then
        comment(v_info,'Start writing gas-styled assembler output for '+current_module^.mainsource^);
 {$endif}
 
-      lastline:=0;
-      lastfileindex:=0;
       LastSec:=sec_none;
-{$ifdef GDB}
-      includecount:=0;
-      n_line:=n_bssline;
-{$endif GDB}
 
       if assigned(current_module^.mainsource) then
        fsplit(current_module^.mainsource^,p,n,e)
@@ -588,6 +625,20 @@ ait_stab_function_name : funcname:=pai_stab_function_name(hp)^.str;
        end;
     { to get symify to work }
       AsmWriteLn(#9'.file "'+FixFileName(n+e)+'"');
+
+{$ifdef GDB}
+      includecount:=0;
+      n_line:=n_bssline;
+      lastline:=0;
+      lastfileindex:=0;
+      funcname:=nil;
+      linecount:=1;
+      fileinfo.fileindex:=1;
+      fileinfo.line:=1;
+      { Write main file }
+      WriteFileLineInfo(fileinfo);
+{$endif GDB}
+      AsmStartSize:=AsmSize;
 
       { there should be nothing but externals so we don't need to process
       WriteTree(externals); }
@@ -612,7 +663,10 @@ ait_stab_function_name : funcname:=pai_stab_function_name(hp)^.str;
 end.
 {
   $Log$
-  Revision 1.9  1998-08-31 12:26:20  peter
+  Revision 1.10  1998-09-01 09:07:08  peter
+    * m68k fixes, splitted cg68k like cgi386
+
+  Revision 1.9  1998/08/31 12:26:20  peter
     * m68k and palmos updates from surebugfixes
 
   Revision 1.8  1998/08/10 14:49:36  peter

@@ -100,7 +100,7 @@ unit systems;
        );
 
 
-       tosinfo = record
+       tosinfo = packed record
           name      : string[30];
           sharedlibext,
           staticlibext,
@@ -333,8 +333,8 @@ implementation
             sourceext    : '.pp';
             pasext       : '.pas';
             exeext       : '';
-            scriptext    : '';
-            libprefix    : '';
+            scriptext    : '.sh';
+            libprefix    : 'lib';
             Cprefix      : '_';
             newline      : #10;
             endian       : en_big_endian;
@@ -908,7 +908,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.30  1998-08-31 12:26:34  peter
+  Revision 1.31  1998-09-01 09:07:13  peter
+    * m68k fixes, splitted cg68k like cgi386
+
+  Revision 1.30  1998/08/31 12:26:34  peter
     * m68k and palmos updates from surebugfixes
 
   Revision 1.29  1998/08/26 10:09:21  peter

@@ -32,6 +32,8 @@ unit cga68k;
     procedure emitcall(const routine:string;add_to_externals : boolean);
     procedure emitloadord2reg(location:Tlocation;orddef:Porddef;
                               destreg:Tregister;delloc:boolean);
+    procedure emit_to_reg32(var hr:tregister);
+    procedure loadsetelement(var p : ptree);
     { produces jumps to true respectively false labels using boolean expressions }
     procedure maketojumpbool(p : ptree);
     procedure emitoverflowcheck(p: ptree);
@@ -56,7 +58,6 @@ unit cga68k;
     procedure floatstoreops(t : tfloattype;var op : tasmop;var s : topsize); }
 
     procedure firstcomplex(p : ptree);
-    procedure secondfuncret(var p : ptree);
 
     { generate stackframe for interrupt procedures }
     procedure generate_interrupt_stackframe_entry;
@@ -69,6 +70,18 @@ unit cga68k;
     { generate the exit code for a procedure. }
     procedure genexitcode(list : paasmoutput;parasize:longint;
                           nostackframe,inlined:boolean);
+
+{$ifdef test_dest_loc}
+const   { used to avoid temporary assignments }
+        dest_loc_known : boolean = false;
+        in_dest_loc : boolean = false;
+        dest_loc_tree : ptree = nil;
+
+var dest_loc : tlocation;
+
+procedure mov_reg_to_dest(p : ptree; s : topsize; reg : tregister);
+
+{$endif test_dest_loc}
 
 
   implementation
@@ -265,6 +278,23 @@ unit cga68k;
      end;
 
 
+    procedure emit_to_reg32(var hr:tregister);
+      begin
+(*        case hr of
+      R_AX..R_DI : begin
+                     hr:=reg16toreg32(hr);
+                     exprasmlist^.concat(new(pai386,op_const_reg(A_AND,S_L,$ffff,hr)));
+                   end;
+      R_AL..R_DL : begin
+                     hr:=reg8toreg32(hr);
+                     exprasmlist^.concat(new(pai386,op_const_reg(A_AND,S_L,$ff,hr)));
+                   end;
+      R_AH..R_DH : begin
+                     hr:=reg8toreg32(hr);
+                     exprasmlist^.concat(new(pai386,op_const_reg(A_AND,S_L,$ff00,hr)));
+                   end;
+        end; *)
+      end;
 
     function getfloatsize(t: tfloattype): topsize;
     begin
@@ -425,6 +455,54 @@ unit cga68k;
                 end;
            end;
         end;
+
+    { This routine needs to be further checked to see if it works correctly  }
+    { because contrary to the intel version, all large set elements are read }
+    { as 32-bit values, and then decomposed to find the correct byte.        }
+
+    { CHECKED : Depending on the result size, if reference, a load may be    }
+    { required on word, long or byte.                                        }
+    procedure loadsetelement(var p : ptree);
+
+      var
+         hr : tregister;
+         opsize : topsize;
+
+      begin
+         { copy the element in the d0.b register, slightly complicated }
+         case p^.location.loc of
+            LOC_REGISTER,
+            LOC_CREGISTER : begin
+                              hr:=p^.location.register;
+                              emit_reg_reg(A_MOVE,S_L,hr,R_D0);
+                              ungetregister32(hr);
+                           end;
+            else
+               begin
+                 { This is quite complicated, because of the endian on }
+                 { the m68k!                                           }
+                 opsize:=S_NO;
+                 case integer(p^.resulttype^.savesize) of
+                   1 : opsize:=S_B;
+                   2 : opsize:=S_W;
+                   4 : opsize:=S_L;
+                 else
+                   internalerror(19);
+                 end;
+                 exprasmlist^.concat(new(pai68k,op_ref_reg(A_MOVE,opsize,
+                    newreference(p^.location.reference),R_D0)));
+                 exprasmlist^.concat(new(pai68k,op_const_reg(A_AND,S_L,
+                    255,R_D0)));
+{
+                  exprasmlist^.concat(new(pai68k,op_ref_reg(A_MOVE,S_L,
+                    newreference(p^.location.reference),R_D0)));        }
+{                  exprasmlist^.concat(new(pai68k,op_const_reg(A_AND,S_L,
+                    $ff,R_D0))); }
+                  del_reference(p^.location.reference);
+               end;
+         end;
+      end;
+
 
     procedure generate_interrupt_stackframe_entry;
       begin
@@ -812,7 +890,7 @@ begin
             procinfo.aktexitcode^.concat(new(pai_stabn,init(strpnew('224,0,0,'
              +lab2str(aktexit2label)))));
         end;
-{$endif * GDB *}
+{$endif GDB}
 end;
 
 
@@ -1244,27 +1322,36 @@ end;
       end;
 
 
-    procedure secondfuncret(var p : ptree);
-      var
-         hregister : tregister;
+{$ifdef test_dest_loc}
+        procedure mov_reg_to_dest(p : ptree; s : topsize; reg : tregister);
 
-      begin
-         clear_reference(p^.location.reference);
-         p^.location.reference.base:=procinfo.framepointer;
-         p^.location.reference.offset:=procinfo.retoffset;
-         if ret_in_param(procinfo.retdef) then
-           begin
-              hregister:=getaddressreg;
-              exprasmlist^.concat(new(pai68k,op_ref_reg(A_MOVEA,S_L,newreference(p^.location.reference),hregister)));
-              p^.location.reference.base:=hregister;
-              p^.location.reference.offset:=0;
-           end;
-      end;
+          begin
+             if (dest_loc.loc=LOC_CREGISTER) or (dest_loc.loc=LOC_REGISTER) then
+               begin
+                 emit_reg_reg(A_MOVE,s,reg,dest_loc.register);
+                 p^.location:=dest_loc;
+                 in_dest_loc:=true;
+               end
+             else
+             if (dest_loc.loc=LOC_REFERENCE) or (dest_loc.loc=LOC_MEM) then
+               begin
+                 exprasmlist^.concat(new(pai68k,op_reg_ref(A_MOVE,s,reg,newreference(dest_loc.reference))));
+                 p^.location:=dest_loc;
+                 in_dest_loc:=true;
+               end
+             else
+               internalerror(20080);
+          end;
 
-  end.
+{$endif test_dest_loc}
+
+end.
 {
   $Log$
-  Revision 1.11  1998-08-31 12:26:24  peter
+  Revision 1.12  1998-09-01 09:07:09  peter
+    * m68k fixes, splitted cg68k like cgi386
+
+  Revision 1.11  1998/08/31 12:26:24  peter
     * m68k and palmos updates from surebugfixes
 
   Revision 1.10  1998/08/21 14:08:41  pierre

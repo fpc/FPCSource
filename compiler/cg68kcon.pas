@@ -1,0 +1,336 @@
+{
+    $Id$
+    Copyright (c) 1993-98 by Florian Klaempfl
+
+    Generate m68k assembler for constants
+
+    This program is free software; you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation; either version 2 of the License, or
+    (at your option) any later version.
+
+    This program is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with this program; if not, write to the Free Software
+    Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+
+ ****************************************************************************
+}
+unit cg68kcon;
+interface
+
+    uses
+      tree;
+
+{.$define SMALLSETORD}
+
+
+    procedure secondrealconst(var p : ptree);
+    procedure secondfixconst(var p : ptree);
+    procedure secondordconst(var p : ptree);
+    procedure secondstringconst(var p : ptree);
+    procedure secondsetcons(var p : ptree);
+    procedure secondniln(var p : ptree);
+
+
+implementation
+
+    uses
+      cobjects,verbose,globals,
+      symtable,aasm,types,
+      hcodegen,temp_gen,pass_2,
+      m68k,cga68k,tgen68k;
+
+{*****************************************************************************
+                             SecondRealConst
+*****************************************************************************}
+
+    procedure secondrealconst(var p : ptree);
+      var
+         hp1 : pai;
+         lastlabel : plabel;
+         found : boolean;
+      begin
+         clear_reference(p^.location.reference);
+         lastlabel:=nil;
+         found:=false;
+         { const already used ? }
+         if p^.labnumber=-1 then
+           begin
+              { tries to found an old entry }
+              hp1:=pai(consts^.first);
+              while assigned(hp1) do
+                begin
+                   if hp1^.typ=ait_label then
+                     lastlabel:=pai_label(hp1)^.l
+                   else
+                     begin
+                        if (hp1^.typ=p^.realtyp) and (lastlabel<>nil) then
+                          begin
+                             if ((p^.realtyp=ait_real_64bit) and (pai_double(hp1)^.value=p^.valued)) or
+                               ((p^.realtyp=ait_real_extended) and (pai_extended(hp1)^.value=p^.valued)) or
+                               ((p^.realtyp=ait_real_32bit) and (pai_single(hp1)^.value=p^.valued)) then
+                               begin
+                                  { found! }
+                                  p^.labnumber:=lastlabel^.nb;
+                                  break;
+                               end;
+                          end;
+                        lastlabel:=nil;
+                     end;
+                   hp1:=pai(hp1^.next);
+                end;
+              { :-(, we must generate a new entry }
+              if p^.labnumber=-1 then
+                begin
+                   getlabel(lastlabel);
+                   p^.labnumber:=lastlabel^.nb;
+                   concat_constlabel(lastlabel,constreal);
+                   case p^.realtyp of
+                     ait_real_64bit : consts^.concat(new(pai_double,init(p^.valued)));
+                     ait_real_32bit : consts^.concat(new(pai_single,init(p^.valued)));
+                  ait_real_extended : consts^.concat(new(pai_extended,init(p^.valued)));
+                   else
+                     internalerror(10120);
+                   end;
+                end;
+           end;
+         stringdispose(p^.location.reference.symbol);
+         if assigned(lastlabel) then
+           p^.location.reference.symbol:=stringdup(constlabel2str(lastlabel,constreal))
+         else
+           p^.location.reference.symbol:=stringdup(constlabelnb2str(p^.labnumber,constreal));
+      end;
+
+
+{*****************************************************************************
+                             SecondFixConst
+*****************************************************************************}
+
+    procedure secondfixconst(var p : ptree);
+      begin
+         { an fix comma const. behaves as a memory reference }
+         p^.location.loc:=LOC_MEM;
+         p^.location.reference.isintvalue:=true;
+         p^.location.reference.offset:=p^.valuef;
+      end;
+
+
+{*****************************************************************************
+                             SecondOrdConst
+*****************************************************************************}
+
+    procedure secondordconst(var p : ptree);
+      begin
+         { an integer const. behaves as a memory reference }
+         p^.location.loc:=LOC_MEM;
+         p^.location.reference.isintvalue:=true;
+         p^.location.reference.offset:=p^.value;
+      end;
+
+
+{*****************************************************************************
+                             SecondStringConst
+*****************************************************************************}
+
+    procedure secondstringconst(var p : ptree);
+      var
+         hp1 : pai;
+{$ifdef UseAnsiString}
+         l1,
+{$endif}
+
+
+         lastlabel : plabel;
+         pc : pchar;
+         same_string : boolean;
+         i : word;
+
+      begin
+         clear_reference(p^.location.reference);
+         lastlabel:=nil;
+         { const already used ? }
+         if p^.labstrnumber=-1 then
+           begin
+              { tries to found an old entry }
+              hp1:=pai(consts^.first);
+              while assigned(hp1) do
+                begin
+                   if hp1^.typ=ait_label then
+                     lastlabel:=pai_label(hp1)^.l
+                   else
+                     begin
+                        { when changing that code, be careful that }
+                        { you don't use typed consts, which are    }
+                        { are also written to consts               }
+                        { currently, this is no problem, because   }
+                        { typed consts have no leading length or   }
+                        { they have no trailing zero               }
+{$ifdef UseAnsiString}
+                        if (hp1^.typ=ait_string) and (lastlabel<>nil) and
+                          (pai_string(hp1)^.len=p^.length+2) then
+{$else UseAnsiString}
+                        if (hp1^.typ=ait_string) and (lastlabel<>nil) and
+                          (pai_string(hp1)^.len=length(p^.values^)+2) then
+{$endif UseAnsiString}
+
+                          begin
+                             same_string:=true;
+{$ifndef UseAnsiString}
+                             { weird error here !!!   }
+                             { pchar ' ' was found equal to string '' !!!! }
+                             { gave strange output in exceptions !! PM }
+                             for i:=0 to length(p^.values^) do
+                               if pai_string(hp1)^.str[i]<>p^.values^[i] then
+{$else}
+                             for i:=0 to p^.length do
+                               if pai_string(hp1)^.str[i]<>p^.values[i] then
+{$endif}
+                                 begin
+                                    same_string:=false;
+                                    break;
+                                 end;
+                             if same_string then
+                               begin
+                                  { found! }
+                                  p^.labstrnumber:=lastlabel^.nb;
+                                  break;
+                               end;
+                          end;
+                        lastlabel:=nil;
+                     end;
+                   hp1:=pai(hp1^.next);
+                end;
+              { :-(, we must generate a new entry }
+              if p^.labstrnumber=-1 then
+                begin
+                   getlabel(lastlabel);
+                   p^.labstrnumber:=lastlabel^.nb;
+{$ifndef UseAnsiString}
+                   getmem(pc,length(p^.values^)+3);
+                   move(p^.values^,pc^,length(p^.values^)+1);
+                   pc[length(p^.values^)+1]:=#0;
+                   concat_constlabel(lastlabel,conststring);
+                   { we still will have a problem if there is a #0 inside the pchar }
+                   consts^.concat(new(pai_string,init_length_pchar(pc,length(p^.values^)+2)));
+{$else UseAnsiString}
+
+                   { generate an ansi string ? }
+                   case p^.stringtype of
+                      st_ansistring:
+                        begin
+                           { an empty ansi string is nil! }
+                           concat_constlabel(lastlabel,conststring);
+                           if p^.length=0 then
+                             consts^.concat(new(pai_const,init_32bit(0)))
+                           else
+                             begin
+                                getlabel(l1);
+                                consts^.concat(new(pai_const,init_symbol(strpnew(lab2str(l1)))));
+
+                                consts^.concat(new(pai_const,init_32bit(p^.length)));
+                                consts^.concat(new(pai_const,init_32bit(p^.length)));
+                                consts^.concat(new(pai_const,init_32bit(-1)));
+                                consts^.concat(new(pai_label,init(l1)));
+                                getmem(pc,p^.length+1);
+                                move(p^.values^,pc^,p^.length+1);
+                                { to overcome this problem we set the length explicitly }
+                                { with the ending null char }
+                                consts^.concat(new(pai_string,init_length_pchar(pc,p^.length+1)));
+                             end;
+                        end;
+                      st_shortstring:
+                        begin
+                           getmem(pc,p^.length+3);
+                           move(p^.values^,pc[1],p^.length+1);
+                           pc[0]:=chr(p^.length);
+                           concat_constlabel(lastlabel,conststring);
+                           { to overcome this problem we set the length explicitly }
+                           { with the ending null char }
+                           consts^.concat(new(pai_string,init_length_pchar(pc,p^.length+2)));
+                        end;
+                   end;
+{$endif UseAnsiString}
+                end;
+           end;
+         stringdispose(p^.location.reference.symbol);
+         if assigned(lastlabel) then
+           p^.location.reference.symbol:=stringdup(constlabel2str(lastlabel,conststring))
+         else
+           p^.location.reference.symbol:=stringdup(constlabelnb2str(p^.labstrnumber,conststring));
+         p^.location.loc := LOC_MEM;
+      end;
+
+
+{*****************************************************************************
+                             SecondSetCons
+*****************************************************************************}
+
+    procedure secondsetcons(var p : ptree);
+      var
+         l    : plabel;
+         i    : longint;
+         href : treference;
+      begin
+{$ifdef SMALLSETORD}
+        if psetdef(p^.resulttype)^.settype=smallset then
+         begin
+           p^.location.loc:=LOC_MEM;
+           p^.location.reference.isintvalue:=true;
+           p^.location.reference.offset:=p^.constset^[0];
+         end
+        else
+         begin
+           reset_reference(href);
+           getlabel(l);
+           stringdispose(p^.location.reference.symbol);
+           href.symbol:=stringdup(constlabel2str(l,constseta));
+           concat_constlabel(l,constseta);
+           for i:=0 to 31 do
+             consts^.concat(new(pai_const,init_8bit(p^.constset^[i])));
+           p^.location.reference:=href;
+         end;
+{$else}
+        reset_reference(href);
+        getlabel(l);
+        stringdispose(p^.location.reference.symbol);
+        href.symbol:=stringdup(constlabel2str(l,constseta));
+        concat_constlabel(l,constseta);
+        if psetdef(p^.resulttype)^.settype=smallset then
+         begin
+           move(p^.constset^,i,sizeof(longint));
+           consts^.concat(new(pai_const,init_32bit(i)));
+         end
+        else
+         begin
+           for i:=0 to 31 do
+             consts^.concat(new(pai_const,init_8bit(p^.constset^[i])));
+         end;
+        p^.location.reference:=href;
+{$endif SMALLSETORD}
+      end;
+
+
+{*****************************************************************************
+                             SecondNilN
+*****************************************************************************}
+
+    procedure secondniln(var p : ptree);
+      begin
+         p^.location.loc:=LOC_MEM;
+         p^.location.reference.isintvalue:=true;
+         p^.location.reference.offset:=0;
+      end;
+
+
+end.
+{
+  $Log$
+  Revision 1.1  1998-09-01 09:07:09  peter
+    * m68k fixes, splitted cg68k like cgi386
+
+}
