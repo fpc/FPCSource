@@ -307,6 +307,11 @@ implementation
       i: longint;
       hr      : preference;
       regvarinfo: pregvarinfo;
+{$ifdef i386}
+      opsize: topsize;
+      opcode: tasmop;
+      signed: boolean;
+{$endif i386}
     begin
       if (cs_regalloc in aktglobalswitches) and
          ((procinfo^.flags and (pi_uses_asm or pi_uses_exceptions))=0) then
@@ -332,14 +337,41 @@ implementation
                   hr^.offset:=pvarsym(regvarinfo^.regvars[i])^.address+procinfo^.para_offset;
                   hr^.base:=procinfo^.framepointer;
 {$ifdef i386}
-                  asml^.concat(new(paicpu,op_ref_reg(A_MOV,regsize(regvarinfo^.regvars[i]^.reg),
-                    hr,regvarinfo^.regvars[i]^.reg)));
+                { zero the regvars because the upper 48bits must be clear }
+                { for 8bits vars when using them with btrl (JM)           }
+                  signed :=
+                    (pvarsym(regvarinfo^.regvars[i])^.vartype.def^.deftype =
+                      orddef) and
+                    is_signed(pvarsym(regvarinfo^.regvars[i])^.vartype.def);
+                  case regsize(regvarinfo^.regvars[i]^.reg) of
+                    S_L:
+                      begin
+                        opsize := S_L;
+                        opcode := A_MOV;
+                      end;
+                    S_W:
+                      begin
+                        opsize := S_WL;
+                        if signed then
+                          opcode := A_MOVSX
+                        else opcode := A_MOVZX;
+                      end;
+                    S_B:
+                      begin
+                        opsize := S_BL;
+                        if signed then
+                          opcode := A_MOVSX
+                        else opcode := A_MOVZX;
+                      end;
+                  end;
+                  asml^.concat(new(paicpu,op_ref_reg(opcode,opsize,
+                    hr,reg32(regvarinfo^.regvars[i]^.reg))));
 {$endif i386}
 {$ifdef m68k}
                   asml^.concat(new(paicpu,op_ref_reg(A_MOVE,regsize(regvarinfo^.regvars[i]^.reg),
                     hr,regvarinfo^.regvars[i]^.reg)));
 {$endif m68k}
-                end;
+                end
             end;
           for i:=1 to maxvarregs do
             begin
@@ -347,7 +379,15 @@ implementation
                begin
 {$ifdef i386}
                 if not(regvarinfo^.regvars_para[i]) then
-                  asml^.concat(new(pairegalloc,alloc(reg32(regvarinfo^.regvars[i]^.reg))));
+                  begin
+                    asml^.concat(new(pairegalloc,alloc(reg32(regvarinfo^.regvars[i]^.reg))));
+                    { zero the regvars because the upper 48bits must be clear }
+                    { for 8bits vars when using them with btrl (JM)           }
+                    if (regsize(regvarinfo^.regvars[i]^.reg) in [S_B,S_W]) then
+                      asml^.concat(new(paicpu,op_reg_reg(A_XOR,S_L,
+                        reg32(regvarinfo^.regvars[i]^.reg),
+                        reg32(regvarinfo^.regvars[i]^.reg))));
+                  end;
 {$endif i386}
                 if cs_asm_source in aktglobalswitches then
                 asml^.insert(new(pai_asm_comment,init(strpnew(regvarinfo^.regvars[i]^.name+
@@ -441,7 +481,12 @@ end.
 
 {
   $Log$
-  Revision 1.6  2000-09-24 15:06:27  peter
+  Revision 1.7  2000-09-30 13:08:16  jonas
+    * regvars are now zeroed at the start of their life if they contain an 8
+      or 16bit var/parameter, because the full 32bits are used if they are
+      necessary for a btrl instruction
+
+  Revision 1.6  2000/09/24 15:06:27  peter
     * use defines.inc
 
   Revision 1.5  2000/08/27 16:11:52  peter
