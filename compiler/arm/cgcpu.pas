@@ -299,6 +299,7 @@ unit cgcpu;
          shift : byte;
          tmpreg : tregister;
          so : tshifterop;
+         l1 : longint;
        begin
           if is_shifter_const(dword(-a),shift) then
             case op of
@@ -373,6 +374,10 @@ unit cgcpu;
                 a_load_const_reg(list,size,0,dst)
               else if (op in [OP_IMUL]) and (a=-1) then
                 a_op_reg_reg(list,OP_NEG,size,src,dst)
+              { we do this here instead in the peephole optimizer because
+                it saves us a register }
+              else if (op in [OP_MUL,OP_IMUL]) and ispowerof2(a,l1) then
+                a_op_const_reg_reg(list,OP_SHL,size,l1,src,dst)
               else
                 begin
                   tmpreg:=getintregister(list,size);
@@ -1283,7 +1288,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.48  2004-03-14 16:15:40  florian
+  Revision 1.49  2004-03-14 21:42:24  florian
+    * optimized mul code generation
+
+  Revision 1.48  2004/03/14 16:15:40  florian
     * spilling problem fixed
     * handling of floating point memory references fixed
 
