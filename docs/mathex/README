@@ -26,3 +26,13 @@ ex21.pp contains an example of the log10 function.
 ex22.pp contains an example of the log2 function.
 ex23.pp contains an example of the logn function.
 ex24.pp contains an example of the max function.
+ex25.pp contains an example of the MaxIntValue function.
+ex26.pp contains an example of the MaxValue function.
+ex27.pp contains an example of the Mean function.
+ex28.pp contains an example of the MeanAndStdDevfunction.
+ex29.pp contains an example of the min function.
+ex30.pp contains an example of the MinIntValue function.
+ex31.pp contains an example of the MinValue function.
+ex32.pp contains an example of the momentskewkurtosis function.
+ex33.pp contains an example of the norm function.
+ex34.pp contains an example of the power function.
