@@ -163,11 +163,12 @@ unit scanner;
           line_no,
           lasttokenpos,
           lastlinepos  : longint;
+          lasttoken    : ttoken;
 
           maxlinebuf   : longint;
           linebuf      : plongint;
 
-          s_point        : boolean;
+          do_special,                 { 1=point after nr, 2=caret after id }
           comment_level,
           yylexcount     : longint;
           lastasmgetchar : char;
@@ -316,7 +317,7 @@ implementation
       { reset scanner }
         preprocstack:=nil;
         comment_level:=0;
-        s_point:=false;
+        do_special:=0;
         block_type:=bt_general;
       { reset buf }
         closed:=true;
@@ -536,7 +537,7 @@ implementation
              nextfile;
              reopen;
            { status }
-             Comment(V_Debug,'back in '+inputfile^.name^);
+             Message1(scan_d_back_in,inputfile^.name^);
            { load some current_module fields }
              current_module^.current_index:=inputfile^.ref_index;
            end;
@@ -626,6 +627,7 @@ implementation
         plongint(longint(linebuf)+line_no*2)^:=lastlinepos;
 {$endif SourceLine}
       { update for status }
+        aktfilepos.line:=line_no; { update for v_status }
         inc(status.compiledlines);
         Comment(V_Status,'');
       end;
@@ -998,18 +1000,28 @@ implementation
         { was the last character a point ? }
         { this code is needed because the scanner if there is a 1. found if  }
         { this is a floating point number or range like 1..3                 }
-        if s_point then
+        if do_special>0 then
           begin
              gettokenpos;
-             s_point:=false;
-             if c='.' then
-               begin
-                  readchar;
-                  yylex:=POINTPOINT;
-                  goto exit_label;
-               end;
-             yylex:=POINT;
-             goto exit_label;
+             l:=do_special;
+             do_special:=0;
+             case l of
+              1 : begin
+                    if c='.' then
+                     begin
+                       readchar;
+                       yylex:=POINTPOINT;
+                       goto exit_label;
+                     end;
+                    yylex:=POINT;
+                    goto exit_label;
+                  end;
+              2 : begin
+                    yylex:=CARET;
+                    readchar;
+                    goto exit_label;
+                  end;
+             end;
           end;
 
       { Skip all spaces and comments }
@@ -1071,6 +1083,8 @@ implementation
                end;
               yylex:=ID;
             end;
+           if (c='^') then
+            do_special:=2;
            goto exit_label;
          end
         else
@@ -1096,7 +1110,7 @@ implementation
                               readchar;
                               if not(c in ['0'..'9']) then
                                begin
-                                 s_point:=true;
+                                 do_special:=1;
                                  yylex:=INTCONST;
                                  goto exit_label;
                                end;
@@ -1108,9 +1122,7 @@ implementation
                                end;
                             end;
                          { E can also follow after a point is scanned }
-
                            if c in ['e','E'] then
-
                             begin
                               pattern:=pattern+'E';
                               readchar;
@@ -1523,7 +1535,10 @@ exit_label:
 end.
 {
   $Log$
-  Revision 1.34  1998-07-14 14:47:04  peter
+  Revision 1.35  1998-07-14 21:38:13  peter
+    + support for with p^do constructs
+
+  Revision 1.34  1998/07/14 14:47:04  peter
     * released NEWINPUT
 
   Revision 1.33  1998/07/10 10:48:40  peter
