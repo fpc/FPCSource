@@ -102,7 +102,7 @@ begin
   { Enable Coprocessor, no exceptions }
   dpmi_set_coprocessor_emulation(1);
 {$ifdef SYSTEMDEBUG}
-  writeln('Coprocessor restored ');
+  writeln(stderr,'Coprocessor restored ');
 {$endif}
 end;
 
@@ -212,7 +212,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.8  1998-08-15 17:01:14  peter
+  Revision 1.9  1998-10-26 14:49:45  pierre
+   * system debug info output to stderr
+
+  Revision 1.8  1998/08/15 17:01:14  peter
     * smartlinking the units works now
     * setjmp/longjmp -> dmpi_setjmp/dpmi_longjmp to solve systemunit
       conflict

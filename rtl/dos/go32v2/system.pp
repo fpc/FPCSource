@@ -313,7 +313,7 @@ largs[0]:=dos_argv0;
 argc := 1;
 sysseg_move(psp, 128, get_ds, longint(@doscmd), 128);
 {$IfDef SYSTEMDEBUG}
-Writeln('Dos command line is #',doscmd,'# size = ',length(doscmd));
+Writeln(stderr,'Dos command line is #',doscmd,'# size = ',length(doscmd));
 {$EndIf SYSTEMDEBUG}
 j := 1;
 quote := #0;
@@ -359,7 +359,7 @@ if (argc > 1) and (far_strlen(get_ds,longint(largs[1])) = 6)  then
   if (proxy_s = '!proxy') then
     begin
 {$IfDef SYSTEMDEBUG}
-    Writeln('proxy command line ');
+    Writeln(stderr,'proxy command line ');
 {$EndIf SYSTEMDEBUG}
     proxy_argc := atohex(largs[2]);
     proxy_seg  := atohex(largs[3]);
@@ -373,7 +373,7 @@ if (argc > 1) and (far_strlen(get_ds,longint(largs[1])) = 6)  then
       getmem(largs[i],al+1);
       sysseg_move(dos_selector, lin, get_ds,longint(largs[i]), al+1);
 {$IfDef SYSTEMDEBUG}
-      Writeln('arg ',i,' #',largs[i],'#');
+      Writeln(stderr,'arg ',i,' #',largs[i],'#');
 {$EndIf SYSTEMDEBUG}
       end;
     argc := proxy_argc;
@@ -452,7 +452,7 @@ begin
      getmem(envp[env_count],strlen(cp)+1);
      strcopy(envp[env_count], cp);
 {$IfDef SYSTEMDEBUG}
-     Writeln('env ',env_count,' = "',envp[env_count],'"');
+     Writeln(stderr,'env ',env_count,' = "',envp[env_count],'"');
 {$EndIf SYSTEMDEBUG}
      inc(env_count);
      while (cp^ <> #0) do
@@ -1225,7 +1225,10 @@ Begin
 End.
 {
   $Log$
-  Revision 1.21  1998-10-20 07:34:07  pierre
+  Revision 1.22  1998-10-26 14:49:46  pierre
+   * system debug info output to stderr
+
+  Revision 1.21  1998/10/20 07:34:07  pierre
    + systemdebug reports about unclosed files at exit
 
   Revision 1.20  1998/10/13 21:41:06  peter
