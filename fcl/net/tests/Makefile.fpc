@@ -14,3 +14,7 @@ options=-S2h
 
 [install]
 fpcpackage=y
+
+[default]
+fpcdir=../../..
+
