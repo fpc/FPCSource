@@ -36,7 +36,7 @@
      65536*65536: driver := D32bit;}
      else
        begin
-         driver := maxint;
+         driver := maxsmallint;
          exit;
        end;
    end;
@@ -50,7 +50,7 @@
          exit;
        end;
    { Not Found }
-   mode := maxint;
+   mode := maxsmallint;
  end;
 
 function mode2res(modeNr: smallInt; var x,y: longint): boolean;
@@ -86,7 +86,7 @@ end;
 {$ifdef newmodes}
     res2Mode(mode.maxx+1,mode.maxy+1,mode.maxColor,driverNr,ModeNr);
     { bitdepth supported? }
-    if (driverNr <> maxint) then
+    if (driverNr <> maxsmallint) then
       { Yes, add the mode }
       if not assigned(newModeList.modeinfo[driverNr]) then
         begin
@@ -555,7 +555,11 @@ end;
 
 {
 $Log$
-Revision 1.23  2000-06-17 19:09:23  jonas
+Revision 1.24  2000-06-18 14:59:39  jonas
+  * changed maxint -> maxsmallint (range error because of objpas mod
+    somewhere)
+
+Revision 1.23  2000/06/17 19:09:23  jonas
   * new platform independent mode handling (between -dnewmodes)
 
 Revision 1.22  2000/04/02 12:13:37  florian
