@@ -254,16 +254,16 @@ Function  GetGid:Longint;
 Function  GetEGid:Longint;
 
 {$ifdef solaris}
-// Set the real userid/groupid (uid/gid from calling process)	
+// Set the real userid/groupid (uid/gid from calling process)
 Function SetUid(aUID:Longint):Boolean;
 Function SetGid(aGID:Longint):Boolean;
 
 // Set the real and effective userid/groupid (like setuid/setgid bit in file permissions)
 function SetreUid(aRealUID,aEffUid:Longint):Boolean; overload;
-function SetreUid(aUID:Longint):Boolean;overload; 
+function SetreUid(aUID:Longint):Boolean;overload;
 
-function SetreGid(aRealGid,aEffGid:Longint):Boolean; overload; 
-function SetreGid(aGid:Longint):Boolean;overload; 
+function SetreGid(aRealGid,aEffGid:Longint):Boolean; overload;
+function SetreGid(aGid:Longint):Boolean;overload;
 {$endif}
 
 {**************************
@@ -439,7 +439,7 @@ type
     offset  : longint;
   end;
 
-function MMap(const m:tmmapargs):longint; 
+function MMap(const m:tmmapargs):longint;
 function MUnMap (P : Pointer; Size : Longint) : Boolean;
 
 {**************************
@@ -812,7 +812,7 @@ Begin
   inc(Epoch,TZSeconds);
   Datenum:=(Epoch Div 86400) + c1970;
   JulianToGregorian(DateNum,Year,Month,day);
-  Epoch:=Epoch Mod 86400;
+  Epoch:=Abs(Epoch Mod 86400);
   Hour:=Epoch Div 3600;
   Epoch:=Epoch Mod 3600;
   Minute:=Epoch Div 60;
@@ -905,7 +905,7 @@ end;
 {$ifdef BSD}
 Function stime (t : longint) : Boolean;
 begin
-  
+
 end;
 {$endif}
 
@@ -1349,8 +1349,8 @@ begin
      errno:=Sys_EBADF;
      exit;
    end;
- {$ifndef bsd}				{Should be ifdef Linux, but can't because
-						of 1.0.5 cycle}
+ {$ifndef bsd}                          {Should be ifdef Linux, but can't because
+                                                of 1.0.5 cycle}
   {$ifndef Solaris}
   p^.nextoff:=Sys_lseek(p^.fd,off,seek_set);
   {$endif}
@@ -2956,7 +2956,10 @@ End.
 
 {
   $Log$
-  Revision 1.14  2001-07-16 20:27:30  marco
+  Revision 1.15  2001-08-12 18:08:59  peter
+    * Range check fix with epoch (merged)
+
+  Revision 1.14  2001/07/16 20:27:30  marco
    * Some small detail fixes for Solaris
 
   Revision 1.13  2001/07/12 12:42:39  marco

@@ -799,7 +799,7 @@ Begin
   inc(Epoch,TZSeconds);
   Datenum:=(Epoch Div 86400) + c1970;
   JulianToGregorian(DateNum,Year,Month,day);
-  Epoch:=Epoch Mod 86400;
+  Epoch:=Abs(Epoch Mod 86400);
   Hour:=Epoch Div 3600;
   Epoch:=Epoch Mod 3600;
   Minute:=Epoch Div 60;
@@ -2933,7 +2933,10 @@ End.
 
 {
   $Log$
-  Revision 1.14  2001-07-12 12:42:39  marco
+  Revision 1.15  2001-08-12 18:05:19  peter
+    * Range check fix with epoch (merged)
+
+  Revision 1.14  2001/07/12 12:42:39  marco
    * Fixes to the FreeBSD compability of the datetime patches
 
   Revision 1.13  2001/07/12 07:20:05  michael
