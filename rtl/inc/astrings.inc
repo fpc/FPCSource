@@ -594,75 +594,86 @@ end;
 
 {!!!!!!!!!!!!
   We need ansistring str routines for the following types:
-  FIXED
-  SINGLE
-  COMP
   FIXED16
   QWORD
   INT64
 }
 
+Procedure ACoStr (Co : Comp;Len,fr: Longint; Var S : AnsiString);
+  [Public,Alias : 'FPC_STRANSI_COMP'];
 
-Procedure Int_Str_Double (D : Double;Len,fr: Longint; Var S : AnsiString);[Public,Alias : 'FPC_STRANSI_REAL'];
-Var
-  SS : ShortString;
+Var SS : ShortString;
+
 begin
-  int_Str_Real (D,Len,fr,SS);
-  Short_To_AnsiString (pointer(S),SS);
+ int_Str_comp (Co,Len,fr,SS);
+ S:=SS;
 end;
 
 
-Procedure Int_Str_Extended (E : Extended;Len,Fr: Longint; Var S : AnsiString);[Public,Alias : 'FPC_STRANSI_EXTENDED'];
-Var
-  SS : ShortString;
+Procedure ASiStr (Si : Single;Len,fr: Longint; Var S : AnsiString);
+  [Public,Alias : 'FPC_STRANSI_SINGLE'];
+
+Var SS : ShortString;
+
 begin
-  int_Str_Extended (E,Len,fr,SS);
-  Short_To_AnsiString (pointer(S),SS);
+ int_Str_Single (Si,Len,fr,SS);
+ S:=SS;
+end;
+
+Procedure AFiStr (fi : Comp;Len,fr: Longint; Var S : AnsiString);
+  [Public,Alias : 'FPC_STRANSI_FIXED'];
+
+Var SS : ShortString;
+
+begin
+ int_Str_Fixed (fi,Len,fr,SS);
+ S:=SS;
+end;
+
+Procedure ARStr (D : Real;Len,fr: Longint; Var S : AnsiString);
+  [Public,Alias : 'FPC_STRANSI_REAL'];
+
+Var SS : ShortString;
+
+begin
+ int_Str_real (D,Len,fr,SS);
+ S:=SS;
+end;
+
+
+Procedure AEStr (E : Extended;Len,Fr: Longint; Var S : AnsiString);
+  [Public,Alias : 'FPC_STRANSI_EXTENDED'];
+
+Var SS : ShortString;
+
+begin
+ int_Str_Extended (E,Len,fr,SS);
+ S:=SS;
 end;
 
 
 
-Procedure Int_Str_Cardinal (C : Cardinal;Len : Longint; Var S : AnsiString);[Public,Alias : 'FPC_STRANSI_CARDINAL'];
-var
-  SS : ShortString;
+Procedure ACStr (C : Cardinal;Len : Longint; Var S : AnsiString);
+  [Public,Alias : 'FPC_STRANSI_CARDINAL'];
+
+Var SS : ShortString;
+
 begin
-  Int_Str_Cardinal (C,Len,SS);
-  Short_To_AnsiString (pointer(S),SS);
+  int_str_cardinal(C,Len,SS);
+  S:=SS;
 end;
 
 
 
-Procedure Int_Str_Longint (L : Longint; Len : Longint; Var S : AnsiString);[Public,Alias : 'FPC_STRANSI_LONGINT'];
-Var
-  SS : ShortString;
-begin
-  int_Str_Longint (L,Len,SS);
-  Short_To_AnsiString (pointer(S),SS);
-end;
+Procedure ALStr (L : Longint; Len : Longint; Var S : AnsiString);
+  [Public,Alias : 'FPC_STRANSI_LONGINT'];
 
-
-
-(* these procedures are not used by the compiler:
-
-Procedure Str (Var I : Integer;Len : Longint; Var S : AnsiString);
+Var SS : ShortString;
 
 begin
+ int_Str_Longint (L,Len,SS);
+ S:=SS;
 end;
-
-
-
-Procedure Str (Var B : Byte; Len : Longint; Var S : AnsiString);
-
-begin
-end;
-
-
-
-Procedure Str (Var SI : ShortInt; Len : Longint; Var S : AnsiString);
-
-begin
-end;
-*)
 
 
 Procedure Delete (Var S : AnsiString; Index,Size: Longint);
@@ -716,7 +727,10 @@ end;
 
 {
   $Log$
-  Revision 1.7  1999-01-06 13:03:39  peter
+  Revision 1.8  1999-01-06 14:48:43  michael
+  + Implemented more str() functions
+
+  Revision 1.7  1999/01/06 13:03:39  peter
     * fixed str() and made it working
 
   Revision 1.6  1999/01/06 12:25:02  florian
