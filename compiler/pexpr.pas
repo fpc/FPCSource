@@ -1448,16 +1448,20 @@ unit pexpr;
                                     do_firstpass(p1);
                                     case p1^.treetype of
                                        ordconstn : begin
+                                                      if p1^.resulttype=s32bitdef then
+                                                        p1^.resulttype:=u8bitdef;
                                                       if pd=nil then
                                                         pd:=p1^.resulttype;
-                                                     if not(is_equal(pd,p1^.resulttype)) then
-                                                       Message(parser_e_typeconflict_in_set)
-                                                     else
-                                                       if token=POINTPOINT then
-                                                         begin
-                                                            consume(POINTPOINT);
-                                                            p3:=comp_expr(true);
-                                                            do_firstpass(p3);
+                                                      if not(is_equal(pd,p1^.resulttype)) then
+                                                        Message(parser_e_typeconflict_in_set)
+                                                      else
+                                                        if token=POINTPOINT then
+                                                          begin
+                                                             consume(POINTPOINT);
+                                                             p3:=comp_expr(true);
+                                                             do_firstpass(p3);
+                                                             if p3^.resulttype=s32bitdef then
+                                                               p3^.resulttype:=u8bitdef;
                                                             if not(is_equal(pd,p3^.resulttype)) then
                                                               Message(parser_e_typeconflict_in_set)
                                                             else
@@ -1481,6 +1485,8 @@ unit pexpr;
                                                 end;
                                        else
                                           begin
+                                             if p1^.resulttype=s32bitdef then
+                                               p1^.resulttype:=u8bitdef;
                                              if pd=nil then
                                                pd:=p1^.resulttype;
                                              if not(is_equal(pd,p1^.resulttype)) then
@@ -1494,7 +1500,13 @@ unit pexpr;
                                  end;
                              consume(RECKKLAMMER);
                              p1:=gensinglenode(setconstrn,p2);
-                             p1^.resulttype:=new(psetdef,init(pd,255));
+                             { use smallset if emudef with max < 32
+                             but allow sets for enumdefs with more than
+                             256 elements like tasmop !! }
+                             if (pd^.deftype=enumdef) and (penumdef(pd)^.max<=255) then
+                               p1^.resulttype:=new(psetdef,init(pd,penumdef(pd)^.max))
+                             else
+                               p1^.resulttype:=new(psetdef,init(pd,255));
                              p1^.constset:=constset;
                           end;
             PLUS     : begin
@@ -1733,7 +1745,16 @@ unit pexpr;
 end.
 {
   $Log$
-  Revision 1.18  1998-05-23 01:21:20  peter
+  Revision 1.19  1998-05-25 17:11:43  pierre
+    * firstpasscount bug fixed
+      now all is already set correctly the first time
+      under EXTDEBUG try -gp to skip all other firstpasses
+      it works !!
+    * small bug fixes
+      - for smallsets with -dTESTSMALLSET
+      - some warnings removed (by correcting code !)
+
+  Revision 1.18  1998/05/23 01:21:20  peter
     + aktasmmode, aktoptprocessor, aktoutputformat
     + smartlink per module $SMARTLINK-/+ (like MMX) and moved to aktswitches
     + $LIBNAME to set the library name where the unit will be put in

@@ -1300,11 +1300,11 @@ unit pass_1;
          { example length(s)+1 gets internal 'longint' type first }
          { if it is a arg it is converted to 'LONGINT' }
          { but a second first pass will reset this to 'longint' }
-         if not assigned(p^.resulttype) then
          case p^.treetype of
             ltn,lten,gtn,gten,equaln,unequaln:
               begin
-                 p^.resulttype:=booldef;
+                 if not assigned(p^.resulttype) then
+                   p^.resulttype:=booldef;
                  p^.location.loc:=LOC_FLAGS;
               end;
             addn:
@@ -1314,7 +1314,8 @@ unit pass_1;
                     (p^.right^.resulttype^.deftype=stringdef) then
                    begin
 {$ifndef UseAnsiString}
-                   p^.resulttype:=cstringdef
+                      if not assigned(p^.resulttype) then
+                        p^.resulttype:=cstringdef
 {$else UseAnsiString}
                       if is_ansistring(p^.left^.resulttype) or
                          is_ansistring(p^.right^.resulttype) then
@@ -1324,9 +1325,11 @@ unit pass_1;
 {$endif UseAnsiString}
                    end
                  else
-                   p^.resulttype:=p^.left^.resulttype;
+                   if not assigned(p^.resulttype) then
+                     p^.resulttype:=p^.left^.resulttype;
               end;
-            else p^.resulttype:=p^.left^.resulttype;
+            else if not assigned(p^.resulttype) then
+              p^.resulttype:=p^.left^.resulttype;
          end;
       end;
 
@@ -2547,9 +2550,10 @@ unit pass_1;
               {if not(assigned(p^.resulttype)) then }
               if not(assigned(p^.resulttype)) or
                 (p^.left^.treetype=typeconvn) then
-                firstpass(p^.left)
-              else
-                exit;
+                firstpass(p^.left);
+              {else
+                exit; this broke the
+                value of registers32 !! }
 
               if codegenerror then
                 begin
@@ -2667,7 +2671,9 @@ unit pass_1;
          exactmatch,inlined : boolean;
          paralength,l : longint;
          pdc : pdefcoll;
+     {$ifdef UseBrowser}
          curtokenpos : tfileposinfo;
+     {$endif UseBrowser}
 
          { only Dummy }
          hcvt : tconverttype;
@@ -4818,6 +4824,10 @@ unit pass_1;
 {$endif extdebug}
 
       begin
+{$ifdef extdebug}
+         if (p^.firstpasscount>0) and only_one_pass then
+           exit;
+{$endif extdebug}
          { if we save there the whole stuff, }
          { line numbers become more correct  }
          oldis:=current_module^.current_inputfile;
@@ -4894,7 +4904,16 @@ unit pass_1;
 end.
 {
   $Log$
-  Revision 1.20  1998-05-23 01:21:17  peter
+  Revision 1.21  1998-05-25 17:11:41  pierre
+    * firstpasscount bug fixed
+      now all is already set correctly the first time
+      under EXTDEBUG try -gp to skip all other firstpasses
+      it works !!
+    * small bug fixes
+      - for smallsets with -dTESTSMALLSET
+      - some warnings removed (by correcting code !)
+
+  Revision 1.20  1998/05/23 01:21:17  peter
     + aktasmmode, aktoptprocessor, aktoutputformat
     + smartlink per module $SMARTLINK-/+ (like MMX) and moved to aktswitches
     + $LIBNAME to set the library name where the unit will be put in

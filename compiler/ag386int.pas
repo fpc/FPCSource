@@ -75,7 +75,7 @@ unit ag386int;
         c  : comp;
         dd : pdouble;
       begin
-         c:=d;
+         c:=comp(d);
          dd:=pdouble(@c); { this makes a bitwise copy of c into a double }
          comp2str:=double2str(dd^);
       end;
@@ -554,7 +554,16 @@ ait_stab_function_name : ;
 end.
 {
   $Log$
-  Revision 1.9  1998-05-23 01:20:55  peter
+  Revision 1.10  1998-05-25 17:11:36  pierre
+    * firstpasscount bug fixed
+      now all is already set correctly the first time
+      under EXTDEBUG try -gp to skip all other firstpasses
+      it works !!
+    * small bug fixes
+      - for smallsets with -dTESTSMALLSET
+      - some warnings removed (by correcting code !)
+
+  Revision 1.9  1998/05/23 01:20:55  peter
     + aktasmmode, aktoptprocessor, aktoutputformat
     + smartlink per module $SMARTLINK-/+ (like MMX) and moved to aktswitches
     + $LIBNAME to set the library name where the unit will be put in

@@ -4420,17 +4420,20 @@ implementation
          i : longint;
          hp : ptree;
          href,sref : treference;
-         hr : tregister;
+{$ifdef TestSmallSet}
+         smallsetvalue : longint;
+         hr,hr2 : tregister;
+{$endif TestSmallSet}
 
       begin
          { this should be reimplemented for smallsets }
          { differently  (PM) }
          { produce constant part }
 {$ifdef TestSmallSet}
-         if psetdef(p^.resulttype)=smallset then
+         if psetdef(p^.resulttype)^.settype=smallset then
            begin
               smallsetvalue:=(p^.constset^[3]*256)+p^.constset^[2];
-              smallsetvalue:=((smallset*256+p^.constset^[1])*256+p^.constset^[1];
+              smallsetvalue:=(smallsetvalue*256+p^.constset^[1])*256+p^.constset^[0];
               {consts^.concat(new(pai_const,init_32bit(smallsetvalue)));}
               hr:=getregister32;
               exprasmlist^.concat(new(pai386,op_const_reg(A_MOV,S_L,
@@ -4445,14 +4448,20 @@ implementation
                           exit;
                         case hp^.left^.location.loc of
                           LOC_MEM,LOC_REFERENCE :
-                            exprasmlist^.concat(new(pai386,op_ref_reg(A_BTS,S_L,
-                              newreference(p^.left^.location.reference),hr)));
+                            begin
+                               hr2:=getregister32;
+                               exprasmlist^.concat(new(pai386,op_ref_reg(A_MOV,S_L,
+                               newreference(hp^.left^.location.reference),hr2)));
+                               exprasmlist^.concat(new(pai386,op_reg_reg(A_BTS,S_NO,
+                                 hr2,hr)));
+                               ungetregister32(hr2);
+                            end;
                           LOC_REGISTER,LOC_CREGISTER :
-                            exprasmlist^.concat(new(pai386,op_reg_reg(A_BTS,S_L,
-                              p^.left^.location.register,hr)));
+                            exprasmlist^.concat(new(pai386,op_reg_reg(A_BTS,S_NO,
+                              hp^.left^.location.register,hr)));
                           else
                             internalerror(10567);
-                          end
+                          end;
                         hp:=hp^.right;
                      end;
                 end;
@@ -6198,7 +6207,16 @@ do_jmp:
 end.
 {
   $Log$
-  Revision 1.26  1998-05-23 01:21:03  peter
+  Revision 1.27  1998-05-25 17:11:38  pierre
+    * firstpasscount bug fixed
+      now all is already set correctly the first time
+      under EXTDEBUG try -gp to skip all other firstpasses
+      it works !!
+    * small bug fixes
+      - for smallsets with -dTESTSMALLSET
+      - some warnings removed (by correcting code !)
+
+  Revision 1.26  1998/05/23 01:21:03  peter
     + aktasmmode, aktoptprocessor, aktoutputformat
     + smartlink per module $SMARTLINK-/+ (like MMX) and moved to aktswitches
     + $LIBNAME to set the library name where the unit will be put in
