@@ -696,7 +696,7 @@ unit rgobj;
 {$endif TEMPREGDEBUG}
 
 
-    procedure trgobj.saveStateForInline(var p: pointer);
+    procedure trgobj.saveStateForInline(var state: pointer);
       begin
         new(psavedstate(state));
         psavedstate(state)^.unusedregsint := unusedregsint;
@@ -779,7 +779,11 @@ end.
 
 {
   $Log$
-  Revision 1.1  2002-03-31 20:26:36  jonas
+  Revision 1.2  2002-04-01 19:24:25  jonas
+    * fixed different parameter name in interface and implementation
+      declaration of a method (only 1.0.x detected this)
+
+  Revision 1.1  2002/03/31 20:26:36  jonas
     + a_loadfpu_* and a_loadmm_* methods in tcg
     * register allocation is now handled by a class and is mostly processor
       independent (+rgobj.pas and i386/rgcpu.pas)
