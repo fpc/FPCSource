@@ -1551,24 +1551,24 @@ function MUnMap (P : Pointer; Size : Longint) : Boolean;
 Function  IOperm (From,Num : Cardinal; Value : Longint) : boolean;
 Function IoPL(Level : longint) : Boolean;
 {$ifdef cpui386}
-Procedure WritePort (Port : Longint; Value : Byte);
-Procedure WritePort (Port : Longint; Value : Word);
-Procedure WritePort (Port : Longint; Value : Longint);
-Procedure WritePortB (Port : Longint; Value : Byte);
-Procedure WritePortW (Port : Longint; Value : Word);
-Procedure WritePortL (Port : Longint; Value : Longint);
-Procedure WritePortL (Port : Longint; Var Buf; Count: longint);
-Procedure WritePortW (Port : Longint; Var Buf; Count: longint);
-Procedure WritePortB (Port : Longint; Var Buf; Count: longint);
-Procedure ReadPort (Port : Longint; Var Value : Byte);
-Procedure ReadPort (Port : Longint; Var Value : Word);
-Procedure ReadPort (Port : Longint; Var Value : Longint);
-function  ReadPortB (Port : Longint): Byte;
-function  ReadPortW (Port : Longint): Word;
-function  ReadPortL (Port : Longint): LongInt;
-Procedure ReadPortL (Port : Longint; Var Buf; Count: longint);
-Procedure ReadPortW (Port : Longint; Var Buf; Count: longint);
-Procedure ReadPortB (Port : Longint; Var Buf; Count: longint);
+Procedure WritePort (Port : Longint; Value : Byte);oldfpccall;
+Procedure WritePort (Port : Longint; Value : Word);oldfpccall;
+Procedure WritePort (Port : Longint; Value : Longint);oldfpccall;
+Procedure WritePortB (Port : Longint; Value : Byte);oldfpccall;
+Procedure WritePortW (Port : Longint; Value : Word);oldfpccall;
+Procedure WritePortL (Port : Longint; Value : Longint);oldfpccall;
+Procedure WritePortL (Port : Longint; Var Buf; Count: longint);oldfpccall;
+Procedure WritePortW (Port : Longint; Var Buf; Count: longint);oldfpccall;
+Procedure WritePortB (Port : Longint; Var Buf; Count: longint);oldfpccall;
+Procedure ReadPort (Port : Longint; Var Value : Byte);oldfpccall;
+Procedure ReadPort (Port : Longint; Var Value : Word);oldfpccall;
+Procedure ReadPort (Port : Longint; Var Value : Longint);oldfpccall;
+function  ReadPortB (Port : Longint): Byte;oldfpccall;
+function  ReadPortW (Port : Longint): Word;oldfpccall;
+function  ReadPortL (Port : Longint): LongInt;oldfpccall;
+Procedure ReadPortL (Port : Longint; Var Buf; Count: longint);oldfpccall;
+Procedure ReadPortW (Port : Longint; Var Buf; Count: longint);oldfpccall;
+Procedure ReadPortB (Port : Longint; Var Buf; Count: longint);oldfpccall;
 {$endif}
 
 {**************************
@@ -5908,7 +5908,10 @@ End.
 
 {
   $Log$
-  Revision 1.13  2004-02-19 19:43:36  daniel
+  Revision 1.14  2004-02-19 19:50:51  daniel
+    * More oldfpccall
+
+  Revision 1.13  2004/02/19 19:43:36  daniel
     * Do_syscall needs oldfpccall
 
   Revision 1.12  2004/02/19 19:34:04  marco
