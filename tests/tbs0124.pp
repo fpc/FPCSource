@@ -1,4 +1,4 @@
-
+{ $OPT= -Aas }
 { this problem comes from the fact that 
   L is a static variable, not a local one !!
   but the static variable symtable is the localst of the
