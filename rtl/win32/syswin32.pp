@@ -491,16 +491,19 @@ function CreateDirectoryTrunc(name:pointer):word;
 
 procedure mkdir(const s:string);[IOCHECK];
  begin
+  If InOutRes <> 0 then exit;
   dirfn(TDirFnType(@CreateDirectoryTrunc),s);
  end;
 
 procedure rmdir(const s:string);[IOCHECK];
  begin
+  If InOutRes <> 0 then exit;
   dirfn(TDirFnType(@RemoveDirectory),s);
  end;
 
 procedure chdir(const s:string);[IOCHECK];
  begin
+  If InOutRes <> 0 then exit;
   dirfn(TDirFnType(@SetCurrentDirectory),s);
  end;
 
@@ -648,7 +651,10 @@ end.
 
 {
   $Log$
-  Revision 1.10  1998-07-01 15:30:02  peter
+  Revision 1.11  1998-07-02 12:33:18  carl
+    * IOCheck/InOutRes check for mkdir,rmdir and chdir like in TP
+
+  Revision 1.10  1998/07/01 15:30:02  peter
     * better readln/writeln
 
   Revision 1.9  1998/06/10 10:39:17  peter
