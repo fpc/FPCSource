@@ -1383,6 +1383,7 @@ implementation
            hcontainer.add(s,mask);
          end;
         current_ppu^.writeentry(id);
+        p.Free;
         p:=hcontainer;
       end;
 
@@ -2369,15 +2370,15 @@ implementation
 {$ifdef UNITALIASES}
         dispose(unitaliases,done);
 {$endif}
-{$ifdef MEMDEBUG}
-       writeln('Manglednames: ',manglenamesize,' bytes');
-{$endif}
      end;
 
 end.
 {
   $Log$
-  Revision 1.27  2001-03-11 22:58:51  peter
+  Revision 1.28  2001-03-13 18:45:07  peter
+    * fixed some memory leaks
+
+  Revision 1.27  2001/03/11 22:58:51  peter
     * getsym redesign, removed the globals srsym,srsymtable
 
   Revision 1.26  2001/02/21 19:37:19  peter

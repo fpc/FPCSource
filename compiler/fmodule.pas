@@ -304,8 +304,8 @@ uses
         found:=false;
         data:=stringdup(s);
       end;
-      
-      
+
+
     destructor tExternalsItem.Destroy;
       begin
         stringdispose(data);
@@ -699,37 +699,18 @@ uses
         e : extstr;
       begin
         FSplit(s,p,n,e);
-      { Programs have the name program to don't conflict with dup id's }
+        { Programs have the name 'Program' to don't conflict with dup id's }
         if _is_unit then
-         begin
-{$ifdef UNITALIASES}
-           modulename:=stringdup(GetUnitAlias(Upper(n)));
-           realmodulename:=stringdup(GetUnitAlias(n));
-{$else}
-           modulename:=stringdup(Upper(n));
-           realmodulename:=stringdup(n);
-{$endif}
-         end
+         inherited create(n)
         else
-         begin
-           modulename:=stringdup('PROGRAM');
-           realmodulename:=stringdup('Program');
-         end;
+         inherited create('Program');
         mainsource:=stringdup(s);
-        ppufilename:=nil;
-        objfilename:=nil;
-        asmfilename:=nil;
-        staticlibfilename:=nil;
-        sharedlibfilename:=nil;
-        exefilename:=nil;
         { Dos has the famous 8.3 limit :( }
 {$ifdef SHORTASMPREFIX}
         asmprefix:=stringdup(FixFileName('as'));
 {$else}
         asmprefix:=stringdup(FixFileName(n));
 {$endif}
-        outputpath:=nil;
-        path:=nil;
         setfilename(p+n,true);
         localunitsearchpath:=TSearchPathList.Create;
         localobjectsearchpath:=TSearchPathList.Create;
@@ -737,7 +718,6 @@ uses
         locallibrarysearchpath:=TSearchPathList.Create;
         used_units:=TLinkedList.Create;
         dependent_units:=TLinkedList.Create;
-        sourcefiles:=TInputFileManager.Create;
         resourcefiles:=TStringList.Create;
         linkunitofiles:=TLinkContainer.Create;
         linkunitstaticlibs:=TLinkContainer.Create;
@@ -756,8 +736,6 @@ uses
         interface_crc:=0;
         do_reload:=false;
         unitcount:=1;
-        inc(global_unit_count);
-        unit_index:=global_unit_count;
         do_assemble:=false;
         do_compile:=false;
         sources_avail:=true;
@@ -811,9 +789,6 @@ uses
         externals:=nil;
         if assigned(scanner) then
           pscannerfile(scanner)^.invalid:=true;
-        if assigned(sourcefiles) then
-         sourcefiles.Free;
-        sourcefiles:=nil;
         used_units.free;
         dependent_units.free;
         resourcefiles.Free;
@@ -906,7 +881,10 @@ uses
 end.
 {
   $Log$
-  Revision 1.8  2001-03-06 18:28:02  peter
+  Revision 1.9  2001-03-13 18:45:06  peter
+    * fixed some memory leaks
+
+  Revision 1.8  2001/03/06 18:28:02  peter
     * patch from Pavel with a new and much faster DLL Scanner for
       automatic importing so $linklib works for DLLs. Thanks Pavel!
 

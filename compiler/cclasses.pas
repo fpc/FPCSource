@@ -672,7 +672,10 @@ end;
          exit;
         p:=find(s);
         if assigned(p) then
-         inherited Remove(p);
+         begin
+           inherited Remove(p);
+           p.Free;
+         end;
       end;
 
 
@@ -1634,7 +1637,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.4  2001-03-05 21:40:01  peter
+  Revision 1.5  2001-03-13 18:45:06  peter
+    * fixed some memory leaks
+
+  Revision 1.4  2001/03/05 21:40:01  peter
     * fixed tdynamicarray.readstream
 
   Revision 1.3  2000/12/29 21:57:27  peter

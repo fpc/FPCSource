@@ -56,7 +56,7 @@ implementation
        cgai386,
   {$ifndef NOTARGETWIN32}
        t_win32,
-  {$endif}     
+  {$endif}
 {$endif i386}
 {$endif newcg}
        link,assemble,import,export,gendef,ppu,comprsrc,
@@ -81,11 +81,11 @@ implementation
   {$ifndef NOTARGETWIN32}
              target_i386_win32 :
                DLLScanner:=tDLLscannerWin32.create;
-  {$endif}               
+  {$endif}
 {$endif}
              else
-               internalerror(769795413);  
-           end;              
+               internalerror(769795413);
+           end;
            { Walk all shared libs }
            While not current_module.linkOtherSharedLibs.Empty do
             begin
@@ -103,7 +103,7 @@ implementation
               importlib.generatelib;
             end;
          end;
-          
+
         { create the .s file and assemble it }
         GenerateAsm(false);
 
@@ -1497,6 +1497,10 @@ implementation
          current_module.localsymtable:=st;
          refsymtable:=st;
 
+         { a unit compiled at command line must be inside the loaded_unit list }
+         if (compile_level=1) then
+           loaded_units.insert(current_module);
+
          { load standard units (system,objpas,profile unit) }
          loaddefaultunits;
 
@@ -1506,9 +1510,6 @@ implementation
          {Load the units used by the program we compile.}
          if token=_USES then
            loadunits;
-
-         { necessary for browser }
-         loaded_units.insert(current_module);
 
 {$ifndef DONOTCHAINOPERATORS}
          pstoredsymtable(symtablestack)^.chainoperators;
@@ -1662,7 +1663,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.24  2001-03-06 18:28:02  peter
+  Revision 1.25  2001-03-13 18:45:07  peter
+    * fixed some memory leaks
+
+  Revision 1.24  2001/03/06 18:28:02  peter
     * patch from Pavel with a new and much faster DLL Scanner for
       automatic importing so $linklib works for DLLs. Thanks Pavel!
 

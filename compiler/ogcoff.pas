@@ -51,6 +51,8 @@ interface
 
        tcoffdata = class(tobjectdata)
        private
+         Fstrs,
+         Fsyms  : Tdynamicarray;
          win32   : boolean;
          procedure reset;
        public
@@ -63,8 +65,6 @@ interface
          procedure writesymbol(p:pasmsymbol);override;
          procedure writestabs(section:tsection;offset:longint;p:pchar;nidx,nother,line:longint;reloc:boolean);override;
          procedure writesymstabs(section:tsection;offset:longint;p:pchar;ps:pasmsymbol;nidx,nother,line:longint;reloc:boolean);override;
-         strs,
-         syms  : Tdynamicarray;
        end;
 
        tcoffobjectoutput = class(tobjectoutput)
@@ -211,6 +211,8 @@ implementation
 
     destructor tcoffdata.destroy;
       begin
+        FSyms.Free;
+        FStrs.Free;
         inherited destroy;
       end;
 
@@ -219,8 +221,8 @@ implementation
       var
         s : string;
       begin
-        Syms:=TDynamicArray.Create(symbolresize);
-        Strs:=TDynamicArray.Create(strsresize);
+        FSyms:=TDynamicArray.Create(symbolresize);
+        FStrs:=TDynamicArray.Create(strsresize);
         { we need at least the following 3 sections }
         createsection(sec_code);
         createsection(sec_data);
@@ -320,9 +322,9 @@ implementation
            s:=p^.name;
            if length(s)>8 then
             begin
-              sym.nameidx:=Strs.size+4;
-              Strs.writestr(s);
-              Strs.writestr(#0);
+              sym.nameidx:=FStrs.size+4;
+              FStrs.writestr(s);
+              FStrs.writestr(#0);
             end
            else
             begin
@@ -330,9 +332,9 @@ implementation
               sym.namestr:=s;
             end;
            { update the asmsymbol index }
-           p^.idx:=Syms.size div sizeof(TOutputSymbol);
+           p^.idx:=FSyms.size div sizeof(TOutputSymbol);
            { write the symbol }
-           Syms.write(sym,sizeof(toutputsymbol));
+           FSyms.write(sym,sizeof(toutputsymbol));
          end
         else
          begin
@@ -653,10 +655,10 @@ implementation
                FWriter.write(secrec,sizeof(secrec));
              end;
            { The real symbols }
-           Syms.seek(0);
-           for i:=1 to Syms.size div sizeof(TOutputSymbol) do
+           FSyms.seek(0);
+           for i:=1 to FSyms.size div sizeof(TOutputSymbol) do
             begin
-              Syms.read(sym,sizeof(TOutputSymbol));
+              FSyms.read(sym,sizeof(TOutputSymbol));
               if sym.bind=AB_LOCAL then
                 globalval:=3
               else
@@ -739,7 +741,7 @@ implementation
            header.mach:=$14c;
            header.nsects:=nsects;
            header.sympos:=sympos;
-           header.syms:=(Syms.size div sizeof(TOutputSymbol))+initsym;
+           header.syms:=(FSyms.size div sizeof(TOutputSymbol))+initsym;
            if gotreloc then
             header.flag:=$104
            else
@@ -789,9 +791,9 @@ implementation
          { Symbols }
            write_symbols;
          { Strings }
-           i:=Strs.size+4;
+           i:=FStrs.size+4;
            FWriter.write(i,4);
-           hp:=Strs.firstblock;
+           hp:=FStrs.firstblock;
            while assigned(hp) do
             begin
               FWriter.write(hp^.data,hp^.used);
@@ -908,8 +910,8 @@ implementation
                end
               else
                begin
-                 Strs.Seek(sym.strpos-4);
-                 Strs.Read(strname[1],255);
+                 FStrs.Seek(sym.strpos-4);
+                 FStrs.Read(strname[1],255);
                  strname[255]:=#0;
                end;
               strname[0]:=chr(strlen(@strname[1]));
@@ -1064,7 +1066,7 @@ implementation
               Comment(V_Error,'Error reading coff file');
               exit;
             end;
-           if not Reader.ReadArray(Strs,Strsize-4) then
+           if not Reader.ReadArray(FStrs,Strsize-4) then
             begin
               Comment(V_Error,'Error reading coff file');
               exit;
@@ -1099,7 +1101,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.9  2001-03-05 21:40:38  peter
+  Revision 1.10  2001-03-13 18:45:07  peter
+    * fixed some memory leaks
+
+  Revision 1.9  2001/03/05 21:40:38  peter
     * more things for tcoffobjectinput
 
   Revision 1.8  2000/12/25 00:07:26  peter

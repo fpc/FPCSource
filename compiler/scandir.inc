@@ -701,6 +701,7 @@ const
          { load new file }
            hp:=do_openinputfile(foundfile);
            current_scanner^.addfile(hp);
+           current_module.sourcefiles.register_file(hp);
            if not current_scanner^.openinputfile then
             Message1(scan_f_cannot_open_includefile,hs);
            Message1(scan_t_start_include_file,current_scanner^.inputfile.path^+current_scanner^.inputfile.name^);
@@ -711,8 +712,6 @@ const
             #10,
             #13 : current_scanner^.linebreak;
            end;
-         { register for refs }
-           current_module.sourcefiles.register_file(hp);
          end;
       end;
 
@@ -1395,7 +1394,10 @@ const
 
 {
   $Log$
-  Revision 1.18  2001-02-20 21:41:18  peter
+  Revision 1.19  2001-03-13 18:45:07  peter
+    * fixed some memory leaks
+
+  Revision 1.18  2001/02/20 21:41:18  peter
     * new fixfilename, findfile for unix. Look first for lowercase, then
       NormalCase and last for UPPERCASE names.
 
