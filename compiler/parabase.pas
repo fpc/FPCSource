@@ -27,20 +27,21 @@ unit parabase;
 
     uses
        cclasses,globtype,
-       cpubase,cgbase;
+       cpubase,cgbase,cgutils;
 
     type
-       { tparamlocation describes where a parameter for a procedure is stored.
-         References are given from the caller's point of view. The usual
-         TLocation isn't used, because contains a lot of unnessary fields.
-       }
+       TCGParaReference = record
+          index       : tregister;
+          offset      : aint;
+       end;
+
        PCGParaLocation = ^TCGParaLocation;
        TCGParaLocation = record
          Next : PCGParaLocation;
          Size : TCGSize; { size of this location }
          Loc  : TCGLoc;
          case TCGLoc of
-           LOC_REFERENCE : (reference : tparareference);
+           LOC_REFERENCE : (reference : TCGParaReference);
            LOC_FPUREGISTER,
            LOC_CFPUREGISTER,
            LOC_MMREGISTER,
@@ -179,13 +180,13 @@ implementation
                     internalerror(200408207);
                   if (target_info.endian = ENDIAN_BIG) then
                     begin
-                      newloc.registerhigh:=location^.register;
-                      newloc.registerlow:=location^.next^.register;
+                      newloc.register64.reghi:=location^.register;
+                      newloc.register64.reglo:=location^.next^.register;
                     end
                   else
                     begin
-                      newloc.registerlow:=location^.register;
-                      newloc.registerhigh:=location^.next^.register;
+                      newloc.register64.reglo:=location^.register;
+                      newloc.register64.reghi:=location^.next^.register;
                     end;
                 end
               else
@@ -207,7 +208,11 @@ end.
 
 {
    $Log$
-   Revision 1.3  2004-10-10 20:22:53  peter
+   Revision 1.4  2004-10-31 21:45:03  peter
+     * generic tlocation
+     * move tlocation to cgutils
+
+   Revision 1.3  2004/10/10 20:22:53  peter
      * symtable allocation rewritten
      * loading of parameters to local temps/regs cleanup
      * regvar support for parameters

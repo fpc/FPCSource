@@ -53,10 +53,10 @@ implementation
       globtype,systems,
       cutils,verbose,globals,
       symconst,symdef,aasmbase,aasmtai,defutil,
-      cgbase,pass_1,pass_2,
+      cgbase,pass_2,
       ncon,
       cpubase,cpuinfo,
-      cga,ncgutil,cgobj;
+      cga,ncgutil,cgobj,cgutils;
 
 {*****************************************************************************
                              TI386MODDIVNODE
@@ -181,7 +181,7 @@ implementation
 
     procedure ti386shlshrnode.pass_2;
 
-    var hregisterhigh,hregisterlow:Tregister;
+    var hreg64hi,hreg64lo:Tregister;
         op:Tasmop;
         v : TConstExprInt;
         l1,l2,l3:Tasmlabel;
@@ -202,8 +202,8 @@ implementation
 
           { load left operator in a register }
           location_force_reg(exprasmlist,left.location,OS_64,false);
-          hregisterhigh:=left.location.registerhigh;
-          hregisterlow:=left.location.registerlow;
+          hreg64hi:=left.location.register64.reghi;
+          hreg64lo:=left.location.register64.reglo;
 
           { shifting by a constant directly coded: }
           if (right.nodetype=ordconstn) then
@@ -213,33 +213,33 @@ implementation
                 begin
                   if nodetype=shln then
                     begin
-                      emit_reg_reg(A_XOR,S_L,hregisterhigh,hregisterhigh);
+                      emit_reg_reg(A_XOR,S_L,hreg64hi,hreg64hi);
                       if ((v and 31) <> 0) then
-                        emit_const_reg(A_SHL,S_L,v and 31,hregisterlow);
+                        emit_const_reg(A_SHL,S_L,v and 31,hreg64lo);
                     end
                   else
                     begin
-                      emit_reg_reg(A_XOR,S_L,hregisterlow,hregisterlow);
+                      emit_reg_reg(A_XOR,S_L,hreg64lo,hreg64lo);
                       if ((v and 31) <> 0) then
-                        emit_const_reg(A_SHR,S_L,v and 31,hregisterhigh);
+                        emit_const_reg(A_SHR,S_L,v and 31,hreg64hi);
                     end;
-                  location.registerhigh:=hregisterlow;
-                  location.registerlow:=hregisterhigh;
+                  location.register64.reghi:=hreg64lo;
+                  location.register64.reglo:=hreg64hi;
                 end
               else
                 begin
                   if nodetype=shln then
                     begin
-                      emit_const_reg_reg(A_SHLD,S_L,v and 31,hregisterlow,hregisterhigh);
-                      emit_const_reg(A_SHL,S_L,v and 31,hregisterlow);
+                      emit_const_reg_reg(A_SHLD,S_L,v and 31,hreg64lo,hreg64hi);
+                      emit_const_reg(A_SHL,S_L,v and 31,hreg64lo);
                     end
                   else
                     begin
-                      emit_const_reg_reg(A_SHRD,S_L,v and 31,hregisterhigh,hregisterlow);
-                      emit_const_reg(A_SHR,S_L,v and 31,hregisterhigh);
+                      emit_const_reg_reg(A_SHRD,S_L,v and 31,hreg64hi,hreg64lo);
+                      emit_const_reg(A_SHR,S_L,v and 31,hreg64hi);
                     end;
-                  location.registerlow:=hregisterlow;
-                  location.registerhigh:=hregisterhigh;
+                  location.register64.reglo:=hreg64lo;
+                  location.register64.reghi:=hreg64hi;
                 end;
             end
           else
@@ -259,8 +259,8 @@ implementation
               objectlibrary.getlabel(l3);
               emit_const_reg(A_CMP,S_L,64,NR_ECX);
               cg.a_jmp_flags(exprasmlist,F_L,l1);
-              emit_reg_reg(A_XOR,S_L,hregisterlow,hregisterlow);
-              emit_reg_reg(A_XOR,S_L,hregisterhigh,hregisterhigh);
+              emit_reg_reg(A_XOR,S_L,hreg64lo,hreg64lo);
+              emit_reg_reg(A_XOR,S_L,hreg64hi,hreg64hi);
               cg.a_jmp_always(exprasmlist,l3);
               cg.a_label(exprasmlist,l1);
               emit_const_reg(A_CMP,S_L,32,NR_ECX);
@@ -268,29 +268,29 @@ implementation
               emit_const_reg(A_SUB,S_L,32,NR_ECX);
               if nodetype=shln then
                 begin
-                  emit_reg_reg(A_SHL,S_L,NR_CL,hregisterlow);
-                  emit_reg_reg(A_MOV,S_L,hregisterlow,hregisterhigh);
-                  emit_reg_reg(A_XOR,S_L,hregisterlow,hregisterlow);
+                  emit_reg_reg(A_SHL,S_L,NR_CL,hreg64lo);
+                  emit_reg_reg(A_MOV,S_L,hreg64lo,hreg64hi);
+                  emit_reg_reg(A_XOR,S_L,hreg64lo,hreg64lo);
                   cg.a_jmp_always(exprasmlist,l3);
                   cg.a_label(exprasmlist,l2);
-                  emit_reg_reg_reg(A_SHLD,S_L,NR_CL,hregisterlow,hregisterhigh);
-                  emit_reg_reg(A_SHL,S_L,NR_CL,hregisterlow);
+                  emit_reg_reg_reg(A_SHLD,S_L,NR_CL,hreg64lo,hreg64hi);
+                  emit_reg_reg(A_SHL,S_L,NR_CL,hreg64lo);
                 end
               else
                 begin
-                  emit_reg_reg(A_SHR,S_L,NR_CL,hregisterhigh);
-                  emit_reg_reg(A_MOV,S_L,hregisterhigh,hregisterlow);
-                  emit_reg_reg(A_XOR,S_L,hregisterhigh,hregisterhigh);
+                  emit_reg_reg(A_SHR,S_L,NR_CL,hreg64hi);
+                  emit_reg_reg(A_MOV,S_L,hreg64hi,hreg64lo);
+                  emit_reg_reg(A_XOR,S_L,hreg64hi,hreg64hi);
                   cg.a_jmp_always(exprasmlist,l3);
                   cg.a_label(exprasmlist,l2);
-                  emit_reg_reg_reg(A_SHRD,S_L,NR_CL,hregisterhigh,hregisterlow);
-                  emit_reg_reg(A_SHR,S_L,NR_CL,hregisterhigh);
+                  emit_reg_reg_reg(A_SHRD,S_L,NR_CL,hreg64hi,hreg64lo);
+                  emit_reg_reg(A_SHR,S_L,NR_CL,hreg64hi);
                 end;
               cg.a_label(exprasmlist,l3);
 
               cg.ungetcpuregister(exprasmlist,NR_ECX);
-              location.registerlow:=hregisterlow;
-              location.registerhigh:=hregisterhigh;
+              location.register64.reglo:=hreg64lo;
+              location.register64.reghi:=hreg64hi;
             end;
         end
       else
@@ -325,7 +325,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.72  2004-09-25 14:23:54  peter
+  Revision 1.73  2004-10-31 21:45:03  peter
+    * generic tlocation
+    * move tlocation to cgutils
+
+  Revision 1.72  2004/09/25 14:23:54  peter
     * ungetregister is now only used for cpuregisters, renamed to
       ungetcpuregister
     * renamed (get|unget)explicitregister(s) to ..cpuregister

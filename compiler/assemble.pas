@@ -186,7 +186,6 @@ Implementation
   {$endif}
 {$endif}
       cutils,script,fmodule,verbose,
-      cpuinfo,
 {$ifdef memdebug}
       cclasses,
 {$endif memdebug}
@@ -194,9 +193,6 @@ Implementation
       finput,
       gdb,
 {$endif GDB}
-{$ifdef m68k}
-      cpuinfo,
-{$endif m68k}
       cpubase,aasmcpu
       ;
 
@@ -1684,7 +1680,11 @@ Implementation
 end.
 {
   $Log$
-  Revision 1.80  2004-10-14 14:47:52  mazen
+  Revision 1.81  2004-10-31 21:45:02  peter
+    * generic tlocation
+    * move tlocation to cgutils
+
+  Revision 1.80  2004/10/14 14:47:52  mazen
   * Merge is complete for this file, cycles !
 
   Revision 1.79  2004/10/13 17:58:54  peter

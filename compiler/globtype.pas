@@ -178,6 +178,12 @@ than 255 characters. That's why using Ansi Strings}
          bt_general,bt_type,bt_const,bt_except,bt_body
        );
 
+       { Temp types }
+       ttemptype = (tt_none,
+                    tt_free,tt_normal,tt_persistent,
+                    tt_noreuse,tt_freenoreuse);
+       ttemptypeset = set of ttemptype;
+
        { calling convention for tprocdef and tprocvardef }
        tproccalloption=(pocall_none,
          { procedure uses C styled calling }
@@ -307,7 +313,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.63  2004-10-25 15:38:41  peter
+  Revision 1.64  2004-10-31 21:45:03  peter
+    * generic tlocation
+    * move tlocation to cgutils
+
+  Revision 1.63  2004/10/25 15:38:41  peter
     * heap and heapsize removed
     * checkpointer fixes
 

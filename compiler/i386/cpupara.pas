@@ -523,7 +523,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.55  2004-09-21 17:25:12  peter
+  Revision 1.56  2004-10-31 21:45:03  peter
+    * generic tlocation
+    * move tlocation to cgutils
+
+  Revision 1.55  2004/09/21 17:25:12  peter
     * paraloc branch merged
 
   Revision 1.54.4.1  2004/08/31 20:43:06  peter
@@ -555,7 +559,7 @@ end.
 
   Revision 1.50  2004/02/09 22:14:17  peter
     * more x86_64 parameter fixes
-    * tparalocation.lochigh is now used to indicate if registerhigh
+    * tparalocation.lochigh is now used to indicate if register64.reghi
       is used and what the type is
 
 }

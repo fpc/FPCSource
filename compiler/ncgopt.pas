@@ -44,7 +44,7 @@ uses
   aasmbase,aasmtai,
   ncnv, ncon, pass_2,
   cgbase, cpubase,
-  tgobj, cgobj, ncgutil;
+  tgobj, cgobj, cgutils,ncgutil;
 
 
 {*****************************************************************************
@@ -196,7 +196,11 @@ end.
 
 {
   $Log$
-  Revision 1.16  2004-10-24 11:44:28  peter
+  Revision 1.17  2004-10-31 21:45:03  peter
+    * generic tlocation
+    * move tlocation to cgutils
+
+  Revision 1.16  2004/10/24 11:44:28  peter
     * small regvar fixes
     * loadref parameter removed from concatcopy,incrrefcount,etc
 

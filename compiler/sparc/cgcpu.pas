@@ -28,7 +28,7 @@ interface
 
     uses
        globtype,parabase,
-       cgbase,cgobj,cg64f32,
+       cgbase,cgutils,cgobj,cg64f32,
        aasmbase,aasmtai,aasmcpu,
        cpubase,cpuinfo,
        node,symconst,SymType,
@@ -120,7 +120,7 @@ implementation
   uses
     globals,verbose,systems,cutils,
     symdef,paramgr,
-    tgobj,cpupi,cgutils;
+    tgobj,cpupi;
 
 
 {****************************************************************************
@@ -1245,7 +1245,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.97  2004-10-24 20:01:08  peter
+  Revision 1.98  2004-10-31 21:45:03  peter
+    * generic tlocation
+    * move tlocation to cgutils
+
+  Revision 1.97  2004/10/24 20:01:08  peter
     * remove saveregister calling convention
 
   Revision 1.96  2004/10/24 11:53:45  peter

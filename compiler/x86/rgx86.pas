@@ -29,10 +29,10 @@ unit rgx86;
   interface
 
     uses
-      cpubase,
-      cpuinfo,
+      cclasses,globtype,
+      cpubase,cpuinfo,cgbase,cgutils,
       aasmbase,aasmtai,aasmcpu,
-      cclasses,globtype,cgbase,rgobj;
+      rgobj;
 
     type
        trgx86 = class(trgobj)
@@ -315,7 +315,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.9  2004-10-10 16:30:26  peter
+  Revision 1.10  2004-10-31 21:45:04  peter
+    * generic tlocation
+    * move tlocation to cgutils
+
+  Revision 1.9  2004/10/10 16:30:26  peter
     * optimized spilling writing when the reg operand can be
       replaced by reference
 

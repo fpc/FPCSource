@@ -36,7 +36,7 @@ uses
   symconst,symdef,
   fmodule,
   nobj,
-  cpuinfo,cpubase,
+  cpubase,
   cga,cgutils,cgobj;
 
    type
@@ -238,7 +238,11 @@ initialization
 end.
 {
   $Log$
-  Revision 1.35  2004-10-24 20:01:08  peter
+  Revision 1.36  2004-10-31 21:45:03  peter
+    * generic tlocation
+    * move tlocation to cgutils
+
+  Revision 1.35  2004/10/24 20:01:08  peter
     * remove saveregister calling convention
 
   Revision 1.34  2004/06/20 08:55:31  florian

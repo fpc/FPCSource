@@ -93,7 +93,7 @@ unit aoptbase;
   implementation
 
     uses
-      globtype,globals, aoptcpub, cpuinfo;
+      globtype,globals, aoptcpub;
 
   constructor taoptbase.create;
     begin
@@ -258,7 +258,11 @@ end.
 
 {
   $Log$
-  Revision 1.8  2004-10-30 15:21:37  florian
+  Revision 1.9  2004-10-31 21:45:02  peter
+    * generic tlocation
+    * move tlocation to cgutils
+
+  Revision 1.8  2004/10/30 15:21:37  florian
     * fixed generic optimizer
     * enabled generic optimizer for sparc
 

@@ -344,19 +344,19 @@ implementation
                     begin
                       if left.location.loc = LOC_REGISTER then
                         begin
-                          tempreg64.reglo := left.location.registerlow;
-                          tempreg64.reghi := left.location.registerhigh;
+                          tempreg64.reglo := left.location.register64.reglo;
+                          tempreg64.reghi := left.location.register64.reghi;
                         end
                       else
                         begin
                           if (aword(right.location.valueqword) <> 0) then
                             tempreg64.reglo := cg.getintregister(exprasmlist)
                           else
-                            tempreg64.reglo := left.location.registerlow;
+                            tempreg64.reglo := left.location.register64.reglo;
                           if ((right.location.valueqword shr 32) <> 0) then
                             tempreg64.reghi := cg.getintregister(exprasmlist)
                           else
-                            tempreg64.reghi := left.location.registerhigh;
+                            tempreg64.reghi := left.location.register64.reghi;
                         end;
 
                       if (aword(right.location.valueqword) <> 0) then
@@ -366,22 +366,22 @@ implementation
                            (longint(right.location.valueqword) < 0) then
                           cg.a_op_const_reg_reg(exprasmlist,OP_SUB,OS_INT,
                             aword(right.location.valueqword),
-                            left.location.registerlow,tempreg64.reglo)
+                            left.location.register64.reglo,tempreg64.reglo)
                         else
                           cg.a_op_const_reg_reg(exprasmlist,OP_XOR,OS_INT,
                             aword(right.location.valueqword),
-                            left.location.registerlow,tempreg64.reglo);
+                            left.location.register64.reglo,tempreg64.reglo);
 
                       if ((right.location.valueqword shr 32) <> 0) then
                         if (longint(right.location.valueqword shr 32) >= -32767) and
                            (longint(right.location.valueqword shr 32) < 0) then
                           cg.a_op_const_reg_reg(exprasmlist,OP_SUB,OS_INT,
                             aword(right.location.valueqword shr 32),
-                            left.location.registerhigh,tempreg64.reghi)
+                            left.location.register64.reghi,tempreg64.reghi)
                         else
                           cg.a_op_const_reg_reg(exprasmlist,OP_XOR,OS_INT,
                             aword(right.location.valueqword shr 32),
-                            left.location.registerhigh,tempreg64.reghi);
+                            left.location.register64.reghi,tempreg64.reghi);
                     end
                   else
                     begin
@@ -396,9 +396,9 @@ implementation
                   exprasmlist.concat(taicpu.op_reg_reg_reg(A_OR_,R_0,
                     tempreg64.reglo,tempreg64.reghi));
                   cg.a_reg_dealloc(exprasmlist,R_0);
-                  if (tempreg64.reglo <> left.location.registerlow) then
+                  if (tempreg64.reglo <> left.location.register64.reglo) then
                     cg.ungetregister(exprasmlist,tempreg64.reglo);
-                  if (tempreg64.reghi <> left.location.registerhigh) then
+                  if (tempreg64.reghi <> left.location.register64.reghi) then
                     cg.ungetregister(exprasmlist,tempreg64.reghi);
 
                   location_reset(location,LOC_FLAGS,OS_NO);
@@ -426,7 +426,11 @@ end.
 
 {
   $Log$
-  Revision 1.5  2004-06-20 08:55:31  florian
+  Revision 1.6  2004-10-31 21:45:03  peter
+    * generic tlocation
+    * move tlocation to cgutils
+
+  Revision 1.5  2004/06/20 08:55:31  florian
     * logs truncated
 
   Revision 1.4  2004/04/25 21:26:16  florian

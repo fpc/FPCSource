@@ -30,7 +30,7 @@ unit cgx86;
 
     uses
        globtype,
-       cgbase,cgobj,
+       cgbase,cgutils,cgobj,
        aasmbase,aasmtai,aasmcpu,
        cpubase,cpuinfo,rgobj,rgx86,rgcpu,
        symconst,symtype;
@@ -150,7 +150,6 @@ unit cgx86;
 
     uses
        globals,verbose,systems,cutils,
-       cgutils,
        dwarf,
        symdef,defutil,paramgr,tgobj,procinfo;
 
@@ -1627,7 +1626,11 @@ unit cgx86;
 end.
 {
   $Log$
-  Revision 1.132  2004-10-25 15:36:47  peter
+  Revision 1.133  2004-10-31 21:45:04  peter
+    * generic tlocation
+    * move tlocation to cgutils
+
+  Revision 1.132  2004/10/25 15:36:47  peter
     * save standard registers moved to tcgobj
 
   Revision 1.131  2004/10/24 20:10:08  peter

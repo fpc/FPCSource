@@ -55,7 +55,7 @@ Unit aopt;
   Implementation
 
     uses
-      cpuinfo, globtype, globals,
+      globtype, globals,
       aoptda,aoptcpu,aoptcpud;
 
     Constructor TAsmOptimizer.create(_AsmL: taasmoutput);
@@ -252,7 +252,11 @@ end.
 
 {
  $Log$
- Revision 1.7  2004-10-30 15:21:37  florian
+ Revision 1.8  2004-10-31 21:45:02  peter
+   * generic tlocation
+   * move tlocation to cgutils
+
+ Revision 1.7  2004/10/30 15:21:37  florian
    * fixed generic optimizer
    * enabled generic optimizer for sparc
 

@@ -28,7 +28,7 @@ unit rgcpu;
 
     uses
       aasmbase,aasmcpu,aasmtai,
-      cgbase,
+      cgbase,cgutils,
       cpubase,
       rgobj;
 
@@ -44,8 +44,8 @@ unit rgcpu;
 implementation
 
     uses
-      verbose, cutils,
-      cgutils,cgobj;
+      verbose,cutils,
+      cgobj;
 
     procedure trgcpu.add_constraints(reg:tregister);
       var
@@ -164,7 +164,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.30  2004-10-05 21:29:29  florian
+  Revision 1.31  2004-10-31 21:45:04  peter
+    * generic tlocation
+    * move tlocation to cgutils
+
+  Revision 1.30  2004/10/05 21:29:29  florian
     * fixed generation of refs wiht large offsets, code still broken though
 
   Revision 1.29  2004/10/05 20:41:02  peter

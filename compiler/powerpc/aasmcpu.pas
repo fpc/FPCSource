@@ -30,7 +30,7 @@ uses
   cclasses,
   globtype,globals,verbose,
   aasmbase,aasmtai,
-  cpubase,cpuinfo,cgbase;
+  cpubase,cpuinfo,cgbase,cgutils;
 
     const
       { "mov reg,reg" source operand number }
@@ -410,7 +410,11 @@ uses cutils,rgobj;
 end.
 {
   $Log$
-  Revision 1.27  2004-06-20 08:55:31  florian
+  Revision 1.28  2004-10-31 21:45:03  peter
+    * generic tlocation
+    * move tlocation to cgutils
+
+  Revision 1.27  2004/06/20 08:55:31  florian
     * logs truncated
 
   Revision 1.26  2004/06/17 16:55:46  peter

@@ -73,7 +73,7 @@ implementation
       verbose,globals,systems,
       globtype, cutils,
       symbase,symconst,symdef,symsym,symtable,paramgr,defutil,defcmp,
-      pass_1,
+      pass_1,tgobj,
       ncal,ncon,ncnv,nadd,nld,nbas,nflw,nmem,nmat,nutils,
       cgbase,procinfo
       ;
@@ -2442,7 +2442,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.145  2004-09-16 16:32:27  peter
+  Revision 1.146  2004-10-31 21:45:03  peter
+    * generic tlocation
+    * move tlocation to cgutils
+
+  Revision 1.145  2004/09/16 16:32:27  peter
     * another fix for reading of subranges
 
   Revision 1.144  2004/09/13 20:32:06  peter

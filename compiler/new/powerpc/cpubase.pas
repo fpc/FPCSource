@@ -338,8 +338,8 @@ type
         LOC_FPU, LOC_CFPUREGISTER, LOC_MMREGISTER, LOC_CMMREGISTER,
           LOC_REGISTER,LOC_CREGISTER : (
             case longint of
-              1 : (registerlow,registerhigh : tregister);
-              { overlay a registerlow }
+              1 : (register64.reglo,register64.reghi : tregister);
+              { overlay a register64.reglo }
               2 : (register : tregister);
             );
 
@@ -599,7 +599,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.4  2001-09-09 17:10:26  jonas
+  Revision 1.5  2004-10-31 21:45:03  peter
+    * generic tlocation
+    * move tlocation to cgutils
+
+  Revision 1.4  2001/09/09 17:10:26  jonas
     * some more things implemented
 
   Revision 1.3  2001/08/26 13:35:06  florian

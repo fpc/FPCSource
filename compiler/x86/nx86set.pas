@@ -44,10 +44,10 @@ implementation
       verbose,globals,
       symconst,symdef,defutil,
       aasmbase,aasmtai,aasmcpu,
-      cgbase,pass_2,
+      cgbase,pass_2,tgobj,
       ncon,
       cpubase,
-      cga,cgobj,ncgutil,
+      cga,cgobj,cgutils,ncgutil,
       cgx86;
 
 {*****************************************************************************
@@ -463,7 +463,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.7  2004-10-24 20:10:08  peter
+  Revision 1.8  2004-10-31 21:45:04  peter
+    * generic tlocation
+    * move tlocation to cgutils
+
+  Revision 1.7  2004/10/24 20:10:08  peter
     * -Or fixes
 
   Revision 1.6  2004/10/01 17:32:16  peter

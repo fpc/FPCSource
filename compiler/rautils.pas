@@ -28,7 +28,7 @@ Interface
 
 Uses
   cutils,cclasses,
-  globtype,aasmbase,aasmtai,cpubase,cpuinfo,cgbase,
+  globtype,aasmbase,aasmtai,cpubase,cpuinfo,cgbase,cgutils,
   symconst,symbase,symtype,symdef,symsym;
 
 Const
@@ -710,20 +710,15 @@ end;
 Procedure TOperand.SetSize(_size:longint;force:boolean);
 begin
   if force or
-     ((size = OS_NO) and (_size<=extended_size)) then
+     ((size = OS_NO) and (_size<=16)) then
    Begin
      case _size of
-      1 : size:=OS_8;
-      2 : size:=OS_16{ could be S_IS};
-      4 : size:=OS_32{ could be S_IL or S_FS};
-      8 : size:=OS_64{ could be S_D or S_FL};
-     else
-      begin
-        { extended_size can also be 8, resulting in a
-          duplicate label }
-        if _size=extended_size then
-          size:=OS_F80;
-      end;
+        1 : size:=OS_8;
+        2 : size:=OS_16{ could be S_IS};
+        4 : size:=OS_32{ could be S_IL or S_FS};
+        8 : size:=OS_64{ could be S_D or S_FL};
+       10 : size:=OS_F80;
+       16 : size:=OS_128;
      end;
    end;
 end;
@@ -1664,7 +1659,11 @@ end;
 end.
 {
   $Log$
-  Revision 1.92  2004-10-24 11:44:28  peter
+  Revision 1.93  2004-10-31 21:45:03  peter
+    * generic tlocation
+    * move tlocation to cgutils
+
+  Revision 1.92  2004/10/24 11:44:28  peter
     * small regvar fixes
     * loadref parameter removed from concatcopy,incrrefcount,etc
 

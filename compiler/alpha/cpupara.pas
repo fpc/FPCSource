@@ -161,11 +161,11 @@ unit cpupara;
                       if nextintreg<=tregister(ord(R_10)-ord(is_64bit))  then
                         begin
                            hp.paraloc.loc:=LOC_REGISTER;
-                           hp.paraloc.registerlow:=nextintreg;
+                           hp.paraloc.register64.reglo:=nextintreg;
                            inc(nextintreg);
                            if is_64bit then
                              begin
-                               hp.paraloc.registerhigh:=nextintreg;
+                               hp.paraloc.register64.reghi:=nextintreg;
                                inc(nextintreg);
                              end;
                         end
@@ -257,7 +257,7 @@ unit cpupara;
                 getfuncretparaloc.register:=R_3;
                 getfuncretparaloc.size:=def_cgsize(p.rettype.def);
                 if getfuncretparaloc.size in [OS_S64,OS_64] then
-                  getfuncretparaloc.registerhigh:=R_4;
+                  getfuncretparaloc.register64.reghi:=R_4;
               end;
             floatdef:
               begin
@@ -291,7 +291,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.2  2004-06-20 08:55:31  florian
+  Revision 1.3  2004-10-31 21:45:03  peter
+    * generic tlocation
+    * move tlocation to cgutils
+
+  Revision 1.2  2004/06/20 08:55:31  florian
     * logs truncated
 
 }

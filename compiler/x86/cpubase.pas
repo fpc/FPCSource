@@ -36,9 +36,7 @@ interface
 
 uses
   cutils,cclasses,
-  globtype,globals,
-  cpuinfo,
-  aasmbase,
+  globtype,
   cgbase
   ;
 
@@ -226,95 +224,6 @@ uses
                    F_A,F_AE,F_B,F_BE,
                    F_S,F_NS,F_O,F_NO);
 
-{*****************************************************************************
-                                Reference
-*****************************************************************************}
-
-    type
-      { reference record, reordered for best alignment }
-      preference = ^treference;
-      treference = record
-         offset      : aint;
-         symbol,
-         relsymbol   : tasmsymbol;
-         segment,
-         base,
-         index       : tregister;
-         refaddr     : trefaddr;
-         scalefactor : byte;
-      end;
-
-      { reference record }
-      pparareference = ^tparareference;
-      tparareference = packed record
-         index       : tregister;
-         offset      : aint;
-      end;
-
-{*****************************************************************************
-                               Generic Location
-*****************************************************************************}
-
-    type
-      { tparamlocation describes where a parameter for a procedure is stored.
-        References are given from the caller's point of view. The usual
-        TLocation isn't used, because contains a lot of unnessary fields.
-      }
-      tparalocation = record
-         size : TCGSize;
-         loc  : TCGLoc;
-         { Location type of registerhigh, for x86_64 this can
-           be different from loc when pushing structures of 16 bytes }
-         lochigh : TCGLoc;
-         alignment : byte;
-         case TCGLoc of
-            LOC_REFERENCE : (reference : tparareference);
-            { segment in reference at the same place as in loc_register }
-            LOC_REGISTER,LOC_CREGISTER : (
-              case longint of
-                1 : (register,registerhigh : tregister);
-                { overlay a registerlow }
-                2 : (registerlow : tregister);
-{$ifndef cpu64bit}
-                { overlay a 64 Bit register type }
-                3 : (register64 : tregister64);
-{$endif cpu64bit}
-              );
-            { it's only for better handling }
-            LOC_MMXREGISTER,LOC_CMMXREGISTER : (
-              case longint of
-              0: (mmxreg : tregister);
-              1: (mmxregset : Tregistermmxset);
-            );
-      end;
-
-      tlocation = packed record
-         loc  : TCGLoc;
-         size : TCGSize;
-         case TCGLoc of
-            LOC_FLAGS : (resflags : tresflags);
-            LOC_CONSTANT : (
-              case longint of
-                1 : (value : AInt);
-                { can't do this, this layout depends on the host cpu. Use }
-                { lo(valueqword)/hi(valueqword) instead (JM)              }
-                { overlay a complete 64 Bit value }
-                2 : (value64 : Int64);
-              );
-            LOC_CREFERENCE,
-            LOC_REFERENCE : (reference : treference);
-            { segment in reference at the same place as in loc_register }
-            LOC_REGISTER,LOC_CREGISTER : (
-              case longint of
-                1 : (register,registerhigh,segment : tregister);
-                { overlay a registerlow }
-                2 : (registerlow : tregister);
-                { overlay a 64 Bit register type }
-                3 : (register64 : tregister64);
-              );
-            { it's only for better handling }
-            LOC_MMXREGISTER,LOC_CMMXREGISTER : (mmxreg : tregister);
-      end;
 
 {*****************************************************************************
                                  Constants
@@ -539,7 +448,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.48  2004-10-25 15:36:47  peter
+  Revision 1.49  2004-10-31 21:45:04  peter
+    * generic tlocation
+    * move tlocation to cgutils
+
+  Revision 1.48  2004/10/25 15:36:47  peter
     * save standard registers moved to tcgobj
 
   Revision 1.47  2004/10/15 09:22:23  mazen

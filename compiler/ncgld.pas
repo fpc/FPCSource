@@ -44,6 +44,10 @@ interface
           procedure pass_2;override;
        end;
 
+       tcgrttinode = class(trttinode)
+          procedure pass_2;override;
+       end;
+
 
 implementation
 
@@ -926,14 +930,32 @@ implementation
          end;
       end;
 
+
+{*****************************************************************************
+                           SecondRTTI
+*****************************************************************************}
+
+    procedure tcgrttinode.pass_2;
+      begin
+        location_reset(location,LOC_CREFERENCE,OS_NO);
+        location.reference.symbol:=rttidef.get_rtti_label(rttitype);
+      end;
+
+
+
 begin
    cloadnode:=tcgloadnode;
    cassignmentnode:=tcgassignmentnode;
    carrayconstructornode:=tcgarrayconstructornode;
+   crttinode:=tcgrttinode;
 end.
 {
   $Log$
-  Revision 1.128  2004-10-24 11:44:28  peter
+  Revision 1.129  2004-10-31 21:45:03  peter
+    * generic tlocation
+    * move tlocation to cgutils
+
+  Revision 1.128  2004/10/24 11:44:28  peter
     * small regvar fixes
     * loadref parameter removed from concatcopy,incrrefcount,etc
 

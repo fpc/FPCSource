@@ -37,7 +37,7 @@ interface
        cclasses,symnot,
        { aasm }
        aasmbase,
-       cpuinfo,cpubase,cgbase,parabase
+       cpuinfo,cpubase,cgbase,cgutils,parabase
        ;
 
     type
@@ -305,7 +305,7 @@ interface
 implementation
 
     uses
-       strings,
+//       strings,
        { global }
        verbose,
        { target }
@@ -315,7 +315,7 @@ implementation
        { tree }
        node,
        { aasm }
-       aasmcpu,
+//       aasmcpu,
        { codegen }
        paramgr,cresstr,
        procinfo
@@ -2251,7 +2251,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.188  2004-10-15 09:14:17  mazen
+  Revision 1.189  2004-10-31 21:45:03  peter
+    * generic tlocation
+    * move tlocation to cgutils
+
+  Revision 1.188  2004/10/15 09:14:17  mazen
   - remove $IFDEF DELPHI and related code
   - remove $IFDEF FPCPROCVAR and related code
 

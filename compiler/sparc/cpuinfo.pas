@@ -45,18 +45,6 @@ type
 
 
 const
-{# Size of native extended floating point type }
-{SPARC architecture uses IEEE double floating point numbers}
-  extended_size = 8;
-{# Size of a multimedia register               }
-  mmreg_size = 8;
-{ target cpu string (used by compiler options) }
-  target_cpu_string = 'sparc';
-{ size of the buffer used for setjump/longjmp
-  the size of this buffer is deduced from the
-  jmp_buf structure in setjumph.inc file }
-  JMP_BUF_SIZE = 12+16;
-
   { calling conventions supported by the code generator }
   supported_calling_conventions : tproccalloptions = [
     pocall_internproc,
@@ -83,7 +71,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.19  2004-09-21 17:25:13  peter
+  Revision 1.20  2004-10-31 21:45:04  peter
+    * generic tlocation
+    * move tlocation to cgutils
+
+  Revision 1.19  2004/09/21 17:25:13  peter
     * paraloc branch merged
 
   Revision 1.18.4.1  2004/09/12 12:04:41  peter

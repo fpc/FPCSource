@@ -100,8 +100,7 @@ interface
 implementation
 
     uses
-      verbose,
-      cpuinfo;
+      verbose;
 
     const
       { Call frame information }
@@ -422,7 +421,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.3  2004-06-20 08:55:29  florian
+  Revision 1.4  2004-10-31 21:45:02  peter
+    * generic tlocation
+    * move tlocation to cgutils
+
+  Revision 1.3  2004/06/20 08:55:29  florian
     * logs truncated
 
   Revision 1.2  2004/06/16 20:07:07  florian

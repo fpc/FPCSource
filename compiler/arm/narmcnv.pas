@@ -177,9 +177,9 @@ implementation
                 if left.location.size in [OS_64,OS_S64] then
                  begin
                    hregister:=cg.getintregister(exprasmlist,OS_32);
-                   cg.a_load_reg_reg(exprasmlist,OS_32,OS_32,left.location.registerlow,hregister);
+                   cg.a_load_reg_reg(exprasmlist,OS_32,OS_32,left.location.register64.reglo,hregister);
                    tcgarm(cg).setflags:=true;
-                   cg.a_op_reg_reg(exprasmlist,OP_OR,OS_32,left.location.registerhigh,hregister);
+                   cg.a_op_reg_reg(exprasmlist,OP_OR,OS_32,left.location.register64.reghi,hregister);
                    tcgarm(cg).setflags:=false;
                  end
                 else
@@ -220,7 +220,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.11  2004-10-24 07:54:25  florian
+  Revision 1.12  2004-10-31 21:45:03  peter
+    * generic tlocation
+    * move tlocation to cgutils
+
+  Revision 1.11  2004/10/24 07:54:25  florian
     * fixed compilation of arm compiler
 
   Revision 1.10  2004/06/20 08:55:31  florian

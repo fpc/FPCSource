@@ -34,8 +34,8 @@ interface
 
     uses
        cutils,cclasses,
-       globtype,globals,systems,
-       cpuinfo;
+       globtype,globals,systems
+       ;
 
     type
        TAsmSection = class;
@@ -941,7 +941,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.22  2004-10-15 09:14:16  mazen
+  Revision 1.23  2004-10-31 21:45:02  peter
+    * generic tlocation
+    * move tlocation to cgutils
+
+  Revision 1.22  2004/10/15 09:14:16  mazen
   - remove $IFDEF DELPHI and related code
   - remove $IFDEF FPCPROCVAR and related code
 

@@ -23,7 +23,6 @@
 { This include file contains the basic declarations for the i386 architecture.
 }
 
-
 {*****************************************************************************
                                 Operand Sizes
 *****************************************************************************}
@@ -167,9 +166,20 @@
       }
       std_param_align = 4;
 
+      { size of the buffer used for setjump/longjmp
+        the size of this buffer is deduced from the
+        jmp_buf structure in setjumph.inc file
+      }
+      jmp_buf_size = 24;
+
+
 {
   $Log$
-  Revision 1.14  2004-06-20 08:55:31  florian
+  Revision 1.15  2004-10-31 21:45:03  peter
+    * generic tlocation
+    * move tlocation to cgutils
+
+  Revision 1.14  2004/06/20 08:55:31  florian
     * logs truncated
 
   Revision 1.13  2004/06/16 20:07:10  florian

@@ -34,7 +34,7 @@ unit procinfo;
       { symtable }
       symconst,symtype,symdef,symsym,
       { aasm }
-      cpubase,cpuinfo,cgbase,
+      cpubase,cpuinfo,cgbase,cgutils,
       aasmbase,aasmtai
       ;
 
@@ -123,7 +123,7 @@ implementation
 
      uses
         cutils,systems,
-        tgobj,cgutils,cgobj,
+        tgobj,cgobj,
         paramgr
         ;
 
@@ -184,7 +184,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.16  2004-06-20 08:55:30  florian
+  Revision 1.17  2004-10-31 21:45:03  peter
+    * generic tlocation
+    * move tlocation to cgutils
+
+  Revision 1.16  2004/06/20 08:55:30  florian
     * logs truncated
 
   Revision 1.15  2004/06/16 20:07:09  florian

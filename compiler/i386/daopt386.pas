@@ -30,7 +30,7 @@ interface
 
 uses
   globtype,
-  cclasses,aasmbase,aasmtai,aasmcpu,cgbase,
+  cclasses,aasmbase,aasmtai,aasmcpu,cgbase,cgutils,
   cpubase,optbase;
 
 {******************************* Constants *******************************}
@@ -2783,7 +2783,11 @@ end.
 
 {
   $Log$
-  Revision 1.73  2004-10-10 15:01:19  jonas
+  Revision 1.74  2004-10-31 21:45:03  peter
+    * generic tlocation
+    * move tlocation to cgutils
+
+  Revision 1.73  2004/10/10 15:01:19  jonas
     * several fixes to allocregbetween()
 
   Revision 1.72  2004/10/06 19:24:38  jonas

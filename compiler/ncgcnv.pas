@@ -60,9 +60,9 @@ interface
       cutils,verbose,globtype,globals,
       aasmbase,aasmtai,aasmcpu,symconst,symdef,paramgr,
       ncon,ncal,
-      cpubase,cpuinfo,systems,
+      cpubase,systems,
       pass_2,
-      procinfo,cgbase,
+      cgbase,
       cgutils,cgobj,
       ncgutil,
       tgobj
@@ -529,7 +529,11 @@ end.
 
 {
   $Log$
-  Revision 1.60  2004-09-25 14:23:54  peter
+  Revision 1.61  2004-10-31 21:45:03  peter
+    * generic tlocation
+    * move tlocation to cgutils
+
+  Revision 1.60  2004/09/25 14:23:54  peter
     * ungetregister is now only used for cpuregisters, renamed to
       ungetcpuregister
     * renamed (get|unget)explicitregister(s) to ..cpuregister

@@ -2092,7 +2092,7 @@ implementation
       begin
          case typ of
            s32real : savesize:=4;
-           s80real : savesize:=extended_size;
+           s80real : savesize:=10;
            s64real,
            s64currency,
            s64comp : savesize:=8;
@@ -6200,7 +6200,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.260  2004-10-26 15:02:33  peter
+  Revision 1.261  2004-10-31 21:45:03  peter
+    * generic tlocation
+    * move tlocation to cgutils
+
+  Revision 1.260  2004/10/26 15:02:33  peter
     * align arraydef rtti
 
   Revision 1.259  2004/10/15 09:14:17  mazen

@@ -1768,7 +1768,7 @@ Unit Ra386int;
                   AS_BYTE  : size:=1;
                   AS_QWORD : size:=8;
                   AS_DQWORD : size:=16;
-                  AS_TBYTE : size:=extended_size;
+                  AS_TBYTE : size:=10;
                 end;
                 Consume(actasmtoken);
                 case actasmtoken of
@@ -2014,7 +2014,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.77  2004-09-13 20:25:52  peter
+  Revision 1.78  2004-10-31 21:45:03  peter
+    * generic tlocation
+    * move tlocation to cgutils
+
+  Revision 1.77  2004/09/13 20:25:52  peter
     * support byte() typecast
     * support array index
 

@@ -45,19 +45,6 @@ Type
 
 
 Const
-   {# Size of native extended floating point type }
-   extended_size = 8;
-   {# Size of a multimedia register               }
-   mmreg_size = 16;
-   { target cpu string (used by compiler options) }
-   target_cpu_string = 'powerpc';
-   { size of the buffer used for setjump/longjmp
-     the size of this buffer is deduced from the
-     jmp_buf structure in setjumph.inc file
-   }
-   { for linux: }
-   jmp_buf_size = 232;
-
    { calling conventions supported by the code generator }
    supported_calling_conventions : tproccalloptions = [
      pocall_internproc,
@@ -85,7 +72,11 @@ Implementation
 end.
 {
   $Log$
-  Revision 1.20  2004-06-20 08:55:32  florian
+  Revision 1.21  2004-10-31 21:45:03  peter
+    * generic tlocation
+    * move tlocation to cgutils
+
+  Revision 1.20  2004/06/20 08:55:32  florian
     * logs truncated
 
   Revision 1.19  2004/06/16 20:07:10  florian

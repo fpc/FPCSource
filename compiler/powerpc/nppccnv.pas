@@ -57,10 +57,10 @@ interface
 implementation
 
    uses
-      verbose,globals,systems,
+      verbose,globtype,globals,systems,
       symconst,symdef,aasmbase,aasmtai,
       defutil,
-      cgbase,pass_1,pass_2,
+      cgbase,cgutils,pass_1,pass_2,
       ncon,ncal,
       ncgutil,
       cpubase,aasmcpu,
@@ -305,7 +305,7 @@ implementation
                      if left.location.size in [OS_64,OS_S64] then
                        begin
                           hreg1:=cg.getintregister(exprasmlist,OS_32);
-                          cg.a_op_reg_reg_reg(exprasmlist,OP_OR,OS_32,left.location.registerhigh,left.location.registerlow,hreg1);
+                          cg.a_op_reg_reg_reg(exprasmlist,OP_OR,OS_32,left.location.register64.reghi,left.location.register64.reglo,hreg1);
                        end
                      else
                        hreg1 := left.location.register;
@@ -345,7 +345,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.54  2004-09-25 14:23:55  peter
+  Revision 1.55  2004-10-31 21:45:03  peter
+    * generic tlocation
+    * move tlocation to cgutils
+
+  Revision 1.54  2004/09/25 14:23:55  peter
     * ungetregister is now only used for cpuregisters, renamed to
       ungetcpuregister
     * renamed (get|unget)explicitregister(s) to ..cpuregister

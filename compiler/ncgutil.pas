@@ -29,7 +29,7 @@ interface
     uses
       node,cpuinfo,
       globtype,
-      cpubase,cgbase,parabase,
+      cpubase,cgbase,parabase,cgutils,
       aasmbase,aasmtai,aasmcpu,
       symconst,symbase,symdef,symsym,symtype,symtable
 {$ifndef cpu64bit}
@@ -127,7 +127,7 @@ implementation
 {$endif GDB}
     pass_1,pass_2,
     ncon,nld,nutils,
-    tgobj,cgutils,cgobj;
+    tgobj,cgobj;
 
 
 {*****************************************************************************
@@ -250,8 +250,8 @@ implementation
             begin
               { can't be a regvar, since it would be LOC_CREGISTER then }
               exclude(regs,getsupreg(t.register));
-              if t.registerhigh<>NR_NO then
-                exclude(regs,getsupreg(t.registerhigh));
+              if t.register64.reghi<>NR_NO then
+                exclude(regs,getsupreg(t.register64.reghi));
             end;
           LOC_CREFERENCE,LOC_REFERENCE:
             begin
@@ -367,8 +367,8 @@ implementation
               { load a smaller size to OS_64 }
               if l.loc=LOC_REGISTER then
                begin
-                 hregister:=cg.makeregsize(list,l.registerlow,OS_32);
-                 cg.a_load_reg_reg(list,l.size,OS_32,l.registerlow,hregister);
+                 hregister:=cg.makeregsize(list,l.register64.reglo,OS_32);
+                 cg.a_load_reg_reg(list,l.size,OS_32,l.register64.reglo,hregister);
                end
               else
                hregister:=cg.getintregister(list,OS_INT);
@@ -409,8 +409,8 @@ implementation
               else
                cg.a_load_const_reg(list,OS_32,0,hregisterhi);
               location_reset(l,LOC_REGISTER,dst_size);
-              l.registerlow:=hregister;
-              l.registerhigh:=hregisterhi;
+              l.register64.reglo:=hregister;
+              l.register64.reghi:=hregisterhi;
             end
            else
             begin
@@ -418,8 +418,8 @@ implementation
               if (l.loc=LOC_REGISTER) or
                  ((l.loc=LOC_CREGISTER) and maybeconst) then
                begin
-                 hregister:=l.registerlow;
-                 hregisterhi:=l.registerhigh;
+                 hregister:=l.register64.reglo;
+                 hregisterhi:=l.register64.reghi;
                end
               else
                begin
@@ -431,8 +431,8 @@ implementation
               { load value in new register }
               cg64.a_load64_loc_reg(list,l,hreg64);
               location_reset(l,LOC_REGISTER,dst_size);
-              l.registerlow:=hregister;
-              l.registerhigh:=hregisterhi;
+              l.register64.reglo:=hregister;
+              l.register64.reghi:=hregisterhi;
             end;
          end
         else
@@ -1089,12 +1089,12 @@ implementation
                         internalerror(200409141);
                       { Load low and high register separate to generate better register
                         allocation info }
-                      if getsupreg(resloc.registerlow)<first_int_imreg then
+                      if getsupreg(resloc.register64.reglo)<first_int_imreg then
                         begin
-                          cg.getcpuregister(list,resloc.registerlow);
-                          cg.ungetcpuregister(list,resloc.registerlow);
+                          cg.getcpuregister(list,resloc.register64.reglo);
+                          cg.ungetcpuregister(list,resloc.register64.reglo);
                           { for the optimizer }
-                          cg.a_reg_alloc(list,resloc.registerlow);
+                          cg.a_reg_alloc(list,resloc.register64.reglo);
                         end;
                       case restmploc.loc of
                         LOC_REFERENCE :
@@ -1102,19 +1102,19 @@ implementation
                             href:=restmploc.reference;
                             if target_info.endian=ENDIAN_BIG then
                               inc(href.offset,4);
-                            cg.a_load_ref_reg(list,OS_32,OS_32,href,resloc.registerlow);
+                            cg.a_load_ref_reg(list,OS_32,OS_32,href,resloc.register64.reglo);
                           end;
                         LOC_CREGISTER :
-                          cg.a_load_reg_reg(list,OS_32,OS_32,restmploc.registerlow,resloc.registerlow);
+                          cg.a_load_reg_reg(list,OS_32,OS_32,restmploc.register64.reglo,resloc.register64.reglo);
                         else
                           internalerror(200409203);
                       end;
-                      if getsupreg(resloc.registerhigh)<first_int_imreg then
+                      if getsupreg(resloc.register64.reghi)<first_int_imreg then
                         begin
-                          cg.getcpuregister(list,resloc.registerhigh);
-                          cg.ungetcpuregister(list,resloc.registerhigh);
+                          cg.getcpuregister(list,resloc.register64.reghi);
+                          cg.ungetcpuregister(list,resloc.register64.reghi);
                           { for the optimizer }
-                          cg.a_reg_alloc(list,resloc.registerhigh);
+                          cg.a_reg_alloc(list,resloc.register64.reghi);
                         end;
                       case restmploc.loc of
                         LOC_REFERENCE :
@@ -1122,10 +1122,10 @@ implementation
                             href:=restmploc.reference;
                             if target_info.endian=ENDIAN_LITTLE then
                               inc(href.offset,4);
-                            cg.a_load_ref_reg(list,OS_32,OS_32,href,resloc.registerhigh);
+                            cg.a_load_ref_reg(list,OS_32,OS_32,href,resloc.register64.reghi);
                           end;
                         LOC_CREGISTER :
-                          cg.a_load_reg_reg(list,OS_32,OS_32,restmploc.registerhigh,resloc.registerhigh);
+                          cg.a_load_reg_reg(list,OS_32,OS_32,restmploc.register64.reghi,resloc.register64.reghi);
                         else
                           internalerror(200409204);
                       end;
@@ -1323,17 +1323,17 @@ implementation
                       { First 32bits }
                       unget_para(paraloc^);
                       if (target_info.endian=ENDIAN_BIG) then
-                        gen_load_reg(paraloc^,tvarsym(hp.parasym).localloc.registerhigh)
+                        gen_load_reg(paraloc^,tvarsym(hp.parasym).localloc.register64.reghi)
                       else
-                        gen_load_reg(paraloc^,tvarsym(hp.parasym).localloc.registerlow);
+                        gen_load_reg(paraloc^,tvarsym(hp.parasym).localloc.register64.reglo);
                       { Second 32bits }
                       if not assigned(paraloc^.next) then
                         internalerror(200410104);
                       unget_para(paraloc^);
                       if (target_info.endian=ENDIAN_BIG) then
-                        gen_load_reg(paraloc^,tvarsym(hp.parasym).localloc.registerlow)
+                        gen_load_reg(paraloc^,tvarsym(hp.parasym).localloc.register64.reglo)
                       else
-                        gen_load_reg(paraloc^,tvarsym(hp.parasym).localloc.registerhigh);
+                        gen_load_reg(paraloc^,tvarsym(hp.parasym).localloc.register64.reghi);
                     end
                   else
 {$endif cpu64bit}
@@ -1874,8 +1874,8 @@ implementation
 {$ifndef cpu64bit}
                                   if cgsize in [OS_64,OS_S64] then
                                     begin
-                                      localloc.registerlow:=cg.getintregister(list,OS_32);
-                                      localloc.registerhigh:=cg.getintregister(list,OS_32);
+                                      localloc.register64.reglo:=cg.getintregister(list,OS_32);
+                                      localloc.register64.reghi:=cg.getintregister(list,OS_32);
                                     end
                                   else
 {$endif cpu64bit}
@@ -2207,7 +2207,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.233  2004-10-28 18:29:44  olle
+  Revision 1.234  2004-10-31 21:45:03  peter
+    * generic tlocation
+    * move tlocation to cgutils
+
+  Revision 1.233  2004/10/28 18:29:44  olle
     * reverted, for macos only, last change.
 
   Revision 1.232  2004/10/26 15:03:31  peter

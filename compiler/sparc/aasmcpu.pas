@@ -30,7 +30,7 @@ uses
   cclasses,
   globtype,globals,verbose,
   aasmbase,aasmtai,
-  cgbase,cpubase,cpuinfo;
+  cgbase,cgutils,cpubase,cpuinfo;
 
     const
       { "mov reg,reg" source operand number }
@@ -313,7 +313,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.51  2004-10-30 15:21:38  florian
+  Revision 1.52  2004-10-31 21:45:03  peter
+    * generic tlocation
+    * move tlocation to cgutils
+
+  Revision 1.51  2004/10/30 15:21:38  florian
     * fixed generic optimizer
     * enabled generic optimizer for sparc
 

@@ -29,7 +29,7 @@ interface
 
     uses
        globtype,
-       cpuinfo,cpubase,cgbase,
+       cpuinfo,cpubase,cgbase,cgutils,
        symconst,symtype,symdef,aasmbase,aasmtai,aasmcpu;
 
     procedure emit_none(i : tasmop;s : topsize);
@@ -129,7 +129,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.9  2004-06-20 08:55:32  florian
+  Revision 1.10  2004-10-31 21:45:04  peter
+    * generic tlocation
+    * move tlocation to cgutils
+
+  Revision 1.9  2004/06/20 08:55:32  florian
     * logs truncated
 
   Revision 1.8  2004/06/16 20:07:11  florian

@@ -53,7 +53,7 @@ implementation
       defutil,
       cgbase,pass_2,
       cpubase,ncgutil,
-      cgobj,rgobj;
+      cgutils,cgobj,rgobj;
 
 
 {*****************************************************************************
@@ -147,7 +147,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.16  2004-09-25 14:23:55  peter
+  Revision 1.17  2004-10-31 21:45:03  peter
+    * generic tlocation
+    * move tlocation to cgutils
+
+  Revision 1.16  2004/09/25 14:23:55  peter
     * ungetregister is now only used for cpuregisters, renamed to
       ungetcpuregister
     * renamed (get|unget)explicitregister(s) to ..cpuregister

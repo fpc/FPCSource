@@ -281,9 +281,9 @@ unit cpubase;
             { segment in reference at the same place as in loc_register }
             LOC_REGISTER,LOC_CREGISTER : (
               case longint of
-                1 : (register,registerhigh : tregister);
-                { overlay a registerlow }
-                2 : (registerlow : tregister);
+                1 : (register,register64.reghi : tregister);
+                { overlay a register64.reglo }
+                2 : (register64.reglo : tregister);
                 { overlay a 64 Bit register type }
                 3 : (reg64 : tregister64);
                 4 : (register64 : tregister64);
@@ -308,9 +308,9 @@ unit cpubase;
             { segment in reference at the same place as in loc_register }
             LOC_REGISTER,LOC_CREGISTER : (
               case longint of
-                1 : (register,registerhigh,segment : tregister);
-                { overlay a registerlow }
-                2 : (registerlow : tregister);
+                1 : (register,register64.reghi,segment : tregister);
+                { overlay a register64.reglo }
+                2 : (register64.reglo : tregister);
                 { overlay a 64 Bit register type }
                 3 : (reg64 : tregister64);
                 4 : (register64 : tregister64);
@@ -458,7 +458,11 @@ end;
 end.
 {
   $Log$
-  Revision 1.7  2004-06-20 08:55:31  florian
+  Revision 1.8  2004-10-31 21:45:03  peter
+    * generic tlocation
+    * move tlocation to cgutils
+
+  Revision 1.7  2004/06/20 08:55:31  florian
     * logs truncated
 
 }

@@ -28,7 +28,6 @@ interface
 
     uses
        cclasses,
-       cpuinfo,
        globtype,globals,tokens,
        node,
        symconst,symbase,symtype,symdef;
@@ -1300,7 +1299,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.53  2004-09-21 15:52:35  peter
+  Revision 1.54  2004-10-31 21:45:02  peter
+    * generic tlocation
+    * move tlocation to cgutils
+
+  Revision 1.53  2004/09/21 15:52:35  peter
     * prefer pchar-string over pchar-pointer
 
   Revision 1.52  2004/09/16 16:32:44  peter

@@ -67,9 +67,9 @@ unit nx86add;
       cpuinfo,
       aasmbase,aasmtai,aasmcpu,
       symconst,symdef,
-      cgobj,cgx86,cga,
+      cgobj,cgx86,cga,cgutils,
       paramgr,parabase,
-      htypechk,
+      htypechk,tgobj,
       pass_2,ncgutil,
       ncon,nset,
       defutil;
@@ -906,7 +906,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.13  2004-09-25 14:23:55  peter
+  Revision 1.14  2004-10-31 21:45:04  peter
+    * generic tlocation
+    * move tlocation to cgutils
+
+  Revision 1.13  2004/09/25 14:23:55  peter
     * ungetregister is now only used for cpuregisters, renamed to
       ungetcpuregister
     * renamed (get|unget)explicitregister(s) to ..cpuregister

@@ -59,7 +59,7 @@ interface
 implementation
 
    uses
-      verbose,systems,globals,
+      verbose,systems,globals,globtype,
       aasmbase,aasmtai,aasmcpu,
       symconst,symdef,
       cgbase,cga,pass_2,
@@ -152,8 +152,8 @@ implementation
                 if left.location.size in [OS_64,OS_S64] then
                  begin
                    hregister:=cg.getintregister(exprasmlist,OS_32);
-                   cg.a_load_reg_reg(exprasmlist,OS_32,OS_32,left.location.registerlow,hregister);
-                   cg.a_op_reg_reg(exprasmlist,OP_OR,OS_32,left.location.registerhigh,hregister);
+                   cg.a_load_reg_reg(exprasmlist,OS_32,OS_32,left.location.register64.reglo,hregister);
+                   cg.a_op_reg_reg(exprasmlist,OP_OR,OS_32,left.location.register64.reghi,hregister);
                  end
                 else
 {$endif cpu64bit}
@@ -292,7 +292,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.16  2004-09-30 19:32:19  hajny
+  Revision 1.17  2004-10-31 21:45:04  peter
+    * generic tlocation
+    * move tlocation to cgutils
+
+  Revision 1.16  2004/09/30 19:32:19  hajny
     * explicit typecast added to avoid range check error
 
   Revision 1.15  2004/09/26 09:12:50  florian

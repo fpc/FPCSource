@@ -29,7 +29,7 @@ interface
     uses
       cpubase,
       globtype,
-      parabase,
+      parabase,cgutils,
       symdef,node,ncal;
 
     type
@@ -90,7 +90,7 @@ implementation
       cga,cgx86,
 {$endif x86}
       ncgutil,
-      cgutils,cgobj,tgobj,
+      cgobj,tgobj,
       procinfo;
 
 
@@ -575,14 +575,14 @@ implementation
                              if retloc.loc<>LOC_REGISTER then
                                internalerror(200409141);
                              { the function result registers are already allocated }
-                             if getsupreg(retloc.registerlow)<first_int_imreg then
-                               cg.ungetcpuregister(exprasmlist,retloc.registerlow);
-                             location.registerlow:=cg.getintregister(exprasmlist,OS_32);
-                             cg.a_load_reg_reg(exprasmlist,OS_32,OS_32,retloc.registerlow,location.registerlow);
-                             if getsupreg(retloc.registerhigh)<first_int_imreg then
-                               cg.ungetcpuregister(exprasmlist,retloc.registerhigh);
-                             location.registerhigh:=cg.getintregister(exprasmlist,OS_32);
-                             cg.a_load_reg_reg(exprasmlist,OS_32,OS_32,retloc.registerhigh,location.registerhigh);
+                             if getsupreg(retloc.register64.reglo)<first_int_imreg then
+                               cg.ungetcpuregister(exprasmlist,retloc.register64.reglo);
+                             location.register64.reglo:=cg.getintregister(exprasmlist,OS_32);
+                             cg.a_load_reg_reg(exprasmlist,OS_32,OS_32,retloc.register64.reglo,location.register64.reglo);
+                             if getsupreg(retloc.register64.reghi)<first_int_imreg then
+                               cg.ungetcpuregister(exprasmlist,retloc.register64.reghi);
+                             location.register64.reghi:=cg.getintregister(exprasmlist,OS_32);
+                             cg.a_load_reg_reg(exprasmlist,OS_32,OS_32,retloc.register64.reghi,location.register64.reghi);
                            end
                           else
 {$endif cpu64bit}
@@ -1247,7 +1247,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.181  2004-10-24 20:01:08  peter
+  Revision 1.182  2004-10-31 21:45:03  peter
+    * generic tlocation
+    * move tlocation to cgutils
+
+  Revision 1.181  2004/10/24 20:01:08  peter
     * remove saveregister calling convention
 
   Revision 1.180  2004/10/24 11:53:45  peter

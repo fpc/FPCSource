@@ -29,7 +29,7 @@ interface
     uses
        cclasses,
        globtype,globals,
-       cpubase,cgbase,
+       cpubase,cgbase,cgutils,
        aasmbase,
        symtype;
 
@@ -1132,7 +1132,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.87  2004-06-20 08:55:29  florian
+  Revision 1.88  2004-10-31 21:45:03  peter
+    * generic tlocation
+    * move tlocation to cgutils
+
+  Revision 1.87  2004/06/20 08:55:29  florian
     * logs truncated
 
   Revision 1.86  2004/06/16 20:07:09  florian

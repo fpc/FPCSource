@@ -29,7 +29,7 @@ interface
 
     uses
       globtype,
-      cpuinfo,
+      aasmbase,
       symconst;
 
     type
@@ -166,23 +166,18 @@ interface
 {$ifdef cpu64bit}
       tregister64 = tregister;
 {$else cpu64bit}
-      tregister64 = packed record
+      tregister64 = record
          reglo,reghi : tregister;
       end;
 {$endif cpu64bit}
 
-      Tregistermmxset = packed record
+      Tregistermmxset = record
         reg0,reg1,reg2,reg3:Tregister
       end;
 
       { Set type definition for registers }
       tcpuregisterset = set of byte;
       tsuperregisterset = array[byte] of set of byte;
-
-      { Temp types }
-      ttemptype = (tt_none,
-                   tt_free,tt_normal,tt_persistent,
-                   tt_noreuse,tt_freenoreuse);
 
       pmmshuffle = ^tmmshuffle;
 
@@ -231,7 +226,7 @@ interface
          { integer values }
         (0,1,2,4,8,16,1,2,4,8,16,
          { floating point values }
-         4,8,EXTENDED_SIZE,8,16,
+         4,8,10,8,16,
          { multimedia values }
          1,2,4,8,16,1,2,4,8,16);
 
@@ -607,7 +602,11 @@ finalization
 end.
 {
   $Log$
-  Revision 1.95  2004-10-14 10:59:58  michael
+  Revision 1.96  2004-10-31 21:45:02  peter
+    * generic tlocation
+    * move tlocation to cgutils
+
+  Revision 1.95  2004/10/14 10:59:58  michael
   * fix clearing of superregset (from Peter)
 
   Revision 1.94  2004/08/24 21:02:32  florian
@@ -651,7 +650,7 @@ end.
 
   Revision 1.87  2004/02/09 22:14:17  peter
     * more x86_64 parameter fixes
-    * tparalocation.lochigh is now used to indicate if registerhigh
+    * tparalocation.lochigh is now used to indicate if register64.reghi
       is used and what the type is
 
 }

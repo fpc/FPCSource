@@ -73,8 +73,8 @@ interface
       cutils,verbose,globals,
       symconst,symdef,paramgr,
       aasmbase,aasmtai,defutil,
-      cgbase,cpuinfo,pass_2,
-      ncon,nset,ncgutil,cgobj
+      cgbase,pass_2,
+      ncon,nset,ncgutil,cgobj,cgutils
       ;
 
 
@@ -154,8 +154,8 @@ interface
 {$ifndef cpu64bit}
             if location.size in [OS_64,OS_S64] then
               begin
-                location.registerlow := left.location.registerlow;
-                location.registerhigh := left.location.registerhigh;
+                location.register64.reglo := left.location.register64.reglo;
+                location.register64.reghi := left.location.register64.reghi;
               end
             else
 {$endif}
@@ -169,8 +169,8 @@ interface
 {$ifndef cpu64bit}
             if location.size in [OS_64,OS_S64] then
               begin
-                location.registerlow := right.location.registerlow;
-                location.registerhigh := right.location.registerhigh;
+                location.register64.reglo := right.location.register64.reglo;
+                location.register64.reghi := right.location.register64.reghi;
               end
             else
 {$endif}
@@ -181,8 +181,8 @@ interface
 {$ifndef cpu64bit}
             if location.size in [OS_64,OS_S64] then
               begin
-                location.registerlow := cg.getintregister(exprasmlist,OS_INT);
-                location.registerhigh := cg.getintregister(exprasmlist,OS_INT);
+                location.register64.reglo := cg.getintregister(exprasmlist,OS_INT);
+                location.register64.reghi := cg.getintregister(exprasmlist,OS_INT);
               end
             else
 {$endif}
@@ -500,10 +500,10 @@ interface
 
               if left.location.loc <> LOC_CONSTANT then
                 begin
-                  if (location.registerlow = NR_NO) then
+                  if (location.register64.reglo = NR_NO) then
                     begin
-                     location.registerlow := cg.getintregister(exprasmlist,OS_INT);
-                     location.registerhigh := cg.getintregister(exprasmlist,OS_INT);
+                     location.register64.reglo := cg.getintregister(exprasmlist,OS_INT);
+                     location.register64.reghi := cg.getintregister(exprasmlist,OS_INT);
                   end;
                   if right.location.loc <> LOC_CONSTANT then
                     // reg64 - reg64
@@ -778,7 +778,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.34  2004-09-29 18:55:40  florian
+  Revision 1.35  2004-10-31 21:45:03  peter
+    * generic tlocation
+    * move tlocation to cgutils
+
+  Revision 1.34  2004/09/29 18:55:40  florian
     * fixed more sparc overflow stuff
     * fixed some op64 stuff for sparc
 

@@ -30,7 +30,7 @@ unit cgcpu;
        globtype,
        cgbase,cgobj,cg64f32,cgx86,
        aasmbase,aasmtai,aasmcpu,
-       cpubase,cpuinfo,parabase,
+       cpubase,cpuinfo,parabase,cgutils,
        node,symconst
        ;
 
@@ -65,8 +65,7 @@ unit cgcpu;
     uses
        globals,verbose,systems,cutils,
        paramgr,procinfo,
-       rgcpu,rgx86,tgobj,
-       cgutils;
+       rgcpu,rgx86,tgobj;
 
     procedure Tcg386.init_register_allocators;
       begin
@@ -520,7 +519,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.59  2004-10-24 20:01:08  peter
+  Revision 1.60  2004-10-31 21:45:03  peter
+    * generic tlocation
+    * move tlocation to cgutils
+
+  Revision 1.59  2004/10/24 20:01:08  peter
     * remove saveregister calling convention
 
   Revision 1.58  2004/10/24 11:44:28  peter

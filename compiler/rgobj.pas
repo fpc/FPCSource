@@ -33,7 +33,7 @@ unit rgobj;
     uses
       cutils, cpubase,
       aasmbase,aasmtai,aasmcpu,
-      cclasses,globtype,cgbase,node,
+      cclasses,globtype,cgbase,cgutils,
       cpuinfo
       ;
 
@@ -518,7 +518,6 @@ unit rgobj;
       var
         spillingcounter:byte;
         endspill:boolean;
-        i:Tsuperregister;
       begin
         { Insert regalloc info for imaginary registers }
         insert_regalloc_info_all(list);
@@ -789,9 +788,6 @@ unit rgobj;
 
 
     procedure trgobj.prepare_colouring;
-
-    var i:word;
-
     begin
       make_work_list;
       active_moves:=Tlinkedlist.create;
@@ -1997,7 +1993,11 @@ unit rgobj;
 end.
 {
   $Log$
-  Revision 1.146  2004-10-31 16:04:30  florian
+  Revision 1.147  2004-10-31 21:45:03  peter
+    * generic tlocation
+    * move tlocation to cgutils
+
+  Revision 1.146  2004/10/31 16:04:30  florian
     * fixed compilation of system unit on arm
 
   Revision 1.145  2004/10/30 15:21:37  florian

@@ -55,7 +55,7 @@ implementation
       cgbase,cgobj,pass_2,
       ncon,
       cpubase,
-      ncgutil,cgcpu;
+      ncgutil,cgcpu,cgutils;
 
 {*****************************************************************************
                              TSparcMODDIVNODE
@@ -178,7 +178,7 @@ implementation
     procedure tSparcshlshrnode.pass_2;
       var
         hregister,resultreg,hregister1,
-        hregisterhigh,hregisterlow : tregister;
+        hreg64hi,hreg64lo : tregister;
         op : topcg;
         shiftval: aword;
       begin
@@ -196,46 +196,46 @@ implementation
 
             { load left operator in a register }
             location_force_reg(exprasmlist,left.location,OS_64,false);
-            hregisterhigh:=left.location.registerhigh;
-            hregisterlow:=left.location.registerlow;
+            hreg64hi:=left.location.register64.reghi;
+            hreg64lo:=left.location.register64.reglo;
 
             shiftval := tordconstnode(right).value and 63;
             if shiftval > 31 then
               begin
                 if nodetype = shln then
                   begin
-                    cg.a_load_const_reg(exprasmlist,OS_32,0,hregisterhigh);
+                    cg.a_load_const_reg(exprasmlist,OS_32,0,hreg64hi);
                     if (shiftval and 31) <> 0 then
-                      cg.a_op_const_reg_reg(exprasmlist,OP_SHL,OS_32,shiftval and 31,hregisterlow,hregisterlow);
+                      cg.a_op_const_reg_reg(exprasmlist,OP_SHL,OS_32,shiftval and 31,hreg64lo,hreg64lo);
                   end
                 else
                   begin
-                    cg.a_load_const_reg(exprasmlist,OS_32,0,hregisterlow);
+                    cg.a_load_const_reg(exprasmlist,OS_32,0,hreg64lo);
                     if (shiftval and 31) <> 0 then
-                      cg.a_op_const_reg_reg(exprasmlist,OP_SHR,OS_32,shiftval and 31,hregisterhigh,hregisterhigh);
+                      cg.a_op_const_reg_reg(exprasmlist,OP_SHR,OS_32,shiftval and 31,hreg64hi,hreg64hi);
                   end;
-                location.registerlow:=hregisterhigh;
-                location.registerhigh:=hregisterlow;
+                location.register64.reglo:=hreg64hi;
+                location.register64.reghi:=hreg64lo;
               end
             else
               begin
                 hregister:=cg.getintregister(exprasmlist,OS_32);
                 if nodetype = shln then
                   begin
-                    cg.a_op_const_reg_reg(exprasmlist,OP_SHR,OS_32,32-shiftval,hregisterlow,hregister);
-                    cg.a_op_const_reg_reg(exprasmlist,OP_SHL,OS_32,shiftval,hregisterhigh,hregisterhigh);
-                    cg.a_op_reg_reg_reg(exprasmlist,OP_OR,OS_32,hregister,hregisterhigh,hregisterhigh);
-                    cg.a_op_const_reg_reg(exprasmlist,OP_SHL,OS_32,shiftval,hregisterlow,hregisterlow);
+                    cg.a_op_const_reg_reg(exprasmlist,OP_SHR,OS_32,32-shiftval,hreg64lo,hregister);
+                    cg.a_op_const_reg_reg(exprasmlist,OP_SHL,OS_32,shiftval,hreg64hi,hreg64hi);
+                    cg.a_op_reg_reg_reg(exprasmlist,OP_OR,OS_32,hregister,hreg64hi,hreg64hi);
+                    cg.a_op_const_reg_reg(exprasmlist,OP_SHL,OS_32,shiftval,hreg64lo,hreg64lo);
                   end
                 else
                   begin
-                    cg.a_op_const_reg_reg(exprasmlist,OP_SHL,OS_32,32-shiftval,hregisterhigh,hregister);
-                    cg.a_op_const_reg_reg(exprasmlist,OP_SHR,OS_32,shiftval,hregisterlow,hregisterlow);
-                    cg.a_op_reg_reg_reg(exprasmlist,OP_OR,OS_32,hregister,hregisterlow,hregisterlow);
-                    cg.a_op_const_reg_reg(exprasmlist,OP_SHR,OS_32,shiftval,hregisterhigh,hregisterhigh);
+                    cg.a_op_const_reg_reg(exprasmlist,OP_SHL,OS_32,32-shiftval,hreg64hi,hregister);
+                    cg.a_op_const_reg_reg(exprasmlist,OP_SHR,OS_32,shiftval,hreg64lo,hreg64lo);
+                    cg.a_op_reg_reg_reg(exprasmlist,OP_OR,OS_32,hregister,hreg64lo,hreg64lo);
+                    cg.a_op_const_reg_reg(exprasmlist,OP_SHR,OS_32,shiftval,hreg64hi,hreg64hi);
                   end;
-                location.registerhigh:=hregisterhigh;
-                location.registerlow:=hregisterlow;
+                location.register64.reghi:=hreg64hi;
+                location.register64.reglo:=hreg64lo;
               end;
           end
         else
@@ -325,7 +325,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.21  2004-09-25 14:23:55  peter
+  Revision 1.22  2004-10-31 21:45:04  peter
+    * generic tlocation
+    * move tlocation to cgutils
+
+  Revision 1.21  2004/09/25 14:23:55  peter
     * ungetregister is now only used for cpuregisters, renamed to
       ungetcpuregister
     * renamed (get|unget)explicitregister(s) to ..cpuregister

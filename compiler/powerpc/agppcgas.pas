@@ -46,7 +46,7 @@ unit agppcgas;
 
     uses
        cutils,globals,verbose,
-       cgbase,systems,
+       cgbase,cgutils,systems,
        assemble,
        itcpugas,
        aasmcpu;
@@ -365,7 +365,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.44  2004-06-20 08:55:31  florian
+  Revision 1.45  2004-10-31 21:45:03  peter
+    * generic tlocation
+    * move tlocation to cgutils
+
+  Revision 1.44  2004/06/20 08:55:31  florian
     * logs truncated
 
   Revision 1.43  2004/06/17 16:55:46  peter

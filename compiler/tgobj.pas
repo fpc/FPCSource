@@ -36,12 +36,10 @@ unit tgobj;
       cclasses,
       globals,globtype,
       symtype,
-      cpubase,cpuinfo,cgbase,
+      cpubase,cpuinfo,cgbase,cgutils,
       aasmbase,aasmtai;
 
     type
-      ttemptypeset = set of ttemptype;
-
       ptemprecord = ^ttemprecord;
       ttemprecord = record
          temptype   : ttemptype;
@@ -110,8 +108,10 @@ unit tgobj;
      var
        tg: ttgobj;
 
+    procedure location_freetemp(list:taasmoutput; const l : tlocation);
 
-    implementation
+
+implementation
 
     uses
        cutils,
@@ -136,6 +136,18 @@ unit tgobj;
         tt_none,tt_free,tt_free,
         tt_freenoreuse,tt_none
       );
+
+
+{*****************************************************************************
+                                    Helpers
+*****************************************************************************}
+
+    procedure location_freetemp(list:taasmoutput; const l : tlocation);
+      begin
+        if (l.loc in [LOC_REFERENCE,LOC_CREFERENCE]) then
+         tg.ungetiftemp(list,l.reference);
+      end;
+
 
 
 {*****************************************************************************
@@ -611,7 +623,11 @@ unit tgobj;
 end.
 {
   $Log$
-  Revision 1.48  2004-09-21 17:25:12  peter
+  Revision 1.49  2004-10-31 21:45:03  peter
+    * generic tlocation
+    * move tlocation to cgutils
+
+  Revision 1.48  2004/09/21 17:25:12  peter
     * paraloc branch merged
 
   Revision 1.47  2004/09/20 15:40:21  peter

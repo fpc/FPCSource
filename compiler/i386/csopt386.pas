@@ -45,7 +45,7 @@ uses
 {$else}
   {$ifdef replaceregdebug}cutils,{$endif}
 {$endif}
-  globtype, verbose, procinfo, globals, daopt386, rgobj, rropt386;
+  globtype, verbose, procinfo, globals, daopt386, rgobj, rropt386,cgutils;
 
 {
 function TaiInSequence(P: tai; Const Seq: TContent): Boolean;
@@ -1567,7 +1567,7 @@ begin
         else
           AllocRegBetween(asml,newreg(R_INTREGISTER,reginfo.new2oldreg[regcounter],R_SUBWHOLE),
             prevseqstart,curseqstart,ptaiprop(prevseqstart.optinfo)^.usedregs);
- 
+
         if curprev <> prevseqstart then
           begin
             if assigned(reginfo.lastReload[regCounter]) then
@@ -2122,7 +2122,11 @@ end.
 
 {
   $Log$
-  Revision 1.68  2004-10-10 15:01:19  jonas
+  Revision 1.69  2004-10-31 21:45:03  peter
+    * generic tlocation
+    * move tlocation to cgutils
+
+  Revision 1.68  2004/10/10 15:01:19  jonas
     * several fixes to allocregbetween()
 
   Revision 1.67  2004/10/06 19:24:38  jonas

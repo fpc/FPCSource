@@ -158,70 +158,9 @@ uses
       );
 
 {*****************************************************************************
-                                Reference
-*****************************************************************************}
-
-    type
-      { reference record }
-      preference = ^treference;
-      treference = record
-         { base register, R_NO if none }
-         base,
-         { index register, R_NO if none }
-         index       : tregister;
-         { offset, 0 if none }
-         offset      : aint;
-         { symbol this reference refers to, nil if none }
-         symbol      : tasmsymbol;
-         { symbol the symbol of this reference is relative to, nil if none }
-         relsymbol   : tasmsymbol;
-         { reference type addr or symbol itself }
-         refaddr     : trefaddr;
-      end;
-
-      { reference record }
-      pparareference = ^tparareference;
-      tparareference = packed record
-         index       : tregister;
-         offset      : aint;
-      end;
-
-{*****************************************************************************
                                 Operand Sizes
 *****************************************************************************}
 
-
-{*****************************************************************************
-                               Generic Location
-*****************************************************************************}
-
-    type
-      TLocation = record
-         size : TCGSize;
-         loc : tcgloc;
-         case tcgloc of
-            LOC_CREFERENCE,LOC_REFERENCE : (reference : treference);
-            LOC_CONSTANT : (
-              case longint of
-{$ifdef FPC_BIG_ENDIAN}
-                1 : (_valuedummy,value : Aint);
-{$else FPC_BIG_ENDIAN}
-                1 : (value : Aint);
-{$endif FPC_BIG_ENDIAN}
-                2 : (value64 : int64);
-              );
-            LOC_FPUREGISTER,LOC_CFPUREGISTER,
-            LOC_MMREGISTER,LOC_CMMREGISTER,
-            LOC_REGISTER,LOC_CREGISTER : (
-                case longint of
-                  1 : (registerlow,registerhigh : tregister);
-                  2 : (register : tregister);
-                  { overlay a 64 Bit register type }
-                  3 : (reg64 : tregister64);
-                  4 : (register64 : tregister64);
-                );
-            LOC_FLAGS : (resflags : tresflags);
-      end;
 
 {*****************************************************************************
                                  Constants
@@ -381,6 +320,12 @@ uses
       }
       std_param_align = 4;  { for 32-bit version only }
 
+     { size of the buffer used for setjump/longjmp
+       the size of this buffer is deduced from the
+       jmp_buf structure in setjumph.inc file }
+     JMP_BUF_SIZE = 12+16;
+
+
 {*****************************************************************************
                             CPU Dependent Constants
 *****************************************************************************}
@@ -393,7 +338,6 @@ uses
                                   Helpers
 *****************************************************************************}
 
-    function RefsEqual(Const r1,r2: TReference) : Boolean;
     function  is_calljmp(o:tasmop):boolean;
 
     procedure inverse_flags(var f: TResFlags);
@@ -427,17 +371,6 @@ implementation
 {*****************************************************************************
                                   Helpers
 *****************************************************************************}
-
-    function RefsEqual(Const r1,r2: TReference) : Boolean;
-      begin
-        RefsEqual := (r1.Offset=r2.Offset) and
-                     (r1.Base=r2.Base) and
-                     (r1.Index=r2.Index) and
-                     (r1.symbol=r2.symbol) and
-                     (r1.relsymbol=r2.relsymbol) and
-                     (r1.refaddr=r2.refaddr);
-      end;
-
 
     function is_calljmp(o:tasmop):boolean;
       const
@@ -521,7 +454,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.74  2004-10-30 15:21:38  florian
+  Revision 1.75  2004-10-31 21:45:04  peter
+    * generic tlocation
+    * move tlocation to cgutils
+
+  Revision 1.74  2004/10/30 15:21:38  florian
     * fixed generic optimizer
     * enabled generic optimizer for sparc
 

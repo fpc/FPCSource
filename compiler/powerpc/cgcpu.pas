@@ -30,7 +30,7 @@ unit cgcpu;
        globtype,symtype,
        cgbase,cgobj,
        aasmbase,aasmcpu,aasmtai,
-       cpubase,cpuinfo,node,cg64f32,rgcpu,
+       cpubase,cpuinfo,cgutils,cg64f32,rgcpu,
        parabase;
 
     type
@@ -96,7 +96,7 @@ unit cgcpu;
         function get_rlwi_const(a: aint; var l1, l2: longint): boolean;
 
         procedure a_jmp_cond(list : taasmoutput;cond : TOpCmp;l: tasmlabel);
-        
+
       private
 
         (* NOT IN USE: *)
@@ -156,8 +156,7 @@ const
     uses
        globals,verbose,systems,cutils,
        symconst,symdef,symsym,
-       rgobj,tgobj,cpupi,procinfo,paramgr,
-       cgutils;
+       rgobj,tgobj,cpupi,procinfo,paramgr;
 
 
     procedure tcgppc.init_register_allocators;
@@ -980,8 +979,8 @@ const
       begin
         { this work is done in g_proc_entry }
       end;
-      
-    
+
+
     procedure tcgppc.g_restore_standard_registers(list:Taasmoutput);
       begin
         { this work is done in g_proc_exit }
@@ -2357,7 +2356,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.183  2004-10-26 18:21:29  jonas
+  Revision 1.184  2004-10-31 21:45:03  peter
+    * generic tlocation
+    * move tlocation to cgutils
+
+  Revision 1.183  2004/10/26 18:21:29  jonas
     + empty g_save_standard_registers/g_restore_standard_registers overrides
       (their work was/is done by g_proc_entry/g_proc_exit, and the generic
        version saves the registers in the wrong place)

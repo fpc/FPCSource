@@ -39,7 +39,7 @@ implementation
 
     uses
       cutils,systems,
-      verbose,itcpugas,cgbase;
+      verbose,itcpugas,cgbase,cgutils;
 
 
     function GetReferenceString(var ref:TReference):string;
@@ -189,7 +189,11 @@ begin
 end.
 {
     $Log$
-    Revision 1.29  2004-10-03 12:42:22  florian
+    Revision 1.30  2004-10-31 21:45:04  peter
+      * generic tlocation
+      * move tlocation to cgutils
+
+    Revision 1.29  2004/10/03 12:42:22  florian
       * made sqrt, sqr and abs internal for the sparc
 
     Revision 1.28  2004/06/20 08:55:32  florian

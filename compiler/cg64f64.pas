@@ -33,7 +33,7 @@ unit cg64f64;
 
     uses
        aasmbase,aasmtai,aasmcpu,
-       cpuinfo, cpubase,
+       cpubase,
        cgbase,cgobj,
        symtype;
 
@@ -271,7 +271,11 @@ unit cg64f64;
 end.
 {
   $Log$
-  Revision 1.13  2004-06-20 08:55:28  florian
+  Revision 1.14  2004-10-31 21:45:02  peter
+    * generic tlocation
+    * move tlocation to cgutils
+
+  Revision 1.13  2004/06/20 08:55:28  florian
     * logs truncated
 
   Revision 1.12  2004/06/16 20:07:07  florian

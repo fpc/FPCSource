@@ -27,7 +27,7 @@ unit ncgbas;
 interface
 
     uses
-       cpubase,
+       cpubase,cgutils,
        node,nbas;
 
     type
@@ -72,8 +72,7 @@ interface
       aasmbase,aasmtai,aasmcpu,symsym,symconst,
       defutil,
       nflw,pass_2,
-      cgbase,
-      cgutils,cgobj,
+      cgbase,cgobj,
       procinfo,
       tgobj
       ;
@@ -492,7 +491,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.68  2004-09-26 17:45:30  peter
+  Revision 1.69  2004-10-31 21:45:03  peter
+    * generic tlocation
+    * move tlocation to cgutils
+
+  Revision 1.68  2004/09/26 17:45:30  peter
     * simple regvar support, not yet finished
 
   Revision 1.67  2004/09/25 14:23:54  peter

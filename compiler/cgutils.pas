@@ -28,9 +28,52 @@ unit cgutils;
   interface
 
     uses
+      globtype,
       aasmbase,
-      cgbase,
-      cpubase;
+      cpubase,cgbase;
+
+    type
+      { reference record, reordered for best alignment }
+      preference = ^treference;
+      treference = record
+         offset      : aint;
+         symbol,
+         relsymbol   : tasmsymbol;
+         segment,
+         base,
+         index       : tregister;
+         refaddr     : trefaddr;
+         scalefactor : byte;
+      end;
+
+      tlocation = record
+         loc  : TCGLoc;
+         size : TCGSize;
+         case TCGLoc of
+            LOC_FLAGS : (resflags : tresflags);
+            LOC_CONSTANT : (
+              case longint of
+{$ifdef FPC_BIG_ENDIAN}
+                1 : (_valuedummy,value : aint);
+{$else FPC_BIG_ENDIAN}
+                1 : (value : aint);
+{$endif FPC_BIG_ENDIAN}
+                2 : (value64 : Int64);
+              );
+            LOC_CREFERENCE,
+            LOC_REFERENCE : (reference : treference);
+            { segment in reference at the same place as in loc_register }
+            LOC_REGISTER,
+            LOC_CREGISTER : (
+              case longint of
+                1 : (register : tregister);
+{$ifndef cpu64bit}
+                { overlay a 64 Bit register type }
+                2 : (register64 : tregister64);
+{$endif cpu64bit}
+              );
+      end;
+
 
     { trerefence handling }
 
@@ -46,7 +89,15 @@ unit cgutils;
     }
     function references_equal(sref : treference;dref : treference) : boolean;
 
-  implementation
+    { tlocation handling }
+
+    procedure location_reset(var l : tlocation;lt:TCGLoc;lsize:TCGSize);
+    procedure location_copy(var destloc:tlocation; const sourceloc : tlocation);
+    procedure location_swap(var destloc,sourceloc : tlocation);
+
+
+
+implementation
 
 {****************************************************************************
                                   TReference
@@ -82,10 +133,48 @@ unit cgutils;
         references_equal:=CompareByte(sref,dref,sizeof(treference))=0;
       end;
 
+
+{****************************************************************************
+                                  TLocation
+****************************************************************************}
+
+    procedure location_reset(var l : tlocation;lt:TCGLoc;lsize:TCGSize);
+      begin
+        FillChar(l,sizeof(tlocation),0);
+        l.loc:=lt;
+        l.size:=lsize;
+{$ifdef arm}
+        if l.loc in [LOC_REFERENCE,LOC_CREFERENCE] then
+          l.reference.signindex:=1;
+{$endif arm}
+      end;
+
+
+    procedure location_copy(var destloc:tlocation; const sourceloc : tlocation);
+      begin
+        destloc:=sourceloc;
+      end;
+
+
+    procedure location_swap(var destloc,sourceloc : tlocation);
+      var
+        swapl : tlocation;
+      begin
+        swapl := destloc;
+        destloc := sourceloc;
+        sourceloc := swapl;
+      end;
+
+
+
 end.
 {
   $Log$
-  Revision 1.1  2004-02-27 10:21:05  florian
+  Revision 1.2  2004-10-31 21:45:02  peter
+    * generic tlocation
+    * move tlocation to cgutils
+
+  Revision 1.1  2004/02/27 10:21:05  florian
     * top_symbol killed
     + refaddr to treference added
     + refsymbol to treference added

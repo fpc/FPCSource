@@ -63,9 +63,9 @@ implementation
 
       begin
         inherited pass_2;
-        { for use of other segments }
-        if left.location.reference.segment<>NR_NO then
-          location.segment:=left.location.reference.segment;
+        { for use of other segments, not used }
+        {if left.location.reference.segment<>NR_NO then
+          location.segment:=left.location.reference.segment;}
       end;
 
 
@@ -141,7 +141,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.64  2004-10-15 09:16:22  mazen
+  Revision 1.65  2004-10-31 21:45:03  peter
+    * generic tlocation
+    * move tlocation to cgutils
+
+  Revision 1.64  2004/10/15 09:16:22  mazen
   - remove $IFDEF DELPHI and related code
   - remove $IFDEF FPCPROCVAR and related code
 

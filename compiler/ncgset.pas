@@ -89,7 +89,7 @@ implementation
       verbose,
       symconst,symdef,defutil,
       paramgr,
-      pass_2,
+      pass_2,tgobj,
       nbas,ncon,nflw,
       ncgutil,regvars,cpuinfo,
       cgutils;
@@ -787,8 +787,8 @@ implementation
 {$ifndef cpu64bit}
          if opsize in [OS_S64,OS_64] then
            begin
-             hregister:=left.location.registerlow;
-             hregister2:=left.location.registerhigh;
+             hregister:=left.location.register64.reglo;
+             hregister2:=left.location.register64.reghi;
            end
          else
 {$endif cpu64bit}
@@ -944,7 +944,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.69  2004-10-30 22:01:11  florian
+  Revision 1.70  2004-10-31 21:45:03  peter
+    * generic tlocation
+    * move tlocation to cgutils
+
+  Revision 1.69  2004/10/30 22:01:11  florian
     * jmp table code generation for case statement on sparc
 
   Revision 1.68  2004/09/25 14:23:54  peter

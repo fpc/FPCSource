@@ -30,7 +30,7 @@ interface
 
     uses
       cclasses,cpubase,
-      globals,
+      globals,cgutils,
       aasmbase,aasmtai,assemble,aggas;
 
     type
@@ -50,7 +50,6 @@ interface
       cutils,systems,
       verbose,
       itcpugas,
-      cpuinfo,
       cgbase,
       aasmcpu;
 
@@ -280,7 +279,11 @@ initialization
 end.
 {
   $Log$
-  Revision 1.16  2004-06-29 21:00:08  peter
+  Revision 1.17  2004-10-31 21:45:04  peter
+    * generic tlocation
+    * move tlocation to cgutils
+
+  Revision 1.16  2004/06/29 21:00:08  peter
     * only enable dwarf for supported platforms
 
   Revision 1.15  2004/06/20 08:55:32  florian

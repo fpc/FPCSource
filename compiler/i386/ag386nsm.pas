@@ -29,7 +29,7 @@ interface
 
     uses
       cpubase,
-      aasmbase,aasmtai,aasmcpu,assemble;
+      aasmbase,aasmtai,aasmcpu,assemble,cgutils;
 
     type
       T386NasmAssembler = class(texternalassembler)
@@ -906,7 +906,11 @@ initialization
 end.
 {
   $Log$
-  Revision 1.49  2004-10-15 09:16:21  mazen
+  Revision 1.50  2004-10-31 21:45:03  peter
+    * generic tlocation
+    * move tlocation to cgutils
+
+  Revision 1.49  2004/10/15 09:16:21  mazen
   - remove $IFDEF DELPHI and related code
   - remove $IFDEF FPCPROCVAR and related code
 

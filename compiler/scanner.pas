@@ -1680,7 +1680,7 @@ implementation
         oldaktfilepos:=aktfilepos;
         repeat
           current_scanner.gettokenpos;
-          p.proc;
+          p.proc();
           { accept the text ? }
           if (current_scanner.preprocstack=nil) or current_scanner.preprocstack.accept then
            break
@@ -1777,7 +1777,7 @@ implementation
                else
                 begin
                   Message1(scan_d_handling_switch,'$'+hs);
-                  t.proc;
+                  t.proc();
                 end;
              end
             else
@@ -3290,7 +3290,11 @@ exit_label:
 end.
 {
   $Log$
-  Revision 1.94  2004-10-31 18:54:25  peter
+  Revision 1.95  2004-10-31 21:45:03  peter
+    * generic tlocation
+    * move tlocation to cgutils
+
+  Revision 1.94  2004/10/31 18:54:25  peter
     * $fpctarget expands to <cpu>-<os>
     * allow * in middle of the path to support ../*/units/$fpctarget
 

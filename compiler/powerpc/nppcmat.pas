@@ -57,7 +57,7 @@ implementation
       symconst,symdef,
       aasmbase,aasmcpu,aasmtai,
       defutil,
-      cgbase,cgobj,pass_1,pass_2,
+      cgbase,cgutils,cgobj,pass_1,pass_2,
       ncon,procinfo,
       cpubase,cpuinfo,
       ncgutil,cgcpu,cg64f32,rgobj;
@@ -184,7 +184,7 @@ implementation
 
       var
          resultreg, hregister1,hregister2,
-         hregisterhigh,hregisterlow : tregister;
+         hreg64hi,hreg64lo : tregister;
          op : topcg;
          asmop1, asmop2: tasmop;
          shiftval: aint;
@@ -199,35 +199,35 @@ implementation
              location_force_reg(exprasmlist,left.location,
                def_cgsize(left.resulttype.def),true);
              location_copy(location,left.location);
-             hregisterhigh := location.registerhigh;
-             hregisterlow := location.registerlow;
+             hreg64hi := location.register64.reghi;
+             hreg64lo := location.register64.reglo;
              if (location.loc = LOC_CREGISTER) then
                begin
                  location.loc := LOC_REGISTER;
-                 location.registerhigh := cg.getintregister(exprasmlist,OS_32);
-                 location.registerlow := cg.getintregister(exprasmlist,OS_32);
+                 location.register64.reghi := cg.getintregister(exprasmlist,OS_32);
+                 location.register64.reglo := cg.getintregister(exprasmlist,OS_32);
                end;
              if (right.nodetype = ordconstn) then
                begin
                  shiftval := tordconstnode(right).value;
                  if shiftval > 63 then
                    begin
-                     cg.a_load_const_reg(exprasmlist,OS_32,0,location.registerlow);
-                     cg.a_load_const_reg(exprasmlist,OS_32,0,location.registerlow);
+                     cg.a_load_const_reg(exprasmlist,OS_32,0,location.register64.reglo);
+                     cg.a_load_const_reg(exprasmlist,OS_32,0,location.register64.reglo);
                    end
                  else if shiftval > 31 then
                    begin
                      if nodetype = shln then
                        begin
                          cg.a_op_const_reg_reg(exprasmlist,OP_SHL,OS_32,
-                           shiftval and 31,hregisterlow,location.registerhigh);
-                         cg.a_load_const_reg(exprasmlist,OS_32,0,location.registerlow);
+                           shiftval and 31,hreg64lo,location.register64.reghi);
+                         cg.a_load_const_reg(exprasmlist,OS_32,0,location.register64.reglo);
                        end
                      else
                        begin
                          cg.a_op_const_reg_reg(exprasmlist,OP_SHR,OS_32,
-                           shiftval and 31,hregisterhigh,location.registerlow);
-                         cg.a_load_const_reg(exprasmlist,OS_32,0,location.registerhigh);
+                           shiftval and 31,hreg64hi,location.register64.reglo);
+                         cg.a_load_const_reg(exprasmlist,OS_32,0,location.register64.reghi);
                        end;
                    end
                  else
@@ -235,25 +235,25 @@ implementation
                      if nodetype = shln then
                        begin
                          exprasmlist.concat(taicpu.op_reg_reg_const_const_const(
-                           A_RLWINM,location.registerhigh,hregisterhigh,shiftval,
+                           A_RLWINM,location.register64.reghi,hreg64hi,shiftval,
                            0,31-shiftval));
                          exprasmlist.concat(taicpu.op_reg_reg_const_const_const(
-                           A_RLWIMI,location.registerhigh,hregisterlow,shiftval,
+                           A_RLWIMI,location.register64.reghi,hreg64lo,shiftval,
                            32-shiftval,31));
                          exprasmlist.concat(taicpu.op_reg_reg_const_const_const(
-                           A_RLWINM,location.registerlow,hregisterlow,shiftval,
+                           A_RLWINM,location.register64.reglo,hreg64lo,shiftval,
                            0,31-shiftval));
                        end
                      else
                        begin
                          exprasmlist.concat(taicpu.op_reg_reg_const_const_const(
-                           A_RLWINM,location.registerlow,hregisterlow,32-shiftval,
+                           A_RLWINM,location.register64.reglo,hreg64lo,32-shiftval,
                            shiftval,31));
                          exprasmlist.concat(taicpu.op_reg_reg_const_const_const(
-                           A_RLWIMI,location.registerlow,hregisterhigh,32-shiftval,
+                           A_RLWIMI,location.register64.reglo,hreg64hi,32-shiftval,
                            0,shiftval-1));
                          exprasmlist.concat(taicpu.op_reg_reg_const_const_const(
-                           A_RLWINM,location.registerhigh,hregisterhigh,32-shiftval,
+                           A_RLWINM,location.register64.reghi,hreg64hi,32-shiftval,
                            shiftval,31));
                        end;
                    end;
@@ -272,38 +272,38 @@ implementation
                    begin
                      asmop1 := A_SRW;
                      asmop2 := A_SLW;
-                     resultreg := hregisterhigh;
-                     hregisterhigh := hregisterlow;
-                     hregisterlow := resultreg;
-                     resultreg := location.registerhigh;
-                     location.registerhigh := location.registerlow;
-                     location.registerlow := resultreg;
+                     resultreg := hreg64hi;
+                     hreg64hi := hreg64lo;
+                     hreg64lo := resultreg;
+                     resultreg := location.register64.reghi;
+                     location.register64.reghi := location.register64.reglo;
+                     location.register64.reglo := resultreg;
                    end;
 
                  cg.getcpuregister(exprasmlist,NR_R0);
                  exprasmlist.concat(taicpu.op_reg_reg_const(A_SUBFIC,
                    NR_R0,hregister1,32));
                  exprasmlist.concat(taicpu.op_reg_reg_reg(asmop1,
-                   location.registerhigh,hregisterhigh,hregister1));
+                   location.register64.reghi,hreg64hi,hregister1));
                  exprasmlist.concat(taicpu.op_reg_reg_reg(asmop2,
-                   NR_R0,hregisterlow,NR_R0));
+                   NR_R0,hreg64lo,NR_R0));
                  exprasmlist.concat(taicpu.op_reg_reg_reg(A_OR,
-                   location.registerhigh,location.registerhigh,NR_R0));
+                   location.register64.reghi,location.register64.reghi,NR_R0));
                  exprasmlist.concat(taicpu.op_reg_reg_const(A_SUBI,
                    NR_R0,hregister1,32));
                  exprasmlist.concat(taicpu.op_reg_reg_reg(asmop1,
-                   NR_R0,hregisterlow,NR_R0));
+                   NR_R0,hreg64lo,NR_R0));
                  exprasmlist.concat(taicpu.op_reg_reg_reg(A_OR,
-                   location.registerhigh,location.registerhigh,NR_R0));
+                   location.register64.reghi,location.register64.reghi,NR_R0));
                  exprasmlist.concat(taicpu.op_reg_reg_reg(asmop1,
-                   location.registerlow,hregisterlow,hregister1));
+                   location.register64.reglo,hreg64lo,hregister1));
                  cg.ungetcpuregister(exprasmlist,NR_R0);
 
                  if nodetype = shrn then
                    begin
-                     resultreg := location.registerhigh;
-                     location.registerhigh := location.registerlow;
-                     location.registerlow := resultreg;
+                     resultreg := location.register64.reghi;
+                     location.register64.reghi := location.register64.reglo;
+                     location.register64.reglo := resultreg;
                    end;
                end
            end
@@ -362,18 +362,18 @@ implementation
              location_copy(location,left.location);
              if (location.loc = LOC_CREGISTER) then
                begin
-                 location.registerlow := cg.getintregister(exprasmlist,OS_INT);
-                 location.registerhigh := cg.getintregister(exprasmlist,OS_INT);
+                 location.register64.reglo := cg.getintregister(exprasmlist,OS_INT);
+                 location.register64.reghi := cg.getintregister(exprasmlist,OS_INT);
                  location.loc := LOC_REGISTER;
                end;
              exprasmlist.concat(taicpu.op_reg_reg_const(A_SUBFIC,
-               location.registerlow,left.location.registerlow,0));
+               location.register64.reglo,left.location.register64.reglo,0));
              if not(cs_check_overflow in aktlocalswitches) then
                exprasmlist.concat(taicpu.op_reg_reg(A_SUBFZE,
-                 location.registerhigh,left.location.registerhigh))
+                 location.register64.reghi,left.location.register64.reghi))
              else
                exprasmlist.concat(taicpu.op_reg_reg(A_SUBFZEO_,
-                 location.registerhigh,left.location.registerhigh));
+                 location.register64.reghi,left.location.register64.reghi));
            end
          else
            begin
@@ -495,10 +495,10 @@ implementation
              location_force_reg(exprasmlist,left.location,def_cgsize(left.resulttype.def),false);
              location_copy(location,left.location);
              { perform the NOT operation }
-             exprasmlist.concat(taicpu.op_reg_reg(A_NOT,location.registerhigh,
-               location.registerhigh));
-             exprasmlist.concat(taicpu.op_reg_reg(A_NOT,location.registerlow,
-               location.registerlow));
+             exprasmlist.concat(taicpu.op_reg_reg(A_NOT,location.register64.reghi,
+               location.register64.reghi));
+             exprasmlist.concat(taicpu.op_reg_reg(A_NOT,location.register64.reglo,
+               location.register64.reglo));
            end
          else
            begin
@@ -521,7 +521,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.41  2004-10-25 15:36:47  peter
+  Revision 1.42  2004-10-31 21:45:03  peter
+    * generic tlocation
+    * move tlocation to cgutils
+
+  Revision 1.41  2004/10/25 15:36:47  peter
     * save standard registers moved to tcgobj
 
   Revision 1.40  2004/09/25 14:23:55  peter

@@ -51,9 +51,9 @@ Implementation
       globtype,globals,verbose,
       systems,
       { aasm }
-      cpuinfo,aasmbase,aasmtai,aasmcpu,
+      aasmbase,aasmtai,aasmcpu,
       { symtable }
-      symconst,symbase,symtype,symsym,symtable,
+      symconst,symsym,
       { parser }
       scanner,
       procinfo,
@@ -788,7 +788,11 @@ Implementation
 end.
 {
   $Log$
-  Revision 1.5  2004-06-20 08:55:32  florian
+  Revision 1.6  2004-10-31 21:45:04  peter
+    * generic tlocation
+    * move tlocation to cgutils
+
+  Revision 1.5  2004/06/20 08:55:32  florian
     * logs truncated
 
   Revision 1.4  2004/06/16 20:07:11  florian

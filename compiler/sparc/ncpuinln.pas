@@ -45,14 +45,14 @@ interface
 implementation
 
     uses
-      globtype,systems,
-      cutils,verbose,globals,fmodule,
+      systems,
+      cutils,verbose,
       symconst,symdef,
-      aasmbase,aasmtai,aasmcpu,
-      cgbase,pass_1,pass_2,
+      aasmtai,aasmcpu,
+      cgbase,pass_2,
       cpubase,paramgr,
       nbas,ncon,ncal,ncnv,nld,
-      tgobj,ncgutil,cgobj,cg64f32,rgobj,rgcpu;
+      ncgutil,cgobj,cgutils;
 
 {*****************************************************************************
                               tsparcinlinenode
@@ -150,7 +150,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.10  2004-10-03 12:42:22  florian
+  Revision 1.11  2004-10-31 21:45:04  peter
+    * generic tlocation
+    * move tlocation to cgutils
+
+  Revision 1.10  2004/10/03 12:42:22  florian
     * made sqrt, sqr and abs internal for the sparc
 
   Revision 1.9  2004/06/20 08:55:32  florian

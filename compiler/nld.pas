@@ -119,7 +119,6 @@ interface
           procedure derefimpl;override;
           function  getcopy : tnode;override;
           function pass_1 : tnode;override;
-          procedure pass_2;override;
           function det_resulttype:tnode;override;
           function docompare(p: tnode): boolean; override;
        end;
@@ -1155,13 +1154,6 @@ implementation
       end;
 
 
-    procedure trttinode.pass_2;
-      begin
-        location_reset(location,LOC_CREFERENCE,OS_NO);
-        location.reference.symbol:=rttidef.get_rtti_label(rttitype);
-      end;
-
-
 begin
    cloadnode:=tloadnode;
    cassignmentnode:=tassignmentnode;
@@ -1172,7 +1164,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.135  2004-10-24 11:44:28  peter
+  Revision 1.136  2004-10-31 21:45:03  peter
+    * generic tlocation
+    * move tlocation to cgutils
+
+  Revision 1.135  2004/10/24 11:44:28  peter
     * small regvar fixes
     * loadref parameter removed from concatcopy,incrrefcount,etc
 

@@ -41,7 +41,7 @@ implementation
       systems,globals,
       defutil,
       cpubase,
-      cga,cgx86,cgobj,cgbase;
+      cga,cgx86,cgobj,cgbase,cgutils;
 
 {*****************************************************************************
                            TI386REALCONSTNODE
@@ -91,7 +91,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.25  2004-06-20 08:55:31  florian
+  Revision 1.26  2004-10-31 21:45:03  peter
+    * generic tlocation
+    * move tlocation to cgutils
+
+  Revision 1.25  2004/06/20 08:55:31  florian
     * logs truncated
 
 }

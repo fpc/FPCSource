@@ -242,35 +242,6 @@ uses
                                 Reference
 *****************************************************************************}
 
-    type
-      trefoptions=(ref_none,ref_parafixup,ref_localfixup,ref_selffixup);
-
-      { reference record }
-      preference = ^treference;
-      treference = packed record
-         { base register, R_NO if none }
-         base,
-         { index register, R_NO if none }
-         index       : tregister;
-         { offset, 0 if none }
-         offset      : aint;
-         { symbol this reference refers to, nil if none }
-         symbol      : tasmsymbol;
-         { symbol the symbol of this reference is relative to, nil if none }
-         relsymbol      : tasmsymbol;
-         { reference type addr or symbol itself }
-         refaddr : trefaddr;
-         { alignment this reference is guaranteed to have }
-         alignment   : byte;
-      end;
-
-      { reference record }
-      pparareference = ^tparareference;
-      tparareference = packed record
-         index       : tregister;
-         offset      : aword;
-      end;
-
     const
       symaddr2str: array[trefaddr] of string[3] = ('','','@ha','@l');
 
@@ -283,68 +254,6 @@ uses
                                 Operand Sizes
 *****************************************************************************}
 
-{*****************************************************************************
-                               Generic Location
-*****************************************************************************}
-
-    type
-      { tparamlocation describes where a parameter for a procedure is stored.
-        References are given from the caller's point of view. The usual
-        TLocation isn't used, because contains a lot of unnessary fields.
-      }
-      tparalocation = packed record
-         size : TCGSize;
-         { The location type where the parameter is passed, usually
-           LOC_REFERENCE,LOC_REGISTER or LOC_FPUREGISTER
-         }
-         loc  : TCGLoc;
-         lochigh : TCGLoc;
-         { Word alignment on stack 4 --> 32 bit }
-         Alignment:Byte;
-         case TCGLoc of
-            LOC_REFERENCE : (reference : tparareference);
-            LOC_FPUREGISTER, LOC_CFPUREGISTER, LOC_MMREGISTER, LOC_CMMREGISTER,
-              LOC_REGISTER,LOC_CREGISTER : (
-              case longint of
-                1 : (register,registerhigh : tregister);
-                { overlay a registerlow }
-                2 : (registerlow : tregister);
-{$ifndef cpu64bit}
-                { overlay a 64 Bit register type }
-                3 : (register64 : tregister64);
-{$endif cpu64bit}
-            );
-      end;
-
-      tlocation = packed record
-         size : TCGSize;
-         loc : tcgloc;
-         case tcgloc of
-            LOC_CREFERENCE,LOC_REFERENCE : (reference : treference);
-            LOC_CONSTANT : (
-              case longint of
-{$ifdef FPC_BIG_ENDIAN}
-                1 : (_valuedummy,value : aint);
-{$else FPC_BIG_ENDIAN}
-                1 : (value : aint);
-{$endif FPC_BIG_ENDIAN}
-                { can't do this, this layout depends on the host cpu. Use }
-                { lo(valueqword)/hi(valueqword) instead (JM)              }
-                { overlay a complete 64 Bit value }
-                2 : (value64 : Int64);
-              );
-            LOC_FPUREGISTER, LOC_CFPUREGISTER, LOC_MMREGISTER, LOC_CMMREGISTER,
-              LOC_REGISTER,LOC_CREGISTER : (
-                case longint of
-                  1 : (registerlow,registerhigh : tregister);
-                  2 : (register : tregister);
-{$ifndef cpu64bit}
-                  { overlay a 64 Bit register type }
-                  3 : (register64 : tregister64);
-{$endif cpu64bit}
-                );
-            LOC_FLAGS : (resflags : tresflags);
-      end;
 
 {*****************************************************************************
                                  Constants
@@ -454,6 +363,13 @@ uses
          PARM_BOUNDARY / BITS_PER_UNIT in the GCC source.
       }
       std_param_align = 4;  { for 32-bit version only }
+
+      { size of the buffer used for setjump/longjmp
+        the size of this buffer is deduced from the
+        jmp_buf structure in setjumph.inc file
+      }
+      { for linux: }
+      jmp_buf_size = 232;
 
 {*****************************************************************************
                             CPU Dependent Constants
@@ -642,7 +558,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.91  2004-10-26 18:22:04  jonas
+  Revision 1.92  2004-10-31 21:45:03  peter
+    * generic tlocation
+    * move tlocation to cgutils
+
+  Revision 1.91  2004/10/26 18:22:04  jonas
     * fixed tlocation record again for big endian
     * fixed (currently unused) saved_standard_registers array
 

@@ -41,9 +41,7 @@ interface
 implementation
 
     uses
-       globtype,
-       cpuinfo,
-       procinfo,
+       globtype,cpuinfo,procinfo,
        symconst;
 
 
@@ -116,7 +114,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.5  2004-06-20 08:55:30  florian
+  Revision 1.6  2004-10-31 21:45:03  peter
+    * generic tlocation
+    * move tlocation to cgutils
+
+  Revision 1.5  2004/06/20 08:55:30  florian
     * logs truncated
 
   Revision 1.4  2004/03/23 22:34:50  peter

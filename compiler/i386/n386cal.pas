@@ -44,9 +44,6 @@ implementation
     uses
       globtype,systems,
       cutils,verbose,globals,
-{$ifdef GDB}
-      gdb,
-{$endif GDB}
       cgbase,
       cpubase,paramgr,
       aasmtai,aasmcpu,
@@ -99,7 +96,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.102  2004-09-25 14:23:54  peter
+  Revision 1.103  2004-10-31 21:45:03  peter
+    * generic tlocation
+    * move tlocation to cgutils
+
+  Revision 1.102  2004/09/25 14:23:54  peter
     * ungetregister is now only used for cpuregisters, renamed to
       ungetcpuregister
     * renamed (get|unget)explicitregister(s) to ..cpuregister

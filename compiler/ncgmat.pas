@@ -132,7 +132,7 @@ implementation
       parabase,
       pass_2,
       ncon,
-      tgobj,ncgutil,cgobj,paramgr
+      tgobj,ncgutil,cgobj,cgutils,paramgr
 {$ifndef cpu64bit}
       ,cg64f32
 {$endif cpu64bit}
@@ -180,7 +180,7 @@ implementation
         location_copy(location,left.location);
         location_force_reg(exprasmlist,location,OS_64,false);
         cg64.a_op64_loc_reg(exprasmlist,OP_NEG,
-           location,joinreg64(location.registerlow,location.registerhigh));
+           location,joinreg64(location.register64.reglo,location.register64.reghi));
       end;
 {$endif cpu64bit}
 
@@ -286,8 +286,8 @@ implementation
              location_copy(location,left.location);
              location_force_reg(exprasmlist,right.location,OS_64,false);
              emit64_div_reg_reg(is_signed(left.resulttype.def),
-               joinreg64(right.location.registerlow,right.location.registerhigh),
-               joinreg64(location.registerlow,location.registerhigh));
+               joinreg64(right.location.register64.reglo,right.location.register64.reghi),
+               joinreg64(location.register64.reglo,location.register64.reghi));
            end
          else
 {$endif cpu64bit}
@@ -473,7 +473,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.29  2004-09-25 14:23:54  peter
+  Revision 1.30  2004-10-31 21:45:03  peter
+    * generic tlocation
+    * move tlocation to cgutils
+
+  Revision 1.29  2004/09/25 14:23:54  peter
     * ungetregister is now only used for cpuregisters, renamed to
       ungetcpuregister
     * renamed (get|unget)explicitregister(s) to ..cpuregister

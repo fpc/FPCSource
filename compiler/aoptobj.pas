@@ -36,7 +36,7 @@ Unit AoptObj;
       aasmbase,aasmcpu,aasmtai,
       cclasses,
       cgbase,
-      cpuinfo, cpubase,
+      cpubase,
       aoptbase, aoptcpub, aoptda;
 
     { ************************************************************************* }
@@ -1085,7 +1085,11 @@ End.
 
 {
  $Log$
- Revision 1.12  2004-10-30 15:21:37  florian
+ Revision 1.13  2004-10-31 21:45:02  peter
+   * generic tlocation
+   * move tlocation to cgutils
+
+ Revision 1.12  2004/10/30 15:21:37  florian
    * fixed generic optimizer
    * enabled generic optimizer for sparc
 

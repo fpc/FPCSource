@@ -38,14 +38,13 @@ unit cgobj;
 
     uses
        cclasses,globtype,
-       cpubase,cpuinfo,cgbase,parabase,
+       cpubase,cgbase,cgutils,parabase,
        aasmbase,aasmtai,aasmcpu,
        symconst,symbase,symtype,symdef,symtable,rgobj
        ;
 
     type
        talignment = (AM_NATURAL,AM_NONE,AM_2BYTE,AM_4BYTE,AM_8BYTE);
-
 
        {# @abstract(Abstract code generator)
           This class implements an abstract instruction generator. Some of
@@ -478,14 +477,6 @@ unit cgobj;
     end;
 {$endif cpu64bit}
 
-    { tlocation handling }
-
-    procedure location_reset(var l : tlocation;lt:TCGLoc;lsize:TCGSize);
-    procedure location_freetemp(list: taasmoutput; const l : tlocation);
-    procedure location_copy(var destloc:tlocation; const sourceloc : tlocation);
-    procedure location_swap(var destloc,sourceloc : tlocation);
-
-
     var
        {# Main code generator class }
        cg : tcg;
@@ -500,8 +491,7 @@ implementation
     uses
        globals,options,systems,
        verbose,defutil,paramgr,
-       tgobj,cutils,procinfo,
-       cgutils;
+       tgobj,cutils,procinfo;
 
     const
       { Please leave this here, this module should NOT use
@@ -2028,45 +2018,6 @@ implementation
 {$endif cpu64bit}
 
 
-{****************************************************************************
-                                  TLocation
-****************************************************************************}
-
-    procedure location_reset(var l : tlocation;lt:TCGLoc;lsize:TCGSize);
-      begin
-        FillChar(l,sizeof(tlocation),0);
-        l.loc:=lt;
-        l.size:=lsize;
-{$ifdef arm}
-        if l.loc in [LOC_REFERENCE,LOC_CREFERENCE] then
-          l.reference.signindex:=1;
-{$endif arm}
-      end;
-
-
-    procedure location_freetemp(list:taasmoutput; const l : tlocation);
-      begin
-        if (l.loc in [LOC_REFERENCE,LOC_CREFERENCE]) then
-         tg.ungetiftemp(list,l.reference);
-      end;
-
-
-    procedure location_copy(var destloc:tlocation; const sourceloc : tlocation);
-      begin
-        destloc:=sourceloc;
-      end;
-
-
-    procedure location_swap(var destloc,sourceloc : tlocation);
-      var
-        swapl : tlocation;
-      begin
-        swapl := destloc;
-        destloc := sourceloc;
-        sourceloc := swapl;
-      end;
-
-
 
 initialization
     ;
@@ -2078,7 +2029,11 @@ finalization
 end.
 {
   $Log$
-  Revision 1.182  2004-10-25 15:36:47  peter
+  Revision 1.183  2004-10-31 21:45:02  peter
+    * generic tlocation
+    * move tlocation to cgutils
+
+  Revision 1.182  2004/10/25 15:36:47  peter
     * save standard registers moved to tcgobj
 
   Revision 1.181  2004/10/24 20:01:08  peter

@@ -33,8 +33,8 @@ interface
     uses
       cclasses,globtype,globals,verbose,
       cpuinfo,cpubase,
-      cgbase,
-      symtype,symsym,
+      cgbase,cgutils,
+      symtype,
       aasmbase,aasmtai;
 
     const
@@ -134,7 +134,7 @@ interface
 
     type
       { What an instruction can change. Needed for optimizer and spilling code.
-      
+
         Note: The order of this enumeration is should not be changed! }
       TInsChange = (Ch_None,
         {Read from a register}
@@ -278,7 +278,8 @@ implementation
 
      uses
        cutils,
-       itcpugas;
+       itcpugas,
+       symsym;
 
 {*****************************************************************************
                               Instruction table
@@ -2110,7 +2111,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.61  2004-10-04 21:11:24  peter
+  Revision 1.62  2004-10-31 21:45:04  peter
+    * generic tlocation
+    * move tlocation to cgutils
+
+  Revision 1.61  2004/10/04 21:11:24  peter
     * reverted a minor move in the order of tinschange. The order
       is required by the optimizer. Added also a remark
 

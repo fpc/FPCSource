@@ -203,7 +203,7 @@ interface
 implementation
 
     uses
-       tokens,systems,verbose;
+       systems,verbose;
 
     { returns true, if def uses FPU }
     function is_fpu(def : tdef) : boolean;
@@ -888,7 +888,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.19  2004-08-24 21:02:32  florian
+  Revision 1.20  2004-10-31 21:45:02  peter
+    * generic tlocation
+    * move tlocation to cgutils
+
+  Revision 1.19  2004/08/24 21:02:32  florian
     * fixed longbool(<int64>) on sparc
 
   Revision 1.18  2004/06/20 08:55:29  florian

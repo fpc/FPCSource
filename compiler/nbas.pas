@@ -27,9 +27,10 @@ unit nbas;
 interface
 
     uses
-       cpuinfo,cpubase,cgbase,
+       globtype,
+       cpuinfo,cpubase,cgbase,cgutils,
        aasmbase,aasmtai,aasmcpu,
-       node,tgobj,
+       node,
        symtype;
 
     type
@@ -201,7 +202,7 @@ implementation
 
     uses
       cutils,
-      verbose,globals,globtype,systems,
+      verbose,globals,systems,
       symconst,symdef,defutil,defcmp,
       pass_1,
       nld,ncal,nflw,
@@ -1027,7 +1028,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.88  2004-10-12 14:36:38  peter
+  Revision 1.89  2004-10-31 21:45:03  peter
+    * generic tlocation
+    * move tlocation to cgutils
+
+  Revision 1.88  2004/10/12 14:36:38  peter
     * gen high tree makes copy in temp when there is a calln
 
   Revision 1.87  2004/09/26 17:45:30  peter

@@ -59,7 +59,7 @@ interface
     uses
       cutils,globtype,systems,cclasses,
       verbose,finput,fmodule,script,cpuinfo,
-      cgbase,
+      cgbase,cgutils,
       itcpugas
       ;
 
@@ -1022,7 +1022,7 @@ var
                    end
                  else
                    begin
-                     s:= tostr(tai_const(hp).value); 
+                     s:= tostr(tai_const(hp).value);
                      AsmWrite(s);
                      inc(l,length(s));
                    end;
@@ -1036,7 +1036,7 @@ var
                until false;
                AsmLn;
              end;
- 
+
             ait_real_64bit :
               begin
                 AsmWriteLn(target_asm.comment+'value: '+double2str(tai_real_64bit(hp).value));
@@ -1462,7 +1462,11 @@ initialization
 end.
 {
   $Log$
-  Revision 1.41  2004-10-31 15:32:13  olle
+  Revision 1.42  2004-10-31 21:45:03  peter
+    * generic tlocation
+    * move tlocation to cgutils
+
+  Revision 1.41  2004/10/31 15:32:13  olle
     + Change of the way global variables, with multiple entrypoints,
       are referenced, fixes a lot of failed tests
 

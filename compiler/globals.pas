@@ -47,7 +47,8 @@ interface
       dos,
 {$ENDIF USE_SYSUTILS}
       cutils,cclasses,
-      globtype,version,systems,cpuinfo;
+      cpuinfo,
+      globtype,version,systems;
 
     const
        delphimodeswitches : tmodeswitches=
@@ -2134,7 +2135,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.151  2004-10-31 19:09:54  peter
+  Revision 1.152  2004-10-31 21:45:02  peter
+    * generic tlocation
+    * move tlocation to cgutils
+
+  Revision 1.151  2004/10/31 19:09:54  peter
     * default paths fixed
 
   Revision 1.150  2004/10/31 18:54:24  peter

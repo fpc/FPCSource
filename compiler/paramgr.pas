@@ -126,7 +126,7 @@ implementation
 
     uses
        systems,
-       cgobj,tgobj,
+       cgobj,tgobj,cgutils,
        defutil,verbose;
 
     { true if uses a parameter as return value }
@@ -447,7 +447,11 @@ end.
 
 {
    $Log$
-   Revision 1.79  2004-09-25 14:23:54  peter
+   Revision 1.80  2004-10-31 21:45:03  peter
+     * generic tlocation
+     * move tlocation to cgutils
+
+   Revision 1.79  2004/09/25 14:23:54  peter
      * ungetregister is now only used for cpuregisters, renamed to
        ungetcpuregister
      * renamed (get|unget)explicitregister(s) to ..cpuregister

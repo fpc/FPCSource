@@ -33,8 +33,8 @@ unit cg64f32;
 
     uses
        aasmbase,aasmtai,aasmcpu,
-       cpuinfo,cpubase,cpupara,
-       cgbase,cgobj,parabase,
+       cpubase,cpupara,
+       cgbase,cgobj,parabase,cgutils,
        node,symtype
        ;
 
@@ -375,7 +375,7 @@ unit cg64f32;
           LOC_CREFERENCE :
             a_load64low_ref_reg(list,l.reference,reg);
           LOC_REGISTER :
-            cg.a_load_reg_reg(list,OS_32,OS_32,l.registerlow,reg);
+            cg.a_load_reg_reg(list,OS_32,OS_32,l.register64.reglo,reg);
           LOC_CONSTANT :
             cg.a_load_const_reg(list,OS_32,aint(lo(l.value64)),reg);
           else
@@ -391,7 +391,7 @@ unit cg64f32;
           LOC_CREFERENCE :
             a_load64high_ref_reg(list,l.reference,reg);
           LOC_REGISTER :
-            cg.a_load_reg_reg(list,OS_32,OS_32,l.registerhigh,reg);
+            cg.a_load_reg_reg(list,OS_32,OS_32,l.register64.reghi,reg);
           LOC_CONSTANT :
             cg.a_load_const_reg(list,OS_32,hi(l.value64),reg);
           else
@@ -568,7 +568,7 @@ unit cg64f32;
              { get the high dword in a register }
              if l.loc in [LOC_REGISTER,LOC_CREGISTER] then
                begin
-                 hreg := l.registerhigh;
+                 hreg := l.register64.reghi;
                end
              else
                begin
@@ -613,7 +613,7 @@ unit cg64f32;
                  cg.a_label(list,neglabel);
                  if l.loc in [LOC_REGISTER,LOC_CREGISTER] then
                    begin
-                     hreg := l.registerlow;
+                     hreg := l.register64.reglo;
                    end
                  else
                    begin
@@ -654,7 +654,7 @@ unit cg64f32;
                  begin
                    if is_64bit(fromdef) then
                      begin
-                       hreg := l.registerhigh;
+                       hreg := l.register64.reghi;
                        opsize := OS_32;
                      end
                    else
@@ -777,7 +777,11 @@ unit cg64f32;
 end.
 {
   $Log$
-  Revision 1.64  2004-10-15 09:14:16  mazen
+  Revision 1.65  2004-10-31 21:45:02  peter
+    * generic tlocation
+    * move tlocation to cgutils
+
+  Revision 1.64  2004/10/15 09:14:16  mazen
   - remove $IFDEF DELPHI and related code
   - remove $IFDEF FPCPROCVAR and related code
 

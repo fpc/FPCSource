@@ -62,8 +62,7 @@ implementation
       cpuinfo,cpubase,paramgr,procinfo,
       nbas,ncon,ncal,ncnv,nld,
       tgobj,ncgutil,
-      cgutils,cgobj,
-      rgobj
+      cgutils,cgobj
 {$ifndef cpu64bit}
       ,cg64f32
 {$endif cpu64bit}
@@ -428,7 +427,7 @@ implementation
                   location_force_reg(exprasmlist,tcallparanode(tcallparanode(left).right).left.location,cgsize,addvalue<=1);
                   hregister:=tcallparanode(tcallparanode(left).right).left.location.register;
 {$ifndef cpu64bit}
-                  hregisterhi:=tcallparanode(tcallparanode(left).right).left.location.registerhigh;
+                  hregisterhi:=tcallparanode(tcallparanode(left).right).left.location.register64.reghi;
 {$endif cpu64bit}
                   { insert multiply with addvalue if its >1 }
                   if addvalue>1 then
@@ -685,7 +684,11 @@ end.
 
 {
   $Log$
-  Revision 1.64  2004-09-25 14:23:54  peter
+  Revision 1.65  2004-10-31 21:45:03  peter
+    * generic tlocation
+    * move tlocation to cgutils
+
+  Revision 1.64  2004/09/25 14:23:54  peter
     * ungetregister is now only used for cpuregisters, renamed to
       ungetcpuregister
     * renamed (get|unget)explicitregister(s) to ..cpuregister

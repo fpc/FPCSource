@@ -185,7 +185,7 @@ implementation
       systems,
       verbose,globals,
       symconst,defutil,defcmp,
-      htypechk,pass_1,
+      htypechk,pass_1,tgobj,
       ncnv,nld,ninl,nadd,ncon,nmem,
       procinfo,
       cgbase
@@ -2416,7 +2416,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.253  2004-10-25 15:38:41  peter
+  Revision 1.254  2004-10-31 21:45:03  peter
+    * generic tlocation
+    * move tlocation to cgutils
+
+  Revision 1.253  2004/10/25 15:38:41  peter
     * heap and heapsize removed
     * checkpointer fixes
 

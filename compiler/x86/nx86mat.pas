@@ -48,13 +48,13 @@ interface
   implementation
 
     uses
-      globtype,systems,
+      systems,
       cutils,verbose,globals,
-      symconst,symdef,aasmbase,aasmtai,defutil,
+      symconst,aasmbase,aasmtai,defutil,
       cgbase,pass_1,pass_2,
       ncon,
-      cpubase,cpuinfo,
-      cga,ncgutil,cgobj,cgx86;
+      cpubase,
+      cga,ncgutil,cgobj,cgx86,cgutils;
 
 
 {*****************************************************************************
@@ -304,7 +304,11 @@ end.
 
 {
   $Log$
-  Revision 1.6  2004-09-25 14:23:55  peter
+  Revision 1.7  2004-10-31 21:45:04  peter
+    * generic tlocation
+    * move tlocation to cgutils
+
+  Revision 1.6  2004/09/25 14:23:55  peter
     * ungetregister is now only used for cpuregisters, renamed to
       ungetcpuregister
     * renamed (get|unget)explicitregister(s) to ..cpuregister

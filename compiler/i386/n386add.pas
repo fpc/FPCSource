@@ -49,7 +49,7 @@ interface
       symconst,symdef,paramgr,
       aasmbase,aasmtai,aasmcpu,
       cgbase,
-      ncon,nset,
+      ncon,nset,cgutils,tgobj,
       cga,ncgutil,cgobj,cg64f32;
 
 {*****************************************************************************
@@ -195,8 +195,8 @@ interface
               hregister2:=cg.getintregister(exprasmlist,OS_INT);
               cg64.a_load64_loc_reg(exprasmlist,left.location,joinreg64(hregister,hregister2));
               location_reset(left.location,LOC_REGISTER,OS_64);
-              left.location.registerlow:=hregister;
-              left.location.registerhigh:=hregister2;
+              left.location.register64.reglo:=hregister;
+              left.location.register64.reghi:=hregister2;
             end
            else
             begin
@@ -231,12 +231,12 @@ interface
             begin
               r:=cg.getintregister(exprasmlist,OS_INT);
               cg64.a_load64low_loc_reg(exprasmlist,right.location,r);
-              emit_reg_reg(op1,opsize,left.location.registerlow,r);
-              emit_reg_reg(A_MOV,opsize,r,left.location.registerlow);
+              emit_reg_reg(op1,opsize,left.location.register64.reglo,r);
+              emit_reg_reg(A_MOV,opsize,r,left.location.register64.reglo);
               cg64.a_load64high_loc_reg(exprasmlist,right.location,r);
               { the carry flag is still ok }
-              emit_reg_reg(op2,opsize,left.location.registerhigh,r);
-              emit_reg_reg(A_MOV,opsize,r,left.location.registerhigh);
+              emit_reg_reg(op2,opsize,left.location.register64.reghi,r);
+              emit_reg_reg(A_MOV,opsize,r,left.location.register64.reghi);
             end
            else
             begin
@@ -365,8 +365,8 @@ interface
                  hregister2:=cg.getintregister(exprasmlist,OS_INT);
                  cg64.a_load64_loc_reg(exprasmlist,left.location,joinreg64(hregister,hregister2));
                  location_reset(left.location,LOC_REGISTER,OS_64);
-                 left.location.registerlow:=hregister;
-                 left.location.registerhigh:=hregister2;
+                 left.location.register64.reglo:=hregister;
+                 left.location.register64.reghi:=hregister2;
                end;
             end
            else
@@ -379,9 +379,9 @@ interface
         { at this point, left.location.loc should be LOC_REGISTER }
         if right.location.loc=LOC_REGISTER then
          begin
-           emit_reg_reg(A_CMP,S_L,right.location.registerhigh,left.location.registerhigh);
+           emit_reg_reg(A_CMP,S_L,right.location.register64.reghi,left.location.register64.reghi);
            firstjmp64bitcmp;
-           emit_reg_reg(A_CMP,S_L,right.location.registerlow,left.location.registerlow);
+           emit_reg_reg(A_CMP,S_L,right.location.register64.reglo,left.location.register64.reglo);
            secondjmp64bitcmp;
          end
         else
@@ -389,9 +389,9 @@ interface
            case right.location.loc of
              LOC_CREGISTER :
                begin
-                 emit_reg_reg(A_CMP,S_L,right.location.registerhigh,left.location.registerhigh);
+                 emit_reg_reg(A_CMP,S_L,right.location.register64.reghi,left.location.register64.reghi);
                  firstjmp64bitcmp;
-                 emit_reg_reg(A_CMP,S_L,right.location.registerlow,left.location.registerlow);
+                 emit_reg_reg(A_CMP,S_L,right.location.register64.reglo,left.location.register64.reglo);
                  secondjmp64bitcmp;
                end;
              LOC_CREFERENCE,
@@ -399,18 +399,18 @@ interface
                begin
                  href:=right.location.reference;
                  inc(href.offset,4);
-                 emit_ref_reg(A_CMP,S_L,href,left.location.registerhigh);
+                 emit_ref_reg(A_CMP,S_L,href,left.location.register64.reghi);
                  firstjmp64bitcmp;
-                 emit_ref_reg(A_CMP,S_L,right.location.reference,left.location.registerlow);
+                 emit_ref_reg(A_CMP,S_L,right.location.reference,left.location.register64.reglo);
                  secondjmp64bitcmp;
                  cg.a_jmp_always(exprasmlist,falselabel);
                  location_freetemp(exprasmlist,right.location);
                end;
              LOC_CONSTANT :
                begin
-                 exprasmlist.concat(taicpu.op_const_reg(A_CMP,S_L,aint(hi(right.location.value64)),left.location.registerhigh));
+                 exprasmlist.concat(taicpu.op_const_reg(A_CMP,S_L,aint(hi(right.location.value64)),left.location.register64.reghi));
                  firstjmp64bitcmp;
-                 exprasmlist.concat(taicpu.op_const_reg(A_CMP,S_L,aint(lo(right.location.value64)),left.location.registerlow));
+                 exprasmlist.concat(taicpu.op_const_reg(A_CMP,S_L,aint(lo(right.location.value64)),left.location.register64.reglo));
                  secondjmp64bitcmp;
                end;
              else
@@ -654,7 +654,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.99  2004-09-25 14:23:54  peter
+  Revision 1.100  2004-10-31 21:45:03  peter
+    * generic tlocation
+    * move tlocation to cgutils
+
+  Revision 1.99  2004/09/25 14:23:54  peter
     * ungetregister is now only used for cpuregisters, renamed to
       ungetcpuregister
     * renamed (get|unget)explicitregister(s) to ..cpuregister
