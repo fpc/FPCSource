@@ -1015,6 +1015,7 @@ implementation
                   CGMessagePos(hp.fileinfo,type_e_variable_id_expected);
                  exit;
                end;
+             niln,
              pointerconstn :
                begin
                  { to support e.g. @tmypointer(0)^.data; see tests/tbs/tb0481 }
@@ -2028,7 +2029,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.114  2005-02-02 22:16:39  florian
+  Revision 1.115  2005-02-13 20:33:57  peter
+    * allow nil^ passed to var parameter
+
+  Revision 1.114  2005/02/02 22:16:39  florian
     * delphi assumes dyn. array access make expressions l-values because it's internally a pointer
 
   Revision 1.113  2005/02/01 22:50:50  florian
