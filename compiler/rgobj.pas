@@ -431,13 +431,19 @@ unit rgobj;
         result:=maxreg;
         inc(maxreg);
         if maxreg>=last_reg then
-          internalerror(200310146);
+          Message(parser_f_too_complex_proc);
         if maxreg>=maxreginfo then
           begin
             oldmaxreginfo:=maxreginfo;
-            inc(maxreginfo,maxreginfoinc);
-            if maxreginfoinc<256 then
-              maxreginfoinc:=maxreginfoinc*2;
+            { Prevent overflow }
+            if maxreginfoinc>last_reg-maxreginfo then
+              maxreginfo:=last_reg
+            else
+              begin
+                inc(maxreginfo,maxreginfoinc);
+                if maxreginfoinc<256 then
+                  maxreginfoinc:=maxreginfoinc*2;
+              end;
             reallocmem(reginfo,maxreginfo*sizeof(treginfo));
             { Do we really need it to clear it ? At least for 1.0.x (PFV) }
             fillchar(reginfo[oldmaxreginfo],(maxreginfo-oldmaxreginfo)*sizeof(treginfo),0);
@@ -2000,7 +2006,10 @@ unit rgobj;
 end.
 {
   $Log$
-  Revision 1.151  2004-11-06 18:58:18  florian
+  Revision 1.152  2004-11-14 21:08:27  peter
+    * fatal error when procedure is too complex
+
+  Revision 1.151  2004/11/06 18:58:18  florian
     * debug writeln removed
 
   Revision 1.150  2004/11/06 17:44:47  florian

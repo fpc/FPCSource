@@ -265,7 +265,7 @@ const
   parser_e_illegal_explicit_paraloc=03199;
   parser_e_32bitint_or_pointer_variable_expected=03200;
   parser_e_goto_outside_proc=03201;
-  parser_e_too_complex_expr=03202;
+  parser_f_too_complex_proc=03202;
   parser_e_illegal_expression=03203;
   parser_e_invalid_integer=03204;
   parser_e_invalid_qualifier=03205;
@@ -647,7 +647,7 @@ const
   option_info=11024;
   option_help_pages=11025;
 
-  MsgTxtSize = 37653;
+  MsgTxtSize = 37659;
 
   MsgIdxMax : array[1..20] of longint=(
     18,67,210,59,57,46,99,20,35,60,
