@@ -26,9 +26,16 @@
   ! Use AddDisk() to Add new drives !
   They both return -1 when a failure occurs.
 }
+Const
+  FixDriveStr : array[0..3] of pchar=(
+    '.',
+    '/fd0/.',
+    '/fd1/.',
+    '/.'
+    );
 var
   Drives   : byte;
-  DriveStr : array[0..26] of pchar;
+  DriveStr : array[4..26] of pchar;
 
 Procedure AddDisk(const path:string);
 begin
@@ -44,11 +51,11 @@ end;
 
 
 Function DiskFree(Drive: Byte): Longint;
-
 var
   fs : statfs;
 Begin
-  if (not (drivestr[Drive]=nil)) and fsstat(StrPas(drivestr[drive]),fs) then
+  if ((Drive<4) and (not (fixdrivestr[Drive]=nil)) and fsstat(StrPas(fixdrivestr[drive]),fs)) or
+     ((not (drivestr[Drive]=nil)) and fsstat(StrPas(drivestr[drive]),fs)) then
    Diskfree:=fs.bavail*fs.bsize
   else
    Diskfree:=-1;
@@ -59,51 +66,55 @@ End;
 Function DiskSize(Drive: Byte): Longint;
 var
   fs : statfs;
-
 Begin
-  if (not (drivestr[Drive]=nil)) and fsstat(StrPas(drivestr[drive]),fs) then
+  if ((Drive<4) and (not (fixdrivestr[Drive]=nil)) and fsstat(StrPas(fixdrivestr[drive]),fs)) or
+     ((not (drivestr[Drive]=nil)) and fsstat(StrPas(drivestr[drive]),fs)) then
    DiskSize:=fs.blocks*fs.bsize
   else
    DiskSize:=-1;
 End;
 
 
-
 Function GetCurrentDir : String;
-
 begin
   GetDir (0,Result);
 end;
 
 
 Function SetCurrentDir (Const NewDir : String) : Boolean;
-
 begin
-  ChDir (NewDir);
-  SetCurrentDir:=true;
+  {$I-}
+  ChDir(NewDir);
+  result := (IOResult = 0);
+  {$I+}
 end;
 
 
 Function CreateDir (Const NewDir : String) : Boolean;
-
 begin
-  MkDir (NewDir);
-  CreateDir:=true;
+  {$I-}
+  MkDir(NewDir);
+  result := (IOResult = 0);
+  {$I+}
 end;
 
 
 Function RemoveDir (Const Dir : String) : Boolean;
-
 begin
-  RmDir (Dir);
-  RemoveDir:=true;
+  {$I-}
+  RmDir(Dir);
+  result := (IOResult = 0);
+  {$I+}
 end;
-
 
 
 {
  $Log$
- Revision 1.3  1999-04-26 07:40:40  michael
+ Revision 1.4  1999-04-26 09:34:32  peter
+   * fixed diskfree,disksize
+   * dir functions now return error status instead of true
+
+ Revision 1.3  1999/04/26 07:40:40  michael
  + Fixed removedir
 
  Revision 1.2  1999/04/08 11:31:00  peter
