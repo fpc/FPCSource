@@ -104,8 +104,6 @@ CONST
     SYS_NMLN = 32;              {BSD utsname struct limit}
 
     SIG_MAXSIG      = 32;	// highest signal version
-    wordsinsigset   = 1;	// words in sigset_t
-
 
     MFSNAMELEN = 15;
     MNAMELEN   = 90;
@@ -141,7 +139,10 @@ CONST
 
 {
   $Log$
-  Revision 1.5  2004-03-01 19:50:40  jonas
+  Revision 1.6  2004-03-04 22:28:08  marco
+   * Darwin specific unixtype fixes.
+
+  Revision 1.5  2004/03/01 19:50:40  jonas
     - removed wordsinfdset again, because now it's defined in a common file
 
   Revision 1.4  2004/02/22 23:18:24  jonas

@@ -8,7 +8,7 @@ main=rtl
 # disabled units: serial sockets ipc mouse console
 [target]
 loaders=
-units=$(SYSTEMUNIT) objpas strings sysctl baseunix unixutil \
+units=$(SYSTEMUNIT) objpas strings sysctl baseunix unixtype unixutil \
       unix initc   \
       dos dl objects printer \
       sysutils typinfo systhrds classes math varutils \
@@ -133,6 +133,7 @@ baseunix$(PPUEXT) : errno.inc $(BSDINC)/bunxtype.inc ptypes.inc $(BSDINC)/ctypes
   $(BSDINC)/ostypes.inc $(BSDINC)/ossysch.inc $(BSDINC)/bunxmacr.inc $(UNIXINC)/gensigset.inc \
   $(UNIXINC)/genfuncs.inc $(SYSTEMUNIT)$(PPUEXT)
 
+unixtype$(PPUEXT) : $(UNIXINC)/unixtype.pp ptypes.inc ctypes.inc $(SYSTEMUNIT)$(PPUEXT)
 
 unix$(PPUEXT) : $(UNIXINC)/unix.pp strings$(PPUEXT) $(INC)/textrec.inc $(INC)/filerec.inc \
                  sysconst.inc $(UNIXINC)/timezone.inc \
