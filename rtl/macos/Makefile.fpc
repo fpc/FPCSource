@@ -1,5 +1,5 @@
 #
-#   Makefile.fpc for Amiga RTL
+#   Makefile.fpc for Free Pascal MacOS RTL
 #
 
 [package]
@@ -86,27 +86,27 @@ SYSDEPS=$(SYSINCDEPS) $(SYSCPUDEPS)
 # Base Units (System, strings, os-dependent-base-unit)
 #
 
-system$(PPUEXT) : system.pp $(SYSLINUXDEPS) $(SYSDEPS)
-  $(COMPILER) -Us -Sg system.pp $(REDIR)
+system$(PPUEXT) : system.pp $(SYSDEPS)
+	$(COMPILER) -Us -Sg system.pp $(REDIR)
 
-strings$(PPUEXT) : ../template/strings.pp system$(PPUEXT)
-  $(COMPILER) ../template/strings.pp $(REDIR)
+strings$(PPUEXT) : $(INC)/strings.pp system$(PPUEXT)
+	$(COMPILER) $(INC)/strings.pp $(REDIR)
 
-exec$(PPUEXT) : exec.pp exec.inc system$(PPUEXT)
-  $(COMPILER) exec $(REDIR)
+#exec$(PPUEXT) : exec.pp exec.inc system$(PPUEXT)
+#	$(COMPILER) exec $(REDIR)
 
 #
 # Delphi Object Model
 #
 
 objpas$(PPUEXT) : $(OBJPASDIR)/objpas.pp system$(PPUEXT)
-  $(COPY) $(OBJPASDIR)/objpas.pp .
-  $(COMPILER) objpas $(REDIR)
-  $(DEL) objpas.pp
+	$(COPY) $(OBJPASDIR)/objpas.pp .
+	$(COMPILER) objpas $(REDIR)
+	$(DEL) objpas.pp
 
 sysutils$(PPUEXT) : $(OBJPASDIR)/sysutils.pp objpas$(PPUEXT) system$(PPUEXT) sysconst$(PPUEXT)
-  $(COPY) $(OBJPASDIR)/sysutils.pp .
-  $(COMPILER) sysutils $(REDIR)
+	$(COPY) $(OBJPASDIR)/sysutils.pp .
+	$(COMPILER) sysutils $(REDIR)
 #$(DEL) sysutils.pp
 
 #
@@ -120,11 +120,11 @@ sysutils$(PPUEXT) : $(OBJPASDIR)/sysutils.pp objpas$(PPUEXT) system$(PPUEXT) sys
 dos$(PPUEXT) : $(DOSDEPS) system$(PPUEXT)
         $(COMPILER) dos $(REDIR)
 
-crt$(PPUEXT) : crt.pp $(INC)/textrec.inc system$(PPUEXT)
-        $(COMPILER) crt $(REDIR)
+#crt$(PPUEXT) : crt.pp $(INC)/textrec.inc system$(PPUEXT)
+#        $(COMPILER) crt $(REDIR)
 
-printer$(PPUEXT) : printer.pp system$(PPUEXT)
-        $(COMPILER) printer $(REDIR)
+#printer$(PPUEXT) : printer.pp system$(PPUEXT)
+#        $(COMPILER) printer $(REDIR)
 
 objects$(PPUEXT) : $(INC)/objects.pp system$(PPUEXT)
         $(COMPILER) $(INC)/objects.pp $(REDIR)
