@@ -44,7 +44,7 @@ if (Month > 0) and (Month < 13) and (Day > 0) and (Day < 32) then
      c:= Year DIV 100;
      ya:= Year - 100*c;
      result := (146097*c) SHR 2 + (1461*ya) SHR 2 + (153*Month+2) DIV 5 + Day -
-693901;
+693900;
    end else result:=0;
 end;
 
@@ -87,7 +87,7 @@ end ;
 function MSecsToTimeStamp(MSecs: comp): TTimeStamp;
 begin
   result.Date := trunc(msecs / msecsperday);
-  msecs:= msecs - comp(result.date * msecsperday);
+  msecs:= msecs - comp(result.date) * comp(msecsperday);
   result.Time := Trunc(MSecs);
 end ;
 
@@ -121,7 +121,7 @@ procedure DecodeDate(Date: TDateTime; var Year, Month, Day: word);
 var
   j : cardinal;
 begin
-  j := pred((Trunc(System.Int(Date)) + 693901) SHL 2);
+  j := pred((Trunc(System.Int(Date)) + 693900) SHL 2);
   Year:= j DIV 146097;
   j:= j - 146097 * Year;
   Day := j SHR 2;
@@ -282,67 +282,96 @@ var
    c:word;
    dp,mp,yp,which : Byte;
    s1:string[4];
-   values:array[0..2] of longint;
+   values:array[1..3] of longint;
    LocalTime:tsystemtime;
 
 begin
-df := UpperCase(ShortDateFormat);
-{ Determine order of D,M,Y }
-Which:=0;
-For I:=1 to Length(df) do
-  Case df[i] of
-    'Y' : yp:=which;
-    'M' : mp:=which;
-    'D' : dp:=which;
-  else
-    If df[i]=DateSeparator then
-     Inc(Which);
-  end;
+  df := UpperCase(ShortDateFormat);
+  { Determine order of D,M,Y }
+  yp:=0;
+  mp:=0;
+  dp:=0;
+  Which:=0;
+  i:=0;
+  while (i<Length(df)) and (Which<3) do
+   begin
+     inc(i);
+     Case df[i] of
+       'Y' :
+         if yp=0 then
+          begin
+            Inc(Which);
+            yp:=which;
+          end;
+       'M' :
+         if mp=0 then
+          begin
+            Inc(Which);
+            mp:=which;
+          end;
+       'D' :
+         if dp=0 then
+          begin
+            Inc(Which);
+            dp:=which;
+          end;
+     end;
+   end;
+  if Which<>3 then
+   Raise EConvertError.Create('Illegal format string');
 { Get actual values }
-for i := 0 to 2 do values[i] := 0;
-s1 := '';
-n := 0;
-for i := 1 to length(s) do begin
-   if (s[i] in ['0'..'9']) then s1 := s1 + s[i];
-   if (s[i] in [dateseparator,' ']) or (i = length(s)) then begin
-      val(s1, values[n], c);
-      if c<>0 then
-        Raise EConvertError.Create('Invalid date format');
-      s1 := '';
-      inc(n);
+  for i := 1 to 3 do
+    values[i] := 0;
+  s1 := '';
+  n := 0;
+  for i := 1 to length(s) do
+   begin
+     if (s[i] in ['0'..'9']) then
+      s1 := s1 + s[i];
+     if (s[i] in [dateseparator,' ']) or (i = length(s)) then
+      begin
+        inc(n);
+        if n>3 then
+         Raise EConvertError.Create('Invalid date format');
+        val(s1, values[n], c);
+        if c<>0 then
+         Raise EConvertError.Create('Invalid date format');
+        s1 := '';
       end ;
    end ;
-// Fill in values.
-If N=3 then
+  // Fill in values.
+  If N=3 then
+   begin
+     y:=values[yp];
+     m:=values[mp];
+     d:=values[dp];
+   end
+  Else
   begin
-  y:=values[yp];
-  m:=values[mp];
-  d:=values[dp];
-  end
-Else
-  begin
-  getLocalTime(LocalTime);
-  y := LocalTime.Year;
-  If n<2 then
-    begin
-    d:=values[0];
-    m := LocalTime.Month;
-    end
-  else
-    If dp<mp then
+    getLocalTime(LocalTime);
+    y := LocalTime.Year;
+    If n<2 then
+     begin
+       d:=values[1];
+       m := LocalTime.Month;
+     end
+    else
+     If dp<mp then
       begin
-      d:=values[0];
-      m:=values[1];
+        d:=values[1];
+        m:=values[2];
       end
     else
       begin
-      d:=values[1];
-      m:=values[0];
+        d:=values[2];
+        m:=values[1];
       end;
   end;
-if (y >= 0) and (y < 100) then y := 1900 + y;
-Result := DoEncodeDate(y, m, d);
+  if (y >= 0) and (y < 100) then
+   inc(y,1900);
+  Result := DoEncodeDate(y, m, d);
 end ;
+
 
 {   StrToTime converts the string S to a TDateTime value
     if S does not represent a valid time value an
@@ -584,11 +613,19 @@ var
                         if Count = 1 then StoreFormat(timereformat(ShortTimeFormat))
                         else StoreFormat(TimeReformat(LongTimeFormat));
                         end ;
-                     'C': StoreFormat(ShortDateFormat + ' ' + TimeReformat(ShortTimeFormat));
+                     'C':
+                       begin
+                         StoreFormat(ShortDateFormat);
+                         if (Hour<>0) or (Minute<>0) or (Second<>0) then
+                          begin
+                            StoreString(' ');
+                            StoreFormat(TimeReformat(ShortTimeFormat));
+                          end;
+                       end;
                   end ;
                end ;
             else
-              Raise EConvertError.Create('Illegal character in format string');
+              StoreStr(@Token, 1);
          end ;
       FormatCurrent := FormatCurrent + Count;
       end ;
@@ -643,7 +680,12 @@ end;
 
 {
   $Log$
-  Revision 1.15  1999-07-24 11:21:14  peter
+  Revision 1.16  1999-08-11 21:53:04  peter
+    * fixed formatdatetime('c',...)
+    * fixed strtodate
+    * dateencode/decode is now delphi compatible
+
+  Revision 1.15  1999/07/24 11:21:14  peter
     * fixed encode/decode date/time
 
   Revision 1.14  1999/07/14 08:47:54  michael
