@@ -1,3 +1,18 @@
+{
+    $Id$
+    This file is part of the Free Pascal run time library.
+    Copyright (c) 2001 by Free Pascal development team
+
+    Some calls for the unix unit.
+
+    See the file COPYING.FPC, included in this distribution,
+    for details about the copyright.
+
+    This program is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+
+ ***********************************************************************}
 
 function fpNice(N:cint):cint;
 {
@@ -29,13 +44,11 @@ begin
   if (which<prio_process) or (which>prio_user) then
    begin
      { We can save an interrupt here }
-     fpgetpriority:=0;
-     linuxerror:=ESysEinval;
+     fpgetpriority:=-1;
+     fpsetErrno(ESysEinval);
    end
   else
-   begin
      fpGetPriority:=do_syscall(syscall_nr_GetPriority,which,who);
-   end;
 end;
 
 Function fpSetPriority(Which,Who,What:cint):cint;
@@ -116,3 +129,11 @@ begin
   else
    fpReadLink:='';
 end;
+
+{
+ $Log$
+ Revision 1.3  2003-11-13 13:11:55  marco
+  * Linuxerror remove + hdr+log added
+
+
+}
