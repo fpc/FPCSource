@@ -21,7 +21,7 @@
 {$define FPC_UNIT_HAS_STRLEN}
  function libc_strlen(const p: pchar): cardinal; cdecl; external 'c' name 'strlen';
 
- function strlen(P : pchar) : longint;
+ function strlen(P : pchar) : longint;{$ifdef SYSTEMINLINE}inline;{$endif}
    begin
      strlen := libc_strlen(p);
    end;
@@ -142,7 +142,10 @@
 
 {
   $Log$
-  Revision 1.2  2004-05-01 23:55:18  peter
+  Revision 1.3  2004-08-24 11:49:56  jonas
+    * made strlen wrapper inline
+
+  Revision 1.2  2004/05/01 23:55:18  peter
     * replace strlenint with sizeint
 
   Revision 1.1  2004/05/01 15:26:33  jonas
