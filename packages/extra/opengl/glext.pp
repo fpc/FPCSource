@@ -9,7 +9,7 @@
 {$MACRO ON}
 {$MODE Delphi}
 {$IFDEF Win32}
-  {$DEFINE extdecl:=extdecl }
+  {$DEFINE extdecl:=stdcall }
 {$ELSE}
   {$DEFINE extdecl:=cdecl }
 {$ENDIF}
