@@ -171,9 +171,9 @@ PROCEDURE SecondsToTime (Sd: LongInt; Var Hour24, Minute, Second: Word);
 
 {$ENDIF}
 
-{$ifdef OS_LINUX}
+{$ifdef OS_UNIX}
   USES Dos;
-{$endif OS_LINUX}
+{$endif OS_UNIX}
 
 {***************************************************************************}
 {                            INTERFACE ROUTINES                             }
@@ -302,11 +302,11 @@ BEGIN
    DosSetDateTime(DT);                                { Set the time }
 END;
 {$ENDIF}
-{$ifdef OS_LINUX}
+{$ifdef OS_UNIX}
 BEGIN
  {settime is dummy in Linux}
 END;
-{$endif OS_LINUX}
+{$endif OS_UNIX}
 
 {---------------------------------------------------------------------------}
 {  GetTime -> Platforms DOS/DPMI/WIN/NT/OS2 - Updated 06Nov97 LdB           }
@@ -409,11 +409,11 @@ BEGIN
    Sec100 := DT.Hundredths;                           { Transfer hundredths }
 END;
 {$ENDIF}
-{$ifdef OS_LINUX}
+{$ifdef OS_UNIX}
 BEGIN
   Dos.GetTime(Hour,Minute,Second,Sec100);
 END;
-{$endif OS_LINUX}
+{$endif OS_UNIX}
 
 {---------------------------------------------------------------------------}
 {  MinutesToTime -> Platforms DOS/DPMI/WIN/NT/OS2 - Updated 19Jun97 LdB     }
@@ -438,7 +438,10 @@ END.
 
 {
  $Log$
- Revision 1.5  2002-06-03 20:26:16  pierre
+ Revision 1.6  2002-06-04 11:12:41  marco
+  * Renamefest
+
+ Revision 1.5  2002/06/03 20:26:16  pierre
   * use local time for windows
 
  Revision 1.4  2001/05/04 09:04:08  pierre

@@ -46,7 +46,7 @@ UNIT Drivers;
 
 {$X+} { Extended syntax is ok }
 {$R-} { Disable range checking }
-{$IFNDEF OS_LINUX}
+{$IFNDEF OS_UNIX}
 {$S-} { Disable Stack Checking }
 {$ENDIF}
 {$I-} { Disable IO Checking }
@@ -68,7 +68,7 @@ USES
      {$ENDIF}
    {$ENDIF}
 
-   {$IFDEF OS_LINUX}
+   {$IFDEF OS_UNIX}
      {$ifdef VER1_0}
        linux,
      {$else}
@@ -704,7 +704,7 @@ Function GetDosTicks:longint; { returns ticks at 18.2 Hz, just like DOS }
     GetDosTicks := L div 55;
   end;
 {$ENDIF}
-{$IFDEF OS_LINUX}
+{$IFDEF OS_UNIX}
   var
     tv : TimeVal;
   {  tz : TimeZone;}
@@ -712,7 +712,7 @@ Function GetDosTicks:longint; { returns ticks at 18.2 Hz, just like DOS }
     GetTimeOfDay(tv{,tz});
     GetDosTicks:=((tv.Sec mod 86400) div 60)*1092+((tv.Sec mod 60)*1000000+tv.USec) div 54945;
   end;
-{$ENDIF OS_LINUX}
+{$ENDIF OS_UNIX}
 {$IFDEF OS_WINDOWS}
   begin
      GetDosTicks:=GetTickCount div 55;
@@ -752,7 +752,7 @@ END;
 {---------------------------------------------------------------------------}
 {  ExitDrivers -> Platforms DOS/DPMI/WIN/NT/OS2 - Updated 08Jun98 LdB       }
 {---------------------------------------------------------------------------}
-PROCEDURE ExitDrivers; {$IFNDEF OS_LINUX} FAR; {$ENDIF}
+PROCEDURE ExitDrivers; {$IFNDEF OS_UNIX} FAR; {$ENDIF}
 BEGIN
    DoneSysError;                                      { Relase error trap }
    DoneEvents;                                        { Close event driver }
@@ -1629,7 +1629,10 @@ BEGIN
 END.
 {
  $Log$
- Revision 1.23  2002-05-31 12:38:37  pierre
+ Revision 1.24  2002-06-04 11:12:41  marco
+  * Renamefest
+
+ Revision 1.23  2002/05/31 12:38:37  pierre
   * try to enhance graph mode
 
  Revision 1.22  2002/05/29 21:21:54  pierre

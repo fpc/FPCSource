@@ -75,7 +75,7 @@ UNIT FileIO;
 
 {$X+} { Extended syntax is ok }
 {$R-} { Disable range checking }
-{$IFNDEF OS_LINUX}
+{$IFNDEF OS_UNIX}
 {$S-} { Disable Stack Checking }
 {$ENDIF}
 {$I-} { Disable IO Checking }
@@ -227,16 +227,7 @@ FUNCTION FileWrite (Handle: THandle; Var Buf; Count: Sw_Word; Var Actual: Sw_Wor
 
 {$ENDIF}
 
-{$IFDEF OS_LINUX}                                     { LINUX COMPILER }
-  USES
-    {$ifdef VER1_0}
-      linux;
-    {$else}
-      unix;
-    {$endif}
-{$ENDIF}
-
-{$IFDEF OS_FREEBSD}                                   { FREEBSD COMPILER }
+{$IFDEF OS_UNIX}                                     { LINUX COMPILER }
   USES
     {$ifdef VER1_0}
       linux;
@@ -296,7 +287,7 @@ BEGIN
      Else FileClose := False;                         { Closure failed }
 END;
 {$ENDIF}
-{$IFDEF OS_LINUX}                                     { LINUX CODE }
+{$IFDEF OS_UNIX}                                     { LINUX CODE }
 BEGIN
    fdClose(Handle);                                   { Close the file }
    FileClose := LinuxError <= 0
@@ -394,7 +385,7 @@ BEGIN
    {$ENDIF}
 END;
 {$ENDIF}
-{$IFDEF OS_LINUX}
+{$IFDEF OS_UNIX}
 BEGIN
    if mode = fa_Create    then mode := Open_Creat or Open_RdWr else
    if mode = fa_OpenRead  then mode := Open_RdOnly             else
@@ -474,7 +465,7 @@ BEGIN
    {$ENDIF}
 END;
 {$ENDIF}
-{$IFDEF OS_LINUX}
+{$IFDEF OS_UNIX}
 VAR
    Actual : LongInt;
 BEGIN
@@ -554,7 +545,7 @@ BEGIN
    {$ENDIF}
 END;
 {$ENDIF}
-{$IFDEF OS_LINUX}
+{$IFDEF OS_UNIX}
 BEGIN
    Actual := fdSeek(Handle, Pos, MoveType);
    If (Actual <> -1) Then SetFilePos := 0 Else        { No position error }
@@ -618,7 +609,7 @@ BEGIN
      FileRead := 104;                                 { File read error }
 END;
 {$ENDIF}
-{$IFDEF OS_LINUX}
+{$IFDEF OS_UNIX}
 BEGIN
    Actual := fdRead(Handle, Buf, Count);
    if (Actual = Count) Then FileRead := 0             { No read error }
@@ -682,7 +673,7 @@ BEGIN
      FileWrite := 105;                                { File write error }
 END;
 {$ENDIF}
-{$IFDEF OS_LINUX}
+{$IFDEF OS_UNIX}
 BEGIN
    Actual := fdWrite(Handle, Buf, Count);
    If (Actual = Count) Then FileWrite := 0 Else       { No write error }
@@ -693,7 +684,10 @@ END;
 END.
 {
  $Log$
- Revision 1.5  2001-08-04 19:14:33  peter
+ Revision 1.6  2002-06-04 11:12:41  marco
+  * Renamefest
+
+ Revision 1.5  2001/08/04 19:14:33  peter
    * Added Makefiles
    * added FV specific units and objects from old FV
 

@@ -58,7 +58,7 @@ interface
   {$F+,O+,E+,N+}
 {$endif}
 {$X+,R-,I-,Q-,V-}
-{$ifndef OS_LINUX}
+{$ifndef OS_UNIX}
   {$S-}
 {$endif}
 

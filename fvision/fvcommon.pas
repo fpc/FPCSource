@@ -144,7 +144,7 @@ TYPE
 {$IFDEF OS_ATARI}                                     { ATARI DEFINITION }
    THandle = Integer;                                 { Handles are 16 bits }
 {$ENDIF}
-{$IFDEF OS_LINUX}                                     { LINUX DEFINITIONS }
+{$IFDEF OS_UNIX}                                     { LINUX DEFINITIONS }
  { values are words, though the OS calls return 32-bit values }
  { to check (CEC)                                             }
   THandle = LongInt;                                  { Simulated 32 bits }
@@ -416,7 +416,10 @@ END;
 END.
 {
  $Log$
- Revision 1.2  2001-08-05 02:03:13  peter
+ Revision 1.3  2002-06-04 11:12:41  marco
+  * Renamefest
+
+ Revision 1.2  2001/08/05 02:03:13  peter
    * view redrawing and small cursor updates
    * merged some more FV extensions
 
