@@ -2517,6 +2517,8 @@ Const
      LOCALE_INEGSYMPRECEDES = 86;
      LOCALE_INEGSEPBYSPACE = 87;
      LOCALE_NOUSEROVERRIDE = $80000000;
+     LOCALE_USE_CP_ACP     = $40000000;   // use the system ACP
+     LOCALE_RETURN_NUMBER  = $20000000;   // return number instead
   { Calendar Type Information  }
      CAL_ICALINTVALUE = 1;
      CAL_IYEAROFFSETRANGE = 3;
@@ -5915,7 +5917,10 @@ const
 
 {
   $Log$
-  Revision 1.14  2003-10-26 16:31:38  florian
+  Revision 1.15  2003-12-05 09:13:46  marco
+   * small fix
+
+  Revision 1.14  2003/10/26 16:31:38  florian
     + added some missing exception numbers
 
   Revision 1.13  2003/10/23 09:39:39  marco
