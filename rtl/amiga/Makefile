@@ -241,3 +241,10 @@ libsclean : clean
 #####################################################################
 
 include $(CFG)/makefile.def
+
+#
+# $Log$
+# Revision 1.1  1998-09-10 14:15:47  peter
+#   - renamed makefile to Makefile
+#
+#

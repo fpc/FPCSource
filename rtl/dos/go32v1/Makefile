@@ -293,3 +293,9 @@ diffs: system.dif os.dif makefile.dif prt0.dif
 
 distclean : clean libsclean diffclean
 
+#
+# $Log$
+# Revision 1.1  1998-09-10 14:15:48  peter
+#   - renamed makefile to Makefile
+#
+#

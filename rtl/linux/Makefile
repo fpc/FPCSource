@@ -332,7 +332,10 @@ include $(CFG)/makefile.def
 
 #
 # $Log$
-# Revision 1.24  1998-09-10 09:10:05  michael
+# Revision 1.1  1998-09-10 14:15:49  peter
+#   - renamed makefile to Makefile
+#
+# Revision 1.24  1998/09/10 09:10:05  michael
 # errors when making libs
 #
 # Revision 1.23  1998/09/07 18:31:53  peter

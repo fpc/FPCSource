@@ -1,134 +1,90 @@
-# makes the utilities for FPC
 #
-# Copyright (c) 1996 by Michael Van Canneyt
+#   $Id$
+#   This file is part of the Free Pascal run time library.
+#   Copyright (c) 1998 by the Free Pascal Development Team
+#
+#   Makefile for the Free Pascal Objpas RTL
+#
+#   See the file COPYING.FPC, included in this distribution,
+#   for details about the copyright.
+#
+#   This program is distributed in the hope that it will be useful,
+#   but WITHOUT ANY WARRANTY; without even the implied warranty of
+#   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+#
 
 #####################################################################
-# Start of configurable section.
-# Please note that all these must be set in the main makefile, and
-# should be set there.
-# Don't remove the indef statements. They serve to avoid conflicts
-# with the main makefile.
-#####################################################################
-
-# where are the units ?
-ifndef UNITDIR
-UNITDIR=../linux
-endif
-
-# set the directory where to install the units.
-ifndef UNITINSTALLDIR
-UNITINSTALLDIR=/usr/lib/ppc/0.99.0/objpas
-endif
-
-# What is the Operating System ?
-ifndef OS_SRC
-OS_SRC=linux
-endif
-
-# What is the target processor :
-ifndef CPU
-CPU=i386
-#CPU=m68k
-endif
-
-# What compiler to use ?
-ifndef PP
-PP=ppc386
-endif
-
-# What options to pass to the compiler ?
-# You may want to specify a config file or error definitions file here.
-ifndef OPT
-OPT=
-endif
-
-#####################################################################
-# End of configurable section.
-# Do not edit after this line.
+# Include configuration makefile
 #####################################################################
 
 # Where are the include files ?
+CFG=../cfg
 INC=../inc
 PROCINC=../$(CPU)
 
-# add required options...
-override OPT:= $(OPT) -d$(CPU)
+# Get some defaults for Programs and OSes.
+# This will set the following variables :
+# inlinux COPY REPLACE DEL INSTALL INSTALLEXE MKDIR
+# It will also set OPT for cross-compilation, and add required options.
+# also checks for config file.
+# it expects CFG INC PROCINC to be set !!
+include $(CFG)/makefile.cfg
 
-# Add unitdir
-ifdef UNITDIR
-override OPT:=$(OPT) -Up$(UNITDIR)
-endif
+#####################################################################
+# Objects
+#####################################################################
 
-# To copy pograms
-ifndef COPY
-ifeq ($(DOS),YES)
-COPY=copy
-else
-COPY=cp -p
-endif
-endif
+EXEOBJECTS=
+UNITOBJECTS=objpas sysutils math
 
-# Check delete program
-ifndef DEL
-ifeq ($(DOS),YES)
-DEL=del
-else
-DEL=rm -f
-endif
-endif
+#####################################################################
+# Main targets
+#####################################################################
 
-# To install programs
-ifndef INSTALL
-ifeq ($(DOS),YES)
-INSTALL=copy
-else
-INSTALL=install
-endif
-endif
-
-# To make a directory.
-ifndef MKDIR
-ifeq ($(DOS),YES)
-MKDIR=mkdir
-else
-MKDIR=install -m 755 -d
-endif
-endif
-
-# diff program
-ifndef REFPATH
-REFPATH=/usr/local/fpk/work/new/rtl
-endif
-ifndef DIFF
-DIFF=diff
-endif
-ifndef DIFFOPTS
-DIFFOPTS=-b -c
-endif
-
-# Was a config file specified ?
-ifdef CFGFILE
-override OPT:=$(OPT) @$(CONFIG)
-endif
-
-# determine needed extensions.
-PPUEXT=.ppu
-OEXT=.o
-
-# Targets
-UNITOBJECTS=math.ppu sysutils.ppu
+# Create Filenames
+EXEFILES=$(addsuffix $(EXEEXT),$(EXEOBJECTS))
+UNITFILES=$(addsuffix $(PPUEXT),$(UNITOBJECTS))
+UNITOFILES=$(addsuffix $(OEXT),$(UNITOBJECTS))
 
 .PHONY : all clean diffs install diffclean
 
-all : $(UNITOBJECTS)
+all : $(EXEFILES) $(UNITFILES)
 
-$(UNITOBJECTS): %.ppu: %.pp
+$(EXEFILES): %$(EXEEXT): %$(PASEXT)
+	$(PP) $(OPT) $* 
+
+$(UNITFILES): %$(PPUEXT): %$(PASEXT)
 	$(PP) $(OPT) $* 
 
 install : all
-	$(INSTALL) -m 755 $(UNITOBJECTS) $(UNITINSTALLDIR)
+ifdef EXEOBJECTS
+	$(MKDIR) $(BININSTALLDIR)
+	$(INSTALLEXE) $(EXEFILES) $(BININSTALLDIR)
+endif
+ifdef UNITOBJECTS
+	$(MKDIR) $(UNITINSTALLDIR)
+	$(INSTALL) $(UNITFILES) $(UNITOFILES) $(UNITINSTALLDIR)
+endif
 
 clean:
-	-$(DEL) *.o *.s *.ppu
-	-$(DEL) $(UNITOBJECTS)
+	-$(DEL) *$(OEXT) *$(ASMEXT) *$(PPUEXT) $(PPAS) link.res log
+ifdef EXEOBJECTS
+	-$(DEL) $(EXEFILES)
+endif
 
+#####################################################################
+# Files
+#####################################################################
+
+#####################################################################
+# Default makefile targets
+#####################################################################
+
+include $(CFG)/makefile.def
+
+#
+# $Log$
+# Revision 1.2  1998-09-10 14:15:50  peter
+#   - renamed makefile to Makefile
+#
+#

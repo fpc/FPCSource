@@ -375,7 +375,10 @@ include $(CFG)/makefile.def
 
 #
 # $Log$
-# Revision 1.13  1998-09-07 18:31:54  peter
+# Revision 1.1  1998-09-10 14:15:55  peter
+#   - renamed makefile to Makefile
+#
+# Revision 1.13  1998/09/07 18:31:54  peter
 #   * fixed $smartlibext -> $staticlibext to fix a 'rm *' :(
 #
 # Revision 1.12  1998/09/04 17:17:36  pierre
