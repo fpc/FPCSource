@@ -23,12 +23,32 @@
  {$ENDIF FPC_FEXPAND_DRIVES}
 {$ENDIF FPC_FEXPAND_VOLUMES}
 
+{$IFDEF FPC_FEXPAND_DIRSEP_IS_CURDIR}
+ {$IFNDEF FPC_FEXPAND_DRIVES}
+  (* If DirectorySeparator at the beginning marks a relative path, *)
+  (* an absolute path must always begin with a drive or volume.    *)
+  {$DEFINE FPC_FEXPAND_DRIVES}
+ {$ENDIF FPC_FEXPAND_DRIVES}
+ {$IFNDEF FPC_FEXPAND_MULTIPLE_UPDIR}
+  (* Traversing multiple levels at once explicitely allowed. *)
+  {$DEFINE FPC_FEXPAND_MULTIPLE_UPDIR}
+ {$ENDIF FPC_FEXPAND_MULTIPLE_UPDIR}
+ (* Helper define used to support common features of FPC_FEXPAND_DIRSEP_IS_* *)
+ {$DEFINE FPC_FEXPAND_UPDIR_HELPER}
+{$ENDIF FPC_FEXPAND_DIRSEP_IS_CURDIR}
+
 {$IFDEF FPC_FEXPAND_DIRSEP_IS_UPDIR}
- {$IFNDEF FPC_FEXPAND_DRIVESEP_IS_ROOT}
-  (* If DriveSeparator is used for upper directory,       *)
-  (* it cannot be used for marking root at the same time. *)
-  {$DEFINE FPC_FEXPAND_DRIVESEP_IS_ROOT}
- {$ENDIF FPC_FEXPAND_DRIVESEP_IS_ROOT}
+ {$IFNDEF FPC_FEXPAND_DRIVES}
+  (* If DirectorySeparator at the beginning marks a relative path, *)
+  (* an absolute path must always begin with a drive or volume.    *)
+  {$DEFINE FPC_FEXPAND_DRIVES}
+ {$ENDIF FPC_FEXPAND_DRIVES}
+ {$IFNDEF FPC_FEXPAND_MULTIPLE_UPDIR}
+  (* Traversing multiple levels at once explicitely allowed. *)
+  {$DEFINE FPC_FEXPAND_MULTIPLE_UPDIR}
+ {$ENDIF FPC_FEXPAND_MULTIPLE_UPDIR}
+ (* Helper define used to support common features of FPC_FEXPAND_DIRSEP_IS_* *)
+ {$DEFINE FPC_FEXPAND_UPDIR_HELPER}
 {$ENDIF FPC_FEXPAND_DIRSEP_IS_UPDIR}
 
 procedure GetDirIO (DriveNr: byte; var Dir: OpenString);
@@ -47,7 +67,7 @@ end;
 
 
 {$IFDEF FPC_FEXPAND_VOLUMES}
-{$IFNDEF FPC_FEXPAND_NO_DEFAULT_PATHS}
+ {$IFNDEF FPC_FEXPAND_NO_DEFAULT_PATHS}
 procedure GetDirIO (const VolumeName: OpenString; var Dir: OpenString);
 
 var
@@ -58,7 +78,7 @@ begin
   GetDir (VolumeName, Dir);
   InOutRes := OldInOutRes;
 end;
-{$ENDIF FPC_FEXPAND_NO_DEFAULT_PATHS}
+ {$ENDIF FPC_FEXPAND_NO_DEFAULT_PATHS}
 {$ENDIF FPC_FEXPAND_VOLUMES}
 
 
@@ -69,10 +89,10 @@ function FExpand (const Path: PathStr): PathStr;
    In addition, FPC_FEXPAND_UNC, FPC_FEXPAND_DRIVES, FPC_FEXPAND_GETENV_PCHAR,
    FPC_FEXPAND_TILDE, FPC_FEXPAND_VOLUMES, FPC_FEXPAND_NO_DEFAULT_PATHS,
    FPC_FEXPAND_DRIVESEP_IS_ROOT, FPC_FEXPAND_NO_CURDIR,
-   FPC_FEXPAND_NO_DOTS_UPDIR and FPC_FEXPAND_DIRSEP_IS_UPDIR conditionals might
-   be defined to specify FExpand behaviour - see end of this file for
+   FPC_FEXPAND_NO_DOTS_UPDIR, FPC_FEXPAND_DIRSEP_IS_UPDIR,
+   FPC_FEXPAND_DIRSEP_IS_CURDIR and FPC_FEXPAND_MULTIPLE_UPDIR conditionals
+   might be defined to specify FExpand behaviour - see end of this file for
    individual descriptions.
-
 *)
 
 {$IFDEF FPC_FEXPAND_DRIVES}
@@ -108,17 +128,18 @@ begin
 (* by converting all to the native one.           *)
     if DirectorySeparator = '\' then
     {Allow slash as backslash}
-        begin
-            for I := 1 to Length (Pa) do
-                if Pa [I] = '/' then
-                    Pa [I] := DirectorySeparator
-        end
+      begin
+        for I := 1 to Length (Pa) do
+          if Pa [I] = '/' then
+            Pa [I] := DirectorySeparator
+      end
     else
+      if DirectorySeparator = '\' then
     {Allow backslash as slash}
         begin
-            for I := 1 to Length (Pa) do
-                if Pa [I] = '\' then
-                    Pa [I] := DirectorySeparator;
+          for I := 1 to Length (Pa) do
+            if Pa [I] = '\' then
+              Pa [I] := DirectorySeparator;
         end;
 
 (* PathStart is amount of characters to strip to get beginning *)
@@ -235,17 +256,18 @@ begin
  {$ENDIF FPC_FEXPAND_DRIVESEP_IS_ROOT}
 {$ENDIF FPC_FEXPAND_VOLUMES}
 
-(* Do we have an absolute path? *)
-{$IFDEF FPC_FEXPAND_DRIVES}
+(* Do we have an absolute path without drive or volume? *)
+{$IFNDEF FPC_FEXPAND_DIRSEP_IS_CURDIR}
+ {$IFDEF FPC_FEXPAND_DRIVES}
             if (Length (Pa) > 0)
- {$IFDEF FPC_FEXPAND_DRIVESEP_IS_ROOT}
+  {$IFDEF FPC_FEXPAND_DRIVESEP_IS_ROOT}
                                  and (Pa [1] = DriveSeparator)
- {$ELSE FPC_FEXPAND_DRIVESEP_IS_ROOT}
+  {$ELSE FPC_FEXPAND_DRIVESEP_IS_ROOT}
                                  and (Pa [1] = DirectorySeparator)
- {$ENDIF FPC_FEXPAND_DRIVESEP_IS_ROOT}
+  {$ENDIF FPC_FEXPAND_DRIVESEP_IS_ROOT}
                                                                    then
                 begin
- {$IFDEF FPC_FEXPAND_UNC}
+  {$IFDEF FPC_FEXPAND_UNC}
                     {Do not touch network drive names}
                     if (Length (Pa) > 1) and (Pa [2] = DirectorySeparator)
                                                             and LFNSupport then
@@ -274,32 +296,38 @@ begin
                                     end;
                         end
                     else
- {$ENDIF FPC_FEXPAND_UNC}
- {$IFDEF FPC_FEXPAND_VOLUMES}
+  {$ENDIF FPC_FEXPAND_UNC}
+  {$IFDEF FPC_FEXPAND_VOLUMES}
                         begin
                             I := Pos (DriveSeparator, S);
-  {$IFDEF FPC_FEXPAND_DIRSEP_IS_UPDIR}
-   {$IFDEF FPC_FEXPAND_DRIVESEP_IS_ROOT}
+   {$IFDEF FPC_FEXPAND_DIRSEP_IS_UPDIR}
+    {$IFDEF FPC_FEXPAND_DRIVESEP_IS_ROOT}
                             if (Pa [1] = DriveSeparator) then
                                 Delete (Pa, 1, 1);
-   {$ENDIF FPC_FEXPAND_DRIVESEP_IS_ROOT}
+    {$ENDIF FPC_FEXPAND_DRIVESEP_IS_ROOT}
                             Pa := Copy (S, 1, I) + Pa;
                             PathStart := I;
-  {$ELSE FPC_FEXPAND_DIRSEP_IS_UPDIR}
+   {$ELSE FPC_FEXPAND_DIRSEP_IS_UPDIR}
                             Pa := Copy (S, 1, Pred (I)) + DriveSeparator + Pa;
                             PathStart := Succ (I);
-  {$ENDIF FPC_FEXPAND_DIRSEP_IS_UPDIR}
+   {$ENDIF FPC_FEXPAND_DIRSEP_IS_UPDIR}
                         end;
- {$ELSE FPC_FEXPAND_VOLUMES}
+  {$ELSE FPC_FEXPAND_VOLUMES}
                         Pa := S [1] + DriveSeparator + Pa;
- {$ENDIF FPC_FEXPAND_VOLUMES}
+  {$ENDIF FPC_FEXPAND_VOLUMES}
                 end
             else
-{$ENDIF FPC_FEXPAND_DRIVES}
+ {$ENDIF FPC_FEXPAND_DRIVES}
 
                 (* We already have a slash if root is the curent directory. *)
                 if Length (S) = PathStart then
                     Pa := S + Pa
+{$ELSE FPC_FEXPAND_DIRSEP_IS_CURDIR}
+                (* More complex with DirectorySeparator as current directory *)
+                if (S [Length (S)] = DriveSeparator)
+                                         and (Pa [1] = DirectorySeparator) then
+                    Pa := S + Copy (Pa, 2, Pred (Length (Pa)))
+{$ENDIF FPC_FEXPAND_DIRSEP_IS_CURDIR}
                 else
 
                     (* We need an ending slash if FExpand was called  *)
@@ -312,11 +340,11 @@ begin
                         Pa := S + DirectorySeparator
 {$ENDIF FPC_FEXPAND_DIRSEP_IS_UPDIR}
                     else
- {$IFDEF FPC_FEXPAND_DIRSEP_IS_UPDIR}
+{$IFDEF FPC_FEXPAND_UPDIR_HELPER}
                         if Pa [1] = DirectorySeparator then
                             Pa := S + Pa
                         else
- {$ENDIF FPC_FEXPAND_DIRSEP_IS_UPDIR}
+{$ENDIF FPC_FEXPAND_UPDIR_HELPER}
                         Pa := S + DirectorySeparator + Pa;
         end;
 
@@ -324,6 +352,7 @@ begin
     Dirs := Copy (Pa, Succ (PathStart), Length (Pa) - PathStart);
 
 {$IFNDEF FPC_FEXPAND_NO_CURDIR}
+ {$IFNDEF FPC_FEXPAND_DIRSEP_IS_CURDIR}
     {First remove all references to '\.\'}
     I := Pos (DirectorySeparator + '.' + DirectorySeparator, Dirs);
     while I <> 0 do
@@ -331,9 +360,20 @@ begin
             Delete (Dirs, I, 2);
             I := Pos (DirectorySeparator + '.' + DirectorySeparator, Dirs);
         end;
+ {$ENDIF FPC_FEXPAND_DIRSEP_IS_CURDIR}
 {$ENDIF FPC_FEXPAND_NO_CURDIR}
 
 {$IFNDEF FPC_FEXPAND_NO_DOTS_UPDIR}
+ {$IFDEF FPC_FEXPAND_MULTIPLE_UPDIR}
+    {Now replace all references to '\...' with '\..\..'}
+    I := Pos (DirectorySeparator + '...', Dirs);
+    while I <> 0 do
+        begin
+            Insert (DirectorySeparator + '.', Dirs, I + 3);
+            I := Pos (DirectorySeparator + '...', Dirs);
+        end;
+ {$ENDIF FPC_FEXPAND_MULTIPLE_UPDIR}
+
     {Now remove also all references to '\..\' + of course previous dirs..}
     I := Pos (DirectorySeparator + '..' + DirectorySeparator, Dirs);
     while I <> 0 do
@@ -346,7 +386,7 @@ begin
         end;
 {$ENDIF FPC_FEXPAND_NO_DOTS_UPDIR}
 
-{$IFDEF FPC_FEXPAND_DIRSEP_IS_UPDIR}
+{$IFDEF FPC_FEXPAND_UPDIR_HELPER}
     (* Now remove all references to '//' plus previous directories... *)
     I := Pos (DirectorySeparator + DirectorySeparator, Dirs);
     while I <> 0 do
@@ -357,7 +397,7 @@ begin
             Delete (Dirs, Succ (J), Succ (I - J));
             I := Pos (DirectorySeparator + DirectorySeparator, Dirs);
         end;
-{$ENDIF FPC_FEXPAND_DIRSEP_IS_UPDIR}
+{$ENDIF FPC_FEXPAND_UPDIR_HELPER}
 
 {$IFNDEF FPC_FEXPAND_NO_DOTS_UPDIR}
     {Then remove also a reference to '\..' at the end of line
@@ -392,6 +432,7 @@ begin
 {$ENDIF FPC_FEXPAND_DIRSEP_IS_UPDIR}
 
 {$IFNDEF FPC_FEXPAND_NO_CURDIR}
+ {$IFNDEF FPC_FEXPAND_DIRSEP_IS_CURDIR}
     {...and also a possible reference to '\.'}
     if (Length (Dirs) = 1) then
         begin
@@ -408,6 +449,7 @@ begin
     while (Length (Dirs) >= 2) and (Dirs [1] = '.')
                                          and (Dirs [2] = DirectorySeparator) do
         Delete (Dirs, 1, 2);
+ {$ENDIF FPC_FEXPAND_DIRSEP_IS_CURDIR}
 {$ENDIF FPC_FEXPAND_NO_CURDIR}
 
 {$IFDEF FPC_FEXPAND_DIRSEP_IS_UPDIR}
@@ -425,8 +467,10 @@ begin
 
     {Two special cases - '.' and '..' alone}
 {$IFNDEF FPC_FEXPAND_NO_CURDIR}
+ {$IFNDEF FPC_FEXPAND_DIRSEP_IS_CURDIR}
     if (Length (Dirs) = 1) and (Dirs [1] = '.') then
         Dirs := '';
+ {$ENDIF FPC_FEXPAND_DIRSEP_IS_CURDIR}
 {$ENDIF FPC_FEXPAND_NO_CURDIR}
 {$IFNDEF FPC_FEXPAND_NO_DOTS_UPDIR}
     if (Length (Dirs) = 2) and (Dirs [1] = '.') and (Dirs [2] = '.') then
@@ -451,9 +495,11 @@ begin
     if (Pa [Length (Pa)] = DirectorySeparator)
          and ((Length (Pa) > PathStart) or
 {A special case with UNC paths}
-            (RootNotNeeded and (Length (Pa) = PathStart))) and
-                     (Length (Path) <> 0)
-                          and (Path [Length (Path)] <> DirectorySeparator) then
+            (RootNotNeeded and (Length (Pa) = PathStart)))
+    {Reference to current directory at the end should be removed}
+                    and (Length (Path) <> 0)
+                          and (Path [Length (Path)] <> DirectorySeparator)
+                                                                           then
         Dec (Pa [0]);
 {$ENDIF FPC_FEXPAND_DIRSEP_IS_UPDIR}
 
@@ -499,9 +545,9 @@ end;
    should be used as beginning of the "real" path for a particular
    drive or volume instead of the DirectorySeparator. This would be
    used in case that there is only one character (DriveSeparator)
-   delimiting the drive letter or volume name from the remaining
-   path _and_ the DriveSeparator marks the root of an absolute path.
-   Example - 'Volume:This/Is/Absolute/Path'.
+   delimitting the drive letter or volume name from the remaining
+   path _and_ the DriveSeparator marks the root of an absolute path
+   in that case. Example - 'Volume:This/Is/Absolute/Path'.
 
    FPC_FEXPAND_NO_CURDIR - there is no support to refer to current
    directory explicitely (like '.' used under both Unix and DOS-like
@@ -510,17 +556,32 @@ end;
    FPC_FEXPAND_NO_DOTS_UPDIR - '..' cannot be used to refer to the
    upper directory.
 
-   FPC_FEXPAND_DIRSEP_IS_UPDIR - DirectorySeparator at the beginning of a
-   path (or doubled DirectorySeparator inside the path) refer to the
-   upper directory. Please, note that you can decide to support both '..'
-   and DirectorySeparator as references to the parent directory at the
-   same time for compatibility reasons (although that means that you'd
-   make it impossible to use an otherwise valid name of '..').
+   FPC_FEXPAND_DIRSEP_IS_UPDIR - DirectorySeparator at the beginning of
+   a path (or doubled DirectorySeparator inside the path) refer to the
+   parent directory, one more DirectorySeparator to parent directory of
+   parent directory and so on (Amiga). Please, note that you can decide
+   to support both '..' and DirectorySeparator as references to the parent
+   directory at the same time for compatibility reasons - however this
+   support makes it impossible to use an otherwise possibly valid name
+   of '..'.
+
+   FPC_FEXPAND_DIRSEP_IS_CURDIR - DirectorySeparator at the beginning of
+   a path refers to the current directory (i.e. path beginning with
+   DirectorySeparator is always a relative path). Two DirectorySeparator
+   characters refer to the parent directory, three refer to parent
+   directory of the parent directory and so on (MacOS).
+
+   FPC_FEXPAND_MULTIPLE_UPDIR - grouping of more characters specifying
+   upper directory references higher directory levels. Example: '...'
+   (Netware).
 *)
 
 {
   $Log$
-  Revision 1.16  2004-05-29 18:25:21  hajny
+  Revision 1.17  2004-11-21 14:45:17  hajny
+    + MacOS support
+
+  Revision 1.16  2004/05/29 18:25:21  hajny
     * description of individual conditional defines added
 
   Revision 1.15  2002/12/07 16:26:39  hajny
