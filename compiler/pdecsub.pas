@@ -1568,18 +1568,10 @@ const
                begin
                  if not tprocdef(def).has_mangledname then
                   begin
-                    if (po_external in def.procoptions) and
-                       target_info.DllScanSupported then
-                     begin
-                       tprocdef(def).setmangledname(sym.realname);
-                     end
+                    if assigned(tprocdef(def)._class) then
+                     tprocdef(def).setmangledname(target_info.Cprefix+tprocdef(def)._class.objrealname^+'_'+sym.realname)
                     else
-                     begin
-                       if assigned(tprocdef(def)._class) then
-                        tprocdef(def).setmangledname(target_info.Cprefix+tprocdef(def)._class.objrealname^+'_'+sym.realname)
-                       else
-                        tprocdef(def).setmangledname(target_info.Cprefix+sym.realname);
-                     end;
+                     tprocdef(def).setmangledname(target_info.Cprefix+sym.realname);
                   end;
                  if not assigned(tprocdef(def).parast) then
                   internalerror(200110234);
@@ -2087,7 +2079,10 @@ const
 end.
 {
   $Log$
-  Revision 1.92  2002-12-23 21:24:22  peter
+  Revision 1.93  2002-12-24 21:21:06  peter
+    * remove code that skipped the _ prefix for win32 imports
+
+  Revision 1.92  2002/12/23 21:24:22  peter
     * fix wrong internalerror when var names were different
 
   Revision 1.91  2002/12/23 20:58:52  peter
