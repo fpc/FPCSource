@@ -882,7 +882,13 @@ function GetAsmReservedWordCount: integer;
 begin
   GetAsmReservedWordCount:=ord(lastop) - ord(firstop)
 {$ifndef powerpc}
-   + CondAsmOps*(ord(high(TasmCond))-ord(low(TasmCond)));
+{$ifndef arm}
+    + CondAsmOps*(ord(high(TasmCond))-ord(low(TasmCond)));
+{$else arm}
+   { the arm has an incredible amount of combinations of opcodes,
+     we've to solve this different }
+   ;
+{$endif arm}
 {$else powerpc}
    + CondAsmOps*(ord(high(TAsmCondFlag))-ord(low(TAsmCondFlag)));
 {$endif powerpc}
@@ -4574,7 +4580,10 @@ end;
 END.
 {
   $Log$
-  Revision 1.42  2003-05-07 21:33:22  peter
+  Revision 1.43  2004-03-20 22:02:41  florian
+    * compilation on arm fixed
+
+  Revision 1.42  2003/05/07 21:33:22  peter
     * 1.1 has rax86
 
   Revision 1.41  2003/02/09 23:50:10  pierre
