@@ -256,6 +256,27 @@ begin
   ;
 end;
 
+procedure TIDEApp.UpdateRunMenu(DebuggeeRunning : boolean);
+var MenuItem : PMenuItem;
+begin
+  MenuItem:=PAdvancedMenuBar(MenuBar)^.GetMenuItem(cmRun);
+  if assigned(MenuItem) then
+    begin
+      If assigned(MenuItem^.Name) then
+        DisposeStr(MenuItem^.Name);
+      if DebuggeeRunning then
+        MenuItem^.Name:=NewStr(menu_run_continue)
+      else
+        MenuItem^.Name:=NewStr(menu_run_run);
+    end;
+  MenuItem:=PAdvancedMenuBar(MenuBar)^.GetMenuItem(cmResetDebugger);
+  if assigned(MenuItem) then
+    MenuItem^.Disabled:=not DebuggeeRunning;
+  MenuItem:=PAdvancedMenuBar(MenuBar)^.GetMenuItem(cmUntilReturn);
+  if assigned(MenuItem) then
+    MenuItem^.Disabled:=not DebuggeeRunning;
+end;
+
 
 procedure TIDEApp.Parameters;
 var R,R2: TRect;
@@ -451,7 +472,10 @@ end;
 
 {
   $Log$
-  Revision 1.2  2001-11-07 00:28:53  pierre
+  Revision 1.3  2002-08-13 08:59:12  pierre
+   + Run menu changes depending on wether the debuggee is running or not
+
+  Revision 1.2  2001/11/07 00:28:53  pierre
    + Disassembly window made public
 
   Revision 1.1  2001/08/04 11:30:23  peter

@@ -815,6 +815,7 @@ begin
   If assigned(GDBWindow) then
     GDBWindow^.Editor^.UnLock;
   IDEApp.SetCmdState([cmResetDebugger,cmUntilReturn],true);
+  IDEApp.UpdateRunMenu(true);
   UpdateDebugViews;
 end;
 
@@ -919,6 +920,7 @@ begin
   If IDEApp.IsRunning then
     begin
       IDEApp.SetCmdState([cmResetDebugger,cmUntilReturn],false);
+      IDEApp.UpdateRunMenu(false);
       AskToReloadAllModifiedFiles;
       ResetDebuggerRows;
     end;
@@ -1233,7 +1235,8 @@ end;
 procedure TDebugController.DoEndSession(code:longint);
 var P :Array[1..2] of longint;
 begin
-   IDEApp.SetCmdState([cmResetDebugger],false);
+   IDEApp.SetCmdState([cmUntilReturn,cmResetDebugger],false);
+   IDEApp.UpdateRunMenu(false);
    ResetDebuggerRows;
    LastExitCode:=Code;
    If HiddenStepsCount=0 then
@@ -4141,7 +4144,10 @@ end.
 
 {
   $Log$
-  Revision 1.22  2002-08-13 07:15:02  pierre
+  Revision 1.23  2002-08-13 08:59:12  pierre
+   + Run menu changes depending on wether the debuggee is running or not
+
+  Revision 1.22  2002/08/13 07:15:02  pierre
    + Disable all invalid breakpoints feature added
 
   Revision 1.21  2002/06/10 19:26:48  pierre

@@ -42,6 +42,7 @@ type
       procedure   Idle; virtual;
       procedure   Update;
       procedure   UpdateMode;
+      procedure   UpdateRunMenu(DebuggeeRunning : boolean);
       procedure   UpdateTarget;
       procedure   GetEvent(var Event: TEvent); virtual;
       procedure   HandleEvent(var Event: TEvent); virtual;
@@ -1215,7 +1216,10 @@ end;
 END.
 {
   $Log$
-  Revision 1.15  2002-07-12 14:17:39  pierre
+  Revision 1.16  2002-08-13 08:59:12  pierre
+   + Run menu changes depending on wether the debuggee is running or not
+
+  Revision 1.15  2002/07/12 14:17:39  pierre
    * try to avoid memory corruption if UserScreen is smaller than IDE screen on win32
 
   Revision 1.14  2002/06/10 08:12:17  pierre
