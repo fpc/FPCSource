@@ -214,3 +214,5 @@ bug0155.pp   Asm, Missing string return for asm functions
 bug0150.pp   Shows that the assert() macro is missing under Delphi.
 bug0152.pp   End value of loop variable must be calculated before loop
              variable is initialized.
+bug0161.pp   internal error when trying to create a set with another set as
+             its element (instead of a syntax error)
