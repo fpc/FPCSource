@@ -96,25 +96,23 @@ end ;
 Function TryEncodeDate(Year,Month,Day : Word; Var Date : TDateTime) : Boolean;
 
 var
-  lm,ly, c, ya: cardinal;
+  c, ya: cardinal;
 begin
   Result:=(Year>0) and (Year<10000) and
           (Month in [1..12]) and
           (Day>0) and (Day<=MonthDays[IsleapYear(Year),Month]);
  If Result then
    begin
-     lm:=month;
-     ly:=year; 
-     if lm > 2 then
-      Dec(lm,3)
+     if month > 2 then
+      Dec(Month,3)
      else
       begin
-        Inc(lm,9);
-        Dec(ly);
+        Inc(Month,9);
+        Dec(Year);
       end;
-     c:= ly DIV 100;
-     ya:= ly - 100*c;
-     Date := (146097*c) SHR 2 + (1461*ya) SHR 2 + (153*cardinal(lm)+2) DIV 5 + cardinal(Day) - 693900;
+     c:= Year DIV 100;
+     ya:= Year - 100*c;
+     Date := (146097*c) SHR 2 + (1461*ya) SHR 2 + (153*cardinal(Month)+2) DIV 5 + cardinal(Day) - 693900;
    end
 end;
 
@@ -154,24 +152,27 @@ end;
 
 procedure DecodeDate(Date: TDateTime; var Year, Month, Day: word);
 var
-  j : cardinal;
+  ly,ld,lm,j : cardinal;
 begin
   j := pred((Trunc(System.Int(Date)) + 693900) SHL 2);
-  Year:= j DIV 146097;
-  j:= j - 146097 * cardinal(Year);
-  Day := j SHR 2;
-  j:=(Day SHL 2 + 3) DIV 1461;
-  Day:= (cardinal(Day) SHL 2 + 7 - 1461*j) SHR 2;
-  Month:=(5 * Day-3) DIV 153;
-  Day:= (5 * Day +2 - 153*Month) DIV 5;
-  Year:= 100 * cardinal(Year) + j;
-  if Month < 10 then
-   inc(Month,3)
+  ly:= j DIV 146097;
+  j:= j - 146097 * cardinal(ly);
+  ld := j SHR 2;
+  j:=(ld SHL 2 + 3) DIV 1461;
+  ld:= (cardinal(ld) SHL 2 + 7 - 1461*j) SHR 2;
+  lm:=(5 * ld-3) DIV 153;
+  ld:= (5 * ld +2 - 153*lm) DIV 5;
+  ly:= 100 * cardinal(ly) + j;
+  if lm < 10 then
+   inc(lm,3)
   else
     begin
-      dec(Month,9);
-      inc(Year);
+      dec(lm,9);
+      inc(ly);
     end;
+  year:=ly;
+  month:=lm;
+  day:=ld; 
 end;
 
 
@@ -739,7 +740,10 @@ end;
 
 {
   $Log$
-  Revision 1.4  2004-11-05 12:10:04  marco
+  Revision 1.5  2004-11-05 13:02:21  marco
+   * now correct proc patched
+
+  Revision 1.4  2004/11/05 12:10:04  marco
    * fix for 3357, introducing some local vars.
 
   Revision 1.3  2004/05/02 13:40:55  marco
