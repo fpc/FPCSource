@@ -92,7 +92,7 @@ Const
 
   GLASTMODE         = 49;
   ModeNames: array[0..GLastMode] of PChar = 
-   ('[]',			{Let GGI choose a default mode}
+   ('[]',                       {Let GGI choose a default mode}
     'S320x200[GT_4BIT]',
     'S640x200[GT_4BIT]',
     'S640x350[GT_4BIT]',
@@ -161,13 +161,13 @@ type
   end;
   TGGIGraphType = LongWord;
   TGGIAttr = LongWord;
-  TGGIMode = record			// requested by user and changed by driver
-    Frames: LongInt;			// frames needed
-    Visible: TGGICoord;			// vis. pixels, may change slightly
-    Virt: TGGICoord;			// virtual pixels, may change
-    Size: TGGICoord;			// size of visible in mm
-    GraphType: TGGIGraphType;		// which mode ?
-    dpp: TGGICoord;			// dots per pixel
+  TGGIMode = record                     // requested by user and changed by driver
+    Frames: LongInt;                    // frames needed
+    Visible: TGGICoord;                 // vis. pixels, may change slightly
+    Virt: TGGICoord;                    // virtual pixels, may change
+    Size: TGGICoord;                    // size of visible in mm
+    GraphType: TGGIGraphType;           // which mode ?
+    dpp: TGGICoord;                     // dots per pixel
   end;
 
 const 
@@ -243,7 +243,7 @@ begin
   if ClipCoords then begin
     ClipCoords := (y < StartXViewPort) or (x > (StartXViewPort + ViewWidth));
     ClipCoords := ClipCoords or
-                  ((y < StartYViewPort) or (y > (StartYViewPort + ViewHeight)));
+		  ((y < StartYViewPort) or (y > (StartYViewPort + ViewHeight)));
     ClipCoords := not ClipCoords;
   end;
 end;
@@ -256,19 +256,19 @@ begin
   CurCol := ggiMapColor(Visual, BgiColors[CurrentColor]);
   case CurrentWriteMode of
     XORPut: begin
-        { getpixel wants local/relative coordinates }
-        ggiGetPixel(Visual, x-StartXViewPort, y-StartYViewPort, Color);
-        Color := CurCol xor Color;
+	{ getpixel wants local/relative coordinates }
+	ggiGetPixel(Visual, x-StartXViewPort, y-StartYViewPort, Color);
+	Color := CurCol xor Color;
       end;
     OrPut: begin
-        { getpixel wants local/relative coordinates }
-        ggiGetPixel(Visual, x-StartXViewPort, y-StartYViewPort, Color);
-        Color := CurCol or Color;
+	{ getpixel wants local/relative coordinates }
+	ggiGetPixel(Visual, x-StartXViewPort, y-StartYViewPort, Color);
+	Color := CurCol or Color;
       end; 
     AndPut: begin
-        { getpixel wants local/relative coordinates }
-        ggiGetPixel(Visual, x-StartXViewPort, y-StartYViewPort, Color);
-        Color := CurCol and Color;
+	{ getpixel wants local/relative coordinates }
+	ggiGetPixel(Visual, x-StartXViewPort, y-StartYViewPort, Color);
+	Color := CurCol and Color;
       end; 
     NotPut:
       Color := not Color;
@@ -303,9 +303,10 @@ end;
 type
   PBitmap = ^TBitmap;
   TBitmap = record
-            Width, Height: Integer;
-            Data: record end;
-            end;
+	    Width, Height: longint;
+	    reserved : longint;
+	    Data: record end;
+	    end;
 
 procedure ggi_putimageproc (X,Y: Integer; var Bitmap; BitBlt: Word);
 begin
@@ -383,7 +384,7 @@ begin
 end;
 
 procedure ggi_getrgbpaletteproc (ColorNum: integer; 
-                                    var RedValue, GreenValue, BlueValue: Integer);
+				    var RedValue, GreenValue, BlueValue: Integer);
 
 Var Col : TGGIColor;
 
@@ -418,7 +419,7 @@ function QueryAdapterInfo:PModeInfo;
 var
   ModeInfo: TGGIMode;
 
-  procedure AddGGIMode(i: Integer);	// i is the mode number
+  procedure AddGGIMode(i: Integer);     // i is the mode number
   var
     mode: TModeInfo;
   begin
@@ -499,7 +500,11 @@ end;
 
 {
 $Log$
-Revision 1.4  1999-11-10 10:54:24  sg
+Revision 1.5  1999-11-12 02:13:01  carl
+  * Bugfix if getimage / putimage, format was not standard with FPC
+    graph.
+
+Revision 1.4  1999/11/10 10:54:24  sg
 * Fixed a LOT of bugs:
 * - Default mode should be determined by GGI now
 * - Colors are working (only the 16 standard VGA colors, though)
