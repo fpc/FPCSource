@@ -102,7 +102,7 @@ begin
   GetWideStringManager(Old);
   SetWideStringManager(New);
 end;
-  
+
 Procedure SetWideStringManager (Const New : TWideStringManager);
 
 begin
@@ -201,8 +201,6 @@ Begin
   If declocked(l^) then
     { Ref count dropped to zero }
     DisposeWideString (S);        { Remove...}
-  { this pointer is not valid anymore, so set it to zero }
-  S:=nil;
 end;
 
 {$ifdef hascompilerproc}
@@ -1011,7 +1009,10 @@ end;
 
 {
   $Log$
-  Revision 1.34  2003-11-29 17:27:05  michael
+  Revision 1.35  2004-01-22 22:09:05  peter
+    * finalize needs to reset to nil after decr_ref
+
+  Revision 1.34  2003/11/29 17:27:05  michael
   + Added overloaded version of SetWideStringManager without old parameter
 
   Revision 1.33  2003/11/28 20:36:13  michael
