@@ -664,10 +664,6 @@ implementation
          paralength,lastpara : longint;
          lastparatype : tdef;
          pdc : tparaitem;
-{$ifdef TEST_PROCSYMS}
-         nextprocsym : tprocsym;
-         symt : tsymtable;
-{$endif TEST_PROCSYMS}
          { only Dummy }
          hcvt : tconverttype;
       label
@@ -1697,7 +1693,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.54  2001-11-02 22:58:01  peter
+  Revision 1.55  2001-11-02 23:16:50  peter
+    * removed obsolete chainprocsym and test_procsym code
+
+  Revision 1.54  2001/11/02 22:58:01  peter
     * procsym definition rewrite
 
   Revision 1.53  2001/10/28 17:22:25  peter

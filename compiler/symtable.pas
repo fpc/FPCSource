@@ -542,11 +542,6 @@ implementation
       begin
          { set owner and sym indexnb }
          sym.owner:=self;
-{$ifdef CHAINPROCSYMS}
-         { set the nextprocsym field }
-         if sym.typ=procsym then
-           chainprocsym(sym);
-{$endif CHAINPROCSYMS}
          { writes the symbol in data segment if required }
          { also sets the datasize of owner             }
          if not in_loading then
@@ -620,8 +615,7 @@ implementation
              this might be the cause of the class debug problems
              as TCHILDCLASS.Create did not generate appropriate
              stabs debug info if TCHILDCLASS wasn't used anywhere else PM }
-{$warning TODO: turn on debuginfo check}
-           if // (cs_debuginfo in aktmoduleswitches) and
+           if (cs_debuginfo in aktmoduleswitches) and
               (hp.typ=typesym) and
               make_ref then
              begin
@@ -833,38 +827,6 @@ implementation
          inc(pglobaltypecount^);
       end;
 {$endif GDB}
-
-{$ifdef CHAINPROCSYMS}
-    procedure chainprocsym(p : tsym);
-      var
-         storesymtablestack : tsymtable;
-         srsym : tsym;
-         srsymtable : tsymtable;
-      begin
-         if p.typ=procsym then
-           begin
-              storesymtablestack:=symtablestack;
-              symtablestack:=p.owner.next;
-              while assigned(symtablestack) do
-                begin
-                  { search for same procsym in other units }
-                  searchsym(p.name,srsym,srsymtable)
-                  if assigned(srsym) and
-                     (srsym.typ=procsym) then
-                    begin
-                       tprocsym(p).nextprocsym:=tprocsym(srsym);
-                       symtablestack:=storesymtablestack;
-                       exit;
-                    end
-                  else if srsym=nil then
-                    symtablestack:=nil
-                  else
-                    symtablestack:=srsymtable.next;
-                end;
-              symtablestack:=storesymtablestack;
-           end;
-      end;
-{$endif}
 
 
     procedure tstoredsymtable.chainoperators;
@@ -2085,7 +2047,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.48  2001-11-02 22:58:08  peter
+  Revision 1.49  2001-11-02 23:16:52  peter
+    * removed obsolete chainprocsym and test_procsym code
+
+  Revision 1.48  2001/11/02 22:58:08  peter
     * procsym definition rewrite
 
   Revision 1.47  2001/10/12 20:27:43  jonas

@@ -1866,10 +1866,6 @@ implementation
                                 p2:=p1;
                                 p1:=ccallnode.create(nil,nil,nil,nil);
                                 tcallnode(p1).set_procvar(p2);
-  {$ifdef TEST_PROCSYMS}
-                                p1.unit_specific:=unit_specific;
-  {$endif TEST_PROCSYMS}
-                                {tcallnode(p1).symtableprocentry:=tprocsym(sym);}
                                 if token=_LKLAMMER then
                                   begin
                                      consume(_LKLAMMER);
@@ -1909,9 +1905,6 @@ implementation
          oldp1,
          p1     : tnode;
          code   : integer;
-{$ifdef TEST_PROCSYMS}
-         unit_specific,
-{$endif TEST_PROCSYMS}
          again    : boolean;
          sym      : tsym;
          classh   : tobjectdef;
@@ -2513,7 +2506,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.49  2001-11-02 22:58:05  peter
+  Revision 1.50  2001-11-02 23:16:51  peter
+    * removed obsolete chainprocsym and test_procsym code
+
+  Revision 1.49  2001/11/02 22:58:05  peter
     * procsym definition rewrite
 
   Revision 1.48  2001/10/28 17:22:25  peter

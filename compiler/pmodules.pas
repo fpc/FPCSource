@@ -529,9 +529,6 @@ implementation
                           begin
                              tsymtable(hp.u.globalsymtable).next:=symtablestack;
                              symtablestack:=tsymtable(hp.u.globalsymtable);
-{$ifdef CHAINPROCSYMS}
-                             symtablestack.chainprocsyms;
-{$endif CHAINPROCSYMS}
 {$ifdef DEBUG}
                              test_symtablestack;
 {$endif DEBUG}
@@ -1351,7 +1348,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.48  2001-11-02 22:58:05  peter
+  Revision 1.49  2001-11-02 23:16:51  peter
+    * removed obsolete chainprocsym and test_procsym code
+
+  Revision 1.48  2001/11/02 22:58:05  peter
     * procsym definition rewrite
 
   Revision 1.47  2001/09/18 11:30:48  michael

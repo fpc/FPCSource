@@ -741,7 +741,7 @@ implementation
         major, minor, revision : longint;
         error : integer;
       begin
-        if not (target_info.target in [target_i386_os2,target_i386_win32,target_i386_netware]) then  // AD
+        if not (target_info.target in [target_i386_os2,target_i386_win32,target_i386_netware]) then
           begin
             Message(scan_n_version_not_support);
             exit;
@@ -775,7 +775,7 @@ implementation
                     exit;
                   end;
                 if (c='.') and
-                   (target_info.target = target_i386_netware) then  // AD
+                   (target_info.target = target_i386_netware) then
                   begin
                      current_scanner.readchar;
                      current_scanner.readnumber;
@@ -856,7 +856,7 @@ implementation
         AddDirective('ASMMODE',{$ifdef FPCPROCVAR}@{$endif}dir_asmmode);
         AddDirective('ASSERTIONS',{$ifdef FPCPROCVAR}@{$endif}dir_assertions);
         AddDirective('BOOLEVAL',{$ifdef FPCPROCVAR}@{$endif}dir_booleval);
-        AddDirective('CALLING',{$ifdef FPCPROCVAR}@{$endif}dir_calling);//Ozerski 08.10.2001
+        AddDirective('CALLING',{$ifdef FPCPROCVAR}@{$endif}dir_calling);
         AddDirective('COPYRIGHT',{$ifdef FPCPROCVAR}@{$endif}dir_copyright);
         AddDirective('D',{$ifdef FPCPROCVAR}@{$endif}dir_description);
         AddDirective('DEBUGINFO',{$ifdef FPCPROCVAR}@{$endif}dir_debuginfo);
@@ -930,7 +930,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.9  2001-10-23 21:49:42  peter
+  Revision 1.10  2001-11-02 23:16:52  peter
+    * removed obsolete chainprocsym and test_procsym code
+
+  Revision 1.9  2001/10/23 21:49:42  peter
     * $calling directive and -Cc commandline patch added
       from Pavel Ozerski
 
