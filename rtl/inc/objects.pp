@@ -1706,7 +1706,7 @@ VAR I: LongInt;
 BEGIN
    For I := Count DownTo 1 Do
      Begin                   { Down from last item }
-       IF CallPointerLocal(Test,PreviousFramePointer,Items^[I-1])<>NIL THEN
+       IF Boolean(Longint(CallPointerLocal(Test,PreviousFramePointer,Items^[I-1]))) THEN
        Begin          { Test each item }
          LastThat := Items^[I-1];                     { Return item }
          Exit;                                        { Now exit }
@@ -1722,7 +1722,7 @@ FUNCTION TCollection.FirstThat (Test: Pointer): Pointer;
 VAR I: LongInt;
 BEGIN
    For I := 1 To Count Do Begin                       { Up from first item }
-     IF CallPointerLocal(Test,PreviousFramePointer,Items^[I-1])<>NIL THEN
+     IF Boolean(Longint(CallPointerLocal(Test,PreviousFramePointer,Items^[I-1]))) THEN
        Begin          { Test each item }
        FirstThat := Items^[I-1];                      { Return item }
        Exit;                                          { Now exit }
@@ -2684,7 +2684,10 @@ END;
 END.
 {
   $Log$
-  Revision 1.18  1998-12-16 21:57:20  peter
+  Revision 1.19  1998-12-18 17:21:28  peter
+    * fixed firstthat,lastthat
+
+  Revision 1.18  1998/12/16 21:57:20  peter
     * fixed currentframe,previousframe
     + testcall to test the callspec unit
 
