@@ -410,9 +410,10 @@ Begin {CheckSequence}
           for regCounter2 := R_EAX to R_EDI do
             regModified[regCounter2] := regModified[regCounter2] or
               regModifiedByInstruction(regCounter2,hp3);
+
           GetNextInstruction(hp2, hp2);
           GetNextInstruction(hp3, hp3);
-          Inc(Found)
+          Inc(Found);
         End;
 
       for regCounter2 := R_EAX to R_EDI do
@@ -1410,9 +1411,7 @@ Begin
                                              else if assigned(reginfo.lastReload[regInfo.New2OldReg[regCounter]]) then
                                                getLastInstruction(reginfo.lastReload[regInfo.new2OldReg[regCounter]],hp3)
                                              else hp3 := hp4;
-                                             if prevSeq_next <> hp3 then
-                                               clearRegContentsFrom(regCounter,prevSeq_next,
-                                                 hp3);
+                                             clearRegContentsFrom(regCounter,prevSeq_next,hp3);
                                              getnextInstruction(hp3,hp3);
                                              allocRegBetween(asmL,regCounter,prevSeq,hp3);
                                            end;
@@ -1673,7 +1672,11 @@ End.
 
 {
   $Log$
-  Revision 1.2  2000-10-24 10:40:53  jonas
+  Revision 1.3  2000-11-01 22:53:30  jonas
+    * register contents were not cleared if there was only 1 instruction
+      between de previous sequence and the current one
+
+  Revision 1.2  2000/10/24 10:40:53  jonas
     + register renaming ("fixes" bug1088)
     * changed command line options meanings for optimizer:
         O2 now means peepholopts, CSE and register renaming in 1 pass
