@@ -423,7 +423,7 @@ begin
    Verbose(V_Error,'Can''t get Compiler Info')
   else
    begin
-     Verbose(V_Debug,'Current Compiler Info: "'+hs+'"');
+     Verbose(V_Debug,'Retrieved Compiler Info: "'+hs+'"');
      case c of
        compver :
          begin
@@ -455,6 +455,8 @@ begin
     GetCompilerVersion:=GetCompilerInfo(compver)
   else
     GetCompilerVersion:=true;
+  if GetCompilerVersion then
+    Verbose(V_Debug,'Current Compiler Version: "'+CompilerVersion+'"');
 end;
 
 
@@ -464,6 +466,8 @@ begin
     GetCompilerCPU:=GetCompilerInfo(compcpu)
   else
     GetCompilerCPU:=true;
+  if GetCompilerCPU then
+    Verbose(V_Debug,'Current Compiler CPU: "'+CompilerCPU+'"');
 end;
 
 
@@ -473,6 +477,8 @@ begin
     GetCompilerTarget:=GetCompilerInfo(comptarget)
   else
     GetCompilerTarget:=true;
+  if GetCompilerTarget then
+    Verbose(V_Debug,'Current Compiler Target: "'+CompilerTarget+'"');
 end;
 
 
@@ -794,7 +800,7 @@ begin
            { avoid a second attempt by writing to elg file }
            AddLog(OutName,skipping_other_cpu+PPFileInfo);
            AddLog(ResLogFile,skipping_other_cpu+PPFileInfo);
-           Verbose(V_Abort,'Compiler cpu wrong '+CompilerCPU+' <> '+Config.NeedCPU);
+           Verbose(V_Abort,'Compiler cpu "'+CompilerCPU+'" is not in list "'+Config.NeedCPU+'"');
            Res:=false;
          end;
       end;
@@ -811,7 +817,7 @@ begin
            { avoid a second attempt by writing to elg file }
            AddLog(OutName,skipping_other_cpu+PPFileInfo);
            AddLog(ResLogFile,skipping_other_cpu+PPFileInfo);
-           Verbose(V_Abort,'Compiler cpu in skipcpu '+CompilerCPU+' = '+Config.SkipCPU);
+           Verbose(V_Abort,'Compiler cpu "'+CompilerCPU+'" is in list "'+Config.SkipCPU+'"');
            Res:=false;
          end;
       end;
@@ -828,7 +834,7 @@ begin
            { avoid a second attempt by writing to elg file }
            AddLog(OutName,skipping_other_target+PPFileInfo);
            AddLog(ResLogFile,skipping_other_target+PPFileInfo);
-           Verbose(V_Abort,'Compiler target wrong '+CompilerTarget+' <> '+Config.NeedTarget);
+           Verbose(V_Abort,'Compiler target "'+CompilerTarget+'" is not in list "'+Config.NeedTarget+'"');
            Res:=false;
          end;
       end;
@@ -845,7 +851,7 @@ begin
            { avoid a second attempt by writing to elg file }
            AddLog(OutName,skipping_other_target+PPFileInfo);
            AddLog(ResLogFile,skipping_other_target+PPFileInfo);
-           Verbose(V_Abort,'Compiler target in skiptarget '+CompilerTarget+' = '+Config.SkipTarget);
+           Verbose(V_Abort,'Compiler target "'+CompilerTarget+'" is in list "'+Config.SkipTarget+'"');
            Res:=false;
          end;
       end;
@@ -893,7 +899,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.24  2002-12-24 21:47:49  peter
+  Revision 1.25  2002-12-24 22:30:41  peter
+    * small verbosity update
+
+  Revision 1.24  2002/12/24 21:47:49  peter
     * NeedTarget, SkipTarget, SkipCPU added
     * Retrieve compiler info in a single call for 1.1 compiler
 
