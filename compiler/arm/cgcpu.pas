@@ -684,11 +684,12 @@ unit cgcpu;
          so : tshifterop;
        begin
          shifterop_reset(so);
-         if (reg1<>reg2) or
-            (tcgsize2size[tosize] < tcgsize2size[fromsize]) or
-            ((tcgsize2size[tosize] = tcgsize2size[fromsize]) and
+         if (tcgsize2size[tosize] < tcgsize2size[fromsize]) or
+            (
+              (tcgsize2size[tosize] = tcgsize2size[fromsize]) and
              (tosize <> fromsize) and
-             not(fromsize in [OS_32,OS_S32])) then
+             not(fromsize in [OS_32,OS_S32])
+            ) then
            begin
              case tosize of
                OS_8:
@@ -729,6 +730,18 @@ unit cgcpu;
                  end;
                else internalerror(2002090901);
              end;
+           end
+         else
+           begin
+             if reg1<>reg2 then
+               begin
+                 { same size, only a register mov required }
+                 instr:=taicpu.op_reg_reg(A_MOV,reg2,reg1);
+                 list.Concat(instr);
+                 { Notify the register allocator that we have written a move instruction so
+                   it can try to eliminate it. }
+                 add_move_instruction(instr);
+               end;
            end;
        end;
 
@@ -1295,7 +1308,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.64  2005-01-04 15:36:32  florian
+  Revision 1.65  2005-01-04 20:15:05  florian
+    * load_reg_reg fixed
+
+  Revision 1.64  2005/01/04 15:36:32  florian
     * implemented nostackframe calling convention directive
 
   Revision 1.63  2004/11/06 15:18:57  florian
