@@ -457,12 +457,6 @@ begin
    end;
 end;
 
-const
-  WideStringManager: TWideStringManager = (
-    Wide2AnsiMove: @SimpleWide2AnsiMove;
-    Ansi2WideMove: @SimpleAnsi2WideMove
-  );
-
 {$ENDIF}
 
 procedure WriteXMLFile(doc: TXMLDocument; const AFileName: String);
@@ -483,11 +477,15 @@ end;
 procedure WriteXMLFile(doc: TXMLDocument; var AFile: Text);
 {$IFDEF UsesFPCWidestrings}
 var
-  OldWideStringManager: TWideStringManager;
+  MyWideStringManager,OldWideStringManager: TWideStringManager;
 {$ENDIF}
 begin
   {$IFDEF UsesFPCWidestrings}
-  SetWideStringManager(WideStringManager, OldWideStringManager);
+  GetWideStringManager(MyWideStringManager);
+
+  MyWideStringManager.Wide2AnsiMoveProc:=@SimpleWide2AnsiMove;
+  MyWideStringManager.Ansi2WideMoveProc:=@SimpleAnsi2WideMove;
+  SetWideStringManager(MyWideStringManager, OldWideStringManager);
   try
   {$ENDIF}
     f := @AFile;
@@ -593,7 +591,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.16  2005-01-08 01:32:06  michael
+  Revision 1.17  2005-02-01 20:23:39  florian
+    * adapted to new widestring manager
+
+  Revision 1.16  2005/01/08 01:32:06  michael
   + Fixed writing of fragments
 
   Revision 1.15  2004/11/05 22:32:28  peter

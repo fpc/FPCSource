@@ -407,18 +407,13 @@ begin
    end;
 end;
 
-const
-  WideStringManager: TWideStringManager = (
-    Wide2AnsiMove: @SimpleWide2AnsiMove;
-    Ansi2WideMove: @SimpleAnsi2WideMove
-  );
 
 {$ENDIF}
 
 procedure TXMLReader.ProcessXML(ABuf: PChar; const AFilename: String);    // [1]
 {$IFDEF UsesFPCWidestrings}
 var
-  OldWideStringManager: TWideStringManager;
+  OldWideStringManager,MyWideStringManager : TWideStringManager;
 {$ENDIF}
 begin
   buf := ABuf;
@@ -426,7 +421,11 @@ begin
   Filename := AFilename;
 
   {$IFDEF UsesFPCWidestrings}
-  SetWideStringManager(WideStringManager, OldWideStringManager);
+  GetWideStringManager(MyWideStringManager);
+
+  MyWideStringManager.Wide2AnsiMoveProc:=@SimpleWide2AnsiMove;
+  MyWideStringManager.Ansi2WideMoveProc:=@SimpleAnsi2WideMove;
+  SetWideStringManager(MyWideStringManager, OldWideStringManager);
   try
   {$ENDIF}
   doc := TXMLReaderDocument.Create;
@@ -1563,7 +1562,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.13  2005-01-22 20:54:51  michael
+  Revision 1.14  2005-02-01 20:23:39  florian
+    * adapted to new widestring manager
+
+  Revision 1.13  2005/01/22 20:54:51  michael
   * Patch from Colin Western to correctly read CDATA
 
   Revision 1.12  2004/11/05 22:32:28  peter
