@@ -292,7 +292,7 @@
 
     { we need to remove it from the prevsym chain ! }
 
-    destructor tunitsym.done;
+    procedure tunitsym.restoreunitsym;
       var pus,ppus : punitsym;
       begin
          if assigned(unitsymtable) then
@@ -316,7 +316,11 @@
                end;
            end;
          prevsym:=nil;
-         unitsymtable:=nil;
+      end;
+
+    destructor tunitsym.done;
+      begin
+         restoreunitsym;
          inherited done;
       end;
 
@@ -2147,7 +2151,10 @@
 
 {
   $Log$
-  Revision 1.144  2000-04-27 10:06:04  pierre
+  Revision 1.145  2000-05-03 14:34:05  pierre
+   * fix the unitsym chain
+
+  Revision 1.144  2000/04/27 10:06:04  pierre
     * fix for snapshot failue
     * order_overloaded reintrocduced and adapted to operators
 

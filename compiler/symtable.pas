@@ -464,6 +464,7 @@ unit symtable;
 
 {*** symtable stack ***}
     procedure dellexlevel;
+    procedure RestoreUnitSyms;
 {$ifdef DEBUG}
     procedure test_symtablestack;
     procedure list_symtablestack;
@@ -2769,6 +2770,20 @@ implementation
           dispose(p,done);
       end;
 
+    procedure RestoreUnitSyms;
+      var
+         p : psymtable;
+      begin
+         p:=symtablestack;
+         while assigned(p) do
+           begin
+             if (p^.symtabletype=unitsymtable) and
+               assigned(punitsymtable(p)^.unitsym) then
+                 punitsymtable(p)^.unitsym^.restoreunitsym;
+             p:=p^.next;
+           end;
+      end;
+
 {$ifdef DEBUG}
     procedure test_symtablestack;
       var
@@ -2885,7 +2900,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.88  2000-04-27 11:35:04  pierre
+  Revision 1.89  2000-05-03 14:34:05  pierre
+   * fix the unitsym chain
+
+  Revision 1.88  2000/04/27 11:35:04  pierre
    * power to ** operator fixed
 
   Revision 1.87  2000/04/27 10:06:04  pierre

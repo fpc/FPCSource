@@ -77,6 +77,7 @@
           constructor load;
           destructor done;virtual;
           procedure write;virtual;
+          procedure restoreunitsym;
 {$ifdef GDB}
           procedure concatstabto(asmlist : paasmoutput);virtual;
 {$endif GDB}
@@ -317,7 +318,10 @@
 
 {
   $Log$
-  Revision 1.48  2000-04-27 10:06:04  pierre
+  Revision 1.49  2000-05-03 14:34:05  pierre
+   * fix the unitsym chain
+
+  Revision 1.48  2000/04/27 10:06:04  pierre
     * fix for snapshot failue
     * order_overloaded reintrocduced and adapted to operators
 
