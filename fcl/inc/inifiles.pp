@@ -71,6 +71,7 @@ type
     function GetItem(Index: integer): TIniFileKey;
     function KeyByName(AName: string): TIniFileKey;
   public
+    destructor Destroy; override;
     procedure Clear;
     property Items[Index: integer]: TIniFileKey read GetItem; default;
   end;
@@ -90,6 +91,7 @@ type
     function GetItem(Index: integer): TIniFileSection;
     function SectionByName(AName: string): TIniFileSection;
   public
+    destructor Destroy; override;
     procedure Clear;
     property Items[Index: integer]: TIniFileSection read GetItem; default;
   end;
@@ -212,6 +214,12 @@ begin
       end;
 end;
 
+destructor TIniFileKeyList.Destroy;
+begin
+  Clear;
+  inherited Destroy;
+end;
+
 procedure TIniFileKeyList.Clear;
 var
   i: integer;
@@ -254,6 +262,12 @@ begin
         Result := Items[i];
         Break;
       end;
+end;
+
+destructor TIniFileSectionList.Destroy;
+begin
+  Clear;
+  inherited Destroy;
 end;
 
 procedure TIniFileSectionList.Clear;
@@ -772,7 +786,10 @@ end.
 
 {
   $Log$
-  Revision 1.3  2000-11-26 22:43:02  michael
+  Revision 1.4  2002-06-13 17:28:41  michael
+  + Destructor was not freeing all memory. This is now fixed.
+
+  Revision 1.3  2000/11/26 22:43:02  michael
   + Merged fix from fixes branch
 
 
