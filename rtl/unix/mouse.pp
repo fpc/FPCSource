@@ -26,7 +26,7 @@ interface
 implementation
 
 uses
-  Unix,Video
+  Linux,Video
 {$ifndef NOGPM}
   ,gpm
 {$endif ndef NOGPM}
@@ -37,24 +37,66 @@ uses
 {$ifndef NOMOUSE}
 
 const
-  mousecur    : boolean = false;
+  WaitMouseMove : boolean = false;
+  PrintMouseCur : boolean = false;
   mousecurofs : longint = -1;
 
 var
   mousecurcell : TVideoCell;
+  SysLastMouseEvent : TMouseEvent;
 
 const
   gpm_fs : longint = -1;
 
-procedure PlaceMouseCur(ofs:longint);
 
+procedure GPMEvent2MouseEvent(const e:TGPMEvent;var mouseevent:tmouseevent);
+begin
+  if e.x>0 then
+   mouseevent.x:=e.x-1
+  else
+   MouseEvent.x:=0;
+  if e.y>0 then
+   MouseEvent.y:=e.y-1
+  else
+   MouseEvent.y:=0;
+  MouseEvent.buttons:=0;
+  if e.buttons and Gpm_b_left<>0 then
+   inc(MouseEvent.buttons,1);
+  if e.buttons and Gpm_b_right<>0 then
+   inc(MouseEvent.buttons,2);
+  if e.buttons and Gpm_b_middle<>0 then
+   inc(MouseEvent.buttons,4);
+  case (e.EventType and $f) of
+    GPM_MOVE,
+    GPM_DRAG :
+      begin
+        MouseEvent.Action:=MouseActionMove;
+        WaitMouseMove:=false;
+      end;
+    GPM_DOWN :
+      begin
+        MouseEvent.Action:=MouseActionDown;
+        WaitMouseMove:=false;
+      end;
+    GPM_UP :
+      begin
+        MouseEvent.Action:=MouseActionUp;
+        WaitMouseMove:=false;
+      end;
+  else
+   MouseEvent.Action:=0;
+  end;
+end;
+
+
+procedure PlaceMouseCur(ofs:longint);
 var
   upd : boolean;
-
 begin
-  if VideoBuf=nil then
+  if (VideoBuf=nil) or (MouseCurOfs=Ofs) then
    exit;
   upd:=false;
+
   if (MouseCurOfs<>-1) and (VideoBuf^[MouseCurOfs]=MouseCurCell) then
    begin
      VideoBuf^[MouseCurOfs]:=MouseCurCell xor $7f00;
@@ -75,6 +117,7 @@ procedure SysInitMouse;
 {$ifndef NOGPM}
 var
   connect : TGPMConnect;
+  E : TGPMEvent;
 {$endif ndef NOGPM}
 begin
 {$ifndef NOGPM}
@@ -91,6 +134,12 @@ begin
           gpm_fs:=-1;
           Gpm_Close;
         end;
+      { initialize SysLastMouseEvent }
+      if gpm_fs<>-1 then
+       begin
+         Gpm_GetSnapshot(e);
+         GPMEvent2MouseEvent(e,SysLastMouseEvent);
+       end;
     end;
   { show mousepointer }
   if gpm_fs<>-1 then
@@ -148,6 +197,7 @@ begin
   if gpm_fs<>-1 then
     begin
       x:=Gpm_GetSnapshot(e);
+      GPMEvent2MouseEvent(e,SysLastMouseEvent);
       if x<>-1 then
         SysDetectMouse:=x
       else
@@ -162,31 +212,24 @@ begin
 end;
 
 
-procedure SysShowMouse;
-begin
-  PlaceMouseCur(MouseCurOfs);
-  mousecur:=true;
-end;
-
-
-procedure SysHideMouse;
-begin
-  PlaceMouseCur(-1);
-  mousecur:=false;
-end;
-
-
 function SysGetMouseX:word;
 {$ifndef NOGPM}
 var
-  e : TGPMEvent;
+  me : TMouseEvent;
 {$endif ndef NOGPM}
 begin
   if gpm_fs<0 then
    exit(0);
 {$ifndef NOGPM}
-  Gpm_GetSnapshot(e);
-  SysGetMouseX:=e.x-1;
+  if PollMouseEvent(ME) then
+   begin
+     GetMouseEvent(ME);
+     SysGetMouseX:=ME.X
+   end
+  else
+    begin
+      SysGetMouseX:=SysLastMouseEvent.x;
+    end;
 {$endif ndef NOGPM}
 end;
 
@@ -194,32 +237,75 @@ end;
 function SysGetMouseY:word;
 {$ifndef NOGPM}
 var
-  e : TGPMEvent;
+  me : TMouseEvent;
 {$endif ndef NOGPM}
 begin
   if gpm_fs<0 then
    exit(0);
 {$ifndef NOGPM}
-  Gpm_GetSnapshot(e);
-  if e.y>0 then
-   SysGetMouseY:=e.y-1
+  if PollMouseEvent(ME) then
+   begin
+     GetMouseEvent(ME);
+     SysGetMouseY:=ME.Y
+   end
   else
-   SysGetMouseY:=0;
+    begin
+      SysGetMouseY:=SysLastMouseEvent.y;
+    end;
 {$endif ndef NOGPM}
+end;
+
+
+procedure SysShowMouse;
+var
+  x,y : word;
+begin
+  PrintMouseCur:=true;
+  { Wait with showing the cursor until the mouse has moved. Else the
+    cursor updates will be to quickly }
+  if WaitMouseMove then
+   exit;
+  if (MouseCurOfs>=0) or (gpm_fs=-1) then
+    PlaceMouseCur(MouseCurOfs)
+  else
+    begin
+      x:=SysGetMouseX;
+      y:=SysGetMouseY;
+      if (x<=ScreenWidth) and (y<=ScreenHeight) then
+        PlaceMouseCur(Y*ScreenWidth+X)
+      else
+        PlaceMouseCur(MouseCurOfs);
+    end;
+end;
+
+
+procedure SysHideMouse;
+begin
+  if (MouseCurOfs>=0) then
+    PlaceMouseCur(-1);
+  WaitMouseMove:=true;
+  PrintMouseCur:=false;
 end;
 
 
 function SysGetMouseButtons:word;
 {$ifndef NOGPM}
 var
-  e : TGPMEvent;
+  me : TMouseEvent;
 {$endif ndef NOGPM}
 begin
   if gpm_fs<0 then
    exit(0);
 {$ifndef NOGPM}
-  Gpm_GetSnapshot(e);
-  SysGetMouseButtons:=e.buttons;
+  if PollMouseEvent(ME) then
+    begin
+      GetMouseEvent(ME);
+      SysGetMouseButtons:=ME.buttons
+    end
+  else
+    begin
+      SysGetMouseButtons:=SysLastMouseEvent.Buttons;
+    end;
 {$endif ndef NOGPM}
 end;
 
@@ -235,31 +321,10 @@ begin
    exit;
 {$ifndef NOGPM}
   Gpm_GetEvent(e);
-  if e.x>0 then
-   MouseEvent.x:=e.x-1
-  else
-   MouseEvent.x:=0;
-  if e.y>0 then
-   MouseEvent.y:=e.y-1
-  else
-   MouseEvent.y:=0;
-  MouseEvent.buttons:=0;
-  if e.buttons and Gpm_b_left<>0 then
-   inc(MouseEvent.buttons,1);
-  if e.buttons and Gpm_b_right<>0 then
-   inc(MouseEvent.buttons,2);
-  if e.buttons and Gpm_b_middle<>0 then
-   inc(MouseEvent.buttons,4);
-  case (e.EventType and $f) of
-    GPM_MOVE,
-    GPM_DRAG : MouseEvent.Action:=MouseActionMove;
-    GPM_DOWN : MouseEvent.Action:=MouseActionDown;
-    GPM_UP   : MouseEvent.Action:=MouseActionUp;
-  else
-   MouseEvent.Action:=0;
-  end;
+  GPMEvent2MouseEvent(e,MouseEvent);
+  SysLastMouseEvent:=MouseEvent;
 { update mouse cursor }
-  if mousecur then
+  if PrintMouseCur then
    PlaceMouseCur(MouseEvent.y*ScreenWidth+MouseEvent.x);
 {$endif ndef NOGPM}
 end;
@@ -267,7 +332,6 @@ end;
 
 
 function SysPollMouseEvent(var MouseEvent: TMouseEvent):boolean;
-
 {$ifndef NOGPM}
 var
   e : TGPMEvent;
@@ -281,37 +345,26 @@ begin
   if gpm_fs>0 then
     begin
       FD_Zero(fds);
-      FD_Set(gpm_fd,fds);
+      FD_Set(gpm_fs,fds);
     end;
-  if (gpm_fs=-2) or (Select(gpm_fs+1,@fds,nil,nil,1)>0) then
+  if (Select(gpm_fs+1,@fds,nil,nil,1)>0) then
    begin
      FillChar(e,SizeOf(e),#0);
-     Gpm_GetSnapshot(e);
-     if e.x>0 then
-      MouseEvent.x:=e.x-1
-     else
-      MouseEvent.x:=0;
-     if e.y>0 then
-      MouseEvent.y:=e.y-1
-     else
-      MouseEvent.y:=0;
-     MouseEvent.buttons:=0;
-     if e.buttons and Gpm_b_left<>0 then
-      inc(MouseEvent.buttons,1);
-     if e.buttons and Gpm_b_right<>0 then
-      inc(MouseEvent.buttons,2);
-     if e.buttons and Gpm_b_middle<>0 then
-      inc(MouseEvent.buttons,4);
-     case (e.EventType and $f) of
-      GPM_MOVE,
-      GPM_DRAG : MouseEvent.Action:=MouseActionMove;
-      GPM_DOWN : MouseEvent.Action:=MouseActionDown;
-      GPM_UP   : MouseEvent.Action:=MouseActionUp;
-     else
-      MouseEvent.Action:=0;
-     end;
-     if {(gpm_fs<>-2) or} (MouseEvent.Action<>0) then
-       SysPollMouseEvent:=true
+     { Gpm_snapshot does not work here PM }
+     Gpm_GetEvent(e);
+     GPMEvent2MouseEvent(e,MouseEvent);
+     SysLastMouseEvent:=MouseEvent;
+     if (MouseEvent.Action<>0) then
+       begin
+         { As we now use Gpm_GetEvent, we need to put in
+           in the MouseEvent queue PM }
+         PutMouseEvent(MouseEvent);
+         SysPollMouseEvent:=true;
+         { update mouse cursor is also required here
+           as next call will read MouseEvent from queue }
+         if PrintMouseCur then
+           PlaceMouseCur(MouseEvent.y*ScreenWidth+MouseEvent.x);
+       end
      else
        SysPollMouseEvent:=false;
    end
@@ -319,6 +372,7 @@ begin
    SysPollMouseEvent:=false;
 {$endif ndef NOGPM}
 end;
+
 
 Const
   SysMouseDriver : TMouseDriver = (
@@ -364,7 +418,13 @@ end.
 
 {
   $Log$
-  Revision 1.7  2002-09-07 16:01:27  peter
-    * old logs removed and tabs fixed
+  Revision 1.8  2002-09-15 17:52:30  peter
+    * Updates from the fixes branch
+
+  Revision 1.2.2.9  2002/09/11 06:49:59  pierre
+   * use gpm_fs in FD_SET
+
+  Revision 1.2.2.8  2002/09/02 13:48:48  pierre
+   * mouse event for consoles hopefully fixed
 
 }
