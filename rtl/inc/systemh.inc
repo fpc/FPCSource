@@ -65,7 +65,7 @@ Type
 { some type aliases }
   dword       = cardinal;
   longword    = cardinal;
-  ShortString = String;
+  ShortString = String[255];
 
 { Zero - terminated strings }
   PChar       = ^Char;
@@ -254,18 +254,18 @@ Function  Length (Const S : AnsiString) : Longint;
 Function  Copy (Const S : AnsiString; Index,Size : Longint) : AnsiString;
 Function  Pos (Const Substr : AnsiString; Const Source : AnsiString) : Longint;
 Procedure Insert (Const Source : AnsiString; Var S : AnsiString; Index : Longint);
-Procedure Delete (Const S : AnsiString; Index,Size: Longint);
+Procedure Delete (Var S : AnsiString; Index,Size: Longint);
 Procedure Val (Const S : AnsiString; var R : real; Var Code : Integer);
 {
 Procedure Val (Const S : AnsiString; var D : Double; Var Code : Integer);
 }
-Procedure Val (Var S : AnsiString; var E : Extended; Code : Integer);
-Procedure Val (Var S : AnsiString; var C : Cardinal; Code : Integer);
-Procedure Val (Var S : AnsiString; var L : Longint; Var Code : Integer);
-Procedure Val (Var S : AnsiString; var W : Word; Var Code : Integer);
-Procedure Val (Var S : AnsiString; var I : Integer; Var Code : Integer);
-Procedure Val (Var S : AnsiString; var B : Byte; Var Code : Integer);
-Procedure Val (Var S : AnsiString; var SI : ShortInt; Var  Code : Integer);
+Procedure Val (Const S : AnsiString; var E : Extended; Code : Integer);
+Procedure Val (Const S : AnsiString; var C : Cardinal; Code : Integer);
+Procedure Val (Const S : AnsiString; var L : Longint; Var Code : Integer);
+Procedure Val (Const S : AnsiString; var W : Word; Var Code : Integer);
+Procedure Val (Const S : AnsiString; var I : Integer; Var Code : Integer);
+Procedure Val (Const S : AnsiString; var B : Byte; Var Code : Integer);
+Procedure Val (Const S : AnsiString; var SI : ShortInt; Var  Code : Integer);
 {
 Procedure Str (Const R : Real;Len, fr : longint; Var S : AnsiString);
 Procedure Str (Const D : Double;Len,fr : longint; Var S : AnsiString);
@@ -388,7 +388,10 @@ Procedure halt;
 
 {
   $Log$
-  Revision 1.32  1998-09-22 15:30:55  peter
+  Revision 1.33  1998-09-28 14:02:33  michael
+  + AnsiString changes
+
+  Revision 1.32  1998/09/22 15:30:55  peter
     * shortstring=string type added
 
   Revision 1.31  1998/09/20 17:49:09  florian
