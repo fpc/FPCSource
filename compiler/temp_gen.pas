@@ -278,7 +278,7 @@ unit temp_gen;
 
     function gettempsize : longint;
       begin
-        gettempsize:=-lasttemp;
+        gettempsize:=Align(-lasttemp,target_os.stackalignment);
       end;
 
 
@@ -530,7 +530,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.27  1999-05-21 11:46:28  pierre
+  Revision 1.28  1999-05-21 17:23:47  peter
+    * align tempsize also on stackalignment
+
+  Revision 1.27  1999/05/21 11:46:28  pierre
    * bestsize bug fixed
 
   Revision 1.26  1999/05/19 11:51:00  pierre
