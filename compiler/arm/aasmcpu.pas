@@ -292,7 +292,9 @@ implementation
 
     function taicpu.is_move:boolean;
       begin
-        is_move := opcode=A_MOV;
+        result:=(opcode=A_MOV) and
+                (oper[0]^.typ=top_reg) and
+                (oper[1]^.typ=top_reg);
       end;
 
 
@@ -365,7 +367,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.14  2003-11-24 15:17:37  florian
+  Revision 1.15  2003-11-29 17:36:56  peter
+    * fixed is_move
+
+  Revision 1.14  2003/11/24 15:17:37  florian
     * changed some types to prevend range check errors
 
   Revision 1.13  2003/11/02 14:30:03  florian

@@ -208,6 +208,8 @@ unit agarmgas;
                { LDM and STM use references as first operand but they are written like a register }
                if (i=0) and (op in [A_LDM,A_STM]) then
                  begin
+                   if (taicpu(hp).oper[0]^.typ<>top_ref) then
+                     internalerror(200311292);
                    s:=s+sep+gas_regname(taicpu(hp).oper[0]^.ref^.index);
                    if taicpu(hp).oper[0]^.ref^.addressmode=AM_PREINDEXED then
                      s:=s+'!';
@@ -227,7 +229,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.15  2003-11-21 16:29:26  florian
+  Revision 1.16  2003-11-29 17:36:56  peter
+    * fixed is_move
+
+  Revision 1.15  2003/11/21 16:29:26  florian
     * fixed reading of reg. sets in the arm assembler reader
 
   Revision 1.14  2003/11/17 23:23:47  florian

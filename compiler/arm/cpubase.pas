@@ -533,7 +533,7 @@ unit cpubase;
 
     function findreg_by_number(r:Tregister):tregisterindex;
       begin
-        rgBase.findreg_by_number_table(r,regnumber_index);
+        result:=rgBase.findreg_by_number_table(r,regnumber_index);
       end;
 
 
@@ -569,7 +569,10 @@ unit cpubase;
 end.
 {
   $Log$
-  Revision 1.19  2003-11-21 16:29:26  florian
+  Revision 1.20  2003-11-29 17:36:56  peter
+    * fixed is_move
+
+  Revision 1.19  2003/11/21 16:29:26  florian
     * fixed reading of reg. sets in the arm assembler reader
 
   Revision 1.18  2003/11/17 23:23:47  florian
