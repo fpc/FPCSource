@@ -126,6 +126,7 @@
 \newenvironment{constant}[1]{\begin{constantl}{#1}{#1}}{\end{constantl}}
 \newenvironment{variablel}[2]{\subsection{#1}\index{#1}\label{var:#2}\begin{FPCList}}{\end{FPCList}}
 \newenvironment{variable}[1]{\begin{variablel}{#1}{#1}}{\end{variablel}}
+\newenvironment{ver2}{\par\textbf{version 2.0 only:}}{\par}
 \newcommand{\Declaration}{\item[Declaration]\ttfamily}
 \newcommand{\Description}{\item[Description]\rmfamily}
 \newcommand{\Portability}{\item[Portability]\rmfamily}
@@ -274,7 +275,7 @@
   \lstset{commentstyle=\itshape}%
   \lstset{keywordstyle=\bfseries}%
   \lstset{frame=tb}%
-  \lstset{stringspaces=false}%
+%  \lstset{stringspaces=false}%
 }
 %
 % Page settings
