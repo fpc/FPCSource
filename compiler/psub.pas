@@ -1292,7 +1292,7 @@ begin
                is_equal(pd^.nextoverloaded^.rettype.def,aktprocsym^.definition^.rettype.def))) then
              begin
                if not equal_paras(aktprocsym^.definition^.para,hd^.para,cp_all) and
-                 (m_repeat_forward in aktmodeswitches) then
+                 ((m_repeat_forward in aktmodeswitches) or (aktprocsym^.definition^.para^.count>0)) then
                  begin
                     Message1(parser_e_header_dont_match_forward,aktprocsym^.demangledName);
                     exit;
@@ -2083,7 +2083,10 @@ end.
 
 {
   $Log$
-  Revision 1.66  2000-07-06 19:04:59  peter
+  Revision 1.67  2000-07-07 20:42:55  pierre
+   * get a failure on webtbf/tbug890
+
+  Revision 1.66  2000/07/06 19:04:59  peter
     * allow in delphi mode directives without semicolons between
 
   Revision 1.65  2000/06/25 20:13:51  florian
