@@ -26,6 +26,7 @@ units_netbsd=process asyncio ssockets http resolve http fpasync
 units_openbsd=process asyncio ssockets http resolve http fpasync
 units_linux=process asyncio resolve ssockets http fpasync
 units_win32=process fileinfo resolve ssockets
+units_netware=resolve ssockets
 rsts=classes ssockets cachecls resolve
 exampledirs=tests
 
