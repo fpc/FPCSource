@@ -180,8 +180,8 @@ unit cpupara;
            if nextintreg<=NR_R10 then
              begin
                 paraloc.loc:=LOC_REGISTER;
-                paraloc.register:=nextintreg;
-                inc(nextintreg,NR_R1-NR_R0);
+                paraloc.register:=newreg(R_INTREGISTER,nextintreg,R_SUBNONE);
+                inc(nextintreg);
                 if target_info.abi=abi_powerpc_aix then
                   inc(stack_offset,4);
              end
@@ -241,12 +241,12 @@ unit cpupara;
                              begin
                                if odd(nextintreg-RS_R3) and (target_info.abi=abi_powerpc_sysv) Then
                                  inc(nextintreg);
-                               paraloc.registerhigh:=nextintreg;
+                               paraloc.registerhigh:=newreg(R_INTREGISTER,nextintreg,R_SUBNONE);
                                inc(nextintreg);
                                if target_info.abi=abi_powerpc_aix then
                                  inc(stack_offset,4);
                              end;
-                           paraloc.registerlow:=nextintreg;
+                           paraloc.registerlow:=newreg(R_INTREGISTER,nextintreg,R_SUBNONE);
                            inc(nextintreg);
                            if target_info.abi=abi_powerpc_aix then
                              inc(stack_offset,4);
@@ -345,7 +345,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.43  2003-09-03 19:35:24  peter
+  Revision 1.44  2003-09-03 21:04:14  peter
+    * some fixes for ppc
+
+  Revision 1.43  2003/09/03 19:35:24  peter
     * powerpc compiles again
 
   Revision 1.42  2003/08/11 21:18:20  peter

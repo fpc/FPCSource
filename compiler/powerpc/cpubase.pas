@@ -519,8 +519,9 @@ uses
       NR_FUNCTION_RESULT64_HIGH_REG = NR_FUNCTION_RETURN64_HIGH_REG;
       RS_FUNCTION_RESULT64_HIGH_REG = RS_FUNCTION_RETURN64_HIGH_REG;
 
-      NR_FPU_RESULT_REG = RS_F1;
-      NR_MM_RESULT_REG = RS_M0;
+      NR_FPU_RESULT_REG = NR_F1;
+      NR_MM_RESULT_REG = NR_M0;
+
 
 {*****************************************************************************
                        GCC /ABI linking information
@@ -747,7 +748,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.66  2003-09-03 19:35:24  peter
+  Revision 1.67  2003-09-03 21:04:14  peter
+    * some fixes for ppc
+
+  Revision 1.66  2003/09/03 19:35:24  peter
     * powerpc compiles again
 
   Revision 1.65  2003/09/03 11:18:37  florian

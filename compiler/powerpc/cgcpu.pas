@@ -1668,7 +1668,6 @@ const
         lab: tasmlabel;
         count, count2: aword;
         orgsrc, orgdst: boolean;
-        r:Tregister;
         size: tcgsize;
 
       begin
@@ -1695,14 +1694,14 @@ const
               else
                 begin
                   a_reg_alloc(list,NR_F0);
-                  a_loadfpu_ref_reg(list,OS_F64,source,r);
+                  a_loadfpu_ref_reg(list,OS_F64,source,NR_F0);
                   if delsource then
                     begin
                       reference_release(list,source);
                       tg.ungetiftemp(list,source);
                     end;
-                  a_loadfpu_reg_ref(list,OS_F64,r,dest);
-                  a_reg_dealloc(list,r);
+                  a_loadfpu_reg_ref(list,OS_F64,NR_F0,dest);
+                  a_reg_dealloc(list,NR_F0);
                 end;
               exit;
             end;
@@ -2383,7 +2382,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.124  2003-09-03 19:35:24  peter
+  Revision 1.125  2003-09-03 21:04:14  peter
+    * some fixes for ppc
+
+  Revision 1.124  2003/09/03 19:35:24  peter
     * powerpc compiles again
 
   Revision 1.123  2003/09/03 15:55:01  peter
