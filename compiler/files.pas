@@ -32,43 +32,59 @@ unit files;
 {$ifdef FPC}
        maxunits = 1024;
        InputFileBufSize=32*1024;
+       linebufincrease=512;
 {$else}
        maxunits = 128;
        InputFileBufSize=1024;
+       linebufincrease=64;
 {$endif}
 
     type
+{$ifdef FPC}
+       tlongintarr = array[0..1000000] of longint;
+{$else}
+       tlongintarr = array[0..16000] of longint;
+{$endif}
+       plongintarr = ^tlongintarr;
+
        pinputfile = ^tinputfile;
        tinputfile = object
-         path,name : pstring;    { path and filename }
-         next      : pinputfile; { next file for reading }
+         path,name : pstring;       { path and filename }
+         next      : pinputfile;    { next file for reading }
 
          f            : file;       { current file handle }
          is_macro,
          endoffile,                 { still bytes left to read }
          closed       : boolean;    { is the file closed }
-         inputbufsize : longint;    { max size of the input buffer }
 
-         savebufstart,                  { save fields for scanner }
-         savebufsize,
+         buf          : pchar;      { buffer }
+         bufstart,                  { buffer start position in the file }
+         bufsize,                   { amount of bytes in the buffer }
+         maxbufsize   : longint;    { size in memory for the buffer }
+
+         saveinputpointer : pchar;  { save fields for scanner variables }
          savelastlinepos,
          saveline_no      : longint;
 
-         saveinputbuffer,
-         saveinputpointer : pchar;
-
-         linebuf    : plongint;   { line buffer to retrieve lines }
+         linebuf    : plongintarr;  { line buffer to retrieve lines }
          maxlinebuf : longint;
 
-         ref_count  : longint;    { to handle the browser refs }
+         ref_count  : longint;      { to handle the browser refs }
          ref_index  : longint;
          ref_next   : pinputfile;
 
          constructor init(const fn:string);
          destructor done;
-{$ifdef SourceLine}
+         procedure setpos(l:longint);
+         procedure seekbuf(fpos:longint);
+         procedure readbuf;
+         function  open:boolean;
+         procedure close;
+         procedure tempclose;
+         function  tempopen:boolean;
+         procedure setmacro(p:pchar;len:longint);
+         procedure setline(line,linepos:longint);
          function  getlinestr(l:longint):string;
-{$endif SourceLine}
        end;
 
        pfilemanager = ^tfilemanager;
@@ -118,7 +134,6 @@ unit files;
 
           { used in firstpass for faster settings }
           scanner       : pointer;
-          current_index : word;
 
           path,                     { path where the module is find/created }
           modulename,               { name of the module in uppercase }
@@ -183,22 +198,21 @@ unit files;
         is_macro:=false;
         endoffile:=false;
         closed:=true;
-        inputbufsize:=InputFileBufSize;
-        saveinputbuffer:=nil;
+        buf:=nil;
+        bufstart:=0;
+        bufsize:=0;
+        maxbufsize:=InputFileBufSize;
+      { save fields }
         saveinputpointer:=nil;
-        savebufstart:=0;
-        savebufsize:=0;
         saveline_no:=0;
         savelastlinepos:=0;
       { indexing refs }
         ref_next:=nil;
         ref_count:=0;
         ref_index:=0;
-{$ifdef SourceLine}
       { line buffer }
         linebuf:=nil;
         maxlinebuf:=0;
-{$endif SourceLine}
       end;
 
 
@@ -206,24 +220,204 @@ unit files;
       begin
         stringdispose(path);
         stringdispose(name);
-{$ifdef SourceLine}
       { free memory }
         if assigned(linebuf) then
          freemem(linebuf,maxlinebuf shl 2);
-{$endif SourceLine}
       end;
 
 
-{$ifdef SourceLine}
+    procedure tinputfile.setpos(l:longint);
+      begin
+        bufstart:=l;
+      end;
+
+
+    procedure tinputfile.seekbuf(fpos:longint);
+      begin
+        if closed then
+         exit;
+        seek(f,fpos);
+        bufstart:=fpos;
+        bufsize:=0;
+      end;
+
+
+    procedure tinputfile.readbuf;
+    {$ifdef TP}
+      var
+        w : word;
+    {$endif}
+      begin
+        if is_macro then
+         endoffile:=true;
+        if closed then
+         exit;
+        inc(bufstart,bufsize);
+      {$ifdef TP}
+        blockread(f,buf^,maxbufsize-1,w);
+        bufsize:=w;
+      {$else}
+        blockread(f,buf^,maxbufsize-1,bufsize);
+      {$endif}
+        buf[bufsize]:=#0;
+        endoffile:=not(bufsize=maxbufsize-1);
+      end;
+
+
+    function tinputfile.open:boolean;
+      var
+        ofm : byte;
+      begin
+        open:=false;
+        if not closed then
+         Close;
+        ofm:=filemode;
+        filemode:=0;
+        Assign(f,path^+name^);
+        {$I-}
+         reset(f,1);
+        {$I+}
+        filemode:=ofm;
+        if ioresult<>0 then
+         exit;
+      { file }
+        endoffile:=false;
+        closed:=false;
+        Getmem(buf,MaxBufsize);
+        bufstart:=0;
+        bufsize:=0;
+        open:=true;
+      end;
+
+
+    procedure tinputfile.close;
+      var
+        i : word;
+      begin
+        if is_macro then
+         begin
+           Freemem(buf,maxbufsize);
+           is_macro:=false;
+           closed:=true;
+           exit;
+         end;
+        if not closed then
+         begin
+           {$I-}
+            system.close(f);
+           {$I+}
+           i:=ioresult;
+           Freemem(buf,maxbufsize);
+           closed:=true;
+         end;
+        buf:=nil;
+        bufstart:=0;
+      end;
+
+
+    procedure tinputfile.tempclose;
+      var
+        i : word;
+      begin
+        if is_macro then
+         exit;
+        if not closed then
+         begin
+           {$I-}
+            system.close(f);
+           {$I+}
+           i:=ioresult;
+           Freemem(buf,maxbufsize);
+           buf:=nil;
+           closed:=true;
+         end;
+      end;
+
+
+    function tinputfile.tempopen:boolean;
+      var
+        ofm : byte;
+      begin
+        tempopen:=false;
+        if is_macro then
+         begin
+           tempopen:=true;
+           exit;
+         end;
+        if not closed then
+         exit;
+        ofm:=filemode;
+        filemode:=0;
+        Assign(f,path^+name^);
+        {$I-}
+         reset(f,1);
+        {$I+}
+        filemode:=ofm;
+        if ioresult<>0 then
+         exit;
+        closed:=false;
+      { get new mem }
+        Getmem(buf,maxbufsize);
+      { restore state }
+        seek(f,BufStart);
+        bufsize:=0;
+        readbuf;
+        tempopen:=true;
+      end;
+
+
+    procedure tinputfile.setmacro(p:pchar;len:longint);
+      begin
+      { create new buffer }
+        getmem(buf,len+1);
+        move(p^,buf^,len);
+        buf[len]:=#0;
+      { reset }
+        bufstart:=0;
+        bufsize:=len;
+        maxbufsize:=len+1;
+        is_macro:=true;
+        endoffile:=true;
+        closed:=true;
+      end;
+
+
+    procedure tinputfile.setline(line,linepos:longint);
+      var
+        oldlinebuf  : plongintarr;
+      begin
+        if line<1 then
+         exit;
+        while (line>=maxlinebuf) do
+         begin
+           oldlinebuf:=linebuf;
+         { create new linebuf and move old info }
+           getmem(linebuf,(maxlinebuf+linebufincrease) shl 2);
+           if assigned(oldlinebuf) then
+            begin
+              move(oldlinebuf^,linebuf^,maxlinebuf shl 2);
+              freemem(oldlinebuf,maxlinebuf shl 2);
+            end;
+           fillchar(linebuf^[maxlinebuf],linebufincrease shl 2,0);
+           inc(maxlinebuf,linebufincrease);
+         end;
+        linebuf^[line]:=linepos;
+      end;
+
+
     function tinputfile.getlinestr(l:longint):string;
       var
-        c : char;
-        i,fpos : longint;
+        c    : char;
+        i,
+        fpos : longint;
+        p    : pchar;
       begin
         getlinestr:='';
         if l<maxlinebuf then
          begin
-           fpos:=plongint(longint(linebuf)+line_no*2)^;
+           fpos:=linebuf^[l];
+           if closed then
+            open;
          { in current buf ? }
            if (fpos<bufstart) or (fpos>bufstart+bufsize) then
             begin
@@ -232,23 +426,25 @@ unit files;
             end;
          { the begin is in the buf now simply read until #13,#10 }
            i:=0;
-
-           inputpointer:=inputbuffer;
-           c:=inputpointer^;
-           while (i<255) and not(c in [#13,#10]) do
-            begin
-              inc(i);
-              getlinestr[i]:=c;
-              c:=inputpointer^;
-              if c=#0 then
-               reload
-              else
-               inc(longint(inputpointer));
-            end;
+           p:=@buf[fpos-bufstart];
+           repeat
+             c:=p^;
+             if c=#0 then
+              begin
+                readbuf;
+                p:=buf;
+                c:=p^;
+              end;
+             if c in [#10,#13] then
+              break;
+             inc(i);
+             getlinestr[i]:=c;
+             inc(longint(p));
+           until (i=255);
            getlinestr[0]:=chr(i);
          end;
       end;
-{$endif SourceLine}
+
 
 {****************************************************************************
                                 TFILEMANAGER
@@ -568,7 +764,6 @@ unit files;
          linkofiles.init;
          linkstaticlibs.init;
          linksharedlibs.init;
-         current_index:=0;
          ppufile:=nil;
          scanner:=nil;
          map:=nil;
@@ -665,7 +860,11 @@ unit files;
 end.
 {
   $Log$
-  Revision 1.41  1998-08-26 15:35:30  peter
+  Revision 1.42  1998-09-03 11:24:00  peter
+    * moved more inputfile things from tscannerfile to tinputfile
+    * changed ifdef Sourceline to cs_asm_source
+
+  Revision 1.41  1998/08/26 15:35:30  peter
     * fixed scannerfiles for macros
     + $I %<environment>%
 

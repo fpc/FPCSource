@@ -166,7 +166,7 @@ unit pmodules;
                          datasegment^.concat(new(pai_symbol,init_global('__stklen')));
                          datasegment^.concat(new(pai_const,init_32bit(stacksize)));
                        end;
-{$endif m68k}           
+{$endif m68k}
 
         end;
       end;
@@ -282,10 +282,10 @@ unit pmodules;
               Message1(unit_f_cant_compile_unit,current_module^.modulename^)
              else
               begin
-                current_scanner^.tempclose;
+                current_scanner^.tempcloseinputfile;
                 compile(current_module^.mainsource^,compile_system);
                 if (not old_current_module^.compiled) then
-                 current_scanner^.tempopen;
+                 current_scanner^.tempopeninputfile;
               end;
            end
           else
@@ -865,11 +865,11 @@ unit pmodules;
          names.insert('program_init');
          names.insert('PASCALMAIN');
          names.insert(target_os.cprefix+'main');
-{$ifdef m68k}   
+{$ifdef m68k}
 
          if target_info.target=target_PalmOS then
            names.insert('PilotMain');
-{$endif}        
+{$endif}
 
          compile_proc_body(names,true,false);
          names.done;
@@ -915,7 +915,11 @@ unit pmodules;
 end.
 {
   $Log$
-  Revision 1.45  1998-08-31 12:26:28  peter
+  Revision 1.46  1998-09-03 11:24:01  peter
+    * moved more inputfile things from tscannerfile to tinputfile
+    * changed ifdef Sourceline to cs_asm_source
+
+  Revision 1.45  1998/08/31 12:26:28  peter
     * m68k and palmos updates from surebugfixes
 
   Revision 1.44  1998/08/26 15:35:33  peter

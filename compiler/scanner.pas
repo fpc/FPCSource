@@ -33,10 +33,8 @@ unit scanner;
     const
 {$ifdef TP}
        maxmacrolen=1024;
-       linebufincrease=64;
 {$else}
        maxmacrolen=16*1024;
-       linebufincrease=512;
 {$endif}
 
        id_len = 14;
@@ -144,18 +142,16 @@ unit scanner;
 
        pscannerfile = ^tscannerfile;
        tscannerfile = object
-          inputfile    : pinputfile; { current inputfile list }
+          inputfile    : pinputfile;  { current inputfile list }
 
-          { these fields are called save* in inputfile, and are here
-            for speed reasons (PFV) }
-          bufstart,
-          bufsize,
-          line_no,
-          lastlinepos  : longint;
-          inputbuffer,
+          inputbuffer,                { input buffer }
           inputpointer : pchar;
+          inputstart   : longint;
 
-          lasttokenpos : longint;
+          line_no,                    { line }
+          lastlinepos  : longint;
+
+          lasttokenpos : longint;     { token }
           lasttoken    : ttoken;
 
           do_special,                 { 1=point after nr, 2=caret after id }
@@ -167,18 +163,15 @@ unit scanner;
           constructor init(const fn:string);
           destructor done;
         { File buffer things }
-          function  open:boolean;
-          procedure close;
-          procedure tempclose;
-          function  tempopen:boolean;
-          procedure seekbuf(fpos:longint);
-          procedure readbuf;
+          function  openinputfile:boolean;
+          procedure closeinputfile;
+          function  tempopeninputfile:boolean;
+          procedure tempcloseinputfile;
           procedure saveinputfile;
           procedure restoreinputfile;
           procedure nextfile;
           procedure addfile(hp:pinputfile);
           procedure reload;
-          procedure setbuf(p:pchar;l:longint);
           procedure insertmacro(p:pchar;len:longint);
         { Scanner things }
           procedure gettokenpos;
@@ -305,20 +298,23 @@ implementation
       begin
         inputfile:=new(pinputfile,init(fn));
         current_module^.sourcefiles.register_file(inputfile);
-        current_module^.current_index:=inputfile^.ref_index;
-      { load inputfile values }
-        restoreinputfile;
+      { reset localinput }
+        inputbuffer:=nil;
+        inputpointer:=nil;
+        inputstart:=0;
       { reset scanner }
         preprocstack:=nil;
         comment_level:=0;
         do_special:=0;
         yylexcount:=0;
         block_type:=bt_general;
+        line_no:=0;
+        lastlinepos:=0;
         lasttokenpos:=0;
         lasttoken:=_END;
         lastasmgetchar:=#0;
       { load block }
-        if not open then
+        if not openinputfile then
          Message1(scan_f_cannot_open_input,fn);
         reload;
       end;
@@ -329,178 +325,61 @@ implementation
         checkpreprocstack;
       { close file }
         if not inputfile^.closed then
-         close;
+         closeinputfile;
        end;
 
 
-    procedure tscannerfile.seekbuf(fpos:longint);
+    function tscannerfile.openinputfile:boolean;
       begin
-        with inputfile^ do
-         begin
-           if closed then
-            exit;
-           seek(f,fpos);
-           bufstart:=fpos;
-           bufsize:=0;
-         end;
+        openinputfile:=inputfile^.open;
+      { load buffer }
+        inputbuffer:=inputfile^.buf;
+        inputpointer:=inputfile^.buf;
+        inputstart:=inputfile^.bufstart;
+      { line }
+        line_no:=0;
+        lastlinepos:=0;
+        lasttokenpos:=0;
       end;
 
 
-    procedure tscannerfile.readbuf;
-    {$ifdef TP}
-      var
-        w : word;
-    {$endif}
+    procedure tscannerfile.closeinputfile;
       begin
-        with inputfile^ do
-         begin
-           if is_macro then
-            endoffile:=true;
-           if closed then
-            exit;
-           inc(bufstart,bufsize);
-         {$ifdef TP}
-           blockread(f,inputbuffer^,inputbufsize-1,w);
-           bufsize:=w;
-         {$else}
-           blockread(f,inputbuffer^,inputbufsize-1,bufsize);
-         {$endif}
-           inputbuffer[bufsize]:=#0;
-           endoffile:=not(bufsize=inputbufsize-1);
-         end;
+        inputfile^.close;
+      { reset buffer }
+        inputbuffer:=nil;
+        inputpointer:=nil;
+        inputstart:=0;
+      { reset line }
+        line_no:=0;
+        lastlinepos:=0;
+        lasttokenpos:=0;
       end;
 
 
-    function tscannerfile.open:boolean;
-      var
-        ofm : byte;
+    function tscannerfile.tempopeninputfile:boolean;
       begin
-        with inputfile^ do
-         begin
-           open:=false;
-           if not closed then
-            Close;
-           ofm:=filemode;
-           filemode:=0;
-           Assign(f,path^+name^);
-           {$I-}
-            reset(f,1);
-           {$I+}
-           filemode:=ofm;
-           if ioresult<>0 then
-            exit;
-         { file }
-           endoffile:=false;
-           closed:=false;
-           Getmem(inputbuffer,inputbufsize);
-           inputpointer:=inputbuffer;
-           bufstart:=0;
-           bufsize:=0;
-         { line }
-           line_no:=0;
-           lastlinepos:=0;
-           lasttokenpos:=0;
-           open:=true;
-         end;
+        tempopeninputfile:=inputfile^.tempopen;
+      { reload buffer }
+        inputbuffer:=inputfile^.buf;
+        inputpointer:=inputfile^.buf;
+        inputstart:=inputfile^.bufstart;
       end;
 
 
-    procedure tscannerfile.close;
-      var
-        i : word;
+    procedure tscannerfile.tempcloseinputfile;
       begin
-        with inputfile^ do
-         begin
-           if is_macro then
-            begin
-              Freemem(inputbuffer,inputbufsize);
-              is_macro:=false;
-              closed:=true;
-              exit;
-            end;
-           if not closed then
-            begin
-              {$I-}
-               system.close(f);
-              {$I+}
-              i:=ioresult;
-              Freemem(inputbuffer,inputbufsize);
-              closed:=true;
-            end;
-           inputbuffer:=nil;
-           inputpointer:=nil;
-           lastlinepos:=0;
-           lasttokenpos:=0;
-           bufstart:=0;
-         end;
-      end;
-
-
-    procedure tscannerfile.tempclose;
-      var
-        i : word;
-      begin
-        with inputfile^ do
-         begin
-           inc(bufstart,inputpointer-inputbuffer);
-           if is_macro then
-            exit;
-           if not closed then
-            begin
-              {$I-}
-               system.close(f);
-              {$I+}
-              i:=ioresult;
-              Freemem(inputbuffer,inputbufsize);
-              inputbuffer:=nil;
-              inputpointer:=nil;
-              closed:=true;
-            end;
-         end;
-      end;
-
-
-    function tscannerfile.tempopen:boolean;
-      var
-        ofm : byte;
-      begin
-        with inputfile^ do
-         begin
-           tempopen:=false;
-           if is_macro then
-            begin
-              tempopen:=true;
-              exit;
-            end;
-           if not closed then
-            exit;
-           ofm:=filemode;
-           filemode:=0;
-           Assign(f,path^+name^);
-           {$I-}
-            reset(f,1);
-           {$I+}
-           filemode:=ofm;
-           if ioresult<>0 then
-            exit;
-           closed:=false;
-         { get new mem }
-           Getmem(inputbuffer,inputbufsize);
-           inputpointer:=inputbuffer;
-         { restore state }
-           seek(f,BufStart);
-           bufsize:=0;
-           readbuf;
-           tempopen:=true;
-         end;
+        inputfile^.setpos(inputstart+(inputpointer-inputbuffer));
+        inputfile^.tempclose;
+      { reset buffer }
+        inputbuffer:=nil;
+        inputpointer:=nil;
+        inputstart:=0;
       end;
 
 
     procedure tscannerfile.saveinputfile;
       begin
-        inputfile^.savebufstart:=bufstart;
-        inputfile^.savebufsize:=bufsize;
-        inputfile^.saveinputbuffer:=inputbuffer;
         inputfile^.saveinputpointer:=inputpointer;
         inputfile^.savelastlinepos:=lastlinepos;
         inputfile^.saveline_no:=line_no;
@@ -509,12 +388,9 @@ implementation
 
     procedure tscannerfile.restoreinputfile;
       begin
-        bufstart:=inputfile^.savebufstart;
-        bufsize:=inputfile^.savebufsize;
+        inputpointer:=inputfile^.saveinputpointer;
         lastlinepos:=inputfile^.savelastlinepos;
         line_no:=inputfile^.saveline_no;
-        inputbuffer:=inputfile^.saveinputbuffer;
-        inputpointer:=inputfile^.saveinputpointer;
       end;
 
 
@@ -556,13 +432,20 @@ implementation
              if not endoffile then
               begin
                 readbuf;
+                inputpointer:=buf;
+                inputbuffer:=buf;
+                inputstart:=bufstart;
+              { first line? }
                 if line_no=0 then
-                 line_no:=1;
-                inputpointer:=inputbuffer;
+                 begin
+                   line_no:=1;
+                   if cs_asm_source in aktglobalswitches then
+                     inputfile^.setline(line_no,bufstart);
+                 end;
               end
              else
               begin
-                close;
+                closeinputfile;
               { no next module, than EOF }
                 if not assigned(inputfile^.next) then
                  begin
@@ -571,11 +454,9 @@ implementation
                  end;
               { load next file and reopen it }
                 nextfile;
-                tempopen;
+                tempopeninputfile;
               { status }
-                Message1(scan_d_back_in,inputfile^.name^);
-              { load some current_module fields }
-                current_module^.current_index:=inputfile^.ref_index;
+                Message1(scan_d_back_in,name^);
               end;
            { load next char }
              c:=inputpointer^;
@@ -585,60 +466,41 @@ implementation
       end;
 
 
-    procedure tscannerfile.setbuf(p:pchar;l:longint);
-      begin
-        with inputfile^ do
-         begin
-           inputbufsize:=l;
-           inputbuffer:=p;
-           inputpointer:=p;
-         end;
-      end;
-
-
     procedure tscannerfile.insertmacro(p:pchar;len:longint);
-    { load the values of tokenpos and lasttokenpos }
       var
-        macbuf : pchar;
-        hp     : pinputfile;
+        hp : pinputfile;
       begin
       { save old postion }
         dec(longint(inputpointer));
-        current_scanner^.tempclose;
+        tempcloseinputfile;
       { create macro 'file' }
         hp:=new(pinputfile,init('Macro'));
         addfile(hp);
-        getmem(macbuf,len+1);
-        setbuf(macbuf,len+1);
-      { fill buffer }
         with inputfile^ do
          begin
-           move(p^,inputbuffer^,len);
-           inputbuffer[len]:=#0;
-         { reset }
-           inputpointer:=inputbuffer;
-           bufstart:=0;
-           bufsize:=len;
-           line_no:=0;
-           lastlinepos:=0;
-           lasttokenpos:=0;
-           is_macro:=true;
-           endoffile:=true;
-           closed:=true;
-         { load new c }
-           c:=inputpointer^;
-           inc(longint(inputpointer));
+           setmacro(p,len);
+         { local buffer }
+           inputbuffer:=buf;
+           inputpointer:=buf;
+           inputstart:=bufstart;
          end;
+      { reset line }
+        line_no:=0;
+        lastlinepos:=0;
+        lasttokenpos:=0;
+      { load new c }
+        c:=inputpointer^;
+        inc(longint(inputpointer));
       end;
 
 
     procedure tscannerfile.gettokenpos;
     { load the values of tokenpos and lasttokenpos }
       begin
-        lasttokenpos:=bufstart+(inputpointer-inputbuffer);
+        lasttokenpos:=inputstart+(inputpointer-inputbuffer);
         tokenpos.line:=line_no;
         tokenpos.column:=lasttokenpos-lastlinepos;
-        tokenpos.fileindex:=current_module^.current_index;
+        tokenpos.fileindex:=inputfile^.ref_index;
         aktfilepos:=tokenpos;
       end;
 
@@ -671,10 +533,8 @@ implementation
     procedure tscannerfile.linebreak;
       var
          cur : char;
-{$ifdef SourceLine}
-         hp  : plongint;
-{$endif SourceLine}
-         oldtokenpos,oldaktfilepos : tfileposinfo;
+         oldtokenpos,
+         oldaktfilepos : tfileposinfo;
       begin
         with inputfile^ do
          begin
@@ -696,22 +556,8 @@ implementation
            lastlinepos:=bufstart+(inputpointer-inputbuffer);
            inc(line_no);
          { update linebuffer }
-   {$ifdef SourceLine}
-           if line_no>maxlinebuf then
-            begin
-              { create new linebuf and move old info }
-              getmem(hp,maxlinebuf+linebufincrease);
-              if assigned(linebuf) then
-               begin
-                 move(linebuf^,hp^,maxlinebuf shl 2);
-                 freemem(linebuf,maxlinebuf);
-               end;
-              { set new linebuf }
-              linebuf:=hp;
-              inc(maxlinebuf,linebufincrease);
-            end;
-           plongint(longint(linebuf)+line_no*2)^:=lastlinepos;
-   {$endif SourceLine}
+           if cs_asm_source in aktglobalswitches then
+             inputfile^.setline(line_no,lastlinepos);
          { update for status and call the show status routine,
            but don't touch aktfilepos ! }
            oldaktfilepos:=aktfilepos;
@@ -1623,7 +1469,11 @@ exit_label:
 end.
 {
   $Log$
-  Revision 1.48  1998-09-01 12:51:02  peter
+  Revision 1.49  1998-09-03 11:24:03  peter
+    * moved more inputfile things from tscannerfile to tinputfile
+    * changed ifdef Sourceline to cs_asm_source
+
+  Revision 1.48  1998/09/01 12:51:02  peter
     * close also resets lastlinepos
 
   Revision 1.47  1998/09/01 09:01:52  peter

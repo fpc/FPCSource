@@ -553,17 +553,16 @@ const
          { first look in the path of _d then currentmodule }
            path:=search(name+ext,path+';'+current_scanner^.inputfile^.path^+';'+includesearchpath,found);
          { shutdown current file }
-           current_scanner^.tempclose;
+           current_scanner^.tempcloseinputfile;
          { load new file }
            hp:=new(pinputfile,init(path+name+ext));
            current_scanner^.addfile(hp);
-           if not current_scanner^.open then
+           if not current_scanner^.openinputfile then
             Message1(scan_f_cannot_open_includefile,hs);
            Message1(scan_u_start_include_file,current_scanner^.inputfile^.path^+current_scanner^.inputfile^.name^);
            current_scanner^.reload;
          { register for refs }
            current_module^.sourcefiles.register_file(hp);
-           current_module^.current_index:=hp^.ref_index;
          end;
       end;
 
@@ -916,7 +915,11 @@ const
 
 {
   $Log$
-  Revision 1.25  1998-09-02 15:13:31  peter
+  Revision 1.26  1998-09-03 11:24:02  peter
+    * moved more inputfile things from tscannerfile to tinputfile
+    * changed ifdef Sourceline to cs_asm_source
+
+  Revision 1.25  1998/09/02 15:13:31  peter
     * fixed typo in directive table
 
   Revision 1.24  1998/09/01 12:52:06  peter
