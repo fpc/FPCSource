@@ -38,7 +38,7 @@ unit win_targ;
   implementation
 
     uses
-       aasm,files,strings,globals,cobjects
+       aasm,files,strings,globals,cobjects,systems
 {$ifdef GDB}
        ,gdb
 {$endif}
@@ -170,7 +170,7 @@ unit win_targ;
               { create import dll name }
               importssection^.concat(new(pai_section,init_idata(7)));
               importssection^.concat(new(pai_label,init(l1)));
-              importssection^.concat(new(pai_string,init(hp1^.dllname^+#0)));
+              importssection^.concat(new(pai_string,init(hp1^.dllname^+target_os.sharedlibext+#0)));
 
               hp1:=pimportlist(hp1^.next);
            end;
@@ -179,7 +179,10 @@ unit win_targ;
 end.
 {
   $Log$
-  Revision 1.4  1998-06-08 22:59:56  peter
+  Revision 1.5  1998-06-10 10:43:18  peter
+    * write also the .dll extension (needed for NT)
+
+  Revision 1.4  1998/06/08 22:59:56  peter
     * smartlinking works for win32
     * some defines to exclude some compiler parts
 
