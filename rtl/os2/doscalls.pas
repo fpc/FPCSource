@@ -1,10 +1,12 @@
 {Set tabsize to 4.}
 {****************************************************************************
 
+    $Id$
+
                            DOSCALLS interface unit
                      FPC Pascal Runtime Library for OS/2
-                   Copyright (c) 1993,94 by Florian Klmpfl
-                    Copyright (c) 1997 by Dani	l Mantione
+                   Copyright (c) 1993,94 by Florian Klaempfl
+                    Copyright (c) 1997 by Daniel Mantione
 
  The FPK-Pascal runtime library is distributed under the Library GNU Public
  License v2. So is this unit. The Library GNU Public License requires you to
@@ -49,7 +51,7 @@ unit DosCalls;
  instead of just a PChar, thanks to that cool feature of procedure
  overloading.
 
- Dani	l Mantione,
+ Daniel Mantione,
  June 1997
 
 Changelog:
@@ -63,7 +65,7 @@ Changelog:
                     'word' to 'longint'.
     People:
 
-        DM - Dani	l Mantione
+        DM - Daniel Mantione
         TH - Tomas Hajny (XHajT03@mbox.vol.cz on Internet)
 
     Date:           Description of change:              Changed by:
@@ -3819,4 +3821,9 @@ procedure FlatToSel;
 external 'DOSCALLS' index 426;
 
 end.
+{
+  $Log$
+  Revision 1.6  1999-08-10 14:18:40  hajny
+    * corrected characters >127 broken by DBCS editor
 
+}
