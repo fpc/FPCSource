@@ -398,6 +398,9 @@ uses
          inherited init;
          typ:=ait_datablock;
          sym:=newasmsymboltyp(_name,AS_LOCAL);
+         { keep things aligned }
+         if _size<=0 then
+           _size:=4;
          size:=_size;
          is_global:=false;
       end;
@@ -408,6 +411,9 @@ uses
          inherited init;
          typ:=ait_datablock;
          sym:=newasmsymboltyp(_name,AS_GLOBAL);
+         { keep things aligned }
+         if _size<=0 then
+           _size:=4;
          size:=_size;
          is_global:=true;
       end;
@@ -1038,7 +1044,11 @@ uses
 end.
 {
   $Log$
-  Revision 1.72  2000-01-13 13:07:05  jonas
+  Revision 1.73  2000-01-19 22:53:57  florian
+    * empty records/objects would generate static data of size 0 which is optimized away, tai_datablock
+      checks now the size and sets it to a value > 0
+
+  Revision 1.72  2000/01/13 13:07:05  jonas
     * released -dalignreg
     * some small fixes to -dnewOptimizations helper procedures
 
