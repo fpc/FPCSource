@@ -329,6 +329,10 @@ unit pdecl;
          maxsize,maxalignment,startvarrecalign,startvarrecsize : longint;
          pt : ptree;
       begin
+         old_current_object_option:=current_object_option;
+         { all variables are public if not in a object declaration }
+         if not is_object then
+          current_object_option:=[sp_public];
          old_block_type:=block_type;
          block_type:=bt_type;
          is_gpc_name:=false;
@@ -627,7 +631,6 @@ unit pdecl;
              if not symdone then
                begin
                   { save object option, because we can turn of the sp_published }
-                  old_current_object_option:=current_object_option;
                   if (sp_published in current_object_option) and
                     (not((tt.def^.deftype=objectdef) and (pobjectdef(tt.def)^.is_class))) then
                    begin
@@ -704,6 +707,7 @@ unit pdecl;
               symtablestack^.dataalignment:=maxalignment;
            end;
          block_type:=old_block_type;
+         current_object_option:=old_current_object_option;
       end;
 
 
@@ -1213,7 +1217,11 @@ unit pdecl;
 end.
 {
   $Log$
-  Revision 1.186  2000-06-18 18:11:32  peter
+  Revision 1.187  2000-06-23 20:14:39  peter
+    * reset current_object_option when reading other symtables than
+      object declarations
+
+  Revision 1.186  2000/06/18 18:11:32  peter
     * C record packing fixed to also check first entry of the record
       if bigger than the recordalignment itself
     * variant record alignment uses alignment per variant and saves the
