@@ -205,25 +205,43 @@ interface
 
     procedure tarmaddnode.second_cmpsmallset;
       var
-        zeroreg : tregister;
+        tmpreg : tregister;
       begin
-        {!!!!!!!
         pass_left_right;
-        force_reg_left_right(true,true);
-
-        zeroreg.enum:=R_INTREGISTER;
-        zeroreg.number:=NR_G0;
-
-        if right.location.loc = LOC_CONSTANT then
-          tcgsparc(cg).handle_reg_const_reg(exprasmlist,A_SUBcc,left.location.register,right.location.value,zeroreg)
-        else
-          exprasmlist.concat(taicpu.op_reg_reg_reg(A_SUBcc,left.location.register,right.location.register,zeroreg));
 
         location_reset(location,LOC_FLAGS,OS_NO);
-        location.resflags:=getresflags(true);
 
+        force_reg_left_right(false,false);
+
+        case nodetype of
+          equaln:
+            begin
+              exprasmlist.concat(taicpu.op_reg_reg(A_CMP,left.location.register,right.location.register));
+              location.resflags:=F_EQ;
+            end;
+          unequaln:
+            begin
+              exprasmlist.concat(taicpu.op_reg_reg(A_CMP,left.location.register,right.location.register));
+              location.resflags:=F_NE;
+            end;
+          lten,
+          gten:
+            begin
+              if (not(nf_swaped in flags) and
+                  (nodetype = lten)) or
+                 ((nf_swaped in flags) and
+                  (nodetype = gten)) then
+                swapleftright;
+              tmpreg:=cg.getintregister(exprasmlist,location.size);
+              exprasmlist.concat(taicpu.op_reg_reg_reg(A_AND,tmpreg,left.location.register,right.location.register));
+              exprasmlist.concat(taicpu.op_reg_reg(A_CMP,tmpreg,right.location.register));
+              cg.ungetregister(exprasmlist,tmpreg);
+              location.resflags:=F_EQ;
+            end;
+          else
+            internalerror(2004012401);
+        end;
         release_reg_left_right;
-        }
       end;
 
 
@@ -314,7 +332,12 @@ begin
 end.
 {
   $Log$
-  Revision 1.9  2004-01-24 18:12:40  florian
+  Revision 1.10  2004-01-24 20:19:46  florian
+    * fixed some spilling stuff
+    + not(<int64>) implemented
+    + small set comparisations implemented
+
+  Revision 1.9  2004/01/24 18:12:40  florian
     * fixed several arm floating point issues
 
   Revision 1.8  2004/01/23 00:01:48  florian

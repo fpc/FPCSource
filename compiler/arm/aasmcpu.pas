@@ -75,6 +75,7 @@ uses
          function spilling_create_load(const ref:treference;r:tregister): tai;override;
          function spilling_create_store(r:tregister; const ref:treference): tai;override;
 
+         function spilling_get_operation_type(opnr: longint): topertype;override;
       end;
       tai_align = class(tai_align_abstract)
         { nothing to add }
@@ -322,6 +323,15 @@ implementation
       end;
 
 
+    function taicpu.spilling_get_operation_type(opnr: longint): topertype;
+      begin
+        if opnr = 0 then
+          result := operand_write
+        else
+          result:=operand_read;
+      end;
+
+
     procedure InitAsm;
       begin
       end;
@@ -414,11 +424,15 @@ implementation
         curdata.free;
       end;
 
-
 end.
 {
   $Log$
-  Revision 1.23  2004-01-23 15:12:49  florian
+  Revision 1.24  2004-01-24 20:19:46  florian
+    * fixed some spilling stuff
+    + not(<int64>) implemented
+    + small set comparisations implemented
+
+  Revision 1.23  2004/01/23 15:12:49  florian
     * fixed generic shl/shr operations
     + added register allocation hook calls for arm specific operand types:
       register set and shifter op

@@ -1120,6 +1120,11 @@ unit cgcpu;
               list.concat(setoppostfix(taicpu.op_reg_reg_const(A_RSB,regdst.reglo,regsrc.reglo,0),PF_S));
               list.concat(taicpu.op_reg_reg_const(A_RSC,regdst.reghi,regsrc.reghi,0));
             end;
+          OP_NOT:
+            begin
+              cg.a_op_reg_reg(list,OP_NOT,OS_INT,regsrc.reglo,regdst.reglo);
+              cg.a_op_reg_reg(list,OP_NOT,OS_INT,regsrc.reghi,regdst.reghi);
+            end;
           else
             a_op64_reg_reg_reg(list,op,regsrc,regdst,regdst);
         end;
@@ -1223,7 +1228,12 @@ begin
 end.
 {
   $Log$
-  Revision 1.38  2004-01-24 01:33:20  florian
+  Revision 1.39  2004-01-24 20:19:46  florian
+    * fixed some spilling stuff
+    + not(<int64>) implemented
+    + small set comparisations implemented
+
+  Revision 1.38  2004/01/24 01:33:20  florian
     * fixref fixed if index, base and offset were given
 
   Revision 1.37  2004/01/22 20:13:18  florian
