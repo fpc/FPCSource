@@ -874,9 +874,12 @@ asm
    lwz r3,0(r3)
    cmplwi  r3,0
    beq     Lcaller_addr_frame_null
+{$ifdef ABI_AIX}
+   lwz r3,8(r3)
+{$else}
    lwz r3,4(r3)
+{$endif}
 Lcaller_addr_frame_null:
-    //     !!!!!!! depends on ABI !!!!!!!!
 end;
 
 
@@ -963,7 +966,10 @@ end;
 
 {
   $Log$
-  Revision 1.51  2003-06-14 12:41:08  jonas
+  Revision 1.52  2003-08-24 20:47:49  olle
+    + added support for ABI_AIX in get_caller_addr
+
+  Revision 1.51  2003/06/14 12:41:08  jonas
     * fixed compilation problems (removed unnecessary modified registers
       lists from procedures)
 
