@@ -68,12 +68,12 @@ interface
 implementation
 
    uses
-      cobjects,verbose,globtype,globals,systems,
+      verbose,globals,systems,
       symconst,symdef,aasm,
-      hcodegen,temp_gen,pass_2,pass_1,
+      hcodegen,temp_gen,pass_2,
       ncon,ncal,
       cpubase,cpuasm,
-      cgai386,tgeni386,n386util;
+      cgai386,tgcpu,n386util;
 
 
 {*****************************************************************************
@@ -1483,7 +1483,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.7  2000-11-16 15:27:48  jonas
+  Revision 1.8  2000-11-29 00:30:46  florian
+    * unused units removed from uses clause
+    * some changes for widestrings
+
+  Revision 1.7  2000/11/16 15:27:48  jonas
     * fixed web bug 1242
 
   Revision 1.6  2000/11/13 11:30:56  florian

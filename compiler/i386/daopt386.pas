@@ -220,7 +220,7 @@ Var
 Implementation
 
 Uses
-  globals, systems, verbose, hcodegen, symconst, tgeni386;
+  globals, systems, verbose, hcodegen, symconst, tgcpu;
 
 Type
   TRefCompare = function(const r1, r2: TReference): Boolean;
@@ -1181,7 +1181,7 @@ Begin
     begin
       hp := new(paiRegalloc,alloc(reg));
       insertLLItem(asmL,start^.previous,start,hp);
-    end;     
+    end;
 End;
 
 function FindRegDealloc(reg: tregister; p: pai): boolean;
@@ -2447,7 +2447,11 @@ End.
 
 {
   $Log$
-  Revision 1.10  2000-11-28 16:32:11  jonas
+  Revision 1.11  2000-11-29 00:30:44  florian
+    * unused units removed from uses clause
+    * some changes for widestrings
+
+  Revision 1.10  2000/11/28 16:32:11  jonas
     + support for optimizing simple sequences with div/idiv/mul opcodes
 
   Revision 1.9  2000/11/23 14:20:18  jonas

@@ -45,9 +45,9 @@ interface
 implementation
 
     uses
-      globtype,systems,tokens,
-      cobjects,cutils,verbose,globals,
-      symconst,symtype,symdef,symtable,aasm,types,
+      globtype,systems,
+      cutils,verbose,globals,
+      symconst,symtype,symdef,types,
       cpuinfo,
 {$ifdef newcg}
       cgbase,
@@ -55,7 +55,7 @@ implementation
       hcodegen,
 {$endif newcg}
       htypechk,pass_1,
-      ncal,nmat,ncnv,nld,ncon,nset,
+      nmat,ncnv,nld,ncon,nset,
       cpubase;
 
 
@@ -1237,7 +1237,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.17  2000-11-20 15:30:42  jonas
+  Revision 1.18  2000-11-29 00:30:31  florian
+    * unused units removed from uses clause
+    * some changes for widestrings
+
+  Revision 1.17  2000/11/20 15:30:42  jonas
     * changed types of values used for constant expression evaluation to
       tconstexprint
 

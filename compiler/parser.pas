@@ -37,26 +37,18 @@ implementation
       globtype,version,tokens,systems,
       cutils,cobjects,globals,verbose,
       symbase,symtable,symsym,fmodule,aasm,
-{$ifndef newcg}
       hcodegen,
-{$endif newcg}
-      assemble,link,script,gendef,
+      script,gendef,
 {$ifdef BrowserLog}
       browlog,
 {$endif BrowserLog}
 {$ifdef UseExcept}
-      tpexcept,compiler,
+      tpexcept,
 {$endif UseExcept}
-{$ifdef newcg}
-      cgobj,
-      cgcpu,
-      { cgbase must be after hcodegen to use the correct procinfo !!! }
-      cgbase,
-{$endif newcg}
 {$ifdef GDB}
       gdb,
 {$endif GDB}
-      comphook,scanner,pbase,ptype,psystem,pmodules,cresstr;
+      comphook,scanner,pbase,ptype,pmodules,cresstr;
 
 
     procedure initparser;
@@ -593,7 +585,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.10  2000-11-12 22:17:46  peter
+  Revision 1.11  2000-11-29 00:30:34  florian
+    * unused units removed from uses clause
+    * some changes for widestrings
+
+  Revision 1.10  2000/11/12 22:17:46  peter
     * some realname updates for messages
 
   Revision 1.9  2000/11/04 14:25:20  florian

@@ -66,7 +66,7 @@ function GetMsgLine(var p:pchar):string;
 implementation
 
 uses
-  globals,crc,
+  globals,
 {$ifdef DELPHI}
   sysutils;
 {$else DELPHI}
@@ -448,7 +448,11 @@ end;
 end.
 {
   $Log$
-  Revision 1.4  2000-09-24 21:33:46  peter
+  Revision 1.5  2000-11-29 00:30:31  florian
+    * unused units removed from uses clause
+    * some changes for widestrings
+
+  Revision 1.4  2000/09/24 21:33:46  peter
     * message updates merges
 
   Revision 1.3  2000/09/24 15:06:18  peter

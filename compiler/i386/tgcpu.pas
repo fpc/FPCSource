@@ -20,7 +20,7 @@
 
  ****************************************************************************
 }
-unit tgeni386;
+unit tgcpu;
 
 {$i defines.inc}
 
@@ -653,7 +653,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.9  2000-10-31 22:30:13  peter
+  Revision 1.1  2000-11-29 00:30:51  florian
+    * unused units removed from uses clause
+    * some changes for widestrings
+
+  Revision 1.9  2000/10/31 22:30:13  peter
     * merged asm result patch part 2
 
   Revision 1.8  2000/10/14 10:14:56  peter
@@ -677,5 +681,4 @@ end.
 
   Revision 1.2  2000/07/13 11:32:52  michael
   + removed logs
-
 }

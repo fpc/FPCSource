@@ -45,7 +45,7 @@ implementation
 
     uses
        globtype,version,systems,tokens,
-       cutils,cobjects,comphook,compiler,
+       cutils,cobjects,comphook,
        globals,verbose,fmodule,finput,
        symconst,symbase,symppu,symdef,symsym,symtable,aasm,types,
 {$ifdef newcg}
@@ -61,7 +61,7 @@ implementation
 {$ifdef GDB}
        gdb,
 {$endif GDB}
-       scanner,pbase,psystem,pdecl,psub,parser;
+       scanner,pbase,psystem,psub,parser;
 
     procedure create_objectfile;
       begin
@@ -1697,7 +1697,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.18  2000-11-01 23:04:37  peter
+  Revision 1.19  2000-11-29 00:30:36  florian
+    * unused units removed from uses clause
+    * some changes for widestrings
+
+  Revision 1.18  2000/11/01 23:04:37  peter
     * tprocdef.fullprocname added for better casesensitve writing of
       procedures
 

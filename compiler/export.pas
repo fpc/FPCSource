@@ -71,7 +71,7 @@ procedure DoneExport;
 implementation
 
 uses
-  systems,verbose,globals,fmodule
+  systems,verbose,globals
 {$ifdef i386}
   {$ifndef NOTARGETLINUX}
     ,t_linux
@@ -226,7 +226,11 @@ end;
 end.
 {
   $Log$
-  Revision 1.7  2000-10-31 22:02:46  peter
+  Revision 1.8  2000-11-29 00:30:30  florian
+    * unused units removed from uses clause
+    * some changes for widestrings
+
+  Revision 1.7  2000/10/31 22:02:46  peter
     * symtable splitted, no real code changes
 
   Revision 1.6  2000/09/24 15:06:16  peter

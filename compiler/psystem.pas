@@ -38,7 +38,7 @@ procedure createconstdefs;
 implementation
 
 uses
-  globtype,globals,
+  globals,
   symconst,symsym,symdef,symtable,
   ninl;
 
@@ -259,7 +259,11 @@ end;
 end.
 {
   $Log$
-  Revision 1.9  2000-11-09 17:46:56  florian
+  Revision 1.10  2000-11-29 00:30:38  florian
+    * unused units removed from uses clause
+    * some changes for widestrings
+
+  Revision 1.9  2000/11/09 17:46:56  florian
     * System.TypeInfo fixed
     + System.Finalize implemented
     + some new keywords for interface support added

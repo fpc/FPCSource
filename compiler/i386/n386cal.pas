@@ -63,7 +63,7 @@ implementation
       hcodegen,temp_gen,pass_2,
       cpubase,cpuasm,
       nmem,nld,
-      cgai386,tgeni386,n386ld,n386util;
+      cgai386,tgcpu,n386ld,n386util;
 
 {*****************************************************************************
                              TI386CALLPARANODE
@@ -1589,7 +1589,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.10  2000-11-23 13:26:34  jonas
+  Revision 1.11  2000-11-29 00:30:46  florian
+    * unused units removed from uses clause
+    * some changes for widestrings
+
+  Revision 1.10  2000/11/23 13:26:34  jonas
     * fix for webbug 1066/1126
 
   Revision 1.9  2000/11/22 15:12:06  jonas

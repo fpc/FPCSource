@@ -39,29 +39,17 @@ implementation
        cutils,cobjects,
        { global }
        globtype,globals,tokens,verbose,
-       systems,cpuinfo,
-       { aasm }
-       aasm,
+       systems,
        { symtable }
        symconst,symbase,symtype,symdef,symsym,symtable,types,fmodule,
-{$ifdef GDB}
-       gdb,
-{$endif}
        { pass 1 }
-       node,pass_1,htypechk,
-       nmat,nadd,ncal,nmem,nset,ncnv,ninl,ncon,nld,nflw,
+       node,pass_1,
+       nmat,nadd,ncal,nset,ncnv,ninl,ncon,nld,nflw,
        { parser }
        scanner,
        pbase,pexpr,ptype,ptconst,pdecsub,
        { link }
-       import,
-       { codegen }
-{$ifdef newcg}
-       cgbase
-{$else}
-       hcodegen
-{$endif}
-       ;
+       import;
 
     const
        variantrecordlevel : longint = 0;
@@ -527,7 +515,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.3  2000-11-04 14:25:20  florian
+  Revision 1.4  2000-11-29 00:30:36  florian
+    * unused units removed from uses clause
+    * some changes for widestrings
+
+  Revision 1.3  2000/11/04 14:25:20  florian
     + merged Attila's changes for interfaces, not tested yet
 
   Revision 1.2  2000/10/31 22:02:49  peter

@@ -50,12 +50,12 @@ implementation
 
     uses
       globtype,systems,
-      cutils,cobjects,verbose,globals,
+      cutils,verbose,globals,
       symconst,symdef,aasm,types,
       hcodegen,temp_gen,pass_2,
       ncon,
-      cpubase,cpuasm,
-      cgai386,tgeni386,n386util;
+      cpubase,
+      cgai386,tgcpu,n386util;
 
 {*****************************************************************************
                              TI386MODDIVNODE
@@ -995,7 +995,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.6  2000-11-20 14:05:50  jonas
+  Revision 1.7  2000-11-29 00:30:48  florian
+    * unused units removed from uses clause
+    * some changes for widestrings
+
+  Revision 1.6  2000/11/20 14:05:50  jonas
     * fixed bug in my changes to fix the regalloc info for div/mod ("merged")
 
   Revision 1.5  2000/10/31 22:02:56  peter

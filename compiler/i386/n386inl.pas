@@ -38,12 +38,12 @@ implementation
 
     uses
       globtype,systems,
-      cutils,cobjects,verbose,globals,fmodule,
+      cutils,verbose,globals,fmodule,
       symconst,symbase,symtype,symdef,symsym,aasm,types,
       hcodegen,temp_gen,pass_1,pass_2,
-      cpubase,cpuasm,
+      cpubase,
       nbas,ncon,ncal,ncnv,nld,
-      cgai386,tgeni386,n386util;
+      cgai386,tgcpu,n386util;
 
 
 {*****************************************************************************
@@ -1429,7 +1429,7 @@ implementation
                     end
                   else secondpass(tcallparanode(hp).left);
                   if is_dynamic_array(def) then
-                    begin                       
+                    begin
                        emitpushreferenceaddr(hr2);
                        push_int(l);
                        reset_reference(hr2);
@@ -1665,7 +1665,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.6  2000-11-12 23:24:15  florian
+  Revision 1.7  2000-11-29 00:30:47  florian
+    * unused units removed from uses clause
+    * some changes for widestrings
+
+  Revision 1.6  2000/11/12 23:24:15  florian
     * interfaces are basically running
 
   Revision 1.5  2000/11/09 17:46:56  florian

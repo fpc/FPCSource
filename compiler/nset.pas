@@ -93,21 +93,12 @@ implementation
 
     uses
       globtype,systems,
-      cobjects,verbose,globals,
-      symconst,symdef,symsym,symtable,types,
+      verbose,globals,
+      symconst,symdef,symsym,types,
       htypechk,pass_1,
-      ncnv,ncon,cpubase,nld
+      ncnv,ncon,cpubase,nld,hcodegen,tgcpu
 {$ifdef newcg}
       ,cgbase
-      ,tgcpu
-{$else newcg}
-      ,hcodegen
-{$ifdef i386}
-      ,tgeni386
-{$endif}
-{$ifdef m68k}
-      ,tgen68k
-{$endif}
 {$endif newcg}
       ;
 
@@ -525,7 +516,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.8  2000-11-04 14:25:20  florian
+  Revision 1.9  2000-11-29 00:30:34  florian
+    * unused units removed from uses clause
+    * some changes for widestrings
+
+  Revision 1.8  2000/11/04 14:25:20  florian
     + merged Attila's changes for interfaces, not tested yet
 
   Revision 1.7  2000/10/31 22:02:49  peter

@@ -670,6 +670,9 @@ interface
 {$ifdef powerpc}
        bestrealdef : ^pfloatdef = @s64floatdef;
 {$endif}
+{$ifdef ia64}
+       bestrealdef : ^pfloatdef = @s64floatdef;
+{$endif}
 
 {$ifdef GDB}
     { GDB Helpers }
@@ -5544,7 +5547,11 @@ Const local_symtable_index : longint = $8001;
 end.
 {
   $Log$
-  Revision 1.14  2000-11-28 00:28:06  pierre
+  Revision 1.15  2000-11-29 00:30:40  florian
+    * unused units removed from uses clause
+    * some changes for widestrings
+
+  Revision 1.14  2000/11/28 00:28:06  pierre
    * stabs fixing
 
   Revision 1.13  2000/11/26 18:09:40  florian

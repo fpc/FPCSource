@@ -35,10 +35,10 @@ interface
 
     uses
        { common }
-       cutils,cobjects,
+       cutils,
        { global }
-       globtype,globals,verbose,
-       systems,cpuinfo,
+       globals,verbose,
+       systems,
        { aasm }
        cpubase,aasm,
        { symtable }
@@ -47,7 +47,7 @@ interface
        nbas,
        { parser }
        scanner,
-       ra386,rautils,
+       ra386,
        { codegen }
 {$ifdef newcg}
        cgbase
@@ -288,7 +288,11 @@ interface
 end.
 {
   $Log$
-  Revision 1.2  2000-10-31 22:02:57  peter
+  Revision 1.3  2000-11-29 00:30:50  florian
+    * unused units removed from uses clause
+    * some changes for widestrings
+
+  Revision 1.2  2000/10/31 22:02:57  peter
     * symtable splitted, no real code changes
 
   Revision 1.1  2000/10/15 09:47:43  peter

@@ -35,7 +35,7 @@ Implementation
 
 Uses
   {$ifdef replaceregdebug}cutils,{$endif}
-  verbose,globals,cpubase,cpuasm,daopt386,csopt386,tgeni386;
+  verbose,globals,cpubase,cpuasm,daopt386,csopt386,tgcpu;
 
 function canBeFirstSwitch(p: paicpu; reg: tregister): boolean;
 { checks whether an operation on reg can be switched to another reg without an }
@@ -334,7 +334,11 @@ End.
 
 {
   $Log$
-  Revision 1.2  2000-11-22 16:30:04  jonas
+  Revision 1.3  2000-11-29 00:30:51  florian
+    * unused units removed from uses clause
+    * some changes for widestrings
+
+  Revision 1.2  2000/11/22 16:30:04  jonas
     * fixed bug where "imul mem32,reg,reg" could be generated
 
   Revision 1.1  2000/10/24 10:40:54  jonas

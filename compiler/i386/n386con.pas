@@ -62,12 +62,12 @@ interface
 implementation
 
     uses
-      globtype,systems,
-      cobjects,verbose,globals,
+      globtype,widestr,systems,
+      verbose,globals,
       symconst,symdef,aasm,types,
-      hcodegen,temp_gen,pass_2,
-      cpubase,cpuasm,
-      cgai386,tgeni386;
+      temp_gen,
+      cpubase,
+      cgai386,tgcpu;
 
 {*****************************************************************************
                            TI386REALCONSTNODE
@@ -242,69 +242,73 @@ implementation
          if not assigned(lab_str) then
            begin
               if is_shortstring(resulttype) then
-               mylength:=len+2
+                mylength:=len+2
               else
-               mylength:=len+1;
-              { tries to found an old entry }
-              hp1:=pai(consts^.first);
-              while assigned(hp1) do
+                mylength:=len+1;
+              { widestrings can't be reused yet }
+              if not(is_widestring(resulttype)) then
                 begin
-                   if hp1^.typ=ait_label then
-                     lastlabel:=pai_label(hp1)^.l
-                   else
-                     begin
-                        { when changing that code, be careful that }
-                        { you don't use typed consts, which are    }
-                        { are also written to consts           }
-                        { currently, this is no problem, because   }
-                        { typed consts have no leading length or   }
-                        { they have no trailing zero           }
-                        if (hp1^.typ=ait_string) and (lastlabel<>nil) and
-                           (pai_string(hp1)^.len=mylength) then
-                          begin
-                             same_string:=true;
-                             { if shortstring then check the length byte first and
-                               set the start index to 1 }
-                             if is_shortstring(resulttype) then
+                  { tries to found an old entry }
+                  hp1:=pai(consts^.first);
+                  while assigned(hp1) do
+                    begin
+                       if hp1^.typ=ait_label then
+                         lastlabel:=pai_label(hp1)^.l
+                       else
+                         begin
+                            { when changing that code, be careful that }
+                            { you don't use typed consts, which are    }
+                            { are also written to consts           }
+                            { currently, this is no problem, because   }
+                            { typed consts have no leading length or   }
+                            { they have no trailing zero           }
+                            if (hp1^.typ=ait_string) and (lastlabel<>nil) and
+                               (pai_string(hp1)^.len=mylength) then
                               begin
-                                if len<>ord(pai_string(hp1)^.str[0]) then
-                                 same_string:=false;
-                                j:=1;
-                              end
-                             else
-                              j:=0;
-                             { don't check if the length byte was already wrong }
-                             if same_string then
-                              begin
-                                for i:=0 to len do
-                                 begin
-                                   if pai_string(hp1)^.str[j]<>value_str[i] then
-                                    begin
-                                      same_string:=false;
-                                      break;
-                                    end;
-                                   inc(j);
-                                 end;
+                                 same_string:=true;
+                                 { if shortstring then check the length byte first and
+                                   set the start index to 1 }
+                                 if is_shortstring(resulttype) then
+                                  begin
+                                    if len<>ord(pai_string(hp1)^.str[0]) then
+                                     same_string:=false;
+                                    j:=1;
+                                  end
+                                 else
+                                  j:=0;
+                                 { don't check if the length byte was already wrong }
+                                 if same_string then
+                                  begin
+                                    for i:=0 to len do
+                                     begin
+                                       if pai_string(hp1)^.str[j]<>value_str[i] then
+                                        begin
+                                          same_string:=false;
+                                          break;
+                                        end;
+                                       inc(j);
+                                     end;
+                                  end;
+                                 { found ? }
+                                 if same_string then
+                                  begin
+                                    lab_str:=lastlabel;
+                                    { create a new entry for ansistrings, but reuse the data }
+                                    if (stringtype in [st_ansistring,st_widestring]) then
+                                     begin
+                                       getdatalabel(l2);
+                                       consts^.concat(new(pai_label,init(l2)));
+                                       consts^.concat(new(pai_const_symbol,init(lab_str)));
+                                       { return the offset of the real string }
+                                       lab_str:=l2;
+                                     end;
+                                    break;
+                                  end;
                               end;
-                             { found ? }
-                             if same_string then
-                              begin
-                                lab_str:=lastlabel;
-                                { create a new entry for ansistrings, but reuse the data }
-                                if (stringtype in [st_ansistring,st_widestring]) then
-                                 begin
-                                   getdatalabel(l2);
-                                   consts^.concat(new(pai_label,init(l2)));
-                                   consts^.concat(new(pai_const_symbol,init(lab_str)));
-                                   { return the offset of the real string }
-                                   lab_str:=l2;
-                                 end;
-                                break;
-                              end;
-                          end;
-                        lastlabel:=nil;
-                     end;
-                   hp1:=pai(hp1^.next);
+                            lastlabel:=nil;
+                         end;
+                       hp1:=pai(hp1^.next);
+                    end;
                 end;
               { :-(, we must generate a new entry }
               if not assigned(lab_str) then
@@ -337,6 +341,32 @@ implementation
                                 { to overcome this problem we set the length explicitly }
                                 { with the ending null char }
                                 consts^.concat(new(pai_string,init_length_pchar(pc,len+1)));
+                                { return the offset of the real string }
+                                lab_str:=l2;
+                             end;
+                        end;
+                      st_widestring:
+                        begin
+                           { an empty wide string is nil! }
+                           if len=0 then
+                             consts^.concat(new(pai_const,init_32bit(0)))
+                           else
+                             begin
+                                getdatalabel(l1);
+                                getdatalabel(l2);
+                                consts^.concat(new(pai_label,init(l2)));
+                                consts^.concat(new(pai_const_symbol,init(l1)));
+
+                                { we use always UTF-16 coding for constants }
+                                { at least for now                          }
+                                consts^.concat(new(pai_const,init_8bit(2)));
+                                consts^.concat(new(pai_const,init_32bit(len)));
+                                consts^.concat(new(pai_const,init_32bit(len)));
+                                consts^.concat(new(pai_const,init_32bit(-1)));
+                                consts^.concat(new(pai_label,init(l1)));
+                                for i:=0 to len-1 do
+                                  consts^.concat(new(pai_const,init_16bit(
+                                    pcompilerwidestring(value_str)^.data[i])));
                                 { return the offset of the real string }
                                 lab_str:=l2;
                              end;
@@ -488,7 +518,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.4  2000-11-20 15:31:38  jonas
+  Revision 1.5  2000-11-29 00:30:47  florian
+    * unused units removed from uses clause
+    * some changes for widestrings
+
+  Revision 1.4  2000/11/20 15:31:38  jonas
   *  longint typecast to assignment of constant to offset field
 
   Revision 1.3  2000/11/13 14:44:36  jonas

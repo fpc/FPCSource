@@ -123,7 +123,7 @@ implementation
 
     uses
        globtype,systems,
-       cutils,cobjects,verbose,globals,
+       cutils,verbose,globals,
        symconst,symsym,symtable,
        types,pass_1,cpubase,
        ncnv,nld,
@@ -900,7 +900,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.18  2000-11-28 17:14:33  jonas
+  Revision 1.19  2000-11-29 00:30:31  florian
+    * unused units removed from uses clause
+    * some changes for widestrings
+
+  Revision 1.18  2000/11/28 17:14:33  jonas
     * fixed crash when trying to use an overloaded operator which is nowhere
       defined
 

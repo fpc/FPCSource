@@ -84,15 +84,7 @@ interface
   implementation
 
     uses
-       cutils,scanner,systems
-{$ifdef i386}
-       ,cgai386
-{$endif i386}
-{$ifdef m68k}
-       ,cga68k
-{$endif m68k}
-       ;
-
+       cutils,systems;
 
     procedure resettempgen;
       var
@@ -557,7 +549,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.6  2000-11-04 14:25:22  florian
+  Revision 1.7  2000-11-29 00:30:42  florian
+    * unused units removed from uses clause
+    * some changes for widestrings
+
+  Revision 1.6  2000/11/04 14:25:22  florian
     + merged Attila's changes for interfaces, not tested yet
 
   Revision 1.5  2000/09/30 16:08:45  peter

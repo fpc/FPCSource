@@ -41,7 +41,7 @@ Implementation
 
 Uses
   {$ifdef replaceregdebug}cutils,{$endif}
-  globtype, verbose, hcodegen, globals, daopt386, tgeni386, rropt386;
+  globtype, verbose, hcodegen, globals, daopt386, tgcpu, rropt386;
 
 {
 Function PaiInSequence(P: Pai; Const Seq: TContent): Boolean;
@@ -337,7 +337,7 @@ var
 Var hp2, hp3{, EndMod},highPrev, orgPrev: Pai;
     {Cnt,} OldNrOfMods: Longint;
     startRegInfo, OrgRegInfo, HighRegInfo: TRegInfo;
-    regModified: array[R_NO..R_EDI] of boolean; 
+    regModified: array[R_NO..R_EDI] of boolean;
     HighFound, OrgRegFound: Byte;
     RegCounter, regCounter2, tmpreg, base, index: TRegister;
     OrgRegResult: Boolean;
@@ -1701,7 +1701,11 @@ End.
 
 {
   $Log$
-  Revision 1.7  2000-11-28 16:32:11  jonas
+  Revision 1.8  2000-11-29 00:30:43  florian
+    * unused units removed from uses clause
+    * some changes for widestrings
+
+  Revision 1.7  2000/11/28 16:32:11  jonas
     + support for optimizing simple sequences with div/idiv/mul opcodes
 
   Revision 1.6  2000/11/14 12:17:34  jonas

@@ -44,27 +44,17 @@ implementation
        cutils,
        { global }
        globtype,globals,tokens,verbose,
-       systems,cpuinfo,
+       systems,
        { aasm }
        aasm,
        { symtable }
-       symconst,symbase,symtype,symdef,symtable,types,
-{$ifdef GDB}
-       gdb,
-{$endif}
+       symconst,symbase,symtype,symdef,symtable,
        { pass 1 }
-       pass_1,htypechk,
-       nmat,nadd,ncal,nmem,nset,ncnv,ninl,ncon,nld,nflw,
+       pass_1,
+       nmat,nadd,ncal,nset,ncnv,ninl,ncon,nld,nflw,
        { parser }
        scanner,
-       pbase,pexpr,ptype,ptconst,pdecsub,pdecvar,pdecobj,
-       { codegen }
-{$ifdef newcg}
-       cgbase
-{$else}
-       hcodegen
-{$endif}
-       ;
+       pbase,pexpr,ptype,ptconst,pdecsub,pdecvar,pdecobj;
 
 
     function readconstant(const name:string;const filepos:tfileposinfo):pconstsym;
@@ -545,7 +535,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.21  2000-11-12 22:17:46  peter
+  Revision 1.22  2000-11-29 00:30:35  florian
+    * unused units removed from uses clause
+    * some changes for widestrings
+
+  Revision 1.21  2000/11/12 22:17:46  peter
     * some realname updates for messages
 
   Revision 1.20  2000/11/11 16:19:11  peter

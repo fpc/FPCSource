@@ -42,14 +42,9 @@ interface
     uses
 {$ifdef delphi}
       sysutils,
-{$else}
-      strings,
 {$endif}
       cutils,globtype,globals,systems,cobjects,
       fmodule,finput,verbose,cpubase,cpuasm
-{$ifdef GDB}
-      ,gdb
-{$endif GDB}
       ;
 
     const
@@ -772,7 +767,11 @@ interface
 end.
 {
   $Log$
-  Revision 1.1  2000-10-15 09:47:42  peter
+  Revision 1.2  2000-11-29 00:30:43  florian
+    * unused units removed from uses clause
+    * some changes for widestrings
+
+  Revision 1.1  2000/10/15 09:47:42  peter
     * moved to i386/
 
   Revision 1.6  2000/09/24 15:06:11  peter

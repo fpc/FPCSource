@@ -73,23 +73,12 @@ implementation
 
     uses
       globtype,systems,
-      cutils,cobjects,verbose,globals,
+      cutils,verbose,globals,
       symtype,symdef,types,
-      htypechk,
-      cpubase,cpuasm,
       pass_1,
-      nflw
+      nflw,tgcpu,hcodegen
 {$ifdef newcg}
       ,cgbase
-      ,tgcpu
-{$else newcg}
-      ,hcodegen
-  {$ifdef i386}
-      ,tgeni386
-  {$endif}
-  {$ifdef m68k}
-      ,tgen68k
-  {$endif}
 {$endif}
       ;
 
@@ -349,7 +338,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.4  2000-10-31 22:02:47  peter
+  Revision 1.5  2000-11-29 00:30:31  florian
+    * unused units removed from uses clause
+    * some changes for widestrings
+
+  Revision 1.4  2000/10/31 22:02:47  peter
     * symtable splitted, no real code changes
 
   Revision 1.3  2000/10/27 14:57:16  jonas

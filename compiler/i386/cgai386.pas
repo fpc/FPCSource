@@ -163,7 +163,7 @@ implementation
        globtype,systems,globals,verbose,
        fmodule,
        symbase,symsym,symtable,types,
-       tgeni386,temp_gen,hcodegen,regvars
+       tgcpu,temp_gen,hcodegen,regvars
 {$ifdef GDB}
        ,gdb
 {$endif}
@@ -2949,7 +2949,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.13  2000-11-28 00:28:07  pierre
+  Revision 1.14  2000-11-29 00:30:43  florian
+    * unused units removed from uses clause
+    * some changes for widestrings
+
+  Revision 1.13  2000/11/28 00:28:07  pierre
    * stabs fixing
 
   Revision 1.12  2000/11/22 15:12:06  jonas

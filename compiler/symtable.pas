@@ -215,8 +215,6 @@ implementation
 {$ifdef GDB}
       gdb,
 {$endif GDB}
-      { type helpers }
-      types,
       { scanner }
       scanner,
       { codegen }
@@ -2366,7 +2364,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.17  2000-11-28 00:28:07  pierre
+  Revision 1.18  2000-11-29 00:30:42  florian
+    * unused units removed from uses clause
+    * some changes for widestrings
+
+  Revision 1.17  2000/11/28 00:28:07  pierre
    * stabs fixing
 
   Revision 1.1.2.8  2000/11/17 11:14:37  pierre

@@ -27,7 +27,7 @@ unit ncon;
 interface
 
     uses
-      globtype,
+      globtype,widestr,
       node,
       aasm,cpuinfo,
       symconst,symtype,symdef,symsym;
@@ -69,6 +69,7 @@ interface
           stringtype : tstringtype;
           constructor createstr(const s : string;st:tstringtype);virtual;
           constructor createpchar(s : pchar;l : longint);virtual;
+          constructor createwstr(const w : tcompilerwidestring);virtual;
           destructor destroy;override;
           function getcopy : tnode;override;
           function pass_1 : tnode;override;
@@ -110,7 +111,7 @@ interface
     function genstringconstnode(const s : string;st:tstringtype) : tstringconstnode;
     { length is required for ansistrings }
     function genpcharconstnode(s : pchar;length : longint) : tstringconstnode;
-
+    function genwstringconstnode(const w : tcompilerwidestring) : tnode;
     function gensetconstnode(s : pconstset;settype : psetdef) : tsetconstnode;
 
     { some helper routines }
@@ -129,8 +130,8 @@ interface
 implementation
 
     uses
-      cutils,cobjects,verbose,globals,systems,
-      types,hcodegen,pass_1,cpubase,nld;
+      cutils,verbose,globals,systems,
+      types,cpubase,nld;
 
     function genordinalconstnode(v : tconstexprint;def : pdef) : tordconstnode;
       begin
@@ -186,6 +187,12 @@ implementation
     function genstringconstnode(const s : string;st:tstringtype) : tstringconstnode;
       begin
          genstringconstnode:=cstringconstnode.createstr(s,st);
+      end;
+
+    function genwstringconstnode(const w : tcompilerwidestring) : tnode;
+
+      begin
+         genwstringconstnode:=cstringconstnode.createwstr(w);
       end;
 
 
@@ -480,6 +487,19 @@ implementation
          end;
       end;
 
+    constructor tstringconstnode.createwstr(const w : tcompilerwidestring);
+
+      begin
+         inherited create(stringconstn);
+         len:=getlengthwidestring(w);
+         new(pcompilerwidestring(value_str));
+         initwidestring(pcompilerwidestring(value_str)^);
+         copywidestring(w,pcompilerwidestring(value_str)^);
+         lab_str:=nil;
+         stringtype:=st_widestring;
+         resulttype:=cwidestringdef;
+      end;
+
     constructor tstringconstnode.createpchar(s : pchar;l : longint);
 
       begin
@@ -515,8 +535,12 @@ implementation
          n:=tstringconstnode(inherited getcopy);
          n.stringtype:=stringtype;
          n.len:=len;
-         n.value_str:=getpcharcopy;
          n.lab_str:=lab_str;
+         if stringtype=st_widestring then
+           copywidestring(pcompilerwidestring(value_str)^,
+             pcompilerwidestring(n.value_str)^)
+         else
+           n.value_str:=getpcharcopy;
          getcopy:=n;
       end;
 
@@ -626,7 +650,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.10  2000-10-31 22:02:48  peter
+  Revision 1.11  2000-11-29 00:30:32  florian
+    * unused units removed from uses clause
+    * some changes for widestrings
+
+  Revision 1.10  2000/10/31 22:02:48  peter
     * symtable splitted, no real code changes
 
   Revision 1.9  2000/10/14 21:52:55  peter

@@ -47,21 +47,14 @@ interface
 implementation
 
     uses
-      cobjects,verbose,globals,systems,
+      verbose,globals,systems,
       globtype,
-      symconst,symtype,symdef,symsym,symtable,aasm,types,
+      symconst,symtype,symdef,symsym,symtable,types,
       pass_1,
       ncal,ncon,ncnv,nadd,nld,nbas,
-      cpubase
+      cpubase,hcodegen,tgcpu
 {$ifdef newcg}
       ,cgbase
-      ,tgobj
-      ,tgcpu
-{$else newcg}
-      ,hcodegen
-{$ifdef i386}
-      ,tgeni386
-{$endif}
 {$endif newcg}
       ;
 
@@ -1498,7 +1491,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.18  2000-11-12 15:27:22  jonas
+  Revision 1.19  2000-11-29 00:30:33  florian
+    * unused units removed from uses clause
+    * some changes for widestrings
+
+  Revision 1.18  2000/11/12 15:27:22  jonas
     * also don't do conversion for chars/booleans (hopefully final change :/)
 
   Revision 1.17  2000/11/11 21:08:13  jonas

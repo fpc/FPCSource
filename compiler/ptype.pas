@@ -58,28 +58,15 @@ implementation
        cutils,cobjects,
        { global }
        globals,tokens,verbose,
-       systems,cpuinfo,
-       { aasm }
-       aasm,
+       systems,
        { symtable }
        symconst,symbase,symdef,symsym,symtable,types,
-{$ifdef GDB}
-       gdb,
-{$endif}
        { pass 1 }
        node,pass_1,
-       nmat,nadd,ncal,nmem,nset,ncnv,ninl,ncon,nld,nflw,
+       nmat,nadd,ncal,nset,ncnv,ninl,ncon,nld,nflw,
        { parser }
        scanner,
-       pbase,pexpr,pdecl,pdecsub,pdecvar,pdecobj,
-       { codegen }
-{$ifdef newcg}
-       cgbase,
-{$else}
-       hcodegen,
-{$endif}
-       hcgdata
-       ;
+       pbase,pexpr,pdecsub,pdecvar,pdecobj;
 
 
     procedure id_type(var tt : ttype;var s : string;isforwarddef:boolean);
@@ -590,7 +577,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.15  2000-11-14 23:43:38  florian
+  Revision 1.16  2000-11-29 00:30:38  florian
+    * unused units removed from uses clause
+    * some changes for widestrings
+
+  Revision 1.15  2000/11/14 23:43:38  florian
     * fixed 1238
 
   Revision 1.14  2000/11/04 14:25:21  florian

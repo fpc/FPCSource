@@ -69,6 +69,10 @@ interface
 {$ifdef m68k}
           ait_labeled_instruction,
 {$endif m68k}
+{$ifdef ia64}
+          ait_bundle,
+          ait_stop,
+{$endif ia64}
           { never used, makes insertation of new ait_ easier to type }
           { lazy guy !!!! ;-) (FK) }
           ait_dummy);
@@ -1180,7 +1184,11 @@ uses
 end.
 {
   $Log$
-  Revision 1.13  2000-09-24 15:06:10  peter
+  Revision 1.14  2000-11-29 00:30:30  florian
+    * unused units removed from uses clause
+    * some changes for widestrings
+
+  Revision 1.13  2000/09/24 15:06:10  peter
     * use defines.inc
 
   Revision 1.12  2000/08/27 20:19:38  peter

@@ -64,17 +64,14 @@ implementation
        cutils,
        { global }
        globtype,globals,verbose,
-       systems,cpuinfo,
+       systems,
        { aasm }
        aasm,
        { symtable }
        symbase,symtable,types,
-{$ifdef GDB}
-       gdb,
-{$endif}
        { pass 1 }
        node,pass_1,htypechk,
-       nmat,nadd,ncal,nmem,nset,ncnv,ninl,ncon,nld,nflw,
+       nmat,nadd,ncal,nset,ncnv,ninl,ncon,nld,nflw,
        { parser }
        fmodule,scanner,
        pbase,pexpr,ptype,pdecl,
@@ -1870,7 +1867,11 @@ end;
 end.
 {
   $Log$
-  Revision 1.8  2000-11-26 23:45:34  florian
+  Revision 1.9  2000-11-29 00:30:35  florian
+    * unused units removed from uses clause
+    * some changes for widestrings
+
+  Revision 1.8  2000/11/26 23:45:34  florian
     * pascal modifier in interfaces of units works now
 
   Revision 1.7  2000/11/06 20:30:55  peter

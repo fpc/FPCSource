@@ -39,15 +39,18 @@ implementation
 
     uses
        cutils,
-       globals,
-       symconst;
+       globals;
 
     {$I node.inc}
 
 end.
 {
   $Log$
-  Revision 1.9  2000-10-31 22:02:49  peter
+  Revision 1.10  2000-11-29 00:30:34  florian
+    * unused units removed from uses clause
+    * some changes for widestrings
+
+  Revision 1.9  2000/10/31 22:02:49  peter
     * symtable splitted, no real code changes
 
   Revision 1.8  2000/10/01 19:48:24  peter

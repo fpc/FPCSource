@@ -45,12 +45,12 @@ implementation
 
     uses
       globtype,systems,cpuinfo,
-      cobjects,verbose,globals,
+      verbose,globals,
       symconst,symdef,aasm,types,
       hcodegen,temp_gen,pass_2,
       ncon,
-      cpubase,cpuasm,
-      cgai386,tgeni386,n386util;
+      cpubase,
+      cgai386,tgcpu,n386util;
 
      const
        bytes2Sxx:array[1..8] of Topsize=(S_B,S_W,S_NO,S_L,S_NO,S_NO,S_NO,S_Q);
@@ -1067,7 +1067,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.5  2000-11-17 14:09:00  jonas
+  Revision 1.6  2000-11-29 00:30:49  florian
+    * unused units removed from uses clause
+    * some changes for widestrings
+
+  Revision 1.5  2000/11/17 14:09:00  jonas
     * fixed webbug 1222 ("merged")
 
   Revision 1.4  2000/11/13 14:44:36  jonas

@@ -30,7 +30,8 @@ interface
        cobjects,
        globtype,globals,version,tokens,
        verbose,comphook,
-       finput;
+       finput,
+       widestr;
 
     const
        maxmacrolen=16*1024;
@@ -151,6 +152,8 @@ interface
         c              : char;
         orgpattern,
         pattern        : string;
+        patternw : tcompilerwidestring;
+
         { token }
         token,                        { current token being parsed }
         idtoken    : ttoken;          { holds the token if the pattern is a known word }
@@ -1225,6 +1228,7 @@ implementation
         m       : longint;
         mac     : pmacro;
         asciinr : string[6];
+        iswidestring : boolean;
       label
          exit_label;
       begin
@@ -1594,6 +1598,7 @@ implementation
 
              '''','#','^' :
                begin
+                 iswidestring:=false;
                  if c='^' then
                   begin
                     readchar;
@@ -1641,10 +1646,24 @@ implementation
                                end;
                            end;
                          valint(asciinr,m,code);
-                         if (asciinr='') or (code<>0) or
-                            (m<0) or (m>255) then
-                          Message(scan_e_illegal_char_const);
-                         pattern:=pattern+chr(m);
+                         if (asciinr='') or (code<>0) then
+                           Message(scan_e_illegal_char_const)
+                         else if (m<0) or (m>255) then
+                           begin
+                              if (m>=0) and (m<=65535) then
+                                begin
+                                   ascii2unicode(pattern,patternw);
+                                   concatwidestringchar(patternw,
+                                     tcompilerwidechar(m));
+                                   iswidestring:=true;
+                                end
+                              else
+                                Message(scan_e_illegal_char_const)
+                           end
+                         else if iswidestring then
+                           concatwidestringchar(patternw,asciichar2unicode(char(m)))
+                         else
+                           pattern:=pattern+chr(m);
                        end;
                      '''' :
                        begin
@@ -1662,7 +1681,11 @@ implementation
                                   break;
                                end;
                            end;
-                           pattern:=pattern+c;
+                           if iswidestring then
+                             concatwidestringchar(patternw,
+                               asciichar2unicode(c))
+                           else
+                             pattern:=pattern+c;
                          until false;
                        end;
                      '^' :
@@ -1673,18 +1696,34 @@ implementation
                           c:=chr(ord(c)+64)
                          else
                           c:=chr(ord(c)-64);
-                         pattern:=pattern+c;
+
+                         if iswidestring then
+                           concatwidestringchar(patternw,
+                             asciichar2unicode(c))
+                         else
+                           pattern:=pattern+c;
+
                          readchar;
                        end;
                      else
                       break;
                    end;
                  until false;
-               { strings with length 1 become const chars }
-                 if length(pattern)=1 then
-                  token:=_CCHAR
+                 { strings with length 1 become const chars }
+                 if iswidestring then
+                   begin
+                      if length(pattern)=1 then
+                       token:=_CWCHAR
+                      else
+                       token:=_CWSTRING;
+                   end
                  else
-                  token:=_CSTRING;
+                   begin
+                      if length(pattern)=1 then
+                       token:=_CCHAR
+                      else
+                       token:=_CSTRING;
+                   end;
                  goto exit_label;
                end;
 
@@ -1886,7 +1925,11 @@ exit_label:
 end.
 {
   $Log$
-  Revision 1.7  2000-10-31 22:02:51  peter
+  Revision 1.8  2000-11-29 00:30:40  florian
+    * unused units removed from uses clause
+    * some changes for widestrings
+
+  Revision 1.7  2000/10/31 22:02:51  peter
     * symtable splitted, no real code changes
 
   Revision 1.6  2000/09/24 15:06:28  peter

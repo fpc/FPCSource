@@ -44,7 +44,7 @@ implementation
       hcodegen,hcgdata,
       node,nld,ncon,ncnv,pass_1,
       scanner,
-      pbase,pexpr,pdecl,psub,pdecsub,pdecvar,ptype;
+      pbase,pexpr,pdecsub,pdecvar,ptype;
 
     function object_dec(const n : stringid;fd : pobjectdef) : pdef;
     { this function parses an object or class declaration }
@@ -1170,7 +1170,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.13  2000-11-17 17:32:58  florian
+  Revision 1.14  2000-11-29 00:30:35  florian
+    * unused units removed from uses clause
+    * some changes for widestrings
+
+  Revision 1.13  2000/11/17 17:32:58  florian
     * properties can now be used in interfaces
 
   Revision 1.12  2000/11/17 08:21:07  florian

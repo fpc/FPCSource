@@ -47,40 +47,33 @@ implementation
        cpubase,aasm,
        { symtable }
        symconst,symbase,symtype,symdef,symsym,symtable,types,
-       ppu,fmodule,
        { pass 1 }
        pass_1,htypechk,
        nbas,nmat,nadd,ncal,nmem,nset,ncnv,ninl,ncon,nld,nflw,
        { parser }
        scanner,
        pbase,pexpr,
+       { codegen }
+       tgcpu,hcodegen
 {$ifdef i386}
   {$ifndef NoRa386Int}
-       ra386int,
+       ,ra386int
   {$endif NoRa386Int}
   {$ifndef NoRa386Att}
-       ra386att,
+       ,ra386att
   {$endif NoRa386Att}
   {$ifndef NoRa386Dir}
-       ra386dir,
+       ,ra386dir
   {$endif NoRa386Dir}
 {$endif i386}
 {$ifdef m68k}
   {$ifndef NoRa68kMot}
-       ra68kmot,
+       ,ra68kmot
   {$endif NoRa68kMot}
 {$endif m68k}
        { codegen }
 {$ifdef newcg}
-       cgbase
-{$else newcg}
-       hcodegen
-  {$ifdef i386}
-       ,tgeni386
-  {$endif i386}
-  {$ifdef m68k}
-       ,tgen68k
-  {$endif m68k}
+       ,cgbase
 {$endif newcg}
        ;
 
@@ -1266,7 +1259,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.15  2000-11-27 15:47:19  jonas
+  Revision 1.16  2000-11-29 00:30:37  florian
+    * unused units removed from uses clause
+    * some changes for widestrings
+
+  Revision 1.15  2000/11/27 15:47:19  jonas
     * fix for web bug 1251 (example 1)
 
   Revision 1.14  2000/11/22 22:43:34  peter

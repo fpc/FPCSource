@@ -87,7 +87,8 @@
 
       begin
 {$ifdef newcg}
-         l^.concat(self);
+         //!!!!!!! l^.concat(self);
+         {$warning fixme}
 {$endif newcg}
       end;
 
@@ -511,7 +512,11 @@
 
 {
   $Log$
-  Revision 1.12  2000-11-04 13:10:15  jonas
+  Revision 1.13  2000-11-29 00:30:34  florian
+    * unused units removed from uses clause
+    * some changes for widestrings
+
+  Revision 1.12  2000/11/04 13:10:15  jonas
     - removed check for self = nil in getcopy
 
   Revision 1.11  2000/10/21 18:16:11  florian

@@ -58,7 +58,7 @@ implementation
        cutils,cobjects,
        globtype,globals,verbose,
        symtable,symconst,symtype,symsym,types,
-       hcodegen, systems,fmodule
+       systems
 {$ifdef i386}
        ,n386ic
 {$endif}
@@ -1071,7 +1071,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.15  2000-11-19 16:23:35  florian
+  Revision 1.16  2000-11-29 00:30:30  florian
+    * unused units removed from uses clause
+    * some changes for widestrings
+
+  Revision 1.15  2000/11/19 16:23:35  florian
   *** empty log message ***
 
   Revision 1.14  2000/11/12 23:24:10  florian

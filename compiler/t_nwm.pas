@@ -117,7 +117,7 @@ interface
 implementation
 
   uses
-    cutils,verbose,cobjects,systems,globtype,globals,
+    cutils,verbose,systems,globtype,globals,
     symconst,script,
     fmodule,aasm,cpuasm,cpubase,symsym;
 
@@ -424,7 +424,11 @@ end;
 end.
 {
   $Log$
-  Revision 1.3  2000-10-31 22:02:55  peter
+  Revision 1.4  2000-11-29 00:30:42  florian
+    * unused units removed from uses clause
+    * some changes for widestrings
+
+  Revision 1.3  2000/10/31 22:02:55  peter
     * symtable splitted, no real code changes
 
   Revision 1.2  2000/09/24 15:06:31  peter

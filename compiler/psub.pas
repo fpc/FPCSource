@@ -46,14 +46,14 @@ implementation
        cutils,
        { global }
        globtype,globals,tokens,verbose,
-       systems,cpuinfo,
+       systems,
        { aasm }
        cpubase,aasm,
        { symtable }
        symconst,symbase,symtype,symdef,symsym,symtable,types,
        ppu,fmodule,
        { pass 1 }
-       node,pass_1,
+       node,
        nbas,
        { pass 2 }
 {$ifndef NOPASS2}
@@ -61,19 +61,18 @@ implementation
 {$endif}
        { parser }
        scanner,
-       pbase,pexpr,pstatmnt,pdecl,pdecsub,pexports,
+       pbase,pstatmnt,pdecl,pdecsub,pexports,
        { codegen }
+       tgcpu,hcodegen
 {$ifdef newcg}
-       cgbase,
-       tgcpu,cgobj,
+       ,cgbase
+       ,cgobj
        {$ifndef NOOPT}
         ,aopt
        {$endif}
 {$else}
-       hcodegen,
-       temp_gen
+       ,temp_gen
        {$ifdef i386}
-         ,tgeni386
          ,cgai386
          {$ifndef NOOPT}
            ,aopt386
@@ -836,7 +835,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.22  2000-11-08 16:38:24  jonas
+  Revision 1.23  2000-11-29 00:30:37  florian
+    * unused units removed from uses clause
+    * some changes for widestrings
+
+  Revision 1.22  2000/11/08 16:38:24  jonas
     * if a procedure uses exceptions (be it implicit or explicit), the
       usedregisters are set to all (because FPC_POPADDRSTACK doesn't save
       any registers) ("merged", fixes make cycle woth -Or)

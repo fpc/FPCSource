@@ -87,8 +87,8 @@ implementation
 
    uses
       globtype,systems,tokens,
-      cutils,cobjects,verbose,globals,
-      symconst,symdef,symsym,symtable,aasm,
+      cutils,verbose,globals,
+      symconst,symdef,symsym,symtable,
       ncon,ncal,nset,nadd,
 {$ifdef newcg}
       cgbase,
@@ -1186,7 +1186,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.12  2000-11-20 16:06:04  jonas
+  Revision 1.13  2000-11-29 00:30:32  florian
+    * unused units removed from uses clause
+    * some changes for widestrings
+
+  Revision 1.12  2000/11/20 16:06:04  jonas
     + allow evaluation of 64bit constant expressions at compile time
     * disable range checking for explicit typecasts of constant expressions
 

@@ -66,16 +66,27 @@ program pp;
    {$endif GDB}
    { but I386 or M68K must be defined }
    { and only one of the two }
-   {$ifndef I386}
-      {$ifndef M68K}
-        {$fatal One of the switches I386 or M68K must be defined}
-      {$endif M68K}
-   {$endif I386}
    {$ifdef I386}
-      {$ifdef M68K}
-        {$fatal ONLY one of the switches I386 or M68K must be defined}
-      {$endif M68K}
+     {$ifdef CPUDEFINED}
+        {$fatal ONLY one of the switches for the CPU type must be defined}
+     {$endif CPUDEFINED}
+     {$define CPUDEFINED}
    {$endif I386}
+   {$ifdef M68K}
+     {$ifdef CPUDEFINED}
+        {$fatal ONLY one of the switches for the CPU type must be defined}
+     {$endif CPUDEFINED}
+     {$define CPUDEFINED}
+   {$endif M68K}
+   {$ifdef iA64}
+     {$ifdef CPUDEFINED}
+        {$fatal ONLY one of the switches for the CPU type must be defined}
+     {$endif CPUDEFINED}
+     {$define CPUDEFINED}
+   {$endif iA64}
+   {$ifndef CPUDEFINED}
+     {$fatal A CPU type switch must be defined}
+   {$endif CPUDEFINED}
    {$ifdef support_mmx}
      {$ifndef i386}
        {$fatal I386 switch must be on for MMX support}
@@ -149,7 +160,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.5  2000-11-13 15:26:12  marco
+  Revision 1.6  2000-11-29 00:30:37  florian
+    * unused units removed from uses clause
+    * some changes for widestrings
+
+  Revision 1.5  2000/11/13 15:26:12  marco
    * Renamefest
 
   Revision 1.4  2000/10/01 21:15:55  pierre

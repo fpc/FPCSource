@@ -40,15 +40,8 @@ implementation
     uses
       globtype,systems,comphook,
       cutils,cobjects,verbose,globals,
-      symconst,symbase,symtype,symdef,symsym,symtable,types,
-      hcodegen,temp_gen,cpubase,cpuasm
-{$ifdef i386}
-     ,tgeni386,cgai386
-{$endif}
-{$ifdef m68k}
-     ,tgen68k,cga68k
-{$endif}
-     ;
+      symconst,symbase,symtype,symdef,symsym,types,
+      hcodegen,cpubase,cpuasm,tgcpu;
 
 
     var
@@ -464,7 +457,11 @@ end.
 
 {
   $Log$
-  Revision 1.12  2000-11-04 14:25:21  florian
+  Revision 1.13  2000-11-29 00:30:39  florian
+    * unused units removed from uses clause
+    * some changes for widestrings
+
+  Revision 1.12  2000/11/04 14:25:21  florian
     + merged Attila's changes for interfaces, not tested yet
 
   Revision 1.11  2000/10/31 22:02:51  peter

@@ -143,22 +143,14 @@ implementation
 
     uses
       globtype,systems,
-      cutils,cobjects,verbose,globals,
+      cutils,verbose,globals,
       symconst,symtable,types,htypechk,pass_1,
-      ncon,nmem,nld,ncnv,nbas
+      ncon,nmem,nld,ncnv,nbas,tgcpu,hcodegen
 {$ifdef newcg}
       ,tgobj
-      ,tgcpu
       ,cgbase
 {$else newcg}
-      ,hcodegen
       ,temp_gen
-{$ifdef i386}
-      ,tgeni386
-{$endif}
-{$ifdef m68k}
-      ,tgen68k
-{$endif m68k}
 {$endif newcg}
       ;
 
@@ -992,7 +984,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.10  2000-11-04 14:25:20  florian
+  Revision 1.11  2000-11-29 00:30:33  florian
+    * unused units removed from uses clause
+    * some changes for widestrings
+
+  Revision 1.10  2000/11/04 14:25:20  florian
     + merged Attila's changes for interfaces, not tested yet
 
   Revision 1.9  2000/10/31 22:02:48  peter

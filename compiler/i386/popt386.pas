@@ -41,7 +41,7 @@ Uses
 {$ifdef finaldestdebug}
   cobjects,
 {$endif finaldestdebug}
-  cpubase,cpuasm,DAOpt386,tgeni386;
+  cpubase,cpuasm,DAOpt386,tgcpu;
 
 Function RegUsedAfterInstruction(Reg: TRegister; p: Pai; Var UsedRegs: TRegSet): Boolean;
 Begin
@@ -2000,7 +2000,11 @@ End.
 
 {
   $Log$
-  Revision 1.3  2000-11-14 09:53:18  jonas
+  Revision 1.4  2000-11-29 00:30:49  florian
+    * unused units removed from uses clause
+    * some changes for widestrings
+
+  Revision 1.3  2000/11/14 09:53:18  jonas
     * added missing allocregbetween() (merged)
 
   Revision 1.2  2000/10/24 10:40:54  jonas

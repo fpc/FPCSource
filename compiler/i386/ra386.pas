@@ -63,7 +63,7 @@ uses
 {$else}
   hcodegen,
 {$endif}
-  globtype,symconst,symdef,symtable,systems,types,globals,verbose,cpuasm;
+  globtype,symconst,symdef,systems,types,globals,verbose,cpuasm;
 
 
 {*****************************************************************************
@@ -514,7 +514,11 @@ end;
 end.
 {
   $Log$
-  Revision 1.2  2000-10-31 22:30:14  peter
+  Revision 1.3  2000-11-29 00:30:50  florian
+    * unused units removed from uses clause
+    * some changes for widestrings
+
+  Revision 1.2  2000/10/31 22:30:14  peter
     * merged asm result patch part 2
 
   Revision 1.1  2000/10/15 09:47:43  peter

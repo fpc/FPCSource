@@ -48,7 +48,7 @@ unit n386bas;
        globals,
        aasm,cpubase,cpuasm,
        symconst,symsym,
-       pass_2,tgeni386,
+       pass_2,tgcpu,
        cgai386;
 
     procedure ti386asmnode.pass_2;
@@ -204,7 +204,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.3  2000-11-04 14:25:23  florian
+  Revision 1.4  2000-11-29 00:30:46  florian
+    * unused units removed from uses clause
+    * some changes for widestrings
+
+  Revision 1.3  2000/11/04 14:25:23  florian
     + merged Attila's changes for interfaces, not tested yet
 
   Revision 1.2  2000/10/31 22:02:56  peter

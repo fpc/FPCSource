@@ -57,8 +57,16 @@ unit compiler;
    {$endif}
    {$endif}
 
+   {$ifdef ia64}
    {$ifndef CPUOK}
-   {$fatal One of the switches I386, Alpha, PowerPC or M68K must be defined}
+   {$DEFINE CPUOK}
+   {$else}
+     {$fatal cannot define two CPU switches}
+   {$endif}
+   {$endif}
+
+   {$ifndef CPUOK}
+   {$fatal One of the switches I386, iA64, Alpha, PowerPC or M68K must be defined}
    {$endif}
 
    {$ifdef support_mmx}
@@ -310,7 +318,11 @@ end;
 end.
 {
   $Log$
-  Revision 1.10  2000-10-31 22:02:46  peter
+  Revision 1.11  2000-11-29 00:30:30  florian
+    * unused units removed from uses clause
+    * some changes for widestrings
+
+  Revision 1.10  2000/10/31 22:02:46  peter
     * symtable splitted, no real code changes
 
   Revision 1.9  2000/10/15 09:39:36  peter

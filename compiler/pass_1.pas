@@ -40,21 +40,11 @@ implementation
 
     uses
       globtype,systems,
-      cutils,cobjects,verbose,globals,
-      aasm,symtable,types,
-      htypechk,
-      cpubase,cpuasm
+      cutils,cobjects,globals,
+      hcodegen,
+      tgcpu
 {$ifdef newcg}
       ,cgbase
-      ,tgcpu
-{$else newcg}
-      ,hcodegen
-  {$ifdef i386}
-      ,tgeni386
-  {$endif}
-  {$ifdef m68k}
-      ,tgen68k
-  {$endif}
 {$endif}
       ;
 
@@ -154,7 +144,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.9  2000-10-14 10:14:51  peter
+  Revision 1.10  2000-11-29 00:30:35  florian
+    * unused units removed from uses clause
+    * some changes for widestrings
+
+  Revision 1.9  2000/10/14 10:14:51  peter
     * moehrendorf oct 2000 rewrite
 
   Revision 1.8  2000/10/01 19:48:25  peter

@@ -123,7 +123,6 @@ uses
     ,t_linux
   {$endif}
 {$endif}
-  ,gendef
   ;
 
 {*****************************************************************************
@@ -541,7 +540,11 @@ end;
 end.
 {
   $Log$
-  Revision 1.9  2000-09-24 21:33:46  peter
+  Revision 1.10  2000-11-29 00:30:31  florian
+    * unused units removed from uses clause
+    * some changes for widestrings
+
+  Revision 1.9  2000/09/24 21:33:46  peter
     * message updates merges
 
   Revision 1.8  2000/09/24 15:06:18  peter

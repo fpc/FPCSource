@@ -78,6 +78,8 @@ type
     _INTCONST,
     _CSTRING,
     _CCHAR,
+    _CWSTRING,
+    _CWCHAR,
     { C like operators }
     _PLUSASN,
     _MINUSASN,
@@ -286,6 +288,8 @@ const
       (str:'ordinal const' ;special:true ;keyword:m_none;op:NOTOKEN),
       (str:'const string'  ;special:true ;keyword:m_none;op:NOTOKEN),
       (str:'const char'    ;special:true ;keyword:m_none;op:NOTOKEN),
+      (str:'const wstring' ;special:true ;keyword:m_none;op:NOTOKEN),
+      (str:'const wchar'   ;special:true ;keyword:m_none;op:NOTOKEN),
     { C like operators }
       (str:'+='            ;special:true ;keyword:m_none;op:NOTOKEN),
       (str:'-='            ;special:true ;keyword:m_none;op:NOTOKEN),
@@ -474,7 +478,11 @@ end;
 end.
 {
   $Log$
-  Revision 1.6  2000-11-09 17:46:56  florian
+  Revision 1.7  2000-11-29 00:30:42  florian
+    * unused units removed from uses clause
+    * some changes for widestrings
+
+  Revision 1.6  2000/11/09 17:46:56  florian
     * System.TypeInfo fixed
     + System.Finalize implemented
     + some new keywords for interface support added

@@ -59,16 +59,14 @@ implementation
 
     uses
       globtype,systems,tokens,
-      cobjects,verbose,globals,
-      symconst,symtype,symtable,symdef,aasm,types,
+      verbose,globals,
+      symconst,symtype,symtable,symdef,types,
       htypechk,pass_1,cpubase,cpuinfo,
 {$ifdef newcg}
       cgbase,
 {$else newcg}
       hcodegen,
 {$endif newcg}
-      { for isbinaryoverloaded function }
-      nadd,
       ncon,ncnv,ncal;
 
 {****************************************************************************
@@ -529,7 +527,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.8  2000-10-31 22:02:49  peter
+  Revision 1.9  2000-11-29 00:30:34  florian
+    * unused units removed from uses clause
+    * some changes for widestrings
+
+  Revision 1.8  2000/10/31 22:02:49  peter
     * symtable splitted, no real code changes
 
   Revision 1.7  2000/10/01 19:48:24  peter

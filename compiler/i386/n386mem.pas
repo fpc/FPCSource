@@ -90,12 +90,12 @@ implementation
       gdb,
 {$endif GDB}
       globtype,systems,
-      cutils,cobjects,verbose,globals,
+      cutils,verbose,globals,
       symconst,symbase,symdef,symsym,symtable,aasm,types,
       hcodegen,temp_gen,pass_2,
       pass_1,nld,ncon,nadd,
       cpubase,cpuasm,
-      cgai386,tgeni386,n386util;
+      cgai386,tgcpu,n386util;
 
 {*****************************************************************************
                             TI386LOADNODE
@@ -1053,7 +1053,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.5  2000-11-04 14:25:24  florian
+  Revision 1.6  2000-11-29 00:30:48  florian
+    * unused units removed from uses clause
+    * some changes for widestrings
+
+  Revision 1.5  2000/11/04 14:25:24  florian
     + merged Attila's changes for interfaces, not tested yet
 
   Revision 1.4  2000/10/31 22:02:57  peter

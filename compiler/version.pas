@@ -60,6 +60,9 @@ interface
 {$ifdef powerpc}
        target_cpu_string = 'powerpc';
 {$endif}
+{$ifdef ia64}
+       target_cpu_string = 'ia64';
+{$endif}
 
        { source cpu string }
 {$ifdef cpu86}
@@ -67,6 +70,9 @@ interface
 {$endif}
 {$ifdef cpu68}
         source_cpu_string = 'm68k';
+{$endif}
+{$ifdef cpuia64}
+       target_cpu_string = 'ia64';
 {$endif}
 
 function version_string:string;
@@ -95,7 +101,11 @@ end;
 end.
 {
   $Log$
-  Revision 1.6  2000-09-24 15:06:33  peter
+  Revision 1.7  2000-11-29 00:30:43  florian
+    * unused units removed from uses clause
+    * some changes for widestrings
+
+  Revision 1.6  2000/09/24 15:06:33  peter
     * use defines.inc
 
   Revision 1.5  2000/07/14 05:14:10  michael

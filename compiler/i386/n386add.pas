@@ -43,11 +43,11 @@ interface
     uses
       globtype,systems,
       cutils,cobjects,verbose,globals,
-      symconst,symdef,symtable,aasm,types,
+      symconst,symdef,aasm,types,
       hcodegen,temp_gen,pass_2,
       cpuasm,
       node,ncon,nset,
-      cgai386,n386util,tgeni386;
+      cgai386,n386util,tgcpu;
 
     function ti386addnode.getresflags(unsigned : boolean) : tresflags;
 
@@ -2288,7 +2288,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.4  2000-11-13 11:30:56  florian
+  Revision 1.5  2000-11-29 00:30:45  florian
+    * unused units removed from uses clause
+    * some changes for widestrings
+
+  Revision 1.4  2000/11/13 11:30:56  florian
     * some bugs with interfaces and NIL fixed
 
   Revision 1.3  2000/11/04 14:25:23  florian

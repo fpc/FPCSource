@@ -68,8 +68,7 @@ uses
   dos,
 {$endif Delphi}
   version,systems,
-  cutils,cobjects,
-  symtable,scanner,link,messages
+  cutils,cobjects,messages
 {$ifdef BrowserLog}
   ,browlog
 {$endif BrowserLog}
@@ -1515,7 +1514,11 @@ end;
 end.
 {
   $Log$
-  Revision 1.17  2000-11-13 15:26:12  marco
+  Revision 1.18  2000-11-29 00:30:34  florian
+    * unused units removed from uses clause
+    * some changes for widestrings
+
+  Revision 1.17  2000/11/13 15:26:12  marco
    * Renamefest
 
   Revision 1.16  2000/11/12 22:20:37  peter

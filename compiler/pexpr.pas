@@ -56,14 +56,9 @@ implementation
        cutils,cobjects,
        { global }
        globtype,globals,tokens,verbose,
-       systems,cpuinfo,
-       { aasm }
-       aasm,
+       systems,cpuinfo,widestr,
        { symtable }
        symconst,symbase,symdef,symsym,symtable,types,
-{$ifdef GDB}
-       gdb,
-{$endif}
        { pass 1 }
        pass_1,htypechk,
        nmat,nadd,ncal,nmem,nset,ncnv,ninl,ncon,nld,nflw,nbas,
@@ -2072,7 +2067,17 @@ implementation
                  p1:=genordinalconstnode(ord(pattern[1]),cchardef);
                  consume(_CCHAR);
                end;
-_KLAMMERAFFE : begin
+           _CWSTRING:
+             begin
+                p1:=genwstringconstnode(patternw);
+                consume(_CWSTRING);
+             end;
+           _CWCHAR:
+             begin
+                p1:=genordinalconstnode(ord(getcharwidestring(patternw,0)),cwidechardef);
+                consume(_CWCHAR);
+             end;
+      _KLAMMERAFFE : begin
                  consume(_KLAMMERAFFE);
                  got_addrn:=true;
                  { support both @<x> and @(<x>) }
@@ -2390,7 +2395,11 @@ _LECKKLAMMER : begin
 end.
 {
   $Log$
-  Revision 1.17  2000-11-09 17:46:55  florian
+  Revision 1.18  2000-11-29 00:30:36  florian
+    * unused units removed from uses clause
+    * some changes for widestrings
+
+  Revision 1.17  2000/11/09 17:46:55  florian
     * System.TypeInfo fixed
     + System.Finalize implemented
     + some new keywords for interface support added

@@ -33,15 +33,12 @@ procedure cgintfwrapper(asmlist: paasmoutput; procdef: pprocdef; const labelname
 implementation
 
 uses
-  globtype, systems,
-  cobjects, verbose, globals,
-  symconst, types,
-{$ifdef GDB}
-  strings, gdb,
-{$endif GDB}
-  hcodegen, temp_gen,
-  cpubase, cpuasm,
-  cgai386, tgeni386;
+  systems,
+  verbose, globals,
+  symconst,
+  temp_gen,
+  cpubase,
+  cgai386, tgcpu;
 
 {
 possible calling conventions:
@@ -205,7 +202,11 @@ end;
 end.
 {
   $Log$
-  Revision 1.2  2000-11-12 23:24:15  florian
+  Revision 1.3  2000-11-29 00:30:47  florian
+    * unused units removed from uses clause
+    * some changes for widestrings
+
+  Revision 1.2  2000/11/12 23:24:15  florian
     * interfaces are basically running
 
   Revision 1.1  2000/11/04 14:25:23  florian

@@ -49,13 +49,13 @@ interface
 implementation
 
     uses
-      globtype,systems,
-      cobjects,verbose,globals,fmodule,
+      systems,
+      verbose,globals,
       symconst,symtype,symdef,symsym,symtable,aasm,types,
       hcodegen,temp_gen,pass_2,
       nmem,ncon,ncnv,
       cpubase,cpuasm,
-      cgai386,tgeni386,n386cnv,n386util,cresstr;
+      cgai386,tgcpu,n386cnv,n386util;
 
 {*****************************************************************************
                              SecondLoad
@@ -1050,7 +1050,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.8  2000-11-13 14:44:36  jonas
+  Revision 1.9  2000-11-29 00:30:48  florian
+    * unused units removed from uses clause
+    * some changes for widestrings
+
+  Revision 1.8  2000/11/13 14:44:36  jonas
     * fixes so no more range errors with improved range checking code
 
   Revision 1.7  2000/11/12 23:24:15  florian

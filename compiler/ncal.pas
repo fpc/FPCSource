@@ -101,21 +101,13 @@ interface
 
     uses
       cutils,globtype,systems,
-      cobjects,verbose,globals,
-      symconst,symtype,aasm,types,
+      verbose,globals,
+      symconst,symtype,types,
       htypechk,pass_1,cpubase,
-      ncnv,nld,ninl,nadd,ncon
+      ncnv,nld,ninl,nadd,ncon,hcodegen,
+      tgcpu
 {$ifdef newcg}
       ,cgbase
-      ,tgobj
-{$else newcg}
-      ,hcodegen
-{$ifdef i386}
-      ,tgeni386
-{$endif}
-{$ifdef m68k}
-      ,tgen68k
-{$endif m68k}
 {$endif newcg}
       ;
 
@@ -1542,7 +1534,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.17  2000-11-22 15:12:06  jonas
+  Revision 1.18  2000-11-29 00:30:32  florian
+    * unused units removed from uses clause
+    * some changes for widestrings
+
+  Revision 1.17  2000/11/22 15:12:06  jonas
     * fixed inline-related problems (partially "merges")
 
   Revision 1.16  2000/11/11 16:14:52  peter

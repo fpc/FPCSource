@@ -148,8 +148,8 @@ implementation
 
     uses
        verbose,
-       ppu,symppu,
-       finput,fmodule;
+       symppu,
+       fmodule;
 
 {****************************************************************************
                                 Tdef
@@ -567,7 +567,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.2  2000-11-07 20:48:33  peter
+  Revision 1.3  2000-11-29 00:30:42  florian
+    * unused units removed from uses clause
+    * some changes for widestrings
+
+  Revision 1.2  2000/11/07 20:48:33  peter
     * removed ref_count from pinputfile it's not used
 
   Revision 1.1  2000/10/31 22:02:53  peter

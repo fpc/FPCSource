@@ -94,19 +94,13 @@ interface
 implementation
 
     uses
-      cutils,cobjects,verbose,globtype,globals,systems,
-      symconst,symdef,symtable,aasm,types,
+      cutils,verbose,globtype,globals,systems,
+      symconst,symdef,symtable,types,
       htypechk,pass_1,
-      ncnv,nmem,cpubase
+      ncnv,nmem,cpubase,tgcpu,hcodegen
 {$ifdef newcg}
       ,cgbase
       ,tgobj
-      ,tgcpu
-{$else newcg}
-      ,hcodegen
-{$ifdef i386}
-      ,tgeni386
-{$endif}
 {$endif newcg}
       ;
 
@@ -743,7 +737,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.8  2000-11-04 14:25:20  florian
+  Revision 1.9  2000-11-29 00:30:33  florian
+    * unused units removed from uses clause
+    * some changes for widestrings
+
+  Revision 1.8  2000/11/04 14:25:20  florian
     + merged Attila's changes for interfaces, not tested yet
 
   Revision 1.7  2000/10/31 22:02:49  peter

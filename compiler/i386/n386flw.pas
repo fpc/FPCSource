@@ -85,12 +85,12 @@ interface
 implementation
 
     uses
-      cobjects,verbose,globtype,globals,systems,
+      verbose,globtype,globals,systems,
       symconst,symdef,symsym,aasm,types,
       hcodegen,temp_gen,pass_2,
       cpubase,cpuasm,
       pass_1,nld,ncon,
-      cgai386,tgeni386,n386util;
+      cgai386,tgcpu,n386util;
 
 {*****************************************************************************
                          Second_While_RepeatN
@@ -1284,7 +1284,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.2  2000-10-31 22:02:56  peter
+  Revision 1.3  2000-11-29 00:30:47  florian
+    * unused units removed from uses clause
+    * some changes for widestrings
+
+  Revision 1.2  2000/10/31 22:02:56  peter
     * symtable splitted, no real code changes
 
   Revision 1.1  2000/10/15 09:33:31  peter

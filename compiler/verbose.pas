@@ -97,7 +97,7 @@ procedure DoneVerbose;
 implementation
 uses
   comphook,
-  version,globals;
+  globals;
 
 var
   redirexitsave  : pointer;
@@ -626,7 +626,11 @@ end;
 end.
 {
   $Log$
-  Revision 1.7  2000-10-31 22:02:55  peter
+  Revision 1.8  2000-11-29 00:30:43  florian
+    * unused units removed from uses clause
+    * some changes for widestrings
+
+  Revision 1.7  2000/10/31 22:02:55  peter
     * symtable splitted, no real code changes
 
   Revision 1.6  2000/09/24 21:33:48  peter

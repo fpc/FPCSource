@@ -63,7 +63,7 @@ implementation
        types,
        ncon,nld,
        pass_1,pass_2,
-       hcodegen,tgeni386,temp_gen,
+       hcodegen,tgcpu,temp_gen,
        cgai386;
 
 
@@ -1472,7 +1472,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.4  2000-11-13 14:47:46  jonas
+  Revision 1.5  2000-11-29 00:30:49  florian
+    * unused units removed from uses clause
+    * some changes for widestrings
+
+  Revision 1.4  2000/11/13 14:47:46  jonas
     * support for range checking when converting from 64bit to something
       smaller (32bit, 16bit, 8bit)
     * fixed range checking between longint/cardinal and for array indexing

@@ -58,6 +58,15 @@ interface
        ts80real = extended;
        ts64comp = comp;
 {$endif powerpc}
+{$ifdef ia64}
+       bestreal = extended;
+       ts32real = single;
+       ts64real = double;
+       ts80real = extended;
+       { on the ia64 comp will be mapped to int64 }
+       ts64comp = comp;
+{$endif}
+
        pbestreal=^bestreal;
 
        { Switches which can be changed locally }
@@ -210,7 +219,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.9  2000-11-12 22:20:37  peter
+  Revision 1.10  2000-11-29 00:30:30  florian
+    * unused units removed from uses clause
+    * some changes for widestrings
+
+  Revision 1.9  2000/11/12 22:20:37  peter
     * create generic toutputsection for binary writers
 
   Revision 1.8  2000/11/04 14:25:19  florian

@@ -48,19 +48,9 @@ implementation
 
    uses
      globtype,systems,
-     cobjects,comphook,verbose,globals,fmodule,
-     symconst,symbase,symtype,symsym,symtable,types,aasm,scanner,
-     pass_1,hcodegen,temp_gen,cpubase,cpuasm,regvars,nflw
-{$ifdef GDB}
-     ,gdb
-{$endif}
-{$ifdef i386}
-     ,tgeni386,cgai386
-{$endif}
-{$ifdef m68k}
-     ,tgen68k,cga68k
-{$endif}
-     ;
+     cobjects,globals,
+     symconst,symbase,symtype,symsym,aasm,
+     pass_1,hcodegen,temp_gen,regvars,nflw,tgcpu;
 
 {*****************************************************************************
                               SecondPass
@@ -311,7 +301,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.10  2000-10-31 22:02:49  peter
+  Revision 1.11  2000-11-29 00:30:35  florian
+    * unused units removed from uses clause
+    * some changes for widestrings
+
+  Revision 1.10  2000/10/31 22:02:49  peter
     * symtable splitted, no real code changes
 
   Revision 1.9  2000/10/14 10:14:51  peter

@@ -211,7 +211,7 @@ uses
 {$else}
   strings,
 {$endif}
-  types,systems,verbose,globals,fmodule,
+  types,systems,verbose,globals,
   symbase,symtype,symsym,symtable,cpuasm
 {$ifdef NEWCG}
   ,cgbase;
@@ -1554,7 +1554,11 @@ end;
 end.
 {
   $Log$
-  Revision 1.11  2000-11-06 22:30:30  peter
+  Revision 1.12  2000-11-29 00:30:38  florian
+    * unused units removed from uses clause
+    * some changes for widestrings
+
+  Revision 1.11  2000/11/06 22:30:30  peter
     * more fixes
 
   Revision 1.10  2000/11/04 14:25:21  florian

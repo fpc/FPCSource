@@ -42,7 +42,7 @@ implementation
        strings,
 {$endif Delphi}
        globtype,systems,tokens,cpuinfo,
-       cutils,cobjects,globals,scanner,
+       cutils,globals,scanner,
        symconst,symbase,symdef,symtable,aasm,types,verbose,
        { pass 1 }
        node,pass_1,
@@ -50,13 +50,11 @@ implementation
        { parser specific stuff }
        pbase,pexpr,
        { codegen }
+       hcodegen
 {$ifdef newcg}
-       cgbase,
-{$else}
-       hcodegen,
+       ,cgbase
 {$endif}
-       hcgdata;
-
+       ;
 
 {$ifdef fpc}
   {$maxfpuregisters 0}
@@ -838,7 +836,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.12  2000-11-06 15:54:15  florian
+  Revision 1.13  2000-11-29 00:30:38  florian
+    * unused units removed from uses clause
+    * some changes for widestrings
+
+  Revision 1.12  2000/11/06 15:54:15  florian
     * fixed two bugs to get make cycle work, but it's not enough
 
   Revision 1.11  2000/11/04 14:25:21  florian
