@@ -945,7 +945,6 @@ implementation
               { but an int/int gives real/real! }
               if p^.treetype=slashn then
                 begin
-                   CGMessage(type_w_int_slash_int);
                    CGMessage(type_h_use_div_for_int);
                    p^.right:=gentypeconvnode(p^.right,c64floatdef);
                    p^.left:=gentypeconvnode(p^.left,c64floatdef);
@@ -1017,7 +1016,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.23  1999-03-02 22:52:19  peter
+  Revision 1.24  1999-04-08 11:34:00  peter
+    * int/int warning removed, only the hint is left
+
+  Revision 1.23  1999/03/02 22:52:19  peter
     * fixed char array, which can start with all possible values
 
   Revision 1.22  1999/02/22 02:15:43  peter

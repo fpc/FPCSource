@@ -204,7 +204,6 @@ type tmsgconst=(
   type_e_set_element_are_not_comp,
   type_e_set_operation_unknown,
   type_w_convert_real_2_comp,
-  type_w_int_slash_int,
   type_h_use_div_for_int,
   type_e_strict_var_string_violation,
   type_e_succ_and_pred_enums_with_assign_not_possible,
