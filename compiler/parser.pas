@@ -346,7 +346,8 @@ implementation
           oldaktmoduleswitches : tmoduleswitches;
           oldaktfilepos      : tfileposinfo;
           oldaktpackrecords,
-          oldaktpackenum,oldaktmaxfpuregisters : longint;
+          oldaktpackenum       : shortint;
+          oldaktmaxfpuregisters : longint;
           oldaktalignment  : talignmentinfo;
           oldaktoutputformat : tasm;
           oldaktspecificoptprocessor,
@@ -660,7 +661,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.72  2005-01-29 11:36:52  peter
+  Revision 1.73  2005-02-01 08:46:13  michael
+   * Patch from peter: fix macpas anonymous function procvar
+
+  Revision 1.72  2005/01/29 11:36:52  peter
     * update x86_64 with new cpupara
 
   Revision 1.71  2005/01/26 16:23:28  peter

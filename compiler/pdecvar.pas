@@ -204,9 +204,7 @@ implementation
          sym : tsym;
          p : tpropertysym;
          overriden : tsym;
-         hs : string;
          varspez : tvarspez;
-         s : string;
          tt : ttype;
          arraytype : ttype;
          def : tdef;
@@ -300,11 +298,11 @@ implementation
                         { define range and type of range }
                         tt.setdef(tarraydef.create(0,-1,s32inttype));
                         { define field type }
-                        single_type(arraytype,s,false);
+                        single_type(arraytype,false);
                         tarraydef(tt.def).setelementtype(arraytype);
                       end
                     else
-                      single_type(tt,s,false);
+                      single_type(tt,false);
                     symtablestack:=oldsymtablestack;
                   end
                 else
@@ -339,7 +337,7 @@ implementation
               oldsymtablestack:=symtablestack;
               while not(symtablestack.symtabletype in [globalsymtable,staticsymtable]) do
                 symtablestack:=symtablestack.next;
-              single_type(p.proptype,hs,false);
+              single_type(p.proptype,false);
               symtablestack:=oldsymtablestack;
               if (idtoken=_INDEX) then
                 begin
@@ -1314,7 +1312,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.92  2005-01-30 17:17:19  florian
+  Revision 1.93  2005-02-01 08:46:13  michael
+   * Patch from peter: fix macpas anonymous function procvar
+
+  Revision 1.92  2005/01/30 17:17:19  florian
     * variables exported by $J/$Z in macpas mode are never regable
 
   Revision 1.91  2005/01/06 13:30:41  florian

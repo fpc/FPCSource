@@ -41,14 +41,14 @@ interface
 
     { reads a string, file type or a type id and returns a name and }
     { tdef }
-    procedure single_type(var tt:ttype;var s : string;isforwarddef:boolean);
+    procedure single_type(var tt:ttype;isforwarddef:boolean);
 
     procedure read_type(var tt:ttype;const name : stringid;parseprocvardir:boolean);
 
     { reads a type definition }
     { to a appropriating tdef, s gets the name of   }
     { the type to allow name mangling          }
-    procedure id_type(var tt : ttype;var s : string;isforwarddef:boolean);
+    procedure id_type(var tt : ttype;isforwarddef:boolean);
 
 
 implementation
@@ -72,7 +72,7 @@ implementation
        pbase,pexpr,pdecsub,pdecvar,pdecobj;
 
 
-    procedure id_type(var tt : ttype;var s : string;isforwarddef:boolean);
+    procedure id_type(var tt : ttype;isforwarddef:boolean);
     { reads a type definition }
     { to a appropriating tdef, s gets the name of   }
     { the type to allow name mangling          }
@@ -81,7 +81,7 @@ implementation
         pos : tfileposinfo;
         srsym : tsym;
         srsymtable : tsymtable;
-        sorg : stringid;
+        s,sorg : stringid;
       begin
          s:=pattern;
          sorg:=orgpattern;
@@ -182,43 +182,30 @@ implementation
       end;
 
 
-    procedure single_type(var tt:ttype;var s : string;isforwarddef:boolean);
-    { reads a string, file type or a type id and returns a name and }
-    { tdef                                                        }
+    procedure single_type(var tt:ttype;isforwarddef:boolean);
        var
-          hs : string;
-          t2 : ttype;
+         t2 : ttype;
        begin
           case token of
             _STRING:
-                begin
-                   string_dec(tt);
-                   s:='STRING';
-                end;
+              string_dec(tt);
             _FILE:
-                begin
-                   consume(_FILE);
-                   if token=_OF then
-                     begin
-                        consume(_OF);
-                        single_type(t2,hs,false);
-                        tt.setdef(tfiledef.createtyped(t2));
-                        s:='FILE$OF$'+hs;
-                     end
-                   else
-                     begin
-                        tt:=cfiletype;
-                        s:='FILE';
-                     end;
-                end;
-            _ID:
               begin
-                id_type(tt,s,isforwarddef);
+                 consume(_FILE);
+                 if token=_OF then
+                   begin
+                      consume(_OF);
+                      single_type(t2,false);
+                      tt.setdef(tfiledef.createtyped(t2));
+                   end
+                 else
+                   tt:=cfiletype;
               end;
+            _ID:
+              id_type(tt,isforwarddef);
             else
               begin
                 message(type_e_type_id_expected);
-                s:='<unknown>';
                 tt:=generrortype;
               end;
          end;
@@ -489,7 +476,7 @@ implementation
          case token of
             _STRING,_FILE:
               begin
-                single_type(tt,hs,false);
+                single_type(tt,false);
               end;
            _LKLAMMER:
               begin
@@ -591,7 +578,7 @@ implementation
            _CARET:
               begin
                 consume(_CARET);
-                single_type(tt2,hs,typecanbeforward);
+                single_type(tt2,typecanbeforward);
                 tt.setdef(tpointerdef.create(tt2));
               end;
             _RECORD:
@@ -632,7 +619,7 @@ implementation
                 if is_func then
                  begin
                    consume(_COLON);
-                   single_type(pd.rettype,hs,false);
+                   single_type(pd.rettype,false);
                  end;
                 if token=_OF then
                   begin
@@ -666,7 +653,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.73  2005-01-19 22:19:41  peter
+  Revision 1.74  2005-02-01 08:46:13  michael
+   * Patch from peter: fix macpas anonymous function procvar
+
+  Revision 1.73  2005/01/19 22:19:41  peter
     * unit mapping rewrite
     * new derefmap added
 

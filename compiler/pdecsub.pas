@@ -388,8 +388,6 @@ implementation
         vs      : tparavarsym;
         srsym   : tsym;
         pv      : tprocvardef;
-        hs,
-        hs1 : string;
         varspez : Tvarspez;
         defaultvalue : tconstsym;
         defaultrequired : boolean;
@@ -476,14 +474,8 @@ implementation
              if parseprocvar=pv_func then
               begin
                 consume(_COLON);
-                single_type(pd.rettype,hs,false);
+                single_type(pv.rettype,false);
               end;
-             if token=_OF then
-               begin
-                 consume(_OF);
-                 consume(_OBJECT);
-                 include(pd.procoptions,po_methodpointer);
-               end;
              tt.def:=pv;
              { possible proc directives }
              if check_proc_directive(true) then
@@ -496,7 +488,6 @@ implementation
                end;
              { Add implicit hidden parameters and function result }
              handle_calling_convention(pv);
-             hs1:='procvar';
            end
           else
           { read type declaration, force reading for value and const paras }
@@ -523,7 +514,7 @@ implementation
                 else
                  begin
                    { define field type }
-                   single_type(arrayelementtype,hs1,false);
+                   single_type(arrayelementtype,false);
                    tarraydef(tt.def).setelementtype(arrayelementtype);
                  end;
               end
@@ -541,14 +532,13 @@ implementation
                  begin
                    consume(token);
                    tt:=openshortstringtype;
-                   hs1:='openstring';
                  end
                 else
                  begin
                    { everything else }
                    if (m_mac in aktmodeswitches) then
                      try_to_consume(_UNIV); {currently does nothing}
-                   single_type(tt,hs1,false);
+                   single_type(tt,false);
                  end;
 
                 if (target_info.system in [system_powerpc_morphos,system_m68k_amiga]) then
@@ -595,14 +585,7 @@ implementation
               end;
            end
           else
-           begin
-{$ifndef UseNiceNames}
-             hs1:='$$$';
-{$else UseNiceNames}
-             hs1:='var';
-{$endif UseNiceNames}
-             tt:=cformaltype;
-           end;
+           tt:=cformaltype;
 
           { File types are only allowed for var parameters }
           if (tt.def.deftype=filedef) and
@@ -876,7 +859,6 @@ implementation
     function parse_proc_dec(aclass:tobjectdef):tprocdef;
       var
         pd : tprocdef;
-        hs : string;
         isclassmethod : boolean;
       begin
         pd:=nil;
@@ -905,7 +887,7 @@ implementation
                       if try_to_consume(_COLON) then
                        begin
                          inc(testcurobject);
-                         single_type(pd.rettype,hs,false);
+                         single_type(pd.rettype,false);
                          pd.test_if_fpu_result;
                          dec(testcurobject);
                        end
@@ -1010,7 +992,7 @@ implementation
                     end
                   else
                    begin
-                     single_type(pd.rettype,hs,false);
+                     single_type(pd.rettype,false);
                      pd.test_if_fpu_result;
                      if (optoken in [_EQUAL,_GT,_LT,_GTE,_LTE]) and
                         ((pd.rettype.def.deftype<>orddef) or
@@ -2459,7 +2441,10 @@ const
 end.
 {
   $Log$
-  Revision 1.227  2005-01-31 21:27:51  peter
+  Revision 1.228  2005-02-01 08:46:13  michael
+   * Patch from peter: fix macpas anonymous function procvar
+
+  Revision 1.227  2005/01/31 21:27:51  peter
     * macpas procvars in parameters
 
   Revision 1.226  2005/01/19 22:19:41  peter

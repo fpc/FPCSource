@@ -498,6 +498,7 @@ interface
           function  is_publishable : boolean;override;
           function  is_methodpointer:boolean;override;
           function  is_addressonly:boolean;override;
+          function  getmangledparaname:string;override;
           { debug }
 {$ifdef GDB}
           function stabstring : pchar;override;
@@ -4708,6 +4709,12 @@ implementation
       end;
 
 
+    function tprocvardef.getmangledparaname:string;
+      begin
+        result:='procvar';
+      end;
+
+
 {$ifdef GDB}
     function tprocvardef.stabstring : pchar;
       var
@@ -6371,7 +6378,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.292  2005-01-30 11:26:40  peter
+  Revision 1.293  2005-02-01 08:46:13  michael
+   * Patch from peter: fix macpas anonymous function procvar
+
+  Revision 1.292  2005/01/30 11:26:40  peter
     * add info that a procedure is local in error messages
 
   Revision 1.291  2005/01/24 22:08:32  peter

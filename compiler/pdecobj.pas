@@ -138,7 +138,6 @@ implementation
         end;
 
       var
-         hs      : string;
          pcrd       : tclassrefdef;
          tt     : ttype;
          old_object_option : tsymoptions;
@@ -272,7 +271,7 @@ implementation
                         { a hack, but it's easy to handle }
                         { class reference type }
                         consume(_OF);
-                        single_type(tt,hs,typecanbeforward);
+                        single_type(tt,typecanbeforward);
 
                         { accept hp1, if is a forward def or a class }
                         if (tt.def.deftype=forwarddef) or
@@ -346,7 +345,7 @@ implementation
         begin
           while try_to_consume(_COMMA) do
             begin
-               id_type(tt,pattern,false);
+               id_type(tt,false);
                if (tt.def.deftype<>objectdef) then
                  begin
                     Message1(type_e_interface_type_expected,tt.def.typename);
@@ -387,7 +386,7 @@ implementation
            { reads the parent class }
            if try_to_consume(_LKLAMMER) then
              begin
-                id_type(tt,pattern,false);
+                id_type(tt,false);
                 childof:=tobjectdef(tt.def);
                 if (not assigned(childof)) or
                    (childof.deftype<>objectdef) then
@@ -730,7 +729,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.84  2004-12-26 20:11:39  peter
+  Revision 1.85  2005-02-01 08:46:13  michael
+   * Patch from peter: fix macpas anonymous function procvar
+
+  Revision 1.84  2004/12/26 20:11:39  peter
     * fix invalid typecast
 
   Revision 1.83  2004/11/16 20:32:40  peter

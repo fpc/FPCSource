@@ -90,7 +90,7 @@ interface
        MathNegInf : tdoublearray = (0,0,0,0,0,0,240,255);
        MathPi : tdoublearray =  (24,45,68,84,251,33,9,64);
        MathPiExtended : textendedarray = (53,194,104,33,162,218,15,201,0,64);
-{$else CPU_LITTLE_ENDIAN}       
+{$else CPU_LITTLE_ENDIAN}
        MathQNaN : tdoublearray = (255,252,0,0,0,0,0,0);
        MathInf : tdoublearray = (127,240,0,0,0,0,0,0);
        MathNegInf : tdoublearray = (255,240,0,0,0,0,0,0);
@@ -230,7 +230,7 @@ interface
         aktsetalloc,
        {$ENDIF}
        aktpackrecords,
-       aktpackenum        : longint;
+       aktpackenum        : shortint;
      {$ifdef ansistring_bits}
        aktansistring_bits : Tstringbits;
      {$endif}
@@ -356,7 +356,7 @@ interface
 
 {$IFDEF MACOS}
 
-{Since SysUtils is not yet available for MacOS, fake 
+{Since SysUtils is not yet available for MacOS, fake
  Exceptions classes are included here.}
 
 {$DEFINE MACOS_USE_FAKE_SYSUTILS}
@@ -2218,7 +2218,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.164  2005-01-31 21:30:56  olle
+  Revision 1.165  2005-02-01 08:46:13  michael
+   * Patch from peter: fix macpas anonymous function procvar
+
+  Revision 1.164  2005/01/31 21:30:56  olle
     + Added fake Exception classes, only for MACOS.
 
   Revision 1.163  2005/01/23 22:13:50  florian
