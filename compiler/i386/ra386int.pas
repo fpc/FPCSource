@@ -124,7 +124,7 @@ Unit Ra386int;
         ')',':','.','+','-','*',
         ';','identifier','register','opcode','/',
         '','','','END',
-        '','','','','','','','',
+        '','','','','','','','','',
         '','','','type','ptr','mod','shl','shr','not',
         'and','or','xor'
       );
@@ -1977,7 +1977,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.67  2003-11-29 15:53:06  florian
+  Revision 1.68  2003-11-29 20:13:25  florian
+    * fixed several pi_do_call problems
+
+  Revision 1.67  2003/11/29 15:53:06  florian
     + nasmelf mode for BeOS
     + DQWORD directive in intel assembler mode
 

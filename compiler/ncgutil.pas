@@ -895,6 +895,7 @@ implementation
             end;
          end
         else if (tsym(p).typ=varsym) and
+          (tvarsym(p).varspez=vs_value) and
           (is_open_array(tvarsym(p).vartype.def) or
            is_array_of_const(tvarsym(p).vartype.def)) then
           begin
@@ -1978,7 +1979,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.169  2003-11-23 17:05:15  peter
+  Revision 1.170  2003-11-29 20:13:25  florian
+    * fixed several pi_do_call problems
+
+  Revision 1.169  2003/11/23 17:05:15  peter
     * register calling is left-right
     * parameter ordering
     * left-right calling inserts result parameter last

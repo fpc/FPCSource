@@ -736,6 +736,8 @@ implementation
         current_procinfo.procdef:=pd;
         { return procdef }
         create_main_proc:=pd;
+        { main proc does always a call e.g. to init system unit }
+        include(current_procinfo.flags,pi_do_call);
       end;
 
 
@@ -1420,7 +1422,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.132  2003-10-29 19:48:51  peter
+  Revision 1.133  2003-11-29 20:13:25  florian
+    * fixed several pi_do_call problems
+
+  Revision 1.132  2003/10/29 19:48:51  peter
     * renamed mangeldname_prefix to make_mangledname and made it more
       generic
     * make_mangledname is now also used for internal threadvar/resstring
