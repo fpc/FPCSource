@@ -483,6 +483,9 @@ unit pstatmnt;
          old_in_except_block : boolean;
 
       begin
+         procinfo.flags:=procinfo.flags or
+           pi_uses_exceptions;
+
          p_default:=nil;
          p_specific:=nil;
 
@@ -541,11 +544,11 @@ unit pstatmnt;
                           { !!!!! }
                        end;
                      consume(_DO);
-                                         statement;
-                                         if token<>SEMICOLON then
-                                           break;
-                                         emptystats;
-                                   until false;
+                     statement;
+                     if token<>SEMICOLON then
+                       break;
+                     emptystats;
+                   until false;
                    if token=_ELSE then
                      { catch the other exceptions }
                      begin
@@ -1168,7 +1171,11 @@ unit pstatmnt;
 end.
 {
   $Log$
-  Revision 1.26  1998-07-27 21:57:14  florian
+  Revision 1.27  1998-07-28 21:52:55  florian
+    + implementation of raise and try..finally
+    + some misc. exception stuff
+
+  Revision 1.26  1998/07/27 21:57:14  florian
     * fix to allow tv like stream registration:
         @tmenu.load doesn't work if load had parameters or if load was only
         declared in an anchestor class of tmenu

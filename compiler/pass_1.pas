@@ -4769,6 +4769,20 @@ unit pass_1;
     procedure firsttryfinally(var p : ptree);
 
       begin
+         cleartempgen;
+         must_be_valid:=true;
+         firstpass(p^.left);
+
+         cleartempgen;
+         must_be_valid:=true;
+         firstpass(p^.right);
+         if codegenerror then
+           exit;
+         p^.registers32:=max(p^.left^.registers32,p^.right^.registers32);
+         p^.registersfpu:=max(p^.left^.registersfpu,p^.right^.registersfpu);
+{$ifdef SUPPORT_MMX}
+         p^.registersmmx:=max(p^.left^.registersmmx,p^.right^.registersmmx);
+{$endif SUPPORT_MMX}
       end;
 
     procedure firstis(var p : ptree);
@@ -5100,7 +5114,11 @@ unit pass_1;
 end.
 {
   $Log$
-  Revision 1.45  1998-07-26 21:58:59  florian
+  Revision 1.46  1998-07-28 21:52:52  florian
+    + implementation of raise and try..finally
+    + some misc. exception stuff
+
+  Revision 1.45  1998/07/26 21:58:59  florian
    + better support for switch $H
    + index access to ansi strings added
    + assigment of data (records/arrays) containing ansi strings

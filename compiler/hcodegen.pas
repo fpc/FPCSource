@@ -40,6 +40,8 @@ unit hcodegen;
        pi_do_call   = $4;       { set, if the procedure does a call }
        pi_operator  = $8;       { set, if the procedure is an operator   }
        pi_C_import  = $10;      { set, if the procedure is an external C function }
+       pi_uses_exceptions = $20;{ set, if the procedure has a try statement => }
+                                { no register variables                        }
 
     type
        pprocinfo = ^tprocinfo;
@@ -403,7 +405,11 @@ end.
 
 {
   $Log$
-  Revision 1.10  1998-07-20 18:40:13  florian
+  Revision 1.11  1998-07-28 21:52:51  florian
+    + implementation of raise and try..finally
+    + some misc. exception stuff
+
+  Revision 1.10  1998/07/20 18:40:13  florian
     * handling of ansi string constants should now work
 
   Revision 1.9  1998/06/05 16:13:34  pierre

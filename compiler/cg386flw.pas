@@ -484,6 +484,7 @@ do_jmp:
 *****************************************************************************}
 
     procedure secondgoto(var p : ptree);
+
        begin
          emitl(A_JMP,p^.labelnr);
        end;
@@ -506,8 +507,10 @@ do_jmp:
 *****************************************************************************}
 
     procedure secondraise(var p : ptree);
+
       var
          a : plabel;
+
       begin
          if assigned(p^.left) then
            begin
@@ -515,13 +518,13 @@ do_jmp:
               if assigned(p^.right) then
                 begin
                    secondpass(p^.right);
-                       if codegenerror then
-                          exit;
+                   if codegenerror then
+                     exit;
                 end
               else
-                        begin
+                begin
                    getlabel(a);
-                           emitl(A_LABEL,a);
+                   emitl(A_LABEL,a);
                    exprasmlist^.concat(new(pai386,
                      op_csymbol(A_PUSH,S_L,newcsymbol(lab2str(a),0))));
                 end;
@@ -536,10 +539,12 @@ do_jmp:
                        p^.left^.location.register)));
                  else Message(sym_e_type_mismatch);
               end;
-                 emitcall('DO_RAISE',true);
+              emitcall('FPC_RAISEEXCEPTION',true);
              end
            else
-             emitcall('DO_RERAISE',true);
+             begin
+                emitcall('FPC_RERAISE',true);
+             end;
        end;
 
 
@@ -548,16 +553,118 @@ do_jmp:
 *****************************************************************************}
 
     procedure secondtryexcept(var p : ptree);
-      begin
-      end;
 
+      var
+         exceptlabel,doexceptlabel,endexceptlabel,
+         nextonlabel,lastonlabel : plabel;
+
+      begin
+         { we modify EAX }
+         usedinproc:=usedinproc or ($80 shr byte(R_EAX));
+
+         getlabel(exceptlabel);
+         getlabel(doexceptlabel);
+         getlabel(endexceptlabel);
+         getlabel(lastonlabel);
+         emitcall('FPC_PUSHEXCEPTADDR',true);
+         exprasmlist^.concat(new(pai386,
+           op_reg(A_PUSH,S_L,R_EAX)));
+         emitcall('FPC_SETJMP',true);
+         exprasmlist^.concat(new(pai386,
+           op_reg(A_PUSH,S_L,R_EAX)));
+         exprasmlist^.concat(new(pai386,
+           op_reg_reg(A_TEST,S_L,R_EAX,R_EAX)));
+         emitl(A_JNE,exceptlabel);
+
+         { try code }
+         secondpass(p^.left);
+         if codegenerror then
+           exit;
+
+         emitl(A_LABEL,exceptlabel);
+         exprasmlist^.concat(new(pai386,
+           op_reg(A_POP,S_L,R_EAX)));
+         exprasmlist^.concat(new(pai386,
+           op_reg_reg(A_TEST,S_L,R_EAX,R_EAX)));
+         emitl(A_JNE,doexceptlabel);
+         emitcall('FPC_POPADDRSTACK',true);
+         emitl(A_JMP,endexceptlabel);
+         emitl(A_LABEL,doexceptlabel);
+
+         { for each object: }
+         while false do
+           begin
+              getlabel(nextonlabel);
+           end;
+{
+for each 'on object' do :
+----------------
+
+pushl objectclass;  // pass object class, or -1 if no class specified.
+call FPC_CATCHES    // Does this object tacth the exception ?
+testl %eax,%eax
+je .nexton          // No, jump to next on...
+... code for on handler...
+.nexton
+...
+}
+         emitl(A_LABEL,lastonlabel);
+         { default handling }
+         if assigned(p^.t1) then
+           secondpass(p^.t1)
+         else
+           emitcall('FPC_RERAISE',true);
+         emitl(A_LABEL,endexceptlabel);
+
+      end;
 
 {*****************************************************************************
                              SecondTryFinally
 *****************************************************************************}
 
     procedure secondtryfinally(var p : ptree);
+
+      var
+         finallylabel,noreraiselabel,endfinallylabel : plabel;
+
       begin
+         { we modify EAX }
+         usedinproc:=usedinproc or ($80 shr byte(R_EAX));
+
+         getlabel(finallylabel);
+         getlabel(noreraiselabel);
+         getlabel(endfinallylabel);
+         emitcall('FPC_PUSHEXCEPTADDR',true);
+         exprasmlist^.concat(new(pai386,
+           op_reg(A_PUSH,S_L,R_EAX)));
+         emitcall('FPC_SETJMP',true);
+         exprasmlist^.concat(new(pai386,
+           op_reg(A_PUSH,S_L,R_EAX)));
+         exprasmlist^.concat(new(pai386,
+           op_reg_reg(A_TEST,S_L,R_EAX,R_EAX)));
+         emitl(A_JNE,finallylabel);
+
+         { try code }
+         secondpass(p^.left);
+         if codegenerror then
+           exit;
+
+         emitl(A_LABEL,finallylabel);
+
+         { finally code }
+         secondpass(p^.right);
+         if codegenerror then
+           exit;
+         exprasmlist^.concat(new(pai386,
+           op_reg(A_POP,S_L,R_EAX)));
+         exprasmlist^.concat(new(pai386,
+           op_reg_reg(A_TEST,S_L,R_EAX,R_EAX)));
+         emitl(A_JE,noreraiselabel);
+         emitcall('FPC_RERAISE',true);
+         emitl(A_JMP,endfinallylabel);
+         emitl(A_LABEL,noreraiselabel);
+         emitcall('FPC_POPADDRSTACK',true);
+         emitl(A_LABEL,endfinallylabel);
       end;
 
 
@@ -590,7 +697,11 @@ do_jmp:
 end.
 {
   $Log$
-  Revision 1.4  1998-07-24 22:16:53  florian
+  Revision 1.5  1998-07-28 21:52:49  florian
+    + implementation of raise and try..finally
+    + some misc. exception stuff
+
+  Revision 1.4  1998/07/24 22:16:53  florian
     * internal error 10 together with array access fixed. I hope
       that's the final fix.
 

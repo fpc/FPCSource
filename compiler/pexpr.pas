@@ -683,7 +683,7 @@ unit pexpr;
       procedure postfixoperators;
 
         begin
-             check_tokenpos;
+           check_tokenpos;
            while again do
              begin
                 case token of
@@ -1788,7 +1788,11 @@ unit pexpr;
 end.
 {
   $Log$
-  Revision 1.29  1998-07-27 21:57:13  florian
+  Revision 1.30  1998-07-28 21:52:54  florian
+    + implementation of raise and try..finally
+    + some misc. exception stuff
+
+  Revision 1.29  1998/07/27 21:57:13  florian
     * fix to allow tv like stream registration:
         @tmenu.load doesn't work if load had parameters or if load was only
         declared in an anchestor class of tmenu

@@ -316,15 +316,17 @@ implementation
            end;
       end;
 
-
     procedure generatecode(var p : ptree);
+
       var
          i       : longint;
          regsize : topsize;
          regi    : tregister;
          hr      : preference;
+
       label
          nextreg;
+
       begin
          cleartempgen;
          { when size optimization only count occurrence }
@@ -353,8 +355,9 @@ implementation
            begin
               { max. optimizations     }
               { only if no asm is used }
+              { and no try statement   }
               if (cs_maxoptimieren in aktswitches) and
-                ((procinfo.flags and pi_uses_asm)=0) then
+                ((procinfo.flags and (pi_uses_asm or pi_uses_exceptions))=0) then
                 begin
                    { can we omit the stack frame ? }
                    { conditions:
@@ -502,7 +505,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.42  1998-07-15 16:06:44  jonas
+  Revision 1.43  1998-07-28 21:52:50  florian
+    + implementation of raise and try..finally
+    + some misc. exception stuff
+
+  Revision 1.42  1998/07/15 16:06:44  jonas
   * fixed bug that caused the stackframe never to be omitted
 
   Revision 1.41  1998/07/14 14:46:44  peter
