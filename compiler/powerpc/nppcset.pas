@@ -120,9 +120,6 @@ implementation
                     { if there is no unused label between the last and the }
                     { present label then the lower limit can be checked    }
                     { immediately. else check the range in between:       }
-
-                    { note: you can't use gensub() here because dec doesn't }
-                    { change the carry flag (needed for jmp_lxx) (JM)       }
                     gensub(longint(t^._low-last));
                     tcgppc(cg).a_jmp_cond(exprasmlist,jmp_lt,elselabel);
                   end;
@@ -137,7 +134,8 @@ implementation
 
       begin
          { do we need to generate cmps? }
-         if (with_sign and (min_label<0)) then
+         if (with_sign and (min_label<0)) or
+            (opsize = OS_32) then
            genlinearcmplist(hp)
          else
            begin
@@ -156,7 +154,13 @@ begin
 end.
 {
   $Log$
-  Revision 1.1  2002-08-11 11:39:12  jonas
+  Revision 1.2  2002-09-08 20:14:33  jonas
+    * use genlinearcmplist() for unsigned 32bit case statements instead
+      of genlinearlist(), because the addic. instruction always sets the
+      flags as if the arguments are signed 32bits (for smaller unsigned
+      types, this doesn't matter since they fit in s32bit)
+
+  Revision 1.1  2002/08/11 11:39:12  jonas
     + powerpc-specific genlinearlist
 
   Revision 1.13  2002/08/11 06:14:40  florian
