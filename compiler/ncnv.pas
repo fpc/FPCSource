@@ -1917,6 +1917,8 @@ implementation
     function tasnode.det_resulttype:tnode;
       var
         hp : tnode;
+        b : boolean;
+        o : tobjectdef;
       begin
          result:=nil;
          resulttypepass(right);
@@ -1951,9 +1953,20 @@ implementation
             if is_class(left.resulttype.def) then
              begin
                { the operands must be related }
-               if not(assigned(tobjectdef(left.resulttype.def).implementedinterfaces) and
-                      (tobjectdef(left.resulttype.def).implementedinterfaces.searchintf(right.resulttype.def)<>-1)) then
-                 CGMessage2(type_e_classes_not_related,left.resulttype.def.typename,right.resulttype.def.typename);
+               b:=false;
+               o:=tobjectdef(left.resulttype.def);
+               while assigned(o) do
+                 begin
+                    if assigned(o.implementedinterfaces) and
+                      (o.implementedinterfaces.searchintf(right.resulttype.def)<>-1) then
+                      begin
+                         b:=true;
+                         break;
+                      end;
+                    o:=o.childof;
+                 end;
+                 if not(b) then
+                   CGMessage2(type_e_classes_not_related,left.resulttype.def.typename,right.resulttype.def.typename);
              end
             { left is an interface }
             else if is_interface(left.resulttype.def) then
@@ -2043,7 +2056,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.82  2002-09-30 07:00:47  florian
+  Revision 1.83  2002-10-02 20:17:14  florian
+    + the as operator for <class> as <interface> has to check the parent classes as well
+
+  Revision 1.82  2002/09/30 07:00:47  florian
     * fixes to common code to get the alpha compiler compiled applied
 
   Revision 1.81  2002/09/16 14:11:13  peter
