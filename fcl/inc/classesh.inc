@@ -511,8 +511,8 @@ type
   public
     function Read(var Buffer; Count: Longint): Longint; virtual; abstract;
     function Write(const Buffer; Count: Longint): Longint; virtual; abstract;
-    function Seek(Offset: Longint; Origin: Word): Longint; virtual; overload;
-    function Seek(Offset: Int64; Origin: TSeekOrigin): Int64; virtual; overload;
+    function Seek(Offset: Longint; Origin: Word): Longint; virtual; {$ifndef ver1_0}overload;{$endif}
+    function Seek(Offset: Int64; Origin: TSeekOrigin): Int64; virtual; {$ifndef ver1_0}overload;{$endif}
     procedure ReadBuffer(var Buffer; Count: Longint);
     procedure WriteBuffer(const Buffer; Count: Longint);
     function CopyFrom(Source: TStream; Count: Int64): Int64;
@@ -1294,7 +1294,10 @@ function LineStart(Buffer, BufPos: PChar): PChar;
 
 {
   $Log$
-  Revision 1.15  2001-11-20 18:53:29  peter
+  Revision 1.16  2001-11-24 20:41:04  carl
+  * fix Peter's problems with compiling under version 1.0
+
+  Revision 1.15  2001/11/20 18:53:29  peter
     * overload fix
 
   Revision 1.14  2001/10/29 19:38:13  michael
