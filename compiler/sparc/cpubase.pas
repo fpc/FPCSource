@@ -981,6 +981,8 @@ type
     function cgsize2subreg(s:Tcgsize):Tsubregister;
     function supreg_name(r:Tsuperregister):string;
 
+    function gas_regname(const r:TNewRegister):string;
+
 
 implementation
 
@@ -1054,10 +1056,24 @@ implementation
           end;
       end;
 
+
+    function gas_regname(const r:TNewRegister):string;
+      var
+        Reg:TRegister;
+      begin
+        Reg.Number:=r;
+        Reg.enum:=R_INTREGISTER;
+        convert_register_to_enum(Reg);
+        gas_regname:=std_Reg2str[Reg.Enum];
+      end;
+
 end.
 {
   $Log$
-  Revision 1.46  2003-08-17 16:59:20  jonas
+  Revision 1.47  2003-08-19 13:22:51  mazen
+  + implemented gas_regname based on convert_register_to_enum std_Reg2str
+
+  Revision 1.46  2003/08/17 16:59:20  jonas
     * fixed regvars so they work with newra (at least for ppc)
     * fixed some volatile register bugs
     + -dnotranslation option for -dnewra, which causes the registers not to
