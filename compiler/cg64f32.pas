@@ -506,12 +506,16 @@ unit cg64f32;
         case locpara.loc of
            LOC_REGISTER:
              tmplochi.register:=tmplochi.registerhigh;
+           { !!! i386 doesn't pass proper locations here
+            so always take a loc_reference, since that's what it uses (JM)
            LOC_REFERENCE:
+           }
+           else
              if target_info.endian=endian_big then
                inc(tmploclo.reference.offset,4)
              else
                inc(tmplochi.reference.offset,4);
-           { !!! i386 doesn't pass proper locations here
+           {
            else
              internalerror(2003042702);
            }
@@ -544,12 +548,24 @@ unit cg64f32;
                   inc(tmprefhi.offset,4);
                 tmplochi.register:=tmplochi.registerhigh;
              end;
-           LOC_REFERENCE:
-             begin
-                inc(tmprefhi.offset,4);
-                inc(tmplochi.reference.offset,4);
-             end
            { !!! i386 doesn't pass proper locations here
+            so always take a loc_reference, since that's what it uses (JM)
+           LOC_REFERENCE:
+           }
+           else
+             begin
+                if target_info.endian=endian_big then
+                  begin
+                    inc(tmpreflo.offset,4);
+                    inc(tmploclo.reference.offset,4);
+                  end
+                else
+                  begin
+                    inc(tmprefhi.offset,4);
+                    inc(tmplochi.reference.offset,4);
+                  end;
+             end
+           {
            else
              internalerror(2003042701);
            }
@@ -652,7 +668,7 @@ unit cg64f32;
              cg.g_rangecheck(list,p,todef);
              hdef.free;
              { restore original resulttype.def }
-             p.resulttype.def := todef;
+             p.resulttype.def := fromdef;
 
              if from_signed and to_signed then
                begin
@@ -865,7 +881,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.42  2003-04-27 09:10:49  florian
+  Revision 1.43  2003-04-27 14:48:09  jonas
+    * fixed Florian's quick hack :)
+    * fixed small bug 64bit range checking code
+
+  Revision 1.42  2003/04/27 09:10:49  florian
     * quick fix for param64 for intel
 
   Revision 1.41  2003/04/27 08:23:51  florian
