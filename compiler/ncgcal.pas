@@ -516,14 +516,20 @@ implementation
             begin
               if resultparaloc^.loc<>LOC_REGISTER then
                 internalerror(200409261);
+
               { the FUNCTION_RESULT_REG is already allocated }
-              if getsupreg(resultparaloc^.register)<first_mm_imreg then
+              if getsupreg(resultparaloc^.register)<first_int_imreg then
                 cg.ungetcpuregister(exprasmlist,resultparaloc^.register);
               if not assigned(funcretnode) then
                 begin
+                  { reg_ref could generate two instrcutions and allocate a register so we've to
+                    save the result first before releasing it }
+                  hregister:=cg.getaddressregister(exprasmlist);
+                  cg.a_load_reg_reg(exprasmlist,OS_ADDR,OS_ADDR,resultparaloc^.register,hregister);
+
                   location_reset(location,LOC_REFERENCE,OS_ADDR);
                   location.reference:=refcountedtemp;
-                  cg.a_load_reg_ref(exprasmlist,OS_ADDR,OS_ADDR,NR_FUNCTION_RESULT_REG,location.reference);
+                  cg.a_load_reg_ref(exprasmlist,OS_ADDR,OS_ADDR,hregister,location.reference);
                 end
               else
                 begin
@@ -1247,7 +1253,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.182  2004-10-31 21:45:03  peter
+  Revision 1.183  2004-11-01 17:41:28  florian
+    * fixed arm compilation with cgutils
+    * ...
+
+  Revision 1.182  2004/10/31 21:45:03  peter
     * generic tlocation
     * move tlocation to cgutils
 

@@ -488,10 +488,10 @@ interface
             begin
               if (right.location.loc = LOC_CONSTANT) then
                 cg.a_op_const_reg_reg(exprasmlist,op,location.size,right.location.value,
-                  left.location.register64,location.register)
+                  left.location.register,location.register)
               else
                 cg.a_op_reg_reg_reg(exprasmlist,op,location.size,right.location.register,
-                  left.location.register64,location.register);
+                  left.location.register,location.register);
             end;
           subn:
             begin
@@ -500,11 +500,6 @@ interface
 
               if left.location.loc <> LOC_CONSTANT then
                 begin
-                  if (location.register64.reglo = NR_NO) then
-                    begin
-                     location.register64.reglo := cg.getintregister(exprasmlist,OS_INT);
-                     location.register64.reghi := cg.getintregister(exprasmlist,OS_INT);
-                  end;
                   if right.location.loc <> LOC_CONSTANT then
                     // reg64 - reg64
                     cg.a_op_reg_reg_reg(exprasmlist,OP_SUB,location.size,
@@ -778,7 +773,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.35  2004-10-31 21:45:03  peter
+  Revision 1.36  2004-11-01 17:41:28  florian
+    * fixed arm compilation with cgutils
+    * ...
+
+  Revision 1.35  2004/10/31 21:45:03  peter
     * generic tlocation
     * move tlocation to cgutils
 

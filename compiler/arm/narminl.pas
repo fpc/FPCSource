@@ -61,7 +61,8 @@ implementation
       cutils,verbose,globals,fmodule,
       symconst,symdef,
       aasmbase,aasmtai,aasmcpu,
-      cgbase,pass_1,pass_2,
+      cgbase,cgutils,
+      pass_1,pass_2,
       cpubase,paramgr,
       nbas,ncon,ncal,ncnv,nld,
       tgobj,ncgutil,cgobj,cg64f32,rgobj,rgcpu,cgcpu;
@@ -202,7 +203,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.7  2004-06-20 08:55:31  florian
+  Revision 1.8  2004-11-01 17:41:28  florian
+    * fixed arm compilation with cgutils
+    * ...
+
+  Revision 1.7  2004/06/20 08:55:31  florian
     * logs truncated
 
   Revision 1.6  2004/03/16 22:12:10  florian

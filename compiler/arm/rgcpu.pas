@@ -30,7 +30,7 @@ unit rgcpu;
 
      uses
        aasmbase,aasmtai,aasmcpu,
-       cgbase,
+       cgbase,cgutils,
        cpubase,
        rgobj;
 
@@ -48,7 +48,7 @@ unit rgcpu;
 
     uses
       verbose, cutils,
-      cgutils,cgobj,
+      cgobj,
       procinfo;
 
 
@@ -159,7 +159,11 @@ end.
 
 {
   $Log$
-  Revision 1.14  2004-10-24 07:54:25  florian
+  Revision 1.15  2004-11-01 17:41:28  florian
+    * fixed arm compilation with cgutils
+    * ...
+
+  Revision 1.14  2004/10/24 07:54:25  florian
     * fixed compilation of arm compiler
 
   Revision 1.13  2004/07/03 19:29:14  florian

@@ -30,7 +30,7 @@ unit cgcpu;
 
     uses
        globtype,symtype,
-       cgbase,cgobj,
+       cgbase,cgutils,cgobj,
        aasmbase,aasmcpu,aasmtai,
        parabase,
        cpubase,cpuinfo,node,cg64f32,rgcpu;
@@ -120,7 +120,6 @@ unit cgcpu;
        symconst,symdef,symsym,
        tgobj,
        procinfo,cpupi,
-       cgutils,
        paramgr;
 
 
@@ -1287,7 +1286,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.61  2004-10-31 16:47:43  florian
+  Revision 1.62  2004-11-01 17:41:28  florian
+    * fixed arm compilation with cgutils
+    * ...
+
+  Revision 1.61  2004/10/31 16:47:43  florian
     * fixed ie with pi_do_call
 
   Revision 1.60  2004/10/31 16:04:30  florian

@@ -48,7 +48,8 @@ interface
       cutils,verbose,globals,
       symconst,symdef,paramgr,
       aasmbase,aasmtai,aasmcpu,defutil,htypechk,
-      cgbase,cpuinfo,pass_1,pass_2,regvars,cgcpu,
+      cgbase,cgutils,cgcpu,
+      cpuinfo,pass_1,pass_2,regvars,
       cpupara,
       ncon,nset,nadd,
       ncgutil,tgobj,rgobj,rgcpu,cgobj,cg64f32;
@@ -331,7 +332,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.18  2004-10-31 16:04:30  florian
+  Revision 1.19  2004-11-01 17:41:28  florian
+    * fixed arm compilation with cgutils
+    * ...
+
+  Revision 1.18  2004/10/31 16:04:30  florian
     * fixed compilation of system unit on arm
 
   Revision 1.17  2004/10/24 17:32:53  florian

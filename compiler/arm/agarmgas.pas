@@ -52,7 +52,7 @@ unit agarmgas;
        assemble,
        aasmcpu,
        itcpugas,
-       cgbase;
+       cgbase,cgutils;
 
     const
        as_arm_gas_info : tasminfo =
@@ -238,7 +238,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.21  2004-06-20 08:55:31  florian
+  Revision 1.22  2004-11-01 17:41:28  florian
+    * fixed arm compilation with cgutils
+    * ...
+
+  Revision 1.21  2004/06/20 08:55:31  florian
     * logs truncated
 
   Revision 1.20  2004/06/16 20:07:10  florian

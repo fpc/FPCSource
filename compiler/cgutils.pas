@@ -29,6 +29,7 @@ unit cgutils;
 
     uses
       globtype,
+      cclasses,
       aasmbase,
       cpubase,cgbase;
 
@@ -44,6 +45,13 @@ unit cgutils;
          index       : tregister;
          refaddr     : trefaddr;
          scalefactor : byte;
+{$ifdef arm}
+         symboldata  : tlinkedlistitem;
+         signindex   : shortint;
+         shiftimm    : byte;
+         addressmode : taddressmode;
+         shiftmode   : tshiftmode;
+{$endif arm}
       end;
 
       tlocation = record
@@ -170,7 +178,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.2  2004-10-31 21:45:02  peter
+  Revision 1.3  2004-11-01 17:41:28  florian
+    * fixed arm compilation with cgutils
+    * ...
+
+  Revision 1.2  2004/10/31 21:45:02  peter
     * generic tlocation
     * move tlocation to cgutils
 

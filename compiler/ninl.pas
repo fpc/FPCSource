@@ -2099,6 +2099,7 @@ implementation
                 result := ctypeconvnode.create_explicit(left,resulttype);
               left := nil;
               firstpass(result);
+              printnode(output,result);
             end;
 
           in_sizeof_x:
@@ -2442,7 +2443,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.146  2004-10-31 21:45:03  peter
+  Revision 1.147  2004-11-01 17:41:28  florian
+    * fixed arm compilation with cgutils
+    * ...
+
+  Revision 1.146  2004/10/31 21:45:03  peter
     * generic tlocation
     * move tlocation to cgutils
 

@@ -48,7 +48,8 @@ implementation
       symconst,symdef,
       aasmbase,aasmcpu,aasmtai,
       defutil,
-      cgbase,cgobj,pass_1,pass_2,
+      cgbase,cgobj,cgutils,
+      pass_1,pass_2,
       ncon,
       cpubase,cpuinfo,
       ncgutil,cgcpu,cg64f32,rgobj;
@@ -121,7 +122,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.8  2004-10-24 07:54:25  florian
+  Revision 1.9  2004-11-01 17:41:28  florian
+    * fixed arm compilation with cgutils
+    * ...
+
+  Revision 1.8  2004/10/24 07:54:25  florian
     * fixed compilation of arm compiler
 
   Revision 1.7  2004/06/20 08:55:31  florian

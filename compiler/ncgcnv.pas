@@ -94,13 +94,13 @@ interface
               than the original, else load it to a register }
             if (location.loc in [LOC_REFERENCE,LOC_CREFERENCE]) and
                (ressize<leftsize) then
-             begin
-               location.size:=newsize;
-               if (target_info.endian = ENDIAN_BIG) then
-                 inc(location.reference.offset,leftsize-ressize);
-             end
+              begin
+                location.size:=newsize;
+                if (target_info.endian = ENDIAN_BIG) then
+                  inc(location.reference.offset,leftsize-ressize);
+              end
             else
-             location_force_reg(exprasmlist,location,newsize,false);
+              location_force_reg(exprasmlist,location,newsize,false);
           end
         else
           begin
@@ -531,7 +531,11 @@ end.
 
 {
   $Log$
-  Revision 1.62  2004-11-01 15:31:58  peter
+  Revision 1.63  2004-11-01 17:41:28  florian
+    * fixed arm compilation with cgutils
+    * ...
+
+  Revision 1.62  2004/11/01 15:31:58  peter
     * -Or fix for absolute
 
   Revision 1.61  2004/10/31 21:45:03  peter

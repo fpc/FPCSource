@@ -29,7 +29,7 @@ interface
 uses
   cclasses,aasmtai,
   aasmbase,globtype,globals,verbose,
-  cpubase,cpuinfo,cgbase;
+  cpubase,cpuinfo,cgbase,cgutils;
 
     const
       { "mov reg,reg" source operand number }
@@ -391,7 +391,7 @@ implementation
               result := operand_read
             else
               { check for pre/post indexed }
-              result := operand_read
+              result := operand_read;
           else
             internalerror(200403151);
         end;
@@ -493,7 +493,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.35  2004-10-24 17:32:53  florian
+  Revision 1.36  2004-11-01 17:41:28  florian
+    * fixed arm compilation with cgutils
+    * ...
+
+  Revision 1.35  2004/10/24 17:32:53  florian
     * fixed several arm compiler bugs
 
   Revision 1.34  2004/07/04 15:22:34  florian

@@ -200,44 +200,11 @@ unit cpubase;
         F_GE,F_LT,F_GT,F_LE);
 
 {*****************************************************************************
-                                Reference
+                                Operands
 *****************************************************************************}
-
-    type
-      trefoptions=(ref_none,ref_parafixup,ref_localfixup,ref_selffixup);
 
       taddressmode = (AM_OFFSET,AM_PREINDEXED,AM_POSTINDEXED);
       tshiftmode = (SM_None,SM_LSL,SM_LSR,SM_ASR,SM_ROR,SM_RRX);
-
-      { reference record }
-      preference = ^treference;
-      treference = record
-         symbol      : tasmsymbol;
-         { symbol the symbol of this reference is relative to, nil if none }
-         relsymbol      : tasmsymbol;
-         offset      : longint;
-         base,
-         index       : tregister;
-         symboldata  : tlinkedlistitem;
-         { reference type addr or symbol itself }
-         refaddr : trefaddr;
-         signindex   : shortint;
-         shiftimm    : byte;
-         options     : trefoptions;
-         addressmode : taddressmode;
-         shiftmode   : tshiftmode;
-      end;
-
-      { reference record }
-      pparareference = ^tparareference;
-      tparareference = record
-         index       : tregister;
-         offset      : longint;
-      end;
-
-{*****************************************************************************
-                                Operands
-*****************************************************************************}
 
       tupdatereg = (UR_None,UR_Update);
 
@@ -247,41 +214,6 @@ unit cpubase;
         shiftmode : tshiftmode;
         rs : tregister;
         shiftimm : byte;
-      end;
-
-{*****************************************************************************
-                               Generic Location
-*****************************************************************************}
-
-    type
-      tlocation = record
-         loc  : TCGLoc;
-         size : TCGSize;
-         case TCGLoc of
-            LOC_FLAGS : (resflags : tresflags);
-            LOC_CONSTANT : (
-              case longint of
-                1 : (value : aint);
-                { can't do this, this layout depends on the host cpu. Use }
-                { lo(valueqword)/hi(valueqword) instead (JM)              }
-                { 2 : (valuelow, valuehigh:AWord);                        }
-                { overlay a complete 64 Bit value }
-                3 : (value64 : int64);
-              );
-            LOC_CREFERENCE,
-            LOC_REFERENCE : (reference : treference);
-            { segment in reference at the same place as in loc_register }
-            LOC_REGISTER,LOC_CREGISTER : (
-              case longint of
-                1 : (register,register64.reghi,segment : tregister);
-                { overlay a register64.reglo }
-                2 : (register64.reglo : tregister);
-                { overlay a 64 Bit register type }
-                3 : (reg64 : tregister64);
-                4 : (register64 : tregister64);
-              );
-            { it's only for better handling }
-            LOC_MMXREGISTER,LOC_CMMXREGISTER : (mmxreg : tregister);
       end;
 
 {*****************************************************************************
@@ -565,7 +497,11 @@ unit cpubase;
 end.
 {
   $Log$
-  Revision 1.36  2004-10-31 21:45:03  peter
+  Revision 1.37  2004-11-01 17:41:28  florian
+    * fixed arm compilation with cgutils
+    * ...
+
+  Revision 1.36  2004/10/31 21:45:03  peter
     * generic tlocation
     * move tlocation to cgutils
 
