@@ -757,8 +757,8 @@ Begin
                                Else
                                  If (Pai386(p)^.op1t = top_reg) And
                                     (Pai386(p)^.op2t = top_ref) And
-                                    (Pai386(p)^.opsize = Pai386(hp1)^.opsize) And
                                     (Pai386(hp1)^.opcode = A_CMP) And
+                                    (Pai386(hp1)^.opsize = Pai386(p)^.opsize) And
                                     (Pai386(hp1)^.op2t = top_ref) And
                                     RefsEqual(TReference(Pai386(p)^.op2^),
                                               TReference(Pai386(hp1)^.op2^))
@@ -772,7 +772,8 @@ Begin
                 { Next instruction is also a MOV ? }
                   If GetNextInstruction(p, hp1) And
                      (pai(hp1)^.typ = ait_instruction) and
-                     (Pai386(hp1)^.opcode = A_MOV)
+                     (Pai386(hp1)^.opcode = A_MOV) and
+                     (Pai386(hp1)^.opsize = Pai386(p)^.opsize)
                     Then
                       Begin
                         If (Pai386(hp1)^.op1t = Pai386(p)^.op2t) and
@@ -812,6 +813,7 @@ Begin
                                          GetNextInstruction(hp1, hp2) And
                                          (hp2^.typ = ait_instruction) And
                                          (Pai386(hp2)^.opcode = A_CMP) And
+                                         (Pai386(hp2)^.opsize = Pai386(p)^.opsize) and
                                          (Pai386(hp2)^.Op1t = TOp_Ref) And
                                          (Pai386(hp2)^.Op2t = TOp_Reg) And
                                          RefsEqual(TReference(Pai386(hp2)^.Op1^),
@@ -843,12 +845,13 @@ Begin
                                        (Pai386(hp1)^.op2t = top_ref) And
                                        (Pai(hp2)^.typ = ait_instruction) And
                                        (Pai386(hp2)^.opcode = A_MOV) And
+                                       (Pai386(hp2)^.opsize = Pai386(p)^.opsize) and
                                        (Pai386(hp2)^.op2t = top_reg) And
                                        (Pai386(hp2)^.op1t = top_ref) And
                                        RefsEqual(TReference(Pai386(hp2)^.op1^),
                                                  TReference(Pai386(hp1)^.op2^))
                                       Then
-                                        If (TRegister(Pai386(p)^.op2) = R_EDI)
+                                        If (TRegister(Pai386(p)^.op2) in [R_DI,R_EDI])
                                           Then
                                  {   mov mem1, %edi
                                      mov %edi, mem2
@@ -1441,7 +1444,8 @@ Begin
                      Case Pai386(hp1)^.opcode Of
                        A_ADD, A_SUB, A_OR, A_XOR, A_AND, A_SHL, A_SHR:
                          Begin
-                           If (Pai386(hp1)^.op2 = Pai386(p)^.op1) Then
+                           If (Pai386(hp1)^.op2 = Pai386(p)^.op1) and
+                              (Pai386(hp1)^.op1t = pai386(p)^.op1t) Then
                              Begin
                                hp1 := pai(p^.next);
                                asml^.remove(p);
@@ -1452,7 +1456,8 @@ Begin
                          End;
                        A_DEC, A_INC, A_NEG:
                          Begin
-                           If (Pai386(hp1)^.op1 = Pai386(p)^.op1) Then
+                           If (Pai386(hp1)^.op2 = Pai386(p)^.op1) and
+                              (Pai386(hp1)^.op1t = pai386(p)^.op1t) Then
                              Begin
                                Case Pai386(hp1)^.opcode Of
                                  A_DEC, A_INC:
@@ -1609,7 +1614,11 @@ End.
 
 {
  $Log$
- Revision 1.39  1999-02-26 00:48:22  peter
+ Revision 1.40  1999-03-29 16:02:50  peter
+   * added type check for or/test x,x
+   * added size check for mov,mov,mov optimizes
+
+ Revision 1.39  1999/02/26 00:48:22  peter
    * assembler writers fixed for ag386bin
 
  Revision 1.38  1999/02/25 21:02:44  peter
