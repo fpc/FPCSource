@@ -3377,7 +3377,7 @@ procedure mov_reg_to_dest(p : ptree; s : topsize; reg : tregister);
                    tostr(N_PSYM)+',0,0,'+tostr(procinfo^.selfpointer_offset)))))
                 else
                   exprasmlist^.concat(new(pai_stabs,init(strpnew(
-                   '"$t:r'+procinfo^._class^.numberstring+'",'+
+                   '"$t:r*'+procinfo^._class^.numberstring+'",'+
                    tostr(N_RSYM)+',0,0,'+tostr(GDB_i386index[R_ESI])))));
 
               if (pdef(aktprocsym^.definition^.retdef) <> pdef(voiddef)) then
@@ -3447,7 +3447,10 @@ procedure mov_reg_to_dest(p : ptree; s : topsize; reg : tregister);
 end.
 {
   $Log$
-  Revision 1.58  1999-11-09 23:06:44  peter
+  Revision 1.59  1999-11-15 14:04:00  pierre
+   * self pointer stabs for local function was wrong
+
+  Revision 1.58  1999/11/09 23:06:44  peter
     * esi_offset -> selfpointer_offset to be newcg compatible
     * hcogegen -> cgbase fixes for newcg
 
