@@ -13,15 +13,15 @@ writer's guide (cws.txt) in that directory.
 
 Changes in the syntax or semantic of FPC:
 -----------------------------------------
-  28/01/99 : implicit conversion from boolean to integer is not possible
+  28/01/99   implicit conversion from boolean to integer is not possible
              anymore (solved several bugs) but this could lead to errors
              on previously accepted code (PM)
-  01/02/99:  c styled comments are supported (/* ... */), mainly
+  01/02/99   c styled comments are supported (/* ... */), mainly
              for the Sibyl sources of Medigo (FK)
-  02/02/99:  class destructors take now two parameters: flag
+  02/02/99   class destructors take now two parameters: flag
              if the helper routine should free the instance and
              self pointer (FK)
-  22/02/99:  PROTECTED and PRIVATE have now the same behavior
+  22/02/99   PROTECTED and PRIVATE have now the same behavior
              as in TP
   09/03/99   small records and arrays passed by value to a function are now directly copied
              into a 4 bytes parameter (needed for C and DLL calls) (PM)
@@ -32,4 +32,5 @@ Changes in the syntax or semantic of FPC:
   25/03/99   new directive STATIC +/- or on/off , works like -St commandline
              switch
   02/04/99   rtl/cfg/ directory has been removed, it's not used anymore
+  15/04/99   FINALIZATION is supported
 

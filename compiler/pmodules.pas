@@ -46,8 +46,7 @@ unit pmodules;
 {$ifdef i386}
 {$ifdef Ag386Bin}
        ,i386base,i386asm
-{$else}
-       ,i386
+{$else}       ,i386
 {$endif}
 {$endif}
 {$ifdef m68k}
@@ -137,6 +136,43 @@ unit pmodules;
         if assigned(debuglist) then
           fixseg(debuglist,sec_code);
 {$endif GDB}
+      end;
+
+    procedure InsertInitFinalTable;
+      var
+        hp : pused_unit;
+        unitinits : taasmoutput;
+        count : longint;
+      begin
+        unitinits.init;
+        count:=0;
+        hp:=pused_unit(usedunits.first);
+        while assigned(hp) do
+         begin
+           { call the unit init code and make it external }
+           if (hp^.u^.flags and (uf_init or uf_finalize))<>0 then
+            begin
+              if (hp^.u^.flags and uf_init)<>0 then
+               unitinits.concat(new(pai_const_symbol,init('INIT$$'+hp^.u^.modulename^)))
+              else
+               unitinits.concat(new(pai_const,init_32bit(0)));
+              if (hp^.u^.flags and uf_finalize)<>0 then
+               unitinits.concat(new(pai_const_symbol,init('FINALIZE$$'+hp^.u^.modulename^)))
+              else
+               unitinits.concat(new(pai_const,init_32bit(0)));
+              inc(count);
+            end;
+           hp:=Pused_unit(hp^.next);
+         end;
+        { TableCount,InitCount }
+        unitinits.insert(new(pai_const,init_32bit(0)));
+        unitinits.insert(new(pai_const,init_32bit(count)));
+        unitinits.insert(new(pai_symbol,init_global('INITFINAL')));
+        { insert in data segment }
+        if (cs_smartlink in aktmoduleswitches) then
+          datasegment^.concat(new(pai_cut,init));
+        datasegment^.concatlist(@unitinits);
+        unitinits.done;
       end;
 
 
@@ -1315,8 +1351,8 @@ unit pmodules;
            exportlib^.generatelib;
 
          { insert heap }
+         insertinitfinaltable;
          insertheap;
-
          inserttargetspecific;
 
          datasize:=symtablestack^.datasize;
@@ -1346,7 +1382,10 @@ unit pmodules;
 end.
 {
   $Log$
-  Revision 1.108  1999-04-14 09:14:52  peter
+  Revision 1.109  1999-04-15 12:19:59  peter
+    + finalization support
+
+  Revision 1.108  1999/04/14 09:14:52  peter
     * first things to store the symbol/def number in the ppu
 
   Revision 1.107  1999/04/08 10:53:54  michael

@@ -311,6 +311,56 @@ end;
                           Init / Exit / ExitProc
 *****************************************************************************}
 
+{$ifdef HASFINALIZE}
+
+const
+  maxunits=1024; { See also files.pas of the compiler source }
+type
+  TInitFinalRec=record
+    InitProc,
+    FinalProc : TProcedure;
+  end;
+  TInitFinalTable=record
+    TableCount,
+    InitCount  : longint;
+    Procs      : array[1..maxunits] of TInitFinalRec;
+  end;
+
+var
+  InitFinalTable : TInitFinalTable;external name 'INITFINAL';
+
+procedure InitializeUnits;[public,alias:'FPC_INITIALIZEUNITS'];
+var
+  i : longint;
+begin
+  with InitFinalTable do
+   begin
+     for i:=1to TableCount do
+      begin
+        if assigned(Procs[i].InitProc) then
+         Procs[i].InitProc();
+        InitCount:=i;
+      end;
+   end;
+end;
+
+
+procedure FinalizeUnits;[public,alias:'FPC_FINALIZEUNITS'];
+begin
+  with InitFinalTable do
+   begin
+     while (InitCount>0) do
+      begin
+        if assigned(Procs[InitCount].FinalProc) then
+         Procs[InitCount].FinalProc();
+        dec(InitCount);
+      end;
+   end;
+end;
+
+{$endif}
+
+
 Procedure HandleErrorFrame (Errno : longint;frame : longint);
 {
   Procedure to handle internal errors, i.e. not user-invoked errors
@@ -394,6 +444,11 @@ Begin
      exitProc:=nil;
      current_exit();
    End;
+{$ifdef HASFINALIZE}
+  { Finalize units }
+  FinalizeUnits;
+{$endif}
+  { Show runtime error }
   If erroraddr<>nil Then
    Begin
      Writeln(stdout,'Run time error  ',Errorcode,' at 0x',hexstr(Longint(Erroraddr),8));
@@ -485,7 +540,10 @@ end;
 
 {
   $Log$
-  Revision 1.55  1999-03-01 15:41:03  peter
+  Revision 1.56  1999-04-15 12:20:01  peter
+    + finalization support
+
+  Revision 1.55  1999/03/01 15:41:03  peter
     * use external names
     * removed all direct assembler modes
 
