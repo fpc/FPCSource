@@ -171,6 +171,10 @@ Begin
  r:=INT_VALUE_ONE;
  if Int(r)<>INT_RESULT_ONE then
    _success:=false;
+
+ if not _success then
+   fail;
+   
  if Int(INT_VALUE_ONE)<>INT_RESULT_ONE then
    _success:=false;
  r:=INT_VALUE_ONE;
@@ -184,6 +188,8 @@ Begin
  if r<>INT_RESULT_ONE then
    _success:=false;
 
+ if not _success then
+   fail;
 
  r:=INT_VALUE_TWO;
  if Int(r)<>INT_RESULT_TWO then
@@ -221,7 +227,10 @@ end.
 
 {
   $Log$
-  Revision 1.3  2002-10-15 10:26:36  pierre
+  Revision 1.4  2004-12-27 12:10:08  florian
+  *** empty log message ***
+
+  Revision 1.3  2002/10/15 10:26:36  pierre
    * add code to remember that currency is only implemented in 1.1 compiler
 
   Revision 1.2  2002/09/18 18:30:30  carl
