@@ -1678,14 +1678,16 @@ implementation
                    calcregisters(self,1,0,0);
                end
              else
-             {$ifdef i386}
+{$ifdef MMXSET}
+{$ifdef i386}
                if cs_mmx in aktlocalswitches then
                  begin
                    expectloc:=LOC_MMXREGISTER;
                    calcregisters(self,0,0,4);
                  end
                else
-             {$endif}
+{$endif}
+{$endif MMXSET}
                  begin
                    result := first_addset;
                    if assigned(result) then
@@ -1904,7 +1906,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.105  2004-01-02 17:19:04  jonas
+  Revision 1.106  2004-01-14 17:19:04  peter
+    * disable addmmxset
+
+  Revision 1.105  2004/01/02 17:19:04  jonas
     * if currency = int64, FPC_CURRENCY_IS_INT64 is defined
     + round and trunc for currency and comp if FPC_CURRENCY_IS_INT64 is
       defined

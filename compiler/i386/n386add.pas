@@ -1277,9 +1277,11 @@ interface
                should not be used.}
               if (tsetdef(left.resulttype.def).settype<>smallset) then
                 begin
+{$ifdef MMXSET}
                   if cs_mmx in aktlocalswitches then
                     second_addmmxset
                   else
+{$endif MMXSET}
                     internalerror(200109041);
                 end
               else
@@ -1428,7 +1430,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.92  2003-12-25 01:07:09  florian
+  Revision 1.93  2004-01-14 17:19:04  peter
+    * disable addmmxset
+
+  Revision 1.92  2003/12/25 01:07:09  florian
     + $fputype directive support
     + single data type operations with sse unit
     * fixed more x86-64 stuff
