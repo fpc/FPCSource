@@ -315,7 +315,7 @@ end;
 
 procedure SetErrorFlags(const s:string);
 var
-  code : word;
+  code : integer;
   i,j,l : longint;
 begin
 { empty string means error count = 1 for backward compatibility (PFV) }
@@ -580,7 +580,12 @@ end.
 
 {
   $Log$
-  Revision 1.51  2000-05-10 13:40:19  peter
+  Revision 1.52  2000-05-10 19:20:23  pierre
+    * Use integer third arg for val in SetErrorFlags
+      to allow compilation with Delphi
+      reported by Kovacs Attila Zoltan
+
+  Revision 1.51  2000/05/10 13:40:19  peter
     * -Se<x> option extended to increase errorcount for
       warning,notes or hints
 
