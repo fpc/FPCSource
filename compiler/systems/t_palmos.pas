@@ -183,7 +183,7 @@ begin
       begin
         Replace(cmdstr,'$EXE',MaybeQuote(current_module.exefilename^));
         Replace(cmdstr,'$OPT',Info.ExtraOptions);
-        Replace(cmdstr,'$RES',outputexedir+Info.ResName);
+        Replace(cmdstr,'$RES',maybequoted(outputexedir+Info.ResName));
         Replace(cmdstr,'$STRIP',StripStr);
         Replace(cmdstr,'$SCRIPT',FindUtil('palm.ld'));
         Replace(cmdstr,'$APPNAME',palmos_applicationname);
@@ -213,7 +213,10 @@ initialization
 end.
 {
   $Log$
-  Revision 1.3  2004-06-20 08:55:32  florian
+  Revision 1.4  2004-12-22 16:32:46  peter
+    * maybequoted() added
+
+  Revision 1.3  2004/06/20 08:55:32  florian
     * logs truncated
 
 }

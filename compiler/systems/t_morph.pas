@@ -92,9 +92,7 @@ begin
   while assigned(HPath) do
    begin
      s:=HPath.Str;
-     if not (cs_link_on_target in aktglobalswitches) then
-       s:=GetShortName(s)
-     else
+     if (cs_link_on_target in aktglobalswitches) then
        s:=ScriptFixFileName(s);
      LinkRes.Add('-L'+s);
      HPath:=TStringListItem(HPath.Next);
@@ -103,26 +101,20 @@ begin
   while assigned(HPath) do
    begin
      s:=HPath.Str;
-     if not (cs_link_on_target in aktglobalswitches) then
-       s:=GetShortName(s);
      if s<>'' then
-       LinkRes.Add('SEARCH_DIR('+s+')');
+       LinkRes.Add('SEARCH_DIR('+maybequoted(s)+')');
      HPath:=TStringListItem(HPath.Next);
    end;
 
   LinkRes.Add('INPUT (');
   { add objectfiles, start with prt0 always }
   s:=FindObjectFile('prt0','',false);
-  if not (cs_link_on_target in aktglobalswitches) then
-    s:=GetShortName(s);
   LinkRes.AddFileName(s);
   while not ObjectFiles.Empty do
    begin
      s:=ObjectFiles.GetFirst;
-     if not (cs_link_on_target in aktglobalswitches) then
-       s:=GetShortName(s);
      if s<>'' then
-      LinkRes.AddFileName(s);
+      LinkRes.AddFileName(maybequoted(s));
    end;
   LinkRes.Add(')');
 
@@ -133,9 +125,7 @@ begin
      While not StaticLibFiles.Empty do
       begin
         S:=StaticLibFiles.GetFirst;
-        if not (cs_link_on_target in aktglobalswitches) then
-          s:=GetShortName(s);
-        LinkRes.AddFileName(s);
+        LinkRes.AddFileName(maybequoted(s));
       end;
      LinkRes.Add(')');
    end;
@@ -190,12 +180,9 @@ begin
 
 { Call linker }
   SplitBinCmd(Info.ExeCmd[1],binstr,cmdstr);
-  if pos(' ',current_module.exefilename^)>0 then
-    Replace(cmdstr,'$EXE','"'+ScriptFixFileName(current_module.exefilename^)+'"')
-  else
-    Replace(cmdstr,'$EXE',ScriptFixFileName(current_module.exefilename^));
+  Replace(cmdstr,'$EXE',maybequoted(ScriptFixFileName(current_module.exefilename^));
   Replace(cmdstr,'$OPT',Info.ExtraOptions);
-  Replace(cmdstr,'$RES',ScriptFixFileName(outputexedir+Info.ResName));
+  Replace(cmdstr,'$RES',maybequoted(ScriptFixFileName(outputexedir+Info.ResName)));
   success:=DoExec(FindUtil(BinStr),cmdstr,true,false);
 
 { Stripping Enabled? }
@@ -205,7 +192,7 @@ begin
   if success and (cs_link_strip in aktglobalswitches) then
     begin
       SplitBinCmd(Info.ExeCmd[2],binstr,cmdstr);
-      Replace(cmdstr,'$EXE',current_module.exefilename^);
+      Replace(cmdstr,'$EXE',maybequoted(current_module.exefilename^));
       success:=DoExec(FindUtil(utilsprefix+binstr),cmdstr,true,false);
     end;
 
@@ -228,7 +215,10 @@ initialization
 end.
 {
   $Log$
-  Revision 1.8  2004-10-25 15:38:41  peter
+  Revision 1.9  2004-12-22 16:32:46  peter
+    * maybequoted() added
+
+  Revision 1.8  2004/10/25 15:38:41  peter
     * heap and heapsize removed
     * checkpointer fixes
 

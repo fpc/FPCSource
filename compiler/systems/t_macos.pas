@@ -203,9 +203,9 @@ begin
 
 { Call linker }
   SplitBinCmd(Info.ExeCmd[1],binstr,cmdstr);
-  Replace(cmdstr,'$EXE',ScriptFixFileName(current_module.exefilename^));
+  Replace(cmdstr,'$EXE',maybequoted(ScriptFixFileName(current_module.exefilename^)));
   Replace(cmdstr,'$OPT',Info.ExtraOptions);
-  Replace(cmdstr,'$RES',ScriptFixFileName(outputexedir+Info.ResName));
+  Replace(cmdstr,'$RES',maybequoted(ScriptFixFileName(outputexedir+Info.ResName)));
   Replace(cmdstr,'$STATIC',StaticStr);
   Replace(cmdstr,'$STRIP',StripStr);
   Replace(cmdstr,'$DYNLINK',DynLinkStr);
@@ -245,7 +245,10 @@ initialization
 end.
 {
   $Log$
-  Revision 1.15  2004-11-19 16:30:24  peter
+  Revision 1.16  2004-12-22 16:32:46  peter
+    * maybequoted() added
+
+  Revision 1.15  2004/11/19 16:30:24  peter
     * fixed setting of mangledname when importing
 
   Revision 1.14  2004/11/11 19:31:33  peter

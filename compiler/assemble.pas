@@ -196,7 +196,7 @@ Implementation
 {$ifdef m68k}
       cpuinfo,
 {$endif m68k}
-      cpubase,aasmcpu
+      aasmcpu
       ;
 
     var
@@ -400,7 +400,7 @@ Implementation
 {$ELSE USE_SYSUTILS}
          begin
            swapvectors;
-           exec(command,para);
+           exec(maybequoted(command),para);
            swapvectors;
            if (doserror<>0) then
             begin
@@ -466,13 +466,13 @@ Implementation
 {$endif}
         if (cs_link_on_target in aktglobalswitches) then
          begin
-           Replace(s,'$ASM',ScriptFixFileName(AsmFile));
-           Replace(s,'$OBJ',ScriptFixFileName(ObjFile));
+           Replace(s,'$ASM',maybequoted(ScriptFixFileName(AsmFile)));
+           Replace(s,'$OBJ',maybequoted(ScriptFixFileName(ObjFile)));
          end
         else
          begin
-           Replace(s,'$ASM',AsmFile);
-           Replace(s,'$OBJ',ObjFile);
+           Replace(s,'$ASM',maybequoted(AsmFile));
+           Replace(s,'$OBJ',maybequoted(ObjFile));
          end;
         if CallAssembler(FindAssembler,s) then
          RemoveAsm
@@ -1683,7 +1683,10 @@ Implementation
 end.
 {
   $Log$
-  Revision 1.82  2004-11-09 22:32:59  peter
+  Revision 1.83  2004-12-22 16:32:45  peter
+    * maybequoted() added
+
+  Revision 1.82  2004/11/09 22:32:59  peter
     * small m68k updates to bring it up2date
     * give better error for external local variable
 

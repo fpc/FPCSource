@@ -41,9 +41,9 @@ implementation
      strings,
      dos,
      cutils,cclasses,
-     globtype,comphook,systems,symconst,symsym,symdef,
+     globtype,systems,symconst,symdef,
      globals,verbose,fmodule,script,
-     import,link,i_os2,ppu;
+     import,link,i_os2;
 
   type
     timportlibos2=class(timportlib)
@@ -383,13 +383,13 @@ begin
   HPath:=TStringListItem(current_module.locallibrarysearchpath.First);
   while assigned(HPath) do
    begin
-     LinkRes.Add('-L'+HPath.Str);
+     LinkRes.Add(maybequoted('-L'+HPath.Str));
      HPath:=TStringListItem(HPath.Next);
    end;
   HPath:=TStringListItem(LibrarySearchPath.First);
   while assigned(HPath) do
    begin
-     LinkRes.Add('-L'+HPath.Str);
+     LinkRes.Add(maybequoted('-L'+HPath.Str));
      HPath:=TStringListItem(HPath.Next);
    end;
 
@@ -399,7 +399,7 @@ begin
    begin
      s:=ObjectFiles.GetFirst;
      if s<>'' then
-      LinkRes.AddFileName(s);
+      LinkRes.AddFileName(maybequoted(s));
    end;
 
   { Write staticlibraries }
@@ -407,7 +407,7 @@ begin
   While not StaticLibFiles.Empty do
    begin
      S:=StaticLibFiles.GetFirst;
-     LinkRes.AddFileName(s)
+     LinkRes.AddFileName(maybequoted(s))
    end;
 
   { Write sharedlibraries like -l<lib>, also add the needed dynamic linker
@@ -484,11 +484,11 @@ begin
         Replace(cmdstr,'$DOSHEAPKB',tostr((stacksize+1023) shr 10));
         Replace(cmdstr,'$STRIP',StripStr);
         Replace(cmdstr,'$APPTYPE',AppTypeStr);
-        Replace(cmdstr,'$RES',outputexedir+Info.ResName);
+        Replace(cmdstr,'$RES',maybequoted(outputexedir+Info.ResName));
         Replace(cmdstr,'$OPT',Info.ExtraOptions);
         Replace(cmdstr,'$RSRC',RsrcStr);
-        Replace(cmdstr,'$OUT',OutName);
-        Replace(cmdstr,'$EXE',current_module.exefilename^);
+        Replace(cmdstr,'$OUT',maybequoted(OutName));
+        Replace(cmdstr,'$EXE',maybequoted(current_module.exefilename^));
         if i<>3 then
          success:=DoExec(FindUtil(binstr),cmdstr,(i=1),false)
         else
@@ -516,7 +516,10 @@ initialization
 end.
 {
   $Log$
-  Revision 1.16  2004-12-05 12:25:48  hajny
+  Revision 1.17  2004-12-22 16:32:46  peter
+    * maybequoted() added
+
+  Revision 1.16  2004/12/05 12:25:48  hajny
     * fix for compilation on 8.3 filesystems
 
   Revision 1.15  2004/11/17 22:22:12  peter

@@ -210,7 +210,7 @@ begin
      ExeCmd[1]:='ld $OPT $DYNLINK $STATIC $STRIP -L. -o $EXE `cat $RES`';
      DllCmd[1]:='ld $OPT $INIT $FINI $SONAME -shared -L. -o $EXE `cat $RES`';
      DllCmd[2]:='strip --strip-unneeded $EXE';
-     {
+(*
      ExeCmd[1]:='sh $RES $EXE $OPT $STATIC $STRIP -L.';
 {     ExeCmd[1]:='sh $RES $EXE $OPT $DYNLINK $STATIC $STRIP -L.';}
       DllCmd[1]:='sh $RES $EXE $OPT -L.';
@@ -218,7 +218,7 @@ begin
 {     DllCmd[1]:='sh $RES $EXE $OPT -L. -g -nostart -soname=$EXE';
  }    DllCmd[2]:='strip --strip-unneeded $EXE';
 {     DynamicLinker:='/lib/ld-beos.so.2';}
-      }
+*)
    end;
 end;
 
@@ -269,13 +269,13 @@ begin
   HPath:=TStringListItem(current_module.locallibrarysearchpath.First);
   while assigned(HPath) do
    begin
-     LinkRes.Add('-L'+HPath.Str);
+     LinkRes.Add(maybequoted('-L'+HPath.Str));
      HPath:=TStringListItem(HPath.Next);
    end;
   HPath:=TStringListItem(LibrarySearchPath.First);
   while assigned(HPath) do
    begin
-     LinkRes.Add('-L'+HPath.Str);
+     LinkRes.Add(maybequoted('-L'+HPath.Str));
      HPath:=TStringListItem(HPath.Next);
    end;
 
@@ -309,7 +309,7 @@ begin
    begin
      s:=ObjectFiles.GetFirst;
      if s<>'' then
-      LinkRes.AddFileName(s);
+      LinkRes.AddFileName(maybequoted(s));
    end;
 
 {  LinkRes.Add('-lroot \');
@@ -322,7 +322,7 @@ begin
      While not StaticLibFiles.Empty do
       begin
         S:=StaticLibFiles.GetFirst;
-        LinkRes.AddFileName(s)
+        LinkRes.AddFileName(maybequoted(s))
       end;
    end;
 
@@ -406,9 +406,9 @@ begin
 
 { Call linker }
   SplitBinCmd(Info.ExeCmd[1],binstr,cmdstr);
-  Replace(cmdstr,'$EXE',current_module.exefilename^);
+  Replace(cmdstr,'$EXE',maybequoted(current_module.exefilename^));
   Replace(cmdstr,'$OPT',Info.ExtraOptions);
-  Replace(cmdstr,'$RES',outputexedir+Info.ResName);
+  Replace(cmdstr,'$RES',maybequoted(outputexedir+Info.ResName));
   Replace(cmdstr,'$STATIC',StaticStr);
   Replace(cmdstr,'$STRIP',StripStr);
   Replace(cmdstr,'$DYNLINK',DynLinkStr);
@@ -458,9 +458,9 @@ var
 
 { Call linker }
   SplitBinCmd(Info.DllCmd[1],binstr,cmdstr);
-  Replace(cmdstr,'$EXE',current_module.exefilename^);
+  Replace(cmdstr,'$EXE',maybequoted(current_module.exefilename^));
   Replace(cmdstr,'$OPT',Info.ExtraOptions);
-  Replace(cmdstr,'$RES',outputexedir+Info.ResName);
+  Replace(cmdstr,'$RES',maybequoted(outputexedir+Info.ResName));
   Replace(cmdstr,'$STATIC',StaticStr);
   Replace(cmdstr,'$STRIP',StripStr);
   Replace(cmdstr,'$DYNLINK',DynLinkStr);
@@ -470,7 +470,7 @@ var
   if success and (cs_link_strip in aktglobalswitches) then
    begin
      SplitBinCmd(Info.DllCmd[2],binstr,cmdstr);
-     Replace(cmdstr,'$EXE',current_module.sharedlibfilename^);
+     Replace(cmdstr,'$EXE',maybequoted(current_module.sharedlibfilename^));
      success:=DoExec(FindUtil(utilsprefix+binstr),cmdstr,true,false);
    end;
 
@@ -496,7 +496,10 @@ initialization
 end.
 {
   $Log$
-  Revision 1.16  2004-11-19 16:30:24  peter
+  Revision 1.17  2004-12-22 16:32:45  peter
+    * maybequoted() added
+
+  Revision 1.16  2004/11/19 16:30:24  peter
     * fixed setting of mangledname when importing
 
   Revision 1.15  2004/11/08 22:09:59  peter

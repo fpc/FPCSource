@@ -564,7 +564,7 @@ begin
 { Call AR }
   smartpath:=current_module.outputpath^+FixPath(lower(current_module.modulename^)+target_info.smartext,false);
   SplitBinCmd(target_ar.arcmd,binstr,cmdstr);
-  Replace(cmdstr,'$LIB',current_module.staticlibfilename^);
+  Replace(cmdstr,'$LIB',maybequoted(current_module.staticlibfilename^));
   Replace(cmdstr,'$FILES',FixFileName(smartpath+current_module.asmprefix^+'*'+target_info.objext));
   success:=DoExec(FindUtil(binstr),cmdstr,false,true);
 { Clean up }
@@ -706,7 +706,10 @@ initialization
 end.
 {
   $Log$
-  Revision 1.46  2004-11-03 22:22:51  peter
+  Revision 1.47  2004-12-22 16:32:45  peter
+    * maybequoted() added
+
+  Revision 1.46  2004/11/03 22:22:51  peter
   First check outputunitdir/outputexedir for .o file
 
   Revision 1.45  2004/10/14 16:25:39  mazen

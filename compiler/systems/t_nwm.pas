@@ -520,10 +520,10 @@ begin
 { Call linker, this will generate a new object file that will be passed
   to nlmconv. Otherwise we could not create nlms without debug info }
   SplitBinCmd(Info.ExeCmd[1],binstr,cmdstr);
-  Replace(cmdstr,'$EXE',current_module.exefilename^);
-  Replace(cmdstr,'$RES',outputexedir+Info.ResName);
+  Replace(cmdstr,'$EXE',maybequoted(current_module.exefilename^));
+  Replace(cmdstr,'$RES',maybequoted(outputexedir+Info.ResName));
   Replace(cmdstr,'$STRIP',StripStr);
-  Replace(cmdstr,'$TMPOBJ',outputexedir+tmpLinkFileName);
+  Replace(cmdstr,'$TMPOBJ',maybequoted(outputexedir+tmpLinkFileName));
   Comment (v_debug,'Executing '+BinStr+' '+cmdstr);
   success:=DoExec(FindUtil(BinStr),CmdStr,true,false);
 
@@ -537,7 +537,7 @@ begin
     NLMConvLinkFile.writetodisk;
     NLMConvLinkFile.Free;
     SplitBinCmd(Info.ExeCmd[2],binstr,cmdstr);
-    Replace(cmdstr,'$RES',outputexedir+'n'+Info.ResName);
+    Replace(cmdstr,'$RES',maybequoted(outputexedir+'n'+Info.ResName));
     Comment (v_debug,'Executing '+BinStr+' '+cmdstr);
     success:=DoExec(FindUtil(BinStr),CmdStr,true,false);
     if (success) and not(cs_link_extern in aktglobalswitches) then
@@ -564,7 +564,10 @@ initialization
 end.
 {
   $Log$
-  Revision 1.22  2004-11-25 18:46:11  armin
+  Revision 1.23  2004-12-22 16:32:46  peter
+    * maybequoted() added
+
+  Revision 1.22  2004/11/25 18:46:11  armin
   * added utilsprefix for as,ld and nlmconv
 
   Revision 1.21  2004/11/19 16:30:24  peter

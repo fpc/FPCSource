@@ -328,20 +328,20 @@ begin
   HPath:=TStringListItem(current_module.locallibrarysearchpath.First);
   while assigned(HPath) do
    begin
-     LinkRes.Add('SEARCH_DIR('+HPath.Str+')');
+     LinkRes.Add('SEARCH_DIR('+maybequoted(HPath.Str)+')');
      HPath:=TStringListItem(HPath.Next);
    end;
   HPath:=TStringListItem(LibrarySearchPath.First);
   while assigned(HPath) do
    begin
-     LinkRes.Add('SEARCH_DIR('+HPath.Str+')');
+     LinkRes.Add('SEARCH_DIR('+maybequoted(HPath.Str)+')');
      HPath:=TStringListItem(HPath.Next);
    end;
 
   LinkRes.Add('INPUT(');
   { add objectfiles, start with prt0 always }
   if prtobj<>'' then
-   LinkRes.AddFileName(FindObjectFile(prtobj,'',false));
+   LinkRes.AddFileName(maybequoted(FindObjectFile(prtobj,'',false)));
   { try to add crti and crtbegin if linking to C }
   if linklibc then
    begin
@@ -355,7 +355,7 @@ begin
    begin
      s:=ObjectFiles.GetFirst;
      if s<>'' then
-      LinkRes.AddFileName(s);
+      LinkRes.AddFileName(maybequoted(s));
    end;
   LinkRes.Add(')');
 
@@ -366,7 +366,7 @@ begin
      While not StaticLibFiles.Empty do
       begin
         S:=StaticLibFiles.GetFirst;
-        LinkRes.AddFileName(s)
+        LinkRes.AddFileName(maybequoted(s))
       end;
      LinkRes.Add(')');
    end;
@@ -463,9 +463,9 @@ begin
 
 { Call linker }
   SplitBinCmd(Info.ExeCmd[1],binstr,cmdstr);
-  Replace(cmdstr,'$EXE',current_module.exefilename^);
+  Replace(cmdstr,'$EXE',maybequoted(current_module.exefilename^));
   Replace(cmdstr,'$OPT',Info.ExtraOptions);
-  Replace(cmdstr,'$RES',outputexedir+Info.ResName);
+  Replace(cmdstr,'$RES',maybequoted(outputexedir+Info.ResName));
   Replace(cmdstr,'$STATIC',StaticStr);
   Replace(cmdstr,'$STRIP',StripStr);
   Replace(cmdstr,'$GCSECTIONS',GCSectionsStr);
@@ -503,9 +503,9 @@ begin
 
 { Call linker }
   SplitBinCmd(Info.DllCmd[1],binstr,cmdstr);
-  Replace(cmdstr,'$EXE',current_module.sharedlibfilename^);
+  Replace(cmdstr,'$EXE',maybequoted(current_module.sharedlibfilename^));
   Replace(cmdstr,'$OPT',Info.ExtraOptions);
-  Replace(cmdstr,'$RES',outputexedir+Info.ResName);
+  Replace(cmdstr,'$RES',maybequoted(outputexedir+Info.ResName));
   Replace(cmdstr,'$INIT',InitStr);
   Replace(cmdstr,'$FINI',FiniStr);
   Replace(cmdstr,'$SONAME',SoNameStr);
@@ -515,7 +515,7 @@ begin
   if success and (cs_link_strip in aktglobalswitches) then
    begin
      SplitBinCmd(Info.DllCmd[2],binstr,cmdstr);
-     Replace(cmdstr,'$EXE',current_module.sharedlibfilename^);
+     Replace(cmdstr,'$EXE',maybequoted(current_module.sharedlibfilename^));
      success:=DoExec(FindUtil(utilsprefix+binstr),cmdstr,true,false);
    end;
 
@@ -578,7 +578,10 @@ end.
 
 {
   $Log$
-  Revision 1.31  2004-12-19 14:03:16  florian
+  Revision 1.32  2004-12-22 16:32:46  peter
+    * maybequoted() added
+
+  Revision 1.31  2004/12/19 14:03:16  florian
     * dyn. linker path fixed for x86_64
 
   Revision 1.30  2004/11/17 22:22:12  peter

@@ -484,11 +484,11 @@ begin
         Replace(cmdstr,'$DOSHEAPKB',tostr((stacksize+1023) shr 10));
         Replace(cmdstr,'$STRIP',StripStr);
         Replace(cmdstr,'$APPTYPE',AppTypeStr);
-        Replace(cmdstr,'$RES',outputexedir+Info.ResName);
+        Replace(cmdstr,'$RES',maybequoted(outputexedir+Info.ResName));
         Replace(cmdstr,'$OPT',Info.ExtraOptions);
         Replace(cmdstr,'$RSRC',RsrcStr);
-        Replace(cmdstr,'$OUT',OutName);
-        Replace(cmdstr,'$EXE',current_module.exefilename^);
+        Replace(cmdstr,'$OUT',maybequoted(OutName));
+        Replace(cmdstr,'$EXE',maybequoted(current_module.exefilename^));
         if i<>3 then
          success:=DoExec(FindUtil(binstr),cmdstr,(i=1),false)
         else
@@ -516,7 +516,10 @@ initialization
 end.
 {
   $Log$
-  Revision 1.12  2004-12-05 12:25:48  hajny
+  Revision 1.13  2004-12-22 16:32:45  peter
+    * maybequoted() added
+
+  Revision 1.12  2004/12/05 12:25:48  hajny
     * fix for compilation on 8.3 filesystems
 
   Revision 1.11  2004/11/17 22:22:12  peter
