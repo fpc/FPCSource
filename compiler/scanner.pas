@@ -1740,6 +1740,23 @@ implementation
                  inc_comment_level;
                  incomment:=true;
                end;
+             '*' :
+               begin
+                 if incomment then
+                   begin
+                     readchar;
+                     if c=')' then
+                       begin
+                         dec_comment_level;
+                         found:=0;
+                         incomment:=false;
+                       end
+                     else
+                       next_char_loaded:=true;
+                   end
+                 else
+                   found := 0;
+               end;
              '}' :
                begin
                  dec_comment_level;
@@ -2781,7 +2798,10 @@ exit_label:
 end.
 {
   $Log$
-  Revision 1.46  2002-09-05 19:27:05  peter
+  Revision 1.47  2002-09-06 14:58:42  carl
+    * bugfix of bug report 2072 (merged)
+
+  Revision 1.46  2002/09/05 19:27:05  peter
     * fixed crash when current_module becomes nil
 
   Revision 1.45  2002/09/05 14:17:27  pierre
