@@ -493,14 +493,17 @@ unit pass_1;
          else
 
            { nil is compatible with ansi- and wide strings }
+           { no, that isn't true, (FK)
            if (fromtreetype=niln) and (def_to^.deftype=stringdef)
              and (pstringdef(def_to)^.string_typ in [st_ansistring,st_widestring]) then
              begin
                 doconv:=tc_equal;
                 b:=true;
              end
+
          else
            { ansi- and wide strings can be assigned to void pointers }
+           { no, (FK)
            if (def_from^.deftype=stringdef) and
              (pstringdef(def_from)^.string_typ in [st_ansistring,st_widestring]) and
              (def_to^.deftype=pointerdef) and
@@ -510,8 +513,11 @@ unit pass_1;
                 doconv:=tc_equal;
                 b:=true;
              end
+
          else
-           { ansistrings can be assigned to pchar }
+           }
+           { ansistrings can be assigned to pchar
+             this needs an explicit type cast (FK)
            if is_ansistring(def_from) and
              (def_to^.deftype=pointerdef) and
              (ppointerdef(def_to)^.definition^.deftype=orddef) and
@@ -521,6 +527,7 @@ unit pass_1;
                 b:=true;
              end
          else
+           }
            { pchar can be assigned to ansistrings }
            if ((def_from^.deftype=pointerdef) and
              (ppointerdef(def_from)^.definition^.deftype=orddef) and
@@ -1957,7 +1964,8 @@ unit pass_1;
 
          if is_shortstring(p^.left^.resulttype) and (assigned(p^.right^.resulttype)) then
           begin
-            if not ((p^.right^.resulttype^.deftype=stringdef) or
+            if not (is_shortstring(p^.right^.resulttype) or
+                    is_ansistring(p^.right^.resulttype) or
                     ((p^.right^.resulttype^.deftype=orddef) and (porddef(p^.right^.resulttype)^.typ=uchar))) then
              begin
                p^.right:=gentypeconvnode(p^.right,p^.left^.resulttype);
@@ -2238,7 +2246,12 @@ unit pass_1;
             pstringdef(p^.left^.resulttype)^.string_typ then
            begin
               if p^.left^.treetype=stringconstn then
-                p^.left^.stringtype:=pstringdef(p^.resulttype)^.string_typ
+                begin
+                   p^.left^.stringtype:=pstringdef(p^.resulttype)^.string_typ;
+                   { we don't have to do anything, the const }
+                   { node generates an ansistring            }
+                   p^.convtyp:=tc_equal;
+                end
               else
                 procinfo.flags:=procinfo.flags or pi_do_call;
            end;
@@ -5502,7 +5515,10 @@ unit pass_1;
 end.
 {
   $Log$
-  Revision 1.85  1998-09-17 09:42:38  peter
+  Revision 1.86  1998-09-20 17:46:50  florian
+    * some things regarding ansistrings fixed
+
+  Revision 1.85  1998/09/17 09:42:38  peter
     + pass_2 for cg386
     * Message() -> CGMessage() for pass_1/pass_2
 

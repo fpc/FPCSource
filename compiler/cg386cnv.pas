@@ -400,10 +400,10 @@ implementation
 {$ifdef UseAnsiString}
          { does anybody know a better solution than this big case statement ? }
          { ok, a proc table would do the job                                  }
-         case pstringdef(p)^.string_typ of
+         case pstringdef(p^.resulttype)^.string_typ of
 
             st_shortstring:
-              case pstringdef(p^.left)^.string_typ of
+              case pstringdef(p^.left^.resulttype)^.string_typ of
                  st_shortstring:
                    begin
                       stringdispose(p^.location.reference.symbol);
@@ -419,8 +419,8 @@ implementation
                    end;
                  st_ansistring:
                    begin
-                      {!!!!!!!}
-                      internalerror(8888);
+                      gettempofsizereference(p^.resulttype^.size,p^.location.reference);
+                      loadansi2short(p^.left,p);
                    end;
                  st_widestring:
                    begin
@@ -1253,7 +1253,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.20  1998-09-17 09:42:12  peter
+  Revision 1.21  1998-09-20 17:46:47  florian
+    * some things regarding ansistrings fixed
+
+  Revision 1.20  1998/09/17 09:42:12  peter
     + pass_2 for cg386
     * Message() -> CGMessage() for pass_1/pass_2
 

@@ -253,6 +253,7 @@ implementation
          hregister : tregister;
          loc : tloc;
          r : preference;
+         pushed : tpushed;
 
       begin
          otlabel:=truelabel;
@@ -350,13 +351,19 @@ implementation
                 end
               else
 {$endif UseAnsiString}
-              if not (p^.concat_string) then
+              if is_shortstring(p^.left^.resulttype) and
+                not (p^.concat_string) then
                 begin
-                  { we do not need destination anymore }
-                  del_reference(p^.left^.location.reference);
-                  del_reference(p^.right^.location.reference);
-                  loadstring(p);
-                  ungetiftemp(p^.right^.location.reference);
+                  if is_ansistring(p^.right^.resulttype) then
+                    loadansi2short(p^.right,p^.left)
+                  else
+                    begin
+                       { we do not need destination anymore }
+                       del_reference(p^.left^.location.reference);
+                       del_reference(p^.right^.location.reference);
+                       loadstring(p);
+                       ungetiftemp(p^.right^.location.reference);
+                    end;
                 end
               else
                 begin
@@ -552,7 +559,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.15  1998-09-17 09:42:16  peter
+  Revision 1.16  1998-09-20 17:46:48  florian
+    * some things regarding ansistrings fixed
+
+  Revision 1.15  1998/09/17 09:42:16  peter
     + pass_2 for cg386
     * Message() -> CGMessage() for pass_1/pass_2
 
