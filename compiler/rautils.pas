@@ -184,7 +184,7 @@ Function EscapeToPascal(const s:string): string;
 
 procedure AsmSearchSym(const s:string;var srsym:tsym;var srsymtable:tsymtable);
 Function GetRecordOffsetSize(s:string;Var Offset: longint;var Size:longint):boolean;
-Function SearchType(const hs:string): Boolean;
+Function SearchType(const hs:string;var size:longint): Boolean;
 Function SearchRecordType(const s:string): boolean;
 Function SearchIConstant(const s:string; var l:longint): boolean;
 
@@ -1135,14 +1135,20 @@ begin
 end;
 
 
-Function SearchType(const hs:string): Boolean;
+Function SearchType(const hs:string;var size:longint): Boolean;
 var
   srsym : tsym;
   srsymtable : tsymtable;
 begin
+  result:=false;
+  size:=0;
   asmsearchsym(hs,srsym,srsymtable);
-  SearchType:=assigned(srsym) and
-             (srsym.typ=typesym);
+  if assigned(srsym) and
+     (srsym.typ=typesym) then
+    begin
+      size:=ttypesym(srsym).restype.def.size;
+      result:=true;
+    end;
 end;
 
 
@@ -1521,7 +1527,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.70  2003-10-08 19:39:58  peter
+  Revision 1.71  2003-10-23 17:19:11  peter
+    * SearchType returns also the size
+
+  Revision 1.70  2003/10/08 19:39:58  peter
     * allow access to parent locals when the currnet localst has no
       varsyms
 
