@@ -1200,7 +1200,7 @@ implementation
                            { constant (JM)                             }
                            release_loc(p^.right^.location);
                            p^.location.register := getregister32;
-                           emitloadord2reg(p^.right^.location,u32bitdef,p^.location.register,true);
+                           emitloadord2reg(p^.right^.location,u32bitdef,p^.location.register,false);
                            emit_const_reg(A_SHL,S_L,power,p^.location.register)
                          End
                        Else
@@ -2377,7 +2377,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.102  2000-05-26 20:16:00  jonas
+  Revision 1.103  2000-06-10 17:32:44  jonas
+    * fixed bug in shlmul code
+
+  Revision 1.102  2000/05/26 20:16:00  jonas
     * fixed wrong register deallocations in several ansistring related
       procedures. The IDE's now function fine when compiled with -OG3p3r
 
