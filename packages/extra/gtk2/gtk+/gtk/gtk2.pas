@@ -20,6 +20,14 @@ unit gtk2; // keep unit name lowercase for kylix
 
 {$define GTK2_2}
 
+{ Smartlinking has problems on powerpc-linux because of commandline length, disable
+  it for now }
+{$ifdef powerpc}
+  {$ifdef linux}
+    {$smartlink off}
+  {$endif}
+{$endif}
+
 {$H+}
 {$IFDEF FPC}
   {$mode objfpc}
