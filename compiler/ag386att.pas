@@ -699,7 +699,7 @@ unit ag386att;
              { call maybe not translated to call }
                s:=#9+att_op2str[op]+cond2str[paicpu(hp)^.condition];
                if (not calljmp) and
-                  (not att_nosuffix[op]) and
+                  (att_needsuffix[op]) and
                   not(
                    (paicpu(hp)^.oper[0].typ=top_reg) and
                    (paicpu(hp)^.oper[0].reg in [R_ST..R_ST7])
@@ -873,7 +873,10 @@ unit ag386att;
 end.
 {
   $Log$
-  Revision 1.17  1999-09-27 23:36:33  peter
+  Revision 1.18  1999-10-27 16:11:28  peter
+    * insns.dat is used to generate all i386*.inc files
+
+  Revision 1.17  1999/09/27 23:36:33  peter
     * fixed -al with macro's
 
   Revision 1.16  1999/09/21 20:53:21  florian

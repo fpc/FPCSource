@@ -25,7 +25,7 @@ unit aasm;
   interface
 
     uses
-       globtype,systems,cobjects,files,globals;
+       globtype,systems,cobjects,globals;
 
     type
 
@@ -350,7 +350,7 @@ type
 implementation
 
 uses
-  strings,verbose;
+  strings,files,verbose;
 
 {****************************************************************************
                              TAI
@@ -987,7 +987,10 @@ uses
 end.
 {
   $Log$
-  Revision 1.64  1999-09-20 16:38:51  peter
+  Revision 1.65  1999-10-27 16:11:27  peter
+    * insns.dat is used to generate all i386*.inc files
+
+  Revision 1.64  1999/09/20 16:38:51  peter
     * cs_create_smart instead of cs_smartlink
     * -CX is create smartlink
     * -CD is create dynamic, but does nothing atm.

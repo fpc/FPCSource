@@ -35,7 +35,7 @@ uses
 
 const
 { Size of the instruction table converted by nasmconv.pas }
-  instabentries = 1292;
+  instabentries = 1309;
   maxinfolen    = 8;
 
 { By default we want everything }
@@ -146,6 +146,7 @@ const
   OT_UNITY     = $00802000;  { for shift/rotate instructions  }
 
 {Instruction flags }
+  IF_NONE   = $00000000;
   IF_SM     = $00000001;        { size match first two operands  }
   IF_SM2    = $00000002;
   IF_SB     = $00000004;  { unsized operands can't be non-byte  }
@@ -180,80 +181,8 @@ const
   IF_PASS2  = $80000000;  { if the instruction can change in a second pass }
 
 type
-  TAsmOp=(A_None,
-    { prefixes }
-    A_LOCK,A_REP,A_REPE,A_REPNE,A_REPNZ,A_REPZ,
-    A_CS,A_ES,A_DS,A_FS,A_GS,A_SS,
-    { normal }
-    A_AAA, A_AAD, A_AAM, A_AAS, A_ADC, A_ADD, A_AND, A_ARPL,
-    A_BOUND, A_BSF, A_BSR, A_BSWAP, A_BT, A_BTC, A_BTR, A_BTS,
-    A_CALL, A_CBW, A_CDQ, A_CLC, A_CLD, A_CLI, A_CLTS, A_CMC, A_CMP,
-    A_CMPSB, A_CMPSD, A_CMPSW, A_CMPXCHG, A_CMPXCHG486, A_CMPXCHG8B,
-    A_CPUID, A_CWD, A_CWDE, A_DAA, A_DAS, A_DEC, A_DIV,
-    A_EMMS, A_ENTER, A_EQU, A_F2XM1, A_FABS,
-    A_FADD, A_FADDP, A_FBLD, A_FBSTP, A_FCHS, A_FCLEX, A_FCMOVB,
-    A_FCMOVBE, A_FCMOVE, A_FCMOVNB, A_FCMOVNBE, A_FCMOVNE,
-    A_FCMOVNU, A_FCMOVU, A_FCOM, A_FCOMI, A_FCOMIP, A_FCOMP,
-    A_FCOMPP, A_FCOS, A_FDECSTP, A_FDISI, A_FDIV, A_FDIVP, A_FDIVR,
-    A_FDIVRP, A_FEMMS,
-    A_FENI, A_FFREE, A_FIADD, A_FICOM, A_FICOMP, A_FIDIV,
-    A_FIDIVR, A_FILD, A_FIMUL, A_FINCSTP, A_FINIT, A_FIST, A_FISTP,
-    A_FISUB, A_FISUBR, A_FLD, A_FLD1, A_FLDCW, A_FLDENV, A_FLDL2E,
-    A_FLDL2T, A_FLDLG2, A_FLDLN2, A_FLDPI, A_FLDZ, A_FMUL, A_FMULP,
-    A_FNCLEX, A_FNDISI, A_FNENI, A_FNINIT, A_FNOP, A_FNSAVE,
-    A_FNSTCW, A_FNSTENV, A_FNSTSW, A_FPATAN, A_FPREM, A_FPREM1,
-    A_FPTAN, A_FRNDINT, A_FRSTOR, A_FSAVE, A_FSCALE, A_FSETPM,
-    A_FSIN, A_FSINCOS, A_FSQRT, A_FST, A_FSTCW, A_FSTENV, A_FSTP,
-    A_FSTSW, A_FSUB, A_FSUBP, A_FSUBR, A_FSUBRP, A_FTST, A_FUCOM,
-    A_FUCOMI, A_FUCOMIP, A_FUCOMP, A_FUCOMPP, A_FWAIT,A_FXAM, A_FXCH,
-    A_FXTRACT, A_FYL2X, A_FYL2XP1, A_HLT, A_IBTS, A_ICEBP, A_IDIV,
-    A_IMUL, A_IN, A_INC, A_INSB, A_INSD, A_INSW, A_INT,
-    A_INT01, A_INT1, A_INT03, A_INT3, A_INTO, A_INVD, A_INVLPG, A_IRET,
-    A_IRETD, A_IRETW, A_JCXZ, A_JECXZ, A_JMP, A_LAHF, A_LAR, A_LDS,
-    A_LEA, A_LEAVE, A_LES, A_LFS, A_LGDT, A_LGS, A_LIDT, A_LLDT,
-    A_LMSW, A_LOADALL, A_LOADALL286, A_LODSB, A_LODSD, A_LODSW,
-    A_LOOP, A_LOOPE, A_LOOPNE, A_LOOPNZ, A_LOOPZ, A_LSL, A_LSS,
-    A_LTR, A_MOV, A_MOVD, A_MOVQ, A_MOVSB, A_MOVSD, A_MOVSW,
-    A_MOVSX, A_MOVZX, A_MUL, A_NEG, A_NOP, A_NOT, A_OR, A_OUT,
-    A_OUTSB, A_OUTSD, A_OUTSW, A_PACKSSDW, A_PACKSSWB, A_PACKUSWB,
-    A_PADDB, A_PADDD, A_PADDSB, A_PADDSIW, A_PADDSW, A_PADDUSB,
-    A_PADDUSW, A_PADDW, A_PAND, A_PANDN, A_PAVEB,
-    A_PAVGUSB, A_PCMPEQB, A_PCMPEQD, A_PCMPEQW, A_PCMPGTB, A_PCMPGTD,
-    A_PCMPGTW, A_PDISTIB,
-    A_PF2ID, A_PFACC, A_PFADD, A_PFCMPEQ, A_PFCMPGE, A_PFCMPGT,
-    A_PFMAX, A_PFMIN, A_PFMUL, A_PFRCP, A_PFRCPIT1, A_PFRCPIT2,
-    A_PFRSQIT1, A_PFRSQRT, A_PFSUB, A_PFSUBR, A_PI2FD,
-    A_PMACHRIW, A_PMADDWD, A_PMAGW,  A_PMULHRIW, A_PMULHRWA,
-    A_PMULHRWC, A_PMULHW, A_PMULLW, A_PMVGEZB, A_PMVLZB, A_PMVNZB,
-    A_PMVZB, A_POP, A_POPA, A_POPAD, A_POPAW, A_POPF, A_POPFD,
-    A_POPFW, A_POR, A_PREFETCH, A_PREFETCHW,
-    A_PSLLD, A_PSLLQ, A_PSLLW, A_PSRAD, A_PSRAW,
-    A_PSRLD, A_PSRLQ, A_PSRLW, A_PSUBB, A_PSUBD, A_PSUBSB,
-    A_PSUBSIW, A_PSUBSW, A_PSUBUSB, A_PSUBUSW, A_PSUBW, A_PUNPCKHBW,
-    A_PUNPCKHDQ, A_PUNPCKHWD, A_PUNPCKLBW, A_PUNPCKLDQ, A_PUNPCKLWD,
-    A_PUSH, A_PUSHA, A_PUSHAD, A_PUSHAW, A_PUSHF, A_PUSHFD,
-    A_PUSHFW, A_PXOR, A_RCL, A_RCR, A_RDSHR, A_RDMSR, A_RDPMC, A_RDTSC,
-    A_RESB, A_RET, A_RETF, A_RETN,
-    A_ROL, A_ROR, A_RSDC, A_RSLDT, A_RSM, A_SAHF, A_SAL, A_SALC, A_SAR, A_SBB,
-    A_SCASB, A_SCASD, A_SCASW, A_SGDT, A_SHL, A_SHLD, A_SHR, A_SHRD,
-    A_SIDT, A_SLDT, A_SMI, A_SMINT, A_SMINTOLD, A_SMSW, A_STC, A_STD, A_STI, A_STOSB,
-    A_STOSD, A_STOSW, A_STR, A_SUB, A_SVDC, A_SVLDT, A_SVTS, A_SYSCALL, A_SYSENTER,
-    A_SYSEXIT, A_SYSRET, A_TEST, A_UD1, A_UD2, A_UMOV, A_VERR, A_VERW,
-    A_WAIT, A_WBINVD, A_WRSHR, A_WRMSR, A_XADD, A_XBTS, A_XCHG, A_XLAT, A_XLATB,
-    A_XOR, A_CMOVcc, A_Jcc, A_SETcc,
-    A_ADDPS, A_ADDSS, A_ANDNPS, A_ANDPS, A_CMPEQPS, A_CMPEQSS, A_CMPLEPS,
-    A_CMPLESS, A_CMPLTPS, A_CMPLTSS, A_CMPNEQPS, A_CMPNEQSS, A_CMPNLEPS,
-    A_CMPNLESS, A_CMPNLTPS, A_CMPNLTSS, A_CMPORDPS, A_CMPORDSS, A_CMPUNORDPS, A_CMPUNORDSS,
-    A_CMPPS, A_CMPSS, A_COMISS, A_CVTPI2PS, A_CVTPS2PI, A_CVTSI2SS, A_CVTSS2SI,
-    A_CVTTPS2PI, A_CVTTSS2SI, A_DIVPS, A_DIVSS, A_LDMXCSR, A_MAXPS, A_MAXSS, A_MINPS,
-    A_MINSS, A_MOVAPS, A_MOVHPS, A_MOVLHPS, A_MOVLPS, A_MOVHLPS, A_MOVMSKPS,
-    A_MOVNTPS, A_MOVSS, A_MOVUPS, A_MULPS, A_MULSS, A_ORPS, A_RCPPS, A_RCPSS,
-    A_RSQRTPS, A_RSQRTSS, A_SHUFPS, A_SQRTPS, A_SQRTSS, A_STMXCSR, A_SUBPS, A_SUBSS,
-    A_UCOMISS, A_UNPCKHPS, A_UNPCKLPS, A_XORPS, A_FXRSTOR, A_FXSAVE, A_PREFETCHNTA,
-    A_PREFETCHT0, A_PREFETCHT1,A_PREFETCHT2,
-    A_SFENCE, A_MASKMOVQ, A_MOVNTQ, A_PAVGB, A_PAVGW, A_PEXTRW, A_PINSRW, A_PMAXSW,
-    A_PMAXUB, A_PMINSW, A_PMINUB, A_PMOVMSKB, A_PMULHUW, A_PSADBW, A_PSHUFW
-  );
+  TAsmOp=
+{$i i386op.inc}
 
   op2strtable=array[tasmop] of string[10];
 
@@ -273,211 +202,16 @@ const
 
 
 {$ifdef INTELOP}
-  int_op2str:op2strtable=('<none>',
-    { prefixes }
-    'lock','rep','repe','repne','repnz','repz',
-    'segcs','seges','segds','segfs','seggs','segss',
-    { normal }
-    'aaa','aad','aam','aas','adc','add','and','arpl',
-    'bound','bsf','bsr','bswap','bt','btc','btr','bts',
-    'call','cbw','cdq','clc','cld','cli','clts','cmc','cmp',
-    'cmpsb','cmpsd','cmpsw','cmpxchg','cmpxchg486','cmpxchg8b',
-    'cpuid','cwd','cwde','daa','das','dec','div','emms',
-    'enter','equ','f2xm1','fabs',
-    'fadd','faddp','fbld','fbstp','fchs','fclex','fcmovb',
-    'fcmovbe','fcmove','fcmovnb','fcmovnbe','fcmovne',
-    'fcmovnu','fcmovu','fcom','fcomi','fcomip','fcomp',
-    'fcompp','fcos','fdecstp','fdisi','fdiv','fdivp','fdivr',
-    'fdivrp',
-    'femms',
-    'feni','ffree','fiadd','ficom','ficomp','fidiv',
-    'fidivr','fild','fimul','fincstp','finit','fist','fistp',
-    'fisub','fisubr','fld','fld1','fldcw','fldenv','fldl2e',
-    'fldl2t','fldlg2','fldln2','fldpi','fldz','fmul','fmulp',
-    'fnclex','fndisi','fneni','fninit','fnop','fnsave',
-    'fnstcw','fnstenv','fnstsw','fpatan','fprem','fprem1',
-    'fptan','frndint','frstor','fsave','fscale','fsetpm',
-    'fsin','fsincos','fsqrt','fst','fstcw','fstenv','fstp',
-    'fstsw','fsub','fsubp','fsubr','fsubrp','ftst','fucom',
-    'fucomi','fucomip','fucomp','fucompp','fwait','fxam','fxch',
-    'fxtract','fyl2x','fyl2xp1','hlt','ibts','icebp','idiv',
-    'imul','in','inc','insb','insd','insw','int',
-    'int01','int1','int03','int3','into','invd','invlpg','iret',
-    'iretd','iretw','jcxz','jecxz','jmp','lahf','lar','lds',
-    'lea','leave','les','lfs','lgdt','lgs','lidt','lldt',
-    'lmsw','loadall','loadall286','lodsb','lodsd','lodsw',
-    'loop','loope','loopne','loopnz','loopz','lsl','lss',
-    'ltr','mov','movd','movq','movsb','movsd','movsw',
-    'movsx','movzx','mul','neg','nop','not','or','out',
-    'outsb','outsd','outsw','packssdw','packsswb','packuswb',
-    'paddb','paddd','paddsb','paddsiw','paddsw','paddusb',
-    'paddusw','paddw','pand','pandn','paveb',
-    'pavgusb','pcmpeqb',
-    'pcmpeqd','pcmpeqw','pcmpgtb','pcmpgtd','pcmpgtw',
-    'pdistib',
-    'pf2id','pfacc','pfadd','pfcmpeq','pfcmpge','pfcmpgt',
-    'pfmax','pfmin','pfmul','pfrcp','pfrcpit1','pfrcpit2',
-    'pfrsqit1','pfrsqrt','pfsub','pfsubr','pi2fd',
-    'pmachriw','pmaddwd','pmagw','pmulhriw','pmulhrwa','pmulhrwc',
-    'pmulhw','pmullw','pmvgezb','pmvlzb','pmvnzb',
-    'pmvzb','pop','popa','popad','popaw','popf','popfd',
-    'popfw','por',
-    'prefetch','prefetchw','pslld','psllq','psllw','psrad','psraw',
-    'psrld','psrlq','psrlw','psubb','psubd','psubsb',
-    'psubsiw','psubsw','psubusb','psubusw','psubw','punpckhbw',
-    'punpckhdq','punpckhwd','punpcklbw','punpckldq','punpcklwd',
-    'push','pusha','pushad','pushaw','pushf','pushfd',
-    'pushfw','pxor','rcl','rcr','rdshr','rdmsr','rdpmc','rdtsc',
-    'resb','ret','retf','retn',
-    'rol','ror','rsdc','rsldt','rsm','sahf','sal','salc','sar','sbb',
-    'scasb','scasd','scasw','sgdt','shl','shld','shr','shrd',
-    'sidt','sldt','smi','smint','smintold','smsw','stc','std','sti','stosb',
-    'stosd','stosw','str','sub','svdc','svldt','svts','syscall','sysenter',
-    'sysexit','sysret','test','ud1','ud2','umov','verr','verw',
-    'wait','wbinvd','wrshr','wrmsr','xadd','xbts','xchg','xlat','xlatb',
-    'xor','cmov','j','set',
-    'addps','addss','andnps','andps','cmpeqps','cmpeqss','cmpleps','cmpless','cmpltps',
-    'cmpltss','cmpneqps','cmpneqss','cmpnleps','cmpnless','cmpnltps','cmpnltss',
-    'cmpordps','cmpordss','cmpunordps','cmpunordss','cmpps','cmpss','comiss','cvtpi2ps','cvtps2pi',
-    'cvtsi2ss','cvtss2si','cvttps2pi','cvttss2si','divps','divss','ldmxcsr','maxps',
-    'maxss','minps','minss','movaps','movhps','movlhps','movlps','movhlps','movmskps',
-    'movntps','movss','movups','mulps','mulss','orps','rcpps','rcpss','rsqrtps','rsqrtss',
-    'shufps','sqrtps','sqrtss','stmxcsr','subps','subss','ucomiss','unpckhps','unpcklps',
-    'xorps','fxrstor','fxsave','prefetchnta','prefetcht0','prefetcht1','prefetcht2',
-    'sfence','maskmovq','movntq','pavgb','pavgw','pextrw','pinsrw','pmaxsw','pmaxub',
-    'pminsw','pminub','pmovmskb','pmulhuw','psadbw','pshufw'
-  );
+  int_op2str:op2strtable=
+{$i i386int.inc}
 {$endif INTELOP}
 
 {$ifdef ATTOP}
-  att_op2str:op2strtable=('<none>',
-    { prefixes }
-    'lock','rep','repe','repne','repnz','repz',
-    'cs','es','ds','fs','gs','ss',
-    { normal }
-    'aaa','aad','aam','aas','adc','add','and','arpl',
-    'bound','bsf','bsr','bswap','bt','btc','btr','bts',
-    'call','cbtw','cltd','clc','cld','cli','clts','cmc','cmp',
-    'cmpsb','cmpsl','cmpsw','cmpxchg','cmpxchg486','cmpxchg8b',
-    'cpuid','cwtd','cwtl','daa','das','dec','div',
-    'emms','enter','equ','f2xm1','fabs',
-    'fadd','faddp','fbld','fbstp','fchs','fclex','fcmovb',
-    'fcmovbe','fcmove','fcmovnb','fcmovnbe','fcmovne',
-    'fcmovnu','fcmovu','fcom','fcomi','fcomip','fcomp',
-    'fcompp','fcos','fdecstp','fdisi','fdiv','fdivp','fdivr',
-    'fdivrp','femms',
-    'feni','ffree','fiadd','ficom','ficomp','fidiv',
-    'fidivr','fild','fimul','fincstp','finit','fist','fistp',
-    'fisub','fisubr','fld','fld1','fldcw','fldenv','fldl2e',
-    'fldl2t','fldlg2','fldln2','fldpi','fldz','fmul','fmulp',
-    'fnclex','fndisi','fneni','fninit','fnop','fnsave',
-    'fnstcw','fnstenv','fnstsw','fpatan','fprem','fprem1',
-    'fptan','frndint','frstor','fsave','fscale','fsetpm',
-    'fsin','fsincos','fsqrt','fst','fstcw','fstenv','fstp',
-    'fstsw','fsub','fsubp','fsubr','fsubrp','ftst','fucom',
-    'fucomi','fucomip','fucomp','fucompp','fwait','fxam','fxch',
-    'fxtract','fyl2x','fyl2xp1','hlt','ibts','icebp','idiv',
-    'imul','in','inc','insb','insl','insw','int',
-    'int01','int1','int03','int3','into','invd','invlpg','iret',
-    'iretd','iretw','jcxz','jecxz','jmp','lahf','lar','lds',
-    'lea','leave','les','lfs','lgdt','lgs','lidt','lldt',
-    'lmsw','loadall','loadall286','lodsb','lodsl','lodsw',
-    'loop','loope','loopne','loopnz','loopz','lsl','lss',
-    'ltr','mov','movd','movq','movsb','movsl','movsw',
-    'movs','movz','mul','neg','nop','not','or','out',
-    'outsb','outsl','outsw','packssd','packssw','packusw',
-    'paddb','paddd','paddsb','paddsiw','paddsw','paddusb',
-    'paddusw','paddw','pand','pandn','paveb',
-    'pavgusb','pcmpeqb',
-    'pcmpeqd','pcmpeqw','pcmpgtb','pcmpgtd','pcmpgtw',
-    'pdistib',
-    'pf2id','pfacc','pfadd','pfcmpeq','pfcmpge','pfcmpgt',
-    'pfmax','pfmin','pfmul','pfrcp','pfrcpit1','pfrcpit2',
-    'pfrsqit1','pfrsqrt','pfsub','pfsubr','pi2fd',
-    'pmachriw','pmaddwd','pmagw','pmulhriw','pmulhrwa','pmulhrwc',
-    'pmulhw','pmullw','pmvgezb','pmvlzb','pmvnzb',
-    'pmvzb','pop','popa','popal','popaw','popf','popfl',
-    'popfw','por',
-    'prefetch','prefetchw','pslld','psllq','psllw','psrad','psraw',
-    'psrld','psrlq','psrlw','psubb','psubd','psubsb',
-    'psubsiw','psubsw','psubusb','psubusw','psubw','punpckhbw',
-    'punpckhdq','punpckhwd','punpcklbw','punpckldq','punpcklwd',
-    'push','pusha','pushal','pushaw','pushf','pushfl',
-    'pushfw','pxor','rcl','rcr','rdshr','rdmsr','rdpmc','rdtsc',
-    'resb','ret','retf','retn',
-    'rol','ror','rsdc','rsldt','rsm','sahf','sal','salc','sar','sbb',
-    'scasb','scasl','scasw','sgdt','shl','shld','shr','shrd',
-    'sidt','sldt','smi','smint','smintold','smsw','stc','std','sti','stosb',
-    'stosl','stosw','str','sub','svdc','svldt','svts','syscall','sysenter',
-    'sysexit','sysret','test','ud1','ud2','umov','verr','verw',
-    'wait','wbinvd','wrshr','wrmsr','xadd','xbts','xchg','xlat','xlatb',
-    'xor','cmov','j','set',
-    'addps','addss','andnps','andps','cmpeqps','cmpeqss','cmpleps','cmpless','cmpltps',
-    'cmpltss','cmpneqps','cmpneqss','cmpnleps','cmpnless','cmpnltps','cmpnltss',
-    'cmpordps','cmpordss','cmpunordps','cmpunordss','cmpps','cmpss','comiss','cvtpi2ps','cvtps2pi',
-    'cvtsi2ss','cvtss2si','cvttps2pi','cvttss2si','divps','divss','ldmxcsr','maxps',
-    'maxss','minps','minss','movaps','movhps','movlhps','movlps','movhlps','movmskps',
-    'movntps','movss','movups','mulps','mulss','orps','rcpps','rcpss','rsqrtps','rsqrtss',
-    'shufps','sqrtps','sqrtss','stmxcsr','subps','subss','ucomiss','unpckhps','unpcklps',
-    'xorps','fxrstor','fxsave','prefetchnta','prefetcht0','prefetcht1','prefetcht2',
-    'sfence','maskmovq','movntq','pavgb','pavgw','pextrw','pinsrw','pmaxsw','pmaxub',
-    'pminsw','pminub','pmovmskb','pmulhuw','psadbw','pshufw'
-  );
+  att_op2str:op2strtable=
+{$i i386att.inc}
 
-  att_nosuffix:array[tasmop] of boolean=(
-    { 0 }
-    false,false,false,false,false,false,false,false,false,false,
-    false,false,false,false,false,false,false,false,false,false,
-    false,false,false,false,false,false,false,false,false,false,
-    false,false,false,false,false,false,false,false,false,false,
-    false,false,false,false,false,false,false,false,false,false,
-    false,false,false,false,false,false,false,false,false,false,
-    false,false,false,false,false,false,false,false,false,false,
-    false,false,false,false,false,false,false,false,false,false,
-    false,false,false,false,false,false,false,false,false,false,
-    false,false,false,false,false,false,false,false,false,false,
-    { 100 }
-    false,false,false,false,false,false,false,false,false,false,
-    false,false,false,false,false,false,false,false,false,false,
-    false,false,false,false,false,false,false,false,false,false,
-    false,false,false,false,false,false,false,false,false,false,
-    false,false,false,false,false,false,false,false,false,false,
-    false,false,false,false,false,false,false,false,false,false,
-    false,false,false,false,false,false,false,false,false,false,
-    false,false,false,false,false,false,false,false,false,false,
-    false,false,false,false,false,false,false,false,false,false,
-    false,false,false,false,false,false,false,false,false,false,
-    { 200 }
-    false,false,true,true,true,true,true,false,false,false,
-    false,false,false,false,false,false,false,false,true,true,
-    true,true,true,true,true,true,true,true,true,true,
-    true,true,true,true,true,true,true,true,true,true,
-    true,true,true,true,true,true,true,true,true,true,
-    true,true,true,true,true,true,true,true,true,true,
-    true,true,true,true,true,true,true,true,false,false,
-    false,false,false,false,false,false,true,true,true,true,
-    true,true,true,true,true,true,true,true,true,true,
-    true,true,true,true,true,true,true,true,true,
-    { 300 }
-    true,false,false,true,true,false,true,true,true,false,false,
-    false,false,false,false,false,false,false,false,false,false,
-    false,false,false,false,false,false,false,false,false,false,
-    false,false,false,false,false,false,false,false,false,false,
-    false,false,false,false,false,false,false,false,false,false,
-    false,false,false,false,false,false,false,false,false,false,
-    false,false,false,false,false,false,false,false,false,false,
-    false,false,false,false,false,false,false,true,true,true,
-    true,true,true,true,true,true,true,true,true,true,
-    true,true,true,true,true,true,true,true,true,true,
-    { 400 }
-    true,true,true,true,true,true,true,true,true,true,
-    true,true,true,true,true,true,true,true,true,true,
-    true,true,true,true,true,true,true,true,true,true,
-    true,true,true,true,true,true,true,true,true,true,
-    true,true,true,true,true,true,true,true,true,true,
-    true,true,true,true,true,true,true,true,true,true
-  );
-
+  att_needsuffix:array[tasmop] of boolean=
+{$i i386atts.inc}
 {$endif ATTOP}
 
 
@@ -694,7 +428,7 @@ type
      offsetfixup : longint;
      options     : trefoptions;
 {$ifdef newcg}
-     alignment   : byte;+
+     alignment   : byte;
 {$endif newcg}
   end;
 
@@ -825,6 +559,67 @@ const
 var
   InsTabCache : PInsTabCache;
 {$endif NOAG386BIN}
+
+
+{*****************************************************************************
+                   Opcode propeties (needed for optimizer)
+*****************************************************************************}
+
+{$ifndef NOOPT}
+Type
+{What an instruction can change}
+  TInsChange = (Ch_None,
+     {Read from a register}
+     Ch_REAX, Ch_RECX, Ch_REDX, Ch_REBX, Ch_RESP, Ch_REBP, Ch_RESI, Ch_REDI,
+     {write from a register}
+     Ch_WEAX, Ch_WECX, Ch_WEDX, Ch_WEBX, Ch_WESP, Ch_WEBP, Ch_WESI, Ch_WEDI,
+     {read and write from/to a register}
+     Ch_RWEAX, Ch_RWECX, Ch_RWEDX, Ch_RWEBX, Ch_RWESP, Ch_RWEBP, Ch_RWESI, Ch_RWEDI,
+     {modify the contents of a register with the purpose of using
+      this changed content afterwards (add/sub/..., but e.g. not rep
+      or movsd)}
+{$ifdef arithopt}
+     Ch_MEAX, Ch_MECX, Ch_MEDX, Ch_MEBX, Ch_MESP, Ch_MEBP, Ch_MESI, Ch_MEDI,
+{$endif arithopt}
+     Ch_CDirFlag {clear direction flag}, Ch_SDirFlag {set dir flag},
+     Ch_RFlags, Ch_WFlags, Ch_RWFlags, Ch_FPU,
+     Ch_Rop1, Ch_Wop1, Ch_RWop1,
+     Ch_Rop2, Ch_Wop2, Ch_RWop2,
+     Ch_Rop3, Ch_WOp3, Ch_RWOp3,
+{$ifdef arithopt}
+     Ch_Mop1, Ch_Mop2, Ch_Mop3,
+{$endif arithopt}
+     Ch_WMemEDI,
+     Ch_All
+  );
+
+{$ifndef arithopt}
+Const
+   Ch_MEAX = Ch_RWEAX;
+   Ch_MECX = Ch_RWECX;
+   Ch_MEDX = Ch_RWEDX;
+   Ch_MEBX = Ch_RWEBX;
+   Ch_MESP = Ch_RWESP;
+   Ch_MEBP = Ch_RWEBP;
+   Ch_MESI = Ch_RWESI;
+   Ch_MEDI = Ch_RWEDI;
+   Ch_Mop1 = Ch_RWOp1;
+   Ch_Mop2 = Ch_RWOp2;
+   Ch_Mop3 = Ch_RWOp3;
+{$endif arithopt}
+
+const
+  MaxCh = 3; { Max things a instruction can change }
+type
+  TInsProp = packed record
+    Ch : Array[1..MaxCh] of TInsChange;
+  end;
+
+const
+  InsProp : array[tasmop] of TInsProp =
+{$i i386prop.inc}
+
+{$endif NOOPT}
 
 
 {*****************************************************************************
@@ -1094,7 +889,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.14  1999-10-14 14:57:51  florian
+  Revision 1.15  1999-10-27 16:11:28  peter
+    * insns.dat is used to generate all i386*.inc files
+
+  Revision 1.14  1999/10/14 14:57:51  florian
     - removed the hcodegen use in the new cg, use cgbase instead
 
   Revision 1.13  1999/09/15 20:35:39  florian

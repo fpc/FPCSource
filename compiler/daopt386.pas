@@ -92,11 +92,6 @@ Const
   ,ait_regalloc, ait_tempalloc
   ];
 
-{the maximum number of things (registers, memory, ...) a single instruction
- changes}
-
-  MaxCh = 3;
-
 {Possible register content types}
   con_Unknown = 0;
   con_ref = 1;
@@ -104,60 +99,9 @@ Const
 
 {********************************* Types *********************************}
 
-Type
-
-{What an instruction can change}
-  TChange = (C_None,
-             {Read from a register}
-             C_REAX, C_RECX, C_REDX, C_REBX, C_RESP, C_REBP, C_RESI, C_REDI,
-             {write from a register}
-             C_WEAX, C_WECX, C_WEDX, C_WEBX, C_WESP, C_WEBP, C_WESI, C_WEDI,
-             {read and write from/to a register}
-             C_RWEAX, C_RWECX, C_RWEDX, C_RWEBX, C_RWESP, C_RWEBP, C_RWESI, C_RWEDI,
-             {modify the contents of a register with the purpose of using
-              this changed content afterwards (add/sub/..., but e.g. not rep
-              or movsd)}
-{$ifdef arithopt}
-             C_MEAX, C_MECX, C_MEDX, C_MEBX, C_MESP, C_MEBP, C_MESI, C_MEDI,
-{$endif arithopt}
-             C_CDirFlag {clear direction flag}, C_SDirFlag {set dir flag},
-             C_RFlags, C_WFlags, C_RWFlags, C_FPU,
-             C_Rop1, C_Wop1, C_RWop1,
-             C_Rop2, C_Wop2, C_RWop2,
-             C_Rop3, C_WOp3, C_RWOp3,
-{$ifdef arithopt}
-             C_Mop1, C_Mop2, C_Mop3,
-{$endif arithopt}
-             C_WMemEDI,
-             C_All);
-
-{$ifndef arithopt}
-Const
-   C_MEAX = C_RWEAX;
-   C_MECX = C_RWECX;
-   C_MEDX = C_RWEDX;
-   C_MEBX = C_RWEBX;
-   C_MESP = C_RWESP;
-   C_MEBP = C_RWEBP;
-   C_MESI = C_RWESI;
-   C_MEDI = C_RWEDI;
-   C_Mop1 = C_RWOp1;
-   C_Mop2 = C_RWOp2;
-   C_Mop3 = C_RWOp3;
-
-Type
-{$endif arithopt}
-
+type
 {the possible states of a flag}
   TFlagContents = (F_Unknown, F_NotSet, F_Set);
-
-{the properties of a cpu instruction}
-  TAsmInstrucProp = Record
-               {how many things it changes}
-{                         NCh: Byte;}
-               {and what it changes}
-                         Ch: Array[1..MaxCh] of TChange;
-                       End;
 
   TContent = Packed Record
       {start and end of block instructions that defines the
@@ -240,474 +184,8 @@ Implementation
 Uses
   globals, systems, strings, verbose, hcodegen;
 
-Type TRefCompare = function(const r1, r2: TReference): Boolean;
-
-Const AsmInstr: Array[tasmop] Of TAsmInstrucProp = (
-  {A_<NONE>} (Ch: (C_All, C_None, C_None)), { new }
-  {A_LOCK} (Ch: (C_None, C_None, C_None)),
- { the repCC instructions don't write to the flags themselves, but since  }
- { they loop as long as CC is not fulfilled, it's possible that after the }
- { repCC instructions the flags have changed                              }
-  {A_REP} (Ch: (C_RWECX, C_RWFlags, C_None)),
-  {A_REPE} (Ch: (C_RWECX, C_RWFlags, C_None)),
-  {A_REPNE} (Ch: (C_RWECX, C_RWFlags, C_None)),
-  {A_REPNZ} (Ch: (C_RWECX, C_RWFLAGS, C_None)), { new }
-  {A_REPZ} (Ch: (C_RWECX, C_RWFLAGS, C_None)), { new }
-  {A_SEGCS} (Ch: (C_None, C_None, C_None)), { new }
-  {A_SEGES} (Ch: (C_None, C_None, C_None)), { new }
-  {A_SEGDS} (Ch: (C_None, C_None, C_None)), { new }
-  {A_SEGFS} (Ch: (C_None, C_None, C_None)), { new }
-  {A_SEGGS} (Ch: (C_None, C_None, C_None)), { new }
-  {A_SEGSS} (Ch: (C_None, C_None, C_None)), { new }
-  {A_AAA} (Ch: (C_MEAX, C_WFlags, C_None)),
-  {A_AAD} (Ch: (C_MEAX, C_WFlags, C_None)),
-  {A_AAM} (Ch: (C_MEAX, C_WFlags, C_None)),
-  {A_AAS} (Ch: (C_MEAX, C_WFlags, C_None)),
-  {A_ADC} (Ch: (C_Mop2, C_Rop1, C_RWFlags)),
-  {A_ADD} (Ch: (C_Mop2, C_Rop1, C_WFlags)),
-  {A_AND} (Ch: (C_Mop2, C_Rop1, C_WFlags)),
-  {A_ARPL} (Ch: (C_WFlags, C_None, C_None)),
-  {A_BOUND} (Ch: (C_Rop1, C_None, C_None)),
-  {A_BSF} (Ch: (C_Wop2, C_WFlags, C_Rop1)),
-  {A_BSR} (Ch: (C_Wop2, C_WFlags, C_Rop1)),
-  {A_BSWAP} (Ch: (C_MOp1, C_None, C_None)), { new }
-  {A_BT} (Ch: (C_WFlags, C_Rop1, C_None)),
-  {A_BTC} (Ch: (C_Mop2, C_Rop1, C_WFlags)),
-  {A_BTR} (Ch: (C_Mop2, C_Rop1, C_WFlags)),
-  {A_BTS} (Ch: (C_Mop2, C_Rop1, C_WFlags)),
-  {A_CALL} (Ch: (C_All, C_None, C_None)), {don't know value of any register}
-  {A_CBW} (Ch: (C_MEAX, C_None, C_None)),
-  {A_CDQ} (Ch: (C_MEAX, C_WEDX, C_None)),
-  {A_CLC} (Ch: (C_WFlags, C_None, C_None)),
-  {A_CLD} (Ch: (C_CDirFlag, C_None, C_None)),
-  {A_CLI} (Ch: (C_WFlags, C_None, C_None)),
-  {A_CLTS} (Ch: (C_None, C_None, C_None)),
-  {A_CMC} (Ch: (C_WFlags, C_None, C_None)),
-  {A_CMP} (Ch: (C_WFlags, C_None, C_None)),
-  {A_CMPSB} (Ch: (C_All, C_None, C_None)), { new }
-  {A_CMPSD} (Ch: (C_All, C_None, C_None)), { new }
-  {A_CMPSW} (Ch: (C_All, C_None, C_None)), { new }
-  {A_CMPXCHG} (Ch: (C_All, C_None, C_None)), { new }
-  {A_CMPXCHG486} (Ch: (C_All, C_None, C_None)), { new }
-  {A_CMPXCHG8B} (Ch: (C_All, C_None, C_None)), { new }
-  {A_CPUID} (Ch: (C_All, C_None, C_none)),
-  {A_CWD} (Ch: (C_MEAX, C_WEDX, C_None)),
-  {A_CWDE} (Ch: (C_MEAX, C_None, C_None)),
-  {A_DAA} (Ch: (C_MEAX, C_None, C_None)),
-  {A_DAS} (Ch: (C_MEAX, C_None, C_None)),
-  {A_DEC} (Ch: (C_Mop1, C_WFlags, C_None)),
-  {A_DIV} (Ch: (C_RWEAX, C_WEDX, C_WFlags)), {handled separately, because modifies more than three things}
-  {A_EMMS} (Ch: (C_FPU, C_None, C_None)), { new }
-  {A_ENTER} (Ch: (C_RWESP, C_None, C_None)),
-  {A_EQU} (Ch: (C_ALL, C_None, C_None)), { new }
-  {A_F2XM1} (Ch: (C_FPU, C_None, C_None)),
-  {A_FABS} (Ch: (C_FPU, C_None, C_None)),
-  {A_FADD} (Ch: (C_FPU, C_None, C_None)),
-  {A_FADDP} (Ch: (C_FPU, C_None, C_None)),
-  {A_FBLD} (Ch: (C_Rop1, C_FPU, C_None)),
-  {A_FBSTP} (Ch: (C_Wop1, C_FPU, C_None)),
-  {A_FCHS} (Ch: (C_FPU, C_None, C_None)),
-  {A_FCLEX} (Ch: (C_FPU, C_None, C_None)),
-  {A_FCMOVB} (Ch: (C_FPU, C_RFLAGS, C_None)), { new }
-  {A_FCMOVBE} (Ch: (C_FPU, C_RFLAGS, C_None)), { new }
-  {A_FCMOVE} (Ch: (C_FPU, C_RFLAGS, C_None)), { new }
-  {A_FCMOVNB} (Ch: (C_FPU, C_RFLAGS, C_None)), { new }
-  {A_FCMOVNBE} (Ch: (C_FPU, C_RFLAGS, C_None)), { new }
-  {A_FCMOVNE} (Ch: (C_FPU, C_RFLAGS, C_None)), { new }
-  {A_FCMOVNU} (Ch: (C_FPU, C_RFLAGS, C_None)), { new }
-  {A_FCMOVU} (Ch: (C_FPU, C_RFLAGS, C_None)), { new }
-  {A_FCOM} (Ch: (C_FPU, C_None, C_None)),
-  {A_FCOMI} (Ch: (C_WFLAGS, C_None, C_None)), { new }
-  {A_FCOMIP} (Ch: (C_FPU, C_WFLAGS, C_None)), { new }
-  {A_FCOMP} (Ch: (C_FPU, C_None, C_None)),
-  {A_FCOMPP} (Ch: (C_FPU, C_None, C_None)),
-  {A_FCOS} (Ch: (C_FPU, C_None, C_None)),
-  {A_FDECSTP} (Ch: (C_FPU, C_None, C_None)),
-  {A_FDISI} (Ch: (C_FPU, C_None, C_None)),
-  {A_FDIV} (Ch: (C_FPU, C_None, C_None)),
-  {A_FDIVP} (Ch: (C_FPU, C_None, C_None)),
-  {A_FDIVR} (Ch: (C_FPU, C_None, C_None)),
-  {A_FDIVRP} (Ch: (C_FPU, C_None, C_None)),
-  {A_FEMMS} (Ch: (C_All, C_None, C_None)), { new }
-  {A_FENI} (Ch: (C_FPU, C_None, C_None)),
-  {A_FFREE} (Ch: (C_FPU, C_None, C_None)),
-  {A_FIADD} (Ch: (C_FPU, C_None, C_None)),
-  {A_FICOM} (Ch: (C_FPU, C_None, C_None)),
-  {A_FICOMP} (Ch: (C_FPU, C_None, C_None)),
-  {A_FIDIV} (Ch: (C_FPU, C_None, C_None)),
-  {A_FIDIVR} (Ch: (C_FPU, C_None, C_None)),
-  {A_FILD} (Ch: (C_FPU, C_None, C_None)),
-  {A_FIMUL} (Ch: (C_FPU, C_None, C_None)),
-  {A_FINCSTP} (Ch: (C_FPU, C_None, C_None)),
-  {A_FINIT} (Ch: (C_FPU, C_None, C_None)),
-  {A_FIST} (Ch: (C_Wop1, C_None, C_None)),
-  {A_FISTP} (Ch: (C_Wop1, C_None, C_None)),
-  {A_FISUB} (Ch: (C_FPU, C_None, C_None)),
-  {A_FISUBR} (Ch: (C_FPU, C_None, C_None)), { new }
-  {A_FLD} (Ch: (C_Rop1, C_FPU, C_None)),
-  {A_FLD1} (Ch: (C_FPU, C_None, C_None)),
-  {A_FLDCW} (Ch: (C_FPU, C_None, C_None)),
-  {A_FLDENV} (Ch: (C_FPU, C_None, C_None)),
-  {A_FLDL2E} (Ch: (C_FPU, C_None, C_None)),
-  {A_FLDL2T} (Ch: (C_FPU, C_None, C_None)),
-  {A_FLDLG2} (Ch: (C_FPU, C_None, C_None)),
-  {A_FLDLN2} (Ch: (C_FPU, C_None, C_None)),
-  {A_FLDPI} (Ch: (C_FPU, C_None, C_None)),
-  {A_FLDZ} (Ch: (C_FPU, C_None, C_None)),
-  {A_FMUL} (Ch: (C_ROp1, C_FPU, C_None)),
-  {A_FMULP} (Ch: (C_ROp1, C_FPU, C_None)),
-  {A_FNCLEX} (Ch: (C_FPU, C_None, C_None)),
-  {A_FNDISI} (Ch: (C_FPU, C_None, C_None)),
-  {A_FNENI} (Ch: (C_FPU, C_None, C_None)),
-  {A_FNINIT} (Ch: (C_FPU, C_None, C_None)),
-  {A_FNOP} (Ch: (C_FPU, C_None, C_None)),
-  {A_FNSAVE} (Ch: (C_FPU, C_None, C_None)),
-  {A_FNSTCW} (Ch: (C_Wop1, C_None, C_None)),
-  {A_FNSTENV} (Ch: (C_Wop1, C_None, C_None)),
-  {A_FNSTSW} (Ch: (C_Wop1, C_None, C_None)),
-  {A_FPATAN} (Ch: (C_FPU, C_None, C_None)),
-  {A_FPREM} (Ch: (C_FPU, C_None, C_None)),
-  {A_FPREM1} (Ch: (C_FPU, C_None, C_None)),
-  {A_FPTAN} (Ch: (C_FPU, C_None, C_None)),
-  {A_FRNDINT} (Ch: (C_FPU, C_None, C_None)),
-  {A_FRSTOR} (Ch: (C_FPU, C_None, C_None)),
-  {A_FSAVE} (Ch: (C_Wop1, C_None, C_None)),
-  {A_FSCALE} (Ch: (C_FPU, C_None, C_None)),
-  {A_FSETPM} (Ch: (C_FPU, C_None, C_None)),
-  {A_FSIN} (Ch: (C_FPU, C_None, C_None)),
-  {A_FSINCOS} (Ch: (C_FPU, C_None, C_None)),
-  {A_FSQRT} (Ch: (C_FPU, C_None, C_None)),
-  {A_FST} (Ch: (C_Wop1, C_None, C_None)),
-  {A_FSTCW} (Ch: (C_Wop1, C_None, C_None)),
-  {A_FSTENV} (Ch: (C_Wop1, C_None, C_None)),
-  {A_FSTP} (Ch: (C_Wop1, C_FPU, C_None)),
-  {A_FSTSW} (Ch: (C_Wop1, C_None, C_None)),
-  {A_FSUB} (Ch: (C_ROp1, C_FPU, C_None)),
-  {A_FSUBP} (Ch: (C_ROp1, C_FPU, C_None)),
-  {A_FSUBR} (Ch: (C_ROp1, C_FPU, C_None)),
-  {A_FSUBRP} (Ch: (C_ROp1, C_FPU, C_None)),
-  {A_FTST} (Ch: (C_FPU, C_None, C_None)),
-  {A_FUCOM} (Ch: (C_None, C_None, C_None)), {changes fpu status word}
-  {A_FUCOMI} (Ch: (C_WFLAGS, C_None, C_None)), { new }
-  {A_FUCOMIP} (Ch: (C_FPU, C_WFLAGS, C_None)), { new }
-  {A_FUCOMP} (Ch: (C_FPU, C_None, C_None)),
-  {A_FUCOMPP} (Ch: (C_FPU, C_None, C_None)),
-  {A_FWAIT} (Ch: (C_FPU, C_None, C_None)),
-  {A_FXAM} (Ch: (C_FPU, C_None, C_None)),
-  {A_FXCH} (Ch: (C_FPU, C_None, C_None)),
-  {A_FXTRACT} (Ch: (C_FPU, C_None, C_None)),
-  {A_FYL2X} (Ch: (C_FPU, C_None, C_None)),
-  {A_FYL2XP1} (Ch: (C_FPU, C_None, C_None)),
-  {A_HLT} (Ch: (C_None, C_None, C_None)),
-  {A_IBTS} (Ch: (C_All, C_None, C_None)), { new }
-  {A_ICEBP} (Ch: (C_All, C_None, C_None)), { new }
-  {A_IDIV} (Ch: (C_RWEAX, C_WEDX, C_WFlags)), {handled separately, because modifies more than three things}
-  {A_IMUL} (Ch: (C_RWEAX, C_WEDX, C_WFlags)), {handled separately, because several forms exist}
-  {A_IN} (Ch: (C_Wop2, C_Rop1, C_None)),
-  {A_INC} (Ch: (C_Mop1, C_WFlags, C_None)),
-  {A_INSB} (Ch: (C_WMemEDI, C_RWEDI, C_REDX)), { new }
-  {A_INSD} (Ch: (C_WMemEDI, C_RWEDI, C_REDX)), { new }
-  {A_INSW} (Ch: (C_WMemEDI, C_RWEDI, C_REDX)), { new }
-  {A_INT} (Ch: (C_All, C_None, C_None)), {don't know value of any register}
-  {A_INT01} (Ch: (C_All, C_None, C_None)), { new }
-  {A_INT1} (Ch: (C_All, C_None, C_None)), { new }
-{!!!} {A_INT03} (Ch: (C_None, C_None, C_None)),
-  {A_INT3} (Ch: (C_None, C_None, C_None)),
-  {A_INTO} (Ch: (C_All, C_None, C_None)), {don't know value of any register}
-  {A_INVD} (Ch: (C_All, C_None, C_None)), { new }
-  {A_INVLPG} (Ch: (C_All, C_None, C_None)), { new }
-  {A_IRET} (Ch: (C_All, C_None, C_None)), {don't know value of any register}
-  {A_IRETD} (Ch: (C_All, C_None, C_None)), { new }
-  {A_IRETW} (Ch: (C_All, C_None, C_None)), { new }
-  {A_JCXZ} (Ch: (C_RECX, C_None, C_None)),
-  {A_JECXZ} (Ch: (C_RECX, C_None, C_None)),
-  {A_JMP} (Ch: (C_None, C_None, C_None)),
-  {A_LAHF} (Ch: (C_WEAX, C_RFlags, C_None)),
-  {A_LAR} (Ch: (C_Wop2, C_None, C_None)),
-  {A_LDS} (Ch: (C_Wop2, C_None, C_None)),
-  {A_LEA} (Ch: (C_Wop2, C_Rop1, C_None)),
-  {A_LEAVE} (Ch: (C_RWESP, C_None, C_None)),
-  {A_LES} (Ch: (C_Wop2, C_None, C_None)),
-  {A_LFS} (Ch: (C_Wop2, C_None, C_None)),
-  {A_LGDT} (Ch: (C_None, C_None, C_None)),
-  {A_LGS} (Ch: (C_Wop2, C_None, C_None)),
-  {A_LIDT} (Ch: (C_None, C_None, C_None)),
-  {A_LLDT} (Ch: (C_None, C_None, C_None)),
-  {A_LMSW} (Ch: (C_None, C_None, C_None)),
-  {A_LOADALL} (Ch: (C_All, C_None, C_None)), { new }
-  {A_LOADALL286} (Ch: (C_All, C_None, C_None)), { new }
-  {A_LODSB} (Ch: (C_WEAX, C_RWESI, C_None)), { new }
-  {A_LODSD} (Ch: (C_WEAX, C_RWESI, C_None)), { new }
-  {A_LODSW} (Ch: (C_WEAX, C_RWESI, C_None)), { new }
-  {A_LOOP} (Ch: (C_RWECX, C_None, C_None)),
-  {A_LOOPE} (Ch: (C_RWECX, C_RFlags, C_None)),
-  {A_LOOPNE} (Ch: (C_RWECX, C_RFlags, C_None)),
-  {A_LOOPNZ} (Ch: (C_RWECX, C_RFlags, C_None)),
-  {A_LOOPZ} (Ch: (C_RWECX, C_RFlags, C_None)),
-  {A_LSL} (Ch: (C_Wop2, C_WFlags, C_None)),
-  {A_LSS} (Ch: (C_Wop2, C_None, C_None)),
-  {A_LTR} (Ch: (C_None, C_None, C_None)),
-  {A_MOV} (Ch: (C_Wop2, C_Rop1, C_None)),
-  {A_MOVD} (Ch: (C_All, C_None, C_None)), { new }
-  {A_MOVQ} (Ch: (C_All, C_None, C_None)), { new }
-  {A_MOVSB} (Ch: (C_All, C_Rop1, C_None)),
-  {A_MOVSD} (Ch: (C_All, C_None, C_None)), { new }
-  {A_MOVSW} (Ch: (C_All, C_None, C_None)), { new }
-  {A_MOVSX} (Ch: (C_Wop2, C_Rop1, C_None)),
-  {A_MOVZX} (Ch: (C_Wop2, C_Rop1, C_None)),
-  {A_MUL} (Ch: (C_RWEAX, C_WEDX, C_WFlags)), {handled separately, because modifies more than three things}
-  {A_NEG} (Ch: (C_Mop1, C_None, C_None)),
-  {A_NOP} (Ch: (C_None, C_None, C_None)),
-  {A_NOT} (Ch: (C_Mop1, C_WFlags, C_None)),
-  {A_OR} (Ch: (C_Mop2, C_WFlags, C_None)),
-  {A_OUT} (Ch: (C_Rop1, C_Rop2, C_None)),
-  {A_OUTSB} (Ch: (C_All, C_None, C_None)), { new }
-  {A_OUTSD} (Ch: (C_All, C_None, C_None)), { new }
-  {A_OUTSW} (Ch: (C_All, C_None, C_None)), { new }
-  {A_PACKSSDW} (Ch: (C_All, C_None, C_None)), { new }
-  {A_PACKSSWB} (Ch: (C_All, C_None, C_None)), { new }
-  {A_PACKUSWB} (Ch: (C_All, C_None, C_None)), { new }
-  {A_PADDB} (Ch: (C_All, C_None, C_None)), { new }
-  {A_PADDD} (Ch: (C_All, C_None, C_None)), { new }
-  {A_PADDSB} (Ch: (C_All, C_None, C_None)), { new }
-  {A_PADDSIW} (Ch: (C_All, C_None, C_None)), { new }
-  {A_PADDSW} (Ch: (C_All, C_None, C_None)), { new }
-  {A_PADDUSB} (Ch: (C_All, C_None, C_None)), { new }
-  {A_PADDUSW} (Ch: (C_All, C_None, C_None)), { new }
-  {A_PADDW} (Ch: (C_All, C_None, C_None)), { new }
-  {A_PAND} (Ch: (C_All, C_None, C_None)), { new }
-  {A_PANDN} (Ch: (C_All, C_None, C_None)), { new }
-  {A_PAVEB} (Ch: (C_All, C_None, C_None)), { new }
-  {A_PAVGUSB} (Ch: (C_All, C_None, C_None)), { new }
-  {A_PCMPEQB} (Ch: (C_All, C_None, C_None)), { new }
-  {A_PCMPEQD} (Ch: (C_All, C_None, C_None)), { new }
-  {A_PCMPEQW} (Ch: (C_All, C_None, C_None)), { new }
-  {A_PCMPGTB} (Ch: (C_All, C_None, C_None)), { new }
-  {A_PCMPGTD} (Ch: (C_All, C_None, C_None)), { new }
-  {A_PCMPGTW} (Ch: (C_All, C_None, C_None)), { new }
-  {A_PDISTIB} (Ch: (C_All, C_None, C_None)), { new }
-  {A_PF2ID} (Ch: (C_All, C_None, C_None)), { new }
-  {A_PFACC} (Ch: (C_All, C_None, C_None)), { new }
-  {A_PFADD} (Ch: (C_All, C_None, C_None)), { new }
-  {A_PFCMPEQ} (Ch: (C_All, C_None, C_None)), { new }
-  {A_PFCMPGE} (Ch: (C_All, C_None, C_None)), { new }
-  {A_PFCMPGT} (Ch: (C_All, C_None, C_None)), { new }
-  {A_PFMAX} (Ch: (C_All, C_None, C_None)), { new }
-  {A_PFMIN} (Ch: (C_All, C_None, C_None)), { new }
-  {A_PFMUL} (Ch: (C_All, C_None, C_None)), { new }
-  {A_PFRCP} (Ch: (C_All, C_None, C_None)), { new }
-  {A_PFRCPIT1} (Ch: (C_All, C_None, C_None)), { new }
-  {A_PFRCPIT2} (Ch: (C_All, C_None, C_None)), { new }
-  {A_PFRSQIT1} (Ch: (C_All, C_None, C_None)), { new }
-  {A_PFRSQRT} (Ch: (C_All, C_None, C_None)), { new }
-  {A_PFSUB} (Ch: (C_All, C_None, C_None)), { new }
-  {A_PFSUBR} (Ch: (C_All, C_None, C_None)), { new }
-  {A_PI2FD} (Ch: (C_All, C_None, C_None)), { new }
-  {A_PMACHRIW} (Ch: (C_All, C_None, C_None)), { new }
-  {A_PMADDWD} (Ch: (C_All, C_None, C_None)), { new }
-  {A_PMAGW} (Ch: (C_All, C_None, C_None)), { new }
-  {A_PMULHRIW} (Ch: (C_All, C_None, C_None)), { new }
-  {A_PMULHRWA} (Ch: (C_All, C_None, C_None)), { new }
-  {A_PMULHRWC} (Ch: (C_All, C_None, C_None)), { new }
-  {A_PMULHW} (Ch: (C_All, C_None, C_None)), { new }
-  {A_PMULLW} (Ch: (C_All, C_None, C_None)), { new }
-  {A_PMVGEZB} (Ch: (C_All, C_None, C_None)), { new }
-  {A_PMVLZB} (Ch: (C_All, C_None, C_None)), { new }
-  {A_PMVNZB} (Ch: (C_All, C_None, C_None)), { new }
-  {A_PMVZB} (Ch: (C_All, C_None, C_None)), { new }
-  {A_POP} (Ch: (C_Wop1, C_RWESP, C_None)),
-  {A_POPA} (Ch: (C_All, C_None, C_None)), {don't know value of any register}
-  {A_POPAD} (Ch: (C_All, C_None, C_None)), {don't know value of any register}
-  {A_POPAW} (Ch: (C_All, C_None, C_None)), { new }
-  {A_POPF} (Ch: (C_RWESP, C_WFlags, C_None)),
-  {A_POPFD} (Ch: (C_RWESP, C_WFlags, C_None)),
-  {A_POPFW} (Ch: (C_RWESP, C_WFLAGS, C_None)), { new }
-  {A_POR} (Ch: (C_All, C_None, C_None)), { new }
-  {A_PREFETCH} (Ch: (C_All, C_None, C_None)), { new }
-  {A_PREFETCHW} (Ch: (C_All, C_None, C_None)), { new }
-  {A_PSLLD} (Ch: (C_All, C_None, C_None)), { new }
-  {A_PSLLQ} (Ch: (C_All, C_None, C_None)), { new }
-  {A_PSLLW} (Ch: (C_All, C_None, C_None)), { new }
-  {A_PSRAD} (Ch: (C_All, C_None, C_None)), { new }
-  {A_PSRAW} (Ch: (C_All, C_None, C_None)), { new }
-  {A_PSRLD} (Ch: (C_All, C_None, C_None)), { new }
-  {A_PSRLQ} (Ch: (C_All, C_None, C_None)), { new }
-  {A_PSRLW} (Ch: (C_All, C_None, C_None)), { new }
-  {A_PSUBB} (Ch: (C_All, C_None, C_None)), { new }
-  {A_PSUBD} (Ch: (C_All, C_None, C_None)), { new }
-  {A_PSUBSB} (Ch: (C_All, C_None, C_None)), { new }
-  {A_PSUBSIW} (Ch: (C_All, C_None, C_None)), { new }
-  {A_PSUBSW} (Ch: (C_All, C_None, C_None)), { new }
-  {A_PSUBUSB} (Ch: (C_All, C_None, C_None)), { new }
-  {A_PSUBUSW} (Ch: (C_All, C_None, C_None)), { new }
-  {A_PSUBW} (Ch: (C_All, C_None, C_None)), { new }
-  {A_PUNPCKHBW} (Ch: (C_All, C_None, C_None)), { new }
-  {A_PUNPCKHDQ} (Ch: (C_All, C_None, C_None)), { new }
-  {A_PUNPCKHWD} (Ch: (C_All, C_None, C_None)), { new }
-  {A_PUNPCKLBW} (Ch: (C_All, C_None, C_None)), { new }
-  {A_PUNPCKLDQ} (Ch: (C_All, C_None, C_None)), { new }
-  {A_PUNPCKLWD} (Ch: (C_All, C_None, C_None)), { new }
-  {A_PUSH} (Ch: (C_Rop1, C_RWESP, C_None)),
-  {A_PUSHA} (Ch: (C_All, C_None, C_None)),
-  {A_PUSHAD} (Ch: (C_All, C_None, C_None)),
-  {A_PUSHAW} (Ch: (C_All, C_None, C_None)), { new }
-  {A_PUSHF} (Ch: (C_RWESP, C_RFlags, C_None)),
-  {A_PUSHFD} (Ch: (C_RWESP, C_RFlags, C_None)),
-  {A_PUSHFW} (Ch: (C_RWESP, C_RFLAGS, C_None)), { new }
-  {A_PXOR} (Ch: (C_All, C_None, C_None)), { new }
-  {A_RCL} (Ch: (C_Mop2, C_Rop1, C_RWFlags)),
-  {A_RCR} (Ch: (C_Mop2, C_Rop1, C_RWFlags)),
-{!!!}  {A_RDSHR} (Ch: (C_All, C_None, C_None)), { new }
-  {A_RDMSR} (Ch: (C_WEAX, C_WEDX, C_None)), { new }
-  {A_RDPMC} (Ch: (C_WEAX, C_WEDX, C_None)), { new }
-  {A_RDTSC} (Ch: (C_WEAX, C_WEDX, C_None)), { new }
-  {A_RESB} (Ch: (C_All, C_None, C_None)), { new }
-  {A_RET} (Ch: (C_All, C_None, C_None)),
-  {A_RETF} (Ch: (C_All, C_None, C_None)), { new }
-  {A_RETN} (Ch: (C_All, C_None, C_None)), { new }
-  {A_ROL} (Ch: (C_Mop2, C_Rop1, C_RWFlags)),
-  {A_ROR} (Ch: (C_Mop2, C_Rop1, C_RWFlags)),
-{!!!}  {A_RSDC} (Ch: (C_All, C_None, C_None)), { new }
-{!!!}  {A_RSLDT} (Ch: (C_All, C_None, C_None)), { new }
-  {A_RSM} (Ch: (C_All, C_None, C_None)), { new }
-  {A_SAHF} (Ch: (C_WFlags, C_REAX, C_None)),
-  {A_SAL} (Ch: (C_Mop2, C_Rop1, C_RWFlags)),
-  {A_SALC} (Ch: (C_WEAX, C_RFLAGS, C_None)), { new }
-  {A_SAR} (Ch: (C_Mop2, C_Rop1, C_WFlags)),
-  {A_SBB} (Ch: (C_Mop2, C_Rop1, C_RWFlags)),
-  {A_SCASB} (Ch: (C_All, C_None, C_None)), { new }
-  {A_SCASD} (Ch: (C_All, C_None, C_None)), { new }
-  {A_SCASW} (Ch: (C_All, C_None, C_None)), { new }
-  {A_SGDT} (Ch: (C_Wop1, C_None, C_None)),
-  {A_SHL} (Ch: (C_Mop2, C_Rop1, C_WFlags)),
-  {A_SHLD} (Ch: (C_MOp3, C_RWFlags, C_Rop2)),
-  {A_SHR} (Ch: (C_Mop2, C_Rop1, C_WFlags)),
-  {A_SHRD} (Ch: (C_MOp3, C_RWFlags, C_Rop2)),
-  {A_SIDT} (Ch: (C_Wop1, C_None, C_None)),
-  {A_SLDT} (Ch: (C_Wop1, C_None, C_None)),
-  {A_SMI} (Ch: (C_All, C_None, C_None)), { new }
-{!!!}  {A_SMINT} (Ch: (C_All, C_None, C_None)), { new }
-{!!!}  {A_SMINTOLD} (Ch: (C_All, C_None, C_None)), { new }
-  {A_SMSW} (Ch: (C_Wop1, C_None, C_None)),
-  {A_STC} (Ch: (C_WFlags, C_None, C_None)),
-  {A_STD} (Ch: (C_SDirFlag, C_None, C_None)),
-  {A_STI} (Ch: (C_WFlags, C_None, C_None)),
-  {A_STOSB} (Ch: (C_REAX, C_WMemEDI, C_RWEDI)), { new }
-  {A_STOSD} (Ch: (C_REAX, C_WMemEDI, C_RWEDI)), { new }
-  {A_STOSW} (Ch: (C_REAX, C_WMemEDI, C_RWEDI)), { new }
-  {A_STR}  (Ch: (C_Wop1, C_None, C_None)),
-  {A_SUB} (Ch: (C_Mop2, C_Rop1, C_WFlags)),
-{!!!}  {A_SVDC} (Ch: (C_All, C_None, C_None)), { new }
-{!!!}  {A_SVLDT} (Ch: (C_All, C_None, C_None)), { new }
-{!!!}  {A_SVTS} (Ch: (C_All, C_None, C_None)), { new }
-{!!!}  {A_SYSCALL} (Ch: (C_All, C_None, C_None)), { new }
-{!!!}  {A_SYSENTER} (Ch: (C_All, C_None, C_None)), { new }
-{!!!}  {A_SYSEXIT} (Ch: (C_All, C_None, C_None)), { new }
-{!!!}  {A_SYSRET} (Ch: (C_All, C_None, C_None)), { new }
-  {A_TEST} (Ch: (C_WFlags, C_Rop1, C_Rop2)),
-{!!!}  {A_UD1} (Ch: (C_All, C_None, C_None)), { new }
-{!!!}  {A_UD2} (Ch: (C_All, C_None, C_None)), { new }
-  {A_UMOV} (Ch: (C_All, C_None, C_None)), { new }
-  {A_VERR} (Ch: (C_WFlags, C_None, C_None)),
-  {A_VERW} (Ch: (C_WFlags, C_None, C_None)),
-  {A_WAIT} (Ch: (C_None, C_None, C_None)),
-  {A_WBINVD} (Ch: (C_None, C_None, C_None)), { new }
-{!!!}  {A_WRSHR} (Ch: (C_All, C_None, C_None)), { new }
-  {A_WRMSR} (Ch: (C_All, C_None, C_None)), { new }
-  {A_XADD} (Ch: (C_All, C_None, C_None)), { new }
-  {A_XBTS} (Ch: (C_All, C_None, C_None)), { new }
-  {A_XCHG} (Ch: (C_RWop1, C_RWop2, C_None)), {(might be) handled seperately}
-  {A_XLAT} (Ch: (C_WEAX, C_REBX, C_None)),
-  {A_XLATB} (Ch: (C_WEAX, C_REBX, C_None)),
-  {A_XOR} (Ch: (C_Mop2, C_Rop1, C_WFlags)),
-  {A_CMOV} (Ch: (C_ROp1, C_WOp2, C_RFLAGS)), { new }
-  {A_J} (Ch: (C_None, C_None, C_None)), { new }
-  {A_SET} (Ch: (C_WEAX, C_RFLAGS, C_None)),  { new }
-{!!!! From here everything is new !!!!!!!!}
-  {ADDPS} (Ch: (C_All, C_None, C_None)), { new }
-  {ADDSS} (Ch: (C_All, C_None, C_None)), { new }
-  {ANDNPS} (Ch: (C_All, C_None, C_None)), { new }
-  {ANDPS} (Ch: (C_All, C_None, C_None)), { new }
-  {CMPEQPS} (Ch: (C_All, C_None, C_None)), { new }
-  {CMPEQSS} (Ch: (C_All, C_None, C_None)), { new }
-  {CMPLEPS} (Ch: (C_All, C_None, C_None)), { new }
-  {CMPLESS} (Ch: (C_All, C_None, C_None)), { new }
-  {CMPLTPS} (Ch: (C_All, C_None, C_None)), { new }
-  {CMPLTSS} (Ch: (C_All, C_None, C_None)), { new }
-  {CMPNEQPS} (Ch: (C_All, C_None, C_None)), { new }
-  {CMPNEQSS} (Ch: (C_All, C_None, C_None)), { new }
-  {CMPNLEPS} (Ch: (C_All, C_None, C_None)), { new }
-  {CMPNLESS} (Ch: (C_All, C_None, C_None)), { new }
-  {CMPNLTPS} (Ch: (C_All, C_None, C_None)), { new }
-  {CMPNLTSS} (Ch: (C_All, C_None, C_None)), { new }
-  {CMPORDPS} (Ch: (C_All, C_None, C_None)), { new }
-  {CMPORDSS} (Ch: (C_All, C_None, C_None)), { new }
-  {CMPUNORDPS} (Ch: (C_All, C_None, C_None)), { new }
-  {CMPUNORDSS} (Ch: (C_All, C_None, C_None)), { new }
-  {CMPPS} (Ch: (C_All, C_None, C_None)), { new }
-  {CMPSS} (Ch: (C_All, C_None, C_None)), { new }
-  {COMISS} (Ch: (C_All, C_None, C_None)), { new }
-  {CVTPI2PS} (Ch: (C_All, C_None, C_None)), { new }
-  {CVTPS2PI} (Ch: (C_All, C_None, C_None)), { new }
-  {CVTSI2SS} (Ch: (C_All, C_None, C_None)), { new }
-  {CVTSS2SI} (Ch: (C_All, C_None, C_None)), { new }
-  {CVTTPS2PI} (Ch: (C_All, C_None, C_None)), { new }
-  {CVTTSS2SI} (Ch: (C_All, C_None, C_None)), { new }
-  {DIVPS} (Ch: (C_All, C_None, C_None)), { new }
-  {DIVSS} (Ch: (C_All, C_None, C_None)), { new }
-  {LDMXCSR} (Ch: (C_All, C_None, C_None)), { new }
-  {MAXPS} (Ch: (C_All, C_None, C_None)), { new }
-  {MAXSS} (Ch: (C_All, C_None, C_None)), { new }
-  {MINPS} (Ch: (C_All, C_None, C_None)), { new }
-  {MINSS} (Ch: (C_All, C_None, C_None)), { new }
-  {MOVAPS} (Ch: (C_All, C_None, C_None)), { new }
-  {MOVHPS} (Ch: (C_All, C_None, C_None)), { new }
-  {MOVLHPS} (Ch: (C_All, C_None, C_None)), { new }
-  {MOVLPS} (Ch: (C_All, C_None, C_None)), { new }
-  {MOVHLPS} (Ch: (C_All, C_None, C_None)), { new }
-  {MOVMSKPS} (Ch: (C_All, C_None, C_None)), { new }
-  {MOVNTPS} (Ch: (C_All, C_None, C_None)), { new }
-  {MOVSS} (Ch: (C_All, C_None, C_None)), { new }
-  {MOVUPS} (Ch: (C_All, C_None, C_None)), { new }
-  {MULPS} (Ch: (C_All, C_None, C_None)), { new }
-  {MULSS} (Ch: (C_All, C_None, C_None)), { new }
-  {ORPS} (Ch: (C_All, C_None, C_None)), { new }
-  {RCPPS} (Ch: (C_All, C_None, C_None)), { new }
-  {RCPSS} (Ch: (C_All, C_None, C_None)), { new }
-  {RSQRTPS} (Ch: (C_All, C_None, C_None)), { new }
-  {RSQRTSS} (Ch: (C_All, C_None, C_None)), { new }
-  {SHUFPS} (Ch: (C_All, C_None, C_None)), { new }
-  {SQRTPS} (Ch: (C_All, C_None, C_None)), { new }
-  {SQRTSS} (Ch: (C_All, C_None, C_None)), { new }
-  {STMXCSR} (Ch: (C_All, C_None, C_None)), { new }
-  {SUBPS} (Ch: (C_All, C_None, C_None)), { new }
-  {SUBSS} (Ch: (C_All, C_None, C_None)), { new }
-  {UCOMISS} (Ch: (C_All, C_None, C_None)), { new }
-  {UNPCKHPS} (Ch: (C_All, C_None, C_None)), { new }
-  {UNPCKLPS} (Ch: (C_All, C_None, C_None)), { new }
-  {XORPS} (Ch: (C_All, C_None, C_None)), { new }
-  {FXRSTOR} (Ch: (C_All, C_None, C_None)), { new }
-  {FXSAVE} (Ch: (C_All, C_None, C_None)), { new }
-  {PREFETCHNTA} (Ch: (C_All, C_None, C_None)), { new }
-  {PREFETCHT0} (Ch: (C_All, C_None, C_None)), { new }
-  {PREFETCHT1} (Ch: (C_All, C_None, C_None)), { new }
-  {PREFETCHT2} (Ch: (C_All, C_None, C_None)), { new }
-  {SFENCE} (Ch: (C_All, C_None, C_None)), { new }
-  {MASKMOVQ} (Ch: (C_All, C_None, C_None)), { new }
-  {MOVNTQ} (Ch: (C_All, C_None, C_None)), { new }
-  {PAVGB} (Ch: (C_All, C_None, C_None)), { new }
-  {PAVGW} (Ch: (C_All, C_None, C_None)), { new }
-  {PEXTRW} (Ch: (C_All, C_None, C_None)), { new }
-  {PINSRW} (Ch: (C_All, C_None, C_None)), { new }
-  {PMAXSW} (Ch: (C_All, C_None, C_None)), { new }
-  {PMAXUB} (Ch: (C_All, C_None, C_None)), { new }
-  {PMINSW} (Ch: (C_All, C_None, C_None)), { new }
-  {PMINUB} (Ch: (C_All, C_None, C_None)), { new }
-  {PMOVMSKB} (Ch: (C_All, C_None, C_None)), { new }
-  {PMULHUW} (Ch: (C_All, C_None, C_None)), { new }
-  {PSADBW} (Ch: (C_All, C_None, C_None)), { new }
-  {PSHUFW} (Ch: (C_All, C_None, C_None)) { new }
-  );
+Type
+  TRefCompare = function(const r1, r2: TReference): Boolean;
 
 Var
  {How many instructions are between the current instruction and the last one
@@ -1274,20 +752,20 @@ Begin
     Else FindZeroReg := False;
 End;*)
 
-Function TCh2Reg(Ch: TChange): TRegister;
+Function TCh2Reg(Ch: TInsChange): TRegister;
 {converts a TChange variable to a TRegister}
 Begin
-  If (Ch <= C_REDI) Then
+  If (Ch <= Ch_REDI) Then
     TCh2Reg := TRegister(Byte(Ch))
   Else
-    If (Ch <= C_WEDI) Then
-      TCh2Reg := TRegister(Byte(Ch) - Byte(C_REDI))
+    If (Ch <= Ch_WEDI) Then
+      TCh2Reg := TRegister(Byte(Ch) - Byte(Ch_REDI))
     Else
-      If (Ch <= C_RWEDI) Then
-        TCh2Reg := TRegister(Byte(Ch) - Byte(C_WEDI))
+      If (Ch <= Ch_RWEDI) Then
+        TCh2Reg := TRegister(Byte(Ch) - Byte(Ch_WEDI))
       Else
-        If (Ch <= C_MEDI) Then
-          TCh2Reg := TRegister(Byte(Ch) - Byte(C_RWEDI))
+        If (Ch <= Ch_MEDI) Then
+          TCh2Reg := TRegister(Byte(Ch) - Byte(Ch_RWEDI))
         Else InternalError($db)
 End;
 
@@ -1841,7 +1319,7 @@ Var
     TmpState: Byte;
 {$endif AnalyzeLoops}
     Cnt, InstrCnt : Longint;
-    InstrProp: TAsmInstrucProp;
+    InstrProp: TInsProp;
     UsedRegs: TRegSet;
     p, hp : Pai;
     TmpRef: TReference;
@@ -2077,7 +1555,7 @@ Begin
           end
           else
            begin
-            InstrProp := AsmInstr[Paicpu(p)^.opcode];
+            InstrProp := InsProp[Paicpu(p)^.opcode];
             Case Paicpu(p)^.opcode Of
               A_MOV, A_MOVZX, A_MOVSX:
                 Begin
@@ -2213,68 +1691,68 @@ Begin
                 Begin
                   Cnt := 1;
                   While (Cnt <= MaxCh) And
-                        (InstrProp.Ch[Cnt] <> C_None) Do
+                        (InstrProp.Ch[Cnt] <> Ch_None) Do
                     Begin
                       Case InstrProp.Ch[Cnt] Of
-                        C_REAX..C_REDI: ReadReg(CurProp,TCh2Reg(InstrProp.Ch[Cnt]));
-                        C_WEAX..C_RWEDI:
+                        Ch_REAX..Ch_REDI: ReadReg(CurProp,TCh2Reg(InstrProp.Ch[Cnt]));
+                        Ch_WEAX..Ch_RWEDI:
                           Begin
-                            If (InstrProp.Ch[Cnt] >= C_RWEAX) Then
+                            If (InstrProp.Ch[Cnt] >= Ch_RWEAX) Then
                               ReadReg(CurProp, TCh2Reg(InstrProp.Ch[Cnt]));
                             DestroyReg(CurProp, TCh2Reg(InstrProp.Ch[Cnt]));
                           End;
 {$ifdef arithopt}
-                        C_MEAX..C_MEDI:
+                        Ch_MEAX..Ch_MEDI:
                           AddInstr2RegContents({$ifdef statedebug} asml, {$endif}
                                                Paicpu(p),
                                                TCh2Reg(InstrProp.Ch[Cnt]));
 {$endif arithopt}
-                        C_CDirFlag: CurProp^.DirFlag := F_NotSet;
-                        C_SDirFlag: CurProp^.DirFlag := F_Set;
-                        C_Rop1: ReadOp(CurProp, Paicpu(p)^.oper[0]);
-                        C_Rop2: ReadOp(CurProp, Paicpu(p)^.oper[1]);
-                        C_ROp3: ReadOp(CurProp, Paicpu(p)^.oper[2]);
-                        C_Wop1..C_RWop1:
+                        Ch_CDirFlag: CurProp^.DirFlag := F_NotSet;
+                        Ch_SDirFlag: CurProp^.DirFlag := F_Set;
+                        Ch_Rop1: ReadOp(CurProp, Paicpu(p)^.oper[0]);
+                        Ch_Rop2: ReadOp(CurProp, Paicpu(p)^.oper[1]);
+                        Ch_ROp3: ReadOp(CurProp, Paicpu(p)^.oper[2]);
+                        Ch_Wop1..Ch_RWop1:
                           Begin
-                            If (InstrProp.Ch[Cnt] in [C_RWop1]) Then
+                            If (InstrProp.Ch[Cnt] in [Ch_RWop1]) Then
                               ReadOp(CurProp, Paicpu(p)^.oper[0]);
                             DestroyOp(p, Paicpu(p)^.oper[0]);
                           End;
 {$ifdef arithopt}
-                        C_Mop1:
+                        Ch_Mop1:
                           AddInstr2OpContents({$ifdef statedebug} asml, {$endif}
                           Paicpu(p), Paicpu(p)^.oper[0]);
 {$endif arithopt}
-                        C_Wop2..C_RWop2:
+                        Ch_Wop2..Ch_RWop2:
                           Begin
-                            If (InstrProp.Ch[Cnt] = C_RWop2) Then
+                            If (InstrProp.Ch[Cnt] = Ch_RWop2) Then
                               ReadOp(CurProp, Paicpu(p)^.oper[1]);
                             DestroyOp(p, Paicpu(p)^.oper[1]);
                           End;
 {$ifdef arithopt}
-                        C_Mop2:
+                        Ch_Mop2:
                           AddInstr2OpContents({$ifdef statedebug} asml, {$endif}
                           Paicpu(p), Paicpu(p)^.oper[1]);
 {$endif arithopt}
-                        C_WOp3..C_RWOp3:
+                        Ch_WOp3..Ch_RWOp3:
                           Begin
-                            If (InstrProp.Ch[Cnt] = C_RWOp3) Then
+                            If (InstrProp.Ch[Cnt] = Ch_RWOp3) Then
                               ReadOp(CurProp, Paicpu(p)^.oper[2]);
                             DestroyOp(p, Paicpu(p)^.oper[2]);
                           End;
 {$ifdef arithopt}
-                        C_Mop3:
+                        Ch_Mop3:
                           AddInstr2OpContents({$ifdef statedebug} asml, {$endif}
                           Paicpu(p), Paicpu(p)^.oper[2]);
 {$endif arithopt}
-                        C_WMemEDI:
+                        Ch_WMemEDI:
                           Begin
                             ReadReg(CurProp, R_EDI);
                             FillChar(TmpRef, SizeOf(TmpRef), 0);
                             TmpRef.Base := R_EDI;
                             DestroyRefs(p, TmpRef, R_NO)
                           End;
-                        C_RFlags, C_WFlags, C_RWFlags, C_FPU:
+                        Ch_RFlags, Ch_WFlags, Ch_RWFlags, Ch_FPU:
                         Else
                           Begin
                             DestroyAllRegs(CurProp);
@@ -2392,7 +1870,10 @@ End.
 
 {
  $Log$
- Revision 1.64  1999-10-23 14:44:24  jonas
+ Revision 1.65  1999-10-27 16:11:28  peter
+   * insns.dat is used to generate all i386*.inc files
+
+ Revision 1.64  1999/10/23 14:44:24  jonas
    * finally got around making GetNextInstruction return false when
      the current pai object is a AsmBlockStart marker
    * changed a loop in aopt386 which was incompatible with this change
@@ -2525,7 +2006,7 @@ End.
  Revision 1.29  1998/11/26 21:45:31  jonas
    - removed A_CLTD opcode (use A_CDQ instead)
    * changed cbw, cwde and cwd to cbtw, cwtl and cwtd in att_.oper[1]str array
-   * in daopt386: adapted AsmInstr array to reflect changes + fixed line too long
+   * in daopt386: adapted InsProp array to reflect changes + fixed line too long
 
  Revision 1.27  1998/11/24 19:47:22  jonas
    * fixed problems posible with 3 operand instructions
