@@ -180,15 +180,16 @@ interface
 
         current_scanner : tscannerfile;  { current scanner in use }
 
-        scannerdirectives : tdictionary; { dictionary with the supported directives }
-
         aktcommentstyle : tcommentstyle; { needed to use read_comment from directives }
 {$ifdef PREPROCWRITE}
         preprocfile     : tpreprocfile;  { used with only preprocessing }
 {$endif PREPROCWRITE}
 
-    procedure adddirective(const s:string;p:tdirectiveproc);
-    procedure addconditional(const s:string;p:tdirectiveproc);
+    type
+        tdirectivemode = (directive_all, directive_turbo, directive_mac);
+
+    procedure AddDirective(const s:string; dm: tdirectivemode; p:tdirectiveproc);
+    procedure AddConditional(const s:string; dm: tdirectivemode; p:tdirectiveproc);
 
     procedure InitScanner;
     procedure DoneScanner;
@@ -206,6 +207,12 @@ implementation
       systems,
       switches,
       fmodule;
+
+    var
+      { dictionaries with the supported directives }
+      turbo_scannerdirectives : tdictionary;     { for other modes }
+      mac_scannerdirectives : tdictionary;       { for mode mac }
+
 
 {*****************************************************************************
                               Helper routines
@@ -309,7 +316,7 @@ implementation
       end;
 
 
-    procedure dir_if;
+    function parse_compiler_expr:string;
 
         function read_expr : string; forward;
 
@@ -522,16 +529,21 @@ implementation
              read_expr:='0';
         end;
 
-      var
-        hs : string;
-      begin
+     begin
         current_scanner.skipspace;
         { start preproc expression scanner }
         current_scanner.preproc_token:=current_scanner.readpreproc;
-        hs:=read_expr;
-        current_scanner.addpreprocstack(pp_if,hs<>'0',hs,scan_c_if_found);
+        parse_compiler_expr:=read_expr;
       end;
 
+    procedure dir_if;
+
+      var
+        hs : string;
+      begin
+        hs:=parse_compiler_expr;
+        current_scanner.addpreprocstack(pp_if,hs<>'0',hs,scan_c_if_found);
+      end;
 
     procedure dir_define;
       var
@@ -623,6 +635,68 @@ implementation
                   Message(scan_w_macro_support_turned_off);
               end;
           end;
+      end;
+
+    procedure dir_setc;
+      var
+        hs  : string;
+        mac : tmacro;
+      begin
+        current_scanner.skipspace;
+        hs:=current_scanner.readid;
+        mac:=tmacro(current_scanner.macros.search(hs));
+        if not assigned(mac) then
+          begin
+            mac:=tmacro.create(hs);
+            mac.defined:=true;
+            Message1(parser_c_macro_defined,mac.name);
+            current_scanner.macros.insert(mac);
+          end
+        else
+          begin
+            Message1(parser_c_macro_defined,mac.name);
+            mac.defined:=true;
+          { delete old definition }
+            if assigned(mac.buftext) then
+             begin
+               freemem(mac.buftext,mac.buflen);
+               mac.buftext:=nil;
+             end;
+          end;
+        mac.is_used:=true;
+
+
+        { key words are never substituted }
+           if is_keyword(hs) then
+            Message(scan_e_keyword_cant_be_a_macro);
+         { !!!!!! handle macro params, need we this? }
+           current_scanner.skipspace;
+         { may be a macro? }
+
+        //both versions with := and = are allowed
+        if c=':' then
+          current_scanner.readchar;
+
+        if c='=' then
+          begin
+             current_scanner.readchar;
+             hs:= parse_compiler_expr;
+             if length(hs) <> 0 then
+               begin
+                 { free buffer of macro ?}
+                 if assigned(mac.buftext) then
+                   freemem(mac.buftext,mac.buflen);
+                 { get new mem }
+                 getmem(mac.buftext,length(hs));
+                 mac.buflen:=length(hs);
+                 { copy the text }
+                 move(hs[1],mac.buftext^,mac.buflen);
+               end
+             else
+               Message(scan_e_preproc_syntax_error);
+          end
+        else
+          Message(scan_e_preproc_syntax_error);
       end;
 
 
@@ -1376,7 +1450,10 @@ implementation
              Message(scan_c_skipping_until);
              repeat
                current_scanner.skipuntildirective;
-               p:=tdirectiveitem(scannerdirectives.search(current_scanner.readid));
+               if not (m_mac in aktmodeswitches) then
+                 p:=tdirectiveitem(turbo_scannerdirectives.search(current_scanner.readid))
+               else
+                 p:=tdirectiveitem(mac_scannerdirectives.search(current_scanner.readid));
              until assigned(p) and (p.is_conditional);
              current_scanner.gettokenpos;
              Message1(scan_d_handling_switch,'$'+p.name);
@@ -1448,7 +1525,11 @@ implementation
       { directives may follow switches after a , }
          if hs<>'' then
           begin
-            t:=tdirectiveitem(scannerdirectives.search(hs));
+            if not (m_mac in aktmodeswitches) then
+              t:=tdirectiveitem(turbo_scannerdirectives.search(hs))
+            else
+              t:=tdirectiveitem(mac_scannerdirectives.search(hs));
+
             if assigned(t) then
              begin
                if t.is_conditional then
@@ -2767,17 +2848,21 @@ exit_label:
                                    Helpers
 *****************************************************************************}
 
-    procedure adddirective(const s:string;p:tdirectiveproc);
+    procedure AddDirective(const s:string; dm: tdirectivemode; p:tdirectiveproc);
       begin
-        scannerdirectives.insert(tdirectiveitem.create(s,p));
+        if dm in [directive_all, directive_turbo] then
+          turbo_scannerdirectives.insert(tdirectiveitem.create(s,p));
+        if dm in [directive_all, directive_mac] then
+          mac_scannerdirectives.insert(tdirectiveitem.create(s,p));
       end;
 
-
-    procedure addconditional(const s:string;p:tdirectiveproc);
+    procedure AddConditional(const s:string; dm: tdirectivemode; p:tdirectiveproc);
       begin
-        scannerdirectives.insert(tdirectiveitem.createcond(s,p));
+        if dm in [directive_all, directive_turbo] then
+          turbo_scannerdirectives.insert(tdirectiveitem.createcond(s,p));
+        if dm in [directive_all, directive_mac] then
+          mac_scannerdirectives.insert(tdirectiveitem.createcond(s,p));
       end;
-
 
 {*****************************************************************************
                                 Initialization
@@ -2786,25 +2871,34 @@ exit_label:
     procedure InitScanner;
       begin
         InitWideString(patternw);
-        scannerdirectives:=TDictionary.Create;
-        { Default directives }
-        AddDirective('DEFINE',{$ifdef FPCPROCVAR}@{$endif}dir_define);
-        AddDirective('UNDEF',{$ifdef FPCPROCVAR}@{$endif}dir_undef);
-        AddDirective('I',{$ifdef FPCPROCVAR}@{$endif}dir_include);
-        AddDirective('INCLUDE',{$ifdef FPCPROCVAR}@{$endif}dir_include);
-        { Default conditionals }
-        AddConditional('ELSE',{$ifdef FPCPROCVAR}@{$endif}dir_else);
-        AddConditional('ENDIF',{$ifdef FPCPROCVAR}@{$endif}dir_endif);
-        AddConditional('IF',{$ifdef FPCPROCVAR}@{$endif}dir_if);
-        AddConditional('IFDEF',{$ifdef FPCPROCVAR}@{$endif}dir_ifdef);
-        AddConditional('IFNDEF',{$ifdef FPCPROCVAR}@{$endif}dir_ifndef);
-        AddConditional('IFOPT',{$ifdef FPCPROCVAR}@{$endif}dir_ifopt);
+        turbo_scannerdirectives:=TDictionary.Create;
+        mac_scannerdirectives:=TDictionary.Create;
+
+        { Default Turbo directives and conditionals }
+        AddDirective('DEFINE',directive_turbo, {$ifdef FPCPROCVAR}@{$endif}dir_define);
+        AddDirective('UNDEF',directive_turbo, {$ifdef FPCPROCVAR}@{$endif}dir_undef);
+        AddDirective('I',directive_turbo, {$ifdef FPCPROCVAR}@{$endif}dir_include);
+        AddDirective('INCLUDE',directive_turbo, {$ifdef FPCPROCVAR}@{$endif}dir_include);
+
+        AddConditional('ELSE',directive_turbo, {$ifdef FPCPROCVAR}@{$endif}dir_else);
+        AddConditional('ENDIF',directive_turbo, {$ifdef FPCPROCVAR}@{$endif}dir_endif);
+        AddConditional('IF',directive_turbo, {$ifdef FPCPROCVAR}@{$endif}dir_if);
+        AddConditional('IFDEF',directive_turbo, {$ifdef FPCPROCVAR}@{$endif}dir_ifdef);
+        AddConditional('IFNDEF',directive_turbo, {$ifdef FPCPROCVAR}@{$endif}dir_ifndef);
+        AddConditional('IFOPT',directive_turbo, {$ifdef FPCPROCVAR}@{$endif}dir_ifopt);
+
+        { Default Mac directives and conditionals: }
+        AddDirective('SETC',directive_mac, {$ifdef FPCPROCVAR}@{$endif}dir_setc);
+        AddConditional('IFC',directive_mac, {$ifdef FPCPROCVAR}@{$endif}dir_if);
+        AddConditional('ELSEC',directive_mac, {$ifdef FPCPROCVAR}@{$endif}dir_else);
+        AddConditional('ENDC',directive_mac, {$ifdef FPCPROCVAR}@{$endif}dir_endif);
       end;
 
 
     procedure DoneScanner;
       begin
-        scannerdirectives.Free;
+        turbo_scannerdirectives.Free;
+        mac_scannerdirectives.Free;
         DoneWideString(patternw);
       end;
 
@@ -2812,7 +2906,11 @@ exit_label:
 end.
 {
   $Log$
-  Revision 1.61  2003-09-03 11:18:37  florian
+  Revision 1.62  2003-09-17 22:30:19  olle
+    + support for a different set of compiler directives under $MODE MAC
+    + added mac directives $SETC $IFC $ELSEC $ENDC
+
+  Revision 1.61  2003/09/03 11:18:37  florian
     * fixed arm concatcopy
     + arm support in the common compiler sources added
     * moved some generic cg code around
