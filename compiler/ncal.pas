@@ -2231,7 +2231,9 @@ type
     function tree_contains_function_call(var n: tnode): foreachnoderesult;
       begin
         result := fen_false;
-        if n.nodetype = calln then
+        if (n.nodetype = calln) or
+           ((n.nodetype = loadn) and
+            (vo_is_thread_var in tvarsym(tloadnode(n).symtableentry).varoptions)) then
           { stop when we encounter a call node }
           result := fen_norecurse_true;
       end;
@@ -2632,7 +2634,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.169  2003-06-13 21:19:30  peter
+  Revision 1.170  2003-06-15 15:10:57  jonas
+    * callparatemp fix: if a threadvar is a parameter, that paramter also
+      does a call
+
+  Revision 1.169  2003/06/13 21:19:30  peter
     * current_procdef removed, use current_procinfo.procdef instead
 
   Revision 1.168  2003/06/08 20:01:53  jonas
