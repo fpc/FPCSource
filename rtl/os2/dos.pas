@@ -990,6 +990,7 @@ begin
 @End:
  end;
  GetEnv := StrPas (P);
+end;
 {$ASMMODE ATT}
 
 procedure fsplit(path:pathstr;var dir:dirstr;var name:namestr;
@@ -1213,7 +1214,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.21  2002-12-07 19:17:13  hajny
+  Revision 1.22  2002-12-07 19:46:56  hajny
+    * mistyping fixed
+
+  Revision 1.21  2002/12/07 19:17:13  hajny
     * GetEnv correction, better PM support, ...
 
   Revision 1.20  2002/11/18 19:51:00  hajny
