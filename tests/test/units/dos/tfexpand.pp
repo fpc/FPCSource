@@ -1,23 +1,55 @@
+{
+  $Id$
+    This file is part of the Free Pascal test suite.
+    Copyright (c) 1999-2004 by the Free Pascal development team.
+
+    Test for possible bugs in Dos.FExpand
+
+    See the file COPYING.FPC, included in this distribution,
+    for details about the copyright.
+
+    This program is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+
+ **********************************************************************}
+
 program TFExpand;
 
-(* Test for possible bugs in Dos.FExpand *)
-
-{ $DEFINE DEBUG}
+{$DEFINE DEBUG}
 (* Defining DEBUG causes all the source and target strings *)
 (* to be written to the console to make debugging easier.  *)
+{ $DEFINE DIRECT}
+(* Defining DIRECT causes direct embedding of fexpand.inc instead     *)
+(* of using FExpand implementation in (previously compiled) unit Dos. *)
 
 uses
 {$ifdef FPC}
-  {$ifdef win32}
-    win32err,
-  {$endif win32}
+ PopupErr,
 {$endif FPC}
  Dos;
 
-{$IFDEF OS2}
-function _DosError (Error: longint): longint; cdecl;
-                                                 external 'DOSCALLS' index 212;
-{$ENDIF OS2}
+{$IFDEF DIRECT}
+(* For testing purposes on non-native platforms *)
+ {$DEFINE VOLUMES}
+ {$DEFINE NODOTS}
+ { $DEFINE AMIGA}
+ { $DEFINE UNIX}
+ {$DEFINE MACOS}
+
+ { $DEFINE FPC_FEXPAND_DRIVES}
+ { $DEFINE FPC_FEXPAND_UNC}
+ {$DEFINE FPC_FEXPAND_VOLUMES}
+ {$DEFINE FPC_FEXPAND_NO_DEFAULT_PATHS}
+ {$DEFINE FPC_FEXPAND_DRIVESEP_IS_ROOT}
+ { $DEFINE FPC_FEXPAND_DIRSEP_IS_UPDIR}
+ {$DEFINE FPC_FEXPAND_NO_DOTS_UPDIR}
+ { $DEFINE FPC_FEXPAND_NO_CURDIR}
+ { $DEFINE FPC_FEXPAND_TILDE}
+ { $DEFINE FPC_FEXPAND_MULTIPLE_UPDIR}
+ {$DEFINE FPC_FEXPAND_DIRSEP_IS_CURDIR}
+ { $DEFINE FPC_FEXPAND_GETENV_PCHAR}
+{$ENDIF DIRECT}
 
 {$IFDEF LINUX}
  {$IFNDEF UNIX}
@@ -27,32 +59,121 @@ function _DosError (Error: longint): longint; cdecl;
 
 {$IFDEF AMIGA}
  {$DEFINE VOLUMES}
+ {$DEFINE NODRIVEC}
 {$ENDIF AMIGA}
 
 {$IFDEF NETWARE}
  {$DEFINE VOLUMES}
+ {$DEFINE NODRIVEC}
 {$ENDIF NETWARE}
 
+{$IFDEF UNIX}
+ {$DEFINE NODRIVEC}
+{$ENDIF UNIX}
+
+{$IFDEF MACOS}
+ {$DEFINE VOLUMES}
+ {$DEFINE NODRIVEC}
+ {$DEFINE NODOTS}
+{$ENDIF MACOS}
+
 const
+{$IFDEF MACOS}
+ CC = 'C';
+{$ELSE MACOS}
+ CC = 'C:';
+{$ENDIF MACOS}
 {$IFNDEF FPC}
  FileNameCaseSensitive = false;
+ DirectorySeparator = '\';
+ DirectorySeparator2 = '\';
  DirSep = '\';
  CDrive = 'C:';
-{$ELSE}
-   DirSep = System.DirectorySeparator;
-  {$IFDEF UNIX}
-   CDrive = '';
-  {$ELSE}
-   CDrive = 'C:';
-  {$ENDIF}
-{$ENDIF}
+ DriveSep = ':';
+{$ELSE FPC}
+(* Used for ChDir/MkDir *)
+ DirectorySeparator2 = System.DirectorySeparator;
+ {$IFDEF DIRECT}
+  {$IFDEF MACOS}
+ DirectorySeparator = ':';
+ LFNSupport = true;
+ FileNameCaseSensitive = false;
+  {$ELSE MACOS}
+   {$IFDEF UNIX}
+ DirectorySeparator = '/';
+ FileNameCaseSensitive = true;
+   {$ELSE UNIX}
+    {$IFDEF AMIGA}
+ DirectorySeparator = ':';
+ FileNameCaseSensitive = true;
+    {$ELSE AMIGA}
+ DirectorySeparator = '\';
+ FileNameCaseSensitive = false;
+    {$ENDIF AMIGA}
+   {$ENDIF UNIX}
+  {$ENDIF MACOS}
+ {$ENDIF DIRECT}
+ DirSep = DirectorySeparator;
+ {$IFDEF MACOS}
+ DriveSep = '';
+ {$ELSE MACOS}
+  {$IFDEF AMIGA}
+ DriveSep = '';
+  {$ELSE AMIGA}
+ DriveSep = DriveSeparator;
+  {$ENDIF AMIGA}
+ {$ENDIF MACOS}
+ {$IFDEF UNIX}
+ CDrive = '';
+ {$ELSE UNIX}
+  {$IFDEF MACOS}
+ CDrive = 'C';
+  {$ELSE MACOS}
+   {$IFDEF AMIGA}
+ CDrive = 'C';
+   {$ELSE AMIGA}
+ CDrive = 'C:';
+   {$ENDIF AMIGA}
+  {$ENDIF MACOS}
+ {$ENDIF UNIX}
+{$ENDIF FPC}
+ TestFileName = 'testfile.tst';
+ TestDir1Name = 'TESTDIR1';
+ TestDir2Name = 'TESTDIR2';
  HasErrors: boolean = false;
 
+{$IFDEF DIRECT}
+procedure XToDirect (var S: string);
 var
- TestDir, OrigDir, OrigTstDir, CurDir, CDir, S: DirStr;
+ I: byte;
+begin
+ if DirectorySeparator2 <> DirectorySeparator then
+  for I := 1 to Length (S) do
+   if S [I] = DirectorySeparator2 then
+    S [I] := DirectorySeparator;
+ if DriveSeparator = DirectorySeparator then
+  begin
+   I := Pos (DirectorySeparator + DirectorySeparator, S);
+   if I <> 0 then
+    Delete (S, I, 1);
+  end;
+end;
+
+procedure GetDir (Drive: byte; var Directory: string);
+begin
+ System.GetDir (Drive, Directory);
+ XToDirect (Directory);
+end;
+
+ {$I fexpand.inc}
+{$ENDIF DIRECT}
+
+var
+ TestDir, TestDir0, OrigDir, OrigTstDir, CurDir, CDir, S: DirStr;
  TestDrive: string [2];
  I: byte;
  IOR: longint;
+ F: file;
 
 function Translate (S: PathStr): PathStr;
 var
@@ -60,10 +181,10 @@ var
 begin
 {$IFDEF UNIX}
  if (Length (S) > 1) and (S [2] = ':') then Delete (S, 1, 2);
-{$ELSE}
+{$ELSE UNIX}
  for I := 1 to Length (S) do if S [I] = '/' then S [I] := DirSep;
  if (Length (S) > 0) and (S [1] in ['a'..'z']) then S [1] := UpCase (S [1]);
-{$ENDIF}
+{$ENDIF UNIX}
  if not (FileNameCaseSensitive) then
                            for I := 1 to Length (S) do S [I] := UpCase (S [I]);
  Translate := S;
@@ -75,7 +196,7 @@ var
 begin
 {$IFDEF DEBUG}
  WriteLn (Src, '=>', Rslt);
-{$ENDIF}
+{$ENDIF DEBUG}
  Rslt := Translate (Rslt);
  Rslt2 := FExpand (Src);
  if Rslt <> Rslt2 then
@@ -87,17 +208,15 @@ begin
 end;
 
 begin
-{$IFDEF OS2}
-(* Avoid OS/2 error messages. *)
- _DosError (0);
-{$ENDIF OS2}
  if ParamCount <> 1 then
  begin
   WriteLn ('Warning: Parameter missing!');
   WriteLn ('Full path to a directory with write access' +
 {$IFNDEF UNIX}
+ {$IFNDEF VOLUMES}
                                #13#10'(preferably not on a C: drive)' +
-{$ENDIF}
+ {$ENDIF VOLUMES}
+{$ENDIF UNIX}
                                                                  ' expected.');
   WriteLn ('Trying to use the current directory instead ' +
 {$IFDEF UNIX}
@@ -105,70 +224,153 @@ begin
 {$ELSE UNIX}
                                                     '(problems might arise).');
 {$ENDIF UNIX}
-  GetDir (0, TestDir);
+{$IFDEF DIRECT}System.{$ENDIF DIRECT}GetDir (0, TestDir);
  end else TestDir := ParamStr (1);
- if TestDir [Length (TestDir)] <> DirSep then TestDir := TestDir + DirSep;
- GetDir (0, OrigDir);
-{$IFDEF UNIX}
+ if TestDir [Length (TestDir)] <> DirectorySeparator2 then
+  TestDir := TestDir + DirectorySeparator2;
+{$IFDEF DIRECT}System.{$ENDIF DIRECT}GetDir (0, OrigDir);
+{$IFDEF NODRIVEC}
  TestDrive := '';
-{$ELSE UNIX}
+{$ELSE NODRIVEC}
  TestDrive := Copy (TestDir, 1, 2);
  GetDir ((Ord (TestDir [1]) and not ($20)) - 64, OrigTstDir);
-{$ENDIF UNIX}
+{$ENDIF NODRIVEC}
 {$I-}
- MkDir (TestDir + 'TESTDIR1');
+ MkDir (TestDir + TestDir1Name);
  if IOResult <> 0 then ;
- MkDir (TestDir + 'TESTDIR1' + DirSep + 'TESTDIR2');
+ MkDir (TestDir + TestDir1Name + DirectorySeparator2 + TestDir2Name);
  if IOResult <> 0 then ;
 {$I+}
- ChDir (TestDir + 'TESTDIR1' + DirSep + 'TESTDIR2');
+ ChDir (TestDir + TestDir1Name + DirectorySeparator2 + TestDir2Name);
+{$I-}
+ TestDir0 := TestDir;
+{$IFDEF DIRECT}
+ XToDirect (TestDir);
+{$ENDIF DIRECT}
+ Assign (F, TestFileName);
+ Rewrite (F);
+ Close (F);
+ if IOResult <> 0 then ;
+{$IFNDEF DIRECT}
+ Assign (F, FExpand (TestFileName));
+{$ENDIF DIRECT}
+{$I+}
  GetDir (0, CurDir);
-{$IFDEF UNIX}
- CDir := CurDir;
-{$ELSE UNIX}
+{$IFDEF NODRIVEC}
+ {$IFDEF UNIX}
+ CDir = CurDir;
+ {$ELSE UNIX}
+ CDir := 'C:';
+ {$ENDIF UNIX}
+{$ELSE NODRIVEC}
  GetDir (3, CDir);
-{$ENDIF UNIX}
+{$ENDIF NODRIVEC}
  Check (' ', CurDir + DirSep + ' ');
+{$IFDEF AMIGA}
+ Check ('', CurDir);
+{$ELSE AMIGA}
  Check ('', CurDir + DirSep);
+{$ENDIF AMIGA}
+{$IFDEF MACOS}
+ Check (':', CurDir + DirSep);
+{$ELSE MACOS}
  Check ('.', CurDir);
- Check ('C:', CDir);
+{$ENDIF MACOS}
+{$IFDEF NODOTS}
+ Check ('C:.', 'C:.');
+{$ELSE NODOTS}
  Check ('C:.', CDir);
+{$ENDIF NODOTS}
+{$IFNDEF NODRIVEC}
  if CDir [Length (CDir)] = DirSep then Check ('c:anything', CDir + 'anything')
                          else Check ('c:anything', CDir + DirSep + 'anything');
- Check ('C:' + DirSep, CDrive + DirSep);
- Check ('C:' + DirSep + '.', CDrive + DirSep);
- Check ('C:' + DirSep + '..', CDrive + DirSep);
- Check ('C:' + DirSep + 'DOS', CDrive + DirSep + 'DOS');
- Check ('C:' + DirSep + '..' + DirSep + 'DOS', CDrive + DirSep + 'DOS');
- Check ('C:' + DirSep + 'DOS.', CDrive + DirSep + 'DOS.');
- Check ('C:' + DirSep + 'DOS' + DirSep, CDrive + DirSep + 'DOS' + DirSep);
- Check ('C:' + DirSep + 'DOS' + DirSep + '.', CDrive + DirSep + 'DOS');
- Check ('C:' + DirSep + 'DOS' + DirSep + '..', CDrive + DirSep);
- Check ('C:' + DirSep + 'DOS' + DirSep + '..' + DirSep, CDrive + DirSep);
- Check ('C:' + DirSep + 'DOS' + DirSep + 'TEST' + DirSep + '..', CDrive +
+{$ENDIF NODRIVEC}
+ Check (CC + DirSep, CDrive + DirSep);
+{$IFDEF NODOTS}
+ Check (CC + DirSep + '.', CDrive + DirSep + '.');
+ Check (CC + DirSep + '..', CDrive + DirSep + '..');
+{$ELSE NODOTS}
+ Check (CC + DirSep + '.', CDrive + DirSep);
+ Check (CC + DirSep + '..', CDrive + DirSep);
+{$ENDIF NODOTS}
+ Check (CC + DirSep + 'DOS', CDrive + DirSep + 'DOS');
+{$IFNDEF NODOTS}
+ Check (CC + DirSep + '..' + DirSep + 'DOS', CDrive + DirSep + 'DOS');
+{$ENDIF NODOTS}
+ Check (CC + DirSep + 'DOS.', CDrive + DirSep + 'DOS.');
+{$IFDEF AMIGA}
+ Check (CC + DirSep + 'DOS' + DirSep, CDrive + DirSep);
+{$ELSE AMIGA}
+ Check (CC + DirSep + 'DOS' + DirSep, CDrive + DirSep + 'DOS' + DirSep);
+{$ENDIF AMIGA}
+{$IFNDEF NODOTS}
+ Check (CC + DirSep + 'DOS' + DirSep + '.', CDrive + DirSep + 'DOS');
+ Check (CC + DirSep + 'DOS' + DirSep + '..', CDrive + DirSep);
+ Check (CC + DirSep + 'DOS' + DirSep + '..' + DirSep, CDrive + DirSep);
+ Check (CC + DirSep + 'DOS' + DirSep + 'TEST' + DirSep + '..', CDrive +
                                                                DirSep + 'DOS');
  Check ('C:' + DirSep + 'DOS' + DirSep + 'TEST' + DirSep + '..' + DirSep,
                                              CDrive + DirSep + 'DOS' + DirSep);
+{$ENDIF NODOTS}
+{$IFNDEF MACOS}
  Check (DirSep, TestDrive + DirSep);
  Check (DirSep + '.', TestDrive + DirSep);
  Check (DirSep + '..', TestDrive + DirSep);
  Check (DirSep + 'DOS', TestDrive + DirSep + 'DOS');
+{$ENDIF MACOS}
  Check ('d', CurDir + DirSep + 'd');
+{$IFDEF MACOS}
+ Check (DirSep + 'd', CurDir + DirSep + 'd');
+{$ELSE MACOS}
+ {$IFNDEF NODOTS}
+ Check ('.' + DirSep + 'd', CurDir + DirSep + 'd');
+ {$ENDIF NODOTS}
+{$ENDIF MACOS}
  Check (' d', CurDir + DirSep + ' d');
  Check ('dd', CurDir + DirSep + 'dd');
+{$IFDEF MACOS}
+ Check (DirSep + 'dd' + DirSep + 'dd', CurDir + DirSep + 'dd' + DirSep + 'dd');
+ Check ('dd' + DirSep + 'dd', 'dd' + DirSep + 'dd');
+{$ELSE MACOS}
  Check ('dd' + DirSep + 'dd', CurDir + DirSep + 'dd' + DirSep + 'dd');
+{$ENDIF MACOS}
  Check ('ddd', CurDir + DirSep + 'ddd');
+{$IFDEF MACOS}
+ Check ('dddd' + DirSep + 'eeee.ffff', 'dddd' + DirSep + 'eeee.ffff');
+{$ELSE MACOS}
  Check ('dddd' + DirSep + 'eeee.ffff', CurDir + DirSep + 'dddd' + DirSep
                                                                 + 'eeee.ffff');
+{$ENDIF MACOS}
  Check ('.special', CurDir + DirSep + '.special');
  Check ('..special', CurDir + DirSep + '..special');
  Check ('special..', CurDir + DirSep + 'special..');
+{$IFDEF AMIGA}
+ Check ('special.' + DirSep, CurDir);
+{$ELSE AMIGA}
+ {$IFDEF MACOS}
+ Check ('special.' + DirSep, 'special.' + DirSep);
+ {$ELSE MACOS}
  Check ('special.' + DirSep, CurDir + DirSep + 'special.' + DirSep);
+ {$ENDIF MACOS}
+{$ENDIF AMIGA}
+{$IFDEF MACOS}
+ Check (DirSep + DirSep, TestDir + TestDir1Name + DirSep);
+ Check (DirSep + DirSep + TestFileName, TestDir + TestDir1Name + DirSep
+                                                               + TestFileName);
+{$ELSE MACOS}
  Check (DirSep + '.special', TestDrive + DirSep + '.special');
- Check ('..', TestDir + 'TESTDIR1');
- Check ('.' + DirSep + '..', TestDir + 'TESTDIR1');
- Check ('..' + DirSep + '.', TestDir + 'TESTDIR1');
+ {$IFNDEF NODOTS}
+ Check ('..', TestDir + TestDir1Name);
+ Check ('.' + DirSep + '..', TestDir + TestDir1Name);
+ Check ('..' + DirSep + '.', TestDir + TestDir1Name);
+ {$ENDIF NODOTS}
+{$ENDIF MACOS}
+{$IFDEF NETWARE}
+ Check ('...', TestDir);
+{$ELSE NETWARE}
  Check ('...', CurDir + DirSep + '...');
+{$ENDIF NETWARE}
+ Check (TestFileName, CurDir + DirSep + TestFileName);
 {$IFDEF UNIX}
  S := GetEnv ('HOME');
  { On m68k netbsd at least, HOME contains a final slash
@@ -186,19 +388,21 @@ begin
  Check ('~' + DirSep + 'directory' + DirSep + 'another',
                                          S + 'directory' + DirSep + 'another');
 {$ELSE UNIX}
- Check (TestDrive + '..', TestDir + 'TESTDIR1');
- Check (TestDrive + '..' + DirSep, TestDir + 'TESTDIR1' + DirSep);
+ {$IFNDEF NODRIVEC}
+ Check (TestDrive + '..', TestDir + TestDir1Name);
+ Check (TestDrive + '..' + DirSep, TestDir + TestDir1Name + DirSep);
  Check (TestDrive + '.' + DirSep + '.', CurDir);
- Check (TestDrive + '.' + DirSep + '..', TestDir + 'TESTDIR1');
+ Check (TestDrive + '.' + DirSep + '..', TestDir + TestDir1Name);
 {$I-}
-{$ifndef unix}
+{ $ ifndef unix
  { avoid a and b drives for
    no unix systems to reduce the
    probablility of getting an alert message box }
+ (* This should not be needed - unit popuperr should solve this?! TH *)
  I := 3;
-{$else unix}
+$else unix}
  I := 1;
-{$endif unix}
+{ $ endif unix}
  repeat
   S := '';
   GetDir (I, S);
@@ -212,7 +416,7 @@ begin
  end else
    WriteLn ('Sorry, cannot test FExpand behaviour for incorrect drives here.');
 {$I+}
-{$IFDEF FPC}
+  {$IFDEF FPC}
  Check ('d\d/d', CurDir + DirSep + 'd' + DirSep + 'd' + DirSep + 'd');
  Check ('\\server\share\directory', '\\server\share\directory');
  Check ('\\server\share\directory1\directory2\..',
@@ -230,28 +434,51 @@ begin
  Check ('\\..\TEST1\TEST2\..', '\\..\TEST1');
  Check ('\\..\TEST\..', '\\..\TEST');
  Check ('\\..\TEST\..\..', '\\..\TEST');
-{$ENDIF FPC}
- ChDir (OrigTstDir);
+  {$ENDIF FPC}
+ {$ENDIF NODRIVEC}
 {$ENDIF UNIX}
 {$IFDEF VOLUMES}
- Check ('VolName:' + DirSep + 'DIR1', 'VolName:' + DirSep + 'DIR1');
- Check ('VolName:' + DirSep + 'DIR1' + DirSep + '..', 'VolName:' + DirSep);
- Check ('VolName:' + DirSep + 'DIR1' + DirSep + '..' + DirSep + '..',
-                                                          'VolName:' + DirSep);
- Check ('VolName:' + DirSep + '.', 'VolName:' + DirSep);
- Check ('VolName:' + DirSep + '..', 'VolName:' + DirSep);
- Check ('VolName:' + DirSep + '..' + DirSep, 'VolName:' + DirSep);
- Check ('SrvName\VolName:' + DirSep + 'TEST', 'SrvName' + DirSep + 'VolName:' +
-                                                              DirSep + 'TEST');
- Check ('SrvName/VolName:' + DirSep + 'TEST', 'SrvName' + DirSep + 'VolName:' +
-                                                              DirSep + 'TEST');
+ Check ('VolName' + DriveSep + DirSep + 'DIR1', 'VolName' + DriveSep + DirSep + 'DIR1');
+ {$IFNDEF NODOTS}
+ Check ('VolName' + DriveSep + DirSep + 'DIR1' + DirSep + '..', 'VolName' + DriveSep + DirSep);
+ Check ('VolName' + DriveSep + DirSep + 'DIR1' + DirSep + '..' + DirSep + '..',
+                                                          'VolName' + DriveSep + DirSep);
+ Check ('VolName' + DriveSep + DirSep + '.', 'VolName:' + DirSep);
+ Check ('VolName' + DriveSep + DirSep + '..', 'VolName:' + DirSep);
+ Check ('VolName' + DriveSep + DirSep + '..' + DirSep, 'VolName' + DriveSep + DirSep);
+ {$ENDIF NODOTS}
+ {$IFDEF NETWARE}
+ Check ('SrvName\VolName' + DriveSep + DirSep + 'TEST', 'SrvName' + DirSep + 'VolName' +
+                                                         DriveSep + DirSep + 'TEST');
+ Check ('SrvName/VolName' + DriveSep + DirSep + 'TEST', 'SrvName' + DirSep + 'VolName' +
+                                                         DriveSep + DirSep + 'TEST');
+ {$ENDIF NETWARE}
+ {$IFDEF AMIGA}
+  {$IFDEF NODOTS}
+ Check ('.', CurDir + DirSep + '.');
+  {$ELSE NODOTS}
+ Check ('.', CurDir);
+  {$ENDIF NODOTS}
+ {$ENDIF AMIGA}
 {$ENDIF VOLUMES}
+ Erase (F);
+{$IFNDEF NODRIVEC}
+ ChDir (OrigTstDir);
+{$ENDIF NODRIVEC}
  ChDir (OrigDir);
- RmDir (TestDir + 'TESTDIR1' + DirSep + 'TESTDIR2');
- RmDir (TestDir + 'TESTDIR1');
+ RmDir (TestDir0 + TestDir1Name + DirectorySeparator2 + TestDir2Name);
+ RmDir (TestDir0 + TestDir1Name);
  if HasErrors then
  begin
   WriteLn ('FExpand doesn''t work correctly.');
   Halt (1);
  end;
 end.
+
+{
+  $Log$
+  Revision 1.7  2004-12-05 14:16:59  hajny
+    * popuperr instead of win32err, additional checks (mostly support for more platforms)
+
+
+}
