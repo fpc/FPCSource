@@ -1728,6 +1728,7 @@ begin
   def_symbol('CPU68K');
   def_symbol('CPU32');
   def_symbol('FPC_CURRENCY_IS_INT64');
+  def_symbol('FPC_COMP_IS_INT64');
 {$endif}
 {$ifdef ALPHA}
   def_symbol('CPUALPHA');
@@ -1741,6 +1742,7 @@ begin
   def_symbol('FPC_HAS_TYPE_SINGLE');
   def_symbol('FPC_INCLUDE_SOFTWARE_INT64_TO_DOUBLE');
   def_symbol('FPC_CURRENCY_IS_INT64');
+  def_symbol('FPC_COMP_IS_INT64');
 {$endif}
 {$ifdef iA64}
   def_symbol('CPUIA64');
@@ -1763,6 +1765,7 @@ begin
   def_symbol('FPC_HAS_TYPE_SINGLE');
   def_symbol('FPC_INCLUDE_SOFTWARE_INT64_TO_DOUBLE');
   def_symbol('FPC_CURRENCY_IS_INT64');
+  def_symbol('FPC_COMP_IS_INT64');
 {$endif}
 {$ifdef vis}
   def_symbol('CPUVIS');
@@ -1774,6 +1777,7 @@ begin
   def_symbol('FPC_HAS_TYPE_DOUBLE');
   def_symbol('FPC_HAS_TYPE_SINGLE');
   def_symbol('FPC_CURRENCY_IS_INT64');
+  def_symbol('FPC_COMP_IS_INT64');
   def_symbol('FPC_REQUIRES_PROPER_ALIGNMENT');
 {$endif arm}
 
@@ -2035,7 +2039,10 @@ finalization
 end.
 {
   $Log$
-  Revision 1.130  2004-03-23 22:34:49  peter
+  Revision 1.131  2004-03-27 23:23:03  florian
+    + added FPC_COMP_IS_INT64 define
+
+  Revision 1.130  2004/03/23 22:34:49  peter
     * constants ordinals now always have a type assigned
     * integer constants have the smallest type, unsigned prefered over
       signed
