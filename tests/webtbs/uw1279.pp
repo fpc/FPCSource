@@ -1,4 +1,4 @@
-unit uw1279;
+unit testunit;
 interface
 implementation
 end.

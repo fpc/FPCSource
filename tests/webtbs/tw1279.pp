@@ -1,3 +1,4 @@
+{ %opt=-Un }
 { %version=1.1 }
 
 uses
