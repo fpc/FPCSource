@@ -59,7 +59,10 @@ end;
 
 {
    $Log$
-   Revision 1.1  2005-02-07 22:17:26  peter
+   Revision 1.1  2005-02-10 17:30:54  peter
+     * renamed to solaris
+
+   Revision 1.1  2005/02/07 22:17:26  peter
      * updated for 1.9.x unix rtl
 
    Revision 1.2  2005/02/06 13:06:20  peter

@@ -80,6 +80,9 @@ const
 
 {
   $Log$
-  Revision 1.2  2004-11-06 22:22:28  florian
+  Revision 1.2  2005-02-10 17:30:54  peter
+    * renamed to solaris
+
+  Revision 1.2  2004/11/06 22:22:28  florian
     * some sunos stuff from 1.0.x merged
 }
