@@ -97,7 +97,7 @@ implementation
          { handling code at the end as it is much more efficient, and makes
            while equal to repeat loop, only the end true/false is swapped (PFV) }
          if nodetype=whilen then
-           cg.a_jmp_cond(exprasmlist,OC_None,lcont);
+           cg.a_jmp_always(exprasmlist,lcont);
 
          { align loop target }
          exprasmList.concat(Tai_align.Create(aktalignment.loopalign));
@@ -203,7 +203,7 @@ implementation
                      aktfilepos:=exprasmList.getlasttaifilepos^
                    else
                      aktfilepos:=then_list.getlasttaifilepos^;
-                   cg.a_jmp_cond(exprasmlist,OC_None,hl);
+                   cg.a_jmp_always(exprasmlist,hl);
                 end;
               cg.a_label(exprasmlist,falselabel);
               rg.cleartempgen;
@@ -408,7 +408,7 @@ implementation
          else
            hop:=OP_ADD;
          cg.a_op_const_loc(exprasmlist,hop,1,t2.location);
-         cg.a_jmp_cond(exprasmlist,OC_None,l3);
+         cg.a_jmp_always(exprasmlist,l3);
 
          if temptovalue then
            tg.ungetiftemp(exprasmlist,temp1);
@@ -447,7 +447,7 @@ implementation
            begin
               { just do a normal assignment followed by exit }
               secondpass(left);
-              cg.a_jmp_cond(exprasmlist,OC_NONE,aktexitlabel);
+              cg.a_jmp_always(exprasmlist,aktexitlabel);
            end
          else
            begin
@@ -475,15 +475,12 @@ implementation
                 LOC_JUMP :
                   begin
                     cg.a_reg_alloc(exprasmlist,accumulator);
-{$ifdef i386}
-                    hreg:=Changeregsize(accumulator,S_B);
-{$else i386}
-                    hreg:=accumulator;
-{$endif i386}
+                    { get an 8-bit register }
+                    hreg:=rg.makeregsize(accumulator,OS_8);
                     allocated_acc := true;
                     cg.a_label(exprasmlist,truelabel);
                     cg.a_load_const_reg(exprasmlist,OS_8,1,hreg);
-                    cg.a_jmp_cond(exprasmlist,OC_NONE,aktexit2label);
+                    cg.a_jmp_always(exprasmlist,aktexit2label);
                     cg.a_label(exprasmlist,falselabel);
                     cg.a_load_const_reg(exprasmlist,OS_8,0,hreg);
                     goto do_jmp;
@@ -519,11 +516,7 @@ implementation
                         end
                       else
                         begin
-{$ifdef i386}
-                          hreg:=Changeregsize(accumulator,TCGsize2Opsize[cgsize]);
-{$else}
-                          hreg:=accumulator;
-{$endif}
+                          hreg:=rg.makeregsize(accumulator,cgsize);
                           cg.a_load_loc_reg(exprasmlist,left.location,hreg);
                         end;
                     end;
@@ -532,7 +525,7 @@ implementation
 do_jmp:
               truelabel:=otlabel;
               falselabel:=oflabel;
-              cg.a_jmp_cond(exprasmlist,OC_None,aktexit2label);
+              cg.a_jmp_always(exprasmlist,aktexit2label);
               if allocated_acc then
                 cg.a_reg_dealloc(exprasmlist,accumulator);
               if allocated_acchigh then
@@ -543,7 +536,7 @@ do_jmp:
 {$endif not i386}
            end
          else
-           cg.a_jmp_cond(exprasmlist,OC_None,aktexitlabel);
+           cg.a_jmp_always(exprasmlist,aktexitlabel);
        end;
 
 
@@ -557,7 +550,7 @@ do_jmp:
          if aktbreaklabel<>nil then
            begin
              load_all_regvars(exprasmlist);
-             cg.a_jmp_cond(exprasmlist,OC_None,aktbreaklabel)
+             cg.a_jmp_always(exprasmlist,aktbreaklabel)
            end
          else
            CGMessage(cg_e_break_not_allowed);
@@ -574,7 +567,7 @@ do_jmp:
          if aktcontinuelabel<>nil then
            begin
              load_all_regvars(exprasmlist);
-             cg.a_jmp_cond(exprasmlist,OC_None,aktcontinuelabel)
+             cg.a_jmp_always(exprasmlist,aktcontinuelabel)
            end
          else
            CGMessage(cg_e_continue_not_allowed);
@@ -589,7 +582,7 @@ do_jmp:
 
        begin
          load_all_regvars(exprasmlist);
-         cg.a_jmp_cond(exprasmlist,OC_None,labelnr)
+         cg.a_jmp_always(exprasmlist,labelnr)
        end;
 
 
@@ -618,7 +611,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.12  2002-04-15 19:44:19  peter
+  Revision 1.13  2002-04-21 15:24:38  carl
+  + a_jmp_cond -> a_jmp_always (a_jmp_cond is NOT portable)
+  + changeregsize -> rg.makeregsize
+
+  Revision 1.12  2002/04/15 19:44:19  peter
     * fixed stackcheck that would be called recursively when a stack
       error was found
     * generic changeregsize(reg,size) for i386 register resizing

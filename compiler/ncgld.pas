@@ -218,7 +218,7 @@ implementation
                      end;
                     { update href to the vtype field and write it }
                     dec(href.offset,4);
-                    emit_const_ref(A_MOV,S_L,vtype,href);
+                    cg.a_load_const_ref(exprasmlist, OS_INT,vtype,href);
                     { goto next array element }
                     inc(href.offset,8);
                   end;
@@ -260,7 +260,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.1  2002-04-19 15:39:34  peter
+  Revision 1.2  2002-04-21 15:24:38  carl
+  + a_jmp_cond -> a_jmp_always (a_jmp_cond is NOT portable)
+  + changeregsize -> rg.makeregsize
+
+  Revision 1.1  2002/04/19 15:39:34  peter
     * removed some more routines from cga
     * moved location_force_reg/mem to ncgutil
     * moved arrayconstructnode secondpass to ncgld

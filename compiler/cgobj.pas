@@ -253,7 +253,7 @@ unit cgobj;
           procedure a_cmp_ref_loc_label(list: taasmoutput; size: tcgsize;cmp_op: topcmp; const ref: treference; const loc: tlocation;
             l : tasmlabel);
 
-          procedure a_jmp_cond(list : taasmoutput;cond : TOpCmp;l: tasmlabel); virtual; abstract;
+          procedure a_jmp_always(list : taasmoutput;l: tasmlabel); virtual; abstract;
           procedure a_jmp_flags(list : taasmoutput;const f : TResFlags;l: tasmlabel); virtual; abstract;
 
           procedure g_flags2reg(list: taasmoutput; const f: tresflags; reg: TRegister); virtual; abstract;
@@ -335,11 +335,6 @@ unit cgobj;
           { returns the tcgsize corresponding with the size of reg }
           class function reg_cgsize(const reg: tregister) : tcgsize; virtual;
 
-{$ifdef i386}
-         { this one is only necessary due the the restrictions of the 80x86, }
-         { so make it a special case (JM)                                    }
-          function makeregsize(var reg: tregister; size: tcgsize): topsize; virtual; abstract;
-{$endif i386}
        end;
 
     var
@@ -415,11 +410,7 @@ unit cgobj;
     procedure tcg.free_scratch_reg(list : taasmoutput;r : tregister);
 
       begin
-{$ifdef i386}
-         include(unusedscratchregisters,changeregsize(r,S_L));
-{$else i386}
-         include(unusedscratchregisters,r);
-{$endif i386}
+         include(unusedscratchregisters,rg.makeregsize(r,OS_INT));
          a_reg_dealloc(list,r);
       end;
 
@@ -1266,9 +1257,7 @@ unit cgobj;
               else
 {$endif i386}
               tmpreg := get_scratch_reg(list);
-{$ifdef i386}
-              makeregsize(tmpreg,loc.size);
-{$endif i386}
+              tmpreg:=rg.makeregsize(tmpreg,loc.size);
               a_load_ref_reg(list,loc.size,loc.reference,tmpreg);
               a_load_reg_ref(list,loc.size,tmpreg,ref);
 {$ifdef i386}
@@ -1408,9 +1397,7 @@ unit cgobj;
           LOC_REFERENCE,LOC_CREFERENCE:
             begin
               tmpreg := get_scratch_reg(list);
-{$ifdef i386}
-              makeregsize(tmpreg,loc.size);
-{$endif i386}
+              tmpreg:=rg.makeregsize(tmpreg,loc.size);
               a_load_ref_reg(list,loc.size,ref,tmpreg);
               a_op_reg_ref(list,op,loc.size,tmpreg,loc.reference);
               free_scratch_reg(list,tmpreg);
@@ -1513,9 +1500,7 @@ unit cgobj;
               else
 {$endif i386}
               tmpreg := get_scratch_reg(list);
-{$ifdef i386}
-              makeregsize(tmpreg,size);
-{$endif i386}
+              tmpreg := rg.makeregsize(tmpreg,size);
               a_load_ref_reg(list,size,loc.reference,tmpreg);
               a_cmp_ref_reg_label(list,size,cmp_op,ref,tmpreg,l);
 {$ifdef i386}
@@ -1660,7 +1645,11 @@ finalization
 end.
 {
   $Log$
-  Revision 1.15  2002-04-20 21:32:23  carl
+  Revision 1.16  2002-04-21 15:25:30  carl
+  + a_jmp_cond -> a_jmp_always (a_jmp_cond is NOT portable)
+  + changeregsize -> rg.makeregsize
+
+  Revision 1.15  2002/04/20 21:32:23  carl
   + generic FPC_CHECKPOINTER
   + first parameter offset in stack now portable
   * rename some constants
