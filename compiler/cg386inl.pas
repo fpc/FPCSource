@@ -1487,7 +1487,8 @@ implementation
                     in_sqr_extended:
                       begin
                          emit_reg(A_FLD,S_NO,R_ST0);
-                         emit_none(A_FMULP,S_NO);
+                         { emit_none(A_FMULP,S_NO); nasm does not accept this PM }
+                         emit_reg_reg(A_FMULP,S_NO,R_ST0,R_ST1);
                       end;
                     in_sqrt_extended:
                       emit_none(A_FSQRT,S_NO);
@@ -1525,7 +1526,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.98  2000-04-02 18:30:11  florian
+  Revision 1.99  2000-04-04 21:41:56  pierre
+   * generate code accepted by nasm
+
+  Revision 1.98  2000/04/02 18:30:11  florian
     * fixed another problem with readln(<floating point register variable>);
     * the register allocator takes now care of necessary pushes/pops for
       readln/writeln
