@@ -607,10 +607,16 @@ implementation
            ppn:=tcallparanode(ppn.right);
          end;
         paradef:=ppn.left.resulttype.def;
-        if is_ansistring(paradef) then
+        if is_ansistring(paradef) or
+           (is_chararray(paradef) and
+            (paradef.size>255)) or
+           ((cs_ansistrings in aktlocalswitches) and
+            is_pchar(paradef)) then
           copynode:=ccallnode.createintern('fpc_ansistr_copy',paras)
         else
-         if is_widestring(paradef) then
+         if is_widestring(paradef) or
+            is_widechararray(paradef) or
+            is_pwidechar(paradef) then
            copynode:=ccallnode.createintern('fpc_widestr_copy',paras)
         else
          if is_char(paradef) then
@@ -679,7 +685,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.16  2003-08-10 17:25:23  peter
+  Revision 1.17  2003-08-21 15:10:51  peter
+    * fixed copy support for array of char,pchar in $H+ mode
+    * fixed copy support for pwidechar,array of widechar
+
+  Revision 1.16  2003/08/10 17:25:23  peter
     * fixed some reported bugs
 
   Revision 1.15  2003/05/17 13:30:08  jonas
