@@ -165,7 +165,7 @@
      repeat
      if (((xp=xe[0]) or (xp=xe[1]) or (xp=xe[2])) and
          ((yp=ye[0]) or (yp=ye[1]) or (yp=ye[2]))) and
-         (ofs=endofs) then
+         ((ofs mod 4)=endofs) then
          begin
            putpixeli(xp,yp,aktcolor);
            ready:=true;
@@ -280,7 +280,14 @@
  
 {
   $Log$
-  Revision 1.5  1998-11-20 18:42:06  pierre
+  Revision 1.6  1998-11-23 10:04:18  pierre
+    * pieslice and sector work now !!
+    * bugs in text writing removed
+    + scaling for defaultfont added
+    + VertDir for default font added
+    * RestoreCRTMode corrected
+
+  Revision 1.5  1998/11/20 18:42:06  pierre
     * many bugs related to floodfill and ellipse fixed
 
   Revision 1.4  1998/11/19 15:09:36  pierre

@@ -262,6 +262,11 @@ var    { X/Y Verhaeltnis des Bildschirm }
        aktscreen   : ViewPortType;
        { der Graphikmodus, der beim Start gesetzt war }
        startmode : byte;
+       { mode before RestoreCRTMode was called
+         used by getGraphMode PM }
+       oldCRTMode : integer;
+       InTempCRTMode : boolean;
+       
        { Position des Graphikcursors }
        curx,cury : longint;
        { true, wenn die Routinen des Graphikpaketes verwendet werden dÅrfen }
@@ -381,18 +386,19 @@ begin
   asm
     cli
     movw  $0x03Da,%dx
-WaitNotHSyncLoop:
+.LWaitNotHSyncLoop:
     inb   %dx,%al
     testb $0x8,%al
-    jnz   WaitNotHSyncLoop
-WaitHSyncLoop:
+    jnz   .LWaitNotHSyncLoop
+.LWaitHSyncLoop:
     inb   %dx,%al
     testb $0x8,%al
-    jz    WaitHSyncLoop
+    jz    .LWaitHSyncLoop
     sti
   end;
 end;
 
+(*     Unused, commented 20/11/98 PM
 procedure getmem(var p : pointer;size : longint);
 begin
   asm
@@ -411,7 +417,7 @@ begin
     movl _GRAPHFREEMEMPTR,%eax
     call %eax
   end;
-end;
+end; *)
 
 
 {$I COLORS.PPI}
@@ -432,8 +438,8 @@ procedure graphdefaults;
          { std colors }
          setstdcolors;
          { Zeichenfarbe }
-         aktcolor:=convert(white);
-         aktbackcolor:=convert(black);
+         setcolor(white);
+         setbkcolor(black);
 
          { FÅllmuster }
          setfillstyle(solidfill,white);
@@ -505,6 +511,11 @@ end;
 
 function GetGraphMode:Integer;
 begin
+  if InTempCRTMode then
+    begin
+       GetGraphMode:=oldCRTMode;
+       exit;
+    end;
   if not isgraphmode then
     begin
       _graphresult:=grNoInitGraph;
@@ -700,7 +711,7 @@ begin
     InstallUserFont('EURO');
     InstallUserFont('BOLD');
 
-  GetVESAInfo(GraphMode);
+    GetVESAInfo(GraphMode);
 {$IFDEF DEBUG}
    {$I VESADEB.PPI}
 {$ENDIF}
@@ -718,6 +729,8 @@ begin
       for index:=0 to VESAInfo.YResolution do Y_Array[index]:=index * BytesPerLine;
       SetGraphBufSize(bufferstandardsize);
       graphdefaults;
+      InTempCRTMode:=false;
+
       exit;
     end;
     dec(i);
@@ -731,7 +744,7 @@ procedure SetGraphMode(GraphMode:Integer);
 var index:Integer;
 begin
    _graphresult:=grOk;
-   if not isgraphmode then
+   if not isgraphmode and not InTempCRTMode then
     begin
       _graphresult:=grNoInitGraph;
       Exit;
@@ -748,6 +761,7 @@ begin
               for index:=0 to VESAInfo.YResolution do
                 Y_Array[index]:=index * BytesPerLine;
               graphdefaults;
+              InTempCRTMode:=false;
               exit;
            end;
       end;
@@ -905,6 +919,8 @@ begin
       _graphresult:=grNoInitGraph;
       Exit;
     end;
+  OldCRTMode:=GetGraphMode;
+  InTempCRTMode:=true;
   SetVESAMode(startmode);
   isgraphmode:=false;
 end;
@@ -915,7 +931,7 @@ procedure GraphExit;
 begin
   ExitProc:=PrevExitProc;
   CloseGraph;
-  DoneVesa; { frees the ldt descriptos seg_read and seg_write !! }
+  DoneVesa; { frees the ldt descriptors seg_read and seg_write !! }
 end;
 
 begin
@@ -940,7 +956,14 @@ end.
 
 {
   $Log$
-  Revision 1.11  1998-11-20 18:42:04  pierre
+  Revision 1.12  1998-11-23 10:04:16  pierre
+    * pieslice and sector work now !!
+    * bugs in text writing removed
+    + scaling for defaultfont added
+    + VertDir for default font added
+    * RestoreCRTMode corrected
+
+  Revision 1.11  1998/11/20 18:42:04  pierre
     * many bugs related to floodfill and ellipse fixed
 
   Revision 1.10  1998/11/20 10:16:01  pierre
