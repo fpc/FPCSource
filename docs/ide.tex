@@ -65,7 +65,7 @@ the \emph{status bar}. The empty bar between them is called the
 \emph{desktop}.
 
 The statusbar allows a quick access to often used commands by
-clicking them with the mouse. Further, it reminds you about 
+clicking them with the mouse. Further, it reminds you about
 keyboard shortcuts that are frequently used.
 
 In upper right corner of the IDE screen a clock is displayed to
@@ -556,7 +556,7 @@ the new video mode will not be applied.
 \end{remark}
 
 The available video modes depend on the system on which the IDE
-is running. 
+is running.
 
 \begin{remark}
 If you're using VESA modes under DOS, the display refresh rate may be
@@ -566,9 +566,54 @@ it is quite outdated (last update somewhere in 1998). For newer
 graphics cards which support VESA 3.0, you can try to get one
 of the TSR programs
 \footnote{\textbf{T}erminate and \textbf{S}tay \textbf{R}esisdent}
-available at the net to customize the refresh rate.
-%%%%!!!!!!!! footnote with URL
+available at the internet to customize the refresh rate.
+\footnote{http://www.informatik.fh-muenchen.de/~ifw98223/vbehz.htm}
 \end{remark}
+
+\subsection{Editor}
+\label{ide:prefeditor}
+The \emph{editor dialog} is called by the menu item
+\var{Options|Environment|Editor}. This dialog allows you to custumize
+the behavior of the editor windows. These options apply only to
+newly created editor windows. I.e. the behavior of
+windows which are already open doesn't change.
+
+\subsubsection{Editor options}
+\begin{description}
+\item [Create backup files]  Default: On  %%!!!!!!!!!!
+\item [Insert mode]  Default: On  %%!!!!!!!!!!
+\item [Auto indent mode] Default: On  %%!!!!!!!!!!
+\item [Use tab characters]  %%!!!!!!!!!!
+\item [Backspace unindents] Default: On %%!!!!!!!!!!
+\item [Persistent blocks]  Default: On %%!!!!!!!!!!
+\item [Syntax highlight]  Default: On %%!!!!!!!!!!
+\item [Block insert cursor]  %%!!!!!!!!!!
+\item [Vertical blocks] %%!!!!!!!!!!
+\item [Highlight column] %%!!!!!!!!!!
+\item [Highlight row]  %%!!!!!!!!!!
+\item [Auto-closing brackets]  %%!!!!!!!!!!
+\item [Keep trailing spaces]  %%!!!!!!!!!!
+\item [CodeComplete enabled] Default: On %%!!!!!!!!!!
+\item [Enable folds]
+\end{description}
+
+\subsubsection{Tab size}
+The meaning of this value should be obvious. It configures how
+much space characters correspond to one tab character.
+
+\subsubsection{Highlight extensions}
+The IDE can highlight pascal source files. In this input line
+can be specified which files should be highlighted using file
+patterns as known from the command line. Multiple patterns can
+can be entered if they are seperated by semicolons. The standard
+value of this input line is \var{*.pas;*.pp;*.inc}.
+
+\subsubsection{File patterns needing tabs}
+Several tools like \file{GNU Make} require that tabs aren't replaced
+by spaces. This input line allows you to specify in which files
+the tab characters should be always kept. Multiple file patterns
+can be entered, if they are seperated by tabs. The standard
+value of this input line is \var{make*;make*.*}
 
 \subsection{Mouse}
 \label{ide:prefmouse}
@@ -611,14 +656,14 @@ by the browser
 % Regular expressions
 \section{Regular expressions}
 \label{ide:regexpr}
-A regular expression is a string with sepcial characters which describes 
+A regular expression is a string with sepcial characters which describes
 a whole class of expressions. You may know this from the command line
 where can enter a \file{ls *.pas} (or \file{dir *.pas}) to get a list
-of all pascal files in a directory. \file{*.pas} is something 
-similiar to regular expression. It uses a wildcard to describe a whole 
-class of strings: these which end with "\file{.pas}". The possibilty 
-of the wildcards in the command line are especially on DOS very limited. 
-Regular expressions offer much more: for example \file{[A-Z][0-9]+} 
+of all pascal files in a directory. \file{*.pas} is something
+similiar to regular expression. It uses a wildcard to describe a whole
+class of strings: these which end with "\file{.pas}". The possibilty
+of the wildcards in the command line are especially on DOS very limited.
+Regular expressions offer much more: for example \file{[A-Z][0-9]+}
 describes all strings which begin with a upper case letter followed by
 one or more digits (you'll understand this regular expression later).
 
@@ -761,7 +806,10 @@ Undo & \textsc{Alt-Backspace} & \\
 \end{FPCltable}
 %
 %  $Log$
-%  Revision 1.1  2000-07-13 09:10:04  michael
+%  Revision 1.2  2000-11-09 20:40:13  florian
+%    + Editor options dialog documented
+%
+%  Revision 1.1  2000/07/13 09:10:04  michael
 %  + Initial import
 %
 %  Revision 1.5  2000/03/04 07:47:28  florian
