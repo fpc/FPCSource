@@ -1342,28 +1342,37 @@ implementation
                               pd:=p1.resulttype;
                             end;
                   procsym : begin
-                              { are we in a class method ? }
-                              possible_error:=(srsymtable^.symtabletype=objectsymtable) and
-                                              assigned(aktprocsym) and
-                                              (po_classmethod in aktprocsym^.definition^.procoptions);
-                              p1:=gencallnode(pprocsym(srsym),srsymtable);
+                              if block_type<>bt_type then
+                               begin
+                                 { are we in a class method ? }
+                                 possible_error:=(srsymtable^.symtabletype=objectsymtable) and
+                                                 assigned(aktprocsym) and
+                                                 (po_classmethod in aktprocsym^.definition^.procoptions);
+                                 p1:=gencallnode(pprocsym(srsym),srsymtable);
 {$ifdef TEST_PROCSYMS}
-                              p1.unit_specific:=unit_specific;
+                                 p1.unit_specific:=unit_specific;
 {$endif TEST_PROCSYMS}
-                              do_proc_call(getaddr or
-                                (getprocvar and
-                                 ((block_type=bt_const) or
-                                  ((m_tp_procvar in aktmodeswitches) and
-                                   proc_to_procvar_equal(pprocsym(srsym)^.definition,getprocvardef)
-                                  )
-                                 )
-                                ),again,tcallnode(p1),pd);
-                              if (block_type=bt_const) and
-                                 getprocvar then
-                                handle_procvar(getprocvardef,p1);
-                              if possible_error and
-                                 not(po_classmethod in tcallnode(p1).procdefinition^.procoptions) then
-                                Message(parser_e_only_class_methods);
+                                 do_proc_call(getaddr or
+                                   (getprocvar and
+                                    ((block_type=bt_const) or
+                                     ((m_tp_procvar in aktmodeswitches) and
+                                      proc_to_procvar_equal(pprocsym(srsym)^.definition,getprocvardef)
+                                     )
+                                    )
+                                   ),again,tcallnode(p1),pd);
+                                 if (block_type=bt_const) and
+                                    getprocvar then
+                                   handle_procvar(getprocvardef,p1);
+                                 if possible_error and
+                                    not(po_classmethod in tcallnode(p1).procdefinition^.procoptions) then
+                                   Message(parser_e_only_class_methods);
+                               end
+                              else
+                               begin
+                                 p1:=cerrornode.create;
+                                 pd:=generrordef;
+                                 Message(cg_e_illegal_expression);
+                               end;
                             end;
               propertysym : begin
                               { access to property in a method }
@@ -2374,7 +2383,10 @@ _LECKKLAMMER : begin
 end.
 {
   $Log$
-  Revision 1.12  2000-10-21 18:16:12  florian
+  Revision 1.13  2000-10-26 23:40:54  peter
+    * fixed crash with call from type decl which is not allowed (merged)
+
+  Revision 1.12  2000/10/21 18:16:12  florian
     * a lot of changes:
        - basic dyn. array support
        - basic C++ support
