@@ -26,8 +26,6 @@ unit t_win32;
 
 interface
 
-  const
-     winstackpagesize = 4096;
 
 implementation
 
@@ -1452,7 +1450,10 @@ initialization
 end.
 {
   $Log$
-  Revision 1.6  2001-04-18 22:02:04  peter
+  Revision 1.7  2001-04-21 13:33:16  peter
+    * move winstackpagesize const to cgai386 to remove uses t_win32
+
+  Revision 1.6  2001/04/18 22:02:04  peter
     * registration of targets and assemblers
 
   Revision 1.5  2001/04/13 23:51:02  peter

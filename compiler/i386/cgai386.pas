@@ -166,11 +166,12 @@ implementation
 {$ifdef GDB}
        ,gdb
 {$endif}
-{$ifndef NOTARGETWIN32}
-       ,t_win32
-{$endif}
        ;
 
+{$ifndef NOTARGETWIN32}
+  const
+     winstackpagesize = 4096;
+{$endif}
 
 {*****************************************************************************
                                 Helpers
@@ -2985,7 +2986,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.22  2001-04-21 12:05:32  peter
+  Revision 1.23  2001-04-21 13:33:16  peter
+    * move winstackpagesize const to cgai386 to remove uses t_win32
+
+  Revision 1.22  2001/04/21 12:05:32  peter
     * add nop after popa (merged)
 
   Revision 1.21  2001/04/18 22:02:00  peter
