@@ -551,32 +551,56 @@ uses
 
 
     destructor taicpu.destroy;
-      var
-        i : longint;
       begin
         if is_jmp then
           dec(PasmLabel(oper[0].sym)^.refs)
         else
-          for i:=1 to ops do
-            if (oper[i-1].typ=top_ref) then
-              dispose(oper[i-1].ref);
+          begin
+            { unrolled for speed }
+            if (ops>0) then
+             begin
+               if (oper[0].typ=top_ref) then
+                dispose(oper[0].ref);
+               if (ops>1) then
+                begin
+                  if (oper[1].typ=top_ref) then
+                   dispose(oper[1].ref);
+                  if (ops>2) and (oper[2].typ=top_ref) then
+                   dispose(oper[2].ref);
+                end;
+             end;
+          end;
         inherited destroy;
       end;
 
 
     function taicpu.getcopy:tlinkedlistitem;
       var
-        i : longint;
         p : taicpu;
       begin
         p:=taicpu(inherited getcopy);
-        { make a copy of the references }
-        for i:=1 to ops do
-         if (p.oper[i-1].typ=top_ref) then
-          begin
-            new(p.oper[i-1].ref);
-            p.oper[i-1].ref^:=oper[i-1].ref^;
-          end;
+        { make a copy of the references, unrolled for speed }
+        if ops>0 then
+         begin
+           if (p.oper[0].typ=top_ref) then
+            begin
+              new(p.oper[0].ref);
+              p.oper[0].ref^:=oper[0].ref^;
+            end;
+           if ops>1 then
+            begin
+              if (p.oper[1].typ=top_ref) then
+               begin
+                 new(p.oper[1].ref);
+                 p.oper[1].ref^:=oper[1].ref^;
+               end;
+              if (ops>2) and (p.oper[2].typ=top_ref) then
+               begin
+                 new(p.oper[2].ref);
+                 p.oper[2].ref^:=oper[2].ref^;
+               end;
+            end;
+         end;
         getcopy:=p;
       end;
 
@@ -901,7 +925,7 @@ begin
     oprs:=2;
 
   { Check operand sizes }
-  for i:=0to p^.ops-1 do
+  for i:=0 to p^.ops-1 do
    begin
      if ((p^.optypes[i] and OT_SIZE_MASK)=0) and
         ((oper[i].ot and OT_SIZE_MASK and (not siz[i]))<>0) and
@@ -1667,7 +1691,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.6  2000-12-25 00:07:31  peter
+  Revision 1.7  2000-12-26 15:56:17  peter
+    * unrolled loops in taicpu.destroy
+
+  Revision 1.6  2000/12/25 00:07:31  peter
     + new tlinkedlist class (merge of old tstringqueue,tcontainer and
       tlinkedlist objects)
 
