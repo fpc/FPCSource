@@ -1,13 +1,17 @@
 #
 # Minimalist version of a makefile, so make clean at least works.
 #
-.PHONY: clean install
+.PHONY: all clean install
+
+all:
+	-make -C go32v2 all
+	-make -C go32v1 all
 
 clean:
-	-$(MAKE) -C go32v2 clean
-	-$(MAKE) -C go32v1 clean
+	-make -C go32v2 clean
+	-make -C go32v1 clean
 
 install:
-	-$(MAKE) -C go32v2 install
-	-$(MAKE) -C go32v1 install
+	-make -C go32v2 install
+	-make -C go32v1 install
 

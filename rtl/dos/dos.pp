@@ -1014,10 +1014,6 @@ end;
 
 
 procedure getfattr(var f;var attr : word);
-{$ifndef GO32V2}
-var
-  n : array[0..255] of char;
-{$endif}
 begin
 {$ifdef GO32V2}
   copytodos(filerec(f).name,strlen(filerec(f).name)+1);
@@ -1030,8 +1026,7 @@ begin
    end
   else
 {$else}
-  strpcopy(n,filerec(f).name);
-  dosregs.edx:=longint(@n);
+  dosregs.edx:=longint(@filerec(f).name);
 {$endif GO32V2}
    dosregs.ax:=$4300;
   msdos(dosregs);
@@ -1041,10 +1036,6 @@ end;
 
 
 procedure setfattr(var f;attr : word);
-{$ifndef GO32V2}
-var
-  n : array[0..255] of char;
-{$endif}
 begin
 {$ifdef GO32V2}
   copytodos(filerec(f).name,strlen(filerec(f).name)+1);
@@ -1057,8 +1048,7 @@ begin
    end
   else
 {$else}
-  strpcopy(n,filerec(f).name);
-  dosregs.edx:=longint(@n);
+  dosregs.edx:=longint(@filerec(f).name);
 {$endif}
    dosregs.ax:=$4301;
   dosregs.cx:=attr;
@@ -1139,7 +1129,13 @@ End;
 end.
 {
   $Log$
-  Revision 1.12  1998-09-11 12:46:44  pierre
+  Revision 1.13  1998-09-16 16:47:24  peter
+    * merged fixes
+
+  Revision 1.11.2.2  1998/09/16 16:16:04  peter
+    * go32v1 compiles again
+
+  Revision 1.12  1998/09/11 12:46:44  pierre
     * range check problem with LFN attr removed
 
   Revision 1.11.2.1  1998/09/11 12:38:41  pierre

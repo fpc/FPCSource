@@ -14,49 +14,73 @@
 #
 
 #####################################################################
-# Start of configurable section.
-# Please note that all these must be set in the main makefile, and
-# should be set there.
-# Don't remove the indef statements. They serve to avoid conflicts
-# with the main makefile.
+# Configuration section
 #####################################################################
 
-# What is the Operating System
-ifndef OS_SOURCE
-OS_SOURCE=go32v1
+# Use smartlinking ?
+ifndef SMARTLINK
+SMARTLINK=NO
 endif
 
-# What is the target operating system ?
-ifndef OS_TARGET
+# Name of library ?
+# If this is set, all units will be put in the same library.
+# If it is empty (default), the units will be left in separate files.
+ifndef LIBNAME
+LIBNAME=
+#LIBNAME=fpc
+endif
+
+# Should the library be shared or static (only if LIBNAME is set).
+# Set this to 'shared' or 'static' to create a librrary
+# Setting this to shared will disable smart linking.
+ifndef	LIBTYPE
+LIBTYPE=
+#LIBTYPE=static
+endif
+
+
+#####################################################################
+# Defaults
+#####################################################################
+
+# set target and cpu which are required
 OS_TARGET=go32v2
-endif
-
-# What is the target processor :
-ifndef CPU
 CPU=i386
-#CPU=m68k
-endif
-
-#####################################################################
-# End of configurable section.
-# Do not edit after this line.
-#####################################################################
 
 # Where are the include files
+CFG=../../cfg
 INC=../../inc
 PROCINC=../../$(CPU)
-CFG=../../cfg
 OBJPASDIR=../../objpas
 # Where are the .ppi files.
 PPI=../ppi
 
-# Get some defaults for Programs and OSes.
-# This will set the following variables :
-# inlinux indos COPY REPLACE DEL INSTALL INSTALLEXE MKDIR
-# It will also set OPT for cross-compilation, and add required options.
-# also checks for config file.
-# it expects INC PROCINC to be set !!
+
+#####################################################################
+# Include default makefile
+#####################################################################
+
 include $(CFG)/makefile.cfg
+
+
+#####################################################################
+# System dependent
+#####################################################################
+
+# Define Go32v2 Units
+SYSTEMPPU=system$(PPUEXT)
+
+OBJECTS=strings go32 \
+	dpmiexcp profile dxeload emu387 \
+	dos crt objects printer \
+	cpu mmx mouse getopts graph
+
+LOADERS=prt0 exceptn fpu
+
+
+#####################################################################
+# Include system unit dependencies
+#####################################################################
 
 # Get the system independent include file names.
 # This will set the following variables :
@@ -73,19 +97,6 @@ SYSCPUDEPS=$(addprefix $(PROCINC)/,$(CPUINCNAMES))
 # Put system unit dependencies together.
 SYSDEPS=$(SYSINCDEPS) $(SYSCPUDEPS)
 
-#####################################################################
-# System dependent
-#####################################################################
-
-# Define Go32v2 Units
-SYSTEMPPU=system$(PPUEXT)
-
-OBJECTS=strings go32 \
-	dpmiexcp profile dxeload emu387 \
-	dos crt objects printer \
-	cpu mmx mouse getopts graph
-
-LOADERS=prt0 exceptn fpu
 
 #####################################################################
 # System independent Makefile
@@ -108,7 +119,8 @@ install : all
 clean :
 	-$(DEL) *$(OEXT) *$(ASMEXT) *$(PPUEXT) $(PPAS) link.res log
 	-$(DELTREE) *$(SMARTEXT)
-	make -C $(OBJPASDIR) clean
+	-make -C $(OBJPASDIR) clean
+
 
 #####################################################################
 # Files
@@ -223,6 +235,7 @@ graph$(PPUEXT) : ../graph.pp go32$(PPUEXT) $(SYSTEMPPU) mmx$(PPUEXT) $(PPIFILES)
 	$(COMPILER) -I$(PPI) graph $(REDIR)
 	$(DEL) graph.pp
 
+
 #####################################################################
 # Libs
 #####################################################################
@@ -237,7 +250,7 @@ sharedlib:
 staticlibinstall: staticlib
 	$(MKDIR) $(STATIC_LIBINSTALLDIR)
 	$(MKDIR) $(STATIC_UNITINSTALLDIR)
-	$(INSTALLEXE) fpc$(STATICLIBEXT) $(STATIC_LIBINSTALLDIR)
+	$(INSTALLEXE) *$(STATICLIBEXT) $(STATIC_LIBINSTALLDIR)
 	$(INSTALL) *$(PPUEXT) *$(OEXT) $(STATIC_UNITINSTALLDIR)
 
 sharedlibinstall: sharedlib
@@ -247,6 +260,7 @@ libinstall: staticlibinstall
 libsclean : clean
 	-$(DEL) *$(STATICLIBEXT) *$(SHAREDLIBEXT) *$(PPLEXT)
 
+
 #####################################################################
 # Default targets
 #####################################################################
@@ -255,7 +269,13 @@ include $(CFG)/makefile.def
 
 #
 # $Log$
-# Revision 1.2  1998-09-15 12:09:09  peter
+# Revision 1.3  1998-09-16 16:47:27  peter
+#   * merged fixes
+#
+# Revision 1.1.2.2  1998/09/16 16:17:50  peter
+#   * updates to install with go32,win32
+#
+# Revision 1.2  1998/09/15 12:09:09  peter
 #   * merged updates
 #
 # Revision 1.1.2.1  1998/09/15 12:02:03  peter

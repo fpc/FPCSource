@@ -78,7 +78,7 @@ ifdef UNITTARGETDIR
 ifdef UNITOBJECTS
 	$(COPY) $(UNITFILES) $(UNITTARGETDIR)
 ifeq ($(SMARTLINK),YES)
-	$(COPY) lib$(LIBNAME)$(LIBEXT) $(UNITTARGETDIR)
+	$(COPY) $(LIBPREFIX)$(LIBNAME)$(LIBEXT) $(UNITTARGETDIR)
 else
 	$(COPY) $(UNITOFILES) $(UNITTARGETDIR)
 endif
@@ -94,7 +94,7 @@ endif
 ifdef UNITOBJECTS
 	$(MKDIR) $(UNITINSTALLDIR)
 ifeq ($(SMARTLINK),YES)
-	$(INSTALL) lib$(LIBNAME)$(LIBEXT) $(UNITINSTALLDIR)
+	$(INSTALL) $(LIBPREFIX)$(LIBNAME)$(LIBEXT) $(UNITINSTALLDIR)
 else
 	$(INSTALL) $(UNITFILES) $(UNITOFILES) $(UNITINSTALLDIR)
 endif
@@ -120,8 +120,14 @@ include $(CFG)/makefile.def
 
 #
 # $Log$
-# Revision 1.3  1998-09-15 12:09:12  peter
+# Revision 1.4  1998-09-16 16:47:29  peter
+#   * merged fixes
+#
+# Revision 1.3  1998/09/15 12:09:12  peter
 #   * merged updates
+#
+# Revision 1.2.2.2  1998/09/16 16:17:51  peter
+#   * updates to install with go32,win32
 #
 # Revision 1.2.2.1  1998/09/15 12:02:05  peter
 #   * updates to get objpas using its own makefile

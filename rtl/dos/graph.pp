@@ -19,6 +19,9 @@ unit GRAPH;
 { $DEFINE DEBUG}
 {$I os.inc}
 
+{ Don't use smartlinking, becuase of the direct assembler that is used }
+{$SMARTLINK OFF}
+
 interface
 
 uses go32,mmx;
@@ -828,7 +831,13 @@ end.
 
 {
   $Log$
-  Revision 1.4  1998-05-31 14:18:14  peter
+  Revision 1.5  1998-09-16 16:47:25  peter
+    * merged fixes
+
+  Revision 1.4.2.1  1998/09/16 16:15:41  peter
+    * no smartlinking!
+
+  Revision 1.4  1998/05/31 14:18:14  peter
     * force att or direct assembling
     * cleanup of some files
 

@@ -3,7 +3,7 @@
 #   This file is part of the Free Pascal run time library.
 #   Copyright (c) 1996-98 by Michael van Canneyt
 #
-#   Makefile for the Free Pascal Win32 Runtime Library
+#   Makefile for the Free Pascal Runtime Library
 #
 #   See the file COPYING.FPC, included in this distribution,
 #   for details about the copyright.
@@ -12,149 +12,66 @@
 #   but WITHOUT ANY WARRANTY; without even the implied warranty of
 #   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 #
-#****************************************************************************
 
 #####################################################################
 # Start of configurable section
 #####################################################################
 
-# What compiler do you want to use :
-ifndef PP
-PP=ppc386
-endif
-
-# Where do you want to install the units ?
-# For each of the systems, a subdirectory OSunits of
-# this directry will be created, and the system dependent
-# files will be set there.
-# For linux:
-UNITINSTALLDIR=/usr/lib/fpc/0.99.6
-# For dos/os2 : 
-# UNITINSTALLDIR=\pp\units
-
-# Where do you want to install the (shared or static) run-time libraries ?
-# For linux:
-LIBINSTALLDIR=/usr/lib
-# For dos/os2 : 
-#LIBINSTALLDIR=\pp\units
-
-# Where do you want the utilities installed ?
-# for linux
-BININSTALLDIR=/usr/bin
-# for DOS, OS/2
-# BININSTALLDIR=\pp\bin
-
-#####################################################################
-# Try to determine Operating System
-#####################################################################
-
-BASEDIR=$(shell pwd)
-
-# in linux no : in pathes
-ifeq ($(findstring :,$(BASEDIR)),)
-inlinux=1
-endif
-
-# in case pwd is not present on the DOS-OS
-ifeq ($(strip $(BASEDIR)),'')
-inlinux=
-BASEDIR:=.
-endif
-
-# set here the type of the ppc386 you use:
-# Choose from: go32v1 go32v2 linux or os2
-# can determine if on linux otherwise assume go32v2
-
-ifdef inlinux
-OS_SRC=linux
-else
-OS_SRC=go32v2
-endif
-
-
 # Set redir to YES if you want a log file to be kept.
 ifndef REDIR
-REDIR=YES
+REDIR=NO
 endif
 
 # Set NODEBUG to YES if you DON'T want debugging
+ifndef NODEBUG
 NODEBUG=YES
-
-# set target processor type
-CPU=i386
-# CPU=m68k
-
-# Set REFPATH if you want to generate diffs to a standard RTL
-# this can not be a relative path.
-REFPATH=/usr/local/fpk/work/0.9.7/rtl
-
-# Where is the diff program ?  (No relative paths)
-DIFF=diff
-
-# What options do you want to pass to diff ?
-DIFFOPTS=-b -c
-
-# Where is the ppumove program ? (set only if you want to make libs)
-# Don't specify a relative path.
-PPUMOVE=ppumove
-
-#
-# Optional configuration settings.
-#
-
-# Set any options you wish to give to the compiler
-OPT=
+endif
 
 # Optional : Specify the place of the log file.
 # default is 'log' in the source directory
-# REDIRFILE=
-
+ifndef REDIRFILE
+REDIRFILE=
+endif
 
 # Optional: Error definitions file you want the compiler to use.
 # !! If you specify a path, specify an absolute path. !!
-# ERRORFILE=
+ifndef ERRORFILE
+ERRORFILE=
+endif
 
-# Optional: The program to create directories.
-# Under DOS this is by default 'mkdir'. Under Linux this is 'install -m 755 -d'
-# MKDIR=
+# Everything else has been moved to rtl/cfg/makefile.cfg
 
-# Optional: The program to install the files into the destination directory.
-# Under DOS this is by default 'copy', under Linux this is 'install -m 644'
-# copy will not work with /
-# use cp from djgpp instead
-# INSTALL=
+
+#####################################################################
+# Include default makefile
+#####################################################################
+
+CFG=cfg
+
+include $(CFG)/makefile.cfg
 
 
 #######################################################################
-# End of configurable section.
-# Do not edit after this line.
+# Fix options
 #######################################################################
 
 # Check debugging.
-ifneq (YES,$(NODEBUG))
-OPT:=$(OPT) -g
+ifneq ($(NODEBUG),YES)
+override OPT+=-g
 endif
 
 # Check error definitions file.
 ifdef ERRORFILE
-OPT:= $(OPT) -Fr$(ERRORFILE)
-endif
-
-# Check operating system.
-ifeq ($(OS_SRC),linux)
-DOS=NO
-else
-DOS=YES
-# also redirect the standard error to the redir file
-ifeq (YES,$(REDIR))
-PP:=redir -eo $(PP)
-# set the verbosity to max
-OPT:=$(OPT) -va
-endif
+override OPT+=-Fr$(ERRORFILE)
 endif
 
 # Check logfile.
-ifeq (YES,$(REDIR))
+ifeq ($(REDIR),YES)
+ifndef inlinux
+override PP=redir -eo $(PP)
+endif
+# set the verbosity to max
+override OPT+=-va
 ifdef REDIRFILE
 override REDIR:= >> $(REDIRFILE)
 else
@@ -164,175 +81,187 @@ else
 override REDIR:= >> con
 endif
 
-# Check copy delete commands.
-# You need cp from GNU to handle / as directory separator
-COPY=cp -p
-DEL=rm
-
-# To install programs
-ifndef INSTALL
-ifeq ($(DOS),YES)
-INSTALL=copy
-else
-INSTALL=install
-endif
-endif
-
-# To make a directory.
-ifndef MKDIR
-ifeq ($(DOS),YES)
-MKDIR=mkdir
-else
-MKDIR=install -m 755 -d
-endif
-endif
-
-# add target processor define to command line options
-OPT:=$(OPT) -d$(CPU)
-
 # Variables to export
-export OS_SRC DOS SEP PP OPT REDIR COPY DEL LIBINSTALLDIR INSTALL MKDIR \
-       REFPATH CPU PPUMOVE UNITINSTALLDIR
+export PP OPT REDIR REDIRFILE ERRORFILE
+
+
+############################################################################
+# Defaults
+############################################################################
 
 .PHONY: rtl_go32v1 rtl_go32v2 rtl_linux rtl_os2 rtl_win32 \
-        install_go32v1 install_go32v2 install_linux install_os2 install_win32 \
-        go32v1libs go32v2libs linuxlibs os2libs win32libs \
+	install_go32v1 install_go32v2 install_linux install_os2 install_win32 \
+	go32v1libs go32v2libs linuxlibs os2libs win32libs \
 	clean install native diffs diffclean \
 	libs libinstall \
 	utils utils_install
 
-native: rtl$(OS_SRC)
+all: rtls
 
-nativelibs : $(OS_SRC)libs
+clean:
+	make -C template clean
+	make -C dos clean
+	make -C dos/go32v1 clean
+	make -C dos/go32v2 clean
+	make -C linux clean
+	make -C win32 clean
+	make -C os2 clean
+	make -C utils clean
+	-$(DEL) *.dif
 
-all: rtlgo32v1 rtlgo32v2 rtllinux rtlos2 rtlwin32
+
+############################################################################
+# RTLs
+############################################################################
+
+native: rtl$(OS_SOURCE)
+
+rtls: rtlgo32v1 rtlgo32v2 rtllinux rtlos2 rtlwin32
+
+rtlgo32v1:
+	make -C dos/go32v1
+
+rtlgo32v2:
+	make -C dos/go32v2
+
+rtllinux:
+	make -C linux
+
+rtlos2:
+	make -C os2
+
+rtlwin32:
+	make -C win32
+
+
+############################################################################
+# Libs
+############################################################################
+
+nativelibs : $(OS_SOURCE)libs
 
 libs: go32v1libs go32v2libs linuxlibs os2libs win32libs
+
+go32v1libs:
+	make -C dos/go32v1 libs
+
+go32v2libs:
+	make -C dos/go32v2 libs
+
+linuxlibs:
+	make -C linux libs
+
+os2libs:
+	make -C os2 libs
+
+win32libs:
+	make -C win32 libs
+
+
+############################################################################
+# Install
+############################################################################
+
+install: install_linux install_go32v1 install_go32v2 install_os2 install_win32
+
+native_install: install_$(OS_SRC)
+
+install_go32v1:
+	make -C dos/go32v1 install
+install_go32v2:
+	make -C dos/go32v2 install
+install_linux:
+	make -C linux install
+install_os2:
+	make -C os2 install
+install_win32:
+	make -C win32 install
+
+
+############################################################################
+# LibInstall
+############################################################################
+
+libinstall: libinstall_linux libinstall_go32v1 libinstall_go32v2 \
+	libinstall_os2 libinstall_win32
+
+native_libinstall: libinstall_$(OS_SOURCE)
+
+libinstall_go32v1:
+	make -C dos/go32v1 libinstall
+libinstall_go32v2:
+	make -C dos/go32v2 libinstall
+libinstall_linux:
+	make -C linux libinstall
+libinstall_os2:
+	make -C os2 libinstall
+libinstall_win32:
+	make -C win32 libinstall
+
+
+############################################################################
+# Utils
+############################################################################
+
+utils:
+	make -C utils all
+utils_install:
+	make -C utils install
+
+
+############################################################################
+# Diffs
+############################################################################
 
 diffs: diffs_rtl diffs_inc diffs_i386 diffs_m68k diffs_dos diffs_cfg \
 	diffs_os2 diffs_go32v1 diffs_go32v2 diffs_linux diffs_win32 \
 	diffs_template
 
-
-rtlgo32v1:
-	$(MAKE) -C dos/go32v1 CFGFILE=../../cfg/ppgo32v1.cfg OS_TARGET=go32v1
-
-rtlgo32v2:
-	$(MAKE) -C dos/go32v2 CFGFILE=../../cfg/ppgo32v2.cfg  OS_TARGET=go32v2
-
-rtllinux:
-	$(MAKE) -C linux CFGFILE=../cfg/pplinux.cfg OS_TARGET=linux
-
-rtlos2:
-	$(MAKE) -C os2 CFGFILE=../cfg/ppos2.cfg OS_TARGET=os2
-
-rtlwin32:
-	$(MAKE) -C win32 CFGFILE=../cfg/ppwin32.cfg OS_TARGET=win32
-
-go32v1libs:
-	$(MAKE) -C dos/go32v1 CFGFILE=../../cfg/ppdos.cfg OS_TARGET=go32v1 libs
-
-go32v2libs:
-	$(MAKE) -C dos/go32v2 CFGFILE=../../cfg/ppgo32v2.cfg  OS_TARGET=go32v2 libs
-
-linuxlibs:
-	$(MAKE) -C linux CFGFILE=../cfg/pplinux.cfg OS_TARGET=linux libs
-
-os2libs:
-	$(MAKE) -C os2 CFGFILE=../cfg/ppos2.cfg OS_TARGET=os2 libs
-
-win32libs:
-	$(MAKE) -C win32 CFGFILE=../cfg/ppwin32.cfg OS_TARGET=win32 libs
-
-clean:
-	$(MAKE) -C template clean
-	$(MAKE) -C dos clean
-	$(MAKE) -C dos/go32v1 clean
-	$(MAKE) -C dos/go32v2 clean
-	$(MAKE) -C linux clean
-	$(MAKE) -C win32 clean
-	$(MAKE) -C os2 clean
-	$(MAKE) -C utils clean
-	-$(DEL) *.dif
-
-diffclean:
-	$(MAKE) -C template diffclean
-	$(MAKE) -C dos diffclean
-	$(MAKE) -C dos/go32v1 diffclean
-	$(MAKE) -C dos/go32v2 diffclean
-	$(MAKE) -C linux diffclean
-	$(MAKE) -C os2 diffclean
-	$(MAKE) -C win32 diffclean
-	-$(DEL) *.dif
-
-
-install: install_linux install_go32v1 install_go32v2 install_os2 install_win32
-
-libinstall: libinstall_linux libinstall_go32v1 libinstall_go32v2 \
-	libinstall_os2 libinstall_win32
-
-native_install: install_$(OS_SRC)
-
-native_libinstall: libinstall_$(OS_SRC)
-
 makefile.dif : makefile
 	-$(DIFF) $(DIFFOPTS) makefile $(REFPATH)/makefile > makefile.dif
 
-
 diffs_rtl: makefile.dif
 
-diffs_dos:
-	$(MAKE) -C dos diffs
 diffs_inc:
-	$(MAKE) -C inc diffs
+	make -C inc diffs
 diffs_i386:
-	$(MAKE) -C i386 diffs
+	make -C i386 diffs
 diffs_m68k:
-	$(MAKE) -C m68k diffs
+	make -C m68k diffs
 diffs_cfg:
-	$(MAKE) -C cfg diffs
+	make -C cfg diffs
 diffs_template:
-	$(MAKE) -C template diffs
+	make -C template diffs
 diffs_go32v1:
-	$(MAKE) -C dos/go32v1 diffs
+	make -C dos/go32v1 diffs
 diffs_go32v2:
-	$(MAKE) -C dos/go32v2 diffs
+	make -C dos/go32v2 diffs
 diffs_linux:
-	$(MAKE) -C linux diffs
+	make -C linux diffs
 diffs_os2:
-	$(MAKE) -C os2 diffs
+	make -C os2 diffs
 diffs_win32:
-	$(MAKE) -C win32 diffs
+	make -C win32 diffs
 
-install_go32v1:
-	$(MAKE) -C dos/go32v1 install
-install_go32v2:
-	$(MAKE) -C dos/go32v2 install
-install_linux:
-	$(MAKE) -C linux install
-install_os2:
-	$(MAKE) -C os2 install
-install_win32:
-	$(MAKE) -C win32 install
+diffclean:
+	make -C template diffclean
+	make -C dos diffclean
+	make -C dos/go32v1 diffclean
+	make -C dos/go32v2 diffclean
+	make -C linux diffclean
+	make -C os2 diffclean
+	make -C win32 diffclean
+	-$(DEL) *.dif
 
-libinstall_go32v1:
-	$(MAKE) -C dos/go32v1 libinstall
-libinstall_go32v2:
-	$(MAKE) -C dos/go32v2 libinstall
-libinstall_linux:
-	$(MAKE) -C linux libinstall
-libinstall_os2:
-	$(MAKE) -C os2 libinstall
-libinstall_win32:
-	$(MAKE) -C win32 libinstall
-
-utils:
-	$(MAKE) -C utils all
-utils_install:
-	$(MAKE) -C utils install
-
+#
 # $Log$
-# Revision 1.1  1998-09-10 14:19:02  peter
+# Revision 1.2  1998-09-16 16:47:20  peter
+#   * merged fixes
+#
+# Revision 1.1.2.1  1998/09/16 16:17:46  peter
+#   * updates to install with go32,win32
+#
+# Revision 1.1	1998/09/10 14:19:02  peter
 #   - renamed
 #
 # Revision 1.10  1998/09/04 17:32:36  pierre

@@ -14,28 +14,8 @@
 #
 
 #####################################################################
-# Start of configurable section.
-# Please note that all these must be set in the main makefile, and
-# should be set there.
-# Don't remove the indef statements. They serve to avoid conflicts
-# with the main makefile.
+# Configuration section
 #####################################################################
-
-# What is the Operating System ?
-ifndef OS_SOURCE
-OS_SOURCE=win32
-endif
-
-# What is the target operating system ?
-ifndef OS_TARGET
-OS_TARGET=win32
-endif
-
-# What is the target processor :
-ifndef CPU
-CPU=i386
-#CPU=m68k
-endif
 
 # Use smartlinking ?
 ifndef SMARTLINK
@@ -58,14 +38,14 @@ LIBTYPE=
 #LIBTYPE=static
 endif
 
-#####################################################################
-# End of configurable section.
-# Do not edit after this line.
-#####################################################################
 
 #####################################################################
-# System independent
+# Defaults
 #####################################################################
+
+# set target and cpu which are required
+override OS_TARGET=win32
+override CPU=i386
 
 # Where are the include files ?
 INC=../inc
@@ -73,13 +53,35 @@ PROCINC=../$(CPU)
 CFG=../cfg
 OBJPASDIR=../objpas
 
-# Get some defaults for Programs and OSes.
-# This will set the following variables :
-# inlinux indos COPY REPLACE DEL INSTALL INSTALLEXE MKDIR
-# It will also set OPT for cross-compilation, and add required options.
-# also checks for config file.
-# it expects INC PROCINC to be set !!
+
+#####################################################################
+# Include default makefile
+#####################################################################
+
 include $(CFG)/makefile.cfg
+
+
+#####################################################################
+# System dependent
+#####################################################################
+
+# Define Win32 Units
+SYSTEMPPU=syswin32$(PPUEXT)
+OBJECTS=strings dos \
+	windows \
+	cpu mmx getopts
+
+# Files used by windows.pp
+WINDOWS_FILES=base errors defines \
+	struct ascfun ascdef \
+	unifun unidef func
+
+WINDOWS_SOURCE_FILES=$(addsuffix .pp,$(WINDOWS_FILES))
+
+
+#####################################################################
+# Include system unit dependencies
+#####################################################################
 
 # Get the system independent include file names.
 # This will set the following variables :
@@ -96,30 +98,19 @@ SYSCPUDEPS=$(addprefix $(PROCINC)/,$(CPUINCNAMES))
 # Put system unit dependencies together.
 SYSDEPS=$(SYSINCDEPS) $(SYSCPUDEPS)
 
-#####################################################################
-# System dependent
-#####################################################################
 
-# Define Linux Units
-SYSTEMPPU=syswin32$(PPUEXT)
-OBJECTS=strings dos \
-	windows \
-	cpu mmx getopts
-
-# Files used by windows.pp
-WINDOWS_FILES=base errors defines \
-	struct ascfun ascdef \
-	unifun unidef func
+#####################################################################
+# System independent Makefile
+#####################################################################
 
 # Add Prefix and Suffixes
+OBJLOADERS=$(addsuffix $(OEXT), $(LOADERS))
 PPUOBJECTS=$(addsuffix $(PPUEXT), $(OBJECTS))
-
-WINDOWS_SOURCE_FILES=$(addsuffix .pp,$(WINDOWS_FILES))
 
 .PHONY : all install clean \
 	 libs libsclean \
 	 diffs diffclean \
-	dllnames test
+	 dllnames test
 
 all : $(OBJLOADERS) $(PPUOBJECTS) objpas
 
@@ -130,7 +121,8 @@ install : all
 clean :
 	-$(DEL) *$(OEXT) *$(ASMEXT) *$(PPUEXT) log
 	-$(DELTREE) *$(SMARTEXT)
-	make -C $(OBJPASDIR) clean
+	-make -C $(OBJPASDIR) clean
+
 
 #####################################################################
 # Files
@@ -233,6 +225,11 @@ libinstall: staticlibinstall
 
 libsclean : clean
 	-$(DEL) *$(STATICLIBEXT) *$(SHAREDLIBEXT) *$(PPLEXT)
+
+
+#####################################################################
+# windows.pp
+#####################################################################
 
 # Getting DLL names
 # not present in headers !!
@@ -369,7 +366,13 @@ include $(CFG)/makefile.def
 
 #
 # $Log$
-# Revision 1.3  1998-09-15 12:09:13  peter
+# Revision 1.4  1998-09-16 16:47:35  peter
+#   * merged fixes
+#
+# Revision 1.1.2.2  1998/09/16 16:17:55  peter
+#   * updates to install with go32,win32
+#
+# Revision 1.3  1998/09/15 12:09:13  peter
 #   * merged updates
 #
 # Revision 1.2  1998/09/11 15:09:48  michael

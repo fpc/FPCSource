@@ -14,33 +14,38 @@
 #
 
 #####################################################################
-# Start of configurable section.
-# Please note that all these must be set in the main makefile, and
-# should be set there.
-# Don't remove the indef statements. They serve to avoid conflicts
-# with the main makefile.
+# Configuration section
 #####################################################################
 
-# What is the Operating System
-ifndef OS_SOURCE
-OS_SOURCE=go32v2
+# Use smartlinking ?
+ifndef SMARTLINK
+SMARTLINK=NO
 endif
 
-# What is the target operating system ?
-ifndef OS_TARGET
+# Name of library ?
+# If this is set, all units will be put in the same library.
+# If it is empty (default), the units will be left in separate files.
+ifndef LIBNAME
+LIBNAME=
+#LIBNAME=fpc
+endif
+
+# Should the library be shared or static (only if LIBNAME is set).
+# Set this to 'shared' or 'static' to create a librrary
+# Setting this to shared will disable smart linking.
+ifndef	LIBTYPE
+LIBTYPE=
+#LIBTYPE=static
+endif
+
+
+#####################################################################
+# Defaults
+#####################################################################
+
+# set target and cpu which are required
 OS_TARGET=go32v1
-endif
-
-# What is the target processor :
-ifndef CPU
 CPU=i386
-#CPU=m68k
-endif
-
-#####################################################################
-# End of configurable section.
-# Do not edit after this line.
-#####################################################################
 
 # Where are the include files
 CFG=../../cfg
@@ -50,33 +55,12 @@ OBJPASDIR=../../objpas
 # Where are the .ppi files.
 PPI=../ppi
 
-# Get some defaults for Programs and OSes.
-# This will set the following variables :
-# inlinux indos COPY REPLACE DEL INSTALL INSTALLEXE MKDIR
-# It will also set OPT for cross-compilation, and add required options.
-# also checks for config file.
-# it expects INC PROCINC to be set !!
+
+#####################################################################
+# Include default makefile
+#####################################################################
+
 include $(CFG)/makefile.cfg
-
-# Get the system independent include file names.
-# This will set the following variables :
-# SYSINCNAMES
-include $(INC)/makefile.inc
-SYSINCDEPS=$(addprefix $(INC)/,$(SYSINCNAMES))
-
-# Get the processor dependent include file names.
-# This will set the following variables :
-# CPUINCNAMES
-include $(PROCINC)/makefile.cpu
-SYSCPUDEPS=$(addprefix $(PROCINC)/,$(CPUINCNAMES))
-
-# Get the PPI file names
-# This sets the variable name PPIINCNAMES
-include $(PPI)/makefile.ppi
-PPIDEPS=$(addprefix $(PPI)/,$(PPIINCNAMES))
-
-# Put system unit dependencies together.
-SYSDEPS=$(SYSINCDEPS) $(SYSCPUDEPS)
 
 
 #####################################################################
@@ -91,6 +75,27 @@ OBJECTS=strings go32 \
 
 LOADERS=prt0
 
+
+#####################################################################
+# Include system unit dependencies
+#####################################################################
+
+# Get the system independent include file names.
+# This will set the following variables :
+# SYSINCNAMES
+include $(INC)/makefile.inc
+SYSINCDEPS=$(addprefix $(INC)/,$(SYSINCNAMES))
+
+# Get the processor dependent include file names.
+# This will set the following variables :
+# CPUINCNAMES
+include $(PROCINC)/makefile.cpu
+SYSCPUDEPS=$(addprefix $(PROCINC)/,$(CPUINCNAMES))
+
+# Put system unit dependencies together.
+SYSDEPS=$(SYSINCDEPS) $(SYSCPUDEPS)
+
+
 #####################################################################
 # System independent Makefile
 #####################################################################
@@ -98,7 +103,6 @@ LOADERS=prt0
 # Add Prefix and Suffixes
 OBJLOADERS=$(addsuffix $(OEXT), $(LOADERS))
 PPUOBJECTS=$(addsuffix $(PPUEXT), $(OBJECTS))
-
 
 .PHONY : all install clean \
 	 libs libsclean \
@@ -113,7 +117,8 @@ install : all
 clean :
 	-$(DEL) *$(OEXT) *$(ASMEXT) *$(PPUEXT) $(PPAS) link.res log
 	-$(DELTREE) *$(SMARTEXT)
-	make -C $(OBJPASDIR) clean
+	-make -C $(OBJPASDIR) clean
+
 
 #####################################################################
 # Files
@@ -210,6 +215,7 @@ graph$(PPUEXT) : ../graph.pp go32$(PPUEXT) $(SYSTEMPPU) mmx$(PPUEXT) $(PPIFILES)
 	$(COMPILER) -I$(PPI) graph $(REDIR)
 	$(DEL) graph.pp
 
+
 #####################################################################
 # Libs
 #####################################################################
@@ -234,6 +240,7 @@ libinstall: staticlibinstall
 libsclean : clean
 	-$(DEL) *$(STATICLIBEXT) *$(SHAREDLIBEXT) *$(PPLEXT)
 
+
 #####################################################################
 # Default targets
 #####################################################################
@@ -242,10 +249,15 @@ include $(CFG)/makefile.def
 
 #
 # $Log$
-# Revision 1.2  1998-09-15 12:09:08  peter
+# Revision 1.3  1998-09-16 16:47:26  peter
+#   * merged fixes
+#
+# Revision 1.1.2.2  1998/09/16 16:17:49  peter
+#   * updates to install with go32,win32
+#
+# Revision 1.2  1998/09/15 12:09:08  peter
 #   * merged updates
 #
 # Revision 1.1.2.1  1998/09/15 12:02:02  peter
 #   * updates to get objpas using its own makefile
-#
 #
