@@ -342,6 +342,7 @@ end;
 Procedure TDataset.DoInternalClose;
 
 begin
+  CheckBrowsemode;
   FreeFieldBuffers;
   ClearBuffers;
   SetBufListSize(-1);
@@ -934,8 +935,19 @@ begin
     UpdateCursorPos;
     InternalCancel;
     FreeFieldBuffers;
-    SetState(dsBrowse);
-    Resync([]);
+    if (state = dsInsert) and (FRecordcount = 1) then
+      begin
+      FEOF := true;
+      FBOF := true;
+      FRecordcount := 0;
+      SetState(dsBrowse);
+      DataEvent(deDatasetChange,0);
+      end
+    else
+      begin
+      SetState(dsBrowse);
+      resync([]);
+      end;
     DoAfterCancel;
     end;
 end;
@@ -1679,6 +1691,19 @@ begin
   FBuffers[0]:=TempBuf;
 end;
 
+function TDataset.GetFieldValues(Fieldname : string) : string;
+
+begin
+  result := findfield(Fieldname).asstring;
+end;
+
+procedure TDataset.SetFieldValues(Fieldname : string;value : string);
+
+begin
+  findfield(Fieldname).asstring := value;
+end;
+
+
 Procedure TDataset.UnRegisterDataSource(ADatasource : TDatasource);
 
 begin
@@ -1688,7 +1713,10 @@ end;
 
 {
   $Log$
-  Revision 1.20  2004-08-21 21:10:00  michael
+  Revision 1.21  2004-08-23 07:30:19  michael
+  + Fixes from joost van der sluis: tfieldsdefs.tdatafield and size, cancel of only record and dataset.fieldvalyes
+
+  Revision 1.20  2004/08/21 21:10:00  michael
   * Patch from Joost van der Sluis
     - Empty recordsets don't show any bogus data anymore
     - Floatfiels.gettext fix

@@ -127,9 +127,9 @@ type
   Published  
     property Attributes: TFieldAttributes read FAttributes write FAttributes default [];
     property Name: string read FName write FName; // Must move to TNamedItem
-    property DataType: TFieldType read FDataType;
+    property DataType: TFieldType read FDataType write FDataType;
     property Precision: Longint read FPrecision write FPrecision;
-    property Size: Word read FSize;
+    property Size: Word read FSize write FSize;
   end;
 
 { TFieldDefs }
@@ -883,6 +883,7 @@ type
     procedure GetChildren(Proc: TGetChildProc; Root: TComponent); override;
     function  GetFieldClass(FieldType: TFieldType): TFieldClass; virtual;
     Function  GetfieldCount : Integer;
+    function  GetFieldValues(fieldname : string) : string; virtual;
     function  GetIsIndexField(Field: TField): Boolean; virtual;
     function  GetNextRecords: Longint; virtual;
     function  GetNextRecord: Boolean; virtual;
@@ -907,6 +908,7 @@ type
     procedure SetFilterOptions(Value: TFilterOptions); virtual;
     procedure SetFilterText(const Value: string); virtual;
     procedure SetFound(const Value: Boolean);
+    procedure SetFieldValues(fieldname : string;value : string); virtual;
     procedure SetModified(Value: Boolean);
     procedure SetName(const Value: TComponentName); override;
     procedure SetOnFilterRecord(const Value: TFilterRecordEvent); virtual;
@@ -1014,7 +1016,8 @@ type
     property RecNo: Longint read FRecNo write FRecNo;
     property RecordSize: Word read FRecordSize;
     property State: TDataSetState read FState;
-    property Fields : TFields Read FFieldList;
+    property Fields : TFields read FFieldList;
+    property FieldValues[fieldname : string] : string read GetFieldValues write SetFieldValues; default;
     property Filter: string read FFilterText write SetFilterText;
     property Filtered: Boolean read FFiltered write SetFiltered default False;
     property FilterOptions: TFilterOptions read FFilterOptions write FFilterOptions;
@@ -1500,7 +1503,10 @@ end.
 
 {
   $Log$
-  Revision 1.21  2004-08-14 12:46:35  michael
+  Revision 1.22  2004-08-23 07:30:19  michael
+  + Fixes from joost van der sluis: tfieldsdefs.tdatafield and size, cancel of only record and dataset.fieldvalyes
+
+  Revision 1.21  2004/08/14 12:46:35  michael
   + Patch from Joost van der Sluis to implement Modified and UpdateRecord event
 
   Revision 1.20  2004/08/13 07:06:02  michael
