@@ -281,7 +281,7 @@ end;
 
 Resourcestring
   SNoThreads = 'This binary has no thread support compiled in.';
-  SRecompileWithThreads = 'Recompile the application with a thread-driver in the program uses clause.';
+  SRecompileWithThreads = 'Recompile the application with a thread-driver in the program uses clause before other units using thread.';
 
 Procedure NoThreadError;
 
@@ -339,7 +339,8 @@ end;
 procedure NoCriticalSection(var CS);
 
 begin
-  NoThreadError;
+  if IsMultiThread then
+    NoThreadError;
 end;
 
 procedure NoInitThreadvar(var offset : dword;size : dword);
@@ -490,7 +491,10 @@ end;
 
 {
   $Log$
-  Revision 1.17  2004-12-28 14:20:03  marco
+  Revision 1.18  2005-01-16 14:46:57  florian
+    * critical sections can be used in programs without threading driver, they have no effect then
+
+  Revision 1.17  2004/12/28 14:20:03  marco
    * tthread patch from neli
 
   Revision 1.16  2004/12/27 15:28:40  marco
