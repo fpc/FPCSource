@@ -37,6 +37,9 @@ type
 
 {$else}
 
+{At the moment we do not support threadvars}
+{$undef HASTHREADVAR}
+
 {$I systemh.inc}
 
 {$I heaph.inc}
@@ -68,6 +71,17 @@ var
 {$endif}
 
 implementation
+
+{Some MacOS API routines needed for internal use.
+Note, because the System unit is the most low level, it should not 
+depend on any other units, and in particcular not the MacOS unit.}
+
+function NewPtr(logicalSize: Longint): pointer ;
+external 'InterfaceLib';
+
+procedure Debugger;
+external 'InterfaceLib';
+
 
 {$ifdef MAC_SYS_RUNABLE}
 
@@ -142,24 +156,31 @@ end;
 {*****************************************************************************
                               Heap Management
 *****************************************************************************}
+const
+  theHeapSize = 300000;	//TODO: Use heapsize set by user.
+
+var
+  { Pointer to a block allocated with the MacOS Memory Manager, which 
+    is used as the FPC heap }
+  theHeap: pointer;
 
 { first address of heap }
 function getheapstart:pointer;
 begin
-   getheapstart:=0;
+   getheapstart:= theHeap;
 end;
 
 { current length of heap }
 function getheapsize:longint;
 begin
-   getheapsize:=0;
+   getheapsize:= theHeapSize ;
 end;
 
 { function to allocate size bytes more for the program }
 { must return the first address of new data space or -1 if fail }
 function Sbrk(size : longint):longint;
 begin
-  Sbrk:=-1;
+  Sbrk:=-1;	//TODO: Allow heap increase.
 end;
 
 {$I heap.inc}
@@ -289,13 +310,17 @@ end;
 *****************************************************************************}
 
 Begin
-  { To be set if this is a GUI or console application }
+  if false then //To save it from the dead code stripper
+    Debugger; //Included only to make it available for debugging 
+ 
+{ To be set if this is a GUI or console application }
   IsConsole := TRUE;
   { To be set if this is a library and not a program  }
   IsLibrary := FALSE;
   StackBottom := SPtr - StackLength;
   ExitCode := 0;
 { Setup heap }
+  theHeap:= NewPtr(theHeapSize);
   InitHeap;
 { Setup stdin, stdout and stderr }
   OpenStdIO(Input,fmInput,StdInputHandle);
@@ -315,7 +340,10 @@ End.
 
 {
   $Log$
-  Revision 1.3  2002-10-23 15:29:09  olle
+  Revision 1.4  2002-11-28 10:58:02  olle
+    + added support for rudimentary heap
+
+  Revision 1.3  2002/10/23 15:29:09  olle
     + added switch MAC_SYS_RUNABLE
     + added include of system.h etc
     + added standard globals
