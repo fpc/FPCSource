@@ -26,7 +26,7 @@
 unit ag386bin;
 
 {$define MULTIPASS}
-{define EXTERNALBSS}
+{$define EXTERNALBSS}
 
   interface
 
@@ -812,7 +812,10 @@ unit ag386bin;
 end.
 {
   $Log$
-  Revision 1.15  1999-06-02 22:43:59  pierre
+  Revision 1.16  1999-06-03 16:39:10  pierre
+   * EXTERNALBSS fixed for stabs and default again
+
+  Revision 1.15  1999/06/02 22:43:59  pierre
    * previous wrong log corrected
 
   Revision 1.14  1999/06/02 22:25:25  pierre

@@ -628,7 +628,7 @@ unit og386cff;
         { when the offset is not 0 then write a relocation, take also the
           hdrstab into account with the offset }
         if reloc then
-          sects[sec_stab]^.addsymreloc(0,ps,relative_false);
+          sects[sec_stab]^.addsymreloc(sects[sec_stab]^.len-4,ps,relative_false);
       end;
 
 
@@ -946,7 +946,10 @@ unit og386cff;
 end.
 {
   $Log$
-  Revision 1.7  1999-05-21 13:55:03  peter
+  Revision 1.8  1999-06-03 16:39:09  pierre
+   * EXTERNALBSS fixed for stabs and default again
+
+  Revision 1.7  1999/05/21 13:55:03  peter
     * NEWLAB for label as symbol
 
   Revision 1.6  1999/05/19 11:54:19  pierre
