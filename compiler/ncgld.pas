@@ -67,7 +67,7 @@ implementation
         symtabletype : tsymtabletype;
         href : treference;
         newsize : tcgsize;
-        dorelocatelab,
+        endrelocatelab,
         norelocatelab : tasmlabel;
         paraloc1 : tparalocation;
       begin
@@ -127,29 +127,30 @@ implementation
                   { thread variable }
                   else if (vo_is_thread_var in tvarsym(symtableentry).varoptions) then
                     begin
-                       objectlibrary.getlabel(dorelocatelab);
+                       {
+                         Thread var loading is optimized to first check if
+                         a relocate function is available. When the function
+                         is available it is called to retrieve the address.
+                         Otherwise the address is loaded with the symbol
+
+                         The code needs to be in the order to first handle the
+                         call and then the address load to be sure that the
+                         register that is used for returning is the same (PFV)
+                       }
                        objectlibrary.getlabel(norelocatelab);
+                       objectlibrary.getlabel(endrelocatelab);
                        { make sure hregister can't allocate the register necessary for the parameter }
                        paraloc1:=paramanager.getintparaloc(pocall_default,1);
                        paramanager.allocparaloc(exprasmlist,paraloc1);
-                       { we've to allocate an ABT register because it contains the procvar }
                        hregister:=rg.getaddressregister(exprasmlist);
                        reference_reset_symbol(href,objectlibrary.newasmsymboldata('FPC_THREADVAR_RELOCATE'),0);
                        cg.a_load_ref_reg(exprasmlist,OS_ADDR,OS_ADDR,href,hregister);
-                       cg.a_cmp_const_reg_label(exprasmlist,OS_ADDR,OC_NE,0,hregister,dorelocatelab);
-                       { no relocation needed, load the address of the variable only, the
-                         layout of a threadvar is (4 bytes pointer):
-                           0 - Threadvar index
-                           4 - Threadvar value in single threading }
-                       reference_reset_symbol(href,objectlibrary.newasmsymboldata(tvarsym(symtableentry).mangledname),POINTER_SIZE);
-                       cg.a_loadaddr_ref_reg(exprasmlist,href,hregister);
-                       cg.a_jmp_always(exprasmlist,norelocatelab);
-                       cg.a_label(exprasmlist,dorelocatelab);
+                       rg.ungetregisterint(exprasmlist,hregister);
+                       cg.a_cmp_const_reg_label(exprasmlist,OS_ADDR,OC_EQ,0,hregister,norelocatelab);
                        { don't save the allocated register else the result will be destroyed later }
                        reference_reset_symbol(href,objectlibrary.newasmsymboldata(tvarsym(symtableentry).mangledname),0);
                        cg.a_param_ref(exprasmlist,OS_ADDR,href,paraloc1);
                        paramanager.freeparaloc(exprasmlist,paraloc1);
-                       rg.ungetregisterint(exprasmlist,hregister);
                        r:=rg.getabtregisterint(exprasmlist,OS_ADDR);
                        rg.ungetregisterint(exprasmlist,r);
                        cg.a_load_reg_reg(exprasmlist,OS_ADDR,OS_ADDR,hregister,r);
@@ -160,7 +161,15 @@ implementation
                        rg.ungetregisterint(exprasmlist,r);
                        hregister:=rg.getaddressregister(exprasmlist);
                        cg.a_load_reg_reg(exprasmlist,OS_INT,OS_ADDR,r,hregister);
+                       cg.a_jmp_always(exprasmlist,endrelocatelab);
                        cg.a_label(exprasmlist,norelocatelab);
+                       { no relocation needed, load the address of the variable only, the
+                         layout of a threadvar is (4 bytes pointer):
+                           0 - Threadvar index
+                           4 - Threadvar value in single threading }
+                       reference_reset_symbol(href,objectlibrary.newasmsymboldata(tvarsym(symtableentry).mangledname),POINTER_SIZE);
+                       cg.a_loadaddr_ref_reg(exprasmlist,href,hregister);
+                       cg.a_label(exprasmlist,endrelocatelab);
                        location.reference.base:=hregister;
                     end
                   { normal variable }
@@ -819,7 +828,7 @@ implementation
                      end
                     else
                       if vtype in [vtInt64,vtQword,vtExtended] then
-                        push_value_para(exprasmlist,hp.left,vs_value,pocall_cdecl,0,4,paraloc)
+                        push_value_para(exprasmlist,hp.left,vs_value,pocall_cdecl,std_param_align,paraloc)
                     else
                       begin
                         cg.a_param_loc(exprasmlist,hp.left.location,paraloc);
@@ -896,7 +905,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.83  2003-09-23 17:56:05  peter
+  Revision 1.84  2003-09-25 21:27:31  peter
+    * rearranged threadvar code so the result register is the same
+      for the relocated and address loaded variables
+
+  Revision 1.83  2003/09/23 17:56:05  peter
     * locals and paras are allocated in the code generation
     * tvarsym.localloc contains the location of para/local when
       generating code for the current procedure
