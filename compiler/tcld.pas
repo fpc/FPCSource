@@ -421,6 +421,9 @@ implementation
                           firstpass(hp^.left);
                         end;
                      end;
+                   recorddef,
+                   arraydef :
+                     CGMessage(type_e_wrong_type_in_array_constructor);
                  end;
                end;
               if (pd=nil) then
@@ -471,7 +474,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.20  1999-03-24 23:17:39  peter
+  Revision 1.21  1999-04-01 21:59:57  peter
+    * type error for array constructor with array,record as argument
+
+  Revision 1.20  1999/03/24 23:17:39  peter
     * fixed bugs 212,222,225,227,229,231,233
 
   Revision 1.19  1999/03/18 11:21:52  peter

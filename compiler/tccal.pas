@@ -147,7 +147,7 @@ implementation
               get_para_resulttype:=true;
               allow_array_constructor:=true;
               if not(assigned(p^.resulttype)) or
-                (p^.left^.treetype=typeconvn) then
+                 (p^.left^.treetype=typeconvn) then
                 firstpass(p^.left);
               get_para_resulttype:=old_get_para_resulttype;
               allow_array_constructor:=old_array_constructor;
@@ -174,12 +174,13 @@ implementation
                    test_protected(p^.left);
                  }
                  must_be_valid:=(defcoll^.paratyp<>vs_var);
-                 { only process typeconvn, else it will break other trees }
+                 { only process typeconvn and arrayconstructn, else it will
+                   break other trees }
                  old_array_constructor:=allow_array_constructor;
                  old_get_para_resulttype:=get_para_resulttype;
                  allow_array_constructor:=true;
                  get_para_resulttype:=false;
-                 if (p^.left^.treetype=typeconvn) then
+                 if (p^.left^.treetype in [arrayconstructn,typeconvn]) then
                    firstpass(p^.left);
                  get_para_resulttype:=old_get_para_resulttype;
                  allow_array_constructor:=old_array_constructor;
@@ -1117,7 +1118,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.30  1999-03-31 13:55:27  peter
+  Revision 1.31  1999-04-01 21:59:56  peter
+    * type error for array constructor with array,record as argument
+
+  Revision 1.30  1999/03/31 13:55:27  peter
     * assembler inlining working for ag386bin
 
   Revision 1.29  1999/03/24 23:17:34  peter

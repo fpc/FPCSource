@@ -212,6 +212,7 @@ type tmsgconst=(
   type_e_typeconflict_in_set,
   type_w_maybe_wrong_hi_lo,
   type_e_integer_or_real_expr_expected,
+  type_e_wrong_type_in_array_constructor,
   sym_e_id_not_found,
   sym_f_internal_error_in_symtablestack,
   sym_e_duplicate_id,
