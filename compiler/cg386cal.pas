@@ -1078,7 +1078,7 @@ implementation
                    if (p^.resulttype^.needs_inittable) and
                      ( (p^.resulttype^.deftype<>objectdef) or
                        not(pobjectdef(p^.resulttype)^.isclass)) then
-                      finalize(p^.resulttype,p^.location.reference);
+                      finalize(p^.resulttype,p^.location.reference,ret_in_param(p^.resulttype));
                    { release unused temp }
                    ungetiftemp(p^.location.reference)
                 end
@@ -1166,7 +1166,16 @@ implementation
 end.
 {
   $Log$
-  Revision 1.93  1999-06-22 13:31:24  peter
+  Revision 1.94  1999-07-06 21:48:09  florian
+    * a lot bug fixes:
+       - po_external isn't any longer necessary for procedure compatibility
+       - m_tp_procvar is in -Sd now available
+       - error messages of procedure variables improved
+       - return values with init./finalization fixed
+       - data types with init./finalization aren't any longer allowed in variant
+         record
+
+  Revision 1.93  1999/06/22 13:31:24  peter
     * merged
 
   Revision 1.92  1999/06/16 09:32:45  peter

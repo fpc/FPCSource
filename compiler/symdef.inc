@@ -2834,7 +2834,10 @@ Const local_symtable_index : longint = $8001;
     function tprocvardef.gettypename : string;
 
       begin
-         gettypename:='<procedure variable type>'
+         if assigned(retdef) then
+           gettypename:='<procedure variable type of function'+demangled_paras+':'+retdef^.gettypename+'>'
+         else
+           gettypename:='<procedure variable type of procedure'+demangled_paras+'>';
       end;
 
 
@@ -3462,7 +3465,16 @@ Const local_symtable_index : longint = $8001;
 
 {
   $Log$
-  Revision 1.130  1999-06-22 16:24:44  pierre
+  Revision 1.131  1999-07-06 21:48:27  florian
+    * a lot bug fixes:
+       - po_external isn't any longer necessary for procedure compatibility
+       - m_tp_procvar is in -Sd now available
+       - error messages of procedure variables improved
+       - return values with init./finalization fixed
+       - data types with init./finalization aren't any longer allowed in variant
+         record
+
+  Revision 1.130  1999/06/22 16:24:44  pierre
    * local browser stuff corrected
 
   Revision 1.129  1999/06/02 22:44:21  pierre

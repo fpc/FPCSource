@@ -71,7 +71,7 @@ unit cgai386;
     procedure loadansistring(p : ptree);
     procedure loadshort2ansi(source,dest : ptree);
 
-    procedure finalize(t : pdef;const ref : treference);
+    procedure finalize(t : pdef;const ref : treference;is_already_ref : boolean);
     procedure decrstringref(t : pdef;const ref : treference);
 
     function maybe_push(needed : byte;p : ptree;isint64 : boolean) : boolean;
@@ -2186,7 +2186,10 @@ procedure mov_reg_to_dest(p : ptree; s : topsize; reg : tregister);
          end;
     end;
 
-    procedure initialize(t : pdef;const ref : treference);
+    { initilizes data of type t                           }
+    { if is_already_ref is true then the routines assumes }
+    { that r points to the data to initialize             }
+    procedure initialize(t : pdef;const ref : treference;is_already_ref : boolean);
 
       var
          hr : treference;
@@ -2203,13 +2206,20 @@ procedure mov_reg_to_dest(p : ptree; s : topsize; reg : tregister);
               reset_reference(hr);
               hr.symbol:=t^.get_inittable_label;
               emitpushreferenceaddr(hr);
-              emitpushreferenceaddr(ref);
+              if is_already_ref then
+                exprasmlist^.concat(new(pai386,op_ref(A_PUSH,S_L,
+                  newreference(ref))))
+              else
+                emitpushreferenceaddr(ref);
               exprasmlist^.concat(new(pai386,
                 op_sym(A_CALL,S_NO,newasmsymbol('FPC_INITIALIZE'))));
            end;
       end;
 
-    procedure finalize(t : pdef;const ref : treference);
+    { finalizes data of type t                            }
+    { if is_already_ref is true then the routines assumes }
+    { that r points to the data to finalizes              }
+    procedure finalize(t : pdef;const ref : treference;is_already_ref : boolean);
 
       var
          r : treference;
@@ -2225,7 +2235,11 @@ procedure mov_reg_to_dest(p : ptree; s : topsize; reg : tregister);
               reset_reference(r);
               r.symbol:=t^.get_inittable_label;
               emitpushreferenceaddr(r);
-              emitpushreferenceaddr(ref);
+              if is_already_ref then
+                exprasmlist^.concat(new(pai386,op_ref(A_PUSH,S_L,
+                  newreference(ref))))
+              else
+                emitpushreferenceaddr(ref);
               emitcall('FPC_FINALIZE');
            end;
       end;
@@ -2255,7 +2269,7 @@ procedure mov_reg_to_dest(p : ptree; s : topsize; reg : tregister);
               begin
                  hr.symbol:=newasmsymbol(pvarsym(p)^.mangledname);
               end;
-            initialize(pvarsym(p)^.definition,hr);
+            initialize(pvarsym(p)^.definition,hr,false);
          end;
     end;
 
@@ -2325,7 +2339,7 @@ procedure mov_reg_to_dest(p : ptree; s : topsize; reg : tregister);
                else
                  hr.symbol:=newasmsymbol(pvarsym(p)^.mangledname);
             end;
-            finalize(pvarsym(p)^.definition,hr);
+            finalize(pvarsym(p)^.definition,hr,false);
          end;
     end;
 
@@ -2665,7 +2679,7 @@ procedure mov_reg_to_dest(p : ptree; s : topsize; reg : tregister);
            reset_reference(r);
            r.offset:=procinfo.retoffset;
            r.base:=procinfo.framepointer;
-           initialize(procinfo.retdef,r);
+           initialize(procinfo.retdef,r,ret_in_param(procinfo.retdef));
         end;
 
       { generate copies of call by value parameters }
@@ -2871,7 +2885,7 @@ procedure mov_reg_to_dest(p : ptree; s : topsize; reg : tregister);
                 reset_reference(hr);
                 hr.offset:=procinfo.retoffset;
                 hr.base:=procinfo.framepointer;
-                finalize(procinfo.retdef,hr);
+                finalize(procinfo.retdef,hr,ret_in_param(procinfo.retdef));
              end;
 
            exprasmlist^.concat(new(pai386,
@@ -3015,46 +3029,20 @@ procedure mov_reg_to_dest(p : ptree; s : topsize; reg : tregister);
          end;
 
 {$endif test_dest_loc}
-{
-    procedure removetemps(list : paasmoutput;p : plinkedlist);
 
-      var
-         hp : ptemptodestroy;
-         pushedregs : tpushed;
-
-      begin
-         hp:=ptemptodestroy(p^.first);
-         if not(assigned(hp)) then
-           exit;
-         pushusedregisters(pushedregs,$ff);
-         while assigned(hp) do
-           begin
-              if is_ansistring(hp^.typ) then
-                begin
-                   emitpushreferenceaddr(list,hp^.address);
-                   exprasmlist^.concat(new(pai386,
-                     op_sym(A_CALL,S_NO,newasmsymbol('FPC_ANSISTR_DECR_REF'))));
-                   if not (cs_compilesystem in aktmoduleswitches) then
-                     concat_external('FPC_ANSISTR_DECR_REF',EXT_NEAR);
-                   ungetiftempansi(hp^.address);
-                end
-              else
-                ungetiftemp(hp^.address);
-              hp:=ptemptodestroy(hp^.next);
-           end;
-         popusedregisters(pushedregs);
-     end;
-
-    procedure addtemptodestroy(t : pdef;const addr : treference);
-
-      begin
-         temptoremove^.concat(new(ptemptodestroy,init(addr,t)));
-      end;
-}
 end.
 {
   $Log$
-  Revision 1.13  1999-07-05 20:25:22  peter
+  Revision 1.14  1999-07-06 21:48:11  florian
+    * a lot bug fixes:
+       - po_external isn't any longer necessary for procedure compatibility
+       - m_tp_procvar is in -Sd now available
+       - error messages of procedure variables improved
+       - return values with init./finalization fixed
+       - data types with init./finalization aren't any longer allowed in variant
+         record
+
+  Revision 1.13  1999/07/05 20:25:22  peter
     * merged
 
   Revision 1.12  1999/07/05 20:13:13  peter

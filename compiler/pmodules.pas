@@ -409,6 +409,8 @@ unit pmodules;
            end;
         end;
 
+      var
+         dummy : pmodule;
 
       begin
          old_current_module:=current_module;
@@ -502,7 +504,7 @@ unit pmodules;
                while assigned(hp2) do
                 begin
                   if hp2^.do_reload then
-                   loadunit(hp2^.modulename^,false);
+                   dummy:=loadunit(hp2^.modulename^,false);
                   hp2:=pmodule(hp2^.next);
                 end;
              end
@@ -1330,7 +1332,16 @@ unit pmodules;
 end.
 {
   $Log$
-  Revision 1.128  1999-07-06 00:53:48  peter
+  Revision 1.129  1999-07-06 21:48:24  florian
+    * a lot bug fixes:
+       - po_external isn't any longer necessary for procedure compatibility
+       - m_tp_procvar is in -Sd now available
+       - error messages of procedure variables improved
+       - return values with init./finalization fixed
+       - data types with init./finalization aren't any longer allowed in variant
+         record
+
+  Revision 1.128  1999/07/06 00:53:48  peter
     * merged
 
   Revision 1.127  1999/07/05 16:21:27  peter
