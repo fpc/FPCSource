@@ -3,9 +3,12 @@
 #
 
 [defaults]
-defaulttarget=win32
+jdefaulttarget=win32
 defaultcpu=i386
 defaultoptions=-S2
+
+[packages]
+packages=$(ZLIBPACKAGE)
 
 [dirs]
 fpcdir=../..
@@ -14,8 +17,7 @@ incdir=$(INC)
 sourcesdir=$(INC) $(XML)
 
 [targets]
-units=classes $(INCUNITS) $(XMLUNITS) zlib zstream
-
+units=classes $(INCUNITS) $(XMLUNITS) zstream
 
 [presettings]
 # Include files
@@ -27,13 +29,20 @@ XML=../xml
 include $(INC)/Makefile.inc
 include $(XML)/Makefile.inc
 
+# Which package to use
+ifndef ZLIBPACKAGE
+ifdef inlinux
+ZLIBPACKAGE=zlib
+else
+ZLIBPACKAGE=paszlib
+endif
+endif
 
 [rules]
 INCFILES=$(addprefix $(INC)/,$(INCNAMES))
 
 classes$(PPUEXT): $(INCFILES) classes$(PASEXT)
 
-inifiles$(PPUEXT): classes$(PPUEXT) inifiles$(PASEXT)
+inifiles$(PPUEXT): classes$(PPUEXT) $(INC)/inifiles$(PASEXT)
 
-ezcgi$(PPUEXT): ezcgi$(PASEXT) ezcgi.inc
-
+ezcgi$(PPUEXT): $(INC)/ezcgi$(PASEXT)
