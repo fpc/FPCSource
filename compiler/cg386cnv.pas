@@ -189,39 +189,34 @@ implementation
     procedure loadansi2short(source,dest : ptree);
       var
          pushed : tpushed;
+         regs_to_push: byte;
       begin
-         del_reference(dest^.location.reference);
+         { Find out which registers have to be pushed (JM) }
+         regs_to_push := $ff;
+         remove_non_regvars_from_loc(source^.location,regs_to_push);
+         remove_non_regvars_from_loc(dest^.location,regs_to_push);
+         { Push them (JM) }
+         pushusedregisters(pushed,regs_to_push);
          case source^.location.loc of
            LOC_REFERENCE,LOC_MEM:
              begin
+                { Now release the location and registers (see cgai386.pas: }
+                { loadansistring for more info on the order) (JM)          }
                 ungetiftemp(source^.location.reference);
-{$IfNDef regallocfix}
                 del_reference(source^.location.reference);
-                pushusedregisters(pushed,$ff);
                 emit_push_mem(source^.location.reference);
-{$Else regallocfix}
-                 pushusedregisters(pushed,$ff
-                   xor ($80 shr byte(source^.location.reference.base))
-                   xor ($80 shr byte(source^.location.reference.index)));
-                 emit_push_mem(source^.location.reference);
-                 del_reference(source^.location.reference);
-{$EndIf regallocfix}
              end;
            LOC_REGISTER,LOC_CREGISTER:
              begin
-{$IfNDef regallocfix}
-                ungetregister32(source^.location.register);
-                pushusedregisters(pushed,$ff);
                 emit_reg(A_PUSH,S_L,source^.location.register);
-{$Else regallocfix}
-                 pushusedregisters(pushed, $ff xor ($80 shr byte(source^.location.register)));
-                 emit_reg(A_PUSH,S_L,source^.location.register);
-                 ungetregister32(source^.location.register);
-{$EndIf regallocfix}
+                { Now release the register (JM) }
+                ungetregister32(source^.location.register);
              end;
          end;
          push_shortstring_length(dest);
          emitpushreferenceaddr(dest^.location.reference);
+         { Only now release the destination (JM) }
+         del_reference(dest^.location.reference);
          emitcall('FPC_ANSISTR_TO_SHORTSTR');
          popusedregisters(pushed);
          maybe_loadesi;
@@ -1251,6 +1246,7 @@ implementation
     procedure second_pchar_to_string(var pto,pfrom : ptree;convtyp : tconverttype);
       var
         pushed : tpushed;
+        regs_to_push: byte;
       begin
          case pstringdef(pto^.resulttype)^.string_typ of
            st_shortstring:
@@ -1266,8 +1262,10 @@ implementation
                      end;
                    LOC_REFERENCE,LOC_MEM:
                      begin
-                        emit_push_mem(pfrom^.location.reference);
+                       { Now release the registers (see cgai386.pas:     }
+                       { loadansistring for more info on the order) (JM) }
                         del_reference(pfrom^.location.reference);
+                        emit_push_mem(pfrom^.location.reference);
                      end;
                 end;
                 emitpushreferenceaddr(pto^.location.reference);
@@ -1280,32 +1278,24 @@ implementation
                 pto^.location.loc:=LOC_REFERENCE;
                 gettempansistringreference(pto^.location.reference);
                 decrstringref(cansistringdef,pto^.location.reference);
+                { Find out which regs have to be pushed (JM) }
+                regs_to_push := $ff;
+                remove_non_regvars_from_loc(pfrom^.location,regs_to_push);
+                pushusedregisters(pushed,regs_to_push);
                 case pfrom^.location.loc of
                   LOC_REFERENCE,LOC_MEM:
                     begin
-{$IfNDef regallocfix}
+                      { Now release the registers (see cgai386.pas:     }
+                      { loadansistring for more info on the order) (JM) }
                       del_reference(pfrom^.location.reference);
-                      pushusedregisters(pushed,$ff);
                       emit_push_mem(pfrom^.location.reference);
-{$Else regallocfix}
-                      pushusedregisters(pushed,$ff
-                        xor ($80 shr byte(pfrom^.location.reference.base))
-                        xor ($80 shr byte(pfrom^.location.reference.index)));
-                      emit_push_mem(pfrom^.location.reference);
-                      del_reference(pfrom^.location.reference);
-{$EndIf regallocfix}
                     end;
                   LOC_REGISTER,LOC_CREGISTER:
                     begin
-{$IfNDef regallocfix}
-                      ungetregister32(pfrom^.location.register);
-                      pushusedregisters(pushed,$ff);
-                      emit_reg(A_PUSH,S_L,pfrom^.location.register);
-{$Else regallocfix}
-                      pushusedregisters(pushed, $ff xor ($80 shr byte(pfrom^.location.register)));
+                       { Now release the registers (see cgai386.pas:     }
+                       { loadansistring for more info on the order) (JM) }
                       emit_reg(A_PUSH,S_L,pfrom^.location.register);
                       ungetregister32(pfrom^.location.register);
-{$EndIf regallocfix}
                    end;
                 end;
                 emitpushreferenceaddr(pto^.location.reference);
@@ -1537,7 +1527,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.105  2000-04-10 12:23:19  jonas
+  Revision 1.106  2000-05-26 20:16:00  jonas
+    * fixed wrong register deallocations in several ansistring related
+      procedures. The IDE's now function fine when compiled with -OG3p3r
+
+  Revision 1.105  2000/04/10 12:23:19  jonas
     * modified copyshortstring so it takes an extra paramter which allows it
       to delete the sref itself (so the reg deallocations are put in the
       right place for the optimizer)

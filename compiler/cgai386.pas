@@ -994,6 +994,7 @@ procedure mov_reg_to_dest(p : ptree; s : topsize; reg : tregister);
     }
       var
          pushed : tpushed;
+         regs_to_push: byte;
          ungettemp : boolean;
       begin
          { before pushing any parameter, we have to save all used      }
@@ -1003,35 +1004,28 @@ procedure mov_reg_to_dest(p : ptree; s : topsize; reg : tregister);
 
          { nevertheless, this has to be changed, because otherwise the }
          { register is released before it's contents are pushed ->     }
-         { problems with the optimizer (JM)                         }
+         { problems with the optimizer (JM)                            }
          del_reference(p^.left^.location.reference);
          ungettemp:=false;
+         { Find out which registers have to be pushed (JM) }
+         regs_to_push := $ff;
+         remove_non_regvars_from_loc(p^.right^.location,regs_to_push);
+         { And push them (JM) }
+         pushusedregisters(pushed,regs_to_push);
          case p^.right^.location.loc of
             LOC_REGISTER,LOC_CREGISTER:
               begin
-{$IfNDef regallocfix}
-                 ungetregister32(p^.right^.location.register);
-                 pushusedregisters(pushed,$ff);
-                 exprasmlist^.concat(new(paicpu,op_reg(A_PUSH,S_L,p^.right^.location.register)));
-{$Else regallocfix}
-                 pushusedregisters(pushed, $ff xor ($80 shr byte(p^.right^.location.register)));
                  exprasmlist^.concat(new(paicpu,op_reg(A_PUSH,S_L,p^.right^.location.register)));
                  ungetregister32(p^.right^.location.register);
-{$EndIf regallocfix}
               end;
             LOC_REFERENCE,LOC_MEM:
               begin
-{$IfNDef regallocfix}
+                 { First release the registers because emit_push_mem may  }
+                 { load the reference in edi before pushing and then the  }
+                 { dealloc is too late (and optimizations are missed (JM) }
                  del_reference(p^.right^.location.reference);
-                 pushusedregisters(pushed,$ff);
+                 { This one doesn't need extra registers (JM) }
                  emit_push_mem(p^.right^.location.reference);
-{$Else regallocfix}
-                 pushusedregisters(pushed,$ff
-                   xor ($80 shr byte(p^.right^.location.reference.base))
-                   xor ($80 shr byte(p^.right^.location.reference.index)));
-                 emit_push_mem(p^.right^.location.reference);
-                 del_reference(p^.right^.location.reference);
-{$EndIf regallocfix}
                  ungettemp:=true;
               end;
          end;
@@ -3968,7 +3962,11 @@ procedure mov_reg_to_dest(p : ptree; s : topsize; reg : tregister);
 end.
 {
   $Log$
-  Revision 1.105  2000-05-23 14:20:49  pierre
+  Revision 1.106  2000-05-26 20:16:00  jonas
+    * fixed wrong register deallocations in several ansistring related
+      procedures. The IDE's now function fine when compiled with -OG3p3r
+
+  Revision 1.105  2000/05/23 14:20:49  pierre
    * Use stacksize param instead of gettempsize
 
   Revision 1.104  2000/05/18 17:05:15  peter

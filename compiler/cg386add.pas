@@ -304,7 +304,7 @@ implementation
                              { *** redefining a type is not allowed!! (thanks, Pierre) }
                              { also problem with constant string!                      }
                              pstringdef(p^.left^.resulttype)^.len := 255;
-                             
+
 {$endif newoptimizations2}
                           end;
 
@@ -638,22 +638,23 @@ implementation
             subn,
          symdifn,
             muln : begin
-{$IfNDef regallocfix}
-                     del_location(p^.left^.location);
-                     del_location(p^.right^.location);
-                     pushusedregisters(pushedregs,$ff);
-{$EndIf regallocfix}
+                     { Find out which registers have to pushed (JM) }
+                     regstopush := $ff;
+                     remove_non_regvars_from_loc(p^.left^.location,regstopush);
+                     remove_non_regvars_from_loc(p^.right^.location,regstopush);
+                     { Push them (JM) }
+                     pushusedregisters(pushedregs,regstopush);
                      href.symbol:=nil;
                      gettempofsizereference(32,href);
                      emitpushreferenceaddr(href);
-                     emitpushreferenceaddr(p^.right^.location.reference);
-{$IfDef regallocfix}
+                     { Release the registers right before they're used,  }
+                     { see explanation in cgai386.pas:loadansistring for }
+                     { info why this is done right before the push (JM)  }
                      del_location(p^.right^.location);
-{$EndIf regallocfix}
-                     emitpushreferenceaddr(p^.left^.location.reference);
-{$IfDef regallocfix}
+                     emitpushreferenceaddr(p^.right^.location.reference);
+                     { The same here }
                      del_location(p^.left^.location);
-{$EndIf regallocfix}
+                     emitpushreferenceaddr(p^.left^.location.reference);
                      case p^.treetype of
                       subn : emitcall('FPC_SET_SUB_SETS');
                    symdifn : emitcall('FPC_SET_SYMDIF_SETS');
@@ -2376,7 +2377,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.101  2000-04-25 14:43:36  jonas
+  Revision 1.102  2000-05-26 20:16:00  jonas
+    * fixed wrong register deallocations in several ansistring related
+      procedures. The IDE's now function fine when compiled with -OG3p3r
+
+  Revision 1.101  2000/04/25 14:43:36  jonas
     - disabled "string_var := string_var + ... " and "string_var + char_var"
       optimizations (were only active with -dnewoptimizations) because of
       several internal issues
