@@ -50,7 +50,7 @@ Type
   TProcessOptions = Set of TPRocessOption;
   TstartUpoptions = set of TStartupOption;
 
-{$ifdef linux}
+{$ifdef unix}
 Const
   STARTF_USESHOWWINDOW    = 1;    // Ignored
   STARTF_USESIZE          = 2;
@@ -131,7 +131,7 @@ Type
 
   TProcess = Class (TComponent)
   Private
-{$ifndef linux}  
+{$ifndef unix}  
     FAccess : Cardinal;
 {$endif}    
     FApplicationName : string;
@@ -183,7 +183,7 @@ Type
     procedure SetPRocessOptions(const Value: TProcessOptions);
     procedure SetActive(const Value: Boolean);
     procedure SetEnvironment(const Value: TStrings);
-{$ifdef linux}
+{$ifdef unix}
     function PeekLinuxExitStatus: Boolean;
 {$endif}    
   Public
@@ -228,7 +228,7 @@ Type
     Property WindowWidth : Cardinal Read FStartupInfo.dwXsize Write SetWindowWidth;
   end;
 
-{$ifdef linux}
+{$ifdef unix}
 Const
   PriorityConstants : Array [TProcessPriority] of Integer =
                       (20,20,0,-20);
@@ -248,7 +248,7 @@ implementation
 Constructor TProcess.Create (AOwner : TComponent);
 begin
   Inherited;
-{$ifndef linux}
+{$ifndef unix}
   FAccess:=PROCESS_ALL_ACCESS;
 {$endif}
   FProcessPriority:=ppNormal;
@@ -283,7 +283,7 @@ Function TProcess.GetExitStatus : Integer;
 
 begin
   If FRunning then
-{$ifdef linux}
+{$ifdef unix}
     PeekLinuxExitStatus;
 {$else}
     GetExitCodeProcess(Handle,FExitCode);
@@ -294,7 +294,7 @@ end;
 Function TProcess.GetHandle : THandle;
 
 begin
-{$ifndef linux}
+{$ifndef unix}
   If FHandle=0 Then
     FHandle:=OpenProcess (FAccess,True,FProcessInformation.dwProcessId);
 {$endif}
@@ -317,7 +317,7 @@ begin
     REsult:=FProcessAttributes^;
 end;
 
-{$ifdef linux}
+{$ifdef unix}
 Function TProcess.PeekLinuxExitStatus : Boolean;
 
 begin
@@ -334,7 +334,7 @@ Function TProcess.GetRunning : Boolean;
 begin
   IF FRunning then
     begin
-{$ifdef linux}
+{$ifdef unix}
     FRunning:=Not PeekLinuxExitStatus;
 {$else}
     Frunning:=GetExitStatus=Still_Active;
@@ -398,7 +398,7 @@ Function TProcess.GetCreationFlags : Cardinal;
 
 begin
   Result:=0;
-{$ifndef linux}
+{$ifndef unix}
   if poNoConsole in FProcessOptions then
     Result:=Result or Detached_Process;
   if poNewConsole in FProcessOptions then
@@ -436,7 +436,7 @@ begin
 end;
 
 Type
-{$ifndef linux}
+{$ifndef unix}
   PPChar = ^PChar;
 {$endif}
   TPCharArray = Array[Word] of pchar;
@@ -476,7 +476,7 @@ begin
 end;
 
 
-{$ifdef linux}
+{$ifdef unix}
 Procedure CommandToList(S : String; List : TStrings);
 
   Function GetNextWord : String;
@@ -653,7 +653,7 @@ begin
 end;
 {$endif}
 
-{$ifdef linux}
+{$ifdef unix}
 Function GetLastError : Integer;
 
 begin
@@ -665,7 +665,7 @@ Procedure TProcess.Execute;
 
 
 Var
-{$ifndef linux}
+{$ifndef unix}
   PName,PDir,PCommandLine : PChar;
 {$endif}
   FEnv : PPChar;
@@ -676,7 +676,7 @@ begin
     CreateStreams;
   FCreationFlags:=GetCreationFlags;
   FStartupInfo.dwFlags:=GetStartupFlags;
-{$ifndef linux}
+{$ifndef unix}
   PName:=Nil;
   PCommandLine:=Nil;
   PDir:=Nil;
@@ -692,7 +692,7 @@ begin
   else
     FEnv:=Nil;
   FInheritHandles:=True;
-{$ifdef linux}
+{$ifdef unix}
   if Not CreateProcess (FApplicationName,FCommandLine,FCurrentDirectory,FEnv,
                         FStartupOptions,FProcessOptions,FStartupInfo,
                         fProcessInformation) then
@@ -708,7 +708,7 @@ begin
     FileClose(FStartupInfo.hStdOutput);
     FileClose(FStartupInfo.hStdError);
     end;
-{$ifdef linux}
+{$ifdef unix}
   Fhandle:=fprocessinformation.hProcess;
 {$endif}
   FRunning:=True;
@@ -723,7 +723,7 @@ end;
 Function TProcess.WaitOnExit : Dword;
 
 begin
-{$ifdef linux}
+{$ifdef unix}
   Result:=WaitPid(Handle,@FExitCode,0);
   If Result=Handle then
     FExitCode:=WexitStatus(FExitCode);
@@ -738,7 +738,7 @@ end;
 Function TProcess.Suspend : Longint;
 
 begin
-{$ifdef linux}
+{$ifdef unix}
   If kill(Handle,SIGSTOP)<>0 then
     Result:=-1
   else
@@ -751,7 +751,7 @@ end;
 Function TProcess.Resume : LongInt;
 
 begin
-{$ifdef linux}
+{$ifdef unix}
   If kill(Handle,SIGCONT)<>0 then
     Result:=-1
   else
@@ -765,7 +765,7 @@ Function TProcess.Terminate(AExitCode : Integer) : Boolean;
 
 begin
   Result:=False;
-{$ifdef linux}
+{$ifdef unix}
   Result:=kill(Handle,SIGTERM)=0;
   If Result then
     begin
@@ -788,7 +788,7 @@ end;
 
 Procedure TProcess.SetShowWindow (Value : TShowWindowOptions);
 
-{$ifndef linux}
+{$ifndef unix}
 Const
   SWC : Array [TShowWindowOptions] of Cardinal =
              (0,SW_HIDE,SW_Maximize,SW_Minimize,SW_Restore,SW_Show,
@@ -802,7 +802,7 @@ begin
     FStartupInfo.dwFlags:=FStartupInfo.dwFlags or Startf_UseShowWindow
   else
     FStartupInfo.dwFlags:=FStartupInfo.dwFlags and not Startf_UseShowWindow;
-{$ifndef linux}
+{$ifndef unix}
   FStartupInfo.wShowWindow:=SWC[Value];
 {$endif}  
 end;
@@ -915,7 +915,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.6  2001-11-08 13:01:06  michael
+  Revision 1.7  2001-11-24 20:43:56  carl
+  * fix compilation problems under non-linux systems
+
+  Revision 1.6  2001/11/08 13:01:06  michael
   + Fixed win32 compile
 
   Revision 1.5  2001/11/05 21:45:35  michael
