@@ -45,7 +45,7 @@ Procedure AssignAnsiString (Var S1 : AnsiString; S2 : Pointer); forward;
 Procedure Ansi_String_Concat (Var S1 : AnsiString; Var S2 : AnsiString); forward;
 Procedure Ansi_ShortString_Concat (Var S1: AnsiString; Var S2 : ShortString); forward;
 Procedure Ansi_To_ShortString (Var S1 : ShortString; Var S2 : AnsiString; maxlen : longint); forward;
-Procedure Short_To_AnsiString (Var S1 : AnsiString; Var S2 : ShortString); forward;
+Procedure Short_To_AnsiString (Var S1 : AnsiString; Const S2 : ShortString); forward;
 Function  AnsiCompare (Var S1,S2 : AnsiString): Longint; forward;
 Function  AnsiCompare (var S1 : AnsiString; Var S2 : ShortString): Longint; forward;
 Procedure SetCharAtIndex (Var S : AnsiString; Index : Longint; C : CHar); forward;
@@ -250,9 +250,7 @@ begin
 end;
 
 
-
-Procedure Ansi_To_ShortString (Var S1 : ShortString;const S2 : AnsiString; Maxlen : Longint);
-  [Public, alias: 'FPC_TO_ANSISTRING_SHORT'];
+Procedure Ansi_To_ShortString (Var S1 : ShortString; Var S2 : AnsiString; Maxlen : Longint);  [Public, alias: 'FPC_TO_ANSISTRING_SHORT'];
 {
  Converts a AnsiString to a ShortString;
 }
@@ -267,8 +265,7 @@ end;
 
 
 
-Procedure Short_To_AnsiString (Const S1 : AnsiString; Var S2 : ShortString);
-  [Public, alias: 'FPC_SHORT_TO_ANSISTRING'];
+Procedure Short_To_AnsiString (Var S1 : AnsiString; Const S2 : ShortString); [Public, alias: 'FPC_SHORT_TO_ANSISTRING'];
 {
  Converts a ShortString to a AnsiString;
 }
@@ -284,6 +281,16 @@ begin
 end;
 
 
+Const EmptyChar : char = #0;
+    
+Function Ansi2pchar (S : Pointer) : Pchar; [Alias : 'ANSI2PCHAR'];
+
+begin
+  If S<>Nil then 
+    Ansi2Pchar:=S
+  else
+    Ansi2Pchar:=@emptychar;
+end;
 
 Function AnsiCompare (Var S1,S2 : AnsiString): Longint;
 {
@@ -375,7 +382,7 @@ begin
    If (Pointer(S)=Nil) and (l>0) then
     begin
     { Need a complete new string...}
-    S:=NewAnsiString(l);
+  //  S:=NewAnsiString(l);
     PAnsiRec(Pointer(S)-FirstOff)^.Len:=l;
     PAnsiRec(Pointer(S)-FirstOff)^.Len:=l;
     PByte (Pointer(S)+l)^:=0;
@@ -676,7 +683,10 @@ end;
 
 {
   $Log$
-  Revision 1.11  1998-08-08 12:28:10  florian
+  Revision 1.12  1998-08-22 09:32:12  michael
+  + minor fixes typos, and ansi2pchar
+
+  Revision 1.11  1998/08/08 12:28:10  florian
     * a lot small fixes to the extended data type work
 
   Revision 1.10  1998/07/29 21:44:34  michael
