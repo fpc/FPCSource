@@ -44,7 +44,7 @@ uses
  {$ENDIF FPC}
 {$ELSE}
  {$IFDEF WIN32}
-     Dos;
+     Windows,
  {$ENDIF WIN32}
 {$ENDIF OS2}
  Dos;
@@ -100,12 +100,11 @@ begin
  {$IFDEF WIN32}
  DLLHandle := LoadLibrary (@DLLPath [1]);
  if DLLHandle = 0 then DLLHandle := LoadLibrary (@DLLName [1]);
- if DLLHande = 0 then
+ if DLLHandle = 0 then WriteLn (#13#10'Error while loading DLL.') else
  begin
-  if ErrPath [0] <> #0 then WriteLn (#13#10'Error while loading DLL.');
- end else
- begin
-  UzpMain := UzpMainFunc (GetProcAddress (DLLHandle, 'UzpMain');
+(*  UzpMain := UzpMainFunc (GetProcAddress (DLLHandle, 'UzpMain'));
+*)
+  UzpMain := UzpMainFunc (GetProcAddress (DLLHandle, 'Unz_Unzip'));
   DLLInit := Assigned (UzpMain);
  end;
  {$ENDIF}
@@ -115,10 +114,17 @@ end;
 procedure NewExit;
 begin
  ExitProc := OldExit;
+{$IFDEF OS2}
  DosFreeModule (DLLHandle);
+{$ELSE}
+ {$IFDEF WIN32}
+ FreeLibrary (DLLHandle);
+ {$ENDIF}
+{$ENDIF}
 end;
 
-function FileUnzipEx;
+function FileUnzipEx (SourceZipFile, TargetDirectory,
+                                                    FileSpecs: PChar): integer;
 var
  I, FCount, ArgC: longint;
  ArgV: TArgV;
@@ -201,7 +207,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.3  2000-03-05 17:57:08  hajny
+  Revision 1.4  2000-06-13 16:21:36  hajny
+    * Win32 support corrected/completed
+
+  Revision 1.3  2000/03/05 17:57:08  hajny
     + added support for Win32 (untested)
 
   Revision 1.2  1999/06/10 07:28:29  hajny
