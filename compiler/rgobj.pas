@@ -644,14 +644,20 @@ implementation
 
     procedure trgobj.add_to_movelist(u:Tsuperregister;data:Tlinkedlistitem);
 
+    var cursize:cardinal;
+
     begin
       if reginfo[u].movelist=nil then
         begin
           getmem(reginfo[u].movelist,64);
           reginfo[u].movelist^.count:=0;
         end
-      else if (reginfo[u].movelist^.count and 15)=15 then
-        reallocmem(reginfo[u].movelist,(reginfo[u].movelist^.count+1)*4+64);
+      else
+        begin
+	  cursize:=memsize(reginfo[u].movelist);
+	  if (4*(reginfo[u].movelist^.count+1)=cursize) then
+            reallocmem(reginfo[u].movelist,cursize*2);
+        end;
       reginfo[u].movelist^.data[reginfo[u].movelist^.count]:=data;
       inc(reginfo[u].movelist^.count);
     end;
@@ -974,6 +980,8 @@ implementation
         t : tsuperregister;
         n,o : cardinal;
         decrement : boolean;
+{	moves:Tsuperregisterset;}
+        vm:Pmovelist;
 
     label l1;
 
@@ -985,19 +993,54 @@ implementation
       reginfo[v].alias:=u;
 
       {Combine both movelists. Since the movelists are sets, only add
-       elements that are not already present.}
-      if assigned(reginfo[v].movelist) then
-        begin
-          for n:=0 to reginfo[v].movelist^.count-1 do
-            begin
-              for o:=0 to reginfo[u].movelist^.count-1 do
-                if reginfo[u].movelist^.data[o]=reginfo[v].movelist^.data[n] then
-                  goto l1; {Continue outer loop.}
-              add_to_movelist(u,reginfo[v].movelist^.data[n]);
-            l1:
-            end;
-          enable_moves(v);
-        end;
+       elements that are not already present. The movelists cannot be
+       empty by definition; nodes are only coalesced if there is a move
+       between them.}
+
+{     Nice attempt; it didn't work.
+      supregset_reset(moves,false);
+      supregset_include(moves,u);
+      with reginfo[u].movelist^ do
+        for n:=0 to count-1 do
+	  begin
+	    if Tmoveins(data[n]).x=u then
+              supregset_include(moves,Tmoveins(data[n]).y)
+	    else
+              supregset_include(moves,Tmoveins(data[n]).x)
+          end;
+      with reginfo[v].movelist^ do
+        for n:=0 to count-1 do
+	  begin
+	    if Tmoveins(data[n]).x=v then
+	      begin
+	        if supregset_in(moves,Tmoveins(data[n]).y) then
+        	  add_to_movelist(u,data[n]);
+              end
+	    else
+	      begin
+	        if supregset_in(moves,Tmoveins(data[n]).x) then
+        	  add_to_movelist(u,data[n]);
+              end;
+	  end;}
+
+      {This loop is a performance bottleneck for large procedures and therefore
+       optimized by hand as much as possible. This is because machine registers
+       generally collect large movelists (for example around procedure calls data
+       is moved into machine registers). The loop below is unfortunately quadratic,
+       and guess what this means when a procedure has collected several thousand
+       moves.... Test webtbs/tw2242 is a good example to illustrate this.}
+      vm:=reginfo[v].movelist;
+      for n:=0 to vm^.count-1 do
+        with reginfo[u].movelist^ do
+          begin
+            for o:=0 to count-1 do
+              if data[o]=vm^.data[n] then
+                goto l1; {Continue outer loop.}
+            add_to_movelist(u,vm^.data[n]);
+          l1:
+          end;
+
+      enable_moves(v);
 
       adj:=reginfo[v].adjlist;
       if adj<>nil then
@@ -1025,8 +1068,7 @@ implementation
                   end;
               end;
           end;
-      if (reginfo[u].degree>=usable_registers_cnt) and
-         freezeworklist.delete(u) then
+      if (reginfo[u].degree>=usable_registers_cnt) and freezeworklist.delete(u) then
         spillworklist.add(u);
     end;
 
@@ -1863,7 +1905,13 @@ implementation
 end.
 {
   $Log$
-  Revision 1.116  2004-01-28 22:16:31  peter
+  Revision 1.117  2004-02-06 13:34:46  daniel
+    * Some changes to better accomodate very large movelists
+      * movelist resizing now exponential (avoids heap fragmentation, saves
+        300 kb memory in make cycle)
+      * Trgobj.combine hand-optimized (still too slow)
+
+  Revision 1.116  2004/01/28 22:16:31  peter
     * more record alignment fixes
 
   Revision 1.115  2004/01/26 17:40:11  florian
