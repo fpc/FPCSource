@@ -1588,11 +1588,9 @@ function isFoldableArithOp(hp1: paicpu; reg: tregister): boolean;
 begin
   IsFoldableArithOp := False;
   case hp1^.opcode of
-    A_ADD,A_SUB,A_OR,A_XOR,A_AND,A_SHL,A_SHR,A_SAR,A_IMUL:
+    A_ADD,A_SUB,A_OR,A_XOR,A_AND,A_SHL,A_SHR,A_SAR:
       isFoldableArithOp :=
-        ((paicpu(hp1)^.oper[0].typ = top_reg) or
-         ((paicpu(hp1)^.oper[0].typ = top_const) and
-          (hp1^.opcode <> A_IMUL))) and
+        (paicpu(hp1)^.oper[0].typ in [top_reg,top_const]) and
         (paicpu(hp1)^.oper[1].typ = top_reg) and
         (paicpu(hp1)^.oper[1].reg = reg);
     A_INC,A_DEC:
@@ -1947,7 +1945,11 @@ End.
 
 {
   $Log$
-  Revision 1.5  2000-07-28 13:56:23  jonas
+  Revision 1.6  2000-07-31 08:44:05  jonas
+    - removed imul support from -dfoldarithops since "imull [reg32],[mem32]"
+      doesn't exist (merged from fixes branch)
+
+  Revision 1.5  2000/07/28 13:56:23  jonas
     * fixed bug in shr/shl optimization when -Og is used (merged from fixes
       branch)
 
