@@ -917,7 +917,7 @@ end;
 function regval(r:tregister):byte;
 begin
   case r of
-    R_EAX,R_AX,R_AL,R_ES,R_CR0,R_DR0,R_ST0,R_MM0 :
+    R_EAX,R_AX,R_AL,R_ES,R_CR0,R_DR0,R_ST,R_ST0,R_MM0 :
       regval:=0;
     R_ECX,R_CX,R_CL,R_CS,R_DR1,R_ST1,R_MM1 :
       regval:=1;
@@ -1520,7 +1520,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.11  1999-05-30 11:57:43  peter
+  Revision 1.12  1999-06-14 11:15:01  pierre
+   * -O2 real multiplication bug correction
+
+  Revision 1.11  1999/05/30 11:57:43  peter
     * moved swapoperands out of the define
 
   Revision 1.10  1999/05/27 19:44:33  peter
