@@ -280,7 +280,7 @@ function DefMDIChildProc(hWnd:HWND; uMsg:UINT; wParam:WPARAM; lParam:LPARAM):LRE
 function CreateMDIWindow(lpClassName:LPWSTR; lpWindowName:LPWSTR; dwStyle:DWORD; X:longint; Y:longint;nWidth:longint; nHeight:longint; hWndParent:HWND; hInstance:HINST; lParam:LPARAM):HWND; external 'user32' name 'CreateMDIWindowW';
 function WinHelp(hWndMain:HWND; lpszHelp:LPCWSTR; uCommand:UINT; dwData:DWORD):WINBOOL; external 'user32' name 'WinHelpW';
 function ChangeDisplaySettings(lpDevMode:LPDEVMODE; dwFlags:DWORD):LONG; external 'user32' name 'ChangeDisplaySettingsW';
-function EnumDisplaySettings(lpszDeviceName:LPCWSTR; iModeNum:DWORD; lpDevMode:LPDEVMODE):WINBOOL; external 'user32' name 'EnumDisplaySettingsW';
+function EnumDisplaySettings(lpszDeviceName:LPCWSTR; iModeNum:DWORD; lpDevMode:LPDEVMODEW):WINBOOL; external 'user32' name 'EnumDisplaySettingsW';
 function SystemParametersInfo(uiAction:UINT; uiParam:UINT; pvParam:PVOID; fWinIni:UINT):WINBOOL; external 'user32' name 'SystemParametersInfoW';
 function AddFontResource(_para1:LPCWSTR):longint; external 'gdi32' name 'AddFontResourceW';
 function CopyMetaFile(_para1:HMETAFILE; _para2:LPCWSTR):HMETAFILE; external 'gdi32' name 'CopyMetaFileW';
@@ -492,7 +492,10 @@ end;
 
 {
   $Log$
-  Revision 1.9  2004-08-08 16:52:52  florian
+  Revision 1.10  2004-11-07 20:25:02  marco
+   * fixes for bug 3303 (devmodew)
+
+  Revision 1.9  2004/08/08 16:52:52  florian
     * tried to fix some wsprintf issues
     + now compiled in objfpc mode
       so some integer => smallint changes where necessary; hopefully,

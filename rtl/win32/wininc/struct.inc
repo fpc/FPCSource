@@ -1746,6 +1746,51 @@
      TDEVMODE = DEVMODE;
      PDEVMODE = ^DEVMODE;
 
+
+     devmodeW   = record
+                     dmDeviceName   : array[0.. CCHDEVICENAME-1] of WCHAR;
+                     dmSpecVersion  : WORD;
+                     dmDriverVersion: WORD;
+                     dmSize        : WORD;
+                     dmDriverExtra  : WORD;
+                     dmFields       : DWORD;
+                     dmOrientation  : short;
+                     dmPaperSize    : short;
+                     dmPaperLength  : short;
+                     dmPaperWidth   : short;
+                     dmScale       : short;
+                     dmCopies      : short;
+                     dmDefaultSource: short;
+                     dmPrintQuality : short;
+                     dmColor       : short;
+                     dmDuplex      : short;
+                     dmYResolution  : short;
+                     dmTTOption    : short;
+                     dmCollate     : short;
+                     dmFormName     : array [0..CCHFORMNAME-1] of wchar;
+                     dmLogPixels    : WORD;
+                     dmBitsPerPel   : DWORD;
+                     dmPelsWidth    : DWORD;
+                     dmPelsHeight   : DWORD;
+                     dmDisplayFlags : DWORD;
+                     dmDisplayFrequency     : DWORD;
+                     dmICMMethod    : DWORD;
+                     dmICMIntent    : DWORD;
+                     dmMediaType    : DWORD;
+                     dmDitherType   : DWORD;
+                     dmReserved1    : DWORD;
+                     dmReserved2    : DWORD;
+                     dmPanningWidth : DWORD;
+                     dmPanningHeight: DWORD;
+    		   end;
+
+     LPDEVMODEW   = ^DEVMODEW;
+     _devicemodeW = DEVMODEW;
+     devicemodeW  = DEVMODEW;
+     tdevicemodeW = DEVMODEW;
+     TDEVMODEW    = DEVMODEW;
+     PDEVMODEW    = ^DEVMODEW;
+
      DEVNAMES = record
           wDriverOffset : WORD;
           wDeviceOffset : WORD;
@@ -7037,7 +7082,10 @@ type
 
 {
   $Log$
-  Revision 1.26  2004-07-27 12:03:15  michael
+  Revision 1.27  2004-11-07 20:25:02  marco
+   * fixes for bug 3303 (devmodew)
+
+  Revision 1.26  2004/07/27 12:03:15  michael
   + More TrackMouseEvent
 
   Revision 1.25  2004/07/26 06:48:30  michael

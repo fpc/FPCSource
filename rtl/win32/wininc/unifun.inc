@@ -168,7 +168,7 @@ function wsprintfW(_para1:LPWSTR; _para2:LPCWSTR; const args:array of const):lon
 function wsprintfW(_para1:LPWSTR; _para2:LPCWSTR):longint; external 'user32' name 'wsprintfW';
 function LoadKeyboardLayoutW(pwszKLID:LPCWSTR; Flags:UINT):HKL; external 'user32' name 'LoadKeyboardLayoutW';
 function GetKeyboardLayoutNameW(pwszKLID:LPWSTR):WINBOOL; external 'user32' name 'GetKeyboardLayoutNameW';
-function CreateDesktopW(lpszDesktop:LPWSTR; lpszDevice:LPWSTR; pDevmode:LPDEVMODE; dwFlags:DWORD; dwDesiredAccess:DWORD;lpsa:LPSECURITY_ATTRIBUTES):HDESK; external 'user32' name 'CreateDesktopW';
+function CreateDesktopW(lpszDesktop:LPWSTR; lpszDevice:LPWSTR;pDevmodew:LPDEVMODEw; dwFlags:DWORD; dwDesiredAccess:DWORD;lpsa:LPSECURITY_ATTRIBUTES):HDESK; external 'user32' name 'CreateDesktopW';
 function OpenDesktopW(lpszDesktop:LPWSTR; dwFlags:DWORD; fInherit:WINBOOL; dwDesiredAccess:DWORD):HDESK; external 'user32' name 'OpenDesktopW';
 function EnumDesktopsW(hwinsta:HWINSTA; lpEnumFunc:DESKTOPENUMPROC; lParam:LPARAM):WINBOOL; external 'user32' name 'EnumDesktopsW';
 function CreateWindowStationW(lpwinsta:LPWSTR; dwReserved:DWORD; dwDesiredAccess:DWORD; lpsa:LPSECURITY_ATTRIBUTES):HWINSTA; external 'user32' name 'CreateWindowStationW';
@@ -279,15 +279,15 @@ function DefFrameProcW(hWnd:HWND; hWndMDIClient:HWND; uMsg:UINT; wParam:WPARAM; 
 function DefMDIChildProcW(hWnd:HWND; uMsg:UINT; wParam:WPARAM; lParam:LPARAM):LRESULT; external 'user32' name 'DefMDIChildProcW';
 function CreateMDIWindowW(lpClassName:LPWSTR; lpWindowName:LPWSTR; dwStyle:DWORD; X:longint; Y:longint;nWidth:longint; nHeight:longint; hWndParent:HWND; hInstance:HINST; lParam:LPARAM):HWND; external 'user32' name 'CreateMDIWindowW';
 function WinHelpW(hWndMain:HWND; lpszHelp:LPCWSTR; uCommand:UINT; dwData:DWORD):WINBOOL; external 'user32' name 'WinHelpW';
-function ChangeDisplaySettingsW(lpDevMode:LPDEVMODE; dwFlags:DWORD):LONG; external 'user32' name 'ChangeDisplaySettingsW';
-function EnumDisplaySettingsW(lpszDeviceName:LPCWSTR; iModeNum:DWORD; lpDevMode:LPDEVMODE):WINBOOL; external 'user32' name 'EnumDisplaySettingsW';
+function ChangeDisplaySettingsW(lpDevMode:LPDEVMODEW; dwFlags:DWORD):LONG; external 'user32' name 'ChangeDisplaySettingsW';
+function EnumDisplaySettingsW(lpszDeviceName:LPCWSTR; iModeNum:DWORD;lpDevMode:LPDEVMODEW):WINBOOL; external 'user32' name 'EnumDisplaySettingsW';
 function SystemParametersInfoW(uiAction:UINT; uiParam:UINT; pvParam:PVOID; fWinIni:UINT):WINBOOL; external 'user32' name 'SystemParametersInfoW';
 function AddFontResourceW(_para1:LPCWSTR):longint; external 'gdi32' name 'AddFontResourceW';
 function CopyMetaFileW(_para1:HMETAFILE; _para2:LPCWSTR):HMETAFILE; external 'gdi32' name 'CopyMetaFileW';
 function CreateFontIndirectW(_para1:PLOGFONT):HFONT; external 'gdi32' name 'CreateFontIndirectW';
 function CreateFontW(_para1:longint; _para2:longint; _para3:longint; _para4:longint; _para5:longint;_para6:DWORD; _para7:DWORD; _para8:DWORD; _para9:DWORD; _para10:DWORD;_para11:DWORD; _para12:DWORD; _para13:DWORD; _para14:LPCWSTR):HFONT;
   external 'gdi32' name 'CreateFontW';
-function CreateICW(_para1:LPCWSTR; _para2:LPCWSTR; _para3:LPCWSTR; _para4:LPDEVMODE):HDC; external 'gdi32' name 'CreateICW';
+function CreateICW(_para1:LPCWSTR; _para2:LPCWSTR; _para3:LPCWSTR; _para4:LPDEVMODEw):HDC; external 'gdi32' name 'CreateICW';
 function CreateMetaFileW(_para1:LPCWSTR):HDC; external 'gdi32' name 'CreateMetaFileW';
 function CreateScalableFontResourceW(_para1:DWORD; _para2:LPCWSTR; _para3:LPCWSTR; _para4:LPCWSTR):WINBOOL; external 'gdi32' name 'CreateScalableFontResourceW';
 function EnumFontFamiliesExW(_para1:HDC; _para2:LPLOGFONT; _para3:FONTENUMEXPROC; _para4:LPARAM; _para5:DWORD):longint; external 'gdi32' name 'EnumFontFamiliesExW';
@@ -305,7 +305,7 @@ function GetTextExtentPointW(_para1:HDC; _para2:LPCWSTR; _para3:longint; _para4:
 function GetTextExtentPoint32W(_para1:HDC; _para2:LPCWSTR; _para3:longint; _para4:LPSIZE):WINBOOL; external 'gdi32' name 'GetTextExtentPoint32W';
 function GetTextExtentExPointW(_para1:HDC; _para2:LPCWSTR; _para3:longint; _para4:longint; _para5:LPINT;_para6:LPINT; _para7:LPSIZE):WINBOOL; external 'gdi32' name 'GetTextExtentExPointW';
 function GetCharacterPlacementW(_para1:HDC; _para2:LPCWSTR; _para3:longint; _para4:longint; _para5:LPGCP_RESULTS;_para6:DWORD):DWORD; external 'gdi32' name 'GetCharacterPlacementW';
-function ResetDCW(_para1:HDC; _para2:LPDEVMODE):HDC; external 'gdi32' name 'ResetDCW';
+function ResetDCW(_para1:HDC; _para2:LPDEVMODEW):HDC; external 'gdi32' name 'ResetDCW';
 function RemoveFontResourceW(_para1:LPCWSTR):WINBOOL; external 'gdi32' name 'RemoveFontResourceW';
 function CopyEnhMetaFileW(_para1:HENHMETAFILE; _para2:LPCWSTR):HENHMETAFILE; external 'gdi32' name 'CopyEnhMetaFileW';
 function CreateEnhMetaFileW(_para1:HDC; _para2:LPCWSTR; _para3:LPRECT; _para4:LPCWSTR):HDC; external 'gdi32' name 'CreateEnhMetaFileW';
@@ -350,7 +350,7 @@ function CreateDialogW(hInstance:HINST; lpName:LPCWSTR; hWndParent:HWND; lpDialo
 function CreateDialogIndirectW(hInstance:HINST; lpTemplate:LPCDLGTEMPLATE; hWndParent:HWND; lpDialogFunc:DLGPROC):HWND;
 function DialogBoxW(hInstance:HINST; lpTemplate:LPCWSTR; hWndParent:HWND; lpDialogFunc:DLGPROC):longint;
 function DialogBoxIndirectW(hInstance:HINST; lpTemplate:LPCDLGTEMPLATE; hWndParent:HWND; lpDialogFunc:DLGPROC):longint;
-function CreateDCW(_para1:LPCWSTR; _para2:LPCWSTR; _para3:LPCWSTR; _para4:pDEVMODE):HDC; external 'gdi32' name 'CreateDCW';
+function CreateDCW(_para1:LPCWSTR; _para2:LPCWSTR; _para3:LPCWSTR; _para4:pDEVMODEW):HDC; external 'gdi32' name 'CreateDCW';
 function VerInstallFileW(uFlags:DWORD; szSrcFileName:LPWSTR; szDestFileName:LPWSTR; szSrcDir:LPWSTR; szDestDir:LPWSTR;szCurDir:LPWSTR; szTmpFile:LPWSTR; lpuTmpFileLen:PUINT):DWORD; external 'version' name 'VerInstallFileW';
 function GetFileVersionInfoSizeW(lptstrFilename:LPWSTR; lpdwHandle:LPDWORD):DWORD; external 'version' name 'GetFileVersionInfoSizeW';
 function GetFileVersionInfoW(lptstrFilename:LPWSTR; dwHandle:DWORD; dwLen:DWORD; lpData:LPVOID):WINBOOL; external 'version' name 'GetFileVersionInfoW';
@@ -492,7 +492,10 @@ end;
 
 {
   $Log$
-  Revision 1.9  2004-08-08 16:52:52  florian
+  Revision 1.10  2004-11-07 20:25:02  marco
+   * fixes for bug 3303 (devmodew)
+
+  Revision 1.9  2004/08/08 16:52:52  florian
     * tried to fix some wsprintf issues
     + now compiled in objfpc mode
       so some integer => smallint changes where necessary; hopefully,

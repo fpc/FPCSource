@@ -257,9 +257,9 @@ function ChangeDisplaySettingsA(var lpDevMode: TDeviceModeA; dwFlags: DWORD): Lo
 {$ifdef support_smartlink}
 function ChangeDisplaySettingsEx(lpszDeviceName: PChar; var lpDevMode: TDeviceMode; wnd: HWND; dwFlags: DWORD; lParam: Pointer): Longint;external 'user32' name 'ChangeDisplaySettingsExA';
 function ChangeDisplaySettingsExA(lpszDeviceName: LPCSTR; var lpDevMode: TDeviceModeA; wnd: HWND; dwFlags: DWORD; lParam: Pointer): Longint;external 'user32' name 'ChangeDisplaySettingsExA';
-//function ChangeDisplaySettingsExW(lpszDeviceName: LPWSTR; var lpDevMode: TDeviceModeW; wnd: HWND; dwFlags: DWORD; lParam: Pointer): Longint;external 'user32' name 'ChangeDisplaySettingsExW';
+function ChangeDisplaySettingsExW(lpszDeviceName: LPWSTR; var lpDevMode: TDeviceModeW; wnd: HWND; dwFlags: DWORD; lParam: Pointer): Longint;external 'user32' name 'ChangeDisplaySettingsExW';
 {$endif support_smartlink}
-//function ChangeDisplaySettingsW(var lpDevMode: TDeviceModeW; dwFlags: DWORD): Longint; external 'user32' name 'ChangeDisplaySettingsW';
+function ChangeDisplaySettingsW(var lpDevMode: TDeviceModeW; dwFlags: DWORD): Longint; external 'user32' name 'ChangeDisplaySettingsW';
 //function CheckColorsInGamut(DC: HDC; var RGBQuads, Results; Count: DWORD): BOOL; external 'gdi32' name 'CheckColorsInGamut';
 function ChoosePixelFormat(_para1:HDC; var _para2:PIXELFORMATDESCRIPTOR):longint; external 'gdi32' name 'ChoosePixelFormat';
 function ClearCommError(hFile: THandle; var lpErrors: DWORD; lpStat: PComStat): BOOL; external 'kernel32' name 'ClearCommError';
@@ -356,7 +356,7 @@ function EndPaint(hWnd: HWND; const lpPaint: TPaintStruct): BOOL; external 'user
 //function EnumDisplayDevicesW(Unused: Pointer; iDevNum: DWORD; var lpDisplayDevice: TDisplayDeviceW; dwFlags: DWORD): BOOL;external 'user32' name 'EnumDisplayDevicesW';
 function EnumDisplaySettings(lpszDeviceName: PChar; iModeNum: DWORD; var lpDevMode: TDeviceMode): BOOL;external 'user32' name 'EnumDisplaySettingsA';
 function EnumDisplaySettingsA(lpszDeviceName: LPCSTR; iModeNum: DWORD; var lpDevMode: TDeviceModeA): BOOL; external 'user32' name 'EnumDisplaySettingsA';
-//function EnumDisplaySettingsW(lpszDeviceName: LPWSTR; iModeNum: DWORD; var lpDevMode: TDeviceModeW): BOOL; external 'user32' name 'EnumDisplaySettingsW';
+function EnumDisplaySettingsW(lpszDeviceName: LPWSTR; iModeNum: DWORD; var lpDevMode: TDeviceModeW): BOOL; external 'user32' name 'EnumDisplaySettingsW';
 //function EnumEnhMetaFile(DC: HDC; p2: HENHMETAFILE; p3: TFNEnhMFEnumProc; p4: Pointer; const p5: TRect): BOOL; external 'gdi32' name 'EnumEnhMetaFile';
 //function EnumFontFamiliesEx(DC: HDC; var p2: TLogFont; p3: TFNFontEnumProc; p4: LPARAM; p5: DWORD): BOOL;external 'gdi32' name 'EnumFontFamiliesExA';
 //function EnumFontFamiliesExA(DC: HDC; var p2: TLogFontA; p3: TFNFontEnumProcA; p4: LPARAM; p5: DWORD): BOOL; external 'gdi32' name 'EnumFontFamiliesExA';
@@ -1059,7 +1059,10 @@ end;
 
 {
   $Log$
-  Revision 1.25  2004-08-08 16:52:52  florian
+  Revision 1.26  2004-11-07 20:25:02  marco
+   * fixes for bug 3303 (devmodew)
+
+  Revision 1.25  2004/08/08 16:52:52  florian
     * tried to fix some wsprintf issues
     + now compiled in objfpc mode
       so some integer => smallint changes where necessary; hopefully,
