@@ -189,6 +189,8 @@ TYPE
       PROCEDURE Store (Var S: TStream);
       PROCEDURE HandleEvent (Var Event: TEvent); Virtual;
       PROCEDURE GetItemRect (Item: PMenuItem; Var R: TRect); Virtual;
+      private
+      PROCEDURE GetItemRectX (Item: PMenuItem; Var R: TRect); Virtual;
    END;
 
 {---------------------------------------------------------------------------}
@@ -200,7 +202,8 @@ TYPE
       DESTRUCTOR Done; Virtual;
       PROCEDURE Draw; Virtual;
       PROCEDURE DrawBackGround; Virtual;
-      PROCEDURE GetItemRect (Item: PMenuItem; Var R: TRect); Virtual;
+      private
+      PROCEDURE GetItemRectX (Item: PMenuItem; Var R: TRect); Virtual;
    END;
    PMenuBar = ^TMenuBar;
 
@@ -213,7 +216,8 @@ TYPE
         AParentMenu: PMenuView);
       PROCEDURE Draw; Virtual;
       PROCEDURE DrawBackGround; Virtual;
-      PROCEDURE GetItemRect (Item: PMenuItem; Var R: TRect); Virtual;
+      private
+      PROCEDURE GetItemRectX (Item: PMenuItem; Var R: TRect); Virtual;
    END;
    PMenuBox = ^TMenuBox;
 
@@ -488,7 +492,7 @@ VAR AutoSelect: Boolean; Action: MenuAction; Ch: Char; Res: Word; R: TRect;
      Mouse.Y := E.Where.Y - RawoRigin.Y;              { Local y position }
      Current := Menu^.Items;                          { Start with current }
      While (Current <> Nil) Do Begin
-       GetItemRect(Current, R);                       { Get item rectangle }
+       GetItemRectX(Current, R);                       { Get item rectangle }
        If R.Contains(Mouse) Then Begin                { Contains mouse }
          MouseActive := True;                         { Return true }
          Exit;                                        { Then exit }
@@ -529,7 +533,7 @@ VAR AutoSelect: Boolean; Action: MenuAction; Ch: Char; Res: Word; R: TRect;
      Then Begin                                       { Valid parent menu }
        Mouse.X := E.Where.X - ParentMenu^.RawOrigin.X;{ Local x position }
        Mouse.Y := E.Where.Y - ParentMenu^.RawOrigin.Y;{ Local y position }
-       ParentMenu^.GetItemRect(ParentMenu^.Current,R);{ Get item rect }
+       ParentMenu^.GetItemRectX(ParentMenu^.Current,R);{ Get item rect }
        MouseInOwner := R.Contains(Mouse);             { Return result }
      End;
    END;
@@ -653,7 +657,7 @@ BEGIN
            If (Command = 0) Then Begin                { Has no command }
              If (E.What AND (evMouseDown+evMouseMove) <> 0)
                Then PutEvent(E);                      { Put event on queue }
-             GetItemRect(Current, R);                 { Get area of item }
+             GetItemRectX(Current, R);                 { Get area of item }
              R.A.X := R.A.X DIV FontWidth + Origin.X; { Left start point }
              R.A.Y := R.B.Y DIV FontHeight + Origin.Y;{ Top start point }
              R.B.X := Owner^.Size.X;                  { X screen area left }
@@ -872,10 +876,22 @@ BEGIN
 END;
 
 {--TMenuView----------------------------------------------------------------}
+{  GetItemRectX -> Platforms DOS/DPMI/WIN/NT/OS2 - Updated 08May98 LdB       }
+{---------------------------------------------------------------------------}
+PROCEDURE TMenuView.GetItemRectX (Item: PMenuItem; Var R: TRect);
+BEGIN                                                 { Abstract method }
+END;
+
+{--TMenuView----------------------------------------------------------------}
 {  GetItemRect -> Platforms DOS/DPMI/WIN/NT/OS2 - Updated 08May98 LdB       }
 {---------------------------------------------------------------------------}
 PROCEDURE TMenuView.GetItemRect (Item: PMenuItem; Var R: TRect);
-BEGIN                                                 { Abstract method }
+BEGIN
+  GetItemRectX(Item,R);
+  R.A.X:=R.A.X div SysFontWidth;
+  R.A.Y:=R.A.Y div SysFontHeight;
+  R.B.X:=R.B.X div SysFontWidth;
+  R.B.Y:=R.B.Y div SysFontHeight;
 END;
 
 {+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++}
@@ -982,9 +998,9 @@ BEGIN
 END;
 
 {--TMenuBar-----------------------------------------------------------------}
-{  GetItemRect -> Platforms DOS/DPMI/WIN/NT/OS2 - Updated 08May98 LdB       }
+{  GetItemRectX -> Platforms DOS/DPMI/WIN/NT/OS2 - Updated 08May98 LdB      }
 {---------------------------------------------------------------------------}
-PROCEDURE TMenuBar.GetItemRect (Item: PMenuItem; Var R: TRect);
+PROCEDURE TMenuBar.GetItemRectX (Item: PMenuItem; Var R: TRect);
 VAR I: Integer; P: PMenuItem;
 BEGIN
    I := 0;                                            { Preset to zero }
@@ -996,7 +1012,7 @@ BEGIN
        R.B.X := R.A.X+TextWidth(' ' + P^.Name^ + ' ');{ Add text width  }
        I := I + CStrLen(P^.Name^) + 2;                { Add item length }
      End Else R.B.X := R.A.X;
-     If (P = Item) Then Exit;                         { Requested item found }
+     If (P = Item) Then break;                        { Requested item found }
      P := P^.Next;                                    { Next item }
    End;
 END;
@@ -1171,9 +1187,9 @@ BEGIN
 END;
 
 {--TMenuBox-----------------------------------------------------------------}
-{  GetItemRect -> Platforms DOS/DPMI/WIN/NT/OS2 - Updated 11May98 LdB       }
+{  GetItemRectX -> Platforms DOS/DPMI/WIN/NT/OS2 - Updated 11May98 LdB      }
 {---------------------------------------------------------------------------}
-PROCEDURE TMenuBox.GetItemRect (Item: PMenuItem; Var R: TRect);
+PROCEDURE TMenuBox.GetItemRectX (Item: PMenuItem; Var R: TRect);
 VAR X, Y: Integer; P: PMenuItem;
 BEGIN
    Y := FontHeight;                                   { Initial y position }
@@ -1721,7 +1737,10 @@ END;
 END.
 {
  $Log$
- Revision 1.9  2001-08-05 02:03:14  peter
+ Revision 1.10  2001-08-05 21:49:56  pierre
+  * GetItemRect returned graphic coordinates, renamed to GetItemRectX
+
+ Revision 1.9  2001/08/05 02:03:14  peter
    * view redrawing and small cursor updates
    * merged some more FV extensions
 
