@@ -3,18 +3,20 @@
 { e-mail: marco@freepascal.org }
 {$mode Delphi}
 type
-     someprocedureofobjectype=procedure (sender:tobject) OF
-OBJECT;
-
+     someprocedureofobjectype=procedure (sender:tobject) OF OBJECT;
      a=class
-                  protected
-                    fondisplay : someprocedureofobjectype;
-                  end;
+     protected
+        fondisplay : someprocedureofobjectype;
+     public
+        a:longint;
+     end;
 
-       b=class(A)
-                  protected
-                    fondisplay : someprocedureofobjectype;
-                  end;
+     b=class(A)
+     protected
+        fondisplay : someprocedureofobjectype;
+     public
+        a:longint;
+     end;
 
 begin
 end.
