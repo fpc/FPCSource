@@ -11,6 +11,9 @@ rst=restest
 [require]
 options=-S2
 packages=fcl
+packages_linux=zlib
+packages_win32=paszlib
+packages_go32=paszlib
 
 [dirs]
 fpcdir=../..
