@@ -172,10 +172,10 @@ Type
 
   PPaiProp = ^TPaiProp;
 
-{$IfNDef VER70}
+{$IfNDef TP}
   TPaiPropBlock = Array[1..250000] Of TPaiProp;
   PPaiPropBlock = ^TPaiPropBlock;
-{$EndIf VER70}
+{$EndIf TP}
 
   TInstrSinceLastMod = Array[R_EAX..R_EDI] Of Byte;
 
@@ -187,11 +187,11 @@ Type
                       JmpsProcessed: Word
 {$EndIf JumpAnal}
                     End;
-{$IfDef VER70}
+{$IfDef tp}
   TLabelTable = Array[0..10000] Of TLabelTableItem;
-{$Else VER70}
+{$Else tp}
   TLabelTable = Array[0..2500000] Of TLabelTableItem;
-{$Endif VER70}
+{$Endif tp}
   PLabelTable = ^TLabelTable;
 
 {******************************* Variables *******************************}
@@ -200,7 +200,7 @@ Var
 {the amount of PaiObjects in the current assembler list}
   NrOfPaiObjs: Longint;
 
-{$IfNDef VER70}
+{$IfNDef TP}
 {Array which holds all TPaiProps}
   PaiPropBlock: PPaiPropBlock;
 {$EndIf TP}
@@ -658,11 +658,9 @@ Begin
   If (LabelDif <> 0) Then
     Begin
 {$IfDef TP}
-{$ifndef Delphi}
       If (MaxAvail >= LabelDif*SizeOf(Pai))
         Then
           Begin
-{$endif Delphi}
 {$EndIf TP}
             GetMem(LabelTable, LabelDif*SizeOf(TLabelTableItem));
             FillChar(LabelTable^, LabelDif*SizeOf(TLabelTableItem), 0);
@@ -718,10 +716,8 @@ Begin
                   P := Pai(P^.Next);
               End;
 {$IfDef TP}
-{$ifndef Delphi}
           End
         Else LabelDif := 0;
-{$endif Delphi}
 {$EndIf TP}
     End;
 End;
@@ -855,7 +851,7 @@ Begin
     End;
 End;
 
-Procedure AddOpRegInfo(const o:Toper; Var RegInfo: TRegInfo);
+Procedure AddOp2RegInfo(const o:Toper; Var RegInfo: TRegInfo);
 Begin
   Case o.typ Of
     Top_Reg:
@@ -953,25 +949,21 @@ End;
 
 Function RegInInstruction(Reg: TRegister; p1: Pai): Boolean;
 {checks if Reg is used by the instruction p1}
-Var TmpResult: Boolean;
+Var Counter: Longint;
+    TmpResult: Boolean;
 Begin
   TmpResult := False;
   If (Pai(p1)^.typ = ait_instruction) Then
     Begin
-      Case Pai386(p1)^.oper[0].typ Of
-        Top_Reg: TmpResult := Reg = Pai386(p1)^.oper[0].reg;
-        Top_Ref: TmpResult := RegInRef(Reg, Pai386(p1)^.oper[0].ref^);
-      End;
-      If Not(TmpResult) Then
-        Case Pai386(p1)^.oper[1].typ Of
-          Top_Reg: TmpResult := (Reg = Pai386(p1)^.oper[1].reg);
-          Top_Ref: TmpResult := RegInRef(Reg, Pai386(p1)^.oper[1].ref^)
+      Reg := Reg32(Reg);
+      Counter := 0;
+      Repeat
+        Case Pai386(p1)^.oper[Counter].typ Of
+          Top_Reg: TmpResult := Reg = Reg32(Pai386(p1)^.oper[Counter].reg);
+          Top_Ref: TmpResult := RegInRef(Reg, Pai386(p1)^.oper[Counter].ref^);
         End;
-      If Not(TmpResult) Then
-        Case Pai386(p1)^.oper[2].typ Of
-          Top_Reg: TmpResult := (Reg = Pai386(p1)^.oper[2].reg);
-          Top_Ref: TmpResult := RegInRef(Reg, Pai386(p1)^.oper[2].ref^)
-        End
+        Inc(Counter)
+      Until (Counter = 3) or TmpResult;
     End;
   RegInInstruction := TmpResult
 End;
@@ -1190,12 +1182,17 @@ Begin
           (Pai386(p)^.opcode = A_MOVZX) or
           (Pai386(p)^.opcode = A_MOVSX))
         Then
-          If (Pai386(p)^.oper[0].typ = top_ref)
-            Then
+          Begin
+            If (Pai386(p)^.oper[0].typ = top_ref) Then
               With Pai386(p)^.oper[0].ref^ Do
                 If (Base = ProcInfo.FramePointer) And
                    (Index = R_NO)
-                  Then RegsChecked := RegsChecked + [Reg32(Pai386(p)^.oper[1].reg)]
+                  Then
+                    Begin
+                      RegsChecked := RegsChecked + [Reg32(Pai386(p)^.oper[1].reg)];
+                      If Reg = Reg32(Pai386(p)^.oper[1].reg) Then
+                        Break;
+                    End
                   Else
                     Begin
                       If (Base = Reg) And
@@ -1203,9 +1200,11 @@ Begin
                         Then TmpResult := True;
                       If Not(TmpResult) And
                          (Index = Reg) And
-                         Not(Index In RegsChecked)
+                           Not(Index In RegsChecked)
                         Then TmpResult := True;
-                    End;
+                    End
+          End
+        Else TmpResult := RegInInstruction(Reg, p);
       Inc(Counter);
       GetNextInstruction(p,p)
     End;
@@ -1350,7 +1349,7 @@ Begin {checks whether two Pai386 instructions are equal}
  {add the registers from the reference (.oper[0]) to the RegInfo, all registers
   from the reference are the same in the old and in the new instruction
   sequence}
-                AddOpRegInfo(Pai386(p1)^.oper[0], RegInfo);
+                AddOp2RegInfo(Pai386(p1)^.oper[0], RegInfo);
  {the registers from .oper[1] have to be equivalent, but not necessarily equal}
                 InstructionsEquivalent :=
                   RegsEquivalent(Pai386(p1)^.oper[1].reg, Pai386(p2)^.oper[1].reg, RegInfo, OpAct_Write);
@@ -1402,7 +1401,8 @@ Begin {checks whether two Pai386 instructions are equal}
  {an instruction <> mov, movzx, movsx}
        InstructionsEquivalent :=
           OpsEquivalent(Pai386(p1)^.oper[0], Pai386(p2)^.oper[0], RegInfo, OpAct_Unknown) And
-          OpsEquivalent(Pai386(p1)^.oper[1], Pai386(p2)^.oper[1], RegInfo, OpAct_Unknown)
+          OpsEquivalent(Pai386(p1)^.oper[1], Pai386(p2)^.oper[1], RegInfo, OpAct_Unknown) And
+          OpsEquivalent(Pai386(p1)^.oper[2], Pai386(p2)^.oper[2], RegInfo, OpAct_Unknown)
  {the instructions haven't even got the same structure, so they're certainly
   not equivalent}
       Else
@@ -2047,7 +2047,7 @@ Begin
       Inc(NrOfPaiObjs);
       GetNextInstruction(p, p);
     End;
-{$IfDef VER70}
+{$IfDef TP}
   If (MemAvail < (SizeOf(TPaiProp)*NrOfPaiObjs))
      Or (NrOfPaiObjs = 0)
     {this doesn't have to be one contiguous block}
@@ -2101,9 +2101,10 @@ End.
 
 {
  $Log$
- Revision 1.49  1999-07-18 14:47:23  florian
-   * bug 487 fixed, (inc(<property>) isn't allowed)
-   * more fixes to compile with Delphi
+ Revision 1.50  1999-07-30 18:18:51  jonas
+   * small bugfix in instructionsequal
+   * small bugfix in reginsequence
+   * made regininstruction a bit more logical
 
  Revision 1.48  1999/07/01 18:21:21  jonas
    * removed unused AsmL parameter from FindLoHiLabels
