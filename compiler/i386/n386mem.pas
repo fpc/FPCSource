@@ -80,10 +80,7 @@ implementation
       var
         oldglobalswitches : tglobalswitches;
       begin
-         oldglobalswitches:=aktglobalswitches;
-         exclude(aktglobalswitches,cs_checkpointer);
          inherited pass_2;
-         aktglobalswitches:=oldglobalswitches;
          if tpointerdef(left.resulttype.def).is_far then
           location.reference.segment:=R_FS;
       end;
@@ -149,7 +146,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.46  2002-11-25 17:43:27  peter
+  Revision 1.47  2002-12-03 22:14:12  carl
+     + use FPC_CHECKPOINTER once again
+
+  Revision 1.46  2002/11/25 17:43:27  peter
     * splitted defbase in defutil,symutil,defcmp
     * merged isconvertable and is_equal into compare_defs(_ext)
     * made operator search faster by walking the list only once
