@@ -824,6 +824,7 @@ var
   MustRestartDebugger,
   StoreStopJumpValid : boolean;
   StoreStopJmp : Jmp_buf;
+  StoreExitProc : pointer;
   JmpRet,Error,LinkErrorCount : longint;
   E : TEvent;
   DummyView: PView;
@@ -921,6 +922,7 @@ begin
 {$ifndef GABOR}
   StoreStopJumpValid:=StopJmpValid;
   StoreStopJmp:=StopJmp;
+  StoreExitProc:=ExitProc;
   StopJmpValid:=true;
   JmpRet:=SetJmp(StopJmp);
   if JmpRet=0 then
@@ -942,6 +944,9 @@ begin
     end
   else
     begin
+      { We need to restore Exitproc to the value
+        it was before calling FPintF.compile PM }
+      ExitProc:=StoreExitProc;
       Inc(status.errorCount);
 {$ifdef HasSignal}
       Case JmpRet of
@@ -1258,7 +1263,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.7  2002-03-20 14:48:27  pierre
+  Revision 1.8  2002-04-10 22:37:37  pierre
+   * save and restore Exitproc if LongJmp called
+
+  Revision 1.7  2002/03/20 14:48:27  pierre
    * moved StopJmp buffer to fpcatch unit
 
   Revision 1.6  2001/11/13 01:58:34  carl
