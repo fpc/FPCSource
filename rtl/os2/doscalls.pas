@@ -252,8 +252,8 @@ type    PThreadInfoBlock=^TThreadInfoBlock;
  of one of those datastructures, since you can supply nil for the other
  parameter then.}
 
-procedure DosGetInfoBlocks(var ATIB:PThreadInfoBlock;
-                           var APIB:PProcessInfoBlock); cdecl;
+{procedure DosGetInfoBlocks(var ATIB:PThreadInfoBlock;
+                           var APIB:PProcessInfoBlock); cdecl;}
 procedure DosGetInfoBlocks(PATIB:PPThreadInfoBlock;
                            PAPIB:PPProcessInfoBlock); cdecl;
 
@@ -2548,8 +2548,8 @@ procedure DosExit(Action,Result:longint); cdecl;
 
 external 'DOSCALLS' index 233;
 
-procedure DosGetInfoBlocks(var ATIB:PThreadInfoBlock;
-                           var APIB:PProcessInfoBlock); cdecl;
+{procedure DosGetInfoBlocks(var ATIB:PThreadInfoBlock;
+                           var APIB:PProcessInfoBlock); cdecl;}
 
 procedure DosGetInfoBlocks(PATIB:PPThreadInfoBlock;
                            PAPIB:PPProcessInfoBlock); cdecl;
@@ -3953,7 +3953,10 @@ external 'DOSCALLS' index 582;
 end.
 {
   $Log$
-  Revision 1.12  2000-04-01 10:46:07  hajny
+  Revision 1.13  2000-05-09 17:29:52  hajny
+    * DosGetInfoBlocks updated again
+
+  Revision 1.12  2000/04/01 10:46:07  hajny
     * DosGetInfoBloBlocks updated
 
   Revision 1.11  2000/01/09 20:51:03  hajny
