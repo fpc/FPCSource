@@ -211,6 +211,7 @@ type
     HasContentFile: Boolean;
     HidePrivate: Boolean;	// Hide private class members in output?
     HideProtected: Boolean;	// Hide protected class members in output?
+    WarnNoNode : Boolean;       // Warn if no description node found for element.
   end;
 
 
@@ -963,7 +964,10 @@ var
   PackageDocNode, TopicNode,ModuleDocNode: TDocNode;
   
 begin
+  Writeln('Reading',AFileName);
   ReadXMLFile(Doc, AFilename);
+  if (Doc=nil) then
+    Writeln('Failed to read ',AFileName);
   DescrDocs.Add(Doc);
   DescrDocNames.Add(AFilename);
 
@@ -1018,10 +1022,17 @@ function TFPDocEngine.FindDocNode(AElement: TPasElement): TDocNode;
 begin
   Result:=Nil;
   If Assigned(AElement) then
+    begin
     if AElement.InheritsFrom(TPasUnresolvedTypeRef) then
       Result := FindDocNode(AElement.GetModule, AElement.Name)
     else
       Result := RootDocNode.FindChild(AElement.PathName);
+    if (Result=Nil) and 
+       WarnNoNode and
+       (Length(AElement.PathName)>0) and 
+       (AElement.PathName[1]='#') then
+      Writeln('No documentation node found for identifier : ',AElement.PathName);
+    end;  
 end;
 
 function TFPDocEngine.FindDocNode(ARefModule: TPasModule;
@@ -1105,6 +1116,8 @@ begin
     if TDOMDocument(DescrDocs[i]) = ExElement.OwnerDocument then
     begin
       Result := ExtractFilePath(DescrDocNames[i]) + ExElement['file'];
+      if (ExtractFileExt(Result)='') then
+        Result:=Result+'.pp';
       exit;
     end;
   SetLength(Result, 0);
@@ -1136,7 +1149,10 @@ end.
 
 {
   $Log$
-  Revision 1.3  2004-06-06 10:53:02  michael
+  Revision 1.4  2004-08-28 18:03:23  michael
+  + Added warning if docnode not found (option --warn-no-node
+
+  Revision 1.3  2004/06/06 10:53:02  michael
   + Added Topic support
 
   Revision 1.2  2003/11/28 12:51:37  sg

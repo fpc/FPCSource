@@ -99,6 +99,8 @@ begin
     CmdLineAction := actionHelp
   else if s = '--hide-protected' then
     Engine.HideProtected := True
+  else if s = '--warn-no-node' then
+    Engine.WarnNoNode := True
   else if s = '--show-private' then
     Engine.HidePrivate := False
   else
@@ -305,7 +307,10 @@ end.
 
 {
   $Log$
-  Revision 1.4  2003-10-08 11:41:54  yuri
+  Revision 1.5  2004-08-28 18:03:23  michael
+  + Added warning if docnode not found (option --warn-no-node
+
+  Revision 1.4  2003/10/08 11:41:54  yuri
   + Initial OS/2 IPF support added
 
   Revision 1.3  2003/03/27 17:14:13  sg
