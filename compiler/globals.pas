@@ -1245,6 +1245,11 @@ end;
         initdefines.done;
         if assigned(DLLImageBase) then
           StringDispose(DLLImageBase);
+       { necessary to release AnsiString memory !! }
+       librarysearchpath:='';
+       unitsearchpath:='';
+       objectsearchpath:='';
+       includesearchpath:='';
      end;
 
    procedure InitGlobals;
@@ -1315,7 +1320,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.29  1999-11-06 14:34:20  peter
+  Revision 1.30  1999-11-08 16:27:20  pierre
+   + Reset AnsiStrings to clean up memory
+
+  Revision 1.29  1999/11/06 14:34:20  peter
     * truncated log to 20 revs
 
   Revision 1.28  1999/11/04 10:55:31  peter
