@@ -5,7 +5,7 @@
 
     Unit to redirect output and error to files
 
-    Adapted from code donated to public domain by Schwartz Gabriel.   20/03/1993.
+    Adapted from code donated to public domain by Schwartz Gabriel 20/03/1993
 
     See the file COPYING.FPC, included in this distribution,
     for details about the copyright.
@@ -74,6 +74,12 @@ Uses
 {$endif linux}
   dos;
 
+var
+  FIN,FOUT,FERR     : ^File;
+  RedirChangedOut,
+  RedirChangedIn    : Boolean;
+  RedirChangedError : Boolean;
+  InRedirDisabled,OutRedirDisabled,ErrorRedirDisabled : Boolean;
 
 {*****************************************************************************
                                      Dos
@@ -108,11 +114,6 @@ Var
 {$endif TP}
 
 var
-  FIN,FOUT,FERR     : ^File;
-  RedirChangedOut,
-  RedirChangedIn    : Boolean;
-  RedirChangedError : Boolean;
-  InRedirDisabled,OutRedirDisabled,ErrorRedirDisabled : Boolean;
   TempHOut, TempHIn,TempHError : longint;
 
 { For linux the following functions exist
@@ -536,33 +537,87 @@ end;
                                  Linux
 *****************************************************************************}
 
-function ExecuteRedir (Const ProgName, ComLine, RedirStdOut, RedirStdErr : String) : boolean;
+function ExecuteRedir (Const ProgName, ComLine, RedirStdIn, RedirStdOut, RedirStdErr : String) : boolean;
 begin
   ExecuteRedir:=false;
 end;
 
-function ChangeRedir(Const Redir : String; AppendToFile : Boolean) : Boolean;
+function  ChangeRedirOut(Const Redir : String; AppendToFile : Boolean) : Boolean;
 begin
-  ChangeRedir:=false;
+  ChangeRedirOut:=false;
 end;
 
-procedure RestoreRedir;
+
+procedure RestoreRedirOut;
 begin
 end;
 
-function ChangeErrorRedir(Const Redir : String; AppendToFile : Boolean) : Boolean;
+
+procedure DisableRedirOut;
 begin
-  ChangeErrorRedir:=false;
 end;
 
-procedure RestoreErrorRedir;
+
+procedure EnableRedirOut;
 begin
 end;
+
+
+function  ChangeRedirIn(Const Redir : String) : Boolean;
+begin
+  ChangeRedirIn:=false;
+end;
+
+
+procedure RestoreRedirIn;
+begin
+end;
+
+
+procedure DisableRedirIn;
+begin
+end;
+
+
+procedure EnableRedirIn;
+begin
+end;
+
+
+function  ChangeRedirError(Const Redir : String; AppendToFile : Boolean) : Boolean;
+begin
+  ChangeRedirError:=false;
+end;
+
+
+procedure RestoreRedirError;
+begin
+end;
+
+
+procedure DisableRedirError;
+begin
+end;
+
+
+procedure EnableRedirError;
+begin
+end;
+
+
+procedure RedirDisableAll;
+begin
+end;
+
+
+procedure RedirEnableAll;
+begin
+end;
+
 
 procedure InitRedir;
 begin
 end;
-
 {$endif not implemented}
 
 
@@ -585,7 +640,10 @@ Begin
 End.
 {
   $Log$
-  Revision 1.19  1999-08-03 20:22:36  peter
+  Revision 1.20  1999-08-05 16:54:36  peter
+    * win32 fixes
+
+  Revision 1.19  1999/08/03 20:22:36  peter
     + TTab acts now on Ctrl+Tab and Ctrl+Shift+Tab...
     + Desktop saving should work now
        - History saved

@@ -137,6 +137,9 @@ function SearchObjectForSymbol(O: PSymbol): PObjectSymbol;
 procedure InitBrowserCol;
 procedure DoneBrowserCol;
 
+function  LoadBrowserCol(S: PStream): boolean;
+procedure StoreBrowserCol(S: PStream);
+procedure RegisterSymbols;
 
 implementation
 
@@ -225,6 +228,7 @@ end;
 
 function TObjectSymbolCollection.At(Index: Sw_Integer): PObjectSymbol;
 begin
+  At:=nil;
 end;
 
 function TObjectSymbolCollection.Compare(Key1, Key2: Pointer): Sw_Integer;
@@ -322,6 +326,7 @@ end;
 
 function TObjectSymbol.GetName: string;
 begin
+  GetName:='';
 end;
 
 function TObjectSymbol.GetDescendantCount: sw_integer;
@@ -357,6 +362,23 @@ begin
   SearchObjectForSymbol:=nil;
 end;
 
+
+{*****************************************************************************
+                                 Load/Store
+*****************************************************************************}
+
+function  LoadBrowserCol(S: PStream): boolean;
+begin
+  LoadBrowserCol:=true;
+end;
+
+procedure StoreBrowserCol(S: PStream);
+begin
+end;
+
+procedure RegisterSymbols;
+begin
+end;
 
 
 {*****************************************************************************
@@ -407,7 +429,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.2  1999-04-07 21:55:39  peter
+  Revision 1.3  1999-08-05 16:54:35  peter
+    * win32 fixes
+
+  Revision 1.2  1999/04/07 21:55:39  peter
     + object support for browser
     * html help fixes
     * more desktop saving things

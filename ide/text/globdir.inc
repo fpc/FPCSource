@@ -11,22 +11,11 @@
 
  **********************************************************************}
 
-{ --- Exclude debugger support --- }
-{.$DEFINE NODEBUG}
-
-{ --- Text lines end with LF only --- }
-{$ifndef FPC}
-  {$define TPUNIXLF}
-{$endif}
-
-{ --- Include VESA support --- }
-{$ifndef LINUX}
-  {$ifndef FV20}
-    {$define VESA}
-  {$endif}
-{$endif}
-
+{ --- Special OS settings --- }
 {$ifdef TP}
+  {$define SUPPORTVESA}
+  {$define TPUNIXLF}
+
   {$C FIXED PRELOAD PERMANENT}
   {
     Without defining this I got almost always SEGMENT NOT PRESENT (exc 11)
@@ -36,8 +25,33 @@
   }
 {$endif}
 
-{$ifndef debug}
-  {$ifndef linux}
+{$ifdef Go32V2}
+  {$define SUPPORTVESA}
+  {$define SUPPORTREDIR}
+{$endif}
+
+{$ifdef Linux}
+  {$undef SUPPORTVESA}
+  {$define SUPPORTREDIR}
+{$endif}
+
+{$ifdef Win32}
+  {$undef SUPPORTVESA}
+  {$undef SUPPORTREDIR}
+{$endif}
+
+{ --- Exclude debugger support --- }
+{.$DEFINE NODEBUG}
+
+{ --- Include VESA support --- }
+{$ifdef SUPPORTVESA}
+  {$ifndef FV20}
+    {$define VESA}
+  {$endif}
+{$endif}
+
+{$ifdef SUPPORTREDIR}
+  {$ifndef debug}
     {$define redircompiler}
   {$endif}
 {$endif}
