@@ -48,8 +48,7 @@ interface
 
     tlinkerlinux=class(texternallinker)
     private
-      Glibc2,
-      Glibc21 : boolean;
+      libctype:(libc5,glibc2,glibc21,uclibc);
       Function  WriteResponseFile(isdll:boolean) : Boolean;
     public
       constructor Create;override;
@@ -210,25 +209,24 @@ var
   St : SearchRec;
 {$endif m68k}
 begin
-  Glibc2:=false;
-  Glibc21:=false;
   with Info do
    begin
      ExeCmd[1]:='ld $OPT $DYNLINK $STATIC $STRIP --gc-sections -L. -o $EXE $RES';
      DllCmd[1]:='ld $OPT $INIT $FINI $SONAME -shared -L. -o $EXE $RES';
      DllCmd[2]:='strip --strip-unneeded $EXE';
 {$ifdef m68k}
-     Glibc2:=true;
+     libctype:=glibc2;
      FindFirst('/lib/ld*',AnyFile,st);
      while DosError=0 do
       begin
         if copy(st.name,1,5)='ld-2.' then
          begin
-               DynamicLinker:='/lib/'+St.name;
-               Glibc21:=st.name[6]<>'0';
+           DynamicLinker:='/lib/'+St.name;
+           if st.name[6]<>'0' then
+             libctype:=glibc21;
            break;
-             end;
-            FindNext(St);
+         end;
+         FindNext(St);
       end;
      FindClose(St);
 {$else m68k}
@@ -236,23 +234,26 @@ begin
      { first try glibc2 }
      DynamicLinker:='/lib/ld-linux.so.2';
      if FileExists(DynamicLinker) then
-      begin
-        Glibc2:=true;
-        { Check for 2.0 files, else use the glibc 2.1 stub }
-        if FileExists('/lib/ld-2.0.*') then
-         Glibc21:=false
-        else
-         Glibc21:=true;
-      end
+       { Check for 2.0 files, else use the glibc 2.1 stub }
+       if FileExists('/lib/ld-2.0.*') then
+         libctype:=glibc2
+       else
+         libctype:=glibc21
      else
-      DynamicLinker:='/lib/ld-linux.so.1';
+       if fileexists('/lib/ld-uClibc.so.0') then
+         begin
+           libctype:=uclibc;
+           dynamiclinker:='/lib/ld-uClibc.so.0';
+         end
+       else
+         DynamicLinker:='/lib/ld-linux.so.1';
 {$else i386}
 {$ifdef x86_64}
      DynamicLinker:='/lib/ld-linux-x86-64.so.2';
-     Glibc2:=true;
+     libctype:=glibc2;
 {$else x86_64}
-     Glibc2:=true;
      DynamicLinker:='/lib/ld.so.1';
+     libctype:=glibc2;
 {$endif x86_64}
 {$endif i386}
 {$endif m68k}
@@ -287,19 +288,27 @@ begin
   else
    begin
      prtobj:='prt0';
-     cprtobj:='cprt0';
-     gprtobj:='gprt0';
-     if glibc21 then
-      begin
-        cprtobj:='cprt21';
-        gprtobj:='gprt21';
-      end;
+     case libctype of
+       glibc21:
+         begin
+           cprtobj:='cprt21';
+           gprtobj:='gprt21';
+         end;
+       uclibc:
+         begin
+           cprtobj:='ucprt0';
+           gprtobj:='ugprt0';
+         end
+       else
+         cprtobj:='cprt0';
+         gprtobj:='gprt0';
+     end;
    end;
   if cs_profile in aktmoduleswitches then
    begin
      prtobj:=gprtobj;
-     if not glibc2 then
-      AddSharedLibrary('gmon');
+     if not(libctype in [glibc2,glibc21]) then
+       AddSharedLibrary('gmon');
      AddSharedLibrary('c');
      linklibc:=true;
    end
@@ -392,7 +401,7 @@ begin
    end;
 
   { objects which must be at the end }
-  if linklibc then
+  if linklibc and (libctype<>uclibc) then
    begin
      found1:=librarysearchpath.FindFile('crtend.o',s1);
      found2:=librarysearchpath.FindFile('crtn.o',s2);
@@ -563,7 +572,10 @@ end.
 
 {
   $Log$
-  Revision 1.19  2004-06-20 08:55:32  florian
+  Revision 1.20  2004-07-08 14:42:54  daniel
+    * Uclibc detection
+
+  Revision 1.19  2004/06/20 08:55:32  florian
     * logs truncated
 
   Revision 1.18  2004/06/16 20:07:11  florian
