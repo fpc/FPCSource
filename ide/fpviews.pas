@@ -4158,7 +4158,7 @@ begin
           begin
             W:=FirstEditorWindow;
             if Assigned(W) and Assigned(Report) then
-              Message(W,evCommand,cmAddChar,pointer(ord(Report^.AsciiChar)));
+              Message(W,evCommand,cmAddChar,pointer(ptrint(ord(Report^.AsciiChar))));
             ClearEvent(Event);
           end;
         cmSearchWindow+1..cmSearchWindow+99 :
@@ -4439,7 +4439,10 @@ end;
 END.
 {
   $Log$
-  Revision 1.51  2004-11-20 14:21:19  florian
+  Revision 1.52  2004-12-19 13:55:42  florian
+    * x86_64 compilation fixed
+
+  Revision 1.51  2004/11/20 14:21:19  florian
     * implemented reload menu item
     * increased file history to 9 files
 

@@ -114,9 +114,9 @@ type
   TIntCollection = object(TSortedCollection)
     function  Compare(Key1, Key2: Pointer): sw_Integer; virtual;
     procedure FreeItem(Item: Pointer); virtual;
-    procedure Add(Item: longint);
-    function  Contains(Item: longint): boolean;
-    function  AtInt(Index: sw_integer): longint;
+    procedure Add(Item: ptrint);
+    function  Contains(Item: ptrint): boolean;
+    function  AtInt(Index: sw_integer): ptrint;
   end;
 
 {$ifdef TPUNIXLF}
@@ -762,18 +762,18 @@ begin
   S.WriteStr(Item);
 end;
 
-function TIntCollection.Contains(Item: longint): boolean;
+function TIntCollection.Contains(Item: ptrint): boolean;
 var Index: sw_integer;
 begin
   Contains:=Search(pointer(Item),Index);
 end;
 
-function TIntCollection.AtInt(Index: sw_integer): longint;
+function TIntCollection.AtInt(Index: sw_integer): ptrint;
 begin
   AtInt:=longint(At(Index));
 end;
 
-procedure TIntCollection.Add(Item: longint);
+procedure TIntCollection.Add(Item: ptrint);
 begin
   Insert(pointer(Item));
 end;
@@ -1378,7 +1378,10 @@ BEGIN
 END.
 {
   $Log$
-  Revision 1.18  2004-09-16 22:08:13  armin
+  Revision 1.19  2004-12-19 13:55:42  florian
+    * x86_64 compilation fixed
+
+  Revision 1.18  2004/09/16 22:08:13  armin
   * added target netwlibc
 
   Revision 1.17  2003/09/27 14:03:45  peter

@@ -103,7 +103,7 @@ type
       PLinePosCollection = ^TLinePosCollection;
       TLinePosCollection = object(TNoDisposeCollection)
         function At(Index: sw_Integer): sw_integer;
-        procedure Insert (Item: longint);virtual;
+        procedure Insert (Item: ptrint);virtual;
       end;
 
       PHelpTopic = ^THelpTopic;
@@ -402,7 +402,7 @@ begin
   at := longint (inherited at(Index));
 end;
 
-procedure TLinePosCollection.Insert (Item: longint);
+procedure TLinePosCollection.Insert (Item: ptrint);
 begin
   Inherited Insert(pointer(Item));
 end;
@@ -1406,7 +1406,10 @@ end;
 END.
 {
   $Log$
-  Revision 1.11  2004-11-08 20:28:29  peter
+  Revision 1.12  2004-12-19 13:55:42  florian
+    * x86_64 compilation fixed
+
+  Revision 1.11  2004/11/08 20:28:29  peter
     * Breakpoints are now deleted when removed from source, disabling is
       still possible from the breakpoint list
     * COMPILER_1_0, FVISION, GABOR defines removed, only support new
