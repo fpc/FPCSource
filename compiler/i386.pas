@@ -412,14 +412,14 @@ unit i386;
           o1,o2,o3 : longint;
        end;
 
-       tins_cache = array[A_MOV..A_FADDS] of longint;
+       tins_cache = array[A_MOV..A_POPFD] of longint;
 
     var
        ins_cache : tins_cache;
        exprasmlist : paasmoutput;
 
     const
-       it : array[0..438] of ttemplate = (
+       it : array[0..440] of ttemplate = (
          (i : A_MOV;ops : 2;oc : $a0;eb : ao_none;m : af_dw or NoModrm;o1 : ao_disp32;o2 : ao_acc;o3 : 0 ),
          (i : A_MOV;ops : 2;oc : $88;eb : ao_none;m : af_dw or Modrm;o1 : ao_reg;o2 : ao_reg or ao_mem;o3 : 0 ),
          (i : A_MOV;ops : 2;oc : $b0;eb : ao_none;m : ShortFormW;o1 : ao_imm;o2 : ao_reg;o3 : 0 ),
@@ -653,6 +653,8 @@ unit i386;
          (i : A_SETS;ops : 1;oc : $0f98;eb : 0;m : Modrm;o1 : ao_reg8 or ao_mem;o2 : 0;o3 : 0),
          (i : A_SETNS;ops : 1;oc : $0f99;eb : 0;m : Modrm;o1 : ao_reg8 or ao_mem;o2 : 0;o3 : 0),
          (i : A_SETP;ops : 1;oc : $0f9a;eb : 0;m : Modrm;o1 : ao_reg8 or ao_mem;o2 : 0;o3 : 0),
+         (i : A_SETC;ops : 1; oc: $0f92;eb : 0;m : Modrm;o1 : ao_reg8 or ao_mem;o2 : 0;o3 : 0),
+         (i : A_SETNC;ops : 1;oc: $0f93;eb : 0;m : Modrm;o1 : ao_reg8 or ao_mem;o2 : 0;o3 : 0),
          (i : A_SETPE;ops : 1;oc : $0f9a;eb : 0;m : Modrm;o1 : ao_reg8 or ao_mem;o2 : 0;o3 : 0),
          (i : A_SETNP;ops : 1;oc : $0f9b;eb : 0;m : Modrm;o1 : ao_reg8 or ao_mem;o2 : 0;o3 : 0),
          (i : A_SETPO;ops : 1;oc : $0f9b;eb : 0;m : Modrm;o1 : ao_reg8 or ao_mem;o2 : 0;o3 : 0),
@@ -899,7 +901,7 @@ unit i386;
         'ja','jae','jb','jbe','seta','setae','setb','setbe',
         'aaa','aad','aam','aas','cbw','cdq','clc','cli',
         'clts','cmc','cwd','cwde','daa','das','hlt','iret','lahf',
-        'lods','lock','nop','pusha','pushf','pushfd',
+        'lods','lock','nop','pusha','pushf','pushfl',
         'stc','std','sti','stos','wait','xlat','xlatb','movsb',
         'movsbl','movsbw','movswl','movsb','movzwl','popa','in',
         'out','lds','lcs','les','lfs','lgs','lss','popf','sbb','adc',
@@ -1709,8 +1711,13 @@ unit i386;
 end.
 {
   $Log$
-  Revision 1.1  1998-03-25 11:18:13  root
-  Initial revision
+  Revision 1.2  1998-04-04 05:29:57  carl
+    * bugfix of crash with ins_cache and popfd
+    * bugfix of pushfd typo mistake in att output
+    + added setc, and setnc
+
+  Revision 1.1.1.1  1998/03/25 11:18:13  root
+  * Restored version
 
   Revision 1.21  1998/03/10 16:27:39  pierre
     * better line info in stabs debug
