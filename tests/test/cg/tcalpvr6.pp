@@ -129,7 +129,7 @@ var
 
   function get_object_type_method_virtual : tobjectmethod;
    begin
-     get_object_type_method_virtual := @tsimpleobject.test_virtual;
+     get_object_type_method_virtual := @obj.test_virtual;
    end;
 
   function get_object_method_virtual : tobjectmethod;
@@ -140,7 +140,7 @@ var
   { class access }
   function get_class_method_normal_self : tclassmethodself;
    begin
-     get_class_method_normal_self := @tsimpleclass.test_normal_self;
+     get_class_method_normal_self := @cla.test_normal_self;
    end;
 
 {
@@ -153,23 +153,23 @@ var
 
   function get_class_method_virtual_self : tclassmethodself;
    begin
-     get_class_method_virtual_self := @tsimpleclass.test_virtual_self;
+     get_class_method_virtual_self := @cla.test_virtual_self;
    end;
 
 
   function get_class_method_normal : tclassmethod;
    begin
-     get_class_method_normal := @tsimpleclass.test_normal;
+     get_class_method_normal := @cla.test_normal;
    end;
 {
   function get_class_method_static : tclassmethod;
    begin
-     get_class_method_static := @tsimpleclass.test_static;
+     get_class_method_static := @cla.test_static;
    end;}
 
   function get_class_method_virtual : tclassmethod;
    begin
-     get_class_method_virtual := @tsimpleclass.test_virtual;
+     get_class_method_virtual := @cla.test_virtual;
    end;
 
  {****************************************************************************************************}
@@ -435,7 +435,7 @@ Begin
  clear_globals;
  clear_values;
 
- obj_method:=@tsimpleobject.test_virtual;
+ obj_method:=@obj.test_virtual;
  obj_method(RESULT_U8BIT);
  if global_u8bit <> RESULT_U8BIT then
    failed := true;
@@ -461,7 +461,7 @@ Begin
  clear_values;
 
  value_u8bit := RESULT_U8BIT;
- obj_method:=@tsimpleobject.test_virtual;
+ obj_method:=@obj.test_virtual;
  obj_method(value_u8bit);
  if global_u8bit <> RESULT_U8BIT then
    failed := true;
@@ -528,7 +528,7 @@ Begin
  failed := false;
 
 
- cla_method := @tsimpleclass.test_normal;
+ cla_method := @cla.test_normal;
  cla_method(RESULT_U8BIT);
  if global_u8bit <> RESULT_U8BIT then
    failed := true;
@@ -537,7 +537,7 @@ Begin
  clear_values;
 
 
- cla_method := @tsimpleclass.test_virtual;
+ cla_method := @cla.test_virtual;
  cla_method(RESULT_U8BIT);
  if global_u8bit <> RESULT_U8BIT then
    failed := true;
@@ -545,7 +545,7 @@ Begin
  clear_globals;
  clear_values;
 
- cla_method := @tsimpleclass.test_virtual;
+ cla_method := @cla.test_virtual;
  cla_method(RESULT_U8BIT);
  if global_u8bit <> RESULT_U8BIT then
    failed := true;
@@ -553,7 +553,7 @@ Begin
  clear_globals;
  clear_values;
 
-{ cla_method := @tsimpleclass.test_static;
+{ cla_method := @cla.test_static;
  cla_method(RESULT_U8BIT);
  if global_u8bit <> RESULT_U8BIT then
    failed := true;}
@@ -562,7 +562,7 @@ Begin
  clear_values;
 
 
- cla_method_self := @tsimpleclass.test_normal_self;
+ cla_method_self := @cla.test_normal_self;
  cla_method_self(cla, RESULT_U8BIT);
  if global_u8bit <> RESULT_U8BIT then
    failed := true;
@@ -571,7 +571,7 @@ Begin
  clear_values;
 
 
- cla_method_self := @tsimpleclass.test_virtual_self;
+ cla_method_self := @cla.test_virtual_self;
  cla_method_self(cla,RESULT_U8BIT);
  if global_u8bit <> RESULT_U8BIT then
    failed := true;
@@ -579,7 +579,7 @@ Begin
  clear_globals;
  clear_values;
 
- cla_method_self := @tsimpleclass.test_virtual_self;
+ cla_method_self := @cla.test_virtual_self;
  cla_method_self(cla, RESULT_U8BIT);
  if global_u8bit <> RESULT_U8BIT then
    failed := true;
@@ -587,7 +587,7 @@ Begin
  clear_globals;
  clear_values;
 
-{ cla_method := @tsimpleclass.test_static;
+{ cla_method := @cla.test_static;
  cla_method(RESULT_U8BIT);
  if global_u8bit <> RESULT_U8BIT then
    failed := true;}
@@ -601,7 +601,10 @@ end.
 
 {
    $Log$
-   Revision 1.3  2003-01-05 18:21:30  peter
+   Revision 1.4  2003-01-16 22:14:49  peter
+     * fixed wrong methodpointer loads
+
+   Revision 1.3  2003/01/05 18:21:30  peter
      * removed more conflicting calling directives
 
    Revision 1.2  2002/09/07 15:40:55  peter

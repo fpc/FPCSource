@@ -129,7 +129,7 @@ var
   { class access }
   function get_class_method_normal_self : tclassmethodself;
    begin
-     get_class_method_normal_self := @tsimpleclass.test_normal_self;
+     get_class_method_normal_self := @cla.test_normal_self;
    end;
 
 {
@@ -140,15 +140,15 @@ var
    end;
 }
 
-  
+
   function get_class_method_normal : tclassmethod;
    begin
-     get_class_method_normal := @tsimpleclass.test_normal;
+     get_class_method_normal := @cla.test_normal;
    end;
 {
   function get_class_method_static : tclassmethod;
    begin
-     get_class_method_static := @tsimpleclass.test_static;
+     get_class_method_static := @cla.test_static;
    end;}
 
 
@@ -425,7 +425,7 @@ Begin
  failed := false;
 
 
- cla_method := @tsimpleclass.test_normal;
+ cla_method := @cla.test_normal;
  cla_method(RESULT_U8BIT);
  if global_u8bit <> RESULT_U8BIT then
    failed := true;
@@ -434,7 +434,7 @@ Begin
  clear_globals;
  clear_values;
 
-{ cla_method := @tsimpleclass.test_static;
+{ cla_method := @cla.test_static;
  cla_method(RESULT_U8BIT);
  if global_u8bit <> RESULT_U8BIT then
    failed := true;}
@@ -443,7 +443,7 @@ Begin
  clear_values;
 
 
- cla_method_self := @tsimpleclass.test_normal_self;
+ cla_method_self := @cla.test_normal_self;
  cla_method_self(cla, RESULT_U8BIT);
  if global_u8bit <> RESULT_U8BIT then
    failed := true;
@@ -452,7 +452,7 @@ Begin
  clear_globals;
  clear_values;
 
-{ cla_method := @tsimpleclass.test_static;
+{ cla_method := @cla.test_static;
  cla_method(RESULT_U8BIT);
  if global_u8bit <> RESULT_U8BIT then
    failed := true;}
@@ -466,7 +466,10 @@ end.
 
 {
    $Log$
-   Revision 1.6  2002-10-29 20:44:31  carl
+   Revision 1.7  2003-01-16 22:14:49  peter
+     * fixed wrong methodpointer loads
+
+   Revision 1.6  2002/10/29 20:44:31  carl
      * updated with corrects testing (removed cdecl in constructors)
 
    Revision 1.5  2002/10/21 19:21:28  carl
