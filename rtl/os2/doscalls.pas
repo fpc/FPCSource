@@ -1,10 +1,10 @@
 {Set tabsize to 4.}
 {****************************************************************************
 
-                           DOSCALLS interface unit
-                     FPK-Pascal Runtime Library for OS/2
-                   Copyright (c) 1993,94 by Florian Kl„mpfl
-                    Copyright (c) 1997 by Dani‰l Mantione
+						   DOSCALLS interface unit
+					 FPC Pascal Runtime Library for OS/2
+				   Copyright (c) 1993,94 by Florian Kl„mpfl
+					Copyright (c) 1997 by Dani‰l Mantione
 
  The FPK-Pascal runtime library is distributed under the Library GNU Public
  License v2. So is this unit. The Library GNU Public License requires you to
@@ -31,7 +31,7 @@
 
 ****************************************************************************}
 
-unit doscalls;
+unit DosCalls;
 
 {This unit was called bsedos in the original OS/2 runtime library.
  Changed, because it's an interface library to DOSCALLS.DLL.
@@ -46,7 +46,7 @@ unit doscalls;
  not have separate types, longints are used, and whenever possible pointers
  were replaced by var parameters. All constructions like 'type LONG=longint'
  have been removed. Furthermore, most of the procedures also accept strings
- instead of just a Pchar, thanks to that cool feature of procedure
+ instead of just a PChar, thanks to that cool feature of procedure
  overloading.
 
  Dani‰l Mantione,
@@ -54,32 +54,39 @@ unit doscalls;
 
 Changelog:
 
-    People:
+	People:
 
-        DM - Dani‰l Mantione
+		DM - Dani‰l Mantione
+		TH - Tomas Hajny (XHajT03@mbox.vol.cz on Internet)
 
-    Date:           Description of change:              Changed by:
+	Date:			Description of change:				Changed by:
 
-     -              First released version 0.1.         DM
+	 -				First released version 0.1.			DM
+	98/11/21		Mostly cosmetic changes - higher	TH
+					level of compatibility with other
+					OS/2 compilers, some Dutch names of
+					parameters changed to English ones,
+					better readability of identifiers,
+					some mistypings corrected etc.
 
 Coding style:
 
-    It may be well possible that coding style feels a bit strange to you.
-    Nevertheless I friendly ask you to try to make your changes not look all
-    too different. To make life easier, set your IDE to use tab characters,
-    turn optimal fill, autoindent and backspace unindents on and set a
-    tabsize of 4.}
+	It may be well possible that coding style feels a bit strange to you.
+	Nevertheless I friendly ask you to try to make your changes not look all
+	too different. To make life easier, set your IDE to use tab characters,
+	turn optimal fill, autoindent and backspace unindents on and set a
+	tabsize of 4.}
 
 {****************************************************************************
 
-                           Preprocessor definitions
+						   Preprocessor definitions
 
 ****************************************************************************}
 
 
 {$IFNDEF FVISION_PSTRING}
 {$IFNDEF OWN_PSTRING}
-{$DEFINE FVISION_PSTRING}       {Get the Pstring type from Free Vision.}
+{$DEFINE FVISION_PSTRING}		{Get the PString type from Free Vision.}
 {$ENDIF}
 {$ENDIF}
 
@@ -88,608 +95,613 @@ interface
 {***************************************************************************}
 
 {$IFDEF OWN_PSTRING}
-uses    strings;
+uses	Strings;
 
-type    Pstring=^string;
+type	PString=^string;
 {$ELSE}
  {$IFDEF FVISION_PSTRING}
-uses    strings,objects;
+uses	Strings,Objects;
  {$ELSE}
-    {$ERROR Pstring source unknown.}
+	{$ERROR PString source unknown.}
  {$ENDIF}
 {$ENDIF}
 
-{$ifdef FPC}
-    {$packrecords 1}
-{$endif FPC}
+{$IFDEF FPC}
+	{$PACKRECORDS 1}
+{$ENDIF FPC}
 
-type    Tbytearray=array[0..$fff0] of byte;
-        Pbytearray=^Tbytearray;
-        Tchararray=array[0..$fff0] of char;
-        Pchararray=^Tchararray;
-        Twordarray=array[0..$7ff8] of word;
-        Pwordarray=^Twordarray;
+type	TByteArray=array[0..$fff0] of byte;
+		PByteArray=^TByteArray;
+		TCharArray=array[0..$fff0] of char;
+		PCharArray=^TCharArray;
+		TWordArray=array[0..$7ff8] of word;
+		PWordArray=^TWordArray;
 
 {****************************************************************************
 
-                            Thread related routines.
+							Thread related routines.
 
 ****************************************************************************}
 
-type   Tthreadentry=procedure(param:pointer);
+type	TThreadEntry=procedure(Param:pointer);
+		ThreadEntry=TThreadEntry;
 
 
-const   dtsuspended         =1; {Thread is started suspended instead of
-                                 started at once.}
-        dtstack_commited    =2; {Allocate all stack space at once. The
-                                 operating system normally allocates more
-                                 memory to the stack if the stack grows with
-                                 the given stacksize as limit. This has the
-                                 restriction that you cannot create a stack
-                                 frame > 4 kb. at once. If you want to do
-                                 this, or for other reasons you can allocate
-                                 the complete stack at once with this flag.}
+const	dtSuspended			=1; {Thread is started suspended instead of
+								 started at once.}
+		dtStack_Commited	=2; {Allocate all stack space at once. The
+								 operating system normally allocates more
+								 memory to the stack if the stack grows with
+								 the given stacksize as limit. This has the
+								 restriction that you cannot create a stack
+								 frame > 4 kb. at once. If you want to do
+								 this, or for other reasons you can allocate
+								 the complete stack at once with this flag.}
 
-        dtwait              =0; {Wait until termination.}
-        dtnowait            =1; {Do not wait. Return with error if not yet
-                                 terminated.}
+		dtWait				=0; {Wait until termination.}
+		dtNoWait			=1; {Do not wait. Return with error if not yet
+								 terminated.}
 
 {Create a new thread.
- tid        = Thread ID of new thread is returned here.
- address    = Thread entry point. The new thread starts executing here.
- Aparam     = This one is passed to the thread entry procedure.
- flags      = Flags. Either dtsuspended or dt_stackcommited.
- stacksize  = Size of the stack of the new thread.}
-function doscreatethread(var tid:longint;address:Tthreadentry;
-                         Aparam:pointer;flags:longint;stacksize:longint):word;
+ TID		= Thread ID of new thread is returned here.
+ Address	= Thread entry point. The new thread starts executing here.
+ AParam		= This one is passed to the thread entry procedure.
+ Flags		= Flags. Either dtsuspended or dt_stackcommited.
+ StackSize	= Size of the stack of the new thread.}
+function DosCreateThread(var TID:longint;Address:TThreadEntry;
+						  AParam:pointer;Flags,StackSize:longint):word;
 
 {Suspend a running thread.}
-function dossuspendthread(tid:longint):word;
+function DosSuspendThread(TID:longint):word;
 
 {Resume a suspended thread.}
-function dosresumethread(tid:longint):word;
+function DosResumeThread(TID:longint):word;
 
 {Terminate a specific thread.}
-function doskillthread(tid:longint):word;
+function DosKillThread(TID:longint):word;
 
 {Wait until a specific thread has ended.
- tid            = Thread to terminate. Can also be zero. In that case we
-                  wait until the next thread terminates. It's thread ID is
-                  returned back.
- option         = Flags. Either dtwait or dtnowait.}
-function doswaitthread(var tid:longint;option:longint):word;
+ TID			= Thread to terminate. Can also be zero. In that case we
+				  wait until the next thread terminates. Its thread ID is
+				  returned back.
+ Option			= Flags. Either dtWait or dtNoWait.}
+function DosWaitThread(var TID:longint;Option:longint):word;
 
 {All other threads in the same process are suspended until a
-dosexitcritsec.}
-function dosentercritsec:word;
+DosExitCritSec.}
+function DosEnterCritSec:word;
 
 {Resume the other threads again.}
-function dosexitcritsec:word;
+function DosExitCritSec:word;
 
-const   dethread=0;         {Terminate thread only.}
-        deprocess=1;        {Terminate the whole process.}
+const	deThread=0;			{Terminate thread only.}
+		deProcess=1;		{Terminate the whole process.}
 
 {Terminate the thread or the program. Never returns, so it's defined as
  procedure.}
-procedure dosexit(action:longint;result:longint);
+procedure DosExit(Action,Result:longint);
 
-type    Pthreadinfoblock=^Tthreadinfoblock;
-        Psysthreadib=^Tsysthreadib;
-        Pprocessinfoblock=^Tprocessinfoblock;
+type	PThreadInfoBlock=^TThreadInfoBlock;
+		PSysThreadIB=^TSysThreadIB;
+		PProcessInfoBlock=^TProcessInfoBlock;
 
-        Tthreadinfoblock=record
-            exh_chain,              {Head of exeption handler chain.}
-            stack,                  {Pointer to the thread's stack.}
-            stacklimit:pointer;     {Pointer to the thread's stack-end.}
-            tib2:Psysthreadib;      {Pointer to system specific thread info.}
-            version,                {Version of this datastructure.}
-            ordinal:longint;        {Thread ordinal number.}
-        end;
+		TThreadInfoBlock=record
+			Exh_Chain,				{Head of exeption handler chain.}
+			Stack,					{Pointer to the thread's stack.}
+			StackLimit:pointer;		{Pointer to the thread's stack-end.}
+			TIB2:PSysThreadIB;		{Pointer to system specific thread info.}
+			Version,				{Version of this datastructure.}
+			Ordinal:longint;		{Thread ordinal number.}
+		end;
+		ThreadInfoBlock=TThreadInfoBlock;
 
-        Tsysthreadib=record
-            tid,                    {Thread ID.}
-            priority,               {Low byte of low word: thread priority.
-                                     High byte of high word: thread class
-                                        1 = Idle
-                                        2 = Regular
-                                        3 = Time critical
-                                        4 = Server}
-            version:longint;        {Version of this datastructure.}
-            MCcount,                {Must complete count. ??? Info wanted!}
-            MCforceflag:word;       {Must complete force flag. Info wanted!}
-        end;
+		TSysThreadIB=record
+			TID,					{Thread ID.}
+			Priority,				{Low byte of low word: thread priority.
+									 High byte of high word: thread class
+										1 = Idle
+										2 = Regular
+										3 = Time critical
+										4 = Server}
+			Version:longint;		{Version of this datastructure.}
+			MCCount,				{Must complete count. ??? Info wanted!}
+			MCForceFlag:word;		{Must complete force flag. Info wanted!}
+		end;
+		SysThreadIB=TSysThreadIB;
 
-        Tprocessinfoblock=record
-            pid,                    {Process ID.}
-            parentpid,              {Parent's process ID.}
-            hmte:longint;           {Module handle of executable program.
-                                     ??? Info wanted!}
-            cmd,                    {Command line options.}
-            env:Pbytearray;         {Environment strings.}
-            flstatus,               {1 means that the process is in exit list
-                                     processing.}
-            ttype:longint;          {Type of process:
-                                        0:  Full screen protected mode.
-                                        1:  DOS emulation.
-                                        2:  Windowable full screen protected
-                                            mode program.
-                                        3:  Presentation manager program.
-                                        4:  Detached mode process.}
-        end;
+		TProcessInfoBlock=record
+			PID,					{Process ID.}
+			ParentPID,				{Parent's process ID.}
+			HMTE:longint;			{Module handle of executable program.
+									 ??? Info wanted!}
+			Cmd,					{Command line options.}
+			Env:PByteArray;			{Environment strings.}
+			flStatus,				{1 means that the process is in exit list
+									 processing.}
+			tType:longint;			{Type of process:
+										0:	Full screen protected mode.
+										1:	DOS emulation.
+										2:	Windowable full screen protected
+											mode program.
+										3:	Presentation manager program.
+										4:	Detached mode process.}
+		end;
+		ProcessInfoBlock=TProcessInfoBlock;
 
 {OS/2 keeps information about the current process and the current thread
  is the datastructures Tprocessinfoblock and Tthreadinfoblock. All data
- can both be read and be changed. Use dosGetInfoBlocks to get their
+ can both be read and be changed. Use DosGetInfoBlocks to get their
  address. The service cannot fail, so it is defined as procedure.}
 
-procedure dosgetinfoblocks(var Atib:Pthreadinfoblock;
-                           var Apib:Pprocessinfoblock);
+procedure DosGetInfoBlocks(var ATIB:PThreadInfoBlock;
+						   var APIB:PProcessInfoBlock);
 
 {Wait a number of microseconds. Cannot fail, so it is defined as procedure.}
-procedure dossleep(msec:longint);
+procedure DosSleep(MSec:longint);
 
 {Beep the speaker. You do not need to check for an error if you can
  guarantee that the frequency is correct.}
-function dosbeep(freq,ms:longint):word;
+function DosBeep(Freq,MS:longint):word;
 
 {****************************************************************************
 
-                        Process handling routines.
+						Process handling routines.
 
 ****************************************************************************}
 
 {You need a heavy manual if you want to know how this procedure works. Used
 for writing debuggers.}
-function dosdebug(debugbuf:pointer):word;
+function DosDebug(DebugBuf:pointer):word;
 
-const   TC_exit         = 0;
-        TC_harderror    = 1;
-        TC_trap         = 2;
-        TC_killprocess  = 3;
-        TC_exception    = 4;
+const	TC_exit			= 0;
+		TC_harderror	= 1;
+		TC_trap			= 2;
+		TC_killprocess	= 3;
+		TC_exception	= 4;
 
-        EXLST_add       = 1;
-        EXLST_remove    = 2;
-        EXLST_exit      = 3;
+		ExLst_Add		= 1;
+		ExLst_Remove	= 2;
+		ExLst_Exit		= 3;
 
-type    Texitproc=procedure(reason:longint);
+type	TExitProc=procedure(Reason:longint);
 
 {Add/remove an exitprocedure to the exit list. Also used to terminate an
  exit procedure. An exit procedure will be called on exiting of the program.
 
-    ordercode       = One of the EXLST_XXXX constants.
-    proc            = Address of the exit procedure.
+	OrderCode		= One of the EXLST_XXXX constants.
+	Proc			= Address of the exit procedure.
 
 An exit procedure is called with one of the TC_XXXX constants. When it is
-done it must call dosExitList with EXLST_EXIT.
+done it must call DosExitList with ExLst_Exit.
 
 Exit procedures are called in random order.}
-function dosexitlist(ordercode:longint;proc:Texitproc):word;
+function DosExitList(OrderCode:longint;Proc:TExitProc):word;
 
-const   desync          = 0;    {Wait until program terminates.}
-        deasync         = 1;    {Do not wait.}
-        deasyncresult   = 2;    {Do not wait. DosWaitChild will follow to
-                                 check if process has been terminated. If
-                                 you use this, you must use DosWaitChild,
-                                 because OS/2 will not free memory that is
-                                 allocated for the result codes if you don't.}
-        detrace         = 3;    {Trace-able. Info Wanted!}
-        debackground    = 4;    {Do not run as child. Run in a separate
-                                 session.}
-        desuspended     = 5;    {Child will be loaded, but not executed.}
-        deasyncresultdb = 6;    {?? Info wanted.}
+const	deSync			= 0;	{Wait until program terminates.}
+		deAsync			= 1;	{Do not wait.}
+		deAsyncResult	= 2;	{Do not wait. DosWaitChild will follow to
+								 check if process has been terminated. If
+								 you use this, you must use DosWaitChild,
+								 because OS/2 will not free memory that is
+								 allocated for the result codes if you don't.}
+		deTrace			= 3;	{Trace-able. Info Wanted!}
+		deBackground	= 4;	{Do not run as child. Run in a separate
+								 session.}
+		deSuspended		= 5;	{Child will be loaded, but not executed.}
+		deAsyncResultDb = 6;	{?? Info wanted.}
 
-type    Tresultcodes=record
-            terminatereason,        {0 = Normal termionation.
-                                     1 = Critical error.
-                                     2 = Trapped. (GPE, etc.)
-                                     3 = Killed by DosKillProcess.}
-            exitcode:longint;       {Exit code of child.}
-        end;
+type	TResultCodes=record
+			TerminateReason,		{0 = Normal termionation.
+									 1 = Critical error.
+									 2 = Trapped. (GPE, etc.)
+									 3 = Killed by DosKillProcess.}
+			ExitCode:longint;		{Exit code of child.}
+		end;
 
 {Execute a program.
 
- objnaam        = If a DLL cannot be found, it's name will be returned here.
- objlen         = Size of your objnaam buffer.
- execflag       = One of the dexxxx constants.
- res            = See resultcodes.
- args           = Arguments. ASCIIZ strings. End of ARGS given by an empty
-                  string (#0). First arg must be filename without path and
-                  extension. NIL is also allowed.
- env            = Environment. ASCIIZ strings. A variable has the format
-                  NAME=CONTENTS. End of ENV given by an empty string (#0).
-                  NIL is also allowed.
- filenaam       = Filename with full path and extension. Is not sensitive
-                  for the PATH environment variabele.}
-function dosexecpgm(objnaam:Pchar;cbobjnaam,execflag:longint;
-                    args,env:Pbytearray;var res:Tresultcodes;
-                    filenaam:Pchar):word;
-function dosexecpgm(var objnaam:string;execflag:longint;
-                    args,env:Pbytearray;var res:Tresultcodes;
-                    const filenaam:string):word;
+ ObjName		= If a DLL cannot be found, its name will be returned here.
+ ObjLen			= Size of your ObjName buffer.
+ ExecFlag		= One of the deXXXX constants.
+ Res			= See TResultcodes.
+ Args			= Arguments. ASCIIZ strings. End of Args given by an empty
+				  string (#0). First arg must be filename without path and
+				  extension. nil is also allowed.
+ Env			= Environment. ASCIIZ strings. A variable has the format
+				  NAME=CONTENTS. End of Env given by an empty string (#0).
+				  nil is also allowed.
+ FileName		= Filename with full path and extension. Is not sensitive
+				  for the PATH environment variable.}
+function DosExecPgm(ObjName:PChar;ObjLen,ExecFlag:longint;
+					Args,Env:PByteArray;var Res:TResultCodes;
+					FileName:PChar):word;
+function DosExecPgm(var ObjName:string;ExecFlag:longint;
+					Args,Env:PByteArray;var Res:TResultCodes;
+					const FileName:string):word;
 
 {Wait until a child process terminated. Sometimes called DosCWait.
 
-action              = 0 = Wait until child terminates.
-                      1 = Wait until child and all it's childs terminate.
-option              = Flags. Either dtwait or dtnowait.
-res                 = See resultcodes.
-termpid             = Process ID that has been terminated. Usefull when
-                      terminating a random process.
-pid                 = Process ID of process to terminate. Use a zero to
-                      terminate a random process.}
-function doswaitchild(action:longint;option:longint;var res:Tresultcodes;
-                      var termpid:longint;pid:longint):word;
+Action				= 0 = Wait until child terminates.
+					  1 = Wait until child and all its childs terminate.
+Option				= Flags. Either dtWait or dtNoWait.
+Res					= See TResultCodes.
+TermPID				= Process ID that has been terminated. Usefull when
+					  terminating a random process.
+PID					= Process ID of process to terminate. Use a zero to
+					  terminate a random process.}
+function DosWaitChild(Action,Option:longint;var Res:TResultCodes;
+					  var TermPID:longint;PID:longint):word;
 
-const   dpprocess       = 0;
-        dpprocesschilds = 1;
-        dpthread        = 2;
+const	dpProcess		= 0;
+		dpProcessChilds = 1;
+		dpThread		= 2;
 
-        dpsameclass     = 0;
-        dpidleclass     = 1;
-        dpregular       = 2;
-        dptimecritical  = 3;
+		dpSameClass		= 0;
+		dpIdleClass		= 1;
+		dpRegular		= 2;
+		dpTimeCritical	= 3;
 
 {Set priority of a thread or all threads in another process.
 
- scope              = 0 = Set for all threads of a process.
-                      1 = Set for all threads of a process and it's childs.
-                      2 = Set for a thread of the current process.
- trclass            = 0 = Do not change class.
-                      1 = Change to idle time class.
-                      2 = Change to regular class.
-                      3 = Change to time-critical class.
- delta              = Value to add to priority. Resulting priority must be in
-                      the range 0..31.
- portid             = Process ID when scope=0 or 1, thread ID when scope=2.}
-function dossetpriority(scope,trclass,delta,portid:longint):word;
+ Scope				= 0 = Set for all threads of a process.
+					  1 = Set for all threads of a process and its childs.
+					  2 = Set for a thread of the current process.
+ TrClass			= 0 = Do not change class.
+					  1 = Change to idle time class.
+					  2 = Change to regular class.
+					  3 = Change to time-critical class.
+ Delta				= Value to add to priority. Resulting priority must be in
+					  the range 0..31.
+ PortID				= Process ID when Scope=0 or 1, thread ID when Scope=2.}
+function DosSetPriority(Scope,TrClass,Delta,PortID:longint):word;
 
 {Terminate a process. If the process isn't a child process, it can refuse
  to terminate.
 
- action             = 0 = Terminate process and all it's childs.
-                      1 = Terminate process only.
- pid                = Process ID of process to terminate.}
-function doskillprocess(action:longint;pid:longint):word;
+ Action				= 0 = Terminate process and all its childs.
+					  1 = Terminate process only.
+ PID				= Process ID of process to terminate.}
+function DosKillProcess(Action,PID:longint):word;
 
-const   APPTYP_notspec          = $0000; {Apptype is unknown.}
-        APPTYP_notwindowcompat  = $0001; {App cannot run in a window.}
-        APPTYP_windowcompat     = $0002; {App can run in a window.}
-        APPTYP_windowapi        = $0003; {App uses PM}
-        APPTYP_bound            = $0008; {App uses family API.}
-        APPTYP_DLL              = $0010; {File is a DLL.}
-        APPTYP_dos              = $0020; {App is a PC-DOS program.}
-        APPTYP_physdrv          = $0040; {App is a physical device driver.}
-        APPTYP_virtdrv          = $0080; {App is virtual device driver.}
-        APPTYP_protDLL          = $0100; {File is a protected mode DLL.}
-        APPTYP_windowsreal      = $0200; {M$ Winslows app, real mode.}
-        APPTYP_windowsprot      = $0400; {M$ Winslows app, protected mode.}
-        APPTYP_32bit            = $4000; {App is 32 bit.}
+const	AppTyp_NotSpec			= $0000; {Apptype is unknown.}
+		AppTyp_NotWindowCompat	= $0001; {App cannot run in a window.}
+		AppTyp_WindowCompat		= $0002; {App can run in a window.}
+		AppTyp_WindowAPI		= $0003; {App uses PM}
+		AppTyp_Bound			= $0008; {App uses Family API.}
+		AppTyp_DLL				= $0010; {File is a DLL.}
+		AppTyp_DOS				= $0020; {App is a PC-DOS program.}
+		AppTyp_PhysDrv			= $0040; {App is a physical device driver.}
+		AppTyp_VirtDrv			= $0080; {App is virtual device driver.}
+		AppTyp_ProtDLL			= $0100; {File is a protected mode DLL.}
+		AppTyp_WindowsReal		= $0200; {M$ Winslows app, real mode.}
+		AppTyp_WindowsProt		= $0400; {M$ Winslows app, protected mode.}
+		AppTyp_32bit			= $4000; {App is 32 bit.}
 
 {Get the application type of an executable file on disk.
- filenaam           = Name of file to get type from.
- flags              = Receives a bitfield using the APPTYP constants.}
-function dosqueryapptype(filenaam:Pchar;var flags:longint):word;
+ FileName			= Name of file to get type from.
+ Flags				= Receives a bitfield using the AppTyp constants.}
+function DosQueryAppType(FileName:PChar;var Flags:longint):word;
 
-const   diprinter   = 0;    {Get number of printer (parallel) ports.}
-        diRS232     = 1;    {Get number of serial ports.}
-        difloppy    = 2;    {Get number of floppy drives.}
-        dicopro     = 3;    {Get number of FPU's installed (either 0 or 1).}
-        disubmodel  = 4;    {??? System submodel type?}
-        dimodel     = 5;    {??? System model type?}
-        diadapter   = 6;    {0=Monochrome display, 1=other. ??? Does OS/2
-                             support monochrome displays?}
+const	diPrinter	= 0;	{Get number of printer (parallel) ports.}
+		diRS232		= 1;	{Get number of serial ports.}
+		diFloppy	= 2;	{Get number of floppy drives.}
+		diCopro		= 3;	{Get number of FPU's installed (either 0 or 1).}
+		diSubModel	= 4;	{??? System submodel type?}
+		diModel		= 5;	{??? System model type?}
+		diAdapter	= 6;	{0=Monochrome display, 1=other. ??? Does OS/2
+							 support monochrome displays?}
 
 {Get information about attached devices.
- devinfo            = Receives requested information.
- item               = One of the dixxxx constants.}
-function dosdevconfig(var devinfo:byte;item:longint):word;
+ DevInfo			= Receives requested information.
+ Item				= One of the dixxxx constants.}
+function DosDevConfig(var DevInfo:byte;Item:longint):word;
 
 {****************************************************************************
 
-                        File handling related routines.
+						File handling related routines.
 
 ****************************************************************************}
 
-const   maxpathlength=260;
-        maxpathcomponent=256;
+const	MaxPathLength=260;
+		MaxPathComponent=256;
 
-type    Tfilelock=record
-            offset,range:longint;
-        end;
-        Pfilelock=^Tfilelock;
+type	TFileLock=record
+			Offset,Range:longint;
+		end;
+		PFileLock=^TFileLock;
+		FileLock=TFileLock;
 
 {Lock or unlock an area of a file. Other processes may not access that part
  of the file.
 
- unlock         = Area to unlock. (0,0) = Do not unlock.
- lock           = Area to lock.   (0,0) = Do not lock.
- timeout        = Number of miliseconds to wait if another process has locked
-                  the file.
- flags          = Bitfield:
-                  Bit 0:    0 = Other processes are denied access.
-                            1 = Other processes may still read from the area.
-                  Bit 1:    0 = Normal locking mode.
-                            1 = Atomic mode. Refer IBM's documentation.}
-function dossetfilelocks(handle:longint;var unlock,lock:Tfilelock;
-                         timeout:longint;flags:longint):word;
+ Unlock			= Area to unlock. (0,0) = Do not unlock.
+ Lock			= Area to lock.   (0,0) = Do not lock.
+ Timeout		= Number of miliseconds to wait if another process has locked
+				  the file.
+ Flags			= Bitfield:
+				  Bit 0:	0 = Other processes are denied access.
+							1 = Other processes may still read from the area.
+				  Bit 1:	0 = Normal locking mode.
+							1 = Atomic mode. Refer IBM's documentation.}
+function DosSetFileLocks(Handle:longint;var Unlock,Lock:TFileLock;
+						 Timeout,Flags:longint):word;
 
 {Cancel a filelock area.
 
-handle  = File handle.
-lock    = Area that is locked now.}
-function doscancellockrequest(handle:longint;var lock:Tfilelock):word;
+Handle	= File handle.
+Lock	= Area that is locked now.}
+function DosCancelLockRequest(Handle:longint;var Lock:TFileLock):word;
 
 {Data structures for extended attributes. Reading IBM's documentation is
  highly recommended before experimenting with EAs.}
 
-const   fEA_needEA=$80;
+const	fEA_needEA=$80;
 
-        eabinary        = $fffe;
-        eaASCII         = $fffd;
-        eabitmap        = $fffb;
-        eametafile      = $fffa;
-        eaicon          = $fff9;
-        eaEA            = $ffee;
-        eaMVMT          = $ffdf;
-        eaMVST          = $ffde;
-        eaASN1          = $ffdd;
+		eaBinary		= $fffe;
+		eaASCII			= $fffd;
+		eaBitmap		= $fffb;
+		eaMetaFile		= $fffa;
+		eaIcon			= $fff9;
+		eaEA			= $ffee;
+		eaMVMT			= $ffdf;
+		eaMVST			= $ffde;
+		eaASN1			= $ffdd;
 
-type    TgEA=record
-            naamlen:byte;
-            naam:array[0..9999] of char;
-        end;
-        PgEA=^TgEA;
+type	TgEA=record
+			NameLen:byte;
+			Name:array[0..9999] of char;
+		end;
+		PgEA=^TgEA;
 
-        TgEAlist=record
-            listlen:longint;
-            list:array[0..9999] of TgEA;
-        end;
-        PgEAlist=^TgEAlist;
+		TgEAList=record
+			ListLen:longint;
+			List:array[0..9999] of TgEA;
+		end;
+		PgEAList=^TgEAList;
 
-        TfEA=record
-            EA,
-            naamlen:byte;
-            value:word;
-        end;
-        PfEA=^TfEA;
+		TfEA=record
+			EA,
+			NameLen:byte;
+			Value:word;
+		end;
+		PfEA=^TfEA;
 
-        TfEAlist=record
-            size:longint;
-            list:array[0..9999] of TfEA;
-        end;
-        PfEAlist=^TfEAlist;
+		TfEAList=record
+			Size:longint;
+			List:array[0..9999] of TfEA;
+		end;
+		PfEAList=^TfEAlist;
 
-        TEAop=record
-            gEAlist:PgEAlist;
-            fEAlist:PfEAlist;
-            error:longint;
-        end;
-        PEAop=^TEAop;
+		TEAOp=record
+			gEAList:PgEAList;
+			fEAList:PfEAList;
+			Error:longint;
+		end;
+		PEAOp=^TEAOp;
 
-        TfEA2=record
-            nextentry:longint;
-            flags,
-            naamlen:byte;
-            value:word;
-            szname:array[0..9999] of char;
-        end;
-        PfEA2=^TfEA2;
+		TfEA2=record
+			NextEntry:longint;
+			Flags,
+			NameLen:byte;
+			Value:word;
+			szName:array[0..9999] of char;
+		end;
+		PfEA2=^TfEA2;
 
-        TfEA2list=record
-            listlen:longint;
-            list:array[0..9999] of TfEA2;
-        end;
-        PfEA2list=^TfEA2list;
+		TfEA2List=record
+			ListLen:longint;
+			List:array[0..9999] of TfEA2;
+		end;
+		PfEA2List=^TfEA2List;
 
-        TgEA2=record
-            nextentry:longint;
-            naamlen:byte;
-            naam:array[0..9999] of char;
-        end;
-        PgEA2=^TgEA2;
+		TgEA2=record
+			NextEntry:longint;
+			NameLen:byte;
+			Name:array[0..9999] of char;
+		end;
+		PgEA2=^TgEA2;
 
-        TgEA2list=record
-          listlen:longint;
-          list:array[0..9999] of TgEA2;
-        end;
-        PgEA2list=^TgEA2list;
+		TgEA2list=record
+		  ListLen:longint;
+		  List:array[0..9999] of TgEA2;
+		end;
+		PgEA2List=^TgEA2List;
 
-        TEAop2=record
-            gEA2list:PgEA2list;
-            fEA2list:PfEA2list;
-            error:longint;
-        end;
-        PEAop2=^TEAop2;
+		TEAOp2=record
+			gEA2List:PgEA2List;
+			fEA2List:PfEA2List;
+			Error:longint;
+		end;
+		PEAOp2=^TEAOp2;
 
-        TEAsizebuf=record
-            maxEAsize:word;
-            maxEAlistsize:longint;
-        end;
-        PEAsizebuf=^TEAsizebuf;
+		TEASizeBuf=record
+			MaxEASize:word;
+			MaxEAListSize:longint;
+		end;
+		PEASizeBuf=^TEASizeBuf;
 
 
 {*******************End of extented attribute datastructures.***************}
 
-{Usefull constanst for action parameter.}
-const       doopened        =  1;
-            docreated       =  2;
-            dooverwritten   =  3;
+{Usefull constanst for Action parameter.}
+const		doOpened		=  1;
+			doCreated		=  2;
+			doOverwritten	=  3;
 
-{Usefull constants for openflags parameter.}
-const       dofail          =  0;
-            doopen          =  1;
-            dooverwrite     =  2;
-            docreate        = 10;
+{Usefull constants for OpenFlags parameter.}
+const		doFail			=  0;
+			doOpen			=  1;
+			doOverwrite		=  2;
+			doCreate		= 10;
 
 {Usefull constants for openmode parameter.}
 
-const       doread          =     0;
-            dowrite         =     1;
-            doreadwrite     =     2;
-            dodenyRW        =    16;
-            dodenywrite     =    32;
-            dodenyread      =    48;
-            dodenynone      =    64;
-            donoinherit     =   128;
-            dosequential    =   256;
-            dorandom        =   512;
-            donocache       =  4096;
-            dofailonerr     =  8192;
-            dowritethru     = 16384;
-            doDASD          = 32768;
+const		doRead			=	  0;
+			doWrite			=	  1;
+			doReadWrite		=	  2;
+			doDenyRW		=	 16;
+			doDenyWrite		=	 32;
+			doDenyRead		=	 48;
+			doDenyNone		=	 64;
+			doNoInherit		=	128;
+			doSequential	=	256;
+			doRandom		=	512;
+			doNoCache		=  4096;
+			doFailOnErr		=  8192;
+			doWriteThru		= 16384;
+			doDASD			= 32768;
 
 { Open a file.
 
- filenaam       = Name of file.
- handle         = Receives filehandle.
- action         = Receives result of opening.
-                    1 = Existing file opened.
-                    2 = File did not exist. Created.
-                    3 = File existed. Overwritten.
- initsize       = Initial size of file when creating or overwriting.
-                  Ignored when you do not. Must be zero when the file is
-                  created or overwritten in read-only mode.
- attrib         = Attributes when creating or overwriting files.
- openflags      = Bitfield describing what to do when file exists or doesn't
-                  exist.
- openmode       = Bitfield describing describing how to open a file.
- ea             = Extended attributes to give file when created. Use a NIL
-                  pointer if you don't want to give it extended attributes.
-                  Use it only when creating or overwriting file. Use NIL
-                  when not. Only the FEA list will be used.
+ FileName		= Name of file.
+ Handle			= Receives filehandle.
+ Action			= Receives result of opening.
+					1 = Existing file opened.
+					2 = File did not exist. Created.
+					3 = File existed. Overwritten.
+ InitSize		= Initial size of file when creating or overwriting.
+				  Ignored when you do not. Must be zero when the file is
+				  created or overwritten in read-only mode.
+ Attrib			= Attributes when creating or overwriting files.
+ OpenFlags		= Bitfield describing what to do when file exists or doesn't
+				  exist.
+ OpenMode		= Bitfield describing describing how to open a file.
+ EA				= Extended attributes to give file when created. Use a nil
+				  pointer if you don't want to give it extended attributes.
+				  Use it only when creating or overwriting file. Use nil
+				  when not. Only the FEA list will be used.
 
 The bits in the openflags parameter have the following meanings:
 
- Bit 0-3:   Action to take when file exists.    0000 = Return with error.
-                                                0001 = Open it.
-                                                0010 = Overwrite it.
- Bit 4-7:   Action to take when file does not   0000 = Return with error.
-            exist.                              0001 = Create it.
+ Bit 0-3:	Action to take when file exists.	0000 = Return with error.
+												0001 = Open it.
+												0010 = Overwrite it.
+ Bit 4-7:	Action to take when file does not	0000 = Return with error.
+			exist.								0001 = Create it.
 
 The bits in the filemode parameter have the following meanings:
 
- Bit 0-2:   Access mode:        000 = Read-only
-                                001 = Write-only
-                                010 = Read/Write
- Bit 3:     Reserved.
- Bit 4-6:   Sharing mode.       001 = Deny all
-                                010 = Deny write
-                                011 = Deny read
-                                100 = Deny none
- Bit 7:     Inheritance.        0 = Handle will be inherited by childs.
-                                1 = Handle will not be inherited.
- Bit 8-11:  Reserved.
- Bit 12:    Cache flag.         0 = Use caching.
-                                1 = Disable both read and write caching.
- Bit 13:    Error handling.     0 = Use critical error handler.
-                                1 = Return just an error code.
- Bit 14:    Write cache flag.   0 = Write operations may be cached.
-                                1 = Write operations must be executed
-                                    before write operation functions return.
- Bit 15:    DASD flag.          0 = Open a file or device.
-                                1 = Open a drive as file.
+ Bit 0-2:	Access mode:		000 = Read-only
+								001 = Write-only
+								010 = Read/Write
+ Bit 3:		Reserved.
+ Bit 4-6:	Sharing mode.		001 = Deny all
+								010 = Deny write
+								011 = Deny read
+								100 = Deny none
+ Bit 7:		Inheritance.		0 = Handle will be inherited by childs.
+								1 = Handle will not be inherited.
+ Bit 8-11:	Reserved.
+ Bit 12:	Cache flag.			0 = Use caching.
+								1 = Disable both read and write caching.
+ Bit 13:	Error handling.		0 = Use critical error handler.
+								1 = Return just an error code.
+ Bit 14:	Write cache flag.	0 = Write operations may be cached.
+								1 = Write operations must be executed
+									before write operation functions return.
+ Bit 15:	DASD flag.			0 = Open a file or device.
+								1 = Open a drive as file.
 
 When the DASD flag is set, the whole drive is read as a single file. The
-file starts with 512 of bootsector, then 512 bytes of the second sector etc.
+file starts with 512 bytes of bootsector, then 512 bytes of the second sector etc.
 The filename must consist of the driveletter followed by a semicolon.}
-function dosopen(filenaam:Pchar;var handle,action:longint;
-                 initsize:longint;attrib,openflags,filemode:longint;
-                 ea:PEAop2):word;
-{This variant of dosopen always creates or overwrites a file.}
-function doscreate(filenaam:Pchar;var handle:longint;
-                   attrib,openmode:longint):word;
-{This variant of dosOpen always opens an existing file.}
-function dosopen(filenaam:Pchar;var handle:longint;
-                 attrib,openmode:longint):word;
+function DosOpen(FileName:PChar;var Handle,Action:longint;
+				 InitSize:longint;Attrib,OpenFlags,FileMode:longint;
+				 EA:PEAOp2):word;
+{This variant of DosOpen always creates or overwrites a file.}
+function DosCreate(FileName:PChar;var Handle:longint;
+				   Attrib,OpenMode:longint):word;
+{This variant of DosOpen always opens an existing file.}
+function DosOpen(FileName:PChar;var Handle:longint;
+				 Attrib,OpenMode:longint):word;
 {There are also string variants.}
-function dosopen(const filenaam:string;var handle,action:longint;
-                 initsize:longint;attrib,openflags,openmode:longint;
-                 ea:PEAop2):word;
-function doscreate(const filenaam:string;var handle:longint;
-                   attrib,openmode:longint):word;
-function dosopen(const filenaam:string;var handle:longint;
-                 attrib,openmode:longint):word;
+function DosOpen(const FileName:string;var Handle,Action:longint;
+				 InitSize,Attrib,OpenFlags,OpenMode:longint;
+				 ea:PEAOp2):word;
+function DosCreate(const FileName:string;var Handle:longint;
+				   Attrib,OpenMode:longint):word;
+function DosOpen(const FileName:string;var Handle:longint;
+				 Attrib,OpenMode:longint):word;
 
 
 {Close a file.
 Cannot fail if handle does exist.}
-function dosclose(handle:longint):word;
+function DosClose(Handle:longint):word;
 
 {Read from a file or other type of handle.
 
-    handle      = File handle.
-    buffer      = The read data is stored here.
-    count       = Number of bytes to read.
-    actcount    = Number of bytes actually read.}
-function dosread(handle:longint;var buffer;count:longint;
-                 var actcount:longint):word;
+	Handle		= File handle.
+	Buffer		= The read data is stored here.
+	Count		= Number of bytes to read.
+	ActCount	= Number of bytes actually read.}
+function DosRead(Handle:longint;var Buffer;Count:longint;
+				 var ActCount:longint):word;
 
 {Write to a file or other type of handle.
 
-    handle      = File handle.
-    buffer      = The data to be written.
-    count       = Number of bytes to write.
-    actcount    = Number of bytes actually written.}
-function doswrite(handle:longint;var buffer;count:longint;
-                  var actcount:longint):word;
+	Handle		= File handle.
+	Buffer		= The data to be written.
+	Count		= Number of bytes to write.
+	ActCount	= Number of bytes actually written.}
+function DosWrite(Handle:longint;var Buffer;Count:longint;
+				  var ActCount:longint):word;
 
-const   dszerobased=0;      {Set filepointer from begin of file.}
-        dsrelative=1;       {Set filepointer relative to the current one.}
-        dsendbased=2;       {Set filepointer from end of file.}
+const	dsZeroBased=0;		{Set filepointer from begin of file.}
+		dsRelative=1;		{Set filepointer relative to the current one.}
+		dsEndBased=2;		{Set filepointer from end of file.}
 
 {Change the filepointer of a file.}
-function dossetfileptr(handle:word;pos:longint;method:longint;
-                       var posactual:longint):word;
+function DosSetFilePtr(Handle:word;Pos,Method:longint;
+					   var PosActual:longint):word;
 {This variant seeks always from begin of file and does not return the
  actual position.}
-function dossetfileptr(handle:word;pos:longint):word;
+function DosSetFilePtr(Handle:word;Pos:longint):word;
 {This variant returns the current filepointer.}
-function dosgetfileptr(handle:word;var posactual:longint):word;
+function DosGetFilePtr(Handle:word;var PosActual:longint):word;
 
-{Use dosqueryfileinfo or dosquerypathinfo to get the size of a file.}
+{Use DosQueryFileInfo or DosQueryPathInfo to get the size of a file.}
 
 {Change the size of a file.}
-function dossetfilesize(handle,size:longint):word;
+function DosSetFileSize(Handle,Size:longint):word;
 
 {Flush update the changes to a file to disk.}
-function dosresetbuffer(handle:longint):word;
+function DosResetBuffer(Handle:longint):word;
 
 {Duplicate or redirect a handle.
 To duplicate a handle: Fill handle with source handle and duplicate with -1.
-                       Copy of handle will be returned in duplicate.
+					   Copy of handle will be returned in duplicate.
 To redirect a handle:  Fill handle with handle to which the handle to
-                       redirect will be redirected. The handle that will be
-                       redirected should be placed in duplicate.}
-function dosduphandle(handle:longint;var duplicate:longint):word;
+					   redirect will be redirected. The handle that will be
+					   redirected should be placed in duplicate.}
+function DosDupHandle(Handle:longint;var Duplicate:longint):word;
 
-{Return information about a specific handle. See dosopen for a
- description of filemode.}
-function dosqueryFHstate(handle:longint;var filemode:longint):word;
+{Return information about a specific handle. See DosOpen for a
+ description of FileMode.}
+function DosQueryFHState(Handle:longint;var FileMode:longint):word;
 
-{Set information about a specific handle. See dosopen for a description
- of filemode.}
-function dossetFHstate(handle,filemode:longint):word;
+{Set information about a specific handle. See DosOpen for a description
+ of FileMode.}
+function DosSetFHState(Handle,FileMode:longint):word;
 
 {Usefull constants for the handle type.}
-const   dhfile      =    0;
-        dhdevice    =    1;
-        dhpipe      =    2;
-        dhnetwork   = 8192;
+const	dhFile		=	 0;
+		dhDevice	=	 1;
+		dhPipe		=	 2;
+		dhNetwork	= 8192;
 
 {Determine if a handle belongs to a file, a device or a pipe.
- handle             = Handle tp query info about.
- handtype           = Bits 0-1:   00 = File
-                                  01 = Device
-                                  02 = Pipe
-                      Bit 15:     0 = Local.
-                                  1 = On network.}
-function dosqueryHtype(handle:longint;var handtype:longint;
-                       var attr:longint):word;
+ Handle				= Handle tp query info about.
+ HandType			= Bits 0-1:   00 = File
+								  01 = Device
+								  02 = Pipe
+					  Bit 15:	  0 = Local.
+								  1 = On network.}
+function DosQueryHType(Handle:longint;var HandType:longint;
+					   var Attr:longint):word;
 
 {****************************************************************************
 
-                    File management related routines.
+					File management related routines.
 
 ****************************************************************************}
 
@@ -698,1304 +710,1333 @@ function dosqueryHtype(handle:longint;var handtype:longint;
 
 Example editing CONFIG.SYS with *.BAK becomes CONFIG.BAK.
 Usefull when parsing commands like 'copy config.sys *.bak'.
-All filename characters are casemapped.'
+All filename characters are casemapped.' 
 
-metalevel       = 0 Use modern semantics
-metalevel       = 1 Use OS/2 1.2 semantics
-source          = string to edit
-edit            = editstring
-target          = destination buffer
-cbtarget        = size of the destination buffer}
-function doseditname(metalevel:longint;source,edit:Pchar;
-                     target:Pchar;cbtarget:longint):word;
-function doseditname(metalevel:longint;const source,edit:string;
-                     var target:string):word;
+MetaLevel		= 0 Use modern semantics
+MetaLevel		= 1 Use OS/2 1.2 semantics
+Source			= string to edit
+Edit			= editstring
+Target			= destination buffer
+TargetLen		= size of the destination buffer}
+function DosEditName(MetaLevel:longint;Source,Edit:PChar;
+					 Target:PChar;TargetLen:longint):word;
+function DosEditName(MetaLevel:longint;const Source,Edit:string;
+					 var Target:string):word;
 
 {Move or rename a file.
- Oud    - Old name of file.
- Nieuw  - New name of file.}
-function dosmove(oud,nieuw:Pchar):word;
-function dosmove(const oud,nieuw:string):word;
+ OldFile	= old name of file
+ NewFile	= new name of file}
+function DosMove(OldFile,NewFile:PChar):word;
+function DosMove(const OldFile,NewFile:string):word;
 
 
-const   dcexisting=1;           {Overwrite existing files.}
-        dcappend=2;             {Append to existing file.}
-        dcfailas=4;             {?? Info wanted!}
+const	dcExisting=1;			{Overwrite existing files.}
+		dcAppend=2;				{Append to existing file.}
+		dcFailAs=4;				{?? Info wanted!}
 
 {Copy a file.
- Oud    - Source-file.
- Nieuw  - Destination-file.}
-function doscopy(oud,nieuw:Pchar;option:longint):word;
-function doscopy(const oud,nieuw:string;option:longint):word;
+ OldFile	= source file
+ NewFile	= destination file}
+function DosCopy(OldFile,NewFile:PChar;Option:longint):word;
+function DosCopy(const OldFile,NewFile:string;Option:longint):word;
 
 {Delete a file from disk.}
-function dosdelete(filenaam:Pchar):word;
-function dosdelete(const filenaam:string):word;
+function DosDelete(FileName:PChar):word;
+function DosDelete(const FileName:string):word;
 
-{Destroy a file on disk. dosForceDelete makes sure that the file cannot
+{Destroy a file on disk. DosForceDelete makes sure that the file cannot
  be unerased anymore.}
-function dosforcedelete(filenaam:Pchar):word;
-function dosforcedelete(const filenaam:string):word;
+function DosForceDelete(FileName:PChar):word;
+function DosForceDelete(const FileName:string):word;
 
 {Create a new directory.
 
-naam            = Name of directory to create.
-ea              = Extented attributes to give the directory. Use NIL if you
-                  do not want do give it extented attributes. Only the FEA
-                  list is used.}
-function doscreatedir(naam:Pchar;ea:PEAOP2):word;
-function doscreatedir(const naam:string;ea:PEAOP2):word;
-{Variants without the ea parameter (NIL is used).}
-function doscreatedir(naam:Pchar):word;
-function doscreatedir(const naam:string):word;
+Name			= Name of directory to create.
+EA				= Extented attributes to give the directory. Use nil if you
+				  do not want do give it extented attributes. Only the FEA
+				  list is used.}
+function DosCreateDir(Name:PChar;EA:PEAOp2):word;
+function DosCreateDir(const Name:string;EA:PEAOp2):word;
+{Variants without the EA parameter (nil is used).}
+function DosCreateDir(Name:PChar):word;
+function DosCreateDir(const Name:string):word;
 
 {Remove a directory.}
-function dosdeletedir(naam:Pchar):word;
-function dosdeletedir(const naam:string):word;
+function DosDeleteDir(Name:PChar):word;
+function DosDeleteDir(const Name:string):word;
 
 {Set the current drive. Cannot fail if the driveletter is correct.}
-function dossetdefaultdisk(disknum:longint):word;
+function DosSetDefaultDisk(DiskNum:longint):word;
 
 {Get the current drive. Because it cannot fail, it is declared as procedure.}
-procedure dosquerycurrentdisk(var disknum:longint;var logical:longint);
+procedure DosQueryCurrentDisk(var DiskNum:longint;var Logical:longint);
 
 {Set the current directory.}
-function dossetcurrentdir(naam:Pchar):word;
-function dossetcurrentdir(const naam:string):word;
+function DosSetCurrentDir(Name:PChar):word;
+function DosSetCurrentDir(const Name:string):word;
 
 {Get the current directory.}
-function dosquerycurrentdir(disknum:longint;var buffer;
-                            var buflen:longint):word;
-function dosquerycurrentdir(disknum:longint;var buffer:string):word;
+function DosQueryCurrentDir(DiskNum:longint;var Buffer;
+							var BufLen:longint):word;
+function DosQueryCurrentDir(DiskNum:longint;var Buffer:string):word;
 
 {Send/receive information to a device.
 
- handle             = A file handle to a device, instead of a file.
- category           = The category of functions the function is in.
- func               = Function to call.
- params             = Parameters for the function.
- paramlen           = Size of the params buffer.
- paramsize          = Size of the parametrs to send to the device
-                      Receives size of the returned parameters.
- data               = Data to send to device.
- datalen            = Size of your data buffer.
- datasize           = Size of the data to send to device.
-                      Receives size of the data returned by the device.}
-function dosdevIOctl(handle,category,func:longint;var params;
-                     paramlen:longint;var paramsize:longint;
-                     var data;var datalen:longint;var datasize:
-                     longint):word;
+ Handle				= A file handle to a device, instead of a file.
+ Category			= The category of functions the function is in.
+ Func				= Function to call.
+ Params				= Parameters for the function.
+ ParamLen			= Size of the params buffer.
+ ParamSize			= Size of the parametrs to send to the device
+					  Receives size of the returned parameters.
+ Data				= Data to send to device.
+ DataLen			= Size of your data buffer.
+ DataSize			= Size of the data to send to device.
+					  Receives size of the data returned by the device.}
+function DosDevIOCtl(Handle,Category,Func:longint;var Params;
+					 ParamLen:longint;var ParamSize:longint;
+					 var Data;var DataLen:longint;var DataSize:
+					 longint):word;
 
 {****************************************************************************
 
-                      File searching related routines.
+					  File searching related routines.
 
 ****************************************************************************}
 
-const   fareadonly      =  1;
-        fahidden        =  2;
-        fasystem        =  4;
-        fareserve       =  8;
-        fadirectory     = 16;
-        faarchive       = 32;
+const	faReadOnly		=  1;
+		faHidden		=  2;
+		faSystem		=  4;
+		faReserve		=  8;
+		faDirectory		= 16;
+		faArchive		= 32;
 
-        ilstandard      =  1;
-        ilqueryEAsize   =  2;
-        ilqueryEAs      =  3;
-        ilqueryfullname =  5;
+		ilStandard		=  1;
+		ilQueryEAsize	=  2;
+		ilQueryEAs		=  3;
+		ilQueryFullName =  5;
 
 {Format of date records:
 
- Bit 0..4:      Day.
- Bit 5..8:      Month.
- Bit 9..15:     Year minus 1980.
+ Bit 0..4:		day
+ Bit 5..8:		month
+ Bit 9..15:		year minus 1980
 
  Format of time records:
 
- Bit 0..4:      Seconds divided by 2.
- Bit 5..10      Minutes.
- Bit 11..15:    Hours.}
+ Bit 0..4:		seconds divided by 2
+ Bit 5..10:		minutes
+ Bit 11..15:	hours}
 
-type    Tfilestatus=object
-            datecreation,           {Date of file creation.}
-            timecreation,           {Time of file creation.}
-            datelastaccess,         {Date of last access to file.}
-            timelastaccess,         {Time of last access to file.}
-            datelastwrite,          {Date of last modification of file.}
-            timelastwrite:word;     {Time of last modification of file.}
-            filesize,               {Size of file.}
-            filealloc:longint;      {Amount of space the file really
-                                     occupies on disk.}
-        end;
-        Pfilestatus=^Tfilestatus;
+type	TFileStatus=object
+			DateCreation,			{Date of file creation.}
+			TimeCreation,			{Time of file creation.}
+			DateLastAccess,			{Date of last access to file.}
+			TimeLastAccess,			{Time of last access to file.}
+			DateLastWrite,			{Date of last modification of file.}
+			TimeLastWrite:word;		{Time of last modification of file.}
+			FileSize,				{Size of file.}
+			FileAlloc:longint;		{Amount of space the file really
+									 occupies on disk.}
+		end;
+		PFileStatus=^TFileStatus;
 
-        Tfilestatus1=object(Tfilestatus)
-            attrfile:word;          {Attributes of file.}
-        end;
-        Pfilestatus1=^Tfilestatus1;
+		TFileStatus1=object(TFileStatus)
+			AttrFile:word;			{Attributes of file.}
+		end;
+		PFileStatus1=^TFileStatus1;
 
-        Tfilestatus2=object(Tfilestatus)
-            attrfile:word;
-            cblist:longint;
-        end;
-        Pfilestatus2=^Tfilestatus2;
+		TFileStatus2=object(TFileStatus)
+			AttrFile:word;
+			cbList:longint;
+		end;
+		PFileStatus2=^TFileStatus2;
 
-        Tfilestatus3=object(Tfilestatus)
-            attrfile:longint;       {Attributes of file.}
-        end;
-        Pfilestatus3=^Tfilestatus3;
+		TFileStatus3=object(TFileStatus)
+			AttrFile:longint;		{Attributes of file.}
+		end;
+		PFileStatus3=^TFileStatus3;
 
-        Tfilestatus4=object(Tfilestatus)
-            attrfile:longint;
-            cblist:longint;
-        end;
-        Pfilestatus4=^Tfilestatus4;
+		TFileStatus4=object(TFileStatus)
+			AttrFile:longint;
+			cbList:longint;
+		end;
+		PFileStatus4=^TFileStatus4;
 
-        Tfilefindbuf1=object(Tfilestatus1)
-            name:string;                {Also possible to use as ASCIIZ.
-                                         The byte following the last string
-                                         character is always zero.}
-        end;
-        Pfilefindbuf1=^Tfilefindbuf1;
+		TFileFindBuf1=object(TFileStatus1)
+			Name:string;				{Also possible to use as ASCIIZ.
+										 The byte following the last string
+										 character is always zero.}
+		end;
+		PFileFindBuf1=^TFileFindBuf1;
 
 
-        Tfilefindbuf2=object(Tfilestatus2)
-            name:string;                {Also possible to use as ASCIIZ.
-                                         The byte following the last string
-                                         character is always zero.}
-        end;
-        Pfilefindbuf2=^Tfilefindbuf2;
+		TFileFindBuf2=object(TFileStatus2)
+			Name:string;				{Also possible to use as ASCIIZ.
+										 The byte following the last string
+										 character is always zero.}
+		end;
+		PFileFindBuf2=^TFileFindBuf2;
 
-        Tfilefindbuf3=object(Tfilestatus3)
-            name:string;                {Also possible to use as ASCIIZ.
-                                         The byte following the last string
-                                         character is always zero.}
-        end;
-        Pfilefindbuf3=^Tfilefindbuf3;
+		TFileFindBuf3=object(TFileStatus3)
+			Name:string;				{Also possible to use as ASCIIZ.
+										 The byte following the last string
+										 character is always zero.}
+		end;
+		PFileFindBuf3=^TFileFindBuf3;
 
-        Tfilefindbuf4=object(Tfilestatus4)
-            name:string;                {Also possible to use as ASCIIZ.
-                                         The byte following the last string
-                                         character is always zero.}
-        end;
-        Pfilefindbuf4=^Tfilefindbuf4;
+		TFileFindBuf4=object(TFileStatus4)
+			Name:string;				{Also possible to use as ASCIIZ.
+										 The byte following the last string
+										 character is always zero.}
+		end;
+		PFileFindBuf4=^TFileFindBuf4;
 
 {Find first file matching a filemask. In contradiction to DOS, a search
- handle is returned which should be closed with findclose when done.
- filemask       = Filemask to search.
- handle         = Search handle will be returned here, fill with -1 before
-                  call.
- attrib         = Fileattributes to search for.
- Afilestatus    = Return buffer.
- cbfilestatus   = Size of return buffer.
- count          = Fill with maximum number of files to search for, the
-                  actual number of matching files found is returned here.
- infolevel      = One of the ilxxxx constants. Consult IBM documentation
-                  for exact meaning. For normal use: Use ilstandard and
-                  use Pfilefindbuf3 for Afilestatus.}
-function dosfindfirst(filemask:Pchar;var handle:longint;attrib:longint;
-                      Afilestatus:Pfilestatus;cbfilestatus:longint;
-                      var count:longint;infolevel:longint):word;
-function dosfindfirst(const filemask:string;var handle:longint;
-                      attrib:longint;Afilestatus:Pfilestatus;
-                      cbfilestatus:longint;var count:longint;
-                      infolevel:longint):word;
+ handle is returned which should be closed with FindClose when done.
+ FileMask		= Filemask to search.
+ Handle			= Search handle will be returned here, fill with -1 before
+				  call.
+ Attrib			= File attributes to search for.
+ AFileStatus	= Return buffer.
+ FileStatusLen	= Size of return buffer.
+ Count			= Fill with maximum number of files to search for, the
+				  actual number of matching files found is returned here.
+ InfoLevel		= One of the ilXXXX constants. Consult IBM documentation
+				  for exact meaning. For normal use: Use ilStandard and
+				  use PFileFindBuf3 for AFileStatus.}
+function DosFindFirst(FileMask:PChar;var Handle:longint;Attrib:longint;
+					  AFileStatus:PFileStatus;FileStatusLen:longint;
+					  var Count:longint;InfoLevel:longint):word;
+function DosFindFirst(const FileMask:string;var Handle:longint;
+					  Attrib:longint;AFileStatus:PFileStatus;
+					  FileStatusLen:longint;var Count:longint;
+					  InfoLevel:longint):word;
 
 {Find next matching file.}
-function dosfindnext(handle:longint;Afilestatus:Pfilestatus;
-                     cbfilestatus:longint;var count:longint):word;
+function DosFindNext(Handle:longint;AFileStatus:PFileStatus;
+					 FileStatusLen:longint;var Count:longint):word;
 
 {Close a search handle. Cannot fail if handle does exist.}
-function dosfindclose(handle:longint):word;
+function DosFindClose(Handle:longint):word;
 
 {Get info about a file.
 
- handle         = Handle of file.
- infolevel      = One of the ilxxxx constants. Consult IBM documentation
-                  for exect meaning. For normal use: Use ilstandard and
-                  Pfilefindbuf3 for Afilestatus.
- Afilestatus    = An info return buffer.
- cbfilestatus   = Size of info buffer.}
-function dosqueryfileinfo(handle,infolevel:longint;Afilestatus:Pfilestatus;
-                          cbfilestatus:longint):word;
+ Handle			= Handle of file.
+ InfoLevel		= One of the ilXXXX constants. Consult IBM documentation
+				  for exect meaning. For normal use: Use ilStandard and
+				  PFileFindBuf3 for AFileStatus.
+ AFileStatus	= An info return buffer.
+ FileStatusLen	= Size of info buffer.}
+function DosQueryFileInfo(Handle,InfoLevel:longint;AFileStatus:PFileStatus;
+						  FileStatusLen:longint):word;
 
 {Set info about a file. File must be opened with write permissions. See
  above fo the parameters.}
-function dossetfileinfo(handle,infolevel:longint;Afilestatus:Pfilestatus;
-                        cbfilestatus:longint):word;
+function DosSetFileInfo(Handle,InfoLevel:longint;AFileStatus:PFileStatus;
+						FileStatusLen:longint):word;
 
 {Return info about a file. In contradiction to the above functions, the
- file does not have to be openened.}
-function dosquerypathinfo(filenaam:Pchar;infolevel:longint;
-                          Afilestatus:Pfilestatus;cbfilestatus:longint):word;
-function dosquerypathinfo(const filenaam:string;infolevel:longint;
-                          Afilestatus:Pfilestatus;cbfilestatus:longint):word;
+ file does not have to be open.}
+function DosQueryPathInfo(FileName:PChar;InfoLevel:longint;
+						  AFileStatus:PFileStatus;FileStatusLen:longint):word;
+function DosQueryPathInfo(const FileName:string;InfoLevel:longint;
+						  AFileStatus:PFileStatus;FileStatusLen:longint):word;
 
 {Set information about a file.}
-function dossetpathinfo(filenaam:Pchar;infolevel:longint;
-                        Afilestatus:Pfilestatus;cbfilestatus,
-                        options:longint):word;
+function DosSetPathInfo(FileName:PChar;InfoLevel:longint;
+						AFileStatus:PFileStatus;FileStatusLen,
+						Options:longint):word;
 
 {Get info about the names and lengths of the EA's for a file or directory.
 
- reftype            = 0 = Afile is a pointer to a file-handle.
-                      1 = Afile is a pointer to an ASCIIZ string.
- AFile              = Pointer file's name or handle.
- entry              = Number of EA to query inof about. (1 = first EA).
- buf                = Buffer where requested info is returned. For infolevel
-                      1, the buffer is a TfEA2 datastructure.
- buflen             = Size of buf in bytes.
- count              = Number of EA's to return info for. Number of EA's that
-                      actually fitted in buf is returned here.
- infolevel          = Level of information to return. Only level 1 is
-                      currently allowed.}
+ RefType			= 0 = AFile is a pointer to a file-handle.
+					  1 = AFile is a pointer to an ASCIIZ string.
+ AFile				= Pointer file's name or handle.
+ Entry				= Number of EA to query inof about. (1 = first EA).
+ Buf				= Buffer where requested info is returned. For InfoLevel
+					  1, the buffer is a TfEA2 datastructure.
+ BufLen				= Size of buf in bytes.
+ Count				= Number of EA's to return info for. Number of EA's that
+					  actually fitted in buf is returned here.
+ InfoLevel			= Level of information to return. Only level 1 is
+					  currently allowed.}
 
-function dosenumattribute(reftype:longint;Afile:pointer;
-                          entry:longint;var buf;bufsize:longint;
-                          var count:longint;infolevel:longint):word;
-function dosenumattribute(handle:longint;
-                          entry:longint;var buf;bufsize:longint;
-                          var count:longint;infolevel:longint):word;
-function dosenumattribute(const filenaam:string;
-                          entry:longint;var buf;bufsize:longint;
-                          var count:longint;infolevel:longint):word;
+function DosEnumAttribute(RefType:longint;AFile:pointer;
+						  Entry:longint;var Buf;BufSize:longint;
+						  var Count:longint;InfoLevel:longint):word;
+function DosEnumAttribute(Handle,Entry:longint;var Buf;BufSize:longint;
+						  var Count:longint;InfoLevel:longint):word;
+function DosEnumAttribute(const FileName:string;
+						  Entry:longint;var Buf;BufSize:longint;
+						  var Count:longint;InfoLevel:longint):word;
 
-{Get an environment variabele.
- naam               = Name of environment variabele to get.
- value              = Receives pointer to environment string.}
-function dosscanenv(naam:Pchar;var value:Pchar):word;
+{Get an environment variable.
+ Name				= Name of environment variable to get.
+ Value				= Receives pointer to environment string.}
+function DosScanEnv(Name:PChar;var Value:PChar):word;
 {There is, of course a string variant.}
-function dosscanenv(const naam:string;var value:string):word;
+function DosScanEnv(const Name:string;var Value:string):word;
 
-const   dspathonly      = 0;    {Do not search current dir. (Unless it is
-                                 in the directory list.)}
-        dscurrentdir    = 1;    {Search in the current direcotry and in the
-                                 directory list.}
-        dsenvironment   = 2;    {The dirlist parameter is not a directory
-                                 list, but an environment variabele
-                                 containing one.}
-        dsignoreneterrs = 4;    {Ignore network errors when searching.}
+const	dsPathOnly		= 0;	{Do not search current dir. (Unless it is
+								 in the directory list.)}
+		dsCurrentDir	= 1;	{Search in the current direcotry and in the
+								 directory list.}
+		dsEnvironment	= 2;	{The dirlist parameter is not a directory
+								 list, but an environment variable
+								 containing one.}
+		dsIgnoreNetErrs = 4;	{Ignore network errors when searching.}
 
 {Search for a file in a given number of directories.
- flags          = A combination of the dsxxxx constants.
- dirlist        = Directory list or environmant variabele containing list
-                  to search in.
- filenaam       = Filename to search for. May contain wildcards.
- fullname       = Receives filename found, including path.
- fulllen        = Length of your fullname buffer.}
-function dossearchpath(flag:longint;dirlist,filenaam:Pchar;
-                       fullname:Pchar;fulllen:longint):word;
-function dossearchpath(flag:longint;const dirlist,filenaam:string;
-                       var fullname:string):word;
+ Flags			= A combination of the dsXXXX constants.
+ DirList		= Directory list or environment variable containing list
+				  to search in.
+ FileName		= Filename to search for. May contain wildcards.
+ FullName		= Receives filename found, including path.
+ FullLen		= Length of your fullname buffer.}
+function DosSearchPath(Flag:longint;DirList,FileName:PChar;
+					   FullName:PChar;FullLen:longint):word;
+function DosSearchPath(Flag:longint;const DirList,FileName:string;
+					   var FullName:string):word;
 
 {****************************************************************************
 
-                       File system related routines.
+					   File system related routines.
 
 ****************************************************************************}
 
-type    TFSinfo=record
-            case word of
-                1:
-                    (file_sys_ID,
-                     sectors_per_cluster,
-                     total_clusters,
-                     free_clusters:longint;
-                     bytes_per_sector:word);
-                2:                          {For date/time description,
-                                             see file searching realted
-                                             routines.}
-                    (label_date,            {Date when volumelabel created.}
-                     label_time:word;       {Time when volumelabel created.}
-                     volumelabel:string);   {Volume label. Can also be used
-                                             as ASCIIZ, because the byte
-                                             following the last character of
-                                             the string is always zero.}
-        end;
-        PFSinfo=^TFSinfo;
+type	TFSInfo=record
+			case word of
+				1:
+					(File_Sys_ID,
+					 Sectors_Per_Cluster,
+					 Total_Clusters,
+					 Free_Clusters:longint;
+					 Bytes_Per_Sector:word);
+				2:							{For date/time description,
+											 see file searching realted
+											 routines.}
+					(Label_Date,			{Date when volumelabel created.}
+					 Label_Time:word;		{Time when volumelabel created.}
+					 VolumeLabel:string);	{Volume label. Can also be used
+											 as ASCIIZ, because the byte
+											 following the last character of
+											 the string is always zero.}
+		end;
+		PFSInfo=^TFSInfo;
 
-        Tattachdata=record
-            case integer of         {Flag in [0,1,2].}
-                0,1:                {Flag = 0.}
-                    (count:word;
-                     data:Tchararray);
-                2:                  {Flag = 2.}
-                    (pipehandle:longint;
-                                    {Handle of named pipe opened by spooler.}
-                     spoolname:string);
-                                    {Name of spooler object. Can also be used
-                                     as ASCIIZ, because the bute following
-                                     the last character is always zero.}
-        end;
-        Pattachdata=^Tattachdata;
+		TAttachData=record
+			case integer of			{Flag in [0,1,2].}
+				0,1:				{Flag = 0.}
+					(Count:word;
+					 Data:TCharArray);
+				2:					{Flag = 2.}
+					(PipeHandle:longint;
+									{Handle of named pipe opened by spooler.}
+					 SpoolName:string);
+									{Name of spooler object. Can also be used
+									 as ASCIIZ, because the bute following
+									 the last character is always zero.}
+		end;
+		PAttachData=^TAttachData;
 
-        TFSqbuffer2=record
-            _type:word;
-            naamlen:word;
-            FSDnaamlen:word;
-            FSAdatalen:word;
-            naam:char;
-            nul1:byte;
-            FSDnaam:char;
-            nul2:byte;
-            FSAdata:char;
-            nul3:byte;
-        end;
-        PFSqbuffer2=^TFSQbuffer2;
+		TFSQBuffer2=record
+			_Type:word;
+			NameLen:word;
+			FSDNameLen:word;
+			FSADataLen:word;
+			Name:char;
+			Nul1:byte;
+			FSDName:char;
+			Nul2:byte;
+			FSAData:char;
+			Nul3:byte;
+		end;
+		PFSQBuffer2=^TFSQBuffer2;
 
-const   fsattach        = 0;    {Attach a drive.}
-        fsdetach        = 1;    {Detach a drive.}
-        fsspoolattach   = 2;    {Attach a spool device.}
-        fsspooldetach   = 3;    {Detach a spool device.}
+const	fsAttach		= 0;	{Attach a drive.}
+		fsDetach		= 1;	{Detach a drive.}
+		fsSpoolAttach	= 2;	{Attach a spool device.}
+		fsSpoolDetach	= 3;	{Detach a spool device.}
 
 {IBM DOCS: "DosFSAttach attaches or detaches a drive to or from a remote file
  system driver (FSD), or a pseudocharacter device name to or from a local or
- remote FSD."
+ remote FSD." 
 
- devnaam            = When flag is 0 or 1, the name of a drive or a pseudo-
-                      character device. When using a drivename use the drive-
-                      letter followed by a colon.
-                      When flag is 2 or 3, the name of a spooled device.
- filesystem         = Name of the driver that should be attached or detached
-                      to devnaam. Use nil when flag is 2 or 3.
- data               = Should contain a number of ASCIIZ strings that will
-                      be passed to the filesystem driver when flag is 0 or 1.
-                      Should contain de pipehandle and spoolname when flag is
-                      2. Should be nil when flag is 3.
- datalen            = Number of bytes in data parameter.
- flag               = One of the dsxxxx constants. See above}
-function dosFSattach(devnaam,filesystem:Pchar;var data:Tattachdata;
-                     datalen,flag:longint):word;
-function dosFSattach(const devnaam,filesystem:string;var data:Tattachdata;
-                     datalen,flag:longint):word;
+ DevName			= When flag is 0 or 1, the name of a drive or a pseudo-
+					  character device. When using a drivename use the drive-
+					  letter followed by a colon.
+					  When flag is 2 or 3, the name of a spooled device.
+ FileSystem			= Name of the driver that should be attached or detached
+					  to DevName. Use nil when flag is 2 or 3.
+ Data				= Should contain a number of ASCIIZ strings that will
+					  be passed to the filesystem driver when flag is 0 or 1.
+					  Should contain de pipehandle and spoolname when flag is
+					  2. Should be nil when flag is 3.
+ DataLen			= Number of bytes in data parameter.
+ Flag				= One of the dsXXXX constants. See above}
+function DosFSAttach(DevName,FileSystem:PChar;var Data:TAttachData;
+					 DataLen,Flag:longint):word;
+function DosFSAttach(const DevName,FileSystem:string;var Data:TAttachData;
+					 DataLen,Flag:longint):word;
 
 {IBMDOCS: "DosQueryFSAttach obtains information about an attached file system
  (local or remote), or about a character device or pseudocharacter device
- attached to the file system."
+ attached to the file system." 
 
- devnaam            = Name info drive or pseudo character device to query
-                      info about. Ignored for infolevels 2 and 3.
- ordinal            = Index into list of character/pseudo-character
-                      devices. Starts at 1. Ignored for infolevel 1.
- infolevel          = 1 = Return information about a drive or device named
-                          by devnaam.
-                      2 = Return information about a (pseudo) charachter
-                          device numbered by ordinal.
-                      3 = Return information about a drive numbered by
-                          ordinal.
- buffer             = Will be filled with infomation.
- buflen             = Size of your buffer in bytes. Number of bytes filled
-                      in your buffer is returned here.}
-function dosqueryFSattach(devnaam:Pchar;ordinal,infolevel:longint;
-                          var buffer:TFSqbuffer2;var buflen:longint):word;
-function dosqueryFSattach(const devnaam:string;ordinal,infolevel:longint;
-                          var buffer:TFSqbuffer2;var buflen:longint):word;
+ DevName			= Name info drive or pseudo character device to query
+					  info about. Ignored for InfoLevels 2 and 3.
+ Ordinal			= Index into list of character/pseudo-character
+					  devices. Starts at 1. Ignored for infolevel 1.
+ InfoLevel			= 1 = Return information about a drive or device named
+						  by DevName.
+					  2 = Return information about a (pseudo) charachter
+						  device numbered by Ordinal.
+					  3 = Return information about a drive numbered by
+						  Ordinal.
+ Buffer				= Will be filled with infomation.
+ BufLen				= Size of your buffer in bytes. Number of bytes filled
+					  in your buffer is returned here.}
+function DosQueryFSAttach(DevName:PChar;Ordinal,InfoLevel:longint;
+						  var Buffer:TFSQBuffer2;var BufLen:longint):word;
+function DosQueryFSAttach(const DevName:string;Ordinal,InfoLevel:longint;
+						  var Buffer:TFSQBuffer2;var BufLen:longint):word;
 
-const   FSCTL_handle=1;
-        FSCTL_pathname=2;
-        FSCTL_FSDname=3;
-        FSCTL_error_info=1;
-        FSCTL_max_EAsize=2;
+const	FSCtl_Handle=1;
+		FSCtl_PathName=2;
+		FSCtl_FSDName=3;
+		FSCtl_Error_Info=1;
+		FSCtl_Max_EASize=2;
 
 {IBMDOCS: "DosFSCtl provides an extended standard interface between an
  application and a file-system driver (FSD).
 
  Consult IBM documentation about this function..}
-function dosFSctl(data:pointer;datalen:longint;var resdatalen:longint;
-                  parms:pointer;parmslen:longint;var resparmslen:longint;
-                  _function:longint;route:Pchar;
-                  handle,method:longint):word;
-function dosFSctl(data:pointer;datalen:longint;var resdatalen:longint;
-                  parms:pointer;parmslen:longint;var resparmslen:longint;
-                  _function:longint;const route:string;
-                  handle,method:longint):word;
+function DosFSCtl(Data:pointer;DataLen:longint;var ResDataLen:longint;
+				  Parms:pointer;ParmsLen:longint;var ResParmsLen:longint;
+				  _Function:longint;Route:PChar;
+				  Handle,Method:longint):word;
+function DosFSCtl(Data:pointer;DataLen:longint;var ResDataLen:longint;
+				  Parms:pointer;ParmsLen:longint;var ResParmsLen:longint;
+				  _Function:longint;const Route:string;
+				  Handle,Method:longint):word;
 
 {Get information about a drive.
-Infolevels:
- 1              Get total/free space etc.
- 2              Get volumelabel.}
-function dosqueryFSinfo(disknum,infolevel:longint;var buffer:TFSinfo;
-                        buflen:longint):word;
+InfoLevels:
+ 1				Get total/free space etc.
+ 2				Get volumelabel.}
+function DosQueryFSInfo(DiskNum,InfoLevel:longint;var Buffer:TFSInfo;
+						BufLen:longint):word;
 
 {Set information about a drive.}
-function dossetFSinfo(disknum,infolevel:longint;var buffer:TFSinfo;
-                      buflen:longint):word;
+function DosSetFSInfo(DiskNum,InfoLevel:longint;var Buffer:TFSinfo;
+					  BufLen:longint):word;
 
 {Check if verify mode is enabled.}
-function dosqueryverify(var enabled:longint):word;
+function DosQueryVerify(var Enabled:longint):word;
 
 {Turn the verify mode on or off.}
-function dossetverify(enable:longint):word;
+function DosSetVerify(Enable:longint):word;
 
 {Change the number of filehandles our program can open. (Default=50). It
  won't hurt if there are files open when you are calling this.}
-function dossetmaxFH(count:longint):word;
+function DosSetMaxFH(Count:longint):word;
 
 {Ask for more filehandles (or dump filehandles). It won't hurt if there are
  files open when you are calling this.
- reqcount       = Number of filehandles to ask for. (Negative to dump them.)
- curmaxFH       = Receives the total number of filehandles your program has
-                  access to.}
-function dossetrelmaxFH(var reqcount,curmaxFH:longint):word;
+ ReqCount		= Number of filehandles to ask for. (Negative to dump them.)
+ CurMaxFH		= Receives the total number of filehandles your program has
+				  access to.}
+function DosSetRelMaxFH(var ReqCount,CurMaxFH:longint):word;
 
-const   dsfull=0;       {IBM DOCS: "Perform full system shutdown and
-                         file-system lock."}
-        dsquiescient=1; {IBM DOCS: "Perform buffer and cache flushing to
-                         make system quiescent."}
+const	dsFull=0;		{IBM DOCS: "Perform full system shutdown and
+						 file-system lock."}
+		dsQuiescient=1; {IBM DOCS: "Perform buffer and cache flushing to
+						 make system quiescent."}
 
 {Prepare the system for shutdown.}
-function dosshutdown(flags:longint):word;
+function DosShutdown(Flags:longint):word;
 
 
-{Usefull constants fo dosQuerySysInfo.}
-const   svmaxpathlength     = 1;        {Maximum length of a pathname.}
-        svmaxtextsessions   = 2;        {Maximum number of text sessions.}
-        svmaxPMsessions     = 3;        {Maximum number of PM sessions.}
-        svmaxVDMsessions    = 4;        {Maximum number of DOS sessions.}
-        svbootdrive         = 5;        {Get the boot drive. (A=1, B=2 etc.)}
-        svdynprivariation   = 6;
-        svmaxwait           = 7;
-        svminslice          = 8;
-        svmaxslice          = 9;
-        svpagesize          = 10;       {Size of a page. (Always 4096 bytes.)}
-        svmajorversion      = 11;       {Major version number of kernel:
-                                         10 for OS/2 1.0 and 1.1,
-                                         20 for OS/2 2.0 .. OS/2 4.0.}
-        svminorversion      = 12;       {Minor version of kernel:
-                                         OS/2 2.0: 00, 2.1: 10, 2.11: 11,
-                                              3.0: 30, 4.0: 40.}
-        svrevision          = 13;       {Revision of kernel. Until now all
-                                         OS/2 versions return 0.}
-        svmscount           = 14;       {Uptime in milliseconds.}
-        svtimelow           = 15;       {System time in seconds since
-                                         1 January 1970 0:00:00, low dword.}
-        svtimehigh          = 16;       {System time in seconds since
-                                         1 January 1970 0:00:00, high dword.}
-        svphysmem           = 17;       {Amount in bytes of physical memory
-                                         in system.}
-        svresmem            = 18;       {Amount in bytes of resident memory
-                                         in system.}
-        svavailmem          = 19;       {Amount in bytes of available
-                                         memory.}
-        svprmem             = 20;       {Maximum amount of memory the current
-                                         process can request for it's
-                                         private use.}
-        svshmem             = 21;       {Maximum amount of memory the current
-                                         process can request for shared
-                                         purposes.}
-        svtimerinterval     = 22;       {Timer interval in tenths of a
-                                         millisecond.}
-        svmaxcomplength     = 23;       {Maxmimum length of a component in a
-                                         pathname.}
-        svforegroundsession = 24;       {Returns the session ID of the fore-
-                                         ground session. The presentation
-                                         manager has ID 1.}
-        svforegroundprocess = 25;       {Returns the process ID of the
-                                         current foreground process.}
+{Usefull constants fo DosQuerySysInfo.}
+const	svMaxPathLength		= 1;		{Maximum length of a pathname.}
+		svMaxTextSessions	= 2;		{Maximum number of text sessions.}
+		svMaxPMSessions		= 3;		{Maximum number of PM sessions.}
+		svMaxVDMSessions	= 4;		{Maximum number of DOS sessions.}
+		svBootDrive			= 5;		{Get the boot drive. (A=1, B=2 etc.)}
+		svDynPriVariation	= 6;
+		svMaxWait			= 7;
+		svMinSlice			= 8;
+		svMaxSlice			= 9;
+		svPageSize			= 10;		{Size of a page. (Always 4096 bytes.)}
+		svMajorVersion		= 11;		{Major version number of kernel:
+										 10 for OS/2 1.0 and 1.1,
+										 20 for OS/2 2.0 .. OS/2 4.0.}
+		svMinorVersion		= 12;		{Minor version of kernel:
+										 OS/2 2.0: 00, 2.1: 10, 2.11: 11,
+											  3.0: 30, 4.0: 40.}
+		svRevision			= 13;		{Revision of kernel. Until now all
+										 OS/2 versions return 0.}
+		svMsCount			= 14;		{Uptime in milliseconds.}
+		svTimeLow			= 15;		{System time in seconds since
+										 1 January 1970 0:00:00, low dword.}
+		svTimeHigh			= 16;		{System time in seconds since
+										 1 January 1970 0:00:00, high dword.}
+		svPhysMem			= 17;		{Amount in bytes of physical memory
+										 in system.}
+		svResMem			= 18;		{Amount in bytes of resident memory
+										 in system.}
+		svAvailMem			= 19;		{Amount in bytes of available
+										 memory.}
+		svPrMem				= 20;		{Maximum amount of memory the current
+										 process can request for its
+										 private use.}
+		svShMem				= 21;		{Maximum amount of memory the current
+										 process can request for shared
+										 purposes.}
+		svTimerInterval		= 22;		{Timer interval in tenths of a
+										 millisecond.}
+		svMaxCompLength		= 23;		{Maxmimum length of a component in a
+										 pathname.}
+		svForegroundSession = 24;		{Returns the session ID of the fore-
+										 ground session. The presentation
+										 manager has ID 1.}
+		svForegroundProcess = 25;		{Returns the process ID of the
+										 current foreground process.}
 
 {Get one or more system parameters.
- first          = First variabele to get.
- last           = Last variabele to get.
- buf            = Receives variabeles.
- bufsize        - Size of the buffer/}
-function dosquerysysinfo(first,last:longint;var buf;bufsize:longint):word;
+ First			= First variable to get.
+ Last			= Last variable to get.
+ Buf			= Receives variables.
+ BufSize		- Size of the buffer/}
+function DosQuerySysInfo(First,Last:longint;var Buf;BufSize:longint):word;
 
 {Return information about a partitionable disk.}
-function dosphysicaldisk(func:longint;buf:pointer;bufsize:longint;
-                         params:pointer;paramsize:longint):word;
+function DosPhysicalDisk(Func:longint;Buf:pointer;BufSize:longint;
+						 Params:pointer;ParamSize:longint):word;
 
 {****************************************************************************
 
-                       Memory allocation related routines.
+					   Memory allocation related routines.
 
 ****************************************************************************}
 
-const   mfpag_read      = $00001;   {Give read access to memory.}
-        mfpag_write     = $00002;   {Give write access to memory.}
-        mfpag_execute   = $00004;   {Allow code execution in memory.}
-        mfpag_guard     = $00008;   {Used for dynamic memory growing. Create
-                                     uncommitted memory and make the first
-                                     page guarded. Once it is accessed it
-                                     will be made committed, and the next
-                                     uncommitted page will be made guarded.}
-        mfpag_commit    = $00010;   {Make the memory committed.}
-        mfpag_decommit  = $00020;   {Decommit the page.}
-        mfobj_tile      = $00040;   {Also allocate 16-bit segments of 64k
-                                     which map the memory. (Makes 16<>32 bit
-                                     pointer conversion possible.}
-        mfobj_protected = $00080;
-        mfobj_gettable  = $00100;
-        mfobj_giveable  = $00200;
-        mfpag_default   = $00400;
-        mfpag_shared    = $02000;
-        mfpag_free      = $04000;
-        mfpag_base      = $10000;
+const	mfPag_Read		= $00001;	{Give read access to memory.}
+		mfPag_Write		= $00002;	{Give write access to memory.}
+		mfPag_Execute	= $00004;	{Allow code execution in memory.}
+		mfPag_Guard		= $00008;	{Used for dynamic memory growing. Create
+									 uncommitted memory and make the first
+									 page guarded. Once it is accessed it
+									 will be made committed, and the next
+									 uncommitted page will be made guarded.}
+		mfPag_Commit	= $00010;	{Make the memory committed.}
+		mfPag_Decommit	= $00020;	{Decommit the page.}
+		mfObj_Tile		= $00040;	{Also allocate 16-bit segments of 64k
+									 which map the memory. (Makes 16<>32 bit
+									 pointer conversion possible.}
+		mfObj_Protected = $00080;
+		mfObj_Gettable	= $00100;
+		mfObj_Giveable	= $00200;
+		mfPag_Default	= $00400;
+		mfPag_Shared	= $02000;
+		mfPag_Free		= $04000;
+		mfPag_Base		= $10000;
 
-        mfsub_init      = $00001;   {Use base, if not set, choose a base
-                                     address yourself.}
-        mfsub_grow      = $00002;   {Grow the specified heap, instead of
-                                     allocating it. Ignore fmsub_init.}
-        mfsub_sparse    = $00004;
-        mfsub_serialize = $00008;
+		mfSub_Init		= $00001;	{Use base, if not set, choose a base
+									 address yourself.}
+		mfSub_Grow		= $00002;	{Grow the specified heap, instead of
+									 allocating it. Ignore mfSub_Init.}
+		mfSub_Sparse	= $00004;
+		mfSub_Serialize = $00008;
 
 {Get some memory.
- p          = Pointer to memory will be returned here.
- size       = Number of bytes to get. The size is rounded up to a multiple
-              of 4096. This is propably not the case on non-intel 386
-              versions of OS/2.
- flags      = One or more of the mfxxxx constants.}
-function dosallocmem(var p:pointer;size:longint;flag:longint):word;
+ P			= Pointer to memory will be returned here.
+ Size		= Number of bytes to get. The size is rounded up to a multiple
+			  of 4096. This is probably not the case on non-intel 386
+			  versions of OS/2.
+ Flags		= One or more of the mfXXXX constants.}
+function DosAllocMem(var P:pointer;Size,Flag:longint):word;
 
 {Free a memory block.}
-function dosfreemem(p:pointer):word;
+function DosFreeMem(P:pointer):word;
 
 {Set settings for a block of memory.
- p          = Pointer to the memory. Doesn't need to be the start of the
-              memory block allocated with dosallocmem, but must be a multiple
-              of 4096.
- cb         = Number of bytes to change settings for. Is rounded up to a
-              multile of 4096.
- flags      = New flags for the memory.}
-function dossetmem(p:pointer;cb,flag:longint):word;
+ P			= Pointer to the memory. Doesn't need to be the start of the
+			  memory block allocated with DosAllocMem, but must be a multiple
+			  of 4096.
+ Size		= Number of bytes to change settings for. Is rounded up to a
+			  multile of 4096.
+ Flags		= New flags for the memory.}
+function DosSetMem(P:pointer;Size,Flag:longint):word;
 
 {Give another process access to a shared memory block.
 
- p          = Pointer to the shared memory object.
- pid        = Process of destination process.
- flag       = Permissions the the destination process gets.}
-function dosgivesharedmem(p:pointer;pid,flag:longint):word;
+ P			= Pointer to the shared memory object.
+ PID		= Process of destination process.
+ Flag		= Permissions the the destination process gets.}
+function DosGiveSharedMem(P:pointer;PID,Flag:longint):word;
 
 {Get access to a shared memory object.
 
- p          = Pointer to shared memory object.
- flag       = Permissions to ask.}
-function dosgetsharedmem(p:pointer;flag:longint):word;
+ P			= Pointer to shared memory object.
+ Flag		= Permissions to ask.}
+function DosGetSharedMem(P:pointer;Flag:longint):word;
 
 {Get access to a shared memory object that has a name.
 
- p          = Pointer to shared memory object.
- naa,       = Name of the memory object. (Starting with '\SHAREMEM\'.
- flag       = Permissions to ask.}
-function dosgetnamedsharedmem(var p:pointer;naam:Pchar;flag:longint):word;
-function dosgetnamedsharedmem(var p:pointer;const naam:string;
-                              flag:longint):word;
+ P			= Pointer to shared memory object.
+ Name		= Name of the memory object. (Starting with '\SHAREMEM\'.
+ Flag		= Permissions to ask.}
+function DosGetNamedSharedMem(var P:pointer;Name:PChar;Flag:longint):word;
+function DosGetNamedSharedMem(var P:pointer;const Name:string;
+							  Flag:longint):word;
 
 {Allocate memory so that it can later be shared with another program.
- p          = Reveives pointer to memory.
- naam       = Optional: name to give memory. Must start with '\SHAREMEM\'.
-              Use nil for the Pchar or '' for the string variant for no name.
- cm         = Number of bytes to allocate.}
-function dosallocsharedmem(var p:pointer;naam:Pchar;size,flag:longint):word;
-function dosallocsharedmem(var p:pointer;const naam:string;size,
-                           flag:longint):word;
+ P			= Reveives pointer to memory.
+ Name		= Optional: name to give memory. Must start with '\SHAREMEM\'.
+			  Use nil for the PChar or '' for the string variant for no name.
+ Size		= Number of bytes to allocate.}
+function DosAllocSharedMem(var P:pointer;Name:PChar;Size,Flag:longint):word;
+function DosAllocSharedMem(var P:pointer;const Name:string;Size,
+															Flag:longint):word;
 
 {Get the size and flags of a block of memory.
 
- p          = Pointer to the block of memory.
- size       = Receives block size.
- flag       = Receives the flags.}
-function dosquerymem(p:pointer;var size,flag:longint):word;
+ P			= Pointer to the block of memory.
+ Size		= Receives block size.
+ Flag		= Receives the flags.}
+function DosQueryMem(P:pointer;var Size,Flag:longint):word;
 
 {Allocate a block of memory in a heap.
- base       = Pointer to the start of the heap.
- p          = Receives pointer to the memory bock.
- cb         = Number of bytes to allocate.}
-function dossuballocmem(base:pointer;var p:pointer;size:longint):word;
+ Base		= Pointer to the start of the heap.
+ P			= Receives pointer to the memory bock.
+ Size		= Number of bytes to allocate.}
+function DosSubAllocMem(Base:pointer;var P:pointer;Size:longint):word;
 
 {Free a block of memory in a heap.
- base       = Pointer to the start of the heap.
- p          = Pointer to memory block to free.
- cb         = Number of bytes to free.}
-function dossubfreemem(base,p:pointer;size:longint):word;
+ Base		= Pointer to the start of the heap.
+ P			= Pointer to memory block to free.
+ Size		= Number of bytes to free.}
+function DosSubFreeMem(Base,P:pointer;Size:longint):word;
 
 {Turn a block of memory into a heap.
 
-base        = Pointer to memory block to turn into a heap.
-flag        = One or more of the mfsub_xxxx flags.
-cb          = Size of the requested heap.}
-function dossubsetmem(base:pointer;flag:longint;size:longint):word;
+Base		= Pointer to memory block to turn into a heap.
+Flag		= One or more of the mfSub_XXXX flags.
+Size		= Size of the requested heap.}
+function DosSubSetMem(Base:pointer;Flag,Size:longint):word;
 
 {Destroy a heap. (Memory remains allocated).
 
-base        = Pointer to the heap to destroy.}
-function dossubunsetmem(base:pointer):word;
+Base		= Pointer to the heap to destroy.}
+function DosSubUnsetMem(Base:pointer):word;
 
 {****************************************************************************
 
-                        Semaphore related routines
+						Semaphore related routines
 
 ****************************************************************************}
 
-const   smshared        = $0001;    {Semafore is shared.}
-        smMWwaitany     = $0002;    {Muxwait only: Wait until a semafore
-                                     is cleared.}
-        smMWwaitall     = $0004;    {Muxwait only: Wait until all semafores
-                                     are cleared.}
+const	smShared		= $0001;	{Semaphore is shared.}
+		smMWWaitAny		= $0002;	{MuxWait only: Wait until a semaphore
+									 is cleared.}
+		smMWWaitAll		= $0004;	{MuxWait only: Wait until all semaphores
+									 are cleared.}
 
-type   Psemrecord=^Tsemrecord;
-       Tsemrecord=record
-          semafore,                 {Handle of semafore to link.}
-          user:longint;
-       end;
+type   PSemRecord=^TSemRecord;
+	   TSemRecord=record
+		  Semaphore,				{Handle of semaphore to link.}
+		  User:longint;
+	   end;
 
-       Psemarray=^Tsemarray;
-       Tsemarray=array[0..$ffff] of Tsemrecord;
+	   PSemArray=^TSemArray;
+	   TSemArray=array[0..$ffff] of TSemRecord;
 
-{Create an event semafore.
- naam       = Optional: Name of semafore to create. Must start with '\SEM32\.
-              Use nil for Pchar or '' for string variant for noname. A
-              unnamed semafore is not shared unless the sm_shared flag is
-              set.
- handle     = Receives handle of semafore.
- attr       = One or more of the smxxxx constants.
- state      = Initial state: 0 = Reset (False), 1 = Posted (True).}
-function doscreateeventsem(naam:Pchar;var handle:longint;
-                           attr,state:longint):word;
-function doscreateeventsem(const naam:string;var handle:longint;
-                           attr,state:longint):word;
+{Create an event semaphore.
+ Name		= Optional: Name of semaphore to create. Must start with '\SEM32\.
+			  Use nil for PChar or '' for string variant for noname. A
+			  unnamed semaphore is not shared unless the sm_Shared flag is
+			  set.
+ Handle		= Receives handle of semaphore.
+ Attr		= One or more of the smXXXX constants.
+ State		= Initial state: 0 = Reset (false), 1 = Posted (true).}
+function DosCreateEventSem(Name:PChar;var Handle:longint;
+						   Attr,State:longint):word;
+function DosCreateEventSem(const Name:string;var Handle:longint;
+						   Attr,State:longint):word;
 
-{Open a semafore created by another process or thread.
+{Open a semaphore created by another process or thread.
 
- naam       = Name of semafore.
- handle     = Receives handle of semafore.}
-function dosopeneventsem(naam:Pchar;var handle:longint):word;
-function dosopeneventsem(const naam:string;var handle:longint):word;
+ Name		= Name of semaphore.
+ Handle		= Receives handle of semaphore.}
+function DosOpenEventSem(Name:PChar;var Handle:longint):word;
+function DosOpenEventSem(const Name:string;var Handle:longint):word;
 
-{Close an event semafore.
- handle     = Handle of semofore to close.}
-function doscloseeventsem(handle:longint):word;
+{Close an event semaphore.
+ Handle		= Handle of a semaphore to close.}
+function DosCloseEventSem(Handle:longint):word;
 
-{Reset an event semafore: probeer operation.
- handle     = Handle of semafore.
- postcount  = Number of times dosposteventsem has been called since last
-              reset.
+{Reset an event semaphore: *** probeer *** operation.
+ Handle		= Handle of semaphore.
+ PostCount	= Number of times DosPostEventSem has been called since last
+			  reset.
 
- Note:      Returns errorcode 300 if semafore is already reset.}
-function dosreseteventsem(handle:longint;var postcount:longint):word;
+ Note:		Returns errorcode 300 if semaphore is already reset.}
+function DosResetEventSem(Handle:longint;var PostCount:longint):word;
 
-{Post an event semafore: verhoog operation.
- handle     = Handle of semafore.
+{Post an event semaphore: *** verhoog *** operation.
+ Handle		= Handle of semaphore.
 
-Note:       Returns errorcode 299 if semafore is already posted.}
-function dosposteventsem(handle:longint):word;
+Note:		Returns errorcode 299 if semaphore is already posted.}
+function DosPostEventSem(Handle:longint):word;
 
-{Wait until an event semafore is posted (wait until verhoog operation).
- handle     = Handle of semafore.
- timeout    = Return with errorcode if timeout milliseconds have past and the
-              semafore is still reset. To return immideatly use 0,
-              to wait forever use -1.}
-function doswaiteventsem(handle,timeout:longint):word;
+{Wait until an event semaphore is posted (wait until *** verhoog *** operation).
+ Handle		= Handle of semaphore.
+ Timeout	= Return with errorcode if timeout milliseconds have past and the
+			  semaphore is still reset. To return immediately use 0,
+			  to wait forever use -1.}
+function DosWaitEventSem(Handle,Timeout:longint):word;
 
-{Check if an event semafore is posted (if a verhoog operation has been done).
- handle     = Handle of semafore.
- posted     = Receives number of times dosposteventsem was called since
-              the last reset.}
-function dosqueryeventsem(handle:longint;var posted:longint):word;
+{Check if an event semaphore is posted (if a *** verhoog *** operation has been done).
+ Handle		= Handle of semaphore.
+ Posted		= Receives number of times DosPostEventSem was called since
+			  the last reset.}
+function DosQueryEventSem(Handle:longint;var Posted:longint):word;
 
-{Create a Mutual Exclusion semafore (Mutex).
- naam       = Optional: Name to give semafore. Must start with '\SEM32\'.
-              Use nil for Pchar or '' for string variant to use no name.
-              If a name if used the semafore is shared.
- handle     = Receives handle of semafore.
- attr       = One or more of the smxxxx constants.
- state      = Initial state: (0=Unowned, 1=Owned.)}
-function doscreatemutexsem(naam:Pchar;var handle:longint;
-                           attr,state:longint):word;
-function doscreatemutexsem(const naam:string;var handle:longint;
-                           attr,state:longint):word;
+{Create a Mutual Exclusion semaphore (mutex).
+ Name		= Optional: Name to give to semaphore. Must start with '\SEM32\'.
+			  Use nil for PChar or '' for string variant to use no name.
+			  If a name if used the semaphore is shared.
+ Handle		= Receives handle of semaphore.
+ Attr		= One or more of the smXXXX constants.
+ State		= Initial state: (0=Unowned, 1=Owned.)}
+function DosCreateMutExSem(Name:PChar;var Handle:longint;
+						   Attr,State:longint):word;
+function DosCreateMutExSem(const Name:string;var Handle:longint;
+						   Attr,State:longint):word;
 
-{Open a shared mutex semafore.
- naam       = Name of semafore to open, always starts with '\SEM32\'.
- handle     = Receives handle to semafore.}
-function dosopenmutexsem(naam:Pchar;var handle:longint):word;
-function dosopenmutexsem(const naam:string;var handle:longint):word;
+{Open a shared mutex semaphore.
+ Name		= Name of semaphore to open, always starts with '\SEM32\'.
+ Handle		= Receives handle to semaphore.}
+function DosOpenMutExSem(Name:PChar;var Handle:longint):word;
+function DosOpenMutExSem(const Name:string;var Handle:longint):word;
 
-{Close a mutex semafore.
- handle     = Handle of semafore to close.}
-function dosclosemutexsem(handle:longint):word;
+{Close a mutex semaphore.
+ handle		= Handle of semaphore to close.}
+function DosCloseMutExSem(Handle:longint):word;
 
-{Request ownership of a mutex semafore. If the semafore is already owned the
- process is halted until the semafore is released.
- handle     = Handle of semafore.
- timeout    = Return with errorcode if the semafore is still owned after
-              timeout milliseconds.}
-function dosrequestmutexsem(handle,timeout:longint):word;
+{Request ownership of a mutex semaphore. If the semaphore is already owned the
+ process is halted until the semaphore is released.
+ Handle		= Handle of semaphore.
+ Timeout	= Return with errorcode if the semaphore is still owned after
+			  timeout milliseconds.}
+function DosRequestMutExSem(Handle,Timeout:longint):word;
 
-{Release the ownership of a mutex semafore.
- handle     = Handle of semafore to release.}
-function dosreleasemutexsem(handle:longint):word;
+{Release the ownership of a mutex semaphore.
+ Handle		= Handle of semaphore to release.}
+function DosReleaseMutExSem(Handle:longint):word;
 
-{Query the pid and tib of the owner of a mutex semafore.
- handle     = Handle of semafore.
- pid        = Receives process id of owner.
- tib        = Receives thread if of owner.
- count      = Number of threads (within and outside current process) waiting
-              for ownership of semafore.}
-function dosquerymutexsem(handle:longint;var pid,tid,count:longint):word;
+{Query the PID and TIB of the owner of a mutex semaphore.
+ Handle		= Handle of semaphore.
+ PID		= Receives process ID of owner.
+ TID		= Receives thread ID of owner.
+ Count		= Number of threads (within and outside current process) waiting
+			  for ownership of semaphore.}
+function DosQueryMutExSem(Handle:longint;var PID,TID,Count:longint):word;
 
-{Create a Multiple Wait (Muxwait) semafore.
- naam       = Optional: Name to give semafore. Must start with '\SEM32\'.
-              Use nil for Pchar or '' for string variant to use no name.
-              If a name if used the semafore is shared.
- handle     = Receives handle of semafore.
- csemrec    = Number of semafores to link muxwait semafore with.
- semarray   = Array of semafore records to link with muxwait semafore.
- attr       = One or more of the smxxxx constants.}
-function doscreatemuxwaitsem(naam:Pchar;var handle:longint;csemrec:longint;
-                             var semarray:Tsemarray;attr:longint):word;
-function doscreatemuxwaitsem(const naam:string;var handle:longint;
-                             csemrec:longint;var semarray:Tsemarray;
-                             attr:longint):word;
+{Create a Multiple Wait (MuxWait) semaphore.
+ Name		= Optional: Name to give semaphore. Must start with '\SEM32\'.
+			  Use nil for PChar or '' for string variant to use no name.
+			  If a name if used the semaphore is shared.
+ Handle		= Receives handle of semaphore.
+ CSemRec	= Number of semaphores to link muxwait semaphore with.
+ SemArray	= Array of semaphore records to link with muxwait semaphore.
+ Attr		= One or more of the smXXXX constants.}
+function DosCreateMuxWaitSem(Name:PChar;var Handle:longint;CSemRec:longint;
+							 var SemArray:TSemArray;Attr:longint):word;
+function DosCreateMuxWaitSem(const Name:string;var Handle:longint;
+							 CSemRec:longint;var SemArray:TSemArray;
+							 Attr:longint):word;
 
-{Open a muxwait semafore.
- naam       = Name of semafore to open.
- handle     = Receives handle of semafore.}
-function dosopenmuxwaitsem(naam:Pchar;var handle:longint):word;
-function dosopenmuxwaitsem(const naam:string;var handle:longint):word;
+{Open a MuxWait semaphore.
+ Name		= Name of semaphore to open.
+ Handle		= Receives handle of semaphore.}
+function DosOpenMuxWaitSem(Name:PChar;var Handle:longint):word;
+function DosOpenMuxWaitSem(const Name:string;var Handle:longint):word;
 
-{Close a mutex semafore.}
-function dosclosemuxwaitsem(handle:longint):word;
+{Close a MuxWait semaphore.}
+function DosCloseMuxWaitSem(Handle:longint):word;
 
-{Wait for the muxwait semafore to be cleared.
- handle     = Handle of semafore.
- timeout    = Timeout. See above.
- user       = Receives user value of the semafore that caused the muxwait
-              semafore to be cleared.}
-function doswaitmuxwaitsem(handle,timeout:longint;var user:longint):word;
+{Wait for the MuxWait semaphore to be cleared.
+ Handle		= Handle of semaphore.
+ Timeout	= Timeout. See above.
+ User		= Receives user value of the semaphore that caused the muxwait
+			  semaphore to be cleared.}
+function DosWaitMuxWaitSem(Handle,Timeout:longint;var User:longint):word;
 
-{Add a semafore to the muxwait semafore.
+{Add a semaphore to the MuxWait semaphore.
 
- handle     = Handle of semafore.
- semrec     = The semafore to add.}
-function dosaddmuxwaitsem(handle:longint;var semrec:Tsemrecord):word;
+ Handle		= Handle of semaphore.
+ SemRec		= The semaphore to add.}
+function DosAddMuxWaitSem(Handle:longint;var SemRec:TSemRecord):word;
 
-{Remove a semafore from the muxwait semafore.
- handle     = Handle of muxwait semafore.
- sem        = Handle of semafore to remove.}
-function dosdeletemuxwaitsem(handle,sem:longint):word;
+{Remove a semaphore from the MuxWait semaphore.
+ Handle		= Handle of muxwait semaphore.
+ Sem		= Handle of semaphore to remove.}
+function DosDeleteMuxWaitSem(Handle,Sem:longint):word;
 
-{Query the semafores from a muxwait semafore.
- handle     = Handle of semafore.
- csemrec    = Input: Size of our array. Output: Number of items in array.
- semrecs    = Array where Tsemrecords are stored.
- attr       = Flags used by creation of semafore.}
-function dosquerymuxwaitsem(handle:longint;var csemrec:longint;
-                            var semrecs:Tsemarray;var attr:longint):word;
+{Query the semaphores from a MuxWait semaphore.
+ Handle		= Handle of semaphore.
+ CSemRec	= Input: Size of our array. Output: Number of items in array.
+ SemRecs	= Array where TSemRecords are stored.
+ Attr		= Flags used by creation of semaphore.}
+function DosQueryMuxWaitSem(Handle:longint;var CSemRec:longint;
+							var SemRecs:TSemArray;var Attr:longint):word;
 
 {****************************************************************************
 
-                        Timing related routines.
+						Timing related routines.
 
 ****************************************************************************}
 
 
-type    Tdatetime=record
-            hour,
-            minute,
-            second,
-            sec100,
-            day,
-            month:byte;
-            year:word;
-            timezone:integer;
-            weekday:byte;
-        end;
-        Pdatetime=^Tdatetime;
+type	TDateTime=record
+			Hour,
+			Minute,
+			Second,
+			Sec100,
+			Day,
+			Month:byte;
+			Year:word;
+			TimeZone:integer;
+			WeekDay:byte;
+		end;
+		PDateTime=^TDateTime;
 
 
 {Get the date and time.}
-function dosgetdatetime(var buf:Tdatetime):word;
+function DosGetDateTime(var Buf:TDateTime):word;
 
 {Set the date and time.}
-function dossetdatetime(var buf:Tdatetime):word;
+function DosSetDateTime(var Buf:TDateTime):word;
 
 {Start a one shot timer.
- msec       = Number of miliseconds the timer will run.
- hsem       = Handle of event semafore that is posted when time has expired.
- TIMhandle  = Receives timer handle.}
-function dosasynctimer(msec:longint;hsem:longint;
-                       var TIMhandle:longint):word;
+ MSec		= Number of miliseconds the timer will run.
+ HSem		= Handle of event semaphore that is posted when time has expired.
+ TimHandle	= Receives timer handle.}
+function DosAsyncTimer(MSec,HSem:longint;
+					   var TimHandle:longint):word;
 
 {Start a cyclic timer.
- msec       = Number of miliseconds the timer will run.
- hsem       = Handle of event semafore that is posted when time has expired.
- TIMhandle  = Receives timer handle.}
-function dosstarttimer(msec:longint;hsem:longint;
-                       var TIMhandle:longint):word;
+ MSec		= Number of miliseconds the timer will run.
+ HSem		= Handle of event semaphore that is posted when time has expired.
+ TimHandle	= Receives timer handle.}
+function DosStartTimer(MSec,HSem:longint;
+					   var TimHandle:longint):word;
 
-{Stop a timer and destroy it's handle. There is no need to check for an
+{Stop a timer and destroy its handle. There is no need to check for an
  error code if you know your timer handle is correct.}
-function dosstoptimer(TIMhandle:longint):word;
+function DosStopTimer(TimHandle:longint):word;
 
 {Get the frequency of the high resolution timer.}
-function dostmrqueryfreq(var freq:longint):word;
+function DosTmrQueryFreq(var Freq:longint):word;
 
 {Get the current value of the high resolution timer.}
-function dostmrquerytime(var time:comp):word;
+function DosTmrQueryTime(var Time:comp):word;
 
 {****************************************************************************
 
-                             DLL specific routines.
+							 DLL specific routines.
 
 ****************************************************************************}
 
 {Load a DLL in memory if it is not yet loaded.
- objnaam        = When the DLL cannot be found, or one of the DLL's it needs
-                  cannot be found, the name of the DLL will be put here.
- objlen         = Size of the objnaam result buffer.
- DLLnaam        = Name of DLL to load. Do not give an extension or a path,
-                  just the name. OS/2 will automatically search through the
-                  LIBPATH for the DLL.
- handle         = Receives DLL handle.}
-function dosloadmodule(objnaam:Pchar;objlen:longint;DLLnaam:Pchar;
-                       var handle:longint):word;
-function dosloadmodule(var objnaam:string;objlen:longint;
-                       const DLLnaam:string;var handle:longint):word;
+ ObjName		= When the DLL cannot be found, or one of the DLL's it needs
+				  cannot be found, the name of the DLL will be put here.
+ ObjLen			= Size of the ObjName result buffer.
+ DLLName		= Name of DLL to load. Do not give an extension or a path,
+				  just the name. OS/2 will automatically search through the
+				  LIBPATH for the DLL.
+ Handle			= Receives DLL handle.}
+function DosLoadModule(ObjName:PChar;ObjLen:longint;DLLName:PChar;
+					   var Handle:longint):word;
+function DosLoadModule(var ObjName:string;ObjLen:longint;
+					   const DLLName:string;var Handle:longint):word;
 
 {Let OS/2 know that we do not need a DLL anymore. If we were the only process
  using the DLL, it is unloaded.}
-function dosfreemodule(handle:longint):word;
+function DosFreeModule(Handle:longint):word;
 
 {Get the address of a procedure.
- handle         = DLL handle,
- ordinal        = Procedure to get address form. 0=Use it's name.
- procnaam       = Name of the procedure to query address for. Must be nil
-                  for Pchar or '' for string variant if ordinal is nonzero.
- adres          = Receives address of procedure.}
-function dosqueryprocaddr(handle,ordinal:longint;procnaam:Pchar;
-                          var adres:pointer):word;
-function dosqueryprocaddr(handle,ordinal:longint;
-                          const procnaam:string;var adres:pointer):word;
+ Handle			= DLL handle,
+ Ordinal		= Procedure to get address for. 0=Use its name.
+ ProcName		= Name of the procedure to query address for. Must be nil
+				  for PChar or '' for string variant if Ordinal is nonzero.
+ Address		= Receives address of procedure.}
+function DosQueryProcAddr(Handle,Ordinal:longint;ProcName:PChar;
+													 var Address:pointer):word;
+function DosQueryProcAddr(Handle,Ordinal:longint;const ProcName:string;
+													 var Address:pointer):word;
 
 {Get the handle of a loaded DLL or a loaded executable.
- DLLnaam        = Name of DLL.
- handle         = Receives DLL handle if present.}
-function dosquerymodulehandle(DLLnaam:Pchar;var handle:longint):word;
-function dosquerymodulehandle(const DLLnaam:string;var handle:longint):word;
+ DLLName		= Name of DLL.
+ Handle			= Receives DLL handle if present.}
+function DosQueryModuleHandle(DLLName:PChar;var Handle:longint):word;
+function DosQueryModuleHandle(const DLLName:string;var Handle:longint):word;
 
 {Get the pathname of a loaded DLL or a loaded executable.
 
- handle         = Handle of DLL.
- naamlen        = Maximum length of char array.
- naam           = Chararray (or string) where name is returned.}
-function dosquerymodulename(handle,naamlen:longint;naam:Pchar):word;
-{function dosquerymodulename(handle:longint;var naam:openstring):word;}
+ Handle			= Handle of DLL.
+ NameLen		= Maximum length of char array.
+ Name			= PChar (or string) where name is returned.}
+function DosQueryModuleName(Handle,NameLen:longint;Name:Pchar):word;
+{function DosQueryModuleName(Handle:longint;var Name:OpenString):word;}
 
-const   pt16bit=0;
-        pt32bit=1;
+const	pt16bit=0;
+		pt32bit=1;
 
 {Return if a procedure is either 16 or 32 bit.
- handle         = Handle of DLL.
- ordinal        = DLL index number. 0 means use naam.
- naam           = Must be nil for Pchar or '' for string variant if ordinal
-                  is zero. Otherwise it contains the procname.
- proctype       = One of the ptxxxx constants.}
-function dosqueryproctype(handle,ordinal:longint;naam:Pchar;
-                          var proctype:longint):word;
-function dosqueryproctype(handle,ordinal:longint;const naam:string;
-                          var proctype:longint):word;
+ Handle			= Handle of DLL.
+ Ordinal		= DLL index number. 0 means use Name.
+ Name			= Must be nil for PChar or '' for string variant if Ordinal
+				  is zero. Otherwise it contains the procedure name.
+ ProcType		= One of the ptXXXX constants.}
+function DosQueryProcType(Handle,Ordinal:longint;Name:PChar;
+						  var ProcType:longint):word;
+function DosQueryProcType(Handle,Ordinal:longint;const Name:string;
+						  var ProcType:longint):word;
 
 {****************************************************************************
 
-                           Resource related routines.
+						   Resource related routines.
 
 ****************************************************************************}
 
 {Possible resource types:}
 
-const   rtpointer       =  1;       {Mouse pointer.}
-        rtbitmap        =  2;       {Bitmap}
-        rtmenu          =  3;       {Menu template.}
-        rtdialog        =  4;       {Dialog template.}
-        rtstring        =  5;       {A string table.}
-        rtfontdir       =  6;       {Font directory.}
-        rtfont          =  7;       {A font.}
-        rtacceltable    =  8;       {Accelerator table.}
-        rtrcdata        =  9;       {Binary data.}
-        rtmessage       = 10;       {Error message table.}
-        rtdlginclude    = 11;       {Dialog include filename.}
-        rtvkeytbl       = 12;       {Key to vkey tables.}
-        rtkeytbl        = 13;       {Key to ugl tables.}
-        rtchartbl       = 14;       {Glyph to character tables.}
-        rtdisplayinfo   = 15;       {Screen display information.}
-        rtfkashort      = 16;       {Function key area short form.}
-        rtfkalong       = 17;       {Function key area long form.}
-        rthelptable     = 18;       {Help table.}
-        rthelpsubtable  = 19;       {Sub help table.}
-        rtfddir         = 20;       {DBCS unique/font driver directory.}
-        rtfd            = 21;       {DBCS unique/font driver.}
+const	rtPointer		=  1;		{Mouse pointer.}
+		rtBitmap		=  2;		{Bitmap}
+		rtMenu			=  3;		{Menu template.}
+		rtDialog		=  4;		{Dialog template.}
+		rtString		=  5;		{A string table.}
+		rtFontDir		=  6;		{Font directory.}
+		rtFont			=  7;		{A font.}
+		rtAccelTable	=  8;		{Accelerator table.}
+		rtRcData		=  9;		{Binary data.}
+		rtMessage		= 10;		{Error message table.}
+		rtDlgInclude	= 11;		{Dialog include filename.}
+		rtVKeyTbl		= 12;		{Key to vkey tables.}
+		rtKeyTbl		= 13;		{Key to ugl tables.}
+		rtCharTbl		= 14;		{Glyph to character tables.}
+		rtDisplayInfo	= 15;		{Screen display information.}
+		rtFKAShort		= 16;		{Function key area short form.}
+		rtFKALong		= 17;		{Function key area long form.}
+		rtHelpTable		= 18;		{Help table.}
+		rtHelpSubTable	= 19;		{Sub help table.}
+		rtFDDir			= 20;		{DBCS unique/font driver directory.}
+		rtFD			= 21;		{DBCS unique/font driver.}
 
 {Get the address of a resource object.
- handle         = Handle of DLL (or executable) to get resource from.
- restype        = One of the RT_xxxx constants.
- resnaam        = Number associated to resource object by resource compiler.}
-function dosgetresource(handle,restype,resnaam:longint;var p:pointer):word;
+ Handle			= Handle of DLL (or executable) to get resource from.
+ ResType		= One of the rtXXXX constants.
+ ResName		= Number associated to resource object by resource compiler.}
+function DosGetResource(Handle,ResType,ResName:longint;var P:pointer):word;
 
 {Remove a resource object from memory.
- p              = Pointer to resource.}
-function dosfreeresource(p:pointer):word;
+ P				= Pointer to resource.}
+function DosFreeResource(P:pointer):word;
 
 {Get the size of a resource object.
- handle         = Handle to DLL (or executable).
- idt            = One of the RT_xxxx constants.
- idn            = Number associated to resource object by resource compiler.
- size           = Receives resource size.}
-function dosqueryresourcesize(handle,idt,idn:longint;var size:longint):word;
+ Handle			= Handle to DLL (or executable).
+ IDT			= One of the rtXXXX constants.
+ IDN			= Number associated to resource object by resource compiler.
+ Size			= Receives resource size.}
+function DosQueryResourceSize(Handle,IDT,IDN:longint;var Size:longint):word;
 
 
 {****************************************************************************
 
-                   Country and codepage specific routines.
+				   Country and codepage specific routines.
 
 ****************************************************************************}
 
-type    Tcountrycode=record
-            country,            {Country to query info about (0=current).}
-            codepage:longint;   {Code page to query info about (0=current).}
-        end;
+type	TCountryCode=record
+			Country,			{Country to query info about (0=current).}
+			CodePage:longint;	{Code page to query info about (0=current).}
+		end;
+		PCountryCode=^TCountryCode;
+		CountryCode=TCountryCode;
 
-        Ttimefmt=(clock12,clock24);
+		TTimeFmt=(Clock12,Clock24);
 
-        Tcountryinfo=record
-            country,codepage,               {Country and codepage requested.}
-            dateformat:longint;             {1=ddmmyy 2=yymmdd 3=mmddyy}
-            currencyunit:array[0..4] of char;
-            thousandseparator:char;         {Thousands separator.}
-            zero1:byte;                     {Always zero.}
-            decimalseparator:char;          {Decimals separator,}
-            zero2:byte;
-            dateseparator:char;             {Date separator.}
-            zero3:byte;
-            timeseparator:char;             {Time separator.}
-            zero4:byte;
-            currencyformat,                 {Bit field:
-                                             Bit 0: 0=indicator before value
-                                                    1=indicator after value
-                                             Bit 1: 1=insert space after
-                                                      indicator.
-                                             Bit 2: 1=Ignore bit 0&1, replace
-                                                      decimal separator with
-                                                      indicator.}
-            decimalplace:byte;              {Number of decimal places used in
-                                             currency indication.}
-            timeformat:Ttimefmt;            {12/24 hour.}
-            reserve1:array[0..1] of word;
-            dataseparator:char;             {Data list separator.}
-            zero5:byte;
-            reserve2:array[0..4] of word;
-        end;
-        Pcountryinfo=^Tcountryinfo;
+		TCountryInfo=record
+			Country,CodePage:longint;		{Country and codepage requested.}
+			case byte of
+			0:(
+			DateFormat:longint;				{1=ddmmyy 2=yymmdd 3=mmddyy}
+			CurrencyUnit:array[0..4] of char;
+			ThousandSeparator:char;			{Thousands separator.}
+			Zero1:byte;						{Always zero.}
+			DecimalSeparator:char;			{Decimals separator,}
+			Zero2:byte;
+			DateSeparator:char;				{Date separator.}
+			Zero3:byte;
+			TimeSeparator:char;				{Time separator.}
+			Zero4:byte;
+			CurrencyFormat,					{Bit field:
+											 Bit 0: 0=indicator before value
+													1=indicator after value
+											 Bit 1: 1=insert space after
+													  indicator.
+											 Bit 2: 1=Ignore bit 0&1, replace
+													  decimal separator with
+													  indicator.}
+			DecimalPlace:byte;				{Number of decimal places used in
+											 currency indication.}
+			TimeFormat:TTimeFmt;			{12/24 hour.}
+			Reserve1:array[0..1] of word;
+			DataSeparator:char;				{Data list separator}
+			Zero5:byte;
+			Reserve2:array[0..4] of word);
+			1:(
+			fsDateFmt:longint;				{1=ddmmyy 2=yymmdd 3=mmddyy}
+			szCurrency:array[0..4] of char; {null terminated currency symbol}
+			szThousandsSeparator:array[0..1] of char;
+											{Thousands separator + #0}
+			szDecimal:array[0..1] of char;	{Decimals separator + #0}
+			szDateSeparator:array[0..1] of char;
+											{Date separator + #0}
+			szTimeSeparator:array[0..1] of char;
+											{Time separator + #0}
+			fsCurrencyFmt,					{Bit field:
+											 Bit 0: 0=indicator before value
+													1=indicator after value
+											 Bit 1: 1=insert space after
+													  indicator.
+											 Bit 2: 1=Ignore bit 0&1, replace
+													  decimal separator with
+													  indicator}
+			cDecimalPlace:byte;				{Number of decimal places used in
+											 currency indication}
+			fsTimeFmt:byte;					{0=12,1=24 hours}
+			abReserved1:array[0..1] of word;
+			szDataSeparator:array[0..1] of char;
+											{Data list separator + #0}
+			abReserved2:array[0..4] of word);
+		end;
+		PCountryInfo=^TCountryInfo;
+		CountryInfo=TCountryInfo;
 
-        TDBCSrange=record
-            start,stop:byte;
-        end;
+		TDBCSRange=record
+			Start,Stop:byte;
+		end;
 
-        TDBCSarray=array[0..$ffff] of TDBCSrange;
-        PDBCSarray=^TDBCSarray;
+		TDBCSArray=array[0..$ffff] of TDBCSRange;
+		PDBCSArray=^TDBCSArray;
 
-const   currentcountry:Tcountrycode=(country:0;codepage:0);
+const	CurrentCountry:TCountryCode=(Country:0;CodePage:0);
 
 {Get country specific information.
-    cb          = Size of our datastructure. (sizeof(Tcountryinfo))
-    cbactual    = Size of OS/2's datastructure. cbactual bytes of
-                  our Tcountryinfo have been filled.}
-function dosqueryctryinfo(cb:longint;var country:Tcountrycode;
-                          var res:Tcountryinfo;var cbactual:longint):word;
+	Size		= Size of our datastructure. (SizeOf(TCountryInfo))
+	ActualSize	= Size of OS/2's datastructure. ActualSize bytes of
+				  our TCountryInfo have been filled.}
+function DosQueryCtryInfo(Size:longint;var Country:TCountryCode;
+						  var Res:TCountryInfo;var ActualSize:longint):word;
 
 {Get info about a code page with a DBCS character set.}
-function dosqueryDBCSenv(cb:longint;var country:Tcountrycode;buf:Pchar):word;
+function DosQueryDBCSEnv(Size:longint;var Country:TCountryCode;Buf:Pchar):word;
 
 {Convert a string to uppercase.
-    cb          = Length of string.
-    country     = Country and codepage for converting.
-    Astring     = String to convert.}
-function dosmapcase(cb:longint;var country:Tcountrycode;
-                    Astring:Pchar):word;
-function dosmapcase(var country:Tcountrycode;
-                    var Astring:string):word;
+	Size		= Length of string.
+	Country		= Country and codepage for converting.
+	AString		= String to convert.}
+function DosMapCase(Size:longint;var Country:TCountryCode;
+					AString:PChar):word;
+function DosMapCase(var Country:TCountryCode;
+					var AString:string):word;
 
-{Get a collate table. (A table which says which character if a character is
- smaller than another.
-    cb          = Length of the databuffer the program has.
-    country     = Country to query table for. (0,0) is default country and
-                  codepage.
-    buf         = Buffer to return table in. It's filled with the sort
-                  weights of the ascii code. For example the 128th byte
-                  contains the weight for ascii code 128.
-    tablelen    = Length of collating table.}
-function dosquerycollate(cb:longint;var country:Tcountrycode;
-                         buf:Pbytearray;var tablelen:longint):word;
+{Get a collate table (a table for comparing which character is smaller and
+ which one is greater).
+	Size		= Length of the databuffer the program has.
+	Country		= Country to query table for. (0,0) is default country and
+				  codepage.
+	Buf			= Buffer to return table in. It's filled with the sort
+				  weights of the ascii code. For example the 128th byte
+				  contains the weight for ascii code 128.
+	TableLen	= Length of collating table.}
+function DosQueryCollate(Size:longint;var Country:TCountryCode;
+						 Buf:PByteArray;var TableLen:longint):word;
 
-{Get the current codepage. The Pwordarray is filled with the current code
+{Get the current codepage. The PWordArray is filled with the current code
  page followed by alternative codepages.}
-function dosquerycp(cb:longint;codepages:Pwordarray;var actcb:longint):word;
+function DosQueryCP(Size:longint;CodePages:PWordArray;
+													 var ActSize:longint):word;
 
 {Change the codepage, but only for the current process.}
-function dossetprocesscp(cp:longint):word;
+function DosSetProcessCP(CP:longint):word;
 
 {****************************************************************************
 
-                       Exception handling related functions
+					   Exception handling related functions
 
 ****************************************************************************}
 
 
 {Exception constants.}
-const       XCPT_continue_search            = $00000000;
-            XCPT_continue_execution         = $ffffffff;
-            XCPT_continue_stop              = $00716668;
+const		XCPT_Continue_Search			= $00000000;
+			XCPT_Continue_Execution			= $ffffffff;
+			XCPT_Continue_Stop				= $00716668;
 
-            XCPT_signal_intr                = $1;
-            XCPT_signal_killproc            = $3;
-            XCPT_signal_break               = $4;
+			XCPT_Signal_Intr				= $1;
+			XCPT_Signal_KillProc			= $3;
+			XCPT_Signal_Break				= $4;
 
-            XCPT_fatal_exception            = $c0000000;
-            XCPT_severity_code              = $c0000000;
-            XCPT_customer_code              = $20000000;
-            XCPT_facility_code              = $1fff0000;
-            XCPT_exception_code             = $0000ffff;
+			XCPT_Fatal_Exception			= $c0000000;
+			XCPT_Severity_Code				= $c0000000;
+			XCPT_Customer_Code				= $20000000;
+			XCPT_Facility_Code				= $1fff0000;
+			XCPT_Exception_Code				= $0000ffff;
 
-            XCPT_unkwown_access             = $00000000;
-            XCPT_read_access                = $00000001;
-            XCPT_write_access               = $00000002;
-            XCPT_execute_access             = $00000004;
-            XCPT_space_access               = $00000008;
-            XCPT_limit_access               = $00000010;
-            XCPT_data_unknown               = $ffffffff;
+			XCPT_Unknown_Access				= $00000000;
+			XCPT_Read_Access				= $00000001;
+			XCPT_Write_Access				= $00000002;
+			XCPT_Execute_Access				= $00000004;
+			XCPT_Space_Access				= $00000008;
+			XCPT_Limit_Access				= $00000010;
+			XCPT_Data_Unknown				= $ffffffff;
 
-            XCPT_guard_page_violation       = $80000001;
-            XCPT_unable_to_grow_stack       = $80010001;
-            XCPT_access_violation           = $c0000005;
-            XCPT_in_page_error              = $c0000006;
-            XCPT_illegal_instruction        = $c000001c;
-            XCPT_invalid_lock_sequence      = $c000001d;
-            XCPT_noncontinuable_exception   = $c0000024;
-            XCPT_invalid_disposition        = $c0000025;
-            XCPT_unwind                     = $c0000026;
-            XCPT_bad_stack                  = $c0000027;
-            XCPT_invalid_unwind_target      = $c0000028;
-            XCPT_array_bounds_exceeded      = $c0000093;
-            XCPT_float_denormal_operand     = $c0000094;
-            XCPT_float_divide_by_zero       = $c0000095;
-            XCPT_float_inexact_result       = $c0000096;
-            XCPT_float_invalid_operation    = $c0000097;
-            XCPT_float_overflow             = $c0000098;
-            XCPT_float_stack_check          = $c0000099;
-            XCPT_float_underflow            = $c000009a;
-            XCPT_integer_divide_by_zero     = $c000009b;
-            XCPT_integer_overflow           = $c000009c;
-            XCPT_privileged_instruction     = $c000009d;
-            XCPT_datatype_misalignment      = $c000009e;
-            XCPT_breakpoint                 = $c000009f;
-            XCPT_single_step                = $c00000a0;
-            XCPT_process_terminate          = $c0010001;
-            XCPT_async_process_terminate    = $c0010002;
-            XCPT_signal                     = $c0010003;
+			XCPT_Guard_Page_Violation		= $80000001;
+			XCPT_Unable_To_Grow_Stack		= $80010001;
+			XCPT_Access_Violation			= $c0000005;
+			XCPT_In_Page_Error				= $c0000006;
+			XCPT_Illegal_Instruction		= $c000001c;
+			XCPT_Invalid_Lock_Sequence		= $c000001d;
+			XCPT_Noncontinuable_Exception	= $c0000024;
+			XCPT_Invalid_Disposition		= $c0000025;
+			XCPT_Unwind						= $c0000026;
+			XCPT_Bad_Stack					= $c0000027;
+			XCPT_Invalid_Unwind_Target		= $c0000028;
+			XCPT_Array_Bounds_Exceeded		= $c0000093;
+			XCPT_Float_Denormal_Operand		= $c0000094;
+			XCPT_Float_Divide_By_Zero		= $c0000095;
+			XCPT_Float_Inexact_Result		= $c0000096;
+			XCPT_Float_Invalid_Operation	= $c0000097;
+			XCPT_Float_Overflow				= $c0000098;
+			XCPT_Float_Stack_Check			= $c0000099;
+			XCPT_Float_Underflow			= $c000009a;
+			XCPT_Integer_Divide_By_Zero		= $c000009b;
+			XCPT_Integer_Overflow			= $c000009c;
+			XCPT_Privileged_Instruction		= $c000009d;
+			XCPT_Datatype_Misalignment		= $c000009e;
+			XCPT_Breakpoint					= $c000009f;
+			XCPT_Single_Step				= $c00000a0;
+			XCPT_Process_Terminate			= $c0010001;
+			XCPT_Async_Process_Terminate	= $c0010002;
+			XCPT_Signal						= $c0010003;
 
-type        Pexceptionregistrationrecord=^Texceptionregistrationrecord;
-            Pexceptionreportrecord=^Texceptionreportrecord;
-            Pcontextrecord=^Tcontextrecord;
+type		PExceptionRegistrationRecord=^TExceptionRegistrationRecord;
+			PExceptionReportRecord=^TExceptionReportRecord;
+			PContextRecord=^TContextRecord;
 
-            Texceptionhandler=procedure(report:Pexceptionreportrecord;
-                                        regrec:Pexceptionregistrationrecord;
-                                        context:Pcontextrecord;
-                                        dispcontext:pointer);
+			TExceptionHandler=procedure(Report:PExceptionReportRecord;
+										RegRec:PExceptionRegistrationRecord;
+										Context:PContextRecord;
+										DispContext:pointer);
 
-            Texceptionregistrationrecord=record
-                prev_structure:Pexceptionregistrationrecord;
-                exceptionhandler:Texceptionhandler;
-            end;
+			TExceptionRegistrationRecord=record
+				Prev_Structure:PExceptionRegistrationRecord;
+				ExceptionHandler:TExceptionHandler;
+			end;
 
-            Texceptionreportrecord=record
-                exception_num,
-                handlerflags:longint;
-                nested_reprec:Pexceptionreportrecord;
-                address:pointer;
-                paramcount:longint;
-                parameters:array [0..9999] of longint;
-            end;
+			TExceptionReportRecord=record
+				Exception_Num,
+				HandlerFlags:longint;
+				Nested_RepRec:PExceptionReportRecord;
+				Address:pointer;
+				ParamCount:longint;
+				Parameters:array [0..9999] of longint;
+			end;
 
-            Tcontextrecord=record
-                contextflags:longint;
-                env:array[1..7] of longint;
-                fpustack:array[0..7] of extended;
-                reg_gs,
-                reg_fs,
-                reg_es,
-                reg_ds,
-                reg_edi,
-                reg_esi,
-                reg_eax,
-                reg_ebx,
-                reg_ecx,
-                reg_edx,
-                reg_ebp,
-                reg_eip,
-                reg_cs,
-                flags,
-                reg_esp,
-                reg_ss:longint;
-            end;
+			TContextRecord=record
+				ContextFlags:longint;
+				Env:array[1..7] of longint;
+				FPUStack:array[0..7] of extended;
+				Reg_GS,
+				Reg_FS,
+				Reg_ES,
+				Reg_DS,
+				Reg_EDI,
+				Reg_ESI,
+				Reg_EAX,
+				Reg_EBX,
+				Reg_ECX,
+				Reg_EDX,
+				Reg_EBP,
+				Reg_EIP,
+				Reg_CS,
+				Flags,
+				Reg_ESP,
+				Reg_SS:longint;
+			end;
 
 {Warning!!! Never use presentation manager functions from exception
  handlers!}
 
-{Install an exceptionhandler. The prev_structure field of regrec should be
-nil, it will be filled in be OS/2. Regrec must be on the stack: It must be a
-local variabele.}
-function dossetexceptionhandler(var regrec:Texceptionregistrationrecord
-                                ):word;
+{Install an exceptionhandler. The Prev_Structure field of RegRec should be
+nil, it will be filled in be OS/2. RegRec must be on the stack: It must be a
+local variable.}
+function DosSetExceptionHandler(var RegRec:TExceptionRegistrationRecord):word;
 
 {Uninstall an exception handler.}
-function dosunsetexceptionhandler(var regrec:Texceptionregistrationrecord
-                                  ):word;
+function DosUnSetExceptionHandler(var RegRec:TExceptionRegistrationRecord
+								  ):word;
 
 {Trigger an exception.}
-function dosraiseexception(var excpt:Texceptionreportrecord):word;
+function DosRaiseException(var Excpt:TExceptionReportRecord):word;
 
 {Send a signal to a process.}
-function dossendsignalexception(pid,exception:longint):word;
+function DosSendSignalException(PID,Exception:longint):word;
 
 {Call and remove a set of exceptionhandlers}
-function dosunwindexception(var handler:Texceptionregistrationrecord;
-                            targetIP:pointer;
-                            var reprec:Texceptionreportrecord):word;
+function DosUnwindException(var Handler:TExceptionRegistrationRecord;
+							TargetIP:pointer;
+							var RepRec:TExceptionReportRecord):word;
 
-{Full screen applications can get ctrl-c and ctrl-brk focus. For all
- processed sharing one screen, only only v=can have ctrl-c focus.
- enable     = 0 = Release focus, 1 = Get focus.
- times      = Number of times focus has been get minus number of times it
-              has been released.}
-function dossetsignalexceptionfocus(enable:longint;var times:longint):word;
+{Full screen applications can get Ctrl-C and Ctrl-Break focus. For all
+ processes sharing one screen, only one can have Ctrl-C focus.
+ Enable		= 0 = Release focus, 1 = Get focus.
+ Times		= Number of times focus has been get minus number of times it
+			  has been released.}
+function DosSetSignalExceptionFocus(Enable:longint;var Times:longint):word;
 
 {Tell OS/2 that if an exception occurs, it must queue it up, until a
- dosExitMustComplete follows. Urgent exceptions still occur. The only
+ DosExitMustComplete follows. Urgent exceptions still occur. The only
  possible error is that the nesting becomes too high, so error checking
  is only needed in seldom cases.
- nesting    = Number of dosEnterMustComplete calls minus number of
-              dosExitMustComplete calls.}
-function dosentermustcomplete(var nesting:longint):word;
+ Nesting	= Number of DosEnterMustComplete calls minus number of
+			  DosExitMustComplete calls.}
+function DosEnterMustComplete(var Nesting:longint):word;
 
 {Tell OS/2 that it can send exceptions again. See above}
-function dosexitmustcomplete(var nesting:longint):word;
+function DosExitMustComplete(var Nesting:longint):word;
 
 {Tell we want further signal exceptions.
- signalnum  = Signal nummer to acknowlegde.}
-function dosacknowledgesignalexception(signalnum:longint):word;
+ SignalNum	= Signal nummer to acknowlegde.}
+function DosAcknowledgeSignalException(SignalNum:longint):word;
 
 
 {****************************************************************************
 
-                           Queue related routines.
+						   Queue related routines.
 
 ****************************************************************************}
 
-type    Trequestdata=record
-            pid,                {ID iof process that wrote element.}
-            data:longint;       {Information from process writing the data.}
-        end;
-        Prequestdata=^Trequestdata;
+type	TRequestData=record
+			PID,				{ID of process that wrote element.}
+			Data:longint;		{Information from process writing the data.}
+		end;
+		PRequestData=^TRequestData;
 
-{Usefull constants for priority parameters.}
-const   quFIFO=0;
-        quLIFO=1;
-        qupriority=2;
-        qunoconvert_address=0;
-        quconvert_address=4;
+{Useful constants for priority parameters.}
+const	quFIFO=0;
+		quLIFO=1;
+		quPriority=2;
+		quNoConvert_Address=0;
+		quConvert_Address=4;
 
 {Close a queue. If the calling process has created the queue, it is
  destroyed. If you can guarantee the handle is correct, there is no need
  to check for error codes.}
-function dosclosequeue(handle:longint):word;
+function DosCloseQueue(Handle:longint):word;
 
 {Create a queue. The process that creates a queue, owns that queue, and is
  the only one who can read from that queue. Other processes can only write
  to that queue. The queuename must have the format '\QUEUES\name.ext' .
 
- handle         = Receives queue handle.
- priority       = 0 = Use FIFO system.
-                  1 = Use LIFO system.
-                  2 = Use priority system.
-                  Add 4 to convert addresses of data inserted by 16-bit
-                  processes to 32 bit pointers.
- naam           = Name of queue to create.}
-function doscreatequeue(var handle:longint;priority:longint;
-                        naam:Pchar):word;
-function doscreatequeue(var handle:longint;priority:longint;
-                        const naam:string):word;
+ Handle			= Receives queue handle.
+ Priority		= 0 = Use FIFO system.
+				  1 = Use LIFO system.
+				  2 = Use priority system.
+				  Add 4 to convert addresses of data inserted by 16-bit
+				  processes to 32 bit pointers.
+ Name			= Name of queue to create.}
+function DosCreateQueue(var Handle:longint;Priority:longint;
+						Name:PChar):word;
+function DosCreateQueue(var Handle:longint;Priority:longint;
+						const Name:string):word;
 
 {Open an existing queue. You cannot read from the queue unless you are the
  process that created it. The name must have the format '\QUEUES\name.ext'}
-function dosopenqueue(var parent_pid:longint;var handle:longint;
-                      naam:Pchar):word;
-function dosopenqueue(var parent_pid:longint;var handle:longint;
-                      const naam:string):word;
+function DosOpenQueue(var Parent_PID:longint;var Handle:longint;
+					  Name:PChar):word;
+function DosOpenQueue(var Parent_PID:longint;var Handle:longint;
+					  const Name:string):word;
 
 {Read a record from a queue, but do not remove it from the queue.
- handle         = Handle of queue to read from.
- reqbuffer      = Receives information about read data.
- datalen        = Receives length of data read.
- dataptr        = Receives the address of the data.
- element        = 0 = Return first element in queue.
-                  1 = Return next element in queue. Can be repeated.
-                      Current element number is returned here, for use
-                      with dosreadqueue.
- wait           = 0 = Wait until there is a queue element available.
-                  1 = Return with an error when queue is empty.
- priority       = Receives priority of queue record (1..15).
- Asem           = Use NIL if wait=0, give a handle of a semafore when
-                  wait=1. The semafore will be cleared when there is an
-                  element inserted it the queue.
-                  !! event queue}
-function dospeekqueue(handle:longint;var reqbuffer:Trequestdata;
-                      var datalen:longint;var dataptr:pointer;
-                      var element:longint;wait:longint;
-                      var priority:byte;Asem:longint):word;
+ Handle			= Handle of queue to read from.
+ ReqBuffer		= Receives information about read data.
+ DataLen		= Receives length of data read.
+ DataPtr		= Receives the address of the data.
+ Element		= 0 = Return first element in queue.
+				  1 = Return next element in queue. Can be repeated.
+					  Current element number is returned here, for use
+					  with DosReadQueue.
+ Wait			= 0 = Wait until there is a queue element available.
+				  1 = Return with an error when queue is empty.
+ Priority		= Receives priority of queue record (1..15).
+ ASem			= Use NIL if Wait=0, give a handle of a semaphore when
+				  Wait=1. The semaphore will be cleared when there is an
+				  element inserted it the queue.
+				  !! event queue}
+function DosPeekQueue(Handle:longint;var ReqBuffer:TRequestData;
+					  var DataLen:longint;var DataPtr:pointer;
+					  var Element:longint;Wait:longint;
+					  var Priority:byte;ASem:longint):word;
 
 {Empty a queue. You must be the process the created the queue.}
-function dospurgequeue(handle:longint):word;
+function DosPurgeQueue(Handle:longint):word;
 
 {Return the number of elements in the queue.}
-function dosqueryqueue(handle:longint;var count:longint):word;
+function DosQueryQueue(Handle:longint;var Count:longint):word;
 
 {Read a record from a queue, but do not remove it from the queue.
- handle         = Handle of queue to read from.
- reqbuffer      = Receives information about read data.
- datalen        = Receives length of data read.
- dataptr        = Receives the address of the data.
- element        = 0 = Return first element in queue.
-                  Otherwise: Return the element numbered with this.
- wait           = 0 = Wait until there is a queue element available.
-                  1 = Return with an error when queue is empty.
- priority       = Receives priority of queue record (1..15).
- Asem           = Use NIL if wait=0, give a handle of a semafore when
-                  wait=1. The semafore will be cleared when there is an
-                  element inserted it the queue.
-                  !! event queue}
-function dosreadqueue(handle:longint;var reqbuffer:Trequestdata;
-                      var datalen:longint;var dataptr:pointer;
-                      element,wait:longint;var priority:byte;
-                      Asem:longint):word;
+ Handle			= Handle of queue to read from.
+ ReqBuffer		= Receives information about read data.
+ DataLen		= Receives length of data read.
+ DataPtr		= Receives the address of the data.
+ Element		= 0 = Return first element in queue.
+				  Otherwise: Return the element numbered with this.
+ Wait			= 0 = Wait until there is a queue element available.
+				  1 = Return with an error when queue is empty.
+ Priority		= Receives priority of queue record (1..15).
+ ASem			= Use NIL if Wait=0, give a handle of a semaphore when
+				  Wait=1. The semaphore will be cleared when there is an
+				  element inserted it the queue.
+				  !! event queue}
+function DosReadQueue(Handle:longint;var ReqBuffer:TRequestData;
+					  var DataLen:longint;var DataPtr:pointer;
+					  Element,Wait:longint;var Priority:byte;
+					  ASem:longint):word;
 
 {Write a data record to a queue.
- handle         = Handle of queue to write to.
- request        = Value that will be inserted in the requestdata field when
-                  element is read from queue.
- datalen        = Size of data to write.
- databuf        = Data to write.
- priority       = Priority of data in buffer. On relevant when queue is
-                  created with priority support.}
-function doswritequeue(handle,request,datalen:longint;var databuf;
-                       priority:longint):word;
+ Handle			= Handle of queue to write to.
+ Request		= Value that will be inserted in the RequestData field when
+				  element is read from queue.
+ DataLen		= Size of data to write.
+ DataBuf		= Data to write.
+ Priority		= Priority of data in buffer. Only relevant when queue is
+				  created with priority support.}
+function DosWriteQueue(Handle,Request,Datalen:longint;var DataBuf;
+					   Priority:longint):word;
 
-const   deharderr           = 1;    {Hard errors are enabled, to disable
-                                     do not give this switch.}
-        dedisableexceptions = 2;    {Exceptions are disabled, to enable
-                                     do not give this switch.}
+const	deHardErr			= 1;	{Hard errors are enabled, to disable
+									 do not give this switch.}
+		deDisableExceptions = 2;	{Exceptions are disabled, to enable
+									 do not give this switch.}
 
 {****************************************************************************
 
-                        Error handling related routines.
+						Error handling related routines.
 
 ****************************************************************************}
 
@@ -2003,362 +2044,366 @@ const   deharderr           = 1;    {Hard errors are enabled, to disable
  can overide this in config.sys. By default, notification is enabled.
  There is no need for error checking if you can guarantee the parameter is
  correct.}
-function doserror(error:longint):word;
+function DosError(Error:longint):word;
 
 {Get information about an error code.
  It cannot fail, so it is written as procedure.
 
-code            = Error code to get info about.
-_class          = Receives the error class.
-action          = Receives the recommended action you should take.
-locus           = Receives what could have caused the error.}
-procedure doserrclass(code:longint;var _class,action,locus:longint);
+Code			= Error code to get info about.
+_Class			= Receives the error class.
+Action			= Receives the recommended action you should take.
+Locus			= Receives what could have caused the error.}
+procedure DosErrClass(Code:longint;var _Class,Action,Locus:longint);
 
 
 {****************************************************************************
 
-                        Message file specific routines.
+						Message file specific routines.
 
 ****************************************************************************}
 
 
-type    Pinserttable=^Tinserttable;
-        Tinserttable=array[1..9] of Pchar;
+type	PInsertTable=^TInsertTable;
+		TInsertTable=array[1..9] of PChar;
 
 {Get a message from a messagefile.
- table          = Table of strings to insert.
- tablesize      = Number of strings in table.
- buf            = Address of buffer to store message in.
- bufsize        = Size of buffer to store message in.
- msgnumber      = Number of message to get.
- filenaam       = Name of file to get message from.
- msgsize        = The size of the message returned.}
-function dosgetmessage(table:Pinserttable;tablesize:longint;buf:Pchar;
-                       bufsize,msgnumber:longint;filenaam:Pchar;
-                       var msgsize:longint):word;
+ Table			= Table of strings to insert.
+ TableSize		= Number of strings in table.
+ Buf			= Address of buffer to store message in.
+ BufSize		= Size of buffer to store message in.
+ MsgNumber		= Number of message to get.
+ FileName		= Name of file to get message from.
+ MsgSize		= The size of the message returned.}
+function DosGetMessage(Table:PInsertTable;TableSize:longint;Buf:PChar;
+					   BufSize,MsgNumber:longint;FileName:PChar;
+					   var MsgSize:longint):word;
 {And a variant using strings and open arrays.
-function dosgetmessage(const table:array of Pstring;var buf:string;
-                       bufsize,msgnumber:longint;const filenaam:Pchar):word;}
+function DosGetMessage(const Table:array of PString;var Buf:string;
+					   BufSize,MsgNumber:longint;const FileName:PChar):word;}
 
-{And a variant using strings, but with a Pchar buffer, because of long
+{And a variant using strings, but with a PChar buffer, because of long
  messages, and open arrays.
-function dosgetmessage(const table:array of Pstring;buf:Pchar;
-                       bufsize,msgnumber:longint;const filenaam:string;
-                       msgsize:longint):word;}
+function DosGetMessage(const Table:array of PString;Buf:PChar;
+					   BufSize,MsgNumber:longint;const FileName:string;
+					   MsgSize:longint):word;}
 
 {Insert textstrings into a message. The message must be loaded before with
- dosGetMessage. This function is used when the insert strings are not yet
+ DosGetMessage. This function is used when the insert strings are not yet
  known when the message was loaded.
- table          = Table of strings to insert.
- tablesize      = Number of struings to insert.
- message        = Message to insert strings into.
- srcmessagesize = Size of message to insert strings into.
- buf            = Receives adjusted message.
- bufsize        = Size of your buffer.
- dstmessagesize = Receives size of adjusted message.}
-function dosinsertmessage(table:Pinserttable;tablesize:longint;
-                          message:Pchar;srcmessagesize:longint;
-                          buf:Pchar;bufsize:longint;
-                          var dstmessagesize:longint):word;
+ Table			= Table of strings to insert.
+ TableSize		= Number of struings to insert.
+ Message		= Message to insert strings into.
+ SrcMessageSize = Size of message to insert strings into.
+ Buf			= Receives adjusted message.
+ BufSize		= Size of your buffer.
+ DstMessageSize = Receives size of adjusted message.}
+function DosInsertMessage(Table:PInsertTable;TableSize:longint;
+						  Message:PChar;SrcMessageSize:longint;
+						  Buf:PChar;BufSize:longint;
+						  var DstMessageSize:longint):word;
 {And a variant using strings and open arrays.
-function dosinsertmessage(table:array of Pstring;
-                          const message:string;
-                          var buf:openstring):word;}
+function DosInsertMessage(Table:array of PString;
+						  const Message:string;
+						  var Buf:openstring):word;}
 
-{And a variant using strings, but with a Pchar buffer, because of long
+{And a variant using strings, but with a PChar buffer, because of long
  messages, and open arrays.
-function dosinsertmessage(table:array of Pstring;
-                          message:Pchar;srcmessagesize:longint;
-                          buf:Pchar;bufsize:longint;
-                          var dstmessagesize:longint):word;}
+function DosInsertMessage(Table:array of PString;
+						  Message:PChar;SrcMessageSize:longint;
+						  Buf:PChar;BufSize:longint;
+						  var DstMessageSize:longint):word;}
 
 {Write a message to a file.
- handle         = Handle of file.
- size           = Size of message.
- buf            = Buffer where message is located.}
-function dosputmessage(handle,size:longint;buf:Pchar):word;
-function dosputmessage(handle:longint;const buf:string):word;
+ Handle			= Handle of file.
+ Size			= Size of message.
+ Buf			= Buffer where message is located.}
+function DosPutMessage(Handle,Size:longint;Buf:PChar):word;
+function DosPutMessage(Handle:longint;const Buf:string):word;
 
 {Get info about which codepages and languages a messagefile supports.
- buf            = Receives information.
- bufsize        = Size of buffer.
- filenaam       = Filename of message file.
- infosize       = Receives size in bytes of the returned info.}
-function dosquerymessageCP(var buf;bufsize:longint;filenaam:Pchar;
-                            var infosize:longint):word;
-function dosquerymessageCP(var buf;bufsize:longint;const filenaam:string;
-                            var infosize:longint):word;
+ Buf			= Receives information.
+ BufSize		= Size of buffer.
+ FileName		= Filename of message file.
+ InfoSize		= Receives size in bytes of the returned info.}
+function DosQueryMessageCP(var Buf;BufSize:longint;FileName:PChar;
+							var InfoSize:longint):word;
+function DosQueryMessageCP(var Buf;BufSize:longint;const FileName:string;
+							var InfoSize:longint):word;
 
 {****************************************************************************
 
-                           Session specific routines.
+						   Session specific routines.
 
 ****************************************************************************}
 
-type    Tstatusdata=record
-            length:word;                {Length, in bytes, of datastructure.}
-            selectind:word;             {Determines if the session can be
-                                         selected: Don't change/selectable/
-                                         not selectable (0/1/2).}
-            bondind:word;               {Determines which section will come
-                                         to the foreground when it is
-                                         selected: Don't change/child to
-                                         foreground when parent selected/
-                                         parent to foreground when parent
-                                         selected.}
-        end;
-        Pstatusdata=^Tstatusdata;
+type	TStatusData=record
+			Length:word;				{Length, in bytes, of datastructure.}
+			SelectIND:word;				{Determines if the session can be
+										 selected: Don't change/selectable/
+										 not selectable (0/1/2).}
+			BondIND:word;				{Determines which section will come
+										 to the foreground when it is
+										 selected: Don't change/child to
+										 foreground when parent selected/
+										 parent to foreground when parent
+										 selected.}
+		end;
+		PStatusData=^TStatusData;
 
-type    Tstartdata=record
-        {Note: to omit some fields, use a length smaller than
-         sizeof(Tstartdata).}
-            length:word;                {Length, in bytes, of datastructure.}
-            related:word;               {Independent/child session (0/1).}
-            fgbg:word;                  {Foreground/background (0/1).}
-            traceopt:word;              {No trace/trace this/trace all
-                                         (0/1/2).}
-            pgmtitle:Pchar;             {Program title.}
-            pgmnaam:Pchar;              {Filename to program.}
-            pgminputs:Pchar;            {Command parameters (nil allowed).}
-            termq:Pchar;                {System queue. (nil allowed).}
-            environment:Pchar;          {Environment to pass (nil allowed).}
-            inheritopt:word;            {Inherite enviroment from shell/
-                                         inherite environment from parant
-                                         (0/1).}
-            sessiontype:word;           {Auto/full screen/window/presentation
-                                         manager/full screen dos/windowed dos
-                                         (0/1/2/3/4/5/6/7).}
-            iconfile:Pchar;             {Icon file to use (nil allowed).}
-            pgmhandle:longint;          {0 or the program handle.}
-            pgmcontrol:word;            {Bitfield describing initial state
-                                         of windowed sessions.}
-            initXpos,initYpos:word;     {Initial top coordinates.}
-            initXsize,initYsize:word;   {Initial size.}
-            reserved:word;
-            objectbuffer:Pchar;         {If a module cannot be loaded, it's
-                                         name will be returned here.}
-            objectbufflen:longint;      {Size of your huffer.}
-        end;
-        Pstartdata=^Tstartdata;
+type	TStartData=record
+		{Note: to omit some fields, use a length smaller than
+		 SizeOf(TStartData).}
+			Length:word;				{Length, in bytes, of datastructure.}
+			Related:word;				{Independent/child session (0/1).}
+			FgBg:word;					{Foreground/background (0/1).}
+			TraceOpt:word;				{No trace/trace this/trace all
+										 (0/1/2).}
+			PgmTitle:PChar;				{Program title.}
+			PgmName:PChar;				{Filename to program.}
+			PgmInputs:PChar;			{Command parameters (nil allowed).}
+			TermQ:PChar;				{System queue. (nil allowed).}
+			Environment:PChar;			{Environment to pass (nil allowed).}
+			InheritOpt:word;			{Inherit enviroment from shell/
+										 inherit environment from parent
+										 (0/1).}
+			SessionType:word;			{Auto/full screen/window/presentation
+										 manager/full screen Dos/windowed Dos
+										 (0/1/2/3/4/5/6/7).}
+			Iconfile:PChar;				{Icon file to use (nil allowed).}
+			PgmHandle:longint;			{0 or the program handle.}
+			PgmControl:word;			{Bitfield describing initial state
+										 of windowed sessions.}
+			InitXPos,InitYPos:word;		{Initial top coordinates.}
+			InitXSize,InitYSize:word;	{Initial size.}
+			Reserved:word;
+			ObjectBuffer:PChar;			{If a module cannot be loaded, its
+										 name will be returned here.}
+			ObjectBuffLen:longint;		{Size of your buffer.}
+		end;
+		PStartData=^TStartData;
+		StartData=TStartData;
 
 {Start a new session.
- Astartdata         = A startdata record.
- sesid              = Receives session ID of session created.
- pid                = Receives process ID of process created.}
-function dosstartsession(const Astartdata:Tstartdata;
-                         var sesid,pid:longint):word;
+ AStartData			= A startdata record.
+ SesID				= Receives session ID of session created.
+ PID				= Receives process ID of process created.}
+function DosStartSession(const AStartData:TStartData;
+						 var SesID,PID:longint):word;
 
 {Set the status of a child session.
- sesid              = ID of session.
- Astatus            = Status to set.}
-function dossetsession(sesid:longint;const Astatus:Tstatusdata):word;
+ SesID				= ID of session.
+ AStatus			= Status to set.}
+function DosSetSession(SesID:longint;const AStatus:TStatusData):word;
 
 {Bring a child session to the foreground.
- sesid              = ID of session.}
-function dosselectsession(sesid:longint):word;
+ SesID				= ID of session.}
+function DosSelectSession(SesID:longint):word;
 
 {Terminate (a) child session(s).
- scope              = 0 = Terminate specified session.
-                      1 = Terminate all child sessions.
- sesid              = ID of session to terminate (ignored when terminating
-                      all).}
-function dosstopsession(scope,sesid:longint):word;
+ Scope				= 0 = Terminate specified session.
+					  1 = Terminate all child sessions.
+ SesID				= ID of session to terminate (ignored when terminating
+					  all).}
+function DosStopSession(Scope,SesID:longint):word;
 
 {****************************************************************************
 
-                     Named/unnamed pipe specific routines.
+					 Named/unnamed pipe specific routines.
 
 ****************************************************************************}
 
-type    Tavaildata=record
-            cbpipe,             {Number of bytes in pipe.}
-            cbmessage:word;     {Number of bytes in current message.}
-        end;
+type	TAvailData=record
+			cbPipe,				{Number of bytes in pipe.}
+			cbMessage:word;		{Number of bytes in current message.}
+		end;
 
-        Tpipeinfo=record
-            cbout:word;         {Size of outbound data.}
-            cbin:word;          {Size of inbound data.}
-            maxinst:byte;       {Maximum number of instances.}
-            curinst:byte;       {Current number of instances.}
-            naam:string;        {Name of the pipe. You can use @naam[1] if
-                                 you need a Pchar to the name; the string is
-                                 always followed byte a zero.}
-        end;
+		TPipeInfo=record
+			cbOut:word;			{Size of outbound data.}
+			cbIn:word;			{Size of inbound data.}
+			MaxInst:byte;		{Maximum number of instances.}
+			CurInst:byte;		{Current number of instances.}
+			Name:string;		{Name of the pipe. You can use @Name[1] if
+								 you need a PChar to the name; the string is
+								 always followed by a zero.}
+		end;
 
-        Tpipesemstate=record
-            status:byte;
-            flag:byte;
-            key:word;
-            avail:word;
-        end;
+		TPipeSemState=record
+			Status:byte;
+			Flag:byte;
+			Key:word;
+			Avail:word;
+		end;
 
 {Create an unnamed pipe.
- readhandle     = Receives handle for reading from pipe.
- writehanlde    = Receives handle to write to pipe.
- size           = Size of pipe to create. 0 means default size. If data is
-                  written into a pipe that is smaller than the sent data, the
-                  writing thread is suspended until the data has been read
-                  from the pipe, thus making room for more data to send.}
-function doscreatepipe(var readhandle,writehandle:longint;
-                       size:longint):word;
+ ReadHandle		= Receives handle for reading from pipe.
+ WriteHandle	= Receives handle to write to pipe.
+ Size			= Size of pipe to create. 0 means default size. If data is
+				  written into a pipe that is smaller than the sent data, the
+				  writing thread is suspended until the data has been read
+				  from the pipe, thus making room for more data to send.}
+function DosCreatePipe(var ReadHandle,WriteHandle:longint;
+					   Size:longint):word;
 
-const   {np_xxxx constants for openmode.}
-        np_access_inbound       = $0000;    {Client to server connection.}
-        np_access_outbound      = $0001;    {Server to client access.}
-        np_access_duplex        = $0002;    {Two way access.}
-        np_inherite             = $0080;    {Pipe handle is inherited by
-                                             child processes.}
-        np_no_write_behind      = $4000;    {Don't allow write behind for
-                                             remote pipes.}
-        {np_xxxx constants for pipemode.}
-        np_unlimited_instances  = $00ff;    {Unlimited instances.}
-        np_readmode_mesg        = $0100;    {Read the pipe as a message
-                                             stream instead of as a byte
-                                             stream.}
-        np_writemode_mesg       = $0400;    {Write the pipe as a message
-                                             stream instead of as a byte
-                                             stream.}
-        np_nowait               = $8000;    {Dosread and Doswrite do not
-                                             wait is no data can be read or
-                                             written; they return with an
-                                             error message.}
+const	{np_XXXX constants for openmode.}
+		np_Access_Inbound		= $0000;	{Client to server connection.}
+		np_Access_Outbound		= $0001;	{Server to client access.}
+		np_Access_Duplex		= $0002;	{Two way access.}
+		np_Inherit				= $0080;	{Pipe handle is inherited by
+											 child processes.}
+		np_No_Write_Behind		= $4000;	{Don't allow write behind for
+											 remote pipes.}
+		{np_XXXX constants for pipemode.}
+		np_Unlimited_Instances	= $00ff;	{Unlimited instances.}
+		np_ReadMode_Mesg		= $0100;	{Read the pipe as a message
+											 stream instead of as a byte
+											 stream.}
+		np_ReadMode_Message		= np_ReadMode_Mesg;
+		np_WriteMode_Mesg		= $0400;	{Write the pipe as a message
+											 stream instead of as a byte
+											 stream.}
+		np_WriteMode_Message	= np_WriteMode_Mesg;
+		np_Type_Message			= np_WriteMode_Mesg;
+		np_NoWait				= $8000;	{Dosread and Doswrite do not
+											 wait is no data can be read or
+											 written; they return with an
+											 error message.}
 
 {Create a named pipe.
- naam           = Name of pipe to create.
- handle         = Receives handle to pipe.
- openmode       = A combinations of the np_xxxx constants for openmode.
- pipemode       = A combination of the np_xxxx constants for pipemode,
-                  plus a number within [1..254] which determines the number
-                  of instances that can be created to the pipe, or,
-                  np_unlimited_instance for an unlimited number of
-                  instances.
- outbufsize     = The number of bytes to allocate for the output buffer.
- inbufsize      = The number of bytes to allocate for the input buffer.
- msec           = The maximum time to wait for an available instance.}
-function doscreatenpipe(naam:Pchar;var handle:longint;openmode,pipemode,
-                        outbufsize,inbufsize,msec:longint):word;
-function doscreatenpipe(const naam:string;var handle:longint;openmode,
-                        pipemode,outbufsize,inbufsize,msec:longint):word;
+ Name			= Name of pipe to create.
+ Handle			= Receives handle to pipe.
+ OpenMode		= A combination of np_XXXX constants for openmode.
+ PipeMode		= A combination of np_XXXX constants for pipemode,
+				  plus a number within [1..254] which determines the number
+				  of instances that can be created to the pipe, or,
+				  np_Unlimited_Instance for an unlimited number of
+				  instances.
+ OutBufSize		= The number of bytes to allocate for the output buffer.
+ InBufSize		= The number of bytes to allocate for the input buffer.
+ MSec			= The maximum time to wait for an available instance.}
+function DosCreateNPipe(Name:PChar;var Handle:longint;OpenMode,PipeMode,
+						OutBufSize,InBufSize,MSec:longint):word;
+function DosCreateNPipe(const Name:string;var Handle:longint;OpenMode,
+						PipeMode,OutBufSize,InBufSize,MSec:longint):word;
 
 {Makes a procedure call to a duplex message pipe.
- naam           = Name of pipe.
- input          = Buffer that contains data to be written to the pipe.
- inputsize      = Size of the inputdata.
- output         = Buffer that contains data to be read from the pipe.
- outputsize     = Size of the outputbuffer.
- readbytes      = Receives number of bytes actually read.
- msec           = The maximum time to wait for an available instance.}
-function doscallnpipe(naam:Pchar;var input;inputsize:longint;
-                      var output;outputsize:longint;var readbytes:longint;
-                      msec:longint):word;
-function doscallnpipe(const naam:string;var input;inputsize:longint;
-                      var output;outputsize:longint;var readbytes:longint;
-                      msec:longint):word;
+ Name			= Name of pipe.
+ Input			= Buffer that contains data to be written to the pipe.
+ InputSize		= Size of the inputdata.
+ Output			= Buffer that contains data to be read from the pipe.
+ OutputSize		= Size of the outputbuffer.
+ ReadBytes		= Receives number of bytes actually read.
+ MSec			= The maximum time to wait for an available instance.}
+function DosCallNPipe(Name:PChar;var Input;InputSize:longint;
+					  var Output;OutputSize:longint;var ReadBytes:longint;
+					  MSec:longint):word;
+function DosCallNPipe(const Name:string;var Input;InputSize:longint;
+					  var Output;OutputSize:longint;var ReadBytes:longint;
+					  MSec:longint):word;
 
 {Prepare a named pipe for a client process.
- handle         = Handle that was returned when pipe was created.}
-function dosconnectnpipe(handle:longint):word;
+ Handle			= Handle that was returned when pipe was created.}
+function DosConnectNPipe(Handle:longint):word;
 
 {Acknowledges that a client process has closed a named pipe.
- handle         = Handle that was returned when pipe was created.}
-function dosdisconnectnpipe(handle:longint):word;
+ Handle			= Handle that was returned when pipe was created.}
+function DosDisconnectNPipe(Handle:longint):word;
 
-const   np_state_disconnected   = 1;    {Pipe is disconnected.}
-        np_state_listening      = 2;    {Pipe is listening.}
-        np_state_connected      = 3;    {Pipe is connected.}
-        np_state_closing        = 4;    {Pipe is closing.}
+const	np_State_Disconnected	= 1;	{Pipe is disconnected.}
+		np_State_Listening		= 2;	{Pipe is listening.}
+		np_State_Connected		= 3;	{Pipe is connected.}
+		np_State_Closing		= 4;	{Pipe is closing.}
 
 {Preview data in a pipe: Read data without removing it.
- handle         = Handle to named pipe.
- buffer         = Buffer to receive data in.
- bufsize        = Size of the buffer.
- readbytes      = Receives number of bytes put in buffer.
- avail          = Receives size of available data.
- state          = One of the np_xxxx constants for states.}
-function dospeeknpipe(handle:longint;var buffer;bufsize:longint;
-                      var readbytes:longint;var avail:Tavaildata;
-                      var state:longint):word;
+ Handle			= Handle to named pipe.
+ Buffer			= Buffer to receive data in.
+ BufSize		= Size of the buffer.
+ ReadBytes		= Receives number of bytes put in buffer.
+ Avail			= Receives size of available data.
+ State			= One of the np_xxxx constants for states.}
+function DosPeekNPipe(Handle:longint;var Buffer;BufSize:longint;
+					  var ReadBytes:longint;var Avail:TAvailData;
+					  var State:longint):word;
 
 {Get information about a named pipe handle.
- handle         = Handle to pipe.
- state          = A combination of the np_xxxx constants for (!!!) pipemode.}
-function dosquerynphstate(handle:longint;var state:longint):word;
+ Handle			= Handle to pipe.
+ State			= A combination of np_XXXX constants for (!!!) pipemode.}
+function DosQueryNPHState(Handle:longint;var State:longint):word;
 
 {Return information about a named pipe.
- handle         = Handle to pipe.
- infolevel      = Level of information wanted (1 or 2 allowed).
- buffer         = Tpipeinfo datastructure for level 1.
-                  Unique 4 byte identifier of the client for level 2. Only
-                  used for LAN based pipe servers.}
-function dosquerynpipeinfo(handle,infolevel:longint;var buffer;
-                           bufsize:longint):word;
+ Handle			= Handle to pipe.
+ InfoLevel		= Level of information wanted (1 or 2 allowed).
+ Buffer			= TPipeInfo datastructure for level 1.
+				  Unique 4 byte identifier of the client for level 2. Only
+				  used for LAN based pipe servers.}
+function DosQueryNPipeInfo(Handle,InfoLevel:longint;var Buffer;
+						   BufSize:longint):word;
 
 {Return information of local named pipes that are attached to a semaphore.
- semhandle      = Handle to a shared event or muxwait semaphore that is
-                  attached to a named pipe.
- semarray       = Array in which for each pipe attached to the semaphore.
- bufsize        = Size of semarray, in bytes.}
-function dosquerynpipesemstate(semhandle:longint;var semarray;
-                               bufsize:longint):word;
+ SemHandle		= Handle to a shared event or MuxWait semaphore that is
+				  attached to a named pipe.
+ SemArray		= Array in which for each pipe attached to the semaphore.
+ BufSize		= Size of SemArray, in bytes.}
+function DosQueryNPipeSemState(Semhandle:longint;var SemArray;
+							   BufSize:longint):word;
 
 {Resets the blocking mode and state of a named pipe.
- handle         = Handle to named pipe.
- state          = One of the np_xxxx constants for pipemode.}
-function dossetnphstate(handle,state:longint):word;
+ Handle			= Handle to named pipe.
+ State			= One of the np_XXXX constants for pipemode.}
+function DosSetNPHState(Handle,State:longint):word;
 
 {Attach a shared event semaphore to a local named pipe.
- pipehandle     = Handle to named pipe.
- semhandle      = Handle to semaphore.
- key            = A key that must be different for each named pipe that is
-                  attached to the semaphore.}
-function dossetnpipesem(pipehandle,semhandle,key:longint):word;
+ PipeHandle		= Handle to named pipe.
+ SemHandle		= Handle to semaphore.
+ Key			= A key that must be different for each named pipe that is
+				  attached to the semaphore.}
+function DosSetNPipeSem(PipeHandle,SemHandle,Key:longint):word;
 
 {Write to a duplex named pipe; then read from it.
- handle         = Handle to named pipe.
- outbuf         = The data to write.
- outsize        = Size of the data to write.
- inbuf          = Receives the read data.
- insize         = Size of the input buffer.
- readbytes      = Number of bytes read from the pipe.}
-function dostransactnpipe(handle:longint;var outbuf;outsize:longint;
-                          var inbuf;insize:longint;
-                          var readbytes:longint):word;
+ Handle			= Handle to named pipe.
+ OutBuf			= The data to write.
+ OutSize		= Size of the data to write.
+ InBuf			= Receives the read data.
+ InSize			= Size of the input buffer.
+ ReadBytes		= Number of bytes read from the pipe.}
+function DosTransactNPipe(Handle:longint;var OutBuf;OutSize:longint;
+						  var InBuf;InSize:longint;
+						  var ReadBytes:longint):word;
 
 {Waits until an instance of a named pipe becomes available.
- naam           = Name of named pipe (always starts with '\PIPE\').
- msec           = Return with an error code if this time has elapsed.}
-function doswaitnpipe(naam:Pchar;msec:longint):word;
-function doswaitnpipe(const naam:string;msec:longint):word;
+ Name			= Name of named pipe (always starts with '\PIPE\').
+ MSec			= Return with an error code if this time has elapsed.}
+function DosWaitNPipe(Name:PChar;MSec:longint):word;
+function DosWaitNPipe(const Name:string;MSec:longint):word;
 
 {****************************************************************************
 
-                    Virtual device driver related routines.
+					Virtual device driver related routines.
 
 ****************************************************************************}
 
 {Open a virtual device driver.
- naam           = Name of virtual device driver.
- handle         = Receives handle to virtual device driver.}
-function dosopenVDD(naam:Pchar;var handle:longint):word;
+ Name			= Name of virtual device driver.
+ Handle			= Receives handle to virtual device driver.}
+function DosOpenVDD(Name:PChar;var Handle:longint):word;
 
 {Request to talk with a virtual device driver.
- handle         = Handle to virtual device driver.
- sgroup         = Handle to the screen group of a DOS session (may be nil).
- cmd            = A number which indicates the service you call.
- insize         = Size of the data to send to the VDD.
- inbuffer       = Buffer which contains the data to send to the VDD.
- outsize        = Size of the buffer in which the VDD will return data.
- outbuffer      = Receives the data that the VDD returns.}
-function dosrequestVDD(handle,sgroup,cmd:longint;
-                       insize:longint;var inbuffer;
-                       outsize:longint;var outbuffer):word;
+ Handle			= Handle to virtual device driver.
+ SGroup			= Handle to the screen group of a DOS session (may be nil).
+ Cmd			= A number which indicates the service you call.
+ InSize			= Size of the data to send to the VDD.
+ InBuffer		= Buffer which contains the data to send to the VDD.
+ OutSize		= Size of the buffer in which the VDD will return data.
+ OutBuffer		= Receives the data that the VDD returns.}
+function DosRequestVDD(Handle,SGroup,Cmd:longint;
+					   InSize:longint;var InBuffer;
+					   OutSize:longint;var OutBuffer):word;
 
 {Close a virtual device driver.}
-function doscloseVDD(handle:longint):word;
+function DosCloseVDD(Handle:longint):word;
 
 {****************************************************************************
 
-                    16 <=> 32 bit support related routines
+					16 <=> 32 bit support related routines
 
 ****************************************************************************}
 
@@ -2368,11 +2413,11 @@ function doscloseVDD(handle:longint):word;
  same physical memory address as the selector of the 16 bit far pointer.
 
 In:
-  eax           Pointer to convert in selector:offset format.
+  eax			Pointer to convert in selector:offset format.
 
 Out:
-  eax           Returned 32 bit near pointer.}
-procedure seltoflat;
+  eax			Returned 32 bit near pointer.}
+procedure SelToFlat;
 
 {Convert a 32 bit near pointer to a 16 bit far pointer.
  This procedure needs to be called from assembler.
@@ -2380,1354 +2425,1358 @@ procedure seltoflat;
  as the pointer you pass points to.
 
 In:
-  eax           Pointer to convert in 32 bit near format.
+  eax			Pointer to convert in 32 bit near format.
 
 Out:
-  eax           Returned 16 bit far pointer in selector:offset format.}
-procedure flattosel;
+  eax			Returned 16 bit far pointer in selector:offset format.}
+procedure FlatToSel;
 
 {***************************************************************************}
 implementation
 {***************************************************************************}
 
-{$l code2.oo2}
-{$l code3.oo2}
+{$L code2.oo2}
+{$L code3.oo2}
 
-function doscreatethread(var tid:longint;address:Tthreadentry;
-                          Aparam:pointer;flags:longint;
-                          stacksize:longint):word;
+function DosCreateThread(var TID:longint;Address:TThreadEntry;
+						  aParam:pointer;Flags:longint;
+						  StackSize:longint):word;
 
 external 'DOSCALLS' index 311;
 
-function dossuspendthread(tid:longint):word;
+function DosSuspendThread(TID:longint):word;
 
 external 'DOSCALLS' index 238;
 
-function dosresumethread(tid:longint):word;
+function DosResumeThread(TID:longint):word;
 
 external 'DOSCALLS' index 237;
 
-function doskillthread(tid:longint):word;
+function DosKillThread(TID:longint):word;
 
 external 'DOSCALLS' index 111;
 
-function doswaitthread(var tid:longint;option:longint):word;
+function DosWaitThread(var TID:longint;Option:longint):word;
 
 external 'DOSCALLS' index 349;
 
-function dosentercritsec:word;
+function DosEnterCritSec:word;
 
 external 'DOSCALLS' index 232;
 
-function dosexitcritsec:word;
+function DosExitCritSec:word;
 
 external 'DOSCALLS' index 233;
 
-procedure dosexit(action:longint;result:longint);
+procedure DosExit(Action,Result:longint);
 
 external 'DOSCALLS' index 233;
 
-procedure dosgetinfoblocks(var Atib:Pthreadinfoblock;
-                           var Apib:Pprocessinfoblock);
+procedure DosGetInfoBlocks(var ATIB:PThreadInfoBlock;
+						   var APIB:PProcessInfoBlock);
 
 external 'DOSCALLS' index 312;
 
-procedure dossleep(msec:longint);
+procedure DosSleep(MSec:longint);
 
 external 'DOSCALLS' index 229;
 
-function dosbeep(freq,ms:longint):word;
+function DosBeep(Freq,MS:longint):word;
 
 external 'DOSCALLS' index 286;
 
-function dosdebug(debugbuf:pointer):word;
+function DosDebug(DebugBuf:pointer):word;
 
 external 'DOSCALLS' index 317;
 
-function dosexitlist(ordercode:longint;proc:Texitproc):word;
+function DosExitList(OrderCode:longint;Proc:TExitProc):word;
 
 external 'DOSCALLS' index 296;
 
-function dosexecpgm(objnaam:Pchar;cbobjnaam,execflag:longint;
-                    args,env:Pbytearray;var res:Tresultcodes;
-                    filenaam:Pchar):word;
+function DosExecPgm(ObjName:PChar;ObjLen,ExecFlag:longint;
+					Args,Env:PByteArray;var Res:TResultCodes;
+					FileName:PChar):word;
 
 external 'DOSCALLS' index 283;
 
-function dosexecpgm(var objnaam:string;execflag:longint;
-                    args,env:Pbytearray;var res:Tresultcodes;
-                    const filenaam:string):word;
+function DosExecPgm(var ObjName:string;Execflag:longint;
+					Args,Env:PByteArray;var Res:TResultCodes;
+					const FileName:string):word;
 
-var t,t2:array[0..255] of char;
+var T,T2:array[0..255] of char;
 
 begin
-    strPcopy(@t,filenaam);
-    dosexecpgm:=dosexecpgm(@t2,sizeof(t2),execflag,args,env,res,@t);;
-    objnaam:=strpas(@t2);
+	StrPCopy(@T,FileName);
+	DosExecPgm:=DosExecPgm(@T2,SizeOf(T2),ExecFlag,Args,Env,Res,@T);;
+	ObjName:=StrPas(@T2);
 end;
 
-function doswaitchild(action:longint;option:longint;var res:Tresultcodes;
-                      var termpid:longint;pid:longint):word;
+function DosWaitChild(Action,Option:longint;var Res:TResultCodes;
+					  var TermPID:longint;PID:longint):word;
 
 external 'DOSCALLS' index 280;
 
-function dossetpriority(scope,trclass,delta,portid:longint):word;
+function DosSetPriority(Scope,TrClass,Delta,PortID:longint):word;
 
 external 'DOSCALLS' index 236;
 
-function doskillprocess(action:longint;pid:longint):word;
+function DosKillProcess(Action,PID:longint):word;
 
 external 'DOSCALLS' index 235;
 
-function dosqueryapptype(filenaam:Pchar;var flags:longint):word;
+function DosQueryAppType(FileName:PChar;var Flags:longint):word;
 
 external 'DOSCALLS' index 323;
 
-function dosdevconfig(var devinfo:byte;item:longint):word;
+function DosDevConfig(var DevInfo:byte;Item:longint):word;
 
 external 'DOSCALLS' index 231;
 
-function dossetfilelocks(handle:longint;var unlock,lock:Tfilelock;
-                         timeout:longint;flags:longint):word;
+function DosSetFileLocks(Handle:longint;var Unlock,Lock:TFileLock;
+						 Timeout,Flags:longint):word;
 
 external 'DOSCALLS' index 428;
 
-function doscancellockrequest(handle:longint;var lock:Tfilelock):word;
+function DosCancelLockRequest(Handle:longint;var Lock:TFileLock):word;
 
 external 'DOSCALLS' index 429;
 
-function dosopen(filenaam:Pchar;var handle,action:longint;
-                 initsize:longint;attrib,openflags,filemode:longint;
-                 ea:PEAop2):word;
+function DosOpen(FileName:PChar;var Handle,Action:longint;
+				 InitSize,Attrib,OpenFlags,FileMode:longint;
+				 EA:PEAOp2):word;
 
 external 'DOSCALLS' index 273;
 
-function doscreate(filenaam:Pchar;var handle:longint;
-                   attrib,openmode:longint):word;
+function DosCreate(FileName:PChar;var Handle:longint;
+				   Attrib,OpenMode:longint):word;
 
-var action:longint;
-
-begin
-    doscreate:=dosopen(filenaam,handle,action,0,attrib,18,openmode,nil);
-end;
-
-function dosopen(filenaam:Pchar;var handle:longint;
-                 attrib,openmode:longint):word;
-
-var action:longint;
+var Action:longint;
 
 begin
-    dosopen:=dosopen(filenaam,handle,action,0,attrib,1,openmode,nil);
+	DosCreate:=DosOpen(FileName,Handle,Action,0,Attrib,18,OpenMode,nil);
 end;
 
-function dosopen(const filenaam:string;var handle,action:longint;
-                 initsize:longint;attrib,openflags,openmode:longint;
-                 ea:PEAop2):word;
+function DosOpen(FileName:PChar;var Handle:longint;
+				 Attrib,OpenMode:longint):word;
 
-var t:array[0..255] of char;
+var Action:longint;
 
 begin
-    strPcopy(@t,filenaam);
-    dosopen:=dosopen(@t,handle,action,initsize,attrib,openflags,openmode,ea);
+	DosOpen:=DosOpen(FileName,Handle,Action,0,Attrib,1,OpenMode,nil);
 end;
 
-function doscreate(const filenaam:string;var handle:longint;
-                   attrib,openmode:longint):word;
+function DosOpen(const FileName:string;var Handle,Action:longint;
+				 InitSize,Attrib,OpenFlags,OpenMode:longint;
+				 EA:PEAOp2):word;
 
-var t:array[0..255] of char;
-    action:longint;
+var T:array[0..255] of char;
 
 begin
-    strPcopy(@t,filenaam);
-    doscreate:=dosopen(@t,handle,action,0,attrib,18,openmode,nil);
+	StrPCopy(@T,FileName);
+	DosOpen:=DosOpen(@T,Handle,Action,InitSize,Attrib,OpenFlags,OpenMode,EA);
 end;
 
-function dosopen(const filenaam:string;var handle:longint;
-                 attrib,openmode:longint):word;
+function DosCreate(const FileName:string;var Handle:longint;
+				   Attrib,OpenMode:longint):word;
 
-var t:array[0..255] of char;
-    action:longint;
+var T:array[0..255] of char;
+	Action:longint;
 
 begin
-    strPcopy(@t,filenaam);
-    dosopen:=dosopen(@t,handle,action,0,attrib,1,openmode,nil);
+	StrPCopy(@T,FileName);
+	DosCreate:=DosOpen(@T,Handle,Action,0,Attrib,18,OpenMode,nil);
 end;
 
-function dosclose(handle:longint):word;
+function DosOpen(const FileName:string;var Handle:longint;
+				 Attrib,OpenMode:longint):word;
+
+var T:array[0..255] of char;
+	Action:longint;
+
+begin
+	StrPCopy(@T,FileName);
+	DosOpen:=DosOpen(@T,Handle,Action,0,Attrib,1,OpenMode,nil);
+end;
+
+function DosClose(Handle:longint):word;
 
 external 'DOSCALLS' index 257;
 
-function dosread(handle:longint;var buffer;count:longint;
-                 var actcount:longint):word;
+function DosRead(Handle:longint;var Buffer;Count:longint;
+				 var ActCount:longint):word;
 
 external 'DOSCALLS' index 281;
 
-function doswrite(handle:longint;var buffer;count:longint;
-                  var actcount:longint):word;
+function DosWrite(Handle:longint;var Buffer;Count:longint;
+				  var ActCount:longint):word;
 
 external 'DOSCALLS' index 282;
 
-function dossetfileptr(handle:word;pos:longint;method:longint;
-                       var posactual:longint):word;
+function DosSetFilePtr(Handle:word;Pos,Method:longint;
+					   var PosActual:longint):word;
 
 external 'DOSCALLS' index 256;
 
-function dossetfileptr(handle:word;pos:longint):word;
+function DosSetFilePtr(Handle:word;Pos:longint):word;
 
-var posactual:longint;
-
-begin
-    dossetfileptr:=dossetfileptr(handle,pos,0,posactual);
-end;
-
-function dosgetfileptr(handle:word;var posactual:longint):word;
+var PosActual:longint;
 
 begin
-    dosgetfileptr:=dossetfileptr(handle,0,1,posactual);
+	DosSetFilePtr:=DosSetFilePtr(Handle,Pos,0,PosActual);
 end;
 
-function dossetfilesize(handle,size:longint):word;
+function DosGetFilePtr(Handle:word;var PosActual:longint):word;
+
+begin
+	DosGetFilePtr:=DosSetFilePtr(Handle,0,1,PosActual);
+end;
+
+function DosSetFileSize(Handle,Size:longint):word;
 
 external 'DOSCALLS' index 272;
 
-function dosresetbuffer(handle:longint):word;
+function DosResetBuffer(Handle:longint):word;
 
 external 'DOSCALLS' index 254;
 
-function dosduphandle(handle:longint;var duplicate:longint):word;
+function DosDupHandle(Handle:longint;var Duplicate:longint):word;
 
 external 'DOSCALLS' index 260;
 
-function dosqueryFHstate(handle:longint;var filemode:longint):word;
+function DosQueryFHState(Handle:longint;var FileMode:longint):word;
 
 external 'DOSCALLS' index 276;
 
-function dossetFHstate(handle,filemode:longint):word;
+function DosSetFHState(Handle,FileMode:longint):word;
 
 external 'DOSCALLS' index 221;
 
-function dosqueryHtype(handle:longint;var handtype:longint;
-                       var attr:longint):word;
+function DosQueryHType(Handle:longint;var HandType:longint;
+					   var Attr:longint):word;
 
 external 'DOSCALLS' index 224;
 
-function doseditname(metalevel:longint;source,edit:Pchar;
-                     target:Pchar;cbtarget:longint):word;
+function DosEditName(MetaLevel:longint;Source,Edit:PChar;
+					 Target:PChar;TargetLen:longint):word;
 
 external 'DOSCALLS' index 261;
 
-function doseditname(metalevel:longint;const source,edit:string;
-                     var target:string):word;
+function DosEditName(MetaLevel:longint;const Source,Edit:string;
+					 var Target:string):word;
 
-var t,t2,t3:array[0..255] of char;
+var T,T2,T3:array[0..255] of char;
 
 begin
-    strPcopy(@t,source);
-    strPcopy(@t2,edit);
-    doseditname:=doseditname(metalevel,@t,@t2,@t3,sizeof(t3));
-    target:=strpas(@t3);
+	StrPCopy(@T,Source);
+	StrPCopy(@T2,Edit);
+	DosEditName:=DosEditName(MetaLevel,@T,@T2,@T3,SizeOf(T3));
+	Target:=StrPas(@T3);
 end;
 
-function dosmove(oud,nieuw:Pchar):word;
+function DosMove(OldFile,NewFile:PChar):word;
 
 external 'DOSCALLS' index 271;
 
-function dosmove(const oud,nieuw:string):word;
+function DosMove(const OldFile,NewFile:string):word;
 
-var t,t2:array[0..255] of char;
+var T,T2:array[0..255] of char;
 
 begin
-    strPcopy(@t,oud);
-    strPcopy(@t2,nieuw);
-    dosmove:=dosmove(@t,@t2);
+	StrPCopy(@T,OldFile);
+	StrPCopy(@T2,NewFile);
+	DosMove:=DosMove(@T,@T2);
 end;
 
-function doscopy(oud,nieuw:Pchar;option:longint):word;
+function DosCopy(OldFile,NewFile:PChar;Option:longint):word;
 
 external 'DOSCALLS' index 258;
 
-function doscopy(const oud,nieuw:string;option:longint):word;
+function DosCopy(const OldFile,NewFile:string;Option:longint):word;
 
-var t,t2:array[0..255] of char;
+var T,T2:array[0..255] of char;
 
 begin
-    strPcopy(@t,oud);
-    strPcopy(@t2,nieuw);
-    doscopy:=doscopy(@t,@t2,option);
+	StrPCopy(@T,OldFile);
+	StrPCopy(@T2,NewFile);
+	DosCopy:=DosCopy(@T,@T2,Option);
 end;
 
-function dosdelete(filenaam:Pchar):word;
+function DosDelete(FileName:PChar):word;
 
 external 'DOSCALLS' index 259;
 
-function dosdelete(const filenaam:string):word;
+function DosDelete(const FileName:string):word;
 
-var t:array[0..255] of char;
+var T:array[0..255] of char;
 
 begin
-    strPcopy(@t,filenaam);
-    dosdelete:=dosdelete(@t);
+	StrPCopy(@T,FileName);
+	DosDelete:=DosDelete(@T);
 end;
 
-function dosforcedelete(filenaam:Pchar):word;
+function DosForceDelete(FileName:PChar):word;
 
 external 'DOSCALLS' index 110;
 
-function dosforcedelete(const filenaam:string):word;
+function DosForceDelete(const FileName:string):word;
 
-var t:array[0..255] of char;
+var T:array[0..255] of char;
 
 begin
-    strPcopy(@t,filenaam);
-    dosforcedelete:=dosforcedelete(@t);
+	StrPCopy(@T,FileName);
+	DosForceDelete:=DosForceDelete(@T);
 end;
 
-function doscreatedir(naam:Pchar;ea:PEAOP2):word;
+function DosCreateDir(Name:PChar;EA:PEAOp2):word;
 
 external 'DOSCALLS' index 270;
 
-function doscreatedir(naam:Pchar):word;
+function DosCreateDir(Name:PChar):word;
 
 begin
-    doscreatedir:=doscreatedir(naam,nil);
+	DosCreateDir:=DosCreateDir(Name,nil);
 end;
 
-function doscreatedir(const naam:string;ea:PEAOP2):word;
+function DosCreateDir(const Name:string;EA:PEAOp2):word;
 
-var t:array[0..255] of char;
+var T:array[0..255] of char;
 
 begin
-    strPcopy(@t,naam);
-    doscreatedir:=doscreatedir(@t,ea);
+	StrPCopy(@T,Name);
+	DosCreateDir:=DosCreateDir(@T,EA);
 end;
 
-function doscreatedir(const naam:string):word;
+function DosCreateDir(const Name:string):word;
+
+var T:array[0..255] of char;
 
 begin
-    doscreatedir:=doscreatedir(naam,nil);
+	StrPCopy(@T,Name);
+	DosCreateDir:=DosCreateDir(@T,nil);
 end;
 
-function dosdeletedir(naam:Pchar):word;
+function DosDeleteDir(Name:PChar):word;
 
 external 'DOSCALLS' index 226;
 
-function dosdeletedir(const naam:string):word;
+function DosDeleteDir(const Name:string):word;
 
-var t:array[0..255] of char;
+var T:array[0..255] of char;
 
 begin
-    strPcopy(@t,naam);
-    dosdeletedir:=dosdeletedir(@t);
+	StrPCopy(@T,Name);
+	DosDeleteDir:=DosDeleteDir(@T);
 end;
 
-function dossetdefaultdisk(disknum:longint):word;
+function DosSetDefaultDisk(DiskNum:longint):word;
 
 external 'DOSCALLS' index 220;
 
-procedure dosquerycurrentdisk(var disknum:longint;var logical:longint);
+procedure DosQueryCurrentDisk(var DiskNum:longint;var Logical:longint);
 
 external 'DOSCALLS' index 275;
 
-function dossetcurrentdir(naam:Pchar):word;
+function DosSetCurrentDir(Name:PChar):word;
 
 external 'DOSCALLS' index 255;
 
-function dossetcurrentdir(const naam:string):word;
+function DosSetCurrentDir(const Name:string):word;
 
-var t:array[0..255] of char;
+var T:array[0..255] of char;
 
 begin
-    strPcopy(@t,naam);
-    dossetcurrentdir:=dossetcurrentdir(@t);
+	StrPCopy(@T,Name);
+	DosSetCurrentDir:=DosSetCurrentDir(@T);
 end;
 
-function dosquerycurrentdir(disknum:longint;var buffer;
-                            var buflen:longint):word;
+function DosQueryCurrentDir(DiskNum:longint;var Buffer;
+							var BufLen:longint):word;
 
 external 'DOSCALLS' index 274;
 
-function dosquerycurrentdir(disknum:longint;var buffer:string):word;
+function DosQueryCurrentDir(DiskNum:longint;var Buffer:string):word;
 
-var t:array[0..255] of char;
-    l:longint;
+var T:array[0..255] of char;
+	L:longint;
 
 begin
-    l:=255;
-    dosquerycurrentdir:=dosquerycurrentdir(disknum,t,l);
-    buffer:=strpas(@t);
+	L:=255;
+	DosQueryCurrentDir:=DosQueryCurrentDir(DiskNum,T,L);
+	Buffer:=StrPas(@T);
 end;
 
-function dosdevIOctl(handle,category,func:longint;var params;
-                     paramlen:longint;var paramsize:longint;
-                     var data;var datalen:longint;var datasize:
-                     longint):word;
+function DosDevIOCtl(Handle,Category,Func:longint;var Params;
+					 ParamLen:longint;var ParamSize:longint;
+					 var Data;var DataLen:longint;var DataSize:longint):word;
 
 external 'DOSCALLS' index 284;
 
-function dosfindfirst(filemask:Pchar;var handle:longint;attrib:longint;
-                      Afilestatus:Pfilestatus;cbfilestatus:longint;
-                      var count:longint;infolevel:longint):word;
+function DosFindFirst(FileMask:PChar;var Handle:longint;Attrib:longint;
+					  AFileStatus:PFileStatus;FileStatusLen:longint;
+					  var Count:longint;InfoLevel:longint):word;
 
 external 'DOSCALLS' index 264;
 
-function dosfindfirst(const filemask:string;var handle:longint;
-                      attrib:longint;Afilestatus:Pfilestatus;
-                      cbfilestatus:longint;var count:longint;
-                      infolevel:longint):word;
+function DosFindFirst(const FileMask:string;var Handle:longint;
+					  Attrib:longint;AFileStatus:PFileStatus;
+					  FileStatusLen:longint;var Count:longint;
+					  InfoLevel:longint):word;
 
-var t:array[0..255] of char;
+var T:array[0..255] of char;
 
 begin
-    strPcopy(@t,filemask);
-    dosfindfirst:=dosfindfirst(@t,handle,attrib,Afilestatus,cbfilestatus,
-     count,infolevel);
+	StrPCopy(@T,FileMask);
+	DosFindFirst:=DosFindFirst(@T,Handle,Attrib,AFileStatus,FileStatusLen,
+	 Count,InfoLevel);
 end;
 
-function dosfindnext(handle:longint;Afilestatus:Pfilestatus;
-                     cbfilestatus:longint;var count:longint):word;
+function DosFindNext(Handle:longint;AFileStatus:PFileStatus;
+					 FileStatusLen:longint;var Count:longint):word;
 
 external 'DOSCALLS' index 265;
 
-function dosfindclose(handle:longint):word;
+function DosFindClose(Handle:longint):word;
 
 external 'DOSCALLS' index 263;
 
-function dosqueryfileinfo(handle,infolevel:longint;Afilestatus:Pfilestatus;
-                          cbfilestatus:longint):word;
+function DosQueryFileInfo(Handle,InfoLevel:longint;AFileStatus:PFileStatus;
+						  FileStatusLen:longint):word;
 
 external 'DOSCALLS' index 279;
 
-function dossetfileinfo(handle,infolevel:longint;Afilestatus:Pfilestatus;
-                        cbfilestatus:longint):word;
+function DosSetFileInfo(Handle,InfoLevel:longint;AFileStatus:PFileStatus;
+						FileStatusLen:longint):word;
 
 external 'DOSCALLS' index 218;
 
-function dosquerypathinfo(filenaam:Pchar;infolevel:longint;
-                          Afilestatus:Pfilestatus;cbfilestatus:longint):word;
+function DosQueryPathInfo(FileName:PChar;InfoLevel:longint;
+						  AFileStatus:PFileStatus;FileStatusLen:longint):word;
 
 external 'DOSCALLS' index 223;
 
-function dosquerypathinfo(const filenaam:string;infolevel:longint;
-                          Afilestatus:Pfilestatus;cbfilestatus:longint):word;
+function DosQueryPathInfo(const FileName:string;InfoLevel:longint;
+						  AFileStatus:PFileStatus;FileStatusLen:longint):word;
 
-var t:array[0..255] of char;
+var T:array[0..255] of char;
 
 begin
-    strPcopy(@t,filenaam);
-    dosquerypathinfo:=dosquerypathinfo(@t,infolevel,Afilestatus,
-     cbfilestatus);
+	StrPCopy(@T,FileName);
+	DosQueryPathInfo:=DosQueryPathInfo(@T,InfoLevel,AFileStatus,
+	 FileStatusLen);
 end;
 
-function dossetpathinfo(filenaam:Pchar;infolevel:longint;
-                        Afilestatus:Pfilestatus;cbfilestatus,
-                        options:longint):word;
+function DosSetPathInfo(FileName:PChar;InfoLevel:longint;
+						AFileStatus:PFileStatus;FileStatusLen,
+						Options:longint):word;
 
 external 'DOSCALLS' index 219;
 
-function dosenumattribute(reftype:longint;Afile:pointer;
-                          entry:longint;var buf;bufsize:longint;
-                          var count:longint;infolevel:longint):word;
+function DosEnumAttribute(RefType:longint;AFile:pointer;
+						  Entry:longint;var Buf;BufSize:longint;
+						  var Count:longint;InfoLevel:longint):word;
 
 external 'DOSCALLS' index 372;
 
-function dosenumattribute(handle:longint;
-                          entry:longint;var buf;bufsize:longint;
-                          var count:longint;infolevel:longint):word;
+function DosEnumAttribute(Handle,Entry:longint;var Buf;BufSize:longint;
+						  var Count:longint;InfoLevel:longint):word;
 
 begin
-    dosenumattribute:=dosenumattribute(0,@handle,entry,buf,bufsize,count,
-     infolevel);
+	DosEnumAttribute:=DosEnumAttribute(0,@Handle,Entry,Buf,BufSize,Count,
+	 InfoLevel);
 end;
 
-function dosenumattribute(const filenaam:string;
-                          entry:longint;var buf;bufsize:longint;
-                          var count:longint;infolevel:longint):word;
+function DosEnumAttribute(const FileName:string;
+						  Entry:longint;var Buf;BufSize:longint;
+						  var Count:longint;InfoLevel:longint):word;
 
-var t:array[0..255] of char;
+var T:array[0..255] of char;
 
 begin
-    strPcopy(@t,filenaam);
-    dosenumattribute:=dosenumattribute(1,@t,entry,buf,bufsize,count,
-     infolevel);
+	StrPCopy(@T,FileName);
+	DosEnumAttribute:=DosEnumAttribute(1,@T,Entry,Buf,BufSize,Count,
+	 InfoLevel);
 end;
 
-function dosscanenv(naam:Pchar;var value:Pchar):word;
+function DosScanEnv(Name:PChar;var Value:PChar):word;
 
 external 'DOSCALLS' index 227;
 
-function dosscanenv(const naam:string;var value:string):word;
+function DosScanEnv(const Name:string;var Value:string):word;
 
-var t:array[0..255] of char;
-    p:Pchar;
+var T:array[0..255] of char;
+	P:PChar;
 
 begin
-    strPcopy(@t,naam);
-    dosscanenv:=dosscanenv(@t,p);
-    value:=strpas(p);
+	StrPCopy(@T,Name);
+	DosScanEnv:=DosScanEnv(@T,P);
+	Value:=StrPas(P);
 end;
 
-function dossearchpath(flag:longint;dirlist,filenaam:Pchar;
-                       fullname:Pchar;fulllen:longint):word;
+function DosSearchPath(Flag:longint;DirList,FileName:PChar;
+					   FullName:PChar;FullLen:longint):word;
 
 external 'DOSCALLS' index 228;
 
-function dossearchpath(flag:longint;const dirlist,filenaam:string;
-                       var fullname:string):word;
+function DosSearchPath(Flag:longint;const DirList,FileName:string;
+					   var FullName:string):word;
 
-var t1,t2,t3:array[0..255] of char;
+var T1,T2,T3:array[0..255] of char;
 
 begin
-    strPcopy(@t1,dirlist);
-    strPcopy(@t2,filenaam);
-    dossearchpath:=dossearchpath(flag,@t1,@t2,@t3,sizeof(t3));
-    fullname:=strpas(@t3);
+	StrPCopy(@T1,DirList);
+	StrPCopy(@T2,FileName);
+	DosSearchPath:=DosSearchPath(Flag,@T1,@T2,@T3,SizeOf(T3));
+	FullName:=StrPas(@T3);
 end;
 
-function dosFSattach(devnaam,filesystem:Pchar;var data:Tattachdata;
-                     datalen,flag:longint):word;
+function DosFSAttach(DevName,FileSystem:PChar;var Data:TAttachData;
+					 DataLen,Flag:longint):word;
 
 external 'DOSCALLS' index 269;
 
-function dosFSattach(const devnaam,filesystem:string;var data:Tattachdata;
-                     datalen,flag:longint):word;
+function DosFSAttach(const DevName,FileSystem:string;var Data:TAttachData;
+					 DataLen,Flag:longint):word;
 
-var t1,t2:array[0..255] of char;
+var T1,T2:array[0..255] of char;
 
 begin
-    strPcopy(@t1,devnaam);
-    strPcopy(@t2,filesystem);
-    dosFSattach:=dosFSattach(@t1,@t2,data,datalen,flag);
+	StrPCopy(@T1,DevName);
+	StrPCopy(@T2,FileSystem);
+	DosFSAttach:=DosFSAttach(@T1,@T2,Data,DataLen,Flag);
 end;
 
-function dosqueryFSattach(devnaam:Pchar;ordinal,infolevel:longint;
-                          var buffer:TFSqbuffer2;var buflen:longint):word;
+function DosQueryFSAttach(DevName:PChar;Ordinal,InfoLevel:longint;
+						  var Buffer:TFSQBuffer2;var BufLen:longint):word;
 
 external 'DOSCALLS' index 277;
 
-function dosqueryFSattach(const devnaam:string;ordinal,infolevel:longint;
-                          var buffer:TFSqbuffer2;var buflen:longint):word;
+function DosQueryFSAttach(const DevName:string;Ordinal,InfoLevel:longint;
+						  var Buffer:TFSQBuffer2;var BufLen:longint):word;
 
-var t:array[0..255] of char;
+var T:array[0..255] of char;
 
 begin
-    strPcopy(@t,devnaam);
-    dosqueryFSattach:=dosqueryFSattach(@t,ordinal,infolevel,buffer,buflen);
+	StrPCopy(@T,DevName);
+	DosQueryFSAttach:=DosQueryFSAttach(@T,Ordinal,InfoLevel,Buffer,BufLen);
 end;
 
-function dosFSctl(data:pointer;datalen:longint;var resdatalen:longint;
-                  parms:pointer;parmslen:longint;var resparmslen:longint;
-                  _function:longint;route:Pchar;
-                  handle,method:longint):word;
+function DosFSCtl(Data:pointer;DataLen:longint;var ResDataLen:longint;
+				  Parms:pointer;ParmsLen:longint;var ResParmsLen:longint;
+				  _Function:longint;Route:PChar;
+				  Handle,Method:longint):word;
 
 external 'DOSCALLS' index 285;
 
-function dosFSctl(data:pointer;datalen:longint;var resdatalen:longint;
-                  parms:pointer;parmslen:longint;var resparmslen:longint;
-                  _function:longint;const route:string;
-                  handle,method:longint):word;
+function DosFSCtl(Data:pointer;DataLen:longint;var ResDataLen:longint;
+				  Parms:pointer;ParmsLen:longint;var ResParmsLen:longint;
+				  _Function:longint;const Route:string;
+				  Handle,Method:longint):word;
 
-var t:array[0..255] of char;
+var T:array[0..255] of char;
 
 begin
-    strPcopy(@t,route);
-    dosFSctl:=dosFSctl(data,datalen,resdatalen,parms,parmslen,resparmslen,
-     _function,route,handle,method);
+	StrPCopy(@T,Route);
+	DosFSCtl:=DosFSCtl(Data,Datalen,ResDataLen,Parms,ParmsLen,ResParmsLen,
+	 _Function,Route,Handle,Method);
 end;
 
-function dosqueryFSinfo(disknum,infolevel:longint;var buffer:TFSinfo;
-                        buflen:longint):word;
+function DosQueryFSInfo(DiskNum,InfoLevel:longint;var Buffer:TFSInfo;
+						BufLen:longint):word;
 
 external 'DOSCALLS' index 278;
 
-function dossetFSinfo(disknum,infolevel:longint;var buffer:TFSinfo;
-                      buflen:longint):word;
+function DosSetFSInfo(DiskNum,InfoLevel:longint;var Buffer:TFSInfo;
+					  BufLen:longint):word;
 
 external 'DOSCALLS' index 222;
 
-function dosqueryverify(var enabled:longint):word;
+function DosQueryVerify(var Enabled:longint):word;
 
 external 'DOSCALLS' index 225;
 
-function dossetverify(enable:longint):word;
+function DosSetVerify(Enable:longint):word;
 
 external 'DOSCALLS' index 210;
 
-function dossetmaxFH(count:longint):word;
+function DosSetMaxFH(Count:longint):word;
 
 external 'DOSCALLS' index 209;
 
-function dossetrelmaxFH(var reqcount,curmaxFH:longint):word;
+function DosSetRelMaxFH(var ReqCount,CurMaxFH:longint):word;
 
 external 'DOSCALLS' index 382;
 
-function dosshutdown(flags:longint):word;
+function DosShutDown(Flags:longint):word;
 
 external 'DOSCALLS' index 415;
 
-function dosquerysysinfo(first,last:longint;var buf;bufsize:longint):word;
+function DosQuerySysInfo(First,Last:longint;var Buf;BufSize:longint):word;
 
 external 'DOSCALLS' index 348;
 
-function dosphysicaldisk(func:longint;buf:pointer;bufsize:longint;
-                         params:pointer;paramsize:longint):word;
+function DosPhysicalDisk(Func:longint;Buf:pointer;BufSize:longint;
+						 Params:pointer;ParamSize:longint):word;
 
 external 'DOSCALLS' index 287;
 
-function dosallocmem(var p:pointer;size:longint;flag:longint):word;
+function DosAllocMem(var P:pointer;Size,Flag:longint):word;
 
 external 'DOSCALLS' index 299;
 
-function dosfreemem(p:pointer):word;
+function DosFreeMem(P:pointer):word;
 
 external 'DOSCALLS' index 304;
 
-function dossetmem(p:pointer;cb,flag:longint):word;
+function DosSetMem(P:pointer;Size,Flag:longint):word;
 
 external 'DOSCALLS' index 305;
 
-function dosgivesharedmem(p:pointer;pid,flag:longint):word;
+function DosGiveSharedMem(P:pointer;PID,Flag:longint):word;
 
 external 'DOSCALLS' index 303;
 
-function dosgetsharedmem(p:pointer;flag:longint):word;
+function DosGetSharedMem(P:pointer;Flag:longint):word;
 
 external 'DOSCALLS' index 302;
 
-function dosgetnamedsharedmem(var p:pointer;naam:Pchar;flag:longint):word;
+function DosGetNamedSharedMem(var P:pointer;Name:PChar;Flag:longint):word;
 
 external 'DOSCALLS' index 301;
 
-function dosgetnamedsharedmem(var p:pointer;const naam:string;
-                              flag:longint):word;
+function DosGetNamedSharedMem(var P:pointer;const Name:string;
+							  Flag:longint):word;
 
-var t:array[0..255] of char;
+var T:array[0..255] of char;
 
 begin
-    strPcopy(@t,naam);
-    dosgetnamedsharedmem:=dosgetnamedsharedmem(p,@t,flag);
+	StrPCopy(@T,Name);
+	DosGetNamedSharedMem:=DosGetNamedSharedMem(P,@T,Flag);
 end;
 
-function dosallocsharedmem(var p:pointer;naam:Pchar;size,flag:longint):word;
+function DosAllocSharedMem(var P:pointer;Name:PChar;Size,Flag:longint):word;
 
 external 'DOSCALLS' index 300;
 
-function dosallocsharedmem(var p:pointer;const naam:string;size,
-                           flag:longint):word;
+function DosAllocSharedMem(var P:pointer;const Name:string;
+													Size,Flag:longint):word;
 
-var t:array[0..255] of char;
+var T:array[0..255] of char;
 
 begin
-    if naam<>'' then
-        begin
-            strPcopy(@t,naam);
-            dosallocsharedmem:=dosallocsharedmem(p,naam,size,flag);
-        end
-    else
-        dosallocsharedmem:=dosallocsharedmem(p,nil,size,flag);
+	if Name<>'' then
+		begin
+			StrPCopy(@T,Name);
+			DosAllocSharedMem:=DosAllocSharedMem(P,@T,Size,Flag);
+		end
+	else
+		DosAllocSharedMem:=DosAllocSharedMem(P,nil,Size,Flag);
 end;
 
-function dosquerymem(p:pointer;var size,flag:longint):word;
+function DosQueryMem(P:pointer;var Size,Flag:longint):word;
 
 external 'DOSCALLS' index 306;
 
-function dossuballocmem(base:pointer;var p:pointer;size:longint):word;
+function DosSubAllocMem(Base:pointer;var P:pointer;Size:longint):word;
 
 external 'DOSCALLS' index 345;
 
-function dossubfreemem(base,p:pointer;size:longint):word;
+function DosSubFreeMem(Base,P:pointer;Size:longint):word;
 
 external 'DOSCALLS' index 346;
 
-function dossubsetmem(base:pointer;flag:longint;size:longint):word;
+function DosSubSetMem(Base:pointer;Flag,Size:longint):word;
 
 external 'DOSCALLS' index 344;
 
-function dossubunsetmem(base:pointer):word;
+function DosSubUnSetMem(Base:pointer):word;
 
 external 'DOSCALLS' index 347;
 
-function doscreateeventsem(naam:Pchar;var handle:longint;
-                           attr,state:longint):word;
+function DosCreateEventSem(Name:PChar;var Handle:longint;
+						   Attr,State:longint):word;
 
 external 'DOSCALLS' index 324;
 
-function doscreateeventsem(const naam:string;var handle:longint;
-                           attr,state:longint):word;
+function DosCreateEventSem(const Name:string;var Handle:longint;
+						   Attr,State:longint):word;
 
-var t:array[0..255] of char;
+var T:array[0..255] of char;
 
 begin
-    if naam<>'' then
-        begin
-            strPcopy(@t,naam);
-            doscreateeventsem:=doscreateeventsem(@t,handle,attr,state);
-        end
-    else
-        doscreateeventsem:=doscreateeventsem(@t,handle,attr,state);
+	if Name<>'' then
+		begin
+			StrPCopy(@T,Name);
+			DosCreateEventSem:=DosCreateEventSem(@T,Handle,Attr,State);
+		end
+	else
+		DosCreateEventSem:=DosCreateEventSem(nil,Handle,Attr,State);
 end;
 
-function dosopeneventsem(naam:Pchar;var handle:longint):word;
+function DosOpenEventSem(Name:PChar;var Handle:longint):word;
 
 external 'DOSCALLS' index 325;
 
-function dosopeneventsem(const naam:string;var handle:longint):word;
+function DosOpenEventSem(const Name:string;var Handle:longint):word;
 
-var t:array[0..255] of char;
+var T:array[0..255] of char;
 
 begin
-    strPcopy(@t,naam);
-    dosopeneventsem:=dosopeneventsem(@t,handle);
+	StrPCopy(@T,Name);
+	DosOpenEventSem:=DosOpenEventSem(@T,Handle);
 end;
 
-function doscloseeventsem(handle:longint):word;
+function DosCloseEventSem(Handle:longint):word;
 
 external 'DOSCALLS' index 326;
 
-function dosreseteventsem(handle:longint;var postcount:longint):word;
+function DosResetEventSem(Handle:longint;var PostCount:longint):word;
 
 external 'DOSCALLS' index 327;
 
-function dosposteventsem(handle:longint):word;
+function DosPostEventSem(Handle:longint):word;
 
 external 'DOSCALLS' index 328;
 
-function doswaiteventsem(handle,timeout:longint):word;
+function DosWaitEventSem(Handle,Timeout:longint):word;
 
 external 'DOSCALLS' index 329;
 
-function dosqueryeventsem(handle:longint;var posted:longint):word;
+function DosQueryEventSem(Handle:longint;var Posted:longint):word;
 
 external 'DOSCALLS' index 330;
 
-function doscreatemutexsem(naam:Pchar;var handle:longint;
-                           attr,state:longint):word;
+function DosCreateMutExSem(Name:PChar;var Handle:longint;
+						   Attr,State:longint):word;
 
 external 'DOSCALLS' index 331;
 
-function doscreatemutexsem(const naam:string;var handle:longint;
-                           attr,state:longint):word;
+function DosCreateMutExSem(const Name:string;var Handle:longint;
+						   Attr,State:longint):word;
 
-var t:array[0..255] of char;
+var T:array[0..255] of char;
 
 begin
-    if naam<>'' then
-        begin
-            strPcopy(@t,naam);
-            doscreatemutexsem:=doscreatemutexsem(@t,handle,attr,state);
-        end
-    else
-        doscreatemutexsem:=doscreatemutexsem(nil,handle,attr,state);
+	if Name<>'' then
+		begin
+			StrPCopy(@T,Name);
+			DosCreateMutExSem:=DosCreateMutExSem(@T,Handle,Attr,State);
+		end
+	else
+		DosCreateMutExSem:=DosCreateMutExSem(nil,Handle,Attr,State);
 end;
 
-function dosopenmutexsem(naam:Pchar;var handle:longint):word;
+function DosOpenMutExSem(Name:PChar;var Handle:longint):word;
 
 external 'DOSCALLS' index 332;
 
-function dosopenmutexsem(const naam:string;var handle:longint):word;
+function DosOpenMutExSem(const Name:string;var Handle:longint):word;
 
-var t:array[0..255] of char;
+var T:array[0..255] of char;
 
 begin
-    strPcopy(@t,naam);
-    dosopenmutexsem:=dosopenmutexsem(@t,handle);
+	StrPCopy(@T,Name);
+	DosOpenMutExSem:=DosOpenMutExSem(@T,Handle);
 end;
 
-function dosclosemutexsem(handle:longint):word;
+function DosCloseMutExSem(handle:longint):word;
 
 external 'DOSCALLS' index 333;
 
-function dosrequestmutexsem(handle,timeout:longint):word;
+function DosRequestMutExSem(Handle,Timeout:longint):word;
 
 external 'DOSCALLS' index 334;
 
-function dosreleasemutexsem(handle:longint):word;
+function DosReleaseMutExSem(Handle:longint):word;
 
 external 'DOSCALLS' index 335;
 
-function dosquerymutexsem(handle:longint;var pid,tid,count:longint):word;
+function DosQueryMutExSem(Handle:longint;var PID,TID,Count:longint):word;
 
 external 'DOSCALLS' index 336;
 
-function doscreatemuxwaitsem(naam:Pchar;var handle:longint;csemrec:longint;
-                             var semarray:Tsemarray;attr:longint):word;
+function DosCreateMuxWaitSem(Name:PChar;var Handle:longint;CSemRec:longint;
+							 var SemArray:TSemArray;Attr:longint):word;
 
 external 'DOSCALLS' index 337;
 
-function doscreatemuxwaitsem(const naam:string;var handle:longint;
-                             csemrec:longint;var semarray:Tsemarray;
-                             attr:longint):word;
+function DosCreateMuxWaitSem(const Name:string;var Handle:longint;
+							 CSemRec:longint;var SemArray:TSemArray;
+							 Attr:longint):word;
 
-var t:array[0..255] of char;
+var T:array[0..255] of char;
 
 begin
-    if naam<>'' then
-        begin
-            strPcopy(@t,naam);
-            doscreatemuxwaitsem:=doscreatemuxwaitsem(@t,handle,csemrec,
-             semarray,attr);
-        end
-    else
-        doscreatemuxwaitsem:=doscreatemuxwaitsem(nil,handle,csemrec,semarray,
-         attr);
+	if Name<>'' then
+		begin
+			StrPCopy(@T,Name);
+			DosCreateMuxWaitSem:=DosCreateMuxWaitSem(@T,Handle,CSemRec,
+			 SemArray,Attr);
+		end
+	else
+		DosCreateMuxWaitSem:=DosCreateMuxWaitSem(nil,Handle,CSemRec,SemArray,
+		 Attr);
 end;
 
-function dosopenmuxwaitsem(naam:Pchar;var handle:longint):word;
+function DosOpenMuxWaitSem(Name:PChar;var Handle:longint):word;
 
 external 'DOSCALLS' index 338;
 
-function dosopenmuxwaitsem(const naam:string;var handle:longint):word;
+function DosOpenMuxWaitSem(const Name:string;var Handle:longint):word;
 
-var t:array[0..255] of char;
+var T:array[0..255] of char;
 
 begin
-    strPcopy(@t,naam);
-    dosopenmuxwaitsem:=dosopenmuxwaitsem(@t,handle);
+	StrPCopy(@T,Name);
+	DosOpenMuxWaitSem:=DosOpenMuxWaitSem(@T,Handle);
 end;
 
-function dosclosemuxwaitsem(handle:longint):word;
+function DosCloseMuxWaitSem(Handle:longint):word;
 
 external 'DOSCALLS' index 339;
 
-function doswaitmuxwaitsem(handle,timeout:longint;var user:longint):word;
+function DosWaitMuxWaitSem(Handle,Timeout:longint;var User:longint):word;
 
 external 'DOSCALLS' index 340;
 
-function dosaddmuxwaitsem(handle:longint;var semrec:Tsemrecord):word;
+function DosAddMuxWaitSem(Handle:longint;var SemRec:TSemRecord):word;
 
 external 'DOSCALLS' index 341;
 
-function dosdeletemuxwaitsem(handle,sem:longint):word;
+function DosDeleteMuxWaitSem(Handle,Sem:longint):word;
 
 external 'DOSCALLS' index 342;
 
-function dosquerymuxwaitsem(handle:longint;var csemrec:longint;
-                            var semrecs:Tsemarray;var attr:longint):word;
+function DosQueryMuxWaitSem(Handle:longint;var CSemRec:longint;
+							var SemRecs:TSemArray;var Attr:longint):word;
 
 external 'DOSCALLS' index 343;
 
-function dosgetdatetime(var buf:Tdatetime):word;
+function DosGetDateTime(var Buf:TDateTime):word;
 
 external 'DOSCALLS' index 230;
 
-function dossetdatetime(var buf:Tdatetime):word;
+function DosSetDateTime(var Buf:TDateTime):word;
 
 external 'DOSCALLS' index 292;
 
-function dosasynctimer(msec:longint;hsem:longint;
-                       var TIMhandle:longint):word;
+function DosAsyncTimer(MSec,HSem:longint;
+					   var TimHandle:longint):word;
 
 external 'DOSCALLS' index 350;
 
-function dosstarttimer(msec:longint;hsem:longint;
-                       var TIMhandle:longint):word;
+function DosStartTimer(MSec,HSem:longint;
+					   var TimHandle:longint):word;
 
 external 'DOSCALLS' index 351;
 
-function dosstoptimer(TIMhandle:longint):word;
+function DosStopTimer(TimHandle:longint):word;
 
 external 'DOSCALLS' index 290;
 
-function dostmrqueryfreq(var freq:longint):word;
+function DosTmrQueryFreq(var Freq:longint):word;
 
 external 'DOSCALLS' index 362;
 
-function dostmrquerytime(var time:comp):word;
+function DosTmrQueryTime(var Time:comp):word;
 
 external 'DOSCALLS' index 363;
 
-function dosloadmodule(objnaam:Pchar;objlen:longint;DLLnaam:Pchar;
-                       var handle:longint):word;
+function DosLoadModule(ObjName:PChar;ObjLen:longint;DLLName:PChar;
+					   var Handle:longint):word;
 
 external 'DOSCALLS' index 318;
 
-function dosloadmodule(var objnaam:string;objlen:longint;
-                       const DLLnaam:string;var handle:longint):word;
+function DosLoadModule(var ObjName:string;ObjLen:longint;
+					   const DLLName:string;var Handle:longint):word;
 
-var t1,t2:array[0..255] of char;
+var T1,T2:array[0..255] of char;
 
 begin
-    strPcopy(@t2,DLLnaam);
-    dosloadmodule:=dosloadmodule(@t1,objlen,@t2,handle);
-    objnaam:=strpas(@t1);
+	StrPCopy(@T2,DLLName);
+	DosLoadModule:=DosLoadModule(@T1,ObjLen,@T2,Handle);
+	ObjName:=StrPas(@T1);
 end;
 
-function dosfreemodule(handle:longint):word;
+function DosFreeModule(Handle:longint):word;
 
 external 'DOSCALLS' index 322;
 
-function dosqueryprocaddr(handle,ordinal:longint;procnaam:Pchar;
-                          var adres:pointer):word;
+function DosQueryProcAddr(Handle,Ordinal:longint;ProcName:PChar;
+						  var Address:pointer):word;
 
 external 'DOSCALLS' index 321;
 
-function dosqueryprocaddr(handle,ordinal:longint;
-                          const procnaam:string;var adres:pointer):word;
+function DosQueryProcAddr(Handle,Ordinal:longint;
+						  const ProcName:string;var Address:pointer):word;
 
-var t1:array[0..255] of char;
+var T1:array[0..255] of char;
 
 begin
-    if procnaam<>'' then
-        begin
-            strPcopy(@t1,procnaam);
-            dosqueryprocaddr:=dosqueryprocaddr(handle,ordinal,@t1,adres);
-        end
-    else
-        dosqueryprocaddr:=dosqueryprocaddr(handle,ordinal,nil,adres);
+	if ProcName<>'' then
+		begin
+			StrPCopy(@T1,ProcName);
+			DosQueryProcAddr:=DosQueryProcAddr(Handle,Ordinal,@T1,Address);
+		end
+	else
+		DosQueryProcAddr:=DosQueryProcAddr(Handle,Ordinal,nil,Address);
 end;
 
-function dosquerymodulehandle(DLLnaam:Pchar;var handle:longint):word;
+function DosQueryModuleHandle(DLLName:PChar;var Handle:longint):word;
 
 external 'DOSCALLS' index 319;
 
-function dosquerymodulehandle(const DLLnaam:string;var handle:longint):word;
+function DosQueryModuleHandle(const DLLName:string;var Handle:longint):word;
 
-var t1:array[0..255] of char;
+var T1:array[0..255] of char;
 
 begin
-    strPcopy(@t1,DLLnaam);
-    dosquerymodulehandle:=dosquerymodulehandle(@t1,handle);
+	StrPCopy(@T1,DLLName);
+	DosQueryModuleHandle:=DosQueryModuleHandle(@T1,Handle);
 end;
 
-function dosquerymodulename(handle,naamlen:longint;naam:Pchar):word;
+function DosQueryModuleName(Handle,NameLen:longint;Name:PChar):word;
 
 external 'DOSCALLS' index 320;
 
-{function dosquerymodulename(handle:longint;var naam:openstring):word;
+{function DosQueryModuleName(Handle:longint;var Name:openstring):word;
 
-var t1:array[0..255] of char;
+var T1:array[0..255] of char;
 
 begin
-    dosquerymodulename:=dosquerymodulename(handle,high(naam),@t1);
-    naam:=strpas(@t1);
+	DosQueryModuleName:=DosQueryModuleName(Handle,High(Name),@T1);
+	Name:=StrPas(@T1);
 end;}
 
-function dosqueryproctype(handle,ordinal:longint;naam:Pchar;
-                          var proctype:longint):word;
+function DosQueryProcType(Handle,Ordinal:longint;Name:PChar;
+						  var ProcType:longint):word;
 
 external 'DOSCALLS' index 586;
 
-function dosqueryproctype(handle,ordinal:longint;const naam:string;
-                          var proctype:longint):word;
+function DosQueryProcType(Handle,Ordinal:longint;const Name:string;
+						  var ProcType:longint):word;
 
-var t1:array[0..255] of char;
+var T1:array[0..255] of char;
 
 begin
-    if naam<>'' then
-        begin
-            strPcopy(@t1,naam);
-            dosqueryproctype:=dosqueryproctype(handle,ordinal,@t1,proctype);
-        end
-    else
-        dosqueryproctype:=dosqueryproctype(handle,ordinal,nil,proctype);
+	if Name<>'' then
+		begin
+			StrPCopy(@T1,Name);
+			DosQueryProcType:=DosQueryProcType(Handle,Ordinal,@T1,ProcType);
+		end
+	else
+		DosQueryProcType:=DosQueryProcType(Handle,Ordinal,nil,ProcType);
 end;
 
-function dosgetresource(handle,restype,resnaam:longint;var p:pointer):word;
+function DosGetResource(Handle,ResType,ResName:longint;var P:pointer):word;
 
 external 'DOSCALLS' index 352;
 
-function dosfreeresource(p:pointer):word;
+function DosFreeResource(P:pointer):word;
 
 external 'DOSCALLS' index 353;
 
-function dosqueryresourcesize(handle,idt,idn:longint;var size:longint):word;
+function DosQueryResourceSize(Handle,IDT,IDN:longint;var Size:longint):word;
 
 external 'DOSCALLS' index 572;
 
-function dosqueryctryinfo(cb:longint;var country:Tcountrycode;
-                          var res:Tcountryinfo;var cbactual:longint):word;
+function DosQueryCtryInfo(Size:longint;var Country:TCountryCode;
+						  var Res:TCountryInfo;var ActualSize:longint):word;
 
 external 'NLS' index 5;
 
-function dosqueryDBCSenv(cb:longint;var country:Tcountrycode;buf:Pchar):word;
+function DosQueryDBCSEnv(Size:longint;var Country:TCountryCode;Buf:PChar):word;
 
 external 'NLS' index 6;
 
-function dosmapcase(cb:longint;var country:Tcountrycode;
-                    Astring:Pchar):word;
+function DosMapCase(Size:longint;var Country:TCountryCode;
+					AString:PChar):word;
 
 external 'NLS' index 7;
 
-function dosmapcase(var country:Tcountrycode;var Astring:string):word;
+function DosMapCase(var Country:TCountryCode;var AString:string):word;
 
-var t1:string;
+var T1:string;
 
 begin
-    strPcopy(@t1,Astring);
-    dosmapcase:=dosmapcase(length(Astring),country,@t1);
-    Astring:=strpas(@t1);
+	StrPCopy(@T1,AString);
+	DosMapCase:=DosMapCase(length(AString),Country,@T1);
+	AString:=StrPas(@T1);
 end;
 
-function dosquerycollate(cb:longint;var country:Tcountrycode;
-                         buf:Pbytearray;var tablelen:longint):word;
+function DosQueryCollate(Size:longint;var Country:TCountryCode;
+						 buf:PByteArray;var TableLen:longint):word;
 
 external 'NLS' index 8;
 
-function dosquerycp(cb:longint;codepages:Pwordarray;var actcb:longint):word;
+function DosQueryCP(Size:longint;CodePages:PWordArray;
+													 var ActSize:longint):word;
 
 external 'DOSCALLS' index 291;
 
-function dossetprocesscp(cp:longint):word;
+function DosSetProcessCP(CP:longint):word;
 
 external 'DOSCALLS' index 289;
 
-function dossetexceptionhandler(var regrec:Texceptionregistrationrecord
-                                ):word;
+function DosSetExceptionHandler(var RegRec:TExceptionRegistrationRecord
+								):word;
 
 external 'DOSCALLS' index 354;
 
-function dosunsetexceptionhandler(var regrec:Texceptionregistrationrecord
-                                  ):word;
+function DosUnsetExceptionHandler(var RegRec:TExceptionRegistrationRecord
+								  ):word;
 
 external 'DOSCALLS' index 355;
 
-function dosraiseexception(var excpt:Texceptionreportrecord):word;
+function DosRaiseException(var Excpt:TExceptionReportRecord):word;
 
 external 'DOSCALLS' index 356;
 
-function dossendsignalexception(pid,exception:longint):word;
+function DosSendSignalException(PID,Exception:longint):word;
 
 external 'DOSCALLS' index 379;
 
-function dosunwindexception(var handler:Texceptionregistrationrecord;
-                            targetIP:pointer;
-                            var reprec:Texceptionreportrecord):word;
+function DosUnwindException(var Handler:TExceptionRegistrationRecord;
+							TargetIP:pointer;
+							var RepRec:TExceptionReportRecord):word;
 
 external 'DOSCALLS' index 357;
 
-function dossetsignalexceptionfocus(enable:longint;var times:longint):word;
+function DosSetSignalExceptionFocus(Enable:longint;var Times:longint):word;
 
 external 'DOSCALLS' index 378;
 
-function dosentermustcomplete(var nesting:longint):word;
+function DosEnterMustComplete(var Nesting:longint):word;
 
 external 'DOSCALLS' index 380;
 
-function dosexitmustcomplete(var nesting:longint):word;
+function DosExitMustComplete(var Nesting:longint):word;
 
 external 'DOSCALLS' index 381;
 
-function dosacknowledgesignalexception(signalnum:longint):word;
+function DosAcknowledgeSignalException(SignalNum:longint):word;
 
 external 'DOSCALLS' index 418;
 
-function dosclosequeue(handle:longint):word;
+function DosCloseQueue(Handle:longint):word;
 
 external 'QUECALLS' index 11;
 
-function doscreatequeue(var handle:longint;priority:longint;
-                        naam:Pchar):word;
+function DosCreateQueue(var Handle:longint;Priority:longint;
+						Name:PChar):word;
 
 external 'QUECALLS' index 16;
 
-function doscreatequeue(var handle:longint;priority:longint;
-                        const naam:string):word;
+function DosCreateQueue(var Handle:longint;Priority:longint;
+						const Name:string):word;
 
-var t1:array[0..255] of char;
+var T1:array[0..255] of char;
 
 begin
-    strPcopy(@t1,naam);
-    doscreatequeue:=doscreatequeue(handle,priority,@t1);
+	StrPCopy(@T1,Name);
+	DosCreateQueue:=DosCreateQueue(Handle,Priority,@T1);
 end;
 
-function dosopenqueue(var parent_pid:longint;var handle:longint;
-                      naam:Pchar):word;
+function DosOpenQueue(var Parent_PID:longint;var Handle:longint;
+					  Name:PChar):word;
 
 external 'QUECALLS' index 15;
 
-function dosopenqueue(var parent_pid:longint;var handle:longint;
-                      const naam:string):word;
+function DosOpenQueue(var Parent_PID:longint;var Handle:longint;
+					  const Name:string):word;
 
-var t1:array[0..255] of char;
+var T1:array[0..255] of char;
 
 begin
-    strPcopy(@t1,naam);
-    dosopenqueue:=dosopenqueue(parent_pid,handle,@t1);
+	StrPCopy(@T1,Name);
+	DosOpenQueue:=DosOpenQueue(Parent_PID,Handle,@T1);
 end;
 
-function dospeekqueue(handle:longint;var reqbuffer:Trequestdata;
-                      var datalen:longint;var dataptr:pointer;
-                      var element:longint;wait:longint;
-                      var priority:byte;Asem:longint):word;
+function DosPeekQueue(Handle:longint;var ReqBuffer:TRequestData;
+					  var DataLen:longint;var DataPtr:pointer;
+					  var Element:longint;Wait:longint;
+					  var Priority:byte;ASem:longint):word;
 
 external 'QUECALLS' index 13;
 
-function dospurgequeue(handle:longint):word;
+function DosPurgeQueue(Handle:longint):word;
 
 external 'QUECALLS' index 10;
 
-function dosqueryqueue(handle:longint;var count:longint):word;
+function DosQueryQueue(Handle:longint;var Count:longint):word;
 
 external 'QUECALLS' index 12;
 
-function dosreadqueue(handle:longint;var reqbuffer:Trequestdata;
-                      var datalen:longint;var dataptr:pointer;
-                      element,wait:longint;var priority:byte;
-                      Asem:longint):word;
+function DosReadQueue(Handle:longint;var ReqBuffer:TRequestData;
+					  var DataLen:longint;var DataPtr:pointer;
+					  Element,Wait:longint;var Priority:byte;
+					  ASem:longint):word;
 
 external 'QUECALLS' index 9;
 
-function doswritequeue(handle,request,datalen:longint;var databuf;
-                       priority:longint):word;
+function DosWriteQueue(Handle,Request,DataLen:longint;var DataBuf;
+					   Priority:longint):word;
 
 external 'QUECALLS' index 14;
 
-function doserror(error:longint):word;
+function DosError(Error:longint):word;
 
 external 'DOSCALLS' index 212;
 
-procedure doserrclass(code:longint;var _class,action,locus:longint);
+procedure DosErrClass(Code:longint;var _Class,Action,Locus:longint);
 
 external 'DOSCALLS' index 211;
 
-function dostruegetmessage(msgseg:pointer;table:Pinserttable;
-                           tablesize:longint;buf:Pchar;bufsize,
-                           msgnumber:longint;filenaam:Pchar;
-                           var msgsize:longint):word;
+function DosTrueGetMessage(MsgSeg:pointer;Table:PInsertTable;
+						   TableSize:longint;Buf:PChar;BufSize,
+						   MsgNumber:longint;FileName:PChar;
+						   var MsgSize:longint):word;
 
 external 'MSG' index 6;
 
-function dosgetmessage(table:Pinserttable;tablesize:longint;buf:Pchar;
-                       bufsize,msgnumber:longint;filenaam:Pchar;
-                       var msgsize:longint):word;
+function DosGetMessage(Table:PInsertTable;TableSize:longint;Buf:PChar;
+					   BufSize,MsgNumber:longint;FileName:PChar;
+					   var MsgSize:longint):word;
 
-external name 'DosGetMessage';  {Procedure is in code2.so2.}
+external name 'DosGetMessage';	{Procedure is in code2.so2.}
 
-(*function dosgetmessage(const table:array of Pstring;var buf:openstring;
-                        msgnumber:longint;const filenaam:string):word;
+(*function DosGetMessage(const Table:array of PString;var Buf:openstring;
+						MsgNumber:longint;const FileName:string):word;
 
 {Hmm. This takes too much stackspace. Let's use the
  heap instead.}
 
-type    tablebuffer=record
-            it:Tinserttable;
-            strings:Tbytearray;
-        end;
+type	TTableBuffer=record
+			IT:TinsertTable;
+			Strings:TByteArray;
+		end;
+		PTableBuffer=^TTableBuffer;
 
-var buffer:^tablebuffer;
-    i,s:word;
-    bufptr:pointer;
-    t1,t2:array[0..255] of char;
+var Buffer:PTableBuffer;
+	I,S:word;
+	BufPtr:pointer;
+	T1,T2:array[0..255] of char;
 
 begin
-    {Check if there are more than nine items in the table.}
-    if high(table)>8 then
-        dosgetmessage:=87
-    else
-        begin
-            {Step 1: Calculate the space we need on the heap.}
-            s:=sizeof(Tinserttable);
-            for i:=low(table) to high(table) do
-                s:=s+length(table[i])+1;
+	{Check if there are more than nine items in the table.}
+	if High(Table)>8 then
+		DosGetMessage:=87
+	else
+		begin
+			{Step 1: Calculate the space we need on the heap.}
+			S:=SizeOf(TInsertTable);
+			for I:=Low(Table) to High(Table) do
+				S:=S+Length(Table[I])+1;
 
-            {Step 2: Allocate the buffer.}
-            getmem(buffer,s);
+			{Step 2: Allocate the buffer.}
+			GetMem(Buffer,S);
 
-            {Step 3: Fill the buffer.}
-            bufptr:=@(s^.strings);
-            for i:=low(table) to high(table) do
-                begin
-                    s^.it[i+1]:=bufptr;
-                    strPcopy(bufptr,table[i]);
-                    inc(longint(bufptr),length(table[i])+1);
-                end;
+			{Step 3: Fill the buffer.}
+			BufPtr:=@(S^.Strings);
+			for I:=Low(Table) to High(Table) do
+				begin
+					S^.IT[I+1]:=bufptr;
+					StrPCopy(BufPtr,Table[I]);
+					Inc(longint(BufPtr),Length(Table[I])+1);
+				end;
 
-            {Step 4: Convert the filename.}
-            strPcopy(@t2,filenaam);
+			{Step 4: Convert the filename.}
+			StrPCopy(@T2,FileName);
 
-            {Step 5: Get the message.}
-            dosgetmessage:=dosgetmessage(@(s^.it),high(table)+1,@t1,
-             high(buf),msgnumber,@t2,l);
+			{Step 5: Get the message.}
+			DosGetMessage:=DosGetMessage(@(S^.IT),High(Table)+1,@T1,
+			 High(Buf),MsgNumber,@T2,I);
 
-            {Step 6: Convert the returned message.}
-            buf[0]:=char(l);
-            move(t1,buf[1],l);
+			{Step 6: Convert the returned message.}
+			Buf[0]:=Char(I);
+			Move(T1,Buf[1],I);
 
-            {Step 7: Free the memory.}
-            freemem(buffer,s);
-        end;
+			{Step 7: Free the memory.}
+			FreeMem(Buffer,S);
+		end;
 end;*)
 
-{function dosgetmessage(const table:array of Pstring;buf:Pchar;
-                       bufsize,msgnumber:longint;const filenaam:string;
-                       msgsize:longint):word;}
+{function DosGetMessage(const Table:array of PString;Buf:PChar;
+					   BufSize,MsgNumber:longint;const FileName:string;
+					   MsgSize:longint):word;}
 
-function dosinsertmessage(table:Pinserttable;tablesize:longint;
-                          message:Pchar;srcmessagesize:longint;
-                          buf:Pchar;bufsize:longint;
-                          var dstmessagesize:longint):word;
+function DosInsertMessage(Table:PInsertTable;TableSize:longint;
+						  Message:PChar;SrcMessageSize:longint;
+						  Buf:PChar;BufSize:longint;
+						  var DstMessageSize:longint):word;
 
 external 'MSG' index 4;
 
-{function dosinsertmessage(table:array of Pstring;
-                          const message:string;
-                          var buf:openstring):word;
+{function DosInsertMessage(Table:array of PString;
+						  const Message:string;
+						  var Buf:openstring):word;
 
-function dosinsertmessage(table:array of Pstring;
-                          message:Pchar;srcmessagesize:longint;
-                          buf:Pchar;bufsize:longint;
-                          var dstmessagesize:longint):word;}
+function DosInsertMessage(Table:array of PString;
+						  Message:PChar;SrcMessageSize:longint;
+						  Buf:PChar;BufSize:longint;
+						  var DstMessageSize:longint):word;}
 
-function dosputmessage(handle,size:longint;buf:Pchar):word;
+function DosPutMessage(Handle,Size:longint;Buf:PChar):word;
 
 external 'MSG' index 5;
 
-function dosputmessage(handle:longint;const buf:string):word;
+function DosPutMessage(Handle:longint;const Buf:string):word;
 
 begin
-    dosputmessage:=dosputmessage(handle,length(buf),@buf[1]);
+	DosPutMessage:=DosPutMessage(Handle,Length(Buf),@Buf[1]);
 end;
 
-function dosIquerymessageCP(var buf;bufsize:longint;filenaam:Pchar;
-                            var infosize:longint;messeg:pointer):word;
+function DosIQueryMessageCP(var Buf;BufSize:longint;FileName:PChar;
+							var InfoSize:longint;MesSeg:pointer):word;
 
 external 'MSG' index 8;
 
-function dosquerymessageCP(var buf;bufsize:longint;filenaam:Pchar;
-                           var infosize:longint):word;
+function DosQueryMessageCP(var Buf;BufSize:longint;FileName:PChar;
+						   var InfoSize:longint):word;
 
 external name 'DosQueryMessageCP';
 
-function dosquerymessageCP(var buf;bufsize:longint;const filenaam:string;
-                           var infosize:longint):word;
+function DosQueryMessageCP(var Buf;BufSize:longint;const FileName:string;
+						   var InfoSize:longint):word;
 
-var t:array[0..255] of char;
+var T:array[0..255] of char;
 
 begin
-    strPcopy(@t,filenaam);
-    dosquerymessageCP:=dosquerymessageCP(buf,bufsize,@t,infosize);
+	StrPCopy(@T,FileName);
+	DosQueryMessageCP:=DosQueryMessageCP(Buf,BufSize,@T,InfoSize);
 end;
 
-function dosstartsession(const Astartdata:Tstartdata;
-                         var sesid,pid:longint):word;
+function DosStartSession(const AStartData:TStartData;
+						 var SesID,PID:longint):word;
 
 external 'SESMGR' index 37;
 
-function dossetsession(sesid:longint;const Astatus:Tstatusdata):word;
+function DosSetSession(SesID:longint;const AStatus:TStatusData):word;
 
 external 'SESMGR' index 39;
 
-function dosselectsession(sesid:longint):word;
+function DosSelectSession(SesID:longint):word;
 
 external 'SESMGR' index 38;
 
-function dosstopsession(scope,sesid:longint):word;
+function DosStopSession(Scope,SesID:longint):word;
 
 external 'SESMGR' index 40;
 
-function doscreatepipe(var readhandle,writehandle:longint;
-                       size:longint):word;
+function DosCreatePipe(var ReadHandle,WriteHandle:longint;
+					   Size:longint):word;
 
 external 'DOSCALLS' index 239;
 
-function doscreatenpipe(naam:Pchar;var handle:longint;openmode,pipemode,
-                        outbufsize,inbufsize,msec:longint):word;
+function DosCreateNPipe(Name:PChar;var Handle:longint;OpenMode,PipeMode,
+						OutBufSize,InBufSize,MSec:longint):word;
 
 external 'DOSCALLS' index 243;
 
-function doscreatenpipe(const naam:string;var handle:longint;openmode,
-                        pipemode,outbufsize,inbufsize,msec:longint):word;
+function DosCreateNPipe(const Name:string;var Handle:longint;OpenMode,
+						PipeMode,OutBufSize,InBufSize,MSec:longint):word;
 
-var t:array[0..255] of char;
+var T:array[0..255] of char;
 
 begin
-    strPcopy(@t,naam);
-    doscreatenpipe:=doscreatenpipe(@t,handle,openmode,pipemode,outbufsize,
-     inbufsize,msec);
+	StrPCopy(@T,Name);
+	DosCreateNPipe:=DosCreateNPipe(@T,Handle,OpenMode,PipeMode,OutBufSize,
+	 InBufSize,MSec);
 end;
 
-function doscallnpipe(naam:Pchar;var input;inputsize:longint;
-                      var output;outputsize:longint;var readbytes:longint;
-                      msec:longint):word;
+function DosCallNPipe(Name:PChar;var Input;InputSize:longint;
+					  var Output;OutputSize:longint;var ReadBytes:longint;
+					  MSec:longint):word;
 
 external 'DOSCALLS' index 240;
 
-function doscallnpipe(const naam:string;var input;inputsize:longint;
-                      var output;outputsize:longint;var readbytes:longint;
-                      msec:longint):word;
+function DosCallNPipe(const Name:string;var Input;InputSize:longint;
+					  var Output;OutputSize:longint;var ReadBytes:longint;
+					  MSec:longint):word;
 
-var t:array[0..255] of char;
+var T:array[0..255] of char;
 
 begin
-    strPcopy(@t,naam);
-    doscallnpipe:=doscallnpipe(@t,input,inputsize,output,outputsize,
-     readbytes,msec);
+	StrPCopy(@T,Name);
+	DosCallNPipe:=DosCallNPipe(@T,Input,InputSize,Output,OutputSize,
+	 ReadBytes,MSec);
 end;
 
-function dosconnectnpipe(handle:longint):word;
+function DosConnectNPipe(Handle:longint):word;
 
 external 'DOSCALLS' index 241;
 
-function dosdisconnectnpipe(handle:longint):word;
+function DosDisconnectNPipe(Handle:longint):word;
 
 external 'DOSCALLS' index 242;
 
-function dospeeknpipe(handle:longint;var buffer;bufsize:longint;
-                      var readbytes:longint;var avail:Tavaildata;
-                      var state:longint):word;
+function DosPeekNPipe(Handle:longint;var Buffer;BufSize:longint;
+					  var ReadBytes:longint;var Avail:TAvailData;
+					  var State:longint):word;
 
 external 'DOSCALLS' index 244;
 
-function dosquerynphstate(handle:longint;var state:longint):word;
+function DosQueryNPHState(Handle:longint;var State:longint):word;
 
 external 'DOSCALLS' index 245;
 
-function dosquerynpipeinfo(handle,infolevel:longint;var buffer;
-                           bufsize:longint):word;
+function DosQueryNPipeInfo(Handle,InfoLevel:longint;var Buffer;
+						   BufSize:longint):word;
 
 external 'DOSCALLS' index 248;
 
-function dosquerynpipesemstate(semhandle:longint;var semarray;
-                               bufsize:longint):word;
+function DosQueryNPipeSemState(SemHandle:longint;var SemArray;
+							   BufSize:longint):word;
 
 external 'DOSCALLS' index 249;
 
-function dossetnphstate(handle,state:longint):word;
+function DosSetNPHState(Handle,State:longint):word;
 
 external 'DOSCALLS' index 250;
 
-function dossetnpipesem(pipehandle,semhandle,key:longint):word;
+function DosSetNPipeSem(PipeHandle,SemHandle,Key:longint):word;
 
 external 'DOSCALLS' index 251;
 
-function dostransactnpipe(handle:longint;var outbuf;outsize:longint;
-                          var inbuf;insize:longint;
-                          var readbytes:longint):word;
+function DosTransactNPipe(Handle:longint;var OutBuf;OutSize:longint;
+						  var InBuf;InSize:longint;
+						  var ReadBytes:longint):word;
 
 external 'DOSCALLS' index 252;
 
-function doswaitnpipe(naam:Pchar;msec:longint):word;
+function DosWaitNPipe(Name:PChar;MSec:longint):word;
 
 external 'DOSCALLS' index 253;
 
-function doswaitnpipe(const naam:string;msec:longint):word;
+function DosWaitNPipe(const Name:string;MSec:longint):word;
 
-var t:array[0..255] of char;
+var T:array[0..255] of char;
 
 begin
-    strPcopy(@t,naam);
-    doswaitnpipe:=doswaitnpipe(@t,msec);
+	StrPCopy(@T,Name);
+	DosWaitNPipe:=DosWaitNPipe(@T,MSec);
 end;
 
-function dosopenVDD(naam:Pchar;var handle:longint):word;
+function DosOpenVDD(Name:PChar;var Handle:longint):word;
 
 external 'DOSCALLS' index 308;
 
-function dosrequestVDD(handle,sgroup,cmd:longint;
-                       insize:longint;var inbuffer;
-                       outsize:longint;var outbuffer):word;
+function DosRequestVDD(Handle,SGroup,Cmd:longint;
+					   InSize:longint;var InBuffer;
+					   OutSize:longint;var OutBuffer):word;
 
 external 'DOSCALLS' index 309;
 
-function doscloseVDD(handle:longint):word;
+function DosCloseVDD(Handle:longint):word;
 
 external 'DOSCALLS' index 310;
 
-procedure seltoflat;
+procedure SelToFlat;
 
 external 'DOSCALLS' index 425;
 
-procedure flattosel;
+procedure FlatToSel;
 
 external 'DOSCALLS' index 426;
 
 end.
+
