@@ -107,7 +107,7 @@ unit rgobj;
         length,
         head,
         tail   : integer;
-        buf    : ^tsuperregister;
+        buf    : array[0..maxworklist-1] of tsuperregister;
         constructor init;
         destructor  done;
         procedure add(s:tsuperregister);
@@ -1743,7 +1743,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.86  2003-10-17 15:25:18  florian
+  Revision 1.87  2003-10-17 16:16:08  peter
+    * fixed last commit
+
+  Revision 1.86  2003/10/17 15:25:18  florian
     * fixed more ppc stuff
 
   Revision 1.85  2003/10/17 14:38:32  peter
