@@ -107,14 +107,15 @@ begin
             Move(VBytes, VargDest.VBytes, SizeOf(VargDest.VBytes));
           varOleStr:
             CopyAsWideString(VargDest.VOleStr,VOleStr);
-          varDispatch,
+          varDispatch:
+            IUnknown(VargDest.vdispatch):=IUnknown(VargSrc.vdispatch);
           varUnknown:
-            NoInterfaces; // We should bump up reference count here (Addref)
+            IUnknown(VargDest.vunknown):=IUnknown(VargSrc.vunknown);
           else
             Exit(VAR_BADVARTYPE);
           end;
         end;
-    VargDest.VType:=VType;
+        VargDest.VType:=VType;
     end;
 end;
 
@@ -711,7 +712,10 @@ end;
 {$endif HASVARIANT}
 {
   $Log$
-  Revision 1.17  2005-02-08 07:25:26  marco
+  Revision 1.18  2005-02-08 21:17:25  florian
+    * fixed variant copy for interfaces
+
+  Revision 1.17  2005/02/08 07:25:26  marco
    * patch from Peter
 
   Revision 1.16  2005/02/07 21:52:08  florian
