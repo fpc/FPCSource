@@ -731,7 +731,7 @@ label
   _exit;
 begin
   if p=nil then
-    goto _exit;
+    runerror(204);
 
   i:=0;
 
@@ -769,8 +769,6 @@ begin
     goto _exit;
 {$endif win32}
 
-  if p>=heapptr then
-    runerror(216);
   { first try valid list faster }
 
 {$ifdef EXTRA}
@@ -1150,7 +1148,10 @@ finalization
 end.
 {
   $Log$
-  Revision 1.20  2002-10-30 20:39:13  peter
+  Revision 1.21  2002-11-30 23:34:43  carl
+    * nil should give an error!
+
+  Revision 1.20  2002/10/30 20:39:13  peter
     * MemoryManager record has a field NeedLock if the wrapper functions
       need to provide locking for multithreaded programs
 
