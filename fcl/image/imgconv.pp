@@ -1,7 +1,7 @@
 {$mode objfpc}{$h+}
 program ImgConv;
 
-uses FPImage, FPWriteXPM, FPWritePNG, FPReadXPM, FPReadPNG, sysutils;
+uses FPImage, FPWriteXPM, {FPWritePNG,} FPReadXPM, FPReadPNG, sysutils;
 
 var img : TFPMemoryImage;
     reader : TFPCustomImageReader;
@@ -19,7 +19,7 @@ begin
   if T = 'X' then
     Writer := TFPWriterXPM.Create
   else
-    Writer := TFPWriterPNG.Create;
+    Writer := TFPWriterXPM.Create;
   img := TFPMemoryImage.Create(1,1);
 end;
 
