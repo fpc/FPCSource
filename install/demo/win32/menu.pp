@@ -19,6 +19,27 @@ var AMessage:Msg;
 
 Const FileMenus : Array[101..104] of pchar = ('New','Open','Save','Exit');
       EditMenus : Array[201..203] of pchar = ('Cut','copy','paste');
+      Filename = 'edit.txt';
+
+Procedure SaveText;
+
+Var len : longint;
+    p : pchar;
+    f : text;
+    
+begin
+  Len:=SendMessage(Hedit,WM_GettextLength,0,0);
+  If Len=0 then
+     MessageBox(hWindow,FileMenus[103],'No length received',MB_OK or MB_ICONERROR);
+  GetMem(P,Len+1);
+  P[Len]:=#0;
+  P[SendMessage(HEdit,WM_GetText,LEN,Longint(P))]:=#0;
+  Assign(F,Filename);
+  rewrite(f);
+  Write(f,P);
+  Close(f);
+  FreeMem(P,Len);
+end;
 
 function WindowProc (Window:HWnd;AMessage,WParam,LParam:Longint):Longint;
 stdcall; export;
@@ -53,7 +74,8 @@ var dc:hdc;
    NrMenu:=WParam and $FFFF;
    Case NrMenu of
      104 : Halt(0);
-     101..103: MessageBox(Window,FileMenus[NrMenu],'File Menu click received',MB_OK or MB_ICONINFORMATION);
+     101..102: MessageBox(Window,FileMenus[NrMenu],'File Menu click received',MB_OK or MB_ICONINFORMATION);
+     103 : SaveTExt;
      201..203: MessageBox(Window,EditMenus[NrMenu],'Edit operation not implemented',MB_OK or MB_ICONINFORMATION);
    end;
    end;
@@ -77,30 +99,38 @@ function WinRegister:Boolean;
  end;
 
 Const
-  CS_Start = ES_AUTOHSCROLL OR ES_AUTOVSCROLL OR ES_MULTILINE;
-  CS_OFF = CS_OWNDC or CS_CLASSDC or CS_GLOBALCLASS;
-  CS_ON = CS_VREDRAW or CS_HREDRAW or CS_PARENTDC or WS_CHILD;
+  CS_Start = WS_CHILD or ES_AUTOHSCROLL OR ES_AUTOVSCROLL OR ES_MULTILINE OR ES_LEFT;
 
   EdiTText : Pchar = 'This is an edit text...';
-
+  Matchtext  = 'Left align in attribute';
+  NoMatchText = 'Left align not in attribute';
+  
 Function EditCreate (ParentWindow : HWnd) : HWnd;
 
 Var
     hedit : HWND;
     R : TRect;
     DC : HDC;
+    
+    ta : longint;
 
+  Procedure AddText (S : String);
+  
+  begin
+    S:=S+#0;
+    SendMessage(HEdit,em_replacesel,0,longint(pchar(@S[1])));
+  end;
+    
 begin
-  GetClientRect(ParentWindow,@r);
- HEdit:=CreateWindow ('EDIT',EditText, CS_START AND NOT CS_OFF OR CS_ON,
+ GetClientRect(ParentWindow,@r);
+ ta:=CS_START; // AND NOT CS_OFF OR CS_ON;
+ HEdit:=CreateWindow ('EDIT',EditText, ta,
         0,0,R.RIght-R.Left,R.Bottom-R.top-16,ParentWindow,0,system.MainInstance,nil);
  If Hedit<>0 then begin
    showwindow(Hedit,cmdShow);
    updateWindow(HEdit);
    end;
  Result:=HEdit;
- dc:=getwindowdc(Hedit);
- settextalign (dc,DT_Left);
 end;
 
 function WinCreate:HWnd;
@@ -168,11 +198,13 @@ Halt (AMessage.wParam);
 end.
 {
   $Log$
-  Revision 1.3  1999-06-28 16:15:11  peter
+  Revision 1.4  1999-07-16 12:20:57  michael
+  + Added saving in fixed file
+
+  Revision 1.3  1999/06/28 16:15:11  peter
     * fixed dup id
 
   Revision 1.2  1999/05/03 18:04:39  peter
     * updates
 
 }
-
