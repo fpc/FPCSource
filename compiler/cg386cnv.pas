@@ -1455,12 +1455,6 @@ implementation
          oldrl:=temptoremove;
          temptoremove:=new(plinkedlist,init);
 
-         { the helper routines need access to the release list }
-         ltemptoremove:=oldrl;
-
-         if not(assigned(ltemptoremove)) then
-           internalerror(18011);
-
          { this isn't good coding, I think tc_bool_2_int, shouldn't be }
          { type conversion (FK)                                        }
 
@@ -1473,6 +1467,10 @@ implementation
               if codegenerror then
                exit;
            end;
+         { the helper routines need access to the release list }
+         { but do this AFTER secondpass(p^.left), else it is   }
+         { overwritten by recursive calls                      }
+         ltemptoremove:=oldrl;
          { the second argument only is for maybe_range_checking !}
          secondconvert[p^.convtyp](p,p^.left,p^.convtyp);
 
@@ -1592,7 +1590,12 @@ implementation
 end.
 {
   $Log$
-  Revision 1.49  1999-01-27 14:56:56  pierre
+  Revision 1.50  1999-01-28 14:06:45  florian
+    * small fix for method pointers
+    * found the annoying strpas bug, mainly nested call to type cast which
+      use ansistrings crash
+
+  Revision 1.49  1999/01/27 14:56:56  pierre
   * typo error corrected solves bug0190 and bug0204
 
   Revision 1.48  1999/01/27 13:03:27  pierre

@@ -1835,6 +1835,7 @@ unit pexpr;
                                  if ((getprocvardef^.options and pomethodpointer)<>0) then
                                    begin
                                       if (p2^.methodpointer^.resulttype^.deftype=objectdef) and
+                                         (pobjectdef(p2^.methodpointer^.resulttype)^.isclass) and
                                          (proc_to_procvar_equal(getprocvardef,pprocsym(p2^.symtableentry)^.definition)) then
                                         begin
                                            p2^.treetype:=loadn;
@@ -1842,7 +1843,9 @@ unit pexpr;
                                            p2^.left:=p2^.methodpointer;
                                            p2^.resulttype:=pprocsym(p2^.symtableprocentry)^.definition;
                                            p2^.symtableentry:=pvarsym(p2^.symtableprocentry);
-                                        end;
+                                        end
+                                      else
+                                        Message(type_e_mismatch);
                                    end
                                  else if (proc_to_procvar_equal(getprocvardef,pprocsym(p2^.symtableentry)^.definition)) then
                                    begin
@@ -1931,7 +1934,12 @@ unit pexpr;
 end.
 {
   $Log$
-  Revision 1.81  1999-01-27 00:13:55  florian
+  Revision 1.82  1999-01-28 14:06:47  florian
+    * small fix for method pointers
+    * found the annoying strpas bug, mainly nested call to type cast which
+      use ansistrings crash
+
+  Revision 1.81  1999/01/27 00:13:55  florian
     * "procedure of object"-stuff fixed
 
   Revision 1.80  1999/01/21 16:41:01  pierre

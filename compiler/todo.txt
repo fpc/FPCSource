@@ -13,10 +13,10 @@ compiler version and your short cut.
         - indexed properties ..................................... 0.99.6 (FK)
         - default properties ..................................... 0.99.6 (FK)
     - save array for overriding
-    - stored qualifier
+        - stored qualifier ...................................... 0.99.11 (FK)
         - read/write from/to unit file ........................... 0.99.6 (FK)
   - call of destructor helper routine
-  - message qualifier
+        - message qualifier ..................................... 0.99.11 (FK)
         - correct handling of constructor result type ............ 0.99.6 (FK)
         - rtti ................................................... 0.99.8 (FK)
         - published .............................................. 0.99.8 (FK)
@@ -27,13 +27,13 @@ compiler version and your short cut.
           - generation ........................................... 0.99.7 (FK)
           - use when copying etc. ................................ 0.99.7 (FK)
           - new/dispose should look for rtti'ed data ............. 0.99.8 (FK)
-  - enumeration names
+          - enumeration names ................................... 0.99.11 (FK)
   - methodpointers
   - change booleans into enumerations
 * AnsiString
-  - operators
-  - indexed access
-  - type conversations
+          - operators ........................................... 0.99.11 (FK)
+          - indexed access ...................................... 0.99.11 (FK)
+          - type conversions .................................... 0.99.11 (FK)
 * LongString and WideString
 * MMX support by the compiler
           - unary minus .......................................... 0.99.1 (FK)
@@ -68,7 +68,7 @@ compiler version and your short cut.
         - make length internal................................... 0.99.7 (PFV)
 - fix all bugs of the bug directory
 - range checking for open arrays
-- method pointers (procedure of object)
+        - method pointers (procedure of object) ................ 0.99.11 (FK)
 - sysutils unit for go32v2 (excpetions!)
 - initialisation/finalization for units
 - fixed data type
