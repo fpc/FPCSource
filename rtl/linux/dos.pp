@@ -815,6 +815,7 @@ Var
 {$ENDIF}
   LinAttr : longint;
 Begin
+  DosError:=0;
 {$IFDEF CRTLIB}
   _rtl_fstat(word(f), longint(@Info));
   attr := info.fmode;
@@ -1045,7 +1046,10 @@ End.
 
 {
   $Log$
-  Revision 1.10  1999-03-05 13:09:57  peter
+  Revision 1.11  1999-07-24 11:18:11  peter
+    * fixed getfattr which didn't reset doserror
+
+  Revision 1.10  1999/03/05 13:09:57  peter
     * fix for findfirst from the mailinglist
 
   Revision 1.9  1999/02/22 11:45:19  peter
