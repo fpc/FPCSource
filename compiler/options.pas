@@ -1213,14 +1213,6 @@ begin
 {$endif}
 
 
-{ Hack: Linux define is also needed for freebsd (MvdV) }
-if target_info.target=target_i386_freebsd then
-  begin
-   def_symbol('LINUX');
-   def_symbol('BSD');
-   def_symbol('FREEBSD');
-  end;
-
 
 { Temporary defines, until things settle down }
   def_symbol('HASWIDECHAR');
@@ -1359,6 +1351,14 @@ if target_info.target=target_i386_freebsd then
   if ErrorCount>0 then
    StopOptions;
 
+{ Hack: Linux define is also needed for freebsd (MvdV) }
+if target_info.target=target_i386_freebsd then
+  begin
+   def_symbol('LINUX');
+   def_symbol('BSD');
+   def_symbol('FREEBSD');
+  end;
+
 { write logo if set }
   if option^.DoWriteLogo then
    option^.WriteLogo;
@@ -1491,7 +1491,11 @@ end;
 end.
 {
   $Log$
-  Revision 1.7  2000-09-16 12:22:52  peter
+  Revision 1.8  2000-09-18 12:28:41  marco
+   * Definition of multiple FreeBSD target defines moved to after error check
+      commandline parsing
+
+  Revision 1.7  2000/09/16 12:22:52  peter
     * freebsd support merged
 
   Revision 1.6  2000/08/27 16:11:51  peter
