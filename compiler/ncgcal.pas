@@ -177,26 +177,7 @@ implementation
                begin
                  size:=align(left.resulttype.def.size,tempcgpara.alignment);
                  if tempcgpara.location^.reference.index=NR_STACK_POINTER_REG then
-                   begin
-                     href:=left.location.reference;
-                     inc(href.offset,size);
-                     while (size>0) do
-                      begin
-                        if (size>=4) or (tempcgpara.alignment>=4) then
-                         begin
-                           cgsize:=OS_32;
-                           dec(href.offset,4);
-                           dec(size,4);
-                         end
-                        else
-                         begin
-                           cgsize:=OS_16;
-                           dec(href.offset,2);
-                           dec(size,2);
-                         end;
-                        cg.a_param_ref(exprasmlist,cgsize,href,tempcgpara);
-                      end;
-                   end
+                   cg.a_param_ref(exprasmlist,left.location.size,left.location.reference,tempcgpara)
                  else
                    begin
                      reference_reset_base(href,tempcgpara.location^.reference.index,tempcgpara.location^.reference.offset);
@@ -294,32 +275,20 @@ implementation
          end
         else
          begin
+{$ifndef i386}
+{$warning TODO This can be removed, a_param_ref shall support this construct}
            { copy the value on the stack or use normal parameter push?
              Check for varargs first because that has no parasym }
            if not(cpf_varargs_para in callparaflags) and
               paramanager.copy_value_on_stack(parasym.varspez,left.resulttype.def,
                   aktcallnode.procdefinition.proccalloption) then
             begin
-{$ifdef i386}
-              if tempcgpara.location^.loc<>LOC_REFERENCE then
-                internalerror(200309292);
               if not (left.location.loc in [LOC_REFERENCE,LOC_CREFERENCE]) then
                 internalerror(200204241);
-              { push on stack }
-              size:=align(left.resulttype.def.size,tempcgpara.alignment);
-              if tempcgpara.location^.reference.index=NR_STACK_POINTER_REG then
-                begin
-                  cg.g_stackpointer_alloc(exprasmlist,size);
-                  reference_reset_base(href,NR_STACK_POINTER_REG,0);
-                end
-              else
-                reference_reset_base(href,tempcgpara.location^.reference.index,tempcgpara.location^.reference.offset);
-              cg.g_concatcopy(exprasmlist,left.location.reference,href,size);
-{$else i386}
               cg.a_param_copy_ref(exprasmlist,left.resulttype.def.size,left.location.reference,tempcgpara);
-{$endif i386}
             end
            else
+{$endif i386}
             begin
               case left.location.loc of
                 LOC_CONSTANT,
@@ -329,7 +298,7 @@ implementation
                 LOC_CREFERENCE :
                   begin
 {$ifndef cpu64bit}
-                    { don't call the cg64 stuff for 8-byte sized records etc }
+                    { use cg64 only for int64, not for 8 byte records }
                     if is_64bit(left.resulttype.def) then
                       cg64.a_param64_loc(exprasmlist,left.location,tempcgpara)
                     else
@@ -1260,7 +1229,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.195  2005-01-12 10:02:22  florian
+  Revision 1.196  2005-01-18 22:19:20  peter
+    * multiple location support for i386 a_param_ref
+    * remove a_param_copy_ref for i386
+
+  Revision 1.195  2005/01/12 10:02:22  florian
     * removed ie20050111
 
   Revision 1.194  2005/01/10 21:50:05  jonas

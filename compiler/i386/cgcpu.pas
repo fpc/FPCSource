@@ -30,8 +30,8 @@ unit cgcpu;
        globtype,
        cgbase,cgobj,cg64f32,cgx86,
        aasmbase,aasmtai,aasmcpu,
-       cpubase,cpuinfo,parabase,cgutils,
-       node,symconst
+       cpubase,parabase,cgutils,
+       symconst
        ;
 
     type
@@ -65,7 +65,15 @@ unit cgcpu;
     uses
        globals,verbose,systems,cutils,
        paramgr,procinfo,
-       rgcpu,rgx86,tgobj;
+       rgcpu,rgx86;
+
+    function use_push(const cgpara:tcgpara):boolean;
+      begin
+        result:=assigned(cgpara.location) and
+                (cgpara.location^.loc=LOC_REFERENCE) and
+                (cgpara.location^.reference.index=NR_STACK_POINTER_REG);
+      end;
+
 
     procedure Tcg386.init_register_allocators;
       begin
@@ -85,16 +93,14 @@ unit cgcpu;
         pushsize : tcgsize;
       begin
         check_register_size(size,r);
-        with cgpara do
-          if assigned(location) and
-             (location^.loc=LOC_REFERENCE) and
-             (location^.reference.index=NR_STACK_POINTER_REG) then
-            begin
-              pushsize:=int_cgsize(alignment);
-              list.concat(taicpu.op_reg(A_PUSH,tcgsize2opsize[pushsize],makeregsize(list,r,pushsize)));
-            end
-          else
-            inherited a_param_reg(list,size,r,cgpara);
+        if use_push(cgpara) then
+          begin
+            cgpara.check_simple_location;
+            pushsize:=int_cgsize(cgpara.alignment);
+            list.concat(taicpu.op_reg(A_PUSH,tcgsize2opsize[pushsize],makeregsize(list,r,pushsize)));
+          end
+        else
+          inherited a_param_reg(list,size,r,cgpara);
       end;
 
 
@@ -102,41 +108,81 @@ unit cgcpu;
       var
         pushsize : tcgsize;
       begin
-        with cgpara do
-          if assigned(location) and
-             (location^.loc=LOC_REFERENCE) and
-             (location^.reference.index=NR_STACK_POINTER_REG) then
-            begin
-              pushsize:=int_cgsize(alignment);
-              list.concat(taicpu.op_const(A_PUSH,tcgsize2opsize[pushsize],a));
-            end
-          else
-            inherited a_param_const(list,size,a,cgpara);
+        if use_push(cgpara) then
+          begin
+            cgpara.check_simple_location;
+            pushsize:=int_cgsize(cgpara.alignment);
+            list.concat(taicpu.op_const(A_PUSH,tcgsize2opsize[pushsize],a));
+          end
+        else
+          inherited a_param_const(list,size,a,cgpara);
       end;
 
 
     procedure tcg386.a_param_ref(list : taasmoutput;size : tcgsize;const r : treference;const cgpara : tcgpara);
-      var
-        pushsize : tcgsize;
-        tmpreg : tregister;
-      begin
-        with cgpara do
-          if assigned(location) and
-             (location^.loc=LOC_REFERENCE) and
-             (location^.reference.index=NR_STACK_POINTER_REG) then
+
+        procedure pushdata(paraloc:pcgparalocation;ofs:aint);
+        var
+          pushsize : tcgsize;
+          tmpreg   : tregister;
+          href     : treference;
+        begin
+          if not assigned(paraloc) then
+            exit;
+          if (paraloc^.loc<>LOC_REFERENCE) or
+             (paraloc^.reference.index<>NR_STACK_POINTER_REG) or
+             (tcgsize2size[paraloc^.size]>sizeof(aint)) then
+            internalerror(200501162);
+          { Pushes are needed in reverse order, add the size of the
+            current location to the offset where to load from. This
+            prevents wrong calculations for the last location when
+            the size is not a power of 2 }
+          if assigned(paraloc^.next) then
+            pushdata(paraloc^.next,ofs+tcgsize2size[paraloc^.size]);
+          { Push the data starting at ofs }
+          href:=r;
+          inc(href.offset,ofs);
+          if tcgsize2size[paraloc^.size]>cgpara.alignment then
+            pushsize:=paraloc^.size
+          else
+            pushsize:=int_cgsize(cgpara.alignment);
+          if tcgsize2size[paraloc^.size]<cgpara.alignment then
             begin
-              pushsize:=int_cgsize(alignment);
-              if tcgsize2size[size]<alignment then
-                begin
-                  tmpreg:=getintregister(list,pushsize);
-                  a_load_ref_reg(list,size,pushsize,r,tmpreg);
-                  list.concat(taicpu.op_reg(A_PUSH,TCgsize2opsize[pushsize],tmpreg));
-                end
-              else
-                list.concat(taicpu.op_ref(A_PUSH,TCgsize2opsize[pushsize],r));
+              tmpreg:=getintregister(list,pushsize);
+              a_load_ref_reg(list,paraloc^.size,pushsize,href,tmpreg);
+              list.concat(taicpu.op_reg(A_PUSH,TCgsize2opsize[pushsize],tmpreg));
             end
           else
-            inherited a_param_ref(list,size,r,cgpara);
+            list.concat(taicpu.op_ref(A_PUSH,TCgsize2opsize[pushsize],href));
+        end;
+
+      var
+        len : aint;
+        href : treference;
+      begin
+        { cgpara.size=OS_NO requires a copy on the stack }
+        if use_push(cgpara) then
+          begin
+            if tcgsize2size[cgpara.size]<>tcgsize2size[size] then
+              internalerror(200501161);
+            { Record copy? }
+            if (cgpara.size=OS_NO) then
+              begin
+                cgpara.check_simple_location;
+                len:=align(cgpara.intsize,cgpara.alignment);
+                g_stackpointer_alloc(list,len);
+                reference_reset_base(href,NR_STACK_POINTER_REG,0);
+                g_concatcopy(list,r,href,len);
+              end
+            else
+              begin
+                { We need to push the data in reverse order,
+                  therefor we use a recursive algorithm }
+                pushdata(cgpara.location,0);
+              end
+          end
+        else
+          inherited a_param_ref(list,size,r,cgpara);
       end;
 
 
@@ -149,35 +195,33 @@ unit cgcpu;
           begin
             if (segment<>NR_NO) then
               cgmessage(cg_e_cant_use_far_pointer_there);
-            with cgpara do
-              if assigned(location) and
-                 (location^.loc=LOC_REFERENCE) and
-                 (location^.reference.index=NR_STACK_POINTER_REG) then
-                begin
-                  opsize:=tcgsize2opsize[OS_ADDR];
-                  if (base=NR_NO) and (index=NR_NO) then
-                    begin
-                      if assigned(symbol) then
-                        list.concat(Taicpu.Op_sym_ofs(A_PUSH,opsize,symbol,offset))
-                      else
-                        list.concat(Taicpu.Op_const(A_PUSH,opsize,offset));
-                    end
-                  else if (base=NR_NO) and (index<>NR_NO) and
-                          (offset=0) and (scalefactor=0) and (symbol=nil) then
-                    list.concat(Taicpu.Op_reg(A_PUSH,opsize,index))
-                  else if (base<>NR_NO) and (index=NR_NO) and
-                          (offset=0) and (symbol=nil) then
-                    list.concat(Taicpu.Op_reg(A_PUSH,opsize,base))
-                  else
-                    begin
-                      tmpreg:=getaddressregister(list);
-                      a_loadaddr_ref_reg(list,r,tmpreg);
-                      list.concat(taicpu.op_reg(A_PUSH,opsize,tmpreg));
-                    end;
-                end
-              else
-                inherited a_paramaddr_ref(list,r,cgpara);
-        end;
+            if use_push(cgpara) then
+              begin
+                cgpara.check_simple_location;
+                opsize:=tcgsize2opsize[OS_ADDR];
+                if (base=NR_NO) and (index=NR_NO) then
+                  begin
+                    if assigned(symbol) then
+                      list.concat(Taicpu.Op_sym_ofs(A_PUSH,opsize,symbol,offset))
+                    else
+                      list.concat(Taicpu.Op_const(A_PUSH,opsize,offset));
+                  end
+                else if (base=NR_NO) and (index<>NR_NO) and
+                        (offset=0) and (scalefactor=0) and (symbol=nil) then
+                  list.concat(Taicpu.Op_reg(A_PUSH,opsize,index))
+                else if (base<>NR_NO) and (index=NR_NO) and
+                        (offset=0) and (symbol=nil) then
+                  list.concat(Taicpu.Op_reg(A_PUSH,opsize,base))
+                else
+                  begin
+                    tmpreg:=getaddressregister(list);
+                    a_loadaddr_ref_reg(list,r,tmpreg);
+                    list.concat(taicpu.op_reg(A_PUSH,opsize,tmpreg));
+                  end;
+              end
+            else
+              inherited a_paramaddr_ref(list,r,cgpara);
+          end;
       end;
 
 
@@ -520,7 +564,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.62  2004-11-21 17:54:59  peter
+  Revision 1.63  2005-01-18 22:19:20  peter
+    * multiple location support for i386 a_param_ref
+    * remove a_param_copy_ref for i386
+
+  Revision 1.62  2004/11/21 17:54:59  peter
     * ttempcreatenode.create_reg merged into .create with parameter
       whether a register is allowed
     * funcret_paraloc renamed to funcretloc

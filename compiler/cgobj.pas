@@ -118,9 +118,9 @@ unit cgobj;
 
              @param(size size of the operand in the register)
              @param(r register source of the operand)
-             @param(paraloc where the parameter will be stored)
+             @param(cgpara where the parameter will be stored)
           }
-          procedure a_param_reg(list : taasmoutput;size : tcgsize;r : tregister;const paraloc : TCGPara);virtual;
+          procedure a_param_reg(list : taasmoutput;size : tcgsize;r : tregister;const cgpara : TCGPara);virtual;
           {# Pass a parameter, which is a constant, to a routine.
 
              A generic version is provided. This routine should
@@ -129,9 +129,9 @@ unit cgobj;
 
              @param(size size of the operand in constant)
              @param(a value of constant to send)
-             @param(paraloc where the parameter will be stored)
+             @param(cgpara where the parameter will be stored)
           }
-          procedure a_param_const(list : taasmoutput;size : tcgsize;a : aint;const paraloc : TCGPara);virtual;
+          procedure a_param_const(list : taasmoutput;size : tcgsize;a : aint;const cgpara : TCGPara);virtual;
           {# Pass the value of a parameter, which is located in memory, to a routine.
 
              A generic version is provided. This routine should
@@ -140,9 +140,9 @@ unit cgobj;
 
              @param(size size of the operand in constant)
              @param(r Memory reference of value to send)
-             @param(paraloc where the parameter will be stored)
+             @param(cgpara where the parameter will be stored)
           }
-          procedure a_param_ref(list : taasmoutput;size : tcgsize;const r : treference;const paraloc : TCGPara);virtual;
+          procedure a_param_ref(list : taasmoutput;size : tcgsize;const r : treference;const cgpara : TCGPara);virtual;
           {# Pass the value of a parameter, which can be located either in a register or memory location,
              to a routine.
 
@@ -150,9 +150,9 @@ unit cgobj;
 
              @param(l location of the operand to send)
              @param(nr parameter number (starting from one) of routine (from left to right))
-             @param(paraloc where the parameter will be stored)
+             @param(cgpara where the parameter will be stored)
           }
-          procedure a_param_loc(list : taasmoutput;const l : tlocation;const paraloc : TCGPara);
+          procedure a_param_loc(list : taasmoutput;const l : tlocation;const cgpara : TCGPara);
           {# Pass the address of a reference to a routine. This routine
              will calculate the address of the reference, and pass this
              calculated address as a parameter.
@@ -164,10 +164,10 @@ unit cgobj;
              @param(r reference to get address from)
              @param(nr parameter number (starting from one) of routine (from left to right))
           }
-          procedure a_paramaddr_ref(list : taasmoutput;const r : treference;const paraloc : TCGPara);virtual;
+          procedure a_paramaddr_ref(list : taasmoutput;const r : treference;const cgpara : TCGPara);virtual;
 
-          { Copies a whole memory block to the stack, the paraloc must be a memory location }
-          procedure a_param_copy_ref(list : taasmoutput;size : aint;const r : treference;const paraloc : TCGPara);
+          { Copies a whole memory block to the stack, the cgpara must be a memory location }
+          procedure a_param_copy_ref(list : taasmoutput;size : aint;const r : treference;const cgpara : TCGPara);virtual;
           { Remarks:
             * If a method specifies a size you have only to take care
               of that number of bits, i.e. load_const_reg with OP_8 must
@@ -214,8 +214,8 @@ unit cgobj;
           procedure a_loadfpu_reg_ref(list: taasmoutput; size: tcgsize; reg: tregister; const ref: treference); virtual; abstract;
           procedure a_loadfpu_loc_reg(list: taasmoutput; const loc: tlocation; const reg: tregister);
           procedure a_loadfpu_reg_loc(list: taasmoutput; size: tcgsize; const reg: tregister; const loc: tlocation);
-          procedure a_paramfpu_reg(list : taasmoutput;size : tcgsize;const r : tregister;const paraloc : TCGPara);virtual;
-          procedure a_paramfpu_ref(list : taasmoutput;size : tcgsize;const ref : treference;const paraloc : TCGPara);virtual;
+          procedure a_paramfpu_reg(list : taasmoutput;size : tcgsize;const r : tregister;const cgpara : TCGPara);virtual;
+          procedure a_paramfpu_ref(list : taasmoutput;size : tcgsize;const ref : treference;const cgpara : TCGPara);virtual;
 
           { vector register move instructions }
           procedure a_loadmm_reg_reg(list: taasmoutput; fromsize, tosize : tcgsize;reg1, reg2: tregister;shuffle : pmmshuffle); virtual; abstract;
@@ -223,9 +223,9 @@ unit cgobj;
           procedure a_loadmm_reg_ref(list: taasmoutput; fromsize, tosize : tcgsize;reg: tregister; const ref: treference;shuffle : pmmshuffle); virtual; abstract;
           procedure a_loadmm_loc_reg(list: taasmoutput; size: tcgsize; const loc: tlocation; const reg: tregister;shuffle : pmmshuffle);
           procedure a_loadmm_reg_loc(list: taasmoutput; size: tcgsize; const reg: tregister; const loc: tlocation;shuffle : pmmshuffle);
-          procedure a_parammm_reg(list: taasmoutput; size: tcgsize; reg: tregister;const paraloc : TCGPara;shuffle : pmmshuffle); virtual;
-          procedure a_parammm_ref(list: taasmoutput; size: tcgsize; const ref: treference;const paraloc : TCGPara;shuffle : pmmshuffle); virtual;
-          procedure a_parammm_loc(list: taasmoutput; const loc: tlocation; const paraloc : TCGPara;shuffle : pmmshuffle); virtual;
+          procedure a_parammm_reg(list: taasmoutput; size: tcgsize; reg: tregister;const cgpara : TCGPara;shuffle : pmmshuffle); virtual;
+          procedure a_parammm_ref(list: taasmoutput; size: tcgsize; const ref: treference;const cgpara : TCGPara;shuffle : pmmshuffle); virtual;
+          procedure a_parammm_loc(list: taasmoutput; const loc: tlocation; const cgpara : TCGPara;shuffle : pmmshuffle); virtual;
           procedure a_opmm_reg_reg(list: taasmoutput; Op: TOpCG; size : tcgsize;src,dst: tregister;shuffle : pmmshuffle); virtual;abstract;
           procedure a_opmm_ref_reg(list: taasmoutput; Op: TOpCG; size : tcgsize;const ref: treference; reg: tregister;shuffle : pmmshuffle); virtual;
           procedure a_opmm_loc_reg(list: taasmoutput; Op: TOpCG; size : tcgsize;const loc: tlocation; reg: tregister;shuffle : pmmshuffle); virtual;
@@ -709,18 +709,18 @@ implementation
           for better code generation these methods should be overridden
 ******************************************************************************}
 
-    procedure tcg.a_param_reg(list : taasmoutput;size : tcgsize;r : tregister;const paraloc : TCGPara);
+    procedure tcg.a_param_reg(list : taasmoutput;size : tcgsize;r : tregister;const cgpara : TCGPara);
       var
          ref : treference;
       begin
-         paraloc.check_simple_location;
-         case paraloc.location^.loc of
+         cgpara.check_simple_location;
+         case cgpara.location^.loc of
             LOC_REGISTER,LOC_CREGISTER:
-              a_load_reg_reg(list,size,paraloc.location^.size,r,paraloc.location^.register);
+              a_load_reg_reg(list,size,cgpara.location^.size,r,cgpara.location^.register);
             LOC_REFERENCE,LOC_CREFERENCE:
               begin
-                 reference_reset_base(ref,paraloc.location^.reference.index,paraloc.location^.reference.offset);
-                 a_load_reg_ref(list,size,paraloc.location^.size,r,ref);
+                 reference_reset_base(ref,cgpara.location^.reference.index,cgpara.location^.reference.offset);
+                 a_load_reg_ref(list,size,cgpara.location^.size,r,ref);
               end
             else
               internalerror(2002071004);
@@ -728,18 +728,18 @@ implementation
       end;
 
 
-    procedure tcg.a_param_const(list : taasmoutput;size : tcgsize;a : aint;const paraloc : TCGPara);
+    procedure tcg.a_param_const(list : taasmoutput;size : tcgsize;a : aint;const cgpara : TCGPara);
       var
          ref : treference;
       begin
-         paraloc.check_simple_location;
-         case paraloc.location^.loc of
+         cgpara.check_simple_location;
+         case cgpara.location^.loc of
             LOC_REGISTER,LOC_CREGISTER:
-              a_load_const_reg(list,paraloc.location^.size,a,paraloc.location^.register);
+              a_load_const_reg(list,cgpara.location^.size,a,cgpara.location^.register);
             LOC_REFERENCE,LOC_CREFERENCE:
               begin
-                 reference_reset_base(ref,paraloc.location^.reference.index,paraloc.location^.reference.offset);
-                 a_load_const_ref(list,paraloc.location^.size,a,ref);
+                 reference_reset_base(ref,cgpara.location^.reference.index,cgpara.location^.reference.offset);
+                 a_load_const_ref(list,cgpara.location^.size,a,ref);
               end
             else
               internalerror(2002071004);
@@ -747,19 +747,19 @@ implementation
       end;
 
 
-    procedure tcg.a_param_ref(list : taasmoutput;size : tcgsize;const r : treference;const paraloc : TCGPara);
+    procedure tcg.a_param_ref(list : taasmoutput;size : tcgsize;const r : treference;const cgpara : TCGPara);
       var
          ref : treference;
       begin
-         paraloc.check_simple_location;
-         case paraloc.location^.loc of
+         cgpara.check_simple_location;
+         case cgpara.location^.loc of
             LOC_REGISTER,LOC_CREGISTER:
-              a_load_ref_reg(list,size,paraloc.location^.size,r,paraloc.location^.register);
+              a_load_ref_reg(list,size,cgpara.location^.size,r,cgpara.location^.register);
             LOC_REFERENCE,LOC_CREFERENCE:
               begin
                  reference_reset(ref);
-                 ref.base:=paraloc.location^.reference.index;
-                 ref.offset:=paraloc.location^.reference.offset;
+                 ref.base:=cgpara.location^.reference.index;
+                 ref.offset:=cgpara.location^.reference.offset;
                  { use concatcopy, because it can also be a float which fails when
                    load_ref_ref is used }
                  g_concatcopy(list,r,ref,tcgsize2size[size]);
@@ -770,41 +770,42 @@ implementation
       end;
 
 
-    procedure tcg.a_param_loc(list : taasmoutput;const l:tlocation;const paraloc : TCGPara);
+    procedure tcg.a_param_loc(list : taasmoutput;const l:tlocation;const cgpara : TCGPara);
       begin
         case l.loc of
           LOC_REGISTER,
           LOC_CREGISTER :
-            a_param_reg(list,l.size,l.register,paraloc);
+            a_param_reg(list,l.size,l.register,cgpara);
           LOC_CONSTANT :
-            a_param_const(list,l.size,l.value,paraloc);
+            a_param_const(list,l.size,l.value,cgpara);
           LOC_CREFERENCE,
           LOC_REFERENCE :
-            a_param_ref(list,l.size,l.reference,paraloc);
+            a_param_ref(list,l.size,l.reference,cgpara);
           else
             internalerror(2002032211);
         end;
       end;
 
 
-    procedure tcg.a_paramaddr_ref(list : taasmoutput;const r : treference;const paraloc : TCGPara);
+    procedure tcg.a_paramaddr_ref(list : taasmoutput;const r : treference;const cgpara : TCGPara);
       var
          hr : tregister;
       begin
+         cgpara.check_simple_location;
          hr:=getaddressregister(list);
          a_loadaddr_ref_reg(list,r,hr);
-         a_param_reg(list,OS_ADDR,hr,paraloc);
+         a_param_reg(list,OS_ADDR,hr,cgpara);
       end;
 
 
-    procedure tcg.a_param_copy_ref(list : taasmoutput;size : aint;const r : treference;const paraloc : TCGPara);
+    procedure tcg.a_param_copy_ref(list : taasmoutput;size : aint;const r : treference;const cgpara : TCGPara);
       var
         ref : treference;
       begin
-         paraloc.check_simple_location;
-         if not(paraloc.location^.loc in [LOC_REFERENCE,LOC_CREFERENCE]) then
+         cgpara.check_simple_location;
+         if not(cgpara.location^.loc in [LOC_REFERENCE,LOC_CREFERENCE]) then
            internalerror(2003010901);
-         reference_reset_base(ref,paraloc.location^.reference.index,paraloc.location^.reference.offset);
+         reference_reset_base(ref,cgpara.location^.reference.index,cgpara.location^.reference.offset);
          g_concatcopy(list,r,ref,size);
       end;
 
@@ -972,17 +973,17 @@ implementation
       end;
 
 
-    procedure tcg.a_paramfpu_reg(list : taasmoutput;size : tcgsize;const r : tregister;const paraloc : TCGPara);
+    procedure tcg.a_paramfpu_reg(list : taasmoutput;size : tcgsize;const r : tregister;const cgpara : TCGPara);
       var
          ref : treference;
       begin
-         paraloc.check_simple_location;
-         case paraloc.location^.loc of
+         cgpara.check_simple_location;
+         case cgpara.location^.loc of
             LOC_FPUREGISTER,LOC_CFPUREGISTER:
-              a_loadfpu_reg_reg(list,size,r,paraloc.location^.register);
+              a_loadfpu_reg_reg(list,size,r,cgpara.location^.register);
             LOC_REFERENCE,LOC_CREFERENCE:
               begin
-                 reference_reset_base(ref,paraloc.location^.reference.index,paraloc.location^.reference.offset);
+                 reference_reset_base(ref,cgpara.location^.reference.index,cgpara.location^.reference.offset);
                  a_loadfpu_reg_ref(list,size,r,ref);
               end
             else
@@ -991,17 +992,17 @@ implementation
       end;
 
 
-    procedure tcg.a_paramfpu_ref(list : taasmoutput;size : tcgsize;const ref : treference;const paraloc : TCGPara);
+    procedure tcg.a_paramfpu_ref(list : taasmoutput;size : tcgsize;const ref : treference;const cgpara : TCGPara);
       var
          href : treference;
       begin
-         paraloc.check_simple_location;
-         case paraloc.location^.loc of
+         cgpara.check_simple_location;
+         case cgpara.location^.loc of
           LOC_FPUREGISTER,LOC_CFPUREGISTER:
-            a_loadfpu_ref_reg(list,size,ref,paraloc.location^.register);
+            a_loadfpu_ref_reg(list,size,ref,cgpara.location^.register);
           LOC_REFERENCE,LOC_CREFERENCE:
             begin
-              reference_reset_base(href,paraloc.location^.reference.index,paraloc.location^.reference.offset);
+              reference_reset_base(href,cgpara.location^.reference.index,cgpara.location^.reference.offset);
               { concatcopy should choose the best way to copy the data }
               g_concatcopy(list,ref,href,tcgsize2size[size]);
             end
@@ -1255,18 +1256,18 @@ implementation
       end;
 
 
-    procedure tcg.a_parammm_reg(list: taasmoutput; size: tcgsize; reg: tregister;const paraloc : TCGPara;shuffle : pmmshuffle);
+    procedure tcg.a_parammm_reg(list: taasmoutput; size: tcgsize; reg: tregister;const cgpara : TCGPara;shuffle : pmmshuffle);
       var
         href : treference;
       begin
-         paraloc.check_simple_location;
-         case paraloc.location^.loc of
+         cgpara.check_simple_location;
+         case cgpara.location^.loc of
           LOC_MMREGISTER,LOC_CMMREGISTER:
-            a_loadmm_reg_reg(list,size,paraloc.location^.size,reg,paraloc.location^.register,shuffle);
+            a_loadmm_reg_reg(list,size,cgpara.location^.size,reg,cgpara.location^.register,shuffle);
           LOC_REFERENCE,LOC_CREFERENCE:
             begin
-              reference_reset_base(href,paraloc.location^.reference.index,paraloc.location^.reference.offset);
-              a_loadmm_reg_ref(list,size,paraloc.location^.size,reg,href,shuffle);
+              reference_reset_base(href,cgpara.location^.reference.index,cgpara.location^.reference.offset);
+              a_loadmm_reg_ref(list,size,cgpara.location^.size,reg,href,shuffle);
             end
           else
             internalerror(200310123);
@@ -1274,32 +1275,32 @@ implementation
       end;
 
 
-    procedure tcg.a_parammm_ref(list: taasmoutput; size: tcgsize;const ref: treference;const paraloc : TCGPara;shuffle : pmmshuffle);
+    procedure tcg.a_parammm_ref(list: taasmoutput; size: tcgsize;const ref: treference;const cgpara : TCGPara;shuffle : pmmshuffle);
       var
          hr : tregister;
          hs : tmmshuffle;
       begin
-         paraloc.check_simple_location;
-         hr:=getmmregister(list,paraloc.location^.size);
-         a_loadmm_ref_reg(list,size,paraloc.location^.size,ref,hr,shuffle);
+         cgpara.check_simple_location;
+         hr:=getmmregister(list,cgpara.location^.size);
+         a_loadmm_ref_reg(list,size,cgpara.location^.size,ref,hr,shuffle);
          if realshuffle(shuffle) then
            begin
              hs:=shuffle^;
              removeshuffles(hs);
-             a_parammm_reg(list,paraloc.location^.size,hr,paraloc,@hs);
+             a_parammm_reg(list,cgpara.location^.size,hr,cgpara,@hs);
            end
          else
-           a_parammm_reg(list,paraloc.location^.size,hr,paraloc,shuffle);
+           a_parammm_reg(list,cgpara.location^.size,hr,cgpara,shuffle);
       end;
 
 
-    procedure tcg.a_parammm_loc(list: taasmoutput;const loc: tlocation; const paraloc : TCGPara;shuffle : pmmshuffle);
+    procedure tcg.a_parammm_loc(list: taasmoutput;const loc: tlocation; const cgpara : TCGPara;shuffle : pmmshuffle);
       begin
         case loc.loc of
           LOC_MMREGISTER,LOC_CMMREGISTER:
-            a_parammm_reg(list,loc.size,loc.register,paraloc,shuffle);
+            a_parammm_reg(list,loc.size,loc.register,cgpara,shuffle);
           LOC_REFERENCE,LOC_CREFERENCE:
-            a_parammm_ref(list,loc.size,loc.reference,paraloc,shuffle);
+            a_parammm_ref(list,loc.size,loc.reference,cgpara,shuffle);
           else
             internalerror(200310123);
         end;
@@ -1367,31 +1368,31 @@ implementation
 
     procedure tcg.g_copyshortstring(list : taasmoutput;const source,dest : treference;len:byte);
       var
-        paraloc1,paraloc2,paraloc3 : TCGPara;
+        cgpara1,cgpara2,cgpara3 : TCGPara;
       begin
-        paraloc1.init;
-        paraloc2.init;
-        paraloc3.init;
-        paramanager.getintparaloc(pocall_default,1,paraloc1);
-        paramanager.getintparaloc(pocall_default,2,paraloc2);
-        paramanager.getintparaloc(pocall_default,3,paraloc3);
-        paramanager.allocparaloc(list,paraloc3);
-        a_paramaddr_ref(list,dest,paraloc3);
-        paramanager.allocparaloc(list,paraloc2);
-        a_paramaddr_ref(list,source,paraloc2);
-        paramanager.allocparaloc(list,paraloc1);
-        a_param_const(list,OS_INT,len,paraloc1);
-        paramanager.freeparaloc(list,paraloc3);
-        paramanager.freeparaloc(list,paraloc2);
-        paramanager.freeparaloc(list,paraloc1);
+        cgpara1.init;
+        cgpara2.init;
+        cgpara3.init;
+        paramanager.getintparaloc(pocall_default,1,cgpara1);
+        paramanager.getintparaloc(pocall_default,2,cgpara2);
+        paramanager.getintparaloc(pocall_default,3,cgpara3);
+        paramanager.allocparaloc(list,cgpara3);
+        a_paramaddr_ref(list,dest,cgpara3);
+        paramanager.allocparaloc(list,cgpara2);
+        a_paramaddr_ref(list,source,cgpara2);
+        paramanager.allocparaloc(list,cgpara1);
+        a_param_const(list,OS_INT,len,cgpara1);
+        paramanager.freeparaloc(list,cgpara3);
+        paramanager.freeparaloc(list,cgpara2);
+        paramanager.freeparaloc(list,cgpara1);
         alloccpuregisters(list,R_INTREGISTER,paramanager.get_volatile_registers_int(pocall_default));
         alloccpuregisters(list,R_FPUREGISTER,paramanager.get_volatile_registers_fpu(pocall_default));
         a_call_name(list,'FPC_SHORTSTR_ASSIGN');
         dealloccpuregisters(list,R_FPUREGISTER,paramanager.get_volatile_registers_fpu(pocall_default));
         dealloccpuregisters(list,R_INTREGISTER,paramanager.get_volatile_registers_int(pocall_default));
-        paraloc3.done;
-        paraloc2.done;
-        paraloc1.done;
+        cgpara3.done;
+        cgpara2.done;
+        cgpara1.done;
       end;
 
 
@@ -1399,12 +1400,12 @@ implementation
       var
         href : treference;
         incrfunc : string;
-        paraloc1,paraloc2 : TCGPara;
+        cgpara1,cgpara2 : TCGPara;
       begin
-         paraloc1.init;
-         paraloc2.init;
-         paramanager.getintparaloc(pocall_default,1,paraloc1);
-         paramanager.getintparaloc(pocall_default,2,paraloc2);
+         cgpara1.init;
+         cgpara2.init;
+         paramanager.getintparaloc(pocall_default,1,cgpara1);
+         paramanager.getintparaloc(pocall_default,2,cgpara2);
          if is_interfacecom(t) then
           incrfunc:='FPC_INTF_INCR_REF'
          else if is_ansistring(t) then
@@ -1431,10 +1432,10 @@ implementation
          { call the special incr function or the generic addref }
          if incrfunc<>'' then
           begin
-            paramanager.allocparaloc(list,paraloc1);
+            paramanager.allocparaloc(list,cgpara1);
             { these functions get the pointer by value }
-            a_param_ref(list,OS_ADDR,ref,paraloc1);
-            paramanager.freeparaloc(list,paraloc1);
+            a_param_ref(list,OS_ADDR,ref,cgpara1);
+            paramanager.freeparaloc(list,cgpara1);
             alloccpuregisters(list,R_INTREGISTER,paramanager.get_volatile_registers_int(pocall_default));
             a_call_name(list,incrfunc);
             dealloccpuregisters(list,R_INTREGISTER,paramanager.get_volatile_registers_int(pocall_default));
@@ -1442,18 +1443,18 @@ implementation
          else
           begin
             reference_reset_symbol(href,tstoreddef(t).get_rtti_label(initrtti),0);
-            paramanager.allocparaloc(list,paraloc2);
-            a_paramaddr_ref(list,href,paraloc2);
-            paramanager.allocparaloc(list,paraloc1);
-            a_paramaddr_ref(list,ref,paraloc1);
-            paramanager.freeparaloc(list,paraloc1);
-            paramanager.freeparaloc(list,paraloc2);
+            paramanager.allocparaloc(list,cgpara2);
+            a_paramaddr_ref(list,href,cgpara2);
+            paramanager.allocparaloc(list,cgpara1);
+            a_paramaddr_ref(list,ref,cgpara1);
+            paramanager.freeparaloc(list,cgpara1);
+            paramanager.freeparaloc(list,cgpara2);
             alloccpuregisters(list,R_INTREGISTER,paramanager.get_volatile_registers_int(pocall_default));
             a_call_name(list,'FPC_ADDREF');
             dealloccpuregisters(list,R_INTREGISTER,paramanager.get_volatile_registers_int(pocall_default));
           end;
-         paraloc2.done;
-         paraloc1.done;
+         cgpara2.done;
+         cgpara1.done;
       end;
 
 
@@ -1462,12 +1463,12 @@ implementation
         href : treference;
         decrfunc : string;
         needrtti : boolean;
-        paraloc1,paraloc2 : TCGPara;
+        cgpara1,cgpara2 : TCGPara;
       begin
-        paraloc1.init;
-        paraloc2.init;
-        paramanager.getintparaloc(pocall_default,1,paraloc1);
-        paramanager.getintparaloc(pocall_default,2,paraloc2);
+        cgpara1.init;
+        cgpara2.init;
+        paramanager.getintparaloc(pocall_default,1,cgpara1);
+        paramanager.getintparaloc(pocall_default,2,cgpara2);
         needrtti:=false;
         if is_interfacecom(t) then
           decrfunc:='FPC_INTF_DECR_REF'
@@ -1501,14 +1502,14 @@ implementation
             if needrtti then
              begin
                reference_reset_symbol(href,tstoreddef(t).get_rtti_label(initrtti),0);
-               paramanager.allocparaloc(list,paraloc2);
-               a_paramaddr_ref(list,href,paraloc2);
+               paramanager.allocparaloc(list,cgpara2);
+               a_paramaddr_ref(list,href,cgpara2);
              end;
-            paramanager.allocparaloc(list,paraloc1);
-            a_paramaddr_ref(list,ref,paraloc1);
-            paramanager.freeparaloc(list,paraloc1);
+            paramanager.allocparaloc(list,cgpara1);
+            a_paramaddr_ref(list,ref,cgpara1);
+            paramanager.freeparaloc(list,cgpara1);
             if needrtti then
-              paramanager.freeparaloc(list,paraloc2);
+              paramanager.freeparaloc(list,cgpara2);
             alloccpuregisters(list,R_INTREGISTER,paramanager.get_volatile_registers_int(pocall_default));
             a_call_name(list,decrfunc);
             dealloccpuregisters(list,R_INTREGISTER,paramanager.get_volatile_registers_int(pocall_default));
@@ -1516,12 +1517,12 @@ implementation
          else
           begin
             reference_reset_symbol(href,tstoreddef(t).get_rtti_label(initrtti),0);
-            paramanager.allocparaloc(list,paraloc2);
-            a_paramaddr_ref(list,href,paraloc2);
-            paramanager.allocparaloc(list,paraloc1);
-            a_paramaddr_ref(list,ref,paraloc1);
-            paramanager.freeparaloc(list,paraloc1);
-            paramanager.freeparaloc(list,paraloc2);
+            paramanager.allocparaloc(list,cgpara2);
+            a_paramaddr_ref(list,href,cgpara2);
+            paramanager.allocparaloc(list,cgpara1);
+            a_paramaddr_ref(list,ref,cgpara1);
+            paramanager.freeparaloc(list,cgpara1);
+            paramanager.freeparaloc(list,cgpara2);
             alloccpuregisters(list,R_INTREGISTER,paramanager.get_volatile_registers_int(pocall_default));
             a_call_name(list,'FPC_DECREF');
             dealloccpuregisters(list,R_INTREGISTER,paramanager.get_volatile_registers_int(pocall_default));
@@ -1529,20 +1530,20 @@ implementation
         { Temp locations need always to be reset to 0 }
         if tg.istemp(ref) then
           a_load_const_ref(list,OS_ADDR,0,ref);
-        paraloc2.done;
-        paraloc1.done;
+        cgpara2.done;
+        cgpara1.done;
       end;
 
 
     procedure tcg.g_initialize(list : taasmoutput;t : tdef;const ref : treference);
       var
          href : treference;
-         paraloc1,paraloc2 : TCGPara;
+         cgpara1,cgpara2 : TCGPara;
       begin
-        paraloc1.init;
-        paraloc2.init;
-        paramanager.getintparaloc(pocall_default,1,paraloc1);
-        paramanager.getintparaloc(pocall_default,2,paraloc2);
+        cgpara1.init;
+        cgpara2.init;
+        paramanager.getintparaloc(pocall_default,1,cgpara1);
+        paramanager.getintparaloc(pocall_default,2,cgpara2);
          if is_ansistring(t) or
             is_widestring(t) or
             is_interfacecom(t) or
@@ -1551,32 +1552,32 @@ implementation
          else
            begin
               reference_reset_symbol(href,tstoreddef(t).get_rtti_label(initrtti),0);
-              paramanager.allocparaloc(list,paraloc2);
-              a_paramaddr_ref(list,href,paraloc2);
-              paramanager.allocparaloc(list,paraloc1);
-              a_paramaddr_ref(list,ref,paraloc1);
-              paramanager.freeparaloc(list,paraloc1);
-              paramanager.freeparaloc(list,paraloc2);
+              paramanager.allocparaloc(list,cgpara2);
+              a_paramaddr_ref(list,href,cgpara2);
+              paramanager.allocparaloc(list,cgpara1);
+              a_paramaddr_ref(list,ref,cgpara1);
+              paramanager.freeparaloc(list,cgpara1);
+              paramanager.freeparaloc(list,cgpara2);
               alloccpuregisters(list,R_INTREGISTER,paramanager.get_volatile_registers_int(pocall_default));
               alloccpuregisters(list,R_FPUREGISTER,paramanager.get_volatile_registers_fpu(pocall_default));
               a_call_name(list,'FPC_INITIALIZE');
               dealloccpuregisters(list,R_FPUREGISTER,paramanager.get_volatile_registers_fpu(pocall_default));
               dealloccpuregisters(list,R_INTREGISTER,paramanager.get_volatile_registers_int(pocall_default));
            end;
-        paraloc1.done;
-        paraloc2.done;
+        cgpara1.done;
+        cgpara2.done;
       end;
 
 
     procedure tcg.g_finalize(list : taasmoutput;t : tdef;const ref : treference);
       var
          href : treference;
-         paraloc1,paraloc2 : TCGPara;
+         cgpara1,cgpara2 : TCGPara;
       begin
-        paraloc1.init;
-        paraloc2.init;
-        paramanager.getintparaloc(pocall_default,1,paraloc1);
-        paramanager.getintparaloc(pocall_default,2,paraloc2);
+        cgpara1.init;
+        cgpara2.init;
+        paramanager.getintparaloc(pocall_default,1,cgpara1);
+        paramanager.getintparaloc(pocall_default,2,cgpara2);
          if is_ansistring(t) or
             is_widestring(t) or
             is_interfacecom(t) then
@@ -1589,20 +1590,20 @@ implementation
          else
            begin
               reference_reset_symbol(href,tstoreddef(t).get_rtti_label(initrtti),0);
-              paramanager.allocparaloc(list,paraloc2);
-              a_paramaddr_ref(list,href,paraloc2);
-              paramanager.allocparaloc(list,paraloc1);
-              a_paramaddr_ref(list,ref,paraloc1);
-              paramanager.freeparaloc(list,paraloc1);
-              paramanager.freeparaloc(list,paraloc2);
+              paramanager.allocparaloc(list,cgpara2);
+              a_paramaddr_ref(list,href,cgpara2);
+              paramanager.allocparaloc(list,cgpara1);
+              a_paramaddr_ref(list,ref,cgpara1);
+              paramanager.freeparaloc(list,cgpara1);
+              paramanager.freeparaloc(list,cgpara2);
               alloccpuregisters(list,R_INTREGISTER,paramanager.get_volatile_registers_int(pocall_default));
               alloccpuregisters(list,R_FPUREGISTER,paramanager.get_volatile_registers_fpu(pocall_default));
               a_call_name(list,'FPC_FINALIZE');
               dealloccpuregisters(list,R_FPUREGISTER,paramanager.get_volatile_registers_fpu(pocall_default));
               dealloccpuregisters(list,R_INTREGISTER,paramanager.get_volatile_registers_int(pocall_default));
            end;
-        paraloc1.done;
-        paraloc2.done;
+        cgpara1.done;
+        cgpara2.done;
       end;
 
 
@@ -1772,21 +1773,21 @@ implementation
     procedure tcg.g_maybe_testself(list : taasmoutput;reg:tregister);
       var
         OKLabel : tasmlabel;
-        paraloc1 : TCGPara;
+        cgpara1 : TCGPara;
       begin
         if (cs_check_object in aktlocalswitches) or
            (cs_check_range in aktlocalswitches) then
          begin
            objectlibrary.getlabel(oklabel);
            a_cmp_const_reg_label(list,OS_ADDR,OC_NE,0,reg,oklabel);
-           paraloc1.init;
-           paramanager.getintparaloc(pocall_default,1,paraloc1);
-           paramanager.allocparaloc(list,paraloc1);
-           a_param_const(list,OS_INT,210,paraloc1);
-           paramanager.freeparaloc(list,paraloc1);
+           cgpara1.init;
+           paramanager.getintparaloc(pocall_default,1,cgpara1);
+           paramanager.allocparaloc(list,cgpara1);
+           a_param_const(list,OS_INT,210,cgpara1);
+           paramanager.freeparaloc(list,cgpara1);
            a_call_name(list,'FPC_HANDLEERROR');
            a_label(list,oklabel);
-           paraloc1.done;
+           cgpara1.done;
          end;
       end;
 
@@ -1794,21 +1795,21 @@ implementation
     procedure tcg.g_maybe_testvmt(list : taasmoutput;reg:tregister;objdef:tobjectdef);
       var
         hrefvmt : treference;
-        paraloc1,paraloc2 : TCGPara;
+        cgpara1,cgpara2 : TCGPara;
       begin
-        paraloc1.init;
-        paraloc2.init;
-        paramanager.getintparaloc(pocall_default,1,paraloc1);
-        paramanager.getintparaloc(pocall_default,2,paraloc2);
+        cgpara1.init;
+        cgpara2.init;
+        paramanager.getintparaloc(pocall_default,1,cgpara1);
+        paramanager.getintparaloc(pocall_default,2,cgpara2);
         if (cs_check_object in aktlocalswitches) then
          begin
            reference_reset_symbol(hrefvmt,objectlibrary.newasmsymbol(objdef.vmt_mangledname,AB_EXTERNAL,AT_DATA),0);
-           paramanager.allocparaloc(list,paraloc2);
-           a_paramaddr_ref(list,hrefvmt,paraloc2);
-           paramanager.allocparaloc(list,paraloc1);
-           a_param_reg(list,OS_ADDR,reg,paraloc1);
-           paramanager.freeparaloc(list,paraloc1);
-           paramanager.freeparaloc(list,paraloc2);
+           paramanager.allocparaloc(list,cgpara2);
+           a_paramaddr_ref(list,hrefvmt,cgpara2);
+           paramanager.allocparaloc(list,cgpara1);
+           a_param_reg(list,OS_ADDR,reg,cgpara1);
+           paramanager.freeparaloc(list,cgpara1);
+           paramanager.freeparaloc(list,cgpara2);
            alloccpuregisters(list,R_INTREGISTER,paramanager.get_volatile_registers_int(pocall_default));
            a_call_name(list,'FPC_CHECK_OBJECT_EXT');
            dealloccpuregisters(list,R_INTREGISTER,paramanager.get_volatile_registers_int(pocall_default));
@@ -1816,15 +1817,15 @@ implementation
         else
          if (cs_check_range in aktlocalswitches) then
           begin
-            paramanager.allocparaloc(list,paraloc1);
-            a_param_reg(list,OS_ADDR,reg,paraloc1);
-            paramanager.freeparaloc(list,paraloc1);
+            paramanager.allocparaloc(list,cgpara1);
+            a_param_reg(list,OS_ADDR,reg,cgpara1);
+            paramanager.freeparaloc(list,cgpara1);
             alloccpuregisters(list,R_INTREGISTER,paramanager.get_volatile_registers_int(pocall_default));
             a_call_name(list,'FPC_CHECK_OBJECT');
             dealloccpuregisters(list,R_INTREGISTER,paramanager.get_volatile_registers_int(pocall_default));
           end;
-        paraloc1.done;
-        paraloc2.done;
+        cgpara1.done;
+        cgpara2.done;
       end;
 
 
@@ -1835,7 +1836,7 @@ implementation
     procedure tcg.g_copyvaluepara_openarray(list : taasmoutput;const ref:treference;const lenloc:tlocation;elesize:aint;destreg:tregister);
       var
         sizereg,sourcereg,lenreg : tregister;
-        paraloc1,paraloc2,paraloc3 : TCGPara;
+        cgpara1,cgpara2,cgpara3 : TCGPara;
       begin
         { because some abis don't support dynamic stack allocation properly
           open array value parameters are copied onto the heap
@@ -1860,67 +1861,67 @@ implementation
         a_loadaddr_ref_reg(list,ref,sourcereg);
 
         { do getmem call }
-        paraloc1.init;
-        paramanager.getintparaloc(pocall_default,1,paraloc1);
-        paramanager.allocparaloc(list,paraloc1);
-        a_param_reg(list,OS_INT,sizereg,paraloc1);
-        paramanager.freeparaloc(list,paraloc1);
+        cgpara1.init;
+        paramanager.getintparaloc(pocall_default,1,cgpara1);
+        paramanager.allocparaloc(list,cgpara1);
+        a_param_reg(list,OS_INT,sizereg,cgpara1);
+        paramanager.freeparaloc(list,cgpara1);
         alloccpuregisters(list,R_INTREGISTER,paramanager.get_volatile_registers_int(pocall_default));
         alloccpuregisters(list,R_FPUREGISTER,paramanager.get_volatile_registers_fpu(pocall_default));
         a_call_name(list,'FPC_GETMEM');
         dealloccpuregisters(list,R_FPUREGISTER,paramanager.get_volatile_registers_fpu(pocall_default));
         dealloccpuregisters(list,R_INTREGISTER,paramanager.get_volatile_registers_int(pocall_default));
-        paraloc1.done;
+        cgpara1.done;
         { return the new address }
         a_load_reg_reg(list,OS_ADDR,OS_ADDR,NR_FUNCTION_RESULT_REG,destreg);
 
         { do move call }
-        paraloc1.init;
-        paraloc2.init;
-        paraloc3.init;
-        paramanager.getintparaloc(pocall_default,1,paraloc1);
-        paramanager.getintparaloc(pocall_default,2,paraloc2);
-        paramanager.getintparaloc(pocall_default,3,paraloc3);
+        cgpara1.init;
+        cgpara2.init;
+        cgpara3.init;
+        paramanager.getintparaloc(pocall_default,1,cgpara1);
+        paramanager.getintparaloc(pocall_default,2,cgpara2);
+        paramanager.getintparaloc(pocall_default,3,cgpara3);
         { load size }
-        paramanager.allocparaloc(list,paraloc3);
-        a_param_reg(list,OS_INT,sizereg,paraloc3);
+        paramanager.allocparaloc(list,cgpara3);
+        a_param_reg(list,OS_INT,sizereg,cgpara3);
         { load destination }
-        paramanager.allocparaloc(list,paraloc2);
-        a_param_reg(list,OS_ADDR,destreg,paraloc2);
+        paramanager.allocparaloc(list,cgpara2);
+        a_param_reg(list,OS_ADDR,destreg,cgpara2);
         { load source }
-        paramanager.allocparaloc(list,paraloc1);
-        a_param_reg(list,OS_ADDR,sourcereg,paraloc1);
-        paramanager.freeparaloc(list,paraloc3);
-        paramanager.freeparaloc(list,paraloc2);
-        paramanager.freeparaloc(list,paraloc1);
+        paramanager.allocparaloc(list,cgpara1);
+        a_param_reg(list,OS_ADDR,sourcereg,cgpara1);
+        paramanager.freeparaloc(list,cgpara3);
+        paramanager.freeparaloc(list,cgpara2);
+        paramanager.freeparaloc(list,cgpara1);
         alloccpuregisters(list,R_INTREGISTER,paramanager.get_volatile_registers_int(pocall_default));
         alloccpuregisters(list,R_FPUREGISTER,paramanager.get_volatile_registers_fpu(pocall_default));
         a_call_name(list,'FPC_MOVE');
         dealloccpuregisters(list,R_FPUREGISTER,paramanager.get_volatile_registers_fpu(pocall_default));
         dealloccpuregisters(list,R_INTREGISTER,paramanager.get_volatile_registers_int(pocall_default));
-        paraloc3.done;
-        paraloc2.done;
-        paraloc1.done;
+        cgpara3.done;
+        cgpara2.done;
+        cgpara1.done;
       end;
 
 
     procedure tcg.g_releasevaluepara_openarray(list : taasmoutput;const l:tlocation);
       var
-        paraloc1 : TCGPara;
+        cgpara1 : TCGPara;
       begin
         { do move call }
-        paraloc1.init;
-        paramanager.getintparaloc(pocall_default,1,paraloc1);
+        cgpara1.init;
+        paramanager.getintparaloc(pocall_default,1,cgpara1);
         { load source }
-        paramanager.allocparaloc(list,paraloc1);
-        a_param_loc(list,l,paraloc1);
-        paramanager.freeparaloc(list,paraloc1);
+        paramanager.allocparaloc(list,cgpara1);
+        a_param_loc(list,l,cgpara1);
+        paramanager.freeparaloc(list,cgpara1);
         alloccpuregisters(list,R_INTREGISTER,paramanager.get_volatile_registers_int(pocall_default));
         alloccpuregisters(list,R_FPUREGISTER,paramanager.get_volatile_registers_fpu(pocall_default));
         a_call_name(list,'FPC_FREEMEM');
         dealloccpuregisters(list,R_FPUREGISTER,paramanager.get_volatile_registers_fpu(pocall_default));
         dealloccpuregisters(list,R_INTREGISTER,paramanager.get_volatile_registers_int(pocall_default));
-        paraloc1.done;
+        cgpara1.done;
       end;
 
 
@@ -2047,7 +2048,11 @@ finalization
 end.
 {
   $Log$
-  Revision 1.187  2004-11-30 18:13:39  jonas
+  Revision 1.188  2005-01-18 22:19:20  peter
+    * multiple location support for i386 a_param_ref
+    * remove a_param_copy_ref for i386
+
+  Revision 1.187  2004/11/30 18:13:39  jonas
     * patch from Peter to fix inlining of case statements
 
   Revision 1.186  2004/11/08 21:47:39  florian
@@ -2113,7 +2118,7 @@ end.
     * removed location-release/reference_release
 
   Revision 1.169  2004/09/21 17:25:12  peter
-    * paraloc branch merged
+    * cgpara branch merged
 
   Revision 1.168.4.4  2004/09/20 20:45:57  peter
     * remove cg64.a_reg_alloc, it should not be used since it
@@ -2127,7 +2132,7 @@ end.
     * fixed alignment issues
 
   Revision 1.168.4.1  2004/08/31 20:43:06  peter
-    * paraloc patch
+    * cgpara patch
 
   Revision 1.168  2004/07/09 23:41:04  jonas
     * support register parameters for inlined procedures + some inline

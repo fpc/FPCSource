@@ -63,7 +63,6 @@ unit parabase;
           procedure   reset;
           function    getcopy:tcgpara;
           procedure   check_simple_location;
-          function    is_simple_reference:boolean;
           function    add_location:pcgparalocation;
           procedure   get_location(var newloc:tlocation);
        end;
@@ -186,20 +185,6 @@ implementation
       end;
 
 
-    function tcgpara.is_simple_reference:boolean;
-      begin
-        if not assigned(location) then
-          internalerror(200410102);
-{$ifdef powerpc}
-        { Powerpc always needs a copy in a local temp }
-        result:=false;
-{$else}
-        result:=not assigned(location^.next) and
-                (location^.loc=LOC_REFERENCE);
-{$endif}
-      end;
-
-
     procedure tcgpara.get_location(var newloc:tlocation);
       begin
         if not assigned(location) then
@@ -267,7 +252,11 @@ end.
 
 {
    $Log$
-   Revision 1.8  2005-01-10 21:50:05  jonas
+   Revision 1.9  2005-01-18 22:19:20  peter
+     * multiple location support for i386 a_param_ref
+     * remove a_param_copy_ref for i386
+
+   Revision 1.8  2005/01/10 21:50:05  jonas
      + support for passing records in registers under darwin
      * tcgpara now also has an intsize field, which contains the size in
        bytes of the whole parameter

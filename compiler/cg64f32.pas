@@ -35,7 +35,7 @@ unit cg64f32;
        aasmbase,aasmtai,aasmcpu,
        cpubase,cpupara,
        cgbase,cgobj,parabase,cgutils,
-       node,symtype
+       symtype
        ;
 
     type
@@ -124,10 +124,12 @@ unit cg64f32;
           cgparahi.size:=OS_S32
         else
           cgparahi.size:=OS_32;
+        cgparahi.intsize:=4;
         cgparahi.alignment:=cgpara.alignment;
         paralochi:=cgparahi.add_location;
         cgparalo.reset;
         cgparalo.size:=OS_32;
+        cgparalo.intsize:=4;
         cgparalo.alignment:=cgpara.alignment;
         paraloclo:=cgparalo.add_location;
         { 2 parameter fields? }
@@ -779,7 +781,11 @@ unit cg64f32;
 end.
 {
   $Log$
-  Revision 1.66  2004-12-03 15:58:11  peter
+  Revision 1.67  2005-01-18 22:19:20  peter
+    * multiple location support for i386 a_param_ref
+    * remove a_param_copy_ref for i386
+
+  Revision 1.66  2004/12/03 15:58:11  peter
     * LOC_CREGISTER fix
 
   Revision 1.65  2004/10/31 21:45:02  peter

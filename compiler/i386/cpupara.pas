@@ -27,13 +27,14 @@ unit cpupara;
   interface
 
     uses
-       cclasses,globtype,
+       globtype,
        aasmtai,cpubase,cgbase,
        symconst,symtype,symsym,symdef,
        parabase,paramgr;
 
     type
        ti386paramanager = class(tparamanager)
+          function param_use_paraloc(const cgpara:tcgpara):boolean;override;
           function ret_in_param(def : tdef;calloption : tproccalloption) : boolean;override;
           function push_addr_param(varspez:tvarspez;def : tdef;calloption : tproccalloption) : boolean;override;
           function get_para_align(calloption : tproccalloption):byte;override;
@@ -55,6 +56,7 @@ unit cpupara;
           procedure create_register_paraloc_info(p : tabstractprocdef; side: tcallercallee;paras:tparalist;var parareg,parasize:longint);
        end;
 
+
   implementation
 
     uses
@@ -69,6 +71,24 @@ unit cpupara;
 {****************************************************************************
                                 TI386PARAMANAGER
 ****************************************************************************}
+
+    function ti386paramanager.param_use_paraloc(const cgpara:tcgpara):boolean;
+      var
+        paraloc : pcgparalocation;
+      begin
+        if not assigned(cgpara.location) then
+          internalerror(200410102);
+        result:=true;
+        { All locations are LOC_REFERENCE }
+        paraloc:=cgpara.location;
+        while assigned(paraloc) do
+          begin
+            if (paraloc^.loc<>LOC_REFERENCE) then
+              result:=false;
+            paraloc:=paraloc^.next;
+          end;
+      end;
+
 
     function ti386paramanager.ret_in_param(def : tdef;calloption : tproccalloption) : boolean;
       begin
@@ -120,7 +140,7 @@ unit cpupara;
                        (varspez=vs_value) and
                        (tarraydef(def).highrange>=tarraydef(def).lowrange) then
                      begin
-                       result:=true;
+                       result:=false;
                        exit;
                      end;
                   end;
@@ -291,8 +311,10 @@ unit cpupara;
         hp : tparavarsym;
         paraloc : pcgparalocation;
         l,
-        varalign,
-        paraalign : longint;
+        paralen,
+        varalign   : longint;
+        paraalign  : shortint;
+        pushaddr   : boolean;
         paracgsize : tcgsize;
       begin
         paraalign:=get_para_align(p.proccalloption);
@@ -313,32 +335,59 @@ unit cpupara;
         for i:=0 to paras.count-1 do
           begin
             hp:=tparavarsym(paras[i]);
-            if push_addr_param(hp.varspez,hp.vartype.def,p.proccalloption) then
+            pushaddr:=push_addr_param(hp.varspez,hp.vartype.def,p.proccalloption);
+            if pushaddr then
               begin
+                paralen:=sizeof(aint);
                 paracgsize:=OS_ADDR;
-                hp.paraloc[side].intsize:=tcgsize2size[OS_ADDR];
               end
             else
               begin
-                paracgsize:=def_cgSize(hp.vartype.def);
-                if paracgsize=OS_NO then
-                  paracgsize:=OS_ADDR;
-                hp.paraloc[side].intsize := tcgsize2size[paracgsize];
+                paralen:=push_size(hp.varspez,hp.vartype.def,p.proccalloption);
+                paracgsize:=def_cgsize(hp.vartype.def);
               end;
             hp.paraloc[side].reset;
             hp.paraloc[side].size:=paracgsize;
+            hp.paraloc[side].intsize:=paralen;
             hp.paraloc[side].Alignment:=paraalign;
-            paraloc:=hp.paraloc[side].add_location;
-            paraloc^.loc:=LOC_REFERENCE;
-            paraloc^.size:=paracgsize;
-            if side=callerside then
-              paraloc^.reference.index:=NR_STACK_POINTER_REG
+            { Copy to stack? }
+            if paracgsize=OS_NO then
+              begin
+                paraloc:=hp.paraloc[side].add_location;
+                paraloc^.loc:=LOC_REFERENCE;
+                paraloc^.size:=paracgsize;
+                if side=callerside then
+                  paraloc^.reference.index:=NR_STACK_POINTER_REG
+                else
+                  paraloc^.reference.index:=NR_FRAME_POINTER_REG;
+                varalign:=used_align(size_2_align(paralen),paraalign,paraalign);
+                paraloc^.reference.offset:=parasize;
+                parasize:=align(parasize+paralen,varalign);
+              end
             else
-              paraloc^.reference.index:=NR_FRAME_POINTER_REG;
-            l:=push_size(hp.varspez,hp.vartype.def,p.proccalloption);
-            varalign:=used_align(size_2_align(l),paraalign,paraalign);
-            paraloc^.reference.offset:=parasize;
-            parasize:=align(parasize+l,varalign);
+              begin
+                if paralen=0 then
+                  internalerror(200501163);
+                while (paralen>0) do
+                  begin
+                    { We can allocate at maximum 32 bits per location }
+                    if paralen>sizeof(aint) then
+                      l:=sizeof(aint)
+                    else
+                      l:=paralen;
+                    paraloc:=hp.paraloc[side].add_location;
+                    paraloc^.loc:=LOC_REFERENCE;
+                    paraloc^.size:=int_cgsize(l);
+                    if side=callerside then
+                      paraloc^.reference.index:=NR_STACK_POINTER_REG
+                    else
+                      paraloc^.reference.index:=NR_FRAME_POINTER_REG;
+                    varalign:=used_align(size_2_align(l),paraalign,paraalign);
+                    paraloc^.reference.offset:=parasize;
+                    parasize:=align(parasize+l,varalign);
+                    dec(paralen,l);
+                  end;
+              end;
           end;
         { Adapt offsets for left-to-right calling }
         if p.proccalloption in pushleftright_pocalls then
@@ -378,13 +427,13 @@ unit cpupara;
       var
         hp : tparavarsym;
         paraloc : pcgparalocation;
-        pushaddr,
-        is_64bit : boolean;
         paracgsize : tcgsize;
         i : integer;
         l,
-        varalign,
-        paraalign : longint;
+        paralen,
+        varalign : longint;
+        pushaddr : boolean;
+        paraalign : shortint;
       begin
         paraalign:=get_para_align(p.proccalloption);
         { Register parameters are assigned from left to right }
@@ -394,21 +443,17 @@ unit cpupara;
             pushaddr:=push_addr_param(hp.varspez,hp.vartype.def,p.proccalloption);
             if pushaddr then
               begin
+                paralen:=sizeof(aint);
                 paracgsize:=OS_ADDR;
-                hp.paraloc[side].intsize:=tcgsize2size[OS_ADDR];
               end
             else
               begin
-                paracgsize:=def_cgSize(hp.vartype.def);
-                hp.paraloc[side].intsize := hp.vartype.def.size;
-                if (hp.paraloc[side].intsize = 0) and
-                   { records can have size 0}
-                   (hp.vartype.def.deftype <> recorddef) then
-                  hp.paraloc[side].intsize := tcgsize2size[OS_ADDR];
+                paralen:=push_size(hp.varspez,hp.vartype.def,p.proccalloption);
+                paracgsize:=def_cgsize(hp.vartype.def);
               end;
-            is_64bit:=(paracgsize in [OS_64,OS_S64,OS_F64]);
             hp.paraloc[side].reset;
             hp.paraloc[side].size:=paracgsize;
+            hp.paraloc[side].intsize:=paralen;
             hp.paraloc[side].Alignment:=paraalign;
             {
               EAX
@@ -420,31 +465,59 @@ unit cpupara;
               64bit values,floats,arrays and records are always
               on the stack.
             }
-            paraloc:=hp.paraloc[side].add_location;
-            paraloc^.size:=paracgsize;
             if (parareg<=high(parasupregs)) and
-               not(
-                   is_64bit or
-                   ((hp.vartype.def.deftype in [floatdef,recorddef,arraydef]) and
-                    (not pushaddr))
-                  ) then
+               (paralen<=sizeof(aint)) and
+               (
+                not(hp.vartype.def.deftype in [floatdef,recorddef,arraydef]) or
+                pushaddr
+               ) then
               begin
+                paraloc:=hp.paraloc[side].add_location;
+                paraloc^.size:=paracgsize;
                 paraloc^.loc:=LOC_REGISTER;
                 paraloc^.register:=newreg(R_INTREGISTER,parasupregs[parareg],cgsize2subreg(paracgsize));
                 inc(parareg);
               end
             else
               begin
-                paraloc^.loc:=LOC_REFERENCE;
-                if side=callerside then
-                  paraloc^.reference.index:=NR_STACK_POINTER_REG
+                { Copy to stack? }
+                if paracgsize=OS_NO then
+                  begin
+                    paraloc:=hp.paraloc[side].add_location;
+                    paraloc^.loc:=LOC_REFERENCE;
+                    paraloc^.size:=paracgsize;
+                    if side=callerside then
+                      paraloc^.reference.index:=NR_STACK_POINTER_REG
+                    else
+                      paraloc^.reference.index:=NR_FRAME_POINTER_REG;
+                    varalign:=used_align(size_2_align(paralen),paraalign,paraalign);
+                    paraloc^.reference.offset:=parasize;
+                    parasize:=align(parasize+paralen,varalign);
+                  end
                 else
-                  paraloc^.reference.index:=NR_FRAME_POINTER_REG;
-                l:=push_size(hp.varspez,hp.vartype.def,p.proccalloption);
-                varalign:=size_2_align(l);
-                paraloc^.reference.offset:=parasize;
-                varalign:=used_align(varalign,paraalign,paraalign);
-                parasize:=align(parasize+l,varalign);
+                  begin
+                    if paralen=0 then
+                      internalerror(200501163);
+                    while (paralen>0) do
+                      begin
+                        { We can allocate at maximum 32 bits per location }
+                        if paralen>sizeof(aint) then
+                          l:=sizeof(aint)
+                        else
+                          l:=paralen;
+                        paraloc:=hp.paraloc[side].add_location;
+                        paraloc^.loc:=LOC_REFERENCE;
+                        paraloc^.size:=int_cgsize(l);
+                        if side=callerside then
+                          paraloc^.reference.index:=NR_STACK_POINTER_REG
+                        else
+                          paraloc^.reference.index:=NR_FRAME_POINTER_REG;
+                        varalign:=used_align(size_2_align(l),paraalign,paraalign);
+                        paraloc^.reference.offset:=parasize;
+                        parasize:=align(parasize+l,varalign);
+                        dec(paralen,l);
+                      end;
+                  end;
               end;
           end;
         { Register parameters are assigned from left-to-right, adapt offset
@@ -529,7 +602,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.61  2005-01-10 21:50:05  jonas
+  Revision 1.62  2005-01-18 22:19:20  peter
+    * multiple location support for i386 a_param_ref
+    * remove a_param_copy_ref for i386
+
+  Revision 1.61  2005/01/10 21:50:05  jonas
     + support for passing records in registers under darwin
     * tcgpara now also has an intsize field, which contains the size in
       bytes of the whole parameter

@@ -1362,14 +1362,19 @@ implementation
             case currpara.localloc.loc of
               LOC_REFERENCE :
                 begin
-                  href:=currpara.localloc.reference;
-                  while assigned(paraloc) do
+                  { If the parameter location is reused we don't need to copy
+                    anything }
+                  if not paramanager.param_use_paraloc(currpara.paraloc[calleeside]) then
                     begin
-                      unget_para(paraloc^);
-                      gen_load_ref(paraloc^,href,sizeleft);
-                      inc(href.offset,TCGSize2Size[paraloc^.size]);
-                      dec(sizeleft,TCGSize2Size[paraloc^.size]);
-                      paraloc:=paraloc^.next;
+                      href:=currpara.localloc.reference;
+                      while assigned(paraloc) do
+                        begin
+                          unget_para(paraloc^);
+                          gen_load_ref(paraloc^,href,sizeleft);
+                          inc(href.offset,TCGSize2Size[paraloc^.size]);
+                          dec(sizeleft,TCGSize2Size[paraloc^.size]);
+                          paraloc:=paraloc^.next;
+                        end;
                     end;
                 end;
               LOC_CREGISTER :
@@ -2040,7 +2045,7 @@ implementation
                               parasymtable :
                                 begin
                                   { Reuse the parameter location for values to are at a single location on the stack }
-                                  if (tparavarsym(sym).paraloc[calleeside].is_simple_reference) then
+                                  if paramanager.param_use_paraloc(tparavarsym(sym).paraloc[calleeside]) then
                                     begin
                                       reference_reset_base(localloc.reference,tparavarsym(sym).paraloc[calleeside].location^.reference.index,
                                           tparavarsym(sym).paraloc[calleeside].location^.reference.offset);
@@ -2349,7 +2354,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.253  2005-01-13 19:31:05  jonas
+  Revision 1.254  2005-01-18 22:19:20  peter
+    * multiple location support for i386 a_param_ref
+    * remove a_param_copy_ref for i386
+
+  Revision 1.253  2005/01/13 19:31:05  jonas
     + support LOC_VOID in gen_load_para_value()
 
   Revision 1.252  2005/01/10 21:50:05  jonas

@@ -40,6 +40,8 @@ unit paramgr;
           parameters. It should be overriden for each new processor
        }
        tparamanager = class
+          { true if the location in paraloc can be reused as localloc }
+          function param_use_paraloc(const cgpara:tcgpara):boolean;virtual;
           {# Returns true if the return value is actually a parameter
              pointer.
           }
@@ -128,6 +130,13 @@ implementation
        systems,
        cgobj,tgobj,cgutils,
        defutil,verbose;
+
+    { true if the location in paraloc can be reused as localloc }
+    function tparamanager.param_use_paraloc(const cgpara:tcgpara):boolean;
+      begin
+        result:=false;
+      end;
+
 
     { true if uses a parameter as return value }
     function tparamanager.ret_in_param(def : tdef;calloption : tproccalloption) : boolean;
@@ -459,7 +468,11 @@ end.
 
 {
    $Log$
-   Revision 1.83  2005-01-10 21:50:05  jonas
+   Revision 1.84  2005-01-18 22:19:20  peter
+     * multiple location support for i386 a_param_ref
+     * remove a_param_copy_ref for i386
+
+   Revision 1.83  2005/01/10 21:50:05  jonas
      + support for passing records in registers under darwin
      * tcgpara now also has an intsize field, which contains the size in
        bytes of the whole parameter
