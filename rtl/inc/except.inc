@@ -100,7 +100,7 @@ begin
   ExceptObjectStack^.Addr:=AnAddr;
 end;
 
-Function Raiseexcept (Obj : TObject; AnAddr : Pointer) : TObject;[Public, Alias : 'FPC_RAISEEXCEPTION'];
+Function Raiseexcept (Var Obj : TObject; AnAddr : Pointer) : TObject;[Public, Alias : 'FPC_RAISEEXCEPTION'];
 
 begin
 {$ifdef excdebug}
