@@ -249,6 +249,17 @@ unit cgobj;
           procedure g_flags2reg(list: taasmoutput; size: TCgSize; const f: tresflags; reg: TRegister); virtual; abstract;
           procedure g_flags2ref(list: taasmoutput; size: TCgSize; const f: tresflags; const ref:TReference); virtual;
 
+          { 
+             This routine tries to optimize the const_reg opcode, and should be
+             called at the start of a_op_const_reg. It returns the actual opcode
+             to emit, and the constant value to emit. If this routine returns
+             FALSE, no instruction should be emitted (.eg : imul reg by 1 )
+             
+             @param(op The opcode to emit, returns the opcode which must be emitted)
+             @param(a  The constant which should be emitted, returns the constant which must
+                    be amitted)
+          }   
+          function optimize_const_reg(var op: topcg; var a : aword): boolean;virtual;
 
          {#
              This routine is used in exception management nodes. It should
@@ -438,7 +449,7 @@ unit cgobj;
     uses
        globals,globtype,options,systems,cgbase,
        verbose,defbase,tgobj,symdef,paramgr,
-       rgobj;
+       rgobj,cutils;
 
     const
       max_scratch_regs = high(scratch_regs) - low(scratch_regs) + 1;
@@ -725,6 +736,59 @@ unit cgobj;
         end;
       end;
 
+
+    function tcg.optimize_const_reg(var op: topcg; var a : aword): boolean;
+      var
+        powerval : longint;
+      begin
+        optimize_const_reg := true;
+        case op of 
+          { or with zero returns same result }
+          OP_OR : if a = 0 then optimize_const_reg := false;
+          { and with max returns same result }
+          OP_AND : if (a = high(a)) then optimize_const_reg := false;
+          { division by 1 returns result }
+          OP_DIV :
+            begin
+              if a = 1 then 
+                optimize_const_reg := false
+              else if ispowerof2(int64(a), powerval) then
+                begin 
+                  a := powerval;
+                  op:= OP_SHR;
+                end;
+              exit;
+            end;
+          OP_IDIV:
+            begin
+              if a = 1 then 
+                optimize_const_reg := false
+              else if ispowerof2(int64(a), powerval) then
+                begin 
+                  a := powerval;
+                  op:= OP_SAR;
+                end;
+               exit;
+            end;
+        OP_MUL,OP_IMUL:
+            begin
+               if a = 1 then 
+                  optimize_const_reg := false
+               else if ispowerof2(int64(a), powerval) then
+                 begin 
+                   a := powerval;
+                   op:= OP_SHL;
+                 end;
+               exit;  
+            end;
+        OP_SAR,OP_SHL,OP_SHR:
+           begin
+              if a = 1 then 
+                 optimize_const_reg := false;
+              exit;
+           end;
+        end;    
+      end;
 
     procedure tcg.a_loadfpu_loc_reg(list: taasmoutput; const loc: tlocation; const reg: tregister);
 
@@ -1470,7 +1534,10 @@ finalization
 end.
 {
   $Log$
-  Revision 1.47  2002-08-11 14:32:26  peter
+  Revision 1.48  2002-08-14 19:26:02  carl
+    + routine to optimize opcodes with constants
+
+  Revision 1.47  2002/08/11 14:32:26  peter
     * renamed current_library to objectlibrary
 
   Revision 1.46  2002/08/11 13:24:11  peter
