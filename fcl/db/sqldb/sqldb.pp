@@ -72,10 +72,8 @@ type
     procedure FreeFldBuffers(cursor : TSQLHandle); virtual; abstract;
     procedure Execute(cursor: TSQLHandle;atransaction:tSQLtransaction); virtual; abstract;
     procedure AddFieldDefs(cursor: TSQLHandle; FieldDefs : TfieldDefs); virtual; abstract;
-    function GetFieldSizes(cursor : TSQLHandle) : integer; virtual; abstract;
     function Fetch(cursor : TSQLHandle) : boolean; virtual; abstract;
-    procedure LoadFieldsFromBuffer(cursor : TSQLHandle;buffer : pchar); virtual; abstract;
-    function GetFieldData(Cursor : TSQLHandle;Field: TField; FieldDefs : TfieldDefs; Buffer: Pointer;currbuff : pchar): Boolean; virtual;
+    function LoadField(cursor : TSQLHandle;FieldDef : TfieldDef;buffer : pointer) : boolean; virtual; abstract;
     function GetTransactionHandle(trans : TSQLHandle): pointer; virtual; abstract;
     function Commit(trans : TSQLHandle) : boolean; virtual; abstract;
     function RollBack(trans : TSQLHandle) : boolean; virtual; abstract;
@@ -102,7 +100,6 @@ type
   end;
 
 { TSQLTransaction }
-
 
   TCommitRollbackAction = (caNone, caCommit, caCommitRetaining, caRollback,
     caRollbackRetaining);
@@ -137,31 +134,24 @@ type
     FSQL                 : TStrings;
     FIsEOF               : boolean;
     FLoadingFieldDefs    : boolean;
-    FRecordSize          : Integer;
 
     procedure FreeStatement;
     procedure PrepareStatement;
     procedure FreeFldBuffers;
-    procedure Fetch;
-    function LoadBuffer(Buffer : PChar): TGetResult;
-    procedure SetFieldSizes;
 
     procedure Execute;
 
   protected
+    // abstract & virual methods of TBufDataset
+    function Fetch : boolean; override;
+    function LoadField(FieldDef : TFieldDef;buffer : pointer) : boolean; override;
     // abstract & virual methods of TDataset
     procedure SetDatabase(Value : TDatabase); override;
-    function AllocRecord(ExtraSize : integer): PChar; override;
-    procedure FreeRecord(var Buffer: PChar); override;
-    function GetFieldData(Field: TField; Buffer: Pointer): Boolean; override;
-    function GetNextRecord(Buffer : pchar) : TGetResult; override;
-    function GetRecordSize: Word; override;
     procedure InternalAddRecord(Buffer: Pointer; AAppend: Boolean); override;
     procedure InternalClose; override;
     procedure InternalDelete; override;
     procedure InternalHandleException; override;
     procedure InternalInitFieldDefs; override;
-    procedure InternalInitRecord(Buffer: PChar); override;
     procedure InternalOpen; override;
     procedure InternalPost; override;
     function IsCursorOpen: Boolean; override;
@@ -174,10 +164,9 @@ type
   published
     // redeclared data set properties
     property Active;
-//    property FieldDefs stored FieldDefsStored;
-    property Filter;
-    property Filtered;
-    property FilterOptions;
+//    property Filter;
+//    property Filtered;
+//    property FilterOptions;
     property BeforeOpen;
     property AfterOpen;
     property BeforeClose;
@@ -204,7 +193,7 @@ type
     property Database;
 
     property Transaction;
-    property SQL         : TStrings read FSQL write FSQL;
+    property SQL : TStrings read FSQL write FSQL;
   end;
 
 implementation
@@ -249,25 +238,6 @@ begin
   inherited Destroy;
 end;
 
-function TSQLConnection.GetFieldData(Cursor : TSQLHandle;Field: TField; FieldDefs : TfieldDefs; Buffer: Pointer;currbuff : pchar): Boolean;
-
-var
-  x : longint;
-
-begin
-  Result := False;
-  for x := 0 to FieldDefs.count-1 do
-    begin
-    if (Field.FieldName = FieldDefs[x].Name) then
-      begin
-      Move(CurrBuff^, Buffer^, Field.Size);
-      Result := True;
-      Break;
-      end
-    else Inc(CurrBuff, FieldDefs[x].Size);
-    end;
-end;
-
 { TSQLTransaction }
 procedure TSQLTransaction.EndTransaction;
 
@@ -282,36 +252,40 @@ end;
 
 procedure TSQLTransaction.Commit;
 begin
-  checkactive;
-  closedatasets;
-  if (Database as tsqlconnection).commit(FTrans) then
+  if active then
     begin
-    closeTrans;
-    FreeAndNil(FTrans);
+    closedatasets;
+    if (Database as tsqlconnection).commit(FTrans) then
+      begin
+      closeTrans;
+      FreeAndNil(FTrans);
+      end;
     end;
 end;
 
 procedure TSQLTransaction.CommitRetaining;
 begin
-  CheckActive;
-  (Database as tsqlconnection).commitRetaining(FTrans);
+  if active then
+    (Database as tsqlconnection).commitRetaining(FTrans);
 end;
 
 procedure TSQLTransaction.Rollback;
 begin
-  CheckActive;
-  closedatasets;
-  if (Database as tsqlconnection).RollBack(FTrans) then
+  if active then
     begin
-    CloseTrans;
-    FreeAndNil(FTrans);
+    closedatasets;
+    if (Database as tsqlconnection).RollBack(FTrans) then
+      begin
+      CloseTrans;
+      FreeAndNil(FTrans);
+      end;
     end;
 end;
 
 procedure TSQLTransaction.RollbackRetaining;
 begin
-  CheckActive;
-  (Database as tsqlconnection).RollBackRetaining(FTrans);
+  if active then
+    (Database as tsqlconnection).RollBackRetaining(FTrans);
 end;
 
 procedure TSQLTransaction.StartTransaction;
@@ -390,6 +364,7 @@ begin
   if assigned(fcursor) then FreeAndNil(fcursor);
   FCursor := Db.AllocateCursorHandle;
 
+  Buf := '';
   for x := 0 to FSQL.Count - 1 do
     Buf := Buf + FSQL[x] + ' ';
 
@@ -407,29 +382,13 @@ begin
   if assigned(FCursor) then (Database as tsqlconnection).FreeFldBuffers(FCursor);
 end;
 
-procedure TSQLQuery.Fetch;
+function TSQLQuery.Fetch : boolean;
 begin
   if not (Fcursor.StatementType in [stSelect]) then
     Exit;
 
-  FIsEof := not (Database as tsqlconnection).Fetch(Fcursor);
-end;
-
-function TSQLQuery.LoadBuffer(Buffer : PChar): TGetResult;
-begin
-  Fetch;
-  if FIsEOF then
-  begin
-    Result := grEOF;
-    Exit;
-  end;
-  (Database as tsqlconnection).LoadFieldsFromBuffer(FCursor,buffer);
-  Result := grOK;
-end;
-
-procedure TSQLQuery.SetFieldSizes;
-begin
-  FRecordSize := (Database as tsqlconnection).GetfieldSizes(Fcursor);
+  if not FIsEof then FIsEOF := not (Database as tsqlconnection).Fetch(Fcursor);
+  Result := not FIsEOF;
 end;
 
 procedure TSQLQuery.Execute;
@@ -437,28 +396,10 @@ begin
   (Database as tsqlconnection).execute(Fcursor,Transaction as tsqltransaction);
 end;
 
-function TSQLQuery.AllocRecord(ExtraSize : integer): PChar;
-begin
-  Result := AllocMem(FRecordSize+ExtraSize);
-end;
+function TSQLQuery.LoadField(FieldDef : TFieldDef;buffer : pointer) : boolean;
 
-procedure TSQLQuery.FreeRecord(var Buffer: PChar);
 begin
-  if Assigned(@Buffer) then
-    FreeMem(Buffer);
-end;
-
-function TSQLQuery.GetFieldData(Field: TField; Buffer: Pointer): Boolean;
-begin
-  result := (Database as tsqlconnection).GetFieldData(Fcursor,Field,FieldDefs,buffer,activebuffer);
-end;
-
-function TSQLQuery.GetNextRecord(Buffer: PChar): TGetResult;
-begin
-  if FIsEOF then
-    Result := grEof
-  else
-    Result := LoadBuffer(Buffer);
+  result := (Database as tSQLConnection).LoadField(FCursor,FieldDef,buffer)
 end;
 
 procedure TSQLQuery.InternalAddRecord(Buffer: Pointer; AAppend: Boolean);
@@ -496,16 +437,11 @@ begin
 
   try
     FieldDefs.Clear;
-    
+
     (Database as tsqlconnection).AddFieldDefs(fcursor,FieldDefs);
   finally
     FLoadingFieldDefs := False;
   end;
-end;
-
-procedure TSQLQuery.InternalInitRecord(Buffer: PChar);
-begin
-  FillChar(Buffer^, FRecordSize, #0);
 end;
 
 procedure TSQLQuery.InternalOpen;
@@ -519,8 +455,6 @@ begin
       InternalInitFieldDefs;
       if DefaultFields then
         CreateFields;
-      SetFieldSizes;
-      BindFields(True);
       end
     else
       DatabaseError(SErrNoSelectStatement,Self);
@@ -620,17 +554,17 @@ begin
       Exit(t);
 end;
 
-function TSQLQuery.getrecordsize : Word;
-
-begin
-  result := FRecordSize;
-end;
-
 end.
 
 {
   $Log$
-  Revision 1.7  2004-11-05 08:32:02  michael
+  Revision 1.8  2004-12-04 22:43:38  michael
+    * Patch from Joost van der Sluis
+    - replaced checkactive in commit and rollback for 'if active'
+    - fixed a warning
+    - adapted for the changes in TBuffDataset
+
+  Revision 1.7  2004/11/05 08:32:02  michael
   TBufDataset.inc:
     - replaced Freemem by Reallocmem, Free by FreeAndNil
 
