@@ -590,9 +590,6 @@ implementation
          result:=nil;
          expectloc:=LOC_VOID;
          { evalutes the case expression }
-       {$ifndef newra}
-         rg.cleartempgen;
-       {$endif}
          firstpass(left);
          set_varstate(left,true);
          if codegenerror then
@@ -617,9 +614,6 @@ implementation
          hp:=tstatementnode(right);
          while assigned(hp) do
            begin
-            {$ifndef newra}
-              rg.cleartempgen;
-            {$endif}
               firstpass(hp.left);
 
               { searchs max registers }
@@ -638,9 +632,6 @@ implementation
          { may be handle else tree }
          if assigned(elseblock) then
            begin
-            {$ifndef newra}
-              rg.cleartempgen;
-            {$endif}
               firstpass(elseblock);
               if codegenerror then
                 exit;
@@ -714,7 +705,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.41  2003-04-27 11:21:33  peter
+  Revision 1.42  2003-05-13 19:14:41  peter
+    * failn removed
+    * inherited result code check moven to pexpr
+
+  Revision 1.41  2003/04/27 11:21:33  peter
     * aktprocdef renamed to current_procdef
     * procinfo renamed to current_procinfo
     * procinfo will now be stored in current_module so it can be

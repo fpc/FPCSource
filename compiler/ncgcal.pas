@@ -856,26 +856,11 @@ implementation
          testregisters32;
 {$endif TEMPREGDEBUG}
 
-         { Called an inherited constructor? Then
-           we need to check the result }
-         if (inlined or (right=nil)) and
-            (procdefinition.proctypeoption=potype_constructor) and
-            assigned(methodpointer) and
-            (methodpointer.nodetype=typen) and
-            (current_procdef.proctypeoption=potype_constructor) then
-          begin
-            accreg.enum:=R_INTREGISTER;
-            accreg.number:=NR_ACCUMULATOR;
-            cg.a_reg_alloc(exprasmlist,accreg);
-            cg.a_cmp_const_reg_label(exprasmlist,OS_ADDR,OC_EQ,0,accreg,faillabel);
-            cg.a_reg_dealloc(exprasmlist,accreg);
-          end;
-
          { handle function results }
          if (not is_void(resulttype.def)) then
-          handle_return_value(inlined)
+           handle_return_value(inlined)
          else
-          location_reset(location,LOC_VOID,OS_NO);
+           location_reset(location,LOC_VOID,OS_NO);
 
          { perhaps i/o check ? }
          if iolabel<>nil then
@@ -1140,7 +1125,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.62  2003-05-13 15:18:18  peter
+  Revision 1.63  2003-05-13 19:14:41  peter
+    * failn removed
+    * inherited result code check moven to pexpr
+
+  Revision 1.62  2003/05/13 15:18:18  peter
     * generate code for procvar first before pushing parameters. Made
       the already existing code for powerpc available for all platforms
 

@@ -133,7 +133,6 @@ implementation
              'is',    {isn}
              'as',    {asn}
              'error-caret',       {caretn}
-             'fail',        {failn}
              'add-starstar',  {starstarn}
              'procinline',  {procinlinen}
              'arrayconstruc', {arrayconstructn}
@@ -303,7 +302,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.50  2003-05-09 17:47:02  peter
+  Revision 1.51  2003-05-13 19:14:41  peter
+    * failn removed
+    * inherited result code check moven to pexpr
+
+  Revision 1.50  2003/05/09 17:47:02  peter
     * self moved to hidden parameter
     * removed hdisposen,hnewn,selfn
 

@@ -50,7 +50,7 @@ implementation
        paramgr,
        { pass 1 }
        pass_1,htypechk,
-       nbas,nmat,nadd,ncal,nmem,nset,ncnv,ninl,ncon,nld,nflw,
+       nutils,nbas,nmat,nadd,ncal,nmem,nset,ncnv,ninl,ncon,nld,nflw,
        { parser }
        scanner,
        pbase,pexpr,
@@ -935,7 +935,7 @@ implementation
                 if (current_procdef.proctypeoption<>potype_constructor) then
                   Message(parser_e_fail_only_in_constructor);
                 consume(_FAIL);
-                code:=cfailnode.create;
+                code:=call_fail_node;
              end;
            _ASM :
              code:=_asm_statement;
@@ -977,7 +977,7 @@ implementation
              { blockn support because a read/write is changed into a blocknode }
              { with a separate statement for each read/write operation (JM)    }
              { the same is true for val() if the third parameter is not 32 bit }
-             if not(p.nodetype in [nothingn,calln,assignn,breakn,inlinen,
+             if not(p.nodetype in [nothingn,calln,ifn,assignn,breakn,inlinen,
                                    continuen,labeln,blockn,exitn]) then
                Message(cg_e_illegal_expression);
 
@@ -1185,7 +1185,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.97  2003-05-11 14:45:12  peter
+  Revision 1.98  2003-05-13 19:14:41  peter
+    * failn removed
+    * inherited result code check moven to pexpr
+
+  Revision 1.97  2003/05/11 14:45:12  peter
     * tloadnode does not support objectsymtable,withsymtable anymore
     * withnode cleanup
     * direct with rewritten to use temprefnode

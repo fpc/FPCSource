@@ -33,11 +33,6 @@ interface
        symppu,symtype,symbase,symdef,symsym;
 
     type
-       { internal labels for gotonode.createintern }
-{       tgotolabel = (
-         gnl_fail
-       ); }
-
        { flags used by loop nodes }
        tloopflag = (
          { set if it is a for ... downto ... do loop }
@@ -168,16 +163,16 @@ interface
        traisenodeclass = class of traisenode;
 
        ttryexceptnode = class(tloopnode)
-          onlyreraise : boolean;
           constructor create(l,r,_t1 : tnode);virtual;
-          constructor createintern(l,_t1 : tnode);virtual;
           function det_resulttype:tnode;override;
           function pass_1 : tnode;override;
        end;
        ttryexceptnodeclass = class of ttryexceptnode;
 
-       ttryfinallynode = class(tbinarynode)
+       ttryfinallynode = class(tloopnode)
+          implicitframe : boolean;
           constructor create(l,r:tnode);virtual;
+          constructor create_implicit(l,r,_t1:tnode);virtual;
           function det_resulttype:tnode;override;
           function pass_1 : tnode;override;
        end;
@@ -196,14 +191,6 @@ interface
        end;
        tonnodeclass = class of tonnode;
 
-       tfailnode = class(tnode)
-          constructor create;virtual;
-          function det_resulttype:tnode;override;
-          function pass_1: tnode;override;
-          function docompare(p: tnode): boolean; override;
-       end;
-       tfailnodeclass = class of tfailnode;
-
     { for compatibilty }
     function genloopnode(t : tnodetype;l,r,n1 : tnode;back : boolean) : tnode;
 
@@ -220,7 +207,7 @@ interface
        ctryexceptnode : ttryexceptnodeclass;
        ctryfinallynode : ttryfinallynodeclass;
        connode : tonnodeclass;
-       cfailnode : tfailnodeclass;
+
 
 implementation
 
@@ -228,7 +215,7 @@ implementation
       globtype,systems,
       cutils,verbose,globals,
       symconst,symtable,paramgr,defutil,htypechk,pass_1,
-      ncon,nmem,nld,ncnv,nbas,rgobj,
+      ncal,nadd,ncon,nmem,nld,ncnv,nbas,rgobj,
     {$ifdef state_tracking}
       nstate,
     {$endif}
@@ -412,9 +399,6 @@ implementation
          { calc register weight }
          if not(cs_littlesize in aktglobalswitches ) then
            rg.t_times:=rg.t_times*8;
-       {$ifndef newra}
-         rg.cleartempgen;
-       {$endif}
 
          firstpass(left);
          if codegenerror then
@@ -428,9 +412,6 @@ implementation
          { loop instruction }
          if assigned(right) then
            begin
-            {$ifndef newra}
-              rg.cleartempgen;
-            {$endif}
               firstpass(right);
               if codegenerror then
                 exit;
@@ -576,9 +557,6 @@ implementation
          result:=nil;
          expectloc:=LOC_VOID;
          old_t_times:=rg.t_times;
-      {$ifndef newra}
-         rg.cleartempgen;
-      {$endif}
          firstpass(left);
          registers32:=left.registers32;
          registersfpu:=left.registersfpu;
@@ -595,9 +573,6 @@ implementation
          { if path }
          if assigned(right) then
            begin
-            {$ifndef newra}
-              rg.cleartempgen;
-            {$endif}
               firstpass(right);
 
               if registers32<right.registers32 then
@@ -613,9 +588,6 @@ implementation
          { else path }
          if assigned(t1) then
            begin
-            {$ifndef newra}
-              rg.cleartempgen;
-            {$endif}
               firstpass(t1);
 
               if registers32<t1.registers32 then
@@ -793,14 +765,8 @@ implementation
          if not(cs_littlesize in aktglobalswitches) then
            rg.t_times:=rg.t_times*8;
 
-        {$ifndef newra}
-         rg.cleartempgen;
-        {$endif}
          firstpass(left);
 
-        {$ifndef newra}
-         rg.cleartempgen;
-        {$endif}
          if assigned(t1) then
           begin
             firstpass(t1);
@@ -822,9 +788,6 @@ implementation
 {$endif SUPPORT_MMX}
 
          { process count var }
-        {$ifndef newra}
-         rg.cleartempgen;
-        {$endif}
          firstpass(t2);
          if codegenerror then
           exit;
@@ -837,9 +800,6 @@ implementation
            registersmmx:=t2.registersmmx;
 {$endif SUPPORT_MMX}
 
-        {$ifndef newra}
-         rg.cleartempgen;
-        {$endif}
          firstpass(right);
       {$ifdef loopvar_dont_mind}
          { Check count var, record fields are also allowed in tp7 }
@@ -1138,9 +1098,6 @@ implementation
          expectloc:=LOC_VOID;
          if assigned(left) then
           begin
-          {$ifndef newra}
-            rg.cleartempgen;
-          {$endif}
             firstpass(left);
             registers32:=left.registers32;
             registersfpu:=left.registersfpu;
@@ -1285,14 +1242,6 @@ implementation
     constructor ttryexceptnode.create(l,r,_t1 : tnode);
       begin
          inherited create(tryexceptn,l,r,_t1,nil);
-         onlyreraise:=false;
-      end;
-
-
-    constructor ttryexceptnode.createintern(l,_t1 : tnode);
-      begin
-         inherited create(tryexceptn,l,nil,_t1,nil);
-         onlyreraise:=true;
       end;
 
 
@@ -1314,16 +1263,10 @@ implementation
       begin
          result:=nil;
          expectloc:=LOC_VOID;
-        {$ifndef newra}
-         rg.cleartempgen;
-        {$endif}
          firstpass(left);
          { on statements }
          if assigned(right) then
            begin
-            {$ifndef newra}
-              rg.cleartempgen;
-            {$endif}
               firstpass(right);
               registers32:=max(registers32,right.registers32);
               registersfpu:=max(registersfpu,right.registersfpu);
@@ -1350,7 +1293,15 @@ implementation
 
     constructor ttryfinallynode.create(l,r:tnode);
       begin
-        inherited create(tryfinallyn,l,r);
+        inherited create(tryfinallyn,l,r,nil,nil);
+        implicitframe:=false;
+      end;
+
+
+    constructor ttryfinallynode.create_implicit(l,r,_t1:tnode);
+      begin
+        inherited create(tryfinallyn,l,r,_t1,nil);
+        implicitframe:=true;
       end;
 
 
@@ -1364,6 +1315,13 @@ implementation
 
          resulttypepass(right);
          set_varstate(right,true);
+
+         { special finally block only executed when there was an exception }
+         if assigned(t1) then
+           begin
+             resulttypepass(t1);
+             set_varstate(t1,true);
+           end;
       end;
 
 
@@ -1371,16 +1329,20 @@ implementation
       begin
          result:=nil;
          expectloc:=LOC_VOID;
-        {$ifndef newra}
-         rg.cleartempgen;
-        {$endif}
          firstpass(left);
 
-        {$ifndef newra}
-         rg.cleartempgen;
-        {$endif}
          firstpass(right);
          left_right_max;
+
+         if assigned(t1) then
+           begin
+             firstpass(t1);
+             registers32:=max(registers32,t1.registers32);
+             registersfpu:=max(registersfpu,t1.registersfpu);
+{$ifdef SUPPORT_MMX}
+             registersmmx:=max(registersmmx,t1.registersmmx);
+{$endif SUPPORT_MMX}
+           end;
       end;
 
 
@@ -1440,7 +1402,6 @@ implementation
       begin
          result:=nil;
          expectloc:=LOC_VOID;
-         rg.cleartempgen;
          registers32:=0;
          registersfpu:=0;
 {$ifdef SUPPORT_MMX}
@@ -1456,7 +1417,6 @@ implementation
 {$endif SUPPORT_MMX}
            end;
 
-         rg.cleartempgen;
          if assigned(right) then
            begin
               firstpass(right);
@@ -1475,38 +1435,6 @@ implementation
       end;
 
 
-{*****************************************************************************
-                                TFAILNODE
-*****************************************************************************}
-
-
-    constructor tfailnode.create;
-      begin
-         inherited create(failn);
-      end;
-
-
-    function tfailnode.det_resulttype:tnode;
-      begin
-        result:=nil;
-        resulttype:=voidtype;
-      end;
-
-
-    function tfailnode.pass_1 : tnode;
-      begin
-        result:=nil;
-        expectloc:=LOC_VOID;
-      end;
-
-
-    function tfailnode.docompare(p: tnode): boolean;
-      begin
-        docompare := false;
-      end;
-
-
-
 begin
    cwhilerepeatnode:=twhilerepeatnode;
    cifnode:=tifnode;
@@ -1518,11 +1446,14 @@ begin
    ctryexceptnode:=ttryexceptnode;
    ctryfinallynode:=ttryfinallynode;
    connode:=tonnode;
-   cfailnode:=tfailnode;
 end.
 {
   $Log$
-  Revision 1.73  2003-05-11 21:37:03  peter
+  Revision 1.74  2003-05-13 19:14:41  peter
+    * failn removed
+    * inherited result code check moven to pexpr
+
+  Revision 1.73  2003/05/11 21:37:03  peter
     * moved implicit exception frame from ncgutil to psub
     * constructor/destructor helpers moved from cobj/ncgutil to psub
 

@@ -415,7 +415,6 @@ implementation
         nodeclass[isn]:=cisnode;
         nodeclass[asn]:=casnode;
         nodeclass[caretn]:=caddnode;
-        nodeclass[failn]:=cfailnode;
         nodeclass[starstarn]:=caddnode;
         nodeclass[procinlinen]:=cprocinlinenode;
         nodeclass[arrayconstructorn]:=carrayconstructornode;
@@ -488,7 +487,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.49  2003-05-09 17:47:03  peter
+  Revision 1.50  2003-05-13 19:14:41  peter
+    * failn removed
+    * inherited result code check moven to pexpr
+
+  Revision 1.49  2003/05/09 17:47:03  peter
     * self moved to hidden parameter
     * removed hdisposen,hnewn,selfn
 

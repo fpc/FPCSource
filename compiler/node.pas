@@ -108,7 +108,6 @@ interface
           isn,              {Represents the is operator}
           asn,              {Represents the as typecast}
           caretn,           {Represents the ^ operator}
-          failn,            {Represents the fail statement}
           starstarn,        {Represents the ** operator exponentiation }
           procinlinen,      {Procedures that can be inlined }
           arrayconstructorn, {Construction node for [...] parsing}
@@ -188,7 +187,6 @@ interface
           'isn',
           'asn',
           'caretn',
-          'failn',
           'starstarn',
           'procinlinen',
           'arrayconstructn',
@@ -986,7 +984,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.60  2003-05-11 21:37:03  peter
+  Revision 1.61  2003-05-13 19:14:41  peter
+    * failn removed
+    * inherited result code check moven to pexpr
+
+  Revision 1.60  2003/05/11 21:37:03  peter
     * moved implicit exception frame from ncgutil to psub
     * constructor/destructor helpers moved from cobj/ncgutil to psub
 

@@ -71,7 +71,7 @@ implementation
        symconst,symbase,symdef,symsym,symtable,defutil,defcmp,
        { pass 1 }
        pass_1,htypechk,
-       nmat,nadd,ncal,nmem,nset,ncnv,ninl,ncon,nld,nflw,nbas,
+       nutils,nmat,nadd,ncal,nmem,nset,ncnv,ninl,ncon,nld,nflw,nbas,
        { parser }
        scanner,
        pbase,pinline,
@@ -958,7 +958,8 @@ implementation
          static_name : string;
          isclassref : boolean;
          srsymtable : tsymtable;
-
+         newstatement : tstatementnode;
+         newblock     : tblocknode;
       begin
          if sym=nil then
            begin
@@ -994,13 +995,70 @@ implementation
                         p1.flags:=p1.flags+callnflags;
                       { we need to know which procedure is called }
                       do_resulttypepass(p1);
-                      { now we know the real method e.g. we can check for a class method }
-                      if isclassref and
-                         (p1.nodetype=calln) and
-                         assigned(tcallnode(p1).procdefinition) and
-                         not(po_classmethod in tcallnode(p1).procdefinition.procoptions) and
-                         not(tcallnode(p1).procdefinition.proctypeoption=potype_constructor) then
-                        Message(parser_e_only_class_methods_via_class_ref);
+                      { now we know the method that is called }
+                      if (p1.nodetype=calln) and
+                         assigned(tcallnode(p1).procdefinition) then
+                        begin
+                          { calling using classref? }
+                          if isclassref and
+                             not(po_classmethod in tcallnode(p1).procdefinition.procoptions) and
+                             not(tcallnode(p1).procdefinition.proctypeoption=potype_constructor) then
+                            Message(parser_e_only_class_methods_via_class_ref);
+
+                           { when calling inherited constructor we need to check the return value }
+                           if (nf_inherited in callnflags) and
+                              (tcallnode(p1).procdefinition.proctypeoption=potype_constructor) then
+                             begin
+                               {
+                                 For Classes:
+
+                                 self:=inherited constructor
+                                 if self=nil then
+                                   exit
+
+                                 For objects:
+                                 if inherited constructor=false then
+                                   begin
+                                     self:=nil;
+                                     exit;
+                                   end;
+                               }
+                               if is_class(tprocdef(tcallnode(p1).procdefinition)._class) then
+                                 begin
+                                   newblock:=internalstatements(newstatement,true);
+                                   addstatement(newstatement,cassignmentnode.create(
+                                       ctypeconvnode.create(
+                                           load_self_pointer_node,
+                                           voidpointertype),
+                                       ctypeconvnode.create(
+                                           p1,
+                                           voidpointertype)));
+                                   addstatement(newstatement,cifnode.create(
+                                       caddnode.create(equaln,
+                                           load_self_pointer_node,
+                                           cnilnode.create),
+                                       cexitnode.create(nil),
+                                       nil));
+                                   p1:=newblock;
+                                 end
+                               else
+                                 if is_object(tprocdef(tcallnode(p1).procdefinition)._class) then
+                                   begin
+                                     newblock:=internalstatements(newstatement,true);
+                                     addstatement(newstatement,call_fail_node);
+                                     addstatement(newstatement,cexitnode.create(nil));
+                                     p1:=cifnode.create(
+                                         caddnode.create(equaln,
+                                             cordconstnode.create(0,booltype,false),
+                                             p1),
+                                         newblock,
+                                         nil);
+                                   end
+                                 else
+                                   internalerror(200305133);
+                               do_resulttypepass(p1);
+                             end;
+                        end;
                    end;
                  varsym:
                    begin
@@ -2339,7 +2397,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.117  2003-05-11 21:37:03  peter
+  Revision 1.118  2003-05-13 19:14:41  peter
+    * failn removed
+    * inherited result code check moven to pexpr
+
+  Revision 1.117  2003/05/11 21:37:03  peter
     * moved implicit exception frame from ncgutil to psub
     * constructor/destructor helpers moved from cobj/ncgutil to psub
 

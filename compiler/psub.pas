@@ -56,7 +56,7 @@ implementation
        ppu,fmodule,
        { pass 1 }
        node,
-       nbas,nld,ncal,ncon,nflw,nadd,ncnv,nmem,
+       nutils,nbas,nld,ncal,ncon,nflw,nadd,ncnv,nmem,
        pass_1,
     {$ifdef state_tracking}
        nstate,
@@ -225,14 +225,14 @@ implementation
       end;
 
 
-    function generate_entry_block:tblocknode;
+    function generate_initialize_block:tnode;
       var
         srsym        : tsym;
         para         : tcallparanode;
         newstatement : tstatementnode;
         htype        : ttype;
       begin
-        generate_entry_block:=internalstatements(newstatement,true);
+        result:=internalstatements(newstatement,true);
 
         if assigned(current_procdef._class) then
           begin
@@ -291,12 +291,14 @@ implementation
                     end
                 else
                   internalerror(200305103);
-                { if self=nil then fail }
+                { if self=nil then exit
+                  calling fail instead of exit is useless because
+                  there is nothing to dispose (PFV) }
                 addstatement(newstatement,cifnode.create(
                     caddnode.create(equaln,
                         load_self_pointer_node,
                         cnilnode.create),
-                    cfailnode.create,
+                    cexitnode.create(nil),
                     nil));
               end;
 
@@ -323,7 +325,19 @@ implementation
       end;
 
 
-    function generate_exit_block:tblocknode;
+    function generate_finalize_block:tnode;
+      begin
+        result:=cnothingnode.create;
+      end;
+
+
+    function generate_entry_block:tnode;
+      begin
+        result:=cnothingnode.create;
+      end;
+
+
+    function generate_exit_block:tnode;
       var
         srsym : tsym;
         para : tcallparanode;
@@ -406,7 +420,7 @@ implementation
       end;
 
 
-    function generate_except_block:tblocknode;
+    function generate_except_block:tnode;
       var
         pd : tprocdef;
         newstatement : tstatementnode;
@@ -442,22 +456,36 @@ implementation
       end;
 
 
-    procedure add_entry_exit_block(var code:tnode;const entrypos,exitpos:tfileposinfo);
+    procedure add_entry_exit_code(var code:tnode;const entrypos,exitpos:tfileposinfo);
       var
-        entryblock,
-        exitblock,
+        initializecode,
+        finalizecode,
+        entrycode,
+        exitcode,
+        exceptcode  : tnode;
+        codeblock,
         newblock     : tblocknode;
+        codestatement,
         newstatement : tstatementnode;
         oldfilepos   : tfileposinfo;
       begin
         oldfilepos:=aktfilepos;
-        { Generate entry and exit }
+        { Generate entry,exit and init,final blocks }
         aktfilepos:=entrypos;
-        entryblock:=generate_entry_block;
+        initializecode:=generate_initialize_block;
+        entrycode:=generate_entry_block;
         aktfilepos:=exitpos;
-        exitblock:=generate_exit_block;
+        exitcode:=generate_exit_block;
+        finalizecode:=generate_finalize_block;
+        exceptcode:=generate_except_block;
 
-        { Generate procedure by combining entry+body+exit,
+        { Generate body of the procedure by combining entry+body+exit }
+        codeblock:=internalstatements(codestatement,true);
+        addstatement(codestatement,entrycode);
+        addstatement(codestatement,code);
+        addstatement(codestatement,exitcode);
+
+        { Generate procedure by combining init+body+final,
           depending on the implicit finally we need to add
           an try...finally...end wrapper }
         newblock:=internalstatements(newstatement,true);
@@ -465,18 +493,18 @@ implementation
            { but it's useless in init/final code of units }
            not(current_procdef.proctypeoption in [potype_unitfinalize,potype_unitinit]) then
           begin
-            addstatement(newstatement,entryblock);
-            aktfilepos:=exitpos;
-            addstatement(newstatement,ctryexceptnode.createintern(
-               code,
-               generate_except_block));
-            addstatement(newstatement,exitblock);
+            addstatement(newstatement,initializecode);
+            aktfilepos:=entrypos;
+            addstatement(newstatement,ctryfinallynode.create_implicit(
+               codeblock,
+               finalizecode,
+               exceptcode));
           end
         else
           begin
-            addstatement(newstatement,entryblock);
-            addstatement(newstatement,code);
-            addstatement(newstatement,exitblock);
+            addstatement(newstatement,initializecode);
+            addstatement(newstatement,codeblock);
+            addstatement(newstatement,finalizecode);
           end;
         resulttypepass(newblock);
         code:=newblock;
@@ -490,7 +518,7 @@ implementation
       }
       var
          oldexitlabel,oldexit2label : tasmlabel;
-         oldfaillabel,oldquickexitlabel:tasmlabel;
+         oldquickexitlabel:tasmlabel;
          _class,hp:tobjectdef;
          { switches can change inside the procedure }
          entryswitches, exitswitches : tlocalswitches;
@@ -524,16 +552,12 @@ implementation
          oldexitlabel:=aktexitlabel;
          oldexit2label:=aktexit2label;
          oldquickexitlabel:=quickexitlabel;
-         oldfaillabel:=faillabel;
          { get new labels }
          objectlibrary.getlabel(aktexitlabel);
          objectlibrary.getlabel(aktexit2label);
          { exit for fail in constructors }
          if (current_procdef.proctypeoption=potype_constructor) then
-           begin
-             objectlibrary.getlabel(faillabel);
-             objectlibrary.getlabel(quickexitlabel);
-           end;
+           objectlibrary.getlabel(quickexitlabel);
          { reset break and continue labels }
          block_type:=bt_general;
          aktbreaklabel:=nil;
@@ -594,7 +618,7 @@ implementation
          savepos:=aktfilepos;
          { add implicit entry and exit code }
          if assigned(code) then
-           add_entry_exit_block(code,entrypos,exitpos);
+           add_entry_exit_code(code,entrypos,exitpos);
          { store a copy of the original tree for inline, for
            normal procedures only store a reference to the
            current tree }
@@ -778,7 +802,6 @@ implementation
          aktexitlabel:=oldexitlabel;
          aktexit2label:=oldexit2label;
          quickexitlabel:=oldquickexitlabel;
-         faillabel:=oldfaillabel;
 
          { reset to normal non static function }
          if (current_procdef.parast.symtablelevel=normal_function_level) then
@@ -1104,7 +1127,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.110  2003-05-13 15:18:49  peter
+  Revision 1.111  2003-05-13 19:14:41  peter
+    * failn removed
+    * inherited result code check moven to pexpr
+
+  Revision 1.110  2003/05/13 15:18:49  peter
     * fixed various crashes
 
   Revision 1.109  2003/05/11 21:37:03  peter

@@ -292,10 +292,6 @@ implementation
     function tstatementnode.pass_1 : tnode;
       begin
          result:=nil;
-         { no temps over several statements }
-      {$ifndef newra}
-         rg.cleartempgen;
-      {$endif}
          { left is the statement itself calln assignn or a complex one }
          firstpass(left);
          if codegenerror then
@@ -426,9 +422,6 @@ implementation
                 end;
               if assigned(hp.left) then
                 begin
-                {$ifndef newra}
-                   rg.cleartempgen;
-                {$endif}
                    codegenerror:=false;
                    firstpass(hp.left);
 
@@ -805,7 +798,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.49  2003-05-11 14:45:12  peter
+  Revision 1.50  2003-05-13 19:14:41  peter
+    * failn removed
+    * inherited result code check moven to pexpr
+
+  Revision 1.49  2003/05/11 14:45:12  peter
     * tloadnode does not support objectsymtable,withsymtable anymore
     * withnode cleanup
     * direct with rewritten to use temprefnode

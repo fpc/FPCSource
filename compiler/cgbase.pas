@@ -191,7 +191,6 @@ unit cgbase;
        aktexit2label : tasmlabel;
 
        {# only used in constructor for fail keyword or if getmem fails }
-       faillabel      : tasmlabel;
        quickexitlabel : tasmlabel;
 
        {# true, if there was an error while code generation occurs }
@@ -641,7 +640,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.46  2003-05-09 17:47:02  peter
+  Revision 1.47  2003-05-13 19:14:41  peter
+    * failn removed
+    * inherited result code check moven to pexpr
+
+  Revision 1.46  2003/05/09 17:47:02  peter
     * self moved to hidden parameter
     * removed hdisposen,hnewn,selfn
 

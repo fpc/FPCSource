@@ -1644,6 +1644,7 @@ begin
   def_symbol('HASCURRENCY');
   def_symbol('HASTHREADVAR');
   def_symbol('HAS_GENERICCONSTRUCTOR');
+  def_symbol('NOCLASSHELPERS');
 
 { using a case is pretty useless here (FK) }
 { some stuff for TP compatibility }
@@ -1924,7 +1925,11 @@ finalization
 end.
 {
   $Log$
-  Revision 1.98  2003-05-11 19:17:16  florian
+  Revision 1.99  2003-05-13 19:14:41  peter
+    * failn removed
+    * inherited result code check moven to pexpr
+
+  Revision 1.98  2003/05/11 19:17:16  florian
     * FPC_LITTLE_ENDIAN and FPC_BIG_ENDIAN is now defined as well
 
   Revision 1.97  2003/05/01 07:59:42  florian

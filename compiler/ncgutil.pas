@@ -1664,9 +1664,6 @@ implementation
               begin
                 objectlibrary.getlabel(okexitlabel);
                 cg.a_jmp_always(list,okexitlabel);
-                { Failure exit }
-                cg.a_label(list,faillabel);
-                cg.g_call_fail_helper(list);
                 { Success exit }
                 cg.a_label(list,okexitlabel);
                 r.enum:=R_INTREGISTER;
@@ -1850,7 +1847,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.101  2003-05-13 15:16:13  peter
+  Revision 1.102  2003-05-13 19:14:41  peter
+    * failn removed
+    * inherited result code check moven to pexpr
+
+  Revision 1.101  2003/05/13 15:16:13  peter
     * removed ret_in_acc, it's the reverse of ret_in_param
     * fixed ret_in_param for win32 cdecl array
 

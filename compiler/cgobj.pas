@@ -404,7 +404,6 @@ unit cgobj;
              @param(parasize  Number of bytes of parameters to deallocate from stack)
           }
           procedure g_return_from_proc(list : taasmoutput;parasize : aword);virtual; abstract;
-          procedure g_call_fail_helper(list : taasmoutput);virtual;
           {# This routine is called when generating the code for the entry point
              of a routine. It should save all registers which are not used in this
              routine, and which should be declared as saved in the std_saved_registers
@@ -1631,45 +1630,6 @@ unit cgobj;
                             Entry/Exit Code Functions
 *****************************************************************************}
 
-    procedure tcg.g_call_fail_helper(list : taasmoutput);
-      var
-        href : treference;
-     begin
-        if is_class(current_procdef._class) then
-          begin
-            if current_procinfo.selfpointer_offset=0 then
-             internalerror(200303256);
-            { parameter 2 : flag, 0 -> inherited call (=no dispose) }
-            a_param_const(list,OS_32,1,paramanager.getintparaloc(2));
-            { parameter 1 : self }
-            reference_reset_base(href, current_procinfo.framepointer,current_procinfo.selfpointer_offset);
-            a_param_ref(list, OS_ADDR,href,paramanager.getintparaloc(1));
-            a_call_name(list,'FPC_DISPOSE_CLASS');
-          end
-        else if is_object(current_procdef._class) then
-          begin
-            if current_procinfo.selfpointer_offset=0 then
-             internalerror(200303257);
-            if current_procinfo.vmtpointer_offset=0 then
-             internalerror(200303258);
-            { parameter 3 : vmt_offset }
-            a_param_const(list, OS_32, current_procdef._class.vmt_offset, paramanager.getintparaloc(3));
-            { parameter 2 : pointer to vmt, will be reset to 0 when freed }
-            reference_reset_base(href, current_procinfo.framepointer,current_procinfo.vmtpointer_offset);
-            a_paramaddr_ref(list,href,paramanager.getintparaloc(2));
-            { parameter 1 : self pointer }
-            reference_reset_base(href, current_procinfo.framepointer,current_procinfo.selfpointer_offset);
-            a_param_ref(list,OS_ADDR,href,paramanager.getintparaloc(1));
-            a_call_name(list,'FPC_HELP_FAIL');
-          end
-        else
-          internalerror(200006163);
-        { set self to nil }
-        reference_reset_base(href, current_procinfo.framepointer,current_procinfo.selfpointer_offset);
-        a_load_const_ref(list,OS_ADDR,0,href);
-      end;
-
-
     procedure tcg.g_interrupt_stackframe_entry(list : taasmoutput);
       begin
       end;
@@ -1737,7 +1697,11 @@ finalization
 end.
 {
   $Log$
-  Revision 1.96  2003-05-11 21:37:03  peter
+  Revision 1.97  2003-05-13 19:14:41  peter
+    * failn removed
+    * inherited result code check moven to pexpr
+
+  Revision 1.96  2003/05/11 21:37:03  peter
     * moved implicit exception frame from ncgutil to psub
     * constructor/destructor helpers moved from cobj/ncgutil to psub
 
