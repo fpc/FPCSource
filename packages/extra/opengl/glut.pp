@@ -389,7 +389,7 @@ var
   glutGameModeString : procedure (const AString : PChar); extdecl;
   glutEnterGameMode : function : integer; extdecl;
   glutLeaveGameMode : procedure; extdecl;
-  glutGameModeGet : function (mode : GLenum) : integer; extdecl; 
+  glutGameModeGet : function (mode : GLenum) : integer; extdecl;
 
 procedure LoadGlut(const dll: String);
 procedure FreeGlut;
@@ -638,12 +638,15 @@ initialization
     {$ELSE}
     LoadGlut('libglut.so.3');
     {$ENDIF}
-  except end;
+  except
+    writeln('Can''t load glut library');
+    halt(1);
+  end;
 
 finalization
 
   FreeGlut;
-  
+
 end.
 
 
