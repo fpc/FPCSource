@@ -28,11 +28,11 @@ interface
 { include heap support headers }
 {$I heaph.inc}
 
-{$ifdef debug}
+{ifdef debug removed (PM)}
 {$ifdef i386}
 {$define Set_i386_Exception_handler}
 {$endif i386}
-{$endif debug}
+{endif debug}
 
 const
 { Default filehandles }
@@ -980,7 +980,10 @@ end.
 
 {
   $Log$
-  Revision 1.27  1998-12-01 14:00:08  pierre
+  Revision 1.28  1998-12-09 17:57:33  pierre
+   + exception handling by default
+
+  Revision 1.27  1998/12/01 14:00:08  pierre
     + added conversion from exceptions into run time error
       (only if syswin32 compiled with -ddebug for now !)
     * added HandleError(errno,frame)
