@@ -333,7 +333,7 @@ implementation
            setdef :
              begin
                { automatic arrayconstructor -> set conversion }
-               if (def_from^.deftype=arraydef) and (parraydef(def_from)^.IsConstructor) then
+               if is_array_constructor(def_from) then
                 begin
                   doconv:=tc_arrayconstructor_2_set;
                   b:=1;
@@ -649,7 +649,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.25  1999-05-19 20:40:12  florian
+  Revision 1.26  1999-05-20 14:58:26  peter
+    * fixed arrayconstruct->set conversion which didn't work for enum sets
+
+  Revision 1.25  1999/05/19 20:40:12  florian
     * fixed a couple of array related bugs:
       - var a : array[0..1] of char;   p : pchar;  p:=a+123; works now
       - open arrays with an odd size doesn't work: movsb wasn't generated

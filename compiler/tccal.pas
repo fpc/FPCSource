@@ -170,6 +170,13 @@ implementation
          { conversions are inserted                              }
          else
            begin
+              { Do we need arrayconstructor -> set conversion, then insert
+                it here before the arrayconstructor node breaks the tree
+                with its conversions of enum->ord }
+              if (p^.left^.treetype=arrayconstructn) and
+                 (defcoll^.data^.deftype=setdef) then
+                p^.left:=gentypeconvnode(p^.left,defcoll^.data);
+
               if count_ref then
                begin
                  { not completly proper, but avoids some warnings }
@@ -260,11 +267,6 @@ implementation
                     begin
                       p^.left:=gentypeconvnode(p^.left,defcoll^.data);
                       firstpass(p^.left);
-                      { this is necessary if an arrayconstruct -> set is done
-                        first, then the set generation tree needs to be passed
-                        to get the end resulttype (PFV) }
-                      if not assigned(p^.left^.resulttype) then
-                       firstpass(p^.left);
                     end;
                    if codegenerror then
                      begin
@@ -1164,7 +1166,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.45  1999-05-19 10:31:54  florian
+  Revision 1.46  1999-05-20 14:58:27  peter
+    * fixed arrayconstruct->set conversion which didn't work for enum sets
+
+  Revision 1.45  1999/05/19 10:31:54  florian
     * two bugs reported by Romio (bugs 13) are fixed:
         - empty array constructors are now handled correctly (e.g. for sysutils.format)
         - comparsion of ansistrings was sometimes coded wrong

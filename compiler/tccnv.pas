@@ -533,6 +533,8 @@ implementation
         putnode(hp);
       { create a set constructor tree }
         arrayconstructor_to_set(p);
+      { now firstpass the set }
+        firstpass(p);
       end;
 
 
@@ -929,7 +931,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.31  1999-05-13 21:59:52  peter
+  Revision 1.32  1999-05-20 14:58:28  peter
+    * fixed arrayconstruct->set conversion which didn't work for enum sets
+
+  Revision 1.31  1999/05/13 21:59:52  peter
     * removed oldppu code
     * warning if objpas is loaded from uses
     * first things for new deref writing
