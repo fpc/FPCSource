@@ -1008,6 +1008,14 @@ implementation
                   convtype:=tc_bool_2_int;
                   exit;
                end;
+
+              if is_char(resulttype.def) and
+                 is_boolean(left.resulttype.def) then
+               begin
+                  convtype:=tc_bool_2_int;
+                  exit;
+               end;
+
               { ansistring to pchar }
               if is_pchar(resulttype.def) and
                  is_ansistring(left.resulttype.def) then
@@ -1912,7 +1920,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.67  2002-08-11 15:28:00  florian
+  Revision 1.68  2002-08-11 16:08:55  florian
+    + support of explicit type case boolean->char
+
+  Revision 1.67  2002/08/11 15:28:00  florian
     + support of explicit type case <any ordinal type>->pointer
       (delphi mode only)
 
