@@ -389,6 +389,8 @@ function WindowProc(Window: HWnd; AMessage, WParam,
      dc : hdc;
      ps : paintstruct;
      r : rect;
+     oldbrush : hbrush;
+     oldpen : hpen;
 
 begin
   WindowProc := 0;
@@ -456,6 +458,18 @@ begin
          ReleaseDC(window,dc);
          oldbitmap:=SelectObject(bitmapdc,savedscreen);
          windc:=GetDC(window);
+         { clear everything }
+         oldpen:=SelectObject(bitmapdc,GetStockObject(BLACK_PEN));
+         oldbrush:=SelectObject(bitmapdc,GetStockObject(BLACK_BRUSH));
+         Windows.Rectangle(bitmapdc,0,0,maxx,maxy);
+         SelectObject(bitmapdc,oldpen);
+         SelectObject(bitmapdc,oldbrush);
+         { ... the window too }
+         oldpen:=SelectObject(windc,GetStockObject(BLACK_PEN));
+         oldbrush:=SelectObject(windc,GetStockObject(BLACK_BRUSH));
+         Windows.Rectangle(windc,0,0,maxx,maxy);
+         SelectObject(windc,oldpen);
+         SelectObject(windc,oldbrush);
          LeaveCriticalSection(graphdrawing);
       end;
     wm_Destroy:
@@ -576,9 +590,7 @@ procedure InitWin32GUI16colors;
        GetExitCodeThread(MessageThreadHandle,@threadexitcode);
      until graphrunning or (threadexitcode<>STILL_ACTIVE);
      if threadexitcode<>STILL_ACTIVE then
-        _graphresult := grerror
-     else
-       ClearDevice;
+        _graphresult := grerror;
   end;
 
 procedure CloseGraph;
@@ -669,6 +681,32 @@ function queryadapterinfo : pmodeinfo;
      { anything...                           }
      if assigned(ModeList) then
        exit;
+     { the first one becomes the standard mode }
+     if (ScreenWidth>=640) and (ScreenHeight>=480) then
+       begin
+          InitMode(mode);
+          mode.DriverNumber:= VGA;
+          mode.HardwarePages:= 0;
+          mode.ModeNumber:=VGAHi;
+          mode.ModeName:='640 x 480 x 16 Win32GUI';
+          mode.MaxColor := 16;
+          mode.PaletteSize := mode.MaxColor;
+          mode.DirectColor := FALSE;
+          mode.MaxX := 639;
+          mode.MaxY := 479;
+          mode.DirectPutPixel:={$ifdef fpc}@{$endif}DirectPutPixel16Win32GUI;
+          mode.PutPixel:={$ifdef fpc}@{$endif}PutPixel16Win32GUI;
+          mode.GetPixel:={$ifdef fpc}@{$endif}GetPixel16Win32GUI;
+          mode.HLine := {$ifdef fpc}@{$endif}HLine16Win32GUI;
+          mode.SetRGBPalette := {$ifdef fpc}@{$endif}SetRGBPaletteWin32GUI;
+          mode.GetRGBPalette := {$ifdef fpc}@{$endif}GetRGBPaletteWin32GUI;
+          mode.SetVisualPage := {$ifdef fpc}@{$endif}SetVisualWin32GUI;
+          mode.SetActivePage := {$ifdef fpc}@{$endif}SetActiveWin32GUI;
+          mode.InitMode := {$ifdef fpc}@{$endif}InitWin32GUI16colors;
+          mode.XAspect := 10000;
+          mode.YAspect := 10000;
+          AddMode(mode);
+       end;
      if (ScreenWidth>=640) and (ScreenHeight>=200) then
        begin
           InitMode(mode);
@@ -747,28 +785,6 @@ function queryadapterinfo : pmodeinfo;
        end;
      if (ScreenWidth>=640) and (ScreenHeight>=480) then
        begin
-          InitMode(mode);
-          mode.DriverNumber:= VGA;
-          mode.HardwarePages:= 0;
-          mode.ModeNumber:=VGAHi;
-          mode.ModeName:='640 x 480 x 16 Win32GUI';
-          mode.MaxColor := 16;
-          mode.PaletteSize := mode.MaxColor;
-          mode.DirectColor := FALSE;
-          mode.MaxX := 639;
-          mode.MaxY := 479;
-          mode.DirectPutPixel:={$ifdef fpc}@{$endif}DirectPutPixel16Win32GUI;
-          mode.PutPixel:={$ifdef fpc}@{$endif}PutPixel16Win32GUI;
-          mode.GetPixel:={$ifdef fpc}@{$endif}GetPixel16Win32GUI;
-          mode.HLine := {$ifdef fpc}@{$endif}HLine16Win32GUI;
-          mode.SetRGBPalette := {$ifdef fpc}@{$endif}SetRGBPaletteWin32GUI;
-          mode.GetRGBPalette := {$ifdef fpc}@{$endif}GetRGBPaletteWin32GUI;
-          mode.SetVisualPage := {$ifdef fpc}@{$endif}SetVisualWin32GUI;
-          mode.SetActivePage := {$ifdef fpc}@{$endif}SetActiveWin32GUI;
-          mode.InitMode := {$ifdef fpc}@{$endif}InitWin32GUI16colors;
-          mode.XAspect := 10000;
-          mode.YAspect := 10000;
-          AddMode(mode);
           InitMode(mode);
           mode.DriverNumber:= VESA;
           mode.HardwarePages:= 0;
@@ -981,7 +997,7 @@ function queryadapterinfo : pmodeinfo;
       mode.XAspect := 10000;
       mode.YAspect := 10000;
       AddMode(mode);
-     { .. and a maximized window }
+      { .. and a maximized window }
       InitMode(mode);
       mode.DriverNumber:= VESA;
       mode.HardwarePages:= 0;
@@ -1033,7 +1049,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.2  2000-03-24 10:49:17  florian
+  Revision 1.3  2000-03-24 12:57:41  florian
+    * the window is now cleared by wm_create
+    * default mode is again 640x480x16
+
+  Revision 1.2  2000/03/24 10:49:17  florian
     * the mode detection takes now care of window caption and border
     + 1024x768 and 1280x1024 modes added
     + special gui modes added: largest window and maximized window to
