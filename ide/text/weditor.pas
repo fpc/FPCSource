@@ -4342,13 +4342,15 @@ begin
     if CurLine>=GetLineCount then
      Break;
     NextLine:=Lines^.At(CurLine);
-    if (Attrs and attrForceFull)=0 then
-      if (InAsm=false) and (NextLine^.BeginsWithAsm=false) and
+    if ((Attrs and attrForceFull)=0) then
+      if {  Why should we go
+         (InAsm=false) and (NextLine^.BeginsWithAsm=false) and
          (InComment=false) and (NextLine^.BeginsWithComment=false) and
          (InDirective=false) and (NextLine^.BeginsWithDirective=false) and
+          OldLine = Line so this is nonsense
          (OldLine^.EndsWithComment=Line^.EndsWithComment) and
          (OldLine^.EndsWithAsm=Line^.EndsWithAsm) and
-         (OldLine^.EndsWithDirective=Line^.EndsWithDirective) and
+         (OldLine^.EndsWithDirective=Line^.EndsWithDirective) and }
          (NextLine^.BeginsWithAsm=Line^.EndsWithAsm) and
          (NextLine^.BeginsWithComment=Line^.EndsWithComment) and
          (NextLine^.BeginsWithDirective=Line^.EndsWithDirective) and
@@ -5480,7 +5482,10 @@ end;
 END.
 {
   $Log$
-  Revision 1.70  2000-01-05 17:35:50  pierre
+  Revision 1.71  2000-01-06 17:47:26  pierre
+   * avoid to resyntax whole source in unnecessary cases
+
+  Revision 1.70  2000/01/05 17:35:50  pierre
     + Warning box if a line is cut at reading of file
       this is done to avoid loosing completely long lines
     * several TAB related changes
