@@ -11,7 +11,10 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 
  **********************************************************************}
+
+{$ifdef fpc}
 {$mode objfpc}
+{$endif}
 
 UNIT IDEA;
 
@@ -57,7 +60,11 @@ TYPE IDEAkey = ARRAY[0..keylen-1] OF Word;
 
 PROCEDURE EnKeyIdea(userkey: ideacryptkey; VAR z: ideakey);
 PROCEDURE DeKeyIdea(z: IDEAKey; VAR dk: ideakey);
+<<<<<<< idea.pp
 PROCEDURE CipherIdea(input: ideacryptdata; VAR output: ideacryptdata; z: IDEAkey);
+=======
+PROCEDURE CipherIdea(input: ideacryptdata; VAR outdata: ideacryptdata; z: IDEAkey);
+>>>>>>> 1.1.2.2
 
 Type
 
@@ -103,8 +110,10 @@ Const
   SNoReadAllowed = 'Reading from encryption stream not allowed';
   SNoWriteAllowed = 'Writing to decryption stream not allowed';
 
+{$ifdef fpc}
 Type
-  PByte = ^Byte;
+  PChar = ^Byte;
+{$endif}
 
 PROCEDURE mul(VAR a:Word; b: Word);
 VAR p: LongInt;
@@ -153,7 +162,6 @@ PROCEDURE EnKeyIdea(userkey: ideacryptkey; VAR z: ideakey);
 VAR zi,i,j: integer;
 BEGIN
   FOR j := 0 TO 7 DO z[j] := userkey[j];
-  i := 0;
   zi := 0;
   i := 0;
   FOR j := 8 TO keylen-1 DO BEGIN
@@ -163,20 +171,18 @@ BEGIN
     i := i AND 7;
   END;
   FOR i := 0 TO 7 DO userkey[i] := 0;
-  zi := 0;
 END;
 
 PROCEDURE DeKeyIdea(z: IDEAKey; VAR dk: ideakey);
 VAR j: Integer;
     t1,t2,t3: Word;
     p: IDEAKey;
-    ip,it,idk: Integer;
+    ip: Integer;
     iz: Integer;
 BEGIN
   iz := 0;
   ip := keylen;
   FOR j := 0 TO keylen - 1 DO p[j] := 0;
-  idk := 0;
   t1 := inv(z[iz]);   Inc(iz);
   t2 := not(z[iz])+1; Inc(iz);
   t3 := not(z[iz])+1; Inc(iz);
@@ -202,7 +208,7 @@ BEGIN
   t1 := inv(z[iz]);   Inc(iz);
   t2 := Not(z[iz])+1; Inc(iz);
   t3 := Not(z[iz])+1; Inc(iz);
-  Dec(ip); p[ip] := inv(z[iz]); Inc(iz);
+  Dec(ip); p[ip] := inv(z[iz]);
   Dec(ip); p[ip] := t3;
   Dec(ip); p[ip] := t2;
   Dec(ip); p[ip] := t1;
@@ -211,16 +217,13 @@ BEGIN
     p[j] := 0;
   END;
   FOR j := 0 TO 51 DO z[j] := 0;
-  t1 := 0;
-  t2 := 0;
-  t3 := 0;
-  ip := 0;
-  it := 0;
-  idk := 0;
-  iz := 0;
 END;
 
+<<<<<<< idea.pp
 PROCEDURE CipherIdea(input: ideacryptdata; VAR output: ideacryptdata; z:
+=======
+PROCEDURE CipherIdea(input: ideacryptdata; VAR outdata: ideacryptdata; z:
+>>>>>>> 1.1.2.2
 IDEAkey);
 VAR x1, x2, x3, x4, t1, t2: Word;
     r: Integer;
@@ -248,26 +251,30 @@ BEGIN
     x3 := t2;
   END;
   mul(x1, z[zi]);       Inc(zi);
+<<<<<<< idea.pp
   output[0] := x1;
   output[1] := x3 + z[zi]; Inc(zi);
   output[2] := x2 + z[zi]; Inc(zi);
+=======
+  outdata[0] := x1;
+  outdata[1] := x3 + z[zi]; Inc(zi);
+  outdata[2] := x2 + z[zi]; Inc(zi);
+>>>>>>> 1.1.2.2
   Mul(x4,z[zi]);
+<<<<<<< idea.pp
   output[3] := x4;
+=======
+  outdata[3] := x4;
+>>>>>>> 1.1.2.2
   FOR r := 0 TO 3 DO input[r] := 0;
   FOR r := 0 TO 51 DO z[r] := 0;
-  x1 := 0;
-  x2 := 0;
-  x3 := 0;
-  x4 := 0;
-  t1 := 0;
-  t2 := 0;
-  zi := 0;
 END;
 
 constructor TIDEAEncryptStream.Create(AKey : ideakey; Dest: TStream);
 
 begin
-  FKey:=Key;
+  inherited Create;
+  FKey:=AKey;
   FDest:=Dest;
   FBufPos:=0;
   Fpos:=0;
@@ -289,10 +296,12 @@ Var
 begin
   If FBufPos>0 then
     begin
-    // Fill with spaces.
-    FillChar(PByte(@FData)[FBufPos],SizeOf(FData)-FBufPos,' ');
+    // Fill with nulls
+    FillChar(PChar(@FData)[FBufPos],SizeOf(FData)-FBufPos,#0);
     CipherIdea(Fdata,OutData,FKey);
     FDest.Write(OutData,SizeOf(OutData));
+    // fixed: Manual flush and then free will now work
+    FBufPos := 0;
     end;
 end;
 
@@ -315,7 +324,7 @@ begin
     MVsize:=Count;
     If Mvsize>SizeOf(Fdata)-FBufPos then
       mvsize:=SizeOf(FData)-FBufPos;
-    Move(Pbyte(@Buffer)[Result],PByte(@FData)[FBufPos],MVSize);
+    Move(PChar(@Buffer)[Result],PChar(@FData)[FBufPos],MVSize);
     If FBufPos+mvSize=Sizeof(FData) then
       begin
       // Empty buffer.
@@ -346,7 +355,7 @@ constructor TIDEADeCryptStream.Create(AKey : ideakey; Src: TStream);
 
 begin
   inherited Create;
-  FKey:=Key;
+  FKey:=AKey;
   FPos:=0;
   FBufPos:=SizeOf(Fdata);
   FSrc:=Src;
@@ -373,7 +382,7 @@ begin
       mvSize:=Sizeof(FData)-FBufPos;
       If MvSize>count then
         mvsize:=Count;
-      Move(PByte(@FData)[FBufPos],Pbyte(@Buffer)[Result],MVSize);
+      Move(PChar(@FData)[FBufPos],PChar(@Buffer)[Result],MVSize);
       Dec(Count,mvsize);
       Inc(Result,mvsize);
       inc(fBufPos,mvsize);
@@ -385,8 +394,8 @@ begin
       If mvsize>0 then
         begin
         If MvSize<SizeOf(InData) Then
-          // Fill with spaces
-          FillChar(PByte(@InData)[mvsize],SizeOf(InData)-mvsize,' ');
+          // Fill with nulls
+          FillChar(PChar(@InData)[mvsize],SizeOf(InData)-mvsize,#0);
         CipherIdea(InData,FData,FKey);
         FBufPos:=0;
         end
@@ -399,7 +408,7 @@ end;
 
 function TIDEADeCryptStream.Write(const Buffer; Count: Longint): Longint;
 begin
-  Raise EIDEAError.Create(SNoReadAllowed);
+  Raise EIDEAError.Create(SNoWriteAllowed);
 end;
 
 function TIDEADeCryptStream.Seek(Offset: Longint; Origin: Word): Longint;
@@ -425,7 +434,10 @@ END.
 
 {
   $Log$
-  Revision 1.3  2000-07-14 19:47:36  michael
+  Revision 1.4  2000-08-04 21:47:29  peter
+    * applied patch from Paul te Bokkel (merged)
+
+  Revision 1.3  2000/07/14 19:47:36  michael
   + Fixed out parameter
 
   Revision 1.2  2000/07/13 11:32:59  michael
