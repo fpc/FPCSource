@@ -1110,6 +1110,11 @@ implementation
             (aktprocdef.proctypeoption=potype_constructor) then
            begin
              emitjmp(C_Z,faillabel);
+{$ifdef TEST_GENERIC}             
+{ should be moved to generic version! }
+             reference_reset_base(href, procinfo^.framepointer,procinfo^.selfpointer_offset);
+             cg.a_load_ref_reg(exprasmlist, OS_ADDR, href, SELF_POINTER_REG);
+{$endif}             
            end;
 
          { call to AfterConstruction? }
@@ -1475,7 +1480,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.56  2002-07-01 18:46:31  peter
+  Revision 1.57  2002-07-06 20:27:26  carl
+  + generic set handling
+
+  Revision 1.56  2002/07/01 18:46:31  peter
     * internal linker
     * reorganized aasm layer
 

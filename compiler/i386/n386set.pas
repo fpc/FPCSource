@@ -27,15 +27,13 @@ unit n386set;
 interface
 
     uses
-       node,nset;
+       node,nset,pass_1;
 
     type
-       ti386setelementnode = class(tsetelementnode)
-          procedure pass_2;override;
-       end;
 
        ti386innode = class(tinnode)
           procedure pass_2;override;
+          function pass_1 : tnode;override;
        end;
        ti386casenode = class(tcasenode)
           procedure pass_2;override;
@@ -56,39 +54,39 @@ implementation
      const
        bytes2Sxx:array[1..8] of Topsize=(S_B,S_W,S_NO,S_L,S_NO,S_NO,S_NO,S_Q);
 
-{*****************************************************************************
-                          TI386SETELEMENTNODE
-*****************************************************************************}
-
-    procedure ti386setelementnode.pass_2;
-       var
-         pushedregs : tmaybesave;
-       begin
-       { load first value in 32bit register }
-         secondpass(left);
-         if left.location.loc in [LOC_REGISTER,LOC_CREGISTER] then
-           location_force_reg(exprasmlist,left.location,OS_32,false);
-
-       { also a second value ? }
-         if assigned(right) then
-           begin
-             maybe_save(exprasmlist,right.registers32,left.location,pushedregs);
-             secondpass(right);
-             if codegenerror then
-               exit;
-             maybe_restore(exprasmlist,left.location,pushedregs);
-             if right.location.loc in [LOC_REGISTER,LOC_CREGISTER] then
-              location_force_reg(exprasmlist,right.location,OS_32,false);
-           end;
-
-         { we doesn't modify the left side, we check only the type }
-         location_copy(location,left.location);
-       end;
 
 
 {*****************************************************************************
                               TI386INNODE
 *****************************************************************************}
+
+    function ti386innode.pass_1 : tnode;
+      begin
+         result:=nil;
+         { this is the only difference from the generic version }
+         location.loc:=LOC_FLAGS;
+         
+         firstpass(right);
+         firstpass(left);
+         if codegenerror then
+           exit;
+
+         left_right_max;
+         { this is not allways true due to optimization }
+         { but if we don't set this we get problems with optimizing self code }
+         if tsetdef(right.resulttype.def).settype<>smallset then
+           procinfo^.flags:=procinfo^.flags or pi_do_call
+         else
+           begin
+              { a smallset needs maybe an misc. register }
+              if (left.nodetype<>ordconstn) and
+                not(right.location.loc in [LOC_CREGISTER,LOC_REGISTER]) and
+                (right.registers32<1) then
+                inc(registers32);
+           end;
+      end;
+      
+
 
     procedure ti386innode.pass_2;
        type
@@ -1011,13 +1009,17 @@ implementation
 
 
 begin
-   csetelementnode:=ti386setelementnode;
+{$ifndef TEST_GENERIC}
    cinnode:=ti386innode;
+{$endif}   
    ccasenode:=ti386casenode;
 end.
 {
   $Log$
-  Revision 1.32  2002-07-01 18:46:33  peter
+  Revision 1.33  2002-07-06 20:27:26  carl
+  + generic set handling
+
+  Revision 1.32  2002/07/01 18:46:33  peter
     * internal linker
     * reorganized aasm layer
 
