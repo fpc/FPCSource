@@ -530,48 +530,48 @@ parser_e_void_function=E_Prozeduren kînnen keinen Wert zurÅckliefern
 % In \fpc, you can specify a return value for a function when using
 % the \var{exit} statement. This error occurs when you try to do this with a
 % procedure. Procedures  cannot return a value.
-parser_e_constructors_always_objects=E_constructors and destructors must be methods
+parser_e_constructors_always_objects=E_Constructoren und Destructoren mÅssen Methoden sein
 % You're declaring a procedure as destructor or constructor, when the
 % procedure isn't a class method.
-parser_e_operator_not_overloaded=E_Operator is not overloaded
+parser_e_operator_not_overloaded=E_Operator besitzt kein overload
 % You're trying to use an overloaded operator when it isn't overloaded for
 % this type.
-parser_e_no_reraise_possible=E_Re-raise isn't possible there
+parser_e_no_reraise_possible=E_Auslîsen einer Exception an dieser stelle nicht mîglich
 % You are trying to raise an exception where it isn't allowed. You can only
 % raise exceptions in an \var{except} block.
-parser_e_no_new_or_dispose_for_classes=E_The extended syntax of new or dispose isn't allowed for a class
+parser_e_no_new_or_dispose_for_classes=E_Die erweiterte Syntax von New oder Dispose ist fÅr Klassen nicht zulÑssig
 % You cannot generate an instance of a class with the extended syntax of
 % \var{new}. The constructor must be used for that. For the same reason, you
 % cannot call \var{Dispose} to de-allocate an instance of a class, the
 % destructor must be used for that.
-parser_e_asm_incomp_with_function_return=E_Assembler incompatible with function return value
+parser_e_asm_incomp_with_function_return=E_Assembler Funktion nicht mîglich mit diesem RÅckgabe Typ
 % You're trying to implement a \var{assembler} function, but the return type
 % of the function doesn't allow that.
-parser_e_procedure_overloading_is_off=E_Procedure overloading is switched off
+parser_e_procedure_overloading_is_off=E_Prozedur overload ist ausgeschaltet
 % When using the \var{-So} switch, procedure overloading is switched off.
 % Turbo Pascal does not support function overloading.
-parser_e_overload_operator_failed=E_It is not possible to overload this operator (overload = instead)
+parser_e_overload_operator_failed=E_Es ist nicht mîglich overload mit diesem Operator zu machen (bentzen Sie stattdessen '=')
 % You are trying to overload an operator which cannot be overloaded.
 % The following operators can be overloaded :
 % \begin{verbatim}
 %    +, -, *, /, =, >, <, <=, >=, is, as, in, **, :=
 % \end{verbatim}
-parser_e_comparative_operator_return_boolean=E_Comparative operator must return a boolean value
+parser_e_comparative_operator_return_boolean=E_Vergleichs Operator muss einen boolschen Wert zurÅckgeben
 % When overloading the \var{=} operator, the function must return a boolean
 % value.
-parser_e_only_virtual_methods_abstract=E_Only virtual methods can be abstract
+parser_e_only_virtual_methods_abstract=E_Nur virtuelle Methoden kînnen abstrakt sein.
 % You are declaring a method as abstract, when it isn't declared to be
 % virtual.
-parser_f_unsupported_feature=F_Use of unsupported feature!
+parser_f_unsupported_feature=F_Benutzung einer nicht unterstÅtzten Erweiterung!
 % You're trying to force the compiler into doing something it cannot do yet.
-parser_e_mix_of_classes_and_objects=E_The mix of CLASSES and OBJECTS isn't allowed
+parser_e_mix_of_classes_and_objects=E_Das Mischen von Klassen und Objekten ist unzulÑssig
 % You cannot derive \var{objects} and \var{classes} intertwined . That is,
 % a class cannot have an object as parent and vice versa.
-parser_w_unknown_proc_directive_ignored=W_Unknown procedure directive had to be ignored: $1
+parser_w_unknown_proc_directive_ignored=W_Unbekannte Prozedur Direktive wurde ignoriert: $1
 % The procedure direcive you secified is unknown. Recognised procedure
 % directives are \var{cdecl}, \var{stdcall}, \var{popstack}, \var{pascal}
 % \var{register}, \var{export}.
-parser_e_absolute_only_one_var=E_absolute can only be associated to ONE variable
+parser_e_absolute_only_one_var=E_absolute kann nur auf eine alleinstehende Variable angewendet werden
 % You cannot specify more than one variable before the \var{absolute} directive.
 % Thus, the following construct will provide this error:
 % \begin{verbatim}
@@ -587,7 +587,7 @@ parser_e_absolute_only_one_var=E_absolute can only be associated to ONE variable
 %  var p : longint absolute x;
 % \end{verbatim}
 %
-parser_e_absolute_only_to_var_or_const=E_absolute can only be associated a var or const
+parser_e_absolute_only_to_var_or_const=E_absolute kann nur auf Variablen und Konstanten angewendet werden
 % The address of a \var{absolute} directive can only point to a variable or
 % constant. Therefore, the following code will produce this error:
 % \begin{verbatim}
@@ -596,53 +596,53 @@ parser_e_absolute_only_to_var_or_const=E_absolute can only be associated a var o
 %  var p : longint absolute x;
 % \end{verbatim}
 %
-parser_e_initialized_only_one_var=E_Only ONE variable can be initialized
+parser_e_initialized_only_one_var=E_Es kann nur ein Bezeichner initialisert werden
 % You cannot specify more than one variable with a initial value
 % in Delphi syntax.
-parser_e_abstract_no_definition=E_Abtract methods shouldn't have any definition (with function body)
+parser_e_abstract_no_definition=E_Abtrakte Methoden dÅrfen keine Deklarierung mit Rumpf haben
 % Abstract methods can only be declared, you cannot implement them. They
 % should be overridden by a descendant class.
-parser_e_overloaded_must_be_all_global=E_This overloaded function can't be local (must be exported)
+parser_e_overloaded_must_be_all_global=E_Diese overload Funktion darf nicht Lokal sein (muss Exportiert werden)
 % You are defining a overloaded function in the implementation part of a unit,
 % but there is no corresponding declaration in the interface part of the unit.
-parser_w_virtual_without_constructor=W_Virtual methods are used without a constructor in $1
+parser_w_virtual_without_constructor=W_Virtuelle Methoden wurden ohne Constructor verwendet in $1
 % If you declare objects or classes that contain virtual methods, you need
 % to have a constructor and destructor to initialize them. The compiler
 % encountered an object or class with virtual methods that doesn't have
 % a constructor/destructor pair.
-parser_m_macro_defined=M_Macro defined: $1
+parser_m_macro_defined=M_Makro definiert: $1
 % When \var{-vm} is used, the compiler tells you when it defines macros.
-parser_m_macro_undefined=M_Macro undefined: $1
+parser_m_macro_undefined=M_Makro gelîscht: $1
 % When \var{-vm} is used, the compiler tells you when it undefines macros.
-parser_m_macro_set_to=M_Macro $1 set to $2
+parser_m_macro_set_to=M_Makro $1 auf $2 gesetzt
 % When \var{-vm} is used, the compiler tells you what values macros get.
-parser_i_compiling=I_Compiling $1
+parser_i_compiling=I_Compiliere $1
 % When you turn on information messages (\var{-vi}), the compiler tells you
 % what units it is recompiling.
-parser_d_compiling_second_time=D_Compiling $1 for the second time
+parser_d_compiling_second_time=D_Compiliere $1 zum zweiten Mal
 % When you request debug messages (\var{-vd}) the compiler tells you what
 % units it recompiles for the second time.
-parser_e_no_paras_allowed=E_Array properties aren't allowed at this point
-% You cannot use  array properties at that point.a
-parser_e_no_property_found_to_override=E_No property found to override
+parser_e_no_paras_allowed=E_Array Eigenschaften sind an dieser Stelle nicht erlaubt
+% You cannot use array properties at that point.
+parser_e_no_property_found_to_override=E_Es gibt keine Property fÅr dieses Override
 % You want to overrride a property of a parent class, when there is, in fact,
 % no such property in the parent class.
-parser_e_only_one_default_property=E_Only one default property is allowed, found inherited default property in class $1
+parser_e_only_one_default_property=E_Nur eine default Property ist erlaubt, vererbte default Property in Klasse $1 gefunden
 % You specified a property as \var{Default}, but a parent class already has a
 % default property, and a class can have only one default property.
-parser_e_property_need_paras=E_The default property must be an array property
+parser_e_property_need_paras=E_Die default Property muss eine Array Property sein
 % Only array properties of classes can be made \var{default} properties.
-parser_e_constructor_cannot_be_not_virtual=E_Virtual constructors are only supported in class object model
+parser_e_constructor_cannot_be_not_virtual=E_Virtuelle Constructoren werden nur im Klassen-Modell unterstÅtzt
 % You cannot have virtual constructors in objects. You can only have them
 % in classes.
-parser_e_no_default_property_available=E_No default property available
+parser_e_no_default_property_available=E_Keine default Property verfÅgbar
 % You try to access a default property of a class, but this class (or one of
 % it's ancestors) doesn't have a default property.
-parser_e_cant_have_published=E_The class can't have a published section, use the {$M+} switch
+parser_e_cant_have_published=E_Die Klasse kann keinen published Bereich haben, benutzen Sie den {$M+} Schalter
 % If you want a \var{published} section in a class definition, you must
 % use the \var{\{\$M+\}} switch, whch turns on generation of type
 % information.
-parser_e_forward_declaration_must_be_resolved=E_Forward declaration of class $1 must be resolved here to use the class as ancestor
+parser_e_forward_declaration_must_be_resolved=E_Forward Deklaration der Klasse $1 muss hier aufgelîst werden so dass der Klassen-Vorfahre benutzt wird
 % To be able to use an object as an ancestor object, it must be defined
 % first. This error occurs in the following situation:
 % \begin{verbatim}
@@ -652,92 +652,92 @@ parser_e_forward_declaration_must_be_resolved=E_Forward declaration of class $1 
 %       end;
 % \end{verbatim}
 % Where \var{ParentClass} is declared but not defined.
-parser_e_no_local_operator=E_Local operators not supported
+parser_e_no_local_operator=E_Locale Operatoren werden nicht unterstÅtzt
 % You cannot overload locally, i.e. inside procedures or function
 % definitions.
-parser_e_proc_dir_not_allowed_in_interface=E_Procedure directive $1 not allowed in interface section
+parser_e_proc_dir_not_allowed_in_interface=E_Prozedur Direktive $1 unzulÑssig im Interface Bereich
 % This procedure directive is not allowed in the \var{interface} section of
 % a unit. You can only use it in the \var{implementation} section.
-parser_e_proc_dir_not_allowed_in_implementation=E_Procedure directive $1 not allowed in implementation section
+parser_e_proc_dir_not_allowed_in_implementation=E_Prozedur Direktive $1 unzulÑssig im Implementation Bereich
 % This procedure directive is not defined in the \var{implementation} section of
 % a unit. You can only use it in the \var{interface} section.
-parser_e_proc_dir_not_allowed_in_procvar=E_Procedure directive $1 not allowed in procvar declaration
+parser_e_proc_dir_not_allowed_in_procvar=E_Prozedur Direktive $1 unzulÑssig in einer procvar Deklaration
 % This procedure directive cannot be part of a procedural of function
 % type declaration.
-parser_e_function_already_declared_public_forward=E_Function is already declared Public/Forward $1
+parser_e_function_already_declared_public_forward=E_Funktion ist bereits deklariert als Public/Forward $1
 % You will get this error if a function is defined as \var{forward} twice.
 % Or it is once in the \var{interface} section, and once as a \var{forward}
 % declaration in the \var{implmentation} section.
-parser_e_not_external_and_export=E_Can't use both EXPORT and EXTERNAL
+parser_e_not_external_and_export=E_Kann nicht beide Bezeichner EXPORT und EXTERNAL benutzen
 % These two procedure directives are mutually exclusive
-parser_e_name_keyword_expected=E_NAME keyword expected
+parser_e_name_keyword_expected=E_SchlÅsselwort NAME erwartet
 % The definition of an external variable needs a \var{name} clause.
-parser_w_not_supported_for_inline=W_$1 not yet supported inside inline procedure/function
+parser_w_not_supported_for_inline=W_$1 noch nicht innerhalb von inline Prozeduren/Funktionen unterstÅtzt
 % Inline procedures don't support this declaration.
-parser_w_inlining_disabled=W_Inlining disabled
+parser_w_inlining_disabled=W_Inlining deaktiviert
 % Inlining of procedures is disabled.
-parser_i_writing_browser_log=I_Writing Browser log $1
+parser_i_writing_browser_log=I_Schreibe Browser log $1
 % When information messages are on, the compiler warns you when it
 % writes the browser log (generated with the \var{\{\$Y+ \}} switch).
-parser_h_maybe_deref_caret_missing=H_may be pointer dereference is missing
+parser_h_maybe_deref_caret_missing=H_Mîglicherweise fehlt eine Pointer Dereferenzierung
 % The compiler thinks that a pointer may need a dereference.
-parser_f_assembler_reader_not_supported=F_Selected assembler reader not supported
+parser_f_assembler_reader_not_supported=F_Gewaehlter Assembler-Leser nicht unterstÅtzt
 % The selected assembler reader (with \var{\{\$ASMMODE xxx\}} is not
 % supported. The compiler can be compiled with or without support for a
 % particular assembler reader.
-parser_e_proc_dir_conflict=E_Procedure directive $1 has conflicts with other directives
+parser_e_proc_dir_conflict=E_Prozedur Direktive $1 steht in Konflikt mit anderen Direktiven
 % You specified a procedure directive that conflicts with other directives.
 % for instance \var{cdecl} and \var{pascal} are mutually exclusive.
-parser_e_call_convention_dont_match_forward=E_Calling convention doesn't match forward
+parser_e_call_convention_dont_match_forward=E_Aufruf Konvention passt nicht zur Forward Deklaration
 % This error happens when you declare a function or procedure with
 % e.g. \var{cdecl;} but omit this directive in the implementation, or vice
 % versa. The calling convention is part of the function declaration, and
 % must be repeated in the function definition.
-parser_e_register_calling_not_supported=E_Register calling (fastcall) not supported
+parser_e_register_calling_not_supported=E_Register Aufruf Konvention (fastcall) nicht unterstÅtzt
 % The \var{register} calling convention, i.e., arguments are passed in
 % registers instead of on the stack is not supported. Arguments are always
 % passed on the stack.
-parser_e_property_cant_have_a_default_value=E_Property can't have a default value
+parser_e_property_cant_have_a_default_value=E_Property kann keinen Vorgabewert haben
 % Set properties or indexed properties cannot have a default value.
-parser_e_property_default_value_must_const=E_The default value of a property must be constant
+parser_e_property_default_value_must_const=E_Der Vorgabewert einer Property muss eine Konstante sein
 % The value of a \var{default} declared property must be knwon at compile
 % time. The value you specified is only known at run time. This happens
 % .e.g. if you specify a variable name as a default value.
-parser_e_cant_publish_that=E_Symbol can't be published, can be only a class
+parser_e_cant_publish_that=E_Symbol darf nicht published sein, nur nur eine Klasse sein
 % Only class type variables can be in a \var{published} section of a class
 % if they are not declared as a property.
-parser_e_cant_publish_that_property=E_That kind of property can't be published
+parser_e_cant_publish_that_property=E_Diese Sorte Property knann nicht Published sein
 % Properties in a \var{published} section cannot be array properties.
 % they must be moved to public sections. Properties in a \var{published}
 % section must be an ordinal type, a real type, strings or sets.
-parser_w_empty_import_name=W_Empty import name specified
+parser_w_empty_import_name=W_Leerer Importname angegeben
 % Both index and name for the import are 0 or empty
-parser_e_empty_import_name=W_Empty import name specified
+parser_e_empty_import_name=W_Leerer Importname angegeben
 % Some targets need a name for the imported procedure or a cdecl specifier
-parser_e_used_proc_name_changed=E_Function internal name changed after use of function
-parser_e_division_by_zero=E_Division by zero
+parser_e_used_proc_name_changed=E_Funktions interner name wurde nach der Verwendung einer Funktion gÑndert
+parser_e_division_by_zero=E_Division durch Null
 % There is a divsion by zero encounted
-parser_e_invalid_float_operation=E_Invalid floating point operation
+parser_e_invalid_float_operation=E_UngÅltige Fliesskomma Operation
 % An operation on two real type values produced an overflow or a division
 % by zero.
-parser_e_array_lower_less_than_upper_bound=E_Upper bound of range is less than lower bound
+parser_e_array_lower_less_than_upper_bound=E_Obere Grenze des Bereichs ist kleinerals die untere Grenze
 % The upper bound of a \var{case} label is less than the lower bound and this
 % is not possible
-parser_e_string_larger_array=E_string length is larger than array of char length
+parser_e_string_larger_array=E_StringlÑnge ist grîsser als die LÑnge des "array of char"
 % The size of the constant string is larger than the size you specified in
 % the array[x..y] of char definition
-parser_e_ill_msg_expr=E_Illegal expression after message directive
+parser_e_ill_msg_expr=E_UngÅltiger Ausdruck nach der Message Direktive
 % \fpc supports only integer or string values as message constants
-parser_e_ill_msg_param=E_Message handlers can take only one call by ref. parameter
+parser_e_ill_msg_param=E_Message Handler akzeptieren nur einen "Call by Reference" Parameter
 % A method declared with the \var{message}-directive as message handler
 % can take only one parameter which must be declared as call by reference
 % Parameters are declared as call by reference using the \var{var}-directive
-parser_e_duplicate_message_label=E_Duplicate message label: %1
+parser_e_duplicate_message_label=E_Doppeltes Message Label: %1
 % A label for a message is used twice in one object/class
-parser_e_self_in_non_message_handler=E_Self can be only an explicit parameter in message handlers
+parser_e_self_in_non_message_handler=E_Self darf nur in Message Handlern ein expliziter Parameter sein
 % The self parameter can be passed only explicit if it is a method which
 % is declared as message method handler
-parser_e_threadvars_only_sg=E_Threadvars can be only static or global
+parser_e_threadvars_only_sg=E_Threadvariablen kînnen nur statisch oder global sein
 % Threadvars must be static or global, you can't declare a thread
 % local to a procedure. Local variables are always local to a thread,
 % because every thread has it's own stack and local variables
@@ -750,7 +750,7 @@ parser_e_threadvars_only_sg=E_Threadvars can be only static or global
 % This section lists all errors that can occur when type checking is
 % performed.
 % \begin{description}
-type_e_mismatch=E_Type mismatch
+type_e_mismatch=E_Typ passt nicht
 % This can happen in many cases:
 % \begin{itemize}
 % \item The variable you're assigning to is of a different type than the
@@ -758,25 +758,25 @@ type_e_mismatch=E_Type mismatch
 % \item You are calling a function or procedure with parameters that are
 % incompatible with the parameters in the function or procedure definition.
 % \end{itemize}
-type_e_incompatible_types=E_Incompatible types: got $1 expected $2
+type_e_incompatible_types=E_Inkompatible Typen: erhalten $1 erwartet $2
 % There is no conversion possible between the two types
-type_e_integer_expr_expected=E_Integer expression expected
+type_e_integer_expr_expected=E_Integer Ausdruck erwartet
 % The compiler expects an expression of type integer, but gets a different
 % type.
-type_e_ordinal_expr_expected=E_Ordinal expression expected
+type_e_ordinal_expr_expected=E_Ganzahliger Ausdruck erwartet
 % The expression must be of ordinal type, i.e., maximum a \var{Longint}.
 % This happens, for instance, when you specify a second argument
 % to \var{Inc} or \var{Dec} that doesn't evaluate to an ordinal value.
-type_e_type_id_expected=E_Type identifier expected
+type_e_type_id_expected=E_Typ Bezeichner erwartet
 % The identifier is not a type, or you forgot to supply a type identifier.
-type_e_variable_id_expected=E_Variable identifier expected
+type_e_variable_id_expected=E_Variablen Bezeichner erwartet
 % This happens when you pass a constant to a \var{Inc} var or \var{Dec}
 % procedure. You can only pass variables as arguments to these functions.
-type_e_pointer_type_expected=E_pointer type expected
+type_e_pointer_type_expected=E_Pointer Typ erwartet
 % The variable or expression isn't of the type \var{pointer}. This
 % happens when you pass a variable that isn't a pointer to \var{New}
 % or \var{Dispose}.
-type_e_class_type_expected=E_class type expected
+type_e_class_type_expected=E_Klassen Typ erwartet
 % The variable of expression isn't of the type \var{class}. This happens
 % typically when
 % \begin{enumerate}
@@ -784,54 +784,54 @@ type_e_class_type_expected=E_class type expected
 % \item An exception handler (\var{On}) contains a type identifier that
 % isn't a class.
 % \end{enumerate}
-type_e_varid_or_typeid_expected=E_Variable or type indentifier expected
+type_e_varid_or_typeid_expected=E_Variable oder Typ Bezeichner erwartet
 % The argument to the \var{High} or \var{Low} function is not a variable
 % nor a type identifier.
-type_e_cant_eval_constant_expr=E_Can't evaluate constant expression
+type_e_cant_eval_constant_expr=E_Kann konstanten Ausdruck nicht bestimmen
 % No longer in use.
-type_e_set_element_are_not_comp=E_Set elements are not compatible
+type_e_set_element_are_not_comp=E_Set Elemente sind nicht Kompatibel
 % You are trying to make an operation on two sets, when the set element types
 % are not the same. The base type of a set must be the same when taking the
 % union
-type_e_set_operation_unknown=E_Operation not implemented for sets
+type_e_set_operation_unknown=E_Operation fÅr Sets nicht implementiert
 % several binary operations are not defined for sets
 % like div mod ** (also >= <= for now)
-type_w_convert_real_2_comp=W_Automatic type conversion from floating type to COMP which is an integer type
+type_w_convert_real_2_comp=W_Automatische Typumwandlung von Fliesskommatyp nach COMP (=integer mit 64 bit)
 % An implicit type conversion from a real type to a \var{comp} is
 % encountered. Since \var{Comp} is a 64 bit integer type, this may indicate
 % an error.
-type_h_use_div_for_int=H_use DIV instead to get an integer result
+type_h_use_div_for_int=H_Verwenden sie DIV um ein Integer Ergebnis zu erhalten
 % When hints are on, then an integer division with the '/' operator will
 % procuce this message, because the result will then be of type real
-type_e_strict_var_string_violation=E_string types doesn't match, because of $V+ mode
+type_e_strict_var_string_violation=E_String Typ ist unpassen, da in $V+ Mode
 % When compiling in \var{\{\$V+ \}} mode, the string you pass as a parameter
 % should be of the exact same type as the declared parameter of the procedure.
-type_e_succ_and_pred_enums_with_assign_not_possible=E_succ or pred on enums with assignments not possible
+type_e_succ_and_pred_enums_with_assign_not_possible=E_Succ oder Pred kann nicht auf Enums mit Zuweisungen angewendet werden
 % When you declared an enumeration type which has assignments in it, as in C,
 % like in the following:
 % \begin{verbatim}
 %   Tenum = (a,b,e:=5);
 % \end{verbatim}
 % you cannot use the \var{Succ} or \var{Pred} functions on them.
-type_e_cant_read_write_type=E_Can't read or write variables of this type
+type_e_cant_read_write_type=E_Kann Variablen dieses Typs weder lesen noch schreiben
 % You are trying to \var{read} or \var{write} a variable from or to a
 % file of type text, which doesn't support that. Only integer types,
 % booleans, reals, pchars and strings can be read from/written to a text file.
-type_e_typeconflict_in_set=E_Type conflict between set elements
+type_e_typeconflict_in_set=E_Typkonflikt zwischen den Elementen des Sets
 % There is at least one set element which is of the wrong type, i.e. not of
 % the set type.
-type_w_maybe_wrong_hi_lo=W_lo/hi(longint/dword) returns the upper/lower word
+type_w_maybe_wrong_hi_lo=W_lo/hi(longint/dword) gibt oberes/unteres Word zurÅck
 % \fpc supports an overloaded version of \var{lo/hi} for \var{longint/dword}
 % which returns the lower/upper word of the argument. TP always uses
 % a 16 bit \var{lo/hi} which returns always bits 0..7 for \var{lo} and the
 % bits 8..15 for \var{hi}. If you want the TP behavior you have
 % to type case the argument to \var{word/integer}
-type_e_integer_or_real_expr_expected=E_Integer or real expression expected
+type_e_integer_or_real_expr_expected=E_Integer oder real Ausdruck erwartet
 % The first argument to \var{str} must a real or integer type.
-type_e_wrong_type_in_array_constructor=E_Wrong type in array constructor
+type_e_wrong_type_in_array_constructor=E_Falscher Typ im Array Constructor
 % You are trying to use a type in an array constructor which is not
 % allowed.
-type_e_wrong_parameter_type=E_Incompatible type for arg #$1: Got $2, expected $3
+type_e_wrong_parameter_type=E_Inkompatible Typen fÅr Argument #$1: erhalten $2, erwartet $3
 % You are trying to pass an invalid type for the specified parameter. 
 % \end{description}
 
@@ -842,20 +842,20 @@ type_e_wrong_parameter_type=E_Incompatible type for arg #$1: Got $2, expected $3
 % This section lists all the messages that concern the handling of symbols.
 % This means all things that have to do with procedure and variable names.
 % \begin{description}
-sym_e_id_not_found=E_Identifier not found $1
+sym_e_id_not_found=E_Bezeichner nicht gefunden $1
 % The compiler doesn't know this symbol. Usually happens when you misspel
 % the name of a variable or procedure, or when you forgot to declare a
 % variable.
-sym_f_internal_error_in_symtablestack=F_Internal Error in SymTableStack()
+sym_f_internal_error_in_symtablestack=F_Interner Fehler in SymTableStack()
 % An internal error occurred in the compiler; If you encounter such an error,
 % please contact the developers and try to provide  an exact description of
 % the circumstances in which the error occurs.
-sym_e_duplicate_id=E_Duplicate identifier $1
+sym_e_duplicate_id=E_Doppelter Bezeichner $1
 % The identifier was already declared in the current scope.
-sym_e_unknown_id=E_Unknown identifier $1
+sym_e_unknown_id=E_Unbekannter Bezeichner $1
 % The identifier encountered hasn't been declared, or is used outside the
 % scope where it's defined.
-sym_e_forward_not_resolved=E_Forward declaration not solved $1
+sym_e_forward_not_resolved=E_Forward Deklaration nicht gefunden $1
 % This can happen in two cases:
 % \begin{itemize}
 % \item This happens when you declare a function (in the \var{interface} part, or
@@ -863,69 +863,69 @@ sym_e_forward_not_resolved=E_Forward declaration not solved $1
 % \item You reference a type which isn't declared in the current \var{type}
 % block.
 % \end{itemize}
-sym_f_id_already_typed=F_Identifier type already defined as type
+sym_f_id_already_typed=F_Bezeichner Typ ist bereits als Typ definiert
 % You are trying to redefine a type.
-sym_e_error_in_type_def=E_Error in type definition
+sym_e_error_in_type_def=E_Fehler in Typdefinition
 % There is an error in your definition of a new array type:
 % \item One of the range delimiters in an array declaration is erroneous.
 % For example, \var{Array [1..1.25]} will trigger this error.
-sym_e_type_id_not_defined=E_Type identifier not defined
+sym_e_type_id_not_defined=E_Typ Bezeichner nicht definiert
 % The type identifier has not been defined yet.
-sym_e_forward_type_not_resolved=E_Forward type not resolved $1
+sym_e_forward_type_not_resolved=E_Forward Typ nicht gefunden $1
 % The compiler encountered an unknown type.
-sym_e_only_static_in_static=E_Only static variables can be used in static methods or outside methods
+sym_e_only_static_in_static=E_Nur statische Variablen kînnen in statischen Methoden oder outside Methoden benutzt werden
 % A static method of an object can only access static variables.
-sym_e_invalid_call_tvarsymmangledname=E_Invalid call to tvarsym.mangledname()
+sym_e_invalid_call_tvarsymmangledname=E_UngÅltiger Aufruf von tvarsym.mangledname()
 % An internal error occurred in the compiler; If you encounter such an error,
 % please contact the developers and try to provide  an exact description of
 % the circumstances in which the error occurs.
-sym_f_type_must_be_rec_or_class=F_record or class type expected
+sym_f_type_must_be_rec_or_class=F_Record oder Klassen Typ erwartet
 % The variable or expression isn't of the type \var{record} or \var{class}.
-sym_e_no_instance_of_abstract_object=E_Instances of classes or objects with an abtsract method are not allowed
+sym_e_no_instance_of_abstract_object=E_Instanzen von Klassen oder Objecten mit abtsrakten Methoden sind nicht zulÑssig
 % You are trying to generate an instance of a class which has an abstract
 % method that wasn't overridden.
-sym_w_label_not_defined=W_Label not defined $1
+sym_w_label_not_defined=W_Label nicht Definiert $1
 % A label was declared, but not defined.
-sym_e_ill_label_decl=E_Illegal label declaration
-sym_e_goto_and_label_not_supported=E_GOTO und LABEL are not supported (use command line switch -Sg)
+sym_e_ill_label_decl=E_UngÅltige Label Deklaration
+sym_e_goto_and_label_not_supported=E_GOTO und LABEL werden nicht unterstÅtzt (verwenden Sie den Schalter -Sg)
 % You must compile a program which has \var{label}s and \var{goto} statements
 % with the  \var{-Sg} switch. By default, \var{label} and \var{goto} aren't
 % supported.
-sym_e_label_not_found=E_Label not found
+sym_e_label_not_found=E_Label nicht gefunden
 % A \var{goto label} was encountered, but the label isn't declared.
-sym_e_id_is_no_label_id=E_identifier isn't a label
+sym_e_id_is_no_label_id=E_Bezeichner ist kein Label
 % The identifier specified after the \var{goto} isn't of type label.
-sym_e_label_already_defined=E_label already defined
+sym_e_label_already_defined=E_Label ist bereits definiert
 % You are defining a label twice. You can define a label only once.
-sym_e_ill_type_decl_set=E_illegal type declaration of set elements
+sym_e_ill_type_decl_set=E_UngÅltige Typ Deklaration von Set Elementen
 % The declaration of a set contains an invalid type definition.
-sym_e_class_forward_not_resolved=E_Forward class definition not resolved $1
+sym_e_class_forward_not_resolved=E_Forward Klassen Definition nicht gefunden $1
 % You declared a class, but you didn't implement it.
-sym_h_para_identifier_not_used=H_Parameter not used $1
+sym_h_para_identifier_not_used=H_Parameter nicht benutzt $1
 % This is a warning. The identifier was declared (locally or globally) but
 % wasn't used (locally or globally).
-sym_n_local_identifier_not_used=N_Local variable not used $1
+sym_n_local_identifier_not_used=N_Locale Variable nicht benutzt $1
 % You have declared, but not used a variable in a procedure or function
 % implementation.
-sym_e_set_expected=E_Set type expected
+sym_e_set_expected=E_Set Typ erwartet
 % The variable or expression isn't of type \var{set}. This happens in an
 % \var{in} statement.
-sym_w_function_result_not_set=W_Function result does not seem to be set
+sym_w_function_result_not_set=W_Funktions Ergebnis scheint kein Set zu sein
 % You can get this warning if the compiler thinks that a function return
 % value is not set. This will not be displayed for assembler procedures,
 % or procedures that contain assembler blocks.
-sym_e_illegal_field=E_Unknown record field identifier $1
+sym_e_illegal_field=E_Unbekannter Record Feld Bezeichner $1
 % The field doesn't exist in the record definition.
-sym_n_uninitialized_local_variable=W_Local variable $1 does not seem to be initialized
+sym_n_uninitialized_local_variable=W_Locale Variable $1 scheint nicht initialisiert zu sein
 % This message is displayed if the compiler thinks that a variable will
 % be used (i.e. appears in the right-hand-side of an expression) when it
 % wasn't initialized first (i.e. appeared in the right-hand side of an
 % assigment)
-sym_e_id_no_member=E_identifier idents no member $1
+sym_e_id_no_member=E_Bezeichener verweist nicht auf ein Element $1
 % When using the extended syntax of \var{new}, you must specify the constructor
 % method of the class you are trying to create. The procedure you specified
 % does not exist.
-sym_b_param_list=B_Found declaration: $1
+sym_b_param_list=B_Deklaration gefunden: $1
 % You get this when you use the \var{-vb} switch. In case an overloaded
 % procedure is not found, then all candidate overloaded procedures are
 % listed, with their parameter lists.
@@ -937,47 +937,47 @@ sym_b_param_list=B_Found declaration: $1
 % This section lists all messages that can be displayed if the code
 % generator encounters an error condition.
 % \begin{description}
-cg_e_break_not_allowed=E_BREAK not allowed
+cg_e_break_not_allowed=E_BREAK nicht zulÑssig
 % You're trying to use \var{break} outside a loop construction.
-cg_e_continue_not_allowed=E_CONTINUE not allowed
+cg_e_continue_not_allowed=E_CONTINUE nicht zulÑssig
 % You're trying to use \var{continue} outside a loop construction.
-cg_e_too_complex_expr=E_Expression too complicated - FPU stack overflow
+cg_e_too_complex_expr=E_Ausdruck zu komplex - FPU StackÅberlauf
 % Your expression is too long for the compiler. You should try dividing the
 % construct over multiple assignments.
-cg_e_illegal_expression=E_Illegal expression
+cg_e_illegal_expression=E_UngÅltiger Ausdruck
 % This can occur under many circumstances. Mostly when trying to evaluate
 % constant expressions.
-cg_e_invalid_integer=E_Invalid integer
-% You made an exression which isn't an integer, and the compiler expects the
+cg_e_invalid_integer=E_UngÅltiger Ausdruck, kein Integer
+% You made an expression which isn't an integer, and the compiler expects the
 % result to be an integer.
-cg_e_invalid_qualifier=E_Illegal qualifier
+cg_e_invalid_qualifier=E_UngÅltige Kombination
 % One of the following is happening :
 % \begin{itemize}
 % \item You're trying to access a field of a variable that is not a record.
 % \item You're indexing a variable that is not an array.
 % \item You're dereferencing a variable that is not a pointer.
 % \end{itemize}
-cg_e_upper_lower_than_lower=E_High range limit < low range limit
+cg_e_upper_lower_than_lower=E_Oberes Bereichsende < unteres Bereichsende
 % You are declaring a subrange, and the lower limit is higher than the high
 % limit of the range.
-cg_e_illegal_count_var=E_Illegal counter variable
+cg_e_illegal_count_var=E_UnzulÑssige ZÑhlvariable
 % The type of a \var{for} loop variable must be an ordinal type.
 % Loop variables cannot be reals or strings.
-cg_e_cant_choose_overload_function=E_Can't determine which overloaded function to call
+cg_e_cant_choose_overload_function=E_Kann nicht eindeutig einer bestimmten overload Funktion zuordnen
 % You're calling overloaded functions with a parameter that doesn't correspond
 % to any of the declared function parameter lists. e.g. when you have declared
 % a function with parameters \var{word} and \var{longint}, and then you call
 % it with a parameter which is of type \var{integer}.
-cg_e_parasize_too_big=E_Parameter list size exceeds 65535 bytes
+cg_e_parasize_too_big=E_Grîsse der Parameterliste Åbersteigt 65535 Bytes
 % The I386 processor limits the parameter list to 65535 bytes (the \var{RET}
 % instruction causes this)
-cg_e_illegal_type_conversion=E_Illegal type conversion
+cg_e_illegal_type_conversion=E_UnzulÑssige Typumwandlung
 % When doing a type-cast, you must take care that the sizes of the variable and
 % the destination type are the same.
-cg_e_file_must_call_by_reference=E_File types must be var parameters
+cg_e_file_must_call_by_reference=E_Filetypen mÅssen VAR Parameter sein
 % You cannot specify files as value parameters, i.e. they must always be
 % declared \var{var} parameters.
-cg_e_cant_use_far_pointer_there=E_The use of a far pointer isn't allowed there
+cg_e_cant_use_far_pointer_there=E_Die Verwendung eines FAR Pointers ist in dieser Art nicht erlaubt
 % Free Pascal doesn't support far pointers, so you cannot take the address of
 % an expression which has a far reference as a result. The \var{mem} construct
 % has a far reference as a result, so the following code will produce this
@@ -987,17 +987,17 @@ cg_e_cant_use_far_pointer_there=E_The use of a far pointer isn't allowed there
 % ...
 % p:=@mem[a000:000];
 % \end{verbatim}
-cg_e_var_must_be_reference=E_illegal call by reference parameters
+cg_e_var_must_be_reference=E_UnzulÑssiger "call by reference" Parameter
 % You are trying to pass a constant or an expression to a procedure that
 % requires a \var{var} parameter. Only variables can be passed as a \var{var}
 % parameter.
-cg_e_dont_call_exported_direct=E_EXPORT declared functions can't be called
+cg_e_dont_call_exported_direct=E_Mit EXPORT deklarierte Funktionen kînnen nicht aufgerufen werden
 % No longer in use.
-cg_w_member_cd_call_from_method=W_Possible illegal call of constructor or destructor (doesn't match to this context)
+cg_w_member_cd_call_from_method=W_Mîglicherweise unzulÑssiger Aufruf eines Constructors oder Destructors (passt nicht in diesen Kontext)
 % No longer in use.
-cg_n_inefficient_code=N_Inefficient code
+cg_n_inefficient_code=N_Uneffiziente Programmierung
 % You construction seems dubious to the compiler.
-cg_w_unreachable_code=W_unreachable code
+cg_w_unreachable_code=W_Code wird niemals ausgefÅhrt
 % You specified a loop which will never be executed. Example:
 % \begin{verbatim}
 % while false do
@@ -1005,60 +1005,60 @@ cg_w_unreachable_code=W_unreachable code
 %   {.. code ...}
 %   end;
 % \end{verbatim}
-cg_e_stackframe_with_esp=E_procedure call with stackframe ESP/SP
-% The compiler enocountered a procedure  or function call inside a
+cg_e_stackframe_with_esp=E_Prozedur Aufruf mit Stackframe ESP/SP
+% The compiler enocountered a procedure or function call inside a
 % procedure that uses a \var{ESP/SP} stackframe. Normally, when a call is
 % done the procedure needs a \var{EBP} stackframe.
-cg_e_cant_call_abstract_method=E_Abstract methods can't be called directly
+cg_e_cant_call_abstract_method=E_Abstrakte Methoden kînnen nicht direkt aufgerufen werden
 % You cannot call an abstract method directy, instead you must call a
 % overriding child method, because an abstract method isn't implemented.
-cg_f_internal_error_in_getfloatreg=F_Internal Error in getfloatreg(), allocation failure
+cg_f_internal_error_in_getfloatreg=F_Interner Fehler in getfloatreg(), Allozierungsfehler
 % An internal error occurred in the compiler; If you encounter such an error,
 % please contact the developers and try to provide  an exact description of
 % the circumstances in which the error occurs.
-cg_f_unknown_float_type=F_Unknown float type
+cg_f_unknown_float_type=F_Unbekannter Fliesskomma Typ
 % The compiler cannot determine the kind of float that occurs in an expression.
-cg_f_secondvecn_base_defined_twice=F_SecondVecn() base defined twice
+cg_f_secondvecn_base_defined_twice=F_SecondVecn() Basis wurde zweimal definiert
 % An internal error occurred in the compiler; If you encounter such an error,
 % please contact the developers and try to provide  an exact description of
 % the circumstances in which the error occurs.
-cg_f_extended_cg68k_not_supported=F_Extended cg68k not supported
+cg_f_extended_cg68k_not_supported=F_Extended wird auf der m68k Platform nicht unterstÅtzt
 % The var{extended} type is not supported on the m68k platform.
-cg_f_32bit_not_supported_in_68000=F_32-bit unsigned not supported in MC68000 mode
-% The cardinal is not supported on the m68k platform.
-cg_f_internal_error_in_secondinline=F_Internal Error in secondinline()
+cg_f_32bit_not_supported_in_68000=F_vorzeichenlose 32-bit Typen werden im MC68000 Modus nicht unterstÅzt
+% The cardinal/dword is not supported on the m68k platform.
+cg_f_internal_error_in_secondinline=F_Interner Fehler in secondinline()
 % An internal error occurred in the compiler; If you encounter such an error,
 % please contact the developers and try to provide  an exact description of
 % the circumstances in which the error occurs.
-cg_d_register_weight=D_Register $1 weight $2 $3
+cg_d_register_weight=D_Register $1 Gewichtung $2 $3
 % Debugging message. Shown when the compiler considers a variable for
 % keeping in the registers.
-cg_e_stacklimit_in_local_routine=E_Stack limit excedeed in local routine
+cg_e_stacklimit_in_local_routine=E_Stacklimit in  lokaler Routine Åberschritten
 % Your code requires a too big stack. Some operating systems pose limits
 % on the stack size. You should use less variables or try ro put large
 % variables on the heap.
-cg_d_stackframe_omited=D_Stack frame is omited
+cg_d_stackframe_omited=D_Stackframe wird ausgelassen
 % Some procedure/functions do not need a complete stack-frame, so it is omitted.
 % This message will be displayed when the {-vd} switch is used.
-cg_e_unable_inline_object_methods=E_Unable to inline object methods
+cg_e_unable_inline_object_methods=E_Object Methoden kînnen nicht Inline sein
 % You cannot have inlined object methods.
-cg_e_unable_inline_procvar=E_Unable to inline procvar calls
+cg_e_unable_inline_procvar=E_Procvar Aufrufe kînnen nicht Inline sein
 % A procedure with a procedural variable call cannot be inlined.
-cg_e_no_code_for_inline_stored=E_No code for inline procedure stored
+cg_e_no_code_for_inline_stored=E_Kein Code fÅr Inline Prozedur gespeichert
 % The compiler couldn't store code for the inline procedure.
-cg_e_can_access_element_zero=E_Element zero of an ansi/wide- or longstring can't be accessed, use (set)length instead
+cg_e_can_access_element_zero=E_Auf Element Null von Ansi/Wide- oder Longstring kann nicht zugegriffen werden, benutzen Sie stattdessen (Set)Length
 % You should use \var{setlength} to set the length of an ansi/wide/longstring
 % and \var{length} to get the length of such kinf of string
-cg_e_include_not_implemented=E_Include or exclude not implemented in this case
+cg_e_include_not_implemented=E_Include und Exclude sind fÅr diesen Fall noch nicht implementiert
 % \var{include} and \var{exclude} are only partially
 % implemented for \var{i386} processors
 % and not at all for \var{m68k} processors.
-cg_w_may_wrong_math_argument=W_Probably illegal constant passed to internal math function
+cg_w_may_wrong_math_argument=W_Mîglicherweise unzulÑssige Konstante wurde an interne Algebra-Funktion Åbergeben
 % The constant argument passed to a ln or sqrt function is out of
 % the definition range of these functions, you may get unexpected
 % results when running the program
-cg_e_cannot_call_cons_dest_inside_with=E_Constructors or destructors can not be called inside with here
-cg_e_cannot_call_message_direct=E_Cannot call message handler method directly
+cg_e_cannot_call_cons_dest_inside_with=E_Constructoren und Destruktoren kînnen in diesem Kontext nicht aufgerufen wenrden
+cg_e_cannot_call_message_direct=E_Kann Message Handler Methode nicht direkt aufrufen
 % A message method handler method can't be called directly if it contains an
 % explicit self argument
 % \end{description}
@@ -1066,138 +1066,138 @@ cg_e_cannot_call_message_direct=E_Cannot call message handler method directly
 #
 # Assembler reader/writers
 #
-assem_f_ev_zero_divide=F_Divide by zero in asm evaluator
-assem_f_ev_stack_overflow=F_Evaluator stack overflow
-assem_f_ev_stack_underflow=F_Evaluator stack underflow
-assem_f_ev_invalid_number=F_Invalid numeric format in asm evaluator
-assem_f_ev_invalid_op=F_Invalid Operator in asm evaluator
-assem_f_ev_unknown=F_Unknown error in asm evaluator
-assem_w_invalid_numeric=W_Invalid numeric value
-assem_e_escape_seq_ignored=E_escape sequence ignored: $1
-assem_e_syn_prefix_not_found=E_Asm syntax error - Prefix not found
-assem_e_syn_try_add_more_prefix=E_Asm syntax error - Trying to add more than one prefix
-assem_e_syn_opcode_not_found=E_Asm syntax error - Opcode not found
-assem_e_invalid_symbol_ref=E_Invalid symbol reference
-assem_w_calling_overload_func=W_Calling an overload function in an asm
-assem_e_constant_out_of_bounds=E_Constant value out of bounds
-assem_e_none_label_contain_at=E_Non-label pattern contains @
-assem_e_invalid_operand=E_Invalid Operand: $1
-assem_w_override_op_not_supported=W_Override operator not supported
-assem_e_error_in_binary_const=E_Error in binary constant: $1
-assem_e_error_in_octal_const=E_Error in octal constant: $1
-assem_e_error_in_hex_const=E_Error in hexadecimal constant: $1
-assem_e_error_in_integer_const=E_Error in integer constant: $1
-assem_e_invalid_labeled_opcode=E_Invalid labeled opcode
-assem_f_internal_error_in_findtype=F_Internal error in Findtype()
-assem_e_invalid_size_movzx=E_Invalid size for MOVSX/MOVZX
-assem_e_16bit_base_in_32bit_segment=E_16-bit base in 32-bit segment
-assem_e_16bit_index_in_32bit_segment=E_16-bit index in 32-bit segment
-assem_e_invalid_opcode=E_Invalid Opcode
-assem_e_const_ref_not_allowed=E_Constant reference not allowed
-assem_w_fwait_emu_prob=W_Fwait can cause emulation problems with emu387
-assem_e_invalid_opcode_and_operand=E_Invalid combination of opcode and operands
-assem_e_unsupported_opcode_and_operand=E_Unsupported combination of opcode and operands
-assem_w_opcode_not_in_table=W_Opcode $1 not in table, operands not checked
-assem_f_internal_error_in_concatopcode=F_Internal Error in ConcatOpcode()
-assem_e_invalid_size_in_ref=E_Invalid size in reference
-assem_e_invalid_middle_sized_operand=E_Invalid middle sized operand
-assem_e_invalid_three_operand_opcode=E_Invalid three operand opcode
-assem_e_syntax_error=E_Assembler syntax error
-assem_e_invalid_operand_type=E_Invalid operand type
-assem_e_segment_override_not_supported=E_Segment overrides not supported
-assem_e_invalid_const_symbol=E_Invalid constant symbol $1
-assem_f_error_converting_bin=F_Internal Errror converting binary
-assem_f_error_converting_hex=F_Internal Errror converting hexadecimal
-assem_f_error_converting_octal=F_Internal Errror converting octal
-assem_e_invalid_constant_expression=E_Invalid constant expression
-assem_e_unknown_id=E_Unknown identifier: $1
-assem_e_defining_index_more_than_once=E_Trying to define an index register more than once
-assem_e_invalid_field_specifier=E_Invalid field specifier
-assem_f_internal_error_in_buildscale=F_Internal Error in BuildScaling()
-assem_e_invalid_scaling_factor=E_Invalid scaling factor
-assem_e_invalid_scaling_value=E_Invalid scaling value
-assem_e_scaling_value_only_allowed_with_index=E_Scaling value only allowed with index
-assem_e_syn_no_ref_with_brackets=E_Invalid assembler syntax. No ref with brackets)
-assem_e_expression_form_not_supported=E_Expressions of the form [sreg:reg...] are currently not supported
-assem_e_defining_seg_more_than_once=E_Trying to define a segment register twice
-assem_e_defining_base_more_than_once=E_Trying to define a base register twice
-assem_e_negative_index_register=E_Trying to use a negative index register
-assem_e_syn_reference=E_Asm syntax error - error in reference
-assem_e_local_symbol_not_allowed_as_ref=E_Local symbols not allowed as references
-assem_e_invalid_operand_in_bracket_expression=E_Invalid operand in bracket expression
-assem_e_invalid_symbol_name=E_Invalid symbol name: $1
-assem_e_invalid_reference_syntax=E_Invalid Reference syntax
-assem_e_invalid_string_as_opcode_operand=E_Invalid string as opcode operand: $1
-assem_w_CODE_and_DATA_not_supported=W_@CODE and @DATA not supported
-assem_e_null_label_ref_not_allowed=E_Null label references are not allowed
-assem_w_calling_overloaded=W_Calling of an overloaded function in direct assembler
-assem_e_cannot_use_SELF_outside_a_method=E_Cannot use SELF outside a method
-assem_e_syn_start_with_bracket=E_Asm syntax error - Should start with bracket
-assem_e_syn_register=E_Asm syntax error - register: $1
-assem_e_SEG_and_OFFSET_not_supported=E_SEG and OFFSET not supported
-assem_e_syn_opcode_operand=E_Asm syntax error - in opcode operand
-assem_e_invalid_string_expression=E_Invalid String expression
-assem_e_expression_out_of_bounds=E_Constant expression out of bounds
-assem_f_internal_error_in_buildconstant=F_Internal Error in BuildConstant()
-assem_w_repeat_prefix_and_seg_override=W_A repeat prefix and a segment override on <= i386 may result in errors if an interrupt occurs
-assem_e_invalid_or_missing_opcode=E_Invalid or missing opcode
-assem_e_invalid_prefix_and_opcode=E_Invalid combination of prefix and opcode: $1
-assem_e_invalid_override_and_opcode=E_Invalid combination of override and opcode: $1
-assem_e_too_many_operands=E_Too many operands on line
-assem_e_dup_local_sym=E_Duplicate local symbol: $1
-assem_e_unknown_label_identifer=E_Unknown label identifer: $1
-assem_e_assemble_node_syntax_error=E_Assemble node syntax error
-assem_e_unknown_local_sym=E_Undefined local symbol: $1
-assem_d_start_intel=D_Starting intel styled assembler parsing...
-assem_d_finish_intel=D_Finished intel styled assembler parsing...
-assem_e_not_directive_or_local_symbol=E_Not a directive or local symbol: $1
-assem_e_slash_at_begin_of_line_not_allowed=E_/ at beginning of line not allowed
-assem_e_nor_not_supported=E_NOR not supported
-assem_e_invalid_fpu_register=E_Invalid floating point register name
-assem_w_modulo_not_supported=W_Modulo not supported
-assem_e_invalid_float_const=E_Invalid floating point constant: $1
-assem_e_size_suffix_and_dest_reg_dont_match=E_Size suffix and destination register do not match
-assem_e_size_suffix_and_dest_dont_match=E_Size suffix and destination or source size do not match
-assem_w_size_suffix_and_dest_dont_match=W_Size suffix and destination or source size do not match
-assem_f_internal_error_in_concatlabeledinstr=E_Internal error in ConcatLabeledInstr()
-assem_w_float_bin_ignored=W_Floating point binary representation ignored
-assem_w_float_hex_ignored=W_Floating point hexadecimal representation ignored
-assem_w_float_octal_ignored=W_Floating point octal representation ignored
-assem_e_invalid_real_const=E_Invalid real constant expression
-assem_e_parenthesis_are_not_allowed=E_Parenthesis are not allowed
-assem_e_invalid_reference=E_Invalid Reference
-assem_e_cannot_use___SELF_outside_methode=E_Cannot use __SELF outside a method
-assem_e_cannot_use___OLDEBP_outside_nested_procedure=E_Cannot use __OLDEBP outside a nested procedure
-assem_w_id_supposed_external=W_Identifier $1 supposed external
-assem_e_invalid_seg_override=E_Invalid segment override expression
-assem_e_string_not_allowed_as_const=E_Strings not allowed as constants
-assem_d_start_att=D_Starting AT&T styled assembler parsing...
-assem_d_finish_att=D_Finished AT&T styled assembler parsing...
-assem_e_switching_sections_not_allowed=E_Switching sections is not allowed in an assembler block
-assem_e_invalid_global_def=E_Invalid global definition
-assem_e_line_separator_expected=E_Line separator expected
-assem_w_globl_not_supported=W_globl not supported
-assem_w_align_not_supported=W_align not supported
-assem_w_lcomm_not_supported=W_lcomm not supported
-assem_w_comm_not_supported=W_comm not supported
-assem_e_invalid_lcomm_def=E_Invalid local common definition
-assem_e_invalid_comm_def=E_Invalid global common definition
-assem_e_local_sym_not_found_in_asm_statement=E_local symbol: $1 not found inside asm statement
-assem_e_assembler_code_not_returned_to_text=E_assembler code not returned to text
+assem_f_ev_zero_divide=F_Division durch Null in asm Ausdruck
+assem_f_ev_stack_overflow=F_Ausdruck ergibt StackÅberlauf
+assem_f_ev_stack_underflow=F_Ausdruck ergiby Stackunterlauf
+assem_f_ev_invalid_number=F_UnzulÑssiges Zahlenformat in asm Ausdruck
+assem_f_ev_invalid_op=F_UngÅlitger Operator in asm Ausdruck
+assem_f_ev_unknown=F_Unbekannter Fehler in asm Ausdruck
+assem_w_invalid_numeric=W_UnzulÑssiger Zahlenwert
+assem_e_escape_seq_ignored=E_Escapefolge ignoriert: $1
+assem_e_syn_prefix_not_found=E_Asm Syntaxfehler - Prefix nicht gefunden
+assem_e_syn_try_add_more_prefix=E_Asm Syntaxfehler - Versuch mehr als einen Prefix anzuwenden
+assem_e_syn_opcode_not_found=E_Asm Syntaxfehler - Opcode nicht gefunden
+assem_e_invalid_symbol_ref=E_UngÅlitge Symbol Referenz
+assem_w_calling_overload_func=W_Aufrufe einer overload Funktion in asm
+assem_e_constant_out_of_bounds=E_Konstante ausserhalb der Grenzen
+assem_e_none_label_contain_at=E_Nicht-Label Folge enthaelt @
+assem_e_invalid_operand=E_UngÅlitger Operand: $1
+assem_w_override_op_not_supported=W_Override Operator nicht unterstÅtzt
+assem_e_error_in_binary_const=E_Fehler in BinÑr Konstante: $1
+assem_e_error_in_octal_const=E_Fehler in Oktal Konstante: $1
+assem_e_error_in_hex_const=E_Fehler in Hexadezimal Konstante: $1
+assem_e_error_in_integer_const=E_Fehler in Integer Konstante: $1
+assem_e_invalid_labeled_opcode=E_UngÅltiger belabelter Opcode
+assem_f_internal_error_in_findtype=F_Interner Fehler in Findtype()
+assem_e_invalid_size_movzx=E_UngÅlitige Grîsse fÅr MOVSX/MOVZX
+assem_e_16bit_base_in_32bit_segment=E_16-bit Basis in 32-bit Segment
+assem_e_16bit_index_in_32bit_segment=E_16-bit Index in 32-bit Segment
+assem_e_invalid_opcode=E_UngÅltiger Opcode
+assem_e_const_ref_not_allowed=E_Konstanten Referenz nicht erlaubt
+assem_w_fwait_emu_prob=W_Fwait kann Emulationsprobleme mit emu387 verursachen
+assem_e_invalid_opcode_and_operand=E_UngÅltige Kombination von Opcode und Operanden
+assem_e_unsupported_opcode_and_operand=E_Nicht unterstÅtzte Kombination von Opcode und Operanden
+assem_w_opcode_not_in_table=W_Opcode $1 nicht in Tabelle, Operanden nicht geprÅft
+assem_f_internal_error_in_concatopcode=F_Interner Fehler in ConcatOpcode()
+assem_e_invalid_size_in_ref=E_UngÅltige Grîsse in Referenz
+assem_e_invalid_middle_sized_operand=E_UngÅltiger Operand mittlerer Grîsse
+assem_e_invalid_three_operand_opcode=E_UngÅltiger drei Operanden Opcode
+assem_e_syntax_error=E_Assembler Syntaxfehler
+assem_e_invalid_operand_type=E_UngÅltiger Operandentyp
+assem_e_segment_override_not_supported=E_Segment overrides werden nicht unterstÅtzt
+assem_e_invalid_const_symbol=E_UngÅltiges Konstanten Symbol $1
+assem_f_error_converting_bin=F_Interner Fehler beim Umwandeln einer binÑren Zahl
+assem_f_error_converting_hex=F_Interner Fehler beim Umwandeln einer hexadezimalen Zahl
+assem_f_error_converting_octal=F_Interner Fehler beim Umwandeln einer oktalen Zahl
+assem_e_invalid_constant_expression=E_UngÅltiger Konstanten Ausdruck
+assem_e_unknown_id=E_Unbekannter Bezeichner: $1
+assem_e_defining_index_more_than_once=E_Versuch ein Index Register mehr als einmal zu definieren
+assem_e_invalid_field_specifier=E_UngÅltiger Feldbezeichner
+assem_f_internal_error_in_buildscale=F_Interner Fehlerr in BuildScaling()
+assem_e_invalid_scaling_factor=E_UngÅltiger Skalierungsfaktor
+assem_e_invalid_scaling_value=E_UngÅltiger Skalierungswert
+assem_e_scaling_value_only_allowed_with_index=E_Skalierungswert nur mit Index zulÑssig
+assem_e_syn_no_ref_with_brackets=E_UngÅltige Assembler Syntax, keine Referenz mit Klammern
+assem_e_expression_form_not_supported=E_Ausdruecke der Form [sreg:reg...] werden im Augenblick noch nicht unterstÅtzt
+assem_e_defining_seg_more_than_once=E_Versuch ein Segmentregister zweimal zu definieren
+assem_e_defining_base_more_than_once=E_Versuch ein Basisregister zweimal zu definieren
+assem_e_negative_index_register=E_Versuch ein negatives Indexregister zu verwenden
+assem_e_syn_reference=E_Asm Syntaxfehler - Fehler in Referenz
+assem_e_local_symbol_not_allowed_as_ref=E_Locale Symbole als Referenz nicht zulÑssig
+assem_e_invalid_operand_in_bracket_expression=E_UngÅltiger Operand in geklammertem Ausdruck
+assem_e_invalid_symbol_name=E_UngÅltiger Symbolname: $1
+assem_e_invalid_reference_syntax=E_UngÅltige Referenz Syntax
+assem_e_invalid_string_as_opcode_operand=E_UngÅltiger String als Opcode Operand: $1
+assem_w_CODE_and_DATA_not_supported=W_@CODE und @DATA nicht unterstÅtzt
+assem_e_null_label_ref_not_allowed=E_Bezug auf Null-Label sind nicht zulÑssig
+assem_w_calling_overloaded=W_Aufruf einer overload Funktion im Direkt Modus
+assem_e_cannot_use_SELF_outside_a_method=E_Kann SELF ausserhalb einer Methode nicht verwenden
+assem_e_syn_start_with_bracket=E_Asm Syntaxfehler - sollte mit Klammer beginnen
+assem_e_syn_register=E_Asm Syntaxfehler - Register: $1
+assem_e_SEG_and_OFFSET_not_supported=E_SEG und OFFSET nicht unterstÅtzt
+assem_e_syn_opcode_operand=E_Asm Syntaxfehler - in Opcode Operand
+assem_e_invalid_string_expression=E_UngÅltiger String Ausdruck
+assem_e_expression_out_of_bounds=E_Konstanter Ausdruck ausserhalb Bereich
+assem_f_internal_error_in_buildconstant=F_Interner Fehler in BuildConstant()
+assem_w_repeat_prefix_and_seg_override=W_Ein repeat Prefix und ein Segment Override auf <= i386 kann Fehler verursachen wenn ein Interrupt auftritt
+assem_e_invalid_or_missing_opcode=E_UngÅltiger oder fehlender Opcode
+assem_e_invalid_prefix_and_opcode=E_UngÅltige Kombination von Prefix und Opcode: $1
+assem_e_invalid_override_and_opcode=E_UngÅltige Kombination von Override und Opcode: $1
+assem_e_too_many_operands=E_Zu viele Operanden auf der Zeile
+assem_e_dup_local_sym=E_Doppeltes lokales Symbol: $1
+assem_e_unknown_label_identifer=E_Unbekannter Label Bezeichner: $1
+assem_e_assemble_node_syntax_error=E_Assemble node Syntaxfehler
+assem_e_unknown_local_sym=E_Undefiniertes lokales Symbol: $1
+assem_d_start_intel=D_Starte intel Stil assembler Parsen...
+assem_d_finish_intel=D_Beende intel Stil assembler Parsen...
+assem_e_not_directive_or_local_symbol=E_Keine Direktive oder lokales Symbol: $1
+assem_e_slash_at_begin_of_line_not_allowed=E_/ am Anfang einer Zeile nicht zulÑssig
+assem_e_nor_not_supported=E_NOR nicht unterstÅtzt
+assem_e_invalid_fpu_register=E_UngÅltiger Fliesskomma Registername
+assem_w_modulo_not_supported=W_Modulo nicht unterstÅtzt
+assem_e_invalid_float_const=E_Ungueltige Fliesskomma Konstante: $1
+assem_e_size_suffix_and_dest_reg_dont_match=E_Grîssen Suffix und Zielregister passen nicht zusammen
+assem_e_size_suffix_and_dest_dont_match=E_Grîssen Suffix und Ziel- oder Quellgrîsse passen nicht zusammen
+assem_w_size_suffix_and_dest_dont_match=W_Grîssen Suffix und Ziel- oder Quellgrîsse passen nicht zusammen
+assem_f_internal_error_in_concatlabeledinstr=E_Interner Fehler in ConcatLabeledInstr()
+assem_w_float_bin_ignored=W_Fliesskomma BinÑrangabe ignoriert
+assem_w_float_hex_ignored=W_Fliesskomma Hexadezimalangabe ignoriert
+assem_w_float_octal_ignored=W_Fliesskomma Oktalangabe ignoriert
+assem_e_invalid_real_const=E_UngÅltiger Real Konstanten Ausdruck
+assem_e_parenthesis_are_not_allowed=E_Klammern nicht zulÑssig
+assem_e_invalid_reference=E_UngÅltige Referenz
+assem_e_cannot_use___SELF_outside_methode=E_Kann __SELF ausserhalb einer Methode nicht verwenden
+assem_e_cannot_use___OLDEBP_outside_nested_procedure=E_Kann __OLDEBP ausserhalb einer verschatelten Prozedur nicht verwenden
+assem_w_id_supposed_external=W_Bezeichner $1 vermultich external
+assem_e_invalid_seg_override=E_UngÅltiger Segment override Audruck
+assem_e_string_not_allowed_as_const=E_Strings sind als Konstanten nicht zulÑssig
+assem_d_start_att=D_Starte AT&T Stil assembler Parsien...
+assem_d_finish_att=D_Beende AT&T Stil assembler Parsen...
+assem_e_switching_sections_not_allowed=E_Umschalten von Abschnitten ist einem assembler Block nicht erlaubt
+assem_e_invalid_global_def=E_UngÅltige globale Definition
+assem_e_line_separator_expected=E_Zeilentrenner erwartet
+assem_w_globl_not_supported=W_globl nicht unterstÅtzt
+assem_w_align_not_supported=W_align nicht unterstÅtzt
+assem_w_lcomm_not_supported=W_lcomm nicht unterstÅtzt
+assem_w_comm_not_supported=W_comm nicht unterstÅtzt
+assem_e_invalid_lcomm_def=E_UngÅltige locale Allgemeindefinition
+assem_e_invalid_comm_def=E_UngÅltige globale Allgemeindefinition
+assem_e_local_sym_not_found_in_asm_statement=E_Lokales Symbol: $1 innerhalb asm Block nicht gefunden
+assem_e_assembler_code_not_returned_to_text=E_Assemblercode kehrt nicht zum Text zurÅck
 assem_f_internal_error_in_buildreference=F_internal error in BuildReference()
-assem_e_invalid_opcode_size=E_invalid opcode size
-assem_w_near_ignored=W_NEAR ignored
-assem_w_far_ignored=W_FAR ignored
-assem_d_creating_lookup_tables=D_Creating inline asm lookup tables
-assem_w_using_defined_as_local=E_Using a defined name as a local label
-assem_f_internal_error_in_handleextend=F_internal error in HandleExtend()
-assem_e_invalid_char_smaller=E_Invalid character: <
-assem_e_invalid_char_greater=E_Invalid character: >
-assem_e_unsupported_opcode=E_Unsupported opcode
-assem_e_no_inc_and_dec_together=E_Increment and Decrement mode not allowed together
-assem_e_invalid_reg_list_in_movem=E_Invalid Register list in movem/fmovem
-assem_e_invalid_reg_list_for_opcode=E_Invalid Register list for opcode
-assem_e_68020_mode_required=E_68020+ mode required to assemble
+assem_e_invalid_opcode_size=E_UngÅltige Opcode Grîsse
+assem_w_near_ignored=W_NEAR ignoriert
+assem_w_far_ignored=W_FAR ignoriert
+assem_d_creating_lookup_tables=D_Erzeuge Inline asm lookup Tabellen
+assem_w_using_defined_as_local=E_Benutze einen definierten Namen als Lokales Label
+assem_f_internal_error_in_handleextend=F_Interner Fehler in HandleExtend()
+assem_e_invalid_char_smaller=E_UngÅltiges Zeichen: <
+assem_e_invalid_char_greater=E_UngÅltiges Zeichen: >
+assem_e_unsupported_opcode=E_Nicht unterstÅtzter Opcode
+assem_e_no_inc_and_dec_together=E_Increment und Decrement Modus in Kombination nicht erlaubt
+assem_e_invalid_reg_list_in_movem=E_UngÅltige Registerliste in movem/fmovem
+assem_e_invalid_reg_list_for_opcode=E_UngÅltige Registerliste for opcode
+assem_e_68020_mode_required=E_68020+ Modus zum Assemblieren notwendig
 assem_d_start_motorola=D_Starting Motorola styled assembler parsing...
 assem_d_finish_motorola=D_Finished Motorola styled assembler parsing...
 assem_w_xdef_not_supported=W_XDEF not supported
@@ -1582,5 +1582,3 @@ ol_end=**1h_zeigt diese Hilfe ohne Warten an
 # The End...
 #
 
-
------- =extPart_000_01BE96A2.4C247A80--)
