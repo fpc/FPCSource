@@ -505,14 +505,16 @@ implementation
           { ansi/widestrings must be registered, so we can dispose them }
           if resulttype.def.needs_inittable then
             begin
+              if resultparaloc^.loc<>LOC_REGISTER then
+                internalerror(200409261);
               { the FUNCTION_RESULT_REG is already allocated }
+              if getsupreg(resultparaloc^.register)<first_mm_imreg then
+                cg.ungetcpuregister(exprasmlist,resultparaloc^.register);
               if not assigned(funcretnode) then
                 begin
                   location_reset(location,LOC_REFERENCE,OS_ADDR);
                   location.reference:=refcountedtemp;
-                  { a_load_reg_ref may allocate registers! }
                   cg.a_load_reg_ref(exprasmlist,OS_ADDR,OS_ADDR,NR_FUNCTION_RESULT_REG,location.reference);
-                  cg.ungetcpuregister(exprasmlist,NR_FUNCTION_RESULT_REG);
                 end
               else
                 begin
@@ -552,6 +554,8 @@ implementation
 {$ifdef x86}
                        tcgx86(cg).inc_fpu_stack;
 {$else x86}
+                       if getsupreg(resultparaloc^.register)<first_fpu_imreg then
+                         cg.ungetcpuregister(exprasmlist,resultparaloc^.register);
                        hregister:=cg.getfpuregister(exprasmlist,location.size);
                        cg.a_loadfpu_reg_reg(exprasmlist,location.size,location.register,hregister);
                        location.register:=hregister;
@@ -570,8 +574,12 @@ implementation
                              if retloc.loc<>LOC_REGISTER then
                                internalerror(200409141);
                              { the function result registers are already allocated }
+                             if getsupreg(retloc.registerlow)<first_int_imreg then
+                               cg.ungetcpuregister(exprasmlist,retloc.registerlow);
                              location.registerlow:=cg.getintregister(exprasmlist,OS_32);
                              cg.a_load_reg_reg(exprasmlist,OS_32,OS_32,retloc.registerlow,location.registerlow);
+                             if getsupreg(retloc.registerhigh)<first_int_imreg then
+                               cg.ungetcpuregister(exprasmlist,retloc.registerhigh);
                              location.registerhigh:=cg.getintregister(exprasmlist,OS_32);
                              cg.a_load_reg_reg(exprasmlist,OS_32,OS_32,retloc.registerhigh,location.registerhigh);
                            end
@@ -582,6 +590,8 @@ implementation
                                getregister was done for the full register
                                def_cgsize(resulttype.def) is used here because
                                it could be a constructor call }
+                             if getsupreg(resultparaloc^.register)<first_int_imreg then
+                               cg.ungetcpuregister(exprasmlist,resultparaloc^.register);
                              location.register:=cg.getintregister(exprasmlist,def_cgsize(resulttype.def));
                              cg.a_load_reg_reg(exprasmlist,cgsize,def_cgsize(resulttype.def),resultparaloc^.register,location.register);
                            end;
@@ -596,6 +606,8 @@ implementation
                    LOC_MMREGISTER:
                      begin
                        location_reset(location,LOC_MMREGISTER,cgsize);
+                       if getsupreg(resultparaloc^.register)<first_mm_imreg then
+                         cg.ungetcpuregister(exprasmlist,resultparaloc^.register);
                        location.register:=cg.getmmregister(exprasmlist,cgsize);
                        cg.a_loadmm_reg_reg(exprasmlist,cgsize,cgsize,resultparaloc^.register,location.register,mms_movescalar);
                      end;
@@ -1220,7 +1232,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.175  2004-09-25 14:23:54  peter
+  Revision 1.176  2004-09-27 15:15:20  peter
+    * dealloc function result registers, register allocation is now
+      back at pre-paraloc level
+
+  Revision 1.175  2004/09/25 14:23:54  peter
     * ungetregister is now only used for cpuregisters, renamed to
       ungetcpuregister
     * renamed (get|unget)explicitregister(s) to ..cpuregister
