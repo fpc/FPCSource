@@ -1,685 +1,1525 @@
-%
-%   $Id$
-%   This file is part of the FPC documentation.
-%   Copyright (C) 1997, by Michael Van Canneyt
-%
-%   The FPC documentation is free text; you can redistribute it and/or
-%   modify it under the terms of the GNU Library General Public License as
-%   published by the Free Software Foundation; either version 2 of the
-%   License, or (at your option) any later version.
-%
-%   The FPC Documentation is distributed in the hope that it will be useful,
-%   but WITHOUT ANY WARRANTY; without even the implied warranty of
-%   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-%   Library General Public License for more details.
-%
-%   You should have received a copy of the GNU Library General Public
-%   License along with the FPC documentation; see the file COPYING.LIB.  If not,
-%   write to the Free Software Foundation, Inc., 59 Temple Place - Suite 330,
-%   Boston, MA 02111-1307, USA. 
-%
-\chapter{The GO32 unit.}
-This chapter describes the \var{GO32} unit for Free Pascal under \dos.
-The unit was first written for \dos by Florian kl\"ampfl. 
+\chapter{The GO32 unit}
 
-This chapter is divided in three sections. 
-\begin{itemize}
-\item The first section is an introduction to the GO32 unit.
-\item The second section lists the pre-defined constants, types and variables. 
-\item The third section describes the functions which appear in the
-interface part of the GO32 unit.
-\end{itemize}
-Many function descriptions were made by Thomas Schatzl\footnote{
-E-Mail: \var{tom\_at\_work@geocities.com}}, for which my thanks.
+This chapter of the documentation describe the GO32 unit for the Free Pascal
+compiler under DOS.
+
+This unit was first written for DOS by Florian Klämpfl.
+
+This chapter is divided in three sections. The first section is an
+introduction to the GO32 unit. The second section lists the pre-defined
+constants, types and variables. The third section describes the functions
+which appear in the interface part of the GO32 unit.
+
+A lot of function descriptions were made by Thomas Schatzl, for which my
+thanks.
 
 \section{Introduction}
 
-The GO32 provides an interface to the \dos extender, \dos memory access,
-I/O ports and processor access. Some of this functions work with all modes
-of the extender, other only with DPMI.
+These docs contain information about the GO32 unit. Only the GO32V2 DPMI
+mode is discussed by me here due to the fact that new applications shouldn't
+be created with the older GO32V1 model. The former is much more advanced and
+better. Additionally a lot of functions only work in DPMI mode anyway.
+
+I hope the following explanations and introductions aren't too confusing at
+all. If you notice an error or bug send it to the FPC mailing list or
+directly to me.
+
+So let's get started and happy and error free coding I wish you....
+
+\hfill Thomas Schatzl, 25. August 1998
+
+
+\section{Protected mode memory organization}
+
+\subsection{What is DPMI}
+
+The DOS Protected Mode Interface helps you with various aspects of protected
+mode programming. These are roughly divided into descriptor handling, access
+to DOS memory, management of interrupts and exceptions, calls to real mode
+functions and other stuff. Additionally it automatically provides swapping
+to disk for memory intensive applications.
+
+A DPMI host (either a Windows DOS box or CWSDPMI.EXE) provides these
+functions for your programs.
+
+\subsection{Selectors and descriptors}
+
+Descriptors are a bit like real mode segments; they describe (as the name
+implies) a memory area in protected mode. A descriptor contains information
+about segment length, its base address and the attributes of it (i.e. type,
+access rights, ...).
+
+These descriptors are stored internally in a so-called descriptor table,
+which is basically an array of such descriptors.
+
+Selectors are roughly an index into this table.
+
+Because these 'segments' can be up to 4 GB in size, 32 bits aren't
+sufficient anymore to describe a single memory location like in real mode.
+48 bits are now needed to do this, a 32 bit address and a 16 bit sized
+selector. The GO32 unit provides the tseginfo record to store such a
+pointer.
+
+But due to the fact that most of the time data is stored and accessed in the
+\%ds selector, FPC assumes that all pointers point to a memory location of
+this selector. So a single pointer is still only 32 bits in size. This value
+represents the offset from the data segment base address to this memory
+location.
+
+\subsection{FPC specialities}
+
+The \%ds and \%es selector MUST always contain the same value or some system
+routines may crash when called. The \%fs selector is preloaded with the
+DOSMEMSELECTOR variable at startup, and it MUST be restored after use,
+because again FPC relys on this for some functions. Luckily we asm
+programmers can still use the \%gs selector for our own purposes, but for how
+long ?
+
+See also:
+% tseginfo, dosmemselector, DOS memory access,
+ \seefl{get\_cs}{getcs}, 
+ \seefl{get\_ds}{getds},
+ \seefl{gett\_ss}{getss}, 
+ \seefl{allocate\_ldt\_descriptors}{allocateldtdescriptors},
+ \seefl{free\_ldt\_descriptor}{freeldtdescriptor},
+ \seefl{segment\_to\_descriptor}{segmenttodescriptor},
+ \seefl{get\_next\_selector\_increment\_value}{getnextselectorincrementvalue},
+ \seefl{get\_segment\_base\_address}{getsegmentbaseaddress},
+ \seefl{set\_segment\_base\_address}{setsegmentbaseaddress},
+ \seefl{set\_segment\_limit}{setsegmentlimit},
+ \seefl{create\_code\_segment\_alias\_descriptor}{createcodesegmentaliasdescriptor} 
 
 \subsection{DOS memory access}
 
-The \dos memory access is done by the \var{dosmem}
-functions and it's \textbf {strongly recommended } to use these functions. 
 
-Example:
-\begin{verbatim} 
-function shift_state : byte;
-  
-  begin
-     { $40:$17 contains the current contents of the shift, 
-       alt and strg keys} 
-     dosmemget($40,$17,shift_state,1);
-  end;
-\end{verbatim}
+DOS memory is accessed by the predefined DOSmemselector selector; the GO32
+unit additionally provides some functions to help you with standard tasks,
+like copying memory from heap to DOS memory and the likes. Because of this
+it is strongly recommened to use them, but you are still free to use the
+provided standard memory accessing functions which use 48 bit pointers. The
+third, but only thought for compatibility purposes, is using the
+mem[]-arrays. These arrays map the whole 1 Mb DOS space. They shouldn't be
+used within new programs.
+
+To convert a segment:offset real mode address to a protected mode linear
+address you have to multiply the segment by 16 and add its offset. This
+linear address can be used in combination with the DOSMEMSELECTOR variable.
+
+See also: 
+\seep{dosmemget},
+\seepl{dosmemput}{dosmemput},
+\seepl{dosmemmove}{dosmemmove},
+\seepl{dosmemfillchar}{dosmemfillchar},
+\seepl{dosmemfillword}{dosmemfillword},
+mem[]-arrays, 
+\seepl{seg\_move}{segmove},
+\seepl{seg\_fillchar}{segfillchar},
+\seepl{seg\_fillword}{segfillword}. 
+
 \subsection{I/O port access}
 
-The I/O port access is done by the \var{inport} and \var{outport} functions. 
-It's not necessary to use these functions but it makes life easier. \fpc 
-\textbf {doesn't} support the \var{PORT} array, as under Turbo Pascal. 
+The I/O port access is done via the various \seef{inportb}, \seep{outportb}
+functions
+which are available. Additionally Free Pascal supports the Turbo Pascal
+PORT[]-arrays but it is by no means recommened to use them, because they're
+only for compatibility purposes.
+
+See also: \seep{outportb}, \seef{inportb}, PORT[]-arrays
 
 \subsection{Processor access}
-There are some functions to access the segment registers, which makes
-your work easier. 
+
+These are some functions to access various segment registers (\%cs, \%ds, \%ss)
+which makes your work a bit easier.
+
+See also: \seefl{get\_cs}{getcs}, \seefl{get\_ds}{getds}, 
+\seefl{get\_ss}{getss} 
 
 \subsection{Interrupt redirection}
 
-The \file{GO32} unit helps you to redirect interrupts. \var{SetIntVec}
-and \var{GetIntVec} don't work with \fpc. This is now done via the functions
-\var{set\_pm\_interrupt} and \var{get\_pm\_interrupt}.
+Interrupts are program interruption requests, which in one or another way
+get to the processor; there's a distinction between software and hardware
+interrupts. The former are explicitely called by an 'int' instruction and
+are a bit comparable to normal functions. Hardware interrupts come from
+external devices like the keyboard or mouse. These functions are called
+handlers.
 
-As an example we show how to redirect the interrupt \var{8h}.
-\begin{verbatim} 
-{ the unit CRT _is_ needed because the program doesn't get 
-  an interrupt while DOS is active }
-uses
-   go32,crt;
+\subsection{Handling interrupts with DPMI}
 
-var
-   timer : longint;
-   ds : word;
+The interrupt functions are real-mode procedures; they normally can't be
+called in protected mode without the risk of an protection fault. So the
+DPMI host creates an interrupt descriptor table for the application.
+Initially all software interrupts (except for int 31h, 2Fh and 21h function
+4Ch) or external hardware interrupts are simply directed to a handler that
+reflects the interrupt in real-mode, i.e. the DPMI host's default handlers
+switch the CPU to real-mode, issue the interrupt and switch back to
+protected mode. The contents of general registers and flags are passed to
+the real mode handler and the modified registers and flags are returned to
+the protected mode handler. Segment registers and stack pointer are not
+passed between modes.
 
-procedure s; { interrupt;}
-             { comes with versions > 0.9.2 of FPCPascal }
+\subsection{Protected mode interrupts vs. Real mode interrupts}
 
-  begin
-     asm
-        { save used registers }
-        pushl %eax
-        pushw %ds
-        { load ds }
-        { prefix for cs }
-        .byte 0x2e
-        movw ALAB,%ax
-        movw %ax,%ds
-     end;
-     inc(timer);
-     asm
-        { restore processor state }
-        popw %ds
-        popl %eax
-        leave
-        { call old interrupt }
-        ljmp %cs:OLDINT
-        iret
-        { we need some data in the code segment, }
-        {  since only CS is set in the }
-        { entry point of the procedure }
-     ALAB:
-        .word 0
-        { old vector as 48 bit pointer (16:32) }
-     OLDINT:
-        .long 0
-        .word 0
-     end;
-  end;
+As mentioned before, there's a distinction between real mode interrupts and
+protected mode interrupts; the latter are protected mode programs, while the
+former must be real mode programs. To call a protected mode interrupt
+handler, an assembly 'int' call must be issued, while the other is called
+via the realintr() or intr() function. Consequently, a real mode interrupt
+then must either reside in DOS memory (<1MB) or the application must
+allocate a real mode callback address via the get\_rm\_callback() function.
 
-  var
-     oldint,myint : tseginfo; 
-     i : longint;
+\subsection{Creating own interrupt handlers}
 
-  begin 
-     timer:=0;
-     { save old interrupt }
-     get_pm_interrupt(8,oldint); 
-     ds:=get_ds; 
-     asm 
-        { copy some data to the code segment }
-        movw _DS,%ax
-        movw %ax,ALAB
-        movl _OLDINT,%eax
-        movl %eax,OLDINT
-        movw _OLDINT+4,%ax
-        movw %ax,OLDINT+4
-     end;
-     { new handler }
-     myint.segment:=get_cs;
-     myint.offset:=@s;
-     { install the handler }
-     set_pm_interrupt(8,myint);
-     { do something }
-     for i:=1 to 10000 do
-       writeln(timer);
-     { install the old handler }
-     set_pm_interrupt(8,oldint);
-  end.
-\end{verbatim}
+Interrupt redirection with FPC pascal is done via the set\_pm\_interrupt() for
+protected mode interrupts or via the set\_rm\_interrupt() for real mode
+interrupts.
+
+\subsection{Disabling interrupts}
+
+The GO32 unit provides the two procedures disable() and enable() to disable
+and enable all interrupts.
+
+\subsection{Hardware interrupts}
+
+Hardware interrupts are generated by hardware devices when something unusual
+happens; this could be a keypress or a mouse move or any other action. This
+is done to minimize CPU time, else the CPU would have to check all installed
+hardware for data in a big loop (this method is called 'polling') and this
+would take much time.
+
+A standard IBM-PC has two interrupt controllers, that are responsible for
+these hardware interrupts: both allow up to 8 different interrupt sources
+(IRQs, interrupt requests). The second controller is connected to the first
+through IRQ 2 for compatibility reasons, e.g. if controller 1 gets an IRQ 2,
+he hands the IRQ over to controller 2. Because of this up to 15 different
+hardware interrupt sources can be handled.
+
+IRQ 0 through IRQ 7 are mapped to interrupts 8h to Fh and the second
+controller (IRQ 8 to 15) is mapped to interrupt 70h to 77h.
+
+All of the code and data touched by these handlers MUST be locked (via the
+various locking functions) to avoid page faults at interrupt time. Because
+hardware interrupts are called (as in real mode) with interrupts disabled,
+the handler has to enable them before it returns to normal program
+execution. Additionally a hardware interrupt must send an EOI (end of
+interrupt) command to the responsible controller; this is acomplished by
+sending the value 20h to port 20h (for the first controller) or A0h (for the
+second controller).
+
+The following example shows how to redirect the keyboard interrupt.
+
+\input{go32ex/keyclick.tex}
+
+\subsection{Software interrupts}
+
+Ordinarily, a handler installed with
+\seefl{set\_pm\_interrupt}{setpminterrupt} only services software
+interrupts that are executed in protected mode; real mode software
+interrupts can be redirected by \seefl{set\_rm\_interrupt}{setrminterrupt}.
+
+See also \seefl{set\_rm\_interrupt}{setrminterrupt}, 
+\seefl{get\_rm\_interrupt}{getrminterrupt},
+\seefl{set\_pm\_interrupt}{setpminterrupt},
+\seefl{get\_pm\_interrupt}{getpminterrupt}, 
+\seefl{lock\_data}{lockdata}, 
+\seefl{lock\_code}{lockcode}, 
+\seep{enable}, 
+\seep{disable},
+\seepl{outportb}{outportb} 
+
+The following examples illustrate the use of software interrupts.
+
+\input{go32ex/softint.tex}
+
+\input{go32ex/rmpm_int.tex}
+
+\subsection{Real mode callbacks}
+
+The callback mechanism can be thought of as the converse of calling a real
+mode procedure (i.e. interrupt), which allows your program to pass
+information to a real mode program, or obtain services from it in a manner
+that's transparent to the real mode program.
+
+In order to make a real mode callback available, you must first get the real
+mode callback address of your procedure and the selector and offset of a
+register data structure. This real mode callback address (this is a
+segment:offset address) can be passed to a real mode program via a software
+interrupt, a DOS memory block or any other convenient mechanism.
+
+When the real mode program calls the callback (via a far call), the DPMI
+host saves the registers contents in the supplied register data structure,
+switches into protected mode, and enters the callback routine with the
+following conditions:
+
+\begin{itemize}
+\item interrupts disabled
+\item \var{\%CS:\%EIP} = 48 bit pointer specified in the original call to 
+\seefl{get\_rm\_callback}{getrmcallback}
+\item \var{\%DS:\%ESI} = 48 bit pointer to to real mode \var{SS:SP}
+\item \var{\%ES:\%EDI} = 48 bit pointer of real mode register data
+structure. 
+\item \var{\%SS:\%ESP} = locked protected mode stack
+\item  All other registers undefined
+\end{itemize}
+
+The callback procedure can then extract its parameters from the real mode
+register data structure and/or copy parameters from the real mode stack to
+the protected mode stack. Recall that the segment register fields of the
+real mode register data structure contain segment or paragraph addresses
+that are not valid in protected mode. Far pointers passed in the real mode
+register data structure must be translated to virtual addresses before they
+can be used with a protected mode program.
+
+The callback procedure exits by executing an IRET with the address of the
+real mode register data structure in \var{\%ES:\%EDI}, passing information back to
+the real mode caller by modifying the contents of the real mode register
+data structure and/or manipulating the contents of the real mode stack. The
+callback procedure is responsible for setting the proper address for
+resumption of real mode execution into the real mode register data
+structure; typically, this is accomplished by extracting the return address
+from the real mode stack and placing it into the \var{\%CS:\%EIP} fields of the real
+mode register data structure. After the IRET, the DPMI host switches the CPU
+back into real mode, loads ALL registers with the contents of the real mode
+register data structure, and finally returns control to the real mode
+program.
+
+All variables and code touched by the callback procedure MUST be locked to
+prevent page faults.
+
+See also: \seefl{get\_rm\_callback}{getrmcallback},
+\seefl{free\_rm\_callback}{freermcallback}, 
+\seefl{lock\_code}{lockcode}, 
+\seefl{lock\_data}{lockdata} 
 
 \section{Types, Variables and Constants}
+
 \subsection{Constants}
+
+\subsubsection{Constants returned by get\_run\_mode}
+
+Tells you under what memory environment (e.g. memory manager) the program
+currently runs.
 \begin{verbatim}
-Const
-rm_unknown = 0; 
-rm_raw = 1;  { raw (without HIMEM) } 
-rm_xms = 2;  { XMS (for example with HIMEM, without EMM386) } 
-rm_vcpi = 3; { VCPI (for example HIMEM and EMM386) } 
-rm_dpmi = 4; { DPMI (for example DOS box or 386Max) }
-\end{verbatim}\label{co:rmmode}
-These constants can be returned by the \htmlref{get\_run\_mode}{GetRunMode} function.
-\subsection{Types}
+rm_unknown = 0; { unknown }
+rm_raw     = 1; { raw (without HIMEM) } 
+rm_xms     = 2; { XMS (for example with HIMEM, without EMM386) } 
+rm_vcpi    = 3; { VCPI (for example HIMEM and EMM386) } 
+rm_dpmi    = 4; { DPMI (for example DOS box or 386Max) }
+\end{verbatim}
+
+Note: GO32V2 {\em always} creates DPMI programs, so you need a suitable DPMI
+host like \file{CWSDPMI.EXE} or a Windows DOS box. So you don't need to check it,
+these constants are only useful in GO32V1 mode.
+
+\subsubsection{Processor flags constants}
+
+They are provided for a simple check with the flags identifier in the
+trealregs type. To check a single flag, simply do an AND operation with the
+flag you want to check. It's set if the result is the same as the flag
+value.
+
+\begin{verbatim}
+const carryflag = $001; 
+parityflag      = $004; 
+auxcarryflag    = $010; 
+zeroflag        = $040; 
+signflag        = $080; 
+trapflag        = $100; 
+interruptflag   = $200;
+directionflag   = $400; 
+overflowflag    = $800;
+\end{verbatim}
+
+\subsection{Predefined types}
+
+\begin{verbatim}
+type tmeminfo = record
+            available_memory : Longint; 
+            available_pages : Longint;
+            available_lockable_pages : Longint; 
+            linear_space : Longint;
+            unlocked_pages : Longint; 
+            available_physical_pages : Longint;
+            total_physical_pages : Longint; 
+            free_linear_space : Longint;
+            max_pages_in_paging_file : Longint; 
+            reserved : array[0..2] of Longint;
+   end;
+\end{verbatim}
+Holds information about the memory allocation, etc.
+
+\begin{tabular}{ll}
+Record entry & Description \\ \hline
+\var{available\_memory} & Largest available free block in bytes. \\
+\var{available\_pages} & Maximum unlocked page allocation in pages \\
+\var{available\_lockable\_pages} &  Maximum locked page allocation in pages. \\
+\var{linear\_space} &  Linear address space size in pages. \\
+\var{unlocked\_pages} & Total number of unlocked pages. \\
+\var{available\_physical\_pages} &  Total number of free pages.\\
+\var{total\_physical\_pages} &  Total number of physical pages. \\
+\var{free\_linear\_space} & Free linear address space in pages.\\
+\var{max\_pages\_in\_paging\_file} &  Size of paging file/partition in
+pages. \\
+\end{tabular}
+
+NOTE: The value of a field is -1 (0ffffffffh) if the value is unknown, it's
+only guaranteed, that \var{available\_memory} contains a valid value.
+
+The size of the pages can be determined by the get\_page\_size() function.
+
 \begin{verbatim}
 type 
-   tmeminfo = record 
-      available_memory : longint;
-      available_pages : longint;
-      available_lockable_pages : longint;
-      linear_space : longint;
-      unlocked_pages : longint;
-      available_physical_pages : longint;
-      total_physical_pages : longint;
-      free_linear_space : longint;
-      max_pages_in_paging_file : longint;
-      reserved : array[0..2] of longint;
-   end;
-\end{verbatim}\label{ty:tmeminfo}
-Returns information about the memory allocation etc.
-
-\textbf {NOTE:} The
-value of a field is zero if the value is unknown, it's only guaranteed,
-that \var{available\_memory} contains a valid value.
-\begin{verbatim}
-type
 trealregs = record
-  case integer of
-   1: { 32-bit } (EDI, ESI, EBP, Res, EBX, EDX, ECX, EAX: longint;
-                  Flags, ES, DS, FS, GS, IP, CS, SP, SS: word);
-   2: { 16-bit } (DI, DI2, SI, SI2, BP, BP2, R1, R2: word;
-                  BX, BX2, DX, DX2, CX, CX2, AX, AX2: word);
-   3: { 8-bit }  (stuff: array[1..4] of longint;
-                  BL, BH, BL2, BH2, DL, DH, DL2, DH2,
-                  CL, CH, CL2, CH2, AL, AH, AL2, AH2: byte);
-   4: { Compat } (RealEDI, RealESI, RealEBP, RealRES,
-                  RealEBX, RealEDX, RealECX, RealEAX: longint;
-                  RealFlags,
-                  RealES, RealDS, RealFS, RealGS,
-                  RealIP, RealCS, RealSP, RealSS: word);
-end;
+  case Integer of 
+    1: { 32-bit } 
+      (EDI, ESI, EBP, Res, EBX, EDX, ECX, EAX: Longint; 
+       Flags, ES, DS, FS, GS, IP, CS, SP, SS: Word); 
+    2: { 16-bit } 
+      (DI, DI2, SI, SI2, BP, BP2, R1, R2: Word;
+       BX, BX2, DX, DX2, CX, CX2, AX, AX2: Word);
+    3: { 8-bit } 
+      (stuff: array[1..4] of Longint;
+       BL, BH, BL2, BH2, DL, DH, DL2, DH2, CL,
+       CH, CL2, CH2, AL, AH, AL2, AH2: Byte);
+    4: { Compat } 
+      (RealEDI, RealESI, RealEBP, RealRES, RealEBX, 
+       RealEDX, RealECX, RealEAX: Longint; 
+       RealFlags, RealES, RealDS, RealFS, RealGS, 
+       RealIP, RealCS, RealSP, RealSS: Word);
+    end;
 
-registers = trealregs;
-\end{verbatim}\label{ty:trealregs}
-This data structure is used to pass register values to an real mode
-interrupt handler.
+    registers = trealregs;
+\end{verbatim}
+These two types contain the data structure to pass register values to a
+interrupt handler or real mode callback.
+
 \begin{verbatim}
-type
-   tseginfo = record 
-      offset : pointer;
-      segment : word;
-   end;
-\end{verbatim}\label{ty:tseginfo}
-This record is used to store a 48-bit pointer.
+type tseginfo = record
+             offset : Pointer; segment : Word; end;
+\end{verbatim}
+
+This record is used to store a full 48-bit pointer. This may be either a
+protected mode selector:offset address or in real mode a segment:offset
+address, depending on application.
+
+See also: Selectors and descriptors, DOS memory access, Interrupt
+redirection
+
 \subsection{Variables.}
+
 \begin{verbatim}
-var
-   { puts count bytes from data to ptr(seg:ofs) of the DOS memory }
-   dosmemput : procedure(seg : word;ofs : word;var data;count : longint);
-
-   { gets count bytes from ptr(seg:ofs) of the DOS memory to data }
-   dosmemget : procedure(seg : word;ofs : word;var data;count : longint);
-
-   { moves count bytes from ptr(sseg:sofs) to ptr(dseg:dofs) }
-   dosmemmove : procedure(sseg,sofs,dseg,dofs : word;count : longint);
-
-   { fills count bytes beginning with ptr(seg:ofs) with c }
-   dosmemfillchar : procedure(seg,ofs : word;count : longint;c : char);
-
-   { fills count words beginning with ptr(seg:ofs) with w }
-   { this function is especially used by the CRT unit.   }
-   dosmemfillword : procedure(seg,ofs : word;count : longint;w : word);
+var dosmemselector : Word;
 \end{verbatim}
-These procedure variables give you access to the \dos memory in each mode
-of the \dos extender. It is strongly recommended to use these functions.
 
-The procedural variables are assigned by the startup code of the \var{GO32}
-unit to the correct procedures.
+Selector to the DOS memory. The whole DOS memory is automatically mapped to
+this single descriptor at startup. This selector is the recommened way to
+access DOS memory.
+
 \begin{verbatim}
-var
-   dosmemselector : word;
+  var int31error : Word;
 \end{verbatim}
-Selector to the \dos memory. The whole \dos memory is mapped to a
-single segment. This function will only work in DPMI mode.
+
+This variable holds the result of a DPMI interrupt call. Any nonzero value
+must be treated as a critical failure.
 
 \section{Functions and Procedures}
 
-\functionl{Allocate\_Ldt\_Descriptors}{AllocateLdtDescriptors}{(Count :
-word)}{word}
-{\var{Allocate\_ldt\_descriptors} allocates \var{Count} descriptors in the 
-Local Descriptor Table (LDT).
-The descriptors allocated must be initialized by the application with
-other function calls.
+\functionl{allocate\_ldt\_descriptors}{allocateldtdescriptors}{(count : Word)}{Word}
+{
+Allocates a number of new descriptors.
 
-The function returns a base descriptor with a limit and size value set to 
-zero.
+Parameters: 
+\begin{description}
+\item[count:\ ] specifies the number of requested unique descriptors
+\end{description}
 
-{\em Notes:}
-\begin{itemize}
-\item Only works with real DPMI.
-\item If more than one descriptor was requested, the function returns a base
-selector referencing the first of a contiguous array of descriptors. The
-selector values for subsequent descriptors in the array can be
-calculated by adding the value returned by
-\var{get\_next\_selector\_increment\_value.}
-\end{itemize}
-}{None.}{
-\seep{SetSegmentBaseAddress},
-\seep{SetSegmentLimit},
-\seef{GetLinearAddr},
-\seep{FreeLdtDescriptor},
-\seef{GetNextSelectorIncrementValue}
+Return value: Base selector
+
+Notes: The descriptors allocated must be initialized by the application with
+other function calls. This function returns descriptors with a limit and
+size value set to zero. If more than one descriptor was requested, the
+function returns a base selector referencing the first of a contiguous array
+of descriptors. The selector values for subsequent descriptors in the array
+can be calculated by adding the value returned by the
+get\_next\_selector\_increment\_value() function.
 }
-\begin{FPCList}
-\item[Example]
-\begin{verbatim}
+{
+Check int31error variable
+}
+{
+\seefl{free\_ldt\_descriptor}{freeldtdescriptor},
+\seefl{get\_next\_selector\_increment\_value}{getnextselectorincrementvalue},
+\seefl{segment\_to\_descriptor}{segmenttodescriptor},
+\seefl{create\_code\_segment\_alias\_descriptor}{createcodesegmentaliasdescriptor},
+\seefl{set\_segment\_limit}{setsegmentlimit},
+\seefl{set\_segment\_base\_address}{setsegmentbaseaddress} 
+}
 
-uses go32;
+\input{go32ex/sel_des.tex}
 
-var VGAsel : word;
-    r : trealregs;
+\functionl{free\_ldt\_descriptor}{freeldtdescriptor}{(des : Word)}{boolean}
+{
+Frees a previously allocated descriptor.
 
-begin
-  {...}
-  r.realeax := $13; realintr($10, r); 
-  { set VGA mode }
-  {...}
-  VGAsel := allocate_ldt_descriptors(1); 
-  { allocate one descriptor to the VGA }
-  set_segment_base_address(VGAsel, 
-                           get_linear_addr($A0000,$FFFF)); 
+Parameters:
+\begin{description}
+\item[des:\ ] The descriptor to be freed
+\end{description}
 
-  { set the base address to the VGA }
-  set_segment_limit(VGAsel, $FFFF); 
-  { set the limit of the descriptor }
-  {...}
-  seg_fillchar(VGAsel, 100*320+100, 1, #15);
+Return value: True if successful, false otherwise.
+
+Notes: After this call this selector is invalid and must not be used for any
+memory operations anymore. Each descriptor allocated with
+allocate\_ltd\_descriptor() must be freed individually with this function,
+even if it was previously allocated as a part of a contiguous array of
+descriptors.
+}{
+Check int31error variable}{
+\seefl{allocate\_ldt\_descriptors}{allocateldtdescriptors},
+\seefl{get\_next\_selector\_increment\_value}{getnextselectorincrementvalue} 
+}
+
+For an example, see 
+\seefl{allocate\_ldt\_descriptors}{allocateldtdescriptors}.
 
 
-  { put a pixel at (6/100) in color 15 }
-  readln;
-  {...}
-  free_ldt_descriptor(VGAsel);
+\functionl{segment\_to\_descriptor}{segmenttodescriptor}{(seg : Word)}{Word}
+{
+Maps a real mode segment (paragraph) address onto an descriptor that can be
+used by a protected mode program to access the same memory.
 
-  r.realeax := $3; realintr($10, r); 
-  { set textmode again }
-  {...}
-end.
-\end{verbatim}
-\end{FPCList}
+Parameters: 
+\begin{description}
+\item [seg:\ ] the real mode segment you want the descriptor to
+\end{description}
 
-\functionl{Create\_Code\_Segment\_Alias\_Descriptor}
-{CreateCodeSegmentAliasDescriptor}{(Des : Word)}{Word}
-{\var{Create\_Code\_Segment\_Alias\_Descriptor}
-Creates a new descriptor that has the same base and limit as the
-specified descriptor.  In effect, the function returns a copy of the
+Return values: Descriptor to real mode segment address.
+
+Notes: The returned descriptors limit will be set to 64 kB. Multiple calls
+to this function with the same segment address will return the same
+selector. Descriptors created by this function can never be modified or
+freed. Programs which need to examine various real mode addresses using the
+same selector should use the function allocate\_ldt\_descriptors() and change
+the base address as necessary.
+}{
+Check int31error variable.
+}
+{\seefl{allocate\_ldt\_descriptors}{allocateldtdescriptors},
+\seefl{free\_ldt\_descriptor}{freeldtdescriptor},
+\seefl{set\_segment\_base\_address}{setsegmentbaseaddress} 
+}
+
+For an example, see \seepl{seg\_fillchar}{segfillchar}.
+
+\Functionl{get\_next\_selector\_increment\_value}
+{getnextselectorincrementvalue}{Word}
+{
+Returns the selector increment value when allocating multiple subsequent
+descriptors via \seefl{allocate\_ldt\_descriptors}{allocateldtdescriptors} .
+
+Parameters: none
+
+Return value: Selector increment value
+
+Notes: Because \seefl{allocate\_ldt\_descriptors}{allocateldtdescriptors} only returns the selector for the
+first descriptor and so the value returned by this function can be used to
+calculate the selectors for subsequent descriptors in the array.
+}
+{
+Check int31error variable
+}
+{
+\seefl{allocate\_ldt\_descriptors}{allocateldtdescriptors}, 
+\seefl{free\_ldt\_descriptor}{freeldtdescriptor} 
+}
+
+\functionl{get\_segment\_base\_address}{getsegmentbaseaddress}{ 
+(d : Word)}{Longint}{
+
+Returns the 32-bit linear base address from the descriptor table for the
+specified segment.
+
+Parameters: 
+\begin{description}
+\item[d:\ ] selector of the descriptor you want the base address
+\end{description}
+
+Return values: Linear base address of specified descriptor
+}
+{
+Check int31error variable.
+}
+{
+\seefl{allocate\_ldt\_descriptors}{allocateldtdescriptors},
+\seefl{set\_segment\_base\_address}{setsegmentbaseaddress}, 
+\seefl{allocate\_ldt\_descriptors}{allocateldtdescriptors},
+\seefl{set\_segment\_limit}{setsegmentlimit},
+\seefl{get\_segment\_limit}{getsegmentlimit} 
+}
+
+For an example, see 
+\seefl{allocate\_ldt\_descriptors}{allocateldtdescriptors}.
+
+\functionl{set\_segment\_base\_address}{setsegmentbaseaddress}
+{(d : Word; s : Longint)}{boolean}{
+
+Sets the 32-bit linear base address of a descriptor.
+
+Parameters: 
+\begin{description}
+\item[d:\ ] selector s - new base address of the descriptor
+\end{description}
+}
+{ Check int31error variable}
+{
+\seefl{allocate\_ldt\_descriptors}{allocateldtdescriptors},
+\seefl{get\_segment\_base\_address}{getsegmentbaseaddress}, 
+\seefl{allocate\_ldt\_descriptors}{allocateldtdescriptors}, 
+\seefl{set\_segment\_limit}{setsegmentlimit},
+\seefl{get\_segment\_base\_address}{getsegmentbaseaddress},
+\seefl{get\_segment\_limit}{getsegmentlimit} 
+}
+
+
+For an example, see 
+\seefl{allocate\_ldt\_descriptors}{allocateldtdescriptors}.
+
+\functionl{get\_segment\_limit}{getsegmentlimit}{(d : Word)}{Longint}{
+
+Returns a descriptors segment limit
+
+Parameters:
+\begin{description}
+\item [d:\ ] selector
+\end{description}
+
+Return value: Limit of the descriptor in bytes
+}{
+Returns zero if descriptor is invalid
+}
+{\seefl{allocate\_ldt\_descriptors}{allocateldtdescriptors},
+\seefl{set\_segment\_limit}{setsegmentlimit}, 
+\seefl{set\_segment\_base\_address}{setsegmentbaseaddress},
+\seefl{get\_segment\_base\_address}{getsegmentbaseaddress}, 
+}
+
+
+For an example, see 
+\seefl{allocate\_ldt\_descriptors}{allocateldtdescriptors}.
+
+\functionl{set\_segment\_limit}{setsegmentlimit}{(d : Word; s : Longint)}{boolean}
+{
+Sets the limit of a descriptor.
+
+Parameters: 
+\begin{description}
+\item[d:\ ] selector s - new limit of the descriptor
+\end{description}
+
+Return values: Returns true if successful, else false.
+
+Notes: The new limit specified must be the byte length of the segment - 1.
+Segment limits bigger than or equal to 1MB must be page aligned, they must
+have the lower 12 bits set.
+}
+{
+Check int31error variable
+}
+{\seefl{allocate\_ldt\_descriptors}{allocateldtdescriptors},
+\seefl{set\_segment\_base\_address}{setsegmentbaseaddress},
+\seefl{get\_segment\_limit}{getsegmentlimit}, 
+\seefl{set\_segment\_limit}{setsegmentlimit} 
+}
+
+For an example, see 
+\seefl{allocate\_ldt\_descriptors}{allocateldtdescriptors}.
+
+\functionl{set\_descriptor\_access\_rights}{setdescriptoraccessrights}
+{(d : Word; w : Word)}{Longint}
+{
+Sets the access rights of a descriptor
+
+Parameters: 
+\begin{description}
+\item[d:\ ] selector w - new descriptor access rights
+\end{description}
+
+Return values: This function doesn't return anything useful.
+}
+{ Check int31error variable}
+{
+\seefl{get\_descriptor\_access\_rights}{getdescriptoraccessrights} }
+
+\functionl{get\_descriptor\_access\_rights}{getdescriptoraccessrights}
+{(d : Word)}{Longint}
+{
+Gets the access rights of a descriptor
+
+Parameters: 
+\begin{description}
+\item{d} selector to descriptor
+\end{description}
+}{
+Return value: Access rights bit field
+}
+{Check int31error variable}{ 
+\seefl{set\_descriptor\_access\_rights}{setdescriptoraccessrights}}
+
+\functionl{create\_code\_segment\_alias\_descriptor}
+{createcodesegmentaliasdescriptor}{(seg : Word)}{Word}
+{
+Creates a new descriptor that has the same base and limit as the specified
 descriptor.
 
-{\em Notes:}
-\begin{itemize}
-\item Only works under real DPMI.
-\item The descriptor alias returned by this function will not track changes
-to the original descriptor. In other words, if an alias is created with
-this function, and the base or limit of the original segment is then
-changed, the two descriptors will no longer map the same memory.
-\end{itemize}
+Parameters: 
+\begin{description}
+\item[seg:\ ] selector
+\end{description}
+
+Return values: Data selector (alias)
+
+Notes: In effect, the function returns a copy of the descriptor. The
+descriptor alias returned by this function will not track changes to the
+original descriptor. In other words, if an alias is created with this
+function, and the base or limit of the original segment is then changed, the
+two descriptors will no longer map the same memory.
 }
-{None.}
-{}
-\begin{FPCList}
-\item[Example]
-\begin{verbatim}
-uses go32;
+{ Check int31error variable}
+{ 
+\seefl{allocate\_ldt\_descriptors}{allocateldtdescriptors},
+\seefl{set\_segment\_limit}{setsegmentlimit}, 
+\seefl{set\_segment\_base\_address}{setsegmentbaseaddress} }
 
-var copysel : word;
+\functionl{get\_meminfo}{getmeminfo}
+{(var meminfo : tmeminfo)}
+{boolean}{
 
-begin
-     copysel := create_code_segment_alias_descriptor(get_ds);
-     {...}
-     free_ldt_descriptor(copysel);
-end.
-\end{verbatim}
-\end{FPCList}
+Returns information about the amount of available physical memory, linear
+address space, and disk space for page swapping.
 
+Parameters:
+\begin{description}
+\item[meminfo:\ ] buffer to fill memory information into
+\end{description}
 
-\procedure {Disable}{}{
-Clears the interrupt flag with CLD and disables the interrupts.
+Return values: Due to an implementation bug this function always returns
+false, but it always succeeds.
+
+Notes: Only the first field of the returned structure is guaranteed to
+contain a valid value. Any fields that are not supported by the DPMI host
+will be set by the host to -1 (0FFFFFFFFH) to indicate that the information
+is not available. The size of the pages used by the DPMI host can be
+obtained with the \seefl{get\_page\_size}{getpagesize}  function.
 }
-{None.}{\seep{Enable}}
-\par {\bf NOTE: }This
-function works only in DPMI mode\par 
+{Check the int31error variable}
+{\seefl{get\_page\_size}{getpagesize} }
 
-\procedure{Enable}{}{
-Sets the interrupt flag with STI and allows the processor to handle
-interrupts.
-}{None.}{\seep{Disable}}
+\input{go32ex/meminfo.tex}
 
-\procedurel{Free\_Ldt\_Descriptor}{FreeLdtDescriptor}{(Sel : word)}
+\functionl{allocate\_memory\_block}{allocatememoryblock}
+{(size:Longint)}{Longint}{
+
+Allocates a block of linear memory.
+
+Parameters: 
+\begin{description}
+\item[size:\ ] Size of requested linear memory block in bytes
+\end{description}
+
+Returned values: blockhandle - the memory handle to this memory block Linear
+?? address of
+the requested memory.
+
+Notes: WARNING: According to my DPMI docs this function is not implemented
+correctly. Normally you should also get a blockhandle to this block after
+successful operation. This handle is used to free the memory block
+afterwards or use this handle for other purposes. So this block can't be
+deallocated and is henceforth unusuable !
+
+This function doesn't allocate any descriptors for this block, it's the
+applications resposibility to allocate and initialize for accessing this
+memory.
+}{ Check int31error variable}{
+\seefl{free\_memory\_block}{freememoryblock} }
+
+\functionl{free\_memory\_block}{freememoryblock}{(blockhandle :
+Longint)}{boolean}{
+
+Frees a previously allocated memory block
+
+Parameters: 
+\begin{description}
+\item{blockhandle:} the handle to the memory area to free
+\end{description}
+
+Return value: True if successful, false otherwise.
+
+Notes: Frees memory that was previously allocated with
+\seefl{allocate\_memory\_block}{allocatememoryblock} . This function doesn't free any descriptors mapped
+to this block, it's the application's responsibility.
+}
+{ Check int31error variable}
+{\seefl{allocate\_memory\_block}{allocatememoryblock} }
+
+%\functionl{request\_linear\_region}{requestlinearregion}
+%{(linearaddr, size : Longint; var blockhandle : Longint)}{boolean}
+%{
+%DOESN'T WORK AT ALL, AND WON'T IN THE FUTURE BECAUSE IT IS A DPMI 1.0
+%FUNCTION !!!!!!! (a good reason to skip this description)
+%
+%\functionl{map\_device\_in\_memory\_block}{mapdeviceinmemoryblock}{(handle, offset, pagecount, device :}
+%Longint) : boolean;
+%
+%!!!!!! DOESN'T WORK AT ALL, AND WON'T IN THE FUTURE BECAUSE IT IS A DPMI 1.0
+%!!!!!! FUNCTION !!!!!!! (a good reason to skip this description)
+
+\functionl{get\_linear\_addr}{getlinearaddr}
+{(phys\_addr : Longint; size : Longint)}{Longint}
 {
-\var{Free\_Ldt\_Descriptor} frees a previously allocated selector
-with descriptor \var{Sel}
+Converts a physical address into a linear address.
 
-{\em Notes:}
-\begin{itemize}
-\item Only works with real DPMI.
-\item After this call this selector is invalid and must not be used for any
-memory operations anymore.
-\item Each descriptor allocated with \var{allocate\_ltd\_descriptor} must be 
-freed
-individually with this function, even if it was previously allocated as
-a part of a contiguous array of descriptors.
-\end{itemize}
+Parameters: 
+\begin{description}
+\item [phys\_addr:\ ] - physical address of device size - size of region to
+map in bytes
+\end{description}
+
+Return value: Linear address that can be used to access the physical memory.
+
+Notes: It's the applications resposibility to allocate and set up a
+descriptor for access to the memory. This function shouldn't be used to map
+real mode addresses.
 }
-{None.}
-{\seef{AllocateLdtDescriptors}}
+{ Check int31error variable.}
+{ 
+\seefl{allocate\_ldt\_descriptors}{allocateldtdescriptors}, \seefl{set\_segment\_limit}{setsegmentlimit},
+\seefl{set\_segment\_base\_address}{setsegmentbaseaddress} }
 
-For an example, see \seef{AllocateLdtDescriptors}.
-
-
-\functionl{get\_cs}{GetCs}{}{word}{Returns the value of the CS
-register.}{None.}{\seef{GetDs},\seef{GetSs}}
-
-\functionl{Get\_Descriptor\_Access\_right}{GetDescriptorAccesRight}{(Des: word)}{Longint}
-{\var{Get\_Descriptor\_Access\_right} gets the access rights of a
-descriptor \var{Des}.}
-{None.}{seef{SetDescriptorAccesRight}}
-
-\functionl{get\_ds}{GetDs}{}{word}{Returns the value of the DS
-register.}{None.}{\seef{GetCs},\seef{GetSs}}
-
-\functionl{Get\_Linear\_Addr}{GetLinearAddr}{(PhysAddr : longint;Size : longint)}{longint}
-{\var{Get\_Linear\_Addr} converts a physical address \var{PhysAddr} into 
-a linear address.
-
-{\em Notes:}
-\begin{itemize}
-\item Only works under real DPMI.
-\end{itemize}
-}{None.}{}
-
-For an example, see \seef{AllocateLdtDescriptors}.
-
-\procedurel{get\_meminfo}{GetMeminfo}{(var meminfo : tmeminfo)}{
-Returns the current state of memory allocation of the \dos extender.
-
-\textbf{NOTE: }This procedure has nothing to do with the Pascal function 
-\var{maxavail} and \var{memavail}.}{None.} 
-{\htmlref{tmeminfo}{ty:tmeminfo}} 
-
-\Functionl{Get\_Next\_Selector\_Increment\_Value}
-{GetNextSelectorIncrementValue}{word}
-{\var{Get\_Next\_Selector\_Increment\_Value} returns the selector increment 
-value when allocating multiple subsequent descriptors
-
-The function \var{allocate\_ldt\_descriptors} can allocate an array of
-contiguous descriptors, but only return the selector for the first. The
-value returned by this function can be used to calculate the selectors
-for subsequent descriptors in the array.
-
-{\em Notes:}
-\begin{itemize}
-\item Only works under real DPMI.
-\item the increment is always a power of 2.
-\end{itemize}
-}
-{None.}
-{\seef{AllocateLdtDescriptors}}
-
-
-\procedurel{get\_pm\_interrupt}{GetPmInterrupt}{(vector : byte;var intaddr : tseginfo)}
+\functionl{global\_dos\_alloc}{globaldosalloc}
+{(bytes : Longint)}{Longint}
 {
-Returns the address of the current protected mode handler for the interrupt
-\var{vector}.}{None.}
-{\seep{SetPmInterrupt},\htmlref{tseginfo}{ty:tseginfo}}
+Allocates a block of DOS real mode memory
 
+Parameters: 
+\begin{description}
+\item [bytes:\ ] size of requested real mode memory
+\end{description}
 
+Return values: The high word of the returned value contains the selector to
+the allocated DOS memory block, the low word the corresponding real mode
+segment value. The offset value is always zero.
 
-\functionl{get\_run\_mode}{GetRunMode}{}{word}{
-This function returns the mode which the extender is currently running. 
-The function is mostly used to determine if DPMI is supported. 
+This function allocates memory from DOS memory pool, i.e. memory below the 1
+MB boundary that is controlled by DOS. Such memory blocks are typically used
+to exchange data with real mode programs, TSRs, or device drivers. The
+function returns both the real mode segment base address of the block and
+one descriptor that can be used by protected mode applications to access the
+block. This function should only used for temporary buffers to get real mode
+information (e.g. interrupts that need a data structure in ES:(E)DI),
+because every single block needs an unique selector. The returned selector
+should only be freed by a \seefl{global\_dos\_free}{globaldosfree}  call.
+}{ Check int31error variable}
+{ \seefl{global\_dos\_free}{globaldosfree} }
 
+\input{go32ex/buffer.tex}
 
-}{None.}
-{\htmlref{rm}{co:rmmode}}
-Example :
-\begin{verbatim}
-uses
-   go32;
+\functionl{global\_dos\_free}{globaldosfree}{(selector :
+Word)}{boolean}{
 
-begin
-   if get_run_mode=rm_dpmi then
-     writeln('DPMI available')
-   else
-     writeln('No DPMI available');
-end.
-\end{verbatim}
+Frees a previously allocated DOS memory block
 
-\functionl{Get\_Segment\_Base\_Address}{GetSegmentBaseAddress}{(Sel: word)}{Longint}
+Parameters:
+\begin{description}
+\item[selector:\ ] selector to the DOS memory block
+\end{description}
+
+Return value: True if successful, false otherwise
+
+Notes: The descriptor allocated for the memory block is automatically freed
+and hence invalid for further use. This function should only be used for
+memory allocated by \seefl{global\_dos\_alloc}{globaldosalloc} .
+}
+{ Check int31error variable}
+{\seefl{global\_dos\_alloc}{globaldosalloc} }
+
+For an example, see \seefl{global\_dos\_alloc}{globaldosalloc}.
+
+\procedure{dosmemput}{(seg : Word; ofs : Word; var data; count : Longint)}{
+
+Copies heap data to DOS real mode memory.
+
+Parameters:
+\begin{description}
+\item[seg:\ ] destination real mode segment 
+\item[ofs:\ ] destination real mode offset 
+\item[data:\ ] source 
+\item[count:\ ] number of bytes to copy
+\end{description}
+
+Return value: none
+
+Notes: No range checking is performed.
+}{ none }
+{\seep{dosmemget}, 
+\seep{dosmemmove},
+\seep{dosmemfillchar},
+\seep{dosmemfillword},
+\seepl{seg\_move}{segmove},
+\seepl{seg\_fillchar}{segfillchar},
+\seepl{seg\_fillword}{segfillword} }
+
+For an example, see \seefl{global\_dos\_alloc}{globaldosalloc}.
+
+\procedure{dosmemget}{(seg : Word; ofs : Word; var data; count : Longint)}{
+
+Copies data from the DOS memory onto the heap.
+
+Parameters:
+\begin{description}
+\item[seg:\ ] source real mode segment 
+\item[ofs:\ ] source real mode offset
+\item[data:\ ] destination 
+\item[count:\ ] number of bytes to copy
+\end{description}
+
+Notes: No range checking is performed.
+}{ none }
 {
-\var{Get\_Segment\_Base\_Address} returns the 32-bit linear base address 
-from the LDT descriptor for the specified segment (\var{Sel}).
+\seep{dosmemput},
+\seep{dosmemmove},
+\seep{dosmemfillchar},
+\seep{dosmemfillword},
+\seepl{seg\_move}{segmove},
+\seepl{seg\_fillchar}{segfillchar}, 
+\seepl{seg\_fillword}{segfillword}  }
 
+For an example, see \seefl{global\_dos\_alloc}{globaldosalloc}.
 
-{\em Notes:}
-\begin{itemize}
-\item Only works under real DPMI.
-\end{itemize}
+\procedure{dosmemmove}{(sseg, sofs, dseg, dofs : Word; count : Longint)}
+{
+Copies count bytes of data between two DOS real mode memory locations.
+
+Parameters:
+\begin{description}
+\item[sseg:\ ] source real mode segment 
+\item[sofs:\ ] source real mode offset
+\item[dseg:\ ] destination real mode segment 
+\item[dofs:\ ] destination real mode offset
+\item[count:\ ] number of bytes to copy
+\end{description}
+
+Return values: none
+
+Notes: No range check is performed in any way.
 }
-{None.}
-{\seep{SetSegmentBaseAddress}}
+{ none}
+{ 
+\seep{dosmemput}, 
+\seep{dosmemget},
+\seep{dosmemfillchar}, 
+\seep{dosmemfillword}
+\seepl{seg\_move}{segmove}, 
+\seepl{seg\_fillchar}{segfillchar},
+\seepl{seg\_fillword}{segfillword} }
 
-\begin{FPCList}
-\item[Example:]
-\begin{verbatim}
-uses go32;
+For an example, see \seepl{seg\_fillchar}{segfillchar}.
 
-begin
-     Writeln(get_segment_base_address(get_ds));
-end.
-\end{verbatim}
-\end{FPCList}
 
-\functionl{get\_ss}{GetSs}{word}{Returns the value of the SS
-register.}{None.}{\seef{GetDs},\seef{GetCs}}
+\procedure{dosmemfillchar}{(seg, ofs : Word; count : Longint; c : char)}{
 
-\functionl{Global\_Dos\_Alloc}{GlobalDosAlloc}{(Len : longint)}{longint}
-{\var{Global\_Dos\_Alloc}
-allocates a block of memory with length \var{Len} from the \dos memory pool, 
-i.e. memory below the 1 MB boundary that is controlled by \dos. 
-Such memory blocks are typically used to exchange data with real mode 
-programs, TSRs, or device drivers. 
+Sets a region of DOS memory to a specific byte value
 
-The function returns both the real mode segment base address of
-the block and one or more descriptors that can be used by protected mode
-applications to access the block.
-The high word is the selector to this block, and the low word the
-\dos real mode segment. The offset of this block is always zero.
+Parameters:
+\begin{description}
+\item[seg:\ ] real mode segment 
+\item[ofs:\ ] real mode offset 
+\item[count:\ ] number of bytes to set 
+\item[c:\ ] value to set memory to
+\end{description}
 
-{\em Notes:}
-\begin{itemize}
-\item Should only used for temporary buffers to get real mode information
-(e.g. interrupts that need a data structure in ES:DI), because every
-single block needs an unique selector.
-\end{itemize}
-}{None.}{\seep{GlobalDosFree}}
+Return values: none
 
-\begin{FPCList}
-\item[Example]
-\begin{verbatim}
-uses go32;
-
-procedure dosalloc (var selector : word; 
-                    var segment : word; 
-                    size : longint);
-var result : longint;
-
-begin
-     result := global_dos_alloc(size);
-     selector := word(result);
-     segment := word(result shr 16);
-end;
-
-procedure dosfree(selector : word);
-begin
-     global_dos_free(selector);
-end;
-
-var selector : word;
-    segment : word;
-    r : trealregs;
-
-begin
-     fillchar(r, sizeof(r), 0);
-     fillchar(any_record, sizeof(any_record), 0);
-     dosalloc(selector, segment, sizeof(VBE_vgainfo)); 
-     { allocate a real mode memory block }
-     any_record.any_entry := 1000;
-     dosmemput(segment, 0, any_record, sizeof(any_record)); 
-     { copy the record to real mode memory } 
-     r.realeax := $0000; 
-     r.reales := segment; r.realedi := 0;
-     realintr(IntNr, r);  { do our interrupt }
-     dosmemget(segment, 0, any_record, sizeof(any_record)); 
-     { get the record from real mode memory }
-     dosfree(selector); { free selector afterwards }
-end.
-\end{verbatim}
-\end{FPCList}
-
-\procedurel{Global\_Dos\_Free}{GlobalDosFree}{(Sel : word)}
-{var{Global\_Dos\_Free} frees a previously allocated \dos memory 
-block, described by selector \var{Sel}.
+Notes: No range check is performed.
 }
-{None.}
-{\seef{GlobalDosAlloc}}
+{ none
+}{ 
+\seep{dosmemput},
+\seep{dosmemget}, 
+\seep{dosmemmove}{dosmemmove}, 
+\seepl{dosmemfillword}{dosmemfillword}, 
+\seepl{seg\_move}{segmove},
+\seepl{seg\_fillchar}{segfillchar},
+\seepl{seg\_fillword}{segfillword} }
 
-For an example, see \seef{GlobalDosAlloc}.
+\input{go32ex/textmess.tex}
 
-\function{inportb}{(port : word)}{byte}{Reads a byte from the given I/O
-port.}{None.}{\seep{outportb},\seef{inportw},\seef{inportl}}
+\procedure{dosmemfillword}{(seg,ofs : Word; count : Longint; w : Word)}
+{
+Sets a region of DOS memory to a specific word value
 
-\function{inportl}{(port : word)}{longint}{Reads a longint from the given I/O
-port.}{None.}{\seep{outportl},\seef{inportw},\seef{inportb}}
+Parameters: 
+\begin{description}
+\item[seg:\ ] real mode segment 
+\item[ofs:\ ] real mode offset 
+\item[count:\ ] number of words to set 
+\item[w:\ ] value to set memory to
+\end{description}
 
-\function{inportw}{(port : word)}{word}{Reads a word from the given I/O
-port.}{None.}{\seep{outportw},\seef{inportb},\seef{inportl}}
+Return values: none
 
-\procedure{outportb}{(port : word;data : byte)}{Writes a byte to the
-specified port.}{None.}{\seef{inportb},\seep{outportw},\seep{outportl}}
-
-\procedure{outportl}{(port : word;data : longint)}{Writes a longint to the
-specified port.}{None.}{\seef{inportl},\seep{outportb},\seep{outportw}}
-
-\procedure{outportw}{(port : word;data : word)}{Writes a word to the
-specified port.}{None.}{\seef{inportw},\seep{outportb},\seep{outportl}}
-
-\procedure{realintr}{(intnr : word;var regs : trealregs)}{
-\textbf {NOTE: }This procedure works only in DPMI mode.} 
-{None.}{}
-
-\procedurel{seg\_fillchar}{SegFillChar}{(seg : word;ofs : longint;count : longint;c :
-char)}
-{Fills a memory area specified by a 48 bit pointer with the given number
-of chars.
-
-\textbf {NOTE:} Be careful using this function in non-DPMI mode. 
-}{None.}{\seep{SegFillWord}, \seep{SegMove}}
-
-\procedurel {seg\_fillword}{SegFillWord}{(seg : word;ofs : longint;count : longint;w :
-word)}{Fills a memory area specified by a 48 bit pointer with the given number
-of words.
-
-\textbf {NOTE:} Be careful using this function in non-DPMI mode. 
-}{None.}{\seep{SegFillChar}, \seep{SegMove}}
-
-\functionl{Segment\_To\_Descriptor}{SegmentToDescriptor}{(Seg : Word)}{Word}
-{\var{Segment\_To\_Descriptor} Maps a real mode segment (paragraph) address 
-(in \var{Seg}) onto an descriptor that can be used by a protected mode 
-program to access  the same memory.
-
-The function returns a selector to the DOS real-mode segment.
-
-{\em Notes:}
-\begin{itemize}
-\item Only works with real DPMI.
-\item The descriptors limit will be set to 64KB.
-\item multiple calls to this function with the same segment address will
-  return the same selector.
-\item Descriptors created by this function can never be modified or freed.
-For this reason this function shouldn't be used too often. Programs
-which need to examine various real mode addresses using the same
-selector should use the function \var{allocate\_ldt\_descriptors} and change
-the base address as necessary.
-\end{itemize}
+Notes: No range check is performed.
 }
-{None.}
-{}
-\begin{FPCList}
-\item[Example]
-\begin{verbatim}
-uses go32;
+{ none}{ 
+\seep{dosmemput},
+\seepl{dosmemget}{dosmemget}, 
+\seepl{dosmemmove}{dosmemmove}, 
+\seepl{dosmemfillchar}{dosmemfillchar}, 
+\seepl{seg\_move}{segmove}, 
+\seepl{seg\_fillchar}{segfillchar},
+\seepl{seg\_fillword}{segfillword} }
 
-var r : trealregs;
-    VGAsel : word;
+\functionl{get\_rm\_interrupt}{getrminterrupt}{(vector : byte; var intaddr :
+tseginfo)}{boolean}
+{
+Returns the contents of the current machine's real mode interrupt vector for
+the specified interrupt.
 
-begin
-     r.realeax := $13; realintr($10, r); 
-     { set VGA mode 13h }
-     VGASel := segment_to_descriptor($A000);
-     {...}
-     seg_fillchar(VGAsel, 100*320+6, 1, #15); 
-     { put a pixel at (6/100) in color 15 }
-     readln;
-     {...} 
-     r.realeax := $3; realintr($10, r);
-end.
-\end{verbatim}
-\end{FPCList}
+Parameters:
+\begin{description}
+\item[vector:\ ] interrupt vector number 
+\item[intaddr:\ ] buffer to store real mode segment:offset address
+\end{description}
 
-\procedurel{seg\_move}{SegMove}{(sseg : word;source : longint;dseg : word;dest : longint;count :
-longint)}
-{This procedure copies data when the source and destination are specified
-by 48 bit pointers. For example, this function is used by the DPMI version
-of \var{dosmemget} and \var{dosmemput}. }{The procedure checks only
-for overlapping if source selector equals the destination selector. 
-Be also careful using this function in non-DPMI
-mode.}{\seep{SegFillWord},\seep{SegFillChar}}
+Return values: True if successful, false otherwise
 
-\functionl{Set\_Descriptor\_Access\_right}{SetDescriptorAccesRight}{(Des: word; W: word)}{Longint}
-{\var{Set\_Descriptor\_Access\_right} sets the access rights of a
-descriptor \var{Des}.}
-{None.}{seef{GetDescriptorAccesRight}}
-
-\procedurel{set\_pm\_interrupt}{SetPmInterrupt}{(vector : byte;const intaddr : tseginfo)}
-{Sets a new protected mode handler for the interrupt \var{vector}.}
-{None.}{\seep{GetPmInterrupt}, \htmlref{tseginfo}{ty:tseginfo}} 
-
-\procedurel{Set\_Segment\_Base\_Address}{SetSegmentBaseAddress}
-{(var Des : word;Sel : longint)}
-{\var{{Set\_Segment\_Base\_Address}} sets the 32-bit linear base address 
-of the descriptor \var{Des} for the specified selector \var{Sel}.
-
-{\em Notes:}
-\begin{itemize}
-\item only works under real DPMI
-\end{itemize}
+Notes: The returned address is a real mode segment address, which isn't
+valid in protected mode.
 }
-{None.}
-{ \seef{AllocateLdtDescriptors}, \seep{SetSegmentLimit}}
+{ Check int31error variable
+}{ 
+\seefl{set\_rm\_interrupt}{setrminterrupt}, 
+\seefl{set\_pm\_interrupt}{setpminterrupt}, 
+\seefl{get\_pm\_interrupt}{getpminterrupt} }
 
-For an example, see \seef{AllocateLdtDescriptors}.
+\functionl{set\_rm\_interrupt}{setrminterrupt}{(vector : byte; const intaddr :
+tseginfo)}{boolean}{
 
-\procedurel{Set\_Segment\_Limit}{SetSegmentLimit}{(Des : word;Len : longint)}
-{\var{Set\_Segment\_Limit} sets the limit of the descriptor \var{Des} 
-to the specified length \var{Len}
+Sets a real mode interrupt handler
 
-{\em Notes:}
-\begin{itemize}
-\item Only works under real DPMI.
-\item The new limit is the byte length of the segment-1.
-\item Segment limits bigger than or equal to 1MB must be page aligned, they
-must have the lower 12 bits set.
-\end{itemize}
+Parameters:
+\begin{description}
+\item[vector:\ ] the interrupt vector number to set 
+\item[intaddr:\ ] address of new interrupt vector
+\end{description}
+
+Return values: True if successful, otherwise false.
+
+Notes: The address supplied MUST be a real mode segment address, not a
+selector:offset address. So the interrupt handler must either reside in DOS
+memory (below 1 Mb boundary) or the application must allocate a real mode
+callback address with \seefl{get\_rm\_callback}{getrmcallback} .
 }
-{None}
-{ \seep{SetSegmentBaseAddress}, \seef{AllocateLdtDescriptors}}
+{ Check int31error variable }
+{ 
+\seefl{get\_rm\_interrupt}{getrminterrupt}, 
+\seefl{set\_pm\_interrupt}{setpminterrupt}, \seefl{get\_pm\_interrupt}{getpminterrupt}, 
+\seefl{get\_rm\_callback}{getrmcallback} }
 
-For an example, see \seef{AllocateLdtDescriptors}.
+\functionl{get\_pm\_interrupt}{getpminterrupt}
+{(vector : byte; var intaddr : tseginfo)}{boolean}{
 
+Returns the address of a current protected mode interrupt handler
+
+Parameters:
+\begin{description}
+\item[vector:\ ] interrupt handler number you want the address to
+\item[intaddr:\ ] buffer to store address
+\end{description}
+
+Return values: True if successful, false if not.
+
+Notes: The returned address is a protected mode selector:offset address.
+}
+{ Check int31error variable}
+{ \seefl{set\_pm\_interrupt}{setpminterrupt},
+\seefl{set\_rm\_interrupt}{setrminterrupt}, \seefl{get\_rm\_interrupt}{getrminterrupt} }
+
+For an example, see \seefl{set\_pm\_interrupt}{setpminterrupt}.
+
+\functionl{set\_pm\_interrupt}{setpminterrupt}
+{(vector : byte; const intaddr : tseginfo)}{boolean}{
+
+Sets the address of the protected mode handler for an interrupt
+
+Parameters: 
+\begin{description}
+\item[vector:\ ] number of protected mode interrupt to set 
+\item[intaddr:\ ] selector:offset address to the interrupt vector
+\end{description}
+
+Return values: True if successful, false otherwise.
+
+Notes: The address supplied must be a valid selector:offset protected mode
+address.
+}
+{ Check int31error variable
+}{\seefl{get\_pm\_interrupt}{getpminterrupt}, 
+\seefl{set\_rm\_interrupt}{setrminterrupt},
+\seefl{get\_rm\_interrupt}{getrminterrupt} }
+
+\input{go32ex/int_pm.tex}
+
+\Procedure{disable}{
+
+Disables all hardware interrupts by execution a CLI instruction.
+
+Parameters: none
+
+Return values: none
+}{none }
+{\seep{enable} }
+
+\Procedure{enable}{
+
+Enables all hardware interrupts by executing a STI instruction.
+
+Parameters: none
+
+Return values: none
+}{None}
+{ \seep{disable} }
+
+
+\function{realintr}{(intnr: Word; var regs : trealregs)}{ boolean}{
+
+Simulates an interrupt in real mode
+
+Parameters:
+\begin{description}
+\item[intnr:\ ] interrupt number to issue in real mode 
+\item[regs:\ ] registers data structure
+\end{description}
+
+Return values: The supplied registers data structure contains the values
+that were returned by the real mode interrupt. True if successful, false if
+not.
+
+Notes: The function transfers control to the address specified by the real
+mode interrupt vector of intnr. The real mode handler must return by
+executing an IRET.
+}
+{ Check int31error variable
+}{}
+
+%For an example, see \seefl{global\_dos\_alloc}{globaldosalloc}.
+\input{go32ex/flags.tex}
+
+\functionl{get\_rm\_callback}{getrmcallback}
+{(pm\_func : pointer; const reg : trealregs; var rmcb: tseginfo)}{boolean}
+{
+Returns a unique real mode segment:offset address, known as a "real mode
+callback," that will transfer control from real mode to a protected mode
+procedure.
+
+Parameters:
+\begin{description}
+\item[pm\_func:\ ]  pointer to the protected mode callback function 
+\item[reg:\ ] supplied registers structure 
+\item[rmcb:\ ] buffer to real mode address of callback function
+\end{description}
+
+Return values: True if successful, otherwise false.
+
+Notes: Callback addresses obtained with this function can be passed by a
+protected mode program for example to an interrupt handler, device driver,
+or TSR, so that the real mode program can call procedures within the
+protected mode program or notify the protected mode program of an event. The
+contents of the supplied regs structure is not valid after function call,
+but only at the time of the actual callback.
+}{Check int31error variable}
+{\seefl{free\_rm\_callback}{freermcallback} }
+
+\input{go32ex/callback.tex}
+
+\functionl{free\_rm\_callback}{freermcallback}{(var intaddr : tseginfo)}{boolean}
+{
+Releases a real mode callback address that was previously allocated with the
+\seefl{get\_rm\_callback}{getrmcallback}  function.
+
+Parameters: 
+\begin{description}
+\item[intaddr:\ ] real mode address buffer returned by 
+\seefl{get\_rm\_callback}{getrmcallback} 
+\end{description}
+
+Return values: True if successful, false if not
+}{ Check int31error variable }
+{
+\seefl{set\_rm\_interrupt}{setrminterrupt},
+\seefl{get\_rm\_callback}{getrmcallback}
+}
+
+For an example, see \seefl{get\_rm\_callback}{getrmcallback}.
+
+
+\functionl{lock\_linear\_region}{locklinearregion}{(linearaddr, size : Longint)}{boolean}
+{
+Locks a memory region to prevent swapping of it
+
+Parameters: 
+\begin{description}
+\item[linearaddr:\ ] the linear address of the memory are to be locked
+\item[size:\ ] size in bytes to be locked
+\end{description}
+
+Return value: True if successful, False otherwise
+}
+{ Check int31error variable}
+{
+\seefl{lock\_data}{lockdata},
+\seefl{lock\_code}{lockcode},
+\seefl{unlock\_linear\_region}{unlocklinearregion},
+\seefl{unlock\_data}{unlockdata},
+\seefl{unlock\_code}{unlockcode}}
+
+\functionl{lock\_data}{lockdata}{(var data; size : Longint)}{boolean}
+{
+Locks a memory range which resides in the data segment selector
+
+Parameters:
+\begin{description}
+\item[data:\ ] address of data to be locked 
+\item[size:\ ] length of data to be locked
+\end{description}
+
+Return values: True if successful, false otherwise
+}
+{ Check int31error variable}{
+\seefl{lock\_linear\_region}{locklinearregion},
+\seefl{lock\_code}{lockcode},
+\seefl{unlock\_linear\_region}{unlocklinearregion},
+\seefl{unlock\_data}{unlockdata},
+\seefl{unlock\_code}{unlockcode} }
+
+For an example, see \seefl{get\_rm\_callback}{getrmcallback}.
+
+\functionl{lock\_code}{lockcode}{(functionaddr : pointer; size : Longint)}
+{boolean}{
+
+Locks a memory range which is in the code segment selector.
+
+Parameters: 
+\begin{description}
+\item[functionaddr:\ ] address of the function to be lockd 
+\item[size:\ ] size in bytes to be locked
+\end{description}
+
+Return values: True if successful, false otherwise
+}{Check int31error variable}{ 
+\seefl{lock\_linear\_region}{locklinearregion},
+\seefl{lock\_data}{lockdata},
+\seefl{unlock\_linear\_region}{unlocklinearregion},
+\seefl{unlock\_data}{unlockdata},
+\seefl{unlock\_code}{unlockcode} }
+
+For an example, see \seefl{get\_rm\_callback}{getrmcallback}.
+
+\functionl{unlock\_linear\_region}{unlocklinearregion}
+{(linearaddr, size : Longint)}{boolean}{
+
+Unlocks a previously locked linear region range to allow it to be swapped
+out again if needed.
+
+Parameters:
+\begin{description}
+\item[linearaddr:\ ] linear address of the memory to be unlocked 
+\item[size:\ ] size bytes to be unlocked
+\end{description}
+
+Return values: True if successful, false otherwise
+}
+{ Check int31error variable}{
+\seefl{unlock\_data}{unlockdata},
+\seefl{unlock\_code}{unlockcode},
+\seefl{lock\_linear\_region}{locklinearregion},
+\seefl{lock\_data}{lockdata},
+\seefl{lock\_code}{lockcode}}
+
+
+\functionl{unlock\_data}{unlockdata}{(var data; size : Longint)}{boolean}
+{
+Unlocks a memory range which resides in the data segment selector.
+
+Paramters:
+\begin{description}
+\item[data:\ ] address of memory to be unlocked 
+\item[size:\ ] size bytes to be unlocked
+\end{description}
+
+Return values: True if successful, false otherwise
+}
+{ Check int31error variable
+}{
+\seefl{unlock\_linear\_region}{unlocklinearregion},
+\seefl{unlock\_code}{unlockcode},
+\seefl{lock\_linear\_region}{locklinearregion},
+\seefl{lock\_data}{lockdata},
+\seefl{lock\_code}{lockcode} }
+
+For an example, see \seefl{get\_rm\_callback}{getrmcallback}.
+
+\functionl{unlock\_code}{unlockcode}
+{(functionaddr : pointer; size : Longint)}{boolean}
+{
+Unlocks a memory range which resides in the code segment selector.
+
+Parameters:
+\begin{description}
+\item[functionaddr:\ ] address of function to be unlocked 
+\item[size:\ ] size bytes to be unlocked
+\end{description}
+
+Return value: True if successful, false otherwise
+}
+{ Check int31error variable }
+{\seefl{unlock\_linear\_region}{unlocklinearregion},
+ \seefl{unlock\_data}{unlockdata},
+\seefl{lock\_linear\_region}{locklinearregion},
+\seefl{lock\_data}{lockdata},
+\seefl{lock\_code}{lockcode} }
+
+For an example, see \seefl{get\_rm\_callback}{getrmcallback}.
+
+
+\Functionl{get\_page\_size}{getpagesize}{ Longint}
+{
+Returns the size of a single memory page
+
+Return value: Size of a single page in bytes
+
+Notes: The returned size is typically 4096 bytes.
+}
+{ Check int31error variable
+}{ \seefl{get\_meminfo}{getmeminfo} }
+
+For an example, see \seefl{get\_meminfo}{getmeminfo}.
+
+\procedurel{seg\_move}{segmove}{(sseg : Word; source : Longint; dseg : Word; dest :
+Longint; count : Longint)}{
+
+Copies data between two memory locations
+
+Parameters: 
+\begin{description}
+\item[sseg:\ ] source selector 
+\item[source:\ ] source offset 
+\item[dseg:\ ] destination selector 
+\item[dest:\ ] destination offset
+\item[count:\ ] size in bytes to copy
+\end{description}
+
+Return values: none
+
+Notes: Overlapping is only checked if the source selector is equal to the
+destination selector. No range check is done.
+}
+{ none}
+{ 
+\seepl{seg\_fillchar}{segfillchar},
+\seepl{seg\_fillword}{segfillword},
+\seepl{dosmemfillchar}{dosmemfillchar},
+\seepl{dosmemfillword}{dosmemfillword},
+\seepl{dosmemget}{dosmemget},
+\seepl{dosmemput}{dosmemput},
+\seepl{dosmemmove}{dosmemmove} }
+
+For an example, see 
+\seefl{allocate\_ldt\_descriptors}{allocateldtdescriptors}.
+
+
+\procedurel{seg\_fillchar}{segfillchar}
+{(seg : Word; ofs : Longint; count : Longint; c : char)}{
+
+Sets a memory area to a specific value.
+
+Parameters:
+\begin{description}
+\item[seg:\ ] selector to memory area 
+\item[ofs:\ ] offset to memory 
+\item[count:\ ] number of bytes to set 
+\item[c:\ ] byte data which is set
+\end{description}
+
+Return values: none
+
+Notes: No range check is done in any way.
+}{ none }
+{\seepl{seg\_move}{segmove},
+\seepl{seg\_fillword}{segfillword},
+\seepl{dosmemfillchar}{dosmemfillchar},
+\seepl{dosmemfillword}{dosmemfillword},
+\seepl{dosmemget}{dosmemget},
+\seepl{dosmemput}{dosmemput},
+\seepl{dosmemmove}{dosmemmove} }
+
+\input{go32ex/vgasel.tex}
+
+\procedurel{seg\_fillword}{segfillword}
+{(seg : Word; ofs : Longint; count : Longint; w :Word)}
+{
+Sets a memory area to a specific value.
+
+Parameters:
+\begin{description}
+\item[seg:\ ] selector to memory area 
+\item[ofs:\ ] offset to memory 
+\item[count:\ ] number of words to set
+\item[w:\ ] word data which is set
+\end{description}
+
+Return values: none
+
+Notes: No range check is done in any way.
+}{none }
+{ 
+\seepl{seg\_move}{segmove},
+\seepl{seg\_fillchar}{segfillchar}, 
+\seepl{dosmemfillchar}{dosmemfillchar}, 
+\seepl{dosmemfillword}{dosmemfillword},
+\seepl{dosmemget}{dosmemget},
+\seepl{dosmemput}{dosmemput},
+\seepl{dosmemmove}{dosmemmove} }
+
+For an example, see 
+\seefl{allocate\_ldt\_descriptors}{allocateldtdescriptors}.
+
+\Functionl{get\_cs}{getcs}{Word}{
+
+Returns the cs selector
+
+Parameters: none
+
+Return values: The content of the cs segment register
+}{none}{ \seefl{get\_ds}{getds}, \seefl{get\_ss}{getss}}
+
+For an example, see \seefl{set\_pm\_interrupt}{setpminterrupt}.
+
+\Functionl{get\_ds}{getds}{Word}
+{
+Returns the ds selector
+
+Parameters: none
+
+Return values: The content of the ds segment register
+}{ none}{ \seefl{get\_cs}{getcs}, \seefl{get\_ss}{getss}}
+
+\Functionl{get\_ss}{getss}{Word}{
+
+Returns the ss selector
+
+Parameters: none
+
+Return values: The content of the ss segment register
+}{ none}{ \seefl{get\_ds}{getds}, \seefl{get\_cs}{getcs}}
+
+\function{inportb}{(port : Word)}{byte}{
+
+Reads data from the selected I/O port
+
+Parameters: 
+\begin{description}
+\item[port:\ ] the I/O port number which is read
+\end{description}
+
+Return values: Current I/O port value
+
+Notes: The returned data is either be byte, word or longint sized, dependant
+of the function.
+}{ none }{\seep{outportb}, \seef{inportw}, \seef{inportl}}
+
+\function{inportw}{(port : Word)}{Word}{
+
+Reads data from the selected I/O port
+
+Parameters: 
+\begin{description}
+\item[port:\ ] the I/O port number which is read
+\end{description}
+
+Return values: Current I/O port value
+
+Notes: The returned data is either be byte, word or longint sized, dependant
+of the function.
+}{ none }{\seep{outportw} \seef{inportb}, \seef{inportl} }
+
+\function{inportl}{(port : Word)}{Longint}{
+
+Reads data from the selected I/O port
+
+Parameters: 
+\begin{description}
+\item[port:\ ] the I/O port number which is read
+\end{description}
+
+Return values: Current I/O port value
+
+Notes: The returned data is either be byte, word or longint sized, dependant
+of the function.
+}{none }{\seep{outportb}, \seef{inportb}, \seef{inportw} }
+
+\procedure{outportb}{(port : Word; data : byte)}{
+
+Sends data to the specified I/O port
+
+Parameters: 
+\begin{description}
+\item[port:\ ] the I/O port number to send data to 
+\item[data:\ ] value sent to I/O port
+\end{description}
+
+Return values: none
+}{ none }{\seef{inportb}, \seep{outportl}, \seep{outportw} }
+
+input{go32ex/outport.tex}
+
+\procedure{outportw}{(port : Word; data : Word)}{ 
+
+Sends data to the specified I/O port
+
+Parameters: 
+\begin{description}
+\item[port:\ ] the I/O port number to send data to 
+\item[data:\ ] value sent to I/O port
+\end{description}
+
+Return values: none
+}{ none }
+{\seef{inportw}, \seep{outportl}, \seep{outportb}}
+
+For an example, see \seep{outportb}.
+
+\procedure{outportl}{(port : Word; data : Longint)}{
+
+Sends data to the specified I/O port
+
+Parameters: 
+\begin{description}
+\item[port:\ ] the I/O port number to send data to 
+\item[data:\ ] value sent to I/O port
+\end{description}
+
+Return values: none
+
+}{none }{\seef{inportl}, \seep{outportw}, \seep{outportb}}
+
+For an example, see \seep{outportb}.
+
+\Functionl{get\_run\_mode}{getrunmode}{Word}{
+
+Returns the current mode your application runs with
+
+Return values: One of the constants used by this function
+}
+{none }
+{ constants returned by \seefl{get\_run\_mode}{getrunmode}  }
+
+\input{go32ex/getrunmd.tex}
