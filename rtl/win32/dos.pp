@@ -271,7 +271,7 @@ end;
 
 function dosversion : word;
 begin
-  dosversion:=GetVersion;
+  dosversion:=GetVersion and $ffff;
 end;
 
 
@@ -1011,7 +1011,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.10  2001-11-23 00:36:26  carl
+  Revision 1.11  2001-11-23 01:35:09  carl
+  * Range check error fix
+
+  Revision 1.10  2001/11/23 00:36:26  carl
   * updated behavior of some routines to conform to docs
 
   Revision 1.9  2001/06/13 22:21:53  hajny
