@@ -610,7 +610,8 @@ implementation
          prevafterassn:=afterassignment;
          afterassignment:=false;
 {$ifdef EXTDEBUG}
-         if p1.nodetype<>calln then
+         if assigned(p1) and
+            (p1.nodetype<>calln) then
            internalerror(20021118);
 {$endif EXTDEBUG}
          { want we only determine the address of }
@@ -2265,7 +2266,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.88  2002-11-18 17:48:21  peter
+  Revision 1.89  2002-11-18 18:34:41  peter
+    * fix crash with EXTDEBUG code
+
+  Revision 1.88  2002/11/18 17:48:21  peter
     * fix tw2209 (merged)
 
   Revision 1.87  2002/11/18 17:31:58  peter
