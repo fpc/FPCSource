@@ -48,7 +48,11 @@ implementation
       symtable,aasm,types,
       hcodegen,htypechk,pass_1
 {$ifdef i386}
+{$ifdef ag386bin}
+      ,i386base
+{$else}
       ,i386
+{$endif}
 {$endif}
 {$ifdef m68k}
       ,m68k
@@ -553,7 +557,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.10  1999-02-04 11:44:47  florian
+  Revision 1.11  1999-02-22 02:15:54  peter
+    * updates for ag386bin
+
+  Revision 1.10  1999/02/04 11:44:47  florian
     * fixed indexed access of ansistrings to temp. ansistring, i.e.
       c:=(s1+s2)[i], the temp is now correctly remove and the generated
       code is also fixed

@@ -58,7 +58,11 @@ Uses
   symtable,aasm,hcodegen,verbose,globals,files,strings,
   cobjects,
 {$ifdef i386}
+{$ifdef Ag386Bin}
+  i386base;
+{$else}
   i386;
+{$endif}
 {$endif}
 {$ifdef m68k}
    m68k;
@@ -303,7 +307,7 @@ Type
   { swaps in the case of a 2/3 operand opcode the destination and the    }
   { source as to put it in AT&T style instruction format.                }
   Procedure SwapOperands(Var instr: TInstruction);
-  Procedure ConcatLabel(p : paasmoutput;op : tasmop;var l : plabel);
+  Procedure ConcatLabel(p: paasmoutput;var l : plabel);
   Procedure ConcatConstant(p : paasmoutput;value: longint; maxvalue: longint);
   Procedure ConcatRealConstant(p : paasmoutput;value: bestreal; real_typ : tfloattype);
   Procedure ConcatString(p : paasmoutput;s:string);
@@ -1723,17 +1727,14 @@ end;
        end;
     end;
 
-   Procedure ConcatLabel(p: paasmoutput;op : tasmop;var l : plabel);
+   Procedure ConcatLabel(p: paasmoutput;var l : plabel);
   {*********************************************************************}
   { PROCEDURE ConcatLabel                                               }
   {  Description: This routine either emits a label or a labeled        }
   {  instruction to the linked list of instructions.                    }
   {*********************************************************************}
    begin
-         if op=A_LABEL then
-           p^.concat(new(pai_label,init(l)))
-         else
-           p^.concat(new(pai_labeled,init(op,l)))
+     p^.concat(new(pai_label,init(l)))
    end;
 
    procedure ConcatPublic(p:paasmoutput;const s : string);
@@ -1809,7 +1810,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.3  1999-02-16 00:47:28  peter
+  Revision 1.4  1999-02-22 02:15:39  peter
+    * updates for ag386bin
+
+  Revision 1.3  1999/02/16 00:47:28  peter
     * fixed local copies of value para's
 
   Revision 1.2  1999/01/27 13:04:11  pierre

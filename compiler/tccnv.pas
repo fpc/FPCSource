@@ -44,7 +44,11 @@ implementation
       symtable,aasm,types,
       hcodegen,htypechk,pass_1
 {$ifdef i386}
+{$ifdef ag386bin}
+      ,i386base
+{$else}
       ,i386
+{$endif}
 {$endif}
 {$ifdef m68k}
       ,m68k
@@ -975,7 +979,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.18  1999-01-27 14:56:57  pierre
+  Revision 1.19  1999-02-22 02:15:46  peter
+    * updates for ag386bin
+
+  Revision 1.18  1999/01/27 14:56:57  pierre
   * typo error corrected solves bug0190 and bug0204
 
   Revision 1.17  1999/01/27 14:15:25  pierre

@@ -37,7 +37,12 @@ implementation
       cobjects,verbose,globals,
       symtable,aasm,types,
       hcodegen,temp_gen,pass_2,
-      i386,cgai386,tgeni386;
+{$ifdef ag386bin}
+      i386base,i386asm,
+{$else}
+      i386,
+{$endif}
+      cgai386,tgeni386;
 
 {*****************************************************************************
                                 Helpers
@@ -593,7 +598,7 @@ implementation
                                   getlabel(truelabel);
                                   secondpass(p^.left);
                                   maketojumpbool(p^.left);
-                                  emitl(A_LABEL,truelabel);
+                                  emitlab(truelabel);
                                   truelabel:=otl;
                                end;
                         orn : begin
@@ -601,7 +606,7 @@ implementation
                                  getlabel(falselabel);
                                  secondpass(p^.left);
                                  maketojumpbool(p^.left);
-                                 emitl(A_LABEL,falselabel);
+                                 emitlab(falselabel);
                                  falselabel:=ofl;
                               end;
                        else
@@ -1091,11 +1096,11 @@ implementation
                        begin
                          getlabel(hl4);
                          if unsigned then
-                          emitl(A_JNB,hl4)
+                          emitjmp(C_NB,hl4)
                          else
-                          emitl(A_JNO,hl4);
+                          emitjmp(C_NO,hl4);
                          emitcall('FPC_OVERFLOW',true);
-                         emitl(A_LABEL,hl4);
+                         emitlab(hl4);
                        end;
                     end;
                 end
@@ -1362,13 +1367,13 @@ implementation
                                     begin
                                        emit_reg_reg(A_CMP,S_L,p^.right^.location.registerhigh,
                                           p^.location.registerhigh);
-                                       emitl(flag_2_jmp[getresflags(p,unsigned)],truelabel);
+                                       emitjmp(flag_2_cond[getresflags(p,unsigned)],truelabel);
 
                                        emit_reg_reg(A_CMP,S_L,p^.right^.location.registerlow,
                                           p^.location.registerlow);
-                                       emitl(flag_2_jmp[getresflags(p,unsigned)],truelabel);
+                                       emitjmp(flag_2_cond[getresflags(p,unsigned)],truelabel);
 
-                                       emitl(A_JMP,falselabel);
+                                       emitjmp(C_None,falselabel);
                                     end
                                   else
                                     begin
@@ -1376,13 +1381,13 @@ implementation
                                        inc(hr^.offset,4);
                                        exprasmlist^.concat(new(pai386,op_ref_reg(A_CMP,S_L,
                                          hr,p^.location.registerhigh)));
-                                       emitl(flag_2_jmp[getresflags(p,unsigned)],truelabel);
+                                       emitjmp(flag_2_cond[getresflags(p,unsigned)],truelabel);
 
                                        exprasmlist^.concat(new(pai386,op_ref_reg(A_CMP,S_L,newreference(
                                          p^.right^.location.reference),p^.location.registerlow)));
-                                       emitl(flag_2_jmp[getresflags(p,unsigned)],truelabel);
+                                       emitjmp(flag_2_cond[getresflags(p,unsigned)],truelabel);
 
-                                       emitl(A_JMP,falselabel);
+                                       emitjmp(C_None,falselabel);
 
                                        ungetiftemp(p^.right^.location.reference);
                                        del_reference(p^.right^.location.reference);
@@ -1446,12 +1451,12 @@ implementation
                                   exprasmlist^.concat(new(pai386,op_reg_reg(A_CMP,S_L,
                                     p^.right^.location.registerhigh,
                                     p^.location.registerhigh)));
-                                  emitl(flag_2_jmp[getresflags(p,unsigned)],truelabel);
+                                  emitjmp(flag_2_cond[getresflags(p,unsigned)],truelabel);
                                   exprasmlist^.concat(new(pai386,op_reg_reg(A_CMP,S_L,
                                     p^.right^.location.registerlow,
                                     p^.location.registerlow)));
-                                  emitl(flag_2_jmp[getresflags(p,unsigned)],truelabel);
-                                  emitl(A_JMP,falselabel);
+                                  emitjmp(flag_2_cond[getresflags(p,unsigned)],truelabel);
+                                  emitjmp(C_None,falselabel);
                                end
                              else
                                begin
@@ -1482,11 +1487,11 @@ implementation
                             begin
                               getlabel(hl4);
                               if unsigned then
-                               emitl(A_JNB,hl4)
+                               emitjmp(C_NB,hl4)
                               else
-                               emitl(A_JNO,hl4);
+                               emitjmp(C_NO,hl4);
                               emitcall('FPC_OVERFLOW',true);
-                              emitl(A_LABEL,hl4);
+                              emitlab(hl4);
                             end;
                          end;
                         { we have LOC_JUMP as result }
@@ -1810,7 +1815,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.43  1999-02-16 00:46:30  peter
+  Revision 1.44  1999-02-22 02:15:02  peter
+    * updates for ag386bin
+
+  Revision 1.43  1999/02/16 00:46:30  peter
     * fixed bug 206
 
   Revision 1.42  1999/02/12 10:43:56  florian

@@ -30,7 +30,9 @@ unit tree;
 
     uses
        globtype,cobjects,symtable,aasm
-{$ifdef i386}
+{$ifdef ag386bin}
+       ,i386base
+{$else}
        ,i386
 {$endif}
 {$ifdef m68k}
@@ -1686,7 +1688,10 @@ unit tree;
 end.
 {
   $Log$
-  Revision 1.65  1999-02-11 09:46:31  pierre
+  Revision 1.66  1999-02-22 02:15:59  peter
+    * updates for ag386bin
+
+  Revision 1.65  1999/02/11 09:46:31  pierre
     * fix for normal method calls inside static methods :
       WARNING there were both parser and codegen errors !!
       added static_call boolean to calln tree

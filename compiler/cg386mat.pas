@@ -39,7 +39,12 @@ implementation
       cobjects,verbose,globals,
       symtable,aasm,types,
       hcodegen,temp_gen,pass_2,
-      i386,cgai386,tgeni386;
+{$ifdef ag386bin}
+      i386base,i386asm,
+{$else}
+      i386,
+{$endif}
+      cgai386,tgeni386;
 
 {*****************************************************************************
                              SecondModDiv
@@ -85,12 +90,12 @@ implementation
              begin
                  exprasmlist^.concat(new(pai386,op_reg_reg(A_OR,S_L,hreg1,hreg1)));
                  getlabel(hl);
-                 emitl(A_JNS,hl);
+                 emitjmp(C_NS,hl);
                  if power=1 then
-                    exprasmlist^.concat(new(pai386,op_reg(A_INC,S_L,hreg1)))
-                 else exprasmlist^.concat(new(pai386,op_const_reg(A_ADD,S_L,p^.right^.value-1,hreg1)));
-
-                 emitl(A_LABEL,hl);
+                   exprasmlist^.concat(new(pai386,op_reg(A_INC,S_L,hreg1)))
+                 else
+                   exprasmlist^.concat(new(pai386,op_const_reg(A_ADD,S_L,p^.right^.value-1,hreg1)));
+                 emitlab(hl);
                  exprasmlist^.concat(new(pai386,op_const_reg(A_SAR,S_L,power,hreg1)));
              end
            else
@@ -763,7 +768,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.19  1999-02-04 10:49:40  florian
+  Revision 1.20  1999-02-22 02:15:13  peter
+    * updates for ag386bin
+
+  Revision 1.19  1999/02/04 10:49:40  florian
     + range checking for ansi- and widestrings
     * made it compilable with TP
 

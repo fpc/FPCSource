@@ -85,6 +85,9 @@ uses
 {$endif}
   ,strings
 {$ifdef i386}
+  {$ifdef Ag386Bin}
+    ,ag386bin
+  {$endif}
   {$ifndef NoAg386Att}
     ,ag386att
   {$endif NoAg386Att}
@@ -474,7 +477,7 @@ var
   a : PAsmList;
 {$ifdef i386}
   {$ifdef Ag386Bin}
-    b : Pi386binasmlist
+    b : Pi386binasmlist;
   {$endif}
 {$endif}
 begin
@@ -495,6 +498,7 @@ begin
          end;
          b^.WriteBin;
          dispose(b,done);
+         exit;
        end;
   {$endif Ag386Bin}
   {$ifndef NoAg386Att}
@@ -558,7 +562,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.35  1999-02-17 10:16:26  peter
+  Revision 1.36  1999-02-22 02:15:01  peter
+    * updates for ag386bin
+
+  Revision 1.35  1999/02/17 10:16:26  peter
     * small fixes for the binary writer
 
   Revision 1.34  1999/01/10 15:37:52  peter

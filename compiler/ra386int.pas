@@ -771,7 +771,7 @@ var
            else if (instr.operands[1].operandtype = OPR_LABINSTR) and
                    (instr.numops = 1) then
                   if assigned(instr.operands[1].hl) then
-                    ConcatLabel(p,instr.getinstruction, instr.operands[1].hl)
+                    p^.concat(new(pai386_labeled,op_lab(instruc, instr.operands[1].hl)))
                   else
                     Message(assem_f_internal_error_in_findtype);
           end;
@@ -3354,7 +3354,7 @@ Begin
            Begin
              getlabel(hl);
              labellist.insert(actasmpattern,hl,TRUE);
-             ConcatLabel(p,A_LABEL,hl);
+             ConcatLabel(p,hl);
            end
           else
            { the label has already been inserted into the  }
@@ -3368,7 +3368,7 @@ Begin
               else
                Begin
                  if assigned(labelptr^.lab) then
-                   ConcatLabel(p,A_LABEL,labelptr^.lab);
+                   ConcatLabel(p,labelptr^.lab);
                  labelptr^.emitted := TRUE;
                end;
            end;
@@ -3378,7 +3378,7 @@ Begin
       AS_LABEL :
         Begin
           if SearchLabel(actasmpattern,hl) then
-            ConcatLabel(p,A_LABEL, hl)
+            ConcatLabel(p,hl)
           else
             Message1(assem_e_unknown_label_identifer,actasmpattern);
           Consume(AS_LABEL);
@@ -3473,7 +3473,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.20  1999-01-10 15:37:58  peter
+  Revision 1.21  1999-02-22 02:15:37  peter
+    * updates for ag386bin
+
+  Revision 1.20  1999/01/10 15:37:58  peter
     * moved some tables from ra386*.pas -> i386.pas
     + start of coff writer
     * renamed asmutils unit to rautils

@@ -445,7 +445,7 @@ unit ag386int;
                        AsmWritePChar(pai_direct(hp)^.str);
                        AsmLn;
                      end;
-ait_labeled_instruction : AsmWriteLn(#9#9+int_op2str[pai_labeled(hp)^._operator]+#9+lab2str(pai_labeled(hp)^.lab));
+ait_labeled_instruction : AsmWriteLn(#9#9+int_op2str[pai386_labeled(hp)^._operator]+#9+lab2str(pai386_labeled(hp)^.lab));
         ait_symbol : begin
                        if pai_symbol(hp)^.is_global then
                          AsmWriteLn(#9'PUBLIC'#9+StrPas(pai_symbol(hp)^.name));
@@ -624,7 +624,10 @@ ait_stab_function_name : ;
 end.
 {
   $Log$
-  Revision 1.24  1998-12-20 16:21:22  peter
+  Revision 1.25  1999-02-22 02:14:59  peter
+    * updates for ag386bin
+
+  Revision 1.24  1998/12/20 16:21:22  peter
     * smartlinking doesn't crash anymore
 
   Revision 1.23  1998/12/16 00:27:17  peter

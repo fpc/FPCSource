@@ -40,7 +40,11 @@ implementation
       symtable,aasm,types,
       hcodegen,htypechk,pass_1
 {$ifdef i386}
+{$ifdef ag386bin}
+      ,i386base
+{$else}
       ,i386
+{$endif}
 {$endif}
 {$ifdef m68k}
       ,m68k
@@ -373,7 +377,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.11  1999-02-03 10:11:11  pierre
+  Revision 1.12  1999-02-22 02:15:53  peter
+    * updates for ag386bin
+
+  Revision 1.11  1999/02/03 10:11:11  pierre
    * fix for bug0211 for i386
 
   Revision 1.10  1998/12/11 16:50:24  florian

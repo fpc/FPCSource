@@ -53,7 +53,7 @@ Var
 
   UsedRegs, TmpUsedRegs: TRegSet;
 
-  Procedure GetFinalDestination(hp: pai_labeled);
+  Procedure GetFinalDestination(hp: pai386_labeled);
   {traces sucessive jumps to their final destination and sets it, e.g.
    je l1                je l3
    <code>               <code>
@@ -85,15 +85,15 @@ Var
         p1 := LTable^[hp^.lab^.nb-LoLab].PaiObj; {the jump's destination}
         p1 := SkipLabels(p1);
         If (pai(p1)^.typ = ait_labeled_instruction) and
-           ((pai_labeled(p1)^._operator = A_JMP) or
-            (pai_labeled(p1)^._operator = hp^._operator))
+           ((pai386_labeled(p1)^._operator = A_JMP) or
+            (pai386_labeled(p1)^._operator = hp^._operator))
           Then
             Begin
-              GetFinalDestination(pai_labeled(p1));
+              GetFinalDestination(pai386_labeled(p1));
               Dec(hp^.lab^.refcount);
               If (hp^.lab^.refcount = 0) Then
                 hp^.lab^.is_used := False;
-              hp^.lab := pai_labeled(p1)^.lab;
+              hp^.lab := pai386_labeled(p1)^.lab;
               Inc(hp^.lab^.refcount);
             End
       End
@@ -110,7 +110,7 @@ Begin
           Begin
   {the following if-block removes all code between a jmp and the next label,
    because it can never be executed}
-            If (pai_labeled(p)^._operator = A_JMP) Then
+            If (pai386_labeled(p)^._operator = A_JMP) Then
               Begin
                 hp1 := pai(p^.next);
                 While GetNextInstruction(p, hp1) and
@@ -126,33 +126,33 @@ Begin
             If GetNextInstruction(p, hp1) then
               Begin
                 If (pai(hp1)^.typ=ait_labeled_instruction) and
-                   (pai_labeled(hp1)^._operator=A_JMP) and
+                   (pai386_labeled(hp1)^._operator=A_JMP) and
                    GetNextInstruction(hp1, hp2) And
-                   FindLabel(pai_labeled(p)^.lab, hp2)
+                   FindLabel(pai386_labeled(p)^.lab, hp2)
                   Then
                     Begin
-                      Case pai_labeled(p)^._operator Of
-                        A_JE : pai_labeled(p)^._operator:=A_JNE;
-                        A_JNE : pai_labeled(p)^._operator:=A_JE;
-                        A_JL : pai_labeled(p)^._operator:=A_JGE;
-                        A_JG : pai_labeled(p)^._operator:=A_JLE;
-                        A_JLE : pai_labeled(p)^._operator:=A_JG;
-                        A_JGE : pai_labeled(p)^._operator:=A_JL;
-                        A_JNZ : pai_labeled(p)^._operator:=A_JZ;
-                        A_JNO : pai_labeled(p)^._operator:=A_JO;
-                        A_JZ : pai_labeled(p)^._operator:=A_JNZ;
-                        A_JS : pai_labeled(p)^._operator:=A_JNS;
-                        A_JNS : pai_labeled(p)^._operator:=A_JS;
-                        A_JO : pai_labeled(p)^._operator:=A_JNO;
-                        A_JC : pai_labeled(p)^._operator:=A_JNC;
-                        A_JNC : pai_labeled(p)^._operator:=A_JC;
-                        A_JA : pai_labeled(p)^._operator:=A_JBE;
-                        A_JAE : pai_labeled(p)^._operator:=A_JB;
-                        A_JB : pai_labeled(p)^._operator:=A_JAE;
-                        A_JBE : pai_labeled(p)^._operator:=A_JA;
+                      Case pai386_labeled(p)^._operator Of
+                        A_JE : pai386_labeled(p)^._operator:=A_JNE;
+                        A_JNE : pai386_labeled(p)^._operator:=A_JE;
+                        A_JL : pai386_labeled(p)^._operator:=A_JGE;
+                        A_JG : pai386_labeled(p)^._operator:=A_JLE;
+                        A_JLE : pai386_labeled(p)^._operator:=A_JG;
+                        A_JGE : pai386_labeled(p)^._operator:=A_JL;
+                        A_JNZ : pai386_labeled(p)^._operator:=A_JZ;
+                        A_JNO : pai386_labeled(p)^._operator:=A_JO;
+                        A_JZ : pai386_labeled(p)^._operator:=A_JNZ;
+                        A_JS : pai386_labeled(p)^._operator:=A_JNS;
+                        A_JNS : pai386_labeled(p)^._operator:=A_JS;
+                        A_JO : pai386_labeled(p)^._operator:=A_JNO;
+                        A_JC : pai386_labeled(p)^._operator:=A_JNC;
+                        A_JNC : pai386_labeled(p)^._operator:=A_JC;
+                        A_JA : pai386_labeled(p)^._operator:=A_JBE;
+                        A_JAE : pai386_labeled(p)^._operator:=A_JB;
+                        A_JB : pai386_labeled(p)^._operator:=A_JAE;
+                        A_JBE : pai386_labeled(p)^._operator:=A_JA;
                         Else
                           begin
-                            If (LabDif <> 0) Then GetFinalDestination(pai_labeled(p));
+                            If (LabDif <> 0) Then GetFinalDestination(pai386_labeled(p));
                             p:=pai(p^.next);
                             continue;
                           end;
@@ -160,14 +160,14 @@ Begin
                       Dec(pai_label(hp2)^.l^.refcount);
                       If (pai_label(hp2)^.l^.refcount = 0) Then
                         pai_label(hp2)^.l^.is_used := False;
-                      pai_labeled(p)^.lab:=pai_labeled(hp1)^.lab;
-                      Inc(pai_labeled(p)^.lab^.refcount);
+                      pai386_labeled(p)^.lab:=pai386_labeled(hp1)^.lab;
+                      Inc(pai386_labeled(p)^.lab^.refcount);
                       asml^.remove(hp1);
                       dispose(hp1,done);
-                      If (LabDif <> 0) Then GetFinalDestination(pai_labeled(p));
+                      If (LabDif <> 0) Then GetFinalDestination(pai386_labeled(p));
                     end
                   else
-                    if FindLabel(pai_labeled(p)^.lab, hp1) then
+                    if FindLabel(pai386_labeled(p)^.lab, hp1) then
                       Begin
                         hp2:=pai(hp1^.next);
                         asml^.remove(p);
@@ -175,7 +175,7 @@ Begin
                         p:=hp2;
                         continue;
                       end
-                    Else If (LabDif <> 0) Then GetFinalDestination(pai_labeled(p));
+                    Else If (LabDif <> 0) Then GetFinalDestination(pai386_labeled(p));
               end
           end;
         ait_instruction:
@@ -389,8 +389,8 @@ Begin
                      (Not(GetNextInstruction(p, hp1)) Or
                        {GetNextInstruction(p, hp1) And}
                        Not((Pai(hp1)^.typ = ait_labeled_instruction) And
-                           ((pai_labeled(hp1)^._operator = A_JO) or
-                            (pai_labeled(hp1)^._operator = A_JNO))))
+                           ((pai386_labeled(hp1)^._operator = A_JO) or
+                            (pai386_labeled(hp1)^._operator = A_JNO))))
                     Then
                       Begin
                         New(TmpRef);
@@ -1521,9 +1521,9 @@ Begin
                 If (AktOptProcessor < ClassP6) And
                    GetNextInstruction(p, hp1) And
                    (hp1^.typ = ait_labeled_instruction) And
-                   (Pai_Labeled(hp1)^._operator = A_JMP) Then
+                   (pai386_labeled(hp1)^._operator = A_JMP) Then
                   Begin
-                    hp2 := New(Pai386,op_csymbol(A_PUSH,S_L,NewCSymbol(Lab2Str(Pai_Labeled(hp1)^.lab),0)));
+                    hp2 := New(Pai386,op_csymbol(A_PUSH,S_L,NewCSymbol(Lab2Str(pai386_labeled(hp1)^.lab),0)));
                     hp2^.fileinfo := p^.fileinfo;
                     InsertLLItem(AsmL, p^.previous, p, hp2);
                     Pai386(p)^._operator := A_JMP;
@@ -1619,7 +1619,10 @@ End.
 
 {
  $Log$
- Revision 1.36  1999-01-04 22:04:15  jonas
+ Revision 1.37  1999-02-22 02:15:30  peter
+   * updates for ag386bin
+
+ Revision 1.36  1999/01/04 22:04:15  jonas
    + mov reg, mem1    to    mov reg, mem1
       mov mem2, reg           cmp reg, mem2
       cmp mem1, reg

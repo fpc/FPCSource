@@ -27,7 +27,11 @@ unit hcodegen;
     uses
       verbose,aasm,tree,symtable,cobjects
 {$ifdef i386}
+{$ifdef ag386bin}
+      ,i386base
+{$else}
       ,i386
+{$endif}
 {$endif}
 {$ifdef m68k}
       ,m68k
@@ -360,7 +364,10 @@ end.
 
 {
   $Log$
-  Revision 1.25  1999-01-21 22:10:45  peter
+  Revision 1.26  1999-02-22 02:15:21  peter
+    * updates for ag386bin
+
+  Revision 1.25  1999/01/21 22:10:45  peter
     * fixed array of const
     * generic platform independent high() support
 

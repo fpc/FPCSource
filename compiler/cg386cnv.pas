@@ -43,7 +43,12 @@ implementation
       cobjects,verbose,globals,systems,
       symtable,aasm,types,
       hcodegen,temp_gen,pass_2,pass_1,
-      i386,cgai386,tgeni386;
+{$ifdef ag386bin}
+      i386base,i386asm,
+{$else}
+      i386,
+{$endif}
+      cgai386,tgeni386;
 
 
 
@@ -324,10 +329,10 @@ implementation
                    hp^.symbol:=stringdup(porddef(p1)^.getrangecheckstring);
                    { second part here !! }
                    hp^.offset:=8;
-                   emitl(A_JMP,poslabel);
-                   emitl(A_LABEL,neglabel);
+                   emitjmp(C_None,poslabel);
+                   emitlab(neglabel);
                    exprasmlist^.concat(new(pai386,op_reg_ref(A_BOUND,S_L,hregister,hp)));
-                   emitl(A_LABEL,poslabel);
+                   emitlab(poslabel);
                 end;
            end;
       end;
@@ -1022,7 +1027,7 @@ implementation
          emit_reg_reg(A_MOV,S_L,R_EAX,R_EBX);
          emit_reg_reg(A_SUB,S_L,R_EDX,R_EAX);
          getlabel(hl);
-         emitl(A_JZ,hl);
+         emitjmp(C_Z,hl);
          exprasmlist^.concat(new(pai386,op_const_reg(A_RCL,S_L,1,R_EBX)));
          emit_reg_reg(A_BSR,S_L,R_EAX,R_EDX);
          exprasmlist^.concat(new(pai386,op_const_reg(A_MOV,S_B,32,R_CL)));
@@ -1034,7 +1039,7 @@ implementation
          exprasmlist^.concat(new(pai386,op_const_reg_reg(A_SHLD,S_L,20,R_EAX,R_EBX)));
 
          exprasmlist^.concat(new(pai386,op_const_reg(A_SHL,S_L,20,R_EAX)));
-         emitl(A_LABEL,hl);
+         emitlab(hl);
          { better than an add on all processors }
          exprasmlist^.concat(new(pai386,op_reg(A_PUSH,S_L,R_EBX)));
          exprasmlist^.concat(new(pai386,op_reg(A_PUSH,S_L,R_EAX)));
@@ -1214,7 +1219,7 @@ implementation
                       end;
           LOC_FLAGS : begin
                         hregister:=reg32toreg8(hregister);
-                        exprasmlist^.concat(new(pai386,op_reg(flag_2_set[pfrom^.location.resflags],S_B,hregister)));
+                        emit_flag2reg(pfrom^.location.resflags,hregister);
                         case pto^.resulttype^.size of
                          2 : exprasmlist^.concat(new(pai386,op_reg_reg(A_MOVZX,S_BW,hregister,pto^.location.register)));
                          4 : exprasmlist^.concat(new(pai386,op_reg_reg(A_MOVZX,S_BL,hregister,pto^.location.register)));
@@ -1222,12 +1227,12 @@ implementation
                       end;
            LOC_JUMP : begin
                         getlabel(hlabel);
-                        emitl(A_LABEL,truelabel);
+                        emitlab(truelabel);
                         exprasmlist^.concat(new(pai386,op_const_reg(A_MOV,newsize,1,hregister)));
-                        emitl(A_JMP,hlabel);
-                        emitl(A_LABEL,falselabel);
+                        emitjmp(C_None,hlabel);
+                        emitlab(falselabel);
                         exprasmlist^.concat(new(pai386,op_reg_reg(A_XOR,newsize,hregister,hregister)));
-                        emitl(A_LABEL,hlabel);
+                        emitlab(hlabel);
                       end;
          else
            internalerror(10061);
@@ -1273,7 +1278,7 @@ implementation
           end;
          exprasmlist^.concat(new(pai386,op_reg_reg(A_OR,S_L,hregister,hregister)));
          hregister:=reg32toreg8(hregister);
-         exprasmlist^.concat(new(pai386,op_reg(flag_2_set[pfrom^.location.resflags],S_B,hregister)));
+         emit_flag2reg(pfrom^.location.resflags,hregister);
          case pto^.resulttype^.size of
           1 : pto^.location.register:=hregister;
           2 : begin
@@ -1330,19 +1335,19 @@ implementation
                   pto^.location.register:=getregister32;
                end;
          end;
-         emitl(A_JZ,l1);
+         emitjmp(C_Z,l1);
          if pfrom^.location.loc in [LOC_MEM,LOC_REFERENCE] then
            exprasmlist^.concat(new(pai386,op_ref_reg(A_MOV,S_L,newreference(
              pfrom^.location.reference),
              pto^.location.register)));
-         emitl(A_JMP,l2);
-         emitl(A_LABEL,l1);
+         emitjmp(C_None,l2);
+         emitlab(l1);
          new(hr);
          reset_reference(hr^);
          hr^.symbol:=stringdup('FPC_EMPTYCHAR');
          exprasmlist^.concat(new(pai386,op_ref_reg(A_LEA,S_L,hr,
            pto^.location.register)));
-         emitl(A_LABEL,l2);
+         emitlab(l2);
       end;
 
 
@@ -1618,7 +1623,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.56  1999-02-15 11:30:39  pierre
+  Revision 1.57  1999-02-22 02:15:06  peter
+    * updates for ag386bin
+
+  Revision 1.56  1999/02/15 11:30:39  pierre
    * memory leaks removed
 
   Revision 1.55  1999/02/12 10:43:57  florian

@@ -68,11 +68,11 @@ unit systems;
             ,as_i386_o,as_i386_o_aout,as_i386_asw,
             as_i386_nasmcoff,as_i386_nasmelf,as_i386_nasmobj,
             as_i386_tasm,as_i386_masm,
-            as_i386_coff
+            as_i386_dbg,as_i386_coff,as_i386_pecoff
             ,as_m68k_o,as_m68k_gas,as_m68k_mit,as_m68k_mot,as_m68k_mpw
        );
      const
-       {$ifdef i386} i386asmcnt=9; {$else} i386asmcnt=0; {$endif}
+       {$ifdef i386} i386asmcnt=11; {$else} i386asmcnt=0; {$endif}
        {$ifdef m68k} m68kasmcnt=5; {$else} m68kasmcnt=0; {$endif}
        asmcnt=i386asmcnt+m68kasmcnt+1;
 
@@ -524,13 +524,16 @@ implementation
             comment : '; '
           )
           ,(
+            id     : as_i386_dbg;
+            idtxt  : 'DBG'
+          )
+          ,(
             id     : as_i386_coff;
-            idtxt  : 'COFF';
-            asmbin : 'as';
-            asmcmd : '-o $OBJ $ASM';
-            externals : false;
-            labelprefix : '.L';
-            comment : '# '
+            idtxt  : 'COFF'
+          )
+          ,(
+            id     : as_i386_pecoff;
+            idtxt  : 'PECOFF'
           )
 {$endif i386}
 {$ifdef m68k}
@@ -1324,7 +1327,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.56  1999-01-10 15:38:01  peter
+  Revision 1.57  1999-02-22 02:15:42  peter
+    * updates for ag386bin
+
+  Revision 1.56  1999/01/10 15:38:01  peter
     * moved some tables from ra386*.pas -> i386.pas
     + start of coff writer
     * renamed asmutils unit to rautils

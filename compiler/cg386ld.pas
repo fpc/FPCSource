@@ -24,7 +24,7 @@ unit cg386ld;
 interface
 
     uses
-      tree,i386;
+      tree;
 
     procedure secondload(var p : ptree);
     procedure secondassignment(var p : ptree);
@@ -39,6 +39,11 @@ implementation
       cobjects,verbose,globals,
       symtable,aasm,types,
       hcodegen,temp_gen,pass_2,
+{$ifdef ag386bin}
+      i386base,i386asm,
+{$else}
+      i386,
+{$endif}
       cgai386,tgeni386,cg386cnv;
 
 {*****************************************************************************
@@ -336,7 +341,9 @@ implementation
          loc : tloc;
          r : preference;
          oldrl : plinkedlist;
-
+{$ifdef Ag386Bin}
+         ai : pai386;
+{$endif}
       begin
          oldrl:=temptoremove;
          temptoremove:=new(plinkedlist,init);
@@ -583,7 +590,7 @@ implementation
                            end;
             LOC_JUMP     : begin
                               getlabel(hlabel);
-                              emitl(A_LABEL,truelabel);
+                              emitlab(truelabel);
                               if loc=LOC_CREGISTER then
                                 exprasmlist^.concat(new(pai386,op_const_reg(A_MOV,S_B,
                                   1,p^.left^.location.register)))
@@ -592,8 +599,8 @@ implementation
                                   1,newreference(p^.left^.location.reference))));
                               {exprasmlist^.concat(new(pai386,op_const_loc(A_MOV,S_B,
                                   1,p^.left^.location)));}
-                              emitl(A_JMP,hlabel);
-                              emitl(A_LABEL,falselabel);
+                              emitjmp(C_None,hlabel);
+                              emitlab(falselabel);
                               if loc=LOC_CREGISTER then
                                 exprasmlist^.concat(new(pai386,op_reg_reg(A_XOR,S_B,
                                   p^.left^.location.register,
@@ -601,15 +608,22 @@ implementation
                               else
                                 exprasmlist^.concat(new(pai386,op_const_ref(A_MOV,S_B,
                                   0,newreference(p^.left^.location.reference))));
-                              emitl(A_LABEL,hlabel);
+                              emitlab(hlabel);
                            end;
             LOC_FLAGS    : begin
                               if loc=LOC_CREGISTER then
-                                exprasmlist^.concat(new(pai386,op_reg(flag_2_set[p^.right^.location.resflags],S_B,
-                                  p^.left^.location.register)))
+                                emit_flag2reg(p^.right^.location.resflags,p^.left^.location.register)
                               else
+{$ifdef Ag386Bin}
+                                begin
+                                  ai:=new(pai386,op_ref(A_Setcc,S_B,newreference(p^.left^.location.reference)));
+                                  ai^.SetCondition(flag_2_cond[p^.right^.location.resflags]);
+                                  exprasmlist^.concat(ai);
+                                end;
+{$else}
                                 exprasmlist^.concat(new(pai386,op_ref(flag_2_set[p^.right^.location.resflags],S_B,
                                   newreference(p^.left^.location.reference))));
+{$endif}
                            end;
          end;
          removetemps(exprasmlist,temptoremove);
@@ -791,7 +805,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.43  1999-01-27 00:13:54  florian
+  Revision 1.44  1999-02-22 02:15:12  peter
+    * updates for ag386bin
+
+  Revision 1.43  1999/01/27 00:13:54  florian
     * "procedure of object"-stuff fixed
 
   Revision 1.42  1999/01/21 22:10:40  peter

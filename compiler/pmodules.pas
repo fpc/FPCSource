@@ -41,7 +41,11 @@ unit pmodules;
        symtable,aasm,hcodegen,
        link,assemble,import,export,gendef,ppu,comprsrc
 {$ifdef i386}
+{$ifdef Ag386Bin}
+       ,i386base,i386asm
+{$else}
        ,i386
+{$endif}
 {$endif}
 {$ifdef m68k}
        ,m68k
@@ -1241,7 +1245,10 @@ unit pmodules;
 end.
 {
   $Log$
-  Revision 1.97  1999-02-16 00:45:31  peter
+  Revision 1.98  1999-02-22 02:15:29  peter
+    * updates for ag386bin
+
+  Revision 1.97  1999/02/16 00:45:31  peter
     * fixed crashes by forgotten strpnew() for init_symbol
 
   Revision 1.96  1999/02/05 08:54:27  pierre

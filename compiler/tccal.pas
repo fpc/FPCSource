@@ -44,7 +44,12 @@ implementation
       aasm,types,
       hcodegen,htypechk,pass_1
 {$ifdef i386}
-      ,i386,tgeni386
+{$ifdef ag386bin}
+      ,i386base
+{$else}
+      ,i386
+{$endif}
+      ,tgeni386
 {$endif}
 {$ifdef m68k}
       ,m68k,tgen68k
@@ -1071,7 +1076,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.23  1999-02-09 17:15:52  florian
+  Revision 1.24  1999-02-22 02:15:45  peter
+    * updates for ag386bin
+
+  Revision 1.23  1999/02/09 17:15:52  florian
     * some false warnings "function result doesn't seems to be set" are
       avoided
 

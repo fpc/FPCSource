@@ -38,7 +38,12 @@ implementation
       cobjects,verbose,globals,
       symtable,aasm,types,
       hcodegen,temp_gen,pass_2,
-      i386,cgai386,tgeni386;
+{$ifdef ag386bin}
+      i386base,i386asm,
+{$else}
+      i386,
+{$endif}
+      cgai386,tgeni386;
 
      const
        bytes2Sxx:array[1..4] of Topsize=(S_B,S_W,S_NO,S_L);
@@ -245,7 +250,7 @@ implementation
                    if ranges then
                      exprasmlist^.concat(new(pai386,op_none(A_STC,S_NO)));
                    { If found, jump to end }
-                   emitl(A_JE,l);
+                   emitjmp(C_E,l);
                    case p^.left^.location.loc of
                   LOC_REGISTER,
                  LOC_CREGISTER : exprasmlist^.concat(new(pai386,op_const_reg(A_CMP,opsize,
@@ -258,7 +263,7 @@ implementation
                    if ranges then
                      exprasmlist^.concat(new(pai386,op_none(A_STC,S_NO)));
                    { If found, jump to end }
-                   emitl(A_JE,l);
+                   emitjmp(C_E,l);
                  end
                 else
                  begin
@@ -275,7 +280,7 @@ implementation
                           setparts[i].start,newreference(p^.left^.location.reference))));
                       end;
                       { If lower, jump to next check }
-                      emitl(A_JB,l2);
+                      emitjmp(C_B,l2);
                     end;
                    { We only check for the high bound if it is < 255, because
                      set elements higher than 255 do nt exist, the its always true,
@@ -291,12 +296,12 @@ implementation
                           setparts[i].stop+1,newreference(p^.left^.location.reference))));
                       end;
                       { If higher, element is in set }
-                      emitl(A_JB,l);
+                      emitjmp(C_B,l);
                     end
                    else
                     begin
                       exprasmlist^.concat(new(pai386,op_none(A_STC,S_NO)));
-                      emitl(A_JMP,l);
+                      emitjmp(C_None,l);
                     end;
                  end;
                 { Emit the jump over label }
@@ -317,7 +322,7 @@ implementation
                 if ranges then
                  exprasmlist^.concat(new(pai386,op_none(A_STC,S_NO)));
                 { If found, jump to end }
-                emitl(A_JE,l);
+                emitjmp(C_E,l);
               end;
              if ranges then
               exprasmlist^.concat(new(pai386,op_none(A_CLC,S_NO)));
@@ -444,7 +449,7 @@ implementation
       var
          with_sign : boolean;
          opsize : topsize;
-         jmp_gt,jmp_le,jmp_lee : tasmop;
+         jmp_gt,jmp_le,jmp_lee : tasmcond;
          hp : ptree;
          { register with case expression }
          hregister : tregister;
@@ -461,7 +466,7 @@ implementation
            lesslabel,greaterlabel : plabel;
 
        begin
-         emitl(A_LABEL,p^._at);
+         emitlab(p^._at);
          { calculate labels for left and right }
          if (p^.less=nil) then
            lesslabel:=elselabel
@@ -477,23 +482,21 @@ implementation
            begin
               exprasmlist^.concat(new(pai386,op_const_reg(A_CMP,opsize,p^._low,hregister)));
               if greaterlabel=lesslabel then
-                begin
-                   emitl(A_JNE,lesslabel);
-                end
+                emitjmp(C_NE,lesslabel)
               else
                 begin
-                   emitl(jmp_le,lesslabel);
-                   emitl(jmp_gt,greaterlabel);
+                   emitjmp(jmp_le,lesslabel);
+                   emitjmp(jmp_gt,greaterlabel);
                 end;
-              emitl(A_JMP,p^.statement);
+              emitjmp(C_None,p^.statement);
            end
          else
            begin
               exprasmlist^.concat(new(pai386,op_const_reg(A_CMP,opsize,p^._low,hregister)));
-              emitl(jmp_le,lesslabel);
+              emitjmp(jmp_le,lesslabel);
                 exprasmlist^.concat(new(pai386,op_const_reg(A_CMP,opsize,p^._high,hregister)));
-              emitl(jmp_gt,greaterlabel);
-              emitl(A_JMP,p^.statement);
+              emitjmp(jmp_gt,greaterlabel);
+              emitjmp(C_None,p^.statement);
            end;
           if assigned(p^.less) then
            gentreejmp(p^.less);
@@ -517,7 +520,7 @@ implementation
              if first and (t^._low>get_min_value(p^.left^.resulttype)) then
                begin
                   exprasmlist^.concat(new(pai386,op_const_reg(A_CMP,opsize,t^._low,hregister)));
-                  emitl(jmp_le,elselabel);
+                  emitjmp(jmp_le,elselabel);
                end;
              if t^._low=t^._high then
                begin
@@ -528,8 +531,7 @@ implementation
                   else
                     exprasmlist^.concat(new(pai386,op_const_reg(A_SUB,opsize,t^._low-last,hregister)));
                   last:=t^._low;
-
-                  emitl(A_JZ,t^.statement);
+                  emitjmp(C_Z,t^.statement);
                end
              else
                begin
@@ -565,12 +567,12 @@ implementation
                   if (t^._low-last>1) then
                     begin
                        exprasmlist^.concat(new(pai386,op_const_reg(A_SUB,opsize,t^._low-last,hregister)));
-                       emitl(jmp_le,elselabel);
+                       emitjmp(jmp_le,elselabel);
                     end
                   else
                     exprasmlist^.concat(new(pai386,op_reg(A_DEC,opsize,hregister)));
                   exprasmlist^.concat(new(pai386,op_const_reg(A_SUB,opsize,t^._high-t^._low,hregister)));
-                  emitl(jmp_lee,t^.statement);
+                  emitjmp(jmp_lee,t^.statement);
 
                   last:=t^._high;
                end;
@@ -583,7 +585,7 @@ implementation
            last:=0;
            first:=true;
            genitem(hp);
-           emitl(A_JMP,elselabel);
+           emitjmp(C_None,elselabel);
         end;
 
       procedure genjumptable(hp : pcaserecord;min_,max_ : longint);
@@ -618,9 +620,9 @@ implementation
              begin
                 exprasmlist^.concat(new(pai386,op_const_reg(A_CMP,opsize,min_,hregister)));
                 { case expr less than min_ => goto elselabel }
-                emitl(jmp_le,elselabel);
+                emitjmp(jmp_le,elselabel);
                 exprasmlist^.concat(new(pai386,op_const_reg(A_CMP,opsize,max_,hregister)));
-                emitl(jmp_gt,elselabel);
+                emitjmp(jmp_gt,elselabel);
              end;
            getlabel(table);
            { extend with sign }
@@ -670,15 +672,15 @@ implementation
          with_sign:=is_signed(p^.left^.resulttype);
          if with_sign then
            begin
-              jmp_gt:=A_JG;
-              jmp_le:=A_JL;
-              jmp_lee:=A_JLE;
+              jmp_gt:=C_G;
+              jmp_le:=C_L;
+              jmp_lee:=C_LE;
            end
          else
             begin
-              jmp_gt:=A_JA;
-              jmp_le:=A_JB;
-              jmp_lee:=A_JBE;
+              jmp_gt:=C_A;
+              jmp_le:=C_B;
+              jmp_lee:=C_BE;
            end;
          cleartempgen;
          secondpass(p^.left);
@@ -779,24 +781,27 @@ implementation
               secondpass(hp^.right);
               { don't come back to case line }
               aktfilepos:=exprasmlist^.getlasttaifilepos^;
-              emitl(A_JMP,endlabel);
+              emitjmp(C_None,endlabel);
               hp:=hp^.left;
            end;
-         emitl(A_LABEL,elselabel);
+         emitlab(elselabel);
          { ...and the else block }
          if assigned(p^.elseblock) then
              begin
               cleartempgen;
               secondpass(p^.elseblock);
            end;
-         emitl(A_LABEL,endlabel);
+         emitlab(endlabel);
       end;
 
 
 end.
 {
   $Log$
-  Revision 1.21  1999-02-17 10:12:59  peter
+  Revision 1.22  1999-02-22 02:15:16  peter
+    * updates for ag386bin
+
+  Revision 1.21  1999/02/17 10:12:59  peter
     * removed memory leak when jumps are generated
 
   Revision 1.20  1998/12/11 00:02:56  peter

@@ -44,7 +44,12 @@ implementation
       cobjects,verbose,globals,
       symtable,aasm,types,
       hcodegen,temp_gen,pass_2,
-      i386,cgai386,tgeni386;
+{$ifdef ag386bin}
+      i386base,i386asm,
+{$else}
+      i386,
+{$endif}
+      cgai386,tgeni386;
 
 {*****************************************************************************
                              SecondRealConst
@@ -379,7 +384,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.27  1999-01-19 14:21:59  peter
+  Revision 1.28  1999-02-22 02:15:08  peter
+    * updates for ag386bin
+
+  Revision 1.27  1999/01/19 14:21:59  peter
     * shortstring truncated after 255 chars
 
   Revision 1.26  1998/12/11 00:02:49  peter

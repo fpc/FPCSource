@@ -40,7 +40,12 @@ implementation
       symtable,aasm,types,
       hcodegen,htypechk,pass_1
 {$ifdef i386}
-      ,i386,tgeni386
+{$ifdef ag386bin}
+      ,i386base
+{$else}
+      ,i386
+{$endif}
+      ,tgeni386
 {$endif}
 {$ifdef m68k}
       ,m68k,tgen68k
@@ -244,7 +249,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.5  1998-12-18 17:15:40  peter
+  Revision 1.6  1999-02-22 02:15:55  peter
+    * updates for ag386bin
+
+  Revision 1.5  1998/12/18 17:15:40  peter
     * added 'in []' support
 
   Revision 1.4  1998/12/11 00:03:58  peter

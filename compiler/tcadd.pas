@@ -37,7 +37,11 @@ implementation
       symtable,aasm,types,
       hcodegen,htypechk,pass_1
 {$ifdef i386}
+{$ifdef ag386bin}
+      ,i386base
+{$else}
       ,i386
+{$endif}
 {$endif}
 {$ifdef m68k}
       ,m68k
@@ -1013,7 +1017,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.21  1999-01-20 21:05:09  peter
+  Revision 1.22  1999-02-22 02:15:43  peter
+    * updates for ag386bin
+
+  Revision 1.21  1999/01/20 21:05:09  peter
     * fixed set operations which still had array constructor as type
 
   Revision 1.20  1999/01/20 17:39:26  jonas

@@ -49,7 +49,12 @@ implementation
      ,gdb
 {$endif}
 {$ifdef i386}
-     ,i386,tgeni386,cgai386
+{$ifdef Ag386Bin}
+     ,i386base,i386asm
+{$else}
+     ,i386
+{$endif}
+     ,tgeni386,cgai386
      ,cg386con,cg386mat,cg386cnv,cg386set,cg386add
      ,cg386mem,cg386cal,cg386ld,cg386flw,cg386inl
 {$endif}
@@ -495,7 +500,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.14  1999-01-23 23:29:37  florian
+  Revision 1.15  1999-02-22 02:15:25  peter
+    * updates for ag386bin
+
+  Revision 1.14  1999/01/23 23:29:37  florian
     * first running version of the new code generator
     * when compiling exceptions under Linux fixed
 

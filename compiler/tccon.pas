@@ -41,7 +41,11 @@ implementation
       symtable,aasm,types,
       hcodegen,pass_1
 {$ifdef i386}
+{$ifdef ag386bin}
+      ,i386base
+{$else}
       ,i386
+{$endif}
 {$endif}
 {$ifdef m68k}
       ,m68k
@@ -126,7 +130,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.3  1998-11-17 00:36:48  peter
+  Revision 1.4  1999-02-22 02:15:47  peter
+    * updates for ag386bin
+
+  Revision 1.3  1998/11/17 00:36:48  peter
     * more ansistring fixes
 
   Revision 1.2  1998/11/05 12:03:04  peter

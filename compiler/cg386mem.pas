@@ -47,7 +47,12 @@ implementation
       cobjects,verbose,globals,
       symtable,aasm,types,
       hcodegen,temp_gen,pass_2,
-      i386,cgai386,tgeni386;
+{$ifdef ag386bin}
+      i386base,i386asm,
+{$else}
+      i386,
+{$endif}
+      cgai386,tgeni386;
 
 {*****************************************************************************
                              SecondLoadVMT
@@ -637,7 +642,7 @@ implementation
                  LOC_FLAGS:
                    begin
                       ind:=getregister32;
-                      exprasmlist^.concat(new(pai386,op_reg(flag_2_set[p^.right^.location.resflags],S_B,reg32toreg8(ind))));
+                      emit_flag2reg(p^.right^.location.resflags,reg32toreg8(ind));
                       emit_reg_reg(A_MOVZX,S_BL,reg32toreg8(ind),ind);
                    end
                  else
@@ -855,7 +860,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.29  1999-02-07 22:53:07  florian
+  Revision 1.30  1999-02-22 02:15:14  peter
+    * updates for ag386bin
+
+  Revision 1.29  1999/02/07 22:53:07  florian
     * potential bug in secondvecn fixed
 
   Revision 1.28  1999/02/04 17:16:51  peter

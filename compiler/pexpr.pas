@@ -53,7 +53,11 @@ unit pexpr;
        ,pbase,pdecl
        { processor specific stuff }
 {$ifdef i386}
+{$ifdef ag386bin}
+       ,i386base
+{$else}
        ,i386
+{$endif}
 {$endif}
 {$ifdef m68k}
        ,m68k
@@ -1132,7 +1136,7 @@ unit pexpr;
       procedure postfixoperators;
         var
            store_static : boolean;
-           
+
         { p1 and p2 must contain valid value_str }
         begin
           check_tokenpos;
@@ -1940,7 +1944,10 @@ unit pexpr;
 end.
 {
   $Log$
-  Revision 1.83  1999-02-11 09:46:25  pierre
+  Revision 1.84  1999-02-22 02:15:26  peter
+    * updates for ag386bin
+
+  Revision 1.83  1999/02/11 09:46:25  pierre
     * fix for normal method calls inside static methods :
       WARNING there were both parser and codegen errors !!
       added static_call boolean to calln tree

@@ -26,7 +26,11 @@ unit temp_gen;
 
     uses
 {$ifdef i386}
+{$ifdef ag386bin}
+      i386base,
+{$else}
       i386,
+{$endif}
 {$endif i386}
 {$ifdef m68k}
       m68k,
@@ -228,14 +232,14 @@ unit temp_gen;
          if (maxtemp mod 4)<>0 then
            dec(maxtemp,4+(maxtemp mod 4));
 {$endif}
-{$ifdef m68k}   
+{$ifdef m68k}
 
          { we only push words and we want to stay on }
          { even stack addresses                      }
          { maxtemp is negative                       }
          if (maxtemp mod 2)<>0 then
            dec(maxtemp);
-{$endif}        
+{$endif}
 
          gettempsize:=-maxtemp;
       end;
@@ -504,7 +508,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.8  1999-02-11 09:35:19  pierre
+  Revision 1.9  1999-02-22 02:15:56  peter
+    * updates for ag386bin
+
+  Revision 1.8  1999/02/11 09:35:19  pierre
    * ExtDebug conditionnal infinite loop on temp problem removed
 
   Revision 1.7  1999/02/02 23:52:33  florian

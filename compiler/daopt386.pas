@@ -1791,7 +1791,7 @@ Begin
                         If (GetLastInstruction(p, hp) And
                            Not(((hp^.typ = ait_labeled_instruction) or
                                 (hp^.typ = ait_instruction)) And
-                                (Pai_Labeled(hp)^._operator = A_JMP))
+                                (pai386_labeled(hp)^._operator = A_JMP))
                           Then
   {previous instruction not a JMP -> the contents of the registers after the
    previous intruction has been executed have to be taken into account as well}
@@ -1808,7 +1808,7 @@ Begin
   already been processed}
                       If GetLastInstruction(p, hp) And
                          Not(hp^.typ = ait_labeled_instruction) And
-                            (Pai_Labeled(hp)^._operator = A_JMP))
+                            (pai386_labeled(hp)^._operator = A_JMP))
                         Then
   {previous instruction not a jmp, so keep all the registers' contents from the
    previous instruction}
@@ -1825,7 +1825,7 @@ Begin
       been processed}
                             While GetNextInstruction(hp, hp) And
                                   Not((hp^.typ = ait_labeled_instruction) And
-                                      (Pai_Labeled(hp)^.lab^.nb = Pai_Label(p)^.l^.nb)) And
+                                      (pai386_labeled(hp)^.lab^.nb = Pai_Label(p)^.l^.nb)) And
                                   Not((hp^.typ = ait_label) And
                                       (LTable^[Pai_Label(hp)^.l^.nb-LoLab].RefsFound
                                        = Pai_Label(hp)^.l^.RefCount) And
@@ -1863,8 +1863,8 @@ Begin
 {$IfNDef JumpAnal}
   ;
 {$Else JumpAnal}
-          With LTable^[Pai_Labeled(p)^.lab^.nb-LoLab] Do
-            If (RefsFound = Pai_Labeled(p)^.lab^.RefCount) Then
+          With LTable^[pai386_labeled(p)^.lab^.nb-LoLab] Do
+            If (RefsFound = pai386_labeled(p)^.lab^.RefCount) Then
               Begin
                 If (InstrCnt < InstrNr)
                   Then
@@ -1890,7 +1890,7 @@ Begin
 {                    If (JmpsProcessed > 0) Or
                        Not(GetLastInstruction(PaiObj, hp) And
                            (hp^.typ = ait_labeled_instruction) And
-                           (Pai_Labeled(hp)^._operator = A_JMP))
+                           (pai386_labeled(hp)^._operator = A_JMP))
                       Then}
 {instruction prior to label is not a jmp, or at least one jump to the label
  has yet been processed}
@@ -2154,9 +2154,9 @@ Begin
       Case P^.Typ Of
         ait_labeled_instruction:
           begin
-            If (Pai_Labeled(P)^.lab^.nb >= LoLab) And
-               (Pai_Labeled(P)^.lab^.nb <= HiLab) Then
-            Inc(LTable^[Pai_Labeled(P)^.lab^.nb-LoLab].RefsFound);
+            If (pai386_labeled(P)^.lab^.nb >= LoLab) And
+               (pai386_labeled(P)^.lab^.nb <= HiLab) Then
+            Inc(LTable^[pai386_labeled(P)^.lab^.nb-LoLab].RefsFound);
           end;
         ait_label:
           Begin
@@ -2227,7 +2227,10 @@ End.
 
 {
  $Log$
- Revision 1.36  1999-01-20 17:41:26  jonas
+ Revision 1.37  1999-02-22 02:15:20  peter
+   * updates for ag386bin
+
+ Revision 1.36  1999/01/20 17:41:26  jonas
    * small bugfix (memory corruption could occur when certain fpu instructions
      were encountered)
 

@@ -434,13 +434,13 @@ unit ag386nsm;
                      end;
 ait_labeled_instruction :
                      begin
-                       op:=pai_labeled(hp)^._operator;
+                       op:=pai386_labeled(hp)^._operator;
                        if not((op=A_JMP) or (op=A_LOOP) or (op=A_LOOPZ) or
                               (op=A_LOOPE) or (op=A_LOOPNZ) or (op=A_LOOPNE) or
                               (op=A_JCXZ) or (op=A_JECXZ)) then
-                        AsmWriteLn(#9#9+int_op2str[pai_labeled(hp)^._operator]+#9+'near '+lab2str(pai_labeled(hp)^.lab))
+                        AsmWriteLn(#9#9+int_op2str[pai386_labeled(hp)^._operator]+#9+'near '+lab2str(pai386_labeled(hp)^.lab))
                        else
-                        AsmWriteLn(#9#9+int_op2str[pai_labeled(hp)^._operator]+#9+lab2str(pai_labeled(hp)^.lab));
+                        AsmWriteLn(#9#9+int_op2str[pai386_labeled(hp)^._operator]+#9+lab2str(pai386_labeled(hp)^.lab));
                      end;
         ait_symbol : begin
                        if pai_symbol(hp)^.is_global then
@@ -607,7 +607,10 @@ ait_stab_function_name : ;
 end.
 {
   $Log$
-  Revision 1.17  1998-12-20 16:21:23  peter
+  Revision 1.18  1999-02-22 02:15:00  peter
+    * updates for ag386bin
+
+  Revision 1.17  1998/12/20 16:21:23  peter
     * smartlinking doesn't crash anymore
 
   Revision 1.16  1998/12/16 00:27:18  peter

@@ -42,7 +42,12 @@ implementation
       gdb,
 {$endif GDB}
       hcodegen,temp_gen,pass_2,
-      i386,cgai386,tgeni386,cg386ld;
+{$ifdef ag386bin}
+      i386base,i386asm,
+{$else}
+      i386,
+{$endif}
+      cgai386,tgeni386,cg386ld;
 
 {*****************************************************************************
                              SecondCallParaN
@@ -363,7 +368,7 @@ implementation
                  (cs_check_io in aktlocalswitches) then
                 begin
                    getlabel(iolabel);
-                   emitl(A_LABEL,iolabel);
+                   emitlab(iolabel);
                 end
               else
                 iolabel:=nil;
@@ -1304,7 +1309,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.67  1999-02-11 09:46:21  pierre
+  Revision 1.68  1999-02-22 02:15:04  peter
+    * updates for ag386bin
+
+  Revision 1.67  1999/02/11 09:46:21  pierre
     * fix for normal method calls inside static methods :
       WARNING there were both parser and codegen errors !!
       added static_call boolean to calln tree

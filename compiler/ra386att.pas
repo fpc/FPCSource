@@ -1074,7 +1074,7 @@ var
          end;
        op.size:=size;
     End;
-    
+
   Procedure ConcatOpCode(var instr: TInstruction);
   {*********************************************************************}
   { First Pass:                                                         }
@@ -2186,7 +2186,7 @@ var
              else if instr.operands[1].operandtype <> OPR_LABINSTR then
                     Message(assem_e_invalid_labeled_opcode)
              else if assigned(instr.operands[1].hl) then
-                    ConcatLabel(p,instruct, instr.operands[1].hl)
+                    p^.concat(new(pai386_labeled,op_lab(instruct, instr.operands[1].hl)))
              else
                Begin
                  Message(assem_f_internal_error_in_concatlabeledinstr);
@@ -3424,7 +3424,7 @@ Begin
            Begin
              getlabel(hl);
              labellist.insert(actasmpattern,hl,TRUE);
-             ConcatLabel(p,A_LABEL,hl);
+             ConcatLabel(p,hl);
            end
           else
            Begin
@@ -3438,7 +3438,7 @@ Begin
              else
                Begin
                  if assigned(labelptr^.lab) then
-                   ConcatLabel(p,A_LABEL,labelptr^.lab);
+                   ConcatLabel(p,labelptr^.lab);
                  labelptr^.emitted := TRUE;
                end;
            end;
@@ -3449,7 +3449,7 @@ Begin
           { when looking for Pascal labels, these must }
           { be in uppercase.                           }
           if SearchLabel(upper(actasmpattern),hl) then
-           ConcatLabel(p,A_LABEL, hl)
+           ConcatLabel(p,hl)
           else
            Begin
              if (cs_compilesystem in aktmoduleswitches) then
@@ -3707,7 +3707,10 @@ end.
 
 {
   $Log$
-  Revision 1.31  1999-01-29 11:24:02  pierre
+  Revision 1.32  1999-02-22 02:15:34  peter
+    * updates for ag386bin
+
+  Revision 1.31  1999/01/29 11:24:02  pierre
    * incompatible size warning or error suppressed for sizes > 4
 
   Revision 1.30  1999/01/28 14:12:59  pierre

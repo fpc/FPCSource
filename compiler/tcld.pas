@@ -42,7 +42,12 @@ implementation
       hcodegen,htypechk,pass_1,
       tccnv
 {$ifdef i386}
-      ,i386,tgeni386
+{$ifdef ag386bin}
+      ,i386base
+{$else}
+      ,i386
+{$endif}
+      ,tgeni386
 {$endif}
 {$ifdef m68k}
       ,m68k,tgen68k
@@ -56,7 +61,7 @@ implementation
     procedure firstload(var p : ptree);
       var
          p1 : ptree;
-         
+
       begin
 {$ifndef NODIRECTWITH}
          if (p^.symtable^.symtabletype=withsymtable) and
@@ -70,7 +75,7 @@ implementation
               exit;
            end;
 {$endif ndef NODIRECTWITH}
-           
+
          p^.location.loc:=LOC_REFERENCE;
          p^.registers32:=0;
          p^.registersfpu:=0;
@@ -447,7 +452,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.15  1999-02-15 13:13:19  pierre
+  Revision 1.16  1999-02-22 02:15:52  peter
+    * updates for ag386bin
+
+  Revision 1.15  1999/02/15 13:13:19  pierre
    * fix for bug0216
 
   Revision 1.14  1999/01/27 00:13:58  florian

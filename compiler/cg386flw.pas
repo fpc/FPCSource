@@ -47,7 +47,12 @@ implementation
       cobjects,verbose,globals,systems,
       symtable,aasm,types,
       hcodegen,temp_gen,pass_2,
-      i386,cgai386,tgeni386;
+{$ifdef ag386bin}
+      i386base,i386asm,
+{$else}
+      i386,
+{$endif}
+      cgai386,tgeni386;
 
 {*****************************************************************************
                          Second_While_RepeatN
@@ -70,16 +75,16 @@ implementation
          { handling code at the end as it is much more efficient, and makes
            while equal to repeat loop, only the end true/false is swapped (PFV) }
          if p^.treetype=whilen then
-          emitl(A_JMP,lcont);
+          emitjmp(C_None,lcont);
 
-         emitl(A_LABEL,lloop);
+         emitlab(lloop);
 
          aktcontinuelabel:=lcont;
          aktbreaklabel:=lbreak;
          cleartempgen;
          if assigned(p^.right) then
            secondpass(p^.right);
-         emitl(A_LABEL,lcont);
+         emitlab(lcont);
          otlabel:=truelabel;
          oflabel:=falselabel;
          if p^.treetype=whilen then
@@ -96,7 +101,7 @@ implementation
          cleartempgen;
          secondpass(p^.left);
          maketojumpbool(p^.left);
-         emitl(A_LABEL,lbreak);
+         emitlab(lbreak);
          freelabel(lloop);
          freelabel(lcont);
          freelabel(lbreak);
@@ -127,7 +132,7 @@ implementation
          maketojumpbool(p^.left);
          if assigned(p^.right) then
            begin
-              emitl(A_LABEL,truelabel);
+              emitlab(truelabel);
               cleartempgen;
               secondpass(p^.right);
            end;
@@ -138,21 +143,21 @@ implementation
                    getlabel(hl);
                    { do go back to if line !! }
                    aktfilepos:=exprasmlist^.getlasttaifilepos^;
-                   emitl(A_JMP,hl);
+                   emitjmp(C_None,hl);
                 end;
-              emitl(A_LABEL,falselabel);
+              emitlab(falselabel);
               cleartempgen;
               secondpass(p^.t1);
               if assigned(p^.right) then
-                emitl(A_LABEL,hl);
+                emitlab(hl);
            end
          else
            begin
-              emitl(A_LABEL,falselabel);
+              emitlab(falselabel);
            end;
          if not(assigned(p^.right)) then
            begin
-              emitl(A_LABEL,truelabel);
+              emitlab(truelabel);
            end;
          freelabel(truelabel);
          freelabel(falselabel);
@@ -172,6 +177,7 @@ implementation
          hs : byte;
          temp1 : treference;
          hop : tasmop;
+         hcond : tasmcond;
          cmpreg,cmp32 : tregister;
          opsize : topsize;
          count_var_is_signed : boolean;
@@ -214,7 +220,7 @@ implementation
          if not(simple_loadn) then
           CGMessage(cg_e_illegal_count_var);
          already done in firstfor !! *)
-         
+
          { first set the to value
            because the count var can be in the expression !! }
          cleartempgen;
@@ -309,24 +315,26 @@ implementation
            end;
          if p^.backward then
            if count_var_is_signed then
-             hop:=A_JL
-           else hop:=A_JB
+             hcond:=C_L
+           else
+             hcond:=C_B
          else
            if count_var_is_signed then
-             hop:=A_JG
-            else hop:=A_JA;
+             hcond:=C_G
+           else
+             hcond:=C_A;
 
-             if not(omitfirstcomp) or temptovalue then
-           emitl(hop,aktbreaklabel);
+         if not(omitfirstcomp) or temptovalue then
+           emitjmp(hcond,aktbreaklabel);
 
-         emitl(A_LABEL,l3);
+         emitlab(l3);
 
          { help register must not be in instruction block }
          cleartempgen;
          if assigned(p^.t1) then
            secondpass(p^.t1);
 
-         emitl(A_LABEL,aktcontinuelabel);
+         emitlab(aktcontinuelabel);
 
          { makes no problems there }
          cleartempgen;
@@ -373,29 +381,30 @@ implementation
            end;
          if p^.backward then
            if count_var_is_signed then
-             hop:=A_JLE
+             hcond:=C_LE
            else
-             hop :=A_JBE
+             hcond:=C_BE
           else
             if count_var_is_signed then
-              hop:=A_JGE
+              hcond:=C_GE
             else
-                hop:=A_JAE;
-         emitl(hop,aktbreaklabel);
+              hcond:=C_AE;
+         emitjmp(hcond,aktbreaklabel);
          { according to count direction DEC or INC... }
          { must be after the test because of 0to 255 for bytes !! }
          if p^.backward then
            hop:=A_DEC
-         else hop:=A_INC;
+         else
+           hop:=A_INC;
 
          if p^.t2^.location.loc=LOC_CREGISTER then
            exprasmlist^.concat(new(pai386,op_reg(hop,opsize,p^.t2^.location.register)))
          else
              exprasmlist^.concat(new(pai386,op_ref(hop,opsize,newreference(p^.t2^.location.reference))));
-         emitl(A_JMP,l3);
+         emitjmp(C_None,l3);
 
            { this is the break label: }
-         emitl(A_LABEL,aktbreaklabel);
+         emitlab(aktbreaklabel);
          ungetregister32(cmp32);
 
          if temptovalue then
@@ -436,13 +445,13 @@ implementation
            LOC_CREGISTER,
             LOC_REGISTER : is_mem:=false;
                LOC_FLAGS : begin
-                             exprasmlist^.concat(new(pai386,op_reg(flag_2_set[p^.right^.location.resflags],S_B,R_AL)));
+                             emit_flag2reg(p^.right^.location.resflags,R_AL);
                              goto do_jmp;
                            end;
                 LOC_JUMP : begin
-                             emitl(A_LABEL,truelabel);
+                             emitlab(truelabel);
                              exprasmlist^.concat(new(pai386,op_const_reg(A_MOV,S_B,1,R_AL)));
-                             emitl(A_JMP,aktexit2label);
+                             emitjmp(C_None,aktexit2label);
                              exprasmlist^.concat(new(pai386,op_reg_reg(A_XOR,S_B,R_AL,R_AL)));
                              goto do_jmp;
                            end;
@@ -498,11 +507,11 @@ do_jmp:
               freelabel(falselabel);
               truelabel:=otlabel;
               falselabel:=oflabel;
-              emitl(A_JMP,aktexit2label);
+              emitjmp(C_None,aktexit2label);
            end
          else
            begin
-              emitl(A_JMP,aktexitlabel);
+              emitjmp(C_None,aktexitlabel);
            end;
        end;
 
@@ -514,7 +523,7 @@ do_jmp:
     procedure secondbreakn(var p : ptree);
       begin
          if aktbreaklabel<>nil then
-           emitl(A_JMP,aktbreaklabel)
+           emitjmp(C_None,aktbreaklabel)
          else
            CGMessage(cg_e_break_not_allowed);
       end;
@@ -527,7 +536,7 @@ do_jmp:
     procedure secondcontinuen(var p : ptree);
       begin
          if aktcontinuelabel<>nil then
-           emitl(A_JMP,aktcontinuelabel)
+           emitjmp(C_None,aktcontinuelabel)
          else
            CGMessage(cg_e_continue_not_allowed);
       end;
@@ -540,7 +549,7 @@ do_jmp:
     procedure secondgoto(var p : ptree);
 
        begin
-         emitl(A_JMP,p^.labelnr);
+         emitjmp(C_None,p^.labelnr);
        end;
 
 
@@ -550,7 +559,7 @@ do_jmp:
 
     procedure secondlabel(var p : ptree);
       begin
-         emitl(A_LABEL,p^.labelnr);
+         emitlab(p^.labelnr);
          cleartempgen;
          secondpass(p^.left);
       end;
@@ -578,7 +587,7 @@ do_jmp:
               else
                 begin
                    getlabel(a);
-                   emitl(A_LABEL,a);
+                   emitlab(a);
                    exprasmlist^.concat(new(pai386,
                      op_csymbol(A_PUSH,S_L,newcsymbol(lab2str(a),0))));
                 end;
@@ -635,27 +644,27 @@ do_jmp:
            op_reg(A_PUSH,S_L,R_EAX)));
          exprasmlist^.concat(new(pai386,
            op_reg_reg(A_TEST,S_L,R_EAX,R_EAX)));
-         emitl(A_JNE,exceptlabel);
+         emitjmp(C_NE,exceptlabel);
 
          { try code }
          secondpass(p^.left);
          if codegenerror then
            exit;
 
-         emitl(A_LABEL,exceptlabel);
+         emitlab(exceptlabel);
          exprasmlist^.concat(new(pai386,
            op_reg(A_POP,S_L,R_EAX)));
          exprasmlist^.concat(new(pai386,
            op_reg_reg(A_TEST,S_L,R_EAX,R_EAX)));
-         emitl(A_JNE,doexceptlabel);
+         emitjmp(C_NE,doexceptlabel);
          emitcall('FPC_POPADDRSTACK',true);
-         emitl(A_JMP,endexceptlabel);
-         emitl(A_LABEL,doexceptlabel);
+         emitjmp(C_None,endexceptlabel);
+         emitlab(doexceptlabel);
 
          if assigned(p^.right) then
            secondpass(p^.right);
 
-         emitl(A_LABEL,lastonlabel);
+         emitlab(lastonlabel);
          { default handling }
          if assigned(p^.t1) then
            begin
@@ -668,7 +677,7 @@ do_jmp:
            end
          else
            emitcall('FPC_RERAISE',true);
-         emitl(A_LABEL,endexceptlabel);
+         emitlab(endexceptlabel);
          freelabel(exceptlabel);
          freelabel(doexceptlabel);
          freelabel(endexceptlabel);
@@ -694,7 +703,7 @@ do_jmp:
          emitcall('FPC_CATCHES',true);
          exprasmlist^.concat(new(pai386,
            op_reg_reg(A_TEST,S_L,R_EAX,R_EAX)));
-         emitl(A_JE,nextonlabel);
+         emitjmp(C_E,nextonlabel);
          ref.symbol:=nil;
          gettempofsizereference(4,ref);
 
@@ -709,8 +718,8 @@ do_jmp:
            secondpass(p^.right);
          { clear some stuff }
          ungetiftemp(ref);
-         emitl(A_JMP,endexceptlabel);
-         emitl(A_LABEL,nextonlabel);
+         emitjmp(C_None,endexceptlabel);
+         emitlab(nextonlabel);
          { next on node }
          if assigned(p^.left) then
            secondpass(p^.left);
@@ -741,14 +750,14 @@ do_jmp:
            op_reg(A_PUSH,S_L,R_EAX)));
          exprasmlist^.concat(new(pai386,
            op_reg_reg(A_TEST,S_L,R_EAX,R_EAX)));
-         emitl(A_JNE,finallylabel);
+         emitjmp(C_NE,finallylabel);
 
          { try code }
          secondpass(p^.left);
          if codegenerror then
            exit;
 
-         emitl(A_LABEL,finallylabel);
+         emitlab(finallylabel);
 
          { finally code }
          secondpass(p^.right);
@@ -758,11 +767,11 @@ do_jmp:
            op_reg(A_POP,S_L,R_EAX)));
          exprasmlist^.concat(new(pai386,
            op_reg_reg(A_TEST,S_L,R_EAX,R_EAX)));
-         emitl(A_JE,noreraiselabel);
+         emitjmp(C_E,noreraiselabel);
          emitcall('FPC_RERAISE',true);
-         emitl(A_LABEL,noreraiselabel);
+         emitlab(noreraiselabel);
          emitcall('FPC_POPADDRSTACK',true);
-         emitl(A_LABEL,endfinallylabel);
+         emitlab(endfinallylabel);
       end;
 
 
@@ -781,14 +790,17 @@ do_jmp:
          hp^.offset:=procinfo.ESI_offset;
          hp^.base:=procinfo.framepointer;
          exprasmlist^.concat(new(pai386,op_reg_ref(A_MOV,S_L,R_ESI,hp)));
-         exprasmlist^.concat(new(pai_labeled,init(A_JMP,quickexitlabel)));
+         exprasmlist^.concat(new(pai386_labeled,op_lab(A_JMP,quickexitlabel)));
       end;
 
 
 end.
 {
   $Log$
-  Revision 1.27  1999-01-26 11:26:21  pierre
+  Revision 1.28  1999-02-22 02:15:09  peter
+    * updates for ag386bin
+
+  Revision 1.27  1999/01/26 11:26:21  pierre
    * bug0152 for i:=1 to i-5 do (i-5) evaluated first
 
   Revision 1.26  1998/12/19 00:23:44  florian

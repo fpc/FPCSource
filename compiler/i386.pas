@@ -194,7 +194,6 @@ unit i386;
       firstop = low(tasmop);
       lastop  = high(tasmop);
 
-
     type
        { enumeration for registers, don't change the order }
        { it's used by the register size conversions        }
@@ -297,13 +296,23 @@ unit i386;
           offset : longint;
        end;
 
+    type
+       { Only here for easier adaption of the internal assembler }
+       TAsmCond=(C_None,
+         C_A,C_AE,C_B,C_BE,C_C,C_E,C_G,C_GE,C_L,C_LE,C_NA,C_NAE,
+         C_NB,C_NBE,C_NC,C_NE,C_NG,C_NGE,C_NL,C_NLE,C_NO,C_NP,
+         C_NS,C_NZ,C_O,C_P,C_PE,C_PO,C_S,C_Z
+       );
     const
-       { arrays for boolean location conversions }
-       flag_2_jmp : array[F_E..F_BE] of tasmop =
-          (A_JE,A_JNE,A_JG,A_JL,A_JGE,A_JLE,A_JC,A_JNC,
-           A_JA,A_JAE,A_JB,A_JBE);
+       flag_2_cond : array[TResFlags] of TAsmCond =
+        (C_E,C_NE,C_G,C_L,C_GE,C_LE,C_C,C_NC,C_A,C_AE,C_B,C_BE);
 
-       flag_2_set : array[F_E..F_BE] of tasmop =
+       { arrays for boolean location conversions }
+       {flag_2_jmp : array[F_E..F_BE] of tasmop =
+          (A_JE,A_JNE,A_JG,A_JL,A_JGE,A_JLE,A_JC,A_JNC,
+           A_JA,A_JAE,A_JB,A_JBE);}
+
+       flag_2_set : array[TResFlags] of tasmop =
           (A_SETE,A_SETNE,A_SETG,A_SETL,A_SETGE,A_SETLE,A_SETB,A_SETAE,
            A_SETA,A_SETAE,A_SETB,A_SETBE);
 
@@ -369,12 +378,12 @@ unit i386;
        sizepostfix_pointer = S_L;
 
     type
-       pai_labeled = ^tai_labeled;
+       pai386_labeled = ^tai386_labeled;
 
-       tai_labeled = object(tai)
+       tai386_labeled = object(tai)
           _operator : tasmop;
           lab : plabel;
-          constructor init(op : tasmop; l : plabel);
+          constructor op_lab(op : tasmop; l : plabel);
           destructor done;virtual;
        end;
 
@@ -1929,7 +1938,7 @@ unit i386;
                              TAI_LABELED
  ****************************************************************************}
 
-    constructor tai_labeled.init(op : tasmop; l : plabel);
+    constructor tai386_labeled.op_lab(op : tasmop; l : plabel);
 
       begin
          inherited init;
@@ -1940,7 +1949,7 @@ unit i386;
          inc(lab^.refcount);
       end;
 
-    destructor tai_labeled.done;
+    destructor tai386_labeled.done;
 
       begin
          dec(lab^.refcount);
@@ -1983,7 +1992,10 @@ Begin
 end.
 {
   $Log$
-  Revision 1.34  1999-01-26 11:32:14  pierre
+  Revision 1.35  1999-02-22 02:15:23  peter
+    * updates for ag386bin
+
+  Revision 1.34  1999/01/26 11:32:14  pierre
    * ppheap init code can be called before any getmem
 
   Revision 1.33  1999/01/25 09:29:38  florian

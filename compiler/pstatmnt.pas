@@ -44,7 +44,12 @@ unit pstatmnt;
        symtable,aasm,pass_1,types,scanner,hcodegen,ppu
        ,pbase,pexpr,pdecl
 {$ifdef i386}
-       ,i386,tgeni386
+{$ifdef Ag386Bin}
+       ,i386base,i386asm
+{$else}
+       ,i386
+{$endif}
+       ,tgeni386
   {$ifndef NoRa386Int}
        ,ra386int
   {$endif NoRa386Int}
@@ -1277,7 +1282,10 @@ unit pstatmnt;
 end.
 {
   $Log$
-  Revision 1.65  1999-02-15 13:13:15  pierre
+  Revision 1.66  1999-02-22 02:15:31  peter
+    * updates for ag386bin
+
+  Revision 1.65  1999/02/15 13:13:15  pierre
    * fix for bug0216
 
   Revision 1.64  1999/02/11 09:46:26  pierre

@@ -36,7 +36,12 @@ implementation
       cobjects,verbose,globals,files,
       symtable,aasm,types,
       hcodegen,temp_gen,pass_2,
-      i386,cgai386,tgeni386,cg386ld,cg386cal;
+{$ifdef ag386bin}
+      i386base,i386asm,
+{$else}
+      i386,
+{$endif}
+      cgai386,tgeni386,cg386ld,cg386cal;
 
 
 {*****************************************************************************
@@ -121,7 +126,7 @@ implementation
               ((aktprocsym^.definition^.options and poiocheck)=0) then
              begin
                 getlabel(iolabel);
-                emitl(A_LABEL,iolabel);
+                emitlab(iolabel);
              end
            else
              iolabel:=nil;
@@ -572,7 +577,7 @@ implementation
                  if cs_do_assertion in aktlocalswitches then
                    begin
                       maketojumpbool(p^.left^.left);
-                      emitl(A_LABEL,falselabel);
+                      emitlab(falselabel);
                       { erroraddr }
                       exprasmlist^.concat(new(pai386,op_reg(A_PUSH,S_L,R_EBP)));
                       { lineno }
@@ -589,7 +594,7 @@ implementation
                       emitpushreferenceaddr(exprasmlist,p^.left^.right^.left^.location.reference);
                       { call }
                       emitcall('FPC_ASSERT',true);
-                      emitl(A_LABEL,truelabel);
+                      emitlab(truelabel);
                    end;
                  freelabel(truelabel);
                  freelabel(falselabel);
@@ -771,8 +776,7 @@ implementation
                           p^.location.register)
                       else
                       if p^.left^.location.loc=LOC_FLAGS then
-                        exprasmlist^.concat(new(pai386,op_reg(flag_2_set[p^.left^.location.resflags],S_B,
-                                  p^.location.register)))
+                        emit_flag2reg(p^.left^.location.resflags,p^.location.register)
                       else
                         begin
                            del_reference(p^.left^.location.reference);
@@ -1023,7 +1027,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.27  1999-02-17 14:21:40  pierre
+  Revision 1.28  1999-02-22 02:15:11  peter
+    * updates for ag386bin
+
+  Revision 1.27  1999/02/17 14:21:40  pierre
    * unused local removed
 
   Revision 1.26  1999/02/15 11:40:21  pierre

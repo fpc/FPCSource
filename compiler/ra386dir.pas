@@ -32,8 +32,13 @@ unit Ra386dir;
   implementation
 
      uses
-        comphook,files,i386,hcodegen,globals,scanner,aasm,
-        cobjects,symtable,types,verbose,rautils;
+        comphook,files,hcodegen,globals,scanner,aasm
+{$ifdef Ag386Bin}
+        ,i386base,i386asm
+{$else}
+        ,i386
+{$endif}
+        ,cobjects,symtable,types,verbose,rautils;
 
     function assemble : ptree;
 
@@ -289,7 +294,10 @@ unit Ra386dir;
 end.
 {
   $Log$
-  Revision 1.13  1999-01-27 13:04:12  pierre
+  Revision 1.14  1999-02-22 02:15:36  peter
+    * updates for ag386bin
+
+  Revision 1.13  1999/01/27 13:04:12  pierre
    * bug with static vars in assembler readers
 
   Revision 1.12  1999/01/10 15:37:57  peter

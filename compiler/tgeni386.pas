@@ -27,7 +27,11 @@ unit tgeni386;
     uses
        cobjects,globals,tree,hcodegen,verbose,files,aasm
 {$ifdef i386}
+{$ifdef ag386bin}
+       ,i386base,i386asm
+{$else}
        ,i386
+{$endif}
 {$endif}
        ;
 
@@ -370,7 +374,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.18  1999-01-18 16:02:20  pierre
+  Revision 1.19  1999-02-22 02:15:58  peter
+    * updates for ag386bin
+
+  Revision 1.18  1999/01/18 16:02:20  pierre
    * better error info with -Co
 
   Revision 1.17  1998/12/11 23:36:09  florian

@@ -37,7 +37,12 @@ implementation
       hcodegen,htypechk,pass_1,
       tccal,tcld
 {$ifdef i386}
-      ,i386,tgeni386
+{$ifdef ag386bin}
+      ,i386base
+{$else}
+      ,i386
+{$endif}
+      ,tgeni386
 {$endif}
 {$ifdef m68k}
       ,m68k,tgen68k
@@ -967,7 +972,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.17  1999-02-01 00:00:50  florian
+  Revision 1.18  1999-02-22 02:15:49  peter
+    * updates for ag386bin
+
+  Revision 1.17  1999/02/01 00:00:50  florian
     * compiler crash fixed when constant arguments passed to round/trunc
       exceeds the longint range
 

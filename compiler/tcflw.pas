@@ -47,7 +47,12 @@ implementation
       symtable,aasm,types,
       hcodegen,htypechk,temp_gen,pass_1
 {$ifdef i386}
-      ,i386,tgeni386
+{$ifdef ag386bin}
+      ,i386base
+{$else}
+      ,i386
+{$endif}
+      ,tgeni386
 {$endif}
 {$ifdef m68k}
       ,m68k,tgen68k
@@ -483,7 +488,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.5  1999-01-13 12:01:43  peter
+  Revision 1.6  1999-02-22 02:15:48  peter
+    * updates for ag386bin
+
+  Revision 1.5  1999/01/13 12:01:43  peter
     * fixed crash with counter var
 
   Revision 1.4  1998/12/11 00:03:55  peter
