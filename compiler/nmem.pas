@@ -230,9 +230,31 @@ implementation
 
 
     function tloadparentfpnode.det_resulttype:tnode;
+      var
+        currpi : tprocinfo;
+        hsym   : tparavarsym;
       begin
         result:=nil;
         resulttype:=voidpointertype;
+        {
+          currently parentfps are never loaded in registers (FK)
+
+        if (current_procinfo.procdef.parast.symtablelevel<>parentpd.parast.symtablelevel) then
+          begin
+            currpi:=current_procinfo;
+            { walk parents }
+            while (currpi.procdef.owner.symtablelevel>parentpd.parast.symtablelevel) do
+              begin
+                currpi:=currpi.parent;
+                if not assigned(currpi) then
+                  internalerror(2005040602);
+                hsym:=tparavarsym(currpi.procdef.parast.search('parentfp'));
+                if not assigned(hsym) then
+                  internalerror(2005040601);
+                hsym.varregable:=vr_none;
+              end;
+          end;
+        }
       end;
 
 
@@ -933,7 +955,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.95  2005-03-25 22:20:19  peter
+  Revision 1.96  2005-04-06 19:39:04  florian
+    * fixed previous commit
+
+  Revision 1.95  2005/03/25 22:20:19  peter
     * add hint when passing an uninitialized variable to a var parameter
 
   Revision 1.94  2005/02/14 17:13:06  peter

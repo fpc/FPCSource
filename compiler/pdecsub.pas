@@ -2078,12 +2078,15 @@ const
         { insert funcret parameter if required }
         insert_funcret_para(pd);
 
-        { insert parentfp parameter if required }
-        insert_parentfp_para(pd);
-
         { Make var parameters regable, this must be done after the calling
           convention is set. }
+        { this must be done before parentfp is insert, because getting all cases
+          where parentfp must be in a memory location isn't catched properly so
+          we put parentfp never in a register }
         pd.parast.foreach_static(@set_addr_param_regable,pd);
+
+        { insert parentfp parameter if required }
+        insert_parentfp_para(pd);
 
         { Calculate parameter tlist }
         pd.calcparas;
@@ -2458,7 +2461,10 @@ const
 end.
 {
   $Log$
-  Revision 1.232  2005-04-06 19:09:39  florian
+  Revision 1.233  2005-04-06 19:39:04  florian
+    * fixed previous commit
+
+  Revision 1.232  2005/04/06 19:09:39  florian
     * hidden parameters can be put now in registers as well
 
   Revision 1.231  2005/03/27 14:10:52  jonas

@@ -190,13 +190,12 @@ implementation
                 hsym:=tparavarsym(currpi.procdef.parast.search('parentfp'));
                 if not assigned(hsym) then
                   internalerror(200309282);
-                {
+
                 if hsym.localloc.loc<>LOC_REFERENCE then
                   internalerror(200309283);
 
                 reference_reset_base(href,location.register,hsym.localloc.reference.offset);
-                }
-                cg.a_load_loc_reg(exprasmlist,OS_ADDR,hsym.localloc,location.register);
+                cg.a_load_ref_reg(exprasmlist,OS_ADDR,OS_ADDR,href,location.register);
               end;
           end;
       end;
@@ -864,7 +863,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.105  2005-04-06 19:09:39  florian
+  Revision 1.106  2005-04-06 19:39:04  florian
+    * fixed previous commit
+
+  Revision 1.105  2005/04/06 19:09:39  florian
     * hidden parameters can be put now in registers as well
 
   Revision 1.104  2005/02/14 17:13:06  peter
