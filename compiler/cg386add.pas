@@ -141,11 +141,12 @@ implementation
 
     procedure addstring(var p : ptree);
       var
-{$ifdef newoptimizations}
+{$ifdef newoptimizations2}
         l: pasmlabel;
         hreg: tregister;
         href2: preference;
-{$endif newoptimizations}
+        oldregisterdef: boolean;
+{$endif newoptimizations2}
         pushedregs : tpushed;
         href       : treference;
         pushed,
@@ -298,14 +299,20 @@ implementation
                              p^.left^.location.loc:=LOC_MEM;
                              p^.left^.location.reference:=href;
 
+{$ifdef newoptimizations2}
                              { length of temp string = 255 (JM) }
+                             { *** redefining a type is not allowed!! (thanks, Pierre) }
+                             { also problem with constant string!                      }
                              pstringdef(p^.left^.resulttype)^.len := 255;
+                             
+{$endif newoptimizations2}
                           end;
 
                         secondpass(p^.right);
 
-{$ifdef newoptimizations}
+{$ifdef newoptimizations2}
                         { special case for string := string + char (JM) }
+                        { needs string length stuff from above!         }
                         hreg := R_NO;
                         if is_shortstring(p^.left^.resulttype) and
                            is_char(p^.right^.resulttype) then
@@ -378,7 +385,7 @@ implementation
                           end
                         else
                           begin
-{$endif  newoptimizations}
+{$endif  newoptimizations2}
                         { on the right we do not need the register anymore too }
                         { Instead of releasing them already, simply do not }
                         { push them (so the release is in the right place, }
@@ -389,11 +396,11 @@ implementation
                               regstopush);
                            pushusedregisters(pushedregs,regstopush);
                            { push the maximum possible length of the result }
-{$ifdef newoptimizations}
+{$ifdef newoptimizations2}
                            { string (could be < 255 chars now) (JM)         }
                             emit_const(A_PUSH,S_L,
                               pstringdef(p^.left^.resulttype)^.len);
-{$endif newoptimizations}
+{$endif newoptimizations2}
                             emitpushreferenceaddr(p^.left^.location.reference);
                            { the optimizer can more easily put the          }
                            { deallocations in the right place if it happens }
@@ -401,17 +408,17 @@ implementation
                            { the pushref needs a "lea (..),edi; push edi")  }
                             del_reference(p^.right^.location.reference);
                             emitpushreferenceaddr(p^.right^.location.reference);
-{$ifdef newoptimizations}
+{$ifdef newoptimizations2}
                             emitcall('FPC_SHORTSTR_CONCAT_LEN');
-{$else newoptimizations}
+{$else newoptimizations2}
                             emitcall('FPC_SHORTSTR_CONCAT');
-{$endif newoptimizations}
+{$endif newoptimizations2}
                             ungetiftemp(p^.right^.location.reference);
                             maybe_loadesi;
                             popusedregisters(pushedregs);
-{$ifdef newoptimizations}
+{$ifdef newoptimizations2}
                         end;
-{$endif newoptimizations}
+{$endif newoptimizations2}
                         set_location(p^.location,p^.left^.location);
                      end;
                    ltn,lten,gtn,gten,
@@ -2369,7 +2376,12 @@ implementation
 end.
 {
   $Log$
-  Revision 1.100  2000-04-23 09:28:19  jonas
+  Revision 1.101  2000-04-25 14:43:36  jonas
+    - disabled "string_var := string_var + ... " and "string_var + char_var"
+      optimizations (were only active with -dnewoptimizations) because of
+      several internal issues
+
+  Revision 1.100  2000/04/23 09:28:19  jonas
     * use FPC_SHPRTSTR_CONCAT_LEN for -dnewoptimizations (temp)
     * more precise reg deallocation when calling the above)
 

@@ -309,10 +309,10 @@ unit tree;
     function getcopy(p : ptree) : ptree;
 
     function equal_trees(t1,t2 : ptree) : boolean;
-{$ifdef newoptimizations}
+{$ifdef newoptimizations2}
     { checks if t1 is loaded more than once in t2 and its sub-trees }
     function multiple_uses(t1,t2: ptree): boolean;
-{$endif newoptimizations}
+{$endif newoptimizations2}
 
     procedure swaptree(p:Ptree);
     procedure disposetree(p : ptree);
@@ -1755,7 +1755,7 @@ unit tree;
           equal_trees:=false;
      end;
 
-{$ifdef newoptimizations}
+{$ifdef newoptimizations2}
     function multiple_uses(t1,t2: ptree): boolean;
     var nr: longint;
 
@@ -1773,7 +1773,7 @@ unit tree;
        check_tree(t2);
        multiple_uses := nr > 1;
     end;
-{$endif newoptimizations}
+{$endif newoptimizations2}
 
     procedure set_unique(p : ptree);
 
@@ -2110,7 +2110,12 @@ unit tree;
 end.
 {
   $Log$
-  Revision 1.118  2000-04-24 11:11:50  peter
+  Revision 1.119  2000-04-25 14:43:37  jonas
+    - disabled "string_var := string_var + ... " and "string_var + char_var"
+      optimizations (were only active with -dnewoptimizations) because of
+      several internal issues
+
+  Revision 1.118  2000/04/24 11:11:50  peter
     * backtraces for exceptions are now only generated from the place of the
       exception
     * frame is also pushed for exceptions

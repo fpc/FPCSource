@@ -201,10 +201,10 @@ implementation
 *****************************************************************************}
 
     procedure firstassignment(var p : ptree);
-{$ifdef newoptimizations}
+{$ifdef newoptimizations2}
       var
         hp : ptree;
-{$endif newoptimizations}
+{$endif newoptimizations2}
       begin
          { must be made unique }
          set_unique(p^.left);
@@ -273,7 +273,7 @@ implementation
             { the problem is for
               s:=s+s+s;
               this is broken here !! }
-{$ifdef newoptimizations}
+{$ifdef newoptimizations2}
             { the above is fixed now, but still problem with s := s + f(); if }
             { f modifies s (bad programming, so only enable if uncertain      }
             { optimizations are on) (JM)                                      }
@@ -293,7 +293,7 @@ implementation
                       end;
                   end;
               end;
-{$endif newoptimizations}
+{$endif newoptimizations2}
           end
          else
           begin
@@ -496,7 +496,12 @@ implementation
 end.
 {
   $Log$
-  Revision 1.63  2000-04-23 21:04:09  jonas
+  Revision 1.64  2000-04-25 14:43:36  jonas
+    - disabled "string_var := string_var + ... " and "string_var + char_var"
+      optimizations (were only active with -dnewoptimizations) because of
+      several internal issues
+
+  Revision 1.63  2000/04/23 21:04:09  jonas
     * only enable string_concat optimization with uncertain optimizations,
       because it gives wrong results with "s := s + f()" where s is a
       string and f() is a call to a function that modifies s

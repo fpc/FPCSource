@@ -842,13 +842,13 @@ implementation
               else
                 begin
                    if not(is_shortstring(rd))
-{$ifdef newoptimizations}
+{$ifdef newoptimizations2}
 {$ifdef i386}
                       { shortstring + char handled seperately  (JM) }
                       and (not(cs_optimize in aktglobalswitches) or
                            (p^.treetype <> addn) or not(is_char(rd)))
 {$endif i386}
-{$endif newoptimizations}
+{$endif newoptimizations2}
                     then
                       p^.right:=gentypeconvnode(p^.right,cshortstringdef);
                    if not(is_shortstring(ld)) then
@@ -1301,7 +1301,12 @@ implementation
 end.
 {
   $Log$
-  Revision 1.74  2000-04-21 12:35:05  jonas
+  Revision 1.75  2000-04-25 14:43:36  jonas
+    - disabled "string_var := string_var + ... " and "string_var + char_var"
+      optimizations (were only active with -dnewoptimizations) because of
+      several internal issues
+
+  Revision 1.74  2000/04/21 12:35:05  jonas
     + special code for string + char, between -dnewoptimizations
 
   Revision 1.73  2000/03/28 21:14:18  pierre
