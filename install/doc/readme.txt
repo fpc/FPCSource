@@ -1,7 +1,7 @@
 
                             Free Pascal Compiler
 
-                               Version 0.99.14
+                               Version 1.00
 
 
 ****************************************************************************
@@ -86,8 +86,8 @@ The current version is only an evaluation version.
 
 Quick start
 -----------
-Download dos09914.zip (version for DOS) or w3209914.zip (version for
-Win9x/NT) or os209914.zip (EMX version - for OS/2 and DOS) and unzip it
+Download dos100.zip (version for DOS) or w32100.zip (version for
+Win9x/NT) or os2100.zip (EMX version - for OS/2 and DOS) and unzip it
 into a temporary directory.
 
 Start the install program INSTALL.EXE and follow the instructions.
@@ -108,7 +108,7 @@ All standard packages contain a part that is specific for the target platform
 and a few files which are target independent. All files are also available
 as separate files to reduce file size if the default file is too big.
 
-dos09914.zip specific:
+dos100.zip specific:
 ----------------------
   basego32.zip    contains a DOS (Go32V2) compiler, runtime library and
                   additional files
@@ -127,10 +127,10 @@ dos09914.zip specific:
       GInstall 3.16
       GDate 3.16
       GEcho 3.16
-      UPX 0.94
+      UPX 1.01
   gdbgo32.zip     contains the GNU Debugger 4.18 with pascal support for Go32V2
 
-w3209914.zip specific:
+w32100.zip specific:
 ----------------------
   basew32.zip     contains a Win32 compiler, runtime library and
                   additional files
@@ -152,10 +152,10 @@ w3209914.zip specific:
       GInstall 3.16
       GDate 3.16
       GEcho 3.16
-      UPX 0.94
+      UPX 1.01
   gdbw32.zip      contains the GNU Debugger 4.18 with pascal support for Win32
 
-os209914.zip specific:
+os2100.zip specific:
 ----------------------
   baseemx.zip     contains an EMX (OS/2 and DOS) compiler, runtime library and
                   additional files
@@ -184,7 +184,7 @@ os209914.zip specific:
   gdbemx.zip      contains the GNU Debugger 4.16 for EMX,
                   PMGDB (Presentation Manager add-on for GDB) and GPROF 2.9.1
 
-common files in dos09914.zip, w3209914.zip and os209914.zip:
+common files in dos100.zip, w32100.zip and os2100.zip:
 ------------------------------------------------------------
   demo.zip        contains some demo files
   doc-pdf.zip     contains the documentation in PDF format
@@ -193,7 +193,7 @@ common files in dos09914.zip, w3209914.zip and os209914.zip:
   readme.txt      this readme file
   whatsnew.txt    what's been changed
 
-Optional source package src09914.zip:
+Optional source package src100.zip:
 -------------------------------------
   basesrc.zip     contains the basic Makefiles needed for the source tree
   compsrc.zip     contains the compiler sources
@@ -211,7 +211,8 @@ Optional source package src09914.zip:
 ****************************************************************************
 
 The documentation is available as HTML pages, PDF, PS, and text although the
-recommended format is pdf. These are all available in ftp... /docs/...
+recommended format is pdf. These are all available on
+ftp://ftp.freepascal.org/fpc/docs
 
 NB that there is at present no FPC specific documentation for the Win32
 system functions. There is a note in the ftp /doc explaining where

@@ -1,7 +1,49 @@
 
                             Free Pascal Compiler
 
-                               Version 0.99.14
+                               Version 1.00
+
+******************************************************************************
+                             Whats New in 1.00
+******************************************************************************
+
+Compiler:
+  + -gl switch to automaticly load the lineinfo unit
+  + Lot of Delphi compatibility additions, especially when using -Sd
+  * Optimizer fixes, mainly register allocations needed for -Or
+  * int64/qword fixes
+  * RTTI fixes
+  * Smartlinking fixes for classes
+  * inline fixes (but still Beta)
+  * Exceptions generate more usefull backtraces which also support the
+    new lineinfo unit
+  * {$Packrecords C} fixes to be better C compatible
+  * operator should now work correctly when defined in other units
+    and locally and other fixes
+  * Better glibc 2.1.x support under linux
+  * Lot of other small bugfixes for the reported bugs
+
+RTL:
+  + lineinfo unit to display the file and line when a backtrace is
+    generated, this works for runtime errors, unhandled exceptions and
+    heaptrc unit (hint: use -ghl to easily detect and fix memory leaks)
+  * better precision when converting float to string
+  * Better exception support for Go32v2 without the need to load dpmiexcp
+  * Better Signal handling under linux for exception reporting
+  * Windows unit for win32 has now more delphi compatible declarations
+  * disksize/diskfree return now int64 so drives > 2GB work correctly
+  * lot of graph unit fixes, with generic mode support
+  * paramstr(0) under linux now returns the full executable instead of
+    the commandline
+  * heaptrc fixes for reallocmem
+  * other fixes reported by users
+
+Utils:
+  + postw32 to postprocess win32 executables to patch the stacksize
+  * h2pas is now better and also has a compact output mode with less
+    spaces and blank lines.
+  * fpcmake supports .so library creation and example installation
+
 
 ******************************************************************************
                             Whats New in 0.99.14
