@@ -211,6 +211,7 @@ alltisexec: $(patsubst %.pp,%.eli,$(wildcard tis*.pp))
 
 clean :
 	-rm -f *.re* *.o *.ppu *.log *.elg *.exc t*.exe log faillist ts_fail tf_fail
+	-rm -f ppas.sh ppas.bat retcode
 ifndef DJGPP
 	-rm -f $(patsubst %.pp,%,$(wildcard *.pp))
 endif
@@ -229,7 +230,10 @@ info :
 
 #
 # $Log$
-# Revision 1.4  1999-09-19 11:23:06  peter
+# Revision 1.5  1999-09-19 11:48:18  peter
+#   * remove ppas and retcode
+#
+# Revision 1.4  1999/09/19 11:23:06  peter
 #   * clean also the executables under linux
 #
 # Revision 1.3  1999/06/01 13:27:27  peter
