@@ -514,12 +514,12 @@
              begin
                if not was_defined_at_startup and was_used and
                  mac^.defined_at_startup then
-                 Comment(V_Note,'Conditionnal '+hs+' was not set at startup '+
+                 Comment(V_Hint,'Conditional '+hs+' was not set at startup '+
                  'in last compilation of '+current_module^.mainsource^);
              end
            else { not assigned }
              if was_defined_at_startup and was_used then
-               Comment(V_Note,'Conditionnal '+hs+' was set at startup '+
+               Comment(V_Hint,'Conditional '+hs+' was set at startup '+
                'in last compilation of '+current_module^.mainsource^);
          end;
       end;
@@ -689,8 +689,11 @@
 
 {
   $Log$
-  Revision 1.48  1999-08-31 15:47:56  pierre
-   + startup conditionnals stored in PPU file for debug info
+  Revision 1.49  1999-09-03 10:54:22  pierre
+   * message about conditionals changed to Hint
+
+  Revision 1.48  1999/08/31 15:47:56  pierre
+   + startup conditionals stored in PPU file for debug info
 
   Revision 1.47  1999/08/27 10:54:45  pierre
     * some code adapted to CRC_only computation
