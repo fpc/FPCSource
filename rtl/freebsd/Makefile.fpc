@@ -17,7 +17,7 @@ units=$(SYSTEMUNIT) objpas strings syscall baseunix unixutil \
       cpu mmx charset ucomplex crt getopts heaptrc lineinfo \
       errors sockets gpm ipc terminfo \
       video mouse keyboard console serial variants types sysctl dateutils
-rsts=math varutils typinfo classes variants
+rsts=math varutils typinfo classes variants dateutils
 
 [require]
 nortl=y
