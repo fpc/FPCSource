@@ -1,0 +1,8 @@
+
+This is a fake compiler which can be used instead of the full compiler source.
+The only thing it does is when you compile it writes some info lines to the
+do_comment() function, which is normally called by the compiler.
+
+Currently it gives an info line that it is a fake compiler and on the second
+line the specified commandline
+

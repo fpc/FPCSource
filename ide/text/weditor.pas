@@ -1,0 +1,2657 @@
+{
+    $Id$
+    This file is part of the Free Pascal Integrated Development Environment
+    Copyright (c) 1998 by Berczi Gabor
+
+    Code editor template objects
+
+    See the file COPYING.FPC, included in this distribution,
+    for details about the copyright.
+
+    This program is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+
+ **********************************************************************}
+unit WEditor;
+
+interface
+
+{$ifndef FPC}
+  {$define TPUNIXLF}
+{$endif}
+
+uses
+  Objects,Drivers,Views,Commands;
+
+const
+      MaxLineLength = 255;
+      MaxLineCount  = 16380;
+
+      efBlockInsCursor      = $00000001;
+      efAutoIndent          = $00000002;
+      efPersistentBlocks    = $00000004;
+      efVerticalBlocks      = $00000008;
+      efUseTabCharacters    = $00000010;
+      efBackSpaceUnindents  = $00000020;
+      efSyntaxHighlight     = $00000040;
+      efAutoBrackets        = $00000080;
+      efHighlightColumn     = $00000100;
+      efHighlightRow        = $00000200;
+      efBackupFiles         = $00001000;
+
+      attrAsm       = 1;
+      attrComment   = 2;
+      attrForceFull = 128;
+      attrAll       = attrAsm+attrComment;
+
+      edOutOfMemory   = 0;
+      edReadError     = 1;
+      edWriteError    = 2;
+      edCreateError   = 3;
+      edSaveModify    = 4;
+      edSaveUntitled  = 5;
+      edSaveAs        = 6;
+      edFind          = 7;
+      edSearchFailed  = 8;
+      edReplace       = 9;
+      edReplacePrompt = 10;
+      edTooManyLines  = 11;
+      edGotoLine      = 12;
+
+      ffmOptions         = $0007; ffsOptions     = 0;
+      ffmDirection       = $0008; ffsDirection   = 3;
+      ffmScope           = $0010; ffsScope       = 4;
+      ffmOrigin          = $0020; ffsOrigin      = 5;
+      ffDoReplace        = $0040;
+      ffReplaceAll       = $0080;
+
+
+      ffCaseSensitive    = $0001;
+      ffWholeWordsOnly   = $0002;
+      ffPromptOnReplace  = $0004;
+
+      ffForward          = $0000;
+      ffBackward         = $0008;
+
+      ffGlobal           = $0000;
+      ffSelectedText     = $0010;
+
+      ffFromCursor       = $0000;
+      ffEntireScope      = $0020;
+
+      coTextColor         = 0;
+      coWhiteSpaceColor   = 1;
+      coCommentColor      = 2;
+      coReservedWordColor = 3;
+      coIdentifierColor   = 4;
+      coStringColor       = 5;
+      coNumberColor       = 6;
+      coAssemblerColor    = 7;
+      coSymbolColor       = 8;
+      coDirectiveColor    = 9;
+
+      coFirstColor        = 0;
+      coLastColor         = coDirectiveColor;
+
+      CIndicator          = #2#3;
+      CEditor             = #33#34#35#36#37#38#39#40#41#42#43#44#45#46#47#48;
+
+      TAB           = #9;
+
+type
+    PLine = ^TLine;
+    TLine = record
+      Text          : PString;
+      Format        : PString;
+      BeginsWithAsm,
+      EndsWithAsm   : boolean;
+      BeginsWithComment,
+      EndsWithComment : boolean;
+      BeginsWithDirective,
+      EndsWithDirective : boolean;
+    end;
+
+    PLineCollection = ^TLineCollection;
+    TLineCollection = object(TCollection)
+      function  At(Index: Integer): PLine;
+      procedure FreeItem(Item: Pointer); virtual;
+    end;
+
+    PIndicator = ^TIndicator;
+    TIndicator = object(TView)
+      Location: TPoint;
+      Modified: Boolean;
+      constructor Init(var Bounds: TRect);
+      procedure Draw; virtual;
+      function GetPalette: PPalette; virtual;
+      procedure SetState(AState: Word; Enable: Boolean); virtual;
+      procedure SetValue(ALocation: TPoint; AModified: Boolean);
+    end;
+
+    TSpecSymbolClass =
+      (ssCommentPrefix,ssCommentSuffix,ssStringPrefix,ssStringSuffix,
+       ssDirectivePrefix,ssDirectiveSuffix,ssAsmPrefix,ssAsmSuffix);
+
+    PCodeEditor = ^TCodeEditor;
+    TCodeEditor = object(TScroller)
+      Indicator  : PIndicator;
+      Lines      : PLineCollection;
+      SelStart   : TPoint;
+      SelEnd     : TPoint;
+      Highlight  : TRect;
+      CurPos     : TPoint;
+      CanUndo    : Boolean;
+      Modified   : Boolean;
+      IsReadOnly : Boolean;
+      Overwrite  : Boolean;
+      NoSelect   : Boolean;
+      Flags      : longint;
+      TabSize    : integer;
+      constructor Init(var Bounds: TRect; AHScrollBar, AVScrollBar:
+                    PScrollBar; AIndicator: PIndicator; AbufSize:Sw_Word);
+      procedure   ConvertEvent(var Event: TEvent); virtual;
+      procedure   HandleEvent(var Event: TEvent); virtual;
+      procedure   SetState(AState: Word; Enable: Boolean); virtual;
+      procedure   Draw; virtual;
+      procedure   DrawCursor; virtual;
+      procedure   TrackCursor(Center: boolean); virtual;
+      procedure   UpdateIndicator; virtual;
+      procedure   LimitsChanged; virtual;
+      procedure   SelectionChanged; virtual;
+      procedure   HighlightChanged; virtual;
+      procedure   ScrollTo(X, Y: Integer); virtual;
+      procedure   SetInsertMode(InsertMode: boolean); virtual;
+      procedure   SetCurPtr(X, Y: Integer); virtual;
+      procedure   SetSelection(A, B: TPoint); virtual;
+      procedure   SetHighlight(A, B: TPoint); virtual;
+      procedure   SelectAll(Enable: boolean); virtual;
+      function    InsertFrom(Editor: PCodeEditor): Boolean; virtual;
+      function    InsertText(S: string): Boolean; virtual;
+      function    GetPalette: PPalette; virtual;
+      function    IsClipboard: Boolean;
+      destructor  Done; virtual;
+    public
+      function    GetLineCount: integer; virtual;
+      function    GetLineText(I: integer): string; virtual;
+      procedure   SetLineText(I: integer; S: string); virtual;
+      function    GetLineFormat(I: integer): string; virtual;
+      procedure   SetLineFormat(I: integer; S: string); virtual;
+      function    GetErrorMessage: string; virtual;
+      procedure   SetErrorMessage(S: string); virtual;
+    private
+      KeyState: Integer;
+      ErrorMessage: PString;
+      function    GetLine(I: integer): PLine;
+      procedure   CheckSels;
+      function    UpdateAttrs(FromLine: integer; Attrs: byte): integer;
+      procedure   DrawLines(FirstLine: integer);
+      procedure   HideHighlight;
+    public
+     { Syntax highlight support }
+      function    GetSpecSymbolCount(SpecClass: TSpecSymbolClass): integer; virtual;
+      function    GetSpecSymbol(SpecClass: TSpecSymbolClass; Index: integer): string; virtual;
+      function    IsReservedWord(S: string): boolean; virtual;
+    public
+      SearchRunCount: integer;
+      procedure Indent; virtual;
+      procedure CharLeft; virtual;
+      procedure CharRight; virtual;
+      procedure WordLeft; virtual;
+      procedure WordRight; virtual;
+      procedure LineStart; virtual;
+      procedure LineEnd; virtual;
+      procedure LineUp; virtual;
+      procedure LineDown; virtual;
+      procedure PageUp; virtual;
+      procedure PageDown; virtual;
+      procedure TextStart; virtual;
+      procedure TextEnd; virtual;
+      function  InsertLine: Sw_integer; virtual;
+      procedure BackSpace; virtual;
+      procedure DelChar; virtual;
+      procedure DelWord; virtual;
+      procedure DelStart; virtual;
+      procedure DelEnd; virtual;
+      procedure DelLine; virtual;
+      procedure InsMode; virtual;
+      procedure StartSelect; virtual;
+      procedure EndSelect; virtual;
+      procedure DelSelect; virtual;
+      procedure HideSelect; virtual;
+      procedure CopyBlock; virtual;
+      procedure MoveBlock; virtual;
+      procedure AddChar(C: char); virtual;
+      function  ClipCopy: Boolean; virtual;
+      procedure ClipCut; virtual;
+      procedure ClipPaste; virtual;
+      procedure Undo; virtual;
+      procedure Find; virtual;
+      procedure Replace; virtual;
+      procedure DoSearchReplace; virtual;
+      procedure GotoLine; virtual;
+    end;
+
+    PFileEditor = ^TFileEditor;
+    TFileEditor = object(TCodeEditor)
+      FileName: string;
+      constructor Init(var Bounds: TRect; AHScrollBar, AVScrollBar:
+                    PScrollBar; AIndicator: PIndicator;AFileName: string);
+      function    Save: Boolean; virtual;
+      function    SaveAs: Boolean; virtual;
+      function    LoadFile: boolean; virtual;
+      function    SaveFile: boolean; virtual;
+      function    Valid(Command: Word): Boolean; virtual;
+      function    ShouldSave: boolean; virtual;
+    end;
+
+    TCodeEditorDialog = function(Dialog: Integer; Info: Pointer): Word;
+
+const
+     DefaulTCodeEditorFlags : longint =
+      efBackupFiles+efAutoIndent+efPersistentBlocks+efBackSpaceUnindents+efSyntaxHighlight;
+     DefaultTabSize     : integer = 8;
+
+     ToClipCmds         : TCommandSet = ([cmCut,cmCopy,cmClear]);
+     FromClipCmds       : TCommandSet = ([cmPaste]);
+     UndoCmds           : TCommandSet = ([cmUndo,cmRedo]);
+
+function StdEditorDialog(Dialog: Integer; Info: Pointer): word;
+
+const
+     EditorDialog       : TCodeEditorDialog = StdEditorDialog;
+     Clipboard          : PCodeEditor = nil;
+     FindStr            : String[80] = '';
+     ReplaceStr         : String[80] = '';
+     FindFlags          : word = ffPromptOnReplace;
+     WhiteSpaceChars    : set of char = [#0,#32,#255];
+     AlphaChars         : set of char = ['A'..'Z','a'..'z','_'];
+     NumberChars        : set of char = ['0'..'9'];
+
+implementation
+
+uses Dos,MsgBox,Dialogs,App,StdDlg,HistList,Validate;
+
+type
+     TFindDialogRec = record
+       Find: String[80];
+       Options: Word;
+       Direction: word;
+       Scope: word;
+       Origin: word;
+     end;
+
+     TReplaceDialogRec = record
+       Find: String[80];
+       Replace: String[80];
+       Options: Word;
+       Direction: word;
+       Scope: word;
+       Origin: word;
+     end;
+
+     TGotoLineDialogRec = record
+       LineNo  : string[5];
+       Lines   : integer;
+     end;
+
+const
+     kbShift = kbLeftShift+kbRightShift;
+
+const
+  FirstKeyCount = 36;
+  FirstKeys: array[0..FirstKeyCount * 2] of Word = (FirstKeyCount,
+    Ord(^A), cmWordLeft, Ord(^C), cmPageDown,
+    Ord(^D), cmCharRight, Ord(^E), cmLineUp,
+    Ord(^F), cmWordRight, Ord(^G), cmDelChar,
+    Ord(^H), cmBackSpace, Ord(^K), $FF02,
+    Ord(^L), cmSearchAgain, Ord(^M), cmNewLine,
+    Ord(^Q), $FF01,
+    Ord(^R), cmPageUp, Ord(^S), cmCharLeft,
+    Ord(^T), cmDelWord, Ord(^U), cmUndo,
+    Ord(^V), cmInsMode, Ord(^X), cmLineDown,
+    Ord(^Y), cmDelLine, kbLeft, cmCharLeft,
+    kbRight, cmCharRight, kbCtrlLeft, cmWordLeft,
+    kbCtrlRight, cmWordRight, kbHome, cmLineStart,
+    kbEnd, cmLineEnd, kbUp, cmLineUp,
+    kbDown, cmLineDown, kbPgUp, cmPageUp,
+    kbPgDn, cmPageDown, kbCtrlPgUp, cmTextStart,
+    kbCtrlPgDn, cmTextEnd, kbIns, cmInsMode,
+    kbDel, cmDelChar, kbShiftIns, cmPaste,
+    kbShiftDel, cmCut, kbCtrlIns, cmCopy,
+    kbCtrlDel, cmClear);
+  QuickKeyCount = 10;
+  QuickKeys: array[0..QuickKeyCount * 2] of Word = (QuickKeyCount,
+    Ord('A'), cmReplace, Ord('C'), cmTextEnd,
+    Ord('D'), cmLineEnd, Ord('F'), cmFind,
+    Ord('H'), cmDelStart, Ord('R'), cmTextStart,
+    Ord('S'), cmLineStart, Ord('Y'), cmDelEnd,
+    Ord('G'), cmJumpLine, Ord('P'), cmReplace );
+  BlockKeyCount = 6;
+  BlockKeys: array[0..BlockKeyCount * 2] of Word = (BlockKeyCount,
+    Ord('B'), cmStartSelect, Ord('C'), cmCopyBlock,
+    Ord('H'), cmHideSelect, Ord('K'), cmEndSelect,
+    Ord('Y'), cmDelSelect, Ord('V'), cmMoveBlock);
+  KeyMap: array[0..2] of Pointer = (@FirstKeys, @QuickKeys, @BlockKeys);
+
+function ScanKeyMap(KeyMap: Pointer; KeyCode: Word): Word;
+type
+  pword = ^word;
+var
+  p : pword;
+  count : sw_word;
+begin
+  p:=keymap;
+  count:=p^;
+  inc(p);
+  while (count>0) do
+   begin
+     if (lo(p^)=lo(keycode)) and
+        ((hi(p^)=0) or (hi(p^)=hi(keycode))) then
+      begin
+        inc(p);
+        scankeymap:=p^;
+        exit;
+      end;
+     inc(p,2);
+     dec(count);
+   end;
+  scankeymap:=0;
+end;
+
+function IsWordSeparator(C: char): boolean;
+begin
+  IsWordSeparator:=C in[' ',#0,#255,':','=','''','"','.',',','/',';','$','#','(',')','<','>','^','*','+','-','?','&'];
+end;
+
+function IsSpace(C: char): boolean;
+begin
+  IsSpace:=C in[' ',#0,#255];
+end;
+
+function EatIO: integer;
+begin
+  EatIO:=IOResult;
+end;
+
+function Max(A,B: longint): longint;
+begin
+  if A>B then Max:=A else Max:=B;
+end;
+
+function Min(A,B: longint): longint;
+begin
+  if A<B then Min:=A else Min:=B;
+end;
+
+function StrToInt(S: string): longint;
+var L: longint;
+    C: integer;
+begin
+  Val(S,L,C); if C<>0 then L:=-1;
+  StrToInt:=L;
+end;
+
+function CharStr(C: char; Count: byte): string;
+var S: string;
+begin
+  S[0]:=chr(Count);
+  FillChar(S[1],Count,C);
+  CharStr:=S;
+end;
+
+function RExpand(S: string; MinLen: byte): string;
+begin
+  if length(S)<MinLen then
+     S:=S+CharStr(' ',MinLen-length(S));
+  RExpand:=S;
+end;
+
+function RTrim(S: string): string;
+begin
+  while (length(S)>0) and (S[length(S)] in [' ',#0,#255]) do
+    Delete(S,length(S),1);
+  RTrim:=S;
+end;
+
+function DirAndNameOf(Path: string): string;
+var D: DirStr; N: NameStr; E: ExtStr;
+begin
+  FSplit(Path,D,N,E);
+  DirAndNameOf:=D+N;
+end;
+
+function PointOfs(P: TPoint): longint;
+begin
+  PointOfs:=longint(P.Y)*MaxLineLength+P.X;
+end;
+
+{$ifndef FPC}
+function Scan_F(var Block; Size: Word; Str: String): Word; near; assembler;
+asm
+        PUSH    DS
+        LES     DI,Block
+        LDS     SI,Str
+        MOV     CX,Size
+        JCXZ    @@3
+        CLD
+        LODSB
+        CMP     AL,1
+        JB      @@5
+        JA      @@1
+        LODSB
+        REPNE   SCASB
+        JNE     @@3
+        JMP     @@5
+@@1:    XOR     AH,AH
+        MOV     BX,AX
+        DEC     BX
+        MOV     DX,CX
+        SUB     DX,AX
+        JB      @@3
+        LODSB
+        INC     DX
+        INC     DX
+@@2:    DEC     DX
+        MOV     CX,DX
+        REPNE   SCASB
+        JNE     @@3
+        MOV     DX,CX
+        MOV     CX,BX
+        REP     CMPSB
+        JE      @@4
+        SUB     CX,BX
+        ADD     SI,CX
+        ADD     DI,CX
+        INC     DI
+        OR      DX,DX
+        JNE     @@2
+@@3:    XOR     AX,AX
+        JMP     @@6
+@@4:    SUB     DI,BX
+@@5:    MOV     AX,DI
+        SUB     AX,WORD PTR Block
+@@6:    DEC     AX
+        POP     DS
+end;
+
+function IScan_F(var Block; Size: Word; Str: String): Word; near; assembler;
+var
+  S: String;
+asm
+        PUSH    DS
+        MOV     AX,SS
+        MOV     ES,AX
+        LEA     DI,S
+        LDS     SI,Str
+        XOR     AH,AH
+        LODSB
+        STOSB
+        MOV     CX,AX
+        MOV     BX,AX
+        JCXZ    @@9
+@@1:    LODSB
+        CMP     AL,'a'
+        JB      @@2
+        CMP     AL,'z'
+        JA      @@2
+        SUB     AL,20H
+@@2:    STOSB
+        LOOP    @@1
+        SUB     DI,BX
+        LDS     SI,Block
+        MOV     CX,Size
+        JCXZ    @@8
+        CLD
+        SUB     CX,BX
+        JB      @@8
+        INC     CX
+@@4:    MOV     AH,ES:[DI]
+        AND     AH,$DF
+@@5:    LODSB
+        AND     AL,$DF
+        CMP     AL,AH
+        LOOPNE  @@5
+        JNE     @@8
+        DEC     SI
+        MOV     DX,CX
+        MOV     CX,BX
+@@6:    REPE    CMPSB
+        JE      @@10
+        MOV     AL,DS:[SI-1]
+        CMP     AL,'a'
+        JB      @@7
+        CMP     AL,'z'
+        JA      @@7
+        SUB     AL,20H
+@@7:    CMP     AL,ES:[DI-1]
+        JE      @@6
+        SUB     CX,BX
+        ADD     SI,CX
+        ADD     DI,CX
+        INC     SI
+        MOV     CX,DX
+        OR      CX,CX
+        JNE     @@4
+@@8:    XOR     AX,AX
+        JMP     @@11
+@@9:    MOV     AX, 1
+        JMP     @@11
+@@10:   SUB     SI,BX
+        MOV     AX,SI
+        SUB     AX,WORD PTR Block
+        INC     AX
+@@11:   DEC     AX
+        POP     DS
+end;
+
+function Scan_B(var Block; Size: Word; Str: String): Word; near; assembler;
+asm
+        PUSH    DS
+        LES     DI,Block
+        LDS     SI,Str
+        MOV     CX,Size
+        JCXZ    @@3
+        CLD
+        LODSB
+        CMP     AL,1
+        JB      @@5
+        JA      @@1
+        LODSB
+        STD
+        REPNE   SCASB
+        JNE     @@3
+        JMP     @@5
+@@1:    XOR     AH,AH
+        ADD     SI, AX    { !! }
+        DEC     SI
+        ADD     DI, CX    { !! }
+        DEC     DI
+        SUB     DI, AX
+        STD
+        MOV     BX,AX
+        DEC     BX
+        MOV     DX,CX
+{        SUB     DX,AX}
+        JB      @@3
+        LODSB
+        INC     DX
+        INC     DX
+@@2:    DEC     DX
+        MOV     CX,DX
+        REPNE   SCASB
+        JNE     @@3
+        MOV     DX,CX
+        MOV     CX,BX
+        REP     CMPSB
+        JE      @@4
+        SUB     CX,BX
+        SUB     SI,CX { ADD }
+        SUB     DI,CX { ADD }
+        DEC     DI    { INC DI }
+        OR      DX,DX
+        JNE     @@2
+@@3:    XOR     AX,AX
+        JMP     @@6
+@@4:    ADD     DI,BX
+@@5:    MOV     AX,DI
+        SUB     AX,WORD PTR Block
+@@6:    DEC     AX
+        POP     DS
+end;
+
+function IScan_B(var Block; Size: Word; Str: String): Word; near; assembler;
+var
+  S: String;
+asm
+        PUSH    DS
+        MOV     AX,SS
+        MOV     ES,AX
+        LEA     DI,S
+        LDS     SI,Str
+        XOR     AH,AH
+        LODSB
+        STOSB
+        MOV     CX,AX
+        MOV     BX,AX
+        JCXZ    @@9
+@@1:    LODSB
+        CMP     AL,'a'
+        JB      @@2
+        CMP     AL,'z'
+        JA      @@2
+        SUB     AL,20H
+@@2:    STOSB
+        LOOP    @@1
+        SUB     DI,BX
+        LDS     SI,Block
+        ADD     SI,Size
+        SUB     SI, BX
+        MOV     CX,Size
+        JCXZ    @@8
+        CLD
+        SUB     CX,BX
+        JB      @@8
+        INC     CX
+        ADD     SI, 2
+@@4:    SUB     SI, 2
+        MOV     AH,ES:[DI]
+        AND     AH,$DF
+        ADD     SI,2
+@@5:    SUB     SI,2
+        LODSB
+        AND     AL,$DF
+        CMP     AL,AH
+        LOOPNE  @@5
+        JNE     @@8
+        DEC     SI
+        MOV     DX,CX
+        MOV     CX,BX
+@@6:    REPE    CMPSB
+        JE      @@10
+        MOV     AL,DS:[SI-1]
+        CMP     AL,'a'
+        JB      @@7
+        CMP     AL,'z'
+        JA      @@7
+        SUB     AL,20H
+@@7:    CMP     AL,ES:[DI-1]
+        JE      @@6
+        SUB     CX,BX
+        ADD     SI,CX
+        ADD     DI,CX
+        INC     SI
+        MOV     CX,DX
+        OR      CX,CX
+        JNE     @@4
+@@8:    XOR     AX,AX
+        JMP     @@11
+@@9:    MOV     AX, 1
+        JMP     @@11
+@@10:   SUB     SI,BX
+        MOV     AX,SI
+        SUB     AX,WORD PTR Block
+        INC     AX
+@@11:   DEC     AX
+        POP     DS
+end;
+
+
+function PosB(SubS, InS: string; CaseSensitive: boolean): byte;
+var W: word;
+begin
+  if CaseSensitive then W:=Scan_B(InS[1],length(Ins),SubS)
+                   else W:=IScan_B(InS[1],length(Ins),SubS);
+  if W=$ffff then W:=0 else W:=W+1;
+  PosB:=W;
+end;
+
+function PosF(SubS, InS: string; CaseSensitive: boolean): byte;
+var W: word;
+begin
+  if CaseSensitive then W:=Scan_F(InS[1],length(Ins),SubS)
+                   else W:=IScan_F(InS[1],length(Ins),SubS);
+  if W=$ffff then W:=0 else W:=W+1;
+  PosF:=W;
+end;
+
+{$else}
+
+function PosB(SubS, InS: string; CaseSensitive: boolean): byte;
+begin
+  PosB:=0;
+end;
+
+function PosF(SubS, InS: string; CaseSensitive: boolean): byte;
+begin
+  PosF:=0;
+end;
+
+{$endif}
+
+
+function NewLine(S: string): PLine;
+var P: PLine;
+begin
+  New(P); FillChar(P^,SizeOf(P^),0);
+  P^.Text:=NewStr(S);
+  NewLine:=P;
+end;
+
+procedure DisposeLine(P: PLine);
+begin
+  if P<>nil then
+  begin
+    if P^.Text<>nil then DisposeStr(P^.Text);
+    if P^.Format<>nil then DisposeStr(P^.Format);
+    Dispose(P);
+  end;
+end;
+
+function TLineCollection.At(Index: Integer): PLine;
+begin
+  At:=inherited At(Index);
+end;
+
+procedure TLineCollection.FreeItem(Item: Pointer);
+begin
+  if Item<>nil then DisposeLine(Item);
+end;
+
+constructor TIndicator.Init(var Bounds: TRect);
+begin
+  inherited Init(Bounds);
+  GrowMode := gfGrowLoY + gfGrowHiY;
+end;
+
+procedure TIndicator.Draw;
+var
+  Color: Byte;
+  Frame: Char;
+  L: array[0..1] of Longint;
+  S: String[15];
+  B: TDrawBuffer;
+begin
+  Color := GetColor(1);
+  if (State and sfDragging = 0) and (State and sfActive <> 0) then
+  begin
+    Frame := #205;
+  end else
+  begin
+    if (State and sfDragging)<>0 then Color := GetColor(2);
+    Frame := #196;
+  end;
+  MoveChar(B, Frame, Color, Size.X);
+  if Modified then WordRec(B[0]).Lo := 15;
+  L[0] := Location.Y + 1;
+  L[1] := Location.X + 1;
+  FormatStr(S, ' %d:%d ', L);
+  MoveStr(B[8 - Pos(':', S)], S, Color);
+  WriteBuf(0, 0, Size.X, 1, B);
+end;
+
+function TIndicator.GetPalette: PPalette;
+const
+  P: string[Length(CIndicator)] = CIndicator;
+begin
+  GetPalette := @P;
+end;
+
+procedure TIndicator.SetState(AState: Word; Enable: Boolean);
+begin
+  inherited SetState(AState, Enable);
+  if (AState = sfDragging) or (AState=sfActive) then DrawView;
+end;
+
+procedure TIndicator.SetValue(ALocation: TPoint; AModified: Boolean);
+begin
+  if (Location.X<>ALocation.X) or
+     (Location.Y<>ALocation.Y) or
+     (Modified <> AModified) then
+  begin
+    Location := ALocation;
+    Modified := AModified;
+    DrawView;
+  end;
+end;
+
+constructor TCodeEditor.Init(var Bounds: TRect; AHScrollBar, AVScrollBar:
+                    PScrollBar; AIndicator: PIndicator; AbufSize:Sw_Word);
+begin
+  inherited Init(Bounds,AHScrollBar,AVScrollBar);
+  SetState(sfCursorVis,true);
+  Flags:=DefaulTCodeEditorFlags; TabSize:=DefaultTabSize;
+  Indicator:=AIndicator;
+  New(Lines, Init(500,1000));
+  UpdateIndicator; LimitsChanged;
+end;
+
+function TCodeEditor.GetErrorMessage: string;
+var S: string;
+begin
+  if ErrorMessage=nil then S:='' else S:=ErrorMessage^;
+  GetErrorMessage:=S;
+end;
+
+procedure TCodeEditor.SetErrorMessage(S: string);
+begin
+  if ErrorMessage<>nil then DisposeStr(ErrorMessage);
+  ErrorMessage:=NewStr(S);
+  DrawView;
+end;
+
+procedure TCodeEditor.TrackCursor(Center: boolean);
+var D: TPoint;
+begin
+  D:=Delta;
+  if CurPos.Y<Delta.Y then D.Y:=CurPos.Y else
+   if CurPos.Y>Delta.Y+Size.Y-1 then D.Y:=CurPos.Y-Size.Y+1;
+  if CurPos.X<Delta.X then D.X:=CurPos.X else
+   if CurPos.X>Delta.X+Size.X-1 then D.X:=CurPos.X-Size.X+1;
+  if ((Delta.X<>D.X) or (Delta.Y<>D.Y)) and Center then
+  begin
+     while (CurPos.Y-D.Y)<(Size.Y div 2) do Dec(D.Y);
+     while (CurPos.Y-D.Y)>(Size.Y div 2) do Inc(D.Y);
+  end;
+  if (Delta.X<>D.X) or (Delta.Y<>D.Y) then
+    ScrollTo(D.X,D.Y);
+  DrawCursor;
+  UpdateIndicator;
+end;
+
+procedure TCodeEditor.ScrollTo(X, Y: Integer);
+begin
+  inherited ScrollTo(X,Y);
+  if (HScrollBar=nil) or (VScrollBar=nil) then
+     begin Delta.X:=X; Delta.Y:=Y; end;
+  DrawView;
+end;
+
+procedure TCodeEditor.UpdateIndicator;
+begin
+  if Indicator<>nil then
+  begin
+    Indicator^.Location:=CurPos;
+    Indicator^.Modified:=Modified;
+    Indicator^.DrawView;
+  end;
+end;
+
+procedure TCodeEditor.LimitsChanged;
+begin
+  SetLimit(MaxLineLength+1,GetLineCount);
+end;
+
+procedure TCodeEditor.ConvertEvent(var Event: TEvent);
+var
+  Key: Word;
+begin
+  if Event.What = evKeyDown then
+  begin
+    if (GetShiftState and kbShift <> 0) and
+      (Event.ScanCode >= $47) and (Event.ScanCode <= $51) then
+      Event.CharCode := #0;
+    Key := Event.KeyCode;
+    if KeyState <> 0 then
+    begin
+      if (Lo(Key) >= $01) and (Lo(Key) <= $1A) then Inc(Key, $40);
+      if (Lo(Key) >= $61) and (Lo(Key) <= $7A) then Dec(Key, $20);
+    end;
+    Key := ScanKeyMap(KeyMap[KeyState], Key);
+    KeyState := 0;
+    if Key <> 0 then
+      if Hi(Key) = $FF then
+      begin
+        KeyState := Lo(Key);
+        ClearEvent(Event);
+      end else
+      begin
+        Event.What := evCommand;
+        Event.Command := Key;
+      end;
+  end;
+end;
+
+procedure TCodeEditor.HandleEvent(var Event: TEvent);
+var DontClear : boolean;
+procedure CheckScrollBar(P: PScrollBar; var D: Sw_Integer);
+begin
+  if (Event.InfoPtr = P) and (P^.Value <> D) then
+  begin
+    D := P^.Value;
+    DrawView;
+  end;
+end;
+var StartP,P: TPoint;
+procedure GetMousePos(var P: TPoint);
+begin
+  MakeLocal(Event.Where,P);
+  Inc(P.X,Delta.X); Inc(P.Y,Delta.Y);
+end;
+begin
+  ConvertEvent(Event);
+  case Event.What of
+    evMouseDown :
+      if MouseInView(Event.Where) then
+      if Event.Buttons=mbLeftButton then
+      begin
+        GetMousePos(P);
+        StartP:=P;
+        SetCurPtr(P.X,P.Y);
+        repeat
+          GetMousePos(P);
+          if PointOfs(P)<PointOfs(StartP)
+             then SetSelection(P,StartP)
+             else SetSelection(StartP,P);
+          SetCurPtr(P.X,P.Y);
+          DrawView;
+        until not MouseEvent(Event, evMouseMove+evMouseAuto);
+        DrawView;
+      end;
+    evKeyDown :
+      begin
+        DontClear:=false;
+        case Event.KeyCode of
+          kbTab : begin Indent; ClearEvent(Event); end;
+        else if Event.CharCode in[#32..#255] then
+                begin NoSelect:=true; AddChar(Event.CharCode); NoSelect:=false; end
+               else DontClear:=true;
+        end;
+        if DontClear=false then ClearEvent(Event);
+      end;
+    evCommand :
+      begin
+        DontClear:=false;
+        case Event.Command of
+          cmCharLeft    : CharLeft;
+          cmCharRight   : CharRight;
+          cmWordLeft    : WordLeft;
+          cmWordRight   : WordRight;
+          cmLineStart   : LineStart;
+          cmLineEnd     : LineEnd;
+          cmLineUp      : LineUp;
+          cmLineDown    : LineDown;
+          cmPageUp      : PageUp;
+          cmPageDown    : PageDown;
+          cmTextStart   : TextStart;
+          cmTextEnd     : TextEnd;
+          cmNewLine     : InsertLine;
+          cmBackSpace   : BackSpace;
+          cmDelChar     : DelChar;
+          cmDelWord     : DelWord;
+          cmDelStart    : DelStart;
+          cmDelEnd      : DelEnd;
+          cmDelLine     : DelLine;
+          cmInsMode     : InsMode;
+          cmStartSelect : StartSelect;
+          cmHideSelect  : HideSelect;
+          cmUpdateTitle : ;
+          cmEndSelect   : EndSelect;
+          cmDelSelect   : DelSelect;
+          cmCopyBlock   : CopyBlock;
+          cmMoveBlock   : MoveBlock;
+        { ------ }
+          cmFind        : Find;
+          cmReplace     : Replace;
+          cmSearchAgain : DoSearchReplace;
+          cmJumpLine    : GotoLine;
+        { ------ }
+          cmCut         : ClipCut;
+          cmCopy        : ClipCopy;
+          cmPaste       : ClipPaste;
+          cmUndo        : Undo;
+          cmClear       : DelSelect;
+        else DontClear:=true;
+        end;
+        if DontClear=false then ClearEvent(Event);
+      end;
+    evBroadcast :
+      case Event.Command of
+        cmScrollBarChanged:
+          if (Event.InfoPtr = HScrollBar) or
+            (Event.InfoPtr = VScrollBar) then
+          begin
+            CheckScrollBar(HScrollBar, Delta.X);
+            CheckScrollBar(VScrollBar, Delta.Y);
+          end
+          else
+            Exit;
+      else
+        Exit;
+      end;
+  end;
+end;
+
+procedure TCodeEditor.Draw;
+var SelectColor,
+    HighlightColColor,
+    HighlightRowColor,
+    ErrorMessageColor  : word;
+    B: TDrawBuffer;
+    X,Y,AX,AY,MaxX: integer;
+    PX: TPoint;
+    LineCount: integer;
+    Line: PLine;
+    LineText,Format: string;
+    C: char;
+    FreeFormat: array[0..255] of boolean;
+    Color: word;
+    ColorTab: array[coFirstColor..coLastColor] of word;
+    ErrorLine: integer;
+    ErrorMsg: string[MaxViewWidth];
+const NulLine : TLine = (Text: nil; Format: nil);
+begin
+  ErrorMsg:=copy(GetErrorMessage,1,MaxViewWidth);
+  if ErrorMsg='' then ErrorLine:=-1 else
+  if (CurPos.Y-Delta.Y)<(Size.Y div 2) then ErrorLine:=Size.Y-1
+     else ErrorLine:=0;
+  LineCount:=GetLineCount;
+  ColorTab[coTextColor]:=GetColor(1);
+  ColorTab[coWhiteSpaceColor]:=GetColor(2);
+  ColorTab[coCommentColor]:=GetColor(3);
+  ColorTab[coReservedWordColor]:=GetColor(4);
+  ColorTab[coIdentifierColor]:=GetColor(5);
+  ColorTab[coStringColor]:=GetColor(6);
+  ColorTab[coNumberColor]:=GetColor(7);
+  ColorTab[coAssemblerColor]:=GetColor(8);
+  ColorTab[coSymbolColor]:=GetColor(9);
+  ColorTab[coDirectiveColor]:=GetColor(13);
+  SelectColor:=GetColor(10);
+  HighlightColColor:=GetColor(11); HighlightRowColor:=GetColor(12);
+  ErrorMessageColor:=GetColor(16);
+  for Y:=0 to Size.Y-1 do
+  if Y=ErrorLine then
+  begin
+    MoveChar(B,' ',ErrorMessageColor,Size.X);
+    MoveStr(B,ErrorMsg,ErrorMessageColor);
+    WriteLine(0,Y,Size.X,1,B);
+  end else
+  begin
+    AY:=Delta.Y+Y;
+    Color:=ColorTab[coTextColor];
+    FillChar(FreeFormat,SizeOf(FreeFormat),true);
+    MoveChar(B,' ',Color,Size.X);
+    if AY<LineCount then Line:=GetLine(AY) else Line:=@NulLine;
+    LineText:=GetLineText(AY);
+    Format:=GetLineFormat(AY);
+
+    if (Flags and efSyntaxHighlight)<>0 then MaxX:=length(LineText)+1
+       else MaxX:=Size.X+Delta.X;
+    for X:=1 to Min(MaxX,255) do
+    begin
+      AX:=Delta.X+X-1;
+      if X<=length(LineText) then C:=LineText[X] else C:=' ';
+
+      PX.X:=AX-Delta.X; PX.Y:=AY;
+      if (Highlight.A.X<>Highlight.B.X) or (Highlight.A.Y<>Highlight.B.Y) then
+      begin
+         if (PointOfs(Highlight.A)<=PointOfs(PX)) and (PointOfs(PX)<PointOfs(Highlight.B)) then
+         begin
+            Color:=SelectColor;
+            FreeFormat[X]:=false;
+         end;
+      end else
+      { no highlight }
+      begin
+        if (Flags and efVerticalBlocks<>0) then
+           begin
+             if (SelStart.X<=AX) and (AX<=SelEnd.X) and
+                (SelStart.Y<=AY) and (AY<=SelEnd.Y) then
+                begin Color:=SelectColor; FreeFormat[X]:=false; end;
+           end else
+         if PointOfs(SelStart)<>PointOfs(SelEnd) then
+          if (PointOfs(SelStart)<=PointOfs(PX)) and (PointOfs(PX)<PointOfs(SelEnd)) then
+             begin Color:=SelectColor; FreeFormat[X]:=false; end;
+      end;
+      if ( ((Flags and efHighlightRow)   <>0) and (AY=CurPos.Y) ) then
+         begin Color:=(Color and $f0)  or (HighlightRowColor and $0f); FreeFormat[X]:=false; end;
+      if ( ((Flags and efHighlightColumn)<>0) and (AX=CurPos.X) ) then
+         begin Color:=HighlightColColor; FreeFormat[X]:=false; end;
+
+      if FreeFormat[X] then
+         if X<=length(Format) then
+            Color:=ColorTab[ord(Format[X])] else Color:=ColorTab[coTextColor];
+
+      if (0<=X-1-Delta.X) and (X-1-Delta.X<MaxViewWidth) then
+      MoveChar(B[X-1-Delta.X],C,Color,1);
+    end;
+    WriteLine(0,Y,Size.X,1,B);
+  end;
+  DrawCursor;
+end;
+
+procedure TCodeEditor.DrawCursor;
+begin
+  SetCursor(CurPos.X-Delta.X,CurPos.Y-Delta.Y);
+  SetState(sfCursorIns,Overwrite);
+end;
+
+function TCodeEditor.GetLineCount: integer;
+begin
+  GetLineCount:=Lines^.Count;
+end;
+
+function TCodeEditor.GetLine(I: integer): PLine;
+begin
+  GetLine:=Lines^.At(I);
+end;
+
+function TCodeEditor.GetLineText(I: integer): string;
+var S: string;
+    L: PLine;
+    P: byte;
+    TabS: string;
+begin
+  if I<Lines^.Count then
+  begin
+    L:=Lines^.At(I);
+    if L^.Text=nil then S:='' else S:=L^.Text^;
+  end else S:='';
+  if ((Flags and efUseTabCharacters)<>0) and (TabSize>0) then
+  begin
+     TabS:=CharStr(' ',TabSize);
+    repeat
+      P:=Pos(TAB,S);
+      if P<>0 then
+           S:=copy(S,1,P-1)+TabS+copy(S,P+1,255);
+    until P=0;
+  end;
+  GetLineText:=S;
+end;
+
+procedure TCodeEditor.SetLineText(I: integer; S: string);
+var L: PLine;
+    TabS: string;
+    P: byte;
+    AddCount: word;
+begin
+  AddCount:=0;
+  while (Lines^.Count<I+1) do
+    begin Lines^.Insert(NewLine('')); Inc(AddCount); end;
+  if AddCount>0 then LimitsChanged;
+  L:=Lines^.At(I);
+  if L^.Text<>nil then DisposeStr(L^.Text);
+  if ((Flags and efUseTabCharacters)<>0) and (TabSize>0) then
+  begin
+    TabS:=CharStr(' ',TabSize);
+    repeat
+      P:=Pos(TabS,S);
+      if P>0 then
+         S:=copy(S,1,P-1)+TAB+copy(S,P+TabSize,255);
+    until P=0;
+  end;
+  L^.Text:=NewStr(S);
+end;
+
+function TCodeEditor.GetLineFormat(I: integer): string;
+var P: PLine;
+    S: string;
+begin
+  if I<GetLineCount then P:=Lines^.At(I) else P:=nil;
+  if (P=nil) or (P^.Format=nil) then S:='' else
+     S:=P^.Format^;
+  GetLineFormat:=S;
+end;
+
+procedure TCodeEditor.SetLineFormat(I: integer; S: string);
+var P: PLine;
+begin
+  if I<GetLineCount then
+  begin
+    P:=Lines^.At(I);
+    if P^.Format<>nil then DisposeStr(P^.Format);
+    P^.Format:=NewStr(S);
+  end;
+end;
+
+function TCodeEditor.GetSpecSymbolCount(SpecClass: TSpecSymbolClass): integer;
+begin
+  GetSpecSymbolCount:=0;
+end;
+
+function TCodeEditor.GetSpecSymbol(SpecClass: TSpecSymbolClass; Index: integer): string;
+begin
+  GetSpecSymbol:='';
+  Abstract;
+end;
+
+function TCodeEditor.IsReservedWord(S: string): boolean;
+begin
+  IsReservedWord:=false;
+end;
+
+procedure TCodeEditor.Indent;
+var S, PreS: string;
+    Shift: integer;
+begin
+  S:=GetLineText(CurPos.Y);
+  if CurPos.Y>0 then PreS:=RTrim(GetLineText(CurPos.Y-1)) else PreS:='';
+  if CurPos.X>=length(PreS) then Shift:=TabSize else
+    begin
+      Shift:=1;
+      while (CurPos.X+Shift<length(PreS)) and (PreS[CurPos.X+Shift]<>#32) do
+            Inc(Shift);
+    end;
+  SetLineText(CurPos.Y,RExpand(copy(S,1,CurPos.X+1),CurPos.X+1)+CharStr(' ',Shift)+copy(S,CurPos.X+2,255));
+  SetCurPtr(CurPos.X+Shift,CurPos.Y);
+  UpdateAttrs(CurPos.Y,attrAll);
+  DrawLines(CurPos.Y);
+  Modified:=true;
+  UpdateIndicator;
+end;
+
+procedure TCodeEditor.CharLeft;
+begin
+  if CurPos.X>0 then
+     SetCurPtr(CurPos.X-1,CurPos.Y);
+end;
+
+procedure TCodeEditor.CharRight;
+begin
+  if CurPos.X<MaxLineLength then
+     SetCurPtr(CurPos.X+1,CurPos.Y);
+end;
+
+procedure TCodeEditor.WordLeft;
+var X, Y: integer;
+    Line: string;
+    GotIt,FoundNonSeparator: boolean;
+begin
+  X:=CurPos.X; Y:=CurPos.Y; GotIt:=false;
+  FoundNonSeparator:=false;
+  while (Y>=0) do
+  begin
+    if Y=CurPos.Y then
+       begin
+         X:=length(GetLineText(Y)); if CurPos.X<X then X:=CurPos.X; Dec(X);
+         if (X=-1) then
+            begin Dec(Y); if Y>=0 then X:=length(GetLineText(Y)); Break; end;
+       end else X:=length(GetLineText(Y))-1;
+    Line:=GetLineText(Y);
+    while (X>=0) and (GotIt=false) do
+    begin
+      if FoundNonSeparator then
+      begin
+         if IsWordSeparator(Line[X+1]) then begin Inc(X); GotIt:=true; Break; end;
+      end else
+      if IsWordSeparator(Line[X+1])=false then FoundNonSeparator:=true;
+      Dec(X);
+      if (X=0) and (IsWordSeparator(Line[1])=false) then
+         begin GotIt:=true; Break; end;
+    end;
+    if GotIt then Break;
+    X:=0;
+    Dec(Y);
+    if Y>=0 then begin X:=length(GetLineText(Y)); Break; end;
+  end;
+  if Y<0 then Y:=0; if X<0 then X:=0;
+  SetCurPtr(X,Y);
+end;
+
+procedure TCodeEditor.WordRight;
+var X, Y: integer;
+    Line: string;
+    GotIt: boolean;
+begin
+  X:=CurPos.X; Y:=CurPos.Y; GotIt:=false;
+  while (Y<GetLineCount) do
+  begin
+    if Y=CurPos.Y then
+       begin
+         X:=CurPos.X; Inc(X);
+         if (X>length(GetLineText(Y))-1) then
+            begin Inc(Y); X:=0; end;
+       end else X:=0;
+    Line:=GetLineText(Y);
+    while (X<=length(Line)+1) and (GotIt=false) and (Line<>'') do
+    begin
+      if X=length(Line)+1 then begin GotIt:=true; Dec(X); Break end;
+      if IsWordSeparator(Line[X]) then
+         begin
+           while (Y<GetLineCount) and
+                 (X<=length(Line)) and (IsWordSeparator(Line[X])) do
+                 begin
+                   Inc(X);
+                   if X>=length(Line) then
+                      begin GotIt:=true; Dec(X); Break; end;
+                 end;
+           if (GotIt=false) and (X<length(Line)) then
+           begin
+             Dec(X);
+             GotIt:=true;
+             Break;
+           end;
+         end;
+      Inc(X);
+    end;
+    if GotIt then Break;
+    X:=0;
+    Inc(Y);
+    if (Y<GetLineCount) then
+    begin
+      Line:=GetLineText(Y);
+      if (Line<>'') and (IsWordSeparator(Line[1])=false) then Break;
+    end;
+  end;
+  if Y=GetLineCount then Y:=GetLineCount-1;
+  SetCurPtr(X,Y);
+end;
+
+procedure TCodeEditor.LineStart;
+begin
+  SetCurPtr(0,CurPos.Y);
+end;
+
+procedure TCodeEditor.LineEnd;
+begin
+  if CurPos.Y<GetLineCount
+     then SetCurPtr(length(GetLineText(CurPos.Y)),CurPos.Y)
+     else SetCurPtr(0,CurPos.Y);
+end;
+
+procedure TCodeEditor.LineUp;
+begin
+  if CurPos.Y>0 then
+     SetCurPtr(CurPos.X,CurPos.Y-1);
+end;
+
+procedure TCodeEditor.LineDown;
+begin
+  if CurPos.Y<GetLineCount-1 then
+     SetCurPtr(CurPos.X,CurPos.Y+1);
+end;
+
+procedure TCodeEditor.PageUp;
+begin
+  ScrollTo(Delta.X,Max(Delta.Y-Size.Y,0));
+  SetCurPtr(CurPos.X,Max(0,CurPos.Y-(Size.Y)));
+end;
+
+procedure TCodeEditor.PageDown;
+begin
+  ScrollTo(Delta.X,Min(Delta.Y+Size.Y,GetLineCount-1));
+  SetCurPtr(CurPos.X,Min(GetLineCount-1,CurPos.Y+(Size.Y{-1})));
+end;
+
+procedure TCodeEditor.TextStart;
+begin
+  SetCurPtr(0,0);
+end;
+
+procedure TCodeEditor.TextEnd;
+begin
+  SetCurPtr(length(GetLineText(GetLineCount-1)),GetLineCount-1);
+end;
+
+function TCodeEditor.InsertLine: Sw_integer;
+var Ind: Sw_integer;
+    S,IndentStr: string;
+procedure CalcIndent(LineOver: Sw_integer);
+begin
+  if (LineOver<0) or (LineOver>GetLineCount) then Ind:=0 else
+  begin
+    IndentStr:=GetLineText(LineOver);
+    Ind:=0;
+    while (Ind<length(IndentStr)) and (IndentStr[Ind+1]=#32) do
+          Inc(Ind);
+  end;
+  IndentStr:=CharStr(' ',Ind);
+end;
+var SelBack: integer;
+begin
+  if IsReadOnly then begin InsertLine:=-1; Exit; end;
+  if CurPos.Y<GetLineCount then S:=GetLineText(CurPos.Y) else S:='';
+  if Overwrite=false then
+  begin
+    SelBack:=0;
+    if GetLineCount>0 then
+    begin
+      S:=GetLineText(CurPos.Y);
+      SelBack:=length(S)-SelEnd.X;
+      while (length(S)>0) and (S[length(S)]=' ') do
+        Delete(S,length(S),1);
+      SetLineText(CurPos.Y, S);
+    end;
+    CalcIndent(CurPos.Y);
+    Lines^.AtInsert(CurPos.Y+1,NewLine(IndentStr+copy(S,CurPos.X+1,255)));
+    LimitsChanged;
+    SetLineText(CurPos.Y,copy(S,1,CurPos.X-1+1));
+    if PointOfs(SelStart)<>PointOfs(SelEnd) then { !!! check it - it's buggy !!! }
+      begin SelEnd.Y:=CurPos.Y+1; SelEnd.X:=length(GetLineText(CurPos.Y+1))-SelBack; end;
+    UpdateAttrs(CurPos.Y,attrAll);
+    SetCurPtr(Ind,CurPos.Y+1);
+  end else
+  begin
+    if CurPos.Y=GetLineCount-1 then
+    CalcIndent(CurPos.Y);
+    begin
+      Lines^.Insert(NewLine(IndentStr));
+      LimitsChanged;
+    end;
+    SetCurPtr(Ind,CurPos.Y+1);
+  end;
+  DrawLines(CurPos.Y);
+end;
+
+procedure TCodeEditor.BackSpace;
+var S,PreS: string;
+    CP: integer;
+begin
+  if IsReadOnly then Exit;
+  if CurPos.X=0 then
+  begin
+    if CurPos.Y>0 then
+    begin
+      S:=GetLineText(CurPos.Y-1);
+      SetLineText(CurPos.Y-1,S+GetLineText(CurPos.Y));
+      Lines^.AtDelete(CurPos.Y);
+      LimitsChanged;
+      SetCurPtr(length(S),CurPos.Y-1);
+    end;
+  end else
+  begin
+    S:=GetLineText(CurPos.Y);
+
+    CP:=CurPos.X-1;
+    if (Flags and efBackspaceUnindents)<>0 then
+    begin
+      if CurPos.Y>0 then PreS:=GetLineText(CurPos.Y) else PreS:='';
+      PreS:=RExpand(PreS,255);
+      while (CP>0) and (S[CP]=#32) and (PreS[CP]<>#32) do
+            Dec(CP);
+    end;
+
+    SetLineText(CurPos.Y,copy(S,1,CP)+copy(S,CurPos.X+1,255));
+    SetCurPtr(CP,CurPos.Y);
+  end;
+  UpdateAttrs(CurPos.Y,attrAll);
+  DrawLines(CurPos.Y);
+  Modified:=true;
+  UpdateIndicator;
+end;
+
+procedure TCodeEditor.DelChar;
+var S: string;
+begin
+  if IsReadOnly then Exit;
+  S:=GetLineText(CurPos.Y);
+  if CurPos.X=length(S) then
+  begin
+    if CurPos.Y<GetLineCount-1 then
+    begin
+      SetLineText(CurPos.Y,S+GetLineText(CurPos.Y+1));
+      Lines^.AtFree(CurPos.Y+1);
+      LimitsChanged;
+    end;
+  end else
+  begin
+    S:=GetLineText(CurPos.Y);
+    SetLineText(CurPos.Y,copy(S,1,CurPos.X)+copy(S,CurPos.X+2,255));
+  end;
+  UpdateAttrs(CurPos.Y,attrAll);
+  DrawLines(CurPos.Y);
+  Modified:=true;
+  UpdateIndicator;
+end;
+
+procedure TCodeEditor.DelWord;
+begin
+  if IsReadOnly then Exit;
+  Modified:=true;
+  UpdateIndicator;
+end;
+
+procedure TCodeEditor.DelStart;
+begin
+  if IsReadOnly then Exit;
+  Modified:=true;
+  UpdateIndicator;
+end;
+
+procedure TCodeEditor.DelEnd;
+var S: string;
+begin
+  if IsReadOnly then Exit;
+  S:=GetLineText(CurPos.Y);
+  if (S<>'') and (CurPos.X<>length(S)) then
+  begin
+    SetLineText(CurPos.Y,copy(S,1,CurPos.X));
+    UpdateAttrs(CurPos.Y,attrAll);
+    DrawLines(CurPos.Y);
+    Modified:=true;
+    UpdateIndicator;
+  end;
+end;
+
+procedure TCodeEditor.DelLine;
+begin
+  if IsReadOnly then Exit;
+  if GetLineCount>0 then
+  begin
+    Lines^.AtFree(CurPos.Y);
+    LimitsChanged;
+    SetCurPtr(0,CurPos.Y);
+    UpdateAttrs(Max(0,CurPos.Y-1),attrAll);
+    DrawLines(CurPos.Y);
+    Modified:=true;
+    UpdateIndicator;
+  end;
+end;
+
+procedure TCodeEditor.InsMode;
+begin
+  SetInsertMode(not not Overwrite);
+end;
+
+procedure TCodeEditor.StartSelect;
+begin
+  if (PointOfs(SelStart)=PointOfs(SelEnd)) then
+     SetSelection(SelStart,Limit);
+  SetSelection(CurPos,SelEnd);
+  if PointOfs(SelEnd)<PointOfs(SelStart) then
+     SetSelection(SelStart,SelStart);
+  CheckSels;
+  DrawView;
+end;
+
+procedure TCodeEditor.EndSelect;
+var P: TPoint;
+begin
+  P:=CurPos; P.X:=Min(SelEnd.X,length(GetLineText(SelEnd.Y))); CheckSels;
+  SetSelection(SelStart,P);
+  DrawView;
+end;
+
+procedure TCodeEditor.DelSelect;
+var LineDelta, LineCount, CurLine: Sw_integer;
+    StartX,EndX,LastX: Sw_integer;
+    S: string;
+begin
+  if IsReadOnly then Exit;
+  if (SelStart.X=SelEnd.X) and (SelStart.Y=SelEnd.Y) then Exit;
+  LineCount:=(SelEnd.Y-SelStart.Y)+1;
+  LineDelta:=0; LastX:=CurPos.X;
+  CurLine:=SelStart.Y;
+  while (LineDelta<LineCount) do
+  begin
+    S:=GetLineText(CurLine);
+    if LineDelta=0 then StartX:=SelStart.X else StartX:=0;
+    if LineDelta=LineCount-1 then EndX:=SelEnd.X else EndX:=length(S);
+    if (LineDelta<LineCount-1) and
+       ( (StartX=0) and (EndX>=length(S)) )
+       then begin
+              Lines^.AtFree(CurLine);
+              if CurLine>0 then LastX:=length(GetLineText(CurLine-1))
+                           else LastX:=0;
+            end
+       else begin
+              SetLineText(CurLine,copy(S,1,StartX)+copy(S,EndX+1,255));
+              LastX:=StartX;
+              if (StartX=0) and (0<LineDelta) and
+                 not(((LineDelta=LineCount-1) and (StartX=0) and (StartX=EndX))) then
+              begin
+                S:=GetLineText(CurLine-1);
+                SetLineText(CurLine-1,S+GetLineText(CurLine));
+                Lines^.AtFree(CurLine);
+                LastX:=length(S);
+              end else
+              Inc(CurLine);
+            end;
+    Inc(LineDelta);
+  end;
+  SetCurPtr(LastX,CurLine-1);
+  HideSelect;
+  UpdateAttrs(CurPos.Y,attrAll);
+  DrawLines(CurPos.Y);
+  Modified:=true;
+  UpdateIndicator;
+end;
+
+procedure TCodeEditor.HideSelect;
+begin
+  SetSelection(CurPos,CurPos);
+end;
+
+procedure TCodeEditor.CopyBlock;
+var Temp: PCodeEditor;
+    R: TRect;
+begin
+  if IsReadOnly then Exit;
+  if (SelStart.X=SelEnd.X) and (SelStart.Y=SelEnd.Y) then Exit;
+  GetExtent(R);
+  New(Temp, Init(R, nil, nil, nil,0));
+  Temp^.InsertFrom(@Self);
+  InsertFrom(Temp);
+  Dispose(Temp, Done);
+end;
+
+procedure TCodeEditor.MoveBlock;
+var Temp: PCodeEditor;
+    R: TRect;
+    OldPos: TPoint;
+begin
+  if IsReadOnly then Exit;
+  if (SelStart.X=SelEnd.X) and (SelStart.Y=SelEnd.Y) then Exit;
+  GetExtent(R);
+  New(Temp, Init(R, nil, nil, nil,0));
+  Temp^.InsertFrom(@Self);
+  OldPos:=CurPos; Dec(OldPos.Y,Temp^.GetLineCount-1);
+  DelSelect;
+  SetCurPtr(OldPos.X,OldPos.Y);
+  InsertFrom(Temp);
+  Dispose(Temp, Done);
+end;
+
+procedure TCodeEditor.AddChar(C: char);
+const OpenBrackets  : string[10] = '[({';
+      CloseBrackets : string[10] = '])}';
+var S: string;
+    BI: byte;
+begin
+  if IsReadOnly then Exit;
+  S:=GetLineText(CurPos.Y);
+  if Overwrite and (CurPos.X<length(S)) then
+    SetLineText(CurPos.Y,copy(S,1,CurPos.X)+C+copy(S,CurPos.X+2,255))
+  else
+    SetLineText(CurPos.Y,RExpand(copy(S,1,CurPos.X),CurPos.X)+C+copy(S,CurPos.X+1,255));
+  if PointOfs(SelStart)<>PointOfs(SelEnd) then
+    if (CurPos.Y=SelEnd.Y) and (CurPos.X<SelEnd.X) then
+      Inc(SelEnd.X);
+  SetCurPtr(CurPos.X+1,CurPos.Y);
+  BI:=Pos(C,OpenBrackets);
+  if ((Flags and efAutoBrackets)<>0) and (BI>0) then
+  begin
+    AddChar(CloseBrackets[BI]); SetCurPtr(CurPos.X-1,CurPos.Y);
+  end;
+  UpdateAttrs(CurPos.Y,attrAll);
+  DrawLines(CurPos.Y);
+  Modified:=true;
+  UpdateIndicator;
+end;
+
+function TCodeEditor.ClipCopy: Boolean;
+var OK: boolean;
+begin
+  OK:=Clipboard<>nil;
+  if OK then OK:=Clipboard^.InsertFrom(@Self);
+  ClipCopy:=OK;
+end;
+
+procedure TCodeEditor.ClipCut;
+begin
+  if IsReadOnly then Exit;
+  if Clipboard<>nil then
+     if Clipboard^.InsertFrom(@Self) then
+     begin
+        DelSelect;
+        Modified:=true;
+        UpdateIndicator;
+     end;
+end;
+
+procedure TCodeEditor.ClipPaste;
+begin
+  if IsReadOnly then Exit;
+  if Clipboard<>nil then
+     begin
+       InsertFrom(Clipboard);
+       Modified:=true;
+       UpdateIndicator;
+     end;
+end;
+
+procedure TCodeEditor.Undo;
+begin
+end;
+
+procedure TCodeEditor.GotoLine;
+var
+  GotoRec: TGotoLineDialogRec;
+begin
+  with GotoRec do
+  begin
+    LineNo:='1';
+    Lines:=GetLineCount;
+    if EditorDialog(edGotoLine, @GotoRec) <> cmCancel then
+    begin
+      SetCurPtr(0,StrToInt(LineNo)-1);
+      TrackCursor(true);
+    end;
+  end;
+end;
+
+procedure TCodeEditor.Find;
+var
+  FindRec: TFindDialogRec;
+  DoConf: boolean;
+begin
+  with FindRec do
+  begin
+    Find := FindStr;
+    Options := (FindFlags and ffmOptions) shr ffsOptions;
+    Direction := (FindFlags and ffmDirection) shr ffsDirection;
+    Scope := (FindFlags and ffmScope) shr ffsScope;
+    Origin := (FindFlags and ffmOrigin) shr ffsOrigin;
+    DoConf:= (FindFlags and ffPromptOnReplace)<>0;
+    if EditorDialog(edFind, @FindRec) <> cmCancel then
+    begin
+      FindStr := Find;
+      FindFlags := (Options shl ffsOptions) or (Direction shl ffsDirection) or
+                   (Scope shl ffsScope) or (Origin shl ffsOrigin);
+      FindFlags := FindFlags and not ffDoReplace;
+      if DoConf then
+        FindFlags := (FindFlags or ffPromptOnReplace);
+      SearchRunCount:=0;
+      DoSearchReplace;
+    end;
+  end;
+end;
+
+procedure TCodeEditor.Replace;
+var
+  ReplaceRec: TReplaceDialogRec;
+  Re: word;
+begin
+  if IsReadOnly then Exit;
+  with ReplaceRec do
+  begin
+    Find := FindStr;
+    Replace := ReplaceStr;
+    Options := (FindFlags and ffmOptions) shr ffsOptions;
+    Direction := (FindFlags and ffmDirection) shr ffsDirection;
+    Scope := (FindFlags and ffmScope) shr ffsScope;
+    Origin := (FindFlags and ffmOrigin) shr ffsOrigin;
+    Re:=EditorDialog(edReplace, @ReplaceRec);
+    if Re <> cmCancel then
+    begin
+      FindStr := Find;
+      ReplaceStr := Replace;
+      FindFlags := (Options shl ffsOptions) or (Direction shl ffsDirection) or
+                   (Scope shl ffsScope) or (Origin shl ffsOrigin);
+      FindFlags := FindFlags or ffDoReplace;
+      if Re = cmYes then
+        FindFlags := FindFlags or ffReplaceAll;
+      SearchRunCount:=0;
+      DoSearchReplace;
+    end;
+  end;
+end;
+
+procedure TCodeEditor.DoSearchReplace;
+var S: string;
+    DX,DY,P,Y,X: integer;
+    Count: integer;
+    Found,CanExit: boolean;
+    SForward,DoReplace,DoReplaceAll: boolean;
+    LeftOK,RightOK: boolean;
+    FoundCount: integer;
+    A,B: TPoint;
+    AreaStart,AreaEnd: TPoint;
+    CanReplace,Confirm: boolean;
+    Re: word;
+function ContainsText(var SubS: string; var S: string; Start: word): integer;
+var P: integer;
+begin
+  if Start<=0 then P:=0 else
+  if SForward then
+     begin
+       P:=PosF(SubS,copy(S,Start,255),(FindFlags and ffCaseSensitive)<>0);
+       if P>0 then Inc(P,Start-1);
+     end else
+     begin
+       P:=PosF(SubS,copy(S,1,Start),(FindFlags and ffCaseSensitive)<>0);
+     end;
+  ContainsText:=P;
+end;
+function InArea(X,Y: integer): boolean;
+begin
+  InArea:=((AreaStart.Y=Y) and (AreaStart.X<=X)) or
+          ((AreaStart.Y<Y) and (Y<AreaEnd.Y)) or
+          ((AreaEnd.Y=Y) and (X<AreaEnd.X));
+end;
+begin
+  Inc(SearchRunCount);
+
+  SForward:=(FindFlags and ffmDirection)=ffForward;
+  DoReplace:=(FindFlags and ffDoReplace)<>0;
+  Confirm:=(FindFlags and ffPromptOnReplace)<>0;
+  DoReplaceAll:=(FindFlags and ffReplaceAll)<>0;
+  Count:=GetLineCount; FoundCount:=0;
+
+  if SForward then DY:=1 else DY:=-1; DX:=DY;
+
+  if (FindFlags and ffmScope)=ffGlobal
+     then begin AreaStart.X:=0; AreaStart.Y:=0; AreaEnd.X:=length(GetLineText(Count-1)); AreaEnd.Y:=Count-1; end
+     else begin AreaStart:=SelStart; AreaEnd:=SelEnd; end;
+
+  X:=CurPos.X-DX; Y:=CurPos.Y;;
+  if SearchRunCount=1 then
+    if (FindFlags and ffmOrigin)=ffEntireScope then
+       if SForward then begin X:=AreaStart.X-1; Y:=AreaStart.Y; end
+                   else begin X:=AreaEnd.X+1; Y:=AreaEnd.Y; end;
+
+  X:=X+DX;
+  CanExit:=false;
+  if DoReplace and (Confirm=false) and (Owner<>nil) then Owner^.Lock;
+  if InArea(X,Y) then
+  repeat
+    S:=GetLineText(Y);
+    P:=ContainsText(FindStr,S,X+1);
+    Found:=P<>0;
+    if Found then
+      begin A.X:=P-1; A.Y:=Y; B.Y:=Y; B.X:=A.X+length(FindStr); end;
+    Found:=Found and InArea(A.X,A.Y);
+
+    if Found and ((FindFlags and ffWholeWordsOnly)<>0) then
+     begin
+       LeftOK:=(A.X<=0) or (not( (S[A.X] in AlphaChars) or (S[A.X] in NumberChars) ));
+       RightOK:=(B.X>=length(S)) or (not( (S[B.X+1] in AlphaChars) or (S[B.X+1] in NumberChars) ));
+       Found:=LeftOK and RightOK;
+     end;
+
+    if Found then Inc(FoundCount);
+
+    if Found then
+      begin
+        SetCurPtr(B.X,B.Y);
+        TrackCursor(true);
+        SetHighlight(A,B);
+        if (DoReplace=false) then CanExit:=true else
+          begin
+            if Confirm=false then CanReplace:=true else
+              begin
+                Re:=EditorDialog(edReplacePrompt,@CurPos);
+                case Re of
+                  cmYes    : CanReplace:=true;
+                  cmNo     : CanReplace:=false;
+                else {cmCancel} begin CanReplace:=false; CanExit:=true; end;
+                end;
+              end;
+            if CanReplace then
+              begin
+                if Owner<>nil then Owner^.Lock;
+                SetSelection(A,B);
+                DelSelect;
+                InsertText(ReplaceStr);
+                if Owner<>nil then Owner^.UnLock;
+              end;
+            if (DoReplaceAll=false) then CanExit:=true;
+          end;
+      end;
+
+    if CanExit=false then
+      begin
+        Y:=Y+DY;
+        if SForward then X:=0 else X:=255;
+        CanExit:=(Y>=Count) or (Y<0);
+      end;
+    if CanExit=false then
+       CanExit:=InArea(X,Y)=false;
+  until CanExit;
+  if (FoundCount=0) or (DoReplace) then
+    SetHighlight(CurPos,CurPos);
+  if DoReplace and (Confirm=false) and (Owner<>nil) then Owner^.UnLock;
+  if (FoundCount=0) then
+    EditorDialog(edSearchFailed,nil);
+end;
+
+procedure TCodeEditor.SetInsertMode(InsertMode: boolean);
+begin
+  Overwrite:=not InsertMode;
+  DrawCursor;
+end;
+
+procedure TCodeEditor.SetCurPtr(X,Y: integer);
+var OldPos,OldSEnd,OldSStart: TPoint;
+    Extended: boolean;
+begin
+  X:=Max(0,Min(MaxLineLength+1,X)); Y:=Max(0,Min(GetLineCount-1,Y));
+  OldPos:=CurPos; OldSEnd:=SelEnd; OldSStart:=SelStart;
+  CurPos.X:=X; CurPos.Y:=Y;
+  TrackCursor(false);
+  if (NoSelect=false) and ((GetShiftState and kbShift)<>0) then
+  begin
+    CheckSels;
+    Extended:=false;
+    if PointOfs(OldPos)=PointOfs(SelStart) then
+      begin SetSelection(CurPos,SelEnd); Extended:=true; end;
+    CheckSels;
+    if Extended=false then
+     if PointOfs(OldPos)=PointOfs(SelEnd) then
+        begin SetSelection(SelStart,CurPos); Extended:=true; end;
+    CheckSels;
+    if (Extended=false) then
+       if PointOfs(OldPos)<=PointOfs(CurPos)
+          then begin SetSelection(OldPos,CurPos); Extended:=true; end
+          else begin SetSelection(CurPos,OldPos); Extended:=true; end;
+    DrawView;
+  end else
+   if (Flags and efPersistentBlocks)=0 then
+      begin HideSelect; DrawView; end;
+  if PointOfs(SelStart)=PointOfs(SelEnd) then
+     SetSelection(CurPos,CurPos);
+  if (Flags and (efHighlightColumn+efHighlightRow))<>0 then
+     DrawView;
+  if ((CurPos.X<>OldPos.X) or (CurPos.Y<>OldPos.Y)) and
+     ((Highlight.A.X<>HighLight.B.X) or (Highlight.A.Y<>HighLight.B.Y)) then
+     HideHighlight;
+  if (OldPos.Y<>CurPos.Y) and (0<=OldPos.Y) and (OldPos.Y<GetLineCount) then
+     SetLineText(OldPos.Y,RTrim(GetLineText(OldPos.Y)));
+  if ((CurPos.X<>OldPos.X) or (CurPos.Y<>OldPos.Y)) and (GetErrorMessage<>'') then
+    SetErrorMessage('');
+end;
+
+procedure TCodeEditor.CheckSels;
+begin
+  if (SelStart.Y>SelEnd.Y) or
+     ( (SelStart.Y=SelEnd.Y) and (SelStart.X>SelEnd.X) ) then
+       SetSelection(SelEnd,SelStart);
+end;
+
+function TCodeEditor.UpdateAttrs(FromLine: integer; Attrs: byte): integer;
+type TCharClass = (ccWhiteSpace,ccAlpha,ccNumber,ccSymbol);
+var LastCC: TCharClass;
+    InAsm,InComment,InDirective,InString: boolean;
+    X,ClassStart: Sw_integer;
+    SymbolConcat: string;
+    LineText,Format: string;
+function MatchSymbol(What, S: string): boolean;
+var Match: boolean;
+begin
+  Match:=false;
+  if length(What)>=length(S) then
+    if copy(What,1+length(What)-length(S),length(S))=S then
+       Match:=true;
+  MatchSymbol:=Match;
+end;
+var MatchedSymbol: boolean;
+    MatchingSymbol: string;
+function MatchesAnySpecSymbol(What: string; SClass: TSpecSymbolClass; PartialMatch: boolean): boolean;
+var I: Sw_integer;
+    S: string;
+    Match,Found: boolean;
+begin
+  Found:=false;
+  if What<>'' then
+  for I:=1 to GetSpecSymbolCount(SClass) do
+  begin
+    S:=GetSpecSymbol(SClass,I-1);
+    if PartialMatch then Match:=MatchSymbol(What,S)
+                    else Match:=What=S;
+    if Match then
+       begin MatchingSymbol:=S; Found:=true; Break; end;
+  end;
+  MatchedSymbol:=MatchedSymbol or Found;
+  MatchesAnySpecSymbol:=Found;
+end;
+function IsCommentPrefix: boolean;
+begin
+  IsCommentPrefix:=MatchesAnySpecSymbol(SymbolConcat,ssCommentPrefix,true);
+end;
+function IsCommentSuffix: boolean;
+begin
+  IsCommentSuffix:=MatchesAnySpecSymbol(SymbolConcat,ssCommentSuffix,true);
+end;
+function IsStringPrefix: boolean;
+begin
+  IsStringPrefix:=MatchesAnySpecSymbol(SymbolConcat,ssStringPrefix,true);
+end;
+function IsStringSuffix: boolean;
+begin
+  IsStringSuffix:=MatchesAnySpecSymbol(SymbolConcat,ssStringSuffix,true);
+end;
+function IsDirectivePrefix: boolean;
+begin
+  IsDirectivePrefix:=MatchesAnySpecSymbol(SymbolConcat,ssDirectivePrefix,true);
+end;
+function IsDirectiveSuffix: boolean;
+begin
+  IsDirectiveSuffix:=MatchesAnySpecSymbol(SymbolConcat,ssDirectiveSuffix,true);
+end;
+function IsAsmPrefix(WordS: string): boolean;
+begin
+  IsAsmPrefix:=MatchesAnySpecSymbol(WordS,ssAsmPrefix,false);
+end;
+function IsAsmSuffix(WordS: string): boolean;
+begin
+  IsAsmSuffix:=MatchesAnySpecSymbol(WordS,ssAsmSuffix,false);
+end;
+function GetCharClass(C: char): TCharClass;
+var CC: TCharClass;
+begin
+  C:=Upcase(C);
+  if C in WhiteSpaceChars then CC:=ccWhiteSpace else
+  if C in AlphaChars      then CC:=ccAlpha else
+  if C in NumberChars     then CC:=ccNumber else
+  CC:=ccSymbol;
+  GetCharClass:=CC;
+end;
+procedure FormatWord(SClass: TCharClass; StartX,EndX: Sw_integer);
+var FX: Sw_integer;
+    C: byte;
+    WordS: string;
+begin
+  C:=0;
+  WordS:=copy(LineText,StartX,EndX-StartX+1);
+  if IsAsmSuffix(WordS) and (InAsm=true) and (InComment=false) and
+     (InString=false) and (InDirective=false) then InAsm:=false;
+  if InDirective then C:=coDirectiveColor else
+  if InComment then C:=coCommentColor else
+  if InString then C:=coStringColor else
+  if InAsm then C:=coAssemblerColor else
+  case SClass of
+    ccWhiteSpace : C:=coWhiteSpaceColor;
+    ccNumber     : C:=coNumberColor;
+    ccSymbol     : C:=coSymbolColor;
+    ccAlpha      :
+      begin
+        WordS:=copy(LineText,StartX,EndX-StartX+1);
+        if IsReservedWord(WordS) then C:=coReservedWordColor
+                                 else C:=coIdentifierColor;
+      end;
+  end;
+  for FX:=StartX to EndX do
+   Format[FX]:=chr(C);
+  if IsAsmPrefix(WordS) and (InAsm=false) and (InComment=false) and
+     (InDirective=false) then InAsm:=true;
+end;
+procedure ProcessChar(C: char);
+var CC: TCharClass;
+    EX: Sw_integer;
+begin
+  CC:=GetCharClass(C);
+  if ( (CC<>LastCC) and
+       ( (CC<>ccAlpha) or (LastCC<>ccNumber) ) and
+       ( (CC<>ccNumber) or (LastCC<>ccAlpha) )
+     ) or
+     (X>length(LineText)) or (CC=ccSymbol) then
+  begin
+    MatchedSymbol:=false;
+    EX:=X-1;
+    if (CC=ccSymbol) then
+    begin
+      if length(SymbolConcat)>=High(SymbolConcat) then
+         Delete(SymbolConcat,1,1);
+      SymbolConcat:=SymbolConcat+C;
+    end;
+    case CC of
+      ccSymbol :
+        if IsCommentSuffix and (InComment) then
+           Inc(EX) else
+        if IsStringSuffix and (InString) then
+           Inc(EX) else
+        if IsDirectiveSuffix and (InDirective) then
+           Inc(EX);
+    end;
+    if (C='$') and (MatchedSymbol=false) and (IsDirectivePrefix=false) then
+       CC:=ccNumber;
+    if CC<>ccSymbol then SymbolConcat:='';
+    FormatWord(LastCC,ClassStart,EX);
+    ClassStart:=EX+1;
+    case CC of
+      ccAlpha  : ;
+      ccNumber :
+        if (LastCC<>ccAlpha) then;
+      ccSymbol :
+          if IsDirectivePrefix {and (InComment=false)} and (InDirective=false) then
+             begin InDirective:=true; InComment:=false; Dec(ClassStart,length(MatchingSymbol)-1); end else
+          if IsDirectiveSuffix and (InComment=false) and (InDirective=true) then
+             InDirective:=false else
+          if IsCommentPrefix and (InString=false) then
+              begin InComment:=true; {InString:=false; }Dec(ClassStart,length(MatchingSymbol)-1); end else
+          if IsCommentSuffix and (InComment) then
+              begin InComment:=false; InString:=false; end else
+          if IsStringPrefix and (InComment=false) and (InString=false) then
+             begin InString:=true; Dec(ClassStart,length(MatchingSymbol)-1); end else
+          if IsStringSuffix and (InComment=false) and (InString=true) then
+             InString:=false;
+    end;
+    if MatchedSymbol and (InComment=false) then SymbolConcat:='';
+    LastCC:=CC;
+  end;
+end;
+var CurLine: Sw_integer;
+    Line,NextLine,OldLine: PLine;
+    C: char;
+begin
+  if ((Flags and efSyntaxHighlight)=0) or (FromLine>=GetLineCount) then
+  begin
+    SetLineFormat(FromLine,'');
+    UpdateAttrs:=GetLineCount-1;
+    Exit;
+  end;
+  CurLine:=FromLine;
+  repeat
+    Line:=Lines^.At(CurLine);
+    if CurLine>0 then
+       begin
+         InAsm:=Lines^.At(CurLine-1)^.EndsWithAsm;
+         InComment:=Lines^.At(CurLine-1)^.EndsWithComment;
+         InDirective:=Lines^.At(CurLine-1)^.EndsWithDirective;
+       end else
+       begin
+         InAsm:=false; InComment:=false; InDirective:=false;
+       end;
+    OldLine:=Line;
+    Line^.BeginsWithAsm:=InAsm; Line^.BeginsWithComment:=InComment;
+    Line^.BeginsWithDirective:=InDirective;
+    LineText:=GetLineText(CurLine);
+    Format[0]:=LineText[0]; FillChar(Format[1],SizeOf(Format)-1,coTextColor);
+    LastCC:=ccWhiteSpace; ClassStart:=1; SymbolConcat:='';
+    InString:=false;
+    if LineText<>'' then
+      for X:=1 to length(LineText)+1 do
+      begin
+        if X<=length(LineText) then C:=LineText[X] else C:=' ';
+        ProcessChar(C);
+      end;
+    SetLineFormat(CurLine,Format);
+    Line^.EndsWithAsm:=InAsm; Line^.EndsWithComment:=InComment;
+    Line^.EndsWithDirective:=InDirective;
+    Inc(CurLine);
+    if CurLine>=GetLineCount then Break;
+    NextLine:=Lines^.At(CurLine);
+    if (Attrs and attrForceFull)=0 then
+      if (InAsm=false) and (NextLine^.BeginsWithAsm=false) and
+         (InComment=false) and (NextLine^.BeginsWithComment=false) and
+         (InDirective=false) and (NextLine^.BeginsWithDirective=false) and
+         (OldLine^.EndsWithComment=Line^.EndsWithComment) and
+         (OldLine^.EndsWithAsm=Line^.EndsWithAsm) and
+         (OldLine^.EndsWithDirective=Line^.EndsWithDirective) and
+         (NextLine^.BeginsWithAsm=Line^.EndsWithAsm) and
+         (NextLine^.BeginsWithComment=Line^.EndsWithComment) and
+         (NextLine^.BeginsWithDirective=Line^.EndsWithDirective) and
+         (NextLine^.Format<>nil)
+         then Break;
+  until false;
+  UpdateAttrs:=CurLine;
+end;
+
+procedure TCodeEditor.DrawLines(FirstLine: integer);
+begin
+  DrawView;
+end;
+
+function TCodeEditor.InsertText(S: string): Boolean;
+var I: integer;
+begin
+  for I:=1 to length(S) do
+    AddChar(S[I]);
+end;
+
+function TCodeEditor.InsertFrom(Editor: PCodeEditor): Boolean;
+var OK: boolean;
+    LineDelta,LineCount: Sw_integer;
+    StartPos,DestPos: TPoint;
+    LineStartX,LineEndX: Sw_integer;
+    S,OrigS: string;
+    VerticalBlock: boolean;
+    SEnd: TPoint;
+begin
+  OK:=(Editor^.SelStart.X<>Editor^.SelEnd.X) or (Editor^.SelStart.Y<>Editor^.SelEnd.Y);
+  if OK then
+  begin
+    StartPos:=CurPos; DestPos:=CurPos;
+    VerticalBlock:=(Editor^.Flags and efVerticalBlocks)<>0;
+    LineDelta:=0; LineCount:=(Editor^.SelEnd.Y-Editor^.SelStart.Y)+1;
+    OK:=GetLineCount<MaxLineCount;
+    while OK and (LineDelta<LineCount) do
+    begin
+      if (LineDelta<LineCount-1) and (VerticalBlock=false) then
+      if (LineDelta<>0) or (Editor^.SelEnd.X=0) then
+         begin Lines^.AtInsert(DestPos.Y,NewLine('')); LimitsChanged; end;
+      if (LineDelta=0) or VerticalBlock
+         then LineStartX:=Editor^.SelStart.X else LineStartX:=0;
+      if (LineDelta=LineCount-1) or VerticalBlock
+         then LineEndX:=Editor^.SelEnd.X-1 else LineEndX:=255;
+      if LineEndX<=LineStartX then S:='' else
+      S:=RExpand(
+            copy(Editor^.GetLineText(Editor^.SelStart.Y+LineDelta),LineStartX+1,LineEndX-LineStartX+1),
+          Min(LineEndX-LineStartX+1,255));
+      if VerticalBlock=false then
+         begin
+           OrigS:=GetLineText(DestPos.Y);
+           SetLineText(DestPos.Y,RExpand(copy(OrigS,1,DestPos.X),DestPos.X)+S+copy(OrigS,DestPos.X+1,255));
+           if LineDelta=LineCount-1 then
+              begin SEnd.Y:=DestPos.Y; SEnd.X:=DestPos.X+length(S); end else
+              begin Inc(DestPos.Y); DestPos.X:=0; end;
+         end else
+         begin
+           S:=RExpand(S,LineEndX-LineStartX+1);
+         end;
+      Inc(LineDelta);
+      OK:=GetLineCount<MaxLineCount;
+    end;
+    if OK=false then EditorDialog(edTooManyLines,nil);
+    UpdateAttrs(StartPos.Y,attrAll);
+    LimitsChanged;
+    SetSelection(CurPos,SEnd);
+    if IsClipboard then
+       begin Inc(DestPos.X,length(S)); SetCurPtr(DestPos.X,DestPos.Y); end;
+    DrawView;
+  end;
+  InsertFrom:=OK;
+end;
+
+function TCodeEditor.IsClipboard: Boolean;
+begin
+  IsClipboard:=(Clipboard=@Self);
+end;
+
+procedure TCodeEditor.HideHighlight;
+begin
+  SetHighlight(CurPos,CurPos);
+end;
+
+procedure TCodeEditor.SetSelection(A, B: TPoint);
+begin
+  SelStart:=A; SelEnd:=B;
+  SelectionChanged;
+end;
+
+procedure TCodeEditor.SetHighlight(A, B: TPoint);
+begin
+  Highlight.A:=A; Highlight.B:=B;
+  HighlightChanged;
+end;
+
+procedure TCodeEditor.SelectAll(Enable: boolean);
+var A,B: TPoint;
+begin
+  if (Enable=false) or (GetLineCount=0) then
+     begin A:=CurPos; B:=CurPos end else
+     begin A.X:=0; A.Y:=0; B.Y:=GetLineCount-1; B.X:=length(GetLineText(B.Y)); end;
+  SetSelection(A,B);
+  DrawView;
+end;
+
+procedure TCodeEditor.SelectionChanged;
+var Enable,CanPaste: boolean;
+begin
+  Enable:=((SelStart.X<>SelEnd.X) or (SelStart.Y<>SelEnd.Y)) and (Clipboard<>nil);
+  SetCmdState(ToClipCmds,Enable);
+  CanPaste:=(Clipboard<>nil) and ((Clipboard^.SelStart.X<>Clipboard^.SelEnd.X) or
+            (Clipboard^.SelStart.Y<>Clipboard^.SelEnd.Y));
+  SetCmdState(FromClipCmds,CanPaste);
+end;
+
+procedure TCodeEditor.HighlightChanged;
+begin
+  DrawView;
+end;
+
+function TCodeEditor.GetPalette: PPalette;
+const P: string[length(CEditor)] = CEditor;
+begin
+  GetPalette:=@P;
+end;
+
+destructor TCodeEditor.Done;
+begin
+  inherited Done;
+  Dispose(Lines, Done);
+end;
+
+constructor TFileEditor.Init(var Bounds: TRect; AHScrollBar, AVScrollBar:
+            PScrollBar; AIndicator: PIndicator;AFileName: string);
+begin
+  inherited Init(Bounds,AHScrollBAr,AVScrollBAr,AIndicator,0);
+  FileName:=AFileName;
+  UpdateIndicator;
+end;
+
+function TFileEditor.LoadFile: boolean;
+
+{$ifdef TPUNIXLF}
+  procedure readln(var t:text;var s:string);
+  var
+    c : char;
+    i : longint;
+  begin
+    c:=#0;
+    i:=0;
+    while (not eof(t)) and (c<>#10) do
+     begin
+       read(t,c);
+       if c<>#10 then
+        begin
+          inc(i);
+          s[i]:=c;
+        end;
+     end;
+    if (i>0) and (s[i]=#13) then
+     dec(i);
+    s[0]:=chr(i);
+  end;
+{$endif}
+
+var S: string;
+    OK: boolean;
+    f: text;
+    FM,Line: Sw_integer;
+begin
+  Lines^.FreeAll;
+{$I-}
+  FM:=FileMode; FileMode:=0;
+  Assign(f,FileName);
+  Reset(f);
+  OK:=(IOResult=0);
+  while OK and (Eof(f)=false) and (GetLineCount<MaxLineCount) do
+  begin
+    readln(f,S);
+    OK:=OK and (IOResult=0);
+    if OK then Lines^.Insert(NewLine(S));
+  end;
+  FileMode:=FM;
+  Close(F);
+  EatIO;
+{$I+}
+  LimitsChanged;
+  Line:=-1;
+  repeat
+    Line:=UpdateAttrs(Line+1,attrAll+attrForceFull);
+  until Line>=GetLineCount-1;
+  TextStart;
+  LoadFile:=OK;
+end;
+
+function TFileEditor.SaveFile: boolean;
+var S: string;
+    OK: boolean;
+    f: text;
+    Line: Sw_integer;
+    P: PLine;
+    BAKName: string;
+begin
+{$I-}
+  if (Flags and efBackupFiles)<>0 then
+  begin
+     BAKName:=DirAndNameOf(FileName)+'.bak';
+     Assign(f,BAKName);
+     Erase(f);
+     EatIO;
+     Assign(f,FileName);
+     Rename(F,BAKName);
+     EatIO;
+  end;
+  Assign(f,FileName);
+  Rewrite(f);
+  OK:=(IOResult=0); Line:=0;
+  while OK and (Line<GetLineCount) do
+  begin
+    P:=Lines^.At(Line);
+    if P^.Text=nil then S:='' else S:=P^.Text^;
+    writeln(f,S);
+    Inc(Line);
+    OK:=OK and (IOResult=0);
+  end;
+  Close(F);
+  EatIO;
+{$I+}
+  if OK then begin Modified:=false; UpdateIndicator; end;
+  SaveFile:=OK;
+end;
+
+function TFileEditor.ShouldSave: boolean;
+begin
+  ShouldSave:=Modified or (FileName='');
+end;
+
+function TFileEditor.Save: Boolean;
+begin
+  if ShouldSave=false then begin Save:=true; Exit; end;
+  if FileName = '' then Save := SaveAs else Save := SaveFile;
+end;
+
+function TFileEditor.SaveAs: Boolean;
+begin
+  SaveAs := False;
+  if EditorDialog(edSaveAs, @FileName) <> cmCancel then
+  begin
+    FileName := FExpand(FileName);
+    Message(Owner, evBroadcast, cmUpdateTitle, nil);
+    SaveAs := SaveFile;
+    if IsClipboard then FileName := '';
+  end;
+end;
+
+procedure TCodeEditor.SetState(AState: Word; Enable: Boolean);
+begin
+  inherited SetState(AState,Enable);
+  if (AState and (sfActive+sfSelected+sfFocused))<>0 then
+     SelectionChanged;
+end;
+
+function TFileEditor.Valid(Command: Word): Boolean;
+var OK: boolean;
+    D: Sw_integer;
+begin
+  OK:=inherited Valid(Command);
+  if OK and ((Command=cmClose) or (Command=cmQuit)) then
+     if IsClipboard=false then
+       begin
+         OK:=true;
+         if Modified then
+         begin
+           if FileName = '' then D := edSaveUntitled else D := edSaveModify;
+           case EditorDialog(D, @FileName) of
+             cmYes    : OK := Save;
+             cmNo     : Modified := False;
+             cmCancel : OK := False;
+           end;
+         end;
+    end;
+  Valid:=OK;
+end;
+
+function CreateFindDialog: PDialog;
+var R,R1,R2: TRect;
+    D: PDialog;
+    IL1: PInputLine;
+    CB1: PCheckBoxes;
+    RB1,RB2,RB3: PRadioButtons;
+begin
+  R.Assign(0,0,56,15);
+  New(D, Init(R, 'Find'));
+  with D^ do
+  begin
+    Options:=Options or ofCentered;
+    GetExtent(R); R.Grow(-3,-2);
+    R1.Copy(R); R1.B.X:=17; R1.B.Y:=R1.A.Y+1; R2.Copy(R); R2.A.X:=17; R2.B.Y:=R2.A.Y+1;
+    New(IL1, Init(R2, 80));
+    IL1^.Data^:=FindStr;
+    Insert(IL1);
+    Insert(New(PLabel, Init(R1, '~T~ext to find', IL1)));
+
+    R1.Copy(R); Inc(R1.A.Y,2); R1.B.Y:=R1.A.Y+1; R1.B.X:=R1.A.X+(R1.B.X-R1.A.X) div 2-1;
+    R2.Copy(R1); R2.Move(0,1); R2.B.Y:=R2.A.Y+2;
+    New(CB1, Init(R2,
+      NewSItem('~C~ase sensitive',
+      NewSItem('~W~hole words only',
+      nil))));
+    Insert(CB1);
+    Insert(New(PLabel, Init(R1, 'Options', CB1)));
+
+    R1.Copy(R); Inc(R1.A.Y,2); R1.B.Y:=R1.A.Y+1; R1.A.X:=R1.B.X-(R1.B.X-R1.A.X) div 2+1;
+    R2.Copy(R1); R2.Move(0,1); R2.B.Y:=R2.A.Y+2;
+    New(RB1, Init(R2,
+      NewSItem('Forwar~d~',
+      NewSItem('~B~ackward',
+      nil))));
+    Insert(RB1);
+    Insert(New(PLabel, Init(R1, 'Direction', RB1)));
+
+    R1.Copy(R); Inc(R1.A.Y,6); R1.B.Y:=R1.A.Y+1; R1.B.X:=R1.A.X+(R1.B.X-R1.A.X) div 2-1;
+    R2.Copy(R1); R2.Move(0,1); R2.B.Y:=R2.A.Y+2;
+    New(RB2, Init(R2,
+      NewSItem('~G~lobal',
+      NewSItem('~S~elected text',
+      nil))));
+    Insert(RB2);
+    Insert(New(PLabel, Init(R1, 'Scope', RB2)));
+
+    R1.Copy(R); Inc(R1.A.Y,6); R1.B.Y:=R1.A.Y+1; R1.A.X:=R1.B.X-(R1.B.X-R1.A.X) div 2+1;
+    R2.Copy(R1); R2.Move(0,1); R2.B.Y:=R2.A.Y+2;
+    New(RB3, Init(R2,
+      NewSItem('~F~rom cursor',
+      NewSItem('~E~ntire scope',
+      nil))));
+    Insert(RB3);
+    Insert(New(PLabel, Init(R1, 'Origin', RB3)));
+
+    GetExtent(R); R.Grow(-13,-1); R.A.Y:=R.B.Y-2; R.B.X:=R.A.X+10;
+    Insert(New(PButton, Init(R, 'O~K', cmOK, bfDefault)));
+    R.Move(19,0);
+    Insert(New(PButton, Init(R, 'Cancel', cmCancel, bfNormal)));
+  end;
+  IL1^.Select;
+  CreateFindDialog := D;
+end;
+
+function CreateReplaceDialog: PDialog;
+var R,R1,R2: TRect;
+    D: PDialog;
+    IL1,IL2: PInputLine;
+    CB1: PCheckBoxes;
+    RB1,RB2,RB3: PRadioButtons;
+begin
+  R.Assign(0,0,56,18);
+  New(D, Init(R, 'Replace'));
+  with D^ do
+  begin
+    Options:=Options or ofCentered;
+    GetExtent(R); R.Grow(-3,-2);
+    R1.Copy(R); R1.B.X:=17; R1.B.Y:=R1.A.Y+1; R2.Copy(R); R2.A.X:=17; R2.B.Y:=R2.A.Y+1;
+    New(IL1, Init(R2, 80));
+    IL1^.Data^:=FindStr;
+    Insert(IL1);
+    Insert(New(PLabel, Init(R1, '~T~ext to find', IL1)));
+
+    R1.Copy(R); R1.Move(0,2); R1.B.X:=17; R1.B.Y:=R1.A.Y+1;
+    R2.Copy(R); R2.Move(0,2); R2.A.X:=17; R2.B.Y:=R2.A.Y+1;
+    New(IL2, Init(R2, 80));
+    IL2^.Data^:=ReplaceStr;
+    Insert(IL2);
+    Insert(New(PLabel, Init(R1, '    ~N~ew text', IL2)));
+
+    R1.Copy(R); Inc(R1.A.Y,4); R1.B.Y:=R1.A.Y+1; R1.B.X:=R1.A.X+(R1.B.X-R1.A.X) div 2-1;
+    R2.Copy(R1); R2.Move(0,1); R2.B.Y:=R2.A.Y+3;
+    New(CB1, Init(R2,
+      NewSItem('~C~ase sensitive',
+      NewSItem('~W~hole words only',
+      NewSItem('~P~rompt on replace',
+      nil)))));
+    Insert(CB1);
+    Insert(New(PLabel, Init(R1, 'Options', CB1)));
+
+    R1.Copy(R); Inc(R1.A.Y,4); R1.B.Y:=R1.A.Y+1; R1.A.X:=R1.B.X-(R1.B.X-R1.A.X) div 2+1;
+    R2.Copy(R1); R2.Move(0,1); R2.B.Y:=R2.A.Y+2;
+    New(RB1, Init(R2,
+      NewSItem('Forwar~d~',
+      NewSItem('~B~ackward',
+      nil))));
+    Insert(RB1);
+    Insert(New(PLabel, Init(R1, 'Direction', RB1)));
+
+    R1.Copy(R); Inc(R1.A.Y,9); R1.B.Y:=R1.A.Y+1; R1.B.X:=R1.A.X+(R1.B.X-R1.A.X) div 2-1;
+    R2.Copy(R1); R2.Move(0,1); R2.B.Y:=R2.A.Y+2;
+    New(RB2, Init(R2,
+      NewSItem('~G~lobal',
+      NewSItem('~S~elected text',
+      nil))));
+    Insert(RB2);
+    Insert(New(PLabel, Init(R1, 'Scope', RB2)));
+
+    R1.Copy(R); Inc(R1.A.Y,9); R1.B.Y:=R1.A.Y+1; R1.A.X:=R1.B.X-(R1.B.X-R1.A.X) div 2+1;
+    R2.Copy(R1); R2.Move(0,1); R2.B.Y:=R2.A.Y+2;
+    New(RB3, Init(R2,
+      NewSItem('~F~rom cursor',
+      NewSItem('~E~ntire scope',
+      nil))));
+    Insert(RB3);
+    Insert(New(PLabel, Init(R1, 'Origin', RB3)));
+
+    GetExtent(R); R.Grow(-13,-1); R.A.Y:=R.B.Y-2; R.B.X:=R.A.X+10; R.Move(-10,0);
+    Insert(New(PButton, Init(R, 'O~K~', cmOK, bfDefault)));
+    R.Move(11,0); R.B.X:=R.A.X+14;
+    Insert(New(PButton, Init(R, 'Change ~a~ll', cmYes, bfNormal)));
+    R.Move(15,0); R.B.X:=R.A.X+10;
+    Insert(New(PButton, Init(R, 'Cancel', cmCancel, bfNormal)));
+  end;
+  IL1^.Select;
+  CreateReplaceDialog := D;
+end;
+
+function CreateGotoLineDialog(Info: pointer): PDialog;
+var D: PDialog;
+    R,R1,R2: TRect;
+    IL: PInputLine;
+begin
+  R.Assign(0,0,40,7);
+  New(D, Init(R, 'Goto line'));
+  with D^ do
+  begin
+    Options:=Options or ofCentered;
+    GetExtent(R); R.Grow(-3,-2); R.B.Y:=R.A.Y+1;
+    R1.Copy(R); R1.B.X:=27; R2.Copy(R); R2.A.X:=27;
+    New(IL, Init(R2,5));
+    with TGotoLineDialogRec(Info^) do
+    IL^.SetValidator(New(PRangeValidator, Init(1, Lines)));
+    Insert(IL);
+    Insert(New(PLabel, Init(R1, 'Enter new line ~n~umber', IL)));
+
+    GetExtent(R); R.Grow(-8,-1); R.A.Y:=R.B.Y-2; R.B.X:=R.A.X+10;
+    Insert(New(PButton, Init(R, 'O~K', cmOK, bfDefault)));
+    R.Move(15,0);
+    Insert(New(PButton, Init(R, 'Cancel', cmCancel, bfNormal)));
+  end;
+  IL^.Select;
+  CreateGotoLineDialog:=D;
+end;
+
+function StdEditorDialog(Dialog: Integer; Info: Pointer): Word;
+var
+  R: TRect;
+  T: TPoint;
+begin
+  case Dialog of
+    edOutOfMemory:
+      StdEditorDialog := MessageBox('Not enough memory for this operation.',
+        nil, mfInsertInApp+ mfError + mfOkButton);
+    edReadError:
+      StdEditorDialog := MessageBox('Error reading file %s.',
+        @Info, mfInsertInApp+ mfError + mfOkButton);
+    edWriteError:
+      StdEditorDialog := MessageBox('Error writing file %s.',
+        @Info, mfInsertInApp+ mfError + mfOkButton);
+    edCreateError:
+      StdEditorDialog := MessageBox('Error creating file %s.',
+        @Info, mfInsertInApp+ mfError + mfOkButton);
+    edSaveModify:
+      StdEditorDialog := MessageBox('%s has been modified. Save?',
+        @Info, mfInsertInApp+ mfInformation + mfYesNoCancel);
+    edSaveUntitled:
+      StdEditorDialog := MessageBox('Save untitled file?',
+        nil, mfInsertInApp+ mfInformation + mfYesNoCancel);
+    edSaveAs:
+      StdEditorDialog :=
+        Application^.ExecuteDialog(New(PFileDialog, Init('*.*',
+        'Save file as', '~N~ame', fdOkButton, 101)), Info);
+    edGotoLine:
+      StdEditorDialog :=
+        Application^.ExecuteDialog(CreateGotoLineDialog(Info), Info);
+    edFind:
+      StdEditorDialog :=
+        Application^.ExecuteDialog(CreateFindDialog, Info);
+    edSearchFailed:
+      StdEditorDialog := MessageBox('Search string not found.',
+        nil, mfInsertInApp+ mfError + mfOkButton);
+    edReplace:
+      StdEditorDialog :=
+        Application^.ExecuteDialog(CreateReplaceDialog, Info);
+    edReplacePrompt:
+      begin
+        { Avoid placing the dialog on the same line as the cursor }
+        R.Assign(0, 1, 40, 8);
+        R.Move((Desktop^.Size.X - R.B.X) div 2, 0);
+        Desktop^.MakeGlobal(R.B, T);
+        Inc(T.Y);
+        if PPoint(Info)^.Y <= T.Y then
+          R.Move(0, Desktop^.Size.Y - R.B.Y - 2);
+        StdEditorDialog := MessageBoxRect(R, 'Replace this occurence?',
+          nil, mfInsertInApp+ mfYesNoCancel + mfInformation);
+      end;
+  end;
+end;
+
+END.
+{
+  $Log$
+  Revision 1.1  1998-12-22 14:27:54  peter
+    * moved
+
+  Revision 1.3  1998/12/22 10:39:54  peter
+    + options are now written/read
+    + find and replace routines
+
+}

@@ -1,0 +1,16 @@
+--- To do ---
+
+* Most editor-actions are not aware if current selection, eg.
+  a line insertion does not shift the start and/or the end of the selection.
+* Implement Help|Files...
+* Implement missing option dialogs in Options menu, and
+* store settings & options
+* User screen
+
+--- Ideas ---
+
+* Integrated source beautifier (fully configurable)
+* Add some other classes to syntax highlight
+  (eg. highlight standard Pascal types, etc.)
+ 
+ 

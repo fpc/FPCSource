@@ -1,0 +1,160 @@
+{
+    $Id$
+    This file is part of the Free Pascal Integrated Development Environment
+    Copyright (c) 1998 by Berczi Gabor
+
+    Window menu entries
+
+    See the file COPYING.FPC, included in this distribution,
+    for details about the copyright.
+
+    This program is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+
+ **********************************************************************}
+
+procedure TIDEApp.CloseAll;
+
+  procedure SendClose(P: PView); {$ifndef FPC}far;{$endif}
+  begin
+    Message(P,evCommand,cmClose,nil);
+  end;
+
+begin
+  Desktop^.ForEach(@SendClose);
+end;
+
+
+type
+    PWindowListBox = ^TWindowListBox;
+    TWindowListBox = object(TAdvancedListBox)
+      constructor Init(var Bounds: TRect; AScrollBar: PScrollBar);
+      function    GetText(Item: Integer; MaxLen: Integer): String; virtual;
+    end;
+
+    PWindowListDialog = ^TWindowListDialog;
+    TWindowListDialog = object(TCenterDialog)
+      constructor Init;
+      procedure   HandleEvent(var Event: TEvent); virtual;
+      destructor  Done; virtual;
+    private
+      LB: PWindowListBox;
+      C : PCollection;
+      procedure  UpdateList;
+    end;
+
+constructor TWindowListBox.Init(var Bounds: TRect; AScrollBar: PScrollBar);
+begin
+  inherited Init(Bounds,1,AScrollBar);
+end;
+
+function TWindowListBox.GetText(Item: Integer; MaxLen: Integer): String;
+var P: PView;
+    S: string;
+begin
+  P:=List^.At(Item);
+  case P^.HelpCtx of
+    hcSourceWindow : S:=PSourceWindow(P)^.GetTitle(MaxLen);
+    hcHelpWindow   : S:=PHelpWindow(P)^.GetTitle(MaxLen);
+    hcCalcWindow   : S:=PCalculator(P)^.GetTitle(MaxLen);
+  else S:='???? - '+PWindow(P)^.GetTitle(MaxLen);
+  end;
+  GetText:=copy(S,1,MaxLen);
+end;
+
+constructor TWindowListDialog.Init;
+var R,R2: TRect;
+    SB: PScrollBar;
+begin
+  R.Assign(0,0,50,15);
+  inherited Init(R, 'Window List');
+
+  New(C, Init(20,10));
+
+  GetExtent(R); R.Grow(-2,-2); Inc(R.A.Y); R.B.X:=37;
+  R2.Copy(R); R2.Move(1,0); R2.A.X:=R2.B.X-1;
+  New(SB, Init(R2)); Insert(SB);
+  New(LB, Init(R, SB));
+  LB^.Default:=true;
+  LB^.NewList(C);
+  UpdateList;
+  if C^.Count>=2 then LB^.FocusItem(1); { focus the 2nd one }
+  Insert(LB);
+  R2.Copy(R); Dec(R2.A.Y); R2.B.Y:=R2.A.Y+1;
+  Insert(New(PLabel, Init(R2, '~W~indows', LB)));
+
+  GetExtent(R); R.Grow(-2,-2); Inc(R.A.Y); R.A.X:=38; R.B.Y:=R.A.Y+2;
+  Insert(New(PButton, Init(R, 'O~K~', cmOK, bfDefault)));
+  R.Move(0,3);
+  Insert(New(PButton, Init(R, '~D~elete', cmDeleteWnd, bfNormal)));
+  R.Move(0,3);
+  Insert(New(PButton, Init(R, 'Cancel', cmCancel, bfNormal)));
+
+  LB^.Select;
+end;
+
+procedure TWindowListDialog.UpdateList;
+procedure AddIt(P: PView); {$ifndef FPC}far;{$endif}
+begin
+  if (P<>pointer(Desktop^.Background)) and (P^.GetState(sfVisible)) then
+     C^.Insert(P);
+end;
+begin
+  C^.DeleteAll;
+  Desktop^.ForEach(@AddIt);
+  LB^.SetRange(C^.Count);
+  ReDraw;
+end;
+
+procedure TWindowListDialog.HandleEvent(var Event: TEvent);
+begin
+  case Event.What of
+    evKeyDown :
+      case Event.KeyCode of
+        kbDel :
+          begin
+            Message(@Self,evCommand,cmDeleteWnd,nil);
+            ClearEvent(Event);
+          end;
+      end;
+    evCommand :
+      case Event.Command of
+        cmDeleteWnd :
+          if C^.Count>0 then
+          begin
+            Message(C^.At(LB^.Focused),evCommand,cmClose,nil);
+            UpdateList;
+            ClearEvent(Event);
+          end;
+        cmOK :
+          PView(C^.At(LB^.Focused))^.MakeFirst;
+      end;
+  end;
+  inherited HandleEvent(Event);
+end;
+
+destructor TWindowListDialog.Done;
+begin
+  if C<>nil then begin C^.DeleteAll; Dispose(C, Done); end;
+  inherited Done;
+end;
+
+procedure TIDEApp.WindowList;
+var W: PWindowListDialog;
+begin
+  New(W,Init);
+  ExecView(W);
+  Dispose(W,Done);
+end;
+
+{
+  $Log$
+  Revision 1.1  1998-12-22 14:27:54  peter
+    * moved
+
+  Revision 1.3  1998/12/22 10:39:50  peter
+    + options are now written/read
+    + find and replace routines
+
+}
