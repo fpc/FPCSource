@@ -100,7 +100,7 @@ Function LinuxToWinAttr (FN : Char; Const Info : Stat) : Longint;
 
 
 begin
-  Result:=0;
+  Result:=faArchive;
   If FN='.' then
     Result:=Result or faHidden;
   If (Info.Mode and STAT_IFDIR)=STAT_IFDIR then
@@ -118,7 +118,7 @@ end;
  If FileAttributes match, the entry is reused
 }
 
-Function GlobToTSearchRec (Info : TSearchRec) : Boolean;
+Function GlobToTSearchRec (Var Info : TSearchRec) : Boolean;
 
 Var SInfo : Stat;
     p     : Pglob;
@@ -127,34 +127,37 @@ Var SInfo : Stat;
 begin
   TAttr:=$ffffffff;
   P:=pglob(Info.FindHandle);
-  Result:=Fstat(p^.name,SInfo);
-  Info.FindHandle:=Longint(P^.Next);
-  P^.Next:=Nil;
-  GlobFree(P);
+  Result:=P<>Nil;
   If Result then
     begin
-    Info.Attr:=LinuxToWinAttr(p^.name[0],SInfo);
-    Result:=(Info.ExcludeAttr and TAttr)<>0 ;
-    If Result Then
-       With Info do
-         begin
-         Attr:=Info.Attr;
-         Name:=strpas(p^.name);
-         Time:=Sinfo.mtime;
-         Size:=Sinfo.Size;
-         end;
+    Info.FindHandle:=Longint(P^.Next);
+    Result:=Fstat(p^.name,SInfo);
+    If Result then
+      begin
+      Info.Attr:=LinuxToWinAttr(p^.name[0],SInfo);
+      Result:=(Info.ExcludeAttr and TAttr)<>0;
+      If Result Then
+         With Info do
+           begin
+           Attr:=Info.Attr;
+           If P^.Name<>Nil then
+           Name:=strpas(p^.name);
+           Time:=Sinfo.mtime;
+           Size:=Sinfo.Size;
+           end;
+      end;
+    P^.Next:=Nil;
+    GlobFree(P);
     end;
 end;
 
 Function DoFind(Var Rslt : TSearchRec) : Longint;
 
 begin
+  Result:=-1;
   If Rslt.FindHandle<>0 then
-    While (Rslt.FindHandle<>0) and GlobToTSearchRec(Rslt) do;
-  If Rslt.FindHandle=0 Then
-    Result:=-1
-  else
-    Result:=0;
+    While (Rslt.FindHandle<>0) and not (Result=0) do
+      If GlobToTSearchRec(Rslt) Then Result:=0;
 end;
 
 
@@ -217,8 +220,7 @@ end;
 Function FileSetAttr (Const Filename : String; Attr: longint) : Longint;
 
 begin
-  //!! Still Needs doing
-  Result:=0;
+  Result:=-1;
 end;
 
 
@@ -281,7 +283,10 @@ end;
 
 {
   $Log$
-  Revision 1.10  1999-05-13 21:54:09  michael
+  Revision 1.11  1999-05-14 22:19:34  michael
+  * Some more fixes.
+
+  Revision 1.10  1999/05/13 21:54:09  michael
   * Fixed FileAge and corrected FileGetAttr
 
   Revision 1.9  1999/04/08 11:31:01  peter
