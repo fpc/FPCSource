@@ -46,7 +46,7 @@ implementation
      dos,
 {$endif Delphi}
      cutils,cclasses,
-     globtype,comphook,systems,
+     globtype,comphook,systems,symsym,
      globals,verbose,fmodule,script,
      import,link,comprsrc;
 
@@ -593,7 +593,10 @@ initialization
 end.
 {
   $Log$
-  Revision 1.12  2002-01-27 12:58:42  hajny
+  Revision 1.13  2002-01-29 20:08:38  peter
+    * added missing unit
+
+  Revision 1.12  2002/01/27 12:58:42  hajny
     * fix for a problem with importprocedure
 
   Revision 1.11  2001/09/18 11:32:00  michael
