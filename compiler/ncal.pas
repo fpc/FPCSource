@@ -1329,6 +1329,19 @@ type
 
               { Compare parameters from right to left }
               currpara:=tparaitem(procdefinition.Para.last);
+              { Skip default parameters }
+              if not(po_varargs in procdefinition.procoptions) then
+                begin
+                  { ignore hidden parameters }
+                  while assigned(currpara) and (currpara.is_hidden) do
+                    currpara:=tparaitem(currpara.previous);
+                  for i:=1 to procdefinition.maxparacount-paralength do
+                    begin
+                      if not assigned(currpara) then
+                        internalerror(200402261);
+                      currpara:=tparaitem(currpara.previous);
+                    end;
+                end;
               while assigned(currpara) and (currpara.is_hidden) do
                 currpara:=tparaitem(currpara.previous);
               pt:=tcallparanode(left);
@@ -2028,7 +2041,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.228  2004-02-24 16:12:39  peter
+  Revision 1.229  2004-02-26 16:09:49  peter
+    * fix procvars with default paras
+
+  Revision 1.228  2004/02/24 16:12:39  peter
     * operator overload chooses rewrite
     * overload choosing is now generic and moved to htypechk
 
