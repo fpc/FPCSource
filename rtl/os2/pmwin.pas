@@ -21,6 +21,8 @@
 
 unit pmwin;
 
+{$mode objfpc}
+
 {$MACRO ON}
 
   interface
@@ -3415,6 +3417,35 @@ const
     function Integer1FromMP (MP: pointer): word; cdecl;
     function Integer2FromMP (MP: pointer): word; cdecl;
 
+const
+  SEI_BREAKPOINT   =$8000;  // Always enter an INT 3 breakpt
+  SEI_NOBEEP       =$4000;  // Do not call DosBeep
+  SEI_NOPROMPT     =$2000;  // Do not prompt the user
+  SEI_DBGRSRVD     =$1000;  // Reserved for debug use
+
+  SEI_STACKTRACE   =$0001;  // save the stack trace
+  SEI_REGISTERS    =$0002;  // save the registers
+  SEI_ARGCOUNT     =$0004;  // first USHORT in args is arg count
+  SEI_DOSERROR     =$0008;  // first USHORT in args is OS2 error code
+  SEI_RESERVED     =$0FE0;  // Reserved for future use
+
+  SEI_DEBUGONLY    = (SEI_BREAKPOINT or SEI_NOBEEP or SEI_NOPROMPT or SEI_RESERVED);
+
+//****************************************************************************
+//* Note that when SEI_ARGCOUNT, SEI_DOSERROR are specified
+//* together, then the implied order of the parameters is:
+//*
+//*
+//*  WinSetErrorInfo( MAKEERRORID( .... ),
+//*                   SEI_ARGCOUNT | SEI_DOSERROR,
+//*                   argCount,
+//*                   dosErrorCode);
+//*
+//****************************************************************************/
+
+//ERRORID APIENTRY WinSetErrorInfo(ERRORID, ULONG, ...);
+Function WinSetErrorInfo(ErrID: ErrorID; Flags: Cardinal; Params: Array of const): ErrorID; external 'pmwin' index 263;
+
   implementation
 
     function WinRegisterClass(hab : cardinal;pszClassName : pchar;pfnWndProc : proc;flStyle,cbWindowData : cardinal) : longbool; cdecl;external 'pmwin' index 926;
@@ -3752,7 +3783,10 @@ end.
 
 {
   $Log$
-  Revision 1.12  2003-03-27 18:09:23  yuri
+  Revision 1.13  2003-08-11 10:43:17  yuri
+  + WinSetErrorInfo constants and function added
+
+  Revision 1.12  2003/03/27 18:09:23  yuri
   MLE types and various constants added
 
   Revision 1.11  2003/01/27 17:57:36  hajny
