@@ -56,6 +56,7 @@ interface
        tprocessors = (no_processor
             ,Class386,ClassP5,ClassP6
             ,MC68000,MC68100,MC68020
+            ,PPC601,PPC604
        );
 
        TSection=(sec_none,
@@ -68,7 +69,7 @@ interface
             ,asmmode_i386_direct,asmmode_i386_att,asmmode_i386_intel
             ,asmmode_m68k_mot
             ,asmmode_alpha_direct
-            ,asmmode_powerpc_direct
+            ,asmmode_ppc_direct,asmmode_ppc_gas,asmmode_ppc_motorola
        );
 
      { IMPORTANT NOTE:
@@ -635,7 +636,10 @@ finalization
 end.
 {
   $Log$
-  Revision 1.48  2002-07-26 21:15:42  florian
+  Revision 1.49  2002-07-28 20:45:22  florian
+    + added direct assembler reader for PowerPC
+
+  Revision 1.48  2002/07/26 21:15:42  florian
     * rewrote the system handling
 
   Revision 1.47  2002/07/04 20:43:02  florian

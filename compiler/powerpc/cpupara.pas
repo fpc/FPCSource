@@ -104,6 +104,9 @@ unit cpupara;
               getparaloc:=LOC_REGISTER;
             arraydef:
               getparaloc:=LOC_REFERENCE;
+            { avoid problems with errornous definitions }
+            errordef:
+              getparaloc:=LOC_REGISTER;
             else
               internalerror(2002071001);
          end;
@@ -207,7 +210,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.3  2002-07-26 22:22:10  florian
+  Revision 1.4  2002-07-28 20:45:22  florian
+    + added direct assembler reader for PowerPC
+
+  Revision 1.3  2002/07/26 22:22:10  florian
     * several PowerPC related fixes to get forward with system unit compilation
 
   Revision 1.2  2002/07/11 14:41:34  florian

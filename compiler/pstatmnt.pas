@@ -66,6 +66,11 @@ implementation
        ,ra386dir
   {$endif NoRa386Dir}
 {$endif i386}
+{$ifdef powerpc}
+  {$ifndef NoRaPPCDir}
+       ,rappcdir
+  {$endif NoRaPPCDir}
+{$endif powerpc}
 {$ifdef x86_64}
   {$ifndef NoRax86Dir}
        ,rax86dir
@@ -723,6 +728,8 @@ implementation
       var
         asmstat : tasmnode;
         Marker : tai;
+        r : tregister;
+        found : boolean;
       begin
          Inside_asm_statement:=true;
          case aktasmmode of
@@ -770,6 +777,23 @@ implementation
   {$endif NoRA386Dir}
 {$endif x86_64}
 
+{$ifdef powerpc}
+  {$ifndef NoRAPPCDir}
+           asmmode_ppc_direct:
+             begin
+               if not target_asm.allowdirect then
+                 Message(parser_f_direct_assembler_not_allowed);
+               if (aktprocdef.proccalloption=pocall_inline) then
+                 Begin
+                    Message1(parser_w_not_supported_for_inline,'direct asm');
+                    Message(parser_w_inlining_disabled);
+                    aktprocdef.proccalloption:=pocall_fpccall;
+                 End;
+               asmstat:=tasmnode(rappcdir.assemble);
+             end;
+  {$endif NoRAPPCDir}
+{$endif powerpc}
+
 {$ifdef m68k}
   {$ifndef NoRA68kMot}
            asmmode_m68k_mot:
@@ -808,6 +832,7 @@ implementation
                     end
                   else if pattern='EDI' then
                     include(rg.usedinproc,R_EDI)
+                  else consume(_RECKKLAMMER);
 {$endif i386}
 {$ifdef x86_64}
                   if pattern='RAX' then
@@ -825,6 +850,7 @@ implementation
                     end
                   else if pattern='RDI' then
                     include(usedinproc,R_RDI)
+                  else consume(_RECKKLAMMER);
 {$endif x86_64}
 {$ifdef m68k}
                   if pattern='D0' then
@@ -855,16 +881,25 @@ implementation
                     include(rg.usedinproc,R_A4)
                   else if pattern='A5' then
                     include(rg.usedinproc,R_A5)
+                  else consume(_RECKKLAMMER);
 {$endif m68k}
 {$ifdef powerpc}
-                  if pattern<>'' then
-                    internalerror(200108251)
+                  found:=false;
+                  for r:=low(tregister) to high(tregister) do
+                    if pattern=upper(std_reg2str[r]) then
+                      begin
+                         include(rg.usedinproc,r);
+                         found:=true;
+                         break;
+                      end;
+                  if not(found) then
+                    consume(_RECKKLAMMER);
 {$endif powerpc}
 {$IFDEF SPARC}
                   if pattern<>'' then
                     internalerror(200108251)
-{$ENDIF SPARC}
                   else consume(_RECKKLAMMER);
+{$ENDIF SPARC}
                   consume(_CSTRING);
                   if not try_to_consume(_COMMA) then
                     break;
@@ -1231,7 +1266,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.64  2002-07-20 11:57:56  florian
+  Revision 1.65  2002-07-28 20:45:22  florian
+    + added direct assembler reader for PowerPC
+
+  Revision 1.64  2002/07/20 11:57:56  florian
     * types.pas renamed to defbase.pas because D6 contains a types
       unit so this would conflicts if D6 programms are compiled
     + Willamette/SSE2 instructions to assembler added
@@ -1328,5 +1366,4 @@ end.
   Revision 1.45  2002/01/24 18:25:49  peter
    * implicit result variable generation for assembler routines
    * removed m_tp modeswitch, use m_tp7 or not(m_fpc) instead
-
 }

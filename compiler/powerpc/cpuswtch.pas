@@ -105,14 +105,14 @@ begin
              end;
          end;
    'R' : begin
-           if More='ATT' then
-            initasmmode:=asmmode_i386_att
+           if More='GAS' then
+            initasmmode:=asmmode_ppc_gas
            else
-            if More='INTEL' then
-             initasmmode:=asmmode_i386_intel
+            if More='MOTOROLA' then
+             initasmmode:=asmmode_ppc_motorola
            else
             if More='DIRECT' then
-             initasmmode:=asmmode_i386_direct
+             initasmmode:=asmmode_ppc_direct
            else
             IllegalPara(opt);
          end;
@@ -128,7 +128,10 @@ initialization
 end.
 {
   $Log$
-  Revision 1.4  2002-05-18 13:34:26  peter
+  Revision 1.5  2002-07-28 20:45:23  florian
+    + added direct assembler reader for PowerPC
+
+  Revision 1.4  2002/05/18 13:34:26  peter
     * readded missing revisions
 
   Revision 1.3  2002/05/16 19:46:53  carl
@@ -139,5 +142,4 @@ end.
 
   Revision 1.1  2002/05/13 19:52:46  peter
     * a ppcppc can be build again
-
 }

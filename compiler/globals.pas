@@ -1434,8 +1434,8 @@ implementation
         initsetalloc:=0;
         {$ENDIF}
         initasmmode:=asmmode_i386_att;
-{$else not i386}
-  {$ifdef m68k}
+{$endif i386}
+{$ifdef m68k}
         initoptprocessor:=MC68000;
         include(initmoduleswitches,cs_fp_emulation);
         initpackenum:=4;
@@ -1443,8 +1443,15 @@ implementation
          initsetalloc:=0;
         {$ENDIF}
         initasmmode:=asmmode_m68k_mot;
-  {$endif m68k}
-{$endif i386}
+{$endif m68k}
+{$ifdef powerpc}
+        initoptprocessor:=PPC604;
+        initpackenum:=4;
+        {$IFDEF testvarsets}
+         initsetalloc:=0;
+        {$ENDIF}
+        initasmmode:=asmmode_ppc_direct;
+{$endif powerpc}
         initinterfacetype:=it_interfacecom;
         initdefproccall:=pocall_none;
         initdefines:=TStringList.Create;
@@ -1473,7 +1480,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.61  2002-07-20 17:12:42  florian
+  Revision 1.62  2002-07-28 20:45:22  florian
+    + added direct assembler reader for PowerPC
+
+  Revision 1.61  2002/07/20 17:12:42  florian
     + source code page support
 
   Revision 1.60  2002/07/01 18:46:22  peter

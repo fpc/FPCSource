@@ -30,7 +30,7 @@ unit cpunode;
 
     uses
        { generic nodes }
-       ncgbas,ncgld,ncgflw,ncgcnv,ncgmem,ncgcon,ncgcal,ncgset,
+       ncgbas,ncgld,ncgflw,ncgcnv,ncgmem,ncgcon,ncgcal,ncgset,ncginl,
        { to be able to only parts of the generic code,
          the processor specific nodes must be included
          after the generic one (FK)
@@ -52,7 +52,10 @@ unit cpunode;
 end.
 {
   $Log$
-  Revision 1.9  2002-07-26 12:31:56  jonas
+  Revision 1.10  2002-07-28 20:45:22  florian
+    + added direct assembler reader for PowerPC
+
+  Revision 1.9  2002/07/26 12:31:56  jonas
     + intial implementation of add nodes, only integer/enumeration/pointer/...
       handling is finished
 

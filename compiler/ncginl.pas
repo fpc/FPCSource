@@ -578,12 +578,15 @@ implementation
       end;
 
 begin
-{   cinlinenode:=tcginlinenode;}
+   cinlinenode:=tcginlinenode;
 end.
 
 {
   $Log$
-  Revision 1.4  2002-07-26 09:45:20  florian
+  Revision 1.5  2002-07-28 20:45:22  florian
+    + added direct assembler reader for PowerPC
+
+  Revision 1.4  2002/07/26 09:45:20  florian
     * fixed a mistake in yesterday's commit, forgot to commit it
 
   Revision 1.3  2002/07/25 22:58:30  florian
