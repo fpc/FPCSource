@@ -66,10 +66,10 @@ begin
 end;
 
 constructor TEventObject.Create(EventAttributes : PSecurityAttributes;
-  ManualReset,InitialState : Boolean;const Name : string);
+  AManualReset,InitialState : Boolean;const Name : string);
 
 begin
-  FHandle := CreateEvent(EventAttributes, ManualReset, InitialState, PChar(Name));
+  FHandle := CreateEvent(EventAttributes, AManualReset, InitialState, PChar(Name));
 end;
 
 destructor TEventObject.destroy;
@@ -117,7 +117,10 @@ end.
 
 {
   $Log$
-  Revision 1.5  2003-06-14 19:16:50  michael
+  Revision 1.6  2003-06-17 07:35:58  michael
+  + Renamed ManualReset parameter to TEventObject constructor
+
+  Revision 1.5  2003/06/14 19:16:50  michael
   + Some improvements for the Linux version
 
   Revision 1.4  2003/06/11 11:59:52  michael
