@@ -20,7 +20,7 @@ PP=ppc386
 # this directry will be created, and the system dependent
 # files will be set there.
 # For linux:
-UNITINSTALLDIR=/usr/lib/ppc/0.99.5
+UNITINSTALLDIR=/usr/lib/ppc/0.99.6
 # For dos/os2 : 
 # UNITINSTALLDIR=\pp\units
 
