@@ -45,6 +45,9 @@ type
      RunCount : longint;
      WindowWidth : longint;
      FPCBreakErrorNumber : longint;
+{$ifdef SUPPORT_REMOTE}
+     isRemoteDebugging:boolean;
+{$endif SUPPORT_REMOTE}
     constructor Init;
     procedure SetExe(const exefn:string);
     procedure SetWidth(AWidth : longint);
@@ -723,12 +726,14 @@ begin
   ResetBreakpointsValues;
 {$ifdef SUPPORT_REMOTE}
   NoSwitch:=true;
+  isRemoteDebugging:=false;
 {$ifndef CROSSGDB}
   If (RemoteMachine<>'') and (RemotePort<>'') then
 {$else CROSSGDB}
   if true then
 {$endif CROSSGDB}
     begin
+      isRemoteDebugging:=true;
       S:=RemoteMachine;
       If pos('@',S)>0 then
         S:=copy(S,pos('@',S)+1,High(S));
@@ -801,13 +806,15 @@ begin
   { Don't try to print GDB messages while in User Screen mode }
   If assigned(GDBWindow) then
     GDBWindow^.Editor^.Lock;
-{$ifndef SUPPORT_REMOTE}
-  inherited Run;
-{$else SUPPORT_REMOTE}
-  inc(init_count);
-  { pass the stop in start code }
-  Command('continue');
+{$ifdef SUPPORT_REMOTE}
+  if isRemoteDebugging then
+  begin
+    inc(init_count);
+    { pass the stop in start code }
+    Command('continue');
+  end else
 {$endif SUPPORT_REMOTE}
+  inherited Run;
   DebuggerScreen;
   If assigned(GDBWindow) then
     GDBWindow^.Editor^.UnLock;
@@ -3596,7 +3603,10 @@ end.
 
 {
   $Log$
-  Revision 1.45  2003-03-27 14:10:55  pierre
+  Revision 1.46  2003-03-30 12:12:12  armin
+  * allow local and remote debugging if SUPPORT_REMOTE is given
+
+  Revision 1.45  2003/03/27 14:10:55  pierre
    * fix problem with mixed case target names as suggested by Armin Diehl
 
   Revision 1.44  2003/01/14 16:25:23  pierre
