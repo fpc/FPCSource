@@ -366,7 +366,7 @@ implementation
                    if assigned(aktprocsym) then
                      begin
                        if (aktprocsym^.definition^.options and
-                        poconstructor+podestructor{+poinline}+pointerrupt=0) and
+                        (poconstructor+podestructor{+poinline}+pointerrupt)=0) and
                         ((procinfo.flags and pi_do_call)=0) and (lexlevel>1) then
                        begin
                          { use ESP as frame pointer }
@@ -502,7 +502,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.41  1998-07-14 14:46:44  peter
+  Revision 1.42  1998-07-15 16:06:44  jonas
+  * fixed bug that caused the stackframe never to be omitted
+
+  Revision 1.41  1998/07/14 14:46:44  peter
     * released NEWINPUT
 
   Revision 1.40  1998/07/07 11:19:52  peter
