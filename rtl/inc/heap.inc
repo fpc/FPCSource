@@ -451,15 +451,15 @@ end;
 Function  Memavail:ptrint;
 begin
   result:=0;
-end;  
+end;
 Function  Maxavail:ptrint;
 begin
   result:=0;
-end;  
+end;
 Function  Heapsize:ptrint;
 begin
   result:=0;
-end;  
+end;
 {$endif HASGETHEAPSTATUS}
 
 {*****************************************************************************
@@ -867,6 +867,10 @@ begin
     freelists_fixed[s]^.prev_fixed := nil;
   poc := poschunk(pointer(pcurr)-((pcurr^.size shr 16)*(pcurr^.size and fixedsizemask)+sizeof(toschunk)));
   inc(poc^.used);
+  { statistics }
+  inc(internal_status.currheapused,size);
+  if internal_status.currheapused>internal_status.maxheapused then
+    internal_status.maxheapused:=internal_status.currheapused;
 {$ifdef TestFreeLists}
   if test_each then
     TestFreeLists;
@@ -928,7 +932,10 @@ begin
   split_block(pcurr, size);
   { flag block as used }
   pcurr^.size := pcurr^.size or usedflag;
-
+  { statistics }
+  inc(internal_status.currheapused,size);
+  if internal_status.currheapused>internal_status.maxheapused then
+    internal_status.maxheapused:=internal_status.currheapused;
 {$ifdef TestFreeLists}
   if test_each then
     TestFreeLists;
@@ -958,9 +965,6 @@ begin
       size := (size+sizeof(tmemchunk_var_hdr)+(blocksize-1)) and sizemask;
       sysgetmem := sysgetmem_var(size);
     end;
-  inc(internal_status.currheapused,size);
-  if internal_status.currheapused>internal_status.maxheapused then
-    internal_status.maxheapused:=internal_status.currheapused;
 end;
 
 
@@ -1006,7 +1010,7 @@ begin
   pcurrsize := pcurr^.size and sizemask;
   if size<>pcurrsize then
     HandleError(204);
-  inc(internal_status.currheapused,pcurrsize);
+  dec(internal_status.currheapused,pcurrsize);
   { insert the block in it's freelist }
   pcurr^.size := pcurr^.size and (not usedflag);
   append_to_list_var(pcurr);
@@ -1271,7 +1275,10 @@ end;
 
 {
   $Log$
-  Revision 1.39  2004-11-22 22:26:21  peter
+  Revision 1.40  2004-11-26 22:22:58  peter
+    * fix currheapused
+
+  Revision 1.39  2004/11/22 22:26:21  peter
     * typo for GetHeapStatus
 
   Revision 1.38  2004/11/22 19:34:58  peter
