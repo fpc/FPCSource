@@ -14,6 +14,7 @@ fi
 PACKAGEVERSION=`head -n 1 $1/changelog | awk '{ print $2 }' | tr -d '[()]'`
 FPCVERSION=`echo $PACKAGEVERSION | awk -F '-' '{ print $1 }'`
 DEBVERSION=`echo $PACKAGEVERSION | awk -F '-' '{ print $2 }'`
+FPCCVSTAG=`echo $FPCVERSION | awk -F '.' '{ print "RELEASE_"$1"_"$2"_"$3 }'`
 FPCTARGET="$2"
 PPCBIN="$3"
 
@@ -31,9 +32,10 @@ echo 'FPCVersion    : ' $FPCVERSION
 echo 'FPCTarget     : ' $FPCTARGET
 echo 'DebVersion    : ' $DEBVERSION
 echo 'PPCBin        : ' $PPCBIN
+echo 'CVSTag        : ' $FPCCVSTAG
 
 for i in $1/*.in
 do
   j=${i/%.in/}
-  sed -e 's/%{fpcversion}/'$FPCVERSION'/g;s/%{packageversion}/'$PACKAGEVERSION'/g;s/%{ppcbin}/'$PPCBIN'/g;s/%{fpctarget}/'$FPCTARGET'/g' $i > $j
+  sed -e 's/%{fpcversion}/'$FPCVERSION'/g;s/%{packageversion}/'$PACKAGEVERSION'/g;s/%{ppcbin}/'$PPCBIN'/g;s/%{fpctarget}/'$FPCTARGET'/g;s/%{fpccvstag}/'$FPCCVSTAG'/g' $i > $j
 done
