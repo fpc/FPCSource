@@ -165,8 +165,8 @@ implementation
               if (cs_create_smart in aktmoduleswitches) then
                 Consts.concat(Tai_cut.Create);
               Consts.concat(Tai_label.Create(l));
-              Consts.concat(Tai_const.Create_32bit(longint(lo(value))));
-              Consts.concat(Tai_const.Create_32bit(longint(hi(value))));
+              Consts.concat(Tai_const.Create_32bit(longint(value)));
+              Consts.concat(Tai_const.Create_32bit(longint(value shr 32)));
               reset_reference(location.reference);
               location.reference.symbol:=l;
            end
@@ -517,7 +517,12 @@ begin
 end.
 {
   $Log$
-  Revision 1.3  2001-12-31 09:52:02  jonas
+  Revision 1.4  2002-02-26 09:12:39  jonas
+    * fixed problem when compiling the compiler with Delphi (reported by
+      "Luc Langlois" <L_Langlois@Videotron.ca>) (lo/hi don't work as in FPC
+      when used with int64's under Delphi)
+
+  Revision 1.3  2001/12/31 09:52:02  jonas
     * empty widestrings can also be optimized to the constant '0'
 
   Revision 1.2  2001/10/20 19:28:37  peter
