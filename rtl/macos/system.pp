@@ -435,7 +435,6 @@ var
 
 begin
   res:= PathArgToFSSpec(p, spec);
-
   if (res = 0) then
     begin
       if not IsDirectory(spec) then
@@ -681,17 +680,6 @@ begin
         exit;
 
       p:= PChar(fullPath);
-
-      if FileRec(f).mode in [fmoutput, fminout, fmappend] then
-        begin
-         {Since opening of an existing file will not change filetype and creator,
-          it is set here. Otherwise overwritten darwin files will not get filetype
-          TEXT. This is not done when only opening file for reading.}
-          FSpGetFInfo(spec, finderInfo);
-          finderInfo.fdType:= defaultFileType;
-          finderInfo.fdCreator:= defaultCreator;
-          FSpSetFInfo(spec, finderInfo);
-        end;
     end;
 
 
@@ -703,7 +691,21 @@ begin
     end;
   Errno2InOutRes;
   if fh <> -1 then
-    filerec(f).handle:= fh
+    begin
+      if FileRec(f).mode in [fmoutput, fminout, fmappend] then
+        begin
+          {Change of filetype and creator is always done when a file is opened
+          for some kind of writing. This ensures overwritten Darwin files will 
+          get apropriate filetype. It must be done after file is opened,
+          in the case the file did not previously exist.}
+
+          FSpGetFInfo(spec, finderInfo);
+          finderInfo.fdType:= defaultFileType;
+          finderInfo.fdCreator:= defaultCreator;
+          FSpSetFInfo(spec, finderInfo);
+        end;
+      filerec(f).handle:= fh;
+    end
   else
     filerec(f).handle:= UnusedHandle;
 
@@ -1207,7 +1209,10 @@ end.
 
 {
   $Log$
-  Revision 1.26  2004-12-05 14:36:37  hajny
+  Revision 1.27  2005-01-24 18:51:23  olle
+    * filetype/filecreator changed after the file is opened, in case the file did not previously exist
+
+  Revision 1.26  2004/12/05 14:36:37  hajny
     + GetProcessID added
 
   Revision 1.25  2004/11/04 09:32:31  peter
