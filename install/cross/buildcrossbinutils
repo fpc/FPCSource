@@ -1,0 +1,158 @@
+#!/bin/sh
+
+#
+# A script to build the crossutils for a set of platforms.
+#
+
+# where to store the built tree of binutils?
+DESTDIR=~/cross
+
+# where can I decrunch and build?
+WORKDIR=~/bintst1
+
+# where is the binutils archive?
+BINUTILSPATH=~/
+
+# what is it's base name?
+BINUTILSBASE=binutils
+
+# what is the version part of the archive?
+BINUTILSVERSION=2.14
+
+# is binutils archive gz or bz2? 
+BINUTILS_GZIP=no
+
+# what i6868 platform do you want/need to build for?
+MYINTEL=i686
+
+# target info, OSes per processor with "WIN" as special case
+
+BSD="freebsd netbsd openbsd"
+TARGETS_WIN="cygwin mingw"
+TARGETS_I386="${BSD} linux solaris darwin"
+TARGETS_POWERPC="${BSD} linux darwin"
+TARGETS_SPARC="${BSD} linux solaris"
+#TARGETS_M68k=
+
+# I use the below because my default system is dual proc.
+#EXTRAOPT=j 4
+
+###########################################################################
+# don't edit below
+#
+#
+#
+#
+
+export LD_FLAGS="${LD_FLAGS} -static"
+export CFLAGS="${CFLAGS} -static"
+export CPPFLAGS="${CPPFLAGS} -static"
+export CXXFLAGS="${CXXFLAGS} -static"
+
+
+#
+# Make a list of targets
+#
+
+TARGETS=""
+
+for OS in ${TARGETS_WIN}; do
+TARGETS="${TARGETS} ${MYINTEL}-${OS}"
+done;
+
+for OS in ${TARGETS_I386}; do
+TARGETS="${TARGETS} ${MYINTEL}-${OS}"
+done;
+
+
+for OS in ${TARGETS_POWERPC}; do
+TARGETS="${TARGETS} powerpc-${OS}"
+done;
+
+for OS in ${TARGETS_SPARC}; do
+TARGETS="${TARGETS} sparc-${OS}"
+done;
+
+for OS in ${TARGETS_M68K}; do
+TARGETS="${TARGETS} m68k-${OS}"
+done;
+
+#
+# force slash
+#
+
+DESTDIR=${DESTDIR%/}/
+WORKDIR=${WORKDIR%/}/
+BINUTILSPATH=${BINUTILSPATH%/}/
+BINUTILSARCHIVE=${BINUTILSPATH}${BINUTILSBASE}-${BINUTILSVERSION}
+MAKE=make
+
+#
+# BSD? -> gmake
+#
+
+SYSTEM=`uname -s`
+
+case "$SYSTEM" in
+ *BSD*) MAKE=gmake
+  ;;
+ *bsd*) MAKE=gmake  
+  ;;
+esac
+
+#
+# tar.gz or .tar.bz2 ?
+#
+
+if [ $BINUTILS_GZIP = "no" ] ; then
+BINUTILSARCHIVE=${BINUTILSARCHIVE}.tar.bz2
+else
+BINUTILSARCHIVE=${BINUTILSARCHIVE}.tar.gz
+fi
+
+#
+# depack or clean  dir
+#
+
+mkdir -p $DESTDIR
+mkdir -p $WORKDIR
+cd ${WORKDIR}
+
+if [ ! -d ${WORKDIR}${BINUTILSBASE}-${BINUTILSVERSION} ]; then
+if [ $BINUTILS_GZIP = "no" ]; then
+bzip2 -dc  $BINUTILSARCHIVE |tar xvf -       >  ~/log-extract
+else
+tar xvzf $BINUTILSARCHIVE  >  ~/log-extract
+fi
+
+if [ ! $? = 0 ]; then
+echo DECRUNCHING OF ${BINUTILSARCHIVE} failed
+exit
+fi
+else 
+echo It seams that you already have a build directory. Skipping.
+cd ${WORKDIR}${BINUTILSBASE}-${BINUTILSVERSION}
+${MAKE} clean >/dev/null
+fi
+
+
+cd ${WORKDIR}${BINUTILSBASE}-${BINUTILSVERSION}
+
+#
+# build loop.
+#
+
+FAILURES=""
+for a in $TARGETS; do
+if [ ! -f ${DESTDIR}bin/${a}-as ] ; then
+echo Building $a
+{ ./configure --target=$a --prefix=${DESTDIR} && ${MAKE} $(EXTRAOPT) && ${MAKE} install && ${MAKE} clean; } > ${WORKDIR}log-${a} 2>&1
+
+if [ ! $? = 0 ]; then
+echo $a FAILES!
+FAILURES="${FAILURES} ${a}"
+fi
+fi
+done;
+
+echo Failed targets:  ${FAILURES}
