@@ -1,4 +1,5 @@
-{ %KNOWNCOMPILE10ERROR= Problem with virtual and overloaded methods }
+{ %version=1.1 }
+
 { Old file: tbs0262.pp }
 { problems with virtual and overloaded methods }
 

@@ -1,11 +1,9 @@
-{ %OPT=-vn }
-{ %KNOWNCOMPILEERROR= Typecasting assignment values with types of different sizes is refused even in TP mode for big endian cpus }
-{$ifdef ENDIAN_BIG}
-{$note This test should fail on big endian machines. }
-{$endif}
-
 {$ifdef fpc}{$mode tp}{$endif}
 
+{$ifdef ENDIAN_BIG}
+begin
+end.
+{$else}
 var
   i : longint;
   j : word;
@@ -18,3 +16,4 @@ begin
   if i<>-251 then
    halt(1);
 end.
+{$endif}
