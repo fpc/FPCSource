@@ -9,6 +9,9 @@ main=fcl
 units=mysqldb
 examples=testm
 
+[clean]
+units=mysql mysql_com mysql_version
+
 [require]
 packages=mysql
 

@@ -9,6 +9,9 @@ main=fcl
 units=interbase
 examples=testib
 
+[clean]
+units=ibas40 ibase60
+
 [require]
 packages=ibase
 

@@ -12,6 +12,10 @@ packages_linux=inet
 packages_freebsd=inet
 packages_netbsd=inet
 
+# clean package units
+[clean]
+units=adler gzcrc gzio infblock infcodes inffast inftrees infutil minigzip paszlib trees zbase zcompres zdeflate zinflate zuncompr zutil
+
 [target]
 dirs=xml db shedit
 units=classes inifiles registry ezcgi pipes rtfpars idea base64 gettext iostream zstream cachecls
