@@ -640,8 +640,7 @@ implementation
          afterassignment:=prevafterassn;
       end;
 
-
-    procedure handle_procvar(pv : tprocvardef;var p2 : tnode);
+    procedure handle_procvar(pv : tprocvardef;var p2 : tnode; getaddr: boolean);
 
         procedure doconv(procvar : tprocvardef;var t : tnode);
         var
@@ -662,17 +661,19 @@ implementation
         end;
 
       begin
-        if (p2.nodetype=calln) then
-         doconv(pv,p2)
-        else
-         if (p2.nodetype=typeconvn) and
-            (ttypeconvnode(p2).left.nodetype=calln) then
-          doconv(pv,ttypeconvnode(p2).left);
+        if ((m_tp_procvar in aktmodeswitches) or
+            not getaddr) then
+          if (p2.nodetype=calln) then
+           doconv(pv,p2)
+          else
+           if (p2.nodetype=typeconvn) and
+              (ttypeconvnode(p2).left.nodetype=calln) then
+            doconv(pv,ttypeconvnode(p2).left);
       end;
 
 
     { the following procedure handles the access to a property symbol }
-    procedure handle_propertysym(sym : tsym;st : tsymtable;var p1 : tnode);
+    procedure handle_propertysym(sym : tsym;st : tsymtable;var p1 : tnode; getaddr: boolean);
 
       var
          paras : tnode;
@@ -718,7 +719,7 @@ implementation
                          getprocvar:=(tpropertysym(sym).proptype.def.deftype=procvardef);
                          p2:=comp_expr(true);
                          if getprocvar then
-                           handle_procvar(tprocvardef(tpropertysym(sym).proptype.def),p2);
+                           handle_procvar(tprocvardef(tpropertysym(sym).proptype.def),p2,getaddr);
                          tcallnode(p1).left:=ccallparanode.create(p2,tcallnode(p1).left);
                          include(tcallnode(p1).flags,nf_isproperty);
                          getprocvar:=false;
@@ -874,7 +875,7 @@ implementation
                                    ),again,tcallnode(p1));
                       if (block_type=bt_const) and
                          getprocvar then
-                        handle_procvar(getprocvardef,p1);
+                        handle_procvar(getprocvardef,p1,getaddr);
                       { we need to know which procedure is called }
                       do_resulttypepass(p1);
                       { now we know the real method e.g. we can check for a class method }
@@ -902,7 +903,7 @@ implementation
                    begin
                       if isclassref then
                         Message(parser_e_only_class_methods_via_class_ref);
-                      handle_propertysym(sym,sym.owner,p1);
+                      handle_propertysym(sym,sym.owner,p1,getaddr);
                    end;
                  else internalerror(16);
               end;
@@ -1208,7 +1209,7 @@ implementation
                                  ),again,p1);
                     if (block_type=bt_const) and
                        getprocvar then
-                     handle_procvar(getprocvardef,p1);
+                     handle_procvar(getprocvardef,p1,getaddr);
                     { we need to know which procedure is called }
                     if possible_error then
                      begin
@@ -1228,7 +1229,7 @@ implementation
                      Message(parser_e_only_class_methods);
                     { no method pointer }
                     p1:=nil;
-                    handle_propertysym(srsym,srsymtable,p1);
+                    handle_propertysym(srsym,srsymtable,p1,getaddr);
                   end;
 
                 labelsym :
@@ -1399,7 +1400,7 @@ implementation
                              message(parser_e_no_default_property_available);
                           end
                         else
-                          handle_propertysym(protsym,protsym.owner,p1);
+                          handle_propertysym(protsym,protsym.owner,p1,getaddr);
                       end
                     else
                       begin
@@ -2229,7 +2230,7 @@ implementation
                   end;
                 p2:=sub_expr(opcompare,true);
                 if getprocvar then
-                  handle_procvar(getprocvardef,p2);
+                  handle_procvar(getprocvardef,p2,true);
                 getprocvar:=false;
                 p1:=cassignmentnode.create(p1,p2);
              end;
@@ -2313,7 +2314,12 @@ implementation
 end.
 {
   $Log$
-  Revision 1.36  2001-06-04 18:16:42  peter
+  Revision 1.37  2001-06-29 14:16:57  jonas
+    * fixed inconsistent handling of procvars in FPC mode (sometimes @ was
+      required to assign the address of a procedure to a procvar, sometimes
+      not. Now it is always required) (merged)
+
+  Revision 1.36  2001/06/04 18:16:42  peter
     * fixed tp procvar support in parameters of a called procvar
     * typenode cleanup, no special handling needed anymore for bt_type
 

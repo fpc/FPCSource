@@ -581,11 +581,7 @@ implementation
                    curconstSegment.concat(Tai_const.Create_32bit(0));
                    consume(_NIL);
                    exit;
-                end
-              else
-                if not(m_tp_procvar in aktmodeswitches) then
-                  if token=_KLAMMERAFFE then
-                    consume(_KLAMMERAFFE);
+                end;
               getprocvar:=true;
               getprocvardef:=tprocvardef(t.def);
               p:=comp_expr(true);
@@ -595,39 +591,6 @@ implementation
                  p.free;
                  exit;
                end;
-              { convert calln to loadn }
-              if p.nodetype=calln then
-               begin
-                 hp:=cloadnode.create(tprocsym(tcallnode(p).symtableprocentry),tcallnode(p).symtableproc);
-                 if (tcallnode(p).symtableprocentry.owner.symtabletype=objectsymtable) and
-                    is_class(tdef(tcallnode(p).symtableprocentry.owner.defowner)) then
-                  tloadnode(hp).set_mp(tcallnode(p).methodpointer.getcopy);
-                 p.free;
-                 do_resulttypepass(hp);
-                 p:=hp;
-                 if codegenerror then
-                  begin
-                    p.free;
-                    exit;
-                  end;
-               end
-              else if (p.nodetype=addrn) and assigned(taddrnode(p).left) and
-                (taddrnode(p).left.nodetype=calln) then
-                begin
-                   hp:=cloadnode.create(tprocsym(tcallnode(taddrnode(p).left).symtableprocentry),
-                     tcallnode(taddrnode(p).left).symtableproc);
-                   if (tcallnode(taddrnode(p).left).symtableprocentry.owner.symtabletype=objectsymtable) and
-                      is_class(tdef(tcallnode(taddrnode(p).left).symtableprocentry.owner.defowner)) then
-                    tloadnode(hp).set_mp(tcallnode(taddrnode(p).left).methodpointer.getcopy);
-                   p.free;
-                   do_resulttypepass(hp);
-                   p:=hp;
-                   if codegenerror then
-                    begin
-                       p.free;
-                       exit;
-                    end;
-                end;
               { let type conversion check everything needed }
               inserttypeconv(p,t);
               if codegenerror then
@@ -905,7 +868,12 @@ implementation
 end.
 {
   $Log$
-  Revision 1.25  2001-06-27 21:37:36  peter
+  Revision 1.26  2001-06-29 14:16:57  jonas
+    * fixed inconsistent handling of procvars in FPC mode (sometimes @ was
+      required to assign the address of a procedure to a procvar, sometimes
+      not. Now it is always required) (merged)
+
+  Revision 1.25  2001/06/27 21:37:36  peter
     * v10 merges
 
   Revision 1.24  2001/06/18 20:36:25  peter

@@ -1576,7 +1576,8 @@ implementation
            procvardef :
              begin
                { proc -> procvar }
-               if (def_from.deftype=procdef) then
+               if (def_from.deftype=procdef) and
+                  (m_tp_procvar in aktmodeswitches) then
                 begin
                   doconv:=tc_proc_2_procvar;
                   if proc_to_procvar_equal(tprocdef(def_from),tprocvardef(def_to)) then
@@ -1745,7 +1746,12 @@ implementation
 end.
 {
   $Log$
-  Revision 1.42  2001-05-08 21:06:33  florian
+  Revision 1.43  2001-06-29 14:16:57  jonas
+    * fixed inconsistent handling of procvars in FPC mode (sometimes @ was
+      required to assign the address of a procedure to a procvar, sometimes
+      not. Now it is always required) (merged)
+
+  Revision 1.42  2001/05/08 21:06:33  florian
     * some more support for widechars commited especially
       regarding type casting and constants
 
