@@ -1541,7 +1541,7 @@ Begin
    begin
      p:=@s[offs];
      p2:=@s[1];
-     while (p2>=p) and (p^<>c) do dec(p);
+     while (p2<=p) and (p^<>c) do dec(p);
      RPosEx:=(p-p2)+1;
    end
   else
@@ -1559,7 +1559,7 @@ Begin
    begin
      p:=@s[i];
      p2:=@s[1];
-     while (p2>=p) and (p^<>c) do dec(p);
+     while (p2<=p) and (p^<>c) do dec(p);
      i:=p-p2+1;
    end;
   RPos:=i;
@@ -1627,7 +1627,10 @@ end.
 
 {
   $Log$
-  Revision 1.11  2005-01-01 18:45:25  marco
+  Revision 1.12  2005-01-26 11:05:09  marco
+   * fix
+
+  Revision 1.11  2005/01/01 18:45:25  marco
    * rpos and rposex, both two versions
 
   Revision 1.10  2004/12/30 18:12:43  michael
