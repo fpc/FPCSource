@@ -681,6 +681,7 @@ begin
      if s<>'' then
       LinkRes.AddFileName(GetShortName(s));
    end;
+  LinkRes.Add(')');
 
   { Write staticlibraries }
   if not StaticLibFiles.Empty then
@@ -696,28 +697,31 @@ begin
 
   { Write sharedlibraries like -l<lib>, also add the needed dynamic linker
     here to be sure that it gets linked this is needed for glibc2 systems (PFV) }
-  linklibc:=false;
-  While not SharedLibFiles.Empty do
+  if not SharedLibFiles.Empty then
    begin
-     S:=SharedLibFiles.Get;
-     if s<>'c' then
+     linklibc:=false;
+     LinkRes.Add('INPUT(');
+     While not SharedLibFiles.Empty do
       begin
-        i:=Pos(target_os.sharedlibext,S);
-        if i>0 then
-         Delete(S,i,255);
-        LinkRes.Add('-l'+s);
-      end
-     else
-      begin
-        LinkRes.Add('-l'+s);
-        linklibc:=true;
+        S:=SharedLibFiles.Get;
+        if s<>'c' then
+         begin
+           i:=Pos(target_os.sharedlibext,S);
+           if i>0 then
+            Delete(S,i,255);
+           LinkRes.Add('-l'+s);
+         end
+        else
+         begin
+           LinkRes.Add('-l'+s);
+           linklibc:=true;
+         end;
       end;
+     { be sure that libc is the last lib }
+     if linklibc then
+      LinkRes.Add('-lc');
+     LinkRes.Add(')');
    end;
-  { be sure that libc is the last lib }
-  if linklibc then
-   LinkRes.Add('-lc');
-  LinkRes.Add(')');
-
 { Write and Close response }
   linkres.writetodisk;
   linkres.done;
@@ -1079,7 +1083,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.17  2000-01-11 09:52:07  peter
+  Revision 1.18  2000-01-12 10:31:45  peter
+    * fixed group() writing
+
+  Revision 1.17  2000/01/11 09:52:07  peter
     * fixed placing of .sl directories
     * use -b again for base-file selection
     * fixed group writing for linux with smartlinking
