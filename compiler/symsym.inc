@@ -191,7 +191,6 @@
          if not isstabwritten then
            begin
               stab_str := stabstring;
-              if asmlist = debuglist then do_count_dbx := true;
               { count_dbx(stab_str); moved to GDB.PAS }
               asmlist^.concat(new(pai_stabs,init(stab_str)));
               isstabwritten:=true;
@@ -2140,7 +2139,12 @@
 
 {
   $Log$
-  Revision 1.122  1999-10-21 16:41:41  florian
+  Revision 1.123  1999-11-05 17:18:03  pierre
+    * local browsing works at first level
+      ie for function defined in interface or implementation
+      not yet for functions inside other functions
+
+  Revision 1.122  1999/10/21 16:41:41  florian
     * problems with readln fixed: esi wasn't restored correctly when
       reading ordinal fields of objects futher the register allocation
       didn't take care of the extra register when reading ordinal values
@@ -2641,4 +2645,3 @@
     * symtable adapted for $ifndef OLDPPU
 
 }
-

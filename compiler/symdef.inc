@@ -217,7 +217,7 @@
                    is_in_current:=true;
                    exit;
                 end
-              else if p^.symtabletype=objectsymtable then
+              else if p^.symtabletype in [{localsymtable,parasymtable,}objectsymtable] then
                 begin
                   if assigned(p^.defowner) then
                     p:=pobjectdef(p^.defowner)^.owner
@@ -381,8 +381,6 @@
       { to avoid infinite loops }
       is_def_stab_written := true;
       stab_str := allstabstring;
-      if asmlist = debuglist then do_count_dbx := true;
-      { count_dbx(stab_str); moved to GDB.PAS}
       asmlist^.concat(new(pai_stabs,init(stab_str)));
       end;
     end;
@@ -1481,7 +1479,6 @@
                   end;
                 st := '"'+st+':t'+numberstring+'=*'+definition^.numberstring
                       +'=xs'+definition^.sym^.name+':",'+tostr(N_LSYM)+',0,'+tostr(sym_line_no)+',0';
-                if asmlist = debuglist then do_count_dbx := true;
                 asmlist^.concat(new(pai_stabs,init(strpnew(st))));
                 end;
               end else inherited concatstabto(asmlist);
@@ -2549,6 +2546,7 @@ Const local_symtable_index : longint = $8001;
         pos : tfileposinfo;
 {$ifndef NOLOCALBROWSER}
         pdo : pobjectdef;
+        st : psymtable;
 {$endif ndef NOLOCALBROWSER}
         move_last : boolean;
       begin
@@ -2569,12 +2567,19 @@ Const local_symtable_index : longint = $8001;
           begin
 {$ifndef NOLOCALBROWSER}
              pdo:=_class;
+             st:=aktlocalsymtable;
              new(parast,loadas(parasymtable));
+             aktlocalsymtable:=parast;
+             parast^.deref;
              parast^.next:=owner;
              parast^.load_browser;
+             aktlocalsymtable:=st;
              new(localst,loadas(localsymtable));
+             aktlocalsymtable:=localst;
+             localst^.deref;
              localst^.next:=parast;
              localst^.load_browser;
+             aktlocalsymtable:=st;
 {$endif ndef NOLOCALBROWSER}
           end;
       end;
@@ -2585,6 +2590,7 @@ Const local_symtable_index : longint = $8001;
         ref : pref;
 {$ifndef NOLOCALBROWSER}
         pdo : pobjectdef;
+        st : psymtable;
 {$endif ndef NOLOCALBROWSER}
         move_last : boolean;
       begin
@@ -2636,16 +2642,20 @@ Const local_symtable_index : longint = $8001;
                PPU files are then easier to read PM }
              if not assigned(parast) then
                parast:=new(psymtable,init(parasymtable));
+             st:=aktlocalsymtable;
+             aktlocalsymtable:=parast;
              parast^.writeas;
              parast^.unitid:=local_symtable_index;
              inc(local_symtable_index);
              parast^.write_browser;
              if not assigned(localst) then
                localst:=new(psymtable,init(localsymtable));
+             aktlocalsymtable:=localst;
              localst^.writeas;
              localst^.unitid:=local_symtable_index;
              inc(local_symtable_index);
              localst^.write_browser;
+             aktlocalsymtable:=st;
              { decrement for }
              local_symtable_index:=local_symtable_index-2;
              pdo:=_class;
@@ -3801,7 +3811,12 @@ Const local_symtable_index : longint = $8001;
 
 {
   $Log$
-  Revision 1.172  1999-10-26 12:30:45  peter
+  Revision 1.173  1999-11-05 17:18:02  pierre
+    * local browsing works at first level
+      ie for function defined in interface or implementation
+      not yet for functions inside other functions
+
+  Revision 1.172  1999/10/26 12:30:45  peter
     * const parameter is now checked
     * better and generic check if a node can be used for assigning
     * export fixes

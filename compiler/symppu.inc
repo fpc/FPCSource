@@ -111,6 +111,12 @@
               current_ppu^.putbyte(ord(derefaktrecordindex));
               current_ppu^.putword(p^.indexnr);
             end
+           { Local local/para symtable ? }
+           else if (p^.owner=aktlocalsymtable) then
+            begin
+              current_ppu^.putbyte(ord(derefaktlocal));
+              current_ppu^.putword(p^.indexnr);
+            end
            else
             begin
               current_ppu^.putbyte(ord(derefindex));
@@ -466,6 +472,7 @@
               break;
             derefunit,
             derefaktrecordindex,
+            derefaktlocal,
             derefaktstaticindex :
               begin
                 new(p,init(b,current_ppu^.getword));
@@ -473,6 +480,8 @@
                 break;
               end;
             derefindex,
+            dereflocal,
+            derefpara,
             derefrecord :
               begin
                 new(p,init(b,current_ppu^.getword));
@@ -747,7 +756,12 @@
 
 {
   $Log$
-  Revision 1.51  1999-09-16 13:27:08  pierre
+  Revision 1.52  1999-11-05 17:18:03  pierre
+    * local browsing works at first level
+      ie for function defined in interface or implementation
+      not yet for functions inside other functions
+
+  Revision 1.51  1999/09/16 13:27:08  pierre
     + error if PPU modulename is different from what is searched
       (8+3 limitations!)
     + cond ORDERSOURCES to allow recompilation of FP

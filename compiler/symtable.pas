@@ -83,7 +83,7 @@ unit symtable;
       { Deref entry options }
       tdereftype = (derefnil,derefaktrecordindex,derefaktstaticindex,
                     derefunit,derefrecord,derefindex,
-                    dereflocal,derefpara);
+                    dereflocal,derefpara,derefaktlocal);
 
       pderef = ^tderef;
       tderef = object
@@ -450,6 +450,7 @@ implementation
   var
      aktrecordsymtable : psymtable; { current record read from ppu symtable }
      aktstaticsymtable : psymtable; { current static for local ppu symtable }
+     aktlocalsymtable  : psymtable; { current proc local for local ppu symtable }
 {$ifdef GDB}
      asmoutput : paasmoutput;
 {$endif GDB}
@@ -727,6 +728,11 @@ implementation
              derefaktstaticindex :
                begin
                  st:=aktstaticsymtable;
+                 idx:=p^.index;
+               end;
+             derefaktlocal :
+               begin
+                 st:=aktlocalsymtable;
                  idx:=p^.index;
                end;
              derefunit :
@@ -1318,10 +1324,16 @@ implementation
          new(symsearch,init);
          symsearch^.noclear:=true;
          defowner:=nil;
-         storesymtable:=aktrecordsymtable;
-         if typ in [recordsymtable,objectsymtable,
-                    parasymtable,localsymtable] then
-           aktrecordsymtable:=@self;
+         if typ in [recordsymtable,objectsymtable] then
+           begin
+             storesymtable:=aktrecordsymtable;
+             aktrecordsymtable:=@self;
+           end;
+         if typ in [parasymtable,localsymtable] then
+           begin
+             storesymtable:=aktlocalsymtable;
+             aktlocalsymtable:=@self;
+           end;
          { used for local browser }
          if typ=staticppusymtable then
            begin
@@ -1338,7 +1350,7 @@ implementation
 
       { load definitions }
       { we need the correct symtable for registering }
-         if not (typ in [recordsymtable,objectsymtable]) then
+         if not (typ in [localsymtable,parasymtable,recordsymtable,objectsymtable]) then
            begin
              next:=symtablestack;
              symtablestack:=@self;
@@ -1351,11 +1363,15 @@ implementation
          loadsyms;
 
       { now we can deref the syms and defs }
-         if not (typ in [recordsymtable,objectsymtable]) then
+         if not (typ in [localsymtable,parasymtable,
+                         recordsymtable,objectsymtable]) then
            deref;
 
-         aktrecordsymtable:=storesymtable;
-         if not (typ in [recordsymtable,objectsymtable]) then
+         if typ in [recordsymtable,objectsymtable] then
+           aktrecordsymtable:=storesymtable;
+         if typ in [localsymtable,parasymtable] then
+           aktlocalsymtable:=storesymtable;
+         if not (typ in [localsymtable,parasymtable,recordsymtable,objectsymtable]) then
            begin
              symtablestack:=next;
            end;
@@ -1370,9 +1386,16 @@ implementation
       begin
          oldtyp:=current_ppu^.entrytyp;
          storesymtable:=aktrecordsymtable;
-         if symtabletype in [recordsymtable,objectsymtable,
-                    parasymtable,localsymtable] then
-           aktrecordsymtable:=@self;
+         if symtabletype in [recordsymtable,objectsymtable] then
+           begin
+             storesymtable:=aktrecordsymtable;
+             aktrecordsymtable:=@self;
+           end;
+         if symtabletype in [parasymtable,localsymtable] then
+           begin
+             storesymtable:=aktlocalsymtable;
+             aktlocalsymtable:=@self;
+           end;
          if (symtabletype in [recordsymtable,objectsymtable]) then
          current_ppu^.entrytyp:=subentryid;
          { write definitions }
@@ -1380,7 +1403,10 @@ implementation
          { write symbols }
          writesyms;
          current_ppu^.entrytyp:=oldtyp;
-         aktrecordsymtable:=storesymtable;
+         if symtabletype in [recordsymtable,objectsymtable] then
+           aktrecordsymtable:=storesymtable;
+         if symtabletype in [localsymtable,parasymtable] then
+           aktlocalsymtable:=storesymtable;
       end;
 
 
@@ -1604,11 +1630,15 @@ implementation
         prdef : pdef;
         oldrecsyms : psymtable;
       begin
-         if symtabletype in [recordsymtable,objectsymtable,
-                    parasymtable,localsymtable] then
+         if symtabletype in [recordsymtable,objectsymtable] then
            begin
               oldrecsyms:=aktrecordsymtable;
               aktrecordsymtable:=@self;
+           end;
+         if symtabletype in [parasymtable,localsymtable] then
+           begin
+              oldrecsyms:=aktlocalsymtable;
+              aktlocalsymtable:=@self;
            end;
          if symtabletype=staticppusymtable then
            aktstaticsymtable:=@self;
@@ -1639,9 +1669,10 @@ implementation
              Message1(unit_f_ppu_invalid_entry,tostr(b));
            end;
          until false;
-         if symtabletype in [recordsymtable,objectsymtable,
-                    parasymtable,localsymtable] then
-           aktrecordsymtable:=oldrecsyms;
+        if symtabletype in [recordsymtable,objectsymtable] then
+          aktrecordsymtable:=oldrecsyms;
+        if symtabletype in [parasymtable,localsymtable] then
+          aktlocalsymtable:=oldrecsyms;
       end;
 
 
@@ -1654,18 +1685,23 @@ implementation
          number_symbols;
          number_defs;   }
 
-         if symtabletype in [recordsymtable,objectsymtable,
-                    parasymtable,localsymtable] then
+         if symtabletype in [recordsymtable,objectsymtable] then
            begin
               oldrecsyms:=aktrecordsymtable;
               aktrecordsymtable:=@self;
            end;
+         if symtabletype in [parasymtable,localsymtable] then
+           begin
+              oldrecsyms:=aktlocalsymtable;
+              aktlocalsymtable:=@self;
+           end;
          current_ppu^.writeentry(ibbeginsymtablebrowser);
          foreach({$ifndef TP}@{$endif}write_refs);
          current_ppu^.writeentry(ibendsymtablebrowser);
-         if symtabletype in [recordsymtable,objectsymtable,
-                    parasymtable,localsymtable] then
-           aktrecordsymtable:=oldrecsyms;
+        if symtabletype in [recordsymtable,objectsymtable] then
+          aktrecordsymtable:=oldrecsyms;
+        if symtabletype in [parasymtable,localsymtable] then
+          aktlocalsymtable:=oldrecsyms;
       end;
 
 
@@ -1789,21 +1825,26 @@ implementation
          symsearch^.usehash;
        { reset GDB things }
 {$ifdef GDB}
-         if t = globalsymtable then
+         if (t = globalsymtable) then
            begin
               prev_dbx_counter := dbx_counter;
-              dbx_counter := @dbx_count;
+              dbx_counter := nil;
            end;
          is_stab_written:=false;
+         dbx_count := -1;
          if cs_gdb_dbx in aktglobalswitches then
            begin
              dbx_count := 0;
+             unittypecount:=1;
              if (symtabletype=globalsymtable) then
                pglobaltypecount := @unittypecount;
-             debuglist^.concat(new(pai_stabs,init(strpnew('"'+name^+'",'+tostr(N_BINCL)+',0,0,0'))));
              unitid:=current_module^.unitcount;
-             inc(current_module^.unitcount);
              debuglist^.concat(new(pai_asm_comment,init(strpnew('Global '+name^+' has index '+tostr(unitid)))));
+             debuglist^.concat(new(pai_stabs,init(strpnew('"'+name^+'",'+tostr(N_BINCL)+',0,0,0'))));
+             inc(current_module^.unitcount);
+             dbx_count_ok:=false;
+             dbx_counter:=@dbx_count;
+             do_count_dbx:=true;
            end;
 {$endif GDB}
       end;
@@ -1816,11 +1857,14 @@ implementation
       begin
          unitsym:=nil;
          unitid:=0;
-         if (current_module^.flags and uf_has_dbx)<>0 then
+{$ifdef GDB}
+         if cs_gdb_dbx in aktglobalswitches then
            begin
+              UnitTypeCount:=1;
               storeGlobalTypeCount:=PGlobalTypeCount;
               PglobalTypeCount:=@UnitTypeCount;
            end;
+{$endif GDB}
 
        { load symtables }
          inherited load;
@@ -1837,10 +1881,14 @@ implementation
               else
                dbx_count := readlong;
               dbx_count_ok := true;
-              PGlobalTypeCount:=storeGlobalTypeCount;
            end
          else
-           dbx_count := 0;
+           begin
+             dbx_count := -1;
+             dbx_count_ok:=false;
+           end;
+         if cs_gdb_dbx in aktglobalswitches then
+           PGlobalTypeCount:=storeGlobalTypeCount;
          is_stab_written:=false;
 {$endif GDB}
 
@@ -1932,6 +1980,9 @@ implementation
       { write the symtable entries }
         inherited write;
 
+      { all after doesn't affect crc }
+        current_ppu^.do_crc:=false;
+
       { write dbx count }
 {$ifdef GDB}
         if cs_gdb_dbx in aktglobalswitches then
@@ -1945,8 +1996,6 @@ implementation
 {$endif GDB}
 
         current_ppu^.writeentry(ibendimplementation);
-        { all after doesn't affect crc }
-        current_ppu^.do_crc:=false;
 
          { write static symtable
            needed for local debugging of unit functions }
@@ -1998,7 +2047,8 @@ implementation
         begin
            if is_stab_written then exit;
            if not assigned(name) then name := stringdup('Main_program');
-           if symtabletype = unitsymtable then
+           if (symtabletype = unitsymtable) and
+              (current_module^.globalsymtable<>@Self) then
              begin
                 unitid:=current_module^.unitcount;
                 inc(current_module^.unitcount);
@@ -2009,32 +2059,41 @@ implementation
              begin
                 if dbx_count_ok then
                   begin
-                     asmlist^.insert(new(pai_asm_comment,init(strpnew('"repeated" unit '+name^
-                              +' has index '+tostr(unitid)))));
-                     do_count_dbx:=true;
+                     asmlist^.concat(new(pai_asm_comment,init(strpnew('"repeated" unit '+name^
+                              +' has index '+tostr(unitid)+' dbx count = '+tostr(dbx_count)))));
                      asmlist^.concat(new(pai_stabs,init(strpnew('"'+name^+'",'
                        +tostr(N_EXCL)+',0,0,'+tostr(dbx_count)))));
                      exit;
+                  end
+                else if (current_module^.globalsymtable<>@Self) then
+                  begin
+                    prev_dbx_count := dbx_counter;
+                    dbx_counter := nil;
+                    do_count_dbx:=false;
+                    if symtabletype = unitsymtable then
+                      asmlist^.concat(new(pai_stabs,init(strpnew('"'+name^+'",'
+                        +tostr(N_BINCL)+',0,0,0'))));
+                    dbx_counter := @dbx_count;
+                    dbx_count:=0;
+                    do_count_dbx:=assigned(dbx_counter);
                   end;
-                prev_dbx_count := dbx_counter;
-                dbx_counter := nil;
-                if symtabletype = unitsymtable then
-                  asmlist^.concat(new(pai_stabs,init(strpnew('"'+name^+'",'
-                    +tostr(N_BINCL)+',0,0,0'))));
-                dbx_counter := @dbx_count;
              end;
            asmoutput:=asmlist;
            foreach({$ifndef TP}@{$endif}concattypestab);
            if cs_gdb_dbx in aktglobalswitches then
              begin
-                dbx_counter := prev_dbx_count;
-                do_count_dbx:=true;
-                asmlist^.concat(new(pai_stabs,init(strpnew('"'+name^+'",'
-                  +tostr(N_EINCL)+',0,0,0'))));
-                dbx_count_ok := true;
+                if (current_module^.globalsymtable<>@Self) then
+                  begin
+                    dbx_counter := prev_dbx_count;
+                    do_count_dbx:=false;
+                    asmlist^.concat(new(pai_asm_comment,init(strpnew('End unit '+name^
+                      +' has index '+tostr(unitid)))));
+                    asmlist^.concat(new(pai_stabs,init(strpnew('"'+name^+'",'
+                      +tostr(N_EINCL)+',0,0,0'))));
+                    do_count_dbx:=assigned(dbx_counter);
+                    dbx_count_ok := true;
+                  end;
              end;
-           asmlist^.concat(new(pai_asm_comment,init(strpnew('End unit '+name^
-                  +' has index '+tostr(unitid)))));
            is_stab_written:=true;
         end;
 {$endif}
@@ -2406,7 +2465,12 @@ implementation
 end.
 {
   $Log$
-  Revision 1.56  1999-11-04 23:13:25  peter
+  Revision 1.57  1999-11-05 17:18:03  pierre
+    * local browsing works at first level
+      ie for function defined in interface or implementation
+      not yet for functions inside other functions
+
+  Revision 1.56  1999/11/04 23:13:25  peter
     * moved unit alias support into ifdef
 
   Revision 1.55  1999/11/04 10:54:02  peter
