@@ -6,21 +6,21 @@ dirs_linux=unzip uncgi fpasync \
            x11 opengl gtk syslog \
            forms svgalib ggi libpng libgd \
            utmp cmem bfd zlib gdbm ncurses tcl cdrom \
-           imlib gnome1
+           imlib gnome1 fpgtk
 dirs_netbsd=unzip uncgi fpasync \
             x11 opengl gtk syslog \
             forms svgalib ggi libpng libgd \
-            utmp cmem bfd zlib gdbm ncurses
+            utmp cmem bfd zlib gdbm ncurses fpgtk
 dirs_freebsd=unzip uncgi fpasync \
              x11 opengl gtk syslog \
              forms svgalib ggi libpng libgd \
-             utmp cmem bfd zlib gdbm ncurses
+             utmp cmem bfd zlib gdbm ncurses fpgtk
 dirs_openbsd=unzip uncgi fpasync \
              x11 opengl gtk syslog \
              forms svgalib ggi libpng libgd \
-             utmp cmem bfd zlib gdbm ncurses
+             utmp cmem bfd zlib gdbm ncurses fpgtk
 dirs_win32=unzip uncgi opengl gtk \
-           zlib mmsystem tcl cdrom
+           zlib mmsystem tcl cdrom fpgtk
 dirs_os2=unzip uncgi zlib os2units
 dirs_go32v2=unzip uncgi
 
