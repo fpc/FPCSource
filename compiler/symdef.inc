@@ -495,22 +495,41 @@
       begin
          tdef.init;
          deftype:=enumdef;
+         min:=0;
          max:=0;
          savesize:=Sizeof(longint);
          has_jumps:=false;
-{$ifdef GDB}
-         first := Nil;
-{$endif GDB}
+         basedef:=nil;
+         first:=nil;
+      end;
+
+    constructor tenumdef.init_subrange(_basedef:penumdef;_min,_max:longint);
+      begin
+         tdef.init;
+         deftype:=enumdef;
+         min:=_min;
+         max:=_max;
+         basedef:=_basedef;
+         savesize:=Sizeof(longint);
+         has_jumps:=false;
+         first:=nil;
       end;
 
     constructor tenumdef.load;
       begin
          tdef.load;
          deftype:=enumdef;
+         basedef:=penumdef(readdefref);
+         min:=readlong;
          max:=readlong;
          savesize:=Sizeof(longint);
          has_jumps:=false;
-         first := Nil;
+         first:=Nil;
+      end;
+
+    procedure tenumdef.deref;
+      begin
+        resolvedef(pdef(basedef));
       end;
 
     destructor tenumdef.done;
@@ -519,9 +538,10 @@
       end;
 
     procedure tenumdef.write;
-
       begin
          tdef.write;
+         writedefref(basedef);
+         writelong(min);
          writelong(max);
          current_ppu^.writeentry(ibenumdef);
       end;
@@ -2510,7 +2530,11 @@
 
 {
   $Log$
-  Revision 1.22  1998-08-17 10:10:10  peter
+  Revision 1.23  1998-08-19 00:42:42  peter
+    + subrange types for enums
+    + checking for bounds type with ranges
+
+  Revision 1.22  1998/08/17 10:10:10  peter
     - removed OLDPPU
 
   Revision 1.21  1998/08/10 14:50:28  peter

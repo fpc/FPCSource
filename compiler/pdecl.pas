@@ -82,9 +82,9 @@ unit pdecl;
          sym : psym;
          ps : pconstset;
          pd : pbestreal;
-{$ifdef USEANSISTRING}	 
+{$ifdef USEANSISTRING}  
          sp : pstring;
-{$endif USEANSISTRING}	 
+{$endif USEANSISTRING}  
       begin
          consume(_CONST);
          repeat
@@ -364,8 +364,8 @@ unit pdecl;
                     consume(SEMICOLON);
                  { insert in the symtable }
                    Csym:=new(pvarsym,init_C(s,C_name,p));
-		   if export_Csym then
-		    inc(Csym^.refs);
+                   if export_Csym then
+                    inc(Csym^.refs);
                    if extern_Csym then
                     begin
                       Csym^.var_options:=Csym^.var_options or vo_is_external;
@@ -1432,6 +1432,7 @@ unit pdecl;
            pt1,pt2 : ptree;
 
         begin
+           p:=nil;
            { use of current parsed object ? }
            if (token=ID) and (testcurobject=2) and (curobjectname=pattern) then
              begin
@@ -1455,17 +1456,31 @@ unit pdecl;
                 pt2:=comp_expr(not(ignore_equal));
                 do_firstpass(pt2);
                 { valid expression ? }
-                if (pt1^.treetype<>ordconstn) or
-                   (pt2^.treetype<>ordconstn) then
-                  Begin
-                    Message(sym_e_error_in_type_def);
-                    { Here we create a node type with a range of 0  }
-                    { To make sure that no crashes will occur later }
-                    { on in the compiler.                           }
-                    p:=new(porddef,init(uauto,0,0));
-                  end
+                if (pt1^.treetype<>ordconstn) or (pt2^.treetype<>ordconstn) then
+                  Message(sym_e_error_in_type_def)
                 else
-                  p:=new(porddef,init(uauto,pt1^.value,pt2^.value));
+                  begin
+                  { Check bounds }
+                    if pt2^.value<pt1^.value then
+                      Message(cg_e_upper_lower_than_lower)
+                    else
+                     begin
+                     { is one an enum ? }
+                       if (pt1^.resulttype^.deftype=enumdef) or (pt2^.resulttype^.deftype=enumdef) then
+                        begin
+                        { both must be the have the same (enumdef) definition, else its a type mismatch }
+                          if (pt1^.resulttype=pt2^.resulttype) then
+                            p:=new(penumdef,init_subrange(penumdef(pt1^.resulttype),pt1^.value,pt2^.value))
+                          else
+                            Message(sym_e_type_mismatch);
+                        end
+                       else
+                        begin
+                        { both must be are orddefs, create an uauto orddef }
+                          p:=new(porddef,init(uauto,pt1^.value,pt2^.value));
+                        end;
+                     end;
+                  end;
                 disposetree(pt2);
              end;
            disposetree(pt1);
@@ -1490,13 +1505,13 @@ unit pdecl;
                        if p=nil then
                          begin
                             ap:=new(parraydef,
-                              init(0,penumdef(pt^.resulttype)^.max,pt^.resulttype));
+                              init(penumdef(pt^.resulttype)^.min,penumdef(pt^.resulttype)^.max,pt^.resulttype));
                             p:=ap;
                          end
                        else
                          begin
                             ap^.definition:=new(parraydef,
-                              init(0,penumdef(pt^.resulttype)^.max,pt^.resulttype));
+                              init(penumdef(pt^.resulttype)^.min,penumdef(pt^.resulttype)^.max,pt^.resulttype));
                             ap:=parraydef(ap^.definition);
                          end;
                     end
@@ -1885,7 +1900,11 @@ unit pdecl;
 end.
 {
   $Log$
-  Revision 1.38  1998-08-12 19:20:39  peter
+  Revision 1.39  1998-08-19 00:42:40  peter
+    + subrange types for enums
+    + checking for bounds type with ranges
+
+  Revision 1.38  1998/08/12 19:20:39  peter
     + public is the same as export for c_vars
     * a exported/public c_var incs now the refcount
 

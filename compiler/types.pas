@@ -151,7 +151,7 @@ unit types;
          else
            proc_to_procvar_equal:=false;
       end;
-      
+
     { returns true, if def uses FPU }
     function is_fpu(def : pdef) : boolean;
       begin
@@ -296,7 +296,7 @@ unit types;
                     h:=porddef(def)^.high;
                   end;
         enumdef : begin
-                    l:=0;
+                    l:=penumdef(def)^.min;
                     h:=penumdef(def)^.max;
                   end;
         end;
@@ -878,7 +878,11 @@ unit types;
 end.
 {
   $Log$
-  Revision 1.20  1998-08-18 14:17:14  pierre
+  Revision 1.21  1998-08-19 00:42:45  peter
+    + subrange types for enums
+    + checking for bounds type with ranges
+
+  Revision 1.20  1998/08/18 14:17:14  pierre
     * bug about assigning the return value of a function to
       a procvar fixed : warning
       assigning a proc to a procvar need @ in FPC mode !!
@@ -896,7 +900,11 @@ end.
   Revision 1.17  1998/08/05 16:00:17  florian
     * some fixes for ansi strings
     * $log$ to $Log$
-    * $log$ to Revision 1.20  1998-08-18 14:17:14  pierre
+    * $log$ to Revision 1.21  1998-08-19 00:42:45  peter
+    * $log$ to   + subrange types for enums
+    * $log$ to   + checking for bounds type with ranges
+    * $log$ to
+    * $log$ to Revision 1.20  1998/08/18 14:17:14  pierre
     * $log$ to   * bug about assigning the return value of a function to
     * $log$ to     a procvar fixed : warning
     * $log$ to     assigning a proc to a procvar need @ in FPC mode !!
