@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/usr/bin/env bash
 #
 # Shell script to make a FPC .tar package for Linux
 # Copyright 1996-2004 Michael Van Canneyt and Peter Vreman
@@ -7,6 +7,7 @@
 set -e
 
 # Al
+
 unset FPCDIR
 
 # Goto the toplevel if necessary
@@ -21,6 +22,19 @@ VERSION=`grep '^version' compiler/Makefile.fpc | sed 's+[^=]*= *\(.*\)+\1+'`
 # fpc binary to print an error line (PFV)
 SOURCECPU=`fpc -iSP | head -n1`
 SOURCEOS=`fpc -iSO | head -n1`
+
+# retrieve real OS.
+HOSTARCH=`uname -p | tr "[:upper:]" "[:lower:]"`
+HOSTOS=`uname -s | tr "[:upper:]" "[:lower:]"`
+
+MAKE=make
+
+case "$HOSTOS" in
+ *BSD*) MAKE=gmake
+  ;;
+ *bsd*) MAKE=gmake
+  ;;
+esac
 
 if [ $# -ne 0 ]; then
   if [ $# -ne 1 ]; then
@@ -49,30 +63,30 @@ else
 fi
 
 # Build everything using the makefiles
-make distclean CPU_TARGET=$TARGETCPU OS_TARGET=$TARGETOS
-make ${CROSS}zipinstall CPU_TARGET=$TARGETCPU OS_TARGET=$TARGETOS
+${MAKE} distclean CPU_TARGET=$TARGETCPU OS_TARGET=$TARGETOS
+${MAKE} ${CROSS}zipinstall CPU_TARGET=$TARGETCPU OS_TARGET=$TARGETOS
 if [ $? != 0 ]; then
   echo "Failed to make distribution archive."
   exit 1
 fi
 
 if [ "$CROSS" == "" ]; then
-  make makepackdocs
+  ${MAKE} makepackdocs
   if [ $? != 0 ]; then
     echo "Failed to make documentation archive."
     exit 1
   fi
-  make sourcezip
+  ${MAKE}  sourcezip
   if [ $? != 0 ]; then
     echo "Failed to make source archive."
     exit 1
   fi
-  make docsrc
+  ${MAKE}  docsrc
   if [ $? != 0 ]; then
     echo "Failed to make documentation source archive."
     exit 1
   fi
-  make demozip
+  ${MAKE}  demozip
   if [ $? != 0 ]; then
     echo "Failed to make demo source archive."
     exit 1
