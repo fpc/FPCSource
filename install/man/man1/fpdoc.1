@@ -7,7 +7,8 @@ fpdoc \- The FPC Pascal unit documentation generator.
 \fBfpdoc\fP --input=inputcommand [--output=output] [--format=fmt] 
 [--descr=descriptionfile] [--show-private] [--hide-protected]
 [--lang=language] [--content=contentfile] [--import=importfile]
-[--package=packagename] [--html-search=searchpage]
+[--package=packagename] [--html-search=searchpage] [--ostarget=target]
+[--cpu-target=target] [--latex-extension=ext] [--latex-highlight]
 
 .SH Description
 
@@ -16,13 +17,15 @@ scans a Free Pascal unit source file and generates documentation for it.
 The documentation can be in various formats (currently HTML and LaTeX)
 It can read various description files which contain the description for the 
 various symbols found in the unit file.
+
 .SH Usage
 
 You can invoke 
 .B fpdoc
-with as the only required argument the 'input' argument. It should at least
-contain the name of the unit file for which documentation should be
-generated. 
+with as the only required argument the 'input' and 'package' arguments. 
+It should at least contain the name of the unit file for which 
+documentation should be generated and the name of the package to which the
+unit belongs.
 
 .SH Options
 
@@ -117,6 +120,13 @@ French.
 Dutch.
 .RE
 .TP
+.BI \-\-latex\-extension=ext
+Sets the extension to use for the LaTeX file to
+.I ext
+the default is 
+.BI .tex
+(with . (dot) included).
+.TP
 .BI \-\-latex\-highlight
 Switches on an internam latex syntax highlighter. This is not yet
 implemented. By default, syntax highlighting is provided by the syntax
@@ -133,15 +143,30 @@ filename for the tex file. For all other formats,
 .B name
 is interpreted as
 the directory where all documentation files will be written. The directory
-will be created if it does not yet exist.
+will be created if it does not yet exist. Standard this equals the package
+name.
+.TP
+.BI \-\-package=packagename 
+Specifies the package name. All units will be documented as part of 
+.I packagename
+, which is also the default output filename or directory. Only documentation
+nodes inside a package node with this name will be considered when
+documenting.
 .TP
 .BI \-\-show\-private 
 By default, no documentation is generated for private methods or fields.
 This option causes 
 .B fpdoc
 to generate documentation for these methods as well.
+.TP
+.BI \-\-warn\-no\-node 
+If this option is specified, 
+.B fpdoc
+will emit a warning if it does not find a description node for an identifier
+it is documenting.
 
 .SH SEE ALSO
 .IP 
 .BR  ppc386 (1)
 .BR  latex (1)
+.BR  makeskel (1)

@@ -4,7 +4,7 @@ fpcmake \- The Free Pascal makefile constructor program.
 
 .SH SYNOPSIS
 
-.B fpcmake [filename [filename [filename]]]
+.B fpcmake [-Ttarget] [-pwhrqv] [filename [filename [filename]]]
 
 .SH DESCRIPTION
 
@@ -40,6 +40,49 @@ will be erased. See
 for a description of the format of the
 .I Makefile.fpc
 file.
+
+.SH OPTIONS
+fpcmake has a small number of options to control it's behaviour:
+
+.TP
+.B \-h
+Emit a short help text describing the use of
+.B fpcmake
+.TP
+.B \-p
+If this option is given, a package description file is generated as well as
+a makefile.
+.TP
+.B \-q
+Tells 
+.B fpcmake
+to be more quiet, i.e. emit less messages.
+.TP
+.B \-r
+If this option is given, 
+.B fpcmake
+will recursively scan subdirectories for 
+.B makefile.fpc
+files and generate makefiles for them.
+.TP
+.B \-T
+Specifies the targets for which 
+.B fpcmake 
+should generate makefiles. This can be a comma-separated list of target
+systems, or the special identifier
+.I all
+which indicates that a makefile should be generated for all supported
+platforms.
+.TP
+.B \-v
+This option instructs
+.B fpcmake
+to be more verbose.
+.TP
+.B \-w
+This is the standard option and tells
+.B fpcmake
+to generate a makefile.
 
 .SH SEE ALSO
 .IP 
