@@ -1,7 +1,7 @@
 program test_0_to_power_6;
 
 uses
-  crt;
+  crt,math;
 var
  result,number,exponent : integer;
 begin

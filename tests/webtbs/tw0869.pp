@@ -1,5 +1,5 @@
 program prueba;
-uses crt;
+uses crt,math;
 var
  i,resultado,exponente:integer;
 begin
