@@ -1254,8 +1254,8 @@ unit rgobj;
     var adj : Psuperregisterworklist;
         i,j,k : word;
         n,a,c : Tsuperregister;
-        adj_colours,
         colourednodes : Tsuperregisterset;
+		adj_colours:set of 0..255;
         found : boolean;
 
     begin
@@ -1272,30 +1272,30 @@ unit rgobj;
         begin
           n:=selectstack.buf^[i-1];
           {Create a list of colours that we cannot assign to n.}
-          supregset_reset(adj_colours,false,maxreg);
+          adj_colours:=[];
           adj:=reginfo[n].adjlist;
           if adj<>nil then
             for j:=0 to adj^.length-1 do
               begin
                 a:=get_alias(adj^.buf^[j]);
                 if supregset_in(colourednodes,a) then
-                  supregset_include(adj_colours,reginfo[a].colour);
+                  include(adj_colours,reginfo[a].colour);
               end;
-            supregset_include(adj_colours,RS_STACK_POINTER_REG);
+          include(adj_colours,RS_STACK_POINTER_REG);
           {Assume a spill by default...}
           found:=false;
           {Search for a colour not in this list.}
           for k:=0 to usable_registers_cnt-1 do
             begin
               c:=usable_registers[k];
-              if not(supregset_in(adj_colours,c)) then
-                begin
-                  reginfo[n].colour:=c;
-                  found:=true;
-                  supregset_include(colourednodes,n);
-                  include(used_in_proc,c);
-                  break;
-                end;
+               if not(c in adj_colours) then
+                 begin
+                   reginfo[n].colour:=c;
+                   found:=true;
+                   supregset_include(colourednodes,n);
+                   include(used_in_proc,c);
+                   break;
+                 end;
             end;
           if not found then
             spillednodes.add(n);
@@ -1986,7 +1986,11 @@ unit rgobj;
 end.
 {
   $Log$
-  Revision 1.131  2004-07-07 17:35:26  daniel
+  Revision 1.132  2004-07-08 09:57:55  daniel
+    * Use a normal pascal set in assign_colours, since it only will contain
+      real registers
+
+  Revision 1.131  2004/07/07 17:35:26  daniel
     * supregset_reset clears 8kb of memory. However, it is being called in
       inner loops, see for example colour_registers. According to profile data
       this causes fillchar to be the most time consuming procedure.
