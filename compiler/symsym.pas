@@ -66,6 +66,8 @@ interface
           procedure buildderef;override;
           procedure deref;override;
 {$ifdef GDB}
+          function  get_var_value(const s:string):string;
+          function  stabstr_evaluate(s:string;vars:array of string):Pchar;
           function  stabstring : pchar;virtual;
           procedure concatstabto(asmlist : taasmoutput);virtual;
 {$endif GDB}
@@ -559,14 +561,159 @@ implementation
          ppufile.putsmallset(symoptions);
       end;
 
-
 {$ifdef GDB}
+    function Tstoredsym.get_var_value(const s:string):string;
+
+    begin
+      if s='name' then
+        get_var_value:=name
+      else if s='ownername' then
+        get_var_value:=owner.name^
+      else if s='mangledname' then
+        get_var_value:=mangledname
+      else if s='line' then
+        get_var_value:=tostr(fileinfo.line)
+      else if s='N_LSYM' then
+        get_var_value:=tostr(N_LSYM)
+      else if s='N_LCSYM' then
+        get_var_value:=tostr(N_LCSYM)
+      else if s='N_RSYM' then
+        get_var_value:=tostr(N_RSYM)
+      else if s='N_TSYM' then
+        get_var_value:=tostr(N_TSYM)
+      else if s='N_STSYM' then
+        get_var_value:=tostr(N_STSYM)
+      else if s='N_FUNCTION' then
+        get_var_value:=tostr(N_FUNCTION)
+      else
+        internalerror(200401152);
+    end;
+
+    function Tstoredsym.stabstr_evaluate(s:string;vars:array of string):Pchar;
+
+    {S contains a prototype of a stabstring. Stabstr_evaluate will expand
+     variables and parameters.
+
+     Output is s in ASCIIZ format, with the following expanded:
+
+     ${varname}   - The variable name is expanded.
+     $n           - The parameter n is expanded.
+     $$           - Is expanded to $
+    }
+
+    const maxvalue=9;
+          maxdata=1023;
+
+    var i,j:byte;
+        varname:string[63];
+        varno,varcounter:byte;
+        varvalues:array[0..9] of Pstring;
+        {1 kb of parameters is the limit. 256 extra bytes are allocated to
+         ensure buffer integrity.}
+        varvaluedata:array[0..maxdata+256] of char;
+        varptr:Pchar;
+        len:cardinal;
+        r:Pchar;
+
+    begin
+      {Two pass approach, first, calculate the length and receive variables.}
+      i:=1;
+      len:=0;
+      varcounter:=0;
+      varptr:=@varvaluedata;
+      while i<=length(s) do
+        begin
+          if (s[i]='$') and (i<length(s)) then
+            begin
+             if s[i+1]='$' then
+               begin
+                 inc(len);
+                 inc(i);
+               end
+             else if (s[i+1]='{') and (length(s)>2) and (i<length(s)-2) then
+               begin
+                 varname:='';
+                 inc(i,2);
+                 repeat
+                   inc(varname[0]);
+                   varname[length(varname)]:=s[i];
+                   s[i]:=char(varcounter);
+                   inc(i);
+                 until s[i]='}';
+                 varvalues[varcounter]:=Pstring(varptr);
+                 if (varptr-@varvaluedata)>=1024 then
+                   internalerror(200401151);
+                 Pstring(varptr)^:=get_var_value(varname);
+                 inc(len,length(Pstring(varptr)^));
+                 inc(varptr,length(Pstring(varptr)^)+1);
+                 inc(varcounter);
+               end
+             else if s[i+1] in ['0'..'9'] then
+               begin
+                 inc(len,length(vars[byte(s[i+1])-byte('1')]));
+                 inc(i);
+               end;
+            end
+          else
+            inc(len);
+          inc(i);
+        end;
+      
+      {Second pass, writeout stabstring.}
+      getmem(r,len+1);
+      stabstr_evaluate:=r;
+      i:=1;
+      while i<=length(s) do
+        begin
+          if (s[i]='$') and (i<length(s)) then
+            begin
+             if s[i+1]='$' then
+               begin
+                 r^:='$';
+                 inc(r);
+                 inc(i);
+               end
+             else if (s[i+1]='{') and (length(s)>2) and (i<length(s)-2) then
+               begin
+                 varname:='';
+                 inc(i,2);
+                 varno:=byte(s[i]);
+                 repeat
+                   inc(i);
+                 until s[i]='}';
+                 for j:=1 to length(varvalues[varno]^) do
+                   begin
+                     r^:=varvalues[varno]^[j];
+                     inc(r);
+                   end;
+               end
+             else if s[i+1] in ['0'..'9'] then
+               begin
+                 for j:=1 to length(vars[byte(s[i+1])-byte('1')]) do
+                   begin
+                     r^:=vars[byte(s[i+1])-byte('1')][j];
+                     inc(r);
+                   end;
+                 inc(i);
+               end
+            end
+          else
+            begin
+              r^:=s[i];
+              inc(r);
+            end;
+          inc(i);
+        end;
+      if (r-stabstr_evaluate<>len) then
+        internalerror(5);
+      r^:=#0;
+    end;
+
     function tstoredsym.stabstring : pchar;
 
-      begin
-         stabstring:=strpnew('"'+name+'",'+tostr(N_LSYM)+',0,'+
-           tostr(fileinfo.line)+',0');
-      end;
+    begin
+      stabstring:=stabstr_evaluate('"${name}",${N_LSYM},0,${line},0',[]);
+    end;
 
     procedure tstoredsym.concatstabto(asmlist : taasmoutput);
       var
@@ -1831,19 +1978,14 @@ implementation
 
        case owner.symtabletype of
          objectsymtable :
-           begin
-             if (sp_static in symoptions) then
-               begin
-                 if (cs_gdb_gsym in aktglobalswitches) then
-                   st := 'G'+st
-                 else
-                   st := 'S'+st;
-                 stabstring := strpnew('"'+owner.name^+'__'+name+':'+st+
-                      '",'+
-                      tostr(N_LCSYM)+',0,'+tostr(fileinfo.line)
-                      +','+mangledname+threadvaroffset);
-               end;
-           end;
+           if (sp_static in symoptions) then
+             begin
+               if (cs_gdb_gsym in aktglobalswitches) then
+                 st:='G'+st
+               else
+                 st:='S'+st;
+               stabstring:=stabstr_evaluate('"${ownername}__${name}:$1",${N_LCSYM},0,${line},${mangledname}$2',[st,threadvaroffset]);
+             end;
          globalsymtable :
            begin
              { Here we used S instead of
@@ -1851,33 +1993,23 @@ implementation
                but searches the same name or with a leading underscore
                but these names don't exist in pascal !}
              if (cs_gdb_gsym in aktglobalswitches) then
-               st := 'G'+st
+               st:='G'+st
              else
-               st := 'S'+st;
-             stabstring := strpnew('"'+name+':'+st+'",'+
-                      tostr(N_LCSYM)+',0,'+tostr(fileinfo.line)+
-                      ','+mangledname+threadvaroffset);
+               st:='S'+st;
+             stabstring:=stabstr_evaluate('"${name}:$1",${N_LCSYM},0,${line},${mangledname}$2',[st,threadvaroffset]);
            end;
          staticsymtable :
-           begin
-             stabstring := strpnew('"'+name+':S'+st+'",'+
-                   tostr(N_LCSYM)+',0,'+tostr(fileinfo.line)+
-                   ','+mangledname+threadvaroffset);
-           end;
+           stabstring:=stabstr_evaluate('"${name}:S$1",${N_LCSYM},0,${line},${mangledname}$2',[st,threadvaroffset]);
          parasymtable,
          localsymtable :
            begin
              { There is no space allocated for not referenced locals }
-             if (owner.symtabletype=localsymtable) and
-                (refs=0) then
-               begin
-                 exit;
-               end;
+             if (owner.symtabletype=localsymtable) and (refs=0) then
+               exit;
 
              if (vo_is_C_var in varoptions) then
                begin
-                 stabstring := strpnew('"'+name+':S'+st+'",'+
-                     tostr(N_LCSYM)+',0,'+tostr(fileinfo.line)+','+mangledname);
+                 stabstring:=stabstr_evaluate('"${name}:S$1",${N_LCSYM},0,${line},${mangledname}',[st]);
                  exit;
                end;
              if (owner.symtabletype=parasymtable) then
@@ -1894,18 +2026,12 @@ implementation
                    regidx:=findreg_by_number(localloc.register);
                    { "eax", "ecx", "edx", "ebx", "esp", "ebp", "esi", "edi", "eip", "ps", "cs", "ss", "ds", "es", "fs", "gs", }
                    { this is the register order for GDB}
-                   stabstring:=strpnew('"'+name+':r'+st+'",'+
-                             tostr(N_RSYM)+',0,'+
-                             tostr(fileinfo.line)+','+tostr(regstabs_table[regidx]));
+                   stabstring:=stabstr_evaluate('"${name}:r$1",${N_RSYM},0,${line},$2',[st,tostr(regstabs_table[regidx])]);
                  end;
                LOC_REFERENCE :
-                 begin
-                   { offset to ebp => will not work if the framepointer is esp
-                     so some optimizing will make things harder to debug }
-                   stabstring := strpnew('"'+name+':'+st+'",'+
-                         tostr(N_tsym)+',0,'+tostr(fileinfo.line)+','+
-                         tostr(localloc.reference.offset));
-                 end;
+                 { offset to ebp => will not work if the framepointer is esp
+                   so some optimizing will make things harder to debug }
+                 stabstring:=stabstr_evaluate('"${name}:$1",${N_TSYM},0,${line},$2',[st,tostr(localloc.reference.offset)])
                else
                  internalerror(2003091814);
              end;
@@ -1931,20 +2057,16 @@ implementation
                internalerror(2003091815);
              if (po_classmethod in current_procinfo.procdef.procoptions) or
                 (po_staticmethod in current_procinfo.procdef.procoptions) then
-               begin
-                 asmlist.concat(Tai_stabs.Create(strpnew(
-                    '"pvmt:p'+tstoreddef(pvmttype.def).numberstring+'",'+
-                    tostr(N_tsym)+',0,0,'+tostr(localloc.reference.offset))));
-               end
+               asmlist.concat(Tai_stabs.create(stabstr_evaluate('"pvmt:p$1",${N_TSYM},0,0,$2',
+                  [Tstoreddef(pvmttype.def).numberstring,tostr(localloc.reference.offset)])))
              else
                begin
                  if not(is_class(current_procinfo.procdef._class)) then
                    c:='v'
                  else
                    c:='p';
-                 asmlist.concat(Tai_stabs.Create(strpnew(
-                    '"$t:'+c+current_procinfo.procdef._class.numberstring+'",'+
-                    tostr(N_tsym)+',0,0,'+tostr(localloc.reference.offset))));
+                 asmlist.concat(Tai_stabs.create(stabstr_evaluate('"$$t:$1",${N_TSYM},0,0,$2',
+                    [c+current_procinfo.procdef._class.numberstring,tostr(localloc.reference.offset)])));
                end;
            end
          else
@@ -1953,11 +2075,8 @@ implementation
                 regidx:=findreg_by_number(localloc.register);
                 { "eax", "ecx", "edx", "ebx", "esp", "ebp", "esi", "edi", "eip", "ps", "cs", "ss", "ds", "es", "fs", "gs", }
                 { this is the register order for GDB}
-                stab_str:=strpnew('"'+name+':r'
-                       +tstoreddef(vartype.def).numberstring+'",'+
-                       tostr(N_RSYM)+',0,'+
-                       tostr(fileinfo.line)+','+tostr(regstabs_table[regidx]));
-                asmList.concat(Tai_stabs.Create(stab_str));
+                asmlist.concat(Tai_stabs.create(stabstr_evaluate('"${name}:r$1",${N_RSYM},0,${line},$2',
+                  [Tstoreddef(vartype.def).numberstring,tostr(regstabs_table[regidx])])));
              end
          else
            inherited concatstabto(asmlist);
@@ -2063,16 +2182,16 @@ implementation
 
 {$ifdef GDB}
     function ttypedconstsym.stabstring : pchar;
-    var
-      st : char;
+
+    var st:char;
+
     begin
-    if (cs_gdb_gsym in aktglobalswitches) and (owner.symtabletype=globalsymtable) then
-      st := 'G'
-    else
-      st := 'S';
-    stabstring := strpnew('"'+name+':'+st+
-            tstoreddef(typedconsttype.def).numberstring+'",'+tostr(n_STSYM)+',0,'+
-            tostr(fileinfo.line)+','+mangledname);
+      if (cs_gdb_gsym in aktglobalswitches) and (owner.symtabletype=globalsymtable) then
+        st:='G'
+      else
+        st:='S';
+      stabstring:=stabstr_evaluate('"${name}:$1$2",${N_STSYM},0,${line},${mangledname}',
+                  [st,Tstoreddef(typedconsttype.def).numberstring]);
     end;
 {$endif GDB}
 
@@ -2301,34 +2420,36 @@ implementation
       end;
 
 {$ifdef GDB}
-    function tconstsym.stabstring : pchar;
+    function Tconstsym.stabstring:Pchar;
+
     var st : string;
+
     begin
-         {even GDB v4.16 only now 'i' 'r' and 'e' !!!}
-         case consttyp of
-            conststring : begin
-                          st := 's'''+strpas(pchar(value.valueptr))+'''';
-                          end;
-            constbool,
-            constint,
-            constord,
-            constwchar,
-            constchar : st := 'i'+int64tostr(value.valueord);
-            constpointer :
-              st := 'i'+int64tostr(value.valueordptr);
-            constreal : begin
-                        system.str(pbestreal(value.valueptr)^,st);
-                        st := 'r'+st;
-                        end;
-         { if we don't know just put zero !! }
-         else st:='i0';
-            {***SETCONST}
-            {constset:;}    {*** I don't know what to do with a set.}
-         { sets are not recognized by GDB}
-            {***}
-        end;
-    stabstring := strpnew('"'+name+':c='+st+'",'+tostr(N_function)+',0,'+
-                    tostr(fileinfo.line)+',0');
+      {even GDB v4.16 only now 'i' 'r' and 'e' !!!}
+      case consttyp of
+        conststring:
+          st:='s'''+strpas(pchar(value.valueptr))+'''';
+        constbool,
+        constint,
+        constord,
+        constwchar,
+        constchar:
+          st:='i'+int64tostr(value.valueord);
+        constpointer:
+          st:='i'+int64tostr(value.valueordptr);
+        constreal:
+          begin
+            system.str(pbestreal(value.valueptr)^,st);
+            st := 'r'+st;
+          end;
+        { if we don't know just put zero !! }
+        else st:='i0';
+          {***SETCONST}
+          {constset:;}    {*** I don't know what to do with a set.}
+          { sets are not recognized by GDB}
+          {***}
+      end;
+      stabstring:=stabstr_evaluate('"${name}:c=$1",${N_FUNCTION},0,${line},0',[st]);
     end;
 
     procedure tconstsym.concatstabto(asmlist : taasmoutput);
@@ -2523,17 +2644,15 @@ implementation
 
 {$ifdef GDB}
     function ttypesym.stabstring : pchar;
-    var
-      stabchar : string[2];
-      short : string;
+
+    var stabchar:string[2];
+
     begin
       if restype.def.deftype in tagtypes then
-        stabchar := 'Tt'
+        stabchar:='Tt'
       else
-        stabchar := 't';
-      short := '"'+name+':'+stabchar+tstoreddef(restype.def).numberstring
-               +'",'+tostr(N_LSYM)+',0,'+tostr(fileinfo.line)+',0';
-      stabstring := strpnew(short);
+        stabchar:='t';
+      stabstring:=stabstr_evaluate('"${name}:$1$2",${N_LSYM},0,${line},0',[stabchar,tstoreddef(restype.def).numberstring]);
     end;
 
     procedure ttypesym.concatstabto(asmlist : taasmoutput);
@@ -2714,7 +2833,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.141  2004-01-11 23:56:20  daniel
+  Revision 1.142  2004-01-15 23:16:32  daniel
+    + Cleanup of stabstring generation code. Cleaner, faster, and compiler
+      executable reduced by 50 kb,
+
+  Revision 1.141  2004/01/11 23:56:20  daniel
     * Experiment: Compress strings to save memory
       Did not save a single byte of mem; clearly the core size is boosted by
       temporary memory usage...

@@ -1322,8 +1322,9 @@ unit cgx86;
          not(pi_uses_fpu in current_procinfo.flags) and
          ((len=8) or (len=16) or (len=24) or (len=32)) then
         cm:=copy_mmx;
+      if (len>helpsize) then
+        cm:=copy_string;
       if (cs_littlesize in aktglobalswitches) and
-         (len>helpsize) and
          not((len<=16) and (cm=copy_mmx)) then
         cm:=copy_string;
       if loadref then
@@ -1895,7 +1896,11 @@ unit cgx86;
 end.
 {
   $Log$
-  Revision 1.102  2004-01-14 23:39:05  florian
+  Revision 1.103  2004-01-15 23:16:33  daniel
+    + Cleanup of stabstring generation code. Cleaner, faster, and compiler
+      executable reduced by 50 kb,
+
+  Revision 1.102  2004/01/14 23:39:05  florian
     * another bunch of x86-64 fixes mainly calling convention and
       assembler reader related
 
