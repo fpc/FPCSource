@@ -3,7 +3,10 @@
 #
 
 [targets]
-programs=install
+programs_go32v2=install
+programs_win32=install
+programs_os2=install
+programs_linux=installer
 
 [install]
 packagename=fpinst
@@ -12,6 +15,7 @@ sourcesubdir=fpinst
 [clean]
 units=ziptypes unzip
 units_os2=unzipdll
+files_linux=installer.pas
 
 [require]
 packages=api fv
@@ -19,3 +23,8 @@ packages=api fv
 [dirs]
 fpcdir=..
 targetdir=.
+
+
+[rules]
+installer.pas: install.pas
+        $(COPY) install.pas installer.pas

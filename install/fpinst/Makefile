@@ -183,13 +183,27 @@ endif
 
 # Targets
 
+ifeq ($(OS_TARGET),linux)
+override EXEOBJECTS+=installer
+endif
+ifeq ($(OS_TARGET),go32v2)
 override EXEOBJECTS+=install
+endif
+ifeq ($(OS_TARGET),win32)
+override EXEOBJECTS+=install
+endif
+ifeq ($(OS_TARGET),os2)
+override EXEOBJECTS+=install
+endif
 
 # Clean
 
 override EXTRACLEANUNITS+=ziptypes unzip
 ifeq ($(OS_TARGET),os2)
 override EXTRACLEANUNITS+=unzipdll
+endif
+ifeq ($(OS_TARGET),linux)
+override EXTRACLEANFILES+=installer.pas
 endif
 
 # Install
@@ -1159,3 +1173,9 @@ ifneq ($(wildcard fpcmake.loc),)
 include fpcmake.loc
 endif
 
+#####################################################################
+# Users rules
+#####################################################################
+
+installer.pas: install.pas
+	$(COPY) install.pas installer.pas

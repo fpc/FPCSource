@@ -386,7 +386,9 @@ TYPE
 VAR slide : pchar;            {Sliding dictionary for unzipping}
     inbuf : iobuf;            {input buffer}
     inpos, readpos : integer;  {position in input buffer, position read from file}
+{$ifdef windows}
     dlghandle : word;         {optional: handle of a cancel and "%-done"-dialog}
+{$endif}
     dlgnotify : integer;      {notification code to tell dialog how far the decompression is}
 
 VAR w : longint;                 {Current Position in slide}
@@ -397,13 +399,13 @@ VAR w : longint;                 {Current Position in slide}
     compsize,               {comressed size of file}
     reachedsize,            {number of bytes read from zipfile}
     uncompsize : longint;     {uncompressed size of file}
-    oldpercent : integer;     {last percent value shown}
     crc32val : longint;       {crc calculated from data}
     hufttype : word;          {coding type=bit_flag from header}
     totalabort,             {User pressed abort button, set in showpercent!}
     zipeof : boolean;         {read over end of zip section for this file}
     inuse : boolean;          {is unit already in use -> don't call it again!!!}
 {$ifdef windows}
+    oldpercent : integer;     {last percent value shown}
     lastusedtime : longint;   {Time of last usage in timer ticks for timeout!}
 {$endif}
 
@@ -2525,10 +2527,10 @@ BEGIN
 
   totalabort := FALSE;
   zipeof := FALSE;
-  dlghandle := hFileAction;
-  dlgnotify := cm_index;
 
   {$ifdef windows}
+  dlghandle := hFileAction;
+  dlgnotify := cm_index;
   messageloop;
   oldpercent := 0;
   {$endif}
@@ -2565,8 +2567,8 @@ BEGIN
     unzipfile := unzip_CRCErr;
     erase ( outfile );
   END ELSE BEGIN
-    oldpercent := 100;       {100 percent}
     {$ifdef windows}
+    oldpercent := 100;       {100 percent}
     IF dlghandle <> 0 THEN
       sendmessage ( dlghandle, wm_command, dlgnotify, longint ( @oldpercent ) );
     {$endif}
@@ -3328,7 +3330,12 @@ BEGIN
 END.
 {
   $Log$
-  Revision 1.3  1999-06-10 15:00:16  peter
+  Revision 1.4  2000-01-26 21:49:33  peter
+    * install.pas compilable by FPC again
+    * removed some notes from unzip.pas
+    * support installer creation under linux (install has name conflict)
+
+  Revision 1.3  1999/06/10 15:00:16  peter
     * fixed to compile for not os2
     * update install.dat
 

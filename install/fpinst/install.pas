@@ -1106,7 +1106,12 @@ begin
 end.
 {
   $Log$
-  Revision 1.12  2000-01-26 21:15:59  hajny
+  Revision 1.13  2000-01-26 21:49:33  peter
+    * install.pas compilable by FPC again
+    * removed some notes from unzip.pas
+    * support installer creation under linux (install has name conflict)
+
+  Revision 1.12  2000/01/26 21:15:59  hajny
     * compilable with TP again (lines < 127install.pas, ifdef around findclose)
 
   Revision 1.11  2000/01/24 22:21:48  peter
@@ -1187,5 +1192,4 @@ end.
   Revision 1.2  1998/04/07 22:47:57  florian
     + version/release/patch numbers as string added
 
-}
 }
