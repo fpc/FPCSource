@@ -692,11 +692,30 @@ implementation
         found : boolean;
       begin
         current_scanner.skipspace;
-        hs:=current_scanner.readcomment;
-        i:=length(hs);
-        while (i>0) and (hs[i]=' ') do
-         dec(i);
-        Delete(hs,i+1,length(hs)-i);
+        hs:=Trimspace(current_scanner.readcomment);
+        if hs[1]='''' then
+         begin
+           i:=1;
+           while (i<length(hs)) do
+            begin
+              inc(i);
+              if hs[i]='''' then
+               begin
+                 { Remove double quote }
+                 if (i<length(hs)) and
+                    (hs[i+1]='''') then
+                  begin
+                    Delete(hs,i,1);
+                    inc(i);
+                  end
+                 else
+                  begin
+                    hs:=Copy(hs,2,i-2);
+                    break;
+                  end;
+               end;
+            end;
+         end;
         if hs='' then
          exit;
         if (hs[1]='%') then
@@ -2801,7 +2820,10 @@ exit_label:
 end.
 {
   $Log$
-  Revision 1.51  2002-12-05 19:27:00  carl
+  Revision 1.52  2002-12-24 23:32:02  peter
+    * support quotes around include filenames
+
+  Revision 1.51  2002/12/05 19:27:00  carl
     * remove a stupid thing that i commited
 
   Revision 1.50  2002/11/29 22:31:19  carl
