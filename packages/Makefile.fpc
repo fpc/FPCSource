@@ -8,7 +8,7 @@ dirs_linux=zlib ncurses x11 gtk \
            mysql ibase postgres \
            opengl forms svgalib ggi \
            utmp paszlib gdbint
-dirs_win32=uncgi gtk opengl gdbint ibase mysql zlib paszlib
+dirs_win32=uncgi gtk gdbint ibase mysql zlib paszlib
 dirs_go32v2=uncgi gdbint paszlib
 
 pkgs_linux=base{zlib,ncurses,x11} \
@@ -21,7 +21,6 @@ pkgs_win32=base{paszlib} \
            gtk{gtk} \
            net{uncgi} \
            db{ibase,mysql} \
-           gfx{opengl} \
            misc{gdbint}
 pkgs_go32v2=base{paszlib} \
             net{uncgi} \
