@@ -4,7 +4,7 @@
 
 [targets]
 dirs=tply h2pas
-programs=ppufiles ppudump ppumove ppdep ptop rstconv data2inc fpcmake
+programs=ppufiles ppudump ppumove ppdep ptop rstconv data2inc fpcmake delp
 
 [clean]
 units=ppu ptopu
