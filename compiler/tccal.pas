@@ -343,14 +343,17 @@ implementation
                     end;
                 end;
 
-              if defcoll^.paratyp=vs_var then
+              if defcoll^.paratyp in [vs_var,vs_const] then
                 begin
-                   set_unique(p^.left);
+                   { Causes problems with const ansistrings if also }
+                   { done for vs_const (JM)                         }
+                   if defcoll^.paratyp = vs_var then
+                     set_unique(p^.left);
                    make_not_regable(p^.left);
                 end;
 
               if do_count then
-                set_varstate(p^.left,defcoll^.paratyp<>vs_var);
+                set_varstate(p^.left,defcoll^.paratyp <> vs_var);
                 { must only be done after typeconv PM }
               p^.resulttype:=defcoll^.paratype.def;
            end;
@@ -1233,7 +1236,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.85  2000-05-09 14:16:00  pierre
+  Revision 1.86  2000-05-25 07:44:11  jonas
+    * const parameters were not prevented from becoming regvars (causing
+      errors later on in the code generating stage)
+
+  Revision 1.85  2000/05/09 14:16:00  pierre
    * calling interrupt routine supported
 
   Revision 1.84  2000/04/24 12:48:38  peter
