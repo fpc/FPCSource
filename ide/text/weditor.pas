@@ -307,7 +307,9 @@ type
       ErrorMessage: PString;
       Bookmarks   : array[0..9] of TEditorBookmark;
       LockFlag    : integer;
-      DrawCalled  : boolean;
+      DrawCalled,
+      DrawCursorCalled,
+      IndicatorDrawCalled  : boolean;
       CurEvent    : PEvent;
       function    Overwrite: boolean;
       function    GetLine(I: sw_integer): PLine;
@@ -1191,8 +1193,21 @@ begin
   else
 {$endif DEBUG}
     Dec(LockFlag);
-  if (LockFlag=0) and DrawCalled then
+  if (LockFlag>0) then
+    exit;
+  if DrawCalled then
     DrawView;
+  If IndicatorDrawCalled and
+    assigned(Indicator) then
+      begin
+        Indicator^.DrawView;
+        IndicatorDrawCalled:=false;
+      end;
+  If DrawCursorCalled then
+    Begin
+      DrawCursor;
+      DrawCursorCalled:=false;
+    End;
 end;
 
 procedure TCodeEditor.AdjustSelectionPos(CurPosX, CurPosY: sw_integer; DeltaX, DeltaY: sw_integer);
@@ -1282,7 +1297,10 @@ begin
 {$ifdef debug}
     Indicator^.StoreUndo:=StoreUndo;
 {$endif debug}
-    Indicator^.DrawView;
+    if lockflag>0 then
+      IndicatorDrawCalled:=true
+    else
+      Indicator^.DrawView;
   end;
 end;
 
@@ -1716,7 +1734,10 @@ end;
 
 procedure TCodeEditor.DrawCursor;
 begin
-  SetCursor(CurPos.X-Delta.X,CurPos.Y-Delta.Y);
+  if lockflag>0 then
+    DrawCursorCalled:=true
+  else
+    SetCursor(CurPos.X-Delta.X,CurPos.Y-Delta.Y);
   SetState(sfCursorIns,Overwrite);
 end;
 
@@ -2949,7 +2970,7 @@ var OK: boolean;
     l,i : longint;
     p,p10,p2,p13 : pchar;
     s : string;
-    StorePos : TPoint;
+    BPos,EPos,StorePos : TPoint;
     first : boolean;
 begin
   Lock;
@@ -2990,6 +3011,9 @@ begin
                 begin
                   Inc(i);
                   Lines^.AtInsert(i,NewLine(s));
+                  BPos.X:=0;BPos.Y:=i;
+                  EPOS.X:=Length(s);EPos.Y:=i;
+                  AddAction(eaInsertLine,BPos,EPos,S);
                 end;
               if p13+1=p10 then
                 p13[0]:=#13
@@ -3107,15 +3131,17 @@ begin
             eaInsertText :
               begin
                 SetCurPtr(StartPos.X,StartPos.Y);
-                for Temp := 1 to length(Text^) do
-                  DelChar;
+                if assigned(text) then
+                  for Temp := 1 to length(Text^) do
+                    DelChar;
               end;
             eaDeleteText :
               begin
                 { reinsert deleted text }
                 SetCurPtr(EndPos.X,EndPos.Y);
-                for Temp := 1 to length(Text^) do
-                  AddChar(Text^[Temp]);
+                if assigned(text) then
+                  for Temp := 1 to length(Text^) do
+                    AddChar(Text^[Temp]);
                 SetCurPtr(StartPos.X,StartPos.Y);
               end;
             eaInsertLine :
@@ -3221,13 +3247,17 @@ begin
           begin
             SetCurPtr(StartPos.X,StartPos.Y);
             InsertLine;
+            SetCurPtr(StartPos.X,StartPos.Y);
+            InsertText(GetStr(Text));
+            SetCurPtr(EndPos.X,EndPos.Y);
           end;
         eaDeleteLine :
           begin
             SetCurPtr(StartPos.X,StartPos.Y);
             DeleteLine(StartPos.Y);
-            SetCurPtr(EndPos.X,EndPos.Y);
-            InsertText(GetStr(Text));
+            { SetCurPtr(EndPos.X,EndPos.Y);
+            for Temp := 1 to length(GetStr(Text)) do
+              DelChar;}
             SetCurPtr(EndPos.X,EndPos.Y);
           end;
         eaSelectionChanged :
@@ -4023,7 +4053,7 @@ begin
   for I:=1 to length(S) do
     AddChar(S[I]);
   InsertText:=true;
-  StoreUndo:=HoldUndo; {te}
+  StoreUndo:=HoldUndo;
   AddAction(eaInsertText,OldPos,CurPos,S);
   UnLock;
 end;
@@ -4031,30 +4061,38 @@ end;
 function TCodeEditor.InsertFrom(Editor: PCodeEditor): Boolean;
 var OK: boolean;
     LineDelta,LineCount: Sw_integer;
-    StartPos,DestPos: TPoint;
+    StartPos,DestPos,BPos,EPos: TPoint;
     LineStartX,LineEndX: Sw_integer;
     S,OrigS,AfterS: string;
     VerticalBlock: boolean;
     SEnd: TPoint;
 begin
+  if (Editor^.Flags and efVerticalBlocks)<>0 then
+    begin
+      NotImplemented;
+      Exit;
+    end;
   Lock;
   OK:=(Editor^.SelStart.X<>Editor^.SelEnd.X) or (Editor^.SelStart.Y<>Editor^.SelEnd.Y);
   if OK then
   begin
     StartPos:=CurPos; DestPos:=CurPos;
+    EPos:=CurPos;
     VerticalBlock:=(Editor^.Flags and efVerticalBlocks)<>0;
     LineDelta:=0; LineCount:=(Editor^.SelEnd.Y-Editor^.SelStart.Y)+1;
     OK:=GetLineCount<MaxLineCount;
     OrigS:=GetDisplayText(DestPos.Y);
     AfterS:=Copy(OrigS,DestPos.X+1,255);
 
-    { BUG:: this is wrong if we do not insert at begin of line !!! PM }
     while OK and (LineDelta<LineCount) do
     begin
       if (LineDelta<LineCount-1) and (VerticalBlock=false) then
       if (LineDelta<>0) or (Editor^.SelEnd.X=0) then
         begin
           Lines^.AtInsert(DestPos.Y,NewLine(''));
+          BPos.X:=0;BPos.Y:=DestPos.Y;
+          EPOS.X:=0;EPos.Y:=DestPos.Y;
+          AddAction(eaInsertLine,BPos,EPos,'');
           LimitsChanged;
         end;
 
@@ -4070,17 +4108,29 @@ begin
 
       if LineEndX<LineStartX then
         S:=''
-      else
+      else if VerticalBlock then
         S:=RExpand(copy(Editor^.GetLineText(Editor^.SelStart.Y+LineDelta),LineStartX+1,LineEndX-LineStartX+1),
-                   Min(LineEndX-LineStartX+1,255));
+                   Min(LineEndX-LineStartX+1,255))
+      else
+        S:=copy(Editor^.GetLineText(Editor^.SelStart.Y+LineDelta),LineStartX+1,LineEndX-LineStartX+1);
       if VerticalBlock=false then
         begin
           If LineDelta>0 then
             OrigS:='';
           if LineDelta=LineCount-1 then
-            SetLineText(DestPos.Y,RExpand(copy(OrigS,1,DestPos.X),DestPos.X)+S+AfterS)
+            begin
+              SetLineText(DestPos.Y,RExpand(copy(OrigS,1,DestPos.X),DestPos.X)+S+AfterS);
+              BPos.X:=DestPos.X;BPos.Y:=DestPos.Y;
+              EPOS.X:=DestPos.X+Length(S);EPos.Y:=DestPos.Y;
+              AddAction(eaInsertText,BPos,EPos,S);
+            end
           else
-            SetLineText(DestPos.Y,RExpand(copy(OrigS,1,DestPos.X),DestPos.X)+S);
+            begin
+              SetLineText(DestPos.Y,RExpand(copy(OrigS,1,DestPos.X),DestPos.X)+S);
+              BPos.X:=DestPos.X;BPos.Y:=DestPos.Y;
+              EPOS.X:=DestPos.X+Length(S);EPos.Y:=DestPos.Y;
+              AddAction(eaInsertText,BPos,EPos,S);
+            end;
           if LineDelta=LineCount-1 then
             begin
               SEnd.Y:=DestPos.Y;
@@ -4101,7 +4151,10 @@ begin
       OK:=GetLineCount<MaxLineCount;
     end;
     if OK=false then EditorDialog(edTooManyLines,nil);
-    SetCurPtr(CurPos.X,CurPos.Y);
+    { mainly to force eaMove insertion }
+    if not IsClipboard then
+      SetCurPtr(EPos.X,EPos.Y);
+    SetCurPtr(StartPos.X,StartPos.Y);
     UpdateAttrs(StartPos.Y,attrAll);
     SetModified(true);
     LimitsChanged;
@@ -5027,7 +5080,10 @@ end;
 END.
 {
   $Log$
-  Revision 1.61  1999-11-10 00:45:30  pierre
+  Revision 1.62  1999-11-18 13:42:06  pierre
+   * Some more Undo stuff
+
+  Revision 1.61  1999/11/10 00:45:30  pierre
    + groupd action started, not yet working
 
   Revision 1.60  1999/11/05 13:49:13  pierre
