@@ -23,63 +23,10 @@ interface
 
 implementation
 
-var
-  Errno : longint; external name 'errno';  { declared in libc }
-
 { OS independant parts}
 
 {$I system.inc}
 
-{*****************************************************************************
-      OS Memory allocation / deallocation
- ****************************************************************************}
-
-{ OS dependant parts  }
-
-{$I errno.inc}
-{$I bunxtype.inc}
-
-{$I osposix.inc}
-
-{$I sysposix.inc}
-
-function SysOSAlloc(size: ptrint): pointer;
-begin
-  // result := sbrk(size);
-end;
-
-{$define HAS_SYSOSFREE}
-
-procedure SysOSFree(p: pointer; size: ptrint);
-begin
-  // fpmunmap(p, size);
-end;
-
-
-function do_isdevice(handle:longint):boolean;
-begin
-  do_isdevice:= (handle=StdInputHandle) or
-                (handle=StdOutputHandle) or
-                (handle=StdErrorHandle);
-end;
-
-
-{$I text.inc}
-{$I heap.inc}
-
-
-{*****************************************************************************
-                           UnTyped File Handling
-*****************************************************************************}
-
-
-{$i file.inc}
-
-{*****************************************************************************
-                           Typed File Handling
-*****************************************************************************}
-
-{$i typefile.inc}
 
 procedure SysInitStdIO;
 begin
@@ -126,9 +73,7 @@ Begin
   SysInitStdIO;
 { Reset IO Error }
   InOutRes:=0;
-(* This should be changed to a real value during *)
-(* thread driver initialization if appropriate.  *)
-  ThreadID := 1;
+  InitSystemThreads;
 {$ifdef HASVARIANT}
   initvariantmanager;
 {$endif HASVARIANT}
@@ -139,7 +84,10 @@ End.
 
 {
  $Log$
- Revision 1.4  2005-02-01 20:22:50  florian
+ Revision 1.5  2005-02-07 22:17:26  peter
+   * updated for 1.9.x unix rtl
+
+ Revision 1.4  2005/02/01 20:22:50  florian
    * improved widestring infrastructure manager
 
  Revision 1.3  2004/12/05 14:36:38  hajny
