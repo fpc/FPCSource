@@ -3097,6 +3097,8 @@ procedure mov_reg_to_dest(p : ptree; s : topsize; reg : tregister);
 {$endif GDB}
       hr : preference;
       p : psymtable;
+      hp : preference;
+      pp : pprocinfo;
       r : treference;
       oldlist,
       oldexprasmlist : paasmoutput;
@@ -3162,6 +3164,13 @@ procedure mov_reg_to_dest(p : ptree; s : topsize; reg : tregister);
         end;
 
       { don't load ESI, does the caller }
+      { we must do it for local function }
+      { that can be called from a foreach }
+      { of another object than self !! PM }
+
+         if assigned(procinfo^._class) and
+            (lexlevel>normal_function_level) then
+           maybe_loadesi;
 
       { When message method contains self as a parameter,
         we must load it into ESI }
@@ -3171,10 +3180,10 @@ procedure mov_reg_to_dest(p : ptree; s : topsize; reg : tregister);
            reset_reference(hr^);
            hr^.offset:=procinfo^.selfpointer_offset;
            hr^.base:=procinfo^.framepointer;
-{$ifndef noAllocEdi}
-           exprasmlist^.concat(new(pairegalloc,alloc(R_ESI)));
-{$endif noAllocEdi}
            exprasmlist^.insert(new(paicpu,op_ref_reg(A_MOV,S_L,hr,R_ESI)));
+{$ifndef noAllocEdi}
+           exprasmlist^.insert(new(pairegalloc,alloc(R_ESI)));
+{$endif noAllocEdi}
         end;
       { should we save edi,esi,ebx like C ? }
       if (po_savestdregs in aktprocsym^.definition^.procoptions) then
@@ -3834,7 +3843,10 @@ procedure mov_reg_to_dest(p : ptree; s : topsize; reg : tregister);
 end.
 {
   $Log$
-  Revision 1.88  2000-03-19 11:55:08  peter
+  Revision 1.89  2000-03-21 23:36:46  pierre
+   fix for bug 312
+
+  Revision 1.88  2000/03/19 11:55:08  peter
     * fixed temp ansi handling within array constructor
 
   Revision 1.87  2000/03/19 08:17:36  peter
