@@ -336,6 +336,10 @@ unit ag386att;
     procedure ti386attasmlist.WriteTree(p:paasmoutput);
     const
       allocstr : array[boolean] of string[10]=(' released',' allocated');
+      nolinetai =[ait_label,
+                  ait_regalloc,ait_tempalloc,
+                  ait_stabn,ait_stabs,ait_section,
+                  ait_cut,ait_marker,ait_align,ait_stab_function_name];
     type
       t80bitarray = array[0..9] of byte;
       t64bitarray = array[0..7] of byte;
@@ -358,66 +362,72 @@ unit ag386att;
     begin
       if not assigned(p) then
        exit;
-      do_line:=(cs_debuginfo in aktmoduleswitches) or (cs_asm_source in aktglobalswitches);
+      { lineinfo is only needed for codesegment (PFV) }
+      do_line:=(cs_asm_source in aktglobalswitches) or
+               ((cs_lineinfo in aktmoduleswitches) and (p=codesegment));
       hp:=pai(p^.first);
       while assigned(hp) do
        begin
          aktfilepos:=hp^.fileinfo;
-         if do_line then
+
+         if not(hp^.typ in nolinetai) then
           begin
-          { I think it is better to write stabs before source line PM }
 {$ifdef GDB}
-          { write stabs }
-            if cs_debuginfo in aktmoduleswitches then
-             begin
-               if not (hp^.typ in  [
-                      ait_label,
-                      ait_regalloc,ait_tempalloc,
-                      ait_stabn,ait_stabs,ait_section,
-                      ait_cut,ait_marker,ait_align,ait_stab_function_name]) then
-                 begin
-                    WriteFileLineInfo(hp^.fileinfo);
-                 end;
-             end;
+             { write stabs }
+             if cs_debuginfo in aktmoduleswitches then
+               WriteFileLineInfo(hp^.fileinfo);
 {$endif GDB}
-          { load infile }
-            if lastfileinfo.fileindex<>hp^.fileinfo.fileindex then
-             begin
-               infile:=current_module^.sourcefiles^.get_file(hp^.fileinfo.fileindex);
-               { open only if needed !! }
-               if (cs_asm_source in aktglobalswitches) then
-                 infile^.open;
-               { avoid unnecessary reopens of the same file !! }
-               lastfileinfo.fileindex:=hp^.fileinfo.fileindex;
-               { be sure to change line !! }
-               lastfileinfo.line:=-1;
-             end;
-          { write source }
-            if (cs_asm_source in aktglobalswitches) and
-                not (hp^.typ in  [
-                      ait_label,
-                      ait_stabn,ait_stabs,ait_section,
-                      ait_cut,ait_align,ait_stab_function_name]) then
-             begin
-               if (infile<>lastinfile) and assigned(lastinfile) then
+
+             if do_line then
+              begin
+              { load infile }
+                if lastfileinfo.fileindex<>hp^.fileinfo.fileindex then
                  begin
-                   AsmWriteLn(target_asm.comment+'['+infile^.name^+']');
-                   lastinfile^.close;
+                   infile:=current_module^.sourcefiles^.get_file(hp^.fileinfo.fileindex);
+                   { open only if needed !! }
+                   if (cs_asm_source in aktglobalswitches) then
+                     infile^.open;
+                   { avoid unnecessary reopens of the same file !! }
+                   lastfileinfo.fileindex:=hp^.fileinfo.fileindex;
+                   { be sure to change line !! }
+                   lastfileinfo.line:=-1;
                  end;
-               if (hp^.fileinfo.line<>lastfileinfo.line) and
-                  (hp^.fileinfo.line<infile^.maxlinebuf) then
+              { write source }
+                if (cs_asm_source in aktglobalswitches) then
                  begin
-                   if (hp^.fileinfo.line<>0) and
-                      (infile^.linebuf^[hp^.fileinfo.line]>=0) then
-                     AsmWriteLn(target_asm.comment+'['+tostr(hp^.fileinfo.line)+'] '+
-                       fixline(infile^.GetLineStr(hp^.fileinfo.line)));
-                   { set it to a negative value !
-                   to make that is has been read already !! PM }
-                   infile^.linebuf^[hp^.fileinfo.line]:=-infile^.linebuf^[hp^.fileinfo.line]-1;
-                end;
-               lastfileinfo:=hp^.fileinfo;
-               lastinfile:=infile;
-             end;
+                   if (infile<>lastinfile) and assigned(lastinfile) then
+                     begin
+                       AsmWriteLn(target_asm.comment+'['+infile^.name^+']');
+                       lastinfile^.close;
+                     end;
+                   if (hp^.fileinfo.line<>lastfileinfo.line) and
+                      (hp^.fileinfo.line<infile^.maxlinebuf) then
+                     begin
+                       if (hp^.fileinfo.line<>0) and
+                          (infile^.linebuf^[hp^.fileinfo.line]>=0) then
+                         AsmWriteLn(target_asm.comment+'['+tostr(hp^.fileinfo.line)+'] '+
+                           fixline(infile^.GetLineStr(hp^.fileinfo.line)));
+                       { set it to a negative value !
+                       to make that is has been read already !! PM }
+                       infile^.linebuf^[hp^.fileinfo.line]:=-infile^.linebuf^[hp^.fileinfo.line]-1;
+                     end;
+                 end;
+{$ifdef LINEINFO}
+              { lineinfo }
+                if (cs_lineinfo in aktmoduleswitches) then
+                 begin
+                   if (infile<>lastinfile) then
+                    begin
+                      lineinfolist^.concat(new(pai_const(init_8bit
+                    end
+                   else
+                    begin
+                    end;
+                 end;
+{$endif LINEINFO}
+                lastfileinfo:=hp^.fileinfo;
+                lastinfile:=infile;
+              end;
           end;
 
          case hp^.typ of
@@ -834,7 +844,10 @@ unit ag386att;
 end.
 {
   $Log$
-  Revision 1.9  1999-08-10 12:26:20  pierre
+  Revision 1.10  1999-08-13 15:44:57  peter
+    * first things to include lineinfo in the executable
+
+  Revision 1.9  1999/08/10 12:26:20  pierre
    * avoid double .edata section if using DLLTOOL
 
   Revision 1.8  1999/08/04 00:22:34  florian

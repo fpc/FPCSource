@@ -79,6 +79,7 @@ interface
          cs_typed_const_not_changeable,
          { generation }
          cs_profile,cs_debuginfo,cs_browser,cs_local_browser,cs_compilesystem,
+         cs_lineinfo,
          { linking }
          cs_smartlink
        );
@@ -177,7 +178,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.16  1999-08-11 17:26:33  peter
+  Revision 1.17  1999-08-13 15:44:58  peter
+    * first things to include lineinfo in the executable
+
+  Revision 1.16  1999/08/11 17:26:33  peter
     * tlinker object is now inherited for win32 and dos
     * postprocessexecutable is now a method of tlinker
 
