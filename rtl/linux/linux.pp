@@ -2854,7 +2854,7 @@ Begin
    begin
      if path[i]<>'/' then
       begin
-        getdir(0,temp)
+        getdir(0,temp);
         k:=ioresult;
       end
      else
@@ -3546,7 +3546,10 @@ End.
 
 {
   $Log$
-  Revision 1.36  1999-05-08 19:47:24  peter
+  Revision 1.37  1999-05-10 09:13:41  peter
+    * fixed typo
+
+  Revision 1.36  1999/05/08 19:47:24  peter
     * check ioresult after getdir calls
 
   Revision 1.35  1999/04/22 14:48:55  peter
