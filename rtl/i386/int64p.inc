@@ -105,8 +105,13 @@
             movl %ecx,%eax
             orl %ebx,%eax
             jnz .Lnodivzero
+{$ifdef REGCALL}
+            movl  %ebp,%edx
+            movl  $200,%eax
+{$else}
             pushl %ebp
             pushl $200
+{$endif}
             call HandleErrorFrame
             jmp .Lexit
 .Lnodivzero:
@@ -256,7 +261,10 @@
 
 {
   $Log$
-  Revision 1.5  2004-09-26 08:52:51  florian
+  Revision 1.6  2004-11-21 16:41:16  florian
+    * fixed div by zero check for qword mod qword
+
+  Revision 1.5  2004/09/26 08:52:51  florian
     * fixed overflow checking in qword multiplication
 
   Revision 1.4  2004/07/25 11:50:39  florian
