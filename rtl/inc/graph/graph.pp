@@ -192,7 +192,9 @@ Unit Graph;
 
 { text.inc will crash on aligned requirement machines.          }
 { (packed record for fontrec)                                   }
-{$G+}
+{$ifndef fpc}
+  {$G+}
+{$endif}
 
 Interface
 
@@ -340,6 +342,7 @@ Interface
        HercMonoHi = 0;
 
 
+       {$i graphmod.inc}
 
        MaxColors   = 255;   { Maximum possible colors using a palette }
                             { otherwise, direct color encoding        }
@@ -400,8 +403,8 @@ Interface
         graph_float = single;   { the platform's preferred floating point size }
 {$ELSE}
         graph_int = integer;    { platform specific integer used for indexes;
-                                                          should be 16 bits on TP/BP and 32 bits on every-
-                                                          thing else for speed reasons }
+                                  should be 16 bits on TP/BP and 32 bits on every-
+                                  thing else for speed reasons }
         graph_float = real;     { the platform's preferred floating point size }
 {$ENDIF}
 
@@ -704,9 +707,9 @@ Begin
   Close(debuglog);
 End;
 {$endif logging}
+
 const
    StdBufferSize = 4096;   { Buffer size for FloodFill }
-
 
 type
 
@@ -724,9 +727,6 @@ const
      ($01,$02,$04,$08,$10,$20,$40,$80);
    RevbitArray: Array[0..7] of byte =
      ($80,$40,$20,$10,$08,$04,$02,$01);
-
-
-
 
     { pre expanded line patterns }
     { 0 = LSB of byte pattern    }
@@ -841,7 +841,6 @@ var
   procedure VLineDefault(x,y,y2: integer); {$ifndef fpc}far;{$endif fpc}
 
    var
-    Col: word;
     ytmp: integer;
   Begin
     { must we swap the values? }
@@ -874,7 +873,7 @@ var
       xinc2          : Integer;
       yinc1          : Integer;
       yinc2          : Integer;
-      i, j           : Integer;
+      i              : Integer;
       Flag           : Boolean; { determines pixel direction in thick lines }
       NumPixels      : Integer;
       PixelCount     : Integer;
@@ -1309,10 +1308,7 @@ var
    var
     j, Delta, DeltaEnd: graph_float;
     NumOfPixels: longint;
-    NumOfPix: Array[0..2] of longint;
-    count: longint;
     ConvFac,TempTerm: graph_float;
-    aval,bval: integer;
     xtemp, ytemp, xp, yp, xm, ym, xnext, ynext,
       plxpyp, plxmyp, plxpym, plxmym: integer;
     BackupColor, DeltaAngle, TmpAngle, OldLineWidth: word;
@@ -2049,12 +2045,14 @@ end;
   function InstallUserDriver(Name: string; AutoDetectPtr: Pointer): integer;
    begin
      _graphResult := grError;
+     InstallUserDriver:=grError;
    end;
 
   function RegisterBGIDriver(driver: pointer): integer;
 
    begin
      _graphResult := grError;
+     RegisterBGIDriver:=grError;
    end;
 
 
@@ -2845,7 +2843,11 @@ SetGraphBufSize
 
 {
   $Log$
-  Revision 1.29  1999-09-26 13:31:06  jonas
+  Revision 1.30  1999-09-27 23:34:41  peter
+    * new graph unit is default for go32v2
+    * removed warnings/notes
+
+  Revision 1.29  1999/09/26 13:31:06  jonas
     * changed name of modeinfo variable to vesamodeinfo and fixed
       associated errors (fillchar(modeinfo,sizeof(tmodeinfo),#0) instead
       of sizeof(TVesamodeinfo) etc)

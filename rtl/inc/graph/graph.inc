@@ -19,35 +19,6 @@
   {$asmmode intel}
 {$endif fpc}
 
-CONST
-  { VESA Specific video modes. }
-  m320x200x32k      = $10D;
-  m320x200x64k      = $10E;
-
-  m640x400x256      = $100;
-
-  m640x480x256      = $101;
-  m640x480x32k      = $110;
-  m640x480x64k      = $111;
-
-  m800x600x16       = $102;
-  m800x600x256      = $103;
-  m800x600x32k      = $113;
-  m800x600x64k      = $114;
-
-  m1024x768x16      = $104;
-  m1024x768x256     = $105;
-  m1024x768x32k     = $116;
-  m1024x768x64k     = $117;
-
-  m1280x1024x16     = $106;
-  m1280x1024x256    = $107;
-  m1280x1024x32k    = $119;
-  m1280x1024x64k    = $11A;
-
-
-
-
 
 { How to access real mode memory }
 { using 32-bit DPMI memory       }
@@ -451,7 +422,7 @@ Procedure GetScanLine16(y: integer; var data);
 
 var dummylong: longint;
     Offset, count, count2, amount, index: word;
-    shift, plane: byte;
+    plane: byte;
 Begin
 {$ifdef logging}
   LogLn('GetScanLine16 start, length to get: '+strf(ViewWidth+1)+' at y = '+strf(y));
@@ -1866,25 +1837,14 @@ const CrtAddress: word = 0;
          mode.DirectColor := FALSE;
          mode.MaxX := 319;
          mode.MaxY := 199;
-{$ifndef fpc}
-         mode.DirectPutPixel:=DirectPutPixel320;
-         mode.PutPixel:=PutPixel320;
-         mode.GetPixel:=GetPixel320;
-         mode.SetRGBPalette := SetVGARGBPalette;
-         mode.GetRGBPalette := GetVGARGBPalette;
-         mode.SetVisualPage := SetVisual320;
-         mode.SetActivePage := SetActive320;
-         mode.InitMode := Init320;
-{$else fpc}
-         mode.DirectPutPixel:=@DirectPutPixel320;
-         mode.PutPixel:=@PutPixel320;
-         mode.GetPixel:=@GetPixel320;
-         mode.SetRGBPalette := @SetVGARGBPalette;
-         mode.GetRGBPalette := @GetVGARGBPalette;
-         mode.SetVisualPage := @SetVisual320;
-         mode.SetActivePage := @SetActive320;
-         mode.InitMode := @Init320;
-{$endif fpc}
+         mode.DirectPutPixel:={$ifdef fpc}@{$endif}DirectPutPixel320;
+         mode.PutPixel:={$ifdef fpc}@{$endif}PutPixel320;
+         mode.GetPixel:={$ifdef fpc}@{$endif}GetPixel320;
+         mode.SetRGBPalette := {$ifdef fpc}@{$endif}SetVGARGBPalette;
+         mode.GetRGBPalette := {$ifdef fpc}@{$endif}GetVGARGBPalette;
+         mode.SetVisualPage := {$ifdef fpc}@{$endif}SetVisual320;
+         mode.SetActivePage := {$ifdef fpc}@{$endif}SetActive320;
+         mode.InitMode := {$ifdef fpc}@{$endif}Init320;
          mode.XAspect := 10000;
          mode.YAspect := 10000;
          AddMode(mode);
@@ -1900,25 +1860,14 @@ const CrtAddress: word = 0;
          mode.PaletteSize := mode.MaxColor;
          mode.MaxX := 319;
          mode.MaxY := 199;
-{$ifndef fpc}
-         mode.DirectPutPixel:=DirectPutPixelX;
-         mode.PutPixel:=PutPixelX;
-         mode.GetPixel:=GetPixelX;
-         mode.SetRGBPalette := SetVGARGBPalette;
-         mode.GetRGBPalette := GetVGARGBPalette;
-         mode.SetVisualPage := SetVisualX;
-         mode.SetActivePage := SetActiveX;
-         mode.InitMode := InitModeX;
-{$else fpc}
-         mode.DirectPutPixel:=@DirectPutPixelX;
-         mode.PutPixel:=@PutPixelX;
-         mode.GetPixel:=@GetPixelX;
-         mode.SetRGBPalette := @SetVGARGBPalette;
-         mode.GetRGBPalette := @GetVGARGBPalette;
-         mode.SetVisualPage := @SetVisualX;
-         mode.SetActivePage := @SetActiveX;
-         mode.InitMode := @InitModeX;
-{$endif fpc}
+         mode.DirectPutPixel:={$ifdef fpc}@{$endif}DirectPutPixelX;
+         mode.PutPixel:={$ifdef fpc}@{$endif}PutPixelX;
+         mode.GetPixel:={$ifdef fpc}@{$endif}GetPixelX;
+         mode.SetRGBPalette := {$ifdef fpc}@{$endif}SetVGARGBPalette;
+         mode.GetRGBPalette := {$ifdef fpc}@{$endif}GetVGARGBPalette;
+         mode.SetVisualPage := {$ifdef fpc}@{$endif}SetVisualX;
+         mode.SetActivePage := {$ifdef fpc}@{$endif}SetActiveX;
+         mode.InitMode := {$ifdef fpc}@{$endif}InitModeX;
          mode.XAspect := 10000;
          mode.YAspect := 10000;
          AddMode(mode);
@@ -1933,29 +1882,17 @@ const CrtAddress: word = 0;
          mode.PaletteSize := mode.MaxColor;
          mode.MaxX := 639;
          mode.MaxY := 199;
-{$ifndef fpc}
-         mode.DirectPutPixel:=DirectPutPixel16;
-         mode.PutPixel:=PutPixel16;
-         mode.GetPixel:=GetPixel16;
-         mode.SetRGBPalette := SetVGARGBPalette;
-         mode.GetRGBPalette := GetVGARGBPalette;
-         mode.SetVisualPage := SetVisual200;
-         mode.SetActivePage := SetActive200;
-         mode.InitMode := Init640x200x16;
-         mode.GetScanLine := GetScanLine16;
-{$else fpc}
-         mode.DirectPutPixel:=@DirectPutPixel16;
-         mode.PutPixel:=@PutPixel16;
-         mode.GetPixel:=@GetPixel16;
-         mode.SetRGBPalette := @SetVGARGBPalette;
-         mode.GetRGBPalette := @GetVGARGBPalette;
-         mode.SetVisualPage := @SetVisual200;
-         mode.SetActivePage := @SetActive200;
-         mode.InitMode := @Init640x200x16;
-         mode.HLine := @HLine16;
-         mode.VLine := @VLine16;
-         mode.GetScanLine := @GetScanLine16;
-{$endif fpc}
+         mode.DirectPutPixel:={$ifdef fpc}@{$endif}DirectPutPixel16;
+         mode.PutPixel:={$ifdef fpc}@{$endif}PutPixel16;
+         mode.GetPixel:={$ifdef fpc}@{$endif}GetPixel16;
+         mode.SetRGBPalette := {$ifdef fpc}@{$endif}SetVGARGBPalette;
+         mode.GetRGBPalette := {$ifdef fpc}@{$endif}GetVGARGBPalette;
+         mode.SetVisualPage := {$ifdef fpc}@{$endif}SetVisual200;
+         mode.SetActivePage := {$ifdef fpc}@{$endif}SetActive200;
+         mode.InitMode := {$ifdef fpc}@{$endif}Init640x200x16;
+         mode.HLine := {$ifdef fpc}@{$endif}HLine16;
+         mode.VLine := {$ifdef fpc}@{$endif}VLine16;
+         mode.GetScanLine := {$ifdef fpc}@{$endif}GetScanLine16;
          mode.XAspect := 10000;
          mode.YAspect := 10000;
          AddMode(mode);
@@ -1970,29 +1907,17 @@ const CrtAddress: word = 0;
          mode.PaletteSize := mode.MaxColor;
          mode.MaxX := 639;
          mode.MaxY := 349;
-{$ifndef fpc}
-         mode.DirectPutPixel:=DirectPutPixel16;
-         mode.PutPixel:=PutPixel16;
-         mode.GetPixel:=GetPixel16;
-         mode.InitMode := Init640x350x16;
-         mode.SetRGBPalette := SetVGARGBPalette;
-         mode.GetRGBPalette := GetVGARGBPalette;
-         mode.SetVisualPage := SetVisual350;
-         mode.SetActivePage := SetActive350;
-         mode.GetScanLine := GetScanLine16;
-{$else fpc}
-         mode.DirectPutPixel:=@DirectPutPixel16;
-         mode.PutPixel:=@PutPixel16;
-         mode.GetPixel:=@GetPixel16;
-         mode.InitMode := @Init640x350x16;
-         mode.SetRGBPalette := @SetVGARGBPalette;
-         mode.GetRGBPalette := @GetVGARGBPalette;
-         mode.SetVisualPage := @SetVisual350;
-         mode.SetActivePage := @SetActive350;
-         mode.HLine := @HLine16;
-         mode.VLine := @VLine16;
-         mode.GetScanLine := @GetScanLine16;
-{$endif fpc}
+         mode.DirectPutPixel:={$ifdef fpc}@{$endif}DirectPutPixel16;
+         mode.PutPixel:={$ifdef fpc}@{$endif}PutPixel16;
+         mode.GetPixel:={$ifdef fpc}@{$endif}GetPixel16;
+         mode.InitMode := {$ifdef fpc}@{$endif}Init640x350x16;
+         mode.SetRGBPalette := {$ifdef fpc}@{$endif}SetVGARGBPalette;
+         mode.GetRGBPalette := {$ifdef fpc}@{$endif}GetVGARGBPalette;
+         mode.SetVisualPage := {$ifdef fpc}@{$endif}SetVisual350;
+         mode.SetActivePage := {$ifdef fpc}@{$endif}SetActive350;
+         mode.HLine := {$ifdef fpc}@{$endif}HLine16;
+         mode.VLine := {$ifdef fpc}@{$endif}VLine16;
+         mode.GetScanLine := {$ifdef fpc}@{$endif}GetScanLine16;
          mode.XAspect := 10000;
          mode.YAspect := 10000;
          AddMode(mode);
@@ -2007,29 +1932,17 @@ const CrtAddress: word = 0;
          mode.PaletteSize := mode.MaxColor;
          mode.MaxX := 639;
          mode.MaxY := 479;
-{$ifndef fpc}
-         mode.DirectPutPixel:=DirectPutPixel16;
-         mode.PutPixel:=PutPixel16;
-         mode.GetPixel:=GetPixel16;
-         mode.SetRGBPalette := SetVGARGBPalette;
-         mode.GetRGBPalette := GetVGARGBPalette;
-         mode.InitMode := Init640x480x16;
-         mode.SetVisualPage := SetVisual480;
-         mode.SetActivePage := SetActive480;
-         mode.GetScanLine := GetScanLine16;
-{$else fpc}
-         mode.DirectPutPixel:=@DirectPutPixel16;
-         mode.PutPixel:=@PutPixel16;
-         mode.GetPixel:=@GetPixel16;
-         mode.SetRGBPalette := @SetVGARGBPalette;
-         mode.GetRGBPalette := @GetVGARGBPalette;
-         mode.InitMode := @Init640x480x16;
-         mode.SetVisualPage := @SetVisual480;
-         mode.SetActivePage := @SetActive480;
-         mode.HLine := @HLine16;
-         mode.VLine := @VLine16;
-         mode.GetScanLine := @GetScanLine16;
-{$endif fpc}
+         mode.DirectPutPixel:={$ifdef fpc}@{$endif}DirectPutPixel16;
+         mode.PutPixel:={$ifdef fpc}@{$endif}PutPixel16;
+         mode.GetPixel:={$ifdef fpc}@{$endif}GetPixel16;
+         mode.SetRGBPalette := {$ifdef fpc}@{$endif}SetVGARGBPalette;
+         mode.GetRGBPalette := {$ifdef fpc}@{$endif}GetVGARGBPalette;
+         mode.InitMode := {$ifdef fpc}@{$endif}Init640x480x16;
+         mode.SetVisualPage := {$ifdef fpc}@{$endif}SetVisual480;
+         mode.SetActivePage := {$ifdef fpc}@{$endif}SetActive480;
+         mode.HLine := {$ifdef fpc}@{$endif}HLine16;
+         mode.VLine := {$ifdef fpc}@{$endif}VLine16;
+         mode.GetScanLine := {$ifdef fpc}@{$endif}GetScanLine16;
          mode.XAspect := 10000;
          mode.YAspect := 10000;
          AddMode(mode);
@@ -2070,25 +1983,14 @@ const CrtAddress: word = 0;
              mode.DirectColor := TRUE;
              mode.MaxX := 319;
              mode.MaxY := 199;
-{$ifndef fpc}
-             mode.DirectPutPixel:=DirectPutPixVESA32k;
-             mode.PutPixel:=PutPixVESA32k;
-             mode.GetPixel:=GetPixVESA32k;
-             mode.SetRGBPalette := SetVESARGBPalette;
-             mode.GetRGBPalette := GetVESARGBPalette;
-             mode.InitMode := Init320x200x32k;
-             mode.SetVisualPage := SetVisualVESA;
-             mode.SetActivePage := SetActiveVESA;
-{$else fpc}
-             mode.DirectPutPixel:=@DirectPutPixVESA32k;
-             mode.PutPixel:=@PutPixVESA32k;
-             mode.GetPixel:=@GetPixVESA32k;
-             mode.SetRGBPalette := @SetVESARGBPalette;
-             mode.GetRGBPalette := @GetVESARGBPalette;
-             mode.InitMode := @Init320x200x32k;
-             mode.SetVisualPage := @SetVisualVESA;
-             mode.SetActivePage := @SetActiveVESA;
-{$endif fpc}
+             mode.DirectPutPixel:={$ifdef fpc}@{$endif}DirectPutPixVESA32k;
+             mode.PutPixel:={$ifdef fpc}@{$endif}PutPixVESA32k;
+             mode.GetPixel:={$ifdef fpc}@{$endif}GetPixVESA32k;
+             mode.SetRGBPalette := {$ifdef fpc}@{$endif}SetVESARGBPalette;
+             mode.GetRGBPalette := {$ifdef fpc}@{$endif}GetVESARGBPalette;
+             mode.InitMode := {$ifdef fpc}@{$endif}Init320x200x32k;
+             mode.SetVisualPage := {$ifdef fpc}@{$endif}SetVisualVESA;
+             mode.SetActivePage := {$ifdef fpc}@{$endif}SetActiveVESA;
              mode.XAspect := 10000;
              mode.YAspect := 10000;
              AddMode(mode);
@@ -2107,25 +2009,14 @@ const CrtAddress: word = 0;
              mode.DirectColor := TRUE;
              mode.MaxX := 319;
              mode.MaxY := 199;
-{$ifndef fpc}
-             mode.DirectPutPixel:=DirectPutPixVESA64k;
-             mode.PutPixel:=PutPixVESA64k;
-             mode.GetPixel:=GetPixVESA64k;
-             mode.SetRGBPalette := SetVESARGBPalette;
-             mode.GetRGBPalette := GetVESARGBPalette;
-             mode.InitMode := Init320x200x64k;
-             mode.SetVisualPage := SetVisualVESA;
-             mode.SetActivePage := SetActiveVESA;
-{$else fpc}
-             mode.DirectPutPixel:=@DirectPutPixVESA64k;
-             mode.PutPixel:=@PutPixVESA64k;
-             mode.GetPixel:=@GetPixVESA64k;
-             mode.SetRGBPalette := @SetVESARGBPalette;
-             mode.GetRGBPalette := @GetVESARGBPalette;
-             mode.InitMode := @Init320x200x64k;
-             mode.SetVisualPage := @SetVisualVESA;
-             mode.SetActivePage := @SetActiveVESA;
-{$endif fpc}
+             mode.DirectPutPixel:={$ifdef fpc}@{$endif}DirectPutPixVESA64k;
+             mode.PutPixel:={$ifdef fpc}@{$endif}PutPixVESA64k;
+             mode.GetPixel:={$ifdef fpc}@{$endif}GetPixVESA64k;
+             mode.SetRGBPalette := {$ifdef fpc}@{$endif}SetVESARGBPalette;
+             mode.GetRGBPalette := {$ifdef fpc}@{$endif}GetVESARGBPalette;
+             mode.InitMode := {$ifdef fpc}@{$endif}Init320x200x64k;
+             mode.SetVisualPage := {$ifdef fpc}@{$endif}SetVisualVESA;
+             mode.SetActivePage := {$ifdef fpc}@{$endif}SetActiveVESA;
              mode.XAspect := 10000;
              mode.YAspect := 10000;
              AddMode(mode);
@@ -2144,29 +2035,16 @@ const CrtAddress: word = 0;
              mode.DirectColor := FALSE;
              mode.MaxX := 639;
              mode.MaxY := 399;
-{$ifndef fpc}
-             mode.DirectPutPixel:=DirectPutPixVESA256;
-             mode.PutPixel:=PutPixVESA256;
-             mode.GetPixel:=GetPixVESA256;
-             mode.SetRGBPalette := SetVESARGBPalette;
-             mode.GetRGBPalette := GetVESARGBPalette;
-             mode.InitMode := Init640x400x256;
-             mode.SetVisualPage := SetVisualVESA;
-             mode.SetActivePage := SetActiveVESA;
-             mode.hline := HLineVESA256;
-             mode.vline := VLineVESA256;
-{$else fpc}
-             mode.DirectPutPixel:=@DirectPutPixVESA256;
-             mode.PutPixel:=@PutPixVESA256;
-             mode.GetPixel:=@GetPixVESA256;
-             mode.SetRGBPalette := @SetVESARGBPalette;
-             mode.GetRGBPalette := @GetVESARGBPalette;
-             mode.InitMode := @Init640x400x256;
-             mode.SetVisualPage := @SetVisualVESA;
-             mode.SetActivePage := @SetActiveVESA;
-             mode.hline := @HLineVESA256;
-             mode.vline := @VLineVESA256;
-{$endif fpc}
+             mode.DirectPutPixel:={$ifdef fpc}@{$endif}DirectPutPixVESA256;
+             mode.PutPixel:={$ifdef fpc}@{$endif}PutPixVESA256;
+             mode.GetPixel:={$ifdef fpc}@{$endif}GetPixVESA256;
+             mode.SetRGBPalette := {$ifdef fpc}@{$endif}SetVESARGBPalette;
+             mode.GetRGBPalette := {$ifdef fpc}@{$endif}GetVESARGBPalette;
+             mode.InitMode := {$ifdef fpc}@{$endif}Init640x400x256;
+             mode.SetVisualPage := {$ifdef fpc}@{$endif}SetVisualVESA;
+             mode.SetActivePage := {$ifdef fpc}@{$endif}SetActiveVESA;
+             mode.hline := {$ifdef fpc}@{$endif}HLineVESA256;
+             mode.vline := {$ifdef fpc}@{$endif}VLineVESA256;
              mode.XAspect := 10000;
              mode.YAspect := 10000;
              AddMode(mode);
@@ -2184,29 +2062,16 @@ const CrtAddress: word = 0;
              mode.PaletteSize := mode.MaxColor;
              mode.MaxX := 639;
              mode.MaxY := 479;
-{$ifndef fpc}
-             mode.DirectPutPixel:=DirectPutPixVESA256;
-             mode.PutPixel:=PutPixVESA256;
-             mode.GetPixel:=GetPixVESA256;
-             mode.SetRGBPalette := SetVESARGBPalette;
-             mode.GetRGBPalette := GetVESARGBPalette;
-             mode.InitMode := Init640x480x256;
-             mode.SetVisualPage := SetVisualVESA;
-             mode.SetActivePage := SetActiveVESA;
-             mode.hline := HLineVESA256;
-             mode.vline := VLineVESA256;
-{$else fpc}
-             mode.DirectPutPixel:=@DirectPutPixVESA256;
-             mode.PutPixel:=@PutPixVESA256;
-             mode.GetPixel:=@GetPixVESA256;
-             mode.SetRGBPalette := @SetVESARGBPalette;
-             mode.GetRGBPalette := @GetVESARGBPalette;
-             mode.InitMode := @Init640x480x256;
-             mode.SetVisualPage := @SetVisualVESA;
-             mode.SetActivePage := @SetActiveVESA;
-             mode.hline := @HLineVESA256;
-             mode.hline := @HLineVESA256;
-{$endif fpc}
+             mode.DirectPutPixel:={$ifdef fpc}@{$endif}DirectPutPixVESA256;
+             mode.PutPixel:={$ifdef fpc}@{$endif}PutPixVESA256;
+             mode.GetPixel:={$ifdef fpc}@{$endif}GetPixVESA256;
+             mode.SetRGBPalette := {$ifdef fpc}@{$endif}SetVESARGBPalette;
+             mode.GetRGBPalette := {$ifdef fpc}@{$endif}GetVESARGBPalette;
+             mode.InitMode := {$ifdef fpc}@{$endif}Init640x480x256;
+             mode.SetVisualPage := {$ifdef fpc}@{$endif}SetVisualVESA;
+             mode.SetActivePage := {$ifdef fpc}@{$endif}SetActiveVESA;
+             mode.hline := {$ifdef fpc}@{$endif}HLineVESA256;
+             mode.hline := {$ifdef fpc}@{$endif}HLineVESA256;
              mode.XAspect := 10000;
              mode.YAspect := 10000;
              AddMode(mode);
@@ -2225,25 +2090,14 @@ const CrtAddress: word = 0;
              mode.DirectColor := TRUE;
              mode.MaxX := 639;
              mode.MaxY := 399;
-{$ifndef fpc}
-             mode.DirectPutPixel:=DirectPutPixVESA32k;
-             mode.PutPixel:=PutPixVESA32k;
-             mode.GetPixel:=GetPixVESA32k;
-             mode.SetRGBPalette := SetVESARGBPalette;
-             mode.GetRGBPalette := GetVESARGBPalette;
-             mode.InitMode := Init640x480x32k;
-             mode.SetVisualPage := SetVisualVESA;
-             mode.SetActivePage := SetActiveVESA;
-{$else fpc}
-             mode.DirectPutPixel:=@DirectPutPixVESA32k;
-             mode.PutPixel:=@PutPixVESA32k;
-             mode.GetPixel:=@GetPixVESA32k;
-             mode.SetRGBPalette := @SetVESARGBPalette;
-             mode.GetRGBPalette := @GetVESARGBPalette;
-             mode.InitMode := @Init640x480x32k;
-             mode.SetVisualPage := @SetVisualVESA;
-             mode.SetActivePage := @SetActiveVESA;
-{$endif fpc}
+             mode.DirectPutPixel:={$ifdef fpc}@{$endif}DirectPutPixVESA32k;
+             mode.PutPixel:={$ifdef fpc}@{$endif}PutPixVESA32k;
+             mode.GetPixel:={$ifdef fpc}@{$endif}GetPixVESA32k;
+             mode.SetRGBPalette := {$ifdef fpc}@{$endif}SetVESARGBPalette;
+             mode.GetRGBPalette := {$ifdef fpc}@{$endif}GetVESARGBPalette;
+             mode.InitMode := {$ifdef fpc}@{$endif}Init640x480x32k;
+             mode.SetVisualPage := {$ifdef fpc}@{$endif}SetVisualVESA;
+             mode.SetActivePage := {$ifdef fpc}@{$endif}SetActiveVESA;
              mode.XAspect := 10000;
              mode.YAspect := 10000;
              AddMode(mode);
@@ -2262,25 +2116,14 @@ const CrtAddress: word = 0;
              mode.DirectColor := TRUE;
              mode.MaxX := 639;
              mode.MaxY := 479;
-{$ifndef fpc}
-             mode.DirectPutPixel:=DirectPutPixVESA64k;
-             mode.PutPixel:=PutPixVESA64k;
-             mode.GetPixel:=GetPixVESA64k;
-             mode.SetRGBPalette := SetVESARGBPalette;
-             mode.GetRGBPalette := GetVESARGBPalette;
-             mode.InitMode := Init640x480x64k;
-             mode.SetVisualPage := SetVisualVESA;
-             mode.SetActivePage := SetActiveVESA;
-{$else fpc}
-             mode.DirectPutPixel:=@DirectPutPixVESA64k;
-             mode.PutPixel:=@PutPixVESA64k;
-             mode.GetPixel:=@GetPixVESA64k;
-             mode.SetRGBPalette := @SetVESARGBPalette;
-             mode.GetRGBPalette := @GetVESARGBPalette;
-             mode.InitMode := @Init640x480x64k;
-             mode.SetVisualPage := @SetVisualVESA;
-             mode.SetActivePage := @SetActiveVESA;
-{$endif fpc}
+             mode.DirectPutPixel:={$ifdef fpc}@{$endif}DirectPutPixVESA64k;
+             mode.PutPixel:={$ifdef fpc}@{$endif}PutPixVESA64k;
+             mode.GetPixel:={$ifdef fpc}@{$endif}GetPixVESA64k;
+             mode.SetRGBPalette := {$ifdef fpc}@{$endif}SetVESARGBPalette;
+             mode.GetRGBPalette := {$ifdef fpc}@{$endif}GetVESARGBPalette;
+             mode.InitMode := {$ifdef fpc}@{$endif}Init640x480x64k;
+             mode.SetVisualPage := {$ifdef fpc}@{$endif}SetVisualVESA;
+             mode.SetActivePage := {$ifdef fpc}@{$endif}SetActiveVESA;
              mode.XAspect := 10000;
              mode.YAspect := 10000;
              AddMode(mode);
@@ -2299,25 +2142,14 @@ const CrtAddress: word = 0;
              mode.PaletteSize := mode.MaxColor;
              mode.MaxX := 799;
              mode.MaxY := 599;
-{$ifndef fpc}
-             mode.DirectPutPixel:=DirectPutPixVESA16;
-             mode.SetRGBPalette := SetVESARGBPalette;
-             mode.GetRGBPalette := GetVESARGBPalette;
-             mode.PutPixel:=PutPixVESA16;
-{             mode.GetPixel:=GetPixVESA16;}
-             mode.InitMode := Init800x600x16;
-             mode.SetVisualPage := SetVisualVESA;
-             mode.SetActivePage := SetActiveVESA;
-{$else fpc}
-             mode.DirectPutPixel:=@DirectPutPixVESA16;
-             mode.SetRGBPalette := @SetVESARGBPalette;
-             mode.GetRGBPalette := @GetVESARGBPalette;
-             mode.PutPixel:=@PutPixVESA16;
-{             mode.GetPixel:=@GetPixVESA16;}
-             mode.InitMode := @Init800x600x16;
-             mode.SetVisualPage := @SetVisualVESA;
-             mode.SetActivePage := @SetActiveVESA;
-{$endif fpc}
+             mode.DirectPutPixel:={$ifdef fpc}@{$endif}DirectPutPixVESA16;
+             mode.SetRGBPalette := {$ifdef fpc}@{$endif}SetVESARGBPalette;
+             mode.GetRGBPalette := {$ifdef fpc}@{$endif}GetVESARGBPalette;
+             mode.PutPixel:={$ifdef fpc}@{$endif}PutPixVESA16;
+(*             mode.GetPixel:={$ifdef fpc}@{$endif}GetPixVESA16; *)
+             mode.InitMode := {$ifdef fpc}@{$endif}Init800x600x16;
+             mode.SetVisualPage := {$ifdef fpc}@{$endif}SetVisualVESA;
+             mode.SetActivePage := {$ifdef fpc}@{$endif}SetActiveVESA;
              mode.XAspect := 10000;
              mode.YAspect := 10000;
              AddMode(mode);
@@ -2336,29 +2168,16 @@ const CrtAddress: word = 0;
              mode.DirectColor := FALSE;
              mode.MaxX := 799;
              mode.MaxY := 599;
-{$ifndef fpc}
-             mode.DirectPutPixel:=DirectPutPixVESA256;
-             mode.PutPixel:=PutPixVESA256;
-             mode.GetPixel:=GetPixVESA256;
-             mode.SetRGBPalette := SetVESARGBPalette;
-             mode.GetRGBPalette := GetVESARGBPalette;
-             mode.InitMode := Init800x600x256;
-             mode.SetVisualPage := SetVisualVESA;
-             mode.SetActivePage := SetActiveVESA;
-             mode.hline := HLineVESA256;
-             mode.vline := VLineVESA256;
-{$else fpc}
-             mode.DirectPutPixel:=@DirectPutPixVESA256;
-             mode.PutPixel:=@PutPixVESA256;
-             mode.GetPixel:=@GetPixVESA256;
-             mode.SetRGBPalette := @SetVESARGBPalette;
-             mode.GetRGBPalette := @GetVESARGBPalette;
-             mode.InitMode := @Init800x600x256;
-             mode.SetVisualPage := @SetVisualVESA;
-             mode.SetActivePage := @SetActiveVESA;
-             mode.hline := @HLineVESA256;
-             mode.vline := @VLineVESA256;
-{$endif fpc}
+             mode.DirectPutPixel:={$ifdef fpc}@{$endif}DirectPutPixVESA256;
+             mode.PutPixel:={$ifdef fpc}@{$endif}PutPixVESA256;
+             mode.GetPixel:={$ifdef fpc}@{$endif}GetPixVESA256;
+             mode.SetRGBPalette := {$ifdef fpc}@{$endif}SetVESARGBPalette;
+             mode.GetRGBPalette := {$ifdef fpc}@{$endif}GetVESARGBPalette;
+             mode.InitMode := {$ifdef fpc}@{$endif}Init800x600x256;
+             mode.SetVisualPage := {$ifdef fpc}@{$endif}SetVisualVESA;
+             mode.SetActivePage := {$ifdef fpc}@{$endif}SetActiveVESA;
+             mode.hline := {$ifdef fpc}@{$endif}HLineVESA256;
+             mode.vline := {$ifdef fpc}@{$endif}VLineVESA256;
              mode.XAspect := 10000;
              mode.YAspect := 10000;
              AddMode(mode);
@@ -2377,25 +2196,14 @@ const CrtAddress: word = 0;
              mode.DirectColor := TRUE;
              mode.MaxX := 799;
              mode.MaxY := 599;
-{$ifndef fpc}
-             mode.DirectPutPixel:=DirectPutPixVESA32k;
-             mode.PutPixel:=PutPixVESA32k;
-             mode.GetPixel:=GetPixVESA32k;
-             mode.SetRGBPalette := SetVESARGBPalette;
-             mode.GetRGBPalette := GetVESARGBPalette;
-             mode.InitMode := Init800x600x32k;
-             mode.SetVisualPage := SetVisualVESA;
-             mode.SetActivePage := SetActiveVESA;
-{$else fpc}
-             mode.DirectPutPixel:=@DirectPutPixVESA32k;
-             mode.PutPixel:=@PutPixVESA32k;
-             mode.GetPixel:=@GetPixVESA32k;
-             mode.SetRGBPalette := @SetVESARGBPalette;
-             mode.GetRGBPalette := @GetVESARGBPalette;
-             mode.InitMode := @Init800x600x32k;
-             mode.SetVisualPage := @SetVisualVESA;
-             mode.SetActivePage := @SetActiveVESA;
-{$endif fpc}
+             mode.DirectPutPixel:={$ifdef fpc}@{$endif}DirectPutPixVESA32k;
+             mode.PutPixel:={$ifdef fpc}@{$endif}PutPixVESA32k;
+             mode.GetPixel:={$ifdef fpc}@{$endif}GetPixVESA32k;
+             mode.SetRGBPalette := {$ifdef fpc}@{$endif}SetVESARGBPalette;
+             mode.GetRGBPalette := {$ifdef fpc}@{$endif}GetVESARGBPalette;
+             mode.InitMode := {$ifdef fpc}@{$endif}Init800x600x32k;
+             mode.SetVisualPage := {$ifdef fpc}@{$endif}SetVisualVESA;
+             mode.SetActivePage := {$ifdef fpc}@{$endif}SetActiveVESA;
              mode.XAspect := 10000;
              mode.YAspect := 10000;
              AddMode(mode);
@@ -2414,25 +2222,14 @@ const CrtAddress: word = 0;
              mode.DirectColor := TRUE;
              mode.MaxX := 799;
              mode.MaxY := 599;
-{$ifndef fpc}
-             mode.DirectPutPixel:=DirectPutPixVESA64k;
-             mode.PutPixel:=PutPixVESA64k;
-             mode.GetPixel:=GetPixVESA64k;
-             mode.SetRGBPalette := SetVESARGBPalette;
-             mode.GetRGBPalette := GetVESARGBPalette;
-             mode.InitMode := Init800x600x64k;
-             mode.SetVisualPage := SetVisualVESA;
-             mode.SetActivePage := SetActiveVESA;
-{$else fpc}
-             mode.DirectPutPixel:=@DirectPutPixVESA64k;
-             mode.PutPixel:=@PutPixVESA64k;
-             mode.GetPixel:=@GetPixVESA64k;
-             mode.SetRGBPalette := @SetVESARGBPalette;
-             mode.GetRGBPalette := @GetVESARGBPalette;
-             mode.InitMode := @Init800x600x64k;
-             mode.SetVisualPage := @SetVisualVESA;
-             mode.SetActivePage := @SetActiveVESA;
-{$endif fpc}
+             mode.DirectPutPixel:={$ifdef fpc}@{$endif}DirectPutPixVESA64k;
+             mode.PutPixel:={$ifdef fpc}@{$endif}PutPixVESA64k;
+             mode.GetPixel:={$ifdef fpc}@{$endif}GetPixVESA64k;
+             mode.SetRGBPalette := {$ifdef fpc}@{$endif}SetVESARGBPalette;
+             mode.GetRGBPalette := {$ifdef fpc}@{$endif}GetVESARGBPalette;
+             mode.InitMode := {$ifdef fpc}@{$endif}Init800x600x64k;
+             mode.SetVisualPage := {$ifdef fpc}@{$endif}SetVisualVESA;
+             mode.SetActivePage := {$ifdef fpc}@{$endif}SetActiveVESA;
              mode.XAspect := 10000;
              mode.YAspect := 10000;
              AddMode(mode);
@@ -2451,25 +2248,14 @@ const CrtAddress: word = 0;
              mode.DirectColor := FALSE;
              mode.MaxX := 1023;
              mode.MaxY := 767;
-{$ifndef fpc}
-             mode.DirectPutPixel:=DirectPutPixVESA16;
-             mode.PutPixel:=PutPixVESA16;
-             mode.SetRGBPalette := SetVESARGBPalette;
-             mode.GetRGBPalette := GetVESARGBPalette;
-{             mode.GetPixel:=GetPixVESA16;}
-             mode.InitMode := Init1024x768x16;
-             mode.SetVisualPage := SetVisualVESA;
-             mode.SetActivePage := SetActiveVESA;
-{$else fpc}
-             mode.DirectPutPixel:=@DirectPutPixVESA16;
-             mode.PutPixel:=@PutPixVESA16;
-             mode.SetRGBPalette := @SetVESARGBPalette;
-             mode.GetRGBPalette := @GetVESARGBPalette;
-{             mode.GetPixel:=@GetPixVESA16;}
-             mode.InitMode := @Init1024x768x16;
-             mode.SetVisualPage := @SetVisualVESA;
-             mode.SetActivePage := @SetActiveVESA;
-{$endif fpc}
+             mode.DirectPutPixel:={$ifdef fpc}@{$endif}DirectPutPixVESA16;
+             mode.PutPixel:={$ifdef fpc}@{$endif}PutPixVESA16;
+             mode.SetRGBPalette := {$ifdef fpc}@{$endif}SetVESARGBPalette;
+             mode.GetRGBPalette := {$ifdef fpc}@{$endif}GetVESARGBPalette;
+(*             mode.GetPixel:={$ifdef fpc}@{$endif}GetPixVESA16; *)
+             mode.InitMode := {$ifdef fpc}@{$endif}Init1024x768x16;
+             mode.SetVisualPage := {$ifdef fpc}@{$endif}SetVisualVESA;
+             mode.SetActivePage := {$ifdef fpc}@{$endif}SetActiveVESA;
              mode.XAspect := 10000;
              mode.YAspect := 10000;
              AddMode(mode);
@@ -2488,29 +2274,16 @@ const CrtAddress: word = 0;
              mode.DirectColor := FALSE;
              mode.MaxX := 1023;
              mode.MaxY := 767;
-{$ifndef fpc}
-             mode.DirectPutPixel:=DirectPutPixVESA256;
-             mode.PutPixel:=PutPixVESA256;
-             mode.GetPixel:=GetPixVESA256;
-             mode.SetRGBPalette := SetVESARGBPalette;
-             mode.GetRGBPalette := GetVESARGBPalette;
-             mode.InitMode := Init1024x768x256;
-             mode.SetVisualPage := SetVisualVESA;
-             mode.SetActivePage := SetActiveVESA;
-             mode.hline := HLineVESA256;
-             mode.vline := VLineVESA256;
-{$else fpc}
-             mode.DirectPutPixel:=@DirectPutPixVESA256;
-             mode.PutPixel:=@PutPixVESA256;
-             mode.GetPixel:=@GetPixVESA256;
-             mode.SetRGBPalette := @SetVESARGBPalette;
-             mode.GetRGBPalette := @GetVESARGBPalette;
-             mode.InitMode := @Init1024x768x256;
-             mode.SetVisualPage := @SetVisualVESA;
-             mode.SetActivePage := @SetActiveVESA;
-             mode.vline := @VLineVESA256;
-             mode.hline := @HLineVESA256;
-{$endif fpc}
+             mode.DirectPutPixel:={$ifdef fpc}@{$endif}DirectPutPixVESA256;
+             mode.PutPixel:={$ifdef fpc}@{$endif}PutPixVESA256;
+             mode.GetPixel:={$ifdef fpc}@{$endif}GetPixVESA256;
+             mode.SetRGBPalette := {$ifdef fpc}@{$endif}SetVESARGBPalette;
+             mode.GetRGBPalette := {$ifdef fpc}@{$endif}GetVESARGBPalette;
+             mode.InitMode := {$ifdef fpc}@{$endif}Init1024x768x256;
+             mode.SetVisualPage := {$ifdef fpc}@{$endif}SetVisualVESA;
+             mode.SetActivePage := {$ifdef fpc}@{$endif}SetActiveVESA;
+             mode.vline := {$ifdef fpc}@{$endif}VLineVESA256;
+             mode.hline := {$ifdef fpc}@{$endif}HLineVESA256;
              mode.XAspect := 10000;
              mode.YAspect := 10000;
              AddMode(mode);
@@ -2529,25 +2302,14 @@ const CrtAddress: word = 0;
              mode.DirectColor := TRUE;
              mode.MaxX := 1023;
              mode.MaxY := 767;
-{$ifndef fpc}
-             mode.DirectPutPixel:=DirectPutPixVESA32k;
-             mode.PutPixel:=PutPixVESA32k;
-             mode.GetPixel:=GetPixVESA32k;
-             mode.SetRGBPalette := SetVESARGBPalette;
-             mode.GetRGBPalette := GetVESARGBPalette;
-             mode.InitMode := Init640x480x32k;
-             mode.SetVisualPage := SetVisualVESA;
-             mode.SetActivePage := SetActiveVESA;
-{$else fpc}
-             mode.DirectPutPixel:=@DirectPutPixVESA32k;
-             mode.PutPixel:=@PutPixVESA32k;
-             mode.GetPixel:=@GetPixVESA32k;
-             mode.SetRGBPalette := @SetVESARGBPalette;
-             mode.GetRGBPalette := @GetVESARGBPalette;
-             mode.InitMode := @Init640x480x32k;
-             mode.SetVisualPage := @SetVisualVESA;
-             mode.SetActivePage := @SetActiveVESA;
-{$endif fpc}
+             mode.DirectPutPixel:={$ifdef fpc}@{$endif}DirectPutPixVESA32k;
+             mode.PutPixel:={$ifdef fpc}@{$endif}PutPixVESA32k;
+             mode.GetPixel:={$ifdef fpc}@{$endif}GetPixVESA32k;
+             mode.SetRGBPalette := {$ifdef fpc}@{$endif}SetVESARGBPalette;
+             mode.GetRGBPalette := {$ifdef fpc}@{$endif}GetVESARGBPalette;
+             mode.InitMode := {$ifdef fpc}@{$endif}Init640x480x32k;
+             mode.SetVisualPage := {$ifdef fpc}@{$endif}SetVisualVESA;
+             mode.SetActivePage := {$ifdef fpc}@{$endif}SetActiveVESA;
              mode.XAspect := 10000;
              mode.YAspect := 10000;
              AddMode(mode);
@@ -2566,25 +2328,14 @@ const CrtAddress: word = 0;
              mode.PaletteSize := mode.MaxColor;
              mode.MaxX := 1023;
              mode.MaxY := 767;
-{$ifndef fpc}
-             mode.DirectPutPixel:=DirectPutPixVESA64k;
-             mode.PutPixel:=PutPixVESA64k;
-             mode.GetPixel:=GetPixVESA64k;
-             mode.SetRGBPalette := SetVESARGBPalette;
-             mode.GetRGBPalette := GetVESARGBPalette;
-             mode.InitMode := Init1024x768x64k;
-             mode.SetVisualPage := SetVisualVESA;
-             mode.SetActivePage := SetActiveVESA;
-{$else fpc}
-             mode.DirectPutPixel:=@DirectPutPixVESA64k;
-             mode.PutPixel:=@PutPixVESA64k;
-             mode.GetPixel:=@GetPixVESA64k;
-             mode.SetRGBPalette := @SetVESARGBPalette;
-             mode.GetRGBPalette := @GetVESARGBPalette;
-             mode.InitMode := @Init1024x768x64k;
-             mode.SetVisualPage := @SetVisualVESA;
-             mode.SetActivePage := @SetActiveVESA;
-{$endif fpc}
+             mode.DirectPutPixel:={$ifdef fpc}@{$endif}DirectPutPixVESA64k;
+             mode.PutPixel:={$ifdef fpc}@{$endif}PutPixVESA64k;
+             mode.GetPixel:={$ifdef fpc}@{$endif}GetPixVESA64k;
+             mode.SetRGBPalette := {$ifdef fpc}@{$endif}SetVESARGBPalette;
+             mode.GetRGBPalette := {$ifdef fpc}@{$endif}GetVESARGBPalette;
+             mode.InitMode := {$ifdef fpc}@{$endif}Init1024x768x64k;
+             mode.SetVisualPage := {$ifdef fpc}@{$endif}SetVisualVESA;
+             mode.SetActivePage := {$ifdef fpc}@{$endif}SetActiveVESA;
              mode.XAspect := 10000;
              mode.YAspect := 10000;
              AddMode(mode);
@@ -2603,25 +2354,14 @@ const CrtAddress: word = 0;
              mode.PaletteSize := mode.MaxColor;
              mode.MaxX := 1279;
              mode.MaxY := 1023;
-{$ifndef fpc}
-             mode.DirectPutPixel:=DirectPutPixVESA16;
-             mode.SetRGBPalette := SetVESARGBPalette;
-             mode.GetRGBPalette := GetVESARGBPalette;
-             mode.PutPixel:=PutPixVESA16;
-{             mode.GetPixel:=GetPixVESA16;}
-             mode.InitMode := Init1280x1024x16;
-             mode.SetVisualPage := SetVisualVESA;
-             mode.SetActivePage := SetActiveVESA;
-{$else fpc}
-             mode.DirectPutPixel:=@DirectPutPixVESA16;
-             mode.SetRGBPalette := @SetVESARGBPalette;
-             mode.GetRGBPalette := @GetVESARGBPalette;
-             mode.PutPixel:=@PutPixVESA16;
-{             mode.GetPixel:=@GetPixVESA16;}
-             mode.InitMode := @Init1280x1024x16;
-             mode.SetVisualPage := @SetVisualVESA;
-             mode.SetActivePage := @SetActiveVESA;
-{$endif fpc}
+             mode.DirectPutPixel:={$ifdef fpc}@{$endif}DirectPutPixVESA16;
+             mode.SetRGBPalette := {$ifdef fpc}@{$endif}SetVESARGBPalette;
+             mode.GetRGBPalette := {$ifdef fpc}@{$endif}GetVESARGBPalette;
+             mode.PutPixel:={$ifdef fpc}@{$endif}PutPixVESA16;
+(*             mode.GetPixel:={$ifdef fpc}@{$endif}GetPixVESA16; *)
+             mode.InitMode := {$ifdef fpc}@{$endif}Init1280x1024x16;
+             mode.SetVisualPage := {$ifdef fpc}@{$endif}SetVisualVESA;
+             mode.SetActivePage := {$ifdef fpc}@{$endif}SetActiveVESA;
              mode.XAspect := 10000;
              mode.YAspect := 10000;
              AddMode(mode);
@@ -2640,29 +2380,16 @@ const CrtAddress: word = 0;
              mode.PaletteSize := mode.MaxColor;
              mode.MaxX := 1279;
              mode.MaxY := 1023;
-{$ifndef fpc}
-             mode.DirectPutPixel:=DirectPutPixVESA256;
-             mode.PutPixel:=PutPixVESA256;
-             mode.GetPixel:=GetPixVESA256;
-             mode.InitMode := Init1280x1024x256;
-             mode.SetRGBPalette := SetVESARGBPalette;
-             mode.GetRGBPalette := GetVESARGBPalette;
-             mode.SetVisualPage := SetVisualVESA;
-             mode.SetActivePage := SetActiveVESA;
-             mode.hline := HLineVESA256;
-             mode.vline := VLineVESA256;
-{$else fpc}
-             mode.DirectPutPixel:=@DirectPutPixVESA256;
-             mode.PutPixel:=@PutPixVESA256;
-             mode.GetPixel:=@GetPixVESA256;
-             mode.InitMode := @Init1280x1024x256;
-             mode.SetRGBPalette := @SetVESARGBPalette;
-             mode.GetRGBPalette := @GetVESARGBPalette;
-             mode.SetVisualPage := @SetVisualVESA;
-             mode.SetActivePage := @SetActiveVESA;
-             mode.vline := @VLineVESA256;
-             mode.hline := @HLineVESA256;
-{$endif fpc}
+             mode.DirectPutPixel:={$ifdef fpc}@{$endif}DirectPutPixVESA256;
+             mode.PutPixel:={$ifdef fpc}@{$endif}PutPixVESA256;
+             mode.GetPixel:={$ifdef fpc}@{$endif}GetPixVESA256;
+             mode.InitMode := {$ifdef fpc}@{$endif}Init1280x1024x256;
+             mode.SetRGBPalette := {$ifdef fpc}@{$endif}SetVESARGBPalette;
+             mode.GetRGBPalette := {$ifdef fpc}@{$endif}GetVESARGBPalette;
+             mode.SetVisualPage := {$ifdef fpc}@{$endif}SetVisualVESA;
+             mode.SetActivePage := {$ifdef fpc}@{$endif}SetActiveVESA;
+             mode.vline := {$ifdef fpc}@{$endif}VLineVESA256;
+             mode.hline := {$ifdef fpc}@{$endif}HLineVESA256;
              mode.XAspect := 10000;
              mode.YAspect := 10000;
              AddMode(mode);
@@ -2681,25 +2408,14 @@ const CrtAddress: word = 0;
              mode.PaletteSize := mode.MaxColor;
              mode.MaxX := 1279;
              mode.MaxY := 1023;
-{$ifndef fpc}
-             mode.DirectPutPixel:=DirectPutPixVESA32k;
-             mode.PutPixel:=PutPixVESA32k;
-             mode.GetPixel:=GetPixVESA32k;
-             mode.InitMode := Init1280x1024x32k;
-             mode.SetRGBPalette := SetVESARGBPalette;
-             mode.GetRGBPalette := GetVESARGBPalette;
-             mode.SetVisualPage := SetVisualVESA;
-             mode.SetActivePage := SetActiveVESA;
-{$else fpc}
-             mode.DirectPutPixel:=@DirectPutPixVESA32k;
-             mode.PutPixel:=@PutPixVESA32k;
-             mode.GetPixel:=@GetPixVESA32k;
-             mode.InitMode := @Init1280x1024x32k;
-             mode.SetRGBPalette := @SetVESARGBPalette;
-             mode.GetRGBPalette := @GetVESARGBPalette;
-             mode.SetVisualPage := @SetVisualVESA;
-             mode.SetActivePage := @SetActiveVESA;
-{$endif fpc}
+             mode.DirectPutPixel:={$ifdef fpc}@{$endif}DirectPutPixVESA32k;
+             mode.PutPixel:={$ifdef fpc}@{$endif}PutPixVESA32k;
+             mode.GetPixel:={$ifdef fpc}@{$endif}GetPixVESA32k;
+             mode.InitMode := {$ifdef fpc}@{$endif}Init1280x1024x32k;
+             mode.SetRGBPalette := {$ifdef fpc}@{$endif}SetVESARGBPalette;
+             mode.GetRGBPalette := {$ifdef fpc}@{$endif}GetVESARGBPalette;
+             mode.SetVisualPage := {$ifdef fpc}@{$endif}SetVisualVESA;
+             mode.SetActivePage := {$ifdef fpc}@{$endif}SetActiveVESA;
              mode.XAspect := 10000;
              mode.YAspect := 10000;
              AddMode(mode);
@@ -2718,25 +2434,14 @@ const CrtAddress: word = 0;
              mode.PaletteSize := mode.MaxColor;
              mode.MaxX := 1279;
              mode.MaxY := 1023;
-{$ifndef fpc}
-             mode.DirectPutPixel:=DirectPutPixVESA64k;
-             mode.PutPixel:=PutPixVESA64k;
-             mode.GetPixel:=GetPixVESA64k;
-             mode.InitMode := Init1280x1024x64k;
-             mode.SetRGBPalette := SetVESARGBPalette;
-             mode.GetRGBPalette := GetVESARGBPalette;
-             mode.SetVisualPage := SetVisualVESA;
-             mode.SetActivePage := SetActiveVESA;
-{$else fpc}
-             mode.DirectPutPixel:=@DirectPutPixVESA64k;
-             mode.PutPixel:=@PutPixVESA64k;
-             mode.GetPixel:=@GetPixVESA64k;
-             mode.InitMode := @Init1280x1024x64k;
-             mode.SetRGBPalette := @SetVESARGBPalette;
-             mode.GetRGBPalette := @GetVESARGBPalette;
-             mode.SetVisualPage := @SetVisualVESA;
-             mode.SetActivePage := @SetActiveVESA;
-{$endif fpc}
+             mode.DirectPutPixel:={$ifdef fpc}@{$endif}DirectPutPixVESA64k;
+             mode.PutPixel:={$ifdef fpc}@{$endif}PutPixVESA64k;
+             mode.GetPixel:={$ifdef fpc}@{$endif}GetPixVESA64k;
+             mode.InitMode := {$ifdef fpc}@{$endif}Init1280x1024x64k;
+             mode.SetRGBPalette := {$ifdef fpc}@{$endif}SetVESARGBPalette;
+             mode.GetRGBPalette := {$ifdef fpc}@{$endif}GetVESARGBPalette;
+             mode.SetVisualPage := {$ifdef fpc}@{$endif}SetVisualVESA;
+             mode.SetActivePage := {$ifdef fpc}@{$endif}SetActiveVESA;
              mode.XAspect := 10000;
              mode.YAspect := 10000;
              AddMode(mode);
@@ -2746,7 +2451,11 @@ const CrtAddress: word = 0;
 
 {
 $Log$
-Revision 1.20  1999-09-26 13:31:06  jonas
+Revision 1.21  1999-09-27 23:34:40  peter
+  * new graph unit is default for go32v2
+  * removed warnings/notes
+
+Revision 1.20  1999/09/26 13:31:06  jonas
   * changed name of modeinfo variable to vesamodeinfo and fixed
     associated errors (fillchar(modeinfo,sizeof(tmodeinfo),#0) instead
     of sizeof(TVesamodeinfo) etc)

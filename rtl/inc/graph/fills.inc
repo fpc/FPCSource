@@ -401,7 +401,7 @@ var
   Var
    stemp: PWordArray;
    Beginx : Integer;
-   d, e, a : Byte;
+   d, e : Byte;
    Cont : Boolean;
    BackupColor : Word;
    x1, x2, prevy: integer;
@@ -509,7 +509,11 @@ var
 
 {
 $Log$
-Revision 1.10  1999-09-24 22:52:38  jonas
+Revision 1.11  1999-09-27 23:34:40  peter
+  * new graph unit is default for go32v2
+  * removed warnings/notes
+
+Revision 1.10  1999/09/24 22:52:38  jonas
   * optimized patternline a bit (always use hline when possible)
   * isgraphmode stuff cleanup
   * vesainfo.modelist now gets disposed in cleanmode instead of in

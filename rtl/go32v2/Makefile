@@ -38,7 +38,7 @@ ifneq ("$(FPC_VERSION)","0.99.10")
 ifndef BROWSER
 NEEDOPT=-b-
 endif
-endif 
+endif
 
 # Where to place the result files
 TARGETDIR=.
@@ -53,7 +53,7 @@ UNITPREFIX=rtl
 
 # Paths
 OBJPASDIR=$(RTL)/objpas
-PPI=ppi
+GRAPHDIR=$(INC)/graph
 
 # Define Go32v2 Units
 SYSTEMUNIT=system
@@ -63,11 +63,11 @@ LOADEROBJECTS=prt0 exceptn fpu
 
 # Unit Objects
 UNITOBJECTS=$(SYSTEMUNIT) objpas strings \
-          go32 initc dpmiexcp profile dxeload emu387 \
-          dos crt objects printer graph \
-          sysutils math typinfo \
-          cpu mmx getopts heaptrc \
-          msmouse ports
+	  go32 initc dpmiexcp profile dxeload emu387 \
+	  dos crt objects printer graph \
+	  sysutils math typinfo \
+	  cpu mmx getopts heaptrc \
+	  msmouse ports
 
 
 #####################################################################
@@ -216,9 +216,16 @@ objects$(PPUEXT) : $(INC)/objects.pp objinc.inc $(SYSTEMPPU)
 
 printer$(PPUEXT) : printer.pp $(SYSTEMPPU)
 
-graph$(PPUEXT) : graph.pp go32$(PPUEXT) $(SYSTEMPPU) mmx$(PPUEXT) \
-		 $(wildcard $(PPI)/*.ppi)
-	$(COMPILER) -I$(PPI) graph.pp $(REDIR)
+#
+# Graph
+#
+
+include $(GRAPHDIR)/makefile.inc
+GRAPHINCDEPS=$(addprefix $(GRAPHDIR)/,$(GRAPHINCNAMES))
+
+graph$(PPUEXT) : $(GRAPHDIR)/graph.pp go32$(PPUEXT) ports$(PPUEXT) $(SYSTEMPPU) \
+		 $(GRAPHINCDEPS)
+	$(COMPILER) -I$(GRAPHDIR) $(GRAPHDIR)/graph.pp $(REDIR)
 
 #
 # Delphi Compatible Units
@@ -252,7 +259,11 @@ msmouse$(PPUEXT) : msmouse.pp $(SYSTEMPPU)
 ports$(PPUEXT) : ports.pp $(SYSTEMPPU)
 #
 # $Log$
-# Revision 1.17  1999-09-08 14:22:54  pierre
+# Revision 1.18  1999-09-27 23:34:40  peter
+#   * new graph unit is default for go32v2
+#   * removed warnings/notes
+#
+# Revision 1.17  1999/09/08 14:22:54  pierre
 #  + ports unit
 #
 # Revision 1.16  1999/06/01 13:23:13  peter

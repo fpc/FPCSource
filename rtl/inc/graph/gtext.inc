@@ -152,7 +152,6 @@
     function unpack(buf: pchar; index: integer; var Stroke: TStrokes): integer;
 
      var
-      pb: pword;
       po: TStrokes;
       num_ops: integer;
       opcode, i, opc: word;
@@ -258,7 +257,7 @@
       var
          hp : pchar;
          b : word;
-         i,j: longint;
+         i: longint;
          Header: THeader;
          counter: longint;
          FontData: pchar;
@@ -358,13 +357,9 @@
          X,Y: Integer;
        end;
       var
-         ch: char;
-         b1,b2         : shortint;
-         b3            : byte;
          i,j,k,c       : longint;
          oldvalues     : linesettingstype;
-         nextpos       : word;
-         xpos,ypos,offs: longint;
+         xpos,ypos     : longint;
          counter       : longint;
          FontBitmap    : TBitmapChar;
          chr: char;
@@ -372,7 +367,6 @@
          cnt3,cnt4     : integer;
          charsize      : word;
 
-         TextBuffer    : array[1..sizeof(string)*2] of Tpoint;
          WriteMode     : word;
          CurX, CurY    : integer;
 
@@ -734,7 +728,11 @@
 
 {
 $Log$
-Revision 1.4  1999-09-26 13:31:07  jonas
+Revision 1.5  1999-09-27 23:34:42  peter
+  * new graph unit is default for go32v2
+  * removed warnings/notes
+
+Revision 1.4  1999/09/26 13:31:07  jonas
   * changed name of modeinfo variable to vesamodeinfo and fixed
     associated errors (fillchar(modeinfo,sizeof(tmodeinfo),#0) instead
     of sizeof(TVesamodeinfo) etc)

@@ -95,11 +95,12 @@ end;
     ptrlong : longint;
     VESAPtr : ^TVESAInfo;
     regs : TDPMIRegisters;
+{$ifndef fpc}
     ModeSel: word;
     offs: longint;
+{$endif}
     { added... }
     modelist: PmodeList;
-    modeptr : pointer;
     i: longint;
     RealSeg : word;
    begin
@@ -393,7 +394,6 @@ end;
 
   procedure PutPixVESA256(x, y : integer; color : word); {$ifndef fpc}far;{$endif fpc}
   var
-     bank : word;
      offs : longint;
   begin
      X:= X + StartXViewPort;
@@ -413,7 +413,6 @@ end;
 
   procedure DirectPutPixVESA256(x, y : integer); {$ifndef fpc}far;{$endif fpc}
   var
-     bank : word;
      offs : longint;
      col : byte;
   begin
@@ -447,7 +446,6 @@ end;
 
   function GetPixVESA256(x, y : integer): word; {$ifndef fpc}far;{$endif fpc}
   var
-     bank : word;
      offs : longint;
   begin
      X:= X + StartXViewPort;
@@ -891,7 +889,6 @@ end;
 
   procedure PutPixVESA32k(x, y : integer; color : word); {$ifndef fpc}far;{$endif fpc}
   var
-     bank : word;
      offs : longint;
   begin
      X:= X + StartXViewPort;
@@ -911,7 +908,6 @@ end;
 
   procedure PutPixVESA64k(x, y : integer; color : word); {$ifndef fpc}far;{$endif fpc}
   var
-     bank : word;
      offs : longint;
   begin
      X:= X + StartXViewPort;
@@ -931,7 +927,6 @@ end;
 
   function GetPixVESA32k(x, y : integer): word; {$ifndef fpc}far;{$endif fpc}
   var
-     bank : word;
      offs : longint;
   begin
      X:= X + StartXViewPort;
@@ -943,7 +938,6 @@ end;
 
   function GetPixVESA64k(x, y : integer): word; {$ifndef fpc}far;{$endif fpc}
   var
-     bank : word;
      offs : longint;
   begin
      X:= X + StartXViewPort;
@@ -955,7 +949,7 @@ end;
 
   procedure DirectPutPixVESA32k(x, y : integer); {$ifndef fpc}far;{$endif fpc}
   var
-     bank, col : word;
+     col : word;
      offs : longint;
   begin
      offs := longint(y) * BytesPerLine + 2*x;
@@ -988,7 +982,7 @@ end;
 
   procedure DirectPutPixVESA64k(x, y : integer); {$ifndef fpc}far;{$endif fpc}
   var
-     bank, Col : word;
+     Col : word;
      offs : longint;
   begin
      offs := longint(y) * BytesPerLine + 2*x;
@@ -1025,7 +1019,6 @@ end;
 
   procedure PutPixVESA16(x, y : integer; color : word); {$ifndef fpc}far;{$endif fpc}
     var
-     bank : word;
      offs : longint;
      dummy_read : byte;
   begin
@@ -1058,7 +1051,6 @@ end;
 
   procedure DirectPutPixVESA16(x, y : integer); {$ifndef fpc}far;{$endif fpc}
     var
-     bank : word;
      offs : longint;
      dummy_read : byte;
   begin
@@ -1173,8 +1165,9 @@ end;
       RedValue, GreenValue, BlueValue : integer);
    var
     pal: PalRec;
-    Error: boolean;
+{$ifndef fpc}
     palptr : ^PalRec;
+{$endif}
     regs : TDPMIRegisters;
     RealSeg: word;
     ptr: longint;
@@ -1880,7 +1873,11 @@ end;
 
 {
 $Log$
-Revision 1.16  1999-09-26 13:31:07  jonas
+Revision 1.17  1999-09-27 23:34:42  peter
+  * new graph unit is default for go32v2
+  * removed warnings/notes
+
+Revision 1.16  1999/09/26 13:31:07  jonas
   * changed name of modeinfo variable to vesamodeinfo and fixed
     associated errors (fillchar(modeinfo,sizeof(tmodeinfo),#0) instead
     of sizeof(TVesamodeinfo) etc)
