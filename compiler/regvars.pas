@@ -40,7 +40,7 @@ implementation
     uses
       globtype,systems,comphook,
       cutils,cobjects,verbose,globals,
-      symconst,symtable,types,
+      symconst,symbase,symtype,symdef,symsym,symtable,types,
       hcodegen,temp_gen,cpubase,cpuasm
 {$ifdef i386}
      ,tgeni386,cgai386
@@ -49,18 +49,6 @@ implementation
      ,tgen68k,cga68k
 {$endif}
      ;
-
-     type
-       pregvarinfo = ^tregvarinfo;
-       tregvarinfo = record
-          regvars : array[1..maxvarregs] of pvarsym;
-          regvars_para : array[1..maxvarregs] of boolean;
-          regvars_refs : array[1..maxvarregs] of longint;
-
-          fpuregvars : array[1..maxfpuvarregs] of pvarsym;
-          fpuregvars_para : array[1..maxfpuvarregs] of boolean;
-          fpuregvars_refs : array[1..maxfpuvarregs] of longint;
-       end;
 
 
     var
@@ -476,7 +464,10 @@ end.
 
 {
   $Log$
-  Revision 1.10  2000-10-14 10:14:52  peter
+  Revision 1.11  2000-10-31 22:02:51  peter
+    * symtable splitted, no real code changes
+
+  Revision 1.10  2000/10/14 10:14:52  peter
     * moehrendorf oct 2000 rewrite
 
   Revision 1.9  2000/10/01 19:48:25  peter

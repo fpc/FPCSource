@@ -94,7 +94,7 @@ implementation
     uses
       globtype,systems,
       cobjects,verbose,globals,
-      symconst,symtable,types,
+      symconst,symdef,symsym,symtable,types,
       htypechk,pass_1,
       ncnv,ncon,cpubase,nld
 {$ifdef newcg}
@@ -180,7 +180,7 @@ implementation
         case psd^.elementtype.def^.deftype of
           enumdef :
             begin
-              pes:=penumdef(psd^.elementtype.def)^.firstenum;
+              pes:=penumsym(penumdef(psd^.elementtype.def)^.firstenum);
               while assigned(pes) do
                 begin
                   pcs^[pes^.value div 8]:=pcs^[pes^.value div 8] or (1 shl (pes^.value mod 8));
@@ -525,7 +525,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.6  2000-10-21 18:16:11  florian
+  Revision 1.7  2000-10-31 22:02:49  peter
+    * symtable splitted, no real code changes
+
+  Revision 1.6  2000/10/21 18:16:11  florian
     * a lot of changes:
        - basic dyn. array support
        - basic C++ support

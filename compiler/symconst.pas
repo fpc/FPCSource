@@ -84,8 +84,24 @@ const
   pfReference= 16;
   pfOut      = 32;
 
+  main_program_level = 1;
+  unit_init_level = 1;
+  normal_function_level = 2;
+
 
 type
+  { Deref entry options }
+  tdereftype = (derefnil,
+    derefaktrecordindex,
+    derefaktstaticindex,
+    derefunit,
+    derefrecord,
+    derefindex,
+    dereflocal,
+    derefpara,
+    derefaktlocal
+  );
+
   { symbol options }
   tsymoption=(sp_none,
     sp_public,
@@ -225,6 +241,18 @@ type
   );
   tvaroptions=set of tvaroption;
 
+  { types of the symtables }
+  tsymtabletype = (invalidsymtable,withsymtable,staticsymtable,
+                   globalsymtable,unitsymtable,
+                   objectsymtable,recordsymtable,
+                   macrosymtable,localsymtable,
+                   parasymtable,inlineparasymtable,
+                   inlinelocalsymtable,stt_exceptsymtable,
+                   { only used for PPU reading of static part
+                     of a unit }
+                   staticppusymtable);
+
+
   { definition contains the informations about a type }
   tdeftype = (abstractdef,arraydef,recorddef,pointerdef,orddef,
               stringdef,enumdef,procdef,objectdef,errordef,
@@ -252,10 +280,22 @@ type
   );
 
 {$ifdef GDB}
+type
   tdefstabstatus = (
     not_written,
     being_written,
     written);
+
+const
+  tagtypes : Set of tdeftype =
+    [recorddef,enumdef,
+    {$IfNDef GDBKnowsStrings}
+    stringdef,
+    {$EndIf not GDBKnowsStrings}
+    {$IfNDef GDBKnowsFiles}
+    filedef,
+    {$EndIf not GDBKnowsFiles}
+    objectdef];
 {$endif GDB}
 
 const
@@ -282,12 +322,8 @@ implementation
 end.
 {
   $Log$
-  Revision 1.10  2000-10-21 18:16:12  florian
-    * a lot of changes:
-       - basic dyn. array support
-       - basic C++ support
-       - some work for interfaces done
-       ....
+  Revision 1.11  2000-10-31 22:02:51  peter
+    * symtable splitted, no real code changes
 
   Revision 1.9  2000/10/15 07:47:52  peter
     * unit names and procedure names are stored mixed case

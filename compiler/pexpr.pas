@@ -27,7 +27,7 @@ unit pexpr;
 interface
 
     uses
-      symtable,
+      symtype,
       node;
 
     { reads a whole expression }
@@ -60,7 +60,7 @@ implementation
        { aasm }
        aasm,
        { symtable }
-       symconst,types,
+       symconst,symbase,symdef,symsym,symtable,types,
 {$ifdef GDB}
        gdb,
 {$endif}
@@ -1342,37 +1342,28 @@ implementation
                               pd:=p1.resulttype;
                             end;
                   procsym : begin
-                              if block_type<>bt_type then
-                               begin
-                                 { are we in a class method ? }
-                                 possible_error:=(srsymtable^.symtabletype=objectsymtable) and
-                                                 assigned(aktprocsym) and
-                                                 (po_classmethod in aktprocsym^.definition^.procoptions);
-                                 p1:=gencallnode(pprocsym(srsym),srsymtable);
+                              { are we in a class method ? }
+                              possible_error:=(srsymtable^.symtabletype=objectsymtable) and
+                                              assigned(aktprocsym) and
+                                              (po_classmethod in aktprocsym^.definition^.procoptions);
+                              p1:=gencallnode(pprocsym(srsym),srsymtable);
 {$ifdef TEST_PROCSYMS}
-                                 p1.unit_specific:=unit_specific;
+                              p1.unit_specific:=unit_specific;
 {$endif TEST_PROCSYMS}
-                                 do_proc_call(getaddr or
-                                   (getprocvar and
-                                    ((block_type=bt_const) or
-                                     ((m_tp_procvar in aktmodeswitches) and
-                                      proc_to_procvar_equal(pprocsym(srsym)^.definition,getprocvardef)
-                                     )
-                                    )
-                                   ),again,tcallnode(p1),pd);
-                                 if (block_type=bt_const) and
-                                    getprocvar then
-                                   handle_procvar(getprocvardef,p1);
-                                 if possible_error and
-                                    not(po_classmethod in tcallnode(p1).procdefinition^.procoptions) then
-                                   Message(parser_e_only_class_methods);
-                               end
-                              else
-                               begin
-                                 p1:=cerrornode.create;
-                                 pd:=generrordef;
-                                 Message(cg_e_illegal_expression);
-                               end;
+                              do_proc_call(getaddr or
+                                (getprocvar and
+                                 ((block_type=bt_const) or
+                                  ((m_tp_procvar in aktmodeswitches) and
+                                   proc_to_procvar_equal(pprocsym(srsym)^.definition,getprocvardef)
+                                  )
+                                 )
+                                ),again,tcallnode(p1),pd);
+                              if (block_type=bt_const) and
+                                 getprocvar then
+                                handle_procvar(getprocvardef,p1);
+                              if possible_error and
+                                 not(po_classmethod in tcallnode(p1).procdefinition^.procoptions) then
+                                Message(parser_e_only_class_methods);
                             end;
               propertysym : begin
                               { access to property in a method }
@@ -1467,7 +1458,7 @@ implementation
              if assigned(p1) then
               p1.set_tree_filepos(filepos);
              oldp1:=p1;
-             filepos:=tokenpos;
+             filepos:=akttokenpos;
            end;
         end;
 
@@ -1646,7 +1637,7 @@ implementation
                     case pd^.deftype of
                        recorddef:
                          begin
-                            sym:=precorddef(pd)^.symtable^.search(pattern);
+                            sym:=psym(precorddef(pd)^.symtable^.search(pattern));
                             if assigned(sym) and
                                (sym^.typ=varsym) then
                               begin
@@ -1668,7 +1659,7 @@ implementation
                              sym:=nil;
                              while assigned(classh) do
                               begin
-                                sym:=classh^.symtable^.search(pattern);
+                                sym:=psym(classh^.symtable^.search(pattern));
                                 srsymtable:=classh^.symtable;
                                 if assigned(sym) then
                                  break;
@@ -1698,7 +1689,7 @@ implementation
                               allow_only_static:=false;
                               while assigned(classh) do
                                 begin
-                                   sym:=classh^.symtable^.search(pattern);
+                                   sym:=psym(classh^.symtable^.search(pattern));
                                    srsymtable:=classh^.symtable;
                                    if assigned(sym) then
                                      break;
@@ -1800,7 +1791,7 @@ implementation
       begin
         oldp1:=nil;
         p1:=nil;
-        filepos:=tokenpos;
+        filepos:=akttokenpos;
         if token=_ID then
          begin
            factor_read_id;
@@ -1858,7 +1849,7 @@ implementation
                         sym:=nil;
                         while assigned(classh) do
                          begin
-                           sym:=classh^.symtable^.search(pattern);
+                           sym:=psym(classh^.symtable^.search(pattern));
                            srsymtable:=classh^.symtable;
                            if assigned(sym) then
                             break;
@@ -1928,7 +1919,7 @@ implementation
                     while assigned(classh) do
                      begin
                        srsymtable:=pobjectdef(classh)^.symtable;
-                       sym:=srsymtable^.search(hs);
+                       sym:=psym(srsymtable^.search(hs));
                        if assigned(sym) then
                         begin
                           { only for procsyms we need to set the type (PFV) }
@@ -2188,7 +2179,7 @@ _LECKKLAMMER : begin
              ((token<>_EQUAL) or accept_equal) then
            begin
              oldt:=token;
-             filepos:=tokenpos;
+             filepos:=akttokenpos;
              consume(token);
              if pred_level=highest_precedence then
                p2:=factor(false)
@@ -2278,7 +2269,7 @@ _LECKKLAMMER : begin
       begin
          oldafterassignment:=afterassignment;
          p1:=sub_expr(opcompare,true);
-         filepos:=tokenpos;
+         filepos:=akttokenpos;
          if (m_tp_procvar in aktmodeswitches) and
             (token<>_ASSIGNMENT) then
            check_tp_procvar(p1);
@@ -2383,7 +2374,10 @@ _LECKKLAMMER : begin
 end.
 {
   $Log$
-  Revision 1.13  2000-10-26 23:40:54  peter
+  Revision 1.14  2000-10-31 22:02:49  peter
+    * symtable splitted, no real code changes
+
+  Revision 1.13  2000/10/26 23:40:54  peter
     * fixed crash with call from type decl which is not allowed (merged)
 
   Revision 1.12  2000/10/21 18:16:12  florian

@@ -28,7 +28,7 @@ interface
 
     uses
        node,
-       symtable,types,
+       symtype,types,
        nld;
 
     type
@@ -87,7 +87,7 @@ implementation
    uses
       globtype,systems,tokens,
       cutils,cobjects,verbose,globals,
-      symconst,aasm,
+      symconst,symdef,symsym,symtable,aasm,
       ncon,ncal,nset,nadd,
 {$ifdef newcg}
       cgbase,
@@ -898,8 +898,8 @@ implementation
            if nf_explizit in flags then
             begin
               { check if the result could be in a register }
-              if not(resulttype^.is_intregable) and
-                not(resulttype^.is_fpuregable) then
+              if not(pstoreddef(resulttype)^.is_intregable) and
+                not(pstoreddef(resulttype)^.is_fpuregable) then
                 make_not_regable(left);
               { boolean to byte are special because the
                 location can be different }
@@ -1163,7 +1163,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.8  2000-10-14 21:52:55  peter
+  Revision 1.9  2000-10-31 22:02:48  peter
+    * symtable splitted, no real code changes
+
+  Revision 1.8  2000/10/14 21:52:55  peter
     * fixed memory leaks
 
   Revision 1.7  2000/10/14 10:14:50  peter

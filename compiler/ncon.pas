@@ -27,7 +27,10 @@ unit ncon;
 interface
 
     uses
-      globtype,node,aasm,cpuinfo,symconst,symtable;
+      globtype,
+      node,
+      aasm,cpuinfo,
+      symconst,symtype,symdef,symsym;
 
     type
        trealconstnode = class(tnode)
@@ -388,13 +391,8 @@ implementation
          inherited create(ordconstn);
          value:=v;
          resulttype:=def;
-{$ifdef NEWST}
-         if typeof(resulttype^)=typeof(Torddef) then
-          testrange(resulttype,value);
-{$else NEWST}
          if resulttype^.deftype=orddef then
           testrange(resulttype,value);
-{$endif ELSE}
       end;
 
     function tordconstnode.getcopy : tnode;
@@ -628,7 +626,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.9  2000-10-14 21:52:55  peter
+  Revision 1.10  2000-10-31 22:02:48  peter
+    * symtable splitted, no real code changes
+
+  Revision 1.9  2000/10/14 21:52:55  peter
     * fixed memory leaks
 
   Revision 1.8  2000/10/14 10:14:50  peter

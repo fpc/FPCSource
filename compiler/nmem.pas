@@ -27,7 +27,9 @@ unit nmem;
 interface
 
     uses
-       node,symtable,cpubase;
+       node,
+       symtype,symdef,symsym,symtable,
+       cpubase;
 
     type
        tloadvmtnode = class(tunarynode)
@@ -88,14 +90,9 @@ interface
        end;
 
        twithnode = class(tbinarynode)
-{$IFDEF NEWST}
-          withsymtables : Pcollection;
-          withreference : preference;
-{$ELSE}
           withsymtable : pwithsymtable;
           tablecount : longint;
           withreference:preference;
-{$ENDIF NEWST}
           constructor create(symtable : pwithsymtable;l,r : tnode;count : longint);virtual;
           destructor destroy;override;
           function getcopy : tnode;override;
@@ -104,11 +101,7 @@ interface
 
     function gensubscriptnode(varsym : pvarsym;l : tnode) : tsubscriptnode;
     function genselfnode(_class : pdef) : tselfnode;
-{$IFDEF NEWST}
-    function genwithnode(symtables:Pcollection;l,r : tnode) : twithnode;
-{$ELSE}
     function genwithnode(symtable:pwithsymtable;l,r : tnode;count : longint) : twithnode;
-{$ENDIF NEWST}
 
     var
        cloadvmtnode : class of tloadvmtnode;
@@ -129,7 +122,7 @@ implementation
     uses
       globtype,systems,
       cutils,cobjects,verbose,globals,
-      symconst,aasm,types,
+      symconst,symbase,aasm,types,
       htypechk,pass_1,ncal,nld,ncon,ncnv
 {$ifdef newcg}
       ,cgbase
@@ -144,36 +137,11 @@ implementation
          genselfnode:=cselfnode.create(_class);
       end;
 
-{$IFDEF NEWST}
-   function genwithnode(symtables:Pcollection;l,r : tnode) : tnode;
-
-      var
-         p : tnode;
-
-      begin
-         !!!!!!!!! fixme
-         p:=getnode;
-         disposetyp:=dt_with;
-         nodetype:=withn;
-         left:=l;
-         right:=r;
-         registers32:=0;
-{$ifdef SUPPORT_MMX}
-         registersmmx:=0;
-{$endif SUPPORT_MMX}
-         resulttype:=nil;
-         withsymtables:=symtables;
-         withreference:=nil;
-         set_file_line(l,p);
-         genwithnode:=p;
-      end;
-{$ELSE}
    function genwithnode(symtable : pwithsymtable;l,r : tnode;count : longint) : twithnode;
 
       begin
          genwithnode:=cwithnode.create(symtable,l,r,count);
       end;
-{$ENDIF NEWST}
 
     function gensubscriptnode(varsym : pvarsym;l : tnode) : tsubscriptnode;
 
@@ -838,9 +806,6 @@ implementation
         symt : psymtable;
         i    : longint;
       begin
-{$IFDEF NEWST}
-        dispose(withsymtables,done);
-{$ELSE}
         symt:=withsymtable;
         for i:=1 to tablecount do
          begin
@@ -851,7 +816,6 @@ implementation
             end;
            symt:=withsymtable;
          end;
-{$ENDIF NEWST}
         inherited destroy;
       end;
 
@@ -908,7 +872,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.8  2000-10-21 18:16:11  florian
+  Revision 1.9  2000-10-31 22:02:49  peter
+    * symtable splitted, no real code changes
+
+  Revision 1.8  2000/10/21 18:16:11  florian
     * a lot of changes:
        - basic dyn. array support
        - basic C++ support

@@ -775,7 +775,6 @@ begin
     absolutesym  : S:='abs';
     propertysym  : S:='prop';
     funcretsym   : S:='res';
-    macrosym     : S:='macro';
   else S:='';
   end;
   GetTypeName:=S;
@@ -2093,7 +2092,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.10  2000-10-15 07:47:51  peter
+  Revision 1.11  2000-10-31 22:02:46  peter
+    * symtable splitted, no real code changes
+
+  Revision 1.10  2000/10/15 07:47:51  peter
     * unit names and procedure names are stored mixed case
 
   Revision 1.9  2000/09/24 15:06:11  peter

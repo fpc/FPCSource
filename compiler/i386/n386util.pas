@@ -27,7 +27,7 @@ unit n386util;
 interface
 
     uses
-      symtable,node;
+      symtype,node;
 
     function  maybe_push(needed : byte;p : tnode;isint64 : boolean) : boolean;
 {$ifdef TEMPS_NOT_PUSH}
@@ -55,7 +55,7 @@ implementation
        globtype,globals,systems,verbose,
        cutils,cobjects,
        aasm,cpubase,cpuasm,
-       symconst,
+       symconst,symdef,symsym,symtable,
 {$ifdef GDB}
        gdb,
 {$endif GDB}
@@ -1315,7 +1315,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.1  2000-10-15 09:33:32  peter
+  Revision 1.2  2000-10-31 22:02:57  peter
+    * symtable splitted, no real code changes
+
+  Revision 1.1  2000/10/15 09:33:32  peter
     * moved n386*.pas to i386/ cpu_target dir
 
   Revision 1.3  2000/10/14 21:52:54  peter

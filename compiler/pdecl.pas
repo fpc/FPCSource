@@ -25,9 +25,8 @@ unit pdecl;
 {$i defines.inc}
 
 interface
-
     uses
-      cobjects,symtable,node;
+      cobjects,symsym,node;
 
     function  readconstant(const name:string;const filepos:tfileposinfo):pconstsym;
 
@@ -49,7 +48,7 @@ implementation
        { aasm }
        aasm,
        { symtable }
-       symconst,types,
+       symconst,symbase,symtype,symdef,symtable,types,
 {$ifdef GDB}
        gdb,
 {$endif}
@@ -83,8 +82,8 @@ implementation
         hp:=nil;
         p:=comp_expr(true);
         do_firstpass(p);
-        storetokenpos:=tokenpos;
-        tokenpos:=filepos;
+        storetokenpos:=akttokenpos;
+        akttokenpos:=filepos;
         case p.nodetype of
            ordconstn:
              begin
@@ -129,7 +128,7 @@ implementation
            else
              Message(cg_e_illegal_expression);
         end;
-        tokenpos:=storetokenpos;
+        akttokenpos:=storetokenpos;
         p.free;
         readconstant:=hp;
       end;
@@ -149,7 +148,7 @@ implementation
          block_type:=bt_const;
          repeat
            name:=pattern;
-           filepos:=tokenpos;
+           filepos:=akttokenpos;
            consume(_ID);
            case token of
 
@@ -174,8 +173,8 @@ implementation
                    block_type:=bt_const;
                    skipequal:=false;
                    { create symbol }
-                   storetokenpos:=tokenpos;
-                   tokenpos:=filepos;
+                   storetokenpos:=akttokenpos;
+                   akttokenpos:=filepos;
 {$ifdef DELPHI_CONST_IN_RODATA}
                    if m_delphi in aktmodeswitches then
                      begin
@@ -189,7 +188,7 @@ implementation
                      begin
                        sym:=new(ptypedconstsym,inittype(name,tt,false))
                      end;
-                   tokenpos:=storetokenpos;
+                   akttokenpos:=storetokenpos;
                    symtablestack^.insert(sym);
                    { procvar can have proc directives }
                    if (tt.def^.deftype=procvardef) then
@@ -303,14 +302,14 @@ implementation
                   begin
                     { try to resolve the forward }
                     { get the correct position for it }
-                    stpos:=tokenpos;
-                    tokenpos:=pforwarddef(hpd)^.forwardpos;
+                    stpos:=akttokenpos;
+                    akttokenpos:=pforwarddef(hpd)^.forwardpos;
                     resolving_forward:=true;
                     make_ref:=false;
                     getsym(pforwarddef(hpd)^.tosymname,false);
                     make_ref:=true;
                     resolving_forward:=false;
-                    tokenpos:=stpos;
+                    akttokenpos:=stpos;
                     { we don't need the forwarddef anymore, dispose it }
                     dispose(hpd,done);
                     { was a type sym found ? }
@@ -319,13 +318,13 @@ implementation
                      begin
                        ppointerdef(pd)^.pointertype.setsym(srsym);
                        { avoid wrong unused warnings web bug 801 PM }
-                       inc(srsym^.refs);
+                       inc(pstoredsym(srsym)^.refs);
 {$ifdef GDB}
                        if (cs_debuginfo in aktmoduleswitches) and assigned(debuglist) and
                           (psym(p)^.owner^.symtabletype in [globalsymtable,staticsymtable]) then
                         begin
                           ptypesym(p)^.isusedinstab := true;
-                          psym(p)^.concatstabto(debuglist);
+                          ptypesym(p)^.concatstabto(debuglist);
                         end;
 {$endif GDB}
                        { we need a class type for classrefdef }
@@ -384,7 +383,7 @@ implementation
          repeat
            typename:=pattern;
            orgtypename:=orgpattern;
-           defpos:=tokenpos;
+           defpos:=akttokenpos;
            consume(_ID);
            consume(_EQUAL);
            { support 'ttype=type word' syntax }
@@ -419,11 +418,11 @@ implementation
                 referencing the type before it's really set it
                 will give an error (PFV) }
               tt.setdef(generrordef);
-              storetokenpos:=tokenpos;
+              storetokenpos:=akttokenpos;
               newtype:=new(ptypesym,init(orgtypename,tt));
               symtablestack^.insert(newtype);
-              tokenpos:=defpos;
-              tokenpos:=storetokenpos;
+              akttokenpos:=defpos;
+              akttokenpos:=storetokenpos;
               { read the type definition }
               read_type(tt,orgtypename);
               { update the definition of the type }
@@ -484,7 +483,7 @@ implementation
          block_type:=bt_const;
          repeat
            name:=pattern;
-           filepos:=tokenpos;
+           filepos:=akttokenpos;
            consume(_ID);
            case token of
              _EQUAL:
@@ -492,8 +491,8 @@ implementation
                    consume(_EQUAL);
                    p:=comp_expr(true);
                    do_firstpass(p);
-                   storetokenpos:=tokenpos;
-                   tokenpos:=filepos;
+                   storetokenpos:=akttokenpos;
+                   akttokenpos:=filepos;
                    case p.nodetype of
                       ordconstn:
                         begin
@@ -516,7 +515,7 @@ implementation
                       else
                         Message(cg_e_illegal_expression);
                    end;
-                   tokenpos:=storetokenpos;
+                   akttokenpos:=storetokenpos;
                    consume(_SEMICOLON);
                    p.free;
                 end;
@@ -529,7 +528,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.17  2000-10-14 10:14:51  peter
+  Revision 1.18  2000-10-31 22:02:49  peter
+    * symtable splitted, no real code changes
+
+  Revision 1.17  2000/10/14 10:14:51  peter
     * moehrendorf oct 2000 rewrite
 
   Revision 1.16  2000/09/24 21:19:50  peter

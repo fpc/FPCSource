@@ -68,7 +68,7 @@ program fpc;
                else error('Illegal processor type');
             end
           else
-            ppccommandline:=ppccommandline+paramstr(i)+' ';          
+            ppccommandline:=ppccommandline+paramstr(i)+' ';
        end;
 
      { ppcXXX is expected to be in the same directory }
@@ -81,7 +81,10 @@ program fpc;
   end.
 {
   $Log$
-  Revision 1.2  2000-07-13 11:32:41  michael
+  Revision 1.3  2000-10-31 22:02:46  peter
+    * symtable splitted, no real code changes
+
+  Revision 1.2  2000/07/13 11:32:41  michael
   + removed logs
 
 }

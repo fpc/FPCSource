@@ -34,8 +34,13 @@ implementation
 
     uses
       cobjects,
-      tokens,verbose,
-      aasm,symconst,symtable,cpubase;
+      { global }
+      verbose,
+      { symtable }
+      symconst,symtype,symdef,symsym,
+      { aasm }
+      aasm,cpubase
+      ;
 
     const
        pi_uses_asm  = $1;       { set, if the procedure uses asm }
@@ -459,7 +464,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.6  2000-09-24 15:06:17  peter
+  Revision 1.7  2000-10-31 22:02:47  peter
+    * symtable splitted, no real code changes
+
+  Revision 1.6  2000/09/24 15:06:17  peter
     * use defines.inc
 
   Revision 1.5  2000/08/27 16:11:51  peter

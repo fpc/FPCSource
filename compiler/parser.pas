@@ -36,7 +36,7 @@ implementation
     uses
       globtype,version,tokens,systems,
       cutils,cobjects,globals,verbose,
-      symtable,fmodule,aasm,
+      symbase,symtable,symsym,fmodule,aasm,
 {$ifndef newcg}
       hcodegen,
 {$endif newcg}
@@ -131,13 +131,13 @@ implementation
         hp:=pstring_item(initdefines.first);
         while assigned(hp) do
          begin
-           def_macro(hp^.str^);
+           current_scanner^.def_macro(hp^.str^);
            hp:=pstring_item(hp^.next);
          end;
       { set macros for version checking }
-        set_macro('FPC_VERSION',version_nr);
-        set_macro('FPC_RELEASE',release_nr);
-        set_macro('FPC_PATCH',patch_nr);
+        current_scanner^.set_macro('FPC_VERSION',version_nr);
+        current_scanner^.set_macro('FPC_RELEASE',release_nr);
+        current_scanner^.set_macro('FPC_PATCH',patch_nr);
       end;
 
 
@@ -147,8 +147,7 @@ implementation
       begin
          new(preprocfile,init('pre'));
        { default macros }
-         macros:=new(psymtable,init(macrosymtable));
-         macros^.name:=stringdup('Conditionals for '+filename);
+         current_scanner^.macros:=new(pdictionary,init);
          default_macros;
        { initialize a module }
          current_module:=new(pmodule,init(filename,false));
@@ -224,7 +223,6 @@ implementation
          oldcurrent_scanner,prev_scanner,
          scanner : pscannerfile;
        { symtable }
-         oldmacros,
          oldrefsymtable,
          olddefaultsymtablestack,
          oldsymtablestack : psymtable;
@@ -283,7 +281,6 @@ implementation
          oldsymtablestack:=symtablestack;
          olddefaultsymtablestack:=defaultsymtablestack;
          oldrefsymtable:=refsymtable;
-         oldmacros:=macros;
          oldprocprefix:=procprefix;
          oldaktprocsym:=aktprocsym;
          move(overloaded_operators,oldoverloaded_operators,sizeof(toverloaded_operators));
@@ -294,7 +291,7 @@ implementation
          oldtoken:=token;
          oldidtoken:=idtoken;
          old_block_type:=block_type;
-         oldtokenpos:=tokenpos;
+         oldtokenpos:=akttokenpos;
          oldcurrent_scanner:=current_scanner;
        { save cg }
          oldnextlabelnr:=nextlabelnr;
@@ -352,11 +349,6 @@ implementation
          registerdef:=true;
          aktmaxfpuregisters:=-1;
          fillchar(overloaded_operators,sizeof(toverloaded_operators),0);
-         { macros }
-         macros:=new(psymtable,init(macrosymtable));
-         macros^.name:=stringdup('Conditionals for '+filename);
-         default_macros;
-
        { reset the unit or create a new program }
          if assigned(current_module) then
            begin
@@ -370,6 +362,9 @@ implementation
             current_module:=new(pmodule,init(filename,false));
             main_module:=current_module;
           end;
+
+         { Set the module to use for verbose }
+         SetCompileModule(current_module);
 
          compiled_module:=current_module;
          current_module^.in_compile:=true;
@@ -392,6 +387,9 @@ implementation
 
        { startup scanner, and save in current_module }
          current_scanner:=new(pscannerfile,Init(filename));
+       { macros }
+         default_macros;
+       { read the first token }
          current_scanner^.readtoken;
          prev_scanner:=current_module^.scanner;
          current_module^.scanner:=current_scanner;
@@ -467,10 +465,6 @@ implementation
          if assigned(prev_scanner) then
            prev_scanner^.invalid:=true;
 
-       { free macros }
-         {!!! No check for unused macros yet !!! }
-         dispose(macros,done);
-
          if (compile_level>1) then
            begin
 {$ifdef newcg}
@@ -485,7 +479,7 @@ implementation
               orgpattern:=oldorgpattern;
               token:=oldtoken;
               idtoken:=oldidtoken;
-              tokenpos:=oldtokenpos;
+              akttokenpos:=oldtokenpos;
               block_type:=old_block_type;
               current_scanner:=oldcurrent_scanner;
               { restore cg }
@@ -510,7 +504,6 @@ implementation
               refsymtable:=oldrefsymtable;
               symtablestack:=oldsymtablestack;
               defaultsymtablestack:=olddefaultsymtablestack;
-              macros:=oldmacros;
               aktprocsym:=oldaktprocsym;
               procprefix:=oldprocprefix;
               move(oldoverloaded_operators,overloaded_operators,sizeof(toverloaded_operators));
@@ -594,7 +587,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.7  2000-10-14 10:14:51  peter
+  Revision 1.8  2000-10-31 22:02:49  peter
+    * symtable splitted, no real code changes
+
+  Revision 1.7  2000/10/14 10:14:51  peter
     * moehrendorf oct 2000 rewrite
 
   Revision 1.6  2000/10/01 19:48:25  peter

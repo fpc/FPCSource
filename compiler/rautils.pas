@@ -212,7 +212,7 @@ uses
   strings,
 {$endif}
   types,systems,verbose,globals,fmodule,
-  symtable,cpuasm
+  symbase,symtype,symdef,symsym,symtable,cpuasm
 {$ifdef NEWCG}
   ,cgbase;
 {$else}
@@ -1319,7 +1319,7 @@ Begin
      if st^.symtabletype=objectsymtable then
        sym:=search_class_member(pobjectdef(st^.defowner),base)
      else
-       sym:=st^.search(base);
+       sym:=psym(st^.search(base));
      if not assigned(sym) then
       begin
         GetRecordOffsetSize:=false;
@@ -1548,7 +1548,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.7  2000-10-08 10:26:33  peter
+  Revision 1.8  2000-10-31 22:02:51  peter
+    * symtable splitted, no real code changes
+
+  Revision 1.7  2000/10/08 10:26:33  peter
     * merged @result fix from Pierre
 
   Revision 1.6  2000/09/24 21:19:51  peter

@@ -31,6 +31,7 @@ interface
 
 uses
   cutils,cobjects,
+  finput,
   messages;
 
 {$ifndef EXTERN_MSG}
@@ -71,6 +72,7 @@ function  SetVerbosity(const s:string):boolean;
 
 procedure LoadMsgFile(const fn:string);
 
+procedure SetCompileModule(p:pmodulebase);
 procedure Stop;
 procedure ShowStatus;
 function  ErrorCount:longint;
@@ -94,11 +96,12 @@ procedure DoneVerbose;
 
 implementation
 uses
-  fmodule,comphook,
+  comphook,
   version,globals;
 
 var
-  redirexitsave : pointer;
+  redirexitsave  : pointer;
+  current_module : pmodulebase;
 
 {****************************************************************************
                        Extra Handlers for default compiler
@@ -290,6 +293,12 @@ begin
 end;
 
 
+procedure SetCompileModule(p:pmodulebase);
+begin
+  current_module:=p;
+end;
+
+
 var
   lastfileidx,
   lastmoduleidx : longint;
@@ -298,7 +307,8 @@ begin
 { fix status }
   status.currentline:=aktfilepos.line;
   status.currentcolumn:=aktfilepos.column;
-  if assigned(current_module) and assigned(current_module^.sourcefiles) and
+  if assigned(current_module) and
+     assigned(current_module^.sourcefiles) and
      ((current_module^.unit_index<>lastmoduleidx) or
       (aktfilepos.fileindex<>lastfileidx)) then
    begin
@@ -616,7 +626,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.6  2000-09-24 21:33:48  peter
+  Revision 1.7  2000-10-31 22:02:55  peter
+    * symtable splitted, no real code changes
+
+  Revision 1.6  2000/09/24 21:33:48  peter
     * message updates merges
 
   Revision 1.5  2000/09/24 15:06:33  peter

@@ -203,7 +203,7 @@ end;
 procedure minimal_stop;{$ifndef fpc}far;{$endif}
 begin
   DoneCompiler;
-  olddo_stop;
+  olddo_stop{$ifdef FPCPROCVAR}(){$endif};
 end;
 
 
@@ -310,7 +310,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.9  2000-10-15 09:39:36  peter
+  Revision 1.10  2000-10-31 22:02:46  peter
+    * symtable splitted, no real code changes
+
+  Revision 1.9  2000/10/15 09:39:36  peter
     * moved cpu*.pas to i386/
     * renamed n386 to common cpunode
 

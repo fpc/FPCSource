@@ -27,11 +27,10 @@ unit scanner;
 interface
 
     uses
-{$ifdef Delphi}
-       dmisc,
-{$endif Delphi}
-       globtype,version,tokens,
-       cobjects,globals,verbose,comphook,finput;
+       cobjects,
+       globtype,globals,version,tokens,
+       verbose,comphook,
+       finput;
 
     const
        maxmacrolen=16*1024;
@@ -44,6 +43,17 @@ interface
 
        pmacrobuffer = ^tmacrobuffer;
        tmacrobuffer = array[0..maxmacrolen-1] of char;
+
+       pmacro = ^tmacro;
+       tmacro = object(tnamedindexobject)
+          defined,
+          defined_at_startup,
+          is_used : boolean;
+          buftext : pchar;
+          buflen  : longint;
+          constructor init(const n : string);
+          destructor  done;virtual;
+       end;
 
        preproctyp = (pp_ifdef,pp_ifndef,pp_if,pp_ifopt,pp_else);
        ppreprocstack = ^tpreprocstack;
@@ -78,6 +88,7 @@ interface
           ignoredirectives : tstringcontainer; { ignore directives, used to give warnings only once }
           preprocstack   : ppreprocstack;
           invalid        : boolean; { flag if sourcefiles have been destroyed ! }
+          macros         : pdictionary;
 
           constructor init(const fn:string);
           destructor done;
@@ -93,6 +104,8 @@ interface
           procedure reload;
           procedure insertmacro(const macname:string;p:pchar;len:longint);
         { Scanner things }
+          procedure def_macro(const s : string);
+          procedure set_macro(const s : string;value : string);
           procedure gettokenpos;
           procedure inc_comment_level;
           procedure dec_comment_level;
@@ -134,22 +147,30 @@ interface
 
 
     var
+        { read strings }
         c              : char;
         orgpattern,
         pattern        : string;
+        { token }
+        token,                        { current token being parsed }
+        idtoken    : ttoken;          { holds the token if the pattern is a known word }
+
         current_scanner : pscannerfile;
         aktcommentstyle : tcommentstyle; { needed to use read_comment from directives }
-
-        preprocfile : ppreprocfile; { used with only preprocessing }
+        preprocfile     : ppreprocfile; { used with only preprocessing }
 
 
 implementation
 
     uses
-{$ifndef delphi}
+{$ifdef delphi}
+      dmisc,
+{$else}
       dos,
 {$endif delphi}
-      cutils,systems,symtable,switches,
+      cutils,
+      systems,
+      switches,
       fmodule;
 
 {*****************************************************************************
@@ -183,6 +204,29 @@ implementation
          end;
         is_keyword:=(pattern=tokeninfo^[ttoken(high)].str) and
                     (tokeninfo^[ttoken(high)].keyword in aktmodeswitches);
+      end;
+
+
+{*****************************************************************************
+                                 TMacro
+*****************************************************************************}
+
+    constructor tmacro.init(const n : string);
+      begin
+         inherited initname(n);
+         defined:=true;
+         defined_at_startup:=false;
+         is_used:=false;
+         buftext:=nil;
+         buflen:=0;
+      end;
+
+
+    destructor tmacro.done;
+      begin
+         if assigned(buftext) then
+           freemem(buftext,buflen);
+         inherited done;
       end;
 
 
@@ -279,6 +323,7 @@ implementation
         lastasmgetchar:=#0;
         ignoredirectives.init;
         invalid:=false;
+        new(macros,init);
       { load block }
         if not openinputfile then
          Message1(scan_f_cannot_open_input,fn);
@@ -307,7 +352,48 @@ implementation
               end;
           end;
          ignoredirectives.done;
+         dispose(macros,done);
        end;
+
+
+    procedure tscannerfile.def_macro(const s : string);
+      var
+        mac : pmacro;
+      begin
+         mac:=pmacro(macros^.search(s));
+         if mac=nil then
+           begin
+             mac:=new(pmacro,init(s));
+             Message1(parser_m_macro_defined,mac^.name);
+             macros^.insert(mac);
+           end;
+         mac^.defined:=true;
+         mac^.defined_at_startup:=true;
+      end;
+
+
+    procedure tscannerfile.set_macro(const s : string;value : string);
+      var
+        mac : pmacro;
+      begin
+         mac:=pmacro(macros^.search(s));
+         if mac=nil then
+           begin
+             mac:=new(pmacro,init(s));
+             macros^.insert(mac);
+           end
+         else
+           begin
+              if assigned(mac^.buftext) then
+                freemem(mac^.buftext,mac^.buflen);
+           end;
+         Message2(parser_m_macro_set_to,mac^.name,value);
+         mac^.buflen:=length(value);
+         getmem(mac^.buftext,mac^.buflen);
+         move(value[1],mac^.buftext^,mac^.buflen);
+         mac^.defined:=true;
+         mac^.defined_at_startup:=true;
+      end;
 
 
     function tscannerfile.openinputfile:boolean;
@@ -505,10 +591,10 @@ implementation
     { load the values of tokenpos and lasttokenpos }
       begin
         lasttokenpos:=inputstart+(inputpointer-inputbuffer);
-        tokenpos.line:=line_no;
-        tokenpos.column:=lasttokenpos-lastlinepos;
-        tokenpos.fileindex:=inputfile^.ref_index;
-        aktfilepos:=tokenpos;
+        akttokenpos.line:=line_no;
+        akttokenpos.column:=lasttokenpos-lastlinepos;
+        akttokenpos.fileindex:=inputfile^.ref_index;
+        aktfilepos:=akttokenpos;
       end;
 
 
@@ -570,12 +656,12 @@ implementation
          { update for status and call the show status routine,
            but don't touch aktfilepos ! }
            oldaktfilepos:=aktfilepos;
-           oldtokenpos:=tokenpos;
+           oldtokenpos:=akttokenpos;
            gettokenpos; { update for v_status }
            inc(status.compiledlines);
            ShowStatus;
            aktfilepos:=oldaktfilepos;
-           tokenpos:=oldtokenpos;
+           akttokenpos:=oldtokenpos;
          end;
       end;
 
@@ -1137,7 +1223,7 @@ implementation
         code    : integer;
         low,high,mid : longint;
         m       : longint;
-        mac     : pmacrosym;
+        mac     : pmacro;
         asciinr : string[6];
       label
          exit_label;
@@ -1216,7 +1302,7 @@ implementation
             { this takes some time ... }
               if (cs_support_macro in aktmoduleswitches) then
                begin
-                 mac:=pmacrosym(macros^.search(pattern));
+                 mac:=pmacro(macros^.search(pattern));
                  if assigned(mac) and (assigned(mac^.buftext)) then
                   begin
                     insertmacro(pattern,mac^.buftext,mac^.buflen);
@@ -1800,7 +1886,10 @@ exit_label:
 end.
 {
   $Log$
-  Revision 1.6  2000-09-24 15:06:28  peter
+  Revision 1.7  2000-10-31 22:02:51  peter
+    * symtable splitted, no real code changes
+
+  Revision 1.6  2000/09/24 15:06:28  peter
     * use defines.inc
 
   Revision 1.5  2000/08/27 16:11:53  peter

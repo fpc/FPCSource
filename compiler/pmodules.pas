@@ -47,7 +47,7 @@ implementation
        globtype,version,systems,tokens,
        cutils,cobjects,comphook,compiler,
        globals,verbose,fmodule,finput,
-       symconst,symtable,aasm,types,
+       symconst,symbase,symppu,symdef,symsym,symtable,aasm,types,
 {$ifdef newcg}
        cgbase,
 {$else newcg}
@@ -890,17 +890,6 @@ implementation
 
 
     procedure setupglobalswitches;
-
-        procedure def_symbol(const s:string);
-        var
-          mac : pmacrosym;
-        begin
-          mac:=new(pmacrosym,init(s));
-          mac^.defined:=true;
-          Message1(parser_m_macro_defined,mac^.name);
-          macros^.insert(mac);
-        end;
-
       begin
         { can't have local browser when no global browser }
         if (cs_local_browser in aktmoduleswitches) and
@@ -909,16 +898,16 @@ implementation
 
         { define a symbol in delphi,objfpc,tp,gpc mode }
         if (m_delphi in aktmodeswitches) then
-         def_symbol('FPC_DELPHI')
+         current_scanner^.def_macro('FPC_DELPHI')
         else
          if (m_tp in aktmodeswitches) then
-          def_symbol('FPC_TP')
+          current_scanner^.def_macro('FPC_TP')
         else
          if (m_objfpc in aktmodeswitches) then
-          def_symbol('FPC_OBJFPC')
+          current_scanner^.def_macro('FPC_OBJFPC')
         else
          if (m_gpc in aktmodeswitches) then
-          def_symbol('FPC_GPC');
+          current_scanner^.def_macro('FPC_GPC');
       end;
 
 
@@ -1185,7 +1174,7 @@ implementation
          symtablestack:=unitst;
 
 {$ifndef DONOTCHAINOPERATORS}
-          symtablestack^.chainoperators;
+         pstoredsymtable(symtablestack)^.chainoperators;
 {$endif DONOTCHAINOPERATORS}
 
 {$ifdef DEBUG}
@@ -1300,9 +1289,9 @@ implementation
          { test static symtable }
          if (Errorcount=0) then
            begin
-             st^.allsymbolsused;
-             st^.allunitsused;
-             st^.allprivatesused;
+             pstoredsymtable(st)^.allsymbolsused;
+             pstoredsymtable(st)^.allunitsused;
+             pstoredsymtable(st)^.allprivatesused;
            end;
 
          { size of the static data }
@@ -1335,8 +1324,8 @@ implementation
          { tests, if all (interface) forwards are resolved }
          if (Errorcount=0) then
            begin
-             symtablestack^.check_forwards;
-             symtablestack^.allprivatesused;
+             pstoredsymtable(symtablestack)^.check_forwards;
+             pstoredsymtable(symtablestack)^.allprivatesused;
            end;
 
          { now we have a correct unit, change the symtable type }
@@ -1524,7 +1513,7 @@ implementation
            loadunits;
 
 {$ifndef DONOTCHAINOPERATORS}
-          symtablestack^.chainoperators;
+         pstoredsymtable(symtablestack)^.chainoperators;
 {$endif DONOTCHAINOPERATORS}
 
          { reset ranges/stabs in exported definitions }
@@ -1640,9 +1629,9 @@ implementation
          { test static symtable }
          if (Errorcount=0) then
            begin
-             st^.allsymbolsused;
-             st^.allunitsused;
-             st^.allprivatesused;
+             pstoredsymtable(st)^.allsymbolsused;
+             pstoredsymtable(st)^.allunitsused;
+             pstoredsymtable(st)^.allprivatesused;
            end;
 
          { generate imports }
@@ -1706,7 +1695,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.16  2000-10-21 14:36:26  peter
+  Revision 1.17  2000-10-31 22:02:50  peter
+    * symtable splitted, no real code changes
+
+  Revision 1.16  2000/10/21 14:36:26  peter
     * merged pierres fixes
 
   Revision 1.15  2000/10/15 09:08:58  peter

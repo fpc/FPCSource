@@ -51,7 +51,7 @@ implementation
     uses
       globtype,systems,
       cutils,cobjects,verbose,globals,
-      symconst,symtable,aasm,types,
+      symconst,symdef,aasm,types,
       hcodegen,temp_gen,pass_2,
       ncon,
       cpubase,cpuasm,
@@ -994,7 +994,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.4  2000-10-19 16:26:52  jonas
+  Revision 1.5  2000-10-31 22:02:56  peter
+    * symtable splitted, no real code changes
+
+  Revision 1.4  2000/10/19 16:26:52  jonas
     * fixed wrong regalloc info for secondmoddiv ("merged", also small
       correction made afterwards in fixes branch)
 

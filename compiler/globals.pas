@@ -40,7 +40,7 @@ interface
       strings,
       dos,
 {$endif}
-      globtype,version,tokens,systems,cutils,cobjects;
+      globtype,version,systems,cutils,cobjects;
 
     const
 {$ifdef linux}
@@ -115,10 +115,7 @@ interface
        dllversion    : string;
        dllmajor,dllminor,dllrevision : word;  { revision only for netware }
 
-       { current position }
-       token,                        { current token being parsed }
-       idtoken    : ttoken;          { holds the token if the pattern is a known word }
-       tokenpos,                     { last postion of the read token }
+       akttokenpos,                  { position of the last token }
        aktfilepos : tfileposinfo;    { current position }
 
        { type of currently parsed block }
@@ -207,9 +204,11 @@ interface
 
        Inside_asm_statement : boolean = false;
 
-    { for error info in pp.pas }
-    const
+       global_unit_count : word = 0;
+
+       { for error info in pp.pas }
        parser_current_file : string = '';
+
 
     procedure abstract;
 
@@ -1187,7 +1186,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.16  2000-10-04 14:51:08  pierre
+  Revision 1.17  2000-10-31 22:02:46  peter
+    * symtable splitted, no real code changes
+
+  Revision 1.16  2000/10/04 14:51:08  pierre
    * IsExe restored
 
   Revision 1.15  2000/09/27 21:20:56  peter

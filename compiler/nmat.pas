@@ -27,7 +27,7 @@ unit nmat;
 interface
 
     uses
-       node,symtable;
+       node;
 
     type
        tmoddivnode = class(tbinopnode)
@@ -54,12 +54,13 @@ interface
        cunaryminusnode : class of tunaryminusnode;
        cnotnode : class of tnotnode;
 
-  implementation
+
+implementation
 
     uses
       globtype,systems,tokens,
       cobjects,verbose,globals,
-      symconst,aasm,types,
+      symconst,symtype,symtable,symdef,aasm,types,
       htypechk,pass_1,cpubase,cpuinfo,
 {$ifdef newcg}
       cgbase,
@@ -528,7 +529,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.7  2000-10-01 19:48:24  peter
+  Revision 1.8  2000-10-31 22:02:49  peter
+    * symtable splitted, no real code changes
+
+  Revision 1.7  2000/10/01 19:48:24  peter
     * lot of compile updates for cg11
 
   Revision 1.6  2000/09/27 21:33:22  florian

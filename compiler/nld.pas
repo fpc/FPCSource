@@ -27,7 +27,8 @@ unit nld;
 interface
 
     uses
-       node,symtable;
+       node,
+       symbase,symtype,symsym;
 
     type
        tloadnode = class(tunarynode)
@@ -94,7 +95,7 @@ implementation
 
     uses
       cutils,cobjects,verbose,globtype,globals,systems,
-      symconst,aasm,types,
+      symconst,symdef,symtable,aasm,types,
       htypechk,pass_1,
       ncnv,nmem,cpubase
 {$ifdef newcg}
@@ -751,7 +752,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.6  2000-10-14 10:14:50  peter
+  Revision 1.7  2000-10-31 22:02:49  peter
+    * symtable splitted, no real code changes
+
+  Revision 1.6  2000/10/14 10:14:50  peter
     * moehrendorf oct 2000 rewrite
 
   Revision 1.5  2000/10/01 19:48:24  peter

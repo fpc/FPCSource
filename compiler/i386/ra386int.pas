@@ -43,7 +43,7 @@ Implementation
        { aasm }
        cpubase,aasm,
        { symtable }
-       symconst,symtable,types,
+       symconst,symtype,symsym,symtable,types,
        { pass 1 }
        nbas,
        { parser }
@@ -1916,7 +1916,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.1  2000-10-15 09:47:43  peter
+  Revision 1.2  2000-10-31 22:02:57  peter
+    * symtable splitted, no real code changes
+
+  Revision 1.1  2000/10/15 09:47:43  peter
     * moved to i386/
 
   Revision 1.8  2000/10/14 10:14:52  peter

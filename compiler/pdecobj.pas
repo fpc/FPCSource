@@ -24,25 +24,20 @@ unit pdecobj;
 
 {$i defines.inc}
 
-  interface
+interface
 
     uses
-      globtype,symtable
-      {$IFDEF NEWST}
-      ,symbols,defs
-      {$ENDIF NEWST};
+      globtype,symtype,symdef;
 
     { parses a object declaration }
     function object_dec(const n : stringid;fd : pobjectdef) : pdef;
 
-  implementation
+implementation
 
     uses
-{$ifdef Delphi}
-      SysUtils,
-{$endif}
-      cutils,cobjects,globals,verbose,systems,tokens,
-      aasm,symconst,types,
+      cutils,cobjects,
+      globals,verbose,systems,tokens,
+      aasm,symconst,symbase,symsym,symtable,types,
 {$ifdef GDB}
       gdb,
 {$endif}
@@ -1079,7 +1074,10 @@ unit pdecobj;
 end.
 {
   $Log$
-  Revision 1.3  2000-10-26 21:54:03  peter
+  Revision 1.4  2000-10-31 22:02:49  peter
+    * symtable splitted, no real code changes
+
+  Revision 1.3  2000/10/26 21:54:03  peter
     * fixed crash with error in child definition (merged)
 
   Revision 1.2  2000/10/21 18:16:11  florian

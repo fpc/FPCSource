@@ -30,7 +30,7 @@ interface
        cobjects,
        cpuinfo,
        node,
-       symtable;
+       symbase,symtype,symdef,symsym;
 
     type
        tmmxtype = (mmxno,mmxu8bit,mmxs8bit,mmxu16bit,mmxs16bit,
@@ -233,8 +233,8 @@ interface
 implementation
 
     uses
-       globtype,globals,
-       verbose,symconst,tokens;
+       globtype,globals,tokens,verbose,
+       symconst,symtable;
 
     var
        b_needs_init_final : boolean;
@@ -245,7 +245,7 @@ implementation
            assigned(pvarsym(p)^.vartype.def) and
            not((pvarsym(p)^.vartype.def^.deftype=objectdef) and
            pobjectdef(pvarsym(p)^.vartype.def)^.is_class) and
-           pvarsym(p)^.vartype.def^.needs_inittable then
+           pstoreddef(pvarsym(p)^.vartype.def)^.needs_inittable then
            b_needs_init_final:=true;
       end;
 
@@ -1684,7 +1684,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.15  2000-10-21 18:16:12  florian
+  Revision 1.16  2000-10-31 22:02:55  peter
+    * symtable splitted, no real code changes
+
+  Revision 1.15  2000/10/21 18:16:12  florian
     * a lot of changes:
        - basic dyn. array support
        - basic C++ support

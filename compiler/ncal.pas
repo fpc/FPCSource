@@ -28,7 +28,8 @@ unit ncal;
 interface
 
     uses
-       node,symtable;
+       node,
+       symbase,symsym,symdef,symtable;
 
     type
        tcallnode = class(tbinarynode)
@@ -101,7 +102,7 @@ interface
     uses
       cutils,globtype,systems,
       cobjects,verbose,globals,
-      symconst,aasm,types,
+      symconst,symtype,aasm,types,
       htypechk,pass_1,cpubase,
       ncnv,nld,ninl,nadd,ncon
 {$ifdef newcg}
@@ -671,7 +672,8 @@ interface
          if assigned(right) then
            begin
               { procedure does a call }
-              procinfo^.flags:=procinfo^.flags or pi_do_call;
+              if not (block_type in [bt_const,bt_type]) then
+                procinfo^.flags:=procinfo^.flags or pi_do_call;
 {$ifndef newcg}
               { calc the correture value for the register }
 {$ifdef i386}
@@ -1239,7 +1241,7 @@ interface
                end; { end of procedure to call determination }
 
               is_const:=(pocall_internconst in procdefinition^.proccalloptions) and
-                        ((block_type=bt_const) or
+                        ((block_type in [bt_const,bt_type]) or
                          (assigned(left) and (tcallparanode(left).left.nodetype in [realconstn,ordconstn])));
               { handle predefined procedures }
               if (pocall_internproc in procdefinition^.proccalloptions) or is_const then
@@ -1294,7 +1296,10 @@ interface
                      end;
                 end
               else
-                procinfo^.flags:=procinfo^.flags or pi_do_call;
+                begin
+                  if not (block_type in [bt_const,bt_type]) then
+                    procinfo^.flags:=procinfo^.flags or pi_do_call;
+                end;
 
               { add needed default parameters }
               if assigned(procs) and
@@ -1482,14 +1487,9 @@ interface
          inlineprocsym:=tcallnode(callp).symtableprocentry;
          retoffset:=-4; { less dangerous as zero (PM) }
          para_offset:=0;
-      {$IFDEF NEWST}
-         {Fixme!!}
-         internalerror($00022801);
-      {$ELSE}
          para_size:=inlineprocsym^.definition^.para_size(target_os.stackalignment);
          if ret_in_param(inlineprocsym^.definition^.rettype.def) then
            para_size:=para_size+target_os.size_of_pointer;
-      {$ENDIF NEWST}
          { copy args }
          inlinetree:=code;
          registers32:=code.registers32;
@@ -1497,11 +1497,7 @@ interface
 {$ifdef SUPPORT_MMX}
          registersmmx:=code.registersmmx;
 {$endif SUPPORT_MMX}
-      {$IFDEF NEWST}
-         {Fixme!!}
-      {$ELSE}
          resulttype:=inlineprocsym^.definition^.rettype.def;
-      {$ENDIF NEWST}
       end;
 
     destructor tprocinlinenode.destroy;
@@ -1549,7 +1545,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.12  2000-10-21 18:16:11  florian
+  Revision 1.13  2000-10-31 22:02:47  peter
+    * symtable splitted, no real code changes
+
+  Revision 1.12  2000/10/21 18:16:11  florian
     * a lot of changes:
        - basic dyn. array support
        - basic C++ support

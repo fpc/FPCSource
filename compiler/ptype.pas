@@ -27,7 +27,7 @@ unit ptype;
 interface
 
     uses
-       globtype,symtable;
+       globtype,symtype;
 
     const
        { forward types should only be possible inside a TYPE statement }
@@ -62,7 +62,7 @@ implementation
        { aasm }
        aasm,
        { symtable }
-       symconst,types,
+       symconst,symbase,symdef,symsym,symtable,types,
 {$ifdef GDB}
        gdb,
 {$endif}
@@ -91,7 +91,7 @@ implementation
         pos : tfileposinfo;
       begin
          s:=pattern;
-         pos:=tokenpos;
+         pos:=akttokenpos;
          { classes can be used also in classes }
          if (curobjectname=pattern) and aktobjectdef^.is_class then
            begin
@@ -115,7 +115,7 @@ implementation
            begin
               consume(_POINT);
               getsymonlyin(punitsym(srsym)^.unitsymtable,pattern);
-              pos:=tokenpos;
+              pos:=akttokenpos;
               s:=pattern;
               consume(_ID);
               is_unit_specific:=true;
@@ -208,7 +208,7 @@ implementation
 
       begin
          { create recdef }
-         symtable:=new(psymtable,init(recordsymtable));
+         symtable:=new(pstoredsymtable,init(recordsymtable));
          record_dec:=new(precorddef,init(symtable));
          { update symtable stack }
          symtable^.next:=symtablestack;
@@ -444,7 +444,7 @@ implementation
                 aktenumdef:=new(penumdef,init);
                 repeat
                   s:=orgpattern;
-                  defpos:=tokenpos;
+                  defpos:=akttokenpos;
                   consume(_ID);
                   { only allow assigning of specific numbers under fpc mode }
                   if (m_fpc in aktmodeswitches) and
@@ -460,10 +460,10 @@ implementation
                     end
                   else
                     inc(l);
-                  storepos:=tokenpos;
-                  tokenpos:=defpos;
+                  storepos:=akttokenpos;
+                  akttokenpos:=defpos;
                   constsymtable^.insert(new(penumsym,init(s,aktenumdef,l)));
-                  tokenpos:=storepos;
+                  akttokenpos:=storepos;
                 until not try_to_consume(_COMMA);
                 tt.setdef(aktenumdef);
                 consume(_RKLAMMER);
@@ -583,7 +583,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.12  2000-10-26 21:54:03  peter
+  Revision 1.13  2000-10-31 22:02:51  peter
+    * symtable splitted, no real code changes
+
+  Revision 1.12  2000/10/26 21:54:03  peter
     * fixed crash with error in child definition (merged)
 
   Revision 1.11  2000/10/21 18:16:12  florian

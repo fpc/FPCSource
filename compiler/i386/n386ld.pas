@@ -51,7 +51,7 @@ implementation
     uses
       globtype,systems,
       cobjects,verbose,globals,fmodule,
-      symconst,symtable,aasm,types,
+      symconst,symtype,symdef,symsym,symtable,aasm,types,
       hcodegen,temp_gen,pass_2,
       nmem,ncon,ncnv,
       cpubase,cpuasm,
@@ -634,7 +634,7 @@ implementation
                                    { increment source reference counter }
                                    new(r);
                                    reset_reference(r^);
-                                   r^.symbol:=right.resulttype^.get_inittable_label;
+                                   r^.symbol:=pstoreddef(right.resulttype)^.get_inittable_label;
                                    emitpushreferenceaddr(r^);
 
                                    emitpushreferenceaddr(right.location.reference);
@@ -642,7 +642,7 @@ implementation
                                    { decrement destination reference counter }
                                    new(r);
                                    reset_reference(r^);
-                                   r^.symbol:=left.resulttype^.get_inittable_label;
+                                   r^.symbol:=pstoreddef(left.resulttype)^.get_inittable_label;
                                    emitpushreferenceaddr(r^);
                                    emitpushreferenceaddr(left.location.reference);
                                    emitcall('FPC_DECREF');
@@ -1064,7 +1064,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.1  2000-10-15 09:33:31  peter
+  Revision 1.2  2000-10-31 22:02:56  peter
+    * symtable splitted, no real code changes
+
+  Revision 1.1  2000/10/15 09:33:31  peter
     * moved n386*.pas to i386/ cpu_target dir
 
   Revision 1.1  2000/10/14 10:14:49  peter

@@ -42,7 +42,7 @@ interface
        { aasm }
        cpubase,aasm,
        { symtable }
-       symconst,symtable,types,
+       symconst,symtype,symdef,symsym,symtable,types,
        { pass 1 }
        nbas,
        { parser }
@@ -150,7 +150,7 @@ interface
                                    begin
                                       if assigned(aktprocsym^.definition^.localst) and
                                          (lexlevel >= normal_function_level) then
-                                        sym:=aktprocsym^.definition^.localst^.search(upper(hs))
+                                        sym:=psym(aktprocsym^.definition^.localst^.search(upper(hs)))
                                       else
                                         sym:=nil;
                                       if assigned(sym) then
@@ -185,7 +185,7 @@ interface
                                       else
                                         begin
                                            if assigned(aktprocsym^.definition^.parast) then
-                                             sym:=aktprocsym^.definition^.parast^.search(upper(hs))
+                                             sym:=psym(aktprocsym^.definition^.parast^.search(upper(hs)))
                                            else
                                              sym:=nil;
                                            if assigned(sym) then
@@ -288,7 +288,10 @@ interface
 end.
 {
   $Log$
-  Revision 1.1  2000-10-15 09:47:43  peter
+  Revision 1.2  2000-10-31 22:02:57  peter
+    * symtable splitted, no real code changes
+
+  Revision 1.1  2000/10/15 09:47:43  peter
     * moved to i386/
 
   Revision 1.5  2000/10/14 10:14:52  peter

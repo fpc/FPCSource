@@ -19,47 +19,388 @@
     Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
  ****************************************************************************
 }
+unit symsym;
+
+{$i defines.inc}
+
+interface
+
+    uses
+       { common }
+       cutils,cobjects,
+       { target }
+       cpuinfo,
+       { symtable }
+       symconst,symbase,symtype,symdef,
+       { aasm }
+       aasm,cpubase
+       ;
+
+    type
+{************************************************
+                   TSym
+************************************************}
+
+       { this object is the base for all symbol objects }
+       pstoredsym = ^tstoredsym;
+       tstoredsym = object(tsym)
+{$ifdef GDB}
+          isstabwritten : boolean;
+{$endif GDB}
+          refs          : longint;
+          lastref,
+          defref,
+          lastwritten : pref;
+          refcount    : longint;
+          constructor init(const n : string);
+          constructor load;
+          destructor done;virtual;
+          procedure write;virtual;
+          function  mangledname : string;virtual;
+          procedure insert_in_data;virtual;
+{$ifdef GDB}
+          function  stabstring : pchar;virtual;
+          procedure concatstabto(asmlist : paasmoutput);virtual;
+{$endif GDB}
+          procedure load_references;virtual;
+          function  write_references : boolean;virtual;
+       end;
+
+       plabelsym = ^tlabelsym;
+       tlabelsym = object(tstoredsym)
+          lab     : pasmlabel;
+          used,
+          defined : boolean;
+          code : pointer; { should be ptree! }
+          constructor init(const n : string; l : pasmlabel);
+          destructor done;virtual;
+          constructor load;
+          function mangledname : string;virtual;
+          procedure write;virtual;
+       end;
+
+       punitsym = ^tunitsym;
+       tunitsym = object(tstoredsym)
+          unitsymtable : psymtable;
+          prevsym      : punitsym;
+          constructor init(const n : string;ref : psymtable);
+          constructor load;
+          destructor done;virtual;
+          procedure write;virtual;
+          procedure restoreunitsym;
+{$ifdef GDB}
+          procedure concatstabto(asmlist : paasmoutput);virtual;
+{$endif GDB}
+       end;
+
+       perrorsym = ^terrorsym;
+       terrorsym = object(tstoredsym)
+          constructor init;
+       end;
+
+       pprocsym = ^tprocsym;
+       tprocsym = object(tstoredsym)
+          definition  : pprocdef;
+{$ifdef CHAINPROCSYMS}
+          nextprocsym : pprocsym;
+{$endif CHAINPROCSYMS}
+          is_global   : boolean;
+          constructor init(const n : string);
+          constructor load;
+          destructor done;virtual;
+          function mangledname : string;virtual;
+          function declarationstr(p : pprocdef):string;
+          { writes all declarations }
+          procedure write_parameter_lists(skipdef:pprocdef);
+          { tests, if all procedures definitions are defined and not }
+          { only forward                                             }
+          procedure check_forward;
+          procedure order_overloaded;
+          procedure write;virtual;
+          procedure deref;virtual;
+          procedure load_references;virtual;
+          function  write_references : boolean;virtual;
+{$ifdef GDB}
+          function stabstring : pchar;virtual;
+          procedure concatstabto(asmlist : paasmoutput);virtual;
+{$endif GDB}
+       end;
+
+       ptypesym = ^ttypesym;
+       ttypesym = object(tstoredsym)
+{$ifdef SYNONYM}
+          synonym    : ptypesym;
+{$endif}
+          restype    : ttype;
+{$ifdef GDB}
+          isusedinstab : boolean;
+{$endif GDB}
+          constructor init(const n : string;const tt : ttype);
+          constructor initdef(const n : string;d : pdef);
+          constructor load;
+{$ifdef SYNONYM}
+          destructor done;virtual;
+{$endif}
+          procedure write;virtual;
+          function  gettypedef:pdef;virtual;
+          procedure prederef;virtual;
+          procedure load_references;virtual;
+          function  write_references : boolean;virtual;
+{$ifdef GDB}
+          function stabstring : pchar;virtual;
+          procedure concatstabto(asmlist : paasmoutput);virtual;
+{$endif GDB}
+       end;
+
+       pvarsym = ^tvarsym;
+       tvarsym = object(tstoredsym)
+          address       : longint;
+          localvarsym   : pvarsym;
+          vartype       : ttype;
+          varoptions    : tvaroptions;
+          reg           : tregister; { if reg<>R_NO, then the variable is an register variable }
+          varspez       : tvarspez;  { sets the type of access }
+          varstate      : tvarstate;
+          constructor init(const n : string;const tt : ttype);
+          constructor init_dll(const n : string;const tt : ttype);
+          constructor init_C(const n,mangled : string;const tt : ttype);
+          constructor initdef(const n : string;p : pdef);
+          constructor load;
+          destructor  done;virtual;
+          procedure write;virtual;
+          procedure deref;virtual;
+          procedure setmangledname(const s : string);
+          function  mangledname : string;virtual;
+          procedure insert_in_data;virtual;
+          function  getsize : longint;
+          function  getvaluesize : longint;
+          function  getpushsize : longint;
+{$ifdef GDB}
+          function  stabstring : pchar;virtual;
+          procedure concatstabto(asmlist : paasmoutput);virtual;
+{$endif GDB}
+       private
+          _mangledname  : pchar;
+       end;
+
+       ppropertysym = ^tpropertysym;
+       tpropertysym = object(tstoredsym)
+          propoptions   : tpropertyoptions;
+          propoverriden : ppropertysym;
+          proptype,
+          indextype     : ttype;
+          index,
+          default       : longint;
+          readaccess,
+          writeaccess,
+          storedaccess  : psymlist;
+          constructor init(const n : string);
+          destructor  done;virtual;
+          constructor load;
+          function  getsize : longint;virtual;
+          procedure write;virtual;
+          function  gettypedef:pdef;virtual;
+          procedure deref;virtual;
+          procedure dooverride(overriden:ppropertysym);
+{$ifdef GDB}
+          function  stabstring : pchar;virtual;
+          procedure concatstabto(asmlist : paasmoutput);virtual;
+{$endif GDB}
+       end;
+
+       pfuncretsym = ^tfuncretsym;
+       tfuncretsym = object(tstoredsym)
+          funcretprocinfo : pointer{ should be pprocinfo};
+          rettype  : ttype;
+          address  : longint;
+          constructor init(const n : string;approcinfo : pointer{pprocinfo});
+          constructor load;
+          destructor  done;virtual;
+          procedure write;virtual;
+          procedure deref;virtual;
+          procedure insert_in_data;virtual;
+{$ifdef GDB}
+          procedure concatstabto(asmlist : paasmoutput);virtual;
+{$endif GDB}
+       end;
+
+       pabsolutesym = ^tabsolutesym;
+       tabsolutesym = object(tvarsym)
+          abstyp  : absolutetyp;
+          absseg  : boolean;
+          ref     : pstoredsym;
+          asmname : pstring;
+          constructor init(const n : string;const tt : ttype);
+          constructor initdef(const n : string;p : pdef);
+          constructor load;
+          procedure deref;virtual;
+          function  mangledname : string;virtual;
+          procedure write;virtual;
+          procedure insert_in_data;virtual;
+{$ifdef GDB}
+          procedure concatstabto(asmlist : paasmoutput);virtual;
+{$endif GDB}
+       end;
+
+       ptypedconstsym = ^ttypedconstsym;
+       ttypedconstsym = object(tstoredsym)
+          prefix          : pstring;
+          typedconsttype  : ttype;
+          is_really_const : boolean;
+          constructor init(const n : string;p : pdef;really_const : boolean);
+          constructor inittype(const n : string;const tt : ttype;really_const : boolean);
+          constructor load;
+          destructor done;virtual;
+          function  mangledname : string;virtual;
+          procedure write;virtual;
+          procedure deref;virtual;
+          function  getsize:longint;
+          procedure insert_in_data;virtual;
+{$ifdef GDB}
+          function  stabstring : pchar;virtual;
+{$endif GDB}
+       end;
+
+       pconstsym = ^tconstsym;
+       tconstsym = object(tstoredsym)
+          consttype  : ttype;
+          consttyp : tconsttyp;
+          resstrindex,    { needed for resource strings }
+          value      : tconstexprint;
+          len        : longint; { len is needed for string length }
+          constructor init(const n : string;t : tconsttyp;v : tconstexprint);
+          constructor init_def(const n : string;t : tconsttyp;v : tconstexprint;def : pdef);
+          constructor init_string(const n : string;t : tconsttyp;str:pchar;l:longint);
+          constructor load;
+          destructor  done;virtual;
+          function  mangledname : string;virtual;
+          procedure deref;virtual;
+          procedure write;virtual;
+{$ifdef GDB}
+          function  stabstring : pchar;virtual;
+          procedure concatstabto(asmlist : paasmoutput);virtual;
+{$endif GDB}
+       end;
+
+       penumsym = ^tenumsym;
+       tenumsym = object(tstoredsym)
+          value      : longint;
+          definition : penumdef;
+          nextenum   : penumsym;
+          constructor init(const n : string;def : penumdef;v : longint);
+          constructor load;
+          procedure write;virtual;
+          procedure deref;virtual;
+          procedure order;
+{$ifdef GDB}
+          procedure concatstabto(asmlist : paasmoutput);virtual;
+{$endif GDB}
+       end;
+
+       psyssym = ^tsyssym;
+       tsyssym = object(tstoredsym)
+          number : longint;
+          constructor init(const n : string;l : longint);
+          constructor load;
+          destructor  done;virtual;
+          procedure write;virtual;
+{$ifdef GDB}
+          procedure concatstabto(asmlist : paasmoutput);virtual;
+{$endif GDB}
+       end;
+
+       { register variables }
+       pregvarinfo = ^tregvarinfo;
+       tregvarinfo = record
+          regvars : array[1..maxvarregs] of pvarsym;
+          regvars_para : array[1..maxvarregs] of boolean;
+          regvars_refs : array[1..maxvarregs] of longint;
+
+          fpuregvars : array[1..maxfpuvarregs] of pvarsym;
+          fpuregvars_para : array[1..maxfpuvarregs] of boolean;
+          fpuregvars_refs : array[1..maxfpuvarregs] of longint;
+       end;
+
+
+    var
+       aktprocsym : pprocsym;      { pointer to the symbol for the
+                                     currently be parsed procedure }
+
+       aktcallprocsym : pprocsym;  { pointer to the symbol for the
+                                     currently be called procedure,
+                                     only set/unset in firstcall }
+
+       aktvarsym : pvarsym;     { pointer to the symbol for the
+                                     currently read var, only used
+                                     for variable directives }
+
+       generrorsym : psym;
+
+       procprefix : string;     { prefix generated for the current compiled proc }
+
+    const
+       current_object_option : tsymoptions = [sp_public];
+
+
+implementation
+
+    uses
+{$ifdef Delphi}
+       sysutils,
+{$else Delphi}
+       strings,
+{$endif Delphi}
+       { global }
+       globtype,globals,verbose,
+       { target }
+       systems,
+       { symtable }
+       symtable,types,
+{$ifdef GDB}
+       gdb,
+{$endif GDB}
+       { aasm }
+       cpuasm,
+       { module }
+       fmodule,
+       { ppu }
+       symppu,ppu,
+       { codegen }
+       hcodegen,cresstr
+       ;
 
 {****************************************************************************
                           TSYM (base for all symtypes)
 ****************************************************************************}
 
-    constructor tsym.init(const n : string);
+    constructor tstoredsym.init(const n : string);
       begin
-         if n[1]='$' then
-          inherited initname(copy(n,2,255))
-         else
-          inherited initname(upper(n));
-         _realname:=stringdup(n);
-         typ:=abstractsym;
+         inherited init(n);
          symoptions:=current_object_option;
 {$ifdef GDB}
          isstabwritten := false;
 {$endif GDB}
-         fileinfo:=tokenpos;
+         fileinfo:=akttokenpos;
          defref:=nil;
          refs:=0;
          lastwritten:=nil;
          refcount:=0;
          if (cs_browser in aktmoduleswitches) and make_ref then
           begin
-            defref:=new(pref,init(defref,@tokenpos));
+            defref:=new(pref,init(defref,@akttokenpos));
             inc(refcount);
           end;
          lastref:=defref;
       end;
 
 
-    constructor tsym.load;
+    constructor tstoredsym.load;
+      var
+        s : string;
       begin
-         inherited init;
          indexnr:=readword;
-         _realname:=stringdup(readstring);
-         if _realname^[1]='$' then
-          setname(copy(_realname^,2,255))
-         else
-          setname(upper(_realname^));
-         typ:=abstractsym;
+         s:=readstring;
+         inherited init(s);
          readsmallset(symoptions);
          readposinfo(fileinfo);
          lastref:=nil;
@@ -73,7 +414,7 @@
       end;
 
 
-    procedure tsym.load_references;
+    procedure tstoredsym.load_references;
       var
         pos : tfileposinfo;
         move_last : boolean;
@@ -97,7 +438,7 @@
       interface parsing of other units PM
       moduleindex must be checked !! }
 
-    function tsym.write_references : boolean;
+    function tstoredsym.write_references : boolean;
       var
         ref   : pref;
         symref_written,move_last : boolean;
@@ -120,7 +461,7 @@
               { write address to this symbol }
                 if not symref_written then
                   begin
-                     writesymref(@self);
+                     writederef(@self);
                      symref_written:=true;
                   end;
                 writeposinfo(ref^.posinfo);
@@ -140,31 +481,18 @@
       end;
 
 
-{$ifdef BrowserLog}
-    procedure tsym.add_to_browserlog;
-      begin
-        if assigned(defref) then
-         begin
-           browserlog.AddLog('***'+name+'***');
-           browserlog.AddLogRefs(defref);
-         end;
-      end;
-{$endif BrowserLog}
-
-
-    destructor tsym.done;
+    destructor tstoredsym.done;
       begin
         if assigned(defref) then
          begin
            defref^.freechain;
            dispose(defref,done);
          end;
-        stringdispose(_realname);
         inherited done;
       end;
 
 
-    procedure tsym.write;
+    procedure tstoredsym.write;
       begin
          writeword(indexnr);
          writestring(_realname^);
@@ -173,46 +501,27 @@
       end;
 
 
-    procedure tsym.prederef;
-      begin
-      end;
-
-
-    procedure tsym.deref;
-      begin
-      end;
-
-
-    function tsym.realname : string;
-      begin
-        if assigned(_realname) then
-         realname:=_realname^
-        else
-         realname:=name;
-      end;
-
-
-    function tsym.mangledname : string;
+    function tstoredsym.mangledname : string;
       begin
          mangledname:=name;
       end;
 
 
     { for most symbol types there is nothing to do at all }
-    procedure tsym.insert_in_data;
+    procedure tstoredsym.insert_in_data;
       begin
       end;
 
 
 {$ifdef GDB}
-    function tsym.stabstring : pchar;
+    function tstoredsym.stabstring : pchar;
 
       begin
          stabstring:=strpnew('"'+name+'",'+tostr(N_LSYM)+',0,'+
            tostr(fileinfo.line)+',0');
       end;
 
-    procedure tsym.concatstabto(asmlist : paasmoutput);
+    procedure tstoredsym.concatstabto(asmlist : paasmoutput);
 
     var stab_str : pchar;
       begin
@@ -245,7 +554,7 @@
     constructor tlabelsym.load;
 
       begin
-         tsym.load;
+         inherited load;
          typ:=labelsym;
          { this is all dummy
            it is only used for local browsing }
@@ -274,7 +583,7 @@
            Message(sym_e_ill_label_decl)
          else
            begin
-              tsym.write;
+              inherited write;
               current_ppu^.writeentry(iblabelsym);
            end;
       end;
@@ -284,7 +593,7 @@
                                   TUNITSYM
 ****************************************************************************}
 
-    constructor tunitsym.init(const n : string;ref : punitsymtable);
+    constructor tunitsym.init(const n : string;ref : psymtable);
       var
         old_make_ref : boolean;
       begin
@@ -294,15 +603,15 @@
          make_ref:=old_make_ref;
          typ:=unitsym;
          unitsymtable:=ref;
-         prevsym:=ref^.unitsym;
-         ref^.unitsym:=@self;
+         prevsym:=punitsymtable(ref)^.unitsym;
+         punitsymtable(ref)^.unitsym:=@self;
          refs:=0;
       end;
 
     constructor tunitsym.load;
 
       begin
-         tsym.load;
+         inherited load;
          typ:=unitsym;
          unitsymtable:=punitsymtable(current_module^.globalsymtable);
          prevsym:=nil;
@@ -316,9 +625,9 @@
          if assigned(unitsymtable) then
            begin
              ppus:=nil;
-             pus:=unitsymtable^.unitsym;
+             pus:=punitsymtable(unitsymtable)^.unitsym;
              if pus=@self then
-               unitsymtable^.unitsym:=prevsym
+               punitsymtable(unitsymtable)^.unitsym:=prevsym
              else while assigned(pus) do
                begin
                   if pus=@self then
@@ -344,7 +653,7 @@
 
     procedure tunitsym.write;
       begin
-         tsym.write;
+         inherited write;
          current_ppu^.writeentry(ibunitsym);
       end;
 
@@ -362,33 +671,33 @@
     constructor tprocsym.init(const n : string);
 
       begin
-         tsym.init(n);
+         inherited init(n);
          typ:=procsym;
          definition:=nil;
          owner:=nil;
          is_global := false;
       end;
 
-    constructor tprocsym.load;
 
+    constructor tprocsym.load;
       begin
-         tsym.load;
+         inherited load;
          typ:=procsym;
-         definition:=pprocdef(readdefref);
+         definition:=pprocdef(readderef);
          is_global := false;
       end;
 
-    destructor tprocsym.done;
 
+    destructor tprocsym.done;
       begin
          { don't check if errors !! }
          if Errorcount=0 then
            check_forward;
-         tsym.done;
+         inherited done;
       end;
 
-    function tprocsym.mangledname : string;
 
+    function tprocsym.mangledname : string;
       begin
          mangledname:=definition^.mangledname;
       end;
@@ -522,8 +831,8 @@
 
     procedure tprocsym.write;
       begin
-         tsym.write;
-         writedefref(pdef(definition));
+         inherited write;
+         writederef(definition);
          current_ppu^.writeentry(ibprocsym);
       end;
 
@@ -569,22 +878,6 @@
       end;
 
 
-{$ifdef BrowserLog}
-    procedure tprocsym.add_to_browserlog;
-      var
-        prdef : pprocdef;
-      begin
-         inherited add_to_browserlog;
-         prdef:=definition;
-         while assigned(prdef) do
-           begin
-              pprocdef(prdef)^.add_to_browserlog;
-              prdef:=pprocdef(prdef)^.nextoverloaded;
-           end;
-      end;
-{$endif BrowserLog}
-
-
 {$ifdef GDB}
     function tprocsym.stabstring : pchar;
      Var RetType : Char;
@@ -614,7 +907,7 @@
      stabsstr:=definition^.mangledname;
      getmem(p,length(stabsstr)+255);
      strpcopy(p,'"'+obj+':'+RetType
-           +definition^.rettype.def^.numberstring+info+'",'+tostr(n_function)
+           +pstoreddef(definition^.rettype.def)^.numberstring+info+'",'+tostr(n_function)
            +',0,'+
            tostr(aktfilepos.line)
            +',');
@@ -630,12 +923,12 @@
         asmlist^.concat(new(pai_stabs,init(stabstring)));
       isstabwritten := true;
       if assigned(definition^.parast) then
-        definition^.parast^.concatstabto(asmlist);
+        pstoredsymtable(definition^.parast)^.concatstabto(asmlist);
       { local type defs and vars should not be written
         inside the main proc stab }
       if assigned(definition^.localst) and
          (lexlevel>main_program_level) then
-        definition^.localst^.concatstabto(asmlist);
+        pstoredsymtable(definition^.localst)^.concatstabto(asmlist);
       definition^.is_def_stab_written := written;
     end;
 {$endif GDB}
@@ -677,7 +970,7 @@
          readsmallset(propoptions);
          if (ppo_is_override in propoptions) then
           begin
-            propoverriden:=ppropertysym(readsymref);
+            propoverriden:=ppropertysym(readderef);
             { we need to have these objects initialized }
             new(readaccess,init);
             new(writeaccess,init);
@@ -704,6 +997,10 @@
          inherited done;
       end;
 
+    function tpropertysym.gettypedef:pdef;
+      begin
+        gettypedef:=proptype.def;
+      end;
 
     procedure tpropertysym.deref;
       begin
@@ -731,10 +1028,10 @@
 
     procedure tpropertysym.write;
       begin
-        tsym.write;
+        inherited write;
         writesmallset(propoptions);
         if (ppo_is_override in propoptions) then
-         writesymref(propoverriden)
+         writederef(propoverriden)
         else
          begin
            proptype.write;
@@ -786,7 +1083,7 @@
     constructor tfuncretsym.init(const n : string;approcinfo : pointer{pprocinfo});
 
       begin
-         tsym.init(n);
+         inherited init(n);
          typ:=funcretsym;
          funcretprocinfo:=approcinfo;
          rettype:=pprocinfo(approcinfo)^.returntype;
@@ -797,7 +1094,7 @@
 
     constructor tfuncretsym.load;
       begin
-         tsym.load;
+         inherited load;
          rettype.load;
          address:=readlong;
          funcretprocinfo:=nil;
@@ -811,7 +1108,7 @@
 
     procedure tfuncretsym.write;
       begin
-         tsym.write;
+         inherited write;
          rettype.write;
          writelong(address);
          current_ppu^.writeentry(ibfuncretsym);
@@ -894,7 +1191,7 @@
            tovar :
              begin
                asmname:=stringdup(readstring);
-               ref:=srsym;
+               ref:=pstoredsym(srsym);
              end;
            toasm :
              asmname:=stringdup(readstring);
@@ -912,7 +1209,7 @@
         hvo : tvaroptions;
       begin
          { Note: This needs to write everything of tvarsym.write }
-         tsym.write;
+         tstoredsym.write;
          writebyte(byte(varspez));
          if read_member then
            writelong(address);
@@ -947,7 +1244,7 @@
                 getsymonlyin(owner,asmname^);
               if not(assigned(srsym)) then
                 srsym:=generrorsym;
-              ref:=srsym;
+              ref:=pstoredsym(srsym);
               stringdispose(asmname);
            end;
       end;
@@ -987,7 +1284,7 @@
 
     constructor tvarsym.init(const n : string;const tt : ttype);
       begin
-         tsym.init(n);
+         inherited init(n);
          typ:=varsym;
          vartype:=tt;
          _mangledname:=nil;
@@ -998,12 +1295,12 @@
          varstate:=vs_used;
          varoptions:=[];
          { can we load the value into a register ? }
-         if tt.def^.is_intregable then
+         if pstoreddef(tt.def)^.is_intregable then
            include(varoptions,vo_regable)
          else
            exclude(varoptions,vo_regable);
 
-         if tt.def^.is_fpuregable then
+         if pstoreddef(tt.def)^.is_fpuregable then
            include(varoptions,vo_fpuregable)
          else
            exclude(varoptions,vo_fpuregable);
@@ -1037,7 +1334,7 @@
 
     constructor tvarsym.load;
       begin
-         tsym.load;
+         inherited load;
          typ:=varsym;
          _mangledname:=nil;
          reg:=R_NO;
@@ -1073,7 +1370,7 @@
       var
         hvo : tvaroptions;
       begin
-         tsym.write;
+         inherited write;
          writebyte(byte(varspez));
          if read_member then
           writelong(address);
@@ -1212,7 +1509,7 @@
                Message(sym_e_no_instance_of_abstract_object);
              }
              storefilepos:=aktfilepos;
-             aktfilepos:=tokenpos;
+             aktfilepos:=akttokenpos;
              if (vo_is_thread_var in varoptions) then
                l:=4
              else
@@ -1416,7 +1713,7 @@
      var
        st : string;
      begin
-       st:=vartype.def^.numberstring;
+       st:=pstoreddef(vartype.def)^.numberstring;
        if (owner^.symtabletype = objectsymtable) and
           (sp_static in symoptions) then
          begin
@@ -1496,7 +1793,7 @@
            { "eax", "ecx", "edx", "ebx", "esp", "ebp", "esi", "edi", "eip", "ps", "cs", "ss", "ds", "es", "fs", "gs", }
            { this is the register order for GDB}
               stab_str:=strpnew('"'+name+':r'
-                     +vartype.def^.numberstring+'",'+
+                     +pstoreddef(vartype.def)^.numberstring+'",'+
                      tostr(N_RSYM)+',0,'+
                      tostr(fileinfo.line)+','+tostr(GDB_i386index[reg]));
               asmlist^.concat(new(pai_stabs,init(stab_str)));
@@ -1512,7 +1809,7 @@
 
     constructor ttypedconstsym.init(const n : string;p : pdef;really_const : boolean);
       begin
-         tsym.init(n);
+         inherited init(n);
          typ:=typedconstsym;
          typedconsttype.setdef(p);
          is_really_const:=really_const;
@@ -1529,7 +1826,7 @@
 
     constructor ttypedconstsym.load;
       begin
-         tsym.load;
+         inherited load;
          typ:=typedconstsym;
          typedconsttype.load;
          prefix:=stringdup(readstring);
@@ -1540,7 +1837,7 @@
     destructor ttypedconstsym.done;
       begin
          stringdispose(prefix);
-         tsym.done;
+         inherited done;
       end;
 
 
@@ -1567,7 +1864,7 @@
 
     procedure ttypedconstsym.write;
       begin
-         tsym.write;
+         inherited write;
          typedconsttype.write;
          writestring(prefix^);
          writebyte(byte(is_really_const));
@@ -1582,7 +1879,7 @@
         storefilepos : tfileposinfo;
       begin
         storefilepos:=aktfilepos;
-        aktfilepos:=tokenpos;
+        aktfilepos:=akttokenpos;
         if is_really_const then
           curconstsegment:=consts
         else
@@ -1630,7 +1927,7 @@
     else
       st := 'S';
     stabstring := strpnew('"'+name+':'+st+
-            typedconsttype.def^.numberstring+'",'+tostr(n_STSYM)+',0,'+
+            pstoreddef(typedconsttype.def)^.numberstring+'",'+tostr(n_STSYM)+',0,'+
             tostr(fileinfo.line)+','+mangledname);
     end;
 {$endif GDB}
@@ -1684,7 +1981,7 @@
          l1,l2 : longint;
 
       begin
-         tsym.load;
+         inherited load;
          typ:=constsym;
          consttype.reset;
          consttyp:=tconsttyp(readbyte);
@@ -1788,7 +2085,7 @@
 
     procedure tconstsym.write;
       begin
-         tsym.write;
+         inherited write;
          writebyte(byte(consttyp));
          case consttyp of
            constnil : ;
@@ -1882,7 +2179,7 @@
 
     constructor tenumsym.init(const n : string;def : penumdef;v : longint);
       begin
-         tsym.init(n);
+         inherited init(n);
          typ:=enumsym;
          definition:=def;
          value:=v;
@@ -1896,9 +2193,9 @@
 
     constructor tenumsym.load;
       begin
-         tsym.load;
+         inherited load;
          typ:=enumsym;
-         definition:=penumdef(readdefref);
+         definition:=penumdef(readderef);
          value:=readlong;
          nextenum := Nil;
       end;
@@ -1915,7 +2212,7 @@
       var
          sym : penumsym;
       begin
-         sym := definition^.firstenum;
+         sym := penumsym(definition^.firstenum);
          if sym = nil then
           begin
             definition^.firstenum := @self;
@@ -1940,8 +2237,8 @@
 
     procedure tenumsym.write;
       begin
-         tsym.write;
-         writedefref(definition);
+         inherited write;
+         writederef(definition);
          writelong(value);
          current_ppu^.writeentry(ibenumsym);
       end;
@@ -1962,7 +2259,7 @@
     constructor ttypesym.init(const n : string;const tt : ttype);
 
       begin
-         tsym.init(n);
+         inherited init(n);
          typ:=typesym;
          restype:=tt;
 {$ifdef GDB}
@@ -2001,7 +2298,7 @@
 
     constructor ttypesym.load;
       begin
-         tsym.load;
+         inherited load;
          typ:=typesym;
 {$ifdef SYNONYM}
          synonym:=nil;
@@ -2037,6 +2334,11 @@
       end;
 {$endif}
 
+    function  ttypesym.gettypedef:pdef;
+      begin
+        gettypedef:=restype.def;
+      end;
+
 
     procedure ttypesym.prederef;
       begin
@@ -2071,7 +2373,7 @@
 
     procedure ttypesym.write;
       begin
-         tsym.write;
+         inherited write;
          restype.write;
          current_ppu^.writeentry(ibtypesym);
       end;
@@ -2081,9 +2383,9 @@
       begin
          inherited load_references;
          if (restype.def^.deftype=recorddef) then
-           precorddef(restype.def)^.symtable^.load_browser;
+           pstoredsymtable(precorddef(restype.def)^.symtable)^.load_browser;
          if (restype.def^.deftype=objectdef) then
-           pobjectdef(restype.def)^.symtable^.load_browser;
+           pstoredsymtable(pobjectdef(restype.def)^.symtable)^.load_browser;
       end;
 
 
@@ -2096,27 +2398,15 @@
          if (restype.def^.deftype=recorddef) or
             (restype.def^.deftype=objectdef) then
           begin
-            writesymref(@self);
+            writederef(@self);
             current_ppu^.writeentry(ibsymref);
           end;
          write_references:=true;
          if (restype.def^.deftype=recorddef) then
-           precorddef(restype.def)^.symtable^.write_browser;
+           pstoredsymtable(precorddef(restype.def)^.symtable)^.write_browser;
          if (restype.def^.deftype=objectdef) then
-           pobjectdef(restype.def)^.symtable^.write_browser;
+           pstoredsymtable(pobjectdef(restype.def)^.symtable)^.write_browser;
       end;
-
-
-{$ifdef BrowserLog}
-    procedure ttypesym.add_to_browserlog;
-      begin
-         inherited add_to_browserlog;
-         if (restype.def^.deftype=recorddef) then
-           precorddef(restype.def)^.symtable^.writebrowserlog;
-         if (restype.def^.deftype=objectdef) then
-           pobjectdef(restype.def)^.symtable^.writebrowserlog;
-      end;
-{$endif BrowserLog}
 
 
 {$ifdef GDB}
@@ -2129,7 +2419,7 @@
         stabchar := 'Tt'
       else
         stabchar := 't';
-      short := '"'+name+':'+stabchar+restype.def^.numberstring
+      short := '"'+name+':'+stabchar+pstoreddef(restype.def)^.numberstring
                +'",'+tostr(N_LSYM)+',0,'+tostr(fileinfo.line)+',0';
       stabstring := strpnew(short);
     end;
@@ -2139,7 +2429,7 @@
       {not stabs for forward defs }
       if assigned(restype.def) then
         if (restype.def^.typesym = @self) then
-          restype.def^.concatstabto(asmlist)
+          pstoreddef(restype.def)^.concatstabto(asmlist)
         else
           inherited concatstabto(asmlist);
       end;
@@ -2159,7 +2449,7 @@
 
     constructor tsyssym.load;
       begin
-         tsym.load;
+         inherited load;
          typ:=syssym;
          number:=readlong;
       end;
@@ -2171,7 +2461,7 @@
 
     procedure tsyssym.write;
       begin
-         tsym.write;
+         inherited write;
          writelong(number);
          current_ppu^.writeentry(ibsyssym);
       end;
@@ -2183,67 +2473,10 @@
 {$endif GDB}
 
 
-{****************************************************************************
-                                  TMACROSYM
-****************************************************************************}
-
-    constructor tmacrosym.init(const n : string);
-      begin
-         inherited init(n);
-         typ:=macrosym;
-         defined:=true;
-         defined_at_startup:=false;
-         is_used:=false;
-         buftext:=nil;
-         buflen:=0;
-      end;
-
-    destructor tmacrosym.done;
-      begin
-         if assigned(buftext) then
-           freemem(buftext,buflen);
-         inherited done;
-      end;
-
-
+end.
 {
   $Log$
-  Revision 1.11  2000-10-21 18:16:12  florian
-    * a lot of changes:
-       - basic dyn. array support
-       - basic C++ support
-       - some work for interfaces done
-       ....
-
-  Revision 1.10  2000/10/15 07:47:53  peter
-    * unit names and procedure names are stored mixed case
-
-  Revision 1.9  2000/09/24 21:19:52  peter
-    * delphi compile fixes
-
-  Revision 1.8  2000/09/19 23:08:03  pierre
-   * fixes for local class debuggging problem (merged)
-
-  Revision 1.7  2000/08/27 20:19:39  peter
-    * store strings with case in ppu, when an internal symbol is created
-      a '$' is prefixed so it's not automatic uppercased
-
-  Revision 1.6  2000/08/21 11:27:44  pierre
-   * fix the stabs problems
-
-  Revision 1.5  2000/08/16 13:06:07  florian
-    + support of 64 bit integer constants
-
-  Revision 1.4  2000/08/13 12:54:56  peter
-    * class member decl wrong then no other error after it
-    * -vb has now also line numbering
-    * -vb is also used for interface/implementation different decls and
-      doesn't list the current function (merged)
-
-  Revision 1.3  2000/07/13 12:08:27  michael
-  + patched to 1.1.0 with former 1.09patch from peter
-
-  Revision 1.2  2000/07/13 11:32:49  michael
-  + removed logs
+  Revision 1.1  2000-10-31 22:02:52  peter
+    * symtable splitted, no real code changes
 
 }

@@ -39,7 +39,7 @@ implementation
     uses
       globtype,systems,
       cutils,cobjects,verbose,globals,fmodule,
-      symconst,symtable,aasm,types,
+      symconst,symbase,symtype,symdef,symsym,aasm,types,
       hcodegen,temp_gen,pass_1,pass_2,
       cpubase,cpuasm,
       nbas,ncon,ncal,ncnv,nld,
@@ -682,7 +682,6 @@ implementation
            dummycoll : tparaitem;
            has_code, has_32bit_code, oldregisterdef: boolean;
            r : preference;
-           l : longint;
 
           begin
            dummycoll.init;
@@ -1308,11 +1307,11 @@ implementation
               end;
             in_typeinfo_x:
                begin
-                  ttypenode(tcallparanode(left).left).typenodetype^.generate_rtti;
+                  pstoreddef(ttypenode(tcallparanode(left).left).typenodetype)^.generate_rtti;
                   location.register:=getregister32;
                   new(r);
                   reset_reference(r^);
-                  r^.symbol:=ttypenode(tcallparanode(left).left).typenodetype^.rtti_label;
+                  r^.symbol:=pstoreddef(ttypenode(tcallparanode(left).left).typenodetype)^.rtti_label;
                   emit_ref_reg(A_MOV,S_L,r,location.register);
                end;
             in_assigned_x :
@@ -1398,7 +1397,7 @@ implementation
                        emitpushreferenceaddr(hr);
                        push_int(l);
                        reset_reference(hr2);
-                       hr2.symbol:=def^.get_inittable_label;
+                       hr2.symbol:=pstoreddef(def)^.get_inittable_label;
                        emitpushreferenceaddr(hr2);
                        emitpushreferenceaddr(tcallparanode(hp).left.location.reference);
                        emitcall('FPC_DYNARR_SETLENGTH');
@@ -1630,7 +1629,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.3  2000-10-26 14:15:07  jonas
+  Revision 1.4  2000-10-31 22:02:56  peter
+    * symtable splitted, no real code changes
+
+  Revision 1.3  2000/10/26 14:15:07  jonas
     * fixed setlength for shortstrings
 
   Revision 1.2  2000/10/21 18:16:13  florian

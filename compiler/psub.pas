@@ -50,7 +50,7 @@ implementation
        { aasm }
        cpubase,aasm,
        { symtable }
-       symconst,symtable,types,
+       symconst,symbase,symtype,symdef,symsym,symtable,types,
        ppu,fmodule,
        { pass 1 }
        node,pass_1,
@@ -109,12 +109,12 @@ implementation
            begin
               { if the current is a function aktprocsym is non nil }
               { and there is a local symtable set }
-              storepos:=tokenpos;
-              tokenpos:=aktprocsym^.fileinfo;
+              storepos:=akttokenpos;
+              akttokenpos:=aktprocsym^.fileinfo;
               funcretsym:=new(pfuncretsym,init(aktprocsym^.name,procinfo));
               { insert in local symtable }
               symtablestack^.insert(funcretsym);
-              tokenpos:=storepos;
+              akttokenpos:=storepos;
               if ret_in_acc(procinfo^.returntype.def) or (procinfo^.returntype.def^.deftype=floatdef) then
                 procinfo^.return_offset:=-funcretsym^.address;
               procinfo^.funcretsym:=funcretsym;
@@ -444,8 +444,8 @@ implementation
            begin
              if (Errorcount=0) then
                begin
-                 aktprocsym^.definition^.localst^.check_forwards;
-                 aktprocsym^.definition^.localst^.checklabels;
+                 pstoredsymtable(aktprocsym^.definition^.localst)^.check_forwards;
+                 pstoredsymtable(aktprocsym^.definition^.localst)^.checklabels;
                end;
              if (procinfo^.flags and pi_uses_asm)=0 then
                begin
@@ -453,8 +453,8 @@ implementation
                     it will be done in proc_unit }
                   if not(aktprocsym^.definition^.proctypeoption
                      in [potype_proginit,potype_unitinit,potype_unitfinalize]) then
-                     aktprocsym^.definition^.localst^.allsymbolsused;
-                  aktprocsym^.definition^.parast^.allsymbolsused;
+                     pstoredsymtable(aktprocsym^.definition^.localst)^.allsymbolsused;
+                  pstoredsymtable(aktprocsym^.definition^.parast)^.allsymbolsused;
                end;
            end;
 
@@ -832,7 +832,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.19  2000-10-24 22:21:25  peter
+  Revision 1.20  2000-10-31 22:02:50  peter
+    * symtable splitted, no real code changes
+
+  Revision 1.19  2000/10/24 22:21:25  peter
     * set usedregisters after writing entry and exit code (merged)
 
   Revision 1.18  2000/10/21 18:16:12  florian

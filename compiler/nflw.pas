@@ -28,7 +28,8 @@ unit nflw;
 interface
 
     uses
-       node,aasm,cpubase,symtable;
+       node,aasm,cpubase,
+       symbase,symdef,symsym;
 
     type
        tloopnode = class(tbinarynode)
@@ -143,7 +144,7 @@ implementation
     uses
       globtype,systems,
       cutils,cobjects,verbose,globals,
-      symconst,types,htypechk,pass_1,
+      symconst,symtable,types,htypechk,pass_1,
       ncon,nmem,nld,ncnv,nbas
 {$ifdef newcg}
       ,tgobj
@@ -993,7 +994,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.8  2000-10-21 18:16:11  florian
+  Revision 1.9  2000-10-31 22:02:48  peter
+    * symtable splitted, no real code changes
+
+  Revision 1.8  2000/10/21 18:16:11  florian
     * a lot of changes:
        - basic dyn. array support
        - basic C++ support

@@ -30,7 +30,7 @@ interface
     uses
        cobjects,
        cpubase,cpuasm,
-       symconst,symtable,aasm;
+       symconst,symtype,symdef,aasm;
 
 {$define TESTGETTEMP to store const that
  are written into temps for later release PM }
@@ -148,7 +148,7 @@ procedure mov_reg_to_dest(p : ptree; s : topsize; reg : tregister);
 {$endif test_dest_loc}
 
 
-  implementation
+implementation
 
     uses
 {$ifdef delphi}
@@ -156,7 +156,10 @@ procedure mov_reg_to_dest(p : ptree; s : topsize; reg : tregister);
 {$else}
        strings,
 {$endif}
-       cutils,globtype,systems,globals,verbose,fmodule,types,
+       cutils,
+       globtype,systems,globals,verbose,
+       fmodule,
+       symbase,symsym,symtable,types,
        tgeni386,temp_gen,hcodegen,regvars
 {$ifdef GDB}
        ,gdb
@@ -1590,7 +1593,7 @@ procedure mov_reg_to_dest(p : ptree; s : topsize; reg : tregister);
          else
            begin
               reset_reference(hr);
-              hr.symbol:=t^.get_inittable_label;
+              hr.symbol:=pstoreddef(t)^.get_inittable_label;
               emitpushreferenceaddr(hr);
               if is_already_ref then
                 exprasmlist^.concat(new(paicpu,op_ref(A_PUSH,S_L,
@@ -1618,7 +1621,7 @@ procedure mov_reg_to_dest(p : ptree; s : topsize; reg : tregister);
          else
            begin
               reset_reference(r);
-              r.symbol:=t^.get_inittable_label;
+              r.symbol:=pstoreddef(t)^.get_inittable_label;
               emitpushreferenceaddr(r);
               if is_already_ref then
                 exprasmlist^.concat(new(paicpu,op_ref(A_PUSH,S_L,
@@ -1677,7 +1680,7 @@ procedure mov_reg_to_dest(p : ptree; s : topsize; reg : tregister);
          begin
             procinfo^.flags:=procinfo^.flags or pi_needs_implicit_finally;
             reset_reference(hr);
-            hr.symbol:=pvarsym(p)^.vartype.def^.get_inittable_label;
+            hr.symbol:=pstoreddef(pvarsym(p)^.vartype.def)^.get_inittable_label;
             emitpushreferenceaddr(hr);
             reset_reference(hr);
             hr.base:=procinfo^.framepointer;
@@ -2702,20 +2705,20 @@ procedure mov_reg_to_dest(p : ptree; s : topsize; reg : tregister);
                 begin
                   if ret_in_param(aktprocsym^.definition^.rettype.def) then
                     exprasmlist^.concat(new(pai_stabs,init(strpnew(
-                     '"'+aktprocsym^.name+':X*'+aktprocsym^.definition^.rettype.def^.numberstring+'",'+
+                     '"'+aktprocsym^.name+':X*'+pstoreddef(aktprocsym^.definition^.rettype.def)^.numberstring+'",'+
                      tostr(N_PSYM)+',0,0,'+tostr(procinfo^.return_offset)))))
                   else
                     exprasmlist^.concat(new(pai_stabs,init(strpnew(
-                     '"'+aktprocsym^.name+':X'+aktprocsym^.definition^.rettype.def^.numberstring+'",'+
+                     '"'+aktprocsym^.name+':X'+pstoreddef(aktprocsym^.definition^.rettype.def)^.numberstring+'",'+
                      tostr(N_PSYM)+',0,0,'+tostr(procinfo^.return_offset)))));
                   if (m_result in aktmodeswitches) then
                     if ret_in_param(aktprocsym^.definition^.rettype.def) then
                       exprasmlist^.concat(new(pai_stabs,init(strpnew(
-                       '"RESULT:X*'+aktprocsym^.definition^.rettype.def^.numberstring+'",'+
+                       '"RESULT:X*'+pstoreddef(aktprocsym^.definition^.rettype.def)^.numberstring+'",'+
                        tostr(N_PSYM)+',0,0,'+tostr(procinfo^.return_offset)))))
                     else
                       exprasmlist^.concat(new(pai_stabs,init(strpnew(
-                       '"RESULT:X'+aktprocsym^.definition^.rettype.def^.numberstring+'",'+
+                       '"RESULT:X'+pstoreddef(aktprocsym^.definition^.rettype.def)^.numberstring+'",'+
                        tostr(N_PSYM)+',0,0,'+tostr(procinfo^.return_offset)))));
                 end;
               mangled_length:=length(aktprocsym^.definition^.mangledname);
@@ -2813,7 +2816,10 @@ procedure mov_reg_to_dest(p : ptree; s : topsize; reg : tregister);
 end.
 {
   $Log$
-  Revision 1.5  2000-10-24 22:23:04  peter
+  Revision 1.6  2000-10-31 22:02:55  peter
+    * symtable splitted, no real code changes
+
+  Revision 1.5  2000/10/24 22:23:04  peter
     * emitcall -> emitinsertcall for profiling (merged)
 
   Revision 1.4  2000/10/24 12:47:45  jonas

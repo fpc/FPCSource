@@ -46,7 +46,7 @@ implementation
     uses
       globtype,systems,cpuinfo,
       cobjects,verbose,globals,
-      symconst,symtable,aasm,types,
+      symconst,symdef,aasm,types,
       hcodegen,temp_gen,pass_2,
       ncon,
       cpubase,cpuasm,
@@ -1061,7 +1061,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.2  2000-10-26 15:53:27  jonas
+  Revision 1.3  2000-10-31 22:02:57  peter
+    * symtable splitted, no real code changes
+
+  Revision 1.2  2000/10/26 15:53:27  jonas
     * fixed web bug1192 (changed an ungetregister32 to ungetregister)
       ("merged" from fixes)
 

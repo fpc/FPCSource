@@ -43,7 +43,7 @@ implementation
        { aasm }
        aasm,
        { symtable }
-       symconst,symtable,types,fmodule,
+       symconst,symbase,symtype,symdef,symsym,symtable,types,fmodule,
 {$ifdef GDB}
        gdb,
 {$endif}
@@ -83,10 +83,10 @@ implementation
            filepos : tfileposinfo;
            ss : pvarsym;
         begin
-           filepos:=tokenpos;
+           filepos:=akttokenpos;
            while not sc^.empty do
              begin
-                s:=sc^.get_with_tokeninfo(tokenpos);
+                s:=sc^.get_with_tokeninfo(akttokenpos);
                 ss:=new(pvarsym,init(s,tt));
                 if is_threadvar then
                   include(ss^.varoptions,vo_is_thread_var);
@@ -104,7 +104,7 @@ implementation
                writeln('problem with strContStack in pdecl (2)');
 {$endif fixLeaksOnError}
            dispose(sc,done);
-           tokenpos:=filepos;
+           akttokenpos:=filepos;
         end;
 
       var
@@ -181,8 +181,8 @@ implementation
              symdone:=false;
              if is_gpc_name then
                begin
-                  storetokenpos:=tokenpos;
-                  s:=sc^.get_with_tokeninfo(tokenpos);
+                  storetokenpos:=akttokenpos;
+                  s:=sc^.get_with_tokeninfo(akttokenpos);
                   if not sc^.empty then
                    Message(parser_e_absolute_only_one_var);
 {$ifdef fixLeaksOnError}
@@ -193,7 +193,7 @@ implementation
                   aktvarsym:=new(pvarsym,init_C(s,target_os.Cprefix+C_name,tt));
                   include(aktvarsym^.varoptions,vo_is_external);
                   symtablestack^.insert(aktvarsym);
-                  tokenpos:=storetokenpos;
+                  akttokenpos:=storetokenpos;
                   symdone:=true;
                end;
              { check for absolute }
@@ -225,26 +225,26 @@ implementation
                    { we should check the result type of srsym }
                    if not (srsym^.typ in [varsym,typedconstsym,funcretsym]) then
                      Message(parser_e_absolute_only_to_var_or_const);
-                   storetokenpos:=tokenpos;
-                   tokenpos:=declarepos;
+                   storetokenpos:=akttokenpos;
+                   akttokenpos:=declarepos;
                    abssym:=new(pabsolutesym,init(s,tt));
                    abssym^.abstyp:=tovar;
-                   abssym^.ref:=srsym;
+                   abssym^.ref:=pstoredsym(srsym);
                    symtablestack^.insert(abssym);
-                   tokenpos:=storetokenpos;
+                   akttokenpos:=storetokenpos;
                  end
                 else
                  if (token=_CSTRING) or (token=_CCHAR) then
                   begin
-                    storetokenpos:=tokenpos;
-                    tokenpos:=declarepos;
+                    storetokenpos:=akttokenpos;
+                    akttokenpos:=declarepos;
                     abssym:=new(pabsolutesym,init(s,tt));
                     s:=pattern;
                     consume(token);
                     abssym^.abstyp:=toasm;
                     abssym^.asmname:=stringdup(s);
                     symtablestack^.insert(abssym);
-                    tokenpos:=storetokenpos;
+                    akttokenpos:=storetokenpos;
                   end
                 else
                 { absolute address ?!? }
@@ -252,8 +252,8 @@ implementation
                   begin
                     if (target_info.target=target_i386_go32v2) then
                      begin
-                       storetokenpos:=tokenpos;
-                       tokenpos:=declarepos;
+                       storetokenpos:=akttokenpos;
+                       akttokenpos:=declarepos;
                        abssym:=new(pabsolutesym,init(s,tt));
                        abssym^.abstyp:=toaddr;
                        abssym^.absseg:=false;
@@ -270,7 +270,7 @@ implementation
                           abssym^.absseg:=true;
                         end;
                        symtablestack^.insert(abssym);
-                       tokenpos:=storetokenpos;
+                       akttokenpos:=storetokenpos;
                      end
                     else
                      Message(parser_e_absolute_only_to_var_or_const);
@@ -288,13 +288,13 @@ implementation
                 not (symtablestack^.symtabletype in [parasymtable]) and
                 not is_record and not is_object then
                begin
-                  storetokenpos:=tokenpos;
-                  s:=sc^.get_with_tokeninfo(tokenpos);
+                  storetokenpos:=akttokenpos;
+                  s:=sc^.get_with_tokeninfo(akttokenpos);
                   if not sc^.empty then
                     Message(parser_e_initialized_only_one_var);
                   pconstsym:=new(ptypedconstsym,inittype(s,tt,false));
                   symtablestack^.insert(pconstsym);
-                  tokenpos:=storetokenpos;
+                  akttokenpos:=storetokenpos;
                   consume(_EQUAL);
                   readtypedconst(tt.def,pconstsym,false);
                   symdone:=true;
@@ -373,8 +373,8 @@ implementation
                    if extern_aktvarsym or export_aktvarsym then
                     consume(_SEMICOLON);
                    { insert in the symtable }
-                   storetokenpos:=tokenpos;
-                   tokenpos:=declarepos;
+                   storetokenpos:=akttokenpos;
+                   akttokenpos:=declarepos;
                    if is_dll then
                     aktvarsym:=new(pvarsym,init_dll(s,tt))
                    else
@@ -389,7 +389,7 @@ implementation
                     include(aktvarsym^.varoptions,vo_is_external);
                    { insert in the stack/datasegment }
                    symtablestack^.insert(aktvarsym);
-                   tokenpos:=storetokenpos;
+                   akttokenpos:=storetokenpos;
                    { now we can insert it in the import lib if its a dll, or
                      add it to the externals }
                    if extern_aktvarsym then
@@ -460,7 +460,7 @@ implementation
                Message(type_e_ordinal_expr_expected);
               consume(_OF);
 {$ifdef UseUnionSymtable}
-              UnionSymtable:=new(psymtable,init(recordsymtable));
+              UnionSymtable:=new(pstoredsymtable,init(recordsymtable));
               UnionSymtable^.next:=symtablestack;
               registerdef:=false;
               UnionDef:=new(precorddef,init(unionsymtable));
@@ -514,7 +514,7 @@ implementation
               symtablestack^.datasize:=offset+unionsymtable^.datasize;
               if maxalignment>symtablestack^.dataalignment then
                 symtablestack^.dataalignment:=maxalignment;
-              UnionSymtable^.Insert_in(symtablestack,offset);
+              pstoredsymtable(UnionSymtable)^.Insert_in(symtablestack,offset);
               UnionSym^.owner:=nil;
               dispose(unionsym,done);
               dispose(uniondef,done);
@@ -527,7 +527,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.1  2000-10-14 10:14:51  peter
+  Revision 1.2  2000-10-31 22:02:49  peter
+    * symtable splitted, no real code changes
+
+  Revision 1.1  2000/10/14 10:14:51  peter
     * moehrendorf oct 2000 rewrite
 
 }

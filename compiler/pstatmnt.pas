@@ -46,7 +46,7 @@ implementation
        { aasm }
        cpubase,aasm,
        { symtable }
-       symconst,symtable,types,
+       symconst,symbase,symtype,symdef,symsym,symtable,types,
        ppu,fmodule,
        { pass 1 }
        pass_1,htypechk,
@@ -610,7 +610,7 @@ implementation
                                     else
                                       Message1(type_e_class_type_expected,ot^.typename);
                                  end;
-                               exceptsymtable:=new(psymtable,init(stt_exceptsymtable));
+                               exceptsymtable:=new(pstoredsymtable,init(stt_exceptsymtable));
                                exceptsymtable^.insert(sym);
                                { insert the exception symtable stack }
                                exceptsymtable^.next:=symtablestack;
@@ -864,7 +864,7 @@ implementation
             { function styled new is handled in factor }
             { destructors have no parameters }
             destructorname:=pattern;
-            destructorpos:=tokenpos;
+            destructorpos:=akttokenpos;
             consume(_ID);
 
             pd:=p.resulttype;
@@ -902,10 +902,10 @@ implementation
                  exit;
               end;
             { search cons-/destructor, also in parent classes }
-            storepos:=tokenpos;
-            tokenpos:=destructorpos;
+            storepos:=akttokenpos;
+            akttokenpos:=destructorpos;
             sym:=search_class_member(classh,destructorname);
-            tokenpos:=storepos;
+            akttokenpos:=storepos;
 
             { the second parameter of new/dispose must be a call }
             { to a cons-/destructor                              }
@@ -1019,7 +1019,7 @@ implementation
       label
          ready;
       begin
-         filepos:=tokenpos;
+         filepos:=akttokenpos;
          case token of
            _GOTO :
              begin
@@ -1148,7 +1148,7 @@ implementation
 
       begin
          first:=nil;
-         filepos:=tokenpos;
+         filepos:=akttokenpos;
          consume(starttoken);
          inc(statement_level);
 
@@ -1252,13 +1252,16 @@ implementation
             assembler_block:=_asm_statement;
           { becuase the END is already read we need to get the
             last_endtoken_filepos here (PFV) }
-            last_endtoken_filepos:=tokenpos;
+            last_endtoken_filepos:=akttokenpos;
           end;
 
 end.
 {
   $Log$
-  Revision 1.11  2000-10-14 21:52:56  peter
+  Revision 1.12  2000-10-31 22:02:50  peter
+    * symtable splitted, no real code changes
+
+  Revision 1.11  2000/10/14 21:52:56  peter
     * fixed memory leaks
 
   Revision 1.10  2000/10/14 10:14:52  peter

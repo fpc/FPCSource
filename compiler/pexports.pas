@@ -41,7 +41,7 @@ implementation
        { aasm }
        aasm,
        { symtable }
-       symconst,symtable,types,
+       symconst,symdef,symsym,symtable,types,
        { pass 1 }
        node,pass_1,
        ncon,
@@ -169,7 +169,10 @@ end.
 
 {
   $Log$
-  Revision 1.6  2000-10-14 10:14:51  peter
+  Revision 1.7  2000-10-31 22:02:49  peter
+    * symtable splitted, no real code changes
+
+  Revision 1.6  2000/10/14 10:14:51  peter
     * moehrendorf oct 2000 rewrite
 
   Revision 1.5  2000/09/24 21:19:50  peter

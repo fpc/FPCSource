@@ -86,7 +86,7 @@ implementation
 
     uses
       cobjects,verbose,globtype,globals,systems,
-      symconst,symtable,aasm,types,
+      symconst,symdef,symsym,aasm,types,
       hcodegen,temp_gen,pass_2,
       cpubase,cpuasm,
       pass_1,nld,ncon,
@@ -1284,7 +1284,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.1  2000-10-15 09:33:31  peter
+  Revision 1.2  2000-10-31 22:02:56  peter
+    * symtable splitted, no real code changes
+
+  Revision 1.1  2000/10/15 09:33:31  peter
     * moved n386*.pas to i386/ cpu_target dir
 
   Revision 1.1  2000/10/14 10:14:48  peter

@@ -49,7 +49,7 @@ implementation
     uses
       cobjects,verbose,globals,systems,
       globtype,
-      symconst,symtable,aasm,types,
+      symconst,symtype,symdef,symsym,symtable,aasm,types,
       pass_1,
       ncal,ncon,ncnv,nadd,nld,nbas,
       cpubase
@@ -133,7 +133,7 @@ implementation
                end;
              enumdef:
                begin
-                  enum:=Penumdef(Adef)^.firstenum;
+                  enum:=penumsym(Penumdef(Adef)^.firstenum);
                   if inlinenumber=in_high_x then
                     while enum^.nextenum<>nil do
                       enum:=enum^.nextenum;
@@ -692,7 +692,7 @@ implementation
                        if (counter>1) and
                          (not(is_dynamic_array(left.resulttype))) then
                          CGMessage(type_e_mismatch);
-                         
+
                        { convert shortstrings to openstring parameters }
                        { (generate the hightree) (JM)                  }
                        if (ppn.left.resulttype^.deftype = stringdef) and
@@ -1464,7 +1464,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.11  2000-10-26 14:15:06  jonas
+  Revision 1.12  2000-10-31 22:02:48  peter
+    * symtable splitted, no real code changes
+
+  Revision 1.11  2000/10/26 14:15:06  jonas
     * fixed setlength for shortstrings
 
   Revision 1.10  2000/10/21 18:16:11  florian

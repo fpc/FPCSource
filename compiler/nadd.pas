@@ -47,7 +47,7 @@ implementation
     uses
       globtype,systems,tokens,
       cobjects,cutils,verbose,globals,
-      symconst,symtable,aasm,types,
+      symconst,symtype,symdef,symtable,aasm,types,
       cpuinfo,
 {$ifdef newcg}
       cgbase,
@@ -1232,7 +1232,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.13  2000-10-14 10:14:50  peter
+  Revision 1.14  2000-10-31 22:02:47  peter
+    * symtable splitted, no real code changes
+
+  Revision 1.13  2000/10/14 10:14:50  peter
     * moehrendorf oct 2000 rewrite
 
   Revision 1.12  2000/10/01 19:48:23  peter

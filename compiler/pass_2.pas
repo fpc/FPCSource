@@ -49,7 +49,7 @@ implementation
    uses
      globtype,systems,
      cobjects,comphook,verbose,globals,fmodule,
-     symconst,symtable,types,aasm,scanner,
+     symconst,symbase,symtype,symsym,symtable,types,aasm,scanner,
      pass_1,hcodegen,temp_gen,cpubase,cpuasm,regvars,nflw
 {$ifdef GDB}
      ,gdb
@@ -311,7 +311,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.9  2000-10-14 10:14:51  peter
+  Revision 1.10  2000-10-31 22:02:49  peter
+    * symtable splitted, no real code changes
+
+  Revision 1.9  2000/10/14 10:14:51  peter
     * moehrendorf oct 2000 rewrite
 
   Revision 1.8  2000/09/24 15:06:21  peter

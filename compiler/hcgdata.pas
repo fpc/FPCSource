@@ -28,7 +28,7 @@ unit hcgdata;
 interface
 
     uses
-       symtable,aasm;
+       symdef,aasm;
 
     { generates the message tables for a class }
     function genstrmsgtab(_class : pobjectdef) : pasmlabel;
@@ -60,7 +60,7 @@ implementation
 {$endif}
        cutils,cobjects,
        globtype,globals,verbose,
-       symconst,types,
+       symconst,symtype,symsym,types,
        hcodegen, systems,fmodule
 {$ifdef INTERFACE_SUPPORT}
 {$ifdef i386}
@@ -1039,7 +1039,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.7  2000-10-14 10:14:47  peter
+  Revision 1.8  2000-10-31 22:02:47  peter
+    * symtable splitted, no real code changes
+
+  Revision 1.7  2000/10/14 10:14:47  peter
     * moehrendorf oct 2000 rewrite
 
   Revision 1.6  2000/09/24 21:19:50  peter

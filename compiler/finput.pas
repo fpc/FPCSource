@@ -27,7 +27,7 @@ unit finput;
 interface
 
     uses
-      cutils;
+      cutils,cobjects;
 
     const
        InputFileBufSize=32*1024;
@@ -109,6 +109,35 @@ interface
           function  get_file_path(l :longint):string;
        end;
 
+{****************************************************************************
+                                TModuleBase
+ ****************************************************************************}
+
+       pmodulebase = ^tmodulebase;
+       tmodulebase = object(tlinkedlist_item)
+          { index }
+          unit_index    : word;     { global counter for browser }
+          { sources }
+          sourcefiles   : pinputfilemanager;
+          { paths and filenames }
+          path,                     { path where the module is find/created }
+          outputpath,               { path where the .s / .o / exe are created }
+          modulename,               { name of the module in uppercase }
+          realmodulename,           { name of the module in the orignal case }
+          objfilename,              { fullname of the objectfile }
+          asmfilename,              { fullname of the assemblerfile }
+          ppufilename,              { fullname of the ppufile }
+          staticlibfilename,        { fullname of the static libraryfile }
+          sharedlibfilename,        { fullname of the shared libraryfile }
+          exefilename,              { fullname of the exefile }
+          mainsource   : pstring;   { name of the main sourcefile }
+          constructor init(const s:string);
+          destructor done;virtual;
+          procedure setfilename(const fn:string;allowoutput:boolean);
+       end;
+
+
+
 
 implementation
 
@@ -118,10 +147,7 @@ uses
 {$else Delphi}
   dos,
 {$endif Delphi}
-  cobjects,globals
-{$ifdef heaptrc}
-  ,fmodule
-{$endif heaptrc}
+  globals,systems
   ;
 
 {****************************************************************************
@@ -499,9 +525,9 @@ uses
          { update cache }
          cacheindex:=last_ref_index;
          cacheinputfile:=f;
-{$ifdef heaptrc}
+{$ifdef HEAPTRC}
          writeln(stderr,f^.name^,' index ',current_module^.unit_index*100000+f^.ref_index);
-{$endif heaptrc}
+{$endif HEAPTRC}
       end;
 
 
@@ -565,10 +591,107 @@ uses
      end;
 
 
+{****************************************************************************
+                                TModuleBase
+ ****************************************************************************}
+
+    procedure tmodulebase.setfilename(const fn:string;allowoutput:boolean);
+      var
+        p : dirstr;
+        n : NameStr;
+        e : ExtStr;
+      begin
+         stringdispose(objfilename);
+         stringdispose(asmfilename);
+         stringdispose(ppufilename);
+         stringdispose(staticlibfilename);
+         stringdispose(sharedlibfilename);
+         stringdispose(exefilename);
+         stringdispose(outputpath);
+         stringdispose(path);
+         { Create names }
+         fsplit(fn,p,n,e);
+         n:=FixFileName(n);
+         { set path }
+         path:=stringdup(FixPath(p,false));
+         { obj,asm,ppu names }
+         p:=path^;
+         if AllowOutput then
+          begin
+            if (OutputUnitDir<>'') then
+             p:=OutputUnitDir
+            else
+             if (OutputExeDir<>'') then
+              p:=OutputExeDir;
+          end;
+         outputpath:=stringdup(p);
+         objfilename:=stringdup(p+n+target_info.objext);
+         asmfilename:=stringdup(p+n+target_info.asmext);
+         ppufilename:=stringdup(p+n+target_info.unitext);
+         { lib and exe could be loaded with a file specified with -o }
+         if AllowOutput and (OutputFile<>'') and (compile_level=1) then
+          n:=OutputFile;
+         staticlibfilename:=stringdup(p+target_os.libprefix+n+target_os.staticlibext);
+         if target_info.target=target_i386_WIN32 then
+           sharedlibfilename:=stringdup(p+n+target_os.sharedlibext)
+         else
+           sharedlibfilename:=stringdup(p+target_os.libprefix+n+target_os.sharedlibext);
+         { output dir of exe can be specified separatly }
+         if AllowOutput and (OutputExeDir<>'') then
+          p:=OutputExeDir
+         else
+          p:=path^;
+         exefilename:=stringdup(p+n+target_info.exeext);
+      end;
+
+
+    constructor tmodulebase.init(const s:string);
+      begin
+        modulename:=stringdup(Upper(s));
+        realmodulename:=stringdup(s);
+        mainsource:=nil;
+        ppufilename:=nil;
+        objfilename:=nil;
+        asmfilename:=nil;
+        staticlibfilename:=nil;
+        sharedlibfilename:=nil;
+        exefilename:=nil;
+        outputpath:=nil;
+        path:=nil;
+        { unit index }
+        inc(global_unit_count);
+        unit_index:=global_unit_count;
+        { sources }
+        new(sourcefiles,init);
+      end;
+
+
+    destructor tmodulebase.done;
+      begin
+        if assigned(sourcefiles) then
+         dispose(sourcefiles,done);
+        sourcefiles:=nil;
+        stringdispose(objfilename);
+        stringdispose(asmfilename);
+        stringdispose(ppufilename);
+        stringdispose(staticlibfilename);
+        stringdispose(sharedlibfilename);
+        stringdispose(exefilename);
+        stringdispose(outputpath);
+        stringdispose(path);
+        stringdispose(modulename);
+        stringdispose(realmodulename);
+        stringdispose(mainsource);
+        inherited done;
+      end;
+
 end.
 {
   $Log$
-  Revision 1.3  2000-10-14 21:52:54  peter
+  Revision 1.4  2000-10-31 22:02:46  peter
+    * symtable splitted, no real code changes
+
+  Revision 1.3  2000/10/14 21:52:54  peter
     * fixed memory leaks
 
   Revision 1.2  2000/09/24 15:06:16  peter

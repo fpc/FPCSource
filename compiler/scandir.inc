@@ -175,7 +175,7 @@ const
     function read_factor : string;
       var
          hs : string;
-         mac : pmacrosym;
+         mac : pmacro;
          len : byte;
       begin
          if preproc_token=_ID then
@@ -191,7 +191,7 @@ const
                 end
               else
                 begin
-                   mac:=pmacrosym(macros^.search(hs));
+                   mac:=pmacro(current_scanner^.macros^.search(hs));
                    hs:=preprocpat;
                    preproc_consume(_ID);
                    if assigned(mac) then
@@ -338,7 +338,7 @@ const
     procedure dir_conditional(t:tdirectivetoken);
       var
         hs    : string;
-        mac   : pmacrosym;
+        mac   : pmacro;
         found : boolean;
         state : char;
         oldaktfilepos : tfileposinfo;
@@ -357,7 +357,7 @@ const
    _DIR_IFDEF : begin
                   current_scanner^.skipspace;
                   hs:=current_scanner^.readid;
-                  mac:=pmacrosym(macros^.search(hs));
+                  mac:=pmacro(current_scanner^.macros^.search(hs));
                   if assigned(mac) then
                     mac^.is_used:=true;
                   current_scanner^.addpreprocstack(pp_ifdef,assigned(mac) and mac^.defined,hs,scan_c_ifdef_found);
@@ -385,7 +385,7 @@ const
   _DIR_IFNDEF : begin
                   current_scanner^.skipspace;
                   hs:=current_scanner^.readid;
-                  mac:=pmacrosym(macros^.search(hs));
+                  mac:=pmacro(current_scanner^.macros^.search(hs));
                   if assigned(mac) then
                     mac^.is_used:=true;
                   current_scanner^.addpreprocstack(pp_ifndef,not(assigned(mac) and mac^.defined),hs,scan_c_ifndef_found);
@@ -414,19 +414,19 @@ const
       var
         hs  : string;
         bracketcount : longint;
-        mac : pmacrosym;
+        mac : pmacro;
         macropos : longint;
         macrobuffer : pmacrobuffer;
       begin
         current_scanner^.skipspace;
         hs:=current_scanner^.readid;
-        mac:=pmacrosym(macros^.search(hs));
+        mac:=pmacro(current_scanner^.macros^.search(hs));
         if not assigned(mac) then
           begin
-            mac:=new(pmacrosym,init(hs));
+            mac:=new(pmacro,init(hs));
             mac^.defined:=true;
             Message1(parser_m_macro_defined,mac^.name);
-            macros^.insert(mac);
+            current_scanner^.macros^.insert(mac);
           end
         else
           begin
@@ -506,17 +506,17 @@ const
     procedure dir_undef(t:tdirectivetoken);
       var
         hs  : string;
-        mac : pmacrosym;
+        mac : pmacro;
       begin
         current_scanner^.skipspace;
         hs:=current_scanner^.readid;
-        mac:=pmacrosym(macros^.search(hs));
+        mac:=pmacro(current_scanner^.macros^.search(hs));
         if not assigned(mac) then
           begin
-             mac:=new(pmacrosym,init(hs));
+             mac:=new(pmacro,init(hs));
              Message1(parser_m_macro_undefined,mac^.name);
              mac^.defined:=false;
-             macros^.insert(mac);
+             current_scanner^.macros^.insert(mac);
           end
         else
           begin
@@ -1436,7 +1436,10 @@ const
 
 {
   $Log$
-  Revision 1.9  2000-09-26 10:50:41  jonas
+  Revision 1.10  2000-10-31 22:02:51  peter
+    * symtable splitted, no real code changes
+
+  Revision 1.9  2000/09/26 10:50:41  jonas
     * initmodeswitches is changed is you change the compiler mode from the
       command line (the -S<x> switches didn't work anymore for changing the
       compiler mode) (merged from fixes branch)

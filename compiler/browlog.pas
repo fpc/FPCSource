@@ -26,7 +26,9 @@ unit browlog;
 
 interface
 uses
-  cobjects,globtype,fmodule,finput,symconst,symtable;
+  cobjects,globtype,
+  fmodule,finput,
+  symbase,symconst,symtype,symsym,symdef,symtable;
 
 const
   logbufsize   = 16384;
@@ -69,7 +71,9 @@ var
 implementation
 
   uses
-    cutils,comphook,globals,systems,verbose;
+    cutils,comphook,
+    globals,systems,verbose,
+    ppu;
 
     function get_file_line(ref:pref): string;
       var
@@ -255,7 +259,7 @@ implementation
 
     procedure tbrowserlog.browse_symbol(const sr : string);
       var
-         sym,symb : psym;
+         sym,symb : pstoredsym;
          symt : psymtable;
          hp : pmodule;
          s,ss : string;
@@ -285,9 +289,9 @@ implementation
          next_substring;
          if assigned(symt) then
            begin
-              sym:=symt^.search(ss);
+              sym:=pstoredsym(symt^.search(ss));
               if sym=nil then
-                sym:=symt^.search(upper(ss));
+                sym:=pstoredsym(symt^.search(upper(ss)));
            end
          else
            sym:=nil;
@@ -298,7 +302,7 @@ implementation
               if assigned(symt) then
                 begin
                    next_substring;
-                   sym:=symt^.search(ss);
+                   sym:=pstoredsym(symt^.search(ss));
                 end
               else
                 sym:=nil;
@@ -326,9 +330,9 @@ implementation
               else
                 begin
                    next_substring;
-                   sym:=symt^.search(ss);
+                   sym:=pstoredsym(symt^.search(ss));
                    if sym=nil then
-                     sym:=symt^.search(upper(ss));
+                     sym:=pstoredsym(symt^.search(upper(ss)));
                 end;
            end;
 
@@ -344,9 +348,9 @@ implementation
                             symt:=precorddef(ptypesym(sym)^.restype.def)^.symtable
                           else
                             symt:=pobjectdef(ptypesym(sym)^.restype.def)^.symtable;
-                          sym:=symt^.search(ss);
+                          sym:=pstoredsym(symt^.search(ss));
                           if sym=nil then
-                            sym:=symt^.search(upper(ss));
+                            sym:=pstoredsym(symt^.search(upper(ss)));
                        end;
                   end;
                 varsym :
@@ -357,33 +361,37 @@ implementation
                             symt:=precorddef(pvarsym(sym)^.vartype.def)^.symtable
                           else
                             symt:=pobjectdef(pvarsym(sym)^.vartype.def)^.symtable;
-                          sym:=symt^.search(ss);
+                          sym:=pstoredsym(symt^.search(ss));
                           if sym=nil then
-                            sym:=symt^.search(upper(ss));
+                            sym:=pstoredsym(symt^.search(upper(ss)));
                        end;
                   end;
                 procsym :
                   begin
                      symt:=pprocsym(sym)^.definition^.parast;
-                     symb:=symt^.search(ss);
+                     symb:=pstoredsym(symt^.search(ss));
                      if symb=nil then
-                       symb:=symt^.search(upper(ss));
+                       symb:=pstoredsym(symt^.search(upper(ss)));
                      if not assigned(symb) then
                        begin
                           symt:=pprocsym(sym)^.definition^.parast;
-                          sym:=symt^.search(ss);
+                          sym:=pstoredsym(symt^.search(ss));
                           if symb=nil then
-                            symb:=symt^.search(upper(ss));
+                            symb:=pstoredsym(symt^.search(upper(ss)));
                        end
                      else
                        sym:=symb;
                   end;
-                {else
-                  sym^.add_to_browserlog;}
                 end;
            end;
            if assigned(sym) then
-             sym^.add_to_browserlog
+            begin
+              if assigned(sym^.defref) then
+               begin
+                 browserlog.AddLog('***'+sym^.name+'***');
+                 browserlog.AddLogRefs(sym^.defref);
+               end;
+            end
            else
              addlog('!!!Symbol '+ss+' not found !!!');
            make_ref:=true;
@@ -401,13 +409,80 @@ implementation
       end;
 
 
+    procedure writesymtable(p:psymtable);
+      var
+        hp : pstoredsym;
+        prdef : pprocdef;
+      begin
+        if cs_browser in aktmoduleswitches then
+         begin
+           if assigned(p^.name) then
+             Browserlog.AddLog('---Symtable '+p^.name^)
+           else
+             begin
+                if (p^.symtabletype=recordsymtable) and
+                   assigned(pdef(p^.defowner)^.typesym) then
+                  Browserlog.AddLog('---Symtable '+pdef(p^.defowner)^.typesym^.name)
+                else
+                  Browserlog.AddLog('---Symtable with no name');
+             end;
+           Browserlog.Ident;
+           hp:=pstoredsym(p^.symindex^.first);
+           while assigned(hp) do
+            begin
+              if assigned(hp^.defref) then
+               begin
+                 browserlog.AddLog('***'+hp^.name+'***');
+                 browserlog.AddLogRefs(hp^.defref);
+               end;
+              case hp^.typ of
+                typesym :
+                  begin
+                    if (ptypesym(hp)^.restype.def^.deftype=recorddef) then
+                      writesymtable(precorddef(ptypesym(hp)^.restype.def)^.symtable);
+                    if (ptypesym(hp)^.restype.def^.deftype=objectdef) then
+                      writesymtable(pobjectdef(ptypesym(hp)^.restype.def)^.symtable);
+                  end;
+                procsym :
+                  begin
+                    prdef:=pprocsym(hp)^.definition;
+                    while assigned(prdef) do
+                     begin
+                       if assigned(prdef^.defref) then
+                        begin
+                          browserlog.AddLog('***'+prdef^.mangledname);
+                          browserlog.AddLogRefs(prdef^.defref);
+                          if (current_module^.flags and uf_local_browser)<>0 then
+                            begin
+                               if assigned(prdef^.parast) then
+                                 writesymtable(prdef^.parast);
+                               if assigned(prdef^.localst) then
+                                 writesymtable(prdef^.localst);
+                            end;
+                        end;
+                       if assigned(pprocdef(prdef)^.defref) then
+                        begin
+                          browserlog.AddLog('***'+pprocdef(prdef)^.name+'***');
+                          browserlog.AddLogRefs(pprocdef(prdef)^.defref);
+                        end;
+                       prdef:=pprocdef(prdef)^.nextoverloaded;
+                     end;
+                  end;
+              end;
+              hp:=pstoredsym(hp^.indexnext);
+            end;
+           browserlog.Unident;
+         end;
+      end;
+
+
 {****************************************************************************
                              Helpers
 ****************************************************************************}
 
    procedure WriteBrowserLog;
      var
-       p : psymtable;
+       p : pstoredsymtable;
        hp : pmodule;
      begin
        browserlog.CreateLog;
@@ -415,14 +490,14 @@ implementation
        hp:=pmodule(loaded_units.first);
        while assigned(hp) do
          begin
-            p:=psymtable(hp^.globalsymtable);
+            p:=pstoredsymtable(hp^.globalsymtable);
             if assigned(p) then
-              p^.writebrowserlog;
+              writesymtable(p);
             if cs_local_browser in aktmoduleswitches then
               begin
-                 p:=psymtable(hp^.localsymtable);
+                 p:=pstoredsymtable(hp^.localsymtable);
                  if assigned(p) then
-                   p^.writebrowserlog;
+                   writesymtable(p);
               end;
             hp:=pmodule(hp^.next);
          end;
@@ -443,7 +518,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.4  2000-09-24 15:06:11  peter
+  Revision 1.5  2000-10-31 22:02:46  peter
+    * symtable splitted, no real code changes
+
+  Revision 1.4  2000/09/24 15:06:11  peter
     * use defines.inc
 
   Revision 1.3  2000/08/27 16:11:49  peter

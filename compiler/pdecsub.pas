@@ -27,7 +27,7 @@ unit pdecsub;
 interface
 
     uses
-      cobjects,tokens,symconst,symtable;
+      cobjects,tokens,symconst,symtype,symdef,symsym;
 
     const
       pd_global    = $1;    { directive must be global }
@@ -67,7 +67,7 @@ implementation
        { aasm }
        aasm,
        { symtable }
-       types,
+       symbase,symtable,types,
 {$ifdef GDB}
        gdb,
 {$endif}
@@ -248,10 +248,10 @@ implementation
                 end;
                if not is_procvar then
                 hs2:=pprocdef(aktprocdef)^.mangledname;
-               storetokenpos:=tokenpos;
+               storetokenpos:=akttokenpos;
                while not sc^.empty do
                 begin
-                  s:=sc^.get_with_tokeninfo(tokenpos);
+                  s:=sc^.get_with_tokeninfo(akttokenpos);
                   aktprocdef^.concatpara(tt,varspez,pdefaultvalue);
                   { For proc vars we only need the definitions }
                   if not is_procvar then
@@ -296,7 +296,7 @@ implementation
                   writeln('problem with strContStack in pdecl (1)');
 {$endif fixLeaksOnError}
                dispose(sc,done);
-               tokenpos:=storetokenpos;
+               akttokenpos:=storetokenpos;
             end;
           { set the new mangled name }
           if not is_procvar then
@@ -321,7 +321,7 @@ var orgsp,sp:stringid;
 begin
 { Save the position where this procedure really starts and set col to 1 which
   looks nicer }
-  procstartfilepos:=tokenpos;
+  procstartfilepos:=akttokenpos;
 {  procstartfilepos.column:=1; I do not agree here !!
    lets keep excat position PM }
 
@@ -342,15 +342,15 @@ begin
      (lexlevel=normal_function_level) and
      try_to_consume(_POINT) then
    begin
-     storepos:=tokenpos;
-     tokenpos:=procstartfilepos;
+     storepos:=akttokenpos;
+     akttokenpos:=procstartfilepos;
      getsym(sp,true);
      sym:=srsym;
-     tokenpos:=storepos;
+     akttokenpos:=storepos;
      { load proc name }
      sp:=pattern;
      orgsp:=orgpattern;
-     procstartfilepos:=tokenpos;
+     procstartfilepos:=akttokenpos;
      { qualifier is class name ? }
      if (sym^.typ<>typesym) or
         (ptypesym(sym)^.restype.def^.deftype<>objectdef) then
@@ -382,7 +382,7 @@ begin
         (options in [potype_constructor,potype_destructor]) then
         Message(parser_e_constructors_always_objects);
 
-     tokenpos:=procstartfilepos;
+     akttokenpos:=procstartfilepos;
      aktprocsym:=pprocsym(symtablestack^.search(sp));
 
      if not(parse_only) then
@@ -456,14 +456,14 @@ begin
         else
          DuplicateSym(aktprocsym);
         { try to recover by creating a new aktprocsym }
-        tokenpos:=procstartfilepos;
+        akttokenpos:=procstartfilepos;
         aktprocsym:=new(pprocsym,init(orgsp));
       end;
    end
   else
    begin
      { create a new procsym and set the real filepos }
-     tokenpos:=procstartfilepos;
+     akttokenpos:=procstartfilepos;
      { for operator we have only one definition for each overloaded
        operation }
      if (options=potype_operator) then
@@ -921,7 +921,7 @@ begin
        { recalculate the corrected offset }
        { the really_insert_in_data procedure
          for parasymtable should only calculateoffset PM }
-       ps^.insert_in_data;
+       pstoredsym(ps)^.insert_in_data;
        { reset the owner correctly }
        ps^.owner:=parast;
        lastps:=ps;
@@ -1439,7 +1439,7 @@ begin
  { Adjust positions of args for cdecl or stdcall }
    if (aktprocsym^.definition^.deftype=procdef) and
       (([pocall_cdecl,pocall_cppdecl,pocall_stdcall]*aktprocsym^.definition^.proccalloptions)<>[]) then
-     aktprocsym^.definition^.parast^.set_alignment(target_os.size_of_longint);
+     pstoredsymtable(aktprocsym^.definition^.parast)^.set_alignment(target_os.size_of_longint);
 
 { Call the handler }
   if pointer({$ifndef FPC}@{$endif}proc_direcdata[p].handler)<>nil then
@@ -1815,7 +1815,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.3  2000-10-21 18:16:11  florian
+  Revision 1.4  2000-10-31 22:02:49  peter
+    * symtable splitted, no real code changes
+
+  Revision 1.3  2000/10/21 18:16:11  florian
     * a lot of changes:
        - basic dyn. array support
        - basic C++ support

@@ -74,7 +74,7 @@ implementation
     uses
       globtype,systems,
       cutils,cobjects,verbose,globals,
-      symtable,types,
+      symtype,symdef,types,
       htypechk,
       cpubase,cpuasm,
       pass_1,
@@ -349,7 +349,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.3  2000-10-27 14:57:16  jonas
+  Revision 1.4  2000-10-31 22:02:47  peter
+    * symtable splitted, no real code changes
+
+  Revision 1.3  2000/10/27 14:57:16  jonas
     + implementation for tasmnode.getcopy
 
   Revision 1.2  2000/10/14 21:52:54  peter

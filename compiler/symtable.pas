@@ -25,164 +25,26 @@ unit symtable;
 
 interface
 
-uses
-{$ifdef delphi}
-   sysutils,
-{$else}
-   strings,
-{$endif}
-   cutils,cobjects,
-   globtype,globals,tokens,systems,
-   symconst,
-   aasm,cpubase,cpuinfo
-{$ifdef GDB}
-   ,gdb
-{$endif}
-   ;
+    uses
+       { common }
+       cutils,cobjects,
+       { global }
+       globtype,tokens,
+       { symtable }
+       symconst,symbase,symtype,symdef,symsym,
+       { assembler }
+       aasm
+       ;
 
-{************************************************
-           Some internal constants
-************************************************}
 
-   const
-       hasharraysize    = 256;
-       indexgrowsize    = 64;
-
-{************************************************
-            Needed forward pointers
-************************************************}
+{****************************************************************************
+                             Symtable types
+****************************************************************************}
 
     type
-       { needed for owner (table) of symbol }
-       psymtable     = ^tsymtable;
-       punitsymtable = ^tunitsymtable;
-
-       { needed for names by the definitions }
-       psym = ^tsym;
-       pdef = ^tdef;
-       ptypesym = ^ttypesym;
-       penumsym = ^tenumsym;
-       pprocsym = ^tprocsym;
-       tcallback = procedure(p : psym);
-
-       pref = ^tref;
-       tref = object
-         nextref     : pref;
-         posinfo     : tfileposinfo;
-         moduleindex : word;
-         is_written  : boolean;
-         constructor init(ref:pref;pos:pfileposinfo);
-         procedure   freechain;
-         destructor  done; virtual;
-       end;
-
-      { Deref entry options }
-      tdereftype = (derefnil,derefaktrecordindex,derefaktstaticindex,
-                    derefunit,derefrecord,derefindex,
-                    dereflocal,derefpara,derefaktlocal);
-
-      pderef = ^tderef;
-      tderef = object
-        dereftype : tdereftype;
-        index     : word;
-        next      : pderef;
-        constructor init(typ:tdereftype;i:word);
-        destructor  done;
-      end;
-
-      ttype = object
-        def : pdef;
-        sym : psym;
-        procedure reset;
-        procedure setdef(p:pdef);
-        procedure setsym(p:psym);
-        procedure load;
-        procedure write;
-        procedure resolve;
-      end;
-
-      psymlistitem = ^tsymlistitem;
-      tsymlistitem = record
-        sym  : psym;
-        next : psymlistitem;
-      end;
-
-      psymlist = ^tsymlist;
-      tsymlist = object
-        def      : pdef;
-        firstsym,
-        lastsym  : psymlistitem;
-        constructor init;
-        constructor load;
-        destructor  done;
-        function  empty:boolean;
-        procedure setdef(p:pdef);
-        procedure addsym(p:psym);
-        procedure clear;
-        function  getcopy:psymlist;
-        procedure resolve;
-        procedure write;
-      end;
-
-      psymtableentry = ^tsymtableentry;
-      tsymtableentry = object(tnamedindexobject)
-        owner      : psymtable;
-      end;
-
-{************************************************
-                    TDef
-************************************************}
-
-{$i symdefh.inc}
-
-{************************************************
-                   TSym
-************************************************}
-
-{$i symsymh.inc}
-
-{************************************************
-                 TSymtable
-************************************************}
-
-       tsymtabletype = (invalidsymtable,withsymtable,staticsymtable,
-                        globalsymtable,unitsymtable,
-                        objectsymtable,recordsymtable,
-                        macrosymtable,localsymtable,
-                        parasymtable,inlineparasymtable,
-                        inlinelocalsymtable,stt_exceptsymtable,
-                        { only used for PPU reading of static part
-                          of a unit }
-                        staticppusymtable);
-
-       tsearchhasharray = array[0..hasharraysize-1] of psym;
-       psearchhasharray = ^tsearchhasharray;
-
-       tsymtable = object
-          symtabletype : tsymtabletype;
-          { each symtable gets a number }
-          unitid    : word{integer give range check errors PM};
-          name      : pstring;
-          datasize  : longint;
-          dataalignment : longint;
-          symindex,
-          defindex  : pindexarray;
-          symsearch : pdictionary;
-          next      : psymtable;
-          defowner  : pdef; { for records and objects }
-          { alignment used in this symtable }
-{          alignment : longint; }
-          { only used for parameter symtable to determine the offset relative }
-          { to the frame pointer and for local inline }
-          address_fixup : longint;
-          { this saves all definition to allow a proper clean up }
-          { separate lexlevel from symtable type }
-          symtablelevel : byte;
+       pstoredsymtable = ^tstoredsymtable;
+       tstoredsymtable = object(tsymtable)
           constructor init(t : tsymtabletype);
-          destructor  done;virtual;
-          { access }
-          function getdefnr(l : longint) : pdef;
-          function getsymnr(l : longint) : psym;
           { load/write }
           constructor loadas(typ : tsymtabletype);
           procedure writeas;
@@ -191,14 +53,9 @@ uses
           procedure writedefs;
           procedure writesyms;
           procedure deref;
-          procedure clear;
-          function  rename(const olds,news : stringid):psym;
-          procedure foreach(proc2call : tnamedindexcallback);
-          procedure insert(sym : psym);
+          procedure insert(sym : psymentry);virtual;
           procedure insert_in(psymt : psymtable;offset : longint);
-          function  search(const s : stringid) : psym;
-          function  speedsearch(const s : stringid;speedvalue : longint) : psym;
-          procedure registerdef(p : pdef);
+          function  speedsearch(const s : stringid;speedvalue : longint) : psymentry;virtual;
           procedure allsymbolsused;
           procedure allprivatesused;
           procedure allunitsused;
@@ -206,8 +63,6 @@ uses
           procedure checklabels;
           { change alignment for args  only parasymtable }
           procedure set_alignment(_alignment : longint);
-          { find arg having offset  only parasymtable }
-          function  find_at_offset(l : longint) : pvarsym;
 {$ifdef CHAINPROCSYMS}
           procedure chainprocsyms;
 {$endif CHAINPROCSYMS}
@@ -216,16 +71,14 @@ uses
 {$endif DONOTCHAINOPERATORS}
           procedure load_browser;
           procedure write_browser;
-{$ifdef BrowserLog}
-          procedure writebrowserlog;
-{$endif BrowserLog}
 {$ifdef GDB}
           procedure concatstabto(asmlist : paasmoutput);virtual;
-{$endif GDB}
           function getnewtypecount : word; virtual;
+{$endif GDB}
        end;
 
-       tunitsymtable = object(tsymtable)
+       punitsymtable = ^tunitsymtable;
+       tunitsymtable = object(tstoredsymtable)
           unittypecount  : word;
           unitsym       : punitsym;
 {$ifdef GDB}
@@ -240,9 +93,9 @@ uses
           procedure writeasunit;
 {$ifdef GDB}
           procedure concattypestabto(asmlist : paasmoutput);
+          function getnewtypecount : word; virtual;
 {$endif GDB}
           procedure load_symtable_refs;
-          function getnewtypecount : word; virtual;
        end;
 
        pwithsymtable = ^twithsymtable;
@@ -257,131 +110,78 @@ uses
           withrefnode : pointer;
           constructor init;
           destructor  done;virtual;
+          procedure clear;virtual;
         end;
 
-{****************************************************************************
-                              Var / Consts
-****************************************************************************}
-
-    const
-       systemunit           : punitsymtable = nil; { pointer to the system unit }
-       current_object_option : tsymoptions = [sp_public];
 
     var
-       { for STAB debugging }
-       globaltypecount  : word;
-       pglobaltypecount : pword;
-
-       registerdef : boolean;      { true, when defs should be registered }
-
-       defaultsymtablestack,       { symtablestack after default units
-                                            have been loaded }
-       symtablestack : psymtable;  { linked list of symtables }
-
-       srsym : psym;           { result of the last search }
-       srsymtable : psymtable;
-       lastsrsym : psym;           { last sym found in statement }
+       srsym          : psym;           { result of the last search }
+       srsymtable     : psymtable;
+       lastsrsym      : psym;           { last sym found in statement }
        lastsrsymtable : psymtable;
-       lastsymknown : boolean;
+       lastsymknown   : boolean;
 
-       constsymtable : psymtable;  { symtable were the constants can be
-                                     inserted }
+       constsymtable  : psymtable;      { symtable were the constants can be inserted }
 
-       voidpointerdef : ppointerdef; { pointer for Void-Pointerdef      }
-       charpointerdef : ppointerdef; { pointer for Char-Pointerdef      }
-       voidfarpointerdef : ppointerdef;
+       systemunit     : punitsymtable;  { pointer to the system unit }
 
-       cformaldef : pformaldef;    { unique formal definition     }
-       voiddef   : porddef;     { Pointer to Void (procedure)       }
-       cchardef  : porddef;     { Pointer to Char                  }
-       cwidechardef : porddef;  { Pointer to WideChar }
-       booldef   : porddef;     { pointer to boolean type          }
-       u8bitdef  : porddef;     { Pointer to 8-Bit unsigned      }
-       u16bitdef : porddef;     { Pointer to 16-Bit unsigned    }
-       u32bitdef : porddef;     { Pointer to 32-Bit unsigned    }
-       s32bitdef : porddef;     { Pointer to 32-Bit signed        }
-
-       cu64bitdef : porddef;       { pointer to 64 bit unsigned def }
-       cs64bitdef : porddef;    { pointer to 64 bit signed def, }
-                                   { calculated by the int unit on i386 }
-
-       s32floatdef : pfloatdef;    { pointer for realconstn         }
-       s64floatdef : pfloatdef;    { pointer for realconstn         }
-       s80floatdef : pfloatdef;    { pointer to type of temp. floats   }
-       s32fixeddef : pfloatdef;    { pointer to type of temp. fixed    }
-
-       cshortstringdef : pstringdef;  { pointer to type of short string const   }
-       clongstringdef  : pstringdef;  { pointer to type of long string const   }
-       cansistringdef  : pstringdef;  { pointer to type of ansi string const  }
-       cwidestringdef  : pstringdef;  { pointer to type of wide string const  }
-       openshortstringdef : pstringdef;  { pointer to type of an open shortstring,
-                                            needed for readln() }
-       openchararraydef : parraydef;     { pointer to type of an open array of char,
-                                            needed for readln() }
-
-       cfiledef : pfiledef;       { get the same definition for all file }
-                                  { uses for stabs }
-
-       firstglobaldef,   { linked list of all globals defs }
-       lastglobaldef : pdef;   { used to reset stabs/ranges }
-
-       class_tobject : pobjectdef; { pointer to the anchestor of all   }
-                                   { clases                         }
-       pvmtdef     : ppointerdef;  { type of classrefs }
-
-       aktprocsym : pprocsym;      { pointer to the symbol for the
-                                     currently be parsed procedure }
-
-       aktcallprocsym : pprocsym;  { pointer to the symbol for the
-                                     currently be called procedure,
-                                     only set/unset in firstcall }
-
-       aktvarsym : pvarsym;     { pointer to the symbol for the
-                                     currently read var, only used
-                                     for variable directives }
-
-       procprefix : string;     { eindeutige Namen bei geschachtel- }
-                                   { ten Unterprogrammen erzeugen      }
+       read_member : boolean;      { reading members of an symtable }
 
        lexlevel : longint;       { level of code                     }
                                    { 1 for main procedure             }
                                    { 2 for normal function or proc     }
                                    { higher for locals           }
-    const
-       main_program_level = 1;
-       unit_init_level = 1;
-       normal_function_level = 2;
-       in_loading : boolean = false;
 
-{$ifdef i386}
-       bestrealdef : ^pfloatdef = @s80floatdef;
-{$endif}
-{$ifdef m68k}
-       bestrealdef : ^pfloatdef = @s64floatdef;
-{$endif}
-{$ifdef alpha}
-       bestrealdef : ^pfloatdef = @s64floatdef;
-{$endif}
-{$ifdef powerpc}
-       bestrealdef : ^pfloatdef = @s64floatdef;
-{$endif}
+{****************************************************************************
+                             Functions
+****************************************************************************}
 
+{*** Misc ***}
+    function  globaldef(const s : string) : pdef;
+    function  findunitsymtable(st:psymtable):psymtable;
+    procedure duplicatesym(sym:psym);
+
+{*** Search ***}
+    function  search_a_symtable(const symbol:string;symtabletype:tsymtabletype):Psym;
+    procedure getsym(const s : stringid;notfounderror : boolean);
+    procedure getsymonlyin(p : psymtable;const s : stringid);
+
+{*** PPU Write/Loading ***}
+    procedure writeunitas(const s : string;unittable : punitsymtable;only_crc : boolean);
+    procedure numberunits;
+    procedure load_interface;
+
+{*** Object Helpers ***}
+    function search_class_member(pd : pobjectdef;const n : string) : psym;
+    function search_default_property(pd : pobjectdef) : ppropertysym;
+
+{*** symtable stack ***}
+    procedure dellexlevel;
+    procedure RestoreUnitSyms;
+{$ifdef DEBUG}
+    procedure test_symtablestack;
+    procedure list_symtablestack;
+{$endif DEBUG}
+
+{$ifdef UNITALIASES}
+    type
+       punit_alias = ^tunit_alias;
+       tunit_alias = object(tnamedindexobject)
+          newname : pstring;
+          constructor init(const n:string);
+          destructor  done;virtual;
+       end;
     var
+       unitaliases : pdictionary;
 
-       macros : psymtable;       { pointer for die Symboltabelle mit  }
-                                   { Makros                         }
+    procedure addunitalias(const n:string);
+    function getunitalias(const n:string):string;
+{$endif UNITALIASES}
 
-       read_member : boolean;      { true, wenn Members aus einer PPU-  }
-                                   { Datei gelesen werden, d.h. ein     }
-                                   { varsym seine Adresse einlesen soll }
+{*** Init / Done ***}
+    procedure InitSymtable;
+    procedure DoneSymtable;
 
-       generrorsym : psym;       { Jokersymbol, wenn das richtige    }
-                                   { Symbol nicht gefunden wird }
-
-       generrordef : pdef;       { Jokersymbol for eine fehlerhafte  }
-                                   { Typdefinition                   }
-
-       aktobjectdef : pobjectdef;  { used for private functions check !! }
 
     const
        { last operator which can be overloaded }
@@ -402,605 +202,41 @@ uses
           'and','div','mod','not','shl','shr','xor',
           'assign');
 
-{$ifdef UNITALIASES}
-    type
-       punit_alias = ^tunit_alias;
-       tunit_alias = object(tnamedindexobject)
-          newname : pstring;
-          constructor init(const n:string);
-          destructor  done;virtual;
-       end;
-    var
-       unitaliases : pdictionary;
-
-    procedure addunitalias(const n:string);
-    function getunitalias(const n:string):string;
-{$endif UNITALIASES}
-
-
-{****************************************************************************
-                             Functions
-****************************************************************************}
-
-{*** Misc ***}
-    function  globaldef(const s : string) : pdef;
-    function  findunitsymtable(st:psymtable):psymtable;
-    procedure duplicatesym(sym:psym);
-
-{*** Search ***}
-    function  search_a_symtable(const symbol:string;symtabletype:tsymtabletype):Psym;
-    procedure getsym(const s : stringid;notfounderror : boolean);
-    procedure getsymonlyin(p : psymtable;const s : stringid);
-
-{*** PPU Write/Loading ***}
-    procedure writeunitas(const s : string;unittable : punitsymtable;only_crc : boolean);
-    procedure closecurrentppu;
-    procedure numberunits;
-    procedure load_interface;
-
-{*** GDB ***}
-{$ifdef GDB}
-    function  typeglobalnumber(const s : string) : string;
-{$endif}
-
-{*** Definition ***}
-   procedure reset_global_defs;
-
-{*** Object Helpers ***}
-    function search_class_member(pd : pobjectdef;const n : string) : psym;
-    function search_default_property(pd : pobjectdef) : ppropertysym;
-
-{*** Macro ***}
-    procedure def_macro(const s : string);
-    procedure set_macro(const s : string;value : string);
-
-{*** symtable stack ***}
-    procedure dellexlevel;
-    procedure RestoreUnitSyms;
-{$ifdef DEBUG}
-    procedure test_symtablestack;
-    procedure list_symtablestack;
-{$endif DEBUG}
-
-{*** Init / Done ***}
-    procedure InitSymtable;
-    procedure DoneSymtable;
 
 
 implementation
 
-  uses
-     version,verbose,
-     types,ppu,
-     gendef,fmodule,finput
-     ,node
-     ,cresstr
-{$ifdef newcg}
-     ,cgbase
-{$else}
-     ,hcodegen
-{$endif}
-{$ifdef BrowserLog}
-     ,browlog
-{$endif BrowserLog}
-     ,scanner
-     ,cpuasm
-     ;
-
-  var
-     aktrecordsymtable : psymtable; { current record read from ppu symtable }
-     aktstaticsymtable : psymtable; { current static for local ppu symtable }
-     aktlocalsymtable  : psymtable; { current proc local for local ppu symtable }
+    uses
+      { global }
+      version,verbose,globals,
+      { target }
+      systems,
+      { ppu }
+      symppu,ppu,
+      { module }
+      finput,fmodule,
 {$ifdef GDB}
-     asmoutput : paasmoutput;
+      gdb,
 {$endif GDB}
+      { scanner }
+      scanner,
+      { codegen }
+      hcodegen  { remove !!! }
+      ;
 
-   {to dispose the global symtable of a unit }
-  const
-     dispose_global : boolean = false;
-     memsizeinc = 2048; { for long stabstrings }
-     tagtypes : Set of tdeftype =
-       [recorddef,enumdef,
-       {$IfNDef GDBKnowsStrings}
-       stringdef,
-       {$EndIf not GDBKnowsStrings}
-       {$IfNDef GDBKnowsFiles}
-       filedef,
-       {$EndIf not GDBKnowsFiles}
-       objectdef];
 
-{*****************************************************************************
-                             Helper Routines
-*****************************************************************************}
+    var
+      in_loading : boolean;  { remove !!! }
 
-    procedure numberunits;
-      var
-        counter : longint;
-        hp      : pused_unit;
-        hp1     : pmodule;
-      begin
-        { Reset all numbers to -1 }
-        hp1:=pmodule(loaded_units.first);
-        while assigned(hp1) do
-         begin
-           if assigned(hp1^.globalsymtable) then
-             psymtable(hp1^.globalsymtable)^.unitid:=$ffff;
-           hp1:=pmodule(hp1^.next);
-         end;
-        { Our own symtable gets unitid 0, for a program there is
-          no globalsymtable }
-        if assigned(current_module^.globalsymtable) then
-          psymtable(current_module^.globalsymtable)^.unitid:=0;
-        { number units }
-        counter:=1;
-        hp:=pused_unit(current_module^.used_units.first);
-        while assigned(hp) do
-         begin
-           psymtable(hp^.u^.globalsymtable)^.unitid:=counter;
-           inc(counter);
-           hp:=pused_unit(hp^.next);
-         end;
-      end;
-
-
-    function findunitsymtable(st:psymtable):psymtable;
-      begin
-        findunitsymtable:=nil;
-        repeat
-          if not assigned(st) then
-           internalerror(5566561);
-          case st^.symtabletype of
-            localsymtable,
-            parasymtable,
-            staticsymtable :
-              break;
-            globalsymtable,
-            unitsymtable :
-              begin
-                findunitsymtable:=st;
-                break;
-              end;
-            objectsymtable,
-            recordsymtable :
-              st:=st^.defowner^.owner;
-            else
-              internalerror(5566562);
-          end;
-        until false;
-      end;
-
-
-     procedure duplicatesym(sym:psym);
-       var
-         st : psymtable;
-       begin
-         Message1(sym_e_duplicate_id,sym^.name);
-         st:=findunitsymtable(sym^.owner);
-         with sym^.fileinfo do
-           begin
-             if assigned(st) and (st^.unitid<>0) then
-               Message2(sym_h_duplicate_id_where,'unit '+st^.name^,tostr(line))
-             else
-               Message2(sym_h_duplicate_id_where,current_module^.sourcefiles^.get_file_name(fileindex),tostr(line));
-           end;
-       end;
-
-
-     procedure identifier_not_found(const s:string);
-       begin
-         Message1(sym_e_id_not_found,s);
-         { show a fatal that you need -S2 or -Sd, but only
-           if we just parsed the a token that has m_class }
-         if not(m_class in aktmodeswitches) and
-            (s=pattern) and
-            (tokeninfo^[idtoken].keyword=m_class) then
-           Message(parser_f_need_objfpc_or_delphi_mode);
-       end;
-
-
-{*****************************************************************************
-                               PPU Reading Writing
-*****************************************************************************}
-
-{$I symppu.inc}
-
-
-{****************************************************************************
-                               TDeref
-****************************************************************************}
-
-    constructor tderef.init(typ:tdereftype;i:word);
-      begin
-        dereftype:=typ;
-        index:=i;
-        next:=nil;
-      end;
-
-
-    destructor tderef.done;
-      begin
-      end;
-
-
-{*****************************************************************************
-                        Symbol / Definition Resolving
-*****************************************************************************}
-
-    procedure resolvederef(var p:pderef;var st:psymtable;var idx:word);
-      var
-        hp : pderef;
-        pd : pdef;
-      begin
-        st:=nil;
-        idx:=0;
-        while assigned(p) do
-         begin
-           case p^.dereftype of
-             derefaktrecordindex :
-               begin
-                 st:=aktrecordsymtable;
-                 idx:=p^.index;
-               end;
-             derefaktstaticindex :
-               begin
-                 st:=aktstaticsymtable;
-                 idx:=p^.index;
-               end;
-             derefaktlocal :
-               begin
-                 st:=aktlocalsymtable;
-                 idx:=p^.index;
-               end;
-             derefunit :
-               begin
-{$ifdef NEWMAP}
-                 st:=psymtable(current_module^.map^[p^.index]^.globalsymtable);
-{$else NEWMAP}
-                 st:=psymtable(current_module^.map^[p^.index]);
-{$endif NEWMAP}
-               end;
-             derefrecord :
-               begin
-                 pd:=st^.getdefnr(p^.index);
-                 case pd^.deftype of
-                   recorddef :
-                     st:=precorddef(pd)^.symtable;
-                   objectdef :
-                     st:=pobjectdef(pd)^.symtable;
-                 else
-                   internalerror(556658);
-                 end;
-               end;
-             dereflocal :
-               begin
-                  pd:=st^.getdefnr(p^.index);
-                  case pd^.deftype of
-                    procdef :
-                      st:=pprocdef(pd)^.localst;
-                    else
-                   internalerror(556658);
-                 end;
-               end;
-             derefpara :
-               begin
-                  pd:=st^.getdefnr(p^.index);
-                  case pd^.deftype of
-                    procdef :
-                      st:=pprocdef(pd)^.parast;
-                    else
-                   internalerror(556658);
-                 end;
-               end;
-             derefindex :
-               begin
-                 idx:=p^.index;
-               end;
-             else
-               internalerror(556658);
-           end;
-           hp:=p;
-           p:=p^.next;
-           dispose(hp,done);
-         end;
-      end;
-
-
-    procedure resolvedef(var def:pdef);
-      var
-        st   : psymtable;
-        idx  : word;
-      begin
-        resolvederef(pderef(def),st,idx);
-        if assigned(st) then
-         def:=st^.getdefnr(idx)
-        else
-         def:=nil;
-      end;
-
-    procedure resolvesym(var sym:psym);
-      var
-        st   : psymtable;
-        idx  : word;
-      begin
-        resolvederef(pderef(sym),st,idx);
-        if assigned(st) then
-         sym:=st^.getsymnr(idx)
-        else
-         sym:=nil;
-      end;
-
-
-
-{****************************************************************************
-                               TRef
-****************************************************************************}
-
-    constructor tref.init(ref :pref;pos : pfileposinfo);
-      begin
-        nextref:=nil;
-        if pos<>nil then
-          posinfo:=pos^;
-        if assigned(current_module) then
-          moduleindex:=current_module^.unit_index;
-        if assigned(ref) then
-          ref^.nextref:=@self;
-        is_written:=false;
-      end;
-
-    procedure tref.freechain;
-      var
-        p,q : pref;
-      begin
-        p:=nextref;
-        nextref:=nil;
-        while assigned(p) do
-          begin
-            q:=p^.nextref;
-            dispose(p,done);
-            p:=q;
-          end;
-      end;
-
-    destructor tref.done;
-      var
-         inputfile : pinputfile;
-      begin
-         inputfile:=get_source_file(moduleindex,posinfo.fileindex);
-         if inputfile<>nil then
-           dec(inputfile^.ref_count);
-         nextref:=nil;
-      end;
-
-
-{****************************************************************************
-                                   TType
-****************************************************************************}
-
-    procedure ttype.reset;
-      begin
-        def:=nil;
-        sym:=nil;
-      end;
-
-
-    procedure ttype.setdef(p:pdef);
-      begin
-        def:=p;
-        sym:=nil;
-      end;
-
-
-    procedure ttype.setsym(p:psym);
-      begin
-        sym:=p;
-        case p^.typ of
-          typesym :
-            def:=ptypesym(p)^.restype.def;
-          propertysym :
-            def:=ppropertysym(p)^.proptype.def;
-          else
-            internalerror(1234005);
-        end;
-      end;
-
-
-    procedure ttype.load;
-      begin
-        def:=pdef(readderef);
-        sym:=psym(readderef);
-      end;
-
-
-    procedure ttype.write;
-      begin
-        if assigned(sym) then
-         begin
-           writederef(nil);
-           writederef(sym);
-         end
-        else
-         begin
-           writederef(def);
-           writederef(nil);
-         end;
-      end;
-
-
-    procedure ttype.resolve;
-      begin
-        if assigned(sym) then
-         begin
-           resolvesym(sym);
-           setsym(sym);
-         end
-        else
-         resolvedef(def);
-      end;
-
-
-{****************************************************************************
-                                    TSymList
-****************************************************************************}
-
-    constructor tsymlist.init;
-      begin
-        def:=nil; { needed for procedures }
-        firstsym:=nil;
-        lastsym:=nil;
-      end;
-
-
-    constructor tsymlist.load;
-      var
-        sym : psym;
-      begin
-        def:=readdefref;
-        firstsym:=nil;
-        lastsym:=nil;
-        repeat
-          sym:=readsymref;
-          if sym=nil then
-           break;
-          addsym(sym);
-        until false;
-      end;
-
-
-    destructor tsymlist.done;
-      begin
-        clear;
-      end;
-
-
-    function tsymlist.empty:boolean;
-      begin
-        empty:=(firstsym=nil);
-      end;
-
-
-    procedure tsymlist.clear;
-      var
-        hp : psymlistitem;
-      begin
-        while assigned(firstsym) do
-         begin
-           hp:=firstsym;
-           firstsym:=firstsym^.next;
-           dispose(hp);
-         end;
-        firstsym:=nil;
-        lastsym:=nil;
-        def:=nil;
-      end;
-
-
-    procedure tsymlist.setdef(p:pdef);
-      begin
-        def:=p;
-      end;
-
-
-    procedure tsymlist.addsym(p:psym);
-      var
-        hp : psymlistitem;
-      begin
-        if not assigned(p) then
-         exit;
-        new(hp);
-        hp^.sym:=p;
-        hp^.next:=nil;
-        if assigned(lastsym) then
-         lastsym^.next:=hp
-        else
-         firstsym:=hp;
-        lastsym:=hp;
-      end;
-
-
-    function tsymlist.getcopy:psymlist;
-      var
-        hp : psymlist;
-        hp2 : psymlistitem;
-      begin
-        new(hp,init);
-        hp^.def:=def;
-        hp2:=firstsym;
-        while assigned(hp2) do
-         begin
-           hp^.addsym(hp2^.sym);
-           hp2:=hp2^.next;
-         end;
-        getcopy:=hp;
-      end;
-
-
-    procedure tsymlist.write;
-      var
-        hp : psymlistitem;
-      begin
-        writederef(def);
-        hp:=firstsym;
-        while assigned(hp) do
-         begin
-           writederef(hp^.sym);
-           hp:=hp^.next;
-         end;
-        writederef(nil);
-      end;
-
-
-    procedure tsymlist.resolve;
-      var
-        hp : psymlistitem;
-      begin
-        resolvedef(def);
-        hp:=firstsym;
-        while assigned(hp) do
-         begin
-           resolvesym(hp^.sym);
-           hp:=hp^.next;
-         end;
-      end;
-
-
-{*****************************************************************************
-                            Definition Helpers
-*****************************************************************************}
-
-    function globaldef(const s : string) : pdef;
-
-      var st : string;
-          symt : psymtable;
-      begin
-         srsym := nil;
-         if pos('.',s) > 0 then
-           begin
-           st := copy(s,1,pos('.',s)-1);
-           getsym(st,false);
-           st := copy(s,pos('.',s)+1,255);
-           if assigned(srsym) then
-             begin
-             if srsym^.typ = unitsym then
-               begin
-               symt := punitsym(srsym)^.unitsymtable;
-               srsym := symt^.search(st);
-               end else srsym := nil;
-             end;
-           end else st := s;
-         if srsym = nil then getsym(st,false);
-         if srsym = nil then
-           getsymonlyin(systemunit,st);
-         if srsym^.typ<>typesym then
-           begin
-             Message(type_e_type_id_expected);
-             exit;
-           end;
-         globaldef := ptypesym(srsym)^.restype.def;
-      end;
 
 {*****************************************************************************
                         Symbol Call Back Functions
 *****************************************************************************}
+
+    procedure write_refs(sym : pnamedindexobject);
+      begin
+         pstoredsym(sym)^.write_references;
+      end;
 
     procedure derefsym(p : pnamedindexobject);
       begin
@@ -1094,10 +330,10 @@ implementation
            if (Errorcount<>0) then
              exit;
            { do not claim for inherited private fields !! }
-           if (psym(p)^.refs=0) and (psym(p)^.owner^.symtabletype=objectsymtable) then
+           if (pstoredsym(p)^.refs=0) and (psym(p)^.owner^.symtabletype=objectsymtable) then
              MessagePos2(psym(p)^.fileinfo,sym_n_private_method_not_used,psym(p)^.owner^.name^,p^.name)
            { units references are problematic }
-           else if (psym(p)^.refs=0) and not(psym(p)^.typ in [funcretsym,enumsym,unitsym]) then
+           else if (pstoredsym(p)^.refs=0) and not(psym(p)^.typ in [funcretsym,enumsym,unitsym]) then
              if (psym(p)^.typ<>procsym) or not (pprocsym(p)^.is_global) or
              { all program functions are declared global
                but unused should still be signaled PM }
@@ -1120,43 +356,36 @@ implementation
          }
          if (psym(p)^.typ=typesym) and
             (ptypesym(p)^.restype.def^.deftype=objectdef) and
-            (ptypesym(p)^.restype.def^.typesym=ptypesym(p)) then
+            (ptypesym(p)^.restype.def^.typesym=psym(p)) then
            pobjectdef(ptypesym(p)^.restype.def)^.symtable^.foreach(
              {$ifdef FPCPROCVAR}@{$endif}TestPrivate);
       end;
 
 {$ifdef GDB}
+    var
+      asmoutput : paasmoutput;
+
     procedure concatstab(p : pnamedindexobject);
       begin
         if psym(p)^.typ <> procsym then
-          psym(p)^.concatstabto(asmoutput);
+          pstoredsym(p)^.concatstabto(asmoutput);
       end;
 
     procedure resetstab(p : pnamedindexobject);
       begin
         if psym(p)^.typ <> procsym then
-          psym(p)^.isstabwritten:=false;
+          pstoredsym(p)^.isstabwritten:=false;
       end;
 
     procedure concattypestab(p : pnamedindexobject);
       begin
         if psym(p)^.typ = typesym then
          begin
-           psym(p)^.isstabwritten:=false;
-           psym(p)^.concatstabto(asmoutput);
+           pstoredsym(p)^.isstabwritten:=false;
+           pstoredsym(p)^.concatstabto(asmoutput);
          end;
       end;
-
-    procedure forcestabto(asmlist : paasmoutput; pd : pdef);
-      begin
-        if pd^.is_def_stab_written = not_written then
-         begin
-           if assigned(pd^.typesym) then
-            pd^.typesym^.isusedinstab := true;
-           pd^.concatstabto(asmlist);
-         end;
-      end;
-{$endif}
+{$endif GDB}
 
 {$ifdef CHAINPROCSYMS}
     procedure chainprocsym(p : psym);
@@ -1187,8 +416,39 @@ implementation
       end;
 {$endif}
 
+
+{****************************************************************************
+                              STORED SYMTABLE
+****************************************************************************}
+
+    constructor tstoredsymtable.init(t : tsymtabletype);
+      begin
+         symtabletype:=t;
+         symtablelevel:=0;
+         defowner:=nil;
+         unitid:=0;
+         next:=nil;
+         name:=nil;
+         address_fixup:=0;
+         datasize:=0;
+         if t=parasymtable then
+          dataalignment:=4
+         else
+          dataalignment:=1;
+         new(symindex,init(indexgrowsize));
+         new(defindex,init(indexgrowsize));
+         if symtabletype<>withsymtable then
+           begin
+              new(symsearch,init);
+              symsearch^.noclear:=true;
+           end
+         else
+           symsearch:=nil;
+      end;
+
+
 {$ifndef DONOTCHAINOPERATORS}
-    procedure tsymtable.chainoperators;
+    procedure tstoredsymtable.chainoperators;
       var
         p : pprocsym;
         t : ttoken;
@@ -1250,189 +510,8 @@ implementation
       end;
 {$endif DONOTCHAINOPERATORS}
 
-    procedure write_refs(sym : pnamedindexobject);
-      begin
-         psym(sym)^.write_references;
-      end;
 
-{$ifdef BrowserLog}
-    procedure add_to_browserlog(sym : pnamedindexobject);
-      begin
-         psym(sym)^.add_to_browserlog;
-      end;
-{$endif UseBrowser}
-
-
-{*****************************************************************************
-                          Search Symtables for Syms
-*****************************************************************************}
-
-    procedure getsym(const s : stringid;notfounderror : boolean);
-      var
-        speedvalue : longint;
-      begin
-         speedvalue:=getspeedvalue(s);
-         lastsrsym:=nil;
-         srsymtable:=symtablestack;
-         while assigned(srsymtable) do
-           begin
-              srsym:=srsymtable^.speedsearch(s,speedvalue);
-              if assigned(srsym) then
-                exit
-              else
-                srsymtable:=srsymtable^.next;
-           end;
-         if notfounderror then
-           begin
-              identifier_not_found(s);
-              srsym:=generrorsym;
-           end
-         else
-           srsym:=nil;
-      end;
-
-
-    procedure getsymonlyin(p : psymtable;const s : stringid);
-      begin
-         { the caller have to take care if srsym=nil (FK) }
-         srsym:=nil;
-         if assigned(p) then
-           begin
-              srsymtable:=p;
-              srsym:=srsymtable^.search(s);
-              if assigned(srsym) then
-                exit
-              else
-               begin
-                  if (punitsymtable(srsymtable)=punitsymtable(current_module^.globalsymtable)) then
-                    begin
-                       getsymonlyin(psymtable(current_module^.localsymtable),s);
-                       if assigned(srsym) then
-                         srsymtable:=psymtable(current_module^.localsymtable)
-                       else
-                         identifier_not_found(s);
-                    end
-                  else
-                    identifier_not_found(s);
-               end;
-           end;
-      end;
-
-
-    function search_a_symtable(const symbol:string;symtabletype:tsymtabletype):Psym;
-    {Search for a symbol in a specified symbol table. Returns nil if
-     the symtable is not found, and also if the symbol cannot be found
-     in the desired symtable }
-    var hsymtab:Psymtable;
-        res:Psym;
-    begin
-        res:=nil;
-        hsymtab:=symtablestack;
-        while (hsymtab<>nil) and (hsymtab^.symtabletype<>symtabletype) do
-            hsymtab:=hsymtab^.next;
-        if hsymtab<>nil then
-            {We found the desired symtable. Now check if the symbol we
-             search for is defined in it }
-            res:=hsymtab^.search(symbol);
-        search_a_symtable:=res;
-    end;
-
-
-{****************************************************************************
-                                TSYMTABLE
-****************************************************************************}
-
-    constructor tsymtable.init(t : tsymtabletype);
-      begin
-         symtabletype:=t;
-         symtablelevel:=0;
-         defowner:=nil;
-         unitid:=0;
-         next:=nil;
-         name:=nil;
-         address_fixup:=0;
-         datasize:=0;
-         if t=parasymtable then
-          dataalignment:=4
-         else
-          dataalignment:=1;
-         new(symindex,init(indexgrowsize));
-         new(defindex,init(indexgrowsize));
-         if symtabletype<>withsymtable then
-           begin
-              new(symsearch,init);
-              symsearch^.noclear:=true;
-           end
-         else
-           symsearch:=nil;
-      end;
-
-
-    destructor tsymtable.done;
-      begin
-        stringdispose(name);
-        dispose(symindex,done);
-        dispose(defindex,done);
-        { symsearch can already be disposed or set to nil for withsymtable }
-        if assigned(symsearch) then
-         begin
-           dispose(symsearch,done);
-           symsearch:=nil;
-         end;
-      end;
-
-
-    constructor twithsymtable.init;
-      begin
-         inherited init(withsymtable);
-         direct_with:=false;
-         withnode:=nil;
-         withrefnode:=nil;
-      end;
-
-
-    destructor twithsymtable.done;
-      begin
-        symsearch:=nil;
-        inherited done;
-      end;
-
-
-{***********************************************
-                Helpers
-***********************************************}
-
-   function tsymtable.getnewtypecount : word;
-      begin
-         getnewtypecount:=pglobaltypecount^;
-         inc(pglobaltypecount^);
-      end;
-
-    procedure tsymtable.registerdef(p : pdef);
-      begin
-         defindex^.insert(p);
-         { set def owner and indexnb }
-         p^.owner:=@self;
-      end;
-
-
-    procedure order_overloads(p : Pnamedindexobject);
-      begin
-         if psym(p)^.typ=procsym then
-           pprocsym(p)^.order_overloaded;
-      end;
-
-    procedure tsymtable.foreach(proc2call : tnamedindexcallback);
-      begin
-        symindex^.foreach(proc2call);
-      end;
-
-
-{***********************************************
-       LOAD / WRITE SYMTABLE FROM PPU
-***********************************************}
-
-    procedure tsymtable.loaddefs;
+    procedure tstoredsymtable.loaddefs;
       var
         hp : pdef;
         b  : byte;
@@ -1473,7 +552,7 @@ implementation
       end;
 
 
-    procedure tsymtable.loadsyms;
+    procedure tstoredsymtable.loadsyms;
       var
         b   : byte;
         sym : psym;
@@ -1514,29 +593,29 @@ implementation
       end;
 
 
-    procedure tsymtable.writedefs;
+    procedure tstoredsymtable.writedefs;
       var
-         pd : pdef;
+         pd : pstoreddef;
       begin
       { each definition get a number, write then the amount of defs to the
          ibstartdef entry }
          current_ppu^.putlongint(defindex^.count);
          current_ppu^.writeentry(ibstartdefs);
       { now write the definition }
-         pd:=pdef(defindex^.first);
+         pd:=pstoreddef(defindex^.first);
          while assigned(pd) do
            begin
               pd^.write;
-              pd:=pdef(pd^.indexnext);
+              pd:=pstoreddef(pd^.indexnext);
            end;
       { write end of definitions }
          current_ppu^.writeentry(ibenddefs);
       end;
 
 
-    procedure tsymtable.writesyms;
+    procedure tstoredsymtable.writesyms;
       var
-        pd : psym;
+        pd : pstoredsym;
       begin
        { each definition get a number, write then the amount of syms and the
          datasize to the ibsymdef entry }
@@ -1545,18 +624,120 @@ implementation
          current_ppu^.putlongint(dataalignment);
          current_ppu^.writeentry(ibstartsyms);
        { foreach is used to write all symbols }
-         pd:=psym(symindex^.first);
+         pd:=pstoredsym(symindex^.first);
          while assigned(pd) do
            begin
               pd^.write;
-              pd:=psym(pd^.indexnext);
+              pd:=pstoredsym(pd^.indexnext);
            end;
        { end of symbols }
          current_ppu^.writeentry(ibendsyms);
       end;
 
 
-    procedure tsymtable.deref;
+{***********************************************
+                Browser
+***********************************************}
+
+    procedure tstoredsymtable.load_browser;
+      var
+        b     : byte;
+        sym   : pstoredsym;
+        prdef : pstoreddef;
+        oldrecsyms : psymtable;
+      begin
+         if symtabletype in [recordsymtable,objectsymtable] then
+           begin
+              oldrecsyms:=aktrecordsymtable;
+              aktrecordsymtable:=@self;
+           end;
+         if symtabletype in [parasymtable,localsymtable] then
+           begin
+              oldrecsyms:=aktlocalsymtable;
+              aktlocalsymtable:=@self;
+           end;
+         if symtabletype=staticppusymtable then
+           aktstaticsymtable:=@self;
+         b:=current_ppu^.readentry;
+         if b <> ibbeginsymtablebrowser then
+           Message1(unit_f_ppu_invalid_entry,tostr(b));
+         repeat
+           b:=current_ppu^.readentry;
+           case b of
+           ibsymref : begin
+                        sym:=pstoredsym(readderef);
+                        resolvesym(sym);
+                        if assigned(sym) then
+                          sym^.load_references;
+                      end;
+           ibdefref : begin
+                        prdef:=pstoreddef(readderef);
+                        resolvedef(prdef);
+                        if assigned(prdef) then
+                         begin
+                           if prdef^.deftype<>procdef then
+                            Message(unit_f_ppu_read_error);
+                           pprocdef(prdef)^.load_references;
+                         end;
+                      end;
+            ibendsymtablebrowser : break;
+           else
+             Message1(unit_f_ppu_invalid_entry,tostr(b));
+           end;
+         until false;
+        if symtabletype in [recordsymtable,objectsymtable] then
+          aktrecordsymtable:=oldrecsyms;
+        if symtabletype in [parasymtable,localsymtable] then
+          aktlocalsymtable:=oldrecsyms;
+      end;
+
+
+    procedure tstoredsymtable.write_browser;
+      var
+         oldrecsyms : psymtable;
+      begin
+         { symbol numbering for references
+           should have been done in write PM
+         number_symbols;
+         number_defs;   }
+
+         if symtabletype in [recordsymtable,objectsymtable] then
+           begin
+              oldrecsyms:=aktrecordsymtable;
+              aktrecordsymtable:=@self;
+           end;
+         if symtabletype in [parasymtable,localsymtable] then
+           begin
+              oldrecsyms:=aktlocalsymtable;
+              aktlocalsymtable:=@self;
+           end;
+         current_ppu^.writeentry(ibbeginsymtablebrowser);
+         foreach({$ifdef FPCPROCVAR}@{$endif}write_refs);
+         current_ppu^.writeentry(ibendsymtablebrowser);
+        if symtabletype in [recordsymtable,objectsymtable] then
+          aktrecordsymtable:=oldrecsyms;
+        if symtabletype in [parasymtable,localsymtable] then
+          aktlocalsymtable:=oldrecsyms;
+      end;
+
+
+{$ifdef GDB}
+   function tstoredsymtable.getnewtypecount : word;
+      begin
+         getnewtypecount:=pglobaltypecount^;
+         inc(pglobaltypecount^);
+      end;
+{$endif GDB}
+
+
+    procedure order_overloads(p : Pnamedindexobject);
+      begin
+         if psym(p)^.typ=procsym then
+           pprocsym(p)^.order_overloaded;
+      end;
+
+
+    procedure tstoredsymtable.deref;
       var
         hp : pdef;
         hs : psym;
@@ -1589,7 +770,7 @@ implementation
     { the offset is the location of the start of the variant
       and datasize and dataalignment corresponds to
       the complete size (see code in pdecl unit) PM }
-    procedure tsymtable.insert_in(psymt : psymtable;offset : longint);
+    procedure tstoredsymtable.insert_in(psymt : psymtable;offset : longint);
       var
         ps,nps : pvarsym;
         pd,npd : pdef;
@@ -1627,7 +808,7 @@ implementation
         psymt^.dataalignment:=storealign;
       end;
 
-    constructor tsymtable.loadas(typ : tsymtabletype);
+    constructor tstoredsymtable.loadas(typ : tsymtabletype);
       var
          storesymtable : psymtable;
          st_loading : boolean;
@@ -1721,7 +902,7 @@ implementation
       end;
 
 
-    procedure tsymtable.writeas;
+    procedure tstoredsymtable.writeas;
       var
          oldtyp : byte;
          storesymtable : psymtable;
@@ -1763,47 +944,7 @@ implementation
       end;
 
 
-{***********************************************
-          Get Symbol / Def by Number
-***********************************************}
-
-    function tsymtable.getsymnr(l : longint) : psym;
-      var
-        hp : psym;
-      begin
-        hp:=psym(symindex^.search(l));
-        if hp=nil then
-         internalerror(10999);
-        getsymnr:=hp;
-      end;
-
-    function tsymtable.getdefnr(l : longint) : pdef;
-      var
-        hp : pdef;
-      begin
-        hp:=pdef(defindex^.search(l));
-        if hp=nil then
-         internalerror(10998);
-        getdefnr:=hp;
-      end;
-
-
-{***********************************************
-                Table Access
-***********************************************}
-
-    procedure tsymtable.clear;
-      begin
-         { remove no entry from a withsymtable as it is only a pointer to the
-         recorddef  or objectdef symtable }
-         if symtabletype=withsymtable then
-           exit;
-         symindex^.clear;
-         defindex^.clear;
-      end;
-
-
-    procedure tsymtable.insert(sym:psym);
+    procedure tstoredsymtable.insert(sym:psymentry);
       var
          hp : psymtable;
          hsym : psym;
@@ -1818,7 +959,7 @@ implementation
          { writes the symbol in data segment if required }
          { also sets the datasize of owner             }
          if not in_loading then
-           sym^.insert_in_data;
+           pstoredsym(sym)^.insert_in_data;
          if (symtabletype in [staticsymtable,globalsymtable]) then
            begin
               hp:=symtablestack;
@@ -1826,7 +967,7 @@ implementation
                 begin
                    if hp^.symtabletype in [staticsymtable,globalsymtable] then
                     begin
-                       hsym:=hp^.search(sym^.name);
+                       hsym:=psym(hp^.search(sym^.name));
                        if assigned(hsym) then
                          DuplicateSym(hsym);
                     end;
@@ -1834,7 +975,7 @@ implementation
                 end;
            end;
          { check the current symtable }
-         hsym:=search(sym^.name);
+         hsym:=psym(search(sym^.name));
          if assigned(hsym) then
           begin
             { in TP and Delphi you can have a local with the
@@ -1859,7 +1000,7 @@ implementation
               if assigned(next) and
                 (next^.symtabletype=parasymtable) then
                 begin
-                  hsym:=next^.search(sym^.name);
+                  hsym:=psym(next^.search(sym^.name));
                   if assigned(hsym) then
                    begin
                      { a parameter and the function can have the same
@@ -1968,20 +1109,12 @@ implementation
       end;
 
 
-    function tsymtable.search(const s : stringid) : psym;
-      begin
-        {search:=psym(symsearch^.search(s));
-         this bypasses the ref generation (PM) }
-        search:=speedsearch(s,getspeedvalue(s));
-      end;
-
-
-    function tsymtable.speedsearch(const s : stringid;speedvalue : longint) : psym;
+    function tstoredsymtable.speedsearch(const s : stringid;speedvalue : longint) : psymentry;
       var
-        hp : psym;
+        hp : pstoredsym;
         newref : pref;
       begin
-        hp:=psym(symsearch^.speedsearch(s,speedvalue));
+        hp:=pstoredsym(inherited speedsearch(s,speedvalue));
         if assigned(hp) then
          begin
            { reject non static members in static procedures,
@@ -2006,7 +1139,7 @@ implementation
            if assigned(hp) and
               (cs_browser in aktmoduleswitches) and make_ref then
              begin
-                new(newref,init(hp^.lastref,@tokenpos));
+                new(newref,init(hp^.lastref,@akttokenpos));
                 { for symbols that are in tables without
                 browser info or syssyms (PM) }
                 if hp^.refcount=0 then
@@ -2034,138 +1167,22 @@ implementation
         speedsearch:=hp;
       end;
 
-
-    function tsymtable.rename(const olds,news : stringid):psym;
-      begin
-        rename:=psym(symsearch^.rename(olds,news));
-      end;
-
-
-{***********************************************
-                Browser
-***********************************************}
-
-    procedure tsymtable.load_browser;
-      var
-        b     : byte;
-        sym   : psym;
-        prdef : pdef;
-        oldrecsyms : psymtable;
-      begin
-         if symtabletype in [recordsymtable,objectsymtable] then
-           begin
-              oldrecsyms:=aktrecordsymtable;
-              aktrecordsymtable:=@self;
-           end;
-         if symtabletype in [parasymtable,localsymtable] then
-           begin
-              oldrecsyms:=aktlocalsymtable;
-              aktlocalsymtable:=@self;
-           end;
-         if symtabletype=staticppusymtable then
-           aktstaticsymtable:=@self;
-         b:=current_ppu^.readentry;
-         if b <> ibbeginsymtablebrowser then
-           Message1(unit_f_ppu_invalid_entry,tostr(b));
-         repeat
-           b:=current_ppu^.readentry;
-           case b of
-           ibsymref : begin
-                        sym:=readsymref;
-                        resolvesym(sym);
-                        if assigned(sym) then
-                          sym^.load_references;
-                      end;
-           ibdefref : begin
-                        prdef:=readdefref;
-                        resolvedef(prdef);
-                        if assigned(prdef) then
-                         begin
-                           if prdef^.deftype<>procdef then
-                            Message(unit_f_ppu_read_error);
-                           pprocdef(prdef)^.load_references;
-                         end;
-                      end;
-            ibendsymtablebrowser : break;
-           else
-             Message1(unit_f_ppu_invalid_entry,tostr(b));
-           end;
-         until false;
-        if symtabletype in [recordsymtable,objectsymtable] then
-          aktrecordsymtable:=oldrecsyms;
-        if symtabletype in [parasymtable,localsymtable] then
-          aktlocalsymtable:=oldrecsyms;
-      end;
-
-
-    procedure tsymtable.write_browser;
-      var
-         oldrecsyms : psymtable;
-      begin
-         { symbol numbering for references
-           should have been done in write PM
-         number_symbols;
-         number_defs;   }
-
-         if symtabletype in [recordsymtable,objectsymtable] then
-           begin
-              oldrecsyms:=aktrecordsymtable;
-              aktrecordsymtable:=@self;
-           end;
-         if symtabletype in [parasymtable,localsymtable] then
-           begin
-              oldrecsyms:=aktlocalsymtable;
-              aktlocalsymtable:=@self;
-           end;
-         current_ppu^.writeentry(ibbeginsymtablebrowser);
-         foreach({$ifdef FPCPROCVAR}@{$endif}write_refs);
-         current_ppu^.writeentry(ibendsymtablebrowser);
-        if symtabletype in [recordsymtable,objectsymtable] then
-          aktrecordsymtable:=oldrecsyms;
-        if symtabletype in [parasymtable,localsymtable] then
-          aktlocalsymtable:=oldrecsyms;
-      end;
-
-
-{$ifdef BrowserLog}
-    procedure tsymtable.writebrowserlog;
-      begin
-        if cs_browser in aktmoduleswitches then
-         begin
-           if assigned(name) then
-             Browserlog.AddLog('---Symtable '+name^)
-           else
-             begin
-                if (symtabletype=recordsymtable) and
-                  assigned(defowner^.typesym) then
-                  Browserlog.AddLog('---Symtable '+defowner^.typesym^.name)
-                else
-                  Browserlog.AddLog('---Symtable with no name');
-             end;
-           Browserlog.Ident;
-           foreach({$ifdef FPCPROCVAR}@{$endif}add_to_browserlog);
-           browserlog.Unident;
-         end;
-      end;
-{$endif BrowserLog}
-
-
 {***********************************************
            Process all entries
 ***********************************************}
 
     { checks, if all procsyms and methods are defined }
-    procedure tsymtable.check_forwards;
+    procedure tstoredsymtable.check_forwards;
       begin
          foreach({$ifdef FPCPROCVAR}@{$endif}check_forward);
       end;
 
-    procedure tsymtable.checklabels;
+    procedure tstoredsymtable.checklabels;
       begin
          foreach({$ifdef FPCPROCVAR}@{$endif}labeldefined);
       end;
 
-    procedure tsymtable.set_alignment(_alignment : longint);
+    procedure tstoredsymtable.set_alignment(_alignment : longint);
       var
          sym : pvarsym;
          l : longint;
@@ -2185,51 +1202,30 @@ implementation
           end;
       end;
 
-    function tsymtable.find_at_offset(l : longint) : pvarsym;
-      var
-         sym : pvarsym;
-      begin
-        find_at_offset:=nil;
-        { this can not be done if there is an
-          hasharray ! }
-        if (symtabletype<>parasymtable) then
-          internalerror(1111);
-        sym:=pvarsym(symindex^.first);
-        while assigned(sym) do
-          begin
-             if sym^.address+address_fixup=l then
-               begin
-                 find_at_offset:=sym;
-                 exit;
-               end;
-             sym:=pvarsym(sym^.indexnext);
-          end;
-      end;
-
-    procedure tsymtable.allunitsused;
+    procedure tstoredsymtable.allunitsused;
       begin
          foreach({$ifdef FPCPROCVAR}@{$endif}unitsymbolused);
       end;
 
-    procedure tsymtable.allsymbolsused;
+    procedure tstoredsymtable.allsymbolsused;
       begin
          foreach({$ifdef FPCPROCVAR}@{$endif}varsymbolused);
       end;
 
-    procedure tsymtable.allprivatesused;
+    procedure tstoredsymtable.allprivatesused;
       begin
          foreach({$ifdef FPCPROCVAR}@{$endif}objectprivatesymbolused);
       end;
 
 {$ifdef CHAINPROCSYMS}
-    procedure tsymtable.chainprocsyms;
+    procedure tstoredsymtable.chainprocsyms;
       begin
          foreach({$ifdef FPCPROCVAR}@{$endif}chainprocsym);
       end;
 {$endif CHAINPROCSYMS}
 
 {$ifdef GDB}
-      procedure tsymtable.concatstabto(asmlist : paasmoutput);
+    procedure tstoredsymtable.concatstabto(asmlist : paasmoutput);
       begin
         asmoutput:=asmlist;
         if symtabletype in [inlineparasymtable,inlinelocalsymtable] then
@@ -2238,6 +1234,427 @@ implementation
         foreach({$ifdef FPCPROCVAR}@{$endif}concatstab);
       end;
 {$endif}
+
+
+{****************************************************************************
+                              TWITHSYMTABLE
+****************************************************************************}
+
+    constructor twithsymtable.init;
+      begin
+         inherited init(withsymtable);
+         direct_with:=false;
+         withnode:=nil;
+         withrefnode:=nil;
+      end;
+
+
+    destructor twithsymtable.done;
+      begin
+        symsearch:=nil;
+        inherited done;
+      end;
+
+    procedure twithsymtable.clear;
+      begin
+         { remove no entry from a withsymtable as it is only a pointer to the
+           recorddef  or objectdef symtable }
+      end;
+
+
+{****************************************************************************
+                            PPU Writing Helpers
+****************************************************************************}
+
+    procedure writesourcefiles;
+      var
+        hp    : pinputfile;
+        i,j : longint;
+      begin
+      { second write the used source files }
+        current_ppu^.do_crc:=false;
+        hp:=current_module^.sourcefiles^.files;
+      { write source files directly in good order }
+        j:=0;
+        while assigned(hp) do
+          begin
+            inc(j);
+            hp:=hp^.ref_next;
+          end;
+        while j>0 do
+          begin
+            hp:=current_module^.sourcefiles^.files;
+            for i:=1 to j-1 do
+              hp:=hp^.ref_next;
+            current_ppu^.putstring(hp^.name^);
+            dec(j);
+         end;
+        current_ppu^.writeentry(ibsourcefiles);
+        current_ppu^.do_crc:=true;
+      end;
+
+    procedure writeusedmacro(p:pnamedindexobject);
+      begin
+        if pmacro(p)^.is_used or pmacro(p)^.defined_at_startup then
+          begin
+            current_ppu^.putstring(p^.name);
+            current_ppu^.putbyte(byte(pmacro(p)^.defined_at_startup));
+            current_ppu^.putbyte(byte(pmacro(p)^.is_used));
+          end;
+      end;
+
+    procedure writeusedmacros;
+      begin
+        current_ppu^.do_crc:=false;
+        current_scanner^.macros^.foreach({$ifdef FPCPROCVAR}@{$endif}writeusedmacro);
+        current_ppu^.writeentry(ibusedmacros);
+        current_ppu^.do_crc:=true;
+      end;
+
+
+    procedure writeusedunit;
+      var
+        hp      : pused_unit;
+      begin
+        numberunits;
+        hp:=pused_unit(current_module^.used_units.first);
+        while assigned(hp) do
+         begin
+           { implementation units should not change
+             the CRC PM }
+           current_ppu^.do_crc:=hp^.in_interface;
+           current_ppu^.putstring(hp^.name^);
+           { the checksum should not affect the crc of this unit ! (PFV) }
+           current_ppu^.do_crc:=false;
+           current_ppu^.putlongint(hp^.checksum);
+           current_ppu^.putlongint(hp^.interface_checksum);
+           current_ppu^.putbyte(byte(hp^.in_interface));
+           current_ppu^.do_crc:=true;
+           hp:=pused_unit(hp^.next);
+         end;
+        current_ppu^.do_interface_crc:=true;
+        current_ppu^.writeentry(ibloadunit);
+      end;
+
+
+    procedure writelinkcontainer(var p:tlinkcontainer;id:byte;strippath:boolean);
+      var
+        hcontainer : tlinkcontainer;
+        s : string;
+        mask : longint;
+      begin
+        hcontainer.init;
+        while not p.empty do
+         begin
+           s:=p.get(mask);
+           if strippath then
+            current_ppu^.putstring(SplitFileName(s))
+           else
+            current_ppu^.putstring(s);
+           current_ppu^.putlongint(mask);
+           hcontainer.insert(s,mask);
+         end;
+        current_ppu^.writeentry(id);
+        p:=hcontainer;
+      end;
+
+
+    procedure writeunitas(const s : string;unittable : punitsymtable;only_crc : boolean);
+      begin
+         Message1(unit_u_ppu_write,s);
+
+       { create unit flags }
+         with Current_Module^ do
+          begin
+{$ifdef GDB}
+            if cs_gdb_dbx in aktglobalswitches then
+             flags:=flags or uf_has_dbx;
+{$endif GDB}
+            if target_os.endian=endian_big then
+             flags:=flags or uf_big_endian;
+            if cs_browser in aktmoduleswitches then
+             flags:=flags or uf_has_browser;
+            if cs_local_browser in aktmoduleswitches then
+             flags:=flags or uf_local_browser;
+          end;
+
+{$ifdef Test_Double_checksum_write}
+        If only_crc then
+          Assign(CRCFile,s+'.INT')
+        else
+          Assign(CRCFile,s+'.IMP');
+        Rewrite(CRCFile);
+{$endif def Test_Double_checksum_write}
+       { open ppufile }
+         current_ppu:=new(pppufile,init(s));
+         current_ppu^.crc_only:=only_crc;
+         if not current_ppu^.create then
+           Message(unit_f_ppu_cannot_write);
+
+{$ifdef Test_Double_checksum}
+         if only_crc then
+           begin
+              new(current_ppu^.crc_test);
+              new(current_ppu^.crc_test2);
+           end
+         else
+           begin
+             current_ppu^.crc_test:=Current_Module^.crc_array;
+             current_ppu^.crc_index:=Current_Module^.crc_size;
+             current_ppu^.crc_test2:=Current_Module^.crc_array2;
+             current_ppu^.crc_index2:=Current_Module^.crc_size2;
+           end;
+{$endif def Test_Double_checksum}
+
+         current_ppu^.change_endian:=source_os.endian<>target_os.endian;
+       { write symbols and definitions }
+         unittable^.writeasunit;
+
+       { flush to be sure }
+         current_ppu^.flush;
+       { create and write header }
+         current_ppu^.header.size:=current_ppu^.size;
+         current_ppu^.header.checksum:=current_ppu^.crc;
+         current_ppu^.header.interface_checksum:=current_ppu^.interface_crc;
+         current_ppu^.header.compiler:=wordversion;
+         current_ppu^.header.cpu:=word(target_cpu);
+         current_ppu^.header.target:=word(target_info.target);
+         current_ppu^.header.flags:=current_module^.flags;
+         If not only_crc then
+           current_ppu^.writeheader;
+       { save crc in current_module also }
+         current_module^.crc:=current_ppu^.crc;
+         current_module^.interface_crc:=current_ppu^.interface_crc;
+         if only_crc then
+          begin
+{$ifdef Test_Double_checksum}
+            Current_Module^.crc_array:=current_ppu^.crc_test;
+            current_ppu^.crc_test:=nil;
+            Current_Module^.crc_size:=current_ppu^.crc_index2;
+            Current_Module^.crc_array2:=current_ppu^.crc_test2;
+            current_ppu^.crc_test2:=nil;
+            Current_Module^.crc_size2:=current_ppu^.crc_index2;
+{$endif def Test_Double_checksum}
+            closecurrentppu;
+          end;
+{$ifdef Test_Double_checksum_write}
+        close(CRCFile);
+{$endif Test_Double_checksum_write}
+      end;
+
+
+    procedure readusedmacros;
+      var
+        hs : string;
+        mac : pmacro;
+        was_defined_at_startup,
+        was_used : boolean;
+      begin
+        while not current_ppu^.endofentry do
+         begin
+           hs:=current_ppu^.getstring;
+           was_defined_at_startup:=boolean(current_ppu^.getbyte);
+           was_used:=boolean(current_ppu^.getbyte);
+           mac:=pmacro(current_scanner^.macros^.search(hs));
+           if assigned(mac) then
+             begin
+{$ifndef EXTDEBUG}
+           { if we don't have the sources why tell }
+              if current_module^.sources_avail then
+{$endif ndef EXTDEBUG}
+               if (not was_defined_at_startup) and
+                  was_used and
+                  mac^.defined_at_startup then
+                Message2(unit_h_cond_not_set_in_last_compile,hs,current_module^.mainsource^);
+             end
+           else { not assigned }
+             if was_defined_at_startup and
+                was_used then
+              Message2(unit_h_cond_not_set_in_last_compile,hs,current_module^.mainsource^);
+         end;
+      end;
+
+    procedure readsourcefiles;
+      var
+        temp,hs       : string;
+        temp_dir      : string;
+        main_dir      : string;
+        incfile_found,
+        main_found,
+        is_main       : boolean;
+        ppufiletime,
+        source_time   : longint;
+        hp            : pinputfile;
+      begin
+        ppufiletime:=getnamedfiletime(current_module^.ppufilename^);
+        current_module^.sources_avail:=true;
+        is_main:=true;
+        main_dir:='';
+        while not current_ppu^.endofentry do
+         begin
+           hs:=current_ppu^.getstring;
+           temp_dir:='';
+           if (current_module^.flags and uf_in_library)<>0 then
+            begin
+              current_module^.sources_avail:=false;
+              temp:=' library';
+            end
+           else if pos('Macro ',hs)=1 then
+            begin
+              { we don't want to find this file }
+              { but there is a problem with file indexing !! }
+              temp:='';
+            end
+           else
+            begin
+              { check the date of the source files }
+              Source_Time:=GetNamedFileTime(current_module^.path^+hs);
+              incfile_found:=false;
+              main_found:=false;
+              if Source_Time<>-1 then
+                hs:=current_module^.path^+hs
+              else
+               if not(is_main) then
+                begin
+                  Source_Time:=GetNamedFileTime(main_dir+hs);
+                  if Source_Time<>-1 then
+                    hs:=main_dir+hs;
+                end;
+              if (Source_Time=-1) then
+                begin
+                  if is_main then
+                    temp_dir:=unitsearchpath.FindFile(hs,main_found)
+                  else
+                    temp_dir:=includesearchpath.FindFile(hs,incfile_found);
+                  if incfile_found or main_found then
+                   begin
+                     hs:=temp_dir+hs;
+                     Source_Time:=GetNamedFileTime(hs);
+                   end
+                end;
+              if Source_Time=-1 then
+               begin
+                 current_module^.sources_avail:=false;
+                 temp:=' not found';
+               end
+              else
+               begin
+                 if main_found then
+                   main_dir:=temp_dir;
+                 { time newer? But only allow if the file is not searched
+                   in the include path (PFV), else you've problems with
+                   units which use the same includefile names }
+                 if incfile_found then
+                  temp:=' found'
+                 else
+                  begin
+                    temp:=' time '+filetimestring(source_time);
+                    if (source_time>ppufiletime) then
+                     begin
+                       current_module^.do_compile:=true;
+                       current_module^.recompile_reason:=rr_sourcenewer;
+                       temp:=temp+' *'
+                     end;
+                  end;
+               end;
+              new(hp,init(hs));
+              { the indexing is wrong here PM }
+              current_module^.sourcefiles^.register_file(hp);
+            end;
+           if is_main then
+             begin
+               stringdispose(current_module^.mainsource);
+               current_module^.mainsource:=stringdup(hs);
+             end;
+           Message1(unit_u_ppu_source,hs+temp);
+           is_main:=false;
+         end;
+      { check if we want to rebuild every unit, only if the sources are
+        available }
+        if do_build and current_module^.sources_avail then
+          begin
+             current_module^.do_compile:=true;
+             current_module^.recompile_reason:=rr_build;
+          end;
+      end;
+
+
+    procedure readloadunit;
+      var
+        hs : string;
+        intfchecksum,
+        checksum : longint;
+        in_interface : boolean;
+      begin
+        while not current_ppu^.endofentry do
+         begin
+           hs:=current_ppu^.getstring;
+           checksum:=current_ppu^.getlongint;
+           intfchecksum:=current_ppu^.getlongint;
+           in_interface:=(current_ppu^.getbyte<>0);
+           current_module^.used_units.concat(new(pused_unit,init_to_load(hs,checksum,intfchecksum,in_interface)));
+         end;
+      end;
+
+
+    procedure readlinkcontainer(var p:tlinkcontainer);
+      var
+        s : string;
+        m : longint;
+      begin
+        while not current_ppu^.endofentry do
+         begin
+           s:=current_ppu^.getstring;
+           m:=current_ppu^.getlongint;
+           p.insert(s,m);
+         end;
+      end;
+
+
+    procedure load_interface;
+      var
+        b : byte;
+        newmodulename : string;
+      begin
+       { read interface part }
+         repeat
+           b:=current_ppu^.readentry;
+           case b of
+             ibmodulename :
+               begin
+                 newmodulename:=current_ppu^.getstring;
+                 if upper(newmodulename)<>current_module^.modulename^ then
+                   Message2(unit_f_unit_name_error,current_module^.realmodulename^,newmodulename);
+                 stringdispose(current_module^.modulename);
+                 stringdispose(current_module^.realmodulename);
+                 current_module^.modulename:=stringdup(upper(newmodulename));
+                 current_module^.realmodulename:=stringdup(newmodulename);
+               end;
+             ibsourcefiles :
+               readsourcefiles;
+             ibusedmacros :
+               readusedmacros;
+             ibloadunit :
+               readloadunit;
+             iblinkunitofiles :
+               readlinkcontainer(current_module^.LinkUnitOFiles);
+             iblinkunitstaticlibs :
+               readlinkcontainer(current_module^.LinkUnitStaticLibs);
+             iblinkunitsharedlibs :
+               readlinkcontainer(current_module^.LinkUnitSharedLibs);
+             iblinkotherofiles :
+               readlinkcontainer(current_module^.LinkotherOFiles);
+             iblinkotherstaticlibs :
+               readlinkcontainer(current_module^.LinkotherStaticLibs);
+             iblinkothersharedlibs :
+               readlinkcontainer(current_module^.LinkotherSharedLibs);
+             ibendinterface :
+               break;
+           else
+             Message1(unit_f_ppu_invalid_entry,tostr(b));
+           end;
+         until false;
+      end;
 
 
 {****************************************************************************
@@ -2299,7 +1716,7 @@ implementation
        { load symtables }
          inherited loadas(unitsymtable);
 
-       { set the name after because it is set to nil in tsymtable.load !! }
+       { set the name after because it is set to nil in tstoredsymtable.load !! }
          name:=stringdup(current_module^.modulename^);
 
        { dbx count }
@@ -2376,7 +1793,7 @@ implementation
                 end;
            end;
          if ((current_module^.flags and uf_local_browser)<>0) then
-           psymtable(current_module^.localsymtable)^.load_browser;
+           pstoredsymtable(current_module^.localsymtable)^.load_browser;
          end;
 
 
@@ -2432,7 +1849,7 @@ implementation
            needed for local debugging of unit functions }
         if ((current_module^.flags and uf_local_browser)<>0) and
            assigned(current_module^.localsymtable) then
-          psymtable(current_module^.localsymtable)^.writeas;
+          pstoredsymtable(current_module^.localsymtable)^.writeas;
       { write all browser section }
         if (current_module^.flags and uf_has_browser)<>0 then
          begin
@@ -2440,27 +1857,26 @@ implementation
            pu:=pused_unit(current_module^.used_units.first);
            while assigned(pu) do
             begin
-              psymtable(pu^.u^.globalsymtable)^.write_browser;
+              pstoredsymtable(pu^.u^.globalsymtable)^.write_browser;
               pu:=pused_unit(pu^.next);
             end;
            current_ppu^.writeentry(ibendbrowser);
          end;
         if ((current_module^.flags and uf_local_browser)<>0) and
            assigned(current_module^.localsymtable) then
-          psymtable(current_module^.localsymtable)^.write_browser;
+          pstoredsymtable(current_module^.localsymtable)^.write_browser;
 
       { the last entry ibend is written automaticly }
       end;
 
 
+{$ifdef GDB}
    function tunitsymtable.getnewtypecount : word;
 
       begin
-{$ifdef GDB}
          if not (cs_gdb_dbx in aktglobalswitches) then
            getnewtypecount:=tsymtable.getnewtypecount
          else
-{$endif GDB}
            if symtabletype = staticsymtable then
            getnewtypecount:=tsymtable.getnewtypecount
          else
@@ -2470,8 +1886,6 @@ implementation
            end;
       end;
 
-
-{$ifdef GDB}
 
       procedure tunitsymtable.concattypestabto(asmlist : paasmoutput);
         var prev_dbx_count : plongint;
@@ -2529,32 +1943,181 @@ implementation
         end;
 {$endif}
 
-{****************************************************************************
-                              Definitions
-****************************************************************************}
+{*****************************************************************************
+                             Helper Routines
+*****************************************************************************}
 
-{$I symdef.inc}
+    procedure numberunits;
+      var
+        counter : longint;
+        hp      : pused_unit;
+        hp1     : pmodule;
+      begin
+        { Reset all numbers to -1 }
+        hp1:=pmodule(loaded_units.first);
+        while assigned(hp1) do
+         begin
+           if assigned(hp1^.globalsymtable) then
+             psymtable(hp1^.globalsymtable)^.unitid:=$ffff;
+           hp1:=pmodule(hp1^.next);
+         end;
+        { Our own symtable gets unitid 0, for a program there is
+          no globalsymtable }
+        if assigned(current_module^.globalsymtable) then
+          psymtable(current_module^.globalsymtable)^.unitid:=0;
+        { number units }
+        counter:=1;
+        hp:=pused_unit(current_module^.used_units.first);
+        while assigned(hp) do
+         begin
+           psymtable(hp^.u^.globalsymtable)^.unitid:=counter;
+           inc(counter);
+           hp:=pused_unit(hp^.next);
+         end;
+      end;
 
-{****************************************************************************
-                                Symbols
-****************************************************************************}
 
-{$I symsym.inc}
+    function findunitsymtable(st:psymtable):psymtable;
+      begin
+        findunitsymtable:=nil;
+        repeat
+          if not assigned(st) then
+           internalerror(5566561);
+          case st^.symtabletype of
+            localsymtable,
+            parasymtable,
+            staticsymtable :
+              break;
+            globalsymtable,
+            unitsymtable :
+              begin
+                findunitsymtable:=st;
+                break;
+              end;
+            objectsymtable,
+            recordsymtable :
+              st:=st^.defowner^.owner;
+            else
+              internalerror(5566562);
+          end;
+        until false;
+      end;
 
-{****************************************************************************
-                               GDB Helpers
-****************************************************************************}
 
-{$ifdef GDB}
-    function typeglobalnumber(const s : string) : string;
+     procedure duplicatesym(sym:psym);
+       var
+         st : psymtable;
+       begin
+         Message1(sym_e_duplicate_id,sym^.name);
+         st:=findunitsymtable(sym^.owner);
+         with sym^.fileinfo do
+           begin
+             if assigned(st) and (st^.unitid<>0) then
+               Message2(sym_h_duplicate_id_where,'unit '+st^.name^,tostr(line))
+             else
+               Message2(sym_h_duplicate_id_where,current_module^.sourcefiles^.get_file_name(fileindex),tostr(line));
+           end;
+       end;
+
+
+     procedure identifier_not_found(const s:string);
+       begin
+         Message1(sym_e_id_not_found,s);
+         { show a fatal that you need -S2 or -Sd, but only
+           if we just parsed the a token that has m_class }
+         if not(m_class in aktmodeswitches) and
+            (s=pattern) and
+            (tokeninfo^[idtoken].keyword=m_class) then
+           Message(parser_f_need_objfpc_or_delphi_mode);
+       end;
+
+
+
+{*****************************************************************************
+                                  Search
+*****************************************************************************}
+
+    procedure getsym(const s : stringid;notfounderror : boolean);
+      var
+        speedvalue : longint;
+      begin
+         speedvalue:=getspeedvalue(s);
+         lastsrsym:=nil;
+         srsymtable:=symtablestack;
+         while assigned(srsymtable) do
+           begin
+              srsym:=psym(srsymtable^.speedsearch(s,speedvalue));
+              if assigned(srsym) then
+                exit
+              else
+                srsymtable:=srsymtable^.next;
+           end;
+         if notfounderror then
+           begin
+              identifier_not_found(s);
+              srsym:=generrorsym;
+           end
+         else
+           srsym:=nil;
+      end;
+
+
+    procedure getsymonlyin(p : psymtable;const s : stringid);
+      begin
+         { the caller have to take care if srsym=nil (FK) }
+         srsym:=nil;
+         if assigned(p) then
+           begin
+              srsymtable:=p;
+              srsym:=psym(srsymtable^.search(s));
+              if assigned(srsym) then
+                exit
+              else
+               begin
+                  if (punitsymtable(srsymtable)=punitsymtable(current_module^.globalsymtable)) then
+                    begin
+                       getsymonlyin(psymtable(current_module^.localsymtable),s);
+                       if assigned(srsym) then
+                         srsymtable:=psymtable(current_module^.localsymtable)
+                       else
+                         identifier_not_found(s);
+                    end
+                  else
+                    identifier_not_found(s);
+               end;
+           end;
+      end;
+
+
+    function search_a_symtable(const symbol:string;symtabletype:tsymtabletype):Psym;
+    {Search for a symbol in a specified symbol table. Returns nil if
+     the symtable is not found, and also if the symbol cannot be found
+     in the desired symtable }
+    var hsymtab:Psymtable;
+        res:Psym;
+    begin
+        res:=nil;
+        hsymtab:=symtablestack;
+        while (hsymtab<>nil) and (hsymtab^.symtabletype<>symtabletype) do
+            hsymtab:=hsymtab^.next;
+        if hsymtab<>nil then
+            {We found the desired symtable. Now check if the symbol we
+             search for is defined in it }
+            res:=psym(hsymtab^.search(symbol));
+        search_a_symtable:=res;
+    end;
+
+
+
+{*****************************************************************************
+                            Definition Helpers
+*****************************************************************************}
+
+    function globaldef(const s : string) : pdef;
 
       var st : string;
           symt : psymtable;
-          old_make_ref : boolean;
       begin
-         old_make_ref:=make_ref;
-         make_ref:=false;
-         typeglobalnumber := '0';
          srsym := nil;
          if pos('.',s) > 0 then
            begin
@@ -2566,66 +2129,20 @@ implementation
              if srsym^.typ = unitsym then
                begin
                symt := punitsym(srsym)^.unitsymtable;
-               srsym := symt^.search(st);
+               srsym := psym(symt^.search(st));
                end else srsym := nil;
              end;
            end else st := s;
-         if srsym = nil then getsym(st,true);
+         if srsym = nil then getsym(st,false);
+         if srsym = nil then
+           getsymonlyin(systemunit,st);
          if srsym^.typ<>typesym then
            begin
              Message(type_e_type_id_expected);
              exit;
            end;
-         typeglobalnumber := ptypesym(srsym)^.restype.def^.numberstring;
-         make_ref:=old_make_ref;
+         globaldef := pdef(ptypesym(srsym)^.restype.def);
       end;
-{$endif GDB}
-
-
-{****************************************************************************
-                           Definition Helpers
-****************************************************************************}
-
-   procedure reset_global_defs;
-     var
-       def     : pdef;
-{$ifdef debug}
-       prevdef : pdef;
-{$endif debug}
-     begin
-{$ifdef debug}
-        prevdef:=nil;
-{$endif debug}
-{$ifdef GDB}
-        pglobaltypecount:=@globaltypecount;
-{$endif GDB}
-        def:=firstglobaldef;
-        while assigned(def) do
-          begin
-{$ifdef GDB}
-            if assigned(def^.typesym) then
-              def^.typesym^.isusedinstab:=false;
-            def^.is_def_stab_written:=not_written;
-{$endif GDB}
-            {if not current_module^.in_implementation then}
-              begin
-                { reset rangenr's }
-                case def^.deftype of
-                  orddef   : porddef(def)^.rangenr:=0;
-                  enumdef  : penumdef(def)^.rangenr:=0;
-                  arraydef : parraydef(def)^.rangenr:=0;
-                end;
-                if def^.deftype<>objectdef then
-                  def^.has_rtti:=false;
-                def^.has_inittable:=false;
-              end;
-{$ifdef debug}
-            prevdef:=def;
-{$endif debug}
-            def:=def^.nextglobal;
-          end;
-     end;
-
 
 {****************************************************************************
                               Object Helpers
@@ -2639,7 +2156,7 @@ implementation
          sym:=nil;
          while assigned(pd) do
            begin
-              sym:=pd^.symtable^.search(n);
+              sym:=psym(pd^.symtable^.search(n));
               if assigned(sym) then
                 break;
               pd:=pd^.childof;
@@ -2677,50 +2194,6 @@ implementation
           end;
         search_default_property:=_defaultprop;
      end;
-
-
-{****************************************************************************
-                               Macro's
-****************************************************************************}
-
-      procedure def_macro(const s : string);
-        var
-          mac : pmacrosym;
-        begin
-           mac:=pmacrosym(macros^.search(s));
-           if mac=nil then
-             begin
-               mac:=new(pmacrosym,init(s));
-               Message1(parser_m_macro_defined,mac^.name);
-               macros^.insert(mac);
-             end;
-           mac^.defined:=true;
-           mac^.defined_at_startup:=true;
-        end;
-
-
-      procedure set_macro(const s : string;value : string);
-        var
-          mac : pmacrosym;
-        begin
-           mac:=pmacrosym(macros^.search(s));
-           if mac=nil then
-             begin
-               mac:=new(pmacrosym,init(s));
-               macros^.insert(mac);
-             end
-           else
-             begin
-                if assigned(mac^.buftext) then
-                  freemem(mac^.buftext,mac^.buflen);
-             end;
-           Message2(parser_m_macro_set_to,mac^.name,value);
-           mac^.buflen:=length(value);
-           getmem(mac^.buftext,mac^.buflen);
-           move(value[1],mac^.buftext^,mac^.buflen);
-           mac^.defined:=true;
-           mac^.defined_at_startup:=true;
-        end;
 
 
 {$ifdef UNITALIASES}
@@ -2778,7 +2251,7 @@ implementation
          symtablestack:=p^.next;
          { symbol tables of unit interfaces are never disposed }
          { this is handle by the unit unitm                 }
-         if not(p^.symtabletype in [unitsymtable,globalsymtable,stt_exceptsymtable]) or dispose_global then
+         if not(p^.symtabletype in [unitsymtable,globalsymtable,stt_exceptsymtable]) then
           dispose(p,done);
       end;
 
@@ -2850,9 +2323,9 @@ implementation
 {$ifdef GDB}
         firstglobaldef:=nil;
         lastglobaldef:=nil;
-{$endif GDB}
         globaltypecount:=1;
         pglobaltypecount:=@globaltypecount;
+{$endif GDB}
      { create error syms and def }
         generrorsym:=new(perrorsym,init);
         generrordef:=new(perrordef,init);
@@ -2880,38 +2353,7 @@ implementation
 end.
 {
   $Log$
-  Revision 1.11  2000-10-15 07:47:53  peter
-    * unit names and procedure names are stored mixed case
-
-  Revision 1.10  2000/10/14 10:14:53  peter
-    * moehrendorf oct 2000 rewrite
-
-  Revision 1.9  2000/10/01 19:48:25  peter
-    * lot of compile updates for cg11
-
-  Revision 1.8  2000/09/24 15:06:29  peter
-    * use defines.inc
-
-  Revision 1.7  2000/08/27 16:11:54  peter
-    * moved some util functions from globals,cobjects to cutils
-    * splitted files into finput,fmodule
-
-  Revision 1.6  2000/08/21 11:27:45  pierre
-   * fix the stabs problems
-
-  Revision 1.5  2000/08/20 14:58:41  peter
-    * give fatal if objfpc/delphi mode things are found (merged)
-
-  Revision 1.4  2000/08/16 18:33:54  peter
-    * splitted namedobjectitem.next into indexnext and listnext so it
-      can be used in both lists
-    * don't allow "word = word" type definitions (merged)
-
-  Revision 1.3  2000/08/08 19:28:57  peter
-    * memdebug/memory patches (merged)
-    * only once illegal directive (merged)
-
-  Revision 1.2  2000/07/13 11:32:50  michael
-  + removed logs
+  Revision 1.12  2000-10-31 22:02:52  peter
+    * symtable splitted, no real code changes
 
 }

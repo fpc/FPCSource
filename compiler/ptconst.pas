@@ -26,7 +26,7 @@ unit ptconst;
 
 interface
 
-   uses symtable;
+   uses symtype,symsym;
 
     { this procedure reads typed constants }
     { sym is only needed for ansi strings  }
@@ -43,7 +43,7 @@ implementation
 {$endif Delphi}
        globtype,systems,tokens,cpuinfo,
        cutils,cobjects,globals,scanner,
-       symconst,aasm,types,verbose,
+       symconst,symbase,symdef,symtable,aasm,types,verbose,
        { pass 1 }
        node,pass_1,
        nmat,nadd,ncal,nmem,nset,ncnv,ninl,ncon,nld,nflw,
@@ -679,7 +679,7 @@ implementation
                    s:=pattern;
                    consume(_ID);
                    consume(_COLON);
-                   srsym:=precorddef(def)^.symtable^.search(s);
+                   srsym:=psym(precorddef(def)^.symtable^.search(s));
                    if srsym=nil then
                      begin
                         Message1(sym_e_id_not_found,s);
@@ -742,7 +742,7 @@ implementation
                         symt:=obj^.symtable;
                         while (srsym=nil) and assigned(symt) do
                           begin
-                             srsym:=symt^.search(s);
+                             srsym:=psym(symt^.search(s));
                              if assigned(obj) then
                                obj:=obj^.childof;
                              if assigned(obj) then
@@ -801,7 +801,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.9  2000-10-14 10:14:52  peter
+  Revision 1.10  2000-10-31 22:02:51  peter
+    * symtable splitted, no real code changes
+
+  Revision 1.9  2000/10/14 10:14:52  peter
     * moehrendorf oct 2000 rewrite
 
   Revision 1.8  2000/09/30 13:23:04  peter

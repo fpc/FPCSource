@@ -28,7 +28,7 @@ interface
 
 uses
   cutils,cobjects,
-  symtable;
+  symtype;
 
 const
    { export options }
@@ -226,7 +226,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.6  2000-09-24 15:06:16  peter
+  Revision 1.7  2000-10-31 22:02:46  peter
+    * symtable splitted, no real code changes
+
+  Revision 1.6  2000/09/24 15:06:16  peter
     * use defines.inc
 
   Revision 1.5  2000/09/16 12:22:52  peter

@@ -29,7 +29,7 @@ interface
     uses
       tokens,
       node,
-      symtable;
+      symtype,symdef;
 
     type
       Ttok2nodeRec=record
@@ -124,7 +124,7 @@ implementation
     uses
        globtype,systems,
        cutils,cobjects,verbose,globals,
-       symconst,
+       symconst,symsym,symtable,
        types,pass_1,cpubase,
        ncnv,nld,
        nmem,ncal,nmat,
@@ -889,7 +889,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.12  2000-10-14 10:14:47  peter
+  Revision 1.13  2000-10-31 22:02:47  peter
+    * symtable splitted, no real code changes
+
+  Revision 1.12  2000/10/14 10:14:47  peter
     * moehrendorf oct 2000 rewrite
 
   Revision 1.11  2000/10/01 19:48:23  peter

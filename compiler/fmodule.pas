@@ -79,7 +79,7 @@ interface
        punitmap = ^tunitmap;
 {$endif NEWMAP}
 
-       tmodule = object(tlinkedlist_item)
+       tmodule = object(tmodulebase)
           ppufile       : pppufile; { the PPU file }
           crc,
           interface_crc,
@@ -102,7 +102,6 @@ interface
           islibrary     : boolean;  { if it is a library (win32 dll) }
           map           : punitmap; { mapping of all used units }
           unitcount     : word;     { local unit counter }
-          unit_index    : word;     { global counter for browser }
           globalsymtable,           { pointer to the local/static symtable of this unit }
           localsymtable : pointer;  { pointer to the psymtable of this unit }
           scanner       : pointer;  { scanner object used }
@@ -111,7 +110,6 @@ interface
           imports       : plinkedlist;
           _exports      : plinkedlist;
 
-          sourcefiles   : pinputfilemanager;
           resourcefiles : tstringcontainer;
 
           linkunitofiles,
@@ -129,18 +127,7 @@ interface
           localincludesearchpath,
           locallibrarysearchpath : TSearchPathList;
 
-          path,                     { path where the module is find/created }
-          outputpath,               { path where the .s / .o / exe are created }
-          modulename,               { name of the module in uppercase }
-          realmodulename,           { name of the module in the orignal case }
-          objfilename,              { fullname of the objectfile }
-          asmfilename,              { fullname of the assemblerfile }
-          ppufilename,              { fullname of the ppufile }
-          staticlibfilename,        { fullname of the static libraryfile }
-          sharedlibfilename,        { fullname of the shared libraryfile }
-          exefilename,              { fullname of the exefile }
-          asmprefix,                { prefix for the smartlink asmfiles }
-          mainsource    : pstring;  { name of the main sourcefile }
+          asmprefix     : pstring;  { prefix for the smartlink asmfiles }
 {$ifdef Test_Double_checksum}
           crc_array : pointer;
           crc_size : longint;
@@ -181,8 +168,6 @@ interface
        main_module       : pmodule;     { Main module of the program }
        current_module    : pmodule;     { Current module which is compiled or loaded }
        compiled_module   : pmodule;     { Current module which is compiled }
-       current_ppu       : pppufile;    { Current ppufile which is read }
-       global_unit_count : word;
        usedunits         : tlinkedlist; { Used units for this program }
        loaded_units      : tlinkedlist; { All loaded units }
        SmartLinkOFiles   : TStringContainer; { List of .o files which are generated,
@@ -200,7 +185,8 @@ uses
   dos,
 {$endif}
   globtype,verbose,systems,
-  symtable,scanner;
+  symbase,
+  scanner;
 
 
 {*****************************************************************************
@@ -629,12 +615,12 @@ end;
           pscannerfile(scanner)^.invalid:=true;
         if assigned(globalsymtable) then
           begin
-            dispose(punitsymtable(globalsymtable),done);
+            dispose(psymtable(globalsymtable),done);
             globalsymtable:=nil;
           end;
         if assigned(localsymtable) then
           begin
-            dispose(punitsymtable(localsymtable),done);
+            dispose(psymtable(localsymtable),done);
             localsymtable:=nil;
           end;
         if assigned(map) then
@@ -849,10 +835,10 @@ end;
         d.init('symtable');
 {$endif}
         if assigned(globalsymtable) then
-          dispose(punitsymtable(globalsymtable),done);
+          dispose(psymtable(globalsymtable),done);
         globalsymtable:=nil;
         if assigned(localsymtable) then
-          dispose(punitsymtable(localsymtable),done);
+          dispose(psymtable(localsymtable),done);
         localsymtable:=nil;
 {$ifdef MEMDEBUG}
         d.done;
@@ -912,7 +898,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.3  2000-10-15 07:47:51  peter
+  Revision 1.4  2000-10-31 22:02:46  peter
+    * symtable splitted, no real code changes
+
+  Revision 1.3  2000/10/15 07:47:51  peter
     * unit names and procedure names are stored mixed case
 
   Revision 1.2  2000/09/24 15:06:16  peter

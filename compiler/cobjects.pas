@@ -178,7 +178,7 @@ interface
        end;
 
 
-       { namedindexobject for use with dictionary and indexarray }
+       { namedindexobect for use with dictionary and indexarray }
        Pnamedindexobject=^Tnamedindexobject;
        Tnamedindexobject=object
        { indexarray }
@@ -1843,7 +1843,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.15  2000-10-14 10:14:46  peter
+  Revision 1.16  2000-10-31 22:02:46  peter
+    * symtable splitted, no real code changes
+
+  Revision 1.15  2000/10/14 10:14:46  peter
     * moehrendorf oct 2000 rewrite
 
   Revision 1.14  2000/09/24 21:19:50  peter

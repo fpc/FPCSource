@@ -29,7 +29,6 @@ interface
 { Also write the ppu if only crc if done, this can be used with ppudump to
   see the differences between the intf and implementation }
 { define INTFPPU}
-{$define ORDERSOURCES}
 
 {$ifdef Test_Double_checksum}
 var
@@ -43,17 +42,9 @@ type
 
 const
 {$ifdef newcg}
-{$ifdef ORDERSOURCES}
-  CurrentPPUVersion=103;
-{$else ORDERSOURCES}
   CurrentPPUVersion=102;
-{$endif ORDERSOURCES}
 {$else newcg}
-{$ifdef ORDERSOURCES}
   CurrentPPUVersion=22;
-{$else ORDERSOURCES}
-  CurrentPPUVersion=20;
-{$endif ORDERSOURCES}
 {$endif newcg}
 
 { buffer sizes }
@@ -898,7 +889,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.4  2000-09-24 15:06:24  peter
+  Revision 1.5  2000-10-31 22:02:50  peter
+    * symtable splitted, no real code changes
+
+  Revision 1.4  2000/09/24 15:06:24  peter
     * use defines.inc
 
   Revision 1.3  2000/08/13 13:04:38  peter

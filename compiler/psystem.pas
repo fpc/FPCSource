@@ -26,7 +26,7 @@ unit psystem;
 
 interface
 uses
-  symtable;
+  symbase;
 
 procedure insertinternsyms(p : psymtable);
 procedure insert_intern_types(p : psymtable);
@@ -38,7 +38,9 @@ procedure createconstdefs;
 implementation
 
 uses
-  globtype,globals,symconst,ninl;
+  globtype,globals,
+  symconst,symsym,symdef,symtable,
+  ninl;
 
 procedure insertinternsyms(p : psymtable);
 {
@@ -115,7 +117,7 @@ begin
 {$endif SUPPORT_FIXED}
   { Add a type for virtual method tables in lowercase }
   { so it isn't reachable!                            }
-  vmtsymtable:=new(psymtable,init(recordsymtable));
+  vmtsymtable:=new(pstoredsymtable,init(recordsymtable));
   vmtdef:=new(precorddef,init(vmtsymtable));
   pvmtdef:=new(ppointerdef,initdef(vmtdef));
   vmtsymtable^.insert(new(pvarsym,initdef('$parent',pvmtdef)));
@@ -256,7 +258,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.7  2000-10-21 18:16:12  florian
+  Revision 1.8  2000-10-31 22:02:51  peter
+    * symtable splitted, no real code changes
+
+  Revision 1.7  2000/10/21 18:16:12  florian
     * a lot of changes:
        - basic dyn. array support
        - basic C++ support

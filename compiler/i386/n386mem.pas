@@ -91,7 +91,7 @@ implementation
 {$endif GDB}
       globtype,systems,
       cutils,cobjects,verbose,globals,
-      symconst,symtable,aasm,types,
+      symconst,symbase,symdef,symsym,symtable,aasm,types,
       hcodegen,temp_gen,pass_2,
       pass_1,nld,ncon,nadd,
       cpubase,cpuasm,
@@ -148,7 +148,7 @@ implementation
                 begin
                    new(r);
                    reset_reference(r^);
-                   r^.symbol:=ppointerdef(left.resulttype)^.pointertype.def^.get_inittable_label;
+                   r^.symbol:=pstoreddef(ppointerdef(left.resulttype)^.pointertype.def)^.get_inittable_label;
                    emitpushreferenceaddr(r^);
                    dispose(r);
                    { push pointer we just allocated, we need to initialize the
@@ -221,7 +221,7 @@ implementation
                   begin
                      new(r);
                      reset_reference(r^);
-                     r^.symbol:=ppointerdef(left.resulttype)^.pointertype.def^.get_inittable_label;
+                     r^.symbol:=pstoreddef(ppointerdef(left.resulttype)^.pointertype.def)^.get_inittable_label;
                      emitpushreferenceaddr(r^);
                      dispose(r);
                      { push pointer adress }
@@ -241,7 +241,7 @@ implementation
                   begin
                      new(r);
                      reset_reference(r^);
-                     r^.symbol:=ppointerdef(left.resulttype)^.pointertype.def^.get_inittable_label;
+                     r^.symbol:=pstoreddef(ppointerdef(left.resulttype)^.pointertype.def)^.get_inittable_label;
                      emitpushreferenceaddr(r^);
                      dispose(r);
                      emit_push_loc(left.location);
@@ -989,7 +989,7 @@ implementation
                       emitlab(withstartlabel);
                       withdebuglist^.concat(new(pai_stabs,init(strpnew(
                          '"with'+tostr(withlevel)+':'+tostr(symtablestack^.getnewtypecount)+
-                         '=*'+left.resulttype^.numberstring+'",'+
+                         '=*'+pstoreddef(left.resulttype)^.numberstring+'",'+
                          tostr(N_LSYM)+',0,0,'+tostr(withreference^.offset)))));
                       mangled_length:=length(aktprocsym^.definition^.mangledname);
                       getmem(pp,mangled_length+50);
@@ -1052,7 +1052,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.3  2000-10-31 14:18:53  jonas
+  Revision 1.4  2000-10-31 22:02:57  peter
+    * symtable splitted, no real code changes
+
+  Revision 1.3  2000/10/31 14:18:53  jonas
     * merged double deleting of left location when using a temp in
       secondwith (merged from fixes branch). This also fixes web bug1194
 

@@ -27,13 +27,11 @@ unit pbase;
 interface
 
     uses
-       cobjects,tokens,globals,symtable
+       cobjects,tokens,globals,
+       symbase,symdef,symsym
 {$ifdef fixLeaksOnError}
        ,comphook
 {$endif fixLeaksOnError}
-{$IFDEF NEWST}
-       ,symbols,defs
-{$ENDIF NEWST}
        ;
 
     const
@@ -114,7 +112,7 @@ interface
         else
           begin
             if token=_END then
-              last_endtoken_filepos:=tokenpos;
+              last_endtoken_filepos:=akttokenpos;
             current_scanner^.readtoken;
           end;
       end;
@@ -128,7 +126,7 @@ interface
             begin
                 try_to_consume:=true;
                 if token=_END then
-                    last_endtoken_filepos:=tokenpos;
+                    last_endtoken_filepos:=akttokenpos;
                 current_scanner^.readtoken;
             end;
     end;
@@ -162,7 +160,7 @@ interface
       begin
          sc:=new(pstringcontainer,init);
          repeat
-           sc^.insert_with_tokeninfo(orgpattern,tokenpos);
+           sc^.insert_with_tokeninfo(orgpattern,akttokenpos);
            consume(_ID);
          until not try_to_consume(_COMMA);
          idlist:=sc;
@@ -192,7 +190,10 @@ end.
 
 {
   $Log$
-  Revision 1.5  2000-09-24 15:06:21  peter
+  Revision 1.6  2000-10-31 22:02:49  peter
+    * symtable splitted, no real code changes
+
+  Revision 1.5  2000/09/24 15:06:21  peter
     * use defines.inc
 
   Revision 1.4  2000/08/27 20:19:39  peter

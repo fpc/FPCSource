@@ -66,7 +66,7 @@ implementation
   uses
     cutils,verbose,cobjects,systems,globtype,globals,
     symconst,script,
-    fmodule,aasm,cpuasm,cpubase,symtable{$IFDEF NEWST},symbols{$ENDIF NEWST};
+    fmodule,aasm,cpuasm,cpubase,symsym;
 
 {*****************************************************************************
                                TIMPORTLIBLINUX
@@ -455,7 +455,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.7  2000-09-24 21:33:47  peter
+  Revision 1.8  2000-10-31 22:02:54  peter
+    * symtable splitted, no real code changes
+
+  Revision 1.7  2000/09/24 21:33:47  peter
     * message updates merges
 
   Revision 1.6  2000/09/24 15:06:31  peter
