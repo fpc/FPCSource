@@ -183,8 +183,7 @@ Type
 
 Implementation
 
-Resourcestring
-  SErrColumnNotFound = 'Column "%s" not found.';
+uses dbconst;
 
 { TTableColumns }
 
@@ -695,7 +694,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.6  2003-10-28 08:42:01  michael
+  Revision 1.7  2004-10-16 09:20:25  michael
+  + Moved resourcestrings to dbconst
+
+  Revision 1.6  2003/10/28 08:42:01  michael
   + Added ColumnByName method to TTAbleColumns
 
   Revision 1.4  2003/10/03 22:43:17  michael

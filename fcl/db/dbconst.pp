@@ -27,6 +27,7 @@ Const
   SDatasetRegistered       = 'Dataset already registered : "%s"';
   SDuplicateFieldName      = 'Duplicate fieldname : "%s"';
   SErrAssTransaction       = 'Cannot assign transaction while old transaction active!';
+  SErrColumnNotFound       = 'Column "%s" not found.';
   SErrDatabasenAssigned    = 'Database not assigned!';
   SErrNoDatabaseAvailable  = 'Invalid operation: Not attached to database';
   SErrNoSelectStatement    = 'Cannot open a non-select statement';
@@ -64,7 +65,10 @@ end.
 
 {
   $Log$
-  Revision 1.1  2004-10-10 14:45:51  michael
+  Revision 1.2  2004-10-16 09:20:25  michael
+  + Moved resourcestrings to dbconst
+
+  Revision 1.1  2004/10/10 14:45:51  michael
   + Use of dbconst for resource strings
 
 
