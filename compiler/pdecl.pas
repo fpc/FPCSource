@@ -1190,6 +1190,7 @@ unit pdecl;
                   begin
                      consume(_STORED);
                      Message(parser_w_stored_not_implemented);
+                     comp_expr(true);
                      { !!!!!!!! }
                   end;
                 if (idtoken=_DEFAULT) then
@@ -2431,7 +2432,10 @@ unit pdecl;
 end.
 {
   $Log$
-  Revision 1.147  1999-09-02 09:23:51  peter
+  Revision 1.148  1999-09-08 21:06:06  michael
+  * Stored specifier for properties is now correctly parsed
+
+  Revision 1.147  1999/09/02 09:23:51  peter
     * fixed double dispose of propsymlist
 
   Revision 1.146  1999/09/01 13:44:56  florian
