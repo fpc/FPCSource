@@ -641,7 +641,7 @@ implementation
                    inc(i);
                  until s[i]='}';
                  varvalues[varcounter]:=Pstring(varptr);
-                 if (varptr-@varvaluedata)>=1024 then
+                 if varptr>(@varvaluedata+maxdata) then
                    internalerror(200401151);
                  Pstring(varptr)^:=get_var_value(varname);
                  inc(len,length(Pstring(varptr)^));
@@ -2833,7 +2833,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.142  2004-01-15 23:16:32  daniel
+  Revision 1.143  2004-01-16 18:08:39  daniel
+    * Applied Peters patch
+
+  Revision 1.142  2004/01/15 23:16:32  daniel
     + Cleanup of stabstring generation code. Cleaner, faster, and compiler
       executable reduced by 50 kb,
 
