@@ -2299,7 +2299,7 @@ implementation
                Message(unit_f_ppu_dbx_count_problem)
               else
                dbx_count := readlong;
-              dbx_count_ok := true;
+              dbx_count_ok := {true}false;
            end
          else
            begin
@@ -2510,7 +2510,7 @@ implementation
                     asmlist^.concat(new(pai_stabs,init(strpnew('"'+name^+'",'
                       +tostr(N_EINCL)+',0,0,0'))));
                     do_count_dbx:=assigned(dbx_counter);
-                    dbx_count_ok := true;
+                    dbx_count_ok := {true}false;
                   end;
              end;
            is_stab_written:=true;
@@ -2900,7 +2900,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.89  2000-05-03 14:34:05  pierre
+  Revision 1.90  2000-05-11 09:40:12  pierre
+    * some DBX changes but it still does not work !
+
+  Revision 1.89  2000/05/03 14:34:05  pierre
    * fix the unitsym chain
 
   Revision 1.88  2000/04/27 11:35:04  pierre

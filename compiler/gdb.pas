@@ -163,11 +163,11 @@ N_BINCL to N_EINCL
      do_count := false;
      if assigned(dbx_counter) then
        begin
-{$IfDef ExtDebug }
+{$IfDef ExtDebugDbx }
         Comment(V_Info,'Counting '+st);
         Comment(V_Info,'count =  '+tostr(dbx_counter^));
         Comment(V_Info,'addr = '+tostr(longint(dbx_counter)));
-{$EndIf ExtDebug }
+{$EndIf ExtDebugDbx }
           for i:=0 to strlen(st) do
             begin
                if st[i] = '"' then
@@ -249,7 +249,10 @@ end.
 
 {
   $Log$
-  Revision 1.15  2000-02-09 13:22:52  peter
+  Revision 1.16  2000-05-11 09:40:11  pierre
+    * some DBX changes but it still does not work !
+
+  Revision 1.15  2000/02/09 13:22:52  peter
     * log truncated
 
   Revision 1.14  2000/01/07 01:14:27  peter

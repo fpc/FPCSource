@@ -826,7 +826,7 @@ unit pmodules;
              debuglist^.concat(new(pai_stabs,init(strpnew('"'+
                punitsymtable(current_module^.globalsymtable)^.name^+'",'+
                tostr(N_EINCL)+',0,0,0'))));
-             punitsymtable(current_module^.globalsymtable)^.dbx_count_ok:=true;
+             punitsymtable(current_module^.globalsymtable)^.dbx_count_ok:={true}false;
              dbx_counter:=punitsymtable(current_module^.globalsymtable)^.prev_dbx_counter;
              do_count_dbx:=false;
            end;
@@ -1706,7 +1706,10 @@ unit pmodules;
 end.
 {
   $Log$
-  Revision 1.194  2000-05-08 13:18:09  peter
+  Revision 1.195  2000-05-11 09:40:11  pierre
+    * some DBX changes but it still does not work !
+
+  Revision 1.194  2000/05/08 13:18:09  peter
     * fixed setting of output names with includefile
 
   Revision 1.193  2000/05/04 20:43:33  peter
