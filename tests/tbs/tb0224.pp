@@ -1,4 +1,4 @@
-{ %KNOWNCOMPILEERROR= Problem with virtual and overloaded methods }
+{ %KNOWNCOMPILE10ERROR= Problem with virtual and overloaded methods }
 { Old file: tbs0262.pp }
 { problems with virtual and overloaded methods }
 
@@ -8,29 +8,29 @@ program test;
       obj1 = object
         st2 : string;
         constructor init;
-        procedure writeit;
-        procedure writeit(st : string);virtual;
+        procedure writeit;overload;
+        procedure writeit(st : string);virtual;overload;
       end;
 
       obj2 = object(obj1)
-        procedure writeit;virtual;
+        procedure writeit;virtual;overload;
       end;
 
       obj3 = object(obj2)
         l2 : longint;
-        procedure writeit(l : longint);virtual;
-        procedure writeit(st : string);virtual;
+        procedure writeit(l : longint);virtual;overload;
+        procedure writeit(st : string);virtual;overload;
       end;
 
       obj4 = object(obj3)
-        procedure writeit;virtual;
-        procedure writeit(st : string);virtual;
+        procedure writeit;virtual;overload;
+        procedure writeit(st : string);virtual;overload;
       end;
 
       obj5 = object(obj4)
-        procedure writeit;virtual;
-        procedure writeit(st : string);
-        procedure writeit(l : longint);virtual;
+        procedure writeit;virtual;overload;
+        procedure writeit(st : string);overload;
+        procedure writeit(l : longint);virtual;overload;
       end;
 
       constructor obj1.init;
