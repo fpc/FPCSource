@@ -156,7 +156,7 @@ type
 const
    MaxReadBytes = $7fffffff;
 
-var 
+var
    invalidhandle : THandle;
 
 
@@ -1568,7 +1568,7 @@ END;
 {  Read -> Platforms DOS/DPMI/WIN/OS2 - Checked 17May96 LdB                 }
 {---------------------------------------------------------------------------}
 PROCEDURE TBufStream.Read (Var Buf; Count: Longint);
-VAR Success: Integer; W, Bw: Longint; P: PByteArray;
+VAR W, Bw: Longint; P: PByte;
     DosStreamError : Word;
 BEGIN
    If Status <> StOk then
@@ -1616,9 +1616,8 @@ END;
 {  Write -> Platforms DOS/DPMI/WIN/OS2 - Checked 17May96 LdB                }
 {---------------------------------------------------------------------------}
 PROCEDURE TBufStream.Write (Var Buf; Count: Longint);
-VAR Success: Integer;
-    W: Longint;
-    P: PByteArray;
+VAR W: Longint;
+    P: PByte;
     DosStreamError : Word;
 BEGIN
    if Status <> StOK then exit;                       { Exit if error     }
@@ -1700,7 +1699,7 @@ END;
 {  Read -> Platforms DOS/DPMI/WIN/OS2 - Checked 19May96 LdB                 }
 {---------------------------------------------------------------------------}
 PROCEDURE TMemoryStream.Read (Var Buf; Count: Longint);
-VAR W, CurBlock, BlockPos: Word; Li: LongInt; P, Q: PByteArray;
+VAR W, CurBlock, BlockPos: Word; Li: LongInt; P, Q: PByte;
 BEGIN
    If (Position + Count > StreamSize) Then            { Insufficient data }
      Error(stReadError, 0);                           { Read beyond end!!! }
@@ -1714,11 +1713,10 @@ BEGIN
      BlockPos := Position - Li;                       { Current position }
      W := BlkSize - BlockPos;                         { Current block space }
      If (W > Count) Then W := Count;                  { Adjust read size }
-     Q := Pointer(LongInt(BlkList^[CurBlock]) +
-       BlockPos);                                     { Calc pointer }
+     Q := BlkList^[CurBlock] + BlockPos;                                     { Calc pointer }
      Move(Q^, P^, W);                                 { Move data to buffer }
      Inc(Position, W);                                { Adjust position }
-     P := Pointer(LongInt(P) + W);                    { Transfer address }
+     Inc(P, W);
      Dec(Count, W);                                   { Adjust count left }
    End;
    If (Count<>0) Then FillChar(P^, Count, #0);        { Error clear buffer }
@@ -1731,7 +1729,7 @@ PROCEDURE TMemoryStream.Write (Var Buf; Count: Longint);
 VAR
   W, CurBlock, BlockPos: Word;
   Li: LongInt;
-  P, Q: PByteArray;
+  P, Q: PByte;
 BEGIN
    If (Position + Count > MemSize) Then Begin         { Expansion needed }
      If (Position + Count = 0) Then W := 1 Else       { At least 1 block }
@@ -1749,11 +1747,10 @@ BEGIN
      BlockPos := Position - Li;                       { Current position }
      W := BlkSize - BlockPos;                         { Current block space }
      If (W > Count) Then W := Count;                  { Adjust write size }
-     Q := Pointer(LongInt(BlkList^[CurBlock]) +
-       BlockPos);                                     { Calc pointer }
+     Q := BlkList^[CurBlock] + BlockPos;                                     { Calc pointer }
      Move(P^, Q^, W);                                 { Transfer data }
      Inc(Position, W);                                { Adjust position }
-     P := Pointer(LongInt(P) + W);                    { Transfer address }
+     Inc(P, W);
      Dec(Count, W);                                   { Adjust count left }
      If (Position > StreamSize) Then                  { File expanded }
        StreamSize := Position;                        { Adjust stream size }
@@ -2935,7 +2932,10 @@ BEGIN
 END.
 {
   $Log$
-  Revision 1.24  2003-11-03 09:42:28  marco
+  Revision 1.25  2003-11-03 17:46:37  peter
+    * fixed crash in bufstream.write
+
+  Revision 1.24  2003/11/03 09:42:28  marco
    * Peter's Cardinal<->Longint fixes patch
 
   Revision 1.23  2003/10/25 23:43:59  hajny
