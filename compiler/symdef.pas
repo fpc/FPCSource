@@ -3287,6 +3287,9 @@ implementation
         hp : TParaItem;
         oldintfcrc : boolean;
       begin
+         { released procdef? }
+         if not assigned(parast) then
+           exit;
          inherited ppuwritedef(ppufile);
          ppufile.puttype(rettype);
          oldintfcrc:=ppufile.do_interface_crc;
@@ -3587,6 +3590,10 @@ implementation
         oldparasymtable,
         oldlocalsymtable : tsymtable;
       begin
+         { released procdef? }
+         if not assigned(parast) then
+           exit;
+
          oldparasymtable:=aktparasymtable;
          oldlocalsymtable:=aktlocalsymtable;
          aktparasymtable:=parast;
@@ -5909,7 +5916,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.170  2003-10-03 22:00:33  peter
+  Revision 1.171  2003-10-05 12:56:35  peter
+    * don't write procdefs that are released to ppu
+
+  Revision 1.170  2003/10/03 22:00:33  peter
     * parameter alignment fixes
 
   Revision 1.169  2003/10/02 21:19:42  peter
