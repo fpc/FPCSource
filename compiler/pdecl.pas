@@ -1020,10 +1020,15 @@ unit pdecl;
               symtablestack^.insert(newtype);
               tokenpos:=storetokenpos;
             end;
-           consume(_SEMICOLON);
            if assigned(newtype^.restype.def) and
               (newtype^.restype.def^.deftype=procvardef) then
-             parse_var_proc_directives(psym(newtype));
+            begin
+              if not is_proc_directive(token) then
+               consume(_SEMICOLON);
+              parse_var_proc_directives(psym(newtype));
+            end
+           else
+            consume(_SEMICOLON);
          until token<>_ID;
          typecanbeforward:=false;
          symtablestack^.foreach({$ifndef TP}@{$endif}resolve_type_forward);
@@ -1203,7 +1208,10 @@ unit pdecl;
 end.
 {
   $Log$
-  Revision 1.184  2000-06-09 21:34:40  peter
+  Revision 1.185  2000-06-11 06:59:36  peter
+    * support procvar directive without ; before the directives
+
+  Revision 1.184  2000/06/09 21:34:40  peter
     * checking for dup id with para of methods fixed for delphi mode
 
   Revision 1.183  2000/06/02 21:18:13  pierre
