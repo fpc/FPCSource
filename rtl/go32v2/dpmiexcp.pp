@@ -104,7 +104,6 @@ function  djgpp_set_ctrl_c(enable : boolean) : boolean;
 { Other }
 function dpmi_set_coprocessor_emulation(flag : longint) : longint;
 
-
 implementation
 
 {$ASMMODE DIRECT}
@@ -114,6 +113,7 @@ implementation
 var
   v2prt0_ds_alias : pointer;external name '___v2prt0_ds_alias';
   djgpp_ds_alias  : pointer;external name '___djgpp_ds_alias';
+  djgpp_exception_state_ptr : pexception_state;external name '___djgpp_exception_state_ptr';
   endtext        : longint;external name '_etext';
   starttext       : longint;external name 'start';
   djgpp_old_kbd : tseginfo;external name '___djgpp_old_kbd';
@@ -169,12 +169,31 @@ end;
                               SetJmp/LongJmp
 ****************************************************************************}
 
-{ function c_setjmp(var rec : dpmi_jmp_buf) : longint;cdecl;[public, alias : '_setjmp'];
+ function c_setjmp(var rec : dpmi_jmp_buf) : longint;[public, alias : '_setjmp'];
   begin
-     c_setjmp:=dpmi_setjmp(rec);
-  end; }
+  { here we need to be subtle :
+    - we need to return with the arg still on the stack
+    - but we also need to jmp to FPC_setjmp and not to call it
+    because otherwise the return address is wrong !!
+
+    For this we shift the return address down and
+    duplicate the rec on stack }
+     asm
+        movl    %ebp,%esp
+        popl    %ebp
+        subl    $8,%esp
+        movl    %eax,(%esp)
+        movl    8(%esp),%eax
+        movl    %eax,4(%esp)
+        movl    12(%esp),%eax
+        movl    %eax,8(%esp)
+        popl    %eax
+        jmp     FPC_setjmp
+     end;
+  end;
   
-function dpmi_setjmp(var rec : dpmi_jmp_buf) : longint;
+  
+function dpmi_setjmp(var rec : dpmi_jmp_buf) : longint;[alias : 'FPC_setjmp'];
 begin
   asm
         pushl   %edi
@@ -224,15 +243,16 @@ begin
 end;
 
 
-{procedure c_longjmp(var  rec : dpmi_jmp_buf;return_value : longint);cdecl;[public, alias : '_longjmp'];
+procedure c_longjmp(var  rec : dpmi_jmp_buf;return_value : longint);[public, alias : '_longjmp'];
   begin
      dpmi_longjmp(rec,return_value);
-  end; }
-  
-procedure dpmi_longjmp(var  rec : dpmi_jmp_buf;return_value : longint);
+     { never gets here !! so pascal stack convention is no problem }
+  end;
+
+procedure dpmi_longjmp(var  rec : dpmi_jmp_buf;return_value : longint);[alias : 'FPC_longjmp'];
 begin
-  if (@rec=pdpmi_jmp_buf(djgpp_exception_state)) and (exception_level>0) then
-   dec(exception_level);
+  if (exception_level>0) then
+    dec(exception_level);
   asm
         { restore compiler shit }
         popl    %ebp
@@ -479,15 +499,21 @@ begin
 end;
 
 
+const message_level : byte = 0;
 
 function do_faulting_finish_message : integer;
 var
   en : pchar;
   signum,i : longint;
   old_vid : byte;
+label
+  simple_exit;
 begin
+  inc(message_level);
+  if message_level>2 then
+    goto simple_exit;
   do_faulting_finish_message:=0;
-  signum:=djgpp_exception_state^.__signum;
+  signum:=djgpp_exception_state_ptr^.__signum;
   { check video mode for original here and reset (not if PC98) */ }
   if ((go32_info_block.linear_address_of_primary_screen <> $a0000) and
      (farpeekb(dosmemselector, $449) <> old_video_mode)) then
@@ -520,13 +546,13 @@ begin
        err('Exception ');
        itox(signum, 2);
        err(' at eip=');
-       itox(djgpp_exception_state^.__eip, 8);
+       itox(djgpp_exception_state_ptr^.__eip, 8);
     end
   else
     begin
        write(stderr, 'FPC ',en);
        err(' at eip=');
-       itox(djgpp_exception_state^.__eip, 8);
+       itox(djgpp_exception_state_ptr^.__eip, 8);
     end;
   { Control-C should stop the program also !}
   {if (signum = $79) then
@@ -536,7 +562,7 @@ begin
     end;}
   if ((signum < EXCEPTIONCOUNT) and (has_error[signum]=1)) then
    begin
-     errorcode := djgpp_exception_state^.__sigmask and $ffff;
+     errorcode := djgpp_exception_state_ptr^.__sigmask and $ffff;
      if(errorcode<>0) then
       begin
         err(', error=');
@@ -545,43 +571,48 @@ begin
    end;
   errln('');
   err('eax=');
-  itox(djgpp_exception_state^.__eax, 8);
-  err(' ebx='); itox(djgpp_exception_state^.__ebx, 8);
-  err(' ecx='); itox(djgpp_exception_state^.__ecx, 8);
-  err(' edx='); itox(djgpp_exception_state^.__edx, 8);
-  err(' esi='); itox(djgpp_exception_state^.__esi, 8);
-  err(' edi='); itox(djgpp_exception_state^.__edi, 8);
+  itox(djgpp_exception_state_ptr^.__eax, 8);
+  err(' ebx='); itox(djgpp_exception_state_ptr^.__ebx, 8);
+  err(' ecx='); itox(djgpp_exception_state_ptr^.__ecx, 8);
+  err(' edx='); itox(djgpp_exception_state_ptr^.__edx, 8);
+  err(' esi='); itox(djgpp_exception_state_ptr^.__esi, 8);
+  err(' edi='); itox(djgpp_exception_state_ptr^.__edi, 8);
   errln('');
-  err('ebp='); itox(djgpp_exception_state^.__ebp, 8);
-  err(' esp='); itox(djgpp_exception_state^.__esp, 8);
+  err('ebp='); itox(djgpp_exception_state_ptr^.__ebp, 8);
+  err(' esp='); itox(djgpp_exception_state_ptr^.__esp, 8);
   err(' program=');
   errln(paramstr(0));
-  dump_selector('cs', djgpp_exception_state^.__cs);
-  dump_selector('ds', djgpp_exception_state^.__ds);
-  dump_selector('es', djgpp_exception_state^.__es);
-  dump_selector('fs', djgpp_exception_state^.__fs);
-  dump_selector('gs', djgpp_exception_state^.__gs);
-  dump_selector('ss', djgpp_exception_state^.__ss);
+  dump_selector('cs', djgpp_exception_state_ptr^.__cs);
+  dump_selector('ds', djgpp_exception_state_ptr^.__ds);
+  dump_selector('es', djgpp_exception_state_ptr^.__es);
+  dump_selector('fs', djgpp_exception_state_ptr^.__fs);
+  dump_selector('gs', djgpp_exception_state_ptr^.__gs);
+  dump_selector('ss', djgpp_exception_state_ptr^.__ss);
   errln('');
-  if (djgpp_exception_state^.__cs = get_cs) then
-    show_call_frame(djgpp_exception_state)
+  if (djgpp_exception_state_ptr^.__cs = get_cs) then
+    show_call_frame(djgpp_exception_state_ptr)
 {$ifdef SYSTEMDEBUG}
   else
     errln('Exception occured in another context');
 {$endif def SYSTEMDEBUG}
    ;
-  if assigned(djgpp_exception_state^.__exception_ptr) then
-    if (djgpp_exception_state^.__exception_ptr^.__cs = get_cs) then
+  if assigned(djgpp_exception_state_ptr^.__exception_ptr) then
+    if (djgpp_exception_state_ptr^.__exception_ptr^.__cs = get_cs) then
     begin
        Errln('First exception level stack');
-       show_call_frame(djgpp_exception_state^.__exception_ptr);
+       show_call_frame(djgpp_exception_state_ptr^.__exception_ptr);
     end
 {$ifdef SYSTEMDEBUG}
   else
-    errln('First exception occured in another context');
+    begin
+       errln('First exception occured in another context');
+       djgpp_exception_state_ptr:=djgpp_exception_state_ptr^.__exception_ptr;
+       do_faulting_finish_message();
+    end;
 {$endif def SYSTEMDEBUG}
    ;
   { must not return !! }
+simple_exit:
   if exceptions_on then
     djgpp_exception_toggle;
   asm
@@ -601,20 +632,20 @@ procedure djgpp_exception_processor;[public,alias : '___djgpp_exception_processo
 var
   sig : longint;
 begin
-  if not assigned(djgpp_exception_state^.__exception_ptr) then
+  if not assigned(djgpp_exception_state_ptr^.__exception_ptr) then
     exception_level:=1
   else
     inc(exception_level);
     
-  sig:=djgpp_exception_state^.__signum;
+  sig:=djgpp_exception_state_ptr^.__signum;
   
   if (exception_level=1) or (sig=$78) then
     begin
        sig := except_to_sig(sig);
        _raise(sig);
-       if (djgpp_exception_state^.__signum >= EXCEPTIONCOUNT) then
+       if (djgpp_exception_state_ptr^.__signum >= EXCEPTIONCOUNT) then
          {  Not exception so continue OK }
-         dpmi_longjmp(pdpmi_jmp_buf(djgpp_exception_state)^, djgpp_exception_state^.__eax);
+         dpmi_longjmp(pdpmi_jmp_buf(djgpp_exception_state_ptr)^, djgpp_exception_state_ptr^.__eax);
        { User handler did not exit or longjmp, we must exit }
        err('FPC cannot continue from exception, exiting due to signal ');
        itox(sig, 4);
@@ -876,7 +907,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.2  1998-12-21 14:23:12  pierre
+  Revision 1.3  1999-01-18 09:14:20  pierre
+   * exception_level counting was wrong if dpmi_jmp_buf was copied
+
+  Revision 1.2  1998/12/21 14:23:12  pierre
   dpmiexcp.pp
 
   Revision 1.1  1998/12/21 13:07:02  peter
