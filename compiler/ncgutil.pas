@@ -1347,6 +1347,7 @@ implementation
 
 {$ifdef GDB}
            if (cs_debuginfo in aktmoduleswitches) then
+            if target_info.system <> system_powerpc_macos then
              begin
                { include reference to all debuginfo sections of used units }
                hp:=tused_unit(usedunits.first);
@@ -2097,7 +2098,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.221  2004-10-08 20:52:07  florian
+  Revision 1.222  2004-10-09 10:51:13  olle
+    * Refs to DEBUGINFO_<x> is now not inserted for target MacOS
+
+  Revision 1.221  2004/10/08 20:52:07  florian
     * fixed storage of parameters passed by ref.
 
   Revision 1.220  2004/10/08 17:09:43  peter
