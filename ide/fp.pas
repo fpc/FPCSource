@@ -34,11 +34,11 @@ uses
 {$ifdef EXTDEBUG}
   checkmem,
 {$endif EXTDEBUG}
-{$ifdef WITH_GDB}
+{$ifndef NODEBUG}
 {$ifdef win32}
   fpcygwin,
 {$endif win32}
-{$endif WITH_GDB}
+{$endif NODEBUG}
 {$ifdef IDEHeapTrc}
   PPheap,
 {$endif IDEHeapTrc}
@@ -268,9 +268,6 @@ var CanExit : boolean;
           l1 : longint;
           s : pstring;
         end;
-{$ifdef win32}
-  ShowMouseExe : string;
-{$endif win32}
 const
   ExitIntercepted : boolean = false;
   SeenExitCode : longint =0;
@@ -303,13 +300,13 @@ BEGIN
   { Startup info }
   writeln('þ Free Pascal IDE Version '+VersionStr+' ['+{$i %date%}+']');
   writeln('þ Compiler Version '+Version_String);
-{$ifdef WITH_GDB}
+{$ifndef NODEBUG}
   writeln('þ GBD Version '+GDBVersion);
  {$ifdef win32}
    writeln('þ Cygwin "',GetCygwinFullName,'" version ',GetCygwinVersionString);
    CheckCygwinVersion;
  {$endif win32}
-{$endif WITH_GDB}
+{$endif NODEBUG}
 
   ProcessParams(true);
 
@@ -501,7 +498,10 @@ BEGIN
 END.
 {
   $Log$
-  Revision 1.26  2004-11-14 21:45:28  florian
+  Revision 1.27  2004-12-06 16:23:29  peter
+  with_gdb -> nodebug
+
+  Revision 1.26  2004/11/14 21:45:28  florian
     * fixed non working mouse after tools call
     * better handling of source/target info
     * more info in about dialog
