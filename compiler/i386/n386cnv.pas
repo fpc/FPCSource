@@ -105,7 +105,7 @@ implementation
                    hregister:=left.location.register;
                  else
                    begin
-                     hregister:=cg.get_scratch_reg(exprasmlist);
+                     hregister:=cg.get_scratch_reg_int(exprasmlist);
                      freereg:=true;
                      cg.a_load_reg_reg(exprasmlist,left.location.size,left.location.register,hregister);
                    end;
@@ -114,7 +114,7 @@ implementation
            LOC_REFERENCE,
            LOC_CREFERENCE :
              begin
-               hregister:=cg.get_scratch_reg(exprasmlist);
+               hregister:=cg.get_scratch_reg_int(exprasmlist);
                freereg:=true;
                if left.location.size in [OS_64,OS_S64] then
                 begin
@@ -244,7 +244,7 @@ implementation
               begin
                 if left.location.size in [OS_64,OS_S64] then
                  begin
-                   hregister:=cg.get_scratch_reg(exprasmlist);
+                   hregister:=cg.get_scratch_reg_int(exprasmlist);
                    cg.a_load_reg_reg(exprasmlist,OS_32,left.location.registerlow,hregister);
                    cg.a_op_reg_reg(exprasmlist,OP_OR,OS_32,left.location.registerhigh,hregister);
                    cg.free_scratch_reg(exprasmlist,hregister);
@@ -365,7 +365,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.41  2002-05-18 13:34:24  peter
+  Revision 1.42  2002-05-20 13:30:40  carl
+  * bugfix of hdisponen (base must be set, not index)
+  * more portability fixes
+
+  Revision 1.41  2002/05/18 13:34:24  peter
     * readded missing revisions
 
   Revision 1.40  2002/05/16 19:46:51  carl

@@ -363,7 +363,7 @@ unit cgcpu;
           OS_8,OS_S8,
           OS_16,OS_S16:
             begin
-              tmpreg := get_scratch_reg(list);
+              tmpreg := get_scratch_reg_address(list);
               a_load_ref_reg(list,size,r,tmpreg);
               if target_info.alignment.paraalign = 2 then
                 list.concat(taicpu.op_reg(A_PUSH,S_W,rg.makeregsize(tmpreg,OS_16)))
@@ -397,7 +397,7 @@ unit cgcpu;
           list.concat(Taicpu.Op_reg(A_PUSH,S_L,r.base))
         else
           begin
-            tmpreg := get_scratch_reg(list);
+            tmpreg := get_scratch_reg_address(list);
             a_loadaddr_ref_reg(list,r,tmpreg);
             list.concat(taicpu.op_reg(A_PUSH,S_L,tmpreg));
             free_scratch_reg(list,tmpreg);
@@ -790,7 +790,7 @@ unit cgcpu;
                       S_W: regloadsize := OS_16;
                       else regloadsize := OS_32;
                     end;
-                    tmpreg := get_scratch_reg(list);
+                    tmpreg := get_scratch_reg_int(list);
                     a_load_reg_reg(list,regloadsize,src,tmpreg);
                   end;
                 if not(src in [R_ECX,R_CX,R_CL]) then
@@ -1778,7 +1778,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.20  2002-05-18 13:34:22  peter
+  Revision 1.21  2002-05-20 13:30:40  carl
+  * bugfix of hdisponen (base must be set, not index)
+  * more portability fixes
+
+  Revision 1.20  2002/05/18 13:34:22  peter
     * readded missing revisions
 
   Revision 1.19  2002/05/16 19:46:50  carl

@@ -47,9 +47,6 @@ interface
           procedure pass_2;override;
        end;
 
-       ti386failnode = class(tfailnode)
-          procedure pass_2;override;
-       end;
 
 implementation
 
@@ -720,26 +717,20 @@ implementation
       end;
 
 
-{*****************************************************************************
-                             SecondFail
-*****************************************************************************}
-
-    procedure ti386failnode.pass_2;
-      begin
-        cg.a_jmp_always(exprasmlist,faillabel);
-      end;
-
 
 begin
    craisenode:=ti386raisenode;
    ctryexceptnode:=ti386tryexceptnode;
    ctryfinallynode:=ti386tryfinallynode;
    connode:=ti386onnode;
-   cfailnode:=ti386failnode;
 end.
 {
   $Log$
-  Revision 1.26  2002-05-18 13:34:25  peter
+  Revision 1.27  2002-05-20 13:30:41  carl
+  * bugfix of hdisponen (base must be set, not index)
+  * more portability fixes
+
+  Revision 1.26  2002/05/18 13:34:25  peter
     * readded missing revisions
 
   Revision 1.25  2002/05/16 19:46:51  carl

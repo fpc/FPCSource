@@ -129,7 +129,7 @@ implementation
                  divider := right.location.register;
                LOC_REFERENCE, LOC_CREFERENCE:
                  begin
-                   divider := cg.get_scratch_reg(exprasmlist);
+                   divider := cg.get_scratch_reg_int(exprasmlist);
                    cg.a_load_ref_reg(exprasmlist,OS_32,
                      right.location.reference,divider);
                    reference_release(exprasmlist,right.location.reference);
@@ -266,7 +266,7 @@ implementation
                      end;
                    LOC_REFERENCE,LOC_CREFERENCE:
                      begin
-                       hregister1 := cg.get_scratch_reg(exprasmlist);
+                       hregister1 := cg.get_scratch_reg_int(exprasmlist);
                        cg.a_load_ref_reg(exprasmlist,OS_S32,
                          right.location.reference,hregister1);
                      end;
@@ -350,7 +350,7 @@ implementation
                       hregister2 := right.location.register;
                     LOC_REFERENCE, LOC_CREFERENCE:
                       begin
-                        hregister2 := cg.get_scratch_reg(exprasmlist);
+                        hregister2 := cg.get_scratch_reg_int(exprasmlist);
                         cg.a_load_ref_reg(exprasmlist,OS_32,
                           right.location.reference,hregister2);
                         reference_release(exprasmlist,right.location.reference);
@@ -391,7 +391,7 @@ implementation
              exprasmlist.concat(taicpu.op_reg_reg(A_NEG,location.registerlow,
                src1));
              cg.a_op_reg_reg(exprasmlist,OP_NOT,OS_32,src2,location.registerhigh);
-             tmp := cg.get_scratch_reg(exprasmlist);
+             tmp := cg.get_scratch_reg_int(exprasmlist);
              cg.a_op_const_reg_reg(exprasmlist,OP_SAR,OS_32,31,location.registerlow,
                tmp);
              if not(cs_check_overflow in aktlocalswitches) then
@@ -547,7 +547,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.9  2002-05-18 13:34:26  peter
+  Revision 1.10  2002-05-20 13:30:42  carl
+  * bugfix of hdisponen (base must be set, not index)
+  * more portability fixes
+
+  Revision 1.9  2002/05/18 13:34:26  peter
     * readded missing revisions
 
   Revision 1.8  2002/05/16 19:46:53  carl

@@ -144,7 +144,7 @@ unit cg64f32;
         tmpref := ref;
         if (tmpref.base=reglo) then
          begin
-           tmpreg := get_scratch_reg(list);
+           tmpreg := get_scratch_reg_int(list);
            got_scratch:=true;
            a_load_reg_reg(list,OS_ADDR,tmpref.base,tmpreg);
            tmpref.base:=tmpreg;
@@ -152,7 +152,7 @@ unit cg64f32;
         else
          if (tmpref.index=reglo) then
           begin
-            tmpreg := get_scratch_reg(list);
+            tmpreg := get_scratch_reg_int(list);
             got_scratch:=true;
             a_load_reg_reg(list,OS_ADDR,tmpref.index,tmpreg);
             tmpref.index:=tmpreg;
@@ -456,7 +456,7 @@ unit cg64f32;
                end
              else
                begin
-                 hreg := get_scratch_reg(list);
+                 hreg := get_scratch_reg_int(list);
                  got_scratch := true;
                  a_load64high_ref_reg(list,p.location.reference,hreg);
                end;
@@ -504,7 +504,7 @@ unit cg64f32;
                    end
                  else
                    begin
-                     hreg := get_scratch_reg(list);
+                     hreg := get_scratch_reg_int(list);
                      got_scratch := true;
                      a_load64low_ref_reg(list,p.location.reference,hreg);
                    end;
@@ -558,7 +558,7 @@ unit cg64f32;
                  end
                else
                  begin
-                   hreg := get_scratch_reg(list);
+                   hreg := get_scratch_reg_int(list);
                    got_scratch := true;
 
                    opsize := def_cgsize(p.resulttype.def);
@@ -591,7 +591,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.13  2002-05-18 13:34:05  peter
+  Revision 1.14  2002-05-20 13:30:40  carl
+  * bugfix of hdisponen (base must be set, not index)
+  * more portability fixes
+
+  Revision 1.13  2002/05/18 13:34:05  peter
     * readded missing revisions
 
   Revision 1.12  2002/05/16 19:46:35  carl

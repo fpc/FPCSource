@@ -63,6 +63,10 @@ interface
           procedure pass_2;override;
        end;
 
+       tcgfailnode = class(tfailnode)
+          procedure pass_2;override;
+       end;
+
 implementation
 
     uses
@@ -597,6 +601,18 @@ do_jmp:
          rg.cleartempgen;
          secondpass(left);
       end;
+      
+      
+{*****************************************************************************
+                             SecondFail
+*****************************************************************************}
+
+    procedure tcgfailnode.pass_2;
+      begin
+        cg.a_jmp_always(exprasmlist,faillabel);
+      end;
+
+      
 
 
 begin
@@ -608,10 +624,15 @@ begin
    ccontinuenode:=tcgcontinuenode;
    cgotonode:=tcggotonode;
    clabelnode:=tcglabelnode;
+   cfailnode:=tcgfailnode;
 end.
 {
   $Log$
-  Revision 1.18  2002-05-18 13:34:09  peter
+  Revision 1.19  2002-05-20 13:30:40  carl
+  * bugfix of hdisponen (base must be set, not index)
+  * more portability fixes
+
+  Revision 1.18  2002/05/18 13:34:09  peter
     * readded missing revisions
 
   Revision 1.17  2002/05/16 19:46:37  carl

@@ -109,6 +109,7 @@ implementation
 
     procedure tcghnewnode.pass_2;
       begin
+         { completely resolved in first pass now }
       end;
 
 
@@ -130,20 +131,20 @@ implementation
                 if not rg.isaddressregister(left.location.register) then
                   begin
                     location_release(exprasmlist,left.location);
-                    location.reference.index := rg.getaddressregister(exprasmlist);
+                    location.reference.base := rg.getaddressregister(exprasmlist);
                     cg.a_load_reg_reg(exprasmlist,OS_ADDR,left.location.register,
-                      location.reference.index);
+                      location.reference.base);
                   end
                 else
-                  location.reference.index := left.location.register;
+                  location.reference.base := left.location.register;
               end;
             LOC_CREGISTER,
             LOC_CREFERENCE,
             LOC_REFERENCE:
               begin
                  location_release(exprasmlist,left.location);
-                 location.reference.index:=rg.getaddressregister(exprasmlist);
-                 cg.a_load_loc_reg(exprasmlist,left.location,location.reference.index);
+                 location.reference.base:=rg.getaddressregister(exprasmlist);
+                 cg.a_load_loc_reg(exprasmlist,left.location,location.reference.base);
               end;
             else
               internalerror(2002032217);
@@ -183,8 +184,10 @@ implementation
            cg.a_load_ref_reg(exprasmlist,OS_ADDR,left.location.reference,
              location.register)
          else
+          begin
            cg.a_loadaddr_ref_reg(exprasmlist,left.location.reference,
              location.register);
+          end;
       end;
 
 
@@ -355,13 +358,18 @@ implementation
                else
                 { call can have happend with a property }
                 begin
-                  tmpreg := cg.get_scratch_reg(exprasmlist);
                   usetemp:=true;
                   if is_class_or_interface(left.resulttype.def) then
-                    cg.a_load_loc_reg(exprasmlist,left.location,tmpreg)
+                    begin
+                      tmpreg := cg.get_scratch_reg_int(exprasmlist);
+                      cg.a_load_loc_reg(exprasmlist,left.location,tmpreg)
+                    end
                   else
-                    cg.a_loadaddr_ref_reg(exprasmlist,
-                      left.location.reference,tmpreg);
+                    begin
+                      tmpreg := cg.get_scratch_reg_address(exprasmlist);
+                      cg.a_loadaddr_ref_reg(exprasmlist,
+                        left.location.reference,tmpreg);
+                    end;  
                 end;
 
                location_release(exprasmlist,left.location);
@@ -454,7 +462,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.12  2002-05-18 13:34:09  peter
+  Revision 1.13  2002-05-20 13:30:40  carl
+  * bugfix of hdisponen (base must be set, not index)
+  * more portability fixes
+
+  Revision 1.12  2002/05/18 13:34:09  peter
     * readded missing revisions
 
   Revision 1.11  2002/05/16 19:46:37  carl

@@ -57,7 +57,7 @@ implementation
       ncnv,ncon,nmem,
       aasm,cpuasm,regvars,
       cginfo,cgbase,pass_2,
-      cpubase,
+      cpubase,cpuinfo,
       tgobj,ncgutil,cgobj,cg64f32,rgobj,rgcpu;
 
 {*****************************************************************************
@@ -188,7 +188,7 @@ implementation
                                    end;
                                  if (lexlevel>symtable.symtablelevel) then
                                    begin
-                                      hregister:=rg.getregisterint(exprasmlist);
+                                      hregister:=rg.getaddressregister(exprasmlist);
                                       { make a reference }
                                       reference_reset_base(href,procinfo^.framepointer,procinfo^.framepointer_offset);
                                       cg.a_load_ref_reg(exprasmlist,OS_ADDR,href,hregister);
@@ -197,7 +197,7 @@ implementation
                                       while (i>symtable.symtablelevel) do
                                         begin
                                            { make a reference }
-                                           reference_reset_base(href,hregister,8);
+                                           reference_reset_base(href,hregister,target_info.first_parm_offset);
                                            cg.a_load_ref_reg(exprasmlist,OS_ADDR,href,hregister);
                                            dec(i);
                                         end;
@@ -264,8 +264,17 @@ implementation
                begin
                   if assigned(left) then
                     begin
-                       location_reset(location,LOC_CREFERENCE,OS_64);
-                       tg.gettempofsizereference(exprasmlist,8,location.reference);
+                       { 
+                         THIS IS A TERRIBLE HACK!!!!!! WHICH WILL NOT WORK 
+                         ON 64-BIT SYSTEMS: SINCE PROCSYM FOR METHODS     
+                         CONSISTS OF TWO OS_ADDR, so you cannot set it 
+                         to OS_64 - how to solve?? Carl
+                       }
+                       if (sizeof(aword) = 4) then
+                          location_reset(location,LOC_CREFERENCE,OS_64)
+                       else
+                          internalerror(20020520);
+                       tg.gettempofsizereference(exprasmlist,2*POINTER_SIZE,location.reference);
                        freereg:=false;
 
                        { called as type.method, then we only need to return
@@ -305,7 +314,7 @@ implementation
 
                           { store the class instance address }
                           href:=location.reference;
-                          inc(href.offset,4);
+                          inc(href.offset,POINTER_SIZE);
                           cg.a_load_reg_ref(exprasmlist,OS_ADDR,hregister,href);
                           { hregister will be reused when loading a virtual method }
                           freereg:=true;
@@ -338,7 +347,7 @@ implementation
                              rg.ungetregisterint(exprasmlist,hregister);
                             { load address of the function }
                             reference_reset_symbol(href,newasmsymbol(tprocdef(resulttype.def).mangledname),0);
-                            hregister:=cg.get_scratch_reg(exprasmlist);
+                            hregister:=cg.get_scratch_reg_address(exprasmlist);
                             cg.a_loadaddr_ref_reg(exprasmlist,href,hregister);
                             cg.a_load_reg_ref(exprasmlist,OS_ADDR,hregister,location.reference);
                             cg.free_scratch_reg(exprasmlist,hregister);
@@ -662,7 +671,7 @@ implementation
          if (not inlining_procedure) and
             (lexlevel<>funcretsym.owner.symtablelevel) then
            begin
-              hreg:=rg.getregisterint(exprasmlist);
+              hreg:=rg.getaddressregister(exprasmlist);
               hr_valid:=true;
               reference_reset_base(href,procinfo^.framepointer,procinfo^.framepointer_offset);
               cg.a_load_ref_reg(exprasmlist,OS_ADDR,href,hreg);
@@ -843,7 +852,7 @@ implementation
                      end
                     else
                      cg.a_param_loc(exprasmlist,hp.left.location,-1);
-                    inc(pushedparasize,4);
+                    inc(pushedparasize,pointer_size);
                   end
                  else
                   begin
@@ -852,7 +861,7 @@ implementation
                     if vaddr then
                      begin
                        location_force_mem(exprasmlist,hp.left.location);
-                       tmpreg:=cg.get_scratch_reg(exprasmlist);
+                       tmpreg:=cg.get_scratch_reg_address(exprasmlist);
                        cg.a_loadaddr_ref_reg(exprasmlist,hp.left.location.reference,tmpreg);
                        cg.a_load_reg_ref(exprasmlist,cg.reg_cgsize(tmpreg),tmpreg,href);
                        cg.free_scratch_reg(exprasmlist,tmpreg);
@@ -912,7 +921,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.8  2002-05-18 13:34:09  peter
+  Revision 1.9  2002-05-20 13:30:40  carl
+  * bugfix of hdisponen (base must be set, not index)
+  * more portability fixes
+
+  Revision 1.8  2002/05/18 13:34:09  peter
     * readded missing revisions
 
   Revision 1.7  2002/05/18 11:17:03  peter

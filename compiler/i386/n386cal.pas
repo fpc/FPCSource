@@ -161,7 +161,7 @@ implementation
                      begin
                        if inlined then
                          begin
-                           tmpreg:=cg.get_scratch_reg(exprasmlist);
+                           tmpreg:=cg.get_scratch_reg_address(exprasmlist);
                            cg.a_loadaddr_ref_reg(exprasmlist,left.location.reference,tmpreg);
                            reference_reset_base(href,procinfo^.framepointer,para_offset-pushedparasize);
                            cg.a_load_reg_ref(exprasmlist,OS_ADDR,tmpreg,href);
@@ -202,7 +202,7 @@ implementation
               inc(pushedparasize,4);
               if inlined then
                 begin
-                   tmpreg:=cg.get_scratch_reg(exprasmlist);
+                   tmpreg:=cg.get_scratch_reg_address(exprasmlist);
                    cg.a_loadaddr_ref_reg(exprasmlist,left.location.reference,tmpreg);
                    reference_reset_base(href,procinfo^.framepointer,para_offset-pushedparasize);
                    cg.a_load_reg_ref(exprasmlist,OS_ADDR,tmpreg,href);
@@ -249,7 +249,7 @@ implementation
                    inc(pushedparasize,4);
                    if inlined then
                      begin
-                        tmpreg:=cg.get_scratch_reg(exprasmlist);
+                        tmpreg:=cg.get_scratch_reg_address(exprasmlist);
                         cg.a_loadaddr_ref_reg(exprasmlist,left.location.reference,tmpreg);
                         reference_reset_base(href,procinfo^.framepointer,para_offset-pushedparasize);
                         cg.a_load_reg_ref(exprasmlist,OS_ADDR,tmpreg,href);
@@ -551,7 +551,7 @@ implementation
 {$endif not OLD_C_STACK}
              if inlined then
                begin
-                  hregister:=cg.get_scratch_reg(exprasmlist);
+                  hregister:=cg.get_scratch_reg_address(exprasmlist);
                   cg.a_loadaddr_ref_reg(exprasmlist,funcretref,hregister);
                   reference_reset_base(href,procinfo^.framepointer,inlinecode.retoffset);
                   cg.a_load_reg_ref(exprasmlist,OS_ADDR,hregister,href);
@@ -857,7 +857,7 @@ implementation
                   begin
                      cg.a_param_reg(exprasmlist,OS_ADDR,self_pointer_reg,1);
                      reference_reset_base(href,self_pointer_reg,0);
-                     tmpreg:=cg.get_scratch_reg(exprasmlist);
+                     tmpreg:=cg.get_scratch_reg_address(exprasmlist);
                      cg.a_load_ref_reg(exprasmlist,OS_ADDR,href,tmpreg);
                      reference_reset_base(href,tmpreg,72);
                      cg.a_call_ref(exprasmlist,href);
@@ -945,7 +945,7 @@ implementation
                          begin
                             { this is one point where we need vmt_offset (PM) }
                             reference_reset_base(href,R_ESI,tprocdef(procdefinition)._class.vmt_offset);
-                            tmpreg:=cg.get_scratch_reg(exprasmlist);
+                            tmpreg:=cg.get_scratch_reg_address(exprasmlist);
                             cg.a_load_ref_reg(exprasmlist,OS_ADDR,href,tmpreg);
                             reference_reset_base(href,tmpreg,0);
                             release_tmpreg:=true;
@@ -1022,7 +1022,7 @@ implementation
                       (right.location.reference.index=R_ESI) then
                      begin
                         reference_release(exprasmlist,right.location.reference);
-                        hregister:=cg.get_scratch_reg(exprasmlist);
+                        hregister:=cg.get_scratch_reg_address(exprasmlist);
                         cg.a_load_ref_reg(exprasmlist,OS_ADDR,right.location.reference,hregister);
                      end;
 
@@ -1133,7 +1133,7 @@ implementation
               emitjmp(C_Z,constructorfailed);
               cg.a_param_reg(exprasmlist,OS_ADDR,self_pointer_reg,1);
               reference_reset_base(href,self_pointer_reg,0);
-              tmpreg:=cg.get_scratch_reg(exprasmlist);
+              tmpreg:=cg.get_scratch_reg_address(exprasmlist);
               cg.a_load_ref_reg(exprasmlist,OS_ADDR,href,tmpreg);
               reference_reset_base(href,tmpreg,68);
               cg.a_call_ref(exprasmlist,href);
@@ -1484,7 +1484,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.53  2002-05-18 13:34:23  peter
+  Revision 1.54  2002-05-20 13:30:40  carl
+  * bugfix of hdisponen (base must be set, not index)
+  * more portability fixes
+
+  Revision 1.53  2002/05/18 13:34:23  peter
     * readded missing revisions
 
   Revision 1.52  2002/05/16 19:46:51  carl

@@ -127,8 +127,9 @@ unit cgbase;
        { also an exit label, only used we need to clear only the stack }
        aktexit2label : tasmlabel;
 
-       { only used in constructor for fail or if getmem fails }
-       faillabel,quickexitlabel : tasmlabel;
+       {# only used in constructor for fail keyword or if getmem fails }
+       faillabel      : tasmlabel;
+       quickexitlabel : tasmlabel;
 
        {# true, if there was an error while code generation occurs }
        codegenerror : boolean;
@@ -524,7 +525,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.16  2002-05-18 13:34:05  peter
+  Revision 1.17  2002-05-20 13:30:40  carl
+  * bugfix of hdisponen (base must be set, not index)
+  * more portability fixes
+
+  Revision 1.16  2002/05/18 13:34:05  peter
     * readded missing revisions
 
   Revision 1.15  2002/05/16 19:46:35  carl

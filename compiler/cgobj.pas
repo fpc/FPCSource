@@ -69,14 +69,22 @@ unit cgobj;
           {# Deallocates register r by inserting a pa_regdealloc record}
           procedure a_reg_dealloc(list : taasmoutput;r : tregister);
 
-          {# @abstract(Returns a register for use as scratch register)
+          {# @abstract(Returns an int register for use as scratch register)
              This routine returns a register which can be used by
-             the code generator as a scratch register. Since
-             scratch_registers are scarce resources, the register
-             should be freed by calling @link(get_scratch_reg) as
+             the code generator as a general purpose scratch register. 
+             Since scratch_registers are scarce resources, the register
+             should be freed by calling @link(free_scratch_reg) as
              soon as it is no longer required.
           }
-          function get_scratch_reg(list : taasmoutput) : tregister;
+          function get_scratch_reg_int(list : taasmoutput) : tregister;virtual;
+          {# @abstract(Returns an address register for use as scratch register)
+             This routine returns a register which can be used by
+             the code generator as a pointer scratch register. 
+             Since scratch_registers are scarce resources, the register
+             should be freed by calling @link(free_scratch_reg) as
+             soon as it is no longer required.
+          }
+          function get_scratch_reg_address(list : taasmoutput) : tregister;virtual;
           {# @abstract(Releases a scratch register)
 
              Releases a scratch register.
@@ -372,7 +380,7 @@ unit cgobj;
          list.concat(tai_label.create(l));
       end;
 
-    function tcg.get_scratch_reg(list : taasmoutput) : tregister;
+    function tcg.get_scratch_reg_int(list : taasmoutput) : tregister;
 
       var
          r : tregister;
@@ -394,8 +402,15 @@ unit cgobj;
          if scratch_register_array_pointer>max_scratch_regs then
            scratch_register_array_pointer:=1;
          a_reg_alloc(list,r);
-         get_scratch_reg:=r;
+         get_scratch_reg_int:=r;
       end;
+     
+    { the default behavior simply returns a general purpose register } 
+    function tcg.get_scratch_reg_address(list : taasmoutput) : tregister;
+     begin
+       get_scratch_reg_address := get_scratch_reg_int(list);
+     end;
+      
 
     procedure tcg.free_scratch_reg(list : taasmoutput;r : tregister);
 
@@ -414,7 +429,7 @@ unit cgobj;
          hr : tregister;
 
       begin
-         hr:=get_scratch_reg(list);
+         hr:=get_scratch_reg_int(list);
          a_load_const_reg(list,size,a,hr);
          a_param_reg(list,size,hr,nr);
          free_scratch_reg(list,hr);
@@ -426,7 +441,7 @@ unit cgobj;
          hr : tregister;
 
       begin
-         hr:=get_scratch_reg(list);
+         hr:=get_scratch_reg_int(list);
          a_load_ref_reg(list,size,r,hr);
          a_param_reg(list,size,hr,nr);
          free_scratch_reg(list,hr);
@@ -457,7 +472,7 @@ unit cgobj;
          hr : tregister;
 
       begin
-         hr:=get_scratch_reg(list);
+         hr:=get_scratch_reg_address(list);
          a_loadaddr_ref_reg(list,r,hr);
          a_param_reg(list,OS_ADDR,hr,nr);
          free_scratch_reg(list,hr);
@@ -482,7 +497,7 @@ unit cgobj;
           tmpreg := rg.getregisterint(exprasmlist)
         else
 {$endif i386}
-        tmpreg := get_scratch_reg(list);
+        tmpreg := get_scratch_reg_int(list);
         tmpreg:=rg.makeregsize(tmpreg,size);
         a_load_ref_reg(list,size,sref,tmpreg);
         a_load_reg_ref(list,size,tmpreg,dref);
@@ -501,7 +516,7 @@ unit cgobj;
         tmpreg: tregister;
 
       begin
-        tmpreg := get_scratch_reg(list);
+        tmpreg := get_scratch_reg_int(list);
         a_load_const_reg(list,size,a,tmpreg);
         a_load_reg_ref(list,size,tmpreg,ref);
         free_scratch_reg(list,tmpreg);
@@ -600,7 +615,7 @@ unit cgobj;
         tmpreg: tregister;
 
       begin
-        tmpreg := get_scratch_reg(list);
+        tmpreg := get_scratch_reg_int(list);
         a_load_ref_reg(list,size,ref,tmpreg);
         a_op_const_reg(list,op,a,tmpreg);
         a_load_reg_ref(list,size,tmpreg,ref);
@@ -628,7 +643,7 @@ unit cgobj;
         tmpreg: tregister;
 
       begin
-        tmpreg := get_scratch_reg(list);
+        tmpreg := get_scratch_reg_int(list);
         a_load_ref_reg(list,size,ref,tmpreg);
         a_op_reg_reg(list,op,size,reg,tmpreg);
         a_load_reg_ref(list,size,tmpreg,ref);
@@ -651,7 +666,7 @@ unit cgobj;
             end;
           else
             begin
-              tmpreg := get_scratch_reg(list);
+              tmpreg := get_scratch_reg_int(list);
               a_load_ref_reg(list,size,ref,tmpreg);
               a_op_reg_reg(list,op,size,tmpreg,reg);
               free_scratch_reg(list,tmpreg);
@@ -685,7 +700,7 @@ unit cgobj;
             a_op_ref_reg(list,op,loc.size,ref,loc.register);
           LOC_REFERENCE,LOC_CREFERENCE:
             begin
-              tmpreg := get_scratch_reg(list);
+              tmpreg := get_scratch_reg_int(list);
               tmpreg:=rg.makeregsize(tmpreg,loc.size);
               a_load_ref_reg(list,loc.size,ref,tmpreg);
               a_op_reg_ref(list,op,loc.size,tmpreg,loc.reference);
@@ -719,7 +734,7 @@ unit cgobj;
         tmpreg: tregister;
 
       begin
-        tmpreg := get_scratch_reg(list);
+        tmpreg := get_scratch_reg_int(list);
         a_load_ref_reg(list,size,ref,tmpreg);
         a_cmp_const_reg_label(list,size,cmp_op,a,tmpreg,l);
         free_scratch_reg(list,tmpreg);
@@ -745,7 +760,7 @@ unit cgobj;
         tmpreg: tregister;
 
       begin
-        tmpreg := get_scratch_reg(list);
+        tmpreg := get_scratch_reg_int(list);
         a_load_ref_reg(list,size,ref,tmpreg);
         a_cmp_reg_reg_label(list,size,cmp_op,tmpreg,reg,l);
         free_scratch_reg(list,tmpreg);
@@ -788,7 +803,7 @@ unit cgobj;
                 tmpreg := rg.getregisterint(exprasmlist)
               else
 {$endif i386}
-              tmpreg := get_scratch_reg(list);
+              tmpreg := get_scratch_reg_int(list);
               tmpreg := rg.makeregsize(tmpreg,size);
               a_load_ref_reg(list,size,loc.reference,tmpreg);
               a_cmp_ref_reg_label(list,size,cmp_op,ref,tmpreg,l);
@@ -1029,7 +1044,7 @@ unit cgobj;
                 lto := 0;
             end;
 
-        hreg := get_scratch_reg(list);
+        hreg := get_scratch_reg_int(list);
         if (p.location.loc in [LOC_REGISTER,LOC_CREGISTER]) then
           a_op_const_reg_reg(list,OP_SUB,def_cgsize(p.resulttype.def),
            aword(longint(lto and $ffffffff)),p.location.register,hreg)
@@ -1106,10 +1121,10 @@ unit cgobj;
             reference_reset_base(href, procinfo^.framepointer,procinfo^.selfpointer_offset);
             a_param_ref(list, OS_ADDR,href,1);
             a_call_name(list,'FPC_NEW_CLASS');
-            a_load_reg_reg(list,OS_INT,accumulator,SELF_POINTER_REG);
+            a_load_reg_reg(list,OS_ADDR,accumulator,SELF_POINTER_REG);
             { save the self pointer result }
             a_load_reg_ref(list,OS_ADDR,SELF_POINTER_REG,href);
-            a_cmp_const_reg_label(list,OS_INT,OC_EQ,0,accumulator,faillabel);
+            a_cmp_const_reg_label(list,OS_ADDR,OC_EQ,0,accumulator,faillabel);
           end
         else if is_object(procinfo^._class) then
           begin
@@ -1118,19 +1133,19 @@ unit cgobj;
             { parameter 2 : address of pointer to vmt }
             {  this is the first(?) parameter which was pushed to the constructor }
             reference_reset_base(href, procinfo^.framepointer,procinfo^.selfpointer_offset-POINTER_SIZE);
-            hregister:=get_scratch_reg(list);
+            hregister:=get_scratch_reg_address(list);
             a_loadaddr_ref_reg(list, href, hregister);
-            a_param_reg(list, OS_INT,hregister,1);
+            a_param_reg(list, OS_ADDR,hregister,1);
             free_scratch_reg(list, hregister);
             { parameter 1 : address of self pointer   }
             reference_reset_base(href, procinfo^.framepointer,procinfo^.selfpointer_offset);
-            hregister:=get_scratch_reg(list);
+            hregister:=get_scratch_reg_address(list);
             a_loadaddr_ref_reg(list, href, hregister);
-            a_param_reg(list, OS_INT,hregister,1);
+            a_param_reg(list, OS_ADDR,hregister,1);
             free_scratch_reg(list, hregister);
             a_call_name(list,'FPC_HELP_CONSTRUCTOR');
-            a_load_reg_reg(list,OS_INT,accumulator,SELF_POINTER_REG);
-            a_cmp_const_reg_label(list,OS_INT,OC_EQ,0,accumulator,faillabel);
+            a_load_reg_reg(list,OS_ADDR,accumulator,SELF_POINTER_REG);
+            a_cmp_const_reg_label(list,OS_ADDR,OC_EQ,0,accumulator,faillabel);
           end
         else
           internalerror(200006161);
@@ -1164,7 +1179,11 @@ finalization
 end.
 {
   $Log$
-  Revision 1.25  2002-05-18 13:34:05  peter
+  Revision 1.26  2002-05-20 13:30:40  carl
+  * bugfix of hdisponen (base must be set, not index)
+  * more portability fixes
+
+  Revision 1.25  2002/05/18 13:34:05  peter
     * readded missing revisions
 
   Revision 1.24  2002/05/16 19:46:35  carl

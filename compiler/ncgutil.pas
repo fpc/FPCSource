@@ -874,7 +874,7 @@ implementation
              vs_out :
                begin
                  reference_reset_base(href,procinfo^.framepointer,tvarsym(p).address+procinfo^.para_offset);
-                 tmpreg:=cg.get_scratch_reg(list);
+                 tmpreg:=cg.get_scratch_reg_address(list);
                  cg.a_load_ref_reg(list,OS_ADDR,href,tmpreg);
                  reference_reset_base(href,tmpreg,0);
                  cg.g_initialize(list,tvarsym(p).vartype.def,href,false);
@@ -1352,7 +1352,7 @@ implementation
                             if (po_virtualmethod in pd.procoptions) then
                              begin
                                reference_reset_base(href,self_pointer_reg,0);
-                               tmpreg:=cg.get_scratch_reg(list);
+                               tmpreg:=cg.get_scratch_reg_address(list);
                                cg.a_load_ref_reg(list,OS_ADDR,href,tmpreg);
                                reference_reset_base(href,tmpreg,procinfo^._class.vmtmethodoffset(pd.extnumber));
                                cg.free_scratch_reg(list,tmpreg);
@@ -1607,7 +1607,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.16  2002-05-18 13:34:09  peter
+  Revision 1.17  2002-05-20 13:30:40  carl
+  * bugfix of hdisponen (base must be set, not index)
+  * more portability fixes
+
+  Revision 1.16  2002/05/18 13:34:09  peter
     * readded missing revisions
 
   Revision 1.15  2002/05/16 19:46:37  carl

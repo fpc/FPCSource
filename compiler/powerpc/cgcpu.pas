@@ -192,7 +192,7 @@ const
             reset_reference(ref);
             ref.base := STACK_POINTER_REG;
             ref.offset := LinkageAreaSize+para_size_till_now;
-            tmpreg := get_scratch_reg(list);
+            tmpreg := get_scratch_reg_int(list);
             a_load_ref_reg(list,size,r,tmpreg);
             a_load_reg_ref(list,size,tmpreg,ref);
             free_scratch_reg(list,tmpreg);
@@ -216,7 +216,7 @@ const
             reset_reference(ref);
             ref.base := STACK_POINTER_REG;
             ref.offset := LinkageAreaSize+para_size_till_now;
-            tmpreg := get_scratch_reg(list);
+            tmpreg := get_scratch_reg_address(list);
             a_loadaddr_ref_reg(list,size,r,tmpreg);
             a_load_reg_ref(list,size,tmpreg,ref);
             free_scratch_reg(list,tmpreg);
@@ -460,7 +460,7 @@ const
               begin
                 if src <> dst then
                   list.concat(taicpu.op_reg_reg(A_MR,dst,src));
-                scratchreg := get_scratch_reg(list);
+                scratchreg := get_scratch_reg_int(list);
                 list.concat(taicpu.op_reg_const(A_LI,scratchreg,-1));
                 list.concat(taicpu.op_reg_reg_const_const_const(A_RLWIMI,dst,
                   scratchreg,0,l1,l2));
@@ -492,7 +492,7 @@ const
         { perform the operation                                        }
         if useReg then
           begin
-            scratchreg := get_scratch_reg(list);
+            scratchreg := get_scratch_reg_int(list);
             a_load_const_reg(list,OS_32,a,scratchreg);
             a_op_reg_reg_reg(list,op,OS_32,scratchreg,src,dst);
             free_scratch_reg(list,scratchreg);
@@ -535,7 +535,7 @@ const
               list.concat(taicpu.op_reg_reg_const(A_CMPI,R_CR0,reg,a))
             else
               begin
-                scratch_register := get_scratch_reg(list);
+                scratch_register := get_scratch_reg_int(list);
                 a_load_const_reg(list,OS_32,a,scratch_register);
                 list.concat(taicpu.op_reg_reg_reg(A_CMP,R_CR0,reg,scratch_register));
                 free_scratch_reg(list,scratch_register);
@@ -545,7 +545,7 @@ const
               list.concat(taicpu.op_reg_reg_const(A_CMPLI,R_CR0,reg,a))
             else
               begin
-                scratch_register := get_scratch_reg(list);
+                scratch_register := get_scratch_reg_int(list);
                 a_load_const_reg(list,OS_32,a,scratch_register);
                 list.concat(taicpu.op_reg_reg_reg(A_CMPL,R_CR0,reg,scratch_register));
                 free_scratch_reg(list,scratch_register);
@@ -841,7 +841,7 @@ const
            { add the symbol's value to the base of the reference, and if the }
            { reference doesn't have a base, create one                       }
            begin
-             tmpreg := get_scratch_reg(list);
+             tmpreg := get_scratch_reg_address(list);
              reference_reset(tmpref);
              tmpref.symbol := ref2.symbol;
              tmpref.symaddr := refs_ha;
@@ -893,14 +893,14 @@ const
         reference_reset(src);
         reference_reset(dst);
         { load the address of source into src.base }
-        src.base := get_scratch_reg(list);
+        src.base := get_scratch_reg_address(list);
         if loadref then
           a_load_ref_reg(list,OS_32,source,src.base)
         else a_loadaddr_ref_reg(list,source,src.base);
         if delsource then
           reference_release(exprasmlist,source);
         { load the address of dest into dst.base }
-        dst.base := get_scratch_reg(list);
+        dst.base := get_scratch_reg_address(list);
         a_loadaddr_ref_reg(list,dest,dst.base);
         count := len div 4;
         if count > 3 then
@@ -914,7 +914,7 @@ const
             Inc(src.offset,4);
             list.concat(taicpu.op_reg_reg_const(A_SUBI,src.base,src.base,4));
             list.concat(taicpu.op_reg_reg_const(A_SUBI,dst.base,dst.base,4));
-            countreg := get_scratch_reg(list);
+            countreg := get_scratch_reg_int(list);
             a_load_const_reg(list,OS_32,count-1,countreg);
             { explicitely allocate R_0 since it can be used safely here }
             { (for holding date that's being copied)                    }
@@ -932,7 +932,7 @@ const
         else
           { unrolled loop }
           begin
-            tempreg := get_scratch_reg(list);
+            tempreg := get_scratch_reg_int(list);
             for count2 := 1 to count do
               begin
                 a_load_ref_reg(list,OS_32,src,tempreg);
@@ -1137,7 +1137,7 @@ const
       begin
         if assigned(ref.symbol) then
           begin
-            tmpreg := get_scratch_reg(list);
+            tmpreg := get_scratch_reg_address(list);
             reference_reset(tmpref);
             tmpref.symbol := ref.symbol;
             tmpref.symaddr := refs_ha;
@@ -1173,7 +1173,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.18  2002-05-18 13:34:26  peter
+  Revision 1.19  2002-05-20 13:30:41  carl
+  * bugfix of hdisponen (base must be set, not index)
+  * more portability fixes
+
+  Revision 1.18  2002/05/18 13:34:26  peter
     * readded missing revisions
 
   Revision 1.17  2002/05/16 19:46:53  carl

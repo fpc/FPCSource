@@ -278,13 +278,13 @@ implementation
             begin
               leftreg := left.location.register;
               if signed then
-                valuereg := cg.get_scratch_reg(exprasmlist)
+                valuereg := cg.get_scratch_reg_int(exprasmlist)
               else
                 valuereg := leftreg;
             end;
           LOC_REFERENCE,LOC_CREFERENCE:
             begin
-              leftreg := cg.get_scratch_reg(exprasmlist);
+              leftreg := cg.get_scratch_reg_int(exprasmlist);
               valuereg := leftreg;
               cg.a_load_ref_reg(exprasmlist,def_cgsize(left.resulttype.def),
                 left.location.reference,leftreg);
@@ -292,7 +292,7 @@ implementation
           else
             internalerror(200110012);
          end;
-         tempreg := cg.get_scratch_reg(exprasmlist);
+         tempreg := cg.get_scratch_reg_int(exprasmlist);
          exprasmlist.concat(taicpu.op_reg_const(A_LIS,tempreg,$4330));
          cg.a_load_reg_ref(exprasmlist,OS_32,tempreg,ref);
          if signed then
@@ -456,7 +456,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.8  2002-05-18 13:34:26  peter
+  Revision 1.9  2002-05-20 13:30:42  carl
+  * bugfix of hdisponen (base must be set, not index)
+  * more portability fixes
+
+  Revision 1.8  2002/05/18 13:34:26  peter
     * readded missing revisions
 
   Revision 1.7  2002/05/16 19:46:53  carl
