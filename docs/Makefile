@@ -183,6 +183,9 @@ clean:
 	-$(MAKE) -C sockex clean
 	-$(MAKE) -C stringex clean
 	-$(MAKE) -C sysutex clean
+	-$(MAKE) -C mathex clean
+	-$(MAKE) -C graphex clean
+	-$(MAKE) -C gpmex clean
 # Reference
 	-$(MAKE) -C refex clean
 
@@ -207,6 +210,9 @@ ifndef INSTALLDEBUG
 	$(MAKE) -C sockex tex
 	$(MAKE) -C stringex tex
 	$(MAKE) -C sysutex tex
+	$(MAKE) -C mathex tex
+	$(MAKE) -C graphex tex
+	$(MAKE) -C gpmex tex
 endif
 	touch unitex.chk
 
@@ -290,8 +296,10 @@ else
 	-t "Unit reference for Free Pascal" units.htex
 	-sed -f foot.sed <units/footnode.html >units/footnote.html
 	-mv units/footnote.html units/footnode.html
+ifndef LOG
 	-rm -f units/labels.pl units/internals.pl units/.*.pag units/.*.dir
 	-rm -f units/images.* units/*.log units/WARNINGS
+endif
 endif
 	touch units.chk
 
@@ -305,8 +313,10 @@ else
 	-t "Free Pascal reference guide" ref.htex
 	-sed -f foot.sed <ref/footnode.html >ref/footnote.html
 	-mv ref/footnote.html ref/footnode.html
+ifndef LOG
 	-rm -f ref/labels.pl ref/internals.pl ref/.*.pag ref/.*.dir
 	-rm -f ref/images.* ref/*.log ref/WARNINGS
+endif
 endif
 	touch ref.chk	
 
@@ -320,8 +330,10 @@ else
 	-t "Free Pascal programmers guide" prog.htex
 	-sed -f foot.sed <prog/footnode.html >prog/footnote.html
 	-mv prog/footnote.html prog/footnode.html
+ifndef LOG
 	-rm -f prog/labels.pl prog/internals.pl prog/.*.pag prog/.*.dir
 	-rm -f prog/images.* prog/*.log prog/WARNINGS
+endif
 endif
 	touch prog.chk
 
@@ -335,8 +347,10 @@ else
 	-t "Free Pascal Compiler Documentation" internal.htex
 	-sed -f foot.sed <internal/footnode.html >internal/footnote.html
 	-mv internal/footnote.html internal/footnode.html
+ifndef LOG
 	-rm -f internal/labels.pl internal/internals.pl internal/.*.pag internal/.*.dir
 	-rm -f internal/images.* internal/*.log internal/WARNINGS
+endif
 endif
 	touch internal.chk	
 
@@ -350,8 +364,10 @@ else
 	-t "Free Pascal reference guide" onechap.htex
 	-sed -f foot.sed <onechap/footnode.html >onechap/footnote.html
 	-mv onechap/footnote.html onechap/footnode.html
+ifndef LOG
 	-rm -f onechap/labels.pl onechap/internals.pl onechap/.*.pag onechap/.*.dir
 	-rm -f onechap/images.* onechap/*.log onechap/WARNINGS
+endif
 endif
 	touch onechap.chk	
 
@@ -470,7 +486,10 @@ linuxexamples: examples
 
 #
 # $Log$
-# Revision 1.1.2.2  2000-09-02 21:47:40  peter
+# Revision 1.1.2.3  2000-10-12 10:28:03  peter
+#   * include more examples
+#
+# Revision 1.1.2.2  2000/09/02 21:47:40  peter
 #   * pdf works now again
 #
 # Revision 1.1.2.1  2000/09/02 17:29:51  peter
