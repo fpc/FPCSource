@@ -366,16 +366,33 @@ begin
 end;
 
 procedure TIDEApp.DoDebuggerSwitch;
+
 var R,R2: TRect;
     D: PCenterDialog;
     RB : PRadioButtons;
     CB: PCheckBoxes;
+{$ifdef win32}
+    CB2: PCheckBoxes;
+{$endif win32}
+{$ifdef linux}
+    IL: PInputLine;
+{$endif linux}
     IL2: PInputLine;
     L,I: longint;
     Items: PSItem;
+const
+{$ifdef win32}
+  OtherFieldLines = 3;
+{$else not win32}
+{$ifdef linux}
+  OtherFieldLines = 3;
+{$else not linux}
+  OtherFieldLines = 0;
+{$endif linux}
+{$endif win32}
 begin
   R.Assign(0,0,60,2+DebugInfoSwitches^.ItemCount+2
-      +ProfileInfoSwitches^.ItemCount+2+2+1);
+      +ProfileInfoSwitches^.ItemCount+2+2+1+OtherFieldLines);
   New(D, Init(R, 'Browsing/Debugging/Profiling'));
   with D^ do
   begin
@@ -410,6 +427,26 @@ begin
     Insert(IL2);
     R2.Move(0,-1);
     Insert(New(PLabel, Init(R2,'~A~dditional compiler args', IL2)));
+{$ifdef win32}
+    R2.Move(0,4);
+    New(CB2,Init(R2,NewSItem('Use ~A~nother console ', nil)));
+    Insert(CB2);
+    if DebuggeeTTY<>'' then
+      L:=1
+    else
+      L:=0;
+    CB2^.SetData(L);
+    R2.Move(0,-1);
+    Insert(New(PLabel, Init(R2,'Debuggee ~R~edirection', CB2)));
+{$endif win32}
+{$ifdef linux}
+    R2.Move(0,4);
+    New(IL, Init(R2, 255));
+    IL^.Data^:=DebuggeeTTY;
+    Insert(IL);
+    R2.Move(0,-1);
+    Insert(New(PLabel, Init(R2,'Use ~A~nother tty for Debuggee', IL)));
+{$endif win32}
   end;
   InsertButtons(D);
   RB^.Select;
@@ -424,6 +461,15 @@ begin
       I := 0;
     ProfileInfoSwitches^.SetCurrSel(I);
     CustomArg[SwitchesMode]:=IL2^.Data^;
+{$ifdef win32}
+    if CB2^.value<>0 then
+      DebuggeeTTY:='on'
+    else
+      DebuggeeTTY:='';
+{$endif win32}
+{$ifdef linux}
+    DebuggeeTTY:=IL^.Data^;
+{$endif linux}
   end;
   Dispose(D, Done);
 end;
@@ -1076,7 +1122,10 @@ end;
 
 {
   $Log$
-  Revision 1.26  1999-10-14 10:22:50  pierre
+  Revision 1.27  1999-11-10 17:18:17  pierre
+   + new console for Win32 or other tty for linux
+
+  Revision 1.26  1999/10/14 10:22:50  pierre
    + color selection for ClockView
 
   Revision 1.25  1999/08/16 18:25:21  peter
