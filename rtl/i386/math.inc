@@ -241,7 +241,7 @@
      begin
         power:=exp(ln(bas)*expo);
      end;
-{$endif dummy
+{$endif dummy}
 
    function power(bas,expo : longint) : longint;
      begin
@@ -494,11 +494,6 @@
         power:=exp(ln(bas)*expo);
      end;
 
-   function power(bas,expo : longint) : longint;
-     begin
-        power:=round(exp(ln(bas)*expo));
-     end;
-
 {$ifdef fixed}
 
     function sqrt(d : fixed) : fixed;
@@ -615,7 +610,10 @@
 
 {
   $Log$
-  Revision 1.3  1998-08-08 12:28:09  florian
+  Revision 1.4  1998-08-10 15:54:50  peter
+    * removed dup power(longint)
+
+  Revision 1.3  1998/08/08 12:28:09  florian
     * a lot small fixes to the extended data type work
 
   Revision 1.2  1998/05/31 14:15:49  peter
