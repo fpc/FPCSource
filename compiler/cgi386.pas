@@ -2057,7 +2057,7 @@ implementation
          oflabel:=falselabel;
          getlabel(truelabel);
          getlabel(falselabel);
-         withresult:=not(aktexprlevel<4);
+         withresult:=false;
          { calculate left sides }
          secondpass(p^.left);
          case p^.left^.location.loc of
@@ -5654,8 +5654,12 @@ do_jmp:
 end.
 {
   $Log$
-  Revision 1.1  1998-03-25 11:18:13  root
-  Initial revision
+  Revision 1.2  1998-03-26 11:18:30  florian
+    - switch -Sa removed
+    - support of a:=b:=0 removed
+
+  Revision 1.1.1.1  1998/03/25 11:18:13  root
+  * Restored version
 
   Revision 1.58  1998/03/24 21:48:30  florian
     * just a couple of fixes applied:

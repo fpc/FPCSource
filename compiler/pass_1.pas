@@ -1675,8 +1675,7 @@ unit pass_1;
                end;
           end;
 
-         if (aktexprlevel<4) then p^.resulttype:=voiddef
-           else p^.resulttype:=p^.right^.resulttype;
+         p^.resulttype:=voiddef;
          {
            p^.registers32:=max(p^.left^.registers32,p^.right^.registers32);
            p^.registersfpu:=max(p^.left^.registersfpu,p^.right^.registersfpu);
@@ -3091,7 +3090,9 @@ unit pass_1;
          if ret_in_param(procinfo.retdef) then
            p^.registers32:=1;
 {$ifdef GDB}
-         if must_be_valid and not procinfo.funcret_is_valid then
+         if must_be_valid and
+           not(procinfo.funcret_is_valid) and
+           ((procinfo.flags and pi_uses_asm)=0) then
            Message(sym_w_function_result_not_set);
          if count_ref then procinfo.funcret_is_valid:=true;
 {$endif * GDB *}
@@ -4486,8 +4487,12 @@ unit pass_1;
 end.
 {
   $Log$
-  Revision 1.1  1998-03-25 11:18:14  root
-  Initial revision
+  Revision 1.2  1998-03-26 11:18:31  florian
+    - switch -Sa removed
+    - support of a:=b:=0 removed
+
+  Revision 1.1.1.1  1998/03/25 11:18:14  root
+  * Restored version
 
   Revision 1.41  1998/03/13 22:45:59  florian
     * small bug fixes applied

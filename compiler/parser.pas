@@ -284,7 +284,6 @@ unit parser;
          if compile_system then
           aktswitches:=aktswitches+[cs_compilesystem];
 
-         aktexprlevel:=initexprlevel;
          aktpackrecords:=initpackrecords;
 
          { init code generator for a new module }
@@ -531,8 +530,12 @@ done:
 end.
 {
   $Log$
-  Revision 1.1  1998-03-25 11:18:12  root
-  Initial revision
+  Revision 1.2  1998-03-26 11:18:30  florian
+    - switch -Sa removed
+    - support of a:=b:=0 removed
+
+  Revision 1.1.1.1  1998/03/25 11:18:12  root
+  * Restored version
 
   Revision 1.60  1998/03/24 21:48:32  florian
     * just a couple of fixes applied:

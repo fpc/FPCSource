@@ -1450,14 +1450,7 @@ unit pexpr;
                             { should be recursive for a:=b:=c !!! }
                             if (p1^.resulttype<>nil) and (p1^.resulttype^.deftype=procvardef) then
                               getprocvar:=true;
-{$ifdef tp}
-                            p2:=expr;
-{$else}
-                            { FPC needs this to recognizes the call       }
-                            { because the function name can be used like  }
-                            { an simple variable                          }
-                            p2:=expr();
-{$endif}
+                            p2:=sub_expr(opcompare);
                             if getprocvar and (p2^.treetype=calln) then
                               begin
                                  p2^.treetype:=loadn;
@@ -1471,12 +1464,7 @@ unit pexpr;
                          { from an improvement of Peter Schaefer    }
             _PLUSASN   : begin
                             consume(_PLUSASN  );
-{$ifdef tp}
-                            p2:=expr;
-{$else}
-                            p2:=expr();
-{$endif}
-
+                            p2:=sub_expr(opcompare);
                             p1:=gennode(assignn,p1,gennode(addn,getcopy(p1),p2));
                             { was first
                               p1:=gennode(assignn,p1,gennode(addn,p1,p2));
@@ -1486,32 +1474,19 @@ unit pexpr;
 
             _MINUSASN   : begin
                             consume(_MINUSASN  );
-{$ifdef tp}
-                            p2:=expr;
-{$else}
-                            p2:=expr();
-{$endif}
+                            p2:=sub_expr(opcompare);
                             p1:=gennode(assignn,p1,gennode(subn,getcopy(p1),p2));
                          end;
             _STARASN   : begin
                             consume(_STARASN  );
-{$ifdef tp}
-                            p2:=expr;
-{$else}
-                            p2:=expr();
-{$endif}
+                            p2:=sub_expr(opcompare);
                             p1:=gennode(assignn,p1,gennode(muln,getcopy(p1),p2));
                          end;
             _SLASHASN   : begin
                             consume(_SLASHASN  );
-{$ifdef tp}
-                            p2:=expr;
-{$else}
-                            p2:=expr();
-{$endif}
+                            p2:=sub_expr(opcompare);
                             p1:=gennode(assignn,p1,gennode(slashn,getcopy(p1),p2));
                          end;
-
          end;
          afterassignment:=oldafterassignment;
          expr:=p1;
@@ -1563,8 +1538,12 @@ unit pexpr;
 end.
 {
   $Log$
-  Revision 1.1  1998-03-25 11:18:14  root
-  Initial revision
+  Revision 1.2  1998-03-26 11:18:31  florian
+    - switch -Sa removed
+    - support of a:=b:=0 removed
+
+  Revision 1.1.1.1  1998/03/25 11:18:14  root
+  * Restored version
 
   Revision 1.26  1998/03/24 21:48:33  florian
     * just a couple of fixes applied:
