@@ -10,11 +10,11 @@ function GetLargestConsoleWindowSizeAlternate(h : longint) : dword;
   external 'kernel32' name 'GetLargestConsoleWindowSize';
 {$endif win32}
 
+{$ifdef win32}
 var
   c1,c : coord;
   y : dword;
 begin
-{$ifdef win32}
   longint(c):=GetStdHandle(STD_OUTPUT_HANDLE);
   c1:=GetLargestConsoleWindowSize(GetStdHandle(STD_OUTPUT_HANDLE));
   Writeln('Max window size is ',c1.x,'x',c1.y);
@@ -27,8 +27,9 @@ begin
       Writeln('RTL bug');
       Halt(1);
     end;
+end.    
 {$else not win32}
+begin
   Writeln('Bug 1779 is win32 specific');
-{$endif win32}
 end.
-
+{$endif win32}
