@@ -717,8 +717,11 @@ begin
             writeln('P: ',SF^.GetPPUFileName,' - ',PPUTime);
             writeln('O: ',SF^.GetObjFileName,' - ',ObjTime);
             writeln('------');}
+            { some units don't generate object files }
             if (SourceTime<>-1) then
-              if (SourceTime>PPUTime) or (SourceTime>ObjTime) then
+              if (SourceTime>PPUTime) or
+                 ((SourceTime>ObjTime) and
+                 (ObjTime<>-1)) then
                 begin
                   Need:=true;
                   Break;
@@ -742,7 +745,11 @@ end;
 end.
 {
   $Log$
-  Revision 1.40  1999-09-20 15:36:38  pierre
+  Revision 1.41  1999-10-25 16:34:19  pierre
+    * some units have no object files
+      led to wrong NeedRecompile result
+
+  Revision 1.40  1999/09/20 15:36:38  pierre
    * adapted to new tokens unit
 
   Revision 1.39  1999/09/16 14:34:57  pierre
