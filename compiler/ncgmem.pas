@@ -71,6 +71,8 @@ interface
        end;
 
        tcgvecnode = class(tvecnode)
+       private
+         procedure rangecheck_array;
        protected
          function get_mul_size : aword;
          procedure update_reference_reg_mul(reg:tregister;l:aword);virtual;
@@ -515,19 +517,69 @@ implementation
        begin
        end;
 
+
+     procedure tcgvecnode.rangecheck_array;
+       var
+         freereg : boolean;
+         hightree : tnode;
+         srsym : tsym;
+         poslabel,
+         neglabel : tasmlabel;
+         hreg : tregister;
+       begin
+         if is_open_array(left.resulttype.def) or
+            is_array_of_const(left.resulttype.def) then
+          begin
+            { Get high value }
+            srsym:=searchsymonlyin(tloadnode(left).symtable,
+              'high'+tvarsym(tloadnode(left).symtableentry).name);
+            hightree:=cloadnode.create(tvarsym(srsym),tloadnode(left).symtable);
+            firstpass(hightree);
+            secondpass(hightree);
+            { generate compares }
+            freereg:=false;
+            if (right.location.loc in [LOC_REGISTER,LOC_CREGISTER]) then
+              hreg:=right.location.register
+            else
+              begin
+                hreg := cg.get_scratch_reg_int(exprasmlist);
+                freereg:=true;
+                cg.a_load_loc_reg(exprasmlist,right.location,hreg);
+              end;
+            objectlibrary.getlabel(neglabel);
+            objectlibrary.getlabel(poslabel);
+            cg.a_cmp_const_reg_label(exprasmlist,OS_INT,OC_LT,0,hreg,poslabel);
+            cg.a_cmp_loc_reg_label(exprasmlist,OS_INT,OC_BE,hightree.location,hreg,neglabel);
+            cg.a_label(exprasmlist,poslabel);
+            { !!! should happen right after the compare (JM) }
+            if freereg then
+              cg.free_scratch_reg(exprasmlist,hreg);
+            cg.a_call_name(exprasmlist,'FPC_RANGEERROR');
+            cg.a_label(exprasmlist,neglabel);
+            { release hightree }
+            location_release(exprasmlist,hightree.location);
+            hightree.free;
+          end
+         else
+          if is_dynamic_array(left.resulttype.def) then
+           begin
+{$ifdef fpc}
+  {$warning Rangecheck for dynamic array}
+{$endif fpc}
+             internalerror(200210074);
+           end
+         else
+           cg.g_rangecheck(exprasmlist,right,left.resulttype.def);
+       end;
+
+
     procedure tcgvecnode.pass_2;
 
       var
          extraoffset : longint;
-         { rl stores the resulttype.def of the left node, this is necessary }
-         { to detect if it is an ansistring                          }
-         { because in constant nodes which constant index              }
-         { the left tree is removed                                  }
-         t   : tnode;
+         t : tnode;
          href : treference;
-         srsym : tsym;
          pushed : tpushedsaved;
-         hightree : tnode;
          isjump  : boolean;
          otl,ofl : tasmlabel;
          newsize : tcgsize;
@@ -654,11 +706,10 @@ implementation
                        end
                      else
                        begin
-                          { range checking for open and dynamic arrays !!!! }
-{$ifdef fpc}
-{$warning FIXME}
-{$endif}
-                          {!!!!!!!!!!!!!!!!!}
+                          { range checking for open and dynamic arrays needs
+                            runtime code }
+                          secondpass(right);
+                          rangecheck_array;
                        end;
                   end;
                 stringdef :
@@ -781,24 +832,7 @@ implementation
               if cs_check_range in aktlocalswitches then
                begin
                  if left.resulttype.def.deftype=arraydef then
-                   begin
-                     if is_open_array(left.resulttype.def) or
-                        is_array_of_const(left.resulttype.def) then
-                      begin
-                        tarraydef(left.resulttype.def).genrangecheck;
-                        srsym:=searchsymonlyin(tloadnode(left).symtable,
-                          'high'+tvarsym(tloadnode(left).symtableentry).name);
-                        hightree:=cloadnode.create(tvarsym(srsym),tloadnode(left).symtable);
-                        firstpass(hightree);
-                        secondpass(hightree);
-                        location_release(exprasmlist,hightree.location);
-                        reference_reset_symbol(href,objectlibrary.newasmsymbol(tarraydef(left.resulttype.def).getrangecheckstring),4);
-                        cg.a_load_loc_ref(exprasmlist,hightree.location,href);
-                        hightree.free;
-                        hightree:=nil;
-                      end;
-                     cg.g_rangecheck(exprasmlist,right,left.resulttype.def);
-                   end;
+                   rangecheck_array;
                end;
 
               location_force_reg(exprasmlist,right.location,OS_32,false);
@@ -868,7 +902,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.29  2002-10-05 12:43:25  carl
+  Revision 1.30  2002-10-07 21:30:45  peter
+    * rangecheck for open arrays added
+
+  Revision 1.29  2002/10/05 12:43:25  carl
     * fixes for Delphi 6 compilation
      (warning : Some features do not work under Delphi)
 
