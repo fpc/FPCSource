@@ -660,8 +660,10 @@ implementation
                 else
                   begin
                      cg.a_cmp_const_reg_label(exprasmlist, opsize, OC_EQ, aword(t^._low),hregister, t^.statement);
-                     last:=t^._low;
                   end;
+                { Reset last here, because we've only checked for one value and need to compare
+                  for the next range both the lower and upper bound }
+                last:=0;
              end
            else
              begin
@@ -1009,7 +1011,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.52  2003-10-17 14:38:32  peter
+  Revision 1.53  2003-11-10 19:10:31  peter
+    * fixed range compare when the last value was an equal
+      compare. The compare for the lower range was skipped
+
+  Revision 1.52  2003/10/17 14:38:32  peter
     * 64k registers supported
     * fixed some memory leaks
 
