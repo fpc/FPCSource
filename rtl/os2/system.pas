@@ -55,6 +55,7 @@ const
   DriveSeparator = ':';
   PathSeparator = ';';
 { FileNameCaseSensitive is defined separately below!!! }
+  MaxExitCode = 65535;
 
 type    Tos=(osDOS,osOS2,osDPMI);
 
@@ -1620,7 +1621,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.72  2004-07-18 15:20:38  hajny
+  Revision 1.73  2004-09-11 19:43:11  hajny
+    * missing MaxExitCode added
+
+  Revision 1.72  2004/07/18 15:20:38  hajny
     + Memory allocation routines changed to support the new memory manager
 
   Revision 1.71  2004/05/16 18:51:20  peter
