@@ -864,11 +864,14 @@ implementation
                     begin
                        if (srsym.typ<>procsym) then
                          internalerror(12344321);
+                       { remove all previous chains }
+                       tprocsym(srsym).unchain_overload;
                        { use this procsym as start ? }
                        if not assigned(overloaded_operators[t]) then
                           overloaded_operators[t]:=tprocsym(srsym)
                        else
-                          { already got a procsym, only add defs of the current procsym }
+                          { already got a procsym, only add defs defined in the
+                            unit of the current procsym }
                           Tprocsym(srsym).concat_procdefs_to(overloaded_operators[t]);
                        symtablestack:=srsym.owner.next;
                     end
@@ -2428,7 +2431,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.108  2003-06-25 18:31:23  peter
+  Revision 1.109  2003-08-23 22:31:08  peter
+    * unchain operators before adding to overloaded list
+
+  Revision 1.108  2003/06/25 18:31:23  peter
     * sym,def resolving partly rewritten to support also parent objects
       not directly available through the uses clause
 
