@@ -401,10 +401,18 @@ implementation
          lastlabel   : tasmlabel;
          i           : longint;
          neededtyp   : taitype;
+         indexadjust : longint;
       type
          setbytes=array[0..31] of byte;
          Psetbytes=^setbytes;
       begin
+        { xor indexadjust with indexes in a set typecasted to an array of   }
+        { bytes to get the correct locations, also when endianess of source }
+        { and destiantion differs (JM)                                      }
+        if (source_info.endian = target_info.endian) then
+          indexadjust := 0
+        else
+          indexadjust := 3;
         { small sets are loaded as constants }
         if tsetdef(resulttype.def).settype=smallset then
          begin
@@ -435,9 +443,9 @@ implementation
                              while assigned(hp1) and (i<32) do
                               begin
                             {$ifdef oldset}
-                                if tai_const(hp1).value<>value_set^[i] then
+                                if tai_const(hp1).value<>value_set^[i xor indexadjust] then
                             {$else}
-                                if tai_const(hp1).value<>Psetbytes(value_set)^[i] then
+                                if tai_const(hp1).value<>Psetbytes(value_set)^[i xor indexadjust] then
                             {$endif}
                                  break;
                                 inc(i);
@@ -478,15 +486,17 @@ implementation
                   Consts.concat(Tai_cut.Create);
                  consts.concat(tai_align.create(const_align(4)));
                  Consts.concat(Tai_label.Create(lastlabel));
+                 { already handled at the start of this method?? (JM)
                  if tsetdef(resulttype.def).settype=smallset then
                   begin
                     move(value_set^,i,sizeof(longint));
                     Consts.concat(Tai_const.Create_32bit(i));
                   end
                  else
+                 }
                   begin
                     for i:=0 to 31 do
-                      Consts.concat(Tai_const.Create_8bit(Psetbytes(value_set)^[i]));
+                      Consts.concat(Tai_const.Create_8bit(Psetbytes(value_set)^[i xor indexadjust]));
                   end;
                end;
           end;
@@ -539,7 +549,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.27  2003-04-24 22:29:57  florian
+  Revision 1.28  2003-05-01 12:24:22  jonas
+    * fixed endian issues when writing out set constants
+
+  Revision 1.27  2003/04/24 22:29:57  florian
     * fixed a lot of PowerPC related stuff
 
   Revision 1.26  2003/01/05 13:36:53  florian
