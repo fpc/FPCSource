@@ -275,10 +275,12 @@ procedure DrawBitmapCharHorizWin32GUI(x,y : longint;charsize : word;const s : st
        begin
           color:=RGB(pal[currentcolor].red,pal[currentcolor].green,
             pal[currentcolor].blue);
+
           brushwin:=CreateSolidBrush(color);
           oldbrushwin:=SelectObject(windc,brushwin);
+
           brushbitmap:=CreateSolidBrush(color);
-          oldbrushbitmap:=SelectObject(windc,brushbitmap);
+          oldbrushbitmap:=SelectObject(bitmapdc,brushbitmap);
        end;
      inc(x,startxviewport);
      inc(y,startyviewport);
@@ -351,6 +353,7 @@ procedure DrawBitmapCharHorizWin32GUI(x,y : longint;charsize : word;const s : st
       begin
          SelectObject(windc,oldbrushwin);
          DeleteObject(brushwin);
+
          SelectObject(bitmapdc,oldbrushbitmap);
          DeleteObject(brushbitmap);
       end;
@@ -725,37 +728,322 @@ procedure CloseGraph;
      freemem(pal,sizeof(RGBrec)*maxcolor);
   end;
 
-{
-procedure line(x1,y1,x2,y2 : longint);
+procedure LineWin32GUI(X1, Y1, X2, Y2: smallint); {$ifndef fpc}far;{$endif fpc}
 
-  var
-     pen,oldpen : hpen;
-     windc : hdc;
+  var X, Y :           smallint;
+      deltax, deltay : smallint;
+      d, dinc1, dinc2: smallint;
+      xinc1          : smallint;
+      xinc2          : smallint;
+      yinc1          : smallint;
+      yinc2          : smallint;
+      i              : smallint;
+      Flag           : Boolean; { determines pixel direction in thick lines }
+      NumPixels      : smallint;
+      PixelCount     : smallint;
+      OldCurrentColor: Word;
+      swtmp          : smallint;
+      TmpNumPixels   : smallint;
+      col : longint;
+      pen,oldpen : hpen;
 
-  begin
-     if graphrunning then
-       begin
-          EnterCriticalSection(graphdrawing);
-          pen:=CreatePen(PS_SOLID,4,RGB($ff,0,0));
+ begin
+    if graphrunning then
+      begin
+         {******************************************}
+         {  SOLID LINES                             }
+         {******************************************}
+         if lineinfo.LineStyle = SolidLn then
+           Begin
+              { Convert to global coordinates. }
+              x1 := x1 + StartXViewPort;
+              x2 := x2 + StartXViewPort;
+              y1 := y1 + StartYViewPort;
+              y2 := y2 + StartYViewPort;
+              { if fully clipped then exit... }
+              if ClipPixels then
+                begin
+                   if LineClipped(x1,y1,x2,y2,StartXViewPort, StartYViewPort,
+                     StartXViewPort+ViewWidth, StartYViewPort+ViewHeight) then
+                       exit;
+                  If LineInfo.Thickness=NormWidth then
+                   Begin
+                      EnterCriticalSection(graphdrawing);
+                      col:=RGB(pal[CurrentColor].red,pal[CurrentColor].green,pal[CurrentColor].blue);
+                      pen:=CreatePen(PS_SOLID,1,col);
+                      OldCurrentColor:=CurrentColor;
 
-          oldpen:=SelectObject(bitmapdc,pen);
-          MoveToEx(bitmapdc,x1,y1,nil);
-          LineTo(bitmapdc,x2,y2);
-          SelectObject(bitmapdc,oldpen);
+                      oldpen:=SelectObject(windc,pen);
+                      MoveToEx(windc,x1,y1,nil);
+                      Windows.LineTo(windc,x2,y2);
+                      SetPixel(windc,x2,y2,col);
+                      SelectObject(windc,oldpen);
 
-          windc:=GetDC(mainwindow);
-          oldpen:=SelectObject(windc,pen);
-          MoveToEx(windc,x1,y1,nil);
-          LineTo(windc,x2,y2);
-          SelectObject(windc,oldpen);
-          ReleaseDC(mainwindow,windc);
+                      oldpen:=SelectObject(bitmapdc,pen);
+                      MoveToEx(bitmapdc,x1,y1,nil);
+                      Windows.LineTo(bitmapdc,x2,y2);
+                      SetPixel(bitmapdc,x2,y2,col);
+                      SelectObject(bitmapdc,oldpen);
 
-          DeleteObject(pen);
-          LeaveCriticalSection(graphdrawing);
-       end;
-  end;
+                      DeleteObject(pen);
+                      CurrentColor:=OldCurrentColor;
+                      LeaveCriticalSection(graphdrawing);
+                   end
+                 else
+                  { Thick width lines }
+                   begin
+                     { Draw the pixels }
+                      for i := 1 to numpixels do
+                        begin
+                         { all depending on the slope, we can determine         }
+                         { in what direction the extra width pixels will be put }
+                         If Flag then
+                           Begin
+                             DirectPutPixelClip(x-1,y);
+                             DirectPutPixelClip(x,y);
+                             DirectPutPixelClip(x+1,y);
+                           end
+                         else
+                           Begin
+                             DirectPutPixelClip(x, y-1);
+                             DirectPutPixelClip(x, y);
+                             DirectPutPixelClip(x, y+1);
+                           end;
+                         if d < 0 then
+                           begin
+                             d := d + dinc1;
+                             x := x + xinc1;
+                             y := y + yinc1;
+                           end
+                         else
+                           begin
+                             d := d + dinc2;
+                             x := x + xinc2;
+                             y := y + yinc2;
+                           end;
+                        end;
+                   end;
+                 end;
+           end
+          else
+       {******************************************}
+       {  begin patterned lines                   }
+       {******************************************}
+           Begin
+             { Convert to global coordinates. }
+             x1 := x1 + StartXViewPort;
+             x2 := x2 + StartXViewPort;
+             y1 := y1 + StartYViewPort;
+             y2 := y2 + StartYViewPort;
+             { if fully clipped then exit... }
+             if ClipPixels then
+              begin
+              if LineClipped(x1,y1,x2,y2,StartXViewPort, StartYViewPort,
+                  StartXViewPort+ViewWidth, StartYViewPort+ViewHeight) then
+                     exit;
+              end;
 
-}
+             OldCurrentColor := CurrentColor;
+             PixelCount:=0;
+             if y1 = y2 then
+                   Begin
+                    { Check if we must swap }
+                if x1 >= x2 then
+                      Begin
+                        swtmp := x1;
+                        x1 := x2;
+                        x2 := swtmp;
+                      end;
+                if LineInfo.Thickness = NormWidth then
+                     Begin
+                      for PixelCount:=x1 to x2 do
+                            { optimization: PixelCount mod 16 }
+                            if LinePatterns[PixelCount and 15] = TRUE then
+                             begin
+                               DirectPutPixel(PixelCount,y2);
+                             end;
+                     end
+                    else
+                     Begin
+                      for i:=-1 to 1 do
+                            Begin
+                              for PixelCount:=x1 to x2 do
+                                { Optimization from Thomas - mod 16 = and 15 }
+                                {this optimization has been performed by the compiler
+                                 for while as well (JM)}
+                                if LinePatterns[PixelCount and 15] = TRUE then
+                                  begin
+                                        DirectPutPixelClip(PixelCount,y2+i);
+                                  end;
+                            end;
+                     end;
+               end
+             else
+             if x1 = x2 then
+                  Begin
+                   { Check if we must swap }
+                   if y1 >= y2 then
+                     Begin
+                       swtmp := y1;
+                       y1 := y2;
+                       y2 := swtmp;
+                     end;
+                   if LineInfo.Thickness = NormWidth then
+                     Begin
+                       for PixelCount:=y1 to y2 do
+                           { compare if we should plot a pixel here , compare }
+                           { with predefined line patterns...                 }
+                           if LinePatterns[PixelCount and 15] = TRUE then
+                             begin
+                           DirectPutPixel(x1,PixelCount);
+                             end;
+                     end
+                   else
+                     Begin
+                       for i:=-1 to 1 do
+                            Begin
+                              for PixelCount:=y1 to y2 do
+                              { compare if we should plot a pixel here , compare }
+                              { with predefined line patterns...                 }
+                                if LinePatterns[PixelCount and 15] = TRUE then
+                                  begin
+                                    DirectPutPixelClip(x1+i,PixelCount);
+                                  end;
+                            end;
+                     end;
+                  end
+             else
+                  Begin
+                    oldCurrentColor := CurrentColor;
+                    { Calculate deltax and deltay for initialisation }
+                    deltax := abs(x2 - x1);
+                    deltay := abs(y2 - y1);
+
+                    { Initialize all vars based on which is the independent variable }
+                    if deltax >= deltay then
+                      begin
+
+                        Flag := FALSE;
+                        { x is independent variable }
+                        numpixels := deltax + 1;
+                        d := (2 * deltay) - deltax;
+                        dinc1 := deltay Shl 1;
+                        dinc2 := (deltay - deltax) shl 1;
+                        xinc1 := 1;
+                        xinc2 := 1;
+                        yinc1 := 0;
+                        yinc2 := 1;
+                     end
+                   else
+                     begin
+
+                       Flag := TRUE;
+                       { y is independent variable }
+                       numpixels := deltay + 1;
+                       d := (2 * deltax) - deltay;
+                       dinc1 := deltax Shl 1;
+                       dinc2 := (deltax - deltay) shl 1;
+                       xinc1 := 0;
+                       xinc2 := 1;
+                       yinc1 := 1;
+                       yinc2 := 1;
+                     end;
+
+                   { Make sure x and y move in the right directions }
+                   if x1 > x2 then
+                     begin
+                       xinc1 := - xinc1;
+                       xinc2 := - xinc2;
+                     end;
+                   if y1 > y2 then
+                     begin
+                       yinc1 := - yinc1;
+                       yinc2 := - yinc2;
+                     end;
+
+                   { Start drawing at <x1, y1> }
+                   x := x1;
+                   y := y1;
+
+                   If LineInfo.Thickness=ThickWidth then
+
+                    Begin
+                      TmpNumPixels := NumPixels-1;
+                      { Draw the pixels }
+                      for i := 0 to TmpNumPixels do
+                        begin
+                            { all depending on the slope, we can determine         }
+                            { in what direction the extra width pixels will be put }
+                              If Flag then
+                                 Begin
+                                   { compare if we should plot a pixel here , compare }
+                                   { with predefined line patterns...                 }
+                                   if LinePatterns[i and 15] = TRUE then
+                                     begin
+                                       DirectPutPixelClip(x-1,y);
+                                       DirectPutPixelClip(x,y);
+                                       DirectPutPixelClip(x+1,y);
+                                     end;
+                                 end
+                              else
+                                 Begin
+                                   { compare if we should plot a pixel here , compare }
+                                   { with predefined line patterns...                 }
+                                   if LinePatterns[i and 15] = TRUE then
+                                    begin
+                                      DirectPutPixelClip(x,y-1);
+                                      DirectPutPixelClip(x,y);
+                                      DirectPutPixelClip(x,y+1);
+                                    end;
+                                 end;
+                          if d < 0 then
+                                begin
+                                  d := d + dinc1;
+                                  x := x + xinc1;
+                                  y := y + yinc1;
+                                end
+                          else
+                                begin
+                          d := d + dinc2;
+                          x := x + xinc2;
+                          y := y + yinc2;
+                                end;
+                       end;
+                   end
+                  else
+                   Begin
+                    { instead of putting in loop , substract by one now }
+                    TmpNumPixels := NumPixels-1;
+                   { NormWidth }
+                    for i := 0 to TmpNumPixels do
+                    begin
+                         if LinePatterns[i and 15] = TRUE then
+                           begin
+                                 DirectPutPixel(x,y);
+                           end;
+                    if d < 0 then
+                        begin
+                          d := d + dinc1;
+                          x := x + xinc1;
+                          y := y + yinc1;
+                        end
+                    else
+                        begin
+                          d := d + dinc2;
+                          x := x + xinc2;
+                          y := y + yinc2;
+                        end;
+                    end;
+                   end
+               end;
+       {******************************************}
+       {  end patterned lines                     }
+       {******************************************}
+              { restore color }
+              CurrentColor:=OldCurrentColor;
+          end;
+    end;
+ end;  { Line }
 
 { multipage support could be done by using more than one background bitmap }
 procedure SetVisualWin32GUI(page: word);
@@ -820,6 +1108,7 @@ function queryadapterinfo : pmodeinfo;
           mode.SetActivePage := {$ifdef fpc}@{$endif}SetActiveWin32GUI;
           mode.InitMode := {$ifdef fpc}@{$endif}InitWin32GUI16colors;
           mode.DrawBitmapCharHoriz:={$ifdef fpc}@{$endif}DrawBitmapCharHorizWin32GUI;
+          // mode.Line:={$ifdef fpc}@{$endif}LineWin32GUI;
           mode.XAspect := 10000;
           mode.YAspect := 10000;
           AddMode(mode);
@@ -1180,7 +1469,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.4  2000-03-24 18:18:15  florian
+  Revision 1.5  2000-03-25 19:10:11  florian
+    * colored bitmap font drawing fixed: the color brush
+      was selected for the recovery bitmap
+
+  Revision 1.4  2000/03/24 18:18:15  florian
     * accelerated output of bitmap fonts
 
   Revision 1.3  2000/03/24 12:57:41  florian
