@@ -5,23 +5,24 @@
 
 
 ****************************************************************************
-* Intro
+* Introduction
 ****************************************************************************
 
 This package contains a freeware 32-bit pascal compiler for 386+. The language
 and the runtime library are more or less compatible to TP 7.0. Some Delphi
-additions have also been implemented like exceptions and rtti.
+additions have also been implemented like classes,exceptions,ansistrings and rtti.
 
 Free Pascal is currently available for the following platforms:
-- DOS, via the DJ Delorie's GO32V1 and GO32V2 Dos extenders
+- DOS, via the DJ Delorie's GO32V2 Dos extenders
 - Linux (i386), both aout and elf
 - OS/2 & DOS, via the EMX extender
 - Win32 (Win32s, Win95/98 and WinNT)
+
+Older version of the compiler (0.99.5) is also available on:
 - Commodore Amiga
 - Atari ST
 
 More platforms will be supported in the future.
-
 
 ****************************************************************************
 * Features
@@ -29,17 +30,19 @@ More platforms will be supported in the future.
 
 - high speed compiler
 - fully 32-bit code
+- language features:
+  - almost fully compatible with Borland Pascal
+  - partially compatible with Borland Delphi
+  - ansi strings
+  - exception support
+  - RTTI support
+  - procedure overloading
+  - operator overloading
 - code optimizer:
   - peephole optimizer
   - loading of variables into registers
   - assembler level dataflow analyzer
   - stack frame eliminations
-- language features:
-  - almost fully compatible with Borland Pascal
-  - long strings, ansi strings
-  - partially compatible with Borland Delphi
-  - procedure overloading
-  - operator overloading
 - integrated BASM (built-in assembler) parser
   - supports ATT syntax used by GNU C
   - supports Intel syntax used by Turbo Pascal
@@ -51,7 +54,7 @@ More platforms will be supported in the future.
 - smartlinking
 - support for the GNU debugger
 - cross-platform API
-- IDE (currently for GO32v2 and Win32 only)
+- IDE (currently for GO32v2 and Win32 only, in beta testing phase)
 - can create binaries running natively under both DOS and OS/2 (EMX version)
 
 
@@ -64,7 +67,7 @@ DOS (extender GO32v2):
  - DOS 3.3
  - 4 MB RAM (8+ MB recommended)
  - hard disk with free space of 8 MB
- - DMPI server (CWSDPMI is delivered in the go32v2 distro)
+ - DMPI server (CWSDPMI is delivered in the go32v2 distribution)
 Win32:
  - Win95/98 or WinNT
  - 8 MB RAM (16+ MB recommended)
@@ -82,8 +85,8 @@ The current version is only an evaluation version.
 
 Quick start
 -----------
-Download dos09912.zip (version for DOS) or w3209912.zip (version for
-Win9x/NT) or os209912.zip (EMX version - for OS/2 and DOS) and unzip it
+Download dos09914.zip (version for DOS) or w3209914.zip (version for
+Win9x/NT) or os209914.zip (EMX version - for OS/2 and DOS) and unzip it
 into a temporary directory.
 
 Start the install program INSTALL.EXE and follow the instructions.
@@ -104,7 +107,7 @@ All standard packages contain a part that is specific for the target platform
 and a few files which are target independent. All files are also available
 as separate files to reduce file size if the default file is too big.
 
-dos09912.zip specific:
+dos09914.zip specific:
 ----------------------
   basego32.zip    contains a DOS (Go32V2) compiler, runtime library and
                   additional files
@@ -124,9 +127,9 @@ dos09912.zip specific:
       GDate 3.16
       GEcho 3.16
       UPX 0.94
-  gdbgo32.zip     contains the GNU Debugger 4.16 for Go32V2
+  gdbgo32.zip     contains the GNU Debugger 4.18 with pascal support for Go32V2
 
-w3209912.zip specific:
+w3209914.zip specific:
 ----------------------
   basew32.zip     contains a Win32 compiler, runtime library and
                   additional files
@@ -149,9 +152,9 @@ w3209912.zip specific:
       GDate 3.16
       GEcho 3.16
       UPX 0.94
-  gdbw32.zip      contains the GNU Debugger 4.16.1 for Win32
+  gdbw32.zip      contains the GNU Debugger 4.18 with pascal support for Win32
 
-os209912.zip specific:
+os209914.zip specific:
 ----------------------
   baseemx.zip     contains an EMX (OS/2 and DOS) compiler, runtime library and
                   additional files
@@ -180,45 +183,101 @@ os209912.zip specific:
   gdbemx.zip      contains the GNU Debugger 4.16 for EMX,
                   PMGDB (Presentation Manager add-on for GDB) and GPROF 2.9.1
 
-common files in dos09912.zip, w3209912.zip and os209912.zip:
+common files in dos09914.zip, w3209914.zip and os209914.zip:
 ------------------------------------------------------------
   demo.zip        contains some demo files
-  doc-html.zip    contains the documentation in HTML format
-  docs-ps.zip     contains the documentation in PostScript
+  doc-pdf.zip     contains the documentation in PDF format
   install.exe     installation program
   install.dat     installation data
   readme.txt      this readme file
   whatsnew.txt    what's been changed
 
-Optional source package src09912.zip:
+Optional source package src09914.zip:
 -------------------------------------
-  pp09912s.zip    contains the compiler sources
-  rl09912s.zip    contains the runtime library sources
-  doc160s.zip     contains the TeX sources of the doc
+  basesrc.zip     contains the basic Makefiles needed for the source tree
+  compsrc.zip     contains the compiler sources
+  rtlsrc.zip      contains the runtime library sources
+  fclsrc.zip      contains the Free Component Library sources
+  apisrc.zip      contains the API sources
+  pkgssrc         contains the packages (various units) sources
+  utilssrc.zip    contains the Utilities sources
+  instsrc.zip     contains the installer sources
+  docsrc.zip      contains the TeX sources of the doc
 
 
 ****************************************************************************
 * Documentation
 ****************************************************************************
 
-The documentation is available as HTML pages.
-The documentation "home page" is doc\fpctoc.htm (FPC Table Of Contents).
+The documentation is available as HTML pages, PDF, PS, and text  although the recommended
+format is pdf. These are all available in ftp... /docs/...
 
-The documentation in PostScript is available at the ftp server.
+NB that there is at present no fpc specific documentation for the win32
+system functions. There is a note in the ftp /doc explaining where
+the MS help file for this can be obtained.
 
 
 ****************************************************************************
-* Suggestions, Help, Bugs ...
+* Suggestions, Help, Bug reporting, snapshots,  ...
 ****************************************************************************
 
 Suggestions, Help ...
 ---------------------
-e-mail: fpc-devel@vekoll.saturnus.vein.hu
-WWW: http://tfdec1.fys.kuleuven.ac.be/~michael/fpc/
-(several mirrors exist)
-FTP: ftp://tflily.fys.kuleuven.ac.be/pub/fpc
-Additional informations about mailing lists etc. can be found on the
-web site.
+e-mail: fpc-devel@vekoll.saturnus.vein.hu (bugs, developer related qs)
+e-mail: fpc-pascal@vekoll.saturnus.vein.hu (general pascal related qs)
+
+www: http://www.freepascal.org
+ftp: ftp.freepascal.org/fpc
+(several mirrors exist, see website for links)
+
+Additional information about mailing lists, news, future plans etc.
+can be found on the web site.
+
+SNAPSHOTS & SOURCES
+-------------------
+One of the features of fpc is the snapshots. These are made daily or weekly
+from the developers' latest versions of the source. Snapshots are available
+for the go32v2, win32, os2 and linux versions of the compiler/rtl. Snapshots
+are also available for the go32v2 & win32 ides, and for fv, fcl, gtk and
+utils for go32v2 and win32. The latest snapshots are in: ftp... /fpc/snapshot/
+in appropriately named .zip/tar files.
+
+You will also normally find in the snapshot .zip file a readme, with a mention
+the latest changes included. It is quite common, tho' doesn't always happen,
+that when a bug is reported it is fixed and a fixed version can be obtained
+the NEXT day in the appropriate snapshot.... yes really!
+
+Also on the ftp site you'll find a /dist directory, with the latest
+distributed releases, a /docs directory, and a /source directory, in
+which every night at about 0100 GMT the latest source generated by the
+developers during the day& evening before is exported from cvs
+into .zips eg compiler.zip, rtl.zip, base.zip etc.
+
+
+Making your own snapshots
+-------------------------
+By downloading the /source files (makefiles are included)
+it is possible to to make your own version of the fpc compiler/rtl
+and to modify it. You are of course free to do this
+so long as you observe the licence conditions. In order to make the
+compiler/rtl & ides in a resonable time (eg <30 minutes) you'll need at least
+32M of physical memory (64M is better) memory and at least a 200 Mhx processor
+and at least 20 Mbytes of free disk space. You'll also need
+some knowledge of making files & programming... it is not
+difficult but it isn't easy either!
+
+REPORTING BUGS
+----------------
+If you find a bug in the released version, you may want to try a snapshot
+(see SNAPSHOTS above) to see if it has been fixed before reporting it to
+the fpc-devel mailing list.
+
+If you find a fault or 'feature' in a release, please report it
+to the fpc-devel mailing list. PLEASE SEND ALSO A SMALL EXTRACT OF THE SOURCE
+CODE which caused the problem, and state the version eg win32, go32v2,
+and the date of the compiler etc on which you noticed the problem & any other
+useful info so the developers can reproduce the problem, otherwise they may
+not be willing/able to fix it.
 
 
 ****************************************************************************
