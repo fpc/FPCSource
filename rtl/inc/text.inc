@@ -439,6 +439,19 @@ end;
 
 
 Procedure Writeln_End(var f:TextRec);[Public,Alias:'FPC_WRITELN_END'];
+const
+{$IFDEF SHORT_LINEBREAK}
+  eollen=1;
+  eol : array[0..0] of char=(#10);
+{$ELSE SHORT_LINEBREAK}
+{$ifdef MAC_LINEBREAK}
+  eollen=1;
+  eol : array[0..0] of char=(#13);
+{$else MAC_LINEBREAK}
+  eollen=2;
+  eol : array[0..1] of char=(#13,#10);
+{$endif MAC_LINEBREAK}
+{$ENDIF SHORT_LINEBREAK}
 begin
   If InOutRes <> 0 then exit;
   case f.mode of
@@ -484,9 +497,12 @@ Begin
     fmOutput { fmAppend gets changed to fmOutPut in do_open (JM) }:
       begin
         p:=pchar(@s);
-        ArrayLen:=StrLen(p);
-        if ArrayLen>sizeof(s) then
-          ArrayLen:=sizeof(s);
+        { can't use StrLen, since that one could try to read past the end }
+        { of the heap (JM)                                                }
+        ArrayLen:=IndexByte(p,sizeof(s),0);
+        { IndexByte returns -1 if not found (JM) }
+        if ArrayLen = -1 then
+          ArrayLen := sizeof(s);
         If Len>ArrayLen Then
           WriteBlanks(f,Len-ArrayLen);
         WriteBuffer(f,p^,ArrayLen);
@@ -1031,7 +1047,10 @@ end;
 
 {
   $Log$
-  Revision 1.5  2001-03-21 23:29:40  florian
+  Revision 1.6  2001-04-08 13:21:30  jonas
+    * fixed potential buffer overflow in FPC_WRITE_TEXT_PCHAR_AS_ARRAY (merged)
+
+  Revision 1.5  2001/03/21 23:29:40  florian
     + sLineBreak and misc. stuff for Kylix compatiblity
 
   Revision 1.4  2000/11/23 13:14:02  jonas
@@ -1042,5 +1061,5 @@ end;
 
   Revision 1.2  2000/07/13 11:33:46  michael
   + removed logs
- 
+
 }
