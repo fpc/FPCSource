@@ -66,10 +66,21 @@ Type
 
     cunsigned = cuint;
     pcunsigned = ^cunsigned;
+    
+		{ Floating point }
+    cFloat    = Single;
+  	cDouble   = Double;
+  	clDouble  = Extended;
+  	pcFloat   = ^cFloat;
+  	pcDouble  = ^cDouble;
+  	pclDouble = ^clDouble;    
 
 {
    $Log$
-   Revision 1.2  2005-02-14 17:13:31  peter
+   Revision 1.3  2005-03-13 10:05:13  florian
+     + floating point c types added
+
+   Revision 1.2  2005/02/14 17:13:31  peter
      * truncate log
 
    Revision 1.1  2005/02/13 22:14:36  peter

@@ -44,9 +44,19 @@ Type
     pcushort= UnixType.pcushort;
     pcunsigned = UnixType.pcunsigned;
 
+		{ Floating point }
+    cFloat    = UnixType.cFloat;
+  	cDouble   = UnixType.cDouble;
+  	clDouble  = UnixType.clDouble;
+  	pcFloat   = UnixType.pcFloat;
+  	pcDouble  = UnixType.pcDouble;
+  	pclDouble = UnixType.pclDouble;    
 {
    $Log$
-   Revision 1.3  2005-02-14 17:13:31  peter
+   Revision 1.4  2005-03-13 10:05:13  florian
+     + floating point c types added
+
+   Revision 1.3  2005/02/14 17:13:31  peter
      * truncate log
 
    Revision 1.2  2005/02/05 23:02:37  florian

@@ -77,6 +77,14 @@ Type
 
     cunsigned = cuint;
     pcunsigned = ^cunsigned;
+    
+		{ Floating point }
+    cFloat    = Single;
+  	cDouble   = Double;
+  	clDouble  = Extended;
+  	pcFloat   = ^cFloat;
+  	pcDouble  = ^cDouble;
+  	pclDouble = ^clDouble;    
 {$endif}
 
 // Kylix compat types
@@ -90,7 +98,10 @@ end.
 
 {
  $Log$
- Revision 1.4  2005-03-01 22:45:09  hajny
+ Revision 1.5  2005-03-13 10:05:13  florian
+   + floating point c types added
+
+ Revision 1.4  2005/03/01 22:45:09  hajny
    * Florian's changes from ctypes.inc merged in to make xlib compilable under non-Unix again
 
  Revision 1.3  2005/02/14 17:13:22  peter
