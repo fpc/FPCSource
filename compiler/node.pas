@@ -94,34 +94,35 @@ interface
           ifn,       {An if statement.}
           breakn,         {A break statement.}
           continuen,       {A continue statement.}
-          repeatn,       {A repeat until block.}
-          whilen,         {A while do statement.}
-          forn,     {A for loop.}
-          exitn,           {An exit statement.}
-          withn,           {A with statement.}
-          casen,           {A case statement.}
-          labeln,         {A label.}
-          goton,           {A goto statement.}
-          tryexceptn,      {A try except block.}
-          raisen,         {A raise statement.}
-          tryfinallyn,     {A try finally statement.}
-          onn,       { for an on statement in exception code }
-          isn,       {Represents the is operator.}
-          asn,       {Represents the as typecast.}
-          caretn,         {Represents the ^ operator.}
-          failn,           {Represents the fail statement.}
-          starstarn,       {Represents the ** operator exponentiation }
-          procinlinen,     {Procedures that can be inlined }
+(*          repeatn,       {A repeat until block.}
+          whilen,         {A while do statement.}*)
+	  whilerepeatn,     {A while or repeat statement.}
+          forn,     	    {A for loop.}
+          exitn,            {An exit statement.}
+          withn,            {A with statement.}
+          casen,            {A case statement.}
+          labeln,           {A label.}
+          goton,            {A goto statement.}
+          tryexceptn,       {A try except block.}
+          raisen,           {A raise statement.}
+          tryfinallyn,      {A try finally statement.}
+          onn,              {For an on statement in exception code.}
+          isn,              {Represents the is operator.}
+          asn,              {Represents the as typecast.}
+          caretn,           {Represents the ^ operator.}
+          failn,            {Represents the fail statement.}
+          starstarn,        {Represents the ** operator exponentiation }
+          procinlinen,      {Procedures that can be inlined }
           arrayconstructorn, {Construction node for [...] parsing}
           arrayconstructorrangen, {Range element to allow sets in array construction tree}
-          tempn,     { for temps in the result/firstpass }
-          temprefn,  { references to temps }
+          tempn,            { for temps in the result/firstpass }
+          temprefn,         { references to temps }
           { added for optimizations where we cannot suppress }
           addoptn,
           nothingn,
           loadvmtn,
           guidconstn,
-          rttin       { rtti information so they can be accessed in result/firstpass }
+          rttin		    {Rtti information so they can be accessed in result/firstpass.}
        );
 
       const
@@ -179,8 +180,9 @@ interface
           'ifn',
           'breakn',
           'continuen',
-          'repeatn',
-          'whilen',
+(*          'repeatn',
+          'whilen',*)
+	  'whilerepeatn',
           'forn',
           'exitn',
           'withn',
@@ -332,7 +334,7 @@ interface
 {$ifdef state_tracking}
 	  { Does optimizations by keeping track of the variable states
 	    in a procedure }
-	  procedure track_state_pass(exec_known:boolean);virtual;
+	  function track_state_pass(exec_known:boolean):boolean;virtual;
 {$endif}
           procedure det_temp;virtual;abstract;
 
@@ -522,9 +524,10 @@ implementation
       end;
 
 {$ifdef state_tracking}
-    procedure Tnode.track_state_pass(exec_known:boolean);
+    function Tnode.track_state_pass(exec_known:boolean):boolean;
     
     begin
+	track_state_pass:=false;
     end;
 {$endif state_tracking}
 
@@ -818,7 +821,18 @@ implementation
 end.
 {
   $Log$
-  Revision 1.29  2002-07-14 18:00:44  daniel
+  Revision 1.30  2002-07-19 11:41:36  daniel
+  * State tracker work
+  * The whilen and repeatn are now completely unified into whilerepeatn. This
+    allows the state tracker to change while nodes automatically into
+    repeat nodes.
+  * Resulttypepass improvements to the notn. 'not not a' is optimized away and
+    'not(a>b)' is optimized into 'a<=b'.
+  * Resulttypepass improvements to the whilerepeatn. 'while not a' is optimized
+    by removing the notn and later switchting the true and falselabels. The
+    same is done with 'repeat until not a'.
+
+  Revision 1.29  2002/07/14 18:00:44  daniel
   + Added the beginning of a state tracker. This will track the values of
     variables through procedures and optimize things away.
 

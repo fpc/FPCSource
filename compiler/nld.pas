@@ -58,7 +58,7 @@ interface
           function pass_1 : tnode;override;
           function det_resulttype:tnode;override;
        {$ifdef state_tracking}
-          procedure track_state_pass(exec_known:boolean);override;
+          function track_state_pass(exec_known:boolean):boolean;override;
        {$endif state_tracking}
           function docompare(p: tnode): boolean; override;
        end;
@@ -578,14 +578,15 @@ implementation
       end;
 
 {$ifdef state_tracking}
-    procedure Tassignmentnode.track_state_pass(exec_known:boolean);
+    function Tassignmentnode.track_state_pass(exec_known:boolean):boolean;
     
     var se:Tstate_entry;
 
     begin
+	track_state_pass:=false;
 	if exec_known then
 	    begin
-		right.track_state_pass(exec_known);
+		track_state_pass:=right.track_state_pass(exec_known);
 		{Force a new resulttype pass.}
 		right.resulttype.def:=nil;
 		do_resulttypepass(right);
@@ -596,7 +597,6 @@ implementation
 	    aktstate.delete_fact(left);
     end;
 {$endif}
-
 
 {*****************************************************************************
                                  TFUNCRETNODE
@@ -983,7 +983,18 @@ begin
 end.
 {
   $Log$
-  Revision 1.45  2002-07-15 18:03:15  florian
+  Revision 1.46  2002-07-19 11:41:36  daniel
+  * State tracker work
+  * The whilen and repeatn are now completely unified into whilerepeatn. This
+    allows the state tracker to change while nodes automatically into
+    repeat nodes.
+  * Resulttypepass improvements to the notn. 'not not a' is optimized away and
+    'not(a>b)' is optimized into 'a<=b'.
+  * Resulttypepass improvements to the whilerepeatn. 'while not a' is optimized
+    by removing the notn and later switchting the true and falselabels. The
+    same is done with 'repeat until not a'.
+
+  Revision 1.45  2002/07/15 18:03:15  florian
     * readded removed changes
 
   Revision 1.43  2002/07/11 14:41:28  florian

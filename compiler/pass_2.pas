@@ -117,8 +117,9 @@ implementation
              'ifn',  {ifn}
              'breakn',      {breakn}
              'continuen',   {continuen}
-             '_while_REPEAT', {repeatn}
-             '_WHILE_repeat', {whilen}
+(*             '_while_REPEAT', {repeatn}
+             '_WHILE_repeat', {whilen}*)
+	     'while_repeat', {whilerepeatn}
              'for',  {forn}
              'exitn',       {exitn}
              'with',        {withn}
@@ -322,7 +323,18 @@ implementation
 end.
 {
   $Log$
-  Revision 1.31  2002-07-01 18:46:25  peter
+  Revision 1.32  2002-07-19 11:41:36  daniel
+  * State tracker work
+  * The whilen and repeatn are now completely unified into whilerepeatn. This
+    allows the state tracker to change while nodes automatically into
+    repeat nodes.
+  * Resulttypepass improvements to the notn. 'not not a' is optimized away and
+    'not(a>b)' is optimized into 'a<=b'.
+  * Resulttypepass improvements to the whilerepeatn. 'while not a' is optimized
+    by removing the notn and later switchting the true and falselabels. The
+    same is done with 'repeat until not a'.
+
+  Revision 1.31  2002/07/01 18:46:25  peter
     * internal linker
     * reorganized aasm layer
 

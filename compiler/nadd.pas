@@ -35,7 +35,7 @@ interface
           function pass_1 : tnode;override;
           function det_resulttype:tnode;override;
 	{$ifdef state_tracking}
-	  procedure track_state_pass(exec_known:boolean);override;
+	  function track_state_pass(exec_known:boolean):boolean;override;
 	{$endif}
          protected
           { override the following if you want to implement }
@@ -1624,20 +1624,35 @@ implementation
       end;
 
 {$ifdef state_tracking}
-    procedure Taddnode.track_state_pass(exec_known:boolean);
+    function Taddnode.track_state_pass(exec_known:boolean):boolean;
 
     var factval:Tnode;
     
     begin
+	track_state_pass:=false;
+	if left.track_state_pass(exec_known) then
+	    begin
+		track_state_pass:=true;
+		left.resulttype.def:=nil;
+		do_resulttypepass(left);
+	    end;
 	factval:=aktstate.find_fact(left);
 	if factval<>nil then
 	    begin
+		track_state_pass:=true;
 	        left.destroy;
 	        left:=factval.getcopy;
+	    end;
+	if right.track_state_pass(exec_known) then
+	    begin
+		track_state_pass:=true;
+		right.resulttype.def:=nil;
+		do_resulttypepass(right);
 	    end;
 	factval:=aktstate.find_fact(right);
 	if factval<>nil then
 	    begin
+		track_state_pass:=true;
 	        right.destroy;
 	        right:=factval.getcopy;
 	    end;
@@ -1649,7 +1664,18 @@ begin
 end.
 {
   $Log$
-  Revision 1.52  2002-07-14 18:00:43  daniel
+  Revision 1.53  2002-07-19 11:41:34  daniel
+  * State tracker work
+  * The whilen and repeatn are now completely unified into whilerepeatn. This
+    allows the state tracker to change while nodes automatically into
+    repeat nodes.
+  * Resulttypepass improvements to the notn. 'not not a' is optimized away and
+    'not(a>b)' is optimized into 'a<=b'.
+  * Resulttypepass improvements to the whilerepeatn. 'while not a' is optimized
+    by removing the notn and later switchting the true and falselabels. The
+    same is done with 'repeat until not a'.
+
+  Revision 1.52  2002/07/14 18:00:43  daniel
   + Added the beginning of a state tracker. This will track the values of
     variables through procedures and optimize things away.
 

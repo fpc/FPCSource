@@ -70,7 +70,7 @@ interface
           function pass_1 : tnode;override;
           function det_resulttype:tnode;override;
 {$ifdef state_tracking}
-	  procedure track_state_pass(exec_known:boolean);override;
+	  function track_state_pass(exec_known:boolean):boolean;override;
 {$endif state_tracking}
        end;
        tblocknodeclass = class of tblocknode;
@@ -437,15 +437,17 @@ implementation
       end;
 
 {$ifdef state_tracking}
-      procedure Tblocknode.track_state_pass(exec_known:boolean);
+      function Tblocknode.track_state_pass(exec_known:boolean):boolean;
       
       var hp:Tstatementnode;
       
       begin
+        track_state_pass:=false;
         hp:=Tstatementnode(left);
 	while assigned(hp) do
 	    begin
-		hp.right.track_state_pass(exec_known);
+		if hp.right.track_state_pass(exec_known) then
+		    track_state_pass:=true;
 		hp:=Tstatementnode(hp.left);
 	    end;
       end;
@@ -692,7 +694,18 @@ begin
 end.
 {
   $Log$
-  Revision 1.28  2002-07-14 18:00:43  daniel
+  Revision 1.29  2002-07-19 11:41:35  daniel
+  * State tracker work
+  * The whilen and repeatn are now completely unified into whilerepeatn. This
+    allows the state tracker to change while nodes automatically into
+    repeat nodes.
+  * Resulttypepass improvements to the notn. 'not not a' is optimized away and
+    'not(a>b)' is optimized into 'a<=b'.
+  * Resulttypepass improvements to the whilerepeatn. 'while not a' is optimized
+    by removing the notn and later switchting the true and falselabels. The
+    same is done with 'repeat until not a'.
+
+  Revision 1.28  2002/07/14 18:00:43  daniel
   + Added the beginning of a state tracker. This will track the values of
     variables through procedures and optimize things away.
 

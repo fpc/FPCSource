@@ -52,6 +52,9 @@ implementation
 {$ifdef extdebug}
       htypechk,
 {$endif extdebug}
+{$ifdef state_tracking}
+      nstate,
+{$endif}
       tgobj
       ;
 
@@ -162,9 +165,9 @@ implementation
                  aktfilepos:=oldpos;
                  codegenerror:=codegenerror or oldcodegenerror;
                end;
-              { first pass }
               if not(nf_error in p.flags) then
                begin
+                 { first pass }
                  aktfilepos:=p.fileinfo;
                  aktlocalswitches:=p.localswitches;
                  hp:=p.pass_1;
@@ -194,6 +197,15 @@ implementation
       begin
          codegenerror:=false;
          firstpass(p);
+	     {$ifdef state_tracking}
+	         writeln('TRACKSTART');
+		 writeln('before');
+		        writenode(p);
+	    	        do_track_state_pass(p);
+		writeln('after');
+			writenode(p);
+		writeln('TRACKDONE');
+	     {$endif}
          do_firstpass:=codegenerror;
       end;
       
@@ -201,14 +213,27 @@ implementation
      procedure do_track_state_pass(p:Tnode);
      
      begin
+        aktstate:=Tstate_storage.create;
         p.track_state_pass(true);
+	aktstate.destroy;
      end;
 {$endif}
 
 end.
 {
   $Log$
-  Revision 1.25  2002-07-14 18:00:44  daniel
+  Revision 1.26  2002-07-19 11:41:36  daniel
+  * State tracker work
+  * The whilen and repeatn are now completely unified into whilerepeatn. This
+    allows the state tracker to change while nodes automatically into
+    repeat nodes.
+  * Resulttypepass improvements to the notn. 'not not a' is optimized away and
+    'not(a>b)' is optimized into 'a<=b'.
+  * Resulttypepass improvements to the whilerepeatn. 'while not a' is optimized
+    by removing the notn and later switchting the true and falselabels. The
+    same is done with 'repeat until not a'.
+
+  Revision 1.25  2002/07/14 18:00:44  daniel
   + Added the beginning of a state tracker. This will track the values of
     variables through procedures and optimize things away.
 

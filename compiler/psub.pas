@@ -248,7 +248,7 @@ implementation
          aktbreaklabel:=nil;
          aktcontinuelabel:=nil;
     {$ifdef state_tracking}
-	 aktstate:=Tstate_storage.create;
+{	 aktstate:=Tstate_storage.create;}
     {$endif state_tracking}
 
          { insert symtables for the class, by only if it is no nested function }
@@ -320,7 +320,9 @@ implementation
             aktprocdef.forwarddef:=false;
 
 {$ifdef state_tracking}
+{	    writenode(code);
 	    do_track_state_pass(code);
+	    writenode(code);}
 {$endif}
 
              { only generate the code if no type errors are found, else
@@ -456,7 +458,7 @@ implementation
          aktmaxfpuregisters:=oldaktmaxfpuregisters;
 
     {$ifdef state_tracking}
-	 aktstate.destroy;
+{	 aktstate.destroy;}
     {$endif state_tracking}
          { restore filepos, the switches are already set }
          aktfilepos:=savepos;
@@ -829,7 +831,18 @@ implementation
 end.
 {
   $Log$
-  Revision 1.59  2002-07-15 18:03:15  florian
+  Revision 1.60  2002-07-19 11:41:36  daniel
+  * State tracker work
+  * The whilen and repeatn are now completely unified into whilerepeatn. This
+    allows the state tracker to change while nodes automatically into
+    repeat nodes.
+  * Resulttypepass improvements to the notn. 'not not a' is optimized away and
+    'not(a>b)' is optimized into 'a<=b'.
+  * Resulttypepass improvements to the whilerepeatn. 'while not a' is optimized
+    by removing the notn and later switchting the true and falselabels. The
+    same is done with 'repeat until not a'.
+
+  Revision 1.59  2002/07/15 18:03:15  florian
     * readded removed changes
 
   Revision 1.57  2002/07/11 14:41:28  florian

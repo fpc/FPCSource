@@ -45,10 +45,12 @@ interface
        end;
 
        twhilerepeatnode = class(tloopnode)
+	  testatbegin,checknegate:boolean;
+          constructor create(l,r,_t1:Tnode;tab,cn:boolean);virtual;
           function det_resulttype:tnode;override;
           function pass_1 : tnode;override;
 {$ifdef state_tracking}
-	  procedure track_state_pass(exec_known:boolean);override;
+	  function track_state_pass(exec_known:boolean):boolean;override;
 {$endif}
        end;
        twhilerepeatnodeclass = class of twhilerepeatnode;
@@ -198,10 +200,13 @@ implementation
          case t of
             ifn:
                p:=cifnode.create(l,r,n1);
-            repeatn:
-               p:=cwhilerepeatnode.create(repeatn,l,r,n1,nil);
-            whilen:
-               p:=cwhilerepeatnode.create(whilen,l,r,n1,nil);
+	    whilerepeatn:
+    	       if back then
+	          {Repeat until.}	        
+        	  p:=cwhilerepeatnode.create(l,r,n1,false,true)
+	       else
+	          {While do.}
+                  p:=cwhilerepeatnode.create(l,r,n1,true,false);
             forn:
                p:=cfornode.create(l,r,n1,nil,back);
          end;
@@ -274,12 +279,31 @@ implementation
                                TWHILEREPEATNODE
 *****************************************************************************}
 
+    constructor Twhilerepeatnode.create(l,r,_t1:Tnode;tab,cn:boolean);
+
+    begin
+	inherited create(whilerepeatn,l,r,_t1,nil);
+	testatbegin:=tab;
+	checknegate:=cn;
+    end;
+
     function twhilerepeatnode.det_resulttype:tnode;
+      var
+         t:Tunarynode;
       begin
          result:=nil;
          resulttype:=voidtype;
 
          resulttypepass(left);
+	 {A not node can be removed.}
+	 if left.nodetype=notn then
+	    begin
+		t:=Tunarynode(left);
+		left:=Tunarynode(left).left;
+		t.left:=nil;
+		t.destroy;
+		checknegate:=not checknegate;
+	    end;
          { loop instruction }
          if assigned(right) then
            resulttypepass(right);
@@ -337,33 +361,44 @@ implementation
       end;
 
 {$ifdef state_tracking}
-    procedure Twhilerepeatnode.track_state_pass(exec_known:boolean);
-
+    function Twhilerepeatnode.track_state_pass(exec_known:boolean):boolean;
+    
     var condition:Tnode;
 	code:Tnode;
 	done:boolean;
 	value:boolean;
-
+    
     begin
+	track_state_pass:=false;
 	done:=false;
+	writeln('Oeps!');
 	repeat
 	    condition:=left.getcopy;
-	    condition.track_state_pass(exec_known);
-	    {Force new resulttype pass.}
-	    condition.resulttype.def:=nil;
-	    do_resulttypepass(condition);
+	    if condition.track_state_pass(exec_known) then
+		begin
+		    track_state_pass:=true;
+		    {Force new resulttype pass.}
+		    condition.resulttype.def:=nil;
+		    do_resulttypepass(condition);
+		end;
 	    code:=right.getcopy;
 	    if is_constboolnode(condition) then
 		begin
 		    value:=Tordconstnode(condition).value<>0;
 		    if value then
-			code.track_state_pass(exec_known)
+			begin
+			    if code.track_state_pass(exec_known) then
+				track_state_pass:=true;
+			end
 		    else
 		        done:=true;
 		end
 	    else
-		{Remove any modified variables from the state.}
-		code.track_state_pass(false);
+		begin
+		    {Remove any modified variables from the state.}
+		    code.track_state_pass(false);
+		    done:=true;
+		end;
 	    code.destroy;
 	    condition.destroy;
 	until done;
@@ -372,14 +407,17 @@ implementation
 	    begin
 	        ...
 	    end;
-
+	 
 	 When the loop is done, we do know that i<10 = false.
 	}
 	condition:=left.getcopy;
-        condition.track_state_pass(exec_known);
-	{Force new resulttype pass.}
-        condition.resulttype.def:=nil;
-	do_resulttypepass(condition);
+        if condition.track_state_pass(exec_known) then
+	    begin
+		track_state_pass:=true;
+		{Force new resulttype pass.}
+    		condition.resulttype.def:=nil;
+		do_resulttypepass(condition);
+	    end;
 	aktstate.store_fact(condition,cordconstnode.create(0,booltype));
     end;
 {$endif}
@@ -1166,7 +1204,18 @@ begin
 end.
 {
   $Log$
-  Revision 1.37  2002-07-16 13:57:02  florian
+  Revision 1.38  2002-07-19 11:41:35  daniel
+  * State tracker work
+  * The whilen and repeatn are now completely unified into whilerepeatn. This
+    allows the state tracker to change while nodes automatically into
+    repeat nodes.
+  * Resulttypepass improvements to the notn. 'not not a' is optimized away and
+    'not(a>b)' is optimized into 'a<=b'.
+  * Resulttypepass improvements to the whilerepeatn. 'while not a' is optimized
+    by removing the notn and later switchting the true and falselabels. The
+    same is done with 'repeat until not a'.
+
+  Revision 1.37  2002/07/16 13:57:02  florian
     * raise takes now a void pointer as at and frame address
       instead of a longint
 

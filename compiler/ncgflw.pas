@@ -101,7 +101,7 @@ implementation
          load_all_regvars(exprasmlist);
          { handling code at the end as it is much more efficient, and makes
            while equal to repeat loop, only the end true/false is swapped (PFV) }
-         if nodetype=whilen then
+         if testatbegin then
            cg.a_jmp_always(exprasmlist,lcont);
 
          { align loop target }
@@ -119,20 +119,19 @@ implementation
          cg.a_label(exprasmlist,lcont);
          otlabel:=truelabel;
          oflabel:=falselabel;
-         if nodetype=whilen then
-          begin
-            truelabel:=lloop;
-            falselabel:=lbreak;
-          end
-         { repeatn }
-         else
+         if checknegate then
           begin
             truelabel:=lbreak;
             falselabel:=lloop;
+          end
+         else
+          begin
+            truelabel:=lloop;
+            falselabel:=lbreak;
           end;
          rg.cleartempgen;
          secondpass(left);
-
+	 
          maketojumpbool(exprasmlist,left,lr_load_regvars);
          cg.a_label(exprasmlist,lbreak);
          truelabel:=otlabel;
@@ -629,7 +628,18 @@ begin
 end.
 {
   $Log$
-  Revision 1.22  2002-07-04 20:43:01  florian
+  Revision 1.23  2002-07-19 11:41:35  daniel
+  * State tracker work
+  * The whilen and repeatn are now completely unified into whilerepeatn. This
+    allows the state tracker to change while nodes automatically into
+    repeat nodes.
+  * Resulttypepass improvements to the notn. 'not not a' is optimized away and
+    'not(a>b)' is optimized into 'a<=b'.
+  * Resulttypepass improvements to the whilerepeatn. 'while not a' is optimized
+    by removing the notn and later switchting the true and falselabels. The
+    same is done with 'repeat until not a'.
+
+  Revision 1.22  2002/07/04 20:43:01  florian
     * first x86-64 patches
 
   Revision 1.21  2002/07/01 18:46:22  peter

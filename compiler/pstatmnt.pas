@@ -344,7 +344,7 @@ implementation
 
          first:=cblocknode.create(first);
          p_e:=comp_expr(true);
-         repeat_statement:=genloopnode(repeatn,p_e,first,nil,false);
+         repeat_statement:=genloopnode(whilerepeatn,p_e,first,nil,true);
       end;
 
 
@@ -358,7 +358,7 @@ implementation
          p_e:=comp_expr(true);
          consume(_DO);
          p_a:=statement;
-         while_statement:=genloopnode(whilen,p_e,p_a,nil,false);
+         while_statement:=genloopnode(whilerepeatn,p_e,p_a,nil,false);
       end;
 
 
@@ -1231,7 +1231,18 @@ implementation
 end.
 {
   $Log$
-  Revision 1.62  2002-07-16 15:34:20  florian
+  Revision 1.63  2002-07-19 11:41:36  daniel
+  * State tracker work
+  * The whilen and repeatn are now completely unified into whilerepeatn. This
+    allows the state tracker to change while nodes automatically into
+    repeat nodes.
+  * Resulttypepass improvements to the notn. 'not not a' is optimized away and
+    'not(a>b)' is optimized into 'a<=b'.
+  * Resulttypepass improvements to the whilerepeatn. 'while not a' is optimized
+    by removing the notn and later switchting the true and falselabels. The
+    same is done with 'repeat until not a'.
+
+  Revision 1.62  2002/07/16 15:34:20  florian
     * exit is now a syssym instead of a keyword
 
   Revision 1.61  2002/07/11 14:41:28  florian

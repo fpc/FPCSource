@@ -58,6 +58,9 @@ interface
           constructor create(expr : tnode);virtual;
           function pass_1 : tnode;override;
           function det_resulttype:tnode;override;
+       {$ifdef state_tracking}
+	  function track_state_pass(exec_known:boolean):boolean;override;
+	{$endif}
        end;
        tnotnodeclass = class of tnotnode;
 
@@ -515,6 +518,9 @@ implementation
                                TNOTNODE
  ****************************************************************************}
 
+    const boolean_reverse:array[ltn..unequaln] of Tnodetype=
+	(gten,gtn,lten,ltn,unequaln,equaln);
+
     constructor tnotnode.create(expr : tnode);
 
       begin
@@ -532,6 +538,28 @@ implementation
          set_varstate(left,true);
          if codegenerror then
            exit;
+
+         resulttype:=left.resulttype;
+
+	 {Try optmimizing ourself away.}
+	 if left.nodetype=notn then
+	    begin
+		{Double not. Remove both.}
+		t:=Tnotnode(left).left;
+		Tnotnode(left).left:=nil;
+		left:=t;
+		result:=t;
+		exit;
+	    end;
+	 if left.nodetype in [ltn,lten,equaln,unequaln,gtn,gten] then
+	    begin
+		{Not of boolean expression. Turn around the operator and remove
+		 the not.}
+		result:=left;
+		left.nodetype:=boolean_reverse[left.nodetype];
+		left:=nil;
+		exit;
+	    end;
 
          { constant folding }
          if (left.nodetype=ordconstn) then
@@ -572,7 +600,6 @@ implementation
               exit;
            end;
 
-         resulttype:=left.resulttype;
          if is_boolean(resulttype.def) then
            begin
            end
@@ -669,6 +696,19 @@ implementation
               location.loc:=LOC_REGISTER;
            end
       end;
+      
+{$ifdef state_tracking}
+    function Tnotnode.track_state_pass(exec_known:boolean):boolean;
+    
+    begin
+	track_state_pass:=true;
+	if left.track_state_pass(exec_known) then
+	    begin
+		left.resulttype.def:=nil;
+		do_resulttypepass(left);
+	    end;
+    end;
+{$endif}
 
 begin
    cmoddivnode:=tmoddivnode;
@@ -678,7 +718,18 @@ begin
 end.
 {
   $Log$
-  Revision 1.34  2002-05-18 13:34:10  peter
+  Revision 1.35  2002-07-19 11:41:36  daniel
+  * State tracker work
+  * The whilen and repeatn are now completely unified into whilerepeatn. This
+    allows the state tracker to change while nodes automatically into
+    repeat nodes.
+  * Resulttypepass improvements to the notn. 'not not a' is optimized away and
+    'not(a>b)' is optimized into 'a<=b'.
+  * Resulttypepass improvements to the whilerepeatn. 'while not a' is optimized
+    by removing the notn and later switchting the true and falselabels. The
+    same is done with 'repeat until not a'.
+
+  Revision 1.34  2002/05/18 13:34:10  peter
     * readded missing revisions
 
   Revision 1.33  2002/05/16 19:46:39  carl
