@@ -26,7 +26,7 @@ INTERFACE
                     Linux }
 
 
-{$ifdef Linux
+{$ifdef Linux}
  {$define Unix}
 {$endif}
 
@@ -910,7 +910,10 @@ BEGIN
 END.
 {
   $Log$
-  Revision 1.3  2001-12-11 11:10:27  marco
+  Revision 1.4  2002-02-22 21:40:09  carl
+  * fix compilation problem
+
+  Revision 1.3  2001/12/11 11:10:27  marco
    * Small renamefest fix
 
   Revision 1.2  2001/11/11 21:09:49  marco
