@@ -51,7 +51,7 @@ implementation
       globtype,systems,comphook,
       cutils,cclasses,verbose,globals,
       symconst,symbase,symtype,symdef,paramgr,defutil,
-      cgbase,cgobj,cgcpu,rgcpu;
+      cgbase,cgobj,rgcpu;
 
 
     procedure searchregvars(p : tnamedindexitem;arg:pointer);
@@ -561,7 +561,11 @@ end.
 
 {
   $Log$
-  Revision 1.50  2003-05-16 14:33:31  peter
+  Revision 1.51  2003-05-23 14:27:35  peter
+    * remove some unit dependencies
+    * current_procinfo changes to store more info
+
+  Revision 1.50  2003/05/16 14:33:31  peter
     * regvar fixes
 
   Revision 1.49  2003/05/15 18:58:53  peter

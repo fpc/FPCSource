@@ -64,10 +64,10 @@ interface
       cutils,verbose,globtype,
       aasmbase,aasmtai,aasmcpu,symconst,symdef,paramgr,
       ncon,ncal,
-      cpubase,cpuinfo,cpupara,systems,
+      cpubase,cpuinfo,systems,
       pass_2,
       cginfo,cgbase,
-      cgobj,cgcpu,
+      cgobj,
       ncgutil,
       tgobj,rgobj
       ;
@@ -511,7 +511,11 @@ end.
 
 {
   $Log$
-  Revision 1.39  2003-04-22 23:50:22  peter
+  Revision 1.40  2003-05-23 14:27:35  peter
+    * remove some unit dependencies
+    * current_procinfo changes to store more info
+
+  Revision 1.39  2003/04/22 23:50:22  peter
     * firstpass uses expectloc
     * checks if there are differences between the expectloc and
       location.loc from secondpass in EXTDEBUG

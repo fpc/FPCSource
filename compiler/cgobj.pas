@@ -39,7 +39,7 @@ unit cgobj;
 
     uses
        cclasses,aasmbase,aasmtai,aasmcpu,symtable,
-       cpubase,cpuinfo,cpupara,
+       cpubase,cpuinfo,
        cginfo,
        symconst,symbase,symtype,symdef,node
 {$ifdef delphi}
@@ -1697,7 +1697,11 @@ finalization
 end.
 {
   $Log$
-  Revision 1.98  2003-05-15 18:58:53  peter
+  Revision 1.99  2003-05-23 14:27:35  peter
+    * remove some unit dependencies
+    * current_procinfo changes to store more info
+
+  Revision 1.98  2003/05/15 18:58:53  peter
     * removed selfpointer_offset, vmtpointer_offset
     * tvarsym.adjusted_address
     * address in localsymtable is now in the real direction

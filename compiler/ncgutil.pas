@@ -29,7 +29,7 @@ interface
     uses
       node,cpuinfo,
       globtype,
-      cpubase,cpupara,
+      cpubase,
       aasmbase,aasmtai,aasmcpu,
       cginfo,symbase,symdef,symtype,
 {$ifndef cpu64bit}
@@ -63,7 +63,6 @@ interface
                               const locpara : tparalocation);
 
     procedure genentrycode(list : TAAsmoutput;
-                           make_global:boolean;
                            stackframe:longint;
                            var parasize:longint;
                            var nostackframe:boolean;
@@ -107,7 +106,7 @@ implementation
     gdb,
 {$endif GDB}
     ncon,
-    tgobj,cgobj,cgcpu;
+    tgobj,cgobj;
 
 
   const
@@ -1308,7 +1307,6 @@ implementation
 
 
     procedure genentrycode(list : TAAsmoutput;
-                           make_global:boolean;
                            stackframe:longint;
                            var parasize:longint;
                            var nostackframe:boolean;
@@ -1532,17 +1530,10 @@ implementation
            else
             stackalloclist.concat(Tai_align.Create(aktalignment.procalign));
 
-           if (cs_profile in aktmoduleswitches) or
-              (current_procdef.owner.symtabletype=globalsymtable) or
-              (assigned(current_procdef._class) and
-               (current_procdef._class.owner.symtabletype=globalsymtable)) then
-            make_global:=true;
-
 {$ifdef GDB}
            if (cs_debuginfo in aktmoduleswitches) then
             begin
-              if make_global or
-                 (pi_is_global in current_procinfo.flags) then
+              if (po_public in current_procdef.procoptions) then
                 tprocsym(current_procdef.procsym).is_global:=true;
               current_procdef.concatstabto(stackalloclist);
               tprocsym(current_procdef.procsym).isstabwritten:=true;
@@ -1558,7 +1549,8 @@ implementation
                 target_info.use_function_relative_addresses then
               stackalloclist.concat(Tai_stab_function_name.Create(strpnew(hs)));
 {$endif GDB}
-             if make_global then
+             if (cs_profile in aktmoduleswitches) or
+                (po_public in current_procdef.procoptions) then
               stackalloclist.concat(Tai_symbol.Createname_global(hs,0))
              else
               stackalloclist.concat(Tai_symbol.Createname(hs,0));
@@ -1835,7 +1827,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.104  2003-05-15 18:58:53  peter
+  Revision 1.105  2003-05-23 14:27:35  peter
+    * remove some unit dependencies
+    * current_procinfo changes to store more info
+
+  Revision 1.104  2003/05/15 18:58:53  peter
     * removed selfpointer_offset, vmtpointer_offset
     * tvarsym.adjusted_address
     * address in localsymtable is now in the real direction

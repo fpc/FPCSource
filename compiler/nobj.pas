@@ -674,8 +674,8 @@ implementation
                                            if (procdefcoll^.data.proccalloption<>pd.proccalloption) or
                                                (procdefcoll^.data.proctypeoption<>pd.proctypeoption) or
                                                ((procdefcoll^.data.procoptions-
-                                                   [po_abstractmethod,po_overridingmethod,po_assembler,po_overload])<>
-                                                (pd.procoptions-[po_abstractmethod,po_overridingmethod,po_assembler,po_overload])) then
+                                                   [po_abstractmethod,po_overridingmethod,po_assembler,po_overload,po_public])<>
+                                                (pd.procoptions-[po_abstractmethod,po_overridingmethod,po_assembler,po_overload,po_public])) then
                                               MessagePos1(pd.fileinfo,parser_e_header_dont_match_forward,pd.fullprocname(false));
 
                                            { error, if the return types aren't equal }
@@ -1333,7 +1333,11 @@ initialization
 end.
 {
   $Log$
-  Revision 1.42  2003-04-25 20:59:33  peter
+  Revision 1.43  2003-05-23 14:27:35  peter
+    * remove some unit dependencies
+    * current_procinfo changes to store more info
+
+  Revision 1.42  2003/04/25 20:59:33  peter
     * removed funcretn,funcretsym, function result is now in varsym
       and aliases for result and function name are added using absolutesym
     * vs_hidden parameter for funcret passed in parameter

@@ -32,7 +32,7 @@ unit cgbase;
       { common }
       cclasses,
       { global }
-      globals,verbose,
+      globtype,globals,verbose,
       { symtable }
       symconst,symtype,symdef,symsym,
       { aasm }
@@ -44,8 +44,6 @@ unit cgbase;
       tprocinfoflag=(
         {# procedure uses asm }
         pi_uses_asm,
-        {# procedure is exported by an unit }
-        pi_is_global,
         {# procedure does a call }
         pi_do_call,
         {# procedure has a try statement = no register optimization }
@@ -61,11 +59,19 @@ unit cgbase;
        {# This object gives information on the current routine being
           compiled.
        }
-       tprocinfo = class
+       tprocinfo = class(tlinkedlistitem)
           { pointer to parent in nested procedures }
           parent : tprocinfo;
           {# the definition of the routine itself }
           procdef : tprocdef;
+          { file location of begin of procedure }
+          entrypos  : tfileposinfo;
+          { file location of end of procedure }
+          exitpos   : tfileposinfo;
+          { local switches at begin of procedure }
+          entryswitches : tlocalswitches;
+          { local switches at end of procedure }
+          exitswitches  : tlocalswitches;
           {# offset from frame pointer to get parent frame pointer reference
              (used in nested routines only)
              On the PowerPC, this is used to store the offset where the
@@ -184,9 +190,6 @@ unit cgbase;
 
        { also an exit label, only used we need to clear only the stack }
        aktexit2label : tasmlabel;
-
-       {# only used in constructor for fail keyword or if getmem fails }
-       quickexitlabel : tasmlabel;
 
        {# true, if there was an error while code generation occurs }
        codegenerror : boolean;
@@ -579,7 +582,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.50  2003-05-16 20:54:12  jonas
+  Revision 1.51  2003-05-23 14:27:35  peter
+    * remove some unit dependencies
+    * current_procinfo changes to store more info
+
+  Revision 1.50  2003/05/16 20:54:12  jonas
     - undid previous commit, it wasn't necessary
 
   Revision 1.49  2003/05/16 20:00:39  jonas

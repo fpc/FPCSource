@@ -550,13 +550,13 @@ implementation
       begin
          result:=nil;
          resulttype:=voidtype;
+         include(current_procinfo.flags,pi_uses_asm);
       end;
 
     function tasmnode.pass_1 : tnode;
       begin
          result:=nil;
          expectloc:=LOC_VOID;
-         include(current_procinfo.flags,pi_uses_asm);
       end;
 
 
@@ -800,7 +800,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.51  2003-05-17 13:30:08  jonas
+  Revision 1.52  2003-05-23 14:27:35  peter
+    * remove some unit dependencies
+    * current_procinfo changes to store more info
+
+  Revision 1.51  2003/05/17 13:30:08  jonas
     * changed tt_persistant to tt_persistent :)
     * tempcreatenode now doesn't accept a boolean anymore for persistent
       temps, but a ttemptype, so you can also create ansistring temps etc

@@ -59,7 +59,7 @@ implementation
       cginfo,cgbase,pass_1,pass_2,
       cpuinfo,cpubase,paramgr,
       nbas,ncon,ncal,ncnv,nld,
-      tgobj,ncgutil,cgobj,rgobj,rgcpu
+      tgobj,ncgutil,cgobj,rgobj
 {$ifndef cpu64bit}
       ,cg64f32
 {$endif cpu64bit}
@@ -682,7 +682,11 @@ end.
 
 {
   $Log$
-  Revision 1.30  2003-05-09 17:47:02  peter
+  Revision 1.31  2003-05-23 14:27:35  peter
+    * remove some unit dependencies
+    * current_procinfo changes to store more info
+
+  Revision 1.30  2003/05/09 17:47:02  peter
     * self moved to hidden parameter
     * removed hdisposen,hnewn,selfn
 

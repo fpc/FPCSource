@@ -103,7 +103,7 @@ implementation
       pass_1,pass_2,
       ncon,
       cpuinfo,
-      tgobj,ncgutil,cgobj,rgobj,rgcpu,paramgr,cg64f32;
+      tgobj,ncgutil,cgobj,rgobj,paramgr,cg64f32;
 
 {*****************************************************************************
                           TCGUNARYMINUSNODE
@@ -467,7 +467,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.9  2003-04-23 20:16:04  peter
+  Revision 1.10  2003-05-23 14:27:35  peter
+    * remove some unit dependencies
+    * current_procinfo changes to store more info
+
+  Revision 1.9  2003/04/23 20:16:04  peter
     + added currency support based on int64
     + is_64bit for use in cg units instead of is_64bitint
     * removed cgmessage from n386add, replace with internalerrors

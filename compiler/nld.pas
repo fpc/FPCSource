@@ -386,6 +386,7 @@ implementation
               end;
             varsym :
               begin
+                inc(tvarsym(symtableentry).refs);
                 { if it's refered by absolute then it's used }
                 if nf_absolute in flags then
                   tvarsym(symtableentry).varstate:=vs_used
@@ -497,10 +498,8 @@ implementation
                 else
                   Tvarsym(symtableentry).trigger_notifications(vn_onread);
                 { count variable references }
-                if rg.t_times<1 then
-                  inc(tvarsym(symtableentry).refs)
-                else
-                  inc(tvarsym(symtableentry).refs,rg.t_times);
+                if rg.t_times>1 then
+                  inc(tvarsym(symtableentry).refs,rg.t_times-1);
               end;
             typedconstsym :
                 ;
@@ -1215,7 +1214,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.93  2003-05-11 21:37:03  peter
+  Revision 1.94  2003-05-23 14:27:35  peter
+    * remove some unit dependencies
+    * current_procinfo changes to store more info
+
+  Revision 1.93  2003/05/11 21:37:03  peter
     * moved implicit exception frame from ncgutil to psub
     * constructor/destructor helpers moved from cobj/ncgutil to psub
 

@@ -1927,6 +1927,7 @@ type
                             when there is only one proc definition, else the
                             loadnode will give a strange error }
                           if not(assigned(left)) and
+                             not(nf_inherited in flags) and
                              (m_tp_procvar in aktmodeswitches) and
                              (symtableprocentry.procdef_count=1) then
                             begin
@@ -2725,7 +2726,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.157  2003-05-17 14:05:58  jonas
+  Revision 1.158  2003-05-23 14:27:35  peter
+    * remove some unit dependencies
+    * current_procinfo changes to store more info
+
+  Revision 1.157  2003/05/17 14:05:58  jonas
     * fixed callparatemp for ansi/widestring and interfacecoms
 
   Revision 1.156  2003/05/17 13:30:08  jonas

@@ -573,7 +573,6 @@ implementation
          pcrd       : tclassrefdef;
          tt     : ttype;
          old_object_option : tsymoptions;
-         old_current_procinfo : tprocinfo;
          oldparse_only : boolean;
          storetypecanbeforward : boolean;
 
@@ -948,10 +947,6 @@ implementation
          testcurobject:=1;
          curobjectname:=Upper(n);
 
-         { temp procinfo }
-         old_current_procinfo:=current_procinfo;
-         current_procinfo:=cprocinfo.create(nil);
-
          { short class declaration ? }
          if (classtype<>odt_class) or (token<>_SEMICOLON) then
           begin
@@ -1135,9 +1130,6 @@ implementation
          { restore old state }
          symtablestack:=symtablestack.next;
          aktobjectdef:=nil;
-         {Restore procinfo}
-         current_procinfo.free;
-         current_procinfo:=old_current_procinfo;
          current_object_option:=old_object_option;
 
          object_dec:=aktclass;
@@ -1146,7 +1138,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.65  2003-05-09 17:47:02  peter
+  Revision 1.66  2003-05-23 14:27:35  peter
+    * remove some unit dependencies
+    * current_procinfo changes to store more info
+
+  Revision 1.65  2003/05/09 17:47:02  peter
     * self moved to hidden parameter
     * removed hdisposen,hnewn,selfn
 

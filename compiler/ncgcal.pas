@@ -80,7 +80,7 @@ implementation
       gdb,
 {$endif GDB}
       cginfo,cgbase,pass_2,
-      cpuinfo,cpupi,aasmbase,aasmtai,aasmcpu,
+      cpuinfo,aasmbase,aasmtai,aasmcpu,
       nbas,nmem,nld,ncnv,
 {$ifdef x86}
       cga,
@@ -90,7 +90,7 @@ implementation
 {$else cpu64bit}
       cg64f32,
 {$endif cpu64bit}
-      ncgutil,cgobj,tgobj,regvars,rgobj,rgcpu,cgcpu;
+      ncgutil,cgobj,tgobj,regvars,rgobj,rgcpu;
 
 
     var
@@ -953,7 +953,7 @@ implementation
            oldinlining_procedure,
            nostackframe,make_global : boolean;
            inlineentrycode,inlineexitcode : TAAsmoutput;
-           oldexitlabel,oldexit2label,oldquickexitlabel:tasmlabel;
+           oldexitlabel,oldexit2label:tasmlabel;
            oldregstate: pointer;
            localsref : treference;
 {$ifdef GDB}
@@ -991,7 +991,6 @@ implementation
           oldinlining_procedure:=inlining_procedure;
           oldexitlabel:=aktexitlabel;
           oldexit2label:=aktexit2label;
-          oldquickexitlabel:=quickexitlabel;
           oldprocdef:=current_procdef;
           oldprocinfo:=current_procinfo;
           objectlibrary.getlabel(aktexitlabel);
@@ -1063,8 +1062,7 @@ implementation
           inlineentrycode:=TAAsmoutput.Create;
           inlineexitcode:=TAAsmoutput.Create;
           ps:=para_size;
-          make_global:=false; { to avoid warning }
-          genentrycode(inlineentrycode,make_global,0,ps,nostackframe,true);
+          genentrycode(inlineentrycode,0,ps,nostackframe,true);
           if po_assembler in current_procdef.procoptions then
             inlineentrycode.insert(Tai_marker.Create(asmblockstart));
           exprasmList.concatlist(inlineentrycode);
@@ -1108,7 +1106,6 @@ implementation
           current_procdef:=oldprocdef;
           aktexitlabel:=oldexitlabel;
           aktexit2label:=oldexit2label;
-          quickexitlabel:=oldquickexitlabel;
           inlining_procedure:=oldinlining_procedure;
 
           { reallocate the registers used for the current procedure's regvars, }
@@ -1128,7 +1125,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.67  2003-05-17 13:30:08  jonas
+  Revision 1.68  2003-05-23 14:27:35  peter
+    * remove some unit dependencies
+    * current_procinfo changes to store more info
+
+  Revision 1.67  2003/05/17 13:30:08  jonas
     * changed tt_persistant to tt_persistent :)
     * tempcreatenode now doesn't accept a boolean anymore for persistent
       temps, but a ttemptype, so you can also create ansistring temps etc

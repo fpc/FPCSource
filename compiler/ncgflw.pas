@@ -91,7 +91,7 @@ implementation
       nld,ncon,
       ncgutil,
       tgobj,rgobj,paramgr,
-      regvars,cgobj,cgcpu
+      regvars,cgobj
 {$ifndef cpu64bit}
       ,cg64f32
 {$endif cpu64bit}
@@ -1554,7 +1554,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.62  2003-05-17 13:30:08  jonas
+  Revision 1.63  2003-05-23 14:27:35  peter
+    * remove some unit dependencies
+    * current_procinfo changes to store more info
+
+  Revision 1.62  2003/05/17 13:30:08  jonas
     * changed tt_persistant to tt_persistent :)
     * tempcreatenode now doesn't accept a boolean anymore for persistent
       temps, but a ttemptype, so you can also create ansistring temps etc

@@ -764,7 +764,9 @@ implementation
                  not(is_funcret_sym(tsym(p))) and
                  (
                   (tsym(p).typ<>procsym) or
+{$ifdef GDB}
                   not (tprocsym(p).is_global) or
+{$endif GDB}
                   { all program functions are declared global
                     but unused should still be signaled PM }
                   ((tsym(p).owner.symtabletype=staticsymtable) and
@@ -2419,7 +2421,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.101  2003-05-16 14:32:58  peter
+  Revision 1.102  2003-05-23 14:27:35  peter
+    * remove some unit dependencies
+    * current_procinfo changes to store more info
+
+  Revision 1.101  2003/05/16 14:32:58  peter
     * fix dup check for hiding the result varsym in localst, the result
       sym was already in the localst when adding the locals
 

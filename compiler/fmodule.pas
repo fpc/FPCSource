@@ -131,6 +131,7 @@ interface
         procedure flagdependent(callermodule:tmodule);
         function  addusedunit(hp:tmodule;inuses:boolean):tused_unit;
         procedure numberunits;
+        procedure setmodulename(const s:string);
       end;
 
        tused_unit = class(tlinkedlistitem)
@@ -636,10 +637,25 @@ uses
       end;
 
 
+    procedure tmodule.setmodulename(const s:string);
+      begin
+        stringdispose(modulename);
+        stringdispose(realmodulename);
+        modulename:=stringdup(upper(s));
+        realmodulename:=stringdup(s);
+        { also update asmlibrary names }
+        librarydata.name:=modulename^;
+        librarydata.realname:=realmodulename^;
+      end;
+
 end.
 {
   $Log$
-  Revision 1.33  2003-04-27 11:21:32  peter
+  Revision 1.34  2003-05-23 14:27:35  peter
+    * remove some unit dependencies
+    * current_procinfo changes to store more info
+
+  Revision 1.33  2003/04/27 11:21:32  peter
     * aktprocdef renamed to current_procdef
     * procinfo renamed to current_procinfo
     * procinfo will now be stored in current_module so it can be

@@ -65,8 +65,7 @@ interface
       symconst,symdef,paramgr,
       aasmbase,aasmtai,aasmcpu,defutil,htypechk,
       cgbase,cpuinfo,pass_1,pass_2,regvars,
-      cpupara,
-      ncon,nset,ncgutil,tgobj,rgobj,rgcpu,cgobj,
+      ncon,nset,ncgutil,tgobj,rgobj,cgobj,
 {$ifdef cpu64bit}
       cg64f64
 {$else cpu64bit}
@@ -822,7 +821,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.9  2003-04-30 22:15:59  florian
+  Revision 1.10  2003-05-23 14:27:35  peter
+    * remove some unit dependencies
+    * current_procinfo changes to store more info
+
+  Revision 1.9  2003/04/30 22:15:59  florian
     * some 64 bit adaptions in ncgadd
     * x86-64 now uses ncgadd
     * tparamanager.ret_in_acc doesn't return true anymore for a void-def

@@ -87,7 +87,7 @@ interface
          is_addr : boolean;
          labelnr : longint;
          constructor create(nr:longint);
-         constructor createdata(nr:longint);
+         constructor createdata(const modulename:string;nr:longint);
          constructor createaddr(nr:longint);
          function getname:string;override;
        end;
@@ -178,7 +178,8 @@ interface
          nextaltnr   : longint;
          nextlabelnr : longint;
        public
-         name      : string[80];
+         name,
+         realname     : string[80];
          symbolsearch : tdictionary; { contains ALL assembler symbols }
          usedasmsymbollist : tsinglelist;
          { ppu }
@@ -227,7 +228,7 @@ implementation
 {$else}
       strings,
 {$endif}
-      fmodule,verbose;
+      verbose;
 
     const
       symbolsgrow = 100;
@@ -253,7 +254,6 @@ implementation
 
     procedure tasmsymbol.reset;
       begin
-{        WriteLn(ClassName,' InstanceSize :',InstanceSize);}
         { reset section info }
         section:=sec_none;
         address:=0;
@@ -317,12 +317,12 @@ implementation
       end;
 
 
-    constructor tasmlabel.createdata(nr:longint);
+    constructor tasmlabel.createdata(const modulename:string;nr:longint);
       begin;
         labelnr:=nr;
         if (cs_create_smart in aktmoduleswitches) or
            target_asm.labelprefix_only_inside_procedure then
-          inherited create('_$'+current_module.modulename^+'$_L'+tostr(labelnr),AB_GLOBAL,AT_DATA)
+          inherited create('_$'+modulename+'$_L'+tostr(labelnr),AB_GLOBAL,AT_DATA)
         else
           inherited create(target_asm.labelprefix+tostr(labelnr),AB_LOCAL,AT_DATA);
         is_set:=false;
@@ -336,6 +336,7 @@ implementation
         create(nr);
         is_addr := true;
       end;
+
 
     function tasmlabel.getname:string;
       begin
@@ -657,7 +658,8 @@ implementation
     constructor TAsmLibraryData.create(const n:string);
       begin
         inherited create;
-        name:=n;
+        realname:=n;
+        name:=upper(n);
         { symbols }
         symbolsearch:=tdictionary.create;
         symbolsearch.usehash;
@@ -861,7 +863,7 @@ implementation
         if is_addr then
          hp:=tasmlabel.createaddr(nr)
         else if is_data then
-         hp:=tasmlabel.createdata(nr)
+         hp:=tasmlabel.createdata(name,nr)
         else
          hp:=tasmlabel.create(nr);
         symbolsearch.insert(hp);
@@ -879,7 +881,7 @@ implementation
 
     procedure TAsmLibraryData.getdatalabel(var l : tasmlabel);
       begin
-        l:=tasmlabel.createdata(nextlabelnr);
+        l:=tasmlabel.createdata(name,nextlabelnr);
         inc(nextlabelnr);
         symbolsearch.insert(l);
       end;
@@ -903,7 +905,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.14  2003-04-06 21:11:23  olle
+  Revision 1.15  2003-05-23 14:27:35  peter
+    * remove some unit dependencies
+    * current_procinfo changes to store more info
+
+  Revision 1.14  2003/04/06 21:11:23  olle
     * changed newasmsymbol to newasmsymboldata for data symbols
 
   Revision 1.13  2003/01/30 21:46:20  peter

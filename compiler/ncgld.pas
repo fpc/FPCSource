@@ -53,8 +53,8 @@ implementation
       ncnv,ncon,nmem,
       aasmbase,aasmtai,aasmcpu,regvars,
       cginfo,cgbase,pass_2,
-      cpubase,cpuinfo,cpupara,
-      tgobj,ncgutil,cgobj,rgobj,rgcpu;
+      cpubase,cpuinfo,
+      tgobj,ncgutil,cgobj,rgobj;
 
 {*****************************************************************************
                              SecondLoad
@@ -915,7 +915,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.59  2003-05-15 18:58:53  peter
+  Revision 1.60  2003-05-23 14:27:35  peter
+    * remove some unit dependencies
+    * current_procinfo changes to store more info
+
+  Revision 1.59  2003/05/15 18:58:53  peter
     * removed selfpointer_offset, vmtpointer_offset
     * tvarsym.adjusted_address
     * address in localsymtable is now in the real direction
