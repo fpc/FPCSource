@@ -1140,7 +1140,8 @@ implementation
                    (inlined or
                    (right=nil)) then
                   begin
-                     r.enum:=self_pointer_reg;
+                     r.enum:=R_INTREGISTER;
+                     r.number:=NR_SELF_POINTER_REG;
                      cg.a_param_reg(exprasmlist,OS_ADDR,r,paramanager.getintparaloc(1));
                      reference_reset_base(href,r,0);
                      tmpreg:=cg.get_scratch_reg_address(exprasmlist);
@@ -1372,8 +1373,10 @@ implementation
            (methodpointer.nodetype<>typen) then
            begin
               objectlibrary.getlabel(constructorfailed);
-              r.enum:=self_pointer_reg;
-              r2.enum:=accumulator;
+              r.enum:=R_INTREGISTER;
+              r.number:=NR_SELF_POINTER_REG;
+              r2.enum:=R_INTREGISTER;
+              r2.number:=NR_ACCUMULATOR;
               cg.a_cmp_const_reg_label(exprasmlist,OS_ADDR,OC_EQ,0,r,constructorfailed);
               cg.a_param_reg(exprasmlist,OS_ADDR,r2,paramanager.getintparaloc(1));
               reference_reset_base(href,r,0);
@@ -1400,7 +1403,8 @@ implementation
            end;
 
 {$ifdef i386}
-         r.enum:=R_ESP;
+         r.enum:=R_INTREGISTER;
+         r.number:=NR_ESP;
          if pop_size>0 then
            emit_const_reg(A_ADD,S_L,pop_size,r);
 {$endif i386}
@@ -1662,7 +1666,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.39  2003-02-19 22:00:14  daniel
+  Revision 1.40  2003-03-06 11:35:50  daniel
+    * Fixed internalerror 7843 issue
+
+  Revision 1.39  2003/02/19 22:00:14  daniel
     * Code generator converted to new register notation
     - Horribily outdated todo.txt removed
 

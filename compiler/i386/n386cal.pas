@@ -818,7 +818,8 @@ implementation
                                                 (methodpointer.resulttype.def.deftype=classrefdef) and
                                                 is_class(tclassrefdef(methodpointer.resulttype.def).pointertype.def) then
                                                cg.a_param_const(exprasmlist,OS_INT,1,paramanager.getintparaloc(1));
-                                             r.enum:=self_pointer_reg;
+                                             r.enum:=R_INTREGISTER;
+                                             r.number:=NR_SELF_POINTER_REG;
                                              cg.a_param_reg(exprasmlist,OS_ADDR,r,paramanager.getintparaloc(1));
                                           end;
                                       end;
@@ -1314,7 +1315,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.82  2003-02-19 22:00:15  daniel
+  Revision 1.83  2003-03-06 11:35:50  daniel
+    * Fixed internalerror 7843 issue
+
+  Revision 1.82  2003/02/19 22:00:15  daniel
     * Code generator converted to new register notation
     - Horribily outdated todo.txt removed
 
