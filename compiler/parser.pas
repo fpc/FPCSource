@@ -91,6 +91,12 @@ unit parser;
          { global switches }
          aktglobalswitches:=initglobalswitches;
 
+         { scanner }
+         c:=#0;
+         pattern:='';
+         orgpattern:='';
+         current_scanner:=nil;
+
          { memory sizes }
          if heapsize=0 then
           heapsize:=target_info.heapsize;
@@ -443,7 +449,10 @@ unit parser;
 end.
 {
   $Log$
-  Revision 1.67  1999-01-27 13:05:44  pierre
+  Revision 1.68  1999-02-02 16:39:41  peter
+    * reset c,pattern,orgpattern also at startup
+
+  Revision 1.67  1999/01/27 13:05:44  pierre
    * give include file name on error
 
   Revision 1.66  1999/01/23 23:29:35  florian
