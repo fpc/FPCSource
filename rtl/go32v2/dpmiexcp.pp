@@ -1293,6 +1293,8 @@ begin
      except_ori[i] := _except;    { New value to set }
      inc(_except.offset,4);       { This is the size of push n, jmp }
    end;
+  except_ori[18].segment := _except.segment;
+  except_ori[19].segment := _except.segment;
   except_ori[18].offset := @djgpp_exception_table;
   except_ori[19].offset := @djgpp_exception_table + 4;
 
@@ -1478,7 +1480,10 @@ end;
 {$endif IN_SYSTEM}
 {
   $Log$
-  Revision 1.4  2000-10-05 21:56:45  pierre
+  Revision 1.5  2001-06-13 18:27:14  peter
+    * missing exceptions for restoring (merged)
+
+  Revision 1.4  2000/10/05 21:56:45  pierre
    + exceptions 18 and 19 contributed by Thomas Schatzl (merged)
 
   Revision 1.3  2000/08/13 19:23:26  peter
