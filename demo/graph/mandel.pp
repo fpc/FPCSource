@@ -14,7 +14,7 @@
 
  **********************************************************************}
 program mandel;
-
+{$goto on}
 {
   Mandelbrot example using the graph unit.
 
@@ -348,7 +348,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.3  2002-02-22 21:40:45  carl
+  Revision 1.4  2002-02-25 21:32:13  carl
+  + $goto on added for makefiles
+
+  Revision 1.3  2002/02/22 21:40:45  carl
   * range check error fix
 
   Revision 1.2  2001/11/11 21:09:49  marco
