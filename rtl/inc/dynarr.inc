@@ -254,27 +254,56 @@ procedure fpc_dynarray_setlength(var p : pointer;pti : pointer;
   end;
 
 
-procedure fpc_dynarray_copy(var pdest : pointer;psrc : pointer;ti : pointer);{$ifdef hascompilerproc} compilerproc; {$endif}
+{ provide local access to dynarr_copy }
+procedure int_dynarray_copy(var pdest : pointer;psrc : pointer;ti : pointer;
+    lowidx,highidx:longint);[external name 'FPC_DYNARR_COPY'];
+
+procedure fpc_dynarray_copy(var pdest : pointer;psrc : pointer;ti : pointer;
+    lowidx,highidx:longint);[Public,Alias:'FPC_DYNARR_COPY'];{$ifdef hascompilerproc} compilerproc; {$endif}
   var
-    size : longint;
+    realpdest,
+    realpsrc : pdynarray;
+    cnt,
+    i,size : longint;
   begin
      pdest:=nil;
      if psrc=nil then
        exit;
-
+     realpsrc:=pdynarray(psrc-sizeof(tdynarray));
      { skip kind and name }
      inc(pointer(ti),ord(pdynarraytypeinfo(ti)^.namelen));
-
+     { -1, -1 is used to copy the whole array like a:=copy(b);, so
+       update the lowidx and highidx with the values from psrc }
+     if (lowidx=-1) and (highidx=-1) then
+      begin
+        lowidx:=0;
+        highidx:=realpsrc^.high;
+      end;
+     { get number of elements and check for invalid values }
+     if (lowidx<0) or (highidx<0) then
+       HandleErrorFrame(201,get_frame);
+     cnt:=highidx-lowidx+1;
      { create new array }
-     size:=pdynarraytypeinfo(ti)^.elesize*(pdynarray(psrc)^.high+1)+sizeof(tdynarray);
-     getmem(pdest,size);
-     move(psrc^,pdest^,size);
+     size:=pdynarraytypeinfo(ti)^.elesize*cnt;
+     getmem(realpdest,size+sizeof(tdynarray));
+     pdest:=pointer(realpdest)+sizeof(tdynarray);
+     { copy data }
+     move(pointer(psrc+pdynarraytypeinfo(ti)^.elesize*lowidx)^,pdest^,size);
+     { fill new refcount }
+     realpdest^.refcount:=1;
+     realpdest^.high:=cnt-1;
+     { increment ref. count of members }
+     for i:= 0 to cnt-1 do
+       int_addref(pointer(pdest+sizeof(tdynarray)+pdynarraytypeinfo(ti)^.elesize*i),pdynarraytypeinfo(ti)^.eletype);
   end;
 
 
 {
   $Log$
-  Revision 1.20  2002-10-09 20:24:30  florian
+  Revision 1.21  2002-11-26 23:02:07  peter
+    * fixed dynarray copy
+
+  Revision 1.20  2002/10/09 20:24:30  florian
     + range checking for dyn. arrays
 
   Revision 1.19  2002/10/02 18:21:51  peter

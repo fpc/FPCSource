@@ -54,7 +54,7 @@ Function  fpc_shortstr_Copy(const s:shortstring;index:StrLenInt;count:StrLenInt)
 Function  fpc_ansistr_Copy (Const S : AnsiString; Index,Size : Longint) : AnsiString;compilerproc;
 Function  fpc_widestr_Copy (Const S : WideString; Index,Size : Longint) : WideString;compilerproc;
 function  fpc_char_copy(c:char;index : StrLenInt;count : StrLenInt): shortstring;compilerproc;
-procedure fpc_dynarray_copy(var pdest : pointer;psrc : pointer;ti : pointer);compilerproc;
+procedure fpc_dynarray_copy(var pdest : pointer;psrc : pointer;ti : pointer;lowidx,highidx:longint);compilerproc;
 
 function  fpc_dynarray_length(p : pointer) : tdynarrayindex; compilerproc;
 function  fpc_dynarray_high(p : pointer) : tdynarrayindex; compilerproc;
@@ -284,7 +284,10 @@ function fpc_qword_to_double(q: qword): double; compilerproc;
 
 {
   $Log$
-  Revision 1.28  2002-10-17 12:43:00  florian
+  Revision 1.29  2002-11-26 23:02:07  peter
+    * fixed dynarray copy
+
+  Revision 1.28  2002/10/17 12:43:00  florian
     + ansistring_append* implemented
 
   Revision 1.27  2002/10/10 19:24:28  florian
