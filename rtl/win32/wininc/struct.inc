@@ -928,8 +928,12 @@
      TCOMPOSITIONFORM = COMPOSITIONFORM;
      PCOMPOSITIONFORM = ^COMPOSITIONFORM;
 
+//     TComStatFlags = set of (fCtsHold, fDsrHold, fRlsdHold , fXoffHold ,
+//		      fXoffSent , fEof ,  fTxim  , fReserved);
+
      COMSTAT = record
-          flag0 : DWORD;
+          flag0 : DWORD;   // can't use tcomstatflags, set packing issues
+			   // and conflicts with macro's
           cbInQue : DWORD;
           cbOutQue : DWORD;
        end;
@@ -954,7 +958,7 @@
      bp_COMSTAT_fTxim = 6;
      bm_COMSTAT_fReserved = $FFFFFF80;
      bp_COMSTAT_fReserved = 7;
-  function fCtsHold(var a : COMSTAT) : DWORD;
+  function fCtsHold(var a : COMSTAT) : DWORD;  // should be renamed to get_<x>?
   procedure set_fCtsHold(var a : COMSTAT; __fCtsHold : DWORD);
   function fDsrHold(var a : COMSTAT) : DWORD;
   procedure set_fDsrHold(var a : COMSTAT; __fDsrHold : DWORD);
@@ -7164,7 +7168,10 @@ type
 
 {
   $Log$
-  Revision 1.31  2005-01-08 14:43:34  florian
+  Revision 1.32  2005-01-19 14:24:46  marco
+   * some comments about COMSTAT added
+
+  Revision 1.31  2005/01/08 14:43:34  florian
     + added LOGFONTW
 
   Revision 1.30  2005/01/08 14:39:01  florian
