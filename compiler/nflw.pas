@@ -1381,7 +1381,9 @@ implementation
 
     destructor tonnode.destroy;
       begin
-        if assigned(exceptsymtable) then
+        { copied nodes don't need to release the symtable }
+        if assigned(exceptsymtable) and
+           not(nf_copy in flags) then
          exceptsymtable.free;
         inherited destroy;
       end;
@@ -1470,7 +1472,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.87  2003-11-12 15:48:27  peter
+  Revision 1.88  2003-11-23 17:39:16  peter
+    * don't release exceptsymtable for copied nodes
+
+  Revision 1.87  2003/11/12 15:48:27  peter
     * fix set_varstate in for loops
     * fix set_varstate from case statements
 
