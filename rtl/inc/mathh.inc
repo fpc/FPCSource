@@ -35,10 +35,15 @@
        real48 = array[0..5] of byte;
 
     function Real2Double(r : real48) : double;
+    operator := (b:real48) d:double;
+    operator := (b:real48) e:extended;
 
 {
   $Log$
-  Revision 1.4  2001-07-30 21:38:55  peter
+  Revision 1.5  2001-12-13 20:23:19  michael
+  + Added double2real function from main branch
+
+  Revision 1.4  2001/07/30 21:38:55  peter
     * m68k updates merged
 
 }

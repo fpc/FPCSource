@@ -162,6 +162,17 @@ Begin
   Swap:=(X and $ffffffff) shl 32 + (X shr 32);
 End;
 
+operator := (b:real48) d:double;
+
+begin
+ D:=real2double(b);
+end;
+
+operator := (b:real48) e:extended;
+
+begin
+ e:=real2double(b);
+end;
 
 { Include processor specific routines }
 {$I math.inc}
@@ -676,7 +687,10 @@ end;
 
 {
   $Log$
-  Revision 1.23  2001-11-19 02:40:24  carl
+  Revision 1.24  2001-12-13 20:23:19  michael
+  + Added double2real function from main branch
+
+  Revision 1.23  2001/11/19 02:40:24  carl
   + don't print stack information if previous frame = 0
 
   Revision 1.22  2001/08/19 21:02:01  florian
