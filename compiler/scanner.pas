@@ -34,6 +34,7 @@ interface
        widestr,cpuinfo;
 
     const
+       max_macro_nesting=16;
        maxmacrolen=16*1024;
        preprocbufsize=32*1024;
        Newline = #10;
@@ -2071,26 +2072,28 @@ implementation
                  mac:=tmacro(macros.search(pattern));
                  if assigned(mac) and (assigned(mac.buftext)) then
                   begin
-                    insertmacro(pattern,mac.buftext,mac.buflen,
-                      mac.fileinfo.line,mac.fileinfo.fileindex);
-                  { handle empty macros }
-                    if c=#0 then
+                    if yylexcount<max_macro_nesting then
                      begin
-                       reload;
-                       case c of
-                        #26 : reload;
-                        #10,
-                        #13 : linebreak;
-                       end;
-                     end;
-                  { play it again ... }
-                    inc(yylexcount);
-                    if yylexcount>16 then
+                       inc(yylexcount);
+                       insertmacro(pattern,mac.buftext,mac.buflen,
+                         mac.fileinfo.line,mac.fileinfo.fileindex);
+                     { handle empty macros }
+                       if c=#0 then
+                        begin
+                          reload;
+                          case c of
+                           #26 : reload;
+                           #10,
+                           #13 : linebreak;
+                          end;
+                        end;
+                       readtoken;
+                       { that's all folks }
+                       dec(yylexcount);
+                       exit;
+                     end
+                    else
                      Message(scan_w_macro_deep_ten);
-                    readtoken;
-                  { that's all folks }
-                    dec(yylexcount);
-                    exit;
                   end;
                end;
             end;
@@ -2798,7 +2801,10 @@ exit_label:
 end.
 {
   $Log$
-  Revision 1.48  2002-09-16 19:05:48  peter
+  Revision 1.49  2002-11-26 22:56:40  peter
+    * fix macro nesting check
+
+  Revision 1.48  2002/09/16 19:05:48  peter
     * parse ^ after nil as caret
 
   Revision 1.47  2002/09/06 14:58:42  carl
