@@ -181,7 +181,7 @@ interface
             consts.concat(Tai_label.Create(l1));
             case def_cgsize(resulttype.def) of
               OS_F32:
-                consts.concat(tai_const.create_32bit(1 shl 31));
+                consts.concat(tai_const.create_32bit(longint(1 shl 31)));
               OS_F64:
                 begin
                   consts.concat(tai_const.create_32bit(0));
@@ -323,7 +323,10 @@ end.
 
 {
   $Log$
-  Revision 1.8  2004-11-02 18:23:16  florian
+  Revision 1.9  2004-11-03 10:11:13  peter
+    * fix possible range error
+
+  Revision 1.8  2004/11/02 18:23:16  florian
     * fixed -<sse register>
     * information about simple moves for sse is given to the register allocator
 
