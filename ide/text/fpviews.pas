@@ -830,7 +830,10 @@ begin
   for i:=0 to RedoList^.count-1 do
     with RedoList^.At(i)^ do
       begin
-       AddToolMessage('',ActionString[action]+' '+IntToStr(StartPos.X)+':'+IntToStr(StartPos.Y)+
+       if is_grouped_action then
+         AddToolMessage('','Group '+ActionString[action]+' '+IntToStr(ActionCount)+' elementary actions',0,0)
+       else
+         AddToolMessage('',ActionString[action]+' '+IntToStr(StartPos.X)+':'+IntToStr(StartPos.Y)+
          ' '+IntToStr(EndPos.X)+':'+IntToStr(EndPos.Y)+' "'+GetStr(Text)+'"',0,0);
       end;
   UpdateToolMessages;
@@ -2832,7 +2835,10 @@ end;
 END.
 {
   $Log$
-  Revision 1.45  1999-10-29 14:50:07  pierre
+  Revision 1.46  1999-11-10 00:44:12  pierre
+   * Grouped Undo action signaled in 'Dump Undo'
+
+  Revision 1.45  1999/10/29 14:50:07  pierre
    * About dialog changes
 
   Revision 1.44  1999/10/27 12:10:42  pierre
