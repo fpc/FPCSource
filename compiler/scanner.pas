@@ -144,7 +144,7 @@ implementation
     const
       { use any special name that is an invalid file name to avoid problems }
       macro_special_name = '____Macro____';
-      preprocstring : array [preproctyp] of string[6]
+      preprocstring : array [preproctyp] of string[7]
         = ('$IFDEF','$IFNDEF','$IF','$IFOPT','$ELSE');
 
 
@@ -1669,7 +1669,10 @@ exit_label:
 end.
 {
   $Log$
-  Revision 1.94  1999-09-02 18:47:47  daniel
+  Revision 1.95  1999-09-03 10:02:48  peter
+    * $IFNDEF is 7 chars and not 6 chars
+
+  Revision 1.94  1999/09/02 18:47:47  daniel
     * Could not compile with TP, some arrays moved to heap
     * NOAG386BIN default for TP
     * AG386* files were not compatible with TP, fixed.
