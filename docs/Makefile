@@ -51,7 +51,7 @@ endif
 ifndef LATEX2HTMLOPTS
 LATEX2HTMLOPTS = -no_reuse -up_url "../fpctoc.html"\
                  -up_title "Free Pascal manuals" -contents_in_navigation\
-                 -html_version 4.0 -split 3
+                 -html_version 4.0 -split 3 -image_type gif
 endif
 
 # Ascii mode ? (i.e. no pics)
@@ -444,7 +444,10 @@ linuxexamples: examples
 
 #
 # $Log$
-# Revision 1.38  2000-07-04 21:23:04  michael
+# Revision 1.39  2000-07-09 15:44:15  peter
+#   * image_type gif added
+#
+# Revision 1.38  2000/07/04 21:23:04  michael
 # + Added math unit
 #
 # Revision 1.37  2000/07/04 19:55:48  michael
