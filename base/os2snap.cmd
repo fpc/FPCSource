@@ -558,16 +558,16 @@ if exist %FPCSNAPBIN%\ppas.cmd goto PPasCmd
 echo *Error: The compiler wasn't compiled!! >> %FPCERRLOG%
 goto End
 
-:PPasBat
-echo *Automatic binding failed, trying again ... >> %FPCERRLOG%
-call %FPCSNAPBIN%\ppas.bat
-del %FPCSNAPBIN%\ppas.bat >> %FPCERRLOG%
-goto Comp2
-
 :PPasCmd
 echo *Automatic binding failed, trying again ... >> %FPCERRLOG%
 call %FPCSNAPBIN%\ppas.cmd
 del %FPCSNAPBIN%\ppas.cmd >> %FPCERRLOG%
+goto Comp2
+
+:PPasBat
+echo *Automatic binding failed, trying again ... >> %FPCERRLOG%
+call %FPCSNAPBIN%\ppas.bat
+del %FPCSNAPBIN%\ppas.bat >> %FPCERRLOG%
 goto Comp2
 
 :OKCompiler
@@ -648,7 +648,10 @@ goto End
 
 
   $Log$
-  Revision 1.10  2000-03-12 13:37:24  hajny
+  Revision 1.11  2000-03-12 13:42:00  hajny
+    * cosmetic change for easier synchronization
+
+  Revision 1.10  2000/03/12 13:37:24  hajny
     * support for calling PPAS script, compiler stack increased
 
   Revision 1.9  2000/03/05 19:13:25  hajny
