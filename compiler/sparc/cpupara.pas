@@ -65,7 +65,7 @@ implementation
 
     function TSparcParaManager.get_volatile_registers_int(calloption : tproccalloption):TCpuRegisterSet;
       begin
-        result:=[RS_G1];
+        result:=[RS_G1,RS_O0,RS_O1,RS_O2,RS_O3,RS_O4,RS_O5,RS_O6,RS_O7];
       end;
 
 
@@ -318,7 +318,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.45  2004-10-24 17:32:53  florian
+  Revision 1.46  2004-11-07 00:33:45  florian
+    * marked o* registers as volatile
+
+  Revision 1.45  2004/10/24 17:32:53  florian
     * fixed several arm compiler bugs
 
   Revision 1.44  2004/10/05 20:41:02  peter
