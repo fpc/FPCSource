@@ -168,6 +168,7 @@ function maxvalue(const data : PFloat; Const N : Integer) : float;
 function maxvalue(const data : PInteger; Const N : Integer) : Integer;
 { calculates the standard deviation }
 function stddev(const data : array of float) : float;
+function stddev(const data : PFloat; Const N : Integer) : float;
 { calculates the mean and stddev }
 procedure meanandstddev(const data : array of float;
   var mean,stddev : float);
@@ -579,8 +580,14 @@ procedure sumsandsquares(const data : PFloat; Const N : Integer;
 
 function stddev(const data : array of float) : float;
 
+begin
+  Result:=Stddev(@Data[0],High(Data)+1)
+end;
+
+function stddev(const data : PFloat; Const N : Integer) : float;
+
   begin
-     StdDev:=Sqrt(Variance(Data));
+     StdDev:=Sqrt(Variance(Data,N));
   end;
 
 procedure meanandstddev(const data : array of float;
@@ -856,7 +863,10 @@ end;
 end.
 {
     $Log$
-    Revision 1.24  2000-07-08 07:03:20  michael
+    Revision 1.25  2000-07-08 17:12:56  michael
+    + Final fixes
+
+    Revision 1.24  2000/07/08 07:03:20  michael
     + fixed meanandstddev
 
     Revision 1.23  2000/07/08 06:45:07  michael
