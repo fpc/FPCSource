@@ -73,7 +73,7 @@ unit cgcpu;
         procedure a_jmp_always(list : taasmoutput;l: tasmlabel); override;
         procedure a_jmp_flags(list : taasmoutput;const f : TResFlags;l: tasmlabel); override;
 
-        procedure g_flags2reg(list: taasmoutput; const f: TResFlags; reg: TRegister); override;
+        procedure g_flags2reg(list: taasmoutput; size: TCgSize; const f: TResFlags; reg: TRegister); override;
 
 
         procedure g_stackframe_entry_sysv(list : taasmoutput;localsize : longint);
@@ -437,7 +437,7 @@ const
               end
             else if (longint(a) >= low(smallint)) and
                (longint(a) <= high(smallint)) and
-               (not(op in [OP_AND,OP_OR]) or
+               (not(op = OP_AND) or
                 not get_rlwi_const(a,l1,l2)) then
               begin
                 list.concat(taicpu.op_reg_reg_const(oplo,dst,src,a));
@@ -610,7 +610,7 @@ const
          a_jmp(list,A_BC,c.cond,ord(c.cr)-ord(R_CR0),l);
        end;
 
-     procedure tcgppc.g_flags2reg(list: taasmoutput; const f: TResFlags; reg: TRegister);
+     procedure tcgppc.g_flags2reg(list: taasmoutput; size: TCgSize; const f: TResFlags; reg: TRegister);
 
        var
          testbit: byte;
@@ -619,7 +619,7 @@ const
        begin
          { get the bit to extract from the conditional register + its }
          { requested value (0 or 1)                                   }
-         testbit := (ord(f.cr) * 4);
+         testbit := ((ord(f.cr)-ord(R_CR0)) * 4);
          case f.flag of
            F_EQ,F_NE:
              bitvalue := f.flag = F_EQ;
@@ -638,12 +638,13 @@ const
          end;
          { load the conditional register in the destination reg }
          list.concat(taicpu.op_reg(A_MFCR,reg));
-         { we will move the bit that has to be tested to bit 31 -> rotate }
-         { left by bitpos+1 (remember, this is big-endian!)               }
-         testbit := (testbit + 1) and 31;
+         { we will move the bit that has to be tested to bit 0 by rotating }
+         { left                                                            }
+         testbit := (32 - testbit) and 31;
          { extract bit }
-         list.concat(taicpu.op_reg_reg_const_const_const(
-           A_RLWINM,reg,reg,testbit,31,31));
+         if testbit <> 0 then
+           list.concat(taicpu.op_reg_reg_const_const_const(
+             A_RLWINM,reg,reg,testbit,31,31));
          { if we need the inverse, xor with 1 }
          if not bitvalue then
            list.concat(taicpu.op_reg_reg_const(A_XORI,reg,reg,1));
@@ -856,8 +857,8 @@ const
 
      procedure tcgppc.a_loadaddr_ref_reg(list : taasmoutput;const ref : treference;r : tregister);
 
-       var tmpreg: tregister;
-           ref2, tmpref: treference;
+       var
+         ref2, tmpref: treference;
 
        begin
          ref2 := ref;
@@ -866,36 +867,32 @@ const
            { add the symbol's value to the base of the reference, and if the }
            { reference doesn't have a base, create one                       }
            begin
-             tmpreg := get_scratch_reg_address(list);
              reference_reset(tmpref);
+             tmpref.offset := ref2.offset;
              tmpref.symbol := ref2.symbol;
              tmpref.symaddr := refs_ha;
-//             tmpref.is_immediate := true;
              if ref2.base <> R_NO then
-               list.concat(taicpu.op_reg_reg_ref(A_ADDIS,tmpreg,
+               list.concat(taicpu.op_reg_reg_ref(A_ADDIS,r,
                  ref2.base,tmpref))
              else
-               list.concat(taicpu.op_reg_ref(A_LIS,tmpreg,tmpref));
-             tmpref.base := tmpreg;
+               list.concat(taicpu.op_reg_ref(A_LIS,r,tmpref));
+             tmpref.base := R_NO;
              tmpref.symaddr := refs_l;
              { can be folded with one of the next instructions by the }
              { optimizer probably                                     }
-             list.concat(taicpu.op_reg_reg_ref(A_ADDI,tmpreg,tmpreg,tmpref));
-           end;
-         if ref2.offset <> 0 Then
+             list.concat(taicpu.op_reg_reg_ref(A_ADDI,r,r,tmpref));
+           end
+         else if ref2.offset <> 0 Then
            if ref2.base <> R_NO then
              a_op_const_reg_reg(list,OP_ADD,OS_32,ref2.offset,ref2.base,r)
   { FixRef makes sure that "(ref.index <> R_NO) and (ref.offset <> 0)" never}
   { occurs, so now only ref.offset has to be loaded                         }
            else a_load_const_reg(list,OS_32,ref2.offset,r)
-         else
-           if ref.index <> R_NO Then
-             list.concat(taicpu.op_reg_reg_reg(A_ADD,r,ref2.base,ref2.index))
-           else
-             if r <> ref2.base then
-               list.concat(taicpu.op_reg_reg(A_MR,r,ref2.base));
-         if assigned(ref2.symbol) then
-           free_scratch_reg(list,tmpreg);
+         else if ref.index <> R_NO Then
+           list.concat(taicpu.op_reg_reg_reg(A_ADD,r,ref2.base,ref2.index))
+         else if (ref2.base <> R_NO) and
+                 (r <> ref2.base) then
+           list.concat(taicpu.op_reg_reg(A_MR,r,ref2.base));
        end;
 
 { ************* concatcopy ************ }
@@ -903,22 +900,37 @@ const
     procedure tcgppc.g_concatcopy(list : taasmoutput;const source,dest : treference;len : aword; delsource,loadref : boolean);
 
       var
-        t: taicpu;
-        countreg, tempreg: TRegister;
+        countreg: TRegister;
         src, dst: TReference;
         lab: tasmlabel;
         count, count2: aword;
+        orgsrc, orgdst : boolean;
 
       begin
-        { make sure short loads are handled as optimally as possible }
+{$ifdef extdebug}
+        if len > high(longint) then
+          internalerror(2002072704);
+{$endif extdebug}
 
+        { make sure short loads are handled as optimally as possible }
         if not loadref then
-          if (len <= 4) and
-             (byte(len) in [1,2,4]) then
+          if (len <= 8) and
+             (byte(len) in [1,2,4,8]) then
             begin
-              a_load_ref_ref(list,int_cgsize(len),source,dest);
-              if delsource then
-                reference_release(exprasmlist,source);
+              if len < 8 then
+                begin
+                  a_load_ref_ref(list,int_cgsize(len),source,dest);
+                  if delsource then
+                    reference_release(exprasmlist,source);
+                end
+              else
+                begin
+                  a_reg_alloc(list,R_F0);
+                  a_loadfpu_ref_reg(list,OS_F64,source,R_F0);
+                  if delsource then
+                    reference_release(exprasmlist,source);
+                  a_loadfpu_reg_ref(list,OS_F64,R_F0,dest);
+                end;
               exit;
             end;
 
@@ -930,54 +942,91 @@ const
         reference_reset(src);
         reference_reset(dst);
         { load the address of source into src.base }
-        src.base := get_scratch_reg_address(list);
         if loadref then
-          a_load_ref_reg(list,OS_32,source,src.base)
-        else a_loadaddr_ref_reg(list,source,src.base);
-        if delsource then
+          begin
+            src.base := get_scratch_reg_address(list);
+            a_load_ref_reg(list,OS_32,source,src.base);
+            orgsrc := false;
+          end
+        else if assigned(source.symbol) or
+                ((source.offset + longint(len)) > high(smallint)) then
+          begin
+            src.base := get_scratch_reg_address(list);
+            a_loadaddr_ref_reg(list,source,src.base);
+            orgsrc := false;
+          end
+        else
+          begin
+            src := source;
+            orgsrc := true;
+          end;
+        if not orgsrc and delsource then
           reference_release(exprasmlist,source);
         { load the address of dest into dst.base }
-        dst.base := get_scratch_reg_address(list);
-        a_loadaddr_ref_reg(list,dest,dst.base);
-        count := len div 4;
-        if count > 3 then
+        if assigned(dest.symbol) or
+           ((dest.offset + longint(len)) > high(smallint)) then
+          begin
+            dst.base := get_scratch_reg_address(list);
+            a_loadaddr_ref_reg(list,dest,dst.base);
+            orgdst := false;
+          end
+        else
+          begin
+            dst := dest;
+            orgdst := true;
+          end;
+
+        count := len div 8;
+        if count > 4 then
           { generate a loop }
           begin
             { the offsets are zero after the a_loadaddress_ref_reg and just }
-            { have to be set to 4. I put an Inc there so debugging may be   }
+            { have to be set to 8. I put an Inc there so debugging may be   }
             { easier (should offset be different from zero here, it will be }
             { easy to notice in the generated assembler                     }
-            inc(dst.offset,4);
-            inc(src.offset,4);
-            list.concat(taicpu.op_reg_reg_const(A_SUBI,src.base,src.base,4));
-            list.concat(taicpu.op_reg_reg_const(A_SUBI,dst.base,dst.base,4));
+            inc(dst.offset,8);
+            inc(src.offset,8);
+            list.concat(taicpu.op_reg_reg_const(A_SUBI,src.base,src.base,8));
+            list.concat(taicpu.op_reg_reg_const(A_SUBI,dst.base,dst.base,8));
             countreg := get_scratch_reg_int(list);
-            a_load_const_reg(list,OS_32,count-1,countreg);
+            a_load_const_reg(list,OS_32,count,countreg);
             { explicitely allocate R_0 since it can be used safely here }
             { (for holding date that's being copied)                    }
-            tempreg := R_0;
-            a_reg_alloc(list,R_0);
+            a_reg_alloc(list,R_F0);
             getlabel(lab);
             a_label(list, lab);
-            list.concat(taicpu.op_reg_ref(A_LWZU,tempreg,src));
-            list.concat(taicpu.op_reg_reg_const(A_CMPWI,R_CR0,countreg,0));
-            list.concat(taicpu.op_reg_ref(A_STWU,tempreg,dst));
-            list.concat(taicpu.op_reg_reg_const(A_SUBI,countreg,countreg,1));
+            list.concat(taicpu.op_reg_reg_const(A_SUBIC_,countreg,countreg,1));
+            list.concat(taicpu.op_reg_ref(A_LFDU,R_F0,src));
+            list.concat(taicpu.op_reg_ref(A_STFDU,R_F0,dst));
             a_jmp(list,A_BC,C_NE,0,lab);
             free_scratch_reg(list,countreg);
-            a_reg_dealloc(list,R_0);
-          end
-        else
+            a_reg_dealloc(list,R_F0);
+            len := len mod 8;
+          end;
+
+        count := len div 8;
+        if count > 0 then
           { unrolled loop }
           begin
-            a_reg_alloc(list,R_0);
+            a_reg_alloc(list,R_F0);
             for count2 := 1 to count do
               begin
-                a_load_ref_reg(list,OS_32,src,R_0);
-                a_load_reg_ref(list,OS_32,R_0,dst);
-                inc(src.offset,4);
-                inc(dst.offset,4);
+                a_loadfpu_ref_reg(list,OS_F64,src,R_F0);
+                a_loadfpu_reg_ref(list,OS_F64,R_F0,dst);
+                inc(src.offset,8);
+                inc(dst.offset,8);
               end;
+            a_reg_dealloc(list,R_F0);
+            len := len mod 8;
+          end;
+
+        if (len and 4) <> 0 then
+          begin
+            a_reg_alloc(list,R_0);
+            a_load_ref_reg(list,OS_32,src,R_0);
+            a_load_reg_ref(list,OS_32,R_0,dst);
+            inc(src.offset,4);
+            inc(dst.offset,4);
             a_reg_dealloc(list,R_0);
           end;
        { copy the leftovers }
@@ -992,13 +1041,21 @@ const
          end;
        if (len and 1) <> 0 then
          begin
+           a_reg_alloc(list,R_0);
            a_load_reg_ref(list,OS_16,R_0,dst);
            a_load_ref_reg(list,OS_8,src,R_0);
            a_load_reg_ref(list,OS_8,R_0,dst);
            a_reg_dealloc(list,R_0);
          end;
-       free_scratch_reg(list,src.base);
-       free_scratch_reg(list,dst.base);
+       if orgsrc then
+         begin
+           if delsource then
+             reference_release(exprasmlist,source);
+         end
+       else
+         free_scratch_reg(list,src.base);
+       if not orgdst then
+         free_scratch_reg(list,dst.base);
       end;
 
 
@@ -1295,7 +1352,12 @@ begin
 end.
 {
   $Log$
-  Revision 1.25  2002-07-26 21:15:45  florian
+  Revision 1.26  2002-07-27 19:59:29  jonas
+    * fixed a_loadaddr_ref_reg()
+    * fixed g_flags2reg()
+    * optimized g_concatcopy()
+
+  Revision 1.25  2002/07/26 21:15:45  florian
     * rewrote the system handling
 
   Revision 1.24  2002/07/21 17:00:23  jonas
