@@ -1901,7 +1901,7 @@ See test/tgadint64 in the test suite.
                         case taicpu(p).opsize of
                           S_BL:
                             begin
-                              if IsGP32Reg(taicpu(p).oper[1]^.reg) and
+                              if IsGP32Reg(getsupreg(taicpu(p).oper[1]^.reg)) and
                                  not(CS_LittleSize in aktglobalswitches) and
                                  (aktoptprocessor = ClassPentium) then
                                   {Change "movzbl %reg1, %reg2" to
@@ -1921,7 +1921,7 @@ See test/tgadint64 in the test suite.
                           (taicpu(p).oper[0]^.ref^.base <> taicpu(p).oper[1]^.reg) and
                           (taicpu(p).oper[0]^.ref^.index <> taicpu(p).oper[1]^.reg) and
                           not(CS_LittleSize in aktglobalswitches) and
-                          IsGP32Reg(taicpu(p).oper[1]^.reg) and
+                          IsGP32Reg(getsupreg(taicpu(p).oper[1]^.reg)) and
                           (aktoptprocessor = ClassPentium) and
                           (taicpu(p).opsize = S_BL) then
                         {changes "movzbl mem, %reg" to "xorl %reg, %reg; movb mem, %reg8" for
@@ -1996,7 +1996,13 @@ end.
 
 {
   $Log$
-  Revision 1.50  2003-11-22 00:40:19  jonas
+  Revision 1.51  2003-12-13 15:48:47  jonas
+    * isgp32reg was being called with both tsuperregister and tregister
+      parameters, so changed type to tsuperregister (fixes bug reported by
+      Bas Steendijk)
+    * improved regsizesok() checking so it gives no false positives anymore
+
+  Revision 1.50  2003/11/22 00:40:19  jonas
     * fixed optimiser so it compiles again
     * fixed several bugs which were in there already for a long time, but
       which only popped up now :) -O2/-O3 will now optimise less than in

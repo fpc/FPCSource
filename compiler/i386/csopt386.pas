@@ -968,6 +968,7 @@ function RegSizesOK(oldReg,newReg: tsuperregister; p: taicpu): boolean;
 { oldreg and newreg must be 32bit components }
 var
   opCount: longint;
+  tmpreg: tsuperregister;
 begin
   RegSizesOK := true;
   { if only one of them is a general purpose register ... }
@@ -977,9 +978,14 @@ begin
         if (p.oper[opCount]^.typ = top_reg) and
            (getsubreg(p.oper[opCount]^.reg) in [R_SUBL,R_SUBH]) then
           begin
-            RegSizesOK := false;
-            break
-          end
+            tmpreg := getsupreg(p.oper[opCount]^.reg);
+            if (tmpreg = oldreg) or
+               (tmpreg = newreg) then
+              begin
+                RegSizesOK := false;
+                break
+              end
+          end;
     end;
 end;
 
@@ -2049,7 +2055,13 @@ end.
 
 {
   $Log$
-  Revision 1.53  2003-12-07 19:19:56  jonas
+  Revision 1.54  2003-12-13 15:48:47  jonas
+    * isgp32reg was being called with both tsuperregister and tregister
+      parameters, so changed type to tsuperregister (fixes bug reported by
+      Bas Steendijk)
+    * improved regsizesok() checking so it gives no false positives anymore
+
+  Revision 1.53  2003/12/07 19:19:56  jonas
     * fixed some more bugs which only showed up in a ppc cross compiler
 
   Revision 1.52  2003/11/28 18:49:05  jonas

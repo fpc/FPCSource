@@ -161,7 +161,7 @@ procedure InsertLLItem(AsmL: TAAsmOutput; prev, foll, new_one: TLinkedListItem);
 
 function RefsEquivalent(const R1, R2: TReference; var RegInfo: toptreginfo; OpAct: TOpAction): Boolean;
 function RefsEqual(const R1, R2: TReference): Boolean;
-function IsGP32Reg(reg: TRegister): Boolean;
+function isgp32reg(supreg: tsuperregister): Boolean;
 function reginref(supreg: tsuperregister; const ref: treference): boolean;
 function RegReadByInstruction(supreg: tsuperregister; hp: tai): boolean;
 function RegModifiedByInstruction(supreg: tsuperregister; p1: tai): boolean;
@@ -661,16 +661,10 @@ begin
 end;
 
 
-function isgp32reg(reg: tregister): boolean;
+function isgp32reg(supreg: tsuperregister): boolean;
 {Checks if the register is a 32 bit general purpose register}
-var
-  supreg: tsuperregister;
 begin
   isgp32reg := false;
-  if (reg = NR_NO) or
-     (getregtype(reg) <> R_INTREGISTER) then
-    exit;
-  supreg := getsupreg(reg);
   if (supreg >= RS_EAX) and (supreg <= RS_EBX) then
     isgp32reg := true
 end;
@@ -2707,7 +2701,13 @@ end.
 
 {
   $Log$
-  Revision 1.56  2003-12-07 19:19:56  jonas
+  Revision 1.57  2003-12-13 15:48:47  jonas
+    * isgp32reg was being called with both tsuperregister and tregister
+      parameters, so changed type to tsuperregister (fixes bug reported by
+      Bas Steendijk)
+    * improved regsizesok() checking so it gives no false positives anymore
+
+  Revision 1.56  2003/12/07 19:19:56  jonas
     * fixed some more bugs which only showed up in a ppc cross compiler
 
   Revision 1.55  2003/11/22 13:10:32  jonas
