@@ -11,6 +11,13 @@ procedure test;
 var
   P:PS;
 Begin
+  p:=New(PS);
+  P^:='';
+  P^:=P^+'BLAH';
+  P^:=P^+' '+P^;
+  Writeln(P^);
+  Dispose(P);
+
   New(P);
   P^:='';
   P^:=P^+'BLAH';

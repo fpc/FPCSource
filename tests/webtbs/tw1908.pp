@@ -1,6 +1,6 @@
-uses SysUtils;
-
 {$mode objfpc}
+
+uses SysUtils;
 
 {$R+}
 procedure x(arr : array of byte);

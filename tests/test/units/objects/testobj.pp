@@ -76,13 +76,13 @@ Var Stream : TDosStream;
 begin
   StreamError:= @StreamErrorProcedure;
   Writeln ('Writing to stream : "01234567899876543210"');
-  Stream.Init('Test.dat',stCreate);
+  Stream.Init('testobj.tmp',stCreate);
   Stream.WriteStr (@S);
   Stream.StrWrite (P);
   Writeln ('Closing stream.');
   Stream.Done;
   Writeln ('Reading from stream : ');
-  Stream.Init('Test.dat',StOpenRead);
+  Stream.Init('testobj.tmp',StOpenRead);
   WriteLn('After opening');
   Writeln ('Reading (',S,') : ',Stream.ReadStr^);
   Writeln ('Reading (',P,') : ',Stream.StrRead);
@@ -90,7 +90,7 @@ begin
   Stream.Done;
   Writeln ('Same thing, using raw read method : ');
   Writeln ('Reading from stream : ');
-  Stream.Init('Test.dat',StOpenRead);
+  Stream.Init('testobj.tmp',StOpenRead);
   Stream.Read (Buf,11);
   Writeln ('Reading (',S,') : ',Buf);
   Stream.Read  (L,2);
@@ -100,7 +100,7 @@ begin
   Writeln ('Closing stream.');
   Stream.Done;
   Writeln ('Statistics about stream : ');
-  Stream.Init('Test.dat',StOpenRead);
+  Stream.Init('testobj.tmp',StOpenRead);
   Writeln ('Size     : ',Stream.GetSize);
   Writeln ('Position : ',Stream.GetPos);
   Writeln ('Reading (',S,') : ',Stream.ReadStr^);
@@ -109,21 +109,24 @@ begin
   Writeln ('Closing stream.');
   Stream.Done;
   Writeln ('Reading from stream : ');
-  Stream.Init('Test.dat',StOpenRead);
+  Stream.Init('testobj.tmp',StOpenRead);
   Writeln ('Seek to position :',L);
   Stream.Seek(L);
   Writeln ('Reading (',P,') : ',Stream.StrRead);
   Writeln ('Closing stream.');
   Stream.Done;
   Writeln ('Truncating stream to zero length.');
-  Stream.Init('Test.dat',StOpenWrite);
+  Stream.Init('testobj.tmp',StOpenWrite);
   Stream.Truncate;
   Stream.Done;
 end.
 
 {
  $Log$
- Revision 1.1  2002-03-05 21:50:19  carl
+ Revision 1.2  2002-04-21 18:15:55  peter
+   * small fixes
+
+ Revision 1.1  2002/03/05 21:50:19  carl
  + objects unit testing
 
  Revision 1.1  2001/08/13 06:00:50  carl
