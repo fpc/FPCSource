@@ -379,7 +379,7 @@ implementation
        { module }
        fmodule,
        { codegen }
-       paramgr,cgbase,cresstr
+       tgobj,paramgr,cgbase,cresstr
        ;
 
 {****************************************************************************
@@ -1824,7 +1824,7 @@ implementation
                   tostr(N_LCSYM)+',0,'+tostr(fileinfo.line)+','+mangledname)
            else
            stabstring := strpnew('"'+name+':'+st+'",'+
-                  tostr(N_LSYM)+',0,'+tostr(fileinfo.line)+',-'+tostr(address-owner.address_fixup))
+                  tostr(N_LSYM)+',0,'+tostr(fileinfo.line)+','+tostr(tg.direction*address+owner.address_fixup))
        else
          stabstring := inherited stabstring;
   end;
@@ -2557,7 +2557,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.98  2003-04-27 07:29:51  peter
+  Revision 1.99  2003-04-27 10:03:18  jonas
+    * fixed stabs generation for local variables on systems where they have
+      a positive offset relative to the stack/framepointer
+
+  Revision 1.98  2003/04/27 07:29:51  peter
     * aktprocdef cleanup, aktprocdef is now always nil when parsing
       a new procdef declaration
     * aktprocsym removed
