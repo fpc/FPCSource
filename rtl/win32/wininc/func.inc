@@ -3577,6 +3577,8 @@ in define line 6852 *)
 
     function DdeUninitialize(_para1:DWORD):WINBOOL;
 
+    function DdeFreeStringHandle(_para1:DWORD;_para2:HSZ):WINBOOL;
+
     function DdeCmpStringHandles(_para1:HSZ; _para2:HSZ):longint;
 
     function DdeCreateDataHandle(_para1:DWORD; _para2:LPBYTE; _para3:DWORD; _para4:DWORD; _para5:HSZ;
@@ -6669,6 +6671,8 @@ in define line 6826 *)
 
     function DdeCmpStringHandles(_para1:HSZ; _para2:HSZ):longint; external 'user32' name 'DdeCmpStringHandles';
 
+    function DdeFreeStringHandle(_para1:DWORD;_para2:HSZ):WINBOOL; external 'user32' name 'DdeFreeStringHandle';
+
     function DdeCreateDataHandle(_para1:DWORD; _para2:LPBYTE; _para3:DWORD; _para4:DWORD; _para5:HSZ;
                _para6:UINT; _para7:UINT):HDDEDATA; external 'user32' name 'DdeCreateDataHandle';
 
@@ -6712,7 +6716,10 @@ end.
 {$endif not windows_include_files}
 {
   $Log$
-  Revision 1.6  2000-03-19 20:29:06  marco
+  Revision 1.7  2000-05-25 12:57:22  pierre
+   + DdeFreeStringHandle was missing
+
+  Revision 1.6  2000/03/19 20:29:06  marco
    * some stuff for JCL
 
   Revision 1.5  2000/02/09 16:59:35  peter
