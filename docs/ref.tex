@@ -2573,8 +2573,8 @@ This also is true for \var{PChar} type pointers. To compare the strings
 the \var{Pchar} point to, the \var{StrComp} function
 from the \file{strings} unit must be used.
 The \var{in} returns \var{True} if the left operand (which must have the same
-ordinal type as the set type) is an element of the set which is the right
-operand, otherwise it returns \var{False}
+ordinal type as the set type, and which must be in the range 0..255) is an 
+element of the set which is the right operand, otherwise it returns \var{False}
 \chapter{Statements}
 \label{ch:Statements}
 The heart of each algorithm are the actions it takes. These actions are
