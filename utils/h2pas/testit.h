@@ -40,3 +40,6 @@ extern long long i641;
 extern unsigned long long q641;
 extern long long int i642;
 extern unsigned long long int q642;
+
+typedef DWORD (WINAPI *LPTHREAD_START_ROUTINE)(LPVOID);
+typedef DWORD(WINAPI *LPPROGRESS_ROUTINE)(LARGE_INTEGER,LARGE_INTEGER,LARGE_INTEGER,LARGE_INTEGER,DWORD,DWORD,HANDLE,HANDLE,LPVOID);
