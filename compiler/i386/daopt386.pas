@@ -249,6 +249,10 @@ Implementation
 Uses
 {$ifdef csdebug}
   cutils,
+{$else}
+  {$ifdef statedebug}
+    cutils,
+  {$endif}
 {$endif}
   globals, systems, verbose, symconst, symsym, cgobj,
    rgobj, procinfo;
@@ -1863,12 +1867,12 @@ begin
     top_reg:
       begin
 {$ifdef statedebug}
-        hp := tai_comment.Create(strpnew('destroying '+std_reg2str[o.reg]));
-        hp.next := taiobj^.next;
+        hp := tai_comment.Create(strpnew('destroying '+std_regname(o.reg)));
+        hp.next := taiobj.next;
         hp.previous := taiobj;
-        taiobj^.next := hp;
+        taiobj.next := hp;
         if assigned(hp.next) then
-          hp.next^.previous := hp;
+          hp.next.previous := hp;
 {$endif statedebug}
         DestroyReg(ptaiprop(taiObj.OptInfo), getsupreg(o.reg), true);
       end;
@@ -1902,20 +1906,20 @@ begin
         invalidateDependingRegs(p.optinfo,supreg);
         ptaiprop(p.optinfo)^.regs[supreg].memwrite := nil;
 {$ifdef StateDebug}
-        hp := tai_comment.Create(strpnew(std_reg2str[reg]+': '+tostr(ptaiprop(p.optinfo)^.Regs[reg].WState)
-              + ' -- ' + tostr(ptaiprop(p.optinfo)^.Regs[reg].nrofmods))));
+        hp := tai_comment.Create(strpnew(std_regname(newreg(R_INTREGISTER,supreg,R_SUBWHOLE))+': '+tostr(ptaiprop(p.optinfo)^.Regs[supreg].WState)
+              + ' -- ' + tostr(ptaiprop(p.optinfo)^.Regs[supreg].nrofmods)));
         InsertLLItem(AsmL, p, p.next, hp);
 {$endif StateDebug}
       end
     else
       begin
 {$ifdef statedebug}
-        hp := tai_comment.Create(strpnew('destroying '+std_reg2str[reg]));
+        hp := tai_comment.Create(strpnew('destroying '+std_regname(newreg(R_INTREGISTER,supreg,R_SUBWHOLE))));
         insertllitem(asml,p,p.next,hp);
 {$endif statedebug}
         DestroyReg(ptaiprop(p.optinfo), supreg, true);
 {$ifdef StateDebug}
-        hp := tai_comment.Create(strpnew(std_reg2str[reg]+': '+tostr(ptaiprop(p.optinfo)^.Regs[supreg].WState)));
+        hp := tai_comment.Create(strpnew(std_regname(newreg(R_INTREGISTER,supreg,R_SUBWHOLE))+': '+tostr(ptaiprop(p.optinfo)^.Regs[supreg].WState)));
         InsertLLItem(AsmL, p, p.next, hp);
 {$endif StateDebug}
       end
@@ -2135,6 +2139,9 @@ var
     prev,p  : tai;
     tmpref: TReference;
     tmpsupreg: tsuperregister;
+{$ifdef statedebug}
+    hp : tai;
+{$endif}
 {$ifdef AnalyzeLoops}
     hp : tai;
     TmpState: Byte;
@@ -2389,9 +2396,8 @@ begin
                         top_reg:
                           begin
 {$ifdef statedebug}
-                            hp := tai_comment.Create(strpnew('destroying '+
-                              std_reg2str[taicpu(p).oper[1]^.reg])));
-                            insertllitem(asml,p,p.next,hp);
+                            hp := tai_comment.Create(strpnew('destroying '+std_regname(taicpu(p).oper[1]^.reg)));
+                            insertllitem(list,p,p.next,hp);
 {$endif statedebug}
 
                             readOp(curprop, taicpu(p).oper[0]^);
@@ -2418,8 +2424,8 @@ begin
                           else
                             begin
 {$ifdef statedebug}
-                              hp := tai_comment.Create(strpnew('destroying & initing '+std_reg2str[tmpsupreg]));
-                              insertllitem(asml,p,p.next,hp);
+                              hp := tai_comment.Create(strpnew('destroying & initing '+std_regname(newreg(R_INTREGISTER,tmpsupreg,R_SUBWHOLE))));
+                              insertllitem(list,p,p.next,hp);
 {$endif statedebug}
                               destroyReg(curprop, tmpsupreg, true);
                               if not(reginop(tmpsupreg, taicpu(p).oper[0]^)) then
@@ -2431,8 +2437,8 @@ begin
                                   end
                             end;
 {$ifdef StateDebug}
-                            hp := tai_comment.Create(strpnew(std_reg2str[tmpsupreg]+': '+tostr(curprop^.regs[tmpsupreg].WState)));
-                            InsertLLItem(AsmL, p, p.next, hp);
+                            hp := tai_comment.Create(strpnew(std_regname(newreg(R_INTREGISTER,tmpsupreg,R_SUBWHOLE))+': '+tostr(curprop^.regs[tmpsupreg].WState)));
+                            insertllitem(list,p,p.next,hp);
 {$endif StateDebug}
                           end;
                         top_ref:
@@ -2456,8 +2462,8 @@ begin
                             begin
                               tmpsupreg := getsupreg(taicpu(p).oper[1]^.reg);
 {$ifdef statedebug}
-                              hp := tai_comment.Create(strpnew('destroying '+std_reg2str[tmpsupreg]));
-                              insertllitem(asml,p,p.next,hp);
+                              hp := tai_comment.Create(strpnew('destroying '+std_regname(newreg(R_INTREGISTER,tmpsupreg,R_SUBWHOLE))));
+                              insertllitem(list,p,p.next,hp);
 {$endif statedebug}
                               With curprop^.regs[tmpsupreg] Do
                                 begin
@@ -2486,10 +2492,10 @@ begin
                     end;
 {$ifdef statedebug}
                   hp := tai_comment.Create(strpnew('destroying eax and edx'));
-                  insertllitem(asml,p,p.next,hp);
+                  insertllitem(list,p,p.next,hp);
 {$endif statedebug}
 {                  DestroyReg(curprop, RS_EAX, true);}
-                  AddInstr2RegContents({$ifdef statedebug}asml,{$endif}
+                  AddInstr2RegContents({$ifdef statedebug}list,{$endif}
                     taicpu(p), RS_EAX);
                   DestroyReg(curprop, RS_EDX, true)
                 end;
@@ -2504,33 +2510,33 @@ begin
                         readreg(curprop,RS_EAX);
 {$ifdef statedebug}
                         hp := tai_comment.Create(strpnew('destroying eax and edx'));
-                        insertllitem(asml,p,p.next,hp);
+                        insertllitem(list,p,p.next,hp);
 {$endif statedebug}
 {                        DestroyReg(curprop, RS_EAX, true); }
-                        AddInstr2RegContents({$ifdef statedebug}asml,{$endif}
+                        AddInstr2RegContents({$ifdef statedebug}list,{$endif}
                           taicpu(p), RS_EAX);
                         DestroyReg(curprop,RS_EDX, true)
                       end
                     else
                       AddInstr2OpContents(
-                        {$ifdef statedebug}asml,{$endif}
+                        {$ifdef statedebug}list,{$endif}
                           taicpu(p), taicpu(p).oper[1]^)
                   else
-                    AddInstr2OpContents({$ifdef statedebug}asml,{$endif}
+                    AddInstr2OpContents({$ifdef statedebug}list,{$endif}
                       taicpu(p), taicpu(p).oper[2]^);
                 end;
               A_LEA:
                 begin
                   readop(curprop,taicpu(p).oper[0]^);
                   if reginref(getsupreg(taicpu(p).oper[1]^.reg),taicpu(p).oper[0]^.ref^) then
-                    AddInstr2RegContents({$ifdef statedebug}asml,{$endif}
+                    AddInstr2RegContents({$ifdef statedebug}list,{$endif}
                       taicpu(p), getsupreg(taicpu(p).oper[1]^.reg))
                   else
                     begin
 {$ifdef statedebug}
                       hp := tai_comment.Create(strpnew('destroying & initing'+
-                        std_reg2str[taicpu(p).oper[1]^.reg])));
-                      insertllitem(asml,p,p.next,hp);
+                        std_regname(taicpu(p).oper[1]^.reg)));
+                      insertllitem(list,p,p.next,hp);
 {$endif statedebug}
                       destroyreg(curprop,getsupreg(taicpu(p).oper[1]^.reg),true);
                       with curprop^.regs[getsupreg(taicpu(p).oper[1]^.reg)] Do
@@ -2562,8 +2568,8 @@ begin
                               end;
 {$ifdef statedebug}
                             hp := tai_comment.Create(strpnew('destroying '+
-                              std_reg2str[tch2reg(InstrProp.Ch[Cnt])])));
-                            insertllitem(asml,p,p.next,hp);
+                              std_regname(tch2reg(InstrProp.Ch[Cnt]))));
+                            insertllitem(list,p,p.next,hp);
 {$endif statedebug}
                             tmpsupreg:=tch2reg(InstrProp.Ch[Cnt]);
                             DestroyReg(curprop,tmpsupreg, true);
@@ -2571,7 +2577,7 @@ begin
                         Ch_MEAX..Ch_MEDI:
                           begin
                             tmpsupreg:=tch2reg(InstrProp.Ch[Cnt]);
-                            AddInstr2RegContents({$ifdef statedebug} asml,{$endif}
+                            AddInstr2RegContents({$ifdef statedebug} list,{$endif}
                                                  taicpu(p),tmpsupreg);
                           end;
                         Ch_CDirFlag: curprop^.DirFlag := F_notSet;
@@ -2586,7 +2592,7 @@ begin
                             DestroyOp(p, taicpu(p).oper[0]^);
                           end;
                         Ch_Mop1:
-                          AddInstr2OpContents({$ifdef statedebug} asml, {$endif}
+                          AddInstr2OpContents({$ifdef statedebug} list, {$endif}
                             taicpu(p), taicpu(p).oper[0]^);
                         Ch_Wop2..Ch_RWop2:
                           begin
@@ -2595,7 +2601,7 @@ begin
                             DestroyOp(p, taicpu(p).oper[1]^);
                           end;
                         Ch_Mop2:
-                          AddInstr2OpContents({$ifdef statedebug} asml, {$endif}
+                          AddInstr2OpContents({$ifdef statedebug} list, {$endif}
                             taicpu(p), taicpu(p).oper[1]^);
                         Ch_WOp3..Ch_RWOp3:
                           begin
@@ -2604,7 +2610,7 @@ begin
                             DestroyOp(p, taicpu(p).oper[2]^);
                           end;
                         Ch_Mop3:
-                          AddInstr2OpContents({$ifdef statedebug} asml, {$endif}
+                          AddInstr2OpContents({$ifdef statedebug} list, {$endif}
                             taicpu(p), taicpu(p).oper[2]^);
                         Ch_WMemEDI:
                           begin
@@ -2630,8 +2636,8 @@ begin
                           begin
 {$ifdef statedebug}
                             hp := tai_comment.Create(strpnew(
-                              'destroying all regs for prev instruction')));
-                            insertllitem(asml,p, p.next,hp);
+                              'destroying all regs for prev instruction'));
+                            insertllitem(list,p, p.next,hp);
 {$endif statedebug}
                             DestroyAllRegs(curprop,true,true);
                             LastFlagsChangeProp := curprop;
@@ -2647,8 +2653,8 @@ begin
           begin
 {$ifdef statedebug}
             hp := tai_comment.Create(strpnew(
-              'destroying all regs: unknown tai: '+tostr(ord(p.typ)))));
-            insertllitem(asml,p, p.next,hp);
+              'destroying all regs: unknown tai: '+tostr(ord(p.typ))));
+            insertllitem(list,p, p.next,hp);
 {$endif statedebug}
             DestroyAllRegs(curprop,true,true);
           end;
@@ -2708,7 +2714,10 @@ end.
 
 {
   $Log$
-  Revision 1.59  2003-12-14 22:42:14  peter
+  Revision 1.60  2003-12-15 15:58:58  peter
+    * fix statedebug compile
+
+  Revision 1.59  2003/12/14 22:42:14  peter
     * fixed csdebug
 
   Revision 1.58  2003/12/14 14:18:59  peter

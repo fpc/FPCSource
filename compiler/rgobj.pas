@@ -691,9 +691,9 @@ implementation
               end;
         end;
     end;
-    
+
     procedure Trgobj.sort_simplify_worklist;
-    
+
     {Sorts the simplifyworklist by the number of interferences the
      registers in it cause. This allows simplify to execute in
      constant time.}
@@ -757,7 +757,7 @@ implementation
     end;
 
     procedure trgobj.prepare_colouring;
-    
+
     var i:word;
 
     begin
@@ -838,7 +838,7 @@ implementation
         min,i:word;
     begin
       {We take the element with the least interferences out of the
-       simplifyworklist. Since the simplifyworklist is now sorted, we 
+       simplifyworklist. Since the simplifyworklist is now sorted, we
        no longer need to search, but we can simply take the first element.}
       n:=simplifyworklist.get;
 
@@ -1156,7 +1156,7 @@ implementation
         adj_colours,
         colourednodes : Tsuperregisterset;
         found : boolean;
-        
+
     begin
       spillednodes.clear;
       {Reset colours}
@@ -1599,23 +1599,17 @@ implementation
 
 
     procedure Trgobj.check_unreleasedregs;
-{$ifdef EXTDEBUG}
-      var
-        sr : tsuperregister;
-{$endif EXTDEBUG}
       begin
-{$ifdef EXTDEBUG}
-        for sr:=first_imaginary to maxreg-1 do
-          if not(supregset_in(unusedregs,sr)) then
-            Comment(V_Warning,'Register '+std_regname(newreg(R_INTREGISTER,sr,R_SUBNONE))+' not released');
-{$endif EXTDEBUG}
       end;
 
 
 end.
 {
   $Log$
-  Revision 1.100  2003-12-14 20:24:28  daniel
+  Revision 1.101  2003-12-15 15:58:58  peter
+    * fix statedebug compile
+
+  Revision 1.100  2003/12/14 20:24:28  daniel
     * Register allocator speed optimizations
       - Worklist no longer a ringbuffer
       - No find operations are left
