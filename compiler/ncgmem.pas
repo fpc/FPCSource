@@ -101,8 +101,8 @@ implementation
 {$endif GDB}
       globtype,systems,
       cutils,verbose,globals,
-      symconst,symtype,symdef,symsym,symtable,defutil,paramgr,
-      aasmbase,aasmtai,aasmcpu,
+      symconst,symdef,symsym,symtable,defutil,paramgr,
+      aasmbase,aasmtai,
       cginfo,cgbase,pass_2,
       pass_1,nld,ncon,nadd,
       cgobj,tgobj,rgobj,ncgutil,symbase
@@ -946,7 +946,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.49  2003-04-27 11:21:33  peter
+  Revision 1.50  2003-05-07 09:16:23  mazen
+  - non used units removed from uses clause
+
+  Revision 1.49  2003/04/27 11:21:33  peter
     * aktprocdef renamed to current_procdef
     * procinfo renamed to current_procinfo
     * procinfo will now be stored in current_module so it can be
