@@ -33,7 +33,7 @@ uses
   getopts;
 
 const
-  Version   = 'Version 0.99.12';
+  Version   = 'Version 0.99.13';
   Title     = 'PPU-Mover';
   Copyright = 'Copyright (c) 1998-99 by the Free Pascal Development Team';
 
@@ -50,6 +50,12 @@ const
   BatchExt     ='.bat';
 {$endif Linux}
 
+  { link options }
+  link_none    = $0;
+  link_allways = $1;
+  link_static  = $2;
+  link_smart   = $4;
+  link_shared  = $8;
 
 Type
   PLinkOEnt = ^TLinkOEnt;
@@ -82,7 +88,6 @@ Procedure Error(const s:string;stop:boolean);
 begin
 {$ifdef FPC}
   writeln(stderr,s);
-  flush(stderr);
 {$else}
   writeln(s);
 {$endif}
@@ -226,10 +231,10 @@ Var
   outppu : pppufile;
   b,
   untilb : byte;
-  l      : longint;
+  l,m    : longint;
   i      : word;
   f      : file;
-  isstaticlinked : boolean;
+  s      : string;
 begin
   DoPPU:=false;
   If Not Quiet then
@@ -248,7 +253,7 @@ begin
      Error('Error: Not a PPU File : '+PPUFn,false);
      Exit;
    end;
-  if inppu^.GetPPUVersion<15 then
+  if inppu^.GetPPUVersion<CurrentPPUVersion then
    begin
      dispose(inppu,done);
      Error('Error: Wrong PPU Version : '+PPUFn,false);
@@ -259,6 +264,13 @@ begin
    begin
      dispose(inppu,done);
      Error('Error: PPU is already in a library : '+PPUFn,false);
+     Exit;
+   end;
+{ We need a static linked unit }
+  if (inppu^.header.flags and uf_static_linked)=0 then
+   begin
+     dispose(inppu,done);
+     Error('Error: PPU is not static linked : '+PPUFn,false);
      Exit;
    end;
 { Create the new ppu }
@@ -272,15 +284,10 @@ begin
   outppu^.header.flags:=outppu^.header.flags or uf_in_library;
   if MakeStatic then
    outppu^.header.flags:=outppu^.header.flags or uf_static_linked
-  else 
-   outppu^.header.flags:=outppu^.header.flags or uf_shared_linked;
-{ Is the until smartlinked ? }
-  IsStaticLinked:=(inppu^.header.flags and uf_static_linked)<>0;
-{ read until the object files are found }
-  if IsStaticLinked then
-   untilb:=iblinkunitstaticlibs
   else
-   untilb:=iblinkunitofiles;
+   outppu^.header.flags:=outppu^.header.flags or uf_shared_linked;
+{ read until the object files are found }
+  untilb:=iblinkunitofiles;
   repeat
     b:=inppu^.readentry;
     if b in [ibendinterface,ibend] then
@@ -302,28 +309,50 @@ begin
 { we have now reached the section for the files which need to be added,
   now add them to the list }
   case b of
-       iblinkunitofiles : begin
-                        while not inppu^.endofentry do
-                         AddToLinkFiles(inppu^.getstring);
-                      end;
-   iblinkunitstaticlibs : begin
-                        AddToLinkFiles(ExtractLib(inppu^.getstring));
-                        if not inppu^.endofentry then
-                         begin
-                           repeat
-                             inppu^.getdatabuf(buffer^,bufsize,l);
-                             outppu^.putdata(buffer^,l);
-                           until l<bufsize;
-                           outppu^.writeentry(b);
-                         end;
-                      end;
+    iblinkunitofiles :
+      begin
+        { add all o files, and save the entry when not creating a static
+          library to keep staticlinking possible }
+        while not inppu^.endofentry do
+         begin
+           s:=inppu^.getstring;
+           m:=inppu^.getlongint;
+           if not MakeStatic then
+            begin
+              outppu^.putstring(s);
+              outppu^.putlongint(m);
+            end;
+           AddToLinkFiles(s);
+         end;
+        if not MakeStatic then
+         outppu^.writeentry(b);
+      end;
+{    iblinkunitstaticlibs :
+      begin
+        AddToLinkFiles(ExtractLib(inppu^.getstring));
+        if not inppu^.endofentry then
+         begin
+           repeat
+             inppu^.getdatabuf(buffer^,bufsize,l);
+             outppu^.putdata(buffer^,l);
+           until l<bufsize;
+           outppu^.writeentry(b);
+         end;
+       end; }
   end;
 { just add a new entry with the new lib }
-  outppu^.putstring(outputfile);
   if MakeStatic then
-   outppu^.writeentry(iblinkunitstaticlibs)
+   begin
+     outppu^.putstring(outputfile);
+     outppu^.putlongint(link_static);
+     outppu^.writeentry(iblinkunitstaticlibs)
+   end
   else
-   outppu^.writeentry(iblinkunitsharedlibs);
+   begin
+     outppu^.putstring(outputfile);
+     outppu^.putlongint(link_shared);
+     outppu^.writeentry(iblinkunitsharedlibs);
+   end;
 { read all entries until the end and write them also to the new ppu }
   repeat
     b:=inppu^.readentry;
@@ -380,6 +409,7 @@ begin
       exit;
      findnext(dir);
    end;
+  findclose(dir);
   DoFile:=true;
 {$endif}
 end;
@@ -423,13 +453,6 @@ begin
    Err:=Shell(ldbin+' -shared -o '+OutputFile+' '+names)<>0;
   If Err then
    Error('Fatal: Library building stage failed.',true);
-{ Remove the .o files }
-  if PPLExt=PPUExt then
-   begin
-     while pos('*',names)>0 do
-      Delete(names,pos('*',names),1);
-     Shell('rm -rf '+names);
-   end;
 { Rename to the destpath }
   if DestPath<>'' then
    begin
@@ -470,7 +493,7 @@ begin
   repeat
     c:=Getopt (ShortOpts);
     Case C of
- EndOfOptions : break;
+      EndOfOptions : break;
       's' : MakeStatic:=True;
       'o' : OutputFile:=OptArg;
       'd' : DestPath:=OptArg;
@@ -494,14 +517,12 @@ begin
   GetMem (Buffer,Bufsize);
   If Buffer=Nil then
    Error('Error: could not allocate memory for buffer.',true);
-{ fix filename }   
+{ fix filename }
 {$ifdef linux}
   if Copy(OutputFile,1,3)<>'lib' then
    OutputFile:='lib'+OutputFile;
 {$endif}
 end;
-
-
 
 
 var
@@ -559,7 +580,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.3  1999-07-06 11:32:54  peter
+  Revision 1.4  1999-07-28 16:53:58  peter
+    * updated for new linking, but still doesn't work because ld-linux.so.2
+      requires some more crt*.o files
+
+  Revision 1.3  1999/07/06 11:32:54  peter
     * updated for new ppu.pas
 
   Revision 1.2  1999/06/08 22:16:07  peter
