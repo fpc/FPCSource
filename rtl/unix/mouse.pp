@@ -285,6 +285,7 @@ begin
     end;
   if (gpm_fs=-2) or (Select(gpm_fs+1,@fds,nil,nil,1)>0) then
    begin
+     FillChar(e,SizeOf(e),#0);
      Gpm_GetSnapshot(e);
      if e.x>0 then
       MouseEvent.x:=e.x-1
@@ -309,7 +310,7 @@ begin
      else
       MouseEvent.Action:=0;
      end;
-     if (gpm_fs<>-2) or (MouseEvent.Action<>0) then
+     if {(gpm_fs<>-2) or} (MouseEvent.Action<>0) then
        SysPollMouseEvent:=true
      else
        SysPollMouseEvent:=false;
@@ -356,14 +357,17 @@ Const
   );
 
 {$endif}
-  
+
 Begin
-  SetMouseDriver(SysMouseDriver);  
+  SetMouseDriver(SysMouseDriver);
 end.
 
 {
   $Log$
-  Revision 1.5  2001-09-22 00:01:43  michael
+  Revision 1.6  2001-12-02 17:21:25  peter
+    * merged fixes from 1.0
+
+  Revision 1.5  2001/09/22 00:01:43  michael
   + Merged driver support for mouse from fixbranch
 
   Revision 1.4  2001/09/17 21:36:31  peter

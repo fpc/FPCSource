@@ -85,10 +85,10 @@ type
    PLPWSTR = ^LPWSTR;
 
   PSecurityAttributes = ^TSecurityAttributes;
-  TSecurityAttributes = record
+  TSecurityAttributes = packed record
     nLength : DWORD;
     lpSecurityDescriptor : Pointer;
-    bInheritHandle : Boolean;
+    bInheritHandle : BOOL;
   end;
 
   PProcessInformation = ^TProcessInformation;
@@ -120,7 +120,10 @@ type
 
 {
   $Log$
-  Revision 1.6  2001-07-30 14:53:17  marco
+  Revision 1.7  2001-12-02 17:21:25  peter
+    * merged fixes from 1.0
+
+  Revision 1.6  2001/07/30 14:53:17  marco
    * whcar now in system.
 
   Revision 1.5  2001/05/02 10:25:23  marco
@@ -135,5 +138,5 @@ type
 
   Revision 1.2  2000/07/13 11:33:58  michael
   + removed logs
- 
+
 }

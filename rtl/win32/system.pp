@@ -117,6 +117,7 @@ const
   Dll_Thread_Attach_Hook : TDLL_Entry_Hook = nil;
   Dll_Thread_Detach_Hook : TDLL_Entry_Hook = nil;
 
+
 implementation
 
 { include system independent routines }
@@ -339,7 +340,7 @@ end;
    function GetFileSize(h:longint;p:pointer) : longint;
      external 'kernel32' name 'GetFileSize';
    function CreateFile(name : pointer;access,sharing : longint;
-     security : pointer;how,attr,template : longint) : longint;
+     security : PSecurityAttributes;how,attr,template : longint) : longint;
      external 'kernel32' name 'CreateFileA';
    function SetEndOfFile(h : longint) : longbool;
      external 'kernel32' name 'SetEndOfFile';
@@ -490,6 +491,7 @@ Const
 Var
   shflags,
   oflags,cd : longint;
+  security : TSecurityAttributes;
 begin
   AllowSlash(p);
 { close first if opened }
@@ -559,7 +561,10 @@ begin
      end;
      exit;
    end;
-  filerec(f).handle:=CreateFile(p,oflags,shflags,nil,cd,FILE_ATTRIBUTE_NORMAL,0);
+  security.nLength := Sizeof(TSecurityAttributes);
+  security.bInheritHandle:=true;
+  security.lpSecurityDescriptor:=nil;
+  filerec(f).handle:=CreateFile(p,oflags,shflags,@security,cd,FILE_ATTRIBUTE_NORMAL,0);
 { append mode }
   if (flags and $100)<>0 then
    begin
@@ -1562,7 +1567,10 @@ end.
 
 {
   $Log$
-  Revision 1.21  2001-11-08 16:16:54  florian
+  Revision 1.22  2001-12-02 17:21:25  peter
+    * merged fixes from 1.0
+
+  Revision 1.21  2001/11/08 16:16:54  florian
     + beginning of variant dispatching
 
   Revision 1.20  2001/11/07 13:05:16  michael

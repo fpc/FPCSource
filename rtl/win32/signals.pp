@@ -161,25 +161,78 @@ var
 
 const
   fpucw : word = $1332;
+  Exception_handler_installed : boolean = false;
+  MAX_Level = 16;
+  except_level : byte = 0;
+var
+  except_eip   : array[0..Max_level-1] of longint;
+  except_signal : array[0..Max_level-1] of longint;
+  reset_fpu    : array[0..max_level-1] of boolean;
+
+
+  procedure JumpToHandleSignal;
+    var
+      res, eip, ebp, sigtype : longint;
+    begin
+      asm
+        pushal
+        movl (%ebp),%eax
+        movl %eax,ebp
+      end;
+      if except_level>0 then
+        dec(except_level)
+      else
+        exit;
+      eip:=except_eip[except_level];
+
+      sigtype:=except_signal[except_level];
+      if reset_fpu[except_level] then
+        asm
+          fninit
+          fldcw   fpucw
+        end;
+      if (sigtype>=SIGABRT) and (sigtype<=SIGMAX) and
+         (signal_list[sigtype]<>@SIG_DFL) then
+        begin
+          res:=signal_list[sigtype](sigtype);
+        end
+      else
+        res:=0;
+
+      if res=0 then
+        RunError(sigtype)
+      else
+        { jump back to old code }
+        asm
+          popal
+          movl eip,%eax
+          movl %eax,4(%ebp)
+          ret
+        end;
+    end;
 
 
 
   function Signals_exception_handler(excep :PEXCEPTION_POINTERS) : longint;stdcall;
     var frame,res  : longint;
-        function CallSignal(error,frame : longint;must_reset_fpu : boolean) : longint;
+        function CallSignal(sigtype,frame : longint;must_reset_fpu : boolean) : longint;
           begin
-            CallSignal:=Exception_Continue_Search;
-{$ifdef i386}
-            if must_reset_fpu then
-              asm
-                fninit
-                fldcw   fpucw
+            if frame=0 then
+              CallSignal:=Exception_Continue_Search
+            else
+              begin
+                 if except_level >= Max_level then
+                   exit;
+                 except_eip[except_level]:=excep^.ContextRecord^.Eip;
+                 except_signal[except_level]:=sigtype;
+                 reset_fpu[except_level]:=must_reset_fpu;
+                 inc(except_level);
+                 dec(excep^.ContextRecord^.Esp,4);
+                 plongint (excep^.ContextRecord^.Esp)^ := excep^.ContextRecord^.Eip;
+                 excep^.ContextRecord^.Eip:=longint(@JumpToHandleSignal);
+                 CallSignal:=Exception_Continue_Execution;
+
               end;
-{$endif i386}
-            if (error>=SIGABRT) and (error<=SIGMAX) and (signal_list[error]<>@SIG_DFL) then
-              res:=signal_list[error](error);
-            if res>=0 then
-              CallSignal:=Exception_Continue_Execution;
           end;
 
     begin
@@ -256,6 +309,8 @@ const
       oldexceptaddr,newexceptaddr : longint;
 {$endif SYSTEMEXCEPTIONDEBUG}
     begin
+      if Exception_handler_installed then
+        exit;
 {$ifdef SYSTEMEXCEPTIONDEBUG}
       asm
         movl $0,%eax
@@ -274,10 +329,13 @@ const
         writeln(stderr,'Old exception  ',hexstr(oldexceptaddr,8),
           ' new exception  ',hexstr(newexceptaddr,8));
 {$endif SYSTEMEXCEPTIONDEBUG}
+      Exception_handler_installed := true;
     end;
 
   procedure remove_exception_handler;
     begin
+      if not Exception_handler_installed then
+        exit;
       SetUnhandledExceptionFilter(nil);
     end;
 
@@ -308,6 +366,8 @@ begin
      signal:=@SIG_ERR;
      runerror(201);
    end;
+  if not Exception_handler_installed then
+    install_exception_handler;
   temp := signal_list[sig];
   signal_list[sig] := func;
   signal:=temp;
@@ -328,7 +388,10 @@ initialization
 
   for i:=SIGABRT to SIGMAX do
     signal_list[i]:=@SIG_DFL;
-  install_exception_handler;
+
+  { install_exception_handler;
+  delay this to first use
+  as other units also might install their handlers PM }
 
 finalization
 
