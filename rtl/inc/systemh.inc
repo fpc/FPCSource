@@ -88,6 +88,8 @@ Type
   TAnsiChar   = Char;
   AnsiChar    = TAnsiChar;
   PAnsiChar   = PChar;
+  PQWord      = ^QWord;
+  PInt64      = ^Int64;
 
 {$ifdef HASWIDECHAR}
   PWideChar   = ^WideChar;
@@ -438,7 +440,10 @@ const
 
 {
   $Log$
-  Revision 1.81  2000-04-24 11:11:50  peter
+  Revision 1.82  2000-05-14 18:46:54  florian
+    * TVarRec with In64/QWord stuff extended
+
+  Revision 1.81  2000/04/24 11:11:50  peter
     * backtraces for exceptions are now only generated from the place of the
       exception
     * frame is also pushed for exceptions
