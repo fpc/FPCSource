@@ -556,6 +556,7 @@ procedure testtypecastqword;
      l1,l2 : longint;
      d1,d2 : dword;
      q1,q2 : qword;
+     d1,d2 : double;
 
   begin
      { shortint }
@@ -632,6 +633,33 @@ procedure testtypecastqword;
      d2:=q2;
      if d1<>d2 then
        do_error(2005);
+
+     { real }
+     { memory location }
+     q1:=12;
+     d1:=q1;
+     d2:=12;
+     if d1<>d2 then
+       do_error(2012);
+
+     { register location }
+     q1:=12;
+     d1:=q1+1;
+     d2:=13;
+     if d1<>d2 then
+       do_error(2013);
+
+     // a constant which can't be loaded with fild
+     q1:=$80000000;
+     q1:=q1 shl 32;
+     d1:=q1;
+     d2:=$80000000;
+     if d1<>d2*d2*2.0 then
+       do_error(20);
+     // register location
+     d1:=q1+1;
+     if d1<>d2*d2*2.0+1 then
+       do_error(2014);
   end;
 
 procedure testioqword;
@@ -677,26 +705,29 @@ procedure teststringqword;
      q1,q2 : qword;
      s : string;
      l : longint;
+     a : ansistring;
 
   begin
-     {!!!!!!!!!!!
-     { testing str }
+     { testing str: shortstring }
      // simple tests
      q1:=1;
-     int_str(q1,s);
+     str(q1,s);
      if s<>'1' then
        do_error(2200);
      // simple tests
      q1:=0;
-     int_str(q1,s);
+     str(q1,s);
      if s<>'0' then
        do_error(2201);
 
      // more complex tests 
      q1:=4321;
-     int_str(q1,s);
+     str(q1,s);
      if s<>'4321' then
        do_error(2202);
+     str(q1:6,s);
+     if s<>'  4321' then
+       do_error(2203);
 
      // create a big qword:
      q2:=1234;
@@ -704,12 +735,32 @@ procedure teststringqword;
      q2:=q2*l;
      l:=54321;
      q2:=q2+l;
-     int_str(q2,s);
+     str(q2,s);
      if s<>'1234000054321' then
-       do_error(2203);
+       do_error(2204);
+
+     { testing str: ansistring }
+     // more complex tests 
+     q1:=4321;
+     str(q1,a);
+     if a<>'4321' then
+       do_error(2205);
+     str(q1:6,a);
+     if a<>'  4321' then
+       do_error(2206);
+
+     // create a big qword:
+     q2:=1234;
+     l:=1000000000;
+     q2:=q2*l;
+     l:=54321;
+     q2:=q2+l;
+     str(q2,a);
+     if a<>'1234000054321' then
+       do_error(2207);
+
      { testing val }
      { !!!!!!!     }
-     }
   end;
 
 procedure testmodqword;
@@ -932,6 +983,8 @@ procedure testintqword;
        do_error(2602);
      if hi(q1+$f0000000)<>$fafafafa then
        do_error(2603);
+
+     // swap
      assignqword($03030303,$fafafafa,q2);
      if swap(q1)<>q2 then
        do_error(2604);
