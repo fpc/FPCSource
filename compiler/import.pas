@@ -81,6 +81,9 @@ uses
   {$ifndef NOTARGETWIN32}
     ,t_win32
   {$endif}
+  {$ifndef NOTARGETNETWARE}
+    ,t_nwm
+  {$endif}
   {$ifndef NOTARGETGO32V2}
     ,t_go32v2
   {$endif}
@@ -228,6 +231,8 @@ begin
       importlib:=new(pimportlibwin32,Init);
     target_i386_OS2 :
       importlib:=new(pimportlibos2,Init);
+    target_i386_Netware :
+      importlib:=new(pimportlibnetware,Init);
 {$endif i386}
 {$ifdef m68k}
     target_m68k_Linux :
@@ -250,7 +255,11 @@ end;
 end.
 {
   $Log$
-  Revision 1.3  2000-08-27 16:11:51  peter
+  Revision 1.4  2000-09-11 17:00:23  florian
+    + first implementation of Netware Module support, thanks to
+      Armin Diehl (diehl@nordrhein.de) for providing the patches
+
+  Revision 1.3  2000/08/27 16:11:51  peter
     * moved some util functions from globals,cobjects to cutils
     * splitted files into finput,fmodule
 

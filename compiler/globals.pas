@@ -118,7 +118,7 @@ unit globals;
        usewindowapi  : boolean;
        description   : string;
        dllversion    : string;
-       dllmajor,dllminor : word;
+       dllmajor,dllminor,dllrevision : word;  { revision only for netware }
 
        { current position }
        token,                        { current token being parsed }
@@ -1198,7 +1198,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.7  2000-08-27 16:11:51  peter
+  Revision 1.8  2000-09-11 17:00:22  florian
+    + first implementation of Netware Module support, thanks to
+      Armin Diehl (diehl@nordrhein.de) for providing the patches
+
+  Revision 1.7  2000/08/27 16:11:51  peter
     * moved some util functions from globals,cobjects to cutils
     * splitted files into finput,fmodule
 

@@ -703,10 +703,10 @@ const
 
     procedure dir_description(t:tdirectivetoken);
       begin
-        if not (target_info.target in [target_i386_os2,target_i386_win32]) then
+        if not (target_info.target in [target_i386_os2,target_i386_win32,target_i386_netware]) then
           Message(scan_w_decription_not_support);
         { change description global var in all cases }
-        { it not used but in win32 and os2 }
+        { it not used but in win32, os2 and netware }
         current_scanner^.skipspace;
         description:=current_scanner^.readcomment;
       end;
@@ -714,10 +714,10 @@ const
 
     procedure dir_version(t:tdirectivetoken);
       var
-        major, minor : longint;
+        major, minor, revision : longint;
         error : integer;
       begin
-        if not (target_info.target in [target_i386_os2,target_i386_win32]) then
+        if not (target_info.target in [target_i386_os2,target_i386_win32,target_i386_netware]) then  // AD
           begin
             Message(scan_n_version_not_support);
             exit;
@@ -727,12 +727,13 @@ const
         else
           begin
             { change description global var in all cases }
-            { it not used but in win32 and os2 }
+            { it not used but in win32, os2 and netware }
             current_scanner^.skipspace;
-            { we should only accept Major.Minor format }
+            { we should only accept Major.Minor format for win32 and os2 }
             current_scanner^.readnumber;
             major:=0;
             minor:=0;
+            revision:=0;
             valint(pattern,major,error);
             if error<>0 then
               begin
@@ -749,9 +750,28 @@ const
                     Message1(scan_w_wrong_version_ignored,tostr(major)+'.'+pattern);
                     exit;
                   end;
-                dllmajor:=major;
-                dllminor:=minor;
-                dllversion:=tostr(major)+'.'+tostr(minor);
+                if (c='.') and
+                   (target_info.target = target_i386_netware) then  // AD
+                  begin
+                     current_scanner^.readchar;
+                     current_scanner^.readnumber;
+                     valint(pattern,revision,error);
+                     if error<>0 then
+                       begin
+                          Message1(scan_w_wrong_version_ignored,tostr(revision)+'.'+pattern);
+                          exit;
+                       end;
+                     dllmajor:=major;
+                     dllminor:=minor;
+                     dllrevision:=revision;
+                     dllversion:=tostr(major)+','+tostr(minor)+','+tostr(revision);
+                  end 
+                else
+                  begin                
+                     dllmajor:=major;
+                     dllminor:=minor;
+                     dllversion:=tostr(major)+'.'+tostr(minor);
+                  end; 
               end
             else
               dllversion:=tostr(major);
@@ -1444,7 +1464,11 @@ const
 
 {
   $Log$
-  Revision 1.5  2000-09-10 21:18:15  peter
+  Revision 1.6  2000-09-11 17:00:23  florian
+    + first implementation of Netware Module support, thanks to
+      Armin Diehl (diehl@nordrhein.de) for providing the patches
+
+  Revision 1.5  2000/09/10 21:18:15  peter
     * macro warning (merged)
 
   Revision 1.4  2000/08/12 15:30:44  peter

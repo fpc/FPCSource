@@ -58,8 +58,9 @@ unit systems;
      type
        ttarget = (target_none
             ,target_i386_GO32V1,target_i386_GO32V2,target_i386_linux,
-            target_i386_OS2,target_i386_Win32
-            ,target_m68k_Amiga,target_m68k_Atari,target_m68k_Mac,
+            target_i386_OS2,target_i386_Win32,
+            target_i386_Netware,  // AD
+            target_m68k_Amiga,target_m68k_Atari,target_m68k_Mac,
             target_m68k_linux,target_m68k_PalmOS,target_alpha_linux,
             target_powerpc_linux,target_powerpc_macos
        );
@@ -72,7 +73,7 @@ unit systems;
        { alias for supported_target field in tasminfo }
        target_any = target_none;
 
-       {$ifdef i386} i386targetcnt=5; {$else} i386targetcnt=0; {$endif}
+       {$ifdef i386} i386targetcnt=6; {$else} i386targetcnt=0; {$endif}
        {$ifdef m68k} m68ktargetcnt=5; {$else} m68ktargetcnt=0; {$endif}
        {$ifdef alpha} alphatargetcnt=1; {$else} alphatargetcnt=0; {$endif}
        {$ifdef powerpc} powerpctargetcnt=2; {$else} powerpctargetcnt=0; {$endif}
@@ -127,11 +128,12 @@ unit systems;
        tos = ( os_none,
             os_i386_GO32V1,os_i386_GO32V2,os_i386_Linux,os_i386_OS2,
             os_i386_Win32,
+            os_i386_Netware,  // AD
             os_m68k_Amiga,os_m68k_Atari,os_m68k_Mac,os_m68k_Linux,
             os_m68k_PalmOS,os_alpha_linux,os_powerpc_linux,os_powerpc_macos
        );
      const
-       i386oscnt=5;
+       i386oscnt=6;
        m68koscnt=5;
        alphaoscnt=1;
        powerpcoscnt=2;
@@ -358,6 +360,28 @@ implementation
             endian       : endian_little;
             stackalignment : 4;
             maxCrecordalignment : 16;
+            size_of_pointer : 4;
+            size_of_longint : 4;
+            use_bound_instruction : false;
+            use_function_relative_addresses : true
+          ),
+          (
+            id     : os_i386_Netware;
+            name         : 'Netware for i386';
+            shortname    : 'netware';
+            sharedlibext : '.nlm';
+            staticlibext : '.a';
+            sourceext    : '.pp';
+            pasext       : '.pas';
+            exeext       : '.nlm';
+            defext       : '.def';
+            scriptext    : '.sh';
+            libprefix    : '';
+            Cprefix      : '';
+            newline      : #13#10;
+            endian       : endian_little;
+            stackalignment : 4;
+            maxCrecordalignment : 4;
             size_of_pointer : 4;
             size_of_longint : 4;
             use_bound_instruction : false;
@@ -750,7 +774,7 @@ implementation
             idtxt  : 'ELF';
             asmbin : '';
             asmcmd : '';
-            supported_target : target_i386_linux;
+            supported_target : target_any;  //target_i386_linux;
             allowdirect : false;
             externals : true;
             needar : false;
@@ -1104,6 +1128,30 @@ implementation
             heapsize    : 256*1024;
             maxheapsize : 32*1024*1024;
             stacksize   : 32*1024*1024
+          ),
+          (
+            target      : target_i386_NETWARE;
+            flags       : [];
+            cpu         : i386;
+            short_name  : 'NETWARE';
+            unit_env    : 'NETWAREUNITS';
+            system_unit : 'sysnetwa';
+            smartext    : '.sl';
+            unitext     : '.ppn';
+            unitlibext  : '.ppl';
+            asmext      : '.s';
+            objext      : '.on';
+            resext      : '.res';
+            resobjext   : '.or';
+            exeext      : '';
+            os          : os_i386_Netware;
+            assem       : as_i386_elf;
+            assemsrc    : as_i386_as;
+            ar          : ar_i386_ar;
+            res         : res_none;
+            heapsize    : 256*1024;
+            maxheapsize : 32768*1024;
+            stacksize   : 8192
           )
 {$endif i386}
 {$ifdef m68k}
@@ -1660,7 +1708,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.5  2000-08-12 19:14:59  peter
+  Revision 1.6  2000-09-11 17:00:23  florian
+    + first implementation of Netware Module support, thanks to
+      Armin Diehl (diehl@nordrhein.de) for providing the patches
+
+  Revision 1.5  2000/08/12 19:14:59  peter
     * ELF writer works now also with -g
     * ELF writer is default again for linux
 

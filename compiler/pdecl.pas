@@ -1261,7 +1261,8 @@ unit pdecl;
                         Message(parser_e_syntax_error);
                         consume_all_until(_SEMICOLON);
                      end
-                   else if islibrary or (target_info.target=target_i386_WIN32) then
+                   else if islibrary or (target_info.target=target_i386_WIN32)
+                   or (target_info.target=target_i386_Netware) then  // AD
                      read_exports;
                 end
               else break;
@@ -1296,7 +1297,11 @@ unit pdecl;
 end.
 {
   $Log$
-  Revision 1.13  2000-08-27 20:19:39  peter
+  Revision 1.14  2000-09-11 17:00:23  florian
+    + first implementation of Netware Module support, thanks to
+      Armin Diehl (diehl@nordrhein.de) for providing the patches
+
+  Revision 1.13  2000/08/27 20:19:39  peter
     * store strings with case in ppu, when an internal symbol is created
       a '$' is prefixed so it's not automatic uppercased
 

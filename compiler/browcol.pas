@@ -2094,7 +2094,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.7  2000-09-01 21:27:50  peter
+  Revision 1.8  2000-09-11 17:00:22  florian
+    + first implementation of Netware Module support, thanks to
+      Armin Diehl (diehl@nordrhein.de) for providing the patches
+
+  Revision 1.7  2000/09/01 21:27:50  peter
     * changed files to finput,fmodule
 
   Revision 1.6  2000/08/18 14:33:07  marco

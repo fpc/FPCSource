@@ -93,6 +93,9 @@ uses
   {$ifndef NOTARGETWIN32}
     ,t_win32
   {$endif}
+  {$ifndef NOTARGETNETWARE}
+    ,t_nwm
+  {$endif}
   {$ifndef NOTARGETGO32V1}
     ,t_go32v1
   {$endif}
@@ -474,6 +477,10 @@ begin
     target_i386_Win32 :
       linker:=new(plinkerwin32,Init);
   {$endif}
+  {$ifndef NOTARGETNETWARE}
+    target_i386_Netware :
+      linker:=new(plinkernetware,Init);
+  {$endif}
   {$ifndef NOTARGETGO32V1}
     target_i386_Go32v1 :
       linker:=new(plinkergo32v1,Init);
@@ -525,7 +532,11 @@ end;
 end.
 {
   $Log$
-  Revision 1.5  2000-09-04 09:40:23  michael
+  Revision 1.6  2000-09-11 17:00:23  florian
+    + first implementation of Netware Module support, thanks to
+      Armin Diehl (diehl@nordrhein.de) for providing the patches
+
+  Revision 1.5  2000/09/04 09:40:23  michael
   + merged Patch from peter
 
   Revision 1.4  2000/08/27 16:11:51  peter

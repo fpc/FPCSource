@@ -80,6 +80,9 @@ uses
   {$ifndef NOTARGETWIN32}
     ,t_win32
   {$endif}
+  {$ifndef NOTARGETNETWARE}
+    ,t_nwm
+  {$endif}
   {$ifndef NOTARGETGO32V2}
     ,t_go32v2
   {$endif}
@@ -188,6 +191,8 @@ begin
       exportlib:=new(pexportliblinux,Init);
     target_i386_Win32 :
       exportlib:=new(pexportlibwin32,Init);
+    target_i386_Netware :
+      exportlib:=new(pexportlibnetware,Init);
 {
     target_i386_OS2 :
       exportlib:=new(pexportlibos2,Init);
@@ -214,7 +219,11 @@ end;
 end.
 {
   $Log$
-  Revision 1.3  2000-08-27 16:11:50  peter
+  Revision 1.4  2000-09-11 17:00:22  florian
+    + first implementation of Netware Module support, thanks to
+      Armin Diehl (diehl@nordrhein.de) for providing the patches
+
+  Revision 1.3  2000/08/27 16:11:50  peter
     * moved some util functions from globals,cobjects to cutils
     * splitted files into finput,fmodule
 
