@@ -1,0 +1,19 @@
+#
+#   Makefile.fpc for h2pas
+#
+
+[targets]
+programs=fprcp
+
+[clean]
+units=comments pexpr pasprep
+
+[dirs]
+fpcdir=../..
+
+[defaults]
+
+
+[rules]
+
+fpcrp$(EXEEXT): fpcrp$(PASEXT) comments$(PASEXT) pexpr$(PASEXPR) pasprep$(PASEXPR)
