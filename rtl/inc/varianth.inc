@@ -173,6 +173,7 @@ function IsVariantManagerSet: Boolean;
 var
    VarDispProc : pointer;
    DispCallByIDProc : pointer;
+   Null,Unassigned : Variant;
 
 {**********************************************************************
                        to Variant assignments
@@ -278,7 +279,10 @@ operator <=(const op1,op2 : variant) dest : boolean;
 
 {
   $Log$
-  Revision 1.9  2002-10-07 15:10:45  florian
+  Revision 1.10  2002-10-09 19:08:22  florian
+    + Variant constants Unassigned and Null added
+
+  Revision 1.9  2002/10/07 15:10:45  florian
     + variant wrappers for cmp operators added
 
   Revision 1.8  2002/10/07 10:27:45  florian
