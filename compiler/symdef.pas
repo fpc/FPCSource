@@ -2893,17 +2893,14 @@ implementation
 
 
     function tarraydef.elecount : aint;
-{$ifdef cpu64bit}
       var
         qhigh,qlow : qword;
-{$endif cpu64bit}
       begin
         if IsDynamicArray then
           begin
             result:=0;
             exit;
           end;
-{$ifdef cpu64bit}
         if (highrange>0) and (lowrange<0) then
           begin
             qhigh:=highrange;
@@ -2915,7 +2912,6 @@ implementation
               result:=qhigh+qlow+1;
           end
         else
-{$endif cpu64bit}
           result:=int64(highrange)-lowrange+1;
       end;
 
@@ -6218,7 +6214,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.265  2004-11-04 17:09:54  peter
+  Revision 1.266  2004-11-04 17:58:48  peter
+  elecount also on 32bit needs the qword part to prevent overflow
+
+  Revision 1.265  2004/11/04 17:09:54  peter
   fixed debuginfo for variables in staticsymtable
 
   Revision 1.264  2004/11/03 09:46:34  florian
