@@ -270,9 +270,11 @@ begin
      do_stop:={$ifdef FPCPROCVAR}@{$endif}recoverstop;
 {$endif USEEXCEPT}
      starttime:=getrealtime;
+{$ifdef PREPROCWRITE}
      if parapreprocess then
       parser.preprocess(inputdir+inputfile+inputextension)
      else
+{$endif PREPROCWRITE}
       parser.compile(inputdir+inputfile+inputextension,false);
      if status.errorcount=0 then
       begin
@@ -319,9 +321,8 @@ end;
 end.
 {
   $Log$
-  Revision 1.12  2000-12-23 19:59:35  peter
-    * object to class for ow/og objects
-    * split objectdata from objectoutput
+  Revision 1.13  2000-12-24 12:24:38  peter
+    * moved preprocessfile into a conditional
 
   Revision 1.11  2000/11/29 00:30:30  florian
     * unused units removed from uses clause

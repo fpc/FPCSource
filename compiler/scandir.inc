@@ -1390,8 +1390,10 @@ const
             t:=Get_Directive(hs);
             if not(is_conditional(t) or (t=_DIR_DEFINE) or (t=_DIR_UNDEF)) then
              begin
+{$ifdef PREPROCWRITE}
                preprocfile^.AddSpace;
                preprocfile^.Add('{$'+hs+current_scanner^.readcomment+'}');
+{$endif PREPROCWRITE}
                exit;
              end;
           end;
@@ -1459,7 +1461,10 @@ const
 
 {
   $Log$
-  Revision 1.13  2000-12-12 19:48:52  peter
+  Revision 1.14  2000-12-24 12:24:38  peter
+    * moved preprocessfile into a conditional
+
+  Revision 1.13  2000/12/12 19:48:52  peter
     * fixed lost char after $I directive (merged)
 
   Revision 1.12  2000/11/12 22:17:47  peter

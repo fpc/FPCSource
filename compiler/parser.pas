@@ -26,7 +26,9 @@ unit parser;
 
 interface
 
+{$ifdef PREPROCWRITE}
     procedure preprocess(const filename:string);
+{$endif PREPROCWRITE}
     procedure compile(const filename:string;compile_system:boolean);
     procedure initparser;
     procedure doneparser;
@@ -133,6 +135,7 @@ implementation
       end;
 
 
+{$ifdef PREPROCWRITE}
     procedure preprocess(const filename:string);
       var
         i : longint;
@@ -200,6 +203,7 @@ implementation
        { close }
          dispose(preprocfile,done);
       end;
+{$endif PREPROCWRITE}
 
 
     procedure compile(const filename:string;compile_system:boolean);
@@ -585,7 +589,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.11  2000-11-29 00:30:34  florian
+  Revision 1.12  2000-12-24 12:24:38  peter
+    * moved preprocessfile into a conditional
+
+  Revision 1.11  2000/11/29 00:30:34  florian
     * unused units removed from uses clause
     * some changes for widestrings
 

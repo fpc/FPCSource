@@ -135,6 +135,7 @@ interface
           function  asmgetchar:char;
        end;
 
+{$ifdef PREPROCWRITE}
        ppreprocfile=^tpreprocfile;
        tpreprocfile=object
          f   : text;
@@ -146,7 +147,7 @@ interface
          procedure Add(const s:string);
          procedure AddSpace;
        end;
-
+{$endif PREPROCWRITE}
 
     var
         { read strings }
@@ -161,7 +162,9 @@ interface
 
         current_scanner : pscannerfile;
         aktcommentstyle : tcommentstyle; { needed to use read_comment from directives }
+{$ifdef PREPROCWRITE}
         preprocfile     : ppreprocfile; { used with only preprocessing }
+{$endif PREPROCWRITE}
 
 
 implementation
@@ -238,6 +241,7 @@ implementation
                             Preprocessor writting
 *****************************************************************************}
 
+{$ifdef PREPROCWRITE}
     constructor tpreprocfile.init(const fn:string);
       begin
       { open outputfile }
@@ -282,6 +286,7 @@ implementation
             spacefound:=false;
           end;
       end;
+{$endif PREPROCWRITE}
 
 
 {*****************************************************************************
@@ -1261,6 +1266,7 @@ implementation
               skipcomment;
             ' ',#9..#13 :
               begin
+{$ifdef PREPROCWRITE}
                 if parapreprocess then
                  begin
                    if c=#10 then
@@ -1268,6 +1274,7 @@ implementation
                    else
                     preprocfile^.spacefound:=true;
                  end;
+{$endif PREPROCWRITE}
                 skipspace;
               end
             else
@@ -1939,7 +1946,10 @@ exit_label:
 end.
 {
   $Log$
-  Revision 1.11  2000-12-18 17:59:01  peter
+  Revision 1.12  2000-12-24 12:24:38  peter
+    * moved preprocessfile into a conditional
+
+  Revision 1.11  2000/12/18 17:59:01  peter
     * fixed skipuntildirective
 
   Revision 1.10  2000/12/16 15:36:02  peter
