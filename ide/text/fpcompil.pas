@@ -81,6 +81,7 @@ const
 
 procedure DoCompile(Mode: TCompileMode);
 function  NeedRecompile: boolean;
+procedure ParseUserScreen;
 
 procedure RegisterFPCompile;
 
@@ -95,7 +96,7 @@ uses
   App,Commands,tokens,
   CompHook, Compiler, systems, browcol,
   WUtils,WEditor,
-  FPRedir,FPDesk,
+  FPRedir,FPDesk,FPUsrScr,
   FPIde,FPConst,FPVars,FPUtils,FPIntf,FPSwitch;
 
 {$ifndef NOOBJREG}
@@ -114,6 +115,55 @@ const
   );
 {$endif}
 
+
+procedure ParseUserScreen;
+var
+  y : longint;
+  Text,Attr : String;
+  DisplayCompilerWindow : boolean;
+
+    procedure InsertInMessages(Const TypeStr : String;_Type : longint;EnableDisplay : boolean);
+      var p,p2,col,row : longint;
+          St,ModuleName : string;
+
+      begin
+        p:=pos(TypeStr,Text);
+        p2:=Pos('(',Text);
+        if (p>0)  and (p2>0) and (p2<p) then
+          begin
+            ModuleName:=Copy(Text,1,p2-1);
+            st:=Copy(Text,p2+1,255);
+            Val(Copy(st,1,pos(',',st)-1),row);
+            st:=Copy(st,Pos(',',st)+1,255);
+            Val(Copy(st,1,pos(')',st)-1),col);
+            If EnableDisplay then
+              DisplayCompilerWindow:=true;
+            CompilerMessageWindow^.AddMessage(_type,Copy(Text,pos(':',Text)+1,255)
+              ,ModuleName,row,col);
+          end;
+      end;
+
+begin
+  if not assigned(UserScreen) then
+    exit;
+  DisplayCompilerWindow:=false;
+  for Y:=0 to UserScreen^.GetHeight do
+    begin
+      UserScreen^.GetLine(Y,Text,Attr);
+      InsertInMessages(' Fatal:',v_Fatal,true);
+      InsertInMessages(' Error:',v_Error,true);
+      InsertInMessages(' Warning:',v_Warning,true);
+      InsertInMessages(' Note:',v_Note,false);
+      InsertInMessages(' Info:',v_Info,false);
+      InsertInMessages(' Hint:',v_Hint,false);
+    end;
+  if DisplayCompilerWindow then
+    begin
+      if not CompilerMessageWindow^.GetState(sfVisible) then
+        CompilerMessageWindow^.Show;
+      CompilerMessageWindow^.MakeFirst;
+    end;
+end;
 
 {*****************************************************************************
                                TCompilerMessage
@@ -334,7 +384,7 @@ constructor TCompilerStatusDialog.Init;
 var R: TRect;
 begin
   R.Assign(0,0,50,11);
-  inherited Init(R, 'Compiling');
+  inherited Init(R, 'Compiling  ('+KillTilde(SwitchesModeName[SwitchesMode])+' mode)');
   GetExtent(R); R.B.Y:=11;
   R.Grow(-3,-2);
   New(ST, Init(R, ''));
@@ -763,7 +813,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.50  2000-02-06 23:41:42  pierre
+  Revision 1.51  2000-03-07 21:54:26  pierre
+   + ParseUserScreen
+
+  Revision 1.50  2000/02/06 23:41:42  pierre
    +  TCompilerMessageListBox.SelectFirstError
 
   Revision 1.49  2000/01/25 00:26:35  pierre
