@@ -210,6 +210,12 @@
      DM_DISPLAYFREQUENCY = $400000;
      CDS_UPDATEREGISTRY = 1;
      CDS_TEST = 2;
+     CDS_FULLSCREEN = 4;
+     CDS_GLOBAL = 8;
+     CDS_SET_PRIMARY = $10;
+     CDS_RESET = $40000000;
+     CDS_SETRECT = $20000000;
+     CDS_NORESET = $10000000;
      DISP_CHANGE_SUCCESSFUL = 0;
      DISP_CHANGE_RESTART = 1;
      DISP_CHANGE_BADFLAGS = -(4);
@@ -5715,7 +5721,10 @@ const
 
 {
   $Log$
-  Revision 1.2  2000-07-13 11:33:59  michael
+  Revision 1.3  2000-12-30 22:40:45  peter
+    * added cds_fullscreen
+
+  Revision 1.2  2000/07/13 11:33:59  michael
   + removed logs
  
 }
