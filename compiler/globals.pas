@@ -112,14 +112,17 @@ interface
 
     var
        { specified inputfile }
-       inputdir       : dirstr;
-       inputfile      : namestr;
-       inputextension : extstr;
+       inputdir          : dirstr;
+       inputfile         : namestr;
+       inputextension    : extstr;
        { specified outputfile with -o parameter }
-       outputfile     : namestr;
+       outputfile        : namestr;
+       outputprefix      : pstring;
+       outputsuffix      : pstring;
+       outputextension   : namestr;
        { specified with -FE or -FU }
-       outputexedir   : dirstr;
-       outputunitdir  : dirstr;
+       outputexedir      : dirstr;
+       outputunitdir     : dirstr;
 
        { things specified with parameters }
        paralinkoptions,
@@ -1803,6 +1806,10 @@ implementation
 
       { Output }
         OutputFile:='';
+        OutputPrefix:=Nil;
+        OutputSuffix:=Nil;
+        OutputExtension:='';
+        
         OutputExeDir:='';
         OutputUnitDir:='';
 
@@ -1913,7 +1920,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.133  2004-07-17 15:51:57  jonas
+  Revision 1.134  2004-08-02 07:15:54  michael
+  + Patch from Christian Iversen to implement  LIBPREFIX/SUFFIX/EXTENSION directives
+
+  Revision 1.133  2004/07/17 15:51:57  jonas
     * shell now returns an exitcode
     * print an error if linking failed when linking was done using a script
 

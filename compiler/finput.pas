@@ -132,12 +132,14 @@ interface
      type
         tmodulebase = class(TLinkedListItem)
           { index }
-          unit_index    : longint;  { global counter for browser }
+          unit_index       : longint;  { global counter for browser }
           { status }
-          state         : tmodulestate;
+          state            : tmodulestate;
           { sources }
-          sourcefiles   : tinputfilemanager;
+          sourcefiles      : tinputfilemanager;
           { paths and filenames }
+          paramallowoutput : boolean;  { original allowoutput parameter }
+          paramfn,                  { original filename }
           path,                     { path where the module is find/created }
           outputpath,               { path where the .s / .o / exe are created }
           modulename,               { name of the module in uppercase }
@@ -613,6 +615,9 @@ uses
         p : dirstr;
         n : NameStr;
         e : ExtStr;
+        prefix,
+        suffix,
+        extension : NameStr;
       begin
          stringdispose(objfilename);
          stringdispose(newfilename);
@@ -624,6 +629,8 @@ uses
          stringdispose(outputpath);
          stringdispose(path);
          { Create names }
+         paramfn := stringdup(fn);
+         paramallowoutput := allowoutput;
          fsplit(fn,p,n,e);
          n:=FixFileName(n);
          { set path }
@@ -643,18 +650,25 @@ uses
          objfilename:=stringdup(p+n+target_info.objext);
          ppufilename:=stringdup(p+n+target_info.unitext);
          { lib and exe could be loaded with a file specified with -o }
-         if AllowOutput and (OutputFile<>'') and (compile_level=1) then
-          n:=OutputFile;
+         prefix := target_info.sharedlibprefix;
+         suffix := '';
+         extension := target_info.sharedlibext;
+         
+         if AllowOutput and (compile_level=1) then
+         begin
+           if OutputFile <> '' then n:=OutputFile;
+           if Assigned(OutputPrefix) then prefix := OutputPrefix^;
+           if Assigned(OutputSuffix) then suffix := OutputSuffix^;
+           if OutputExtension <> '' then extension := OutputExtension;
+         end;
+         
          staticlibfilename:=stringdup(p+target_info.staticlibprefix+n+target_info.staticlibext);
          { output dir of exe can be specified separatly }
          if AllowOutput and (OutputExeDir<>'') then
           p:=OutputExeDir
          else
           p:=path^;
-         if target_info.system in [system_i386_WIN32,system_i386_wdosx] then
-           sharedlibfilename:=stringdup(p+n+target_info.sharedlibext)
-         else
-           sharedlibfilename:=stringdup(p+target_info.sharedlibprefix+n+target_info.sharedlibext);
+         sharedlibfilename:=stringdup(p+prefix+n+suffix+extension);
          exefilename:=stringdup(p+n+target_info.exeext);
          mapfilename:=stringdup(p+n+'.map');
       end;
@@ -712,7 +726,10 @@ uses
 end.
 {
   $Log$
-  Revision 1.25  2004-06-20 08:55:29  florian
+  Revision 1.26  2004-08-02 07:15:54  michael
+  + Patch from Christian Iversen to implement  LIBPREFIX/SUFFIX/EXTENSION directives
+
+  Revision 1.25  2004/06/20 08:55:29  florian
     * logs truncated
 
   Revision 1.24  2004/06/16 20:07:07  florian
