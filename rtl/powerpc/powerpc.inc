@@ -506,7 +506,7 @@ asm
         mtctr     r10
         { check how many rest there is (to decide whether we'll use }
         { FillCharSmall or FillCharVerySmall)                       }
-        cmpl      cr7,r4,11
+        cmplwi    cr7,r4,11
         { if filling with zero, only use dcbz }
         bne       cr1, .LFillCharNoZero
         { make r3 point again to the actual store position }
@@ -1060,7 +1060,10 @@ end;
 
 {
   $Log$
-  Revision 1.62  2004-01-02 17:21:50  jonas
+  Revision 1.63  2004-01-03 19:46:29  jonas
+    * fixed syntax error caught by Mac OS X' as :)
+
+  Revision 1.62  2004/01/02 17:21:50  jonas
     + fpc_cpuinit procedure to allow cpu/fpu initialisation before any unit
       initialises
     + fpu exceptions for invalid operations and division by zero enabled for
