@@ -26,7 +26,7 @@ This program comes under the GNU General Public Licence
 For more information read COPYING
 <lf>
 Report bugs,suggestions etc to:
-                klaempfl@haegar.cip.mw.tu-muenchen.de
+                ba2395@fen.baynet.de
 ;
 ; The -? help pages
 ;
