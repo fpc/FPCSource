@@ -1,3 +1,5 @@
+{ %FAIL }
+
 { derived from Web Bug Report 1203 }
 {$mode objfpc}
 type

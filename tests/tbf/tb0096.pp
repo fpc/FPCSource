@@ -1,3 +1,5 @@
+{ %FAIL }
+
 { derived from source for Bug Report 1203 }
 { in FPC mode this shouldn't compile      }
 {$mode objfpc}
