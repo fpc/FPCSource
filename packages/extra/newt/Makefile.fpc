@@ -1,0 +1,20 @@
+#
+#   Makefile.fpc for newt library interface
+#
+
+[package]
+name=newt
+version=1.9.6
+
+[target]
+units=newt
+examples=newt1 newt2 newt3
+
+[require]
+libc=y
+
+[install]
+fpcpackage=y
+
+[default]
+fpcdir=../../..
