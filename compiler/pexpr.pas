@@ -1194,15 +1194,6 @@ implementation
             end;
 
             begin
-              { check semantics of private }
-              if (srsym.typ in [propertysym,procsym,varsym]) and
-                 (srsym.owner.symtabletype=objectsymtable) then
-               begin
-                 if (sp_private in srsym.symoptions) and
-                    (tobjectdef(srsym.owner.defowner).owner.symtabletype=globalsymtable) and
-                    (tobjectdef(srsym.owner.defowner).owner.unitid<>0) then
-                   Message(parser_e_cant_access_private_member);
-               end;
               case srsym.typ of
                 absolutesym :
                   begin
@@ -2490,7 +2481,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.164  2004-10-12 14:35:47  peter
+  Revision 1.165  2004-10-12 19:51:13  peter
+    * all checking for visibility is now done by is_visible_for_object
+
+  Revision 1.164  2004/10/12 14:35:47  peter
     * cstyle operators with calln in the tree now use a temp
 
   Revision 1.163  2004/08/25 15:58:36  peter

@@ -1247,7 +1247,7 @@ implementation
                hsym:=search_class_member(tobjectdef(next.next.defowner),sym.name);
                if assigned(hsym) and
                  { private ids can be reused }
-                  (not(sp_private in hsym.symoptions) or
+                  (hsym.is_visible_for_object(tobjectdef(next.next.defowner)) or
                    (hsym.owner.defowner.owner.symtabletype<>globalsymtable)) then
                 begin
                   { delphi allows to reuse the names in a class, but not
@@ -2314,7 +2314,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.157  2004-10-11 15:48:15  peter
+  Revision 1.158  2004-10-12 19:51:13  peter
+    * all checking for visibility is now done by is_visible_for_object
+
+  Revision 1.157  2004/10/11 15:48:15  peter
     * small regvar for para fixes
     * function tvarsym.is_regvar added
     * tvarsym.getvaluesize removed, use getsize instead
