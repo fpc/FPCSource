@@ -498,12 +498,12 @@ begin
     top_ref:
       begin
       { create ot field }
-        if (ot and OT_SIZE_MASK)=0 then
+        {if (ot and OT_SIZE_MASK)=0 then
           ot:=OT_MEMORY or opsize_2_type[i,opsize]
         else
           ot:=OT_MEMORY or (ot and OT_SIZE_MASK);
         if (ref^.base=R_NONE) and (ref^.index=R_NONE) then
-          ot:=ot or OT_MEM_OFFS;
+          ot:=ot or OT_MEM_OFFS;}
       { fix scalefactor }
         if (ref^.index=R_NONE) then
          ref^.scalefactor:=0
@@ -516,7 +516,7 @@ begin
         if (opsize<>S_W) and (longint(val)>=-128) and (val<=127) then
           ot:=OT_IMM8 or OT_SIGNED
         else
-          ot:=OT_IMMEDIATE or opsize_2_type[i,opsize];
+          ot:=OT_IMMEDIATE {or opsize_2_type[i,opsize];}
       end;
     top_symbol:
       begin
@@ -1108,7 +1108,10 @@ procedure InitAsm;
 end.
 {
     $Log$
-    Revision 1.5  2002-10-15 09:00:28  mazen
+    Revision 1.6  2002-10-19 20:35:07  mazen
+    * carl's patch applied
+
+    Revision 1.5  2002/10/15 09:00:28  mazen
     * sone coding style modified
 
     Revision 1.4  2002/10/13 21:46:07  mazen

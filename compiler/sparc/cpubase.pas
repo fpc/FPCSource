@@ -23,15 +23,15 @@ UNIT cpuBase;
 INTERFACE
 USES globals,cutils,cclasses,aasmbase,cpuinfo,cginfo;
 CONST
-{Size of the instruction table converted by nasmconv.pas}
+  {Size of the instruction table converted by nasmconv.pas}
   maxinfolen=8;
-{Defines the default address size for a processor}
+  {Defines the default address size for a processor}
   OS_ADDR=OS_32;
-{the natural int size for a processor}
+  {the natural int size for a processor}
   OS_INT=OS_32;
-{the maximum float size for a processor}
+  {the maximum float size for a processor}
   OS_FLOAT=OS_F64;
-{the size of a vector register for a processor}
+  {the size of a vector register for a processor}
   OS_VECTOR=OS_M64;{$WARNING "OS_VECTOR" was set to "OS_M64" but not verified!}
 CONST
 {Operand types}
@@ -130,6 +130,7 @@ CONST
   IF_PASS2 	=	LongInt($80000000);{instruction can change in a second pass?}
 TYPE
 {$WARNING CPU32 opcodes do not fully include the Ultra SPRAC instruction set.}
+  { don't change the order of these opcodes! }
   TAsmOp=({$INCLUDE opcode.inc});
   op2strtable=ARRAY[TAsmOp]OF STRING[11];
 CONST
@@ -174,28 +175,6 @@ TYPE
            S_NEAR,
            S_FAR,
            S_SHORT);
-CONST
-  { Intel style operands ! }
-  opsize_2_type:ARRAY[0..2,topsize] of LongInt=(
-    (OT_NONE,
-     OT_BITS8,OT_BITS16,OT_BITS32,OT_BITS16,OT_BITS32,OT_BITS32,
-     OT_BITS16,OT_BITS32,OT_BITS64,
-     OT_BITS32,OT_BITS64,OT_BITS80,OT_BITS64,OT_BITS64,OT_BITS64,
-     OT_NEAR,OT_FAR,OT_SHORT
-    ),
-    (OT_NONE,
-     OT_BITS8,OT_BITS16,OT_BITS32,OT_BITS8,OT_BITS8,OT_BITS16,
-     OT_BITS16,OT_BITS32,OT_BITS64,
-     OT_BITS32,OT_BITS64,OT_BITS80,OT_BITS64,OT_BITS64,OT_BITS64,
-     OT_NEAR,OT_FAR,OT_SHORT
-    ),
-    (OT_NONE,
-     OT_BITS8,OT_BITS16,OT_BITS32,OT_NONE,OT_NONE,OT_NONE,
-     OT_BITS16,OT_BITS32,OT_BITS64,
-     OT_BITS32,OT_BITS64,OT_BITS80,OT_BITS64,OT_BITS64,OT_BITS64,
-     OT_NEAR,OT_FAR,OT_SHORT
-    )
-  );
 {*****************************************************************************}
 {                               Conditions                                    }
 {*****************************************************************************}
@@ -274,9 +253,7 @@ TYPE
      symbol      : tasmsymbol;
      offsetfixup : LongInt;
      options     : trefoptions;
-{$ifdef newcg}
      alignment   : byte;
-{$ENDif newcg}
   END;
       { reference record }
   PParaReference=^TParaReference;
@@ -446,12 +423,14 @@ CONST
 {*************************** generic register names **************************}
 	stack_pointer_reg		=	R_O6;
   frame_pointer_reg		=	R_I6;
-{the return_result_reg, is used inside the called function to store its return
-value when that is a scalar value otherwise a pointer to the address of the
-result is placed inside it}
+
+  {the return_result_reg, is used inside the called function to store its return
+  value when that is a scalar value otherwise a pointer to the address of the
+  result is placed inside it}
 	return_result_reg		=	R_I0;
-{the function_result_reg contains the function result after a call to a scalar
-function othewise it contains a pointer to the returned result}
+
+  {the function_result_reg contains the function result after a call to a scalar
+  function othewise it contains a pointer to the returned result}
 	function_result_reg	=	R_O0;
   self_pointer_reg  =R_G5;
 {There is no accumulator in the SPARC architecture. There are just families of
@@ -526,52 +505,46 @@ VAR
 {*****************************************************************************
                                   Helpers
 *****************************************************************************}
-
-    CONST
-       maxvarregs=30;
-       VarRegs:ARRAY[1..maxvarregs]OF TRegister=(
+const
+  maxvarregs=30;
+  VarRegs:ARRAY[1..maxvarregs]OF TRegister=(
              R_G0,R_G1,R_G2,R_G3,R_G4,R_G5,R_G6,R_G7,
              R_O0,R_O1,R_O2,R_O3,R_O4,R_O5,{R_R14=R_SP}R_O7,
              R_L0,R_L1,R_L2,R_L3,R_L4,R_L5,R_L6,R_L7,
              R_I0,R_I1,R_I2,R_I3,R_I4,R_I5,{R_R30=R_FP}R_I7
         );
-       maxfpuvarregs = 8;
-       max_operands = 3;
+  maxfpuvarregs = 8;
+  max_operands = 3;
+  maxintregs = maxvarregs;
+  maxfpuregs = maxfpuvarregs;
 
-       maxintregs = maxvarregs;
-       maxfpuregs = maxfpuvarregs;
-
-FUNCTION reg2str(r:tregister):string;
 FUNCTION is_calljmp(o:tasmop):boolean;
 FUNCTION flags_to_cond(CONST f:TResFlags):TAsmCond;
 IMPLEMENTATION
-FUNCTION reg2str(r:tregister):string;
-  TYPE
-    TStrReg=ARRAY[TRegister]OF STRING[5];
-  CONST
-    StrReg:TStrReg=({$INCLUDE strregs.inc});
-  BEGIN
-    reg2str:=StrReg[r];
-  END;
-FUNCTION is_calljmp(o:tasmop):boolean;
-  BEGIN
-    CASE o OF
-    A_CALL,A_JMPL:
-      is_calljmp:=true;
-    ELSE
+const
+  CallJmpOp=[A_JMPL..A_CBccc];
+function is_calljmp(o:tasmop):boolean;
+  begin
+    if o in CallJmpOp
+    then
+      is_calljmp:=true
+    else
       is_calljmp:=false;
-    END;
-  END;
-FUNCTION flags_to_cond(CONST f:TResFlags):TAsmCond;
+  end;
+function flags_to_cond(const f:TResFlags):TAsmCond;
   CONST
-    flags_2_cond:ARRAY[TResFlags]OF TAsmCond=(C_E,C_NE,C_G,C_L,C_GE,C_LE,C_C,C_NC,C_A,C_AE,C_B,C_BE);
+    flags_2_cond:ARRAY[TResFlags]OF TAsmCond=
+    (C_E,C_NE,C_G,C_L,C_GE,C_LE,C_C,C_NC,C_A,C_AE,C_B,C_BE);
   BEGIN
     result:=flags_2_cond[f];
   END;
 END.
 {
   $Log$
-  Revision 1.12  2002-10-11 13:35:14  mazen
+  Revision 1.13  2002-10-19 20:35:07  mazen
+  * carl's patch applied
+
+  Revision 1.12  2002/10/11 13:35:14  mazen
   *** empty log message ***
 
   Revision 1.11  2002/10/10 19:57:51  mazen
