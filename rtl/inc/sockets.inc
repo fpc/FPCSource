@@ -98,14 +98,14 @@ begin
   FileRec(SockIn).Handle:=Sock;
   FileRec(SockIn).RecSize:=1;
   FileRec(Sockin).userdata[1]:=S_IN;
-  TextRec(SockIn).Mode := fmInput;
+  FileRec(SockIn).Mode := fmInput;
 
 {Output}
   Assign(SockOut,'.');
   FileRec(SockOut).Handle:=Sock;
   FileRec(SockOut).RecSize:=1;
   FileRec(SockOut).userdata[1]:=S_OUT;
-  TextRec(SockOut).Mode := fmAppend;
+  FileRec(SockOut).Mode := fmAppend;
 end;
 
 {******************************************************************************
@@ -172,7 +172,10 @@ begin
 end;
 {
   $Log$
-  Revision 1.8  2003-11-22 10:33:38  marco
+  Revision 1.9  2003-11-22 10:59:58  marco
+   fix for last one
+
+  Revision 1.8  2003/11/22 10:33:38  marco
    fix from johill for 2801
 
   Revision 1.7  2003/11/22 10:32:41  marco
