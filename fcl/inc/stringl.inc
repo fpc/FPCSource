@@ -219,7 +219,7 @@ end;
 Function TStrings.GetTextStr: string;
 
 Const
-{$ifdef linux}
+{$ifdef Unix}
   NewLineSize=1;
 {$else}
   NewLineSize=2;
@@ -243,7 +243,7 @@ begin
     if L<>0 then
       System.Move(Pointer(S)^,P^,L);
     P:=P+L;
-{$ifndef linux}
+{$ifndef Unix}
     p[0]:=#13;
     p[1]:=#10;
 {$else}
@@ -957,7 +957,10 @@ end;
 
 {
   $Log$
-  Revision 1.2  2000-07-13 11:33:01  michael
+  Revision 1.3  2000-11-13 15:46:55  marco
+   * Unix renamefest for defines.
+
+  Revision 1.2  2000/07/13 11:33:01  michael
   + removed logs
  
 }

@@ -112,7 +112,7 @@ uses Strings;
 constructor TTextDoc.Create;
 begin
   FModified := False;
-{$IFDEF Linux}
+{$IFDEF Unix}
   LineEnding := #10;
 {$ELSE}
   LineEnding := #13#10;
@@ -410,7 +410,10 @@ end.
 
 {
   $Log$
-  Revision 1.2  2000-07-13 11:33:02  michael
+  Revision 1.3  2000-11-13 15:46:55  marco
+   * Unix renamefest for defines.
+
+  Revision 1.2  2000/07/13 11:33:02  michael
   + removed logs
  
 }

@@ -1001,7 +1001,7 @@ type
     property ReturnValue: Integer read FReturnValue write FReturnValue;
     property Terminated: Boolean read FTerminated;
   public
-{$ifdef linux}
+{$ifdef Unix}
     { Needed for linux }
     FStackPointer : integer;
     FStackSize    : integer;
@@ -1236,7 +1236,10 @@ function LineStart(Buffer, BufPos: PChar): PChar;
 
 {
   $Log$
-  Revision 1.4  2000-10-15 10:04:39  peter
+  Revision 1.5  2000-11-13 15:46:55  marco
+   * Unix renamefest for defines.
+
+  Revision 1.4  2000/10/15 10:04:39  peter
     + Capitalization of TBits interface fixed; CheckBitIndex now checks for
       size (merged)
 

@@ -23,7 +23,7 @@ unit zstream;
   paszlib in all cases, just define -dUsePasZlib
   ---------------------------------------------------------------------}
 
-{$ifndef linux}
+{$ifndef Unix}
   {$define usepaszlib}
 {$endif}
 
@@ -449,7 +449,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.2  2000-07-13 11:33:01  michael
+  Revision 1.3  2000-11-13 15:46:55  marco
+   * Unix renamefest for defines.
+
+  Revision 1.2  2000/07/13 11:33:01  michael
   + removed logs
  
 }
