@@ -2181,13 +2181,19 @@ The linker options dialog is shown in
 \end{latexonly}
 The following opions can be set:
 \begin{description}
-\item[Call linker after] 
-\item[Preferred library type]
+\item[Call linker after] If this option is set then a script is written
+which calls the linker. This corresponds to the \seeo{s} on the
+command-line.
+\item[Preferred library type] With this option, the type of library to be
+linked in can be set:
 \begin{description}
-\item[Target default]
-\item[Dynamic libraries]
-\item[Static libraries]
-\item[Smart libraries]
+\item[Target default] This depends on the platform.
+\item[Dynamic libraries] Tries to link in units in dynamical libraries. 
+(option \var{-XD} on the command-line)
+\item[Static libraries] Tries to link in units in statical libraries.
+(option \var{-XS} on the command-line)
+\item[Smart libraries] Tries to link in units in smartlinked libraries.
+(option \var{-XX} on the command-line)
 \end{description}
 \end{description}
 %
@@ -2830,7 +2836,10 @@ Undo & \key{Alt-Backspace} & \\
 \end{FPCltable}
 %
 %  $Log$
-%  Revision 1.1.2.13  2000-12-03 22:32:06  michael
+%  Revision 1.1.2.14  2000-12-06 23:08:56  michael
+%  + Linker options dialog documented
+%
+%  Revision 1.1.2.13  2000/12/03 22:32:06  michael
 %  + More compiler options
 %
 %  Revision 1.1.2.12  2000/11/28 22:53:06  michael
