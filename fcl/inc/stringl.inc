@@ -233,10 +233,7 @@ begin
   // Determine needed place
   L:=0;
   For I:=0 to count-1 do 
-    begin
     L:=L+Length(Strings[I])+NewLineSize;
-    Writeln ('length needed : ',l);
-    end;
   Setlength(Result,L);
   P:=Pointer(Result);
   For i:=0 To count-1 do
@@ -944,7 +941,10 @@ end;
 
 {
   $Log$
-  Revision 1.4  1999-05-26 13:22:23  michael
+  Revision 1.5  1999-07-07 12:34:01  peter
+    * removed debug writeln
+
+  Revision 1.4  1999/05/26 13:22:23  michael
   + Fixed insertitem
 
   Revision 1.3  1999/04/27 07:46:18  michael
