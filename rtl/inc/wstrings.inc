@@ -45,7 +45,7 @@ Const
   WideRecLen = SizeOf(TWideRec);
   WideFirstOff = SizeOf(TWideRec)-1;
 
-{
+(*
 Procedure UniqueWideString(Var S : WideString); [Public,Alias : 'FPC_WIDESTR_UNIQUE'];
 {
   Make sure reference count of S is 1,
@@ -54,8 +54,7 @@ Procedure UniqueWideString(Var S : WideString); [Public,Alias : 'FPC_WIDESTR_UNI
 
 begin
 end;
-}
-
+*)
 
 
 {****************************************************************************
@@ -413,8 +412,8 @@ var
   maxi,
   i,j : longint;
   e   : boolean;
-  S   : WideString;
-  se  : Pointer;
+{  S   : WideString;
+  se  : Pointer; }
 begin
   i := 0;
   j := 0;
@@ -500,7 +499,10 @@ end;}
 
 {
   $Log$
-  Revision 1.5  2000-11-06 20:34:24  peter
+  Revision 1.6  2000-11-06 23:17:15  peter
+    * removed some warnings
+
+  Revision 1.5  2000/11/06 20:34:24  peter
     * changed ver1_0 defines to temporary defs
 
   Revision 1.4  2000/10/21 18:20:17  florian
