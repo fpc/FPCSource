@@ -240,6 +240,13 @@ unit nx86add;
         if (right.location.loc=LOC_MMREGISTER) and (op in [OP_ADD,OP_MUL]) then
           begin
             location.register:=right.location.register;
+            { force floating point reg. location to be written to memory,
+              we don't force it to mm register because writing to memory
+              allows probably shorter code because there is no direct fpu->mm register
+              copy instruction
+            }
+            if left.location.loc in [LOC_FPUREGISTER,LOC_CFPUREGISTER] then
+              location_force_mem(exprasmlist,left.location);
             cg.a_opmm_loc_reg(exprasmlist,op,location.size,left.location,location.register,mms_movescalar);
             location_release(exprasmlist,left.location);
           end
@@ -247,6 +254,13 @@ unit nx86add;
           begin
             location_force_mmregscalar(exprasmlist,left.location,false);
             location.register:=left.location.register;
+            { force floating point reg. location to be written to memory,
+              we don't force it to mm register because writing to memory
+              allows probably shorter code because there is no direct fpu->mm register
+              copy instruction
+            }
+            if right.location.loc in [LOC_FPUREGISTER,LOC_CFPUREGISTER] then
+              location_force_mem(exprasmlist,right.location);
             cg.a_opmm_loc_reg(exprasmlist,op,location.size,right.location,location.register,mms_movescalar);
             location_release(exprasmlist,right.location);
           end;
@@ -255,7 +269,10 @@ unit nx86add;
 end.
 {
   $Log$
-  Revision 1.4  2003-12-26 00:32:22  florian
+  Revision 1.5  2003-12-26 13:19:16  florian
+    * rtl and compiler compile with -Cfsse2
+
+  Revision 1.4  2003/12/26 00:32:22  florian
     + fpu<->mm register conversion
 
   Revision 1.3  2003/12/25 01:07:09  florian

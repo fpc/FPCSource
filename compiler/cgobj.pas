@@ -1400,12 +1400,44 @@ implementation
 
 
     procedure tcg.a_opmm_ref_reg(list: taasmoutput; Op: TOpCG; size : tcgsize;const ref: treference; reg: tregister;shuffle : pmmshuffle);
+      var
+         hr : tregister;
+         hs : tmmshuffle;
       begin
+         hr:=getmmregister(list,size);
+         a_loadmm_ref_reg(list,size,size,ref,hr,shuffle);
+         if realshuffle(shuffle) then
+           begin
+             hs:=shuffle^;
+             removeshuffles(hs);
+             a_opmm_reg_reg(list,op,size,hr,reg,@hs);
+           end
+         else
+           a_opmm_reg_reg(list,op,size,hr,reg,shuffle);
+         ungetregister(list,hr);
       end;
 
 
     procedure tcg.a_opmm_reg_ref(list: taasmoutput; Op: TOpCG; size : tcgsize;reg: tregister; const ref: treference; shuffle : pmmshuffle);
+      var
+         hr : tregister;
+         hs : tmmshuffle;
       begin
+         hr:=getmmregister(list,size);
+         a_loadmm_ref_reg(list,size,size,ref,hr,shuffle);
+         if realshuffle(shuffle) then
+           begin
+             hs:=shuffle^;
+             removeshuffles(hs);
+             a_opmm_reg_reg(list,op,size,reg,hr,@hs);
+             a_loadmm_reg_ref(list,size,size,hr,ref,@hs);
+           end
+         else
+           begin
+             a_opmm_reg_reg(list,op,size,reg,hr,shuffle);
+             a_loadmm_reg_ref(list,size,size,hr,ref,shuffle);
+           end;
+         ungetregister(list,hr);
       end;
 
 
@@ -2000,7 +2032,10 @@ finalization
 end.
 {
   $Log$
-  Revision 1.144  2003-12-24 00:10:02  florian
+  Revision 1.145  2003-12-26 13:19:16  florian
+    * rtl and compiler compile with -Cfsse2
+
+  Revision 1.144  2003/12/24 00:10:02  florian
     - delete parameter in cg64 methods removed
 
   Revision 1.143  2003/12/23 14:38:07  florian

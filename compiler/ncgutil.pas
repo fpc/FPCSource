@@ -670,6 +670,15 @@ implementation
               location_reset(l,LOC_REFERENCE,l.size);
               l.reference:=r;
             end;
+          LOC_MMREGISTER,
+          LOC_CMMREGISTER:
+            begin
+              tg.GetTemp(list,TCGSize2Size[l.size],tt_normal,r);
+              cg.a_loadmm_reg_ref(list,l.size,l.size,l.register,r,mms_movescalar);
+              location_release(list,l);
+              location_reset(l,LOC_REFERENCE,l.size);
+              l.reference:=r;
+            end;
           LOC_CONSTANT,
           LOC_REGISTER,
           LOC_CREGISTER :
@@ -2039,7 +2048,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.178  2003-12-26 00:32:21  florian
+  Revision 1.179  2003-12-26 13:19:16  florian
+    * rtl and compiler compile with -Cfsse2
+
+  Revision 1.178  2003/12/26 00:32:21  florian
     + fpu<->mm register conversion
 
   Revision 1.177  2003/12/24 00:10:02  florian

@@ -421,7 +421,8 @@ implementation
             cgsize2subreg:=R_SUBQ;
           OS_M64:
             cgsize2subreg:=R_SUBNONE;
-          OS_F32,OS_F64:
+          OS_F32,OS_F64,
+          OS_M128,OS_MS128:
             cgsize2subreg:=R_SUBWHOLE;
           else
             internalerror(200301231);
@@ -534,7 +535,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.33  2003-12-25 01:07:09  florian
+  Revision 1.34  2003-12-26 13:19:16  florian
+    * rtl and compiler compile with -Cfsse2
+
+  Revision 1.33  2003/12/25 01:07:09  florian
     + $fputype directive support
     + single data type operations with sse unit
     * fixed more x86-64 stuff

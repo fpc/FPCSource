@@ -830,11 +830,14 @@ unit cgx86;
             )
           ),
           ( { vectorized/packed }
+            { because the logical packed single instructions have shorter op codes, we use always
+              these
+            }
             ( { OS_F32 }
-              A_NOP,A_ADDPS,A_NOP,A_NOP,A_NOP,A_NOP,A_NOP,A_NOP,A_NOP,A_NOP,A_NOP,A_NOP,A_NOP,A_NOP,A_NOP
+              A_NOP,A_ADDPS,A_NOP,A_NOP,A_NOP,A_NOP,A_NOP,A_NOP,A_NOP,A_NOP,A_NOP,A_NOP,A_NOP,A_NOP,A_XORPS
             ),
             ( { OS_F64 }
-              A_NOP,A_ADDPD,A_NOP,A_NOP,A_NOP,A_NOP,A_NOP,A_NOP,A_NOP,A_NOP,A_NOP,A_NOP,A_NOP,A_NOP,A_NOP
+              A_NOP,A_ADDPD,A_NOP,A_NOP,A_NOP,A_NOP,A_NOP,A_NOP,A_NOP,A_NOP,A_NOP,A_NOP,A_NOP,A_NOP,A_XORPS
             )
           )
         );
@@ -1918,7 +1921,10 @@ unit cgx86;
 end.
 {
   $Log$
-  Revision 1.98  2003-12-26 00:32:22  florian
+  Revision 1.99  2003-12-26 13:19:16  florian
+    * rtl and compiler compile with -Cfsse2
+
+  Revision 1.98  2003/12/26 00:32:22  florian
     + fpu<->mm register conversion
 
   Revision 1.97  2003/12/25 12:01:35  florian

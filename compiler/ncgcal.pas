@@ -156,6 +156,20 @@ implementation
                    reference_reset_base(href,tempparaloc.reference.index,tempparaloc.reference.offset);
                  cg.a_loadfpu_reg_ref(exprasmlist,def_cgsize(left.resulttype.def),left.location.register,href);
                end;
+             LOC_MMREGISTER,
+             LOC_CMMREGISTER:
+               begin
+                 size:=align(tfloatdef(left.resulttype.def).size,tempparaloc.alignment);
+                 inc(tcgcallnode(aktcallnode).pushedparasize,size);
+                 if tempparaloc.reference.index=NR_STACK_POINTER_REG then
+                   begin
+                     cg.g_stackpointer_alloc(exprasmlist,size);
+                     reference_reset_base(href,NR_STACK_POINTER_REG,0);
+                   end
+                 else
+                   reference_reset_base(href,tempparaloc.reference.index,tempparaloc.reference.offset);
+                 cg.a_loadmm_reg_ref(exprasmlist,def_cgsize(left.resulttype.def),def_cgsize(left.resulttype.def),left.location.register,href,mms_movescalar);
+               end;
              LOC_REFERENCE,
              LOC_CREFERENCE :
                begin
@@ -1131,7 +1145,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.147  2003-12-21 19:42:42  florian
+  Revision 1.148  2003-12-26 13:19:16  florian
+    * rtl and compiler compile with -Cfsse2
+
+  Revision 1.147  2003/12/21 19:42:42  florian
     * fixed ppc inlining stuff
     * fixed wrong unit writing
     + added some sse stuff
