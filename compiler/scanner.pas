@@ -939,17 +939,23 @@ implementation
              l:=do_special;
              do_special:=0;
              case l of
-              1 : begin
-                    if c='.' then
-                     begin
-                       readchar;
-                       yylex:=POINTPOINT;
-                       goto exit_label;
-                     end;
+              1 : begin { first char was a point }
+                    case c of
+                     '.' : begin
+                             readchar;
+                             yylex:=POINTPOINT;
+                             goto exit_label;
+                           end;
+                     ')' : begin
+                             readchar;
+                             yylex:=RECKKLAMMER;
+                             goto exit_label;
+                           end;
+                    end;
                     yylex:=POINT;
                     goto exit_label;
                   end;
-              2 : begin
+              2 : begin { first char was a Caret }
                     yylex:=CARET;
                     readchar;
                     goto exit_label;
@@ -1083,16 +1089,22 @@ implementation
                       end;
                 '(' : begin
                         readchar;
-                        if c='*' then
-                         begin
-                           skipoldtpcomment;
-                        {$ifndef TP}
-                           yylex:=yylex();
-                        {$else}
-                           yylex:=yylex;
-                        {$endif}
-                           exit;
-                         end;
+                        case c of
+                         '*' : begin
+                                 skipoldtpcomment;
+                               {$ifndef TP}
+                                 yylex:=yylex();
+                               {$else}
+                                 yylex:=yylex;
+                               {$endif}
+                                 exit;
+                               end;
+                         '.' : begin
+                                 readchar;
+                                 yylex:=LECKKLAMMER;
+                                 goto exit_label;
+                               end;
+                        end;
                         yylex:=LKLAMMER;
                         goto exit_label;
                       end;
@@ -1175,21 +1187,26 @@ implementation
                         yylex:=SLASH;
                         goto exit_label;
                       end;
-           '='      : begin
+                '=' : begin
                         readchar;
                         yylex:=EQUAL;
                         goto exit_label;
                       end;
-           '.'      : begin
+                '.' : begin
                         readchar;
-                        if c='.' then
-                         begin
-                           readchar;
-                           yylex:=POINTPOINT;
-                           goto exit_label;
-                         end
-                        else
-                         yylex:=POINT;
+                        case c of
+                         '.' : begin
+                                 readchar;
+                                 yylex:=POINTPOINT;
+                                 goto exit_label;
+                               end;
+                         ')' : begin
+                                 readchar;
+                                 yylex:=RECKKLAMMER;
+                                 goto exit_label;
+                               end;
+                        end;
+                        yylex:=POINT;
                         goto exit_label;
                       end;
                 '@' : begin
@@ -1469,7 +1486,10 @@ exit_label:
 end.
 {
   $Log$
-  Revision 1.49  1998-09-03 11:24:03  peter
+  Revision 1.50  1998-09-04 08:36:06  peter
+    + (. and .) which are equal to [ and ]
+
+  Revision 1.49  1998/09/03 11:24:03  peter
     * moved more inputfile things from tscannerfile to tinputfile
     * changed ifdef Sourceline to cs_asm_source
 
