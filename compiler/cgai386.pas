@@ -2499,6 +2499,7 @@ procedure mov_reg_to_dest(p : ptree; s : topsize; reg : tregister);
         r:Preference;
 
     begin
+        tai := nil;
         case location.loc of
             LOC_REGISTER,LOC_CREGISTER:
                 begin
@@ -2511,10 +2512,9 @@ procedure mov_reg_to_dest(p : ptree; s : topsize; reg : tregister);
                             tai:=new(paicpu,op_reg_reg(A_MOVZX,S_WL,location.register,destreg));
                         s16bit:
                             tai:=new(paicpu,op_reg_reg(A_MOVSX,S_WL,location.register,destreg));
-                        u32bit:
-                            tai:=new(paicpu,op_reg_reg(A_MOV,S_L,location.register,destreg));
-                        s32bit:
-                            tai:=new(paicpu,op_reg_reg(A_MOV,S_L,location.register,destreg));
+                        u32bit,s32bit:
+                            if location.register <> destreg then
+                              tai:=new(paicpu,op_reg_reg(A_MOV,S_L,location.register,destreg));
                     end;
                     if delloc then
                         ungetregister(location.register);
@@ -2548,7 +2548,8 @@ procedure mov_reg_to_dest(p : ptree; s : topsize; reg : tregister);
             else
                 internalerror(6);
         end;
-        exprasmlist^.concat(tai);
+        if assigned(tai) then
+          exprasmlist^.concat(tai);
     end;
 
     { if necessary ESI is reloaded after a call}
@@ -3968,7 +3969,10 @@ procedure mov_reg_to_dest(p : ptree; s : topsize; reg : tregister);
 end.
 {
   $Log$
-  Revision 1.107  2000-06-05 20:39:05  pierre
+  Revision 1.108  2000-06-10 17:31:42  jonas
+    * loadord2reg doesn't generate any "movl %reg1,%reg1" anymore
+
+  Revision 1.107  2000/06/05 20:39:05  pierre
    * fix for inline bug
 
   Revision 1.106  2000/05/26 20:16:00  jonas
