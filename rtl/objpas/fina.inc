@@ -57,7 +57,7 @@ else if (Length(FileName) >= 2) and (FileName[1] in ['/', '\']) and
    (FileName[2] in ['/', '\']) then begin
    i := 2;
    While (i < Length(Filename)) do begin
-	   if Filename[i + 1] in ['/', '\'] then break;
+           if Filename[i + 1] in ['/', '\'] then break;
       inc(i);
       end ;
    Result := Copy(FileName, 1, i);
@@ -110,6 +110,7 @@ Var Source, Dest : String;
 Const OneLevelBack = '..'+OSDirSeparator;
 
 begin
+{$ifdef autoobjpas}
   If Upcase(ExtractFileDrive(BaseName))<>Upcase(ExtractFileDrive(DestName)) Then
     begin
     Result:=DestName;
@@ -122,7 +123,7 @@ begin
   I:=1;
   While (I<DC) and (I<SC) do
     begin
-    If StrIcomp(DD[i],SD[i])=0 then 
+    If StrIcomp(DD[i],SD[i])=0 then
       Inc(i)
     else
       Break;
@@ -131,6 +132,7 @@ begin
   For J:=I to SC-1 do Result:=Result+OneLevelBack;
   For J:=I to DC-1 do Result:=Result+DD[J]+OsDirSeparator;
   Result:=Result+ExtractFileName(DestNAme);
+{$endif}
 end;
 
 Procedure DoDirSeparators (Var FileName : String);
@@ -139,7 +141,7 @@ VAr I : longint;
 
 begin
   For I:=1 to Length(FileName) do
-    If FileName[I] in DirSeparators then 
+    If FileName[I] in DirSeparators then
       FileName[i]:=OSDirSeparator;
 end;
 
@@ -159,12 +161,12 @@ end;
   DirName must contain only OSDirSeparator as Directory separator chars.
 }
 
-Function GetDirs (Var DirName : String; Var Dirs : Array of pchar) : Longint; 
+Function GetDirs (Var DirName : String; Var Dirs : Array of pchar) : Longint;
 
 Var I : Longint;
 
 begin
-  I:=1; 
+  I:=1;
   Result:=-1;
   While I<=Length(DirName) do
     begin
@@ -181,7 +183,10 @@ end;
 
 {
   $Log$
-  Revision 1.3  1998-10-04 20:19:56  michael
+  Revision 1.4  1998-10-05 21:35:41  peter
+    * fixed for 0.99.8
+
+  Revision 1.3  1998/10/04 20:19:56  michael
   + Added missing functions and some extra
 
   Revision 1.2  1998/09/16 08:28:38  michael
