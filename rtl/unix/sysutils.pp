@@ -22,6 +22,7 @@ interface
 {$H+}
 
 {$DEFINE HAS_SLEEP}
+{$DEFINE HAS_OSERROR}
 
 uses
   Unix,errors,sysconst;
@@ -543,6 +544,12 @@ begin
     fpSelect(1,Nil,Nil,@fds,@timeout);
     end;
 end;
+
+Function GetLastOSError : Integer;
+
+begin
+  Result:=ErrNo;
+end;
   
 {****************************************************************************
                               Initialization code
@@ -557,7 +564,10 @@ end.
 {
 
   $Log$
-  Revision 1.31  2004-01-20 23:13:53  hajny
+  Revision 1.32  2004-02-08 11:01:17  michael
+  + Implemented getlastoserror
+
+  Revision 1.31  2004/01/20 23:13:53  hajny
     * ExecuteProcess fixes, ProcessID and ThreadID added
 
   Revision 1.30  2004/01/10 17:34:36  michael
