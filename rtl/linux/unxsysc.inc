@@ -17,13 +17,24 @@
 function fpNice(N:cint):cint;
 {
   Set process priority. A positive N means a lower priority.
-  A negative N decreases priority.
+  A negative N increases priority.
 
 Doesn't exist in BSD. Linux emu uses setpriority in a construct as below:
 }
 
+{$ifdef cpux86_64}
+var
+  oldprio : cint;
+{$endif}  
 begin
+{$ifdef cpux86_64}
+  oldprio:=fpGetPriority(Prio_Process,0);
+  fpNice:=fpSetPriority(Prio_Process,0,oldprio+N);
+  if fpNice=0 then
+    fpNice:=fpGetPriority(Prio_Process,0);
+{$else}  
   fpNice:=do_syscall(Syscall_nr_nice,N);
+{$endif}
 end;
 
 Function fpGetPriority(Which,Who:cint):cint;
@@ -105,7 +116,10 @@ end;
 
 {
  $Log$
- Revision 1.4  2004-01-01 16:10:23  marco
+ Revision 1.5  2004-04-22 17:17:23  peter
+   * x86-64 fixes
+
+ Revision 1.4  2004/01/01 16:10:23  marco
   * fpreadlink(pathstr) moved to unxovl (since not platform specific),
  	small fixes for "make all OPT='-dFPC_USE_LIBC'
 

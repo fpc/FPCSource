@@ -241,6 +241,27 @@ implementation
 
 uses BaseUnix,Syscall;
 
+//{$ifdef linux}
+  {$ifndef cpux86_64}
+    {$define NEED_IPCCALL}
+  {$endif}
+//{$endif}
+
+
+Function ftok (Path : String; ID : char) : TKey;
+Var Info : TStat;
+begin
+  If fpstat(path,info)<0 then
+    ftok:=-1
+  else
+    begin
+    ftok:= (info.st_ino and $FFFF) or ((info.st_dev and $ff) shl 16) or (byte(ID) shl 24)
+    end;
+end;
+
+
+{$ifdef NEED_IPCCALL}
+
 { The following definitions come from linux/ipc.h }
 
 Const
@@ -259,38 +280,21 @@ Const
 { generic call that handles all IPC calls }
 
 function ipccall(Call,First,Second,Third : Longint; P : Pointer) : longint;
-
 begin
- {$IFNDEF bsd}
-  ipccall:=do_syscall(syscall_nr_ipc,call,first,second,third,longint(P));
-  {$Endif}
+{$ifndef BSD}
+ ipccall:=do_syscall(syscall_nr_ipc,call,first,second,third,longint(P));
+{$endif} 
  ipcerror:=fpgetErrno;
 end;
 
-Function ftok (Path : String; ID : char) : TKey;
-
-Var Info : TStat;
-
-begin
-  If fpstat(path,info)<0 then
-    ftok:=-1
-  else
-    begin
-    ftok:= (info.st_ino and $FFFF) or ((info.st_dev and $ff) shl 16) or (byte(ID) shl 24)
-    end;
-end;
-
 function shmget(key: Tkey; size:longint; flag:longint):longint;
-
 begin
   shmget:=ipccall (CALL_SHMGET,key,size,flag,nil);
 end;
 
 function shmat (shmid:longint; shmaddr:pchar; shmflg:longint): pchar;
-
 Var raddr : pchar;
     error : longint;
-
 begin
   error:=ipccall(CALL_SHMAT,shmid,shmflg,longint(@raddr),shmaddr);
   If Error<0 then
@@ -309,29 +313,24 @@ begin
  shmctl:=ipccall(CALL_SHMCTL,shmid,cmd,0,buf)=0;
 end;
 
-Function msgget(key:Tkey; msgflg:longint):longint;
-
+function msgget(key:Tkey; msgflg:longint):longint;
 begin
   msgget:=ipccall(CALL_MSGGET,key,msgflg,0,Nil);
 end;
 
-Function msgsnd(msqid:longint; msgp: PMSGBuf; msgsz: longint; msgflg:longint):Boolean;
-
+function msgsnd(msqid:longint; msgp: PMSGBuf; msgsz: longint; msgflg:longint):Boolean;
 begin
   msgsnd:=ipccall(Call_MSGSND,msqid,msgsz,msgflg,msgp)=0;
 end;
 
-Function msgrcv(msqid:longint; msgp: PMSGBuf; msgsz: longint; msgtyp:longint; msgflg:longint):Boolean;
-
+function msgrcv(msqid:longint; msgp: PMSGBuf; msgsz: longint; msgtyp:longint; msgflg:longint):Boolean;
 Type
   TIPC_Kludge = Record
     msgp   : pmsgbuf;
     msgtyp : longint;
   end;
-
 Var
    tmp : TIPC_Kludge;
-
 begin
   tmp.msgp   := msgp;
   tmp.msgtyp := msgtyp;
@@ -339,19 +338,16 @@ begin
 end;
 
 Function msgctl(msqid:longint; cmd: longint; buf: PMSQid_ds): Boolean;
-
 begin
   msgctl:=ipccall(CALL_MSGCTL,msqid,cmd,0,buf)=0;
 end;
 
 Function semget(key:Tkey; nsems:longint; semflg:longint): longint;
-
 begin
   semget:=ipccall (CALL_SEMGET,key,nsems,semflg,Nil);
 end;
 
 Function semop(semid:longint; sops: pointer; nsops:cardinal): Boolean;
-
 begin
   semop:=ipccall (CALL_SEMOP,semid,Longint(nsops),0,Pointer(sops))=0;
 end;
@@ -361,10 +357,87 @@ begin
   semctl:=ipccall(CALL_SEMCTL,semid,semnum,cmd,@arg);
 end;
 
+{$else NEED_IPCCALL}
+
+function shmget(key: Tkey; size:longint; flag:longint):longint;
+begin
+  shmget:=do_syscall (syscall_nr_SHMGET,TSysParam(key),TSysParam(size),TSysParam(flag),TSysParam(0));
+end;
+
+function shmat (shmid:longint; shmaddr:pchar; shmflg:longint): pchar;
+Var raddr : pchar;
+    error : longint;
+begin
+  error:=do_syscall(syscall_nr_SHMAT,TSysParam(shmid),TSysParam(shmflg),TSysParam(@raddr),TSysParam(shmaddr));
+  If Error<0 then
+    shmat:=pchar(error)
+  else
+    shmat:=raddr;
+end;
+
+function shmdt (shmaddr:pchar): boolean;
+begin
+  shmdt:=do_syscall(syscall_nr_SHMDT,TSysParam(0),TSysParam(0),TSysParam(0),TSysParam(shmaddr))<>-1;
+end;
+
+function shmctl(shmid:longint; cmd:longint; buf: pshmid_ds): Boolean;
+begin
+ shmctl:=do_syscall(syscall_nr_SHMCTL,TSysParam(shmid),TSysParam(cmd),TSysParam(0),TSysParam(buf))=0;
+end;
+
+function msgget(key:Tkey; msgflg:longint):longint;
+begin
+  msgget:=do_syscall(syscall_nr_MSGGET,TSysParam(key),TSysParam(msgflg),TSysParam(0),TSysParam(0));
+end;
+
+function msgsnd(msqid:longint; msgp: PMSGBuf; msgsz: longint; msgflg:longint):Boolean;
+begin
+  msgsnd:=do_syscall(syscall_nr_MSGSND,TSysParam(msqid),TSysParam(msgsz),TSysParam(msgflg),TSysParam(msgp))=0;
+end;
+
+function msgrcv(msqid:longint; msgp: PMSGBuf; msgsz: longint; msgtyp:longint; msgflg:longint):Boolean;
+Type
+  TIPC_Kludge = Record
+    msgp   : pmsgbuf;
+    msgtyp : longint;
+  end;
+Var
+   tmp : TIPC_Kludge;
+begin
+  tmp.msgp   := msgp;
+  tmp.msgtyp := msgtyp;
+  msgrcv:=do_syscall(syscall_nr_MSGRCV,TSysParam(msqid),TSysParam(msgsz),TSysParam(msgflg),TSysParam(@tmp))>=0;
+end;
+
+Function msgctl(msqid:longint; cmd: longint; buf: PMSQid_ds): Boolean;
+begin
+  msgctl:=do_syscall(syscall_nr_MSGCTL,TSysParam(msqid),TSysParam(cmd),TSysParam(0),TSysParam(buf))=0;
+end;
+
+Function semget(key:Tkey; nsems:longint; semflg:longint): longint;
+begin
+  semget:=do_syscall (syscall_nr_SEMGET,TSysParam(key),TSysParam(nsems),TSysParam(semflg),TSysParam(0));
+end;
+
+Function semop(semid:longint; sops: pointer; nsops:cardinal): Boolean;
+begin
+  semop:=do_syscall (syscall_nr_SEMOP,TSysParam(semid),TSysParam(nsops),TSysParam(0),TSysParam(sops))=0;
+end;
+
+Function semctl(semid:longint; semnum:longint; cmd:longint; var arg: tsemun): longint;
+begin
+  semctl:=do_syscall(syscall_nr_SEMCTL,TSysParam(semid),TSysParam(semnum),TSysParam(cmd),TSysParam(@arg));
+end;
+
+{$endif NEED_IPCCALL}
+
 end.
 {
   $Log$
-  Revision 1.7  2004-02-06 23:06:16  florian
+  Revision 1.8  2004-04-22 17:17:13  peter
+    * x86-64 fixes
+
+  Revision 1.7  2004/02/06 23:06:16  florian
     - killed tsyscallregs
 
   Revision 1.6  2003/11/16 14:09:25  marco

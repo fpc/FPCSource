@@ -30,7 +30,7 @@ asm
   movq %r9, %r8
   syscall                 { Do the system call. }
   cmpq $-4095, %rax       { Check %rax for error.  }
-  jnae .LSyscOK           { Jump to error handler if error.  }  
+  jnae .LSyscOK           { Jump to error handler if error.  }
   negq  %rax
   movq  %rax,%rdx
   movq  FPC_THREADVAR_RELOCATE,%rax
@@ -56,7 +56,7 @@ asm
   movq param1, %rdi         { shift arg1 - arg5. }
   syscall                 { Do the system call. }
   cmpq $-4095, %rax       { Check %rax for error.  }
-  jnae .LSyscOK           { Jump to error handler if error.  }  
+  jnae .LSyscOK           { Jump to error handler if error.  }
   negq  %rax
   movq  %rax,%rdx
   movq  FPC_THREADVAR_RELOCATE,%rax
@@ -83,7 +83,7 @@ asm
   movq param2, %rsi
   syscall                 { Do the system call. }
   cmpq $-4095, %rax       { Check %rax for error.  }
-  jnae .LSyscOK           { Jump to error handler if error.  }  
+  jnae .LSyscOK           { Jump to error handler if error.  }
   negq  %rax
   movq  %rax,%rdx
   movq  FPC_THREADVAR_RELOCATE,%rax
@@ -111,7 +111,7 @@ asm
   movq param3, %rdx
   syscall                 { Do the system call. }
   cmpq $-4095, %rax       { Check %rax for error.  }
-  jnae .LSyscOK           { Jump to error handler if error.  }  
+  jnae .LSyscOK           { Jump to error handler if error.  }
   negq  %rax
   movq  %rax,%rdx
   movq  FPC_THREADVAR_RELOCATE,%rax
@@ -140,7 +140,7 @@ asm
   movq param4, %r10
   syscall                 { Do the system call. }
   cmpq $-4095, %rax       { Check %rax for error.  }
-  jnae .LSyscOK           { Jump to error handler if error.  }  
+  jnae .LSyscOK           { Jump to error handler if error.  }
   negq  %rax
   movq  %rax,%rdx
   movq  FPC_THREADVAR_RELOCATE,%rax
@@ -170,7 +170,7 @@ asm
   movq param5, %r8
   syscall                 { Do the system call. }
   cmpq $-4095, %rax       { Check %rax for error.  }
-  jnae .LSyscOK           { Jump to error handler if error.  }  
+  jnae .LSyscOK           { Jump to error handler if error.  }
   negq  %rax
   movq  %rax,%rdx
   movq  FPC_THREADVAR_RELOCATE,%rax
@@ -189,43 +189,38 @@ asm
 .LSyscOK:
 end;
 
-{$ifdef notsupported}
-{ Only 5 params are pushed, so it'll not work as expected (PFV) }
+
 function FpSysCall(sysnr,param1,param2,param3,param4,param5,param6 : TSysParam):TSysResult; assembler;[public,alias:'FPC_SYSCALL6'];
 
 asm
-{ load the registers... }
-  movl sysnr,%eax
-  movl param1,%ebx
-  movl param2,%ecx
-  movl param3,%edx
-  movl param4,%esi
-  movl param5,%edi
-  int $0x80
-  testl %eax,%eax
-  jns   .LSyscOK
-  negl  %eax
-{$ifdef VER1_0}
-  movl  %eax,Errno
-{$else}
-  movl  %eax,%edx
-  movl  FPC_THREADVAR_RELOCATE,%eax
-  testl %eax,%eax
+  movq sysnr, %rax        { Syscall number -> rax.  }
+  movq param1, %rdi         { shift arg1 - arg5. }
+  movq param2, %rsi
+  movq param3, %rdx
+  movq param4, %r10
+  movq param5, %r8
+  movq param6, %r9
+  syscall                 { Do the system call. }
+  cmpq $-4095, %rax       { Check %rax for error.  }
+  jnae .LSyscOK           { Jump to error handler if error.  }
+  negq  %rax
+  movq  %rax,%rdx
+  movq  FPC_THREADVAR_RELOCATE,%rax
+  testq %rax,%rax
   jne   .LThread
-  movl  %edx,Errno+4
+  movq  %rdx,Errno+4
   jmp   .LNoThread
 .LThread:
-  pushl %edx
-  pushl Errno
-  call  *%eax
-  popl  %edx
-  movl  %edx,(%eax)
+  pushq %rdx
+  pushq Errno
+  call  *%rax
+  popq  %rdx
+  movq  %rdx,(%rax)
 .LNoThread:
-  movl  $-1,%eax
-{$endif}
+  movq  $-1,%rax
 .LSyscOK:
 end;
-{$endif notsupported}
+
 
 {No debugging for syslinux include !}
 {$IFDEF SYS_LINUX}
@@ -235,7 +230,10 @@ end;
 
 {
   $Log$
-  Revision 1.4  2004-02-06 23:06:16  florian
+  Revision 1.5  2004-04-22 17:17:23  peter
+    * x86-64 fixes
+
+  Revision 1.4  2004/02/06 23:06:16  florian
     - killed tsyscallregs
 
   Revision 1.3  2004/02/06 15:58:21  florian

@@ -25,7 +25,7 @@
 {$endif}
 //{$i genfuncs.inc}
 
-{$i bunxmacr.inc}       // macro's.
+{$i bunxmacr.inc}       // macros.
 
 {$I gensigset.inc}     // general sigset funcs implementation.
 {$I genfdset.inc}
@@ -61,7 +61,7 @@ Function fpSigProcMask(how:cint;nset : pSigSet; oset : pSigSet):cint; [public, a
 }
 
 begin
-  fpsigprocmask:=do_syscall(syscall_nr_sigprocmask,longint(how),longint(nset),longint(oset));
+  fpsigprocmask:=do_syscall(syscall_nr_rt_sigprocmask,longint(how),longint(nset),longint(oset));
 end;
 
 
@@ -71,7 +71,7 @@ Function fpSigPending(var nset: TSigSet):cint;
   signals is set in SSet
 }
 begin
-  fpsigpending:=do_syscall(syscall_nr_sigpending,longint(@nset));
+  fpsigpending:=do_syscall(syscall_nr_rt_sigpending,longint(@nset));
 end;
 
 function fpsigsuspend(const sigmask:TSigSet):cint;
@@ -81,7 +81,7 @@ function fpsigsuspend(const sigmask:TSigSet):cint;
 }
 
 begin
-  fpsigsuspend:= do_syscall(syscall_nr_sigsuspend,longint(@sigmask));
+  fpsigsuspend:= do_syscall(syscall_nr_rt_sigsuspend,longint(@sigmask));
 end;
 
 Type
@@ -446,7 +446,10 @@ end;
 
 {
  $Log$
- Revision 1.8  2004-02-21 23:18:50  marco
+ Revision 1.9  2004-04-22 17:17:23  peter
+   * x86-64 fixes
+
+ Revision 1.8  2004/02/21 23:18:50  marco
   * powerpc select fix
 
  Revision 1.7  2003/12/30 15:43:20  marco

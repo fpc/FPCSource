@@ -14,9 +14,15 @@
    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 }
 
+{$ifndef cpux86_64}
+  {$define NEED_SOCKETCALL}
+{$endif}
+
 {******************************************************************************
                           Basic Socket Functions
 ******************************************************************************}
+
+{$ifdef NEED_SOCKETCALL}
 
 Const
   {
@@ -61,15 +67,15 @@ begin
 end;
 
 
-Function SocketCall(SockCallNr,a1,a2,a3:longint):longint;
+function SocketCall(SockCallNr,a1,a2,a3:longint):longint;
 begin
   SocketCall:=SocketCall(SockCallNr,a1,a2,a3,0,0,0);
 end;
 
 function  fpsocket (domain:cint; xtype:cint; protocol: cint):cint; 
-Begin
+begin
   fpSocket:=SocketCall(Socket_Sys_socket,Domain,xtype,Protocol);
-End;
+end;
 
 function  fpsend (s:cint; msg:pointer; len:size_t; flags:cint):ssize_t; 
 begin
@@ -137,14 +143,95 @@ begin
 end;
 
 function  fpsocketpair (d:cint; xtype:cint; protocol:cint; sv:pcint):cint; 
-
 begin
   fpSocketPair:=SocketCall(Socket_Sys_SocketPair,d,xtype,protocol,TSysParam(sv),0,0);
 end;
 
+{$else NEED_SOCKETCALL}
+
+function  fpsocket (domain:cint; xtype:cint; protocol: cint):cint; 
+begin
+  fpSocket:=do_syscall(syscall_nr_socket,Domain,xtype,Protocol);
+end;
+
+function  fpsend (s:cint; msg:pointer; len:size_t; flags:cint):ssize_t; 
+begin
+  fpSend:=do_syscall(syscall_nr_sendto,S,TSysParam(msg),Len,Flags);
+end;
+
+function  fpsendto (s:cint; msg:pointer; len:size_t; flags:cint; tox :psockaddr; tolen: tsocklen):ssize_t; 
+begin
+  fpSendto:=do_syscall(syscall_nr_sendto,S,TSysParam(msg),Len,Flags,TSysParam(tox),tolen);
+end;
+
+function  fprecv (s:cint; buf: pointer; len: size_t; flags:cint):ssize_t;
+begin
+  fpRecv:=do_syscall(syscall_nr_Recvfrom,S,tsysparam(buf),len,flags);
+end;
+
+function  fprecvfrom (s:cint; buf: pointer; len: size_t; flags: cint; from : psockaddr; fromlen : psocklen):ssize_t; 
+begin
+  fpRecvFrom:=do_syscall(syscall_nr_Recvfrom,S,TSysParam(buf),len,flags,TSysParam(from),TSysParam(fromlen));
+end;
+
+function  fpbind (s:cint; addrx : psockaddr; addrlen : tsocklen):cint; 
+begin
+  fpBind:=do_syscall(syscall_nr_Bind,S,TSysParam(addrx),addrlen);
+end;
+
+function  fplisten (s:cint; backlog : cint):cint;                          
+begin
+  fpListen:=do_syscall(syscall_nr_Listen,S,backlog);
+end;
+
+function  fpaccept (s:cint; addrx : psockaddr; addrlen : psocklen):cint; 
+begin
+  fpAccept:=do_syscall(syscall_nr_accept,S,TSysParam(addrx),TSysParam(addrlen));
+end;
+
+function  fpconnect (s:cint; name  : psockaddr; namelen : tsocklen):cint; 
+begin
+  fpConnect:=do_syscall(syscall_nr_connect,S,TSysParam(name),namelen);
+end;
+
+function  fpshutdown (s:cint; how:cint):cint; 
+begin
+  fpShutDown:=do_syscall(syscall_nr_shutdown,S,how);
+end;
+
+function  fpgetsockname (s:cint; name  : psockaddr; namelen : psocklen):cint; 
+begin
+  fpGetSockName:=do_syscall(syscall_nr_GetSockName,S,TSysParam(name),TSysParam(namelen));
+end;
+
+function  fpgetpeername (s:cint; name  : psockaddr; namelen : psocklen):cint; 
+begin
+  fpGetPeerName:=do_syscall(syscall_nr_GetPeerName,S,TSysParam(name),TSysParam(namelen));
+end;
+
+function  fpsetsockopt  (s:cint; level:cint; optname:cint; optval:pointer; optlen : tsocklen):cint;
+begin
+  fpSetSockOpt:=do_syscall(syscall_nr_SetSockOpt,S,level,optname,TSysParam(optval),optlen);
+end;
+
+function  fpgetsockopt  (s:cint; level:cint; optname:cint; optval:pointer; optlen : psocklen):cint; 
+begin
+  fpGetSockOpt:=do_syscall(syscall_nr_GetSockOpt,S,level,TSysParam(optname),TSysParam(optval),TSysParam(optlen));
+end;
+
+function  fpsocketpair (d:cint; xtype:cint; protocol:cint; sv:pcint):cint; 
+begin
+  fpSocketPair:=do_syscall(syscall_nr_SocketPair,d,xtype,protocol,TSysParam(sv));
+end;
+
+{$endif NEED_do_syscall}
+
 {
  $Log$
- Revision 1.12  2004-03-22 06:49:28  marco
+ Revision 1.13  2004-04-22 17:17:23  peter
+   * x86-64 fixes
+
+ Revision 1.12  2004/03/22 06:49:28  marco
   * more fixes from Lloyd
 
  Revision 1.11  2004/03/20 15:19:29  marco

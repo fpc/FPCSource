@@ -537,7 +537,7 @@ Var
 Begin
   If SearchPath and (pos('/',pathname)=0) Then
     Begin
-      // The above could be better. (check if not escaped/quoted '/' 's) ?
+      // The above could be better. (check if not escaped/quoted '/'s) ?
       // (Jilles says this is ok)
       // Stevens says only search if newcmd contains no '/'
       // fsearch is not ansistring clean yet.
@@ -882,11 +882,23 @@ function intstime (t:ptime_t):cint; external name 'stime';
 {$endif}
 
 Function stime (t : cint) : boolean;
+{$ifndef FPC_USE_LIBC}
+  {$ifdef cpux86_64}  
+  var
+    tv : ttimeval;
+  {$endif}
+{$endif}     
 begin
   {$ifdef FPC_USE_LIBC}
    stime:=intstime(@t)=0;
   {$else}
-   stime:=do_SysCall(Syscall_nr_stime,cint(@t))=0;
+    {$ifdef cpux86_64}  
+      tv.tv_sec:=t;
+      tv.tv_usec:=0;
+      stime:=do_SysCall(Syscall_nr_settimeofday,TSysParam(@tv),0)=0;
+    {$else}
+      stime:=do_SysCall(Syscall_nr_stime,TSysParam(@t))=0;
+    {$endif}  
   {$endif}
 end;
 {$endif}
@@ -1742,7 +1754,10 @@ End.
 
 {
   $Log$
-  Revision 1.68  2004-03-04 22:15:17  marco
+  Revision 1.69  2004-04-22 17:17:13  peter
+    * x86-64 fixes
+
+  Revision 1.68  2004/03/04 22:15:17  marco
    * UnixType changes. Please report problems to me.
 
   Revision 1.66  2004/02/16 13:21:18  marco
