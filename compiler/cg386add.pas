@@ -583,6 +583,7 @@ implementation
          mmxbase : tmmxtype;
 {$endif SUPPORT_MMX}
          pushedreg : tpushed;
+         hloc : tlocation;
 
       begin
       { to make it more readable, string and set (not smallset!) have their
@@ -1451,7 +1452,9 @@ implementation
 
                    if p^.treetype=muln then
                      begin
-                        release_qword_loc(p^.left^.location);
+                        { save p^.lcoation, because we change it now }
+                        set_location(hloc,p^.location);
+                        release_qword_loc(p^.location);
                         release_qword_loc(p^.right^.location);
                         p^.location.registerlow:=getexplicitregister32(R_EAX);
                         p^.location.registerhigh:=getexplicitregister32(R_EDX);
@@ -1462,7 +1465,12 @@ implementation
                           push_int(1)
                         else
                           push_int(0);
-                        emit_pushq_loc(p^.left^.location);
+                        { the left operand is in hloc, because the
+                          location of left is p^.location but p^.location
+                          is already destroyed
+                        }
+                        emit_pushq_loc(hloc);
+                        clear_location(hloc);
                         emit_pushq_loc(p^.right^.location);
                         if porddef(p^.resulttype)^.typ=u64bit then
                           emitcall('FPC_MUL_QWORD',true)
@@ -1555,7 +1563,7 @@ implementation
                         { and p^.location.register should be a valid register   }
                         { containing the left result                            }
 
-                         if p^.right^.location.loc<>LOC_REGISTER then
+                        if p^.right^.location.loc<>LOC_REGISTER then
                           begin
                              if (p^.treetype=subn) and p^.swaped then
                                begin
@@ -1564,13 +1572,25 @@ implementation
                                        emit_reg_reg(A_MOV,opsize,p^.right^.location.register,R_EDI);
                                        emit_reg_reg(op,opsize,p^.location.register,R_EDI);
                                        emit_reg_reg(A_MOV,opsize,R_EDI,p^.location.register);
+                                       emit_reg_reg(A_MOV,opsize,p^.right^.location.registerhigh,R_EDI);
+                                       { the carry flag is still ok }
+                                       emit_reg_reg(op2,opsize,p^.location.registerhigh,R_EDI);
+                                       emit_reg_reg(A_MOV,opsize,R_EDI,p^.location.registerhigh);
                                     end
                                   else
                                     begin
                                        exprasmlist^.concat(new(pai386,op_ref_reg(A_MOV,opsize,
                                          newreference(p^.right^.location.reference),R_EDI)));
-                                       exprasmlist^.concat(new(pai386,op_reg_reg(op,opsize,p^.location.register,R_EDI)));
-                                       exprasmlist^.concat(new(pai386,op_reg_reg(A_MOV,opsize,R_EDI,p^.location.register)));
+                                       exprasmlist^.concat(new(pai386,op_reg_reg(op,opsize,p^.location.registerlow,R_EDI)));
+                                       exprasmlist^.concat(new(pai386,op_reg_reg(A_MOV,opsize,R_EDI,p^.location.registerlow)));
+                                       hr:=newreference(p^.right^.location.reference);
+                                       inc(hr^.offset,4);
+                                       exprasmlist^.concat(new(pai386,op_ref_reg(A_MOV,opsize,
+                                         hr,R_EDI)));
+                                       { here the carry flag is still preserved }
+                                       exprasmlist^.concat(new(pai386,op_reg_reg(op2,opsize,p^.location.registerhigh,R_EDI)));
+                                       exprasmlist^.concat(new(pai386,op_reg_reg(A_MOV,opsize,R_EDI,
+                                         p^.location.registerhigh)));
                                        ungetiftemp(p^.right^.location.reference);
                                        del_reference(p^.right^.location.reference);
                                     end;
@@ -1653,12 +1673,16 @@ implementation
                              { when swapped another result register }
                              if (p^.treetype=subn) and p^.swaped then
                                begin
-                                  exprasmlist^.concat(new(pai386,op_reg_reg(op,opsize,
-                                    p^.location.register,p^.right^.location.register)));
-                                    swap_location(p^.location,p^.right^.location);
-                                    { newly swapped also set swapped flag }
-                                    { just to maintain ordering           }
-                                    p^.swaped:=not(p^.swaped);
+                                  exprasmlist^.concat(new(pai386,op_reg_reg(op,S_L,
+                                    p^.location.registerlow,
+                                    p^.right^.location.registerlow)));
+                                 exprasmlist^.concat(new(pai386,op_reg_reg(op2,S_L,
+                                    p^.location.registerhigh,
+                                    p^.right^.location.registerhigh)));
+                                  swap_location(p^.location,p^.right^.location);
+                                  { newly swapped also set swapped flag }
+                                  { just to maintain ordering           }
+                                  p^.swaped:=not(p^.swaped);
                                end
                              else if cmpop then
                                begin
@@ -2029,7 +2053,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.59  1999-05-19 10:31:53  florian
+  Revision 1.60  1999-05-23 19:55:10  florian
+    * qword/int64 multiplication fixed
+    + qword/int64 subtraction
+
+  Revision 1.59  1999/05/19 10:31:53  florian
     * two bugs reported by Romio (bugs 13) are fixed:
         - empty array constructors are now handled correctly (e.g. for sysutils.format)
         - comparsion of ansistrings was sometimes coded wrong

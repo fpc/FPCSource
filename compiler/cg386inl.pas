@@ -92,53 +92,60 @@ implementation
             floatstore(PFloatDef(dest^.resulttype)^.typ,dest^.location.reference);
           orddef:
             begin
-              Case dest^.resulttype^.size of
-                1 : hreg:=regtoreg8(accumulator);
-                2 : hreg:=regtoreg16(accumulator);
-                4 : hreg:=accumulator;
-              End;
-              emit_mov_reg_loc(hreg,dest^.location);
-              If (cs_check_range in aktlocalswitches) and
-                 {no need to rangecheck longints or cardinals on 32bit processors}
-                  not((porddef(dest^.resulttype)^.typ = s32bit) and
-                      (porddef(dest^.resulttype)^.low = $80000000) and
-                      (porddef(dest^.resulttype)^.high = $7fffffff)) and
-                  not((porddef(dest^.resulttype)^.typ = u32bit) and
-                      (porddef(dest^.resulttype)^.low = 0) and
-                      (porddef(dest^.resulttype)^.high = $ffffffff)) then
-                Begin
-                  {do not register this temporary def}
-                  OldRegisterDef := RegisterDef;
-                  RegisterDef := False;
-                  hdef:=nil;
-                  Case PordDef(dest^.resulttype)^.typ of
-                    u8bit,u16bit,u32bit:
-                      begin
-                        new(hdef,init(u32bit,0,$ffffffff));
-                        hreg:=accumulator;
-                      end;
-                    s8bit,s16bit,s32bit:
-                      begin
-                        new(hdef,init(s32bit,$80000000,$7fffffff));
-                        hreg:=accumulator;
-                      end;
-                  end;
-                  { create a fake node }
-                  hp := genzeronode(nothingn);
-                  hp^.location.loc := LOC_REGISTER;
-                  hp^.location.register := hreg;
-                  if assigned(hdef) then
-                    hp^.resulttype:=hdef
-                  else
-                    hp^.resulttype:=dest^.resulttype;
-                  { emit the range check }
-                  emitrangecheck(hp,dest^.resulttype);
-                  hp^.right := nil;
-                  if assigned(hdef) then
-                    Dispose(hdef, Done);
-                  RegisterDef := OldRegisterDef;
-                  disposetree(hp);
-                End;
+              if porddef(dest^.resulttype)^.typ in [u64bit,s64bitint] then
+                begin
+                   emit_movq_reg_loc(R_EDX,R_EAX,dest^.location);
+                end
+              else
+                begin
+                   Case dest^.resulttype^.size of
+                     1 : hreg:=regtoreg8(accumulator);
+                     2 : hreg:=regtoreg16(accumulator);
+                     4 : hreg:=accumulator;
+                   End;
+                   emit_mov_reg_loc(hreg,dest^.location);
+                   If (cs_check_range in aktlocalswitches) and
+                      {no need to rangecheck longints or cardinals on 32bit processors}
+                       not((porddef(dest^.resulttype)^.typ = s32bit) and
+                           (porddef(dest^.resulttype)^.low = $80000000) and
+                           (porddef(dest^.resulttype)^.high = $7fffffff)) and
+                       not((porddef(dest^.resulttype)^.typ = u32bit) and
+                           (porddef(dest^.resulttype)^.low = 0) and
+                           (porddef(dest^.resulttype)^.high = $ffffffff)) then
+                     Begin
+                       {do not register this temporary def}
+                       OldRegisterDef := RegisterDef;
+                       RegisterDef := False;
+                       hdef:=nil;
+                       Case PordDef(dest^.resulttype)^.typ of
+                         u8bit,u16bit,u32bit:
+                           begin
+                             new(hdef,init(u32bit,0,$ffffffff));
+                             hreg:=accumulator;
+                           end;
+                         s8bit,s16bit,s32bit:
+                           begin
+                             new(hdef,init(s32bit,$80000000,$7fffffff));
+                             hreg:=accumulator;
+                           end;
+                       end;
+                       { create a fake node }
+                       hp := genzeronode(nothingn);
+                       hp^.location.loc := LOC_REGISTER;
+                       hp^.location.register := hreg;
+                       if assigned(hdef) then
+                         hp^.resulttype:=hdef
+                       else
+                         hp^.resulttype:=dest^.resulttype;
+                       { emit the range check }
+                       emitrangecheck(hp,dest^.resulttype);
+                       hp^.right := nil;
+                       if assigned(hdef) then
+                         Dispose(hdef, Done);
+                       RegisterDef := OldRegisterDef;
+                       disposetree(hp);
+                     End;
+                end;
             End;
           else
             internalerror(66766766);
@@ -1240,7 +1247,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.53  1999-05-23 18:42:01  florian
+  Revision 1.54  1999-05-23 19:55:11  florian
+    * qword/int64 multiplication fixed
+    + qword/int64 subtraction
+
+  Revision 1.53  1999/05/23 18:42:01  florian
     * better error recovering in typed constants
     * some problems with arrays of const fixed, some problems
       due my previous
