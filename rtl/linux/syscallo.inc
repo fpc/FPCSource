@@ -166,11 +166,13 @@ end;
 
 {
   $Log$
-  Revision 1.1  2002-11-11 21:40:26  marco
+  Revision 1.2  2003-04-22 17:07:55  florian
+    * there where two SYSCALL1 procedures for the powerpc, fixed
+
+  Revision 1.1  2002/11/11 21:40:26  marco
    * rename syscall.inc -> syscallo.inc
 
   Revision 1.1  2002/10/14 19:39:44  peter
     * syscall moved into seperate include
-
 }
- 
+

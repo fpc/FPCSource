@@ -23,7 +23,7 @@
                      --- Main:The System Call Self ---
 *****************************************************************************}
 
-function FpSysCall(sysnr:TSysParam):TSysResult; assembler;[public,alias:'FPC_SYSCALL1'];
+function FpSysCall(sysnr:TSysParam):TSysResult; assembler;[public,alias:'FPC_SYSCALL0'];
 {
   This function puts the registers in place, does the call, and then
   copies back the registers as they are after the SysCall.
@@ -216,7 +216,10 @@ end;
 
 {
   $Log$
-  Revision 1.3  2003-01-09 13:38:26  florian
+  Revision 1.4  2003-04-22 17:07:55  florian
+    * there where two SYSCALL1 procedures for the powerpc, fixed
+
+  Revision 1.3  2003/01/09 13:38:26  florian
     * syscall stuff fixed
 
   Revision 1.2  2002/12/22 16:00:28  jonas
