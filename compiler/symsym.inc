@@ -1027,7 +1027,7 @@
             { the data filed is generated in parser.pas
               with a tobject_FIELDNAME variable }
             { this symbol can't be loaded to a register }
-            var_options:=var_options or vo_regable;
+            var_options:=var_options and not vo_regable;
          end
        else if not(read_member) then
          begin
@@ -1070,7 +1070,8 @@
                 if cs_debuginfo in aktswitches then
                    concatstabto(bsssegment);
 {$endif GDB}
-                if (cs_smartlink in aktswitches) then
+                if (cs_smartlink in aktswitches) or
+                   ((var_options and vo_is_c_var)<>0) then
                   bsssegment^.concat(new(pai_datablock,init_global(mangledname,l)))
                 else
                   bsssegment^.concat(new(pai_datablock,init(mangledname,l)));
@@ -1741,7 +1742,14 @@
 
 {
   $Log$
-  Revision 1.8  1998-06-11 10:11:59  peter
+  Revision 1.9  1998-06-12 16:15:35  pierre
+    * external name 'C_var';
+      export name 'intern_C_var';
+      cdecl;
+      cdecl;external;
+      are now supported only with -Sv switch
+
+  Revision 1.8  1998/06/11 10:11:59  peter
     * -gb works again
 
   Revision 1.7  1998/06/09 16:01:51  pierre

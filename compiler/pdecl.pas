@@ -1668,7 +1668,7 @@ unit pdecl;
                 begin
                    if not(is_record) then
                      consume(token);
-                   if do_absolute and (token=ID) and
+                   if support_c_var and do_absolute and (token=ID) and
                       ((pattern='EXPORT') or (pattern='EXTERNAL')
                       or (pattern='CDECL')) then
                      begin
@@ -1695,6 +1695,10 @@ unit pdecl;
                         { external and export need a name after }
                         if not is_cdecl then
                           begin
+                             if (token=ID) and (pattern='NAME') then
+                               consume(ID)
+                             else
+                               Comment(V_error,' name keyword expected here ');
                              if (token<>CCHAR) and (token<>CSTRING) then
                                consume(CSTRING);
                              C_name:=pattern;
@@ -1877,9 +1881,12 @@ unit pdecl;
 end.
 {
   $Log$
-  Revision 1.26  1998-06-12 10:32:30  pierre
-    * column problem hopefully solved
-    + C vars declaration changed
+  Revision 1.27  1998-06-12 16:15:34  pierre
+    * external name 'C_var';
+      export name 'intern_C_var';
+      cdecl;
+      cdecl;external;
+      are now supported only with -Sv switch
 
   Revision 1.25  1998/06/09 16:01:45  pierre
     + added procedure directive parsing for procvars
