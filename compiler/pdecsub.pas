@@ -1237,10 +1237,17 @@ begin
               tprocdef(pd).libsym:=sym;
               if po_syscall_legacy in tprocdef(pd).procoptions then
                 begin
-                  vs:=tparavarsym.create('$syscalllib',paranr_syscall,vs_value,tabstractvarsym(sym).vartype,[vo_is_syscall_lib,vo_is_hidden_para,vo_has_explicit_paraloc]);
+                  vs:=tparavarsym.create('$syscalllib',paranr_syscall_legacy,vs_value,tabstractvarsym(sym).vartype,[vo_is_syscall_lib,vo_is_hidden_para,vo_has_explicit_paraloc]);
                   paramanager.parseparaloc(vs,'A6');
                   pd.parast.insert(vs);
-                end;
+                end
+              else if po_syscall_sysv in tprocdef(pd).procoptions then
+                begin
+                  vs:=tparavarsym.create('$syscalllib',paranr_syscall_sysv,vs_value,tabstractvarsym(sym).vartype,[vo_is_syscall_lib,vo_is_hidden_para]);
+                  pd.parast.insert(vs);
+                end
+              else
+                internalerror(2005010501);
             end
           else
             Message(parser_e_32bitint_or_pointer_variable_expected);
@@ -2365,7 +2372,10 @@ const
 end.
 {
   $Log$
-  Revision 1.223  2005-01-04 17:40:33  karoly
+  Revision 1.224  2005-01-05 02:31:06  karoly
+    * fixed SysV syscall support (MorphOS)
+
+  Revision 1.223  2005/01/04 17:40:33  karoly
     + sysv style syscalls added for MorphOS
 
   Revision 1.222  2004/12/27 17:32:06  peter

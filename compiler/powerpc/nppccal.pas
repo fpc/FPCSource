@@ -79,16 +79,11 @@ implementation
                 begin
                   cg.getcpuregister(exprasmlist,NR_R0);
                   cg.getcpuregister(exprasmlist,NR_R31);
- 
-                  reference_reset(tmpref);
-                  tmpref.symbol := objectlibrary.newasmsymbol(tglobalvarsym(tprocdef(procdefinition).libsym).mangledname,AB_EXTERNAL,AT_DATA);
-                  tmpref.refaddr := addr_hi;
-                  exprasmlist.concat(taicpu.op_reg_ref(A_LIS,NR_R31,tmpref));
-                  tmpref.base := NR_R31;
-                  tmpref.refaddr := addr_lo;
-                  exprasmlist.concat(taicpu.op_reg_ref(A_LWZ,NR_R31,tmpref));
                     
-                  exprasmlist.concat(taicpu.op_reg_reg_const(A_ADDI,NR_R0,NR_R31,-tprocdef(procdefinition).extnumber));
+                  exprasmlist.concat(taicpu.op_reg_reg_const(A_ADDI,NR_R31,NR_R3,-tprocdef(procdefinition).extnumber));
+                  reference_reset(tmpref);
+                  tmpref.base := NR_R31;
+                  exprasmlist.concat(taicpu.op_reg_ref(A_LWZ,NR_R0,tmpref));
                   exprasmlist.concat(taicpu.op_reg(A_MTCTR,NR_R0));
                   exprasmlist.concat(taicpu.op_none(A_BCTRL));
 
@@ -126,7 +121,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.32  2005-01-04 17:40:33  karoly
+  Revision 1.33  2005-01-05 02:31:06  karoly
+    * fixed SysV syscall support (MorphOS)
+
+  Revision 1.32  2005/01/04 17:40:33  karoly
     + sysv style syscalls added for MorphOS
 
   Revision 1.31  2004/12/06 18:06:37  jonas

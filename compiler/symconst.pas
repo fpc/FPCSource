@@ -106,7 +106,8 @@ const
   paranr_result = 2;
   paranr_self = 3;
   paranr_vmt = 4;
-  paranr_syscall          = high(word)-2;
+  paranr_syscall_sysv     = 9;
+  paranr_syscall_legacy   = high(word)-2;
   paranr_result_leftright = high(word)-1;
 
 type
@@ -432,7 +433,10 @@ initialization
 end.
 {
   $Log$
-  Revision 1.97  2005-01-04 17:40:33  karoly
+  Revision 1.98  2005-01-05 02:31:06  karoly
+    * fixed SysV syscall support (MorphOS)
+
+  Revision 1.97  2005/01/04 17:40:33  karoly
     + sysv style syscalls added for MorphOS
 
   Revision 1.96  2004/12/05 12:28:11  peter
