@@ -1,3 +1,5 @@
+{ %VERSION=1.1 }
+{%OPT=-Og}
 { This verifies if the strings are
   correctly aligned, normally the generated assembler
   should be verified manually.
@@ -22,10 +24,12 @@ program talign2;
 procedure test(b : boolean);
 begin
   if b then exit;
-  WriteLn('Error in length!');
+  WriteLn('Error in length/alignment!!');
   halt(1);
 end;
 
+var
+ pt: pchar;
 const
   b: byte = 0;  { lets just misalign the stuff }
   p : pchar = 'simple pchar stuff';
@@ -36,12 +40,29 @@ const
   shortstr :shortstring = 'simple shortstring';
 begin
   test(length(ansistr)=17);
-  test(length(widestr)=16);
-  test(length(shortstr)=17);
+{$ifdef haswidestring}
+  test(length(widestr)=17);
+{$endif}
+  test(length(shortstr)=18);
+  { verify if the address are correctly aligned! }
+  pt:=@shortstr;
+  test((cardinal(pt) mod sizeof(pointer))=0);
+  pt:=p;
+  test((cardinal(pt) mod sizeof(pointer))=0);
+  pt:=pchar(ansistr);
+  test((cardinal(pt) mod sizeof(pointer))=0);
+{$ifdef haswidestring}
+  pt:=pchar(widestr);
+  test((cardinal(pt) mod sizeof(pointer))=0);
+{$endif}
 end.  
 {
    $Log$
-   Revision 1.1  2002-11-09 13:18:25  carl
+   Revision 1.2  2002-11-09 21:19:21  carl
+     * now check address of tc's also and give error.
+     + 1.1 only
+
+   Revision 1.1  2002/11/09 13:18:25  carl
      * more alignment checking
 
 
