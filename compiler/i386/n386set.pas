@@ -587,9 +587,9 @@ implementation
         if not(jumptable_no_range) then
           begin
              { case expr less than min_ => goto elselabel }
-             cg.a_cmp_const_reg_label(exprasmlist,OS_INT,jmp_lt,longint(min_),hregister,elselabel);
+             cg.a_cmp_const_reg_label(exprasmlist,OS_INT,jmp_lt,aword(min_),hregister,elselabel);
              { case expr greater than max_ => goto elselabel }
-             cg.a_cmp_const_reg_label(exprasmlist,OS_INT,jmp_gt,longint(max_),hregister,elselabel);
+             cg.a_cmp_const_reg_label(exprasmlist,OS_INT,jmp_gt,aword(max_),hregister,elselabel);
           end;
         objectlibrary.getlabel(table);
         { make it a 32bit register }
@@ -624,7 +624,7 @@ implementation
              { need we to test the first value }
              if first and (t^._low>get_min_value(left.resulttype.def)) then
                begin
-                 cg.a_cmp_const_reg_label(exprasmlist,OS_INT,jmp_lt,longint(t^._low),hregister,elselabel);
+                 cg.a_cmp_const_reg_label(exprasmlist,OS_INT,jmp_lt,aword(t^._low),hregister,elselabel);
                end;
              if t^._low=t^._high then
                begin
@@ -632,7 +632,7 @@ implementation
                     cg.a_cmp_const_reg_label(exprasmlist, OS_INT, OC_EQ,0,hregister,t^.statement)
                   else
                     begin
-                      cg.a_op_const_reg(exprasmlist, OP_SUB, longint(t^._low-last), hregister);
+                      cg.a_op_const_reg(exprasmlist, OP_SUB, aword(t^._low-last), hregister);
                       emitjmp(C_Z,t^.statement);
                     end;
                   last:=t^._low;
@@ -706,7 +706,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.43  2002-09-17 18:54:05  jonas
+  Revision 1.44  2002-10-03 21:34:45  carl
+    * range check error fixes
+
+  Revision 1.43  2002/09/17 18:54:05  jonas
     * a_load_reg_reg() now has two size parameters: source and dest. This
       allows some optimizations on architectures that don't encode the
       register size in the register name.

@@ -91,7 +91,7 @@ implementation
       paramgr,
       pass_2,
       ncon,
-      tgobj,ncgutil,regvars,rgobj;
+      tgobj,ncgutil,regvars,rgobj,cpuinfo;
 
 
 {*****************************************************************************
@@ -632,7 +632,7 @@ implementation
            { need we to test the first value }
            if first and (t^._low>get_min_value(left.resulttype.def)) then
              begin
-                cg.a_cmp_const_reg_label(exprasmlist,OS_INT,jmp_lt,longint(t^._low),hregister,elselabel);
+                cg.a_cmp_const_reg_label(exprasmlist,OS_INT,jmp_lt,aword(t^._low),hregister,elselabel);
              end;
            if t^._low=t^._high then
              begin
@@ -641,7 +641,7 @@ implementation
                 else
                   begin
                       gensub(longint(t^._low-last));
-                      cg.a_cmp_const_reg_label(exprasmlist, OS_INT, OC_EQ,longint(t^._low-last),scratch_reg,t^.statement);
+                      cg.a_cmp_const_reg_label(exprasmlist, OS_INT, OC_EQ,aword(t^._low-last),scratch_reg,t^.statement);
                   end;
                 last:=t^._low;
              end
@@ -662,10 +662,10 @@ implementation
                     { present label then the lower limit can be checked    }
                     { immediately. else check the range in between:       }
                     gensub(longint(t^._low-last));
-                    cg.a_cmp_const_reg_label(exprasmlist, OS_INT,jmp_lt,longint(t^._low-last),scratch_reg,elselabel);
+                    cg.a_cmp_const_reg_label(exprasmlist, OS_INT,jmp_lt,aword(t^._low-last),scratch_reg,elselabel);
                   end;
                 gensub(longint(t^._high-t^._low));
-                cg.a_cmp_const_reg_label(exprasmlist, OS_INT,jmp_le,longint(t^._high-t^._low),scratch_reg,t^.statement);
+                cg.a_cmp_const_reg_label(exprasmlist, OS_INT,jmp_le,aword(t^._high-t^._low),scratch_reg,t^.statement);
                 last:=t^._high;
              end;
            first:=false;
@@ -708,13 +708,13 @@ implementation
                 if opsize in [OS_S64,OS_64] then
                   begin
                      objectlibrary.getlabel(l1);
-                     cg.a_cmp_const_reg_label(exprasmlist, OS_INT, OC_NE, longint(hi(int64(t^._low))),hregister2,l1);
-                     cg.a_cmp_const_reg_label(exprasmlist, OS_INT, OC_EQ, longint(lo(int64(t^._low))),hregister, t^.statement);
+                     cg.a_cmp_const_reg_label(exprasmlist, OS_INT, OC_NE, aword(hi(int64(t^._low))),hregister2,l1);
+                     cg.a_cmp_const_reg_label(exprasmlist, OS_INT, OC_EQ, aword(lo(int64(t^._low))),hregister, t^.statement);
                      cg.a_label(exprasmlist,l1);
                   end
                 else
                   begin
-                     cg.a_cmp_const_reg_label(exprasmlist, OS_INT, OC_EQ, longint(t^._low),hregister, t^.statement);
+                     cg.a_cmp_const_reg_label(exprasmlist, OS_INT, OC_EQ, aword(t^._low),hregister, t^.statement);
                      last:=t^._low;
                   end;
              end
@@ -728,17 +728,17 @@ implementation
                      if opsize in [OS_64,OS_S64] then
                        begin
                           objectlibrary.getlabel(l1);
-                          cg.a_cmp_const_reg_label(exprasmlist, OS_INT, jmp_lt, longint(hi(int64(t^._low))),
+                          cg.a_cmp_const_reg_label(exprasmlist, OS_INT, jmp_lt, aword(hi(int64(t^._low))),
                                hregister2, elselabel);
-                          cg.a_cmp_const_reg_label(exprasmlist, OS_INT, jmp_gt, longint(hi(int64(t^._low))),
+                          cg.a_cmp_const_reg_label(exprasmlist, OS_INT, jmp_gt, aword(hi(int64(t^._low))),
                                hregister2, l1);
                           { the comparisation of the low dword must be always unsigned! }
-                          cg.a_cmp_const_reg_label(exprasmlist, OS_INT, OC_B, longint(lo(int64(t^._low))), hregister, elselabel);
+                          cg.a_cmp_const_reg_label(exprasmlist, OS_INT, OC_B, aword(lo(int64(t^._low))), hregister, elselabel);
                           cg.a_label(exprasmlist,l1);
                        end
                      else
                        begin
-                        cg.a_cmp_const_reg_label(exprasmlist, OS_INT, jmp_lt, longint(t^._low), hregister,
+                        cg.a_cmp_const_reg_label(exprasmlist, OS_INT, jmp_lt, aword(t^._low), hregister,
                            elselabel);
                        end;
                   end;
@@ -746,16 +746,16 @@ implementation
                 if opsize in [OS_S64,OS_64] then
                   begin
                      objectlibrary.getlabel(l1);
-                     cg.a_cmp_const_reg_label(exprasmlist, OS_INT, jmp_lt, longint(hi(int64(t^._high))), hregister2,
+                     cg.a_cmp_const_reg_label(exprasmlist, OS_INT, jmp_lt, aword(hi(int64(t^._high))), hregister2,
                            t^.statement);
-                     cg.a_cmp_const_reg_label(exprasmlist, OS_INT, jmp_gt, longint(hi(int64(t^._high))), hregister2,
+                     cg.a_cmp_const_reg_label(exprasmlist, OS_INT, jmp_gt, aword(hi(int64(t^._high))), hregister2,
                            l1);
-                    cg.a_cmp_const_reg_label(exprasmlist, OS_INT, OC_BE, longint(lo(int64(t^._high))), hregister, t^.statement);
+                    cg.a_cmp_const_reg_label(exprasmlist, OS_INT, OC_BE, aword(lo(int64(t^._high))), hregister, t^.statement);
                     cg.a_label(exprasmlist,l1);
                   end
                 else
                   begin
-                     cg.a_cmp_const_reg_label(exprasmlist, OS_INT, jmp_le, longint(t^._high), hregister, t^.statement);
+                     cg.a_cmp_const_reg_label(exprasmlist, OS_INT, jmp_le, aword(t^._high), hregister, t^.statement);
                   end;
 
                 last:=t^._high;
@@ -993,7 +993,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.20  2002-09-17 18:54:03  jonas
+  Revision 1.21  2002-10-03 21:31:10  carl
+    * range check error fixes
+
+  Revision 1.20  2002/09/17 18:54:03  jonas
     * a_load_reg_reg() now has two size parameters: source and dest. This
       allows some optimizations on architectures that don't encode the
       register size in the register name.
