@@ -52,7 +52,8 @@ unit typinfo;
        TTypeKind = (tkUnknown,tkInteger,tkChar,tkEnumeration,
                    tkFloat,tkSet,tkMethod,tkSString,tkLString,tkAString,
                    tkWString,tkVariant,tkArray,tkRecord,tkInterface,
-                   tkClass,tkObject,tkWChar,tkBool,tkInt64,tkQWord);
+                   tkClass,tkObject,tkWChar,tkBool,tkInt64,tkQWord,
+                   tkDynArray,tkInterfaceRaw);
 
        TTOrdType = (otSByte,otUByte,otSWord,otUWord,otSLong,otULong);
 
@@ -133,8 +134,13 @@ unit typinfo;
               (MinInt64Value, MaxInt64Value: Int64);
             tkQWord:
               (MinQWordValue, MaxQWordValue: QWord);
-            tkInterface:
-              ({!!!!!!!}
+            tkInterface,
+            tkInterfaceRaw:
+              (
+               IntfParent: PPTypeInfo;
+               IID: PGUID;
+               IIDStr: ShortString;
+               IntfUnit: ShortString;
               );
       end;
 
@@ -862,10 +868,13 @@ end.
 
 {
   $Log$
-  Revision 1.3  2000-07-17 08:37:58  sg
+  Revision 1.4  2000-11-04 16:28:26  florian
+    * interfaces support
+
+  Revision 1.3  2000/07/17 08:37:58  sg
   * Fixed GetEnumValue (bug #1049, reported by Neil Graham)
 
   Revision 1.2  2000/07/13 11:33:52  michael
   + removed logs
- 
+
 }
