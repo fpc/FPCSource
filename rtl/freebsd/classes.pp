@@ -32,11 +32,7 @@ uses
 implementation
 
 uses
-{$ifdef ver1_0}
-  linux
-{$else}
   baseunix,unix
-{$endif}
   ;
 
 { OS - independent class implementations are in /inc directory. }
@@ -55,7 +51,10 @@ finalization
 end.
 {
   $Log$
-  Revision 1.1  2003-10-06 21:01:06  peter
+  Revision 1.2  2003-10-09 10:55:20  marco
+   * fix for moving classes to rtl while cycling with 1.0 start
+
+  Revision 1.1  2003/10/06 21:01:06  peter
     * moved classes unit to rtl
 
   Revision 1.1  2003/10/06 20:33:58  peter

@@ -53,11 +53,7 @@ end;
 //function SIGCHLDHandler(Sig: longint): longint; cdecl;//this is std linux C declaration as function
 procedure SIGCHLDHandler(Sig: longint); cdecl;
 begin
- {$ifdef ver1_0}
-  waitpid(-1, nil, WNOHANG);
- {$else}
   fpwaitpid(-1, nil, WNOHANG);
- {$endif}
 end;
 
 const zeroset :sigset = (0,0,0,0);
@@ -78,21 +74,12 @@ begin
   GetMem(Act, SizeOf(SigActionRec));
   GetMem(OldAct, SizeOf(SigActionRec));
 
-  {$ifndef ver1_0}
     Act^.sa_handler := @SIGCHLDHandler;
     fillchar(Act^.sa_mask,sizeof(sigset_t),#0);
-  {$else}
-    Act^.handler.sh := @SIGCHLDHandler;
-    Act^.sa_mask := zeroset; 
-  {$endif}
   Act^.sa_flags := SA_NOCLDSTOP {or SA_NOMASK or SA_RESTART};
 			//Do not block all signals ??. Don't need if SA_NOMASK in flags
 
-  {$ifdef ver1_0}
-   SigAction(SIGCHLD, @Act, @OldAct);
-  {$else}
    fpsigaction(SIGCHLD, @Act, @OldAct);
-  {$endif}
 
   FreeMem(Act, SizeOf(SigActionRec));
   FreeMem(OldAct, SizeOf(SigActionRec));
@@ -175,7 +162,7 @@ begin
   Thread.DoTerminate;
   if FreeThread then
     Thread.Free;
-  {$ifdef ver1_0}ExitProcess{$else}fpExit{$endif}(Result);
+  fpExit(Result);
 end;
 
 
@@ -209,7 +196,7 @@ begin
      WaitFor;
    end;
   if FHandle <> -1 then
-    {$ifdef ver1_0}kill({$else}fpkill({$endif}FHandle, SIGKILL);
+  fpkill(FHandle, SIGKILL);
   dec(FStackPointer,FStackSize);
   Freemem(pointer(FStackPointer),FStackSize);
   FFatalException.Free;
@@ -242,11 +229,8 @@ var
   P: Integer;
   I: TThreadPriority;
 begin
-  P := {$ifdef ver1_0}
-         Linux.getpriority
-       {$else}
-         Unix.fpGetPriority
-       {$endif}  	(Prio_Process,FHandle);
+  P := 
+         Unix.fpGetPriority	(Prio_Process,FHandle);
   Result := tpNormal;
   for I := Low(TThreadPriority) to High(TThreadPriority) do
     if Priorities[I] = P then
@@ -256,11 +240,8 @@ end;
 
 procedure TThread.SetPriority(Value: TThreadPriority);
 begin
-       {$ifdef ver1_0}
-         Linux.Setpriority
-       {$else}
         Unix.fpSetPriority
-       {$endif} (Prio_Process,FHandle, Priorities[Value]);
+         (Prio_Process,FHandle, Priorities[Value]);
 end;
 
 
@@ -286,14 +267,14 @@ end;
 
 procedure TThread.Suspend;
 begin
-  {$ifdef ver1_0}kill({$else}fpkill({$endif}FHandle, SIGSTOP);
+  fpkill(FHandle, SIGSTOP);
   FSuspended := true;
 end;
 
 
 procedure TThread.Resume;
 begin
-  {$ifdef ver1_0}kill({$else}fpkill({$endif}FHandle, SIGCONT);
+  fpkill(FHandle, SIGCONT);
   FSuspended := False;
 end;
 
@@ -307,23 +288,19 @@ function TThread.WaitFor: Integer;
 var
   status : longint;
 begin
-{$ifdef ver1_0}
-  if FThreadID = MainThreadID then
-   WaitPid(0,@status,0)
-  else
-   WaitPid(FHandle,@status,0);
-{$else}
   if FThreadID = MainThreadID then
    fpWaitPid(0,@status,0)
   else
    fpWaitPid(FHandle,@status,0);
-{$endif}
   Result:=status;
 end;
 
 {
   $Log$
-  Revision 1.1  2003-10-06 21:01:06  peter
+  Revision 1.2  2003-10-09 10:55:20  marco
+   * fix for moving classes to rtl while cycling with 1.0 start
+
+  Revision 1.1  2003/10/06 21:01:06  peter
     * moved classes unit to rtl
 
   Revision 1.12  2003/10/06 17:06:55  florian
