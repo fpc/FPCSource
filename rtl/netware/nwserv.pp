@@ -808,8 +808,7 @@ type
         highValue : char;
      end;
 { extern double-byte table data...  }
-  var
-     _DBCSVector : array[0..4] of TVECTOR;cvar;external;
+//??  var _DBCSVector : array[0..4] of TVECTOR;cvar;external;
 { prototypes...  }
 
 function NWCharType(ch:dword):longint;cdecl;external 'locnlm32' name 'NWCharType';
@@ -3385,8 +3384,7 @@ type
    TBSearchFunc = function (para1:pointer; para2:pointer):longint; cdecl;
    TQSortFunc = function (para1:pointer; para2:pointer):longint; cdecl;
 
-  var
-     __ctype : array of byte;cvar;external;
+//??  var __ctype : array of byte;cvar;external;
 
 procedure abort;cdecl;external 'clib' name 'abort';
 function abs(para1:longint):longint;cdecl;external 'clib' name 'abs';
@@ -3659,12 +3657,12 @@ procedure TicksToSeconds(Ticks:longint; Seconds:Plongint; TenthsOfSeconds:Plongi
 
      
   { custom data area variables...  }
-
+{
     var
        threadCustomDataPtr : pointer;cvar;external;
        threadCustomDataSize : longint;cvar;external;
        threadGroupCustomDataPtr : pointer;cvar;external;
-       threadGroupCustomDataSize : longint;cvar;external;
+       threadGroupCustomDataSize : longint;cvar;external; }
     
     
   function AtUnload(func:Tprocedure):longint;                       cdecl;external ThreadsNlm name 'AtUnload';
@@ -4821,7 +4819,10 @@ end.
 
 {
   $Log$
-  Revision 1.1  2003-02-22 18:23:26  armin
+  Revision 1.2  2003-03-25 18:09:25  armin
+  * removed cvars because of problems with nlmconv
+
+  Revision 1.1  2003/02/22 18:23:26  armin
   * removed nwstdio and nwthread
   * added nwnit.pp and nwserv.pp containing nearly all netware server structures/function definitions available in the c sdk
 
