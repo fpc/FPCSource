@@ -96,7 +96,10 @@ end.
 
 {
   $Log$
-  Revision 1.2  1999-11-12 18:51:24  sg
+  Revision 1.1  1999-11-14 15:59:05  peter
+    * fpcmake'd
+
+  Revision 1.2  1999/11/12 18:51:24  sg
   * Added check if visual is NIL (=error...)
   * Prints resolution on terminal (because GGI will use an unknown default mode)
 

@@ -1,0 +1,23 @@
+#
+#   Makefile.fpc for UTmp Unit
+#
+
+[targets]
+units=utmp
+programs=testu
+
+[dirs]
+fpcdir=../..
+
+[defaults]
+defaultunits=1
+
+
+[rules]
+.PHONY: test examples
+
+testu$(EXEEXT): testu$(PASEXT) utmp$(PPUEXT)
+
+test: fpc_exes
+
+examples: fpc_exes

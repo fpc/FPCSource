@@ -17,13 +17,12 @@ type
   tDevice_name = String[Device_name_length];
   tUser_name = String[User_name_length];
   tHost_name = String[Host_name_length];
-  tLogin_type = (Unkown, Run_level, Boot_time, New_time, Old_time, 
+  tLogin_type = (Unkown, Run_level, Boot_time, New_time, Old_time,
     Init_process, Login_process, User_process, Dead_process);
   tLogin_types = set of tLogin_type;
   tParameter_type = (Include, Exclude);
 
-{$PACKRECORD 1}
-  tUser = record
+  tUser = packed record
     Type_of_login : tLogin_type;
     Pid           : tPid;
     Device        : tDevice_name;
@@ -37,17 +36,17 @@ type
 
 Const
   DefaultLoginType : TLogin_Types = [User_Process];
-  Login_type_names : array [TLogin_type] of string[20] = 
-  ('Unkown', 'Run level', 'Boot time','New time', 'Old time', 
+  Login_type_names : array [TLogin_type] of string[20] =
+  ('Unkown', 'Run level', 'Boot time','New time', 'Old time',
     'Init process', 'Login process', 'User process', 'Dead process');
- All_Login_types : TLogin_types = [Unkown, Run_level, Boot_time, New_time, Old_time, 
+ All_Login_types : TLogin_types = [Unkown, Run_level, Boot_time, New_time, Old_time,
     Init_process, Login_process, User_process, Dead_process];
-    
+
 procedure Read_logged_users;
 function Get_next_user : tUser;
 function Get_next_user(var Last : Boolean) : tUser;
 procedure Set_search_parameters(
-  const Parameter_type : tParameter_type; 
+  const Parameter_type : tParameter_type;
   Login_types : tLogin_types);
 procedure Reset_user_search;
 function More_users : Boolean;
@@ -64,8 +63,8 @@ type
     e_termination,
     e_exit : integer;
     end;
-    
-  tLL_Utmp = record 
+
+  tLL_Utmp = record
     ut_type : integer;
     ut_pid : longint;
     ut_line : tdevice_name;
@@ -91,28 +90,28 @@ Type
     Type_of_login_types : tParameter_type;
     Login_types         : tLogin_types;
   end;
-  
+
 var
   User_list           : pUser_list;
   Current_user        : pUser_list;
   Utmp_file           : String;
   Search_parameters   : tSearch_parameters;
-  
+
   procedure Set_search_parameters(
     const Parameter_type : tParameter_type;
     Login_types : tLogin_types);
-    
+
   begin
     Search_parameters.Type_of_login_types := Parameter_type;
     Search_parameters.Login_types := Login_types;
   end;
-  
+
   function More_users : Boolean;
-  
+
   var
     UL   : pUser_list;
     Last : Boolean;
-  
+
   begin
     UL := Current_user;
     Last := True;
@@ -121,18 +120,18 @@ var
             Last := (UL^.User.Type_of_login in Search_parameters.Login_types);
           end else begin
             Last := not (UL^.User.Type_of_login in Search_parameters.Login_types);
-          end; 
+          end;
         UL := UL^.Next;
       end;
     More_users := not Last;
   end;
-  
+
   function Number_of_logged_users : Word;
-  
+
   var
     I : Word;
     UL: pUser_list;
-  
+
   begin
     I := 0;
     UL := User_list;
@@ -144,13 +143,13 @@ var
       end;
     Number_of_logged_users := I;
   end;
-  
+
   function Get_next_user : tUser;
-  
+
   var
     Found : Boolean;
     User  : pUser;
-  
+
   begin
     if Current_user <> nil then begin
       Found := False;
@@ -178,14 +177,14 @@ var
       Dispose(User);
     end;
   end;
-  
+
   function Get_next_user(var Last : Boolean) : tUser;
-  
+
   var
     Found : Boolean;
     User  : pUser;
     UL    : pUser_list;
-  
+
   begin
     if Current_user <> nil then begin
       Found := False;
@@ -223,24 +222,24 @@ var
       Dispose(User);
     end;
   end;
-  
+
   procedure Reset_user_search;
-  
+
   begin
     Current_user := User_list;
   end;
-  
+
   procedure Set_utmp_file(const File_name : String);
-  
+
   begin
     Utmp_file := File_name;
   end;
-  
+
   function Number_of_utmp_entries : Word;
 
   var
     S : Stat;
-    
+
   begin
     Linux.FStat(Utmp_file, S);
     Number_of_utmp_entries := S.Size div System.SizeOf(tLL_Utmp);
@@ -248,13 +247,13 @@ var
 
 
   procedure Read_logged_users;
- 
+
     procedure Read_entry(var F : File; var Entry : tUser; var User : Boolean);
-    
+
     var
       LL_Entry : tLL_Utmp;
       I        : Byte;
-    
+
     begin
       BlockRead(F, LL_Entry, SizeOf(tLL_Utmp));
       Byte(Entry.Type_of_login) := LL_Entry.ut_type;
@@ -263,7 +262,7 @@ var
       Entry.TTy_Name:=LL_Entry.ut_id;
       Entry.Login_time := LL_Entry.ut_tv[1];
       Entry.User_name:=LL_entry.ut_user;
-      Entry.Host_name:=LL_entry.ut_host;  
+      Entry.Host_name:=LL_entry.ut_host;
       For I:=1 to 4 do
           Entry.Ip_Address[I] := LL_Entry.ut_addr[i];
     end;
@@ -273,7 +272,7 @@ var
     I : Longint;
     UL: pUser_list;
     U : Boolean;
-    
+
   begin
     System.Assign(F, Utmp_file);
 {$IFOPT I+}

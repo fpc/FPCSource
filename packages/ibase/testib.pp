@@ -6,24 +6,24 @@ uses Ibase, strings;
 
 Const
      { Change to YOUR database server }
-     
+
      ServerDb : pchar =  'testdb.gdb';
-     
+
      { CHange to YOUR username and password. These may be empty }
-     
+
       username = '';
       PWD = '';
-      
-     { Don't edit after this } 
-     
-      dbinfo : array [1..3] of byte 
+
+     { Don't edit after this }
+
+      dbinfo : array [1..3] of byte
              = (isc_info_page_size,isc_info_num_buffers,isc_info_end);
       query : pchar = 'select * from FPDev;';
       flag : array[0..2] of shortint = (0,0,0);
-      
-Type 
+
+Type
   TStatusArray = Array[0..19] of ISC_Status;
-             
+
 Var
   DB : Tisc_db_handle;
   TA : TISC_tr_handle;
@@ -34,11 +34,11 @@ Var
   name,email : String;
   i,id : longint;
   fs : longint;
-           
-Function CheckIBstatus (Const Status : TStatusArray) : Boolean; 
-    
+
+Function CheckIBstatus (Const Status : TStatusArray) : Boolean;
+
 begin
-  Result:=Not ((Status[0]=1) and (status[1]<>0))
+  CheckIBstatus:=Not ((Status[0]=1) and (status[1]<>0))
 end;
 
 Procedure DoError (Const status : TStatusArray);
@@ -60,7 +60,7 @@ begin
     end;
   Write ('Connecting to ',serverdb,': ');
   isc_attach_database(@Status[0],strlen(serverdb),serverdb,@db,length(dpb),@dpb[1]);
-  if Not CheckIBStatus(Status) then 
+  if Not CheckIBStatus(Status) then
     DoError(status)
   else
     Writeln ('OK.');
@@ -109,7 +109,7 @@ begin
     DoError(Status)
   else
     Writeln ('OK.');
-  
+
   Writeln ('Fetching rows :');
   Repeat
     FS:=isc_dsql_fetch(@status,@statement,1,sqlda);
@@ -136,7 +136,7 @@ begin
   Write ('Committing transaction : ');
   If ISC_Commit_transaction(@status,@ta)<>0 then
     doerror(status)
-  else  
+  else
     Writeln ('OK.');
   Write ('Disconnecting from database: ');
   isc_detach_database(@status,@db);

@@ -1,0 +1,25 @@
+#
+#   Makefile.fpc for Internet Units
+#
+
+[targets]
+units=inet
+programs=testinet pfinger
+
+[dirs]
+fpcdir=../..
+
+[defaults]
+defaultunits=1
+
+
+[rules]
+.PHONY: test examples
+
+testinet$(EXEEXT): testinet$(PASEXT) inet$(PPUEXT)
+
+pfinger$(EXEEXT): pfinger$(PASEXT) inet$(PPUEXT)
+
+test: fpc_exes
+
+examples: fpc_exes

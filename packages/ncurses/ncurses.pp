@@ -23,12 +23,12 @@ unit ncurses;
 
    { Manually Added types }
    Type
-   
+
    Bool = byte;
    PINTEGER = ^Longint;
    PLongint = ^ longint;
    PFILE = pointer;
-   
+
     const
        NCURSES_VERSION_MAJOR = 3;
        NCURSES_VERSION_MINOR = 0;
@@ -38,13 +38,13 @@ unit ncurses;
     #ifdef NCURSES_NOMACROS
     #define NCURSES_ATTR_T attr_t
     #endif
-    
+
     #ifndef NCURSES_ATTR_T
     #define NCURSES_ATTR_T int
     #endif
-    
+
     #ifndef NCURSES_CONST
-    #define NCURSES_CONST 
+    #define NCURSES_CONST
     #endif
     }
 
@@ -56,7 +56,7 @@ unit ncurses;
     const
        CXX_BUILTIN_BOOL = 1;
     type
-    
+
        CXX_TYPE_OF_BOOL = char;
 
 Var
@@ -79,7 +79,7 @@ Type
 
 Var
     acs_map : tacs_map;external name 'acs_map';
-    
+
     function ACS_ULCORNER : chtype;
     function ACS_LLCORNER : chtype;
     function ACS_URCORNER : chtype;
@@ -91,8 +91,8 @@ Var
     function ACS_HLINE : chtype;
     function ACS_VLINE : chtype;
     function ACS_PLUS : chtype;
-    function ACS_S1	 : chtype;
-    function ACS_S9	 : chtype;
+    function ACS_S1      : chtype;
+    function ACS_S9      : chtype;
     function ACS_DIAMOND : chtype;
     function ACS_CKBOARD : chtype;
     function ACS_DEGREE : chtype;
@@ -105,11 +105,11 @@ Var
     function ACS_BOARD : chtype;
     function ACS_LANTERN : chtype;
     function ACS_BLOCK : chtype;
-    function ACS_S3	 : chtype;
-    function ACS_S7	 : chtype;
+    function ACS_S3      : chtype;
+    function ACS_S7      : chtype;
     function ACS_LEQUAL : chtype;
     function ACS_GEQUAL : chtype;
-    function ACS_PI	 : chtype;
+    function ACS_PI      : chtype;
     function ACS_NEQUAL : chtype;
     function ACS_STERLING : chtype;
     {
@@ -119,19 +119,19 @@ Var
        here only uses B and S.
      }
     {
-    #define ACS_BSSB	ACS_ULCORNER
-    #define ACS_SSBB	ACS_LLCORNER
-    #define ACS_BBSS	ACS_URCORNER
-    #define ACS_SBBS	ACS_LRCORNER
-    #define ACS_SBSS	ACS_RTEE
-    #define ACS_SSSB	ACS_LTEE
-    #define ACS_SSBS	ACS_BTEE
-    #define ACS_BSSS	ACS_TTEE
-    #define ACS_BSBS	ACS_HLINE
-    #define ACS_SBSB	ACS_VLINE
-    #define ACS_SSSS	ACS_PLUS
+    #define ACS_BSSB    ACS_ULCORNER
+    #define ACS_SSBB    ACS_LLCORNER
+    #define ACS_BBSS    ACS_URCORNER
+    #define ACS_SBBS    ACS_LRCORNER
+    #define ACS_SBSS    ACS_RTEE
+    #define ACS_SSSB    ACS_LTEE
+    #define ACS_SSBS    ACS_BTEE
+    #define ACS_BSSS    ACS_TTEE
+    #define ACS_BSBS    ACS_HLINE
+    #define ACS_SBSB    ACS_VLINE
+    #define ACS_SSSS    ACS_PLUS
     }
-    Const 
+    Const
        ERR = -(1);
        OK = 0;
        _SUBWIN = $01;
@@ -206,7 +206,7 @@ Var
         PWINDOW = ^WINDOW;
        SCREEN=WINDOW;
        PSCREEN = PWINDOW;
-      
+
       var
        stdscr  : PWINDOW;external name 'stdscr';
        curscr  : PWINDOW;external name 'curscr';
@@ -214,14 +214,14 @@ Var
        LINES   : longint;external name 'LINES';
        COLS    : longint;external name 'COLS';
        TABSIZE : longint;external name 'TABSIZE';
-       
+
     Function define_key(_para1:pchar; _para2:longint):longint; cdecl;
     Function keyok(_para1:longint; _para2:bool):longint; cdecl;
     Function resizeterm(_para1:longint; _para2:longint):longint; cdecl;
     Function use_default_colors:longint; cdecl;
     Function wresize(_para1:pWINDOW; _para2:longint; _para3:longint):longint; cdecl;
     {
-    extern char ttytype[];		
+    extern char ttytype[];
     }
     Function baudrate:longint; cdecl;
     Function beep:longint; cdecl;
@@ -272,17 +272,17 @@ Var
     Function mvcur(_para1:longint; _para2:longint; _para3:longint; _para4:longint):longint; cdecl;
     Function mvderwin(_para1:pWINDOW; _para2:longint; _para3:longint):longint; cdecl;
     {
-    extern int mvprintw(int,int,const char  ,...)		
-    		GCC_PRINTFLIKE(3,4);
-    extern int mvscanw(int,int,const char  ,...)		
-    		GCC_SCANFLIKE(3,4);
+    extern int mvprintw(int,int,const char  ,...)
+                GCC_PRINTFLIKE(3,4);
+    extern int mvscanw(int,int,const char  ,...)
+                GCC_SCANFLIKE(3,4);
     }
     Function mvwin(_para1:pWINDOW; _para2:longint; _para3:longint):longint; cdecl;
     {
-    extern int mvwprintw(WINDOW ,int,int,const char  ,...)	
-    		GCC_PRINTFLIKE(4,5);
-    extern int mvwscanw(WINDOW  ,int,int,const char  ,...)	
-    		GCC_SCANFLIKE(4,5);
+    extern int mvwprintw(WINDOW ,int,int,const char  ,...)
+                GCC_PRINTFLIKE(4,5);
+    extern int mvwscanw(WINDOW  ,int,int,const char  ,...)
+                GCC_SCANFLIKE(4,5);
     }
     Function napms(_para1:longint):longint; cdecl;
 
@@ -301,13 +301,13 @@ Var
     Function pair_content(_para1:longint; _para2:plongint; _para3:plongint):longint; cdecl;
 
     Function pechochar(_para1:pWINDOW; _para2:chtype):longint; cdecl;
-    Function pnoutrefresh(_para1:pWINDOW; _para2:longint; _para3:longint; _para4:longint; _para5:longint; 
+    Function pnoutrefresh(_para1:pWINDOW; _para2:longint; _para3:longint; _para4:longint; _para5:longint;
                _para6:longint; _para7:longint):longint;cdecl;
     Function prefresh(_para1:pWINDOW; _para2:longint; _para3:longint; _para4:longint; _para5:longint;
                _para6:longint; _para7:longint):longint;cdecl;
     {
-    extern int printw(const char  ,...)			
-    		GCC_PRINTFLIKE(1,2);
+    extern int printw(const char  ,...)
+                GCC_PRINTFLIKE(1,2);
     }
     Function putp(_para1:pchar):longint; cdecl;
     Function putwin(_para1:pWINDOW; _para2:pFILE):longint; cdecl;
@@ -321,8 +321,8 @@ Var
 }
     Function savetty:longint; cdecl;
     {
-    extern int scanw(const char  ,...)			
-    		GCC_SCANFLIKE(1,2);
+    extern int scanw(const char  ,...)
+                GCC_SCANFLIKE(1,2);
     }
     Function scr_dump(_para1:pchar):longint; cdecl;
 
@@ -404,7 +404,7 @@ Var
     Function wgetch(_para1:pWINDOW):longint; cdecl;
     Function wgetnstr(_para1:pWINDOW; _para2:pchar; _para3:longint):longint; cdecl;
     Function whline(_para1:pWINDOW; _para2:chtype; _para3:longint):longint; cdecl;
-    Function winch (win : PWindow) : longint; 
+    Function winch (win : PWindow) : longint;
     Function winchnstr(_para1:pWINDOW; _para2:pchtype; _para3:longint):longint; cdecl;
     Function winnstr(_para1:pWINDOW; _para2:pchar; _para3:longint):longint; cdecl;
     Function winsch(_para1:pWINDOW; _para2:chtype):longint; cdecl;
@@ -413,14 +413,14 @@ Var
     Function wmove(_para1:pWINDOW; _para2:longint; _para3:longint):longint; cdecl;
     Function wnoutrefresh(_para1:pWINDOW):longint; cdecl;
     {
-    extern int wprintw(WINDOW  ,const char  ,...)		
-    		GCC_PRINTFLIKE(2,3);
+    extern int wprintw(WINDOW  ,const char  ,...)
+                GCC_PRINTFLIKE(2,3);
     }
     Function wredrawln(_para1:pWINDOW; _para2:longint; _para3:longint):longint; cdecl;
     Function wrefresh(_para1:pWINDOW):longint; cdecl;
     {
-    extern int wscanw(WINDOW  ,const char  ,...)		
-    		GCC_SCANFLIKE(2,3);
+    extern int wscanw(WINDOW  ,const char  ,...)
+                GCC_SCANFLIKE(2,3);
     }
     Function wscrl(_para1:pWINDOW; _para2:longint):longint; cdecl;
     Function wsetscrreg(_para1:pWINDOW; _para2:longint; _para3:longint):longint; cdecl;
@@ -450,11 +450,11 @@ Var
            A_RIGHT = 1 shl (20 + 8);
            A_TOP = 1 shl (21 + 8);
            A_VERTICAL = 1 shl (22 + 8);
-     Function color_pair(n : longint): longint; 
+     Function color_pair(n : longint): longint;
 {
            PAIR_NUMBER = (a(@(A_COLOR))) shr 8;
 }
-           
+
     {
        pseudo functions
      }
@@ -578,7 +578,7 @@ Var
     function mvinchnstr(y,x : longint; s : pchar;n : longint) : longint;
     function mvinchstr(y,x : longint; s : pchar) : longint;
     function mvinnstr(y,x : longint; s : pchar;n : longint) : longint;
-    function mvinsch(y,x,c : longint) : longint;
+    function mvinsch(y,x: longint;c : chtype) : longint;
     function mvinsnstr(y,x : longint; s : pchar;n : longint) : longint;
     function mvinsstr(y,x : longint; s : pchar) : longint;
     function mvinstr(y,x : longint; s : pchar) : longint;
@@ -602,104 +602,104 @@ Var
        will return any given one of these only if the corresponding k- capability
        is defined in your terminal's terminfo entry.
      }
-    const			{octal}
-       KEY_CODE_YES = 256; 	{0400}
-       KEY_MIN = 257;		{0401}
-       KEY_BREAK = 257;		{0401}
-       KEY_DOWN = 258;		{0402}
-       KEY_UP = 259;		{0403}
-       KEY_LEFT = 260;		{0404}
-       KEY_RIGHT = 261;		{0405}
-       KEY_HOME = 262;		{0406}
-       KEY_BACKSPACE = 263;	{0407}
-       KEY_F0 = 264;		{0410}
+    const                       {octal}
+       KEY_CODE_YES = 256;      {0400}
+       KEY_MIN = 257;           {0401}
+       KEY_BREAK = 257;         {0401}
+       KEY_DOWN = 258;          {0402}
+       KEY_UP = 259;            {0403}
+       KEY_LEFT = 260;          {0404}
+       KEY_RIGHT = 261;         {0405}
+       KEY_HOME = 262;          {0406}
+       KEY_BACKSPACE = 263;     {0407}
+       KEY_F0 = 264;            {0410}
     function KEY_F(n : longint) : longint;
 
     const
-       KEY_DL = 328;		{0510}
-       KEY_IL = 329;		{0511}
-       KEY_DC = 330;		{0512}
-       KEY_IC = 331;		{0513}
-       KEY_EIC = 332;		{0514}
-       KEY_CLEAR = 333;		{0515}
-       KEY_EOS = 334;		{0516}
-       KEY_EOL = 335;		{0517}
-       KEY_SF = 336;		{0520}
-       KEY_SR = 337;		{0521}
-       KEY_NPAGE = 338;		{0522}
-       KEY_PPAGE = 339;		{0523}
-       KEY_STAB = 340;		{0524}
-       KEY_CTAB = 341;		{0525}
-       KEY_CATAB = 342;		{0526}
-       KEY_ENTER = 343;		{0527}
-       KEY_SRESET = 344;	{0530}
-       KEY_RESET = 345;		{0531}
-       KEY_PRINT = 346;		{0532}
-       KEY_LL = 347;		{0533}
-       KEY_A1 = 348;		{0534}
-       KEY_A3 = 349;		{0535}
-       KEY_B2 = 350;		{0536}
-       KEY_C1 = 351;		{0537}
-       KEY_C3 = 352;		{0540}
-       KEY_BTAB = 353;		{0541}
-       KEY_BEG = 354;		{0542}
-       KEY_CANCEL = 355;	{0543}
-       KEY_CLOSE = 356;		{0544}
-       KEY_COMMAND = 357;	{0545}
-       KEY_COPY = 358;		{0546}
-       KEY_CREATE = 359;	{0547}
-       KEY_END = 360;		{0550}
-       KEY_EXIT = 361;		{0551}
-       KEY_FIND = 362;		{0552}
-       KEY_HELP = 363;		{0553}
-       KEY_MARK = 364;		{0554}
-       KEY_MESSAGE = 365;	{0555}
-       KEY_MOVE = 366;		{0556}
-       KEY_NEXT = 367;		{0557}
-       KEY_OPEN = 368;		{0560}
-       KEY_OPTIONS = 369;	{0561}
-       KEY_PREVIOUS = 370;	{0562}
-       KEY_REDO = 371;		{0563}
-       KEY_REFERENCE = 372;	{0564}
-       KEY_REFRESH = 373;	{0565}
-       KEY_REPLACE = 374;	{0566}
-       KEY_RESTART = 375;	{0567}
-       KEY_RESUME = 376;	{0570}
-       KEY_SAVE = 377;		{0571}
-       KEY_SBEG = 378;		{0572}
-       KEY_SCANCEL = 379;	{0573}
-       KEY_SCOMMAND = 380;	{0574}
-       KEY_SCOPY = 381;		{0575}
-       KEY_SCREATE = 382;	{0576}
-       KEY_SDC = 383;		{0577}
-       KEY_SDL = 384;		{0600}
-       KEY_SELECT = 385;	{0601}
-       KEY_SEND = 386;		{0602}
-       KEY_SEOL = 387;		{0603}
-       KEY_SEXIT = 388;		{0604}
-       KEY_SFIND = 389;		{0605}
-       KEY_SHELP = 390;		{0606}
-       KEY_SHOME = 391;		{0607}
-       KEY_SIC = 392;		{0610}
-       KEY_SLEFT = 393;		{0611}
-       KEY_SMESSAGE = 394;	{0612}
-       KEY_SMOVE = 395;		{0613}
-       KEY_SNEXT = 396;		{0614}
-       KEY_SOPTIONS = 397;	{0615}
-       KEY_SPREVIOUS = 398;	{0616}
-       KEY_SPRINT = 399;	{0617}
-       KEY_SREDO = 400;		{0620}
-       KEY_SREPLACE = 401;	{0621}
-       KEY_SRIGHT = 402;	{0622}
-       KEY_SRSUME = 403;	{0623}
-       KEY_SSAVE = 404;		{0624}
-       KEY_SSUSPEND = 405;	{0625}
-       KEY_SUNDO = 406;		{0626}
-       KEY_SUSPEND = 407;	{0627}
-       KEY_UNDO = 408;		{0630}
-       KEY_MOUSE = 409;		{0631}
-       KEY_RESIZE = 410;	{0632}
-       KEY_MAX = 511;		{0777}
+       KEY_DL = 328;            {0510}
+       KEY_IL = 329;            {0511}
+       KEY_DC = 330;            {0512}
+       KEY_IC = 331;            {0513}
+       KEY_EIC = 332;           {0514}
+       KEY_CLEAR = 333;         {0515}
+       KEY_EOS = 334;           {0516}
+       KEY_EOL = 335;           {0517}
+       KEY_SF = 336;            {0520}
+       KEY_SR = 337;            {0521}
+       KEY_NPAGE = 338;         {0522}
+       KEY_PPAGE = 339;         {0523}
+       KEY_STAB = 340;          {0524}
+       KEY_CTAB = 341;          {0525}
+       KEY_CATAB = 342;         {0526}
+       KEY_ENTER = 343;         {0527}
+       KEY_SRESET = 344;        {0530}
+       KEY_RESET = 345;         {0531}
+       KEY_PRINT = 346;         {0532}
+       KEY_LL = 347;            {0533}
+       KEY_A1 = 348;            {0534}
+       KEY_A3 = 349;            {0535}
+       KEY_B2 = 350;            {0536}
+       KEY_C1 = 351;            {0537}
+       KEY_C3 = 352;            {0540}
+       KEY_BTAB = 353;          {0541}
+       KEY_BEG = 354;           {0542}
+       KEY_CANCEL = 355;        {0543}
+       KEY_CLOSE = 356;         {0544}
+       KEY_COMMAND = 357;       {0545}
+       KEY_COPY = 358;          {0546}
+       KEY_CREATE = 359;        {0547}
+       KEY_END = 360;           {0550}
+       KEY_EXIT = 361;          {0551}
+       KEY_FIND = 362;          {0552}
+       KEY_HELP = 363;          {0553}
+       KEY_MARK = 364;          {0554}
+       KEY_MESSAGE = 365;       {0555}
+       KEY_MOVE = 366;          {0556}
+       KEY_NEXT = 367;          {0557}
+       KEY_OPEN = 368;          {0560}
+       KEY_OPTIONS = 369;       {0561}
+       KEY_PREVIOUS = 370;      {0562}
+       KEY_REDO = 371;          {0563}
+       KEY_REFERENCE = 372;     {0564}
+       KEY_REFRESH = 373;       {0565}
+       KEY_REPLACE = 374;       {0566}
+       KEY_RESTART = 375;       {0567}
+       KEY_RESUME = 376;        {0570}
+       KEY_SAVE = 377;          {0571}
+       KEY_SBEG = 378;          {0572}
+       KEY_SCANCEL = 379;       {0573}
+       KEY_SCOMMAND = 380;      {0574}
+       KEY_SCOPY = 381;         {0575}
+       KEY_SCREATE = 382;       {0576}
+       KEY_SDC = 383;           {0577}
+       KEY_SDL = 384;           {0600}
+       KEY_SELECT = 385;        {0601}
+       KEY_SEND = 386;          {0602}
+       KEY_SEOL = 387;          {0603}
+       KEY_SEXIT = 388;         {0604}
+       KEY_SFIND = 389;         {0605}
+       KEY_SHELP = 390;         {0606}
+       KEY_SHOME = 391;         {0607}
+       KEY_SIC = 392;           {0610}
+       KEY_SLEFT = 393;         {0611}
+       KEY_SMESSAGE = 394;      {0612}
+       KEY_SMOVE = 395;         {0613}
+       KEY_SNEXT = 396;         {0614}
+       KEY_SOPTIONS = 397;      {0615}
+       KEY_SPREVIOUS = 398;     {0616}
+       KEY_SPRINT = 399;        {0617}
+       KEY_SREDO = 400;         {0620}
+       KEY_SREPLACE = 401;      {0621}
+       KEY_SRIGHT = 402;        {0622}
+       KEY_SRSUME = 403;        {0623}
+       KEY_SSAVE = 404;         {0624}
+       KEY_SSUSPEND = 405;      {0625}
+       KEY_SUNDO = 406;         {0626}
+       KEY_SUSPEND = 407;       {0627}
+       KEY_UNDO = 408;          {0630}
+       KEY_MOUSE = 409;         {0631}
+       KEY_RESIZE = 410;        {0632}
+       KEY_MAX = 511;           {0777}
 
     function mcprint(_para1:pchar; _para2:longint):longint;cdecl;
     function has_key(_para1:longint):longint;cdecl;
@@ -719,7 +719,7 @@ const External_library='';
     function cbreak:longint;Cdecl; External;
     function clearok(_para1:pWINDOW; _para2:bool):longint;Cdecl; External;
     function color_content(_para1:longint; _para2:plongint; _para3:plongint; _para4:plongint):longint;Cdecl; External;
-    function copywin(_para1:pWINDOW; _para2:pWINDOW; _para3:longint; _para4:longint; _para5:longint; 
+    function copywin(_para1:pWINDOW; _para2:pWINDOW; _para3:longint; _para4:longint; _para5:longint;
                _para6:longint; _para7:longint; _para8:longint; _para9:longint):longint;Cdecl; External;
     function curs_set(_para1:longint):longint;Cdecl; External;
     function def_prog_mode:longint;Cdecl; External;
@@ -767,9 +767,9 @@ const External_library='';
     function overwrite(_para1:pWINDOW; _para2:pWINDOW):longint;Cdecl; External;
     function pair_content(_para1:longint; _para2:plongint; _para3:plongint):longint;Cdecl; External;
     function pechochar(_para1:pWINDOW; _para2:chtype):longint;Cdecl; External;
-    function pnoutrefresh(_para1:pWINDOW; _para2:longint; _para3:longint; _para4:longint; _para5:longint; 
+    function pnoutrefresh(_para1:pWINDOW; _para2:longint; _para3:longint; _para4:longint; _para5:longint;
                _para6:longint; _para7:longint):longint;Cdecl; External;
-    function prefresh(_para1:pWINDOW; _para2:longint; _para3:longint; _para4:longint; _para5:longint; 
+    function prefresh(_para1:pWINDOW; _para2:longint; _para3:longint; _para4:longint; _para5:longint;
                _para6:longint; _para7:longint):longint;Cdecl; External;
     function putp(_para1:pchar):longint;Cdecl; External;
     function putwin(_para1:pWINDOW; _para2:pFILE):longint;Cdecl; External;
@@ -819,7 +819,7 @@ const External_library='';
     function wattr_off(_para1:pWINDOW; _para2:attr_t):longint;Cdecl; External;
     function wbkgd(_para1:pWINDOW; _para2:chtype):longint;Cdecl; External;
     procedure wbkgdset(_para1:pWINDOW; _para2:chtype);Cdecl; External;
-    function wborder(_para1:pWINDOW; _para2:chtype; _para3:chtype; _para4:chtype; _para5:chtype; 
+    function wborder(_para1:pWINDOW; _para2:chtype; _para3:chtype; _para4:chtype; _para5:chtype;
                _para6:chtype; _para7:chtype; _para8:chtype; _para9:chtype):longint;Cdecl; External;
     function wchgat(_para1:pWINDOW; _para2:longint; _para3:attr_t; _para4:longint; _para5:pointer):longint;Cdecl; External;
     function wclear(_para1:pWINDOW):longint;Cdecl; External;
@@ -859,7 +859,7 @@ const External_library='';
       end;
     function setterm(term : longint) : longint;
       begin
-         { 
+         {
          setterm:=setupterm(term,1,plongint(0));
          }
       end;
@@ -890,7 +890,7 @@ const External_library='';
     function getattrs(win : pwindow) : longint;
       var
          if_local1 : longint;
-      
+
       begin
          if win<>nil then
            if_local1:=win^._attrs
@@ -901,7 +901,7 @@ const External_library='';
     function getcurx(win : pwindow) : longint;
       var
          if_local1 : longint;
-      
+
       begin
          if win<>nil then
            if_local1:=win^._curx
@@ -912,7 +912,7 @@ const External_library='';
     function getcury(win : pwindow) : longint;
       var
          if_local1 : longint;
-      
+
       begin
          if win<>Nil then
            if_local1:=win^._cury
@@ -923,7 +923,7 @@ const External_library='';
     function getbegx(win : pwindow) : longint;
       var
          if_local1 : longint;
-      
+
       begin
          if win<>Nil then
            if_local1:=win^._begx
@@ -934,7 +934,7 @@ const External_library='';
     function getbegy(win : pwindow) : longint;
       var
          if_local1 : longint;
-      
+
       begin
          if win<>Nil then
            if_local1:=win^._begy
@@ -945,7 +945,7 @@ const External_library='';
     function getmaxx(win : pwindow) : longint;
       var
          if_local1 : longint;
-      
+
       begin
          if win<>Nil then
            if_local1:=(win^._maxx) + 1
@@ -956,7 +956,7 @@ const External_library='';
     function getmaxy(win : pwindow) : longint;
       var
          if_local1 : longint;
-      
+
       begin
          if win<>Nil then
            if_local1:=(win^._maxy) + 1
@@ -967,7 +967,7 @@ const External_library='';
     function getparx(win : pwindow) : longint;
       var
          if_local1 : longint;
-      
+
       begin
          if win<>Nil then
            if_local1:=win^._parx
@@ -978,7 +978,7 @@ const External_library='';
     function getpary(win : pwindow) : longint;
       var
          if_local1 : longint;
-      
+
       begin
          if win<>Nil then
            if_local1:=win^._pary
@@ -1602,130 +1602,130 @@ const External_library='';
     function ACS_ULCORNER : chtype;
     begin
       ACS_ULCORNER:=acs_map['l'];
-    end;	
+    end;
     function ACS_LLCORNER : chtype;
     begin
       ACS_LLCORNER:=acs_map['m'];
-    end;	
+    end;
     function ACS_URCORNER : chtype;
     begin
       ACS_URCORNER:=acs_map['k'];
-    end;	
+    end;
     function ACS_LRCORNER : chtype;
     begin
       ACS_LRCORNER:=acs_map['j'];
-    end;	
+    end;
     function ACS_LTEE : chtype;
     begin
       ACS_LTEE:=acs_map['t'];
-    end;	
+    end;
     function ACS_RTEE : chtype;
     begin
       ACS_RTEE:=acs_map['u'];
-    end;	
+    end;
     function ACS_BTEE : chtype;
     begin
       ACS_BTEE:=acs_map['v'];
-    end;	
+    end;
     function ACS_TTEE : chtype;
     begin
       ACS_TTEE:=acs_map['w'];
-    end;	
+    end;
     function ACS_HLINE : chtype;
     begin
       ACS_HLINE:=acs_map['q'];
-    end;	
+    end;
     function ACS_VLINE : chtype;
     begin
       ACS_VLINE:=acs_map['x'];
-    end;	
+    end;
     function ACS_PLUS : chtype;
     begin
       ACS_PLUS:=acs_map['n'];
-    end;	
-    function ACS_S1	 : chtype;
+    end;
+    function ACS_S1      : chtype;
     begin
-      ACS_S1	:=acs_map['o'];
-    end;	
-    function ACS_S9	 : chtype;
+      ACS_S1    :=acs_map['o'];
+    end;
+    function ACS_S9      : chtype;
     begin
-      ACS_S9	:=acs_map['s'];
-    end;	
+      ACS_S9    :=acs_map['s'];
+    end;
     function ACS_DIAMOND : chtype;
     begin
       ACS_DIAMOND:=acs_map['`'];
-    end;	
+    end;
     function ACS_CKBOARD : chtype;
     begin
       ACS_CKBOARD:=acs_map['a'];
-    end;	
+    end;
     function ACS_DEGREE : chtype;
     begin
       ACS_DEGREE:=acs_map['f'];
-    end;	
+    end;
     function ACS_PLMINUS : chtype;
     begin
       ACS_PLMINUS:=acs_map['g'];
-    end;	
+    end;
     function ACS_BULLET : chtype;
     begin
       ACS_BULLET:=acs_map['~'];
-    end;	
-        
+    end;
+
     function ACS_LARROW : chtype;
     begin
       ACS_LARROW:=acs_map[','];
-    end;	
+    end;
     function ACS_RARROW : chtype;
     begin
       ACS_RARROW:=acs_map['+'];
-    end;	
+    end;
     function ACS_DARROW : chtype;
     begin
       ACS_DARROW:=acs_map['.'];
-    end;	
+    end;
     function ACS_UARROW : chtype;
     begin
       ACS_UARROW:=acs_map['-'];
-    end;	
+    end;
     function ACS_BOARD : chtype;
     begin
       ACS_BOARD:=acs_map['h'];
-    end;	
+    end;
     function ACS_LANTERN : chtype;
     begin
       ACS_LANTERN:=acs_map['i'];
-    end;	
+    end;
     function ACS_BLOCK : chtype;
     begin
       ACS_BLOCK:=acs_map['0'];
-    end;	
-    function ACS_S3	 : chtype;
+    end;
+    function ACS_S3      : chtype;
     begin
-      ACS_S3	:=acs_map['p'];
-    end;	
-    function ACS_S7	 : chtype;
+      ACS_S3    :=acs_map['p'];
+    end;
+    function ACS_S7      : chtype;
     begin
-      ACS_S7	:=acs_map['r'];
-    end;	
+      ACS_S7    :=acs_map['r'];
+    end;
     function ACS_LEQUAL : chtype;
     begin
       ACS_LEQUAL:=acs_map['y'];
-    end;	
+    end;
     function ACS_GEQUAL : chtype;
     begin
       ACS_GEQUAL:=acs_map['z'];
-    end;	
-    function ACS_PI	 : chtype;
+    end;
+    function ACS_PI      : chtype;
     begin
-      ACS_PI	:=acs_map['{'];
-    end;	
+      ACS_PI    :=acs_map['{'];
+    end;
     function ACS_NEQUAL : chtype;
     begin
       ACS_NEQUAL:=acs_map['|'];
-    end;	
+    end;
     function ACS_STERLING : chtype;
     begin
       ACS_STERLING:=acs_map['}'];
-    end;	
+    end;
 end.

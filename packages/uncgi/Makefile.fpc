@@ -1,0 +1,21 @@
+#
+#   Makefile.fpc for CGI Units
+#
+
+[targets]
+units=uncgi
+programs=testcgi
+
+[dirs]
+fpcdir=../..
+
+[defaults]
+defaultunits=1
+
+
+[rules]
+.PHONY: test examples
+
+test: fpc_exes
+
+examples: fpc_exes

@@ -1,0 +1,23 @@
+#
+#   Makefile.fpc for InterBase bindings
+#
+
+[targets]
+units=ibase
+programs=testib
+
+[dirs]
+fpcdir=../..
+
+[defaults]
+defaultunits=1
+
+
+[rules]
+.PHONY: test examples
+
+testib$(EXEEXT): testib.pp ibase$(PPUEXT)
+
+test: fpc_exes
+
+examples: fpc_exes

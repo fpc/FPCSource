@@ -22,15 +22,15 @@ Unit inet;
   ---------
 
   Current version is 0.6
-   
+
   Version          Date             Remarks
   -------          ----             ----
   0.1              07/16/97         Unit started. Michael.
-  0.2              07/06/98         Updated for version 0.99.5 
+  0.2              07/06/98         Updated for version 0.99.5
   0.4              08/01/98         Objects for name lookup implemented
   0.5              09/10/98         Updated calls for 0.99.8.
   0.6              05/04/99         Added explicit asmmode.
-  
+
   ------------------------------------------------------------------- }
 
 
@@ -38,28 +38,28 @@ interface
 
 {$LINKLIB c}
 
-Const 
+Const
   { Net type }
   AF_INET = 2;
-  
+
   { Error constants. Returned by LastError method of THost, TNet}
-  
+
   NETDB_INTERNAL= -1;       { see errno }
   NETDB_SUCCESS = 0;        { no problem }
   HOST_NOT_FOUND= 1;        { Authoritative Answer Host not found }
-  TRY_AGAIN	= 2;        { Non-Authoritive Host not found, or SERVERFAIL }
-  NO_RECOVERY	= 3;        { Non recoverable errors, FORMERR, REFUSED, NOTIMP }
-  NO_DATA	= 4;        { Valid name, no data record of requested type }
-  NO_ADDRESS	= NO_DATA;  { no address, look for MX record }
+  TRY_AGAIN     = 2;        { Non-Authoritive Host not found, or SERVERFAIL }
+  NO_RECOVERY   = 3;        { Non recoverable errors, FORMERR, REFUSED, NOTIMP }
+  NO_DATA       = 4;        { Valid name, no data record of requested type }
+  NO_ADDRESS    = NO_DATA;  { no address, look for MX record }
 
 
-  
+
 
 Type
   THostAddr = array[1..4] of byte;
   PHostAddr = ^THostAddr;
 
-Const 
+Const
   NoAddress : THostAddr = (0,0,0,0);
 
 Type
@@ -73,28 +73,28 @@ Type
     Addrlist : ppchar;  { null-terminated list of adresses }
   end;
   PHostEnt = ^THostEnt;
-  
+
   { TNetEnt object }
   TNetEnt = record
     Name     : pchar;   { Official name }
     Aliases  : ppchar;  { Nill-terminated alias list }
     AddrType : longint; { Net address type }
-    net      : Longint; { Network number }  
+    net      : Longint; { Network number }
   end;
-  PNetEnt = ^TNetEnt; 
+  PNetEnt = ^TNetEnt;
 
   TServEnt = record
     name    : pchar;    { Service name }
     aliases : ppchar;   { Null-terminated alias list }
     port    : longint;  { Port number }
-    proto   : pchar;    { Protocol to use } 
+    proto   : pchar;    { Protocol to use }
   end;
   PServEnt = ^TServEnt;
 
   { Pascal Wrapper objects }
 
   TSelectType = (stFirst,stNext,stPrevious);
-   
+
   THost = Object
     FHostEntry : PHostEnt;
     FAlias,FAddr,FError : Longint;
@@ -134,8 +134,8 @@ Type
     Function Port : Longint;
     Function LastError : Longint;
   end;
-     
-     
+
+
 
 { Pascal style calls }
 
@@ -150,30 +150,6 @@ Function ShortNetToHost (Net : integer) : integer;
 
 { C style calls, linked in from Libc }
 
-function GetHostEnt : PHostEnt;cdecl;
-function GetHostByName ( HostName : Pchar) : PHostEnt;cdecl;
-function GetHostByAddr ( Addr : PHostAddr; Len : Longint; HType : Longint) : PHostEnt;cdecl;
-procedure SetHostEnt (stayopen : longint);cdecl;
-procedure EndHostEnt;cdecl;
-
-function GetNetEnt : PNetEnt;cdecl;
-function GetNetByName ( Name : pchar) : PNetEnt;cdecl;
-function GetNetByAddr ( Net : Longint; NetType : Longint) : PNetEnt;cdecl;
-procedure SetNetEnt ( Stayopen : Longint);cdecl;
-procedure EndNetEnt;cdecl;
-
-function getservent : PServEnt;cdecl;
-function getservbyname (name : pchar  ; protocol : pchar) : PServEnt;cdecl;
-function getservbyport (port : longint; protocol : pchar) : PServEnt;cdecl;
-
-procedure setservent (StayOpen : longint);cdecl;
-procedure endservent;cdecl;
-
-
-implementation
-
-Uses strings;
-
 function gethostent : PHostEnt; cdecl; external;
 function gethostbyname ( Name : Pchar) : PHostEnt; cdecl; external;
 function gethostbyaddr ( Addr : PHostAddr; Len : Longint; HType : Longint) : PHostent ; cdecl; external;
@@ -181,7 +157,7 @@ procedure sethostent (stayopen : longint); cdecl; external;
 procedure endhostent; cdecl; external;
 
 function getnetent : PNetEnt; cdecl; external;
-function getnetbyname ( Name : pchar) : PNetEnt; cdecl; external; 
+function getnetbyname ( Name : pchar) : PNetEnt; cdecl; external;
 function getnetbyaddr ( Net : Longint; nettype : Longint) : PNetEnt; cdecl; external;
 procedure setnetent ( Stayopen : Longint);  cdecl; external;
 procedure endnetent; cdecl; external;
@@ -192,22 +168,20 @@ function getservbyport (port : longint; protocol : pchar) : PServEnt; cdecl; ext
 procedure setservent (StayOpen : longint); cdecl; external;
 procedure endservent; cdecl; external;
 
+var
+  GetDNSError : longint;external name 'h_errno';
 
-Function GetDNSError : Longint;
-{$asmmode direct}
 
-begin
-  asm
-  movl h_errno,%eax
-  movl %eax,__RESULT
-  end ['EAX'];
-end;
+implementation
+
+Uses strings;
+
 
 function HostAddrToStr (Entry : THostAddr) : String;
 
 Var Dummy : String[4];
     I : Longint;
-    
+
 begin
   HostAddrToStr:='';
   For I:=1 to 4 do
@@ -224,19 +198,19 @@ Var Dummy : String[4];
     I : Longint;
     J : Integer;
     Temp : THostAddr;
-    
+
 begin
   StrToHostAddr:=NoAddress;
   For I:=1 to 4 do
    begin
-   If I<4 Then 
+   If I<4 Then
      begin
      J:=Pos('.',IP);
      If J=0 then exit;
      Dummy:=Copy(IP,1,J-1);
      Delete (IP,1,J);
      end
-   else 
+   else
      Dummy:=IP;
    Val (Dummy,Temp[I],J);
    If J<>0 then Exit;
@@ -248,7 +222,7 @@ function NetAddrToStr (Entry : longint) : String;
 
 Var Dummy : String[4];
     I : Longint;
-    
+
 begin
   NetAddrToStr:='';
   For I:=4 downto 1 do
@@ -278,7 +252,7 @@ begin
     FAlias:=0;
     FAddr:=0;
     Ferror:=0;
-    end;  
+    end;
 end;
 
 Constructor THost.AddressLookup (Const Address: THostAddr);
@@ -292,7 +266,7 @@ begin
     FAlias:=0;
     FAddr:=0;
     FError:=0;
-    end;  
+    end;
 end;
 
 
@@ -373,7 +347,7 @@ begin
     begin
     FAlias:=0;
     Ferror:=0;
-    end;  
+    end;
 end;
 
 Constructor TNet.AddressLookup (Const Address: Longint);
@@ -386,7 +360,7 @@ begin
     begin
     FAlias:=0;
     FError:=0;
-    end;  
+    end;
 end;
 
 
@@ -452,7 +426,7 @@ begin
     begin
     FAlias:=0;
     Ferror:=0;
-    end;  
+    end;
 end;
 
 Constructor TService.PortLookup (APort: Longint; Proto : String);
@@ -466,7 +440,7 @@ begin
     begin
     FAlias:=0;
     FError:=0;
-    end;  
+    end;
 end;
 
 

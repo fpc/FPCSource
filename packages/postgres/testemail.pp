@@ -16,11 +16,11 @@ end;
 
 Var
   pghost,pgport,pgoptions,pgtty,dbname : Pchar;
-  nFields,i,j : longint;
+  nFields,i : longint;
   conn : PPGConn;
   res : PPGresult;
   dummy : string;
-  
+
 begin
   pghost := NiL;        { host name of the backend server }
   pgport := NiL;        { port of the backend server }

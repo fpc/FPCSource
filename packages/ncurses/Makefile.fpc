@@ -1,0 +1,25 @@
+#
+#   Makefile.fpc for NCurses bindings
+#
+
+[targets]
+units=ncurses
+programs=firework testn
+
+[dirs]
+fpcdir=../..
+
+[defaults]
+defaultunits=1
+
+
+[rules]
+.PHONY: test examples
+
+testn$(EXEEXT): testn$(PASEXT) ncurses$(PPUEXT)
+
+firework$(EXEEXT): firework$(PASEXT) ncurses$(PPUEXT)
+
+test: fpc_exes
+
+examples: fpc_exes

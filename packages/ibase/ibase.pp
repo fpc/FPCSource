@@ -15,24 +15,22 @@ const
 
 type
   {  Unsigned types }
-  
+
   UChar                = Byte;
-  UShort               = Word;    
-  UInt                 = DWord;   
+  UShort               = Word;
+  UInt                 = DWord;
   ULong                = DWord;
 
   { Signed types }
 
-  Int                  = LongInt; 
-  Long                 = LongInt; 
-  Short                = SmallInt;
+  Int                  = LongInt;
+  Long                 = LongInt;
+  Short                = Integer;
   Float                = Single;
-  
+
   { Pointers to basic types }
 
-  PSmallInt            = ^SmallInt;
   PInt                 = ^Int;
-  PInteger             = ^Integer;
   PShort               = ^Short;
   PUShort              = ^UShort;
   PLong                = ^Long;
@@ -40,13 +38,12 @@ type
   PFloat               = ^Float;
   PUChar               = ^UChar;
   PVoid                = ^Pointer;
-  PDouble              = ^Double;
-  
+
   { Interbase redefinitions }
-  
-  ISC_LONG             = Long;  
+
+  ISC_LONG             = Long;
   UISC_LONG            = ULong;
-  ISC_STATUS           = Long;   
+  ISC_STATUS           = Long;
   UISC_STATUS          = ULong;
   Void                 = Pointer;
   PISC_LONG            = ^ISC_LONG;
@@ -89,9 +86,9 @@ type
   end;
   PBlob = ^TBlob;
 
-Const  
-  { 
-    Huge amount of constants. 
+Const
+  {
+    Huge amount of constants.
     Look for TYPESTART to get to types,
     Look For FUNCSTART to get to functions and procedures
   }
@@ -319,7 +316,7 @@ Const
   blr_seek_no_warn = 156;
   blr_find_dbkey_version = 157;
   blr_ansi_all = 158;
-     
+
   isc_dpb_version1 = 1;
   isc_dpb_cdd_pathname = 1;
   isc_dpb_allocation = 2;
@@ -1460,7 +1457,7 @@ Const
   // TYPESTART  (to quickly get here, look for TYPESTART)
 
 type
-  
+
   TISC_ATT_HANDLE = PVoid;
   PISC_ATT_HANDLE = ^TISC_ATT_HANDLE;
   TISC_BLOB_HANDLE = PVoid;
@@ -1516,33 +1513,33 @@ type
     blob_desc_relation_name : array[0..31] of UChar;
   end;
   PISC_BLOB_DESC = ^TISC_BLOB_DESC;
-  
+
   TISC_BLOB_CTL_SOURCE_FUNCTION = function : ISC_STATUS; // ISC_FAR
   PISC_BLOB_CTL = ^TISC_BLOB_CTL;        // ISC_FAR
   TISC_BLOB_CTL = record
     ctl_source : TISC_BLOB_CTL_SOURCE_FUNCTION;
     ctl_source_handle : PISC_BLOB_CTL;
-    ctl_to_sub_type : Short;        
-    ctl_from_sub_type : Short;        
-    ctl_buffer_length : UShort;       
-    ctl_segment_length : UShort;       
-    ctl_bpb_length : UShort;       
-    ctl_bpb : PChar;        
-    ctl_buffer : PUChar;       
-    ctl_max_segment : ISC_LONG;     
-    ctl_number_segments : ISC_LONG;     
-    ctl_total_length : ISC_LONG;     
-    ctl_status : PISC_STATUS;  
-    ctl_data : array[0..7] of long; 
+    ctl_to_sub_type : Short;
+    ctl_from_sub_type : Short;
+    ctl_buffer_length : UShort;
+    ctl_segment_length : UShort;
+    ctl_bpb_length : UShort;
+    ctl_bpb : PChar;
+    ctl_buffer : PUChar;
+    ctl_max_segment : ISC_LONG;
+    ctl_number_segments : ISC_LONG;
+    ctl_total_length : ISC_LONG;
+    ctl_status : PISC_STATUS;
+    ctl_data : array[0..7] of long;
   end;
-  
+
   TBSTREAM = record
-    bstr_blob : PVoid;        
-    bstr_buffer : PChar;        
-    bstr_ptr : PChar;        
-    bstr_length : Short;        
-    bstr_cnt : Short;        
-    bstr_mode : Char;         
+    bstr_blob : PVoid;
+    bstr_buffer : PChar;
+    bstr_ptr : PChar;
+    bstr_length : Short;
+    bstr_cnt : Short;
+    bstr_mode : Char;
   end;
   PBSTREAM = ^TBSTREAM;
 
@@ -1566,30 +1563,30 @@ type
   PSQLDA = ^TSQLDA;
 
   TXSQLVAR = record
-    sqltype : Short;     
-    sqlscale : Short;     
-    sqlsubtype : Short;     
-    sqllen : Short;     
-    sqldata : PChar;     
-    sqlind : PShort;    
-    sqlname_length : Short;     
+    sqltype : Short;
+    sqlscale : Short;
+    sqlsubtype : Short;
+    sqllen : Short;
+    sqldata : PChar;
+    sqlind : PShort;
+    sqlname_length : Short;
     sqlname : array[0..31] of Char;
-    relname_length : Short;     
+    relname_length : Short;
     relname : array[0..31] of Char;
-    ownname_length : Short;     
+    ownname_length : Short;
     ownname : array[0..31] of Char;
-    aliasname_length : Short;     
+    aliasname_length : Short;
     aliasname : array[0..31] of Char;
   end;
   PXSQLVAR = ^TXSQLVAR;
 
   TXSQLDA = record
-    version : Short;     
-    pad : smallint;
+    version : Short;
+    pad : Short;
     sqldaid : array[0..7] of Char;
-    sqldabc : ISC_LONG;  
-    sqln : Short;     
-    sqld : Short;     
+    sqldabc : ISC_LONG;
+    sqln : Short;
+    sqld : Short;
     sqlvar : array[0..0] of TXSQLVAR;
   end;
   PXSQLDA = ^TXSQLDA;
@@ -1794,27 +1791,27 @@ function isc_suspend_window (status_vector : PISC_STATUS;win_handle : PISC_WIN_H
 implementation
 
 function SQLDA_LENGTH(n: Long): Long;
-begin  
-  result := sizeof(TSQLDA) + ((n - 1) * sizeof(TSQLVAR));
+begin
+  SQLDA_LENGTH := sizeof(TSQLDA) + ((n - 1) * sizeof(TSQLVAR));
 end;
 
 
 function XSQLDA_LENGTH(n: Long): Long;
 begin
-  result := SizeOf(TXSQLDA) + ((n - 1) * SizeOf(TXSQLVAR));
+  XSQLDA_LENGTH := SizeOf(TXSQLDA) + ((n - 1) * SizeOf(TXSQLVAR));
 end;
 
 
 function getb(p: PBSTREAM): Char;
 begin
   Dec(p^.bstr_cnt);
-  if (p^.bstr_cnt >= 0) then 
+  if (p^.bstr_cnt >= 0) then
     begin
-    Result := Chr(Byte(p^.bstr_ptr^) and 248);
+    getb := Chr(Byte(p^.bstr_ptr^) and 248);
     Inc(p^.bstr_ptr);
-    end 
+    end
   else
-    result := Char(BLOB_get(p));
+    getb := Char(BLOB_get(p));
 end;
 
 
@@ -1822,10 +1819,10 @@ function putb(x: Char; p: PBSTREAM): Int;
 begin
   Dec(p^.bstr_cnt);
   if (x = Chr(Byte('n') - Byte('a'))) or (p^.bstr_cnt = 0) then
-    result := BLOB_put(x, p)
+    putb := BLOB_put(x, p)
       else
       begin    p^.bstr_ptr^ := Char(x);
-    result := Byte(x);
+    putb := Byte(x);
     Inc(p^.bstr_ptr^);
   end;
 end;
@@ -1833,13 +1830,13 @@ end;
 
 function putbx(x: Char; p: PBSTREAM): Int;
 begin  Dec(p^.bstr_cnt);
-  if (p^.bstr_cnt = 0) then    
-    result := BLOB_put(x, p)
-  else 
+  if (p^.bstr_cnt = 0) then
+    putbx := BLOB_put(x, p)
+  else
     begin
     p^.bstr_ptr^ := Char(x);
     Inc(p^.bstr_ptr^);
-    result := Byte(x);
+    putbx := Byte(x);
   end;
 end;
 
