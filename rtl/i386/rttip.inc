@@ -254,6 +254,11 @@ asm
         jmp     .LMyRecordAddRefLoop
 // Array handling
 .LDoArrayAddRef:
+// Skip array name !!
+        incl    %ebx
+        movzbl  (%ebx),%eax
+        incl    %eax
+        addl    %eax,%ebx
 // %ebx points to size. Put size in ecx
         movl    (%ebx),%ecx
         addl    $4, %ebx
@@ -340,6 +345,11 @@ asm
         jmp     .LMyRecordDecRefLoop
 // Array handling
 .LDoArrayDecRef:
+// Skip array name !!
+        incl    %ebx
+        movzbl  (%ebx),%eax
+        incl    %eax
+        addl    %eax,%ebx
 // %ebx points to size. Put size in ecx
         movl    (%ebx),%ecx
         addl    $4, %ebx
@@ -375,7 +385,10 @@ end;
 
 {
   $Log$
-  Revision 1.22  2000-04-01 11:45:34  peter
+  Revision 1.23  2000-06-07 08:55:30  jonas
+    * fixed web bug 983 (array name wasn't skipped in add/decref)
+
+  Revision 1.22  2000/04/01 11:45:34  peter
     * fixed addref/decref for records, the data/type was read in the
       wrong order
 
