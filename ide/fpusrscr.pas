@@ -39,8 +39,10 @@ type
       function    GetHeight: integer; virtual;
       procedure   GetLine(Line: integer; var Text, Attr: string); virtual;
       procedure   GetCursorPos(var P: TPoint); virtual;
-      { copy the initial video screen in the ide screen }
+      { remember the initial video screen }
       procedure   Capture; virtual;
+      { restore the initial video mode }
+      procedure   Restore; virtual;
       { move up or down if supported by OS }
       function    Scroll(i : integer) : integer; virtual;
       { saves the current IDE screen }
@@ -76,11 +78,14 @@ type
       procedure   GetLine(Line: integer; var Text, Attr: string); virtual;
       procedure   GetCursorPos(var P: TPoint); virtual;
       procedure   Capture; virtual;
+      procedure   Restore; virtual;
       procedure   SaveIDEScreen; virtual;
       procedure   SaveConsoleScreen; virtual;
       procedure   SwitchToConsoleScreen; virtual;
       procedure   SwitchBackToIDEScreen; virtual;
+      procedure   FreeGraphBuffer;
     private
+      LastTextConsoleVideoInfo,
       ConsoleVideoInfo : TDOSVideoInfo;
       VBufferSize  : longint;
       VIDEBufferSize : longint;
@@ -90,6 +95,9 @@ type
       ctrl_c_state : boolean;
 {$ifdef USE_GRAPH_SWITCH}
       GraphImageSize : longint;
+      GraphDriverName,
+      GraphModeName : string;
+      GraphXres,GraphYres : longint;
       GraphBuffer : pointer;
       ConsoleGraphDriver, ConsoleGraphMode : word;
 {$endif USE_GRAPH_SWITCH}
@@ -115,6 +123,7 @@ type
       procedure   GetLine(Line: integer; var Text, Attr: string); virtual;
       procedure   GetCursorPos(var P: TPoint); virtual;
       procedure   Capture; virtual;
+      procedure   Restore; virtual;
       procedure   SaveIDEScreen; virtual;
       procedure   SaveConsoleScreen; virtual;
       procedure   SwitchToConsoleScreen; virtual;
@@ -146,6 +155,7 @@ type
       procedure   GetCursorPos(var P: TPoint); virtual;
       function    Scroll(i : integer) : integer; virtual;
       procedure   Capture; virtual;
+      procedure   Restore; virtual;
       procedure   SaveIDEScreen; virtual;
       procedure   SaveConsoleScreen; virtual;
       procedure   SwitchToConsoleScreen; virtual;
@@ -171,7 +181,7 @@ const UserScreen : PScreen = nil;
 implementation
 
 uses
-  Dos
+  Dos,WUtils
 (*  {$ifdef TP}
     {$ifdef DPMI}
     ,WinAPI
@@ -219,6 +229,11 @@ begin
   Abstract;
 end;
 
+procedure TScreen.Restore;
+begin
+  Abstract;
+end;
+
 procedure TScreen.SwitchToConsoleScreen;
 begin
   Abstract;
@@ -254,6 +269,7 @@ end;
 constructor TDOSScreen.Init;
 begin
   inherited Init;
+  FillChar(LastTextConsoleVideoInfo,Sizeof(TDOSVideoInfo),#0);
   Capture;
   { get the current ctrl-C state }
   Ctrl_c_state:=djgpp_set_ctrl_c(false);
@@ -288,8 +304,8 @@ var
   W: word;
 begin
   Text:=''; Attr:='';
-  { VBuffer remains empty if in graph mode ... PM }
-  if (Line<GetHeight) and assigned(VBuffer) then
+  if (Line<GetHeight) and not assigned(GraphBuffer) and
+     assigned(VBuffer) then
     begin
       W:=GetLineStartOfs(Line);
       for X:=0 to GetWidth-1 do
@@ -301,8 +317,17 @@ begin
         end;
 {$ifdef USE_GRAPH_SWITCH}
     end
-  else if assigned(GraphBuffer) and (Line=0) then
-    Text:='Console in graph mode, use Alt+F5';
+  else if assigned(GraphBuffer) then
+    begin
+      if (Line=0) then
+        Text:='Console in graph mode, use Alt+F5'
+      else if (Line=1) then
+        Text:='Graph driver: '+GraphDriverName
+      else if (Line=2) then
+        Text:='Graph mode: '+GraphModeName+' ('+
+              IntToStr(GraphXres)+'x'+IntToStr(GraphYres)+')';
+      Attr:=CharStr(chr($0F),Length(Text));
+    end;
 {$else not USE_GRAPH_SWITCH}
   end;
 {$endif USE_GRAPH_SWITCH}
@@ -318,6 +343,33 @@ end;
 procedure TDOSScreen.Capture;
 begin
   SaveConsoleScreen;
+end;
+
+procedure TDOSScreen.FreeGraphBuffer;
+begin
+  { We don't want to restore the last user screen if
+    it was a grpahic screen, for example if we
+    leave in the middle of the debugging of a
+    graphic program, so we first
+    dispose the graphic buffer, thus
+    SwitchToConsoleScreen will restore the
+    last used text mode }
+  if LastTextConsoleVideoInfo.Mode<>0 then
+    begin
+      ConsoleVideoInfo:=LastTextConsoleVideoInfo;
+      if assigned(GraphBuffer) then
+        begin
+          FreeMem(GraphBuffer,GraphImageSize);
+          GraphBuffer:=nil;
+          GraphImageSize:=0;
+        end;
+    end;
+end;
+
+procedure TDosScreen.Restore;
+begin
+  FreeGraphBuffer;
+  SwitchToConsoleScreen;
 end;
 
 procedure TDosScreen.SaveIDEScreen;
@@ -393,15 +445,19 @@ begin
           if graphresult=grOk then
             begin
               ConsoleGraphDriver:=GraphDriver;
+              GraphDriverName:=GetDriverName;
+              GraphModeName:=GetModeName(GraphMode);
               ConsoleGraphMode:=GraphMode;
               Graph.DontClearGraphMemory:=false;
-              GraphImageSize:=ImageSize(0,0,Graph.GetmaxX,Graph.GetMaxY);
+              GraphXres:=Graph.GetmaxX;
+              GraphYres:=Graph.GetmaxY;
+              GraphImageSize:=ImageSize(0,0,GraphXres,GraphYres);
               GetMem(GraphBuffer,GraphImageSize);
               FillChar(GraphBuffer^,GraphImageSize,#0);
-              GetImage(0,0,Graph.GetmaxX,Graph.GetMaxY,GraphBuffer^);
-              ConsoleVideoInfo.Rows:=Graph.GetMaxY div 8;
-              ConsoleVideoInfo.Cols:=Graph.GetMaxX div 8;
-              FreeBuffer;
+              GetImage(0,0,GraphXres,GraphYres,GraphBuffer^);
+              ConsoleVideoInfo.Rows:=GraphYres div 8;
+              ConsoleVideoInfo.Cols:=GraphXres div 8;
+              {FreeBuffer;}
               saved:=true;
             end
 {$ifdef DEBUG}
@@ -415,6 +471,7 @@ begin
   if not saved then
 {$endif USE_GRAPH_SWITCH}
   begin
+    LastTextConsoleVideoInfo:=ConsoleVideoInfo;
     GetBuffer(ConsoleVideoInfo.ScreenSize);
     if ConsoleVideoInfo.Mode=7 then
      VSeg:=SegB000
@@ -757,6 +814,11 @@ end;
 procedure TLinuxScreen.Capture;
 begin
   SaveConsoleScreen;
+end;
+
+procedure TLinuxScreen.Restore;
+begin
+  SwitchToConsoleScreen;
 end;
 
 procedure TLinuxScreen.SaveIDEScreen;
@@ -1103,6 +1165,11 @@ begin
   SaveConsoleScreen;
 end;
 
+procedure TWin32Screen.Restore;
+begin
+  SwitchToConsoleScreen;
+end;
+
 { dummy for win32 as the Buffer screen
   do hold all the info }
 procedure TWin32Screen.SaveIDEScreen;
@@ -1228,7 +1295,7 @@ procedure DoneUserScreen;
 begin
   if UserScreen<>nil then
    begin
-     UserScreen^.SwitchToConsoleScreen;
+     UserScreen^.Restore;
      Dispose(UserScreen, Done);
      UserScreen:=nil;
    end;
@@ -1237,7 +1304,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.21  2002-09-13 22:27:07  pierre
+  Revision 1.22  2002-09-21 22:22:10  pierre
+   * new Restore method added, used for dos graphic applications
+
+  Revision 1.21  2002/09/13 22:27:07  pierre
    * fix several problems with go32v2 graphic support
 
   Revision 1.20  2002/09/13 08:15:06  pierre
