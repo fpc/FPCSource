@@ -37,7 +37,7 @@ type
       FHeight     : Integer;
     protected
       FMaxVal     : Integer;
-      FBPP        : Byte;
+      FBitPP        : Byte;
       FScanLineSize : Integer;
       FScanLine   : PByte;
       procedure ReadHeader(Stream : TStream);
@@ -65,14 +65,12 @@ begin
     begin
     repeat
       ReadBuffer(DropWhiteSpaces,1);
-    until not(DropWhiteSpaces in WhiteSpaces);
-    if DropWhiteSpaces='#' then
-      begin
+{If we encounter comment then eate line}
+      if DropWhiteSpaces='#' then
       repeat
         ReadBuffer(DropWhiteSpaces,1);
       until DropWhiteSpaces=#10;
-      ReadBuffer(DropWhiteSpaces,1);
-      end;
+    until not(DropWhiteSpaces in WhiteSpaces);
     end;
 end;
 
@@ -103,26 +101,32 @@ begin
     Raise Exception.Create('Not a valid PNM image.');
   Stream.ReadBuffer(C,1);
   FBitmapType:=Ord(C)-Ord('0');  
-  If Not (FBitmapType in [2,3,5,6]) then
+  If Not (FBitmapType in [1..6]) then
     Raise Exception.CreateFmt('Unknown PNM subtype : %s',[C]);
   FWidth:=ReadInteger(Stream);
   FHeight:=ReadInteger(Stream);
-  FMaxVal:=ReadInteger(Stream);
+  if FBitMapType in [1,4]
+  then
+    FMaxVal:=1
+  else
+    FMaxVal:=ReadInteger(Stream);
   If (FWidth<=0) or (FHeight<=0) or (FMaxVal<=0) then
     Raise Exception.Create('Invalid PNM header data');
   case FBitMapType of
-    2: FBPP:=SizeOf(Word);   // Grayscale (text)
-    3: FBPP:=SizeOf(Word)*3; // RGB (text) 
+    1: FBitPP := SizeOf(Word);
+    2: FBitPP := 8 * SizeOf(Word);   // Grayscale (text)
+    3: FBitPP := 8 * SizeOf(Word)*3; // RGB (text)
+    4: FBitPP := 1; // 1bit PP (row)
     5: If (FMaxval>255) then   // Grayscale (raw);
-         FBPP:=2
+         FBitPP:= 8 * 2
        else
-         FBPP:=1;
+         FBitPP:= 8;
     6: if (FMaxVal>255) then    // RGB (raw)
-         FBPP:=6
+         FBitPP:= 8 * 6
        else
-         FBPP:=3
+         FBitPP:= 8 * 3
   end;
-//  Writeln(FWidth,'x',Fheight,' Maxval: ',FMaxVal,' BPP: ',FBPP);
+//  Writeln(FWidth,'x',Fheight,' Maxval: ',FMaxVal,' BitPP: ',FBitPP);
 end;
 
 procedure TFPReaderPNM.InternalRead(Stream:TStream;Img:TFPCustomImage);
@@ -135,8 +139,8 @@ var
 begin
   ReadHeader(Stream);
   Img.SetSize(FWidth,FHeight);
-  FScanLineSize:=FBPP*FWidth;
-  GetMem(FScanLine,FBPP*FWidth);
+  FScanLineSize:=FBitPP*((FWidth+7)shr 3);
+  GetMem(FScanLine,FScanLineSize);
   try
     for Row:=0 to img.Height-1 do
       begin
@@ -152,10 +156,20 @@ procedure TFPReaderPNM.ReadScanLine(Row : Integer; Stream:TStream);
 
 Var
   P : PWord;
-  I : Integer;
+  I,j : Integer;
   
 begin
   Case FBitmapType of
+    1 : begin
+        P:=PWord(FScanLine);
+        For I:=0 to ((FWidth+7)shr 3)-1 do
+          begin
+            P^:=0;
+            for j:=0 to 7 do
+              P^:=(P^ shr 1)or ReadInteger(Stream);
+            Inc(P);
+          end;
+        end;
     2 : begin
         P:=PWord(FScanLine);
         For I:=0 to FWidth-1 do
@@ -176,7 +190,7 @@ begin
           Inc(P)
           end;
         end;
-    5,6 : Stream.ReadBuffer(FScanLine^,FScanLineSize);
+    4,5,6 : Stream.ReadBuffer(FScanLine^,FScanLineSize);
     end;
 end;
 
@@ -187,6 +201,33 @@ Var
   C : TFPColor;
   L : Cardinal;
   FHalfMaxVal : Word;
+
+  Procedure ByteBnWScanLine;
+
+  Var
+    P : PByte;
+    I,j,x : Integer;
+
+  begin
+    P:=PByte(FScanLine);
+    x:=7;
+    For I:=0 to ((FWidth+7)shr 3)-1 do
+      begin
+      L:=P^;
+      for j:=0 to 7 do
+        begin
+          if odd(L)
+          then
+            Img.Colors[x,Row]:=colBlack
+          else
+            Img.Colors[x,Row]:=colWhite;
+          L:=L shr 1;
+          dec(x);
+        end;
+      Inc(P);
+      Inc(x,16);
+      end;
+  end;
 
   Procedure WordGrayScanLine;
   
@@ -212,7 +253,7 @@ Var
   Var
     P : PWord;
     I : Integer;
-    
+
   begin
     P:=PWord(FScanLine);
     For I:=0 to FWidth-1 do
@@ -248,7 +289,7 @@ Var
       Inc(P);
       end;
   end;
-  
+
   Procedure ByteRGBScanLine;
 
   Var
@@ -276,13 +317,15 @@ begin
   C.Alpha:=AlphaOpaque;
   FHalfMaxVal:=(FMaxVal div 2);
   Case FBitmapType of
+    1 : ;
     2 : WordGrayScanline;
-    3 : WordRGBSCanline;
-    5 : If FBPP=1 then
+    3 : WordRGBScanline;
+    4 : ByteBnWScanLine;
+    5 : If FBitPP=1 then
           ByteGrayScanLine
         else
           WordGrayScanLine;
-    6 : If FBPP=3 then
+    6 : If FBitPP=3 then
           ByteRGBScanLine
         else
           WordRGBScanLine;
@@ -294,7 +337,10 @@ initialization
 end.
 {
 $Log$
-Revision 1.3  2004-03-03 00:03:34  michael
+Revision 1.4  2004-08-26 09:33:43  mazen
++ add PBM (P4) support
+
+Revision 1.3  2004/03/03 00:03:34  michael
 + Fixed reading of pnm
 
 Revision 1.2  2003/09/30 12:26:33  mazen
