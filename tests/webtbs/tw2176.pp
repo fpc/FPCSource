@@ -36,6 +36,7 @@ begin
     i.Show;        //writes nothing
   except           //does not excepts
     WriteLn('Problem');
+    halt(1);
   end;
   //in delphi it works OK
 end.
