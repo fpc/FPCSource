@@ -1,0 +1,67 @@
+The usage of the forms library is relatively straightforward.
+
+The interface has been designed as follows:
+
+- All functions and procedures have kept their names.
+- All types have a T appended in front of it.
+  If the forms manual speaks of a FL_OBJECT type, then the FPK port
+  has a TFL_OBJECT type.
+  (This is because of pascal's CaSe InSenSiTiViTy)
+- Pointers to all objects have been defined as Ptype_of_object.
+  In C   : FL_OBJECT *
+  in FPK : PFL_OBJECT = ^TFL_OBJECT
+- All 'int' declarations are 'longint' in fpkpascal.
+
+Check out the 'demo' directory for examples.
+
+Some fields of some structs have been renamed (fields as 'label' or 'type')
+when they were in conflict with Pascal reserved words. Unfortunately this
+has not been done in a consistent way. This will change in the future,
+hopefully. As a rule of thumb : reserved pascal words got the prefix 'the',
+so 'type' became 'thetype' etc.
+
+When in doubt : consult the interface part of 'forms.pp'
+
+How to compile an executable ?
+
+Easy as pie:
+The only thing that you must remember is to provide the linker with the
+path to the X-libraries, and the form libraries. You can set this through
+the '-k' option of -Fl option. 
+ 
+ppc386 -k-L/usr/X11/lib myprog.pp
+or
+ppc386 -Fl/usr/X11/lib myprog.pp
+
+Will do the trick in most cases.
+
+
+DESIGNING A FORM
+================
+
+As of version 0.88 of xforms, fdesign supports pascal directly !
+Using version 0.86, you can use the workaround described below:
+
+You can convert existing design programs as follows:
+version 0.86:
+  fdesign [other options] -convert -ada -filter fd2pascal file.fd
+version 0.88:
+  fdesign [other options] -convert -pascal file.fd
+
+or start a new design with
+version 0.86:
+  fdesign -ada -filter fd2pascal
+version 0.88:
+  fdesign -pascal
+
+This will emit pascal code. Use the following options
+ -callback
+   to emit procedure headers.
+ -main
+   to emit a program instead of a unit
+ -altformat
+   to use global variables instead of records.
+
+Enjoy !
+
+Michael Van Canneyt (michael@tfdec1.fys.kuleuven.ac.be)
