@@ -125,7 +125,7 @@ unit pexpr;
                Must_be_valid:=false;
                firstpass(p);
                Must_be_valid:=Store_valid;
-               if p^.resulttype^.deftype=procvardef then
+               if not(getprocvar) and (p^.resulttype^.deftype=procvardef) then
                  begin
                     p1:=gencallnode(nil,nil);
                     p1^.right:=p;
@@ -2042,7 +2042,10 @@ unit pexpr;
 end.
 {
   $Log$
-  Revision 1.119  1999-07-05 20:13:16  peter
+  Revision 1.120  1999-07-06 22:38:11  florian
+    * another fix for TP/Delphi styled procedure variables
+
+  Revision 1.119  1999/07/05 20:13:16  peter
     * removed temp defines
 
   Revision 1.118  1999/07/01 21:33:57  peter
