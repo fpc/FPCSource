@@ -275,16 +275,18 @@ begin
 { Stop is always called, so we come here when a program is compiled or not }
   do_stop:=olddo_stop;
 {$endif USEEXCEPT}
-{$ifdef EXTDEBUG}
-{$ifdef FPC}
-  Comment(V_Info,'Memory Lost = '+tostr(system.HeapSize-MemAvail+EntryMemUsed));
-{$endif FPC}
-  Comment(V_Info,'Repetitive firstpass = '+tostr(firstpass_several)+'/'+tostr(total_of_firstpass));
-{$endif EXTDEBUG}
 
 { Stop the compiler, frees also memory }
 { no message possible after this !!    }
   DoneCompiler;
+
+{$ifdef EXTDEBUG}
+{$ifdef FPC}
+  Writeln('Memory Lost = '+tostr(system.HeapSize-MemAvail+EntryMemUsed));
+{$endif FPC}
+  Writeln('Repetitive firstpass = '+tostr(firstpass_several)+'/'+tostr(total_of_firstpass));
+{$endif EXTDEBUG}
+
 { Set the return value if an error has occurred }
   if status.errorcount=0 then
    Compile:=0
@@ -298,7 +300,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.28  1999-08-04 13:02:40  jonas
+  Revision 1.29  1999-08-09 22:13:43  peter
+    * fixed writing of lost memory which should be after donecompiler
+
+  Revision 1.28  1999/08/04 13:02:40  jonas
     * all tokens now start with an underscore
     * PowerPC compiles!!
 
