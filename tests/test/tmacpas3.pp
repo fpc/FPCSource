@@ -1,11 +1,1 @@
-{$mode macpas}
-
-  procedure A (i: Integer; procedure W (y:Integer) );
-  begin
-    W(i);
-  end;
-
-
-begin
-end.
-
+{$mode macpas}procedure AA1 (i: Integer; function BB (a: Integer): Boolean );begin  BB(i);end;function CC1 (a: Integer): Boolean;begin  Writeln(a);  CC1:= true;end;procedure AA2 (i: Integer; procedure BB (a: Integer));begin  BB(i);end;procedure CC2 (a: Integer);begin  Writeln(a);end;begin  AA1(1, @CC1);  AA2(1, CC2);end.  
