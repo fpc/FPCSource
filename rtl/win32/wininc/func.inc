@@ -1003,7 +1003,7 @@ function DdeDisconnectList(_para1:HCONVLIST):BOOL;external 'user32' name 'DdeDis
 function DdeEnableCallback(_para1:DWORD; _para2:HCONV; _para3:UINT):BOOL;external 'user32' name 'DdeEnableCallback';
 function DdeFreeDataHandle(_para1:HDDEDATA):WINBOOL; external 'user32' name 'DdeFreeDataHandle';
 function DdeFreeStringHandle(_para1:DWORD;_para2:HSZ):WINBOOL; external 'user32' name 'DdeFreeStringHandle';
-function DdeGetData(_para1:HDDEDATA; var _para2:BYTE; _para3:DWORD; _para4:DWORD):DWORD; external 'user32' name 'DdeGetData';
+function DdeGetData(_para1:HDDEDATA;_para2:LPBYTE; _para3:DWORD; _para4:DWORD):DWORD; external 'user32' name 'DdeGetData';
 function DdeGetLastError(_para1:DWORD):UINT; external 'user32' name 'DdeGetLastError';
 function DdeImpersonateClient(_para1:HCONV):BOOL;external 'user32' name 'DdeImpersonateClient';
 function DdeKeepStringHandle(_para1:DWORD; _para2:HSZ):BOOL;external 'user32' name 'DdeKeepStringHandle';
@@ -2226,7 +2226,10 @@ end;
 
 {
   $Log$
-  Revision 1.4  2001-02-09 23:08:31  peter
+  Revision 1.5  2001-06-13 18:32:55  peter
+    * fixed crash within donevideo (merged)
+
+  Revision 1.4  2001/02/09 23:08:31  peter
     * fixed bugs 1398,1399,1400
 
   Revision 1.3  2001/02/02 20:53:18  peter

@@ -32,8 +32,13 @@ var
   ConsoleCursorInfo : TConsoleCursorInfo;
   MaxVideoBufSize : DWord;
 
+const
+  VideoInitialized : boolean = false;
+
 procedure InitVideo;
 begin
+  if VideoInitialized then
+    DoneVideo;
   ScreenColor:=true;
   GetConsoleScreenBufferInfo(TextRec(Output).Handle, ConsoleInfo);
   GetConsoleCursorInfo(TextRec(Output).Handle, ConsoleCursorInfo);
@@ -73,19 +78,20 @@ begin
 
   GetMem(VideoBuf,MaxVideoBufSize);
   GetMem(OldVideoBuf,MaxVideoBufSize);
-
-  {ClearScreen; not needed PM }
+  VideoInitialized:=true;
 end;
 
 
 procedure DoneVideo;
 begin
-  { ClearScreen; also not needed PM }
   SetCursorType(crUnderLine);
-  { SetCursorPos(0,0); also not needed PM }
-  FreeMem(VideoBuf,MaxVideoBufSize);
-  FreeMem(OldVideoBuf,MaxVideoBufSize);
+  if VideoInitialized then
+    begin
+      FreeMem(VideoBuf,MaxVideoBufSize);
+      FreeMem(OldVideoBuf,MaxVideoBufSize);
+    end;
   VideoBufSize:=0;
+  VideoInitialized:=false;
 end;
 
 
@@ -352,7 +358,10 @@ finalization
 end.
 {
   $Log$
-  Revision 1.2  2001-04-10 21:28:36  peter
+  Revision 1.3  2001-06-13 18:32:55  peter
+    * fixed crash within donevideo (merged)
+
+  Revision 1.2  2001/04/10 21:28:36  peter
     * removed warnigns
 
   Revision 1.1  2001/01/13 11:03:59  peter
