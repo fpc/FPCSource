@@ -867,7 +867,7 @@ unit pexpr;
          possible_error,
          unit_specific,
          again    : boolean;
-         sym      : pvarsym;
+         sym      : psym;
          classh   : pobjectdef;
          d      : bestreal;
          static_name : string;
@@ -1446,17 +1446,18 @@ unit pexpr;
                     case pd^.deftype of
                        recorddef:
                          begin
-                            sym:=pvarsym(precorddef(pd)^.symtable^.search(pattern));
-                            if sym=nil then
+                            sym:=precorddef(pd)^.symtable^.search(pattern);
+                            if assigned(sym) and
+                               (sym^.typ=varsym) then
+                              begin
+                                p1:=gensubscriptnode(pvarsym(sym),p1);
+                                pd:=pvarsym(sym)^.vartype.def;
+                              end
+                            else
                               begin
                                 Message1(sym_e_illegal_field,pattern);
                                 disposetree(p1);
                                 p1:=genzeronode(errorn);
-                              end
-                            else
-                              begin
-                                p1:=gensubscriptnode(sym,p1);
-                                pd:=sym^.vartype.def;
                               end;
                             consume(_ID);
                           end;
@@ -1467,7 +1468,7 @@ unit pexpr;
                              sym:=nil;
                              while assigned(classh) do
                               begin
-                                sym:=pvarsym(classh^.symtable^.search(pattern));
+                                sym:=classh^.symtable^.search(pattern);
                                 srsymtable:=classh^.symtable;
                                 if assigned(sym) then
                                  break;
@@ -1497,7 +1498,7 @@ unit pexpr;
                               allow_only_static:=false;
                               while assigned(classh) do
                                 begin
-                                   sym:=pvarsym(classh^.symtable^.search(pattern));
+                                   sym:=classh^.symtable^.search(pattern);
                                    srsymtable:=classh^.symtable;
                                    if assigned(sym) then
                                      break;
@@ -1654,7 +1655,7 @@ unit pexpr;
                         sym:=nil;
                         while assigned(classh) do
                          begin
-                           sym:=pvarsym(classh^.symtable^.search(pattern));
+                           sym:=classh^.symtable^.search(pattern);
                            srsymtable:=classh^.symtable;
                            if assigned(sym) then
                             break;
@@ -1711,18 +1712,30 @@ unit pexpr;
                     while assigned(classh) do
                      begin
                        srsymtable:=pobjectdef(classh)^.symtable;
-                       sym:=pvarsym(srsymtable^.search(pattern));
+                       sym:=srsymtable^.search(pattern);
                        if assigned(sym) then
                         begin
                           { only for procsyms we need to set the type (PFV) }
-                          if sym^.typ=procsym then
-                           begin
-                             p1:=genzeronode(typen);
-                             p1^.resulttype:=classh;
-                             pd:=p1^.resulttype;
-                           end
-                          else
-                           p1:=nil;
+                          case sym^.typ of
+                            procsym :
+                              begin
+                                p1:=genzeronode(typen);
+                                p1^.resulttype:=classh;
+                                pd:=p1^.resulttype;
+                              end;
+                            varsym :
+                              begin
+                                p1:=nil;
+                                pd:=pvarsym(sym)^.vartype.def;
+                              end;
+                            propertysym :
+                              begin
+                                p1:=nil;
+                                pd:=ppropertysym(sym)^.proptype.def;
+                              end;
+                            else
+                              internalerror(83251763);
+                          end;
                           consume(_ID);
                           do_member_read(false,sym,p1,pd,again);
                           break;
@@ -2141,7 +2154,10 @@ _LECKKLAMMER : begin
 end.
 {
   $Log$
-  Revision 1.172  2000-03-19 11:22:21  peter
+  Revision 1.173  2000-03-23 15:56:59  peter
+    * fixed crash with inherited with varsym/propsym
+
+  Revision 1.172  2000/03/19 11:22:21  peter
     * protected member check for classes works
 
   Revision 1.171  2000/03/16 15:13:03  pierre
