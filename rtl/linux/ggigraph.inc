@@ -16,7 +16,7 @@
 
 {$LINKLIB c}
 {$PACKRECORDS C}
- 
+
 const
   InternalDriverName = 'LinuxGGI';
 
@@ -91,7 +91,7 @@ Const
   G1600x1200x16M32  = 49;
 
   GLASTMODE         = 49;
-  ModeNames: array[0..GLastMode] of PChar = 
+  ModeNames: array[0..GLastMode] of PChar =
    ('[]',                       {Let GGI choose a default mode}
     'S320x200[GT_4BIT]',
     'S640x200[GT_4BIT]',
@@ -170,7 +170,7 @@ type
     dpp: TGGICoord;                     // dots per pixel
   end;
 
-const 
+const
   libggi = 'ggi';
 function  ggiInit: Integer; cdecl; external libggi;
 procedure ggiExit; cdecl; external libggi;
@@ -197,7 +197,7 @@ var
   Visual: TGGIVisual;
   CurrentMode, OldMode: TGGIMode;
 
-    
+
 procedure ggi_savevideostate;
 begin
   ggiGetMode(Visual, OldMode);
@@ -243,7 +243,7 @@ begin
   if ClipCoords then begin
     ClipCoords := (y < StartXViewPort) or (x > (StartXViewPort + ViewWidth));
     ClipCoords := ClipCoords or
-		  ((y < StartYViewPort) or (y > (StartYViewPort + ViewHeight)));
+                  ((y < StartYViewPort) or (y > (StartYViewPort + ViewHeight)));
     ClipCoords := not ClipCoords;
   end;
 end;
@@ -256,20 +256,20 @@ begin
   CurCol := ggiMapColor(Visual, BgiColors[CurrentColor]);
   case CurrentWriteMode of
     XORPut: begin
-	{ getpixel wants local/relative coordinates }
-	ggiGetPixel(Visual, x-StartXViewPort, y-StartYViewPort, Color);
-	Color := CurCol xor Color;
+        { getpixel wants local/relative coordinates }
+        ggiGetPixel(Visual, x-StartXViewPort, y-StartYViewPort, Color);
+        Color := CurCol xor Color;
       end;
     OrPut: begin
-	{ getpixel wants local/relative coordinates }
-	ggiGetPixel(Visual, x-StartXViewPort, y-StartYViewPort, Color);
-	Color := CurCol or Color;
-      end; 
+        { getpixel wants local/relative coordinates }
+        ggiGetPixel(Visual, x-StartXViewPort, y-StartYViewPort, Color);
+        Color := CurCol or Color;
+      end;
     AndPut: begin
-	{ getpixel wants local/relative coordinates }
-	ggiGetPixel(Visual, x-StartXViewPort, y-StartYViewPort, Color);
-	Color := CurCol and Color;
-      end; 
+        { getpixel wants local/relative coordinates }
+        ggiGetPixel(Visual, x-StartXViewPort, y-StartYViewPort, Color);
+        Color := CurCol and Color;
+      end;
     NotPut:
       Color := not Color;
     else
@@ -303,10 +303,10 @@ end;
 type
   PBitmap = ^TBitmap;
   TBitmap = record
-	    Width, Height: longint;
-	    reserved : longint;
-	    Data: record end;
-	    end;
+            Width, Height: longint;
+            reserved : longint;
+            Data: record end;
+            end;
 
 procedure ggi_putimageproc (X,Y: Integer; var Bitmap; BitBlt: Word);
 begin
@@ -326,7 +326,7 @@ end;
 
 function  ggi_imagesizeproc (X1,Y1,X2,Y2: Integer): longint;
 begin
- // 32 bits per pixel -- change ASAP !! 
+ // 32 bits per pixel -- change ASAP !!
  ggi_imagesizeproc := SizeOf(TBitmap) + (x2 - x1 + 1) * (y2 - y1 + 1) * SizeOF(longint);
 end;
 
@@ -351,7 +351,7 @@ procedure ggi_lineproc (X1, Y1, X2, Y2 : Integer);
 begin
 end;
 
-procedure ggi_getscanlineproc (Y : integer; var data);
+procedure ggi_getscanlineproc (X1, X2, Y : integer; var data);
 begin
 end;
 
@@ -380,11 +380,11 @@ begin
   col.r:=redvalue;
   col.g:=greenvalue;
   col.b:=bluevalue;
-  ggisetpalette(Visual,ColorNum,1,col);  
+  ggisetpalette(Visual,ColorNum,1,col);
 end;
 
-procedure ggi_getrgbpaletteproc (ColorNum: integer; 
-				    var RedValue, GreenValue, BlueValue: Integer);
+procedure ggi_getrgbpaletteproc (ColorNum: integer;
+                                    var RedValue, GreenValue, BlueValue: Integer);
 
 Var Col : TGGIColor;
 
@@ -394,7 +394,7 @@ begin
   GreenValue:=Col.G;
   BlueValue:=Col.B;
 end;
- 
+
 {************************************************************************}
 {*                       General routines                               *}
 {************************************************************************}
@@ -435,7 +435,7 @@ var
       MaxColor := 255;
       PaletteSize := MaxColor;
       HardwarePages := 0;
-      // necessary hooks ... 
+      // necessary hooks ...
       DirectPutPixel := @ggi_DirectPixelProc;
       GetPixel       := @ggi_GetPixelProc;
       PutPixel       := @ggi_PutPixelProc;
@@ -445,7 +445,7 @@ var
       PutImage       := @ggi_PutImageProc;
       GetImage       := @ggi_GetImageProc;
       ImageSize      := @ggi_ImageSizeProc;
-      { Add later maybe ? 
+      { Add later maybe ?
       SetVisualPage  := SetVisualPageProc;
       SetActivePage  := SetActivePageProc;
       GetScanLine    := @ggi_GetScanLineProc;
@@ -471,14 +471,14 @@ begin
   if Assigned(ModeList) then
     exit;
   SaveVideoState:=ggi_savevideostate;
-  RestoreVideoState:=ggi_restorevideostate;  
+  RestoreVideoState:=ggi_restorevideostate;
 
   If ggiInit <> 0 then begin
     _graphresult := grNoInitGraph;
     exit;
   end;
 
-  Visual := ggiOpen(nil, []); // Use default visual  
+  Visual := ggiOpen(nil, []); // Use default visual
 
   ggiGetMode(Visual, OldMode);
   ggiParseMode('', ModeInfo);
@@ -500,7 +500,15 @@ end;
 
 {
 $Log$
-Revision 1.5  1999-11-12 02:13:01  carl
+Revision 1.6  1999-12-11 23:41:39  jonas
+  * changed definition of getscanlineproc to "getscanline(x1,x2,y:
+    integer; var data);" so it can be used by getimage too
+  * changed getimage so it uses getscanline
+  * changed floodfill, getscanline16 and definitions in Linux
+    include files so they use this new format
+  + getscanlineVESA256 for 256 color VESA modes (banked)
+
+Revision 1.5  1999/11/12 02:13:01  carl
   * Bugfix if getimage / putimage, format was not standard with FPC
     graph.
 

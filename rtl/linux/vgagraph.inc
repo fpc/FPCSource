@@ -13,7 +13,7 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 
  **********************************************************************}
- 
+
   const
    InternalDriverName = 'LinuxVGA';
 
@@ -147,7 +147,7 @@ Const
   G1600x1200x16M32  = 49;
 
   GLASTMODE         = 49;
-  ModeNames : Array[0..GLastMode] of string [18] = 
+  ModeNames : Array[0..GLastMode] of string [18] =
    ('Text',
     'G320x200x16',
     'G640x200x16',
@@ -222,7 +222,7 @@ var
 { ---------------------------------------------------------------------
     Required procedures
   ---------------------------------------------------------------------}
-  
+
 procedure libvga_savevideostate;
 
 begin
@@ -255,17 +255,17 @@ end;
 procedure libvga_initmodeproc;
 begin
   vga_setmode(IntCurrentMode);
-  gl_setcontextvga(IntCurrentMode); 
+  gl_setcontextvga(IntCurrentMode);
   PhysicalScreen := gl_allocatecontext;
   gl_getcontext(PhysicalScreen);
-  if (PhysicalScreen^.colors = 256) then gl_setrgbpalette; 
+  if (PhysicalScreen^.colors = 256) then gl_setrgbpalette;
   InitColors;
 end;
 
 Function ClipCoords (Var X,Y : Integer) : Boolean;
 { Adapt to viewport, return TRUE if still in viewport,
   false if outside viewport}
-  
+
 begin
   X:= X + StartXViewPort;
   Y:= Y + StartYViewPort;
@@ -276,8 +276,8 @@ begin
     ClipCoords:=ClipCoords or
                ((Y < StartYViewPort) or (Y > (StartYViewPort + ViewHeight)));
     ClipCoords:=Not ClipCoords;
-    end;           
-end;  
+    end;
+end;
 
 
 procedure libvga_directpixelproc(X,Y: Integer);
@@ -292,24 +292,24 @@ begin
       Color := GetPixel(x-StartXViewPort,y-StartYViewPort);
       Color := CurrentColor Xor Color;
       end;
-    OrPut: 
+    OrPut:
       begin
       { getpixel wants local/relative coordinates }
       Color := GetPixel(x-StartXViewPort,y-StartYViewPort);
       Color := CurrentColor Or Color;
-      end; 
+      end;
     AndPut:
       begin
       { getpixel wants local/relative coordinates }
       Color := GetPixel(x-StartXViewPort,y-StartYViewPort);
       Color := CurrentColor And Color;
-      end; 
+      end;
     NotPut:
       begin
       Color := Not Color;
       end
   else
-    Color:=CurrentColor;  
+    Color:=CurrentColor;
   end;
   gl_setpixel(x, y, Color);
 end;
@@ -381,7 +381,7 @@ procedure libvga_lineproc (X1, Y1, X2, Y2 : Integer);
 begin
 end;
 
-procedure libvga_getscanlineproc (Y : integer; var data);
+procedure libvga_getscanlineproc (X1,X2,Y : integer; var data);
 begin
 end;
 
@@ -404,10 +404,10 @@ end;
 
 procedure libvga_setrgbpaletteproc(ColorNum, RedValue, GreenValue, BlueValue: Integer);
 begin
-  gl_setpalettecolor(ColorNum,RedValue,GreenValue,BlueValue);  
+  gl_setpalettecolor(ColorNum,RedValue,GreenValue,BlueValue);
 end;
 
-procedure libvga_getrgbpaletteproc (ColorNum: integer; 
+procedure libvga_getrgbpaletteproc (ColorNum: integer;
                                     var RedValue, GreenValue, BlueValue: Integer);
 
 Var R,G,B : longint;
@@ -418,7 +418,7 @@ begin
   GreenValue:=G;
   BlueValue:=B;
 end;
- 
+
 {************************************************************************}
 {*                       General routines                               *}
 {************************************************************************}
@@ -443,7 +443,7 @@ end;
     mode: TModeInfo;
     modeinfo : vga_modeinfo;
     i : longint;
-    
+
    begin
      QueryAdapterInfo := ModeList;
      { If the mode listing already exists... }
@@ -452,13 +452,13 @@ end;
      if assigned(ModeList) then
        exit;
      SaveVideoState:=libvga_savevideostate;
-     RestoreVideoState:=libvga_restorevideostate;  
+     RestoreVideoState:=libvga_restorevideostate;
      vga_init;
      For I:=0 to GLastMode do
        begin
        If vga_hasmode(I) then
          begin
-         ModeInfo:=vga_getmodeinfo(i)^; 
+         ModeInfo:=vga_getmodeinfo(i)^;
          InitMode(Mode);
          With Mode do
            begin
@@ -471,7 +471,7 @@ end;
            MaxColor := ModeInfo.colors;
            PaletteSize := MaxColor;
            HardwarePages := 0;
-           // necessary hooks ... 
+           // necessary hooks ...
            DirectPutPixel := @libvga_DirectPixelProc;
            GetPixel       := @Libvga_GetPixelProc;
            PutPixel       := @libvga_PutPixelProc;
@@ -481,7 +481,7 @@ end;
            PutImage       := @Libvga_PutImageProc;
            GetImage       := @libvga_GetImageProc;
            ImageSize      := @libvga_ImageSizeProc;
-           { Add later maybe ? 
+           { Add later maybe ?
            SetVisualPage  := SetVisualPageProc;
            SetActivePage  := SetActivePageProc;
            GetScanLine    := @libvga_GetScanLineProc;
@@ -500,7 +500,15 @@ end;
 
 {
 $Log$
-Revision 1.2  1999-11-08 00:08:43  michael
+Revision 1.3  1999-12-11 23:41:39  jonas
+  * changed definition of getscanlineproc to "getscanline(x1,x2,y:
+    integer; var data);" so it can be used by getimage too
+  * changed getimage so it uses getscanline
+  * changed floodfill, getscanline16 and definitions in Linux
+    include files so they use this new format
+  + getscanlineVESA256 for 256 color VESA modes (banked)
+
+Revision 1.2  1999/11/08 00:08:43  michael
 * Fist working version of svgalib new graph unit
 * Initial implementation of ggi new graph unit
 

@@ -24,11 +24,7 @@
 const
    InternalDriverName = 'DOSGX';
 {$ifdef fpc}
- {$ifdef asmgraph}
    VideoOfs : DWord = 0;   { Segment to draw to }
- {$else asmgraph}
-   VideoOfs : word = 0;   { Segment to draw to }
- {$endif asmgraph}
 {$else fpc}
    VideoOfs : word = 0;   { Segment to draw to }
 {$endif fpc}
@@ -420,46 +416,48 @@ const
 {$endif asmgraph}
   end;
 
-Procedure GetScanLine16(y: integer; var data);
+Procedure GetScanLine16(x1, x2, y: integer; var data);
 
 var dummylong: longint;
     Offset, count, count2, amount, index: word;
     plane: byte;
 Begin
+  inc(x1,StartXViewPort);
+  inc(x2,StartXViewPort);
 {$ifdef logging}
-  LogLn('GetScanLine16 start, length to get: '+strf(ViewWidth+1)+' at y = '+strf(y));
+  LogLn('GetScanLine16 start, length to get: '+strf(x2-x1+1)+' at y = '+strf(y));
 {$Endif logging}
-  Port[$3ce] := 4;
-  offset := (Y + StartYViewPort) * 80 + (StartXViewPort shr 3) + VideoOfs;
+  offset := (Y + StartYViewPort) * 80 + (x1 shr 3) + VideoOfs;
 {$ifdef logging}
   LogLn('Offset: '+HexStr(offset,4)+' - ' + strf(offset));
 {$Endif logging}
   { first get enough pixels so offset is 32bit aligned }
   amount := 0;
   index := 0;
-  If ((StartXViewPort and 31) <> 0) Or
-     (ViewWidth < 32) Then
+  If ((x1 and 31) <> 0) Or
+     ((x2-x1+1) < 32) Then
     Begin
-      If (ViewWidth >= 32+32-(StartXViewPort and 31)) Then
-        amount := 32-(StartXViewPort and 31)
-      Else amount := ViewWidth + 1;
+      If ((x2-x1+1) >= 32+32-(x1 and 31)) Then
+        amount := 32-(x1 and 31)
+      Else amount := x2-x1+1;
 {$ifdef logging}
       LogLn('amount to align to 32bits or to get all: ' + strf(amount));
 {$Endif logging}
       For count := 0 to amount-1 do
-        WordArray(Data)[Count] := getpixel16(Count,y);
-      index := count+1;
+        WordArray(Data)[Count] := getpixel16(x1-StartXViewPort+Count,y);
+      index := amount;
       Inc(Offset,(amount+7) shr 3);
 {$ifdef logging}
       LogLn('offset now: '+HexStr(offset,4)+' - ' + strf(offset));
       LogLn('index now: '+strf(index));
 {$Endif logging}
     End;
-  amount := ViewWidth + 1 - amount;
+  amount := x2-x1+1 - amount;
 {$ifdef logging}
   LogLn('amount left: ' + strf(amount));
 {$Endif logging}
   If amount = 0 Then Exit;
+  Port[$3ce] := 4;
   { first get everything from plane 3 (4th plane) }
   Port[$3cf] := 3;
   Count := 0;
@@ -496,7 +494,7 @@ Begin
         For Count2 := 31 downto 0 Do
           Begin
             WordArray(Data)[index+Count2] :=
-              (WordArray(Data)[index+Count2] shl 1) + (DummyLong and 1);
+              (WordArray(Data)[index+Count2] shl 1) or (DummyLong and 1);
             DummyLong := DummyLong shr 1;
           End;
         Inc(Index, 32);
@@ -512,32 +510,32 @@ Begin
     WordArray(Data)[index+Count] := getpixel16(index+Count,y);
 {$ifdef logging}
   LogLn('First 32 bytes gotten with getscanline16: ');
-  If ViewWidth + 1 >= 32 Then
+  If x2-x1+1 >= 32 Then
     Count2 := 32
-  Else Count2 := ViewWidth;
+  Else Count2 := x2-x1+1;
   For Count := 0 to Count2-1 Do
     Log(strf(WordArray(Data)[Count])+' ');
   LogLn('');
-  If ViewWidth + 1 >= 32 Then
+  If x2-x1+1 >= 32 Then
     Begin
       LogLn('Last 32 bytes gotten with getscanline16: ');
       For Count := 31 downto 0 Do
-      Log(strf(WordArray(Data)[ViewWidth-Count])+' ');
+      Log(strf(WordArray(Data)[x2-x1-Count])+' ');
     End;
   LogLn('');
-  GetScanLineDefault(y,Data);
+  GetScanLineDefault(x1-StartXViewPort,x2-StartXViewPort,y,Data);
   LogLn('First 32 bytes gotten with getscanlinedef: ');
-  If ViewWidth + 1 >= 32 Then
+  If x2-x1+1 >= 32 Then
     Count2 := 32
-  Else Count2 := ViewWidth;
+  Else Count2 := x2-x1+1;
   For Count := 0 to Count2-1 Do
     Log(strf(WordArray(Data)[Count])+' ');
   LogLn('');
-  If ViewWidth + 1 >= 32 Then
+  If x2-x1+1 >= 32 Then
     Begin
       LogLn('Last 32 bytes gotten with getscanlinedef: ');
       For Count := 31 downto 0 Do
-      Log(strf(WordArray(Data)[ViewWidth-Count])+' ');
+      Log(strf(WordArray(Data)[x2-x1-Count])+' ');
     End;
   LogLn('');
   LogLn('GetScanLine16 end');
@@ -999,6 +997,7 @@ End;
 
  Procedure PutPixel320(X,Y : Integer; Pixel: Word); {$ifndef fpc}far;{$endif fpc}
  { x,y -> must be in local coordinates. Clipping if required. }
+  {$ifndef fpc}
   Begin
     X:= X + StartXViewPort;
     Y:= Y + StartYViewPort;
@@ -1010,11 +1009,7 @@ End;
        if (Y < StartYViewPort) or (Y > (StartYViewPort + ViewHeight)) then
          exit;
      end;
-{$ifndef asmgraph}
-    Mem[SegA000: y * 320 + x + VideoOfs] := Lo(Pixel);
-{$else asmgraph}
     asm
-  {$ifndef fpc}
       mov    es, [SegA000]
       mov    ax, [Y]
       mov    di, [X]
@@ -1025,29 +1020,41 @@ End;
       add    di, [VideoOfs]    { point to correct page.. }
       mov    ax, [Pixel]
       mov    es:[di], al
-  {$else fpc}
-      movzx  edi, x
-      movzx  ebx, y
-      add    edi, [VideoOfs]
-      shl    ebx, 6
-      add    edi, ebx
-      mov    ax, [pixel]
-      mov    fs:[edi+ebx*4+$a0000], al
-  {$endif fpc}
     end;
-{$endif asmgraph}
-  end;
+  {$else fpc}
+  assembler;
+  asm
+    movzx  edi, x
+    movzx  ebx, y
+    cmp    clippixels, 0
+    je     @putpix320noclip
+    test   edi, edi
+    jl     @putpix320done
+    test   ebx, ebx
+    jl     @putpix320done
+    cmp    di, ViewWidth
+    jg     @putpix320done
+    cmp    bx, ViewHeight
+    jg     @putpix320done
+  @putpix320noclip:
+    add    bx, StartYViewPort
+    add    di, StartXViewPort
+{    add    edi, [VideoOfs]      no multiple pages in 320*200*256 }
+    mov    ax, [pixel]
+    shl    ebx, 6
+    add    edi, ebx
+    mov    fs:[edi+ebx*4+$a0000], al
+  @putpix320done:
+{$endif fpc}
+ end;
 
 
  Function GetPixel320(X,Y: Integer):word; {$ifndef fpc}far;{$endif fpc}
+  {$ifndef fpc}
   Begin
    X:= X + StartXViewPort;
    Y:= Y + StartYViewPort;
-{$ifndef asmgraph}
-   GetPixel320 := Mem[SegA000:y * 320 + x + VideoOfs];
-{$else asmgraph}
-    asm
-  {$ifndef fpc}
+   asm
       mov    es, [SegA000]
       mov    ax, [Y]
       mov    di, [X]
@@ -1059,17 +1066,19 @@ End;
       add    di, [VideoOfs]   { point to correct gfx page ... }
       mov    al,es:[di]
       mov    @Result,ax
-  {$else fpc}
-      movzx  edi, x
-      movzx  ebx, y
-      add    edi, [VideoOfs]
-      shl    ebx, 6
-      add    edi, ebx
-      mov    al, fs:[edi+ebx*4+$a0000]
-      mov    @Result, al
- {$endif fpc}
     end;
-{$endif asmgraph}
+  {$else fpc}
+  assembler;
+  asm
+    movzx  edi, x
+    movzx  ebx, y
+    add    di, StartXViewPort
+    add    bx, StartYViewPort
+ {   add    edi, [VideoOfs]       no multiple pages in 320*200*256 }
+    shl    ebx, 6
+    add    edi, ebx
+    mov    al, fs:[edi+ebx*4+$a0000]
+ {$endif fpc}
   end;
 
 
@@ -1100,7 +1109,7 @@ End;
       add    di, ax
       shr    ax, 2
       add    di, ax
-      add    di, [VideoOfs]
+{      add    di, [VideoOfs] no multiple pages support in 320*200*256 }
       mov    ax, [CurrentColor]
       cmp    [CurrentWriteMode],XORPut   { check write mode   }
       jne    @MOVMode
@@ -1109,31 +1118,32 @@ End;
     @MovMode:
       mov    es:[di], al
   {$else fpc}
-      movzx  edi, y
-      shl    edi, 6
-      mov    ebx, edx
-      add    edi, [VideoOfs]
+      movzx  edi, x
+      movzx  ebx, y
+   {   add    edi, [VideoOfs]       no multiple pages in 320*200*256 }
+      shl    ebx, 6
+      add    edi, ebx
       mov    ax, [CurrentColor]
       cmp    [CurrentWriteMode],XORPut   { check write mode   }
       jne    @MOVMode
-      mov    bl, fs:[edi+ebx*4+$a0000]
-      xor    al, bl
-    @MovMode:
+      xor    al, fs:[edi+ebx*4+$a0000]
+     @MovMode:
       mov    fs:[edi+ebx*4+$a0000], al
 {$endif fpc}
-    end;
+  end;
 {$endif asmgraph}
 
 
  procedure SetVisual320(page: word); {$ifndef fpc}far;{$endif fpc}
   { no page supPort... }
   begin
+    VideoOfs := 0;
   end;
 
  procedure SetActive320(page: word); {$ifndef fpc}far;{$endif fpc}
   { no page supPort... }
   begin
-   VideoOfs := 0;
+    VideoOfs := 0;
   end;
 
  {************************************************************************}
@@ -2091,6 +2101,7 @@ const CrtAddress: word = 0;
              mode.SetActivePage := {$ifdef fpc}@{$endif}SetActiveVESA;
              mode.hline := {$ifdef fpc}@{$endif}HLineVESA256;
              mode.vline := {$ifdef fpc}@{$endif}VLineVESA256;
+             mode.GetScanLine := {$ifdef fpc}@{$endif}GetScanLineVESA256;
              mode.XAspect := 10000;
              mode.YAspect := 10000;
              AddMode(mode);
@@ -2118,6 +2129,7 @@ const CrtAddress: word = 0;
              mode.SetActivePage := {$ifdef fpc}@{$endif}SetActiveVESA;
              mode.hline := {$ifdef fpc}@{$endif}HLineVESA256;
              mode.hline := {$ifdef fpc}@{$endif}HLineVESA256;
+             mode.GetScanLine := {$ifdef fpc}@{$endif}GetScanLineVESA256;
              mode.XAspect := 10000;
              mode.YAspect := 10000;
              AddMode(mode);
@@ -2224,6 +2236,7 @@ const CrtAddress: word = 0;
              mode.SetActivePage := {$ifdef fpc}@{$endif}SetActiveVESA;
              mode.hline := {$ifdef fpc}@{$endif}HLineVESA256;
              mode.vline := {$ifdef fpc}@{$endif}VLineVESA256;
+             mode.GetScanLine := {$ifdef fpc}@{$endif}GetScanLineVESA256;
              mode.XAspect := 10000;
              mode.YAspect := 10000;
              AddMode(mode);
@@ -2330,6 +2343,7 @@ const CrtAddress: word = 0;
              mode.SetActivePage := {$ifdef fpc}@{$endif}SetActiveVESA;
              mode.vline := {$ifdef fpc}@{$endif}VLineVESA256;
              mode.hline := {$ifdef fpc}@{$endif}HLineVESA256;
+             mode.GetScanLine := {$ifdef fpc}@{$endif}GetScanLineVESA256;
              mode.XAspect := 10000;
              mode.YAspect := 10000;
              AddMode(mode);
@@ -2436,6 +2450,7 @@ const CrtAddress: word = 0;
              mode.SetActivePage := {$ifdef fpc}@{$endif}SetActiveVESA;
              mode.vline := {$ifdef fpc}@{$endif}VLineVESA256;
              mode.hline := {$ifdef fpc}@{$endif}HLineVESA256;
+             mode.GetScanLine := {$ifdef fpc}@{$endif}GetScanLineVESA256;
              mode.XAspect := 10000;
              mode.YAspect := 10000;
              AddMode(mode);
@@ -2497,7 +2512,15 @@ const CrtAddress: word = 0;
 
 {
 $Log$
-Revision 1.5  1999-12-10 12:49:24  pierre
+Revision 1.6  1999-12-11 23:41:39  jonas
+  * changed definition of getscanlineproc to "getscanline(x1,x2,y:
+    integer; var data);" so it can be used by getimage too
+  * changed getimage so it uses getscanline
+  * changed floodfill, getscanline16 and definitions in Linux
+    include files so they use this new format
+  + getscanlineVESA256 for 256 color VESA modes (banked)
+
+Revision 1.5  1999/12/10 12:49:24  pierre
  * avoid overflow on ProtW in PutPixel16
 
 Revision 1.4  1999/11/29 07:32:53  jonas

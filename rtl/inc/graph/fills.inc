@@ -450,9 +450,9 @@ var
            s1 := s3;
            s3 := stemp;
          End
-       Else GetScanline (y,s1^);
-       GetScanline (y-1,s2^);
-       GetScanline (y+1,s3^);
+       Else GetScanline(0,ViewWidth,y,s1^);
+       GetScanline(0,ViewWidth,y-1,s2^);
+       GetScanline(0,ViewWidth,y+1,s3^);
        prevy := y;
        { check the current scan line }
        While (s1^[x]<>Border) And (x<=ViewWidth) Do Inc (x);
@@ -509,7 +509,15 @@ var
 
 {
 $Log$
-Revision 1.11  1999-09-27 23:34:40  peter
+Revision 1.12  1999-12-11 23:41:38  jonas
+  * changed definition of getscanlineproc to "getscanline(x1,x2,y:
+    integer; var data);" so it can be used by getimage too
+  * changed getimage so it uses getscanline
+  * changed floodfill, getscanline16 and definitions in Linux
+    include files so they use this new format
+  + getscanlineVESA256 for 256 color VESA modes (banked)
+
+Revision 1.11  1999/09/27 23:34:40  peter
   * new graph unit is default for go32v2
   * removed warnings/notes
 

@@ -472,6 +472,84 @@ end;
      GetPixVESA256:=mem[WinReadSeg : word(offs)];
   end;
 
+  Procedure GetScanLineVESA256(x1, x2, y: integer; var data);
+  var offs: Longint;
+      l, amount, bankrest, index, pixels: longint;
+      x, curbank: integer;
+  begin
+    inc(x1,StartXViewPort);
+    inc(x2,StartXViewPort);
+    {$ifdef logging}
+    LogLn('getscanline256 '+strf(x1)+' - '+strf(x2)+' at '+strf(y+StartYViewPort));
+    {$endif logging}
+    index := 0;
+    amount := x2-x1+1;
+    Offs:=(Longint(y)+StartYViewPort+YOffset)*bytesperline+x1;
+    Repeat
+      curbank := integer(offs shr 16);
+      SetReadBank(curbank);
+      {$ifdef logging}
+      LogLn('set bank '+strf(curbank)+' for offset '+hexstr(offs,8));
+      {$endif logging}
+      If amount > 3 Then
+      { allign target }
+        Begin
+          If (offs and 3) <> 0 then
+          { this cannot go past a window boundary bacause the }
+          { size of a window is always a multiple of 4        }
+            Begin
+              {$ifdef logging}
+              LogLn('Alligning by reading '+strf(4-(offs and 3))+' pixels');
+              {$endif logging}
+              for l := 1 to 4-(offs and 3) do
+                WordArray(Data)[index+l-1] :=
+                  Mem[WinReadSeg:word(offs)+l-1];
+              inc(index, l);
+              inc(offs, l);
+              dec(amount, l);
+            End;
+          {$ifdef logging}
+          LogLn('Offset is now '+hexstr(offs,8)+', amount left: '+strf(amount));
+          {$endif logging}
+          { offs is now 4-bytes alligned }
+          If amount <= ($10000-(Offs and $ffff)) Then
+             bankrest := amount
+          else {the rest won't fit anymore in the current window }
+            bankrest := $10000 - (Offs and $ffff);
+          {$ifdef logging}
+          LogLn('Rest to be read from this window: '+strf(bankrest));
+          {$endif logging}
+          For l := 0 to (Bankrest div 4)-1 Do
+            begin
+              pixels := MemL[WinWriteSeg:word(offs)+l*4];
+              WordArray(Data)[index+l*4] := pixels and $ff;
+              pixels := pixels shr 8;
+              WordArray(Data)[index+l*4+1] := pixels and $ff;
+              pixels := pixels shr 8;
+              WordArray(Data)[index+l*4+2] := pixels and $ff;
+              pixels := pixels shr 8;
+              WordArray(Data)[index+l*4+3] := pixels and $ff;
+            end;
+          inc(index,l*4+4);
+          inc(offs,l*4+4);
+          dec(amount,l*4+4);
+          {$ifdef logging}
+          LogLn('Offset is now '+hexstr(offs,8)+', amount left: '+strf(amount));
+          {$endif logging}
+        End
+      Else
+        Begin
+          {$ifdef logging}
+          LogLn('Leftover: '+strf(amount)+' at offset '+hexstr(offs,8));
+          {$endif logging}
+          x := offs mod bytesperline - StartXViewPort;
+          For l := 0 to amount - 1 do
+            WordArray(Data)[index+l] := GetPixVESA256(x+l,y);
+          amount := 0
+        End
+    Until amount = 0;
+  end;
+
   procedure HLineVESA256(x,x2,y: integer); {$ifndef fpc}far;{$endif fpc}
 
    var Offs: Longint;
@@ -2295,7 +2373,15 @@ end;
 
 {
 $Log$
-Revision 1.7  1999-12-10 12:52:54  pierre
+Revision 1.8  1999-12-11 23:41:39  jonas
+  * changed definition of getscanlineproc to "getscanline(x1,x2,y:
+    integer; var data);" so it can be used by getimage too
+  * changed getimage so it uses getscanline
+  * changed floodfill, getscanline16 and definitions in Linux
+    include files so they use this new format
+  + getscanlineVESA256 for 256 color VESA modes (banked)
+
+Revision 1.7  1999/12/10 12:52:54  pierre
  * some LinearFrameBuffer code, not finished
 
 Revision 1.6  1999/12/09 02:06:00  carl

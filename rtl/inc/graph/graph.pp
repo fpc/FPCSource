@@ -483,8 +483,9 @@ TYPE
        lineproc = procedure (X1, Y1, X2, Y2 : Integer);
 
        { this routine is used for FloodFill - it returns an entire      }
-       { screen scan line with a word for each pixel in the scanline    }
-       getscanlineproc = procedure (Y : integer; var data);
+       { screen scan line with a word for each pixel in the scanline.   }
+       { Also handy for GetImage, so I added x coords as well (JM)      }
+       getscanlineproc = procedure (X1, X2, Y : integer; var data);
 
        { changes the active display screen where we draw to... }
        setactivepageproc = procedure (page: word);
@@ -1921,7 +1922,7 @@ end;
 {--------------------------------------------------------------------------}
 
 
-  Procedure GetScanlineDefault (Y : Integer; Var Data); {$ifndef fpc}far;{$endif fpc}
+  Procedure GetScanlineDefault (X1, X2, Y : Integer; Var Data); {$ifndef fpc}far;{$endif fpc}
   {**********************************************************}
   { Procedure GetScanLine()                                  }
   {----------------------------------------------------------}
@@ -1929,14 +1930,16 @@ end;
   { coordinate. The values are returned in a WORD array      }
   { each WORD representing a pixel of the specified scanline }
   { note: we only need the pixels inside the ViewPort! (JM)  }
+  { note2: extended so you can specify start and end X coord }
+  {   so it is usable for GetImage too (JM)                  }
   {**********************************************************}
 
 
   Var
     x : Integer;
   Begin
-     For x:=0 to ViewWidth Do
-       WordArray(Data)[x]:=GetPixel(x, y);
+     For x:=X1 to X2 Do
+       WordArray(Data)[x-x1]:=GetPixel(x, y);
   End;
 
 
@@ -1991,18 +1994,12 @@ var
   i,j: integer;
   k: longint;
 Begin
-  k:= 3 * Sizeof(longint) div Sizeof(word); { Three reserved longs at start of bitmap }
+  k:= 3 * Sizeof(longint) div sizeof(word); { Three reserved longs at start of bitmap }
+  i := x2 - x1 + 1;
   for j:=Y1 to Y2 do
    Begin
-     for i:=X1 to X2 do
-      begin
-{$R-}
-            pt(Bitmap)[k] :=getpixel(i,j);
-{$ifdef debug}
-{$R+}
-{$endif debug}
-            Inc(k);
-      end;
+     GetScanLine(x1,x2,j,pt(Bitmap)[k]);
+     inc(k,i);
    end;
    ptw(Bitmap)[0] := X2-X1;   { First longint  is width  }
    ptw(Bitmap)[1] := Y2-Y1;   { Second longint is height }
@@ -3008,7 +3005,15 @@ SetGraphBufSize
 
 {
   $Log$
-  Revision 1.45  1999-12-10 12:47:41  pierre
+  Revision 1.46  1999-12-11 23:41:38  jonas
+    * changed definition of getscanlineproc to "getscanline(x1,x2,y:
+      integer; var data);" so it can be used by getimage too
+    * changed getimage so it uses getscanline
+    * changed floodfill, getscanline16 and definitions in Linux
+      include files so they use this new format
+    + getscanlineVESA256 for 256 color VESA modes (banked)
+
+  Revision 1.45  1999/12/10 12:47:41  pierre
    * SetBkColor like BP by changing Palette entry zero
 
   Revision 1.44  1999/11/30 08:57:46  michael
