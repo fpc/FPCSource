@@ -801,33 +801,40 @@ Implementation
         if not ((cs_debuginfo in aktmoduleswitches) or
            (cs_gdb_lineinfo in aktglobalswitches)) then
          exit;
-      { file changed ? (must be before line info) }
+
+        { file changed ? (must be before line info) }
         if (fileinfo.fileindex<>0) and
            (stabslastfileinfo.fileindex<>fileinfo.fileindex) then
          begin
            infile:=current_module.sourcefiles.get_file(fileinfo.fileindex);
-           if includecount=0 then
-            curr_n:=n_sourcefile
-           else
-            curr_n:=n_includefile;
-           { get symbol for this includefile }
-           hp:=objectlibrary.newasmsymboltype('Ltext'+ToStr(IncludeCount),AB_LOCAL,AT_FUNCTION);
-           if currpass=1 then
-             begin
-                hp.setaddress(currpass,objectalloc.currsec,objectalloc.sectionsize,0);
-                objectlibrary.UsedAsmSymbolListInsert(hp);
-             end
-           else
-             objectdata.writesymbol(hp);
-           { emit stabs }
-           if (infile.path^<>'') then
-             EmitStabs('"'+lower(BsToSlash(FixPath(infile.path^,false)))+'",'+tostr(curr_n)+
-               ',0,0,Ltext'+ToStr(IncludeCount));
-           EmitStabs('"'+lower(FixFileName(infile.name^))+'",'+tostr(curr_n)+
-             ',0,0,Ltext'+ToStr(IncludeCount));
-           inc(includecount);
+           if assigned(infile) then
+            begin
+              if includecount=0 then
+               curr_n:=n_sourcefile
+              else
+               curr_n:=n_includefile;
+              { get symbol for this includefile }
+              hp:=objectlibrary.newasmsymboltype('Ltext'+ToStr(IncludeCount),AB_LOCAL,AT_FUNCTION);
+              if currpass=1 then
+                begin
+                  hp.setaddress(currpass,objectalloc.currsec,objectalloc.sectionsize,0);
+                  objectlibrary.UsedAsmSymbolListInsert(hp);
+                end
+              else
+                objectdata.writesymbol(hp);
+              { emit stabs }
+              if (infile.path^<>'') then
+                EmitStabs('"'+lower(BsToSlash(FixPath(infile.path^,false)))+'",'+tostr(curr_n)+
+                          ',0,0,Ltext'+ToStr(IncludeCount));
+              EmitStabs('"'+lower(FixFileName(infile.name^))+'",'+tostr(curr_n)+
+                        ',0,0,Ltext'+ToStr(IncludeCount));
+              inc(includecount);
+              { force new line info }
+              stabslastfileinfo.line:=-1;
+            end;
          end;
-      { line changed ? }
+
+        { line changed ? }
         if (stabslastfileinfo.line<>fileinfo.line) and (fileinfo.line<>0) then
           emitlineinfostabs(n_line,fileinfo.line);
         stabslastfileinfo:=fileinfo;
@@ -1608,7 +1615,10 @@ Implementation
 end.
 {
   $Log$
-  Revision 1.44  2002-09-05 19:29:42  peter
+  Revision 1.45  2002-10-30 21:01:14  peter
+    * always include lineno after fileswitch. valgrind requires this
+
+  Revision 1.44  2002/09/05 19:29:42  peter
     * memdebug enhancements
 
   Revision 1.43  2002/08/20 16:55:38  peter

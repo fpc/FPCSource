@@ -254,6 +254,8 @@ var
                   tostr(curr_n)+',0,0,'+'Ltext'+ToStr(IncludeCount));
                 AsmWriteLn('Ltext'+ToStr(IncludeCount)+':');
                 inc(includecount);
+                { force new line info }
+                stabslastfileinfo.line:=-1;
               end;
            end;
         { line changed ? }
@@ -496,7 +498,7 @@ var
                 AsmWriteLn(target_asm.comment+target_asm.comment+double2str(tai_real_64bit(hp).value));
                d:=tai_real_64bit(hp).value;
                { swap the values to correct endian if required }
-{$ifdef fpc}               
+{$ifdef fpc}
                if source_info.endian <> target_info.endian then
                  swap64bitarray(t64bitarray(d));
 {$endif}
@@ -519,7 +521,7 @@ var
                { swap the values to correct endian if required }
                if source_info.endian <> target_info.endian then
                  swap32bitarray(t32bitarray(sin));
-{$endif}                 
+{$endif}
                AsmWrite(#9'.byte'#9);
                for i:=0 to 3 do
                 begin
@@ -544,7 +546,7 @@ var
                { swap the values to correct endian if required }
                if source_info.endian <> target_info.endian then
                  swap64bitarray(t64bitarray(co));
-{$endif}                 
+{$endif}
                for i:=0 to 7 do
                 begin
                   if i<>0 then
@@ -809,7 +811,10 @@ var
 end.
 {
   $Log$
-  Revision 1.13  2002-10-05 12:43:23  carl
+  Revision 1.14  2002-10-30 21:01:14  peter
+    * always include lineno after fileswitch. valgrind requires this
+
+  Revision 1.13  2002/10/05 12:43:23  carl
     * fixes for Delphi 6 compilation
      (warning : Some features do not work under Delphi)
 
