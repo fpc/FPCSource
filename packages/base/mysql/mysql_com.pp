@@ -129,6 +129,9 @@ TError_handler = Procedure;
 st_mem_root =  record
   free : PUSED_MEM;
   used : PUSED_MEM;
+{$ifndef use_mysql_321}
+  pre_alloc: PUSED_MEM;
+{$endif use_mysql_321}
   min_malloc : cardinal;
   block_size : cardinal;
   error_handler : TERROR_Handler;
@@ -286,7 +289,11 @@ function  get_tty_password(opt_message:  pchar) : pchar;stdcall;external;
 
 end.
   $Log$
-  Revision 1.3  2002-09-07 15:42:52  peter
+  Revision 1.4  2004-07-01 20:04:17  jonas
+    * fixed st_mem_root record (only changed for 3.23, may still be wrong for
+      3.21)
+
+  Revision 1.3  2002/09/07 15:42:52  peter
     * old logs removed and tabs fixed
 
   Revision 1.2  2002/08/26 17:52:31  michael
