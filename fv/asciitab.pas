@@ -169,12 +169,14 @@ end;
 procedure TTable.DrawCurPos(enable : boolean);
 var
   Color : byte;
+  B : word;
 begin
-  If enable then
-    Color:=3
-  else
-    Color:=1;
-  WriteChar(Cursor.X,Cursor.Y,chr((Cursor.Y*Size.X+Cursor.X) and $ff),color,1);
+  Color:=GetColor(1);
+  { add blinking if enable }
+  If Enable then
+    Color:=((Color and $F) shl 4) or (Color shr 4);
+  B:=(Color shl 8) or ((Cursor.Y*Size.X+Cursor.X) and $ff);
+  WriteLine(Cursor.X,Cursor.Y,1,1,B);
 end;
 
 procedure TTable.HandleEvent(var Event:TEvent);
@@ -298,15 +300,15 @@ end;
 constructor TASCIIChart.Load(var S: TStream);
 begin
   Inherited Load(S);
-  GetPeerViewPtr(S,Report);
-  GetPeerViewPtr(S,Table);
+  GetSubViewPtr(S,Table);
+  GetSubViewPtr(S,Report);
 end;
 
 procedure TASCIIChart.Store(var S: TStream);
 begin
   Inherited Store(S);
-  PutPeerViewPtr(S,Report);
-  PutPeerViewPtr(S,Table);
+  PutSubViewPtr(S,Table);
+  PutSubViewPtr(S,Report);
 end;
 
 procedure TASCIIChart.HandleEvent(var Event:TEvent);
@@ -332,7 +334,10 @@ end;
 END.
 {
  $Log$
- Revision 1.2  2002-05-30 14:52:53  pierre
+ Revision 1.3  2002-05-30 22:23:15  pierre
+  * current char color changed
+
+ Revision 1.2  2002/05/30 14:52:53  pierre
   * some more fixes
 
  Revision 1.1  2002/05/29 22:14:53  pierre
