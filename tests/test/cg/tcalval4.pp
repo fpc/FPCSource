@@ -43,8 +43,7 @@ program tcalval4;
   {$ifdef cpu68k}
     BIG_INDEX = 8000;
     SMALL_INDEX  = 13;
-  {$endif}
-  {$ifdef cpui386}
+  {$else}
     BIG_INDEX = 33000;
     SMALL_INDEX = 13;     { value should not be aligned! }
   {$endif}
@@ -1139,7 +1138,10 @@ end.
 
 {
   $Log$
-  Revision 1.5  2002-11-09 21:47:37  carl
+  Revision 1.6  2003-04-22 10:24:29  florian
+    * fixed defines for powerpc
+
+  Revision 1.5  2002/11/09 21:47:37  carl
     + updated tests for correct parsing (array of const now allowed with high!)
 
   Revision 1.4  2002/09/22 09:08:41  carl

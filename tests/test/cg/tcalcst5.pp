@@ -41,8 +41,7 @@ program tcalcst5;
   {$ifdef cpu68k}
     BIG_INDEX = 8000;
     SMALL_INDEX  = 13;
-  {$endif}
-  {$ifdef cpui386}
+  {$else}
     BIG_INDEX = 33000;
     SMALL_INDEX = 13;     { value should not be aligned! }
   {$endif}
@@ -847,7 +846,10 @@ end.
 
 {
   $Log$
-  Revision 1.4  2002-09-22 09:08:40  carl
+  Revision 1.5  2003-04-22 10:24:29  florian
+    * fixed defines for powerpc
+
+  Revision 1.4  2002/09/22 09:08:40  carl
     * gets64bit was not returning an int64!
 
   Revision 1.3  2002/09/07 15:40:50  peter

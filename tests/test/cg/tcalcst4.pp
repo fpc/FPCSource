@@ -41,8 +41,7 @@ program tcalcst4;
   {$ifdef cpu68k}
     BIG_INDEX = 8000;
     SMALL_INDEX  = 13;
-  {$endif}
-  {$ifdef cpui386}
+  {$else}
     BIG_INDEX = 33000;
     SMALL_INDEX = 13;     { value should not be aligned! }
   {$endif}
@@ -678,7 +677,10 @@ end.
 
 {
   $Log$
-  Revision 1.7  2002-11-20 19:39:21  carl
+  Revision 1.8  2003-04-22 10:24:29  florian
+    * fixed defines for powerpc
+
+  Revision 1.7  2002/11/20 19:39:21  carl
   - high() cannot be used in cdecle'd routines
 
   Revision 1.6  2002/11/09 21:47:36  carl

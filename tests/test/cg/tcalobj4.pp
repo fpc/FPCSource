@@ -26,8 +26,7 @@ program tcalobj4;
  {$ifdef cpu68k}
    BIG_INDEX = 8000;
    SMALL_INDEX  = 13;
- {$endif}
- {$ifdef cpu86}
+ {$else}
    BIG_INDEX = 33000;
    SMALL_INDEX = 13;     { value should not be aligned! }
  {$endif}
@@ -3294,7 +3293,10 @@ end.
 
 {
   $Log$
-  Revision 1.5  2003-01-05 18:21:30  peter
+  Revision 1.6  2003-04-22 10:24:29  florian
+    * fixed defines for powerpc
+
+  Revision 1.5  2003/01/05 18:21:30  peter
     * removed more conflicting calling directives
 
   Revision 1.4  2002/12/29 15:30:55  peter

@@ -41,8 +41,7 @@ program tcalcst8;
   {$ifdef cpu68k}
     BIG_INDEX = 8000;
     SMALL_INDEX  = 13;
-  {$endif}
-  {$ifdef cpui386}
+  {$else}
     BIG_INDEX = 33000;
     SMALL_INDEX = 13;     { value should not be aligned! }
   {$endif}
@@ -583,7 +582,7 @@ begin
 
   write('Const parameter test (src : LOC_REFERENCE (arraydef)))...');
 
- 
+
   clear_globals;
   clear_values;
   failed:=false;
@@ -599,7 +598,7 @@ begin
   value_smallarray[SMALL_INDEX] := RESULT_U8BIT;
   proc_const_smallarray_open(value_smallarray);
   if global_u8bit <> RESULT_U8BIT then
-    failed := true; 
+    failed := true;
 
   if failed then
     fail
@@ -855,7 +854,10 @@ end.
 
 {
   $Log$
-  Revision 1.5  2002-10-08 07:42:19  pierre
+  Revision 1.6  2003-04-22 10:24:29  florian
+    * fixed defines for powerpc
+
+  Revision 1.5  2002/10/08 07:42:19  pierre
    * give result for arrays and const arrays separately
 
   Revision 1.4  2002/09/22 09:08:41  carl

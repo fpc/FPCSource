@@ -41,8 +41,7 @@ program tcalval2;
   {$ifdef cpu68k}
     BIG_INDEX = 8000;
     SMALL_INDEX  = 13;
-  {$endif}
-  {$ifdef cpui386}
+  {$else}
     BIG_INDEX = 33000;
     SMALL_INDEX = 13;     { value should not be aligned! }
   {$endif}

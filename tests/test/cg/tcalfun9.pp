@@ -45,8 +45,7 @@
     BIG_INDEX = 12000;
     MEDIUM_INDEX = 5000;
     SMALL_INDEX  = 13;
-  {$endif}
-  {$ifdef cpui386}
+  {$else}
     BIG_INDEX = 33000;
     MEDIUM_INDEX = 5000;
     SMALL_INDEX = 13;     { value should not be aligned! }
@@ -89,7 +88,7 @@
    tlargerecord = packed record
      b: array[1..BIG_INDEX] of byte;
    end;
-   
+
    tmediumrecord = packed record
      b: array[1..MEDIUM_INDEX] of byte;
    end;
@@ -218,7 +217,7 @@ function func_largerecord: tlargerecord;saveregisters;
    largerecord.b[BIG_INDEX] := RESULT_U8BIT;
    func_largerecord := largerecord;
  end;
- 
+
 function func_mediumrecord: tmediumrecord;saveregisters;
  var
    mediumrecord : tmediumrecord;
@@ -228,7 +227,7 @@ function func_mediumrecord: tmediumrecord;saveregisters;
    mediumrecord.b[MEDIUM_INDEX] := RESULT_U8BIT;
    func_mediumrecord := mediumrecord;
  end;
- 
+
 
 function func_shortstring: shortstring;saveregisters;
  begin
@@ -927,13 +926,13 @@ Begin
  value_largerec := func_largerecord;
  if (value_largerec.b[1] <> RESULT_U8BIT) or (value_largerec.b[BIG_INDEX] <> RESULT_U8BIT) then
     failed:=true;
-    
+
  clear_globals;
  clear_values;
  value_mediumrec := func_mediumrecord;
  if (value_mediumrec.b[1] <> RESULT_U8BIT) or (value_mediumrec.b[MEDIUM_INDEX] <> RESULT_U8BIT) then
     failed:=true;
-    
+
 
  clear_globals;
  clear_values;
@@ -1430,7 +1429,10 @@ end.
 
 {
   $Log$
-  Revision 1.4  2002-09-27 17:44:50  carl
+  Revision 1.5  2003-04-22 10:24:29  florian
+    * fixed defines for powerpc
+
+  Revision 1.4  2002/09/27 17:44:50  carl
     * add testing for window-page size 4K, so as to test stack corruption
 
   Revision 1.3  2002/09/07 15:40:51  peter

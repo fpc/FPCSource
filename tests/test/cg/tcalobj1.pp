@@ -26,12 +26,7 @@ program tcalobj1;
  {$ifdef cpu68k}
    BIG_INDEX = 8000;
    SMALL_INDEX  = 13;
- {$endif}
- {$ifdef cpu86}
-   BIG_INDEX = 33000;
-   SMALL_INDEX = 13;     { value should not be aligned! }
- {$endif}
- {$ifdef cpupowerpc}
+ {$else}
    BIG_INDEX = 33000;
    SMALL_INDEX = 13;     { value should not be aligned! }
  {$endif}
@@ -3296,7 +3291,10 @@ end.
 
 {
   $Log$
-  Revision 1.4  2003-04-21 18:34:00  florian
+  Revision 1.5  2003-04-22 10:24:29  florian
+    * fixed defines for powerpc
+
+  Revision 1.4  2003/04/21 18:34:00  florian
     + powerpc support
 
   Revision 1.3  2002/09/07 15:40:52  peter
