@@ -2153,7 +2153,7 @@ makefiles: fpc_makefiles
 ifneq ($(wildcard fpcmake.loc),)
 include fpcmake.loc
 endif
-db$(PPUEXT): db.pp fields.inc dataset.inc dbs.inc
+db$(PPUEXT): dbconst$(PPUEXT) db.pp bufdataset.inc  database.inc dataset.inc  datasource.inc  fields.inc
 ddg_ds$(PPUEXT): db$(PPUEXT) ddg_rec$(PPUEXT) ddg_ds.pp
 testds$(EXEEXT): ddg_ds$(PPUEXT) testds.pp
 tested$(EXEEXT): ddg_ds$(PPUEXT) tested.pp
