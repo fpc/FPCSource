@@ -1080,22 +1080,26 @@ end;
                                SourceEditor
 *****************************************************************************}
 
-function SearchCoreForFileName(const AFileName: string): PCodeEditorCore;
+function SearchCoreForFileName(AFileName: string): PCodeEditorCore;
 var EC: PCodeEditorCore;
 function Check(P: PView): boolean; {$ifndef FPC}far;{$endif}
 var OK: boolean;
 begin
   OK:=P^.HelpCtx=hcSourceWindow;
   if OK then
-  with PSourceWindow(P)^ do
-  if CompareText(Editor^.FileName,AFileName)=0 then
-  begin
-    EC:=Editor^.Core;
-  end;
+    with PSourceWindow(P)^ do
+     if FixFileName(Editor^.FileName)=AFileName then
+       begin
+         EC:=Editor^.Core;
+         OK:=true;
+       end
+     else
+       OK:=false;
   Check:=OK;
 end;
 begin
   EC:=nil;
+  AFileName:=FixFileName(AFileName);
   { do not use the same core for all new files }
   if AFileName<>'' then
     Desktop^.FirstThat(@Check);
@@ -4199,7 +4203,10 @@ end;
 END.
 {
   $Log$
-  Revision 1.10  2001-11-07 00:28:53  pierre
+  Revision 1.11  2001-12-19 10:59:18  pierre
+   * attempt to fix web bug 1730
+
+  Revision 1.10  2001/11/07 00:28:53  pierre
    + Disassembly window made public
 
   Revision 1.9  2001/10/11 23:45:28  pierre
