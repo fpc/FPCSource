@@ -270,6 +270,7 @@ implementation
          pop_esp : boolean;
          pop_allowed : boolean;
          regs_to_push : byte;
+         constructorfailed : pasmlabel;
 
       label
          dont_call;
@@ -1121,6 +1122,8 @@ implementation
            assigned(methodpointer) and
            (methodpointer.nodetype<>typen) then
            begin
+              getlabel(constructorfailed);
+              emitjmp(C_Z,constructorfailed);
               emit_reg(A_PUSH,S_L,R_ESI);
               new(r);
               reset_reference(r^);
@@ -1134,6 +1137,7 @@ implementation
               emit_ref(A_CALL,S_NO,r);
               ungetregister32(R_EDI);
               exprasmlist^.concat(new(pairegalloc,alloc(R_EAX)));
+              emitlab(constructorfailed);
               emit_reg_reg(A_MOV,S_L,R_ESI,R_EAX);
            end;
 
@@ -1588,7 +1592,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.14  2000-12-07 17:19:46  jonas
+  Revision 1.15  2000-12-09 10:45:40  florian
+    * AfterConstructor isn't called anymore when a constructor failed
+
+  Revision 1.14  2000/12/07 17:19:46  jonas
     * new constant handling: from now on, hex constants >$7fffffff are
       parsed as unsigned constants (otherwise, $80000000 got sign extended
       and became $ffffffff80000000), all constants in the longint range
