@@ -249,7 +249,7 @@ begin
       importlib:=Timportlibos2.Create;
   {$endif}
   {$ifndef NOTARGETNETWARE}
-    target_i386_OS2 :
+    target_i386_netware :
       importlib:=Timportlibnetware.Create;
   {$endif}
 {$endif i386}
@@ -274,7 +274,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.8  2001-02-02 22:43:39  peter
+  Revision 1.9  2001-02-03 00:09:02  peter
+    * fixed netware typo in previous commit
+
+  Revision 1.8  2001/02/02 22:43:39  peter
     * add notarget defines
 
   Revision 1.7  2000/12/25 00:07:26  peter

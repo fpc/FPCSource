@@ -207,6 +207,7 @@ begin
       exportlib:=Texportlibwin32.Create;
   {$endif NOTARGETWIN32}
   {$ifndef NOTARGETNETWARE}
+    target_i386_netware :
       exportlib:=Texportlibnetware.Create;
   {$endif NOTARGETNETWARE}
 {
@@ -235,7 +236,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.10  2001-02-02 22:43:39  peter
+  Revision 1.11  2001-02-03 00:09:02  peter
+    * fixed netware typo in previous commit
+
+  Revision 1.10  2001/02/02 22:43:39  peter
     * add notarget defines
 
   Revision 1.9  2000/12/25 00:07:25  peter
