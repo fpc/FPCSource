@@ -31,8 +31,8 @@ fpcdir=../..
 target=linux
 
 [compiler]
-includedir=$(INC) $(PROCINC) $(UNIXINC)
-sourcedir=$(INC) $(PROCINC) $(UNIXINC)
+includedir=$(INC) $(PROCINC) $(UNIXINC) $(CPU_TARGET)
+sourcedir=$(INC) $(PROCINC) $(UNIXINC) $(CPU_TARGET)
 targetdir=.
 
 [lib]
