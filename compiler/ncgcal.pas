@@ -428,20 +428,33 @@ implementation
                      paramanager.push_addr_param(paraitem.paratyp,paraitem.paratype.def,
                          aktcallnode.procdefinition.proccalloption)) then
                    begin
-                      { Check for passing a constant to var,out parameter }
-                      if (paraitem.paratyp in [vs_var,vs_out]) and
-                         (left.location.loc<>LOC_REFERENCE) then
-                       begin
-                         { passing self to a var parameter is allowed in
-                           TP and delphi }
-                         if not((left.location.loc=LOC_CREFERENCE) and
-                                is_self_node(left)) then
-                          internalerror(200106041);
-                       end;
-                      { Force to be in memory }
-                      if not(left.location.loc in [LOC_CREFERENCE,LOC_REFERENCE]) then
-                        location_force_mem(exprasmlist,left.location);
-                      push_addr_para;
+                      { Passing a var parameter to a var parameter, we can
+                        just push the address transparently }
+                      if (left.nodetype=loadn) and
+                         (tloadnode(left).is_addr_param_load) then
+                        begin
+                          if (left.location.reference.index<>NR_NO) or
+                             (left.location.reference.offset<>0) then
+                            internalerror(200410107);
+                          cg.a_param_reg(exprasmlist,OS_ADDR,left.location.reference.base,tempcgpara)
+                        end
+                      else
+                        begin
+                          { Check for passing a constant to var,out parameter }
+                          if (paraitem.paratyp in [vs_var,vs_out]) and
+                             (left.location.loc<>LOC_REFERENCE) then
+                           begin
+                             { passing self to a var parameter is allowed in
+                               TP and delphi }
+                             if not((left.location.loc=LOC_CREFERENCE) and
+                                    is_self_node(left)) then
+                              internalerror(200106041);
+                           end;
+                          { Force to be in memory }
+                          if not(left.location.loc in [LOC_CREFERENCE,LOC_REFERENCE]) then
+                            location_force_mem(exprasmlist,left.location);
+                          push_addr_para;
+                        end;
                    end
                  else
                    push_value_para;
@@ -1049,8 +1062,7 @@ implementation
          { Allocate parameters and locals }
          gen_alloc_inline_parast(exprasmlist,tprocdef(procdefinition));
          gen_alloc_inline_funcret(exprasmlist,tprocdef(procdefinition));
-         if tprocdef(procdefinition).localst.symtabletype=localsymtable then
-           gen_alloc_localst(exprasmlist,tlocalsymtable(tprocdef(procdefinition).localst));
+         gen_alloc_symtable(exprasmlist,tlocalsymtable(tprocdef(procdefinition).localst));
 
          { if we allocate the temp. location for ansi- or widestrings }
          { already here, we avoid later a push/pop                    }
@@ -1183,9 +1195,8 @@ implementation
            end;
 
          { Release parameters and locals }
-         gen_free_parast(exprasmlist,tparasymtable(current_procinfo.procdef.parast));
-         if current_procinfo.procdef.localst.symtabletype=localsymtable then
-           gen_free_localst(exprasmlist,tlocalsymtable(current_procinfo.procdef.localst));
+         gen_free_symtable(exprasmlist,tparasymtable(current_procinfo.procdef.parast));
+         gen_free_symtable(exprasmlist,tlocalsymtable(current_procinfo.procdef.localst));
 
 {$ifdef GDB}
          if (cs_debuginfo in aktmoduleswitches) and
@@ -1232,7 +1243,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.176  2004-09-27 15:15:20  peter
+  Revision 1.177  2004-10-10 20:21:18  peter
+    * passing a var parameter to var parameter is now also allowed
+      for register locations (=regvars)
+
+  Revision 1.176  2004/09/27 15:15:20  peter
     * dealloc function result registers, register allocation is now
       back at pre-paraloc level
 

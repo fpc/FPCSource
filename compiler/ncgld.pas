@@ -119,13 +119,8 @@ implementation
                begin
                   symtabletype:=symtable.symtabletype;
                   hregister:=NR_NO;
-                  { C variable }
-                  if (vo_is_C_var in tvarsym(symtableentry).varoptions) then
-                    begin
-                       location.reference.symbol:=objectlibrary.newasmsymbol(tvarsym(symtableentry).mangledname,AB_EXTERNAL,AT_DATA);
-                    end
                   { DLL variable }
-                  else if (vo_is_dll_var in tvarsym(symtableentry).varoptions) then
+                  if (vo_is_dll_var in tvarsym(symtableentry).varoptions) then
                     begin
                       if target_info.system=system_powerpc_darwin then
                         begin
@@ -141,12 +136,7 @@ implementation
                           reference_reset_base(location.reference,hregister,0);
                         end;
                     end
-                  { external variable }
-                  else if (vo_is_external in tvarsym(symtableentry).varoptions) then
-                    begin
-                      location.reference.symbol:=objectlibrary.newasmsymbol(tvarsym(symtableentry).mangledname,AB_EXTERNAL,AT_DATA);
-                    end
-                  { thread variable }
+                  { Thread variable }
                   else if (vo_is_thread_var in tvarsym(symtableentry).varoptions) then
                     begin
                        {
@@ -192,7 +182,7 @@ implementation
                        cg.a_label(exprasmlist,endrelocatelab);
                        location.reference.base:=hregister;
                     end
-                  { nested variable }
+                  { Nested variable }
                   else if assigned(left) then
                     begin
                       if not(symtabletype in [localsymtable,parasymtable]) then
@@ -205,7 +195,7 @@ implementation
                       hregister:=left.location.register;
                       reference_reset_base(location.reference,hregister,tvarsym(symtableentry).localloc.reference.offset);
                     end
-                  { normal variable }
+                  { Normal (or external) variable }
                   else
                     begin
 {$ifdef OLDREGVARS}
@@ -246,7 +236,12 @@ implementation
                                         internalerror(200403023);
                                     end
                                   else
-                                    location.reference.symbol:=objectlibrary.newasmsymbol(tvarsym(symtableentry).mangledname,AB_EXTERNAL,AT_DATA);
+                                    begin
+                                      if tvarsym(symtableentry).localloc.loc=LOC_INVALID then
+                                        reference_reset_symbol(location.reference,objectlibrary.newasmsymbol(tvarsym(symtableentry).mangledname,AB_EXTERNAL,AT_DATA),0)
+                                      else
+                                        location:=tvarsym(symtableentry).localloc;
+                                    end;
                                 end;
                               else
                                 internalerror(200305102);
@@ -257,16 +252,17 @@ implementation
                   { handle call by reference variables when they are not
                     alreayd copied to local copies. Also ignore the reference
                     when we need to load the self pointer for objects }
-                  if (symtabletype=parasymtable) and
-                     not(vo_has_local_copy in tvarsym(symtableentry).varoptions) and
-                     not(nf_load_self_pointer in flags) and
-                     paramanager.push_addr_param(tvarsym(symtableentry).varspez,tvarsym(symtableentry).vartype.def,tprocdef(symtable.defowner).proccalloption) then
+                  if is_addr_param_load then
                     begin
-                      if hregister=NR_NO then
-                        hregister:=cg.getaddressregister(exprasmlist);
-                      { we need to load only an address }
-                      location.size:=OS_ADDR;
-                      cg.a_load_loc_reg(exprasmlist,location.size,location,hregister);
+                      if (location.loc in [LOC_CREGISTER,LOC_REGISTER]) then
+                        hregister:=location.register
+                      else
+                        begin
+                          hregister:=cg.getaddressregister(exprasmlist);
+                          { we need to load only an address }
+                          location.size:=OS_ADDR;
+                          cg.a_load_loc_reg(exprasmlist,location.size,location,hregister);
+                        end;
                       location_reset(location,LOC_REFERENCE,newsize);
                       location.reference.base:=hregister;
                     end;
@@ -927,7 +923,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.126  2004-09-26 17:45:30  peter
+  Revision 1.127  2004-10-10 20:21:18  peter
+    * passing a var parameter to var parameter is now also allowed
+      for register locations (=regvars)
+
+  Revision 1.126  2004/09/26 17:45:30  peter
     * simple regvar support, not yet finished
 
   Revision 1.125  2004/09/25 14:23:54  peter
