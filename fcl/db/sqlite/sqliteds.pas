@@ -700,11 +700,11 @@ var
   SqlTemp:String;
   Counter:Integer;
 begin
-  if (FTableName <> '') and (FFieldDefs.Count > 0) then
+  if (FTableName <> '') and (FieldDefs.Count > 0) then
   begin
     FSqliteHandle:= sqlite_open(PChar(FFileName),0,FDBError);
     SqlTemp:='CREATE TABLE '+FTableName+' (';
-    for Counter := 0 to FRowCount -1 do
+    for Counter := 0 to FieldDefs.Count-1 do
     begin
       SqlTemp:=SqlTemp + FieldDefs[Counter].Name;
       if FieldDefs[Counter].DataType = ftInteger then
