@@ -5,7 +5,7 @@ unit pqconnection;
 interface
 
 uses
-  Classes, SysUtils, sqldb, db,postgres3;
+  Classes, SysUtils, sqldb, db,postgres3, dbconst;
   
 type
   TPQTrans = Class(TSQLHandle)
@@ -40,10 +40,8 @@ type
     procedure FreeFldBuffers(cursor : TSQLHandle); override;
     procedure Execute(cursor: TSQLHandle;atransaction:tSQLtransaction); override;
     procedure AddFieldDefs(cursor: TSQLHandle; FieldDefs : TfieldDefs); override;
-    function GetFieldSizes(cursor : TSQLHandle) : integer; override;
     function Fetch(cursor : TSQLHandle) : boolean; override;
-    procedure LoadFieldsFromBuffer(cursor : TSQLHandle;buffer: pchar); override;
-    function GetFieldData(Cursor : TSQLHandle;Field: TField; FieldDefs : TfieldDefs; Buffer: Pointer;currbuff : pchar): Boolean; override;
+    function LoadField(cursor : TSQLHandle;FieldDef : TfieldDef;buffer : pointer) : boolean; override;
     function GetTransactionHandle(trans : TSQLHandle): pointer; override;
     function RollBack(trans : TSQLHandle) : boolean; override;
     function Commit(trans : TSQLHandle) : boolean; override;
@@ -71,14 +69,20 @@ ResourceString
   SErrFetchFailed = 'Fetch of data failed';
   SErrNoDatabaseName = 'Database connect string (DatabaseName) not filled in!';
   
-const Oid_Text    = 25;
-      Oid_Int8    = 20;
-      Oid_int2    = 21;
-      Oid_Int4    = 23;
-      Oid_Float4  = 700;
-      Oid_Float8  = 701;
-      Oid_bpchar  = 1042;
-      Oid_varchar = 1043;
+const Oid_Bool     = 16;
+      Oid_Text     = 25;
+      Oid_Int8     = 20;
+      Oid_int2     = 21;
+      Oid_Int4     = 23;
+      Oid_Float4   = 700;
+      Oid_Float8   = 701;
+      Oid_bpchar   = 1042;
+      Oid_varchar  = 1043;
+      Oid_timestamp = 1114;
+      oid_date      = 1082;
+      oid_time      = 1083;
+      oid_numeric   = 1700;
+
 
 function TPQConnection.GetTransactionHandle(trans : TSQLHandle): pointer;
 begin
@@ -270,6 +274,11 @@ begin
     Oid_int2               : Result := ftSmallInt;
     Oid_Float4             : Result := ftFloat;
     Oid_Float8             : Result := ftFloat;
+    Oid_TimeStamp          : Result := ftDateTime;
+    Oid_Date               : Result := ftDate;
+    Oid_Time               : Result := ftTime;
+    Oid_Bool               : Result := ftBoolean;
+    Oid_Numeric            : Result := ftBCD;
   end;
 end;
 
@@ -366,32 +375,13 @@ begin
       fieldtype := TranslateFldType(PQftype(BaseRes, i));
 
       if fieldtype = ftstring  then
-        size := pqfmod(baseres,i)-4;
+        size := pqfmod(baseres,i)-3;
+      if fieldtype = ftdate  then
+        size := sizeof(double);
 
       TFieldDef.Create(FieldDefs, PQfname(BaseRes, i), fieldtype,size, False, (i + 1));
       end;
     end;
-end;
-
-function TPQConnection.GetFieldSizes(cursor : TSQLHandle) : integer;
-var
-  x,recsize : integer;
-  size      : integer;
-begin
-  recsize := 0;
-  {$R-}
-  with cursor as TPQCursor do
-    for x := 0 to PQnfields(baseres)-1 do
-      begin
-      size := PQfsize(baseres, x);
-      if TranslateFldType(PQftype(BaseRes, x)) = ftString then
-        size := pqfmod(baseres,x);
-        
-      if size = -1 then size := sizeof(pchar);
-      Inc(recsize, size);
-      end;
-  {$R+}
-  result := recsize;
 end;
 
 function TPQConnection.GetHandle: pointer;
@@ -417,78 +407,73 @@ begin
     end;
 end;
 
-procedure TPQConnection.LoadFieldsFromBuffer(cursor : TSQLHandle;buffer : pchar);
+function TPQConnection.LoadField(cursor : TSQLHandle;FieldDef : TfieldDef;buffer : pointer) : boolean;
+
 var
   x,i          : integer;
-
-begin
-  {$R-}
-  with cursor as TPQCursor do for x := 0 to PQnfields(res)-1 do
-    begin
-    i := PQfsize(res, x);
-    buffer[0] := chr(pqgetisnull(res,0,x));
-    inc(buffer);
-
-    if  i = -1 then
-      begin
-      i := pqgetlength(res,0,x);
-      move(i,buffer^,sizeof(integer));
-      inc(buffer,sizeof(integer));
-      
-      Move(pqgetvalue(res,0,x)^,Buffer^, i);
-
-      inc(buffer,i);
-      end
-    else
-      begin
-      Move(pqgetvalue(res,0,x)^, Buffer^, i);
-      Inc(Buffer, i);
-      end;
-    end;
-  {$R+}
-end;
-
-function TPQConnection.GetFieldData(Cursor : TSQLHandle;Field: TField; FieldDefs : TfieldDefs; Buffer: Pointer;currbuff : pchar): Boolean;
-var
-  x    : longint;
-  size : integer;
+  li           : Longint;
+  CurrBuff     : pchar;
   tel  : byte;
+  dbl  : pdouble;
+  
 
 begin
-  Result := False;
   with cursor as TPQCursor do
     begin
-    for x := 0 to Field.Fieldno-1 do
-      begin
-      size := PQfsize(BaseRes, x);
-      inc(currbuff);
-      if size = -1 then
-        begin
-        size := integer(CurrBuff^);
-        inc(CurrBuff,sizeof(integer));
-        end;
-      if x < Field.Fieldno-1 then
-        Inc(CurrBuff, size);
-      end;
+    for x := 0 to PQnfields(res)-1 do
+      if PQfname(Res, x) = FieldDef.Name then break;
 
-    dec(currbuff);
-    if currbuff[0]<>#1 then
+    if PQfname(Res, x) <> FieldDef.Name then
+      DatabaseErrorFmt(SFieldNotFound,[FieldDef.Name],self);
+
+    if pqgetisnull(res,0,x)=1 then
+      result := false
+    else
       begin
-      inc(currbuff);
-      case Field.DataType of
+      i := PQfsize(res, x);
+      CurrBuff := pqgetvalue(res,0,x);
+
+      case FieldDef.DataType of
         ftInteger, ftSmallint, ftLargeInt,ftfloat :
           begin
-          for tel := 1 to size do   // postgres returns big-endian integers
-            pchar(Buffer)[tel-1] := CurrBuff[size-tel];
+          for tel := 1 to i do   // postgres returns big-endian numbers
+            pchar(Buffer)[tel-1] := CurrBuff[i-tel];
           end;
         ftString  :
           begin
-            Move(CurrBuff^, Buffer^, size);
-            PChar(Buffer + Size)^ := #0;
+          li := pqgetlength(res,0,x);
+          Move(CurrBuff^, Buffer^, li);
+          pchar(Buffer + li)^ := #0;
+          i := pqfmod(res,x)-3;
           end;
+        ftdate :
+          begin
+          li := 0;
+          for tel := 1 to i do   // postgres returns big-endian numbers
+            pchar(@li)[tel-1] := CurrBuff[i-tel];
+//          double(buffer^) := x + 36526; This doesn't work, please tell me what is wrong with it?
+          dbl := pointer(buffer);
+          dbl^ := li + 36526;
+          i := sizeof(double);
+          end;
+        ftDateTime, fttime :
+          begin
+          dbl := pointer(buffer);
+          dbl^ := 0;
+          for tel := 1 to i do   // postgres returns big-endian numbers
+            pchar(Buffer)[tel-1] := CurrBuff[i-tel];
+
+          dbl^ := (dbl^+3.1558464E+009)/86400;  // postgres counts seconds elapsed since 1-1-2000
+          end;
+        ftBCD:
+          begin
+          // not implemented
+          end;
+        ftBoolean:
+          pchar(buffer)[0] := CurrBuff[0]
       end;
-      Result := True;
-      end
+      result := true;
+      end;
     end;
 end;
 
