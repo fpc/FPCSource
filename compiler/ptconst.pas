@@ -657,9 +657,18 @@ implementation
               if token=_NIL then
                 begin
                    curconstSegment.concat(Tai_const.Create_32bit(0));
+                   if (po_methodpointer in tprocvardef(t.def).procoptions) then
+                     curconstSegment.concat(Tai_const.Create_32bit(0));
                    consume(_NIL);
                    exit;
                 end;
+              { you can't assign a value other than NIL to a typed constant  }
+              { which is a "procedure of object", because this also requires }
+              { address of an object/class instance, which is not known at   }
+              { compile time (JM)                                            }
+              if (po_methodpointer in tprocvardef(t.def).procoptions) then
+                Message(parser_e_no_procvarobj_const);
+                { parse the rest too, so we can continue with error checking }
               getprocvar:=true;
               getprocvardef:=tprocvardef(t.def);
               p:=comp_expr(true);
@@ -950,7 +959,12 @@ implementation
 end.
 {
   $Log$
-  Revision 1.36  2001-10-20 20:30:21  peter
+  Revision 1.37  2001-10-29 14:59:48  jonas
+    * typed constants that are "procedure of object" and which are assigned
+      nil require 8 bytes of "0" (not 4)
+    * fixed web bug 1655 (reject the code)
+
+  Revision 1.36  2001/10/20 20:30:21  peter
     * read only typed const support, switch $J-
 
   Revision 1.35  2001/10/20 17:24:26  peter

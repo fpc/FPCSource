@@ -941,6 +941,11 @@ parser_e_illegal_field_or_method=03181_E_Unknown class field or method identifie
 parser_w_proc_overriding_calling=03182_W_Overriding calling convention "$1" with "$2"
 % There are two directives in the procedure declaration that specify a calling
 % convention. Only the last directive will be used
+parser_e_no_procvarobj_const=03183_E_Typed constants of the type "procedure of object" can only be initialized with NIL
+% You can't assign the address of a method to a typed constant which has a
+% 'procedure of object' type, because such a constant requires two addresses:
+% that of the method (which is known at compile time) and that of the object or
+% class instance it operates on (which can not be known at compile time).
 % \end{description}
 #
 # Type Checking
