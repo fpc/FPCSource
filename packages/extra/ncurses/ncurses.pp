@@ -1277,7 +1277,7 @@ end;
 
 function chgat(n,a,c,o : longint) : longint;
 begin
- chgat:=wchgat(stdscr,n,a,c,pointer(o));
+ chgat:=wchgat(stdscr,n,a,c,pointer(ptrint(o)));
 end;
 
 function getbkgd(win : pwindow) : longint;
@@ -1709,7 +1709,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.7  2004-05-08 20:50:19  jonas
+  Revision 1.8  2004-12-15 21:25:31  peter
+    * x86_64 fixes
+
+  Revision 1.7  2004/05/08 20:50:19  jonas
     * Darwin fixes by mischi
 
   Revision 1.6  2003/10/15 17:04:40  florian

@@ -973,7 +973,7 @@ begin
      if (hashTbl = nil) or (hashEntry = nil) then
         result := nil
      else if pHashTable(hashTbl)^.keyType = 1 then
-        result :=  PChar(pLongInt(@(hashEntry^.key[0]))^)
+        result :=  PChar(pptrInt(@(hashEntry^.key[0]))^)
      else
         result := hashEntry^.key;
 end;

@@ -50,7 +50,7 @@ function  gdk_window_foreign_new(anid:guint32):PGdkWindow;cdecl;external gdkdll 
   {$ifndef gtkos2}
 function  GDK_GET_ROOT_WINDOW : PGdkWindow;
     begin
-       GDK_GET_ROOT_WINDOW:=PGdkwindow(gdk_root_window);
+       GDK_GET_ROOT_WINDOW:=PGdkwindow(PtrInt(gdk_root_window));
     end;
 
 function  GDK_GET_ROOT_PARENT : PGdkWindow;
@@ -126,7 +126,10 @@ function  GDK_FONT_XFONT(font : PGdkFontPrivate) : gpointer;
 
 {
   $Log$
-  Revision 1.5  2004-05-02 19:14:47  jonas
+  Revision 1.6  2004-12-15 21:25:30  peter
+    * x86_64 fixes
+
+  Revision 1.5  2004/05/02 19:14:47  jonas
     * fixed darwin incompatibilities
 
   Revision 1.4  2003/08/06 07:28:21  michael
