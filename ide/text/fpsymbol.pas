@@ -67,6 +67,7 @@ type
       constructor Init(var Bounds: TRect);
       procedure   SetParams(AFlags: word; ACurrent: Sw_integer); virtual;
       procedure   Draw; virtual;
+      procedure   HandleEvent(var Event: TEvent);virtual;
       function    GetPalette: PPalette; virtual;
     private
       Flags   : word;
@@ -412,6 +413,7 @@ begin
   Desktop^.UnLock;
 end;
 
+(* this does not work correctly
 function LastBrowserWindow: PBrowserWindow;
 var BW: PBrowserWindow;
 procedure IsBW(P: PView); {$ifndef FPC}far;{$endif}
@@ -423,6 +425,26 @@ begin
   BW:=nil;
   Desktop^.ForEach(@IsBW);
   LastBrowserWindow:=BW;
+end; *)
+
+function LastBrowserWindowBeforeAnyOtherWindow: PBrowserWindow;
+var BW: PBrowserWindow;
+    AnyOther : boolean;
+procedure IsBW(P: PView); {$ifndef FPC}far;{$endif}
+begin
+  if (P^.HelpCtx=hcBrowserWindow) then
+    begin
+      if not AnyOther then
+        BW:=pointer(P);
+    end
+  else
+    AnyOther:=true;
+end;
+begin
+  AnyOther:=false;
+  BW:=nil;
+  Desktop^.ForEach(@IsBW);
+  LastBrowserWindowBeforeAnyOtherWindow:=BW;
 end;
 
 procedure TSymbolReferenceView.TrackSource;
@@ -439,12 +461,16 @@ begin
   W:=TryToOpenFile(nil,R^.GetFileName,P.X,P.Y);
   if W<>nil then
   begin
-    BW:=LastBrowserWindow;
+    { do not count W }
+    Desktop^.Delete(W);
+    BW:=LastBrowserWindowBeforeAnyOtherWindow;
     if BW=nil then
-      W^.Select
+      begin
+        Desktop^.Insert(W);
+        W^.Select;
+      end
     else
       begin
-        Desktop^.Delete(W);
         Desktop^.InsertBefore(W,BW^.NextView);
       end;
     W^.Editor^.SetHighlightRow(P.Y);
@@ -509,6 +535,42 @@ function TBrowserTab.GetPalette: PPalette;
 const P: string[length(CBrowserTab)] = CBrowserTab;
 begin
   GetPalette:=@P;
+end;
+
+procedure TBrowserTab.HandleEvent(var Event: TEvent);
+var
+  i,bt : byte;
+  index,X : Sw_integer;
+  P : Tpoint;
+begin
+  if (Event.What and evMouseDown)<>0 then
+     begin
+       MakeLocal(Event.Where,P);
+       if P.Y<3 then
+	  begin
+            bt:=1;
+            X:=1;
+            Index:=-1;
+	    for i:=0 to 3 do
+              begin
+                if bt=0 then
+                  bt:=1
+                else
+                  bt:=bt*2;
+                if (Flags and (1 shl I))<>0 then
+                  begin
+  		    if (P.X>X) and (P.X<=X+3) then Index:=bt;
+  		    X:=X+4;
+    		  end;
+              end;
+	    if Index<>-1 then
+	       Begin
+                 PBrowserWindow(Owner)^.SelectTab(Index);
+                 ClearEvent(Event);
+               End;
+	  end;
+     end;
+  Inherited HandleEvent(Event);
 end;
 
 constructor TBrowserWindow.Init(var Bounds: TRect; ATitle: TTitleStr; ANumber: Sw_Integer;ASym : PSymbol;
@@ -639,10 +701,22 @@ begin
   case BrowserTab of
     btScope :
       if assigned(ScopeView) then
-        ScopeView^.Select;
+        begin
+          RemoveView(ScopeView^.HScrollBar);
+          InsertView(ScopeView^.HScrollBar,First);
+          RemoveView(ScopeView^.VScrollBar);
+          InsertView(ScopeView^.VScrollBar,First);
+          ScopeView^.Select;
+        end;
     btReferences :
       if assigned(ReferenceView) then
-        ReferenceView^.Select;
+        begin
+          RemoveView(ReferenceView^.HScrollBar);
+          InsertView(ReferenceView^.HScrollBar,First);
+          RemoveView(ReferenceView^.VScrollBar);
+          InsertView(ReferenceView^.VScrollBar,First);
+          ReferenceView^.Select;
+        end;
     btBreakWatch :
       begin
         if Assigned(Sym) then
@@ -739,7 +813,14 @@ end;
 END.
 {
   $Log$
-  Revision 1.7  1999-02-16 12:44:20  pierre
+  Revision 1.8  1999-02-17 15:50:27  pierre
+    * ScrollBars in SymbolView where allways for ReferenceView
+    * TrackSource puts now the source in front of the first non
+      browser window !
+    +* Tried to get mouse clicks in TBrowserTab to issue correct
+      command, but still does not work !
+
+  Revision 1.7  1999/02/16 12:44:20  pierre
    * DoubleClick works now
 
   Revision 1.6  1999/02/10 09:44:59  pierre
