@@ -508,29 +508,29 @@ implementation
       procedure genitem(t : pcaselabel);
 
           procedure gensub(value:aint);
-          begin
-            { here, since the sub and cmp are separate we need
-              to move the result before subtract to a help
-              register.
-            }
-            cg.a_load_reg_reg(exprasmlist, opsize, opsize, hregister, scratch_reg);
-            cg.a_op_const_reg(exprasmlist, OP_SUB, opsize, value, hregister);
-          end;
+            begin
+              { here, since the sub and cmp are separate we need
+                to move the result before subtract to help
+                the register allocator
+              }
+              cg.a_load_reg_reg(exprasmlist, opsize, opsize, hregister, scratch_reg);
+              cg.a_op_const_reg(exprasmlist, OP_SUB, opsize, value, hregister);
+            end;
 
         begin
            if assigned(t^.less) then
              genitem(t^.less);
-           { need we to test the first value }
+           { do we need to test the first value? }
            if first and (t^._low>get_min_value(left.resulttype.def)) then
              cg.a_cmp_const_reg_label(exprasmlist,opsize,jmp_lt,aint(t^._low),hregister,elselabel);
            if t^._low=t^._high then
              begin
                 if t^._low-last=0 then
-                  cg.a_cmp_const_reg_label(exprasmlist, opsize, OC_EQ,0,hregister,blocklabel(t^.blockid))
+                  cg.a_cmp_const_reg_label(exprasmlist,opsize,OC_EQ,0,hregister,blocklabel(t^.blockid))
                 else
                   begin
                       gensub(aint(t^._low-last));
-                      cg.a_cmp_const_reg_label(exprasmlist, opsize, OC_EQ,aint(t^._low-last),scratch_reg,blocklabel(t^.blockid));
+                      cg.a_cmp_const_reg_label(exprasmlist,opsize,OC_EQ,aint(t^._low-last),scratch_reg,blocklabel(t^.blockid));
                   end;
                 last:=t^._low;
              end
@@ -554,7 +554,7 @@ implementation
                     cg.a_cmp_const_reg_label(exprasmlist, opsize,jmp_lt,aint(t^._low-last),scratch_reg,elselabel);
                   end;
                 gensub(aint(t^._high-t^._low));
-                cg.a_cmp_const_reg_label(exprasmlist, opsize,jmp_le,aint(t^._high-t^._low),scratch_reg,blocklabel(t^.blockid));
+                cg.a_cmp_const_reg_label(exprasmlist,opsize,jmp_le,aint(t^._high-t^._low),scratch_reg,blocklabel(t^.blockid));
                 last:=t^._high;
              end;
            first:=false;
@@ -870,7 +870,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.73  2004-12-11 01:04:26  jonas
+  Revision 1.74  2005-01-04 20:14:40  florian
+    * better commenting
+
+  Revision 1.73  2004/12/11 01:04:26  jonas
     * fixed regvar problem due to emit_bit_test() changing a register that
       was allowed to be a LOC_CREGISTER
 
