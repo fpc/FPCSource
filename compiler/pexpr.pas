@@ -640,9 +640,8 @@ implementation
               end
              else
               begin
-                if token=_LKLAMMER then
+                if try_to_consume(_LKLAMMER) then
                  begin
-                   consume(_LKLAMMER);
                    para:=parse_paras(false,false);
                    consume(_RKLAMMER);
                  end;
@@ -898,7 +897,7 @@ implementation
                  procsym:
                    begin
                       do_proc_call(sym,sym.owner,
-                                   getaddr or
+                                   (getaddr and not(token in [_CARET,_POINT])) or
                                    (assigned(getprocvardef) and
                                     ((block_type=bt_const) or
                                      ((m_tp_procvar in aktmodeswitches) and
@@ -1235,7 +1234,7 @@ implementation
                                     assigned(aktprocsym) and
                                     (po_classmethod in aktprocdef.procoptions);
                     do_proc_call(srsym,srsymtable,
-                                 getaddr or
+                                 (getaddr and not(token in [_CARET,_POINT])) or
                                  (assigned(getprocvardef) and
                                   ((block_type=bt_const) or
                                    ((m_tp_procvar in aktmodeswitches) and
@@ -1906,19 +1905,23 @@ implementation
                consume(_KLAMMERAFFE);
                got_addrn:=true;
                { support both @<x> and @(<x>) }
-               if token=_LKLAMMER then
+               if try_to_consume(_LKLAMMER) then
                 begin
-                  consume(_LKLAMMER);
                   p1:=factor(true);
-                  consume(_RKLAMMER);
                   if token in [_CARET,_POINT,_LECKKLAMMER] then
                    begin
                      again:=true;
                      postfixoperators(p1,again);
                    end;
+                  consume(_RKLAMMER);
                 end
                else
                 p1:=factor(true);
+               if token in [_CARET,_POINT,_LECKKLAMMER] then
+                begin
+                  again:=true;
+                  postfixoperators(p1,again);
+                end;
                got_addrn:=false;
                p1:=caddrnode.create(p1);
                if assigned(getprocvardef) and
@@ -2261,7 +2264,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.92  2002-11-25 17:43:22  peter
+  Revision 1.93  2002-11-26 22:58:24  peter
+    * fix for tw2178. When a ^ or . follows a procsym then the procsym
+      needs to be called
+
+  Revision 1.92  2002/11/25 17:43:22  peter
     * splitted defbase in defutil,symutil,defcmp
     * merged isconvertable and is_equal into compare_defs(_ext)
     * made operator search faster by walking the list only once
