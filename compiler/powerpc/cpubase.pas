@@ -505,7 +505,6 @@ const
 
     function is_calljmp(o:tasmop):boolean;
 
-    procedure inverse_flags(var f: TResFlags);
     procedure inverse_cond(c: TAsmCond;var r : TAsmCond);
     function flags_to_cond(const f: TResFlags) : TAsmCond;
     procedure create_cond_imm(BO,BI:byte;var r : TAsmCond);
@@ -578,13 +577,6 @@ implementation
       new_reference:=r;
     end;
 
-    procedure inverse_flags(var f: TResFlags);
-      const
-        flagsinvers : array[F_EQ..F_GE] of tresflagsenum =
-          (F_NE,F_EQ,F_GE,F_GT,F_LE,F_LT);
-      begin
-        f.flag := flagsinvers[f.flag];
-      end;
 
 
     procedure inverse_cond(c: TAsmCond;var r : TAsmCond);
@@ -668,7 +660,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.8  2002-04-20 21:41:51  carl
+  Revision 1.9  2002-04-21 15:48:39  carl
+  * some small updates according to i386 version
+
+  Revision 1.8  2002/04/20 21:41:51  carl
   * renamed some constants
 
   Revision 1.7  2002/04/06 18:13:02  jonas

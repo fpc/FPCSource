@@ -524,7 +524,7 @@ implementation
               LOC_FLAGS :
                 begin
                   location.resflags:=left.location.resflags;
-                  inverse_flags(left.location.resflags);
+!!!                  inverse_flags(left.location.resflags);
                 end;
               LOC_REGISTER, LOC_CREGISTER, LOC_REFERENCE, LOC_CREFERENCE :
                 begin
@@ -623,7 +623,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.3  2002-04-06 18:13:02  jonas
+  Revision 1.4  2002-04-21 15:48:39  carl
+  * some small updates according to i386 version
+
+  Revision 1.3  2002/04/06 18:13:02  jonas
     * several powerpc-related additions and fixes
 
   Revision 1.2  2002/01/03 14:57:52  jonas
