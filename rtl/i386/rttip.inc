@@ -16,7 +16,7 @@
 { Run-Time type information routines - processor dependent part }
 {$ASMMODE DIRECT}
 
-Procedure Initialize (Data,TypeInfo : pointer);[Public,Alias : 'FPC_INITIALIZE'];assembler;
+Procedure Initialize (Data,TypeInfo : pointer);[Public,Alias : 'FPC_INITIALIZE'{$ifndef FPC_NAMES},alias:'INITIALIZE'{$endif}];assembler;
 
 asm
 # Save registers
@@ -72,10 +72,10 @@ asm
 # Array handling
 .DoArrayInit:
 # Skip array name !!
-	incl	%ebx
-	movzbl  (%ebx),%eax
-	incl	%eax
-	addl	%eax,%ebx
+        incl    %ebx
+        movzbl  (%ebx),%eax
+        incl    %eax
+        addl    %eax,%ebx
 # %ebx points to size. Put size in ecx
         movl    (%ebx),%ecx
         addl    $4, %ebx
@@ -108,7 +108,7 @@ asm
         pop     %eax
 end;
 
-Procedure Finalize (Data,TypeInfo: Pointer);[Public,Alias : 'FPC_FINALIZE']; assembler;
+Procedure Finalize (Data,TypeInfo: Pointer);[Public,Alias : 'FPC_FINALIZE'{$ifndef FPC_NAMES},alias:'FINALIZE'{$endif}]; assembler;
 
 asm
         push    %eax
@@ -151,7 +151,7 @@ asm
 # Push type
         pushl    (%ebx)
         addl     $4,%ebx
-# %ebx points to offset.        
+# %ebx points to offset.
 # Use to calculate data
         movl    8(%ebp),%eax
         addl    (%ebx),%eax
@@ -163,10 +163,10 @@ asm
 # Array handling
 .DoArrayFinal:
 # Skip array name !!
-	incl	%ebx
-	movzbl  (%ebx),%eax
-	incl	%eax
-	addl	%eax,%ebx
+        incl    %ebx
+        movzbl  (%ebx),%eax
+        incl    %eax
+        addl    %eax,%ebx
 # %ebx points to size. Put size in ecx
         movl    (%ebx),%ecx
         addl    $4, %ebx
@@ -374,7 +374,10 @@ end;
 
 {
   $Log$
-  Revision 1.9  1998-09-29 08:38:25  michael
+  Revision 1.10  1998-11-16 12:21:47  peter
+    * fixes for 0.99.8
+
+  Revision 1.9  1998/09/29 08:38:25  michael
   + Corrections in record and array handling.
 
   Revision 1.8  1998/09/20 17:49:07  florian

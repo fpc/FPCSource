@@ -479,19 +479,16 @@ Begin
   WriteBuffer(f,p^,PCharLen);
 End;
 
-{$ifdef UseAnsiStrings}
+
 Procedure Write_Text_AnsiString (Len : Longint; Var T : TextRec; S : Pointer);[Public, alias: {$ifdef FPCNAMES}'FPC_'+{$endif}'WRITE_TEXT_ANSISTRING'];
 {
  Writes a AnsiString to the Text file T
 }
-
 begin
   If S=Nil then
    exit;
   Write_pchar (Len,t,PChar(S));
 end;
-
-{$endif}
 
 
 Procedure Write_LongInt(Len : Longint;var t : TextRec;l : Longint);[Public,Alias: {$ifdef FPCNAMES}'FPC_'+{$endif}'WRITE_TEXT_LONGINT'];
@@ -905,7 +902,6 @@ Begin
 End;
 
 
-{$ifdef useansistrings}
 Procedure Read_String(Maxlen : Longint;var f : TextRec;var s : AnsiString);[Public,Alias: {$ifdef FPCNAMES}'FPC_'+{$endif}'READ_TEXT_ANSISTRING'];
 var
   p,maxp,startp,sidx : PChar;
@@ -965,7 +961,6 @@ Begin
   sidx^:=#0;
   PAnsiRec(Pointer(S)-FirstOff)^.Len:=spos;
 End;
-{$endif}
 
 
 Procedure Read_Longint(var f : TextRec;var l : Longint);[Public,Alias: {$ifdef FPCNAMES}'FPC_'+{$endif}'READ_TEXT_LONGINT'];
@@ -1199,7 +1194,10 @@ end;
 
 {
   $Log$
-  Revision 1.33  1998-10-23 00:03:29  peter
+  Revision 1.34  1998-11-16 12:21:48  peter
+    * fixes for 0.99.8
+
+  Revision 1.33  1998/10/23 00:03:29  peter
     * write(pchar) has check for nil
 
   Revision 1.32  1998/10/20 14:37:45  peter
