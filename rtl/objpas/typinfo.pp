@@ -432,7 +432,7 @@ unit typinfo;
      I:=0;
      While (I<Count) and (PI^.Name>PL^[I]^.Name) do Inc(I);
      If I<Count then
-       Move(PL^[I],PL[I+1],Count-I*SizeOf(Pointer));
+       Move(PL^[I], PL^[I+1], (Count - I) * SizeOf(Pointer));
      PL^[I]:=PI;
     end;
 
@@ -498,9 +498,9 @@ unit typinfo;
          end;
          { cut off unnecessary stuff }
          case GetTypeData(PropInfo^.PropType)^.OrdType of
-            otSWord,otUWord:
+            otSWord,otUWord,otWChar:
               Value:=Value and $ffff;
-            otSByte,otUByte:
+            otSByte,otUByte,otChar:
               Value:=Value and $ff;
          end;
          GetOrdProp:=Value;
@@ -807,7 +807,12 @@ end.
 
 {
   $Log$
-  Revision 1.31  1999-12-28 12:19:36  jonas
+  Revision 1.32  2000-01-05 18:59:56  sg
+  * Fixed missing () in InsertProp which caused memory corruptions
+  * GetOrdProp handles Char and WChar now. (there are still some
+    property types missing!)
+
+  Revision 1.31  1999/12/28 12:19:36  jonas
     * replaced "movl mem,%eax; xorl %eax,%eax" with "movl mem,%eax;
       testl %eax,%eax"
 
