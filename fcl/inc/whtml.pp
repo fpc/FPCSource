@@ -197,7 +197,7 @@ end;
 
 procedure THTMLWriter.ListStart(ListType: TListType);
 begin
-  TagEnd(ListTags[ListType]);
+  TagStart(ListTags[ListType],'');
 end;
 
 procedure THTMLWriter.ParagraphEnd;
@@ -457,7 +457,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.2  2003-10-03 08:42:22  michael
+  Revision 1.3  2003-11-30 00:06:19  olle
+    * bugfix start tag of lists
+
+  Revision 1.2  2003/10/03 08:42:22  michael
   + Form support.
 
   Revision 1.1  2003/10/01 20:49:29  michael
