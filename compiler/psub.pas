@@ -1501,7 +1501,7 @@ begin
    aktlocalswitches:=entryswitches;
 {$ifndef NOPASS2}
 {$ifdef newcg}
-   tg.setfirsttemp(procinfo^.firsttemp);
+   tg.setfirsttemp(procinfo^.firsttemp_offset);
 {$else newcg}
    if assigned(code) then
      generatecode(code);
@@ -1941,7 +1941,10 @@ end.
 
 {
   $Log$
-  Revision 1.37  1999-11-30 10:40:48  peter
+  Revision 1.38  1999-12-06 18:17:09  peter
+    * newcg compiler compiles again
+
+  Revision 1.37  1999/11/30 10:40:48  peter
     + ttype, tsymlist
 
   Revision 1.36  1999/11/22 00:23:09  pierre

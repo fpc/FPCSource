@@ -45,7 +45,7 @@ unit nmem;
        passignmentnode = ^tassignmentnode;
        tassignmentnode = object(tbinarynode)
           assigntyp : tassigntyp;
-	  concat_string : boolean;
+          concat_string : boolean;
           constructor init(l,r : pnode);
           destructor done;virtual;
           procedure det_temp;virtual;
@@ -79,7 +79,7 @@ unit nmem;
          inherited init;
          treetype:=loadn;
          if v^.typ=varsym then
-           resulttype:=pvarsym(v)^.definition;
+           resulttype:=pvarsym(v)^.vartype.def;
          symtableentry:=v;
          symtable:=st;
          is_first := False;
@@ -183,7 +183,7 @@ unit nmem;
                                    location.reference.base:=procinfo.framepointer;
                                    location.reference.offset:=pvarsym(symtableentry)^.address;
                                    if (symtabletype in [localsymtable,inlinelocalsymtable]) and
-				     not(use_esp_stackframe) then
+                                     not(use_esp_stackframe) then
                                      location.reference.offset:=-location.reference.offset;
                                    if (lexlevel>(symtable^.symtablelevel)) then
                                      begin
@@ -711,7 +711,10 @@ unit nmem;
 end.
 {
   $Log$
-  Revision 1.14  1999-10-12 21:20:46  florian
+  Revision 1.15  1999-12-06 18:17:10  peter
+    * newcg compiler compiles again
+
+  Revision 1.14  1999/10/12 21:20:46  florian
     * new codegenerator compiles again
 
   Revision 1.13  1999/09/15 20:35:46  florian

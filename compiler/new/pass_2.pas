@@ -172,12 +172,12 @@ implementation
                  while assigned(hp) do
                    begin
                       if assigned(hp^.parent) then
-		        begin
+                        begin
                            if nf_needs_truefalselabel in hp^.parent^.flags then
                              begin
-      		                if not(assigned(punarynode(hp^.parent)^.truelabel)) then
+                                if not(assigned(punarynode(hp^.parent)^.truelabel)) then
                                   getlabel(punarynode(hp^.parent)^.truelabel);
-	      	                if not(assigned(punarynode(hp^.parent)^.falselabel)) then
+                                if not(assigned(punarynode(hp^.parent)^.falselabel)) then
                                   getlabel(punarynode(hp^.parent)^.falselabel);
                                 truelabel:=punarynode(hp^.parent)^.truelabel;
                                 falselabel:=punarynode(hp^.parent)^.falselabel;
@@ -315,8 +315,8 @@ implementation
                          { is this correct ???}
                          { retoffset can be negativ for results in eax !! }
                          { the value should be decreased only if positive }
-                         if procinfo^.retoffset>=0 then
-                           dec(procinfo^.retoffset,4);
+                         if procinfo^.return_offset>=0 then
+                           dec(procinfo^.return_offset,4);
 
                          dec(procinfo^.call_offset,4);
                          aktprocsym^.definition^.parast^.address_fixup:=procinfo^.call_offset;
@@ -464,7 +464,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.8  1999-10-12 21:20:47  florian
+  Revision 1.9  1999-12-06 18:17:10  peter
+    * newcg compiler compiles again
+
+  Revision 1.8  1999/10/12 21:20:47  florian
     * new codegenerator compiles again
 
   Revision 1.7  1999/08/25 12:00:13  jonas
