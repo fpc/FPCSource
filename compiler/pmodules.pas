@@ -493,6 +493,7 @@ unit pmodules;
          names  : Tstringcontainer;
          p      : psymtable;
          unitst : punitsymtable;
+         storedebuglist : paasmoutput;
          pu     : pused_unit;
          i      : longint;
          s1,s2  : ^string; {Saves stack space}
@@ -600,14 +601,8 @@ unit pmodules;
          { ... parse the declarations }
          read_interface_declarations;
 
-         { Parse the implementation section }
-         consume(_IMPLEMENTATION);
-         current_module^.in_implementation:=true;
-
-         parse_only:=false;
-
 {$ifdef GDB}
-         { add all used definitions even for implementation}
+         { add all used definitions}
          if (cs_debuginfo in aktmoduleswitches) then
            begin
               { all types }
@@ -616,6 +611,12 @@ unit pmodules;
               refsymtable^.concatstabto(debuglist);
            end;
 {$endif GDB}
+
+         { Parse the implementation section }
+         consume(_IMPLEMENTATION);
+         current_module^.in_implementation:=true;
+
+         parse_only:=false;
 
          { generates static symbol table }
          p:=new(punitsymtable,init(staticsymtable,current_module^.modulename^));
@@ -915,7 +916,13 @@ unit pmodules;
 end.
 {
   $Log$
-  Revision 1.46  1998-09-03 11:24:01  peter
+  Revision 1.47  1998-09-09 11:50:55  pierre
+    * forward def are not put in record or objects
+    + added check for forwards also in record and objects
+    * dummy parasymtable for unit initialization removed from
+    symtable stack
+
+  Revision 1.46  1998/09/03 11:24:01  peter
     * moved more inputfile things from tscannerfile to tinputfile
     * changed ifdef Sourceline to cs_asm_source
 

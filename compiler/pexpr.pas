@@ -137,7 +137,7 @@ unit pexpr;
                      statement_syssym:=genzeronode(continuen);
                      pd:=voiddef;
                    end;
-     in_typeof_x : begin
+      in_typeof_x : begin
                      consume(LKLAMMER);
                      in_args:=true;
                      p1:=comp_expr(true);
@@ -1855,7 +1855,13 @@ unit pexpr;
 end.
 {
   $Log$
-  Revision 1.48  1998-09-07 22:25:53  peter
+  Revision 1.49  1998-09-09 11:50:53  pierre
+    * forward def are not put in record or objects
+    + added check for forwards also in record and objects
+    * dummy parasymtable for unit initialization removed from
+    symtable stack
+
+  Revision 1.48  1998/09/07 22:25:53  peter
     * fixed str(boolean,string) which was allowed
     * fixed write(' ':<int expression>) only constants where allowed :(
 

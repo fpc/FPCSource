@@ -991,6 +991,7 @@ unit pdecl;
          oldprocsym : Pprocsym;
          oldparse_only : boolean;
          classnamelabel : plabel;
+         storetypeforwardsallowed : boolean;
 
       begin
          {Nowadays aktprocsym may already have a value, so we need to save
@@ -1007,6 +1008,10 @@ unit pdecl;
          if (symtablestack^.symtabletype<>globalsymtable) and
            (symtablestack^.symtabletype<>staticsymtable) then
            Message(parser_e_no_local_objects);
+
+         storetypeforwardsallowed:=typecanbeforward;
+         if cs_tp_compatible in aktmoduleswitches then
+           typecanbeforward:=false;
 
          { distinguish classes and objects }
          if token=_OBJECT then
@@ -1345,6 +1350,7 @@ unit pdecl;
           end;
          testcurobject:=0;
          curobjectname:='';
+         typecanbeforward:=storetypeforwardsallowed;
 
          if (cs_smartlink in aktmoduleswitches) then
            datasegment^.concat(new(pai_cut,init));
@@ -1431,12 +1437,16 @@ unit pdecl;
 
       var
          symtable : psymtable;
+         storetypeforwardsallowed : boolean;
 
       begin
          symtable:=new(psymtable,init(recordsymtable));
          symtable^.next:=symtablestack;
          symtablestack:=symtable;
          consume(_RECORD);
+         storetypeforwardsallowed:=typecanbeforward;
+         if cs_tp_compatible in aktmoduleswitches then
+           typecanbeforward:=false;
          read_var_decs(true,false);
 
          { may be scale record size to a size of n*4 ? }
@@ -1444,6 +1454,7 @@ unit pdecl;
            inc(symtablestack^.datasize,aktpackrecords-(symtablestack^.datasize mod aktpackrecords));
 
          consume(_END);
+         typecanbeforward:=storetypeforwardsallowed;
          symtablestack:=symtable^.next;
          record_dec:=new(precdef,init(symtable));
       end;
@@ -1451,9 +1462,26 @@ unit pdecl;
     { search in symtablestack used, but not defined type }
     procedure testforward_types(p : psym);{$ifndef FPC}far;{$endif}
 
+      var
+         recsymtable : psymtable;
+         
       begin
-         if (p^.typ=typesym) and ((p^.properties and sp_forwarddef)<>0) then
-           Message(sym_e_type_id_not_defined);
+         if (p^.typ=typesym) then
+         if ((p^.properties and sp_forwarddef)<>0) then
+           Message(sym_e_type_id_not_defined)
+         else if (ptypesym(p)^.definition^.deftype=recorddef) or
+           (ptypesym(p)^.definition^.deftype=objectdef) then
+           begin
+              if (ptypesym(p)^.definition^.deftype=recorddef) then
+                recsymtable:=precdef(ptypesym(p)^.definition)^.symtable
+              else
+                recsymtable:=pobjectdef(ptypesym(p)^.definition)^.publicsyms;
+{$ifdef tp}
+              recsymtable^.foreach(testforward_types);
+{$else}
+              recsymtable^.foreach(@testforward_types);
+{$endif}
+            end;
       end;
 
     { reads a type definition and returns a pointer to it }
@@ -2008,7 +2036,13 @@ unit pdecl;
 end.
 {
   $Log$
-  Revision 1.52  1998-09-07 23:10:22  florian
+  Revision 1.53  1998-09-09 11:50:52  pierre
+    * forward def are not put in record or objects
+    + added check for forwards also in record and objects
+    * dummy parasymtable for unit initialization removed from
+    symtable stack
+
+  Revision 1.52  1998/09/07 23:10:22  florian
     * a lot of stuff fixed regarding rtti and publishing of properties,
       basics should now work
 
