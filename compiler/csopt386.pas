@@ -215,41 +215,6 @@ Begin {CheckSequence}
 {$endif fpc}
 End; {CheckSequence}
 
-Procedure AllocRegBetween(AsmL: PAasmOutput; Reg: TRegister; p1, p2: Pai);
-{ allocates register Reg between (and including) instructions p1 and p2 }
-{ the type of p1 and p2 must not be in SkipInstr                        }
-var hp: pai;
-Begin
-  If not(reg in usableregs+[R_EDI,R_ESI]) or
-     not(assigned(p1)) Then
-    { this happens with registers which are loaded implicitely, outside the }
-    { current block (e.g. esi with self)                                    }
-    exit;
-  Repeat
-    If Assigned(p1^.OptInfo) Then
-      Include(PPaiProp(p1^.OptInfo)^.UsedRegs,Reg);
-    p1 := Pai(p1^.next);
-    Repeat
-      While assigned(p1) and
-            (p1^.typ in (SkipInstr-[ait_regalloc])) Do
-        p1 := Pai(p1^.next);
-{ remove all allocation/deallocation info about the register in between }
-      If assigned(p1) and
-         (p1^.typ = ait_regalloc) Then
-        If (PaiRegAlloc(p1)^.Reg = Reg) Then
-          Begin
-            hp := Pai(p1^.Next);
-            AsmL^.Remove(p1);
-            Dispose(p1, Done);
-            p1 := hp;
-          End
-        Else p1 := Pai(p1^.next);
-    Until not(assigned(p1)) or
-          Not(p1^.typ in SkipInstr);
-  Until not(assigned(p1)) or
-        (p1 = p2);
-End;
-
 Procedure SetAlignReg(p: Pai);
 Const alignSearch = 12;
 var regsUsable: TRegSet;
@@ -680,7 +645,7 @@ begin
   end;
 end;
 
-function ReplaceReg(orgReg, newReg: TRegister; p: pai;
+function ReplaceReg(asmL: PaasmOutput; orgReg, newReg: TRegister; p: pai;
            const c: TContent; orgRegCanBeModified: Boolean;
            var returnEndP: pai): Boolean;
 { Tries to replace orgreg with newreg in all instructions coming after p }
@@ -738,7 +703,6 @@ begin
           { %oldReg" to "<operations on %oldReg>"                       }
           removeLast := storeBack(endP);
           sequenceEnd :=
-            removeLast or
             { no support for (i)div, mul and imul with hardcoded operands }
             (noHardCodedRegs(paicpu(endP),orgReg,newReg) and
             { if newReg gets loaded with a new value, we can stop   }
@@ -750,6 +714,13 @@ begin
             { newReg's current contents                            }
              (GetNextInstruction(endp,hp) and
               FindRegDealloc(newReg,hp)));
+          { to be able to remove the first and last instruction of  }
+          {   movl %reg1, %reg2                                     }
+          {   <operations on %reg2> (replacing reg2 with reg1 here) }
+          {   movl %reg2, %reg1                                     }
+          { %reg2 must not be use afterwards (it can be as the      }
+          { result of a peepholeoptimization)                       }
+          removeLast := removeLast and sequenceEnd;
           newRegModified :=
             newRegModified or
             (not(regLoadedWithNewValue(newReg,true,paicpu(endP))) and
@@ -777,7 +748,7 @@ begin
         end;
     end;
   sequenceEnd := sequenceEnd and
-     (removeLast or
+     (removeLast  or
       (orgRegCanBeModified or not(newRegModified))) and
      (not(assigned(endp)) or
       not(endp^.typ = ait_instruction) or
@@ -842,6 +813,7 @@ begin
         ClearRegContentsFrom(orgReg,p,hp);
       if removeLast then
         ppaiprop(endP^.optinfo)^.canBeRemoved := true;
+      allocRegBetween(asml,orgReg,p,endP);
     end
 {$ifdef replaceregdebug}
      else
@@ -1012,7 +984,8 @@ Begin
                                            Begin
 {$ifdef replacereg}
                                              getLastInstruction(p,hp3);
-                                             If not ReplaceReg(RegInfo.New2OldReg[RegCounter],
+                                             If not(regCounter in usableRegs + [R_EDI,R_ESI]) or
+                                                not ReplaceReg(asmL,RegInfo.New2OldReg[RegCounter],
                                                       regCounter,hp3,
                                                       PPaiProp(hp4^.optInfo)^.Regs[regCounter],true,hp5) then
                                                begin
@@ -1127,7 +1100,7 @@ Begin
                       { try to replace the new reg with the old reg }
                       if not(PPaiProp(p^.optInfo)^.canBeRemoved) and
                          { only remove if we're not storing something in a regvar }
-                         (paicpu(p)^.oper[1].reg in usableregs) and
+                         (paicpu(p)^.oper[1].reg in (usableregs+[R_EDI])) and
                          (paicpu(p)^.opcode = A_MOV) and
                          getLastInstruction(p,hp4) then
                         begin
@@ -1135,7 +1108,7 @@ Begin
                             top_Reg:
                               { we only have to start replacing from the instruction after the mov, }
                               { but replacereg only starts with getnextinstruction(p,p)             }
-                              if ReplaceReg(paicpu(p)^.oper[0].reg,
+                              if ReplaceReg(asmL,paicpu(p)^.oper[0].reg,
                                    paicpu(p)^.oper[1].reg,p,
                                    PPaiProp(hp4^.optInfo)^.Regs[paicpu(p)^.oper[1].reg],false,hp1) then
                                 begin
@@ -1243,7 +1216,12 @@ End.
 
 {
  $Log$
- Revision 1.55  2000-03-24 15:54:49  jonas
+ Revision 1.56  2000-03-25 19:05:47  jonas
+   * fixed some things for -Or. Make cycle now works with -OG2p3r if
+     you use -Aas. There still a bug in popt386.pas that causes a
+     problem with the binary writer, but I haven't found it yet
+
+ Revision 1.55  2000/03/24 15:54:49  jonas
    * fix for -dnewoptimizations and -Or (never remove stores to regvars)
      but make cycle with -OG2p3r still fails :(
 
