@@ -209,7 +209,7 @@ implementation
       cutils,
       systems,
       switches,
-      symbase,symtable,symtype,
+      symbase,symtable,symtype,symsym,symconst,
       fmodule;
 
     var
@@ -428,6 +428,41 @@ implementation
                         preproc_consume(_ID);
                         current_scanner.skipspace;
                       end
+                    else
+                      Message(scan_e_error_in_preproc_expr);
+                  end
+                else
+                if preproc_substitutedtoken='SIZEOF' then
+                  begin
+                    preproc_consume(_ID);
+                    current_scanner.skipspace;
+                    if current_scanner.preproc_token =_LKLAMMER then
+                      begin
+                        preproc_consume(_LKLAMMER);
+                        current_scanner.skipspace;
+                      end
+                    else
+                      Message(scan_e_error_in_preproc_expr);
+                    if searchsym(current_scanner.preproc_pattern,srsym,srsymtable) then
+                      begin
+                        l:=0;
+                        case srsym.typ of
+                          varsym :
+                            l:=tvarsym(srsym).getsize;
+                          typedconstsym :
+                            l:=ttypedconstsym(srsym).getsize;
+                          else
+                            Message(scan_e_error_in_preproc_expr);
+                        end;
+                        str(l,read_factor);
+                        preproc_consume(_ID);
+                        current_scanner.skipspace;
+                      end
+                    else
+                      Message1(sym_e_id_not_found,current_scanner.preproc_pattern);
+
+                    if current_scanner.preproc_token =_RKLAMMER then
+                      preproc_consume(_RKLAMMER)
                     else
                       Message(scan_e_error_in_preproc_expr);
                   end
@@ -3110,7 +3145,10 @@ exit_label:
 end.
 {
   $Log$
-  Revision 1.78  2004-05-19 23:29:56  peter
+  Revision 1.79  2004-05-23 20:55:38  peter
+   * Patch from Christian Iversen to support sizeof() in preprocessor
+
+  Revision 1.78  2004/05/19 23:29:56  peter
     * $message directive compatible with delphi
 
   Revision 1.77  2004/05/16 13:55:26  peter
