@@ -24,27 +24,41 @@ uses
   Objects,Dialogs,Drivers,Views,
   FPViews;
 
+
+  const
+    MaxRegs = 128;
+
   type
 
 {$ifdef TP}
     dword = longint;
 {$endif TP}
 
+{$undef cpu_known}
+
     TIntRegs = record
+{$ifndef test_generic_cpu}
 {$ifdef I386}
+{$define cpu_known}
        eax,ebx,ecx,edx,eip,esi,edi,esp,ebp : dword;
        cs,ds,es,ss,fs,gs : word;
        eflags : dword;
 {$endif I386}
 {$ifdef m68k}
+{$define cpu_known}
        d0,d1,d2,d3,d4,d5,d6,d7 : dword;
        a0,a1,a2,a3,a4,a5,fp,sp : dword;
        ps,pc : dword;
 {$endif m68k}
 {$ifdef powerpc}
+{$define cpu_known}
        r : array [0..31] of dword;
        pc,ps,cr,lr,ctr,xer : dword;
 {$endif powerpc}
+{$endif not test_generic_cpu}
+{$ifndef cpu_known}
+       reg : array [0..MaxRegs-1] of string;
+{$endif not cpu_known}
     end;
 
     PRegistersView = ^TRegistersView;
@@ -68,6 +82,7 @@ uses
     end;
 
     TFPURegs = record
+{$ifndef test_generic_cpu}
 {$ifdef I386}
       st0,st1,st2,st3,st4,st5,st6,st7 :string;
       ftag,fop,fctrl,fstat,fiseg,foseg : word;
@@ -80,6 +95,10 @@ uses
 {$ifdef powerpc}
        f : array [0..31] of string;
 {$endif powerpc}
+{$endif not test_generic_cpu}
+{$ifndef cpu_known}
+       freg : array [0..MaxRegs-1] of string;
+{$endif not cpu_known}
     end;
 
     PFPUView = ^TFPUView;
@@ -87,6 +106,9 @@ uses
       NewReg,OldReg : TFPURegs;
       InDraw : boolean;
       GDBCount : longint;
+{$ifndef cpu_known}
+      UseInfoFloat : boolean;
+{$endif not cpu_known}
       constructor Init(var Bounds: TRect);
       procedure   Draw;virtual;
       destructor  Done; virtual;
@@ -164,9 +186,7 @@ Const
        buffer : array[0..255] of char;
        v : dword;
        code : word;
-{$ifdef powerpc}
        i : byte;
-{$endif powerpc}
 
     begin
        GetIntRegs:=false;
@@ -176,6 +196,9 @@ Const
          exit
        else
          begin
+{$ifndef cpu_known}
+            i:=0;
+{$endif not cpu_known}
             po:=StrNew(Debugger^.GetOutput);
             p:=po;
             if assigned(p) then
@@ -184,6 +207,16 @@ Const
                  p1:=strscan(p,' ');
                  while assigned(p1) do
                    begin
+{$ifndef cpu_known}
+                      p1:=strscan(p,#10);
+                      if assigned(p1) then
+                        begin
+                          strlcopy(buffer,p,p1-p);
+                          rs.reg[i]:=ExtractTabs(strpas(buffer),8);
+                          if i<MaxRegs-1 then
+                            inc(i);
+                        end;
+{$else cpu_known}
                       strlcopy(buffer,p,p1-p);
                       reg:=strpas(buffer);
                       p:=strscan(p,'$');
@@ -284,6 +317,7 @@ Const
                       else if (reg='xer') then
                         rs.xer:=v;
 {$endif powerpc}
+{$endif not cpu_known}
                       p:=strscan(p1,#10);
                       if assigned(p) then
                         begin
@@ -312,6 +346,7 @@ Const
        InDraw:=false;
        FillChar(OldReg,Sizeof(OldReg),#0);
        FillChar(NewReg,Sizeof(NewReg),#0);
+       GrowMode:=gfGrowHiX or GfGrowHiY;
        GDBCount:=-1;
     end;
 
@@ -321,11 +356,17 @@ Const
        rs : tintregs;
        OK : boolean;
        color :byte;
-{$ifdef powerpc}
        i : byte;
-{$endif powerpc}
 
     procedure SetColor(x,y : longint);
+    begin
+      if x=y then
+        color:=7
+      else
+        color:=8;
+    end;
+
+    procedure SetStrColor(const x,y : string);
     begin
       if x=y then
         color:=7
@@ -356,6 +397,7 @@ Const
          end;
        if  OK then
          begin
+{$ifdef cpu_known}
 {$ifdef i386}
             SetColor(rs.eax,OldReg.eax);
             WriteStr(1,0,'EAX '+HexStr(longint(rs.eax),8),color);
@@ -474,6 +516,13 @@ Const
             SetColor(rs.xer,OldReg.xer);
             WriteStr(15,18,'xer '+HexStr(longint(rs.xer),8),color);
 {$endif powerpc}
+{$else cpu_known}
+            for i:=0 to MaxRegs-1 do
+              begin
+                SetStrColor(rs.reg[i],OldReg.reg[i]);
+                WriteStr(1,i,rs.reg[i],color);
+              end;
+{$endif cpu_known}
          end
        else
          WriteStr(0,0,'<debugger error>',7);
@@ -509,11 +558,18 @@ Const
        R.A.X:=R.B.X-28;
        R.B.Y:=R.A.Y+22;
 {$endif powerpc}
+{$ifndef cpu_known}
+       R.A.X:=R.B.X-28;
+       R.B.Y:=R.A.Y+22;
+{$endif cpu_known}
        inherited Init(R,dialog_registers, wnNoNumber);
        Flags:=wfClose or wfMove;
+{$ifndef cpu_known}
+       Flags:=Flags or wfgrow;
+{$endif cpu_known}
        Palette:=wpCyanWindow;
        HelpCtx:=hcRegistersWindow;
-       R.Assign(1,1,Size.X-1,Size.Y-1);
+       R.Assign(1,1,Size.X-2,Size.Y-2);
        RV:=new(PRegistersView,init(R));
        Insert(RV);
        If assigned(RegistersWindow) then
@@ -556,7 +612,11 @@ Const
                          TFPUView
 ****************************************************************************}
 
-  function GetFPURegs(var rs : TFPURegs) : boolean;
+  function GetFPURegs(var rs : TFPURegs
+{$ifndef cpu_known}
+             ; UseInfoFloat : boolean
+{$endif not cpu_known}
+             ) : boolean;
 
     var
        p,po : pchar;
@@ -573,13 +633,28 @@ Const
     begin
        GetFPURegs:=false;
 {$ifndef NODEBUG}
-       Debugger^.Command('info all');
+{$ifndef cpu_known}
+       if UseInfoFloat then
+         begin
+           Debugger^.Command('info float');
+           if Debugger^.Error then
+             begin
+               UseInfofloat:=false;
+               Debugger^.Command('info all');
+             end;
+         end
+       else
+{$endif not cpu_known}
+         Debugger^.Command('info all');
        if Debugger^.Error then
          exit
        else
          begin
             po:=StrNew(Debugger^.GetOutput);
             p:=po;
+{$ifndef cpu_known}
+            i:=0;
+{$endif not cpu_known}
             if assigned(p) then
               begin
                  fillchar(rs,sizeof(rs),0);
@@ -588,6 +663,16 @@ Const
                    begin
                       strlcopy(buffer,p,p1-p);
                       reg:=strpas(buffer);
+{$ifndef cpu_known}
+                      p1:=strscan(p,#10);
+                      if assigned(p1) then
+                        begin
+                          strlcopy(buffer,p,p1-p);
+                          rs.freg[i]:=ExtractTabs(strpas(buffer),8);
+                          if i<MaxRegs-1 then
+                            inc(i);
+                        end;
+{$else  cpu_known}
                       p:=p1;
                       while p^=' ' do
                         inc(p);
@@ -665,6 +750,7 @@ Const
                           if reg='f'+inttostr(i) then
                             rs.f[i]:=v;
 {$endif powerpc}
+{$endif cpu_known}
                       p:=strscan(p1,#10);
                       if assigned(p) then
                         begin
@@ -690,11 +776,14 @@ Const
 
     begin
        inherited init(Bounds);
-       GrowMode:=gfGrowHiY+gfGrowHiX;
+       GrowMode:=gfGrowHiX or GfGrowHiY;
        InDraw:=false;
        FillChar(OldReg,Sizeof(oldreg),#0);
        FillChar(NewReg,Sizeof(newreg),#0);
        GDBCount:=-1;
+{$ifndef cpu_known}
+       UseInfoFloat:=true;
+{$endif not cpu_known}
     end;
 
   procedure TFPUView.Draw;
@@ -704,9 +793,7 @@ Const
        top : byte;
        color :byte;
        ok : boolean;
-{$ifdef powerpc}
        i : byte;
-{$endif powerpc}
     const
       TypeStr : Array[0..3] of string[6] =
       ('Valid ','Zero  ','Spec  ','Empty ');
@@ -740,7 +827,11 @@ Const
        if GDBCount<>Debugger^.RunCount then
          begin
            OldReg:=NewReg;
-           OK:=GetFPURegs(rs);
+           OK:=GetFPURegs(rs
+{$ifndef cpu_known}
+             ,UseInfoFloat
+{$endif not cpu_known}
+             );
            NewReg:=rs;
            GDBCount:=Debugger^.RunCount;
          end
@@ -751,6 +842,7 @@ Const
          end;
        if OK then
          begin
+{$ifdef cpu_known}
 {$ifdef i386}
             top:=(rs.fstat shr 11) and 7;
             SetColor(rs.st0,OldReg.st0);
@@ -824,6 +916,13 @@ Const
                   WriteStr(1,i,'f'+IntToStr(i)+' '+rs.f[i],color);
               end;
 {$endif powerpc}
+{$else not cpu_known}
+            for i:=0 to MaxRegs-1 do
+              begin
+                SetColor(rs.freg[i],OldReg.freg[i]);
+                WriteStr(1,i,rs.freg[i],color);
+              end;
+{$endif cpu_known}
          end
        else
          WriteStr(0,0,'<debugger error>',7);
@@ -859,6 +958,10 @@ Const
        R.A.X:=R.B.X-44;
        R.B.Y:=R.A.Y+33;
 {$endif powerpc}
+{$ifndef cpu_known}
+       R.A.X:=R.B.X-44;
+       R.B.Y:=R.A.Y+33;
+{$endif cpu_known}
        inherited Init(R,dialog_fpu, wnNoNumber);
        Flags:=wfClose or wfMove or wfgrow;
        Palette:=wpCyanWindow;
@@ -952,7 +1055,10 @@ end.
 
 {
   $Log$
-  Revision 1.1  2002-12-12 00:01:59  pierre
+  Revision 1.2  2002-12-16 15:51:13  pierre
+   * added unknown cpu register windows
+
+  Revision 1.1  2002/12/12 00:01:59  pierre
     Register window code separated in a new unit
 
 }
