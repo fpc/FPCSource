@@ -34,3 +34,9 @@ tf000001.pp       stupid example that creates a GPF sometimes
 tf000002.pp       tests that use of a type as a member of an expression is not possible
 
 to000000.pp       shows when uncertain optimizations can cause wrong code
+
+testcrt.pp        test crt unit functions
+testdos.pp        test dos unit functions
+testset.pp        test set functions
+testheap.pp       test heap functions
+teststr.pp        test string functions and speed
