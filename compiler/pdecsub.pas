@@ -1123,7 +1123,8 @@ const
       handler  : {$ifdef FPCPROCVAR}@{$endif}pd_cdecl;
       pocall   : [pocall_cdecl,pocall_clearstack];
       pooption : [po_savestdregs];
-      mutexclpocall : [pocall_cppdecl,pocall_internproc,pocall_leftright,pocall_inline];
+      mutexclpocall : [pocall_cppdecl,pocall_internproc,
+        pocall_leftright,pocall_inline];
       mutexclpotype : [];
       mutexclpo     : [po_assembler,po_external]
     ),(
@@ -1204,7 +1205,8 @@ const
       handler  : {$ifdef FPCPROCVAR}@{$endif}pd_interrupt;
       pocall   : [];
       pooption : [po_interrupt];
-      mutexclpocall : [pocall_internproc,pocall_cdecl,pocall_cppdecl,pocall_clearstack,pocall_leftright,pocall_inline];
+      mutexclpocall : [pocall_internproc,pocall_cdecl,pocall_cppdecl,
+                       pocall_clearstack,pocall_leftright,pocall_inline];
       mutexclpotype : [potype_constructor,potype_destructor,potype_operator];
       mutexclpo     : [po_external]
     ),(
@@ -1254,11 +1256,13 @@ const
       mutexclpo     : [po_exports,po_external,po_interrupt]
     ),(
       idtok:_PASCAL;
-      pd_flags : pd_implemen+pd_body+pd_procvar;
+      pd_flags : pd_interface+pd_implemen+pd_body+pd_procvar;
       handler  : {$ifdef FPCPROCVAR}@{$endif}pd_pascal;
       pocall   : [pocall_leftright];
       pooption : [];
-      mutexclpocall : [pocall_internproc];
+      mutexclpocall : [pocall_internproc,pocall_cdecl,pocall_cppdecl,
+                       pocall_clearstack,pocall_leftright,pocall_inline,
+                       pocall_safecall];
       mutexclpotype : [];
       mutexclpo     : [po_external]
     ),(
@@ -1303,7 +1307,8 @@ const
       handler  : {$ifdef FPCPROCVAR}@{$endif}pd_safecall;
       pocall   : [pocall_safecall];
       pooption : [po_savestdregs];
-      mutexclpocall : [pocall_leftright,pocall_cdecl,pocall_cppdecl,pocall_internproc,pocall_inline];
+      mutexclpocall : [pocall_leftright,pocall_cdecl,pocall_cppdecl,
+        pocall_internproc,pocall_inline];
       mutexclpotype : [];
       mutexclpo     : [po_external]
     ),(
@@ -1330,7 +1335,8 @@ const
       handler  : {$ifdef FPCPROCVAR}@{$endif}pd_stdcall;
       pocall   : [pocall_stdcall];
       pooption : [po_savestdregs];
-      mutexclpocall : [pocall_leftright,pocall_cdecl,pocall_cppdecl,pocall_inline,pocall_internproc];
+      mutexclpocall : [pocall_leftright,pocall_cdecl,pocall_cppdecl,
+        pocall_inline,pocall_internproc,pocall_safecall];
       mutexclpotype : [];
       mutexclpo     : [po_external]
     ),(
@@ -1339,7 +1345,8 @@ const
       handler  : {$ifdef FPCPROCVAR}@{$endif}pd_syscall;
       pocall   : [pocall_palmossyscall];
       pooption : [];
-      mutexclpocall : [pocall_cdecl,pocall_cppdecl,pocall_inline,pocall_internproc];
+      mutexclpocall : [pocall_cdecl,pocall_cppdecl,pocall_inline,
+        pocall_internproc,pocall_leftright];
       mutexclpotype : [];
       mutexclpo     : [po_external,po_assembler,po_interrupt,po_exports]
     ),(
@@ -1348,7 +1355,8 @@ const
       handler  : {$ifdef FPCPROCVAR}@{$endif}pd_system;
       pocall   : [pocall_clearstack];
       pooption : [];
-      mutexclpocall : [pocall_leftright,pocall_inline,pocall_internproc];
+      mutexclpocall : [pocall_leftright,pocall_inline,pocall_cdecl,
+        pocall_internproc,pocall_cppdecl];
       mutexclpotype : [];
       mutexclpo     : [po_external,po_assembler,po_interrupt]
     ),(
@@ -1862,7 +1870,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.7  2000-11-06 20:30:55  peter
+  Revision 1.8  2000-11-26 23:45:34  florian
+    * pascal modifier in interfaces of units works now
+
+  Revision 1.7  2000/11/06 20:30:55  peter
     * more fixes to get make cycle working
 
   Revision 1.6  2000/11/04 14:25:20  florian
