@@ -279,7 +279,8 @@ type
           begin
             if not assigned(hightree) then
               internalerror(200304071);
-            hightree:=ctypeconvnode.create(hightree,s32bittype);
+            { Need to use explicit, because it can also be a enum }
+            hightree:=ctypeconvnode.create_explicit(hightree,s32bittype);
           end;
         result:=hightree;
       end;
@@ -2595,7 +2596,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.203  2003-10-31 15:52:58  peter
+  Revision 1.204  2003-11-01 16:17:48  peter
+    * use explicit typecast when generating the high value
+
+  Revision 1.203  2003/10/31 15:52:58  peter
     * support creating classes using <class of tobject>.create
 
   Revision 1.202  2003/10/30 16:23:13  peter
