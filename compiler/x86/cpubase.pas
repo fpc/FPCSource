@@ -371,7 +371,7 @@ uses
 implementation
 
     uses
-      rgHelper,verbose;
+      rgbase,verbose;
 
     const
     {$ifdef x86_64}
@@ -502,13 +502,13 @@ implementation
 
     function findreg_by_number(r:Tregister):tregisterindex;
       begin
-        rgHelper.findreg_by_number(r,regnumber_index);
+        result:=findreg_by_number_table(r,regnumber_index);
       end;
 
 
     function std_regnum_search(const s:string):Tregister;
       begin
-        result:=regnumber_table[findreg_by_name(s,std_regname_table,std_regname_index)];
+        result:=regnumber_table[findreg_by_name_table(s,std_regname_table,std_regname_index)];
       end;
 
 
@@ -526,7 +526,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.28  2003-10-30 15:03:18  mazen
+  Revision 1.29  2003-10-30 17:13:18  peter
+    * fixed findreg_by_number
+    * renamed rghelper to rgbase
+
+  Revision 1.28  2003/10/30 15:03:18  mazen
   * now uses standard routines in rgHelper unit to search registers by number and by name
 
   Revision 1.27  2003/10/17 15:08:34  peter

@@ -1,8 +1,8 @@
-{*****************************************************************************}
 {
     $Id$
-    This file is part of the Free Pascal's "Free Components Library".
-    Copyright (c) 2003 by Mazen NEIFER of the Free Pascal development team
+    Copyright (c) 1998-2002 by Florian Klaempfl
+
+    Helper routines for register allocator
 
     This program is free software; you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -17,9 +17,10 @@
     You should have received a copy of the GNU General Public License
     along with this program; if not, write to the Free Software
     Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+
+ ****************************************************************************
 }
-{*****************************************************************************}
-unit rgHelper;
+unit rgbase;
 
 {$i fpcdefs.inc}
 
@@ -32,24 +33,25 @@ interface
       TRegNameTable = array[tregisterindex] of string[7];
       TRegisterIndexTable = array[tregisterindex] of tregisterindex;
 
-    function findreg_by_number(r:Tregister;const regnumber_index:TRegisterIndexTable):tregisterindex;
-    function findreg_by_name(const s:string;const regname_table:TRegNameTable;const regname_index:TRegisterIndexTable):byte;
+    function findreg_by_number_table(r:Tregister;const regnumber_index:TRegisterIndexTable):tregisterindex;
+    function findreg_by_name_table(const s:string;const regname_table:TRegNameTable;const regname_index:TRegisterIndexTable):byte;
+
 
 implementation
 
-    function findreg_by_name(const s:string;const regname_table:TRegNameTable;const regname_index:TRegisterIndexTable):byte;
+    function findreg_by_name_table(const s:string;const regname_table:TRegNameTable;const regname_index:TRegisterIndexTable):byte;
       var
         i,p,q : tregisterindex;
       begin
         p:=Low(tregisterindex);
         q:=high(tregisterindex);
         repeat
-          i:=(p+q)shr 1;
-          if regname_table[regname_index[i]]<=s then
+          i:=(p+q) shr 1;
+          if s>regname_table[regname_index[i]] then
             p:=i+1
           else
             q:=i;
-        until i=0;
+        until p=q;
         if regname_table[regname_index[p]]=s then
           result:=regname_index[p]
         else
@@ -57,14 +59,14 @@ implementation
       end;
 
 
-    function findreg_by_number(r:Tregister;const regnumber_index:TRegisterIndexTable):tregisterindex;
+    function findreg_by_number_table(r:Tregister;const regnumber_index:TRegisterIndexTable):tregisterindex;
       var
         i,p,q : tregisterindex;
       begin
         p:=Low(tregisterindex);
         q:=high(tregisterindex);
         repeat
-          i:=(p+q)shr 1;
+          i:=(p+q) shr 1;
           if r>regnumber_table[regnumber_index[i]] then
             p:=i+1
           else
@@ -75,10 +77,12 @@ implementation
         else
           result:=0;
       end;
+
 end.
 {
   $Log$
-  Revision 1.2  2003-10-30 15:02:27  mazen
-  *** empty log message ***
+  Revision 1.1  2003-10-30 17:13:18  peter
+    * fixed findreg_by_number
+    * renamed rghelper to rgbase
 
 }
