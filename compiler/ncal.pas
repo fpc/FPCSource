@@ -1850,6 +1850,8 @@ type
                 3. LOC_REGISTER with most registers
               For the moment we only look at the first parameter field. Combining it
               with multiple parameter fields will make things a lot complexer (PFV) }
+            if not assigned(hpcurr.parasym.paraloc[callerside].location) then
+              internalerror(200412152);
             currloc:=hpcurr.parasym.paraloc[callerside].location^.loc;
             hpprev:=nil;
             hp:=hpfirst;
@@ -2432,7 +2434,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.269  2004-12-07 16:11:52  peter
+  Revision 1.270  2004-12-15 19:30:16  peter
+    * give error when paraloc is not filled in order_parameter
+
+  Revision 1.269  2004/12/07 16:11:52  peter
     * set vo_explicit_paraloc flag
 
   Revision 1.268  2004/12/05 12:28:11  peter
