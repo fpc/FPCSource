@@ -51,6 +51,9 @@ unit pmodules;
 {$endif newcg}
        link,assemble,import,export,gendef,ppu,comprsrc,
        cresstr,cpubase,cpuasm,
+{$ifdef GDB}
+       gdb,
+{$endif GDB}
        scanner,pbase,psystem,pdecl,psub,parser;
 
 
@@ -128,7 +131,10 @@ unit pmodules;
           fixseg(resourcestringlist,sec_data);
 {$ifdef GDB}
         if assigned(debuglist) then
-          fixseg(debuglist,sec_code);
+          begin
+            debuglist^.insert(new(pai_symbol,initname('gcc2_compiled',0)));
+            fixseg(debuglist,sec_code);
+          end;
 {$endif GDB}
       end;
 
@@ -618,9 +624,9 @@ unit pmodules;
         { read default constant definitions }
         make_ref:=false;
         readconstdefs;
-        make_ref:=true;
         { if POWER is defined in the RTL then use it for starstar overloading }
         getsym('POWER',false);
+        make_ref:=true;
         if assigned(srsym) and (srsym^.typ=procsym) and (overloaded_operators[_STARSTAR]=nil) then
           overloaded_operators[_STARSTAR]:=pprocsym(srsym);
       { Objpas unit? }
@@ -719,15 +725,14 @@ unit pmodules;
          while assigned(hp) do
            begin
 {$IfDef GDB}
-{$IfnDef New_GDB}
               if (cs_debuginfo in aktmoduleswitches) and
+                 (cs_gdb_dbx in aktglobalswitches) and
                 not hp^.is_stab_written then
                 begin
                    punitsymtable(hp^.u^.globalsymtable)^.concattypestabto(debuglist);
                    hp^.is_stab_written:=true;
                    hp^.unitid:=psymtable(hp^.u^.globalsymtable)^.unitid;
                 end;
-{$endIf nDef New_GDB}
 {$EndIf GDB}
               if hp^.in_uses then
                 begin
@@ -765,6 +770,19 @@ unit pmodules;
        begin
          if not (cs_debuginfo in aktmoduleswitches) then
           exit;
+         if (cs_gdb_dbx in aktglobalswitches) then
+           begin
+             debuglist^.concat(new(pai_asm_comment,init(strpnew('EINCL of global '+
+               punitsymtable(current_module^.globalsymtable)^.name^+' has index '+
+               tostr(punitsymtable(current_module^.globalsymtable)^.unitid)))));
+             debuglist^.concat(new(pai_stabs,init(strpnew('"'+
+               punitsymtable(current_module^.globalsymtable)^.name^+'",'+
+               tostr(N_EINCL)+',0,0,0'))));
+             punitsymtable(current_module^.globalsymtable)^.dbx_count_ok:=true;
+             dbx_counter:=punitsymtable(current_module^.globalsymtable)^.prev_dbx_counter;
+             do_count_dbx:=false;
+           end;
+
          { now insert the units in the symtablestack }
          hp:=pused_unit(current_module^.used_units.first);
          while assigned(hp) do
@@ -1481,7 +1499,11 @@ unit pmodules;
 end.
 {
   $Log$
-  Revision 1.163  1999-11-09 13:00:37  peter
+  Revision 1.164  1999-11-09 23:46:00  pierre
+    * power search for ** operator not in browser
+    * DBX support work, still does not work !
+
+  Revision 1.163  1999/11/09 13:00:37  peter
     * define FPC_DELPHI,FPC_OBJFPC,FPC_TP,FPC_GPC
     * initial support for ansistring default with modes
 
