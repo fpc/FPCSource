@@ -1584,6 +1584,74 @@ end;
 
 
 {$IFDEF DPMI}
+{$ifdef fpc}
+   Procedure SetVESARGBAllPalette(const Palette:PaletteType);
+    var
+     pal: array[0..255] of palrec;
+     regs: TDPMIRegisters;
+     c, Ptr: longint;
+     RealSeg: word;
+     FunctionNr : byte;   { use blankbit or normal RAMDAC programming? }
+    begin
+      if DirectColor then
+        Begin
+          _GraphResult := grError;
+          exit;
+        end;
+      { use the set/get palette function }
+      if VESAInfo.Version >= $0200 then
+        Begin
+          { check if blanking bit must be set when programming }
+          { the RAMDAC.                                        }
+          if (VESAInfo.caps and attrSnowCheck) <> 0 then
+            FunctionNr := $80
+          else
+            FunctionNr := $00;
+
+          fillChar(pal,sizeof(pal),0);
+          { Convert to vesa format }
+          for c := 0 to 255 do
+            begin
+              pal[c].red := byte(palette.colors[c].red);
+              pal[c].green := byte(palette.colors[c].green);
+              pal[c].blue := byte(palette.colors[c].blue);
+            end;
+
+        { Alllocate real mode buffer }
+          Ptr:=Global_Dos_Alloc(sizeof(pal));
+          {get the segment value}
+          RealSeg := word(Ptr shr 16);
+          { setup interrupt registers }
+          FillChar(regs, sizeof(regs), #0);
+          { copy palette values to real mode buffer }
+          DosMemPut(RealSeg,0,pal,sizeof(pal));
+          regs.eax := $4F09;
+          regs.ebx := FunctionNr;
+          regs.ecx := 256;
+          regs.edx := 0;
+          regs.es  := RealSeg;
+          regs.edi := 0;         { offset is always zero }
+          RealIntr($10, regs);
+
+          { free real mode memory  }
+          If not Global_Dos_Free(word(Ptr and $ffff)) then
+            RunError(216);
+
+          if word(regs.eax) <> $004F then
+            begin
+              _GraphResult := grError;
+              exit;
+            end;
+        end
+      else
+        { assume it's fully VGA compatible palette-wise. }
+        Begin
+          SetVGARGBAllPalette(palette);
+        end;
+      setallpalettedefault(palette);
+    end;
+{$endif fpc}
+
    Procedure SetVESARGBPalette(ColorNum, RedValue, GreenValue,
       BlueValue : Integer);
     var
@@ -1605,9 +1673,9 @@ end;
           exit;
         end;
         pal.align := 0;
-        pal.red := byte(RedValue);
-        pal.green := byte(GreenValue);
-        pal.blue := byte(BlueValue);
+        pal.red := byte(RedValue) shr 2;
+        pal.green := byte(GreenValue) shr 2;
+        pal.blue := byte(BlueValue) shr 2;
         { use the set/get palette function }
         if VESAInfo.Version >= $0200 then
           Begin
@@ -2647,7 +2715,11 @@ Const
 
 {
   $Log$
-  Revision 1.4  2000-08-01 06:03:13  jonas
+  Revision 1.5  2000-08-12 12:27:13  jonas
+    + setallpalette hook
+    + setallpalette implemented for standard vga and VESA 2.0+
+
+  Revision 1.4  2000/08/01 06:03:13  jonas
     * set _graphresult to grnotdetected if the vesa setmode interrupt
       call returns an error (merged from fixes branch)
 

@@ -277,7 +277,7 @@ CONST
   (Red:   0;Green:   0;Blue:   0),
   (Red:   0;Green:   0;Blue:   0));
 
-  procedure SetAllPalette(var Palette:PaletteType);
+  procedure SetAllPaletteDefault(const Palette:PaletteType);
    var
     i: longint;
     Size: longint;
@@ -383,7 +383,11 @@ CONST
 
 {
   $Log$
-  Revision 1.2  2000-07-13 11:33:47  michael
+  Revision 1.3  2000-08-12 12:27:14  jonas
+    + setallpalette hook
+    + setallpalette implemented for standard vga and VESA 2.0+
+
+  Revision 1.2  2000/07/13 11:33:47  michael
   + removed logs
- 
+
 }

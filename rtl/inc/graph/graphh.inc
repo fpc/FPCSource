@@ -569,6 +569,8 @@ TYPE
          procedure(ColorNum: smallint; var
             RedValue, GreenValue, BlueValue: smallint);
 
+       SetAllPaletteProc = procedure(const Palette:PaletteType);
+
        OutTextXYProc = procedure(x,y : SmallInt;const TextString : string);
 
        CircleProc = procedure(X, Y: smallint; Radius:Word);
@@ -606,6 +608,7 @@ TYPE
       PutPixel       : PutPixelProc;
       SetRGBPalette  : SetRGBPaletteProc;
       GetRGBPalette  : GetRGBPaletteProc;
+      SetAllPalette  : SetAllPaletteProc;
       { defaults possible ... }
       SetVisualPage  : SetVisualPageProc;
       SetActivePage  : SetActivePageProc;
@@ -648,6 +651,7 @@ VAR
   SetActivePage  : SetActivePageProc;
   SetRGBPalette  : SetRGBPaletteProc;
   GetRGBPalette  : GetRGBPaletteProc;
+  SetAllPalette  : SetAllPaletteProc;
   OutTextXY      : OutTextXYProc;
 
   GraphFreeMemPtr: graphfreememprc;
@@ -759,7 +763,6 @@ Function GetDriverName: string;
  procedure SetColor(Color: Word);
  function  GetMaxColor: word;
 
- procedure SetAllPalette(var Palette:PaletteType);
  procedure SetPalette(ColorNum: word; Color: shortint);
  procedure GetPalette(var Palette: PaletteType);
  function GetPaletteSize: smallint;
@@ -804,7 +807,11 @@ Function GetDriverName: string;
 
 {
   $Log$
-  Revision 1.3  2000-08-05 18:34:47  peter
+  Revision 1.4  2000-08-12 12:27:14  jonas
+    + setallpalette hook
+    + setallpalette implemented for standard vga and VESA 2.0+
+
+  Revision 1.3  2000/08/05 18:34:47  peter
     * merged setvideostate patch
 
   Revision 1.2  2000/07/13 11:33:47  michael

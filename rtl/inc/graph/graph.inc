@@ -1429,6 +1429,8 @@ end;
   procedure OutTextXYDefault(x,y : smallint;const TextString : string);forward;
   procedure CircleDefault(X, Y: smallint; Radius:Word);forward;
 
+{$i palette.inc}
+
   Procedure DefaultHooks;
   {********************************************************}
   { Procedure DefaultHooks()                               }
@@ -1446,8 +1448,8 @@ end;
     GetPixel := {$ifdef fpc}@{$endif}GetPixelDefault;
     SetRGBPalette := {$ifdef fpc}@{$endif}SetRGBPaletteDefault;
     GetRGBPalette := {$ifdef fpc}@{$endif}GetRGBPaletteDefault;
-
     { optional...}
+    SetAllPalette := {$ifdef fpc}@{$endif}SetAllPaletteDefault;
     SetActivePage := {$ifdef fpc}@{$endif}SetActivePageDefault;
     SetVisualPage := {$ifdef fpc}@{$endif}SetVisualPageDefault;
     ClearViewPort := {$ifdef fpc}@{$endif}ClearViewportDefault;
@@ -1498,7 +1500,6 @@ end;
   end;
 
 {$i modes.inc}
-{$i palette.inc}
 
   function InstallUserDriver(Name: string; AutoDetectPtr: Pointer): smallint;
    begin
@@ -2439,12 +2440,14 @@ begin
 end;
 {
   $Log$
-  Revision 1.3  2000-08-05 18:34:47  peter
+  Revision 1.4  2000-08-12 12:27:13  jonas
+    + setallpalette hook
+    + setallpalette implemented for standard vga and VESA 2.0+
+
+  Revision 1.3  2000/08/05 18:34:47  peter
     * merged setvideostate patch
 
   Revision 1.2  2000/07/13 11:33:46  michael
   + removed logs
 
-  Revision 1.1  2000/07/13 06:30:51  michael
-  + Initial import
 }

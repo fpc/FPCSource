@@ -1749,6 +1749,37 @@ const CrtAddress: word = 0;
   end;
 {$ENDIF DPMI}
 
+   Procedure SetVGARGBAllPalette(const Palette:PaletteType); {$ifndef fpc}far;{$endif fpc}
+    var
+      c: byte;
+    begin
+      { wait for vertical retrace start/end}
+      while (port[$3da] and $8) <> 0 do;
+      while (port[$3da] and $8) = 0 do;
+      If MaxColor = 16 Then
+        begin
+          for c := 0 to 15 do
+            begin
+              { translate the color number for 16 color mode }
+              portb[$3c8] := toRealCols16[c];
+              portb[$3c9] := palette.colors[c].red shr 2;
+              portb[$3c9] := palette.colors[c].green shr 2;
+              portb[$3c9] := palette.colors[c].blue shr 2;
+            end
+        end
+      else
+        begin
+          portb[$3c8] := 0;
+          for c := 0 to 255 do
+            begin
+              { no need to set port[$3c8] every time if you set the entries }
+              { for successive colornumbers (JM)                            }
+              portb[$3c9] := palette.colors[c].red shr 2;
+              portb[$3c9] := palette.colors[c].green shr 2;
+              portb[$3c9] := palette.colors[c].blue shr 2;
+          end
+        end;
+    End;
 
 
    { VGA is never a direct color mode, so no need to check ... }
@@ -1972,6 +2003,7 @@ const CrtAddress: word = 0;
          mode.GetPixel:={$ifdef fpc}@{$endif}GetPixel320;
          mode.SetRGBPalette := {$ifdef fpc}@{$endif}SetVGARGBPalette;
          mode.GetRGBPalette := {$ifdef fpc}@{$endif}GetVGARGBPalette;
+         mode.SetAllPalette := {$ifdef fpc}@{$endif}SetVGARGBAllPalette;
          mode.SetVisualPage := {$ifdef fpc}@{$endif}SetVisual320;
          mode.SetActivePage := {$ifdef fpc}@{$endif}SetActive320;
          mode.InitMode := {$ifdef fpc}@{$endif}Init320;
@@ -1995,6 +2027,7 @@ const CrtAddress: word = 0;
          mode.GetPixel:={$ifdef fpc}@{$endif}GetPixelX;
          mode.SetRGBPalette := {$ifdef fpc}@{$endif}SetVGARGBPalette;
          mode.GetRGBPalette := {$ifdef fpc}@{$endif}GetVGARGBPalette;
+         mode.SetAllPalette := {$ifdef fpc}@{$endif}SetVGARGBAllPalette;
          mode.SetVisualPage := {$ifdef fpc}@{$endif}SetVisualX;
          mode.SetActivePage := {$ifdef fpc}@{$endif}SetActiveX;
          mode.InitMode := {$ifdef fpc}@{$endif}InitModeX;
@@ -2017,6 +2050,7 @@ const CrtAddress: word = 0;
          mode.GetPixel:={$ifdef fpc}@{$endif}GetPixel16;
          mode.SetRGBPalette := {$ifdef fpc}@{$endif}SetVGARGBPalette;
          mode.GetRGBPalette := {$ifdef fpc}@{$endif}GetVGARGBPalette;
+         mode.SetAllPalette := {$ifdef fpc}@{$endif}SetVGARGBAllPalette;
          mode.SetVisualPage := {$ifdef fpc}@{$endif}SetVisual200;
          mode.SetActivePage := {$ifdef fpc}@{$endif}SetActive200;
          mode.InitMode := {$ifdef fpc}@{$endif}Init640x200x16;
@@ -2043,6 +2077,7 @@ const CrtAddress: word = 0;
          mode.InitMode := {$ifdef fpc}@{$endif}Init640x350x16;
          mode.SetRGBPalette := {$ifdef fpc}@{$endif}SetVGARGBPalette;
          mode.GetRGBPalette := {$ifdef fpc}@{$endif}GetVGARGBPalette;
+         mode.SetAllPalette := {$ifdef fpc}@{$endif}SetVGARGBAllPalette;
          mode.SetVisualPage := {$ifdef fpc}@{$endif}SetVisual350;
          mode.SetActivePage := {$ifdef fpc}@{$endif}SetActive350;
          mode.HLine := {$ifdef fpc}@{$endif}HLine16;
@@ -2067,6 +2102,7 @@ const CrtAddress: word = 0;
          mode.GetPixel:={$ifdef fpc}@{$endif}GetPixel16;
          mode.SetRGBPalette := {$ifdef fpc}@{$endif}SetVGARGBPalette;
          mode.GetRGBPalette := {$ifdef fpc}@{$endif}GetVGARGBPalette;
+         mode.SetAllPalette := {$ifdef fpc}@{$endif}SetVGARGBAllPalette;
          mode.InitMode := {$ifdef fpc}@{$endif}Init640x480x16;
          mode.SetVisualPage := {$ifdef fpc}@{$endif}SetVisual480;
          mode.SetActivePage := {$ifdef fpc}@{$endif}SetActive480;
@@ -2170,6 +2206,9 @@ const CrtAddress: word = 0;
              mode.GetPixel:={$ifdef fpc}@{$endif}GetPixVESA256;
              mode.SetRGBPalette := {$ifdef fpc}@{$endif}SetVESARGBPalette;
              mode.GetRGBPalette := {$ifdef fpc}@{$endif}GetVESARGBPalette;
+{$ifdef fpc}
+             mode.SetAllPalette := @SetVESARGBAllPalette;
+{$endif fpc}
              mode.InitMode := {$ifdef fpc}@{$endif}Init640x400x256;
              mode.SetVisualPage := {$ifdef fpc}@{$endif}SetVisualVESA;
              mode.SetActivePage := {$ifdef fpc}@{$endif}SetActiveVESA;
@@ -2198,6 +2237,9 @@ const CrtAddress: word = 0;
              mode.GetPixel:={$ifdef fpc}@{$endif}GetPixVESA256;
              mode.SetRGBPalette := {$ifdef fpc}@{$endif}SetVESARGBPalette;
              mode.GetRGBPalette := {$ifdef fpc}@{$endif}GetVESARGBPalette;
+{$ifdef fpc}
+             mode.SetAllPalette := @SetVESARGBAllPalette;
+{$endif fpc}
              mode.InitMode := {$ifdef fpc}@{$endif}Init640x480x256;
              mode.SetVisualPage := {$ifdef fpc}@{$endif}SetVisualVESA;
              mode.SetActivePage := {$ifdef fpc}@{$endif}SetActiveVESA;
@@ -2278,6 +2320,9 @@ const CrtAddress: word = 0;
              mode.DirectPutPixel:={$ifdef fpc}@{$endif}DirectPutPixVESA16;
              mode.SetRGBPalette := {$ifdef fpc}@{$endif}SetVESARGBPalette;
              mode.GetRGBPalette := {$ifdef fpc}@{$endif}GetVESARGBPalette;
+{$ifdef fpc}
+             mode.SetAllPalette := @SetVESARGBAllPalette;
+{$endif fpc}
              mode.PutPixel:={$ifdef fpc}@{$endif}PutPixVESA16;
              mode.GetPixel:={$ifdef fpc}@{$endif}GetPixVESA16;
              mode.InitMode := {$ifdef fpc}@{$endif}Init800x600x16;
@@ -2306,6 +2351,9 @@ const CrtAddress: word = 0;
              mode.GetPixel:={$ifdef fpc}@{$endif}GetPixVESA256;
              mode.SetRGBPalette := {$ifdef fpc}@{$endif}SetVESARGBPalette;
              mode.GetRGBPalette := {$ifdef fpc}@{$endif}GetVESARGBPalette;
+{$ifdef fpc}
+             mode.SetAllPalette := @SetVESARGBAllPalette;
+{$endif fpc}
              mode.InitMode := {$ifdef fpc}@{$endif}Init800x600x256;
              mode.SetVisualPage := {$ifdef fpc}@{$endif}SetVisualVESA;
              mode.SetActivePage := {$ifdef fpc}@{$endif}SetActiveVESA;
@@ -2387,6 +2435,9 @@ const CrtAddress: word = 0;
              mode.PutPixel:={$ifdef fpc}@{$endif}PutPixVESA16;
              mode.SetRGBPalette := {$ifdef fpc}@{$endif}SetVESARGBPalette;
              mode.GetRGBPalette := {$ifdef fpc}@{$endif}GetVESARGBPalette;
+{$ifdef fpc}
+             mode.SetAllPalette := @SetVESARGBAllPalette;
+{$endif fpc}
              mode.GetPixel:={$ifdef fpc}@{$endif}GetPixVESA16;
              mode.InitMode := {$ifdef fpc}@{$endif}Init1024x768x16;
              mode.SetVisualPage := {$ifdef fpc}@{$endif}SetVisualVESA;
@@ -2414,6 +2465,9 @@ const CrtAddress: word = 0;
              mode.GetPixel:={$ifdef fpc}@{$endif}GetPixVESA256;
              mode.SetRGBPalette := {$ifdef fpc}@{$endif}SetVESARGBPalette;
              mode.GetRGBPalette := {$ifdef fpc}@{$endif}GetVESARGBPalette;
+{$ifdef fpc}
+             mode.SetAllPalette := @SetVESARGBAllPalette;
+{$endif fpc}
              mode.InitMode := {$ifdef fpc}@{$endif}Init1024x768x256;
              mode.SetVisualPage := {$ifdef fpc}@{$endif}SetVisualVESA;
              mode.SetActivePage := {$ifdef fpc}@{$endif}SetActiveVESA;
@@ -2494,6 +2548,9 @@ const CrtAddress: word = 0;
              mode.DirectPutPixel:={$ifdef fpc}@{$endif}DirectPutPixVESA16;
              mode.SetRGBPalette := {$ifdef fpc}@{$endif}SetVESARGBPalette;
              mode.GetRGBPalette := {$ifdef fpc}@{$endif}GetVESARGBPalette;
+{$ifdef fpc}
+             mode.SetAllPalette := @SetVESARGBAllPalette;
+{$endif fpc}
              mode.PutPixel:={$ifdef fpc}@{$endif}PutPixVESA16;
              mode.GetPixel:={$ifdef fpc}@{$endif}GetPixVESA16;
              mode.InitMode := {$ifdef fpc}@{$endif}Init1280x1024x16;
@@ -2523,6 +2580,9 @@ const CrtAddress: word = 0;
              mode.InitMode := {$ifdef fpc}@{$endif}Init1280x1024x256;
              mode.SetRGBPalette := {$ifdef fpc}@{$endif}SetVESARGBPalette;
              mode.GetRGBPalette := {$ifdef fpc}@{$endif}GetVESARGBPalette;
+{$ifdef fpc}
+             mode.SetAllPalette := @SetVESARGBAllPalette;
+{$endif fpc}
              mode.SetVisualPage := {$ifdef fpc}@{$endif}SetVisualVESA;
              mode.SetActivePage := {$ifdef fpc}@{$endif}SetActiveVESA;
              mode.vline := {$ifdef fpc}@{$endif}VLineVESA256;
@@ -2593,7 +2653,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.2  2000-07-13 11:33:40  michael
+  Revision 1.3  2000-08-12 12:27:13  jonas
+    + setallpalette hook
+    + setallpalette implemented for standard vga and VESA 2.0+
+
+  Revision 1.2  2000/07/13 11:33:40  michael
   + removed logs
- 
+
 }

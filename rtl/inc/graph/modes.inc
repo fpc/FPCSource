@@ -500,6 +500,9 @@ end;
        end;
 
       { optional hooks. }
+      if assigned(modeinfo^.SetAllPalette) then
+        SetAllPalette := modeinfo^.SetAllPalette;
+
       if assigned(modeinfo^.ClearViewPort) then
          ClearViewPort := modeinfo^.ClearViewPort;
       if assigned(modeinfo^.PutImage) then
@@ -589,11 +592,15 @@ end;
 
 {
   $Log$
-  Revision 1.3  2000-08-01 06:03:32  jonas
+  Revision 1.4  2000-08-12 12:27:14  jonas
+    + setallpalette hook
+    + setallpalette implemented for standard vga and VESA 2.0+
+
+  Revision 1.3  2000/08/01 06:03:32  jonas
     * the defaulthooks are reset if setmode() fails at any point  (merged
       from fixes branch)
 
   Revision 1.2  2000/07/13 11:33:47  michael
   + removed logs
- 
+
 }
