@@ -449,7 +449,7 @@ begin
   end;
 end;
 
-procedure TSHTextEdit.KeyPressed(KeyCode: LongWord; ShiftState: TShiftState);
+function TSHTextEdit.KeyPressed(KeyCode: LongWord; ShiftState: TShiftState): Boolean;
 var
   i: Integer;
   shortcut: TShortcut;
@@ -471,6 +471,8 @@ begin
     end;
   end;
 
+  Result := True;
+
   if ShortcutFound then begin
     // WriteLn(shortcut.Action.Descr);
     shortcut.Action.Method;	// Execute associated action
@@ -490,7 +492,9 @@ begin
     end;
   end else
     if (KeyCode <= 255) and (ShiftState * [ssCtrl, ssAlt] = []) then
-      ExecKey(Chr(KeyCode), False);
+      ExecKey(Chr(KeyCode), False)
+    else
+      Result := False;		// Key has not been processed
 
   EndSelectionChange;
 end;
@@ -498,7 +502,11 @@ end;
 
 {
   $Log$
-  Revision 1.10  2000-01-07 01:24:34  peter
+  Revision 1.11  2000-01-23 23:58:25  sg
+  * KeyPressed now returns a Boolean which indicates if the key has been
+    processed or not
+
+  Revision 1.10  2000/01/07 01:24:34  peter
     * updated copyright to 2000
 
   Revision 1.9  2000/01/06 01:20:34  peter

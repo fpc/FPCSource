@@ -239,7 +239,10 @@ type
     procedure FocusIn;
     procedure FocusOut;
     procedure DrawContent(x1, y1, x2, y2: Integer);
-    procedure KeyPressed(KeyCode: LongWord; ShiftState: TShiftState); virtual;
+
+    // Return value: True=Key has been pressed, False=Key has not been processed
+    function  KeyPressed(KeyCode: LongWord; ShiftState: TShiftState): Boolean; virtual;
+
     procedure StartSelectionChange;
     procedure EndSelectionChange;
 
@@ -473,7 +476,11 @@ end.
 
 {
   $Log$
-  Revision 1.13  2000-01-07 13:24:31  sg
+  Revision 1.14  2000-01-23 23:59:02  sg
+  * KeyPressed now returns a Boolean which indicates if the key has been
+    processed or not
+
+  Revision 1.13  2000/01/07 13:24:31  sg
   * OK, now _this_ is the originally meant version with the fixed
     selection handling ;)
 
