@@ -608,6 +608,11 @@ begin
 {$else}
     Move(VIDEBuffer^,ptr(VSeg,SOfs)^,IDEVideoInfo.ScreenSize);
 {$endif}
+  { Its difficult to know
+    the state of the mouse
+    so simply show it always
+    fixes bug 2253 PM }
+  ShowMouse;
 end;
 
 
@@ -1435,7 +1440,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.26  2002-10-30 22:07:11  pierre
+  Revision 1.27  2003-02-04 22:05:56  pierre
+   * fix bug 2253
+
+  Revision 1.26  2002/10/30 22:07:11  pierre
    * only handle direction keys specially if buffer is bigger than window
 
   Revision 1.25  2002/10/12 19:41:30  hajny
