@@ -81,7 +81,7 @@ begin
 {$ENDIF USECON}
  WriteLn ('RC = ', L);
  Write ('Downloading "' + TstName2 + '"... ');
- WriteLn ('RC = ', FtpGet (TstName2, TstName2));
+ WriteLn ('RC = ', FtpGet (TstName2, TstName2, 'w'));
  Write ('Setting time of the downloaded file to that one on server... ');
  WriteLn ('Result = ', Keep_File_Date (TstName2, TstName2));
  Write ('Removing "', TstName2, '" again from "', Hst, '"... ');

@@ -127,8 +127,6 @@ Const
   ShortAcct: String='';
   ShortTransferType: Integer = T_ASCII;
 
-  ShortTransferTexts: array [T_ASCII..T_BINARY] of String [10] =
-                                                 ('ASCII', 'EBCDIC', 'BINARY');
 
 {****************************************************************************
 
@@ -196,6 +194,7 @@ Function FtpRename(NameFrom, NameTo: PChar): Integer;
 Function FtpRename(NameFrom, NameTo: String): Integer;
 
 // Gets a file from an FTP server
+// Mode is either 'w' for re_w_rite, or 'a' for _a_ppend
 Function FtpGet(Host, UserId, Passwd, Acct, Local, Remote, Mode: PChar; TransferType: integer): Integer; cdecl;
 
 Function FtpGet(Host, UserId, Passwd, Acct, Local, Remote, Mode: String; TransferType: integer): Integer;
@@ -205,10 +204,6 @@ Function FtpGet(Local, Remote, Mode: String; TransferType: integer): Integer;
 
 Function FtpGet(Local, Remote, Mode: PChar): Integer;
 Function FtpGet(Local, Remote, Mode: String): Integer;
-
-Function FtpGet(Local, Remote: PChar): Integer;
-Function FtpGet(Local, Remote: String): Integer;
-
 
 // Transfers a file to an FTP server
 Function FtpPut(Host, UserId, Passwd, Acct, Local, Remote: PChar; TransferType: Integer): Integer; cdecl;
@@ -537,10 +532,10 @@ Begin
   GetMem(_Acct, Length(Acct)+1);
   GetMem(_Local, Length(Local)+1);
   GetMem(_Pattern, Length(Pattern)+1);
-  StrPCopy(_Host, ShortHost);
-  StrPCopy(_UserId, ShortUserId);
-  StrPCopy(_Passwd, ShortPasswd);
-  StrPCopy(_Acct, ShortAcct);
+  StrPCopy(_Host, Host);
+  StrPCopy(_UserId, UserId);
+  StrPCopy(_Passwd, Passwd);
+  StrPCopy(_Acct, Acct);
   StrPCopy(_Local, Local);
   StrPCopy(_Pattern, Pattern);
   FtpDir:=FtpDir(_Host, _Userid, _Passwd, _Acct, _Local, _Pattern);
@@ -568,10 +563,10 @@ Begin
   GetMem(_Acct, Length(Acct)+1);
   GetMem(_Local, Length(Local)+1);
   GetMem(_Pattern, Length(Pattern)+1);
-  StrPCopy(_Host, ShortHost);
-  StrPCopy(_UserId, ShortUserId);
-  StrPCopy(_Passwd, ShortPasswd);
-  StrPCopy(_Acct, ShortAcct);
+  StrPCopy(_Host, Host);
+  StrPCopy(_UserId, UserId);
+  StrPCopy(_Passwd, Passwd);
+  StrPCopy(_Acct, Acct);
   StrPCopy(_Local, Local);
   StrPCopy(_Pattern, Pattern);
   FtpLs:=FtpLs(_Host, _Userid, _Passwd, _Acct, _Local, _Pattern);
@@ -654,16 +649,6 @@ Begin
   StrPCopy(@_Mode, Mode);
   FtpGet:=FtpGet(@_Host, @_UserId, @_Passwd, @_Acct, @_Local, @_Remote, @_Mode, ShortTransferType);
 End;
-
-Function FtpGet(Local, Remote: PChar): Integer;
-begin
- FtpGet := FtpGet (Local, Remote, @ShortTransferTexts [ShortTransferType, 1]);
-end;
-
-Function FtpGet(Local, Remote: String): Integer;
-begin
- FtpGet := FtpGet (Local, Remote, ShortTransferTexts [ShortTransferType]);
-end;
 
 Procedure FtpLogoff; cdecl;
     external FTPAPIDLL index 6;
@@ -1189,7 +1174,7 @@ Procedure FtpSetDecodeMode(var code: integer); cdecl;
 
 Absolutely no information about following functions:
 
-Function FtpErrNo: integer; cdecl; external FTPAPIDLL index 20; // seems to be a copy of ftp_errno
+var FtpErrNo: integer; cdecl; external FTPAPIDLL index 20; // seems to be a copy of ftp_errno
 //³ 00033 ³ FTPQUOTEREPLY     // Seems to be direct command send (reply to ftpquote)
 //³ 00034 ³ FtpSetActiveMode
 
@@ -1199,7 +1184,10 @@ End.
 
 {
   $Log$
-  Revision 1.1  2002-10-21 21:43:08  hajny
+  Revision 1.2  2002-10-25 06:53:51  hajny
+    * ftpapi corrections
+
+  Revision 1.1  2002/10/21 21:43:08  hajny
     + ftpapi interface unit added
 
 
