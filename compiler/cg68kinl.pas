@@ -76,7 +76,8 @@ implementation
          { tfloattype = (f32bit,s32real,s64real,s80real,s64bit); }
          float_name: array[tfloattype] of string[8]=
            ('FIXED','SINGLE','REAL','EXTENDED','COMP','FIXED16');
-         addsubop:array[in_inc_x..in_dec_x] of tasmop=(A_ADDQ,A_SUBQ);
+         addconstsubop:array[in_inc_x..in_dec_x] of tasmop=(A_ADDQ,A_SUBQ);
+         addsubop:array[in_inc_x..in_dec_x] of tasmop=(A_ADD,A_SUB);
        var
          aktfile : treference;
          ft : tfiletype;
@@ -758,7 +759,7 @@ implementation
               { write the add instruction }
                 if addconstant then
                  begin
-                    exprasmlist^.concat(new(pai68k,op_const_ref(addsubop[p^.inlinenumber],opsize,
+                    exprasmlist^.concat(new(pai68k,op_const_ref(addconstsubop[p^.inlinenumber],opsize,
                       addvalue,newreference(p^.left^.left^.location.reference))));
                  end
                 else
@@ -889,7 +890,13 @@ implementation
 end.
 {
   $Log$
-  Revision 1.7  1998-10-13 16:50:08  pierre
+  Revision 1.8  1998-10-14 08:08:52  pierre
+    * following Peters remark, removed all ifdef in
+      the systems unit enums
+    * last bugs of cg68k removed for sysamiga
+      (sysamiga assembles with as68k !!)
+
+  Revision 1.7  1998/10/13 16:50:08  pierre
     * undid some changes of Peter that made the compiler wrong
       for m68k (I had to reinsert some ifdefs)
     * removed several memory leaks under m68k

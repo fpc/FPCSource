@@ -422,23 +422,23 @@ implementation
            begin
               { offset can only differ from 0 if arraydef }
               if (p^.left^.resulttype^.deftype=arraydef) then
-              begin
+                begin
                    if not(is_open_array(p^.left^.resulttype)) then
-                       begin
-                     if (p^.right^.value>parraydef(p^.left^.resulttype)^.highrange) or
-                        (p^.right^.value<parraydef(p^.left^.resulttype)^.lowrange) then
-                        CGMessage(parser_e_range_check_error);
+                     begin
+                        if (p^.right^.value>parraydef(p^.left^.resulttype)^.highrange) or
+                           (p^.right^.value<parraydef(p^.left^.resulttype)^.lowrange) then
+                          CGMessage(parser_e_range_check_error);
 
-                     dec(p^.left^.location.reference.offset,
-                        p^.resulttype^.size*parraydef(p^.left^.resulttype)^.lowrange);
-                    end
+                        dec(p^.left^.location.reference.offset,
+                          p^.resulttype^.size*parraydef(p^.left^.resulttype)^.lowrange);
+                     end
                    else
                      begin
                         { range checking for open arrays }
                      end;
-                  end;
+                end;
               inc(p^.left^.location.reference.offset,
-                 p^.right^.value*p^.resulttype^.size);
+                p^.right^.value*p^.resulttype^.size);
               p^.left^.resulttype:=p^.resulttype;
               disposetree(p^.right);
               _p:=p^.left;
@@ -473,7 +473,7 @@ implementation
                      end
                    else if (p^.right^.treetype=subn) then
                      begin
-                              if p^.right^.right^.treetype=ordconstn then
+                        if p^.right^.right^.treetype=ordconstn then
                           begin
                              extraoffset:=p^.right^.right^.value;
                              t:=p^.right^.left;
@@ -513,14 +513,14 @@ implementation
                                end;
 
                 LOC_CREGISTER : begin
-                                       ind:=getregister32;
+                                   ind:=getregister32;
                                    emit_reg_reg(A_MOVE,S_L,p^.right^.location.register,ind);
                                    case p^.right^.resulttype^.size of
                                    1: exprasmlist^.concat(new(pai68k,op_const_reg(A_AND,S_L,
                                       $ff,ind)));
                                    2: exprasmlist^.concat(new(pai68k,op_const_reg(A_AND,S_L,
                                       $ffff,ind)));
-                                end;
+                                   end;
                                 end;
                    LOC_FLAGS:
                      begin
@@ -544,99 +544,96 @@ implementation
                         2: exprasmlist^.concat(new(pai68k,op_const_reg(A_AND,S_L,
                           $ffff,ind)));
                       end; { end case }
-                      end; { end else begin }
-              end;
+                end; { end else begin }
+           end;
 
-              { produce possible range check code: }
-              if cs_check_range in aktlocalswitches  then
+         { produce possible range check code: }
+         if cs_check_range in aktlocalswitches  then
+           begin
+              if p^.left^.resulttype^.deftype=arraydef then
                 begin
-                   if p^.left^.resulttype^.deftype=arraydef then
-                     begin
-                        new(hp);
-                        reset_reference(hp^);
-                        parraydef(p^.left^.resulttype)^.genrangecheck;
-                        hp^.symbol:=stringdup(parraydef(p^.left^.resulttype)^.getrangecheckstring);
-                        emit_bounds_check(hp^,ind);
-                     end;
+                   new(hp);
+                   reset_reference(hp^);
+                   parraydef(p^.left^.resulttype)^.genrangecheck;
+                   hp^.symbol:=stringdup(parraydef(p^.left^.resulttype)^.getrangecheckstring);
+                   emit_bounds_check(hp^,ind);
                 end;
-
-           { ------------------------ HANDLE INDEXING ----------------------- }
-           { In Motorola 680x0 mode, displacement can only be of 64K max.     }
-           { Therefore instead of doing a direct displacement, we must first  }
-           { load the new address into an address register. Therefore the     }
-           { symbol is not used.                                              }
-           if assigned(p^.location.reference.symbol) then
+           end;
+ 
+         { ------------------------ HANDLE INDEXING ----------------------- }
+         { In Motorola 680x0 mode, displacement can only be of 64K max.     }
+         { Therefore instead of doing a direct displacement, we must first  }
+         { load the new address into an address register. Therefore the     }
+         { symbol is not used.                                              }
+         if assigned(p^.location.reference.symbol) then
            begin
               if p^.location.reference.base <> R_NO then
-               CGMessage(cg_f_secondvecn_base_defined_twice);
+                CGMessage(cg_f_secondvecn_base_defined_twice);
               p^.location.reference.base:=getaddressreg;
               exprasmlist^.concat(new(pai68k,op_csymbol_reg(A_LEA,S_L,newcsymbol(p^.location.reference.symbol^,0),
                 p^.location.reference.base)));
               stringdispose(p^.location.reference.symbol);
            end;
 
-              if (p^.location.reference.index=R_NO) then
+         if (p^.location.reference.index=R_NO) then
+           begin
+              p^.location.reference.index:=ind;
+              calc_emit_mul;
+              { here we must check for the offset      }
+              { and if out of bounds for the motorola  }
+              { eg: out of signed d8 then reload index }
+              { with correct value.                    }
+              if p^.location.reference.offset > 127 then
                 begin
-                   p^.location.reference.index:=ind;
-                   calc_emit_mul;
-               { here we must check for the offset      }
-               { and if out of bounds for the motorola  }
-               { eg: out of signed d8 then reload index }
-               { with correct value.                    }
-               if p^.location.reference.offset > 127 then
-               begin
-                  exprasmlist^.concat(new(pai68k,op_const_reg(A_ADD,S_L,p^.location.reference.offset,ind)));
-                  p^.location.reference.offset := 0;
-               end
-               else
-               if p^.location.reference.offset < -128 then
-               begin
-                  exprasmlist^.concat(new(pai68k,op_const_reg(A_SUB,S_L,-p^.location.reference.offset,ind)));
-                  p^.location.reference.offset := 0;
-               end;
+                   exprasmlist^.concat(new(pai68k,op_const_reg(A_ADD,S_L,p^.location.reference.offset,ind)));
+                   p^.location.reference.offset := 0;
                 end
-              else
+              else if p^.location.reference.offset < -128 then
                 begin
-                   if p^.location.reference.base=R_NO then
-                      begin
-                          case p^.location.reference.scalefactor of
-                       2 : exprasmlist^.concat(new(pai68k,op_const_reg(A_LSL,S_L,1,p^.location.reference.index)));
-                       4 : exprasmlist^.concat(new(pai68k,op_const_reg(A_LSL,S_L,2,p^.location.reference.index)));
-                       8 : exprasmlist^.concat(new(pai68k,op_const_reg(A_LSL,S_L,3,p^.location.reference.index)));
-                       end;
-                          calc_emit_mul;
+                   exprasmlist^.concat(new(pai68k,op_const_reg(A_SUB,S_L,-p^.location.reference.offset,ind)));
+                   p^.location.reference.offset := 0;
+                end;
+           end
+         { if no index then allways get an address register !! PM }
+         else if p^.location.reference.base=R_NO then
+           begin
+              case p^.location.reference.scalefactor of
+                  2 : exprasmlist^.concat(new(pai68k,op_const_reg(A_LSL,S_L,1,p^.location.reference.index)));
+                  4 : exprasmlist^.concat(new(pai68k,op_const_reg(A_LSL,S_L,2,p^.location.reference.index)));
+                  8 : exprasmlist^.concat(new(pai68k,op_const_reg(A_LSL,S_L,3,p^.location.reference.index)));
+                end;
+              calc_emit_mul;
 
-                    { we must use address register to put index in base }
-                    { compare with cgi386.pas                           }
+              { we must use address register to put index in base }
+              { compare with cgi386.pas                           }
 
-                    reg := getaddressreg;
-                    p^.location.reference.base := reg;
+              reg := getaddressreg;
+              p^.location.reference.base := reg;
 
-                    emit_reg_reg(A_MOVE,S_L,p^.location.reference.index,reg);
-                    ungetregister(p^.location.reference.index);
+              emit_reg_reg(A_MOVE,S_L,p^.location.reference.index,reg);
+              ungetregister(p^.location.reference.index);
 
-                    p^.location.reference.index:=ind;
-                 end
-               else
-                 begin
-                    reg := getaddressreg;
-                    exprasmlist^.concat(new(pai68k,op_ref_reg(
-                      A_LEA,S_L,newreference(p^.location.reference),
-                      reg)));
+              p^.location.reference.index:=ind;
+           end
+         else
+           begin
+              reg := getaddressreg;
+              exprasmlist^.concat(new(pai68k,op_ref_reg(
+                A_LEA,S_L,newreference(p^.location.reference),
+                reg)));
 
-                    ungetregister(p^.location.reference.base);
-                    { the symbol offset is loaded,               }
-                    { so release the symbol name and set symbol  }
-                    { to nil                                     }
-                    stringdispose(p^.location.reference.symbol);
-                    p^.location.reference.offset:=0;
-                    calc_emit_mul;
-                    p^.location.reference.base:=reg;
-                    ungetregister32(p^.location.reference.index);
-                    p^.location.reference.index:=ind;
-                 end;
-               end;
-           end;
+              ungetregister(p^.location.reference.base);
+              { the symbol offset is loaded,               }
+              { so release the symbol name and set symbol  }
+              { to nil                                     }
+              stringdispose(p^.location.reference.symbol);
+              p^.location.reference.offset:=0;
+              calc_emit_mul;
+              p^.location.reference.base:=reg;
+              ungetregister32(p^.location.reference.index);
+              p^.location.reference.index:=ind;
+         end;
+         end;
       end;
 
 
@@ -691,7 +688,13 @@ implementation
 end.
 {
   $Log$
-  Revision 1.6  1998-10-06 20:49:00  peter
+  Revision 1.7  1998-10-14 08:08:54  pierre
+    * following Peters remark, removed all ifdef in
+      the systems unit enums
+    * last bugs of cg68k removed for sysamiga
+      (sysamiga assembles with as68k !!)
+
+  Revision 1.6  1998/10/06 20:49:00  peter
     * m68k compiler compiles again
 
   Revision 1.5  1998/09/17 09:42:28  peter

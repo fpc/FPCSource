@@ -40,12 +40,8 @@ unit systems;
 
      type
        tasmmode= (asmmode_none
-{$ifdef i386}
             ,asmmode_i386_direct,asmmode_i386_att,asmmode_i386_intel
-{$endif i386}
-{$ifdef m68k}
             ,asmmode_m68k_mot
-{$endif m68k}
        );
      const
        {$ifdef i386} i386asmmodecnt=3; {$else} i386asmmodecnt=0; {$endif}
@@ -54,16 +50,10 @@ unit systems;
 
      type
        ttarget = (target_none
-{$ifdef i386}
             ,target_i386_GO32V1,target_i386_GO32V2,target_i386_linux,
             target_i386_OS2,target_i386_Win32
-{$endif i386}
             ,target_m68k_Amiga,target_m68k_Atari,target_m68k_Mac,
             target_m68k_linux,target_m68k_PalmOS
-{$ifndef i386}
-            ,target_i386_GO32V1,target_i386_GO32V2,target_i386_linux,
-            target_i386_OS2,target_i386_Win32
-{$endif i386}
        );
      const
        {$ifdef i386} i386targetcnt=5; {$else} i386targetcnt=0; {$endif}
@@ -72,14 +62,10 @@ unit systems;
 
      type
        tasm = (as_none
-{$ifdef i386}
             ,as_i386_o,as_i386_o_aout,as_i386_asw,
             as_i386_nasmcoff,as_i386_nasmelf,as_i386_nasmobj,
             as_i386_tasm,as_i386_masm
-{$endif i386}
-{$ifdef m68k}
             ,as_m68k_o,as_m68k_gas,as_m68k_mit,as_m68k_mot,as_m68k_mpw
-{$endif m68k}
        );
      const
        {$ifdef i386} i386asmcnt=8; {$else} i386asmcnt=0; {$endif}
@@ -88,14 +74,10 @@ unit systems;
 
      type
        tlink = (link_none
-{$ifdef i386}
             ,link_i386_ld,link_i386_ldgo32v1,
             link_i386_ldgo32v2,link_i386_ldw,
             link_i386_ldos2
-{$endif i386}
-{$ifdef m68k}
             ,link_m68k_ld
-{$endif m68k}
        );
      const
        {$ifdef i386} i386linkcnt=5; {$else} i386linkcnt=0; {$endif}
@@ -104,12 +86,8 @@ unit systems;
 
      type
        tar = (ar_none
-{$ifdef i386}
             ,ar_i386_ar,ar_i386_arw
-{$endif i386}
-{$ifdef m68k}
             ,ar_m68k_ar
-{$endif m68k}
        );
      const
        {$ifdef i386} i386arcnt=2; {$else} i386arcnt=0; {$endif}
@@ -117,7 +95,7 @@ unit systems;
        arcnt=i386arcnt+m68karcnt+1;
 
      type
-       tos = (
+       tos = ( os_none,
             os_i386_GO32V1,os_i386_GO32V2,os_i386_Linux,os_i386_OS2,
             os_i386_Win32,
             os_m68k_Amiga,os_m68k_Atari,os_m68k_Mac,os_m68k_Linux,
@@ -126,7 +104,7 @@ unit systems;
      const
        i386oscnt=5;
        m68koscnt=5;
-       oscnt=i386oscnt+m68koscnt;
+       oscnt=i386oscnt+m68koscnt+1;
 
    type
        tosinfo = packed record
@@ -228,6 +206,10 @@ implementation
                                  OS Info
 ****************************************************************************}
        os_infos : array[1..oscnt] of tosinfo = (
+          (
+            id           : os_none;
+            name         : 'No operating system';
+          ),
           (
             id           : os_i386_go32v1;
             name         : 'GO32 V1 DOS extender';
@@ -1148,7 +1130,13 @@ begin
 end.
 {
   $Log$
-  Revision 1.42  1998-10-13 16:50:23  pierre
+  Revision 1.43  1998-10-14 08:08:56  pierre
+    * following Peters remark, removed all ifdef in
+      the systems unit enums
+    * last bugs of cg68k removed for sysamiga
+      (sysamiga assembles with as68k !!)
+
+  Revision 1.42  1998/10/13 16:50:23  pierre
     * undid some changes of Peter that made the compiler wrong
       for m68k (I had to reinsert some ifdefs)
     * removed several memory leaks under m68k

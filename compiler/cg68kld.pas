@@ -472,7 +472,8 @@ implementation
          if ret_in_param(p^.retdef) then
            begin
               if not hr_valid then
-                hr:=getregister32;
+                { this was wrong !! PM }
+                hr:=getaddressreg;
               exprasmlist^.concat(new(pai68k,op_ref_reg(A_MOVE,S_L,newreference(p^.location.reference),hr)));
               p^.location.reference.base:=hr;
               p^.location.reference.offset:=0;
@@ -509,7 +510,13 @@ implementation
 end.
 {
   $Log$
-  Revision 1.4  1998-10-13 08:19:28  pierre
+  Revision 1.5  1998-10-14 08:08:53  pierre
+    * following Peters remark, removed all ifdef in
+      the systems unit enums
+    * last bugs of cg68k removed for sysamiga
+      (sysamiga assembles with as68k !!)
+
+  Revision 1.4  1998/10/13 08:19:28  pierre
     + source_os is now set correctly for cross-processor compilers
       (tos contains all target_infos and
        we use CPU86 and CPU68 conditionnals to
