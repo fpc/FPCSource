@@ -54,7 +54,7 @@ begin
                  '-' :
                    begin
                      initglobalswitches:=initglobalswitches-[cs_optimize,cs_fastoptimize,cs_slowoptimize,cs_littlesize,
-                       cs_regalloc,cs_uncertainopts];
+                       cs_regvars,cs_uncertainopts];
                      FillChar(ParaAlignment,sizeof(ParaAlignment),0);
                    end;
                  'a' :
@@ -66,7 +66,7 @@ begin
                  'G' : initglobalswitches:=initglobalswitches-[cs_littlesize];
                  'r' :
                    begin
-                     initglobalswitches:=initglobalswitches+[cs_regalloc];
+                     initglobalswitches:=initglobalswitches+[cs_regvars];
                      Simplify_ppu:=false;
                    end;
                  'u' : initglobalswitches:=initglobalswitches+[cs_uncertainopts];
@@ -101,7 +101,10 @@ initialization
 end.
 {
   $Log$
-  Revision 1.2  2002-08-10 14:53:38  carl
+  Revision 1.3  2003-09-25 13:13:32  florian
+    * more x86-64 fixes
+
+  Revision 1.2  2002/08/10 14:53:38  carl
     + moved target_cpu_string to cpuinfo
     * renamed asmmode enum.
     * assembler reader has now less ifdef's

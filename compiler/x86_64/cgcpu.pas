@@ -36,7 +36,8 @@ unit cgcpu;
 
     type
       tcgx86_64 = class(tcgx86)
-         procedure g_concatcopy(list : taasmoutput;const source,dest : treference;len : aword; delsource,loadref : boolean);override;
+        class function reg_cgsize(const reg: tregister): tcgsize; override;
+        procedure g_concatcopy(list : taasmoutput;const source,dest : treference;len : aword; delsource,loadref : boolean);override;
       end;
 
   implementation
@@ -45,6 +46,20 @@ unit cgcpu;
        globtype,globals,verbose,systems,cutils,
        symdef,symsym,defutil,paramgr,
        rgobj,tgobj,rgcpu;
+
+
+    class function tcgx86_64.reg_cgsize(const reg: tregister): tcgsize;
+      const
+        opsize_2_cgsize: array[topsize] of tcgsize = (OS_NO,
+          OS_8,OS_16,OS_32,OS_NO,OS_NO,OS_NO,OS_NO,OS_NO,OS_NO,
+          OS_32,OS_64,OS_64,
+          OS_F32,OS_F64,OS_F80,OS_F32,OS_F64,OS_NO,OS_NO,
+          OS_NO,OS_NO,OS_NO
+        );
+      begin
+        result := opsize_2_cgsize[reg2opsize(reg)];
+      end;
+
 
     procedure tcgx86_64.g_concatcopy(list : taasmoutput;const source,dest : treference;len : aword; delsource,loadref : boolean);
       var
@@ -177,7 +192,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.4  2003-04-30 15:45:35  florian
+  Revision 1.5  2003-09-25 13:13:32  florian
+    * more x86-64 fixes
+
+  Revision 1.4  2003/04/30 15:45:35  florian
     * merged more x86-64/i386 code
 
   Revision 1.3  2003/01/05 13:36:54  florian

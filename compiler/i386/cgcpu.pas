@@ -40,7 +40,8 @@ unit cgcpu;
 
     type
       tcg386 = class(tcgx86)
-      end;
+         class function reg_cgsize(const reg: tregister): tcgsize; override;
+     end;
 
       tcg64f386 = class(tcg64f32)
         procedure a_op64_ref_reg(list : taasmoutput;op:TOpCG;const ref : treference;reg : tregister64);override;
@@ -57,6 +58,19 @@ unit cgcpu;
        globtype,globals,verbose,systems,cutils,
        symdef,symsym,defutil,paramgr,
        rgobj,tgobj;
+
+
+    class function tcg386.reg_cgsize(const reg: tregister): tcgsize;
+      const
+        opsize_2_cgsize: array[topsize] of tcgsize = (OS_NO,
+          OS_8,OS_16,OS_32,OS_NO,OS_NO,OS_NO,
+          OS_32,OS_64,OS_64,
+          OS_F32,OS_F64,OS_F80,OS_F32,OS_F64,OS_NO,OS_NO,
+          OS_NO,OS_NO,OS_NO
+        );
+      begin
+        result := opsize_2_cgsize[reg2opsize(reg)];
+      end;
 
 
 { ************* 64bit operations ************ }
@@ -193,7 +207,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.37  2003-09-03 15:55:01  peter
+  Revision 1.38  2003-09-25 13:13:32  florian
+    * more x86-64 fixes
+
+  Revision 1.37  2003/09/03 15:55:01  peter
     * NEWRA branch merged
 
   Revision 1.36.2.1  2003/08/29 17:28:59  peter

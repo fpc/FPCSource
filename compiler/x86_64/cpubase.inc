@@ -73,6 +73,8 @@ const
          (RS_EBX,RS_EDX,RS_ECX,RS_EAX);
 
       maxfpuvarregs = 8;
+      fpuvarregs : Array [1..maxfpuvarregs] of Tsuperregister =
+                (RS_MM8,RS_MM9,RS_MM10,RS_MM11,RS_MM12,RS_MM13,RS_MM14,RS_MM15);
 
 {*****************************************************************************
                                GDB Information
@@ -107,6 +109,7 @@ const
 *****************************************************************************}
 
       {# Stack pointer register }
+      RS_STACK_POINTER_REG = RS_RSP;
       NR_STACK_POINTER_REG = NR_RSP;
       {# Frame pointer register }
       RS_FRAME_POINTER_REG = RS_EBP;
@@ -155,7 +158,10 @@ const
 
 {
   $Log$
-  Revision 1.7  2003-09-24 17:12:02  florian
+  Revision 1.8  2003-09-25 13:13:32  florian
+    * more x86-64 fixes
+
+  Revision 1.7  2003/09/24 17:12:02  florian
     * several fixes for new reg allocator
 
   Revision 1.6  2003/06/03 13:01:59  daniel

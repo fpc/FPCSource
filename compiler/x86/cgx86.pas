@@ -104,8 +104,6 @@ unit cgx86;
         procedure g_exception_reason_save_const(list : taasmoutput; const href : treference; a: aword);override;
         procedure g_exception_reason_load(list : taasmoutput; const href : treference);override;
 
-        class function reg_cgsize(const reg: tregister): tcgsize; override;
-
         { entry/exit code helpers }
         procedure g_copyvaluepara_openarray(list : taasmoutput;const ref, lenref:treference;elesize:integer);override;
         procedure g_interrupt_stackframe_entry(list : taasmoutput);override;
@@ -329,19 +327,6 @@ unit cgx86;
 {****************************************************************************
                               Assembler code
 ****************************************************************************}
-
-    class function tcgx86.reg_cgsize(const reg: tregister): tcgsize;
-      const
-        opsize_2_cgsize: array[topsize] of tcgsize = (OS_NO,
-          OS_8,OS_16,OS_32,OS_NO,OS_NO,OS_NO,
-          OS_32,OS_64,OS_64,
-          OS_F32,OS_F64,OS_F80,OS_F32,OS_F64,OS_NO,OS_NO,
-          OS_NO,OS_NO,OS_NO
-        );
-      begin
-        result := opsize_2_cgsize[reg2opsize(reg)];
-      end;
-
 
     { currently does nothing }
     procedure tcgx86.a_jmp_always(list : taasmoutput;l: tasmlabel);
@@ -1622,7 +1607,10 @@ unit cgx86;
 end.
 {
   $Log$
-  Revision 1.64  2003-09-11 11:55:00  florian
+  Revision 1.65  2003-09-25 13:13:32  florian
+    * more x86-64 fixes
+
+  Revision 1.64  2003/09/11 11:55:00  florian
     * improved arm code generation
     * move some protected and private field around
     * the temp. register for register parameters/arguments are now released

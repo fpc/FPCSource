@@ -264,8 +264,12 @@ implementation
                        { reserve place on the FPU stack }
                        regvarinfo^.fpuregvars[i].localloc.register:=trgcpu(rg).correct_fpuregister(NR_ST0,i);
 {$else i386}
-                       regvarinfo^.fpuregvars[i].localloc.register:=fpuvarregs[i];
-                       rg.makeregvarother(regvarinfo^.fpuregvars[i].localloc.register);
+{$ifdef x86_64}
+{$endif x86_64}
+                       begin
+                         regvarinfo^.fpuregvars[i].localloc.register:=fpuvarregs[i];
+                         rg.makeregvarother(regvarinfo^.fpuregvars[i].localloc.register);
+                       end;
 {$endif i386}
                      end;
                   end;
@@ -608,7 +612,10 @@ end.
 
 {
   $Log$
-  Revision 1.66  2003-09-23 17:56:06  peter
+  Revision 1.67  2003-09-25 13:13:32  florian
+    * more x86-64 fixes
+
+  Revision 1.66  2003/09/23 17:56:06  peter
     * locals and paras are allocated in the code generation
     * tvarsym.localloc contains the location of para/local when
       generating code for the current procedure
