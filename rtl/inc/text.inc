@@ -501,7 +501,7 @@ Begin
         p:=pchar(@s);
         { can't use StrLen, since that one could try to read past the end }
         { of the heap (JM)                                                }
-        ArrayLen:=IndexByte(p,high(s)+1,0);
+        ArrayLen:=IndexByte(p^,high(s)+1,0);
         { IndexByte returns -1 if not found (JM) }
         if ArrayLen = -1 then
           ArrayLen := high(s)+1;
@@ -1099,7 +1099,10 @@ end;
 
 {
   $Log$
-  Revision 1.10  2001-07-16 13:53:21  jonas
+  Revision 1.11  2001-07-21 15:53:28  jonas
+    * really fixed write_array this time :/ (merged)
+
+  Revision 1.10  2001/07/16 13:53:21  jonas
     * correctly fixed potential buffer overrun in write_array
 
   Revision 1.9  2001/07/08 21:00:18  peter
