@@ -92,6 +92,7 @@ const
   iblongstringdef = 54;
   ibansistringdef = 55;
   ibwidestringdef = 56;
+  ibfarpointerdef = 57;
 
 { unit flags }
   uf_init          = $1;
@@ -792,7 +793,11 @@ end;
 end.
 {
   $Log$
-  Revision 1.20  1998-11-30 16:34:45  pierre
+  Revision 1.21  1998-12-30 22:15:50  peter
+    + farpointer type
+    * absolutesym now also stores if its far
+
+  Revision 1.20  1998/11/30 16:34:45  pierre
     * corrected problems with rangecheck
     + added needed code for no rangecheck  in CRC32 functions in ppu unit
     * enumdef lso need its rangenr reset to zero

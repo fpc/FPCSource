@@ -103,6 +103,7 @@ begin
   p^.insert(new(ptypesym,init('boolean',booldef)));
   p^.insert(new(ptypesym,init('void_pointer',voidpointerdef)));
   p^.insert(new(ptypesym,init('char_pointer',charpointerdef)));
+  p^.insert(new(ptypesym,init('void_farpointer',voidfarpointerdef)));
   p^.insert(new(ptypesym,init('file',cfiledef)));
 {$ifdef i386}
   p^.insert(new(ptypesym,init('REAL',c64floatdef)));
@@ -126,6 +127,7 @@ begin
 {$endif}
   p^.insert(new(ptypesym,init('SINGLE',new(pfloatdef,init(s32real)))));
   p^.insert(new(ptypesym,init('POINTER',voidpointerdef)));
+  p^.insert(new(ptypesym,init('FARPOINTER',voidfarpointerdef)));
   p^.insert(new(ptypesym,init('STRING',cshortstringdef)));
   p^.insert(new(ptypesym,init('SHORTSTRING',cshortstringdef)));
   p^.insert(new(ptypesym,init('LONGSTRING',clongstringdef)));
@@ -198,6 +200,7 @@ begin
   booldef:=porddef(globaldef('boolean'));
   voidpointerdef:=ppointerdef(globaldef('void_pointer'));
   charpointerdef:=ppointerdef(globaldef('char_pointer'));
+  voidfarpointerdef:=pfarpointerdef(globaldef('void_farpointer'));
   cfiledef:=pfiledef(globaldef('file'));
 end;
 
@@ -245,6 +248,7 @@ begin
   { some other definitions }
   voidpointerdef:=new(ppointerdef,init(voiddef));
   charpointerdef:=new(ppointerdef,init(cchardef));
+  voidfarpointerdef:=new(pfarpointerdef,init(voiddef));
   cfiledef:=new(pfiledef,init(ft_untyped,nil));
   registerdef:=oldregisterdef;
 end;
@@ -253,7 +257,11 @@ end;
 end.
 {
   $Log$
-  Revision 1.14  1998-12-11 00:03:40  peter
+  Revision 1.15  1998-12-30 22:15:51  peter
+    + farpointer type
+    * absolutesym now also stores if its far
+
+  Revision 1.14  1998/12/11 00:03:40  peter
     + globtype,tokens,version unit splitted from globals
 
   Revision 1.13  1998/12/10 09:47:25  florian

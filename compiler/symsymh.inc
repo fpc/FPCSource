@@ -240,6 +240,7 @@
           absseg : boolean;
           ref : psym;
           asmname : pstring;
+          constructor init(const n : string;p : pdef);
           constructor load;
           procedure deref;virtual;
           function mangledname : string;virtual;
@@ -323,7 +324,11 @@
 
 {
   $Log$
-  Revision 1.10  1998-12-30 13:41:15  peter
+  Revision 1.11  1998-12-30 22:15:55  peter
+    + farpointer type
+    * absolutesym now also stores if its far
+
+  Revision 1.10  1998/12/30 13:41:15  peter
     * released valuepara
 
   Revision 1.9  1998/11/28 16:20:57  peter

@@ -1165,7 +1165,7 @@ unit pexpr;
                 CARET:
                   begin
                     consume(CARET);
-                    if pd^.deftype<>pointerdef then
+                    if not(pd^.deftype in [pointerdef,farpointerdef]) then
                       begin
                          { ^ as binary operator is a problem!!!! (FK) }
                          again:=false;
@@ -1928,7 +1928,11 @@ unit pexpr;
 end.
 {
   $Log$
-  Revision 1.78  1998-12-11 00:03:32  peter
+  Revision 1.79  1998-12-30 22:15:48  peter
+    + farpointer type
+    * absolutesym now also stores if its far
+
+  Revision 1.78  1998/12/11 00:03:32  peter
     + globtype,tokens,version unit splitted from globals
 
   Revision 1.77  1998/12/04 10:18:09  florian

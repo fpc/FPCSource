@@ -1291,6 +1291,34 @@
 
 
 {****************************************************************************
+                             TFARPOINTERDEF
+****************************************************************************}
+
+    constructor tfarpointerdef.init(def : pdef);
+      begin
+         inherited init(def);
+         deftype:=farpointerdef;
+         savesize:=target_os.size_of_pointer;
+      end;
+
+
+    constructor tfarpointerdef.load;
+      begin
+         inherited load;
+         deftype:=farpointerdef;
+         savesize:=target_os.size_of_pointer;
+      end;
+
+
+    procedure tfarpointerdef.write;
+      begin
+         tdef.write;
+         writedefref(definition);
+         current_ppu^.writeentry(ibfarpointerdef);
+      end;
+
+
+{****************************************************************************
                               TCLASSREFDEF
 ****************************************************************************}
 
@@ -3254,7 +3282,11 @@
 
 {
   $Log$
-  Revision 1.84  1998-12-30 13:41:12  peter
+  Revision 1.85  1998-12-30 22:15:52  peter
+    + farpointer type
+    * absolutesym now also stores if its far
+
+  Revision 1.84  1998/12/30 13:41:12  peter
     * released valuepara
 
   Revision 1.83  1998/12/21 14:03:08  pierre

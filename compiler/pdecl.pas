@@ -328,11 +328,9 @@ unit pdecl;
                    { we should check the result type of srsym }
                    if not (srsym^.typ in [varsym,typedconstsym]) then
                      Message(parser_e_absolute_only_to_var_or_const);
-
                    storetokenpos:=tokenpos;
                    tokenpos:=declarepos;
                    abssym:=new(pabsolutesym,init(s,p));
-                   abssym^.typ:=absolutesym;
                    abssym^.abstyp:=tovar;
                    abssym^.ref:=srsym;
                    tokenpos:=storetokenpos;
@@ -346,7 +344,6 @@ unit pdecl;
                     abssym:=new(pabsolutesym,init(s,p));
                     s:=pattern;
                     consume(token);
-                    abssym^.typ:=absolutesym;
                     abssym^.abstyp:=toasm;
                     abssym^.asmname:=stringdup(s);
                     tokenpos:=storetokenpos;
@@ -361,7 +358,6 @@ unit pdecl;
                        storetokenpos:=tokenpos;
                        tokenpos:=declarepos;
                        abssym:=new(pabsolutesym,init(s,p));
-                       abssym^.typ:=absolutesym;
                        abssym^.abstyp:=toaddr;
                        abssym^.absseg:=false;
                        tokenpos:=storetokenpos;
@@ -2123,7 +2119,11 @@ unit pdecl;
 end.
 {
   $Log$
-  Revision 1.90  1998-12-15 17:16:00  peter
+  Revision 1.91  1998-12-30 22:15:46  peter
+    + farpointer type
+    * absolutesym now also stores if its far
+
+  Revision 1.90  1998/12/15 17:16:00  peter
     * fixed const s : ^string
     * first things for const pchar : @string[1]
 

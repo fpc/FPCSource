@@ -307,6 +307,8 @@ implementation
                  p^.location.reference.base:=hr;
               end;
          end;
+         if p^.left^.resulttype^.deftype=farpointerdef then
+          p^.location.reference.segment:=R_FS;
       end;
 
 
@@ -744,7 +746,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.22  1998-12-11 00:02:55  peter
+  Revision 1.23  1998-12-30 22:15:45  peter
+    + farpointer type
+    * absolutesym now also stores if its far
+
+  Revision 1.22  1998/12/11 00:02:55  peter
     + globtype,tokens,version unit splitted from globals
 
   Revision 1.21  1998/12/10 09:47:18  florian

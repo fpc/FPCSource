@@ -214,9 +214,26 @@ implementation
                 end
               else
                 begin
-                  if not(cs_typed_addresses in aktlocalswitches) then
-                    p^.resulttype:=voidpointerdef
-                  else p^.resulttype:=new(ppointerdef,init(p^.left^.resulttype));
+                  { what are we getting the address from an absolute sym? }
+                  hp:=p^.left;
+                  while assigned(hp) and (hp^.treetype in [vecn,subscriptn]) do
+                   hp:=hp^.left;
+                  if assigned(hp) and (hp^.treetype=loadn) and
+                     ((hp^.symtableentry^.typ=absolutesym) and
+                      pabsolutesym(hp^.symtableentry)^.absseg) then
+                   begin
+                     if not(cs_typed_addresses in aktlocalswitches) then
+                       p^.resulttype:=voidfarpointerdef
+                     else
+                       p^.resulttype:=new(pfarpointerdef,init(p^.left^.resulttype));
+                   end
+                  else
+                   begin
+                     if not(cs_typed_addresses in aktlocalswitches) then
+                       p^.resulttype:=voidpointerdef
+                     else
+                       p^.resulttype:=new(ppointerdef,init(p^.left^.resulttype));
+                   end;
                 end;
            end;
          store_valid:=must_be_valid;
@@ -227,8 +244,7 @@ implementation
            exit;
 
          { we should allow loc_mem for @string }
-         if (p^.left^.location.loc<>LOC_REFERENCE) and
-            (p^.left^.location.loc<>LOC_MEM) then
+         if not(p^.left^.location.loc in [LOC_MEM,LOC_REFERENCE]) then
            CGMessage(cg_e_illegal_expression);
 
          p^.registers32:=p^.left^.registers32;
@@ -291,7 +307,7 @@ implementation
          p^.registersmmx:=p^.left^.registersmmx;
 {$endif SUPPORT_MMX}
 
-         if p^.left^.resulttype^.deftype<>pointerdef then
+         if not(p^.left^.resulttype^.deftype in [pointerdef,farpointerdef]) then
           CGMessage(cg_e_invalid_qualifier);
 
          p^.resulttype:=ppointerdef(p^.left^.resulttype)^.definition;
@@ -349,9 +365,9 @@ implementation
       var
          harr : pdef;
          ct : tconverttype;
-{$ifdef consteval}	 
+{$ifdef consteval}
          tcsym : ptypedconstsym;
-{$endif}	 
+{$endif}
       begin
          firstpass(p^.left);
          firstpass(p^.right);
@@ -520,7 +536,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.6  1998-12-15 17:16:02  peter
+  Revision 1.7  1998-12-30 22:15:59  peter
+    + farpointer type
+    * absolutesym now also stores if its far
+
+  Revision 1.6  1998/12/15 17:16:02  peter
     * fixed const s : ^string
     * first things for const pchar : @string[1]
 

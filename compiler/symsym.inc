@@ -735,15 +735,14 @@
                                   TABSOLUTESYM
 ****************************************************************************}
 
-{   constructor tabsolutesym.init(const s : string;p : pdef;newref : psym);
-     begin
-        inherited init(s,p);
-        ref:=newref;
+    constructor tabsolutesym.init(const n : string;p : pdef);
+      begin
+        inherited init(n,p);
         typ:=absolutesym;
-     end; }
+      end;
+
 
     constructor tabsolutesym.load;
-
       begin
          tvarsym.load;
          typ:=absolutesym;
@@ -758,12 +757,15 @@
                  ref:=srsym;
                end;
        toasm : asmname:=stringdup(readstring);
-      toaddr : address:=readlong;
+      toaddr : begin
+                 address:=readlong;
+                 absseg:=boolean(readbyte);
+               end;
          end;
       end;
 
-    procedure tabsolutesym.write;
 
+    procedure tabsolutesym.write;
       begin
          tsym.write;
          writebyte(byte(varspez));
@@ -775,10 +777,14 @@
          case abstyp of
            tovar : writestring(ref^.name);
            toasm : writestring(asmname^);
-          toaddr : writelong(address);
+          toaddr : begin
+                     writelong(address);
+                     writebyte(byte(absseg));
+                   end;
          end;
         current_ppu^.writeentry(ibabsolutesym);
       end;
+
 
     procedure tabsolutesym.deref;
       begin
@@ -796,6 +802,7 @@
            end;
       end;
 
+
     function tabsolutesym.mangledname : string;
       begin
          case abstyp of
@@ -807,10 +814,10 @@
          end;
       end;
 
-      procedure tabsolutesym.insert_in_data;
 
-        begin
-        end;
+    procedure tabsolutesym.insert_in_data;
+      begin
+      end;
 
 
 {$ifdef GDB}
@@ -819,6 +826,7 @@
       { I don't know how to handle this !! }
       end;
 {$endif GDB}
+
 
 {****************************************************************************
                                   TVARSYM
@@ -1747,7 +1755,11 @@
 
 {
   $Log$
-  Revision 1.66  1998-12-30 13:41:14  peter
+  Revision 1.67  1998-12-30 22:15:54  peter
+    + farpointer type
+    * absolutesym now also stores if its far
+
+  Revision 1.66  1998/12/30 13:41:14  peter
     * released valuepara
 
   Revision 1.65  1998/12/26 15:35:44  peter

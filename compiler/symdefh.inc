@@ -28,7 +28,7 @@
        tdeftype = (abstractdef,arraydef,recorddef,pointerdef,orddef,
                    stringdef,enumdef,procdef,objectdef,errordef,
                    filedef,formaldef,setdef,procvardef,floatdef,
-                   classrefdef);
+                   classrefdef,farpointerdef);
 
        pdef = ^tdef;
        tdef = object
@@ -158,6 +158,15 @@
 {$endif GDB}
           procedure deref;virtual;
        end;
+
+
+       pfarpointerdef = ^tfarpointerdef;
+       tfarpointerdef = object(tpointerdef)
+          constructor init(def : pdef);
+          constructor load;
+          procedure write;virtual;
+       end;
+
 
        pobjectdef = ^tobjectdef;
        tobjectdef = object(tdef)
@@ -485,7 +494,11 @@
 
 {
   $Log$
-  Revision 1.12  1998-12-10 09:47:28  florian
+  Revision 1.13  1998-12-30 22:15:53  peter
+    + farpointer type
+    * absolutesym now also stores if its far
+
+  Revision 1.12  1998/12/10 09:47:28  florian
     + basic operations with int64/qord (compiler with -dint64)
     + rtti of enumerations extended: names are now written
 
