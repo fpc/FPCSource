@@ -71,6 +71,7 @@ unit tree;
           umminusn,     {Represents a sign change (i.e. -2).}
           asmn,     {Represents an assembler node }
           vecn,     {Represents array indexing.}
+          pointerconstn,
           stringconstn,    {Represents a string constant.}
           funcretn,     {Represents the function result var.}
           selfn,           {Represents the self parameter.}
@@ -143,7 +144,8 @@ unit tree;
           tc_fix_2_real,
           tc_proc_2_procvar,
           tc_arrayconstructor_2_set,
-          tc_load_smallset
+          tc_load_smallset,
+          tc_cord_2_pointer
        );
 
        { allows to determine which elementes are to be replaced }
@@ -248,6 +250,7 @@ unit tree;
     function gensinglenode(t : ttreetyp;l : ptree) : ptree;
     function gensubscriptnode(varsym : pvarsym;l : ptree) : ptree;
     function genordinalconstnode(v : longint;def : pdef) : ptree;
+    function genpointerconstnode(v : longint;def : pdef) : ptree;
     function genfixconstnode(v : longint;def : pdef) : ptree;
     function gentypeconvnode(node : ptree;t : pdef) : ptree;
     function gentypenode(t : pdef;sym:ptypesym) : ptree;
@@ -770,6 +773,27 @@ unit tree;
          if p^.resulttype^.deftype=orddef then
           testrange(p^.resulttype,p^.value);
          genordinalconstnode:=p;
+      end;
+
+    function genpointerconstnode(v : longint;def : pdef) : ptree;
+
+      var
+         p : ptree;
+
+      begin
+         p:=getnode;
+         p^.disposetyp:=dt_nothing;
+         p^.treetype:=pointerconstn;
+         p^.registers32:=0;
+         { p^.registers16:=0;
+         p^.registers8:=0; }
+         p^.registersfpu:=0;
+{$ifdef SUPPORT_MMX}
+         p^.registersmmx:=0;
+{$endif SUPPORT_MMX}
+         p^.resulttype:=def;
+         p^.value:=v;
+         genpointerconstnode:=p;
       end;
 
     function genenumnode(v : penumsym) : ptree;
@@ -1766,7 +1790,12 @@ unit tree;
 end.
 {
   $Log$
-  Revision 1.97  1999-09-17 17:14:13  peter
+  Revision 1.98  1999-09-26 21:30:22  peter
+    + constant pointer support which can happend with typecasting like
+      const p=pointer(1)
+    * better procvar parsing in typed consts
+
+  Revision 1.97  1999/09/17 17:14:13  peter
     * @procvar fixes for tp mode
     * @<id>:= gives now an error
 

@@ -576,24 +576,36 @@ unit pexpr;
          afterassignment:=prevafterassn;
       end;
 
-    procedure handle_procvar(procvar : pprocvardef;var t : ptree);
-      var
-        hp : ptree;
+    procedure handle_procvar(pv : pprocvardef;var p2 : ptree);
+
+        procedure doconv(procvar : pprocvardef;var t : ptree);
+        var
+          hp : ptree;
+        begin
+          hp:=nil;
+          if (proc_to_procvar_equal(pprocsym(t^.symtableentry)^.definition,procvar)) then
+           begin
+             if (po_methodpointer in procvar^.procoptions) then
+               hp:=genloadmethodcallnode(pprocsym(t^.symtableprocentry),t^.symtable,getcopy(t^.methodpointer))
+             else
+               hp:=genloadcallnode(pprocsym(t^.symtableprocentry),t^.symtable);
+           end;
+          if assigned(hp) then
+           begin
+             disposetree(t);
+             t:=hp;
+           end;
+        end;
+
       begin
-        hp:=nil;
-        if (proc_to_procvar_equal(pprocsym(t^.symtableentry)^.definition,procvar)) then
-         begin
-           if (po_methodpointer in procvar^.procoptions) then
-             hp:=genloadmethodcallnode(pprocsym(t^.symtableprocentry),t^.symtable,getcopy(t^.methodpointer))
-           else
-             hp:=genloadcallnode(pprocsym(t^.symtableprocentry),t^.symtable);
-         end;
-        if assigned(hp) then
-         begin
-           disposetree(t);
-           t:=hp;
-         end;
+        if (p2^.treetype=calln) then
+         doconv(pv,p2)
+        else
+         if (p2^.treetype=typeconvn) and
+            (p2^.left^.treetype=calln) then
+          doconv(pv,p2^.left);
       end;
+
 
     { the following procedure handles the access to a property symbol }
     procedure handle_propertysym(sym : psym;st : psymtable;var p1 : ptree;
@@ -642,14 +654,7 @@ unit pexpr;
                          getprocvar:=ppropertysym(sym)^.proptype^.deftype=procvardef;
                          p2:=comp_expr(true);
                          if getprocvar then
-                          begin
-                            if (p2^.treetype=calln) then
-                             handle_procvar(pprocvardef(ppropertysym(sym)^.proptype),p2)
-                            else
-                             if (p2^.treetype=typeconvn) and
-                                (p2^.left^.treetype=calln) then
-                              handle_procvar(pprocvardef(ppropertysym(sym)^.proptype),p2^.left);
-                          end;
+                           handle_procvar(pprocvardef(ppropertysym(sym)^.proptype),p2);
                          p1^.left:=gencallparanode(p2,p1^.left);
                          getprocvar:=false;
                        end;
@@ -784,10 +789,13 @@ unit pexpr;
                    begin
                       p1:=genmethodcallnode(pprocsym(sym),srsymtable,p1);
                       do_proc_call(getaddr or
+                        (block_type=bt_const) or
                         (getprocvar and
                          (m_tp_procvar in aktmodeswitches) and
                          proc_to_procvar_equal(pprocsym(sym)^.definition,getprocvardef))
                         ,again,p1,pd);
+                      if (block_type=bt_const) then
+                        handle_procvar(getprocvardef,p1);
                       { now we know the real method e.g. we can check for a class method }
                       if isclassref and
                          assigned(p1^.procdefinition) and
@@ -1140,6 +1148,9 @@ unit pexpr;
                                 constord :
                                   p1:=genordinalconstnode(pconstsym(srsym)^.value,
                                         pconstsym(srsym)^.definition);
+                                constpointer :
+                                  p1:=genpointerconstnode(pconstsym(srsym)^.value,
+                                        pconstsym(srsym)^.definition);
                                 constnil :
                                   p1:=genzeronode(niln);
                                 constresourcestring:
@@ -1158,10 +1169,13 @@ unit pexpr;
                               p1:=gencallnode(pprocsym(srsym),srsymtable);
                               p1^.unit_specific:=unit_specific;
                               do_proc_call(getaddr or
+                                (block_type=bt_const) or
                                 (getprocvar and
                                  (m_tp_procvar in aktmodeswitches) and
                                  proc_to_procvar_equal(pprocsym(srsym)^.definition,getprocvardef)),
                                 again,p1,pd);
+                              if (block_type=bt_const) then
+                                handle_procvar(getprocvardef,p1);
                               if possible_error and
                                  not(po_classmethod in p1^.procdefinition^.procoptions) then
                                 Message(parser_e_only_class_methods);
@@ -2008,15 +2022,7 @@ _LECKKLAMMER : begin
                               end;
                             p2:=sub_expr(opcompare,true);
                             if getprocvar then
-                             begin
-                               if (p2^.treetype=calln) then
-                                handle_procvar(getprocvardef,p2)
-                               else
-                                { also allow p:= proc(t); !! (PM) }
-                                if (p2^.treetype=typeconvn) and
-                                   (p2^.left^.treetype=calln) then
-                                 handle_procvar(getprocvardef,p2^.left);
-                             end;
+                              handle_procvar(getprocvardef,p2);
                             getprocvar:=false;
                             p1:=gennode(assignn,p1,p2);
                          end;
@@ -2100,7 +2106,12 @@ _LECKKLAMMER : begin
 end.
 {
   $Log$
-  Revision 1.143  1999-09-15 20:35:41  florian
+  Revision 1.144  1999-09-26 21:30:19  peter
+    + constant pointer support which can happend with typecasting like
+      const p=pointer(1)
+    * better procvar parsing in typed consts
+
+  Revision 1.143  1999/09/15 20:35:41  florian
     * small fix to operator overloading when in MMX mode
     + the compiler uses now fldz and fld1 if possible
     + some fixes to floating point registers

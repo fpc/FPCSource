@@ -169,6 +169,10 @@ unit pdecl;
                           ps^:=p^.value_set^;
                           symtablestack^.insert(new(pconstsym,init_def(name,constset,longint(ps),p^.resulttype)));
                         end;
+                      pointerconstn :
+                        begin
+                          symtablestack^.insert(new(pconstsym,init_def(name,constpointer,p^.value,p^.resulttype)))
+                        end;
                       niln :
                         begin
                           symtablestack^.insert(new(pconstsym,init_def(name,constnil,0,p^.resulttype)));
@@ -2536,7 +2540,12 @@ unit pdecl;
 end.
 {
   $Log$
-  Revision 1.155  1999-09-20 16:38:59  peter
+  Revision 1.156  1999-09-26 21:30:19  peter
+    + constant pointer support which can happend with typecasting like
+      const p=pointer(1)
+    * better procvar parsing in typed consts
+
+  Revision 1.155  1999/09/20 16:38:59  peter
     * cs_create_smart instead of cs_smartlink
     * -CX is create smartlink
     * -CD is create dynamic, but does nothing atm.

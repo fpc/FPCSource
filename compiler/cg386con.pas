@@ -29,6 +29,7 @@ interface
     procedure secondrealconst(var p : ptree);
     procedure secondfixconst(var p : ptree);
     procedure secondordconst(var p : ptree);
+    procedure secondpointerconst(var p : ptree);
     procedure secondstringconst(var p : ptree);
     procedure secondsetconst(var p : ptree);
     procedure secondniln(var p : ptree);
@@ -151,6 +152,19 @@ implementation
 *****************************************************************************}
 
     procedure secondordconst(var p : ptree);
+      begin
+         { an integer const. behaves as a memory reference }
+         p^.location.loc:=LOC_MEM;
+         p^.location.reference.is_immediate:=true;
+         p^.location.reference.offset:=p^.value;
+      end;
+
+
+{*****************************************************************************
+                             SecondPointerConst
+*****************************************************************************}
+
+    procedure secondpointerconst(var p : ptree);
       begin
          { an integer const. behaves as a memory reference }
          p^.location.loc:=LOC_MEM;
@@ -417,7 +431,12 @@ implementation
 end.
 {
   $Log$
-  Revision 1.41  1999-09-20 16:38:52  peter
+  Revision 1.42  1999-09-26 21:30:15  peter
+    + constant pointer support which can happend with typecasting like
+      const p=pointer(1)
+    * better procvar parsing in typed consts
+
+  Revision 1.41  1999/09/20 16:38:52  peter
     * cs_create_smart instead of cs_smartlink
     * -CX is create smartlink
     * -CD is create dynamic, but does nothing atm.

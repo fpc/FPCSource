@@ -505,6 +505,23 @@ implementation
       end;
 
 
+    procedure first_cord_to_pointer(var p : ptree);
+      var
+        t : ptree;
+      begin
+        if p^.left^.treetype=ordconstn then
+          begin
+            t:=genpointerconstnode(p^.left^.value,p^.resulttype);
+            firstpass(t);
+            disposetree(p);
+            p:=t;
+            exit;
+          end
+        else
+          internalerror(432472389);
+      end;
+
+
     procedure first_pchar_to_string(var p : ptree);
       begin
          p^.location.loc:=LOC_REFERENCE;
@@ -565,7 +582,8 @@ implementation
          first_fix_to_real,
          first_proc_to_procvar,
          first_arrayconstructor_to_set,
-         first_load_smallset
+         first_load_smallset,
+         first_cord_to_pointer
        );
      begin
        aprocdef:=nil;
@@ -944,7 +962,12 @@ implementation
 end.
 {
   $Log$
-  Revision 1.48  1999-09-17 17:14:12  peter
+  Revision 1.49  1999-09-26 21:30:22  peter
+    + constant pointer support which can happend with typecasting like
+      const p=pointer(1)
+    * better procvar parsing in typed consts
+
+  Revision 1.48  1999/09/17 17:14:12  peter
     * @procvar fixes for tp mode
     * @<id>:= gives now an error
 

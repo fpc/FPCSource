@@ -214,6 +214,7 @@ implementation
              secondumminus,     {umminusn}
              secondasm,  {asmn}
              secondvecn,        {vecn}
+             secondpointerconst, {pointerconstn}
              secondstringconst, {stringconstn}
              secondfuncret,     {funcretn}
              secondselfn,       {selfn}
@@ -696,7 +697,12 @@ implementation
 end.
 {
   $Log$
-  Revision 1.38  1999-09-16 23:05:54  florian
+  Revision 1.39  1999-09-26 21:30:17  peter
+    + constant pointer support which can happend with typecasting like
+      const p=pointer(1)
+    * better procvar parsing in typed consts
+
+  Revision 1.38  1999/09/16 23:05:54  florian
     * m68k compiler is again compilable (only gas writer, no assembler reader)
 
   Revision 1.37  1999/09/15 20:35:41  florian

@@ -895,6 +895,14 @@ implementation
       end;
 
 
+    procedure second_cord_to_pointer(pto,pfrom : ptree;convtyp : tconverttype);
+      begin
+        { this can't happend, because constants are already processed in
+          pass 1 }
+        internalerror(47423985);
+      end;
+
+
     procedure second_int_to_fix(pto,pfrom : ptree;convtyp : tconverttype);
       var
          hregister : tregister;
@@ -1288,7 +1296,8 @@ implementation
            second_fix_to_real,
            second_proc_to_procvar,
            second_nothing, {arrayconstructor_to_set}
-           second_load_smallset
+           second_load_smallset,
+           second_cord_to_pointer
          );
 {$ifdef TESTOBJEXT2}
       var
@@ -1455,7 +1464,12 @@ implementation
 end.
 {
   $Log$
-  Revision 1.88  1999-09-26 13:26:04  florian
+  Revision 1.89  1999-09-26 21:30:15  peter
+    + constant pointer support which can happend with typecasting like
+      const p=pointer(1)
+    * better procvar parsing in typed consts
+
+  Revision 1.88  1999/09/26 13:26:04  florian
     * exception patch of Romio nevertheless the excpetion handling
       needs some corections regarding register saving
     * gettempansistring is again a procedure

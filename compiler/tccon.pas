@@ -29,6 +29,7 @@ interface
     procedure firstrealconst(var p : ptree);
     procedure firstfixconst(var p : ptree);
     procedure firstordconst(var p : ptree);
+    procedure firstpointerconst(var p : ptree);
     procedure firststringconst(var p : ptree);
     procedure firstsetconst(var p : ptree);
     procedure firstniln(var p : ptree);
@@ -72,6 +73,16 @@ implementation
 *****************************************************************************}
 
     procedure firstordconst(var p : ptree);
+      begin
+         p^.location.loc:=LOC_MEM;
+      end;
+
+
+{*****************************************************************************
+                             FirstPointerConst
+*****************************************************************************}
+
+    procedure firstpointerconst(var p : ptree);
       begin
          p^.location.loc:=LOC_MEM;
       end;
@@ -125,7 +136,12 @@ implementation
 end.
 {
   $Log$
-  Revision 1.9  1999-09-04 20:52:07  florian
+  Revision 1.10  1999-09-26 21:30:22  peter
+    + constant pointer support which can happend with typecasting like
+      const p=pointer(1)
+    * better procvar parsing in typed consts
+
+  Revision 1.9  1999/09/04 20:52:07  florian
     * bug 580 fixed
 
   Revision 1.8  1999/08/04 00:23:38  florian

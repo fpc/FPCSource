@@ -58,11 +58,10 @@ unit ptconst;
          i,l,offset,
          strlength : longint;
          curconstsegment : paasmoutput;
-         ll     : pasmlabel;
-         s       : string;
-         ca     : pchar;
+         ll        : pasmlabel;
+         s         : string;
+         ca        : pchar;
          aktpos    : longint;
-         pd     : pprocdef;
          obj       : pobjectdef;
          symt      : psymtable;
          value     : bestreal;
@@ -560,25 +559,66 @@ unit ptconst;
                 if not(m_tp_procvar in aktmodeswitches) then
                   if token=_KLAMMERAFFE then
                     consume(_KLAMMERAFFE);
-              getsym(pattern,true);
-              consume(_ID);
-              if srsym^.typ=unitsym then
-                begin
-                   consume(_POINT);
-                   getsymonlyin(punitsym(srsym)^.unitsymtable,pattern);
-                   consume(_ID);
-                end;
-              if srsym^.typ<>procsym then
-                Message(cg_e_illegal_expression)
+              getprocvar:=true;
+              getprocvardef:=pprocvardef(def);
+              p:=comp_expr(true);
+              getprocvar:=false;
+              do_firstpass(p);
+              if codegenerror then
+               begin
+                 disposetree(p);
+                 exit;
+               end;
+              { convert calln to loadn }
+              if p^.treetype=calln then
+               begin
+                 if (p^.symtableprocentry^.owner^.symtabletype=objectsymtable) and
+                    (pobjectdef(p^.symtableprocentry^.owner^.defowner)^.is_class) then
+                  hp:=genloadmethodcallnode(pprocsym(p^.symtableprocentry),p^.symtableproc,
+                        getcopy(p^.methodpointer))
+                 else
+                  hp:=genloadcallnode(pprocsym(p^.symtableprocentry),p^.symtableproc);
+                 disposetree(p);
+                 do_firstpass(hp);
+                 p:=hp;
+                 if codegenerror then
+                  begin
+                    disposetree(p);
+                    exit;
+                  end;
+               end;
+              { let type conversion check everything needed }
+              p:=gentypeconvnode(p,def);
+              do_firstpass(p);
+              if codegenerror then
+               begin
+                 disposetree(p);
+                 exit;
+               end;
+              { remove typeconvn, that will normally insert a lea
+                instruction which is not necessary for us }
+              if p^.treetype=typeconvn then
+               begin
+                 hp:=p^.left;
+                 putnode(p);
+                 p:=hp;
+               end;
+              { remove addrn which we also don't need here }
+              if p^.treetype=addrn then
+               begin
+                 hp:=p^.left;
+                 putnode(p);
+                 p:=hp;
+               end;
+              { we now need to have a loadn with a procsym }
+              if (p^.treetype=loadn) and
+                 (p^.symtableentry^.typ=procsym) then
+               begin
+                 curconstsegment^.concat(new(pai_const_symbol,
+                   initname(pprocsym(p^.symtableentry)^.definition^.mangledname)));
+               end
               else
-                begin
-                   pd:=pprocsym(srsym)^.definition;
-                   if assigned(pd^.nextoverloaded) then
-                     Message(parser_e_no_overloaded_procvars);
-                   if not proc_to_procvar_equal(pd,pprocvardef(def)) then
-                     Message2(type_e_incompatible_types,pd^.typename,pprocvardef(def)^.typename);
-                   curconstsegment^.concat(new(pai_const_symbol,initname(pd^.mangledname)));
-                end;
+               Message(cg_e_illegal_expression);
            end;
          { reads a typed constant record }
          recorddef:
@@ -700,7 +740,12 @@ unit ptconst;
 end.
 {
   $Log$
-  Revision 1.52  1999-08-10 12:30:02  pierre
+  Revision 1.53  1999-09-26 21:30:20  peter
+    + constant pointer support which can happend with typecasting like
+      const p=pointer(1)
+    * better procvar parsing in typed consts
+
+  Revision 1.52  1999/08/10 12:30:02  pierre
    * avoid unused locals
 
   Revision 1.51  1999/08/04 13:03:02  jonas

@@ -231,6 +231,7 @@ implementation
              firstumminus,     {umminusn}
              firstasm,   {asmn}
              firstvec,   {vecn}
+             firstpointerconst, {pointerconstn}
              firststringconst, {stringconstn}
              firstfuncret,     {funcretn}
              firstself, {selfn}
@@ -368,7 +369,12 @@ implementation
 end.
 {
   $Log$
-  Revision 1.104  1999-09-11 09:08:31  florian
+  Revision 1.105  1999-09-26 21:30:16  peter
+    + constant pointer support which can happend with typecasting like
+      const p=pointer(1)
+    * better procvar parsing in typed consts
+
+  Revision 1.104  1999/09/11 09:08:31  florian
     * fixed bug 596
     * fixed some problems with procedure variables and procedures of object,
       especially in TP mode. Procedure of object doesn't apply only to classes,

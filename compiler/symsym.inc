@@ -1673,7 +1673,9 @@
          case consttype of
            constint,
            constbool,
-           constchar : value:=readlong;
+           constchar :
+             value:=readlong;
+           constpointer,
            constord :
              begin
                definition:=readdefref;
@@ -1729,7 +1731,7 @@
 
     procedure tconstsym.deref;
       begin
-        if consttype in [constord,constset] then
+        if consttype in [constord,constpointer,constset] then
          resolvedef(pdef(definition));
       end;
 
@@ -1744,6 +1746,7 @@
            constbool,
            constchar :
              writelong(value);
+           constpointer,
            constord :
              begin
                writedefref(definition);
@@ -1781,7 +1784,11 @@
                           {st := ibm2ascii(pstring(value)^);}
                           st := 's'''+st+'''';
                           end;
-            constbool, constint, constord, constchar : st := 'i'+tostr(value);
+            constbool,
+            constint,
+            constpointer,
+            constord,
+            constchar : st := 'i'+tostr(value);
             constreal : begin
                         system.str(pbestreal(value)^,st);
                         st := 'r'+st;
@@ -2157,7 +2164,12 @@
 
 {
   $Log$
-  Revision 1.118  1999-09-20 16:39:03  peter
+  Revision 1.119  1999-09-26 21:30:22  peter
+    + constant pointer support which can happend with typecasting like
+      const p=pointer(1)
+    * better procvar parsing in typed consts
+
+  Revision 1.118  1999/09/20 16:39:03  peter
     * cs_create_smart instead of cs_smartlink
     * -CX is create smartlink
     * -CD is create dynamic, but does nothing atm.

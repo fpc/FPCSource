@@ -313,11 +313,20 @@ implementation
                  orddef :
                    begin
                      { char constant to zero terminated string constant }
-                     if (fromtreetype=ordconstn) and is_equal(def_from,cchardef) and
-                        is_pchar(def_to) then
+                     if (fromtreetype=ordconstn) then
                       begin
-                        doconv:=tc_cchar_2_pchar;
-                        b:=1;
+                        if is_equal(def_from,cchardef) and
+                           is_pchar(def_to) then
+                         begin
+                           doconv:=tc_cchar_2_pchar;
+                           b:=1;
+                         end
+                        else
+                         if is_integer(def_from) then
+                          begin
+                            doconv:=tc_cord_2_pointer;
+                            b:=1;
+                          end;
                       end;
                    end;
                  arraydef :
@@ -705,7 +714,12 @@ implementation
 end.
 {
   $Log$
-  Revision 1.39  1999-09-17 17:14:04  peter
+  Revision 1.40  1999-09-26 21:30:15  peter
+    + constant pointer support which can happend with typecasting like
+      const p=pointer(1)
+    * better procvar parsing in typed consts
+
+  Revision 1.39  1999/09/17 17:14:04  peter
     * @procvar fixes for tp mode
     * @<id>:= gives now an error
 

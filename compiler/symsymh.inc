@@ -281,7 +281,7 @@
        end;
 
        tconsttype = (constord,conststring,constreal,constbool,
-                     constint,constchar,constset,constnil,
+                     constint,constchar,constset,constpointer,constnil,
                      constresourcestring);
 
        pconstsym = ^tconstsym;
@@ -338,7 +338,12 @@
 
 {
   $Log$
-  Revision 1.34  1999-08-31 15:42:26  pierre
+  Revision 1.35  1999-09-26 21:30:22  peter
+    + constant pointer support which can happend with typecasting like
+      const p=pointer(1)
+    * better procvar parsing in typed consts
+
+  Revision 1.34  1999/08/31 15:42:26  pierre
    + tmacrosym is_used and defined_at_startup boolean fields added
 
   Revision 1.33  1999/08/23 11:45:45  michael

@@ -3088,7 +3088,8 @@ Const local_symtable_index : longint = $8001;
     function tprocvardef.gettypename : string;
 
       begin
-         if assigned(retdef) then
+         if assigned(retdef) and
+            (retdef<>pdef(voiddef)) then
            gettypename:='<procedure variable type of function'+demangled_paras+':'+retdef^.gettypename+'>'
          else
            gettypename:='<procedure variable type of procedure'+demangled_paras+'>';
@@ -3778,7 +3779,12 @@ Const local_symtable_index : longint = $8001;
 
 {
   $Log$
-  Revision 1.165  1999-09-20 16:39:02  peter
+  Revision 1.166  1999-09-26 21:30:21  peter
+    + constant pointer support which can happend with typecasting like
+      const p=pointer(1)
+    * better procvar parsing in typed consts
+
+  Revision 1.165  1999/09/20 16:39:02  peter
     * cs_create_smart instead of cs_smartlink
     * -CX is create smartlink
     * -CD is create dynamic, but does nothing atm.
