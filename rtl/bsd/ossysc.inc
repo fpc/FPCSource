@@ -479,7 +479,7 @@ end;
 
 Function sbrk(size : longint) : pointer;
 begin
-  sbrk:=Fpmmap(0,Size,3,MAP_PRIVATE+MAP_ANONYMOUS,-1,0);
+  sbrk:=Fpmmap(nil,cardinal(Size),3,MAP_PRIVATE+MAP_ANONYMOUS,-1,0);
   if sbrk=pointer(-1) then
     sbrk:=nil
   else
@@ -614,7 +614,10 @@ end;
 
 {
  $Log$
- Revision 1.14  2003-10-26 17:01:04  marco
+ Revision 1.15  2003-12-16 19:43:59  marco
+  * nil <-> 0 changes
+
+ Revision 1.14  2003/10/26 17:01:04  marco
   * moved sigprocmask to system
 
  Revision 1.13  2003/10/17 22:10:30  olle

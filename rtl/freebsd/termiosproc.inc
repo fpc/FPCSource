@@ -76,7 +76,7 @@ end;
 
 Function TCSendBreak(fd,duration:cint):cint;
 begin
-  TCSendBreak:=fpIOCtl(fd,TIOCSBRK,0);
+  TCSendBreak:=fpIOCtl(fd,TIOCSBRK,nil);
 end;
 
 
@@ -93,15 +93,15 @@ end;
 
 Function TCDrain(fd:cint):cint;
 begin
-  TCDrain:=fpIOCtl(fd,TIOCDRAIN,0); {Should set timeout to 1 first?}
+  TCDrain:=fpIOCtl(fd,TIOCDRAIN,nil); {Should set timeout to 1 first?}
 end;
 
 
 Function TCFlow(fd,act:cint):cint;
 begin
     case act OF
-     TCOOFF :  TCFlow:=fpIoctl(fd,TIOCSTOP,0);
-     TCOOn  :  TCFlow:=fpIOctl(Fd,TIOCStart,0);
+     TCOOFF :  TCFlow:=fpIoctl(fd,TIOCSTOP,nil);
+     TCOOn  :  TCFlow:=fpIOctl(Fd,TIOCStart,nil);
      TCIOFF :  {N/I}
     end;
 end;
@@ -132,7 +132,10 @@ end;
 
 {
    $Log$
-   Revision 1.1  2003-11-19 17:15:31  marco
+   Revision 1.2  2003-12-16 19:43:53  marco
+    * nil <-> 0 changes
+
+   Revision 1.1  2003/11/19 17:15:31  marco
     * termio new includefile
 
 
