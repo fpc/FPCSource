@@ -107,7 +107,9 @@ ole2$(PPUEXT) : ole2.pp windows$(PPUEXT) $(SYSTEMPPU)
 
 opengl32$(PPUEXT) : opengl32.pp windows$(PPUEXT) $(SYSTEMPPU)
 
-winsock$(PPUEXT) : winsock.pp windows$(PPUEXT) $(SYSTEMPPU)
+os_types$(PPUEXT) : $(INC)/os_types.pp
+
+winsock$(PPUEXT) : winsock.pp windows$(PPUEXT) $(SYSTEMPPU) os_types$(PPUEXT)
 
 sockets$(PPUEXT) : sockets.pp windows$(PPUEXT) winsock$(PPUEXT) $(SYSTEMPPU) \
                    $(INC)/sockets.inc $(INC)/socketsh.inc
