@@ -114,12 +114,12 @@ interface
          { this need to be incremented with every symbol loading into the
            paasmoutput, thus in loadsym/loadref/const_symbol (PFV) }
          refs    : longint;
-         { alternate symbol which can be used for 'renaming' needed for
+         {# Alternate symbol which can be used for 'renaming' needed for
            inlining }
          altsymbol : tasmsymbol;
-         { is the symbol local for a procedure/function }
+         {# TRUE if the symbol is local for a procedure/function }
          proclocal : boolean;
-         { is the symbol in the used list }
+         {# Is the symbol in the used list }
          inusedlist : boolean;
          { assembler pass label is set, used for detecting multiple labels }
          pass : byte;
@@ -131,18 +131,12 @@ interface
        end;
 
        tasmlabel = class(tasmsymbol)
-{$ifdef PACKENUMFIXED}
          { this is set by the tai_label.Init }
          is_set,
          { is the label only there for getting an address (e.g. for i/o }
          { checks -> true) or is it a jump target (false)               }
          is_addr : boolean;
-{$endif}
          labelnr : longint;
-{$ifndef PACKENUMFIXED}
-         is_set,
-         is_addr : boolean;
-{$endif}
          constructor create;
          constructor createdata;
          constructor createaddr;
@@ -152,16 +146,10 @@ interface
 
        { the short name makes typing easier }
        tai = class(tlinkedlistitem)
-{$ifndef PACKENUMFIXED}
-          typ      : tait;
-{$endif}
           { pointer to record with optimizer info about this tai object }
           optinfo  : pointer;
           fileinfo : tfileposinfo;
-{$ifdef PACKENUMFIXED}
-          { still 3 bytes left after the next field }
           typ      : tait;
-{$endif}
           constructor Create;
        end;
 
@@ -177,14 +165,9 @@ interface
 
        { generates a common label }
        tai_symbol = class(tai)
-{$ifdef PACKENUMFIXED}
           is_global : boolean;
-{$endif}
           sym : tasmsymbol;
           size : longint;
-{$ifndef PACKENUMFIXED}
-          is_global : boolean;
-{$endif}
           constructor Create(_sym:tasmsymbol;siz:longint);
           constructor Createname(const _name : string;siz:longint);
           constructor Createname_global(const _name : string;siz:longint);
@@ -199,13 +182,8 @@ interface
        end;
 
        tai_label = class(tai)
-{$ifdef PACKENUMFIXED}
           is_global : boolean;
-{$endif}
           l : tasmlabel;
-{$ifndef PACKENUMFIXED}
-          is_global : boolean;
-{$endif}
           constructor Create(_l : tasmlabel);
        end;
 
@@ -248,14 +226,9 @@ interface
 
        { generates an uninitializised data block }
        tai_datablock = class(tai)
-{$ifdef PACKENUMFIXED}
           is_global : boolean;
-{$endif}
           sym  : tasmsymbol;
           size : longint;
-{$ifndef PACKENUMFIXED}
-          is_global : boolean;
-{$endif}
           constructor Create(const _name : string;_size : longint);
           constructor Create_global(const _name : string;_size : longint);
        end;
@@ -326,14 +299,9 @@ interface
        end;
 
        taitempalloc = class(tai)
-{$ifdef PACKENUMFIXED}
           allocation : boolean;
-{$endif}
           temppos,
           tempsize   : longint;
-{$ifndef PACKENUMFIXED}
-          allocation : boolean;
-{$endif}
           constructor alloc(pos,size:longint);
           constructor dealloc(pos,size:longint);
        end;
@@ -379,13 +347,13 @@ type
       nextlabelnr : longint = 1;
       countlabelref : boolean = true;
 
-    { make l as a new label }
+    {# create a new assembler label }
     procedure getlabel(var l : tasmlabel);
     { make l as a new label and flag is_addr }
     procedure getaddrlabel(var l : tasmlabel);
     { make l as a new label and flag is_data }
     procedure getdatalabel(var l : tasmlabel);
-    {just get a label number }
+    {# return a label number }
     procedure getlabelnr(var l : longint);
 
     function  newasmsymbol(const s : string) : tasmsymbol;
@@ -1163,7 +1131,11 @@ uses
 end.
 {
   $Log$
-  Revision 1.20  2002-03-24 19:04:31  carl
+  Revision 1.21  2002-04-07 10:17:40  carl
+  - remove packenumfixed (requires version 1.0.2 or later to compile now!)
+  + changing some comments so its commented automatically
+
+  Revision 1.20  2002/03/24 19:04:31  carl
   + patch for SPARC from Mazen NEIFER
 
   Revision 1.19  2001/12/31 16:54:14  peter
