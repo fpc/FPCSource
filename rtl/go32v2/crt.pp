@@ -722,7 +722,10 @@ Begin
     #8 : BackSpace;
     ^Y,
    #27 : begin
-           f.bufpos:=f.bufend;
+           while f.bufpos<f.bufend do begin
+            WriteChar(f.bufptr^[f.bufpos]);
+            inc(f.bufpos);
+           end;
            while f.bufend>0 do
             BackSpace;
          end;
@@ -831,7 +834,10 @@ end.
 
 {
   $Log$
-  Revision 1.7  2002-09-10 10:38:04  pierre
+  Revision 1.8  2002-12-15 20:22:24  peter
+    * fix making string empty in readln when cursor is not at the end
+
+  Revision 1.7  2002/09/10 10:38:04  pierre
    * merged from fixes: fix bug report 1974
 
   Revision 1.6  2002/09/07 16:01:18  peter
