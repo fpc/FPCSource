@@ -140,7 +140,7 @@ type
   TtaiPropBlock = Array[1..250000] Of TtaiProp;
   PtaiPropBlock = ^TtaiPropBlock;
 
-  TInstrSinceLastMod = Array[RS_EAX..RS_ESP] Of Byte;
+  TInstrSinceLastMod = Array[RS_EAX..RS_ESP] Of Word;
 
   TLabelTableItem = Record
                       taiObj: tai;
@@ -762,7 +762,7 @@ function regInInstruction(supreg: tsuperregister; p1: tai): boolean;
 { this one ignores CH_ALL opcodes, while regModifiedByInstruction doesn't  }
 var
   p: taicpu;
-  opcount: byte;
+  opcount: Word;
 begin
   regInInstruction := false;
   if p1.typ <> ait_instruction then
@@ -841,7 +841,7 @@ function RegModifiedByInstruction(supreg: tsuperregister; p1: tai): boolean;
 var
   InstrProp: TInsProp;
   TmpResult: Boolean;
-  Cnt: Byte;
+  Cnt: Word;
 begin
   TmpResult := False;
   if supreg = RS_INVALID then
@@ -1228,7 +1228,7 @@ function sequenceDependsonReg(const Content: TContent; seqreg: tsuperregister; s
 { "movl (seqreg,reg), seqReg" instruction), this function returns true     }
 var
   p: tai;
-  Counter: Byte;
+  Counter: Word;
   TmpResult: Boolean;
   RegsChecked: TRegSet;
 begin
@@ -2713,7 +2713,10 @@ end.
 
 {
   $Log$
-  Revision 1.63  2003-12-22 23:11:41  peter
+  Revision 1.64  2003-12-23 19:52:55  peter
+    * more byte->word
+
+  Revision 1.63  2003/12/22 23:11:41  peter
     * overflow for instruction counters
 
   Revision 1.62  2003/12/20 22:53:33  jonas
