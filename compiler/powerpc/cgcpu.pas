@@ -42,8 +42,7 @@ unit cgcpu;
         procedure a_paramaddr_ref(list : taasmoutput;const r : treference;nr : longint);override;
 
 
-        procedure a_call_name(list : taasmoutput;const s : string;
-          offset : longint);override;
+        procedure a_call_name(list : taasmoutput;const s : string);override;
 
         procedure a_op_const_reg(list : taasmoutput; Op: TOpCG; a: AWord; reg: TRegister); override;
         procedure a_op_reg_reg(list : taasmoutput; Op: TOpCG; size: TCGSize; src, dst: TRegister); override;
@@ -70,7 +69,6 @@ unit cgcpu;
           l : tasmlabel);override;
         procedure a_cmp_reg_reg_label(list : taasmoutput;size : tcgsize;cmp_op : topcmp;reg1,reg2 : tregister;l : tasmlabel); override;
 
-        procedure a_jmp_cond(list : taasmoutput;cond : TOpCmp;l: tasmlabel); override;
         procedure a_jmp_flags(list : taasmoutput;const f : TResFlags;l: tasmlabel); override;
 
         procedure g_flags2reg(list: taasmoutput; const f: TResFlags; reg: TRegister); override;
@@ -92,6 +90,8 @@ unit cgcpu;
         function get_rlwi_const(a: longint; var l1, l2: longint): boolean;
 
         private
+
+        procedure a_jmp_cond(list : taasmoutput;cond : TOpCmp;l: tasmlabel);
 
         procedure g_return_from_proc_sysv(list : taasmoutput;parasize : aword);
         procedure g_return_from_proc_mac(list : taasmoutput;parasize : aword);
@@ -226,8 +226,7 @@ const
 
 { calling a code fragment by name }
 
-    procedure tcgppc.a_call_name(list : taasmoutput;const s : string;
-      offset : longint);
+    procedure tcgppc.a_call_name(list : taasmoutput;const s : string);
 
       begin
  { save our RTOC register value. Only necessary when doing pointer based    }
@@ -730,7 +729,7 @@ const
         list.concat(taicpu.op_reg_reg_const(A_SUBFIC,R_12,R_12,
           -localsize));
         { establish new alignment }
-        list.concat(taicpu.op_reg_reg_reg(A_STWUX,STACK_POINTER,STACK_POINTER_REG,R_12));
+        list.concat(taicpu.op_reg_reg_reg(A_STWUX,STACK_POINTER_REG,STACK_POINTER_REG,R_12));
         a_reg_dealloc(list,R_12);
         { save floating-point registers }
         { !!! has to be optimized: only save registers that are used }
@@ -789,7 +788,7 @@ const
         a_reg_alloc(list,R_0);
         list.concat(taicpu.op_reg_reg(A_MFSPR,R_0,R_CR));
         list.concat(taicpu.op_reg_ref(A_STW,R_0,
-          new_reference(stack_pointer,LA_CR)));
+          new_reference(stack_pointer_reg,LA_CR)));
         a_reg_dealloc(list,R_0);
         { save pointer to incoming arguments }
         list.concat(taicpu.op_reg_reg_const(A_ORI,R_31,STACK_POINTER_REG,0));
@@ -980,7 +979,7 @@ const
            end
          else
            a_jmp_cond(list,OC_AE,hl);
-         a_call_name(list,'FPC_OVERFLOW',0);
+         a_call_name(list,'FPC_OVERFLOW');
          a_label(list,hl);
       end;
 
@@ -1174,7 +1173,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.13  2002-04-20 21:41:51  carl
+  Revision 1.14  2002-05-13 19:52:46  peter
+    * a ppcppc can be build again
+
+  Revision 1.13  2002/04/20 21:41:51  carl
   * renamed some constants
 
   Revision 1.12  2002/04/06 18:13:01  jonas

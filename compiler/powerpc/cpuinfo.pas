@@ -19,9 +19,9 @@ Interface
 
 Type
    { Architecture word - Native unsigned type }
-   AWord = Dword;
+   AWord  = Cardinal;
+   PAWord = ^AWord;
 
-Type
    { this must be an ordinal type with the same size as a pointer }
    { to allow some dirty type casts for example when using        }
    { tconstsym.value                                              }
@@ -29,18 +29,25 @@ Type
    { pointer(-1) will result in a pointer with the value          }
    { $fffffffffffffff on a 32bit machine if the compiler uses     }
    { int64 constants internally (JM)                              }
-   TConstPtrUInt = DWord;
+   TConstPtrUInt = Cardinal;
 
 Const
-   { Size of native extended type }
+   {# Size of native extended floating point type }
    extended_size = 8;
+   {# Size of a pointer                           }
+   pointer_size  = 4;
+   {# Size of a multimedia register               }
+   mmreg_size = 16;
 
 Implementation
 
 end.
 {
   $Log$
-  Revision 1.3  2002-04-07 13:43:11  carl
+  Revision 1.4  2002-05-13 19:52:46  peter
+    * a ppcppc can be build again
+
+  Revision 1.3  2002/04/07 13:43:11  carl
   - moved type constant
 
   Revision 1.2  2001/12/29 15:28:58  jonas

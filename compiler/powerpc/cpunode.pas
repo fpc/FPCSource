@@ -29,16 +29,28 @@ unit cpunode;
   implementation
 
     uses
-       ncgbas,ncgflw,ncgcnv,ncgmem,ncgcon,
-       nppcld,nppcadd,nppccal,nppccon,nppcflw,nppcmat,nppcmem,
-       nppcset,nppcinl,nppcopt,
+//       nppcadd,
+//       nppccal,
+//       nppccon,
+//       nppcflw,
+       nppcmat,
+//       nppcmem,
+//       nppcset,
+//       nppcinl,
+//       nppcopt,
        { this not really a node }
-       nppcobj;
+//       nppcobj,
+       { generic nodes }
+       ncgbas,ncgld,ncgflw,ncgcnv,ncgmem,ncgcon
+       ;
 
 end.
 {
   $Log$
-  Revision 1.1  2002-04-06 18:13:02  jonas
+  Revision 1.2  2002-05-13 19:52:46  peter
+    * a ppcppc can be build again
+
+  Revision 1.1  2002/04/06 18:13:02  jonas
     * several powerpc-related additions and fixes
 
   Revision 1.6  2001/09/29 21:32:47  jonas

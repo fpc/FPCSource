@@ -80,6 +80,9 @@ type
      destructor destroy;override;
   end;
 
+    procedure InitAsm;
+    procedure DoneAsm;
+
 
 implementation
 
@@ -410,10 +413,23 @@ implementation
         inherited destroy;
       end;
 
+
+    procedure InitAsm;
+      begin
+      end;
+
+
+    procedure DoneAsm;
+      begin
+      end;
+
 end.
 {
   $Log$
-  Revision 1.3  2001-12-29 15:28:58  jonas
+  Revision 1.4  2002-05-13 19:52:46  peter
+    * a ppcppc can be build again
+
+  Revision 1.3  2001/12/29 15:28:58  jonas
     * powerpc/cgcpu.pas compiles :)
     * several powerpc-related fixes
     * cpuasm unit is now based on common tainst unit

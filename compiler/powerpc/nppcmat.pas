@@ -73,14 +73,13 @@ implementation
          numerator,
          divider,
          resultreg  : tregister;
-         saved      : boolean;
+         saved      : tmaybesave;
 
       begin
          secondpass(left);
-         saved:=maybe_savetotemp(right.registers32,left,is_64bitint(left.resulttype.def));
+         maybe_save(exprasmlist,right.registers32,left.location,saved);
          secondpass(right);
-         if saved then
-           restorefromtemp(left,is_64bitint(left.resulttype.def));
+         maybe_restore(exprasmlist,left.location,saved);
          set_location(location,left.location);
 
          resultreg := R_NO;
@@ -171,14 +170,13 @@ implementation
          op : topcg;
          asmop1, asmop2: tasmop;
          shiftval: aword;
-         saved : boolean;
+         saved : tmaybesave;
 
       begin
          secondpass(left);
-         saved:=maybe_savetotemp(right.registers32,left,is_64bitint(left.resulttype.def));
+         maybe_save(exprasmlist,right.registers32,left.location,saved);
          secondpass(right);
-         if saved then
-           restorefromtemp(left,is_64bitint(left.resulttype.def));
+         maybe_restore(exprasmlist,left.location,saved);
 
          if is_64bitint(left.resulttype.def) then
            begin
@@ -516,7 +514,7 @@ implementation
                   truelabel:=falselabel;
                   falselabel:=hl;
                   secondpass(left);
-                  maketojumpbool(left,lr_load_regvars);
+                  maketojumpbool(exprasmlist,left,lr_load_regvars);
                   hl:=truelabel;
                   truelabel:=falselabel;
                   falselabel:=hl;
@@ -524,7 +522,8 @@ implementation
               LOC_FLAGS :
                 begin
                   location.resflags:=left.location.resflags;
-!!!                  inverse_flags(left.location.resflags);
+{$warning !!!}
+//                  inverse_flags(left.location.resflags);
                 end;
               LOC_REGISTER, LOC_CREGISTER, LOC_REFERENCE, LOC_CREFERENCE :
                 begin
@@ -623,7 +622,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.4  2002-04-21 15:48:39  carl
+  Revision 1.5  2002-05-13 19:52:46  peter
+    * a ppcppc can be build again
+
+  Revision 1.4  2002/04/21 15:48:39  carl
   * some small updates according to i386 version
 
   Revision 1.3  2002/04/06 18:13:02  jonas
