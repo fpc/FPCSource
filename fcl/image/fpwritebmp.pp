@@ -24,13 +24,15 @@ uses FPImage, classes, sysutils;
 type
    
   TFPWriterBMP = class (TFPCustomImageWriter)
-    private
-      BytesPerPixel:Integer;
-      procedure SetColorSize (AValue : byte);
-    protected
-      procedure InternalWrite (Stream:TStream; Img:TFPCustomImage); override;
-    public
-      constructor Create; override;
+  private
+    FBytesPerPixel : Byte;
+    procedure SetColorSize (AValue : Byte);
+  protected
+    function  SaveHeader(Stream:TStream; Img: TFPCustomImage):boolean; virtual;
+    procedure InternalWrite (Stream:TStream; Img: TFPCustomImage); override;
+  public
+    constructor Create; override;
+    Property BytesPerPixel : Byte Read FBytesPerPixel Write SetColorSize;
   end;
 
 
@@ -38,103 +40,118 @@ implementation
 
 uses BMPcomn;
 
+Function FPColorToRGB(Const Color : TFPColor) : TColorRGB;
+
+begin
+  With Result,Color do
+    begin
+    R:=(Red   and $FF00) shr 8;
+    G:=(Green and $FF00) shr 8;
+    B:=(Blue  and $FF00) shr 8;
+    end;
+end;
+
+Function FPColorToRGBA(Const Color : TFPColor) : TColorRGBA;
+
+begin
+  With Result,Color do
+    begin
+    R:=(Red   and $FF00) shr 8;
+    G:=(Green and $FF00) shr 8;
+    B:=(Blue  and $FF00) shr 8;
+    A:=(Alpha and $FF00) shr 8;
+    end;
+end;
+
 constructor TFPWriterBMP.create;
 begin
   inherited create;
-  BytesPerPixel := 3
+  FBytesPerPixel:=3;
 end;
 
 procedure TFPWriterBMP.SetColorSize (AValue : byte);
 begin
-  if AValue >= 3
-  then
-    BytesPerPixel := 3
-  else if AValue = 0
-  then
-    BytesPerPixel := 1
-  else
-    BytesPerPixel := AValue;
+  if (AValue>4) then
+    AValue:=4;
+  if (AValue<1) then
+    AValue:=1;
+  FBytesPerPixel:=AValue;
+end;
+
+function TFPWriterBMP.SaveHeader(Stream:TStream; Img : TFPCustomImage):boolean;
+
+var
+  BFH:TBitMapFileHeader;
+  BFI:TBitMapInfoHeader;
+  
+begin
+  Result:=False;
+  with BFI do
+    begin
+    Size:=sizeof(TBitMapInfoHeader);
+    Width:=Img.Width;
+    Height:=Img.Height;
+    Planes:=1;
+    BitCount:=BytesPerPixel SHL 3;
+    Compression:=0;
+    SizeImage:=Width*Height;
+    XPelsPerMeter:=100;
+    YPelsPerMeter:=100;
+    ClrUsed:=0; // No palette yet.
+    ClrImportant:=0;
+    end;
+  with BFH do
+    begin
+    bfType:=BMmagic;//'BM'
+    bfOffset:=sizeof(TBitMapFileHeader)+sizeof(TBitMapInfoHeader);
+    bfReserved:=0;
+    bfSize:=bfOffset+BFI.SizeImage*BytesPerPixel;
+    end;
+  Stream.seek(0,soFromBeginning);
+  Stream.Write(bfh,sizeof(TBitMapFileHeader));
+  Stream.Write(bfi,sizeof(TBitMapInfoHeader));
+  Result:=true;
 end;
 
 procedure TFPWriterBMP.InternalWrite (Stream:TStream; Img:TFPCustomImage);
-  function SaveHeader(stream:TStream):boolean;
-    var
-      BFH:TBitMapFileHeader;
-      BFI:TBitMapInfoHeader;
-    begin
-      SaveHeader := false;
-      with BFI do
-        begin
-          Size:=sizeof(TBitMapInfoHeader);
-          Width:=Img.Width;
-          Height:=Img.Height;
-          Planes:=1;
-          BitCount:=BytesPerPixel SHL 3;
-          Compression:=0;
-          SizeImage:=Width*Height;
-          XPelsPerMeter:=100;
-          YPelsPerMeter:=100;
-          ClrUsed:=0;
-          ClrImportant:=0;
-        end;
-      with BFH do
-        begin
-          bfType:=BMmagic;//'BM'
-          bfOffset:=sizeof(TBitMapFileHeader)+sizeof(TBitMapInfoHeader);
-          bfReserved:=0;
-          bfSize:=bfOffset+BFI.SizeImage*BytesPerPixel;
-        end;
-      stream.seek(0,soFromBeginning);
-      stream.Write(bfh,sizeof(TBitMapFileHeader));
-      stream.Write(bfi,sizeof(TBitMapInfoHeader));
-      if(bfi.bitCount = 8)
-      then
-        begin
-//          stream.Write(Palet, bfh.bfOffset - 54);
-        end;
-      SaveHeader := true;
-    end;
-  var
-    Row,Coulumn,nBpLine,WriteSize:Integer;
-    aColor:TFPcolor;
-{$IFDEF UseDynArray}
-    aLine:ARRAY OF TColorRGB;
-{$ELSE UseDynArray}
-    aLine:^TColorRGB;
-{$ENDIF UseDynArray}
-  begin
-    SaveHeader(Stream);
-    nBpLine:=Img.Width*SizeOf(TColorRGB);
-    WriteSize:=(nBpLine+3)AND $FFFFFFFC;//BMP needs evry line 4Bytes aligned
-{$IFDEF UseDynArray}
-    SetLength(aLine,Img.Width+1);//3 extra byte for BMP 4Bytes alignement.
-{$ELSE UseDynArray}
-    GetMem(aLine,(Img.Width+1)*SizeOf(TColorRGB));//3 extra byte for BMP 4Bytes alignement.
-{$ENDIF UseDynArray}
-    for Row:=img.Height-1 downto 0 do
+
+var
+  Row,Col,nBpLine,WriteSize:Integer;
+  aLine: PByte;
+  S : Integer;
+  
+begin
+  If Not (BytesPerPixel in [3,4]) then
+    Raise FPImageException.Create('Only 24 or 32 bit images are currently supported.');
+  SaveHeader(Stream,Img);
+  nBpLine:=Img.Width*BytesPerPixel;
+  WriteSize:=(nBpLine+3) AND $FFFFFFFC; //BMP needs evry line 4Bytes aligned
+  GetMem(aLine,(Img.Width+1)*BytesPerPixel);//3 extra byte for BMP 4Bytes alignement.
+  Try
+    for Row:=Img.Height-1 downto 0 do
       begin
-        for Coulumn:=0 to img.Width-1 do
-          with aLine[Coulumn],aColor do
-            begin
-              aColor := img.colors[Coulumn,Row];
-{Use only the high byte to convert the color}
-              R:=(Red and $FF00) shr 8;
-              G:=(Green and $FF00) shr 8;
-              B:=(Blue and $FF00) shr 8;
-            end;
-        Stream.Write(aLine{$IFNDEF UseDynArray}^{$ENDIF UseDynArray},WriteSize);
+      Case BytesPerPixel of
+        3 : for Col:=0 to img.Width-1 do
+              PColorRGB(aLine)[Col]:=FPColorToRGB(img.colors[Col,Row]);
+        4 : for Col:=0 to img.Width-1 do
+              PColorRGBA(aLine)[Col]:=FPColorToRGBA(img.colors[Col,Row]);
+      end;       
+      Stream.Write(aLine[0],WriteSize);
       end;
-{$IFNDEF UseDynArray}
-    FreeMem(aLine,(Img.Width+1)*SizeOf(TColorRGB));
-{$ENDIF UseDynArray}
-  end;
+  Finally
+    FreeMem(aLine);
+  end;  
+end;
 
 initialization
   ImageHandlers.RegisterImageWriter ('BMP Format', 'bmp', TFPWriterBMP);
 end.
 {
 $Log$
-Revision 1.5  2003-09-09 11:28:23  mazen
+Revision 1.6  2004-02-20 23:52:49  michael
++ Added support for 32-bit writing. Standard is still 24 bit.
+
+Revision 1.5  2003/09/09 11:28:23  mazen
 * fixing copyright section in the file header
 
 Revision 1.4  2003/09/08 14:08:48  mazen
