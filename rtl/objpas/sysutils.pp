@@ -336,13 +336,19 @@ end;
 
 {  Initialization code. }
 
-begin
+Initialization
   InitExceptions;       { Initialize exceptions. OS independent }
   InitInternational;    { Initialize internationalization settings }
+Finalization
+  OutOfMemory.Free;
+  InValidPointer.Free;  
 end.
 {
     $Log$
-    Revision 1.27  1999-07-02 17:03:24  florian
+    Revision 1.28  1999-07-08 19:32:36  michael
+    + Freed exception classes in finalization code
+
+    Revision 1.27  1999/07/02 17:03:24  florian
       + added some runtime->excpetin wrappers: eintoverflow, eoverflow, eunderflow, einvalidop
 
     Revision 1.26  1999/04/09 08:40:46  michael
