@@ -39,7 +39,8 @@ interface
     uses
       globtype,globals,
       aasmbase,aasmtai,
-      cgbase,cga,cgobj;
+      cgbase,cgutils,cga,cgobj,
+      tgobj;
 
 {*****************************************************************************
                                 MUL
@@ -87,7 +88,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.4  2004-09-25 14:23:55  peter
+  Revision 1.5  2004-11-01 17:40:29  florian
+    + added cgutils uses clause
+
+  Revision 1.4  2004/09/25 14:23:55  peter
     * ungetregister is now only used for cpuregisters, renamed to
       ungetcpuregister
     * renamed (get|unget)explicitregister(s) to ..cpuregister

@@ -50,10 +50,11 @@ implementation
       globtype,systems,
       cutils,verbose,globals,
       symconst,symdef,aasmbase,aasmtai,defutil,
-      cgbase,pass_1,pass_2,
+      pass_1,pass_2,
       ncon,
       cpubase,cpuinfo,
-      cga,ncgutil,cgobj,cgx86;
+      cgbase,cgutils,cga,cgobj,cgx86,
+      ncgutil;
 
 {*****************************************************************************
                              TX8664MODDIVNODE
@@ -204,7 +205,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.7  2004-09-25 14:23:55  peter
+  Revision 1.8  2004-11-01 17:40:29  florian
+    + added cgutils uses clause
+
+  Revision 1.7  2004/09/25 14:23:55  peter
     * ungetregister is now only used for cpuregisters, renamed to
       ungetcpuregister
     * renamed (get|unget)explicitregister(s) to ..cpuregister
