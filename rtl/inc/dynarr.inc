@@ -81,10 +81,8 @@ procedure fpc_dynarray_decr_ref(var p : pointer;ti : pointer);[Public,Alias:'FPC
      { decr. ref. count }
      { should we remove the array? }
      if declocked(realp^.refcount) then
-       begin
-         dynarray_clear(realp,pdynarraytypeinfo(ti));
-         p := nil;
-       end;
+       dynarray_clear(realp,pdynarraytypeinfo(ti));
+     p := nil;
   end;
 
 {$ifdef hascompilerproc}
@@ -251,7 +249,10 @@ function fpc_dynarray_copy(var p : pointer;ti : pointer;
 
 {
   $Log$
-  Revision 1.10  2001-09-26 14:07:25  jonas
+  Revision 1.11  2001-09-27 08:59:13  jonas
+    * fixed bug in dynarr_decr_ref I introduced with my previous fixes
+
+  Revision 1.10  2001/09/26 14:07:25  jonas
     * fixed several bugs, most related to handling multi-dimensional
       dynamical arrays
 
