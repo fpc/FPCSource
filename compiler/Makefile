@@ -52,6 +52,10 @@ DEFAULTFPCDIR=..
 
 # RTL
 RTL=../rtl
+UTILS=../utils
+
+# Utils used by compiler development/installation
+COMPILERUTILS=utils
 
 # At least set -Sg
 override LOCALOPT+=-Sg
@@ -176,7 +180,7 @@ TEMPNAME=ppc$(EXEEXT)
 TEMPNAME1=ppc1$(EXEEXT)
 TEMPNAME2=ppc2$(EXEEXT)
 TEMPNAME3=ppc3$(EXEEXT)
-MAKEDEP=mkdep$(EXEEXT)
+MAKEDEP=ppdep$(EXEEXT)
 MSG2INC=msg2inc$(EXEEXT)
 
 
@@ -234,9 +238,9 @@ distclean: clean
 # Include depencies
 #####################################################################
 
-$(MAKEDEP): $(RTL)/utils/mkdep.pp
-	$(COMPILER) $(RTL)/utils/mkdep.pp
-	$(COPY) $(RTL)/utils/$(MAKEDEP) $(MAKEDEP)
+$(MAKEDEP): $(UTILS)/ppdep.pp
+	$(COMPILER) $(UTILS)/ppdep.pp
+	$(COPY) $(UTILS)/$(MAKEDEP) $(MAKEDEP)
 
 dependencies : $(MAKEDEP)
 	$(MAKEDEP) pp.pas $(PPOPTDEF) $(LOCALDEF) '-F$$(COMPILER) $$(LOCALOPT)' > depend
@@ -252,8 +256,8 @@ endif
 # Make targets
 #####################################################################
 
-$(MSG2INC): $(RTL)/utils/msg2inc.pp
-	$(COMPILER) -FE. $(RTL)/utils/msg2inc.pp
+$(MSG2INC): $(COMPILERUTILS)/msg2inc.pp
+	$(COMPILER) -FE. $(COMPILERUTILS)/msg2inc.pp
 
 # The msgtxt.inc only depends on the error?.msg file, not on msg2inc,
 # because that one will be new almost everytime
@@ -339,8 +343,8 @@ endif
 
 installlib: quickinstall
 ifdef inlinux
-	chmod 755 makecfg
-	makecfg $(LIBINSTALLDIR)/samplecfg
+	chmod 755 $(COMPILERUTILS)/makecfg
+	$(COMPILERUTILS)/makecfg $(LIBINSTALLDIR)/samplecfg
 endif
 	$(MKDIR) $(MSGINSTALLDIR)
 	$(INSTALL) $(MSGFILES) $(MSGINSTALLDIR)
@@ -390,7 +394,10 @@ $(M68KEXENAME): $(PASFILES) $(INCFILES)
 
 #
 # $Log$
-# Revision 1.29  1999-05-09 12:45:05  peter
+# Revision 1.30  1999-05-12 16:11:01  peter
+#   * moved compilerutils
+#
+# Revision 1.29  1999/05/09 12:45:05  peter
 #   * better messagefile recompiling
 #
 # Revision 1.28  1999/05/09 11:36:32  peter
