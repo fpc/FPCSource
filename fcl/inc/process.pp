@@ -256,11 +256,12 @@ Procedure TProcess.FreeStreams;
 
 var FreedStreams: TList;
 
-  procedure FreeStream(var AnObject: TObject);
+  procedure FreeStream(var AnObject: THandleStream);
 
   begin
-    if FreedStreams.IndexOf(AnObject)<0 then
+    if (AnObject<>Nil) and (FreedStreams.IndexOf(AnObject)<0) then
       begin
+      FileClose(AnObject.Handle);
       FreedStreams.Add(AnObject);
       AnObject.Free;
       end;
@@ -918,7 +919,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.15  2003-05-08 20:04:16  armin
+  Revision 1.16  2003-08-12 13:49:42  michael
+  + Freed streams were not closed correctly
+
+  Revision 1.15  2003/05/08 20:04:16  armin
   * Dont close FStartupInfo.hStdError if options include poStdErrToOutPut
 
   Revision 1.14  2003/04/27 21:21:42  sg
