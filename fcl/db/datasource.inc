@@ -229,6 +229,9 @@ end;
 Procedure TDataLink.SetActiveRecord(Value: Integer);
 
 begin
+{$ifdef dsdebug}
+  Writeln('Datalink. Setting active record to ',Value,' with firstrecord ',ffirstrecord);
+{$endif}
   Dataset.FActiveRecord:=Value + FFirstRecord;
 end;
 

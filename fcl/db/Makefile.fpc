@@ -6,7 +6,7 @@
 main=fcl
 
 [target]
-dirs=sdf memds
+dirs=sdf memds sqldb
 # dirs_i386=dbase
 dirs_linux=mysql interbase sqlite dbase
 dirs_freebsd=mysql interbase sqlite dbase

@@ -824,7 +824,7 @@ type
     FOnPostError: TDataSetErrorEvent;
     FRecNo: Longint;
     FRecordCount: Longint;
-    FRecordSize: Word;
+//    FRecordSize: Word;
     FIsUniDirectional: Boolean;
     FState : TDataSetState;
     Procedure DoInsertAppend(DoAppend : Boolean);
@@ -1014,7 +1014,7 @@ type
     property IsUniDirectional: Boolean read FIsUniDirectional write FIsUniDirectional default False;
     property RecordCount: Longint read GetRecordCount;
     property RecNo: Longint read FRecNo write FRecNo;
-    property RecordSize: Word read FRecordSize;
+    property RecordSize: Word read GetRecordSize;
     property State: TDataSetState read FState;
     property Fields : TFields read FFieldList;
     property FieldValues[fieldname : string] : string read GetFieldValues write SetFieldValues; default;
@@ -1244,6 +1244,77 @@ type
     property Params : TStrings read FParams Write FParams;
     property OnLogin: TLoginEvent read FOnLogin write FOnLogin;
   end;
+
+  { TBufDataset }
+  
+  PBufBookmark = ^TBufBookmark;
+  TBufBookmark = record
+    BookmarkData : integer;
+    BookmarkFlag : TBookmarkFlag;
+  end;
+
+  TBufDataset = class(TDataSet)
+  private
+    FBBuffers : TBufferArray;
+    FBRecordCount : integer;
+    FBBufferCount : integer;
+    FBCurrentRecord : integer;
+    FIsEOF : boolean;
+    FIsBOF : boolean;
+    FPacketRecords : integer;
+  protected
+    function  AllocRecordBuffer: PChar; override;
+    procedure FreeRecordBuffer(var Buffer: PChar); override;
+    function GetRecord(Buffer: PChar; GetMode: TGetMode; DoCheck: Boolean): TGetResult; override;
+    procedure InternalOpen; override;
+    procedure InternalClose; override;
+    function getnextpacket : integer;
+    procedure InternalFirst; override;
+    procedure InternalLast; override;
+    procedure InternalSetToRecord(Buffer: PChar); override;
+    procedure InternalGotoBookmark(ABookmark: Pointer); override;
+    procedure SetBookmarkData(Buffer: PChar; Data: Pointer); override;
+    procedure SetBookmarkFlag(Buffer: PChar; Value: TBookmarkFlag); override;
+    procedure GetBookmarkData(Buffer: PChar; Data: Pointer); override;
+    function GetBookmarkFlag(Buffer: PChar): TBookmarkFlag; override;
+  {abstracts, must be overidden by descendents}
+    function GetNextRecord(Buffer : pchar) : TGetResult; virtual; abstract;
+    function AllocRecord: PChar; virtual; abstract;
+    procedure FreeRecord(var Buffer: PChar); virtual; abstract;
+  public
+    constructor Create(AOwner: TComponent); override;
+    destructor Destroy; override;
+  published
+    // redeclared data set properties
+    property Active;
+//    property FieldDefs stored FieldDefsStored;
+    property Filter;
+    property Filtered;
+    property FilterOptions;
+    property BeforeOpen;
+    property AfterOpen;
+    property BeforeClose;
+    property AfterClose;
+    property BeforeInsert;
+    property AfterInsert;
+    property BeforeEdit;
+    property AfterEdit;
+    property BeforePost;
+    property AfterPost;
+    property BeforeCancel;
+    property AfterCancel;
+    property BeforeDelete;
+    property AfterDelete;
+    property BeforeScroll;
+    property AfterScroll;
+    property OnCalcFields;
+    property OnDeleteError;
+    property OnEditError;
+    property OnFilterRecord;
+    property OnNewRecord;
+    property OnPostError;
+  end;
+
 
 Const
   Fieldtypenames : Array [TFieldType] of String[15] =
@@ -1498,12 +1569,16 @@ end;
 {$i fields.inc}
 {$i datasource.inc}
 {$i database.inc}
+{$i BufDataset.inc}
 
 end.
 
 {
   $Log$
-  Revision 1.22  2004-08-23 07:30:19  michael
+  Revision 1.23  2004-08-31 09:51:27  michael
+  + Initial TBufDataset by Joost van der Sluis
+
+  Revision 1.22  2004/08/23 07:30:19  michael
   + Fixes from joost van der sluis: tfieldsdefs.tdatafield and size, cancel of only record and dataset.fieldvalyes
 
   Revision 1.21  2004/08/14 12:46:35  michael
