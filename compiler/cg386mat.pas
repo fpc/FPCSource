@@ -21,6 +21,9 @@
  ****************************************************************************
 }
 unit cg386mat;
+
+{$i defines.inc}
+
 interface
 
     uses
@@ -988,7 +991,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.6  2000-09-18 10:15:48  jonas
+  Revision 1.7  2000-09-24 21:19:49  peter
+    * delphi compile fixes
+
+  Revision 1.6  2000/09/18 10:15:48  jonas
     * fixed bug in flagsinvers array for unsigned flags (fixed web bug
       1139, not 1135 like I mentioned in the fixes branch) (merged from fixes)
 

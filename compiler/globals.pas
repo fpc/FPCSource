@@ -1008,7 +1008,9 @@ implementation
      var
        hs1 : namestr;
        hs2 : extstr;
+{$ifdef need_path_search}
        b   : boolean;
+{$endif}
      begin
 {$ifdef delphi}
        exepath:=dmisc.getenv('PPC_EXEC_PATH');
@@ -1130,7 +1132,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.11  2000-09-24 15:12:40  peter
+  Revision 1.12  2000-09-24 21:19:50  peter
+    * delphi compile fixes
+
+  Revision 1.11  2000/09/24 15:12:40  peter
     * fixed typo
 
   Revision 1.10  2000/09/24 15:06:16  peter

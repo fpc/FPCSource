@@ -2509,7 +2509,7 @@
               case hpc^.consttyp of
                 conststring,
                 constresourcestring :
-                  hs:=+strpas(pchar(tpointerord(hpc^.value)));
+                  hs:=strpas(pchar(tpointerord(hpc^.value)));
                 constreal :
                   str(pbestreal(tpointerord(hpc^.value))^,hs);
                 constord,
@@ -4311,7 +4311,10 @@ Const local_symtable_index : longint = $8001;
 
 {
   $Log$
-  Revision 1.18  2000-09-24 15:06:28  peter
+  Revision 1.19  2000-09-24 21:19:52  peter
+    * delphi compile fixes
+
+  Revision 1.18  2000/09/24 15:06:28  peter
     * use defines.inc
 
   Revision 1.17  2000/09/19 23:08:02  pierre

@@ -95,9 +95,7 @@ implementation
       ret  0
     end;
 
-{$endif}
-
-{$Ifdef FPC}
+{$else not DELPHI}
 
 {$asmmode ATT}
 
@@ -240,12 +238,15 @@ implementation
          end;
       end;
 
-{$endif FPC}
+{$endif DELPHI}
 
 end.
 {
   $Log$
-  Revision 1.3  2000-09-24 15:06:32  peter
+  Revision 1.4  2000-09-24 21:19:53  peter
+    * delphi compile fixes
+
+  Revision 1.3  2000/09/24 15:06:32  peter
     * use defines.inc
 
   Revision 1.2  2000/07/13 11:32:52  michael

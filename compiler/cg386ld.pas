@@ -21,6 +21,9 @@
  ****************************************************************************
 }
 unit cg386ld;
+
+{$i defines.inc}
+
 interface
 
     uses
@@ -1008,7 +1011,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.5  2000-08-27 16:11:49  peter
+  Revision 1.6  2000-09-24 21:19:49  peter
+    * delphi compile fixes
+
+  Revision 1.5  2000/08/27 16:11:49  peter
     * moved some util functions from globals,cobjects to cutils
     * splitted files into finput,fmodule
 

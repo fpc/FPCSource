@@ -20,10 +20,10 @@
 
  ****************************************************************************
 }
-{$ifdef FPC}
-  {$goto on}
-{$endif FPC}
 unit cg386add;
+
+{$i defines.inc}
+
 interface
 
 {$define usecreateset}
@@ -839,7 +839,7 @@ implementation
          { calculate the operator which is more difficult }
          firstcomplex(p);
 
-         
+
          { handling boolean expressions extra: }
          if is_boolean(p^.left^.resulttype) and
             is_boolean(p^.right^.resulttype) then
@@ -2374,7 +2374,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.7  2000-09-21 12:23:49  jonas
+  Revision 1.8  2000-09-24 21:19:48  peter
+    * delphi compile fixes
+
+  Revision 1.7  2000/09/21 12:23:49  jonas
     * small fix to my changes for full boolean evaluation support (moved
       opsize determination for boolean operations back in boolean
       processing block)

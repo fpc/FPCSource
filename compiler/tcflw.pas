@@ -22,6 +22,9 @@
  ****************************************************************************
 }
 unit tcflw;
+
+{$i defines.inc}
+
 interface
 
     uses
@@ -637,7 +640,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.8  2000-09-10 21:19:40  peter
+  Revision 1.9  2000-09-24 21:19:53  peter
+    * delphi compile fixes
+
+  Revision 1.8  2000/09/10 21:19:40  peter
     * fixed for counter var check (merged)
 
   Revision 1.7  2000/09/03 11:44:00  peter

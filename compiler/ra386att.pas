@@ -36,7 +36,7 @@ Implementation
 
 Uses
   globtype,
-  strings,cutils,cobjects,systems,verbose,globals,
+  cutils,cobjects,systems,verbose,globals,
   fmodule,aasm,types,symconst,symtable,scanner,cpubase,
 {$ifdef NEWCG}
   cgbase,
@@ -2102,7 +2102,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.4  2000-09-24 15:06:26  peter
+  Revision 1.5  2000-09-24 21:19:51  peter
+    * delphi compile fixes
+
+  Revision 1.4  2000/09/24 15:06:26  peter
     * use defines.inc
 
   Revision 1.3  2000/08/27 16:11:52  peter

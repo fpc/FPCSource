@@ -21,6 +21,13 @@
  ****************************************************************************
 }
 unit cg386set;
+
+{$i defines.inc}
+
+{$ifdef delphi}
+  {$O-}
+{$endif}
+
 interface
 
     uses
@@ -1052,7 +1059,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.6  2000-08-12 06:47:56  florian
+  Revision 1.7  2000-09-24 21:19:49  peter
+    * delphi compile fixes
+
+  Revision 1.6  2000/08/12 06:47:56  florian
     + case statement for int64/qword implemented
 
   Revision 1.5  2000/08/05 09:57:27  jonas

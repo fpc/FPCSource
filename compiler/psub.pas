@@ -52,8 +52,13 @@ function check_identical_proc(var p : pprocdef) : boolean;
 implementation
 
 uses
+{$ifdef delphi}
+  sysutils,
+{$else}
+  strings,
+{$endif}
   globtype,systems,
-  cutils,strings,globals,verbose,fmodule,
+  cutils,globals,verbose,fmodule,
   scanner,aasm,tree,types,
   import,gendef,htypechk,
 {$ifdef newcg}
@@ -2072,7 +2077,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.13  2000-09-24 15:06:24  peter
+  Revision 1.14  2000-09-24 21:19:51  peter
+    * delphi compile fixes
+
+  Revision 1.13  2000/09/24 15:06:24  peter
     * use defines.inc
 
   Revision 1.12  2000/09/10 20:11:07  peter

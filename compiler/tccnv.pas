@@ -21,6 +21,9 @@
  ****************************************************************************
 }
 unit tccnv;
+
+{$i defines.inc}
+
 interface
 
     uses
@@ -1039,7 +1042,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.8  2000-09-24 15:06:31  peter
+  Revision 1.9  2000-09-24 21:19:52  peter
+    * delphi compile fixes
+
+  Revision 1.8  2000/09/24 15:06:31  peter
     * use defines.inc
 
   Revision 1.7  2000/08/27 16:11:55  peter

@@ -21,6 +21,9 @@
  ****************************************************************************
 }
 unit tcmat;
+
+{$i defines.inc}
+
 interface
 
     uses
@@ -483,7 +486,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.4  2000-08-17 12:03:48  florian
+  Revision 1.5  2000-09-24 21:19:53  peter
+    * delphi compile fixes
+
+  Revision 1.4  2000/08/17 12:03:48  florian
     * fixed several problems with the int64 constants
 
   Revision 1.3  2000/08/16 13:06:07  florian

@@ -1690,6 +1690,7 @@
       var
          pd : pbestreal;
          ps : pnormalset;
+         pc : pchar;
          l1,l2 : longint;
 
       begin
@@ -1742,23 +1743,24 @@
            conststring,constresourcestring :
              begin
                len:=readlong;
-               getmem(pchar(tpointerord(value)),len+1);
-               current_ppu^.getdata(pchar(tpointerord(value))^,len);
+               getmem(pc,len+1);
+               current_ppu^.getdata(pc^,len);
                if consttyp=constresourcestring then
                  ResStrIndex:=readlong;
+               value:=tpointerord(pc);
              end;
            constreal :
              begin
                new(pd);
                pd^:=readreal;
-               value:=longint(pd);
+               value:=tpointerord(pd);
              end;
            constset :
              begin
                consttype.load;
                new(ps);
                readnormalset(ps^);
-               value:=longint(ps);
+               value:=tpointerord(ps);
              end;
            constnil : ;
            else
@@ -2216,7 +2218,10 @@
 
 {
   $Log$
-  Revision 1.8  2000-09-19 23:08:03  pierre
+  Revision 1.9  2000-09-24 21:19:52  peter
+    * delphi compile fixes
+
+  Revision 1.8  2000/09/19 23:08:03  pierre
    * fixes for local class debuggging problem (merged)
 
   Revision 1.7  2000/08/27 20:19:39  peter

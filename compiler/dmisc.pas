@@ -253,9 +253,9 @@ end;
 
    function GetVersion : longint;stdcall;
      external 'Kernel32.dll' name 'GetVersion';
-   procedure GetLocalTime(var t : TSystemTime);stdcall;
+   procedure GetLocalTime(var t : Windows.TSystemTime);stdcall;
      external 'Kernel32.dll' name 'GetLocalTime';
-   function SetLocalTime(const t : TSystemTime) : boolean;stdcall;
+   function SetLocalTime(const t : Windows.TSystemTime) : boolean;stdcall;
      external 'Kernel32.dll' name 'SetLocalTime';
 
 function dosversion : word;
@@ -266,7 +266,7 @@ end;
 
 procedure getdate(var year,month,mday,wday : word);
 var
-  t : TSystemTime;
+  t : Windows.TSystemTime;
 begin
   GetLocalTime(t);
   year:=t.wYear;
@@ -278,7 +278,7 @@ end;
 
 procedure setdate(year,month,day : word);
 var
-  t : TSystemTime;
+  t : Windows.TSystemTime;
 begin
   { we need the time set privilege   }
   { so this function crash currently }
@@ -294,7 +294,7 @@ end;
 
 procedure gettime(var hour,minute,second,sec100 : word);
 var
-  t : TSystemTime;
+  t : Windows.TSystemTime;
 begin
    GetLocalTime(t);
    hour:=t.wHour;
@@ -306,7 +306,7 @@ end;
 
 procedure settime(hour,minute,second,sec100 : word);
 var
-   t : TSystemTime;
+   t : Windows.TSystemTime;
 begin
    { we need the time set privilege   }
    { so this function crash currently }
@@ -471,7 +471,7 @@ end;
 ******************************************************************************}
 
 { Needed kernel calls }
-   function FindFirstFile (lpFileName: PChar; var lpFindFileData: TWIN32FindData): THandle;stdcall
+   function FindFirstFile (lpFileName: PChar; var lpFindFileData: TWIN32FindData): THandle;stdcall;
      external 'Kernel32.dll' name 'FindFirstFileA';
    function FindNextFile  (hFindFile: THandle; var lpFindFileData: TWIN32FindData): Boolean;stdcall;
      external 'Kernel32.dll' name 'FindNextFileA';
@@ -872,7 +872,10 @@ End;
 end.
 {
   $Log$
-  Revision 1.3  2000-09-24 15:06:15  peter
+  Revision 1.4  2000-09-24 21:19:50  peter
+    * delphi compile fixes
+
+  Revision 1.3  2000/09/24 15:06:15  peter
     * use defines.inc
 
   Revision 1.2  2000/07/13 11:32:40  michael

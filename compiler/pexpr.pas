@@ -48,6 +48,11 @@ interface
 implementation
 
     uses
+{$ifdef delphi}
+       sysutils,
+{$else}
+       strings,
+{$endif}
        globtype,systems,tokens,
        cutils,cobjects,globals,scanner,
        symconst,aasm,htypechk,
@@ -56,7 +61,7 @@ implementation
 {$else}
        hcodegen,
 {$endif}
-       types,verbose,strings,
+       types,verbose,
 {$ifndef newcg}
    {$ifndef CG11}
        tccal,
@@ -2219,7 +2224,10 @@ _LECKKLAMMER : begin
 end.
 {
   $Log$
-  Revision 1.8  2000-09-24 15:06:22  peter
+  Revision 1.9  2000-09-24 21:19:50  peter
+    * delphi compile fixes
+
+  Revision 1.8  2000/09/24 15:06:22  peter
     * use defines.inc
 
   Revision 1.7  2000/08/27 16:11:51  peter

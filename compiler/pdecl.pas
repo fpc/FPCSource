@@ -45,7 +45,7 @@ interface
 
     uses
        cobjects,scanner,
-       cutils,symconst,aasm,tree,pass_1,strings,
+       cutils,symconst,aasm,tree,pass_1,
        fmodule,types,verbose,systems,import,
        cpubase
 {$ifndef newcg}
@@ -1299,7 +1299,10 @@ interface
 end.
 {
   $Log$
-  Revision 1.15  2000-09-24 15:06:21  peter
+  Revision 1.16  2000-09-24 21:19:50  peter
+    * delphi compile fixes
+
+  Revision 1.15  2000/09/24 15:06:21  peter
     * use defines.inc
 
   Revision 1.14  2000/09/11 17:00:23  florian

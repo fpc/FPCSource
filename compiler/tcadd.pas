@@ -21,6 +21,9 @@
  ****************************************************************************
 }
 unit tcadd;
+
+{$i defines.inc}
+
 interface
 
     uses
@@ -1295,7 +1298,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.10  2000-09-21 12:22:17  jonas
+  Revision 1.11  2000-09-24 21:19:52  peter
+    * delphi compile fixes
+
+  Revision 1.10  2000/09/21 12:22:17  jonas
     * put piece of code between -dnewoptimizations2 since it wasn't
       necessary otherwise
 

@@ -20,11 +20,9 @@
 
  ****************************************************************************
 }
-{$ifdef FPC}
-  {$goto on}
-{$endif FPC}
-
 unit tccal;
+
+{$i defines.inc}
 
 interface
 
@@ -1333,7 +1331,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.9  2000-08-27 16:11:54  peter
+  Revision 1.10  2000-09-24 21:19:52  peter
+    * delphi compile fixes
+
+  Revision 1.9  2000/08/27 16:11:54  peter
     * moved some util functions from globals,cobjects to cutils
     * splitted files into finput,fmodule
 

@@ -20,10 +20,10 @@
 
  ****************************************************************************
 }
-{$ifdef FPC}
-  {$goto on}
-{$endif FPC}
 unit cg386flw;
+
+{$i defines.inc}
+
 interface
 
     uses
@@ -1237,7 +1237,10 @@ do_jmp:
 end.
 {
   $Log$
-  Revision 1.5  2000-08-29 18:41:02  peter
+  Revision 1.6  2000-09-24 21:19:49  peter
+    * delphi compile fixes
+
+  Revision 1.5  2000/08/29 18:41:02  peter
     * push ebp instead of 0 for raise without address
 
   Revision 1.4  2000/08/13 08:41:07  peter

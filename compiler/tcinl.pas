@@ -21,6 +21,9 @@
  ****************************************************************************
 }
 unit tcinl;
+
+{$i defines.inc}
+
 interface
 
     uses
@@ -457,8 +460,8 @@ implementation
                          exit;
                        if (p^.left^.resulttype^.deftype=orddef) then
                          if (porddef(p^.left^.resulttype)^.typ in [uchar,uwidechar,bool8bit]) then
-			   case porddef(p^.left^.resulttype)^.typ of
-			    uchar:
+                           case porddef(p^.left^.resulttype)^.typ of
+                            uchar:
                                begin
                                   hp:=gentypeconvnode(p^.left,u8bitdef);
                                   putnode(p);
@@ -466,7 +469,7 @@ implementation
                                   p^.explizit:=true;
                                   firstpass(p);
                                end;
-			    uwidechar:
+                            uwidechar:
                                begin
                                   hp:=gentypeconvnode(p^.left,u16bitdef);
                                   putnode(p);
@@ -474,7 +477,7 @@ implementation
                                   p^.explizit:=true;
                                   firstpass(p);
                                end;
-			    bool8bit:
+                            bool8bit:
                                begin
                                   hp:=gentypeconvnode(p^.left,u8bitdef);
                                   putnode(p);
@@ -482,7 +485,7 @@ implementation
                                   p^.convtyp:=tc_bool_2_int;
                                   p^.explizit:=true;
                                   firstpass(p);
-                    	       end
+                               end
                            end
                          { can this happen ? }
                          else if (porddef(p^.left^.resulttype)^.typ=uvoid) then
@@ -918,8 +921,8 @@ implementation
 
                   while assigned(hp^.right) do
                     hp:=hp^.right;
-                    
-                  if not assigned(hp^.resulttype) then 
+
+                  if not assigned(hp^.resulttype) then
                     exit;
                   { check and convert the first param }
                   if (hp^.is_colon_para) or
@@ -1336,7 +1339,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.6  2000-08-24 13:12:38  jonas
+  Revision 1.7  2000-09-24 21:19:53  peter
+    * delphi compile fixes
+
+  Revision 1.6  2000/08/24 13:12:38  jonas
     * fixed crash when using include/exclude with undeclared variable as
       first parameter (merged from fixes branch)
 

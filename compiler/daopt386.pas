@@ -219,7 +219,7 @@ Var
 Implementation
 
 Uses
-  globals, systems, strings, verbose, hcodegen, symconst, tgeni386;
+  globals, systems, verbose, hcodegen, symconst, tgeni386;
 
 Type
   TRefCompare = function(const r1, r2: TReference): Boolean;
@@ -2338,7 +2338,10 @@ End.
 
 {
   $Log$
-  Revision 1.11  2000-09-24 15:06:15  peter
+  Revision 1.12  2000-09-24 21:19:50  peter
+    * delphi compile fixes
+
+  Revision 1.11  2000/09/24 15:06:15  peter
     * use defines.inc
 
   Revision 1.10  2000/09/22 15:00:20  jonas

@@ -206,7 +206,11 @@ Function SearchIConstant(const s:string; var l:longint): boolean;
 Implementation
 
 uses
+{$ifdef delphi}
+  sysutils,
+{$else}
   strings,
+{$endif}
   types,systems,verbose,globals,fmodule,
   symtable,cpuasm
 {$ifdef NEWCG}
@@ -1538,7 +1542,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.5  2000-09-24 15:06:26  peter
+  Revision 1.6  2000-09-24 21:19:51  peter
+    * delphi compile fixes
+
+  Revision 1.5  2000/09/24 15:06:26  peter
     * use defines.inc
 
   Revision 1.4  2000/08/27 16:11:52  peter

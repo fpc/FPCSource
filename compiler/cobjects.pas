@@ -329,8 +329,10 @@ implementation
       end;
 
     procedure tmemdebug.show;
+{$ifndef Delphi}
       var
         l : longint;
+{$endif}
       begin
 {$ifndef Delphi}
         write('memory [',infostr,'] ');
@@ -1841,7 +1843,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.13  2000-09-24 15:06:12  peter
+  Revision 1.14  2000-09-24 21:19:50  peter
+    * delphi compile fixes
+
+  Revision 1.13  2000/09/24 15:06:12  peter
     * use defines.inc
 
   Revision 1.12  2000/08/27 20:19:38  peter

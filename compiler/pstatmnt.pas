@@ -38,7 +38,7 @@ interface
 
     uses
        globtype,systems,tokens,
-       strings,cutils,cobjects,globals,fmodule,verbose,cpuinfo,
+       cutils,cobjects,globals,fmodule,verbose,cpuinfo,
        symconst,symtable,aasm,pass_1,types,scanner,
 {$ifdef newcg}
        cgbase,
@@ -1375,7 +1375,10 @@ interface
 end.
 {
   $Log$
-  Revision 1.7  2000-09-24 15:06:24  peter
+  Revision 1.8  2000-09-24 21:19:50  peter
+    * delphi compile fixes
+
+  Revision 1.7  2000/09/24 15:06:24  peter
     * use defines.inc
 
   Revision 1.6  2000/08/27 16:11:52  peter

@@ -53,7 +53,12 @@ interface
 implementation
 
     uses
-       strings,cutils,cobjects,
+{$ifdef delphi}
+       sysutils,
+{$else}
+       strings,
+{$endif}
+       cutils,cobjects,
        globtype,globals,verbose,
        symconst,types,
        hcodegen, systems,fmodule
@@ -745,7 +750,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.5  2000-09-24 15:06:17  peter
+  Revision 1.6  2000-09-24 21:19:50  peter
+    * delphi compile fixes
+
+  Revision 1.5  2000/09/24 15:06:17  peter
     * use defines.inc
 
   Revision 1.4  2000/08/27 16:11:51  peter

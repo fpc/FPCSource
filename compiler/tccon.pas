@@ -21,6 +21,9 @@
  ****************************************************************************
 }
 unit tccon;
+
+{$i defines.inc}
+
 interface
 
     uses
@@ -136,7 +139,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.2  2000-07-13 11:32:51  michael
+  Revision 1.3  2000-09-24 21:19:53  peter
+    * delphi compile fixes
+
+  Revision 1.2  2000/07/13 11:32:51  michael
   + removed logs
 
 }

@@ -21,6 +21,9 @@
  ****************************************************************************
 }
 unit tcset;
+
+{$i defines.inc}
+
 interface
 
     uses
@@ -326,7 +329,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.3  2000-08-12 06:46:26  florian
+  Revision 1.4  2000-09-24 21:19:53  peter
+    * delphi compile fixes
+
+  Revision 1.3  2000/08/12 06:46:26  florian
     + case statement for int64/qword implemented
 
   Revision 1.2  2000/07/13 11:32:52  michael

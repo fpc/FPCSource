@@ -20,10 +20,10 @@
 
  ****************************************************************************
 }
-{$ifdef FPC}
-  {$goto on}
-{$endif FPC}
 unit cg386cal;
+
+{$i defines.inc}
+
 interface
 
 { $define AnsiStrRef}
@@ -40,11 +40,16 @@ interface
 implementation
 
     uses
+{$ifdef delphi}
+      sysutils,
+{$else}
+      strings,
+{$endif}
       globtype,systems,
       cutils,cobjects,verbose,globals,
       symconst,aasm,types,
 {$ifdef GDB}
-      strings,gdb,
+      gdb,
 {$endif GDB}
       hcodegen,temp_gen,pass_2,
       cpubase,cpuasm,
@@ -1589,7 +1594,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.10  2000-09-19 23:09:07  pierre
+  Revision 1.11  2000-09-24 21:19:48  peter
+    * delphi compile fixes
+
+  Revision 1.10  2000/09/19 23:09:07  pierre
    * problems wih extdebug cond. solved
 
   Revision 1.9  2000/09/16 12:21:56  peter
