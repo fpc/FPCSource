@@ -1232,6 +1232,24 @@ cg_e_goto_inout_of_exception_block=E_Jump in or outside of an exception block
 % ...
 % \end{verbatim}
 % \end{description}
+cg_e_control_flow_outside_finally=E_Control flow statements aren't allowed in a finally block
+% It isn't allowed to use the control flow statements \var{break},
+% \var{continue} and \var{exit}
+% inside a finally statement. The following example shows the problem:
+% \begin{verbatim}
+% ...
+%   try
+%      p;
+%   finally
+%      ...
+%      exit;  // This exit ISN'T allowed
+%   end;
+% ...
+%
+% \end{verbatim}
+% If the procedure \var{p} raises an exception the finally block is
+% executed. If the execution reaches the exit, it's unclear what to do:
+% exiting the procedure or searching for another exception handler
 # EndOfTeX
 
 #

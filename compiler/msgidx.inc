@@ -333,6 +333,7 @@ type tmsgconst=(
   cg_e_cannot_call_cons_dest_inside_with,
   cg_e_cannot_call_message_direct,
   cg_e_goto_inout_of_exception_block,
+  cg_e_control_flow_outside_finally,
   asmr_d_start_reading,
   asmr_d_finish_reading,
   asmr_e_none_label_contain_at,
