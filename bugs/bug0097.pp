@@ -4,13 +4,33 @@
 
 type
   t=object
-    s : string      { No ; needed ? }
+    s : string;      { No ; needed ? }
     procedure p;
   end;
 
+  t2=object(t)
+    procedure p1(p : string); 
+  end;
+
+procedure t2.p1(p : string);
+
+  begin
+  end;
+
 procedure t.p;
+
 var
   s : longint;      { Not allowed with BP7 }
+  x : longint;
+
+procedure nested;
+
+  var
+     s : longint;
+
+  begin
+  end;
+
 begin
 end;
 

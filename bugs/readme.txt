@@ -109,6 +109,7 @@ Fixed bugs:
   bug0093.pp   Two Cardinal type bugs                                0K 0.99.1 (FK/MvC)
   bug0094.pp   internal error when recordtype not found with case    OK 0.99.1
   bug0095.pp   case with ranges starting with #0 bugs                OK 0.99.1 (FK)
+  bug0097.pp   two errors in bp7 but not in FPC                      OK 0.99.6 (FK)
   bug0098.pp   File type casts are not allowed (works in TP7)        OK 0.99.1 (FK)
   bug0099.pp   wrong assembler code is genereatoed for range check   OK 0.99.1 (?)
                (at least under 0.99.0)
@@ -164,7 +165,6 @@ bug0083.pp   shows missing "dynamic" set constructor
 bug0090.pp   shows PChar comparison problem
 bug0091.pp   missing standard functions in constant expressions
 bug0096.pp   problem with objects as parameters
-bug0097.pp   two errors in bp7 but not in FPC
 bug0100.pp   a unit may only occure once in uses
 bug0103.pp   problems with boolean typecasts (other type)
 bug0107.pp   shows page fault problem (run in TRUE DOS mode)
