@@ -57,10 +57,10 @@ var
   CheckEOF: Boolean;      { Enable Ctrl-Z }
   DirectVideo: Boolean;   { Enable direct video addressing }
   CheckSnow: Boolean;     { Enable snow filtering }
-  LastMode: Word;         { Current text mode }
-  TextAttr: Byte;         { Current text attribute }
-  WindMin: Word;          { Window upper left coordinates }
-  WindMax: Word;          { Window lower right coordinates }
+  LastMode: Word = 3;         { Current text mode }
+  TextAttr: Byte = $07;         { Current text attribute }
+  WindMin: Word  = $0;          { Window upper left coordinates }
+  WindMax: Word  = $184f;          { Window lower right coordinates }
   { FPC Specific for large screen support }
   WindMinX : DWord;
   WindMaxX : DWord;
@@ -96,7 +96,10 @@ procedure cursorbig;
 
 {
   $Log$
-  Revision 1.1  2004-02-08 16:23:10  michael
+  Revision 1.2  2004-06-12 14:18:06  michael
+  + Initialized some constants
+
+  Revision 1.1  2004/02/08 16:23:10  michael
   + Moved CRT interface to common include file
 
 }
