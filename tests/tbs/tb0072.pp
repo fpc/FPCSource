@@ -23,6 +23,12 @@ asm
   move.l  y,d1
 end;
 {$endif CPU68K}
+{$ifdef CPUPOWERPC}
+asm
+  mr r5,x
+  mr r6,y
+end;
+{$endif CPUPOWERPC}
 
 {procedure nothing(x,y: longint);
 begin
