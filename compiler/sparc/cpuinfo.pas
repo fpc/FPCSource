@@ -19,11 +19,13 @@
     Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 
  ****************************************************************************}
-UNIT cpuinfo;
+unit cpuinfo;
 {$INCLUDE fpcdefs.inc}
 
-INTERFACE
-TYPE
+interface
+uses
+  globtype;
+type
 {# Natural integer register type and size for the target machine }
   AWord=Longword;
   PAWord=^AWord;
@@ -36,13 +38,14 @@ TYPE
   ts32real = single;
   ts64real = double;
   ts80real = extended;
+  ts128real = extended;
   ts64comp = extended;
   pbestreal=^bestreal;
 
   { possible supported processors for this target }
-  tprocessors=(no_processor,SPARC_V8,SPARC_V9);
+  tprocessors=(no_processor,SPARC_V7,SPARC_V8,SPARC_V9);
 
-  tfputype =(fpu_soft,fpu_hard);
+  tfputype =(no_fpu,fpu_soft,fpu_hard);
 
 
 const
@@ -71,12 +74,26 @@ const
     pocall_cppdecl
   ];
 
+   processorsstr : array[tprocessors] of string[10] = ('',
+     'SPARC V7',
+     'SPARC V8',
+     'SPARC V9'
+   );
+
+   fputypestr : array[tfputype] of string[6] = ('',
+     'SOFT',
+     'HARD'
+   );
 implementation
 
 end.
 {
   $Log$
-  Revision 1.10  2003-11-07 15:58:33  florian
+  Revision 1.11  2003-11-28 13:09:07  mazen
+  + defintion of ts128real
+  + globtype is needed in interface uses clause
+
+  Revision 1.10  2003/11/07 15:58:33  florian
     * Florian's culmutative nr. 1; contains:
       - invalid calling conventions for a certain cpu are rejected
       - arm softfloat calling conventions
