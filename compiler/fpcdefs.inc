@@ -48,6 +48,7 @@
   {$define x86}
   {$define cpu64bit}
   {$define cpuextended}
+  {$define cpufloat128}
 {$endif x86_64}
 
 {$ifdef alpha}
@@ -81,7 +82,10 @@
 
 {
   $Log$
-  Revision 1.24  2003-09-03 15:55:00  peter
+  Revision 1.25  2003-09-06 16:47:24  florian
+    + support of NaN and Inf in the compiler as values of real constants
+
+  Revision 1.24  2003/09/03 15:55:00  peter
     * NEWRA branch merged
 
   Revision 1.23  2003/09/03 11:18:36  florian
@@ -97,7 +101,6 @@
   Revision 1.22.2.1  2003/08/27 20:11:29  peter
     * newra default
 
->>>>>>> 1.22.2.2
   Revision 1.22  2003/08/11 21:18:20  peter
     * start of sparc support for newra
 

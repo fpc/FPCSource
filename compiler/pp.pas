@@ -193,13 +193,17 @@ end;
 begin
   oldexit:=exitproc;
   exitproc:=@myexit;
-
+  SetFPUExceptionMask([exInvalidOp, exDenormalized, exZeroDivide,
+                        exOverflow, exUnderflow, exPrecision]);
 { Call the compiler with empty command, so it will take the parameters }
   Halt(compiler.Compile(''));
 end.
 {
   $Log$
-  Revision 1.26  2003-09-05 17:41:12  florian
+  Revision 1.27  2003-09-06 16:47:24  florian
+    + support of NaN and Inf in the compiler as values of real constants
+
+  Revision 1.26  2003/09/05 17:41:12  florian
     * merged Wiktor's Watcom patches in 1.1
 
   Revision 1.25  2003/09/03 11:18:37  florian

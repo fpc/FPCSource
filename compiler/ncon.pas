@@ -397,7 +397,10 @@ implementation
       begin
         docompare :=
           inherited docompare(p) and
-          (value_real = trealconstnode(p).value_real);
+          (value_real = trealconstnode(p).value_real) and
+          { floating point compares for non-numbers give strange results usually }
+          is_number_float(value_real) and
+          is_number_float(trealconstnode(p).value_real);
       end;
 
 
@@ -902,7 +905,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.50  2003-09-03 15:55:01  peter
+  Revision 1.51  2003-09-06 16:47:24  florian
+    + support of NaN and Inf in the compiler as values of real constants
+
+  Revision 1.50  2003/09/03 15:55:01  peter
     * NEWRA branch merged
 
   Revision 1.49  2003/04/25 20:59:33  peter

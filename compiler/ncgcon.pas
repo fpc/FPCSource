@@ -106,11 +106,15 @@ implementation
                     begin
                        if (hp1.typ=realait) and (lastlabel<>nil) then
                          begin
-                            if(
-                               ((realait=ait_real_32bit) and (tai_real_32bit(hp1).value=value_real)) or
-                               ((realait=ait_real_64bit) and (tai_real_64bit(hp1).value=value_real)) or
-                               ((realait=ait_real_80bit) and (tai_real_80bit(hp1).value=value_real)) or
-                               ((realait=ait_comp_64bit) and (tai_comp_64bit(hp1).value=value_real))
+                            if is_number_float(value_real) and
+                              (
+                               ((realait=ait_real_32bit) and (tai_real_32bit(hp1).value=value_real) and is_number_float(tai_real_32bit(hp1).value)) or
+                               ((realait=ait_real_64bit) and (tai_real_64bit(hp1).value=value_real) and is_number_float(tai_real_64bit(hp1).value)) or
+                               ((realait=ait_real_80bit) and (tai_real_80bit(hp1).value=value_real) and is_number_float(tai_real_80bit(hp1).value)) or
+{$ifdef cpufloat128}
+                               ((realait=ait_real_128bit) and (tai_real_128bit(hp1).value=value_real) and is_number_float(tai_real_128bit(hp1).value)) or
+{$endif cpufloat128}
+                               ((realait=ait_comp_64bit) and (tai_comp_64bit(hp1).value=value_real) and is_number_float(tai_comp_64bit(hp1).value))
                               ) then
                               begin
                                  { found! }
@@ -138,6 +142,11 @@ implementation
                       Consts.concat(Tai_real_64bit.Create(ts64real(value_real)));
                     ait_real_80bit :
                       Consts.concat(Tai_real_80bit.Create(value_real));
+{$ifdef cpufloat128}
+                    ait_real_128bit :
+                      Consts.concat(Tai_real_128bit.Create(value_real));
+{$endif cpufloat128}
+
 {$ifdef ver1_0}
                     ait_comp_64bit :
                       Consts.concat(Tai_comp_64bit.Create(value_real));
@@ -545,7 +554,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.29  2003-09-03 15:55:00  peter
+  Revision 1.30  2003-09-06 16:47:24  florian
+    + support of NaN and Inf in the compiler as values of real constants
+
+  Revision 1.29  2003/09/03 15:55:00  peter
     * NEWRA branch merged
 
   Revision 1.28  2003/05/01 12:24:22  jonas

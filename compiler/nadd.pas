@@ -234,13 +234,13 @@ implementation
            ((rt = realconstn) and
             (trealconstnode(right).value_real = 0.0))) then
          begin
-           Message(parser_e_division_by_zero);
-           case rt of
-             ordconstn:
-                tordconstnode(right).value := 1;
-             realconstn:
-                trealconstnode(right).value_real := 1.0;
-           end;
+           if (cs_check_range in aktlocalswitches) or
+              (cs_check_overflow in aktlocalswitches) then
+              begin
+                result:=crealconstnode.create(1,pbestrealtype^);
+                Message(parser_e_division_by_zero);
+                exit;
+              end;
          end;
 
 
@@ -1873,7 +1873,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.94  2003-09-03 15:55:00  peter
+  Revision 1.95  2003-09-06 16:47:24  florian
+    + support of NaN and Inf in the compiler as values of real constants
+
+  Revision 1.94  2003/09/03 15:55:00  peter
     * NEWRA branch merged
 
   Revision 1.93.2.1  2003/08/31 21:07:44  daniel

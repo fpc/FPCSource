@@ -35,9 +35,7 @@ interface
       assemble;
 
 
-
     type
-
       {# This is a derived class which is used to write
          GAS styled assembler.
 
@@ -828,7 +826,10 @@ var
 end.
 {
   $Log$
-  Revision 1.33  2003-09-04 00:15:29  florian
+  Revision 1.34  2003-09-06 16:47:24  florian
+    + support of NaN and Inf in the compiler as values of real constants
+
+  Revision 1.33  2003/09/04 00:15:29  florian
     * first bunch of adaptions of arm compiler for new register type
 
   Revision 1.32  2003/09/03 19:35:24  peter

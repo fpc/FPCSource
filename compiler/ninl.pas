@@ -1110,6 +1110,44 @@ implementation
            result:=crealconstnode.create(r,pbestrealtype^);
         end;
 
+
+        function handle_ln_const(r : bestreal) : tnode;
+          begin
+            if r<=0.0 then
+              if (cs_check_range in aktlocalswitches) or
+                 (cs_check_overflow in aktlocalswitches) then
+                 begin
+                   result:=crealconstnode.create(0,pbestrealtype^);
+                   CGMessage(type_e_wrong_math_argument)
+                 end
+              else
+                begin
+                  if r=0.0 then
+                    result:=crealconstnode.create(double(MathQNaN),pbestrealtype^)
+                  else
+                    result:=crealconstnode.create(double(MathNegInf),pbestrealtype^)
+                end
+            else
+              result:=crealconstnode.create(ln(r),pbestrealtype^)
+          end;
+
+
+        function handle_sqrt_const(r : bestreal) : tnode;
+          begin
+            if r<0.0 then
+              if (cs_check_range in aktlocalswitches) or
+                 (cs_check_overflow in aktlocalswitches) then
+                 begin
+                   result:=crealconstnode.create(0,pbestrealtype^);
+                   CGMessage(type_e_wrong_math_argument)
+                 end
+              else
+                result:=crealconstnode.create(double(MathQNaN),pbestrealtype^)
+            else
+              result:=crealconstnode.create(sqrt(r),pbestrealtype^)
+          end;
+
+
       var
          vl,vl2    : TConstExprInt;
          vr        : bestreal;
@@ -1265,19 +1303,9 @@ implementation
                  in_const_sqrt :
                    begin
                      if isreal then
-                       begin
-                          if vr<0.0 then
-                           CGMessage(type_e_wrong_math_argument)
-                          else
-                           hp:=crealconstnode.create(sqrt(vr),pbestrealtype^)
-                       end
+                       hp:=handle_sqrt_const(vr)
                      else
-                       begin
-                          if vl<0 then
-                           CGMessage(type_e_wrong_math_argument)
-                          else
-                           hp:=crealconstnode.create(sqrt(vl),pbestrealtype^);
-                       end;
+                       hp:=handle_sqrt_const(vl)
                    end;
                  in_const_arctan :
                    begin
@@ -1310,19 +1338,9 @@ implementation
                  in_const_ln :
                    begin
                      if isreal then
-                       begin
-                          if vr<=0.0 then
-                           CGMessage(type_e_wrong_math_argument)
-                          else
-                           hp:=crealconstnode.create(ln(vr),pbestrealtype^)
-                       end
+                       hp:=handle_ln_const(vr)
                      else
-                       begin
-                          if vl<=0 then
-                           CGMessage(type_e_wrong_math_argument)
-                          else
-                           hp:=crealconstnode.create(ln(vl),pbestrealtype^);
-                       end;
+                       hp:=handle_ln_const(vl)
                    end;
                  else
                    internalerror(88);
@@ -1902,11 +1920,8 @@ implementation
                    begin
                      vr:=getconstrealvalue;
                      if vr<0.0 then
-                       begin
-                         CGMessage(type_e_wrong_math_argument);
-                         setconstrealvalue(0);
-                       end
-                      else
+                       result:=handle_sqrt_const(vr)
+                     else
                        setconstrealvalue(sqrt(vr));
                    end
                   else
@@ -1923,11 +1938,8 @@ implementation
                    begin
                      vr:=getconstrealvalue;
                      if vr<=0.0 then
-                       begin
-                         CGMessage(type_e_wrong_math_argument);
-                         setconstrealvalue(0);
-                       end
-                      else
+                       result:=handle_ln_const(vr)
+                     else
                        setconstrealvalue(ln(vr));
                    end
                   else
@@ -2351,7 +2363,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.114  2003-06-13 21:19:30  peter
+  Revision 1.115  2003-09-06 16:47:24  florian
+    + support of NaN and Inf in the compiler as values of real constants
+
+  Revision 1.114  2003/06/13 21:19:30  peter
     * current_procdef removed, use current_procinfo.procdef instead
 
   Revision 1.113  2003/05/31 21:29:04  jonas

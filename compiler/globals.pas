@@ -84,7 +84,17 @@ interface
 
        treelogfilename = 'tree.log';
 
+       { I don't know if this endian dependend }
+       MathQNaN : array[0..7] of byte = (0,0,0,0,0,0,252,255);
+       MathInf : array[0..7] of byte = (0,0,0,0,0,0,240,127);
+       MathNegInf : array[0..7] of byte = (0,0,0,0,0,0,240,255);
+
+
     type
+       TFPUException = (exInvalidOp, exDenormalized, exZeroDivide,
+                        exOverflow, exUnderflow, exPrecision);
+       TFPUExceptionMask = set of TFPUException;
+
        pfileposinfo = ^tfileposinfo;
        tfileposinfo = record
          line      : longint;
@@ -284,6 +294,9 @@ interface
     Procedure Shell(const command:string);
     function  GetEnvPChar(const envname:string):pchar;
     procedure FreeEnvPChar(p:pchar);
+
+    function SetFPUExceptionMask(const Mask : TFPUExceptionMask) : TFPUExceptionMask;
+    function is_number_float(d : double) : boolean;
 
     Function SetCompileMode(const s:string; changeInit: boolean):boolean;
     function SetAktProcCall(const s:string; changeInit: boolean):boolean;
@@ -1215,7 +1228,57 @@ implementation
       {$endif}
 
 
-    Function SetCompileMode(const s:string; changeInit: boolean):boolean;
+{$ifdef CPUI386}
+      { later, this should be replaced by the math unit }
+      const
+        Default8087CW : word = $1332;
+
+      procedure Set8087CW(cw:word);assembler;
+        asm
+          movw cw,%ax
+          movw %ax,default8087cw
+          fnclex
+          fldcw default8087cw
+        end;
+
+
+      function Get8087CW:word;assembler;
+        asm
+          pushl $0
+          fnstcw (%esp)
+          popl %eax
+        end;
+
+
+      function SetFPUExceptionMask(const Mask: TFPUExceptionMask): TFPUExceptionMask;
+        var
+          CtlWord: Word;
+        begin
+          CtlWord:=Get8087CW;
+          Set8087CW( (CtlWord and $FFC0) or Byte(Longint(Mask)) );
+          Result:=TFPUExceptionMask(CtlWord and $3F);
+        end;
+{$else CPUI386}
+      function SetExceptionMask(const Mask: TFPUExceptionMask): TFPUExceptionMask;
+        begin
+        end;
+{$endif CPUI386}
+
+      function is_number_float(d : double) : boolean;
+        var
+           bytearray : array[0..7] of byte;
+        begin
+          move(d,bytearray,8);
+          { only 1.1 save, 1.0.x will use always little endian }
+{$ifdef FPC_BIG_ENDIAN}
+          result:=((bytearray[0] and $7f)<>$7f) or ((bytearray[1] and $f0)<>$f0);
+{$else FPC_BIG_ENDIAN}
+          result:=((bytearray[7] and $7f)<>$7f) or ((bytearray[6] and $f0)<>$f0);
+{$endif FPC_BIG_ENDIAN}
+        end;
+
+
+      Function SetCompileMode(const s:string; changeInit: boolean):boolean;
       var
         b : boolean;
       begin
@@ -1611,7 +1674,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.95  2003-09-05 17:41:12  florian
+  Revision 1.96  2003-09-06 16:47:24  florian
+    + support of NaN and Inf in the compiler as values of real constants
+
+  Revision 1.95  2003/09/05 17:41:12  florian
     * merged Wiktor's Watcom patches in 1.1
 
   Revision 1.94  2003/09/04 21:37:29  olle

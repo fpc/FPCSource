@@ -38,7 +38,7 @@ interface
 implementation
 
     uses
-      systems,globtype,
+      systems,globtype,globals,
       cpubase,
       cga,cginfo,cgbase,rgobj,rgcpu;
 
@@ -49,7 +49,7 @@ implementation
     function ti386realconstnode.pass_1 : tnode;
       begin
          result:=nil;
-         if (value_real=1.0) or (value_real=0.0) then
+         if is_number_float(value_real) and (value_real=1.0) or (value_real=0.0) then
            begin
               expectloc:=LOC_FPUREGISTER;
               registersfpu:=1;
@@ -61,19 +61,24 @@ implementation
     procedure ti386realconstnode.pass_2;
 
       begin
-         if (value_real=1.0) then
+         if is_number_float(value_real) then
            begin
-              emit_none(A_FLD1,S_NO);
-              location_reset(location,LOC_FPUREGISTER,def_cgsize(resulttype.def));
-              location.register:=NR_ST;
-              inc(trgcpu(rg).fpuvaroffset);
-           end
-         else if (value_real=0.0) then
-           begin
-              emit_none(A_FLDZ,S_NO);
-              location_reset(location,LOC_FPUREGISTER,def_cgsize(resulttype.def));
-              location.register:=NR_ST;
-              inc(trgcpu(rg).fpuvaroffset);
+             if (value_real=1.0) then
+               begin
+                  emit_none(A_FLD1,S_NO);
+                  location_reset(location,LOC_FPUREGISTER,def_cgsize(resulttype.def));
+                  location.register:=NR_ST;
+                  inc(trgcpu(rg).fpuvaroffset);
+               end
+             else if (value_real=0.0) then
+               begin
+                  emit_none(A_FLDZ,S_NO);
+                  location_reset(location,LOC_FPUREGISTER,def_cgsize(resulttype.def));
+                  location.register:=NR_ST;
+                  inc(trgcpu(rg).fpuvaroffset);
+               end
+            else
+              inherited pass_2;
            end
          else
            inherited pass_2;
@@ -85,7 +90,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.20  2003-09-03 15:55:01  peter
+  Revision 1.21  2003-09-06 16:47:24  florian
+    + support of NaN and Inf in the compiler as values of real constants
+
+  Revision 1.20  2003/09/03 15:55:01  peter
     * NEWRA branch merged
 
   Revision 1.19.2.1  2003/08/29 17:29:00  peter
