@@ -102,6 +102,8 @@ unit agppcgas;
         'crnot', 'mt', 'mf','nop', 'li', 'lis', 'la', 'mr','mr.','not', 'mtcr', 'mtlr', 'mflr',
         'mtctr', 'mfctr');
 
+    function gas_regname(r:Tnewregister):string;
+
   implementation
 
     uses
@@ -143,18 +145,18 @@ unit agppcgas;
 
      symaddr2str: array[trefsymaddr] of string[3] = ('','@ha','@l');
 
-    function regname(r:Tnewregister):string;
+    function gas_regname(r:Tnewregister):string;
 
     var s:Tsuperregister;
 
     begin
       s:=r shr 8;
-      if s in [RS_0..RS_31] then
-        s:='r'+tostr(s-RS_0)
+      if s in [RS_R0..RS_R31] then
+        gas_regname:='r'+tostr(s-RS_R0)
       else
         begin
           {Generate a systematic name.}
-          s:='reg'+tostr(s)+'d';
+          gas_regname:='reg'+tostr(s)+'d';
         end;
     end;
 
@@ -201,13 +203,13 @@ unit agppcgas;
                        s:=s+'0';
                   end;
                 if base.enum=R_INTREGISTER then
-                  s:=s+'(reg'+regname(base.number)+')'
+                  s:=s+'(reg'+gas_regname(base.number)+')'
                 else
                   s:=s+'('+gas_reg2str[base.enum]+')';
              end
            else if (not i) and (not b) and (offset=0) then
              if base.enum=R_INTREGISTER then
-               s:=s+'r'+regname(base.number)+',r'+regname(index.number))
+               s:=s+'r'+gas_regname(base.number)+',r'+gas_regname(index.number)
              else
                s:=s+gas_reg2str[base.enum]+','+gas_reg2str[index.enum]
            else if (not i) or (not b) then
@@ -226,8 +228,8 @@ unit agppcgas;
           begin
             if (o.reg.enum < R_0) or (o.reg.enum > lastreg) then
               internalerror(200303121);
-            if o.reg=R_INTREGISTER then
-              getopstr_jmp:=regname(o.reg.number)
+            if o.reg.enum=R_INTREGISTER then
+              getopstr_jmp:=gas_regname(o.reg.number)
             else
               getopstr_jmp:=gas_reg2str[o.reg.enum];
           end;
@@ -389,7 +391,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.27  2003-08-18 11:58:14  daniel
+  Revision 1.28  2003-08-19 11:53:03  daniel
+    * Fixed PowerPC compilation
+
+  Revision 1.27  2003/08/18 11:58:14  daniel
     * Improved -sr on PowerPC ATT asm writer
 
   Revision 1.26  2003/08/17 21:11:00  daniel

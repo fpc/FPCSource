@@ -83,6 +83,9 @@ implementation
 {$ifdef i386}
       ,itx86att
 {$endif}
+{$ifdef powerpc}
+      ,agppcgas
+{$endif}
       ;
 
     const
@@ -829,7 +832,10 @@ var
 end.
 {
   $Log$
-  Revision 1.28  2003-08-18 11:49:47  daniel
+  Revision 1.29  2003-08-19 11:53:03  daniel
+    * Fixed PowerPC compilation
+
+  Revision 1.28  2003/08/18 11:49:47  daniel
     * Made ATT asm writer work with -sr
 
   Revision 1.27  2003/08/17 21:11:00  daniel
