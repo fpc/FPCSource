@@ -615,7 +615,7 @@ begin
       begin
         inc(i);
         if (SubStr[1]=pc^) and
-           (CompareChar(Substr[1],pc^,Length(SubStr))=0) then
+           (CompareByte(Substr[1],pc^,Length(SubStr))=0) then
          begin
            Pos:=i;
            exit;
@@ -868,7 +868,10 @@ end;
 
 {
   $Log$
-  Revision 1.51  2004-12-02 17:56:01  peter
+  Revision 1.52  2005-01-09 10:38:59  florian
+    * replaced CompareChar by CompareByte, saves one redirection
+
+  Revision 1.51  2004/12/02 17:56:01  peter
     * prevent crash when appending empty string
 
   Revision 1.50  2004/11/17 22:19:04  peter
