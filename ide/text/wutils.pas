@@ -142,7 +142,9 @@ procedure readlnfromstream(Stream: PStream; var S:string);
   begin
     c:=#0;
     i:=0;
-    while (not eofstream(stream)) and (c<>#10) do
+    { this created problems for lines longer than 255 characters
+      now those lines are cutted into pieces without warning PM }
+    while (not eofstream(stream)) and (c<>#10) and (i<255) do
      begin
        stream^.read(c,sizeof(c));
        if c<>#10 then
@@ -418,7 +420,10 @@ end;
 END.
 {
   $Log$
-  Revision 1.5  1999-08-03 20:22:45  peter
+  Revision 1.6  1999-08-24 22:01:48  pierre
+   * readlnfromstream length check added
+
+  Revision 1.5  1999/08/03 20:22:45  peter
     + TTab acts now on Ctrl+Tab and Ctrl+Shift+Tab...
     + Desktop saving should work now
        - History saved
