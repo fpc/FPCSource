@@ -14,6 +14,8 @@
 
  **********************************************************************}
 
+{$I textrec.inc}
+{$I filerec.inc}
 
 Function  FpLink (existing : AnsiString; newone : AnsiString): cInt;
 Begin
@@ -100,12 +102,51 @@ Begin
   FpAccess:=FpAccess(pchar(pathname),amode);
 End;
 
+Function  FPFStat(var F:Text;Var Info:stat):Boolean;
+{
+  Get all information on a text file, and return it in info.
+}
+begin
+  FPFStat:=FPFstat(TextRec(F).Handle,INfo)>0;
+end;
+
+Function  FPFStat(var F:File;Var Info:stat):Boolean;
+{
+  Get all information on a untyped file, and return it in info.
+}
+begin
+  FPFStat:=FPFstat(FileRec(F).Handle,Info)>0;
+end;
+
+Function FpSignal(signum:longint;Handler:signalhandler):signalhandler;
+
+var sa,osa : sigactionrec;
+
+begin
+     sa.sa_handler:=handler;
+     FillChar(sa.sa_mask,sizeof(sigset),#0);
+     sa.sa_flags := 0;
+{     if (sigintr and signum) =0 then
+ {restart behaviour needs libc}
+      sa.sa_flags :=sa.sa_flags or SA_RESTART;
+}
+     FPSigaction(signum,@sa,@osa);
+     if getErrNo<>0 then
+       fpsignal:=NIL
+     else
+       fpsignal:=osa.sa_handler;
+end;
+
+
+
 {
  $Log$
- Revision 1.1  2002-12-18 16:49:02  marco
+ Revision 1.2  2003-06-01 16:28:41  marco
+  * Enhancements to make the compiler baseunix using.
+
+ Revision 1.1  2002/12/18 16:49:02  marco
   * New RTL. Linux system unit and baseunix operational.
 
 
 }
 
- 

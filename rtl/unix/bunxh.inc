@@ -86,6 +86,7 @@ Type TGrpArr = Array [0..0] of TGid;		{ C style array workarounds}
     Function  FpLseek	   (fd : cInt; offset : TOff; whence : cInt): TOff;
     Function  FpTime	   (var tloc : TTime): TTime;
     Function  FpFtruncate  (fd : cInt; flength : TOff): cInt;
+    Function  FPSigaction  (sig: cInt; act : pSigActionRec; oact : pSigActionRec): cint; 
 
     Function  FpGetEnv	   (name : pChar): pChar;
     Function  FpGetEnv	   (name : String): pChar;
@@ -106,7 +107,10 @@ Type TGrpArr = Array [0..0] of TGid;		{ C style array workarounds}
 
 {
   $Log$
-  Revision 1.2  2003-01-05 19:11:32  marco
+  Revision 1.3  2003-06-01 16:28:41  marco
+   * Enhancements to make the compiler baseunix using.
+
+  Revision 1.2  2003/01/05 19:11:32  marco
    * small changes originating from introduction of Baseunix to FreeBSD
 
   Revision 1.1  2002/12/18 16:49:02  marco

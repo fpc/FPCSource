@@ -32,9 +32,20 @@ Function  FpRename (old  : AnsiString;newpath: AnsiString): cInt;
 Function  FpStat (path: AnsiString; var buf : stat): cInt;
 Function  FpAccess (pathname : AnsiString; aMode : cInt): cInt; 
 
+Function  FPFStat(var F:Text;Var Info:stat):Boolean;
+Function  FPFStat(var F:File;Var Info:stat):Boolean;
+
+// added. Is a depreciated POSIX function that can be considered alias to
+// sigaction
+Function FpSignal(signum:longint;Handler:signalhandler):signalhandler;
+
+
 {
  $Log$
- Revision 1.1  2002-12-18 16:49:02  marco
+ Revision 1.2  2003-06-01 16:28:41  marco
+  * Enhancements to make the compiler baseunix using.
+
+ Revision 1.1  2002/12/18 16:49:02  marco
   * New RTL. Linux system unit and baseunix operational.
 
 

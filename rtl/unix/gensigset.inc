@@ -15,7 +15,7 @@
 
 **********************************************************************}
 
-function fpsigaddset(var nset : sigset_t;signo:cint): cint;
+function fpsigaddset(var nset : tsigset;signo:cint): cint;
 
 Begin
    if (signo<=0) or (signo > SIG_MAXSIG) Then
@@ -27,7 +27,7 @@ Begin
    fpsigaddset:=0;
 End;   
 
-function fpsigdelset(var nset : sigset_t;signo:cint): cint;
+function fpsigdelset(var nset : tsigset;signo:cint): cint;
 
 Begin
    if (signo<=0) or (signo > SIG_MAXSIG) Then
@@ -39,7 +39,7 @@ Begin
    fpsigdelset:=0;
 End;
 
-function fpsigemptyset(var nset : sigset_t):cint;
+function fpsigemptyset(var nset : tsigset):cint;
 
 var i :longint;
 
@@ -48,7 +48,7 @@ Begin
   fpsigemptyset:=0;
 End;
 
-function fpsigfillset(var nset : sigset_t):cint;
+function fpsigfillset(var nset : tsigset):cint;
 
 var i :longint;
 
@@ -57,7 +57,7 @@ Begin
   fpsigfillset:=0;
 End;
 
-function fpsigismember(const nset : sigset_t;signo:cint): cint;
+function fpsigismember(const nset : tsigset;signo:cint): cint;
 
 Begin
    if (signo<=0) or (signo > SIG_MAXSIG) Then
@@ -73,7 +73,10 @@ End;
 
 {
    $Log$
-   Revision 1.2  2002-12-18 16:50:39  marco
+   Revision 1.3  2003-06-01 16:28:41  marco
+    * Enhancements to make the compiler baseunix using.
+
+   Revision 1.2  2002/12/18 16:50:39  marco
     * Unix RTL generic parts. Linux working, *BSD will follow shortly
 
    Revision 1.1  2002/11/14 12:20:30  marco
