@@ -1202,25 +1202,17 @@ var
   pnew,
   pcurr : pmemchunk_var;
 begin
-  { fix needed size }
-  if size <= (maxblocksize - sizeof(tmemchunk_fixed_hdr)) then
-    begin
-      size := (size+sizeof(tmemchunk_fixed_hdr)+(blocksize-1)) and fixedsizemask;
-    end
-  else
-    begin
-      size := (size+sizeof(tmemchunk_var_hdr)+(blocksize-1)) and sizemask;
-    end;
-
   { fix p to point to the heaprecord }
   pcurrsize := pmemchunk_fixed(p-sizeof(tmemchunk_fixed_hdr))^.size;
   if (pcurrsize and fixedsizeflag) = 0 then
     begin
       currsize := pcurrsize and sizemask;
+      size := (size+sizeof(tmemchunk_var_hdr)+(blocksize-1)) and sizemask;
     end
   else
     begin
       currsize := pcurrsize and fixedsizemask;
+      size := (size+sizeof(tmemchunk_fixed_hdr)+(blocksize-1)) and fixedsizemask;
     end;
   oldsize := currsize;
   { is the allocated block still correct? }
@@ -1235,11 +1227,11 @@ begin
    end;
 
   { don't do resizes on fixed-size blocks }
-//  if (pcurrsize and fixedsizeflag) <> 0 then
-//  begin
-    SysTryResizeMem := false;
-    exit;
-//  end;
+  if (pcurrsize and fixedsizeflag) <> 0 then
+   begin
+     SysTryResizeMem := false;
+     exit;
+   end;
 
   { get pointer to block }
   pcurr := pmemchunk_var(pointer(p)-sizeof(tmemchunk_var_hdr));
@@ -1247,20 +1239,20 @@ begin
   { do we need to allocate more memory ? }
   if size>currsize then
    begin
-   { the size is bigger than the previous size, we need to allocated more mem.
-     We first check if the blocks after the current block are free. If not we
-     simply call getmem/freemem to get the new block }
-    try_concat_free_chunk_forward(pcurr);
-    currsize := (pcurr^.size and sizemask);
-    SysTryResizeMem := currsize>=size;
-        end;
+     { the size is bigger than the previous size, we need to allocated more mem.
+       We first check if the blocks after the current block are free. If not we
+       simply call getmem/freemem to get the new block }
+     try_concat_free_chunk_forward(pcurr);
+     currsize := (pcurr^.size and sizemask);
+     SysTryResizeMem := currsize>=size;
+   end;
   if currsize>size then
-      begin
-    { is the size smaller then we can adjust the block to that size and insert
-  the other part into the freelist }
+   begin
+     { is the size smaller then we can adjust the block to that size and insert
+      the other part into the freelist }
      { create the left over freelist block, if at least 16 bytes are free }
-    split_block(pcurr, size);
-    SysTryResizeMem := true;
+     split_block(pcurr, size);
+     SysTryResizeMem := true;
    end;
   inc(internal_status.currheapused,size-oldsize);
 {$ifdef TestFreeLists}
@@ -1285,25 +1277,27 @@ begin
      if p<>nil then
       begin
         MemoryManager.FreeMem(p);
-      p := nil;
+        p := nil;
       end;
-  end else
+   end
+  else
    { Allocate a new block? }
    if p=nil then
     begin
-    p := MemoryManager.AllocMem(size);
-  end else
+      p := MemoryManager.GetMem(size);
+    end
+  else
    { Resize block }
    if not SysTryResizeMem(p,size) then
     begin
-    minsize := MemoryManager.MemSize(p);
-    if size < minsize then
-      minsize := size;
-    p2 := MemoryManager.AllocMem(size);
+      minsize := MemoryManager.MemSize(p);
+      if size < minsize then
+        minsize := size;
+      p2 := MemoryManager.GetMem(size);
       if p2<>nil then
-      Move(p^,p2^,minsize);
+        Move(p^,p2^,minsize);
       MemoryManager.FreeMem(p);
-    p := p2;
+      p := p2;
     end;
   SysReAllocMem := p;
 end;
@@ -1355,7 +1349,10 @@ end;
 
 {
   $Log$
-  Revision 1.47  2005-03-04 16:49:34  peter
+  Revision 1.48  2005-03-20 18:57:29  peter
+    * fixed tryresizemem
+
+  Revision 1.47  2005/03/04 16:49:34  peter
     * fix getheapstatus bootstrapping
 
   Revision 1.46  2005/03/02 14:25:19  marco
