@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 #
 #  $Id$
 #
@@ -65,7 +65,7 @@ cat <<EOFCFG > $thefile
 
 # For a release compile with optimizes and strip debuginfo
 #IFDEF RELEASE
-  -OG2p2
+  -OG2p3
   -Xs
   #WRITE Compiling Release Version
 #ENDIF
@@ -131,8 +131,8 @@ cat <<EOFCFG > $thefile
 #     -Op2  set target processor to Pentium/PentiumMMX (tm)
 #     -Op3  set target processor to PPro/PII/c6x86/K6 (tm)
 
-# Optimize always for Size and Pentium
-#-OG2p2
+# Optimize always for Size and PII
+#-OG2p3
 
 
 # -----------------------
@@ -150,54 +150,9 @@ cat <<EOFCFG > $thefile
 #-Fi/pp/inc;/pp/rtl/inc
 
 # searchpath for units and other system dependent things
-#IFDEF Go32V1
-  #IFDEF FPC_LINK_STATIC
-    -Fu$1/rtl/go32v1/static
-    -Fu$1/units/go32v1/static
-  #ENDIF
-  -Fu$1/rtl/go32v1
-  -Fu$1/units/go32v1
-#ENDIF
-#IFDEF Go32V2
-  #IFDEF FPC_LINK_STATIC
-    -Fu$1/rtl/go32v2/static
-    -Fu$1/units/go32v2/static
-  #ENDIF
-  -Fu$1/rtl/go32v2
-  -Fu$1/units/go32v2
-#ENDIF
-#IFDEF Win32
-  #IFDEF FPC_LINK_STATIC
-    -Fu$1/rtl/win32/static
-    -Fu$1/units/win32/static
-  #ENDIF
-  -Fu$1/rtl/win32
-  -Fu$1/units/win32
-#ENDIF
-#IFDEF OS2
-  #IFDEF FPC_LINK_STATIC
-    -Fu$1/rtl/os2/static
-    -Fu$1/units/os2/static
-  #ENDIF
-  -Fu$1/rtl/os2
-  -Fu$1/units/os2
-#ENDIF
-#IFDEF Linux
-  # For statically, smartlinked units
-  #IFDEF FPC_LINK_STATIC
-    -Fu$1/rtl/linux/static
-    -Fu$1/units/linux/static
-  #ENDIF
-  # For Dynamically linked units
-  #IFDEF FPC_LINK_DYNAMIC
-    -Fu$1/rtl/linux/shared
-    -Fu$1/units/linux/shared
-  #ENDIF
-  -Fu$1/rtl/linux
-  -Fu$1/units/linux
-  #-Fu~/pp/units;~/pp/rtl/linux
-  #-Fu/usr/lib/fpc/0.99.12/units;/usr/lib/fpc/0.99.12/rtl
-#ENDIF
+-Fu$1/rtl/$target/
+-Fu$1/units/$target
+#-Fu~/fpc/units;~/fpc/rtl/linux
 
 # searchpath for libraries
 -Fl$GCCDIR
