@@ -448,11 +448,23 @@ implementation
                    b:=1;
                 end
                else
-                { nil is compatible with class instances }
-                if (fromtreetype=niln) and (pobjectdef(def_to)^.is_class) then
+               { Class specific }
+                if (pobjectdef(def_to)^.is_class) then
                  begin
-                   doconv:=tc_equal;
-                   b:=1;
+                   { void pointer also for delphi mode }
+                   if (m_delphi in aktmodeswitches) and
+                      is_voidpointer(def_from) then
+                    begin
+                      doconv:=tc_equal;
+                      b:=1;
+                    end
+                   else
+                   { nil is compatible with class instances }
+                    if (fromtreetype=niln) and (pobjectdef(def_to)^.is_class) then
+                     begin
+                       doconv:=tc_equal;
+                       b:=1;
+                     end;
                  end;
              end;
 
@@ -725,11 +737,15 @@ implementation
     function valid_for_assign(p:ptree;allowprop:boolean):boolean;
       var
         hp : ptree;
+        gotsubscript,
         gotpointer,
+        gotclass,
         gotderef : boolean;
       begin
         valid_for_assign:=false;
+        gotsubscript:=false;
         gotderef:=false;
+        gotclass:=false;
         gotpointer:=false;
         hp:=p;
         while assigned(hp) do
@@ -748,19 +764,31 @@ implementation
                end;
              typeconvn :
                begin
-                 if hp^.resulttype^.deftype=pointerdef then
-                  gotpointer:=true;
-                 { pointer -> array conversion is done then we need to see it
-                   as a deref, because a ^ is then not required anymore }
-                 if (hp^.resulttype^.deftype=arraydef) and
-                    (hp^.left^.resulttype^.deftype=pointerdef) then
-                  gotderef:=true;
+                 case hp^.resulttype^.deftype of
+                   pointerdef :
+                     gotpointer:=true;
+                   objectdef :
+                     gotclass:=pobjectdef(hp^.resulttype)^.is_class;
+                   classrefdef :
+                     gotclass:=true;
+                   arraydef :
+                     begin
+                       { pointer -> array conversion is done then we need to see it
+                         as a deref, because a ^ is then not required anymore }
+                       if (hp^.left^.resulttype^.deftype=pointerdef) then
+                        gotderef:=true;
+                     end;
+                 end;
                  hp:=hp^.left;
                end;
              vecn,
-             asn,
-             subscriptn :
+             asn :
                hp:=hp^.left;
+             subscriptn :
+               begin
+                 gotsubscript:=true;
+                 hp:=hp^.left;
+               end;
              subn,
              addn :
                begin
@@ -788,9 +816,20 @@ implementation
                end;
              calln :
                begin
-                 { only allow writing if it returns a pointer and we've
-                   found a deref }
-                 if ((hp^.resulttype^.deftype=pointerdef) and gotderef) or
+                 { check return type }
+                 case hp^.resulttype^.deftype of
+                   pointerdef :
+                     gotpointer:=true;
+                   objectdef :
+                     gotclass:=pobjectdef(hp^.resulttype)^.is_class;
+                   classrefdef :
+                     gotclass:=true;
+                 end;
+                 { 1. if it returns a pointer and we've found a deref,
+                   2. if it returns a class and a subscription is found,
+                   3. property is allowed }
+                 if (gotpointer and gotderef) or
+                    (gotclass and gotsubscript) or
                     (hp^.isproperty and allowprop) then
                   valid_for_assign:=true
                  else
@@ -848,7 +887,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.55  2000-01-07 01:14:27  peter
+  Revision 1.56  2000-02-01 09:41:27  peter
+    * allow class -> voidpointer for delphi mode
+
+  Revision 1.55  2000/01/07 01:14:27  peter
     * updated copyright to 2000
 
   Revision 1.54  1999/12/31 14:26:27  peter
