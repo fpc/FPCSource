@@ -38,6 +38,37 @@ Var
   OrgFirst,DiffFirst : PMsg;
   Last : PMsg;
 
+const
+  NewFileName = 'new.msg';
+  Is_interactive : boolean = false;
+
+Procedure GetTranslation( p : PMsg);
+var
+   s : string;
+   i,j : longint;
+begin
+  i:=pos('_',p^.text);
+  if (i>0) and (i<=5) then
+      Writeln(P^.Enum,' type  "',copy(p^.text,1,i-1),'" "',copy(p^.text,i+1,255),'"')
+  else
+    Writeln(P^.enum,' "',p^.text,'"');
+  Readln(s);
+  if s='' then
+    begin
+      Is_interactive:=false;
+      exit;
+    end;
+  j:=pos('_',s);
+  if (j>0) and (j<=5) then
+    begin
+      if copy(p^.text,1,i)<>copy(s,1,j) then
+        Writeln('Different verbosity !!');
+      p^.text:=s;
+    end
+  else
+    p^.text:=copy(p^.text,1,i)+s;
+end;
+
 Function NewMsg (Var RM : PMsg; L : Longint; Const E : TEnum;Const T : TText;C : pchar;NbLn : longint) : PMsg;
 
 Var
@@ -97,17 +128,37 @@ end;
 Procedure Usage;
 
 begin
-  Writeln ('Usage : msgdif orgfile diffile');
+  Writeln ('Usage : msgdif [-i] orgfile diffile');
+  Writeln(' optional -i option allows to enter translated messages interactivly');
+  Writeln('Generates ',NewFileName,' with updated messages');
   halt(1)
 end;
 
 Procedure ProcessOptions;
-
+var
+  i,count : longint;
 begin
-  If ParamCount<>2 then
+  count:=paramcount;
+  if (count>0) and (UpCase(Paramstr(1))='-I') then
+    begin
+      dec(count);
+      i:=1;
+      Is_interactive:=true;
+    end
+  else
+    begin
+      i:=0;
+      Is_interactive:=false;
+    end;
+  If Count<>2 then
     Usage;
-  OrgfileName:=Paramstr(1);
-  DiffFileName:=Paramstr(2);
+  OrgfileName:=Paramstr(i+1);
+  DiffFileName:=Paramstr(i+2);
+  if (OrgFileName=NewFileName) or (DiffFileName=NewFileName) then
+    begin
+      Writeln('The file names must be different from ',NewFileName);
+      Halt(1);
+    end;
 end;
 
 Procedure ProcessFile (FileName : String; Var Root,First : PMsg);
@@ -275,6 +326,8 @@ procedure WriteReorderedFile(FileName : string;orgnext,diffnext : PMsg);
            begin
              { Insert a new error msg with the english comments }
              Writeln('New error ',orgnext^.enum,' added');
+             If Is_interactive then
+               GetTranslation(orgnext);
              Writeln(t,orgnext^.enum,'=',orgnext^.text);
              inc(i);
              Write(t,orgnext^.comment);
@@ -282,7 +335,15 @@ procedure WriteReorderedFile(FileName : string;orgnext,diffnext : PMsg);
            end
          else
            begin
-             Writeln(t,orgnext^.enum,'=',orgnext^.equivalent^.text);
+             inc(i);
+             if orgnext^.text=orgnext^.equivalent^.text then
+               begin
+                 Writeln(FileName,'(',i,') ',orgnext^.enum,' not translated');
+                 If Is_interactive then
+                   GetTranslation(orgnext^.equivalent);
+                 if orgnext^.text=orgnext^.equivalent^.text then
+                   inc(ntcount);
+               end;
              s2:=orgnext^.text;
              s2:=upcase(copy(s2,1,pos('_',s2)));
              s3:=orgnext^.equivalent^.text;
@@ -293,14 +354,17 @@ procedure WriteReorderedFile(FileName : string;orgnext,diffnext : PMsg);
                  Writeln('Warning: different options for ',orgnext^.enum);
                  Writeln('in ',orgFileName,' : ',s2);
                  Writeln('in ',diffFileName,' : ',s3);
+                 If Is_interactive then
+                   begin
+                     Write('Use ',OrgFileName,' verbosity ? [y/n] ');
+                     Readln(s);
+                     if UpCase(s)<>'N' then
+                       orgnext^.equivalent^.text:=s2+copy(orgnext^.equivalent^.text,
+                         length(s3)+1,255);
+                   end;
                end;
 
-             inc(i);
-             if orgnext^.text=orgnext^.equivalent^.text then
-               begin
-                 Writeln(FileName,'(',i,') ',orgnext^.enum,' not translated');
-                 inc(ntcount);
-               end;
+             Writeln(t,orgnext^.enum,'=',orgnext^.equivalent^.text);
              if assigned(orgnext^.equivalent^.comment) and
                (strlen(orgnext^.equivalent^.comment)>0) then
                Write(t,orgnext^.equivalent^.comment)
@@ -342,11 +406,14 @@ begin
   PrintList('Org.lst',OrgRoot);
   PrintList('Diff.lst',DiffRoot);
   ShowDiff (OrgRoot,DiffRoot);
-  WriteReorderedFile('new.msg',orgfirst,difffirst);
+  WriteReorderedFile(NewFileName,orgfirst,difffirst);
 end.
 {
   $Log$
-  Revision 1.11  2000-05-12 08:47:25  pierre
+  Revision 1.12  2000-05-12 15:03:44  pierre
+   + interactive mode for translation
+
+  Revision 1.11  2000/05/12 08:47:25  pierre
     + add a warning if the error level is different in the two files
     + force to keep the order of orgfile
 
