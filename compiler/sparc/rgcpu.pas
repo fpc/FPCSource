@@ -37,11 +37,11 @@ unit rgcpu;
         procedure add_constraints(reg:tregister);override;
         function get_spill_subreg(r : tregister) : tsubregister;override;
         procedure do_spill_read(list : taasmoutput;instr : taicpu;pos: tai; regidx: word;
-         const spilltemplist:Tspill_temp_list;const regs : tspillregsinfo);override;
+                                const spilltemplist:Tspill_temp_list;const regs : tspillregsinfo);override;
         procedure do_spill_written(list : taasmoutput;instr : taicpu;pos: tai; regidx: word;
-         const spilltemplist:Tspill_temp_list;const regs : tspillregsinfo);override;
+                                   const spilltemplist:Tspill_temp_list;const regs : tspillregsinfo);override;
         procedure do_spill_readwritten(list : taasmoutput;instr : taicpu;pos: tai; regidx: word;
-         const spilltemplist:Tspill_temp_list;const regs : tspillregsinfo);override;
+                                       const spilltemplist:Tspill_temp_list;const regs : tspillregsinfo);override;
       end;
 
 
@@ -189,7 +189,7 @@ implementation
 
 
     procedure trgcpu.do_spill_readwritten(list : taasmoutput;instr : taicpu;pos: tai; regidx: word;
-      const spilltemplist:Tspill_temp_list;const regs : tspillregsinfo);
+                                          const spilltemplist:Tspill_temp_list;const regs : tspillregsinfo);
       var
         helpins1, helpins2: tai;
         tmpref,ref : treference;
@@ -243,7 +243,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.26  2004-09-28 20:19:36  peter
+  Revision 1.27  2004-10-01 17:33:47  peter
+    * indents
+
+  Revision 1.26  2004/09/28 20:19:36  peter
     * fixed crash
 
   Revision 1.25  2004/09/27 21:23:26  peter
