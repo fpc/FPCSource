@@ -2,7 +2,7 @@
 
 {$asmmode intel}
 
-  PROCEDURE Cursor(Form: word);assembler;
+  PROCEDURE Cursor(Form: word);assembler;stdcall;
   asm
      mov cx,word ptr[Form]
      and cx,1F1Fh
