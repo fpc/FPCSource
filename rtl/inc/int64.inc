@@ -18,8 +18,17 @@
 
     type
        tqwordrec = packed record
+{$ifdef ENDIAN_LITTLE}       
          low : dword;
          high : dword;
+{$else not ENDIAN_LITTLE}
+{$ifdef ENDIAN_BIG}
+         high : dword;
+         low  : dword;
+{$else not ENDIAN_BIG}
+  {$fatal I need to know the endianess for int64.inc code}
+{$endif not ENDIAN_BIG}
+{$endif not ENDIAN_LITTLE}
        end;
 
     function count_leading_zeros(q : qword) : longint;
@@ -595,7 +604,11 @@
 
 {
   $Log$
-  Revision 1.17  2002-09-07 21:21:42  carl
+  Revision 1.18  2003-05-12 07:19:04  jonas
+    * fixed for big endian systems (since Florian doesn't seem to want to
+      commit this fix :)
+
+  Revision 1.17  2002/09/07 21:21:42  carl
     - remove FPUInt64 variable
 
   Revision 1.16  2002/09/07 15:07:45  peter
