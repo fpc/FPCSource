@@ -465,11 +465,6 @@ begin
                     ((d^.d_name[1]='.') and (d^.d_name[2]=#0))))) then
               name:='/'+strpas(d^.d_name);
           end;
-       end
-      else
-       begin
-         if (Errno<>ESysENOENT) then
-          Exit;
        end;
     until (name<>'');
     if Fpclosedir(dirstream)<0 then
@@ -671,7 +666,10 @@ End.
 
 {
    $Log$
-   Revision 1.7  2003-12-14 14:47:02  marco
+   Revision 1.8  2003-12-21 20:31:50  peter
+     * fix getdir when directory contains files that give EACCESS
+
+   Revision 1.7  2003/12/14 14:47:02  marco
     * fix for repeating 'x' bug
 
    Revision 1.6  2003/11/18 10:12:25  marco
