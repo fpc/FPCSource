@@ -655,9 +655,11 @@ implementation
            not (nf_explicit in ttypeconvnode(right).flags) then
          begin
             if assigned(left.resulttype.def) and
-              (left.resulttype.def.deftype in [enumdef,orddef,floatdef]) then
+              (left.resulttype.def.deftype in [enumdef,orddef,floatdef]) and
+              not is_boolean(left.resulttype.def) then
               begin
-                if (original_size <> 0) and (left.resulttype.def.size < original_size) then
+                if (original_size <> 0) and
+                   (left.resulttype.def.size < original_size) then
                   begin
                     if (cs_check_range in aktlocalswitches) then
                       Message(type_w_smaller_possible_range_check)
@@ -1187,7 +1189,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.145  2005-02-14 17:13:06  peter
+  Revision 1.146  2005-03-18 16:41:27  peter
+  don't check size differences for booleans
+
+  Revision 1.145  2005/02/14 17:13:06  peter
     * truncate log
 
   Revision 1.144  2005/02/11 16:25:26  peter
