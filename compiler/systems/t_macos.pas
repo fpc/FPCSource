@@ -148,7 +148,7 @@ begin
         Add('-t "MPST" -c "MPS " '#182);
 
       if apptype = app_cui then {If SIOW, to avoid some warnings.}
-        Add('-ignoredups __start -ignoredups .__start -ignoredups main -ignoredups .main '#182);
+        Add('-ignoredups __start -ignoredups .__start -ignoredups main -ignoredups .main -ignoredups qd '#182);
 
       Add('-tocdataref off -sym on -dead on -o '+ ScriptFixFileName(current_module.exefilename^));
 
@@ -245,7 +245,10 @@ initialization
 end.
 {
   $Log$
-  Revision 1.16  2004-12-22 16:32:46  peter
+  Revision 1.17  2004-12-28 22:00:15  olle
+    + suppression of link varning of 'qd'
+
+  Revision 1.16  2004/12/22 16:32:46  peter
     * maybequoted() added
 
   Revision 1.15  2004/11/19 16:30:24  peter
