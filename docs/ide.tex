@@ -73,9 +73,9 @@ see the current amount of unsed memory. Don't worry if this value
 is low the IDE allocates more memory from the operating system
 if it runs out of memory.
 
-You can exit from the IDE by selecting \var{File|Exit}\footnote{Select
-the item Exit in the menu File} or by pressing
-\textsc{Alt-X}.
+You can exit from the IDE by selecting \var{File|Exit}
+\footnote{\var{File|Exit} means select the item Exit in the menu File}
+or by pressing \textsc{Alt-X}.
 
 \begin{remark}
 A complete reference of all keyboard shortcuts can be found in the
@@ -265,6 +265,7 @@ Figure \ref{fig:idedlg} shows a typical dialog window.
 \fi
 \end{figure}
 \end{latexonly}
+%%%!!!!!!!!!!!!!!
 
 \subsection{Moving and zooming windows with the keyboard}
 \label{ide:keyboardwindow}
@@ -324,6 +325,9 @@ Furthermore, it contains the copyright information.
 \label{ide:editingtext}
 %%%!!!!!!!!!!!!!!
 
+\subsection{Insertation modes}
+%%%!!!!!!!!!!!!!!
+
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Searching in the text
 \section{Searching in the text}
@@ -376,14 +380,81 @@ menu item to call the \file{grep} utility (\var{Tools|Grep} or
 \textsc{Shift-F2}). \file{grep} search for a given string in files and
 returns the lines which contain the string. The search string can
 be even a regular expression (see \ref{ide:regexpr}).
-%%%!!!!!!!!!!!!!!
 
 \subsection{The ascii table}
-%%%!!!!!!!!!!!!!!
+The tools menu provides also an ascii table (\var{Tools|Ascii table},
+it allows you to lookup ascii codes as well as
+inserting chars into the window which was active when calling the
+ascii chart. To get the ascii code of a char move the blocking block
+cursor on this char or click with the mouse on it. To insert a
+char into an editor window, double click it with the mouse
+or press \textsc{Enter} while the cursor is on it.
 
 \subsection{The calculator}
+The calculator allows you to do quickly some calculations. It doesn't
+take care of operator precedence, so be careful. For more information
+about the supported operations, see table \ref{ide:calculatorcommands}.
+
+\begin{FPCltable}{p{5cm}lll}{Calculator commands}{calculatorcommands}
+\label{ide:calculatorcommands}
+Operation & Button & Key \\
+\hline
+Add two numbers & \var{+} & \textsc{+} \\
+Subtract two numbers & \var{\-} & \textsc{\-} \\
+Multiply two numbers & \var{*} & \textsc{*} \\
+Divide two numbers & \var{/} & \textsc{/} \\
+Calculate power & \var{x\^y} & \\
+Add the displayed number to the memory & \var{M+} & \\
+Subtract the displayed number from the memory & \var{M-} & \\
+Move the memory contents to the display & \var{M->} & \\
+Move the display contents to the memory & \var{M<-} & \\
+Exchange display and memory contents & \var{M<->} & \\
+Square the display contents & \var{x\^2} & \\
+Calculate the reciproke value & \var{1/x} & \\
+Calculate the square root & \var{sqr} & \\
+Calulate the natural logarithm &  \var{log} & \\
+Delete the last typed digit & \var{<-} & \textsc{Backspace} \\
+Delete the display & \var{C} & \textsc{C} \\
+Change the sign & \var{+\-} & \\
+Get result of operation & \var{=} & \textsc{Enter} \\
+Do per cent calculation & \var{\%} & \textsc{\%}
+\end{FPCltable}
+
+\subsection{Adding new tools}
 %%%!!!!!!!!!!!!!!
 
+\subsection{Meta parameters}
+When specifing the command line for the called tool, meta parameters can
+be used. Meta parameters are variables and and they are replaced
+by it's contents before passing the command line to the tool.
+
+%%%!!!!!!!!!!!!!!
+\begin{description}
+\item[\$CAP]
+\item[\$CAP\_MSG]
+\item[\$CAP\_EDIT]
+\item[\$COL] replaced by the coloumn of the cursor in the active window
+\item[\$CONFIG]
+\item[\$DIR]
+\item[\$DRIVE]
+\item[\$EDNAME]
+\item[\$EXENAME]
+\item[\$EXT]
+\item[\$LINE] replaced by the line number of the cursor in the active window
+\item[\$NAME]
+\item[\$NAMEEXT]
+\item[\$NOSWAP]
+\item[\$DRIVE]
+\item[\$PROMPT]
+\item[\$SAVE]
+\item[\$SAVE\_ALL]
+\item[\$SAVE\_CUR]
+\item[\$SAVE\_PROMPT]
+\item[\$WRITEMSG]
+\end{description}
+
+\subsection{Building your own tool command line dialog box}
+%%%!!!!!!!!!!!!!!
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Project management
@@ -615,7 +686,9 @@ Undo & \textsc{Alt-Backspace} & \\
 \end{FPCltable}
 %
 %  $Log$
-%  Revision 1.3  2000-02-28 17:45:40  florian
-%    * a lot of new stuff
+%  Revision 1.4  2000-03-01 15:39:40  florian
+%    * some new stuff
 %
+%  Revision 1.3  2000/02/28 17:45:40  florian
+%    * a lot of new stuff
 %
