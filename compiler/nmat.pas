@@ -740,10 +740,10 @@ implementation
               end;
             { before loading it into flags we need to load it into
               a register thus 1 register is need PM }
-{$ifdef i386}
+{$ifdef cpuflags}
              if left.expectloc<>LOC_JUMP then
                expectloc:=LOC_FLAGS;
-{$endif def i386}
+{$endif def cpuflags}
            end
          else
 {$ifdef SUPPORT_MMX}
@@ -795,7 +795,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.48  2003-05-09 17:47:02  peter
+  Revision 1.49  2003-05-24 16:32:34  jonas
+    * fixed expectloc of notnode for all processors that have flags
+
+  Revision 1.48  2003/05/09 17:47:02  peter
     * self moved to hidden parameter
     * removed hdisposen,hnewn,selfn
 
