@@ -140,7 +140,7 @@ procedure fpc_dynarray_setlength(var p : pointer;pti : pointer;
      if not(assigned(p)) then
        begin
           { do we have to allocate memory? }
-          if size = 0 then
+          if dims[dimcount-1] = 0 then
             exit;
           getmem(newp,size);
           fillchar(newp^,size,0);
@@ -252,7 +252,10 @@ function fpc_dynarray_copy(var p : pointer;ti : pointer;
 
 {
   $Log$
-  Revision 1.13  2001-12-28 14:19:07  jonas
+  Revision 1.14  2001-12-29 15:51:11  jonas
+    * correctly check for 0-size dynarray in previous patch
+
+  Revision 1.13  2001/12/28 14:19:07  jonas
     * don't allocate memory when doing a setlength(dynarr,0) when dynarr is
       already nil
 
