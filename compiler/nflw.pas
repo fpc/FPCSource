@@ -754,6 +754,7 @@ implementation
     function tfornode.pass_1 : tnode;
       var
          old_t_times : longint;
+         hp : Tnode;
      begin
          result:=nil;
          { Calc register weight }
@@ -1449,7 +1450,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.62  2003-01-03 17:16:57  peter
+  Revision 1.63  2003-01-04 08:08:47  daniel
+    * Readded missing variable
+
+  Revision 1.62  2003/01/03 17:16:57  peter
     * fixed warning about unset funcret
 
   Revision 1.61  2003/01/03 12:15:56  daniel
