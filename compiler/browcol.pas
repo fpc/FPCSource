@@ -425,8 +425,10 @@ procedure CreateBrowserCol;
       Params: array[0..20] of PString;
       inputfile : pinputfile;
   begin
-    if Assigned(Table)=false then Exit;
-    if Owner=nil then Owner:=New(PSortedSymbolCollection, Init(10,50));
+    if not Assigned(Table) then
+     Exit;
+    if Owner=nil then
+     Owner:=New(PSortedSymbolCollection, Init(10,50));
     defcount:=Table^.number_defs;
     symcount:=Table^.number_symbols;
   {  for I:=0 to defcount-1 do
@@ -459,7 +461,8 @@ procedure CreateBrowserCol;
                       Params[ParamCount-1]:=TypeNames^.Add(ParSym^.Name);
                     end;
                 end;
-              if assigned(definition^.localst) then
+              if assigned(definition^.localst) and
+                 (definition^.localst^.symtabletype<>staticsymtable) then
                 ProcessSymTable(Symbol^.Items,definition^.localst);
             end;
           typesym :
@@ -532,7 +535,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.3  1999-01-22 10:19:43  peter
+  Revision 1.4  1999-02-02 16:38:38  peter
+    * no endless loop with localst=staticsymtable
+
+  Revision 1.3  1999/01/22 10:19:43  peter
     * fixed typo
 
   Revision 1.2  1999/01/21 11:49:14  peter
