@@ -8337,12 +8337,9 @@ type
         spares : array[0..5] of longint;
      end;
 
-   Ppthread_mutex_t = ^pthread_mutex_t;
-   pthread_mutex_t = record
-        mutex : pointer;
-        reserved : array[0..52] of dword;
-     end;
-   TpthreadMutex = pthread_mutex_t;
+   Ppthread_mutex_t = PRtlCriticalSection;
+   pthread_mutex_t = TRtlCriticalSection;
+   TpthreadMutex = TRtlCriticalSection;
 
    Ppthread_rwlock_t = ^pthread_rwlock_t;
    pthread_rwlock_t = record
@@ -9228,7 +9225,10 @@ end.
 
 {
   $Log$
-  Revision 1.9  2005-01-04 11:25:33  armin
+  Revision 1.10  2005-02-06 16:57:18  peter
+    * threads for go32v2,os,emx,netware
+
+  Revision 1.9  2005/01/04 11:25:33  armin
   * rtl code cleanup, compat fixes between clib and libc
 
   Revision 1.8  2004/12/29 13:01:43  armin

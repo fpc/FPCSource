@@ -10,14 +10,14 @@ loaders=nwpre prelude
 units=$(SYSTEMUNIT) objpas macpas strings \
       lineinfo winsock heaptrc matrix \
       dos crt objects sysconst \
-      initc sysutils types typinfo systhrds classes \
+      initc sysutils types typinfo classes \
       cpu mmx getopts \
       dateutils strutils convutils \
       charset ucomplex variants \
       rtlconst math varutils freebidi utf8bidi \
       mouse video keyboard cmem sockets \
       aio nwsnut nwserv nwnit nwprot netware nwcalls ctypes
-rsts=math varutils variants typinfo classes dateutils sysconst convutils rtlconst systhrds
+rsts=math varutils variants typinfo classes dateutils sysconst convutils rtlconst
 
 [require]
 nortl=y
@@ -127,7 +127,6 @@ objpas$(PPUEXT): $(OBJPASDIR)/objpas.pp $(INC)/except.inc $(SYSTEMUNIT)$(PPUEXT)
 strings$(PPUEXT) : $(INC)/strings.pp $(INC)/stringsi.inc\
                    $(PROCINC)/strings.inc $(PROCINC)/stringss.inc\
                    $(SYSTEMUNIT)$(PPUEXT)
-systhrds$(PPUEXT): systhrds.pp $(INC)/threadh.inc $(SYSTEMUNIT)$(PPUEXT) objpas$(PPUEXT)
 
 #
 # System Dependent Units
@@ -165,7 +164,7 @@ sysutils$(PPUEXT) : sysutils.pp $(wildcard $(OBJPASDIR)/sysutils/*.inc) \
 
 classes$(PPUEXT) : classes.pp $(wildcard $(OBJPASDIR)/classes/*.inc) \
                    sysutils$(PPUEXT) typinfo$(PPUEXT) rtlconst$(PPUEXT) \
-                   sysconst$(PPUEXT) types$(PPUEXT) systhrds$(PPUEXT)
+                   sysconst$(PPUEXT) types$(PPUEXT)
         $(COMPILER) -Fi$(OBJPASDIR)/classes classes.pp
 
 typinfo$(PPUEXT): $(OBJPASDIR)/typinfo.pp objpas$(PPUEXT)

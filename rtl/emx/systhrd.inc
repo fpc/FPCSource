@@ -1,9 +1,10 @@
 {
     $Id$
     This file is part of the Free Pascal run time library.
-    Copyright (c) 2002 by the Free Pascal development team.
+    Copyright (c) 2002 by Peter Vreman,
+    member of the Free Pascal development team.
 
-    EMX threading support implementation
+    Linux (pthreads) threading support implementation
 
     See the file COPYING.FPC, included in this distribution,
     for details about the copyright.
@@ -13,31 +14,6 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 
  **********************************************************************}
-unit systhrds;
-interface
-
-{$S-}
-
-  type
-    { the fields of this record are os dependent  }
-    { and they shouldn't be used in a program     }
-    { only the type TCriticalSection is important }
-    PRTLCriticalSection = ^TRTLCriticalSection;
-    TRTLCriticalSection = packed record
-      DebugInfo : pointer;
-      LockCount : longint;
-      RecursionCount : longint;
-      OwningThread : DWord;
-      LockSemaphore : DWord;
-      Reserved : DWord;
-    end;
-
-{ Include generic thread interface }
-{$i threadh.inc}
-
-
-implementation
-
 
 {*****************************************************************************
                            Local Api imports
@@ -53,43 +29,6 @@ const
  sem_Indefinite_Wait = -1;
  dtSuspended = 1;
  dtStack_Commited = 2;
-
-type
- TByteArray = array [0..$ffff] of byte;
- PByteArray = ^TByteArray;
-
- TSysThreadIB = record
-  TID,
-  Priority,
-  Version: cardinal;
-  MCCount,
-  MCForceFlag: word;
- end;
- PSysThreadIB = ^TSysThreadIB;
-
- TThreadInfoBlock = record
-  PExChain,
-  Stack,
-  StackLimit: pointer;
-  TIB2: PSysThreadIB;
-  Version,
-  Ordinal: cardinal;
- end;
- PThreadInfoBlock = ^TThreadInfoBlock;
- PPThreadInfoBlock = ^PThreadInfoBlock;
-
- TProcessInfoBlock = record
-  PID,
-  ParentPid,
-  Handle: cardinal;
-  Cmd,
-  Env: PByteArray;
-  Status,
-  ProcType: cardinal;
- end;
- PProcessInfoBlock = ^TProcessInfoBlock;
- PPProcessInfoBlock = ^PProcessInfoBlock;
-
 
 { import the necessary stuff from the OS }
 function DosAllocThreadLocalMemory (Count: cardinal; var P: pointer): cardinal;
@@ -130,10 +69,6 @@ function DosFreeMem (P: pointer): cardinal; cdecl;
 function DosEnterCritSec:cardinal; cdecl; external 'DOSCALLS' index 232;
 
 function DosExitCritSec:cardinal; cdecl; external 'DOSCALLS' index 233;
-
-procedure DosGetInfoBlocks (PATIB: PPThreadInfoBlock;
-                                    PAPIB: PPProcessInfoBlock); cdecl;
-                                                 external 'DOSCALLS' index 312;
 
 
 {*****************************************************************************
@@ -178,8 +113,6 @@ begin
  DosFreeMem (DataIndex^);
 end;
 
-{ Include OS independent Threadvar initialization }
-{$i threadvar.inc}
 
     procedure InitThreadVars;
       begin
@@ -200,126 +133,21 @@ end;
 
 
 {*****************************************************************************
-                            Thread starting
-*****************************************************************************}
-
-    const
-      DefaultStackSize = 32768; { including 16384 margin for stackchecking }
-
-    type
-      pthreadinfo = ^tthreadinfo;
-      tthreadinfo = record
-        f : tthreadfunc;
-        p : pointer;
-        stklen : cardinal;
-      end;
-
-    procedure InitThread(stklen:cardinal);
-      begin
-        SysResetFPU;
-        { ExceptAddrStack and ExceptObjectStack are threadvars       }
-        { so every thread has its on exception handling capabilities }
-        SysInitExceptions;
-        { Open all stdio fds again }
-        SysInitStdio;
-        InOutRes:=0;
-        ThreadID := ...;
-        // ErrNo:=0;
-        { Stack checking }
-        StackLength:=stklen;
-        StackBottom:=Sptr - StackLength;
-      end;
-
-
-    procedure DoneThread;
-      begin
-        { Release Threadvars }
-{$ifdef HASTHREADVAR}
-        SysReleaseThreadVars;
-{$endif HASTHREADVAR}
-      end;
-
-
-    function ThreadMain(param : pointer) : pointer;cdecl;
-      var
-        ti : tthreadinfo;
-      begin
-{$ifdef HASTHREADVAR}
-        { Allocate local thread vars, this must be the first thing,
-          because the exception management and io depends on threadvars }
-        SysAllocateThreadVars;
-{$endif HASTHREADVAR}
-        { Copy parameter to local data }
-{$ifdef DEBUG_MT}
-        writeln('New thread started, initialising ...');
-{$endif DEBUG_MT}
-        ti:=pthreadinfo(param)^;
-        dispose(pthreadinfo(param));
-        { Initialize thread }
-        InitThread(ti.stklen);
-        { Start thread function }
-{$ifdef DEBUG_MT}
-        writeln('Jumping to thread function');
-{$endif DEBUG_MT}
-        ThreadMain:=pointer(ti.f(ti.p));
-      end;
-
-
-    function BeginThread(sa : Pointer;stacksize : dword;
-                         ThreadFunction : tthreadfunc;p : pointer;
-                         creationFlags : dword; var ThreadId : DWord) : DWord;
-      var
-        ti : pthreadinfo;
-      begin
-{$ifdef DEBUG_MT}
-        writeln('Creating new thread');
-{$endif DEBUG_MT}
-        { Initialize multithreading if not done }
-        if not IsMultiThread then
-         begin
-{$ifdef HASTHREADVAR}
-           InitThreadVars;
-{$endif HASTHREADVAR}
-           IsMultiThread:=true;
-         end;
-        { the only way to pass data to the newly created thread
-          in a MT safe way, is to use the heap }
-        new(ti);
-        ti^.f:=ThreadFunction;
-        ti^.p:=p;
-        ti^.stklen:=stacksize;
-        { call pthread_create }
-{$ifdef DEBUG_MT}
-        writeln('Starting new thread');
-{$endif DEBUG_MT}
-        BeginThread:=CreateThread(sa,stacksize,@ThreadMain,ti,creationflags,threadid);
-        BeginThread:=threadid;
-      end;
-
-
-    procedure EndThread(ExitCode : DWord);
-      begin
-        DoneThread;
-        ExitThread(ExitCode);
-      end;
-
-
-{*****************************************************************************
                           Delphi/Win32 compatibility
 *****************************************************************************}
 
 { we implement these procedures for win32 by importing them }
 { directly from windows                                     }
-procedure InitCriticalSection(var cs : TRTLCriticalSection);
+procedure SysInitCriticalSection(var cs : TRTLCriticalSection);
   external 'kernel32' name 'InitializeCriticalSection';
 
-procedure DoneCriticalSection(var cs : TRTLCriticalSection);
+procedure SysDoneCriticalSection(var cs : TRTLCriticalSection);
   external 'kernel32' name 'DeleteCriticalSection';
 
-procedure EnterCriticalSection(var cs : TRTLCriticalSection);
+procedure SysEnterCriticalSection(var cs : TRTLCriticalSection);
   external 'kernel32' name 'EnterCriticalSection';
 
-procedure LeaveCriticalSection(var cs : TRTLCriticalSection);
+procedure SysLeaveCriticalSection(var cs : TRTLCriticalSection);
   external 'kernel32' name 'LeaveCriticalSection';
 
 
@@ -332,22 +160,22 @@ procedure LeaveCriticalSection(var cs : TRTLCriticalSection);
 
     procedure OS2HeapMutexInit;
       begin
-         InitCriticalSection(heapmutex);
+         SysInitCriticalSection(heapmutex);
       end;
 
     procedure OS2HeapMutexDone;
       begin
-         DoneCriticalSection(heapmutex);
+         SysDoneCriticalSection(heapmutex);
       end;
 
     procedure OS2HeapMutexLock;
       begin
-         EnterCriticalSection(heapmutex);
+         SysEnterCriticalSection(heapmutex);
       end;
 
     procedure OS2HeapMutexUnlock;
       begin
-         LeaveCriticalSection(heapmutex);
+         SysLeaveCriticalSection(heapmutex);
       end;
 
     const
@@ -358,47 +186,21 @@ procedure LeaveCriticalSection(var cs : TRTLCriticalSection);
         MutexUnlock : @OS2HeapMutexUnlock;
       );
 
-    procedure InitHeapMutexes;
+    procedure InitSystemThreads;
       begin
-        SetMemoryMutexManager(Win32MemoryMutexManager);
+        SetNoThreadManager;
+        SetMemoryMutexManager(OS2MemoryMutexManager);
       end;
 
 
-{*****************************************************************************
-                             Generic overloaded
-*****************************************************************************}
-
-{ Include generic overloaded routines }
-{$i thread.inc}
-
-finalization
- DosFreeThreadLocalMemory (DataIndex);
-end;
-
-initialization
-  InitHeapMutexes;
-end.
 {
   $Log$
-  Revision 1.5  2004-01-20 23:05:31  hajny
-    * ExecuteProcess fixes, ProcessID and ThreadID added
+  Revision 1.1  2005-02-06 16:57:18  peter
+    * threads for go32v2,os,emx,netware
 
-  Revision 1.4  2003/10/19 09:35:28  hajny
-    * fixes from OS/2 merged to EMX
-
-  Revision 1.3  2003/03/23 23:11:17  hajny
-    + emx target added
-
-  Revision 1.2  2002/11/17 22:32:05  hajny
-    * type corrections (longing x cardinal)
-
-  Revision 1.1  2002/11/17 16:45:35  hajny
-    * threads.pp renamed to systhrds.pp
-
-  Revision 1.1  2002/11/17 16:22:54  hajny
-    + RTL for emx target
-
-  Revision 1.1  2002/10/14 19:39:18  peter
-    * threads unit added for thread support
+  Revision 1.1  2005/02/06 13:06:20  peter
+    * moved file and dir functions to sysfile/sysdir
+    * win32 thread in systemunit
 
 }
+

@@ -1,9 +1,10 @@
 {
     $Id$
     This file is part of the Free Pascal run time library.
-    Copyright (c) 2002 by the Free Pascal development team.
+    Copyright (c) 2002 by Peter Vreman,
+    member of the Free Pascal development team.
 
-    OS/2 threading support implementation
+    Linux (pthreads) threading support implementation
 
     See the file COPYING.FPC, included in this distribution,
     for details about the copyright.
@@ -13,40 +14,6 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 
  **********************************************************************}
-unit systhrds;
-interface
-
-{$S-}
-
-  type
-    { the fields of this record are os dependent  }
-    { and they shouldn't be used in a program     }
-    { only the type TCriticalSection is important }
-    PRTLCriticalSection = ^TRTLCriticalSection;
-    TRTLCriticalSection = packed record
-      DebugInfo : pointer;
-      LockCount : longint;
-      RecursionCount : longint;
-      OwningThread : DWord;
-      LockSemaphore : DWord;
-      Reserved : DWord;
-    end;
-
-{ Include generic thread interface }
-{$i threadh.inc}
-
-
-implementation
-
-
-{*****************************************************************************
-                             Generic overloaded
-*****************************************************************************}
-
-{ Include generic overloaded routines }
-{$i thread.inc}
-
-
 
 {*****************************************************************************
                            Local Api imports
@@ -63,42 +30,6 @@ const
  dtSuspended = 1;
  dtStack_Commited = 2;
 
-type
- TByteArray = array [0..$ffff] of byte;
- PByteArray = ^TByteArray;
-
- TSysThreadIB = record
-  TID,
-  Priority,
-  Version: cardinal;
-  MCCount,
-  MCForceFlag: word;
- end;
- PSysThreadIB = ^TSysThreadIB;
-
- TThreadInfoBlock = record
-  PExChain,
-  Stack,
-  StackLimit: pointer;
-  TIB2: PSysThreadIB;
-  Version,
-  Ordinal: cardinal;
- end;
- PThreadInfoBlock = ^TThreadInfoBlock;
- PPThreadInfoBlock = ^PThreadInfoBlock;
-
- TProcessInfoBlock = record
-  PID,
-  ParentPid,
-  Handle: cardinal;
-  Cmd,
-  Env: PByteArray;
-  Status,
-  ProcType: cardinal;
- end;
- PProcessInfoBlock = ^TProcessInfoBlock;
- PPProcessInfoBlock = ^PProcessInfoBlock;
-
 
 { import the necessary stuff from the OS }
 function DosAllocThreadLocalMemory (Count: cardinal; var P: pointer): cardinal;
@@ -111,9 +42,6 @@ function DosCreateThread (var TID: cardinal; Address: pointer;
 (* TThreadFunc *)
      aParam: pointer; Flags: cardinal; StackSize: cardinal): cardinal; cdecl;
                                                  external 'DOSCALLS' index 311;
-
-procedure DosExit (Action, Result: cardinal); cdecl;
-                                                 external 'DOSCALLS' index 234;
 
 function DosCreateMutExSem (Name: PChar; var Handle: longint; Attr: cardinal;
                State: boolean): cardinal; cdecl; external 'DOSCALLS' index 331;
@@ -130,21 +58,11 @@ function DosRequestMutExSem (Handle:longint; Timeout: cardinal): cardinal; cdecl
 function DosReleaseMutExSem (Handle: longint): cardinal; cdecl;
                                                  external 'DOSCALLS' index 335;
 
-function DosAllocMem (var P: pointer; Size, Flag: cardinal): cardinal; cdecl;
-                                                 external 'DOSCALLS' index 299;
-
-function DosFreeMem (P: pointer): cardinal; cdecl;
-                                                 external 'DOSCALLS' index 304;
-
 {
 function DosEnterCritSec:cardinal; cdecl; external 'DOSCALLS' index 232;
 
 function DosExitCritSec:cardinal; cdecl; external 'DOSCALLS' index 233;
 }
-
-procedure DosGetInfoBlocks (PATIB: PPThreadInfoBlock;
-                                    PAPIB: PPProcessInfoBlock); cdecl;
-                                                 external 'DOSCALLS' index 312;
 
 procedure DosSleep (MSec: cardinal); cdecl; external 'DOSCALLS' index 229;
 
@@ -191,9 +109,6 @@ begin
  DosFreeMem (DataIndex^);
 end;
 
-{ Include OS independent Threadvar initialization }
-{$i threadvar.inc}
-
 (*    procedure InitThreadVars;
       begin
         { allocate one ThreadVar entry from the OS, we use this entry }
@@ -215,9 +130,6 @@ end;
 {*****************************************************************************
                             Thread starting
 *****************************************************************************}
-
-    const
-      DefaultStackSize = 32768; { including 16384 margin for stackchecking }
 
     type
       pthreadinfo = ^tthreadinfo;
@@ -278,9 +190,9 @@ end;
       end;
 
 
-    function SysBeginThread (SA: pointer; StackSize: cardinal;
-                         ThreadFunction: TThreadFunc; P: pointer;
-                    CreationFlags: cardinal; var ThreadId: cardinal): cardinal;
+    function SysBeginThread(sa : Pointer;stacksize : dword;
+                         ThreadFunction : tthreadfunc;p : pointer;
+                         creationFlags : dword; var ThreadId : THandle) : DWord;
       var
         TI: PThreadInfo;
       begin
@@ -293,7 +205,7 @@ end;
 {$ifdef HASTHREADVAR}
            if DosAllocThreadLocalMemory (1, DataIndex) <> 0
              then RunError (8);
-           InitThreadVars;
+           InitThreadVars(@SysRelocateThreadVar);
 {$endif HASTHREADVAR}
            IsMultiThread:=true;
          end;
@@ -307,8 +219,8 @@ end;
 {$ifdef DEBUG_MT}
         writeln('Starting new thread');
 {$endif DEBUG_MT}
-        SysBeginThread := DosCreateThread (ThreadID, @ThreadMain, SA,
-                                           CreationFlags, StackSize: cardinal);
+        SysBeginThread := DosCreateThread (DWord(ThreadID), @ThreadMain, SA,
+                                           CreationFlags, StackSize);
       end;
 
 
@@ -376,7 +288,7 @@ end;
     end;
 
 
-    function SysThreadGetPriority (ThreadHandle: dword): integer;
+    function SysThreadGetPriority (ThreadHandle: dword): longint;
     begin
 {$WARNING TODO!}
 {
@@ -402,23 +314,23 @@ end;
 { DosEnter/ExitCritSec have quite a few limitations, so let's try to avoid
   them. I'm not sure whether mutex semaphores are SMP-safe, though... :-(  }
 
-procedure SysInitCriticalSection(var CS: TRTLCriticalSection);
+procedure SysInitCriticalSection(var CS);
 begin
 {$WARNING TODO!}
 end;
 
 
-procedure SysDoneCriticalSection (var CS: TRTLCriticalSection);
+procedure SysDoneCriticalSection (var CS);
 begin
 {$WARNING TODO!}
 end;
 
-procedure EnterCriticalSection (var CS: TRTLCriticalSection);
+procedure SysEnterCriticalSection (var CS);
 begin
 {$WARNING TODO!}
 end;
 
-procedure LeaveCriticalSection (var CS: TRTLCriticalSection);
+procedure SysLeaveCriticalSection (var CS);
 begin
 {$WARNING TODO!}
 end;
@@ -589,7 +501,7 @@ var
   OS2ThreadManager: TThreadManager;
 
 
-procedure SetOS2ThreadManager;
+procedure InitSystemThreads;
 begin
   with OS2ThreadManager do
     begin
@@ -630,27 +542,15 @@ begin
   InitHeapMutexes;
 end;
 
-finalization
- DosFreeThreadLocalMemory (DataIndex);
-end;
-
-initialization
-  SetOS2ThreadManager;
-end.
 
 {
   $Log$
-  Revision 1.3  2005-01-27 22:14:54  hajny
-    * first part of compilation fixes
+  Revision 1.1  2005-02-06 16:57:18  peter
+    * threads for go32v2,os,emx,netware
 
-  Revision 1.2  2003/10/13 21:17:31  hajny
-    * longint to cardinal corrections
-
-  Revision 1.1  2002/11/17 22:31:46  hajny
-    + first (incomplete) version of systhrds
-
-  Revision 1.1  2002/10/14 19:39:18  peter
-    * threads unit added for thread support
+  Revision 1.1  2005/02/06 13:06:20  peter
+    * moved file and dir functions to sysfile/sysdir
+    * win32 thread in systemunit
 
 }
-  
+

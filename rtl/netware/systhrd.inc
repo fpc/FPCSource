@@ -1,9 +1,10 @@
 {
     $Id$
     This file is part of the Free Pascal run time library.
-    Copyright (c) 2001-2002 by the Free Pascal development team.
+    Copyright (c) 2002 by Peter Vreman,
+    member of the Free Pascal development team.
 
-    Multithreading implementation for NetWare
+    Linux (pthreads) threading support implementation
 
     See the file COPYING.FPC, included in this distribution,
     for details about the copyright.
@@ -13,11 +14,6 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 
  **********************************************************************}
-{$mode objfpc}
-unit systhrds;
-interface
-
-{$S-}
 
 { Multithreading for netware, armin 16 Mar 2002
   - threads are basicly tested and working
@@ -31,39 +27,6 @@ interface
     are open semaphores on nlm unload.
 }
 
-type
-   { the fields of this record are os dependent  }
-   { and they shouldn't be used in a program     }
-   { only the type TCriticalSection is important }
-   PRTLCriticalSection = ^TRTLCriticalSection;
-   TRTLCriticalSection = packed record
-      SemaHandle : LONGINT;
-      SemaIsOpen : BOOLEAN;
-   end;
-
-{ include threading stuff }
-{$i threadh.inc}
-
-{Delphi/Windows compatible priority constants, they are also defined for Unix and Win32}
-const
-   THREAD_PRIORITY_IDLE          = -15;
-   THREAD_PRIORITY_LOWEST        = -2;
-   THREAD_PRIORITY_BELOW_NORMAL  = -1;
-   THREAD_PRIORITY_NORMAL        = 0;
-   THREAD_PRIORITY_ABOVE_NORMAL  = 1;
-   THREAD_PRIORITY_HIGHEST       = 2;
-   THREAD_PRIORITY_TIME_CRITICAL = 15;
-
-implementation
-
-function  SysGetCurrentThreadId : dword;forward;
-
-{$i thread.inc }
-
-{ some declarations for Netware API calls }
-{$I nwsys.inc}
-
-{  define DEBUG_MT}
 
 {*****************************************************************************
                              Threadvar support
@@ -143,10 +106,6 @@ begin
      end;
   end;
 end;
-
-
-{ Include OS independent Threadvar initialization }
-{$i threadvr.inc}
 
 {$endif HASTHREADVAR}
 
@@ -273,7 +232,7 @@ begin
 end;
 
 function GetThreadName  (threadId : longint; var threadName) : longint; cdecl; external 'clib' name 'GetThreadName';
-function GetThreadID : dword; cdecl; external 'clib' name 'GetThreadID';
+function CGetThreadID : dword; cdecl; external 'clib' name 'GetThreadID';
 //function __RenameThread (threadId : longint; threadName:pchar) : longint; cdecl; external 'clib' name 'RenameThread';
 
 function  SysWaitForThreadTerminate (threadHandle : dword; TimeoutMs : longint) : dword;
@@ -297,7 +256,7 @@ begin
   SysThreadSetPriority := true;
 end;
 
-function  SysThreadGetPriority (threadHandle : dword): Integer;
+function  SysThreadGetPriority (threadHandle : dword): Longint;
 begin
   SysThreadGetPriority := 0;
 end;
@@ -306,7 +265,7 @@ end;
 
 function  SysGetCurrentThreadId : dword;
 begin
-  SysGetCurrentThreadId := GetThreadID;
+  SysGetCurrentThreadId := CGetThreadID;
 end;
 
 
@@ -369,7 +328,7 @@ BEGIN
 END;
 
 
-PROCEDURE CloseAllRemainingSemaphores;
+PROCEDURE SysCloseAllRemainingSemaphores;
 var i : LONGINT;
 begin
   IF SemaList <> NIL then
@@ -440,9 +399,9 @@ begin
 end;
 
 
-function SetThreadDataAreaPtr (newPtr:pointer):pointer;
+function SysSetThreadDataAreaPtr (newPtr:pointer):pointer;
 begin
-  SetThreadDataAreaPtr := _GetThreadDataAreaPtr;
+  SysSetThreadDataAreaPtr := _GetThreadDataAreaPtr;
   if newPtr = nil then
     newPtr := thredvarsmainthread;
   _SaveThreadDataAreaPtr     (newPtr);
@@ -493,7 +452,7 @@ end;
 Var
   NWThreadManager : TThreadManager;
 
-Procedure SetNWThreadManager;
+Procedure InitSystemThreads;
 
 begin
   With NWThreadManager do
@@ -528,34 +487,20 @@ begin
     end;
   SetThreadManager(NWThreadManager);
   InitHeapMutexes;
-end;
-
-initialization
-  SetNWThreadManager;
-  NWSysSetThreadFunctions (@CloseAllRemainingSemaphores,
+  NWSysSetThreadFunctions (@SysCloseAllRemainingSemaphores,
                            @SysReleaseThreadVars,
-			   @SetThreadDataAreaPtr);
-
-end.
-
+			   @SysSetThreadDataAreaPtr);
+end;
 
 
 {
   $Log$
-  Revision 1.5  2004-09-26 19:25:49  armin
-  * exiting threads at nlm unload
+  Revision 1.1  2005-02-06 16:57:18  peter
+    * threads for go32v2,os,emx,netware
 
-  Revision 1.4  2004/07/30 15:05:25  armin
-  make netware rtl compilable under 1.9.5
-
-  Revision 1.3  2003/10/01 21:00:09  peter
-    * GetCurrentThreadHandle renamed to GetCurrentThreadId
-
-  Revision 1.2  2003/03/27 17:14:27  armin
-  * more platform independent thread routines, needs to be implemented for unix
-
-  Revision 1.1  2003/02/16 17:12:15  armin
-  * systhrds fir netware added
-
+  Revision 1.1  2005/02/06 13:06:20  peter
+    * moved file and dir functions to sysfile/sysdir
+    * win32 thread in systemunit
 
 }
+

@@ -1,11 +1,10 @@
 {
     $Id$
     This file is part of the Free Pascal run time library.
-    Copyright (c) 2002-2004 by the Free Pascal development team.
+    Copyright (c) 2002 by Peter Vreman,
+    member of the Free Pascal development team.
 
-    netware (pthreads) threading support implementation, most of
-    this is copied from the linux implementation because netware
-    libc also provides pthreads
+    Linux (pthreads) threading support implementation
 
     See the file COPYING.FPC, included in this distribution,
     for details about the copyright.
@@ -15,24 +14,6 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 
  **********************************************************************}
-{$mode objfpc}
-
-unit systhrds;
-interface
-{$S-}
-
-{ Posix compliant definition }
-
-uses Libc;
-
-type
-  PRTLCriticalSection = Ppthread_mutex_t;
-  TRTLCriticalSection = pthread_mutex_t;
-
-{$define DISABLE_NO_THREAD_MANAGER}
-{$i threadh.inc}
-
-implementation
 
 { ok, so this is a hack, but it works nicely. Just never use
   a multiline argument with WRITE_DEBUG! }
@@ -42,12 +23,6 @@ implementation
 {$ELSE}
 {$define WRITE_DEBUG := //}      // just comment out those lines
 {$ENDIF}
-
-{*****************************************************************************
-                             Generic overloaded
-*****************************************************************************}
-
-{$i thread.inc}
 
 {*****************************************************************************
                              Threadvar support
@@ -100,18 +75,13 @@ implementation
         _Free (pthread_getspecific(tlskey));
       end;
 
-    function SetThreadDataAreaPtr (newPtr:pointer):pointer;
+    function SysSetThreadDataAreaPtr (newPtr:pointer):pointer;
     begin
-      SetThreadDataAreaPtr := pthread_getspecific(tlskey);  // return current
+      SysSetThreadDataAreaPtr := pthread_getspecific(tlskey);  // return current
       if newPtr = nil then                                  // if nil
         newPtr := thredvarsmainthread;                      // set main thread vars
       pthread_setspecific(tlskey,newPtr);
     end;
-
-
-{ Include OS independent Threadvar initialization }
-{$i threadvr.inc}
-
 
 {$endif HASTHREADVAR}
 
@@ -256,7 +226,7 @@ implementation
     end;
 
 
-    function  SysThreadGetPriority (threadHandle : dword): Integer;
+    function  SysThreadGetPriority (threadHandle : dword): longint;
     begin
       {priority is ignored on netware}
       SysThreadGetPriority := 0;
@@ -340,11 +310,10 @@ implementation
       end;
 
 type
-     TPthreadMutex = ppthread_mutex_t;
      Tbasiceventstate=record
          FSem: Pointer;
          FManualReset: Boolean;
-         FEventSection: TPthreadMutex;
+         FEventSection: ppthread_mutex_t;
 	end;
      plocaleventstate = ^tbasiceventstate;
 //     peventstate=pointer;
@@ -434,7 +403,7 @@ end;
 Var
   NWThreadManager : TThreadManager;
 
-Procedure SetNWThreadManager;
+Procedure InitSystemThreads;
 
 begin
   With NWThreadManager do
@@ -469,34 +438,23 @@ begin
     end;
   SetThreadManager(NWThreadManager);
   InitHeapMutexes;
-end;
-
-initialization
   {$ifdef HASTHREADVAR}
   ThVarAllocResourceTag := AllocateResourceTag(getnlmhandle,'Threadvar Memory',AllocSignature);
   {$endif}
-  SetNWThreadManager;
   NWSysSetThreadFunctions (@SysAllocateThreadVars,
                            @SysReleaseThreadVars,
-                           @SetThreadDataAreaPtr);
+                           @SysSetThreadDataAreaPtr);
+end;
 
-end.
+
 {
   $Log$
-  Revision 1.3  2004-09-26 19:23:34  armin
-  * exiting threads at nlm unload
-  * renamed some libc functions
+  Revision 1.1  2005-02-06 16:57:18  peter
+    * threads for go32v2,os,emx,netware
 
-  Revision 1.2  2004/09/19 20:06:37  armin
-  * removed get/free video buf from video.pp
-  * implemented sockets
-  * basic library support
-  * threadvar memory leak removed
-  * fixes (ide now starts and editor is usable)
-  * support for lineinfo
-
-  Revision 1.1  2004/09/05 20:58:47  armin
-  * first rtl version for netwlibc
+  Revision 1.1  2005/02/06 13:06:20  peter
+    * moved file and dir functions to sysfile/sysdir
+    * win32 thread in systemunit
 
 }
 

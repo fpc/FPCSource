@@ -27,8 +27,7 @@ uses
   sysutils,
   types,
   typinfo,
-  rtlconst,
-  systhrds;
+  rtlconst;
 	
 
 {$i classesh.inc}
@@ -48,7 +47,10 @@ finalization
 end.
 {
   $Log$
-  Revision 1.5  2004-09-26 19:25:49  armin
+  Revision 1.6  2005-02-06 16:57:18  peter
+    * threads for go32v2,os,emx,netware
+
+  Revision 1.5  2004/09/26 19:25:49  armin
   * exiting threads at nlm unload
 
   Revision 1.4  2004/08/01 20:02:48  armin

@@ -28,7 +28,6 @@ uses
   types,
   typinfo,
   rtlconst,
-  systhrds,
   Libc;
 
 
@@ -49,7 +48,10 @@ finalization
 end.
 {
   $Log$
-  Revision 1.2  2004-09-26 19:23:34  armin
+  Revision 1.3  2005-02-06 16:57:18  peter
+    * threads for go32v2,os,emx,netware
+
+  Revision 1.2  2004/09/26 19:23:34  armin
   * exiting threads at nlm unload
   * renamed some libc functions
 

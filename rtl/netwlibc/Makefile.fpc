@@ -10,14 +10,14 @@ loaders=nwplibc nwl_main nwl_dlle
 units=$(SYSTEMUNIT) objpas macpas strings \
       lineinfo winsock heaptrc matrix \
       nwsnut libc dos crt objects sysconst dynlibs \
-      initc sysutils types typinfo systhrds classes \
+      initc sysutils types typinfo classes \
       cpu mmx getopts \
       dateutils strutils convutils \
       charset ucomplex variants \
       rtlconst math varutils freebidi utf8bidi \
       mouse video keyboard cmem sockets ctypes
 
-rsts=math varutils variants convutils typinfo systhrds classes dateutils sysconst rtlconst
+rsts=math varutils variants convutils typinfo classes dateutils sysconst rtlconst
 
 [require]
 nortl=y
@@ -42,7 +42,8 @@ PROCINC=$(RTL)/$(CPU_TARGET)
 UNITPREFIX=rtl
 
 IMPFILES=nwsnut.imp ws2_32.imp ws2nlm.imp libc.imp netware.imp \
-libcclib.imp nwplibc.o
+libcclib.imp
+# nwplibc.o
 
 SYSTEMUNIT=system
 
@@ -127,7 +128,6 @@ objpas$(PPUEXT): $(OBJPASDIR)/objpas.pp $(INC)/except.inc $(SYSTEMUNIT)$(PPUEXT)
 strings$(PPUEXT) : $(INC)/strings.pp $(INC)/stringsi.inc\
                    $(PROCINC)/strings.inc $(PROCINC)/stringss.inc\
                    $(SYSTEMUNIT)$(PPUEXT)
-systhrds$(PPUEXT): systhrds.pp $(INC)/threadh.inc $(SYSTEMUNIT)$(PPUEXT) objpas$(PPUEXT)
 
 #
 # System Dependent Units
@@ -169,7 +169,7 @@ sysutils$(PPUEXT) : sysutils.pp $(wildcard $(OBJPASDIR)/sysutils/*.inc) \
 
 classes$(PPUEXT) : classes.pp $(wildcard $(OBJPASDIR)/classes/*.inc) \
                    sysutils$(PPUEXT) typinfo$(PPUEXT) rtlconst$(PPUEXT) \
-                   sysconst$(PPUEXT) types$(PPUEXT) systhrds$(PPUEXT) \
+                   sysconst$(PPUEXT) types$(PPUEXT) \
                    tthread.inc
         $(COMPILER) -Fi$(OBJPASDIR)/classes classes.pp
 

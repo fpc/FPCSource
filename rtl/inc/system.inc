@@ -1023,14 +1023,14 @@ end;
                           Thread support
 *****************************************************************************}
 
-{ OS Dependent implementation }
-{$i systhrd.inc}
-
 { Generic threadmanager }
 {$i thread.inc}
 
 { Generic threadvar support }
 {$i threadvr.inc}
+
+{ OS Dependent implementation }
+{$i systhrd.inc}
 
 
 {*****************************************************************************
@@ -1060,7 +1060,10 @@ end;
 
 {
   $Log$
-  Revision 1.73  2005-02-06 13:06:20  peter
+  Revision 1.74  2005-02-06 16:57:18  peter
+    * threads for go32v2,os,emx,netware
+
+  Revision 1.73  2005/02/06 13:06:20  peter
     * moved file and dir functions to sysfile/sysdir
     * win32 thread in systemunit
 
