@@ -984,7 +984,7 @@ implementation
     function tstoreddef.getcopy : tstoreddef;
       begin
          Message(sym_e_cant_create_unique_type);
-         getcopy:=nil;
+         getcopy:=terrordef.create;
       end;
 
     procedure tstoreddef.ppuwritedef(ppufile:tcompilerppufile);
@@ -2715,8 +2715,8 @@ implementation
          IsConvertedPointer:=true;
          setelementtype(elemt);
       end;
-      
-      
+
+
     constructor tarraydef.ppuload(ppufile:tcompilerppufile);
       begin
          inherited ppuloaddef(ppufile);
@@ -2829,7 +2829,7 @@ implementation
                 (($7fffffff div cachedsize + (cachedsize -1)) < (int64(highrange) - int64(lowrange)))
                ) Then
              Message(sym_e_segment_too_large);
-         end;    
+         end;
       end;
 
 
@@ -6112,7 +6112,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.188  2003-11-05 14:18:03  marco
+  Revision 1.189  2003-11-08 23:31:27  florian
+    * tstoreddef.getcopy returns now an errordef instead of nil; this
+      allows easier error recovery
+
+  Revision 1.188  2003/11/05 14:18:03  marco
    * fix from Peter arraysize warning (nav Newsgroup msg)
 
   Revision 1.187  2003/11/01 15:50:03  peter
