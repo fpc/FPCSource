@@ -1087,11 +1087,9 @@ implementation
                (tprocsym(sym).owner.symtabletype=objectsymtable) then
              search_class_overloads(tprocsym(sym));
 
-            writeln(proc.mangledname);
             for i:=1 to tprocsym(sym).procdef_count do
               begin
                 implprocdef:=tprocsym(sym).procdef[i];
-                writeln(implprocdef.mangledname);
                 if (compare_paras(proc.paras,implprocdef.paras,cp_none,[])>=te_equal) and
                    (proc.proccalloption=implprocdef.proccalloption) and
                    (proc.proctypeoption=implprocdef.proctypeoption) and
@@ -1370,7 +1368,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.88  2005-02-01 23:18:54  florian
+  Revision 1.89  2005-02-02 02:19:42  karoly
+    * removed debug writelns from florian's previous commit
+
+  Revision 1.88  2005/02/01 23:18:54  florian
     * fixed:
       r1 = record
         p : procedure stdcall;
