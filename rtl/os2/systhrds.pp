@@ -40,6 +40,15 @@ implementation
 
 
 {*****************************************************************************
+                             Generic overloaded
+*****************************************************************************}
+
+{ Include generic overloaded routines }
+{$i thread.inc}
+
+
+
+{*****************************************************************************
                            Local Api imports
 *****************************************************************************}
 
@@ -100,7 +109,7 @@ function DosFreeThreadLocalMemory (P: pointer): cardinal; cdecl;
 
 function DosCreateThread (var TID: cardinal; Address: pointer;
 (* TThreadFunc *)
-        aParam: pointer; Flags: cardinal; StackSize: cardinal): cardinal; cdecl;
+     aParam: pointer; Flags: cardinal; StackSize: cardinal): cardinal; cdecl;
                                                  external 'DOSCALLS' index 311;
 
 procedure DosExit (Action, Result: cardinal); cdecl;
@@ -127,13 +136,17 @@ function DosAllocMem (var P: pointer; Size, Flag: cardinal): cardinal; cdecl;
 function DosFreeMem (P: pointer): cardinal; cdecl;
                                                  external 'DOSCALLS' index 304;
 
+{
 function DosEnterCritSec:cardinal; cdecl; external 'DOSCALLS' index 232;
 
 function DosExitCritSec:cardinal; cdecl; external 'DOSCALLS' index 233;
+}
 
 procedure DosGetInfoBlocks (PATIB: PPThreadInfoBlock;
                                     PAPIB: PPProcessInfoBlock); cdecl;
                                                  external 'DOSCALLS' index 312;
+
+procedure DosSleep (MSec: cardinal); cdecl; external 'DOSCALLS' index 229;
 
 
 {*****************************************************************************
@@ -181,7 +194,7 @@ end;
 { Include OS independent Threadvar initialization }
 {$i threadvar.inc}
 
-    procedure InitThreadVars;
+(*    procedure InitThreadVars;
       begin
         { allocate one ThreadVar entry from the OS, we use this entry }
         { for a pointer to our threadvars                             }
@@ -195,7 +208,7 @@ end;
         { install threadvar handler }
         fpc_threadvar_relocate_proc := @SysRelocateThreadvar;
       end;
-
+*)
 {$endif HASTHREADVAR}
 
 
@@ -214,7 +227,7 @@ end;
         stklen : cardinal;
       end;
 
-    procedure InitThread(stklen:cardinal);
+(*    procedure InitThread(stklen:cardinal);
       begin
         SysResetFPU;
         { ExceptAddrStack and ExceptObjectStack are threadvars       }
@@ -228,6 +241,7 @@ end;
         StackLength:=stklen;
         StackBottom:=Sptr - StackLength;
       end;
+*)
 
 
     procedure DoneThread;
@@ -264,11 +278,11 @@ end;
       end;
 
 
-    function BeginThread(sa : Pointer;stacksize : dword;
-                         ThreadFunction : tthreadfunc;p : pointer;
-                         creationFlags : dword; var ThreadId : DWord) : DWord;
+    function SysBeginThread (SA: pointer; StackSize: cardinal;
+                         ThreadFunction: TThreadFunc; P: pointer;
+                    CreationFlags: cardinal; var ThreadId: cardinal): cardinal;
       var
-        ti : pthreadinfo;
+        TI: PThreadInfo;
       begin
 {$ifdef DEBUG_MT}
         writeln('Creating new thread');
@@ -277,49 +291,138 @@ end;
         if not IsMultiThread then
          begin
 {$ifdef HASTHREADVAR}
+           if DosAllocThreadLocalMemory (1, DataIndex) <> 0
+             then RunError (8);
            InitThreadVars;
 {$endif HASTHREADVAR}
            IsMultiThread:=true;
          end;
         { the only way to pass data to the newly created thread
           in a MT safe way, is to use the heap }
-        new(ti);
-        ti^.f:=ThreadFunction;
-        ti^.p:=p;
-        ti^.stklen:=stacksize;
+        New (TI);
+        TI^.F := ThreadFunction;
+        TI^.P := P;
+        TI^.StkLen := StackSize;
         { call pthread_create }
 {$ifdef DEBUG_MT}
         writeln('Starting new thread');
 {$endif DEBUG_MT}
-        BeginThread:=CreateThread(sa,stacksize,@ThreadMain,ti,creationflags,threadid);
-        BeginThread:=threadid;
+        SysBeginThread := DosCreateThread (ThreadID, @ThreadMain, SA,
+                                           CreationFlags, StackSize: cardinal);
       end;
 
 
-    procedure EndThread(ExitCode : DWord);
+    procedure SysEndThread (ExitCode : DWord);
       begin
         DoneThread;
-        ExitThread(ExitCode);
+        DosExit (1, ExitCode);
       end;
+
+
+    procedure SysThreadSwitch;
+    begin
+      DosSleep (0);
+    end;
+
+
+    function SysSuspendThread (ThreadHandle: dword): dword;
+    begin
+ {$WARNING TODO!}
+{     SysSuspendThread := WinSuspendThread(threadHandle);
+}
+    end;
+
+
+    function SysResumeThread (ThreadHandle: dword): dword;
+    begin
+{$WARNING TODO!}
+{      SysResumeThread := WinResumeThread(threadHandle);
+}
+    end;
+
+
+    function SysKillThread (ThreadHandle: dword): dword;
+    var
+      ExitCode: dword;
+    begin
+{$WARNING TODO!}
+{
+      if not TerminateThread (ThreadHandle, ExitCode) then
+        SysKillThread := GetLastError
+      else
+        SysKillThread := 0;
+}
+    end;
+
+    function SysWaitForThreadTerminate (ThreadHandle: dword;
+                                                    TimeoutMs: longint): dword;
+    begin
+{$WARNING TODO!}
+{
+      if TimeoutMs = 0 then dec (timeoutMs);  // $ffffffff is INFINITE
+      SysWaitForThreadTerminate := WaitForSingleObject(threadHandle, TimeoutMs);
+}
+    end;
+
+
+    function SysThreadSetPriority (ThreadHandle: dword;
+                                                       Prio: longint): boolean;
+    {-15..+15, 0=normal}
+    begin
+{$WARNING TODO!}
+{
+      SysThreadSetPriority:=WinThreadSetPriority(threadHandle,Prio);
+}
+    end;
+
+
+    function SysThreadGetPriority (ThreadHandle: dword): integer;
+    begin
+{$WARNING TODO!}
+{
+      SysThreadGetPriority:=WinThreadGetPriority(threadHandle);
+}
+    end;
+
+
+    function SysGetCurrentThreadID: dword;
+    begin
+{$WARNING TODO!}
+{
+      SysGetCurrentThreadId:=WinGetCurrentThreadId;
+}
+    end;
+
 
 
 {*****************************************************************************
                           Delphi/Win32 compatibility
 *****************************************************************************}
 
-{ we implement these procedures for win32 by importing them }
-{ directly from windows                                     }
-procedure InitCriticalSection(var cs : TRTLCriticalSection);
-  external 'kernel32' name 'InitializeCriticalSection';
+{ DosEnter/ExitCritSec have quite a few limitations, so let's try to avoid
+  them. I'm not sure whether mutex semaphores are SMP-safe, though... :-(  }
 
-procedure DoneCriticalSection(var cs : TRTLCriticalSection);
-  external 'kernel32' name 'DeleteCriticalSection';
+procedure SysInitCriticalSection(var CS: TRTLCriticalSection);
+begin
+{$WARNING TODO!}
+end;
 
-procedure EnterCriticalSection(var cs : TRTLCriticalSection);
-  external 'kernel32' name 'EnterCriticalSection';
 
-procedure LeaveCriticalSection(var cs : TRTLCriticalSection);
-  external 'kernel32' name 'LeaveCriticalSection';
+procedure SysDoneCriticalSection (var CS: TRTLCriticalSection);
+begin
+{$WARNING TODO!}
+end;
+
+procedure EnterCriticalSection (var CS: TRTLCriticalSection);
+begin
+{$WARNING TODO!}
+end;
+
+procedure LeaveCriticalSection (var CS: TRTLCriticalSection);
+begin
+{$WARNING TODO!}
+end;
+
 
 
 {*****************************************************************************
@@ -327,27 +430,32 @@ procedure LeaveCriticalSection(var cs : TRTLCriticalSection);
 *****************************************************************************}
 
     var
-      HeapMutex : TRTLCriticalSection;
+      HeapMutex: TRTLCriticalSection;
+
 
     procedure OS2HeapMutexInit;
       begin
-         InitCriticalSection(heapmutex);
+         InitCriticalSection (HeapMutex);
       end;
+
 
     procedure OS2HeapMutexDone;
       begin
-         DoneCriticalSection(heapmutex);
+         DoneCriticalSection (HeapMutex);
       end;
+
 
     procedure OS2HeapMutexLock;
       begin
-         EnterCriticalSection(heapmutex);
+         EnterCriticalSection (HeapMutex);
       end;
+
 
     procedure OS2HeapMutexUnlock;
       begin
-         LeaveCriticalSection(heapmutex);
+         LeaveCriticalSection (HeapMutex);
       end;
+
 
     const
       OS2MemoryMutexManager : TMemoryMutexManager = (
@@ -357,29 +465,185 @@ procedure LeaveCriticalSection(var cs : TRTLCriticalSection);
         MutexUnlock : @OS2HeapMutexUnlock;
       );
 
+
     procedure InitHeapMutexes;
       begin
-        SetMemoryMutexManager(Win32MemoryMutexManager);
+        SetMemoryMutexManager (OS2MemoryMutexManager);
       end;
 
 
-{*****************************************************************************
-                             Generic overloaded
-*****************************************************************************}
+type
+  TBasicEventState = record
+                      FHandle: THandle;
+                      FLastError: longint;
+                     end;
+  PLocalEventRec = ^TBasicEventState;
 
-{ Include generic overloaded routines }
-{$i thread.inc}
+
+function IntBasicEventCreate (EventAttributes: Pointer;
+     AManualReset, InitialState: Boolean; const Name: ansistring): PEventState;
+begin
+  New (PLocalEventRec (Result));
+{$WARNING TODO!}
+{
+  PLocalEventrec (Result)^.FHandle :=
+         CreateEvent (EventAttributes, AManualReset, InitialState,PChar(Name));
+}
+end;
+
+
+procedure IntBasicEventDestroy (State: PEventState);
+begin
+{$WARNING TODO!}
+{
+  closehandle(plocaleventrec(state)^.fhandle);
+}
+  Dispose (PLocalEventRec (State));
+end;
+
+
+procedure IntBasicEventResetEvent (State: PEventState);
+begin
+{$WARNING TODO!}
+{
+  ResetEvent(plocaleventrec(state)^.FHandle)
+}
+end;
+
+
+procedure IntBasicEventSetEvent (State: PEventState);
+begin
+{$WARNING TODO!}
+{
+  SetEvent(plocaleventrec(state)^.FHandle);
+}
+end;
+
+
+function IntBasicEventWaitFor (Timeout: Cardinal; State: PEventState): longint;
+begin
+{$WARNING TODO!}
+{
+  case WaitForSingleObject(plocaleventrec(state)^.fHandle, Timeout) of
+    WAIT_ABANDONED: Result := wrAbandoned;
+    WAIT_OBJECT_0: Result := wrSignaled;
+    WAIT_TIMEOUT: Result := wrTimeout;
+    WAIT_FAILED:
+        begin
+        Result := wrError;
+        plocaleventrec(state)^.FLastError := GetLastError;
+       end;
+  else
+    Result := wrError;
+  end;
+}
+end;
+
+
+function IntRTLEventCreate: PRTLEvent;
+begin
+{$WARNING TODO!}
+{
+  Result := PRTLEVENT(CreateEvent(nil, false, false, nil));
+}
+end;
+
+
+procedure IntRTLEventDestroy (AEvent: PRTLEvent);
+begin
+{$WARNING TODO!}
+{
+  CloseHandle(THANDLE(AEvent));
+}
+end;
+
+
+procedure IntRTLEventSetEvent (AEvent: PRTLEvent);
+begin
+{$WARNING TODO!}
+{
+  PulseEvent(THANDLE(AEvent));
+}
+end;
+
+
+CONST INFINITE=-1;
+
+procedure IntRTLEventStartWait (AEvent: PRTLEvent);
+begin
+{$WARNING TODO!}
+  // nothing to do, win32 events stay signalled after being set
+end;
+
+procedure IntRTLEventWaitFor (AEvent: PRTLEvent);
+begin
+{$WARNING TODO!}
+{
+  WaitForSingleObject(THANDLE(AEvent), INFINITE);
+}
+end;
+
+
+
+var
+  OS2ThreadManager: TThreadManager;
+
+
+procedure SetOS2ThreadManager;
+begin
+  with OS2ThreadManager do
+    begin
+    InitManager            :=Nil;
+    DoneManager            :=Nil;
+    BeginThread            :=@SysBeginThread;
+    EndThread              :=@SysEndThread;
+    SuspendThread          :=@SysSuspendThread;
+    ResumeThread           :=@SysResumeThread;
+    KillThread             :=@SysKillThread;
+    ThreadSwitch           :=@SysThreadSwitch;
+    WaitForThreadTerminate :=@SysWaitForThreadTerminate;
+    ThreadSetPriority      :=@SysThreadSetPriority;
+    ThreadGetPriority      :=@SysThreadGetPriority;
+    GetCurrentThreadId     :=@SysGetCurrentThreadId;
+    InitCriticalSection    :=@SysInitCriticalSection;
+    DoneCriticalSection    :=@SysDoneCriticalSection;
+    EnterCriticalSection   :=@SysEnterCriticalSection;
+    LeaveCriticalSection   :=@SysLeaveCriticalSection;
+{$ifdef HASTHREADVAR}
+    InitThreadVar          :=@SysInitThreadVar;
+    RelocateThreadVar      :=@SysRelocateThreadVar;
+    AllocateThreadVars     :=@SysAllocateThreadVars;
+    ReleaseThreadVars      :=@SysReleaseThreadVars;
+{$endif HASTHREADVAR}
+    BasicEventCreate       :=@IntBasicEventCreate;
+    BasicEventDestroy      :=@IntBasicEventDestroy;
+    BasicEventResetEvent   :=@IntBasicEventResetEvent;
+    BasicEventSetEvent     :=@IntBasicEventSetEvent;
+    BasiceventWaitFor      :=@IntBasiceventWaitFor;
+    RTLEventCreate         :=@IntRTLEventCreate;
+    RTLEventDestroy        :=@IntRTLEventDestroy;
+    RTLEventSetEvent       :=@IntRTLEventSetEvent;
+    RTLEventStartWait      :=@IntRTLEventStartWait;
+    RTLEventWaitFor        :=@IntRTLEventWaitFor;
+    end;
+  SetThreadManager (OS2ThreadManager);
+  InitHeapMutexes;
+end;
 
 finalization
  DosFreeThreadLocalMemory (DataIndex);
 end;
 
 initialization
-  InitHeapMutexes;
+  SetOS2ThreadManager;
 end.
+
 {
   $Log$
-  Revision 1.2  2003-10-13 21:17:31  hajny
+  Revision 1.3  2005-01-27 22:14:54  hajny
+    * first part of compilation fixes
+
+  Revision 1.2  2003/10/13 21:17:31  hajny
     * longint to cardinal corrections
 
   Revision 1.1  2002/11/17 22:31:46  hajny
