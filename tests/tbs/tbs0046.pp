@@ -1,6 +1,8 @@
 program test;
 
-{$ifdef fpk}
+{$R-}
+
+{$ifdef fpc}
 {$ifdef go32v2}
 uses
    dpmiexcp;
