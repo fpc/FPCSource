@@ -1,8 +1,10 @@
 unit odbcsql;
-
-
 {$ifndef fpc}
 {$I mODBC.INC}
+{$else}
+{$mode objfpc}
+{$h+}
+{$define odbcver3}
 {$endif}
 
 interface
@@ -555,6 +557,10 @@ const
    and in SQLDataSources() }
   SQL_FETCH_NEXT     = 1;
   SQL_FETCH_FIRST    = 2;
+{$ifdef odbcver3}
+  SQL_FETCH_FIRST_USER = 31;
+  SQL_FETCH_FIRST_SYSTEM = 32;
+{$endif}
 
   { Other codes used for FetchOrientation in SQLFetchScroll() }
   SQL_FETCH_LAST     = 3;
@@ -1066,6 +1072,12 @@ Const
                Attribute:        SQLINTEGER;
                Value:            SQLPOINTER;
                StringLength:     SQLINTEGER):SQLRETURN;{$ifdef win32}stdcall{$else}cdecl{$endif};external LibName;
+   function SQLGetEnvAttr(
+               EnvironmentHandle:SQLHENV;
+               Attribute:SQLINTEGER;
+               Value:SQLPOINTER;
+               BufferLength:SQLINTEGER;
+               StringLength:PSQLINTEGER):SQLRETURN;{$ifdef win32}stdcall{$else}cdecl{$endif};external LibName;
    function SQLFreeHandle(
                HandleType: SQLSMALLINT;
                Handle:     SQLHANDLE):SQLRETURN;{$ifdef win32}stdcall{$else}cdecl{$endif};external LibName;
@@ -1095,6 +1107,13 @@ Const
                cbCSMax: SQLSMALLINT;
                Var cbCsOut: SQLSMALLINT;
                f: Integer):SQLRETURN;{$ifdef win32}stdcall{$else}cdecl{$endif};external LibName;
+   function SQLBrowseConnect(
+               hdbc : SQLHDBC;
+               szConnStrIn :PSQLCHAR;
+               cbConnStrIn: SQLSMALLINT;
+               szConnStrOut : PSQLCHAR;
+               cbConnStrOutMax : SQLSMALLINT;
+               Var cbConnStrOut : SQLSMALLINT) : SQLRETURN;{$ifdef win32}stdcall{$else}cdecl{$endif};external LibName;
    function SQLExecDirect(
                StatementHandle:SQLHSTMT;
                StatementText:  PSQLCHAR;
@@ -1311,6 +1330,8 @@ function SQLInstallerError(
 function DateStructToDateTime( b:PSQL_DATE_STRUCT):TDateTime;
 function DateTimeToDateStruct( b:TDateTime):SQL_DATE_STRUCT;
 procedure DateTime2TimeStampStruct( var Value:SQL_TIMESTAMP_STRUCT; b:TDateTime);
+Function TimeStampStructToDateTime( B :  PSQL_TIMESTAMP_STRUCT) : TDateTime;
+Function TimeStructToDateTime (B : PSQL_TIME_STRUCT) : TDateTime;
 
 procedure LoadOdbc;
 procedure UnLoadOdbc;
@@ -1366,6 +1387,30 @@ begin
       fraction := Integer(w4)*1000000;
    end;
 end;
+{
+  SQL_DATE_STRUCT = packed record
+    Year : SQLSMALLINT;
+    Month : SQLUSMALLINT;
+    Day : SQLUSMALLINT;
+  end;
+  PSQL_DATE_STRUCT = ^SQL_DATE_STRUCT;
+}
+
+Function TimeStampStructToDateTime( B :  PSQL_TIMESTAMP_STRUCT) : TDateTime;
+
+begin
+ With B^ do
+   Result:=EncodeDate(Year,Month,Day)+
+           EncodeTime(Hour,Minute,Second,0);
+end;
+
+Function TimeStructToDateTime (B : PSQL_TIME_STRUCT) : TDateTime;
+begin
+  With B^ do
+    Result:=EncodeTime(Hour,Minute,Second,0);
+end;
+
+
 
 {$ifdef DYNLOADINGODBC}
 
@@ -1522,7 +1567,7 @@ begin
        raise Exception.create(syserrormessage(GetLastError));
   end;
 
-  func := GetProcAddress(OdbccpHMODULE,pchar('SQLConfigDataSource'));
+  func := TSQLConfigDataSource(GetProcAddress(OdbccpHMODULE,pchar('SQLConfigDataSource')));
   if @func = nil then
     raise Exception.create('Error Getting adress for SQLConfigDataSource'+#13+syserrormessage(GetLastError));
 
@@ -1550,7 +1595,7 @@ begin
       raise Exception.create(syserrormessage(GetLastError));
   end;
 
-  func := GetProcAddress(OdbccpHMODULE,pchar('SQLInstallerError'));
+  func := TSQLInstallerError(GetProcAddress(OdbccpHMODULE,pchar('SQLInstallerError')));
 
   if @func = nil then
     raise Exception.create('Error Getting adress for SQLInstallerError'+#13+syserrormessage(GetLastError));

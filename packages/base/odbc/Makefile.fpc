@@ -1,0 +1,19 @@
+#
+#   Makefile.fpc for odbc bindings
+#
+[package]
+name=odbc
+version=1.0.6
+
+[target]
+units=odbcsql
+examples=testodbc
+
+[require]
+libc=n
+
+[install]
+fpcpackage=y
+
+[default]
+fpcdir=../../..
