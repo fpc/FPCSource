@@ -1,3 +1,6 @@
+%!PS-Adobe-2.0
+%BoundingBox: 0 0 2000 3200
+%%DocumentPaperSizes: a4
 %!
 %
 %    $Id$
@@ -32,10 +35,10 @@ setfont
 
 % RGB colors of the texts
 /StandardTextColor { 0 0 0 } def
-/MissedTextColor { 0.50 0.50 0.50 } def
+/MissingTextColor { 0.50 0.50 0.50 } def
 
 % RGB colors of the boxes
-/MissedColor { 0.92 0.92 0.92 } def
+/MissingColor { 0.92 0.92 0.92 } def
 /IncompleteColor { 1 0.5 0.5 } def
 /UntestedColor { 1 1 0.6} def
 /ReadyColor { 0.7 1 0.7 } def
@@ -48,7 +51,7 @@ setfont
 %  End of Configurable section
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % some setups
-/Missed {0} def
+/Missing {0} def
 /Incomplete {1} def
 /Untested {2} def
 /Ready {3} def
@@ -92,7 +95,7 @@ setfont
   nexticonx 1.5 mm sub maxx gt { /maxx nexticonx def } if
 
   % set box color
-  status Missed eq { MissedColor setrgbcolor } if
+  status Missing eq { MissingColor setrgbcolor } if
   status Incomplete eq { IncompleteColor setrgbcolor } if
   status Untested eq { UntestedColor setrgbcolor } if
   status Ready eq { ReadyColor setrgbcolor } if
@@ -107,7 +110,7 @@ setfont
   fill
 
   % set text color
-  status Missed eq { MissedTextColor setrgbcolor } 
+  status Missing eq { MissingTextColor setrgbcolor } 
   { StandardTextColor setrgbcolor } ifelse
 
   % set text pos and write text
@@ -160,7 +163,7 @@ setfont
   /lastlargeobjectx nexticonx 1.5 mm sub def
 
   % set box color
-  status Missed eq { MissedColor setrgbcolor } if
+  status Missing eq { MissingColor setrgbcolor } if
   status Incomplete eq { IncompleteColor setrgbcolor } if
   status Untested eq { UntestedColor setrgbcolor } if
   status Ready eq { ReadyColor setrgbcolor } if
@@ -175,7 +178,7 @@ setfont
   fill
 
   % set text color
-  status Missed eq { MissedTextColor setrgbcolor } 
+  status Missing eq { MissingTextColor setrgbcolor } 
   { StandardTextColor setrgbcolor } ifelse
 
   % set text pos and write text
@@ -388,57 +391,72 @@ setfont
 %%%%%%%%%%%%%%%%%%%%%%%
 % Exception classes
 %%%%%%%%%%%%%%%%%%%%%%%
-  (Exception) Missed newchildclass
+  (Exception) Missing newchildclass
   (EAbort) Incomplete newchildclass
-  (EAbstractError) Missed newclass Linuxonly
-  (EDatabaseError) Missed newclass Linuxonly
-    (EDBCLient) Missed newchildclass
-      (EReconcileError) Missed newchildclass Linuxonly
+  (EAbstractError) Ready newclass Linuxonly
+  (EConvertError) Ready newclass
+  (EDatabaseError) Missing newclass Linuxonly
+    (EDBCLient) Missing newchildclass
+      (EReconcileError) Missing newchildclass Linuxonly
       onelevelback
-    (EDBEngineError) Missed newclass Win32only
-    (ENoResultSet) Missed newclass
-    (EUpdateError) Missed newclass
+    (EDBEngineError) Missing newclass Win32only
+    (ENoResultSet) Missing newclass
+    (EUpdateError) Missing newclass
     onelevelback
-  (EDBEditError) Missed newclass
-  (EDSWriter) Missed newclass
+  (EDBEditError) Missing newclass
+  (EIntError) Ready newclass
+    (EDivByZero) Ready newchildclass
+    (EIntOverflow) Ready newclass
+    (ERangeError) Ready newclass
+    onelevelback
+  (EInOutError) Ready newclass
+  (EInvalidPointer) Ready newclass
+  (EDSWriter) Missing newclass
+  (EMathError) Ready newclass
+    (EInvalidOp) Ready newchildclass
+    (EOverflow) Ready newclass
+    (EUnderflow) Ready newclass
+    (EZeroDivide) Ready newclass
+    onelevelback
+  (EOutOfMemory) Ready newclass
   onelevelback
-(OutlineError) Missed newclass
+(OutlineError) Missing newclass
 
 %%%%%%%%%%%%%%%%%%%%%%%
 % Some more base classes
 %%%%%%%%%%%%%%%%%%%%%%%
 newcolumn
-(TInterface) Missed 40 mm newclassxmoved
-(TIAddInNotifier) Missed newchildclass
+(TInterface) Missing newclass % 40 mm newclassxmoved
+(TIAddInNotifier) Missing newchildclass
 
-restoreoldxy
-(TInterfacedObject) Missed newclass
+%restoreoldxy
+(TInterfacedObject) Missing newclass
 
 (TList) Ready newclass
-(TLookupList) Missed newclass
+(TLookupList) Missing newclass
 
-(TPropertyEditor) Missed 40 mm newclassxmoved
-(TClassProperty) Missed newchildclass
-  (TFontProperty) Missed newchildclass
+(TPropertyEditor) Missing newclass %40 mm newclassxmoved
+(TClassProperty) Missing newchildclass
+  (TFontProperty) Missing newchildclass
   onelevelback
-(TComponentProperty) Missed newclass
+(TComponentProperty) Missing newclass
 % remove a childy coordinate
-restoreoldxy
-(TRegistry) Missed newclass
-  (TRegIniFile) Missed newchildclass
+%restoreoldxy
+(TRegistry) Missing newclass
+  (TRegIniFile) Missing newchildclass
   onelevelback
-(TSessionList) Missed newclass
+(TSessionList) Missing newclass
 
 %%%%%%%%%%%%%%%%%%%%%%%
 % TPersistent classes
 %%%%%%%%%%%%%%%%%%%%%%%
 newcolumn
 (TPersistent) Untested newlargeheadclass
-(TCanvas) Missed newchildclass
-  (TControlCanvas) Missed newchildclass
-  (TMetafileCanvas) Missed newclass
+(TCanvas) Missing newchildclass
+  (TControlCanvas) Missing newchildclass
+  (TMetafileCanvas) Missing newclass
   onelevelback
-(TClipboard) Missed newclass
+(TClipboard) Missing newclass
 %%%%%%%%%%%%%%%%%%%%%%%
 % TComponent classes
 %%%%%%%%%%%%%%%%%%%%%%%
@@ -448,7 +466,10 @@ showpage
 
 %
 %   $Log$
-%   Revision 1.6  1998-10-01 20:40:20  florian
+%   Revision 1.7  1998-10-02 15:45:00  michael
+%   + Updated exception classes
+%
+%   Revision 1.6  1998/10/01 20:40:20  florian
 %     * log was written wrong
 %
 %   Revision 1.5  1998/10/01 20:39:08  florian
