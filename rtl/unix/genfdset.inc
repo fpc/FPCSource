@@ -38,7 +38,7 @@ function fpFD_ZERO(var nset : TFDSet):cint;
 var i :longint;
 
 Begin
-  for i:=0 to wordsinsigset-1 DO nset[i]:=0;
+  for i:=0 to wordsinfdset-1 DO nset[i]:=0;
   fpFD_ZERO:=0;
 End;
 
@@ -47,7 +47,7 @@ function fpfdfillset(var nset : TFDSet):cint;
 var i :longint;
 
 Begin
-  for i:=0 to wordsinsigset-1 DO nset[i]:=Cardinal(NOT 0);
+  for i:=0 to wordsinfdset-1 DO nset[i]:=Cardinal(NOT 0);
   fpfdfillset:=0;
 End;
 
@@ -64,7 +64,10 @@ End;
 
 {
    $Log$
-   Revision 1.4  2003-10-23 12:06:14  marco
+   Revision 1.5  2004-02-22 15:06:56  marco
+    * fix for fdset. introduciton of wordsinfdset
+
+   Revision 1.4  2003/10/23 12:06:14  marco
     * fd's now walk from 0..maxset again. IDE/unit kbd works again.
 
    Revision 1.3  2003/09/22 19:43:22  peter
