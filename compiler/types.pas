@@ -379,7 +379,8 @@ unit types;
     { true if a parameter is too large to copy and only the address is pushed }
     function push_addr_param(def : pdef) : boolean;
       begin
-         push_addr_param:=(def^.deftype in [arraydef,objectdef,formaldef,recorddef]) or
+         push_addr_param:=never_copy_const_param or
+           (def^.deftype in [arraydef,objectdef,formaldef,recorddef]) or
            ((def^.deftype=stringdef) and (pstringdef(def)^.string_typ in [st_shortstring,st_longstring])) or
            ((def^.deftype=procvardef) and ((pprocvardef(def)^.options and pomethodpointer)<>0)) or
            ((def^.deftype=setdef) and (psetdef(def)^.settype<>smallset));
@@ -1046,7 +1047,10 @@ unit types;
 end.
 {
   $Log$
-  Revision 1.44  1999-01-15 11:33:03  pierre
+  Revision 1.45  1999-01-20 12:34:22  peter
+    * fixed typed file read/write
+
+  Revision 1.44  1999/01/15 11:33:03  pierre
    * bug in mmx code removed
 
   Revision 1.43  1998/12/30 13:41:20  peter
