@@ -208,11 +208,11 @@ Knowledge base
                 based on POSIX.
 
         Version:
-                Currently, Free Pascal is at version 1.0.4 for the Intel
+                Currently, Free Pascal is at version 1.0.6 for the Intel
                 version and version 0.99.5d for the Motorola/Intel
                 version. Version 0.99.5d differs from version 0.99.5 in
                 that all run time library fixes have been applied, as
-                well as all known code generation bugs. Version 1.0.4
+                well as all known code generation bugs. Version 1.0.6
                 differs from version 0.99.5d in that all parser bugfixes
                 have also been applied and also a lot of Delphi 2 and
                 Delphi 3 extensions have been implemented. GNU Pascal is
