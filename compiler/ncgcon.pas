@@ -65,7 +65,7 @@ implementation
     uses
       globtype,widestr,systems,
       verbose,globals,
-      symconst,symdef,aasmbase,aasmtai,defbase,
+      symconst,symdef,aasmbase,aasmtai,aasmcpu,defbase,
       cpuinfo,cpubase,
       cginfo,cgbase,tgobj,rgobj
 {$ifdef delphi}
@@ -129,6 +129,7 @@ implementation
                   lab_real:=lastlabel;
                   if (cs_create_smart in aktmoduleswitches) then
                    Consts.concat(Tai_cut.Create);
+                  consts.concat(tai_align.create(const_align(4)));
                   Consts.concat(Tai_label.Create(lastlabel));
                   case realait of
                     ait_real_32bit :
@@ -305,6 +306,7 @@ implementation
                    lab_str:=lastlabel;
                    if (cs_create_smart in aktmoduleswitches) then
                     Consts.concat(Tai_cut.Create);
+                   consts.concat(tai_align.create(const_align(4)));
                    Consts.concat(Tai_label.Create(lastlabel));
                    { generate an ansi string ? }
                    case st_type of
@@ -466,6 +468,7 @@ implementation
                  lab_set:=lastlabel;
                  if (cs_create_smart in aktmoduleswitches) then
                   Consts.concat(Tai_cut.Create);
+                 consts.concat(tai_align.create(const_align(4)));
                  Consts.concat(Tai_label.Create(lastlabel));
                  if tsetdef(resulttype.def).settype=smallset then
                   begin
@@ -506,6 +509,7 @@ implementation
         location_reset(location,LOC_CREFERENCE,OS_NO);
         { label for GUID }
         objectlibrary.getdatalabel(tmplabel);
+        consts.concat(tai_align.create(const_align(16)));
         consts.concat(Tai_label.Create(tmplabel));
         consts.concat(Tai_const.Create_32bit(value.D1));
         consts.concat(Tai_const.Create_16bit(value.D2));
@@ -527,7 +531,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.21  2002-10-06 21:01:50  peter
+  Revision 1.22  2002-11-09 15:36:50  carl
+    * align all constants correctly (default of 4 size for real type constants)
+
+  Revision 1.21  2002/10/06 21:01:50  peter
     * use tconstexpruint instead of qword
 
   Revision 1.20  2002/10/05 12:43:25  carl
