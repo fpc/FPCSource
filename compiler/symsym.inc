@@ -1532,12 +1532,13 @@
                definition:=readdefref;
                value:=readlong;
              end;
-           conststring :
+           conststring,constresourcestring :
              begin
                len:=readlong;
                getmem(pchar(value),len+1);
                current_ppu^.getdata(pchar(value)^,len);
-               registerresourcestring(pchar(value),len);
+               if consttype=constresourcestring then
+                 registerresourcestring(pchar(value),len);
              end;
            constreal :
              begin
@@ -1601,7 +1602,7 @@
                writedefref(definition);
                writelong(value);
              end;
-           conststring :
+           conststring,constresourcestring :
              begin
                writelong(len);
                current_ppu^.putdata(pchar(value)^,len);
@@ -2001,7 +2002,10 @@
 
 {
   $Log$
-  Revision 1.101  1999-07-23 20:59:23  peter
+  Revision 1.102  1999-07-24 13:36:23  michael
+  * Fixed resourcestring writing to units
+
+  Revision 1.101  1999/07/23 20:59:23  peter
     * more C packing fixes
 
   Revision 1.100  1999/07/23 16:05:32  peter
