@@ -119,7 +119,7 @@ const
 type
   TUnixSockAddr = packed Record
     family:word; { was byte, fixed }
-    path:array[0..108] of char;
+    path:array[0..107] of char;
     end;
 
 {$i socketsh.inc}
@@ -152,7 +152,10 @@ end.
 
 {
   $Log$
-  Revision 1.4  2001-06-02 00:31:31  peter
+  Revision 1.5  2001-11-05 09:06:40  jonas
+      * fixed TUnixSockAddr (array from 0..108 -> 0..107) (merged)
+
+  Revision 1.4  2001/06/02 00:31:31  peter
     * merge unix updates from the 1.0 branch, mostly related to the
       solaris target
 
