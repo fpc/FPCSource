@@ -42,6 +42,7 @@ const
   SInvalidPropertyPath = 'Ungültiger Pfad für Eigenschaft';
   SUnknownProperty = 'Eigenschaft existiert nicht';
   SReadOnlyProperty = 'Eigenschaft kann nur gelesen werden';
+  SUnknownPropertyType = 'Unbekannter Eigenschaftstyp %d';
   SPropertyException = 'Fehler beim Lesen von %s%s: %s';
   SAncestorNotFound = 'Vorfahr für ''%s'' nicht gefunden';
   SInvalidBitmap = 'Bitmap ist ungültig';
@@ -273,7 +274,10 @@ const
 
 {
   $Log$
-  Revision 1.2  2000-07-13 11:32:59  michael
+  Revision 1.3  2000-12-23 22:55:29  sg
+  * Added SUnknownPropertyType
+
+  Revision 1.2  2000/07/13 11:32:59  michael
   + removed logs
  
 }
