@@ -319,8 +319,13 @@ end;
 procedure UpdateTTY(Force:boolean);
 type
   tchattr=packed record
+{$ifdef ENDIAN_LITTLE}
     ch : char;
     attr : byte;
+{$else}
+    attr : byte;
+    ch : char;
+{$endif}
   end;
 var
   outbuf   : array[0..1023+255] of char;
@@ -836,7 +841,10 @@ finalization
 end.
 {
   $Log$
-  Revision 1.4  2001-07-30 21:38:55  peter
+  Revision 1.5  2001-07-31 19:33:46  peter
+     * make tchattr record endian dependant (merged)
+
+  Revision 1.4  2001/07/30 21:38:55  peter
     * m68k updates merged
 
   Revision 1.3  2001/07/13 22:05:09  peter
