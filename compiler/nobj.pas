@@ -560,11 +560,21 @@ implementation
          handlenextdef;
       var
          pd : tprocdef;
+         is_visible,
          pdoverload : boolean;
       begin
-         { put only sub routines into the VMT }
-         if tsym(sym).typ=procsym then
+         { put only sub routines into the VMT, and routines
+           that are visible to the current class. Skip private
+           methods in other classes }
+         if (tsym(sym).typ=procsym) then
            begin
+              { is this symbol visible from the class that we are
+                generating. This will be used to hide the other procdefs.
+                When the symbol is not visible we don't hide the other
+                procdefs, because they can be reused in the next class.
+                The check to skip the invisible methods that are in the
+                list is futher down in the code }
+              is_visible:=tprocsym(sym).is_visible_for_object(_class);
               { check the current list of symbols }
               _name:=sym.name;
               symcoll:=wurzel;
@@ -602,7 +612,8 @@ implementation
                                             equal_paras(procdefcoll^.data.para,pd.para,cp_value_equal_const)) and
                                            (tstoredsym(procdefcoll^.data.procsym).is_visible_for_object(pd._class)) then
                                          begin
-                                           procdefcoll^.hidden:=true;
+                                           if is_visible then
+                                             procdefcoll^.hidden:=true;
                                            if _class=pd._class then
                                              MessagePos1(pd.fileinfo,parser_w_should_use_override,pd.fullprocname);
                                          end;
@@ -620,7 +631,8 @@ implementation
                                                equal_paras(procdefcoll^.data.para,pd.para,cp_value_equal_const)) and
                                               (tstoredsym(procdefcoll^.data.procsym).is_visible_for_object(pd._class)) then
                                             begin
-                                              procdefcoll^.hidden:=true;
+                                              if is_visible then
+                                                procdefcoll^.hidden:=true;
                                               if _class=pd._class then
                                                 MessagePos1(pd.fileinfo,parser_w_should_use_override,pd.fullprocname);
                                             end;
@@ -673,7 +685,8 @@ implementation
                                            if not(po_overridingmethod in pd.procoptions) and
                                               not pdoverload then
                                             begin
-                                              procdefcoll^.hidden:=true;
+                                              if is_visible then
+                                                procdefcoll^.hidden:=true;
                                               if _class=pd._class then
                                                 MessagePos1(pd.fileinfo,parser_w_should_use_override,pd.fullprocname);
                                             end;
@@ -683,18 +696,20 @@ implementation
                                       begin
                                         { the new definition is virtual and the old static, we hide the old one
                                           if the new defintion has not the overload directive }
-                                        if not pdoverload or
-                                           equal_paras(procdefcoll^.data.para,pd.para,cp_value_equal_const) then
-                                         procdefcoll^.hidden:=true;
+                                        if is_visible and
+                                           ((not pdoverload) or
+                                            equal_paras(procdefcoll^.data.para,pd.para,cp_value_equal_const)) then
+                                          procdefcoll^.hidden:=true;
                                       end;
                                    end
                                   else
                                    begin
                                      { both are static, we hide the old one if the new defintion
                                        has not the overload directive }
-                                     if equal_paras(procdefcoll^.data.para,pd.para,cp_value_equal_const) or
-                                        not pdoverload then
-                                      procdefcoll^.hidden:=true;
+                                     if is_visible and
+                                        ((not pdoverload) or
+                                         equal_paras(procdefcoll^.data.para,pd.para,cp_value_equal_const)) then
+                                       procdefcoll^.hidden:=true;
                                    end;
                                 end; { not hidden }
                                procdefcoll:=procdefcoll^.next;
@@ -1293,7 +1308,10 @@ initialization
 end.
 {
   $Log$
-  Revision 1.25  2002-08-11 14:32:27  peter
+  Revision 1.26  2002-09-03 15:44:44  peter
+    * fixed private methods hiding public virtual methods
+
+  Revision 1.25  2002/08/11 14:32:27  peter
     * renamed current_library to objectlibrary
 
   Revision 1.24  2002/08/11 13:24:12  peter
