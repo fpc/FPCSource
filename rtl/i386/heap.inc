@@ -1,5 +1,5 @@
 {
-	$Id$
+   $Id$
     This file is part of the Free Pascal run time library.
     Copyright (c) 1993,97 by the Free Pascal development team.
 
@@ -29,24 +29,27 @@
 
 {$IfDef CHECKHEAP}
     { 4 levels of tracing }
-    const tracesize = 4;
-    type   pheap_mem_info = ^heap_mem_info;
-           heap_mem_info = record
-           next,previous : pheap_mem_info;
-           size : longint;
-           sig : longint; {dummy number for test }
-           calls : array [1..tracesize] of longint;
-           end;
-           { size 8*4 = 32 }
-    { help variables for debugging with GDB }
-    const check : boolean = false;
-    const last_assigned : pheap_mem_info = nil;
-    const growheapstop : boolean = false;
-
-	const free_nothing : boolean = false;
-    const trace : boolean = true;
-	const getmem_nb : longint = 0;
-    const freemem_nb : longint = 0;
+    const
+       tracesize = 4;
+    type
+       pheap_mem_info = ^heap_mem_info;
+       heap_mem_info = record
+          next,previous : pheap_mem_info;
+          size : longint;
+          sig : longint; {dummy number for test }
+          calls : array [1..tracesize] of longint;
+          end;
+       { size 8*4 = 32 }
+       { help variables for debugging with GDB }
+    const
+       check : boolean = false;
+       last_assigned : pheap_mem_info = nil;
+       growheapstop : boolean = false;
+       free_nothing : boolean = false;
+       trace : boolean = true;
+       getmem_nb : longint = 0;
+       freemem_nb : longint = 0;
+       
 {$EndIf CHECKHEAP}
 
     const
@@ -61,9 +64,13 @@
 
     type
        tblocks   = array[1..maxblock] of pointer;
-	   pblocks   = ^tblocks;
+       pblocks   = ^tblocks;
        tnblocks  = array[1..maxblock] of longint;
        pnblocks  = ^tnblocks;
+
+{$ifdef TEMPHEAP}
+
+    type
        pheapinfo = ^theapinfo;
        theapinfo = record
          heaporg,heapptr,heapend,freelist : pointer;
@@ -75,6 +82,8 @@
         nb_get,nb_free : longint;
 {$EndIf CHECKHEAP}
          end;
+{$endif TEMPHEAP}
+
     type
        pfreerecord = ^tfreerecord;
 
@@ -83,14 +92,15 @@
           size : longint;
        end;
 
+{$ifdef TEMPHEAP}
     var
        baseheap : theapinfo;
        curheap : pheapinfo;
-{$ifdef TEMPHEAP}
-	   tempheap : theapinfo;
+       tempheap : theapinfo;
        otherheap : pheapinfo;
 {$endif TEMPHEAP}
 
+    var
        baseblocks : tblocks;
        basenblocks : tnblocks;
 
@@ -98,11 +108,12 @@
     const
        blocks : pblocks = @baseblocks;
        nblocks : pnblocks = @basenblocks; }
-      type
-         ppointer = ^pointer;
+   type
+      ppointer = ^pointer;
 
-    var blocks : pblocks;
-        nblocks : pnblocks;
+    var
+       blocks : pblocks;
+       nblocks : pnblocks;
 
 
 {$ifndef OS2}
@@ -130,8 +141,8 @@
 
     function heapsize : longint;
 
-	  begin
-		 heapsize:=_internal_heapsize;
+     begin
+       heapsize:=_internal_heapsize;
       end;
 
 {$IfDef CHECKHEAP}
@@ -149,7 +160,7 @@
                begin
                  writeln(i,' 0x',hexstr(pp^.calls[i],8));
                end;
-		  end
+        end
         else
           writeln('tracing not enabled, sorry !!');
       end;
@@ -174,34 +185,34 @@
          call_stack(p+sizeof(heap_mem_info));
          asm
             movl (%ebp),%eax
-			movl (%eax),%eax
-			movl %eax,ebp
-		 end;
-		 dump_stack(ebp);
-	  end;
+         movl (%eax),%eax
+         movl %eax,ebp
+       end;
+       dump_stack(ebp);
+     end;
 
-	function is_in_getmem_list (p : pointer) : boolean;
+   function is_in_getmem_list (p : pointer) : boolean;
              var pp : pheap_mem_info;
-		 i : longint;
-	  begin
-		is_in_getmem_list:=false;
-		pp:=last_assigned;
-		i:=0;
-		while pp<>nil do
-		  begin
-       		      if (pp^.sig<>$DEADBEEF) and (pp^.sig <> $AAAAAAAA) then
-			  begin
-			      writeln('error in linked list of heap_mem_info');
-			       HandleError(204);
-			  end
+       i : longint;
+     begin
+      is_in_getmem_list:=false;
+      pp:=last_assigned;
+      i:=0;
+      while pp<>nil do
+        begin
+                  if (pp^.sig<>$DEADBEEF) and (pp^.sig <> $AAAAAAAA) then
+           begin
+               writeln('error in linked list of heap_mem_info');
+                HandleError(204);
+           end
 
-		      if pp=p then
+            if pp=p then
                           begin
-			      is_in_getmem_list:=true;
+               is_in_getmem_list:=true;
                           end;
                       pp:=pp^.previous;
                       inc(i);
-		      if i > getmem_nb - freemem_nb then
+            if i > getmem_nb - freemem_nb then
                           writeln('error in linked list of heap_mem_info');
                   end;
         end;
@@ -218,8 +229,8 @@
               exit;
            end
          else
-	   begin
-	      hp:=freelist;
+      begin
+         hp:=freelist;
               while assigned(hp) do
                 begin
                    if (p>=hp) and (p<hp+hp^.size) then
@@ -237,32 +248,32 @@
     function cal_memavail : longint;
 
       var
-	 hp : pfreerecord;
+    hp : pfreerecord;
          ma : longint;
-	 i  : longint;
+    i  : longint;
 
-	begin
-	    ma:=heapend-heapptr;
-	    if heapblocks then
-		for i:=1 to maxblock do
-		   ma:=ma+i*8*nblocks^[i];
-	    hp:=freelist;
-	    while assigned(hp) do
-		begin
-		    ma:=ma+hp^.size;
+   begin
+       ma:=heapend-heapptr;
+       if heapblocks then
+      for i:=1 to maxblock do
+         ma:=ma+i*8*nblocks^[i];
+       hp:=freelist;
+       while assigned(hp) do
+      begin
+          ma:=ma+hp^.size;
 {$IfDef CHECKHEAP}
-		    if (longint(hp^.next)=0) then
-			begin
-		            if ((longint(hp)+hp^.size)>longint(heapptr)) then
-				writeln('freerecordlist bad at end ')
-			end
-		    else
-			if ((longint(hp^.next)<=(longint(hp)+hp^.size)) or
+          if (longint(hp^.next)=0) then
+         begin
+                  if ((longint(hp)+hp^.size)>longint(heapptr)) then
+            writeln('freerecordlist bad at end ')
+         end
+          else
+         if ((longint(hp^.next)<=(longint(hp)+hp^.size)) or
                          ((hp^.size and 7) <> 0)) then
                              writeln('error in freerecord list ');
 {$EndIf CHECKHEAP}
                     hp:=hp^.next;
-		 end;
+       end;
          cal_memavail:=ma;
       end;
 
@@ -301,12 +312,12 @@
       baseheap.memavail:=_memavail;
       baseheap.heapsize:=longint(baseheap.heapend)-longint(baseheap.heaporg);
       curheap:=@baseheap;
-	  otherheap:=@tempheap;
+     otherheap:=@tempheap;
       heap_split:=true;
       end;
     end;
 
-	procedure switch_to_temp_heap;
+   procedure switch_to_temp_heap;
     begin
     if curheap = @baseheap then
       begin
@@ -320,12 +331,12 @@
 {$IfDef CHECKHEAP}
       baseheap.last_mem:=last_assigned;
       last_assigned:=tempheap.last_mem;
-	  baseheap.nb_get:=getmem_nb;
+     baseheap.nb_get:=getmem_nb;
       baseheap.nb_free:=freemem_nb;
-	  getmem_nb:=tempheap.nb_get;
+     getmem_nb:=tempheap.nb_get;
       freemem_nb:=tempheap.nb_free;
 {$EndIf CHECKHEAP}
-	  heaporg:=tempheap.heaporg;
+     heaporg:=tempheap.heaporg;
       heapptr:=tempheap.heapptr;
       freelist:=tempheap.freelist;
       heapend:=tempheap.heapend;
@@ -345,13 +356,13 @@
       tempheap.heapend:=heapend;
       tempheap.heapptr:=heapptr;
       tempheap.freelist:=freelist;
-	  tempheap.memavail:=_memavail;
+     tempheap.memavail:=_memavail;
 {$IfDef CHECKHEAP}
       tempheap.last_mem:=last_assigned;
       last_assigned:=baseheap.last_mem;
-	  tempheap.nb_get:=getmem_nb;
-	  tempheap.nb_free:=freemem_nb;
-	  getmem_nb:=baseheap.nb_get;
+     tempheap.nb_get:=getmem_nb;
+     tempheap.nb_free:=freemem_nb;
+     getmem_nb:=baseheap.nb_get;
       freemem_nb:=baseheap.nb_free;
 {$EndIf CHECKHEAP}
       heaporg:=baseheap.heaporg;
@@ -369,7 +380,7 @@
     procedure switch_heap;
     begin
     if not heap_split then split_heap;
-	if curheap = @tempheap then
+   if curheap = @tempheap then
       switch_to_base_heap
       else
       switch_to_temp_heap;
@@ -389,12 +400,12 @@
     function memavail : longint;
 
       begin
-		 memavail:=_memavail;
+       memavail:=_memavail;
       end;
 
 {$ifdef TEMPHEAP}
     procedure unsplit_heap;
-	var hp,hp2,thp : pfreerecord;
+   var hp,hp2,thp : pfreerecord;
     begin
     {heapend can be modified by HeapError }
     if not heap_split then exit;
@@ -413,7 +424,7 @@
            hp^.next:=tempheap.freelist;
            heapptr:=tempheap.heapptr;
         end;
-	  heapend:=tempheap.heapend;
+     heapend:=tempheap.heapend;
       _memavail:=cal_memavail;
       heap_split:=false;
       end else
@@ -438,7 +449,7 @@
                 hp:=thp;
             end else
             begin
-		hp^.next:=hp2;
+      hp^.next:=hp2;
                 hp:=nil;
             end;
           end ;
@@ -457,7 +468,7 @@
     begin
     switch_to_temp_heap;
 {$ifdef CHECKHEAP}
-	if heapptr<>heaporg then
+   if heapptr<>heaporg then
       writeln('Warning in releasetempheap : ',longint(tempheap.heapsize)-longint(tempheap.memavail),' bytes used !');
     dump_heap(true);
 {    release(heaporg);
@@ -478,21 +489,21 @@
          hp:=freelist;
          while assigned(hp) do
              begin
-		 if hp^.size>maxavail then
-		     maxavail:=hp^.size;
-	         hp:=hp^.next;
+       if hp^.size>maxavail then
+           maxavail:=hp^.size;
+            hp:=hp^.next;
              end;
       end;
 
 {$ifdef CHECKHEAP}
-	 procedure test_memavail;
+    procedure test_memavail;
 
-	   begin
-		  if check and (_memavail<>cal_memavail) then
-			begin
-			   writeln('Memavail error in getmem/freemem');
-			end;
-	   end;
+      begin
+        if check and (_memavail<>cal_memavail) then
+         begin
+            writeln('Memavail error in getmem/freemem');
+         end;
+      end;
 {$endif CHECKHEAP}
 
     procedure getmem(var p : pointer;size : longint);[public,alias: 'GETMEM'];
@@ -540,9 +551,9 @@
          if heap_split and not allow_special then
            begin
                if (@p < otherheap^.heapend) and
-		  (@p > otherheap^.heaporg) then
-		  { useful line for the debugger }
-            	 writeln('warning : p and @p are in different heaps !');
+        (@p > otherheap^.heaporg) then
+        { useful line for the debugger }
+                writeln('warning : p and @p are in different heaps !');
            end;
 {$endif TEMPHEAP}
          { calc to multiply of 8 }
@@ -570,7 +581,7 @@
          repeat
            nochmal:=false;
            { search the freelist }
-	   if assigned(freelist) then
+      if assigned(freelist) then
              begin
                 last:=nil;
                 hp:=freelist;
@@ -584,57 +595,57 @@
                           { need we the whole block ? }
                           if (hpsize>size) and heapblocks then
                             begin
-				   { we must check if we are still below the limit !! }
-				   if hpsize-size<=max_size then
-					 begin
-						{ adjust the list }
-						if assigned(last) then
-						  last^.next:=hp^.next
-						else
-						  freelist:=hp^.next;
-						{ insert in chain }
-						s:=(hpsize-size) div 8;
-						ppointer(hp+size)^:=blocks^[s];
-						blocks^[s]:=hp+size;
-						inc(nblocks^[s]);
-					 end
-				   else
-				   	begin
-					  (hp+size)^.size:=hpsize-size;
-					  (hp+size)^.next:=hp^.next;
-					  if assigned(last) then
-						last^.next:=hp+size
-					  else
-						freelist:=hp+size;
-				        end;
-			    end
-			  else
-				begin
+               { we must check if we are still below the limit !! }
+               if hpsize-size<=max_size then
+                begin
+                  { adjust the list }
+                  if assigned(last) then
+                    last^.next:=hp^.next
+                  else
+                    freelist:=hp^.next;
+                  { insert in chain }
+                  s:=(hpsize-size) div 8;
+                  ppointer(hp+size)^:=blocks^[s];
+                  blocks^[s]:=hp+size;
+                  inc(nblocks^[s]);
+                end
+               else
+                  begin
+                 (hp+size)^.size:=hpsize-size;
+                 (hp+size)^.next:=hp^.next;
+                 if assigned(last) then
+                  last^.next:=hp+size
+                 else
+                  freelist:=hp+size;
+                    end;
+             end
+           else
+            begin
 {$IfDef CHECKHEAP}
-				   dec(freerecord_list_length);
+               dec(freerecord_list_length);
 {$endif CHECKHEAP}
-				   if assigned(last) then
-					 last^.next:=hp^.next
-				   else
-					 {this was wrong !!}
-					 {freelist:=nil;}
-				   freelist:=hp^.next;
-				end;
+               if assigned(last) then
+                last^.next:=hp^.next
+               else
+                {this was wrong !!}
+                {freelist:=nil;}
+               freelist:=hp^.next;
+            end;
 {$ifdef CHECKHEAP}
                             goto check_new;
 {$else CHECKHEAP}
                             exit;
 {$endif CHECKHEAP}
-			   end;
+            end;
                      last:=hp;
                      hp:=hp^.next;
                   end;
              end;
-		   { Latly, the top of the heap is checked, to see if there is }
+         { Latly, the top of the heap is checked, to see if there is }
            { still memory available.                                   }
            if heapend-heapptr<size then
              begin
-		if assigned(heaperror) then
+      if assigned(heaperror) then
                   begin
                      case call_heaperror(heaperror,size) of
                         0 : HandleError(203);
@@ -659,11 +670,11 @@ check_new:
        begin
            asm
               movl (%ebp),%eax
-	      movl %eax,bp
+         movl %eax,bp
            end;
           pheap_mem_info(p)^.sig:=$DEADBEEF;
           pheap_mem_info(p)^.previous:=last_assigned;
-		  if last_assigned<>nil then
+        if last_assigned<>nil then
             last_assigned^.next:=pheap_mem_info(p);
           last_assigned:=p;
           pheap_mem_info(p)^.next:=nil;
@@ -674,11 +685,11 @@ check_new:
                bp:=get_next_frame(bp);
             end;
            p:=p+sizeof(heap_mem_info);
-	   end;
+      end;
 {$endif CHECKHEAP}
       end;
 
-	procedure freemem(var p : pointer;size : longint);[public,alias: 'FREEMEM'];
+   procedure freemem(var p : pointer;size : longint);[public,alias: 'FREEMEM'];
 
       var
          hp : pfreerecord;
@@ -701,7 +712,7 @@ check_new:
           p:=p-sizeof(heap_mem_info);
           { made after heap_switch
           if not (is_in_getmem_list(p)) then
-		HandleError(204); }
+      HandleError(204); }
        end;
 {$endif CHECKHEAP}
          if size=0 then
@@ -709,65 +720,65 @@ check_new:
               p:=nil;
               exit;
            end;
-		 if p=nil then RunError (204);
+       if p=nil then RunError (204);
 {$ifdef TEMPHEAP}
-		 heap_switched:=false;
-		 if heap_split and not allow_special then
-		   begin
-			  if (p <= heapptr) and
-				 ( p >= heaporg) and
-				 (@p <= otherheap^.heapend) and
-				 (@p >= otherheap^.heaporg) then
-				begin
-				   writeln('warning : p and @p are in different heaps !');
-				end;
-		   end;
-		 if (p<heaporg) or (p>heapptr) then
-		   begin
-			  if heap_split and (p<otherheap^.heapend) and
-				 (p>otherheap^.heaporg) then
-				begin
-				   if (@p >= heaporg) and
-					  (@p <= heapptr) and
-					  not allow_special then
-					  writeln('warning : p and @p are in different heaps !');
-				   switch_heap;
-				   heap_switched:=true;
-				end
-			  else
-				begin
-				   writeln('pointer ',hexstr(longint(@p),8),' at ',
-					 hexstr(longint(p),8),' doesn''t points to the heap');
-				   HandleError(204);
-				end;
-		   end;
+       heap_switched:=false;
+       if heap_split and not allow_special then
+         begin
+           if (p <= heapptr) and
+             ( p >= heaporg) and
+             (@p <= otherheap^.heapend) and
+             (@p >= otherheap^.heaporg) then
+            begin
+               writeln('warning : p and @p are in different heaps !');
+            end;
+         end;
+       if (p<heaporg) or (p>heapptr) then
+         begin
+           if heap_split and (p<otherheap^.heapend) and
+             (p>otherheap^.heaporg) then
+            begin
+               if (@p >= heaporg) and
+                 (@p <= heapptr) and
+                 not allow_special then
+                 writeln('warning : p and @p are in different heaps !');
+               switch_heap;
+               heap_switched:=true;
+            end
+           else
+            begin
+               writeln('pointer ',hexstr(longint(@p),8),' at ',
+                hexstr(longint(p),8),' doesn''t points to the heap');
+               HandleError(204);
+            end;
+         end;
 {$endif TEMPHEAP}
 {$ifdef CHECKHEAP}
-	 if trace then
-	   begin
-	       if not (is_in_getmem_list(p)) then
-		   HandleError(204);
-	       if pheap_mem_info(p)^.sig=$AAAAAAAA then
-		   dump_free(p);
-	       if pheap_mem_info(p)^.next<>nil then
-	           pheap_mem_info(p)^.next^.previous:=pheap_mem_info(p)^.previous;
-	       if pheap_mem_info(p)^.previous<>nil then
-		   pheap_mem_info(p)^.previous^.next:=pheap_mem_info(p)^.next;
-	       if pheap_mem_info(p)=last_assigned then
-		   last_assigned:=last_assigned^.previous;
-	   end;
+    if trace then
+      begin
+          if not (is_in_getmem_list(p)) then
+         HandleError(204);
+          if pheap_mem_info(p)^.sig=$AAAAAAAA then
+         dump_free(p);
+          if pheap_mem_info(p)^.next<>nil then
+              pheap_mem_info(p)^.next^.previous:=pheap_mem_info(p)^.previous;
+          if pheap_mem_info(p)^.previous<>nil then
+         pheap_mem_info(p)^.previous^.next:=pheap_mem_info(p)^.next;
+          if pheap_mem_info(p)=last_assigned then
+         last_assigned:=last_assigned^.previous;
+      end;
 {$endif CHECKHEAP}
-	 { calc to multiple of 8 }
-	 size:=(size+7) and not 7;
-	 _memavail:=_memavail+size;
-	 if p+size>=heapptr then
-	   heapptr:=p
-	 { insert into cache }
-	 else
-	  if heapblocks and (size<=max_size) then
-	   begin
-	       s:=size div 8;
-	       ppointer(p)^:=blocks^[s];
+    { calc to multiple of 8 }
+    size:=(size+7) and not 7;
+    _memavail:=_memavail+size;
+    if p+size>=heapptr then
+      heapptr:=p
+    { insert into cache }
+    else
+     if heapblocks and (size<=max_size) then
+      begin
+          s:=size div 8;
+          ppointer(p)^:=blocks^[s];
                blocks^[s]:=p;
                inc(nblocks^[s]);
            end
@@ -786,7 +797,7 @@ check_new:
                    inc(freerecord_list_length);
 {$endif CHECKHEAP}
                    goto freemem_exit;
-				end;
+            end;
               if p+size<freelist then
                 begin
                 pfreerecord(p)^.next:=freelist;
@@ -795,22 +806,22 @@ check_new:
                 inc(freerecord_list_length);
 {$endif CHECKHEAP}
                 goto freemem_exit;
-				end
+            end
               else
-		  if p+size=freelist then
-		      begin
-			  pfreerecord(p)^.size:=Pfreerecord(p)^.size+pfreerecord(freelist)^.size;
-			  pfreerecord(p)^.next:=pfreerecord(freelist)^.next;
-			  freelist:=p;
-			  { but now it can also connect the next block !!}
-			  if p+pfreerecord(p)^.size=pfreerecord(p)^.next then
-			      begin
-				  pfreerecord(p)^.size:=pfreerecord(p)^.size+pfreerecord(p)^.next^.size;
+        if p+size=freelist then
+            begin
+           pfreerecord(p)^.size:=Pfreerecord(p)^.size+pfreerecord(freelist)^.size;
+           pfreerecord(p)^.next:=pfreerecord(freelist)^.next;
+           freelist:=p;
+           { but now it can also connect the next block !!}
+           if p+pfreerecord(p)^.size=pfreerecord(p)^.next then
+               begin
+              pfreerecord(p)^.size:=pfreerecord(p)^.size+pfreerecord(p)^.next^.size;
 {$ifdef CHECKHEAP}
                                   dec(freerecord_list_length);
 {$endif CHECKHEAP}
                                   pfreerecord(p)^.next:=pfreerecord(freelist)^.next^.next;
-			      end;
+               end;
                 goto freemem_exit;
                 end;
               { search the insert position }
@@ -818,68 +829,68 @@ check_new:
               while assigned(hp) do
                 begin
                    if p<hp+hp^.size then
-	               begin
+                  begin
 {$ifdef CHECKHEAP}
-			   writeln('pointer to dispose at ',hexstr(longint(p),8),
-			    ' has already been disposed');
+            writeln('pointer to dispose at ',hexstr(longint(p),8),
+             ' has already been disposed');
 {$endif CHECKHEAP}
-			   HandleError(204);
-		       end;
-		   { connecting two blocks ? }
-		   if hp+hp^.size=p then
-		       begin
-			   hp^.size:=hp^.size+size;
-		           { connecting also to next block ? }
-			   if hp+hp^.size=hp^.next then
-				begin
-				    hp^.size:=hp^.size+hp^.next^.size;
+            HandleError(204);
+             end;
+         { connecting two blocks ? }
+         if hp+hp^.size=p then
+             begin
+            hp^.size:=hp^.size+size;
+                 { connecting also to next block ? }
+            if hp+hp^.size=hp^.next then
+            begin
+                hp^.size:=hp^.size+hp^.next^.size;
 {$ifdef CHECKHEAP}
-				    dec(freerecord_list_length);
+                dec(freerecord_list_length);
 {$endif CHECKHEAP}
-				    hp^.next:=hp^.next^.next;
-			        end
-			   else
-				if (hp^.next<>nil) and (hp+hp^.size>hp^.next) then
-				   begin
+                hp^.next:=hp^.next^.next;
+                 end
+            else
+            if (hp^.next<>nil) and (hp+hp^.size>hp^.next) then
+               begin
 {$ifdef CHECKHEAP}
-					  writeln('pointer to dispose at ',hexstr(longint(p),8),
-					   ' is too big !!');
+                 writeln('pointer to dispose at ',hexstr(longint(p),8),
+                  ' is too big !!');
 {$endif CHECKHEAP}
-				          HandleError(204);
-				   end;
-			   break;
-		        end
-		   { if the end is reached, then concat }
-		     else if hp^.next=nil then
-			 begin
-			     hp^.next:=p;
+                      HandleError(204);
+               end;
+            break;
+              end
+         { if the end is reached, then concat }
+           else if hp^.next=nil then
+          begin
+              hp^.next:=p;
 {$ifdef CHECKHEAP}
-			     inc(freerecord_list_length);
+              inc(freerecord_list_length);
 {$endif CHECKHEAP}
-			     pfreerecord(p)^.next:=nil;
-			     break;
-		         end
-		    { falls der n„chste Zeiger gr”áer ist, dann }
-		    { Einh„ngen                                 }
-		      else if hp^.next>p then
-			 begin
-			     { connect to blocks }
-			     if p+size=hp^.next then
-				begin
-				    pfreerecord(p)^.next:=hp^.next^.next;
-				    pfreerecord(p)^.size:=pfreerecord(p)^.size+hp^.next^.size;
-				    { we have to reset the right position }
-				    hp^.next:=pfreerecord(p);
-			        end
-			     else
-				 begin
-                                     pfreerecord(p)^.next:=hp^.next;
-				     hp^.next:=p;
+              pfreerecord(p)^.next:=nil;
+              break;
+               end
+          { falls der n„chste Zeiger gr”áer ist, dann }
+          { Einh„ngen                                 }
+            else if hp^.next>p then
+          begin
+              { connect to blocks }
+              if p+size=hp^.next then
+                begin
+                pfreerecord(p)^.next:=hp^.next^.next;
+                pfreerecord(p)^.size:=pfreerecord(p)^.size+hp^.next^.size;
+                { we have to reset the right position }
+                hp^.next:=pfreerecord(p);
+                 end
+              else
+                begin
+                 pfreerecord(p)^.next:=hp^.next;
+                 hp^.next:=p;
 {$ifdef CHECKHEAP}
                                      inc(freerecord_list_length);
 {$endif CHECKHEAP}
                                  end;
-			     break;
+              break;
                      end;
                    hp:=hp^.next;
                 end;
@@ -898,7 +909,7 @@ check_new:
     procedure release(var p : pointer);
 
       begin
-	 heapptr:=p;
+         heapptr:=p;
          freelist:=nil;
          _memavail:=cal_memavail;
       end;
@@ -923,11 +934,11 @@ check_new:
       begin
          heapptr:=oldheapptr;
          if longint(freelist) < longint(heapptr) then
-	   begin
-           {here we should reget the freed blocks}
+           begin
+              { here we should reget the freed blocks }
            end;
          freelist:=oldfreelist;
-	 _memavail:=cal_memavail;
+         _memavail:=cal_memavail;
       end;
 
 { the sbrk  function is moved to the system.pp }
@@ -959,40 +970,40 @@ begin
      begin
         GrowHeap:=0;
         {$IfDef CHECKHEAP}
-		writeln('Call to GrowHeap failed');
-		readln;
-		{$EndIf CHECKHEAP}
-		Exit;
-	 end
+      writeln('Call to GrowHeap failed');
+      readln;
+      {$EndIf CHECKHEAP}
+      Exit;
+    end
    else
-	 begin
-	 { make the room clean }
+    begin
+    { make the room clean }
 {$ifdef CHECKHEAP}
-		Fillword(pointer(NewPos)^,size div 2,$ABCD);
-		Newlimit:= (newpos+size) or $3fff;
+      Fillword(pointer(NewPos)^,size div 2,$ABCD);
+      Newlimit:= (newpos+size) or $3fff;
 {$else }
-		Fillchar(pointer(NewPos)^,size,#0);
+      Fillchar(pointer(NewPos)^,size,#0);
 {$endif }
-		hp:=pfreerecord(freelist);
-		if not assigned(hp) then
-		  begin
-		  if pointer(newpos) = heapend then
-			heapend:=pointer(newpos+size)
-		  else
-			begin
-			   if heapend - heapptr > 0 then
-				 begin
-					freelist:=heapptr;
-					hp:=pfreerecord(freelist);
-					hp^.size:=heapend-heapptr;
-					hp^.next:=nil;
-				 end;
-			   heapptr:=pointer(newpos);
-			   heapend:=pointer(newpos+size);
-			end;
-		  end
-		else
-		  begin
+      hp:=pfreerecord(freelist);
+      if not assigned(hp) then
+        begin
+        if pointer(newpos) = heapend then
+         heapend:=pointer(newpos+size)
+        else
+         begin
+            if heapend - heapptr > 0 then
+             begin
+               freelist:=heapptr;
+               hp:=pfreerecord(freelist);
+               hp^.size:=heapend-heapptr;
+               hp^.next:=nil;
+             end;
+            heapptr:=pointer(newpos);
+            heapend:=pointer(newpos+size);
+         end;
+        end
+      else
+        begin
              if pointer(newpos) = heapend then
                heapend:=pointer(newpos+size)
              else
@@ -1012,16 +1023,18 @@ begin
                     begin
                        pfreerecord(NewPos)^.Size:=Size;
                        pfreerecord(NewPos)^.Next:=hp^.next;
-					   hp^.next:=pfreerecord(NewPos);
+                  hp^.next:=pfreerecord(NewPos);
                     end;
                end;
           end;
-        { the wanted size has to be substracted }
-		_memavail:=cal_memavail-wantedsize;
+        { the wanted size has to be substracted
+          why it will be substracted in the second try
+          to get the memory PM }
+        _memavail:=cal_memavail;
         { set the total new heap size }
         asm
         movl Size,%ebx
-		movl HEAPSIZE,%eax
+        movl HEAPSIZE,%eax
         addl %ebx,%eax
         movl %eax,HEAPSIZE
         end;
@@ -1051,8 +1064,8 @@ begin
      Blocks^[i]:=nil;
      Nblocks^[i]:=0;
    end;
-  Curheap := @baseheap;
 {$ifdef TEMPHEAP}
+  Curheap := @baseheap;
   Otherheap := @tempheap;
 {$endif TEMPHEAP}
   HeapOrg := GetHeapStart;
@@ -1068,7 +1081,10 @@ end;
 
 {
   $Log$
-  Revision 1.16  1998-08-25 14:15:51  pierre
+  Revision 1.17  1998-09-04 17:27:48  pierre
+    * small corrections
+
+  Revision 1.16  1998/08/25 14:15:51  pierre
     * corrected a bug introduced by my last change
       (allocating 1Mb but only using a small part !!)
 
