@@ -23,6 +23,9 @@ unit typinfo;
 
 {$MODE objfpc}
 
+  uses sysutils;
+
+
 // temporary types:
 
     type
@@ -40,7 +43,6 @@ unit typinfo;
        PFIxed32  = ^Fixed32;
        }
        Variant      = Pointer;
-       TMethod      = Pointer;
 
 {$MINENUMSIZE 1   this saves a lot of memory }
        // if you change one of the following enumeration types
@@ -205,7 +207,12 @@ unit typinfo;
     function GetEnumValue(TypeInfo : PTypeInfo;const Name : string) : Integer;
 
   implementation
-uses sysutils;
+
+  type
+
+    PMethod = ^TMethod;
+
+
 {$ASMMODE ATT}
 
     function CallIntegerFunc(s : Pointer;Address : Pointer; INdex,IValue : Longint) : Integer;assembler;
@@ -720,16 +727,41 @@ uses sysutils;
 
     function GetMethodProp(Instance : TObject;PropInfo : PPropInfo) : TMethod;
 
+      var
+         value: PMethod;
+         Index,Ivalue : longint;
+
       begin
-        {!!!!!!!!!!!!}
-         Result:=nil;
+         SetIndexValues(PropInfo,Index,Ivalue);
+         case (PropInfo^.PropProcs) and 3 of
+            ptfield:
+              Value:=PMethod(Pointer(Instance)+Longint(PropInfo^.GetProc));
+            ptstatic:
+              Value:=PMethod(CallIntegerFunc(Instance,PropInfo^.GetProc,Index,IValue));
+            ptvirtual:
+              Value:=PMethod(CallIntegerFunc(Instance,PPointer(Pointer(Instance.ClassType)+Longint(PropInfo^.GetProc))^,Index,IValue));
+         end;
+         GetMethodProp:=Value^;
       end;
 
     procedure SetMethodProp(Instance : TObject;PropInfo : PPropInfo;
       const Value : TMethod);
 
+      var
+        Index,IValue : Longint;
+
       begin
-         {!!!!!!!!!!!}
+         SetIndexValues(PropInfo,Index,Ivalue);
+         case (PropInfo^.PropProcs shr 2) and 3 of
+            ptfield:
+              PMethod(Pointer(Instance)+Longint(PropInfo^.SetProc))^ := Value;
+            ptstatic:
+              CallIntegerProc(Instance,PropInfo^.SetProc,Integer(@Value), Index, IValue);
+            ptvirtual:
+              CallIntegerProc(Instance,
+	        PPointer(Pointer(Instance.ClassType)+Longint(PropInfo^.SetProc))^,
+		Integer(@Value), Index, IValue);
+         end;
       end;
 
     function GetEnumName(TypeInfo : PTypeInfo;Value : Integer) : string;
@@ -775,7 +807,10 @@ end.
 
 {
   $Log$
-  Revision 1.27  1999-09-08 16:14:43  peter
+  Revision 1.28  1999-09-15 20:27:24  florian
+    + patch of Sebastion Guenther applied: Get/SetMethodProp implementation
+
+  Revision 1.27  1999/09/08 16:14:43  peter
     * pointer fixes
 
   Revision 1.26  1999/09/03 15:39:23  michael
