@@ -1386,7 +1386,6 @@
       begin
          { be careful, tclassdefref inherits from tpointerdef }
          tdef.load;
-         deftype:=classrefdef;
          definition:=readdefref;
          is_far:=false;
          savesize:=target_os.size_of_pointer;
@@ -3380,7 +3379,10 @@ Const local_symtable_index : longint = $8001;
 
 {
   $Log$
-  Revision 1.114  1999-05-13 21:59:41  peter
+  Revision 1.115  1999-05-14 17:52:26  peter
+    * new deref code
+
+  Revision 1.114  1999/05/13 21:59:41  peter
     * removed oldppu code
     * warning if objpas is loaded from uses
     * first things for new deref writing

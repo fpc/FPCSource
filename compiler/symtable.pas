@@ -24,8 +24,6 @@
 {$endif}
 unit symtable;
 
-{$define OLDDEREF}
-
   interface
 
     uses
@@ -97,13 +95,15 @@ unit symtable;
        end;
 
       { Deref entry options }
-      tdereftype = (derefnil,derefaktrecord,derefaktstatic,derefunit,derefrecord,dereflocal);
+      tdereftype = (derefnil,derefaktrecordindex,derefaktstaticindex,derefunit,derefrecord,derefindex);
 
       pderef = ^tderef;
-      tderef = record
+      tderef = object
         dereftype : tdereftype;
         index     : word;
         next      : pderef;
+        constructor init(typ:tdereftype;i:word);
+        destructor  done;
       end;
 
       psymtableentry = ^tsymtableentry;
@@ -580,6 +580,23 @@ implementation
       end;
 
 
+{****************************************************************************
+                               TDeref
+****************************************************************************}
+
+    constructor tderef.init(typ:tdereftype;i:word);
+      begin
+        dereftype:=typ;
+        index:=i;
+        next:=nil;
+      end;
+
+
+    destructor tderef.done;
+      begin
+      end;
+
+
 {*****************************************************************************
                            PPU Reading Writing
 *****************************************************************************}
@@ -644,30 +661,28 @@ const localsymtablestack : psymtable = nil;
          find_local_symtable:=p;
       end;
 
-{$ifndef OLDDEREF}
-    function resolvedef(var p:pderef):pdef;
+
+    procedure resolvederef(var p:pderef;var st:psymtable;var idx:word);
       var
-        st  : psymtable;
-        idx : longint;
-        hp  : pderef;
-        pd  : pdef;
+        hp : pderef;
+        pd : pdef;
       begin
         st:=nil;
-        idx:=-1;
+        idx:=0;
         while assigned(p) do
          begin
            case p^.dereftype of
-             derefaktrecord :
+             derefaktrecordindex :
                begin
                  st:=aktrecordsymtable;
                  idx:=p^.index;
                end;
-             derefaktstatic :
+             derefaktstaticindex :
                begin
                  st:=aktstaticsymtable;
-                 idx:=p^.index
+                 idx:=p^.index;
                end;
-            derefunit :
+             derefunit :
                begin
 {$ifdef NEWMAP}
                  st:=psymtable(current_module^.map^[p^.index]^.globalsymtable);
@@ -687,123 +702,41 @@ const localsymtablestack : psymtable = nil;
                    internalerror(556658);
                  end;
                end;
-             dereflocal :
+             derefindex :
                begin
                  idx:=p^.index;
                end;
            end;
            hp:=p;
            p:=p^.next;
-           dispose(hp);
+           dispose(hp,done);
          end;
-        if assigned(st) then
-         resolvedef:=st^.getdefnr(idx)
-        else
-         resolvedef:=nil;
       end;
 
 
-    function resolvesym(var p:pderef):psym;
+    procedure resolvedef(var def:pdef);
       var
-        st  : psymtable;
-        idx : longint;
-        hp  : pderef;
-        pd  : pdef;
+        st   : psymtable;
+        idx  : word;
       begin
-        st:=nil;
-        idx:=-1;
-        while assigned(p) do
-         begin
-           case p^.dereftype of
-             derefaktrecord :
-               begin
-                 st:=aktrecordsymtable;
-                 idx:=p^.index;
-               end;
-             derefaktstatic :
-               begin
-                 st:=aktstaticsymtable;
-                 idx:=p^.index
-               end;
-            derefunit :
-               begin
-{$ifdef NEWMAP}
-                 st:=psymtable(current_module^.map^[p^.index]^.globalsymtable);
-{$else NEWMAP}
-                 st:=psymtable(current_module^.map^[p^.index]);
-{$endif NEWMAP}
-               end;
-             derefrecord :
-               begin
-                 pd:=st^.getdefnr(p^.index);
-                 case pd^.deftype of
-                   recorddef :
-                     st:=precdef(pd)^.symtable;
-                   objectdef :
-                     st:=pobjectdef(pd)^.publicsyms;
-                 else
-                   internalerror(556658);
-                 end;
-               end;
-             dereflocal :
-               begin
-                 idx:=p^.index;
-               end;
-           end;
-           hp:=p;
-           p:=p^.next;
-           dispose(hp);
-         end;
+        resolvederef(pderef(def),st,idx);
         if assigned(st) then
-         resolvesym:=st^.getsymnr(idx)
+         def:=st^.getdefnr(idx)
         else
-         resolvesym:=nil;
-      end;
-{$else}
-    procedure resolvesym(var d : psym);
-      begin
-        if longint(d)=-1 then
-          d:=nil
-        else
-          begin
-            if (longint(d) and $ffff)=$ffff then
-              d:=aktrecordsymtable^.getsymnr(longint(d) shr 16)
-            else
-            if (longint(d) and $ffff)=$fffe then
-              d:=aktstaticsymtable^.getsymnr(longint(d) shr 16)
-            else if (longint(d) and $ffff)>$8000 then
-              d:=find_local_symtable(longint(d) and $ffff)^.getsymnr(longint(d) shr 16)
-            else
-{$ifdef NEWMAP}
-              d:=psymtable(current_module^.map^[longint(d) and $ffff]^.globalsymtable)^.getsymnr(longint(d) shr 16);
-{$else NEWMAP}
-              d:=psymtable(current_module^.map^[longint(d) and $ffff])^.getsymnr(longint(d) shr 16);
-{$endif NEWMAP}
-          end;
+         def:=nil;
       end;
 
-    procedure resolvedef(var d : pdef);
+    procedure resolvesym(var sym:psym);
+      var
+        st   : psymtable;
+        idx  : word;
       begin
-        if longint(d)=-1 then
-          d:=nil
+        resolvederef(pderef(sym),st,idx);
+        if assigned(st) then
+         sym:=st^.getsymnr(idx)
         else
-          begin
-            if (longint(d) and $ffff)=$ffff then
-              d:=aktrecordsymtable^.getdefnr(longint(d) shr 16)
-            else
-            if (longint(d) and $ffff)=$fffe then
-              d:=aktstaticsymtable^.getdefnr(longint(d) shr 16)
-            else if (longint(d) and $ffff)>$8000 then
-              d:=find_local_symtable(longint(d) and $ffff)^.getdefnr(longint(d) shr 16)
-            else
-{$ifdef NEWMAP}
-              d:=psymtable(current_module^.map^[longint(d) and $ffff]^.globalsymtable)^.getdefnr(longint(d) shr 16);
-{$else NEWMAP}
-              d:=psymtable(current_module^.map^[longint(d) and $ffff])^.getdefnr(longint(d) shr 16);
-{$endif NEWMAP}
-           end;
+         sym:=nil;
       end;
-{$endif}
 
 
 {*****************************************************************************
@@ -1631,9 +1564,6 @@ const localsymtablestack : psymtable = nil;
         sym   : psym;
         prdef : pdef;
         oldrecsyms : psymtable;
-{$ifndef OLDDEREF}
-        p : pderef;
-{$endif}
       begin
          if symtabletype in [recordsymtable,objectsymtable,
                     parasymtable,localsymtable] then
@@ -1650,24 +1580,14 @@ const localsymtablestack : psymtable = nil;
            b:=current_ppu^.readentry;
            case b of
            ibsymref : begin
-{$ifndef OLDDEREF}
-                        p:=readderef;
-                        sym:=resolvesym(p);
-{$else}
                         sym:=readsymref;
                         resolvesym(sym);
-{$endif}
                         if assigned(sym) then
                           sym^.load_references;
                       end;
            ibdefref : begin
-{$ifndef OLDDEREF}
-                        p:=readderef;
-                        prdef:=resolvedef(p);
-{$else}
                         prdef:=readdefref;
                         resolvedef(prdef);
-{$endif}
                         if assigned(prdef) then
                          begin
                            if prdef^.deftype<>procdef then
@@ -2429,7 +2349,10 @@ const localsymtablestack : psymtable = nil;
 end.
 {
   $Log$
-  Revision 1.13  1999-05-13 21:59:48  peter
+  Revision 1.14  1999-05-14 17:52:29  peter
+    * new deref code
+
+  Revision 1.13  1999/05/13 21:59:48  peter
     * removed oldppu code
     * warning if objpas is loaded from uses
     * first things for new deref writing

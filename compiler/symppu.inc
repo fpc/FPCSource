@@ -103,7 +103,6 @@
       end;
 
 
-{$ifndef OLDDEREF}
     procedure writederef(p : psymtableentry);
       begin
         if p=nil then
@@ -113,20 +112,20 @@
            { Static symtable ? }
            if p^.owner^.symtabletype=staticsymtable then
             begin
-              current_ppu^.putbyte(ord(derefaktstatic));
+              current_ppu^.putbyte(ord(derefaktstaticindex));
               current_ppu^.putword(p^.indexnr);
             end
            { Local record/object symtable ? }
            else if (p^.owner=aktrecordsymtable) then
             begin
-              current_ppu^.putbyte(ord(derefaktrecord));
+              current_ppu^.putbyte(ord(derefaktrecordindex));
               current_ppu^.putword(p^.indexnr);
             end
            else
 {           else if p^.owner^.unitid>$8000 then
             current_ppu^.putword(p^.owner^.unitid) }
             begin
-              current_ppu^.putbyte(ord(dereflocal));
+              current_ppu^.putbyte(ord(derefindex));
               current_ppu^.putword(p^.indexnr);
            { Current unit symtable ? }
               repeat
@@ -142,9 +141,9 @@
                   objectsymtable,
                   recordsymtable :
                     begin
+                      p:=p^.owner^.defowner;
                       current_ppu^.putbyte(ord(derefrecord));
                       current_ppu^.putword(p^.indexnr);
-                      p:=p^.owner^.defowner;
                     end;
                   else
                     internalerror(556656);
@@ -153,44 +152,16 @@
             end;
          end;
       end;
-{$else}
+
     procedure writedefref(p : pdef);
       begin
-        if p=nil then
-         current_ppu^.putlongint(-1)
-        else
-         begin
-           if p^.owner^.symtabletype=staticsymtable then
-            current_ppu^.putword($fffe)
-           else if (p^.owner=aktrecordsymtable) then
-            current_ppu^.putword($ffff)
-           else if p^.owner^.unitid>$8000 then
-            current_ppu^.putword(p^.owner^.unitid)
-           else
-            current_ppu^.putword(p^.owner^.unitid);
-           current_ppu^.putword(p^.indexnr);
-         end;
+        writederef(p);
       end;
 
     procedure writesymref(p : psym);
       begin
-        if p=nil then
-         current_ppu^.putlongint(-1)
-        else
-         begin
-           if p^.owner^.symtabletype=staticsymtable then
-            current_ppu^.putword($fffe)
-           else if (p^.owner=aktrecordsymtable) then
-            current_ppu^.putword($ffff)
-           else if p^.owner^.unitid>$8000 then
-            current_ppu^.putword(p^.owner^.unitid)
-           else
-            current_ppu^.putword(p^.owner^.unitid);
-           current_ppu^.putword(p^.indexnr);
-         end;
+        writederef(p);
       end;
-{$endif}
-
 
 
     procedure writesourcefiles;
@@ -413,26 +384,32 @@
             derefnil :
               break;
             derefunit,
-            derefaktrecord,
-            derefaktstatic :
+            derefaktrecordindex,
+            derefaktstaticindex :
               begin
-                new(p);
-                p^.dereftype:=b;
-                p^.index:=current_ppu^.getword;
+                new(p,init(b,current_ppu^.getword));
                 p^.next:=hp;
                 break;
               end;
-            dereflocal,
+            derefindex,
             derefrecord :
               begin
-                new(p);
-                p^.dereftype:=derefrecord;
-                p^.index:=current_ppu^.getword;
+                new(p,init(b,current_ppu^.getword));
                 p^.next:=hp;
               end;
           end;
         until false;
         readderef:=p;
+      end;
+
+    function readdefref : pdef;
+      begin
+        readdefref:=pdef(readderef);
+      end;
+
+    function readsymref : psym;
+      begin
+        readsymref:=psym(readderef);
       end;
 {$else}
     function readdefref : pdef;
@@ -583,7 +560,10 @@
 
 {
   $Log$
-  Revision 1.40  1999-05-13 21:59:44  peter
+  Revision 1.41  1999-05-14 17:52:28  peter
+    * new deref code
+
+  Revision 1.40  1999/05/13 21:59:44  peter
     * removed oldppu code
     * warning if objpas is loaded from uses
     * first things for new deref writing
