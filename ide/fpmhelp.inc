@@ -20,7 +20,7 @@ var FileID: word;
 var Found: boolean;
 begin
   CheckHelpSystem;
-  Found:=HelpFacility^.TopicSearch('Help_Contents',FileID,Ctx);
+  Found:=HelpFacility^.TopicSearch('Table of contents',FileID,Ctx);
   if Found then
      Help(FileID,Ctx,false)
   else
@@ -266,7 +266,10 @@ end;
 
 {
   $Log$
-  Revision 1.2  2001-10-01 00:24:09  pierre
+  Revision 1.3  2002-03-14 17:01:54  pierre
+   + find Table of contents for FPC docs
+
+  Revision 1.2  2001/10/01 00:24:09  pierre
    * fix several help problems
 
   Revision 1.1  2001/08/04 11:30:23  peter
