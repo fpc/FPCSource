@@ -31,7 +31,7 @@ list_of_string=
 stack_of_string=
   packed object (list_of_string)
    procedure pop(var s:string);
-   procedure push(var s:string);
+   procedure push(const s:string);
   end;
 
 procedure writestring(var f:file;s:string);
@@ -136,7 +136,7 @@ var
 begin
   l:=len;
   blockwrite(f,l,sizeof(longint));
-  if l>0 then p:=first;
+  p:=first;
   for i:=1 to l do
    begin
     p^.save(f);
@@ -171,19 +171,29 @@ begin
    end;
 end;
 
-procedure stack_of_string.push(var s:string);
+procedure stack_of_string.push(const s:string);
 begin
   insert(anchor,s);
 end;
 
 var
   gs:stack_of_string;
-  opaddr : pointer;
+  opaddr : ^string;
 begin
-  opaddr:=@((gs.first)^.data);
-  {perfectly compiles}
+  gs.init(nil);
+  gs.push('test');
 
-  opaddr:=@(gs.first^.data);
+  {perfectly compiles}
+  opaddr:=@((gs.first)^.data);
+  writeln(opaddr^);
+  if (opaddr^<>'test') then
+   halt(1);
+
   {reports error ") expected ^ but found"}
+  opaddr:=@(gs.first^.data);
+  writeln(opaddr^);
+  if (opaddr^<>'test') then
+   halt(1);
+
 
 end.
