@@ -40,8 +40,8 @@ _start:
         pushl   %edi
         pushl   %esp
         pushl   %edx
-        pushl   $_fini
-        pushl   $_init
+        pushl   $_fini_dummy
+        pushl   $_init_dummy
         pushl   %ebx
         pushl   %esi
         pushl   $main
@@ -60,6 +60,7 @@ main:
         /* start the program */
         xorl    %ebp,%ebp
         call    PASCALMAIN
+        hlt
 
         .globl _haltproc
         .type _haltproc,@function
@@ -71,6 +72,8 @@ _haltproc:
         movl    ___fpc_ret_ebp,%ebp
         movl    ___fpc_ret_ebx,%ebx
         push    %edx
+_init_dummy:
+_fini_dummy:
         ret
 
 .data
@@ -92,7 +95,10 @@ ___fpc_ret_ebp:
 
 #
 # $Log$
-# Revision 1.3  2001-02-14 22:36:21  sg
+# Revision 1.4  2001-06-04 18:05:47  peter
+#   * use own dummy for _init and _fini
+#
+# Revision 1.3  2001/02/14 22:36:21  sg
 # * Merged Pierre's fix for my problem with heaptrace unit (by setting EBP
 #   to zero before calling PASCALMAIN)
 #

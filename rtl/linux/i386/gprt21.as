@@ -41,8 +41,8 @@ _start:
         pushl   %eax
         pushl   %esp
         pushl   %edx
-        pushl   $_fini
-        pushl   $_init
+        pushl   $_fini_dummy
+        pushl   $_init_dummy
         pushl   %ebx
         pushl   %esi
         pushl   $main
@@ -63,6 +63,7 @@ cmain:
 
         /* start the program */
         call    PASCALMAIN
+        hlt
 
         .globl _haltproc
         .type _haltproc,@function
@@ -75,6 +76,8 @@ _haltproc:
         movl    ___fpc_ret_esi,%esi
         movl    ___fpc_ret_edi,%edi
         push    %edx
+_init_dummy:
+_fini_dummy:
         ret
 
         .globl  __gmon_start__
@@ -122,7 +125,10 @@ ___fpc_ret_edi:
 
 #
 # $Log$
-# Revision 1.2  2000-10-15 09:09:23  peter
+# Revision 1.3  2001-06-04 18:05:47  peter
+#   * use own dummy for _init and _fini
+#
+# Revision 1.2  2000/10/15 09:09:23  peter
 #   * startup code also needed syslinux->system updates
 #
 # Revision 1.1  2000/07/13 06:30:55  michael
