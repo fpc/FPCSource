@@ -1483,9 +1483,15 @@ end;
 
 
 function SysPollKeyEvent: TKeyEvent;
+var
+  KeyEvent : TKeyEvent;
 begin
   if keypressed then
-    SysPollKeyEvent:=SysGetKeyEvent
+    begin
+      KeyEvent:=SysGetKeyEvent;
+      PutKeyEvent(KeyEvent);
+      SysPollKeyEvent:=KeyEvent
+    end
   else
     SysPollKeyEvent:=0;
 end;
@@ -1498,10 +1504,10 @@ end;
 
 
 procedure RestoreStartMode;
-
 begin
   TCSetAttr(1,TCSANOW,StartTio);
 end;
+
 
 Const
   SysKeyboardDriver : TKeyboardDriver = (
@@ -1511,16 +1517,19 @@ Const
     PollKeyEvent : @SysPollKeyEvent;
     GetShiftState : @SysGetShiftState;
     TranslateKeyEvent : Nil;
-    TranslateKeyEventUnicode : Nil; 
+    TranslateKeyEventUnicode : Nil;
   );
 
-begin 
+begin
   SetKeyBoardDriver(SysKeyBoardDriver);
   TCGetAttr(1,StartTio);
 end.
 {
   $Log$
-  Revision 1.8  2001-09-21 21:33:36  michael
+  Revision 1.9  2001-10-12 16:03:15  peter
+    * pollkey fixes (merged)
+
+  Revision 1.8  2001/09/21 21:33:36  michael
   + Merged driver support from fixbranch
 
   Revision 1.7  2001/08/30 20:55:08  peter

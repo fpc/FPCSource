@@ -105,8 +105,11 @@ begin
    exit(PendingKeyEvent);
   If Assigned(CurrentKeyBoardDriver.PollKeyEvent) Then
     begin
-    PendingKeyEvent:=CurrentKeyBoardDriver.PollKeyEvent();
-    PollKeyEvent:=PendingKeyEvent;
+    PollKeyEvent:=CurrentKeyBoardDriver.PollKeyEvent();
+    // PollKeyEvent:=PendingKeyEvent;
+    // Must be done inside every keyboard specific
+    // PollKeyEvent procedure
+    // to avoid problems if that procedure is called directly PM
     end
   else
     PollKeyEvent:=0;
@@ -117,7 +120,7 @@ Function SetKeyboardDriver (Const Driver : TKeyboardDriver) : Boolean;
 begin
   If Not KeyBoardInitialized then
     CurrentKeyBoardDriver:=Driver;
-  SetKeyboardDriver:=Not KeyBoardInitialized;  
+  SetKeyboardDriver:=Not KeyBoardInitialized;
 end;
 
 Procedure GetKeyboardDriver (Var Driver : TKeyboardDriver);
@@ -292,7 +295,10 @@ end;
 
 {
   $Log$
-  Revision 1.5  2001-10-10 20:19:00  michael
+  Revision 1.6  2001-10-12 16:03:15  peter
+    * pollkey fixes (merged)
+
+  Revision 1.5  2001/10/10 20:19:00  michael
   + Merge of Fixed PollKeyEvent - Pierres fix was not complete
 
   Revision 1.4  2001/10/03 20:08:36  michael

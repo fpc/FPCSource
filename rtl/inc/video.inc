@@ -35,16 +35,23 @@ end;
 
 Var
   CurrentVideoDriver : TVideoDriver;
+  NextVideoMode      : TVideoMode;
 
 Const
   VideoInitialized : Boolean = False;
+  DriverInitialized : Boolean = False;
+  NextVideoModeSet  : Boolean = False;
 
 Function SetVideoDriver (Const Driver : TVideoDriver) : Boolean;
 { Sets the videodriver to be used }
 begin
   If Not VideoInitialized then
+    Begin
     CurrentVideoDriver:=Driver;
-  SetVideoDriver:=Not VideoInitialized;  
+      DriverInitialized:=true;
+      NextVideoModeSet:=false;
+    End;
+  SetVideoDriver:=Not VideoInitialized;
 end;
 
 Procedure GetVideoDriver (Var Driver : TVideoDriver);
@@ -86,17 +93,17 @@ begin
     If (ScreenWidth<OldCols) then
       C:=ScreenWidth
     else
-      C:=OldCols;  
+      C:=OldCols;
     If (ScreenHeight<OldRows) then
       R:=ScreenHeight
     else
-      R:=OldRows;  
+      R:=OldRows;
     For I:=0 to R-1 do
       begin
-      Move(VideoBuf[I*S*OldCols],NewVideoBuf[I*S*ScreenWidth],S*C);
-      Move(OldVideoBuf[I*S*OldCols],NewOldVideoBuf[I*S*ScreenWidth],S*C);
+      Move(VideoBuf^[I*OldCols],NewVideoBuf^[I*ScreenWidth],S*C);
+      Move(OldVideoBuf^[I*OldCols],NewOldVideoBuf^[I*ScreenWidth],S*C);
       end;
-    end;  
+    end;
   FreeVideoBuf;
   VideoBufSize:=NewVideoBufSize;
   VideoBuf:=NewVideoBuf;
@@ -110,6 +117,10 @@ begin
     begin
     If Assigned(CurrentVideoDriver.InitDriver) then
       CurrentVideoDriver.InitDriver;
+    VideoInitialized:=True;
+    if NextVideoModeSet then
+      SetVideoMode(NextVideoMode)
+    else
     AssignVideoBuf(0,0);
     ClearScreen;
     end;
@@ -123,7 +134,7 @@ begin
     begin
     If Assigned(CurrentVideoDriver.DoneDriver) then
       CurrentVideoDriver.DoneDriver;
-    FreeVideoBuf;  
+    FreeVideoBuf;
     VideoInitialized:=False;
     end;
 end;
@@ -198,6 +209,11 @@ Var
   OldR,OldC: Word;
 
 begin
+  SetVideoMode:=DriverInitialized;
+  if not DriverInitialized then
+    exit;
+  If VideoInitialized then
+    begin
   OldC:=ScreenWidth;
   OldR:=ScreenHeight;
   If Assigned(CurrentVideoDriver.SetVideoMode) then
@@ -207,6 +223,12 @@ begin
   // Assign buffer
   If SetVideoMode then
     AssignVideoBuf(OldC,Oldr);
+    end
+  else
+    begin
+    NextVideoMode:=Mode;
+    NextVideoModeSet:=true;
+    end;
 end;
 
 
@@ -214,7 +236,7 @@ Function GetVideoModeCount : Word;
 
 begin
   If Assigned(CurrentVideoDriver.GetVideoModeCount) then
-    GetVideoModeCount:=GetVideoModeCount()
+    GetVideoModeCount:=CurrentVideoDriver.GetVideoModeCount()
   else
     GetVideoModeCount:=1;
 end;
@@ -239,11 +261,12 @@ begin
   DefaultErrorHandler := errAbort; { return error code }
 end;
 
-
-
 {
   $Log$
-  Revision 1.5  2001-10-10 21:03:48  michael
+  Revision 1.6  2001-10-12 16:03:15  peter
+    * pollkey fixes (merged)
+
+  Revision 1.5  2001/10/10 21:03:48  michael
   + Clearscreen now also clears oldvideobuf after screenupdate
 
   Revision 1.4  2001/10/06 22:28:24  michael
