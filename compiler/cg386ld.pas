@@ -370,7 +370,6 @@ implementation
       var
          opsize : topsize;
          otlabel,hlabel,oflabel : pasmlabel;
-         hregister : tregister;
          fputyp : tfloattype;
          loc : tloc;
          r : preference;
@@ -981,7 +980,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.82  1999-09-01 09:26:21  peter
+  Revision 1.83  1999-09-01 09:37:14  peter
+    * removed warning
+
+  Revision 1.82  1999/09/01 09:26:21  peter
     * fixed temp allocation for arrayconstructor
 
   Revision 1.81  1999/08/28 15:34:17  florian
