@@ -41,7 +41,7 @@ Implementation
        globtype,globals,verbose,
        systems,
        { aasm }
-       cpubase,aasmbase,aasmtai,aasmcpu,
+       cpuinfo,cpubase,aasmbase,aasmtai,aasmcpu,
        { symtable }
        symconst,symbase,symtype,symsym,symtable,
        { pass 1 }
@@ -1620,7 +1620,7 @@ end;
 Procedure T386IntelInstruction.BuildOpCode;
 var
   PrefixOp,OverrideOp: tasmop;
-  size : tcgsize;
+  size,
   operandnum : longint;
 Begin
   PrefixOp:=A_None;
@@ -1705,27 +1705,13 @@ Begin
         Begin
           { load the size in a temp variable, so it can be set when the
             operand is read }
+          size:=0;
           Case actasmtoken of
-            AS_DWORD : size:=OS_32;
-            AS_WORD  : size:=OS_16;
-            AS_BYTE  : size:=OS_8;
-            AS_QWORD : begin
-                          if (opcode=A_FCOM) or
-                            (opcode=A_FCOMP) or
-                            (opcode=A_FDIV) or
-                            (opcode=A_FDIVR) or
-                            (opcode=A_FMUL) or
-                            (opcode=A_FSUB) or
-                            (opcode=A_FSUBR) or
-                            (opcode=A_FLD) or
-                            (opcode=A_FST) or
-                            (opcode=A_FSTP) or
-                            (opcode=A_FADD) then
-                            size:=OS_F64
-                          else
-                            size:=OS_64;
-                       end;
-            AS_TBYTE : size:=OS_F80;
+            AS_DWORD : size:=4;
+            AS_WORD  : size:=2;
+            AS_BYTE  : size:=1;
+            AS_QWORD : size:=8;
+            AS_TBYTE : size:=extended_size;
           end;
           Consume(actasmtoken);
           if actasmtoken=AS_PTR then
@@ -1735,7 +1721,7 @@ Begin
            end;
           Operands[operandnum].BuildOperand;
           { now set the size which was specified by the override }
-          Operands[operandnum].size:=size;
+          Operands[operandnum].setsize(size,true);
         end;
 
       { Type specifier }
@@ -1961,7 +1947,10 @@ finalization
 end.
 {
   $Log$
-  Revision 1.48  2003-05-30 23:57:08  peter
+  Revision 1.49  2003-06-06 14:41:59  peter
+    * use setsize for size specifier
+
+  Revision 1.48  2003/05/30 23:57:08  peter
     * more sparc cleanup
     * accumulator removed, splitted in function_return_reg (called) and
       function_result_reg (caller)
