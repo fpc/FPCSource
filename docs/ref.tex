@@ -6130,14 +6130,13 @@ None.
 Procedure Mark (Var P : Pointer);
 
 \Description
-\var{Mark} copies the current heap-pointer to \var{P}.
+This routine is here for compatibility with Borland Pascal, but
+it is not implemented and currently does nothing.
 \Errors
 None.
 \SeeAlso
 \seep{Getmem}, \seep{Freemem}, \seep{New}, \seep{Dispose}, \seef{Maxavail}
 \end{procedure}
-
-\FPCexample{ex39}
 
 \begin{function}{Maxavail}
 \Declaration
@@ -6500,16 +6499,15 @@ None.
 Procedure Release (Var P : pointer);
 
 \Description
-\var{Release} sets the top of the Heap to the location pointed to by
-\var{P}. All memory at a location higher than \var{P} is marked empty.
+This routine is here for compatibility with Borland Pascal, but
+it is not implemented and currently does nothing.
 \Errors
-A run-time error will be generated if \var{P} points to memory outside the
-heap.
+None.
 \SeeAlso
 \seep{Mark}, \seef{Memavail}, \seef{Maxavail}, \seep{Getmem}, \seep{Freemem}
 \seep{New}, \seep{Dispose}
 \end{procedure}
-For an example, see \seep{Mark}.
+
 \begin{procedure}{Rename}
 \Declaration
 Procedure Rename (Var F : Any Filetype; Const S : String);
