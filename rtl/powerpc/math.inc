@@ -18,7 +18,7 @@
 
 const
   longint_to_real_helper: int64 = $4330000080000000;
-  cardinal_to_real_helper: int64 = $430000000000000;
+  cardinal_to_real_helper: int64 = $4330000000000000;
   int_to_real_factor: double = double(high(cardinal))+1.0;
 
 
@@ -276,7 +276,7 @@ LTruncPositive:
 
 function fpc_int64_to_double(i: int64): double; compilerproc;
 assembler;
-{ input: high(i) in r3, low(i) in r4 }
+{ input: high(i) in r4, low(i) in r3 }
 { output: double(i) in f0            }
 var
   temp: packed record
@@ -287,30 +287,30 @@ var
 asm
            lis    r0,0x4330
            stw    r0,temp
-           xoris  r3,r3,0x8000
-           stw    r3,4+temp
+           xoris  r4,r4,0x8000
+           stw    r4,4+temp
            {$ifndef macos}
-           lis    r3,longint_to_real_helper@ha
-           lfd    f1,longint_to_real_helper@l(r3)
+           lis    r4,longint_to_real_helper@ha
+           lfd    f1,longint_to_real_helper@l(r4)
            {$else}
-           lwz    r3,longint_to_real_helper[TC](r2)
-           lfd    f1,0(r3)
+           lwz    r4,longint_to_real_helper[TC](r2)
+           lfd    f1,0(r4)
            {$endif}
            lfd    f0,temp
-           stw    r4,4+temp
+           stw    r3,4+temp
            fsub   f0,f0,f1
            {$ifndef macos}
-           lis    r4,cardinal_to_real_helper@ha
-           lfd    f1,cardinal_to_real_helper@l(r4)
+           lis    r3,cardinal_to_real_helper@ha
+           lfd    f1,cardinal_to_real_helper@l(r3)
            lis    r3,int_to_real_factor@ha
            lfd    f3,temp
            lfd    f2,int_to_real_factor@l(r3)
            {$else}
-           lwz    r4,cardinal_to_real_helper[TC](r2)
-           lwz    r3,int_to_real_factor[TC](r2)
+           lwz    r3,cardinal_to_real_helper[TC](r2)
+           lwz    r4,int_to_real_factor[TC](r2)
            lfd    f3,temp
-           lfd    f1,0(r4)
-           lfd    f2,0(r3)
+           lfd    f1,0(r3)
+           lfd    f2,0(r4)
            {$endif}
            fsub   f3,f3,f1
            fmadd  f1,f0,f2,f3
@@ -319,7 +319,7 @@ end ['R0','R3','R4','F0','F1','F2','F3'];
 
 function fpc_qword_to_double(q: qword): double; compilerproc;
 assembler;
-{ input: high(q) in r3, low(q) in r4 }
+{ input: high(q) in r4, low(q) in r3 }
 { output: double(q) in f0            }
 var
   temp: packed record
@@ -330,16 +330,16 @@ var
 asm
            lis    r0,0x4330
            stw    r0,temp
-           stw    r3,4+temp
+           stw    r4,4+temp
            lfd    f0,temp
            {$ifndef macos}
-           lis    r3,cardinal_to_real_helper@ha
-           lfd    f1,cardinal_to_real_helper@l(r3)
+           lis    r4,cardinal_to_real_helper@ha
+           lfd    f1,cardinal_to_real_helper@l(r4)
            {$else}
-           lwz    r3,longint_to_real_helper[TC](r2)
-           lfd    f1,0(r3)
+           lwz    r4,longint_to_real_helper[TC](r2)
+           lfd    f1,0(r4)
            {$endif}
-           stw    r4,4+temp
+           stw    r3,4+temp
            fsub   f0,f0,f1
            lfd    f3,temp
            {$ifndef macos}
@@ -356,7 +356,10 @@ end ['R0','R3','F0','F1','F2','F3'];
 
 {
   $Log$
-  Revision 1.20  2003-05-02 15:12:19  jonas
+  Revision 1.21  2003-05-11 18:09:45  jonas
+    * fixed qword and int64 to double conversion
+
+  Revision 1.20  2003/05/02 15:12:19  jonas
     - removed empty ppc-specific frac()
     + added correct generic frac() implementation for doubles (translated
       from glibc code)
