@@ -164,6 +164,8 @@ procedure AddReferenceSizes(var instr:TInstruction);
   operand is a register }
 var
   operand2,i : longint;
+  s : pasmsymbol;
+  so : longint;
 begin
   with instr do
    begin
@@ -171,25 +173,35 @@ begin
       if (operands[i].size=S_NO) then
        begin
          case operands[i].operandtype of
-          OPR_REFERENCE :
-            begin
-              if i=2 then
-               operand2:=1
-              else
-               operand2:=2;
-              { Only allow register as operand to take the size from }
-              if operands[operand2].operandtype=OPR_REGISTER then
-               operands[i].size:=operands[operand2].size
-              else
-               begin
-                 { if no register then take the opsize (which is available with ATT) }
-                 operands[i].size:=opsize;
-               end;
-            end;
-          OPR_SYMBOL :
-            begin
-              operands[i].size:=S_L;
-            end;
+           OPR_REFERENCE :
+             begin
+               if i=2 then
+                operand2:=1
+               else
+                operand2:=2;
+               { Only allow register as operand to take the size from }
+               if operands[operand2].operandtype=OPR_REGISTER then
+                operands[i].size:=operands[operand2].size
+               else
+                begin
+                  { if no register then take the opsize (which is available with ATT) }
+                  operands[i].size:=opsize;
+                end;
+             end;
+           OPR_SYMBOL :
+             begin
+               { Fix lea which need a reference }
+               if opcode=A_LEA then
+                begin
+                  s:=operands[i].symbol;
+                  so:=operands[i].symofs;
+                  operands[i].operandtype:=OPR_REFERENCE;
+                  reset_reference(operands[i].ref);
+                  operands[i].ref.symbol:=s;
+                  operands[i].ref.offset:=so;
+                end;
+               operands[i].size:=S_L;
+             end;
          end;
        end;
    end;
@@ -381,7 +393,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.1  1999-05-01 13:24:40  peter
+  Revision 1.2  1999-05-02 14:24:26  peter
+    * translate opr_symbol to reference for lea
+
+  Revision 1.1  1999/05/01 13:24:40  peter
     * merged nasm compiler
     * old asm moved to oldasm/
 
