@@ -26,7 +26,7 @@
 unit browcol;
 interface
 uses
-  objects,symconst,symtable;
+  cobjects,objects,symconst,symtable;
 
 const
   SymbolTypLen : integer = 6;
@@ -153,12 +153,29 @@ type
        function At(Index: Sw_Integer): PReference;
     end;
 
+    PSourceFile = ^TSourceFile;
+    TSourceFile = object(TObject)
+      SourceFileName: PString;
+      ObjFileName: PString;
+      PPUFileName: PString;
+      constructor Init(ASourceFileName, AObjFileName, APPUFileName: string);
+      destructor  Done; virtual;
+      function    GetSourceFilename: string;
+      function    GetObjFileName: string;
+      function    GetPPUFileName: string;
+    end;
+
+    PSourceFileCollection = ^TSourceFileCollection;
+    TSourceFileCollection = object(TCollection)
+      function At(Index: sw_Integer): PSourceFile;
+    end;
+
 const
   Modules     : PSymbolCollection = nil;
   ModuleNames : PModuleNameCollection = nil;
   TypeNames   : PTypeNameCollection = nil;
   ObjectTree  : PObjectSymbol = nil;
-
+  SourceFiles : PSourceFileCollection = nil;
 
 procedure DisposeBrowserCol;
 procedure NewBrowserCol;
@@ -171,6 +188,8 @@ procedure StoreBrowserCol(S: PStream);
 
 procedure BuildObjectInfo;
 
+procedure BuildSourceList;
+
 function SearchObjectForSymbol(O: PSymbol): PObjectSymbol;
 
 procedure RegisterSymbols;
@@ -178,7 +197,7 @@ procedure RegisterSymbols;
 implementation
 
 uses
-  Drivers,Views,App,
+  Dos,Drivers,Views,App,
   aasm,globtype,globals,files,comphook;
 
 const
@@ -776,6 +795,45 @@ procedure TObjectSymbol.Store(S: TStream);
 begin
 end;
 
+{****************************************************************************
+                                TSourceFile
+****************************************************************************}
+
+constructor TSourceFile.Init(ASourceFileName, AObjFileName, APPUFileName: string);
+begin
+  inherited Init;
+  SourceFileName:=NewStr(ASourceFileName);
+  ObjFileName:=NewStr(AObjFileName);
+  PPUFileName:=NewStr(APPUFileName);
+end;
+
+destructor TSourceFile.Done;
+begin
+  inherited Done;
+  if assigned(SourceFileName) then DisposeStr(SourceFileName);
+  if assigned(ObjFileName) then DisposeStr(ObjFileName);
+  if assigned(PPUFileName) then DisposeStr(PPUFileName);
+end;
+
+function TSourceFile.GetSourceFilename: string;
+begin
+  GetSourceFilename:=GetStr(SourceFileName);
+end;
+
+function TSourceFile.GetObjFileName: string;
+begin
+  GetObjFilename:=GetStr(ObjFileName);
+end;
+
+function TSourceFile.GetPPUFileName: string;
+begin
+  GetPPUFilename:=GetStr(PPUFileName);
+end;
+
+function TSourceFileCollection.At(Index: sw_Integer): PSourceFile;
+begin
+  At:=inherited At(Index);
+end;
 
 {*****************************************************************************
                               Main Routines
@@ -1234,6 +1292,8 @@ begin
        hp:=pmodule(hp^.next);
     end;
   BuildObjectInfo;
+
+  BuildSourceList;
 end;
 
 procedure BuildObjectInfo;
@@ -1352,6 +1412,53 @@ begin
   SearchObjectForSymbol:=ScanObjectCollection(ObjectTree);
 end;
 
+procedure BuildSourceList;
+var m: pmodule;
+    s: pinputfile;
+    p: cobjects.pstring;
+    ppu,obj: string;
+    source: string;
+begin
+  if Assigned(SourceFiles) then
+    begin Dispose(SourceFiles, Done); SourceFiles:=nil; end;
+  if assigned(loaded_units.first) then
+  begin
+    New(SourceFiles, Init(50,10));
+    m:=pmodule(loaded_units.first);
+    while assigned(m) do
+    begin
+      obj:=fexpand(m^.objfilename^);
+      ppu:=''; source:='';
+      if m^.is_unit then
+        ppu:=fexpand(m^.ppufilename^);
+      if (m^.is_unit=false) and (m^.islibrary=false) then
+        ppu:=fexpand(m^.exefilename^);
+      if assigned(p) then
+      begin
+        if assigned(m^.sourcefiles) then
+        begin
+          s:=m^.sourcefiles^.files;
+          while assigned(s) do
+          begin
+            source:='';
+            p:=s^.path;
+            if assigned(p) then
+              source:=source+p^;
+            p:=s^.name;
+            if assigned(p) then
+              source:=source+p^;
+            source:=fexpand(source);
+
+            SourceFiles^.Insert(New(PSourceFile, Init(source,obj,ppu)));
+            s:=s^.next;
+          end;
+        end;
+      end;
+
+      m:=pmodule(m^.next);
+    end;
+  end;
+end;
 
 {*****************************************************************************
                                  Initialize
@@ -1376,9 +1483,9 @@ end;
 
 procedure DoneBrowserCol;
 begin
-  { nothing, the collections are freed in the exitproc }
-  { nothing? then why do we've this routine? IMHO, either we should remove this,
-    or it should destroy the browser info when it's called. - Gabor }
+  { nothing, the collections are freed in the exitproc - ??? }
+  { nothing? then why do we've this routine for ? IMHO, either we should
+    remove this, or it should destroy the browser info when it's called. - BG }
 end;
 
 type
@@ -1583,7 +1690,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.21  1999-08-09 14:09:04  peter
+  Revision 1.22  1999-08-16 18:25:49  peter
+    * fixes from gabor
+
+  Revision 1.21  1999/08/09 14:09:04  peter
     * updated for symtable updates
 
   Revision 1.20  1999/08/03 22:02:29  peter
