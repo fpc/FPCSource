@@ -285,3 +285,6 @@ bug0202.pp   flag results not supported with case
 bug0206.pp   sets with variable ranges doesn't work
 bug0211.pp   a and not a is true !!! (if a:=boolean(5))
 bug0212.pp   problem with properties
+bug0213.pp   name mangling problem with nested procedures in overloaded
+             procedure
+
