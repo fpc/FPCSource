@@ -22,7 +22,9 @@ unit Classes;
 interface
 
 uses
-  objpas, strings;
+  objpas, 
+  sysutils, {!!!TSE 21.09.1998 needed for exceptions and strtoint}
+  strings;
 
 {$i classesh.inc}
 
@@ -38,7 +40,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.4  1998-06-10 21:53:09  michael
+  Revision 1.5  1998-09-23 07:46:57  michael
+  * patches by TSE
+
+  Revision 1.4  1998/06/10 21:53:09  michael
   + Implemented Handle/FileStreams
 
   Revision 1.3  1998/05/06 13:00:25  michael
