@@ -38,6 +38,7 @@ const
   SLineTooLong = 'Line too long';
   SRangeError = 'Range error';
   SSeekNotImplemented = '64bit Seek not implemented for class %s';
+  SErrNoStreaming = 'Failed to initialize component: No streaming method available.';
 
   SInvalidPropertyValue = 'Invalid property value';
   SInvalidPropertyPath = 'Invalid property path';
@@ -275,7 +276,10 @@ const
 
 {
   $Log$
-  Revision 1.7  2002-09-07 15:15:24  peter
+  Revision 1.8  2003-06-04 17:37:52  michael
+  en InitInheritedComponent erbij voor Delphi 6 compatibiliteit
+
+  Revision 1.7  2002/09/07 15:15:24  peter
     * old logs removed and tabs fixed
 
 }
