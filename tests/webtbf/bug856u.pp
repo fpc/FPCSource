@@ -1,5 +1,5 @@
 {$MODE objfpc}
-unit tbug856u;
+unit bug856u;
 interface
 type
   TMyClass = class
