@@ -616,6 +616,7 @@ unit pmodules;
     procedure loaddefaultunits;
       var
         hp : pmodule;
+        unitsym : punitsym;
       begin
       { are we compiling the system unit? }
         if (cs_compilesystem in aktmoduleswitches) then
@@ -633,7 +634,9 @@ unit pmodules;
         symtablestack:=systemunit;
         { add to the used units }
         current_module^.used_units.concat(new(pused_unit,init(hp,true)));
-        refsymtable^.insert(new(punitsym,init('SYSTEM',systemunit)));
+        unitsym:=new(punitsym,init('SYSTEM',systemunit));
+        inc(unitsym^.refs);
+        refsymtable^.insert(unitsym);
         { read default constant definitions }
         make_ref:=false;
         readconstdefs;
@@ -655,7 +658,9 @@ unit pmodules;
            symtablestack:=hp^.globalsymtable;
            { add to the used units }
            current_module^.used_units.concat(new(pused_unit,init(hp,true)));
-           refsymtable^.insert(new(punitsym,init('OBJPAS',hp^.globalsymtable)));
+           unitsym:=new(punitsym,init('OBJPAS',hp^.globalsymtable));
+           inc(unitsym^.refs);
+           refsymtable^.insert(unitsym);
          end;
       { Profile unit? Needed for go32v2 only }
         if (cs_profile in aktmoduleswitches) and (target_info.target=target_i386_go32v2) then
@@ -665,7 +670,9 @@ unit pmodules;
            symtablestack:=hp^.globalsymtable;
            { add to the used units }
            current_module^.used_units.concat(new(pused_unit,init(hp,true)));
-           refsymtable^.insert(new(punitsym,init('PROFILE',hp^.globalsymtable)));
+           unitsym:=new(punitsym,init('PROFILE',hp^.globalsymtable));
+           inc(unitsym^.refs);
+           refsymtable^.insert(unitsym);
          end;
       { Units only required for main module }
         if not(current_module^.is_unit) then
@@ -678,7 +685,9 @@ unit pmodules;
               symtablestack:=hp^.globalsymtable;
               { add to the used units }
               current_module^.used_units.concat(new(pused_unit,init(hp,true)));
-              refsymtable^.insert(new(punitsym,init('HEAPTRC',hp^.globalsymtable)));
+              unitsym:=new(punitsym,init('HEAPTRC',hp^.globalsymtable));
+              inc(unitsym^.refs);
+              refsymtable^.insert(unitsym);
             end;
            { Lineinfo unit }
            if (cs_gdb_lineinfo in aktglobalswitches) then
@@ -688,7 +697,9 @@ unit pmodules;
               symtablestack:=hp^.globalsymtable;
               { add to the used units }
               current_module^.used_units.concat(new(pused_unit,init(hp,true)));
-              refsymtable^.insert(new(punitsym,init('LINEINFO',hp^.globalsymtable)));
+              unitsym:=new(punitsym,init('LINEINFO',hp^.globalsymtable));
+              inc(unitsym^.refs);
+              refsymtable^.insert(unitsym);
             end;
          end;
       { save default symtablestack }
@@ -704,6 +715,7 @@ unit pmodules;
          hp2 : pmodule;
          hp3 : psymtable;
          oldprocsym:Pprocsym;
+         unitsym : punitsym;
       begin
          oldprocsym:=aktprocsym;
          consume(_USES);
@@ -734,7 +746,12 @@ unit pmodules;
               pused_unit(current_module^.used_units.last)^.in_uses:=true;
               if current_module^.compiled then
                 exit;
-              refsymtable^.insert(new(punitsym,init(s,hp2^.globalsymtable)));
+              unitsym:=new(punitsym,init(s,hp2^.globalsymtable));
+              { never claim about unused unit if
+                there is init or finalize code  PM }
+              if (hp2^.flags and (uf_init or uf_finalize))<>0 then
+                inc(unitsym^.refs);
+              refsymtable^.insert(unitsym);
             end
            else
             Message1(sym_e_duplicate_id,s);
@@ -1074,6 +1091,7 @@ unit pmodules;
                         { this unit symtable is obsolete }
                         { dispose(unitst,done);
                         disposed as localsymtable !! }
+                        RestoreUnitSyms;
                         exit;
                      end;
                    unitst^.symtabletype:=globalsymtable;
@@ -1150,6 +1168,7 @@ unit pmodules;
 
          if current_module^.compiled then
            begin
+              RestoreUnitSyms;
               exit;
            end;
 
@@ -1386,6 +1405,9 @@ unit pmodules;
               dispose(st,done);
               current_module^.localsymtable:=nil;
            end;
+
+
+         RestoreUnitSyms;
 
          if is_assembler_generated then
           begin
@@ -1678,7 +1700,11 @@ unit pmodules;
 end.
 {
   $Log$
-  Revision 1.191  2000-04-27 11:35:03  pierre
+  Revision 1.192  2000-05-03 14:39:51  pierre
+    * Use RestoreUnitsSyms to avoid wrong hints about unused units
+    * Avoid hints about unsused units if thet have a init or finalize code
+
+  Revision 1.191  2000/04/27 11:35:03  pierre
    * power to ** operator fixed
 
   Revision 1.190  2000/04/26 08:54:18  pierre
