@@ -278,6 +278,7 @@ implementation
     function TMakefileWriter.CheckTargetVariable(const inivar:string):boolean;
       var
         t : TTarget;
+        c : TCpu;
       begin
         result:=false;
         if FInput.GetVariable(IniVar,false)<>'' then
@@ -288,6 +289,13 @@ implementation
         for t:=low(TTarget) to high(TTarget) do
          if (t in FInput.IncludeTargets) and
             (FInput.GetVariable(IniVar+TargetSuffix[t],false)<>'') then
+          begin
+            result:=true;
+            exit;
+          end;
+        for c:=low(TCpu) to high(TCpu) do
+         if (c in FInput.IncludeCpus) and
+            (FInput.GetVariable(IniVar+CpuSuffix[c],false)<>'') then
           begin
             result:=true;
             exit;
@@ -955,7 +963,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.32  2004-07-12 06:42:52  michael
+  Revision 1.33  2004-08-01 08:12:07  michael
+  + Patch from Vincent Snijders to fix CPU-specific installs
+
+  Revision 1.32  2004/07/12 06:42:52  michael
   * Patch from peter to fix writing of target dir rules for cpu specific dirs
 
   Revision 1.31  2004/07/11 18:58:19  peter
