@@ -388,6 +388,9 @@ procedure TraceFreeMem(var p:pointer;size:longint);
 
   var i,bp, ppsize : longint;
   pp : pheap_mem_info;
+{$ifdef EXTRA}
+  pp2 : pheap_mem_info;
+{$endif}
 begin
   inc(freemem_size,size);
   inc(freemem8_size,((size+7) div 8)*8);
@@ -758,7 +761,10 @@ finalization
 end.
 {
   $Log$
-  Revision 1.22  1999-09-08 16:14:41  peter
+  Revision 1.23  1999-09-10 17:13:41  peter
+    * fixed missing var
+
+  Revision 1.22  1999/09/08 16:14:41  peter
     * pointer fixes
 
   Revision 1.21  1999/08/18 12:03:16  peter
