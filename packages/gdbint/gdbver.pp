@@ -5,9 +5,15 @@ program find_gdb_version;
 uses
   strings;
 
+const
+{$ifdef unix}
+  ver_name = 'version';
+{$else not unix}
+  ver_name = '_version';
+{$endif}
 var
-  v5_version : array[0..0] of char;external name '_version';
-  v4_version : pchar;external name '_version';
+  v5_version : array[0..0] of char;external name ver_name;
+  v4_version : pchar;external name ver_name;
   version : pchar;
   version_number : longint;
   only_ver : boolean;
