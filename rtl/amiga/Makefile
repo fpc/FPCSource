@@ -157,17 +157,17 @@ clean :
 #
 
 prt0$(OEXT) : $(LOADERAS)
-	-as $(LOADERAS) -o prt0$(OEXT)
+	-$(AS) $(LOADERAS) -o prt0$(OEXT)
 
 #gprt0$(OEXT) : $(GLOADERAS)
-#	-as $(GLOADERAS) -o gprt0$(OEXT)
+#	-$(AS) $(GLOADERAS) -o gprt0$(OEXT)
 
 #
 # Base Units (System, strings, os-dependent-base-unit)
 #
 
 $(SYSTEMPPU) : sysamiga.pas $(SYSLINUXDEPS) $(SYSDEPS)
-	$(PP) $(OPT) -Us -Sg sysamiga.pas $(REDIR)
+	$(PP) $(OPT) -ui386 -dm68k -I$(INC) -I$(PROCINC) -Us -Sg sysamiga.pas $(REDIR)
 
 strings$(PPUEXT) : ../template/strings.pp $(SYSTEMPPU)
 	$(COPY) ../template/strings.pp .
@@ -245,7 +245,11 @@ include $(CFG)/makefile.def
 
 #
 # $Log$
-# Revision 1.2  1998-10-02 09:25:58  peter
+# Revision 1.3  1998-10-13 08:07:01  pierre
+#   * uses AS variable (can be set to as68k when crosscompiling)
+#   * correct command line for sysamiga.pas
+#
+# Revision 1.2  1998/10/02 09:25:58  peter
 #   * fixed rtl path
 #
 # Revision 1.1  1998/09/10 14:15:47  peter
