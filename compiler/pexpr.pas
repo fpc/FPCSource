@@ -2230,7 +2230,8 @@ implementation
            _ASSIGNMENT :
              begin
                 consume(_ASSIGNMENT);
-                if (p1.resulttype.def.deftype=procvardef) then
+                if (m_tp_procvar in aktmodeswitches) and
+                   (p1.resulttype.def.deftype=procvardef) then
                   begin
                      getprocvar:=true;
                      getprocvardef:=tprocvardef(p1.resulttype.def);
@@ -2319,7 +2320,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.28  2001-04-13 01:22:12  peter
+  Revision 1.29  2001-04-13 23:50:24  peter
+    * fpc mode now requires @ also when left of assignment is an procvardef
+
+  Revision 1.28  2001/04/13 01:22:12  peter
     * symtable change to classes
     * range check generation and errors fixed, make cycle DEBUG=1 works
     * memory leaks fixed
