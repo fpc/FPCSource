@@ -539,7 +539,7 @@ implementation
          else
           begin
             pdflags:=pd_body;
-            if current_module.in_implementation then
+            if (not current_module.in_interface) then
              pdflags:=pdflags or pd_implemen;
             if (not current_module.is_unit) or (cs_create_smart in aktmoduleswitches) then
              pdflags:=pdflags or pd_global;
@@ -818,7 +818,12 @@ implementation
 end.
 {
   $Log$
-  Revision 1.82  2002-12-25 01:26:56  peter
+  Revision 1.83  2002-12-29 14:57:50  peter
+    * unit loading changed to first register units and load them
+      afterwards. This is needed to support uses xxx in yyy correctly
+    * unit dependency check fixed
+
+  Revision 1.82  2002/12/25 01:26:56  peter
     * duplicate procsym-unitsym fix
 
   Revision 1.81  2002/12/15 13:37:15  peter

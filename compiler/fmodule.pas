@@ -46,51 +46,45 @@ interface
 
 
     type
-       trecompile_reason = (rr_unknown,
-         rr_noppu,rr_sourcenewer,rr_build,rr_crcchanged
-       );
+      trecompile_reason = (rr_unknown,
+        rr_noppu,rr_sourcenewer,rr_build,rr_crcchanged
+      );
 
-       TExternalsItem=class(TLinkedListItem)
-       public
-         found : longbool;
-         data  : pstring;
-         constructor Create(const s:string);
-         Destructor Destroy;override;
-       end;
+      TExternalsItem=class(TLinkedListItem)
+      public
+        found : longbool;
+        data  : pstring;
+        constructor Create(const s:string);
+        Destructor Destroy;override;
+      end;
 
-       tlinkcontaineritem=class(tlinkedlistitem)
-       public
-          data : pstring;
-          needlink : cardinal;
-          constructor Create(const s:string;m:cardinal);
-          destructor Destroy;override;
-       end;
+      tlinkcontaineritem=class(tlinkedlistitem)
+      public
+         data : pstring;
+         needlink : cardinal;
+         constructor Create(const s:string;m:cardinal);
+         destructor Destroy;override;
+      end;
 
-       tlinkcontainer=class(tlinkedlist)
-          procedure add(const s : string;m:cardinal);
-          function get(var m:cardinal) : string;
-          function getusemask(mask:cardinal) : string;
-          function find(const s:string):boolean;
-       end;
+      tlinkcontainer=class(tlinkedlist)
+         procedure add(const s : string;m:cardinal);
+         function get(var m:cardinal) : string;
+         function getusemask(mask:cardinal) : string;
+         function find(const s:string):boolean;
+      end;
 
-{$ifndef NEWMAP}
-       tunitmap = array[0..maxunits-1] of pointer;
-       punitmap = ^tunitmap;
-{$else NEWMAP}
-       tunitmap = array[0..maxunits-1] of tmodule;
-       punitmap = ^tunitmap;
-{$endif NEWMAP}
+      tmodule = class;
+      tused_unit = class;
+
+      tunitmap = array[0..maxunits-1] of tmodule;
+      punitmap = ^tunitmap;
 
       tmodule = class(tmodulebase)
-        compiled,                 { unit is already compiled }
         do_reload,                { force reloading of the unit }
         do_compile,               { need to compile the sources }
         sources_avail,            { if all sources are reachable }
-        sources_checked,          { if there is already done a check for the sources }
         is_unit,
-        in_second_compile,        { is this unit being compiled for the 2nd time? }
-        in_second_load,           { is this unit PPU loaded a 2nd time? }
-        in_implementation,        { processing the implementation part? }
+        in_interface,             { processing the implementation part? }
         in_global     : boolean;  { allow global settings }
         recompile_reason : trecompile_reason;  { the reason why the unit should be recompiled }
         crc,
@@ -132,23 +126,21 @@ interface
         constructor create(LoadedFrom:TModule;const s:string;_is_unit:boolean);
         destructor destroy;override;
         procedure reset;virtual;
+        procedure adddependency(callermodule:tmodule);
+        procedure flagdependent(callermodule:tmodule);
+        function  addusedunit(hp:tmodule;inuses:boolean):tused_unit;
         procedure numberunits;
       end;
 
        tused_unit = class(tlinkedlistitem)
           unitid          : longint;
-          name            : pstring;
-          realname        : pstring;
           checksum,
           interface_checksum : cardinal;
-          loaded          : boolean;
           in_uses,
           in_interface,
           is_stab_written : boolean;
           u               : tmodule;
-          constructor create(_u : tmodule;intface:boolean);
-          constructor create_to_load(const n:string;c,intfc:cardinal;intface:boolean);
-          destructor destroy;override;
+          constructor create(_u : tmodule;intface,inuses:boolean);
        end;
 
        tdependent_unit = class(tlinkedlistitem)
@@ -306,41 +298,23 @@ uses
                               TUSED_UNIT
  ****************************************************************************}
 
-    constructor tused_unit.create(_u : tmodule;intface:boolean);
+    constructor tused_unit.create(_u : tmodule;intface,inuses:boolean);
       begin
         u:=_u;
         in_interface:=intface;
-        in_uses:=false;
+        in_uses:=inuses;
         is_stab_written:=false;
-        loaded:=true;
-        name:=stringdup(_u.modulename^);
-        realname:=stringdup(_u.realmodulename^);
-        checksum:=_u.crc;
-        interface_checksum:=_u.interface_crc;
         unitid:=0;
-      end;
-
-
-    constructor tused_unit.create_to_load(const n:string;c,intfc:cardinal;intface:boolean);
-      begin
-        u:=nil;
-        in_interface:=intface;
-        in_uses:=false;
-        is_stab_written:=false;
-        loaded:=false;
-        name:=stringdup(upper(n));
-        realname:=stringdup(n);
-        checksum:=c;
-        interface_checksum:=intfc;
-        unitid:=0;
-      end;
-
-
-    destructor tused_unit.destroy;
-      begin
-        stringdispose(realname);
-        stringdispose(name);
-        inherited destroy;
+        if _u.state=ms_compiled then
+         begin
+           checksum:=u.crc;
+           interface_checksum:=u.interface_crc;
+         end
+        else
+         begin
+           checksum:=0;
+           interface_checksum:=0;
+         end;
       end;
 
 
@@ -403,12 +377,8 @@ uses
         unitcount:=1;
         do_compile:=false;
         sources_avail:=true;
-        sources_checked:=false;
-        compiled:=false;
         recompile_reason:=rr_unknown;
-        in_second_load:=false;
-        in_second_compile:=false;
-        in_implementation:=false;
+        in_interface:=true;
         in_global:=true;
         is_unit:=_is_unit;
         islibrary:=false;
@@ -489,8 +459,6 @@ uses
 
 
     procedure tmodule.reset;
-      var
-         pm : tdependent_unit;
       begin
         if assigned(scanner) then
           begin
@@ -528,19 +496,6 @@ uses
         externals:=tlinkedlist.create;
         used_units.free;
         used_units:=TLinkedList.Create;
-        { all units that depend on this one must be recompiled ! }
-        pm:=tdependent_unit(dependent_units.first);
-        while assigned(pm) do
-          begin
-            if pm.u.in_second_compile then
-             Comment(v_debug,'No reload already in second compile: '+pm.u.modulename^)
-            else
-             begin
-               pm.u.do_reload:=true;
-               Comment(v_debug,'Reloading '+pm.u.modulename^+' needed because '+modulename^+' is reloaded');
-             end;
-            pm:=tdependent_unit(pm.next);
-          end;
         dependent_units.free;
         dependent_units:=TLinkedList.Create;
         resourcefiles.Free;
@@ -559,18 +514,66 @@ uses
         linkothersharedlibs:=TLinkContainer.Create;
         uses_imports:=false;
         do_compile:=false;
-        { sources_avail:=true;
-        should not be changed PM }
-        compiled:=false;
-        in_implementation:=false;
+        in_interface:=true;
         in_global:=true;
         crc:=0;
         interface_crc:=0;
         flags:=0;
-        {loaded_from:=nil;
-        should not be changed PFV }
         unitcount:=1;
         recompile_reason:=rr_unknown;
+        {
+          The following fields should not
+          be reset:
+           mainsource
+           loaded_from
+           state
+           sources_avail
+        }
+      end;
+
+
+    procedure tmodule.adddependency(callermodule:tmodule);
+      begin
+        { This is not needed for programs }
+        if not callermodule.is_unit then
+          exit;
+        Comment(V_Used,'Add dependency for '+callermodule.modulename^+' to '+modulename^);
+        dependent_units.concat(tdependent_unit.create(callermodule));
+      end;
+
+
+    procedure tmodule.flagdependent(callermodule:tmodule);
+      var
+        pm : tdependent_unit;
+      begin
+        { flag all units that depend on this unit for reloading }
+        pm:=tdependent_unit(current_module.dependent_units.first);
+        while assigned(pm) do
+         begin
+           { We do not have to reload the unit that wants to load
+             this unit }
+           if pm.u=callermodule then
+            Comment(v_used,'No reload, is caller: '+pm.u.modulename^)
+           else
+            if pm.u.state=ms_second_compile then
+             Comment(v_used,'No reload, already in second compile: '+pm.u.modulename^)
+           else
+            begin
+              pm.u.do_reload:=true;
+              Comment(v_used,'Flag for reload '+pm.u.modulename^);
+            end;
+           pm:=tdependent_unit(pm.next);
+         end;
+      end;
+
+
+    function tmodule.addusedunit(hp:tmodule;inuses:boolean):tused_unit;
+      var
+        pu : tused_unit;
+      begin
+        pu:=tused_unit.create(hp,in_interface,inuses);
+        used_units.concat(pu);
+        addusedunit:=pu;
       end;
 
 
@@ -607,7 +610,12 @@ uses
 end.
 {
   $Log$
-  Revision 1.31  2002-12-07 14:27:07  carl
+  Revision 1.32  2002-12-29 14:57:50  peter
+    * unit loading changed to first register units and load them
+      afterwards. This is needed to support uses xxx in yyy correctly
+    * unit dependency check fixed
+
+  Revision 1.31  2002/12/07 14:27:07  carl
     * 3% memory optimization
     * changed some types
     + added type checking with different size for call node and for

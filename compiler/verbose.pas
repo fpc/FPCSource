@@ -361,7 +361,7 @@ var
            lastmoduleidx:=compiling_module.unit_index;
          end;
         if assigned(compiling_module) then
-          status.compiling_current:=compiling_module.in_compile;
+          status.compiling_current:=(compiling_module.state in [ms_compile,ms_second_compile]);
       end;
 
 
@@ -711,7 +711,12 @@ finalization
 end.
 {
   $Log$
-  Revision 1.22  2002-11-15 01:58:54  peter
+  Revision 1.23  2002-12-29 14:57:50  peter
+    * unit loading changed to first register units and load them
+      afterwards. This is needed to support uses xxx in yyy correctly
+    * unit dependency check fixed
+
+  Revision 1.22  2002/11/15 01:58:54  peter
     * merged changes from 1.0.7 up to 04-11
       - -V option for generating bug report tracing
       - more tracing for option parsing

@@ -39,7 +39,7 @@ implementation
       cutils,cclasses,
       globtype,version,tokens,systems,globals,verbose,
       symbase,symtable,symdef,symsym,
-      fmodule,fppu,
+      finput,fmodule,fppu,
       aasmbase,aasmtai,
       cgbase,
       script,gendef,
@@ -384,13 +384,14 @@ implementation
          aktmaxfpuregisters:=-1;
          fillchar(overloaded_operators,sizeof(toverloaded_operators),0);
        { reset the unit or create a new program }
-         if assigned(current_module) then
-          current_module.reset
-         else
+         if not assigned(current_module) then
           begin
             current_module:=tppumodule.create(nil,filename,'',false);
             main_module:=current_module;
+            current_module.state:=ms_compile;
           end;
+         if not(current_module.state in [ms_compile,ms_second_compile]) then
+           internalerror(200212281);
 
          { a unit compiled at command line must be inside the loaded_unit list }
          if (compile_level=1) then
@@ -398,9 +399,8 @@ implementation
 
          { Set the module to use for verbose }
          SetCompileModule(current_module);
-
          compiled_module:=current_module;
-         current_module.in_compile:=true;
+
        { Load current state from the init values }
          aktlocalswitches:=initlocalswitches;
          aktmoduleswitches:=initmoduleswitches;
@@ -621,7 +621,12 @@ implementation
 end.
 {
   $Log$
-  Revision 1.47  2002-12-24 23:32:19  peter
+  Revision 1.48  2002-12-29 14:57:50  peter
+    * unit loading changed to first register units and load them
+      afterwards. This is needed to support uses xxx in yyy correctly
+    * unit dependency check fixed
+
+  Revision 1.47  2002/12/24 23:32:19  peter
     * fixed crash when old_compiled_module was nil
 
   Revision 1.46  2002/11/20 12:36:24  mazen

@@ -252,6 +252,8 @@ begin
         hs:=errorstr;
       if (status.verbosity and Level)=V_Fatal then
         hs:=fatalstr;
+      if (status.verbosity and Level)=V_Used then
+        hs:=PadSpace('('+status.currentmodule+')',10);
     end
   else
     begin
@@ -379,7 +381,12 @@ end;
 end.
 {
   $Log$
-  Revision 1.22  2002-12-20 18:14:23  peter
+  Revision 1.23  2002-12-29 14:57:50  peter
+    * unit loading changed to first register units and load them
+      afterwards. This is needed to support uses xxx in yyy correctly
+    * unit dependency check fixed
+
+  Revision 1.22  2002/12/20 18:14:23  peter
     * traceback added in EXTDEBUG mode for internalerror
 
   Revision 1.21  2002/11/15 01:58:46  peter

@@ -1646,7 +1646,7 @@ begin
            puu:=tused_unit(hp.used_units.first);
            while (puu<>nil) do
            begin
-             PM:=SearchModule(puu.name^);
+             PM:=SearchModule(puu.u.modulename^);
              if Assigned(PM) then
                UnitS^.AddUsedUnit(PM);
              puu:=tused_unit(puu.next);
@@ -2118,7 +2118,12 @@ begin
 end.
 {
   $Log$
-  Revision 1.31  2002-11-27 20:04:10  peter
+  Revision 1.32  2002-12-29 14:57:50  peter
+    * unit loading changed to first register units and load them
+      afterwards. This is needed to support uses xxx in yyy correctly
+    * unit dependency check fixed
+
+  Revision 1.31  2002/11/27 20:04:10  peter
     * tvarsym.get_push_size replaced by paramanager.push_size
 
   Revision 1.30  2002/11/24 18:17:29  carl

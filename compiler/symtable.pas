@@ -1751,11 +1751,6 @@ implementation
 {$endif GDB}
 
          symtablelevel:=0;
-{$ifndef NEWMAP}
-         current_module.map^[0]:=self;
-{$else NEWMAP}
-         current_module.globalsymtable:=self;
-{$endif NEWMAP}
 
          next:=symtablestack;
          symtablestack:=self;
@@ -1768,12 +1763,7 @@ implementation
          { restore symtablestack }
          symtablestack:=next;
 
-{$ifdef NEWMAP}
-         { necessary for dependencies }
-         current_module.globalsymtable:=nil;
-{$endif NEWMAP}
-
-        { read dbx count }
+         { read dbx count }
 {$ifdef GDB}
         if (current_module.flags and uf_has_dbx)<>0 then
          begin
@@ -2360,7 +2350,12 @@ implementation
 end.
 {
   $Log$
-  Revision 1.88  2002-12-27 18:07:45  peter
+  Revision 1.89  2002-12-29 14:57:50  peter
+    * unit loading changed to first register units and load them
+      afterwards. This is needed to support uses xxx in yyy correctly
+    * unit dependency check fixed
+
+  Revision 1.88  2002/12/27 18:07:45  peter
     * fix crashes when searching symbols
 
   Revision 1.87  2002/12/25 01:26:56  peter

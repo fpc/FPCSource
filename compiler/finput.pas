@@ -113,11 +113,28 @@ interface
                                 TModuleBase
  ****************************************************************************}
 
-       tmodulebase = class(TLinkedListItem)
+     type
+        tmodulestate = (ms_unknown,
+          ms_registered,
+          ms_load,ms_compile,
+          ms_second_load,ms_second_compile,
+          ms_compiled
+        );
+     const
+        ModuleStateStr : array[TModuleState] of string[20] = (
+          'Unknown',
+          'Registered',
+          'Load','Compile',
+          'Second_Load','Second_Compile',
+          'Compiled'
+        );
+
+     type
+        tmodulebase = class(TLinkedListItem)
           { index }
           unit_index    : longint;  { global counter for browser }
           { status }
-          in_compile    : boolean;  { is it being compiled ?? }
+          state         : tmodulestate;
           { sources }
           sourcefiles   : tinputfilemanager;
           { paths and filenames }
@@ -650,7 +667,7 @@ uses
         outputpath:=nil;
         path:=nil;
         { status }
-        in_compile:=false;
+        state:=ms_registered;
         { unit index }
         inc(global_unit_count);
         unit_index:=global_unit_count;
@@ -687,7 +704,12 @@ uses
 end.
 {
   $Log$
-  Revision 1.20  2002-11-15 01:58:46  peter
+  Revision 1.21  2002-12-29 14:57:50  peter
+    * unit loading changed to first register units and load them
+      afterwards. This is needed to support uses xxx in yyy correctly
+    * unit dependency check fixed
+
+  Revision 1.20  2002/11/15 01:58:46  peter
     * merged changes from 1.0.7 up to 04-11
       - -V option for generating bug report tracing
       - more tracing for option parsing

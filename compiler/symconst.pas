@@ -317,7 +317,6 @@ const
 const
   { relevant options for assigning a proc or a procvar to a procvar }
   po_compatibility_options = [
-    po_classmethod,
     po_staticmethod,
     po_methodpointer,
     po_containsself,
@@ -339,7 +338,12 @@ implementation
 end.
 {
   $Log$
-  Revision 1.39  2002-12-15 11:26:02  peter
+  Revision 1.40  2002-12-29 14:57:50  peter
+    * unit loading changed to first register units and load them
+      afterwards. This is needed to support uses xxx in yyy correctly
+    * unit dependency check fixed
+
+  Revision 1.39  2002/12/15 11:26:02  peter
     * ignore vs_hidden parameters when choosing overloaded proc
 
   Revision 1.38  2002/12/05 14:44:38  florian

@@ -1139,7 +1139,7 @@ implementation
 
     function proc_to_procvar_equal(def1:tabstractprocdef;def2:tprocvardef):tequaltype;
       const
-        po_comp = po_compatibility_options-[po_methodpointer,po_classmethod];
+        po_comp = po_compatibility_options-[po_methodpointer];
       var
         ismethod : boolean;
         eq : tequaltype;
@@ -1196,7 +1196,12 @@ implementation
 end.
 {
   $Log$
-  Revision 1.11  2002-12-27 15:26:12  peter
+  Revision 1.12  2002-12-29 14:57:50  peter
+    * unit loading changed to first register units and load them
+      afterwards. This is needed to support uses xxx in yyy correctly
+    * unit dependency check fixed
+
+  Revision 1.11  2002/12/27 15:26:12  peter
     * procvar compare with 2 ints did not check the integer size
 
   Revision 1.10  2002/12/23 22:22:16  peter

@@ -939,7 +939,7 @@ implementation
     destructor tscannerfile.destroy;
       begin
         if assigned(current_module) and
-           (not current_module.in_second_load) and
+           (current_module.state<>ms_second_load) and
            (status.errorcount=0) then
           checkpreprocstack
         else
@@ -2801,7 +2801,12 @@ exit_label:
 end.
 {
   $Log$
-  Revision 1.55  2002-12-27 18:05:58  peter
+  Revision 1.56  2002-12-29 14:57:50  peter
+    * unit loading changed to first register units and load them
+      afterwards. This is needed to support uses xxx in yyy correctly
+    * unit dependency check fixed
+
+  Revision 1.55  2002/12/27 18:05:58  peter
     * use gettoken to get filename for include
 
   Revision 1.54  2002/12/27 16:45:50  peter

@@ -509,7 +509,7 @@ implementation
 
               { generate persistent init/final tables when it's declared in the interface so it can
                 be reused in other used }
-              if (not current_module.in_implementation) and
+              if current_module.in_interface and
                  ((is_class(tt.def) and
                    tobjectdef(tt.def).members_need_inittable) or
                   tt.def.needs_inittable) then
@@ -627,7 +627,12 @@ implementation
 end.
 {
   $Log$
-  Revision 1.62  2002-12-05 19:27:40  carl
+  Revision 1.63  2002-12-29 14:57:50  peter
+    * unit loading changed to first register units and load them
+      afterwards. This is needed to support uses xxx in yyy correctly
+    * unit dependency check fixed
+
+  Revision 1.62  2002/12/05 19:27:40  carl
     - remove lower in hint
 
   Revision 1.61  2002/11/25 18:43:32  carl

@@ -414,9 +414,26 @@ implementation
 
 
     procedure loaddefaultunits;
-      var
-        hp : tmodule;
-        unitsym : tunitsym;
+
+        procedure AddUnit(const s:string);
+        var
+          hp : tppumodule;
+          unitsym : tunitsym;
+        begin
+          { load unit }
+          hp:=registerunit(current_module,s,'');
+          hp.loadppu;
+          hp.adddependency(current_module);
+          current_module.addusedunit(hp,false);
+          { add to symtable stack }
+          tsymtable(hp.globalsymtable).next:=symtablestack;
+          symtablestack:=hp.globalsymtable;
+          { insert unitsym }
+          unitsym:=tunitsym.create(s,hp.globalsymtable);
+          inc(unitsym.refs);
+          refsymtable.insert(unitsym);
+        end;
+
       begin
       { are we compiling the system unit? }
         if (cs_compilesystem in aktmoduleswitches) then
@@ -426,100 +443,40 @@ implementation
          { we don't need to reset anything, it's already done in parser.pas }
            exit;
          end;
-     { insert the system unit, it is allways the first }
-        hp:=loadunit('System','');
-        systemunit:=tglobalsymtable(hp.globalsymtable);
-        { it's always the first unit }
-        systemunit.next:=nil;
-        symtablestack:=systemunit;
-        { add to the used units }
-        current_module.used_units.concat(tused_unit.create(hp,true));
-        unitsym:=tunitsym.create('System',systemunit);
-        inc(unitsym.refs);
-        refsymtable.insert(unitsym);
+        { insert the system unit, it is allways the first }
+        Symtablestack:=nil;
+        AddUnit('System');
+        SystemUnit:=TGlobalSymtable(Symtablestack);
         { read default constant definitions }
         make_ref:=false;
         readconstdefs;
         make_ref:=true;
 {$ifdef cpufpemu}
-      { Floating point emulation unit? }
+        { Floating point emulation unit? }
         if (cs_fp_emulation in aktmoduleswitches) then
-         begin
-           hp:=loadunit('softfpu','');
-           tsymtable(hp.globalsymtable).next:=symtablestack;
-           symtablestack:=hp.globalsymtable;
-           { add to the used units }
-           current_module.used_units.concat(tused_unit.create(hp,true));
-           unitsym:=tunitsym.create('Softfpu',hp.globalsymtable);
-           inc(unitsym.refs);
-           refsymtable.insert(unitsym);
-         end;
+          AddUnit('SoftFpu');
 {$endif cpufpemu}
-      { Thread support unit? }
+        { Thread support unit? }
         if (cs_threading in aktmoduleswitches) then
-         begin
-           hp:=loadunit('systhrds','');
-           tsymtable(hp.globalsymtable).next:=symtablestack;
-           symtablestack:=hp.globalsymtable;
-           { add to the used units }
-           current_module.used_units.concat(tused_unit.create(hp,true));
-           unitsym:=tunitsym.create('Threads',hp.globalsymtable);
-           inc(unitsym.refs);
-           refsymtable.insert(unitsym);
-         end;
-      { Objpas unit? }
+          AddUnit('SysThrds');
+        { Objpas unit? }
         if m_objpas in aktmodeswitches then
-         begin
-           hp:=loadunit('ObjPas','');
-           tsymtable(hp.globalsymtable).next:=symtablestack;
-           symtablestack:=hp.globalsymtable;
-           { add to the used units }
-           current_module.used_units.concat(tused_unit.create(hp,true));
-           unitsym:=tunitsym.create('ObjPas',hp.globalsymtable);
-           inc(unitsym.refs);
-           refsymtable.insert(unitsym);
-         end;
-      { Profile unit? Needed for go32v2 only }
-        if (cs_profile in aktmoduleswitches) and (target_info.system=system_i386_go32v2) then
-         begin
-           hp:=loadunit('Profile','');
-           tsymtable(hp.globalsymtable).next:=symtablestack;
-           symtablestack:=hp.globalsymtable;
-           { add to the used units }
-           current_module.used_units.concat(tused_unit.create(hp,true));
-           unitsym:=tunitsym.create('Profile',hp.globalsymtable);
-           inc(unitsym.refs);
-           refsymtable.insert(unitsym);
-         end;
-      { Units only required for main module }
+          AddUnit('ObjPas');
+        { Profile unit? Needed for go32v2 only }
+        if (cs_profile in aktmoduleswitches) and
+           (target_info.system=system_i386_go32v2) then
+          AddUnit('Profile');
+        { Units only required for main module }
         if not(current_module.is_unit) then
          begin
            { Heaptrc unit }
            if (cs_gdb_heaptrc in aktglobalswitches) then
-            begin
-              hp:=loadunit('HeapTrc','');
-              tsymtable(hp.globalsymtable).next:=symtablestack;
-              symtablestack:=hp.globalsymtable;
-              { add to the used units }
-              current_module.used_units.concat(tused_unit.create(hp,true));
-              unitsym:=tunitsym.create('HeapTrc',hp.globalsymtable);
-              inc(unitsym.refs);
-              refsymtable.insert(unitsym);
-            end;
+             AddUnit('HeapTrc');
            { Lineinfo unit }
            if (cs_gdb_lineinfo in aktglobalswitches) then
-            begin
-              hp:=loadunit('LineInfo','');
-              tsymtable(hp.globalsymtable).next:=symtablestack;
-              symtablestack:=hp.globalsymtable;
-              { add to the used units }
-              current_module.used_units.concat(tused_unit.create(hp,true));
-              unitsym:=tunitsym.create('LineInfo',hp.globalsymtable);
-              inc(unitsym.refs);
-              refsymtable.insert(unitsym);
-            end;
+             AddUnit('LineInfo');
          end;
-      { save default symtablestack }
+        { save default symtablestack }
         defaultsymtablestack:=symtablestack;
       end;
 
@@ -528,10 +485,9 @@ implementation
       var
          s,sorg : stringid;
          fn     : string;
-         pu,
-         hp : tused_unit;
-         hp2 : tmodule;
-         hp3 : tsymtable;
+         pu     : tused_unit;
+         hp2    : tmodule;
+         hp3    : tsymtable;
          oldprocsym:tprocsym;
          oldprocdef:tprocdef;
          unitsym : tunitsym;
@@ -561,26 +517,17 @@ implementation
            pu:=tused_unit(current_module.used_units.first);
            while assigned(pu) do
             begin
-              if (pu.name^=s) then
+              if (pu.u.modulename^=s) then
                break;
               pu:=tused_unit(pu.next);
             end;
          { avoid uses of itself }
            if not assigned(pu) and (s<>current_module.modulename^) then
             begin
-            { load the unit }
-              hp2:=loadunit(sorg,fn);
-            { the current module uses the unit hp2 }
-              current_module.used_units.concat(tused_unit.create(hp2,not current_module.in_implementation));
-              tused_unit(current_module.used_units.last).in_uses:=true;
-              if current_module.compiled then
-                exit;
-              unitsym:=tunitsym.create(sorg,hp2.globalsymtable);
-              { never claim about unused unit if
-                there is init or finalize code  PM }
-              if (hp2.flags and (uf_init or uf_finalize))<>0 then
-                inc(unitsym.refs);
-              refsymtable.insert(unitsym);
+              { register the unit }
+              hp2:=registerunit(current_module,sorg,fn);
+              { the current module uses the unit hp2 }
+              current_module.addusedunit(hp2,true);
             end
            else
             Message1(sym_e_duplicate_id,s);
@@ -594,44 +541,69 @@ implementation
          until false;
          consume(_SEMICOLON);
 
-         { set the symtable to systemunit so it gets reorderd correctly }
-         symtablestack:=defaultsymtablestack;
+         { Load the units }
+         pu:=tused_unit(current_module.used_units.first);
+         while assigned(pu) do
+          begin
+            if pu.in_uses then
+             begin
+               tppumodule(pu.u).loadppu;
+               { is our module compiled? then we can stop }
+               if current_module.state=ms_compiled then
+                exit;
+               { add this unit to the dependencies }
+               pu.u.adddependency(current_module);
+               pu.checksum:=pu.u.crc;
+               pu.interface_checksum:=pu.u.interface_crc;
+             end;
+            pu:=tused_unit(pu.next);
+          end;
 
-         { now insert the units in the symtablestack }
-         hp:=tused_unit(current_module.used_units.first);
-         while assigned(hp) do
+         { set the symtable to systemunit so it gets reorderd correctly,
+           then insert the units in the symtablestack }
+         pu:=tused_unit(current_module.used_units.first);
+         symtablestack:=defaultsymtablestack;
+         while assigned(pu) do
            begin
 {$IfDef GDB}
               if (cs_debuginfo in aktmoduleswitches) and
                  (cs_gdb_dbx in aktglobalswitches) and
-                not hp.is_stab_written then
+                not pu.is_stab_written then
                 begin
-                   tglobalsymtable(hp.u.globalsymtable).concattypestabto(debuglist);
-                   hp.is_stab_written:=true;
-                   hp.unitid:=tsymtable(hp.u.globalsymtable).unitid;
+                   tglobalsymtable(pu.u.globalsymtable).concattypestabto(debuglist);
+                   pu.is_stab_written:=true;
+                   pu.unitid:=tsymtable(pu.u.globalsymtable).unitid;
                 end;
 {$EndIf GDB}
-              if hp.in_uses then
+              if pu.in_uses then
                 begin
+                   { Create unitsym }
+                   unitsym:=tunitsym.create(pu.u.realmodulename^,pu.u.globalsymtable);
+                   { never claim about unused unit if
+                     there is init or finalize code  PM }
+                   if (hp2.flags and (uf_init or uf_finalize))<>0 then
+                     inc(unitsym.refs);
+                   refsymtable.insert(unitsym);
+                   { Reinsert in symtablestack }
                    hp3:=symtablestack;
                    while assigned(hp3) do
                      begin
                         { insert units only once ! }
-                        if hp.u.globalsymtable=hp3 then
+                        if pu.u.globalsymtable=hp3 then
                           break;
                         hp3:=hp3.next;
                         { unit isn't inserted }
                         if hp3=nil then
                           begin
-                             tsymtable(hp.u.globalsymtable).next:=symtablestack;
-                             symtablestack:=tsymtable(hp.u.globalsymtable);
+                             tsymtable(pu.u.globalsymtable).next:=symtablestack;
+                             symtablestack:=tsymtable(pu.u.globalsymtable);
 {$ifdef DEBUG}
                              test_symtablestack;
 {$endif DEBUG}
                           end;
                      end;
                 end;
-              hp:=tused_unit(hp.next);
+              pu:=tused_unit(pu.next);
            end;
           aktprocsym:=oldprocsym;
           aktprocdef:=oldprocdef;
@@ -658,7 +630,7 @@ implementation
                 end;
               hp:=tused_unit(hp.next);
            end;
-         if current_module.in_implementation and
+         if (not current_module.in_interface) and
             assigned(current_module.localsymtable) then
            begin
               { all types }
@@ -830,7 +802,8 @@ implementation
          { handle the global switches }
          setupglobalswitches;
 
-         Message1(unit_u_start_parse_interface,current_module.realmodulename^);
+         Comment(V_Used,'Loading interface units from '+current_module.modulename^);
+//         Message1(unit_u_start_parse_interface,current_module.modulename^);
 
          { update status }
          status.currentmodule:=current_module.realmodulename^;
@@ -868,7 +841,7 @@ implementation
                 begin
                    loadunits;
                    { has it been compiled at a higher level ?}
-                   if current_module.compiled then
+                   if current_module.state=ms_compiled then
                      begin
                         { this unit symtable is obsolete }
                         { dispose(unitst,done);
@@ -903,7 +876,8 @@ implementation
          current_module.numberunits;
 
          { ... parse the declarations }
-         Message1(parser_u_parsing_interface,current_module.realmodulename^);
+         Comment(V_Used,'Parsing interface of '+current_module.modulename^);
+//         Message1(parser_u_parsing_interface,current_module.realmodulename^);
          read_interface_declarations;
 
          { leave when we got an error }
@@ -926,8 +900,10 @@ implementation
 
          { Parse the implementation section }
          consume(_IMPLEMENTATION);
-         current_module.in_implementation:=true;
-         Message1(unit_u_start_parse_implementation,current_module.modulename^);
+         current_module.in_interface:=false;
+
+         Comment(V_Used,'Loading implementation units from '+current_module.modulename^);
+//         Message1(unit_u_start_parse_implementation,current_module.modulename^);
 
          parse_only:=false;
 
@@ -945,7 +921,7 @@ implementation
          { Read the implementation units }
          parse_implementation_uses(unitst);
 
-         if current_module.compiled then
+         if current_module.state=ms_compiled then
            begin
               RestoreUnitSyms;
               exit;
@@ -982,7 +958,10 @@ implementation
          allow_special:=false;
 {$endif Splitheap}
 
-         Message1(parser_u_parsing_implementation,current_module.realmodulename^);
+         Comment(V_Used,'Parsing implementation of '+current_module.modulename^);
+         if current_module.in_interface then
+           internalerror(200212285);
+//         Message1(parser_u_parsing_implementation,current_module.modulename^);
 
          { Compile the unit }
          codegen_newprocedure;
@@ -1098,7 +1077,6 @@ implementation
              tstoredsymtable(symtablestack).unchain_overloaded;
            end;
 
-         current_module.in_implementation:=false;
 {$ifdef GDB}
          tglobalsymtable(symtablestack).is_stab_written:=false;
 {$endif GDB}
@@ -1120,8 +1098,7 @@ implementation
          if is_assembler_generated then
            insertobjectfile
          else
-           if not (current_module.uses_imports) then
-             current_module.flags:=current_module.flags or uf_no_link;
+           current_module.flags:=current_module.flags or uf_no_link;
 
          if cs_local_browser in aktmoduleswitches then
            current_module.localsymtable:=refsymtable;
@@ -1176,6 +1153,8 @@ implementation
             status.skip_error:=true;
             exit;
           end;
+
+        Comment(V_Used,'Finished compiling module '+current_module.modulename^);
       end;
 
 
@@ -1255,7 +1234,7 @@ implementation
          setupglobalswitches;
 
          { set implementation flag }
-         current_module.in_implementation:=true;
+         current_module.in_interface:=false;
 
          { insert after the unit symbol tables the static symbol table }
          { of the program                                             }
@@ -1456,8 +1435,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.88  2002-12-27 19:09:33  hajny
-    * another (hopefully final ;-) ) fix for not linked import libraries for units with no code
+  Revision 1.89  2002-12-29 14:57:50  peter
+    * unit loading changed to first register units and load them
+      afterwards. This is needed to support uses xxx in yyy correctly
+    * unit dependency check fixed
 
   Revision 1.87  2002/12/24 23:32:56  peter
     * Use FixFilename for specified unit sourcefile in uses

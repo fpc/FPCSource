@@ -320,9 +320,16 @@ implementation
          begin
            resolvesym(pointer(sym));
            setsym(sym);
+           if not assigned(def) then
+            internalerror(200212271);
          end
         else
-         resolvedef(pointer(def));
+         if assigned(def) then
+          begin
+            resolvedef(pointer(def));
+            if not assigned(def) then
+             internalerror(200212272);
+          end;
       end;
 
 {****************************************************************************
@@ -455,6 +462,7 @@ implementation
       var
         hp : tderef;
         pd : tdef;
+        pm : tmodule;
       begin
         st:=nil;
         idx:=0;
@@ -478,39 +486,38 @@ implementation
                end;
              derefunit :
                begin
-{$ifdef NEWMAP}
-                 st:=tsymtable(current_module.map^[p.index]^.globalsymtable);
-{$else NEWMAP}
-                 st:=tsymtable(current_module.map^[p.index]);
-{$endif NEWMAP}
+                 pm:=current_module.map^[p.index];
+                 if not assigned(pm) then
+                  internalerror(200212273);
+                 st:=pm.globalsymtable;
                end;
              derefrecord :
                begin
                  pd:=tdef(st.getdefnr(p.index));
                  st:=pd.getsymtable(gs_record);
                  if not assigned(st) then
-                  internalerror(556658);
+                  internalerror(200212274);
                end;
              dereflocal :
                begin
                  pd:=tdef(st.getdefnr(p.index));
                  st:=pd.getsymtable(gs_local);
                  if not assigned(st) then
-                  internalerror(556658);
+                  internalerror(200212275);
                end;
              derefpara :
                begin
                  pd:=tdef(st.getdefnr(p.index));
                  st:=pd.getsymtable(gs_para);
                  if not assigned(st) then
-                  internalerror(556658);
+                  internalerror(200212276);
                end;
              derefindex :
                begin
                  idx:=p.index;
                end;
              else
-               internalerror(556658);
+               internalerror(200212277);
            end;
            hp:=p;
            p:=p.next;
@@ -571,7 +578,12 @@ finalization
 end.
 {
   $Log$
-  Revision 1.22  2002-09-05 19:29:46  peter
+  Revision 1.23  2002-12-29 14:57:50  peter
+    * unit loading changed to first register units and load them
+      afterwards. This is needed to support uses xxx in yyy correctly
+    * unit dependency check fixed
+
+  Revision 1.22  2002/09/05 19:29:46  peter
     * memdebug enhancements
 
   Revision 1.21  2002/08/18 20:06:28  peter
