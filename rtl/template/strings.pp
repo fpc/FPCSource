@@ -221,11 +221,11 @@ Implementation
    lstr: string;
  Begin
    counter := 0;
-   str := '';
+   lstr := '';
    while (ord(Str[counter]) <> 0) and (counter < 255) do
    begin
      Inc(counter);
-     ;str[counter] := char(Str[counter-1]);
+     lstr[counter] := char(Str[counter-1]);
    end;
    lstr[0] := char(counter);
    strpas := lstr;
@@ -610,8 +610,11 @@ Implementation
 end.
 {
   $Log$
-  Revision 1.1  1998-03-25 11:18:46  root
-  Initial revision
+  Revision 1.2  1998-07-01 14:29:42  carl
+    * strpas bugfix
+
+  Revision 1.1.1.1  1998/03/25 11:18:46  root
+  * Restored version
 
   Revision 1.4  1998/01/26 12:02:01  michael
   + Added log at the end
