@@ -758,11 +758,7 @@ unit cgobj;
           LOC_CONSTANT:
             a_load_const_reg(list,loc.size,loc.value,reg);
           else
-            begin
-               writeln(ord(loc.loc));
-               runerror(216);
-               internalerror(200109092);
-            end;
+            internalerror(200109092);
         end;
       end;
 
@@ -858,8 +854,7 @@ unit cgobj;
           LOC_FPUREGISTER, LOC_CFPUREGISTER:
             a_loadfpu_reg_reg(list,loc.register,reg);
           else
-            runerror(226);
-            // internalerror(200203301);
+            internalerror(200203301);
         end;
       end;
 
@@ -1625,7 +1620,10 @@ finalization
 end.
 {
   $Log$
-  Revision 1.67  2002-12-14 15:02:03  carl
+  Revision 1.68  2002-12-20 18:14:04  peter
+    * removed some runerror and writeln
+
+  Revision 1.67  2002/12/14 15:02:03  carl
     * maxoperands -> max_operands (for portability in rautils.pas)
     * fix some range-check errors with loadconst
     + add ncgadd unit to m68k
