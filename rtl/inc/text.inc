@@ -876,7 +876,7 @@ End;
 
 Procedure Read_Array(var f : TextRec;var s : array of char);[Public,Alias:'FPC_READ_TEXT_PCHAR_AS_ARRAY'];
 Begin
-  pchar(pchar(@s)+ReadPCharLen(f,pchar(@s),high(s)))^:=#0;
+  pchar(pchar(@s)+ReadPCharLen(f,pchar(@s),high(s)+1))^:=#0;
 End;
 
 
@@ -1099,7 +1099,10 @@ end;
 
 {
   $Log$
-  Revision 1.11  2001-07-21 15:53:28  jonas
+  Revision 1.12  2001-08-19 11:23:10  peter
+    * read_array fix merged
+
+  Revision 1.11  2001/07/21 15:53:28  jonas
     * really fixed write_array this time :/ (merged)
 
   Revision 1.10  2001/07/16 13:53:21  jonas
