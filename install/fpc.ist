@@ -292,7 +292,7 @@ Root: HKCR; Subkey: "FPCPPFile"; ValueType: string; ValueName: ""; ValueData: "F
 Root: HKCR; Subkey: "FPCPPFile\DefaultIcon"; ValueType: string; ValueName: ""; ValueData: "{app}\bin\i386-Win32\fpc32.ico"; Tasks: associatepp;
 Root: HKCR; Subkey: "FPCPPFile\shell\open\command"; ValueType: string; ValueName: ""; ValueData: """{app}\bin\i386-win32\fp.exe"" ""%1""";Tasks: associatepp;
 ; Associate .inc with FP IDE
-Root: HKCR; Subkey: ".inc"; ValueType: string; ValueName: ""; ValueData: "FPCINCFile"; Flags: uninsdeletevalue; Tasks: associatepp;
+Root: HKCR; Subkey: ".inc"; ValueType: string; ValueName: ""; ValueData: "FPCINCFile"; Flags: uninsdeletevalue; Tasks: associateinc;
 Root: HKCR; Subkey: "FPCINCFile"; ValueType: string; ValueName: ""; ValueData: "Free Pascal include File"; Flags: uninsdeletekey; Tasks: associateinc;
 Root: HKCR; Subkey: "FPCINCFile\DefaultIcon"; ValueType: string; ValueName: ""; ValueData: "{app}\bin\i386-Win32\fpc32.ico"; Tasks: associateinc;
 Root: HKCR; Subkey: "FPCINCFile\shell\open\command"; ValueType: string; ValueName: ""; ValueData: """{app}\bin\i386-win32\fp.exe"" ""%1""";Tasks: associateinc;
