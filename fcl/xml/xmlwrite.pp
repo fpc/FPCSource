@@ -15,17 +15,27 @@
  **********************************************************************}
 
 {$MODE objfpc}
+{$H+}
 
 unit xmlwrite;
 
 interface
 
-uses DOM;
+uses classes, DOM;
 
+procedure WriteXMLFile(doc: TXMLDocument; const AFileName: String);
 procedure WriteXMLFile(doc: TXMLDocument; var AFile: Text);
+procedure WriteXMLFile(doc: TXMLDocument; var AStream: TStream);
 
+
+// =======================================================
 
 implementation
+
+
+// -------------------------------------------------------
+//   Writers for the different node types
+// -------------------------------------------------------
 
 procedure WriteElement(node: TDOMNode); forward;
 procedure WriteAttribute(node: TDOMNode); forward;
@@ -42,9 +52,9 @@ procedure WriteNotation(node: TDOMNode); forward;
 
 
 type
-  TWriteProc = procedure(node: TDOMNode);
+  TWriteNodeProc = procedure(node: TDOMNode);
 const
-  WriteProcs: array[ELEMENT_NODE..NOTATION_NODE] of TWriteProc =
+  WriteProcs: array[ELEMENT_NODE..NOTATION_NODE] of TWriteNodeProc =
     (WriteElement, WriteAttribute, WriteText, WriteCDATA, WriteEntityRef,
      WriteEntity, WritePI, WriteComment, WriteDocument, WriteDocumentType,
      WriteDocumentFragment, WriteNotation);
@@ -55,8 +65,46 @@ begin
 end;
 
 
+// -------------------------------------------------------
+//   Text file and TStream support
+// -------------------------------------------------------
+
+type
+  TOutputProc = procedure(s: String);
+
 var
   f: ^Text;
+  stream: TStream;
+  wrt, wrtln: TOutputProc;
+
+
+procedure Text_Write(s: String);
+begin
+  Write(f^, s);
+end;
+
+procedure Text_WriteLn(s: String);
+begin
+  WriteLn(f^, s);
+end;
+
+procedure Stream_Write(s: String);
+begin
+  stream.WriteAnsiString(s);
+end;
+
+procedure Stream_WriteLn(s: String);
+begin
+  stream.WriteAnsiString(s + #10);
+end;
+
+
+// -------------------------------------------------------
+//   Indent handling
+// -------------------------------------------------------
+
+var
+
   indent: String;
 
 
@@ -70,28 +118,34 @@ begin
   indent := Copy(indent, 1, Length(indent) - 2);
 end;
 
+
+// -------------------------------------------------------
+//   Node writers implementations
+// -------------------------------------------------------
+
+
 procedure WriteElement(node: TDOMNode);
 var
   i: Integer;
   attr, child: TDOMNode;
 begin
-  Write(f^, Indent, '<', node.NodeName);
+  wrt(Indent + '<' + node.NodeName);
   for i := 0 to node.Attributes.Length - 1 do begin
     attr := node.Attributes.Item[i];
-    Write(f^, ' ', attr.NodeName, '="', attr.NodeValue, '"');
+    wrt(' ' + attr.NodeName + '="' + attr.NodeValue + '"');
   end;
   child := node.FirstChild;
   if child = nil then
-    WriteLn(f^, '/>')
+    wrtln('/>')
   else begin
-    WriteLn(f^, '>');
+    wrtln('>');
     IncIndent;
     repeat
       WriteNode(child);
       child := child.NextSibling;
     until child = nil;
     DecIndent;
-    WriteLn(f^, Indent, '</', node.NodeName, '>');
+    wrtln(Indent + '</' + node.NodeName + '>');
   end;
 end;
 
@@ -102,17 +156,17 @@ end;
 
 procedure WriteText(node: TDOMNode);
 begin
-  WriteLn('WriteText');
+  wrt(node.NodeValue);
 end;
 
 procedure WriteCDATA(node: TDOMNode);
 begin
-  WriteLn('WriteCDATA');
+  wrtln('<![CDATA[' + node.NodeValue + ']]>');
 end;
 
 procedure WriteEntityRef(node: TDOMNode);
 begin
-  WriteLn('WriteEntityRef');
+  wrt('&' + node.NodeValue + ';');
 end;
 
 procedure WriteEntity(node: TDOMNode);
@@ -127,7 +181,7 @@ end;
 
 procedure WriteComment(node: TDOMNode);
 begin
-  WriteLn('WriteComment');
+  Write('<!--', node.NodeValue, '-->');
 end;
 
 procedure WriteDocument(node: TDOMNode);
@@ -151,17 +205,16 @@ begin
 end;
 
 
-procedure WriteXMLFile(doc: TXMLDocument; var AFile: Text);
+procedure RootWriter(doc: TXMLDocument);
 var
   child: TDOMNode;
 begin
-  f := @AFile;
-  Write(f^, '<?xml version="');
-  if doc.XMLVersion <> '' then Write(f^, doc.XMLVersion)
-  else Write(f^, '1.0');
-  Write(f^, '"');
-  if doc.Encoding <> '' then Write(f^, ' encoding="', doc.Encoding, '"');
-  WriteLn(f^, '?>');
+  wrt('<?xml version="');
+  if doc.XMLVersion <> '' then wrt(doc.XMLVersion)
+  else wrt('1.0');
+  wrt('"');
+  if doc.Encoding <> '' then wrt(' encoding="' + doc.Encoding + '"');
+  wrtln('?>');
 
   indent := '';
 
@@ -173,12 +226,45 @@ begin
 end;
 
 
+// -------------------------------------------------------
+//   Interface implementation
+// -------------------------------------------------------
+
+procedure WriteXMLFile(doc: TXMLDocument; var AFile: Text);
+begin
+  f := @AFile;
+  wrt := @Text_Write;
+  wrtln := @Text_WriteLn;
+  RootWriter(doc);
+end;
+
+procedure WriteXMLFile(doc: TXMLDocument; var AStream: TStream);
+begin
+  stream := AStream;
+  wrt := @Stream_Write;
+  wrtln := @Stream_WriteLn;
+  RootWriter(doc);
+end;
+
+procedure WriteXMLFile(doc: TXMLDocument; const AFileName: String);
+var
+  stream: TFileStream;
+begin
+  stream := TFileStream.Create(AFileName, fmCreate);
+  WriteXMLFile(doc, stream);
+  stream.Free;
+end;
+
+
 end.
 
 
 {
   $Log$
-  Revision 1.1  1999-07-09 08:35:09  michael
+  Revision 1.2  1999-07-09 21:05:53  michael
+  + fixes from Guenther Sebastian
+
+  Revision 1.1  1999/07/09 08:35:09  michael
   + Initial implementation by Sebastian Guenther
 
 }

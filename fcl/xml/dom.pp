@@ -1,9 +1,9 @@
 {
     $Id$
     This file is part of the Free Pascal run time library.
-    Copyright (c) 1998 (c) 1999 Sebastian Günther (sguenther@gmx.de)
+    Copyright (c) 1999 Sebastian Guenther (sguenther@gmx.de)
 
-    Implementation of DOM document class
+    Implementation of DOM level 1 interfaces
     
     See the file COPYING.FPC, included in this distribution,
     for details about the copyright.
@@ -15,7 +15,7 @@
  **********************************************************************}
 
 {
- more or less DOM conformant class library for FreePascal
+ more or less DOM level 1 conformant class library for FreePascal
 }
 
 {$MODE objfpc}
@@ -302,6 +302,7 @@ type
 
     // Extensions to DOM interface:
     constructor Create; virtual;
+    function CreateEntity(const data: DOMString): TDOMEntity;
     procedure SetDocumentElement(ADocumentElement: TDOMElement);
   end;
 
@@ -940,6 +941,12 @@ begin
   raise EDOMNotSupported.Create('DOMDocument.CreateEntityReference');
 end;
 
+function TDOMDocument.CreateEntity(const data: DOMString): TDOMEntity;
+begin
+  Result := TDOMEntity.Create(Self);
+  Result.FNodeValue := data;
+end;
+
 function TDOMDocument.GetElementsByTagName(const tagname: DOMString): TDOMNodeList;
 var
   i: Integer;
@@ -1155,9 +1162,9 @@ end;
 
 constructor TDOMCDATASection.Create(AOwner: TDOMDocument);
 begin
+  inherited Create(AOwner);
   FNodeType := CDATA_SECTION_NODE;
   FNodeName := '#cdata-section';
-  inherited Create(AOwner);
 end;
 
 
@@ -1221,7 +1228,10 @@ end.
 
 {
   $Log$
-  Revision 1.1  1999-07-09 08:35:09  michael
+  Revision 1.2  1999-07-09 21:05:49  michael
+  + fixes from Guenther Sebastian
+
+  Revision 1.1  1999/07/09 08:35:09  michael
   + Initial implementation by Sebastian Guenther
 
 }

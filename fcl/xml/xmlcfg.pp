@@ -28,6 +28,11 @@ uses DOM, xmlread, xmlwrite;
 
 type
 
+  {"APath" is the path and name of a value: A XML configuration file is
+   hierarchical. "/" is the path delimiter, the part after the last "/"
+   is the name of the value. The path components will be mapped to XML
+   elements, the name will be an element attribute.}
+
   TXMLConfig = class
   protected
     doc: TXMLDocument;
@@ -35,7 +40,7 @@ type
   public
     constructor Create(AFileName: String);
     destructor Destroy; override;
-    procedure Flush;
+    procedure Flush;    // Writes the XML file
     function  GetValue(APath, ADefault: String): String;
     function  GetValue(APath: String; ADefault: Integer): Integer;
     function  GetValue(APath: String; ADefault: Boolean): Boolean;
@@ -44,6 +49,8 @@ type
     procedure SetValue(APath: String; AValue: Boolean);
   end;
 
+
+// =======================================================
 
 implementation
 
@@ -175,7 +182,10 @@ end.
 
 {
   $Log$
-  Revision 1.1  1999-07-09 08:35:09  michael
+  Revision 1.2  1999-07-09 21:05:50  michael
+  + fixes from Guenther Sebastian
+
+  Revision 1.1  1999/07/09 08:35:09  michael
   + Initial implementation by Sebastian Guenther
 
 }
