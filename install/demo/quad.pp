@@ -425,7 +425,11 @@ Begin
  IF I<>0 THEN
   BEGIN
    ShowHighScore;
+{$IFDEF USEGRAPHICS}
+   GrInputStr(S,20,21-I,16,12,10,FALSE,AlfaBeta);
+{$ELSE}
    InputStr(S,20,21-I,10,FALSE,AlfaBeta);
+{$ENDIF}
    IF Length(S)<12 THEN
     BEGIN
      str(time.a_min,m);
