@@ -11,11 +11,11 @@ end;
 Procedure TProcess.Execute;
 
 begin
+  FreeStreams;
+  CreatePipeStreams (FChildInputSTream,FParentOutPutStream);
+  CreatePipeStreams (FParentInputStream,FChildOutPutStream);
   If poUsePipes in FCreateOptions then
     begin
-    FreeStreams;
-    CreatePipeStreams (FChildInputSTream,FParentOutPutStream);
-    CreatePipeStreams (FParentInputStream,FChildOutPutStream);
     if poStdErrToOutPut in FCreateOptions then
       CreatePipeStreams (FParentErrorStream,FChildErrorStream)
     else
@@ -23,7 +23,9 @@ begin
       FChildErrorStream:=FChildOutPutStream;
       FParentErrorStream:=FParentInputStream;
       end;
-    end;
+    end
+  else
+    CreatePipeStreams (FParentErrorStream,FChildErrorStream);
   If FCurrentDirectory<>'' then 
     Chdir(FCurrentDirectory);
   FHandle:=fork();
@@ -57,11 +59,13 @@ end;
 Function TProcess.WaitOnExit : Dword;
 
 begin
+  waitpid(FPID, nil, 0);
 {
   Result:=WaitForSingleObject (FprocessInformation.hProcess,Infinite);
   If Result<>Wait_Failed then
     GetExitStatus;
 }  FRunning:=False;
+  Result := 0;
 end;
 
 Function TProcess.Suspend : Longint;
