@@ -21,7 +21,6 @@
 {***********************************************************************}
 
 { Introduced defines
-    - 64bitarch (for 64-bits Linux systems, test system was idefix (in ctypes)
     - 64bitfs   (should be on if libc switches to a 64-bit system.
 
 All three tested systems (PPC,Alpha,2x i386) gave the same POSIX limits,
@@ -62,15 +61,15 @@ Type
     TnLink   = nlink_t;
     pnLink   = ^nlink_t;
 
-  {$ifdef 64BitArch}
+{$ifdef cpu64}
     off_t    = cint64;          { used for file sizes          }
-  {$else}
+{$else}
    {$ifdef 64BitFS}
     off_t    = cint64;
    {$else}
     off_t    = cint;
    {$endif}
-  {$endif}
+{$endif}
     TOff     = off_t;
     pOff     = ^off_t;
 
@@ -78,17 +77,17 @@ Type
     TPid     = pid_t;
     pPid     = ^pid_t;
 
-   {$ifdef 64bitarch}
+{$ifdef cpu64}
     size_t   = cuint64;         { as definied in the C standard}
     ssize_t  = cint64;          { used by function for returning number of bytes }
     clock_t  = cuint64;
     time_t   = cint64;           { used for returning the time  }
-   {$else}
+{$else}
     size_t   = cuint32;         { as definied in the C standard}
     ssize_t  = cint32;          { used by function for returning number of bytes }
     clock_t  = culong;
     time_t   = clong;           { used for returning the time  }
-   {$endif}
+{$endif}
     TSize     = size_t;
     pSize     = ^size_t;
     TSSize    = ssize_t;
@@ -129,7 +128,7 @@ Type
     bavail,            { Available free blocks to non-root users }
     files,             { File nodes in system }
     ffree,             { Free file nodes in system }
-    fsid,              { File system ID } 
+    fsid,              { File system ID }
     namelen : longint; { Maximum name length in system }
     spare   : array [0..6] of longint; { For later use }
   end;
@@ -144,14 +143,17 @@ CONST
     PATH_MAX       = 4095;     {255}   { Maximum number of bytes in pathname }
     SYS_NMLN       = 65;
 {$ifdef FPC_USE_LIBC}
-   SIG_MAXSIG      = 1024;	// highest signal version
+   SIG_MAXSIG      = 1024;      // highest signal version
 {$else}
-   SIG_MAXSIG      = 128;	// highest signal version
+   SIG_MAXSIG      = 128;       // highest signal version
 {$endif}
 
 {
    $Log$
-   Revision 1.8  2004-03-04 22:15:16  marco
+   Revision 1.9  2004-04-26 16:53:19  peter
+     * use cpu64
+
+   Revision 1.8  2004/03/04 22:15:16  marco
     * UnixType changes. Please report problems to me.
 
    Revision 1.7  2004/01/11 09:56:20  jonas

@@ -3,7 +3,7 @@
     This file is part of the Free Pascal run time library.
     Copyright (c) 2001 by Free Pascal development team
 
-    Basic types for C interfacing. Check the 64-bit defines.    
+    Basic types for C interfacing. Check the 64-bit defines.
 
     See the file COPYING.FPC, included in this distribution,
     for details about the copyright.
@@ -17,10 +17,6 @@
 {***********************************************************************}
 {                       POSIX TYPE DEFINITIONS                          }
 {***********************************************************************}
-
-{ Introduced defines
-    - 64bitarch (for 64-bits Linux systems, test system was idefix
-}
 
 Type
     { the following type definitions are compiler dependant }
@@ -42,18 +38,14 @@ Type
     cuchar = byte;
     cInt   = longint;           { minimum range is : 32-bit    }
     cUInt  = Cardinal;          { minimum range is : 32-bit    }
-  {$ifdef 64bitarch}
+{$ifdef cpu64}
     cLong  = int64;
-  {$ifdef VER_1_0}
-    cuLong = int64;
-  {$else}
     cuLong = qword;
-   {$endif}
-  {$else}
+{$else}
     cLong  = longint;
     cuLong = Cardinal;
-  {$endif}
-    cshort = integer;
+{$endif}
+    cshort = smallint;
     cushort= word;
 
     pcInt   = ^cInt;
@@ -63,9 +55,12 @@ Type
     pcshort = ^cshort;
     pcushort= ^cushort;
 
-{ 
+{
    $Log$
-   Revision 1.3  2003-09-16 21:20:40  marco
+   Revision 1.4  2004-04-26 16:53:19  peter
+     * use cpu64
+
+   Revision 1.3  2003/09/16 21:20:40  marco
     * pointer's of some basetypes
 
    Revision 1.2  2002/12/18 16:43:26  marco
