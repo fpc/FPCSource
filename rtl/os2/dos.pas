@@ -35,20 +35,21 @@ const
 
 Type
    {Search record which is used by findfirst and findnext:}
-   searchrec=record
+   SearchRec = record
             case boolean of
-             false: (handle:longint;     {Used in os_OS2 mode}
-                     FStat:PFileFindBuf3;
-                     fill2:array[1..21-SizeOf(longint)-SizeOf(pointer)] of byte;
-                     attr2:byte;
-                     time2:longint;
-                     size2:longint;
-                     name2:string);      {Filenames can be long in OS/2!}
-             true:  (fill:array[1..21] of byte;
-                     attr:byte;
-                     time:longint;
-                     size:longint;
-                     name:string);       {Filenames can be long in OS/2!}
+             false: (Handle: THandle;     {Used in os_OS2 mode}
+                     FStat: PFileFindBuf3;
+                     Fill: array [1..21 - SizeOf (THandle) - SizeOf (pointer)]
+                                                                       of byte;
+                     Attr: byte;
+                     Time: longint;
+                     Size: longint;
+                     Name: string);      {Filenames can be long in OS/2!}
+             true:  (Fill2: array [1..21] of byte;
+                     Attr2: byte;
+                     Time2: longint;
+                     Size2: longint;
+                     Name2: string);       {Filenames can be long in OS/2!}
         end;
 
         {Data structure for the registers needed by msdos and intr:}
@@ -95,9 +96,6 @@ var
   LastDosExitCode: longint;
   LastDosErrorModuleName: string;
 
-
-type    TBA = array [1..SizeOf (SearchRec)] of byte;
-        PBA = ^TBA;
 
 const   FindResvdMask = $00003737; {Allowed bits in attribute
                                     specification for DosFindFirst call.}
@@ -339,13 +337,13 @@ var Count: cardinal;
 begin
   {No error.}
   DosError := 0;
-      New (F.FStat);
-      F.Handle := longint ($FFFFFFFF);
-      Count := 1;
-      DosError := integer (DosFindFirst (Path, F.Handle,
+  New (F.FStat);
+  F.Handle := THandle ($FFFFFFFF);
+  Count := 1;
+  DosError := integer (DosFindFirst (Path, F.Handle,
                      Attr and FindResvdMask, F.FStat, SizeOf (F.FStat^),
-                                                         Count, ilStandard));
-      if (DosError = 0) and (Count = 0) then DosError := 18;
+                                                           Count, ilStandard));
+  if (DosError = 0) and (Count = 0) then DosError := 18;
   DosSearchRec2SearchRec (F);
 end;
 
@@ -356,16 +354,16 @@ begin
     {No error}
     DosError := 0;
     SearchRec2DosSearchRec (F);
-        Count := 1;
-        DosError := integer (DosFindNext (F.Handle, F.FStat, SizeOf (F.FStat^),
+    Count := 1;
+    DosError := integer (DosFindNext (F.Handle, F.FStat, SizeOf (F.FStat^),
                                                                        Count));
-        if (DosError = 0) and (Count = 0) then DosError := 18;
+    if (DosError = 0) and (Count = 0) then DosError := 18;
     DosSearchRec2SearchRec (F);
 end;
 
 procedure FindClose (var F: SearchRec);
 begin
-  if F.Handle <> $FFFFFFFF then DosError := DosFindClose (F.Handle);
+  if F.Handle <> THandle ($FFFFFFFF) then DosError := DosFindClose (F.Handle);
   Dispose (F.FStat);
 end;
 
@@ -631,7 +629,10 @@ end.
 
 {
   $Log$
-  Revision 1.40  2004-03-21 20:22:20  hajny
+  Revision 1.41  2004-05-23 21:47:34  hajny
+    * final part of longint2cardinal fixes for doscalls
+
+  Revision 1.40  2004/03/21 20:22:20  hajny
     * Exec cleanup
 
   Revision 1.39  2004/02/22 15:01:49  hajny
