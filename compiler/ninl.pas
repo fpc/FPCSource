@@ -289,12 +289,6 @@ implementation
     function tinlinenode.handle_read_write: tnode;
 
       const
-{$ifdef cpu64bit}
-        hasownreadfunc = [uchar,uwidechar,bool8bit,bool16bit,bool32bit];
-{$else cpu64bit}
-        hasownreadfunc = [uchar,uwidechar,bool8bit,bool16bit,bool32bit,s64bit,u64bit];
-{$endif cpu64bit}
-
         procnames: array[boolean,boolean] of string[11] =
           (('write_text_','read_text_'),('typed_write','typed_read'));
 
@@ -313,13 +307,12 @@ implementation
         name          : string[31];
         srsym         : tvarsym;
         tempowner     : tsymtable;
-        restype       : ^ttype;
+        readfunctype  : ttype;
         is_typed,
         do_read,
         is_real,
         error_para,
-        found_error,
-        is_ordinal   : boolean;
+        found_error   : boolean;
       begin
         filepara := nil;
         is_typed := false;
@@ -561,10 +554,11 @@ implementation
               begin
                 { is this parameter faulty? }
                 error_para := false;
-                { is this parameter an ordinal? }
-                is_ordinal := false;
                 { is this parameter a real? }
                 is_real:=false;
+                { type used for the read(), this is used to check
+                  whether a temp is needed for range checking }
+                readfunctype.reset;
 
                 { can't read/write types }
                 if para.left.nodetype=typen then
@@ -604,10 +598,10 @@ implementation
                     begin
                       is_real:=true;
                       name := procprefix+'float';
+                      readfunctype:=pbestrealtype^;
                     end;
                   orddef :
                     begin
-                      is_ordinal := true;
                       case torddef(para.left.resulttype.def).typ of
 {$ifdef cpu64bit}
                         s64bit,
@@ -615,23 +609,41 @@ implementation
                         s8bit,
                         s16bit,
                         s32bit :
-                          name := procprefix+'sint';
+                          begin
+                            name := procprefix+'sint';
+                            readfunctype:=sinttype;
+                          end;
 {$ifdef cpu64bit}
                         u64bit,
 {$endif cpu64bit}
                         u8bit,
                         u16bit,
                         u32bit :
-                          name := procprefix+'uint';
+                          begin
+                            name := procprefix+'uint';
+                            readfunctype:=uinttype;
+                          end;
                         uchar :
-                          name := procprefix+'char';
+                          begin
+                            name := procprefix+'char';
+                            readfunctype:=cchartype;
+                          end;
                         uwidechar :
-                          name := procprefix+'widechar';
+                          begin
+                            name := procprefix+'widechar';
+                            readfunctype:=cwidechartype;
+                          end;
 {$ifndef cpu64bit}
                         s64bit :
-                          name := procprefix+'int64';
+                          begin
+                            name := procprefix+'int64';
+                            readfunctype:=s64inttype;
+                          end;
                         u64bit :
-                          name := procprefix+'qword';
+                          begin
+                            name := procprefix+'qword';
+                            readfunctype:=u64inttype;
+                          end;
 {$endif cpu64bit}
                         bool8bit,
                         bool16bit,
@@ -643,8 +655,11 @@ implementation
                                 error_para := true;
                               end
                             else
-                              name := procprefix+'boolean'
-                            end
+                              begin
+                                name := procprefix+'boolean';
+                                readfunctype:=booltype;
+                              end;
+                          end
                         else
                           begin
                             CGMessagePos(para.fileinfo,type_e_cant_read_write_type);
@@ -744,32 +759,16 @@ implementation
                           end;
                       end;
 
+                    { special handling of reading small numbers, because the helpers  }
+                    { expect a longint/card/bestreal var parameter. Use a temp. can't }
+                    { use functions because then the call to FPC_IOCHECK destroys     }
+                    { their result before we can store it                             }
                     if do_read and
-                      ((is_ordinal and
-                        not(torddef(para.left.resulttype.def).typ in hasownreadfunc) and
-                        { Don't allow subranges to match }
-                        (para.left.resulttype.def<>sinttype.def) and
-                        (para.left.resulttype.def<>uinttype.def)
-                       ) or
-                       (is_real and
-                        not equal_defs(para.left.resulttype.def,pbestrealtype^.def)
-                       )
-                      ) then
-                      { special handling of reading small numbers, because the helpers  }
-                      { expect a longint/card/bestreal var parameter. Use a temp. can't }
-                      { use functions because then the call to FPC_IOCHECK destroys     }
-                      { their result before we can store it                             }
+                       assigned(readfunctype.def) and
+                       (para.left.resulttype.def<>readfunctype.def) then
                       begin
-                        { get the resulttype of the var parameter of the helper }
-                        if is_real then
-                          restype := pbestrealtype
-                        else if is_signed(para.left.resulttype.def) then
-                          restype := @sinttype
-                        else
-                          restype := @uinttype;
-
                         { create the parameter list: the temp ... }
-                        temp := ctempcreatenode.create(restype^,restype^.def.size,tt_persistent);
+                        temp := ctempcreatenode.create(readfunctype,readfunctype.def.size,tt_persistent);
                         addstatement(newstatement,temp);
 
                         { ... and the file }
@@ -2443,7 +2442,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.144  2004-09-13 20:32:06  peter
+  Revision 1.145  2004-09-16 16:32:27  peter
+    * another fix for reading of subranges
+
+  Revision 1.144  2004/09/13 20:32:06  peter
     * fix for read(subranges) with subrange typ already being sinttype
 
   Revision 1.143  2004/08/25 15:56:35  peter
