@@ -1,0 +1,192 @@
+%
+%   $Id$
+%   This file is part of the FPC documentation.
+%   Copyright (C) 1998, by Michael Van Canneyt
+%
+%   The FPC documentation is free text; you can redistribute it and/or
+%   modify it under the terms of the GNU Library General Public License as
+%   published by the Free Software Foundation; either version 2 of the
+%   License, or (at your option) any later version.
+%
+%   The FPC Documentation is distributed in the hope that it will be useful,
+%   but WITHOUT ANY WARRANTY; without even the implied warranty of
+%   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+%   Library General Public License for more details.
+%
+%   You should have received a copy of the GNU Library General Public
+%   License along with the FPC documentation; see the file COPYING.LIB.  If not,
+%   write to the Free Software Foundation, Inc., 59 Temple Place - Suite 330,
+%   Boston, MA 02111-1307, USA. 
+%
+\chapter{The HEAPTRC unit.}
+This chapter describes the HEAPTRC unit for \fpc. It was written by 
+Pierre Muller.
+
+\section{Purpose}
+
+The HEAPTRC unit can be used to debug your memory allocation/deallocation.
+It keeps track of the calls to getmem/freemem, and, implicitly, of
+New/Dispose statements.
+
+When the program exits, or when you request it explicitly.
+It displays the total memory used, and then dumps a list of blocks that
+were allocated but not freed. It also displays where the memory was
+allocated.
+
+If there are any inconsistencies, such as memory blocks being allocated
+or freed twice, or a memory block that is released but with wrong size,
+this will be displayed also.
+
+The information that is stored/displayed can be customized using
+some constants.
+
+\section{Usage}
+
+All that you need to do is to include \file{heaptrc} in the uses clause
+of your program. Make sure that it is the first unit in the clause,
+otherwise memory allocated in initialization code of units that precede the
+heaptrc unit will not be accounted for, causing an incorrect memory usage
+report.
+
+The following example shows how to use the heaptrc unit.
+
+\latex{\inputlisting{heapex/heapex.pp}}
+\html{\input{heapex/heapex.tex}}
+
+This is the memory dump shown when running this program:
+\begin{verbatim}
+Marked memory at 08052C48 invalid
+Wrong size : 128 allocated 64 freed
+  0x0804C29C
+  0x080509E2
+  0x080480A4
+  0x00000000
+Heap dump by heaptrc unit
+13 memory blocks allocated : 1416/1424
+6 memory blocks freed     : 708/712
+7 unfreed memory blocks : 708
+True heap size : 2097152
+True free heap : 2096040
+Should be : 2096104
+Call trace for block 0x08052C48 size 128
+  0x080509D6
+  0x080480A4
+Call trace for block 0x08052B98 size 128
+  0x08050992
+  0x080480A4
+Call trace for block 0x08052AE8 size 128
+  0x08050992
+  0x080480A4
+Call trace for block 0x08052A38 size 128
+  0x08050992
+  0x080480A4
+Call trace for block 0x08052988 size 128
+  0x08050992
+  0x080480A4
+Call trace for block 0x080528D8 size 128
+  0x08050992
+  0x080480A4
+Call trace for block 0x080528A0 size 4
+  0x08050961
+  0x080480A4
+\end{verbatim}
+
+\section{Constants, Types and variables}
+
+The \var{fill\_extra\_info\_type} is a procedural type used in the
+\seepl{Set\_Extra\_Info}{SetExtraInfo} call.
+
+\begin{listing}
+type
+    fill_extra_info_type = procedure(p : pointer);
+\end{listing}
+The following typed constants allow to fine-tune the standard dump of the
+memory usage by \seepl{Dump\_Heap}{DumpHeap}:
+
+\begin{listing}
+const
+  tracesize = 8;
+  quicktrace : boolean = true;
+  halt_on_error : boolean = true;
+  keepreleased : boolean = false;
+\end{listing}
+
+\var{Tracesize} specifies how many levels of calls are displayed of the 
+call stack during the memory dump. If you specify \var{keepreleased:=True}
+then half the \var{TraceSize} is reserved for the \var{GetMem} call stack, 
+and the other half is reserved for the \var{FreeMem} call stack.
+For example, the default value of 8 will cause eight levels of call frames
+to be dumped for the getmem call if \var{keepreleased} is \var{False}. If
+\var{KeepReleased} is true, then 4 levels of call frames will be dumped for
+the \var{GetMem} call and 4 frames wil be dumped for the \var{FreeMem} call.
+If you want to change this value, you must recode the \file{heaptrc} unit.
+
+\var{Quicktrace} determines whether
+
+If \var{halt\_on\_error} is set to \var{True} then an illegal call to 
+\var{FreeMem} will cause the memory manager to execute a \var{halt(1)} 
+instruction, causing a memory dump.
+
+If \var{keepreleased} is set to true, then a list of freed memory 
+blocks is kept. This is useful if you suspect that the same memory block is
+released twice. However, this option is very memory intensive, so use it
+sparingly, and only when it's really necessary.
+
+\section{Functions and procedures}
+
+\begin{procedurel}{Dump\_Heap}{DumpHeap}
+\Declaration 
+procedure Dump\_Heap;
+\Description
+\var{dump\_heap} dumps to standard output a summary of memory usage.
+It is called automatically by the heaptrc unit when your program exits
+(by instaling an exit procedure), but it can be called at any time
+\Errors
+None.
+\SeeAlso
+\seepl{Mark\_Heap}{MarkHeap}
+\end{procedurel}
+
+\begin{procedurel}{Mark\_Heap}{MarkHeap}
+\Declaration
+procedure Mark\_Heap;
+\Description
+\var{Mark\_Heap} marks all memory blocks with a special signature.
+You can use this if you think that you corruped the
+\Errors
+None.
+\SeeAlso
+\seepl{Dump\_Heap}{DumpHeap}
+\end{procedurel}
+
+\begin{procedurel}{Set\_Extra\_Info}{SetExtraInfo}
+\Declaration
+procedure Set\_Extra\_Info( size : longint;func : fill\_extra\_info\_type);
+\Description
+You can use \var{Set\_Extra\_Info} to store extra info in the blocks that
+the heaptrc unit reserves when tracing getmem calls. \var{Size} indicates the
+size (in bytes) that the trace mechanism should reserve for your extra
+information. For each call to \var{getmem}, \var{func} will be called,
+and passed a pointer to the memory reserved. 
+
+When dumping the memory summary, the extra info is shown as Longint values.
+
+\Errors
+You can only call \var{Set\_Extra\_Info} if no memroy has been allocated
+yet. If memory was already allocated prior to the call to
+\var{Set\_Extra\_Info}, then an error will be displayed on standard error
+output, and a \seepl{Dump\_Heap}{DumpHeap} is executed.
+\SeeAlso
+\seepl{Dump\_Heap}{DumpHeap}
+\end{procedurel}
+
+\latex{\inputlisting{heapex/setinfo.pp}}
+\html{\input{heapex/setinfo.tex}}
+
+
+%
+% $Log$
+% Revision 1.1  1998-12-14 23:17:02  michael
+% + INitial implementation
+%
+%

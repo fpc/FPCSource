@@ -1,0 +1,674 @@
+%
+%   $Id$
+%   This file is part of the FPC documentation.
+%   Copyright (C) 1998, by Michael Van Canneyt
+%
+%   The FPC documentation is free text; you can redistribute it and/or
+%   modify it under the terms of the GNU Library General Public License as
+%   published by the Free Software Foundation; either version 2 of the
+%   License, or (at your option) any later version.
+%
+%   The FPC Documentation is distributed in the hope that it will be useful,
+%   but WITHOUT ANY WARRANTY; without even the implied warranty of
+%   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+%   Library General Public License for more details.
+%
+%   You should have received a copy of the GNU Library General Public
+%   License along with the FPC documentation; see the file COPYING.LIB.  If not,
+%   write to the Free Software Foundation, Inc., 59 Temple Place - Suite 330,
+%   Boston, MA 02111-1307, USA. 
+%
+\chapter{The Objects unit.}
+This chapte documents te \file{objects} unit. The unit was implemented by
+many people, and was mainly taken from the FreeVision sources.
+
+The methods and fields that are in a \var{Private} part of an object
+declaration have been left out of this documentation.
+
+\section{Constants}
+The following constants are error codes, returned by the various stream
+objects.
+
+\begin{verbatim}
+CONST
+   stOk         =  0; { No stream error }
+   stError      = -1; { Access error }
+   stInitError  = -2; { Initialize error }
+   stReadError  = -3; { Stream read error }
+   stWriteError = -4; { Stream write error }
+   stGetError   = -5; { Get object error }
+   stPutError   = -6; { Put object error }
+   stSeekError  = -7; { Seek error in stream }
+   stOpenError  = -8; { Error opening stream }
+\end{verbatim}
+These constants can be passed to constructors of file streams:
+\begin{verbatim}
+CONST
+   stCreate    = $3C00; { Create new file }
+   stOpenRead  = $3D00; { Read access only }
+   stOpenWrite = $3D01; { Write access only }
+   stOpen      = $3D02; { Read/write access }
+\end{verbatim}
+
+The following constants are error codes, returned by the collection list
+objects:
+\begin{verbatim}
+CONST
+   coIndexError = -1; { Index out of range }
+   coOverflow   = -2; { Overflow }
+\end{verbatim}
+
+Maximum data sizes (used in determining how many data can be used.
+
+\begin{verbatim}
+CONST
+   MaxBytes = 128*1024*1024;                          { Maximum data size }
+   MaxWords = MaxBytes DIV SizeOf(Word);              { Max word data size }
+   MaxPtrs = MaxBytes DIV SizeOf(Pointer);            { Max ptr data size }
+   MaxCollectionSize = MaxBytes DIV SizeOf(Pointer);  { Max collection size }
+\end{verbatim}
+
+\section{Types}
+The follwing auxiliary types are defined:
+\begin{verbatim}
+TYPE
+   { Character set }
+   TCharSet = SET Of Char;                            
+   PCharSet = ^TCharSet;
+
+   { Byte array }
+   TByteArray = ARRAY [0..MaxBytes-1] Of Byte;        
+   PByteArray = ^TByteArray;
+
+   { Word array }
+   TWordArray = ARRAY [0..MaxWords-1] Of Word;        
+   PWordArray = ^TWordArray;
+
+   { Pointer array }
+   TPointerArray = Array [0..MaxPtrs-1] Of Pointer;   
+   PPointerArray = ^TPointerArray; 
+
+   { String pointer }
+   PString = ^String;
+
+   { Filename array }
+   AsciiZ = Array [0..255] Of Char;
+
+   Sw_Word    = Cardinal;
+   Sw_Integer = LongInt;
+\end{verbatim}
+The following records are used internaly for easy type conversion:
+\begin{verbatim}
+TYPE
+   { Word to bytes}
+   WordRec = packed RECORD
+     Lo, Hi: Byte;     
+   END;
+
+   { LongInt to words }
+   LongRec = packed RECORD
+     Lo, Hi: Word;
+   END;
+
+  { Pointer to words }
+   PtrRec = packed RECORD
+     Ofs, Seg: Word;
+   END;
+\end{verbatim}
+The following record is used when streaming objects:
+
+\begin{verbatim}
+TYPE
+   PStreamRec = ^TStreamRec;
+   TStreamRec = Packed RECORD
+      ObjType: Sw_Word;
+      VmtLink: pointer;
+      Load : Pointer;
+      Store: Pointer;
+      Next : PStreamRec;
+   END;
+\end{verbatim}
+
+The \var{TPoint} basic object is used in the \var{TRect} object (see
+\sees{TRect}):
+\begin{verbatim}
+TYPE
+   PPoint = ^TPoint;
+   TPoint = OBJECT
+      X, Y: Sw_Integer;
+   END;
+\end{verbatim}
+
+\section{TRect}
+\label{se:TRect}
+
+The \var{TRect} object is declared as follows:
+\begin{verbatim}
+   TRect = OBJECT
+      A, B: TPoint;
+      FUNCTION Empty: Boolean;
+      FUNCTION Equals (R: TRect): Boolean;
+      FUNCTION Contains (P: TPoint): Boolean;
+      PROCEDURE Copy (R: TRect);
+      PROCEDURE Union (R: TRect);
+      PROCEDURE Intersect (R: TRect);
+      PROCEDURE Move (ADX, ADY: Sw_Integer);
+      PROCEDURE Grow (ADX, ADY: Sw_Integer);
+      PROCEDURE Assign (XA, YA, XB, YB: Sw_Integer);
+   END;
+\end{verbatim}
+
+\begin{function}{TRect.Empty}
+\Declaration
+Function TRect.Empty: Boolean;
+\Description
+\var{Empty} returns \var{True} if the rectangle defined by the corner points 
+\var{A}, \var{B} has zero or negative surface.
+\Errors
+None.
+\SeeAlso
+\seef{TRect.Equals}, \seef{TRect.Contains}
+\end{function}
+
+\latex{\inputlisting{objectex/ex1.pp}}
+\html{\input{objectex/ex1.tex}}
+
+\begin{function}{TRect.Equals}      
+\Declaration
+Function TRect.Equals (R: TRect): Boolean;
+\Description
+\var{Equals} returns \var{True} if the rectangle has the 
+same corner points \var{A,B} as the rectangle R, and \var{False}
+otherwise.
+\Errors
+None.
+\SeeAlso
+\seef{TRect.Empty}, \seef{TRect.Contains}
+\end{function}
+
+For an example, see \seef{TRect.Empty}
+
+\begin{function}{TRect.Contains}
+\Declaration
+Function TRect.Contains (P: TPoint): Boolean;
+\Description
+\var{Contains} returns \var{True} if the point \var{P} is contained
+in the rectangle (including borders), \var{False} otherwise.
+\Errors
+None.
+\SeeAlso
+\seep{TRect.Intersect}, \seef{TRect.Equals}
+\end{function}
+
+\begin{procedure}{TRect.Copy}
+\Declaration     
+Procedure TRect.Copy (R: TRect);
+\Description
+Assigns the rectangle R to the object. After the call to \var{Copy}, the
+rectangle R has been copied to the object that invoked \var{Copy}.
+\Errors
+None.
+\SeeAlso
+\seep{TRect.Assign}
+\end{procedure}
+
+\latex{\inputlisting{objectex/ex2.pp}}
+\html{\input{objectex/ex2.tex}}
+
+\begin{procedure}{TRect.Union}
+\Declaration
+Procedure TRect.Union (R: TRect);
+\Description
+\var{Union} enlarges the current rectangle so that it becomes the union
+of the current rectangle with the rectangle \var{R}.
+\Errors
+None.
+\SeeAlso
+\seep{TRect.Intersect}
+\end{procedure}
+
+\latex{\inputlisting{objectex/ex3.pp}}
+\html{\input{objectex/ex3.tex}}
+
+\begin{procedure}{TRect.Intersect}
+\Declaration
+Procedure TRect.Intersect (R: TRect);
+\Description
+\var{Intersect} makes the intersection of the current rectangle with
+\var{R}. If the intersection is empty, then the rectangle is set to the empty
+rectangle at coordinate (0,0).
+\Errors
+None.
+\SeeAlso
+\var{TRect.Union}
+\end{procedure}
+
+\latex{\inputlisting{objectex/ex4.pp}}
+\html{\input{objectex/ex4.tex}}
+
+\begin{procedure}{TRect.Move}
+\Declaration
+Procedure TRect.Move (ADX, ADY: Sw\_Integer);
+\Description
+\var{Move} moves the current rectangle along a vector with components
+\var{(ADX,ADY)}. It adds \var{ADX} to the X-coordinate of both corner
+points, and \var{ADY} to both end points.
+\Errors
+None.
+\SeeAlso
+\seep{TRect.Grow}
+\end{procedure}
+
+\latex{\inputlisting{objectex/ex5.pp}}
+\html{\input{objectex/ex5.tex}}
+
+\begin{procedure}{TRect.Grow}
+\Declaration
+Procedure TRect.Grow (ADX, ADY: Sw\_Integer);
+\Description
+\var{Grow} expands the rectangle with an amount \var{ADX} in the \var{X}
+direction (both on the left and right side of the rectangle, thus adding a 
+length 2*ADX to the width of the rectangle), and an amount \var{ADY} in 
+the \var{Y} direction (both on the top and the bottom side of the rectangle,
+adding a length 2*ADY to the height of the rectangle. 
+
+X and Y can be negative. If the resulting rectangle is empty, it is set 
+to the empty rectangle at \var{(0,0)}.
+\Errors
+None.
+\SeeAlso
+\seep{TRect.Move}.
+\end{procedure}
+
+
+\latex{\inputlisting{objectex/ex6.pp}}
+\html{\input{objectex/ex7.tex}}
+
+\begin{procedure}{TRect.Assign}
+\Declaration
+Procedure Trect.Assign (XA, YA, XB, YB: Sw\_Integer);
+\Description
+\var{Assign} sets the corner points of the rectangle to \var{(XA,YA)} and 
+\var{(Xb,Yb)}.
+\Errors
+None.
+\end{procedure}
+
+For an example, see \seep{TRect.Copy}.
+
+\section{TObject}
+\label{se:TObject}
+
+The full declaration of the \var{TObject} type is:
+\begin{verbatim}
+TYPE
+   TObject = OBJECT
+      CONSTRUCTOR Init;
+      PROCEDURE Free;
+      DESTRUCTOR Done;Virtual;
+   END;
+   PObject = ^TObject;
+\end{verbatim}
+\begin{procedure}{TObject.Init}
+\Declaration
+Constructor TObject.Init;
+\Description
+Instantiates a new object of type \var{TObject}. It fills the instance up
+with Zero bytes.
+\Errors
+None.
+\SeeAlso
+\seep{TObject.Free}, \seep{TObject.Done}
+\end{procedure}
+
+For an example, see \seep{TObject.Free}
+
+\begin{procedure}{TObject.Free}
+\Declaration
+Procedure TObject.Free;
+\Description
+\var{Free} calls the destructor of the object, and releases the memory
+occupied by the instance of the object.
+\Errors
+No checking is performed to see whether \var{self} is \var{nil} and whether
+the object is indeed allocated on the heap.
+\SeeAlso
+\seep{TObject.Init}, \seep{TObject.Done}
+\end{procedure}
+
+\latex{\inputlisting{objectex/ex7.pp}}
+\html{\input{objectex/ex7.tex}}
+
+\begin{procedure}{TObject.Done}
+\Declaration
+Destructor TObject.Done;Virtual;
+\Description
+\var{Done}, the destructor of \var{TObject} does nothing. It is mainly
+intended to be used in the \seep{TObject.Free} method.
+\Errors
+None.
+\SeeAlso
+\seep{TObject.Free}, \seep{TObject.Init}
+\end{procedure}
+
+\section{TStream}
+\label{se:TStream}
+
+The \var{TStream} object is the ancestor for all streaming objects, i.e.
+objects that have the capability to store and retrieve data.
+
+It defines a number of methods that are common to all objects that implement
+streaming, many of them are virtual, and are only implemented in the
+descendant types.
+
+Programs should not instantiate objects of type TStream directly, but
+instead instantiate a descendant type.
+
+This is the full declaration of the \var{TStream} object:
+\begin{verbatim}
+TYPE
+   TStream = OBJECT (TObject)
+         Status    : Integer; { Stream status }
+         ErrorInfo : Integer; { Stream error info }
+         StreamSize: LongInt; { Stream current size }
+         Position  : LongInt; { Current position }
+      FUNCTION Get: PObject;
+      FUNCTION StrRead: PChar;
+      FUNCTION GetPos: Longint; Virtual;
+      FUNCTION GetSize: Longint; Virtual;
+      FUNCTION ReadStr: PString;
+      PROCEDURE Open (OpenMode: Word); Virtual;
+      PROCEDURE Close; Virtual;
+      PROCEDURE Reset;
+      PROCEDURE Flush; Virtual;
+      PROCEDURE Truncate; Virtual;
+      PROCEDURE Put (P: PObject);
+      PROCEDURE StrWrite (P: PChar);
+      PROCEDURE WriteStr (P: PString);
+      PROCEDURE Seek (Pos: LongInt); Virtual;
+      PROCEDURE Error (Code, Info: Integer); Virtual;
+      PROCEDURE Read (Var Buf; Count: Sw_Word); Virtual;
+      PROCEDURE Write (Var Buf; Count: Sw_Word); Virtual;
+      PROCEDURE CopyFrom (Var S: TStream; Count: Longint);
+   END;
+   PStream = ^TStream;
+\end{verbatim}
+
+\section{TDosStream}
+\label{se:TDosStream}
+
+\begin{verbatim}
+TYPE
+   TDosStream = OBJECT (TStream)
+         Handle: THandle; { DOS file handle }
+         FName : AsciiZ;  { AsciiZ filename }
+      CONSTRUCTOR Init (FileName: FNameStr; Mode: Word);
+      DESTRUCTOR Done; Virtual;
+      PROCEDURE Close; Virtual;
+      PROCEDURE Truncate; Virtual;
+      PROCEDURE Seek (Pos: LongInt); Virtual;
+      PROCEDURE Open (OpenMode: Word); Virtual;
+      PROCEDURE Read (Var Buf; Count: Sw_Word); Virtual;
+      PROCEDURE Write (Var Buf; Count: Sw_Word); Virtual;
+   END;
+   PDosStream = ^TDosStream;
+\end{verbatim}
+
+\section{TBufStream}
+\label{se:TBufStream}
+
+\begin{verbatim}
+TYPE
+   TBufStream = OBJECT (TDosStream)
+         LastMode: Byte;       { Last buffer mode }
+         BufSize : Sw_Word;    { Buffer size }
+         BufPtr  : Sw_Word;    { Buffer start }
+         BufEnd  : Sw_Word;    { Buffer end }
+         Buffer  : PByteArray; { Buffer allocated }
+      CONSTRUCTOR Init (FileName: FNameStr; Mode, Size: Word);
+      DESTRUCTOR Done; Virtual;
+      PROCEDURE Close; Virtual;
+      PROCEDURE Flush; Virtual;
+      PROCEDURE Truncate; Virtual;
+      PROCEDURE Seek (Pos: LongInt); Virtual;
+      PROCEDURE Open (OpenMode: Word); Virtual;
+      PROCEDURE Read (Var Buf; Count: Sw_Word); Virtual;
+      PROCEDURE Write (Var Buf; Count: Sw_Word); Virtual;
+   END;
+   PBufStream = ^TBufStream;
+\end{verbatim}
+
+\section{TMemoryStream}
+\section{se:TMemoryStream}
+
+\begin{verbatim}
+TYPE
+   TMemoryStream = OBJECT (TStream)
+         BlkCount: Sw_Word;                           { Number of segments }
+         BlkSize : Word;                              { Memory block size }
+         MemSize : LongInt;                           { Memory alloc size }
+         BlkList : PPointerArray;                     { Memory block list }
+      CONSTRUCTOR Init (ALimit: Longint; ABlockSize: Word);
+      DESTRUCTOR Done;                                               Virtual;
+      PROCEDURE Truncate;                                            Virtual;
+      PROCEDURE Read (Var Buf; Count: Sw_Word);                      Virtual;
+      PROCEDURE Write (Var Buf; Count: Sw_Word);                     Virtual;
+      PRIVATE
+      FUNCTION ChangeListSize (ALimit: Sw_Word): Boolean;
+   END;
+   PMemoryStream = ^TMemoryStream;
+\end{verbatim}
+
+\section{TCollection}
+\label{se:TCollection}
+
+\begin{verbatim}
+TYPE
+   TItemList = Array [0..MaxCollectionSize - 1] Of Pointer;
+   PItemList = ^TItemList;
+
+   TCollection = OBJECT (TObject)
+         Items: PItemList;  { Item list pointer }
+         Count: Sw_Integer; { Item count }
+         Limit: Sw_Integer; { Item limit count }
+         Delta: Sw_Integer; { Inc delta size }
+      CONSTRUCTOR Init (ALimit, ADelta: Sw_Integer);
+      CONSTRUCTOR Load (Var S: TStream);
+      DESTRUCTOR Done; Virtual;
+      FUNCTION At (Index: Sw_Integer): Pointer;
+      FUNCTION IndexOf (Item: Pointer): Sw_Integer; Virtual;
+      FUNCTION GetItem (Var S: TStream): Pointer; Virtual;
+      FUNCTION LastThat (Test: Pointer): Pointer;
+      FUNCTION FirstThat (Test: Pointer): Pointer;
+      PROCEDURE Pack;
+      PROCEDURE FreeAll;
+      PROCEDURE DeleteAll;
+      PROCEDURE Free (Item: Pointer);
+      PROCEDURE Insert (Item: Pointer); Virtual;
+      PROCEDURE Delete (Item: Pointer);
+      PROCEDURE AtFree (Index: Sw_Integer);
+      PROCEDURE FreeItem (Item: Pointer); Virtual;
+      PROCEDURE AtDelete (Index: Sw_Integer);
+      PROCEDURE ForEach (Action: Pointer);
+      PROCEDURE SetLimit (ALimit: Sw_Integer); Virtual;
+      PROCEDURE Error (Code, Info: Integer); Virtual;
+      PROCEDURE AtPut (Index: Sw_Integer; Item: Pointer);
+      PROCEDURE AtInsert (Index: Sw_Integer; Item: Pointer);
+      PROCEDURE Store (Var S: TStream);
+      PROCEDURE PutItem (Var S: TStream; Item: Pointer); Virtual;
+   END;
+   PCollection = ^TCollection;
+\end{verbatim}
+
+\section{TSortedCollection}
+\label{se:TSortedCollection}
+
+\begin{verbatim}
+TYPE
+   TSortedCollection = OBJECT (TCollection)
+         Duplicates: Boolean; { Duplicates flag }
+      CONSTRUCTOR Init (ALimit, ADelta: Sw_Integer);
+      CONSTRUCTOR Load (Var S: TStream);
+      FUNCTION KeyOf (Item: Pointer): Pointer; Virtual;
+      FUNCTION IndexOf (Item: Pointer): Sw_Integer; Virtual;
+      FUNCTION Compare (Key1, Key2: Pointer): Sw_Integer; Virtual;
+      FUNCTION Search (Key: Pointer; Var Index: Sw_Integer): Boolean;Virtual;
+      PROCEDURE Insert (Item: Pointer); Virtual;
+      PROCEDURE Store (Var S: TStream);
+   END;
+   PSortedCollection = ^TSortedCollection;
+\end{verbatim}
+
+\section{TStringCollection}
+\label{se:TStringCollection}
+
+\begin{verbatim}
+TYPE
+   TStringCollection = OBJECT (TSortedCollection)
+      FUNCTION GetItem (Var S: TStream): Pointer; Virtual;
+      FUNCTION Compare (Key1, Key2: Pointer): Sw_Integer; Virtual;
+      PROCEDURE FreeItem (Item: Pointer); Virtual;
+      PROCEDURE PutItem (Var S: TStream; Item: Pointer); Virtual;
+   END;
+   PStringCollection = ^TStringCollection;
+\end{verbatim}
+
+\section{TStrCollection}
+\label{se:TStrCollection}
+
+\begin{verbatim}
+TYPE
+   TStrCollection = OBJECT (TSortedCollection)
+      FUNCTION Compare (Key1, Key2: Pointer): Sw_Integer; Virtual;
+      FUNCTION GetItem (Var S: TStream): Pointer; Virtual;
+      PROCEDURE FreeItem (Item: Pointer); Virtual;
+      PROCEDURE PutItem (Var S: TStream; Item: Pointer); Virtual;
+   END;
+   PStrCollection = ^TStrCollection;
+\end{verbatim}
+
+
+\section{TUnSortedStrCollection}
+\label{se:TUnSortedStrCollection}
+
+\begin{verbatim}
+TYPE
+   TUnSortedStrCollection = OBJECT (TStringCollection)
+      PROCEDURE Insert (Item: Pointer); Virtual;
+   END;
+   PUnSortedStrCollection = ^TUnSortedStrCollection;
+\end{verbatim}
+
+\section{TResourceCollection}
+\label{se:TResourceCollection}
+
+\begin{verbatim}
+TYPE
+   TResourceCollection = OBJECT (TStringCollection)
+      FUNCTION KeyOf (Item: Pointer): Pointer; Virtual;
+      FUNCTION GetItem (Var S: TStream): Pointer; Virtual;
+      PROCEDURE FreeItem (Item: Pointer); Virtual;
+      PROCEDURE PutItem (Var S: TStream; Item: Pointer); Virtual;
+   END;
+   PResourceCollection = ^TResourceCollection;
+\end{verbatim}
+
+\section{TResourceFile}
+\label{se:TResourceFile}
+
+\begin{verbatim}
+TYPE
+   TResourceFile = OBJECT (TObject)
+         Stream  : PStream; { File as a stream }
+         Modified: Boolean; { Modified flag }
+      CONSTRUCTOR Init (AStream: PStream);
+      DESTRUCTOR Done; Virtual;
+      FUNCTION Count: Sw_Integer;
+      FUNCTION KeyAt (I: Sw_Integer): String;
+      FUNCTION Get (Key: String): PObject;
+      FUNCTION SwitchTo (AStream: PStream; Pack: Boolean): PStream;
+      PROCEDURE Flush;
+      PROCEDURE Delete (Key: String);
+      PROCEDURE Put (Item: PObject; Key: String);
+   END;
+   PResourceFile = ^TResourceFile;
+\end{verbatim}
+
+\section{TStringList}
+\label{se:TStringList}
+
+\begin{verbatim}
+TYPE
+   TStrIndexRec = Packed RECORD
+      Key, Count, Offset: Word;
+   END;
+
+   TStrIndex = Array [0..9999] Of TStrIndexRec;
+   PStrIndex = ^TStrIndex;
+
+   TStringList = OBJECT (TObject)
+      CONSTRUCTOR Load (Var S: TStream);
+      DESTRUCTOR Done; Virtual;
+      FUNCTION Get (Key: Sw_Word): String;
+   END;
+   PStringList = ^TStringList;
+\end{verbatim}
+
+\section{TStrListMaker}
+\label{se:TStrListMaker}
+
+\begin{verbatim}
+TYPE
+   TStrListMaker = OBJECT (TObject)
+      CONSTRUCTOR Init (AStrSize, AIndexSize: Sw_Word);
+      DESTRUCTOR Done; Virtual;
+      PROCEDURE Put (Key: Sw_Word; S: String);
+      PROCEDURE Store (Var S: TStream);
+   END;
+   PStrListMaker = ^TStrListMaker;
+\end{verbatim}
+
+\begin{verbatim}
+FUNCTION NewStr (Const S: String): PString;
+PROCEDURE DisposeStr (P: PString);
+PROCEDURE Abstract;
+PROCEDURE RegisterObjects;
+PROCEDURE RegisterType (Var S: TStreamRec);
+FUNCTION LongMul (X, Y: Integer): LongInt;
+FUNCTION LongDiv (X: Longint; Y: Integer): Integer;
+
+CONST
+   StreamError: Pointer = Nil;                        { Stream error ptr }
+   DosStreamError: Word = $0;                      { Dos stream error }
+
+CONST
+   RCollection: TStreamRec = (
+     ObjType: 50;
+     VmtLink: Ofs(TypeOf(TCollection)^);
+     Load: @TCollection.Load;
+     Store: @TCollection.Store);
+
+   RStringCollection: TStreamRec = (
+     ObjType: 51;
+     VmtLink: Ofs(TypeOf(TStringCollection)^);
+     Load: @TStringCollection.Load;
+     Store: @TStringCollection.Store);
+
+   RStrCollection: TStreamRec = (
+     ObjType: 69;
+     VmtLink: Ofs(TypeOf(TStrCollection)^);
+     Load:    @TStrCollection.Load;
+     Store:   @TStrCollection.Store);
+
+   RStringList: TStreamRec = (
+     ObjType: 52;
+     VmtLink: Ofs(TypeOf(TStringList)^);
+     Load: @TStringList.Load;
+     Store: Nil);
+
+   RStrListMaker: TStreamRec = (
+     ObjType: 52;
+     VmtLink: Ofs(TypeOf(TStrListMaker)^);
+     Load: Nil;
+     Store: @TStrListMaker.Store);
+\end{verbatim}
