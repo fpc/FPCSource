@@ -331,7 +331,7 @@ interface
                falselabel:=ofl;
              end
             else if right.location.loc=LOC_JUMP then
-              internalerror(20031122902);
+              internalerror(200312292);
 
             cmpop := nodetype in [ltn,lten,gtn,gten,equaln,unequaln];
 
@@ -1494,7 +1494,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.41  2003-12-29 11:35:19  jonas
+  Revision 1.42  2004-01-06 21:37:41  peter
+    * fixed too long ie number
+
+  Revision 1.41  2003/12/29 11:35:19  jonas
     * hopefully fixed tb0454
 
   Revision 1.40  2003/12/09 20:39:43  jonas
