@@ -319,6 +319,7 @@ implementation
             ;
 {$endif powerpc}
 {$ifdef i386}
+          target_i386_BeOS,
           target_i386_GO32V2 :
             begin
               { stacksize can be specified }
@@ -1338,7 +1339,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.40  2001-08-04 10:23:54  peter
+  Revision 1.41  2001-08-05 12:26:52  peter
+    * beos fix (merged)
+
+  Revision 1.40  2001/08/04 10:23:54  peter
     * updates so it works with the ide
 
   Revision 1.38  2001/07/30 20:59:27  peter
