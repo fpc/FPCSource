@@ -1,12 +1,46 @@
 unit zstream;
+{
+    $Id$
+    This file is part of the Free Pascal run time library.
+    Copyright (c) 1998 by the Free Pascal development team
+
+    Implementation of compression streams.
+    
+    See the file COPYING.FPC, included in this distribution,
+    for details about the copyright.
+
+    This program is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+
+ **********************************************************************}
+
+{ ---------------------------------------------------------------------
+  On linux, the default is to use the zlib libraries.
+  On all other platforms we use paszlib. If you want to use
+  paszlib in all cases, just define -dUsePasZlib
+  ---------------------------------------------------------------------}
+
+{$ifndef linux}
+{$define usepaszlib}
+{$endif}
 
 interface
 
-uses Sysutils, Classes,zlib;
+uses Sysutils, Classes,zlib
+{$ifdef usepaszlib}
+     ,gzio,ZUtil,ZInflate,ZDeflate
+{$endif}
+     ;
+
 {$H+}
 
 type
   // Error reporting.
+{$ifdef usepaszlib}  
+  TZStream=Z_Stream;
+  PZStream=Z_StreamP;
+{$endif}
 
   EZlibError = class(EStreamError);
   ECompressionError = class(EZlibError);
@@ -138,8 +172,13 @@ var
   oldout : longint;
 begin
   FillChar(strm, sizeof(strm), 0);
+{$ifndef usepaszlib}
   strm.zalloc := @zlibAllocMem;
   strm.zfree := @zlibFreeMem;
+{$else}
+  strm.zalloc :=  @zcalloc;
+  strm.zfree :=  @zcfree;   
+{$endif}
   OutBytes := ((InBytes + (InBytes div 10) + 12) + 255) and not 255;
   OutBuf:=DGetMem(OutBytes);
   try
@@ -147,14 +186,22 @@ begin
     strm.avail_in := InBytes;
     strm.next_out := OutBuf;
     strm.avail_out := OutBytes;
+{$ifndef usepaszlib}
     CompressionCheck(deflateInit_(strm, Z_BEST_COMPRESSION, zlibversion, sizeof(strm)));
+{$else}
+    CompressionCheck(deflateInit_(@strm, Z_BEST_COMPRESSION, zlibversion, sizeof(strm)));
+{$endif}
     try
       while CompressionCheck(deflate(strm, Z_FINISH)) <> Z_STREAM_END do
       begin
         P := OutBuf;
         Inc(OutBytes, 256);
         DReallocMem(OutBuf,OutBytes);
+{$ifndef usepaszlib}
         strm.next_out := PChar(Integer(OutBuf) + (Integer(strm.next_out) - Integer(P)));
+{$else}
+        strm.next_out := PByteF(Integer(OutBuf) + (Integer(strm.next_out) - Integer(P)));
+{$endif}
         strm.avail_out := 256;
       end;
     finally
@@ -177,8 +224,13 @@ var
   BufInc: Integer;
 begin
   FillChar(strm, sizeof(strm), 0);
+{$ifndef usepaszlib}
   strm.zalloc := @zlibAllocMem;
   strm.zfree := @zlibFreeMem;
+{$else}
+  strm.zalloc := @zcalloc;
+  strm.zfree := @zcfree;
+{$endif}
   BufInc := (InBytes + 255) and not 255;
   if OutEstimate = 0 then
     OutBytes := BufInc
@@ -190,14 +242,22 @@ begin
     strm.avail_in := InBytes;
     strm.next_out := OutBuf;
     strm.avail_out := OutBytes;
+{$ifndef usepaszlib}
     DecompressionCheck(inflateInit_(strm, zlibversion, sizeof(strm)));
+{$else}    
+    DecompressionCheck(inflateInit_(@strm, zlibversion, sizeof(strm)));
+{$endif}    
     try
       while DecompressionCheck(inflate(strm, Z_FINISH)) <> Z_STREAM_END do
       begin
         P := OutBuf;
         Inc(OutBytes, BufInc);
         DReallocMem(OutBuf, OutBytes);
+{$ifndef usepaszlib}
         strm.next_out := PChar(Integer(OutBuf) + (Integer(strm.next_out) - Integer(P)));
+{$else}
+        strm.next_out := Pbytef(Integer(OutBuf) + (Integer(strm.next_out) - Integer(P)));
+{$endif}
         strm.avail_out := BufInc;
       end;
     finally
@@ -219,8 +279,13 @@ begin
   inherited Create;
   FStrm := Strm;
   FStrmPos := Strm.Position;
+{$ifndef usepaszlib}
   FZRec.zalloc := @zlibAllocMem;
   FZRec.zfree := @zlibFreeMem;
+{$else}
+  FZRec.zalloc :=  @zcalloc;
+  FZRec.zfree :=  @zcfree;
+{$endif}  
 end;
 
 procedure TCustomZLibStream.Progress(Sender: TObject);
@@ -238,9 +303,15 @@ const
     (Z_NO_COMPRESSION, Z_BEST_SPEED, Z_DEFAULT_COMPRESSION, Z_BEST_COMPRESSION);
 begin
   inherited Create(Dest);
+{$ifndef usepaszlib}
   FZRec.next_out := FBuffer;
   FZRec.avail_out := sizeof(FBuffer);
   CompressionCheck(deflateInit_(FZRec, Levels[CompressionLevel], zlibversion, sizeof(FZRec)));
+{$else}
+  FZRec.next_out :=@FBuffer;
+  FZRec.avail_out := sizeof(FBuffer);
+  CompressionCheck(deflateInit_(@FZRec, Levels[CompressionLevel], zlibversion, sizeof(FZRec)));
+{$endif}
 end;
 
 destructor TCompressionStream.Destroy;
@@ -253,7 +324,11 @@ begin
       and (FZRec.avail_out = 0) do
     begin
       FStrm.WriteBuffer(FBuffer, sizeof(FBuffer));
+{$ifndef usepaszlib}
       FZRec.next_out := FBuffer;
+{$else}
+      FZRec.next_out := @FBuffer;
+{$endif}      
       FZRec.avail_out := sizeof(FBuffer);
     end;
     if FZRec.avail_out < sizeof(FBuffer) then
@@ -291,7 +366,11 @@ begin
     if FZRec.avail_out = 0 then
     begin
       FStrm.WriteBuffer(FBuffer, sizeof(FBuffer));
+{$ifndef usepaszlib}
       FZRec.next_out := FBuffer;
+{$else}
+      FZRec.next_out := @FBuffer;
+{$endif}
       FZRec.avail_out := sizeof(FBuffer);
       FStrmPos := FStrm.Position;
       Progress(Self);
@@ -325,9 +404,15 @@ end;
 constructor TDecompressionStream.Create(Source: TStream);
 begin
   inherited Create(Source);
+{$ifndef usepaszlib}
   FZRec.next_in := FBuffer;
   FZRec.avail_in := 0;
   DecompressionCheck(inflateInit_(FZRec, zlibversion, sizeof(FZRec)));
+{$else}
+  FZRec.next_in := @FBuffer;
+  FZRec.avail_in := 0;
+  DecompressionCheck(inflateInit_(@FZRec, zlibversion, sizeof(FZRec)));
+{$endif}
 end;
 
 destructor TDecompressionStream.Destroy;
@@ -361,7 +446,11 @@ begin
           Result := Count - FZRec.avail_out;
           Exit;
         end;
+{$ifndef usepaszlib}
       FZRec.next_in := FBuffer;
+{$else}
+      FZRec.next_in := @FBuffer;
+{$endif}      
       FStrmPos := FStrm.Position;
       Progress(Self);
     end;
@@ -383,7 +472,11 @@ begin
   if (Offset = 0) and (Origin = soFromBeginning) then
   begin
     DecompressionCheck(inflateReset(FZRec));
+{$ifndef usepaszlib}
     FZRec.next_in := FBuffer;
+{$else}
+    FZRec.next_in := @FBuffer;
+{$endif}    
     FZRec.avail_in := 0;
     FStrm.Position := 0;
     FStrmPos := 0;
