@@ -83,6 +83,8 @@ unit cgcpu;
 
         procedure g_proc_entry(list : taasmoutput;localsize : longint;nostackframe:boolean);override;
         procedure g_proc_exit(list : taasmoutput;parasize : longint;nostackframe:boolean); override;
+        procedure g_save_standard_registers(list:Taasmoutput); override;
+        procedure g_restore_standard_registers(list:Taasmoutput); override;
 
         procedure a_loadaddr_ref_reg(list : taasmoutput;const ref : treference;r : tregister);override;
 
@@ -94,7 +96,7 @@ unit cgcpu;
         function get_rlwi_const(a: aint; var l1, l2: longint): boolean;
 
         procedure a_jmp_cond(list : taasmoutput;cond : TOpCmp;l: tasmlabel);
-
+        
       private
 
         (* NOT IN USE: *)
@@ -974,6 +976,18 @@ const
 
 { *********** entry/exit code and address loading ************ }
 
+    procedure tcgppc.g_save_standard_registers(list:Taasmoutput);
+      begin
+        { this work is done in g_proc_entry }
+      end;
+      
+    
+    procedure tcgppc.g_restore_standard_registers(list:Taasmoutput);
+      begin
+        { this work is done in g_proc_exit }
+      end;
+
+
     procedure tcgppc.g_proc_entry(list : taasmoutput;localsize : longint;nostackframe:boolean);
      { generated the entry code of a procedure/function. Note: localsize is the }
      { sum of the size necessary for local variables and the maximum possible   }
@@ -1197,6 +1211,7 @@ const
                               end;
                             end;
 {
+{$ifdef oldregvars}
                           LOC_CREGISTER:
                             begin
                               reference_reset_base(href2,NR_R12,hp.paraloc[callerside].location^.reference.offset);
@@ -1207,6 +1222,7 @@ const
                               reference_reset_base(href2,NR_R12,hp.paraloc[callerside].location^.reference.offset);
                               cg.a_loadfpu_ref_reg(list,hp.paraloc[calleeside].size,href2,tvarsym(hp.parasym).localloc.register);
                             end;
+{$endif oldregvars}
                           else
                             internalerror(2004070911);
 }
@@ -2341,7 +2357,12 @@ begin
 end.
 {
   $Log$
-  Revision 1.182  2004-10-24 20:01:08  peter
+  Revision 1.183  2004-10-26 18:21:29  jonas
+    + empty g_save_standard_registers/g_restore_standard_registers overrides
+      (their work was/is done by g_proc_entry/g_proc_exit, and the generic
+       version saves the registers in the wrong place)
+
+  Revision 1.182  2004/10/24 20:01:08  peter
     * remove saveregister calling convention
 
   Revision 1.181  2004/10/24 11:53:45  peter
