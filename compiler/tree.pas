@@ -22,7 +22,7 @@
 }
 
 {$ifdef tp}
-  {E+,N+}
+  {$E+,N+}
 {$endif}
 unit tree;
 
@@ -1609,7 +1609,10 @@ unit tree;
 end.
 {
   $Log$
-  Revision 1.18  1998-07-07 11:20:18  peter
+  Revision 1.19  1998-07-08 14:56:53  daniel
+  * Fixed $ifdef TP.
+
+  Revision 1.18  1998/07/07 11:20:18  peter
     + NEWINPUT for a better inputfile and scanner object
 
   Revision 1.17  1998/06/22 08:59:03  daniel
