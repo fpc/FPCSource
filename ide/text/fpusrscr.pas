@@ -503,8 +503,6 @@ end;
 
 procedure TLinuxScreen.SwitchTo;
 begin
-  new(IDE_screen);
-  move(videobuf^,IDE_screen^,videobufsize);
 end;
 
 
@@ -729,7 +727,11 @@ end;
 end.
 {
   $Log$
-  Revision 1.3  2000-08-22 09:41:40  pierre
+  Revision 1.4  2000-09-18 16:42:56  jonas
+    * for some reason, tlinuxscreen.switchto() contained some saving code
+      while it should've been empty (like in the fixes branch)
+
+  Revision 1.3  2000/08/22 09:41:40  pierre
    * first big merge from fixes branch
 
   Revision 1.2  2000/08/21 10:57:01  jonas
