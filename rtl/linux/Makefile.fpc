@@ -6,7 +6,7 @@
 main=rtl
 
 [target]
-loaders=prt0 cprt0 gprt0 cprt21 gprt21
+loaders=prt0 dllprt0 cprt0 gprt0 cprt21 gprt21
 units=$(SYSTEMUNIT) objpas strings \
       $(LINUXUNIT) unix ports initc \
       dos crt objects printer graph ggigraph \
@@ -100,6 +100,9 @@ SYSDEPS=$(SYSINCDEPS) $(SYSCPUDEPS)
 
 prt0$(OEXT) : $(CPU_TARGET)/$(PRT0).as
         $(AS) -o prt0$(OEXT) $(CPU_TARGET)/$(PRT0).as
+
+dllprt0$(OEXT) : $(CPU_TARGET)/dllprt0.as
+        $(AS) -o dllprt0$(OEXT) $(CPU_TARGET)/dllprt0.as
 
 gprt0$(OEXT) : $(CPU_TARGET)/gprt0.as
         $(AS) -o gprt0$(OEXT) $(CPU_TARGET)/gprt0.as
