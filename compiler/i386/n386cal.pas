@@ -808,6 +808,28 @@ implementation
                      end;
                 end;
 
+                { call to BeforeDestruction? }
+                if (procdefinition^.proctypeoption=potype_destructor) and
+                   assigned(methodpointer) and
+                   (methodpointer.nodetype<>typen) and
+                   is_class(pobjectdef(methodpointer.resulttype)) and
+                   (inlined or
+                   (right=nil)) then
+                  begin
+                     emit_reg(A_PUSH,S_L,R_ESI);
+                     new(r);
+                     reset_reference(r^);
+                     r^.base:=R_ESI;
+                     getexplicitregister32(R_EDI);
+                     emit_ref_reg(A_MOV,S_L,r,R_EDI);
+                     new(r);
+                     reset_reference(r^);
+                     r^.offset:=72;
+                     r^.base:=R_EDI;
+                     emit_ref(A_CALL,S_NO,r);
+                     ungetregister32(R_EDI);
+                  end;
+
               { push base pointer ?}
               if (lexlevel>=normal_function_level) and assigned(pprocdef(procdefinition)^.parast) and
                 ((pprocdef(procdefinition)^.parast^.symtablelevel)>normal_function_level) then
@@ -895,9 +917,7 @@ implementation
                             r^.base:=R_ESI;
                             { this is one point where we need vmt_offset (PM) }
                             r^.offset:= pprocdef(procdefinition)^._class^.vmt_offset;
-{$ifndef noAllocEdi}
                             getexplicitregister32(R_EDI);
-{$endif noAllocEdi}
                             emit_ref_reg(A_MOV,S_L,r,R_EDI);
                             new(r);
                             reset_reference(r^);
@@ -983,9 +1003,7 @@ implementation
                       (right.location.reference.index=R_ESI) then
                      begin
                         del_reference(right.location.reference);
-{$ifndef noAllocEdi}
                         getexplicitregister32(R_EDI);
-{$endif noAllocEdi}
                         emit_ref_reg(A_MOV,S_L,
                           newreference(right.location.reference),R_EDI);
                         hregister:=R_EDI;
@@ -1046,13 +1064,9 @@ implementation
                 { better than an add on all processors }
                 if pushedparasize=4 then
                   begin
-{$ifndef noAllocEdi}
                     getexplicitregister32(R_EDI);
-{$endif noAllocEdi}
                     emit_reg(A_POP,S_L,R_EDI);
-{$ifndef noAllocEdi}
                     ungetregister32(R_EDI);
-{$endif noAllocEdi}
                   end
                 { the pentium has two pipes and pop reg is pairable }
                 { but the registers must be different!        }
@@ -1061,20 +1075,12 @@ implementation
                   (aktoptprocessor=ClassP5) and
                   (procinfo^._class=nil) then
                     begin
-{$ifndef noAllocEdi}
                        getexplicitregister32(R_EDI);
-{$endif noAllocEdi}
                        emit_reg(A_POP,S_L,R_EDI);
-{$ifndef noAllocEdi}
                        ungetregister32(R_EDI);
-{$endif noAllocEdi}
-{$ifndef noAllocEdi}
                        exprasmlist^.concat(new(pairegalloc,alloc(R_ESI)));
-{$endif noAllocEdi}
                        emit_reg(A_POP,S_L,R_ESI);
-{$ifndef noAllocEdi}
                        exprasmlist^.concat(new(pairegalloc,alloc(R_ESI)));
-{$endif noAllocEdi}
                     end
                 else if pushedparasize<>0 then
                   emit_const_reg(A_ADD,S_L,pushedparasize,R_ESP);
@@ -1102,6 +1108,31 @@ implementation
            begin
              emitjmp(C_Z,faillabel);
            end;
+
+         { call to AfterConstruction? }
+         if is_class(resulttype) and
+           (inlined or
+           (right=nil)) and
+           (procdefinition^.proctypeoption=potype_constructor) and
+           assigned(methodpointer) and
+           (methodpointer.nodetype<>typen) then
+           begin
+              emit_reg(A_PUSH,S_L,R_ESI);
+              new(r);
+              reset_reference(r^);
+              r^.base:=R_ESI;
+              getexplicitregister32(R_EDI);
+              emit_ref_reg(A_MOV,S_L,r,R_EDI);
+              new(r);
+              reset_reference(r^);
+              r^.offset:=68;
+              r^.base:=R_EDI;
+              emit_ref(A_CALL,S_NO,r);
+              ungetregister32(R_EDI);
+              exprasmlist^.concat(new(pairegalloc,alloc(R_EAX)));
+              emit_reg_reg(A_MOV,S_L,R_ESI,R_EAX);
+           end;
+
          { handle function results }
          { structured results are easy to handle.... }
          { needed also when result_no_used !! }
@@ -1556,7 +1587,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.5  2000-11-06 23:15:01  peter
+  Revision 1.6  2000-11-07 23:40:49  florian
+    + AfterConstruction and BeforeDestruction impemented
+
+  Revision 1.5  2000/11/06 23:15:01  peter
     * added copyvaluepara call again
 
   Revision 1.4  2000/11/04 14:25:23  florian

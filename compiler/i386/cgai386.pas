@@ -2680,10 +2680,15 @@ implementation
 
                   emitlab(okexitlabel);
 
-                  exprasmlist^.concat(new(pairegalloc,alloc(R_EAX)));
-                  emit_reg_reg(A_MOV,S_L,R_ESI,R_EAX);
+                  { for classes this is done after the call to }
+                  { AfterConstruction                          }
+                  if is_object(procinfo^._class) then
+                    begin
+                       exprasmlist^.concat(new(pairegalloc,alloc(R_EAX)));
+                       emit_reg_reg(A_MOV,S_L,R_ESI,R_EAX);
+                       uses_eax:=true;
+                    end;
                   emit_reg_reg(A_TEST,S_L,R_ESI,R_ESI);
-                  uses_eax:=true;
                   uses_esi:=true;
               end;
 
@@ -2931,7 +2936,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.9  2000-11-06 23:49:20  florian
+  Revision 1.10  2000-11-07 23:40:48  florian
+    + AfterConstruction and BeforeDestruction impemented
+
+  Revision 1.9  2000/11/06 23:49:20  florian
     * fixed init_paras call
 
   Revision 1.8  2000/11/06 23:15:01  peter
