@@ -47,7 +47,6 @@
 {$ifdef SUPPORT_DOUBLE}
     function Real2Double(r : real48) : double;
     operator := (b:real48) d:double;
-    function fpc_int64_to_double(i: int64): double; compilerproc;
 {$endif}
 {$ifdef SUPPORT_EXTENDED}
     operator := (b:real48) e:extended;
@@ -55,7 +54,10 @@
 
 {
   $Log$
-  Revision 1.12  2003-01-20 22:21:36  mazen
+  Revision 1.13  2003-01-21 19:36:36  mazen
+  - fpc_int64_to_double removed as not supported by most cpu targets
+
+  Revision 1.12  2003/01/20 22:21:36  mazen
   * many stuff related to RTL fixed
 
   Revision 1.11  2003/01/15 00:40:18  peter
