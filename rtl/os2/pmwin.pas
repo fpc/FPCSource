@@ -42,6 +42,9 @@ unit pmwin;
     uses
        os2def;
 
+const
+  MaxMB2DText = 70;
+
     type
        proc=function (hwnd,msg : cardinal;mp1,mp2 : pointer) : pointer; cdecl;
        QVERSDATA = record
@@ -348,6 +351,27 @@ unit pmwin;
         abText : array[0..1-1] of BYTE;
        end;
        PCPTEXT = ^CPTEXT;
+
+(* Type definitions for WinMessageBox2 *)
+  MB2D = record
+    achText: array [0..MaxMB2DText] of char;
+    idButtons: cardinal;
+    flStyle: cardinal;
+  end;
+  TMB2D = MB2D;
+  PMB2D = ^TMB2D;
+
+  MB2Info = record
+    cb: cardinal;               (* size of data              *)
+    hIcon: cardinal;            (* icon handle               *)
+    cButtons: cardinal;         (* number of buttons         *)
+    flStyle: cardinal;          (* icon style flags          *)
+    hwndNotify: cardinal;       (* owner notification handle *)
+    MB2D: array [0..0] TMB2D;   (* button definitions        *)
+  end;
+  TMB2Info = MB2Info;
+  PMB2Info = ^TMB2Info;
+
 {$PACKRECORDS NORMAL}
 
 {Names beginning with T for compatibility}
@@ -2481,6 +2505,7 @@ const
     function WinDefDlgProc(hwndDlg,msg : cardinal;mp1,mp2 : pointer) : pointer; cdecl;
     function WinAlarm(hwndDesktop,rgfType : cardinal) : longbool; cdecl;
     function WinMessageBox(hwndParent,hwndOwner : cardinal;pszText,pszCaption : pchar;idWindow,flStyle : cardinal) : cardinal; cdecl;
+    function WinMessageBox2(hwndParent,hwndOwner: cardinal;pszText,pszCaption: PChar; idWindow: cardinal; MBInfo: PMB2Info): cardinal; cdecl;
     function WinProcessDlg(hwndDlg : cardinal) : cardinal; cdecl;
     function WinSendDlgItemMsg(hwndDlg,idItem,msg : cardinal;mp1,mp2 : pointer) : pointer; cdecl;
     function WinMapDlgPoints(hwndDlg : cardinal;var prgwptl : TPointL;cwpt : cardinal;fCalcWindowCoords : longbool) : longbool; cdecl;
@@ -2800,6 +2825,9 @@ const
     function WinDefDlgProc(hwndDlg,msg : cardinal;mp1,mp2 : pointer) : pointer; cdecl;external 'pmwin' index 910;
     function WinAlarm(hwndDesktop,rgfType : cardinal) : longbool; cdecl;external 'pmwin' index 701;
     function WinMessageBox(hwndParent,hwndOwner : cardinal;pszText,pszCaption : pchar;idWindow,flStyle : cardinal) : cardinal; cdecl;external 'pmwin' index 789;
+(* Only available in later OS/2 versions probably???
+    function WinMessageBox2(hwndParent,hwndOwner: cardinal;pszText,pszCaption: PChar; idWindow: cardinal; MBInfo: PMB2Info): cardinal; cdecl; external 'pmwin' index 1015;
+*)
     function WinProcessDlg(hwndDlg : cardinal) : cardinal; cdecl;external 'pmwin' index 796;
     function WinSendDlgItemMsg(hwndDlg,idItem,msg : cardinal;mp1,mp2 : pointer) : pointer; cdecl;external 'pmwin' index 903;
     function WinMapDlgPoints(hwndDlg : cardinal;var prgwptl : TPointL;cwpt : cardinal;fCalcWindowCoords : longbool) : longbool; cdecl;external 'pmwin' index 787;
@@ -2973,7 +3001,10 @@ const
 end.
 {
   $Log$
-  Revision 1.7  2002-11-11 20:55:22  hajny
+  Revision 1.8  2002-12-07 17:50:17  hajny
+    + (Commented) WinMessageBox2 added
+
+  Revision 1.7  2002/11/11 20:55:22  hajny
     * WinCreateWindow correction + overloaded variant added
 
   Revision 1.6  2002/10/05 19:12:55  hajny
