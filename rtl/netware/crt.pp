@@ -117,8 +117,8 @@ implementation
 
 var
   DelayCnt,
-  ScreenWidth,
-  ScreenHeight : longint;
+//  ScreenWidth,
+//  ScreenHeight : longint;
   VidSeg : Word;
 
 {
