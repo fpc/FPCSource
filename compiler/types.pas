@@ -776,7 +776,9 @@ implementation
            begin
               if (l<0) and (porddef(def)^.typ=u64bit) then
                 begin
-                   l:=0;
+                   { don't zero the result, because it may come from hex notation 
+                     like $ffffffffffffffff! (JM)
+                   l:=0; }
                    if (cs_check_range in aktlocalswitches) then
                      Message(parser_e_range_check_error)
                    else
@@ -805,9 +807,10 @@ implementation
                      { this happens with the wrap around problem  }
                      { if lv is positive and hv is over $7ffffff  }
                      { so it seems negative                       }
+                     { fix with typecasts (JM) }
                      begin
-                        if ((l>=0) and (l<lv)) or
-                           ((l<0) and (l>hv)) then
+                        if (l < cardinal(lv)) or
+                           (l > cardinal(hv)) then
                           begin
                              if (cs_check_range in aktlocalswitches) then
                                Message(parser_e_range_check_error)
@@ -1737,7 +1740,12 @@ implementation
 end.
 {
   $Log$
-  Revision 1.25  2000-12-08 14:06:11  jonas
+  Revision 1.26  2000-12-11 19:13:54  jonas
+    * fixed range checking of cardinal constants
+    * fixed range checking of "qword constants" (they don't really exist,
+      but values > high(int64) were set to zero if assigned to qword)
+
+  Revision 1.25  2000/12/08 14:06:11  jonas
     * fix for web bug 1245: arrays of char with size >255 are now passed to
       overloaded procedures which expect ansistrings instead of shortstrings
       if possible
