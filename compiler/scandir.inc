@@ -690,8 +690,20 @@ const
             if c=',' then
              begin
                current_scanner^.readchar;   {Remove , }
-               hs:=current_scanner^.readid; {Check for multiple switches on one line}
-               Message1(scan_d_handling_switch,'$'+hs);
+             { read next switch, support $v+,$+}
+               hs:=current_scanner^.readid;
+               if (hs='') then
+                begin
+                  if (c='$') and not(cs_tp_compatible in aktmoduleswitches) then
+                   begin
+                     current_scanner^.readchar; { skip $ }
+                     hs:=current_scanner^.readid;
+                   end;
+                  if (hs='') then
+                   Message1(scan_w_illegal_directive,'$'+c);
+                end
+               else
+                Message1(scan_d_handling_switch,'$'+hs);
              end
             else
              hs:='';
@@ -720,8 +732,8 @@ const
 
 {
   $Log$
-  Revision 1.21  1998-08-19 00:30:22  peter
-    * in_main -> in_global
+  Revision 1.22  1998-08-19 14:57:50  peter
+    * small fix for aktfilepos
 
   Revision 1.20  1998/08/18 15:11:52  peter
     * recompiles again

@@ -229,7 +229,11 @@ begin
    begin
      status.currentsource:=current_module^.sourcefiles.get_file_name(aktfilepos.fileindex);
      lastmoduleidx:=current_module^.unit_index;
-     lastfileidx:=aktfilepos.fileindex;
+     { update lastfileidx only if name known PM }
+     if status.currentsource<>'' then
+       lastfileidx:=aktfilepos.fileindex
+     else
+       lastfileidx:=0;
    end;
 end;
 
@@ -327,20 +331,7 @@ begin
   Replace(s,'$VER',version_string);
   Replace(s,'$TARGET',target_string);
 { fix status }
-  status.currentline:=aktfilepos.line;
-  status.currentcolumn:=aktfilepos.column;
-  if assigned(current_module) and
-     ((current_module^.unit_index<>lastmoduleidx) or
-      (aktfilepos.fileindex<>lastfileidx)) then
-   begin
-     status.currentsource:=current_module^.sourcefiles.get_file_name(aktfilepos.fileindex);
-     lastmoduleidx:=current_module^.unit_index;
-     { update lastfileidx only if name known PM }
-     if status.currentsource<>'' then
-       lastfileidx:=aktfilepos.fileindex
-     else
-       lastfileidx:=0;
-   end;
+  UpdateStatus;
 { show comment }
   if do_comment(v,s) or dostop or (status.errorcount>=status.maxerrorcount) then
    stop;
@@ -389,7 +380,10 @@ end.
 
 {
   $Log$
-  Revision 1.16  1998-08-18 14:17:15  pierre
+  Revision 1.17  1998-08-19 14:57:52  peter
+    * small fix for aktfilepos
+
+  Revision 1.16  1998/08/18 14:17:15  pierre
     * bug about assigning the return value of a function to
       a procvar fixed : warning
       assigning a proc to a procvar need @ in FPC mode !!

@@ -593,6 +593,7 @@ implementation
 {$ifdef SourceLine}
          hp  : plongint;
 {$endif SourceLine}
+         oldaktfilepos : tfileposinfo;
       begin
         if (byte(inputpointer^)=0) and
            filenotatend then
@@ -629,10 +630,13 @@ implementation
          end;
         plongint(longint(linebuf)+line_no*2)^:=lastlinepos;
 {$endif SourceLine}
-      { update for status and call the show status routine }
+      { update for status and call the show status routine,
+        but don't touch aktfilepos ! }
+        oldaktfilepos:=aktfilepos;
         gettokenpos; { update for v_status }
         inc(status.compiledlines);
         ShowStatus;
+        aktfilepos:=oldaktfilepos;
       end;
 
 
@@ -1548,7 +1552,10 @@ exit_label:
 end.
 {
   $Log$
-  Revision 1.41  1998-08-18 14:17:10  pierre
+  Revision 1.42  1998-08-19 14:57:51  peter
+    * small fix for aktfilepos
+
+  Revision 1.41  1998/08/18 14:17:10  pierre
     * bug about assigning the return value of a function to
       a procvar fixed : warning
       assigning a proc to a procvar need @ in FPC mode !!
