@@ -10,15 +10,15 @@ dirs_linux=unzip uncgi \
 dirs_netbsd=unzip uncgi \
             x11 opengl gtk syslog \
             forms svgalib ggi libpng libgd \
-            utmp cmem bfd zlib gdbm ncurses fpgtk
+            utmp cmem bfd zlib gdbm ncurses fpgtk tcl imlib gnome1 
 dirs_freebsd=unzip uncgi \
              x11 opengl gtk syslog \
              forms svgalib ggi libpng libgd \
-             utmp cmem bfd zlib gdbm ncurses fpgtk
+             utmp cmem bfd zlib gdbm ncurses fpgtk tcl imlib gnome1
 dirs_openbsd=unzip uncgi  \
              x11 opengl gtk syslog \
              forms svgalib ggi libpng libgd \
-             utmp cmem bfd zlib gdbm ncurses fpgtk
+             utmp cmem bfd zlib gdbm ncurses fpgtk tcl imlib gnome1
 dirs_win32=unzip uncgi opengl gtk \
            zlib mmsystem tcl cdrom fpgtk
 dirs_os2=os2units \
