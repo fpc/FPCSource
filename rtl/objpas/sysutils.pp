@@ -26,9 +26,6 @@ interface
          ,go32
       {$endif go32v2}
     {$endif linux}
-    {$ifndef AUTOOBJPAS}
-       ,objpas
-    {$endif}   
        ;
 
 
@@ -54,9 +51,7 @@ interface
           fhelpcontext : longint;
         public
           constructor create(const msg : string);
-{$ifdef autoobjpas}
           constructor createfmt(const msg : string; const args : array of const);
-{$endif}          
           constructor createres(ident : longint);
           { !!!! }
           property helpcontext : longint read fhelpcontext write fhelpcontext;
@@ -77,7 +72,7 @@ interface
        EZeroDivide = Class(EMathError);
        EOverflow   = Class(EMathError);
        EUnderflow  = Class(EMathError);
-       
+
        { Run-time and I/O Errors }
        EInOutError = class(Exception)
          public
@@ -87,16 +82,16 @@ interface
        EOutOfMemory     = Class(Exception);
        EAccessViolation = Class(Exception);
        EInvalidCast = Class(Exception);
-       
-       
+
+
        { String conversion errors }
        EConvertError = class(Exception);
 
-       { Other errors } 
+       { Other errors }
        EAbort           = Class(Exception);
        EAbstractError   = Class(Exception);
        EAssertionFailed = Class(Exception);
-       
+
   { Read date & Time function declarations }
   {$i datih.inc}
 
@@ -111,14 +106,14 @@ interface
 
   { Read other file handling function declarations }
   {$i filutilh.inc}
-  
+
   { Read disk function declarations }
   {$i diskh.inc}
-  
+
   implementation
-  
+
   { Read message string definitions }
-  { 
+  {
    Add a language with IFDEF LANG_NAME
    just befor the final ELSE. This way English will always be the default.
   }
@@ -134,10 +129,10 @@ interface
 
   { Read other file handling function implementations }
   {$i filutil.inc}
-  
+
   { Read disk function implementations }
   {$i disk.inc}
-  
+
   { Read date & Time function implementations }
   {$i dati.inc}
 
@@ -155,14 +150,14 @@ interface
          fmessage:=msg;
       end;
 
-{$ifdef autoobjpas}
+
     constructor exception.createfmt(const msg : string; const args : array of const);
 
       begin
          inherited create;
          fmessage:=Format(msg,args);
       end;
-{$endif}
+
 
     constructor exception.createres(ident : longint);
 
@@ -171,8 +166,8 @@ interface
          {!!!!!}
       end;
 
-       
-Procedure CatchUnhandledException (Obj : TObject; Addr: Pointer);    
+
+Procedure CatchUnhandledException (Obj : TObject; Addr: Pointer);
 Var
   Message : String;
 begin
@@ -193,13 +188,13 @@ end;
 
 Var OutOfMemory : EOutOfMemory;
     InValidPointer : EInvalidPointer;
-    
+
 
 Procedure RunErrorToExcept (ErrNo : Longint; Address : Pointer);
 
 Var E : Exception;
     S : String;
-    
+
 begin
   Case Errno of
    1,203 : E:=OutOfMemory;
@@ -224,37 +219,32 @@ begin
      E:=EinOutError.Create (S);
      EInoutError(E).ErrorCode:=IOresult; // Clears InOutRes !!
      end;
-  // We don't set abstracterrorhandler, but we do it here. 
+  // We don't set abstracterrorhandler, but we do it here.
   // Unless the use sets another handler we'll get here anyway...
   200 : E:=EDivByZero.Create(SDivByZero);
-  201 : E:=ERangeError.Create(SRangeError);  
+  201 : E:=ERangeError.Create(SRangeError);
   211 : E:=EAbstractError.Create(SAbstractError);
   216 : E:=EAccessViolation.Create(SAccessViolation);
   219 : E:=EInvalidCast.Create(SInvalidCast);
   227 : E:=EAssertionFailed.Create(SAssertionFailed);
   else
-{$ifdef autoobjpas}
    E:=Exception.CreateFmt (SUnKnownRunTimeError,[Errno]);
-{$else}
-   E:=Exception.Create(SUnknownRunTimeError);
-{$endif}
   end;
   Raise E {at Address};
 end;
 
-{$ifdef autoobjpas}
+
 Procedure AssertErrorHandler (Const Msg,FN : String;LineNo,TheAddr : Longint);
-
-Var S: String;
-
+Var
+  S : String;
 begin
-  If Msg='' then 
+  If Msg='' then
     S:=SAssertionFailed
   else
     S:=Msg;
   Raise EAssertionFailed.Createfmt(SAssertError,[S,Fn,LineNo]); // at Pointer(theAddr);
 end;
-{$endif}
+
 
 Procedure InitExceptions;
 {
@@ -267,9 +257,7 @@ begin
   // Create objects that may have problems when there is no memory.
   OutOfMemory:=EOutOfMemory.Create(SOutOfMemory);
   InvalidPointer:=EInvalidPointer.Create(SInvalidPointer);
-{$ifdef autoobjpas}  
   AssertErrorProc:=@AssertErrorHandler;
-{$endif}
   ErrorProc:=@RunErrorToExcept;
 end;
 
@@ -280,7 +268,10 @@ begin
 end.
 {
     $Log$
-    Revision 1.17  1998-10-20 19:26:37  michael
+    Revision 1.18  1998-12-15 22:43:12  peter
+      * removed temp symbols
+
+    Revision 1.17  1998/10/20 19:26:37  michael
     + Forgot to include disk functions
 
     Revision 1.16  1998/10/11 12:23:41  michael

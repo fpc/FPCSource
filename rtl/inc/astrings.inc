@@ -114,7 +114,7 @@ begin
 end;
 
 
-Procedure Decr_Ansi_Ref (Var S : Pointer);[Public,Alias:{$ifdef NEWSTRNAMES}'FPC_ANSISTR_DECR_REF'{$else}'FPC_DECR_ANSI_REF'{$endif}];
+Procedure Decr_Ansi_Ref (Var S : Pointer);[Public,Alias:'FPC_ANSISTR_DECR_REF'];
 {
   Decreases the ReferenceCount of a non constant ansistring;
   If the reference count is zero, deallocate the string;
@@ -136,7 +136,7 @@ Begin
 end;
 
 
-Procedure Incr_Ansi_Ref (Var S : Pointer);[Public,Alias:{$ifdef NEWSTRNAMES}'FPC_ANSISTR_INCR_REF'{$else}'FPC_INCR_ANSI_REF'{$endif}];
+Procedure Incr_Ansi_Ref (Var S : Pointer);[Public,Alias:'FPC_ANSISTR_INCR_REF'];
 Begin
   If S=Nil then
     exit;
@@ -167,7 +167,7 @@ begin
 end;
 
 
-Procedure AssignAnsiString (Var S1 : Pointer;S2 : Pointer);[Public,Alias:{$ifdef NEWSTRNAMES}'FPC_ANSISTR_ASSIGN'{$else}'FPC_ASSIGN_ANSI_STRING'{$endif}];
+Procedure AssignAnsiString (Var S1 : Pointer;S2 : Pointer);[Public,Alias:'FPC_ANSISTR_ASSIGN'];
 {
   Assigns S2 to S1 (S1:=S2), taking in account reference counts.
 }
@@ -722,7 +722,10 @@ end;
 
 {
   $Log$
-  Revision 1.4  1998-11-18 10:56:46  michael
+  Revision 1.5  1998-12-15 22:43:01  peter
+    * removed temp symbols
+
+  Revision 1.4  1998/11/18 10:56:46  michael
   + Fixed pchar2ansi
 
   Revision 1.3  1998/11/17 12:16:07  michael

@@ -27,9 +27,7 @@
 {$I-,Q-,H-,R-,V-}
 
 { needed for insert,delete,readln }
-{$ifdef OPENSTRINGS}
-  {$P+}
-{$endif}
+{$P+}
 
 { Stack check gives a note under linux }
 {$ifndef linux}
@@ -64,19 +62,13 @@ Type
 {$endif}
 
 {$ifdef m68k}
-   StrLenInt = Integer;
+   StrLenInt = Longint;
    ValReal = Real;
-   {$ifdef USEANSISTRINGS}
-      {$error StrLenInt must be a longint if ansi strings are used}
-   {$endif}
 {$endif}
 
 { some type aliases }
   dword       = cardinal;
   longword    = cardinal;
-{$ifndef useansistrings}
-  shortstring = string;
-{$endif}
 
 { Zero - terminated strings }
   PChar       = ^Char;
@@ -437,7 +429,10 @@ const
 
 {
   $Log$
-  Revision 1.44  1998-11-27 14:50:57  peter
+  Revision 1.45  1998-12-15 22:43:04  peter
+    * removed temp symbols
+
+  Revision 1.44  1998/11/27 14:50:57  peter
     + open strings, $P switch support
 
   Revision 1.43  1998/11/26 23:16:13  jonas

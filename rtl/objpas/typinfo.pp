@@ -23,11 +23,6 @@ unit typinfo;
 
 {$MODE objfpc}
 
-{$ifndef AUTOOBJPAS}
-    uses
-      objpas;
-{$endif}
-
 // temporary types:
 
     type
@@ -39,7 +34,7 @@ unit typinfo;
        PDouble      =^Double;
        PExtended    =^Extended;
        PComp        =^Comp;
-       PFixed16     =^Fixed16; 
+       PFixed16     =^Fixed16;
        { Doesn't exist ?
        PFIxed32  = ^Fixed32;
        }
@@ -143,7 +138,7 @@ unit typinfo;
         // bit 0..1 GetProc
         //     2..3 SetProc
         //     4..5 StoredProc
-        //     6 : true, constant index property 
+        //     6 : true, constant index property
         PropProcs : Byte;
 
         Name : ShortString;
@@ -202,7 +197,7 @@ unit typinfo;
 {$ASMMODE ATT}
 
     function CallIntegerFunc(s : Pointer;Address : Pointer; INdex,IValue : Longint) : Integer;assembler;
-    
+
       Label LINoPush;
 
       asm
@@ -228,7 +223,7 @@ unit typinfo;
          movl Address,%edi
          // Push value to set
          movl Value,%eax
-         pushl %eax 
+         pushl %eax
          // ? Indexed procedure
          movl Index,%eax
          xorl %eax,%eax
@@ -241,7 +236,7 @@ unit typinfo;
       end;
 
     function CallExtendedFunc(s : Pointer;Address : Pointer; INdex,IValue : Longint) : Extended;assembler;
-    
+
       Label LINoPush;
 
       asm
@@ -268,7 +263,7 @@ unit typinfo;
          // Push value to set
          //!! MUST BE CHANGED !!
          movl Value,%eax
-         pushl %eax 
+         pushl %eax
          // ? Indexed procedure
          movl Index,%eax
          xorl %eax,%eax
@@ -282,7 +277,7 @@ unit typinfo;
     function CallBooleanFunc(s : Pointer;Address : Pointer; Index,IValue : Longint) : Boolean;assembler;
 
       Label LBNoPush;
-      
+
       asm
          movl S,%edi
          movl Address,%edi
@@ -302,7 +297,7 @@ unit typinfo;
 
     Procedure CallSStringFunc(s : Pointer;Address : Pointer; INdex,IValue : Longint;
                             Var Res: Shortstring);assembler;
-    
+
       Label LSSNoPush;
 
       asm
@@ -329,7 +324,7 @@ unit typinfo;
          // Push value to set
          //!! Is this correct for short strings ????
          movl Value,%eax
-         pushl %eax 
+         pushl %eax
          // ? Indexed procedure
          movl Index,%eax
          xorl %eax,%eax
@@ -403,10 +398,10 @@ unit typinfo;
       Var TD : PTypeData;
           TP : PPropInfo;
           Count : Longint;
-          
+
       begin
       TD:=GetTypeData(TypeInfo);
-      // Get this objects TOTAL published properties count 
+      // Get this objects TOTAL published properties count
       TP:=(@TD^.UnitName+Length(TD^.UnitName)+1);
       Count:=PWord(TP)^;
       // Now point TP to first propinfo record.
@@ -415,7 +410,7 @@ unit typinfo;
         begin
         PropList^[0]:=TP;
         Inc(Longint(PropList),SizeOf(Pointer));
-        // Point to TP next propinfo record. 
+        // Point to TP next propinfo record.
         // Located at Name[Length(Name)+1] !
         TP:=PPropInfo((@TP^.Name)+PByte(@TP^.Name)^+1);
         Dec(Count);
@@ -424,17 +419,17 @@ unit typinfo;
       If TD^.Parentinfo<>Nil then
         GetPropInfos (TD^.ParentInfo,PropList);
       end;
-      
-    Procedure InsertProp (PL : PProplist;PI : PPropInfo; Count : longint);   
-    
+
+    Procedure InsertProp (PL : PProplist;PI : PPropInfo; Count : longint);
+
     VAr I : Longint;
-    
+
     begin
      I:=0;
      While (I<Count) and (PI^.Name>PL^[I]^.Name) do Inc(I);
      If I<Count then
        Move(PL^[I],PL[I+1],Count-I*SizeOf(Pointer));
-     PL^[I]:=PI; 
+     PL^[I]:=PI;
     end;
 
     function GetPropList(TypeInfo : PTypeInfo;TypeKinds : TTypeKinds;
@@ -448,7 +443,7 @@ unit typinfo;
       Var TempList : PPropList;
           PropInfo : PPropinfo;
           I,Count : longint;
-      
+
       begin
         Result:=0;
         Count:=GetTypeData(TypeInfo)^.Propcount;
@@ -467,13 +462,13 @@ unit typinfo;
                 end;
               end;
           finally
-            FreeMem(TempList,Count*SizeOf(Pointer));    
+            FreeMem(TempList,Count*SizeOf(Pointer));
           end;
           end;
       end;
 
     Procedure SetIndexValues (P: PPRopInfo; Var Index,IValue : Longint);
-    
+
     begin
     Index:=((P^.PropProcs shr 6) and 1);
     If Index=0 then
@@ -536,16 +531,16 @@ unit typinfo;
       end;
 
     Function GetAStrProp(Instance : TObject;PropInfo : PPropInfo):Pointer;
-    
+
       {
       Dirty trick based on fact that AnsiString is just a pointer,
       hence can be treated like an integer type.
       }
-    
+
       var
          value : Pointer;
          Index,Ivalue : Longint;
-           
+
       begin
          SetIndexValues(PropInfo,Index,IValue);
          case (PropInfo^.PropProcs) and 3 of
@@ -562,11 +557,11 @@ unit typinfo;
       end;
 
     Function GetSStrProp(Instance : TObject;PropInfo : PPropInfo):ShortString;
-    
+
       var
          value : ShortString;
          Index,IValue : Longint;
-         
+
       begin
          SetIndexValues(PropInfo,Index,IValue);
          case (PropInfo^.PropProcs) and 3 of
@@ -601,16 +596,16 @@ unit typinfo;
       Dirty trick based on fact that AnsiString is just a pointer,
       hence can be treated like an integer type.
       }
-    
+
       var
          Index,Ivalue : Longint;
-           
+
       begin
          SetIndexValues(PropInfo,Index,IValue);
          case (PropInfo^.PropProcs) and 3 of
             ptfield:
               PLongint(Pointer(Instance)+Longint(PropInfo^.SetProc))^:=Longint(Pointer(Value)) ;
-            ptstatic: 
+            ptstatic:
               CallIntegerProc(Instance,PropInfo^.SetProc,Longint(Pointer(Value)),Index,IValue);
             ptvirtual:
               CallIntegerProc(Instance,
@@ -618,7 +613,7 @@ unit typinfo;
                               Longint(Pointer(Value)),Index,IValue);
          end;
       end;
-    
+
     procedure SetSStrProp(Instance : TObject;PropInfo : PPropInfo;
       const Value : ShortString);
 
@@ -637,7 +632,7 @@ unit typinfo;
                               Value,Index,IValue);
          end;
     end;
-    
+
     procedure SetStrProp(Instance : TObject;PropInfo : PPropInfo;
       const Value : AnsiString);
 
@@ -660,7 +655,7 @@ unit typinfo;
          case (PropInfo^.PropProcs) and 3 of
             ptfield:
               Case GetTypeData(PropInfo^.PropType)^.FloatType of
-               ftSingle: 
+               ftSingle:
                  Value:=PSingle(Pointer(Instance)+Longint(PropInfo^.GetProc))^;
                ftDouble:
                  Value:=PDouble(Pointer(Instance)+Longint(PropInfo^.GetProc))^;
@@ -673,7 +668,7 @@ unit typinfo;
                  Value:=PFixed16(Pointer(Instance)+Longint(PropInfo^.GetProc))^;
                ftfixed32:
                  Value:=PFixed32(Pointer(Instance)+Longint(PropInfo^.GetProc))^;
-               }  
+               }
                end;
             ptstatic:
               Value:=CallExtendedFunc(Instance,PropInfo^.GetProc,Index,IValue);
@@ -686,15 +681,15 @@ unit typinfo;
 
     procedure SetFloatProp(Instance : TObject;PropInfo : PPropInfo;
       Value : Extended);
-      
+
        Var IValue,Index : longint;
-      
+
        begin
          SetIndexValues(PropInfo,Index,Ivalue);
          case (PropInfo^.PropProcs) and 3 of
             ptfield:
               Case GetTypeData(PropInfo^.PropType)^.FloatType of
-               ftSingle: 
+               ftSingle:
                  PSingle(Pointer(Instance)+Longint(PropInfo^.SetProc))^:=Value;
                ftDouble:
                  PDouble(Pointer(Instance)+Longint(PropInfo^.SetProc))^:=Value;
@@ -707,7 +702,7 @@ unit typinfo;
                  PFixed16(Pointer(Instance)+Longint(PropInfo^.SetProc))^:=Value;
                ftfixed32:
                  PFixed32(Pointer(Instance)+Longint(PropInfo^.SetProc))^:=Value;
-               }  
+               }
                end;
             ptstatic:
               CallExtendedProc(Instance,PropInfo^.SetProc,Value,Index,IValue);
@@ -747,7 +742,7 @@ unit typinfo;
     function GetEnumName(TypeInfo : PTypeInfo;Value : Integer) : string;
 
       Var PS : PShortString;
-          PT : PTypeData;           
+          PT : PTypeData;
 
       begin
        PT:=GetTypeData(GetTypeData(TypeInfo)^.BaseType);
@@ -762,20 +757,20 @@ unit typinfo;
       end;
 
     function GetEnumValue(TypeInfo : PTypeInfo;const Name : string) : Integer;
-    
+
       Var PS : PShortString;
           PT : PTypeData;
           Count : longint;
-          
+
       begin
         If Length(Name)=0 then exit(-1);
         PT:=GetTypeData(GetTypeData(TypeInfo)^.BaseType);
         Count:=0;
         Result:=-1;
         PS:=@PT^.NameList;
-        While (Result=-1) and (PByte(PS)^<>0) do 
+        While (Result=-1) and (PByte(PS)^<>0) do
           begin
-          If PS^=Name then 
+          If PS^=Name then
             Result:=Count;
           PS:=PS+PByte(PS)^;
           Inc(Count);
@@ -786,7 +781,10 @@ end.
 
 {
   $Log$
-  Revision 1.16  1998-12-02 12:35:07  michael
+  Revision 1.17  1998-12-15 22:43:13  peter
+    * removed temp symbols
+
+  Revision 1.16  1998/12/02 12:35:07  michael
   More changes for type-information
 
   Revision 1.15  1998/11/26 14:57:47  michael

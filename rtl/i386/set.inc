@@ -16,7 +16,7 @@
 
 {$ASMMODE ATT}
 
-procedure do_load_small(p : pointer;l:longint);assembler;[public,alias: {$ifdef FPCNAMES}'FPC_'+{$endif}'SET_LOAD_SMALL'];
+procedure do_load_small(p : pointer;l:longint);assembler;[public,alias:'FPC_SET_LOAD_SMALL'];
 {
   load a normal set p from a smallset l
 }
@@ -55,8 +55,7 @@ asm
         popl    %eax
 end;
 
-procedure do_set_byte(p : pointer;b : byte);assembler;
-   [public,alias: {$ifdef FPCNAMES}'FPC_'+{$endif}'SET_SET_BYTE'];
+procedure do_set_byte(p : pointer;b : byte);assembler;[public,alias:'FPC_SET_SET_BYTE'];
 {
   add the element b to the set pointed by p
 }
@@ -74,8 +73,7 @@ asm
 end;
 
 
-procedure do_unset_byte(p : pointer;b : byte);assembler;
-   [public,alias: {$ifdef FPCNAMES}'FPC_'+{$endif}'SET_UNSET_BYTE'];
+procedure do_unset_byte(p : pointer;b : byte);assembler;[public,alias:'FPC_SET_UNSET_BYTE'];
 {
   suppresses the element b to the set pointed by p
   used for exclude(set,element)
@@ -94,7 +92,7 @@ asm
 end;
 
 
-procedure do_set_range(p : pointer;l,h : byte);assembler;[public,alias: {$ifdef FPCNAMES}'FPC_'+{$endif}'SET_SET_RANGE'];
+procedure do_set_range(p : pointer;l,h : byte);assembler;[public,alias:'FPC_SET_SET_RANGE'];
 {
   bad implementation, but it's very seldom used
 }
@@ -121,7 +119,7 @@ asm
 end;
 
 
-procedure do_in_byte(p : pointer;b : byte);assembler;[public,alias:{$ifdef FPCNAMES}'FPC_'+{$endif}'SET_IN_BYTE'];
+procedure do_in_byte(p : pointer;b : byte);assembler;[public,alias:'FPC_SET_IN_BYTE'];
 {
   tests if the element b is in the set p the carryflag is set if it present
 }
@@ -140,7 +138,7 @@ end;
 
 
 
-procedure do_add_sets(set1,set2,dest : pointer);assembler;[public,alias: {$ifdef FPCNAMES}'FPC_'+{$endif}'SET_ADD_SETS'];
+procedure do_add_sets(set1,set2,dest : pointer);assembler;[public,alias:'FPC_SET_ADD_SETS'];
 {
   adds set1 and set2 into set dest
 }
@@ -160,7 +158,7 @@ end;
 
 
 
-procedure do_mul_sets(set1,set2,dest:pointer);assembler;[public,alias: {$ifdef FPCNAMES}'FPC_'+{$endif}'SET_MUL_SETS'];
+procedure do_mul_sets(set1,set2,dest:pointer);assembler;[public,alias:'FPC_SET_MUL_SETS'];
 {
   multiplies (takes common elements of) set1 and set2 result put in dest
 }
@@ -179,7 +177,7 @@ asm
 end;
 
 
-procedure do_sub_sets(set1,set2,dest:pointer);assembler;[public,alias: {$ifdef FPCNAMES}'FPC_'+{$endif}'SET_SUB_SETS'];
+procedure do_sub_sets(set1,set2,dest:pointer);assembler;[public,alias:'FPC_SET_SUB_SETS'];
 {
   computes the diff from set1 to set2 result in dest
 }
@@ -200,7 +198,7 @@ asm
 end;
 
 
-procedure do_symdif_sets(set1,set2,dest:pointer);assembler;[public,alias: {$ifdef FPCNAMES}'FPC_'+{$endif}'SET_SYMDIF_SETS'];
+procedure do_symdif_sets(set1,set2,dest:pointer);assembler;[public,alias:'FPC_SET_SYMDIF_SETS'];
 {
    computes the symetric diff from set1 to set2 result in dest
 }
@@ -220,7 +218,7 @@ asm
 end;
 
 
-procedure do_comp_sets(set1,set2 : pointer);assembler;[public,alias: {$ifdef FPCNAMES}'FPC_'+{$endif}'SET_COMP_SETS'];
+procedure do_comp_sets(set1,set2 : pointer);assembler;[public,alias:'FPC_SET_COMP_SETS'];
 {
   compares set1 and set2 zeroflag is set if they are equal
 }
@@ -245,7 +243,7 @@ end;
 
 {$ifdef LARGESETS}
 
-procedure do_set(p : pointer;b : word);assembler;[public,alias: {$ifdef FPCNAMES}'FPC_'+{$endif}'SET_SET_WORD'];
+procedure do_set(p : pointer;b : word);assembler;[public,alias:'FPC_SET_SET_WORD'];
 {
   sets the element b in set p works for sets larger than 256 elements
   not yet use by the compiler so
@@ -264,7 +262,7 @@ asm
 end;
 
 
-procedure do_in(p : pointer;b : word);assembler;[public,alias: {$ifdef FPCNAMES}'FPC_'+{$endif}'SET_IN_WORD'];
+procedure do_in(p : pointer;b : word);assembler;[public,alias:'FPC_SET_IN_WORD'];
 {
   tests if the element b is in the set p the carryflag is set if it present
   works for sets larger than 256 elements
@@ -283,7 +281,7 @@ asm
 end;
 
 
-procedure add_sets(set1,set2,dest : pointer;size : longint);assembler;[public,alias: {$ifdef FPCNAMES}'FPC_'+{$endif}'SET_ADD_SETS_SIZE'];
+procedure add_sets(set1,set2,dest : pointer;size : longint);assembler;[public,alias:'FPC_SET_ADD_SETS_SIZE'];
 {
   adds set1 and set2 into set dest size is the number of bytes in the set
 }
@@ -302,7 +300,7 @@ asm
 end;
 
 
-procedure mul_sets(set1,set2,dest : pointer;size : longint);assembler;[public,alias: {$ifdef FPCNAMES}'FPC_'+{$endif}'SET_MUL_SETS_SIZE'];
+procedure mul_sets(set1,set2,dest : pointer;size : longint);assembler;[public,alias:'FPC_SET_MUL_SETS_SIZE'];
 {
   multiplies (i.E. takes common elements of) set1 and set2 result put in
   dest size is the number of bytes in the set
@@ -322,7 +320,7 @@ asm
 end;
 
 
-procedure sub_sets(set1,set2,dest : pointer;size : longint);assembler;[public,alias: {$ifdef FPCNAMES}'FPC_'+{$endif}'SET_SUB_SETS_SIZE'];
+procedure sub_sets(set1,set2,dest : pointer;size : longint);assembler;[public,alias:'FPC_SET_SUB_SETS_SIZE'];
 asm
          movl set1,%esi
          movl set2,%ebx
@@ -340,7 +338,7 @@ asm
 end;
 
 
-procedure sym_sub_sets(set1,set2,dest : pointer;size : longint);assembler;[public,alias: {$ifdef FPCNAMES}'FPC_'+{$endif}'SET_SYMDIF_SETS_SIZE'];
+procedure sym_sub_sets(set1,set2,dest : pointer;size : longint);assembler;[public,alias:'FPC_SET_SYMDIF_SETS_SIZE'];
 {
    computes the symetric diff from set1 to set2 result in dest
 }
@@ -360,7 +358,7 @@ asm
 end;
 
 
-procedure comp_sets(set1,set2 : pointer;size : longint);assembler;[public,alias: {$ifdef FPCNAMES}'FPC_'+{$endif}'SET_COMP_SETS_SIZE'];
+procedure comp_sets(set1,set2 : pointer;size : longint);assembler;[public,alias:'FPC_SET_COMP_SETS_SIZE'];
 asm
       movl set1,%esi
       movl set2,%edi
@@ -383,7 +381,10 @@ end;
 
 {
   $Log$
-  Revision 1.7  1998-11-24 12:54:01  peter
+  Revision 1.8  1998-12-15 22:43:00  peter
+    * removed temp symbols
+
+  Revision 1.7  1998/11/24 12:54:01  peter
     + FPC_SET_CREATE_ELEMENT
 
   Revision 1.6  1998/10/22 14:50:08  pierre

@@ -408,12 +408,8 @@ function StrToInt(const S: string): integer;
 var Error: word;
 
 begin
- Val(S, result, Error);
-{$ifdef autoobjpas}
+  Val(S, result, Error);
   if Error <> 0 then raise EConvertError.createfmt(SInValidInteger,[S]);
-{$else}
-  if Error <> 0 then raise EConvertError.create(s + ' is not a valid integer');
-{$endif}
 end ;
 
 {   StrToIntDef converts the string S to an integer value,
@@ -435,11 +431,9 @@ end ;
 {   FmtLoadStr returns the string resource Ident and formats it accordingly   }
 
 
-{$ifdef autoobjpas}
 function FmtLoadStr(Ident: integer; const Args: array of const): string;
 begin
 end;
-{$endif}
 
 Const
   feInvalidFormat   = 1;
@@ -461,18 +455,14 @@ Var S : String;
 begin
   //!! must be changed to contain format string...
   S:='';
-{$ifdef autoobjpas}
   Case ErrCode of
    feInvalidFormat : EConvertError.Createfmt(SInvalidFormat,[s]);
    feMissingArgument : EConvertError.Createfmt(SArgumentMissing,[s]);
    feInvalidArgIndex : EConvertError.Createfmt(SInvalidArgIndex,[s]);
  end;
-{$else}
-  EConvertError.Create('Invalid format encountered : '+S);
-{$endif}
 end;
 
-{$ifdef AUTOOBJPAS}
+
 Function Format (Const Fmt : String; const Args : Array of const) : String;
 
 Var ChPos,OldPos,ArgPos,DoArg,Len : Longint;
@@ -710,7 +700,6 @@ begin
     Oldpos:=chpos;
     end;
 end;
-{$endif}
 
 {==============================================================================}
 {   extra functions                                                            }
@@ -813,10 +802,8 @@ const
    CP_NorwayDenmark = 865;
 
 {  CountryInfo   }
-
-{$PACKRECORDS 1}
 type
-   TCountryInfo = record
+   TCountryInfo = packed record
       InfoId: byte;
       case integer of
          1: ( Size: word;
@@ -830,7 +817,6 @@ type
          7: ( DBCSLeadByteTable: longint );
    end ;
 
-{$PACKRECORDS NORMAL}
 
 procedure GetExtendedCountryInfo(InfoId: integer; CodePage, CountryId: word; var CountryInfo: TCountryInfo);
 var Regs: Registers;
@@ -894,7 +880,10 @@ end ;
 
 {
   $Log$
-  Revision 1.9  1998-11-04 10:20:52  peter
+  Revision 1.10  1998-12-15 22:43:09  peter
+    * removed temp symbols
+
+  Revision 1.9  1998/11/04 10:20:52  peter
     * ansistring fixes
 
   Revision 1.8  1998/10/02 13:57:38  michael
@@ -918,25 +907,6 @@ end ;
 
   Revision 1.2  1998/09/16 08:28:42  michael
   Update from gertjan Schouten, plus small fix for linux
-
-  $Log$
-  Revision 1.9  1998-11-04 10:20:52  peter
-    * ansistring fixes
-
-  Revision 1.8  1998/10/02 13:57:38  michael
-  Format error now causes exception
-
-  Revision 1.7  1998/10/02 12:17:17  michael
-  + Made sure it compiles with official 0.99.8
-
-  Revision 1.6  1998/10/02 10:42:17  michael
-  + Initial implementation of format
-
-  Revision 1.5  1998/10/01 16:05:37  michael
-  Added (empty) format function
-
-  Revision 1.4  1998/09/17 12:39:52  michael
-  + Further fixes from GertJan Schouten
 
   Revision 1.1  1998/04/10 15:17:46  michael
   + Initial implementation; Donated by Gertjan Schouten

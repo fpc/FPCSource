@@ -590,7 +590,7 @@ begin
 end;
 
 
-procedure int_stackcheck(stack_size:longint);[public,alias: {$ifdef FPCNAMES}'FPC_'+{$endif}'STACKCHECK'];
+procedure int_stackcheck(stack_size:longint);[public,alias:'FPC_STACKCHECK'];
 {
   called when trying to get local stack if the compiler directive $S
   is set this function must preserve esi !!!! because esi is set by
@@ -1227,7 +1227,10 @@ Begin
 End.
 {
   $Log$
-  Revision 1.24  1998-11-29 22:28:10  peter
+  Revision 1.25  1998-12-15 22:42:52  peter
+    * removed temp symbols
+
+  Revision 1.24  1998/11/29 22:28:10  peter
     + io-error 103 added
 
   Revision 1.23  1998/11/16 14:15:02  pierre

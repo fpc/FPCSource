@@ -217,7 +217,7 @@
                        EXTENDED data type routines
  ****************************************************************************}
 
-    function pi : extended;assembler;{$ifdef MORECONST}[internconst:in_const_pi];{$endif}
+    function pi : extended;assembler;[internconst:in_const_pi];
       asm
             fldpi
       end [];
@@ -238,14 +238,14 @@
       end [];
 
 
-    function sqrt(d : extended) : extended;assembler;{$ifdef MORECONST}[internconst:in_const_sqrt];{$endif}
+    function sqrt(d : extended) : extended;assembler;[internconst:in_const_sqrt];
       asm
             fldt d
             fsqrt
       end [];
 
 
-    function arctan(d : extended) : extended;assembler;{$ifdef MORECONST}[internconst:in_const_arctan];{$endif}
+    function arctan(d : extended) : extended;assembler;[internconst:in_const_arctan];
       asm
             fldt d
             fld1
@@ -253,7 +253,7 @@
       end [];
 
 
-    function cos(d : extended) : extended;assembler;{$ifdef MORECONST}[internconst:in_const_cos];{$endif}
+    function cos(d : extended) : extended;assembler;[internconst:in_const_cos];
       asm
             fldt d
             fcos
@@ -273,7 +273,7 @@
       end ['EAX'];
 
 
-    function exp(d : extended) : extended;assembler;{$ifdef MORECONST}[internconst:in_const_exp];{$endif}
+    function exp(d : extended) : extended;assembler;[internconst:in_const_exp];
        asm
             // comes from DJ GPP
             fldt        d
@@ -376,7 +376,7 @@
       end ['EAX','ECX'];
 
 
-    function ln(d : extended) : extended;assembler;{$ifdef MORECONST}[internconst:in_const_ln];{$endif}
+    function ln(d : extended) : extended;assembler;[internconst:in_const_ln];
       asm
             fldln2
             fldt d
@@ -384,7 +384,7 @@
       end [];
 
 
-    function sin(d : extended) : extended;assembler;{$ifdef MORECONST}[internconst:in_const_sin];{$endif}
+    function sin(d : extended) : extended;assembler;[internconst:in_const_sin];
       asm
             fldt d
             fsin
@@ -543,7 +543,10 @@
 
 {
   $Log$
-  Revision 1.12  1998-11-24 12:54:57  peter
+  Revision 1.13  1998-12-15 22:42:56  peter
+    * removed temp symbols
+
+  Revision 1.12  1998/11/24 12:54:57  peter
     * removed all explicit leave;ret commands and let them generate by
       the compiler (needed for stack alignment)
 

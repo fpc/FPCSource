@@ -16,8 +16,7 @@
 { Run-Time type information routines - processor dependent part }
 {$ASMMODE DIRECT}
 
-Procedure Initialize (Data,TypeInfo : pointer);[Public,Alias : 'FPC_INITIALIZE'{$ifndef FPC_NAMES},alias:'INITIALIZE'{$endif}];assembler;
-
+Procedure Initialize (Data,TypeInfo : pointer);[Public,Alias:'FPC_INITIALIZE'];assembler;
 asm
 # Save registers
         push    %eax
@@ -109,8 +108,8 @@ asm
         pop     %eax
 end;
 
-Procedure Finalize (Data,TypeInfo: Pointer);[Public,Alias : 'FPC_FINALIZE'{$ifndef FPC_NAMES},alias:'FINALIZE'{$endif}]; assembler;
 
+Procedure Finalize (Data,TypeInfo: Pointer);[Public,Alias:'FPC_FINALIZE'];assembler;
 asm
         push    %eax
         push    %ebx
@@ -192,11 +191,7 @@ asm
 # AnsiString handling :
 .DoAnsiStringFinal:
         pushl   8(%ebp)
-{$ifdef NEWSTRNAMES}
         call    FPC_ANSISTR_DECR_REF
-{$else}
-        call    FPC_DECR_ANSI_REF
-{$endif}
 .ExitFinalize:
         pop     %edx
         pop     %ecx
@@ -204,8 +199,8 @@ asm
         pop     %eax
 end;
 
-Procedure Addref (Data,TypeInfo : Pointer); [Public,alias : 'FPC_ADDREF'];Assembler;
 
+Procedure Addref (Data,TypeInfo : Pointer); [Public,alias : 'FPC_ADDREF'];Assembler;
 asm
 # Save registers
         push    %eax
@@ -281,11 +276,7 @@ asm
 # AnsiString handling :
 .DoAnsiStringAddRef:
         pushl   8(%ebp)
-{$ifdef NEWSTRNAMES}
         call    FPC_ANSISTR_INCR_REF
-{$else}
-        call    FPC_INCR_ANSI_REF
-{$endif}
 .ExitAddRef:
         pop     %edx
         pop     %ecx
@@ -293,8 +284,8 @@ asm
         pop     %eax
 end;
 
-Procedure DecRef (Data,TypeInfo : Pointer); [Public,alias : 'FPC_DECREF'];Assembler;
 
+Procedure DecRef (Data,TypeInfo : Pointer); [Public,alias : 'FPC_DECREF'];Assembler;
 asm
 # Save registers
         push    %eax
@@ -371,11 +362,7 @@ asm
 .DoAnsiStringDecRef:
         movl    8(%ebp),%eax
         pushl   %eax
-{$ifdef NEWSTRNAMES}
         call    FPC_ANSISTR_DECR_REF
-{$else}
-        call    FPC_DECR_ANSI_REF
-{$endif}
 .ExitDecRef:
         pop     %edx
         pop     %ecx
@@ -387,7 +374,10 @@ end;
 
 {
   $Log$
-  Revision 1.12  1998-11-30 10:07:34  michael
+  Revision 1.13  1998-12-15 22:42:59  peter
+    * removed temp symbols
+
+  Revision 1.12  1998/11/30 10:07:34  michael
   + Adjusted typeinfo constants
 
   Revision 1.11  1998/11/17 00:41:10  peter

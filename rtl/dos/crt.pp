@@ -551,11 +551,7 @@ begin
   asm
         movzwl  hz,%ecx
         movl    $1193046,%eax
-{$ifdef NOATTCDQ}
         cltd
-{$else}
-        cdq
-{$endif}
         divl    %ecx
         movl    %eax,%ecx
         movb    $0xb6,%al
@@ -920,7 +916,10 @@ end.
 
 {
   $Log$
-  Revision 1.16  1998-12-09 23:04:36  jonas
+  Revision 1.17  1998-12-15 22:42:49  peter
+    * removed temp symbols
+
+  Revision 1.16  1998/12/09 23:04:36  jonas
     * fixed bug in InsLine (changed "my" from "WinMaxY -1" to "WinMaxY - WinMinY")
 
   Revision 1.15  1998/11/28 14:09:48  peter

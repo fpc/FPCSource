@@ -99,7 +99,7 @@ implementation
 {$I system.inc}
 
 {$ASMMODE DIRECT}
-procedure int_stackcheck(stack_size:longint);[public,alias: {$ifdef FPCNAMES}'FPC_'+{$endif}'STACKCHECK'];
+procedure int_stackcheck(stack_size:longint);[public,alias:'FPC_STACKCHECK'];
 begin
 { called when trying to get local stack
   if the compiler directive $S is set
@@ -612,7 +612,10 @@ Begin
 End.
 {
   $Log$
-  Revision 1.11  1998-11-29 22:28:09  peter
+  Revision 1.12  1998-12-15 22:42:51  peter
+    * removed temp symbols
+
+  Revision 1.11  1998/11/29 22:28:09  peter
     + io-error 103 added
 
   Revision 1.10  1998/11/16 14:15:01  pierre

@@ -52,11 +52,7 @@ unit mmx;
     uses
        cpu;
 
-{$ifndef CPUIDSUP}
-  {$ASMMODE DIRECT}
-{$else}
   {$ASMMODE ATT}
-{$endif}
 
     { returns true, if the processor supports the mmx instructions }
     function mmx_support : boolean;
@@ -127,7 +123,10 @@ begin
 end.
 {
     $Log$
-    Revision 1.3  1998-11-13 10:10:54  peter
+    Revision 1.4  1998-12-15 22:42:58  peter
+      * removed temp symbols
+
+    Revision 1.3  1998/11/13 10:10:54  peter
       * ATT reader
 
     Revision 1.2  1998/05/31 14:15:50  peter

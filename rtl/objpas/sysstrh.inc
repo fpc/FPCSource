@@ -69,9 +69,7 @@ function StrToIntDef(const S: string; Default: integer): integer;
 // function StrToInt64Def(const S: string; Default: int64): int64;
 function LoadStr(Ident: integer): string;
 // function FmtLoadStr(Ident: integer; const Args: array of const): string;
-{$ifdef autoobjpas}
 Function Format (Const Fmt : String; const Args : Array of const) : String;
-{$endif}
 
 {==============================================================================}
 {   extra functions                                                            }
@@ -83,7 +81,10 @@ function BCDToInt(Value: integer): integer;
 
 {
   $Log$
-  Revision 1.4  1998-11-04 10:20:53  peter
+  Revision 1.5  1998-12-15 22:43:11  peter
+    * removed temp symbols
+
+  Revision 1.4  1998/11/04 10:20:53  peter
     * ansistring fixes
 
   Revision 1.3  1998/11/02 12:53:53  michael

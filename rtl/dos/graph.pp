@@ -28,9 +28,7 @@ unit GRAPH;
 {$endif DEBUG}
 
 { Don't use smartlinking, because of the direct assembler that is used }
-{$ifndef VER0_99_8}
 {$SMARTLINK OFF}
-{$endif not VER0_99_8}
 
 interface
 
@@ -151,7 +149,7 @@ procedure FillTriangle(A,B,C:Pointtype);
 function ColorsEqual(c1,c2 : longint) : boolean;
 { this will return true if the two colors will appear
   equal in the current video mode }
-  
+
 procedure WaitRetrace;
 {$ifdef debug}
 procedure pixel(offset:longint);
@@ -276,7 +274,7 @@ var    { X/Y Verhaeltnis des Bildschirm }
          used by getGraphMode PM }
        oldCRTMode : integer;
        InTempCRTMode : boolean;
-       
+
        { Position des Graphikcursors }
        curx,cury : longint;
        { true, wenn die Routinen des Graphikpaketes verwendet werden dÅrfen }
@@ -334,7 +332,7 @@ var    { X/Y Verhaeltnis des Bildschirm }
    const
        AWindow = 0;
        BWindow = 1;
-       
+
    { Variables for Bankswitching }
    var
        BytesPerLine : longint;
@@ -360,7 +358,7 @@ Begin
          ((GetMaxColor=$FFFF) and ((c1 and $F8FCF8)=(c2 and $F8FCF8))) or
          ((BytesPerPixel>2) and ((c1 and $FFFFFF)=(c2 and $FFFFFF)));
 End;
-   
+
 function GraphErrorMsg(ErrorCode: Integer): string;
 Begin
  GraphErrorMsg:='';
@@ -539,7 +537,7 @@ var bank1,bank2,diff,c:longint;
     ofs1,ofs2         :longint;
     y : integer;
     storewritemode : word;
-    
+
 begin
   if not isgraphmode then
     begin
@@ -711,7 +709,7 @@ procedure SetArrays;
      for index:=0 to VESAInfo.YResolution do
        Y_Array[index]:=index * BytesPerLine + AktPageOffset;
   end;
-  
+
 procedure InitGraph(var GraphDriver:Integer;var GraphMode:Integer;const PathToDriver:String);
 var i : Integer;
 begin
@@ -907,12 +905,12 @@ function GetVisualPage : word;
   begin
      GetVisualPage:=AktVisualPage;
   end;
-  
+
 function GetActivePage : word;
   begin
      GetActivePage:=AktPage;
   end;
-  
+
 { mehrere Bildschirmseiten werden nicht unterstÅtzt }
 { Dummy aus KompatibilitÑtsgrÅnden                  }
 procedure SetActivePage(page : word);
@@ -936,7 +934,7 @@ function  GetNumberOfPages : word;
   begin
      GetNumberOfPages:=VESAInfo.NumberOfPages;
   end;
-  
+
 procedure SetWriteMode(WriteMode : integer);
 begin
   _graphresult:=grOk;
@@ -1011,7 +1009,10 @@ end.
 
 {
   $Log$
-  Revision 1.14  1998-11-25 22:59:23  pierre
+  Revision 1.15  1998-12-15 22:42:50  peter
+    * removed temp symbols
+
+  Revision 1.14  1998/11/25 22:59:23  pierre
    * fillpoly works
 
   Revision 1.13  1998/11/25 13:04:43  pierre

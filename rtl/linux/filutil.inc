@@ -112,11 +112,7 @@ Var SInfo : Stat;
 
 begin
   P:=pglob(Info.FindHandle);
-{$ifdef AUTOOBJPAS}
   Result:=Fstat(p^.name,SInfo);
-{$else}
-  Result:=Fstat(StrPas(p^.name),SInfo);
-{$endif}
   Info.FindHandle:=Longint(P^.Next);
   P^.Next:=Nil;
   GlobFree(P);
@@ -235,7 +231,10 @@ end;
 
 {
   $Log$
-  Revision 1.3  1998-11-10 14:57:55  peter
+  Revision 1.4  1998-12-15 22:43:07  peter
+    * removed temp symbols
+
+  Revision 1.3  1998/11/10 14:57:55  peter
     * renamed rename -> FRename
 
   Revision 1.2  1998/10/13 10:20:07  peter

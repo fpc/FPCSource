@@ -39,15 +39,7 @@ const
 {$I heaph.inc}
 
 const
-{$ifndef VER0_99_5}
-  {$ifndef VER0_99_6}
-    UnusedHandle    = -1;
-  {$else}
-    UnusedHandle    = $ffff;
-  {$endif}
-{$else}
-  UnusedHandle    = $ffff;
-{$endif}
+  UnusedHandle    = -1;
   StdInputHandle  = 0;
   StdOutputHandle = 1;
   StdErrorHandle  = 2;
@@ -739,7 +731,10 @@ End.
 
 {
   $Log$
-  Revision 1.18  1998-11-16 10:21:32  peter
+  Revision 1.19  1998-12-15 22:43:08  peter
+    * removed temp symbols
+
+  Revision 1.18  1998/11/16 10:21:32  peter
     * fixes for H+
 
   Revision 1.17  1998/10/15 08:30:00  peter

@@ -74,9 +74,7 @@ var
   MainInstance,
   cmdshow     : longint;
   IsLibrary,IsMultiThreaded,IsConsole : boolean;
-{* Changes made by Ozerski 26.10.1998}
   DLLreason,DLLparam:longint;
-{* End Changes}
 
 implementation
 
@@ -639,7 +637,6 @@ begin
   GetCommandFile:=@ModuleName;
 end;
 
-{* End changes}
 
 procedure setup_arguments;
 var
@@ -694,30 +691,6 @@ begin
   move(argsbuf,argv^,count shl 2);
 end;
 
-
-{$ifndef FPC_WIN32_DLL_SUPPORT}
-{$ASMMODE DIRECT}
-var
-  fpucw : word;
-procedure Entry;[public,alias: '_mainCRTStartup'];
-{ Can't use here any locals, because ebp is set to zero to indicate end of
-  backtrace (PFV) }
-begin
-   { init fpu and call to the pascal main }
-   fpucw:=$1332;
-   asm
-     finit
-     fwait
-     fldcw _FPUCW
-
-     xorl %ebp,%ebp
-     call PASCALMAIN
-   end;
-   { that's all folks }
-   ExitProcess(0);
-end;
-
-{$else FPC_WIN32_DLL_SUPPORT}
 
 {$ifdef dummy}
 Function SetUpStack : longint;
@@ -942,8 +915,6 @@ var
      Exe_entry_code : pointer = @Exe_entry;
      Dll_entry_code : pointer = @Dll_entry;
      
-{$endif def FPC_WIN32_DLL_SUPPORT}
-  
 {$ASMMODE ATT}
 
 begin
@@ -980,7 +951,10 @@ end.
 
 {
   $Log$
-  Revision 1.28  1998-12-09 17:57:33  pierre
+  Revision 1.29  1998-12-15 22:43:14  peter
+    * removed temp symbols
+
+  Revision 1.28  1998/12/09 17:57:33  pierre
    + exception handling by default
 
   Revision 1.27  1998/12/01 14:00:08  pierre

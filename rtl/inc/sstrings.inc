@@ -248,7 +248,7 @@ end;
                               Str() Helpers
 *****************************************************************************}
 
-procedure int_str_real(d : real;len,fr : longint;var s : shortstring);[public, alias : {$ifdef FPCNAMES}'FPC_STR_REAL'{$else}'STR_REAL'{$endif}];
+procedure int_str_real(d : real;len,fr : longint;var s : shortstring);[public,alias:'FPC_STR_REAL'];
 begin
 {$ifdef i386}
    str_real(len,fr,d,rt_s64real,s);
@@ -259,7 +259,7 @@ end;
 
 
 {$ifdef SUPPORT_SINGLE}
-procedure int_str_single(d : single;len,fr : longint;var s : shortstring);[public, alias : {$ifdef FPCNAMES}'FPC_STR_SINGLE'{$else}'STR_SINGLE'{$endif}];
+procedure int_str_single(d : single;len,fr : longint;var s : shortstring);[public,alias:'FPC_STR_SINGLE'];
 begin
    str_real(len,fr,d,rt_s32real,s);
 end;
@@ -267,7 +267,7 @@ end;
 
 
 {$ifdef SUPPORT_EXTENDED}
-procedure int_str_extended(d : extended;len,fr : longint;var s : shortstring);[public, alias : {$ifdef FPCNAMES}'FPC_STR_EXTENDED'{$else}'STR_EXTENDED'{$endif}];
+procedure int_str_extended(d : extended;len,fr : longint;var s : shortstring);[public,alias:'FPC_STR_EXTENDED'];
 begin
    str_real(len,fr,d,rt_s80real,s);
 end;
@@ -275,7 +275,7 @@ end;
 
 
 {$ifdef SUPPORT_COMP}
-procedure int_str_comp(d : comp;len,fr : longint;var s : shortstring);[public, alias : {$ifdef FPCNAMES}'FPC_STR_COMP'{$else}'STR_COMP'{$endif}];
+procedure int_str_comp(d : comp;len,fr : longint;var s : shortstring);[public,alias:'FPC_STR_COMP'];
 begin
    str_real(len,fr,d,rt_s64bit,s);
 end;
@@ -283,14 +283,14 @@ end;
 
 
 {$ifdef SUPPORT_FIXED}
-procedure int_str_fixed(d : fixed;len,fr : longint;var s : shortstring);[public, alias : {$ifdef FPCNAMES}'FPC_STR_FIXED'{$else}'STR_FIXED'{$endif}];
+procedure int_str_fixed(d : fixed;len,fr : longint;var s : shortstring);[public,alias:'FPC_STR_FIXED'];
 begin
    str_real(len,fr,d,rt_f32bit,s);
 end;
 {$endif SUPPORT_FIXED}
 
 
-procedure int_str_longint(v : longint;len : longint;var s : shortstring);[public, alias : {$ifdef FPCNAMES}'FPC_STR_LONGINT'{$else}'STR_LONGINT'{$endif}];
+procedure int_str_longint(v : longint;len : longint;var s : shortstring);[public,alias:'FPC_STR_LONGINT'];
 begin
    int_str(v,s);
    if length(s)<len then
@@ -298,7 +298,7 @@ begin
 end;
 
 
-procedure int_str_cardinal(v : cardinal;len : longint;var s : shortstring);[public, alias : {$ifdef FPCNAMES}'FPC_STR_CARDINAL'{$else}'STR_CARDINAL'{$endif}];
+procedure int_str_cardinal(v : cardinal;len : longint;var s : shortstring);[public,alias:'FPC_STR_CARDINAL'];
 begin
   int_str(v,s);
   if length(s)<len then
@@ -937,7 +937,10 @@ end;
 
 {
   $Log$
-  Revision 1.16  1998-11-05 10:29:34  pierre
+  Revision 1.17  1998-12-15 22:43:02  peter
+    * removed temp symbols
+
+  Revision 1.16  1998/11/05 10:29:34  pierre
    * fix for length(char) in const expressions
 
   Revision 1.15  1998/11/04 10:20:50  peter

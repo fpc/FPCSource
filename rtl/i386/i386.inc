@@ -89,7 +89,7 @@ begin
 end;
 
 
-Procedure FillChar(var x;count:longint;value:byte);{[alias: 'FPC_FILL_OBJECT'];}
+Procedure FillChar(var x;count:longint;value:byte);
 begin
         asm
         cld
@@ -151,7 +151,7 @@ end;
 
 {$ASMMODE DIRECT}
 
-procedure int_help_constructor;assembler; [public,alias:{$ifdef FPCNAMES}'FPC_'+{$endif}'HELP_CONSTRUCTOR'];
+procedure int_help_constructor;assembler; [public,alias:'FPC_HELP_CONSTRUCTOR'];
 asm
 { Entry without preamble, since we need the ESP of the constructor
   Stack (relative to %ebp):
@@ -174,11 +174,7 @@ asm
       { Memory size }
         pushl   (%eax)
         pushl   %esi
-{$ifdef FPCNAMES}
         call    FPC_GETMEM
-{$else}
-        call    GETMEM
-{$endif}
         popal
       { Memory position to %esi }
         movl    (%esi),%esi
@@ -215,18 +211,14 @@ asm
         stosl
         popal
       { set the VMT address for the new created object }
-{$ifdef OBJECTVMTOFFSET}
       { the offset is in %edi since the calling and has not been changed !! }
         movl    %eax,(%esi,%edi,1)
-{$else OBJECTVMTOFFSET}
-        movl    %eax,(%esi)
-{$endif OBJECTVMTOFFSET}
         orl     %eax,%eax
 .LHC_5:
 end;
 
 
-procedure int_help_destructor;assembler;[public,alias:{$ifdef FPCNAMES}'FPC_'+{$endif}'HELP_DESTRUCTOR'];
+procedure int_help_destructor;assembler;[public,alias:'FPC_HELP_DESTRUCTOR'];
 asm
 { Stack (relative to %ebp):
     12 Self
@@ -243,12 +235,8 @@ asm
       { Yes, get size from SELF! }
         movl    12(%ebp),%eax
       { get VMT-pointer (from Self) to %ebx }
-{$ifdef OBJECTVMTOFFSET}
       { the offset is in %edi since the calling and has not been changed !! }
         movl    (%eax,%edi,1),%ebx
-{$else OBJECTVMTOFFSET}
-        movl    (%eax),%ebx
-{$endif OBJECTVMTOFFSET}
       { temporary Variable }
         subl    $4,%esp
         movl    %esp,%edi
@@ -260,18 +248,14 @@ asm
         movl    $0,(%eax)
         movl    %eax,(%edi)
         pushl   %edi
-{$ifdef FPCNAMES}
         call    FPC_FREEMEM
-{$else}
-        call    FREEMEM
-{$endif}
         addl    $4,%esp
 .LHD_3:
         popal
 end;
 
 
-procedure int_new_class;assembler;[public,alias:{$ifdef FPCNAMES}'FPC_'+{$endif}'NEW_CLASS'];
+procedure int_new_class;assembler;[public,alias:'FPC_NEW_CLASS'];
 asm
         { create class ? }
         movl    8(%ebp),%edi
@@ -291,7 +275,7 @@ asm
 end;
 
 
-procedure int_dispose_class;assembler;[public,alias:{$ifdef FPCNAMES}'FPC_'+{$endif}'DISPOSE_CLASS'];
+procedure int_dispose_class;assembler;[public,alias:'FPC_DISPOSE_CLASS'];
 asm
         { destroy class ? }
         movl    8(%ebp),%edi
@@ -314,7 +298,7 @@ end;
 
 
 { checks for a correct vmt pointer }
-procedure int_check_object;assembler;[public,alias:{$ifdef FPCNAMES}'FPC_'+{$endif}'CHECK_OBJECT'];
+procedure int_check_object;assembler;[public,alias:'FPC_CHECK_OBJECT'];
 asm
         pushl   %edi
         movl    8(%esp),%edi
@@ -341,7 +325,7 @@ end;
                                  String
 ****************************************************************************}
 
-procedure int_strcopy(len:longint;sstr,dstr:pointer);[public,alias:{$ifdef NEWSTRNAMES}'FPC_SHORTSTR_COPY'{$else}{$ifdef FPCNAMES}'FPC_'+{$endif}'STRCOPY'{$endif}];
+procedure int_strcopy(len:longint;sstr,dstr:pointer);[public,alias:'FPC_SHORTSTR_COPY'];
 {
   this procedure must save all modified registers except EDI and ESI !!!
 }
@@ -383,7 +367,7 @@ begin
 end;
 
 
-procedure int_strconcat(s1,s2:pointer);[public,alias:{$ifdef NEWSTRNAMES}'FPC_SHORTSTR_CONCAT'{$else}{$ifdef FPCNAMES}'FPC_'+{$endif}'STRCONCAT'{$endif}];
+procedure int_strconcat(s1,s2:pointer);[public,alias:'FPC_SHORTSTR_CONCAT'];
 begin
   asm
         xorl    %ecx,%ecx
@@ -422,7 +406,7 @@ begin
 end;
 
 
-procedure int_strcmp(dstr,sstr:pointer);[public,alias:{$ifdef NEWSTRNAMES}'FPC_SHORTSTR_COMPARE'{$else}{$ifdef FPCNAMES}'FPC_'+{$endif}'STRCMP'{$endif}];
+procedure int_strcmp(dstr,sstr:pointer);[public,alias:'FPC_SHORTSTR_COMPARE'];
 begin
   asm
         cld
@@ -472,7 +456,7 @@ end;
 
 
 {$ASMMODE DIRECT}
-function strpas(p:pchar):string;[public,alias:{$ifdef NEWSTRNAMES}'FPC_PCHAR_TO_SHORTSTR'{$else}'FPC_PCHAR_TO_STR'{$endif}];
+function strpas(p:pchar):string;[public,alias:'FPC_PCHAR_TO_SHORTSTR'];
 begin
   asm
         cld
@@ -557,7 +541,7 @@ end ['EAX'];
                                  Math
 ****************************************************************************}
 
-function abs(l:longint):longint;assembler;{$ifdef INTERNCONST}[internconst:in_const_abs];{$endif}
+function abs(l:longint):longint;assembler;[internconst:in_const_abs];
 asm
         movl    l,%eax
         orl     %eax,%eax
@@ -567,7 +551,7 @@ asm
 end ['EAX'];
 
 
-function odd(l:longint):boolean;assembler;{$ifdef INTERNCONST}[internconst:in_const_odd];{$endif}
+function odd(l:longint):boolean;assembler;[internconst:in_const_odd];
 asm
        movl     l,%eax
        andl     $1,%eax
@@ -575,7 +559,7 @@ asm
 end ['EAX'];
 
 
-function sqr(l:longint):longint;assembler;{$ifdef INTERNCONST}[internconst:in_const_sqr];{$endif}
+function sqr(l:longint):longint;assembler;[internconst:in_const_sqr];
 asm
         mov     l,%eax
         imull   %eax,%eax
@@ -618,11 +602,7 @@ begin
         movb    $0x2d,1(%edi)   // put '-' in String
         incl    %ecx
 .LM2:
-{$ifdef NOATTCDQ}
         cltd
-{$else}
-        cdq
-{$endif}
         idivl   %esi,%eax
         addb    $0x30,%dl       // convert Rest to ASCII.
         movb    %dl,-12(%ebp,%ebx)
@@ -697,7 +677,7 @@ end;
                                  IoCheck
 ****************************************************************************}
 
-procedure int_iocheck(addr : longint);[public,alias: {$ifdef FPCNAMES}'FPC_'+{$endif}'IOCHECK'];
+procedure int_iocheck(addr : longint);[public,alias:'FPC_IOCHECK'];
 var
   l : longint;
 begin
@@ -724,7 +704,10 @@ end;
 
 {
   $Log$
-  Revision 1.34  1998-11-30 15:27:28  pierre
+  Revision 1.35  1998-12-15 22:42:53  peter
+    * removed temp symbols
+
+  Revision 1.34  1998/11/30 15:27:28  pierre
    * vmt address pushed for CHECK_OBJECT was not removed from stack
 
   Revision 1.33  1998/11/28 14:09:49  peter
