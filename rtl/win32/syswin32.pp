@@ -289,7 +289,7 @@ end;
    function CreateFile(name : pointer;access,sharing : longint;
      security : pointer;how,attr,template : longint) : longint;
      external 'kernel32' name 'CreateFileA';
-   function SetEndOfFile(h : longint) : boolean;
+   function SetEndOfFile(h : longint) : longbool;
      external 'kernel32' name 'SetEndOfFile';
    function GetFileType(Handle:DWORD):DWord;
      external 'kernel32' name 'GetFileType';
@@ -757,7 +757,10 @@ end.
 
 {
   $Log$
-  Revision 1.23  1998-11-16 14:14:58  pierre
+  Revision 1.24  1998-11-16 15:48:54  peter
+    * fixed longbool returns for api calls
+
+  Revision 1.23  1998/11/16 14:14:58  pierre
     * changed getdir(byte,string) to getdir(byte,shortstring)
 
   Revision 1.22  1998/10/27 15:07:16  florian

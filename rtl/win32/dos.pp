@@ -242,7 +242,7 @@ end;
      external 'kernel32' name 'GetVersion';
    procedure GetLocalTime(var t : TSystemTime);
      external 'kernel32' name 'GetLocalTime';
-   function SetLocalTime(const t : TSystemTime) : boolean;
+   function SetLocalTime(const t : TSystemTime) : longbool;
      external 'kernel32' name 'SetLocalTime';
 
 function dosversion : word;
@@ -335,9 +335,9 @@ End;
                lpProcessAttributes, lpThreadAttributes: PSecurityAttributes;
                bInheritHandles: BOOL; dwCreationFlags: DWORD; lpEnvironment: Pointer;
                lpCurrentDirectory: PChar; const lpStartupInfo: TStartupInfo;
-               var lpProcessInformation: TProcessInformation): boolean;
+               var lpProcessInformation: TProcessInformation): longbool;
      external 'kernel32' name 'CreateProcessA';
-   function getExitCodeProcess(h:THandle;var code:longint):boolean;
+   function getExitCodeProcess(h:THandle;var code:longint):longbool;
      external 'kernel32' name 'GetExitCodeProcess';
    function WaitForSingleObject(hHandle: THandle; dwMilliseconds: DWORD): DWORD;
      external 'kernel32' name 'WaitForSingleObject';
@@ -416,7 +416,7 @@ end;
 ******************************************************************************}
 
    function GetDiskFreeSpace(drive:pchar;var sector_cluster,bytes_sector,
-                             freeclusters,totalclusters:longint):boolean;
+                             freeclusters,totalclusters:longint):longbool;
      external 'kernel32' name 'GetDiskFreeSpaceA';
 
 function diskfree(drive : byte) : longint;
@@ -477,9 +477,9 @@ end;
 
    function FindFirstFile (lpFileName: PChar; var lpFindFileData: TWIN32FindData): THandle;
      external 'kernel32' name 'FindFirstFileA';
-   function FindNextFile  (hFindFile: THandle; var lpFindFileData: TWIN32FindData): Boolean;
+   function FindNextFile  (hFindFile: THandle; var lpFindFileData: TWIN32FindData): LongBool;
      external 'kernel32' name 'FindNextFileA';
-   function FindCloseFile (hFindFile: THandle): Boolean;
+   function FindCloseFile (hFindFile: THandle): LongBool;
      external 'kernel32' name 'FindClose';
 
 Procedure StringToPchar (Var S : String);
@@ -492,8 +492,6 @@ end;
 
 
 procedure FindMatch(var f:searchrec);
-Var
-  TheAttr : Longint;
 begin
 { Find file with correct attribute }
   While (F.W32FindData.dwFileAttributes and F.ExcludeAttr)<>0 do
@@ -562,11 +560,11 @@ end;
                                --- File ---
 ******************************************************************************}
 
-   function GetFileTime(h : longint;creation,lastaccess,lastwrite : PFileTime) : boolean;
+   function GetFileTime(h : longint;creation,lastaccess,lastwrite : PFileTime) : longbool;
      external 'kernel32' name 'GetFileTime';
-   function SetFileTime(h : longint;creation,lastaccess,lastwrite : PFileTime) : boolean;
+   function SetFileTime(h : longint;creation,lastaccess,lastwrite : PFileTime) : longbool;
      external 'kernel32' name 'SetFileTime';
-   function SetFileAttributes(lpFileName : pchar;dwFileAttributes : longint) : boolean;
+   function SetFileAttributes(lpFileName : pchar;dwFileAttributes : longint) : longbool;
      external 'kernel32' name 'SetFileAttributesA';
    function GetFileAttributes(lpFileName : pchar) : longint;
      external 'kernel32' name 'GetFileAttributesA';
@@ -788,7 +786,7 @@ end;
 
    function GetEnvironmentStrings : pchar;
      external 'kernel32' name 'GetEnvironmentStringsA';
-   function FreeEnvironmentStrings(p : pchar) : boolean;
+   function FreeEnvironmentStrings(p : pchar) : longbool;
      external 'kernel32' name 'FreeEnvironmentStringsA';
 
 function envcount : longint;
@@ -881,7 +879,10 @@ End;
 end.
 {
   $Log$
-  Revision 1.12  1998-10-27 10:55:55  michael
+  Revision 1.13  1998-11-16 15:48:53  peter
+    * fixed longbool returns for api calls
+
+  Revision 1.12  1998/10/27 10:55:55  michael
   * environment vars are case insensitive under WinNT/DOS
 
   Revision 1.11  1998/10/22 15:32:38  pierre
