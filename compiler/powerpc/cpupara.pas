@@ -29,6 +29,7 @@ unit cpupara;
 
     uses
        globtype,
+       cclasses,
        aasmtai,
        cpubase,
        symconst,symbase,symtype,symdef,paramgr,cgbase;
@@ -40,6 +41,7 @@ unit cpupara;
           function push_addr_param(varspez:tvarspez;def : tdef;calloption : tproccalloption) : boolean;override;
           function getintparaloc(calloption : tproccalloption; nr : longint) : tparalocation;override;
           function create_paraloc_info(p : tabstractprocdef; side: tcallercallee):longint;override;
+          function create_varargs_paraloc_info(p : tabstractprocdef; varargspara:tlinkedlist):longint;override;
        end;
 
   implementation
@@ -358,12 +360,48 @@ unit cpupara;
         p.funcret_paraloc[side]:=paraloc;
       end;
 
+      
+    function tppcparamanager.create_varargs_paraloc_info(p : tabstractprocdef; varargspara:tlinkedlist):longint;
+      {$warning fixme!!!! tppcparamanager.create_varargs_paraloc_info}
+      var
+        hp : tparaitem;
+        paraloc : tparalocation;
+        l,
+        parasize : longint;
+      begin
+        parasize:=0;
+        { Retrieve last know info from normal parameters }
+        hp:=tparaitem(p.para.last);
+        if assigned(hp) then
+          parasize:=hp.paraloc[callerside].reference.offset;
+        { Assign varargs }
+        hp:=tparaitem(varargspara.first);
+        while assigned(hp) do
+          begin
+            paraloc.size:=def_cgsize(hp.paratype.def);
+            paraloc.loc:=LOC_REFERENCE;
+            paraloc.alignment:=4;
+            paraloc.reference.index:=NR_STACK_POINTER_REG;
+            l:=push_size(hp.paratyp,hp.paratype.def,p.proccalloption);
+            paraloc.reference.offset:=parasize;
+            parasize:=parasize+l;
+            hp.paraloc[callerside]:=paraloc;
+            hp:=tparaitem(hp.next);
+          end;
+        { We need to return the size allocated }
+        result:=parasize;
+      end;
+
+
 begin
    paramanager:=tppcparamanager.create;
 end.
 {
   $Log$
-  Revision 1.51  2003-11-29 16:27:19  jonas
+  Revision 1.52  2003-12-07 22:35:05  florian
+    + dummy tppcparamanager.create_varargs_paraloc_info added
+
+  Revision 1.51  2003/11/29 16:27:19  jonas
     * fixed several ppc assembler reader related problems
     * local vars in assembler procedures now start at offset 4
     * fixed second_int_to_bool (apparently an integer can be in  LOC_JUMP??)
