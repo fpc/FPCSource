@@ -1372,7 +1372,7 @@ endif
 #######################################
 
 demo_install:
-	$(MAKE) -C $(CVSINSTALL)/demo installexamples
+	$(MAKE) -C $(CVSINSTALL)/demo sourceinstall
 
 man_install:
 	$(MAKE) -C $(CVSINSTALL)/man installman
@@ -1410,7 +1410,7 @@ optcompzip:
 # Install
 ##########################################################################
 
-.PHONY: installer
+.PHONY: installer installersrc
 
 INSTALLERBUILDDIR=fpinst
 
@@ -1433,7 +1433,7 @@ installersrc:
 # Packaging
 ##########################################################################
 
-.PHONY: all clean distclean build installbase zipinstall zipinstallbase zipinstallfcl \
+.PHONY: all clean distclean build install installbase zipinstall zipinstallbase zipinstallfcl \
 	zipinstallpackages
 
 export RELEASE DESTZIPDIR
@@ -1441,13 +1441,13 @@ export RELEASE DESTZIPDIR
 all: build
 
 clean: $(addsuffix _distclean,$(DIROBJECTS))
-	$(DEL) build-stamp.*
+	$(DEL) build-stamp
 
 distclean: clean
 
 
-build: build-stamp.$(OS_TARGET)
-build-stamp.$(OS_TARGET):
+build: build-stamp
+build-stamp:
 # create new compiler
 ifeq ($(OS_TARGET),win32)
 	-$(MAKE) compiler_cycle
@@ -1473,9 +1473,9 @@ endif
 ifdef IDE
 	-$(MAKE) ide_full $(BUILDOPTS)
 endif
-	$(ECHO) Build > build-stamp.$(OS_TARGET)
+	$(ECHO) Build > build-stamp
 
-installbase: build-stamp.$(OS_TARGET)
+installbase: build-stamp
 # create dirs
 	$(MKDIR) $(BASEINSTALLDIR)
 	$(MKDIR) $(DOCINSTALLDIR)
@@ -1500,7 +1500,7 @@ endif
 	$(MAKE) compiler_install $(INSTALLOPTS)
 	$(MAKE) rtl_install $(INSTALLOPTS)
 
-install: build-stamp.$(OS_TARGET)
+install: build-stamp
 	$(MAKE) installbase $(INSTALLOPTS)
 	$(MAKE) utils_install $(INSTALLOPTS)
 	$(MAKE) api_install $(INSTALLOPTS)
@@ -1509,8 +1509,14 @@ install: build-stamp.$(OS_TARGET)
 ifdef IDE
 	$(NOSTOP)$(MAKE) ide_install $(BUILDOPTS)
 endif
+# install examples
+ifndef SNAPSHOT
+	$(MAKE) fcl_exampleinstall $(INSTALLOPTS)
+	$(MAKE) api_exampleinstall $(INSTALLOPTS)
+	$(MAKE) packages_exampleinstall $(INSTALLOPTS)
+endif
 
-zipinstall: build-stamp.$(OS_TARGET)
+zipinstall: build-stamp
 	$(MAKE) fpc_zipinstall ZIPTARGET=installbase PACKAGENAME=base $(INSTALLOPTS)
 	$(MAKE) utils_zipinstall $(INSTALLOPTS)
 	$(MAKE) api_zipinstall $(INSTALLOPTS) PACKAGEPREFIX=$(PKGPRE)
@@ -1518,6 +1524,11 @@ zipinstall: build-stamp.$(OS_TARGET)
 	$(MAKE) packages_zipinstall $(INSTALLOPTS) PACKAGEPREFIX=$(PKGPRE)
 ifdef IDE
 	$(NOSTOP)$(MAKE) ide_zipinstall $(INSTALLOPTS)
+endif
+ifndef SNAPSHOT
+	$(MAKE) fcl_zipexampleinstall $(INSTALLOPTS) PACKAGEPREFIX=$(PKGPRE)
+	$(MAKE) api_zipexampleinstall $(INSTALLOPTS) PACKAGEPREFIX=$(PKGPRE)
+	$(MAKE) packages_zipexampleinstall $(INSTALLOPTS) PACKAGEPREFIX=$(PKGPRE)
 endif
 
 
@@ -1555,6 +1566,8 @@ demozip:
 ##########################################################################
 # Source targets
 ##########################################################################
+
+.PHONY: sourcebase sourcezip
 
 sourcebase:
 # base Makefiles needed for sources

@@ -5,7 +5,7 @@
 #
 
 # Version
-VERSION=0.99.14
+VERSION=1.00
 RELEASE=ELF
 
 unset FPCDIR
@@ -16,7 +16,7 @@ make docs
 make demo
 
 SOURCES=`/bin/ls *src.tar.gz`
-FILES=`/bin/ls *linux.tar.gz`
+FILES=`/bin/ls *linux.tar.gz *exm.tar.gz`
 RELFILES="binary.tar sources.tar demo.tar.gz docs.tar.gz install.sh"
 
 echo Creating binary.tar
@@ -25,4 +25,4 @@ echo Creating sources.tar
 tar cf sources.tar $SOURCES
 
 echo Creating fpc-$VERSION.$RELEASE.tar
-tar cf fpc-$VERSION.$RELEASE.tar $RELFILES 
+tar cf fpc-$VERSION.$RELEASE.tar $RELFILES

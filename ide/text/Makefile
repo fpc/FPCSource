@@ -192,6 +192,7 @@ override RSTOBJECTS+=fpstrings
 
 # Install
 
+DATAINSTALLDIR=$(BASEINSTALLDIR)/ide
 ZIPTARGET=install
 
 # Defaults
@@ -1342,8 +1343,10 @@ clean: fpc_cleanall
 #
 # Installation
 #
+
 install: fpc_install
-	$(INSTALL) $(wildcard *.pt) $(wildcard *.tdf) readme.txt $(BININSTALLDIR)
+	$(MKDIR) $(DATAINSTALLDIR)
+	$(INSTALL) $(wildcard *.pt) $(wildcard *.tdf) readme.txt $(DATAINSTALLDIR)
 
 #
 # Misc

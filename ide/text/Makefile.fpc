@@ -6,6 +6,9 @@
 programs=fp
 rst=fpstrings
 
+[install]
+datadir=$(BASEINSTALLDIR)/ide
+
 [dirs]
 fpcdir=../..
 
@@ -81,8 +84,10 @@ clean: fpc_cleanall
 #
 # Installation
 #
+
 install: fpc_install
-        $(INSTALL) $(wildcard *.pt) $(wildcard *.tdf) readme.txt $(BININSTALLDIR)
+        $(MKDIR) $(DATAINSTALLDIR)
+        $(INSTALL) $(wildcard *.pt) $(wildcard *.tdf) readme.txt $(DATAINSTALLDIR)
 
 #
 # Misc
