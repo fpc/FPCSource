@@ -127,13 +127,22 @@ type
     procedure HideCursor(x, y: Integer); virtual; abstract;
 
     // Scrolling support
+    function  GetHorzPos: Integer; virtual; abstract;
+    procedure SetHorzPos(x: Integer); virtual; abstract;
     function  GetVertPos: Integer; virtual; abstract;
     procedure SetVertPos(y: Integer); virtual; abstract;
+    function  GetPageWidth: Integer; virtual; abstract;
     function  GetPageHeight: Integer; virtual; abstract;
+    function  GetLineWidth: Integer; virtual; abstract;
+    procedure SetLineWidth(count: Integer); virtual; abstract;
+    function  GetLineCount: Integer; virtual; abstract;
     procedure SetLineCount(count: Integer); virtual; abstract;
+    property  HorzPos: Integer read GetHorzPos write SetHorzPos;
     property  VertPos: Integer read GetVertPos write SetVertPos;
+    property  PageWidth: Integer read GetPageWidth;
     property  PageHeight: Integer read GetPageHeight;
-    property  LineCount: Integer write SetLineCount;
+    property  LineWidth: Integer read GetLineWidth write SetLineWidth;
+    property  LineCount: Integer read GetLineCount write SetLineCount;
 
     // Clipboard support
     function  GetClipboard: String; virtual; abstract;
@@ -190,16 +199,32 @@ type
     procedure MultiDelLeft(Count: Integer);
 
   public
+    // Keyboard command handlers
+    // Cursor movement
     procedure CursorUp;
     procedure CursorDown;
     procedure CursorLeft;
     procedure CursorRight;
     procedure CursorHome;
     procedure CursorEnd;
+    procedure CursorDocBegin;
+    procedure CursorDocEnd;
     procedure CursorPageUp;
     procedure CursorPageDown;
-
-    // Keyboard command handlers
+    // Selection movement
+    procedure SetSelectionStart;
+    procedure SetSelectionEnd;
+    procedure SelectionUp;
+    procedure SelectionDown;
+    procedure SelectionLeft;
+    procedure SelectionRight;
+    procedure SelectionHome;
+    procedure SelectionEnd;
+    procedure SelectionDocBegin;
+    procedure SelectionDocEnd;
+    procedure SelectionPageUp;
+    procedure SelectionPageDown;
+    // Misc
     procedure ToggleOverwriteMode;
     procedure EditDelLeft;
     procedure EditDelRight;
@@ -235,6 +260,7 @@ type
     property Doc: TTextDoc read FDoc;
     property CursorX: Integer read FCursorX write SetCursorX;
     property CursorY: Integer read FCursorY write SetCursorY;
+    property Selection: TSelection read FSel write FSel;
     property OnModifiedChange: TNotifyEvent
       read FOnModifiedChange write FOnModifiedChange;
     property Renderer: ISHRenderer read FRenderer;
@@ -328,7 +354,8 @@ begin
   KeyboardActions := TCollection.Create(TKeyboardActionDescr);
   Shortcuts := TCollection.Create(TShortcut);
 
-  FRenderer.SetLineCount(FDoc.LineCount);
+  Renderer.LineCount := FDoc.LineCount;
+  Renderer.LineWidth := FDoc.LineWidth;
   CursorX:=0;
   CursorY:=0;
 end;
@@ -368,6 +395,7 @@ end;
 procedure TSHTextEdit.LineInserted(Sender: TTextDoc; Line: Integer);
 begin
   Renderer.LineCount := FDoc.LineCount;
+  Renderer.LineWidth := FDoc.LineWidth;
   ChangeInLine(Line);
 end;
 
@@ -382,7 +410,14 @@ end.
 
 {
   $Log$
-  Revision 1.3  1999-12-06 21:27:27  peter
+  Revision 1.4  1999-12-09 23:16:41  peter
+    * cursor walking is now possible, both horz and vert ranges are now
+      adapted
+    * filter key modifiers
+    * selection move routines added, but still no correct output to the
+      screen
+
+  Revision 1.3  1999/12/06 21:27:27  peter
     * gtk updates, redrawing works now much better and clears only between
       x1 and x2
 

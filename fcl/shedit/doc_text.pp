@@ -73,6 +73,7 @@ type
   TTextDoc = class
   protected
     FModified: Boolean;
+    FLineWidth,
     FLineCount: LongInt;
     FLines: PLineArray;
     FViewInfos: TCollection;
@@ -93,6 +94,7 @@ type
     procedure RemoveLine(LineNumber: Integer);
 
     property Modified: Boolean read FModified write SetModified;
+    property LineWidth: Integer read FLineWidth;
     property LineCount: Integer read FLineCount;
     property LineText[LineNumber: Integer]: String
       read GetLineText write SetLineText;
@@ -113,6 +115,7 @@ begin
   FModified := false;
   FLines := nil;
   FLineCount := 0;
+  FLineWidth := 0;
   FViewInfos := TCollection.Create(TViewInfo);
 end;
 
@@ -130,6 +133,9 @@ begin
   if assigned(FLines) then
    FreeMem(FLines);
 
+  FLineCount:=0;
+  FLineWidth:=0;
+
   for i := 0 to FViewInfos.Count - 1 do
     if Assigned(TViewInfo(FViewInfos.Items[i]).OnLineRemove) then
       TViewInfo(FViewInfos.Items[i]).OnLineRemove(Self, 0);
@@ -140,14 +146,18 @@ var
   l: PLine;
   i: Integer;
 begin
-  if BeforeLine > FLineCount then exit;  // *** throw an intelligent exception
+  if BeforeLine > FLineCount then
+   exit;  // *** throw an intelligent exception
   ReAllocMem(FLines, (FLineCount + 1) * SizeOf(TLine));
   Move(FLines^[BeforeLine], FLines^[BeforeLine + 1],(FLineCount - BeforeLine) * SizeOf(TLine));
   l := @(FLines^[BeforeLine]);
   FillChar(l^, SizeOf(TLine), 0);
   l^.len := Length(s);
   l^.s := StrNew(PChar(s));
+
   Inc(FLineCount);
+  if l^.Len>FLineWidth then
+   FLineWidth:=l^.len;
 
   for i := 0 to FViewInfos.Count - 1 do
     if Assigned(TViewInfo(FViewInfos.Items[i]).OnLineInsert) then
@@ -225,6 +235,8 @@ begin
     StrDispose(FLines^[LineNumber].s);
     FLines^[LineNumber].len := Length(NewText);
     FLines^[LineNumber].s := StrNew(PChar(NewText));
+    if Length(NewText)>FLineWidth then
+     FLineWidth:=Length(NewText);
     Modified := True;
   end;
 end;
@@ -256,7 +268,14 @@ end.
 
 {
   $Log$
-  Revision 1.2  1999-11-14 21:32:55  peter
+  Revision 1.3  1999-12-09 23:16:41  peter
+    * cursor walking is now possible, both horz and vert ranges are now
+      adapted
+    * filter key modifiers
+    * selection move routines added, but still no correct output to the
+      screen
+
+  Revision 1.2  1999/11/14 21:32:55  peter
     * fixes to get it working without crashes
 
   Revision 1.1  1999/10/29 15:59:03  peter

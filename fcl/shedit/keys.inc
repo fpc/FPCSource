@@ -47,16 +47,16 @@ begin
     AddKeyboardAction(AMethod, ADescr));
 end;
 
+
 procedure TSHTextEdit.ToggleOverwriteMode;
 begin
   OverwriteMode := not OverwriteMode;  // *** specify signal for change
 end;
 
+
 procedure TSHTextEdit.CursorUp;
 begin
-  if FCursorY = 0 then
-    FCursorX := 0
-  else
+  if FCursorY > 0 then
     Dec(FCursorY);
   if FCursorY<Renderer.VertPos then
    Renderer.VertPos := Renderer.VertPos - 1;
@@ -66,10 +66,8 @@ end;
 procedure TSHTextEdit.CursorDown;
 begin
   if FCursorY < FDoc.LineCount - 1 then
-   Inc(FCursorY)
-  else
-   FCursorX := FDoc.LineLen[FCursorY];
-  if FCursorY>Renderer.VertPos+Renderer.PageHeight then
+   Inc(FCursorY);
+  if FCursorY>=Renderer.VertPos+Renderer.PageHeight then
    Renderer.VertPos := Renderer.VertPos + 1;
 end;
 
@@ -77,7 +75,11 @@ end;
 procedure TSHTextEdit.CursorLeft;
 begin
   if FCursorX > 0 then
-    Dec(FCursorX)
+   begin
+     Dec(FCursorX);
+     if FCursorX<Renderer.HorzPos then
+      Renderer.HorzPos:=Renderer.HorzPos-1;
+   end
   else
     if FCursorY > 0 then
       begin
@@ -85,6 +87,8 @@ begin
         FCursorX := FDoc.LineLen[FCursorY];
         if FCursorY<Renderer.VertPos then
          Renderer.VertPos := Renderer.VertPos - 1;
+        if FCursorX>=Renderer.HorzPos+Renderer.PageWidth then
+         Renderer.HorzPos:=Renderer.HorzPos+1;
       end;
 end;
 
@@ -92,36 +96,55 @@ end;
 procedure TSHTextEdit.CursorRight;
 begin
   Inc(FCursorX);
-  if FCursorX > FDoc.LineLen[FCursorY] then
-    if FCursorY < FDoc.LineCount - 1 then
-     begin
-       Inc(FCursorY);
-       FCursorX := 0;
-       if FCursorY>Renderer.VertPos+Renderer.PageHeight then
-        Renderer.VertPos := Renderer.VertPos + 1;
-     end
-    else
-     FCursorX := FDoc.LineLen[FCursorY];
+  if FCursorX>=Renderer.HorzPos+Renderer.PageWidth then
+   Renderer.HorzPos:=FCursorX-Renderer.PageWidth+1;
+  if FCursorX>=Renderer.LineWidth then
+   Renderer.LineWidth:=FCursorX+1;
+end;
+
+
+procedure TSHTextEdit.CursorDocBegin;
+begin
+  FCursorX := 0;
+  FCursorY := 0;
+  Renderer.HorzPos:=0;
+  Renderer.VertPos:=0;
+end;
+
+
+procedure TSHTextEdit.CursorDocEnd;
+var
+  py : integer;
+begin
+  FCursorY:=FDoc.LineCount-1;
+  FCursorX := FDoc.LineLen[FCursorY];
+  py := FDoc.LineCount - Renderer.PageHeight;
+  if py < 0 then
+    py:=0;
+  Renderer.VertPos := py;
+  if FCursorX >= Renderer.HorzPos+Renderer.PageWidth then
+   Renderer.HorzPos:=FCursorX-Renderer.PageWidth+1;
 end;
 
 
 procedure TSHTextEdit.CursorHome;
 begin
   FCursorX := 0;
+  Renderer.HorzPos:=0;
 end;
 
 
 procedure TSHTextEdit.CursorEnd;
 begin
   FCursorX := FDoc.LineLen[FCursorY];
+  if FCursorX >= Renderer.HorzPos+Renderer.PageWidth then
+   Renderer.HorzPos:=FCursorX-Renderer.PageWidth+1;
 end;
 
 
 procedure TSHTextEdit.CursorPageUp;
 begin
-  if FCursorY = 0 then
-    FCursorX := 0
-  else
+  if FCursorY > 0 then
     begin
       Dec(FCursorY, Renderer.PageHeight);
       if FCursorY < 0 then
@@ -136,22 +159,126 @@ end;
 
 
 procedure TSHTextEdit.CursorPageDown;
+var
+  py : integer;
 begin
-  if FCursorY = FDoc.LineCount - 1 then
-    FCursorX := FDoc.LineLen[FCursorY]
-  else
+  if FCursorY < FDoc.LineCount - 1 then
     begin
       Inc(FCursorY, Renderer.PageHeight);
       if FCursorY >= FDoc.LineCount then
        begin
-         FCursorY := FDoc.LineCount - Renderer.PageHeight;
-         if FCursorY < 0 then
-          FCursorY:=0;
-         Renderer.VertPos := FCursorY;
+         FCursorY:=FDoc.LineCount-1;
+         py := FDoc.LineCount - Renderer.PageHeight;
+         if py < 0 then
+          py:=0;
+         Renderer.VertPos := py;
        end
       else
        Renderer.VertPos := Renderer.VertPos + Renderer.PageHeight;
     end;
+end;
+
+
+
+procedure TSHTextEdit.SetSelectionStart;
+begin
+  if not FSel.IsValid then
+   begin
+     FSel.StartX := FCursorX;
+     FSel.StartY := FCursorY;
+     FSel.EndX := FCursorX;
+     FSel.EndY := FCursorY;
+   end;
+end;
+
+
+procedure TSHTextEdit.SetSelectionEnd;
+begin
+  if FSel.IsValid then
+   begin
+     FSel.EndX := FCursorX;
+     FSel.EndY := FCursorY;
+   end;
+end;
+
+
+procedure TSHTextEdit.SelectionUp;
+begin
+  SetSelectionStart;
+  CursorUp;
+  SetSelectionEnd;
+end;
+
+
+procedure TSHTextEdit.SelectionDown;
+begin
+  SetSelectionStart;
+  CursorDown;
+  SetSelectionEnd;
+end;
+
+
+procedure TSHTextEdit.SelectionLeft;
+begin
+  SetSelectionStart;
+  CursorLeft;
+  SetSelectionEnd;
+end;
+
+
+procedure TSHTextEdit.SelectionRight;
+begin
+  SetSelectionStart;
+  CursorRight;
+  SetSelectionEnd;
+end;
+
+
+procedure TSHTextEdit.SelectionHome;
+begin
+  SetSelectionStart;
+  CursorHome;
+  SetSelectionEnd;
+end;
+
+
+procedure TSHTextEdit.SelectionEnd;
+begin
+  SetSelectionStart;
+  CursorEnd;
+  SetSelectionEnd;
+end;
+
+
+procedure TSHTextEdit.SelectionDocBegin;
+begin
+  SetSelectionStart;
+  CursorDocBegin;
+  SetSelectionEnd;
+end;
+
+
+procedure TSHTextEdit.SelectionDocEnd;
+begin
+  SetSelectionStart;
+  CursorDocEnd;
+  SetSelectionEnd;
+end;
+
+
+procedure TSHTextEdit.SelectionPageUp;
+begin
+  SetSelectionStart;
+  CursorPageUp;
+  SetSelectionEnd;
+end;
+
+
+procedure TSHTextEdit.SelectionPageDown;
+begin
+  SetSelectionStart;
+  CursorPageDown;
+  SetSelectionEnd;
 end;
 
 
@@ -315,12 +442,16 @@ begin
         AddUndoInfo(TUndoEdit.Create, True);
         if not BlockMode then KeyReturn;
       end;
-    #32..#255: begin
+    #32..#255:
+      begin
         s := FDoc.LineText[FCursorY];
-        if OverwriteMode then
-          s := Copy(s, 1, FCursorX) + Key + Copy(s, FCursorX + 2, Length(s))
+        if FCursorX>=Length(s) then
+          s := s + Space(FCursorX-length(s)) + Key
         else
-          s := Copy(s, 1, FCursorX) + Key + Copy(s, FCursorX + 1, Length(s));
+          if OverwriteMode then
+            s := Copy(s, 1, FCursorX) + Key + Copy(s, FCursorX + 2, Length(s))
+          else
+            s := Copy(s, 1, FCursorX) + Key + Copy(s, FCursorX + 1, Length(s));
         FDoc.LineText[FCursorY] := s;
         Inc(FCursorX);
         AddUndoInfo(TUndoEdit.Create, True);
@@ -372,8 +503,10 @@ begin
           while (KeysPos <= Length(Keys)) and (Keys[KeysPos] >= #32) do begin
             Key := Keys[KeysPos];
             s := FDoc.LineText[FCursorY];
-            s := Copy(s, 1, FCursorX) + Key +
-              Copy(s, FCursorX + 1 + Ord(OverwriteMode), Length(s));
+            if FCursorX>=Length(s) then
+             s := s + Space(FCursorX-length(s)) + Key
+            else
+             s := Copy(s, 1, FCursorX) + Key + Copy(s, FCursorX + 1 + Ord(OverwriteMode), Length(s));
             FDoc.LineText[FCursorY] := s;
             Inc(FCursorX);
             Inc(i);
@@ -584,7 +717,14 @@ end;
 
 {
   $Log$
-  Revision 1.3  1999-12-08 01:03:15  peter
+  Revision 1.4  1999-12-09 23:16:41  peter
+    * cursor walking is now possible, both horz and vert ranges are now
+      adapted
+    * filter key modifiers
+    * selection move routines added, but still no correct output to the
+      screen
+
+  Revision 1.3  1999/12/08 01:03:15  peter
     * changes so redrawing and walking with the cursor finally works
       correct
 

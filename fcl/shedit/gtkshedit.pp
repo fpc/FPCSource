@@ -99,9 +99,15 @@ type
     procedure HideCursor(x, y: Integer); override;
 
     // Scrolling support
+    function  GetHorzPos: Integer; override;
+    procedure SetHorzPos(x: Integer); override;
     function  GetVertPos: Integer; override;
     procedure SetVertPos(y: Integer); override;
+    function  GetPageWidth: Integer; override;
     function  GetPageHeight: Integer; override;
+    function  GetLineWidth: Integer; override;
+    procedure SetLineWidth(count: Integer); override;
+    function  GetLineCount: Integer; override;
     procedure SetLineCount(count: Integer); override;
 
     // Clipboard support
@@ -166,12 +172,22 @@ begin
     GDK_KP_Page_Up   : KeyCode:=GDK_Page_Up;
     GDK_KP_Page_Down : KeyCode:=GDK_Page_Down;
     GDK_KP_End       : KeyCode:=GDK_End;
+    GDK_Scroll_Lock,
+    GDK_Num_Lock,
+    GDK_Shift_L..GDK_Hyper_R :
+      begin
+        // Don't let modifier keys trough as normal keys
+        exit;
+      end;
   else
     KeyCode:=Event^.KeyVal;
   end;
-
-  KeyMods := [];
   KeyState:=Event^.State;
+
+  WriteLn('KeyCode ', KeyCode,'   keystate ',KeyState);
+
+  // Calculate the Key modifiers (shiftstate)
+  KeyMods := [];
   if (KeyState and 1) <> 0 then KeyMods := KeyMods + [ssShift];
   if (KeyState and 2) <> 0 then KeyMods := KeyMods + [ssCaps];
   if (KeyState and 4) <> 0 then KeyMods := KeyMods + [ssCtrl];
@@ -184,9 +200,9 @@ begin
   if (KeyState and $400) <> 0 then KeyMods := KeyMods + [ssRight];
   if (KeyState and $2000) <> 0 then KeyMods := KeyMods + [ssAltGr];
 
-  WriteLn('KeyCode ', KeyCode);
-
   edit.Edit.KeyPressed(KeyCode,KeyMods);
+
+  writeln(edit.Edit.Selection.StartX);
 end;
 
 function TGtkSHEdit_ButtonPressEvent(GtkWidget: PGtkWidget; event: PGdkEventButton ;  edit: TGtkSHEdit): Integer; cdecl;
@@ -272,7 +288,7 @@ begin
   Edit := AEdit;
   shWhitespace      := AddSHStyle('Whitespace', colBlack, colWhite, fsNormal);
   Edit.shDefault    := AddSHStyle('Default',    colBlack, colWhite, fsNormal);
-  Edit.shSelected   := AddSHStyle('Selected',   colWhite, colBlack, fsNormal);
+  Edit.shSelected   := AddSHStyle('Selected',   colWhite, colBlue, fsNormal);
 { Install keys }
   Edit.AddKeyDef(@Edit.CursorUp, 'Cursor up', GDK_Up, []);
   Edit.AddKeyDef(@Edit.CursorDown, 'Cursor down', GDK_Down, []);
@@ -282,6 +298,19 @@ begin
   Edit.AddKeyDef(@Edit.CursorEnd, 'Cursor Home', GDK_End, []);
   Edit.AddKeyDef(@Edit.CursorPageUp, 'Cursor PageUp', GDK_Page_Up, []);
   Edit.AddKeyDef(@Edit.CursorPageDown, 'Cursor PageDown', GDK_Page_Down, []);
+  Edit.AddKeyDef(@Edit.CursorDocBegin, 'Cursor Document Start', GDK_Page_Up, [ssCtrl]);
+  Edit.AddKeyDef(@Edit.CursorDocEnd, 'Cursor Document End', GDK_Page_Down, [ssCtrl]);
+
+  Edit.AddKeyDef(@Edit.SelectionUp, 'Selection up', GDK_Up, [ssShift]);
+  Edit.AddKeyDef(@Edit.SelectionDown, 'Selection down', GDK_Down, [ssShift]);
+  Edit.AddKeyDef(@Edit.SelectionLeft, 'Selection left', GDK_Left, [ssShift]);
+  Edit.AddKeyDef(@Edit.SelectionRight, 'Selection right', GDK_Right, [ssShift]);
+  Edit.AddKeyDef(@Edit.SelectionHome, 'Selection Home', GDK_Home, [ssShift]);
+  Edit.AddKeyDef(@Edit.SelectionEnd, 'Selection Home', GDK_End, [ssShift]);
+  Edit.AddKeyDef(@Edit.SelectionPageUp, 'Selection PageUp', GDK_Page_Up, [ssShift]);
+  Edit.AddKeyDef(@Edit.SelectionPageDown, 'Selection PageDown', GDK_Page_Down, [ssShift]);
+  Edit.AddKeyDef(@Edit.SelectionDocBegin, 'Selection Document Start', GDK_Page_Up, [ssCtrl,ssShift]);
+  Edit.AddKeyDef(@Edit.SelectionDocEnd, 'Selection Document End', GDK_Page_Down, [ssCtrl,ssShift]);
 
   Edit.AddKeyDef(@Edit.ToggleOverwriteMode, 'Toggle overwrite mode', GDK_Insert, []);
   Edit.AddKeyDef(@Edit.EditDelLeft, 'Delete char left of cursor', GDK_Backspace, []);
@@ -364,7 +393,6 @@ var
   hs : pchar;
 begin
   // WriteLn(Format('DrawTextLine(%d) for %s ', [y, ClassName]));
-
   // Erase the (potentially multi-coloured) background
 
   rx1 := x1;
@@ -457,12 +485,13 @@ end;
 
 
 procedure TGtkSHEdit.ShowCursor(x, y: Integer);
-var
-  r : TGdkRectangle;
 begin
-  writeln('Showcursor ',x,',',y);
-  SetGCColor(colBlack);
-  gdk_draw_rectangle(PGdkDrawable(GdkWnd), GC, 1, x*CharW + LeftIndent, y*CharH, 2, CharH);
+//  writeln('Showcursor ',x,',',y);
+  if assigned(GdkWnd) then
+   begin
+     SetGCColor(colBlack);
+     gdk_draw_rectangle(PGdkDrawable(GdkWnd), GC, 1, x*CharW + LeftIndent, y*CharH, 2, CharH);
+   end;
 end;
 
 
@@ -470,7 +499,7 @@ procedure TGtkSHEdit.HideCursor(x, y: Integer);
 var
   r : TGdkRectangle;
 begin
-  writeln('Hidecursor ',x,',',y);
+//  writeln('Hidecursor ',x,',',y);
   r.x := x * CharW + LeftIndent;
   r.y := y * CharH;
   r.Width := 2;
@@ -479,11 +508,47 @@ begin
 end;
 
 
+function TGtkSHEdit.GetLineWidth: Integer;
+begin
+  Result := (Trunc(hadj^.upper)-LeftIndent) div CharW;
+end;
+
+
+procedure TGtkSHEdit.SetLineWidth(count: Integer);
+begin
+  hadj^.upper := count * CharW + LeftIndent;
+  gtk_adjustment_changed(hadj);
+  gtk_widget_set_usize(PaintBox, Trunc(hadj^.upper), Trunc(vadj^.upper));
+end;
+
+
+function TGtkSHEdit.GetLineCount: Integer;
+begin
+  Result := Trunc(vadj^.upper) div CharH;
+end;
+
+
 procedure TGtkSHEdit.SetLineCount(count: Integer);
 begin
   vadj^.upper := count * CharH;
   gtk_adjustment_changed(vadj);
   gtk_widget_set_usize(PaintBox, Trunc(hadj^.upper), Trunc(vadj^.upper));
+end;
+
+
+function TGtkSHEdit.GetHorzPos: Integer;
+begin
+  Result := Trunc(hadj^.value);
+  if Result>0 then
+   Result:=(Result-LeftIndent) div CharW;
+end;
+
+
+procedure TGtkSHEdit.SetHorzPos(x: Integer);
+begin
+  if x>0 then
+   x:=x*CharW+LeftIndent;
+  gtk_adjustment_set_value(hadj, x);
 end;
 
 
@@ -499,6 +564,12 @@ begin
 end;
 
 
+function TGtkSHEdit.GetPageWidth: Integer;
+begin
+  Result := Trunc(hadj^.page_size) div CharW;
+end;
+
+
 function TGtkSHEdit.GetPageHeight: Integer;
 begin
   Result := Trunc(vadj^.page_size) div CharH;
@@ -507,7 +578,14 @@ end;
 end.
 {
   $Log$
-  Revision 1.4  1999-12-08 01:03:15  peter
+  Revision 1.5  1999-12-09 23:16:41  peter
+    * cursor walking is now possible, both horz and vert ranges are now
+      adapted
+    * filter key modifiers
+    * selection move routines added, but still no correct output to the
+      screen
+
+  Revision 1.4  1999/12/08 01:03:15  peter
     * changes so redrawing and walking with the cursor finally works
       correct
 
