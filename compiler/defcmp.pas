@@ -387,10 +387,20 @@ implementation
                  orddef :
                    begin { ordinal to real }
                      if is_integer(def_from) or
-                        is_currency(def_from) then
+                        (is_currency(def_from) and
+                         (s64currencytype.def.deftype = floatdef)) then
                        begin
                          doconv:=tc_int_2_real;
                          eq:=te_convert_l1;
+                       end
+                     else if is_currency(def_from)
+                             { and (s64currencytype.def.deftype = orddef)) } then
+                       begin
+                         { prefer conversion to orddef in this case, unless    }
+                         { the orddef < currency (then it will get convert l3, }
+                         { and conversion to float is favoured)                }
+                         doconv:=tc_int_2_real;
+                         eq:=te_convert_l2;
                        end;
                    end;
                  floatdef :
@@ -1249,7 +1259,17 @@ implementation
 end.
 {
   $Log$
-  Revision 1.39  2003-12-16 09:41:44  daniel
+  Revision 1.40  2004-01-02 17:19:04  jonas
+    * if currency = int64, FPC_CURRENCY_IS_INT64 is defined
+    + round and trunc for currency and comp if FPC_CURRENCY_IS_INT64 is
+      defined
+    * if currency = orddef, prefer currency -> int64/qword conversion over
+      currency -> float conversions
+    * optimized currency/currency if currency = orddef
+    * TODO: write FPC_DIV_CURRENCY and FPC_MUL_CURRENCY routines to prevent
+        precision loss if currency=int64 and bestreal = double
+
+  Revision 1.39  2003/12/16 09:41:44  daniel
     * Automatic conversion from integer constants to pointer constants is no
       longer done except in Delphi mode
 

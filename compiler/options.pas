@@ -1710,6 +1710,7 @@ begin
 {$ifdef m68k}
   def_symbol('CPU68K');
   def_symbol('CPU32');
+  def_symbol('FPC_CURRENCY_IS_INT64');
 {$endif}
 {$ifdef ALPHA}
   def_symbol('CPUALPHA');
@@ -1722,6 +1723,7 @@ begin
   def_symbol('FPC_HAS_TYPE_DOUBLE');
   def_symbol('FPC_HAS_TYPE_SINGLE');
   def_symbol('FPC_INCLUDE_SOFTWARE_INT64_TO_DOUBLE');
+  def_symbol('FPC_CURRENCY_IS_INT64');
 {$endif}
 {$ifdef iA64}
   def_symbol('CPUIA64');
@@ -1742,6 +1744,7 @@ begin
   def_symbol('FPC_HAS_TYPE_DOUBLE');
   def_symbol('FPC_HAS_TYPE_SINGLE');
   def_symbol('FPC_INCLUDE_SOFTWARE_INT64_TO_DOUBLE');
+  def_symbol('FPC_CURRENCY_IS_INT64');
 {$endif}
 {$ifdef vis}
   def_symbol('CPUVIS');
@@ -1752,6 +1755,7 @@ begin
   def_symbol('CPU32');
   def_symbol('FPC_HAS_TYPE_DOUBLE');
   def_symbol('FPC_HAS_TYPE_SINGLE');
+  def_symbol('FPC_CURRENCY_IS_INT64');
 {$endif arm}
 
 { get default messagefile }
@@ -1989,7 +1993,17 @@ finalization
 end.
 {
   $Log$
-  Revision 1.118  2003-12-17 22:50:42  hajny
+  Revision 1.119  2004-01-02 17:19:04  jonas
+    * if currency = int64, FPC_CURRENCY_IS_INT64 is defined
+    + round and trunc for currency and comp if FPC_CURRENCY_IS_INT64 is
+      defined
+    * if currency = orddef, prefer currency -> int64/qword conversion over
+      currency -> float conversions
+    * optimized currency/currency if currency = orddef
+    * TODO: write FPC_DIV_CURRENCY and FPC_MUL_CURRENCY routines to prevent
+        precision loss if currency=int64 and bestreal = double
+
+  Revision 1.118  2003/12/17 22:50:42  hajny
     * fixed incorrect error message
 
   Revision 1.117  2003/12/11 18:15:06  florian

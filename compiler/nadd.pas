@@ -195,9 +195,10 @@ implementation
             { when there is a currency type then use currency, but
               only when currency is defined as float }
             else
-             if (s64currencytype.def.deftype=floatdef) and
-                (is_currency(right.resulttype.def) or
-                 is_currency(left.resulttype.def)) then
+             if (is_currency(right.resulttype.def) or
+                 is_currency(left.resulttype.def)) and
+                ((s64currencytype.def.deftype = floatdef) or
+                 (nodetype <> slashn)) then
               begin
                 resultrealtype:=s64currencytype;
                 inserttypeconv(right,resultrealtype);
@@ -596,7 +597,24 @@ implementation
          { but an int/int gives real/real! }
          if nodetype=slashn then
           begin
-            if (left.resulttype.def.deftype <> floatdef) and
+            if is_currency(left.resulttype.def) and
+               is_currency(right.resulttype.def) then
+              { In case of currency, converting to float means dividing by 10000 }
+              { However, since this is already a division, both divisions by     }
+              { 10000 are eliminated when we divide the results -> we can skip   }
+              { them.                                                            }
+              if s64currencytype.def.deftype = floatdef then
+                begin
+                  { there's no s64comptype or so, how do we avoid the type conversion?
+                  left.resulttype := s64comptype;
+                  right.resulttype := s64comptype; }
+                end
+              else
+                begin
+                  left.resulttype := cs64bittype;
+                  right.resulttype := cs64bittype;
+                end
+            else if (left.resulttype.def.deftype <> floatdef) and
                (right.resulttype.def.deftype <> floatdef) then
               CGMessage(type_h_use_div_for_int);
             inserttypeconv(right,resultrealtype);
@@ -1886,7 +1904,17 @@ begin
 end.
 {
   $Log$
-  Revision 1.104  2003-12-31 20:47:02  jonas
+  Revision 1.105  2004-01-02 17:19:04  jonas
+    * if currency = int64, FPC_CURRENCY_IS_INT64 is defined
+    + round and trunc for currency and comp if FPC_CURRENCY_IS_INT64 is
+      defined
+    * if currency = orddef, prefer currency -> int64/qword conversion over
+      currency -> float conversions
+    * optimized currency/currency if currency = orddef
+    * TODO: write FPC_DIV_CURRENCY and FPC_MUL_CURRENCY routines to prevent
+        precision loss if currency=int64 and bestreal = double
+
+  Revision 1.104  2003/12/31 20:47:02  jonas
     * properly fixed assigned() mess (by handling it separately in ncginl)
       -> all assigned()-related tests in the test suite work again
 

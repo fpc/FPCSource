@@ -609,10 +609,13 @@ Function float32_to_int32_round_to_zero( a: Float32 ): longint;
       fr: Real;
       tr: Real;
     Begin
-       fr := Frac(d);
+       fr := abs(Frac(d));
        tr := Trunc(d);
        if fr > 0.5 then
-          result:=Trunc(d)+1
+         if d >= 0 then
+           result:=Trunc(d)+1
+         else
+           result:=Trunc(d)-1
        else
        if fr < 0.5 then
           result:=Trunc(d)
@@ -625,6 +628,55 @@ Function float32_to_int32_round_to_zero( a: Float32 ): longint;
             result:=Trunc(d);
     end;
 {$endif}
+
+
+{$ifdef FPC_CURRENCY_IS_INT64}
+
+    function trunc(c : currency) : int64;
+      type
+        tmyrec = record
+          i: int64;
+        end;
+      begin
+        result := int64(tmyrec(c)) div 10000
+      end;
+
+
+    function trunc(c : comp) : int64;
+      begin
+        result := c
+      end;
+
+
+    function round(c : currency) : int64;
+      type
+        tmyrec = record
+          i: int64;
+        end;
+      var
+        rem, absrem: longint;
+      begin
+        { (int64(tmyrec(c))(+/-)5000) div 10000 can overflow }
+        result := int64(tmyrec(c)) div 10000;
+        rem := int64(tmyrec(c)) - result * 10000;
+        absrem := abs(rem);
+        if (absrem > 5000) or
+           ((absrem = 5000) and
+            (rem > 0)) then
+          if (rem > 0) then
+            inc(result)
+          else
+            dec(result);
+      end;
+
+
+    function round(c : comp) : int64;
+      begin
+        result := c
+      end;
+
+{$endif FPC_CURRENCY_IS_INT64}
+
 
 
 {$ifndef FPC_SYSTEM_HAS_LN}
@@ -1112,7 +1164,17 @@ function fpc_int64_to_double(i : int64): double; compilerproc;
 
 {
   $Log$
-  Revision 1.16  2003-12-08 19:44:11  jonas
+  Revision 1.17  2004-01-02 17:19:04  jonas
+    * if currency = int64, FPC_CURRENCY_IS_INT64 is defined
+    + round and trunc for currency and comp if FPC_CURRENCY_IS_INT64 is
+      defined
+    * if currency = orddef, prefer currency -> int64/qword conversion over
+      currency -> float conversions
+    * optimized currency/currency if currency = orddef
+    * TODO: write FPC_DIV_CURRENCY and FPC_MUL_CURRENCY routines to prevent
+        precision loss if currency=int64 and bestreal = double
+
+  Revision 1.16  2003/12/08 19:44:11  jonas
     * use HandleError instead of RunError so exception catching works
 
   Revision 1.15  2003/09/03 14:09:37  florian

@@ -41,6 +41,14 @@
     function power(bas,expo : extended) : extended;
     function power(bas,expo : int64) : int64;
 
+{$ifdef FPC_CURRENCY_IS_INT64}
+    function trunc(c : currency) : int64;
+    function trunc(c : comp) : int64;
+    function round(c : currency) : int64;
+    function round(c : comp) : int64;
+{$endif FPC_CURRENCY_IS_INT64}
+
+
     type
        real48 = array[0..5] of byte;
 
@@ -54,7 +62,17 @@
 
 {
   $Log$
-  Revision 1.13  2003-01-21 19:36:36  mazen
+  Revision 1.14  2004-01-02 17:19:04  jonas
+    * if currency = int64, FPC_CURRENCY_IS_INT64 is defined
+    + round and trunc for currency and comp if FPC_CURRENCY_IS_INT64 is
+      defined
+    * if currency = orddef, prefer currency -> int64/qword conversion over
+      currency -> float conversions
+    * optimized currency/currency if currency = orddef
+    * TODO: write FPC_DIV_CURRENCY and FPC_MUL_CURRENCY routines to prevent
+        precision loss if currency=int64 and bestreal = double
+
+  Revision 1.13  2003/01/21 19:36:36  mazen
   - fpc_int64_to_double removed as not supported by most cpu targets
 
   Revision 1.12  2003/01/20 22:21:36  mazen
